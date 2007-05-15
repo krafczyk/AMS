@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.31 2006/07/14 13:17:18 choumilo Exp $
+//  $Id: trigger302.C,v 1.32 2007/05/15 11:38:33 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -120,7 +120,7 @@ void TriggerAuxLVL302::fillecal(){
 //
   AMSEcalRawEvent *ptr;
 //
-  for(int isl=0;isl<AMSECIdSoft::ncrates();isl++){ // <-------------- crates loop
+  for(int isl=0;isl<AMSECIds::ncrates();isl++){ // <-------------- crates loop
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()
                         ->getheadC("AMSEcalRawEvent",isl,0);
 //(for MC i use "daq-decoded" class AMSEcalRawEvent as input)  
@@ -242,6 +242,7 @@ VZERO(_nhits,sizeof(_nhits)/sizeof(integer));
 
 //------------------------------------------------------
 void TriggerLVL302::init(){
+  cout<<"====> TriggerLVL302_init: reading the parameters..."<<endl;
   if(LVL3FFKEY.Stat){
    HBOOK1(-400001,"time",100,-1.,9.,0.);
   }
@@ -251,6 +252,7 @@ void TriggerLVL302::init(){
     for(i=0;i<15;i++)_flowc[i]=0;// clear prog.flow counters
 
     if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+      cout<<"      AMS02-setup selected !"<<endl;
 // TOF
       ltop=0;//top layer used in matrix-trigger
       lbot=3;//bot ..........
@@ -265,7 +267,7 @@ void TriggerLVL302::init(){
     }
     else
     {
-          cout <<" TOFLVL302-E-Unknown setup !!!"<<endl;
+          cout <<"<---- TOFLVL302-E-Unknown setup !!?"<<endl<<endl;
 	  exit(10);
     }
   if(LVL3FFKEY.UseTightTOF){
@@ -275,7 +277,7 @@ void TriggerLVL302::init(){
     strcat(fnam,AMSJob::gethead()->getsetup());
     ifstream iftxt(fnam,ios::in);
     if(!iftxt){
-     cerr <<"TriggerLVL302::init-F-Error open file "<<fnam<<endl;
+     cerr <<"<---- TriggerLVL302::init-F-Error open file !!? "<<fnam<<endl;
      exit(1);
     }
     for(i=0;i<padspl[ltop];i++){
@@ -288,7 +290,7 @@ void TriggerLVL302::init(){
       for(j=0;j<padspl[i];j++)iftxt>>_TOFStatus[i][j];
     }
     if(iftxt.eof() ){
-      cerr<< "TriggerLVL302::init-F-Unexpected EOF"<<endl;
+      cerr<< "<---- TriggerLVL302::init-F-Unexpected EOF !!?"<<endl;
       exit(1);
     }
   }
@@ -323,7 +325,7 @@ void TriggerLVL302::init(){
          AMSPoint global=ptr->loc2gl(loc);
          for(int k=0;k<3;k++)_TOFCoo[j][i][k]=global[k];         
         }
-        else cerr <<"TriggerLVL302-Init-S-TOFVolumeNotFound"<<AMSID(vname,100*(j+1)+i+1);
+        else cerr <<"      Init-S-TOFVolumeNotFound"<<AMSID(vname,100*(j+1)+i+1);
       }
     }
 //----------------  
@@ -337,12 +339,12 @@ void TriggerLVL302::init(){
  strcpy(name,"TOFT0LVL3.AMS02");
  if(AMSJob::gethead()->isMCData()) //      for MC-event
  {
-       cout <<" TriggerLVL302_build: MC-tofT0-calibration is used"<<endl;
+       cout <<"      MC: TOF_t0-calibration is used..."<<endl;
        strcat(name,vers1);
  }
  else                              //      for Real events
  {
-       cout <<" TriggerLVL302_build: REAL-tofT0-calibration is used"<<endl;
+       cout <<"      RData: TOF_t0-calibration is used..."<<endl;
        strcat(name,vers2);
  }
 //
@@ -350,27 +352,27 @@ void TriggerLVL302::init(){
  char setu2[4]="8p";
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
-     cout <<" T0LVL3-I-TOF:12PAD setup selected."<<endl;
+     cout <<"      TOF: 12PAD setup selected."<<endl;
      strcat(name,setu1);
    }
    else{
-    cout <<" T0LVL3-I-TOF:8PAD setup selected."<<endl;
+    cout <<"      TOF: 8/8/10/8-pads/layer setup selected."<<endl;
     strcat(name,setu2);
    }
  }
  else
  {
-    cout <<" TOFLVL302-E-Unknown setup for TOF T0-calibr.!!!"<<endl;
+    cout <<"      TOF: Unknown setup for TOF_t0-calibr.!!?"<<endl;
     exit(10);
  }
 //
  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
- cout<<"Open file : "<<fname<<'\n';
+ cout<<"      Open file : "<<fname<<'\n';
  ifstream tzcfile(fname,ios::in); // open  file for reading
  if(!tzcfile){
-   cerr <<"TriggerLVL302_build: missing TOFTzero-file "<<fname<<endl;
+   cerr <<"<---- TriggerLVL302_build: missing TOF_t0-file !!? "<<fname<<endl;
    exit(1);
  }
 //
@@ -389,7 +391,7 @@ void TriggerLVL302::init(){
      _ECgains[isl][ipm]=1;
    }
  }
- _ECadc2mev=1.175;
+ _ECadc2mev=1.15;
  _ECh2lrat=36;
  _ECpedsig=2;//do not need now
  _ECpmdx=ECALDBc::rdcell(7);//transv.pitch(1.8cm)
@@ -429,13 +431,13 @@ void TriggerLVL302::init(){
         }
       }
       if(nsf==0){
-        cerr <<"Trigger3::Init-S-no sensors found for layer "<<i+1<<endl;
+        cerr <<"      TRK: -S-no sensors found for layer "<<i+1<<endl;
         //exit(1);
       }
       else{
           _TrackerCooZ[i]=_TrackerCooZ[i]/nsf;
 #ifdef __AMSDEBUG__
-          cout <<"Trigger3::Init-I-"<<nsf<<" sensors found for layer "<<i+1<<endl;
+          cout <<"      TRK: -I-"<<nsf<<" sensors found for layer "<<i+1<<endl;
 #endif
       }
     }
@@ -478,12 +480,12 @@ void TriggerLVL302::init(){
               }
           }
           if(nfs==0){
-             cerr <<"Trigger3::Init-S-no sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
+             cerr <<"      TRK: -S-no sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
              //exit(1);
           }
           else{
 #ifdef __AMSDEBUG__
-          cout <<"Trigger3::Init-I-"<<nfs<<" sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
+          cout <<"      TRK: -I-"<<nfs<<" sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
 #endif
           _TrackerCoo[i][k][0]=_TrackerCoo[i][k][0]/nfs;
           _TrackerCoo[i][k][1]=_TrackerCoo[i][k][1]/nfs;
@@ -507,7 +509,7 @@ void TriggerLVL302::init(){
        if(!id.dead())_TrackerDRP2Layer[i][k]=id.getlayer()-1;
        else _TrackerDRP2Layer[i][k]=-1;
 #ifdef __AMSDEBUG__
-       cout <<"_TrackerDRP2Layer[i][k] "<<i<<" "<<k<<" "<<_TrackerDRP2Layer[i][k]<<endl;
+       cout <<"      _TrackerDRP2Layer[i][k] "<<i<<" "<<k<<" "<<_TrackerDRP2Layer[i][k]<<endl;
 #endif      
       } 
    }
@@ -561,7 +563,7 @@ void TriggerLVL302::init(){
      }
 
       if(nsf==0){
-        cerr <<"Trigger3::Init-W-no TRD Tubes found for segment "<<i<<" "<<j<<ij<<endl;
+        cerr <<"      TRK: -W-no TRD Tubes found for segment "<<i<<" "<<j<<ij<<endl;
       }
       else{
            for(int m=0;m<3;m++)TRDAux_DEF::_Coo[i][j][ij][m]/=nsf;
@@ -605,7 +607,7 @@ void TriggerLVL302::init(){
      }
 
       if(nsf==0){
-        cerr <<"Trigger3::Init-F-no TRD found "<<i<<" "<<j<<endl;
+        cerr <<"<---- Error: Trigger3::Init-F-no TRD found "<<i<<" "<<j<<endl;
         exit(1);
       }
       else{
@@ -645,7 +647,7 @@ void TriggerLVL302::init(){
     ofstream oftxt(fnam,ios::out);
     if(oftxt){
       oftxt<<endl;
-      oftxt << "_TOFPattern[i][14]"<<endl;
+      oftxt << "      TOFPattern[i][14]"<<endl;
       int i,j,k;
       for(i=0;i<padspl[ltop];i++){
         oftxt <<"i "<<i<<" ";
@@ -654,21 +656,21 @@ void TriggerLVL302::init(){
       }    
       oftxt<<endl;
       oftxt<<endl;
-      oftxt << "_TOFOr[i][14]"<<endl;
+      oftxt << "      TOFOr[i][14]"<<endl;
       for(i=0;i<planes;i++){
         oftxt <<"i "<<i<<" ";
         for(j=0;j<padspl[i];j++)oftxt <<_TOFOr[i][j]<<" ";
         oftxt <<endl;
       }    
       oftxt<<endl;
-      oftxt << "_TOFStatus[i][14]"<<endl;
+      oftxt << "      TOFStatus[i][14]"<<endl;
       for(i=0;i<planes;i++){
         oftxt <<"i "<<i<<" ";
         for(j=0;j<padspl[i];j++)oftxt <<_TOFStatus[i][j]<<" ";
         oftxt <<endl;
       }    
       oftxt<<endl;
-      oftxt << "_TOFCoo[i][j][3]"<<endl;
+      oftxt << "      TOFCoo[i][j][3]"<<endl;
       for(i=0;i<planes;i++){
         oftxt <<"i "<<i<<endl;
         for(j=0;j<padspl[i];j++){
@@ -680,21 +682,21 @@ void TriggerLVL302::init(){
       }  
     
 
-      oftxt << "_Trackerstatus[64]"<<endl;
+      oftxt << "      Trackerstatus[64]"<<endl;
       for(i=0;i<AMSTrIdSoft::ndrp();i++){
        oftxt<<_TrackerStatus[i]<<" ";
       }
       oftxt<<endl;
       oftxt<<endl;
 
-      oftxt << "_TrackerCooZ[nl]"<<endl;
+      oftxt << "      TrackerCooZ[nl]"<<endl;
       for(i=0;i<TKDBc::nlay();i++){
        oftxt<<_TrackerCooZ[i]<<" ";
       }
       oftxt<<endl;
       oftxt<<endl;
 
-      oftxt << "_TrackerCoo[i][j][3]"<<endl;
+      oftxt << "      TrackerCoo[i][j][3]"<<endl;
       for(i=0;i<NTRHDRP;i++){
         oftxt <<"i "<<i<<endl;
         for(j=0;j<AMSTrIdSoft::ncrates();j++){
@@ -706,7 +708,7 @@ void TriggerLVL302::init(){
       }  
       oftxt<<endl;
 
-      oftxt << "_TrackerDir[i][2]"<<endl;
+      oftxt << "      TrackerDir[i][2]"<<endl;
       for(i=0;i<NTRHDRP;i++){
         oftxt <<"i "<<i<<endl;
          for(k=0;k<AMSTrIdSoft::ncrates();k++)oftxt <<_TrackerDir[i][k]<<" ";
@@ -716,7 +718,7 @@ void TriggerLVL302::init(){
       oftxt<<endl;
 
 
-      oftxt << "_TrackerDRP2Layer[i][2]"<<endl;
+      oftxt << "      TrackerDRP2Layer[i][2]"<<endl;
       for(i=0;i<NTRHDRP;i++){
         oftxt <<"i "<<i<<endl;
          for(k=0;k<AMSTrIdSoft::ncrates();k++)oftxt <<_TrackerDRP2Layer[i][k]<<" ";
@@ -726,7 +728,7 @@ void TriggerLVL302::init(){
     
       oftxt<<endl;
 
-      oftxt << "_TrackerOtherTDR[i][2]"<<endl;
+      oftxt << "      TrackerOtherTDR[i][2]"<<endl;
       for(i=0;i<NTRHDRP;i++){
          oftxt <<"i "<<i<<endl;
          for(k=0;k<AMSTrIdSoft::ncrates();k++)oftxt <<_TrackerOtherTDR[i][k]<<" ";
@@ -741,7 +743,7 @@ void TriggerLVL302::init(){
     }
 #endif
 
-    
+  cout<<"<---- TriggerLVL302::init: successfully done !"<<endl<<endl;    
 }
 
 //---------------------------------------------------------------- 
@@ -1135,8 +1137,8 @@ int TriggerLVL302::eccrosscheck(geant ect){
         pmc=id%10-1;//PMSubCell(0-3)
         pm=idd%100-1;//PM(0-...)
 	sl=idd/100-1;//superlayer
-	ah=number(*(ptr+1))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
-	al=number(*(ptr+2))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
+	ah=number(*(ptr+1));//for real algor. may be need /16
+	al=number(*(ptr+2));
 	amp=0;
 	if(ah>0){//(some readout thresh. is assumed to be done on prev. stages of readout)
 	  if(ah<number(ECADCMX[0]))amp=ah;// no ovfl

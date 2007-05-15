@@ -1,337 +1,234 @@
+#include "ecaldbc.h"
 #include "ecid.h"
 using namespace ecalconst;
- integer AMSECIdSoft::_GetGeo[ecalconst::ECRT][ecalconst::ECPMSL][2];   // slayer,pmtno
- integer AMSECIdSoft::_GetHard[ecalconst::ECSLMX][ecalconst::ECPMSMX][2];     // crate, hchan
- int16 AMSECIdSoft::_GetPix[4][2];
-
-AMSECIdSoft::AMSECIdSoft(int16 crate, int16 haddr, int16 channelh):_channelh(channelh),_crate(crate),_dead(0),_haddr(haddr){
-
-_sl=_GetGeo[crate%ECRT][haddr%ECPMSMX][0];
-_pmtno=_GetGeo[crate%ECRT][haddr%ECPMSMX][1];
-if(_sl<0)_dead=1;
-_channelh2s();
-}
-
-AMSECIdSoft::AMSECIdSoft(integer idsoft):_dead(0){
-_sl=idsoft/1000-1;
-_pmtno=(idsoft/10)%100-1;
-_channel=idsoft%10-1;
-_crate=_GetHard[_sl][_pmtno][0];
-_haddr=_GetHard[_sl][_pmtno][1];
-_channels2h();
-if(_crate<0)_dead=1;
-}
-
-
-AMSECIdSoft::AMSECIdSoft(integer layer, integer cell):_dead(0){
- _sl=layer/2;
- _pmtno=cell/2;
- if(_sl<ECSLMX && _pmtno<ECPMSMX){
- _channel=2*(layer%2)+cell%2;
- _crate=_GetHard[_sl][_pmtno][0];
- _haddr=_GetHard[_sl][_pmtno][1];
- _channels2h();
-if(_crate<0)_dead=1;
-}
-else{
-  cerr<<"AMSECIdSoft::AMSECIdSoft-S-ParametersOutOfBound "<<layer<<" "<<cell<<endl;
-  _dead=1;
-}
-}
-
-
-AMSECIdSoft::AMSECIdSoft(int sl, int pmt, int cha, int dummy):_dead(0),_sl(sl),_pmtno(pmt),_channel(cha){
-_crate=_GetHard[_sl][_pmtno][0];
-_haddr=_GetHard[_sl][_pmtno][1];
-_channels2h();
-if(_crate<0)_dead=1;
-}
-//----------
-void AMSECIdSoft::_channelh2s(){
- if(_channelh==4){
-   _channel=0;
- }
- else{
-   if(_pmtno%2==0)_channel=_GetPix[_channelh][1]-1;
-   else _channel=_GetPix[_channelh][0]-1;
- }
-}
-//----------
-void AMSECIdSoft::_channels2h(){//my(softw)->hw pixel_number conversion
- if(_pmtno%2==0)_channelh=_GetPix[_channel][0]-1;
- else _channelh=_GetPix[_channel][1]-1;
-}
-//----------
-//----------
+integer AMSECIds::_sidlst[ECRCMX];//swid-list(vx sequential hwch)
+integer AMSECIds::_hidlst[ECRCMX];//hwid-list(vs sequential swch)
+integer AMSECIds::_hidls[ECRCMX];//hwid-list(vs sequential hwch)
 //
-void AMSECIdSoft::inittable(){
+//slot(card)-types map in the crates (only data-slots are considered !):
+int16u AMSECIds::_sltymap[ECRT][ECSLOTS]={
+                                         1,1,1,1,1,1,2, //crate-1
+	                                 1,1,1,1,1,1,2  //crate-2
+                                         };
+//dataSlot(EDR/ETRG)-id(address) map in the crate for indiv.sides: 
+int16u AMSECIds::_cardids[2][ECSLOTS]={
+                                            0,4,8,12,16,20,22, //side-a
+                                            1,5,9,13,17,21,23, //side-b
+                                            };
+// output channels(rdch's) vs slot(card) type: 
+int16u AMSECIds::_ochpsty[ECSTYPS]={243,7};//EDR2,ETRG
 //
-// Pixel number conversion:
-//
-    _GetPix[0][0]=3;//hw=F(sw) for pm1
-    _GetPix[1][0]=4;
-    _GetPix[2][0]=2;
-    _GetPix[3][0]=1;
-    _GetPix[0][1]=_GetPix[1][0];//hw=F(sw) for pm2
-    _GetPix[1][1]=_GetPix[0][0];
-    _GetPix[2][1]=_GetPix[3][0];
-    _GetPix[3][1]=_GetPix[2][0];
-//
-     for(int i=0;i<ECRT;i++){
-       for( int j=0;j<ECPMSL;j++){
-         for(int l=0;l<2;l++)_GetGeo[i][j][l]=-1;
-        }
-       }
-     for(int i=0;i<ECSLMX;i++){
-       for(int  j=0;j<ECPMSMX;j++){
-          for(int l=0;l<2;l++)_GetHard[i][j][l]=-1;
-         }
-     }
-
-    _GetHard[0][0][0]=0;
-    _GetHard[0][0][1]=0;
-
-    _GetHard[0][1][0]=1;
-    _GetHard[0][1][1]=1;
-
-    _GetHard[0][2][0]=0;
-    _GetHard[0][2][1]=18;
-
-    _GetHard[0][3][0]=1;
-    _GetHard[0][3][1]=19;
-
-    _GetHard[0][4][0]=0;
-    _GetHard[0][4][1]=11;
-
-    _GetHard[0][5][0]=1;
-    _GetHard[0][5][1]=0;
-
-    _GetHard[0][6][0]=0;
-    _GetHard[0][6][1]=17;
-
-
-    _GetHard[1][0][0]=1;
-    _GetHard[1][0][1]=3;
-
-    _GetHard[1][1][0]=0;
-    _GetHard[1][1][1]=2;
-
-    _GetHard[1][2][0]=1;
-    _GetHard[1][2][1]=21;
-
-    _GetHard[1][3][0]=0;
-    _GetHard[1][3][1]=20;
-
-    _GetHard[1][4][0]=1;
-    _GetHard[1][4][1]=2;
-
-    _GetHard[1][5][0]=0;
-    _GetHard[1][5][1]=9;
-
-    _GetHard[1][6][0]=0;
-    _GetHard[1][6][1]=15;
-
-
-
-    _GetHard[2][0][0]=0;
-    _GetHard[2][0][1]=4;
-
-    _GetHard[2][1][0]=1;
-    _GetHard[2][1][1]=5;
-
-    _GetHard[2][2][0]=0;
-    _GetHard[2][2][1]=22;
-
-    _GetHard[2][3][0]=1;
-    _GetHard[2][3][1]=23;
-
-    _GetHard[2][4][0]=0;
-    _GetHard[2][4][1]=7;
-
-    _GetHard[2][5][0]=1;
-    _GetHard[2][5][1]=4;
-
-    _GetHard[2][6][0]=0;
-    _GetHard[2][6][1]=13;
-
-    _GetHard[3][0][0]=1;
-    _GetHard[3][0][1]=7;
-
-    _GetHard[3][1][0]=0;
-    _GetHard[3][1][1]=6;
-
-    _GetHard[3][2][0]=1;
-    _GetHard[3][2][1]=25;
-
-    _GetHard[3][3][0]=0;
-    _GetHard[3][3][1]=24;
-
-    _GetHard[3][4][0]=1;
-    _GetHard[3][4][1]=6;
-
-    _GetHard[3][5][0]=0;
-    _GetHard[3][5][1]=5;
-
-    _GetHard[3][6][0]=0;
-    _GetHard[3][6][1]=35;
-
-
-    _GetHard[4][0][0]=0;
-    _GetHard[4][0][1]=8;
-
-    _GetHard[4][1][0]=1;
-    _GetHard[4][1][1]=9;
-
-    _GetHard[4][2][0]=0;
-    _GetHard[4][2][1]=26;
-
-    _GetHard[4][3][0]=1;
-    _GetHard[4][3][1]=27;
-
-    _GetHard[4][4][0]=0;
-    _GetHard[4][4][1]=3;
-
-    _GetHard[4][5][0]=1;
-    _GetHard[4][5][1]=8;
-
-    _GetHard[4][6][0]=0;
-    _GetHard[4][6][1]=33;
-
-
-    _GetHard[5][0][0]=1;
-    _GetHard[5][0][1]=11;
-
-    _GetHard[5][1][0]=0;
-    _GetHard[5][1][1]=10;
-
-    _GetHard[5][2][0]=1;
-    _GetHard[5][2][1]=29;
-
-    _GetHard[5][3][0]=0;
-    _GetHard[5][3][1]=28;
-
-    _GetHard[5][4][0]=1;
-    _GetHard[5][4][1]=10;
-
-    _GetHard[5][5][0]=0;
-    _GetHard[5][5][1]=1;
-
-    _GetHard[5][6][0]=0;
-    _GetHard[5][6][1]=31;
-
-
-    _GetHard[6][0][0]=0;
-    _GetHard[6][0][1]=12;
-
-    _GetHard[6][1][0]=1;
-    _GetHard[6][1][1]=13;
-
-    _GetHard[6][2][0]=0;
-    _GetHard[6][2][1]=30;
-
-    _GetHard[6][3][0]=1;
-    _GetHard[6][3][1]=31;
-
-    _GetHard[6][4][0]=0;
-    _GetHard[6][4][1]=23;
-
-    _GetHard[6][5][0]=1;
-    _GetHard[6][5][1]=12;
-
-    _GetHard[6][6][0]=0;
-    _GetHard[6][6][1]=29;
-
-    _GetHard[7][0][0]=1;
-    _GetHard[7][0][1]=15;
-
-    _GetHard[7][1][0]=0;
-    _GetHard[7][1][1]=14;
-
-    _GetHard[7][2][0]=1;
-    _GetHard[7][2][1]=33;
-
-    _GetHard[7][3][0]=0;
-    _GetHard[7][3][1]=32;
-
-    _GetHard[7][4][0]=1;
-    _GetHard[7][4][1]=14;
-
-    _GetHard[7][5][0]=0;
-    _GetHard[7][5][1]=21;
-
-    _GetHard[7][6][0]=0;
-    _GetHard[7][6][1]=27;
-
-    _GetHard[8][0][0]=0;
-    _GetHard[8][0][1]=16;
-
-    _GetHard[8][1][0]=1;
-    _GetHard[8][1][1]=17;
-
-    _GetHard[8][2][0]=0;
-    _GetHard[8][2][1]=34;
-
-    _GetHard[8][3][0]=1;
-    _GetHard[8][3][1]=35;
-
-    _GetHard[8][4][0]=0;
-    _GetHard[8][4][1]=19;
-
-    _GetHard[8][5][0]=1;
-    _GetHard[8][5][1]=16;
-
-    _GetHard[8][6][0]=0;
-    _GetHard[8][6][1]=25;
-
-
-     for(int i=0;i<ECSLMX;i++){
-     for(int j=7;j<ECPMSMX;j++){
-      _GetHard[i][j][0]=j%2;
-      _GetHard[i][j][1]=36+i*ECPMSMX+(j-7)/2;
-//       cout <<i<<" "<<j<<" "<<_GetHard[i][j][1]<<endl;
-     }    
-     }
-
-  // perform duplicate check
-     int tot=0;
-     for(int i=0;i<ECSLMX;i++){
-      for(int j=0;j<ECPMSMX;j++){
-          int cr=_GetHard[i][j][0];
-          int haddr=_GetHard[i][j][1];
-          if(cr>=0){
-            tot++;
-            for(int i1=0;i1<ECSLMX;i1++){
-             for(int j1=0;j1<ECPMSMX;j1++){
-               if(j1==j && i1==i || (cr!=_GetHard[i1][j1][0]))continue;
-               if(haddr == _GetHard[i1][j1][1]){
-                 cerr <<"AMSECIdSoft::inittable-F-duplicate entry found "<<
-                   haddr<<" i "<<i<<" j "<<j<<" i1 "<<i1<<
-                   " j1 "<<j1<<endl;
-                 abort();
-               }
-             }
-            }           
-           }
-          }
-          
-        }
-     
-//     cout <<" total "<<tot<<endl; 
-
-
-   for(int i=0;i<ECRT;i++){
-    for(int j=0;j<ECPMSL;j++){
-      for(int i1=0;i1<ECSLMX;i1++){
-        for(int j1=0;j1<ECPMSMX;j1++){
-            if(_GetHard[i1][j1][0]==i && _GetHard[i1][j1][1]==j){
-             _GetGeo[i][j][0]=i1;
-             _GetGeo[i][j][1]=j1;
-            }
-          }
-                                      
-        }
-      }      
+//EIBid-names map(id=+-Face|Half|sLayer=>F=1/2/3/4->A/B/C/D;H=1/2->-X(Y)/+X(Y);
+//L=0-8; in_front +/- => (PMT looking in +X(Y) direction)/opposit
+int16 AMSECIds::_eibid[ECRT][ECEDRS][ECCONN]={
+                                             -221, 120,-322,  // cr-1, EDR-1, conn.0-2
+					     -211,-320, 122,  //  ...  EDR-2
+					     -223, 128,-324,  //  ...  EDR-3
+					     -213,-328, 124,  //  ...  EDR-4
+					     -225,-217,-326,  //  ...  EDR-5
+					     -215,-227, 126,  //  ...  EDR-6
+					      411,-310, 112,  // cr-2  EDR-1, conn.0-2
+					      421, 110,-312,  //  ...  EDR-2
+					      413,-318, 114,  //  ...  EDR-3
+					      423, 118,-314,  //  ...  EDR-4
+					      415, 427, 116,  //  ...  EDR-5
+					      425, 417,-316   //  ...  EDR-6
+					     };
+// PMT HW->SW pixel mapping for faces A,B and C,D : 
+int16u AMSECIds::_h2spixmap[2][5]={
+                                  3,2,0,1,4,  //face A,B
+				  2,3,1,0,4   //face C,D
+                                 };
+//----------
+//                            0-1            0-1           0-5          0-242
+AMSECIds::AMSECIds(int16u crate, int16u side, int16u slot, int16u rdch):
+                        _crate(crate),_aside(side),_slot(slot),_rdch(rdch){//used in RD buildRaw
+//cout<<"===> InConstr:crat/side/slot/rdch="<<crate<<" "<<side<<" "<<slot<<" "<<rdch<<endl;
+ _hwch=hwseqn(crate,slot,rdch);//0->2915
+//cout<<" hwch="<<_hwch<<endl;
+ _swid=_sidlst[_hwch];//LTTPG(slayer|tube|pixel|gain)
+ _slay=_swid/10000;
+ _slay=_slay-1;//0-8
+ _pmt=(_swid%10000)/100-1;//0-35
+ _pixel=(_swid%100)/10;
+ _pixel=_pixel-1;//0-4 (4->dynode)
+ _gainf=(_swid%10)-1;//0/1->high/low
+//cout<<" swid="<<_swid<<" sl/pmt/pix/gn="<<_slay<<" "<<_pmt<<" "<<_pixel<<" "<<_gainf<<endl;
+ _swch=swseqn(_slay,_pmt,_pixel,_gainf);//sw sequential number(0->2915)
+//cout<<" swch="<<_swch<<endl;
+ _hwid=(_crate+1)*100000+(_slot+1)*1000+(_rdch+1);//CSSRRR(crate|slot|readout_ch)
+ _sltyp=_sltymap[_crate][_slot];//1-2=>EDR2/ETRG
+//cout<<" hwid/sltyp="<<_hwid<<_sltyp<<endl;
+//cout<<"    leave constr...."<<endl;
+}
+//-----------
+//                            LTTP
+AMSECIds::AMSECIds(integer sswid):_aside(0),_gainf(0){//used in MC buildRaw
+  _slay=sswid/1000-1;
+  _pmt=(sswid%1000)/10-1;
+  _pixel=sswid%10-1;//0-4 (4->dynode)
+  _swid=sswid*10+1;//LTTPG(_gainf=1=anode_hi)
+  _swch=swseqn(_slay,_pmt,_pixel,_gainf);//sw sequential number(0->2915)
+  _hwid=_hidlst[_swch];//CSSRRR
+  _crate=(_hwid/100000)-1;//0-1
+  _slot=(_hwid%100000)/1000-1;//0-5
+  _rdch=(_hwid%1000)-1;//0-242
+  _sltyp=_sltymap[_crate][_slot];//1-2=>EDR2/ETRG(really only 1, because _slot<=5)
+  _hwch=hwseqn(_crate,_slot,_rdch);//0->2915
+}
+//-----------
+//                            0-17            0-71  
+AMSECIds::AMSECIds(integer layer, integer cell):_aside(0),_gainf(0){//used in 1D-Cluster search
+//                        
+  _slay=layer/2;//0-8
+  _pmt=cell/2;//0-35
+  if(_slay<ECSLMX && _pmt<ECPMSMX){
+   _pixel=2*(layer%2)+cell%2;//0-3
+   _swid=(_slay+1)*10000+(_pmt+1)*100+(_pixel+1)*10+_gainf+1;//swid=LTTPG
+   _swch=swseqn(_slay,_pmt,_pixel,_gainf);//sw sequential number(0->...2915)
+   _hwid=_hidlst[_swch];//CSSRRR
+   _crate=(_hwid/100000)-1;//0-1
+   _slot=(_hwid%100000)/1000-1;//0-5
+   _rdch=(_hwid%1000)-1;//0-242
+   _sltyp=_sltymap[_crate][_slot];//1-2=>EDR2/ETRG(really only 1, because _slot<=5)
+   _hwch=hwseqn(_crate,_slot,_rdch);//0->2915
   }
-
-
+  else{
+   cerr<<"AMSECIds::AMSECIds-S-ParametersOutOfBound "<<layer<<" "<<cell<<endl;
+//  _dead=1;
+  }
+}
+//-----------
+// constructor for buildDAQ:
+//                          0-8         0-35          0-4          0-1
+AMSECIds::AMSECIds(int16u sl, int16u pmt, int16u pix, int16u gnf, int16u side):
+                                        _aside(side),_slay(sl),_pmt(pmt),_pixel(pix),_gainf(gnf){
+//
+  _swid=(_slay+1)*10000+(_pmt+1)*100+(_pixel+1)*10+_gainf+1;//swid=LTTPG
+  _swch=swseqn(_slay,_pmt,_pixel,_gainf);//sw sequential number(0->...2915)
+  _hwid=_hidlst[_swch];//CSSRRR
+  _crate=(_hwid/100000)-1;//0-1
+  _slot=(_hwid%100000)/1000-1;//0-5
+  _rdch=(_hwid%1000)-1;//0-242
+  _sltyp=_sltymap[_crate][_slot];//1-2=>EDR2/ETRG(really only 1, because _slot<=5)
+  _hwch=hwseqn(_crate,_slot,_rdch);//0->2915
+}
+//--------------
+//                                 0-1           0,1,4,5,...
+int16 AMSECIds::crdid2sl(int16u side, int16u crdid){
+//card(slot)_id(node_addr(link#) to sequential slot# vs side(known from JINF_id)
+//                                             slot#=0-5 =>EDRs; =6 =>ETRG
+  for(int i=0;i<ECSLOTS;i++){
+    if(_cardids[side][i]==crdid)return(i);
+  }
+  return(-1);//if illegal(not existing) crdid
+}
+//----------
+void AMSECIds::_pixelh2s(){
+}
+//----------
+void AMSECIds::_pixels2h(){//my(softw)->hw pixel_number conversion
+}
+//----------
+//
+void AMSECIds::inittable(){
+//
+ int16u crat,edr,rdch,slay,conn,cpmt,epmt,hpix,spix;
+ int16u gnfl,face,half;
+ int16 eibid,fdir,fhal;
+ integer swid,hwid;
+//
+ int16u hwch(0),swch(0);
+//cout<<"---------> create tables:"<<endl;
+ for(crat=0;crat<ECRT;crat++){//crates(JINFs) loop
+//   cout<<"  crate="<<crat<<endl;
+   for(edr=0;edr<ECEDRS;edr++){//EDRs loop
+//     cout<<"     edr="<<edr<<endl;
+     for(rdch=0;rdch<ECEDRC;rdch++){//EDR_channels loop
+//       cout<<"       rdch="<<rdch<<endl;
+       conn=2-(rdch/9)%3;//EDR->EIB connector#(2-0)
+       eibid=_eibid[crat][edr][conn];//FHL(face|half|lay)
+       fdir=1;
+       if(eibid<0)fdir=-1;//pm_readout direction for given face (+1/-1 -> along/oppos X(Y))
+       eibid=abs(eibid);
+//       cout<<"         conn/eibid/fdir="<<conn<<" "<<eibid<<" "<<fdir<<endl;
+       face=eibid/100;//face#(1-4 => A-D)
+       half=(eibid%100)/10;//face's half#(1/2 -> -/+)
+       fhal=2*half-3;//same but -1/+1
+//       cout<<"         face/half/fhal="<<face<<" "<<half<<" "<<fhal<<endl;
+       slay=eibid%10;//slay#(0-8)
+       epmt=8-(rdch%9);//EIB pmt#(8-0)
+       hpix=rdch/54;//hw pixel#(0-3 for anodes, 4 for dynode)
+       if(hpix<4)gnfl=1-((rdch/27)%2);//gain flag (0/1 -> hi/low, dynode only hi=no_atten)
+       else gnfl=0;//dynode only hi
+//       cout<<"         slay/epmt/hpix/gnfl="<<slay<<" "<<epmt<<" "<<hpix<<" "<<gnfl<<endl;
+       if(face<=2){//A/B
+         spix=_h2spixmap[0][hpix];//0->3,1->2,2->0,3->1
+	 if(fhal<0)cpmt=2*epmt;//abs(column) pmt#(0,2,4,...16)
+	 else cpmt=2*(8-epmt)+18;//abs(column) pmt#(18,20,...34) 
+       }
+       else{//C/D
+         spix=_h2spixmap[1][hpix];//0->2,1->3,2->1,3->0
+	 if(fhal<0)cpmt=2*epmt+1;//abs(column) pmt#(1,3,5,...17)
+	 else cpmt=2*(8-epmt)+19;//abs(column) pmt#(19,21,23,...35) 
+       }
+//       cout<<"         cpmt/spix="<<cpmt<<spix<<endl;
+       swid=(slay+1)*10000+(cpmt+1)*100+(spix+1)*10+gnfl+1;//swid=LTTPG
+//
+       swch=slay*ECPMMX*(4*2+1)+cpmt*(4*2+1)+spix*2;//global sequential sw-channel#(0-2915)
+       if(spix<4)swch+=gnfl;
+//       cout<<"         swid/swch="<<swid<<" "<<swch<<" hwch="<<hwch<<endl;
+// 
+       hwid=(crat+1)*100000+(edr+1)*1000+(rdch+1);//CSSRRR(crate|slot|readout_ch)
+       _sidlst[hwch]=swid;//hwch->swid
+       _hidlst[swch]=hwid;//inverse table, i.e.swch->hwid
+       _hidls[hwch]=hwid;//hwch->hwid
+       hwch+=1;
+     }//-->endof EDR_channels-loop
+   }//-->endof EDRs-loop
+ }//-->endof crates-loop
+//
+ cout<<"AMSECIds::init: total hw-channels="<<hwch<<endl;
+}
+//-----------------
+int16u AMSECIds::hwseqn(int16u crate, int16u slot, int16u rdch){
+//crate=0,1,...;slot(edr)=0,1,...5;rdch=0,1,...242
+// calc. global sequential hw-channel(0,1,...242;no empty chan !!):
+  int16u hwch(0),slt;
+//
+  assert(crate<ECRT && slot<ECEDRS && rdch<ECEDRC);
+//  for(int cr=0;cr<crate;cr++){//1st->count in crates befor current one
+//    for(int sl=0;sl<ECEDRS;sl++){
+//      slt=_sltymap[cr][sl];
+//      hwch+=_ochpsty[slt-1];
+//    }
+//  }
+//  for(int sl=0;sl<slot;sl++){//2nd->count in slots befor current one(in crate crate)
+//    slt=_sltymap[crate][sl];
+//    hwch+=_ochpsty[slt-1];
+//  }
+//  hwch+=rdch;//3rd->count in current slot
+  hwch=crate*ECEDRS*ECEDRC+slot*ECEDRC+rdch;//simple formula due to the same ch/edr, no empty
+  return hwch;//0,1,...2915
+}
+//----------------- 
+int16u AMSECIds::swseqn(int16u slay, int16u tube, int16u pix, int16u gn){
+//                                0-8           0-35          0-4          0-1
+  int16u swch(0);//global sequential sw-channel(incl gainf)=0,1,...2915(no empty chan !!)
+    assert(slay<ECSLMX && tube<ECPMMX && pix<5);
+    if(pix==4)assert(gn==0);//dynode only with high(no attenuation)-gain
+    swch=slay*ECPMMX*(4*2+1)+tube*(4*2+1)+pix*2;
+    if(pix<4)swch+=gn;//if anode - count gains befor current one
+    return swch;//0,1,...2915
+}
+//-----------------
+integer AMSECIds::hw2swid(int16u crate, int16u slot, int16u rdch){
+//crate=0,1,...;slot=0,1,...;rdch=0,1,...
+// transform h/w-id(address) into s/w-id:
+  int16u hwch;
+  integer swid;
+  hwch=hwseqn(crate,slot,rdch);
+  swid=_sidlst[hwch];
+  return swid;
+//
 }

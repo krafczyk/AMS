@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.28 2006/07/14 13:21:52 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.29 2007/05/15 11:39:24 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -39,6 +39,7 @@ namespace TOFGC{
 namespace TOF2GC{
 //geometry :
 const integer SCMXBR=10; // max nmb of bars/layer
+const integer SCMXBR2=18;//max nmb of bars/top(bot) TOF-subsystem
 const integer SCLRS=4; // max nmb of layers in TOF-systems
 const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
 const integer SCBTPN=11; //Real nmb of sc. bar types (different by length now)
@@ -60,32 +61,25 @@ const int16u SCADCMX=4095;// MAX. value in ADC (12bits-1)
 const int16u SCPUXMX=3700;// MAX. value provided by PUX-chip(adc chan)
 
 const integer SCCRAT=4; // number of crates with TOF(+ANTI)-channels (S-crates)
-const integer SCSLTM=9;// number of slots(all types) per crate(max)
+const integer SCSLTM=11;// number of slots(all types) per crate(max)
 const integer SCSLTY=5;// slot(card) types(real: sfet,sfea,sfec,sdr,spt) 
-const integer SCRCHM=40;// number of readout channels (outputs) per slot(card)(max)
+const integer SCRCHM=13;// number of readout channels (outputs) per slot(card)(max)
 const integer SCRCMX=SCCRAT*SCSLTM*SCRCHM;//total hw-readout-channels(max)
+const integer SCCRCMX=SCSLTM*SCRCHM;//readout channel per crate (max)
 const integer SCPMOU=4;//  number pm-outputs per side (max)(anode+3dynodes)
-//const integer SCMTYP=4;// number of measurement types(max)(t,q,FTt,SumHTt)
+const integer SCMTYP=5;// number of measurement types(max)(t,q,FTt,SumHTt,SumSHTt)
 const integer SCAMTS=2;// number of Anode measurements types(actualy t,q) per normal bar/side
 const integer SCHPMTS=3;// number of half-plane measurement types(actually FT,SumHT,sumSHT) per side
 const integer SCDMTS=1;// number of Dynode measurement types(actualy q)
 const integer SCFETA=5;// number of FFET+SFEA card per crate(having temp-sensors)(actual)
-//old: should be revised
-const integer SCSFET=4; // SFETs per crate
-const integer SCTOFC=4; // max. TOF-channels (each =4 TDC-channels) per SFET
-const integer SCTDCC=SCTOFC*4; // max. TDC-channels per SFET (4 tdcchan/tofch)
-const integer DAQSBLK=8;// total S-crates(blocks) in DAQ
-const integer DAQSSLT=6;// max. available slots in S-crate (max. SFEx cards)
-const integer DAQSFMX=2;// number of format types
-const integer DAQSTSC=1;// number of slots with Temp-info per crate
-const integer DAQSTCS=4;// number of temp-channel(tdcc) per slot(if present)
-const integer DAQSTMX=DAQSBLK*DAQSTSC*DAQSTCS;// max. temp. channels
+//
+const integer DAQSFMX=3;// number of non-empty format types(raw,compressed,mixed)
 //RECO
-const integer SCTHMX1=8;//max trigger hits
+const integer SCTHMX1=8;//max TDC FTrigger-channel hits
 const integer SCTHMX2=16;//max TDC SumHT(SHT)-channel (history) hits  
 const integer SCTHMX3=16;//max TDC LTtime-channel hits
 const integer SCTHMX4=1;//max adca(anode) hits  
-const integer SCJSTA=35;   //size of Job-statistics array
+const integer SCJSTA=40;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
 const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)
@@ -341,6 +335,8 @@ private:
 //           21-25 TOF-user event-counters
 //          =33 -> TOF reco with TOF in LVL1
 //          =34 -> TOF reco with EC in LVL1
+//
+//          =38 -> entries to PEDS-calibration
 //------
   static integer chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];//channel statistics
 //                              [0] -> RawSide channel entries(with FT-time!)  
@@ -370,10 +366,21 @@ private:
 //                               [2] -> "history-OK"
 //                               [3] -> "2-sided history-OK"
 //------
-  static integer scdaqbc1[TOF2GC::SCCRAT][2];// scDAQ-block appearence frequecy  (for fmt=0/1->raw/red)
-  static integer scdaqbc2[TOF2GC::SCCRAT][2];// scDAQ-block appearence frequecy(non-empty)
-  static integer scdaqbc3[TOF2GC::SCCRAT][2];// scDAQ-block "length mismatch" appear.frequency
-  static integer scdaqbc4[TOF2GC::SCCRAT][2];// scDAQ-block "cr/sf/tofc in contradiction with map" appear.frequency
+  static integer daqsf[30];//fragment statistics
+  static integer cratr[TOF2GC::SCCRAT][20];//raw fmt
+  static integer cratp[TOF2GC::SCCRAT][20];//processed fmt
+  static integer cratc[TOF2GC::SCCRAT][20];//on-board-pedcal fmt
+  static integer cratm[TOF2GC::SCCRAT][20];//mixFMT raw/comp blocks comparison
+  static integer sltr[TOF2GC::SCCRAT][TOF2GC::SCSLTM][20];
+  static integer sltp[TOF2GC::SCCRAT][TOF2GC::SCSLTM][20];
+  static integer rdcr1[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcr2[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcr3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcr4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcp1[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcp2[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static integer rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 //
   static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//TOF+ANTI temperatures in crates/temp_slots 
 //
@@ -407,22 +414,10 @@ public:
     assert(brnum < TOF2GC::SCBLMX && i < TOF2GC::SCCSTA);
     brcount[brnum][i]+=1;
   }
-  inline static void addaq1(int16u blnum, int16u fmt){
-    assert(blnum<TOF2GC::SCCRAT && fmt<2);
-    scdaqbc1[blnum][fmt]+=1;
-  }
-  inline static void addaq2(int16u blnum, int16u fmt){
-    assert(blnum<TOF2GC::SCCRAT && fmt<2);
-    scdaqbc2[blnum][fmt]+=1;
-  }
-  inline static void addaq3(int16u blnum, int16u fmt){
-    assert(blnum<TOF2GC::SCCRAT && fmt<2);
-    scdaqbc3[blnum][fmt]+=1;
-  }
-  inline static void addaq4(int16u blnum, int16u fmt){
-    assert(blnum<TOF2GC::SCCRAT && fmt<2);
-    scdaqbc4[blnum][fmt]+=1;
-  }
+  static void daqsfr(int16u ie);
+  static void daqscr(int16u df, int16u crat, int16u ie);
+  static void daqssl(int16u df, int16u crat, int16u slot, int16u ie);
+  static void daqsch(int16u df, int16u crat, int16u slot, int16u rdch, int16u ie);
   static void printstat();
   static void bookhist();
   static void bookhistmc();
@@ -675,9 +670,10 @@ public:
   bool PedDchOK(int isd){return (statd[isd][0]==0 && statd[isd][1]==0 && statd[isd][2]==0);}
   geant &apeda(int isd)  {return peda[isd];}  
   geant &asiga(int isd)  {return siga[isd];}
-  integer &astad(int isd, int ipm)  {return statd[isd][ipm];}  
+  integer &astaa(int isd)  {return stata[isd];}
   geant &apedd(int isd, int ipm)  {return pedd[isd][ipm];}  
   geant &asigd(int isd, int ipm)  {return sigd[isd][ipm];}
+  integer &astad(int isd, int ipm)  {return statd[isd][ipm];}  
   
   void getpeda(geant _ped[2]){
     for(int i=0;i<2;i++)_ped[i]=peda[i];

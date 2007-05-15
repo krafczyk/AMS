@@ -14,6 +14,7 @@
 #include "mccluster.h"
 #include "trrec.h"
 #include "tofrec02.h"
+#include "tofsim02.h"
 #include "antirec02.h"
 #include "ecaldbc.h"
 #include "ecalrec.h"
@@ -25,7 +26,7 @@
 #include <fstream.h>
 #include <iomanip.h>
 #include <time.h>
-#include "tofsim02.h"
+#include "timeid.h"
 using namespace ecalconst;
 //
 //
@@ -97,7 +98,7 @@ void ECREUNcalib::init(){
 void ECREUNcalib::select(){
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmt,sbc,pmsl,rdir;
-  integer padc[2];
+  geant padc[2];
   integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
   number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
   number ct1,ct2,cl1,cl2,dct,z1,z2,hflen,ctcr,ctpm,clcr,clsh,clpm,acorr;
@@ -330,8 +331,8 @@ void ECREUNcalib::select(){
       sbc=id%10-1;//SubCell(0-3)
       pmt=idd%100-1;//PMCell(0-...)
       ptr->getpadc(padc);
-      radc[0]=number(padc[0])/ECALDBc::scalef();//DAQ-format-->ADC-high-chain
-      radc[1]=number(padc[1])/ECALDBc::scalef();//DAQ-format-->ADC-low-chain
+      radc[0]=number(padc[0]);//ADC-high-chain
+      radc[1]=number(padc[1]);//ADC-low-chain
       sumh[pmt][sbc]+=radc[0];
       suml[pmt][sbc]+=radc[1];
       ptr=ptr->next();  
@@ -1382,8 +1383,8 @@ void ECREUNcalib::mfit(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawSide::getsrun();
-  StartTime=TOF2RawSide::getstime();
+  StartRun=AMSEcalRawEvent::getsrun();
+  StartTime=AMSEcalRawEvent::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
     ofstream tcfile(fname,ios::out|ios::trunc);
@@ -2368,8 +2369,8 @@ void ECREUNcalib::mfite(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawSide::getsrun();
-  StartTime=TOF2RawSide::getstime();
+  StartRun=AMSEcalRawEvent::getsrun();
+  StartTime=AMSEcalRawEvent::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
     ofstream tcfile(fname,ios::out|ios::trunc);
@@ -2397,19 +2398,782 @@ void ECREUNcalib::mfite(){
     tcfile << endl<<" Date of the first event : "<<frdate<<endl;
     tcfile.close();
     cout<<"ECREUNcalib: ANOR output file closed !"<<endl;
-//-------------------------------------------------------
 //
 }
-
-
-
-
-
-
+//------------------------------------------------------------------------------------
+//
+//=======================> "On-Data" + "OnBoardPedTable" Pedestals/Sigmas Calibration
+//
+ time_t ECPedCalib::BeginTime;
+ uinteger ECPedCalib::BeginRun;
+ number ECPedCalib::adc[ECPMSL][5][2];
+ number ECPedCalib::adc2[ECPMSL][5][2];//**2
+ number ECPedCalib::adcm[ECPMSL][5][2][ECPCSTMX];//stack of ECPCSS max's (Highest is 1st)
+ integer ECPedCalib::nevt[ECPMSL][5][2];
+ integer ECPedCalib::hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event) 
+ geant ECPedCalib::peds[ECPMSL][5][2];
+ geant ECPedCalib::sigs[ECPMSL][5][2];
+ uinteger ECPedCalib::stas[ECPMSL][5][2];
+ integer ECPedCalib::nstacksz;//needed stack size (ev2rem*ECPCEVMX)
+//-----
+ void ECPedCalib::init(){
+   int16u i,sl,pm,pix,gn,gnm;
+   int hnm,ch;
+   char buf[6];
+   char htit[80];
+//
+   cout<<endl;
+   nstacksz=floor(ECCAFFKEY.pedcpr*ECPCEVMX+0.5);
+   if(nstacksz>ECPCSTMX){
+     cout<<"====> ECPedCalib::init-W-Stack too small, change Trunc-value or max.events/ch !!!"<<nstacksz<<endl;
+     cout<<"                Its size set back to max-possible:"<<ECPCSTMX<<endl;
+     nstacksz=ECPCSTMX;
+   }
+   if(nstacksz<1)nstacksz=1;
+   cout<<"====> ECPedCalib::init: real stack-size="<<nstacksz<<endl;
+//
+   for(sl=0;sl<ECSLMX;sl++){
+     for(pm=0;pm<ECPMSMX;pm++){
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){
+	   adc[ch][pix][gn]=0;
+	   adc2[ch][pix][gn]=0;
+	   for(i=0;i<ECPCSTMX;i++)adcm[ch][pix][gn][i]=0;
+	   nevt[ch][pix][gn]=0;
+	   peds[ch][pix][gn]=0;
+	   sigs[ch][pix][gn]=0;
+	   stas[ch][pix][gn]=1;//bad
+	 }
+       }
+     }
+   }
+//
+   for(sl=0;sl<2*ECSLMX;sl++){
+     sprintf(buf,"%2d",sl);
+     for(gn=0;gn<2;gn++){
+       strcpy(htit,"Anode Peds vs Cell for Plane/Gain=");
+       strcat(htit,buf);
+       if(gn==0)strcat(htit,"H");
+       else strcat(htit,"L");
+       hnm=2*sl+gn;
+       HBOOK1(ECHISTC+100+hnm,htit,72,1.,73.,0.);
+       HMINIM(ECHISTC+100+hnm,100.);
+       HMAXIM(ECHISTC+100+hnm,200.);
+     }
+   }
+   for(sl=0;sl<2*ECSLMX;sl++){
+     sprintf(buf,"%2d",sl);
+     for(gn=0;gn<2;gn++){
+       strcpy(htit,"Anode Sigs vs Cell for Plane/Gain=");
+       strcat(htit,buf);
+       if(gn==0)strcat(htit,"H");
+       else strcat(htit,"L");
+       hnm=2*sl+gn;
+       HBOOK1(ECHISTC+136+hnm,htit,72,1.,73.,0.);
+       HMINIM(ECHISTC+136+hnm,0.2);
+       HMAXIM(ECHISTC+136+hnm,2.);
+     }
+   }
+   for(sl=0;sl<ECSLMX;sl++){
+     strcpy(htit,"Dynode Peds vs Pmt for SuperLayer=");
+     sprintf(buf,"%2d",sl);
+     strcat(htit,buf);
+     HBOOK1(ECHISTC+172+sl,htit,36,1.,37.,0.);
+     HMINIM(ECHISTC+172+sl,50.);
+     HMAXIM(ECHISTC+172+sl,150.);
+   }
+   for(sl=0;sl<ECSLMX;sl++){
+     strcpy(htit,"Dynode Sigs vs Pmt for SuperLayer=");
+     sprintf(buf,"%2d",sl);
+     strcat(htit,buf);
+     HBOOK1(ECHISTC+181+sl,htit,36,1.,37.,0.);
+     HMINIM(ECHISTC+181+sl,0.2);
+     HMAXIM(ECHISTC+181+sl,2.);
+   }
+   HBOOK1(ECHISTC+190,"Sl/Pm/Pix=5/18/2 AnodeH",100,50.,250.,0.);
+   HBOOK1(ECHISTC+191,"Sl/Pm/Pix=5/18/2 AnodeL",100,50.,250.,0.);
+   HBOOK1(ECHISTC+192,"Sl/Pm=5/18 Dynode",100,50.,250.,0.);
+   HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-2.5,2.5,0.);
+   cout<<"====> ECPedCalib::init done..."<<endl<<endl;;
+ }
+//-----
+ void ECPedCalib::resetb(){//init for OnBoardPedTable processing
+   int16u i,sl,pm,pix,gn,gnm;
+   int hnm,ch;
+   char buf[6];
+   char htit[80];
+   static int first(0);
+   char hmod[2]=" ";
+//
+   cout<<endl;
+//
+  if(first==0){
+   for(sl=0;sl<2*ECSLMX;sl++){
+     sprintf(buf,"%2d",sl);
+     for(gn=0;gn<2;gn++){
+       strcpy(htit,"Anode Peds vs Cell for Plane/Gain=");
+       strcat(htit,buf);
+       if(gn==0)strcat(htit,"H");
+       else strcat(htit,"L");
+       hnm=2*sl+gn;
+       HBOOK1(ECHISTC+100+hnm,htit,72,1.,73.,0.);
+       HMINIM(ECHISTC+100+hnm,100.);
+       HMAXIM(ECHISTC+100+hnm,200.);
+     }
+   }
+   for(sl=0;sl<2*ECSLMX;sl++){
+     sprintf(buf,"%2d",sl);
+     for(gn=0;gn<2;gn++){
+       strcpy(htit,"Anode Sigs vs Cell for Plane/Gain=");
+       strcat(htit,buf);
+       if(gn==0)strcat(htit,"H");
+       else strcat(htit,"L");
+       hnm=2*sl+gn;
+       HBOOK1(ECHISTC+136+hnm,htit,72,1.,73.,0.);
+       HMINIM(ECHISTC+136+hnm,0.2);
+       HMAXIM(ECHISTC+136+hnm,2.);
+     }
+   }
+   for(sl=0;sl<ECSLMX;sl++){
+     strcpy(htit,"Dynode Peds vs Pmt for SuperLayer=");
+     sprintf(buf,"%2d",sl);
+     strcat(htit,buf);
+     HBOOK1(ECHISTC+172+sl,htit,36,1.,37.,0.);
+     HMINIM(ECHISTC+172+sl,50.);
+     HMAXIM(ECHISTC+172+sl,150.);
+   }
+   for(sl=0;sl<ECSLMX;sl++){
+     strcpy(htit,"Dynode Sigs vs Pmt for SuperLayer=");
+     sprintf(buf,"%2d",sl);
+     strcat(htit,buf);
+     HBOOK1(ECHISTC+181+sl,htit,36,1.,37.,0.);
+     HMINIM(ECHISTC+181+sl,0.2);
+     HMAXIM(ECHISTC+181+sl,2.);
+   }
+   HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-2.5,2.5,0.);
+   first=1;
+  }
+  else{
+    for(i=0;i<100;i++)HRESET(ECHISTC+100+i,hmod);
+  }
+//
+   for(sl=0;sl<ECSLMX;sl++){
+     for(pm=0;pm<ECPMSMX;pm++){
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){
+	   peds[ch][pix][gn]=0;
+	   sigs[ch][pix][gn]=0;
+	   stas[ch][pix][gn]=1;//bad
+	 }
+       }
+     }
+   }
+//
+   cout<<"====> ECPedCalib::OnBoardPedTable/Histos Reset done..."<<endl<<endl;;
+ }
+//-----
+ void ECPedCalib::fill(integer swid, geant val){
+//
+   int16u i,sl,pm,pix,gn,ch,nev,is;
+   geant lohil[2]={0,9999};//means no limits on val, if partial ped is bad
+// sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
+// swid=>LTTPG(SupLayer/PMTube/Pixel/Gain)
+   geant ped,sig,sig2;
+   geant hi2lr,a2dr,gainf,spikethr;
+   bool accept(true);
+   int pml,pmr;
+//
+   integer evs2rem;
+//
+   sl=swid/10000;
+   sl=sl-1;//0-8
+   pm=(swid%10000)/100-1;//0-35
+   ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+   pix=(swid%100)/10;
+   pix=pix-1;//0-4 (4->dynode)
+   gn=(swid%10)-1;//0/1->high/low
+   if(pix==4)gn=0;
+//
+   nev=nevt[ch][pix][gn];
+// peds[ch][pix][gn];//SmalSample(SS) ped (set to "0" at init)
+   if(peds[ch][pix][gn]==0 && nev==ECPCEVMN){//calc. SS-ped/sig when ECPCEVMN events is collected
+     evs2rem=floor(ECCAFFKEY.pedcpr*nev+0.5);
+     if(evs2rem>nstacksz)evs2rem=nstacksz;
+     if(evs2rem<1)evs2rem=1;
+     for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
+       adc[ch][pix][gn]=adc[ch][pix][gn]-adcm[ch][pix][gn][i];
+       adc2[ch][pix][gn]=adc2[ch][pix][gn]-adcm[ch][pix][gn][i]*adcm[ch][pix][gn][i];
+     }
+     ped=adc[ch][pix][gn]/number(nev-evs2rem);//truncated average
+     sig2=adc2[ch][pix][gn]/number(nev-evs2rem);
+     sig2=sig2-ped*ped;// truncated rms**2
+     if(sig2>0 && sig2<=(2.25*ECPCSIMX*ECPCSIMX)){//2.25->1.5*SigMax
+       sigs[ch][pix][gn]=sqrt(sig2);
+       peds[ch][pix][gn]=ped;//is used now as flag that SS-PedS ok
+     }
+     adc[ch][pix][gn]=0;//reset to start new life(with real selection limits)
+     adc2[ch][pix][gn]=0;
+     nevt[ch][pix][gn]=0;
+     for(i=0;i<ECPCSTMX;i++)adcm[ch][pix][gn][i]=0;
+   }
+   ped=peds[ch][pix][gn];//now !=0 or =0 
+   sig=sigs[ch][pix][gn];
+//
+   if(ped>0){//set val-limits if partial ped OK
+     lohil[0]=ped-3*sig;
+     lohil[1]=ped+5*sig;
+     if(gn==0){//hi(an or dyn)
+       if(pix<4)gainf=1.;//hi an
+       else gainf=ECcalib::ecpmcal[sl][pm].an2dyr();//dyn
+     }
+     else{//low an
+       gainf=ECcalib::ecpmcal[sl][pm].hi2lowr(pix);//low an
+     }
+     spikethr=max(5*sig,ECPCSPIK/gainf);
+     if(val>(ped+spikethr)){//spike(>~1mips in higain chan)
+       hiamap[sl][pm]=1;//put it into map
+       accept=false;//mark as bad for filling
+     }
+     else{//candidate for "fill"
+       if(pm>0)pml=pm-1;
+       else pml=0;
+       if(pm<(ECPMSMX-1))pmr=pm+1;
+       else pmr=ECPMSMX-1;
+       accept=(hiamap[sl][pml]==0 && hiamap[sl][pmr]==0);//not accept if there is any neighbour(horizontal)
+     }
+   }
+//
+//   accept=true;//tempor to switch-off spike algorithm
+//
+   if(val>lohil[0] && val<lohil[1] && accept){//check "in_limits/not_spike"
+     if(nev<ECPCEVMX){//limit statistics(to keep max-stack size small)
+       adc[ch][pix][gn]+=val;
+       adc2[ch][pix][gn]+=(val*val);
+       nevt[ch][pix][gn]+=1;
+       for(is=0;is<nstacksz;is++){//try to position val in stack of nstacksz highest max-values
+          if(val>adcm[ch][pix][gn][is]){
+	    for(i=nstacksz-1;i>is;i--)adcm[ch][pix][gn][i]=adcm[ch][pix][gn][i-1];//move stack -->
+	    adcm[ch][pix][gn][is]=val;//store max.val
+	    break;
+	  }
+       }
+     }
+   }//-->endof "in limits" check
+   if(sl==4 && pm==17 && accept){
+     if(pix==1 && gn==0)HF1(ECHISTC+190,val,1.);
+     if(pix==1 && gn==1)HF1(ECHISTC+191,val,1.);
+     if(pix==4 && gn==0)HF1(ECHISTC+192,val,1.);
+   } 
+ }
+//-----
+ void ECPedCalib::filltb(integer swid, geant ped, geant sig, int16u sta){
+//
+   int16u i,sl,pm,pix,gn,ch,is;
+// sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
+// swid=>LTTPG(SupLayer/PMTube/Pixel/Gain)
+//
+   sl=swid/10000;
+   sl=sl-1;//0-8
+   pm=(swid%10000)/100-1;//0-35
+   ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+   pix=(swid%100)/10;
+   pix=pix-1;//0-4 (4->dynode)
+   gn=(swid%10)-1;//0/1->high/low
+   if(pix==4)gn=0;
+   peds[ch][pix][gn]=ped;
+   sigs[ch][pix][gn]=sig;
+   stas[ch][pix][gn]=uinteger(sta);
+//
+ }
+//-----
+ void ECPedCalib::outp(int flg){
+// flg=0/1/2=>HistosOnly/write2DB+File/write2file
+   int i,j;
+   geant pdiff;
+   integer statmin(9999);
+   int16u sl,pm,pix,gn,gnm,pln,cll,ch;
+   time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival) 
+   uinteger runn=BRun();//1st event run# 
+   time_t end,insert;
+   char DataDate[30],WrtDate[30];
+//   strcpy(DataDate,asctime(localtime(&begin)));
+   strcpy(DataDate,asctime(localtime(&begin)));
+   time(&insert);
+   strcpy(WrtDate,asctime(localtime(&insert)));
+//
+   integer evs2rem;
+//
+   cout<<endl;
+   cout<<"=====> ECPedCalib-Report:"<<endl<<endl;
+   for(sl=0;sl<ECSLMX;sl++){
+     for(pm=0;pm<ECPMSMX;pm++){
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){
+	   if(nevt[ch][pix][gn]>=ECPCEVMN){//statistics ok
+	     evs2rem=floor(ECCAFFKEY.pedcpr*nevt[ch][pix][gn]+0.5);
+	     if(evs2rem>nstacksz)evs2rem=nstacksz;
+//             if(evs2rem<1)evs2rem=1;
+	     for(i=0;i<evs2rem;i++){//remove highest amplitudes
+	       adc[ch][pix][gn]=adc[ch][pix][gn]-adcm[ch][pix][gn][i];
+	       adc2[ch][pix][gn]=adc2[ch][pix][gn]-adcm[ch][pix][gn][i]*adcm[ch][pix][gn][i];
+	     }
+	     adc[ch][pix][gn]/=number(nevt[ch][pix][gn]-evs2rem);//truncated average
+	     adc2[ch][pix][gn]/=number(nevt[ch][pix][gn]-evs2rem);
+	     adc2[ch][pix][gn]=adc2[ch][pix][gn]-adc[ch][pix][gn]*adc[ch][pix][gn];//truncated rms**2
+	     if(adc2[ch][pix][gn]>0
+	                     && adc2[ch][pix][gn]<=(ECPCSIMX*ECPCSIMX)
+		                                    && adc[ch][pix][gn]<300){//chan.OK
+	       peds[ch][pix][gn]=geant(adc[ch][pix][gn]);
+	       sigs[ch][pix][gn]=geant(sqrt(adc2[ch][pix][gn]));
+	       stas[ch][pix][gn]=0;//ok
+//update ped-object in memory:
+	       if(pix<4){//anodes
+	         pdiff=peds[ch][pix][gn]-ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
+	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sig(pix,gn)=sigs[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sta(pix,gn)=stas[ch][pix][gn];
+		 pln=sl*2+(pix/2);//0-17
+		 cll=pm*2+(pix%2);//0-71
+		 HF1(ECHISTC+100+2*pln+gn,geant(cll+1),ECPMPeds::pmpeds[sl][pm].ped(pix,gn));
+		 HF1(ECHISTC+136+2*pln+gn,geant(cll+1),ECPMPeds::pmpeds[sl][pm].sig(pix,gn));
+		 if(gn==0)HF1(ECHISTC+193,sigs[ch][pix][gn],1.);
+		 else HF1(ECHISTC+194,sigs[ch][pix][gn],1.);
+		 if(gn==0)HF1(ECHISTC+196,pdiff,1.);
+		 else HF1(ECHISTC+197,pdiff,1.);
+	       }
+	       else{//dynodes
+	         pdiff=peds[ch][pix][gn]-ECPMPeds::pmpeds[sl][pm].pedd();
+	         ECPMPeds::pmpeds[sl][pm].pedd()=peds[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sigd()=sigs[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].stad()=stas[ch][pix][gn];
+		 HF1(ECHISTC+172+sl,geant(pm+1),ECPMPeds::pmpeds[sl][pm].pedd());
+		 HF1(ECHISTC+181+sl,geant(pm+1),ECPMPeds::pmpeds[sl][pm].sigd());
+		 HF1(ECHISTC+195,sigs[ch][pix][gn],1.);
+		 HF1(ECHISTC+198,pdiff,1.);
+	       }
+	       if(statmin>nevt[ch][pix][gn])statmin=nevt[ch][pix][gn];
+	     }
+	     else{//bad chan
+	       cout<<"       BadCh:Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	       cout<<"                     Nevents="<<nevt[ch][pix][gn]<<endl;    
+	       cout<<"                  ped/sig**2="<<adc[ch][pix][gn]<<" "<<adc2[ch][pix][gn]<<endl;    
+	     }
+	   }//--->endof "good statistics" check
+	   else{
+	     cout<<"       LowStatCh:Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	     cout<<"                         Nevents="<<nevt[ch][pix][gn]<<endl;    
+	   } 
+	 }//--->endof gain-loop
+       }//--->endof pixel-loop
+     }//--->endof pmt-loop
+   }//--->endof Slayer-loop
+   cout<<"       MinAcceptableStatistics/channel was:"<<statmin<<endl; 
+//   
+// ---> prepare update of DB :
+   if(flg==1){
+     AMSTimeID *ptdv;
+     ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     end=begin+86400*30;
+     ptdv->SetTime(insert,begin,end);
+   }
+// ---> write RD default-peds file:
+   if(flg==1 || flg==2){
+     integer endflab(12345);
+     char fname[80];
+     char name[80];
+     char buf[20];
+//
+     if(ECREFFKEY.relogic[1]==4)strcpy(name,"eclp_cl");
+     if(ECREFFKEY.relogic[1]==5)strcpy(name,"eclp_ds");
+     if(AMSJob::gethead()->isMCData())           // for MC-event
+     {
+       cout <<"       new MC peds-file will be written..."<<endl;
+       strcat(name,"_mc.");
+     }
+     else                                       // for Real events
+     {
+       cout <<"       new RD peds-file will be written..."<<endl;
+       strcat(name,"_rl.");
+     }
+     sprintf(buf,"%d",runn);
+     strcat(name,buf);
+     if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+     if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcat(fname,name);
+     cout<<"       Open file : "<<fname<<'\n';
+     cout<<"       Date of the first used event : "<<DataDate<<endl;
+     ofstream icfile(fname,ios::out|ios::trunc); // open pedestals-file for writing
+     if(!icfile){
+       cerr <<"<---- Problems to write new pedestals-file "<<fname<<endl;
+       exit(1);
+     }
+     icfile.setf(ios::fixed);
+//
+// ---> write HighGain peds/sigmas/stat:
+//
+     icfile.width(6);
+     icfile.precision(1);// precision
+     for(sl=0;sl<ECSLMX;sl++){   
+       for(pix=0;pix<4;pix++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][pix][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][pix][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][pix][0];
+         }
+         icfile << endl;
+       }
+       icfile << endl;
+     } 
+//
+// ---> write LowGain peds/sigmas/stats:
+//
+     for(sl=0;sl<ECSLMX;sl++){   
+       for(pix=0;pix<4;pix++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][pix][1];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][pix][1];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][pix][1];
+         }
+         icfile << endl;
+       }
+       icfile << endl;
+     } 
+//
+// ---> write Dynode peds/sigmas/stats:
+//
+     for(sl=0;sl<ECSLMX;sl++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][4][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][4][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][4][0];
+         }
+         icfile << endl;
+     } 
+     icfile << endl;
+//
+// ---> write EndFileLabel :
+//
+     icfile << endflab;
+//
+     icfile << endl<<"======================================================"<<endl;
+     icfile << endl<<" Date of the 1st used event : "<<DataDate<<endl;
+     icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
+     icfile.close();
+//
+   }//--->endof file writing 
+//
+   for(i=0;i<99;i++)HPRINT(ECHISTC+100+i);
+   cout<<endl;
+   cout<<"====================== ECPedCalib: job is completed ! ======================"<<endl;
+   cout<<endl;
+//
+ }
+//----------
+ void ECPedCalib::outptb(int flg){
+// flg=0/1/2=>No/write2DB+file/write2file
+   int i,j;
+   int totch(0),goodtbch(0),goodch(0);
+   geant pedo,sigo;
+   int stao;
+   geant pdiff;
+   int16u sl,pm,pix,gn,gnm,pln,cll,ch;
+   time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival) 
+   uinteger runn=BRun();//1st event run# 
+   time_t end,insert;
+   char DataDate[30],WrtDate[30];
+//   strcpy(DataDate,asctime(localtime(&begin)));
+   strcpy(DataDate,asctime(localtime(&begin)));
+   time(&insert);
+   strcpy(WrtDate,asctime(localtime(&insert)));
+//
+   cout<<endl;
+   cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
+   for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
+     for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){//<--- pixel loop
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){//<--- gain loop
+	   totch+=1;
+	   if(pix<4){//anode
+	     pedo=ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
+	     sigo=ECPMPeds::pmpeds[sl][pm].sig(pix,gn);
+	     stao=ECPMPeds::pmpeds[sl][pm].sta(pix,gn);
+	   }
+	   else{
+	     pedo=ECPMPeds::pmpeds[sl][pm].pedd();
+	     sigo=ECPMPeds::pmpeds[sl][pm].sigd();
+	     stao=ECPMPeds::pmpeds[sl][pm].stad();
+	   }
+	   pdiff=peds[ch][pix][gn]-pedo;
+//
+	   if(peds[ch][pix][gn]>0 && stas[ch][pix][gn]==0){// channel OK in table ? tempor: stas-definition from Kunin ?
+	     goodtbch+=1;
+	     if(sigs[ch][pix][gn]>0 && sigs[ch][pix][gn]<=ECPCSIMX
+		          && peds[ch][pix][gn]<200 && fabs(pdiff)<11){//MyCriteria:chan.OK
+	       goodch+=1;
+	       if(pix<4){//anodes
+	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sig(pix,gn)=sigs[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sta(pix,gn)=stas[ch][pix][gn];
+		 pln=sl*2+(pix/2);//0-17
+		 cll=pm*2+(pix%2);//0-71
+		 HF1(ECHISTC+100+2*pln+gn,geant(cll+1),ECPMPeds::pmpeds[sl][pm].ped(pix,gn));
+		 HF1(ECHISTC+136+2*pln+gn,geant(cll+1),ECPMPeds::pmpeds[sl][pm].sig(pix,gn));
+		 if(gn==0)HF1(ECHISTC+193,sigs[ch][pix][gn],1.);
+		 else HF1(ECHISTC+194,sigs[ch][pix][gn],1.);
+		 if(gn==0)HF1(ECHISTC+196,pdiff,1.);
+		 else HF1(ECHISTC+197,pdiff,1.);
+	       }
+	       else{//dynodes
+	         ECPMPeds::pmpeds[sl][pm].pedd()=peds[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sigd()=sigs[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].stad()=stas[ch][pix][gn];
+		 HF1(ECHISTC+172+sl,geant(pm+1),ECPMPeds::pmpeds[sl][pm].pedd());
+		 HF1(ECHISTC+181+sl,geant(pm+1),ECPMPeds::pmpeds[sl][pm].sigd());
+		 HF1(ECHISTC+195,sigs[ch][pix][gn],1.);
+		 HF1(ECHISTC+198,pdiff,1.);
+	       }
+	     }
+	     else{//MyCriteria: bad chan
+	       cout<<"       MyCriteriaBadCh: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	       cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
+	       cout<<"                        PedDiff="<<pdiff<<endl;    
+	     }
+	   }//--->endof "channel OK in table ?" check
+	   else{
+	     cout<<"       BadTableChan: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	     cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
+	   } 
+	 }//--->endof gain-loop
+       }//--->endof pixel-loop
+     }//--->endof pmt-loop
+   }//--->endof Slayer-loop
+//
+   cout<<"       BadChannels(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<endl;  
+//   
+// ---> prepare update of DB :
+   if(goodch==goodtbch && flg==1){//Update DB "on flight"
+     AMSTimeID *ptdv;
+     ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     end=begin+86400*30;
+     ptdv->SetTime(insert,begin,end);
+//
+     if(AMSFFKEY.Update==2 ){
+       AMSTimeID * offspring = 
+         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
+       while(offspring){
+         if(offspring->UpdateMe())cout << "         Start update Ecal-peds DB "<<*offspring; 
+         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+         cerr <<"         Problem To Update Ecal-peds in DB"<<*offspring;
+         offspring=(AMSTimeID*)offspring->next();//get one-by-one
+       }
+     }
+   }
+// ---> write OnBoardPedTable to ped-file:
+   if(flg==1 || flg==2){
+     integer endflab(12345);
+     char fname[80];
+     char name[80];
+     char buf[20];
+//
+     strcpy(name,"eclp_tb_rl.");//from OnBoardTable
+     sprintf(buf,"%d",runn);
+     strcat(name,buf);
+     if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+     if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcat(fname,name);
+     cout<<"       Open file : "<<fname<<'\n';
+     cout<<"       Date of the first used event : "<<DataDate<<endl;
+     ofstream icfile(fname,ios::out|ios::trunc); // open pedestals-file for writing
+     if(!icfile){
+       cerr <<"<---- ECPedCalib: Problems to write new ONBT-Peds file !!? "<<fname<<endl;
+       exit(1);
+     }
+     icfile.setf(ios::fixed);
+//
+// ---> write HighGain peds/sigmas/stat:
+//
+     icfile.width(6);
+     icfile.precision(1);// precision
+     for(sl=0;sl<ECSLMX;sl++){   
+       for(pix=0;pix<4;pix++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][pix][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][pix][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][pix][0];
+         }
+         icfile << endl;
+       }
+       icfile << endl;
+     } 
+//
+// ---> write LowGain peds/sigmas/stats:
+//
+     for(sl=0;sl<ECSLMX;sl++){   
+       for(pix=0;pix<4;pix++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][pix][1];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][pix][1];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][pix][1];
+         }
+         icfile << endl;
+       }
+       icfile << endl;
+     } 
+//
+// ---> write Dynode peds/sigmas/stats:
+//
+     for(sl=0;sl<ECSLMX;sl++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][4][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][4][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][4][0];
+         }
+         icfile << endl;
+     } 
+     icfile << endl;
+//
+// ---> write EndFileLabel :
+//
+     icfile << endflab;
+//
+     icfile << endl<<"======================================================"<<endl;
+     icfile << endl<<" Date of the 1st used event : "<<DataDate<<endl;
+     icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
+     icfile.close();
+//
+   }//--->endof file writing 
+//
+   for(i=0;i<99;i++)HPRINT(ECHISTC+100+i);
+   cout<<endl;
+   cout<<"====================== ECPedCalib:OnBoardTable job is completed ! ======================"<<endl;
+   cout<<endl;
+//
+ }
+//-----------------------------------------------------------
 
 #include "timeid.h"
 
-
+// This PED-calibration is used when both (Raw and Compressed) format are
+// present event-by-event. The Ped-object in memory can be updated and saved
+// into DB and/or into ped-file at the end of the job.
 
 // peds
 
@@ -2424,6 +3188,7 @@ AMSECIdCalib::ECCalib_def  AMSECIdCalib::ECCALIB;
 
 
 void AMSECIdCalib::clear(){
+/*
 for(int i=0;i<ECPMSMX;i++){
   for(int j=0;j<ECSLMX;j++){
    for(int k=0;k<4;k++){
@@ -2442,26 +3207,30 @@ for(int i=0;i<ECPMSMX;i++){
    }
   }
 }
+*/
 }
 
 
 void AMSECIdCalib::updADC(uinteger adc, uinteger gain){
+/*
  if(!adc && gain<1)return;
  if(gain<3){
-    (_Count[_pmtno][_sl][_channel][gain])++;
-    (_ADC[_pmtno][_sl][_channel][gain])+=adc;
-    (_ADC2[_pmtno][_sl][_channel][gain])+=adc*adc;
-    if(_ADCMax[_pmtno][_sl][_channel][gain]<adc)_ADCMax[_pmtno][_sl][_channel][gain]=adc;
+    (_Count[_pmt][_slay][_pixel][gain])++;
+    (_ADC[_pmt][_slay][_pixel][gain])+=adc;
+    (_ADC2[_pmt][_slay][_pixel][gain])+=adc*adc;
+    if(_ADCMax[_pmt][_slay][_pixel][gain]<adc)_ADCMax[_pmt][_slay][_pixel][gain]=adc;
     HF1(-(gain+1)*10000-makeshortid(),adc-getped(gain),1.);
  }
  else{
   cerr <<"AMSECIdCalib::updADC-S-WrongGain "<<gain<<endl;
  }
+*/
 }
 
 void AMSECIdCalib::init(){
 
 // clear pedestals
+/*
 for(int i=0;i<ECPMSMX;i++){
   for(int j=0;j<ECSLMX;j++){
      ECcalib::ecpmcal[j][i].adc2mev()=1;
@@ -2472,7 +3241,7 @@ for(int i=0;i<ECPMSMX;i++){
     for(int l=0;l<2;l++){
        ECPMPeds::pmpeds[j][i].ped(k,l)=4095;
        ECPMPeds::pmpeds[j][i].sta(k,l)=0;
-       AMSECIdSoft ids(i,j,k,l);
+       AMSECIds ids(i,j,k,l);
        if((ids.getlayer()==4 && ids.getcell()==4) ||
           (ids.getlayer()==5 && ids.getcell()==4) ||
           (ids.getlayer()==17 && ids.getcell()==13)){
@@ -2481,7 +3250,7 @@ for(int i=0;i<ECPMSMX;i++){
    }
      if(i==0 && j==0 && k==0 )cout <<" hi2lowr **** "<<ECcalib::ecpmcal[j][i].hi2lowr(k)<<" "<<ECcalib::ecpmcal[j][i].adc2mev()<<" "<<ECcalib::ecpmcal[j][i].an2dyr()<<endl;
      ECcalib::ecpmcal[j][i].hi2lowr(k)=36;
-      AMSECIdSoft ids(i,j,k,0);
+      AMSECIds ids(i,j,k,0);
      if(ids.getlayer()==14 && ids.getcell()==6){
       ECcalib::ecpmcal[j][i].hi2lowr(k)=12;
      }  
@@ -2510,7 +3279,7 @@ cout <<endl;
        for(int j=0;j<7;j++){
               ECcalib::ecpmcal[i][j].pmrgain()=1;
          for (int k=0;k<4;k++){
-             AMSECIdSoft ids(i,j,k,0);
+             AMSECIds ids(i,j,k,0);
            cout <<"  old gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<endl;             
               ECcalib::ecpmcal[i][j].pmscgain(k)=ECcalib::ecpmcal[i][j].pmscgain(k)*gains[ids.getlayer()][ids.getcell()];
            cout <<"  new gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<" "<<ids.getlayer()<<" "<<ids.getcell()<<endl;             
@@ -2541,7 +3310,7 @@ fbin.close();
    for(int i=0;i<ecalconst::ECSLMX;i++){
        for(int j=0;j<7;j++){
           for (int k=0;k<4;k++){
-             AMSECIdSoft ids(i,j,k,0);
+             AMSECIds ids(i,j,k,0);
            cout <<"  old hi2lowr "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].hi2lowr(k)<<endl;             
               ECcalib::ecpmcal[i][j].hi2lowr(k)=36./gains[ids.getlayer()][ids.getcell()];
            cout <<"  new hi2lowr "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].hi2lowr(k)<<" "<<ids.getlayer()<<" "<<ids.getcell()<<endl;             
@@ -2578,7 +3347,7 @@ fbin.close();
        for(int j=0;j<7;j++){
          for (int k=0;k<4;k++){
            for( int g=0;g<3;g++){
-             AMSECIdSoft ids(i,j,k,g);
+             AMSECIds ids(i,j,k,g);
              int id=ids.makeshortid(); 
              HBOOK1(-(g+1)*10000-id,"peds",100,-100.,100.,0.);
            }
@@ -2586,12 +3355,13 @@ fbin.close();
        }
      }
    HBNAME(IOPA.ntuple,"ECPedSig",(int*)(&ECCALIB),"Run:I,SLayer:I,PMTNo:I,Channel:I,Gain:I, Ped:R,ADCMax:R,Sigma:R,BadCh:I");
+*/
 }
 
 void AMSECIdCalib::getaverage(){
 
 
-
+/*
      int acount=0;
      int bad=0;
      for(int i=0;i<ECSLMX;i++){
@@ -2599,7 +3369,7 @@ void AMSECIdCalib::getaverage(){
          for (int k=0;k<4;k++){
            for( int g=0;g<3;g++){ 
             if(g==2 && k)continue;
-            AMSECIdSoft cid(i,j,k,g);
+            AMSECIds cid(i,j,k,g);
             AMSECIdCalib id(cid);
             if(id.dead())continue;
             if(id.getcount(g)>1){
@@ -2612,22 +3382,22 @@ void AMSECIdCalib::getaverage(){
               }
               if(g<2){
                 // update pedestals & sigmas here
-                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].ped(id.getchannel(),g)=id.getADC(g);
-                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sig(id.getchannel(),g)=id.getADC2(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmt()].ped(id.getpixel(),g)=id.getADC(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmt()].sig(id.getpixel(),g)=id.getADC2(g);
                 // update status
                 if(id.getADC(g)>4000){
-                 ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sta(id.getchannel(),g)|=AMSDBc::BAD;
+                 ECPMPeds::pmpeds[id.getslay()][id.getpmt()].sta(id.getpixek(),g)|=AMSDBc::BAD;
                  bad++;
                 }                
               }
               else{
                 // update pedestals & sigmas here
-                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].pedd()=id.getADC(g);
-                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sigd()=id.getADC2(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmt()].pedd()=id.getADC(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmt()].sigd()=id.getADC2(g);
               }
              }
              else if(id.getped(g)<0){
-                 ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sta(id.getchannel(),g)|=AMSDBc::BAD;
+                 ECPMPeds::pmpeds[id.getslay()][id.getpmt()].sta(id.getpixel(),g)|=AMSDBc::BAD;
                  bad++;
              }
             }
@@ -2686,7 +3456,7 @@ void AMSECIdCalib::getaverage(){
          for (int k=0;k<4;k++){
            for( int g=0;g<3;g++){ 
             if(g==2 && k)continue;
-            AMSECIdSoft cid(i,j,k,g);
+            AMSECIds cid(i,j,k,g);
             AMSECIdCalib id(cid);
             if(id.dead() || !id.getcount(g))continue;
             count++;
@@ -2705,9 +3475,11 @@ void AMSECIdCalib::getaverage(){
        }
      }
     cout <<"  AMSECUdCalib::write-I-"<<count<< " Pedestals/Sigmas Written"<<endl;
+*/
      }
 
 void AMSECIdCalib::write(){
+/*
   char hpawc[256]="//PAWC";
   HCDIR (hpawc, " ");
   char houtput[]="//ecpedsig";
@@ -2716,7 +3488,7 @@ void AMSECIdCalib::write(){
   HROUT (0, ICYCL, " ");
   HREND ("ecpedsig");
   CLOSEF(IOPA.hlun+1);
-
+*/
 
   
 
@@ -2726,7 +3498,7 @@ void AMSECIdCalib::write(){
 
 void AMSECIdCalib::buildSigmaPed(integer n, int16u *p){
 
-
+/*
   integer ic=AMSEcalRawEvent::checkdaqid(*p)-1;
    
   int leng=0;
@@ -2753,7 +3525,7 @@ void AMSECIdCalib::buildSigmaPed(integer n, int16u *p){
             }
             else gain=1-gain;
   
-           AMSECIdSoft id(ic,pmt,channel);
+           AMSECIds id(ic,pmt,channel);
            if(!id.dead() && gain==0){
              // high gain only
               if(sum<value-id.getped(gain)){
@@ -2782,7 +3554,7 @@ void AMSECIdCalib::buildSigmaPed(integer n, int16u *p){
             }
             else gain=1-gain;
   
-           AMSECIdSoft id(ic,pmt,channel);
+           AMSECIds id(ic,pmt,channel);
            if(!id.dead()){
              AMSECIdCalib idc(id);
                          
@@ -2795,12 +3567,13 @@ void AMSECIdCalib::buildSigmaPed(integer n, int16u *p){
 else{
  cout <<"  sum "<<sum<<" "<<pmtn+1<<" "<<slay+1<<" "<<chan+1<<endl;
 }
+*/
 }
 
 
 void AMSECIdCalib::buildPedDiff(integer n, int16u *p){
 
-
+/*
   integer ic=AMSEcalRawEvent::checkdaqid(*p)-1;
    
   int leng=0;
@@ -2820,12 +3593,12 @@ void AMSECIdCalib::buildPedDiff(integer n, int16u *p){
             }
             else gain=1-gain;
   
-           AMSECIdSoft id(ic,pmt,channel);
+           AMSECIds id(ic,pmt,channel);
            if(!id.dead()){
              AMSECIdCalib idc(id);
               idc.updADC(uinteger((value-id.getped(gain))*8),gain);
            }
  count++;
 }
-
+*/
 }

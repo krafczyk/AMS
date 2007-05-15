@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.249 2007/04/11 15:27:18 choutko Exp $
+#  $Id: datacards.doc,v 1.250 2007/05/15 11:39:23 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -696,7 +696,8 @@ I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encodi
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
 I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
-I 8   RECO logic-flag(0)  // Normal/STRR+AVSD/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
+I 8   RECO logic-flag(0)  // Normal_/STRR+AVSD_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_
+//                               /OBPT_calibr run(if=0/1/2/3/4/5/6/7),where OBPT=OnBoardPedTable
 I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
 I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
 I 11  RECO logic-flag(0)  // do/not recovering of missing side 
@@ -766,7 +767,11 @@ I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
   General :
 I 28 cfvers    (8)  // 001-999 vers.number NN for tofverlist(mc/rl)NN.dat file
 I 29 cafdir    (0)  // use official/private directory for calibr.files
-I 30 mcainc    (0)  // 0/1-> off/on A-integrator calibration in MC
+I 30 mcainc    (0)  // spare
+R 31 tofbetac (0.5) // if nonzero->low beta cut (own TOF measurements !!!)
+R 32 pedcpr[0](0.01)// PedCalibJobClassic: portion of highest ADCs to remove for aver/rms-calculation
+R 33 pedcpr[1](0.1) // PedCalibJobDownScalEvnts: portion of highest ADCs to remove for ..............
+I 34 pedoutf   (2)  // PedCalibJob-output type:0/1/2->HistosOnly/PedWrite2DB+File/PedWrite2File
 
 //---------------------------------------------------------------------------------
     ECAL simulation:
@@ -813,7 +818,8 @@ I 2    reprtf[1](0)        // =1 to print profiles for first 5 events
 I 3    reprtf[2](0)        // =1 spare
 
 I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
-I 5    relogic[1](0)       // 0/1/2...-> normal/RLGA_calib/RLGA+FIAT_calib/ANOR_calib  run
+I 5    relogic[1](0)       // 0/1/2/3/4/5/6 -> normal/RLGA_/RLGA+FIAT_/ANOR_/PedClassic_/PedDownScaled_
+//                                                                         /OnBoardPedTable_calib  run
 I 6    relogic[2](0)       // 0/1/2->Nholes/Ebackgr/Both_type cuts in ANOR_calib logic
 I 7,8................        //    spares
 
@@ -904,26 +910,40 @@ R 20  scmax (1500.)   // max ADC .................. (to remove sparks,ovfl,...)
 I 21  spikmx (0)      // max SC's(spikes) with ADC>max  (to remove sparks,ovfl,...)
 I 22  nhtlmx[0] (3)   // max hits in 1st sc-plane (to remove early showering)
 I 23  nhtlmx[1] (4)   // max hits in 2nd sc-plane (to remove early showering)
-I 24  nhtlmx[2] (5)   // max hits in 3rd sc-plane (to remove early showering)
-I 25  lmulmx (20)     // max hits/sc-plane (to remove events with abn.multiplicity)
-I 26  nholmx[0] (1)   // max holes(betw.fired cells) in 1st sc-plane(early show.prot)
-I 27  nholmx[1] (2)   // max holes(betw.fired cells) in 2nd sc-plane(early show.prot)
-I 28  nholmx[2] (3)   // max holes(betw.fired cells) in 3rd sc-plane(early show.prot)
-I 29  nbplmx (0)      // max bad sc-planes (with spikes or high multiplicity)
-R 30  edtmin (800.)   // min Etot(mev) to remove MIP
-R 31  esleakmx (0.01) // max Eleak(side)/Etot to remove energy side leak
-R 32  ebleakmx (0.02) // max Eleak(back)/Etot
-R 33  edfrmn (300.)   // min Efront(mev)
-R 34  edt2pmx (0.2)   // max Etail/Epeak
-R 35  ed2momc (0.4)   // Edep(EC)/Mom(TRK)-1 cut
-R 36  cog1cut (1.0)   // Track-SCPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
-R 37  scdismx[0] (1.) // max sc-track dist. to consider hit as backgroubd(pl-1) 
-R 38  scdismx[1] (1.2)// max sc-track dist. to consider hit as backgroubd(pl-2) 
-R 39  scdismx[2] (2.) // max sc-track dist. to consider hit as backgroubd(pl-3)
-R 40  scdisrs (8.)    // as above for all other planes(not used really)
-R 41  b2scut[0] (0.1) // max backgr/signal energy(boundaries from above) for pl-1 
-R 42  b2scut[1] (0.15)// max backgr/signal energy(bound.from above) for pl-2 
-R 43  Eb2scut[2] (0.2)// max backgr/signal energy(bound.from above) for pl-3
+I 24  nhtlmx[2] (4)   // max hits in 3rd sc-plane (to remove early showering)
+I 25  nhtlmx[3] (5)   // max hits in 4th sc-plane (to remove early showering)
+I 26  nhtlmx[4] (7)   // max hits in 5th sc-plane (to remove early showering)
+I 27  nhtlmx[5] (7)   // max hits in 6th sc-plane (to remove early showering)
+I 28  lmulmx    (20)  // max hits/sc-plane (to remove events with abn.multiplicity)
+I 29  nholmx[0] (1)   // max holes(betw.fired cells) in 1st sc-plane(early show.prot)
+I 30  nholmx[1] (2)   // max holes(betw.fired cells) in 2nd sc-plane(early show.prot)
+I 31  nholmx[2] (3)   // max holes(betw.fired cells) in 3rd sc-plane(early show.prot)
+I 32  nholmx[3] (3)   // max holes(betw.fired cells) in 4th sc-plane(early show.prot)
+I 33  nholmx[4] (3)   // max holes(betw.fired cells) in 5th sc-plane(early show.prot)
+I 34  nholmx[5] (4)   // max holes(betw.fired cells) in 6th sc-plane(early show.prot)
+I 35  nbplmx (0)      // max bad sc-planes (with spikes or high multiplicity)
+R 36  edtmin (800.)   // min Etot(mev) to remove MIP
+R 37  esleakmx (0.01) // max Eleak(side)/Etot to remove energy side leak
+R 38  ebleakmx (0.02) // max Eleak(back)/Etot
+R 39  edfrmn (300.)   // min Efront(mev)
+R 40  edt2pmx (0.2)   // max Etail/Epeak
+R 41  ed2momc (0.4)   // Edep(EC)/Mom(TRK)-1 cut
+R 42  cog1cut (1.0)   // Track-SCPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
+R 43  scdismx[0] (1.) // max sc-track dist. to consider hit as backgroubd(pl-1) 
+R 44  scdismx[1] (1.2)// max sc-track dist. to consider hit as backgroubd(pl-2) 
+R 45  scdismx[2] (2.) // max sc-track dist. to consider hit as backgroubd(pl-3)
+R 46  scdismx[3] (1.8)// max sc-track dist. to consider hit as backgroubd(pl-4)
+R 47  scdismx[4] (3.) // max sc-track dist. to consider hit as backgroubd(pl-5)
+R 48  scdismx[5] (3.2)// max sc-track dist. to consider hit as backgroubd(pl-6)
+R 49  scdisrs (8.)    // as above for all other planes(not used really)
+R 50  b2scut[0] (0.1) // max backgr/signal energy(boundaries from above) for pl-1 
+R 51  b2scut[1] (0.15)// max backgr/signal energy(bound.from above) for pl-2 
+R 52  b2scut[2] (0.2) // max backgr/signal energy(bound.from above) for pl-3
+R 53  b2scut[3] (0.2) // max backgr/signal energy(bound.from above) for pl-4 
+R 54  b2scut[4] (0.15)// max backgr/signal energy(bound.from above) for pl-5 
+R 55  b2scut[5] (0.15)// max backgr/signal energy(bound.from above) for pl-6
+R 56  pedcpr    (0.04)// PedCal : portion of highest amplitudes to remove for ped/sig calc
+I 57  pedoutf     (2) // PedCal-output type:0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
  
 //--------------------------------------------------------------------------------
 
@@ -958,7 +978,8 @@ I 4   ReadConstFiles(0);   // P(PedsMC), P=0/1-> read Peds from DB/RawFiles
 ATRE
 I 1 reprtf[0] (0)         // RECO-hist print flag
 I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
-I 3       [2] (0)         // spare
+I 3 relogic   (0)         // 0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)
+//                                                                           /PedCal_OnBoardTable
 R 4 Edthr(0.1)            // Threshold(mev) for Cluster(Sector) creation
 R 5 zcerr1(10.)           // ZCoordError(cm) for "paired" sector
 R 6 daqthr(3)             // DAQ-readout theshold(in PedSigmas)
@@ -984,7 +1005,10 @@ I 21 year[1](110)          //
 
 ATCA
 I 1 cfvers(3)             // version number(01-99) for antiverlistNN.dat file
-I 2 cafdir(0)             // 0/1-> use official/private directory for calibr.files
+I 2 cafdir(0)             // 0/1-> use official/private directory for calibr.files reading
+R 3 pedcpr[0] (0.01)      // PedCalibJobClassic(rand.trg): portion of highest ADCs to remove
+R 4 pedcpr[1] (0.035)     // PedCalibJobDownScaled(in trig): portion of highest adcs to remove
+I 5 pedoutf     (2)       // PedCalibJob-output type:0/1/2-> HistosOnly/PedWrite2DB+File/PedWrite2File
 
 //------------------------------------------------------------------------------
 

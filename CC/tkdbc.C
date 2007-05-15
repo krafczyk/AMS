@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.48 2007/04/04 12:02:05 choutko Exp $
+//  $Id: tkdbc.C,v 1.49 2007/05/15 11:38:32 choumilo Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -53,6 +53,7 @@ void TKDBc::init(float zshift ){
 // get setup
 
    if (strstr(AMSJob::gethead()->getsetup(),"AMS02a")){
+     cout<<"====> TKDBc::init: AMS02a setup selected:"<<endl;
     int i;
     _nlaysi=8;
     const integer _nlay=8;
@@ -282,6 +283,7 @@ const number  support_hc_z[_nlay]={-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
 
    }
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
+     cout<<"====> TKDBc::init: AMS02Test setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -513,6 +515,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
 }
 
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02old")){
+     cout<<"====> TKDBc::init: AMS02old setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -743,6 +746,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
 
 }
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02New")){
+     cout<<"====> TKDBc::init: AMS02New setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -974,6 +978,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 }
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02C")){
+     cout<<"====> TKDBc::init: AMS02C setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -1208,6 +1213,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02N1")){
+     cout<<"====> TKDBc::init: AMS02N1 setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -1443,6 +1449,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02N2")){
+     cout<<"====> TKDBc::init: AMS02N2 setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -1917,6 +1924,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 }
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+     cout<<"====> TKDBc::init: AMS02 setup selected:"<<endl;
 
     int i;
     _nlaysi=8;
@@ -2150,14 +2158,14 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
    else{ 
-     cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
+     cerr<<"<---- TKDBc::init:Error: Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
       exit(1);
    }
     int allow=0;
     for(int i=0;i<npat();i++){
       if(patallow(i))allow++;
     }  
-    cout <<"AMSTKDBc::init-I-PatternsInitialized/Allowed "<<_Npat<<"/"<<allow<<endl;
+    cout <<"      PatternsInitialized/Allowed "<<_Npat<<"/"<<allow<<endl;
     #ifdef __AMSDEBUG__
        int cpat,ilay;
       for(cpat=0;cpat<nlay();cpat++)cout<<"_patd["<<cpat<<"] "<<_patd[cpat]<<endl; 
@@ -2182,7 +2190,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
         }
        }
 
-       cout <<"TKDBcI-I-Total of " <<_NumberSen<< "  sensors initialized."<<endl;
+       cout <<"      Total of " <<_NumberSen<< "  sensors initialized."<<endl;
        int nhalflad=0;
   // calculate ladder #
        for ( i=0;i<nlay();i++){
@@ -2192,8 +2200,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
         }
        }
        nhalflad+=_NumberLadder;
-       cout <<"TKDBcI-I-Total of " <<_NumberLadder<< "  ladders initialized."<<endl;
-       cout <<"TKDBcI-I-Total of " <<nhalflad<< "  half ladders initialized."<<endl;
+       cout <<"      Total of " <<_NumberLadder<< "  ladders initialized."<<endl;
+       cout <<"      Total of " <<nhalflad<< "  half ladders initialized."<<endl;
        _NumberMarkers=nlay()*4;
        _HeadSensor=new TKDBc[_NumberSen];
        _HeadLadder[0]=new TKDBc[_NumberLadder];
@@ -2218,7 +2226,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
      if(_patallow[i])iac++;
     }
     
-    cout <<"AMSTKDBc::init-I-ActivePatternsFound "<<iac<<endl;
+    cout<<"<---- TKDBc::init finished: ActivePatternsFound "<<iac<<endl<<endl;
 }
 //-----------------------------------------------
 void TKDBc::read(){
@@ -2295,11 +2303,11 @@ if(iftxt){
    if(_HeadSensor[idum]._status!=0)active++;
  }
 if(iftxt.eof() ){
-  cerr<< "TKDBc::read-F-Unexpected EOF in file "<<fnam<<endl;
+  cerr<< "<---- TKDBc::read-F-Unexpected EOF in file "<<fnam<<endl;
 }
 else {
  _ReadOK=1;
- cout <<"TKDBc::read-I-"<<active<<" active sensors have been read from "<<fnam<<endl;
+ cout<<"<---- TKDBc::read: "<<active<<" active sensors have been read from "<<endl<<"      "<<fnam<<endl<<endl;
 if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   compileg();
   updatef();
@@ -2308,7 +2316,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 
 }
 else {
-  cerr <<" TKDBc::read-E-File not exists "<<fnam <<endl;
+  cerr <<"<---- TKDBc::read-E-File not exists "<<fnam <<endl;
   exit(1);
 }
 

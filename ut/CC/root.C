@@ -2676,7 +2676,7 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
   Coo[2]  = ptr->_cooz;
 
   AttCor  = ptr->_attcor;
-  AMSECIdSoft ic(ptr->getid());
+  AMSECIds ic(ptr->getid());
   ADC[0] = ptr->_adc[0];
   ADC[1] = ptr->_adc[1]*ic.gethi2lowr();
   ADC[2] = ptr->_adc[2]*ic.getan2dyr();

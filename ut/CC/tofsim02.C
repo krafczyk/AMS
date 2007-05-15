@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.35 2006/07/14 13:17:17 choumilo Exp $
+//  $Id: tofsim02.C,v 1.36 2007/05/15 11:38:33 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -184,17 +184,17 @@ void TOFWScan::build(){
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"TOFWScan::build: Open file  "<<fname<<'\n';
+  cout<<"====> TOFWScan::build: Open verslist-file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
-    cerr <<"TOF2Scan::build(): missing verslist-file "<<fname<<endl;
+    cerr <<"<---- missing verslist-file !!! "<<fname<<endl;
     exit(1);
   }
   vlfile >> nverst;// total number of files in the list
   vlfile >> ivers;// first number in first line (vers.# for tdisfmap-file)
   vlfile.close();
   ivers=(ivers%1000);
-  cout<<"TOFWScan::build(): use MC-timescan map-file version="<<ivers<<'\n';
+  cout<<"      use MC-TimeScanMap file version="<<ivers<<'\n';
 //  
 //                    <-- first read TScanFileNames vs BType (map) file:
   strcpy(name,tdisfn);
@@ -214,11 +214,12 @@ void TOFWScan::build(){
   cout<<"       Open file : "<<fname<<'\n';
   ifstream tcfile(fname,ios::in); // open needed tdisfmap-file for reading
   if(!tcfile){
-    cerr <<"TOFWScan::build(): missing tof2smap-file "<<fname<<endl;
+    cerr <<"<---- missing  MC-TimeScanMap file !!! "<<fname<<endl;
     exit(1);
   }
   for(ic=0;ic<TOF2GC::SCBTPN;ic++) tcfile >> brfnam[ic];
   tcfile.close();
+  cout<<"   <-- MC-TimeScanMap file succsessfully read !"<<endl;
 //-------------------
 //                                  <-- now read t-distr. files
  int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,dnumm,mult,dnumo;
@@ -239,6 +240,7 @@ void TOFWScan::build(){
  geant wdivxh[TOF2GC::SCANWDS];
  integer idiv;
  geant eff1,eff2;
+ cout<<"      Reading MC-TimeScan files ...."<<endl;
 //
   for(brt=0;brt<TOF2GC::SCBTPN;brt++){   // <-------- loop bar-types
       dnum=brfnam[brt];// 4-digits t-distr. file name (VLBB)
@@ -256,10 +258,10 @@ void TOFWScan::build(){
       if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
       if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
       strcat(fname,name);
-      cout<<"       Open file : "<<fname<<'\n';
+      cout<<"      Open file : "<<fname<<'\n';
       ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
       if(!tcfile){
-        cerr <<"AMSTOFScan::build(): missing MC-t_scan file "<<fname<<endl;
+        cerr <<"<---- missing MC-TimeScan file !!! "<<fname<<endl;
         exit(1);
       }
       tcfile >> npmts; // read numb.of PMTs per side
@@ -272,7 +274,7 @@ void TOFWScan::build(){
 //
         tcfile >> nsp; // read tot.number of scan-point in this div.
         if(nsp>TOF2GC::SCANPNT){
-          cerr<<"Sitofinitjob: wrong # of MC Y-scan point ! "<<nsp<<'\n';
+          cerr<<"<---- wrong number of MC-TimeScan Y-points ! "<<nsp<<'\n';
           exit(1);
         } 
         tcfile >> wdivxl[div]; // read xl
@@ -313,6 +315,7 @@ void TOFWScan::build(){
       tcfile.close(); // close file
       scmcscan[brt]=TOFWScan(npmts,nwdivs,wdivxl,wdivxh,swdscan);// create complete scan obj
   } // --- end of bar-types loop --->
+  cout<<"<---- TOFWScan::build: succsessfully done !"<<endl<<endl;
 }
 //===================================================================
 //
@@ -376,7 +379,7 @@ void TOF2Tovt::build()
     TOF2Tovt::inipsh(npshbn,pmplsh); // <---prepare PM sing.electron PulseShape array
     HBOOK1(1099,"Single electron spectrum,mV",65,0.,13.,0.);
     HBOOK1(1094,"Spectrum of Sum(Ntest_el) ,mV",80,0.,80.,0.);
-    cout<<"=====> TOF2Tovt::build: Prepare some SE-spectrum related data..."<<endl;
+    cout<<"====> TOF2Tovt::build: Prepare some SE-spectrum related data..."<<endl;
     bool bprint(0);
     for(int ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//<---prepare SES-params vs Btyp
       bprint=(((ibt+1)==2 || (ibt+1)==6 || (ibt+1)==7) && (TFMCFFKEY.mcprtf[0]==1));
@@ -403,9 +406,9 @@ void TOF2Tovt::build()
       sesav[ibt]=am;//SE-spectrum average(Ase)
       sesas[ibt]=sqrt(am2-am*am);//SE-spectrum rms(Sse)
       sesrat=sesas[ibt]/sesav[ibt];
-      if(bprint)cout<<"Original SE-specrtum Aver/Sigm="<<sesav[ibt]<<" "<<sesas[ibt]<<" ratio="<<sesrat<<endl;
+      if(bprint)cout<<"      Original SE-specrtum Aver/Sigm="<<sesav[ibt]<<" "<<sesas[ibt]<<" ratio="<<sesrat<<endl;
       if(bprint)HRESET(1099,hmod);
-      if(bprint)cout<<"Asimpt.spectrum for "<<nsebnd<<" electrons has Aver/Sig="<<
+      if(bprint)cout<<"      Asimpt.spectrum for "<<nsebnd<<" electrons has Aver/Sig="<<
                             (nsebnd*sesav[ibt])<<" "<<(sqrt(geant(nsebnd))*sesas[ibt])<<endl;
       amm=0;
       amm2=0;
@@ -424,7 +427,7 @@ void TOF2Tovt::build()
       amm/=2000;
       amm2/=2000;
       amm2=sqrt(amm2-amm*amm);
-      if(bprint)cout<<"True spectrum for "<<nsebnd<<" electrond has Aver/Sig="<<amm<<" "<<amm2<<endl;
+      if(bprint)cout<<"      True spectrum for "<<nsebnd<<" electrond has Aver/Sig="<<amm<<" "<<amm2<<endl;
       if(bprint){
         HRESET(1094,hmod);
         cout<<"--------------"<<endl;
@@ -437,7 +440,7 @@ void TOF2Tovt::build()
     zlmx=TOF2DBc::plnstr(6)/2.+eps;
     convr=1000.*TOF2DBc::edep2ph();
     AMSmceventg::RestoreSeeds();
-    cout<<"<===== TOF2Tovt::build: SE-spectrum related data prepared !"<<endl;
+    cout<<"<---- TOF2Tovt::build: SE-spectrum related data prepared !"<<endl;
     
 //    cout <<"first out "<<endl;
   }
@@ -1249,6 +1252,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 	if(TFMCFFKEY.mcprtf[2]!=0)
 	                          if(idd==1041)HF1(1074,float(adcs),1.);
         _adca=adcs+ped+sig*rnormx();// Anode adc+ped (float)
+//	cout<<"  Aped/sig="<<ped<<" "<<sig<<" _adca="<<_adca<<endl;
 //
 //
 //dynode:
@@ -1262,6 +1266,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 	  ped=TOFBPeds::scbrped[ilay][ibar].apedd(isid,ipm);
 	  sig=TOFBPeds::scbrped[ilay][ibar].asigd(isid,ipm);
           _adcd[_nadcd]=adcs+ped+sig*rnormx();// Dynode(pm) adc+ped (float)
+//	  cout<<"  Dped/sig="<<ped<<" "<<sig<<" adcd="<<_adcd[_nadcd]<<" nadcd="<<_nadcd<<endl;
           _nadcd+=1;//really it is number of PMTs/side because all adcd's accepted
 //if(adcs>2500){
 //  cout<<"---> TofSimDynode:L/B/S="<<ilay<<" "<<ibar<<" "<<isid<<" pm="<<ipm<<" eqs="<<eqs<<endl;
@@ -1322,7 +1327,7 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   geant cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation(z>=1)(i.e. FTC-pulse width)
   trcode=-1;
   cpcode=0;
-  lut1=Trigger2LVL1::l1trigconf.toflut1();//lut from DB
+  lut1=Trigger2LVL1::l1trigconf.toflut1();//lut from DB(file)
   lut2=Trigger2LVL1::l1trigconf.toflut2();
   if(TGL1FFKEY.toflc>=0){//overwrite lut's settings by request from data card
     toflc=TGL1FFKEY.toflc;
@@ -1337,6 +1342,12 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
     else if(toflc==2){//2of4
       lut1=1<<5+1<<6;// 13+23 comb.
       lut2=1<<9+1<<10;// 14+24 comb
+    }
+    else if(toflc==3){//>=3of4 + 1&2
+//      lut1=(lut1|(1<<3));//3of4 + 1&2 (add 1&2 to default >=3of4)
+//      lut2=1<<15;// 4of4
+      lut1=(1<<3);
+      lut2=0;//none
     }
     else{
       cout<<"FatalError: TOF2Tovt::ftctime: wrong layer conf. was requested from data card !!!"<<endl;
@@ -1430,6 +1441,7 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   AMSBitstr coinc14=trbl[0]&trbl[3];
   AMSBitstr coinc23=trbl[1]&trbl[2];
   AMSBitstr coinc24=trbl[1]&trbl[3];
+  AMSBitstr coinc12=trbl[0]&trbl[1];//special request
   coinc13.testbit(i1,i2);
   if((i2>=i1) && (lut1 & 1<<5)){//found 2-fold coinc.(requested in lut1)
     if(i1<imin)imin=i1;
@@ -1444,6 +1456,10 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   }
   coinc24.testbit(i1,i2);
   if((i2>=i1) && (lut1 & 1<<10)){//found 2-fold coinc.(requested in lut1)
+    if(i1<imin)imin=i1;
+  }
+  coinc12.testbit(i1,i2);
+  if((i2>=i1) && (lut1 & 1<<3)){//found special 2-fold coinc.L=1&2(requested in lut1)
     if(i1<imin)imin=i1;
   }
   if(imin!=9999){ // lut1-ok
@@ -1493,6 +1509,10 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   if((i2>=i1) && (lut2 & 1<<10)){//found 2-fold coinc.(requested in lut2)
     if(i1<imin)imin=i1;
   }
+  coinc12.testbit(i1,i2);
+  if((i2>=i1) && (lut2 & 1<<3)){//found special 2-fold coinc.L=1&2(requested in lut1)
+    if(i1<imin)imin=i1;
+  }
   if(imin!=9999){ // lut2-ok
     t2=imin*trigb;
   }
@@ -1533,6 +1553,7 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
     if(lpat==9)trcode=6;//2of4,miss=2,3
     if(lpat==6)trcode=7;//2of4,miss=1,4
     if(lpat==10)trcode=8;//2of4,miss=1,3
+    if(lpat==3)trcode=9;//2of4,miss=3,4
   }
 //----> create CP1,CP2 flags(cpcode) for LVL1:
   cpcode=0;
@@ -2102,11 +2123,11 @@ void TOF2RawSide::mc_build(int &status)
   number tstdc[TOF2GC::SCTHMX3];
   number tadca,tadcd[TOF2GC::PMTSMX];
   integer  ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3],sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
-  integer adca,adcd[TOF2GC::PMTSMX];
+  geant adca,adcd[TOF2GC::PMTSMX];
   number t,t1,t2,t3,t4,ttrig,dt,cstopt,tl1d,ftrig,ecftrig;
   number ftctime,ftztime,ftetime,ftmin;
   geant charge,edep,strr[2][2],str,offs,temp;
-  geant daqt1,rrr;
+  geant daqta,daqtd,rrr;
   number pedv,peds,amp;
   integer iamp;
   integer trcode,trcodez,cpcode(0),ftzcode(-1);
@@ -2122,11 +2143,22 @@ void TOF2RawSide::mc_build(int &status)
   geant trtmax=TOF2DBc::trigtb()*(1+TOFGC::SCBITM);//max possible abs.trig-time(=myTrigTimeScale)
   TOF2Tovt *ptr;
   TOF2Tovt *ptrN;
+  int fmask[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];//mask of fired sides
   status=1;// bad(=> no_globFT)
   phbit=TOF2GC::SCPHBP;
   maxv=phbit-1;//max possible TDC value (16383)
-  daqt1=TOF2Varp::tofvpar.daqthr(3);//daq readout thr (ped sigmas)
-  if(TFMCFFKEY.mcprtf[3]>0)cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
+  daqta=TOF2Varp::tofvpar.daqthr(3);//daq readout thr (anode, ped sigmas)
+  daqtd=TOF2Varp::tofvpar.daqthr(4);//daq readout thr (dynode, ped sigmas)
+//  if(TFMCFFKEY.mcprtf[3]>0)cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
+//  cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
+//
+  for(int il=0;il<TOF2GC::SCLRS;il++){
+    for(int ib=0;ib<TOF2GC::SCMXBR;ib++){
+      for(int is=0;is<2;is++){
+        fmask[il][ib][is]=0;//reset mask
+      }
+    }
+  }
 //
   trcode=-1;
   trcodez=-1;
@@ -2241,6 +2273,9 @@ void TOF2RawSide::mc_build(int &status)
     cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     TOF2JobStat::addmc(22);
   }
+//
+  status=0;//<============ OK because globFT conditions was found above
+//
   if(TFMCFFKEY.mcprtf[3]>0)cout<<"    FTabsTime="<<ttrig<<" inSPT2(delayed)="<<ftrig<<endl;
 //  
 //<---- create TOFRawSide static FTtime-channels arrays(digitization of FT-time, INCLUDING Anti-slots ):
@@ -2256,9 +2291,10 @@ void TOF2RawSide::mc_build(int &status)
       TOF2RawSide::FThits[cr][sl]=1;//only one hit for MC
     }
   }
-//---->
+//
+//----> create LT-time, charge hits scanning TOF2Tovt-objects :
+//
   int16u mtyp(0),otyp(0),crat,slot;
-  status=0;
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
                                getheadC("TOF2Tovt",ilay,0);
@@ -2272,7 +2308,7 @@ void TOF2RawSide::mc_build(int &status)
       AMSSCIds tofid(ilay,ibar,isd,otyp,mtyp);//otyp=0(anode),mtyp=0(TimeTDC))
       crat=tofid.getcrate();//current crate#
       slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
-      hid=tofid.gethwid()/100;//s1 CS(Crate|Slot=>shorthwid) 
+      hid=tofid.gethwid()/100;//CSS(Crate|Slot=>shorthwid) 
       _sta=ptr->getstat();
       charge=ptr->getcharg();
       edep=ptr->getedep();
@@ -2305,34 +2341,34 @@ void TOF2RawSide::mc_build(int &status)
     if(TOFBrcalMS::scbrcal[ilay][ibar].AchOK(isd)){//A(h)-ch alive in "MC Seeds" DB
       pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isd);
       peds=TOFBPeds::scbrped[ilay][ibar].asiga(isd);
-      tadca=ptr->getadca();//get ADC-counts of Anode
+      tadca=ptr->getadca();//get ADC-counts of Anode (contains at least ped)
       amp=tadca;// here charge is quantized by "adc2q" but not "integerized"
-      iamp=integer(floor(amp));//go to real ADC-channels("integerization")
-      if(iamp>TOF2GC::SCADCMX){//Anode-ADC overflow
+      iamp=integer(floor(amp));//go to real ADC-counts(on board ADC "integerization")
+      if(iamp>TOF2GC::SCADCMX){//ADC overflow
         TOF2JobStat::addmc(9);
 	iamp=TOF2GC::SCADCMX;
 #ifdef __AMSDEBUG__
         cout<<"TOF2RawSide_mc-W: Anode-ADC overflow,id="<<idd<<'\n';
 #endif
       }
-      amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
-//cout<<"    Anode: ped/sig="<<pedv<<" "<<peds<<" iamp/-ped="<<iamp<<" "<<amp<<endl;
-      if(amp>daqt1*peds){// DAQ readout threshold
-	iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> int DAQ bins
-        itt=int16u(iamp);
-        adca=itt;
+      if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6){//to test RD PedCalib logic
+        if(iamp>0)adca=geant(iamp)+0.5;//No ped-suppression for Ped-run, "+0.5" to be at ADC-bin middle
       }
-//cout<<"      Anode: adca="<<adca<<endl;
+      else{//normal run
+        if(iamp>(pedv+daqta*peds))adca=geant(iamp)+0.5-pedv;//OnBoard_PedSuppression + OfflinePedSubtraction
+	else adca=0;
+      }
+//cout<<"    Anode: ped/sig="<<pedv<<" "<<peds<<" iamp="<<iamp<<" adca(ped-subtracted)="<<adca<<endl;
     }//--> end of alive check
 //--------------------
 //Qdynode:
     nadcd=0;
     for(j=0;j<TOF2GC::PMTSMX;j++)adcd[j]=0;
-    ntadcd=ptr->getadcd(tadcd);// get number of Dynode-pmts(upto PMTSMX) and its ADCs(incl=0)
+    ntadcd=ptr->getadcd(tadcd);// get number of Dynode-pmts(upto PMTSMX) and its ADCs(at least ped)
     for(j=0;j<ntadcd;j++){// <--- Dyn-pmts loop ---
       if(TOFBrcalMS::scbrcal[ilay][ibar].DchOK(isd,j)){//Dyn-PMch alive in "MC Seeds" DB
 	amp=tadcd[j];// here charge is quantized by "adc2q" but not "integerized"
-        iamp=integer(floor(amp));//go to real ADC-channels("integerization")
+        iamp=integer(floor(amp));//DAQ: go to real ADC-channels(on board "integerization")
         if(iamp>TOF2GC::SCADCMX){
           TOF2JobStat::addmc(10);
 	  iamp=TOF2GC::SCADCMX;
@@ -2342,33 +2378,34 @@ void TOF2RawSide::mc_build(int &status)
         }
         pedv=TOFBPeds::scbrped[ilay][ibar].apedd(isd,j);
         peds=TOFBPeds::scbrped[ilay][ibar].asigd(isd,j);
-	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
-//cout<<"    Dynode: pm/ped/sig="<<j<<" "<<pedv<<" "<<peds<<" iamp/-ped="<<iamp<<" "<<amp<<endl;
-	if(amp>daqt1*peds){// DAQ readout threshold
-	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> DAQ bins
-          itt=int16u(iamp);
-          adcd[j]=itt;
-          nadcd+=1;//number of nonzero(>thr) pmts !!!
-	}
+        if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6){//to test RD PedCalib logic
+          if(iamp>0){
+	    adcd[j]=geant(iamp)+0.5;//No ped-suppression for Ped-run, "+0.5" to be at ADC-bin middle
+            nadcd+=1;//number of nonzero pmts !!!
+	  }
+        }
+        else{//normal run
+          if(iamp>(pedv+daqtd*peds)){//OnBoard_PedSuppression + OfflinePedSubtraction
+	    adcd[j]=geant(iamp)+0.5-pedv;
+            nadcd+=1;//number of nonzero(>thr) pmts !!!
+	  }
+	  else adcd[j]=0;
+        }
       }//--> end of alive check
-//cout<<"       adcd="<<adcd[j]<<endl;
+//cout<<"    Dynode: pm/ped/sig="<<j<<" "<<pedv<<" "<<peds<<" iamp="<<iamp<<" adcd(ped-subtr)="<<adcd[j]<<endl;
     }//--- end of Dyn-pm loop --->
 //---------------------
 //     ---> create/fill RawEvent-object :
-      stat=0;
+// tempor no check on "empty object" because globFT-conditions were found ("status" was set to 0 above)
       temp=0;//now dummy(will be set at validation stage using static JobStat temp-store !!!)
       nftdc=0;//now dummy(will be set at validation stage using static RawEvent FTtime-store !!!)
       nsumh=0;//now dummy(will be set at validation stage using static RawEvent SumHTtime-store !!!)
       nsumsh=0;//now dummy(will be set at validation stage using static RawEvent SumSHTtime-store !!!)
+      if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtraction/suppression)
+      fmask[ilay][ibar][isd]=1;//mark fired side
 //
-      if(AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new
-           TOF2RawSide(idd,hid,_sta,charge,temp,
-	                                          nftdc,ftdc,
-				                  nstdc,stdc,
-						 nsumh,sumht,
-					       nsumsh,sumsht,
-                                                         adca,
-			                          nadcd,adcd)))stat=1;
+      AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,temp,
+	                           nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
 //
       ptr=ptr->next();// take next Tovt-hit
 // 
@@ -2422,7 +2459,77 @@ void TOF2RawSide::mc_build(int &status)
 //
     }//endof sfet-loop--->
   }//endof crate-loop--->
-  
+//
+// ============> fill empty sides with peds (if requested by TFMC 20=1):
+//
+  if(TFMCFFKEY.addpeds){
+    for(int il=0;il<TOF2DBc::getnplns();il++){
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        for(int is=0;is<2;is++){
+	  if(fmask[il][ib][is]==0){//empty side
+	    idd=1000*(il+1)+10*(ib+1)+is+1;//LBBS
+            mtyp=1;
+            otyp=0;
+            AMSSCIds tofid(il,ib,is,otyp,mtyp);//otyp=0(anode),mtyp=1(q)
+            crat=tofid.getcrate();//current crate#
+            slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+            hid=tofid.gethwid()/100;//CSS(Crate|Slot=>shorthwid) 
+            adca=0;
+            if(TOFBrcalMS::scbrcal[il][ib].AchOK(is)){//Anode-ch alive in "MC Seeds" DB
+              pedv=TOFBPeds::scbrped[il][ib].apeda(is);
+              peds=TOFBPeds::scbrped[il][ib].asiga(is);
+	      amp=pedv+peds*rnormx();//float
+              iamp=integer(floor(amp));//DAQ: go to real ADC-channels(on board "integerization")
+              if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6){//to test RD PedCalib logic
+                if(iamp>0)adca=geant(iamp)+0.5;//No ped-suppression for Ped-run, "+0.5" to be at ADC-bin middle
+              }
+              else{//normal run
+                if(iamp>(pedv+daqta*peds))adca=geant(iamp)+0.5-pedv;//OnBoard_PedSuppression + OfflinePedSubtraction
+	        else adca=0;
+              }
+	    }//--->endof alive check
+            nadcd=0;
+            for(j=0;j<TOF2GC::PMTSMX;j++)adcd[j]=0;
+            for(j=0;j<TOF2DBc::npmtps(il,ib);j++){// <--- Dyn-pmts loop ---
+              if(TOFBrcalMS::scbrcal[il][ib].DchOK(is,j)){//Dyn-PMch alive in "MC Seeds" DB
+                pedv=TOFBPeds::scbrped[il][ib].apedd(is,j);
+                peds=TOFBPeds::scbrped[il][ib].asigd(is,j);
+	        amp=pedv+peds*rnormx();//float
+                iamp=integer(floor(amp));//DAQ: go to real ADC-channels(on board "integerization")
+                if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6){//to test RD PedCalib logic
+                  if(iamp>0){
+		    adcd[j]=geant(iamp)+0.5;//No ped-suppression for Ped-run, "+0.5" to be at ADC-bin middle
+                    nadcd+=1;//number of nonzero pmts !!!
+		  }
+                }
+                else{//normal run
+                  if(iamp>(pedv+daqtd*peds)){//OnBoard_PedSuppression + OfflinePedSubtraction
+	            adcd[j]=geant(iamp)+0.5-pedv;
+                    nadcd+=1;//number of nonzero(>thr) pmts !!!
+	          }
+	          else adcd[j]=0;
+		}
+              }//--->endof alive check
+            }//--->endof Dyn-pmt-loop
+//     ---> create/fill "ped" RawEvent-object :
+            if(adca>0 || nadcd>0){
+              temp=0;
+              nftdc=0;
+	      nstdc=0;
+	      edep=0;
+              nsumh=0;
+              nsumsh=0;
+//
+              if(TFREFFKEY.relogic[0]==5||TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtr/suppr)
+              AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,temp,
+	                                 nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
+	    }
+	  }//--->endof emty side check
+        }//--->endof side-loop
+      }//--->endod bar-loop
+    }//--->endof layer-loop
+  }//--->endof addpeds check
+//  
 }
 //================================================================
 
@@ -2496,8 +2603,8 @@ TOF2RawSide::TOF2RawSide(int16u sid, int16u hid, int16u sta, geant charge, geant
    integer nstdc, integer stdc[],
    integer nsumh, integer sumht[],
    integer nsumsh, integer sumsht[],
-   integer adca,
-   integer nadcd, integer adcd[]):_swid(sid),_hwid(hid),_status(sta)
+   geant adca,
+   integer nadcd, geant adcd[]):_swid(sid),_hwid(hid),_status(sta)
    {
      integer i;
      _nftdc=nftdc;
@@ -2566,12 +2673,12 @@ void TOF2RawSide::putsumsh(integer nelem, integer arr[]){
 }
 
 
-integer TOF2RawSide::getadcd(int arr[]){
+integer TOF2RawSide::getadcd(geant arr[]){
   for(int i=0;i<TOF2GC::PMTSMX;i++)arr[i]=_adcd[i];
   return _nadcd;
 }
 
-void TOF2RawSide::putadcd(integer nelem, integer arr[]){
+void TOF2RawSide::putadcd(integer nelem, geant arr[]){
   _nadcd=nelem;
   for(int i=0;i<_nadcd;i++)_adcd[i]=arr[i];
 }

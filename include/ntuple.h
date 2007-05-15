@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.99 2006/09/14 15:34:53 choutko Exp $
+//  $Id: ntuple.h,v 1.100 2007/05/15 11:39:24 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -655,9 +655,9 @@ public:
   int sumht[MAXTOFRAWS][16]; 
   int nsumsh[MAXTOFRAWS];
   int sumsht[MAXTOFRAWS][16];
-  int adca[MAXTOFRAWS];
+  float adca[MAXTOFRAWS];
   int nadcd[MAXTOFRAWS];
-  int adcd[MAXTOFRAWS][3];
+  float adcd[MAXTOFRAWS][3];
   float temp[MAXTOFRAWS];
 
 friend class TOF2RawSide;

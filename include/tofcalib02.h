@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.8 2005/09/09 07:55:27 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.9 2007/05/15 11:39:24 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -173,5 +173,43 @@ public:
   static void fill(integer ichan, number tm[3]);
   static void fill2(integer ichan, number tdif);
   static void outp(); 
+};
+//-----------------------------------------------------------------------
+//===============> TOF PedCalib:
+//
+const integer TFPCSTMX=100;// PedCalib max.values's stack size (max)
+const integer TFPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
+const integer TFPCEVMX=1000;//max.statistics on events/channel
+const geant TFPCSIMX=6.;//max Ped-rms to accept channel as good
+const geant TFPCSPIK=50.;//Anode ADC-value(adc-ch) to be considered as spike(~1mip)
+//
+//  class to manipulate with PedSig-calibration  data:
+class TOFPedCalib {
+private:
+  static number adc[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store Anode/Dynode adc sum
+  static number adc2[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store adc-squares sum
+  static number adcm[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1][TFPCSTMX];//max. adc-values stack
+  static integer nevt[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];// events in sum
+  static geant peds[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
+  static geant sigs[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
+  static uinteger stas[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
+  static integer nstacksz;//really needed stack size (ev2rem*TFPCEVMX)
+  static integer hiamap[TOF2GC::SCLRS][TOF2GC::SCMXBR];//high signal Paddles map (1 event) 
+  static time_t BeginTime;
+  static uinteger BeginRun;
+public:
+  static void init();
+  static void resetb();
+  static void fill(int il, int ib, int is, int pmt, geant adc);//pmt=0/1,2,3=>anode/dynode1,2,3
+  static void filltb(int il,int ib,int is,int pmt,geant pd,geant sg,int st);//to store OnBoardPedTable elems
+  static void outp(int flg);
+  static void outptb(int flg);//to manipulation with final OnBoardPedTable
+  static void hiamreset(){
+    for(int i=0;i<TOF2GC::SCLRS;i++){
+      for(int j=0;j<TOF2GC::SCMXBR;j++)hiamap[i][j]=0;
+    }
+  } 
+  static time_t & BTime(){return BeginTime;}
+  static uinteger & BRun(){return BeginRun;}
 };
 //--------------------------

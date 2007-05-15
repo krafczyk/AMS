@@ -58,11 +58,54 @@ class ECREUNcalib {
     static void selecte();
     static void mfite();
 }; 
+//---------------------------------------------------------------------
+
+//==============================> "On-Data" Pedestal/sigma Calibration:
+//
+// this logic use REAL events when both (raw and compressed) formats are
+// red out. The peds/sigmas are calculated at the end of the job
+// and can be saved into DB and/or ped-file.
+//
+const integer ECPCSTMX=50;// PedCalib max.values's stack size (max)
+const integer ECPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
+const integer ECPCEVMX=1000;//max.statistics on events/channel
+const number ECPCSIMX=2.5;//max Ped-rms to accept channel as good
+const geant ECPCSPIK=10.;//signal threshold to be the "Spike"(~>1mips in Hgain chan)
+//
+class ECPedCalib {
+  private:
+    static time_t BeginTime;
+    static uinteger BeginRun;
+    static number adc[ecalconst::ECPMSL][5][2];
+    static number adc2[ecalconst::ECPMSL][5][2];//square
+    static number adcm[ecalconst::ECPMSL][5][2][ECPCSTMX];//max's  stack
+    static integer nevt[ecalconst::ECPMSL][5][2];
+    static integer hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event) 
+    static geant peds[ecalconst::ECPMSL][5][2];
+    static geant sigs[ecalconst::ECPMSL][5][2];
+    static uinteger stas[ecalconst::ECPMSL][5][2];
+    static integer nstacksz;//really needed stack size (ev2rem*ECPCEVMX)
+  public:
+    static void init();
+    static void resetb();
+    static void hiamreset(){for(int i=0;i<ecalconst::ECSLMX;i++)
+                                          for(int j=0;j<ecalconst::ECPMSMX;j++)hiamap[i][j]=0;
+                           }
+    static void fill(integer swid, geant val);
+    static void filltb(integer swid, geant ped, geant sig, int16u sta);
+    static void outp(int flg);
+    static void outptb(int flg);
+    static time_t & BTime(){return BeginTime;}
+    static uinteger & BRun(){return BeginRun;}
+};
+//----------------------------------------------------------------- 
+
+
 
 #include "ecid.h"
 
 
-class AMSECIdCalib: public AMSECIdSoft{
+class AMSECIdCalib: public AMSECIds{
 protected:
 
 static integer  _Count[ecalconst::ECPMSMX][ecalconst::ECSLMX][4][3];
@@ -89,8 +132,8 @@ integer BadCh;
 static ECCalib_def ECCALIB;
 
 public:
-AMSECIdCalib():AMSECIdSoft(){};
-AMSECIdCalib(const AMSECIdSoft &o):AMSECIdSoft(o){};
+AMSECIdCalib():AMSECIds(){};
+AMSECIdCalib(const AMSECIds &o):AMSECIds(o){};
 static void getaverage();
 static void write();
 static void clear();
@@ -100,12 +143,12 @@ static uinteger & Run(){return _CurRun;}
 static time_t & Time(){return _BeginTime;}
 static void buildSigmaPed(integer n, int16u *p);
 static void buildPedDiff(integer n, int16u *p);
-number getADC(uinteger gain) const{return gain<3?_ADC[_pmtno][_sl][_channel][gain]:0;}
-number getADCMax(uinteger gain) const{return gain<3?_ADCMax[_pmtno][_sl][_channel][gain]:0;}
-number getADC2(uinteger gain) const{return gain<3?_ADC2[_pmtno][_sl][_channel][gain]:0;}
-number & setADC(uinteger gain) {return _ADC[_pmtno][_sl][_channel][gain<3?gain:0];}
-number & setADC2(uinteger gain) {return _ADC2[_pmtno][_sl][_channel][gain<3?gain:0];}
-uinteger getcount(uinteger gain) const{return gain<3?_Count[_pmtno][_sl][_channel][gain]:0;}
+number getADC(uinteger gain) const{return gain<3?_ADC[_pmt][_slay][_pixel][gain]:0;}
+number getADCMax(uinteger gain) const{return gain<3?_ADCMax[_pmt][_slay][_pixel][gain]:0;}
+number getADC2(uinteger gain) const{return gain<3?_ADC2[_pmt][_slay][_pixel][gain]:0;}
+number & setADC(uinteger gain) {return _ADC[_pmt][_slay][_pixel][gain<3?gain:0];}
+number & setADC2(uinteger gain) {return _ADC2[_pmt][_slay][_pixel][gain<3?gain:0];}
+uinteger getcount(uinteger gain) const{return gain<3?_Count[_pmt][_slay][_pixel][gain]:0;}
 
 
 

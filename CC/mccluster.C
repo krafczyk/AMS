@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.69 2006/07/13 15:16:04 choutko Exp $
+//  $Id: mccluster.C,v 1.70 2007/05/15 11:38:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include "trid.h"
@@ -78,10 +78,10 @@ void AMSTRDMCCluster::init(){
 //#endif
 if(TRDMCFFKEY.mode<3 && TRDMCFFKEY.mode>=0){
 indetra_();
-cout<< "AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl;
+cout<< "<---- AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl<<endl;
 }
 else if(TRDMCFFKEY.mode==3){
-cerr<< "AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl;
+cerr<< "<---- AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl<<endl;
 exit(1);
 }
 //#ifdef __G4AMS__

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.17 2007/03/23 12:22:11 choumilo Exp $
+//  $Id: antidbc02.C,v 1.18 2007/05/15 11:38:31 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -17,6 +17,7 @@
 ANTI2SPcal ANTI2SPcal::antispcal[ANTI2C::MAXANTI];//mem.resrv. for ANTI-ReadoutPaddles stab.calib.objects
 ANTI2VPcal ANTI2VPcal::antivpcal[ANTI2C::MAXANTI];//mem.resrv. for ANTI-ReadoutPaddles variab.calib.objects
 ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPaddles pedestals/sigmas
+ANTIPedsMS ANTIPedsMS::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPaddles MC-seeds pedestals/sigmas
 //
 //======> just memory reservation for ANTI2DBc class variables:
 // (real values are initialized at run-time from data cards in setgeom() or in...)
@@ -91,7 +92,7 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPaddle
     }
     else
     {
-          cout <<" ANTIGeom-I-UNKNOWN setup !!!!"<<endl;
+          cout <<"<---- ANTI2DBc::setgeom: UNKNOWN setup !!!!"<<endl;
     }
     _scleng+=2*ZShift;
     _stleng+=2*ZShift;
@@ -618,17 +619,16 @@ void ANTIPeds::mcbuild(){// create MC ANTI-Peds-objects for each ReadoutPaddle
 //
 //   --->  Read  pedestals file :
 //
-  strcpy(name,"antiped");
-  cout <<" ANTIPeds_mcbuild: COPY of current RealData peds-file is used..."<<endl;
-  strcat(name,"mc");
+  strcpy(name,"antp_df_mc");
+  cout <<"====> ANTIPeds::mcbuild: Default Real_MC-peds file is used..."<<endl;
 // ---> check setup:
 //
   if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    cout<<" ANTIPEDS-I-AMS02 setup selected."<<endl;
+    cout<<"      AMS02 setup selected."<<endl;
   }
   else
   {
-        cout <<" ANTIPeds:mcbuild-E-Unknown setup !!!"<<endl;
+        cout <<"      Unknown setup !!!"<<endl;
         exit(10);
   }
 //
@@ -636,10 +636,10 @@ void ANTIPeds::mcbuild(){// create MC ANTI-Peds-objects for each ReadoutPaddle
   if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading
   if(!icfile){
-    cerr <<"ANTIPeds_mcbuild: missing MC default pedestals-file "<<fname<<endl;
+    cerr <<"      missing Default Real_MC-peds file !!!"<<fname<<endl;
     exit(1);
   }
 //
@@ -667,6 +667,7 @@ void ANTIPeds::mcbuild(){// create MC ANTI-Peds-objects for each ReadoutPaddle
     anscped[is]=ANTIPeds(sid,stata,peda,siga);
 //
   } // ---> endof sector loop
+  cout <<"<---- ANTIPeds::mcbuild: succsessfully done !"<<endl<<endl;
 }
 //==========================================================================
 //
@@ -685,17 +686,16 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
 //
 //   --->  Read  pedestals file :
 //
-  strcpy(name,"antiped");
-  cout <<" ANTIPeds_build: Current RealData peds-file is used..."<<endl;
-  strcat(name,"rl");
+  strcpy(name,"antp_df_rl");
+  cout <<"====> ANTIPeds::build: Default Real_Data-Peds file is used..."<<endl;
 // ---> check setup:
 //
   if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    cout<<" ANTIPEDS-I-AMS02 setup selected."<<endl;
+    cout<<"      AMS02 setup selected."<<endl;
   }
   else
   {
-        cout <<" ANTIPeds:build-E-Unknown setup !!!"<<endl;
+        cout <<"      Unknown setup !!!"<<endl;
         exit(10);
   }
 //
@@ -703,10 +703,10 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
   if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading
   if(!icfile){
-    cerr <<"ANTIPeds_build: missing real pedestals file "<<fname<<endl;
+    cerr <<"      missing Default Real_Data-Peds file !!! "<<fname<<endl;
     exit(1);
   }
 //
@@ -734,6 +734,74 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
     anscped[is]=ANTIPeds(sid,stata,peda,siga);
 //
   } // ---> endof sector loop
+  cout <<"<---- ANTIPeds::build: succsessfully done !"<<endl<<endl;
+}
+//==========================================================================
+//
+void ANTIPedsMS::build(){//tempor solution for RealData peds. 
+//
+  int i,j,is;
+  integer sid;
+  char fname[80];
+  char name[80];
+  integer asta[ANTI2C::MAXANTI][2];// array of counter stat
+  geant aped[ANTI2C::MAXANTI][2];// array of counter peds
+  geant asig[ANTI2C::MAXANTI][2];// array of counter sigmas
+  integer stata[2];
+  geant peda[2],siga[2];
+//
+//
+//   --->  Read  pedestals file :
+//
+  strcpy(name,"antp_df_sd");
+  cout <<"====> ANTIPedsMS::build: Default Seed_MC-Peds file is used..."<<endl;
+// ---> check setup:
+//
+  if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    cout<<"      AMS02 setup selected."<<endl;
+  }
+  else
+  {
+        cout <<"      Unknown setup !!!"<<endl;
+        exit(10);
+  }
+//
+  strcat(name,".dat");
+  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Open file : "<<fname<<'\n';
+  ifstream icfile(fname,ios::in); // open pedestals-file for reading
+  if(!icfile){
+    cerr <<"      missing Default Seed_MC-Peds file !!! "<<fname<<endl;
+    exit(1);
+  }
+//
+//---> Read anode stats/peds/sigs:
+//
+  for(is=0;is<ANTI2C::MAXANTI;is++){  // <---- loop over sectors
+    for(i=0;i<2;i++)icfile >> asta[is][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> aped[is][i];
+    for(i=0;i<2;i++)icfile >> asig[is][i];
+  } // ---> endof sectors loop
+//
+//
+  icfile.close();
+//---------------------------------------------
+//   ===> fill ANTIPeds bank :
+//
+  for(is=0;is<ANTI2C::MAXANTI;is++){  // <--- loop over sectors
+    sid=(is+1);
+    for(i=0;i<2;i++){
+      stata[i]=asta[is][i];
+      peda[i]=aped[is][i];
+      siga[i]=asig[is][i];
+    }
+//
+    anscped[is]=ANTIPedsMS(sid,stata,peda,siga);
+//
+  } // ---> endof sector loop
+  cout <<"<---- ANTIPedsMS::build: succsessfully done !"<<endl<<endl;
 }
 //=====================================================================  
 //
@@ -769,7 +837,7 @@ void ANTI2JobStat::printstat(){
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
   printf(" RawEvent->Cluster OK    : % 6d\n",recount[3]);
   printf("--------\n");
-  printf(" ANTI-calib entries      : % 6d\n",recount[11]);
+  printf(" AmplCalib entries      : % 6d\n",recount[11]);
   printf(" Nsectors OK             : % 6d\n",recount[12]);
   printf(" TRK-track found         : % 6d\n",recount[13]);
   printf(" One TRK-Sector crossing : % 6d\n",recount[14]);
@@ -777,6 +845,9 @@ void ANTI2JobStat::printstat(){
   printf(" Good matching/impact    : % 6d\n",recount[16]);
   printf(" P/m in MIP range        : % 6d\n",recount[17]);
   printf(" Cross.Length OK         : % 6d\n",recount[18]);
+  printf("--------\n");
+  printf(" PedCalib entries      : % 6d\n",recount[19]);
+  printf(" PedCalib-events found : % 6d\n",recount[20]);
   printf("\n\n");
 //
   printf("==========> Bars reconstruction report :\n\n");
@@ -1003,7 +1074,7 @@ void ANTI2JobStat::bookh(){
   HBOOK1(2509,"ANTI-REC: FTtime-SectorSideTime",80,0.,240.,0.);
   HBOOK1(2510,"ANTI-REC: Total FTCoincSectors(fromTrig)",10,0.,10.,0.);
   HBOOK1(2511,"ANTI-REC: FTCoincSector frequency(0 when patt=0)",10,1.,11.,0.);
-  if(ATREFFKEY.relogic>0){//book calib.hist
+  if(ATREFFKEY.relogic==1){//book calib.hist
     HBOOK1(2530,"AntiCalib:Nfired/Nmatched sectors",20,0.,20.,0.);//spare
     HBOOK1(2531,"AntiCalib:Cyl-track Zcross(noCuts,both dirs)",75,-75.,75.,0.);
     HBOOK1(2532,"AntiCalib:PHIsect-PHIcros(Zcross OK)",91,-182.,182.,0.);
@@ -1043,6 +1114,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2628,"FiredLogSectNumb(zcrOK,phi-mat,dir=-1)",8,0.,8.,0.);
     HBOOK1(2629,"FiredLogSectNumb(zcrOK,phi-mat,dir=1)",8,0.,8.,0.);
   }
+//   Hist.2570-2599 reserved for PedCalib needs in ANTPedCalib::init()
 }
 void ANTI2JobStat::outpmc(){
 //
@@ -1075,7 +1147,7 @@ void ANTI2JobStat::outp(){
     HPRINT(2510);
     HPRINT(2511);
   }
-  if(ATREFFKEY.relogic>0){
+  if(ATREFFKEY.relogic==1){
     HPRINT(2626);
     HPRINT(2627);
     HPRINT(2628);

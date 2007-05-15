@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.14 2006/07/14 13:21:53 choumilo Exp $
+//  $Id: tofsim02.h,v 1.15 2007/05/15 11:39:24 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -394,7 +394,7 @@ private:
  static integer _bzflag;//1/0->BZtrigOK/not
  static number _trtime; //  abs. FTrigger time(ns, input to SFET(A), fix decision-delay included) 
  int16u _swid;        // short SW-id(LBBS->Lay|BarBar|Side (as in Tovt MC-obj))
- int16u _hwid;          // short HW-id(CS->crate|slot)
+ int16u _hwid;          // short HW-id(CSS->cr|sl, slot by Anode meas.,if it is present,otherw. by Dynode)
  int16u _status;        // channel status (usable/not/ ... --> 0/1/...)
  
  integer _nftdc;//number of FastTrig(FT)-TDC hits, =1 in MC(filled at validation stage !!)
@@ -406,9 +406,9 @@ private:
  integer _nsumsh;//number of SumSHT time hits(filled at validation stage !!)
  integer _sumsht[TOF2GC::SCTHMX2];//SumSHT time-hits(TDC-channelss)
   
- integer _adca; // Anode ADC-hit (in DAQ-bin units !)
- integer _nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
- integer _adcd[TOF2GC::PMTSMX]; // ALL Dynodes PMTs ADC-hits(positional, in DAQ-bin units !)
+ geant _adca; // Anode ADC-hit (ped-subtracted if not PedCalib job)
+ integer _nadcd;// number of NONZERO Dynode-channels(max PMTSMX)
+ geant _adcd[TOF2GC::PMTSMX];// ALL Dynodes PMTs ADC-hits(positional, ped-subtracted if not PedCalib job)
  
  geant _charge;         // for MC : tot. anode charge (pC)
  geant _temp;           // SFET(A) temperature corresponding to LBBS(filled at validation stage !!)
@@ -427,8 +427,8 @@ public:
    integer nstdc, integer stdc[],
    integer nsumh, integer sumht[],
    integer nsumsh, integer sumsht[],
-   integer adca,
-   integer nadcd, integer adcd[TOF2GC::PMTSMX]);
+   geant adca,
+   integer nadcd, geant adcd[TOF2GC::PMTSMX]);
  ~TOF2RawSide(){};
  TOF2RawSide * next(){return (TOF2RawSide*)_next;}
 
@@ -463,11 +463,11 @@ public:
  integer getsumsh(integer arr[]);
  void putsumsh(integer nelem, integer arr[]);
   
- integer getadca(){return _adca;}
- void putadca(integer adca){_adca=adca;}
- integer getadcd(integer arr[]);
+ geant getadca(){return _adca;}
+ void putadca(geant adca){_adca=adca;}
+ integer getadcd(geant arr[]);
  integer getnadcd(){return _nadcd;}
- void putadcd(integer nelem, integer arr[]);
+ void putadcd(integer nelem, geant arr[]);
  integer lvl3format(int16 * ptr, integer rest);
 
 
@@ -483,6 +483,14 @@ public:
  }
  static void getpattz(integer patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=_trpattz[i];
+ }
+ static void addtpb(integer il, integer ib, integer is){//il=0-3,ib=0->,is=0,1
+   integer bit=(ib+is*16);
+   _trpatt[il]|=(1<<bit);
+ }
+ static void addtpzb(integer il, integer ib, integer is){//il=0-3,ib=0->,is=0,1
+   integer bit=(ib+is*16);
+   _trpattz[il]|=(1<<bit);
  }
  static void settrcode(integer trfl){_trcode=trfl;}
  static void settrcodez(integer trfl){_trcodez=trfl;}
@@ -505,11 +513,11 @@ public:
  static void validate(int &);// RawEvent->RawEvent
 //
 // interface with DAQ :
- static integer calcdaqlength(int16u blid);
- static void builddaq(int16u blid, integer &len, int16u *p);
- static void buildraw(int16u blid, integer &len, int16u *p);
- static int16u hw2swid(int16u a1, int16u a2, int16u a3);
- static int16u sw2hwid(int16u a1, int16u a2, int16u a3); 
+// static integer calcdaqlength(int16u blid);
+// static void builddaq(int16u blid, integer &len, int16u *p);
+// static void buildraw(int16u blid, integer &len, int16u *p);
+// static int16u hw2swid(int16u a1, int16u a2, int16u a3);
+// static int16u sw2hwid(int16u a1, int16u a2, int16u a3); 
 //
 protected:
  void _printEl(ostream &stream){
@@ -525,9 +533,9 @@ protected:
   for(i=0;i<_nsumh;i++)stream <<hex<<_sumht[i]<<endl;
   stream <<"nsumsh="<<dec<<_nsumsh<<endl;
   for(i=0;i<_nsumsh;i++)stream <<hex<<_sumsht[i]<<endl;
-  stream <<"adca="<<hex<<_adca<<endl;
+  stream <<"adca="<<dec<<_adca<<endl;
   stream <<"nadcd="<<dec<<_nadcd<<endl;
-  for(i=0;i<_nadcd;i++)stream <<hex<<_adcd[i]<<endl;
+  for(i=0;i<_nadcd;i++)stream <<dec<<_adcd[i]<<endl;
   stream <<"temper="<<dec<<_temp<<endl;
   stream <<dec<<endl<<endl;
  }

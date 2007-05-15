@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.187 2007/03/23 12:22:11 choumilo Exp $
+//  $Id: amsgeom.C,v 1.188 2007/05/15 11:38:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -212,7 +212,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  richgeom02(mother);
 }
 else{ 
- cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
+ cerr <<"<---- AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
  exit(1);
 }
 
@@ -615,8 +615,8 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 //                                  (middle of the gap between even/odd paddles,L2(3))
   geant gap=TOF2DBc::plnstr(3)-TOF2DBc::plnstr(6);
     if(gap <= TOF2DBc::plnstr(8)){
-      cout<<"AMSGEOM: Tof-covers immitators do not fit in the gap of even/odd paddles !!!"<<endl;
-      cout<<"Gap="<<gap<<endl;
+      cout<<"<---- Error: Tof-covers immitators do not fit in the gap of even/odd paddles !!!"<<endl;
+      cout<<"      Gap="<<gap<<endl;
       exit(1);
     }
     par[0]=0.;// rmin
@@ -645,9 +645,9 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-2
 //
 //-----
-  cout<<"AMSGEOM: Final TOF02-geometry(G3/G4-compatible) done!"<<endl;
-  cout<<"         "<<TOF2DBc::getbppl(0)<<"/"<<TOF2DBc::getbppl(1)<<"/"
-  <<TOF2DBc::getbppl(2)<<"/"<<TOF2DBc::getbppl(3)<<" bars/plane selected !"<<endl;
+  cout<<"<---- Amsgeom:toggeom02: G3/G4-compatible geometry is successfully done!"<<endl;
+  cout<<"      ("<<TOF2DBc::getbppl(0)<<"/"<<TOF2DBc::getbppl(1)<<"/"
+  <<TOF2DBc::getbppl(2)<<"/"<<TOF2DBc::getbppl(3)<<" bars/plane setup is selected )"<<endl<<endl;
 }
 
 
@@ -794,7 +794,7 @@ AMSNode * p;
        "ANTI_SCINT",0,"ANTS","TUBS",par,5,coo,nrm, "MANY",1,gid,1));
   }// ---> end of sector loop
 //
-  cout<<"AMSGEOM: ANTI02 geometry(G3-version) done !"<<endl;
+  cout<<"<---- Amsgeom::antigeom002: G3-version is successfully done !"<<endl;
 }
 //---------------------------------------------------------------------
 //
@@ -1044,15 +1044,15 @@ AMSNode * cur;
      if(MAGSFFKEY.magstat>=0){
        cur=lhves->add(new AMSgvolume(
           "MLHEMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//liq.helium
-       cout<<"AMSGEOM: MAGNET02 - cold state selected"<<endl;
+       cout<<"      magnet cold state selected !"<<endl;
      }
      else{
        cur=lhves->add(new AMSgvolume(
           "MVACMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//vacuum
-       cout<<"AMSGEOM: MAGNET02 - warm state selected"<<endl;
+       cout<<"      mafnet warm state selected"<<endl;
       }
 //
-  cout<<"AMSGEOM: MAGNET02-geometry(G3/G4-compatible) done!"<<endl;
+  cout<<"<---- Amsgeom::magnetgeom02: G3/G4-compatible geometry is successfully done!"<<endl<<endl;
 }
 //-----------------------------------------------------------------
 void amsgeom::ext1structure02(AMSgvolume & mother){
@@ -1694,7 +1694,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
       "US4BMED",nrot,"US4B","BOX",par,3,coo,rmus4,"ONLY",gid==1?1:-1,gid,1));
   }
 //
-  cout<<"AMSGEOM: Rads/crates/TOF-TRD_interface/USS geometry(G3/G4-compatible) done!"<<endl;
+  cout<<"<---- Amsgeom::ext1structure02:Rads/crates/M_struct/USS G3/G4-compatible geometry done!"<<endl<<endl;
 }
 //------------------------------------------------------------------------
 void amsgeom::magnetgeom02Test(AMSgvolume & mother){
@@ -1804,7 +1804,7 @@ geant frameztop=-135.95;//(final)Z-pos of the frame(top face)
 
    mother.add(new AMSgvolume("USSALLOY",nrot++,"USS2","PARA",par,6,coo,nrm1,"ONLY",0,gid++,1));
 //
-  cout<<"AMSGEOM: Low_USS_frame geometry(G3/G4-compatible) done!"<<endl;
+  cout<<"<---- Amsgeom::ext2structure: Low_USS_frame geometry(G3/G4-compatible) done!"<<endl<<endl;
 }
 using namespace std;
 //--------------------------------------------------------------
@@ -2068,7 +2068,7 @@ ostrstream ost(name,sizeof(name));
 
 
 }
-cout <<"TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl;
+cout <<"<---- TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl<<endl;
 
 }
 
@@ -2531,7 +2531,7 @@ else{
  cerr<<"amsgeom::trdgeom02-W-NoZenithRadiatorAdded"<<endl;
 }
 
-cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
+cout <<"<---- amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
 
 }
 //----------------------------------------------------------------
@@ -2695,7 +2695,7 @@ AMSgvolume *dummy;
     pSegm->addboolean("TRD1",par,4,coo,nrd,'+');
   }// ---> end of sector loop
 //
-   cout<<"ANTI02-geometry(G4-version) done !.."<<endl;
+   cout<<"<---- Amsgeom::antigeom02g4: G4-version geometry is successfully done !.."<<endl;
 }
 #endif
 //---------------------------------------------------------------------
@@ -2735,7 +2735,7 @@ ECALDBc::readgconf();//
   nfpl[0]=ECALDBc::nfibpl(1);// fibers/(1st layer) 
   nfpl[1]=ECALDBc::nfibpl(2);// fibers/(2nd layer)
   dz=(dzrad1+2.*alpth)*nsupl;//ECrad. tot.thickness(incl. Al-plates(now glue), excl. Honeyc)
-  cout<<"EcalGeom: EC total radiator(incl.Al-plates) thickness "<<dz<<" cm"<<endl;
+  cout<<"====> Amsgeom::ecalgeom02: EC total radiator(incl.Al-plates) thickness "<<dz<<" cm"<<endl;
   dzh=ECALDBc::gendim(8);// Z-thickness of honeycomb
   xpos=ECALDBc::gendim(5);// x-pos EC-radiator center
   ypos=ECALDBc::gendim(6);// y-pos
@@ -2743,7 +2743,7 @@ ECALDBc::readgconf();//
   fpitx=ECALDBc::fpitch(1);
   fpitz=ECALDBc::fpitch(2);
   fpitzz=dzrad1-(nflpsl-1)*fpitz+2.*alpth;
-  cout<<"EcalGeom: fpitchZZ "<<fpitzz<<" cm"<<endl;
+  cout<<"      EcalGeom: fpitchZZ "<<fpitzz<<" cm"<<endl;
 //------------------------------------
   par[0]=dx1/2.+dxe;
   par[1]=dy1/2.+dxe;
@@ -2907,7 +2907,7 @@ ECALDBc::readgconf();//
 //------
     } // ---> end of superlayer loop
 //
-  cout<<"AMSGEOM: ECAL-NewGeometry done!"<<endl;
+  cout<<"<---- Amsgeom::ecalgeom: ECAL-NewGeometry is successfully done!"<<endl<<endl;
 }
 //------------------------------------------------------------
 /*

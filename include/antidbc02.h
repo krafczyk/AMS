@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.13 2006/07/14 13:21:52 choumilo Exp $
+//  $Id: antidbc02.h,v 1.14 2007/05/15 11:39:23 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -16,7 +16,7 @@ namespace ANTI2C{
  const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
  const integer ANTHMX=16; // max. number of LTtime-hits per channel
  const integer ANFADC=2000;//Flash-ADC working channels(ovfl not included)
- const integer ANJSTA=20;// size of Job-statistics array 
+ const integer ANJSTA=25;// size of Job-statistics array 
  const integer ANCSTA=10;// size of Channel-statistics array
  const integer ANCRAT=4; // number of crates with SFEA cards
  const integer ANSFEA=1; // number of SFEA cards per crate
@@ -181,7 +181,7 @@ public:
   static void build();
 };
 //=================================================================
-// class to store ANTI-ReadoutPaddle anode-peds/sigmas  :
+// class to store ANTI-ReadoutPaddle peds/sigmas  :
 class ANTIPeds{
 //
 private:
@@ -206,6 +206,7 @@ public:
   bool PedStOK(int isd){return stata[isd]==0;}
   geant &apeda(int isd)  {return peda[isd];}  
   geant &asiga(int isd)  {return siga[isd];}
+  integer &astaa(int isd){return stata[isd];}
   
   void getpeda(geant _ped[2]){
     for(int i=0;i<2;i++)_ped[i]=peda[i];
@@ -216,6 +217,43 @@ public:
   
   static void build();
   static void mcbuild();
+};
+//=================================================================
+// class to store ANTI-ReadoutPaddle MC-seed peds/sigmas  :
+class ANTIPedsMS{
+//
+private:
+  integer softid;  // S(readout-sector number 1-8)
+  integer stata[2];//status for side1/2 anodes =0/1->ok/bad
+  geant peda[2]; // anode peds for side1/2
+  geant siga[2]; // anode ped.sigmas .............................
+//
+public:
+  static ANTIPedsMS anscped[ANTI2C::MAXANTI];
+  ANTIPedsMS(){};
+  ANTIPedsMS(integer _sid,
+           integer _stata[2],
+           geant _peda[2], geant _siga[2]):softid(_sid)
+  {
+    for(int i=0;i<2;i++){
+      stata[i]=_stata[i];
+      peda[i]=_peda[i];
+      siga[i]=_siga[i];
+    }
+  };
+  bool PedStOK(int isd){return stata[isd]==0;}
+  geant &apeda(int isd)  {return peda[isd];}  
+  geant &asiga(int isd)  {return siga[isd];}
+  integer &astaa(int isd){return stata[isd];}
+  
+  void getpeda(geant _ped[2]){
+    for(int i=0;i<2;i++)_ped[i]=peda[i];
+  };
+  void getsiga(geant _sig[2]){
+    for(int i=0;i<2;i++)_sig[i]=siga[i];
+  };
+  
+  static void build();
 };
 //=================================================================
 //
@@ -248,7 +286,9 @@ private:
 //           =15-> TOF/TRK Z=1 
 //           =16-> good matching/impact 
 //           =17-> In MIP range 
-//           =18-> CrossLength OK 
+//           =18-> CrossLength OK
+//           =19-> PedCalib entries 
+//           =20-> PedCalib-events found 
 //
 //------
   static integer chcount[ANTI2C::ANCHMX][ANTI2C::ANCSTA];//channel statistics

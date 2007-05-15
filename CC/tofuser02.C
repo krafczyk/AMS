@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.17 2006/07/14 13:17:18 choumilo Exp $
+//  $Id: tofuser02.C,v 1.18 2007/05/15 11:38:33 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -187,7 +187,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     static number pmas(0.938),mumas(0.1057),imass;
     number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
     number the,phi,trl,rid,err,ctran,charge,partq;
-    integer chargeTOF,chargeTracker,betpatt,trpatt;
+    integer chargeTOF,chargeTracker,betpatt,trpatt,trhits(0);
+    uinteger traddr(0);
+    integer ilad[2][8]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
     AMSContainer *cptr;
@@ -210,6 +212,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
       if(ptrack){
         trpatt=ptrack->getpattern();//TRK-track pattern
+	traddr=ptrack->getaddress();//TRK-track ladders combination id
+	trhits=ptrack->getnhits();
 	if(trpatt>=0){
           ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
           status=ptrack->getstatus();
@@ -223,11 +227,21 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
           chargeTOF=pcharge->getchargeTOF();
 	  charge=partq;
 	  bad=0;
+//	  if(trhits==8){
+//	    AMSTrTrack::decodeaddress(ilad,traddr);
+//	    cout<<"TofUser:TRK-address/pattern="<<traddr<<" "<<trpatt<<endl;
+//	    cout<<"        Address(decoded):"<<endl;
+//	    for(i=0;i<8;i++)cout<<ilad[0][i]<<" ";
+//	    cout<<endl;
+//	    for(i=0;i<8;i++)cout<<ilad[1][i]<<" ";
+//	    cout<<endl;
+//	  }
 	}
       }
       if(!bad)break;//use 1st particle with good TRK-track
       ppart=ppart->next();
-    } 
+    }
+     
 //
     if(bad)return;//require part. with TRK-track
     TOF2JobStat::addre(24);

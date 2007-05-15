@@ -233,9 +233,9 @@ public:
   unsigned int   Status;   ///< Statusword
   int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  0:8/0:35/0:3  
                /*!<
-Idsoft SubCells(pixels) numbering(looking in +Y/+X direction):\n
+Idsoft SubCells(pixels) numbering(+Z is top):\n
 ---------------|0|1|------------------\n
-pm1(at -x/y)>> ----- >> pm36(at +x/y) \n
+pm1(at -x/y)>> ------>> pm36(at +x/y) \n
 ---------------|2|3|------------------\n
                 */
   int   Proj;     ///< projection (0-x,1-y)
@@ -482,9 +482,9 @@ public:
   int sumht[16];//SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, ns)
   int nsumsh;//numb.of SumSHTtime-hits
   int sumsht[16];//SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, ns)
-  int adca;//Anode signal(DAQ-units)
+  float adca;//Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
   int nadcd;//number of Dynode nonzero(!) signals
-  int adcd[3];//Dynode signals(DAQ-units, positional(keep "0"s))
+  float adcd[3];//Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
   float temp;//temperature(given by probe in SFET/SFEA slots)  
 
   TofRawSideR(){};
@@ -493,7 +493,7 @@ public:
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
   
-  ClassDef(TofRawSideR ,2)       //TofRawSideR
+  ClassDef(TofRawSideR ,3)       //TofRawSideR
 };
 
 

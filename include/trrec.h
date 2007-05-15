@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.85 2005/05/17 09:56:37 pzuccon Exp $
+//  $Id: trrec.h,v 1.86 2007/05/15 11:39:24 choumilo Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -385,6 +385,7 @@ integer operator < (AMSlink & o) const {
   friend class AMSTrAligFit;
   friend class AMSTrAligData;
   friend class AMSTrAligPar;
+  friend class TOF2User;
 
 uinteger getaddress(){return _Address;}
 void   AdvancedFit();

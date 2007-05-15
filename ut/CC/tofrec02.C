@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.36 2006/07/14 13:17:17 choumilo Exp $
+//  $Id: tofrec02.C,v 1.37 2007/05/15 11:38:33 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -54,9 +54,9 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
   integer nftdc,nstdc,nadcd,nsumh,nsumsh;
   integer ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3];
   integer sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
-  integer adca;
-  integer adcd[TOF2GC::PMTSMX];
-  integer ilay,last,ibar,isid,isds;
+  geant adca;
+  geant adcd[TOF2GC::PMTSMX];
+  integer ilay,last,ibar,isid,isds(0),pedrun(0);
   integer i,j,im,tmfound,complm,chnum,brnum;
   int16u id,idd,idN,stat,idr;
   number dt;
@@ -69,21 +69,21 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //
   status=1;//bad
 //
-// =============> check/correct logical "up/down" sequence :
-//
   ptr=(TOF2RawSide*)AMSEvent::gethead()
                         ->getheadC("TOF2RawSide",0,1);//last 1 to sort
-  isds=0;
 //
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
   if(TFREFFKEY.reprtf[4]>0)
   cout<<endl<<"========> TOF::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
-#endif
+//#endif
 //
   if(first==0){//store run/time for the first event
     first=1;
     StartRun=AMSEvent::gethead()->getrun();
     StartTime=AMSEvent::gethead()->gettime();
+    TOFPedCalib::BRun()=AMSEvent::gethead()->getrun();
+    TOFPedCalib::BTime()=AMSEvent::gethead()->gettime();//for possible classic/"DownScaledEvent" PedCalib
+//(if 1st "DownScalEvent" come later than 1st normal event, BTime() will be owerwritten at its decoding stage)  
   }
 //---- Scint.data length monitoring:
   if(TFREFFKEY.reprtf[4]>0){
@@ -92,14 +92,48 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //    for(i=0;i<8;i++)im+=DAQS2Block::calcblocklength(i);
     HF1(1107,geant(im),1.);
   }
-//                             <---- loop over TOF RawSide hits -----
-  while(ptr){
+//---------------------------------------------------------------
+// ====> check for PedCalib data if PedCalJob :
+//
+  int chan,il,ib,is;
+  if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6){//PedCalJob
+    TOF2JobStat::addre(38);
+    TOFPedCalib::hiamreset();
+    while(ptr){//<--RawSide-objects loop
+      idd=ptr->getsid();//LBBS
+      id=idd/10;// short id=LBB
+      ilay=id/100-1;
+      ibar=id%100-1;
+      isid=idd%10-1;
+      stat=ptr->getstat();//should be 1(no ped-subtr/suppr) if (PedCalJob & ClassPedCalData(or DownScaled))
+      adca=ptr->getadca();
+      nadcd=ptr->getadcd(adcd);
+      if(stat==1){//not PedSubtractedData, fill PedCal arrays
+        pedrun=1;
+	if(adca>0)TOFPedCalib::fill(ilay,ibar,isid,0,adca);
+	for(int pmt=0;pmt<TOF2DBc::npmtps(ilay,ibar);pmt++)
+	                          if(adcd[pmt]>0)TOFPedCalib::fill(ilay,ibar,isid,pmt+1,adcd[pmt]);
+      }
+//
+      ptr=ptr->next();// take next RawEvent hit
+    }//  ---- end of RawSide hits loop ------->
+    return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
+  }
+//---------------------------------------------------------------
+//
+// =============> check/combine adc/tdc/Ft data :
+//
+  while(ptr){// <--- loop over TOF RawSide hits
     idd=ptr->getsid();//LBBS
     id=idd/10;// short id=LBB
     ilay=id/100-1;
     ibar=id%100-1;
     isid=idd%10-1;
-    stat=0;
+    stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(PedSubtracted))
+    if(stat>0){
+      cout<<"TOF2RawSide::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
+      exit(2);
+    } 
 #ifdef __AMSDEBUG__
     assert(ilay>=0 && ilay<TOF2DBc::getnplns());
     assert(ibar>=0 && ibar<TOF2DBc::getbppl(ilay));
@@ -170,7 +204,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       number pedv,peds;
       pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isid);
       peds=TOFBPeds::scbrped[ilay][ibar].asiga(isid);
-      if((adca*TOF2DBc::tdcbin(2)+3*peds)>=number(TOF2GC::SCPUXMX)){
+      if((adca+3*peds)>=number(TOF2GC::SCPUXMX)){
 //                                     +3*peds to be sure in high value of Anode(close to PUX-ovfl)
         if(nadcd==0)TOF2JobStat::addch(chnum,17);//miss Dynode at Anode ovfl - something wrong
       }
@@ -194,8 +228,9 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //-----      
 //
 //---------------
+NextObj:
     ptr=ptr->next();// take next RawEvent hit
-  }//  ---- end of RawEvent hits loop ------->
+  }//  ---- end of RawSide hits loop ------->
   if(bad==0)status=0;// good TOF-event(at least one t+amp measurement )
 //
 }
@@ -220,8 +255,8 @@ void TOF2RawCluster::build(int &ostatus){
   integer itmbest[2];
   integer rej1,rej2,rej3,ibef,iaft;
   number dtmin[2][TOF2GC::SCTHMX3],tmbest[2],tbef,taft; 
-  integer adca[2];
-  integer adcd[2][TOF2GC::PMTSMX];
+  geant adca[2];
+  geant adcd[2][TOF2GC::PMTSMX];
   integer SumHTuse;
   
   integer ilay,last,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS],slnu,tdcc;
@@ -350,7 +385,7 @@ void TOF2RawCluster::build(int &ostatus){
       }
 //
       charg[isid]=ptr->getcharg();
-      adca[isid]=ptr->getadca();
+      adca[isid]=ptr->getadca();//here all ADCs ARE ped-subtracted/suppressed !!!
       if(adca[isid]>0)nadca[isid]+=1;
       nadcd[isid]=ptr->getadcd(adcd[isid]);
       if(nttdc[isid]>0)TOF2JobStat::addch(chnum,1);
@@ -552,7 +587,7 @@ void TOF2RawCluster::build(int &ostatus){
               tm[0]=tmbest[0];// s-1 time (ns,A-noncorr)
               tmf[0]=tm[0];
 	      if(nadca[0]>0){//Anode,s1
-                ama[0]=number(adca[0]*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anode s1)
+                ama[0]=number(adca[0]);//ADC-counts(float)(anode s1)
                 if(TFREFFKEY.reprtf[2]>0 && id==104)HF1(1104,geant(ama[0]),1.);
 		if((ama[0]+3*sigs[0])>=number(TOF2GC::SCPUXMX)){//check PUX-ovfl
 		  ama[0]=0;//mark ovfl
@@ -567,7 +602,7 @@ void TOF2RawCluster::build(int &ostatus){
               tm[1]=tmbest[1];// s-2 time (ns,A-noncorr)
               tmf[1]=tm[1];
 	      if(nadca[1]>0){//Anode,s2
-                ama[1]=number(adca[1]*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anode s2)
+                ama[1]=number(adca[1]);//ADC-counts(float)(anode s2)
 		if((ama[1]+3*sigs[1])>=number(TOF2GC::SCPUXMX)){//check PUX-ovfl
 		  ama[1]=0;//mark ovfl
 		  TOF2JobStat::addch(chnum+1,9);//counts Anode-cnan. overflows
@@ -606,8 +641,8 @@ void TOF2RawCluster::build(int &ostatus){
 		  if(adcd[0][ip]>0){
                     TOFBPeds::scbrped[ilay][ibar].getsigd(ip,sigs);//Dyn sig(s1/2)
 		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(0,ip);
-		    aaa=number(adcd[0][ip]*TOF2DBc::tdcbin(2));//Daq->adc(pm)
-		    if((aaa+sigs[0])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s1-overflow
+		    aaa=number(adcd[0][ip]);//ADC-counts(float, vs pmt)
+		    if((aaa+3*sigs[0])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s1-overflow
 		    amd[0]+=(aaa/gnd);//Dyn(equilised)
                     if(TFREFFKEY.reprtf[2]>0 && id==104)HF1(1105,geant(aaa),1.);
 		  }
@@ -624,8 +659,8 @@ void TOF2RawCluster::build(int &ostatus){
 		  if(adcd[1][ip]>0){
                     TOFBPeds::scbrped[ilay][ibar].getsigd(ip,sigs);//Dyn sig(s1/2)
 		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(1,ip);
-		    aaa=number(adcd[1][ip]*TOF2DBc::tdcbin(2));//Daq->adc(pm)
-		    if((aaa+sigs[1])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s2-overflow
+		    aaa=number(adcd[1][ip]);//ADC-counts(float, vs pmt)
+		    if((aaa+3*sigs[1])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s2-overflow
 		    amd[1]+=(aaa/gnd);//Dyn(equilised)
 		  }
 		}//-->endof pm-loop
@@ -689,10 +724,10 @@ void TOF2RawCluster::build(int &ostatus){
               if(dychok)elosd=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(1,amd)
                                             /pcorr;//Dynode Edep(mev)(normalized to center)
               dedep=elosd;
-//---> store raw(but converted from daq-format) ADCs in RawCl-obj for calibr.purpose:
+//---> store raw(adc-counts, but float) ADCs in RawCl-obj for calibr.purpose:
 	      for(int ip=0;ip<npmts;ip++){
-		if(nadcd[0]>0)adcdr[0][ip]=number(adcd[0][ip]*TOF2DBc::tdcbin(2));
-		if(nadcd[1]>0)adcdr[1][ip]=number(adcd[1][ip]*TOF2DBc::tdcbin(2));
+		if(nadcd[0]>0)adcdr[0][ip]=number(adcd[0][ip]);
+		if(nadcd[1]>0)adcdr[1][ip]=number(adcd[1][ip]);
               }
 //
 //-->
@@ -1457,7 +1492,7 @@ integer AMSTOFCluster::Out(integer status){
 //
 // function returns number of TOF_data-words for given block/format
 //
-integer TOF2RawSide::calcdaqlength(int16u blid){
+/*integer TOF2RawSide::calcdaqlength(int16u blid){
   return(0);
 }
 //--------------------------------------------------------------------
@@ -1477,7 +1512,7 @@ int16u TOF2RawSide::hw2swid(int16u a1, int16u a2, int16u a3){
   return(200);
 }
 
-
+*/
 
 AMSID AMSTOFCluster::crgid(int k){
   int ii,kk;

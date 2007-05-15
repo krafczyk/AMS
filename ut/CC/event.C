@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.343 2006/09/14 15:34:49 choutko Exp $
+//  $Id: event.C,v 1.344 2007/05/15 11:38:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -13,6 +13,7 @@
 #include "trrawcluster.h"
 #include "typedefs.h" 
 #include "tofdbc02.h" 
+#include "daqecblock.h"
 #include "event.h"
 #include "cont.h"
 #include "commons.h"
@@ -897,12 +898,9 @@ void AMSEvent::_reecalinitevent(){
   AMSNode *ptr;
   maxp=2*ECALDBc::slstruc(3);// max SubCell-planes
   maxc=4*ECALDBc::slstruc(3)*ECALDBc::slstruc(4);// max number of SubCell
-  for(i=0;i<AMSECIdSoft::ncrates();i++){// <-- book crate type containers for EcalRawEvent
+  for(i=0;i<AMSECIds::ncrates();i++){// <-- book crate type containers for EcalRawEvent
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
-//      AMSEvent::gethead()->add (
-//      new AMSContainer(AMSID("AMSContainer:AMSEcalRawEventD",i),0));
-
   }
 //
   for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalHit
@@ -1242,8 +1240,7 @@ void AMSEvent::event(){
      geant coo[7];
      abinelget_(iset,coo);
      if(iset){
-       AMSmceventg* genp=new AMSmceventg(iset+256,coo[6],AMSPoint(coo[0],coo[1],coo[
-2]),AMSDir(coo[3],coo[4],coo[5]));
+       AMSmceventg* genp=new AMSmceventg(iset+256,coo[6],AMSPoint(coo[0],coo[1],coo[2]),AMSDir(coo[3],coo[4],coo[5]));
        AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
 
      }
@@ -1402,7 +1399,7 @@ void AMSEvent::_cantievent(){
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr2)globft=ptr2->GlobFasTrigOK();
     if(!globft)return;// use only H/W-triggered event
-    AntiCalib::select();
+    if(ATREFFKEY.relogic==1)AntiCalib::select();
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caecevent(){
@@ -1417,6 +1414,7 @@ void AMSEvent::_caecevent(){
     if(ECREFFKEY.relogic[1]>0){
       if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
+// PedCal mode has no special select-routine( select/fill is done at validate stages)
     }
 }
 //--------------------------------------------------------------------------
@@ -1683,6 +1681,8 @@ void AMSEvent::_reecalevent(){
     AMSgObj::BookTimer.stop("REECALEVENT");
     return;// "no FT/Ext-trig in LVL1"   
   }
+//  if((ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5) && ecalftok)return;//if PedCalib->remove events with EcalFT IN
+// !!! not needed to my mind, Truncation+SpikeSuppression do the job (need to recheck with real data !) 
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
 //
@@ -1936,7 +1936,7 @@ cout <<endl;
        for(int j=0;j<7;j++){
               ECcalib::ecpmcal[i][j].pmrgain()=1;
          for (int k=0;k<4;k++){
-             AMSECIdSoft ids(i,j,k,0);
+             AMSECIds ids(i,j,k,0);
            cout <<"  old gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<endl;             
               ECcalib::ecpmcal[i][j].pmscgain(k)=gains[ids.getlayer()][ids.getcell()];
            cout <<"  new gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<" "<<ids.getlayer()<<" "<<ids.getcell()<<endl;             
@@ -2017,6 +2017,54 @@ void AMSEvent:: _sitrdevent(){
 //----------------------------------------------------------------
 void AMSEvent:: _siecalevent(){
   int stat;
+//
+/*
+   int16u tesarr[200];
+   int16u *p;
+   char fname[80];
+   strcpy(fname,"/f2users/choumilo/ams02wrk/ecalcftes1.dat");
+   cout<<"Opening RawFormat test file: "<<fname<<'\n';
+   ifstream stfile(fname,ios::in|ios::binary); // open file for reading
+   if(!stfile){
+     cout <<"siecinitevent(): missing Ecal RawFormat test-file "<<fname<<endl;
+     exit(1);
+   }
+   stfile >>hex>> tesarr[0];//read 1st block length
+   integer leng1=tesarr[0];
+   cout<<"siecinitevent(): 1st block has length="<<dec<<leng1<<endl;
+   if(leng1>0 && (leng1+1)<200){
+     for(int i=0;i<leng1;i++){
+       stfile >>hex>> tesarr[i+1];
+     }
+     cout<<dec<<endl;
+     p=&tesarr[0];
+     DAQECBlock::buildraw(leng1, p);
+     cout<<"siecinitevent(): 1st block was processed !"<<endl;
+//     exit(10);
+   }
+   else{
+     cout <<"siecinitevent(): 1st block length 0 or too big - exit ! "<<endl;
+     exit(1);
+   }
+   stfile >>hex>> tesarr[leng1+1];//read 2nd block length
+   integer leng2=tesarr[leng1+1];
+   cout<<"siecinitevent(): 2nd block has length="<<dec<<leng2<<endl;
+   if(leng2>0 && (leng1+leng2+2)<200){
+     for(int i=0;i<leng2;i++){
+       stfile >>hex>> tesarr[i+leng1+2];
+     }
+     cout<<dec<<endl;
+     p=&tesarr[leng1+1];
+     DAQECBlock::buildraw(leng2, p);
+     cout<<"siecinitevent(): 2nd block was processed !"<<endl;
+//     exit(10);
+   }
+   else{
+     cout <<"siecinitevent(): 2nd block length 0 or too big "<<endl;
+     exit(1);
+   }
+*/
+//
   AMSgObj::BookTimer.start("SIECALEVENT");
   EcalJobStat::addmc(0);
 //
@@ -2074,7 +2122,37 @@ void AMSEvent:: _retrigevent(){
 //===============================================================
 void AMSEvent:: _sitof2event(int &cftr){
   AMSContainer *p;
-  int stat;
+  int stat,i;
+//
+/*
+   int16u tesarr[250];
+   char fname[80];
+//   strcpy(fname,"/f2users/choumilo/ams02wrk/tof_rfmt_tes1.dat");
+//   strcpy(fname,"/f2users/choumilo/ams02wrk/tof_cfmt_tes1.dat");
+   strcpy(fname,"/f2users/choumilo/ams02wrk/tof_mfmt_tes1.dat");
+   cout<<"Opening DAQ-Format test file: "<<fname<<'\n';
+   ifstream stfile(fname,ios::in|ios::binary); // open file for reading
+   if(!stfile){
+     cout <<"retof2initevent(): missing TOF DAQ-Format test-file "<<fname<<endl;
+     exit(1);
+   }
+   stfile >>hex>> tesarr[0];
+   integer leng=tesarr[0];
+   cout<<"retof2initevent(): test-file has length="<<dec<<leng+1<<endl;
+   if(tesarr[0]>0 && tesarr[0]<250){
+     for(i=1;i<=tesarr[0];i++){
+       stfile >>hex>> tesarr[i];
+     }
+     cout<<dec<<endl;
+     DAQS2Block::buildraw(leng, tesarr);
+     cout<<"retof2initevent(): test-file processed !"<<endl;
+//     exit(10);
+   }
+   else{
+     cout <<"retof2initevent(): 0 or too big test-file "<<fname<<endl;
+     exit(1);
+   }
+*/
 //
   AMSgObj::BookTimer.start("SITOFDIGI");
    AMSgObj::BookTimer.start("TOF:Ghit->Tovt");

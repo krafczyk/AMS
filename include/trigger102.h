@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.14 2006/01/25 11:21:38 choumilo Exp $
+//  $Id: trigger102.h,v 1.15 2007/05/15 11:39:24 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -80,7 +80,7 @@ protected:
    integer _ecorand;//Ecal or/and(=1/2)->  of two projections requirements on min. numb. of fired layers
    integer _ecprjmask;//Ecal proj.mask(lkji: ij=1/0->XYproj active/disabled in FT; kl=same for LVL1(angle)
 //                      i don't need here ecinmask because already have dynode bad/good status in calib. 
-   integer _globftmask;//global FT sub-triggers mask
+   integer _globftmask;//global FT sub-triggers mask(i|j|k->FTE|FTZ|FTC)
    integer _globl1mask;//global LVL1 trigger(phys.branches) mask
    integer _physbrmemb[8];//Memb.setting for each phys.branche 
    integer _phbrprescf[8];//Prescaling factors for each phys.branche
@@ -135,6 +135,7 @@ protected:
 public:
  static Lvl1TrigConfig l1trigconf;//current TrigSystemConfiguration
  static ScalerMon scalmon;//current scalers values
+ static int16u nodeids[2];//LVL1 node IDs(side a/b)
  
  Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer toffl1,integer toffl2, 
               integer tofpatt1[],integer tofpatt2[], integer antipatt, integer ecflg,
@@ -179,8 +180,9 @@ public:
  static void init();
 
  // Interface with DAQ
-      static int16u getdaqid(){return ( 2<<9 | 1<<6 );}      
-      static integer checkdaqid(int16u id){return id == getdaqid()?1:0;}
+      static int16u getdaqid(int sid){return(nodeids[sid]);}      
+      static integer checkdaqid(int16u id);
+      static void node2side(int16u nodeid, int16u &sid);
       static integer calcdaqlength(int i){return 19;}
       static integer getmaxblocks(){return 1;}
       static void builddaq(integer i, integer n, int16u *p);
@@ -202,14 +204,36 @@ private:
 //          i=5 -> 
 //          i=6 => 
 //          i=7 =>
-//         i=15 => HW-created LVL1 found 
+//         i=15 => HW-created LVL1 found
+// 
+  static integer daqc1[15];//daq-decoding counters
+//            i=0 -> LVL1-segment entries
+//             =1 -> ............ non empty
+//             =2 -> ............ no assembl_errors
+//             =3 -> ............ with a-side 
+//             =4 -> ............ with b-side
+//             =5 -> TrigPattBlock entries 
+//             =6 -> ............. length OK 
+//             =7 -> ScalersBlock entries 
+//             =8 -> ............ length OK
+//             =9 -> TrigSetupBlock entries 
+//            =10 -> .............. length OK
+//            =11 -> total LVL1-segment errors
+//
 public:
   inline static void resetstat(){
     for(int i=0;i<20;i++)countev[i]=0;
+    for(int i=0;i<15;i++)daqc1[i]=0;
   }
   inline static void addev(int i){
     assert(i>=0 && i< 20);
     countev[i]+=1;
+  }
+  static void daqs1(integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info<15 );
+#endif
+    daqc1[info]+=1;
   }
   static void printstat();
 };

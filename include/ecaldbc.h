@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.33 2006/01/25 11:21:35 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.34 2007/05/15 11:39:23 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -16,12 +16,19 @@ const integer ECRT=2;      // number of ecal crates
 const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
 const integer ECSLMX=9; // max. S(uper)-layers
-const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
+const integer ECPMMX=36;//max PMTs per superLayer
+const integer ECPMSMX=ECPMMX; //same for backw.compatibility
 const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
+const integer ECSTYPS=2;//active(keeping pmt-data) slot-types (EDR2,ETRG)
+const integer ECSLOTS=7;//total number of active slots/crate
+const integer ECEDRS=6;//number of ERD2s/crate
+const integer ECCONN=3;//number of connectors/EDR2
+const integer ECRCMX=ECSLMX*ECPMMX*(4*2+1);// max EC readout_channels(4->pixels,2->gains,1->dynode)
+const integer ECEDRC=243;//readout channels/EDR
 const integer ECFBLMX=500;// max. fibers per layer
 const integer ECADCMX[3]={3500,4095,4095};//max capacity of ADC(12bits)
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
-const integer ECJSTA=10; // max size of counter-array for job statistics
+const integer ECJSTA=15; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
 const integer ECHISTR=2100;// REEcal histogram number(starting from...)
 const integer ECHISTC=2200;// CAEcal histogram number(starting from...)
@@ -106,12 +113,58 @@ private:
   static integer srcount[20];// service counters
 // 
   static number zprmc1[ecalconst::ECSLMX];// mc-hit average Z-profile(SL-layers) 
-  static number zprmc2[ecalconst::ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
+  static number zprmc2[ecalconst::ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers)
+//
+  static integer daqc1[ecalconst::ECJSTA];//daq-decoding counters
+//            i=0 -> JINF-level entries
+//             =1 -> ...with rawData type
+//             =2 -> ........comprData type
+//             =3 -> ...no_assembl_err (raw-type) 
+//             =4 -> ...no_assembl_err (com-type)
+//             =5 -> ...for Crate_1/Side_1(any type) 
+//             =6 -> ...for Crate_1/Side_2(any type) 
+//             =7 -> ...for Crate_2/Side_1(any type) 
+//             =8 -> ...for Crate_2/Side_2(any type)
+//            ..............................
+//             =ECJSTA-1 -> Rejected(bad) JINF-entries
+  static integer daqc2[ecalconst::ECRT][ecalconst::ECJSTA];
+//            i=0 -> EDR-level RawFormat entries per crate
+//             =1 -> .........CompFormat .................
+//             =2 -> ....no_assembl_err (raw)  
+//             =3 -> ....no_assembl_err (comp)  
+//             =4 -> .... IllegalCardId(EDR/ETRG blockID)(any type)  
+  static integer daqc3[ecalconst::ECRT][ecalconst::ECSLOTS][ecalconst::ECJSTA];
+//            i=0 -> EDR/ETRG-level entrs per crate/slot
+//            i=1 -> EDR length OK per crate/slot
+//            i=2 -> 
 public:
   static number zprofa[2*ecalconst::ECSLMX];//  SubCellPlanes  profile
   static number zprofapm[ecalconst::ECSLMX];// SL profile
   static number zprofac[ecalconst::ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
   static geant nprofac[ecalconst::ECSLMX];// SuperLayers profile for calib.events(punch-through)
+  
+  static void daqs1(integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info<ecalconst::ECJSTA );
+#endif
+    daqc1[info]+=1;
+  }
+  static void daqs2(int16u crat, integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info< ecalconst::ECJSTA);
+      assert(crat>=0 && crat< ecalconst::ECRT);
+#endif
+    daqc2[crat][info]+=1;
+  }
+  static void daqs3(int16u crat, int16u slot, integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info< ecalconst::ECJSTA);
+      assert(crat>=0 && crat< ecalconst::ECRT);
+      assert(slot>=0 && slot< ecalconst::ECSLOTS);
+#endif
+    daqc3[crat][slot][info]+=1;
+  }
+  
   static void clear();
   static void addzprmc1(int i, number ed){
     zprmc1[i]+=ed;
@@ -307,9 +360,9 @@ public:
 class ECPMPeds{
 //
 private:
-  integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
-  uinteger _staH[4];//HighGainChannel status
-  uinteger _staL[4];//LowGainChannel status
+  integer _softid;  // SSPP (SS->S-layer number, PP->PMtube number)
+  uinteger _staH[4];//Anode HighGainChannel  status
+  uinteger _staL[4];//Anode LowGainChannel status
   uinteger _stad;//Dynode channel status
   geant _pedh[4]; // ped for high-channel of 4 SubCells(pixels)(in ADCchannels)
   geant _pedl[4]; // ped for low-channel of 4 SubCells(pixels)
@@ -341,9 +394,9 @@ public:
   geant &pedd()  {return _pedd;}
   geant &sigd()  {return _sigd;}
   uinteger &stad()  {return _stad;}
-  bool HCHisBad(uinteger chan){return (_staH[chan]&AMSDBc::BAD)!=0;}
-  bool LCHisBad(uinteger chan){return (_staL[chan]&AMSDBc::BAD)!=0;}
-  bool DCHisBad(){return (_stad&AMSDBc::BAD)!=0;}
+  bool HCHisBad(uinteger chan){return (_staH[chan]!=0);}
+  bool LCHisBad(uinteger chan){return (_staL[chan]!=0);}
+  bool DCHisBad(){return (_stad!=0);}
   void getpedh(geant pedh[4]){
     for(int i=0;i<4;i++)pedh[i]=_pedh[i];
   }

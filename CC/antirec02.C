@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.23 2006/07/14 13:17:16 choumilo Exp $
+//  $Id: antirec02.C,v 1.24 2007/05/15 11:38:31 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -29,6 +29,7 @@
 #include "ecalrec.h"
 #include "ntuple.h"
 #include "mceventg.h"
+#include "anticalib02.h"
 using namespace std;
 //
 //
@@ -36,7 +37,8 @@ using namespace std;
  integer Anti2RawEvent::nscoinc=0;
 //----------------------------------------------------
 void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
-  integer nadca,adca;
+  integer nadca;
+  geant adca;
   integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
   int16u id,idN,stat;
   integer sector,isid,isds;
@@ -46,14 +48,11 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   geant ped,sig;
   number adcf,rdthr,dt;
   int bad;
+  static int first(0);
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
 //
   status=1;//bad
-  bad=1;// means NO both Charge and History measurements
-//
-// =============> check/correct logical "up/down" sequence :
-//
   ptr=(Anti2RawEvent*)AMSEvent::gethead()
                         ->getheadC("Anti2RawEvent",0,1);//last "1" to sort
   isds=0;
@@ -62,19 +61,53 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   if(ATREFFKEY.reprtf[1]>=1)
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
-//                             
+//-----
+  if(first==0){//store run/time for the first event
+    first=1;
+    ANTPedCalib::BRun()=AMSEvent::gethead()->getrun();
+    ANTPedCalib::BTime()=AMSEvent::gethead()->gettime();//for possible classic/"DownScaledEvent" PedCalib
+//(if 1st "DownScalEvent" come later than 1st normal event, BTime() will be owerwritten at its decoding stage)  
+  }
+//---------
+// ====> check for PedCalib data if PedCalJob :
+//
+  if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3){//PedCalJob
+  int pedobj(0);
+    ANTI2JobStat::addre(19);
+    ANTPedCalib::hiamreset();
+    while(ptr){//<--RawEvent-objects loop
+      id=ptr->getid();// BBarSide
+      sector=id/10-1;//bar 0-7
+      isid=id%10-1;//0-1 (bot/top)
+      stat=ptr->getstat();
+      adca=ptr->getadca();
+      if(stat==1){//not PedSubtractedData, fill PedCal arrays
+        pedobj+=1;
+	if(adca>0)ANTPedCalib::fill(sector,isid,adca);
+      }
+//
+      ptr=ptr->next();// take next RawEvent hit
+    }//  ---- end of RawEvent hits loop ------->
+    if(pedobj>0)ANTI2JobStat::addre(20);
+    return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
+  }
+//---------------------------------------                             
+//
+// =============> check/combine adc/tdc/FT data :
+//
+  bad=1;// means NO both Charge and History measurements
   while(ptr){//<---- loop over ANTI RawEvent hits
 #ifdef __AMSDEBUG__
     if(ATREFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
 #endif
     id=ptr->getid();// BBarSide
     sector=id/10-1;//bar 0-7
-    isid=id%10-1;//0-1 (top/bot)
+    isid=id%10-1;//0-1 (bot/top)
     mtyp=1;
     otyp=0;
     AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=1(hist. time(=fast_TDC))
     crat=antid.getcrate();
-    slot=antid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+    slot=antid.getslot();//sequential slot#(0,1,...11)(4 last are fictitious for d-adcs)
     tsens=antid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
     ptr->settemp(TOF2JobStat::gettemp(crat,tsens-1));//put latest temper. from static array
     chnum=sector*2+isid;//channels numbering
@@ -123,11 +156,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
 //---> check Charge-ADC :
 //
-      ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
-      sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      adcf=number(adca)-ped;// subtract pedestal
-      rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)    
-      if(adcf>rdthr*sig){//----> Above ped
+      if(adca>0){//---->ped-subtr. and DAQ-readout thr. was already done during decoding or mcbuild stage
         if(tmfound==1)complm=1;//found object with complete t+amp measurement
       }
       else{
@@ -155,7 +184,7 @@ void Anti2RawEvent::mc_build(int &stat){
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
   int16u phbit,maxv,id,chsta;
-  integer adca;
+  geant adca,daqthr,adc2pe;
   integer nftdc,ftdc[ANTI2C::ANTHMX], nhtdc,htdc[ANTI2C::ANTHMX],itt;
   number edep,ede,edept(0),time,z,tlev1,ftrig,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
@@ -178,10 +207,10 @@ void Anti2RawEvent::mc_build(int &stat){
   AMSBitstr trbl[ANTI2C::MAXANTI];
   geant trigb=TOF2DBc::trigtb();
   integer i1,i2,intrig,sorand;
-  integer fmask[ANTI2C::MAXANTI][2];
   geant daqp7,daqp10;
   geant nebav;
   int nebin;
+  bool anchok;
 //
   static integer first=0;
   static integer nshap;//real length of (PMT)-pulse array(in bins=ANTI2DBc::fadcbw())
@@ -240,8 +269,6 @@ void Anti2RawEvent::mc_build(int &stat){
     trbs[i][0].bitclr(1,0);
     trbs[i][1].bitclr(1,0);
     trbl[i].bitclr(1,0);
-    fmask[i][0]=0;
-    fmask[i][1]=0;
   }
 //-------------
   AMSContainer *cptr;
@@ -494,15 +521,12 @@ void Anti2RawEvent::mc_build(int &stat){
 //-------------
       if(ATMCFFKEY.mcprtf>1 && nptr>1)ANTI2DBc::displ_a("AntiC_MultiFT, PM-pulse:id(PPS)=",id,20,parr);
 //
-      bool anchok=(ANTIPeds::anscped[nlogs].PedStOK(j) &&
-                  ANTI2VPcal::antivpcal[nlogs].CalStOK(j));//ReadoutChan-OK
-//
 //---> Create charge raw-hits:
 //
-      geant adc2pe=ANTI2SPcal::antispcal[nlogs].getadc2pe();
-      geant daqthr=ANTI2SPcal::antispcal[nlogs].getdqthr();//DAQ-readout thresh(pedsig-units)    
-      ped=ANTIPeds::anscped[nlogs].apeda(j);// in adc-chan. units(float)
-      sig=ANTIPeds::anscped[nlogs].asiga(j);
+      adc2pe=ANTI2SPcal::antispcal[nlogs].getadc2pe();
+      daqthr=ANTI2SPcal::antispcal[nlogs].getdqthr();//DAQ-readout thresh(pedsig-units, "onboard")    
+      ped=ANTIPedsMS::anscped[nlogs].apeda(j);// in adc-chan. units(float, MC-Seeds)
+      sig=ANTIPedsMS::anscped[nlogs].asiga(j);
       if(ATMCFFKEY.mcprtf)HF1(2632+j,geant(esignal[j][nlogs]),1.);
       amp=esignal[j][nlogs]/adc2pe;//pe -> ADC-ch
       if(amp>TOF2GC::SCPUXMX)amp=TOF2GC::SCPUXMX;//PUX-chip saturation
@@ -517,14 +541,18 @@ void Anti2RawEvent::mc_build(int &stat){
       }
 //---
       adca=0;
-//      amp=number(iamp)-ped;// subtract pedestal (loose "integerization" !)
-//      if(ATMCFFKEY.mcprtf)HF1(2634+j,amp,1.);
-//      if(amp>daqthr*sig){// DAQ readout threshold check
-//	iamp=integer(floor(amp*ANTI2DBc::daqscf()+0.5));// floatADC -> internal DAQ bins
-//        itt=int16u(iamp);
-//        adca=itt;
-//      }
-      adca=int16u(iamp);//Raw mode !!!(when 7 above line are commented, decided 24.10.05 at TIM)
+      chsta=0;// good(def)
+      if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3){//PedCalib-Job (no ped subtr/suppr)
+        chsta=1;// signal for validate-stage: no "ped" subtraction/suppression
+        if(iamp>0)adca=geant(iamp)+0.5;//"+0.5" to be at ADC-bin middle
+      }
+      else{//normal run
+        ped=ANTIPeds::anscped[nlogs].apeda(j);// in adc-chan. units(float, ReallyMeasured)
+        sig=ANTIPeds::anscped[nlogs].asiga(j);
+        if(iamp>(ped+daqthr*sig))adca=geant(iamp)+0.5-ped;//OnBoard_PedSuppression + OfflinePedSubtraction
+	else adca=0;
+      }
+//      if(ATMCFFKEY.mcprtf>0)HF1(2634+j,adca,1.);
 //
 //---> Create history raw-hits:
 //
@@ -548,8 +576,10 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 //----> create RawEvent-object and store trig-patt:
 //
+      anchok=(ANTIPeds::anscped[nlogs].PedStOK(j) &&
+                  ANTI2VPcal::antivpcal[nlogs].CalStOK(j));//ReadoutChan-OK (real= not seed)
+//
       if(anchok && (adca>0 || nhtdc>0)){
-        chsta=0;// good
 	id=(nlogs+1)*10+j+1;//BBarSide(BBS)
 //cout<<"MCFillRaw:id="<<id<<" adca/nhtdc="<<adca<<" "<<nhtdc<<endl;
 //for(int ih=0;ih<nhtdc;ih++)cout<<htdc[ih]<<" ";
@@ -559,7 +589,6 @@ void Anti2RawEvent::mc_build(int &stat){
 	ftdc[0]=0;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,temp,adca,nftdc,ftdc,nhtdc,htdc));//write object
-        fmask[nlogs][j]=1;//mark fired channels(created RawEvent-objects)
 //--->check GlobFT/SideTrigPattSignal correlation(physically done in J-crate)
         intrig=Trigger2LVL1::l1trigconf.antinmask(int(nlogs));//AntiInTrig from DB
         if(intrig==1 || (intrig>1 && (intrig-2)!=j)){//<--sector/side is in trigger(not masked)
@@ -633,51 +662,46 @@ void Anti2RawEvent::mc_build(int &stat){
     }
   }
   if(ncoinct>0)ANTI2JobStat::addmc(5);
-
 //
-//-->make side patterns(does not exists now according Lin)                       
-//  for(i=0;i<4;i++)hcount[i]=0;
-//  if(ncoinct>0){
-//    for(i=0;i<ANTI2C::MAXANTI;i++){
-//      cbit=lsbit<<i;
-//      if((i<2)||(i>5)){ // <-- x>0
-//        if(atrpat[1]&cbit)hcount[3]+=1; // z>0
-//        if(atrpat[0]&cbit)hcount[2]+=1; // z<0
-//      }
-//      else{              // <-- x<0
-//        if(atrpat[1]&cbit)hcount[1]+=1; // z>0
-//        if(atrpat[0]&cbit)hcount[0]+=1; // z<0
-//      }
-//    }
-//
-//    trpatt=(atrpat[0] | (atrpat[1]<<8));//1-8=>s1(bot), 9-16=>s2(top)
-//    for(i=0;i<4;i++){//add 4 trig.counters
-//      if(hcount[i]>3)hcount[i]=3;
-//      trpatt|=hcount[i]<<(16+i*2);
-//    }
-//  }
-//
-//---> filling of empty channels with peds (raw mode readout):
+//---> filling of empty channels with peds (may be essential because true signal is too close to ped),
+//     also needed for PedCalib-job:         
 //
   for(int side=0;side<2;side++){
     for(int lsec=0;lsec<ANTI2C::MAXANTI;lsec++){
-      if(fmask[lsec][side]==0){//<--empty channel
-        ped=ANTIPeds::anscped[lsec].apeda(side);// in adc-chan. units(float)
-        sig=ANTIPeds::anscped[lsec].asiga(side);
-        amp=ped+sig*rnormx();
-	adca=int16u(floor(amp));//go to real ADC-channels("integerization")
-        chsta=0;// good
-	id=(lsec+1)*10+side+1;//BBarSide(BBS)
-	nhtdc=0;//no time-history measurement for "peds" channels
-	htdc[0]=0;
-        temp=0;//no temp.meausrement in MC
-	nftdc=0;//really filled later during validation stage
-	ftdc[0]=0;
-        AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
+      anchok=(ANTIPeds::anscped[lsec].PedStOK(side)
+                                         && ANTI2VPcal::antivpcal[lsec].CalStOK(side));//ReadoutChan-OK in DB
+      if(esignal[side][lsec]==0){//<--empty(no MC-hits) channel(was ignored in Anti2RawEvent-obj creation above)
+        ped=ANTIPedsMS::anscped[lsec].apeda(side);// in adc-chan. units(float, MC-Seeds)
+        sig=ANTIPedsMS::anscped[lsec].asiga(side);
+        daqthr=ANTI2SPcal::antispcal[lsec].getdqthr();//DAQ-readout thresh(pedsig-units)    
+        adc2pe=ANTI2SPcal::antispcal[lsec].getadc2pe();
+        amp=ped+sig*rnormx();//fill with ped
+        iamp=integer(floor(amp));//go to real ADC-channels("integerization")
+        adca=0;
+        chsta=0;// good(def)
+        if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3){//PedCalib-job
+          if(iamp>0)adca=geant(iamp)+0.5;//No ped-suppression for Ped-run, "+0.5" to be at ADC-bin middle
+	  chsta=1;//signal for validation-stage: no "ped" subtraction/suppression
+        }
+        else{//normal run
+          ped=ANTIPeds::anscped[lsec].apeda(side);// in adc-chan. units(float, really measured)
+          sig=ANTIPeds::anscped[lsec].asiga(side);
+          if(iamp>(ped+daqthr*sig))adca=geant(iamp)+0.5-ped;//OnBoard_PedSuppression + OfflinePedSubtraction
+	  else adca=0;
+        }
+        if(anchok && adca>0){
+	  id=(lsec+1)*10+side+1;//BBarSide(BBS)
+	  nhtdc=0;//no time-history measurement for "peds" channels
+	  htdc[0]=0;
+          temp=0;//no temp.meausrement in MC
+	  nftdc=0;//really filled later during validation stage
+	  ftdc[0]=0;
+          AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,temp,adca,nftdc,ftdc,nhtdc,htdc));//write object
-      }
-    }
-  }
+	}
+      }//--->endof "empty channel" check
+    }//--->endof sectors loop
+  }//--->endof sides loop
 //----
   Anti2RawEvent::setncoinc(ncoinct);// add # of coinc.sectors  to Anti2RawEvent::
   Anti2RawEvent::setpatt(trpatt);// add trigger-pattern to Anti2RawEvent::
@@ -731,7 +755,8 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSAntiCluster",0);
 void AMSAntiCluster::build2(int &statt){
 //(combine 2-sides of single paddle)
   bool anchok;
-  integer adca,ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
+  integer ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[ANTI2C::ANTHMX];
+  geant adca;
   int16u id,idN,sta;
   int16u pbitn;
   int16u pbanti;
@@ -801,12 +826,12 @@ void AMSAntiCluster::build2(int &statt){
       ANTI2JobStat::addch(chnum,0); 
       adca=ptr->getadca();
       if(adca>0)ANTI2JobStat::addch(chnum,1);
-      ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      adcf=number(adca)-ped;//<========= subtract pedestal
+      adcf=number(adca);
 //---
-      rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)    
-      if(adcf>rdthr*sig){//----> Above ped
+      rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)
+      rdthr*=1;//tempor: can apply slightly higher threshold than in DAQ    
+      if(adcf>rdthr*sig){//----> Above additional thr.
         ANTI2JobStat::addch(chnum,2);
         ntdct=ptr->gettdct(tdct);
         if(ntdct>0)ANTI2JobStat::addch(chnum,3);
@@ -1035,7 +1060,6 @@ integer Anti2RawEvent::calcdaqlength(int16u blid){
   rcrat=(blid>>6)&7;// requested crate #
   fmt=1-(blid&63);// 0-raw, 1-reduced
 //
-  if((2&(DAQS2Block::getdmsk(rcrat))) > 0){ // AntiSubdet. is in this crate 
   while(ptr){
     id=ptr->getid();// BBS
     ibar=id/10-1;
@@ -1070,7 +1094,6 @@ integer Anti2RawEvent::calcdaqlength(int16u blid){
     }
   }// end of format check
 //
-  }// end of SFEA-presence test
 //
   return len;
 //
@@ -1098,7 +1121,6 @@ void Anti2RawEvent::builddaq(int16u blid, integer &len, int16u *p){
   rcrat=(blid>>6)&7;// requested crate #
   fmt=1-(blid&63);// 0-raw, 1-reduced
   len=0;
-  if(2&DAQS2Block::getdmsk(rcrat) == 0)return;//no AntiSubdet. in this crate (len=0)
 //
 #ifdef __AMSDEBUG__
   if(ATREFFKEY.reprtf[1]==2)cout<<"Anti::encoding: crate/format="<<rcrat<<" "<<fmt<<endl;

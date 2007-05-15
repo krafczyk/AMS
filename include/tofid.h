@@ -37,27 +37,31 @@ class AMSSCIds{
 // ANTI=> for given BB(sector): BBS(1)P(0)M(0),BBS(1)P(0)M(1), BBS(2)P(0)M(0),BBS(2)P(0)M(1)
 //        above structure is repeated for each BB.
 //---
-  int _hwid;//hardware ID is CSRR(Crate|Slot|SlotReadout_channel)
-  int16u _crate; //0,1,...
-  int16u _slot;  //slot# 0,1,...
-  int16u _sltyp;  //slot(card) type : 1->SFET(4/5inp)/2->SFEA
-//                                    3->SFEC/4->SDR/5->SPT...
+  int _hwid;//hardware ID is CSSRR(Crate|Slot|Readout_channel)
+  int16u _crate; //0,1,,2,3
+  int16u _slot;  //slot# 0,1,...6,7,8,9,10 (last 4 are for SFECs,fictitious)
+  int16u _sltyp;  //slot(card) type : 1->SFET(8inp max)/2->SFEA(5inp)
+//                                    3->SFEC(10inp max)/4->SDR/5->SPT...
 //                    
-  int16u _crdid; //card id(may be different from slot#)
+//  int16u _crdid; //card id(may be different from slot#, = link number)
   int16u _rdch;  //readout channel(internal card-output numbering)
   int16u _inpch; //inp.channel(internal card-input numbering)
-  int16u _hwch;//sequential h/w-channels numbering: C(1)S(1)RR(1),...C(1)S(1)RR(Nmax for slot_1),
-// C(1)S(2)RR(1),...C(1)S(2)RR(max for slot_2),..............
-// C(Nmax)S(max slots in this cr)RR(max for this slot)
+  int16u _hwch;//sequential h/w-channels numbering: C(1)SS(1)RR(1),...C(1)SS(1)RR(Nmax for slot_1),
+// C(1)SS(2)RR(1),...C(1)SS(2)RR(max for slot_2),..............
+// C(Nmax)SS(max slots in this cr)RR(max for this slot)
 //--- 
   static int sidlst[TOF2GC::SCRCMX];//swid-list(vs hwch) 
   static int hidlst[TOF2GC::SCRCMX];//hwid-list(vs swch)
   static int hidls[TOF2GC::SCRCMX];//hwid-list(vs hwch)
   static int16u sltymap[TOF2GC::SCCRAT][TOF2GC::SCSLTM];//map of slot-types in crates 
-  static int16u cardids[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
+//  static int16u cardids[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
+  static int16u cardidc[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
+  static int16u cardidt[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
   static int16u ochpsty[TOF2GC::SCSLTY];//outp.channels per slot-type
+  static int16u ichpsty[TOF2GC::SCSLTY];//inp.channels per slot-type
   static int totswch[2];//total s/w-channels for TOF, ANTI
   static int16u tmpsln[TOF2GC::SCSLTM];//map of temp-sensor numbers in slots
+  static int trpatba[TOF2GC::SCCRAT][TOF2GC::SCMXBR2];//LBBS<->TrigPattBits assignment
  public:
   AMSSCIds():_dummy(1){};
   AMSSCIds(int16u crate, int16u slot, int16u rdch);//used for tof,anti
@@ -65,6 +69,7 @@ class AMSSCIds{
   AMSSCIds(int16u bar, int16u side, int16u pmt, int16u mtyp);//used for anti
   AMSSCIds(int swid);//used for tof,anti
   static void inittable();
+  static void selftest();
   bool dummy(){return _dummy==1;}
   bool AchOK(){return TOF2Brcal::scbrcal[_layer][_bar].AchOK(_side) &&
                       TOFBPeds::scbrped[_layer][_bar].PedAchOK(_side);}
@@ -78,18 +83,23 @@ class AMSSCIds{
   int16u getcrate(){return _crate;}
   int16u getslot(){return _slot;}
   int16u getsltyp(){return _sltyp;}
-  int16u getcrdid(){return _crdid;}
+//  int16u getcrdid(){return _crdid;}
   int16u getrdch(){return _rdch;}
   int16u getinpch(){return _inpch;}
   int16u getpmt(){return _pmt;}
   int16u getmtyp(){return _mtyp;}
   int16u gettempsn(){return tmpsln[_slot];}//1,...5, or "0" if not temper. slot(0,1,...)
   int gethwid(){return _hwid;}
+  int getswid(){return _swid;}
+  static int gettpbas(int16u crt, int16u bit);//return LBBS for bit bit(0-17) in crate crt(0-3)
   static int16u swseqn(int dt, int16u il, int16u ib, int16u is, int16u ip, int16u im);
   static int16u hwseqn(int16u cr, int16u sl, int16u ch);
   static int hw2swid(int16u cr, int16u sl, int16u ch);
-  static int16  crdid2sl(int16u crate, int16u crdid);
-  static int16u sl2tsid(int slot){return tmpsln[slot];}//abs.slot#->temp.sensor id(sequential slot#)
+//  static int16  crdid2sl(int16u crate, int16u crdid);
+  static int16  crdidc2sl(int16u crate, int16u crdid);
+  static int16  crdidt2sl(int16u crate, int16u crdid);
+  static int16u sl2tsid(int16u slot){return tmpsln[slot];}//abs.slot#->temp.sensor id(sequential slot#)
+  static int16u ich2rdch(int16u crate, int16u slot, int16u ich, int16u mtyp);
 };
 
 

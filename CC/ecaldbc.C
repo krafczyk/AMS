@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.58 2007/03/23 12:22:11 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.59 2007/05/15 11:38:32 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -75,7 +75,7 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 //   add some checks VC
      if(_slstruc[2] >ecalconst::ECSLMX){
       _slstruc[2]=ecalconst::ECSLMX;
-      cerr <<" ECALDBc::readgconf-W-Resetting ECSLMX to "<<_slstruc[2]<<endl;
+      cerr <<"====> ECALDBc::readgconf-W-Resetting ECSLMX to "<<_slstruc[2]<<endl;
      }
     if(_slstruc[2]==8){
      ECCAFFKEY.cfvers=10;
@@ -89,19 +89,20 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     char vers2[4]="001";
     char vers3[3]="02";
     geant ZShift=-AMSDBc::amsdext;
+//
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
-          cout <<" ECALGeom-I-AMS02D setup selected."<<endl;
+          cout <<"   <--ECALGeom-I-AMS02D setup selected."<<endl;
           strcat(name,vers3);
 	  _gendim[6]+=ZShift;
-	  cout<<"      ZShift="<<ZShift<<endl;
+	  cout<<"    <--ZShift="<<ZShift<<endl;
     }
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-          cout <<" ECALGeom-I-AMS02 setup selected."<<endl;
+          cout <<"   <--ECALGeom-I-AMS02 setup selected."<<endl;
           strcat(name,vers3);
     }
     else
     {
-          cout <<" ECALGeom-Err-unknown setup !??"<<endl;
+          cout <<"<----- Error: unknown setup !??"<<endl;
           exit(1);
     }
     strcat(name,".dat");
@@ -114,7 +115,6 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 //      cerr <<"ECgeom-read: missing geomconfig-file "<<fname<<endl;
 //      exit(1);
 //    }
-//    for(int ic=0;ic<SCBLMX;ic++) tcfile >> _brtype[ic];
   }
 //---
 //
@@ -327,7 +327,7 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
       dz=(dzrad1+2.*alpth)*nsl;//EC rad. total thickness(incl. Al-plates, excl. Honeyc)
       z11=(nsl*(nfl-1)*piz+(nsl-1)*pizz)/2.;//zpos(ECAL r.s.) of 1st f-layer of 1st S-layer
       z=z11+(_gendim[6]-dz/2.);//zpos(AMS r.s.) of 1st f-layer of 1st S-layer
-      cout<<"ECALDBc::getscinfoa: 1st fiber-layer Zpos="<<z<<endl;
+//      cout<<"ECALDBc::getscinfoa: 1st fiber-layer Zpos="<<z<<endl;
       for(sl=0;sl<nsl;sl++){// <--- S-layer loop for Z-calc.
         for(i=0;i<4;i++){
 	  nf[i]=0;
@@ -440,10 +440,22 @@ number EcalJobStat::zprofa[2*ECSLMX];// average Z-profile(scPlanes)
 number EcalJobStat::zprofapm[ECSLMX];// average Z-profile(pm-layers) 
 number EcalJobStat::zprofac[ECSLMX];// SL Edep profile (punch-through events)
 geant EcalJobStat::nprofac[ECSLMX];// SL profile (punch-through events)
+integer EcalJobStat::daqc1[ECJSTA];//daq-decoding counters
+integer EcalJobStat::daqc2[ecalconst::ECRT][ECJSTA];
+integer EcalJobStat::daqc3[ecalconst::ECRT][ECSLOTS][ECJSTA];
 //
 //------------------------------------------
 void EcalJobStat::clear(){
-  int i,j;
+  int i,j,k;
+  for(i=0;i<ECJSTA;i++){
+    daqc1[i]=0;
+    for(j=0;j<ECRT;j++){
+      daqc2[j][i]=0;
+      for(k=0;k<ECSLOTS;k++){
+        daqc3[j][k][i]=0;
+      }
+    }
+  }
   for(i=0;i<ECJSTA;i++)mccount[i]=0;
   for(i=0;i<ECJSTA;i++)recount[i]=0;
   for(i=0;i<ECJSTA;i++)cacount[i]=0;
@@ -460,7 +472,41 @@ void EcalJobStat::clear(){
 void EcalJobStat::printstat(){
 //
   printf("\n");
-  printf("    ====================== ECAL JOB-statistics ======================\n");
+  printf("    =================== ECAL-JOB statistics report ==================\n");
+  printf("\n");
+  if(daqc1[0]>0){
+   printf("     Decoding report :\n");
+   printf(" JINF entries                      : % 7d\n",daqc1[0]);
+   printf(" non empty                         : % 7d\n",daqc1[1]);
+   printf(" no assembly errors                : % 7d\n",daqc1[2]);
+   printf(" Crates appearence frequency         crate-1:   crate-2:\n");
+   printf(" with side-A readout               : % 7d    % 7d\n",daqc1[3],daqc1[5]);
+   printf(" with side-B readout               : % 7d    % 7d\n",daqc1[4],daqc1[6]);
+   printf(" RawFMT EDR/ETRG blocks            : % 7d    % 7d\n",daqc2[0][0],daqc2[1][0]);
+   printf(" ComprFMT EDR/ETRG blocks          : % 7d    % 7d\n",daqc2[0][1],daqc2[1][1]);
+   printf(" RawFMT EDR/ETRG no_assembly_err   : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
+   printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
+   printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
+   cout<<"---> Crate-1: entries per slot:"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][0]<<" ";
+   cout<<endl;
+   cout<<"  + block length OK (rawFMT):"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][1]<<" ";
+   cout<<endl;
+   cout<<"  + block length OK (compFMT):"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][2]<<" ";
+   cout<<endl;
+//
+   cout<<"---> Crate-2: entries per slot:"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][0]<<" ";
+   cout<<endl;
+   cout<<"  + block length OK (rawFMT):"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][1]<<" ";
+   cout<<endl;
+   cout<<"  + block length OK (compFMT):"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][2]<<" ";
+   cout<<endl;
+  }
   printf("\n");
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
@@ -680,6 +726,8 @@ void EcalJobStat::bookhist(){
 	HBOOK1(ECHISTC+59,"ECCA: Emism/Ematch(pl4)",80,0.,4.,0.);
 	HBOOK1(ECHISTC+60,"ECCA: Emism/Ematch(pl5)",80,0.,4.,0.);
 	HBOOK1(ECHISTC+61,"ECCA: Emism/Ematch(pl6)",80,0.,4.,0.);
+//
+//  WARNING: Hist.ECHISTC+100->ECHISTC+189 are reserved for Ped-Calibration 
 //gchen
 	if(ECCAFFKEY.ecshswit==1){// =====> ecal_shower used.
 	  HBOOK1(ECHISTC+62,"ECCA: shower energy, track ok",80,0.,18.,0.);
@@ -1063,7 +1111,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
-  cout<<endl<<"ECcalib::build: total PMs="<<ECPMSL<<endl;
+  cout<<endl<<"====> ECcalib_build: start with total PMTs="<<ECPMSL<<endl;
 //
   char fname[80];
   char name[80];
@@ -1099,10 +1147,10 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalib::build: Open file  "<<fname<<'\n';
+  cout<<"      Open verslist-file: "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
-    cerr <<"ECcalib_build:: missing verslist-file "<<fname<<endl;
+    cerr <<"<---- ECcalib_build:Error: missing verslist-file "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
@@ -1111,6 +1159,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
     vlfile >> rlvern[i];// second number - for real
   }
   vlfile.close();
+  cout<<"   <--Verslist-file is successfully read !"<<endl;
 //
 //------------------------------
 //
@@ -1122,7 +1171,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   rlvn=rlvern[ctyp-1]%1000;
   if(AMSJob::gethead()->isMCData()) //      for MC-event
   {
-       cout <<" ECcalib_build: MC: RLGA-calib file have to be read"<<endl;
+       cout <<"      MC: reading real(not Seed!)RLGA-calib file..."<<endl;
        dig=mcvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1136,7 +1185,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   }
   else                              //      for Real events
   {
-       cout <<" ECcalib_build: REAL: RLGA-calib file have to be read"<<endl;
+       cout <<"      RD: reading RLGA-calib file..."<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1153,10 +1202,10 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalib::build: Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream rlgfile(fname,ios::in); // open  file for reading
   if(!rlgfile){
-    cerr <<"ECcalib_build: missing status/rel.gains file "<<fname<<endl;
+    cerr <<"<---- ECcalib_build: Error: missing status/rel.gains file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1220,9 +1269,9 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   rlgfile.close();
   if(endflab==12345){
-    cout<<"ECcalib::build: RLGA-calibration file is successfully read !"<<endl;
+    cout<<"   <--RLGA-calibration file is successfully read !"<<endl;
   }
-  else{cout<<"ECcalib::build: ERROR(problems while reading RLGA-calib.file)"<<endl;
+  else{cout<<"<---- ECcalib::build: ERROR: problems while reading RLGA-calib.file !!?"<<endl;
     exit(1);
   }
 //==================================================================
@@ -1235,7 +1284,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   rlvn=rlvern[ctyp-1]%1000;
   if(AMSJob::gethead()->isMCData()) //      for MC-event
   {
-       cout <<" ECcalib_build: MC: FIAT-calib file have to be read"<<endl;
+       cout <<"      MC: reading FIAT-calib file..."<<endl;
        dig=mcvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1249,7 +1298,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   }
   else                              //      for Real events
   {
-       cout <<" ECcalib_build: REAL: FIAT-calib file have to be read"<<endl;
+       cout <<"      RD: reading FIAT-calib file..."<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1266,10 +1315,10 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalib::build: Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream fatfile(fname,ios::in); // open  file for reading
   if(!fatfile){
-    cerr <<"ECcalib_build: missing fiber_att.param. file "<<fname<<endl;
+    cerr <<"<---- ECcalib_build::Error: missing fiber_att.param. file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1301,9 +1350,9 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   fatfile.close();
   if(endflab==12345){
-    cout<<"ECcalib::build: calibration file is successfully read !"<<endl;
+    cout<<"   <--FIAT-calibration file is successfully read !"<<endl;
   }
-  else{cout<<"ECcalib::build: ERROR(problems while reading FIAT-calib.file)"<<endl;
+  else{cout<<"<---- ECcalib_build: ERROR:problems while reading FIAT-calib.file !!?"<<endl;
     exit(1);
   }
 //================================================================== 
@@ -1316,7 +1365,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   rlvn=rlvern[ctyp-1]%1000;
   if(AMSJob::gethead()->isMCData()) //      for MC-event
   {
-       cout <<" ECcalib_build: MC: ANOR-calib file have to be read"<<endl;
+       cout <<"      MC: reading ANOR-calib file..."<<endl;
        dig=mcvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1330,7 +1379,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   }
   else                              //      for Real events
   {
-       cout <<" ECcalib_build: REAL: ANOR-calib file have to be read"<<endl;
+       cout <<"      RD: reading ANOR-calib file..."<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1347,10 +1396,10 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalib::build: Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream anrfile(fname,ios::in); // open  file for reading
   if(!anrfile){
-    cerr <<"ECcalib_build: missing abs.norm. file "<<fname<<endl;
+    cerr <<"<---- ECcalib_build:Error: missing ANOR(abs.calib) file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1364,9 +1413,9 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   anrfile.close();
   if(endflab==12345){
-    cout<<"ECcalib::build: calibration file is successfully read !"<<endl;
+    cout<<"   <--ANOR-calibration file is successfully read !"<<endl;
   }
-  else{cout<<"ECcalib::build: ERROR(problems while reading ANOR-calib.file)"<<endl;
+  else{cout<<"<---- ECcalib_build: ERROR: problems while reading ANOR-calib.file !!?"<<endl;
     exit(1);
   }
     
@@ -1382,7 +1431,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
       stad=statusd[cnum];//dynode
       pmrg=pmrgn[cnum];
       for(isc=0;isc<4;isc++)scrg[isc]=1/(pmrg*pmscgn[cnum][isc]);
-//(1/(..) ->  to have mult. instead of dev. in RECO(for speed); pmrg included
+//(1/(..) ->  to have multiplication instead of deviding in RECO(for speed); pmrg included
 //  in pmscgn because in simu/reco product of pmrg*pmscgn is used really(or pmrg alone)
       for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
       a2dr=an2dyr[cnum];
@@ -1393,6 +1442,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
       ecpmcal[isl][ipm]=ECcalib(sid,sta,stad,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr,a2m);
     }
   }
+  cout<<"<---- ECcalib::build: successfully done !"<<endl<<endl;
 }
 //---------------
 number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Qmeas/Qin
@@ -1429,7 +1479,7 @@ number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Q
       }
     }
   } 
-    cerr<<"ECcalib::pmsatf1: wrong dir parameter or logic error"<<dir<<endl;
+    cerr<<"<---- ECcalib_pmsatf1:Error: wrong dir parameter or logic error"<<dir<<endl;
     abort();
     return(0);
 }  
@@ -1444,7 +1494,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
-  cout<<endl<<"ECcalibMS::build: total PMs="<<ECPMSL<<endl;
+  cout<<endl<<"====> ECcalibMS::build: start build with total PMs="<<ECPMSL<<endl;
 //
   char fname[80];
   char name[80];
@@ -1480,10 +1530,10 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalibMS::build: Open file  "<<fname<<'\n';
+  cout<<"      Open verslist-file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
-    cerr <<"ECcalibMS_build:: missing verslist-file "<<fname<<endl;
+    cerr <<"<---- ECcalibMS_build::Error: missing verslist-file !!? "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
@@ -1492,6 +1542,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
     vlfile >> rlvern[i];// second number - for real
   }
   vlfile.close();
+  cout<<"   <--Verslist-file is successfully read !"<<endl;
 //
 //------------------------------
 //
@@ -1502,7 +1553,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   mcvn=mcvern[ctyp-1]%1000;
   rlvn=rlvern[ctyp-1]%1000;
 // 
-       cout <<" ECcalibMS_build: RealDataCopy/MC RLGA-calib file have to be read"<<endl;
+       cout<<"      MC: reading Real/Seed RLGA(stat/rel.gains)-calibr. file..."<<endl;
+       cout<<"      (normally Real(*mc.dat)-file is the CalibProg outp.file when the Seed"<<endl;
+       cout<<"      -file(*sd.dat) was chosen to be read at this stage !!!)"<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1519,10 +1572,10 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalibMS::build: Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream rlgfile(fname,ios::in); // open  file for reading
   if(!rlgfile){
-    cerr <<"ECcalibMS_build: missing RealData/MC stat/rel.gains file "<<fname<<endl;
+    cerr <<"<---- ECcalibMS_build:Error: missing Real/Seed RLGA file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1586,9 +1639,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   rlgfile.close();
   if(endflab==12345){
-    cout<<"ECcalibMS::build: RealDataCopy/MC RLGA-calib file is successfully read as MCSeed !"<<endl;
+    cout<<"   <--MC Real/Seed RLGA-calib file is successfully read as MCSeed !"<<endl;
   }
-  else{cout<<"ECcalibMS::build: Problems reading RealDataCopy/MC RLGA-calib.file as MCSeed "<<endl;
+  else{cout<<"<---- ECcalibMS_build:Error reading MC Real/Seed RLGA-calib.file as MCSeed !!?"<<endl;
     exit(1);
   }
 //==================================================================
@@ -1599,7 +1652,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   strcpy(name,"ecalfiat");
   mcvn=mcvern[ctyp-1]%1000;
   rlvn=rlvern[ctyp-1]%1000;
-       cout <<" ECcalibMS_build: RealDataCopy FIAT-calib file have to be read"<<endl;
+       cout <<"      MC: reading Real(as Seed)/Seed(true) FIAT(fiber_att)-calibr. file..."<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1616,10 +1669,10 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ECcalibMS::build: Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream fatfile(fname,ios::in); // open  file for reading
   if(!fatfile){
-    cerr <<"ECcalibMS_build: missing RealDataCopy fiber_att.calib file "<<fname<<endl;
+    cerr <<"<---- ECcalibMS_build:Error: missing Real/Seed FIATcalib file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1651,9 +1704,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   fatfile.close();
   if(endflab==12345){
-    cout<<"ECcalibMS::build: RealDataCopy/MC FIAT-calib file is successfully read as MCSeed !"<<endl;
+    cout<<"   <--Real/Seed FIAT-calibr. file is successfully read as MCSeed !"<<endl;
   }
-  else{cout<<"ECcalibMS::build: Problems reading RealDataCopy/MC FIAT-calib.file as MCSeed !"<<endl;
+  else{cout<<"<---- ECcalibMS_build:Error: reading MC Real/Seed FIAT-calib.file as MCSeed !"<<endl;
     exit(1);
   }
 //------------------------------
@@ -1678,6 +1731,8 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
       ecpmcal[isl][ipm]=ECcalibMS(sid,sta,stad,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr);
     }
   }
+//
+  cout<<"<---- ECcalibMS::build: successfully done !"<<endl<<endl;
 }  
 //==========================================================================
 //  ECALVarp class functions :
@@ -1708,7 +1763,7 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
 //
 //   --->  Read high/low pedestals file :
 //
-  strcpy(name,"ecalpeds");
+  strcpy(name,"eclp_df");
   integer cfvn;
   cfvn=ECCAFFKEY.cfvers%1000;
   char in[2]="0";
@@ -1717,31 +1772,31 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
   strcpy(inum,"0123456789");
   dig=cfvn/100;
   in[0]=inum[dig];
-  strcat(name,in);
+//  strcat(name,in);
   dig=(cfvn%100)/10;
   in[0]=inum[dig];
-  strcat(name,in);
+//  strcat(name,in);
   dig=cfvn%10;
   in[0]=inum[dig];
-  strcat(name,in);
+//  strcat(name,in);
   if(AMSJob::gethead()->isMCData())           // for MC-event
   {
-    cout <<" ECPMPeds_build: default MC peds-file is used..."<<endl;
-    strcat(name,"mc");
+    cout <<"====> ECPMPeds_build: Default Real_MC-peds file is used..."<<endl;
+    strcat(name,"_mc");
   }
   else                                       // for Real events
   {
-    cout <<" ECPMPeds_build: default RealData peds-file is used..."<<endl;
-    strcat(name,"rl");
+    cout <<"====> ECPMPeds_build: Default Real_RD-peds file is used..."<<endl;
+    strcat(name,"_rl");
   }
   strcat(name,".dat");
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"Open file : "<<fname<<'\n';
+  cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading
   if(!icfile){
-    cerr <<"ECPMPeds_build: missing default pedestals-file "<<fname<<endl;
+    cerr <<"<---- missing default pedestals-file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1807,9 +1862,9 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
   icfile.close();
 //
   if(endflab==12345){
-    cout<<"ECPMPeds::build: Peds-file is successfully read !"<<endl;
+    cout<<"<---- ECPMPeds::build: successfully done !"<<endl;
   }
-  else{cout<<"ECPMPeds::build: exit on ERROR(problems while reading of peds-file)"<<endl;
+  else{cout<<"<---- ECPMPeds::build:Error: problem to read peds-file"<<endl;
     exit(1);
   }
 //---------------------------------------------
@@ -1824,6 +1879,9 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
       for(isc=0;isc<4;isc++)sigh[isc]=pmsigh[cnum][isc];
       for(isc=0;isc<4;isc++)pedl[isc]=pmpedl[cnum][isc];
       for(isc=0;isc<4;isc++)sigl[isc]=pmsigl[cnum][isc];
+      pedd=pmpedd[cnum];
+      sigd=pmsigd[cnum];
+      stad=pmstad[cnum];
       pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,stad,pedh,sigh,pedl,sigl,pedd,sigd);
     }
   }
@@ -1888,7 +1946,7 @@ void ECPMPeds::mcbuild(){// create default ECPeds-objects(MC) for each cell
       pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,stad,pedh,sigh,pedl,sigl,pedd,sigd);
     }
   }
-  cout<<"ECPMPeds::MCbuild: Default peds/sigmas are created !"<<endl; 
+  cout<<"<---- ECPMPeds::MCbuild: Default peds/sigmas are created !"<<endl; 
 }
 //
 //==========================================================================

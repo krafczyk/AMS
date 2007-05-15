@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.211 2007/04/11 15:27:23 choutko Exp $
+//  $Id: commons.h,v 1.212 2007/05/15 11:39:23 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -169,6 +169,7 @@ integer mcseedo;   // 0/1->use MCCalib/RealData files as MCseed
 geant blshift;     // base line shift
 geant hfnoise;     // high freq. noise
 integer ReadConstFiles;
+integer addpeds;
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
@@ -354,7 +355,9 @@ public:
   geant cog1cut;       // Track-ScPlaneCOG mismatch cut(cm) for the 1st t6 SC-planes.
   geant scdismx[6];    // max sc-track dist. to consider hit as backgroubd(pl 1-6) 
   geant scdisrs;       // as above for all other planes(not used really)
-  geant b2scut[6];     // max backgr/signal energy(bound.from above) for pl 1-6 
+  geant b2scut[6];     // max backgr/signal energy(bound.from above) for pl 1-6
+  geant pedcpr;        //PedCal: portion of highest amplitude to remove for ped calc.
+  integer pedoutf;     //        PedOutpFlag 
 //g.chen
   integer ecshswit;      // 0/1 switch to/(not to)  use shower info in calibration
   geant chi2dirmx;     // max chi2 of shower dir fit
@@ -435,6 +438,8 @@ class ATCAFFKEY_DEF {
   public:
   integer cfvers; // vers.number NN for antiverlistNN.dat file
   integer cafdir; // use official/private directory for calib.file
+  geant pedcpr[2]; //PedCalibJob: Class/DownScaled: portion of highest adcs to remove for ped-calc
+  integer pedoutf;//              PedOutputFlag
 };
 #define ATCAFFKEY COMMON_BLOCK(ATCAFFKEY,atcaffkey)
 COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);
@@ -488,6 +493,8 @@ integer cafdir;// 0/1->use officical/private directory for calib.files
 integer mcainc;// to swich on/off A-integr. calibr. in MC
 geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
 //                to use when previous calibration suppose to be good enought
+geant pedcpr[2];//PedCalJob: portion of highest adcs to remove for ped-calc(Class/DScal)
+integer pedoutf;//           PedOutputFlag
 };
 #define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
 COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);

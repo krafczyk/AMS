@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.34 2007/01/17 07:45:41 choutko Exp $
+#  $Id: Makefile,v 1.35 2007/05/15 11:39:24 choumilo Exp $
 
 #P.Zuccon june 2005
 
@@ -183,7 +183,7 @@ COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C
 
 
 #DAQ Interface
-COMMON_FILES += $(SCC)daqevt.C $(SCC)daqs2block.C 
+COMMON_FILES += $(SCC)daqevt.C $(SCC)daqs2block.C $(SCC)daqecblock.C 
 
 #HBOOK interface
 #COMMON_FILES += $(SCC)ntuple.C

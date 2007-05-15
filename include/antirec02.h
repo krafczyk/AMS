@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.11 2006/07/14 13:21:52 choumilo Exp $
+//  $Id: antirec02.h,v 1.12 2007/05/15 11:39:23 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -19,13 +19,13 @@ private:
   int16u _idsoft; // BBS (Bar/Side)
   int16u _status; // status (0/1/... -> alive/dead/...)
   geant _temp;//temperature
-  integer _adca;// anode pulse-charge hit(ADC-chan)
+  geant _adca;// anode pulse-charge hit(ADC-counts, ped-subtracted if not PedCalibJob)
   integer _nftdc;//number of FastTrig(FT) hits, =1 in MC(filled at validation stage !!)
-  integer _ftdc[TOF2GC::SCTHMX1]; // FT-hits(tdc-chan),1/2-plane specific, but stored for each sect
+  integer _ftdc[TOF2GC::SCTHMX1]; // FT-hits(tdc-chan),1/4-plane specific, but stored for each sect
   integer _ntdct; // number of TimeHist(LT-chan) hits 
   integer _tdct[ANTI2C::ANTHMX];// TimeHist hits
 public:
-  Anti2RawEvent(int16u idsoft, int16u status, geant temp,  integer adca,
+  Anti2RawEvent(int16u idsoft, int16u status, geant temp,  geant adca,
                   integer nftdc, integer ftdc[], 
                   integer ntdct, integer tdct[]):_idsoft(idsoft),_status(status)
   {
@@ -49,10 +49,10 @@ public:
   int16u getnzchn(){if(_adca>0)return(1);
                           else return(0);}
 //
-  integer getadca(){
+  geant getadca(){
     return _adca;
   }
-  void putadca(integer arr){
+  void putadca(geant arr){
     _adca=arr;
   }
 //
@@ -97,11 +97,11 @@ protected:
 void _printEl(ostream &stream){
   int i;
   stream <<"Anti2RawEvent: id="<<dec<<_idsoft<<endl;
-  stream <<hex<<_adca<<endl;
+  stream <<dec<<_adca<<endl;
   stream <<"ntdct="<<dec<<_ntdct<<endl;
-  for(i=0;i<_ntdct;i++)stream <<hex<<_tdct[i]<<endl;
+  for(i=0;i<_ntdct;i++)stream <<dec<<_tdct[i]<<endl;
   stream <<"_nftdc="<<dec<<_nftdc<<endl;
-  for(i=0;i<_nftdc;i++)stream <<hex<<_ftdc[i]<<endl;
+  for(i=0;i<_nftdc;i++)stream <<dec<<_ftdc[i]<<endl;
   stream <<dec<<endl<<endl;
 }
 void _writeEl(){};

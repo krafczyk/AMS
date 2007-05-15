@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.74 2005/10/13 09:01:31 choumilo Exp $
+//  $Id: charge.C,v 1.75 2007/05/15 11:38:31 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -617,7 +617,6 @@ number AMSCharge::_probcalc(int mode, int fit, int nhittyp[],number lkhd[]){
 number AMSCharge::_probrich(number expRich, number useRich, number lkhd[]){
   number prob[MaxZTypes];
   int i;
-
   for(i=0; i<MaxZTypes; i++) _LkhdRich[i]=lkhd[i];
   _iRich=_sortlkhd(2);
 
@@ -626,7 +625,6 @@ number AMSCharge::_probrich(number expRich, number useRich, number lkhd[]){
     number f=(useRich-zz*expRich)*(useRich-zz*expRich)/zz/expRich;
     _ProbRich[i]=PROB((geant)f,1);
   }
-
   return _ProbRich[_iRich];
 }
 
