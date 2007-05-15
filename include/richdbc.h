@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.36 2007/04/04 12:02:10 choutko Exp $
+//  $Id: richdbc.h,v 1.37 2007/05/15 09:48:28 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -67,6 +67,10 @@ const geant      PMT_electronics=3.0;    // PMT side size
 const geant      cato_inner_pixel=0.42;  // Inner pixel side size in the photocathode
 const geant      cathode_length=RICcatolength+RICcatogap;
 const geant      pitch=3.7;
+
+ const integer    RICradiator_box_sides=12;
+ const geant      RICradiator_box_radius=118.5/2;
+ const geant      RICradiator_box_thickness=5;
 
  const geant      RICmireff=0.85;     // Mirror reflectivity
  // const geant      RICmireff=0.00;     // Mirror reflectivity

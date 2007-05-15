@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.43 2007/04/04 12:02:04 choutko Exp $
+//  $Id: richdbc.C,v 1.44 2007/05/15 09:47:39 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -156,7 +156,8 @@ geant RICHDB::rad_radius=60.0;         // Radiator radius
 geant RICHDB::rad_agl_height=2.5;      // Radiator agl thickness
 geant RICHDB::rad_height=3;            // Radiator support structure height
 geant RICHDB::naf_height=0.5;
-geant RICHDB::rad_length=11.3+0.1;        // Radiator tile side length
+//geant RICHDB::rad_length=11.3+0.1;        // Radiator tile side length
+geant RICHDB::rad_length=11.5+RICaethk;        // Radiator tile side length
 geant RICHDB::lg_height=3.0;           // Light guide height withou the fixing foil
 geant RICHDB::lg_length=3.4;        // Side length of light guide top (Called lg_length in the standalone version)  CHANGED TO CURRENT VALUE!!!!
 geant RICHDB::lg_bottom_length=1.77;
