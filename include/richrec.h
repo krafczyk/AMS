@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.36 2007/04/04 12:02:10 choutko Exp $
+//  $Id: richrec.h,v 1.37 2007/06/06 10:34:24 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -18,6 +18,7 @@ PROTOCCALLSFSUB1(RICHRECLIP,richreclip,INT)
 
 #include<string.h>
 
+     /*
 // First a simple template to use safe arrays. The value of should
 // be always greater than 0
 
@@ -52,7 +53,7 @@ public:
 
 typedef safe_array<geant,3> geant_small_array;
 typedef safe_array<integer,3> integer_small_array;
-
+     */
 
 /////////////////////////////////////////////
 //         Container for hits              //
@@ -258,9 +259,6 @@ public:
   //+LIP
   AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob,uinteger status=0,integer build_charge=0):AMSlink(status),
     _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta),_liphused(liphused),_lipthc(lipthc),_lipbeta(lipbeta),_lipebeta(lipebeta),_liplikep(liplikep),_lipchi2(lipchi2),_liprprob(liprprob){
-  //  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,uinteger status=0,integer build_charge=0):AMSlink(status),
-  //   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta){
-
     CalcBetaError();
 
     _npexp=0;
@@ -279,9 +277,6 @@ public:
     AMSPoint pnt;
     number theta,phi,length;
     
-    //    track->interpolate(AMSPoint(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_mean_height[_kind-1][0]),
-    //		       AMSDir(0.,0.,-1.),pnt,theta,phi,length);
-
     _radpos[0]=_emission_p[0];
     _radpos[1]=_emission_p[1];
     _radpos[2]=_emission_p[2];
@@ -307,8 +302,6 @@ public:
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
   static void build();
-  //  static void build(AMSTrTrack *track,int cleanup=1);
-  //  static void rebuild(AMSTrTrack *ptrack);
   static AMSRichRing* build(AMSTrTrack *track,int cleanup=1);
   static AMSRichRing* rebuild(AMSTrTrack *ptrack);
   //+LIP
@@ -332,112 +325,6 @@ public:
 #ifdef __WRITEROOT__
 friend class RichRingR;
 #endif
-};
-
-
-
-///////////////////////////////////////////
-// This class contains all the information used in the reconstruction
-// about the radiator
-//////////////////////////////////////////////
-
-class RichRadiatorTile{
- private:
-
-  number _index;          // Refractive index of current tile
-  number _height;         // Height of current tile
-  integer _kind;
-  AMSPoint _p_direct;
-  AMSPoint _p_reflected;
-  AMSDir _d_direct;
-  AMSDir _d_reflected;
-  AMSPoint _p_entrance;
-  AMSDir   _d_entrance;
-
-
-  // ALl the necessary numbers
-  static integer _number_of_rad_tiles;       // Number of radiator tiles
-  static integer *_kind_of_tile;         // Kind of tile 0-> no tile; 1 agl; 2 NaF
-  static geant _eff_indexes[radiator_kinds];
-  static geant _rad_heights[radiator_kinds];     
-  static geant _mean_height[radiator_kinds][2]; // For reflected and direct cases
-  static geant *_abs_length[radiator_kinds];
-  static geant *_index_tables[radiator_kinds];
-  static geant _clarities[radiator_kinds];
-
-
-  static void _compute_mean_height(geant *index,
-				    geant clarity,
-				    geant *abs_len,
-				    geant rheight,
-				    geant &eff_index,
-				    geant &height);
-
- public:
-  static void Init();                  // Init geometry and kinds and so on
-  static number getpos(int id,int pos);  // get pos (x,y) of a given tile
-  //  RichRadiatorTile(geant x,geant y){};   //Constructor given the position at the bottom: use the static member instead 
-  RichRadiatorTile(AMSTrTrack *track); // Constructor given a track 
-  RichRadiatorTile(){};
-  ~RichRadiatorTile(){};
-  
-
-
-  //////////////////////////////////////////////
-  // Some code to access to some global values /
-  //////////////////////////////////////////////
-  static inline number get_number_of_tiles(){return _number_of_rad_tiles;};
-  static inline number get_tile_x(integer tile){
-    return int(tile/_number_of_rad_tiles)*RICHDB::rad_length-
-      (_number_of_rad_tiles-1)*RICHDB::rad_length/2.;
-  };
-  static inline number get_tile_y(integer tile){
-    return int(tile%_number_of_rad_tiles)*RICHDB::rad_length-
-      (_number_of_rad_tiles-1)*RICHDB::rad_length/2.;
-  };
-  static inline integer get_tile_number(geant x,geant y){
-    x/=RICHDB::rad_length;
-    y/=RICHDB::rad_length;
-    x+=_number_of_rad_tiles/2.;
-    y+=_number_of_rad_tiles/2.;
-    if(x<0 || y<0 || x>=_number_of_rad_tiles || y>=_number_of_rad_tiles) return -1;
-    return int(x)*_number_of_rad_tiles+int(y);
-  };
-  static inline integer get_tile_kind(integer tile){
-    if(tile<0 || tile>=_number_of_rad_tiles*_number_of_rad_tiles) return empty_kind;
-    else return _kind_of_tile[tile];
-  };
-
-
-
-
-  ////////////////////////////////////////////////////////////////////////
-  // Given a tile object constructed with a track return a lot od stuff //  
-  ////////////////////////////////////////////////////////////////////////
-
-
-  inline number getindex(){return _index;};
-  inline number getheight(){return _height;};
-  inline integer getkind(){return _kind;};
-  inline AMSPoint getemissionpoint(int reflected=0){
-    return !reflected?_p_direct:_p_reflected;};   // return the intersection point with a given track
-  inline AMSDir getemissiondir(int reflected=0)
-    {return reflected?_d_direct:_d_reflected;};
-  inline AMSPoint getentrancepoint(){return _p_entrance;};
-  inline AMSDir getentrancedir(){return _d_entrance;};
-
-
-  inline geant getclarity(){
-    return _kind!=empty_kind?_clarities[_kind-1]:0.;}
-  
-  inline geant *getabstable(){
-    return _kind!=empty_kind?_abs_length[_kind-1]:0;}
-  
-  inline geant *getindextable(){
-    return _kind!=empty_kind?_index_tables[_kind-1]:0;}
-
-
-
 };
 
 

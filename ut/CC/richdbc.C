@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.44 2007/05/15 09:47:39 mdelgado Exp $
+//  $Id: richdbc.C,v 1.45 2007/06/06 10:33:40 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -522,6 +522,7 @@ geant RICHDB::mean_height(){
 
 #include "trrec.h"
 #include "richrec.h"
+#include "richradid.h"
 geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 			    geant &length,geant beta){
 

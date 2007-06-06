@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.35 2007/05/15 11:39:24 choumilo Exp $
+#  $Id: Makefile,v 1.36 2007/06/06 10:34:24 mdelgado Exp $
 
 #P.Zuccon june 2005
 
@@ -172,7 +172,8 @@ COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C\
 #RICH
 COMMON_FILES += $(SCC)richdbc.C    $(SCC)richrec.C    $(SCC)richid.C  $(SCC)richgeom.C  \
 		$(SFF)richlikebeta_lip.F      $(SFF)richpatt_lip.F   $(SFF)richrec_lip.F \
-		$(SFF)richpmtlib.F $(SFF)gtckov.F     $(SFF)graylc.F    $(SFF)cerenkov.F
+		$(SFF)richpmtlib.F $(SFF)gtckov.F     $(SFF)graylc.F    $(SFF)cerenkov.F \
+		$(SCC)richradid.C
 
 # High level reconstruction
 COMMON_FILES += $(SCC)vtx.C        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \

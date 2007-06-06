@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.492 2007/05/15 11:38:32 choumilo Exp $
+// $Id: job.C,v 1.493 2007/06/06 10:33:40 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -53,6 +53,7 @@
 #include "status.h"
 #include "richdbc.h"
 #include "richid.h"
+#include "richradid.h"
 #include "mccluster.h"
 #include <sys/stat.h>
 #include "producer.h"
