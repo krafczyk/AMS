@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.110 2007/04/05 09:46:47 ams Exp $
+# $Id: Monitor.pm,v 1.111 2007/06/08 09:44:27 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2560,7 +2560,7 @@ sub DeleteFailedDST{
                 if($hostok){
                     my $ifg=0;
                     my $rm = "rm ";
-                    my $cmd="ssh -x $host $rm $parser[1]";
+                    my $cmd="ssh -2 -x $host $rm $parser[1]";
                     foreach my $ntuple (@{$Monitor::Singleton->{dsts}}){
                         if($ntuple->{Name} eq $nc{Name} and 
                            $ntuple->{Status} ne $nc{Status}){
@@ -2703,7 +2703,7 @@ sub DeleteFailedDST{
 
  my $ok=1;
    for my $i (0 ... $#ncgr){
-    my $move="ssh -x $ncgh[$i] mv /dat0/local/logs/MCProducer.".$ncgr[$i].".log /dat0/local/logs/aMCProducer.".$ncgr[$i].".log";
+    my $move="ssh -2 -x $ncgh[$i] mv /dat0/local/logs/MCProducer.".$ncgr[$i].".log /dat0/local/logs/aMCProducer.".$ncgr[$i].".log";
     if(system($move)){
         $ok=0;
         last;
@@ -2711,14 +2711,14 @@ sub DeleteFailedDST{
    }
  if($ok){
    for my $i (0 ... $#ncgr){
-    my $rm="ssh -x $ncgh[$i] rm  -rf '/dat0/local/logs/MCProducer*.log'";
+    my $rm="ssh -2 -x $ncgh[$i] rm  -rf '/dat0/local/logs/MCProducer*.log'";
     system($rm);
-     $rm="ssh -x $ncgh[$i] rm  -rf '/dat0/local/logs/Killer*.log'";
+     $rm="ssh -2 -x $ncgh[$i] rm  -rf '/dat0/local/logs/Killer*.log'";
     system($rm);
    }
  }
    for my $i (0 ... $#ncgr){
-    my $move="ssh -x $ncgh[$i] mv /dat0/local/logs/aMCProducer.".$ncgr[$i].".log /dat0/local/logs/MCProducer.".$ncgr[$i].".log";
+    my $move="ssh -2 -x $ncgh[$i] mv /dat0/local/logs/aMCProducer.".$ncgr[$i].".log /dat0/local/logs/MCProducer.".$ncgr[$i].".log";
     system($move);
    }
 warn "   ***evrthing finished***\n";
