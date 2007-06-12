@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.460 2007/04/27 15:03:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.461 2007/06/12 15:54:29 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13330,10 +13330,10 @@ sub prepareCastorCopyScript {
       my $filetime = 0;
       $filetime = (stat($filepath)) [9] or $filetime = 0;
       if ($filetime == 0) {
-        $rfcp = "/usr/local/bin/rfcp ".$castorpath." ". $dirpath." \n";
+        $rfcp = "/usr/bin/rfcp ".$castorpath." ". $dirpath." \n";
       } else {
        if ($overwrite) {
-        $rfcp = "/usr/local/bin/rfcp ".$castorpath." ". $dirpath." \n";
+        $rfcp = "/usr/bin/rfcp ".$castorpath." ". $dirpath." \n";
        } else {
          $rfcp = "# File exist. Do nothing; $filepath.\n";
        }
@@ -14417,7 +14417,7 @@ sub UploadToCastor{
     if(not defined $maxer){
         $maxer=2;
     }
-  my $rfcp="/usr/local/bin/rfcp ";
+  my $rfcp="/usr/bin/rfcp ";
 
   my $whoami = getlogin();
   if ($whoami =~ 'casadmva' ) {
@@ -14479,7 +14479,7 @@ sub UploadToCastor{
                for my $i (0...$#junk2-1) {
                 $dir=$dir."/$junk2[$i]";
                }
-               my $sys="/usr/local/bin/rfmkdir -p $dir";
+               my $sys="/usr/bin/rfmkdir -p $dir";
                my $i=system($sys);
 #               if($i){
 #                if($verbose){
@@ -14567,7 +14567,7 @@ sub UploadToCastor{
           my $castor=$castorPrefix."/$name$junk[1]";
           my $ctmp="/tmp/castor.tmp";
           my $ltmp="/tmp/local.tmp";
-          my $sys="/usr/local/bin/nsls -l $castor 1> $ctmp 2>\&1";
+          my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
           system($sys);
@@ -14629,7 +14629,7 @@ sub CheckCRC{
          }                                                                                
   my $castorPrefix = '/castor/cern.ch/ams';
   my $delimiter='MC';                                                                              
-  my $rfcp="/usr/local/bin/rfcp ";
+  my $rfcp="/usr/bin/rfcp ";
   my $whoami = getlogin();
   if (not defined $whoami or $whoami =~ 'ams' or $whoami =~'casadmva') {
   } else {
@@ -14885,7 +14885,7 @@ sub UploadToDisks{
                                                                                 
   my $castorPrefix = '/castor/cern.ch/ams';
                                                                                 
-  my $rfcp="/usr/local/bin/rfcp ";
+  my $rfcp="/usr/bin/rfcp ";
   my $whoami = getlogin();
   if ($whoami =~ 'ams' or $whoami =~'casadmva') {
   } elsif(defined $whoami) {
@@ -15200,7 +15200,7 @@ sub RemoveFromDisks{
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
   
-  my $rfcp="/usr/local/bin/rfcp ";    
+  my $rfcp="/usr/bin/rfcp ";    
 
   my $whoami = getlogin();
   if ($whoami =~ 'ams' ) {
