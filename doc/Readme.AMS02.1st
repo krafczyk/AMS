@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.54 2007/01/29 10:01:37 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.55 2007/06/13 14:44:03 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -37,7 +37,7 @@ b) AMS02 software  Home Page at  http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02.
 c) files in doc subdirectory of AMS directory tree ( see VI. how to access) 
 d) 00index.txt file in each subdirectory
 e) AMS02 Software Status Report in
-    http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02_ss_2002.ps
+    http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02_ss_2003.pdf
 
 VI. Access to AMS software
 
@@ -160,11 +160,11 @@ a. Accounts
      - contact AMS secretariat - Laurence Barrin (laurence.barrin@cern.ch)
      - fill CERN computing center User's registration form (available in  
        CERN User's Office) and fax the form (41 22 767 7910) or send it 
-       via CERN internal mail to Alexei Klimentov
+       via CERN internal mail to Alexandr  Eline
    If you already have an account at CERN and your primary group isn't 
    'VA' (AMS)  or 'XV'(L3) specify explicitly what is you primary 
    experiment/group.
-   To get local/afs accounts on ams computers ask Alexei Klimentov or 
+   To get local/afs accounts on ams computers  
    Alexandre Eline  (e-mail : ams-support-computing@cern.ch).
 
 b. Disk space
@@ -214,6 +214,7 @@ source $Offline/vdev/install/amsvar
 $amsed02  ntuple_file     
 
 $amsedc   root_file
+
 
 
 X   Documentation

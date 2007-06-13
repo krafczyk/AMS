@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.37 2007/05/15 11:38:32 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.38 2007/06/13 14:43:38 choutko Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -400,7 +400,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::sespar(int ibt, int ip){
 #ifdef __AMSDEBUG__
     assert(ibt>=0 && ibt< TOF2GC::SCBTPN);
-    assert(ip>0=0 && ip< TOF2GC::SESPMX);
+//    assert(ip>0=0 && ip< TOF2GC::SESPMX);
 #endif
     return _sespar[ibt][ip];
   }

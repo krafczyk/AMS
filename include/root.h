@@ -1838,7 +1838,8 @@ ClassDef(MCEventgR,1)       //MCEventgR
 - hf(1,2,p)
 - hcopy
 - hdivide
-- hsub 
+- hsub
+- hscale 
 
     \sa ad.C stlv
     \author v.choutko@cern.ch
@@ -1980,6 +1981,8 @@ static  void hprint(int id, char opt[]="");
 static  void hlist(char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
+/// scale histogram id content by fac 
+static  void hscale(int id, double fac);
 /// fit 1d histogram by   func = "g" "e" "pN"
 static  void hfit1(int id,char func[]);
 ///  change dir to dir

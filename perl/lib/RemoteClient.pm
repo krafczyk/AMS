@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.461 2007/06/12 15:54:29 choutko Exp $
+# $Id: RemoteClient.pm,v 1.462 2007/06/13 14:44:18 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14570,7 +14570,20 @@ sub UploadToCastor{
           my $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
-          system($sys);
+          my $try=0;
+again:
+          my $res=system($sys);
+          if($res){
+              print "problem with $sys \n";
+              system("sleep 1");
+              if($try==0){
+                  $try=1;
+                  goto again;
+              }
+              else{
+               $try=0;
+              }
+          }
                  open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
                  my $line_c = <FILE>;
                  close FILE;

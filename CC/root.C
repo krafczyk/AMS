@@ -89,6 +89,7 @@ void AMSEventR::hcopy(char dir[],int id1,int id2){
     if(h2p){
     for (int i=0;i<n+2;i++){
      h2p->SetBinContent(i,h1p->GetBinContent(i));
+     h2p->SetBinError(i,h1p->GetBinError(i));
       
     }
     }
@@ -118,6 +119,7 @@ void AMSEventR::hcopy(int id1,int id2){
     if(h2p){
     for (int i=0;i<n+2;i++){
      h2p->SetBinContent(i,h1p->GetBinContent(i));
+     h2p->SetBinError(i,h1p->GetBinError(i));
       
     }
     }
@@ -136,13 +138,20 @@ void AMSEventR::hcopy(int id1,int id2){
 void AMSEventR::hdivide(int id1,int id2,int id3){
   TH1F *h2p = h1(id2);
   if(h2p){
-   h2p->Sumw2();
+//   h2p->Sumw2();
    hcopy(id1,id3);
    TH1F *h1p = h1(id3);
    if(h1p){
-    h1p->Sumw2();
+//    h1p->Sumw2();
     h1p->Divide(h2p);
    }   
+  }
+}
+void AMSEventR::hscale(int id1,double fac){
+  TH1F *h2p = h1(id1);
+  if(h2p){
+   h2p->Sumw2();
+   h2p->Scale(fac);
   }
 }
 void AMSEventR::hsub(int id1,int id2,int id3){
@@ -242,7 +251,7 @@ AMSID id(idd,Service::Dir);
 
 void AMSEventR::hfit1(int id, char func[]){
    AMSID idd(id,Service::Dir);
-   char fit[100];
+   char fit[255];
    Service::hb1i i1=Service::hb1.find(idd);
  if(i1 != Service::hb1.end()){
   if(func[0] == 'g')strcpy(fit,"gaus");
@@ -251,7 +260,7 @@ void AMSEventR::hfit1(int id, char func[]){
    strcpy(fit,"pol");
    strcat(fit,func+1);
   }
-  else return;
+  else strcpy(fit,func);
   i1->second->Fit(fit);
  }
 }
