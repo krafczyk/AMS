@@ -14,6 +14,9 @@ SLC4system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
 endif
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
 RAS3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
 RAS3system := $(shell cat /etc/redhat-release | grep "Red Hat Enterprise Linux AS")
