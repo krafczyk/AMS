@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.101 2007/01/22 14:19:28 choutko Exp $
+//  $Id: producer.C,v 1.102 2007/06/14 14:24:41 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -140,8 +140,9 @@ again:
      time_t cpug=12*3600;
      if(!IsLocal() && cput<cpug)cput=cpug; 
      cout <<"   TimeOut sending "<<cput<<endl;
+     cout <<"  Mips:  "<<_pid.Mips<<endl;
   try{
-     if(!((*li)->sendId(_pid,cput))){
+     if(!((*li)->sendId(_pid,_pid.Mips,cput))){
        if(_pid.uid)sleep(10);
        else{
         // dieHard
@@ -149,15 +150,18 @@ again:
         pc+=(const char*)_pid.Interface;
         FMessage((const char*)pc,DPS::Client::SInAbort);
        }
-      if(!((*li)->sendId(_pid,cput))){
+      if(!((*li)->sendId(_pid,_pid.Mips,cput))){
        // dieHard
        AString pc="Server Requested Termination after sendID Because Of ";
        pc+=(const char*)_pid.Interface;
        FMessage((const char*)pc,DPS::Client::SInAbort);
       }
      }
+         cout <<"  Mips:  "<<_pid.Mips<<endl;
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));
      LMessage(AMSClient::print(_pid,"JobStarted"));
+            cout <<"  Mips:  "<<_pid.Mips<<endl;
+
       return;       
      }
    catch (CORBA::MARSHAL a){

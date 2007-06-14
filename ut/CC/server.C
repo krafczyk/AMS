@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.131 2007/03/22 11:29:02 choutko Exp $
+//  $Id: server.C,v 1.132 2007/06/14 14:24:42 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -401,7 +401,7 @@ else{
      DPS::Server_var _svar=DPS::Server::_narrow(obj);
      if(!CORBA::is_nil(_svar)){
          
-        if(!(_svar->sendId(_pid,90))){
+        if(!(_svar->sendId(_pid,_pid.Mips,90))){
          FMessage("Server Requested Termination after sendID ",DPS::Client::SInAbort);
         }
         else{
@@ -1142,8 +1142,9 @@ if(_ahl.size())return;
 
 
 
-  CORBA::Boolean Server_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
+  CORBA::Boolean Server_impl::sendId(DPS::Client::CID& cid, float Mips,uinteger timeout) throw (CORBA::SystemException){
 //cout <<" entering Server_impl::sendId"<<endl;
+      cid.Mips=Mips;
 if(cid.Type==DPS::Client::Server){
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
@@ -1171,7 +1172,7 @@ if(cid.Type==DPS::Client::Server){
 else if(cid.Type==DPS::Client::Monitor){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
-      return (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
+      return (dynamic_cast<Client_impl*>(pcur))->sendId(cid,cid.Mips,timeout);
       break;
     }
 }
@@ -1179,7 +1180,7 @@ else if(cid.Type==DPS::Client::Monitor){
 else if(cid.Type==DPS::Client::DBServer){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
-      return (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
+      return (dynamic_cast<Client_impl*>(pcur))->sendId(cid,cid.Mips,timeout);
       break;
     }
 }
@@ -2537,13 +2538,14 @@ _pser->Lock(cid,DPS::Server::ClearCheckClient,getType(),_KillTimeOut);
 
 
 
-CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException){
+CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, float Mips, uinteger timeout) throw (CORBA::SystemException){
 //cout <<" entering Producer_impl::sendId"<<endl;
+     cid.Mips=Mips;
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid && (*j)->Status ==DPS::Client::Submitted){
        ((*j)->id).pid=cid.pid;
        ((*j)->id).ppid=cid.ppid;
-        ((*j)->id).Mips=cid.Mips;
+        ((*j)->id).Mips=Mips;
        cid.Interface=CORBA::string_dup(((*j)->id).Interface);
        cid.StatusType=((*j)->id).StatusType;
        cid.Type=((*j)->id).Type;
@@ -2571,7 +2573,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
      cid.Interface=(const char*)"default";
      ac.id.Interface=CORBA::string_dup(cid.Interface);
      (ac.id).uid=cid.uid;
-     ac.id.Mips=cid.Mips;
+     ac.id.Mips=Mips;
      ac.id.pid=cid.pid;
      ac.id.ppid=cid.ppid;
      cid.Type=DPS::Client::Producer;
@@ -4108,7 +4110,7 @@ int Client_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, 
 return _pser->getARS(cid, arf,type,id,selffirst);
 
 }
-  CORBA::Boolean Client_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
+  CORBA::Boolean Client_impl::sendId(DPS::Client::CID& cid, float Mips,uinteger timeout) throw (CORBA::SystemException){
     if(cid.Type==DPS::Client::Monitor){
      DPS::Client::ActiveClient_var vac=new DPS::Client::ActiveClient();
       if(_acl.size()){

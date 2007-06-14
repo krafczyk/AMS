@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.29 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: dbserver.C,v 1.30 2007/06/14 14:24:41 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -1765,7 +1765,7 @@ void  DBServer_impl::_init(){
  }
  void  DBServer_impl::KillClients(const DPS::Client::CID &cid){
  }
-  CORBA::Boolean  DBServer_impl::sendId(DPS::Client::CID & cid, uinteger timeout){
+  CORBA::Boolean  DBServer_impl::sendId(DPS::Client::CID & cid, float mips,uinteger timeout){
 }
 
   void  DBServer_impl::getId(DPS::Client::CID_out cid){
@@ -2113,7 +2113,7 @@ void  DBServer_impl::CheckClients(const DPS::Client::CID &cid){
 }
 void  DBServer_impl::KillClients(const DPS::Client::CID &cid){
 }
-CORBA::Boolean  DBServer_impl::sendId(DPS::Client::CID & cid, uinteger timeout)throw (CORBA::SystemException){
+CORBA::Boolean  DBServer_impl::sendId(DPS::Client::CID & cid, float mips,uinteger timeout)throw (CORBA::SystemException){
 }
 
 void  DBServer_impl::getId(DPS::Client::CID_out cid)throw (CORBA::SystemException){
