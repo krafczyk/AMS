@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.113 2007/06/14 09:29:22 ams Exp $
+# $Id: Monitor.pm,v 1.114 2007/06/14 13:53:55 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1589,7 +1589,7 @@ sub SendId{
             try{
                 my %cid=%{$ref->{cid}};
                 my $hash=\%cid;
-                my ($ok,$ok2)=$arsref->sendId(\$hash,600);
+                my ($ok,$ok2)=$arsref->sendId(\$hash,2000,600);
                 $ref->{cid}=$hash;
                 $ref->{ac}->{id}=$hash;
                 my %ac=%{$ref->{ac}};

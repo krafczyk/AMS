@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.17 2005/09/22 09:09:25 choutko Exp $
+# $Id: DBServer.pm,v 1.18 2007/06/14 13:53:55 ams Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/var/www/cgi-bin/mon/include/server.idl'];
@@ -445,10 +445,10 @@ sub SendId{
             try{
                 my %cid=%{$ref->{cid}};
                 my $hash=\%cid;
-                my ($ok,$ok2)=$arsref->sendId(\$hash,30);
+                my ($ok,$ok2)=$arsref->sendId(\$hash,2000,30);
                 if (not $ok){
                     sleep 10;
-                    ($ok,$ok2)=$arsref->sendId(\$hash,30);
+                    ($ok,$ok2)=$arsref->sendId(\$hash,2000,30);
                 if (not $ok){
                   $ref->Exiting(" Server Requested To Exit ","SInExit");
                    return 0;
