@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.13 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: dbserver.h,v 1.14 2007/06/14 14:24:27 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include "server.h"
@@ -16,7 +16,7 @@ public:
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
  virtual void KillClients(const DPS::Client::CID &cid);
-  CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout)throw (CORBA::SystemException);
+  CORBA::Boolean sendId(DPS::Client::CID & cid, float mips,uinteger timeout)throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid)throw (CORBA::SystemException);
   //  int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc) throw (CORBA::SystemException,DPS::DBServer::DBProblem)throw (CORBA::SystemException);
   int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);

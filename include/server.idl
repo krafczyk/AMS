@@ -34,7 +34,7 @@ module DPS{
 
 
 
-    boolean sendId(inout CID id, in time TimeOut);      
+    boolean sendId(inout CID id, in float mips,in time TimeOut);      
     void getId(out CID id);
 
    struct NominalClient{

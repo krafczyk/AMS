@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.52 2005/10/31 15:10:02 choutko Exp $
+//  $Id: server.h,v 1.53 2007/06/14 14:24:28 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -209,7 +209,7 @@ public:
   void KillClients(const DPS::Client::CID &cid);
   bool PingClient(const DPS::Client::ActiveClient & ac);
   bool Master(bool advanced=true);
-  CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
+  CORBA::Boolean sendId(DPS::Client::CID & cid, float mips,uinteger timeout) throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0, int selffirst=0)throw (CORBA::SystemException);
  AMSServerI * getServer(){return up();}
@@ -245,7 +245,7 @@ public:
  virtual void KillClients(const DPS::Client::CID &cid);
 void _PurgeQueue();
   void _init();
-  CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
+  CORBA::Boolean sendId(DPS::Client::CID & cid, float mips,uinteger timeout) throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
   int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
   void sendNCS(const DPS::Client::CID &cid, const DPS::Client::NCS & nc)throw (CORBA::SystemException);
@@ -365,7 +365,7 @@ public:
  virtual void CheckClients(const DPS::Client::CID &cid); 
  virtual void KillClients(const DPS::Client::CID &cid);
   void RunFailed(const DPS::Client::ActiveClient & ac);
-  CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
+  CORBA::Boolean sendId(DPS::Client::CID & cid, float mips,uinteger timeout) throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0, int selffirst=0)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
   int getTDV(const DPS::Client::CID & cid,  DPS::Producer::TDVName & tdvname, DPS::Producer::TDVbody_out body)throw (CORBA::SystemException);
