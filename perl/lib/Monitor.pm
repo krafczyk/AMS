@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.112 2007/06/12 15:54:29 choutko Exp $
+# $Id: Monitor.pm,v 1.113 2007/06/14 09:29:22 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -527,9 +527,11 @@ sub getior{
 #
     my $sqls=new DBSQLServer();
     if($sqls->Connect()){
-     my $sql="select IORS,IORP from Servers where status='Active' order by lastupdate desc";
+     my $sql="select IORS,IORP,dbfilename from Servers where status='Active' order by lastupdate desc";
      my $ret=$sqls->Query($sql);
      if(defined $ret->[0][0]){
+         my $ref=shift;
+         $ref->{dbfile}=$ret->[0][2];
          return $ret->[0][0];
      } 
     }    
@@ -594,7 +596,7 @@ sub getdbok{
     push @text, $Monitor::Singleton->{db}->{fs};
     push @text, int $Monitor::Singleton->{db}->{dbtotal};
     push @text, int $Monitor::Singleton->{db}->{dbfree};
-    push @text, int $Monitor::Singleton->{db}->{dbfree}/($Monitor::Singleton->{db}->{dbtotal}+1)*100;
+    push @text, int $Monitor::Singleton->{db}->{dbfree}/($Monitor::Singleton->{db}->{dbtotal}+1.1)*100;
     if($text[1]<0 or $text[2]<0 or $text[2]<200){
       push @text ,1;
   }elsif($text[2]<100){

@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.47 2007/04/04 12:00:28 ams Exp $
+#  $Id: monitorUI.pm,v 1.48 2007/06/14 09:29:22 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -783,6 +783,7 @@ sub create_clist {
     }
 
 sub ReCreate{
+             $Monitor::Singleton->RemoveRuns();
              DBServer::InitDBFileNew(undef,$Monitor::Singleton);
 }
 sub Update{
