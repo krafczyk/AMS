@@ -2,117 +2,171 @@
 
 /////////////////////////////////////////////////
 
-integer RichRadiatorTile::_number_of_rad_tiles=0;
-integer *RichRadiatorTile::_kind_of_tile=0;
-geant RichRadiatorTile::_eff_indexes[radiator_kinds]={0,0};
-geant RichRadiatorTile::_rad_heights[radiator_kinds]={0,0};
-geant RichRadiatorTile::_clarities[radiator_kinds]={0,0};
-geant *RichRadiatorTile::_abs_length[radiator_kinds]={0,0};
-geant *RichRadiatorTile::_index_tables[radiator_kinds]={0,0};
-geant RichRadiatorTile::_mean_height[radiator_kinds][2]={{0,0},{0,0}};
+integer RichRadiatorTileManager::_number_of_rad_tiles=0;
+RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
 
 
-void RichRadiatorTile::Init(){
+void RichRadiatorTileManager::Init(){  // Default initialization
+  if(_number_of_rad_tiles!=0) return; // Not necessary
 
-  // A really crude approximation to the circunference
-  _number_of_rad_tiles=2*int((RICHDB::rad_radius/RICHDB::rad_length)+.5)+1;
+  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
+  Init_Default();
+}
+
+void RichRadiatorTileManager::Init_Default(){  // Default initialization
+  if(RICRADSETUPFFKEY.setup!=1){
+    cout<<"RichRadiatorTileManager::Init_Default RICRADSETUPFFKEY.setup!=0 is not longer supported -- forcing default RICRADSETUPFFKEY.setup=1"<<endl;
+    RICRADSETUPFFKEY.setup=1;
+  }
+
+  const int agl_boxes_number=11;
+  int agl_boxes[agl_boxes_number][agl_boxes_number]={
+    0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0
+  };
+
+  const int naf_boxes_number=3;
+  int naf_boxes[naf_boxes_number][naf_boxes_number]={
+    1,1,1,
+    1,1,1,
+    1,1,1
+  };
 
 
-  // Define te array
-  _kind_of_tile=new integer[_number_of_rad_tiles*_number_of_rad_tiles];
+  // Count the number of tiles
+  _number_of_rad_tiles=0;
+  for(int i=0;i<agl_boxes_number;i++)
+    for(int j=0;j<agl_boxes_number;j++){
+      if(agl_boxes[i][j]==1) _number_of_rad_tiles++;
+    }
 
-
-  // Fill the array
-  geant max_radius=_number_of_rad_tiles*RICHDB::rad_length/2.;
-
-  // The algorithm is quite stupid: check if any of the tile borders is inside the radius.
-  // If so fill it, otherwise let it empty. 
-
-  for(int i=0;i<_number_of_rad_tiles;i++)
-    for(int j=0;j<_number_of_rad_tiles;j++){
-
-      geant x,y;
-
-      x=i*RICHDB::rad_length-max_radius;
-      y=j*RICHDB::rad_length-max_radius;
-
-#define _rad_(x,y) (sqrt((x)*(x)+(y)*(y)))
-
-      if(_rad_(x,y)<RICHDB::rad_radius || 
-	 _rad_(x+RICHDB::rad_length,y)<RICHDB::rad_radius ||
-	 _rad_(x,y+RICHDB::rad_length)<RICHDB::rad_radius ||
-	 _rad_(x+RICHDB::rad_length,y+RICHDB::rad_length)<RICHDB::rad_radius ){
-
-	_kind_of_tile[i*_number_of_rad_tiles+j]=agl_kind;
-
-
-      }else _kind_of_tile[i*_number_of_rad_tiles+j]=empty_kind;
-      
-#undef _rad_
+  for(int i=0;i<naf_boxes_number;i++)
+    for(int j=0;j<naf_boxes_number;j++){
+      if(naf_boxes[i][j]==1) _number_of_rad_tiles++;
     }
  
-  // In we have chosen Naf put a 3x3 array of Naf right in the center
-  if(RICRADSETUPFFKEY.setup==1){
+  cout<<"   RichRadiatorTileManager::Init_Default-number of radiator tiles: "<<_number_of_rad_tiles<<endl;
 
-    for(int i=(_number_of_rad_tiles-1)/2-1;i<=(_number_of_rad_tiles-1)/2+1;i++)
-      for(int j=(_number_of_rad_tiles-1)/2-1;j<=(_number_of_rad_tiles-1)/2+1;j++)
-	_kind_of_tile[i*_number_of_rad_tiles+j]=naf_kind;
+  _tiles=new RichRadiatorTile*[_number_of_rad_tiles];
 
-  }
+  RICHDB::mat_init();  // Ensure that the agl tables are updated.
 
+  // Fill the information for agl
+  int current=0;
+  for(int i=0;i<agl_boxes_number;i++)
+    for(int j=0;j<agl_boxes_number;j++){
+      if(agl_boxes[i][j]!=1) continue;
+      double x=(i+0.5*(1-agl_boxes_number))*RICHDB::rad_length;
+      double y=(j+0.5*(1-agl_boxes_number))*RICHDB::rad_length;
+      _tiles[current]=new RichRadiatorTile;
+      _tiles[current]->position[0]=x;
+      _tiles[current]->position[1]=y;
+      _tiles[current]->bounding_box[0][0]=-RICHDB::rad_length/2+RICaethk/2.;
+      _tiles[current]->bounding_box[0][1]=RICHDB::rad_length/2-RICaethk/2.;
+      _tiles[current]->bounding_box[1][0]=-RICHDB::rad_length/2+RICaethk/2.;
+      _tiles[current]->bounding_box[1][1]=RICHDB::rad_length/2-RICaethk/2.;
+      _tiles[current]->bounding_box[2][0]=-RICHDB::rad_agl_height/2;
+      _tiles[current]->bounding_box[2][1]=RICHDB::rad_agl_height/2;
+      _tiles[current]->kind=agl_kind;
+      _tiles[current]->id=current;
+      _tiles[current]->clarity=RICHDB::eff_rad_clarity;
+      _tiles[current]->effective_scattering_probability=0;
+      _tiles[current]->effective_scattering_angle=0;
+      _tiles[current]->abs_length=RICHDB::abs_length;
+      _tiles[current]->index_table=RICHDB::index;
+      current++;
+    }
 
+  // Now we compute the effective height and effective index calling the dedicated routine
+  geant eff_index;
+  geant eff_height;
+  _compute_mean_height(_tiles[current-1]->index_table,
+		       _tiles[current-1]->clarity,
+		       _tiles[current-1]->abs_length,
+		       _tiles[current-1]->bounding_box[2][1]-_tiles[current-1]->bounding_box[2][0],
+		       eff_index,
+		       eff_height);
 
-#ifdef __AMSDEBUG__
-  cout<<"Dumping radiador geometry"<<endl
-      <<"-------------------------"<<endl;
-  for(int j=0;j<_number_of_rad_tiles;j++){
-    for(int i=0;i<_number_of_rad_tiles;i++)
-      cout<<_kind_of_tile[i*_number_of_rad_tiles+j];
-    cout<<endl;
+  for(int i=0;i<current;i++){
+    if(_tiles[i]->kind!=agl_kind) continue;
+    _tiles[i]->mean_refractive_index=eff_index;
+    _tiles[i]->mean_height=eff_height-0.1; // Corretion by hand
   }
   
-#endif
+  for(int i=0;i<naf_boxes_number;i++)
+    for(int j=0;j<naf_boxes_number;j++){
+      if(naf_boxes[i][j]!=1) continue;
+      double x=(i+0.5*(1-naf_boxes_number))*RICHDB::rad_length;
+      double y=(j+0.5*(1-naf_boxes_number))*RICHDB::rad_length;
+      _tiles[current]=new RichRadiatorTile;
+      _tiles[current]->position[0]=x;
+      _tiles[current]->position[1]=y;
+      _tiles[current]->bounding_box[0][0]=-RICHDB::rad_length/2+RICaethk/2.;
+      _tiles[current]->bounding_box[0][1]=RICHDB::rad_length/2-RICaethk/2.;
+      _tiles[current]->bounding_box[1][0]=-RICHDB::rad_length/2+RICaethk/2.;
+      _tiles[current]->bounding_box[1][1]=RICHDB::rad_length/2-RICaethk/2.;
+      _tiles[current]->bounding_box[2][0]=-RICHDB::naf_height/2;
+      _tiles[current]->bounding_box[2][1]=RICHDB::naf_height/2;
+      _tiles[current]->kind=naf_kind;
+      _tiles[current]->id=current;
+      _tiles[current]->clarity=0;
+      _tiles[current]->effective_scattering_probability=0;
+      _tiles[current]->effective_scattering_angle=0;
+      _tiles[current]->abs_length=RICHDB::naf_abs_length;
+      _tiles[current]->index_table=RICHDB::naf_index_table;
+      current++;
+    }
+
+  _compute_mean_height(_tiles[current-1]->index_table,
+		       _tiles[current-1]->clarity,
+		       _tiles[current-1]->abs_length,
+		       _tiles[current-1]->bounding_box[2][1]-_tiles[current-1]->bounding_box[2][0],
+		       eff_index,
+		       eff_height);
   
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    if(_tiles[i]->kind!=naf_kind) continue;
+    _tiles[i]->mean_refractive_index=eff_index;
+    _tiles[i]->mean_height=eff_height-0.2; // Corretion by hand
+  }
+}
 
-  // Here we should fill the effective index and the heights using the routine in RICHDB for both radiators 
-  // Everything is filled by hand
+#define max(x,y) ((x)<(y)?(y):(x))
+#define min(x,y) ((x)<(y)?(x):(y))
 
+integer RichRadiatorTileManager::get_tile_number(geant x,geant y){
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    double dx=x-_tiles[i]->position[0];
+    double dy=y-_tiles[i]->position[1];
 
-  // Ensure that the index tables for agl are OK
-  RICHDB::mat_init();
-
-  //  _rad_heights[0]=RICHDB::rad_height;
-  _rad_heights[0]=RICHDB::rad_agl_height; //Updated to new index
-  _rad_heights[1]=RICHDB::naf_height;
-  _abs_length[0]=RICHDB::abs_length;
-  _abs_length[1]=RICHDB::naf_abs_length;
-  //  _clarities[0]=RICHDB::rad_clarity;
-  _clarities[0]=RICHDB::eff_rad_clarity;  // We use the effective one due to the scattering
-  _clarities[1]=0.;
-  _index_tables[0]=RICHDB::index;
-  _index_tables[1]=RICHDB::naf_index_table;
-
-  // Now we compute the effective height calling the 
-  // magic routine
-
-  for(int i=0;i<radiator_kinds;i++)
-    _compute_mean_height(_index_tables[i],_clarities[i],_abs_length[i],_rad_heights[i],_eff_indexes[i],
-  			 _mean_height[i][0]);
-
-  _mean_height[0][1]=_mean_height[0][0]-.1;
-  _mean_height[1][1]=_mean_height[1][0]-.2;
-
-
-
+    if(dx<max(_tiles[i]->bounding_box[0][0],_tiles[i]->bounding_box[0][1]) &&
+       dx>min(_tiles[i]->bounding_box[0][0],_tiles[i]->bounding_box[0][1]) &&
+       dy<max(_tiles[i]->bounding_box[1][0],_tiles[i]->bounding_box[1][1]) &&
+       dy>min(_tiles[i]->bounding_box[1][0],_tiles[i]->bounding_box[1][1])){
+      return i;
+    }
+  }
+  return -1;
 }
 
 
 
-
-RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
+RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
+  if(_number_of_rad_tiles==0){
+    cerr<<"RichRadiatorTileManager::RichRadiatorTileManager -- tiles not initialized -- doing it"<<endl;
+    Init();
+  }
 
   // First decide wich kind of radiator is current
-
   AMSPoint pnt(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height),
     point;
   AMSDir dir(0.,0.,-1.);
@@ -122,11 +176,9 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
   track->interpolate(pnt,dir,point,
 		     theta,phi,length);
 
-  _kind=get_tile_kind(get_tile_number(point[0],point[1]));
-
-  if(_kind==empty_kind){
-    _index=0;
-    _height=0;
+  _current_tile=get_tile_number(point[0],point[1]);
+  
+  if(_current_tile<0){
     _p_direct=AMSPoint(0.,0.,0.);
     _p_reflected=AMSPoint(0.,0.,0.);
     _d_direct=AMSDir(0.,0.);
@@ -134,32 +186,26 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
     return;
   }
 
-
-  _index=_eff_indexes[_kind-1];
-  _height=_rad_heights[_kind-1];
-
-  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_height);
+  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+getheight());
   track->interpolate(pnt,dir,point,
 		     theta,phi,
 		     length);
   
-  if(_kind!=get_tile_kind(get_tile_number(point[0],point[1]))){
-    _kind=empty_kind;
-    _index=0;
-    _height=0;
+  if(getkind()!=get_tile_kind(get_tile_number(point[0],point[1]))){
+    _current_tile=-1;
     _p_direct=AMSPoint(0.,0.,0.);
     _p_reflected=AMSPoint(0.,0.,0.);
     _d_direct=AMSDir(0.,0.);
     _d_reflected=AMSDir(0.,0.);
     return;
   }
-
+  
   _p_entrance=point;
   _d_entrance=AMSDir(theta,phi);
 
 
   // Direct photons
-  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_mean_height[_kind-1][0]);
+  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_tiles[_current_tile]->mean_height);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
   _p_direct=point;
@@ -167,28 +213,25 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
   
 
   // Direct photons
-  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_mean_height[_kind-1][1]);
+  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_tiles[_current_tile]->mean_height);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
   _p_reflected=point;
   _d_reflected=AMSDir(theta,phi);
-
-
 } 
 
 
 
 
-void RichRadiatorTile::_compute_mean_height(geant *index,
-				    geant clarity,
-				    geant *abs_len,
-				    geant rheight,
-				    geant &eff_index,
-				    geant &height){
+void RichRadiatorTileManager::_compute_mean_height(geant *index,
+						   geant clarity,
+						   geant *abs_len,
+						   geant rheight,
+						   geant &eff_index,
+						   geant &height){
   // Computes the mean emission point inside the radiator
   // of the detected photons.
   // The credits go to .... Elisa Lanciotti
-
   const integer steps=100;    // Number of steps for the approximation
   geant lambda,qeff,n,dl,l_scat=0,l_abs_rad,l_abs_lg;
   geant sum=0,densum=0;
@@ -216,7 +259,7 @@ void RichRadiatorTile::_compute_mean_height(geant *index,
     }
   }
   if(!densum){
-    cout<<"RichRadiatorTile::_mean_height : Error"<<endl;
+    cout<<"RichRadiatorTileManager::_mean_height : Error"<<endl;
   }else{
     height=rheight-sum/densum;
 

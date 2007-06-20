@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.45 2007/06/06 10:33:40 mdelgado Exp $
+//  $Id: richdbc.C,v 1.46 2007/06/20 10:11:29 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -537,7 +537,7 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
   // Obtain the track parameters
 
-  RichRadiatorTile crossed_tile(ptrack);
+  RichRadiatorTileManager crossed_tile(ptrack);
   AMSDir u;
   AMSPoint r;  
 
@@ -601,9 +601,9 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
     // Check if it is whithin a radiator tile
 
-    integer origin_tile=RichRadiatorTile::get_tile_number(r0[0],r0[1]);
-    if(RichRadiatorTile::get_tile_kind(origin_tile)==empty_kind) continue;
-    if(fabs(RichRadiatorTile::get_tile_x(origin_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+    integer origin_tile=RichRadiatorTileManager::get_tile_number(r0[0],r0[1]);
+    if(RichRadiatorTileManager::get_tile_kind(origin_tile)==empty_kind) continue;
+    if(fabs(RichRadiatorTileManager::get_tile_x(origin_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
 
     
     geant l=(RICHDB::rad_height-r0[2])/u0[2];  
@@ -614,9 +614,9 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
     
     // Check if there is tile crossing 
-    integer final_tile=RichRadiatorTile::get_tile_number(r1[0],r1[1]);
-    if(RichRadiatorTile::get_tile_kind(final_tile)==empty_kind) continue;
-    if(fabs(RichRadiatorTile::get_tile_x(final_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+    integer final_tile=RichRadiatorTileManager::get_tile_number(r1[0],r1[1]);
+    if(RichRadiatorTileManager::get_tile_kind(final_tile)==empty_kind) continue;
+    if(fabs(RichRadiatorTileManager::get_tile_x(final_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
 
     if(origin_tile!=final_tile) continue;
     

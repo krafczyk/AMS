@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.493 2007/06/06 10:33:40 mdelgado Exp $
+// $Id: job.C,v 1.494 2007/06/20 10:11:29 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1542,7 +1542,7 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
        AMSRICHIdGeom::Init();
-       RichRadiatorTile::Init();	
+       RichRadiatorTileManager::Init();	
        AMSRICHIdSoft::Init();
        AMSTRDIdSoft::inittable();
        AMSECIds::inittable();

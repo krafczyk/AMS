@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.73 2007/06/06 10:33:40 mdelgado Exp $
+//  $Id: richrec.C,v 1.74 2007/06/20 10:11:30 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -496,7 +496,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // Here we should check if the track goes through the radiator
   //============================================================
   
-  RichRadiatorTile crossed_tile(track);
+  RichRadiatorTileManager crossed_tile(track);
 
 
   if(crossed_tile.getkind()==empty_kind) return 0;
@@ -939,7 +939,6 @@ trig=(trig+1)%freq;
 		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag);
 	
       if(geftr){
-
 	float cnt=generated(lentr,lfoil,lguide,
 			    &ggen,&rgen,&bgen)*dL/NSTP;
 
@@ -1034,7 +1033,7 @@ trig=(trig+1)%freq;
       	dmax=fabs(dfphih[i]-dfphi[i]);
     }
   } else dmax=1;
-  
+
 
   // Probability for the ring
   if(nu){
@@ -1134,7 +1133,6 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     u0[0]=sc*cp;
     u0[1]=sc*sp;
     u0[2]=cc;}
-
 
   if(tile(r0))*geff=1;
 
@@ -1293,14 +1291,12 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 
 
 int AMSRichRing::tile(AMSPoint r){ // Check if a track hits the radator support struycture
-
-  integer tile=RichRadiatorTile::get_tile_number(r[0],r[1]);
-  if(RichRadiatorTile::get_tile_kind(tile)==empty_kind) return 0;
-  if(fabs(RichRadiatorTile::get_tile_x(tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.
-     ||fabs(RichRadiatorTile::get_tile_y(tile)-r[1])>RICHDB::rad_length/2.-RICaethk/2.) return 0;
+  integer tile=RichRadiatorTileManager::get_tile_number(r[0],r[1]);
+  if(RichRadiatorTileManager::get_tile_kind(tile)==empty_kind) return 0;
+  // Next should be guaranteed by RichRadiatorTileManager
+  //  if(fabs(RichRadiatorTileManager::get_tile_x(tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.
+  //     ||fabs(RichRadiatorTileManager::get_tile_y(tile)-r[1])>RICHDB::rad_length/2.-RICaethk/2.) return 0;
   return tile;
-
-
 }
 
 
