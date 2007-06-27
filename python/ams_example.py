@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.2
+#!/usr/bin/env python2.4
 
 import sys, os
 sys.path.insert(0,os.environ['AMSDir'] + '/python/linux')
