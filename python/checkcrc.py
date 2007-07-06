@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: checkcrc.py,v 1.1 2007/06/27 15:13:58 choutko Exp $
+#  $Id: checkcrc.py,v 1.2 2007/07/06 13:23:49 choutko Exp $
 
 import sys, os
 sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -47,5 +47,5 @@ for x in sys.argv:
         run2p=x[2:len(x)]
 
 html= RemoteClient.RemoteClient()
-html.ConnectDB()
+html.ConnectDB(1)
 html.CheckCRC(v,i,upd,run2p,force,dir,None)
