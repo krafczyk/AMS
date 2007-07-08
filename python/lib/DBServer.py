@@ -27,38 +27,19 @@ class DBServer:
 	(length,self.dsts)=self.iorp.getDSTS(self.cid)
         maxr=1000
         (length,self.rtb,maxrun1)=self.iorp.getRunEvInfoS(self.cid,maxr)
-    def convert(self,status):
-        if status==self.iorp.Foreign:
-            return "Foreign"
-        elif status==self.iorp.Canceled:
-            return "Canceled"
-        elif status==self.iorp.Allocated:
-            return "Allocated"
-        elif status==self.iorp.Unknown:
-            return "Unknown"
-        elif status==self.iorp.Finished:
-            return "Finished"
-        elif status==self.iorp.Processing:
-            return "Processing"
-        elif status==self.iorp.Failed:
-            return "Failed"
-        elif status==self.iorp.ToBeRerun:
-            return "ToBeRerun"
-        elif status==self.iorp.Success:
-            return "Success"
-        elif status==self.iorp.InProgress:
-            return "InProgress"
-        elif status==self.iorp.Failure:
-            return "Failure"
-        elif status==self.iorp.Validated:
-            return "Validated"
-        elif status==self.iorp.Ntuple:
+
+    def ct(self,status):
+        if status==self.iorp.Ntuple:
             return "Ntuple"
         elif status==self.iorp.EventTag:
             return "EventTag"
         elif status==self.iorp.RootFile:
             return "RootFile"
-        elif status==self.tm.OneRunOnly:
+        else:
+            return None
+        
+    def cc(self,status):
+        if status==self.tm.OneRunOnly:
             return "OneRunOnly"
         elif status==self.tm.Permanent:
             return "Permanent"
@@ -95,6 +76,42 @@ class DBServer:
         elif status==self.tm.Any:
             return "Any"
         
+        else:
+            return None
+        
+
+
+    def cr(self,status):
+        if status==self.iorp.Foreign:
+            return "Foreign"
+        elif status==self.iorp.Canceled:
+            return "Canceled"
+        elif status==self.iorp.Allocated:
+            return "Allocated"
+        elif status==self.iorp.Unknown:
+            return "Unknown"
+        elif status==self.iorp.Finished:
+            return "Finished"
+        elif status==self.iorp.Processing:
+            return "Processing"
+        elif status==self.iorp.Failed:
+            return "Failed"
+        elif status==self.iorp.ToBeRerun:
+            return "ToBeRerun"
+        else:
+            return None
+        
+
+
+    def cn(self,status):
+        if status==self.iorp.Success:
+            return "Success"
+        elif status==self.iorp.InProgress:
+            return "InProgress"
+        elif status==self.iorp.Failure:
+            return "Failure"
+        elif status==self.iorp.Validated:
+            return "Validated"
         else:
             return None
         

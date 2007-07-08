@@ -17,6 +17,7 @@ class RemoteClient:
     def ConnectDB(self,one=0):
         self.sqlserver=DBSQLServer(sys.argv,one)
         self.sqlconnected=self.sqlserver.Connect()
+        self.setenv()
         return self.sqlconnected
     def CheckCRC(self,v,irm,upd,run2p,force,dir,nocastoronly):
         #
@@ -369,7 +370,7 @@ class RemoteClient:
                stf=fs[0]+".o"
                stf=re.sub(r'/','',stf)
                stf="/tmp/"+stf
-               print stf
+               #print stf
                os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
                time.sleep(1)
                stat =os.stat(stf)
@@ -501,18 +502,17 @@ class RemoteClient:
                s.quit()
                
     def ValidateRuns(self,run2p,i,v,d,h):
-        global validated,thrusted,copied,failedcp,bad,unchecked,gbDST
-        failedcp=0
-        validated=0
-        thrusted=0
-        copied=0
-        failedcp=0
-        bad=0
-        unchecked=0
-        gbDST=0
+        self.failedcp=0
+        self.thrusted=0
+        self.copied=0
+        self.failedcp=0
+        self.bad=0
+        self.unchecked=0
+        self.gbDST=0
         timenow=int(time.time())
         global rflag
         rglag=0
+        self.validated=0
         HelpText="""
              validateRuns gets list of runs from production server
                   validates DSTs and copies them to final destination
@@ -595,7 +595,7 @@ class RemoteClient:
                   %s Ntuple(s) Turned Bad.
                   %s Ntuples(s) Could Not Be Validated.
                   %s Ntuples Could Not be Validated But Assumed  OK.
-              """ %(validated,copied,failedcp,bad,unchecked,thrusted)
+              """ %(self.validated,self.copied,self.failedcp,self.bad,self.unchecked,self.thrusted)
         output.write(warn)
         output.close()
         self.printValidateStat()
@@ -603,7 +603,7 @@ class RemoteClient:
         self.setprocessingflag(0,timenow)
         if(self.delete):
             for run in self.dbclient.rtb:
-                status=self.dbclient.convert(run.Status)
+                status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(run.Run)
                     ret=self.sqlserver.Query(sql)
@@ -649,7 +649,7 @@ class RemoteClient:
         print l1
         output.write(l0)
         output.write(l1)
-        totalgb=gbDST/1024./1024./1024.
+        totalgb=self.gbDST/1024./1024./1024.
         chgb="Total GB %3.1f " %(totalgb)
         print chgb
         hours   = float(timenow - self.valStTime)/60./60.
@@ -676,6 +676,8 @@ class RemoteClient:
         mvntuples=[]
         timestamp=int(time.time())
         outputpath=None
+	copyfailed=0
+	runupdate="update runs set "
         ro=self.sqlserver.Query("select run, status from runs where run="+str(run.Run))
         if(len(ro)==0):
             self.InsertRun(run)
@@ -684,11 +686,12 @@ class RemoteClient:
         status=ro[0][1]
         if(status== 'Completed' and r1[0][0]==0):
             status="Unchecked"
-        if(status != 'Completed' and status != self.dbclient.convert(run.Status)):
-            self.sqlserver.Update("update runs set status="+self.dbclient.convert(run.Status)+" where  run="+str(run.Run))
-        if(self.dbclient.convert(run.Status) == "Finished" and status != "TimeOut" and status !="Completed"):
-            print "Check Run %d Status %s FBStatus %s" %(run.Run,self.dbclient.convert(run.Status),status)
-            output.write("Check Run %d Status %s FBStatus %s" %(run.Run,self.dbclient.convert(run.Status),status))
+        if(status != 'Completed' and status != self.dbclient.cr(run.Status)):
+            sql="update runs set status='%s' where run=%d" %(self.dbclient.cr(run.Status),run.Run)
+            self.sqlserver.Update(sql)
+        if(self.dbclient.cr(run.Status) == "Finished" and status != "TimeOut" and status !="Completed"):
+            print "Check Run %d Status %s DBStatus %s" %(run.Run,self.dbclient.cr(run.Status),status)
+            output.write("Check Run %d Status %s DBStatus %s" %(run.Run,self.dbclient.cr(run.Status),status))
             sql="select runs.status, jobs.content, cites.status from runs,jobs,cites where jobs.jid=%d and runs.jid=jobs.jid and cites.cid=jobs.cid" %(run.Run)
             r1=self.sqlserver.Query(sql)
             if(len(r1)==0):
@@ -712,22 +715,23 @@ class RemoteClient:
                         mips=1000
                     cputime=cputime/mips*1000
                     cputime="%.2f" %(cputime)
-                    if(events==0 and errors==0 and self.dbclient.convert(run.Status) == "Finished"):
+                    if(events==0 and errors==0 and self.dbclient.cr(run.Status) == "Finished"):
                         print "run events 0 "
                         self.sqlserver.Update("update runs set status='Unchecked' where run="+str(run.Run))
                     else:
-                        sql="update jobs set events=%d, errors=%d, cputime=%s,elapsed=%s,host='$s',mips=%d,timestamp=%d where jid=%d" %(events,errors,cputime,elapsed,host,int(mips),timestamp,run.Run)
+                        sql="update jobs set events=%d, errors=%d, cputime=%s,elapsed=%s,host='%s',mips=%d,timestamp=%d where jid=%d" %(events,errors,cputime,elapsed,host,int(mips),timestamp,run.Run)
                         self.sqlserver.Update(sql)
                         output.write(sql)
                         self.sqlserver.Update("delete ntuples where run="+str(run.Run))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
-                            if( (self.dbclient.convert(ntuple.Status) == "Success" or  self.dbclient.convert(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
+                            #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
+                            if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
                                 ntuplelist.append(ntuple)
                         ntuplelist.sort(lambda x,y: cmp(x.Insert,y.Insert))
                         fevt=-1
                         dat0=0
-                        for ntuple in ntupleslist:
+                        for ntuple in ntuplelist:
                             if(fevt>=0 and ntuple.LastEvent>fevt):
                                 ntuple.EventNumber=-1
                                 print " problems with %d %s " %(run.Run,ntuple.Name)
@@ -740,7 +744,7 @@ class RemoteClient:
                         for ntuple in ntuplelist:
                             if(ntuple.EventNumber==-1):
                                 fpatha=str(ntuple.Name).split(':')
-                                fpath=fpatha[len(fpatha)]
+                                fpath=fpatha[len(fpatha)-1]
                                 rmbad.append("rm "+fpath)
                             else:
                                 if(dat0):
@@ -748,7 +752,7 @@ class RemoteClient:
                                 self.CheckedDSTs[0]=self.CheckedDSTs[0]+1
                                 levent=levent+ntuple.LastEvent-ntuple.FirstEvent+1
                                 fpatha=str(ntuple.Name).split(':')
-                                fpath=fpatha[len(fpatha)]
+                                fpath=fpatha[len(fpatha)-1]
                                 badevents=ntuple.ErrorNumber
                                 events=ntuple.EventNumber
                                 status="OK"
@@ -756,10 +760,10 @@ class RemoteClient:
                                 if( not os.path.isfile(fpath)):
                                         # try to copy to local dir
                                         parser=str(ntuple.Name).split(':')
-                                        if(len(parser>1)):
+                                        if(len(parser)>1):
                                            host=parser[0]
                                            hostok=0
-                                           if(host.find('/cern/ch'>=0)):
+                                           if(host.find('.cern.ch')>=0):
                                                hostok=1
                                            else:
                                                hparser=host.split('.')
@@ -788,51 +792,48 @@ class RemoteClient:
                                             print "unable to open file ",fpath
                                             mutex.release()
                                             return 0
-                                        mutex.release()
-                                        retcrc=self.calculateCRC(fpath,ntuple.crc)
-                                        mutex.acquire()
-                                        if(retcrc !=1):
+                                retcrc=self.calculateCRC(fpath,ntuple.crc)
+                                if(retcrc !=1):
                                             print "ValidateRuns-E_Error-CRC status ",retcrc
                                             output.write("ValidateRuns-E_Error-CRC status "+str(retcrc))
                                             self.BadCRC[0]=self.BadCRC[0]+1
                                             self.BadDSTs[0]=self.BadDSTs[0]+1
                                             bad=bad+1
                                             cpntuples.append(fpath)
-                                        else:
-                                            mutex.release()
-                                            (ret,i)=self.validateDST(path,ntuple.EventNumber,self.dbclient.convert(ntuple.Type),ntuple.LastEvent)
-                                            mutex.acquire()
+                                else:
+                                            (ret,i)=self.validateDST(fpath,ntuple.EventNumber,self.dbclient.ct(ntuple.Type),ntuple.LastEvent)
                                             if( i == 0xff00 or (i & 0xff)):
                                                 if(ntuple.Status != self.dbclient.iorp.Validated):
                                                     status="Unchecked"
                                                     events=ntuple.EventNumber
-                                                    unchecked=unchecked+1
+                                                    self.unchecked=self.unchecked+1
                                                     copyfailed=1
                                                     break
                                                 else:
-                                                    thrusted=thrusted+1
+                                                    self.thrusted=self.thrusted+1
                                             else:
                                                 i= i>>8
                                                 if(i/128):
                                                     events=0
                                                     status="Bad"+str(i-128)
-                                                    bad=bad+1
+                                                    self.bad=self.bad+1
                                                     levent=levent-(ntuple.LasteEvent-ntuple.FirstEvent+1)
                                                 else:
                                                     status="OK"
                                                     events=ntuple.EventNumber
                                                     badevents=(i*events/100)
-                                                    validated=validated+1
+                                                    self.validated=self.validated+1
                                                     (outputpatha,rstatus)=self.doCopy(run.Run,fpath,ntuple.crc,ntuple.Version,outputpath)
+						    outputpath=outputpatha[:]
                                                     if(outputpath != None):
                                                         mvntuples.append(outputpath)
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
                                                         self.nBadCopiesInRow=0
-                                                        self.InsertNtuple(run.Run,ntuple.Version,ntuple.Type,run.Run,ntuple.FirstEvent,ntuple.lastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,0)
-                                                        output.write("insert %d %s %s $d" %(run.Run, outputpath, status,int(ntuple.size*1000)))
-                                                        copied=copied+1
-                                                        gbDST=gbDST+ntuple.size
+                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,0)
+                                                        output.write("insert %d %s %s %d" %(run.Run, outputpath, status,int(ntuple.size)))
+                                                        self.copied=self.copied+1
+                                                        self.gbDST=self.gbDST+ntuple.size
                                                         cpntuples.append(fpath)
                                                         runupdate="update runs set fevent="+str(fevent)+", levent="+str(levent)+", "
                                                     else:
@@ -854,13 +855,13 @@ class RemoteClient:
 
                         status="Failed"
                         if(copyfailed==0):
-                            warn="Validation done Run %d ",Run.run
+                            warn="Validation done Run %d " %(run.Run)
                             print warn
                             output.write(warn)
-                        if(len(cpntuples)>0 and len(mvntuples>0)):
+                        if(len(cpntuples)>0 and len(mvntuples)>0):
                                status='Completed'
-                        elif(len(mvntuples>0)):
-                             warn="Validation/copy failed run $d " %(run.Run)
+                        elif(len(mvntuples)>0):
+                             warn="Validation/copy failed run %d " %(run.Run)
                              print warn
                              output.write(warn)
                              status="Unchecked"
@@ -869,8 +870,8 @@ class RemoteClient:
                                  os.system(cmd)
                                  print "Validation failed "+cmd
                                  output.write("Validation failed "+cmd)
-                                 failedcp=failedcp+1
-                                 copied=copied-1
+                                 self.failedcp=self.failedcp+1
+                                 self.copied=self.copied-1
                              sql="delete ntuples where run=%d" %(run.Run)
                              self.sqlserver.Update(sql)
                              runupdate="update runs set "
@@ -881,7 +882,7 @@ class RemoteClient:
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
                             self.BadRuns[0]=self.BadRuns[0]+1
-                        sql= "update runs set status='%s',where run=%d" %(status,run.Run)
+                        sql= "update runs set status='%s' where run=%d" %(status,run.Run)
                         self.sqlserver.Update(sql)
                         sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run="+str(run.Run)
                         r4=self.sqlserver.Query(sql)
@@ -909,7 +910,7 @@ class RemoteClient:
                             print warn
                         
                         if(status =="Completed"):
-                            self.updateRunCatalog(run)
+                            self.updateRunCatalog(run.Run)
                             warn=" Update RunCatalog table "+str(run.Run)
                             for cmd in rmcmd:
                                 i=os.system(cmd)
@@ -923,6 +924,7 @@ class RemoteClient:
                             del rmbad [:]
         del cpntuples[:]
         del mvntuples[:]
+	self.sqlserver.Commit()
         mutex.release()
     def setprocessingflag(self,flag,timenow):
         sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
@@ -943,11 +945,11 @@ class RemoteClient:
             print "Problem to ConnectServer "
             return 0
     
-    def doCopy(self,run,path,crc,version,outputpath):
+    def doCopy(self,run,inputfile,crc,version,outputpath):
        time0=time.time()
        time00=0
        (dbv,gbv,osv)=self.getDSTVersion(version)
-       (perios,prodstarttime,periodid)=self.getActiveProductionPeriodbyVersion(dbv)
+       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByVersion(dbv)
        if(period == None or prodstarttime==0):
            sys.exit("Cannot find Active Production Period for DB version "+str(dbv))
        self.doCopyCalls=self.doCopyCalls+1
@@ -968,10 +970,10 @@ class RemoteClient:
                    if(i>0):
                        outputpath=outputpath+"/"
                    outputpath=outputpath+junk[i]
-               #find job
-               sql="SELECT cites.name,jobname  FROM jobs,cites WHERE jid =%d AND cites.cid=jobs.cid" %(run)
-               r1=self.sqlserver.Query(sql)
-               if(len(r1)>0):
+           #find job
+           sql="SELECT cites.name,jobname  FROM jobs,cites WHERE jid =%d AND cites.cid=jobs.cid" %(run)
+           r1=self.sqlserver.Query(sql)
+           if(len(r1)>0):
                    cite=r1[0][0]
                    jobname=r1[0][1]
                    dataset="unknown"
@@ -979,8 +981,8 @@ class RemoteClient:
                    r2=self.sqlserver.Query(sql)
                    if(len(r2)>0):
                        dataset=r2[0][1]
-                       jobname=re.sub(cite,'',jobname,1)
-                       jobname=re.sub(str(run),'',jobname,1)
+                       jobname=re.sub(cite+".",'',jobname,1)
+                       jobname=re.sub(str(run)+".",'',jobname,1)
                        jobname=re.sub('.job','',jobname,1)
                        outputpath=outputpath+'/'+dataset+'/'+jobname
                        cmd="mkdir -p "+outputpath
@@ -992,8 +994,8 @@ class RemoteClient:
                            self.doCopyTime=self.doCopyTime+time00-time0
                            if(cmdstatus==0):
                                rstatus=self.calculateCRC(outputpath,crc)
-                               if(ratatus==1):
-                                   return putputpath,1
+                               if(rstatus==1):
+                                   return outputpath,1
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
                                    BadCRC[self.nCheckedCite]=BadCRC[self.nCheckedCite]+1
@@ -1007,8 +1009,8 @@ class RemoteClient:
            return None,0
     
     def getActiveProductionPeriodByVersion(self,dbv):
-       ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and vdb='"+dbv)
-       if(len(ret>0)):
+       ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and vdb='"+dbv+"'")
+       if(len(ret)>0):
            return self.trimblanks(ret[0][0]),ret[0][1],ret[0][2]
        else:
           return None,0,0
@@ -1029,7 +1031,7 @@ class RemoteClient:
         # select disk to be used to store ntuples
         #
         self.CheckFS(1)
-        tme=time.time()
+        tme=int(time.time())
         if(tme%2 ==0):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 ORDER BY priority DESC, available "
         else:
@@ -1048,7 +1050,7 @@ class RemoteClient:
                 if(mtime!=0):
                     gb=disk[2]
                     break
-        return ouputpath,gb
+        return outputpath,gb
            
            
     def copyFile(self,input,output):
@@ -1080,7 +1082,7 @@ class RemoteClient:
                 sbuf=jobcontent.split("\n")
                 sql0="insert into runcatalog(run"
                 sql1="   values(%d" %(run)
-                faray=("PART","PMIN","PMAX","TRIGGER","SPECTRUM","SETUP","FOCUS","COSMAX","PLANENO","GEOCUTOFF","COOCUB1","COOCUB2","COOCUB3","COOCUB4","COOCUB5","COOCUB6")
+                farray=("PART","PMIN","PMAX","TRIGGER","SPECTRUM","SETUP","FOCUS","COSMAX","PLANENO","GEOCUTOFF","COOCUB1","COOCUB2","COOCUB3","COOCUB4","COOCUB5","COOCUB6")
                 narray=(1,1,1,0,0,0,0,1,0,0,1,1,1,1,1,1)
                 i=0
                 for ent in farray:
@@ -1101,7 +1103,7 @@ class RemoteClient:
                                     sql0=sql0+", SETUP"
                                     sql1=sql1+", 'AMS02'"
                                 if(ent=="TRIGGER"):
-                                    sql0=sql0+", TRYTYPE"
+                                    sql0=sql0+", TRTYPE"
                                     sql1=sql1+", 'TriggerLVL1'"
                             break
                     i=i+1
@@ -1122,24 +1124,24 @@ class RemoteClient:
                 print "UpdateRunCatalog-E-CannitFindRunJobContent with jid=",run
     
               
-    def InsertNtuple(self,run,version,type,jif,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime):
+    def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime):
         junk=path.split("/")
         filename=self.trimblanks(junk[len(junk)-1])
         sp1=version.split('build')
         sp2=sp1[1].split('/')
         buildno=sp2[0]
-        sql="SELECT run, path FROM ntuples WHERE run=$run AND path like '%%s%%%'" %(filename)
+        sql="SELECT run, path FROM ntuples WHERE run=%d AND path like '%%%s%%'" %(run,filename)
         ret=self.sqlserver.Query(sql)
         if(len(ret)>0):
-            sql="DELETE ntuples WHERE run=%d AND path like  '%%s%%%'" %(Run,filename)
+            sql="DELETE ntuples WHERE run=%d AND path like  '%%%s%%'" %(run,filename)
             print sql,ret[0][1]
-        ntsize=size/1024/1024
+        ntsize=float(size)/1024/1024
         sizemb="%.f" %(ntsize)
-        sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno)
+        sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno)
         self.sqlserver.Update(sql)
    
     def setenv(self):
-        if(os.envoron.has_key('AMSDataDir')):
+        if(os.environ.has_key('AMSDataDir')):
             dir=os.environ['AMSDataDir']
         else:
             dir="/afs/ams.cern.ch/AMSDataDir"
@@ -1165,7 +1167,7 @@ class RemoteClient:
             dtype=1
         if(dtype!=None):
             mutex.release()
-            validatecmd="/exe/linux/fsdtntrd.exe %s %d %d %d " %(fname,nevents,dtype,levent)
+            validatecmd="/exe/linux/fastntrd.exe %s %d %d %d " %(fname,nevents,dtype,levent)
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             vcode=os.system(validatecmd)
             mutex.acquire()
@@ -1182,7 +1184,7 @@ class RemoteClient:
             fetime=Run.TFEvent
             letime=Run.TLEvent
             submit=Run.SubmitTime
-            status=self.dbclient.convert(Run.Status)
+            status=self.dbclient.cr(Run.Status)
             sql="SELECT run, jid, fevent, levent, status FROM Runs WHERE run=%d" %(run)
             ret=self.sqlserver.Query(sql)
             doinsert=0
@@ -1213,15 +1215,15 @@ class RemoteClient:
     def calculateCRC(self,filename,crc):
         self.crcCalls=self.crcCalls+1
         time0=time.time()
-        mutex.release
+        mutex.release()
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
-        mutex.acquire()
         rstatus=os.system(crccmd)
+        mutex.acquire()
         rstatus=rstatus>>8
         if(self.v):
             print crccmd,rstatus
         self.crcTime=self.crcTime+time.time()-time0
-        return status
+        return rstatus
         
         
         
