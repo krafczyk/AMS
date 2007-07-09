@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.36 2007/06/06 10:34:24 mdelgado Exp $
+#  $Id: Makefile,v 1.37 2007/07/09 14:52:05 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -71,7 +71,7 @@ SFF = ../F/
 
 ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot 
 
-CPPFLAGS=      -D__AMS02DAQ__ -D__BATCH__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
+CPPFLAGS=      -D__AMS02DAQ__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
 INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
 CPPFLAGS+= $(INCPATHS)
 
@@ -91,7 +91,8 @@ include $(shell echo ${local_makefile})
 
 
 
-CFLAGSB+= $(CPPFLAGS)
+CFLAGSB+= $(CPPFLAGS) 
+CFLAGSB+= -D__BATCH__
 
 
 
@@ -294,10 +295,10 @@ $(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o
 
 
 $(BIN)geanti.o:      $(SCC)geant.C
-	$(CXX) -c $(CFLAGS) $(SCC)geant.C -o $(BIN)/geanti.o
+	$(CXX) -c  $(CPPFLAGS) $(SCC)geant.C -o $(BIN)/geanti.o
 
 $(BIN)geant3i.o:      $(SCC)geant3.C
-	$(CXX) -c $(CFLAGS) $(SCC)geant3.C -o $(BIN)/geant3i.o
+	$(CXX) -c  $(CPPFLAGS) $(SCC)geant3.C -o $(BIN)/geant3i.o
 
 #------------------------------------------------------------------------------
 #   Libraries to read the ROOT output

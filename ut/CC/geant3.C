@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.96 2007/04/04 12:02:03 choutko Exp $
+//  $Id: geant3.C,v 1.97 2007/07/09 14:51:16 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -778,7 +778,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   }
 #endif
 #ifndef __BATCH__
-//  GSXYZ();
+//GSXYZ();
 GDCXYZ();
 #endif
   }

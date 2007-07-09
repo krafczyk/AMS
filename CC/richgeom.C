@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.30 2007/06/20 10:11:29 mdelgado Exp $
+//  $Id: richgeom.C,v 1.31 2007/07/09 14:51:16 choutko Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -8,7 +8,7 @@
 
 #define SQR(x) ((x)*(x))
 
-#define VERSION "2002"
+#define VERSION "2007"
 
 namespace amsgeom{
 extern void tkgeom(AMSgvolume &);
