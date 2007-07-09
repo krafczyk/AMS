@@ -1,4 +1,5 @@
 import sys,os,time,string,re,thread,smtplib
+from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
 class RemoteClient:
@@ -197,9 +198,10 @@ class RemoteClient:
         for fs in ret_fs:
             exitmutexes[fs[0]]=thread.allocate_lock()
             thread.start_new(self.checkcrct,(fs[0],ret_nt))
-            self.checkcrct(fs[0],ret_nt)
+            #self.checkcrct(fs[0],ret_nt)
         for key in exitmutexes.keys():
             while not exitmutexes[key].locked(): pass
+        time.sleep(1)
         for key in exitmutexes.keys():
             while not exitmutexes[key].locked(): pass
         if v and self.ntp>0:
@@ -370,12 +372,13 @@ class RemoteClient:
                stf=fs[0]+".o"
                stf=re.sub(r'/','',stf)
                stf="/tmp/"+stf
-               #print stf
+               if(self.v):
+                   print stf
                os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
                time.sleep(1)
                stat =os.stat(stf)
                os.unlink(stf)
-               if stat[7]==0:
+               if stat[ST_SIZE]==0:
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if updatedb!=0:
                        self.sqlserver.Update(sql)
@@ -582,13 +585,29 @@ class RemoteClient:
             return 0
         firstjobtime=ret[0][0]-24*60*60
         ret=self.sqlserver.Query("SELECT run,submit FROM Runs WHERE submit > "+str(firstjobtime))
+        global exitmutexes
+        exitmutexes = {}
         global mutex
         mutex=thread.allocate_lock()
+        global fsmutexes
+        fsmutexes = {}
         for run in self.dbclient.rtb:
             if(run2p!=0 and run.Run != run2p):
                 continue
+            exitmutexes[run.Run]=thread.allocate_lock()
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
-            self.validaterun(run)
+            thread.start_new(self.validaterun,(run,))
+            #self.validaterun(run)
+        for key in exitmutexes.keys():
+            while not exitmutexes[key].locked():
+                time.sleep(0.001)
+                pass
+        time.sleep(1)
+        for key in exitmutexes:
+            while not exitmutexes[key].locked():
+                time.sleep(0.001)
+                pass
+
         warn = """%s Ntuple(s) Successfully Validated.
                   %s Ntuple(s) Copied.
                   %s Ntuple(s) Not Copied.
@@ -728,7 +747,7 @@ class RemoteClient:
                             #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
                                 ntuplelist.append(ntuple)
-                        ntuplelist.sort(lambda x,y: cmp(x.Insert,y.Insert))
+                        ntuplelist.sort(lambda x,y: cmp(y.Insert,x.Insert))
                         fevt=-1
                         dat0=0
                         for ntuple in ntuplelist:
@@ -747,7 +766,7 @@ class RemoteClient:
                                 fpath=fpatha[len(fpatha)-1]
                                 rmbad.append("rm "+fpath)
                             else:
-                                if(dat0):
+                                if(str(ntuple.Name).find(':/dat0')>=0):
                                     ntuple.Status=self.dbclient.iorp.Success
                                 self.CheckedDSTs[0]=self.CheckedDSTs[0]+1
                                 levent=levent+ntuple.LastEvent-ntuple.FirstEvent+1
@@ -776,30 +795,30 @@ class RemoteClient:
                                                dir=fpath.split(str(run.Run))
                                                cmd="mkdir -p "+dir[0]
                                                i=os.system(cmd)
-                                               cmd="scp %s:%s %s " %(host,fpath,fpath)
+                                               cmd="scp -2 %s:%s %s " %(host,fpath,fpath)
                                                mutex.release()
                                                i=os.system(cmd)
                                                mutex.acquire()
                                                if(i):
                                                    print cmd," failed"
-                                                   mutex.release()
-                                                   return 0
                                                    rcp=0
+                                                   continue
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
                                                    rmcmd.append(cmd)
                                         if(not os.path.isfile(fpath)):
                                             print "unable to open file ",fpath
-                                            mutex.release()
-                                            return 0
+                                            continue
                                 retcrc=self.calculateCRC(fpath,ntuple.crc)
                                 if(retcrc !=1):
                                             print "ValidateRuns-E_Error-CRC status ",retcrc
                                             output.write("ValidateRuns-E_Error-CRC status "+str(retcrc))
                                             self.BadCRC[0]=self.BadCRC[0]+1
                                             self.BadDSTs[0]=self.BadDSTs[0]+1
-                                            bad=bad+1
-                                            cpntuples.append(fpath)
+                                            self.bad=self.bad+1
+                                            levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
+                                            rmbad.append("rm "+fpath)
+                                            mvntuples.append(fpath)
                                 else:
                                             (ret,i)=self.validateDST(fpath,ntuple.EventNumber,self.dbclient.ct(ntuple.Type),ntuple.LastEvent)
                                             if( i == 0xff00 or (i & 0xff)):
@@ -817,13 +836,14 @@ class RemoteClient:
                                                     events=0
                                                     status="Bad"+str(i-128)
                                                     self.bad=self.bad+1
-                                                    levent=levent-(ntuple.LasteEvent-ntuple.FirstEvent+1)
+                                                    levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
+                                                    rmbad.append("rm "+fpath)
                                                 else:
                                                     status="OK"
                                                     events=ntuple.EventNumber
                                                     badevents=(i*events/100)
                                                     self.validated=self.validated+1
-                                                    (outputpatha,rstatus)=self.doCopy(run.Run,fpath,ntuple.crc,ntuple.Version,outputpath)
+                                                    (outputpatha,rstatus,odisk)=self.doCopy(run.Run,fpath,ntuple.crc,ntuple.Version,outputpath)
 						    outputpath=outputpatha[:]
                                                     if(outputpath != None):
                                                         mvntuples.append(outputpath)
@@ -847,13 +867,14 @@ class RemoteClient:
                                                             print "too many docopy failurs"
                                                             os.exit()
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
-                                                        bad=bad+1
+                                                        self.bad=self.bad+1
                                                         if(outputpath != None):
                                                             cmd="rm "+outputpath
                                                             rstat=os.system(cmd)
                                                             output.write("remove bad file "+cmd)
 
                         status="Failed"
+                        fsmutexes[odisk].release()
                         if(copyfailed==0):
                             warn="Validation done Run %d " %(run.Run)
                             print warn
@@ -926,6 +947,8 @@ class RemoteClient:
         del mvntuples[:]
 	self.sqlserver.Commit()
         mutex.release()
+        exitmutexes[run.Run].acquire()
+
     def setprocessingflag(self,flag,timenow):
         sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
         self.sqlserver.Update(sql)
@@ -955,16 +978,23 @@ class RemoteClient:
        self.doCopyCalls=self.doCopyCalls+1
        junk=inputfile.split('/')
        file=junk[len(junk)-1]
-       filesize=os.stat(inputfile)[7]
+       filesize=os.stat(inputfile)[ST_SIZE]
        if(filesize>0):
            #get output disk
            if(outputpath == None):
-               (outputpatha,gb)=self.getOutputPath(period)
+               stime=100
+               odisk=None
+               while(stime>60):
+                   if(odisk!=None):
+                       fsmutexes[odisk].release()
+                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period)
+                   print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
                    sys.exit("doCopy-F-CannotFindAnyDisk Exit")
            else:
                junk=outputpath.split('/')
+               odisk="/"+junk[1]
                outputpath=""
                for i in range (0,len(junk)-4):
                    if(i>0):
@@ -995,18 +1025,18 @@ class RemoteClient:
                            if(cmdstatus==0):
                                rstatus=self.calculateCRC(outputpath,crc)
                                if(rstatus==1):
-                                   return outputpath,1
+                                   return outputpath,1,odisk
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
                                    BadCRC[self.nCheckedCite]=BadCRC[self.nCheckedCite]+1
-                                   return outputpath,0
+                                   return outputpath,0,odisk
                            BadDSTCopy[self.nCheckedCite]=BadDSTCopy[self.nCheckedCite]+1
                            print "docopy-E-cannot ",cmd
-                           return outputpath,0
+                           return outputpath,0,odisk
        else:
            print "doCopy-E-cannot stat",inputfile
            BadDSTs[self.nCheckedCite]=BadDSTs[self.nCheckedCite]+1
-           return None,0
+           return None,0,odisk
     
     def getActiveProductionPeriodByVersion(self,dbv):
        ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and vdb='"+dbv+"'")
@@ -1050,17 +1080,35 @@ class RemoteClient:
                 if(mtime!=0):
                     gb=disk[2]
                     break
-        return outputpath,gb
+        timew=time.time()
+        if(fsmutexes.has_key(outputdisk)):
+            print "acquirng fs mutex for ",outputdisk
+            mutex.release()
+            fsmutexes[outputdisk].acquire()
+            mutex.acquire()
+            print "got fs mutex for ",outputdisk
+        else:
+            fsmutexes[outputdisk]=thread.allocate_lock()
+            mutex.release()
+            print "acquirng first fs mutex for ",outputdisk
+            fsmutexes[outputdisk].acquire()
+            mutex.acquire()
+            print "got first fs mutex for ",outputdisk
+        return outputpath,gb,outputdisk,time.time()-timew
            
            
     def copyFile(self,input,output):
         mutex.release()
         if(input == output):
+            print "acquirung  mutex in copyfile ups"
+            mutex.acquire()
             return 0
         time0=time.time()
         cmd="cp -pi -d -v "+input+" "+output
         cmdstatus=os.system(cmd)
+        print "acquirung  mutex in copyfile ", cmd
         mutex.acquire()
+        print "got  mutex in copyfile ", cmd
         if ( self.v ):
             print "docopy-I-",cmd
         self.copyCalls=self.copyCalls+1
@@ -1170,7 +1218,9 @@ class RemoteClient:
             validatecmd="/exe/linux/fastntrd.exe %s %d %d %d " %(fname,nevents,dtype,levent)
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             vcode=os.system(validatecmd)
+            print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
+            print "got  mutex in validate", validatecmd
             ret=1
         self.fastntCalls=self.fastntCalls+1
         self.fastntTime=self.fastntTime+time.time()-time0
@@ -1218,8 +1268,10 @@ class RemoteClient:
         mutex.release()
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
         rstatus=os.system(crccmd)
-        mutex.acquire()
         rstatus=rstatus>>8
+        print "acquirung  mutex in calccrc", filename
+        mutex.acquire()
+        print "got  mutex in calccrc", filename
         if(self.v):
             print crccmd,rstatus
         self.crcTime=self.crcTime+time.time()-time0
