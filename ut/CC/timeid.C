@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.85 2005/12/16 12:29:55 choutko Exp $
+//  $Id: timeid.C,v 1.86 2007/07/12 07:30:50 choumilo Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -89,7 +89,6 @@ else{
       time(&_Insert);
       _Nbytes+=sizeof(uinteger);
       _CRC=_CalcCRC();
-
 }
 
 

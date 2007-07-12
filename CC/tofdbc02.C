@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.38 2007/06/13 14:43:38 choutko Exp $
+//  $Id: tofdbc02.C,v 1.39 2007/07/12 07:30:50 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1781,7 +1781,7 @@ void TOF2JobStat::printstat(){
   strcpy(slnames[10],"SFEC_04");
   geant rc;
 //
-  if(daqsf[0]>0){
+  if(daqsf[0]>0 && MISCFFKEY.dbwrbeg==0){//not empty, not dwwriter job
   printf("\n");
   printf("    ======================= JOB DAQ-decoding statistics ====================\n");
   printf("\n");
@@ -2053,7 +2053,10 @@ void TOF2JobStat::printstat(){
 //---
   }
 //
+//
   printf("\n");
+  if(MISCFFKEY.dbwrbeg>0)return;//dbwritwr job, don't need any statistics
+//
   printf("    ====================== JOB TOF-statistics ======================\n");
   printf("\n");
   printf(" MC: entries                                : % 6d\n",mccount[0]);

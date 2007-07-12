@@ -2415,14 +2415,36 @@ void ECREUNcalib::mfite(){
  geant ECPedCalib::sigs[ECPMSL][5][2];
  uinteger ECPedCalib::stas[ECPMSL][5][2];
  integer ECPedCalib::nstacksz;//needed stack size (ev2rem*ECPCEVMX)
+ ECPedCalib::ECPedCalib_ntpl  ECPedCalib::ECPedCalNT;
 //-----
- void ECPedCalib::init(){
+ void ECPedCalib::init(){//called in caecinitjob() 
    int16u i,sl,pm,pix,gn,gnm;
    int hnm,ch;
    char buf[6];
    char htit[80];
 //
    cout<<endl;
+   if(ECREFFKEY.relogic[1]==6){//open Ntuple file (for OnBoardTable only for the moment)
+     char hfile[161];
+     UHTOC(IOPA.hfile,40,hfile,160);  
+     char filename[256];
+     strcpy(filename,hfile);
+     integer iostat;
+     integer rsize=1024;
+     char event[80];  
+     HROPEN(IOPA.hlun+1,"ecpedsig",filename,"NP",rsize,iostat);
+     if(iostat){
+       cerr << "<==== ECPedCalib::init: Error opening ecpedsig ntuple file "<<filename<<endl;
+       exit(1);
+     }
+     else cout <<"====> ECPedCalib::init: Ntuple file "<<filename<<" opened..."<<endl;
+     HBNT(IOPA.ntuple,"EcalPedSigmas"," ");
+     HBNAME(IOPA.ntuple,"ECPedSig",(int*)(&ECPedCalNT),"Run:I,SLayer:I,PMTNo:I,PedH(5):R,SigH(5):R,"
+                                                                               "PedL(5):R,SigL(5):R,"
+									       "StaH(5):I,StaL(5):I");
+     return;
+   }
+//
    nstacksz=floor(ECCAFFKEY.pedcpr*ECPCEVMX+0.5);
    if(nstacksz>ECPCSTMX){
      cout<<"====> ECPedCalib::init-W-Stack too small, change Trunc-value or max.events/ch !!!"<<nstacksz<<endl;
@@ -2505,7 +2527,8 @@ void ECREUNcalib::mfite(){
    cout<<"====> ECPedCalib::init done..."<<endl<<endl;;
  }
 //-----
- void ECPedCalib::resetb(){//init for OnBoardPedTable processing
+ void ECPedCalib::resetb(){//init for OnBoardPedTable processing,
+//called in buildraw() when 1st pedtable sub-block was found
    int16u i,sl,pm,pix,gn,gnm;
    int hnm,ch;
    char buf[6];
@@ -2699,7 +2722,6 @@ void ECREUNcalib::mfite(){
    peds[ch][pix][gn]=ped;
    sigs[ch][pix][gn]=sig;
    stas[ch][pix][gn]=uinteger(sta);
-//
  }
 //-----
  void ECPedCalib::outp(int flg){
@@ -2955,6 +2977,34 @@ void ECREUNcalib::mfite(){
 //
    cout<<endl;
    cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
+//---> fill ntuple:
+   ECPedCalNT.Run=BRun();
+   for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
+     ECPedCalNT.SLayer=sl+1;
+     for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop
+       ECPedCalNT.PmtNo=pm+1;
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){//<--- pixel loop
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){//<--- gain loop
+           if(gn==0){
+             ECPedCalNT.Pedh[pix]=peds[ch][pix][gn];
+             ECPedCalNT.Sigh[pix]=sigs[ch][pix][gn];
+             ECPedCalNT.Stah[pix]=uinteger(stas[ch][pix][gn]);
+           }
+           else{
+             ECPedCalNT.Pedh[pix]=peds[ch][pix][gn];
+             ECPedCalNT.Sigh[pix]=sigs[ch][pix][gn];
+             ECPedCalNT.Stah[pix]=uinteger(stas[ch][pix][gn]);
+           }
+	 }
+       }
+       HFNT(IOPA.ntuple);
+     }
+   }
+   cout<<"      <-- Ntuple filled..."<<endl<<endl;
+//----
    for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
      for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop
        ch=ECPMSMX*sl+pm;//seq.# of sl*pm
@@ -3167,6 +3217,19 @@ void ECREUNcalib::mfite(){
    cout<<endl;
 //
  }
+//--------------
+void ECPedCalib::ntuple_close(){
+//
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//ecpedsig";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("ecpedsig");
+  CLOSEF(IOPA.hlun+1);
+//
+}
 //-----------------------------------------------------------
 
 #include "timeid.h"

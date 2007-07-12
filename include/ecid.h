@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.13 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: ecid.h,v 1.14 2007/07/12 07:31:41 choumilo Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include "typedefs.h"
@@ -19,7 +19,7 @@ class AMSECIds{
   int16u _pixel;//sw pixel number(0->4, 0-3=>anodes, 4=>dynode)
   int16u _gainf;//gain_flag(0/1->high/low, dynode is always "high"=no_attenuation)
   int16u _swch;//GLOBAL sequential s/w-channel, numbering scheme:(L=0|TT=00|P=0|G=0),(0|00|0|1),
-//(0|00|1|0),(0|00|1|1),...(0|00|3|1),(0|00|4|0){dyn only hi-gain, same sequence for (L=0/TT=01),...
+//(0|00|1|0),(0|00|1|1),...(0|00|3|1),(0|00|4|0){dyn only hi-gain, same sequence for (L=0/TT=01),...}
   integer _hwid;//CSSRRR=>Crate|Slot|Readout_channel
   int16u _pixelh;// hardware pixel number(0->4)
   int16u _crate;//0-1

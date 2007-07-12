@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.212 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: commons.h,v 1.213 2007/07/12 07:31:40 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -32,6 +32,8 @@ integer BeamTest;
 float   BZCorr; 
 integer G3On;
 integer G4On;
+integer dbwrbeg;
+integer dbwrend;
 };
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);
 

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.10 2007/05/15 11:38:31 choumilo Exp $
+//  $Id: daqs2block.C,v 1.11 2007/07/12 07:30:49 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -215,7 +215,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   if(formt==3 && (TFREFFKEY.relogic[0]==7 || ATREFFKEY.relogic==4)){
     TOF2JobStat::daqscr(2,crat-1,0);// PedCalFormat entries/crate
     if(FirstPedBlk==0){
-      BeginTime=AMSEvent::gethead()->gettime();
+//      BeginTime=AMSEvent::gethead()->gettime();
       TOFPedCalib::BTime()=AMSEvent::gethead()->gettime();
       TOFPedCalib::BRun()=AMSEvent::gethead()->getrun();
       if(TFREFFKEY.relogic[0]==7)TOFPedCalib::resetb();

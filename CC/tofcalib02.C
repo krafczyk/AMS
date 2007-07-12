@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.18 2007/05/15 11:38:32 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.19 2007/07/12 07:30:50 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "typedefs.h"
@@ -4140,8 +4140,10 @@ integer TOFPedCalib::hiamap[TOF2GC::SCLRS][TOF2GC::SCMXBR];//high signal Paddles
 integer TOFPedCalib::nstacksz;//really needed stack size (ev2rem*TFPCEVMX)
 time_t TOFPedCalib::BeginTime;
 uinteger TOFPedCalib::BeginRun;
+TOFPedCalib::TOFPedCal_ntpl TOFPedCalib::TOFPedCalNT;
 //--------------------------
-void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration 
+void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
+//called in catofinitjob() 
   integer i,j,k,il,ib,id,ii,jj,chan;
   char htit1[60];
   char inum[11];
@@ -4150,7 +4152,27 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
 //
   strcpy(inum,"0123456789");
 //
-  cout<<endl;
+   cout<<endl;
+   if(TFREFFKEY.relogic[0]==7){//open Ntuple file (for OnBoardTable only for the moment)
+     char hfile[161];
+     UHTOC(IOPA.hfile,40,hfile,160);  
+     char filename[256];
+     strcpy(filename,hfile);
+     integer iostat;
+     integer rsize=1024;
+     char event[80];  
+     HROPEN(IOPA.hlun+1,"tofpedsig",filename,"NP",rsize,iostat);
+     if(iostat){
+       cerr << "<==== TOFPedCalib::init: Error opening tofpedsig ntuple file "<<filename<<endl;
+       exit(1);
+     }
+     else cout <<"====> TOFPedCalib::init: Ntuple file "<<filename<<" opened..."<<endl;
+     HBNT(IOPA.ntuple,"TofPedSigmas"," ");
+     HBNAME(IOPA.ntuple,"TOFPedSig",(int*)(&TOFPedCalNT),"Run:I,Layer:I,Paddle:I,PedA(2):R,SigA(2):R,"
+                                                                            "PedD(3,2):R,SigD(3,2):R,"
+									       "StaA(2):I,StaD(3.2):I");
+     return;
+   }
 //
   if(TFREFFKEY.relogic[0]==5)por2rem=TFCAFFKEY.pedcpr[0];//ClassPed(random)
   else if(TFREFFKEY.relogic[0]==6)por2rem=TFCAFFKEY.pedcpr[1];//DownScaled(in trigger)
@@ -4228,10 +4250,11 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
       for(k=0;k<TFPCSTMX;k++)adcm[i][j][k]=0;
     }
   }
-  cout<<"====> TOFPedCalib::init done..."<<endl<<endl;;
+  cout<<"<==== TOFPedCalib::init done..."<<endl<<endl;;
 }
 //--------------------------
 void TOFPedCalib::resetb(){ // ----> initialization for OnBoardPedTable processing 
+//called in buildraw() when 1st pedtable sub-block was found
   integer i,j,k,il,ib,id,ii,jj,chan;
   char htit1[60];
   char inum[11];
@@ -4611,6 +4634,33 @@ void TOFPedCalib::outptb(int flg){// very preliminary
 //
    cout<<endl;
    cout<<"=====> TOFPedCalib:OnBoardTable-Report:"<<endl<<endl;
+//---- fill ntuple:
+   TOFPedCalNT.Run=BRun();
+   for(il=0;il<TOF2DBc::getnplns();il++){
+     TOFPedCalNT.Layer=il+1;
+     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+       TOFPedCalNT.Paddle=ib+1;
+       for(is=0;is<2;is++){
+         ch=il*TOF2GC::SCMXBR*2+ib*2+is;//seq. channels numbering
+//
+         for(pm=0;pm<TOF2DBc::npmtps(il,ib)+1;pm++){//<--- pm-loop(0/1-3 => an/dyn1-3)
+	   if(pm==0){
+	     TOFPedCalNT.PedA[is]=peds[ch][pm];
+	     TOFPedCalNT.SigA[is]=sigs[ch][pm];
+	     TOFPedCalNT.StaA[is]=stas[ch][pm];
+	   }
+	   else{
+	     TOFPedCalNT.PedD[is][pm-1]=peds[ch][pm];
+	     TOFPedCalNT.SigD[is][pm-1]=sigs[ch][pm];
+	     TOFPedCalNT.StaD[is][pm-1]=stas[ch][pm];
+	   }
+	 }
+       }//side
+       HFNT(IOPA.ntuple);
+     }//paddle
+   }// layer
+   cout<<"      <-- Ntuple filled..."<<endl<<endl;
+//----
    for(il=0;il<TOF2DBc::getnplns();il++){
      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
        for(is=0;is<2;is++){
@@ -4677,7 +4727,7 @@ void TOFPedCalib::outptb(int flg){// very preliminary
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     end=begin+86400*30;
+     end=begin+86400*30;//30 days ???
      ptdv->SetTime(insert,begin,end);
 //
      if(AMSFFKEY.Update==2 ){
@@ -4686,7 +4736,7 @@ void TOFPedCalib::outptb(int flg){// very preliminary
        while(offspring){
          if(offspring->UpdateMe())cout << "         Start update TOF-peds DB "<<*offspring; 
          if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
-         cerr <<"         Problem To Update TOF-peds in DB"<<*offspring;
+         cerr <<"<---- Problem To Update TOF-peds in DB"<<*offspring;
          offspring=(AMSTimeID*)offspring->next();//get one-by-one
        }
      }
@@ -4772,6 +4822,19 @@ void TOFPedCalib::outptb(int flg){// very preliminary
    cout<<endl;
    cout<<"=================== TOFPedCalib:OnBoardTable job is completed ! ====================="<<endl;
    cout<<endl;
+//
+}
+//--------------
+void TOFPedCalib::ntuple_close(){
+//
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//tofpedsig";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("tofpedsig");
+  CLOSEF(IOPA.hlun+1);
 //
 }
 //=============================================================================

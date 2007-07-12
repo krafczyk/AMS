@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.250 2007/05/15 11:39:23 choumilo Exp $
+#  $Id: datacards.doc,v 1.251 2007/07/12 07:31:40 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -515,7 +515,8 @@ I 2 BeamTest(0)             // BeamTest data(1) not(0)
 R 3 BZCorr(1.)              // Z scale for b field (test only)
 I 4 G3On(1)                 // 0 off 1 on geant3
 I 5 G4On(0)                 // 0 off 1 on geant4
-
+I 6 dbwrbeg(0)              // used by TofAccPedDBWriter, don't use/modify ! 
+I 7 dbwrend(0)              // ---//---//---//---//---//---//---//---//---
 
 
 G4FF    // Geant4 Datacards

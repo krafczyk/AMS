@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.9 2007/05/15 11:39:24 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.10 2007/07/12 07:31:41 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -197,6 +197,21 @@ private:
   static integer hiamap[TOF2GC::SCLRS][TOF2GC::SCMXBR];//high signal Paddles map (1 event) 
   static time_t BeginTime;
   static uinteger BeginRun;
+//
+  class TOFPedCal_ntpl {
+    public:
+      integer Run;
+      integer Layer;
+      integer Paddle;
+      geant   PedA[2];
+      geant   SigA[2];
+      geant   PedD[2][3];
+      geant   SigD[2][3];
+      integer StaA[2];
+      integer StaD[2][3];
+  };
+  static TOFPedCal_ntpl TOFPedCalNT;
+//
 public:
   static void init();
   static void resetb();
@@ -211,5 +226,6 @@ public:
   } 
   static time_t & BTime(){return BeginTime;}
   static uinteger & BRun(){return BeginRun;}
+  static void ntuple_close();
 };
 //--------------------------

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.18 2007/05/15 11:38:31 choumilo Exp $
+//  $Id: antidbc02.C,v 1.19 2007/07/12 07:30:49 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -818,6 +818,9 @@ void ANTI2JobStat::printstat(){
   int il,ib,ic;
   geant rc;
   printf("\n");
+//
+  if(MISCFFKEY.dbwrbeg>0)return;//dbwriter job, don't need statistics
+//
   printf("    ============ JOB ANTI2-statistics =============\n");
   printf("\n");
   printf(" MC: entries                           : % 6d\n",mccount[0]);
@@ -850,6 +853,7 @@ void ANTI2JobStat::printstat(){
   printf(" PedCalib-events found : % 6d\n",recount[20]);
   printf("\n\n");
 //
+  if(ATREFFKEY.reprtf[0]==0)return;
   printf("==========> Bars reconstruction report :\n\n");
 //
   printf("Have signal on any side :\n\n");

@@ -676,6 +676,7 @@ void AntiCalib::fit(){
   integer ANTPedCalib::hiamap[ANTI2C::MAXANTI];//high signal Paddles map (1 event) 
   time_t ANTPedCalib::BeginTime;
   uinteger ANTPedCalib::BeginRun;
+  ANTPedCalib::ANTPedCal_ntpl ANTPedCalib::ANTPedCalNT;
 //
 void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration 
   integer i,j,k,il,ib,id,ii,jj,chan;
@@ -687,6 +688,26 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
   strcpy(inum,"0123456789");
 //
   cout<<endl;
+//
+   if(ATREFFKEY.relogic==4){//open Ntuple file (for OnBoardTable only for the moment)
+     char hfile[161];
+     UHTOC(IOPA.hfile,40,hfile,160);  
+     char filename[256];
+     strcpy(filename,hfile);
+     integer iostat;
+     integer rsize=1024;
+     char event[80];  
+     HROPEN(IOPA.hlun+1,"antpedsig",filename,"NP",rsize,iostat);
+     if(iostat){
+       cerr << "<==== ANTPedCalib::init: Error opening antpedsig ntuple file "<<filename<<endl;
+       exit(1);
+     }
+     else cout <<"====> ANTPedCalib::init: Ntuple file "<<filename<<" opened..."<<endl;
+     HBNT(IOPA.ntuple,"AntPedSigmas"," ");
+    
+     HBNAME(IOPA.ntuple,"ANTPedSig",(int*)(&ANTPedCalNT),"Run:I,Sector:I,PedA(2):R,SigA(2):R,StaA(2):I");
+     return;
+   }
 //
   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
@@ -1020,6 +1041,18 @@ void ANTPedCalib::outptb(int flg){// very preliminary
 //
    cout<<endl;
    cout<<"=====> ANTPedCalib:OnBoardTable-Report:"<<endl<<endl;
+//---- fill ntuple:
+   ANTPedCalNT.Run=BRun();
+   for(sr=0;sr<ANTI2C::MAXANTI;sr++){
+     ANTPedCalNT.Sector=sr+1;
+     for(sd=0;sd<2;sd++){
+       ANTPedCalNT.PedA[sd]=peds[sr][sd];
+       ANTPedCalNT.SigA[sd]=sigs[sr][sd];
+       ANTPedCalNT.StaA[sd]=stas[sr][sd];
+     }
+     HFNT(IOPA.ntuple);
+   }
+//----
    for(sr=0;sr<ANTI2C::MAXANTI;sr++){
      for(sd=0;sd<2;sd++){
        totch+=1;
@@ -1129,6 +1162,19 @@ void ANTPedCalib::outptb(int flg){// very preliminary
    cout<<endl;
    cout<<"=================== ANTPedCalib:OnBoardTable job is completed ! ====================="<<endl;
    cout<<endl;
+//
+}
+//--------------
+void ANTPedCalib::ntuple_close(){
+//
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//antpedsig";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("antpedsig");
+  CLOSEF(IOPA.hlun+1);
 //
 }
 //

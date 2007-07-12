@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.32 2007/05/15 11:38:33 choumilo Exp $
+//  $Id: trigger302.C,v 1.33 2007/07/12 07:30:50 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -1598,7 +1598,6 @@ void TriggerLVL302::printfc(){
   printf(" LVL3 OK                    : % 6d\n",_flowc[13]);
   printf("\n");
   printf("    =================================================================\n");
-  
 }
 
 

@@ -48,6 +48,17 @@ private:
   static integer hiamap[ANTI2C::MAXANTI];//high signal Paddles map (1 event) 
   static time_t BeginTime;
   static uinteger BeginRun;
+//
+  class ANTPedCal_ntpl {
+    public:
+      integer Run;
+      integer Sector;
+      geant   PedA[2];
+      geant   SigA[2];
+      integer StaA[2];
+  };
+  static ANTPedCal_ntpl ANTPedCalNT;
+//
 public:
   static void init();
   static void resetb();
@@ -60,4 +71,5 @@ public:
   } 
   static time_t & BTime(){return BeginTime;}
   static uinteger & BRun(){return BeginRun;}
+  static void ntuple_close();
 };

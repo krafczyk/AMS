@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.59 2007/05/15 11:38:32 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.60 2007/07/12 07:30:50 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -507,7 +507,11 @@ void EcalJobStat::printstat(){
    for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][2]<<" ";
    cout<<endl;
   }
+//
   printf("\n");
+//
+  if(MISCFFKEY.dbwrbeg>0)return;//dbwriter job, don't need statistics print
+//
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
   printf(" MCTrigBuild: entries              : % 6d\n",srcount[0]);

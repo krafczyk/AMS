@@ -85,6 +85,21 @@ class ECPedCalib {
     static geant sigs[ecalconst::ECPMSL][5][2];
     static uinteger stas[ecalconst::ECPMSL][5][2];
     static integer nstacksz;//really needed stack size (ev2rem*ECPCEVMX)
+//
+    class ECPedCalib_ntpl {//to store PedTable-event(i.e.particular Run,SL,PM) in ntuple
+      public:
+        integer Run;
+        integer SLayer;
+        integer PmtNo;
+        geant Pedh[5];
+        geant Sigh[5];
+        geant Pedl[5];
+        geant Sigl[5];
+        integer Stah[5];
+        integer Stal[5];
+    };
+    static ECPedCalib_ntpl ECPedCalNT;
+//
   public:
     static void init();
     static void resetb();
@@ -97,7 +112,10 @@ class ECPedCalib {
     static void outptb(int flg);
     static time_t & BTime(){return BeginTime;}
     static uinteger & BRun(){return BeginRun;}
+    static void ntuple_close();
 };
+//-----------------------------------------------------------------
+ 
 //----------------------------------------------------------------- 
 
 
