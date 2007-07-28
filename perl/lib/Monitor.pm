@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.114 2007/06/14 13:53:55 ams Exp $
+# $Id: Monitor.pm,v 1.115 2007/07/28 06:59:29 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -737,7 +737,7 @@ sub getactivehosts{
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
                          if(($1 eq $host) ){
 #           if( $rdstc->{HostName} eq $host){
-#             print "$rdst->{Run}   Host $rdstc->{HostName}  $rdstc->{EventsProcessed} $rdstc->{CPUTimeSpent} $rdstc->{CPUMipsTimeSpent} $rdstc->{Mips} \n";
+             print " pidarasy $rdst->{Run}   Host $rdstc->{HostName}  $rdstc->{EventsProcessed} $rdstc->{CPUTimeSpent} $rdstc->{CPUMipsTimeSpent} $rdstc->{Mips} \n";
                $evt+=$rdstc->{EventsProcessed};
                $cerr+=$rdstc->{CriticalErrorsFound};
                $err+=$rdstc->{ErrorsFound};

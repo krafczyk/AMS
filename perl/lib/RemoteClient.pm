@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.462 2007/06/13 14:44:18 choutko Exp $
+# $Id: RemoteClient.pm,v 1.463 2007/07/28 06:59:29 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1343,6 +1343,7 @@ sub ValidateRuns {
         if($run->{Run} ne $Run and $Run>0){
             next;
         }
+
 #        die " $Run $run->{Run} "; 
 #
 # check jobs processing flag if -1 stop processing
@@ -14277,13 +14278,19 @@ sub CheckFS{
                my @stat =stat("$stf");
                unlink "$stf";
                if($stat[7]==0){
+               system("ls $fs->[0] 1>$stf 2>&1 &");
+               sleep (2); 
+               my @stat =stat("$stf");
+               unlink "$stf";
+               if($stat[7]==0){
                 $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
-                if(not defined $updatedb or $updatedb==0){
-#                 print " $fs->[1]:$fs->[0] is not online \n";
-             }
-                else{
+                if($vrb==1){
+                 print " $fs->[1]:$fs->[0] is not online \n";
+                }
+                if(defined $updatedb and $updatedb!=0){
                 $self->{sqlserver}->Update($sql);
-             }
+                }
+                }
 
                 next;
             }
