@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.18 2007/05/15 11:38:33 choumilo Exp $
+//  $Id: tofuser02.C,v 1.19 2007/10/01 13:30:53 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -79,7 +79,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     crat=hwid/10;
     slot=hwid%10;
 //    ptrt->getstdc(stimes);
-    temper=ptrt->gettemp();
+    temper=ptrt->gettempT();//SFET-based temperature
 //    tinp=stimes[0]-stimes[1];
 //    tout=stimes[1]-stimes[3];
 //    cout<<"swid/hwid="<<swid<<" "<<hwid<<"  tin/out="<<tinp<<" "<<tout<<"  temp="<<temper<<endl;

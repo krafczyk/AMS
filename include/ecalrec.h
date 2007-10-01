@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.43 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: ecalrec.h,v 1.44 2007/10/01 13:31:09 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -21,7 +21,7 @@ private:
   static time_t StartTime;//first run time
   static uinteger trigfl; // =MN, where M=0/1/2/3->EnerFlag, N=0/1/2->Width(Angle)Flag
   static uinteger trigconf;//proj. or/and flag for FTEnergy/LVL1Angle(MN, M(N)=2/1=> AND/OR of proj) 
-  static number trigtm; // ECAL FT abs. time
+  static number trigtm; // ECAL FTE-trig abs. time at JLV1
   static geant trsum;// Trigger sum(dynodes,tempor in gev)
   static geant dynadc[ecalconst::ECSLMX][ecalconst::ECPMSMX];//dynode adc's (ped-subtracted)
   static int16u trpatt[6][3];//dyn.trig.patt([6]=>suplayers:2-7; [3]=>3x16bits used for triggered dynodes)

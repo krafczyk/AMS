@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.251 2007/07/12 07:31:40 choumilo Exp $
+#  $Id: datacards.doc,v 1.252 2007/10/01 13:31:08 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -685,6 +685,8 @@ R 17   blshift(0.)         // base line shift at fast discr.input (mv)
 R 18   hfnoise(5.)         // high freq. noise .......   
 //     
 I 19   ReadConstFiles(000)   // PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->read DB/RawFiles
+I 20   addpeds(0)          // 1/0-> add/not peds into empty(no MC dE/dX) channels
+I 21   calvern(1)          // TofCflistMC-file(barcal_files vers. list) vrsion number
 
 
 // AMS02 TOF Reconstruction
@@ -726,12 +728,15 @@ I 28  ReadConstFiles(100)   // QDPC(Q->ChargeCalib,D->ThreshCuts-set,P->Peds,C->
 // P=1/0->Take Peds(rd) from RawFiles/DB
 // C=1/0->Take PaddleCalibrCont from RawFiles/DB
 //
-I 29-30   sec[2](0,0)        // Validity time: beg/end
-I 31-32   min[2](0,0)        //
-I 33-34   hour[2](0,0)       // 
-I 35-36   day[2](1,1)        //
-I 37-38   mon[2](0,0)        //
-I 39-40   year[2](101,110)   //
+I 29 TempHandlMode(0)     // CPT(Slow:C->SFEC,P->PMT; Fast:T->SFET)=> Temperature Handling Mode 
+//                               C(P,T)=1/0->do/not corresponding temper-corrections at reco-stage
+I 30 calutc(1167606001)   //(20070101 0000001)TofCflistRD-file(barcal_files vers. list) begin UTC-time
+I 31-32   sec[2](0,0)        // Validity time: beg/end
+I 33-34   min[2](0,0)        //
+I 35-36   hour[2](0,0)       // 
+I 37-38   day[2](1,1)        //
+I 39-40   mon[2](0,0)        //
+I 41-42   year[2](101,110)   //
 
 // AMS02 TOF calibration
 

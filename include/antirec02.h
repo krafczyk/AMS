@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.12 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: antirec02.h,v 1.13 2007/10/01 13:31:09 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -18,7 +18,7 @@ private:
   static uinteger trpatt; //bits 1-8 => log.sect# in coinc.with FT
   int16u _idsoft; // BBS (Bar/Side)
   int16u _status; // status (0/1/... -> alive/dead/...)
-  geant _temp;//temperature
+  geant _temp;//fast temperature (SFEA-sensor reading)
   geant _adca;// anode pulse-charge hit(ADC-counts, ped-subtracted if not PedCalibJob)
   integer _nftdc;//number of FastTrig(FT) hits, =1 in MC(filled at validation stage !!)
   integer _ftdc[TOF2GC::SCTHMX1]; // FT-hits(tdc-chan),1/4-plane specific, but stored for each sect

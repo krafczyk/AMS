@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.213 2007/07/12 07:31:40 choumilo Exp $
+//  $Id: commons.h,v 1.214 2007/10/01 13:31:09 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -159,7 +159,7 @@ public:
 geant TimeSigma;
 geant TimeSigma2;
 geant TimeProbability2;
-geant padl;
+geant dzconv;
 geant Thr;
 //
 integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
@@ -172,6 +172,7 @@ geant blshift;     // base line shift
 geant hfnoise;     // high freq. noise
 integer ReadConstFiles;
 integer addpeds;
+integer calvern;//  TofCflistMC-file version number (file extention)
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
@@ -409,6 +410,7 @@ geant LZero;
 geant LSpeed;
 //
 integer ReadConstFiles;
+integer calvern;
 //
 };
 #define ATMCFFKEY COMMON_BLOCK(ATMCFFKEY,atmcffkey)
@@ -425,6 +427,7 @@ public:
   geant ftwin; // t-window(ns) for Hist-TDC hit coinc.with FT 
 //
   integer ReadConstFiles;
+  uinteger calutc;
 //
   integer sec[2];
   integer min[2];
@@ -438,7 +441,7 @@ COMMON_BLOCK_DEF(ATREFFKEY_DEF,ATREFFKEY);
 //================================================================
 class ATCAFFKEY_DEF {
   public:
-  integer cfvers; // vers.number NN for antiverlistNN.dat file
+  integer cfvers; // spare
   integer cafdir; // use official/private directory for calib.file
   geant pedcpr[2]; //PedCalibJob: Class/DownScaled: portion of highest adcs to remove for ped-calc
   integer pedoutf;//              PedOutputFlag
@@ -457,6 +460,9 @@ geant ThrS;  // limit on sum
   geant cuts[10];// cuts 
 //
   integer ReadConstFiles;
+//
+  integer TempHandlMode;
+  uinteger calutc;
 //
   integer sec[2];
   integer min[2];
@@ -490,7 +496,7 @@ geant plhec[2];//low/high cuts on tracker mom. for earth calibration
 geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
 integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
-integer cfvers;// 1-999 -> vers.number for tofverslistNN.dat file
+integer cfvers;// spare
 integer cafdir;// 0/1->use officical/private directory for calib.files
 integer mcainc;// to swich on/off A-integr. calibr. in MC
 geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 

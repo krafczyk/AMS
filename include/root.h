@@ -485,7 +485,9 @@ public:
   float adca;//Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
   int nadcd;//number of Dynode nonzero(!) signals
   float adcd[3];//Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
-  float temp;//temperature(given by probe in SFET/SFEA slots)  
+  float temp;//Anode-readout temperature (given by probe in SFET(A) slots)  
+  float tempC;//Dynode-readout temperature (given by probe in SFEC card)  
+  float tempP;//PM-temperature (averaged over PMTs of 1side, based on probes in TOP-plane envelop)  
 
   TofRawSideR(){};
   TofRawSideR(TOF2RawSide *ptr);
@@ -493,7 +495,7 @@ public:
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
   
-  ClassDef(TofRawSideR ,3)       //TofRawSideR
+  ClassDef(TofRawSideR ,4)       //TofRawSideR
 };
 
 

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.19 2007/07/12 07:30:49 choumilo Exp $
+//  $Id: antidbc02.C,v 1.20 2007/10/01 13:30:52 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -7,6 +7,7 @@
 #include "job.h"
 #include "amsdbc.h"
 #include <stdio.h>
+#include <time.h>
 #include <iostream.h>
 #include <fstream.h>
 #include "tofdbc02.h"
@@ -44,7 +45,7 @@ ANTIPedsMS ANTIPedsMS::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPa
 //                                     (i neglect by fall-time of generic discr, so DT=(11+5)ns for output signals !!!)
   geant ANTI2DBc::_tdcdtm=20.;//dead time of TDC-inputs, the same for LT-/FT-inputs[ns]
   geant ANTI2DBc::_daccur=0.02;//generic discr. internal accuracy[ns]
-  geant ANTI2DBc::_pbgate=240.;//TgBox FT-gate width to latch "pattern" pulses
+  geant ANTI2DBc::_pbgate=240.;//JLV1-output glFT-gate width to latch "pattern" pulses
 //
 //  ANTI2DBc class member functions :
 //
@@ -315,44 +316,69 @@ void ANTI2SPcal::build(){ // fill array of objects with data
   geant t0[2],tzer[ANTI2C::MAXANTI][2],a2p,adc2pe[ANTI2C::MAXANTI];
   char fname[80];
   char name[80];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
-//------------------------------
-  char in[2]="0";
-  char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  int ctyp,ntypes;
 //
-  strcpy(inum,"0123456789");
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
 //
-// ---> read cal.file-versions file :
+// ---> read cal.files-versions file :
 //
-  integer cfvn;
-  cfvn=ATCAFFKEY.cfvers%1000;
-  strcpy(name,"antiverlist");
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"AccCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ATMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ATREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+//
   if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ANTI2Pcal::build: Open file  "<<fname<<'\n';
+  cout<<"====> ANTI2SPcal::build: Opening Calib_vers_list-file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
   if(!vlfile){
-    cerr <<"ANTI2SPcal_build:: missing verslist-file "<<fname<<endl;
+    cout <<"<---- Error: missing vers_list-file "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(i=0;i<ntypes;i++){
-    vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
+    vlfile >> verids[i];// 
+  }
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of AccCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      AccCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(ATREFFKEY.calutc);
+    printf("      AccCflistRD-file begin_date: %s",ctime(&utct)); 
   }
   vlfile.close();
 //
@@ -361,45 +387,19 @@ void ANTI2SPcal::build(){ // fill array of objects with data
 //   --->  Read stable param(adc2pe/daqthr/hdthr/tzer/ftdel) calib. file:
 //
  ctyp=1;
- strcpy(name,"antispf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-event
- {
-   cout <<" ANTI2SPcal_build: adc2pe/daqthr/hdthr/tzer/ftdel const for MC-events "<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real events
- {
-   cout <<" ANTI2SPcal_build: adc2pe/daqthr/hdthr/tzer/ftdel for Real-events"<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
- strcat(name,".dat");
+ verid=verids[ctyp-1];//MC-versn or RD-utc
+ strcpy(name,"AccStpar");//generic name
+ strcat(name,datt);
+ strcat(name,".");
+ sprintf(ext,"%d",verid);
+ strcat(name,ext);
  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
- cout<<"ANTI2SPcal_build:Open file : "<<fname<<'\n';
- ifstream asfile(fname,ios::in); // open StableParam-file for reading
+ cout<<"      Opening AccStableParams-file : "<<fname<<'\n';
+ ifstream asfile(fname,ios::in); // open file for reading
  if(!asfile){
-   cerr <<"ANTI2SPcal_build: missing StableParams-file "<<fname<<endl;
+   cout <<"<---- Error: missing AccStableParams-file: "<<fname<<endl;
    exit(1);
  }
 //
@@ -418,9 +418,9 @@ void ANTI2SPcal::build(){ // fill array of objects with data
  asfile.close();
 //
  if(endflab==12345){
-   cout<<"ANTI2SPcal_build: stable-params file is successfully read !"<<endl;
+   cout<<"      AccStableParams file is successfully read !"<<endl;
  }
- else{cout<<"ANTI2SPcal_build: ERROR(problems with stable-params file)"<<endl;
+ else{cout<<"<---- ERROR: problems with AccStableParams file"<<endl;
    exit(1);
  }
 //---------------------------------------------
@@ -438,6 +438,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
       antispcal[i]=ANTI2SPcal(i,a2p,dqthr,hthr,t0,ftdl);// create ANTI2SPcal object
     }
 //
+  cout<<"<---- ANTI2SPcal::build: succsessfully done !"<<endl<<endl;
 }
 //==================================================================
 //
@@ -452,44 +453,69 @@ void ANTI2VPcal::build(){ // fill array of objects with data
   geant attlen[ANTI2C::MAXANTI][2],atl[2];
   char fname[80];
   char name[80];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
-//------------------------------
-  char in[2]="0";
-  char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  int ctyp,ntypes;
 //
-  strcpy(inum,"0123456789");
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
 //
 // ---> read cal.file-versions file :
 //
-  integer cfvn;
-  cfvn=ATCAFFKEY.cfvers%1000;
-  strcpy(name,"antiverlist");
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"AccCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ATMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ATREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+//
   if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"ANTI2VPcal::build: Open file  "<<fname<<'\n';
+  cout<<"====> ANTI2VPcal::build: Opening Calib_vers_list-file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
   if(!vlfile){
-    cerr <<"ANTI2VPcal_build:: missing verslist-file "<<fname<<endl;
+    cout <<"<---- Error: missing vers_list-file "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(i=0;i<ntypes;i++){
-    vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
+    vlfile >> verids[i];// 
+  }
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of AccCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      AccCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(ATREFFKEY.calutc);
+    printf("      AccCflistRD-file begin_date: %s",ctime(&utct)); 
   }
   vlfile.close();
 //
@@ -497,45 +523,19 @@ void ANTI2VPcal::build(){ // fill array of objects with data
 //
 //
  ctyp=2;
- strcpy(name,"antivpf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-event
- {
-   cout <<" ANTI2VPcal_build: start read stat/mev2pe/attlen const for MC-events "<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real events
- {
-   cout <<" ANTI2VPcal_build: start read stat/mev2pe/attlen for Real-events"<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
- strcat(name,".dat");
+ verid=verids[ctyp-1];//MC-versn or RD-utc
+ strcpy(name,"AccVrpar");//generic name
+ strcat(name,datt);
+ strcat(name,".");
+ sprintf(ext,"%d",verid);
+ strcat(name,ext);
  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
- cout<<"ANTI2VPcal_build:Open file : "<<fname<<'\n';
- ifstream avfile(fname,ios::in); // open VariableParam-file for reading
+ cout<<"      Opening AccVariableParams-file : "<<fname<<'\n';
+ ifstream avfile(fname,ios::in); // open file for reading
  if(!avfile){
-   cerr <<"ANTI2VPcal_build: missing VariableParams-file "<<fname<<endl;
+   cout <<"<---- Error: missing AccVariableParams-file: "<<fname<<endl;
    exit(1);
  }
 //
@@ -556,9 +556,9 @@ void ANTI2VPcal::build(){ // fill array of objects with data
  avfile.close();
 //
  if(endflab==12345){
-   cout<<"ANTI2VPcal_build: variab-params file is successfully read !"<<endl;
+   cout<<"      AccVariableParams file is successfully read !"<<endl;
  }
- else{cout<<"ANTI2VPcal_build: ERROR(problems with variab-params file)"<<endl;
+ else{cout<<"<---- ERROR: problems with AccVariableParams file"<<endl;
    exit(1);
  }
 //
@@ -580,6 +580,7 @@ void ANTI2VPcal::build(){ // fill array of objects with data
       antivpcal[i]=ANTI2VPcal(i,sta1,sta2,m2p1,m2p2,atl);// create ANTI2VPcal object
     }
 //
+  cout<<"<---- ANTI2VPcal::build: succsessfully done !"<<endl<<endl;
 }
 //
   geant ANTI2VPcal::getmev2pec(int is){
@@ -1049,7 +1050,7 @@ void ANTI2JobStat::printstat(){
 void ANTI2JobStat::bookmch(){
 //
   HBOOK1(2630,"ANTI-MC: Counters Etot (geant,Mev)",60,0.,30.,0.); 
-  HBOOK1(2631,"ANTI-MC(lvl1): AbsGlobFTime-SideTrigPattSignalTime(ns)",80,-160.,160.,0.); 
+  HBOOK1(2631,"ANTI-MC(lvl1): GlobFTtime-SideTrigPattSignalTime(ns, at JLV1)",80,-160.,160.,0.); 
   HBOOK1(2632,"ANTI-MC: DownSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
   HBOOK1(2633,"ANTI-MC: UpSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
   HBOOK1(2634,"ANTI-MC: DownSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.29 2007/05/15 11:39:24 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.30 2007/10/01 13:31:09 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -136,11 +136,13 @@ private:
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
   static geant _accdel;      // "Lev-1"(Common stop) signal delay wrt FT (ns)
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
-  static geant _clkper;      // Trig.electronics clock period(ns)
+  static geant _clkperJLV;      // JLVTrig.electronics(JLV1-crate) clock period(ns)
+  static geant _clkperSPT;      // SPTpreTrig.electronics(S-crates) clock period(ns)
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
   static integer _nsespar;   // number of PMT SingleElectrSpectrum(SES) parameters
   static geant _sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX];//SES params for each btyp
 //                       (for now: 1st par->(MostProb,mV on 50 Ohm);2nd->rms(relat to MP))
+  static geant _tofareftem[3];//RefTemperatures for SFET(A),PMT,SFEC
 //
 public:  
 
@@ -193,8 +195,10 @@ public:
   static geant ltagew(int i);
   static geant ftdelm();
   static geant fstdcd();
-  static geant clkper();
+  static geant clkperJLV();
+  static geant clkperSPT();
   static geant sespar(int ibt, int ipar);
+  static geant tofareftem(int i){return _tofareftem[i];}
   static int nsespar();
   static geant adc2q();
   static integer pbonup();
@@ -219,23 +223,32 @@ public:
 };
 //===================================================================
 // 
+// --------------> Class for TOF2 slow temperature data :
+class TofSlowTemp {
+  private:
+    geant _stemp[TOF2GC::SCLRS][16];//2*8(chain A->B) sensors temperatures
+    uinteger _sta[TOF2GC::SCLRS][16];//2*8 sensors status (0/1->bad/ok)
+  public:
+    static TofSlowTemp tofstemp; 
+  TofSlowTemp(){};
+// member functions :
+//lay=0,3;side=0,1;sen=0,7;chain=0,1->A,B.
+  geant gettemp(int lay, int sen, int chain){return _stemp[lay][sen+8*chain];}
+  uinteger getsta(int lay, int sen, int chain){return _sta[lay][sen+8*chain];}
+  void settemp(int lay, int sen, int chain, geant temp){_stemp[lay][sen+8*chain]=temp;}
+  void setsta(int lay, int sen, int chain, uinteger sta){_sta[lay][sen+8*chain]=sta;}
+  int gettempC(int crat, int slot, geant & atemp);//average(over 2 sensors) SFEC-card temper
+// (return 1/0->ok/fail)
+  int gettempP(int lay, int side, geant & atemp);//average(over  
+//"PM"-sensors(2*3) in layer/side of TOF-plane envelop) temper, return 1/0->ok/fail
+  void init(); 
+};  
+//===================================================================
+// 
 // --------------> Class for general "time-Variable"  parameters :
 class TOF2Varp {  
 //
 private:
-//
-class TOF2Temperature{
- public:
-  uinteger tofav[8];
-  uinteger cr01[4];
-  uinteger cr31[4];
-  uinteger cr41[4];
-  uinteger cr71[4];
-  uinteger cr03[2];
-  uinteger cr33[3];
-  uinteger cr43[3];
-  uinteger cr73[3];
-};
 // ---> TOF DAQ-system thresholds :
   geant _daqthr[5];   // DAQ-system thresholds (defaults)
 // ---> Cuts :
@@ -247,20 +260,15 @@ class TOF2Temperature{
           //  (4) ftdelf  -> FT fixed delay
           //  (5) sftdcd  -> spare 
           //  (6) eclass  -> assim.cut for TOFCluster energy calc.
-          //  (7) eclmat  -> internal long.coo matching cut ....
-          //  (8) satdcg  -> 
-          //  (9) sdtdcg  -> 
-   static TOF2Temperature  tftt;
+          //  (7) Tdtemp  -> T-type def.temper (SFET(A))
+          //  (8) Pdtemp  -> P-type def.temper (PMTs)
+          //  (9) Cdtemp  -> C-type def.temper (SFEC)
 //
 public:
   static TOF2Varp tofvpar;
   TOF2Varp(){};
 // member functions :
 //
-  static TOF2Temperature * gettoftp(){return &tftt;}
-  static integer gettoftsize(){return sizeof(tftt);}
-
-  static geant getmeantoftemp(int crate);
   void init(geant daqthr[5], geant cuts[10]);
 //
   geant fstdw(){return _cuts[0];}
@@ -270,9 +278,9 @@ public:
   geant ftdelf(){return _cuts[4];}
   geant sftdcd(){return _cuts[5];}
   geant eclass(){return _cuts[6];}
-  geant eclmat(){return _cuts[7];}
-  geant satdcg(){return _cuts[8];}
-  geant sdtdcg(){return _cuts[9];}
+  geant Tdtemp(){return _cuts[7];}
+  geant Pdtemp(){return _cuts[8];}
+  geant Cdtemp(){return _cuts[9];}
 // 
   geant daqthr(int i){;
 #ifdef __AMSDEBUG__
@@ -382,7 +390,7 @@ private:
   static integer rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
   static integer rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 //
-  static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//TOF+ANTI temperatures in crates/temp_slots 
+  static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//temperatures(TempT) from SFET(A)-cards reading 
 //
 public:
   static void clear();
@@ -431,8 +439,8 @@ class TOF2Brcal{
 private:
   integer softid;  // LBB
   integer npmts;   // Npmts per side
-  integer status[2]; //2-sides calib.status F|S|A|D -> Anode(sumHT/LTchan)/
-//                                                  Anode/Dynode ADC, dec.bit=0/1->OK/Bad
+  integer status[2]; //2-sides calib.status F|S|A|D -> Anode(sumHT/LTchan)_TDC/
+//                                                  Anode/Dynode_ADC, dec.bit=0/1->OK/Bad
   geant gaina[2]; // Anode-gain(PMT mainly)(S1/2; relative to some ref. bar of given type)
   geant gaind[2][TOF2GC::PMTSMX];//Dynode rel.gain(S1/2; for each PMT wrt aver. side-signal)       
   geant a2dr[2];  // A to D(equilized sum) ratio (in unsatur. region)
@@ -481,13 +489,13 @@ public:
     return((status[isd]%100000)/10000==0);// means good LTtime-chan(anode)
   }
   bool AchOK(int isd){
-    return((status[isd]%10000)/1000==0);// means good Anode channel
+    return((status[isd]%10000)/1000==0);// means good Anode-ampl channel
   }
   bool DchOK(int isd, int ipm){//ipm=0-2
     int nml=(status[isd]%1000);
-    if(ipm==0)return(nml%10==0);// means good Dynode ipm-chan(1)
-    if(ipm==1)return((nml%100)/10==0);// means good Dynode ipm-chan(2)
-    if(ipm==2)return(nml/1000==0);// means good Dynode ipm-chan(3)
+    if(ipm==0)return(nml%10==0);// means good Dynode-ampl ipm-chan(1)
+    if(ipm==1)return((nml%100)/10==0);// means good Dynode-ampl ipm-chan(2)
+    if(ipm==2)return(nml/1000==0);// means good Dynode-ampl ipm-chan(3)
     return(0);
   }
   bool SideOK(int isd){return(

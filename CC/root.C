@@ -2410,7 +2410,9 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
   adca=ptr->_adca;
   nadcd=ptr->_nadcd;
   for(int ip=0;ip<TOF2GC::PMTSMX;ip++)adcd[ip]=ptr->_adcd[ip];
-  temp=ptr->_temp;
+  temp=ptr->_tempT;
+  tempC=ptr->_tempC;
+  tempP=ptr->_tempP;
 #endif
 }
 

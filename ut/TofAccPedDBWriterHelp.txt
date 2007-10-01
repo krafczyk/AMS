@@ -2,7 +2,7 @@
    
   It can perform the following actions:
 
-    1) Scan ScanD-dir and select all ped_table files in 
+    1) Scan PedsD-dir and select all ped_table files in 
        pre-defined dates range (ped_table file is the 
        standard output of "Offline Program" working in 
        "Ped-Calibration" mode and its name has begin_validity
@@ -30,7 +30,7 @@
        complete the procedure. Depending on "Job-conditions"
        pannel selections, the program will archive UpdDB-used
        ped_table files and save log-file under the name
-       "logfile.xxxxxx.txt" in working directory. The "xxxx"
+       "logfile.xxxxxx.txt" in TopD directory. The "xxxx"
        will be the begin_validity UTC of the 1st ped_table
        file written into DB (the files are written into DB 
        in the increasing order of their begin_validity)
@@ -41,22 +41,29 @@
                  of standard path to AMSDataDir directory.
        "TopD"  - path to standard SubDetector-calibration
                  working directory.
-       "ScanD" - path to standard directory where the 
+       "PedsD" - path to standard directory where the 
                  ped_table files are stored befor writing
 		 to DB (currently sub-dir of "TopD").
        "ArchD" - path to standard directory where the
                  DB-written ped_table files are moved to
-		 (currently sub-dir of "ScanD").
+		 (currently sub-dir of "PedsD").
 		 
   The standard buttons sequence for the session is :
      "Scan"->["Check"+plot_creation]->"UpdDB"->"Exit".
      
+    To get full functionality of the program user have to 
+  login by typing the password into the yellow window under
+  the "Help"-button. Otherwise the "UpdDB"-button will 
+  function only in the "dry-run" mode (see below). But you 
+  can "Check" the ped-files without any restriction and see
+  the content of DB map-file.
+     
   The particular buttons description is shown below:
       
     "Scan-Button:" 
-                     scan "ScanD"-directory for pre-defined
-    ped_table files types (TOF||ACC, "on-board"|/&"offline"
-    calculated) in predefined low/high dates window. If
+                     scan "PedsD"-directory for pre-defined
+    ped_table files TYPES (TOF||ACC, "on-board"|/&"offline"
+    calculated) in predefined low/high DATES window. If
     low-boundary > high-boundary ALL files are selected.
     If in the "File" entry window default "All" was changed
     to particular ped_table file name - only this file will
@@ -91,11 +98,27 @@
     map-file and see its real contents befor real DB-update.
     
     "UpdDB_DryRun-Button:"
-                     when this switch is ON (red), the
+                     when this switch is ON (orange), the
     clicking of "UpdDB"-button results to single call to
     Offline Program in "no-real-update" mode thus updating
     the corresponding map-file to see existing records and
     their parameters (Begin/End/Insert-times).
+    
+    "ScanArchive-Button:"
+                     being switched-on provides scanning
+    of Archive-dir instead of Peds-dir with its original 
+    ped_table files. Useful when you realised that something
+    was wrong in one of the previous sessions and want to
+    repeat DB-update with some of already archived files
+    ( pay special attention to dates window selection !).
+    The described below button will have no effect because
+    the processed files are already archived. If wrong
+    session was not the last one - include also into the
+    dates window the files written after your bad session 
+    and use in any case "DBrewriteMode" in order to have more
+    simple DB-structure (update in default "DBinsertMode" is also
+    possible, but not really checked yet). 
+        
     
     "ArchiveOnExit-Button:"
                      being switched-on provides archiving
@@ -130,6 +153,18 @@
     some data length is wrong - point will be in red and
     corresponding file will be AUTOMATICALLY removed from 
     the list for DB-update.
+    
+    "PedRmsTimeScanPlot-Button:"
+                      plots time-evolution of Ped_Rms for
+    Anode and Dynode(shifted up by 10). Each point
+    pepresents AVERAGE of all Anodes(Dynodes) channels Rms
+    for given ped_table file. Also plotted is minimal
+    channel's Rms (as bottom end of vertical line) and
+    maximum channel's Rms (as top end of this line). Wnen
+    you click any point, the corresponding ped_table file
+    name is shown in yellow intry-window below. Using 
+    special "Mark above file as bad"-button below you can 
+    mark this file as bad, i.e. it will not be writted to DB.
     
     "PedTimeScanPlot-Button:"
                       plots time evolution of ped and rms

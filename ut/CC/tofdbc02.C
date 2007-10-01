@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.39 2007/07/12 07:30:50 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.40 2007/10/01 13:30:53 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <iostream.h>
 #include <fstream.h>
+#include "tofid.h"
 #include "tofsim02.h"
 #include "tofrec02.h"
 #include "tofcalib02.h"
@@ -16,10 +17,10 @@
 using namespace AMSChargConst;
 //
 TOF2Varp TOF2Varp::tofvpar; // mem.reserv. TOF general parameters 
+TofSlowTemp TofSlowTemp::tofstemp; // mem.reserv. TOF slow temperatures 
 TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// mem.reserv. TOF indiv.bar param. 
 TOFBrcalMS TOFBrcalMS::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// the same for "MC Seeds" 
 TOFBPeds TOFBPeds::scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];//mem.reserv. TOF-bar pedestals/sigmas/...
-TOF2Varp::TOF2Temperature TOF2Varp::tftt;
 TofElosPDF TofElosPDF::TofEPDFs[MaxZTypes];
 //-----------------------------------------------------------------------
 //  =====> TOF2DBc class variables definition :
@@ -108,8 +109,8 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
 //                    5<=inpTovT<=(5+7), and outPW=inpTovT-5 if inpTovT>(5+7)]
     11.,     // (4)input dead time of generic discr(min dist. of prev_down/next_up edges)[ns]
 //                    (i neglect by fall-time of generic discr, so DT=(11+5)ns for output signals !!!)
-    250.,   // (5)gate-width for z>=1 tof-trig-pattern creation(in SPT2)[ns]
-    250.,   // (6)gate-width for z>=2 tof-trig-pattern creation(in SPT2)[ns]
+    240.,   // (5)FTgate-width for z>=1 tof-trig-pattern creation(in SPT2)[ns, FT going from JLV1]
+    240.,   // (6)FTgate-width for z>=2 tof-trig-pattern creation(in SPT2)[ns, FT going from JLV1]
     20.,    // (7)dead time of TDC-inputs, the same for LT-/FT-/SumHT-inputs[ns]
     10.,    // (8)dead time of "HT/SHT-trig" branch on ACTEL-outp(SPT-inp)[fall-to-rise min.dist, going to SPT, ns]
 //                    (Guido: ACTEL-input is faster than Discr, so no ACTEL-inp dead time check) 
@@ -129,8 +130,10 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::_ltagew[2]={20,640};//LTtime-hit(true) wrt FTtime age-window(ns) 
   geant TOF2DBc::_ftdelm=250.; // FT max delay (allowed by stretcher logic) (ns)
   geant TOF2DBc::_fstdcd=28.;  // spare       (because now taken from DC/DB)
-  geant TOF2DBc::_clkper=40.;  // Trig.electronics clock period(ns)
-  integer TOF2DBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
+  geant TOF2DBc::_clkperJLV=40.;  // JLVTrig.electronics(JLV1-crate) clock period(ns)
+  geant TOF2DBc::_clkperSPT=20.;  // SPTpreTrig.electronics(S-crates) clock period(ns)
+  integer TOF2DBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0)
+  geant TOF2DBc::_tofareftem[3]={0.,0.,0.};//Tof(Acc) ref.temperatures for SFET(A),PMT,SFEC 
 //
 //  member functions :
 //
@@ -176,7 +179,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     cout<<"      Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed config-file for reading
     if(!tcfile){
-      cerr <<"      missing geomconfig-file "<<fname<<endl;
+      cout <<"      missing geomconfig-file "<<fname<<endl;
       exit(1);
     }
     tcfile >> _planes;
@@ -394,7 +397,8 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::ltagew(int i){return _ltagew[i];}
   geant TOF2DBc::ftdelm(){return _ftdelm;}
   geant TOF2DBc::fstdcd(){return _fstdcd;}
-  geant TOF2DBc::clkper(){return _clkper;}
+  geant TOF2DBc::clkperJLV(){return _clkperJLV;}
+  geant TOF2DBc::clkperSPT(){return _clkperSPT;}
   
   int TOF2DBc::nsespar(){return _nsespar;}
   geant TOF2DBc::sespar(int ibt, int ip){
@@ -493,8 +497,6 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  char fname[80];
  char name[80];
  geant a2q,td2p[2];
- char vers1[3]="mc";
- char vers2[3]="rl";
  int mrfp;
 //
  geant asatl=20.;//(mev,~20MIPs),if E-dinode(1-end) higher - use it instead
@@ -504,88 +506,87 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  geant gnd[2][TOF2GC::PMTSMX];
  int ipm; 
 //------------------------------
-  char in[2]="0";
-  char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  int ctyp,ntypes;
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
 //
-  strcpy(inum,"0123456789");
-//
-// ---> read file with the list of version numbers for all needed calib.files :
-//
-  integer cfvn;
-  cfvn=TFCAFFKEY.cfvers%1000;//vers.list-file version number 
-  strcpy(name,"tof2cvlist");// basic name for vers.list-file  
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",TFREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
 //
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"====> TOF2Brcal::build: Opening vers.list-file  "<<fname<<'\n';
+  cout<<"====> TOF2Brcal::build: Opening Calib_vers_list-file "<<fname<<'\n';
   ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cerr <<"<---- missing vers.list-file !!! "<<fname<<endl;
+    cout <<"<---- Error: missing vers.list-file !!? "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
-  for(i=0;i<ntypes;i++){
-    vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];// 
+  }
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      TofCflistRD-file begin_date: %s",ctime(&utct)); 
   }
   vlfile.close();
 //------------------------------------------------
 //
-//   --->  Prepare to read tof-channels calib-status file :
+//   --->  Read tof-channels calib-status file :
 //
- ctyp=2;//line# corresponding calib-status parameters file
- strcpy(name,"tof2stcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-data
- {
-   cout <<"      TOF-channels Calib-Status for MC-data is requested..."<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real-data
- {
-   cout <<"      TOF-channels Calib-Status for RealData is requested..."<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
-   strcat(name,".dat");
+  if(AMSJob::gethead()->isMCData())ctyp=2;
+  else ctyp=1;
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"TofCStat");//generic name
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
    if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
    strcat(fname,name);
-   cout<<"      Opening file : "<<fname<<'\n';
+   cout<<"      Opening TofCalibStatus-file : "<<fname<<'\n';
    ifstream stfile(fname,ios::in); // open file for reading
    if(!stfile){
-     cerr <<"<---- missing TOF-channels Calib-Status file: "<<fname<<endl;
+     cout <<"<---- Error: missing TofCalibStatus-file: "<<fname<<endl;
      exit(1);
    }
 //------------------------------
@@ -606,131 +607,33 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    stfile.close();
 //
    if(endflab==12345){
-     cout<<"   <--TOF-calib status file is successfully read !"<<endl;
+     cout<<"      TofCalibStatus-file is successfully read !"<<endl;
    }
-   else{cout<<"<---- problems with TOF-channels Calib-Status file !!!"<<endl;
+   else{
+     cout<<"<---- Error: problems with TofCalibStatus-file !!!"<<endl;
      exit(1);
    }
-//
-//------------------------------------------------- 
-//
-//   --->  Prepare to read stretcher_ratios/offs file :
-//
-// ctyp=3;
-// strcpy(name,"tof2srcf");
-// mcvn=mcvern[ctyp-1]%1000;
-// rlvn=rlvern[ctyp-1]%1000;
-// if(AMSJob::gethead()->isMCData())           // for MC-data
-// {
-//   cout <<" TOF2Brcal_build: str_ratio/offs params for MC-data are requested"<<endl;
-//   dig=mcvn/100;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   dig=(mcvn%100)/10;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   dig=mcvn%10;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   strcat(name,vers1);
-// }
-// else                                       // for Real-data
-// {
-//   cout <<" TOF2Brcal_build: str_ratio/offs params for Real-data are requested"<<endl;
-//   dig=rlvn/100;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   dig=(rlvn%100)/10;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   dig=rlvn%10;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   strcat(name,vers2);
-// }
-//   strcat(name,".dat");
-//   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-//   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-//   strcat(fname,name);
-//   cout<<"Open file : "<<fname<<'\n';
-//   ifstream scfile(fname,ios::in); // open file for reading
-//   if(!scfile){
-//     cerr <<"TOF2Brcal_build: missing str_ratio/offsets file "<<fname<<endl;
-//     exit(1);
-//   }
-//-----------------> read str_ratios/offsets:
-//
-//   cnum=0;
-//   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
-//   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-//     scfile >> strf[cnum][0];
-//     scfile >> strof[cnum][0];
-//     scfile >> strf[cnum][1];
-//     scfile >> strof[cnum][1];
-//     cnum+=1; // sequential counter numbering(0-...)
-//   } // --- end of bar loop --->
-//   } // --- end of layer loop --->
-//
-//   scfile >> endflab;//read endfile-label
-//
-//   scfile.close();
-//
-//   if(endflab==12345){
-//     cout<<"TOF2Brcal_build: TOF-str_ratio/offs file is successfully read !"<<endl;
-//   }
-//   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF-str_ratio/offs file)"<<endl;
-//     exit(1);
-//   }
-//
 //--------------------------------------------------
 //
-//   --->  Prepare to read lspeed/tdiffs calibration file :
+//   --->  Read SideTimeDifferences/LightSpeed calibration file :
 //
- ctyp=4;
- strcpy(name,"tof2tdcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData()) //      for MC-data
- {
-       cout <<"      TOF Lspeed/Tdiffs for MC-data are requested..."<<endl;
-       dig=mcvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(mcvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=mcvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers1);
- }
- else                              //      for Real-data
- {
-       cout <<"      TOF Lspeed/Tdiffs for Real-data are requested..."<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers2);
- }
-//
- strcat(name,".dat");
+ if(AMSJob::gethead()->isMCData())ctyp=3;
+ else ctyp=2;
+ verid=verids[ctyp-1];//MC-versn or RD-utc
+ strcpy(name,"TofTdelv");//generic name
+ strcat(name,datt);
+ strcat(name,".");
+ sprintf(ext,"%d",verid);
+ strcat(name,ext);
  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
- cout<<"      Open file : "<<fname<<'\n';
+ cout<<"      Opening TimeDiff/LightVelosity-file : "<<fname<<'\n';
  ifstream tdcfile(fname,ios::in); // open  file for reading
  if(!tdcfile){
-   cerr <<"<---- missing Lspeed/Tdif-file !!! "<<fname<<endl;
+   cout <<"<---- Error: missing TimeDiff/LightVelosity-file !!! "<<fname<<endl;
    exit(1);
  }
-//
-// ------------------------> read Lspeed/Tdiffs:
 //
  if(lsflg){// read bar indiv.Lspeed
    for(ila=0;ila<TOF2DBc::getnplns();ila++){   
@@ -754,60 +657,33 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    tdcfile.close();
 //
    if(endflab==12345){
-     cout<<"   <--TOF Lspeed/Tdiffs file is successfully read !"<<endl;
+     cout<<"      TOF TimeDiff/LightVelosity-file is successfully read !"<<endl;
    }
-   else{cout<<"<---- problems with TOF Lspeed/Tdiffs file !!!"<<endl;
+   else{cout<<"<---- Error: problems with TOF TimeDiff/LightVelosity-file !!!"<<endl;
      exit(1);
    }
 //-----------------------------------------------------
 //
-//   --->  Prepare to read slewing_slope/tzeros calibration file :
+//   --->  Read Tzeros/SlewingCorrections calibration file :
 //
- ctyp=5;
- strcpy(name,"tof2tzcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData()) //      for MC-data
- {
-       cout <<"      Slewing/T0-params for MC-data are requested..."<<endl;
-       dig=mcvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(mcvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=mcvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers1);
- }
- else                              //      for Real-data
- {
-       cout <<"      Slewing/T0-params for Real-data are requested..."<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers2);
- }
-//
- strcat(name,".dat");
+ if(AMSJob::gethead()->isMCData())ctyp=4;
+ else ctyp=3;
+ verid=verids[ctyp-1];//MC-versn or RD-utc
+ strcpy(name,"TofTzslw");//generic name
+ strcat(name,datt);
+ strcat(name,".");
+ sprintf(ext,"%d",verid);
+ strcat(name,ext);
  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
- cout<<"      Open file : "<<fname<<'\n';
+ cout<<"      Opening TOF T0/SlevCorr-file : "<<fname<<'\n';
  ifstream tzcfile(fname,ios::in); // open  file for reading
  if(!tzcfile){
-   cerr <<"<---- missing TOF Slewing/T0-params file !!! "<<fname<<endl;
+   cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
    exit(1);
  }
 //
-// --------------------------> read Slewing/Tzero's:
  tzcfile >> slpf;
  for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
    for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
@@ -820,56 +696,32 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    tzcfile.close();
 //
    if(endflab==12345){
-     cout<<"   <--TOF Slewing/T0-params file is successfully read !"<<endl;
+     cout<<"      TOF Slewing/T0-params file is successfully read !"<<endl;
    }
-   else{cout<<"<---- problems with TOF Slewing/T0-params file !!!"<<endl;
+   else{
+     cout<<"<---- Error: problems with TOF Slewing/T0-params file !!!"<<endl;
      exit(1);
    }
 //-------------------------------------------------------
 //
-//   --->Prepare to read anodes/dynode relat.gains, anode/dynode ratios,
+//   ---> Read anodes/dynode relat.gains, anode/dynode ratios,
 //       mip2q and A-profile param. calib.file :
 //
- ctyp=6;
- strcpy(name,"tof2chcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-data
- {
-   cout <<"      EnergyDeposit-calib params for MC-data are requested..."<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real-data
- {
-   cout <<"      EnergyDeposit-calib params for Real-data are requested..."<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
-   strcat(name,".dat");
+   if(AMSJob::gethead()->isMCData())ctyp=5;
+   else ctyp=4;
+   verid=verids[ctyp-1];//MC-versn or RD-utc
+   strcpy(name,"TofAmplf");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
    if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
    strcat(fname,name);
-   cout<<"      Open file : "<<fname<<'\n';
+   cout<<"      Opening TOF AmplificationParameters-file : "<<fname<<'\n';
    ifstream gcfile(fname,ios::in); // open file for reading
    if(!gcfile){
-     cerr <<"<---- missing EnergyDeposit-calib params file !!! "<<fname<<endl;
+     cout <<"<---- Error: missing TOF AmplificationParameters-file !!! "<<fname<<endl;
      exit(1);
    }
 //
@@ -933,9 +785,10 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    gcfile.close();
 //
    if(endflab==12345){
-     cout<<"   <--EnergyDeposit-calib params file is successfully read !"<<endl;
+     cout<<"      TOF AmplificationParameters-file is successfully read !"<<endl;
    }
-   else{cout<<"<---- problems with EnergyDeposit-calib params file !!!"<<endl;
+   else{
+     cout<<"<---- Error: problems with TOF AmplificationParameters-file !!!"<<endl;
      exit(1);
    }
 //   
@@ -1163,7 +1016,7 @@ void TOF2Brcal::td2ctd(number tdo, number amf[2], int hlf,
   }
 //  ================= TOFBrcalMS class("MC Seeds") functions ======================= :
 //
-void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
+void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //
  integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
  integer lps=1000;
@@ -1181,80 +1034,86 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
  int ipm; 
  char fname[80];
  char name[80];
+ char ext[80];
  geant a2q,td2p[2];
- char vers1[3]="mc";
- char vers2[3]="sd";
+ char vers1[3]="MC";
+ char vers2[3]="SD";
  int mrfp;
 //------------------------------
   char in[2]="0";
   char inum[11];
   int ctyp,ntypes,mcvern[10],rlvern[10];
   int mcvn,rlvn,dig;
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
 //
   strcpy(inum,"0123456789");
 //
-// ---> read file with the list of version numbers for all needed calib.files :
+// ---> read file with the list of version numbers for all needed MC-seed barcal.files :
 //
-  integer cfvn;
-  cfvn=TFCAFFKEY.cfvers%1000;//vers.list-file version number 
-  strcpy(name,"tof2cvlist");// basic name for vers.list-file  
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"TofCflistMC.");// basic name for vers.list-file  
+  sprintf(ext,"%d",TFMCFFKEY.calvern);//got TofCflistMC. file extention
+  strcat(name,ext);
 //
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"====> TOFBrcalMS::build: Opening vers.list-file...  "<<fname<<'\n';
+  cout<<"====> TOFBrcalMS::build: Opening TofCflistMC-file...  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cerr <<"<---- missing vers.list-file !!! "<<fname<<endl;
+    cout <<"<---- missing TofCflistMC-file !!! "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(i=0;i<ntypes;i++){
-    vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
+    vlfile >> mcvern[i];// vers# of MC-calib files 
   }
+  vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+  vlfile >> date[1];//HHMMSS ......................................
   vlfile.close();
+//
+  year=date[0]/10000;//2004->
+  mon=(date[0]%10000)/100;//1-12
+  day=(date[0]%100);//1-31
+  hour=date[1]/10000;//0-23
+  min=(date[1]%10000)/100;//0-59
+  sec=(date[1]%100);//0-59
+  begin.tm_isdst=0;
+  begin.tm_sec=sec;
+  begin.tm_min=min;
+  begin.tm_hour=hour;
+  begin.tm_mday=day;
+  begin.tm_mon=mon-1;
+  begin.tm_year=year-1900;
+  utct=mktime(& begin);
+  iutct=uinteger(utct);
+  cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+  cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+  cout<<"                                         UTC-time = "<<iutct<<endl;
 //------------------------------------------------
 //
 //   ---> Prepare to read tof-chan MCSeed calib-status file(used as "MC Seed") :
 //
- ctyp=2;//line# corresponding calib-status parameters file
- strcpy(name,"tof2stcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
-   cout <<"      MC_Seed_Calib-status params file is requested..."<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
-   else strcat(name,vers2);//sd = copy of rl
+  ctyp=2;//line# corresponding calib-status parameters file
+  strcpy(name,"TofCStat");
+  mcvn=mcvern[ctyp-1];
+  if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
+  else strcat(name,vers2);//sd = copy of rl
+  strcat(name,".");
 //
-   strcat(name,".dat");
-   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-   strcat(fname,name);
-   cout<<"      Opening file : "<<fname<<'\n';
-   ifstream stfile(fname,ios::in); // open file for reading
-   if(!stfile){
-     cerr <<"<---- missing MC_Seed_Calib-status params file !!! "<<fname<<endl;
-     exit(1);
-   }
+  sprintf(ext,"%d",mcvn);//got TofCStatMC. file extention
+  strcat(name,ext);
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening MC_Seed Calib_status file: "<<fname<<'\n';
+  ifstream stfile(fname,ios::in); // open file for reading
+  if(!stfile){
+    cout <<"<---- missing MC_Seed_Calib-status file !!! "<<fname<<endl;
+    exit(1);
+  }
 //------------------------------
 //   --->  Read MCSeed TOF-channels status values:
 //
@@ -1273,97 +1132,33 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    stfile.close();
 //
    if(endflab==12345){
-     cout<<"   <--MC_Seed_Calib-status params file successfully read !"<<endl;
+     cout<<"      MC_Seed Calib_status file successfully read !"<<endl;
    }
-   else{cout<<"<---- problems with MC_Seed_Calib-status params file !!!"<<endl;
+   else{cout<<"<---- problems with MC_Seed Calib-status file !!!"<<endl;
      exit(1);
    }
 //
 //------------------------------------------------- 
 //
-//   ---> Prepare to read MCSeed stretcher_ratios/offs file :
-//
-// ctyp=3;
-// strcpy(name,"tof2srcf");
-// mcvn=mcvern[ctyp-1]%1000;
-// rlvn=rlvern[ctyp-1]%1000;
-//   cout <<" TOFBrcalMS_build: MCSeeds str_ratio/offs params are requested"<<endl;
-//   dig=rlvn/100;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   dig=(rlvn%100)/10;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   dig=rlvn%10;
-//   in[0]=inum[dig];
-//   strcat(name,in);
-//   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
-//   else strcat(name,vers2);//sd = copy of rl
-//
-//   strcat(name,".dat");
-//   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-//   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-//   strcat(fname,name);
-//   cout<<"Open file : "<<fname<<'\n';
-//   ifstream scfile(fname,ios::in); // open file for reading
-//   if(!scfile){
-//     cerr <<"TOFBrcalMS_build: missing TOF MCSeed str_ratio/offsets file "<<fname<<endl;
-//     exit(1);
-//   }
-//-----------------> read str_ratios/offsets:
-//
-//   cnum=0;
-//   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
-//   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-//     scfile >> strf[cnum][0];
-//     scfile >> strof[cnum][0];
-//     scfile >> strf[cnum][1];
-//     scfile >> strof[cnum][1];
-//     cnum+=1; // sequential counter numbering(0-...)
-//   } // --- end of bar loop --->
-//   } // --- end of layer loop --->
-//
-//   scfile >> endflab;//read endfile-label
-//
-//   scfile.close();
-//
-//   if(endflab==12345){
-//     cout<<"TOFBrcal_buildMS: MCSeed str_ratio/offs file is successfully read !"<<endl;
-//   }
-//   else{cout<<"TOFBrcalMS_build: ERROR(problems with MCSeed str_ratio/offs file)"<<endl;
-//     exit(1);
-//   }
-//
-//-------------------------------------------------------
-//
-//   --->Prepare to read MCSeed anodes/dynodes relat.gains, anode/dynode ratios,
+//   ---> Read MCSeed anodes/dynodes relat.gains, anode/dynode ratios,
 //       mip2q's, A-profile param.  calib.file :
 //
- ctyp=6;
- strcpy(name,"tof2chcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
-   cout <<"      EnergyDeposit-calib MC-Seeds params are requested..."<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
+   ctyp=5;
+   strcpy(name,"TofAmplf");
+   mcvn=mcvern[ctyp-1];
    if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
    else strcat(name,vers2);//sd = copy of rl
+   strcat(name,".");
 //
-   strcat(name,".dat");
+   sprintf(ext,"%d",mcvn);//got TofSnormMC. file extention
+   strcat(name,ext);
    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
    if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
    strcat(fname,name);
-   cout<<"      Open file : "<<fname<<'\n';
+   cout<<"      Opening TOF MC_Seed AmplificationParameters file : "<<fname<<'\n';
    ifstream gcfile(fname,ios::in); // open file for reading
    if(!gcfile){
-     cerr <<"<---- missing EnergyDeposit-calib MC-Seeds params file !!! "<<fname<<endl;
+     cout <<"<---- missing TOF MC-Seed AmplificationParameters file !!! "<<fname<<endl;
      exit(1);
    }
 //
@@ -1427,9 +1222,9 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    gcfile.close();
 //
    if(endflab==12345){
-     cout<<"   <--EnergyDeposit-calib MC-Seeds params file is successfully read !"<<endl;
+     cout<<"      TOF MC-Seed AmplificationParameters file is successfully read !"<<endl;
    }
-   else{cout<<"<---- problem with EnergyDeposit-calib MC-Seeds params file !!!"<<endl;
+   else{cout<<"<---- problem with TOF MC-Seed AmplificationParameters file !!!"<<endl;
      exit(1);
    }
 //   
@@ -1540,7 +1335,7 @@ void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
   cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading
   if(!icfile){
-    cerr <<"      missing default pedestals-file !!! "<<fname<<endl;
+    cout <<"      missing default pedestals-file !!! "<<fname<<endl;
     exit(1);
   }
 //---> Read anode:
@@ -1642,7 +1437,7 @@ void TOFBPeds::build(){// tempor solution for RealData peds.
   cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading
   if(!icfile){
-    cerr <<"      missing default pedestals-file !!! "<<fname<<endl;
+    cout <<"      missing default pedestals-file !!! "<<fname<<endl;
     exit(1);
   }
 //---> Read anode:
@@ -1799,8 +1594,8 @@ void TOF2JobStat::printstat(){
   printf("length error           :  %7d   %7d   %7d   %7d\n",cratr[0][2],cratr[1][2],cratr[2][2],cratr[3][2]);
   printf("LinkErr in Q-blk       :  %7d   %7d   %7d   %7d\n",cratr[0][3],cratr[1][3],cratr[2][3],cratr[3][3]);
   printf("SlotErr in Q-blk       :  %7d   %7d   %7d   %7d\n",cratr[0][4],cratr[1][4],cratr[2][4],cratr[3][4]);
-  printf("Wrong words in TP-blk  :  %7d   %7d   %7d   %7d\n",cratr[0][5],cratr[1][5],cratr[2][5],cratr[3][5]);
-  printf("Time-out   in TP-blk   :  %7d   %7d   %7d   %7d\n",cratr[0][6],cratr[1][6],cratr[2][6],cratr[3][6]);
+  printf("NonTP words in TP-blk  :  %7d   %7d   %7d   %7d\n",cratr[0][5],cratr[1][5],cratr[2][5],cratr[3][5]);
+  printf("TmOut/CMDerr in TP-blk :  %7d   %7d   %7d   %7d\n",cratr[0][6],cratr[1][6],cratr[2][6],cratr[3][6]);
   printf("LinkErr in Time-blk    :  %7d   %7d   %7d   %7d\n",cratr[0][7],cratr[1][7],cratr[2][7],cratr[3][7]);
   printf("SlotErr in Time-blk    :  %7d   %7d   %7d   %7d\n",cratr[0][8],cratr[1][8],cratr[2][8],cratr[3][8]);
   printf("\n");
@@ -1921,7 +1716,7 @@ void TOF2JobStat::printstat(){
   printf(" len_mism(stand-alone,rej):    %7d %7d %7d %7d\n",cratp[0][5],cratp[1][5],cratp[2][5],cratp[3][5]);
   printf("\n");
   printf(" TrPatt-block IllegalWord :    %7d %7d %7d %7d\n",cratp[0][6],cratp[1][6],cratp[2][6],cratp[3][6]);
-  printf(" ................Timeout  :    %7d %7d %7d %7d\n",cratp[0][7],cratp[1][7],cratp[2][7],cratp[3][7]);
+  printf(" .................TimeOut :    %7d %7d %7d %7d\n",cratp[0][7],cratp[1][7],cratp[2][7],cratp[3][7]);
   printf(" ...StatVerifMask problems:    %7d %7d %7d %7d\n",cratp[0][8],cratp[1][8],cratp[2][8],cratp[3][8]);
   printf(" Q-block LinkHeaderErr    :    %7d %7d %7d %7d\n",cratp[0][9],cratp[1][9],cratp[2][9],cratp[3][9]);
   printf(" IllegSlotNumb in Q-block :    %7d %7d %7d %7d\n",cratp[0][10],cratp[1][10],cratp[2][10],cratp[3][10]);
@@ -2076,15 +1871,15 @@ void TOF2JobStat::printstat(){
   printf("        Anode-ADC overflows                 : % 6d\n",mccount[9]);
   printf("        Dynode-ADC overflows                : % 6d\n",mccount[10]);
   printf("   FastTrigStatistics :\n");
-  printf("        ParticleTrigger requests             : % 6d\n",mccount[15]);
-  printf("        found TOF-FTC(Z>=1)                  : % 6d\n",mccount[16]);
-  printf("        found TOF-BZ(Z>=2 when FTC)          : % 6d\n",mccount[17]);
-  printf("        found TOF-FTZ(SlowZ>=2)              : % 6d\n",mccount[18]);
-  printf("        found TOF-FTZ when FTC missing       : % 6d\n",mccount[23]);
-  printf("        found EC-FTE                         : % 6d\n",mccount[19]);
-  printf("        found EC-FTE when TOF-FT missing     : % 6d\n",mccount[20]);
-  printf("        found globFT(after masking)          : % 6d\n",mccount[21]);
-  printf("        ExternalTrigger requests             : % 6d\n",mccount[22]);
+  printf("        ParticleTrigger requests            : % 6d\n",mccount[15]);
+  printf("        found TOF-FTC(Z>=1)                 : % 6d\n",mccount[16]);
+  printf("        found TOF-BZ(Z>=2 when globFT)      : % 6d\n",mccount[17]);
+  printf("        found TOF-FTZ(SlowZ>=2)             : % 6d\n",mccount[18]);
+  printf("        found TOF-FTZ when FTC missing      : % 6d\n",mccount[23]);
+  printf("        found EC-FTE                        : % 6d\n",mccount[19]);
+  printf("        found EC-FTE when TOF-FT missing    : % 6d\n",mccount[20]);
+  printf("        found globFT(after masking)         : % 6d\n",mccount[21]);
+  printf("        ExternalTrigger requests            : % 6d\n",mccount[22]);
   
   
   printf(" RECO-entries                               : % 6d\n",recount[0]);
@@ -2786,11 +2581,11 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1073,"SIMU: SHT-trig pulse width(SPT-inp, ns)",80,200.,600.,0.);
       HBOOK1(1074,"SIMU: Anode-adc(id=104,s1,NoPeds)",100,0.,500.,0.);
       HBOOK1(1075,"SIMU: Dynode-adc(eq.sum/npm, id=104,s1,NoPeds)",100,0.,100.,0.);
-      HBOOK1(1065,"SIMU: FTCTrigPat(z>=1):S1-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1066,"SIMU: FTCTrigPat(z>=1):S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1067,"SIMU: BZTrigPat(z>=2):S1-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1068,"SIMU: BZTrigPat(z>=2):S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1069,"SIMU: TofFtCodes(/0-14/+20/+40->FTC/BZ-inp/BZ-accepted)",60,0.,60.,0.);
+      HBOOK1(1065,"SIMU: FTCTrigPat(HT):S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1066,"SIMU: FTCTrigPat(HT):S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1067,"SIMU: BZTrigPat(SHT):S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1068,"SIMU: BZTrigPat(SHT):S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1069,"SIMU: TofFtCodes(/0-14/+20/+40/+60->FTC/LEV1/BZ-inp/BZ-accepted)",80,0.,80.,0.);
       HBOOK1(1076,"SIMU: ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
       HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime(when FTC&FTE)",80,-80.,80.,0.);
       HBOOK1(1078,"SIMU: Out-of-width-hit X-excess",50,0.,5.,0.);
@@ -3079,40 +2874,100 @@ void TOF2JobStat::outpmc(){
        }
 }
 //==========================================================================
-
-
-geant TOF2Varp::getmeantoftemp(int crate){
-geant tsum=0;
-switch (crate){
-case 1:
-return float(tftt.tofav[0])/10.;
-case 31:
-return float(tftt.tofav[1])/10.;
-case 41:
-return float(tftt.tofav[2])/10.;
-case 71:
-return float(tftt.tofav[3])/10.;
-case 3:
-return float(tftt.tofav[4])/10.;
-case 33:
-return float(tftt.tofav[5])/10.;
-case 43:
-return float(tftt.tofav[6])/10.;
-case 73:
-return float(tftt.tofav[7])/10.;
-case 0:
-int i;
-for(i=0;i<8;i++){
- tsum+=tftt.tofav[i]/10.;
+int TofSlowTemp::gettempC(int crat, int slot, geant & atemp){
+//crat=0-3,slot=0-10
+//make average of 2 SFEC-sensors corresponding to my slots 8,9 or 10,11
+// return 1/0->ok/fail
+  #ifdef __AMSDEBUG__
+    if(TOF2DBc::debug){
+        assert(crat>=0 && crat<=3);
+        assert(slot==7 || slot==8 || slot==9 || slot==10);
+    }
+  #endif
+  geant temp;
+  atemp=0;
+  int sensid,sid1(0),sid2(0),cr,sl,stat,nmem(0);
+  cr=crat+1;
+  sl=slot+1;
+  sid1=cr*100+sl;
+  if(sl==8 || sl==10)sid2=cr*100+sl+1;
+  if(sl==9 || sl==11)sid2=cr*100+sl-1;
+  for(int l=0;l<TOF2GC::SCLRS;l++){
+    for(int c=0;c<2;c++){
+      for(int n=0;n<8;n++){
+        sensid=AMSSCIds::getenvsensid(l,c,n);
+	if(sensid>411)continue;//look for CSS
+	temp=_stemp[l][n+8*c];
+	stat=_sta[l][n+8*c];
+	if((sensid==sid1 || sensid==sid2) && stat==1){
+	  nmem+=1;
+	  atemp+=temp;
+	}
+      }
+    } 
+  }
+  if(nmem>0){
+    atemp/=geant(nmem);
+    return 1;
+  }
+  else return 0; 
 }
-return tsum;
-default:
-cerr <<"TOF2Varp::getmeantoftemp-E-NoCrateFound "<<crate<<endl;
-return 0.;
+//---------------------------
+int TofSlowTemp::gettempP(int lay, int sid, geant & atemp){
+//make average over all sensors in L**S (max 2*3)
+// return 1/0->ok/fail
+  #ifdef __AMSDEBUG__
+    if(TOF2DBc::debug){
+        assert(lay>=0 && lay<TOF2GC::SCLRS);
+	assert(sid>=0 && sid<=1);
+    }
+  #endif
+  geant temp;
+  atemp=0;
+  int sensid,ssid,sd,stat,nmem(0);
+  sd=sid+1;
+//
+  for(int c=0;c<2;c++){
+    for(int n=0;n<8;n++){
+      sensid=AMSSCIds::getenvsensid(lay,c,n);
+      if(sensid<10111)continue;//look for LBBSP
+      ssid=(sensid%100)/10;//side
+      temp=_stemp[lay][n+8*c];
+      stat=_sta[lay][n+8*c];
+      if(ssid==sd && stat==1){
+	nmem+=1;
+	atemp+=temp;
+      }
+    }
+  }
+// 
+  if(nmem>0){
+    atemp/=geant(nmem);
+    return 1;
+  }
+  else return 0; 
 }
-
+//---------------------------
+void TofSlowTemp::init(){
+//set defs for temp/stat
+  int id;
+  for(int l=0;l<TOF2GC::SCLRS;l++){
+    for(int c=0;c<2;c++){
+      for(int n=0;n<8;n++){
+        id=AMSSCIds::getenvsensid(l,c,n);//CSS or LBBSP
+        if(id<500){//CSS
+	  _stemp[l][n+8*c]=999;//undefined val for TempC
+	}
+	else{//LBBSPM
+	  _stemp[l][n+8*c]=999;//undefined val for TempP
+	}
+	_sta[l][n+8*c]=1;//sensor ok
+      }
+    } 
+  }
+  
 }
-
+//==========================================================================
 void TOF2Varp::init(geant daqth[5], geant cuts[10]){
 
     int i;
@@ -3162,8 +3017,9 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
 	}
       }
     }
+//formal init of SFET(A)-sensors by undefined value
     for(i=0;i<TOF2GC::SCCRAT;i++)
-                for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j]=20;//tempor default temperature(degrees)
+      for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j]=999;//(TempT,degrees)
   }
 //--------------------------------------------------
 TofElosPDF::TofElosPDF(int ich, int ch, geant bp, int nb, geant stp, geant bnl, geant undf, geant ovfl, geant distr[]){
@@ -3200,99 +3056,98 @@ void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
 //
   char fname[80];
   char name[80];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
-  int mrfp;
-  char in[2]="0";
-  char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  int ctyp,ntypes;
   integer ic,charge,chref,nbns,endflab;
   geant betap,lovfl,rovfl,xmin,binw,distr[TOF2GC::SCPDFBM];
 //
-  strcpy(inum,"0123456789");
-//
 // ---> read file with the list of version numbers for all needed calib.files :
 //
-  integer cfvn;
-  cfvn=TFCAFFKEY.cfvers%1000;//vers.list-file version number 
-  strcpy(name,"tof2cvlist");// basic name for vers.list-file  
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
+//
+  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
+    ctyp=6;
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",TFREFFKEY.calutc);//RD-utc
+    ctyp=5;// TofSfmap-file is missing in RD list-file
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
 //
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"====> TofElosPDF::build: Opening vers.list-file "<<fname<<'\n';
+  cout<<"====> TofElosPDF::build: Opening Calib_vers_list-file "<<fname<<'\n';
   ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cerr <<"<---- TofElosPDF::build:Error: missing vers.list-file !!? "<<fname<<endl;
+    cout <<"<---- Error: missing vers.list-file !!? "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(int i=0;i<ntypes;i++){
-    vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
+    vlfile >> verids[i];// 
+  }
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      TofCflistRD-file begin_date: %s",ctime(&utct)); 
   }
   vlfile.close();
 //------------------------------------------------
- ctyp=7;
- strcpy(name,"tof2pdff");//part.charge calib.file
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-data
- {
-   cout <<"      dE/dX<->Charge distr. for MC-data are requested..."<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real-data
- {
-   cout <<"      dE/dX<->Charge distr. for Real-data are requested..."<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
-   strcat(name,".dat");
-   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-   strcat(fname,name);
-   cout<<"      Open file : "<<fname<<'\n';
-   ifstream pdfile(fname,ios::in); // open file for reading
-   if(!pdfile){
-     cerr <<"<----- TofElosPDF::build:Error: Missing dE/dX<->Charge distr. file !!? "<<fname<<endl;
-     exit(1);
-   }
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"TofElosp");//generic particles charge-calib. file-name
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);//got TofCflistMC(RD). file extention
+  strcat(name,ext);
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening TofElosPDF-file : "<<fname<<'\n';
+  ifstream pdfile(fname,ios::in); // open file for reading
+  if(!pdfile){
+    cout <<"<---- Error: Missing TofElosPDF-file !!? "<<fname<<endl;
+    exit(1);
+  }
 //
   for(int ich=0;ich<MaxZTypes;ich++){
     pdfile >> ic;
     pdfile >> charge;
     chref=AMSCharge::ind2charge(0,ich+1);//charge from ctandard list("0"->TOF)
     if(charge!=chref || ic!=(ich+1)){
-      cout<<"<---- TofElosPDF::build:Error: wrong Z-structure of dEdX<->Charge distr. file,id="<<ic<<endl;
+      cout<<"<---- Error: wrong Z-structure of TofElosPDF-file for id="<<ic<<endl;
       exit(1);
     }
     pdfile >> betap;
@@ -3310,9 +3165,10 @@ void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
   pdfile.close();
 //
   if(endflab==12345){
-    cout<<"<----- TofElosPDF::build: dE/dXCharge distr. file is successfully read !"<<endl<<endl;
+    cout<<"<---- TofElosPDF-file is successfully read !"<<endl<<endl;
   }
-  else{cout<<"<----- TofElosPDF::build:Error: problem with dEdX<-<Charge distr. file !!?"<<endl<<endl;
+  else{
+    cout<<"<---- Error: problem with TofElosPDF-file !!?"<<endl<<endl;
     exit(1);
   }
 //

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.11 2007/07/12 07:30:49 choumilo Exp $
+//  $Id: daqs2block.C,v 1.12 2007/10/01 13:30:52 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -73,6 +73,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //
   int16u rfmttrf(0);//raw-fmt truncation flag
   int16u ltmoutf(0);//SFET/SFEA/SFEC(link) time-out flags (from raw-eos or from compressed-part)
+  int16u sptcmdh(0);//spt_cmd_h (from raw-eos or from compressed-part)
   int16u wcount(0);//sequencer Word-counter
   int16u svermsk(0);//stat.verification mask in TrPatt/Stat-block of ComprFMT 
 // for onboard ped-cal tables:
@@ -98,14 +99,16 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   uinteger tdcbfh[SCFETA][8*SCTHMX2+4];//Raw-fmt TDC-buff,"+4" to count temper,header,error and trailer words
   uinteger wds2tdc,wttem,wthed,wterr,wttrl,tem1,tem2,htime;
   int16u nwtdcb,eventID,eventIDt,bunchID,ltedge,ntimbh;
-  bool tmout;
 //
   int16u *pr;
   integer bufpnt(0),lbbs;
   uinteger val32;
   geant temp,charge;
 //
+  bool tmout;
   int16u eoslenr(10);//length of end-of-segment record for raw format
+  int16u sptcmdt;//SPT-reading command-type (i.e. format of prig-patt block, =0(err)/1/2/3)
+  bool sptgen;//SPT test-generator bit setting
 //
   uinteger swcbuf[2*SCRCMX][SCTHMX2];
 // keep: 1st half->LT/FT/HT-time+ampl values for raw/compr. fmt; 2nd->for raw if mixed fmt   
@@ -230,9 +233,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
       word=*(p+bias);//ped
       nword=*(p+bias+1);//sig
       nnword=*(p+bias+2);//stat
-      slid=(bias-1)%9+1;//position(in block)  defined link# (1,...9)
+      slid=(bias-1)%9;//position(in block)  defined link# (0,1,...8)
       val16=word&(0x0FFF);// charge value (=0, if link problem)
-      slot=AMSSCIds::crdidc2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
+      slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
       if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
 #ifdef __AMSDEBUG__
 	cout<<"DAQS2Block::Error:PedCal_InvalidSlot , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
@@ -338,11 +341,10 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //      cout<<" --> word/bias="<<hex<<word<<dec<<" "<<bias<<endl;
 //-----   
       if(bias<=90){//<================= charge-words reading(incl the ones in SFET/SFEA !!!)
-	dlink=(word&(0xF000))>>12;//decoded link# (1,...)
+	dlink=(word&(0xF000))>>12;//decoded link# (0,1,..,8)
 	slid=dlink;
-	plink=(bias-1)%9+1;//"in block" position defined link# (1,...9)
-//	if(dlink!=plink || slid>9){tempor removed because link numbering disorder
-	if(slid>9){
+	plink=(bias-1)%9;//"in block" position defined link# (0,1,...8)
+	if(dlink!=plink || slid>8){
 #ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::Error:link<->position mismatch, crate/dlink/plink="<<crat<<" "<<dlink<<" "<<plink<<endl;
 #endif
@@ -350,7 +352,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	  goto BadExit;    
 	}
 	val16=word&(0x0FFF);// charge value (=0, if link problem)
-	slot=AMSSCIds::crdidc2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
+	slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
 #ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::Error:NotChargeSlotNumber , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
@@ -389,80 +391,102 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //-----
       else if(bias>90 && bias<=94){//<===== trig.patt words reading
 //        cout<<"  TP-decoding:"<<endl;
-        tmout=0;
+        ltmoutf=*(pr+biasmx-eoslenr+1);//links time_out_flags word from end_of_segment(EOS) block
+	tmout=((ltmoutf&(0x0004))!=0);//if true -> found timeout
+        sptcmdh=*(pr+biasmx-eoslenr+2);//SPT_CMD_H word from EOS
+	if((sptcmdh&(0xE000))!=(0xE000))sptcmdt=0;//error
+	else if((sptcmdh&(0x1FFF))==(0x1401))sptcmdt=1;//not masked
+	else if((sptcmdh&(0x1FFF))==(0x1405))sptcmdt=2;//CP-masked
+	else if((sptcmdh&(0x1FFF))==(0x140A))sptcmdt=3;//CT-masked (rubbish)
+	else sptcmdt=0;//error
         for(i=0;i<4;i++){//check presence of TrPat-type info
           word=*(pr+bias+i);
-	  if((word&(0xF800))!=0 && (word&(0xF800))!=0xF800){//5 msb should be 0 or 1(timeout)
-	    TOF2JobStat::daqscr(0,crat-1,5);//notTrPat word in TrPat-area
+	  if((word&(0xE000))!=0){//3 msb should be 0
+	    TOF2JobStat::daqscr(0,crat-1,5);//notTrPat word in TrPat-area: fatal
             goto BadExit;
 	  }
-	  else if((word&(0xF800))==0xF800){
-	    tmout=1;
-	    *(pr+bias+i)=0;//reset pattern
-	  }
 	}
-	if(tmout==1){
-	  TOF2JobStat::daqscr(0,crat-1,6);//time-out in TrPatt-block
+	if(tmout || sptcmdt==0){
+	  TOF2JobStat::daqscr(0,crat-1,6);//time-out or wrong format according to EOS-block
 	  goto SkipTPpr;//skip TP-processing
 	}
-        word=*(pr+bias);
-        nword=*(pr+bias+1);
-	val32=uinteger(nword&(0x07FF));//HT-trigpatt least sign.bits
-	val32|=(uinteger(word&(0x007F))<<11);//add HT-trigpatt most sign.bits
+//decode 1st pair of trpatt-words(HT)"
+        word=*(pr+bias);//msbits
+        nword=*(pr+bias+1);//lsbits
+	val32=uinteger(nword&(0x03FF));//HT-trigpatt least sign.bits
+	val32|=(uinteger(word&(0x03FF))<<10);//add HT-trigpatt most sign.bits
 //	cout<<"   1st 16bits paire was combined into:"<<hex<<val32<<dec<<endl;
-	for(i=0;i<18;i++){//HT-trigpatt bits loop
+	for(i=0;i<20;i++){//HT-trigpatt bits loop
 	  lbbs=AMSSCIds::gettpbas(crat-1,i);
 	  if(lbbs>0){//valid lbbs for given bit
 	    is=lbbs%10;//plane side(1,2)
 	    ib=(lbbs/10)%100;//paddle(1-8(10))
 	    il=lbbs/1000;//plane(1-4)
-	    if(i==3){//use "middl.bit" to save il/is of 1st layer(side) contributing to given crate
-	      irl1=il;
+	    if(i<=9){//use any of 10 lsbits to save il/is of "1st" layer(side) contributing to given crate
+	      irl1=il;//these L/S corresponds to "nword"(lsbits)
 	      irs1=is;
 	    } 
-	    if(i==11){//use "middle.bit" to save il/is of 2nd layer(side) contributing to given crate
-	      irl2=il;
+	    if(i>=10){//use any of 10 msbits to save il/is of "2nd" layer(side) contributing to given crate
+	      irl2=il;//these L/S corresponds to "word"(msbits)
 	      irs2=is;
 	    }
 	    if((val32&(1<<i))>0)
 	      TOF2RawSide::addtpb(il-1,ib-1,is-1);//set bit in RawSide's TPs(reseted in retof2initevent() !
 	  }
 	}
-	osbit=(word&(0x0080));//other card-side CT-bit of 1st layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-14
-	osbit=(word&(0x0100));//other card-side CT-bit of 2nd layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-14
-	osbit=(word&(0x0200));//other card-side CP-bit of 1st layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//set as fictitious paddle-13
-	osbit=(word&(0x0400));//other card-side CP-bit of 2nd layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//set as fictitious paddle-13
-//         
+//set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
+	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpb(irl1-1,15,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x0800));//other card-side CT-bit of 1st layer(side)(CT0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,14,irs1-1);//set as fictitious paddle-14
+	osbit=(nword&(0x1000));//other card-side CP-bit of 1st layer(side)(CP0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	
+//set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
+	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpb(irl2-1,15,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x0800));//other card-side CT-bit of 2nd layer(side)(CT1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,14,irs2-1);//set as fictitious paddle-14
+	osbit=(word&(0x1000));//other card-side CP-bit of 2nd layer(side)(CP1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
+//decode 2nd pair of trpatt-words(SHT):
         word=*(pr+bias+2);
         nword=*(pr+bias+3);
-	val32=uinteger(nword&(0x07FF));//SHT-trigpatt least sign.bits
-	val32|=(uinteger(word&(0x007F))<<11);//add SHT-trigpatt most sign.bits
+	val32=uinteger(nword&(0x03FF));//SHT-trigpatt least sign.bits
+	val32|=(uinteger(word&(0x03FF))<<10);//add SHT-trigpatt most sign.bits
 //	cout<<"   2nd 16bits paire was combined into:"<<hex<<val32<<dec<<endl;
-	for(i=0;i<18;i++){//SHT-trigpatt bits loop
+	for(i=0;i<20;i++){//SHT-trigpatt bits loop
 	  lbbs=AMSSCIds::gettpbas(crat-1,i);
 	  if(lbbs>0){
 	    is=lbbs%10;//plane side(1,2)
 	    ib=(lbbs/10)%100;//paddle(1-8(10))
 	    il=lbbs/1000;//plane(1-4)
-	    if(i==3){//save il/is of 1st layer(side) contributing to given crate
-	      irl1=il;
+	    if(i<=9){//save il/is of 1st layer(side) contributing to given crate
+	      irl1=il;//these L/S corresponds to "nword"(lsbits)
 	      irs1=is;
 	    } 
-	    if(i==11){//save il/is of 2nd layer(side) contributing to given crate
-	      irl2=il;
+	    if(i>=10){//save il/is of 2nd layer(side) contributing to given crate
+	      irl2=il;//these L/S corresponds to "word"(msbits)
 	      irs2=is;
 	    }
 	    if((val32&(1<<i))>0)TOF2RawSide::addtpzb(il-1,ib-1,is-1);//SHT trigpatt bits setting
 	  }
 	}
-	osbit=(word&(0x0080));//other card-side BZ-bit of 1st layer(side)
-	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//set as fictitious paddle-13
-	osbit=(word&(0x0100));//other card-side BZ-bit of 2nd layer(side)
-	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//set as fictitious paddle-13
+//set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
+	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpzb(irl1-1,15,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x1000));//other card-side BZ-bit of 1st layer(side)(BZ0)
+	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,13,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	
+//set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
+	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpzb(irl2-1,15,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x1000));//other card-side BZ-bit of 2nd layer(side)(BZ1)
+	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,13,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
 //
 SkipTPpr:
         bias+=4;
@@ -474,15 +498,14 @@ SkipTPpr:
 	dlink=(word&(0xF00))>>8;//decoded link# (0,...4)
 	wtyp=((word&(0xF000))>>12);
 	slid=dlink;//0,1,2,3,4 => SFET_0,_1,_2,_3,SFEA
-	slid+=1;//for backw.compartib.
-	if(slid>5){
+	if(slid>4){
 #ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::TimeBlErr: invalid link, crate/dlink="<<crat<<" "<<dlink<<endl;
 #endif
           TOF2JobStat::daqscr(0,crat-1,7);//invalid link number
 	  goto BadExit;    
         }
-	slot=AMSSCIds::crdidt2sl(crat-1,slid-1)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
+	slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>7){//check slot# validity
 #ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::TimeBlErr: invalid slot, crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
@@ -542,7 +565,7 @@ SkipTPpr:
       wttrl=((tdcbfh[slid-1][nwtdcb-1]&(0xF0000000L))>>28);//wtyp of last word
       if(wttrl==3)wds2tdc=(tdcbfh[slid-1][nwtdcb-1]&(0xFFFL));//nwords given by trailer(last word)
       tmout=((ltmoutf&(1<<(slid-1)))>0);//time-out flag from eos
-      slot=AMSSCIds::crdidt2sl(crat-1,slid-1)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
+      slot=AMSSCIds::crdid2sl(crat-1,slid-1)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
       if(wttem!=8 || wthed!=2 || wttrl!=3 || tmout || nwtdcb!=(wds2tdc+1)){//broken structure
         TOF2JobStat::daqssl(0,crat-1,slot-1,4);//count links with broken struct
 	continue;//skip link(TDC) with broken structure (or time-out)
@@ -557,7 +580,7 @@ SkipTPpr:
       tem1=((val32&(0xFFF000L))>>12);
       tem2=(val32&(0xFFFL));
       temp=0;
-      if(tem2>0)temp=geant(tem1)/geant(tem2);//tempor : missing calibration formula
+      if(tem2>0)temp=235-400*geant(tem1)/geant(tem2);//Cels.degree
       tsens=AMSSCIds::sl2tsid(slot-1);//seq.slot#->temp.sensor#; 1,2,3,4,5
       TOF2JobStat::puttemp(crat-1,tsens-1,temp);
 //
@@ -650,80 +673,98 @@ SkipTPpr:
 //        cout<<"  ComprSegment::TrPatt/Status-decoding:"<<endl;
         pss=pc;
 	bias=1;//pss+bias points2 1st word of TrPatt-section
-        tmout=0;
+        ltmoutf=*(pss+bias+4);//links time_out_flags word from Kunin's Status sub-section
+	tmout=((ltmoutf&(0x0004))!=0);//if true-> found timeout
         for(i=0;i<4;i++){//check presence of TrPat-type info
           word=*(pss+bias+i);
-	  if((word&(0xF800))!=0 && (word&(0xF800))!=0xF800){//5 msb should be 0 or 1(timeout)
-	    TOF2JobStat::daqscr(1,crat-1,6);//notTrPat word in TrPat-area
+	  sptcmdt=(word&(0xE000));
+	  if(sptcmdt!=0 && sptcmdt!=0x4000 && sptcmdt!=0x8000){//3 msb should be 0 or 0x4000 or 0x8000
+	    TOF2JobStat::daqscr(1,crat-1,6);//notTrPat word in TrPat-area: fatal
             goto BadExit;
 	  }
-	  else if((word&(0xF800))==0xF800){
-	    tmout=1;
-	    *(pss+bias+i)=0;//reset pattern
-	  }
 	}
-	if(tmout==1){
-	  TOF2JobStat::daqscr(1,crat-1,7);//time-out in TrPatt-block
+	sptcmdt=((*(pss+bias))&(0xC000))>>14;//0/1/2->Not/CP(BZ)_masked/CT(BZ)_masked
+	if(tmout){
+	  TOF2JobStat::daqscr(1,crat-1,7);//time-out
 	  goto SkipTPpr1;//skip TP-processing
 	}
-        word=*(pss+bias);
-        nword=*(pss+bias+1);
-	val32=uinteger(nword&(0x07FF));//HT-trigpatt least sign.bits
-	val32|=(uinteger(word&(0x007F))<<11);//add HT-trigpatt most sign.bits
+//decode 1st pair of trpatt-words(HT)"
+        word=*(pss+bias);//msbits
+        nword=*(pss+bias+1);//lsbits
+	val32=uinteger(nword&(0x03FF));//HT-trigpatt least sign.bits
+	val32|=(uinteger(word&(0x03FF))<<10);//add HT-trigpatt most sign.bits
 //	cout<<"   1st 16bits paire was combined into:"<<hex<<val32<<dec<<endl;
-	for(i=0;i<18;i++){//HT-trigpatt bits loop
+	for(i=0;i<20;i++){//HT-trigpatt bits loop
 	  lbbs=AMSSCIds::gettpbas(crat-1,i);
 	  if(lbbs>0){//valid lbbs for given bit
 	    is=lbbs%10;//plane side(1,2)
 	    ib=(lbbs/10)%100;//paddle(1-8(10))
 	    il=lbbs/1000;//plane(1-4)
-	    if(i==3){//use "middl.bit" to save il/is of 1st layer(side) contributing to given crate
-	      irl1=il;
+	    if(i<=9){//use any of 10 lsbits to save il/is of "1st" layer(side) contributing to given crate
+	      irl1=il;//these L/S corresponds to "nword"(lsbits)
 	      irs1=is;
 	    } 
-	    if(i==11){//use "middle.bit" to save il/is of 2nd layer(side) contributing to given crate
-	      irl2=il;
+	    if(i>=10){//use any of 10 msbits to save il/is of "2nd" layer(side) contributing to given crate
+	      irl2=il;//these L/S corresponds to "word"(msbits)
 	      irs2=is;
 	    }
 	    if((val32&(1<<i))>0)
 	      TOF2RawSide::addtpb(il-1,ib-1,is-1);//set bit in RawSide's TPs(reseted in retof2initevent() !
 	  }
 	}
-	osbit=(word&(0x0080));//other card-side CT-bit of 1st layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-14
-	osbit=(word&(0x0100));//other card-side CT-bit of 2nd layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-14
-	osbit=(word&(0x0200));//other card-side CP-bit of 1st layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//set as fictitious paddle-13
-	osbit=(word&(0x0400));//other card-side CP-bit of 2nd layer(side)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//set as fictitious paddle-13
-//         
+//set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
+	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpb(irl1-1,15,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x0800));//other card-side CT-bit of 1st layer(side)(CT0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,14,irs1-1);//set as fictitious paddle-14
+	osbit=(nword&(0x1000));//other card-side CP-bit of 1st layer(side)(CP0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	
+//set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
+	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpb(irl2-1,15,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x0800));//other card-side CT-bit of 2nd layer(side)(CT1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,14,irs2-1);//set as fictitious paddle-14
+	osbit=(word&(0x1000));//other card-side CP-bit of 2nd layer(side)(CP1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
+//decode 2nd pair of trpatt-words(SHT):
         word=*(pss+bias+2);
         nword=*(pss+bias+3);
-	val32=uinteger(nword&(0x07FF));//SHT-trigpatt least sign.bits
-	val32|=(uinteger(word&(0x007F))<<11);//add SHT-trigpatt most sign.bits
+	val32=uinteger(nword&(0x03FF));//SHT-trigpatt least sign.bits
+	val32|=(uinteger(word&(0x03FF))<<10);//add SHT-trigpatt most sign.bits
 //	cout<<"   2nd 16bits paire was combined into:"<<hex<<val32<<dec<<endl;
-	for(i=0;i<18;i++){//SHT-trigpatt bits loop
+	for(i=0;i<20;i++){//SHT-trigpatt bits loop
 	  lbbs=AMSSCIds::gettpbas(crat-1,i);
 	  if(lbbs>0){
 	    is=lbbs%10;//plane side(1,2)
 	    ib=(lbbs/10)%100;//paddle(1-8(10))
 	    il=lbbs/1000;//plane(1-4)
-	    if(i==3){//save il/is of 1st layer(side) contributing to given crate
-	      irl1=il;
+	    if(i<=9){//save il/is of 1st layer(side) contributing to given crate
+	      irl1=il;//these L/S corresponds to "nword"(lsbits)
 	      irs1=is;
 	    } 
-	    if(i==11){//save il/is of 2nd layer(side) contributing to given crate
-	      irl2=il;
+	    if(i>=10){//save il/is of 2nd layer(side) contributing to given crate
+	      irl2=il;//these L/S corresponds to "word"(msbits)
 	      irs2=is;
 	    }
 	    if((val32&(1<<i))>0)TOF2RawSide::addtpzb(il-1,ib-1,is-1);//SHT trigpatt bits setting
 	  }
 	}
-	osbit=(word&(0x0080));//other card-side BZ-bit of 1st layer(side)
-	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//set as fictitious paddle-13
-	osbit=(word&(0x0100));//other card-side BZ-bit of 2nd layer(side)
-	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//set as fictitious paddle-13
+//set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
+	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpzb(irl1-1,15,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x1000));//other card-side BZ-bit of 1st layer(side)(BZ0)
+	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,13,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	
+//set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
+	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
+	if(sptgen)TOF2RawSide::addtpzb(irl2-1,15,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x1000));//other card-side BZ-bit of 2nd layer(side)(BZ1)
+	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,13,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
 //
 SkipTPpr1:
 // decode status part:
@@ -744,11 +785,11 @@ SkipTPpr1:
 // !!! here pss+bias points to nwords-word
       while(bias<nqwrds){//q-block words loop(nqwrds=1 if Kunin's nwords=0
 	word=*(pss+bias+1);// current link header(+1 to bypass nwords-word)
-	slid=(word&0x000F);
+	slid=(word&0x000F);//0,..,8
 	qlowchf=0;
 	if((word&(0x4000))>0)qlowchf=1;//set negat.(adc-ped) presence flag
-	if((word&(0x8000))>0 && slid>0 && slid<=9){//header's marker,link# OK
-	  slot=AMSSCIds::crdidc2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
+	if((word&(0x8000))>0 && slid<9){//header's marker,link# OK
+	  slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	  if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
 	    TOF2JobStat::daqscr(1,crat-1,10);//invalid slot number
 	    goto BadExit;
@@ -817,7 +858,7 @@ SkipTPpr1:
 	  TOF2JobStat::daqscr(1,crat-1,12+slid);//fatal err during raw->comp
 	  goto BadExit; 
 	}
-        slot=AMSSCIds::crdidt2sl(crat-1,slid)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
+        slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>7){//check slot# validity
 	  TOF2JobStat::daqscr(1,crat-1,17);//invalid slot number
 	  goto BadExit;    
@@ -843,7 +884,7 @@ SkipTPpr1:
               tem2=(val32&(0xFFFL));
 //cout<<"    temp="<<tem1<<" "<<tem2<<endl;
               temp=0;
-              if(tem2>0)temp=geant(tem1)/geant(tem2);//tempor : missing calibration formula
+              if(tem2>0)temp=235-400*geant(tem1)/geant(tem2);//
               tsens=AMSSCIds::sl2tsid(slot-1);//seq.slot#->temp.sensor#; 1,2,3,4,5
               TOF2JobStat::puttemp(crat-1,tsens-1,temp);
 	      continue;//temp-hit is not stored in swcbuf, so skip storing 
@@ -972,6 +1013,12 @@ SkipTPpr1:
   geant athr,dthr,anthr;
   athr=TOF2Varp::tofvpar.daqthr(3);//tof daq readout thr(ped sigmas) for anode
   dthr=TOF2Varp::tofvpar.daqthr(4);//tof daq-thr. for dynode
+  temp=999;//for AntiRawEvent-obj, 999 mean undefined value (real/default one will be set at validation stage)
+  geant temp1,temp2,temp3;
+  temp1=999;//for TofRawSide-obj(SFET/SFEC/PMT-temper), 999 mean undefined values  
+//                            (real/default ones will be set during validation stage)
+  temp2=999;
+  temp3=999;
 //
 //for(ic=0;ic<SCRCMX;ic++){
 //  if(swibuf[ic]>0){
@@ -1087,7 +1134,7 @@ SkipTPpr1:
 //
     if(sswid!=sswidn){//new/last LBBS found -> create RawEvent-obj for current LBBS
 // (after 1st swid>0 sswid is = last filled LBBS, sswidn is = LBBS of next nonempty channel or =9999)
-//  at this stage temp may be not defined, it will be redefined at validation-stage using static job-store)
+//  at this stage temp is not defined, will be redefined at validation-stage using static job-store or DB)
       crsta=0;
       if(dtyp==1){//TOF
 	if(nstdc>0 || adca>0 || nadcd>0){//create tof-raw-side obj
@@ -1107,7 +1154,8 @@ SkipTPpr1:
 //	  cout<<endl;
 //	  cout<<"    adca="<<adca<<" nadcd="<<nadcd<<"  dynh="<<adcd[0]<<" "<<adcd[1]<<" "<<adcd[2]<<endl;
           if(AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0),
-                 new TOF2RawSide(sswid,shwid,sta,charge,temp,nftdc,ftdc,nstdc,stdc,
+                 new TOF2RawSide(sswid,shwid,sta,charge,temp1,temp2,temp3,
+		                                                   nftdc,ftdc,nstdc,stdc,
 		                                                   nsumh,sumht,
 								   nsumsh,sumsht,
                                                                    adca,

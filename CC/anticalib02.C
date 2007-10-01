@@ -516,30 +516,14 @@ void AntiCalib::fit(){
   char frdate[30];
   char in[2]="0";
   char inum[11];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
   integer cfvn;
   uinteger StartRun;
   time_t StartTime;
   int dig;
-//
-//--> create name for output file
-// 
   strcpy(inum,"0123456789");
-  cfvn=ATCAFFKEY.cfvers%1000;
-  strcpy(fname,"/f2users/choumilo/antivpf");
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
 //
 //--> get run/time of the first event
 //
@@ -547,12 +531,26 @@ void AntiCalib::fit(){
   StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
+//--> create name for output file
+// 
+  strcpy(fname,"AccVrpar");
+  if(AMSJob::gethead()->isMCData()){
+    strcat(fname,vers1);
+    sprintf(fext,"%d",ATMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcat(fname,vers2);
+    sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
+  }
+  strcat(fname,".");
+  strcat(fname,fext);
+//
   ofstream tcfile(fname,ios::out|ios::trunc);
   if(!tcfile){
-    cerr<<"AntiCalib:error opening file for output  "<<fname<<'\n';
+    cout<<"====> AccVarParsCalib:error opening file for output  "<<fname<<'\n';
     exit(8);
   }
-  cout<<"AntiCalib: Open file for output, fname:  "<<fname<<'\n';
+  cout<<"      AccVarParsCalib: Open file for output, fname:  "<<fname<<'\n';
 //
 //  
   for(isec=0;isec<ANTI2C::MAXANTI;isec++){//<--- ReadoutSector loop    
@@ -654,12 +652,12 @@ void AntiCalib::fit(){
     tcfile << 12345 << endl;//endoffile label
     tcfile << endl;
     tcfile << endl<<"======================================================"<<endl;
-    tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
-    tcfile << endl<<" Date of the first event : "<<frdate<<endl;
+    tcfile << endl<<"      First run used for calibration is "<<StartRun<<endl;
+    tcfile << endl<<"      Date of the first event : "<<frdate<<endl;
     tcfile.close();
-    cout<<" First run used for calibration is "<<StartRun<<endl;
-    cout<<" Date of the first event : "<<frdate<<endl;
-    cout<<"AntiCalib:output file closed !"<<endl;
+    cout<<"      First run used for calibration is "<<StartRun<<endl;
+    cout<<"      Date of the first event : "<<frdate<<endl;
+    cout<<"<---- AntiVariableParamsCalib output file closed !"<<endl;
 //  
 }
 //=============================================================================

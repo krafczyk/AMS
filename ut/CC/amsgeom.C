@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.188 2007/05/15 11:38:31 choumilo Exp $
+//  $Id: amsgeom.C,v 1.189 2007/10/01 13:30:52 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -645,7 +645,22 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-2
 //
 //-----
-  cout<<"<---- Amsgeom:toggeom02: G3/G4-compatible geometry is successfully done!"<<endl;
+//optional ConverterRing:
+  if(TFMCFFKEY.dzconv>0){
+    geant zconv=TOF2DBc::supstr(1)-0.5*(zbias1+zbias2);//conv. z-poz (middle L1/L2-planes)
+    par[0]=75./2;// rmin
+    par[1]=110./2;// rmax
+    par[2]=TFMCFFKEY.dzconv/2.;// dz/2
+    coo[0]=TOF2DBc::supstr(3);
+    coo[1]=TOF2DBc::supstr(4);
+    coo[2]=zconv;// conv. z-center
+    gid=1;
+    dau=mother.add(new AMSgvolume(
+    "TOF_TOP_CONV",0,"TFCO","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF converter
+    cout<<"<---- Amsgeom::tofgeom02:TOF_CONVERTER is installed !!! dz="<<TFMCFFKEY.dzconv<<endl;
+  }
+//-----
+  cout<<"<---- Amsgeom::tofgeom02: G3/G4-compatible geometry is successfully done!"<<endl;
   cout<<"      ("<<TOF2DBc::getbppl(0)<<"/"<<TOF2DBc::getbppl(1)<<"/"
   <<TOF2DBc::getbppl(2)<<"/"<<TOF2DBc::getbppl(3)<<" bars/plane setup is selected )"<<endl<<endl;
 }

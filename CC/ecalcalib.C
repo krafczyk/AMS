@@ -2611,7 +2611,7 @@ void ECREUNcalib::mfite(){
    cout<<"====> ECPedCalib::OnBoardPedTable/Histos Reset done..."<<endl<<endl;;
  }
 //-----
- void ECPedCalib::fill(integer swid, geant val){
+ void ECPedCalib::fill(integer swid, geant val){//called at validate-stage
 //
    int16u i,sl,pm,pix,gn,ch,nev,is;
    geant lohil[2]={0,9999};//means no limits on val, if partial ped is bad
@@ -2724,7 +2724,7 @@ void ECREUNcalib::mfite(){
    stas[ch][pix][gn]=uinteger(sta);
  }
 //-----
- void ECPedCalib::outp(int flg){
+ void ECPedCalib::outp(int flg){//called in ecalendjob
 // flg=0/1/2=>HistosOnly/write2DB+File/write2file
    int i,j;
    geant pdiff;

@@ -69,9 +69,9 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   static int FirstDScalBlk(0);
   int16u PedSubt[ECSLOTS]={1,1,1,1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
 // for PedCalTable(onboard calib)
-  integer static FirstPedBlk(0);
-  integer static TotPedBlks(0);
-  integer static PedBlkCrat[ECRT][ECEDRS]={0,0,0,0,0,0,0,0,0,0,0,0};
+  static integer FirstPedBlk(0);
+  static integer TotPedBlks(0);
+  static integer PedBlkCrat[ECRT][ECEDRS]={0,0,0,0,0,0,0,0,0,0,0,0};
   bool PedBlkOK(false);
   geant ped,sig;
   int16u sts,nblkok;
@@ -123,7 +123,8 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     return;
   }
 //
-  if(ECREFFKEY.relogic[1]==5)PedCal=true;// DownScaledEvents PedCalib job is requested 
+  if(ECREFFKEY.relogic[1]==5)PedCal=true;// DownScaledEvents PedCalib job is requested
+     
 //-----------
   jbias=1;
   while(jbias<jleng){//<---- JINF-words loop
@@ -265,13 +266,20 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 	  ebias+=1;
 	}//--->endof EDR-words loop(RawFmt)
         if(PedCal)PedSubt[slot]=0;//my internal flag to subtr(1)/not(0) peds at RawEvent-creation
+        DownScal=(ECREFFKEY.relogic[1]==5);//consider EDR-block as "downscaled",i.e no "0" suppression
+//
+	if(DownScal && PedCal){//"downscaled" block found (just because it is requested !)
+          if(FirstDScalBlk==0){
+            ECPedCalib::BTime()=AMSEvent::gethead()->gettime();//store Begin-time
+	    FirstDScalBlk=1;
+          }
+	}//--->endof "DownScaled" block ped-processing
       }
 //-------
       else{//<======================== ComprFormat : 
         if(eleng<=(2*ECEDRC+1) && (eleng%2==1))EcalJobStat::daqs3(crat-1,slot,2);//lengthOK
         else goto BadExit;
 //cout<<"    ComprFMT,EDR_length OK"<<endl;
-        DownScal=(eleng==(2*ECEDRC+1));//EDR-block is "downscaled",i.e. comprFMT,but no "0" suppression
         while(ebias<eleng){//<---- EDR-words loop (max 2*243 (rdch# + ADC-valie))
 	  rdch=*(p+jbias+ebias);//rdch(0-242)
 	  val16=*(p+jbias+ebias+1);//ADC-value(multiplied by 16 in DSP)
@@ -286,14 +294,6 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 	  swvbuf[swch]=val16;
 //	  cout<<"    rdch/val="<<rdch<<" "<<val16<<"  swid/hwid="<<swid<<" "<<hwid<<"  swch="<<swch<<endl;
 	  ebias+=2;
-//
-	  if(DownScal && PedCal){//"downscaled" block ped-processing (if ordered !)
-            PedSubt[slot]=0;//my internal flag to subtr(1)/not(0) peds at RawEvent-creation
-            if(FirstDScalBlk==0){
-              ECPedCalib::BTime()=AMSEvent::gethead()->gettime();//store Begin-time
-	      FirstDScalBlk=1;
-            }
-	  }//--->endof "DownScaled" block ped-processing
 //
 	}//--->endof EDR-words loop(comprF)
       }//--->endof ComprFMT

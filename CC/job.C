@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.495 2007/07/12 07:30:50 choumilo Exp $
+// $Id: job.C,v 1.496 2007/10/01 13:30:53 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -642,7 +642,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.TimeSigma=0.240; //(1) side time resolution(ns,=CounterResol(0.17)*sqrt(2)) 
   TFMCFFKEY.TimeSigma2=0.45; //(2)
   TFMCFFKEY.TimeProbability2=0.035;//(3)
-  TFMCFFKEY.padl=11.5;        //(4) not used now (spare)
+  TFMCFFKEY.dzconv=0.;        //(4) if !=0 => thickness of optional TungstenConverter
   TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Edep-thresh.(Mev) to participate in Simul.   
 //
   TFMCFFKEY.mcprtf[0]=0;     //(6) TOF MC print flag for init arrays(=1/2-> SEspecra/PMpulseShape)
@@ -662,6 +662,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.ReadConstFiles=0;//(19)PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->DB/RawFiles
 //
   TFMCFFKEY.addpeds=0;//(20) add peds into empty(no MC dE/dX) channels
+  TFMCFFKEY.calvern=1;//(21) TofCflistMC-file(barcal_files vers. list) vrsion number
 //
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -877,6 +878,7 @@ void AMSJob::_sianti2data(){
   ATMCFFKEY.LZero=0; // (2)spare
   ATMCFFKEY.LSpeed=14.7;// (3)Eff. light speed in anti-paddle (cm/ns)
   ATMCFFKEY.ReadConstFiles=0;//(4)Sp|Rp(Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
+  ATMCFFKEY.calvern=1;//(5)TccCflistMC-file(acccal_files vers. list) version number
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
   "MIXED");
@@ -1128,12 +1130,12 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
   TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
-  TFREFFKEY.cuts[4]=40.;//(22) min(fixed) FT delay(ns)
+  TFREFFKEY.cuts[4]=40.;//(22) min(fixed) globFT delay(from JLV1- to S-crate, ns)
   TFREFFKEY.cuts[5]=40.;//(23) spare 
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
-  TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
-  TFREFFKEY.cuts[8]=50.;//(26) spare 
-  TFREFFKEY.cuts[9]=0.;// (27) 
+  TFREFFKEY.cuts[7]=2.;// (25) T-type def.temperature (see card #29)
+  TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
+  TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
 //
   TFREFFKEY.ReadConstFiles=100;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThrCuts-set(datacards),P->Peds(rd),
 //                                                                       C->CalibConst(rd/mc));
@@ -1142,7 +1144,11 @@ void AMSJob::_retof2data(){
 // P=1/0->Take Peds(rd) from RawFiles/DB,
 // C=1/0->Take PaddleCalibrConst from RawFiles/DB
 //
-  TFREFFKEY.sec[0]=0;//(29) 
+  TFREFFKEY.TempHandlMode=0;//(29)CPT(Slow:C->SFEC,P->PMT; Fast:T->SFET)=> Temperature Handling Mode 
+//                               C(P,T)=1/0->do/not corresponding temper-corrections at reco-stage
+  TFREFFKEY.calutc=1167606001;//(30)(20070101 0000001)TofCflistRD-file(barcal_files vers. list) begin UTC-time
+//
+  TFREFFKEY.sec[0]=0;//(31) 
   TFREFFKEY.sec[1]=0;
   TFREFFKEY.min[0]=0;
   TFREFFKEY.min[1]=0;
@@ -1152,8 +1158,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.day[1]=1;
   TFREFFKEY.mon[0]=0;
   TFREFFKEY.mon[1]=0;
-  TFREFFKEY.year[0]=101;
-  TFREFFKEY.year[1]=110;//(40)
+  TFREFFKEY.year[0]=101;//(since year 1900)
+  TFREFFKEY.year[1]=110;//(42)
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -1190,7 +1196,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=2; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
+  TFCAFFKEY.cfvers=2; // (28) not used (spare)
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) spare
   TFCAFFKEY.tofbetac=0.5;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1208,26 +1214,28 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.daqthr=3.;  //(6) spare
-  ATREFFKEY.ftdel=50.;  //(7) FT-delay wrt correlated Anti history-pulse
-  ATREFFKEY.ftwin=70.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
+  ATREFFKEY.ftdel=72.;  //(7) FT-delay wrt correlated Anti history-pulse
+  ATREFFKEY.ftwin=54.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //
   ATREFFKEY.ReadConstFiles=0;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  
-  ATREFFKEY.sec[0]=0;//(10) 
-  ATREFFKEY.sec[1]=0;//(11)
-  ATREFFKEY.min[0]=0;//(12)
-  ATREFFKEY.min[1]=0;//(13)
-  ATREFFKEY.hour[0]=0;//(14)
-  ATREFFKEY.hour[1]=0;//(15)
+  ATREFFKEY.calutc=1167606001;//(10)(20070101 0000001)TccCflistRD-file(acccal_files vers. list) begin UTC-time
+//
+  ATREFFKEY.sec[0]=0;//(11) 
+  ATREFFKEY.sec[1]=0;//(12)
+  ATREFFKEY.min[0]=0;//(13)
+  ATREFFKEY.min[1]=0;//(14)
+  ATREFFKEY.hour[0]=0;//(15)
+  ATREFFKEY.hour[1]=0;//(16)
   ATREFFKEY.day[0]=1;
   ATREFFKEY.day[1]=1;
   ATREFFKEY.mon[0]=0;
   ATREFFKEY.mon[1]=0;
-  ATREFFKEY.year[0]=101;//(20)
-  ATREFFKEY.year[1]=110;
+  ATREFFKEY.year[0]=101;//(21)
+  ATREFFKEY.year[1]=110;//(22)
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  ATCAFFKEY.cfvers=4; //(1) (001-999) vers.number NN for antiverlistNN.dat file
+  ATCAFFKEY.cfvers=4; //(1) not used now (spare)
   ATCAFFKEY.cafdir=0;// (2)  0/1-> use official/private directory for calibr.files
   ATCAFFKEY.pedcpr[0]=0.01; // (3) PedCalibJobRandom(classic): portion of highest adcs to remove
   ATCAFFKEY.pedcpr[1]=0.035;// (4) PedCalibJobDownScaled(in trig): portion of highest adcs to remove
@@ -2085,9 +2093,12 @@ void AMSJob::_retof2initjob(){
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
 
 //
-// ===> Clear JOB-statistics counters for SIM/REC :
+// ===> some inits, common for reco/simu :
 //
-    TOF2JobStat::clear();
+    TOF2JobStat::clear();//Clear JOB-stat arrays, set fast temp. defaults=undefined(999) for SFET(A)(TempT)
+    TofSlowTemp::tofstemp.init(); // set default values for TOF slow temperatures(TempC,TempP)=undefined
+// formally def=undefined settings autom.provide true(TOF2Varp-based) def.value at valid-stage if some 
+//temper.data was not found !!! 
 //
 // ===> Book histograms for REC :
 //
@@ -2932,14 +2943,14 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 }
 //---------------------------
 {
-  // TOF Temperature data
-
+  // TOF Slow Temperature  data (some PMTs inside of TOF-envelops + SFEC)
+  if(isRealData()){
    tm begin=AMSmceventg::Orbit.End;
    tm end=AMSmceventg::Orbit.Begin;
-   
-     TID.add (new AMSTimeID(AMSID("TOF2Temperature",isRealData()),
-                         begin,end,
-                         TOF2Varp::tofvpar.gettoftsize(),(void*)TOF2Varp::tofvpar.gettoftp(),server));
+   TID.add (new AMSTimeID(AMSID("TofEnvelopsTemper",isRealData()),
+                  begin,end,
+                  sizeof(TofSlowTemp::tofstemp),(void*)&TofSlowTemp::tofstemp,server,NeededByDefault));
+  }  
 }
 //-----------------------------
 {

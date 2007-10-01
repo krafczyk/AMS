@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.36 2007/05/15 11:38:33 choumilo Exp $
+//  $Id: tofsim02.C,v 1.37 2007/10/01 13:30:53 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "typedefs.h"
 #include "cern.h"
+#include "time.h"
 #include "extC.h"
 #include <math.h>
 #include "point.h"
@@ -42,7 +43,8 @@ geant TOF2Tovt::SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC 
 int TOF2Tovt::SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1]; 
 geant TOF2Tovt::SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];
 int TOF2Tovt::SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
-geant AMSBitstr::clkfas=0;
+geant AMSBitstr::clkfasJLV=0;
+geant AMSBitstr::clkfasSPT[4]={0,0,0,0};
 //============================================================
 AMSDistr::AMSDistr(int _nbin, geant _bnl, geant _bnw, geant arr[]){// constructor
   nbin=_nbin;
@@ -161,65 +163,76 @@ void TOFWScan::build(){
   char name[80];
   char in[2]="0";
   char inum[11];
-  char tdisfn[20]="tof2smap";
+  char ext[80];
+  char tdisfn[20]="TofSfmapMC.";//file-name for time-scan-files-map file
+  int ctyp,ntypes,mcvern[10];
+  int date[2],year,mon,day,hour,min,sec;
+  integer iutct;
+  tm begin;
+  time_t utct;
 //
   strcpy(inum,"0123456789");
 //
-// ---> read version number of "tof2smap"-file from verslist-file:
+// ---> read version number of "TofSfmapMC"-file from verslist-file:
 //
-  integer cfvn;
-  cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(name,"tof2cvlist");// basic name of file for cal-files list
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"TofCflistMC.");// basic name for vers.list-file  
+  sprintf(ext,"%d",TFMCFFKEY.calvern);//got TofCflistMC. file extention
+  strcat(name,ext);
 //
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"====> TOFWScan::build: Open verslist-file  "<<fname<<'\n';
-  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  cout<<"====> TOFWScan::build: Opening TofCflistMC-file  "<<fname<<endl;
+  ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cerr <<"<---- missing verslist-file !!! "<<fname<<endl;
+    cout <<"<---- Error: missing TofCflistMC-file !!! "<<fname<<endl;
     exit(1);
   }
-  vlfile >> nverst;// total number of files in the list
-  vlfile >> ivers;// first number in first line (vers.# for tdisfmap-file)
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// vers# of MC-calib files 
+  }
+  vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+  vlfile >> date[1];//HHMMSS ......................................
   vlfile.close();
-  ivers=(ivers%1000);
-  cout<<"      use MC-TimeScanMap file version="<<ivers<<'\n';
+//
+  year=date[0]/10000;//2004->
+  mon=(date[0]%10000)/100;//1-12
+  day=(date[0]%100);//1-31
+  hour=date[1]/10000;//0-23
+  min=(date[1]%10000)/100;//0-59
+  sec=(date[1]%100);//0-59
+  begin.tm_isdst=0;
+  begin.tm_sec=sec;
+  begin.tm_min=min;
+  begin.tm_hour=hour;
+  begin.tm_mday=day;
+  begin.tm_mon=mon-1;
+  begin.tm_year=year-1900;
+  utct=mktime(&begin);
+  iutct=integer(utct);
+  cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+  cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+  cout<<"                                         UTC-time = "<<iutct<<endl;
+  ivers=mcvern[0];// first number in first line (vers.# for TofSfmapMC-file)
+  cout<<"      use MC TimeScanFiles Map-file version: "<<ivers<<'\n';
 //  
-//                    <-- first read TScanFileNames vs BType (map) file:
+//                    <-- Read TofSfmapMC-file (contains map of TimeScanFiles vs Bar-Type) :
   strcpy(name,tdisfn);
-  dig=ivers/100;
-  in[0]=inum[dig];
-  strcat(name,in);
-  dig=(ivers%100)/10;
-  in[0]=inum[dig];
-  strcat(name,in);
-  dig=ivers%10;
-  in[0]=inum[dig];
-  strcat(name,in);
-  strcat(name,".dat");
+  sprintf(ext,"%d",ivers);//got TofSfmapMC. file extention
+  strcat(name,ext);
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"       Open file : "<<fname<<'\n';
+  cout<<"      Open MC TimeScanFiles map-file : "<<fname<<'\n';
   ifstream tcfile(fname,ios::in); // open needed tdisfmap-file for reading
   if(!tcfile){
-    cerr <<"<---- missing  MC-TimeScanMap file !!! "<<fname<<endl;
+    cout <<"<---- Error: missing  MC TimeScanFiles map-file !!! "<<fname<<endl;
     exit(1);
   }
   for(ic=0;ic<TOF2GC::SCBTPN;ic++) tcfile >> brfnam[ic];
   tcfile.close();
-  cout<<"   <-- MC-TimeScanMap file succsessfully read !"<<endl;
+  cout<<"      MC-TimeScanMap file succsessfully read !"<<endl;
 //-------------------
 //                                  <-- now read t-distr. files
  int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,dnumm,mult,dnumo;
@@ -261,7 +274,7 @@ void TOFWScan::build(){
       cout<<"      Open file : "<<fname<<'\n';
       ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
       if(!tcfile){
-        cerr <<"<---- missing MC-TimeScan file !!! "<<fname<<endl;
+        cout <<"<---- missing MC-TimeScan file !!! "<<fname<<endl;
         exit(1);
       }
       tcfile >> npmts; // read numb.of PMTs per side
@@ -274,7 +287,7 @@ void TOFWScan::build(){
 //
         tcfile >> nsp; // read tot.number of scan-point in this div.
         if(nsp>TOF2GC::SCANPNT){
-          cerr<<"<---- wrong number of MC-TimeScan Y-points ! "<<nsp<<'\n';
+          cout<<"<---- wrong number of MC-TimeScan Y-points ! "<<nsp<<'\n';
           exit(1);
         } 
         tcfile >> wdivxl[div]; // read xl
@@ -826,8 +839,8 @@ void TOF2Tovt::inipsh(integer &nbn, geant arr[])
     }//--->endof last iobin test
   }//--->endof ib loop
 //
-  cerr<<"TOF2Tovt:inipsh-Err: PM-pulse length exeeds Flash-ADC range !?"<<'\n';
-  cerr<<"                 nbn="<<nbn<<endl;
+  cout<<"TOF2Tovt:inipsh-Err: PM-pulse length exeeds Flash-ADC range !?"<<'\n';
+  cout<<"                 nbn="<<nbn<<endl;
   exit(1);
 }
 //--------------------------------------------------------------------------
@@ -1178,7 +1191,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
                 _ntr1+=1;
               }
               else{
-                cerr<<"TOF2Tovt::build-W: HT(FTC)-buffer ovfl, nhits="<<_ntr1<<endl;
+                cout<<"TOF2Tovt::build-W: HT(FTC)-buffer ovfl, nhits="<<_ntr1<<endl;
                 upd21=2;//to block buffer input
               }
             }
@@ -1198,7 +1211,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
                 _ntr3+=1;
               }
               else{
-                cerr<<"TOF2Tovt::build-W: FTZ-buffer ovfl, nhits="<<_ntr3<<endl;
+                cout<<"TOF2Tovt::build-W: FTZ-buffer ovfl, nhits="<<_ntr3<<endl;
                 upd31=2;//to block buffer input
               }
             }
@@ -1304,27 +1317,32 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //
 //---------------------------------------------------------------------
 //
-// function to get absolute time of the FIRST trigger(coincidence) "z>=1";
-// (it is FTC-time in Lin's paper)
-// trcode - trigger code (L-pattern) =-1/n, n>=0 -> MissingPlaneCode(=missing
-// planeN if <=4), =-1 -> no trigger.
+// function to get absolute time of the FIRST trigger(coincidence) "z>=1"
+// (it is FTC-time in Lin's paper) when fttime=0 on input, return -1 if no FTC;
+// trcode - trigger code (L-pattern) =n, n>=0 -> MissingPlaneCode(=missing
+// planeN if <=4);
 // cpcode - LookUpTables pattern MN, N(M)=1/0->lut1(lut2)=satisfied/not
-// (It is LVL1 FTCP0/FTCP1 flags in Lin's paper)
+// When fttime>0 program return fttime and final flags, pattern for LVL1
+// (It is LVL1 FTCP0/FTCP1 flags in Lin's paper and input CP-pattern)
 //
-number TOF2Tovt::ftctime(int &trcode, int &cpcode){
+number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
   integer i1,i2,isd,isds(0),first(0);
   integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,toflc(-1);
   integer lut1,lut2;
   uinteger sbt,lsbit(1);
   number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
+  int16u lpat;
+  int imin,imax,ii1,ii2;
   AMSBitstr trbs[2];
   AMSBitstr trbi;
   AMSBitstr trbl[TOF2GC::SCLRS];
+  AMSBitstr lcoinc;
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
   geant cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation(z>=1)(i.e. FTC-pulse width)
+  if(TGL1FFKEY.printfl>0)cout<<"  --> TOF2Tovt::ftctime called: mode="<<fttime<<endl;
   trcode=-1;
   cpcode=0;
   lut1=Trigger2LVL1::l1trigconf.toflut1();//lut from DB(file)
@@ -1332,25 +1350,27 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   if(TGL1FFKEY.toflc>=0){//overwrite lut's settings by request from data card
     toflc=TGL1FFKEY.toflc;
     if(toflc==0){//3of4
-      lut1=1<<7+1<<11+1<<13+1<<14;//3 layers combinations
-      lut2=1<<15;//4 layers combination
+      lut1=(1<<7)+(1<<11)+(1<<13)+(1<<14);//3 layers combinations
+      lut2=(1<<15);//4 layers combination
     }
     else if(toflc==1){//4of4
-      lut1=1<<15;//4 layers combination
+      lut1=(1<<15);//4 layers combination
       lut2=0;//none
     }
     else if(toflc==2){//2of4
-      lut1=1<<5+1<<6;// 13+23 comb.
-      lut2=1<<9+1<<10;// 14+24 comb
+      lut1=(1<<5)+(1<<6);// 13+23 comb.
+      lut2=(1<<9)+(1<<10);// 14+24 comb
     }
-    else if(toflc==3){//>=3of4 + 1&2
+    else if(toflc==3){//
 //      lut1=(lut1|(1<<3));//3of4 + 1&2 (add 1&2 to default >=3of4)
-//      lut2=1<<15;// 4of4
-      lut1=(1<<3);
-      lut2=0;//none
+//      lut2=(1<<15);// 4of4
+//      lut1=(1<<3);
+//these 2 lines is special case: LUT2:0, LUT1:"texas"
+      lut2=0;//
+      lut1=(1<<2)+(1<<6)+(1<<10)+(1<<14);//"no_1" + "yes_2" combinations
     }
     else{
-      cout<<"FatalError: TOF2Tovt::ftctime: wrong layer conf. was requested from data card !!!"<<endl;
+      cout<<"    TOF2Tovt::ftctime: Error, wrong layer conf. was requested from data card !!!"<<endl;
       exit(1);
     }
   }
@@ -1397,152 +1417,81 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
                                 trbl[ilay]=trbs[0] & trbs[1];// Plane 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// Plane 2-sides OR
-    trbl[ilay].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl
+    trbl[ilay].clatchJLV();//25MHz-clock latch of 2-sides OR(AND) signal trbl
 //
   } //--- end of layer loop --->
+//------------------
+if(fttime<=0){//fast(FTC) decision mode
 //
-//---> find earliest coinc. which satisfy lut1:
-// 
-  int imin;
+//----> simulate Lut1/Lut2-conditions check by scanning(40ns step) 4 inputs with 40ns strobe
+//
+  cpcode=0;
+  AMSBitstr strobe;
+  imin=99999;
+  imax=0;
+  for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){//find full time-range to define possible strobe positions 
+    trbl[ilay].testbit(i1,i2);
+    if(i2>=i1){//non-empty layer
+      if(i1<imin)imin=i1;
+      if(i2>imax)imax=i2;
+    }
+  }
+  if(imin==99999)return(ftime);//(-1) i.e. no FTC(empty layers)
+//
+  int nsteps,step,lut1ok(0),lut2ok(0);
+  int16u lpat1(0),lpat2(0);
+  step=int(TOF2DBc::clkperJLV()/trigb);
+  nsteps=ceil((imax-imin+1)*trigb/TOF2DBc::clkperJLV());//max.numb.of "40ns" bins 
   t1=-1;
-  imin=9999;
-// check 4-fold coincidence:
-  AMSBitstr coinc1234,rr1,rr2;
-  rr1=trbl[0]&trbl[1];
-  rr2=trbl[2]&trbl[3];
-  coinc1234=rr1&rr2;
-  coinc1234.testbit(i1,i2);
-  if(i2>=i1 && (lut1 & 1<<15)){//found 4-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;//store time
-  }
-// check 3-fold coincidence:
-  AMSBitstr coinc0234=trbl[1]&trbl[2]&trbl[3];
-  AMSBitstr coinc1034=trbl[0]&trbl[2]&trbl[3];
-  AMSBitstr coinc1204=trbl[0]&trbl[1]&trbl[3];
-  AMSBitstr coinc1230=trbl[0]&trbl[1]&trbl[2];
-  coinc0234.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<14)){//found 3-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc1034.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<13)){//found 3-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc1204.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<11)){//found 3-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc1230.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<7)){//found 3-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-// check 2-fold coincidence(only tof-measurement suitable !!):
-  AMSBitstr coinc13=trbl[0]&trbl[2];
-  AMSBitstr coinc14=trbl[0]&trbl[3];
-  AMSBitstr coinc23=trbl[1]&trbl[2];
-  AMSBitstr coinc24=trbl[1]&trbl[3];
-  AMSBitstr coinc12=trbl[0]&trbl[1];//special request
-  coinc13.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<5)){//found 2-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc14.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<9)){//found 2-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc23.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<6)){//found 2-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc24.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<10)){//found 2-fold coinc.(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  coinc12.testbit(i1,i2);
-  if((i2>=i1) && (lut1 & 1<<3)){//found special 2-fold coinc.L=1&2(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  if(imin!=9999){ // lut1-ok
-    t1=imin*trigb;
-  }
-//
-//---> find earliest coinc. which satisfy lut2:
-// 
-  imin=9999;
   t2=-1;
-// check 4-fold coincidence:
-  coinc1234.testbit(i1,i2);
-  if(i2>=i1 && (lut2 & 1<<15)){//found 4-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
+  for(i=0;i<nsteps;i++){//<-- time_scan layer-pulses by strobe and check lut1/2-conditions 
+    strobe.bitclr(1,0);
+    i1=imin+step*i+5;//use 10bins(5ns) narrower strobe for safety 
+    i2=imin+step*(i+1)-5;
+    strobe.bitset(i1,i2);
+    lpat=0;
+    for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){
+      lcoinc.bitclr(1,0);
+      lcoinc=strobe&trbl[ilay];
+      lcoinc.testbit(ii1,ii2);
+      if(ii2>=ii1){
+        lpat=lpat|(1<<ilay);//coinc. of layer-signal and strobe-signal found
+      }
+    }
+    if((lut1&(1<<lpat))>0 && lut1ok==0){
+      lut1ok=1;
+      cpcode+=1;
+      t1=(i1-5)*trigb;//save 1st(earliest) Lut1-satisfied strobe-pattern and time
+      lpat1=lpat;
+    }
+    if((lut2&(1<<lpat))>0 && lut2ok==0){
+      lut2ok=1;
+      cpcode=+10;
+      t2=(i1-5)*trigb;//save 1st(earliest) Lut1-satisfied strobe-pattern and time
+      lpat2=lpat;
+    }
+    if(lut1ok==1 || lut2ok==1)break;//stop scanning when any Lut is satisfied
   }
-// check 3-fold coincidence:
-  coinc0234.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<14)){//found 3-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc1034.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<13)){//found 3-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc1204.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<11)){//found 3-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc1230.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<7)){//found 3-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-// check 2-fold coincidence:
-  coinc13.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<5)){//found 2-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc14.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<9)){//found 2-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc23.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<6)){//found 2-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc24.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<10)){//found 2-fold coinc.(requested in lut2)
-    if(i1<imin)imin=i1;
-  }
-  coinc12.testbit(i1,i2);
-  if((i2>=i1) && (lut2 & 1<<3)){//found special 2-fold coinc.L=1&2(requested in lut1)
-    if(i1<imin)imin=i1;
-  }
-  if(imin!=9999){ // lut2-ok
-    t2=imin*trigb;
-  }
-//----> check FT :
-  if(t1<0 && t2<0)return ftime;//====> NoFT: fail of any LUT-request(trcode=-99, t<0)
+// Here these lpat1/2,cpcode are just for internal(debug) usage
+//----> find FTC time as earliest of 2 luts outputs(if any):
+  int16u lpatftc(0);
+  if(t1<0 && t2<0)return ftime;//====> NoFTC: fail of any LUT-request(trcode=-1, t<0)
   else{
-    if(t1>=0)ftime=t1;
-    if(t2>=0)ftime=t2;
-    if(t1>=0 && t2>=0 && t1<t2)ftime=t1;//earliest time(FT-time) found
+    if(t1>=0){
+      ftime=t1;
+      lpatftc=lpat1;
+    }
+    if(t2>=0){
+      ftime=t2;
+      lpatftc=lpat2;
+    }
+    if(t1>=0 && t2>=0 && t1<t2){
+      ftime=t1;//earliest time(FT-time) found
+      lpatftc=lpat1;
+    }
   }
-//
-//----> create layers pattern by latching with FTC-pulse :
-//
-  AMSBitstr ftpuls,lcoinc;
-  ftpuls.bitclr(1,0);
-  t1=ftime;//imply no delay in LUT itself !!!
-  t2=t1+cgate;
-  i1=integer(t1/trigb);
-  i2=integer(t2/trigb);
-  if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
-  if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
-  ftpuls.bitset(i1,i2);//set bits according to FT_time/pulse_width(FTC-signal in Lin's paper)
-  int16u lpat(0);
-  for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){
-    lcoinc.bitclr(1,0);
-    lcoinc=ftpuls&trbl[ilay];
-    lcoinc.testbit(i1,i2);
-    if(i2>=i1)lpat=lpat|(1<<ilay);//coinc. of layer-signal and FTC found
-  }
-//----> trcode coding(analog of CP layer-pattern in Lin's lvl1 description):
+// make trcode
+  lpat=lpatftc;
   if(lpat==15)trcode=0;//all 4
   else{
     if(lpat==14)trcode=1;//3of4,miss=1
@@ -1554,13 +1503,65 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
     if(lpat==6)trcode=7;//2of4,miss=1,4
     if(lpat==10)trcode=8;//2of4,miss=1,3
     if(lpat==3)trcode=9;//2of4,miss=3,4
+    if(lpat==12)trcode=10;//2of4,miss=1.2
+    if(lpat==1)trcode=11;//1of4, miss=2,3,4
+    if(lpat==2)trcode=12;//1of4, miss=1,3,4 ("texas")
+    if(lpat==4)trcode=13;//1of4, miss=1,2,4
+    if(lpat==8)trcode=14;//1of4, miss=1,2,3
+  }
+  return(ftime+40);//"40ns" LUT-decision delay
+}
+//--------------------
+else{//Mode: recreate cpcode/lpatt for LVL1(i.e. use globFT-pulse to "latch" inputs and check LUTs)
+//
+//----> create layers input-pattern by latching with "globFT"-pulse :
+//
+
+  lpat=0;
+  cpcode=0;
+  AMSBitstr ftpuls;
+  ftpuls.bitclr(1,0);
+  t1=fttime;
+  t2=t1+cgate;
+  i1=integer(t1/trigb);
+  i2=integer(t2/trigb);
+  if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+  if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+  ftpuls.bitset(i1,i2);//set bits according to globFT_time/pulse_width(FastTrig in Lin's paper)
+  for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){//create input Lay-pattern (latched by globFT-gate)
+    trbl[ilay].testbit(ii1,ii2);
+    if(i1>=ii1 && i1<=ii2)lpat=lpat|(1<<ilay);//layer-signal latched by globFT 
+//    lcoinc.bitclr(1,0);
+//    lcoinc=ftpuls&trbl[ilay];
+//    lcoinc.testbit(i1,i2);
+//    if(i2>=i1)lpat=lpat|(1<<ilay);//coinc. of layer-signal and globFT found
+  }
+//----> trcode coding(analog of inp. CP layer-pattern in Lin's lvl1 description):
+  if(lpat==15)trcode=0;//all 4
+  else{
+    if(lpat==14)trcode=1;//3of4,miss=1
+    if(lpat==13)trcode=2;//3of4,miss=2
+    if(lpat==11)trcode=3;//3of4,miss=3
+    if(lpat==7)trcode=4; //3of4,miss=4
+    if(lpat==5)trcode=5;//2of4,miss=2,4
+    if(lpat==9)trcode=6;//2of4,miss=2,3
+    if(lpat==6)trcode=7;//2of4,miss=1,4
+    if(lpat==10)trcode=8;//2of4,miss=1,3
+    if(lpat==3)trcode=9;//2of4,miss=3,4
+    if(lpat==12)trcode=10;//2of4,miss=1.2
+    if(lpat==1)trcode=11;//1of4, miss=2,3,4
+    if(lpat==2)trcode=12;//1of4, miss=1,3,4 ("texas")
+    if(lpat==4)trcode=13;//1of4, miss=1,2,4
+    if(lpat==8)trcode=14;//1of4, miss=1,2,3
   }
 //----> create CP1,CP2 flags(cpcode) for LVL1:
   cpcode=0;
-  if(lut1&(1<<lpat))cpcode+=1;
+  if(lut1&(1<<lpat))cpcode=1;
   if(lut2&(1<<lpat))cpcode+=10;
 //
-  return ftime;
+  return fttime;
+}
+//
 }
 //---------------------------------------------------------------------
 //
@@ -1641,7 +1642,7 @@ number TOF2Tovt::ftztime(int &trcode){
                                 trbl[ilay]=trbs[0] & trbs[1];// 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// 2-sides OR
-    trbl[ilay].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl
+    trbl[ilay].clatchJLV();//25MHz-clock latch of 2-sides OR(AND) signal trbl
 //
   } //--- end of layer loop --->
 //
@@ -1692,7 +1693,7 @@ number TOF2Tovt::ftztime(int &trcode){
 // function to create BZ("z>=2") sub-trigger info for LVL1;
 // trcode - BZ-trig. code(L-pattern) =-1/n, n>=0 -> MissingPlaneCode(=missing
 // planeN if <=4);
-// On input require TOF-FT(z>=1)-trigger time(FTC in Lin's paper)
+// On input require globFT(z>=1)-trigger time(FT in Lin's paper)
 // BZ may be "false" when trcode>=0, but don't match lutbz 
 //
 bool TOF2Tovt::bztrig(number ftime, int &trcode){
@@ -1707,19 +1708,19 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant cgate=TOF2DBc::daqpwd(5);//gate(FTC-pulse width)
+  geant cgate=TOF2DBc::daqpwd(5);//gate(FT-pulse width)
   trcode=-1;
   lutbz=Trigger2LVL1::l1trigconf.toflutbz();//lvl1 lutbz from DB
   if(TGL1FFKEY.toflcz>=0){//overwrite lutbz by request from data card
     toflcz=TGL1FFKEY.toflcz;
     if(toflcz==0){//>=3of4)
-      lutbz=1<<7+1<<11+1<<13+1<<14+1<<15;
+      lutbz=(1<<7)+(1<<11)+(1<<13)+(1<<14)+(1<<15);
     }
     else if(toflcz==1){//4of4
-      lutbz=1<<15;
+      lutbz=(1<<15);
     }
     else if(toflcz==2){//>=2of4(at least 1top and 1bot)
-      lutbz=1<<5+1<<6+1<<7+1<<9+1<<10+1<<11+1<<13+1<<14+1<<15;
+      lutbz=(1<<5)+(1<<6)+(1<<7)+(1<<9)+(1<<10)+(1<<11)+(1<<13)+(1<<14)+(1<<15);
     }
     else{
       cout<<"FatalError: TOF2Tovt::tr2time: wrong LVL1(BZ)layer conf. was requested from data card !!!"<<endl;
@@ -1770,28 +1771,31 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
                                 trbl[ilay]=trbs[0] & trbs[1];// 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// 2-sides OR
-    trbl[ilay].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl(TOFBZ(L)-signals)
+    trbl[ilay].clatchJLV();//25MHz-clock latch of 2-sides OR(AND) signal trbl(TOFBZ(L)-signals)
 //
   } //--- end of layer loop --->
 //
-//----> create layers pattern by latching with FT-pulse(got from z>=1, =FTC) :
+//----> create layers pattern by latching with globFT-pulse :
 //
+  int ii1,ii2;
   trcode=-1;
   AMSBitstr ftpuls,lcoinc;
   ftpuls.bitclr(1,0);
-  t1=ftime;//imply no delay in LUT-FT itself !!!
+  t1=ftime;
   t2=t1+cgate;
   i1=integer(t1/trigb);
   i2=integer(t2/trigb);
   if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
   if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
-  ftpuls.bitset(i1,i2);//set bits according to FT-time/pulse width(FTC-signal)
+  ftpuls.bitset(i1,i2);//set bits according to glFT-time/pulse width
   int16u lpat(0);
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){
-    lcoinc.bitclr(1,0);
-    lcoinc=ftpuls&trbl[ilay];
-    lcoinc.testbit(i1,i2);
-    if(i2>=i1)lpat=lpat|(1<<ilay);//coinc. of layer-signal and FT-gate found
+    trbl[ilay].testbit(ii1,ii2);
+    if(i1>=ii1 && i1<=ii2)lpat=lpat|(1<<ilay);//layer-signal latched by globFT 
+//    lcoinc.bitclr(1,0);
+//    lcoinc=ftpuls&trbl[ilay];
+//    lcoinc.testbit(i1,i2);
+//    if(i2>=i1)lpat=lpat|(1<<ilay);//coinc. of layer-signal and FT-gate found
   }
 //----> trcode coding(like CP layer-pattern in lvl1, but need to apply lutbz here !):
   if(lpat==15)trcode=0;//all 4
@@ -1804,16 +1808,16 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
     if(lpat==9)trcode=6;//2of4,miss=2,3
     if(lpat==6)trcode=7;//2of4,miss=1,4
     if(lpat==10)trcode=8;//2of4,miss=1,3
-    if(lpat==1)trcode=9;//
-    if(lpat==2)trcode=10;//
-    if(lpat==3)trcode=11;//
-    if(lpat==4)trcode=12;//
-    if(lpat==8)trcode=13;//
-    if(lpat==12)trcode=14;//
+    if(lpat==3)trcode=9;//2of4,miss=3,4
+    if(lpat==12)trcode=10;//2of4,miss=1.2
+    if(lpat==1)trcode=11;//1of4, miss=2,3,4
+    if(lpat==2)trcode=12;//1of4, miss=1,3,4 ("texas")
+    if(lpat==4)trcode=13;//1of4, miss=1,2,4
+    if(lpat==8)trcode=14;//1of4, miss=1,2,3
   }
-//here we have input BZ-signals pattern(lpat<=>trcode) ready, now BZ-trig decision :
+//here we have input BZ-signals pattern(lpat<=>trcode) ready, now BZ-decision for LEV1 :
   bool bz(0);
-  if(lpat>0)bz=(lutbz&(1<<lpat))>0;//given L-combination(lpat) is found in LUT-BZ ?
+  if(lpat>0)bz=((lutbz&(1<<lpat))>0);//given L-combination(lpat) is found in LUT-BZ ?
   return bz;
 //
 }
@@ -1823,12 +1827,18 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 //create TOF HT,SHT-signals patterns on the arrival of globFT(as in SPT2)
 //on input gftime includes delay from LVL1 to SPT2 !
 //  
-  integer ilay,ibar,j,ntr,idd,id,isd,intrig,ncoins;
+  integer ilay,ibar,j,ntr,idd,id,isd,intrig;
   uinteger sbt,lsbit(1);
   number ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant cgate,t1,t2,tg1,tg2;
   geant trigb=TOF2DBc::trigtb();
+  AMSBitstr trbs;
+  AMSBitstr trbi;
+  AMSBitstr gate;
   TOF2Tovt *ptr;
+  integer i1,i2,ig1,ig2;
+  int16u otyp,mtyp,crat,slot;
+  bool coinc;
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){
     toftrp1[ilay]=0;
@@ -1837,7 +1847,7 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 //
 //-----> create counters sides pattern(HT(z>=1):
 //
-  cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation, tempor use FTC-pulse width
+  cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation, i.e. globFT-pulse width from JLV1
   tg1=gftime;//gate_start_time=FTime+fix.delay(from lvl1 to SPT2)
   tg2=tg1+cgate;//gate_end_time
 // 
@@ -1850,17 +1860,42 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
       id=idd/10;// short id=LBB
       ibar=id%100-1;
       ilay=id/100-1;
-      ncoins=0;
       intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
         ntr=ptr->gettr1(ttru,ttrd);// get number and times of "z>=1"==HT hits
+        trbs.bitclr(1,0);
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
+          trbi.bitclr(1,0);
           t1=geant(ttru[j]);
           t2=geant(ttrd[j]);
-	  if(tg2<=t1 || tg1>=t2)continue;
-	  ncoins+=1;
+          i1=integer(t1/trigb);
+          i2=integer(t2/trigb);
+          if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+          if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+          trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
+	  trbs=(trbs | trbi);//make 1paddle/1side "all_hits_OR"
         }// --- end of trig-hits loop --->
-	if(ncoins>0){
+        mtyp=0;
+        otyp=0;
+        AMSSCIds tofid(ilay,ibar,isd,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
+        crat=tofid.getcrate();//current crate#
+        trbs.clatchSPT(crat);//50MHz-clock latch of 1side HT-signal(get long SPTclock-sincronized HT-signal)
+        trbs.testbit(i1,i2);
+        t1=i1*trigb;
+        t2=i2*trigb;
+	gate.bitclr(1,0);
+        ig1=integer(tg1/trigb);
+        ig2=integer(tg2/trigb);
+        if(ig1>=TOFGC::SCBITM)ig1=TOFGC::SCBITM-1;
+        if(ig2>=TOFGC::SCBITM)ig2=TOFGC::SCBITM-1;
+        gate.bitset(ig1,ig2);//set bits according to FT-time/pulse width(FT-signal)
+        gate.clatchSPT(crat);//50MHz-clock latch of Gate-signal(get long SPTclock-sincronized Gate-signal)
+        gate.testbit(ig1,ig2);
+        tg1=ig1*trigb;//start-time of sincronized Gate-signal
+        tg2=tg1+TOF2DBc::clkperSPT();//its end-time(only 1 clock-period(20ns) width according to A.Basili !!!)
+//  (this pulse is a "strobe"(crate-dependent due to clock) made from front-edge of external gate-signal)
+	coinc=(tg2>t1 && tg2<=t2);//check "coincidence" 
+	if(coinc){//approx.means that gate front-edge is within HT-signal width !!!
           if(isd==0)sbt=lsbit<<ibar;
 	  else sbt=lsbit<<(16+ibar);
           toftrp1[ilay]|=sbt;//add bit of coinsided side(toftrp:bit(1-16)->s1;bit(17-32)->s2)
@@ -1875,7 +1910,7 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 // 
 // ---> create counters sides pattern(SHT(z>=2)):
 //
-  cgate=TOF2DBc::daqpwd(6);//gate for tof-pattern creation(z>=2)
+  cgate=TOF2DBc::daqpwd(6);//gate for tof-pattern creation, i.e. globFT-pulse width from JLV1
   tg1=gftime;//gate_start_time=FTime+fix.delay(from lvl1 to SPT2)
   tg2=tg1+cgate;//gate_end_time
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
@@ -1887,17 +1922,42 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
       id=idd/10;// short id=LBB
       ibar=id%100-1;
       ilay=id/100-1;
-      ncoins=0;
       intrig=Trigger2LVL1::l1trigconf.tofinzmask(int(ilay),int(ibar));//TofInTrig from DB
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
         ntr=ptr->gettr3(ttru,ttrd);// get number and times of "z>=2"==SHT hits
+        trbs.bitclr(1,0);
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
+          trbi.bitclr(1,0);
           t1=geant(ttru[j]);
           t2=geant(ttrd[j]);
-	  if(tg2<=t1 || tg1>=t2)continue;
-	  ncoins+=1;
+          i1=integer(t1/trigb);
+          i2=integer(t2/trigb);
+          if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+          if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+          trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
+	  trbs=(trbs | trbi);//make 1paddle/1side "all_hits_OR"
         }// --- end of trig-hits loop --->
-	if(ncoins>0){
+        mtyp=0;
+        otyp=0;
+        AMSSCIds tofid(ilay,ibar,isd,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
+        crat=tofid.getcrate();//current crate#
+        trbs.clatchSPT(crat);//50MHz-clock latch of 1side SHT-signal(get long SPTclock-sincronized SHT-signal)
+        trbs.testbit(i1,i2);
+        t1=i1*trigb;
+        t2=i2*trigb;
+	gate.bitclr(1,0);
+        ig1=integer(tg1/trigb);
+        ig2=integer(tg2/trigb);
+        if(ig1>=TOFGC::SCBITM)ig1=TOFGC::SCBITM-1;
+        if(ig2>=TOFGC::SCBITM)ig2=TOFGC::SCBITM-1;
+        gate.bitset(ig1,ig2);//set bits according to FT-time/pulse width(FT-signal)
+        gate.clatchSPT(crat);//50MHz-clock latch of Gate-signal(get long SPTclock-sincronized Gate-signal)
+        gate.testbit(ig1,ig2);
+        tg1=ig1*trigb;//start-time of sincronized Gate-signal
+        tg2=tg1+TOF2DBc::clkperSPT();//its end-time(only 1 clock-period(20ns) width according to A.Basili !!!)
+//  (this pulse is a "strobe"(crate-dependent due to clock) made from front-edge of external gate-signal)
+	coinc=(tg2>t1 && tg2<=t2);//check "coincidence" 
+	if(coinc){
           if(isd==0)sbt=lsbit<<ibar;
 	  else sbt=lsbit<<(16+ibar);
           toftrp2[ilay]|=sbt;//add bit of coinsided side(toftrp:bit(1-16)->s1;bit(17-32)->s2)
@@ -2066,20 +2126,59 @@ void AMSBitstr::display(char comment[]){
     if(bslen%10 !=0)printf("\n");
   }
 //-----------------------------------------------------------------------
-void AMSBitstr::clatch(){
-//---> make latching with trig.electronics clock: 
+void AMSBitstr::clatchJLV(){
+//---> make latching with JLV1trig.electronics clock: 
   static unsigned short int allzer(0x0000);
   static unsigned short int allone(0xFFFF);
   static unsigned short int setone[16]={
        0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
        0x0080,0x0040,0x0020,0x0010,0x0008,0x0004,0x0002,0x0001};
-  int cbl=int(floor(TOF2DBc::clkper()/TOF2DBc::trigtb()));//clock periond length (bits)
+  int cbl=int(floor(TOF2DBc::clkperJLV()/TOF2DBc::trigtb()));//clock periond length (bits)
   unsigned short int bstr[TOFGC::SCWORM]; // max. length in 16-bit words
   unsigned short int bv;
   int i,iw,iwn,jw,nw,ibln,ib,ibl,blmn,blmx(16*bslen);
 //
   for(iw=0;iw<TOFGC::SCWORM;iw++)bstr[iw]=0;
-  blmn=int(floor(clkfas*TOF2DBc::clkper()/TOF2DBc::trigtb()));//1st clock-pulse position
+  blmn=int(floor(clkfasJLV*TOF2DBc::clkperJLV()/TOF2DBc::trigtb()));//1st clock-pulse position
+  for(ib=blmn;ib<blmx;ib+=cbl){
+    iw=ib/16;//current word(begg.of period)
+    ibl=ib-16*iw;//local bit(in current word)
+    bv=bitstr[iw]&setone[ibl];//local bit value of original bitstream
+    if(bv!=0){//set next cbl bits starting from current
+      iwn=(ib+cbl)/16;//next word(where the new clock period starts)
+      ibln=(ib+cbl)-16*iwn;//next loc.bit(in next period word)
+      if(iwn>=bslen){
+        iwn=bslen-1;
+	ibln=15;
+      }
+      nw=iwn-iw+1;//words to fill(incl.uncomplete ones) bef the start of the next period
+      if(nw==0){
+        for(i=ibl;i<ibln;i++)bstr[iw]|=setone[i];//set needed 1's in current word
+      } 
+      else{
+        for(i=ibl;i<16;i++)bstr[iw]|=setone[i];//set 1's upto the end of the 1st word of curr. period
+	for(jw=0;jw<nw-2;jw++)bstr[iw+1+jw]=allone;//fill middle nw-2 complete words of curr.period
+	for(i=0;i<ibln;i++)bstr[iw+nw-1]|=setone[i];//set 1's at the beg. of the last word of curr.period  
+      }
+    }
+  }
+  for(iw=0;iw<bslen;iw++)bitstr[iw]=bstr[iw];//refill original bitstream
+}
+//-----------------------------------------------------------------------
+void AMSBitstr::clatchSPT(int crt){
+//---> make latching with SPTpreTrig.electronics(S-crates) clock: 
+  static unsigned short int allzer(0x0000);
+  static unsigned short int allone(0xFFFF);
+  static unsigned short int setone[16]={
+       0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
+       0x0080,0x0040,0x0020,0x0010,0x0008,0x0004,0x0002,0x0001};
+  int cbl=int(floor(TOF2DBc::clkperSPT()/TOF2DBc::trigtb()));//clock periond length (bits)
+  unsigned short int bstr[TOFGC::SCWORM]; // max. length in 16-bit words
+  unsigned short int bv;
+  int i,iw,iwn,jw,nw,ibln,ib,ibl,blmn,blmx(16*bslen);
+//
+  for(iw=0;iw<TOFGC::SCWORM;iw++)bstr[iw]=0;
+  blmn=int(floor(clkfasSPT[crt]*TOF2DBc::clkperSPT()/TOF2DBc::trigtb()));//1st clock-pulse position
   for(ib=blmn;ib<blmx;ib+=cbl){
     iw=ib/16;//current word(begg.of period)
     ibl=ib-16*iw;//local bit(in current word)
@@ -2106,9 +2205,13 @@ void AMSBitstr::clatch(){
 }
 //-----------------------------------------------------------------------
 void AMSBitstr::setclkphase(){
-//randomly sets trig.electronics clock-pulse phase(called once per event !!!)
+//randomly sets SPT/JLV-trig.electronics clock-pulse phases(called once per event !!!)
   geant dummy(-1);
-  clkfas=RNDM(dummy);
+  clkfasJLV=RNDM(dummy);
+  clkfasSPT[0]=RNDM(dummy);
+  clkfasSPT[1]=RNDM(dummy);
+  clkfasSPT[2]=RNDM(dummy);
+  clkfasSPT[3]=RNDM(dummy);
 }
 //
 //=====================================================================
@@ -2125,8 +2228,8 @@ void TOF2RawSide::mc_build(int &status)
   integer  ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3],sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   geant adca,adcd[TOF2GC::PMTSMX];
   number t,t1,t2,t3,t4,ttrig,dt,cstopt,tl1d,ftrig,ecftrig;
-  number ftctime,ftztime,ftetime,ftmin;
-  geant charge,edep,strr[2][2],str,offs,temp;
+  number ftctime,ftztime,ftetime,ftmin,dummy;
+  geant charge,edep,strr[2][2],str,offs,temT,temC,temP;
   geant daqta,daqtd,rrr;
   number pedv,peds,amp;
   integer iamp;
@@ -2149,7 +2252,6 @@ void TOF2RawSide::mc_build(int &status)
   maxv=phbit-1;//max possible TDC value (16383)
   daqta=TOF2Varp::tofvpar.daqthr(3);//daq readout thr (anode, ped sigmas)
   daqtd=TOF2Varp::tofvpar.daqthr(4);//daq readout thr (dynode, ped sigmas)
-//  if(TFMCFFKEY.mcprtf[3]>0)cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
 //  cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
 //
   for(int il=0;il<TOF2GC::SCLRS;il++){
@@ -2188,31 +2290,18 @@ void TOF2RawSide::mc_build(int &status)
     TOF2JobStat::addmc(15);
 //====> find globFT time:
 // FTC:
-    ftctime=TOF2Tovt::ftctime(trcode,cpcode);//get abs.FTC("z>=1") signal time/L-patt/cpcode
-    if(trcode>=0){
+    ftctime=TOF2Tovt::ftctime(0,trcode,cpcode);//get abs.FTC("z>=1")time(at JLV1) and "fast" L-patt/cpcode
+    if(ftctime>0){
       TOF2JobStat::addmc(16);
-      TOF2RawSide::settrcode(trcode);// set tof-layers CP-code(z>=1)
-      TOF2RawSide::setcpcode(cpcode);// set tof-layers CP0/CP1-flag(z>=1)
       ftpatt|=1;
       if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode),1.);
-      bztr=TOF2Tovt::bztrig(ftctime,trcodez);//get BZ-flag/Lpatt
-      if(trcodez>=0)TOF2RawSide::settrcodez(trcodez);//set TOF-layers BZ-code(z>=2), bztr may be even fals!!!
-      if(bztr){
-        TOF2JobStat::addmc(17);
-        TOF2RawSide::setbzflag(1);//set  BZ-flag
-      }
-      if(TFMCFFKEY.mcprtf[2]!=0){
-        if(trcodez>=0)HF1(1069,geant(trcodez)+20,1.);
-        if(bztr && trcodez>=0)HF1(1069,geant(trcodez)+40,1.);
-      }
       if(TGL1FFKEY.printfl>0){
         cout<<"    foundFTC: trcode/cpcode="<<trcode<<" "<<cpcode<<" ftctime="<<ftctime<<endl;
-        cout<<"    BZflag/code="<<bztr<<" "<<trcodez<<endl;
       }
     }
 //
 // FTZ:
-    ftztime=TOF2Tovt::ftztime(ftzcode);//get abs.FTZ("SlowZ>=2") signal time/L-conf. request code
+    ftztime=TOF2Tovt::ftztime(ftzcode);//get abs.FTZ("SlowZ>=2")time(jlv1) and L-conf. request code
     if(ftzcode>=0){
       TOF2JobStat::addmc(18);
       ftpatt|=(1<<1);
@@ -2225,7 +2314,7 @@ void TOF2RawSide::mc_build(int &status)
     if(ftpatt>0)if(TFMCFFKEY.mcprtf[2]!=0)HF1(1076,geant(ectrfl),1.);//hist.EC-flag when was TOF
     if(ectrfl/10>2){//EmEnergy found (Angle flag is used only in LVL1-logic)
       TOF2JobStat::addmc(19);
-      ftetime=AMSEcalRawEvent::gettrtm();//(includes delay from EC to LVL1-crate (tempor = TOF-delay)
+      ftetime=AMSEcalRawEvent::gettrtm();//(includes delay from EC to LVL1-crate
       if(ftpatt&1==1)if(TFMCFFKEY.mcprtf[2]!=0)HF1(1077,geant(ftctime-ftetime),1.);//when FTC ok
       if(ftpatt==0)TOF2JobStat::addmc(20);// <--- count "no FT from TOF" when EC ok
       ftpatt|=(1<<2);
@@ -2234,6 +2323,7 @@ void TOF2RawSide::mc_build(int &status)
 //----
     if(TGL1FFKEY.printfl>0)cout<<"    foundFTpatt:"<<ftpatt<<" masked:"<<(ftpatt & ftpatreq)<<endl;
     if((ftpatt & ftpatreq)==0)return;//===> No globFT or masked
+
     TOF2JobStat::addmc(21);//<=== found non-masked globFT
 //
     ftpatt=(ftpatt&ftpatreq);//<=== globFT-members pattern (masked)
@@ -2242,8 +2332,40 @@ void TOF2RawSide::mc_build(int &status)
     if((ftpatt&1)>0 && ftctime<ftmin)ftmin=ftctime;
     if((ftpatt&(1<<1))>0 && ftztime<ftmin)ftmin=ftztime;
     if((ftpatt&(1<<2))>0 && ftetime<ftmin)ftmin=ftetime;
-    ttrig=ftmin;//<--- this is globFT time in LVL1-crate
-    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//globFT abs time(+fixed delay) as it came to SFET from "JLV1"
+//
+//<==== globFT time is found:
+    ttrig=ftmin;//this is globFT time in JLV1-crate(need for TOF-Lpatts, ACC-patt creation in JLV1)
+    if(TGL1FFKEY.printfl>0){
+      cout<<"    Final globFT-time(at JLV1)="<<ttrig<<endl;
+    }
+//
+//--> make TOF L-patt/cpcode for LEV1:
+    dummy=TOF2Tovt::ftctime(ttrig,trcode,cpcode);//get L-patt/cpcode for LVL1
+    if(cpcode>0){
+      TOF2RawSide::settrcode(trcode);// for LEV1 set tof-layers input CP-patt(z>=1)
+      TOF2RawSide::setcpcode(cpcode);//          set tof-layers CP0/CP1-flag(z>=1)
+      if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode)+20,1.);
+      if(TGL1FFKEY.printfl>0){
+        cout<<"    For LVL1: trcode/cpcode="<<trcode<<" "<<cpcode<<endl;
+      }
+    }
+//--> make TOF BZ-flag for LEV1:
+    bztr=TOF2Tovt::bztrig(ttrig,trcodez);//make BZ-flag/Lpatt
+    if(trcodez>=0)TOF2RawSide::settrcodez(trcodez);//set TOF-layers BZ-code(z>=2), bztr may be even fals!!!
+    if(bztr){
+      TOF2JobStat::addmc(17);
+      TOF2RawSide::setbzflag(1);//set  BZ-flag
+    }
+    if(TFMCFFKEY.mcprtf[2]!=0){
+      if(trcodez>=0)HF1(1069,geant(trcodez)+40,1.);
+      if(bztr && trcodez>=0)HF1(1069,geant(trcodez)+60,1.);
+    }
+    if(TGL1FFKEY.printfl>0){
+      cout<<"    BZflag/code="<<bztr<<" "<<trcodez<<endl;
+    }
+//
+    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//globFT abs time(+fixed delay) as it came to S-crate from "JLV1"
+//    (used as average value to create FT-hits in SFET(A)s by adding cr-to-cr and sl-to-sl jitters)
     TOF2Tovt::spt2patt(ftrig,trpatt,trpattz);//<=== create TOF(HT/SHT-signals in SPT2) padd/side patterns
 //
     if(TFMCFFKEY.mcprtf[2]!=0){
@@ -2259,7 +2381,7 @@ void TOF2RawSide::mc_build(int &status)
 //
     TOF2RawSide::setpatt(trpatt);// set SPT2 TOF(HT) pattern(z>=1)
     TOF2RawSide::setpattz(trpattz);// set SPT2 TOF(SHT) pattern(z>=2)
-    TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (at SPT2 !) 
+    TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (at S-crate) 
 //    cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     if(TGL1FFKEY.printfl>0)cout<<"   FTAbsTime="<<ttrig<<"(inSPT2:"<<ftrig<<")"<<endl;
   }//===> endof "NotExtTrigger" check
@@ -2268,7 +2390,7 @@ void TOF2RawSide::mc_build(int &status)
     ftpatt|=(1<<3);
     ttrig=0.;//tempor (true ExtTrigSignal-time)
     ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
-    TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (at SPT2 !) 
+    TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (in S-crate) 
     TOF2RawSide::setftpatt(ftpatt);//set  globFT members pattern
     cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     TOF2JobStat::addmc(22);
@@ -2397,14 +2519,16 @@ void TOF2RawSide::mc_build(int &status)
 //---------------------
 //     ---> create/fill RawEvent-object :
 // tempor no check on "empty object" because globFT-conditions were found ("status" was set to 0 above)
-      temp=0;//now dummy(will be set at validation stage using static JobStat temp-store !!!)
+      temT=0;//default ref.temperature for SFET-based sensors 
+      temC=0;//default ref.temperature for SFEC-based sensors 
+      temP=0;//default ref.temperature for PMT-based sensors 
       nftdc=0;//now dummy(will be set at validation stage using static RawEvent FTtime-store !!!)
       nsumh=0;//now dummy(will be set at validation stage using static RawEvent SumHTtime-store !!!)
       nsumsh=0;//now dummy(will be set at validation stage using static RawEvent SumSHTtime-store !!!)
       if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtraction/suppression)
       fmask[ilay][ibar][isd]=1;//mark fired side
 //
-      AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,temp,
+      AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,temT,temC,temP,
 	                           nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
 //
       ptr=ptr->next();// take next Tovt-hit
@@ -2513,7 +2637,9 @@ void TOF2RawSide::mc_build(int &status)
             }//--->endof Dyn-pmt-loop
 //     ---> create/fill "ped" RawEvent-object :
             if(adca>0 || nadcd>0){
-              temp=0;
+              temT=999;//mean undefined value (will be set to real/default ones at validation stage)
+              temC=999;
+              temP=999;
               nftdc=0;
 	      nstdc=0;
 	      edep=0;
@@ -2521,7 +2647,8 @@ void TOF2RawSide::mc_build(int &status)
               nsumsh=0;
 //
               if(TFREFFKEY.relogic[0]==5||TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtr/suppr)
-              AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,temp,
+              AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,
+	                                 temT,temC,temP,
 	                                 nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
 	    }
 	  }//--->endof emty side check
@@ -2598,7 +2725,8 @@ integer TOF2Tovt::getadcd(number arr[]){
 
 
 
-TOF2RawSide::TOF2RawSide(int16u sid, int16u hid, int16u sta, geant charge, geant temp,
+TOF2RawSide::TOF2RawSide(int16u sid, int16u hid, int16u sta, geant charge,
+   geant tT, geant tC, geant tP,
    integer nftdc, integer ftdc[],
    integer nstdc, integer stdc[],
    integer nsumh, integer sumht[],
@@ -2621,7 +2749,9 @@ TOF2RawSide::TOF2RawSide(int16u sid, int16u hid, int16u sta, geant charge, geant
        _adcd[i]=adcd[i];
      }
      _charge=charge;
-     _temp=temp;
+     _tempT=tT;
+     _tempC=tC;
+     _tempP=tP;
    }
 
 integer TOF2RawSide::getnztdc(){
@@ -2632,7 +2762,7 @@ integer TOF2RawSide::getnztdc(){
   if(_nsumsh>0)nz+=_nsumsh;
   if(_adca>0)nz+=1;
   if(_nadcd>0)nz+=_nadcd;
-  return nz+1;//+temper.measurement
+  return nz+3;//+ 3 temper.measurements
 }
 
 

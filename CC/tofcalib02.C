@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.19 2007/07/12 07:30:50 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.20 2007/10/01 13:30:53 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "typedefs.h"
@@ -204,36 +204,35 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
   char frdate[30];
   char in[2]="0";
   char inum[11];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
   integer cfvn;
   uinteger StartRun;
   time_t StartTime;
   int dig;
-//
-//--> create name for output file
-// 
   strcpy(inum,"0123456789");
-  cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(fname,"tzcalib");
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
 //
-//--> get run/time of the first event
+//
+//--> get run/time of the first event(set at 1st event valid-stage using related AMSEvent values) 
 //
   StartRun=TOF2RawSide::getsrun();
   StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
+//
+//--> create name for output file
+// 
+  strcpy(fname,"TofTzslw");
+  if(AMSJob::gethead()->isMCData()){
+    strcat(fname,vers1);
+    sprintf(fext,"%d",TFMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcat(fname,vers2);
+    sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
+  }
+  strcat(fname,".");
+  strcat(fname,fext);
 //
 //
   for(i=0;i<TOF2GC::SCLRS;i++)f1[i]=0.;
@@ -1078,36 +1077,34 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   char frdate[30];
   char in[2]="0";
   char inum[11];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
   integer cfvn;
   uinteger StartRun;
   time_t StartTime;
   int dig;
-//
-//--> create name for output file
-// 
   strcpy(inum,"0123456789");
-  cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(fname,"tdcalib");
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
 //
 //--> get run/time of the first event
 //
   StartRun=TOF2RawSide::getsrun();
   StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
+//
+//--> create name for output file
+// 
+  strcpy(fname,"TofTdelv");
+  if(AMSJob::gethead()->isMCData()){
+    strcat(fname,vers1);
+    sprintf(fext,"%d",TFMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcat(fname,vers2);
+    sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
+  }
+  strcat(fname,".");
+  strcat(fname,fext);
 //
 //
   HPRINT(1600);
@@ -2098,30 +2095,14 @@ void TOF2AMPLcalib::fit(){
   char frdate[30];
   char in[2]="0";
   char inum[11];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
   integer cfvn;
   uinteger StartRun;
   time_t StartTime;
   int dig;
-//
-//--> create name for output file
-// 
   strcpy(inum,"0123456789");
-  cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(fname,"ancalib");
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
 //
 //--> get run/time of the first event
 //
@@ -2129,6 +2110,19 @@ void TOF2AMPLcalib::fit(){
   StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
+//--> create name for output file
+// 
+  strcpy(fname,"TofAmplf");
+  if(AMSJob::gethead()->isMCData()){
+    strcat(fname,vers1);
+    sprintf(fext,"%d",TFMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcat(fname,vers2);
+    sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
+  }
+  strcat(fname,".");
+  strcat(fname,fext);
 //
 // ---> print "gain"-hist. (side-signals for center bin)
   chan=0;

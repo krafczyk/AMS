@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.90 2006/07/28 14:03:26 choutko Exp $
+//  $Id: gmat.C,v 1.91 2007/10/01 13:30:53 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -607,6 +607,7 @@ tmed.add (new AMSgtmed("ANTI_SCINT","TOFSCINT",1,'Y',birks));
 tmed.add (new AMSgtmed("TOF_HONEYCOMB","TOF_AL_HONEYC",0));
 tmed.add (new AMSgtmed("TOF_PMT_BOX","TOF_LOW_DENS_Fe",0));
 tmed.add (new AMSgtmed("TOF_SC_COVER","TOFCARBONF",0));
+tmed.add (new AMSgtmed("TOF_TOP_CONV","TUNGSTEN",0));
 tmed.add (new AMSgtmed("TOF_LG","TOFLGPLEX",0));
 //
 tmed.add (new AMSgtmed("ANTI_WRAP","MYLAR",0));//  tempor. mylar

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.15 2007/05/15 11:39:24 choumilo Exp $
+//  $Id: tofsim02.h,v 1.16 2007/10/01 13:31:09 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -305,10 +305,10 @@ integer getstat(){return status;}
 static void inipsh(integer &nbn, geant arr[]);
 static geant pmsatur(const geant am);
 static void displ_a(char comm[], int id, int mf, const geant arr[]);
-static number ftctime(int &trcode,int &cpcode);//to get FTC("z>=1") trigger time/code/lutcode 
+static number ftctime(number gft, int &trcode,int &cpcode);//to get FTC("z>=1") trigger time/code/lutcode 
 static number ftztime(int &trcode);//to get FTZ("SlowZ>=2") trigger time/code
 static void spt2patt(number ftime, integer patt1[], integer patt2[]);//to get z>=1/z>=2 tof-patterns of SPT2
-static bool bztrig(number gftime, int &trcode);//to get BZ-flag for LVL1 and BZ(z>=2) layers patt. 
+static bool bztrig(number gft, int &trcode);//to get BZ-flag for LVL1 and BZ(z>=2) layers patt. 
 static void build();
 static void totovt(integer id, geant edep, geant tslice[],geant shar[]);//flash_ADC_array->Tovt
 //
@@ -323,7 +323,8 @@ void _copyEl(){};
 class AMSBitstr{
 //
 private:
-  static geant clkfas;//trig.electronics clock phase(0-1 random, but the same for whole event)
+  static geant clkfasJLV;//JLVtrig.(JLV1-crat)electronics clock phase(0-1 random, the same for whole event)
+  static geant clkfasSPT[4];//SPTpreTrig(S-crates)......................................................
   unsigned short int bitstr[TOFGC::SCWORM]; // max. length in 16-bit words
   int bslen; // real length in 16-bits words (<=def=TOFGC::SCWORM)
 //
@@ -352,7 +353,8 @@ public:
   }
   void bitset(const int il, const int ih);
   void bitclr(const int il, const int ih);
-  void clatch();
+  void clatchJLV();
+  void clatchSPT(int crat);
   void testbit(int &i1, int &i2);
   static void setclkphase();
   int getbslen() const{return (bslen);}
@@ -385,8 +387,8 @@ class TOF2RawSide: public AMSlink{
 private:
  static uinteger StartRun;//first run of the job
  static time_t StartTime;//first run time
- static integer _trcode; //CP's layer-pattern code(<0 ->noFTC, >=0 -> as trcode, z>=1)
- static integer _trcodez; //BZ's layer-pattern code(<0-> >=0 -> as trcode, z>=2)
+ static integer _trcode; //inp. CP's layer-pattern code(<0 ->noFTC, >=0 -> as trcode, z>=1)
+ static integer _trcodez; //inp. BZ's layer-pattern code(<0-> >=0 -> as trcode, z>=2)
  static integer _trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
  static integer _trpattz[TOF2GC::SCLRS];// Fired bars pattern(z>=2)
  static integer _ftpatt;//general FT components pattern(starting from lsbit:FTC/FTZ/FTE/EXT)
@@ -411,7 +413,9 @@ private:
  geant _adcd[TOF2GC::PMTSMX];// ALL Dynodes PMTs ADC-hits(positional, ped-subtracted if not PedCalib job)
  
  geant _charge;         // for MC : tot. anode charge (pC)
- geant _temp;           // SFET(A) temperature corresponding to LBBS(filled at validation stage !!)
+ geant _tempT;       // SFET(A) event-by-event temperature (vs LBBS, filled at validation stage !!)
+ geant _tempC;       // SFEC slow_control temperature (Dyn-related, vs LBBS, ....)
+ geant _tempP;       // Plane-envelop slow-control temperature (aver.over 1side PMTs, vs LS,  ....)
 //
 public:
  static integer FTtime[TOF2GC::SCCRAT][TOF2GC::SCFETA][TOF2GC::SCTHMX1];//FT-channel time-hits(incl.ANTI)
@@ -422,7 +426,7 @@ public:
  static integer SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumSHT-channel time-hits
  static integer Out(integer);
 // 
- TOF2RawSide(int16u swid, int16u hwid, int16u sta, geant charge, geant temp,
+ TOF2RawSide(int16u swid, int16u hwid, int16u sta, geant charge, geant tempT, geant tempC, geant tempP,
    integer nftdc, integer ftdc[],
    integer nstdc, integer stdc[],
    integer nsumh, integer sumht[],
@@ -444,8 +448,12 @@ public:
  int16u getstat(){return _status;}
  void updstat(int16u sta){_status=sta;}
  geant getcharg(){return _charge;}
- geant gettemp(){return _temp;}
- void settemp(geant tmp){_temp=tmp;}
+ geant gettempT(){return _tempT;}
+ geant gettempC(){return _tempC;}
+ geant gettempP(){return _tempP;}
+ void settempT(geant tmp){_tempT=tmp;}
+ void settempC(geant tmp){_tempC=tmp;}
+ void settempP(geant tmp){_tempP=tmp;}
  integer gettoth(){return integer(_nftdc+_nstdc+_nsumh+_nsumsh+1+_nadcd);}
 
 
@@ -536,7 +544,7 @@ protected:
   stream <<"adca="<<dec<<_adca<<endl;
   stream <<"nadcd="<<dec<<_nadcd<<endl;
   for(i=0;i<_nadcd;i++)stream <<dec<<_adcd[i]<<endl;
-  stream <<"temper="<<dec<<_temp<<endl;
+  stream <<"temper="<<dec<<_tempT<<" "<<_tempC<<" "<<_tempP<<endl;
   stream <<dec<<endl<<endl;
  }
  void _writeEl();

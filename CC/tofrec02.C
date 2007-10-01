@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.37 2007/05/15 11:38:33 choumilo Exp $
+//  $Id: tofrec02.C,v 1.38 2007/10/01 13:30:53 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -64,7 +64,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
   int16u otyp,mtyp,crat,slot,tsens;
   int bad(1);
   static int first(0);
-  geant charge,temp;
+  geant charge,temp,temT,temC,temP;
   TOF2RawSide *ptr;
 //
   status=1;//bad
@@ -140,18 +140,41 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
     assert(isid>=0 && isid<2);
     if(TFREFFKEY.reprtf[4]>0)ptr->_printEl(cout);
 #endif
-//---> set temper.for TOF2RawSide-obj using static job temper-store(not all events have temp-measur)
+//---> set 3 temper.(SFET/PM/SFEC-sensors based) in RawSide-obj (def.values if don't exist for this event)
+    if(AMSJob::gethead()->isRealData()){
+      if(TofSlowTemp::tofstemp.gettempP(ilay, isid, temp)==1)ptr->settempP(temp);//PM-sensors based
+//     (   if stat=0(bad sensors or...) default undefined (=999) value is kept in RawSide-obj)
+    }
+    else ptr->settempP(TOF2Varp::tofvpar.Pdtemp());//set true(DataCard/TDV) def.value for MC
+//---
+    mtyp=1;
+    otyp=1;
+    AMSSCIds tofidd(ilay,ibar,isid,otyp,mtyp);//otyp=1(dynode),mtyp=1(Charge)
+    crat=tofidd.getcrate();//current crate#(0,1,2,3)
+    slot=tofidd.getslot();//sequential slot#(0,1,...10)(4 last are fictitious to identify SFECs)
+    if(AMSJob::gethead()->isRealData()){
+      if(TofSlowTemp::tofstemp.gettempC(crat, slot, temp)==1)ptr->settempC(temp);//SFEC-sensors based
+//    (if stat=0(bad sensors) default undefined (=999) value is kept in RawSide-obj)
+    }
+    else ptr->settempC(TOF2Varp::tofvpar.Cdtemp());//set true(DataCard/TDV) def.value for MC
+//---
     mtyp=0;
     otyp=0;
-    AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
-    crat=tofid.getcrate();//current crate#
-    slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
-    tsens=tofid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
-    ptr->settemp(TOF2JobStat::gettemp(crat,tsens-1));
+    AMSSCIds tofida(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
+    crat=tofida.getcrate();//current crate#(0,1,2,3)
+    slot=tofida.getslot();//sequential slot#(0,1,...10)(4 last are fictitious to identify SFECs)
+    tsens=tofida.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
+    temp=TOF2JobStat::gettemp(crat,tsens-1);//fast temper. from static array(may be undef for MC or some RD)
+    if(AMSJob::gethead()->isRealData())ptr->settempT(temp);
+//   (some value may be still set to undefined in RawSide-obj) 
+    else{
+      temp=TOF2Varp::tofvpar.Tdtemp();
+      ptr->settempT(temp);//set true(DataCard/TDV) def.value for MC
+      TOF2JobStat::puttemp(crat,tsens-1,temp);//just for debug purposes
+    }
 //<---
     chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channels numbering
     brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering
-    temp=ptr->gettemp();//
     charge=ptr->getcharg();
 //
     tmfound=0;
@@ -276,7 +299,9 @@ void TOF2RawCluster::build(int &ostatus){
   number aedep,dedep;
   number tm[2],tf,tff,dt,fstd,tmr[2];
   number timeD,tamp;
-  number temper[2]={0.,0.};
+  number tempT[2]={0.,0.};
+  number tempC[2]={0.,0.};
+  number tempP[2]={0.,0.};
   number charg[2]={0.,0.};
   number t1,t2,t3,t4;
   geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[TOF2GC::SCLRS];
@@ -306,9 +331,9 @@ void TOF2RawCluster::build(int &ostatus){
   isds=0;
   for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
 //
-//                             <---- loop over TOF RawEvent hits -----
+//                             <---- loop over TOF2RawSide hits -----
   while(ptr){
-    idd=ptr->getsid();
+    idd=ptr->getsid();//LBBS
     id=idd/10;// short id=LBB, where L=1,4 BB=1,10
     ilay=id/100-1;
     ibar=id%100-1;
@@ -317,9 +342,14 @@ void TOF2RawCluster::build(int &ostatus){
     otyp=0;
     AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
     crat=tofid.getcrate();//current crate#
-    slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
-//    tsens=tofid.gettsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
-    temper[isid]=ptr->gettemp();//SFET(A)-slot temper(was set at Validation-stage from static job-store)
+    slot=tofid.getslot();//sequential slot#(0,1,...10)(4 last are fictitious to identify SFECs)
+    tempT[isid]=ptr->gettempT();//SFET(A)-slot temper(was set at Validation-stage from static job-store)
+    if(tempT[isid]==999.)tempT[isid]=TOF2Varp::tofvpar.Tdtemp();//set def.value if some bad sens. (RD)
+    tempC[isid]=ptr->gettempC();//SFEC-slot temper(was set at Validation-stage using SlowContrDB)
+    if(tempC[isid]==999.)tempC[isid]=TOF2Varp::tofvpar.Cdtemp();//set def.value if some bad sens. (RD)
+    tempP[isid]=ptr->gettempP();//PMT temper(was set at Validation-stage using SlowContrDB)
+    if(tempP[isid]==999.)tempP[isid]=TOF2Varp::tofvpar.Pdtemp();//set def.value if some bad sens. (RD)
+// (all above temperatures may be needed for temper-corrections) 
 //
     chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channel numbering for job-stat counters
     brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering ...
@@ -327,7 +357,7 @@ void TOF2RawCluster::build(int &ostatus){
     if(TFREFFKEY.reprtf[4]>0){
         cout<<endl;
         cout<<" --->look id="<<idd<<" cr/sl="<<crat<<" "<<slot
-                                 <<" temper="<<temper[isid]<<" stat="<<stat[isid]<<endl;
+                                 <<" tempT="<<tempT[isid]<<" stat="<<stat[isid]<<endl;
     }
 //
     if(stat[isid]%10==0                              //<--- validation status(FTtime is absolutely required)
@@ -1107,7 +1137,9 @@ void TOF2RawSide::_writeEl(){
     TN->adca[TN->Ntofraws]=_adca;
     TN->nadcd[TN->Ntofraws]=_nadcd;
     for(int ip=0;ip<TOF2GC::PMTSMX;ip++)TN->adcd[TN->Ntofraws][ip]=_adcd[ip];
-    TN->temp[TN->Ntofraws]=_temp;
+    TN->temp[TN->Ntofraws]=_tempT;
+    TN->tempC[TN->Ntofraws]=_tempC;
+    TN->tempP[TN->Ntofraws]=_tempP;
     TN->Ntofraws++;
   }
 }

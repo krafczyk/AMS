@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.24 2007/05/15 11:38:31 choumilo Exp $
+//  $Id: antirec02.C,v 1.25 2007/10/01 13:30:52 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -45,7 +45,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   integer tmfound,complm;
   integer i,j,im,nhit,chnum,am[2],sta,st;
   int16u mtyp(0),otyp(0),crat(0),slot(0),tsens(0);
-  geant ped,sig;
+  geant ped,sig,temp;
   number adcf,rdthr,dt;
   int bad;
   static int first(0);
@@ -93,7 +93,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   }
 //---------------------------------------                             
 //
-// =============> check/combine adc/tdc/FT data :
+// =============> check/combine adc/tdc/FT/temper data :
 //
   bad=1;// means NO both Charge and History measurements
   while(ptr){//<---- loop over ANTI RawEvent hits
@@ -103,13 +103,16 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     id=ptr->getid();// BBarSide
     sector=id/10-1;//bar 0-7
     isid=id%10-1;//0-1 (bot/top)
-    mtyp=1;
+    mtyp=0;
     otyp=0;
-    AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=1(hist. time(=fast_TDC))
+    AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
     crat=antid.getcrate();
     slot=antid.getslot();//sequential slot#(0,1,...11)(4 last are fictitious for d-adcs)
     tsens=antid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
-    ptr->settemp(TOF2JobStat::gettemp(crat,tsens-1));//put latest temper. from static array
+    temp=TOF2JobStat::gettemp(crat,tsens-1);//fast(SFEA) temper. from static array(may be undef for MC or some RD)
+    if(AMSJob::gethead()->isRealData())ptr->settemp(temp);
+//   (some value may be still set to undefined in RawSide-obj) 
+    else temp=TOF2Varp::tofvpar.Tdtemp();//set true(DataCard/TDV) def.value for MC
     chnum=sector*2+isid;//channels numbering
     stat=ptr->getstat();//=0 upto now(ok)
 //
@@ -244,7 +247,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //-----
 //
   integer ftpatt(0);
-  ftrig=TOF2RawSide::gettrtime();//get FTrigger time in J-crate(same as at SPT2 ???) 
+  ftrig=TOF2RawSide::gettrtime();//get FTrigger time in S-crate(incl.delay from JLV1) 
   ftpatt=TOF2RawSide::getftpatt();//get globFT members pattern (after masking)
   if(ftpatt==0)return;//<=== no globFT and ExtTrig
   ANTI2JobStat::addmc(7);//count FT existance
@@ -584,15 +587,15 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<"MCFillRaw:id="<<id<<" adca/nhtdc="<<adca<<" "<<nhtdc<<endl;
 //for(int ih=0;ih<nhtdc;ih++)cout<<htdc[ih]<<" ";
 //cout<<endl;
-        temp=20;//dummy(real will be set at validation stage from static store)
+        temp=999;//means undefined value(real/default one will be set at valid-stage from common with TOF static store)
 	nftdc=0;//dummy(real will be set at validation stage using TOF(+Anti) static store for slot's FT-times)
 	ftdc[0]=0;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,temp,adca,nftdc,ftdc,nhtdc,htdc));//write object
-//--->check GlobFT/SideTrigPattSignal correlation(physically done in J-crate)
+//--->check GlobFT/SideTrigPattSignal correlation(physically done in JLV1-crate)
         intrig=Trigger2LVL1::l1trigconf.antinmask(int(nlogs));//AntiInTrig from DB
         if(intrig==1 || (intrig>1 && (intrig-2)!=j)){//<--sector/side is in trigger(not masked)
-          tg1=ftrig;//GateUpTime=FTime(incl. some  delay) 
+          tg1=ftrig-TOF2Varp::tofvpar.ftdelf();//GateUpTime=glFTime(at JLV1 !!!) 
           tg2=tg1+pgate;//gate_end_time
 	  ncoinc=0;
 	  for(i=0;i<nptr;i++){// 1-side "trig-pattern" pulses -> 1-side bitstream pattern
@@ -608,10 +611,9 @@ void Anti2RawEvent::mc_build(int &stat){
             if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
             trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
 	    trbs[nlogs][j]=trbs[nlogs][j] | trbi;//make side-OR of all trig-pulses
-            if(!(tg2<=t1 || tg1>=t2))ncoinc+=1;//count side-overlaps with gate
 	  }
 	}//--->endof "InTrig" check
-	if(ncoinc)atrpat[j]|=1<<nlogs;//set single-side coincidence bit(not used now)
+//	if(ncoinc)atrpat[j]|=1<<nlogs;//set single-side coincidence bit(not used now)
       }
 //------------
     }//--->endof side loop
@@ -622,7 +624,7 @@ void Anti2RawEvent::mc_build(int &stat){
                    trbl[nlogs]=trbs[nlogs][0] & trbs[nlogs][1];// 2-sides AND
     else
                    trbl[nlogs]=trbs[nlogs][0] | trbs[nlogs][1];// 2-sides OR
-    trbl[nlogs].clatch();//25MHz-clock latch of 2-sides OR(AND) signal "trbl"
+    trbl[nlogs].clatchJLV();//25MHz-clock latch of 2-sides OR(AND) signal "trbl"
 //
     edepts=0;
     nupt=0;
@@ -645,8 +647,8 @@ void Anti2RawEvent::mc_build(int &stat){
 //--------------------------------------
 //------> create Anti-trigger pattern, count sectors:
 //(bits 1-8->sectors in coinc.with FT)
-//
-  tg1=ftrig;//GateUpTime=FTime+delay(decision+ pass to S-crate)
+//This pattern is produced in JLV1 !!!, So i need JLV1 FT-time, i.e.need to subtr.delay from S-cr time 
+  tg1=ftrig-TOF2Varp::tofvpar.ftdelf();//GateUpTime=ScrateFTime-delay (come back to JLV1 FT-time)
   tg2=tg1+pgate;//gate_end_time
   trpatt=0;//reset patt.
 //-->count FT-coincided sectors,create sector's pattern :
@@ -655,7 +657,7 @@ void Anti2RawEvent::mc_build(int &stat){
     if(i2>=i1){
       t1=i1*trigb;
       t2=i2*trigb;
-      if(!(tg2<=t1 || tg1>=t2)){
+      if(tg1>=t1 && tg1<=t2){//tempor: gate fr.edge is within "pattern"-pulse
         ncoinct+=1;//overlap -> incr. counter
 	trpatt|=1<<i;//mark sector
       }
@@ -693,7 +695,7 @@ void Anti2RawEvent::mc_build(int &stat){
 	  id=(lsec+1)*10+side+1;//BBarSide(BBS)
 	  nhtdc=0;//no time-history measurement for "peds" channels
 	  htdc[0]=0;
-          temp=0;//no temp.meausrement in MC
+          temp=999;//undefined (real/default value will be set at valid-stage)
 	  nftdc=0;//really filled later during validation stage
 	  ftdc[0]=0;
           AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
@@ -772,6 +774,7 @@ void AMSAntiCluster::build2(int &statt){
   geant fttim,ftsum,ftnum;
   geant ftdel,ftwin;
   geant rdthr;
+  geant tempT[2]={0,0};
   int nphsok;
   integer ftcoinc(0);
   uinteger lspatt(0);
@@ -793,7 +796,7 @@ void AMSAntiCluster::build2(int &statt){
   padrad=ANTI2DBc::scradi()+0.5*ANTI2DBc::scinth();
   paddfi=360./ANTI2C::MAXANTI;
   zcer1=ATREFFKEY.zcerr1;//Z-coo err. for true pair case
-  ftdel=ATREFFKEY.ftdel;//aver. FT-delay wrt Anti time-hit
+  ftdel=ATREFFKEY.ftdel;//aver. FT-delay wrt Anti time-hit(at S-crate)
   ftwin=ATREFFKEY.ftwin;
   nsds=0;
   ntdct=0;
@@ -809,14 +812,16 @@ void AMSAntiCluster::build2(int &statt){
     isid=id%10-1;
     mtyp=0;
     otyp=0;
-    AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(hist. time)
+    AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
     crat=antid.getcrate();
 #ifdef __AMSDEBUG__
     assert(crat<TOF2GC::SCCRAT);
 #endif
-    slot=antid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+    slot=antid.getslot();//sequential slot#(0,1,...10)(but only one is SFEA-slot)
     chnum=sector*2+isid;//channels numbering
     sta=ptr->getstat();//ijk after validation
+    tempT[isid]=ptr->gettemp();//SFEA-slot temper(was set at Validation-stage from static job-store)
+    if(tempT[isid]==999.)tempT[isid]=TOF2Varp::tofvpar.Tdtemp();//set def.value if some bad sens. (RD)
     fttim=0;
     anchok=(sta%10==0                       //<--- validation status(FTtime is absolutely required)
                 && ANTIPeds::anscped[sector].PedStOK(isid)

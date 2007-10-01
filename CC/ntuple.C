@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.162 2006/09/14 15:34:50 choutko Exp $
+//  $Id: ntuple.C,v 1.163 2007/10/01 13:30:53 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -159,7 +159,7 @@ void AMSNtuple::init(){
  
  
  
-HBNAME(_lun,"TofRawSd",&_tofraws.Ntofraws,"ntofraws[0,70],tofrsswid(ntofraws):I,tofrshwid(ntofraws):I,tofrsnftdc(ntofraws)[0,8]:I,tofrsftdc(8,ntofraws),tofrsnstdc(ntofraws)[0,16]:I,tofrsstdc(16,ntofraws),tofrsnsumh(ntofraws)[0,16]:I,tofrssumh(16,ntofraws),tofrsnsumsh(ntofraws)[0,16]:I,tofrssumsh(16,ntofraws),tofrsadca(ntofraws),tofrsnadcd(ntofraws)[0,3]:I,tofrsadcd(3,ntofraws),tofrstemp(ntofraws)");
+HBNAME(_lun,"TofRawSd",&_tofraws.Ntofraws,"ntofraws[0,70],tofrsswid(ntofraws):I,tofrshwid(ntofraws):I,tofrsnftdc(ntofraws)[0,8]:I,tofrsftdc(8,ntofraws),tofrsnstdc(ntofraws)[0,16]:I,tofrsstdc(16,ntofraws),tofrsnsumh(ntofraws)[0,16]:I,tofrssumh(16,ntofraws),tofrsnsumsh(ntofraws)[0,16]:I,tofrssumsh(16,ntofraws),tofrsadca(ntofraws),tofrsnadcd(ntofraws)[0,3]:I,tofrsadcd(3,ntofraws),tofrstempT(ntofraws),tofrstempC(ntofraws),tofrstempP(ntofraws)");
  
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,250],sid(nsignals):I,"

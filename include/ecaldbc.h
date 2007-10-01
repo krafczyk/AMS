@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.34 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.35 2007/10/01 13:31:09 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -58,6 +58,8 @@ private:
 //                          10-> Al-plate thickness
 //
   static integer _scalef;  // MC/Data: scale factor used for digitization in DAQ-system
+  static geant _ftedel;    // MC/data: FTE component-signals delay from EC-crate to JLV1-crate
+//                                     plus decision delay in JLV1. 
 // 
   static integer _nfibpl[2];// num.of fibers per odd/even(1st/2nd) elementary layer in s-layer
   static integer _slstruc[6];//1->1st super-layer projection(0->X, 1->Y);
@@ -79,6 +81,7 @@ public:
   static geant fpitch(integer i);
   static geant rdcell(integer i);
   static integer scalef(){return _scalef;}
+  static geant ftedel(){return _ftedel;}
   static integer nfibpl(integer i);
   static integer slstruc(integer i);
   static void fid2cida(integer fid, integer cid[4], number w[4]);

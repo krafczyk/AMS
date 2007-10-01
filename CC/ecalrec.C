@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.98 2007/05/15 11:38:32 choumilo Exp $
+//  $Id: ecalrec.C,v 1.99 2007/10/01 13:30:53 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -615,8 +615,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //-------> create ECAL fast trigger(FT)-time:
 //
   if(trigfl>0){
-    trigtm=timet/edept;// FT abs.time(ns) (stored in AMSEcalRawEvent object)
-    trigtm+=TOF2Varp::tofvpar.ftdelf();// add some fixed delay to achieve LVL1-crate(tempor as for TOF-FT) 
+    trigtm=timet/edept;// some EC-crate signals effective time (aver. over mc-hits)(ns)
+    trigtm+=ECALDBc::ftedel();// + fix.delay EC- to LVL1-crate + decision delay at JLV1(FTE-time in AMSEcalRawEvent-obj)
     trsum=geant(dyrespt/1000.);//dynode signal (gev tempor)
   }
 //---

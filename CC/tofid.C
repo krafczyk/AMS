@@ -20,33 +20,38 @@ using namespace ANTI2C;
 //----
 // sequence of cards in crate: SDR, SFET_0(A), SFET_1(B), SPT, SFET_2(C), SFET_3(D), SFEA, SFEC1-4(fict)
 //                      slot#:  1       2         3        4      5         6         7     8  9 10 11
-//    "a la Q" slot_id(link#): 10*      9         8       11*     7         6         1     4  5  2  3
-//    "a la T" slot_id(link#):  9*      0         1       10*     2         3         4     5* 6* 7* 8*
+//    "Q-data" slot_id(link#):  9*      0         1       10*     2         3         4     5  6  7  8
+//    "T-data" slot_id(link#):  9*      0         1       10*     2         3         4     5* 6* 7* 8*
 //     "*" means that given link# is fictitious and should not be found in data !!!
 //----
-//slot-id's map for ChargeLinks( link(=slot_id) numbers vs seq.slot): 
-  int16u AMSSCIds::cardidc[SCCRAT][SCSLTM]={10, 9, 8,11, 7, 6, 1, 4, 5, 2, 3, //cr-1
-                                            10, 9, 8,11, 7, 6, 1, 4, 5, 2, 3, //cr-2 
-                                            10, 9, 8,11, 7, 6, 1, 4, 5, 2, 3, //cr-3 
-                                            10, 9, 8,11, 7, 6, 1, 4, 5, 2, 3  //cr-4 
-					   };
-//slot-id's map for TimeLinks( link(=slot_id) numbers vs seq.slot): 
-  int16u AMSSCIds::cardidt[SCCRAT][SCSLTM]={ 9, 0, 1,10, 2, 3, 4, 5, 6, 7, 8, //cr-1
+//slot-id's map for Q(Time)Links( link(=slot_id) numbers vs seq.slot): 
+  int16u AMSSCIds::cardids[SCCRAT][SCSLTM]={ 9, 0, 1,10, 2, 3, 4, 5, 6, 7, 8, //cr-1
                                              9, 0, 1,10, 2, 3, 4, 5, 6, 7, 8, //cr-2 
                                              9, 0, 1,10, 2, 3, 4, 5, 6, 7, 8, //cr-3 
                                              9, 0, 1,10, 2, 3, 4, 5, 6, 7, 8  //cr-4 
 					   };
 //Trig.patt.bits assignment to LBBS  in SPT2 info:
-  int AMSSCIds::trpatba[TOF2GC::SCCRAT][TOF2GC::SCMXBR2]={
-                           2012,2032,2052,2072,2022,2042,2062,2082,           //cr-1
-                           1011,1031,1051,1071,1021,1041,1061,1081,   0,   0,
-			   2011,2031,2051,2071,2021,2041,2061,2081,           //cr-2
-			   1012,1032,1052,1072,1022,1042,1062,1082,   0,   0,
-			   4012,4032,4052,4072,4022,4042,4062,4082,           //cr-3			   
-			   3012,3032,3052,3072,3022,3042,3062,3082,3092,3102, 
-			   4011,4031,4051,4071,4021,4041,4061,4081,           //cr-4
-			   3011,3031,3051,3071,3021,3041,3061,3081,3091,3101
+  int AMSSCIds::trpatba[TOF2GC::SCCRAT][2*TOF2GC::SCMXBR]={
+                           2012,2032,2052,2072,   0,2022,2042,2062,2082,   0, //cr-1
+                           1011,1031,1051,1071,   0,1021,1041,1061,1081,   0,
+			   2011,2031,2051,2071,   0,2021,2041,2061,2081,   0, //cr-2
+			   1012,1032,1052,1072,   0,1022,1042,1062,1082,   0,
+			   4012,4032,4052,4072,   0,4022,4042,4062,4082,   0, //cr-3			   
+			   3012,3032,3052,3072,3092,3022,3042,3062,3082,3102, 
+			   4011,4031,4051,4071,   0,4021,4041,4061,4081,   0, //cr-4
+			   3011,3031,3051,3071,3091,3021,3041,3061,3081,3101
 			   };
+//TOF-plane envelops temper.sensors IDs (vs Layer/Chain/Sens#):
+//SFEC-type id=>CSS(C=1-4;SS=8-11) Paddle-type id=>LBBSP
+  int AMSSCIds::envsensid[TOF2GC::SCLRS][2][8]={  108,10611,10411,10211,10822,10622,10422,  208, //L-1,Chain-A
+                                                  109,10611,10411,10211,10822,10622,10422,  209, //         -B
+				                20812,  210,20411,20111,20822,20421,  110,20121, //L-2
+				                20812,  211,20411,20111,20822,20421,  111,20121,
+				                  408,30211,30512,30912,30122,30522,30922,  308, //L-3
+				                  409,30211,30512,30912,30122,30522,30922,  309,
+					          410,40212,40412,40612,40121,40421,40621,  310, //L-4
+				                  411,40212,40412,40612,40121,40421,40621,  311
+                                               };
 //------
 AMSSCIds::AMSSCIds(int swid):_dummy(0){
 //
@@ -168,21 +173,14 @@ AMSSCIds::AMSSCIds(int16u crate, int16u slot, int16u rdch):_crate(crate),_slot(s
   }
 }
 //--------------
-int16 AMSSCIds::crdidc2sl(int16u crate, int16u crdid){//card(slot)_id(ChargeLinks) to sequential slot# 
+int16 AMSSCIds::crdid2sl(int16u crate, int16u crdid){//card(slot)_id(link#) to sequential slot# 
   for(int i=0;i<SCSLTM;i++){
-    if(cardidc[crate][i]==crdid)return(i);
+    if(cardids[crate][i]==crdid)return(i);
   }
   return(-1);//if illegal(not existing) crdid
 }
 //--------------
-int16 AMSSCIds::crdidt2sl(int16u crate, int16u crdid){//card(slot)_id(TimeLinks) to sequential slot# 
-  for(int i=0;i<SCSLTM;i++){
-    if(cardidt[crate][i]==crdid)return(i);
-  }
-  return(-1);//if illegal(not existing) crdid
-}
-//--------------
-int AMSSCIds::gettpbas(int16u crt, int16u bit){//return LBBS for bit bit(0-17) in crate crt(0-3)
+int AMSSCIds::gettpbas(int16u crt, int16u bit){//return LBBS for TrigPatt bit(0-19) in crate crt(0-3)
   return trpatba[crt][bit];
 }
 //--------------
@@ -552,18 +550,7 @@ void AMSSCIds::inittable(){
   sidlst[bias+10]=9102;//ft     fb9/s1
   bias+=11;
 //--->TOF(dynodes,SFEC):
-  sidlst[bias]=   301211;//q  l3/b1/s2/d1  cr2/sl_8(aux)
-  sidlst[bias+1]= 302211;//q     b2/s2/d1 
-  sidlst[bias+2]= 303211;//q     b3/s2/d1 
-  sidlst[bias+3]= 304211;//q     b4/s2/d1 
-  sidlst[bias+4]= 305211;//q     b5/s2/d1 
-  sidlst[bias+5]= 306211;//q     b6/s2/d1 
-  sidlst[bias+6]= 307211;//q     b7/s2/d1 
-  sidlst[bias+7]= 308211;//q     b8/s2/d1 
-  sidlst[bias+8]= 309211;//q     b9/s2/d1 
-  sidlst[bias+9]= 310211;//q    b10/s2/d1
-  bias+=10;  
-  sidlst[bias]=   301221;//q     b1/s2/d2  cr2/sl_9(aux) 
+  sidlst[bias]=   301221;//q     b1/s2/d2  cr2/sl_8(aux) 
   sidlst[bias+1]= 302221;//q     b2/s2/d2 
   sidlst[bias+2]= 303221;//q     b3/s2/d2 
   sidlst[bias+3]= 304221;//q     b4/s2/d2 
@@ -573,6 +560,17 @@ void AMSSCIds::inittable(){
   sidlst[bias+7]= 308221;//q     b8/s2/d2 
   sidlst[bias+8]= 309221;//q     b9/s2/d2 
   sidlst[bias+9]= 310221;//q    b10/s2/d2
+  bias+=10;  
+  sidlst[bias]=   301211;//q  l3/b1/s2/d1  cr2/sl_9(aux)
+  sidlst[bias+1]= 302211;//q     b2/s2/d1 
+  sidlst[bias+2]= 303211;//q     b3/s2/d1 
+  sidlst[bias+3]= 304211;//q     b4/s2/d1 
+  sidlst[bias+4]= 305211;//q     b5/s2/d1 
+  sidlst[bias+5]= 306211;//q     b6/s2/d1 
+  sidlst[bias+6]= 307211;//q     b7/s2/d1 
+  sidlst[bias+7]= 308211;//q     b8/s2/d1 
+  sidlst[bias+8]= 309211;//q     b9/s2/d1 
+  sidlst[bias+9]= 310211;//q    b10/s2/d1
   bias+=10;  
   sidlst[bias]=   401211;//q  l4/b1/s2/d1  cr2/sl_10(aux)
   sidlst[bias+1]= 402211;//q     b2/s2/d1 
@@ -669,18 +667,7 @@ void AMSSCIds::inittable(){
   sidlst[bias+10]=10102;//ft   fb10/s1
   bias+=11;
 //--->TOF(dynodes,SFEC):
-  sidlst[bias]=   301111;//q  l3/b1/s1/d1  cr3/sl_8(aux)
-  sidlst[bias+1]= 302111;//q     b2/s1/d1 
-  sidlst[bias+2]= 303111;//q     b3/s1/d1 
-  sidlst[bias+3]= 304111;//q     b4/s1/d1 
-  sidlst[bias+4]= 305111;//q     b5/s1/d1 
-  sidlst[bias+5]= 306111;//q     b6/s1/d1 
-  sidlst[bias+6]= 307111;//q     b7/s1/d1 
-  sidlst[bias+7]= 308111;//q     b8/s1/d1 
-  sidlst[bias+8]= 309111;//q     b9/s1/d1 
-  sidlst[bias+9]= 310111;//q    b10/s1/d1
-  bias+=10;  
-  sidlst[bias]=   301121;//q     b1/s1/d2  cr3/sl_9(aux) 
+  sidlst[bias]=   301121;//q     b1/s1/d2  cr3/sl_8(aux) 
   sidlst[bias+1]= 302121;//q     b2/s1/d2 
   sidlst[bias+2]= 303121;//q     b3/s1/d2 
   sidlst[bias+3]= 304121;//q     b4/s1/d2 
@@ -690,6 +677,17 @@ void AMSSCIds::inittable(){
   sidlst[bias+7]= 308121;//q     b8/s1/d2 
   sidlst[bias+8]= 309121;//q     b9/s1/d2 
   sidlst[bias+9]= 310121;//q    b10/s1/d2
+  bias+=10;  
+  sidlst[bias]=   301111;//q  l3/b1/s1/d1  cr3/sl_9(aux)
+  sidlst[bias+1]= 302111;//q     b2/s1/d1 
+  sidlst[bias+2]= 303111;//q     b3/s1/d1 
+  sidlst[bias+3]= 304111;//q     b4/s1/d1 
+  sidlst[bias+4]= 305111;//q     b5/s1/d1 
+  sidlst[bias+5]= 306111;//q     b6/s1/d1 
+  sidlst[bias+6]= 307111;//q     b7/s1/d1 
+  sidlst[bias+7]= 308111;//q     b8/s1/d1 
+  sidlst[bias+8]= 309111;//q     b9/s1/d1 
+  sidlst[bias+9]= 310111;//q    b10/s1/d1
   bias+=10;  
   sidlst[bias]=   401111;//q  l4/b1/s1/d1  cr3/sl_10(aux)
   sidlst[bias+1]= 402111;//q     b2/s1/d1 

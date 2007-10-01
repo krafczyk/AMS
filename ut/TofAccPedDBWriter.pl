@@ -11,6 +11,7 @@ use File::Copy;
 #use Audio::Beep;
 #use Audio::Data;
 #use Audio::Play;
+require 'pwdc.pl';
 $mwnd=MainWindow->new();
 #---> imp.glob.const, vars and arrays:
 $prog2run="TofAccPedDBWriter";
@@ -23,6 +24,7 @@ $last_pedscanned_file_num=0;
 $plot1_actf=0;#plot1 "active" flag
 $plot2_actf=0;#plot2 "active" flag
 $plot3_actf=0;#plot3 "active" flag
+$plot4_actf=0;#plot4 "active" flag
 @plot_pntids=();# current plot points ids list
 $plot_pntmem=0;# members in pntids
 @plot_accids=();# ............ accessoiries ids (labels,text, grids,...) 
@@ -31,6 +33,7 @@ $plot_accmem=0;# members in accids
 $plot1_xcmax=0;#max x-coo when leaving plot1
 $plot2_xcmax=0;#max x-coo when leaving plot2
 $plot3_xcmax=0;#max x-coo when leaving plot3
+$plot4_xcmax=0;#max x-coo when leaving plot4
 $htextagi1=="";#last used help_text look_at tag_index_1
 $htextagi2=="";#last used help_text look_at tag_index_2
 #----------- define mw-size :
@@ -59,7 +62,7 @@ $mwnd->geometry($mwndgeom);
 $mwnd->title("Tof/Anti-Peds scaner (DB-writer)");
 $mwnd->bell;
 #--------------
-# fonrs:
+# fonts:
 $font1="Helvetica 18 normal italic";#font for entry-widgets
 $font2="times 14 bold";
 $font3="Helvetica 12 bold italic";#smaller font for entry-widgets
@@ -69,20 +72,20 @@ $font6="Arial 12 bold";#help window
 #--------------
 #frame_geom:
 my $shf1=0.07;#down shift for dir-widgets
-my $drh1=0.155;#height of dir-dir-widgets
+my $drh1=0.135;#height of dir-dir-widgets
 #---
 $dir_fram=$mwnd->Frame(-label => "Working Directories :",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.3, -relheight=>0.4,
+                                                      -relwidth=>0.3, -relheight=>0.47,
                                                       -relx=>0, -rely=>0);
 #---
-$scd_lab=$dir_fram->Label(-text=>"ScanD:",-font=>$font2)
+$scd_lab=$dir_fram->Label(-text=>"PedsD:",-font=>$font2)
                                                 ->place(-relwidth=>0.2, -relheight=>$drh1,
                                                              -relx=>0, -rely=>$shf1);
-$scandir="/f2users/tofaccuser/pedcalib/pedfiles";
+$pedsdir="/f2users/tofaccuser/pedcalib/pedfiles";
 $scnd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
                                               -font=>$font1,
-                                              -textvariable=>\$scandir)->place(
+                                              -textvariable=>\$pedsdir)->place(
                                               -relwidth=>0.8, -relheight=>$drh1,  
                                               -relx=>0.2, -rely=>$shf1);
 #---
@@ -134,35 +137,58 @@ $dir_fram->Button(-text=>"Help", -font=>$font2,
 			         ->place(
                                          -relwidth=>1, -relheight=>$drh1,  
                                          -relx=>0, -rely=>($shf1+5*$drh1));
+#---
+$dir_fram->Label(-text=>"PassW:",-font=>$font2)->place(-relwidth=>0.2, -relheight=>$drh1,
+                                                             -relx=>0, -rely=>($shf1+6*$drh1));
+$passwd="";# pw 
+$dir_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
+                                                                   -font=>$font1,
+								   -show=>"*",
+                                                                   -textvariable=>\$passwd)->place(
+                                                                   -relwidth=>0.6, -relheight=>$drh1,  
+                                                                   -relx=>0.2, -rely=>($shf1+6*$drh1));
+$dir_fram->Button(-text=>"OK", -font=>$font2, 
+                                 -activebackground=>"yellow",
+			         -activeforeground=>"red",
+#			         -foreground=>"red",
+			         -background=>"green",
+                                 -borderwidth=>3,-relief=>'raised',
+			         -cursor=>hand2,
+                                 -command => \&pw_check)
+			         ->place(
+                                         -relwidth=>0.2, -relheight=>$drh1,  
+                                         -relx=>0.8, -rely=>($shf1+6*$drh1));
 #-------------
 #frame_set:
 my $shf2=0.07;#down shift for runcond-widgets
-my $drh2=0.12;#height of runcond-widgets
+my $drh2=0.134;#height of runcond-widgets
 #---
-$set_fram=$mwnd->Frame(-label=>"Job Conditions :", -background => "Grey",
+$set_fram=$mwnd->Frame(-label=>"Job Conditions :", 
                                                       -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.3, -relheight=>0.45,
-                                                      -relx=>0, -rely=>0.4);
+                                                      -relwidth=>0.3, -relheight=>0.4,
+                                                      -relx=>0, -rely=>0.47);
 #---
 $tofantsel="useTOF";
 $tof_rbt=$set_fram->Radiobutton(-text=>"TofScan",-font=>$font2, -indicator=>0,
-                                                      -borderwidth=>5,-relief=>'raised',
-						      -selectcolor=>red,-activeforeground=>red,
-						      -activebackground=>yellow, 
-                                                      -background=>green,
-                                                      -disabledforeground=>blue,
-                                                      -value=>"useTOF", -variable=>\$tofantsel)
+                                                 -borderwidth=>5,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+                                                 -background=>green,
+			                         -cursor=>hand2,
+#						 -foreground=>red,
+                                                 -value=>"useTOF", -variable=>\$tofantsel)
                                               ->place(
 						      -relwidth=>0.5, -relheight=>$drh2,
 						      -relx=>0, -rely=>$shf2);
 #---
 $ant_rbt=$set_fram->Radiobutton(-text=>"AccScan",-font=>$font2, -indicator=>0, 
-                                                       -borderwidth=>5,-relief=>'raised',
-						       -selectcolor=>red,-activeforeground=>red, 
-						       -activebackground=>yellow, 
-                                                       -background=>green, 
-                                                       -disabledforeground=>blue,
-                                                       -value=>"useANT", -variable=>\$tofantsel)
+                                                 -borderwidth=>5,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red, 
+						 -activebackground=>yellow, 
+                                                 -background=>green, 
+			                         -cursor=>hand2,
+#						 -foreground=>red,
+                                                 -value=>"useANT", -variable=>\$tofantsel)
                                                ->place(
 						       -relwidth=>0.5, -relheight=>$drh2,
 						        -relx=>0.5, -rely=>$shf2);
@@ -190,43 +216,47 @@ $fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=
 #------
 $boardpeds=1;#on
 $offlpeds=0;#off
-$tof_cbt=$set_fram->Checkbutton(-text=>"OnBoardPeds", -font=>$font2, -indicator=>0,
+$brd_cbt=$set_fram->Checkbutton(-text=>"OnBoardPeds", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
-						 -selectcolor=>red,-activeforeground=>red,
+						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
                                                  -background=>green,
                                                  -variable=>\$boardpeds)
 					 ->place(
                                                  -relwidth=>0.5, -relheight=>$drh2,
 						 -relx=>0, -rely=>($shf2+3*$drh2));
 #---
-$ant_cbt=$set_fram->Checkbutton(-text=>"OfflinePeds", -font=>$font2, -indicator=>0,
+$ofl_cbt=$set_fram->Checkbutton(-text=>"OfflinePeds", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
-                                                 -selectcolor=>red,-activeforeground=>red,
+                                                 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
                                                  -background=>green, 
                                                  -variable=>\$offlpeds)
 					 ->place(
                                                  -relwidth=>0.5, -relheight=>$drh2,
 						 -relx=>0.5, -rely=>($shf2+3*$drh2));
 #---
-$debug=0;#off
-$deb_cbt=$set_fram->Checkbutton(-text=>"DebugPrint", -font=>$font2, -indicator=>0,
+$arcscval=0;#1/0->scan Archive/Normal_store
+$arcscbt=$set_fram->Checkbutton(-text=>"ScanArchive", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
-						 -selectcolor=>red,-activeforeground=>red,
+						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
                                                  -background=>green,
-                                                 -variable=>\$debug)
+                                                 -variable=>\$arcscval)
 					 ->place(
                                                  -relwidth=>0.5, -relheight=>$drh2,
 						 -relx=>0, -rely=>($shf2+4*$drh2));
+$arcscbt->bind("<Button-3>", \&arcscbt_help);
 #----
 $archval=0;#0/1->not/archive processed ped-files
-$archtxt="ArchiveOnExit"; 
-$archbt=$set_fram->Checkbutton(-text=>$archtxt,  -font=>$font2, -indicator=>0, 
+$archbt=$set_fram->Checkbutton(-text=>"ArchiveOnExit",  -font=>$font2, -indicator=>0, 
                                           -borderwidth=>5,-relief=>'raised',
-                                          -selectcolor=>red,-activeforeground=>red,
+                                          -selectcolor=>orange,-activeforeground=>red,
 				          -activebackground=>yellow, 
+			                  -cursor=>hand2,
                                           -background=>green,
                                           -variable=>\$archval)
 			          ->place(
@@ -237,8 +267,9 @@ $archbt->bind("<Button-3>", \&archbt_help);
 $dbwrsel="InsDB";
 $dbre_rbt=$set_fram->Radiobutton(-text=>"DBrewriteMode",-font=>$font2, -indicator=>0,
                                                       -borderwidth=>5,-relief=>'raised',
-						      -selectcolor=>red,-activeforeground=>red,
+						      -selectcolor=>orange,-activeforeground=>red,
 						      -activebackground=>yellow, 
+			                              -cursor=>hand2,
                                                       -background=>green,
                                                       -disabledforeground=>blue,
                                                       -value=>"RewrDB", -variable=>\$dbwrsel)
@@ -248,8 +279,9 @@ $dbre_rbt=$set_fram->Radiobutton(-text=>"DBrewriteMode",-font=>$font2, -indicato
 #---
 $dbin_rbt=$set_fram->Radiobutton(-text=>"DBinsertMode",-font=>$font2, -indicator=>0, 
                                                        -borderwidth=>5,-relief=>'raised',
-						       -selectcolor=>red,-activeforeground=>red, 
+						       -selectcolor=>orange,-activeforeground=>red, 
 						       -activebackground=>yellow, 
+			                               -cursor=>hand2,
                                                        -background=>green, 
                                                        -disabledforeground=>blue,
                                                        -value=>"InsDB", -variable=>\$dbwrsel)
@@ -276,8 +308,11 @@ $dryrunval=1;#0/1->real/dry DBupdate run
 $dryruntext="UpdDB_DryRun"; 
 $dryrbt=$set_fram->Checkbutton(-text=>$dryruntext,  -font=>$font2, -indicator=>0, 
                                           -borderwidth=>5,-relief=>'raised',
-                                          -selectcolor=>red,-activeforeground=>red,
+                                          -selectcolor=>orange,-activeforeground=>red,
 				          -activebackground=>yellow, 
+			                  -disabledforeground=>"blue",
+			      -state=>'disabled',
+			                  -cursor=>hand2,
                                           -background=>green,
                                           -variable=>\$dryrunval)
 			          ->place(
@@ -292,13 +327,13 @@ $dryrbt->bind("<Button-3>", \&dryrbt_help);
 #--------------
 #frame_progr:
 $prg_fram=$mwnd->Frame(-label=>"DB-update progress :", -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.3, -relheight=>0.1,
-                                                      -relx=>0, -rely=>0.85);
+                                                      -relwidth=>0.3, -relheight=>0.08,
+                                                      -relx=>0, -rely=>0.87);
 $perc_done=0.;
 $prg_but=$prg_fram->ProgressBar( -width=>10, -from=>0, -to=>100, -blocks=>100,
                                  -colors=>[0,'green'], -gap=> 0,
-                                -variable=>\$perc_done)->place(-relwidth=>0.99, -relheight=>0.55,
-                                                             -relx=>0, -rely=>0.4);
+                                -variable=>\$perc_done)->place(-relwidth=>0.99, -relheight=>0.5,
+                                                             -relx=>0, -rely=>0.45);
 #--------------
 $exitbt=$mwnd->Button(-text => "Exit", -font=>$font2,
                                -activebackground=>"yellow",
@@ -315,6 +350,8 @@ $upddbbt=$mwnd->Button(-text=>"UpdDB", -font=>$font2,
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 			      -background=>"green",
+			      -disabledforeground=>"blue",
+#			      -state=>'disabled',
 			      -cursor=>hand2,
 			      -textvariable=>\$updbtext,
                               -command => \&upd_db)
@@ -343,7 +380,9 @@ $checkbt=$mwnd->Button(-text => "Check", -font=>$font2,
                                          -relwidth=>0.075,-relheight=>0.05);
 $checkbt->bind("<Button-3>", \&checkbt_help);
 #---
-$mwnd->Label(-textvariable=>\$message,-background=>"yellow",-relief=>'ridge')->place( 
+$mwnd->Label(-textvariable=>\$message,-background=>"yellow",-foreground=>darkred,
+                                         -font=>$font4,
+                                         -relief=>'ridge')->place( 
                                          -relx=>0.15,-rely=>0.95,
                                          -relwidth=>0.7,-relheight=>0.05);
 #
@@ -577,6 +616,29 @@ sub archbt_help{
   }
 }
 #-------------
+sub arcscbt_help{
+  if(! Exists($helpwindow)){
+    &open_help_window;
+  }
+  else {
+#    $helpwindow->deiconify();
+    $helpwindow->after(500);
+    $helpwindow->raise();
+    if($htextagi1 ne ""){$helptext->tagRemove('lookat',$htextagi1,$htextagi2);}
+  }
+  $helptext->see("end");
+  my $indx=$helptext->search(-backwards, "ScanArchive-Button:",'end');
+  if($indx eq ""){
+    show_warn("   <-- No info yet !");
+  }
+  else {
+    $helptext->see("$indx");
+    $helptext->tagAdd('lookat',"$indx - 1 chars","$indx + 1 lines");
+    $htextagi1="$indx - 1 chars";
+    $htextagi2="$indx + 1 lines";
+  }
+}
+#-------------
 sub exitbt_help{
   if(! Exists($helpwindow)){
     &open_help_window;
@@ -669,6 +731,29 @@ sub ptscplbt_help{
   }
 }
 #-------------
+sub stscplbt_help{
+  if(! Exists($helpwindow)){
+    &open_help_window;
+  }
+  else {
+    $helpwindow->after(500);
+    $helpwindow->deiconify();
+    $helpwindow->raise();
+    if($htextagi1 ne ""){$helptext->tagRemove('lookat',$htextagi1,$htextagi2);}
+  }
+  $helptext->see("end");
+  my $indx=$helptext->search(-backwards, "PedRmsTimeScanPlot-Button:",'end');
+  if($indx eq ""){
+    show_warn("   <-- No info yet !");
+  }
+  else {
+    $helptext->see("$indx");
+    $helptext->tagAdd('lookat',"$indx - 1 chars","$indx + 1 lines");
+    $htextagi1="$indx - 1 chars";
+    $htextagi2="$indx + 1 lines";
+  }
+}
+#-------------
 sub fpedplbt_help{
   if(! Exists($helpwindow)){
     &open_help_window;
@@ -698,10 +783,18 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
   $curline="\n =====> New Scan $RunNum started...\n\n";
   $logtext->insert('end',$curline);
   $logtext->yview('end');
+  $message="";
+#
   $updbtext="UpdDB";
 #
-  $pathpeds=$scandir;#complete path to tof/anti peds_files_store directory
+  $pathpeds=$pedsdir;#complete path to tof/anti peds_files_store directory
   $patharch=$pathpeds.$archdir;#complete path to tof/anti peds_files_archive-directory
+  if($arcscval==1){#want to scan archive instead of normal store $pedsdir
+    $pathpeds=$patharch;
+    $curline="   <-- Scaning Archive !!!\n\n";
+    $logtext->insert('end',$curline);
+    $logtext->yview('end');
+  }
 #
   if($tofantsel eq "useTOF"){
     $detpat="tofp_";
@@ -762,11 +855,10 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
   $TIMEH=timelocal($ss2,$mn2,$hh2,$dd2,$mm2-1,$yy2-1900);
 #   
   $nselem=0;
-  if($debug==1){
-    $curline="   <-- FilesList is created :\n\n";
-    $logtext->insert('end',$curline);
-    $logtext->yview('end');
-  }
+  $curline="   <-- FilesList is created :\n\n";
+  $logtext->insert('end',$curline);
+  $logtext->yview('end');
+#
   for($i=0;$i<$nelem;$i++){#<--- loop over list to select files in dates window
     ($detnam[$i],$pedtyp[$i],$runs[$i])=unpack("A4 x1 A2 x4 A*",$sfilelist[$i]);
 #    print $detnam[$i]," ",$pedtyp[$i]," ",$runs[$i]," ",$processed[$i],"\n";
@@ -937,6 +1029,17 @@ if(! Exists($topl1)){# <-- define size and create 2nd window:
   $crely+=($bheight+$bspac);
   $dlenplbt->bind("<Button-3>", \&dlenplbt_help);
 #----
+  $stscplbt=$cp_fram->Button(-text=>"Max|Aver|Min ped-rms time-scan :",-borderwidth=>3,
+                                                        -activebackground=>"yellow",
+			                                -activeforeground=>"red",
+			                                -background=>"green",
+			                                -cursor=>hand2,
+                                                        -command=>\&sig_tscan)->place(
+                                                                 -relwidth=>1, -relheight=>$bheight,
+                                                                    -relx=>0, -rely=>$crely);
+  $crely+=($bheight);
+  $stscplbt->bind("<Button-3>", \&stscplbt_help);
+#----
   $ptscplbt=$cp_fram->Button(-text=>"Ped time-scan for Ch_ID(LBBSP) :",-borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -1065,7 +1168,7 @@ sub plot_save #<--- current plot in ps-file
   $logtext->insert('end',$curline);
   $logtext->yview('end');
 }
-#-------------
+#-----------------------------------------------------------------
 sub dlen_tscan
 {
 #---> this is plot-1
@@ -1185,6 +1288,7 @@ sub dlen_tscan
 #    $plot_accmem+=1;
     $plot2_actf=0;
     $plot3_actf=0;
+    $plot4_actf=0;
   }
   $plot1_actf+=1;
 #
@@ -1253,7 +1357,7 @@ sub dlen_tscan
     if($soundtext eq "Sound-ON"){$mwnd->bell;}
   }
 }
-#-------------
+#------------------------------------------------------------------
 sub ped_tscan
 {
 #---> time-evolution of particular channel ped/sig, this is plot-2
@@ -1287,9 +1391,8 @@ sub ped_tscan
   $logtext->insert('end',$curline);
   $logtext->yview('end');
 #
-  my $ped=0;
-  my $sig=0;
-  my $sta=0;
+  my ($ped,$sig,$sta);
+  my $seqnum;
   my ($xc,$yc)=(0,0);
   my ($xcoarsegrd,$xfinegrd)=(86400,3600);# day/hour in sec
   my ($ycoarsegrd,$yfinegrd)=(100,25);
@@ -1386,6 +1489,7 @@ sub ped_tscan
 #
     $plot1_actf=0;
     $plot3_actf=0;
+    $plot4_actf=0;
   }
   $colindx=($plot2_actf % 5);
   $goodc=$goodcolorlist[$colindx];#change color according fill-entry number
@@ -1530,7 +1634,7 @@ sub item_mark1
 #
   $topl1->update;
 }
-#---------
+#---------------------------------------------------------------------------
 sub file_scan
 {
 #--->all-channels  ped/sig-info for one particular ped-file, this is plot-3
@@ -1640,9 +1744,10 @@ sub file_scan
     }
     $plot1_actf=0;
     $plot2_actf=0;
+    $plot4_actf=0;
   }
   $plot3_actf+=1;
-  $lid=$canvas->createText(160,$canscry1+40,-text=>"Peds/Rms for file $fileidvar",-font=>$font2,-fill=>'blue');  
+  $lid=$canvas->createText(160,$canscry1+40,-text=>"Peds,Rms for file $fileidvar",-font=>$font2,-fill=>'blue');  
   $plot_accids[$plot_accmem]=$lid;#store in glob.list
   $plot_accmem+=1;
 #---------
@@ -1726,7 +1831,258 @@ sub file_scan
     }
 #
 }
-#---------
+#------------------------------------------------------------------
+sub sig_tscan
+{
+#---> time-evolution of particular channel ped/sig, this is plot-4
+#
+  my $layx,$barx,$sidx,$pmtx,$rest;
+  my $maxb;
+  my $locvar;
+  my @goodcolorlist=qw(green darkred blue orange black );
+  $curline="   <-- Max|Aver|Min PedRMS Time-scan \n\n";
+  $logtext->insert('end',$curline);
+  $logtext->yview('end');
+#
+  my ($ped,$sig,$sta)=(0,0,0);
+  my ($mxsiga,$avrsiga,$mnsiga,$ngchana);
+  my ($mxsigd,$avrsigd,$mnsigd,$ngchand);
+  my($laymx,$barmx);
+  if($tofantsel eq "useTOF"){$laymx=4;}
+  if($tofantsel eq "useANT"){$laymx=1;}
+  my $seqnum;
+  my ($top,$bot,$mid);
+  my ($xc,$yc)=(0,0);
+#
+  my ($xcoarsegrd,$xfinegrd)=(86400,3600);# day/hour in sec
+  my ($ycoarsegrd,$yfinegrd)=(10,2);
+  my $ybinw=0.1;
+#
+  my $goodc="darkgreen";
+  my $badc="red";
+  my $nzlines=0;
+  my $curcol;
+  my $colindx;
+  my ($width,$dig,$ltxt,$colr,$dasht,$titl);
+  my ($ptime,$year,$month,$day,$hour,$min,$sec,$time);
+#
+  @globpeds=();
+#
+#---> create scale/grid:
+#
+  if($plot4_actf==0){# 1st entry for plot4
+    &access_clear;
+    &points_clear;
+    @plot_fileids=();# clear current plot point-assosiated files ids
+#-- create Grid vertical lines + X-axes subscripts :
+    for($i=0;$i<$canscrx2;$i++){
+       if($i>0 && (($i*$binw_tev % $xfinegrd)==0 || ($i*$binw_tev % $xcoarsegrd)==0)){
+         $xc=$i;
+	 if(($i*$binw_tev % $xcoarsegrd)>0){# hour-line
+	   $width=1;
+	   $dig=(($i*$binw_tev % $xcoarsegrd)/$xfinegrd);
+	   $ltxt="$dig";
+	   $colr="blue";
+	   $dasht='.';
+	 }
+	 else{# day-line
+	   $width=1;
+	   $dig=($i*$binw_tev/$xcoarsegrd);
+	   $ltxt="$dig";
+	   $colr="red";
+	   $dasht='-';
+	 }
+         $lid=$canvas->createLine($xc,0,$xc,$canscry1, -fill=>'black', -width=>$width,-dash=>$dasht);
+         $plot_accids[$plot_accmem]=$lid;#store in glob. plot-accessoiries list
+         $plot_accmem+=1;
+         $lid=$canvas->createText($xc,+10,-text=>$ltxt,-font=>$font2,-fill=>$colr);  
+         $plot_accids[$plot_accmem]=$lid;#store in glob.list
+         $plot_accmem+=1;
+       }
+    }
+#-- create Grid horizontal lines + Y-axes subscripts :
+    for($i=0;$i<-$canscry1;$i++){
+       if($i>0 && ($i*$ybinw-int($i*$ybinw))==0){
+         $yc=$i;
+	 if((int($i*$ybinw) % $yfinegrd)==0){# fine scale line
+	   $width=1;
+	   $dig=$i*$ybinw;
+	   $ltxt="$dig";
+	   $colr="blue";
+	   $dasht='.';
+           $lid=$canvas->createLine(0,-$yc,$canscrx2,-$yc, -fill=>'black', -width=>$width,-dash=>$dasht);
+           $plot_accids[$plot_accmem]=$lid;#store in glob. plot-accessoiries list
+           $plot_accmem+=1;
+	 }
+	 if((int($i*$ybinw) % $ycoarsegrd)==0){# coarse scale line
+	   $width=1;
+	   $dig=$i*$ybinw;
+	   $ltxt="$dig";
+	   $colr="red";
+	   $dasht='-';
+           $lid=$canvas->createLine(0,-$yc,$canscrx2,-$yc, -fill=>'black', -width=>$width,-dash=>$dasht);
+           $plot_accids[$plot_accmem]=$lid;#store in glob. plot-accessoiries list
+           $plot_accmem+=1;
+           $lid=$canvas->createText(-20,-$yc,-text=>$ltxt,-font=>$font2,-fill=>$colr);  
+           $plot_accids[$plot_accmem]=$lid;#store in glob.list
+           $plot_accmem+=1;
+	 }
+       }
+    }
+#-- add 0 :
+    $lid=$canvas->createText(-10,10,-text=>"0",-font=>$font2,-fill=>'blue');  
+    $plot_accids[$plot_accmem]=$lid;
+    $plot_accmem+=1;
+#-- add title :
+    $ptime=localtime($runmn);#loc.time of earliest run in dir (imply run# to be UTC-seconds as input)
+    $year=$ptime->year+1900;
+    $month=$ptime->mon+1;
+    $day=$ptime->mday;
+    $hour=$ptime->hour;
+    $min=$ptime->min;
+    $sec=$ptime->sec;
+    $time=$year."/".$month."/".$day."  ".$hour.":".$min;
+    $titl="PedRms(Min,Aver,Max, for Dyn +10) Time-evolution,  '0'-time is $time";
+    $lid=$canvas->createText(400,$canscry1+40,-text=>$titl,-font=>$font2,-fill=>'blue');  
+    $plot_accids[$plot_accmem]=$lid;
+    $plot_accmem+=1;
+    $titl="Time-scale: red digits ->days, blue ->hours";
+    $lid=$canvas->createText(400,-10,-text=>$titl,-font=>$font2,-fill=>'blue');  
+    $plot_accids[$plot_accmem]=$lid;
+    $plot_accmem+=1;
+#
+    $plot1_actf=0;
+    $plot2_actf=0;
+    $plot3_actf=0;
+  }
+  $colindx=($plot4_actf % 5);
+  $curcol=$goodcolorlist[$colindx];#change color according fill-entry number
+  $plot4_actf+=1;
+#
+  for($i=0;$i<$nelem;$i++){#<--- selected files loop
+    $sfname=$pathpeds."/".$sfilelist[$i];
+    $nzlines=0;
+    $nwords=0;
+    @globpeds=();#store all data of the file
+    if($processed[$i] == 1){
+#
+      open(INPFN,"< $sfname") or die show_warn("   <-- Cannot open $sfname for reading $!");
+      while(defined ($line = <INPFN>)){
+        chomp $line;
+        if($line =~/^\s*$/){next;}# skip empty or all " "'s lines
+        if($line =~/==========/){last;}# break on my internal EOF
+        if($line =~/12345/){last;}# break on my internal EOF
+	$nzlines+=1;
+	$line =~s/^\s+//s;# remove " "'s at the beg.of line
+	@words=split(/\s+/,$line);#split by any number of continious " "'s
+	$nwords=scalar(@words);
+	push(@globpeds,@words);
+      }
+      close(INPFN) or die show_warn("   <-- Cannot open $sfname after reading $!");
+#--
+      $seqnum=0;
+      $ybinw=0.1;
+#--->first - anodes:
+      $mxsiga=0;
+      $mnsiga=9999;
+      $avrsiga=0;
+      $ngchana=0;
+      for($il=0;$il<$laymx;$il++){
+        if($tofantsel eq "useTOF"){$barmx=$barsppl[$il];}
+        else {$barmx=8;}
+        for($ib=0;$ib<$barmx;$ib++){
+          for($is=0;$is<2;$is++){
+	    if($tofantsel eq "useTOF"){
+	      $sta=$globpeds[$seqnum+3*$is];
+	      $ped=$globpeds[$seqnum+3*$is+1];
+	      $sig=$globpeds[$seqnum+3*$is+2];
+	    }
+	    else{
+	      $sta=$globpeds[$seqnum+$is];
+	      $ped=$globpeds[$seqnum+$is+2];
+	      $sig=$globpeds[$seqnum+$is+4];
+	    }
+	    if($sta==0){#ch.ok
+	      $avrsiga+=$sig;
+	      if($sig > $mxsiga){$mxsiga=$sig;}
+	      if($sig < $mnsiga){$mnsiga=$sig;}
+	      $ngchana+=1;
+	    }
+	  }#-->endof side-loop
+	  $seqnum+=6;
+#
+        }#-->endof bar-loop
+#
+      }#-->endof lay-loop
+#--->next - dynodes:
+      if($tofantsel eq "useTOF"){#only for TOF
+      $mxsigd=0;
+      $mnsigd=9999;
+      $avrsigd=0;
+      $ngchand=0;
+      for($il=0;$il<$laymx;$il++){
+        if($tofantsel eq "useTOF"){$barmx=$barsppl[$il];}
+        else {$barmx=8;}
+        for($ib=0;$ib<$barmx;$ib++){
+          for($is=0;$is<2;$is++){
+            for($pm=0;$pm<3;$pm++){
+	      $sta=$globpeds[$seqnum];
+	      $ped=$globpeds[$seqnum+1];
+	      $sig=$globpeds[$seqnum+2];
+#
+              if($ped!=0 && $sig!=0){#dynode exists
+	        if($sta==0){#ch.ok
+	          $avrsigd+=$sig;
+	          if($sig > $mxsigd){$mxsigd=$sig;}
+	          if($sig < $mnsigd){$mnsigd=$sig;}
+	          $ngchand+=1;
+	        }
+	      }
+	      $seqnum+=3;
+	    }#-->endof pm-loop
+	  }#-->endof side-loop
+#
+        }#-->endof bar-loop
+#
+      }#-->endof lay-loop
+      }
+#--
+      $avrsiga/=$ngchana;
+      $avrsigd/=$ngchand;
+#--
+      $xc=($runs[$i]-$runmn)/$binw_tev;#run-position wrt min run# in relat.units(=binwidth)
+#
+#anodes:
+      $top=$mxsiga/$ybinw;
+      $bot=$mnsiga/$ybinw;
+      $mid=$avrsiga/$ybinw;
+      $lid=$canvas->createLine($xc,-$bot,$xc,-$top, -fill=>$curcol, -width=>2);
+      $plot_pntids[$plot_pntmem]=$lid;#store in glob.list
+      $plot_pntmem+=1;
+      $lid=$canvas->createOval($xc-2,-($mid-2),$xc+2,-($mid+2), -fill=>$curcol, -width=>1);
+      $canvas->bind($lid,"<Button-1>",[\&item_mark1,$lid]);
+      $plot_fileids[$plot_pntmem]=$i;#store file-index
+      $plot_pntids[$plot_pntmem]=$lid;#store in glob.list
+      $plot_pntmem+=1;
+#dynodes:
+      $top=($mxsigd+10)/$ybinw;
+      $bot=($mnsigd+10)/$ybinw;
+      $mid=($avrsigd+10)/$ybinw;
+      $lid=$canvas->createLine($xc,-$bot,$xc,-$top, -fill=>$curcol, -width=>2);
+      $plot_pntids[$plot_pntmem]=$lid;#store in glob.list
+      $plot_pntmem+=1;
+      $lid=$canvas->createOval($xc-2,-($mid-2),$xc+2,-($mid+2), -fill=>$curcol, -width=>1);
+      $canvas->bind($lid,"<Button-1>",[\&item_mark1,$lid]);
+      $plot_fileids[$plot_pntmem]=$i;#store file-index
+      $plot_pntids[$plot_pntmem]=$lid;#store in glob.list
+      $plot_pntmem+=1;
+#
+      if($xc>$plot4_xcmax){$plot4_xcmax=$xc;}
+    }#--->endof file-loop
+    $topl1->update;
+  }
+}
+#----------------------------------------------------------------------------
 sub mark_file
 {
 #
@@ -1836,8 +2192,8 @@ sub upd_db
   $mwnd->update;
 # make def.ped-file from the 1st existing one (i need it now pure formally for offline-program)
   $pedfn=$pathpeds."/".$sfilelist[0];
-  $pedfile=$detnam[0]."_df_rl.dat";#default input ped-file name required by offline-program
-  copy($pedfn,$pedfile) or die show_warn("   <-- Copy failed for $pedfn (dry-run)!");#copy 
+  $pedfile=$calibdir."/".$detnam[0]."_df_rl.dat";#default input ped-file name required by offline-program
+  copy($pedfn,$pedfile) or die show_warn("   <-- Copy failed into work-dir for $pedfn (dry-run)!");#copy 
 #
   open(DBWLOGF,"+> $dbwlfname") or die show_warn("   <-- Cannot open $dbwlfname (dry-run) $!");# clear if exists
   $status = system("$prog2run $tdvname $begtm $endtm $updflg >> $dbwlfname");#<-- call DBWriter 
@@ -2011,7 +2367,8 @@ sub exit_actions
 #---> archive processed files if requested:
 #
   my ($curfn,$newfn);
-  if($archval==1){
+  my $status=0;
+  if($archval==1 && $arcscval==0){
     show_messg("   <-- Archiving of processed ped-files...");
     for($i=0;$i<$nelem;$i++){#<--- processed files loop 
       if($processed[$i] == 1){
@@ -2035,10 +2392,18 @@ sub exit_actions
     }
   }
   if($firstr>0){
-    $filen=$logfname.".".$firstr.".txt";
+    $filen=$calibdir."/".$logfname.".".$firstr;
+    $newfn=$patharch."/".$logfname.".".$firstr;
     open(OFN, "> $filen") or die show_warn("   <-- Cannot open $filen for writing !");
     print OFN $logtext->get("1.0","end");
-    show_warn("   <-- LogFile $filen is saved, Bye-Bye !");
+    show_warn("   <-- LogFile $filen is saved !");
+    $status=system("chmod 666 $filen");
+    if($status != 0){
+      print "Warning: problem with write-priv for logfile, status=",$status,"\n";
+      exit;
+    }
+    move($filen,$newfn) or show_warn("   <-- Archiving failed for log-file $filen $!");# move to archive
+    show_warn("   <-- LogFile $filen is archived, Bye-Bye !");
   }
   $mwnd->update;
   if($soundtext eq "Sound-ON"){$mwnd->bell;}

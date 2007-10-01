@@ -54,14 +54,13 @@ class AMSSCIds{
   static int hidlst[TOF2GC::SCRCMX];//hwid-list(vs swch)
   static int hidls[TOF2GC::SCRCMX];//hwid-list(vs hwch)
   static int16u sltymap[TOF2GC::SCCRAT][TOF2GC::SCSLTM];//map of slot-types in crates 
-//  static int16u cardids[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
-  static int16u cardidc[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
-  static int16u cardidt[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
+  static int16u cardids[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
   static int16u ochpsty[TOF2GC::SCSLTY];//outp.channels per slot-type
   static int16u ichpsty[TOF2GC::SCSLTY];//inp.channels per slot-type
   static int totswch[2];//total s/w-channels for TOF, ANTI
   static int16u tmpsln[TOF2GC::SCSLTM];//map of temp-sensor numbers in slots
-  static int trpatba[TOF2GC::SCCRAT][TOF2GC::SCMXBR2];//LBBS<->TrigPattBits assignment
+  static int trpatba[TOF2GC::SCCRAT][2*TOF2GC::SCMXBR];//LBBS<->TrigPattBits assignment
+  static int envsensid[TOF2GC::SCLRS][2][8];//tof-envelops temp.sensors IDs by layer/chain/sens#
  public:
   AMSSCIds():_dummy(1){};
   AMSSCIds(int16u crate, int16u slot, int16u rdch);//used for tof,anti
@@ -95,11 +94,11 @@ class AMSSCIds{
   static int16u swseqn(int dt, int16u il, int16u ib, int16u is, int16u ip, int16u im);
   static int16u hwseqn(int16u cr, int16u sl, int16u ch);
   static int hw2swid(int16u cr, int16u sl, int16u ch);
-//  static int16  crdid2sl(int16u crate, int16u crdid);
-  static int16  crdidc2sl(int16u crate, int16u crdid);
-  static int16  crdidt2sl(int16u crate, int16u crdid);
+  static int16  crdid2sl(int16u crate, int16u crdid);
   static int16u sl2tsid(int16u slot){return tmpsln[slot];}//abs.slot#->temp.sensor id(sequential slot#)
   static int16u ich2rdch(int16u crate, int16u slot, int16u ich, int16u mtyp);
+  static int getenvsensid(int lay, int chain, int senn){return envsensid[lay][chain][senn];}
+//                            0-3,      0-1,       0-7
 };
 
 
