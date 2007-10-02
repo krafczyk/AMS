@@ -8,8 +8,7 @@ RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
 
 void RichRadiatorTileManager::Init(){  // Default initialization
   if(_number_of_rad_tiles!=0) return; // Not necessary
-
-  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
+  //  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
   Init_Default();
 }
 
@@ -34,11 +33,12 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0
   };
 
-  const int naf_boxes_number=3;
+  const int naf_boxes_number=4;
   int naf_boxes[naf_boxes_number][naf_boxes_number]={
-    1,1,1,
-    1,1,1,
-    1,1,1
+    1,1,1,1,
+    1,1,1,1,
+    1,1,1,1,
+    1,1,1,1
   };
 
 
@@ -60,20 +60,22 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
 
   RICHDB::mat_init();  // Ensure that the agl tables are updated.
 
+  //
   // Fill the information for agl
+  //
   int current=0;
   for(int i=0;i<agl_boxes_number;i++)
     for(int j=0;j<agl_boxes_number;j++){
       if(agl_boxes[i][j]!=1) continue;
-      double x=(i+0.5*(1-agl_boxes_number))*RICHDB::rad_length;
-      double y=(j+0.5*(1-agl_boxes_number))*RICHDB::rad_length;
+      double x=(i+0.5*(1-agl_boxes_number))*(RICHDB::rad_length+RICaethk);
+      double y=(j+0.5*(1-agl_boxes_number))*(RICHDB::rad_length+RICaethk);
       _tiles[current]=new RichRadiatorTile;
       _tiles[current]->position[0]=x;
       _tiles[current]->position[1]=y;
-      _tiles[current]->bounding_box[0][0]=-RICHDB::rad_length/2+RICaethk/2.;
-      _tiles[current]->bounding_box[0][1]=RICHDB::rad_length/2-RICaethk/2.;
-      _tiles[current]->bounding_box[1][0]=-RICHDB::rad_length/2+RICaethk/2.;
-      _tiles[current]->bounding_box[1][1]=RICHDB::rad_length/2-RICaethk/2.;
+      _tiles[current]->bounding_box[0][0]=-RICHDB::rad_length/2;
+      _tiles[current]->bounding_box[0][1]=RICHDB::rad_length/2;
+      _tiles[current]->bounding_box[1][0]=-RICHDB::rad_length/2;
+      _tiles[current]->bounding_box[1][1]=RICHDB::rad_length/2;
       _tiles[current]->bounding_box[2][0]=-RICHDB::rad_agl_height/2;
       _tiles[current]->bounding_box[2][1]=RICHDB::rad_agl_height/2;
       _tiles[current]->kind=agl_kind;
@@ -82,38 +84,25 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
       _tiles[current]->effective_scattering_probability=0;
       _tiles[current]->effective_scattering_angle=0;
       _tiles[current]->abs_length=RICHDB::abs_length;
-      _tiles[current]->index_table=RICHDB::index;
+      _tiles[current]->index=RICHDB::rad_index;
       current++;
     }
 
-  // Now we compute the effective height and effective index calling the dedicated routine
-  geant eff_index;
-  geant eff_height;
-  _compute_mean_height(_tiles[current-1]->index_table,
-		       _tiles[current-1]->clarity,
-		       _tiles[current-1]->abs_length,
-		       _tiles[current-1]->bounding_box[2][1]-_tiles[current-1]->bounding_box[2][0],
-		       eff_index,
-		       eff_height);
-
-  for(int i=0;i<current;i++){
-    if(_tiles[i]->kind!=agl_kind) continue;
-    _tiles[i]->mean_refractive_index=eff_index;
-    _tiles[i]->mean_height=eff_height-0.1; // Corretion by hand
-  }
-  
+  //
+  // Fill the information for naf
+  //
   for(int i=0;i<naf_boxes_number;i++)
     for(int j=0;j<naf_boxes_number;j++){
       if(naf_boxes[i][j]!=1) continue;
-      double x=(i+0.5*(1-naf_boxes_number))*RICHDB::rad_length;
-      double y=(j+0.5*(1-naf_boxes_number))*RICHDB::rad_length;
+      double x=(i+0.5*(1-naf_boxes_number))*(RICHDB::naf_length+RICaethk);
+      double y=(j+0.5*(1-naf_boxes_number))*(RICHDB::naf_length+RICaethk);
       _tiles[current]=new RichRadiatorTile;
       _tiles[current]->position[0]=x;
       _tiles[current]->position[1]=y;
-      _tiles[current]->bounding_box[0][0]=-RICHDB::rad_length/2+RICaethk/2.;
-      _tiles[current]->bounding_box[0][1]=RICHDB::rad_length/2-RICaethk/2.;
-      _tiles[current]->bounding_box[1][0]=-RICHDB::rad_length/2+RICaethk/2.;
-      _tiles[current]->bounding_box[1][1]=RICHDB::rad_length/2-RICaethk/2.;
+      _tiles[current]->bounding_box[0][0]=-RICHDB::naf_length/2;
+      _tiles[current]->bounding_box[0][1]=RICHDB::naf_length/2;
+      _tiles[current]->bounding_box[1][0]=-RICHDB::naf_length/2;
+      _tiles[current]->bounding_box[1][1]=RICHDB::naf_length/2;
       _tiles[current]->bounding_box[2][0]=-RICHDB::naf_height/2;
       _tiles[current]->bounding_box[2][1]=RICHDB::naf_height/2;
       _tiles[current]->kind=naf_kind;
@@ -122,28 +111,109 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
       _tiles[current]->effective_scattering_probability=0;
       _tiles[current]->effective_scattering_angle=0;
       _tiles[current]->abs_length=RICHDB::naf_abs_length;
-      _tiles[current]->index_table=RICHDB::naf_index_table;
+      _tiles[current]->index=RICHDB::naf_index;
+
       current++;
     }
+  _compute_tables();
 
-  _compute_mean_height(_tiles[current-1]->index_table,
-		       _tiles[current-1]->clarity,
-		       _tiles[current-1]->abs_length,
-		       _tiles[current-1]->bounding_box[2][1]-_tiles[current-1]->bounding_box[2][0],
-		       eff_index,
-		       eff_height);
-  
+  //
+  // Fill static tables
+  //
+
+  /*
+  // Center position wrt default value
+  _alignment[0]=0;
+  _alignment[1]=0;
+  _alignment[2]=0;
+  // X axis
+  _alignment[3]=1;
+  _alignment[4]=0;
+  _alignment[5]=0;
+  // Y axis
+  _alignment[6]=0;
+  _alignment[7]=1;
+  _alignment[8]=0;
+  // Z axis
+  _alignment[9]= 0;
+  _alignment[10]=0;
+  _alignment[11]=1;
+
   for(int i=0;i<_number_of_rad_tiles;i++){
-    if(_tiles[i]->kind!=naf_kind) continue;
-    _tiles[i]->mean_refractive_index=eff_index;
-    _tiles[i]->mean_height=eff_height-0.2; // Corretion by hand
+    RichRadiatorTile &tile=*_tiles[i];
+    int id=tile.id;
+    _kind[id]=tile.kind;
+    _position[id*5+0]=tile.position[0];
+    _position[id*5+1]=tile.position[1];
+    _position[id*5+2]=fabs(tile.bounding_box[0][1]);
+    _position[id*5+3]=fabs(tile.bounding_box[1][1]);
+    _position[id*5+4]=fabs(tile.bounding_box[2][1]);
+    _optical_parameters[id*4+0]=tile.index;
+    _optical_parameters[id*4+1]=tile.clarity;
+    _optical_parameters[id*4+2]=tile.effective_scattering_probability;
+    _optical_parameters[id*4+3]=tile.effective_scattering_angle;
   }
+  */
 }
+
+void RichRadiatorTileManager::_compute_tables(){
+  geant eff_index;
+  geant eff_height;
+  for(int current=0;current<_number_of_rad_tiles;current++){
+    //
+    // Build refractive index vs wavelength tables
+    // 
+
+    for(int ii=0;ii<RICmaxentries;ii++){
+      if(_tiles[current]->kind==agl_kind){
+	_tiles[current]->index_table[ii]=1+(_tiles[current]->index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
+      }else if(_tiles[current]->kind==naf_kind){
+	_tiles[current]->index_table[ii]=1+(_tiles[current]->index-1)/(RICHDB::naf_index-1)*(RICHDB::naf_index_table[ii]-1);
+      }
+
+    }
+    // Now we compute the effective height and effective index calling the dedicated routine
+
+    _compute_mean_height(_tiles[current]->index_table,
+			 _tiles[current]->clarity,
+			 _tiles[current]->abs_length,
+			 _tiles[current]->bounding_box[2][1]-_tiles[current]->bounding_box[2][0],
+			 eff_index,
+			 eff_height);
+
+    if(_tiles[current]->kind==agl_kind){
+      _tiles[current]->mean_refractive_index=eff_index;
+      _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+    }else if(_tiles[current]->kind==naf_kind){
+      _tiles[current]->mean_refractive_index=eff_index;
+      _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+    }
+  }
+  
+}
+
 
 #define max(x,y) ((x)<(y)?(y):(x))
 #define min(x,y) ((x)<(y)?(x):(y))
 
+
+void RichRadiatorTileManager::Finish(){
+  //
+  // Decide how to finish as a function of the kind of job
+  //
+  Finish_Default();
+  //  DumpToTDV();
+}
+
+
+void RichRadiatorTileManager::Finish_Default(){
+  cout<<" RichTileManager finishing"<<endl;
+}
+
+
 integer RichRadiatorTileManager::get_tile_number(geant x,geant y){
+  int closer=-1;
+  double dist=1e6;
   for(int i=0;i<_number_of_rad_tiles;i++){
     double dx=x-_tiles[i]->position[0];
     double dy=y-_tiles[i]->position[1];
@@ -155,6 +225,7 @@ integer RichRadiatorTileManager::get_tile_number(geant x,geant y){
       return i;
     }
   }
+
   return -1;
 }
 
@@ -172,7 +243,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   AMSDir dir(0.,0.,-1.);
   
   number theta,phi,length;
-
+  
   track->interpolate(pnt,dir,point,
 		     theta,phi,length);
 
@@ -211,13 +282,21 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   _p_direct=point;
   _d_direct=AMSDir(theta,phi);
   
-
-  // Direct photons
+  // Reflected photons
   pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_tiles[_current_tile]->mean_height);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
   _p_reflected=point;
   _d_reflected=AMSDir(theta,phi);
+  
+  // Use the mean position for the direct photons to estimate the
+  // local mean index
+  double dx=_p_direct[0]-_tiles[_current_tile]->position[0];
+  double dy=_p_direct[1]-_tiles[_current_tile]->position[1];
+  
+  _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
+    (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/
+    (_tiles[_current_tile]->index-1);
 } 
 
 
@@ -262,14 +341,262 @@ void RichRadiatorTileManager::_compute_mean_height(geant *index,
     cout<<"RichRadiatorTileManager::_mean_height : Error"<<endl;
   }else{
     height=rheight-sum/densum;
-
     eff_index=sum_index/densum;
-
-
   }
 } 
 
 
+geant RichRadiatorTileManager::get_refractive_index(geant x,geant y,geant wavelength){
+  int tile_number=get_tile_number(x,y);
 
+  if(tile_number<0){
+    cout<<"-- WARNING: RichRadiatorTileManager::get_refractive_index: out of tile"<<endl;
+    return 0.0;  
+  }
+  
+  // For using the future parameterization
+  double dx=x-_tiles[tile_number]->position[0];
+  double dy=y-_tiles[tile_number]->position[1];
+  
+
+  // Get the wavelength bin using binary search
+  int wl_bin=RICHDB::get_wavelength_bin(wavelength);
+
+  // Use a linear interpolation to get the refractive index
+  double ratio=(wavelength-RICHDB::wave_length[wl_bin])/(RICHDB::wave_length[wl_bin+1]-RICHDB::wave_length[wl_bin]);
+  geant index=ratio*_tiles[tile_number]->index_table[wl_bin+1]+(1-ratio)*_tiles[tile_number]->index_table[wl_bin];
+
+  // Correction taking into account the local refractive index
+  geant local_index=_tiles[tile_number]->LocalIndex(dx,dy);
+  geant final_index=1+(index-1)*(local_index-1)/(_tiles[tile_number]->index-1);
+
+  // Return the computed index
+  return final_index;
+}
+
+
+//geant   RichRadiatorTileManager::_alignment[9+3];                    // Alignment parameters (unused) position (3)+orientation(9)
+//integer RichRadiatorTileManager::_kind[RICmaxtiles];                 // Kind of material
+//geant   RichRadiatorTileManager::_position[RICmaxtiles*5];           // X and Y position + bounding box (XYZ Half length)
+geant   RichRadiatorTileManager::_optical_parameters[RICmaxtiles*4]; // Mean index, clarity, scattering prob, scatterin angle
+
+
+void RichRadiatorTileManager::DumpToTDV(){
+  if(_number_of_rad_tiles>RICmaxtiles){
+    cerr<<"RichRadiatorTileManager::DumpToTDV--too many tiles"<<endl;
+    exit(1);
+  }
+  
+ 
+  // Fill the arrays and write them
+  for(int id=0;id<RICmaxtiles;id++){
+    // Search the tile with this id
+
+    int found=-1;
+    for(int current=0;current<_number_of_rad_tiles;current++){
+      if(_tiles[current]->id==id){
+	found=current;
+	break;
+      }
+    }
+     
+    if(found==-1){
+      //  Fill with zeroes
+
+    }else{
+
+    }
+  }
+
+  // Update all DB
+  UpdateDB(AMSID("RichRadTileParameters",AMSJob::gethead()->isRealData()));
+}
+
+time_t RichRadiatorTileManager::_parameters_begin,
+        RichRadiatorTileManager::_parameters_insert,
+        RichRadiatorTileManager::_parameters_end;
+
+
+void RichRadiatorTileManager::GetFromTDV(){
+  // Go one by one with the current TDV, compare with current values used,
+  // and if it is new, load and update
+  time_t insert,begin,end;
+  //
+  // Deal with parameters
+  //
+  AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSID("RichRadTileParameters",AMSJob::gethead()->isRealData()));  
+  ptdv->gettime(insert,begin,end);
+  
+  if(insert!=_parameters_insert || 
+     begin!=_parameters_begin || 
+     end!=_parameters_end){
+    cerr<<"-- Updating RichRad optical --"<<endl;
+
+    const int n_=4;
+    for(int i=0;i<_number_of_rad_tiles;i++){
+      _tiles[i]->index=_optical_parameters[i*n_+0];
+      _tiles[i]->clarity=_optical_parameters[i*n_+1];
+    }
+
+    // Here we should perform a reinit
+    _compute_tables();
+    
+    _parameters_insert=insert;
+    _parameters_begin=begin;
+    _parameters_end=end;
+  }
+
+}
+
+
+void RichRadiatorTileManager::UpdateDB(AMSID my_id){
+  AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(my_id);
+  ptdv->UpdateMe()=1;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////
+// FORTRAN INTERFACE FOR USING NON UNIFORM REFRACTIVE INDEXES //
+////////////////////////////////////////////////////////////////
+
+
+//
+// Here we define a function to get the refractive index with a fortran call giving the position
+//
+
+extern "C" geant rrtmindex_(geant *x,geant *y,geant *wvl){
+  return  RichRadiatorTileManager::get_refractive_index(*x,*y,*wvl);
+}
+
+
+//
+// Get the number of Cherenkov photons. Prepare integration table
+//
+
+double _cherenkov_integral[RICmaxentries];
+double _cherenkov_index[RICmaxentries];
+int _cherenkov_border;
+
+extern "C" geant getphotons_(geant *charge,geant *min_index,geant *vect,geant *step){
+  const geant rfact=369.81E9;
+  const geant cvpwl=1.2398E-6;  //m*eV=nm*GeV
+
+  if(*charge==0) return 0;  // Simple test
+
+  //
+  // Get the refractive index in the xtremes
+  //
+
+  double mean=0;
+  double dp=0;
+  double ge=0;
+  _cherenkov_integral[0]=0;
+  _cherenkov_border=1;
+  for(int i=1;i<RICmaxentries;i++){
+    //
+    // Get the momentum range
+    //
+    geant initial_momentum=cvpwl/(RICHDB::wave_length[i-1]);
+    geant final_momentum=cvpwl/(RICHDB::wave_length[i]);
+
+    //
+    // Get the mean wavelength
+    //
+    double wavelength=0.5*(RICHDB::wave_length[i-1]+RICHDB::wave_length[i]);
+
+    //
+    // Get the refractive indexes in the middle of the step
+    //
+    geant index=RichRadiatorTileManager::get_refractive_index(vect[0]-0.5*(*step)*vect[3],vect[1]-0.5*(*step)*vect[4],wavelength);
+
+    if(index==0.0) return 0;
+
+    //
+    // Store the current best limit
+    // 
+    
+    _cherenkov_border=i+1;
+    if(index<*min_index) break;
+
+    
+    //
+    // Compute the first integral part
+    //
+
+    _cherenkov_integral[i]=_cherenkov_integral[i-1]+(final_momentum-initial_momentum)*
+      (1-(*min_index)*(*min_index)/(index*index));
+
+    mean=_cherenkov_integral[i];
+  }
+
+  if(mean==0) return 0; // If no photons, skip further computation
+
+  //
+  // Fill tables to sample from them
+  //
+  for(int i=0;i<RICmaxentries;i++){
+    //
+    // Prepare table of integrals
+    //
+    _cherenkov_integral[i]/=mean;
+
+    //
+    // Prepare table of indexes
+    //
+    double wavelength=RICHDB::wave_length[i];
+    _cherenkov_index[i]=RichRadiatorTileManager::get_refractive_index(vect[0]-0.5*(*step)*vect[3],vect[1]-0.5*(*step)*vect[4],wavelength);
+  }
+
+  mean*=(*charge)*(*charge)*rfact*(*step); 
+  return mean;
+}
+
+
+//
+// Get the photon momentum and corresponding refractive index
+//
+extern "C" geant getmomentum_(geant *index){
+  const geant cvpwl=1.2398E-6;  //m*eV=nm*GeV
+  int dummy; 
+  geant integral=RNDM(dummy);
+  
+  //
+  // Use binary search to find the photon
+  int bin_max=_cherenkov_border-1;
+  int bin_min=0;
+
+  for(;;){
+    int bin_med=(bin_max+bin_min)/2;
+    if(integral<_cherenkov_integral[bin_med]) bin_max=bin_med; else bin_min=bin_med;
+    if(bin_max-bin_min<=1) break;
+  }
+
+  //
+  // Get the linear interpolation wavelength
+  //
+  geant ratio=(integral-_cherenkov_integral[bin_min])/
+    (_cherenkov_integral[bin_max]-_cherenkov_integral[bin_min]);
+  geant wl=RICHDB::wave_length[bin_min]*(1-ratio)+RICHDB::wave_length[bin_max]*ratio;
+
+  geant momentum=cvpwl/wl;
+  
+  //
+  // Get the linear interpolation index
+  // 
+  *index=_cherenkov_index[bin_min]*(1-ratio)+_cherenkov_index[bin_max]*ratio;
+
+  // This a test to look for problems
+  if(*index<1 || *index>2){
+    cerr<<"BIG PROBLEM AT getphoton_@richradid.C "<<bin_min<<" "<<bin_max<<" "<<ratio<<endl;
+    cerr<<endl<<"DUMPING TABLE "<<endl;
+    for(int i=0;i<_cherenkov_border-1;i++)
+      cerr<<"WV "<<RICHDB::wave_length[i]<<" INDEX "<<_cherenkov_index[i]<<" INTEGRAL "<<_cherenkov_integral[i]<<endl;
+    exit(1);
+  }
+
+  return momentum;
+}
 
 

@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.46 2007/06/20 10:11:29 mdelgado Exp $
+//  $Id: richdbc.C,v 1.47 2007/10/02 16:06:46 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -6,8 +6,8 @@
 
 geant RICHDB::_RICradpos=RICradposs;
 integer RICHDB::_Nph=0;
-// defaults
 
+// defaults
 geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 595.652, 591.304,
 					  585.507, 578.261, 573.913, 568.116, 563.768, 556.522,
 					  550.725, 543.478, 536.232, 528.986, 520.739, 511.594,
@@ -22,7 +22,6 @@ geant RICHDB::rad_index=1.0529; // updated 10/28/04
 geant RICHDB::naf_index=1.33;
 
 // Fused SiO2 scaled to n=1.14
-
 geant RICHDB::index[RICmaxentries]={1.136,   1.13602, 1.13605, 1.13608, 1.13612, 1.13617,
 				    1.13623, 1.13631, 1.13635, 1.13642, 1.13647, 1.13656,
 				    1.13663, 1.13672, 1.13681, 1.13691, 1.13703, 1.13717,
@@ -60,7 +59,7 @@ geant RICHDB::naf_index_table[RICmaxentries]={1.32526,1.32531,1.32535,1.32540,1.
 
 
 
-// Best fit to current measures 
+// Best fit to current measures: AGL abs length
 geant RICHDB::abs_length[RICmaxentries]={100.,100.,100.,100.,100.,
 					 100.,100.,100.,100.,100.,
 					 100.,100.,100.,100.,100.,
@@ -84,46 +83,34 @@ geant RICHDB::naf_abs_length[RICmaxentries]={36.5383,36.1793,35.8222,35.4667,34.
 					     6.3653, 6.2307, 6.1272, 6.0488};
 
 
+integer RICHDB::agl_media=0;
+integer RICHDB::naf_media=0;
 
 // PMT quantum eff. from Hamamatsu
-
 geant RICHDB::eff[RICmaxentries]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.646, 3.214, 3.504,
 				  3.904, 4.350, 5.171, 5.518, 6.420, 7.153, 8.143, 9.271,10.330,
 				  11.509,12.280,13.981,15.244,16.984,18.122,19.337,20.191,20.633,
 				  20.633,20.633,20.633,20.633,20.010,18.923,17.355,16.266,14.918, 
 				  13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
 
-/* Old version of code
-integer RICHDB::n_rows[2]={10,8};
-
-integer RICHDB::n_pmts[15][2]={{11,7},{11,8},{11,7},{11,6},{11,5},{11,4},
-			       {10,3},{10,2},{10,0},{8,0}};
-
-integer RICHDB::offset[15][2]={{0,1},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
-                               {0,0},{0,0},{1,0}};
-*/
-
-geant RICHDB::pmt_p[RICmaxpmts][2];
+geant RICHDB::pmt_p[RICmaxpmts][2]; // Table with PMT positions
 
 
 
 // PMT photocathode window
-
 geant RICHDB::pmtw_index=1.458;
 
 
 // Measured abs. length for Bicron-BC800 plastic.
-
 geant RICHDB::lg_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,83.6568,61.6296,24.8616,14.1085,
-				      7.0524, 5.3358, 5.2303, 5.0741, 2.8348,
-                                      0.7004, 0.2304, 0.0554, 0.0554, 0.0554,
-				      0.0554, 0.0554, 0.0554, 0.0554};
-
+				     7.0524, 5.3358, 5.2303, 5.0741, 2.8348,
+				     0.7004, 0.2304, 0.0554, 0.0554, 0.0554,
+				     0.0554, 0.0554, 0.0554, 0.0554};
 
 
 
@@ -136,57 +123,43 @@ geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1
 
 
 integer RICHDB::entries=RICmaxentries;
-geant RICHDB::top_radius=60.0;         // Top mirror radius
-geant RICHDB::bottom_radius=66.82;       // Bottom mirror radius
-geant RICHDB::rich_height=45.8;        // Mirror height (for historical reasons)
-//geant RICHDB::hole_radius=31.5;        // half ECAL hole side length
-geant RICHDB::hole_radius[2]={63.8/2.,64.3/2};
-geant RICHDB::inner_mirror_height=50;  // UNUSED
-//geant RICHDB::rad_clarity=0.007598;      // Radiator clarity
-//geant RICHDB::rad_clarity=0.0059;      // Radiator clarity
-//geant RICHDB::scatprob=.15;                // Probability of surface scattering
-//geant RICHDB::scatang=24e-3;             // Scattered angle 
-geant RICHDB::rad_clarity=0.0055;      // Radiator clarity: updated 10/28/04
-geant RICHDB::scatprob=.19;                // Probability of surface scattering
-geant RICHDB::scatang=14e-3;             // Scattered angle 
-//geant RICHDB::eff_rad_clarity=0.007598;  // clarity used in charge recosntruction
-geant RICHDB::eff_rad_clarity=0.0055;  // clarity used in charge recosntruction
+geant RICHDB::top_radius=60.0;                 // Top mirror radius
+geant RICHDB::bottom_radius=66.82;             // Bottom mirror radius
+geant RICHDB::rich_height=45.8;                // Mirror height (for historical reasons it is quoted rich height)
+geant RICHDB::hole_radius[2]={63.8/2.,64.3/2}; // half ECAL hole side length (it is not symmetric)
+geant RICHDB::inner_mirror_height=50;          // UNUSED
+geant RICHDB::rad_clarity=0.0055;              // Radiator clarity: updated 10/28/04
+geant RICHDB::scatprob=.19;                    // Probability of surface scattering accroding to C. Delgado model
+geant RICHDB::scatang=14e-3;                   // Scattered angle (rad) according to C. Delgado model 
+geant RICHDB::eff_rad_clarity=0.0055;          // clarity used in charge recosntruction
 
-geant RICHDB::rad_radius=60.0;         // Radiator radius
-geant RICHDB::rad_agl_height=2.5;      // Radiator agl thickness
-geant RICHDB::rad_height=3;            // Radiator support structure height
-geant RICHDB::naf_height=0.5;
-//geant RICHDB::rad_length=11.3+0.1;        // Radiator tile side length
-geant RICHDB::rad_length=11.5+RICaethk;        // Radiator tile side length
-geant RICHDB::lg_height=3.0;           // Light guide height withou the fixing foil
-geant RICHDB::lg_length=3.4;        // Side length of light guide top (Called lg_length in the standalone version)  CHANGED TO CURRENT VALUE!!!!
-geant RICHDB::lg_bottom_length=1.77;
-geant RICHDB::inner_pixel=0.38;
-geant RICHDB::foil_height=0.1;
-geant RICHDB::foil_index=1.49;
-
-
-//geant RICHDB::rad_supthk=0.1;  // Unused. Instead using foil_height
+geant RICHDB::rad_radius=60.0;                 // Radiator radius
+geant RICHDB::rad_agl_height=2.5;              // Radiator agl thickness
+geant RICHDB::rad_height=3;                    // Radiator support structure height
+geant RICHDB::naf_height=0.5;                  // NaF radiator thickness
+geant RICHDB::rad_length=11.5;                 // AGL Radiator tile side length
+geant RICHDB::naf_length=8.52;                 // NAF Radiator tile side length
+geant RICHDB::lg_height=3.0;                   // Light guide height withou the fixing foil
+geant RICHDB::lg_length=3.4;                   // Side length of light guide top (Called lg_length in the standalone version)
+geant RICHDB::lg_bottom_length=1.77;           // Side length on the bottom
+geant RICHDB::inner_pixel=0.38;                // Inner pixel size
+geant RICHDB::foil_height=0.1;                 // Foil thickness
+geant RICHDB::foil_index=1.49;                 // Foil refractive index
 
 
 integer RICHDB::total=0;
 
-geant RICHDB::ped=0.;           // Values from A. Contin talk
-geant RICHDB::sigma_ped=0.5335; // January 11 1999
-geant RICHDB::peak=23.04;
-geant RICHDB::sigma_peak=12.10;
-geant RICHDB::c_ped=2.;           // N od ADC counts for detection threshold
-//geant RICHDB::prob_noisy=1-FREQ(RICHDB::c_ped/RICHDB::sigma_ped);
+geant RICHDB::ped=0.;                         // Default pedestal value (ADC counts)
+geant RICHDB::sigma_ped=0.5335;               // Default pedestal width
+geant RICHDB::peak=23.04;                     // Default gain
+geant RICHDB::sigma_peak=12.10;               // Witdh of the single p.e.
+geant RICHDB::c_ped=2.;                       // N od ADC counts for detection threshold
 
 // Measure in the prototype
 geant RICHDB::prob_noisy=8.e-5;
 geant RICHDB::prob_dark=4.e-5;   
 
-
-
-
 // Some counters
-
 integer RICHDB::nphgen=0;
 integer RICHDB::nphrad=0;
 integer RICHDB::nphbas=0;
@@ -195,7 +168,6 @@ integer RICHDB::numrayl=0;
 
 
 // Book some histograms
-
 void RICHDB::bookhist(){
 #ifdef __AMSDEBUG__
   dump();
@@ -268,11 +240,9 @@ geant RICHDB::total_height()
 
   return rad_height+foil_height+RICradmirgap+rich_height+
     RIClgdmirgap+RICpmtsupportheight;
-    //    lg_height+RICpmtlength+RICeleclength
-    //                  +RICpmtfoil;
 }
 
-geant RICHDB::pmtb_height() // NEW!
+geant RICHDB::pmtb_height()
 {
 
   return RICpmtlength+RICeleclength+lg_height+RICpmtfoil;
@@ -321,16 +291,13 @@ geant RICHDB::shield_pos(){
 geant RICHDB::lg_mirror_angle(integer i)
 {
 
-  if(i==1) // NEW!
+  if(i==1)
     return atan2(geant(lg_length/2.-RICepsln/2-
        (lg_bottom_length/2.+RIClgthk_bot/2.)),
 		 lg_height)*180./3.14159265358979323846;
 
-  //    return atan2(geant(lg_length/2.-
-  //       (lg_bottom_length/2.+RIClgthk_bot/2.)),
-  //		 lg_height)*180./3.14159265358979323846;
 
-  if(i==2) // NEW!
+  if(i==2)
     return atan2(geant(lg_length/4.-
         (RIClgthk_bot+inner_pixel)),
 		 lg_height)*180./3.14159265358979323846;
@@ -354,43 +321,19 @@ geant RICHDB::lg_mirror_pos(integer i)
   return 0;
 }
 
-
+#ifndef __USERICHPMTMANAGER__
 geant RICHDB::x(integer id){AMSRICHIdGeom channel(id);return channel.x();};
 geant RICHDB::y(integer id){AMSRICHIdGeom channel(id);return channel.y();};
-
-// Old and unused version
-//geant RICHDB::x(integer channel)
-//{
-//  integer pmt=channel/RICnwindows;
-//  integer window=channel%RICnwindows;
-//
-//  //  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
-//  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
-//
-//  geant x=(2*(window%integer(sqrt(RICnwindows)))-3)*RICHDB::rad_length/8.+pmt_p[pmt][0];
-//
-//  return x;
-//}
-  
-
-//geant RICHDB::y(integer channel)
-//{
-//  integer pmt=channel/RICnwindows;
-//  integer window=channel%RICnwindows;
-//
-//  //  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
-//  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
-//
-//  geant y=(2*(window/integer(sqrt(RICnwindows)))-3)*RICHDB::rad_length/8.+pmt_p[pmt][1];
-//
-//  return y;
-//}
-
-
-
+#else
+geant RICHDB::x(integer id){return RichPMTsManager::GetChannelPos(id,0);};
+geant RICHDB::y(integer id){return RichPMTsManager::GetChannelPos(id,1);};
+#endif
 
 integer RICHDB::detcer(geant photen)
 {
+#ifdef __USERICHPMTMANAGER__
+  return RichPMTsManager::detcer(photen);
+#endif
    integer upper=-1,i;
 
    for(i=1;i<RICHDB::entries;i++) 
@@ -413,22 +356,6 @@ integer RICHDB::detcer(geant photen)
 }
    
 
-// New function to apply q.eff a priori in photons produced in RICH
-
-//extern "C" integer prod_cer_(geant *energy){
-//  integer lvl=GCVOLU.nlevel-1;
-//
-//  if(
-//    (GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
-//     GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' ') ||
-//    (GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
-//     GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O')){
-//    if(RICHDB::detcer(*energy)) return 0;
-//  }
-//  return 1;
-//}
-
-
 geant RICHDB::max_step(){
   AMSmceventg dummy(GCKINE.ikine,0.,AMSPoint(),AMSDir());
   number charge=dummy.getcharge();
@@ -443,9 +370,6 @@ geant RICHDB::max_step(){
         197.327*6.28*(1/RICHDB::wave_length[RICmaxentries-1]
 	-1/RICHDB::wave_length[0])*charge*charge;
   geant max=RICmaxphotons/dndl;
-//#ifdef __AMSDEBUG__
-  //  cout << "Max step "<<max<<" cm "<<charge<<endl;
-//#endif
   return max;
 }
 
@@ -514,220 +438,6 @@ geant RICHDB::mean_height(){
 }
 
 
-
-//#define DEVELOPMENT_STAGE
-//#ifdef DEVELOPMENT_STAGE
-
-
-
-#include "trrec.h"
-#include "richrec.h"
-#include "richradid.h"
-geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
-			    geant &length,geant beta){
-
-  number theta,phi,sleng;  // Track parameter
-  integer i;
-  const integer NPHI=400;
-  const geant twopi=3.14159265359*2;
-
-  direct=0;
-  reflected=0;
-  length=0;
-
-  // Obtain the track parameters
-
-  RichRadiatorTileManager crossed_tile(ptrack);
-  AMSDir u;
-  AMSPoint r;  
-
-  if(crossed_tile.getkind()==empty_kind) return 0.;
-
-  geant rad_index=crossed_tile.getindex();
-  geant rad_height=crossed_tile.getheight();
-  r=crossed_tile.getemissionpoint();
-  u=crossed_tile.getemissiondir();
-  if(fabs(u[2])==0) return 0.;
-
-  length=rad_height/fabs(u[2]);
-
-
-  
-  r[2]=-(r[2]-RICHDB::RICradpos());
-  u[2]*=-1;
-
-
-#ifdef __AMSDEBUG__
-    cout <<"         VECTOR  "<<u[0]<<" "<<u[1]<<" "<<u[2]<<endl;
-  //  cout <<"Theta and phi "<<theta<<" "<<phi<<endl;
-  //  cout <<"u: "<<u[0]<<" "<<u[1]<<" "<<u[2]<<endl;
-#endif
-
-
-  // Here comes the Fast-Tracing routine
-
-
-  //Init
-  geant exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap;
-  geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
-  geant ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
-  geant bx=RICHDB::hole_radius[0];
-  geant by=RICHDB::hole_radius[1];
-  geant mir_eff=RICmireff;
-  
-
-  for(phi=0;phi<twopi;phi+=twopi/NPHI){
-    geant cc,sc,cp,sp,cn,sb,f,sn;
-    geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],n[3],r3[3];
-
-
-    cc=1./beta/rad_index; 
-    sc=sqrt(1-cc*cc);
-    cp=cos(phi);
-    sp=sin(phi);
-    f=sqrt(u[0]*u[0]+u[1]*u[1]);
-
-    for(i=0;i<3;i++) r0[i]=r[i];
-
-    if(f>0){
-      u0[0]=sc/f*(sp*u[0]*u[2]+cp*u[1])+cc*u[0];
-      u0[1]=sc/f*(sp*u[1]*u[2]-cp*u[0])+cc*u[1];
-      u0[2]=-f*sc*sp+u[2]*cc;}
-    else{
-      u0[0]=sc*cp;
-      u0[1]=sc*sp;
-      u0[2]=cc;}
-
-
-    // Check if it is whithin a radiator tile
-
-    integer origin_tile=RichRadiatorTileManager::get_tile_number(r0[0],r0[1]);
-    if(RichRadiatorTileManager::get_tile_kind(origin_tile)==empty_kind) continue;
-    if(fabs(RichRadiatorTileManager::get_tile_x(origin_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
-
-    
-    geant l=(RICHDB::rad_height-r0[2])/u0[2];  
-
-
-    for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
-
-    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-    
-    // Check if there is tile crossing 
-    integer final_tile=RichRadiatorTileManager::get_tile_number(r1[0],r1[1]);
-    if(RichRadiatorTileManager::get_tile_kind(final_tile)==empty_kind) continue;
-    if(fabs(RichRadiatorTileManager::get_tile_x(final_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
-
-    if(origin_tile!=final_tile) continue;
-    
-    n[0]=0.;n[1]=0.;n[2]=1.;
-
-    cn=n[2]*u0[2];
-    sn=sqrt(1-cn*cn);
-#ifdef __AMSDEBUG__
-    cout <<" STEP 1"<<endl;
-#endif
-    // Radiator->foil refraction
-
-    if(rad_index*sn>RICHDB::foil_index) continue; // Total reflection
-
-    f=sqrt(1-(rad_index/RICHDB::foil_index*sn)*
-	   (rad_index/RICHDB::foil_index*sn))-
-      rad_index/RICHDB::foil_index*cn;
-#ifdef __AMSDEBUG__
-    cout <<"STEP 2"<<endl;
-#endif
-
-    for(i=0;i<3;i++) u1[i]=rad_index/RICHDB::foil_index*u0[i]+f*n[i];
-
-    // Propagate to foil end
-    l=RICHDB::foil_height/u1[2];
-    for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
-
-    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-#ifdef __AMSDEBUG__
-    cout <<"STEP 3"<<endl;
-#endif
-    // Exiting foil
-    cn=u1[2]*n[2];
-    sn=sqrt(1-cn*cn);
-
-    if(RICHDB::foil_index*sn>1) continue;
-
-    f=sqrt(1-(RICHDB::foil_index*sn)*(RICHDB::foil_index*sn))
-      -RICHDB::foil_index*cn;
-    for(i=0;i<3;i++) u1[i]=RICHDB::foil_index*u1[i]+f*n[i];
-
-
-    // Propagation to top of mirror
-    l=RICradmirgap/u1[2];
-    for(i=0;i<3;i++) r1[i]+=l*u1[i];
-    if(sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-
-
-    // Propagation to base
-
-    l=RICHDB::rich_height/u1[2];
-    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
-
-    geant rbase=sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
-    
-    if(rbase<RICHDB::bottom_radius){
-      l=RIClgdmirgap/u1[2];
-      for(i=0;i<3;i++) r2[i]+=l*u1[i];
-      geant beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
-      //      direct+=1./NPHI;
-      direct+=beff/NPHI;
-      continue;
-    }
-
-        
-    geant a=1-(kc*kc+1)*u1[2]*u1[2];
-    geant b=2*(r1[0]*u1[0]+r1[1]*u1[1]-kc*kc*(r1[2]-ac)*u1[2]);
-    geant c=r1[0]*r1[0]+r1[1]*r1[1]-(kc*(r1[2]-ac))*(kc*(r1[2]-ac));
-    geant d=b*b-4*a*c;
-    if(d<0) continue;
-    l=(-b+sqrt(d))/2./a;
-    if(l<0) continue;
-
-    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
-
-    f=1./sqrt(1+kc*kc);
-    n[0]=-f*r2[0]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
-    n[1]=-f*r2[1]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
-    n[2]=f*kc;
-
-    f=2*(u1[0]*n[0]+u1[1]*n[1]+u1[2]*n[2]);
-    for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
-
-    l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
-    for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
-    rbase=sqrt(r3[0]*r3[0]+r3[1]*r3[1]);
-
-    
-    if(rbase>RICHDB::bottom_radius) continue; 
-
-    geant beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
-    reflected+=beff/NPHI;
-
-
-  }
-
-#ifdef __AMSDEBUG__  
-  //  cout <<"Ref dir "<<reflected<< " "<<direct<<endl;
-#endif
-  return reflected+direct;
-
-}
-//#endif
-
-
-
-
-
-
-
-
 void RICHDB::dump(){
   // DUMP constant values
   cout <<"Dimensions:"<<endl<<
@@ -771,22 +481,20 @@ void RICHDB::dump(){
 
  
   // Other stuff
+  /*
   cout <<
     " LG top at "<<RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(1,2)
     +RICHDB::lg_height/2.+RICpmtfoil-lg_pos()<<endl<<
     " Radiator bottom at "<<RICHDB::total_height()/2-RICHDB::rad_pos()-
     RICHDB::rad_height/2<<endl;
-
+  */
 
 }
 
 
 
 
-
-
-
-
+// Light guide efficiency tables
 float RICHDB::lg_eff_tbl[RIC_NWND][RIC_NPHI][RIC_NTH]=
 {0.924,0.912,0.893,0.877,0.846,0.822,0.781,0.720,0.669,0.521,0.331,0.126,0.028,0.011,0.013,0.000,0.000,0.000,0.000,0.000
 ,0.924,0.906,0.897,0.864,0.833,0.800,0.768,0.697,0.560,0.379,0.199,0.065,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000
@@ -871,3 +579,32 @@ float RICHDB::lg_dist_tbl[RIC_NWND][RIC_NPHI][RIC_NTH]=
 
 
 
+integer RICHDB::get_wavelength_bin(geant wl){
+  // Use binary search to find the bin
+  // It assumes the wave length array is sorted in descending order
+
+  if(wl>=wave_length[0]) return 0;
+  if(wl<wave_length[RICmaxentries-1]) return RICmaxentries-1;
+
+  int bin_max=RICmaxentries-1;
+  int bin_min=0;
+
+  for(;;){
+    int bin_med=(bin_max+bin_min)/2;
+    if(wl<wave_length[bin_med]) bin_min=bin_med; else bin_max=bin_med;
+    if(bin_max-bin_min<=1) break;
+  }
+  
+  return bin_min;
+
+}
+
+//
+// Test if the media is a radiator within fortran. To be used in gtckov
+//
+
+extern "C" integer testradiator_(integer *numed){
+  if(*numed==RICHDB::agl_media) return 1;
+  if(*numed==RICHDB::naf_media) return 2;
+  return 0;
+}

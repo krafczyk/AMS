@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.37 2007/05/15 09:48:28 mdelgado Exp $
+//  $Id: richdbc.h,v 1.38 2007/10/02 16:06:50 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -18,25 +18,6 @@ namespace richconst{
 const integer RICnrot=30001;   // Rot. matrix no.
 
 // Geometry parameters
-/*
-const geant   RICmithk=0.2;         // Mirror and 2*aerogel support thickness
-const geant   RICaethk=0.1;         // Light guides thickness
-const geant   RIClgthk=0.05;        // NEW!
-const geant   RICotherthk=0.1;      // PMT window thickness
-const geant   RICpmtshield=0.05;    // shield thickness
-const geant   RICcatolength=1.75;   // cathode window length
-const geant   RICpmtlength=2.5;     // phototube length
-const geant   RICeleclength=2.5;    // electronics
-const geant   RICpmtsupport=0.4;    // suppot structure thickness
-const geant   RICshiheight=8.0;     // NEW! Magnetic shielding height
-
-const geant   RICradpos=-75.26;// Top of the radiator position
-const geant   sq2=1.4142135623;// useful constant:sqrt(2)
-
-const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
-*/
-
-
 //const geant      RICradpos=-71.87;     // Top of the radiator position
 const geant      RICradposs=-73.5;   //  changed by VC as not allow change the ricxh geo on the fly 
 const geant      RICaethk=0.1;         // Radiator support thickness
@@ -44,20 +25,14 @@ const geant      RICaethk=0.1;         // Radiator support thickness
 const geant      RIClgthk_top=0.02;    // LG    top gap
 const geant      RIClgthk_bot=0.07;    // LG bottom gap
 const geant      RICmithk=0.2;         // Mirror thickness
-//const geant      RICradmirgap=0.;      // Mirror-Radiator Distance  (if !=0 Chk gustep)
-//const geant      RIClgdmirgap=0.;      // LG-Mirror Distance        (if !=0 Chk gustep)
-
- const geant      RICradmirgap=0.1;
- const geant      RIClgdmirgap=0.4;
-
-
+const geant      RICradmirgap=0.1;
+const geant      RIClgdmirgap=0.4;
 const geant      RICotherthk=0.08;     // PMT window thickness
 const geant      RICcatolength=1.81;   // cathode window length 
 const geant      RICcatogap=0.03;      // Gap btwn PMT pixels 
 const geant      RICpmtlength=2.0;     // phototube length including PMT window 
 const geant      RICeleclength=2.75;   // electronics length below PMT           
 const geant      RICpmtsupport=0.6;    // support structure thickness
-//const geant      RICshiheight=7.5;     // PMT shield height from the bottom 
 const geant      RICshiheight=6.5;     // This for the new LG with 3.4
 const geant      RICpmtshield=0.1;     // PMT shield thickness 
 const geant      RICepsln=0.002;       // Epsilon
@@ -67,31 +42,28 @@ const geant      PMT_electronics=3.0;    // PMT side size
 const geant      cato_inner_pixel=0.42;  // Inner pixel side size in the photocathode
 const geant      cathode_length=RICcatolength+RICcatogap;
 const geant      pitch=3.7;
+const integer    RICradiator_box_sides=12;
+const geant      RICradiator_box_radius=118.5/2;
+const geant      RICradiator_box_thickness=5;
+const geant      RICmireff=0.85;     // Mirror reflectivity
+// const geant      RICmireff=0.00;     // Mirror reflectivity
 
- const integer    RICradiator_box_sides=12;
- const geant      RICradiator_box_radius=118.5/2;
- const geant      RICradiator_box_thickness=5;
-
- const geant      RICmireff=0.85;     // Mirror reflectivity
- // const geant      RICmireff=0.00;     // Mirror reflectivity
 // Entries in the tables of materials
-
 const integer RICmaxentries=44;
 const integer RICmaxrows=100;
 
 // Threshold, in % of the total beta range, to avoid  the reconstruction
 // of secondaries
-
 const geant RICthreshold=0.05; //16% is the maximum, 5% is good enough
 
 const integer RICentries=44;   // no. of entries in wave_length,eff...   
-const integer RICmaxpmts=2000; // max no. of pmts
+const integer RICmaxpmts=680; // max no. of pmts
 const integer RICnwindows=16;  // Number of windows for pmt
 const integer RIChistos=30000; // Starting point for RICH histos 
 const integer RICmaxphotons=500; //Max mean number of photons generated
+const integer RICmaxtiles=1000;
 
 // Particle types
-
 const integer Cerenkov_photon=50; //Geant3 case
 const integer Noise=-666;
 
@@ -110,10 +82,8 @@ const integer Status_primary_radb=-9;
 // Dword for the hits status 
 const uinteger gain_mode_bit=29;
 const uinteger crossed_pmt_bit=30;
-
 const uinteger gain_mode=uinteger(1)<<gain_mode_bit;
 const uinteger crossed_pmt=uinteger(1)<<crossed_pmt_bit;
- 
 const geant npe_crossed_signature=6.;  // Minimum number of p.e. to consider  
                                        // a pixel crossed by a charged particle
 
@@ -123,22 +93,18 @@ const uinteger dirty_ring=uinteger(1)<<dirty_ring_bit;
 const uinteger naf_ring_bit=1;
 const uinteger naf_ring=uinteger(1)<<naf_ring_bit; 
 
-
-
 // Radiator kinds
 const integer radiator_kinds=2; 
 const integer empty_kind=0; // Used by default
 const integer agl_kind=1;
 const integer naf_kind=2;
 
-
-
 // Lg eff tables size
 const integer RIC_NTH=20;  // binning in theta
 const integer RIC_NPHI=12; // binning in phi
 const integer RIC_NWND=3;  // Number of light guides
 
-
+const integer RIC_prob_bins=1000;
 }
 
 using namespace richconst;
@@ -172,7 +138,7 @@ public: // To be migrated in the future
   // Central NaF radiator features
   static geant naf_index;
   static geant naf_height;
-
+  static geant naf_length;
 
 
   // Foil features
@@ -203,6 +169,11 @@ public: // To be migrated in the future
   static geant naf_abs_length[RICmaxentries];
 
 
+  //---------- Tracking media numbers
+  static integer agl_media;
+  static integer naf_media;
+
+
   //---------- PMT PARAMETERS
   static geant pmtw_index; // Photocathode window mean refractive index
   static geant eff[RICmaxentries];
@@ -219,11 +190,6 @@ public: // To be migrated in the future
 
 
   //--------- PMT array parameters
-/* Old version
-  static integer n_rows[2];
-  static integer n_pmts[15][2];
-  static integer offset[15][2];
-*/
   static integer total; // Total number of pmts in the actual setup
   static geant pmt_p[RICmaxpmts][2];			     
  
@@ -257,8 +223,9 @@ public:
   static integer _Nph;
   static geant & RICradpos(){return _RICradpos;}
   static integer & Nph(){return _Nph;}  
-  static geant ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
-			     geant &length,geant beta);
+  static integer get_wavelength_bin(geant wavelength);
+
+
   static void dump();
   
 };

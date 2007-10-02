@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.74 2007/06/20 10:11:30 mdelgado Exp $
+//  $Id: richrec.C,v 1.75 2007/10/02 16:06:46 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -8,6 +8,11 @@
 #ifdef __WRITEROOT__
 #include "root.h" 
 #endif
+
+
+//
+// TODO: Check that the reconstructions used the right refractive index
+//       Currently it simply calls get_tile_index of richradid
 
 void AMSRichRawEvent::mc_build(){
   // Add noise...
@@ -38,8 +43,6 @@ void AMSRichRawEvent::mc_build(){
   //}
 
 
-
-
   // Construct event: channel signals
 
    int nhits=0;
@@ -59,6 +62,7 @@ void AMSRichRawEvent::mc_build(){
 
       if(hits->getid()==Cerenkov_photon) nhits++;
       if(hits->getid()==Noise) nnoisy++;
+
       //if(hits->getid()==Dark_current) ndark++;   // NOT IMPLEMENTED
       
       
@@ -66,26 +70,55 @@ void AMSRichRawEvent::mc_build(){
 	// Simulate the gainX5 mode
 	geant pedestal=nnoisy>0?AMSRichMCHit::noise(channel,1):AMSRichMCHit::adc_empty(channel,1);
 	geant signal=AMSRichMCHit::adc_hit(nhits,channel,1);
+#ifndef __USERICHPMTMANAGER__
 	AMSRICHIdSoft calibration(channel);
+#else
+	RichPMTChannel calibration(channel);
+	//	cout<<"*****SIMULATING SIGNAL "<<signal<<" WHERE nhits="<<nhits<<" WHERE PED="<<pedestal<<" gain threshold "<<calibration.gain_threshold<<" Channel "<<channel<<endl;
+#endif
 	geant threshold;
 	integer mode=1;
 
+#ifndef __USERICHPMTMANAGER__
 	if(integer(signal+pedestal)>calibration.getboundary()){
+#else
+        if(integer(signal+pedestal)>calibration.gain_threshold){
+	  //	  cout<<"*** CHANGING to gainx1 mode "<<endl;
+#endif
 	  // Change to gainX1 mode
 	  mode=0;
 	  pedestal=nnoisy>0?AMSRichMCHit::noise(channel,0):AMSRichMCHit::adc_empty(channel,0);
+#ifndef __USERICHPMTMANAGER__
 	  signal*=calibration.getgain(0)/calibration.getgain(1);
+#else
+	  signal*=calibration.gain[0]/calibration.gain[1];  // FIXME!!!!
+#endif
 	}
 
+#ifndef __USERICHPMTMANAGER__
 	threshold=calibration.getthreshold(mode)*calibration.getsped(mode)+calibration.getped(mode);
+#else
+	threshold=calibration.pedestal_threshold[mode]*calibration.pedestal_sigma[mode]+calibration.pedestal[mode];
+	//	cout<<"****THRE COMP "<<mode<<" "<<calibration.pedestal_threshold[mode]<<" "<<calibration.pedestal_sigma[mode]<<" "<<calibration.pedestal[mode]<<endl;
+#endif
+
 
 	nnoisy=0;
 	nhits=0;
 	//	ndark=0;
 
+#ifndef __USERICHPMTMANAGER__
+
 	if(integer(signal+pedestal)>threshold && calibration.getstatus()){
 	  AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
 				       new AMSRichRawEvent(channel,integer(signal+pedestal-calibration.getped(mode)),(mode==0?0:gain_mode)));
+#else
+	  //	cout<<"** OVER THRESHOLD "<<integer(signal+pedestal)<<" "<<threshold<<" "<<calibration.status<<" "<<calibration.gain[0]<<" "<<calibration.gain[1]<<endl;
+	if(integer(signal+pedestal)>threshold && calibration.status){
+	  AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
+				       new AMSRichRawEvent(channel,integer(signal+pedestal-calibration.pedestal[mode]),(mode==0?0:gain_mode)));
+#endif
+
 	  hitn++;
 	  
 	//        if(nnoisy>0) pedestal=AMSRichMCHit::noise(channel); 
@@ -110,7 +143,7 @@ void AMSRichRawEvent::mc_build(){
 
 
 
-
+/*
 void AMSRichRawEvent::build(){
   // Flag the PMTs which are likely to be crossed by a charged particle using the
   // bit number 'bit_crosse_pmt'
@@ -175,18 +208,170 @@ int AMSRichRawEvent::Npart(){
   for(int i=0;i<RICmaxpmts;i++) if(PMTFlagged[i]) npart++;
   return npart;
 }
+*/
 
+int AMSRichRawEvent::_npart=0;
+int AMSRichRawEvent::Npart(){return _npart;}
+
+void AMSRichRawEvent::build(){
+  double signal[RICmaxpmts];
+  int hid[RICmaxpmts];
+  int test[RICmaxpmts];
+  double best_mean=0;
+  double best_sigma=1e200;
+
+  //
+  // Unflag hits and collect the PMT signal
+  //
+  
+  _npart=0;
+  for(int i=0;i<RICmaxpmts;signal[i++]=0);
+
+  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
+	getheadC("AMSRichRawEvent",0);current;current=current->next()){
+    current->unsetbit(crossed_pmt_bit);
+    int pmt=current->getchannel()/16;
+    if(pmt>=RICHDB::total){
+      cerr<< "AMSRichRawEvent::build-ChannelNoError "<<pmt<<endl;
+      return;
+    }
+    signal[pmt]+=current->getnpe();
+  }
+
+  //
+  // Count nb. of PMTS and fill arrays
+  //
+  int npmt=0;
+  for(int i=0;i<RICmaxpmts;i++){
+    if(signal[i]>0) hid[npmt++]=i;
+  }
+  
+  const int minimum_pmts=4;
+  const double flag_threshold=10;
+  int bootstraps=100;
+
+  if(npmt>=minimum_pmts){
+    int pmts=int(npmt*(1-1.0/minimum_pmts));
+    
+    for(int i=0;i<bootstraps;i++){
+      double mean;
+      double mean2;
+      Select(pmts,npmt,test);
+      mean=0;
+      mean2=0;
+      for(int j=0;j<npmt;j++){
+        if(!test[j]) continue;
+        mean+=signal[hid[j]];
+        mean2+=signal[hid[j]]*signal[hid[j]];
+      }
+      
+      mean/=pmts;
+      mean2/=pmts;
+      mean2-=mean*mean;
+      mean2=sqrt(mean2);
+      
+      if(mean2<best_sigma){
+        best_mean=mean;
+        best_sigma=mean2;
+
+	//	cout<<"CURRENT BEST SIGMA IS "<<best_sigma<<" FOR "<<endl;
+	//	for(int j=0;j<npmt;j++){
+	//	  if(!test[j]) continue;
+	//	  cout<<"    pmt "<<hid[j]<<" "<<signal[hid[j]]<<endl;
+	//	}
+      }
+    }
+
+    //
+    // Flag hits and pmts and count number of good/bad PMTs
+    //
+    
+
+    
+    for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
+	  getheadC("AMSRichRawEvent",0);current;current=current->next()){
+      current->unsetbit(crossed_pmt_bit);
+      int pmt=current->getchannel()/16;
+      
+      if(signal[pmt]-best_mean>flag_threshold*best_sigma) current->setbit(crossed_pmt_bit);
+    }
+    
+    _npart=0;
+    for(int i=0;i<npmt;i++) if(signal[hid[i]]-best_mean>flag_threshold*best_sigma) _npart++;
+    
+  }
+
+//   if(_npart>0){
+//     cout<<"*************************************"<<endl;
+//     cout<<" MEAN PER PMT "<<best_mean<<endl;
+//     cout<<" SIGMA        "<<best_sigma<<endl;
+//     cout<<" DUMPING FLAGGED PMTS "<<endl;
+//     for(int i=0;i<npmt;i++) if(signal[hid[i]]-best_mean>flag_threshold*best_sigma) cout<<" PMT "<<hid[i]<<" SIGNAL "<<signal[hid[i]]<<endl;;
+//     cout<<"*************************************"<<endl;
+
+//     if(best_sigma<0.5){
+//       cout<<"--------- SIGMA TOO LOW DUMPING HITS -------"<<endl;
+//       for(int i=0;i<npmt;i++){
+// 	int dumped=0;
+// 	for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
+// 	      getheadC("AMSRichRawEvent",0);current;current=current->next()){
+// 	  int pmt=current->getchannel()/16;
+// 	  if(pmt!=hid[i]) continue;
+// 	  cout<<" PMT "<<hid[i]<<" HIT "<<current->getnpe()<<endl;
+// 	  dumped++;
+// 	}
+// 	if(dumped) cout<<"=============="<<endl;
+//       }
+//     }
+
+//   }
+
+}
+
+
+double AMSRichRawEvent::RichRandom(){
+  static unsigned long int x=1234567;
+  static unsigned long int p1=16807;
+  static unsigned long int N=2147483647;
+  
+  x=(p1*x)%N;
+  return ((double)x)/((double)(N+1));
+}
+
+
+void AMSRichRawEvent::Select(int howmany,int size,int lista[]){
+  int i,j;
+  int true_index;
+
+  for(i=0;i<size;i++) lista[i]=0;
+
+  for(i=0;i<howmany;i++){
+    int selected;
+    selected=int((size-i)*RichRandom());
+
+    j=0;
+    for(true_index=0;true_index<size;true_index++){
+      if(!lista[true_index])j++;
+      if(j>selected) break;
+    }
+    lista[true_index]=1;
+  }
+}
 
 
 void AMSRichRawEvent::_writeEl(){
   
+#ifndef __USERICHPMTMANAGER__
   AMSRICHIdGeom channel(_channel);
-  AMSRICHIdSoft calibration(channel);
+#else
+  RichPMTChannel channel(_channel);
+#endif
 
 #ifdef __WRITEROOT__
     float x = channel.x();
     float y = channel.y();
     float z = channel.z();
+
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,x,y,z);
 #endif
   RICEventNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richevent();
@@ -216,8 +401,11 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   // Reconstruct the beta values for this hit. Assumes direction as unitary
   static const geant z=RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height-
                        RICradmirgap-RIClgdmirgap-RICHDB::rich_height;
+#ifndef __USERICHPMTMANAGER__
   AMSRICHIdGeom channel(_channel);
-
+#else
+  RichPMTChannel channel(_channel);
+#endif
   geant x=channel.x();
   geant y=channel.y();
 
@@ -344,7 +532,11 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   double c=sqrt(c2);
   double alp=1/sqrt(1+zk);
   
+#ifndef __USERICHPMTMANAGER__
   AMSRICHIdGeom channel(_channel);
+#else
+  RichPMTChannel channel(_channel);
+#endif
   double xf=channel.x();
   double yf=channel.y();
 
@@ -497,11 +689,11 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   //============================================================
   
   RichRadiatorTileManager crossed_tile(track);
-
-
+  
+  
   if(crossed_tile.getkind()==empty_kind) return 0;
-
-
+  
+  
   _index=crossed_tile.getindex();
   _height=crossed_tile.getheight();
   _entrance_p=crossed_tile.getentrancepoint();
@@ -866,7 +1058,7 @@ void AMSRichRing::CalcBetaError(){
 
 geant AMSRichRing::_Time=0;
 
-void AMSRichRing::ReconRingNpexp(geant window_size){ // Number of sigmas used 
+void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigmas used 
 const integer freq=10;
 static integer trig=0;
 trig=(trig+1)%freq;
@@ -1072,8 +1264,9 @@ trig=(trig+1)%freq;
     geant betas[3];
     for(int n=0;n<3;n++) betas[n]=hit->getbeta(n);
     geant value=fabs(_beta-betas[closest(_beta,betas)])/sigma;
-    if(value<window_size)
-      _collected_npe+=hit->getnpe();
+    if(value<window_size){
+      _collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+    }
   }
 
 }
@@ -1224,7 +1417,11 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     *xb=r2[0];
     *yb=r2[1];
 
+#ifndef __USERICHPMTMANAGER__
     *beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
+#else
+    *beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
+#endif
     *tflag=*beff?3:5;
     return (*beff)*lgeff(r2,u1,lguide); 
   }
@@ -1278,8 +1475,11 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     //    //      return 0;
     //    //    }
     
-
+#ifndef __USERICHPMTMANAGER__
     *beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
+#else
+    *beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
+#endif
     *tflag=*beff?4:5;
     return *beff*lgeff(r3,u2,lguide);
     
@@ -1488,7 +1688,11 @@ geant AMSRichRing::lgeff(AMSPoint r,
     AMSRICHIdGeom basura(4805);
     for(geant y=basura.y()-3.4/2-2.;y<=basura.y()+3.4/2+2;y+=0.1){
       for(geant x=basura.x()-3.4/2-2;x<=basura.x()+3.4/2+2;x+=0.1){
+#ifndef	__USERICHPMTMANAGER__
 	integer wnd=AMSRICHIdGeom::get_channel_from_top(x,y);
+#else
+	integer wnd=RichPMTsManager::FindWindow(x,y);
+#endif
 	char c=32;
 
 	if(wnd>=0) c='A'+wnd; else c=' ';
@@ -1530,9 +1734,11 @@ geant AMSRichRing::lgeff(AMSPoint r,
 
   }
 
+#ifndef __USERICHPMTMANAGER__
   wnd=AMSRICHIdGeom::get_channel_from_top(r[0],r[1]);
-
-
+#else
+  wnd=RichPMTsManager::FindWindow(r[0],r[1]);
+#endif
   if(wnd==-1){
     *lguide=0;
     return 0;
@@ -1714,16 +1920,22 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
       LIPDAT.hitsadc_c[actual]=hit->getcounts();
       LIPDAT.hitsnpe_c[actual]=hit->getnpe();
-
+#ifndef __USERICHPMTMANAGER__
       AMSRICHIdGeom  hitch(hit->getchannel());
-
+#else
+      RichPMTChannel hitch(hit->getchannel());
+#endif
       LIPDAT.hitscoo_c[actual][0]=hitch.x();
       LIPDAT.hitscoo_c[actual][1]=hitch.y();
       LIPDAT.hitscoo_c[actual][2]=RICHDB::RICradpos()-hitch.z(); // Z : AMS frame -> RICH frame
 
       int hgain=hit->getbit(gain_mode_bit);
 
+#ifndef __USERICHPMTMANAGER__
       LIPDAT.hitshid_c[actual]=10*(16*hitch.getpmt()+hitch.getpixel())+hgain;
+#else
+      LIPDAT.hitshid_c[actual]=10*(16*hitch.pmt_geom_id+hitch.channel_geom_id)+hgain;
+#endif
 
       actual++;
     }
@@ -1784,3 +1996,200 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 #endif
 }
 //ENDofLIP
+
+
+
+#include "trrec.h"
+#include "richrec.h"
+#include "richradid.h"
+
+geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
+			    geant &length,geant beta){
+
+  number theta,phi,sleng;  // Track parameter
+  integer i;
+  const integer NPHI=400;
+  const geant twopi=3.14159265359*2;
+
+  direct=0;
+  reflected=0;
+  length=0;
+
+  // Obtain the track parameters
+
+  RichRadiatorTileManager crossed_tile(ptrack);
+  AMSDir u;
+  AMSPoint r;  
+
+  if(crossed_tile.getkind()==empty_kind) return 0.;
+
+  geant rad_index=crossed_tile.getindex();
+  geant rad_height=crossed_tile.getheight();
+  r=crossed_tile.getemissionpoint();
+  u=crossed_tile.getemissiondir();
+  if(fabs(u[2])==0) return 0.;
+
+  length=rad_height/fabs(u[2]);
+
+
+  
+  r[2]=-(r[2]-RICHDB::RICradpos());
+  u[2]*=-1;
+
+
+  // Here comes the Fast-Tracing routine
+
+  //Init
+  geant exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap;
+  geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
+  geant ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
+  geant bx=RICHDB::hole_radius[0];
+  geant by=RICHDB::hole_radius[1];
+  geant mir_eff=RICmireff;
+  
+
+  for(phi=0;phi<twopi;phi+=twopi/NPHI){
+    geant cc,sc,cp,sp,cn,sb,f,sn;
+    geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],n[3],r3[3];
+
+
+    cc=1./beta/rad_index; 
+    sc=sqrt(1-cc*cc);
+    cp=cos(phi);
+    sp=sin(phi);
+    f=sqrt(u[0]*u[0]+u[1]*u[1]);
+
+    for(i=0;i<3;i++) r0[i]=r[i];
+
+    if(f>0){
+      u0[0]=sc/f*(sp*u[0]*u[2]+cp*u[1])+cc*u[0];
+      u0[1]=sc/f*(sp*u[1]*u[2]-cp*u[0])+cc*u[1];
+      u0[2]=-f*sc*sp+u[2]*cc;}
+    else{
+      u0[0]=sc*cp;
+      u0[1]=sc*sp;
+      u0[2]=cc;}
+
+
+    // Check if it is whithin a radiator tile
+
+    integer origin_tile=RichRadiatorTileManager::get_tile_number(r0[0],r0[1]);
+    if(RichRadiatorTileManager::get_tile_kind(origin_tile)==empty_kind) continue;
+    if(fabs(RichRadiatorTileManager::get_tile_x(origin_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+
+    
+    geant l=(RICHDB::rad_height-r0[2])/u0[2];  
+
+
+    for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
+
+    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
+    
+    // Check if there is tile crossing 
+    integer final_tile=RichRadiatorTileManager::get_tile_number(r1[0],r1[1]);
+    if(RichRadiatorTileManager::get_tile_kind(final_tile)==empty_kind) continue;
+    if(fabs(RichRadiatorTileManager::get_tile_x(final_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+
+    if(origin_tile!=final_tile) continue;
+    
+    n[0]=0.;n[1]=0.;n[2]=1.;
+
+    cn=n[2]*u0[2];
+    sn=sqrt(1-cn*cn);
+
+    // Radiator->foil refraction
+
+    if(rad_index*sn>RICHDB::foil_index) continue; // Total reflection
+
+    f=sqrt(1-(rad_index/RICHDB::foil_index*sn)*
+	   (rad_index/RICHDB::foil_index*sn))-
+      rad_index/RICHDB::foil_index*cn;
+
+    for(i=0;i<3;i++) u1[i]=rad_index/RICHDB::foil_index*u0[i]+f*n[i];
+
+    // Propagate to foil end
+    l=RICHDB::foil_height/u1[2];
+    for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
+
+    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
+
+    // Exiting foil
+    cn=u1[2]*n[2];
+    sn=sqrt(1-cn*cn);
+
+    if(RICHDB::foil_index*sn>1) continue;
+
+    f=sqrt(1-(RICHDB::foil_index*sn)*(RICHDB::foil_index*sn))
+      -RICHDB::foil_index*cn;
+    for(i=0;i<3;i++) u1[i]=RICHDB::foil_index*u1[i]+f*n[i];
+
+
+    // Propagation to top of mirror
+    l=RICradmirgap/u1[2];
+    for(i=0;i<3;i++) r1[i]+=l*u1[i];
+    if(sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
+
+
+    // Propagation to base
+
+    l=RICHDB::rich_height/u1[2];
+    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+
+    geant rbase=sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+    
+    if(rbase<RICHDB::bottom_radius){
+      l=RIClgdmirgap/u1[2];
+      for(i=0;i<3;i++) r2[i]+=l*u1[i];
+
+#ifndef __USERICHPMTMANAGER__
+      geant beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
+#else
+      geant beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
+#endif
+
+      direct+=beff/NPHI;
+      continue;
+    }
+
+        
+    geant a=1-(kc*kc+1)*u1[2]*u1[2];
+    geant b=2*(r1[0]*u1[0]+r1[1]*u1[1]-kc*kc*(r1[2]-ac)*u1[2]);
+    geant c=r1[0]*r1[0]+r1[1]*r1[1]-(kc*(r1[2]-ac))*(kc*(r1[2]-ac));
+    geant d=b*b-4*a*c;
+    if(d<0) continue;
+    l=(-b+sqrt(d))/2./a;
+    if(l<0) continue;
+
+    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+
+    f=1./sqrt(1+kc*kc);
+    n[0]=-f*r2[0]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+    n[1]=-f*r2[1]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+    n[2]=f*kc;
+
+    f=2*(u1[0]*n[0]+u1[1]*n[1]+u1[2]*n[2]);
+    for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
+
+    l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
+    for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
+    rbase=sqrt(r3[0]*r3[0]+r3[1]*r3[1]);
+
+    
+    if(rbase>RICHDB::bottom_radius) continue; 
+
+#ifndef __USERICHPMTMANAGER__
+    geant beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
+#else
+    geant beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
+#endif
+
+    reflected+=beff/NPHI;
+
+
+  }
+
+  return reflected+direct;
+
+}
+
+

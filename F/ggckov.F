@@ -1,8 +1,21 @@
-*  $Id: ggckov.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
+*  $Id: ggckov.F,v 1.3 2007/10/02 16:06:50 mdelgado Exp $
 *
-* $Id: ggckov.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
+* $Id: ggckov.F,v 1.3 2007/10/02 16:06:50 mdelgado Exp $
 *
 * $Log: ggckov.F,v $
+* Revision 1.3  2007/10/02 16:06:50  mdelgado
+* Big cupdate of RICH related code. It includes source cleanup and a lot
+* of improvements in simulation:
+* - Better simulation of PMT response
+* - PMT plane architecture closer to real hardware, thus it simplifies
+*   dealing with RAW files
+* - Slots to add the calibration algorithm
+* - Simulation of radiator non uniformities in the GEANT3 case
+* and several more
+*
+* Revision 1.3  2007/07/24 18:19:13  mdelgado
+* Added tile refractive index inhomogeneity in RICH simulation/reconstruction
+*
 * Revision 1.2  2001/01/22 17:32:24  choutko
 * prepend 1st line
 *
@@ -46,6 +59,15 @@ C.
       REAL RPHOT(3)
       LOGICAL ROTATE
       PARAMETER (RFACT=369.81E9)
+
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      integer testradiator              ! Rich Added: test if NUMED is a RICH radiator
+      real getphotons                   ! Rich Added: get a photon using RICH rad. parameters
+      real getmomentum                  ! Rich Added: sample photon momentum
+      real mean,ppos(3)
+      real mystep
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 *
 *   ------------------------------------------------------------------
 *
@@ -78,17 +100,98 @@ C        GEMIN = Q(JCURIN+JMIN)*RATI1+Q(JCURIN+JMIN+1)*RATIO
 C        GE    = Q(JCURIN+NPCKOV)-GEMIN
 C     ENDIF
 C     DNDL = RFACT*(CHARGE**2)*(DP-GE*THRIND**2)
+
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> RICH ADDED
+      IF(testradiator(NUMED).ne.0) then
+*     Get number of photons to be generated
+         THRIND = GETOT/VECT(7)         
+
+c$$$         if(ignext.ne.0) then
+c$$$            mystep=STEP-PREC
+c$$$            ppos(1)=VECT(1)-PREC*VECT(4)
+c$$$            ppos(2)=VECT(2)-PREC*VECT(5)
+c$$$            ppos(3)=VECT(3)-PREC*VECT(6)
+c$$$         else
+c$$$            mystep=STEP
+c$$$            ppos(1)=VECT(1)
+c$$$            ppos(2)=VECT(2)
+c$$$            ppos(3)=VECT(3)
+c$$$         endif
+c$$$         mean=getphotons(CHARGE,THRIND,ppos,mystep)
+         mean=getphotons(CHARGE,THRIND,VECT,STEP)
+         IF(mean.eq.0) goto 999
+         
+         CALL GPOISS(mean,NGPHOT,1)
+
+         IF(NGPHOT.EQ.0) GOTO 999
+         
+         IF(NGPHOT.GT.MXPHOT) THEN
+            WRITE(CHMAIL,10000) NGPHOT-MXPHOT
+10000       FORMAT(' **** GGCKOV Overflow in the photon stack, ',I10,
+     +           ' photons are lost')
+            CALL GMAIL(0,0)
+            NGPHOT = MXPHOT    
+         ENDIF
+         
+* Prepare rotation
+         CALL GFANG(VECT(4),COSTH,SINTH,COSPH,SINPH,ROTATE)
+         
+         DO J=1,NGPHOT
+            CALL GRNDM(RPHOT, 2)
+            
+*     Distribute the photons in origin
+            IF(IGNEXT.NE.0) THEN
+               DS=(STEP-PREC)*RPHOT(1)+PREC
+            ELSE
+               DS = STEP*RPHOT(1)
+            ENDIF
+            XPHOT(1,J) = VECT(1)-VECT(4)*DS
+            XPHOT(2,J) = VECT(2)-VECT(5)*DS
+            XPHOT(3,J) = VECT(3)-VECT(6)*DS
+            XPHOT(11,J)= TOFG+(STEP-DS)*GETOT/(VECT(7)*CLIGHT)
+
+            ppos(1)=XPHOT(1,J)
+            ppos(2)=XPHOT(2,J)
+            ppos(3)=XPHOT(3,J)
+
+* Sample the momentum; this seems to give problems
+            PPHOT=getmomentum(RINDEX)  ! This has to be checked
+
+* Assign direction
+            COST   = THRIND/RINDEX          ! 1/n/beta
+            SINT2  = (1.-COST)*(1.+COST)
+            SINT = SQRT(SINT2)
+            PHI  = TWOPI*RPHOT(2)
+            SINP = SIN(PHI)
+            COSP = COS(PHI)
+            XPHOT(4,J) = SINT*COSP
+            XPHOT(5,J) = SINT*SINP
+            XPHOT(6,J) = COST
+            XPHOT(7,J) = PPHOT
+            XPHOT(8,J) = COST*COSP
+            XPHOT(9,J) = COST*SINP
+            XPHOT(10,J) = -SINT
+*     
+            IF(ROTATE) THEN
+               CALL GDROT(XPHOT(8,J),COSTH,SINTH,COSPH,SINPH)
+               CALL GDROT(XPHOT(4,J),COSTH,SINTH,COSPH,SINPH)
+            ENDIF
+         ENDDO
+
+         GOTO 999
+      endif
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
       IF(ITRTYP.NE.4.AND.ITRTYP.NE.8) CALL GNCKOV
       CALL GPOISS(DNDL*STEP,NGPHOT,1)
       IF(NGPHOT.EQ.0) THEN
          GO TO 999
-C RICH Changes
-C      ELSEIF(NGPHOT.GT.MXPHOT) THEN
-C        WRITE(CHMAIL,10000) NGPHOT-MXPHOT
-C10000   FORMAT(' **** GGCKOV Overflow in the photon stack, ',I10,
-C     +         ' photons are lost')
-C        CALL GMAIL(0,0)
-C        NGPHOT = MXPHOT    
+      ELSEIF(NGPHOT.GT.MXPHOT) THEN
+        WRITE(CHMAIL,11000) NGPHOT-MXPHOT
+11000   FORMAT(' **** GGCKOV Overflow in the photon stack, ',I10,
+     +         ' photons are lost')
+        CALL GMAIL(0,0)
+        NGPHOT = MXPHOT    
       ENDIF
 *
 * ***  Set up rotation to Particle frame
@@ -98,9 +201,7 @@ C        NGPHOT = MXPHOT
 * ***  Distribute the photons in origin, direction, momentum
       COSMX  = THRIND/Q(JINDEX+NPCKOV)
       SINMX2 = (1.-COSMX)*(1.+COSMX)
-      j=0                                                        ! RICH Added
-      do 40 k=1,ngphot                                           ! RICH Added
-         j=j+1                                                   ! RICH Added
+      DO 40 J=1,NGPHOT
          CALL GRNDM(RPHOT, 1)
          IF(IGNEXT.NE.0) THEN
             DS=(STEP-PREC)*RPHOT(1)+PREC
@@ -154,18 +255,7 @@ C        NGPHOT = MXPHOT
             CALL GDROT(XPHOT(8,J),COSTH,SINTH,COSPH,SINPH)
             CALL GDROT(XPHOT(4,J),COSTH,SINTH,COSPH,SINPH)
          ENDIF
-*
-*  RICH simulation: apply quantum efficiency a priori              
-        if(prod_cer(pphot).eq.0) then
-          j=j-1                                                 ! RICH Added
-        elseif (j.ge.MXPHOT) then                               ! RICH Added
-          write(CHMAIL,*) ' **** GGCKOV WARNING ',NGPHOT,J      ! RICH Added
-          j=MXPHOT                                              ! RICH Added
-          goto 50                                               ! RICH Added
-        endif                                                   ! RICH Added
-         
    40 CONTINUE
-   50 ngphot=j                                                  ! RICH Added
   999 END
 
 

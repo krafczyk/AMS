@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.97 2007/07/09 14:51:16 choutko Exp $
+//  $Id: geant3.C,v 1.98 2007/10/02 16:06:45 mdelgado Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -593,9 +593,15 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //        if(RICHDB::detcer(GCTRAK.vect[6])) {
 //          GCTRAK.istop=2;
 
-          geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
-                   GCTRAK.vect[2])/GCTRAK.vect[5];
 
+#ifndef __USERICHPMTMANAGER__ 
+	geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
+		  GCTRAK.vect[2])/GCTRAK.vect[5];
+#else
+	//	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
+	//		  GCTRAK.vect[2])/GCTRAK.vect[5];
+	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+#endif	
 
           geant vect[3];
           vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
@@ -609,8 +615,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
            " "<<RICHDB::RICradpos()<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
 */
 #endif
-
-
           AMSRichMCHit::sirichhits(GCKINE.ipart,
                                    GCVOLU.number[lvl-1]-1,
 //                                   GCTRAK.vect,
@@ -626,13 +630,20 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
       if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
         GCTRAK.istop=2; // Absorb it
-        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
-                   GCTRAK.vect[2])/GCTRAK.vect[5];
-                 
+	//
+#ifndef	__USERICHPMTMANAGER__
+	geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
+		  GCTRAK.vect[2])/GCTRAK.vect[5];
+#else                 
+	//	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+#endif
+
         geant vect[3];
         vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
         vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
         vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
+
 #ifdef __AMSDEBUG__
 /*
     cout <<"************** vect vs orig vect"<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;

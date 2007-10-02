@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.57 2005/12/01 09:45:33 choutko Exp $
+//  $Id: job.h,v 1.58 2007/10/02 16:06:50 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -157,6 +157,7 @@ void _ecalendjob();
 void _anti2endjob();
 void _axendjob();
 void _timeinitjob();
+void _richendjob();
 
 public:
 void SetNtuplePath(const char * hname){_hextname=hname;}

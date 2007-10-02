@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.496 2007/10/01 13:30:53 choumilo Exp $
+// $Id: job.C,v 1.497 2007/10/02 16:06:46 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1550,9 +1550,15 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::inittable(2);
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
+#ifndef __USERICHPMTMANAGER__
        AMSRICHIdGeom::Init();
+#else
+       RichPMTsManager::Init();
+#endif
        RichRadiatorTileManager::Init();	
+#ifndef __USERICHPMTMANAGER__
        AMSRICHIdSoft::Init();
+#endif
        AMSTRDIdSoft::inittable();
        AMSECIds::inittable();
     }
@@ -2781,6 +2787,9 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   end.tm_mon=RICFFKEY.mon[1];
   end.tm_year=RICFFKEY.year[1];
 
+
+#ifndef __USERICHPMTMANAGER__
+
   TID.add (new AMSTimeID(AMSID("RichPedCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
 			 *sizeof(AMSRICHIdSoft::_ped[0]),
@@ -2835,6 +2844,46 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
                          *sizeof(AMSRICHIdSoft::_status[0]),
                          (void*)&AMSRICHIdSoft::_status[0],server,NeededByDefault));
 
+#else
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelStatus",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows
+			 *sizeof(RichPMTsManager::_status[0]),
+                         (void*)&RichPMTsManager::_status[0],server,NeededByDefault));
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestal",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows*2
+			 *sizeof(RichPMTsManager::_pedestal[0]),
+                         (void*)&RichPMTsManager::_pedestal[0],server,NeededByDefault));
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalSigma",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows*2
+			 *sizeof(RichPMTsManager::_pedestal_sigma[0]),
+                         (void*)&RichPMTsManager::_pedestal_sigma[0],server,NeededByDefault));
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalThreshold",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows*2
+			 *sizeof(RichPMTsManager::_pedestal_threshold[0]),
+                         (void*)&RichPMTsManager::_pedestal_threshold[0],server,NeededByDefault));
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelGain",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows*2
+			 *sizeof(RichPMTsManager::_gain[0]),
+                         (void*)&RichPMTsManager::_gain[0],server,NeededByDefault));
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelGainSigma",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows*2
+			 *sizeof(RichPMTsManager::_gain_sigma[0]),
+                         (void*)&RichPMTsManager::_gain_sigma[0],server,NeededByDefault));
+
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelGainThreshold",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows
+			 *sizeof(RichPMTsManager::_gain_sigma[0]),
+                         (void*)&RichPMTsManager::_gain_sigma[0],server,NeededByDefault));
+  
+
+
+#endif
 
 }
 

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.37 2007/06/06 10:34:24 mdelgado Exp $
+//  $Id: richrec.h,v 1.38 2007/10/02 16:06:50 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -74,14 +74,24 @@ public:
 
   integer getchannel() const {return _channel;}
   inline geant getpos(integer i){
+#ifndef __USERICHPMTMANAGER__
     AMSRICHIdGeom channel(_channel);
+#else
+    RichPMTChannel channel(_channel);
+#endif
     return i<=0?channel.x():channel.y();
   }
 
   integer getcounts() {return _counts;}
   geant getnpe(){ 
+#ifndef __USERICHPMTMANAGER__
     AMSRICHIdSoft calibration(_channel);
     return _counts/calibration.getgain(_status&gain_mode?1:0);
+#else
+    RichPMTChannel calibration(_channel);
+    return _counts/calibration.gain[_status&gain_mode?1:0];
+#endif
+
   }
 
   static void mc_build();
@@ -114,7 +124,11 @@ public:
     return _beta_hit[1];
   } 
   
+  static int _npart;
   static int Npart();
+  static double RichRandom();
+  static void Select(int howmany,int size,int lista[]);
+  
 
 
 // interface with DAQ :
@@ -254,7 +268,7 @@ protected:
   void _writeEl();
   void _copyEl();
   void CalcBetaError();
-  void ReconRingNpexp(geant window_size=3.);
+  void ReconRingNpexp(geant window_size=3.,int cleanup=0);
 public:
   //+LIP
   AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob,uinteger status=0,integer build_charge=0):AMSlink(status),
@@ -270,7 +284,7 @@ public:
 
     if(build_charge){
       if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
-      ReconRingNpexp();
+      ReconRingNpexp(3.,!checkstatus(dirty_ring));
       if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
     }
 
@@ -321,6 +335,10 @@ public:
   // lipaccesors
   integer getlipused(){return _liphused;}
   number getlipprob(){return _liprprob;}
+
+
+  static geant ring_fraction(AMSTrTrack *ptrack ,geant &direct,
+			     geant &reflected,geant &length,geant beta);
 
 #ifdef __WRITEROOT__
 friend class RichRingR;

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.91 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: gmat.C,v 1.92 2007/10/02 16:06:45 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -763,6 +763,10 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
 // Electronics
 
    pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",0));
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
+  // PORON
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH PORON","VACUUM",0));
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 // transparent vaccum

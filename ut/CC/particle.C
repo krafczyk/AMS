@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.155 2007/04/04 12:02:04 choutko Exp $
+//  $Id: particle.C,v 1.156 2007/10/02 16:06:46 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -457,7 +457,7 @@ void AMSParticle::richfit(){
  real_track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
 
  geant direct,reflected,length;
- RICHDB::ring_fraction(real_track,direct,reflected,length,1.0);
+ AMSRichRing::ring_fraction(real_track,direct,reflected,length,1.0);
  
  _RichPath[0]=direct;
  _RichPath[1]=reflected;
@@ -474,7 +474,6 @@ void AMSParticle::richfit(){
        AMSRichRing *ring=AMSRichRing::build(track);
 
        if(ring){
-	 //	 cout << "  AMSParticle::richfit -- added new ring associated to AMSDBc::TOFFORGAMMA particle"<<endl;
 	 // Put a flag in this ring
 	 ring->setstatus(AMSDBc::TOFFORGAMMA);
 	 if(ring->next())
@@ -487,14 +486,6 @@ void AMSParticle::richfit(){
  }
  
  
-  //  cout <<"TEST DE RICHRING"<<endl;
- 
-  //  geant direct,ref,length;
-  //  cout <<"La suma sale "<<RICHDB::ring_fraction(real_track,direct,ref,length)<<endl;
-  //  cout <<"   Direct:"<<direct<<endl
-  //       <<"   Reflected:"<<ref<<endl
-  //       <<"   path length:"<<length<<endl;
-
 
 //  Add more
   //AMSRichRing::rebuild(real_track);
@@ -528,7 +519,7 @@ void AMSParticle::richfit(){
 
 
   if(_prich){
-    RICHDB::ring_fraction(real_track,direct,reflected,length,_prich->getbeta());
+    AMSRichRing::ring_fraction(real_track,direct,reflected,length,_prich->getbeta());
     _RichPathBeta[0]=direct;
     _RichPathBeta[1]=reflected;
     _RichLength=length;
