@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.42 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: mceventg.h,v 1.43 2007/10/03 07:38:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -82,6 +82,8 @@ number _delay;
 integer _ipart;
 integer _seed[2];
 integer _nskip;
+static AMSPoint *_r_c;
+static AMSDir *_dir_c;
 static AMSPoint _coorange[2];
 static AMSPoint _dirrange[2];
 static number _momrange[2];

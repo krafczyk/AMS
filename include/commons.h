@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.214 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: commons.h,v 1.215 2007/10/03 07:38:09 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -737,6 +737,8 @@ public:
                           //  1:  focus on ecal 
   integer FluxFile[40];   // FluxFile 
   integer curtime;        // current event time
+  integer DirFilePositions[2];
+  integer DirFile[40];
 };
 //
 #define CCFFKEY COMMON_BLOCK(CCFFKEY,ccffkey)

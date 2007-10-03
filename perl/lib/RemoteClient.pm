@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.463 2007/07/28 06:59:29 ams Exp $
+# $Id: RemoteClient.pm,v 1.464 2007/10/03 07:38:18 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14279,7 +14279,7 @@ sub CheckFS{
                unlink "$stf";
                if($stat[7]==0){
                system("ls $fs->[0] 1>$stf 2>&1 &");
-               sleep (2); 
+               sleep (3); 
                my @stat =stat("$stf");
                unlink "$stf";
                if($stat[7]==0){

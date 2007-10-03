@@ -1,4 +1,4 @@
-#  $Id: g4i,v 1.38 2006/07/10 15:05:24 choutko Exp $
+#  $Id: g4i,v 1.39 2007/10/03 07:38:14 choutko Exp $
 setenv GEANT4NEW 1
 if $OS == "Linux"  then
 endif
@@ -33,6 +33,7 @@ setenv G4VIS_BUILD_OPENGLX_DRIVER     1  # Uses OpenGL and Motif
 setenv G4VIS_USE_OPENGLX     1
 setenv G4VIS_BUILD_RAYX_DRIVER         1
 setenv G4VIS_USE_RAYX         1
+setenv G4UI_BUILD 1
 #setenv G4VIS_BUILD_OPACS_DRIVER         1
 #setenv G4VIS_USE_OPACS         1
 #setenv G4DAWNFILE_VIEWER david

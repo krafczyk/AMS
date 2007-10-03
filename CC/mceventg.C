@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.136 2005/07/28 16:52:58 choutko Exp $
+//  $Id: mceventg.C,v 1.137 2007/10/03 07:37:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -20,6 +20,8 @@
 #endif
 orbit AMSmceventg::Orbit;
 integer AMSmceventg::_hid=20001;
+AMSPoint* AMSmceventg::_r_c;
+AMSDir* AMSmceventg::_dir_c;
 AMSPoint AMSmceventg::_coorange[2];
 AMSPoint AMSmceventg::_dirrange[2];
 number   AMSmceventg::_momrange[2];
@@ -149,7 +151,7 @@ void AMSmceventg::gener(){
     }
 again:
     geant th,ph; // photon incidence angle (normal to gamma source generation plane)
-    if(_fixeddir){ // when GammaSource>0 -> fixeddir=1 (this is done elsewhere)
+    if(_fixeddir && CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<=0){ // when GammaSource>0 -> fixeddir=1 (this is done elsewhere)
       if(!(GMFFKEY.GammaSource==0)){  
     number ra,dec;  // AMS zenithal pointing direction
     number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
@@ -268,6 +270,13 @@ again:
         }
       }
     }//--->endof fixdir>0
+    else if(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0){ //<---   Dir From files
+     int k=floor(RNDM(d)*(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1));
+     _coo=_r_c[k];
+     _dir=_dir_c[k];
+//     cout <<" k "<<k<<" "<<CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<<endl;
+//     cout <<_coo<<" "<<_dir<<endl;
+    }
     else {   // <--- random dir
       geant d(-1);
       phi=2*AMSDBc::pi*RNDM(d);
@@ -680,6 +689,54 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       }        
 
     }
+    if(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0){
+      cout <<" AMSMCeventg::setspectra-I-PositionFileRequested "<<endl;
+      _r_c=  new AMSPoint[CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1];
+      _dir_c=new AMSDir[CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1];
+    //read firfile
+      char fname[161];
+      UHTOC(CCFFKEY.DirFile,40,fname,160);
+      char fnam[256];
+      strcpy(fnam,AMSDATADIR.amsdatadir);
+      strcat(fnam,fname);  
+      ifstream iftxt(fnam,ios::in);
+      if(!iftxt){
+       cerr <<"MCEventg::setcuts-F-UnableToOpenDirFile "<<fnam<<endl;
+       exit(1);
+      }
+      int ndir=0;
+      iftxt>>ndir;
+      iftxt.ignore(1024,'\n');
+      if(ndir<CCFFKEY.DirFilePositions[1])CCFFKEY.DirFilePositions[1]=ndir;
+      double acc[2]={0,0};
+      while(iftxt.get()=='#'){
+       iftxt.ignore(1024,'\n');
+      }      
+      for (int idir=0;idir<CCFFKEY.DirFilePositions[1];idir++){
+       float x,y,z;
+       double nx,ny,nz;
+       int ipos;
+       iftxt>>ipos;
+       iftxt>>x;
+       iftxt>>y;
+       iftxt>>z;
+       iftxt>>nx;
+       iftxt>>ny;
+       iftxt>>nz;
+       iftxt>>acc[1];
+//       cout <<x<<y<<z<<nx<<ny<<nz<<acc[1]<<endl;
+       if(idir<CCFFKEY.DirFilePositions[0]){
+         acc[0]=acc[1];
+         continue;
+       }
+       _r_c[idir-CCFFKEY.DirFilePositions[0]]=AMSPoint(x,y,z);
+       _dir_c[idir-CCFFKEY.DirFilePositions[0]]=AMSDir(nx,ny,nz);
+      }
+      iftxt.close();
+      cout <<"AMCEventg::setspectra-I-"<<CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<<" read "<<acc[1]-acc[0]<<" Acceptance "<<endl;
+      
+     }      
+
 #ifdef __AMSDEBUG__
     //HPRINT(_hid);
 #endif
@@ -896,7 +953,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
 
 integer AMSmceventg::accept(){
   _nskip=Orbit.Ntot;
-  if(!(GMFFKEY.GammaSource==0)) return 1; //ISN
+  if(!(GMFFKEY.GammaSource==0) || CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0) return 1; //ISN
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){

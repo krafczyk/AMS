@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.27 2006/05/17 12:43:42 ams Exp $
+#  $Id: POADBServer.pm,v 1.28 2007/10/03 07:38:18 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -751,7 +751,12 @@ OUT:
                      }
                          untie %hash;
                          close(LOCK);
+              if(defined $rc and defined $tag and defined $ri->{id}->{uid}){
               throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
+              }
+              else {
+               warn "problems sendAH $rc ,  $tag ,  $ri,  $ri->{id}, $ri->{id}->{uid} \n";
+              }
           }
           else{
              throw DPS::DBProblem message=>"SendAH Unable to Open DB File";

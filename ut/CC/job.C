@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.497 2007/10/02 16:06:46 mdelgado Exp $
+// $Id: job.C,v 1.498 2007/10/03 07:37:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -625,6 +625,9 @@ CCFFKEY.StrCharge=2;
 CCFFKEY.StrMass=-1;
 CCFFKEY.SpecialCut=0;
 VBLANK(CCFFKEY.FluxFile,40);
+VBLANK(CCFFKEY.DirFile,40);
+CCFFKEY.DirFilePositions[0]=1;
+CCFFKEY.DirFilePositions[1]=0;
 CCFFKEY.curtime=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 

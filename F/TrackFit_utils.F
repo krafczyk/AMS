@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.4 2007/10/03 07:38:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.4  2007/10/03 07:38:03  choutko
+* *** empty log message ***
+*
 * Revision 1.3  2005/10/20 14:21:03  choutko
 * *** empty log message ***
 *
@@ -98,7 +101,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.4 2007/10/03 07:38:03 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4075,6 +4078,7 @@ CDECK  ID>, TKFITG.
 *               =2     GEANE banded matrix inv
 *               =3     GEANE Kalman filter
 *               =4     Juan algo
+*              =5i     A. Chikanian algo 
 *
 * Output   out(9) ! x0,y0,z0,theta,phi,rig,chi2,ier, err(1/rig)
 *

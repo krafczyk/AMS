@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.14 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: uzstat.C,v 1.15 2007/10/03 07:37:51 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "uzstat.h"
@@ -49,7 +49,7 @@ if(p){
     p->_sum=p->_sum+time;
     if(time > p->_max)p->_max=time;
     if(time < p->_min)p->_min=time;
-    p->_startstop==0;
+    p->_startstop=0;
   }
   else if(!force)cerr<<"AMSStat-Stop-W-NTSTRTD "<<name<<" was not started"<<endl;
 }

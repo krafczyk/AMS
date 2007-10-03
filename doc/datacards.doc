@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.252 2007/10/01 13:31:08 choumilo Exp $
+#  $Id: datacards.doc,v 1.253 2007/10/03 07:38:06 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -165,7 +165,7 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //sea level muons(2) mev range electrons(3)
                                   //uniform momentum(4) 
                                   //uniform log(momentum) (5)
-                                  //from file(6)
+                                  //from flux file(6)
 I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
@@ -184,6 +184,10 @@ I34 SpecialCut(0)                 // special acceptance cut
                                   // 2: focus on outer trd hc
                                   // 3: focus on solarpanel/ams (AMS02BIG setup required)
 I35 FluxFile(' ')                 // file with fluxes (creme96 format)
+I75 curtime                      //  aux
+I76 DirFilePositions[2](1,0)             //  number of positions to be read from dire file
+I78 DirFile(' ')                  // file with positions
+
 GMSRC   // to specify a point (gamma) source 
 I1 GammaSource(0)              // !=0 activate point source generation    
                            // MCGEN 3 and 7-12 not used with sources       
