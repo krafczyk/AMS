@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.98 2007/10/02 16:06:45 mdelgado Exp $
+//  $Id: geant3.C,v 1.99 2007/10/11 08:43:52 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -850,7 +850,16 @@ AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
        throw AMSTrTrackError("SimCPULimit exceeded");
       }
    }
+// special trick to simulate/reconstruct with different mag field
+
+// special trick to simulate/reconstruct with different mag field
+if(TKFIELD.iniok==2)TKFIELD.iniok=3;
+//          cout <<"  iniok "<<TKFIELD.iniok<<endl;
           if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
+if(TKFIELD.iniok==3)TKFIELD.iniok=2;
+//          cout <<"  iniok "<<TKFIELD.iniok<<endl;
+
+
    }
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;

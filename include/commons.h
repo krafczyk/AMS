@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.215 2007/10/03 07:38:09 choutko Exp $
+//  $Id: commons.h,v 1.216 2007/10/11 08:44:00 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -789,7 +789,7 @@ COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
 
 const integer nx=41;
 const integer ny=41;
-const integer nz=130;
+const integer nz=41;
 
 class TKFIELD_DEF{
 public:
@@ -812,6 +812,9 @@ geant xyz[nx+ny+nz];
 geant bdx[2][nz][ny][nx];
 geant bdy[2][nz][ny][nx];
 geant bdz[2][nz][ny][nx];
+geant bxc[nz][ny][nx];
+geant byc[nz][ny][nx];
+geant bzc[nz][ny][nx];
 
 };
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)

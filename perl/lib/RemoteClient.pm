@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.465 2007/10/11 08:42:54 ams Exp $
+# $Id: RemoteClient.pm,v 1.466 2007/10/11 08:44:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5535,7 +5535,7 @@ anyagain:
            $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap* $self->{UploadsDir}/DataBase";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
         my $ret=$self->{sqlserver}->Query($sql);

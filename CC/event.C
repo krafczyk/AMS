@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.345 2007/10/03 07:37:51 choutko Exp $
+//  $Id: event.C,v 1.346 2007/10/11 08:43:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -738,6 +738,10 @@ void AMSEvent::_regnevent(){
 
 
 void AMSEvent::_sitkinitevent(){
+
+
+
+
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
@@ -983,6 +987,9 @@ void AMSEvent::_reaxinitevent(){
 }
 
 void AMSEvent::_retkinitevent(){
+
+
+
   integer i;
   AMSNode *ptr;
   for(i=0;i<AMSTrIdSoft::ncrates();i++) AMSEvent::gethead()->add (

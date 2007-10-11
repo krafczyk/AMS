@@ -35,18 +35,18 @@ C          Nparticles
 MCGEN  1=-90. 2=-100. 3=-80. 4=170. 5=100. 
 6=80. 12=-0.75 15=1 18=1 19=102004 
 25=10012001 27=10012008 
-IOPA 1=3 2='pr.hbk'  
+IOPA 1=3 2='/f2users/choutko/pr.hbk'  
 45='TriggerLVL3'
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=5.   4=0  5=0   46='AMS02' 
-87=1 88='MagneticFieldMap'
+AMSJOB 1=0   2=-1      3=5.   4=0  5=0   46='AMS02' 
+87=1 88='MagneticFieldMap07'
 L3REC 11=1
 TKGEOM 1=0
 TIME 3=10000000
 TERM 1=1234567890
 C TOFMC 13=1
-BMAP 1='fld04.txt' 41=0 48=5 49=5 52=101 53=108
+BMAP 1='fld07.txt' 41=-2 48=5 49=5 52=105 53=118
 END
 
 !

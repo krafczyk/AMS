@@ -1,24 +1,24 @@
-*  $Id: mfield.F,v 1.16 2007/03/23 10:35:37 choutko Exp $
+*  $Id: mfield.F,v 1.17 2007/10/11 08:43:55 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
-      if(iniok.eq.0)then
+      if(iniok.eq.0.or.iniok.eq.-2)then
 *       
           write(*,*)'Opening field file...'
 c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
      +     STATUS='OLD',form='formatted')
           fac=1.
-          do k=1,nz
-           do i=1,nx
-            do j=1,ny
+          do i=1,nx
+           do j=1,ny
+            do k=1,nz
              read(21,*)x(i),y(j),z(k),bx(i,j,k),by(i,j,k),bz(i,j,k)
-             x(i)=x(i)
-             y(j)=y(j)
-             z(k)=z(k)
-             bx(i,j,k)=bx(i,j,k)/1000. *fac
-             by(i,j,k)=by(i,j,k)/1000. *fac
-             bz(i,j,k)=bz(i,j,k)/1000. *fac
+             x(i)=x(i)/10.
+             y(j)=y(j)/10.
+             z(k)=z(k)/10.
+             bx(i,j,k)=bx(i,j,k)*10 *fac
+             by(i,j,k)=by(i,j,k)*10. *fac
+             bz(i,j,k)=bz(i,j,k)*10. *fac
             enddo
            enddo
           enddo
@@ -34,7 +34,6 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *         read(21,*)iday
 *         read(21,*)imon
 *         read(21,*)iyear
-          iniok=1
           close(21)
           write(*,*)'Closing field file...'
 *
@@ -77,7 +76,35 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           enddo
           call timex(st1)
           write(*,*)'Finished in ',st1-st0, ' sec'
-c          call rmf2
+        if(iniok.eq.-2)then
+*
+*       here do the initialization of b...c  values
+*
+*       
+          write(*,*)'Opening design field file...'
+          OPEN(22,FILE=amsdatadir(1:amsdlength)//'design.'//fname,
+     +     STATUS='OLD',form='formatted')
+          fac=1.
+          do i=1,nx
+           do j=1,ny
+            do k=1,nz
+             read(22,*)x(i),y(j),z(k),bxc(i,j,k),byc(i,j,k),bzc(i,j,k)
+             x(i)=x(i)/10.
+             y(j)=y(j)/10.
+             z(k)=z(k)/10.
+             bxc(i,j,k)=bxc(i,j,k)*10 *fac
+             byc(i,j,k)=byc(i,j,k)*10. *fac
+             bzc(i,j,k)=bzc(i,j,k)*10. *fac
+            enddo
+           enddo
+          enddo
+          close(22)
+          write(*,*)'Closing design field file...'
+
+          iniok=2
+      else
+          iniok=1
+      endif      
       else if(iniok.eq.-1)then
 
 *
@@ -286,8 +313,10 @@ c      end
       SUBROUTINE GUFLD(VV,B)
 *     ======================
 #      include "mfield.h"
+      data jj/0/
       data init/0/ 
       data hint/0,0,0/
+      data hintc/0,0,0/
       DIMENSION B(3),VV(3),AVV(3)
         if(abs(vv(1)).gt.x(nx).or.abs(vv(2)).gt.y(ny).or.
      +    abs(vv(3)).gt.z(nz))then
@@ -301,73 +330,31 @@ c      end
         goto 999
 #endif
 
-C
-        sx=sign(1.,vv(1))
-        sy=sign(1.,vv(2))
-        sz=sign(1.,vv(3))
         do i=1,2
-          avv(i)=abs(vv(i))
+          avv(i)=vv(i)
         enddo
 *
 * Special trick if need
 *        
         CALL BZCORR(xfac)
-        avv(3)=abs(vv(3))*xfac
-c        if(iniok.eq.1)then
-c          b(1) = FINT(3,avv(1),NA(1),xyz(1),Bx(1,1,1))
-c          b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
-c          b(3) = FINT(3,avv(1),NA(1),xyz(1),Bz(1,1,1))
+c        avv(3)=abs(vv(3))*xfac
+        avv(3)=vv(3)*xfac
+c        jj=jj+1
+         if(iniok.eq.2)then
+c           if(mod(jj,1000).eq.1)write(*,*)' calling bxc ',bxc(1,1,1),
+c     +      iniok
+          call fint_my(3,avv(1),NA(1),xyz(1),
+     +    Bxc(1,1,1),Byc(1,1,1),Bzc(1,1,1),b(1),hintc(1))
+         else
+c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
-c        else
-c         u(1)=avv(1)
-c         v(1)=avv(2)
-c         w(1)=avv(3)
-c         ifail=-1
-c         call  e01thf(mmax,xe,ye,ze,bxe,iqx,liq,rqx,lrq,1,
-c     +   u,v,w,q,qx,qy,qz,ifail)
-c         if(ifail.ne.0)then
-c          write(*,*)' e01thf failed on x ',ifail
-c          b(1) = FINT(3,avv(1),NA(1),xyz(1),Bx(1,1,1))
-c         else
-cc          dr=b(1)-q(1)
-cc          call hf1(-701,dr,1.)
-cc          dr=q(1)
-cc          call hf2(-702,b(1),dr,1.)
-c          b(1) = q(1)
-c         endif
-c         ifail=-1
-c         call  e01thf(mmax,xe,ye,ze,bye,iqy,liq,rqy,lrq,1,
-c     +   u,v,w,q,qx,qy,qz,ifail)
-c         if(ifail.ne.0)then
-c          write(*,*)' e01thf failed on y ',ifail
-c          b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
-c         else
-cc          dr=b(2)-q(1)
-cc          call hf1(-801,dr,1.)
-cc          dr=q(1)
-cc          call hf2(-802,b(2),dr,1.)
-c          b(2) = q(1)
-c         endif
-c         ifail=-1
-c         call  e01thf(mmax,xe,ye,ze,bze,iqz,liq,rqz,lrq,1,
-c     +   u,v,w,q,qx,qy,qz,ifail)
-c         if(ifail.ne.0)then
-c          write(*,*)' e01thf failed on z ',ifail
-c          b(3) = FINT(3,avv(1),NA(1),xyz(1),Bz(1,1,1))
-c         else
-cc          dr=b(3)-q(1)
-cc          call hf1(-901,dr,1.)
-cc          dr=q(1)
-cc          call hf2(-902,b(3),dr,1.)
-c          b(3) = q(1)
-c         endif
-c        endif
+         endif
         if(magstat.gt.0)then
          CALL BTEMPCOR (factor)
          b(1) = b(1) * factor
-         b(2) = b(2)*sx*sy * factor
-         b(3) = b(3)*sx*sz * factor
+         b(2) = b(2) * factor
+         b(3) = b(3) * factor
         else
          b(1)=0
          b(2)=0
