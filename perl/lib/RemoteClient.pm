@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.464 2007/10/03 07:38:18 choutko Exp $
+# $Id: RemoteClient.pm,v 1.465 2007/10/11 08:42:54 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1567,7 +1567,7 @@ my $fevt=-1;
                     my @dir=split $run->{Run},$fpath;
                     my $cmd="mkdir -p $dir[0]";
                     my $i=system($cmd);
-                    $cmd="scp $host:$fpath $fpath ";
+                    $cmd="scp -2 $host:$fpath $fpath ";
                     $i=system($cmd);
                     if($i){              
                        warn "$cmd failed \n";
@@ -1575,7 +1575,7 @@ my $fevt=-1;
                        
                    }
                     else{ #3
-                             $cmd="ssh -x $host rm $fpath";
+                             $cmd="ssh -2 -x $host rm $fpath";
                              push @rmcmd,$cmd;
                          }
                   } 

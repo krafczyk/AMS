@@ -1,4 +1,5 @@
 import cx_Oracle
+import time
 class DBSQLServer:
     one=0
     dbinit=0
@@ -33,7 +34,12 @@ class DBSQLServer:
         self.dbcursor.execute(string)
         return self.dbcursor.fetchall()
     def Update(self,string):
-        return self.dbcursor.execute(string)
+	try:
+            return self.dbcursor.execute(string)
+        except cx_Oracle.Error,e:
+            print e
+            time.sleep(2)
+            return self.dbcursor.execute(string)
     def Commit(self,commit=1):
         if(commit==1):
             return self.dbhandler.commit()
