@@ -1,4 +1,4 @@
-//  $Id: updtdv.C,v 1.3 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: updtdv.C,v 1.4 2007/10/15 08:35:15 choutko Exp $
 #include <iostream.h>
 #include <fstream.h>
 #include <stdlib.h>
@@ -9,7 +9,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#include "cern.h"
+#include "typedefs.h"
+#include "commons.h"
 #include <stdio.h>
 #include <iomanip.h>
 void _InitTable();
@@ -21,6 +22,7 @@ const uinteger CRC32=0x04c11db7;
 int UnixFilestat(const char *path, long *id, long *size,
                               long *flags, time_t *modtime);
 int main(int argc, char* argv[]){
+ int uik=AMSDATADIR.amsdlength;
   switch (argc) {
   case 1:
     cerr <<"cdaq-F-Please give a tdv name as first parameter "<<endl;

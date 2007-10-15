@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.499 2007/10/11 08:43:52 choutko Exp $
+// $Id: job.C,v 1.500 2007/10/15 08:35:15 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -615,7 +615,7 @@ CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
 CCFFKEY.begindate=2062008;
-CCFFKEY.enddate=1012012;
+CCFFKEY.enddate=1112009;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
 CCFFKEY.oldformat=0;
@@ -684,7 +684,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MCSeeds
   ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
-  ECMCFFKEY.mev2adc=0.873;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
+  ECMCFFKEY.mev2adc=0.873/1.023;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
@@ -1125,7 +1125,7 @@ void AMSJob::_retof2data(){
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
   TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
-  TFREFFKEY.daqthr[2]=250.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
+  TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
   TFREFFKEY.daqthr[3]=2.5;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=2.5;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)
 //

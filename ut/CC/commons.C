@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.320 2007/10/11 08:43:52 choutko Exp $
+//  $Id: commons.C,v 1.321 2007/10/15 08:35:14 choutko Exp $
 
 
 #include <unistd.h>
@@ -76,7 +76,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=199;
+uinteger AMSCommonsI::_build=200;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
