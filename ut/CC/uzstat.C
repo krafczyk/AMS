@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.15 2007/10/03 07:37:51 choutko Exp $
+//  $Id: uzstat.C,v 1.16 2007/10/30 13:53:19 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "uzstat.h"
@@ -9,6 +9,9 @@
 #include <sys/time.h>
 #include <fstream.h>
 #include "commons.h"
+#ifdef __LVL3ONLY__
+ofstream fbin("/f2users/choutko/AMS/examples/lvl3.txt",ios::out);
+#endif
  extern "C" float etime_(float ar[]);
 
 AMSStat::AMSStat():AMSNodeMap(){
@@ -19,6 +22,15 @@ print();
 Timer.remove();
 }
 void AMSStat::book(char *name, int freq){
+#ifdef __LVL3ONLY__
+if(!strstr(name,"LVL3")){
+ return;
+}
+else{
+}
+#endif
+
+
 if( add(*(Timer.add(new AMSStatNode(name,freq))))==-1)
 cerr<<" AMSStat-Book-E-Name "<<name<<" already exists"<<endl;
 }
@@ -28,7 +40,10 @@ if(p){
 p->_time=HighResTime();
 p->_startstop=1;
 }
+#ifdef __LVL3ONLY__
+#else
 else cerr<<"AMSStat-Start-E-Name "<<name<<" does not exist"<<endl;
+#endif
 }
 number AMSStat::check(char * name){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
@@ -50,10 +65,16 @@ if(p){
     if(time > p->_max)p->_max=time;
     if(time < p->_min)p->_min=time;
     p->_startstop=0;
+#ifdef __LVL3ONLY__
+      fbin << p->_entry<<" "<< time<<endl;
+#endif    
   }
   else if(!force)cerr<<"AMSStat-Stop-W-NTSTRTD "<<name<<" was not started"<<endl;
 }
+#ifdef __LVL3ONLY__
+#else
 else cerr<<"AMSStat-Stop-E-Name "<<name<<" does not exist"<<endl;
+#endif
 return time;
 }
 
@@ -81,8 +102,8 @@ extern "C" number HighResTime(){
 
  static float ar[2];
  static unsigned int count=0;
-  static float ltime=0;
-#ifdef __ALPHAOLD__
+  static double ltime=0;
+#ifdef __LVL3ONLY__
  static number ETimeLast;
  static timeval  TPSLast;
  static struct timezone  TZ;
@@ -106,7 +127,7 @@ else {
   // Try to get more high res
   //
 gettimeofday(&TPS,&TZ);
-number(TPS.tv_sec-TPSLast.tv_sec)+1.e-6*(TPS.tv_usec-TPSLast.tv_usec);
+ltime=number(TPS.tv_sec-TPSLast.tv_sec)+1.e-6*(TPS.tv_usec-TPSLast.tv_usec);
 TPSLast.tv_sec=TPS.tv_sec;
 TPSLast.tv_usec=TPS.tv_usec;
 if(ltime<= TRes )ETimeLast+=ltime;
