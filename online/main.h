@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.6 2004/02/24 13:41:33 choutko Exp $
+//  $Id: main.h,v 1.7 2007/11/02 17:05:07 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -12,14 +12,12 @@
 #endif
 #include <THistPainter.h>
 #include <TFitter.h>
-#include <TUtilHist.h>
 class Myapp : public TApplication{
 protected:
 AMSOnDisplay * fDisplay;
  private:
 #ifndef WIN32
  THistPainter a;
- TUtilHist aa;
  TFitter b;
 #endif
 public:
