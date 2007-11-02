@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.7 2004/02/26 07:17:33 choutko Exp $
+//  $Id: main.h,v 1.8 2007/11/02 17:04:58 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -13,13 +13,11 @@
 #endif
 #include <THistPainter.h>
 #include <TFitter.h>
-#include <TUtilHist.h>
 class Myapp : public TApplication{
 protected:
 AMSDisplay * fDisplay;
  private:
 // THistPainter a;
-// TUtilHist aa;
 // TFitter b;
 public:
  void HandleIdleTimer();
