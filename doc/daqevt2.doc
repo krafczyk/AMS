@@ -1,0 +1,179 @@
+#  $Id: daqevt2.doc,v 1.1 2007/11/06 10:41:48 choutko Exp $
+
+I. ams02 Daq Event format  (based on cai 05-11-2007)
+                                
+All 16 bit unsigned integers. 
+
+ 32 & more bits are now in BIG(!) endian,i.e.
+ unsigned short int ui16[2];
+ integer r;
+ ui16[1]=((unsigned integer)r)&65535;
+ ui16[0]=(((unsigned integer)r)>>16)&65535;
+
+ 
+
+   
+-----------------------------------------------------------------------------
+|EL|EL2|EID|EID2|STA|HID|Time(2)|AuxR(2)|Event(2)|Time(4)|GPS|LSubDBl|IDSubDBl|..dataSubDBl|Evt(1:2)|
+-----------------------------------------------------------------------------
+
+Legend:
+
+EL      - low 15bits of total event length -1 if 16th bit is not set
+        - upper 15bits of total event length -1 if 16th bit is set
+EL2     - does not exist if 16th bit is not set
+EL2      - low 16bits of total event length -1 if 16th bit is set
+EID      -  low 5 bits:  type then 9 bits node
+EID2     -  does not exist if type != 0x1F
+STA      -  0  ?
+Time(2)  = unix time-315964800
+HL      - header ==general run length - 1 (see above for HL2)
+HID     - header id = 5 & (32);  ! type only !
+Run(1:2)     - run number 32bit
+AuxR(1:2)    - run type   32bit   // 1F0100  (Normal)
+                                 //  1F0100 | 1<<23 (Low TOF Voltage)  
+Evt(1:2)     - event number 32bit
+Time(1:2) - time 32bit unix format -315964800
+Time(3:4) - number of  usec
+GPS       -  if bit 16 is set than :
+GPW       -   gps week number
+GPT(1:2)       -   gps time
+GP2(1:2)       -   gps fraction of the second       
+LSubDBl - length of subdet block ()-1  (see above for the EL2)
+IDSubDBl- id sub det block see below
+Evt(1:2)  event number
+(!) Header is not necessary follow the EID and should be find by id only.
+
+
+II. Subdet event formats
+a. 
+
+
+p. MC Particle
+
+ID =  14 <<9 
+
+
+
+Word1     Particle id
+Word2-3   Momentum (MeV/c)
+Word4     Direction_x (+1 *1000)
+Word5     Direction_y  
+Word6     Direction_z
+Word7-8   Coo_x (+1 0000 0000 mkm)  
+Word9-10  Coo_y  
+Word11-12 Coo_z
+
+q. Shuttle Paramaters
+
+ID =  14 <<9   |     1 
+
+
+Word1-2    Altitude (cm)
+Word3-4    Lattitude
+Word5-6    Longitude
+Word7-8    Yaw
+Word9-10   Pitch
+Word11-12  Roll
+Word13-14  Speed(rad/sec)
+Word15-16  Speed_Theta
+Word17-18  Speed_Phi
+Word19-20  NorthPole_Phi
+
+
+AMS02
+----------
+
+ecal data format (purely fictitious)
+
+raw mode 
+
+id = 14<<9 | 2  
+
+
+
+
+III. Interface with DAQEvent class
+
+a. Daq->Raw conversion
+
+Each subdetector or trigger class
+should have at least two  functions 
+(one pair for one specifiq daq format)
+of the following form (names are not relevant)
+
+ static integer checkdaqid(int16u id){return 1 if id is relevant else 0 }
+  
+
+
+ static void buildraw(integer length, int16u *p);  // builds raw from daq from p
+                                                   //  p points to idsubdbl    
+                                                   // length==LSubDBl      
+
+
+b. Raw->Daq conversion
+
+Each block type (block type = header, trig-1,3, tracker, scrate etc)
+should have 3 functions
+ 
+ static integer getmaxblocks();      // returns maxblocks
+ static integer calcdaqlength(int i);    // i =0 to max blocks-1
+                                     // return data length ==LSubDBl
+
+ static void builddaq(integer i, integer length, int16u *p);
+                                                 // builds daq from raw into p,
+                                                 // i =0 to max blocks-1  
+                                                 // p points to idsubdbl
+                                                 // length==LSubDBl
+
+
+
+The corresponding functions should be registered in AMSJob::_redaqinitjob()
+as in example:
+
+
+ //tracker
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,
+                             &AMSTrRawCluster::buildraw, uinteger btype);
+
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
+                           &AMSTrRawCluster::calcdaqlength,
+                           &AMSTrRawCluster::builddaq, uinteger btype);
+
+
+
+
+
+
+
+
+
+
+
+
+IV. Relevant datacards 
+
+    AMSJOB 1
+
+    DAQC 
+
+    (see datacards.doc)
+
+
+
+
+    
+
+
+
+V. Built in access to event header
+
+
+runno()
+eventno()
+runtype()
+time()
+
+(Active only after _HeaderOK())
+
