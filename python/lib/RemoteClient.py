@@ -597,8 +597,8 @@ class RemoteClient:
             exitmutexes[run.Run]=thread.allocate_lock()
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
             try:
-                #thread.start_new(self.validaterun,(run,))
-                self.validaterun(run)
+                thread.start_new(self.validaterun,(run,))
+                #self.validaterun(run)
             except:
                 i=0
                 for key in exitmutexes.keys():

@@ -166,7 +166,7 @@ ifdef SLC3system
  SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
 endif
 ifdef SLC4system
- SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
+ SOFLAGS+= -L/$(ROOTSYS)/lib  -lRIO -lTree -lSQL -lNet -lHist -lHistPainter -lGraf -lMatrix 
 endif
 
  SHLDFLAGS=   
@@ -180,7 +180,9 @@ endif
   EXE=$(AMSWD)/exe/linux/
   LIB=$(AMSWD)/lib/linux/
   SHLD=$(LIB)/ntuple.so
-
+ifdef SLC4system
+  SHLD=$(LIB)/ntuple_slc4.so
+endif
 ifdef AMSICC
 
   BINMT=$(AMSWD)/bin/linux/icc/mt/
@@ -188,6 +190,9 @@ ifdef AMSICC
   EXE=$(AMSWD)/exe/linux/icc/
   LIB=$(AMSWD)/lib/linux
   SHLD=$(LIB)/ntuple.so
+ifdef SLC4system
+  SHLD=$(LIB)/ntuple_slc4.so
+endif
 endif
 
 ifeq ($(ARCH),linuxicc)

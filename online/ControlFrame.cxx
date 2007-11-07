@@ -1,9 +1,10 @@
-//  $Id: ControlFrame.cxx,v 1.10 2005/12/13 14:09:07 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.11 2007/11/07 12:53:08 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
 #include <TCanvas.h>
 #include <TVirtualX.h>
+#include <math.h>
 ClassImp(AMSControlFrame)
 
 Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
