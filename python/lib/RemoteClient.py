@@ -1860,3 +1860,80 @@ class RemoteClient:
                                 (ret,i)=self.validateDST(dstfile,ntevents,nttype,dstlevent)
                                            
        
+    def buildTDV(self,name,commit,verbose):
+        if(os.environ.has_key('AMSDataDir')):
+            amsdatadir=os.environ['AMSDataDir']
+        else:
+            amsdatadir="/afs/ams.cern.ch/AMSDataDir"
+        dbdir=os.path.join(amsdatadir,"DataBase")
+        ltdv=dbdir+"/ltdv"
+        for file in os.listdir(dbdir):
+            id=1
+            ret=self.sqlserver.Query("select count(id) from TDV");
+            if(ret[0][0]>0):
+                ret=self.sqlserver.Query("select max(id) from TDV");
+                id=ret[0][0]+1
+            path=os.path.join(dbdir,file)
+            if(len(name)>1 and file.find(name)<0):
+                continue
+            if os.path.isdir(path):
+                sql="select id from TDV where name='%s'" %file
+                ret=self.sqlserver.Query(sql)
+                if(len(ret)>0):
+                    if(len(name)<=1):
+                        continue
+                    else:
+                        id=ret[0][0]
+                        sql="delete  from TDV where name='%s'" %file
+                        self.sqlserver.Update(sql)
+                for dir in os.listdir(path):
+                    pdir=os.path.join(path,dir)
+                    if(os.path.isdir(pdir)):
+                        for tdv in os.listdir(pdir):
+                            if(tdv.find(file)>=0):
+                                if(verbose):
+                                    print file;
+                                ptdv=os.path.join(pdir,tdv)
+                                if(tdv.find('.0.')>0):
+                                    datamc=0
+                                else:
+                                    datamc=1
+                                ltdvo="./ltdv.o"
+                                try:
+                                    os.unlink(ltdvo);
+                                except:
+                                    if(verbose):
+                                        print " "
+                                readtdv=ltdv+" "+ptdv+" > "+ltdvo
+                                os.system(readtdv)
+                                fltdvo=open(ltdvo,'r')
+                                good=0
+                                crc=""
+                                end=""
+                                insert=""
+                                begin=""
+                                size=""
+                                for line in fltdvo.readlines():
+                                    if(line.find("OK")>=0):
+                                        good=1
+                                    if(good == 1):
+                                        if(line.find("size")>=0):
+                                            size=line.split(" ")[1]
+                                        elif(line.find("crc")>=0):
+                                            crc=line.split(" ")[1]
+                                        elif(line.find("begin")>=0):
+                                            begin=line.split(" ")[1]
+                                        elif(line.find("end")>=0):
+                                            end=line.split(" ")[1]
+                                        elif(line.find("insert")>=0):
+                                            insert=line.split(" ")[1]
+                                        
+                                fltdvo.close()
+                                if(len(size)>1 and len(end)>1 and len(insert)>1 and len(begin)>1 and len(crc)>1):
+                                    sql="insert into tdv values( %d, '%s', '%s',%s,%s,%d,%s,%s,%s)" %(id,file,ptdv,size[0:len(size)-1],crc[0:len(crc)-1],datamc,insert[0:len(insert)-1],begin[0:len(begin)-1],end[0:len(end)-1])
+                                    self.sqlserver.Update(sql)
+                                    self.sqlserver.Commit(commit)
+
+                                    
+                                
+            

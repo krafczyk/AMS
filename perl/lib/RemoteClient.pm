@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.467 2007/10/15 08:35:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.468 2007/11/09 08:18:01 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -15142,23 +15142,26 @@ sub MoveBetweenDisks{
            system($mk);
            $mkdir=0;
           }
-
+         
            my $cp="cp -pi $file $newfile";
+           if($file eq $newfile){
+             $cp="cp  $file /dev/null";
+           }
            my $i=system($cp);
-           if($i){
+           if($i ){
              if($verbose){
                  print "Problem to $cp \n";
              }
 #
 # get the file from castor
-#      
+#   
              if($ds1->[1]>0){
                  my $ok1=$self->RemoveFromDisks($dir,$verbose,$update,$irm,$tmp,$run,1);
                  my $ok2=$self->UploadToDisks($dir,$verbose,$update,$run,$disk);
                  last;
              }
          }
-           else{
+           elsif ($file ne $newfile){
 #
 # update catalogs and remove files from old location
 #
