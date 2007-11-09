@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.79 2005/11/15 09:28:50 ams Exp $
+# $Id: DBSQLServer.pm,v 1.80 2007/11/09 10:27:39 choutko Exp $
 
 #
 #
@@ -152,7 +152,71 @@ sub Connect{
         return 1;
     }
 }
+sub UpdateOnce{
+# add tables(s) in database
 
+    my $self=shift;
+    my $dbh=$self->{dbhandler};
+
+
+    my @tables=("DataRuns", "DataFiles", "TDV");
+    my @createtables=("    CREATE TABLE DataRuns
+        (run   INT NOT NULL primary key,
+         jid   INT,
+         FEvent INT,
+         LEvent INT,
+         FETime INT,
+         LETime INT,
+         version VARCHAR(64),
+         status VARCHAR(64))",
+        "CREATE TABLE DataFiles 
+        (run        INT NOT NULL,
+         version    VARCHAR(64),
+         type       VARCHAR(64),
+         jid        INT,
+         FEvent     INT,
+         LEvent     INT,
+         NEvents    INT,
+         NEventsErr INT,
+         timestamp  INT,
+         sizemb     INT,
+         status     VARCHAR(64),
+         path       VARCHAR(255),
+         pathb      VARCHAR(255),
+         crc        INT,
+         crctime    INT,
+         crcflag    INT,
+         castortime INT,
+         backuptime INT,
+         buildno    INT)",
+        "CREATE TABLE TDV
+        (id         int not null,
+         name       varchar(255),
+         path       varchar(255),
+         sizemb       INT,
+         crc        INT,
+         datamc     int,
+         insertt     int,
+         begint      int,
+         endt        int)"
+         );
+
+#   check if tables exist
+    my $i=0;
+    foreach my $table (@tables){
+       print "Update -I- check table $table \n";
+       my $ok =$dbh->do("select * from $table");
+      if(defined $ok){
+        warn "Table $table already exist";
+        $i=$i+1;
+        next;
+      }
+    my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
+    print " $createtables[$i] \n";
+    $sth->execute() or die "cannot execute: ".$dbh->errstr();
+    $sth->finish();    
+   }
+}
 sub Create{
 # creates a database
     my $self=shift;
@@ -288,6 +352,7 @@ sub Create{
          crctime    INT,
          crcflag    INT,
          castortime INT,
+         datamc     int,
          buildno    INT)",
         "CREATE TABLE MC_DST_Copy
           (

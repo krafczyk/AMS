@@ -1204,7 +1204,8 @@ class RemoteClient:
             print sql,ret[0][1]
         ntsize=float(size)/1024/1024
         sizemb="%.f" %(ntsize)
-        sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno)
+        datamc=0
+        sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
         self.sqlserver.Update(sql)
    
     def setenv(self):
