@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.469 2007/11/09 10:27:39 choutko Exp $
+# $Id: RemoteClient.pm,v 1.470 2007/11/11 16:05:40 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1004,7 +1004,7 @@ foreach my $file (@allfiles){
      }
 
 #try to get ior
-    $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active'";
+    $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active' and datamc=$self->{DataMC}";
      $ret=$self->{sqlserver}->Query($sql);
     my $updlast=0;
     foreach my $upd (@{$ret}){
@@ -1140,7 +1140,7 @@ if( defined $ref->{dbfile}){
 #                 my $createt=time();
                  my $sql="delete from Servers where dbfilename='$ref->{dbfile}'";
                  $ref->{sqlserver}->Update($sql);
-                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}','xyz','Active',$ac->{Start},$createt)";
+                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}','xyz','Active',$ac->{Start},$createt,$ref->{DataMC})";
                  $ref->{sqlserver}->Update($sql);
                  last;
                 }
@@ -1164,7 +1164,7 @@ sub RestartServer{
          my $ret=$self->{sqlserver}->Query($sql);
          if(defined $ret->[0][0]){
            my $submit=$ret->[0][0];
-           $sql="select dbfilename,lastupdate from Servers where status='Active'";
+           $sql="select dbfilename,lastupdate from Servers where status='Active' and datamc=$self->{DataMC}";
            $ret=$self->{sqlserver}->Query($sql);
            my $updlast=0;
            foreach my $upd (@{$ret}){
@@ -5949,6 +5949,7 @@ anyagain:
          $ri->{FilePath}=$script;
          $ri->{rndm1}=0;
          $ri->{rndm2}=0;
+         $ri->{DataMC}=0;
             if ($self->{CCT} eq "remote"){
              $ri->{Status}="Foreign";
              $ri->{History}="Foreign";
@@ -6022,7 +6023,7 @@ anynext:
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
            }
             my $lu=time();
-            my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}'";
+            my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}' and datamc=$self->{DataMC}";
             $self->{sqlserver}->Update($sqll);
             }
         }
@@ -7357,6 +7358,7 @@ sub listAll {
       $self -> listMails();
       $self -> listNetMonitor();
        $self -> listServers();
+       $self -> listDataServers();
         $self -> listJobs();
          $self -> listRuns();
           $self -> listNtuples();
@@ -8299,7 +8301,57 @@ sub listServers {
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
     }
-    my $sql="SELECT dbfilename, status, createtime, lastupdate FROM Servers ORDER BY lastupdate DESC";
+    my $sql="SELECT dbfilename, status, createtime, lastupdate  FROM Servers where datamc=0 ORDER BY lastupdate DESC ";
+    my $r3=$self->{sqlserver}->Query($sql);
+    if ($webmode == 1) {
+     print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
+     print "<td><b><font color=\"blue\" >Started </font></b></td>";
+     print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
+     print "<td><b><font color=\"blue\" >Status </font></b></td>";
+     print_bar($bluebar,3);
+    }
+    my $deadserver = 0;
+    if(defined $r3->[0][0]){
+        foreach my $srv (@{$r3}){
+            my $name      = $srv->[0];
+            my $status    = $srv->[1];
+            my $starttime = EpochToDDMMYYHHMMSS($srv->[2]);
+            my $lastupd   = $srv->[3];
+            my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
+            my $time      = time();
+            if ($status eq 'Active' or $deadserver == 0) {
+             if ($webmode == 1) {
+              if ($time - $lastupd < $srvtimeout) {
+               print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
+              } else {
+               my $color = statusColor($status);
+               print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=$color> $lasttime </font></td><td><b><font color=$color> $status </font></td> </b>\n";
+             }
+              print "</font></tr>\n";
+          }
+            if ($status eq 'Dead') { $deadserver++;}
+         }
+        }
+    }
+    if ($webmode == 1) {
+     htmlTableEnd();
+     htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+    }
+}
+
+
+sub listDataServers {
+    my $self = shift;
+    if ($webmode == 1) {
+     print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
+     print "<TR><B><font color=green size= 5><a href=$monmcdb><b><font color=blue> RealData Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
+     print "<p>\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    }
+    my $sql="SELECT dbfilename, status, createtime, lastupdate  FROM Servers  where datamc=1 ORDER BY lastupdate DESC";
     my $r3=$self->{sqlserver}->Query($sql);
     if ($webmode == 1) {
      print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
