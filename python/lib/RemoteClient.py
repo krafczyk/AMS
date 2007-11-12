@@ -7,11 +7,12 @@ class RemoteClient:
     dbclient=""
     sqlserver=""
     sqlconnected=-1
-    def getior(self):
+    def getior(self,datamc=0):
         if self.sqlconnected==-1:
             self.ConnectDB()
         if(self.sqlconnected==1):
-            ret=self.sqlserver.Query("select IORS,IORP,dbfilename from Servers where status='Active' order by lastupdate desc")
+            sql="select IORS,IORP,dbfilename from Servers where status='Active' and datamc=%d order by lastupdate desc" %(datamc)
+            ret=self.sqlserver.Query(sql)
             if(len(ret)>0):
                 return ret[0][0]
             else: return ""

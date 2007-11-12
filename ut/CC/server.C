@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.132 2007/06/14 14:24:42 choutko Exp $
+//  $Id: server.C,v 1.133 2007/11/12 10:10:03 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2022,6 +2022,10 @@ if(RF){
       fbin.ignore(1024,'\n');
    re.FilePath=(const char*)tmpbuf;
    if(re.LastEvent<re.FirstEvent)re.LastEvent=2000000000;
+   if(_parent->IsMC()){
+     re.DataMC=0;
+   }
+   else re.DataMC=1;
    if(!_parent->IsMC() || strstr((const char*)tmpbuf,"cern")){
       re.Status=DPS::Producer::ToBeRerun;
       re.History=DPS::Producer::ToBeRerun;

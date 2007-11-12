@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.48 2007/06/14 09:29:22 ams Exp $
+#  $Id: monitorUI.pm,v 1.49 2007/11/12 10:10:14 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -592,6 +592,7 @@ sub notebook_create_pages {
 	    "Priority ",
 	    "History ",
 	    "Fails ",
+            "DataMC",
 	    "Status ",
 	);
 

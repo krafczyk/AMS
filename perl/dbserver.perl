@@ -59,7 +59,7 @@ foreach my $chop  (@ARGV){
             my $createt=time();
             my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
             $sqls->Update($sql);
-            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}',NULL,'Active',$ac->{Start},$createt)";
+            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}',NULL,'Active',$ac->{Start},$createt,0)";
                  $sqls->Update($sql);
                  last;
         }

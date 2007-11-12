@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.78 2006/11/21 15:57:14 choutko Exp $
+//  $Id: daqevt.C,v 1.79 2007/11/12 10:10:00 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -408,10 +408,17 @@ integer DAQEvent::read(){
      int16u l16[2];
      fbin.read(( char*)(l16),sizeof(l16));
      _convertl(l16[0]);
-     _Length=l16[0]+_OffsetL;
+     //_Length=l16[0]+_OffsetL;
      // get more length (if any)
      _convertl(l16[1]);
-     _Length= _Length | ((l16[1] & 63)<<16);
+//     _Length= _Length | ((l16[1] & 63)<<16);
+      if(l16[0] & (1<<15)){
+       _Length=l16[1]+_OffsetL;
+       _Length=_Length | ((l16[0] & 32767)<<16);
+      }
+      else{
+       _Length=l16[0]+_OffsetL;
+      }
      //cout <<" Length "<<_Length<<endl;
 
     if(fbin.eof()){
@@ -429,9 +436,16 @@ integer DAQEvent::read(){
        cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
        fbin.read(( char*)(l16),sizeof(l16));
        _convertl(l16[0]);
-       _Length=l16[0]+_OffsetL;
+//       _Length=l16[0]+_OffsetL;
        _convertl(l16[1]);
-       _Length= _Length | ((l16[1] & 63)<<16);
+//       _Length= _Length | ((l16[1] & 63)<<16);
+      if(l16[0] & (1<<15)){
+       _Length=l16[1]+_OffsetL;
+       _Length=_Length | ((l16[0] & 32767)<<16);
+      }
+      else{
+       _Length=l16[0]+_OffsetL;
+      }
        //cout <<" Length "<<_Length<<endl;
        break;
      }    

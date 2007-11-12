@@ -189,6 +189,7 @@ module DPS{
      unsigned long cuid;
      unsigned long rndm1;
      unsigned long rndm2;
+     long DataMC;
 //     unsigned long pid;
      CurrentInfo cinfo;     
     };
