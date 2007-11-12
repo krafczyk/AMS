@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.470 2007/11/11 16:05:40 choutko Exp $
+# $Id: RemoteClient.pm,v 1.471 2007/11/12 10:34:08 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1340,7 +1340,7 @@ sub ValidateRuns {
     foreach my $run (@{$self->{dbserver}->{rtb}}){
      my $outputpath=undef;
 
-        if($run->{Run} ne $Run and $Run>0){
+        if(($run->{Run} ne $Run and $Run>0) or $run->{DataMC}!=0){
             next;
         }
 

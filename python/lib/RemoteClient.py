@@ -593,7 +593,7 @@ class RemoteClient:
         global fsmutexes
         fsmutexes = {}
         for run in self.dbclient.rtb:
-            if(run2p!=0 and run.Run != run2p):
+            if((run2p!=0 and run.Run != run2p) or run.DataMC!=0):
                 continue
             exitmutexes[run.Run]=thread.allocate_lock()
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
