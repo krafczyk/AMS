@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.216 2007/10/11 08:44:00 choutko Exp $
+//  $Id: commons.h,v 1.217 2007/11/14 16:19:47 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -979,6 +979,9 @@ class RICFFKEY_DEF{
   integer day[2];
   integer mon[2];
   integer year[2];
+  integer fname_in[200];
+  integer fname_out[200];
+
 };
 #define RICFFKEY COMMON_BLOCK(RICFFKEY,ricffkey)
 COMMON_BLOCK_DEF(RICFFKEY_DEF,RICFFKEY);

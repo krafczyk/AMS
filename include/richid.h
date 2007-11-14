@@ -281,13 +281,12 @@ class RichPMTsManager{
   static geant& _Eff(int Geom_id,int Geom_Channel);
 
   static void get_eff_quantities();
-  static void ReadFromFile(const char *filename); // Read calibration from file: not implemented FIXME!
+  static void ReadFromFile(const char *filename); // Read calibration from file:  FIXME!
+  static void SaveToFile(const char *filename); // Write calibration to file:  FIXME!
  public:
   static void Init();                    // Init geometry and kinds and so on
-  //  static void Init_File(char *filename);
   static void Init_Default();            // Init geometry and kinds and so on
   static void Finish();
-  //  static void Finish_File(char *filename);
   static void Finish_Default();
 
 

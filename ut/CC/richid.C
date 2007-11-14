@@ -781,9 +781,33 @@ void RichPMTsManager::Init(){
   //
   // Here we should load tables or wahtever
   // 
+  if(RICFFKEY.ReadFile%10){
+    char name[200];
 
-  if(0){
-    ReadFromFile(0);
+    UHTOC(RICFFKEY.fname_in,200,name,200);
+
+    for(int i=199;i>=0;i--){
+      if(name[i]!=' '){
+	name[i+1]=0;
+	break;
+      }
+    }
+
+    if(name[0]==' ') name[0]=0;
+    
+    if(strlen(name)==0){
+      strcpy(name,"richcal");
+      
+      if(AMSJob::gethead()->isMCData()){ // McData 
+	strcat(name,"mc");
+      }else{  // Real data
+	strcat(name,"dt");
+      }
+      
+      
+      strcat(name,".002");  // Version
+    }
+    ReadFromFile(name);
   }
 
 
@@ -815,6 +839,107 @@ void RichPMTsManager::Init(){
 
 }
 
+void RichPMTsManager::ReadFromFile(const char *filename){
+  cout<<"RichPMTsManager::ReadFromFile: reading calibration from file"<<endl;
+  fstream calib(filename,ios::in); // open  file for reading
+  
+  if(calib){
+    cout<<"RichPMTsManager::ReadFromFile: Local "<<filename<<" Opened"<<endl;
+  }else{
+    char newname[1024];
+    strcpy(newname,AMSDATADIR.amsdatadir);
+    strcat(newname,filename);
+    if(calib){
+      cout<<"RichPMTsManager::ReadFromFile: "<<filename<<" Opened"<<endl;
+    }else{
+      cerr <<"RichPMTsManager::ReadFromFile: missing "<<filename<<endl;
+      exit(1);
+    }
+  }
+
+  for(int geom_id=0;geom_id<RICmaxpmts;geom_id++){
+      // Read the identification information
+      int pos,pmtaddh,pmtaddc,pmtnumb;
+
+      calib >> pos >> pmtaddh >> pmtaddc >> pmtnumb;
+
+      // Use the information to search the geom id and check that everything
+      // is correct
+      int found=-1;
+      for(int i=0;i<RICmaxpmts;i++){
+	if(_pmts[i]._pos==pos)
+	  if(pmtaddh != _pmts[i]._pmtaddh || pmtaddc!=_pmts[i]._pmtaddc || pmtnumb!=_pmts[i]._pmtnumb){
+	    cerr<<"RichPMTsManager::ReadFromFile: Found pmt at pos "<<pos<<" but identification fails: "<<pmtaddh<<" vs "<<_pmts[i]._pmtaddh<<" -- "<<pmtaddc<<" vs "<<_pmts[i]._pmtaddc<<" -- "<<pmtnumb<<" -- "<<_pmts[i]._pmtnumb<<endl;
+	    exit(1);
+	  }else{
+	    found=i;
+	    break;
+	  }
+      }
+
+      if(found==-1){
+	cerr<<"RichPMTsManager::ReadFromFile: pos "<<pos<<" not found"<<endl;
+	exit(1);
+      }
+
+      for(int window=0;window<RICnwindows;window++){
+	// Read the status pedestals sigmas, thresholds gains
+	int &pmt=found;
+	int cat=_pmts[found]._channel_id2geom_id[window];
+	
+	calib >> _Status(pmt,cat) 
+	      >> _Pedestal(pmt,cat,0) >> _Pedestal(pmt,cat,1) 
+	      >> _PedestalSigma(pmt,cat,0) >> _PedestalSigma(pmt,cat,1) 
+	      >> _PedestalThreshold(pmt,cat,0) >> _PedestalThreshold(pmt,cat,1)
+	      >> _Gain(pmt,cat,0) >> _Gain(pmt,cat,1)
+	      >> _GainSigma(pmt,cat,0) >> _GainSigma(pmt,cat,1)
+	      >> _GainThreshold(pmt,cat)
+	      >> _Eff(pmt,cat);
+
+      
+      }
+  }
+  calib.close();
+}
+
+
+
+void RichPMTsManager::SaveToFile(const char *filename){
+  cout<<"RichPMTsManager::SaveToFile: writing calibration file"<<endl;
+  fstream calib(filename,ios::out); // open  file for writing
+
+  if(calib){
+    cout<<"RichPMTsManager::SaveToFile: Local "<<filename<<" Opened"<<endl;
+  }else{
+    cerr <<"RichPMTsManager::SaveToFile: missing "<<filename<<endl;
+    exit(1);
+  }
+
+  for(int geom_id=0;geom_id<RICmaxpmts;geom_id++){
+      // Save the identification information
+      calib << _pmts[geom_id]._pos << " " << _pmts[geom_id]._pmtaddh << " " << _pmts[geom_id]._pmtaddc << " " << _pmts[geom_id]._pmtnumb<<endl;
+
+      for(int window=0;window<RICnwindows;window++){
+	// Save the status pedestals sigmas, thresholds gains
+	int cat=_pmts[geom_id]._channel_id2geom_id[window];	
+	int &pmt=geom_id;
+	calib << _Status(pmt,cat) 
+	      << " " << _Pedestal(pmt,cat,0) << " " << _Pedestal(pmt,cat,1) 
+	      << " " << _PedestalSigma(pmt,cat,0) << " " << _PedestalSigma(pmt,cat,1) 
+	      << " " << _PedestalThreshold(pmt,cat,0) << " " << _PedestalThreshold(pmt,cat,1)
+	      << " " << _Gain(pmt,cat,0) << " " << _Gain(pmt,cat,1)
+	      << " " << _GainSigma(pmt,cat,0) << " " << _GainSigma(pmt,cat,1)
+	      << " " << _GainThreshold(pmt,cat)
+	      << " " << _Eff(pmt,cat) <<endl;
+
+      
+      }
+  }
+
+  calib.close();
+}
+
+
 void RichPMTsManager::get_eff_quantities(){
   _max_eff=0;
   _mean_eff=0;
@@ -829,6 +954,37 @@ void RichPMTsManager::get_eff_quantities(){
 
 void RichPMTsManager::Finish(){
   Finish_Default();
+
+  if(RICFFKEY.ReadFile/10){
+    char name[200];
+    
+    UHTOC(RICFFKEY.fname_out,200,name,200);
+    
+    for(int i=199;i>=0;i--){
+      if(name[i]!=' '){
+	name[i+1]=0;
+	break;
+      }
+    }
+    
+    /*
+    if(strlen(name)==0){
+      strcpy(name,"richcal");
+      
+      if(AMSJob::gethead()->isMCData()){ // McData 
+	strcat(name,"mc");
+      }else{  // Real data
+	strcat(name,"dt");
+      }
+      
+      
+      strcat(name,".002");  // Version
+    }
+    */
+
+    SaveToFile(name);
+  }
+
 }
 
 void RichPMTsManager::Init_Default(){

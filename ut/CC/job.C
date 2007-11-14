@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.500 2007/10/15 08:35:15 choutko Exp $
+// $Id: job.C,v 1.501 2007/11/14 16:19:47 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -293,7 +293,10 @@ void AMSJob::_sirichdata(){
   RICFFKEY.mon[1]=0;
   RICFFKEY.year[0]=101;
   RICFFKEY.year[1]=110;
-  FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"INTEGER");
+  VBLANK(RICFFKEY.fname_in,200);
+  VBLANK(RICFFKEY.fname_out,200);
+  //  FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"INTEGER");
+  FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
 
@@ -3197,6 +3200,8 @@ AMSJob::~AMSJob(){
     cout <<"   ecalendjob finished"<<endl;
     _trdendjob();
     cout <<"   trdendjob finished"<<endl;
+    _richendjob();
+    cout <<"   richendjob finished"<<endl;
     _srdendjob();
     cout <<"   srdendjob finished"<<endl;
 
@@ -3449,6 +3454,11 @@ void AMSJob::_ecalendjob(){
 void AMSJob::_trdendjob(){
 
 }
+
+void AMSJob::_richendjob(){
+  RichPMTsManager::Finish();
+}
+
 
 void AMSJob::_srdendjob(){
 
