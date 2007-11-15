@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.75 2007/10/02 16:06:46 mdelgado Exp $
+//  $Id: richrec.C,v 1.76 2007/11/15 17:01:47 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1678,7 +1678,7 @@ geant AMSRichRing::lgeff(AMSPoint r,
   static float LG_Tran,Eff_Area;
   static float bwd=0.04;
   static int first=1;
-
+/*
 #ifdef __AMSDEBUG__
   if(first){
     // Check the get_from_top stuff
@@ -1693,6 +1693,7 @@ geant AMSRichRing::lgeff(AMSPoint r,
 #else
 	integer wnd=RichPMTsManager::FindWindow(x,y);
 #endif
+
 	char c=32;
 
 	if(wnd>=0) c='A'+wnd; else c=' ';
@@ -1704,7 +1705,7 @@ geant AMSRichRing::lgeff(AMSPoint r,
   }
 
 #endif
-
+*/
 
 
 

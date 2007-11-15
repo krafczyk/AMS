@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.133 2007/11/12 10:10:03 choutko Exp $
+//  $Id: server.C,v 1.134 2007/11/15 17:01:48 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2003,6 +2003,36 @@ else{
 
 //Here read runfiletable
 if(RF){
+{
+//  create one dummy run
+   DPS::Producer::RunEvInfo  re;
+   re.Run=0;
+   re.FirstEvent=1;
+   re.LastEvent=2;
+   re.TFEvent=1;
+   re.TLEvent=2;
+   re.Priority=0;
+   re.DataMC=1;
+   re.Status=DPS::Producer::Foreign;
+   re.History=DPS::Producer::ToBeRerun;
+   re.cuid=0;
+   re.CounterFail=0;
+   re.FilePath="Dummy";
+   time_t tt;
+   time(&tt);
+   re.SubmitTime=tt; 
+   re.cinfo.Run=re.Run;
+   re.cinfo.EventsProcessed=0;
+   re.cinfo.LastEventProcessed=0;
+   re.cinfo.ErrorsFound=0;
+   re.cinfo.CriticalErrorsFound=0;
+   re.cinfo.CPUTimeSpent=0;
+   re.cinfo.TimeSpent=0;
+   re.cinfo.Status=re.Status;
+   re.cinfo.HostName=" ";
+   DPS::Producer::RunEvInfo_var vre= new DPS::Producer::RunEvInfo(re);
+   _rl.push_back(vre); 
+ }   
  ifstream fbin;
  fbin.open(RF);
  if(fbin){

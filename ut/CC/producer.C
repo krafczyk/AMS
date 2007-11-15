@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.102 2007/06/14 14:24:41 choutko Exp $
+//  $Id: producer.C,v 1.103 2007/11/15 17:01:47 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -113,9 +113,15 @@ void AMSProducer::sendid(){
     _pid.Mips=AMSCommonsI::getmips();
     cout <<"  Mips:  "<<_pid.Mips<<endl;
     bool ok=SetDataCards();
+    if(AMSJob::isRealData()){
+     _pid.StatusType=DPS::Producer::Permanent;
+    }
+    else{
+     _pid.StatusType=DPS::Producer::OneRunOnly;
+    }
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
-      _pid.StatusType=DPS::Producer::OneRunOnly;
+//      _pid.StatusType=DPS::Producer::OneRunOnly;
       LMessage(AMSClient::print(_pid,"JobStarted"));
       if(!ok ){
        cerr<<" AMSProducer::sendid-F-UnableToSetDataCards "<<endl;

@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.71 2007/10/02 16:06:46 mdelgado Exp $
+//  $Id: mccluster.C,v 1.72 2007/11/15 17:01:47 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "trid.h"
@@ -712,7 +712,7 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
   //  return u1*current.getsped(mode)+current.getped(mode);
 
 #ifdef __AMSDEBUG__
-  cout <<"Returning "<<u1<<" limit at "<<current.getsped(mode)*current.getthreshold(mode) <<endl;
+  //cout <<"Returning "<<u1<<" limit at "<<current.getsped(mode)*current.getthreshold(mode) <<endl;
 #endif
 
   AMSgObj::BookTimer.stop("SIRINoise");
