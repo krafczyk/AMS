@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.189 2007/10/01 13:30:52 choumilo Exp $
+//  $Id: amsgeom.C,v 1.190 2007/11/20 17:06:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1919,12 +1919,23 @@ ostrstream ost(name,sizeof(name));
           nrm[1][1]=-1;
           nrm[2][2]= 1;
          }
+#ifdef __AMSDEBUG__
+         if(TKDBc::nsen(i+1,j+1)==TKDBc::nhalf(i+1,j+1) ||
+          TKDBc::nhalf(i+1,j+1)==0){
+          if(par[0]!=0){
+           cout << i+1<<" "<<j+1<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<nrm[0][0]<<endl;
+          }
+         }
+#endif
       //
       //  Ladder 
       //
         gid=i+1+10*(j+1)+100000;
         integer status=1;
         int rgid;
+        if(!par[0]>0){
+          status=0;
+        }
         if(TKDBc::update())TKDBc::SetLadder(i,j,k,status,coo,nrm,gid);
         else               TKDBc::GetLadder(i,j,k,status,coo,nrm,rgid);
         //        if(i==5){

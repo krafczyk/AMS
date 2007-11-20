@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.501 2007/11/14 16:19:47 mdelgado Exp $
+// $Id: job.C,v 1.502 2007/11/20 17:06:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -450,8 +450,8 @@ TRMCFFKEY.day[0]=1;
 TRMCFFKEY.day[1]=1;
 TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
-TRMCFFKEY.year[0]=101;
-TRMCFFKEY.year[1]=110;
+TRMCFFKEY.year[0]=102;
+TRMCFFKEY.year[1]=120;
 TRMCFFKEY.GenerateConst=0;
 TRMCFFKEY.WriteHK=0;
 TRMCFFKEY.thr1R[0]=-2.75;
