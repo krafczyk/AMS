@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.33 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: trigger102.C,v 1.34 2007/11/22 17:13:58 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -23,7 +23,7 @@ using namespace ecalconst;
  Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
  integer TGL1JobStat::countev[20];
  integer TGL1JobStat::daqc1[15];
- int16u Trigger2LVL1::nodeids[2]={4,5};//node addr for side a/b (tempor)
+ int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side a/b (tempor)
 //
 void Trigger2LVL1::build(){
 //build lvl1-obj for MC; Complete(+rebuild) lvl1 for RealData.
@@ -878,8 +878,10 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   int scalbias(2);//tempor bias to scalers data(...)
 //
   TGL1JobStat::daqs1(0);//count entries
+p=p-1;
   jleng=*p;//fragment's 1st word(block length excluding length-word itself)
   jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
+cout <<" triggerlvl1 found "<<jleng<<" "<<jblid<<endl;
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error

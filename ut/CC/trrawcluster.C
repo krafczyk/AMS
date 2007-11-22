@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.66 2007/11/22 16:34:28 choutko Exp $
+//  $Id: trrawcluster.C,v 1.67 2007/11/22 17:13:58 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -283,7 +283,7 @@ int16u AMSTrRawCluster::getdaqid(int i){
    case 3:
       return 1;
    case 0:
-      return 2;
+      return 3;
    case 1:
       return 9;
    case 4:
@@ -463,7 +463,7 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   cout <<"  crate "<<ic<<" found"<<endl;
   int leng=0;
   int16u * ptr;
-  
+ return; 
   for(ptr=p+1;ptr<p+n-1;ptr+=leng+3){      // cluster length > 1 
      leng=(*ptr)&63;
           int16 sn=(((*ptr)>>6)&63);
