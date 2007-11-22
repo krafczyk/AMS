@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.72 2006/01/25 11:21:36 choumilo Exp $
+//  $Id: event.h,v 1.73 2007/11/22 16:34:38 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -281,7 +281,7 @@ inline void printH(){
 }
 static AMSID getTDVStatus();
 // Interface with DAQ
-static int16u  getdaqid(int btype){return 0x200 | btype <<13;}
+static int16u  getdaqid(int btype){return 5 | btype <<5| 1<<15;}
 static integer checkdaqid(int16u id);
 static int16u  getdaqidSh(){return 1 | 14<<9;}
 static integer checkdaqidSh(int16u id);

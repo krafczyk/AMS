@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.79 2007/11/12 10:10:00 choutko Exp $
+//  $Id: daqevt.C,v 1.80 2007/11/22 16:34:27 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -90,11 +90,85 @@ void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,uinteger
   }
 }
 
-#ifdef __AMS02DAQ__
-const integer DAQEvent::_OffsetL=0;
-#else
+const char* DAQEvent::_PortNamesJ[32] = {
+    "JINFT2", "JINFT3", "JINFU1", "JINFT0",
+    "SDR-1A", "SDR-1B", "SDR-0A", "SDR-0B",
+    "JINFU0", "JINFT1", "JINFR0", "JINFR1",
+    "JINFE0", "JINFE1", "JLV1-A", "JLV1-B",
+    "JINFT4", "JINFT5", "SDR-2A", "SDR-2B",
+    "SDR-3A", "SDR-3B", "JINFT6", "JINFT7",
+    "     ",  "      ", "      ", "      ",
+    "     ", "     ", "     ", "      "
+};
+
+const char* DAQEvent::_NodeNames[512]={
+    "JMDC-0", "JMDC-1", "JMDC-2", "JMDC-3", "JMDC-0", "JMDC-1", "JMDC-2", "JMDC-3",     // 000 - 007
+    "JMDC-0", "JMDC-1", "JMDC-2", "JMDC-3", "JMDC-0", "JMDC-1", "JMDC-2", "JMDC-3",     // 008 - 015
+    "JMDC-H", "JMDC-L", "JMDC-D", "JMDC-M", "N-X014", "N-X015", "ACOP_N", "JMDC-A",     // 016 - 023
+    "CAB-A",  "CAB-B",  "CAB-P",  "CAB-S",  "CCEB-A", "CCEB-B", "CCEB-P", "CCEB-S",     // 024 - 031
+    "EPD-0A", "EPD-0B", "EPD-0P", "EPD-0S", "EPD-1A", "EPD-1B", "EPD-1P", "EPD-1S",     // 032 - 039
+    "JPD-A",  "JPD-B",  "JPD-P",  "JPD-S",  "MPD-A",  "MPD-B",  "MPD-P",  "MPD-S",      // 040 - 047
+    "PDS-A",  "PDS-B",  "PDS-P",  "PDS-S",  "RPD-0A", "RPD-0B", "RPD-0P", "RPD-0S",     // 048 - 055
+    "RPD-1A", "RPD-1B", "RPD-1P", "RPD-1S", "SPD-0A", "SPD-0B", "SPD-0P", "SPD-0S",     // 056 - 063
+    "SPD-1A", "SPD-1B", "SPD-1P", "SPD-1S", "SPD-2A", "SPD-2B", "SPD-2P", "SPD-2S",     // 064 - 071
+    "SPD-3A", "SPD-3B", "SPD-3P", "SPD-3S", "TPD-0A", "TPD-0B", "TPD-0P", "TPD-0S",     // 072 - 079
+    "TPD-1A", "TPD-1B", "TPD-1P", "TPD-1S", "TPD-2A", "TPD-2B", "TPD-2P", "TPD-2S",     // 080 - 087
+    "TPD-3A", "TPD-3B", "TPD-3P", "TPD-3S", "TPD-4A", "TPD-4B", "TPD-4P", "TPD-4S",     // 088 - 095
+    "TPD-5A", "TPD-5B", "TPD-5P", "TPD-5S", "TPD-6A", "TPD-6B", "TPD-6P", "TPD-6S",     // 096 - 103
+    "TPD-7A", "TPD-7B", "TPD-7P", "TPD-7S", "TTCE-A", "TTCE-B", "TTCE-P", "TTCE-S",     // 104 - 111
+    "UPD-0A", "UPD-0B", "UPD-0P", "UPD-0S", "UPD-1A", "UPD-1B", "UPD-1P", "UPD-1S",     // 112 - 119
+    "UGPD-A", "UGPD-B", "UGPD-P", "UGPD-S", "CAB-A",  "CAB-B",  "CAB-P",  "CAB-S",      // 120 - 127
+    "JINJ-0", "JINJ-1", "JINJ-2", "JINJ-3", "JINJ-P", "JINJ-S", "JINJ-T", "JINJ-Q",     // 128 - 135
+    "JLV1-A", "JLV1-B", "JLV1-P", "JLV1-S", "ETRG0A", "ETRG0B", "ETRG0P", "ETRG0S",     // 136 - 143
+    "ETRG1A", "ETRG1B", "ETRG1P", "ETRG1S", "N-X094", "N-X095", "JF-E0A", "JF-E0B",     // 144 - 151
+    "JF-E0P", "JF-E0S", "JF-E1A", "JF-E1B", "JF-E1P", "JF-E1S", "JF-R0A", "JF-R0B",     // 152 - 159
+    "JF-R0P", "JF-R0S", "JF-R1A", "JF-R1B", "JF-R1P", "JF-R1S", "JF-T0A", "JF-T0B",     // 160 - 167
+    "JF-T0P", "JF-T0S", "JF-T1A", "JF-T1B", "JF-T1P", "JF-T1S", "JF-T2A", "JF-T2B",     // 168 - 175
+    "JF-T2P", "JF-T2S", "JF-T3A", "JF-T3B", "JF-T3P", "JF-T3S", "JF-T4A", "JF-T4B",     // 176 - 183
+    "JF-T4P", "JF-T4S", "JF-T5A", "JF-T5B", "JF-T5P", "JF-T5S", "JF-T6A", "JF-T6B",     // 184 - 191
+    "JF-T6P", "JF-T6S", "JF-T7A", "JF-T7B", "JF-T7P", "JF-T7S", "JF-U0A", "JF-U0B",     // 192 - 199
+    "JF-U0P", "JF-U0S", "JF-U1A", "JF-U1B", "JF-U1P", "JF-U1S", "EDR00A", "EDR00B",     // 200 - 207
+    "EDR00P", "EDR01A", "EDR01B", "EDR01P", "EDR02A", "EDR02B", "EDR02P", "EDR03A",     // 208 - 215
+    "EDR03B", "EDR03P", "EDR04A", "EDR04B", "EDR04P", "EDR05A", "EDR05B", "EDR05P",     // 216 - 223
+    "EDR10A", "EDR10B", "EDR10P", "EDR11A", "EDR11B", "EDR11P", "EDR12A", "EDR12B",     // 224 - 231
+    "EDR12P", "EDR13A", "EDR13B", "EDR13P", "EDR14A", "EDR14B", "EDR14P", "EDR15A",     // 232 - 239
+    "EDR15B", "EDR15P", "RDR00A", "RDR00B", "RDR01A", "RDR01B", "RDR02A", "RDR02B",     // 240 - 247
+    "RDR03A", "RDR03B", "RDR04A", "RDR04B", "RDR05A", "RDR05B", "RDR10A", "RDR10B",     // 248 - 255
+    "RDR11A", "RDR11B", "RDR12A", "RDR12B", "RDR13A", "RDR13B", "RDR14A", "RDR14B",     // 256 - 263
+    "RDR15A", "RDR15B", "SDR-0A", "SDR-0B", "SDR-0P", "SDR-0S", "SDR-1A", "SDR-1B",     // 264 - 271
+    "SDR-1P", "SDR-1S", "SDR-2A", "SDR-2B", "SDR-2P", "SDR-2S", "SDR-3A", "SDR-3B",     // 272 - 279
+    "SDR-3P", "SDR-3S", "TDR00A", "TDR00B", "TDR01A", "TDR01B", "TDR02A", "TDR02B",     // 280 - 287
+    "TDR03A", "TDR03B", "TDR04A", "TDR04B", "TDR05A", "TDR05B", "TDR06A", "TDR06B",     // 288 - 295
+    "TDR07A", "TDR07B", "TDR08A", "TDR08B", "TDR09A", "TDR09B", "TDR0AA", "TDR0AB",     // 296 - 303
+    "TDR0BA", "TDR0BB", "TDR10A", "TDR10B", "TDR11A", "TDR11B", "TDR12A", "TDR12B",     // 304 - 311
+    "TDR13A", "TDR13B", "TDR14A", "TDR14B", "TDR15A", "TDR15B", "TDR16A", "TDR16B",     // 312 - 319
+    "TDR17A", "TDR17B", "TDR18A", "TDR18B", "TDR19A", "TDR19B", "TDR1AA", "TDR1AB",     // 320 - 327
+    "TDR1BA", "TDR1BB", "TDR20A", "TDR20B", "TDR21A", "TDR21B", "TDR22A", "TDR22B",     // 328 - 335
+    "TDR23A", "TDR23B", "TDR24A", "TDR24B", "TDR25A", "TDR25B", "TDR26A", "TDR26B",     // 336 - 343
+    "TDR27A", "TDR27B", "TDR28A", "TDR28B", "TDR29A", "TDR29B", "TDR2AA", "TDR2AB",     // 344 - 351
+    "TDR2BA", "TDR2BB", "TDR30A", "TDR30B", "TDR31A", "TDR31B", "TDR32A", "TDR32B",     // 352 - 359
+    "TDR33A", "TDR33B", "TDR34A", "TDR34B", "TDR35A", "TDR35B", "TDR36A", "TDR36B",     // 360 - 367
+    "TDR37A", "TDR37B", "TDR38A", "TDR38B", "TDR39A", "TDR39B", "TDR3AA", "TDR3AB",     // 368 - 375
+    "TDR3BA", "TDR3BB", "TDR40A", "TDR40B", "TDR41A", "TDR41B", "TDR42A", "TDR42B",     // 376 - 383
+    "TDR43A", "TDR43B", "TDR44A", "TDR44B", "TDR45A", "TDR45B", "TDR46A", "TDR46B",     // 384 - 391
+    "TDR47A", "TDR47B", "TDR48A", "TDR48B", "TDR49A", "TDR49B", "TDR4AA", "TDR4AB",     // 392 - 399
+    "TDR4BA", "TDR4BB", "TDR50A", "TDR50B", "TDR51A", "TDR51B", "TDR52A", "TDR52B",     // 400 - 407
+    "TDR53A", "TDR53B", "TDR54A", "TDR54B", "TDR55A", "TDR55B", "TDR56A", "TDR56B",     // 408 - 415
+    "TDR57A", "TDR57B", "TDR58A", "TDR58B", "TDR59A", "TDR59B", "TDR5AA", "TDR5AB",     // 416 - 423
+    "TDR5BA", "TDR5BB", "TDR60A", "TDR60B", "TDR61A", "TDR61B", "TDR62A", "TDR62B",     // 424 - 431
+    "TDR63A", "TDR63B", "TDR64A", "TDR64B", "TDR65A", "TDR65B", "TDR66A", "TDR66B",     // 432 - 439
+    "TDR67A", "TDR67B", "TDR68A", "TDR68B", "TDR69A", "TDR69B", "TDR6AA", "TDR6AB",     // 440 - 447
+    "TDR6BA", "TDR6BB", "TDR70A", "TDR70B", "TDR71A", "TDR71B", "TDR72A", "TDR72B",     // 448 - 455
+    "TDR73A", "TDR73B", "TDR74A", "TDR74B", "TDR75A", "TDR75B", "TDR76A", "TDR76B",     // 456 - 463
+    "TDR77A", "TDR77B", "TDR78A", "TDR78B", "TDR79A", "TDR79B", "TDR7AA", "TDR7AB",     // 464 - 471
+    "TDR7BA", "TDR7BB", "UDR00A", "UDR00B", "UDR00P", "UDR01A", "UDR01B", "UDR01P",     // 472 - 479
+    "UDR02A", "UDR02B", "UDR02P", "UDR03A", "UDR03B", "UDR03P", "UDR04A", "UDR04B",     // 480 - 487
+    "UDR04P", "UDR05A", "UDR05B", "UDR05P", "UDR10A", "UDR10B", "UDR10P", "UDR11A",     // 488 - 495
+    "UDR11B", "UDR11P", "UDR12A", "UDR12B", "UDR12P", "UDR13A", "UDR13B", "UDR13P",     // 496 - 503
+    "UDR14A", "UDR14B", "UDR14P", "UDR15A", "UDR15B", "UDR15P", "N-X1FE", "N-X1FF",     // 504 - 511
+};
+
 const integer DAQEvent::_OffsetL=1;
-#endif
 char ** DAQEvent::ifnam=0;
 integer DAQEvent::InputFiles=0;
 integer DAQEvent::KIFiles=0;
@@ -180,23 +254,84 @@ if(_create(btype) ){
 }
 }
 
- 
+uinteger DAQEvent::_cl(int16u *pdata){
+const  int16u lmask=0x8000; 
+const int16u hmask=lmask-1;
+uinteger len=(*pdata)&lmask?*(pdata+1)|(((*pdata)&hmask)<<16): *(pdata);
+len/=sizeof(pdata[0]);
+ return len+_OffsetL;
+}
+
+bool    DAQEvent::_isddg(int16u id){
+#ifdef __AMSDEBUG__
+cout <<"DAQEvent::_isddg-I-"<<id<<" "<<(id&31)<<" "<<((id>>5)&((1<<9)-1))<<" "<<(id>>14)<<endl;
+#endif
+// accordig x.cai
+if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=128 && (id>>14)==2)return true;
+else return false;
+}
+
+
+
+bool    DAQEvent::_isjinj(int16u id){
+if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
+else return false;
+}
+
+bool    DAQEvent::_isjinf(int16u id){
+if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=150 && ((id>>5)&((1<<9)-1))<=205 && (id>>14)==2)return true;
+else return false;
+}
+
+uinteger DAQEvent::_GetBlType(){
+uinteger type=(*(_pData+_cll(_pData)))&31;
+//cout <<" type "<<*(_pData+_cl(_pData))<<" "<<_cll(_pData)<<" "<<type<<endl;
+if(type==5)return 0;
+else return type;
+}
+
+integer DAQEvent::_cll(int16u *pdata){
+const  int16u lmask=0x8000; 
+if(pdata){
+ return (*pdata) & lmask?2:1;
+}
+return 0;
+}
+integer DAQEvent::getpreset(int16u *pdata){
+const  int16u lmask=0x8000; 
+const int16u rtype=0x1f;
+integer offset=5;
+integer nodetype=1;
+if(pdata && _cl(pdata)>4){
+ if (*pdata & lmask){
+  offset++;
+  nodetype=2;
+ }
+ if((pdata[nodetype]&rtype) == rtype ){
+   offset++;
+ }
+ return offset;
+}
+else return 0;
+
+}
 
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
+  int preset=getpreset(_pData); 
+  int ntot=0;
   if(_Length >1 && _pData ){
-     integer ntot=0;
-     _pcur=_pData+2;
-     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL) {
-      ntot+=*(_pcur)+_OffsetL;
+     integer ntot=preset;
+     for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur)) {
+      ntot+=_cl(_pcur);
      }
-    if(ntot != _Length-2){             //  ?  I don't know
+    if(ntot != _Length){            
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
-         _Length<<" Blocks say length is "<<ntot+2<<endl;
+         _Length<<" Blocks say length is "<<ntot<<endl;
        cerr <<" SubBlock dump follows"<<endl;
-     _pcur=_pData+2;
-     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
-       cerr <<" ID " <<*(_pcur+1)<<" Length "<< *(_pcur)+_OffsetL<<endl;
+     _pcur=_pData+preset;
+     for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur))
+       cerr <<" ID " <<*(_pcur+1)<<" Length "<< _cl(_pcur)<<endl;
       if(!fbin.good()){
         cerr<<" DAQEvent::_Eventok-S-HardError,CouldNotReadFile"<<endl;
       }
@@ -282,9 +417,9 @@ integer DAQEvent::_EventOK(){
 }
 
 integer DAQEvent::_HeaderOK(){
-  for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
-    if(AMSEvent::checkdaqid(*(_pcur+1))){
-      AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
+  for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
+    if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
+      AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
     if (AMSJob::gethead()->isMonitoring()) {
      if (Time_1 != 0 && _usec > Time_1) {
@@ -295,9 +430,15 @@ integer DAQEvent::_HeaderOK(){
      Time_1 = _usec;
     }      
 #ifdef __AMSDEBUG__
-      //cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
-      //cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
+      cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
+      cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
+       time_t tmin=1180000000;
+       if(_Time<tmin){
+         cerr <<"DAQEvent::_HeaderOK-E-TimeProbles-Resetting "<<ctime(&_Time)<<endl;
+         _Time=tmin;
+       }
+ 
       // fix against event 0
       if(_Event==0)return 0;
             
@@ -308,25 +449,70 @@ integer DAQEvent::_HeaderOK(){
  return 0;
 }
 
+integer DAQEvent::_DDGSBOK(){
+  for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
+    if(_isddg(*(_pcur+_cll(_pcur)))){
+      if(!_isjinj(*(_pcur+_cll(_pcur))) && !_isjinf(*(_pcur+_cll(_pcur))) ){
+        cerr<<"DAQEvent::_DDGSBOK-E-XDRModeNotYetImplemented "<<_getnodename(*(_pcur+_cll(_pcur)))<<endl;
+        return 0;
+      }
+      int16u event=*(_pcur+_cll(_pcur)+1);
+      if(event !=  (_Event&((1<<16)-1))){
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
+       return 0;
+      }
+      int ntot=0;
+      for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2;p+=*p+1){
+        ntot+=*p+1;
+#ifdef __AMSDEBUG__
+        int16u port=_getportj(*(p+*p));
+        int16u status=(*(p+*p))>>5;
+     if(_isjinj(*(_pcur+_cll(_pcur)))){
+        cout <<"  JINJ Port "<<port <<" "<<_PortNamesJ[port]<<"  Length "<<*p<<" Status "<<status<<endl;
+     }
+     else if(_isjinf(*(_pcur+_cll(_pcur)))){
+        cout <<"  JINF Port "<<port <<" "<<"  Length "<<*p<<" Status "<<status<<endl;
+     }
+#endif
+      }
+      if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
+        cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<_cl(_pcur)<<endl;
+        return 0;
+      }
+  break;
+ }
+}
+return 1;
+}
+
 
   
 
 
 void DAQEvent::buildRawStructures(){
 #ifdef __AMS02DAQ__
-  if(_Checked ||(_EventOK()==1 && (_HeaderOK()))){
+  if(_Checked ||(_EventOK()==1 && (_HeaderOK()) && _DDGSBOK()) ){
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
-   for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
-    for(int16u * pdown=_pcur+1;pdown<_pcur+*_pcur+_OffsetL;pdown=pdown+*pdown){
-    if(fpl->_pgetid(*(pdown+*(pdown+*pdown-1)))){
-     int16u *psafe=pdown+1;
-     fpl->_pputdata(*pdown,psafe);
+   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur=_pcur+_cl(_pcur)){
+    int16u id=*(_pcur+_cll(_pcur));
+    if(_isjinj(id)){
+     for(int16u * pdown=_pcur+_cll(_pcur)+2;pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
+     if(fpl->_pgetid(_getportj(*(pdown+*pdown)))){
+      int16u *psafe=pdown+1;
+      fpl->_pputdata(*pdown,psafe);
+     }
     }
-   }
-   }
-   fpl=fpl->_next; 
-   }
+    }
+    else{    // normal data if any...
+     if(fpl->_pgetid(*(_pcur+_cll(_pcur)))){
+      int16u *psafe=_pcur+_cll(_pcur);
+      fpl->_pputdata(_cl(_pcur)-1,psafe);
+    }
+    }
+    }
+    fpl=fpl->_next; 
+    }
   }
 #else
   if(_Checked ||(_EventOK()==1 && (_HeaderOK()))){
@@ -408,18 +594,8 @@ integer DAQEvent::read(){
      int16u l16[2];
      fbin.read(( char*)(l16),sizeof(l16));
      _convertl(l16[0]);
-     //_Length=l16[0]+_OffsetL;
-     // get more length (if any)
      _convertl(l16[1]);
-//     _Length= _Length | ((l16[1] & 63)<<16);
-      if(l16[0] & (1<<15)){
-       _Length=l16[1]+_OffsetL;
-       _Length=_Length | ((l16[0] & 32767)<<16);
-      }
-      else{
-       _Length=l16[0]+_OffsetL;
-      }
-     //cout <<" Length "<<_Length<<endl;
+     _Length=_cl(l16);
 
     if(fbin.eof()){
       integer Run,Event;
@@ -436,17 +612,8 @@ integer DAQEvent::read(){
        cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
        fbin.read(( char*)(l16),sizeof(l16));
        _convertl(l16[0]);
-//       _Length=l16[0]+_OffsetL;
        _convertl(l16[1]);
-//       _Length= _Length | ((l16[1] & 63)<<16);
-      if(l16[0] & (1<<15)){
-       _Length=l16[1]+_OffsetL;
-       _Length=_Length | ((l16[0] & 32767)<<16);
-      }
-      else{
-       _Length=l16[0]+_OffsetL;
-      }
-       //cout <<" Length "<<_Length<<endl;
+       _Length=_cl(l16);
        break;
      }    
      else{
@@ -471,7 +638,7 @@ integer DAQEvent::read(){
      else break;
     }
     else break;  
-  }while(_EventOK()==0 || (_HeaderOK()==0 ));
+  }while(_EventOK()==0 || (_HeaderOK()==0 )|| _DDGSBOK()==0);
    return fbin.good() && !fbin.eof();
 }
 

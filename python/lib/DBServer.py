@@ -5,7 +5,7 @@ ORBit.load_file('/usr/include/server.idl')
 import CORBA
 from DBSQLServer import DBSQLServer
 class DBServer:
-    fields={'cid':None,'start':None,'ac':None,'orb':None,'root_poa':None,'mypoadbserver':None,'myref':None,'myior':None,'arsref':[],'arpref':[],'nhl':None,'ahls':None,'acl':None,'aml':None,'asl':None,'adbsl':None,'acl_maxc':0,'aml_maxc':0,'asl_maxc':0,'adbsl_maxc':0,'nsl':None,'ncl':None,'nkl':None,'rtb':None,'rtb_maxr':None,'dsti':None,'dsts':None,'db':None,'env':None,'rn':None,'dbfile':None,'ok':0}
+    fields={'cid':None,'start':None,'ac':None,'orb':None,'root_poa':None,'mypoadbserver':None,'myref':None,'myior':None,'arsref':[],'arpref':[],'nhl':None,'ahls':None,'acl':None,'aml':None,'asl':None,'adbsl':None,'acl_maxc':0,'aml_maxc':0,'asl_maxc':0,'adbsl_maxc':0,'nsl':None,'ncl':None,'nkl':None,'rtb':None,'rtb_maxr':None,'dsti':None,'dsts':None,'db':None,'env':None,'rn':None,'dbfile':None,'ok':0,'rundummy':None}
     def __init__(self,ior):
         if(ior == None):
             #start server
@@ -23,11 +23,27 @@ class DBServer:
             (length,ars)=self.tm.getARS(self.cid,self.tm.Any,0,1)
             self.iorp=self.orb.string_to_object(ars[0].IOR)
             self.UpdateEverything()
+    def CreateRun(self,run,fevent,levent,tfevent,tlevent,priority,datamc,path):
+        self.dummyrun.Run=run
+        self.dummyrun.FirstEvent=fevent
+        self.dummyrun.LastEvent=levent
+        self.dummyrun.TFEvent=tfevent
+        self.dummyrun.TLEvent=tlevent
+        self.dummyrun.Priority=priority
+        self.dummyrun.DataMC=datamc
+        self.dummyrun.filepath=path
+        try:
+            self.iorp.sendrunevinfo(self.dummyrun,self.tm.Crate)
+            return 1
+        except: CORBA.SYSTEM_EXCEPTION, e:
+            print "Unable to create run ",e
+            return 0
+        
     def UpdateEverything(self):
 	(length,self.dsts)=self.iorp.getDSTS(self.cid)
         maxr=1000
         (length,self.rtb,maxrun1)=self.iorp.getRunEvInfoS(self.cid,maxr)
-
+        self.rundummy=self.rtb[0]
     def ct(self,status):
         if status==self.iorp.Ntuple:
             return "Ntuple"

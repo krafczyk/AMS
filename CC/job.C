@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.502 2007/11/20 17:06:21 choutko Exp $
+// $Id: job.C,v 1.503 2007/11/22 16:34:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3013,9 +3013,11 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
    tm begin=AMSmceventg::Orbit.End;
    tm end=AMSmceventg::Orbit.Begin;
+    if(strstr(getsetup(),"AMSSHUTTLE") ){    
    TID.add (new AMSTimeID(AMSID("MagnetTemperature",isRealData()),
                          begin,end,
                          MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp(),server));
+    }
    
 }
 //-----------------------------
@@ -3024,9 +3026,11 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
    tm begin=AMSmceventg::Orbit.End;
    tm end=AMSmceventg::Orbit.Begin;
+    if(strstr(getsetup(),"AMSSHUTTLE") ){    
      TID.add (new AMSTimeID(AMSID("ScalerN",isRealData()),
                          begin,end,
                          Trigger2LVL1::getscalerssize(),(void*)Trigger2LVL1::getscalersp(),server));
+    }
    
 }
 //-----------------------------
@@ -3042,9 +3046,11 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
+    if(strstr(getsetup(),"AMSSHUTTLE") ){    
   TID.add (new AMSTimeID(AMSID("ShuttlePar",isRealData()),
                          begin,end,
                          sizeof(AMSEvent::Array),(void*)AMSEvent::Array,server));
+   }
 }
 
 
@@ -3643,25 +3649,27 @@ else {
 
 if(DAQCFFKEY.LCrateinDAQ){
 //           tracker reduced
-
+/*
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidCompressed,&AMSTrRawCluster::buildrawCompressed);
+*/
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
+
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 
 
 
     //Tracker ped/sigma etc ( "Event" mode)
-
+/*
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
+*/
 
-
-}   
+}  
 
 
 if(DAQCFFKEY.LCrateinDAQ ){

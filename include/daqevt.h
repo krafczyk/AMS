@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.30 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: daqevt.h,v 1.31 2007/11/22 16:34:38 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -66,12 +66,33 @@ time_t _Time;
 uinteger _usec;
 int16u *  _pcur;
 int16u * _pData;
+static const char *_NodeNames[512];
+static const char *_PortNamesJ[32];
 static DAQSubDet * _pSD[nbtps];
 static DAQBlockType * _pBT[nbtps];
 static const integer _OffsetL;
+integer _DDGSBOK();
 integer _EventOK();
+integer getpreset(int16u *pdata);
+uinteger _cl(int16u *pdata);
+integer _cll(int16u *pdata);  // calculate length of length !!!
+integer _getnode(int16u id){
+   return ((id>>5)&((1<<9)-1));
+}
+const char *  _getnodename(int16u id){
+   return _NodeNames[((id>>5)&((1<<9)-1))];
+}
+integer _getportj(int16u id){
+   return id&0x1F;
+}
+const char *  _getportnamej(int16u id){
+   return _PortNamesJ[(id&0x1F)];
+}
+bool    _isddg(int16u id);       //  identify the detector data group sub block
+bool    _isjinj(int16u id);       //  identify the detector data group sub block
+bool    _isjinf(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();
-uinteger _GetBlType(){return _pData[1]>>13;}
+uinteger _GetBlType();
 void _convert();
 void _convertl(int16u & l16);
 integer _create(uinteger btype=0);

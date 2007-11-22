@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.471 2007/11/12 10:34:08 ams Exp $
+# $Id: RemoteClient.pm,v 1.472 2007/11/22 16:34:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -783,12 +783,20 @@ if($#{$self->{DataSetsT}}==-1){
      $dataset->{eventstodo} = 0;
      $dataset->{eventstotal} = 0;
      $dataset->{version}="v5";
+     $dataset->{datamc}=0;
      my @tmpa;
      $#tmpa=-1;
      opendir THISDIR, $newfile or die "unable to open $newfile";
      my @jobs=readdir THISDIR;
      closedir THISDIR;
 #     push @{$self->{DataSetsT}}, $dataset;
+     $dataset->{datamc}=0;
+     foreach my $job (@jobs){
+         if($job=~/^data=true/){
+             $dataset->{datamc}=1;
+         }
+     }
+     if(dataset->{datamc}==0){
      foreach my $job (@jobs){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
@@ -797,7 +805,7 @@ if($#{$self->{DataSetsT}}==-1){
       if($job =~ /\.job$/){
        if($job =~ /^\./){
             next;
-       }
+        }
        $nfiles++;
        my $template={};
        my $full="$newfile/$job";
@@ -923,7 +931,150 @@ if($#{$self->{DataSetsT}}==-1){
           }
    }
      } # end jobs of jobs
+ }
+     else{
+# here data type datasets
 
+
+     foreach my $job (@jobs){
+         if($job=~/^version=/){
+             my @vrs= split '=',$job;
+             $dataset->{version}=$vrs[1];
+         }
+      if($job =~ /\.job$/){
+       if($job =~ /^\./){
+            next;
+        }
+       $nfiles++;
+       my $template={};
+       my $full="$newfile/$job";
+       my $buf;
+       open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+       read(FILE,$buf,1638400) or next;
+       close FILE;
+       $td[3] = time();
+       $template->{filename}=$job;
+       my @sbuf=split "\n",$buf;
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX", "PART","OPENCLOSE","CPUPEREVENTPERGHZ");
+           foreach my $ent (@farray){
+            foreach my $line (@sbuf){
+               if($line =~/$ent=/){
+                   my @junk=split "$ent=",$line;
+                   $template->{$ent}=$junk[$#junk];
+                   $buf=~ s/$ent=/C $ent=/;
+                   last;
+               }
+            }
+        }
+           $template->{initok}=1;
+           foreach my $ent (@farray){
+             if(not defined $template->{$ent}){
+               $template->{initok}=undef;
+             }
+           }
+
+
+#
+# get no of events
+#
+# the idea is to first check openclose:  if 1:  open
+# then goto to the datafiles; collect number of events 
+# for the runs which have no corresponding ntuples in dataset with # sign... 
+#  if such run exists put total events;
+#   for the corresponding window put number of events fixed (10000000)
+#   but correctly count number of events according to the run info....
+#
+              my $datasetfound = 0;
+              foreach my $ds (@{$datasetsDB}){
+                my $datasetsDidDB  = $ds->[0];
+                my $datasetsNameDB = $ds->[1];
+               if ($datasetsNameDB eq $dataset->{name}) {
+                 $dataset->{did}=$datasetsDidDB;
+                  $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
+                  my $rtn1=$self->{sqlserver}->Query($sql);
+                   my $tm=time();
+                  $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
+                  my $rtn2=$self->{sqlserver}->Query($sql);
+#                 foreach my $job (@{$jobsDB}){
+#                   my $jobsJidDB     = $job->[0];
+#                   my $jobsTimeDB    = $job->[1];
+#                   my $jobsTrigDB    = $job->[2];
+#                   my $jobsTimeOutDB = $job->[3];
+#                   my $jobsDidDB     = $job->[4];
+#                   my $jobsNameDB    = $job->[5];
+#                   my $rtrig=$job->[6];
+#                   if ($jobsDidDB == $dataset->{did}) {
+#                     my @junk     = split '\.',$jobsNameDB;
+#                     my $jobname = $junk[2];
+#                     for my $n (3..$#junk) {
+#                         $jobname = $jobname.".".$junk[$n];
+#                     }
+#                         if ($jobname eq $template->{filename}) {
+#                            if(defined  $rtrig and $rtrig>0 ) {
+#                               $template->{TOTALEVENTS}-=$rtrig;
+#                              }
+#                             elsif(time()-$jobsTimeDB < $jobsTimeOutDB){
+#                             #$st[3]+=1;
+##
+## subtract allocated events
+#                             $template->{TOTALEVENTS}-=$jobsTrigDB;
+#                         }
+#                        } # $jobname eq %$template->{filename}
+#                  } # $jobsDidDB == $dataset->{did)
+#                 } # loop for all jobs started after ProductionSetStartTime
+               $datasetfound = 1;
+                 my $rtrig=$rtn1->[0][0];
+                 my $subm= $rtn2->[0][0];
+                 if(not defined $rtrig){
+                  $rtrig=0;
+                 }              
+                 if(not defined $subm){
+                  $subm=0;
+                 }              
+                 $template->{TOTALEVENTS}-= $rtrig+$subm;
+                 if($template->{TOTALEVENTS}<0){
+                     $template->{TOTALEVENTS}=0;
+                 }
+#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
+               last;
+             } # $datasetsNameDB eq $dataset->{name}
+            }
+
+           if ($datasetfound == 0) {  # new dataset
+               my $did = 1;
+               $sql = "SELECT MAX(did) From DataSets";
+               my $ret=$self->{sqlserver}->Query($sql);
+               if (defined $ret->[0][0]) {
+                   $did = $ret->[0][0]+1;
+               }
+               $dataset->{did}=$did;
+               my $timestamp = time();
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}')";
+               $self->{sqlserver}->Update($sql);
+               $sql="select did, name from DataSets";
+               $datasetsDB =$self->{sqlserver}->Query($sql);
+
+           }
+
+           $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+
+           if($sbuf[0] =~/^#/ && defined $template->{initok}){
+            $buf=~ s/#/C /;
+            $template->{filebody}=$buf;
+            my $desc=$sbuf[0];
+            substr($desc,0,1)=" ";
+            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
+            $dataset->{eventstodo} += $template->{TOTALEVENTS};
+            $dataset->{eventstotal} += $template->{TOTALEVENTSC};
+            if($template->{TOTALEVENTS}>1000){
+             push @tmpa, $template;
+         }
+          }
+   }
+     } # end jobs of jobs
+
+
+     }
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
@@ -3814,10 +3965,11 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $checked="";
                 }
 #                print "</b>";
-                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.00002 or  $dataset->{eventstodo}<1000){
+                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.00002 or  $dataset->{eventstodo}<1000 or ($dataset->{datamc}==1 and $self->{CCT} ne "local")){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
-                 } else {
+                 }
+                  else {
                     print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name}<BR>";
                  }
 #                print "</b></font></td></tr>";
@@ -11731,23 +11883,26 @@ sub getOutputPath {
 #
     my $self       = shift;
     my $period     = shift;
-
+    my $path=         shift;
     my $sql        = undef;
     my $ret        = undef;
     my $outputdisk = undef;
     my $outputpath = 'xyz';
     my $mtime      = 0;
     my $gb         = 0;
+    if(not defined $path){
+        $path='/MC';
+    }
 #
 $self->CheckFS(1);
 # get production set path
      my $tme=time();
      if($tme%2 ==0){ 
       $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE 
-                   status='Active' and isonline=1 ORDER BY priority DESC, available ";
+                   status='Active' and isonline=1 and path=$path ORDER BY priority DESC, available ";
      }
      else{
-     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE                    status='Active' and isonline=1 ORDER BY priority DESC, available DESC";
+     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE                    status='Active' and isonline=1 and path=$path ORDER BY priority DESC, available DESC";
 
      }
      $ret = $self->{sqlserver}->Query($sql);
@@ -14300,7 +14455,7 @@ sub CheckFS{
 #          Full     :  if < 3 GB left
 #         
 #  isonline: 1/0 
-#  return disk with highest available and online=1
+#  return disk with highest available and online=1 and path like requested
 #
            my $self=shift; 
            my $updatedb=shift;  
@@ -14309,12 +14464,17 @@ sub CheckFS{
            if(not defined $cachetime){
              $cachetime=60;
            }
-           my $sql="select disk from filesystems where isonline=1 and status='Active' order by available desc";
+           my $path=shift;
+           if(not defined $path){
+             $path='/MC';
+           }
+       
+           my $sql="select disk from filesystems where isonline=1 and status='Active' and path='$path' order by available desc";
            my $ret=$self->{sqlserver}->Query($sql);
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0]){
               return $ret->[0][0];
             }
-            $sql="select disk,host,status,allowed  from filesystems";
+            $sql="select disk,host,status,allowed  from filesystems where path='$path'";
             $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
 #
@@ -14397,7 +14557,7 @@ offline:
             }
              $self->{sqlserver}->Commit();
 
-          $sql="select disk from filesystems where isonline=1 and status='Active' order by available desc";
+          $sql="select disk from filesystems where isonline=1 and status='Active'  and path='$path' order by available desc";
            $ret=$self->{sqlserver}->Query($sql);
            return $ret->[0][0];
 

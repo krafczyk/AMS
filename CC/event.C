@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.346 2007/10/11 08:43:52 choutko Exp $
+//  $Id: event.C,v 1.347 2007/11/22 16:34:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2830,8 +2830,8 @@ void AMSEvent::buildraw(
     id=(*(p+6)) |  (*(p+5))<<16;
     time=(*(p+8)) |  (*(p+7))<<16;
     usec=(*(p+10)) |  (*(p+9))<<16;
-
-
+    const uinteger _OffsetT=0x12d53d80;
+    time+=_OffsetT;
 }
 
 void AMSEvent::buildrawSh(integer length, int16u *p){
@@ -2862,10 +2862,15 @@ void AMSEvent::buildrawSh(integer length, int16u *p){
 
 
 integer AMSEvent::checkdaqid(int16u id){
+for (int k=0;k<4;k++){
+ if(id==getdaqid(k))return k+1;
+}
+return 0;
+/*
 if(id==getdaqid(0))return 1;
 else if(id==getdaqid(4))return 5 ;
 else return 0;
-
+*/
 
 }
 

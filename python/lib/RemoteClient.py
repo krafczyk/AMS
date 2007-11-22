@@ -350,7 +350,7 @@ class RemoteClient:
             mutex.release()
         exitmutexes[fs].acquire()
 
-    def CheckFS(self,updatedb=0,cachetime=60):
+    def CheckFS(self,updatedb=0,cachetime=60,path='/MC'):
         #
         #  check  filesystems, update the tables accordingly if $updatedb is set
         #  status: Active  :  May be used 
@@ -358,13 +358,13 @@ class RemoteClient:
         #          Full     :  if < 3 GB left
         #         
         #  isonline: 1/0 
-        #  return disk with highest available and online=1
+        #  return disk with highest available and online=1 and path like req
         #
-           sql="select disk from filesystems where isonline=1 and status='Active' order by available desc"
+           sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
            ret=self.sqlserver.Query(sql);
            if(time.time()-cachetime < self.dbfsupdate() and len(ret)>0):
                return ret[0][0]
-           sql="select disk,host,status,allowed  from filesystems"
+           sql="select disk,host,status,allowed  from filesystems where path='%s'" %(path)
            ret=self.sqlserver.Query(sql);
            for fs in ret:
                #
@@ -423,7 +423,7 @@ class RemoteClient:
                    if updatedb>0:
                     self.sqlserver.Update(sql)
                     self.sqlserver.Commit()
-           sql="select disk from filesystems where isonline=1 and status='Active' order by available desc"
+           sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
            ret=self.sqlserver.Query(sql)
            return ret[0][0]
 
@@ -979,9 +979,9 @@ class RemoteClient:
         sql="SELECT myvalue FROM Environment WHERE mykey='ValidationDirPath'"
         return self.sqlserver.Query(sql)[0][0]
 
-    def ServerConnect(self):
+    def ServerConnect(self,datamc=0):
         try:
-            ior=self.getior()
+            ior=self.getior(datamc)
             self.dbclient=DBServer(ior)
             return 1
         except:
@@ -1076,16 +1076,16 @@ class RemoteClient:
         else:
             return self.trimblanks(junk[0]),None,None
        
-    def getOutputPath(self,period):
+    def getOutputPath(self,period,path='/MC'):
         #
         # select disk to be used to store ntuples
         #
         self.CheckFS(1)
         tme=int(time.time())
         if(tme%2 ==0):
-            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 ORDER BY priority DESC, available "
+            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path=%s ORDER BY priority DESC, available " %(path)
         else:
-            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 ORDER BY priority DESC, available DESC"
+            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path=%s ORDER BY priority DESC, available DESC" %(path)
         ret=self.sqlserver.Query(sql)
         for disk in ret:
             outputdisk=self.trimblanks(disk[0])
@@ -1938,4 +1938,97 @@ class RemoteClient:
 
                                     
                                 
+            
+    def TransferDataFiles(run2p,i,v,u,h,source,reader):
+        delay=86400
+        for file in os.listdir(source):
+            pfile=os.path.join(source,file)
+            writetime=os.stat(pfile)[ST_MTIME]
+            timenow=time.time()
+            if(timenow-writetime<delay):
+                continue
+            sql="select path from datafiles where path like '%"+file+"'"
+            ret=self.sqlserver.Query(sql);
+            if(len(ret[0][0])>0):
+               continue
+            ltdvo="./rfile.o"
+            try:
+                os.unlink(ltdvo);
+            except:
+                if(v):
+                    print " "
+            sysread=reader+ " > "+ltdvo
+            os.system(sysread)
+            fltdvo=open(ltdvo,'r')
+            good=0
+            crc=""
+            fevent=""
+            levent=""
+            events=""
+            size=""
+            tfevent=""
+            tlevent=""
+            for line in flrtdvo.readlines():
+                if(line.find("OK1")>=0):
+                    good=1
+                if(line.find("OK2")>=0):
+                    good=2
+                if(good>0):
+                    if(line.find("Run")>=0):
+                        run=line.split(" ")[1]
+                    elif(line.find("FEvent")>=0):
+                        fevent=line.split(" ")[1]
+                    elif(line.find("LEvent")>=0):
+                        levent=line.split(" ")[1]
+                    elif(line.find("TFEvent")>=0):
+                        tfevent=line.split(" ")[1]
+                    elif(line.find("TLEvent")>=0):
+                        tlevent=line.split(" ")[1]
+                    elif(line.find("Events")>=0):
+                        events=line.split(" ")[1]
+                    elif(line.find("Errors")>=0):
+                        errors=line.split(" ")[1]
+                    elif(line.find("crc")>=0):
+                        crc=line.split(" ")[1]
+                    elif(line.find("size")>=0):
+                        size=line.split(" ")[1]
+                    elif(line.find("time")>=0):
+                        rtime=line.split(" ")[1]
+            fltdvo.close()
+            if(len(size)>1 and len(crc)>1 and len(events)>1 and len(tlevent)>1 and len(tfevent)>1 and len(levent)>1 and len(fevent)>1 and len(run)>1 and len(rtime)>1):
+                (ret,outputpath)=self.doCopyRaw(run,file,path,int(crc))
+                if(ret==1):
+                    sql ="insert into datafiles values(%s,%s,'RawFile',0,%s,%s,%s,%s,%s,%s,'OK',%s,"",%s,%s,0,0,0)" %(run,version,fevent,levent,events,errors,timenow,size,outputpath,crc,rtime)
+                    self.sqlserver.Update(sql)
+                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
+                    if(suc==1):
+                        self.sqlserver.Commit(1)
+                    else:
+                        self.sqlserver.Commit(0)
+                    
+    def doCopyRaw(self,run,file,crc):
+        time0=time.time()
+        period=self.getActiveProductionPeriodRaw()
+        if(period ==None):
+            sys.exit("Cannot find Active Production Period for Raw Data")
+        filesize=os.stat(path)[ST_SIZE]
+        if(filesize>0):
+            period='/Raw/'+period
+            (outputpatha,gb,odisk,stime)=self.getOutputPath(period,'/Data')
+            outputpath=outputpatha[:]
+            if(outputpath.find('xyz')>=0 or gb==0):
+                sys.exit("doCopyRaw-F-CannotFindAnyDisk Exit")
+            cmd="mkdir -p "+outputpath
+            cmdstatus=os.system(cmd)
+            if(cmdstatus==0):
+                outputpath=outputpath+"/"+file
+                cmdstatus=self.copyFile(inputfile,outputpath)
+                if(cmdstatus==0):
+                    rstatus=self.calculateCRC(outputpath,crc)
+                    if(rstatus==1):
+                        return 1,odisk
+                    else:
+                        print "doCopyRaw-E-ErorrCRC ",rstatus
+                        return 0,odisk
+
             

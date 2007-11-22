@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.65 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trrawcluster.C,v 1.66 2007/11/22 16:34:28 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -277,9 +277,29 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 
 
 int16u AMSTrRawCluster::getdaqid(int i){
-  if (i<getmaxblocks())return ( (AMSTrIdSoft::CrateNo(i))<<6 | 11 <<9);
-  else return 0x0;
+ switch(i){
+   case 2:
+      return 0;
+   case 3:
+      return 1;
+   case 0:
+      return 2;
+   case 1:
+      return 9;
+   case 4:
+      return 16;
+   case 5:
+      return 17;
+   case 6:
+      return 22;
+   case 7:
+      return 23;
+   default:
+      return -1;
 }
+}
+
+ 
 int16u AMSTrRawCluster::getdaqidRaw(int i){
   if (i<getmaxblocks())return ( 1 | (AMSTrIdSoft::CrateNo(i))<<6 | 11 <<9);
   else return 0x0;
@@ -302,7 +322,7 @@ int16u AMSTrRawCluster::getdaqidCompressed(int i){
 
 integer AMSTrRawCluster::checkdaqid(int16u id){
  for(int i=0;i<getmaxblocks();i++){
-  if(id==getdaqid(i))return i+1;
+  if((id&31)==getdaqid(i))return i+1;
  }
  return 0;
 }
@@ -439,7 +459,8 @@ return l;
 
 
 void AMSTrRawCluster::buildraw(integer n, int16u *p){
-  integer ic=checkdaqid(*p)-1;
+  integer ic=checkdaqid(*(p-1+n))-1;
+  cout <<"  crate "<<ic<<" found"<<endl;
   int leng=0;
   int16u * ptr;
   
