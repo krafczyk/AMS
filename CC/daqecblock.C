@@ -18,8 +18,8 @@ int16u DAQECBlock::format=0; // default format (raw)
 //
 int16u DAQECBlock::nodeids[2*ecalconst::ECRT]=//valid EC_nodes(JINFs) id(link#)(*2 due to 2 halfs) 
   {
-    0,1, //  a-sides, crates 1->2 (tempor !!!) 
-    2,3  //  b-sides, ...........
+    12,13, //  a-sides, crates 1->2 (tempor !!!) 
+    12,13  //  b-sides, ...........
   };
 //
 integer DAQECBlock::totbll=0;

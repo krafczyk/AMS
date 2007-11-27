@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.12 2007/10/01 13:30:52 choumilo Exp $
+//  $Id: daqs2block.C,v 1.13 2007/11/27 10:52:42 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -27,8 +27,8 @@ int16u DAQS2Block::format=0; // default format (raw)
 //
 int16u DAQS2Block::nodeids[2*TOF2GC::SCCRAT]=//valid SC_node(SDR) id(link#)(*2 due to 2 halfs) 
   {
-    14,16,18,20, //  a-sides, crates 1->4 
-    15,17,19,21  //  b-sides, ...........
+    6,4,18,20, //  a-sides, crates 1->4 
+    7,5,19,21  //  b-sides, ...........
   };
 //
 integer DAQS2Block::totbll=0;
@@ -51,6 +51,9 @@ void DAQS2Block::node2crs(int16u nodeid, int16u &crat, int16u &sid){
 integer DAQS2Block::checkblockid(int16u blid){//have to be redefined !!!
   int valid(0);
   for(int i=0;i<2*TOF2GC::SCCRAT;i++)if((blid & (0x001F)) == nodeids[i])valid=1;
+#ifdef __AMSDEBUG__
+    cout << "icheckbl "<<blid << " "<<valid <<endl;
+#endif 
   return valid;
 }
 //-------------------------------------------------------

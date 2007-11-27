@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.80 2007/11/22 16:34:27 choutko Exp $
+//  $Id: daqevt.C,v 1.81 2007/11/27 10:52:42 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -499,12 +499,14 @@ void DAQEvent::buildRawStructures(){
     if(_isjinj(id)){
      for(int16u * pdown=_pcur+_cll(_pcur)+2;pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
      if(fpl->_pgetid(_getportj(*(pdown+*pdown)))){
+      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<endl;
       int16u *psafe=pdown+1;
       fpl->_pputdata(*pdown,psafe);
      }
     }
     }
-    else{    // normal data if any...
+    else if(_isddg(id)){    // normal data if any...
+     cerr <<"   not supported !!!! "<<endl;
      if(fpl->_pgetid(*(_pcur+_cll(_pcur)))){
       int16u *psafe=_pcur+_cll(_pcur);
       fpl->_pputdata(_cl(_pcur)-1,psafe);
