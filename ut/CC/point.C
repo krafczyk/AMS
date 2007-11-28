@@ -1,9 +1,10 @@
-//  $Id: point.C,v 1.8 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: point.C,v 1.9 2007/11/28 12:06:43 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
 #include "point.h"
-#include <math.h>
+#include <cmath>
+
 AMSPoint  AMSPoint::mm3(number m1[][3]){
    number x,y,z;
     x=m1[0][0]*_x+m1[0][1]*_y+m1[0][2]*_z;
@@ -53,3 +54,113 @@ AMSPoint AMSPoint::crossp(const AMSPoint & o){
  return AMSPoint(x,y,z);
 }
 
+
+AMSRotMat::AMSRotMat(number** nin){
+  for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      _nrm[ii][jj]=nin[ii][jj];
+
+}
+AMSRotMat::AMSRotMat(number nin[][3]){
+  
+   for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      _nrm[ii][jj]=nin[ii][jj];
+}
+
+
+AMSRotMat::AMSRotMat(const AMSRotMat& orig){
+  for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      _nrm[ii][jj]=orig._nrm[ii][jj];
+  
+}
+
+
+void AMSRotMat::Reset(){
+  for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      if(ii==jj) _nrm[ii][jj]=1;
+      else _nrm[ii][jj]=0;
+  
+}
+
+void AMSRotMat::SetMat(number** nin){
+  for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      _nrm[ii][jj]=nin[ii][jj];
+
+}
+void AMSRotMat::SetMat(number nin[][3]){
+  
+   for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      _nrm[ii][jj]=nin[ii][jj];
+}
+
+AMSRotMat& AMSRotMat::operator=(const AMSRotMat& orig){
+   for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      _nrm[ii][jj]=orig._nrm[ii][jj];
+  
+   return *this;
+}
+
+
+
+AMSRotMat& AMSRotMat::operator*(const AMSRotMat& orig){
+  number nrm2[3][3];
+  for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      nrm2[ii][jj]=
+	_nrm[ii][0]*orig._nrm[0][jj]+
+	_nrm[ii][1]*orig._nrm[1][jj]+
+	_nrm[ii][2]*orig._nrm[2][jj];
+  for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+       _nrm[ii][jj]=nrm2[ii][jj];
+  
+  return *this;
+}
+
+bool AMSRotMat::operator==(const AMSRotMat& orig){
+   for(int ii=0;ii<3;ii++)
+    for(int jj=0;jj<3;jj++)
+      if(_nrm[ii][jj]!=orig._nrm[ii][jj]) return 0;
+  
+   return 1;
+}
+
+AMSPoint operator*(const AMSRotMat& mat, const AMSPoint& Point){
+
+  AMSPoint out;
+  for(int ii=0;ii<3;ii++)
+    out[ii]=mat._nrm[ii][0]*Point._x+
+      mat._nrm[ii][1]*Point._y+
+      mat._nrm[ii][1]*Point._z;
+  return out;
+  
+}
+
+
+void AMSRotMat::XParity(){
+  number nn[3][3]={{-1,0,0},{0,1,0},{0,0,1}};
+  AMSRotMat aa(nn);
+  (*this)*aa;
+  return;
+}
+
+void AMSRotMat::YParity(){
+  number nn[3][3]={{1,0,0},{0,-1,0},{0,0,1}};
+  AMSRotMat aa(nn);
+  (*this)*aa;
+
+  return;
+}
+
+void AMSRotMat::ZParity(){
+  number nn[3][3]={{1,0,0},{0,1,0},{0,0,-1}};
+  AMSRotMat aa(nn);
+  (*this)*aa;
+  return;
+}

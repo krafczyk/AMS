@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.190 2007/11/20 17:06:18 choutko Exp $
+//  $Id: amsgeom.C,v 1.191 2007/11/28 12:06:43 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1503,7 +1503,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant rodh=2.;//rod int. hole diam
  geant rodpxy=52.8;//rod-end dist from MS-frame edge(intern.angle)
  geant rodpz=0;//rod z-pos wrt MS-frame top surface(<0 if below it)
- geant rodl=sqrt(2)*rodpxy-rodd-0.01;//rod length +safety margine
+ geant rodl=sqrt(2.)*rodpxy-rodd-0.01;//rod length +safety margine
  geant roda=45;//rod-rotation angle in xy-plane(only 45degr is supported !) 
  geant sinra=sin(roda/AMSDBc::raddeg);
  geant cosra=cos(roda/AMSDBc::raddeg);
