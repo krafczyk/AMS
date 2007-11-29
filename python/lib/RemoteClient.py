@@ -988,7 +988,7 @@ class RemoteClient:
             print "Problem to ConnectServer "
             return 0
     
-    def doCopy(self,run,inputfile,crc,version,outputpath):
+    def doCopy(self,run,inputfile,crc,version,outputpath,path='/MC'):
        time0=time.time()
        time00=0
        (dbv,gbv,osv)=self.getDSTVersion(version)
@@ -1007,7 +1007,7 @@ class RemoteClient:
                while(stime>60):
                    if(odisk!=None):
                        fsmutexes[odisk].release()
-                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period)
+                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period,path)
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
@@ -1057,7 +1057,74 @@ class RemoteClient:
            print "doCopy-E-cannot stat",inputfile
            self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
            return None,0,odisk
+
+
+
+    def doCopyRaw(self,run,inputfile,crc,path='/MC'):
+       time0=time.time()
+       time00=0
+#       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName(path)
+       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName("2006A")
+       if(period == None or prodstarttime==0):
+           sys.exit("Cannot find Active Production Period for path "+str(path))
+       self.doCopyCalls=self.doCopyCalls+1
+       junk=inputfile.split('/')
+       file=junk[len(junk)-1]
+       filesize=os.stat(inputfile)[ST_SIZE]
+       outputpath=None
+       if(filesize>0):
+           #get output disk
+           if(outputpath == None):
+               stime=100
+               odisk=None
+               while(stime>60):
+                   if(odisk!=None):
+                       fsmutexes[odisk].release()
+                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period,path)
+                   print "acquired:  ",outputpatha,gb,odisk,stime
+               outputpath=outputpatha[:]
+               if(outputpath.find('xyz')>=0 or gb==0):
+                   sys.exit("doCopy-F-CannotFindAnyDisk Exit")
+           else:
+               junk=outputpath.split('/')
+               odisk="/"+junk[1]
+               outputpath=""
+               for i in range (0,len(junk)-3):
+                   if(i>0):
+                       outputpath=outputpath+"/"
+                   outputpath=outputpath+junk[i]
+           dataset="RawData"
+           outputpath=outputpath+'/'+dataset
+           cmd="mkdir -p "+outputpath
+           cmdstatus=os.system(cmd)
+           if(cmdstatus==0):
+               outputpath=outputpath+"/"+file
+               cmdstatus=self.copyFile(inputfile,outputpath)
+               time00=time.time()
+               self.doCopyTime=self.doCopyTime+time00-time0
+               if(cmdstatus==0):
+                   rstatus=self.calculateCRC(outputpath,crc)
+                   if(rstatus==1):
+                       return outputpath,1,odisk
+                   else:
+                       print "doCopy-E-ErorrCRC ",rstatus
+                       self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
+                       return outputpath,0,odisk
+                   self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
+                   print "docopy-E-cannot ",cmd
+                   return outputpath,0,odisk
+               else:
+                   print "doCopy-E-cannot stat",inputfile
+                   self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
+                   return None,0,odisk
     
+    def getActiveProductionPeriodByName(self,name):
+       ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and name like '%"+name+"%'")
+       if(len(ret)>0):
+           return self.trimblanks(ret[0][0]),ret[0][1],ret[0][2]
+       else:
+          return None,0,0
+      
     def getActiveProductionPeriodByVersion(self,dbv):
        ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and vdb='"+dbv+"'")
        if(len(ret)>0):
@@ -1083,9 +1150,9 @@ class RemoteClient:
         self.CheckFS(1)
         tme=int(time.time())
         if(tme%2 ==0):
-            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path=%s ORDER BY priority DESC, available " %(path)
+            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         else:
-            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path=%s ORDER BY priority DESC, available DESC" %(path)
+            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
         ret=self.sqlserver.Query(sql)
         for disk in ret:
             outputdisk=self.trimblanks(disk[0])
@@ -1939,27 +2006,44 @@ class RemoteClient:
                                     
                                 
             
-    def TransferDataFiles(run2p,i,v,u,h,source,reader):
+    def TransferDataFiles(self,run2p,i,v,u,h,source):
+        self.v=v
+        self.BadCRC=[0]
+        self.CheckedDSTs=[0]
+        self.BadDSTs=[0]
+        self.GoodDSTs=[0]
+        self.BadDSTCopy=[0]
+        self.doCopyTime=0
+        self.doCopyCalls=0
+        self.fastntTime=0
+        self.fastntCalls=0
+        self.crcTime=0
+        self.crcCalls=0
+        self.copyTime=0
+        self.copyCalls=0
+        self.nCheckedCite=0
+        self.nBadCopiesInRow=0
+        self.CheckedRuns=[0]
+        self.GoodRuns=[0]
+        self.BadRuns=[0]
         delay=86400
-        for file in os.listdir(source):
-            pfile=os.path.join(source,file)
-            writetime=os.stat(pfile)[ST_MTIME]
+        joudir=source+"/jou";
+        for filej in os.listdir(joudir):
+            pfilej=os.path.join(joudir,filej)
+            if(filej.find(".jou")<0):
+                continue
+            writetime=os.stat(pfilej)[ST_MTIME]
             timenow=time.time()
-            if(timenow-writetime<delay):
+            file=filej.split(".jou")[0]
+            pfile=os.path.join(source,file)
+            if(not os.path.isfile(pfile)):
+                print "file not found ",pfile
                 continue
             sql="select path from datafiles where path like '%"+file+"'"
             ret=self.sqlserver.Query(sql);
-            if(len(ret[0][0])>0):
+            if(len(ret)>0):
                continue
-            ltdvo="./rfile.o"
-            try:
-                os.unlink(ltdvo);
-            except:
-                if(v):
-                    print " "
-            sysread=reader+ " > "+ltdvo
-            os.system(sysread)
-            fltdvo=open(ltdvo,'r')
+            fltdvo=open(pfilej,'r')
             good=0
             crc=""
             fevent=""
@@ -1968,67 +2052,51 @@ class RemoteClient:
             size=""
             tfevent=""
             tlevent=""
-            for line in flrtdvo.readlines():
-                if(line.find("OK1")>=0):
-                    good=1
-                if(line.find("OK2")>=0):
-                    good=2
-                if(good>0):
-                    if(line.find("Run")>=0):
-                        run=line.split(" ")[1]
-                    elif(line.find("FEvent")>=0):
-                        fevent=line.split(" ")[1]
-                    elif(line.find("LEvent")>=0):
-                        levent=line.split(" ")[1]
-                    elif(line.find("TFEvent")>=0):
-                        tfevent=line.split(" ")[1]
-                    elif(line.find("TLEvent")>=0):
-                        tlevent=line.split(" ")[1]
-                    elif(line.find("Events")>=0):
-                        events=line.split(" ")[1]
-                    elif(line.find("Errors")>=0):
-                        errors=line.split(" ")[1]
-                    elif(line.find("crc")>=0):
-                        crc=line.split(" ")[1]
-                    elif(line.find("size")>=0):
-                        size=line.split(" ")[1]
-                    elif(line.find("time")>=0):
-                        rtime=line.split(" ")[1]
+            path=""
+            errors=""
+            timestamp=""
+            tag=""
+            run=""
+            version=""
+            for linea in fltdvo.readlines():
+                line=linea.split('\n')[0]
+                if(line.find("Run")>=0):
+                    run=line.split("=")[1]
+                elif(line.find("FEvent")>=0):
+                    fevent=line.split("=")[1]
+                elif(line.find("LEvent")>=0):
+                    levent=line.split("=")[1]
+                elif(line.find("TFevent")>=0):
+                    tfevent=line.split("=")[1]
+                elif(line.find("TLevent")>=0):
+                    tlevent=line.split("=")[1]
+                elif(line.find("Version")>=0):
+                    version=line.split("=")[1]
+                elif(line.find("NEvent")>=0):
+                    events=line.split("=")[1]
+                elif(line.find("NError")>=0):
+                    errors=line.split("=")[1]
+                elif(line.find("CRC")>=0):
+                    crc=line.split("=")[1]
+                elif(line.find("Size")>=0):
+                    size=line.split("=")[1]
+                elif(line.find("Timestamp")>=0):
+                    rtime=line.split("=")[1]
+                elif(line.find("Path")>=0):
+                    path=line.split("=")[1]
+                elif(line.find("Tag")>=0):
+                    tag=line.split("=")[1]
             fltdvo.close()
             if(len(size)>1 and len(crc)>1 and len(events)>1 and len(tlevent)>1 and len(tfevent)>1 and len(levent)>1 and len(fevent)>1 and len(run)>1 and len(rtime)>1):
-                (ret,outputpath)=self.doCopyRaw(run,file,path,int(crc))
+                (ret,outputpath)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                 if(ret==1):
-                    sql ="insert into datafiles values(%s,%s,'RawFile',0,%s,%s,%s,%s,%s,%s,'OK',%s,"",%s,%s,0,0,0)" %(run,version,fevent,levent,events,errors,timenow,size,outputpath,crc,rtime)
+                    sql ="insert into datafiles values(%s,%s,'RawFile',0,%s,%s,%s,%s,%s,%s,'OK',%s,"",%s,%s,0,0,0,%s)" %(run,version,fevent,levent,events,errors,timenow,size,outputpath,crc,rtime,tag)
                     self.sqlserver.Update(sql)
-                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
-                    if(suc==1):
-                        self.sqlserver.Commit(1)
-                    else:
-                        self.sqlserver.Commit(0)
+#                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
+#                    if(suc==1):
+#                        self.sqlserver.Commit(1)
+#                    else:
+#                        self.sqlserver.Commit(0)
                     
-    def doCopyRaw(self,run,file,crc):
-        time0=time.time()
-        period=self.getActiveProductionPeriodRaw()
-        if(period ==None):
-            sys.exit("Cannot find Active Production Period for Raw Data")
-        filesize=os.stat(path)[ST_SIZE]
-        if(filesize>0):
-            period='/Raw/'+period
-            (outputpatha,gb,odisk,stime)=self.getOutputPath(period,'/Data')
-            outputpath=outputpatha[:]
-            if(outputpath.find('xyz')>=0 or gb==0):
-                sys.exit("doCopyRaw-F-CannotFindAnyDisk Exit")
-            cmd="mkdir -p "+outputpath
-            cmdstatus=os.system(cmd)
-            if(cmdstatus==0):
-                outputpath=outputpath+"/"+file
-                cmdstatus=self.copyFile(inputfile,outputpath)
-                if(cmdstatus==0):
-                    rstatus=self.calculateCRC(outputpath,crc)
-                    if(rstatus==1):
-                        return 1,odisk
-                    else:
-                        print "doCopyRaw-E-ErorrCRC ",rstatus
-                        return 0,odisk
 
             

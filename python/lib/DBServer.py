@@ -32,12 +32,11 @@ class DBServer:
         self.dummyrun.Priority=priority
         self.dummyrun.DataMC=datamc
         self.dummyrun.filepath=path
-        try:
-            self.iorp.sendrunevinfo(self.dummyrun,self.tm.Crate)
-            return 1
-        except: CORBA.SYSTEM_EXCEPTION, e:
-            print "Unable to create run ",e
-            return 0
+        self.iorp.sendrunevinfo(self.dummyrun,self.tm.Crate)
+        return 1
+#        except: CORBA.SYSTEM_EXCEPTION, e:
+#            print "Unable to create run ",e
+#            return 0
         
     def UpdateEverything(self):
 	(length,self.dsts)=self.iorp.getDSTS(self.cid)
