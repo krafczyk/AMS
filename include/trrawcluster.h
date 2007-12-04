@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.28 2005/05/17 09:56:37 pzuccon Exp $
+//  $Id: trrawcluster.h,v 1.29 2007/12/04 18:29:59 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -59,7 +59,7 @@ static void sitkdigi();
 
  // Interface with DAQ
 
- static int16u getdaqid(int i);
+ static int16 getdaqid(int i);
  static integer checkdaqid(int16u id);
  static integer calcdaqlength(integer i);
  static int16u getdaqidRaw(int i);

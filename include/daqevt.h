@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.31 2007/11/22 16:34:38 choutko Exp $
+//  $Id: daqevt.h,v 1.32 2007/12/04 18:29:59 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -76,14 +76,14 @@ integer _EventOK();
 integer getpreset(int16u *pdata);
 uinteger _cl(int16u *pdata);
 integer _cll(int16u *pdata);  // calculate length of length !!!
-integer _getnode(int16u id){
+static integer _getnode(int16u id){
    return ((id>>5)&((1<<9)-1));
 }
-const char *  _getnodename(int16u id){
+static const char *  _getnodename(int16u id){
    return _NodeNames[((id>>5)&((1<<9)-1))];
 }
 integer _getportj(int16u id){
-   return id&0x1F;
+   return (id&0x1F);
 }
 const char *  _getportnamej(int16u id){
    return _PortNamesJ[(id&0x1F)];
@@ -91,6 +91,8 @@ const char *  _getportnamej(int16u id){
 bool    _isddg(int16u id);       //  identify the detector data group sub block
 bool    _isjinj(int16u id);       //  identify the detector data group sub block
 bool    _isjinf(int16u id);       //  identify the detector data group sub block
+bool    _isjlvl1(int16u id);       //  identify the detector data group sub block
+bool    _issdr(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();
 uinteger _GetBlType();
 void _convert();
@@ -113,6 +115,7 @@ uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0){}
+static bool ismynode(int16u id,char * sstr){return _getnode(id)>127 && strstr(_getnodename(id),sstr);}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}
