@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.34 2007/11/22 17:13:58 choutko Exp $
+//  $Id: trigger102.C,v 1.35 2007/12/04 18:29:52 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -878,8 +878,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   int scalbias(2);//tempor bias to scalers data(...)
 //
   TGL1JobStat::daqs1(0);//count entries
-p=p-1;
-  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
+  p=p-1;
+  jleng=len;//fragment's 1st word(block length excluding length-word itself)
   jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
 cout <<" triggerlvl1 found "<<jleng<<" "<<jblid<<endl;
 //
@@ -1242,7 +1242,10 @@ return k;
 //------------- DAQ interface: --------------
 integer Trigger2LVL1::checkdaqid(int16u blid){
   int valid(0);
-  for(int i=0;i<2;i++)if((blid & (0x001F)) == nodeids[i])valid=1;
+  for(int i=0;i<2;i++)if(blid  == nodeids[i])valid=1;
+  if(valid==0){
+   return DAQEvent::ismynode(blid,"JLV1")?1:0;
+  } 
   return valid;
 }
 void Trigger2LVL1::node2side(int16u nodeid, int16u &side){

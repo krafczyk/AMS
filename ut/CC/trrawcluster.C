@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.67 2007/11/22 17:13:58 choutko Exp $
+//  $Id: trrawcluster.C,v 1.68 2007/12/04 18:29:52 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -276,7 +276,7 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 }
 
 
-int16u AMSTrRawCluster::getdaqid(int i){
+int16 AMSTrRawCluster::getdaqid(int i){
  switch(i){
    case 2:
       return 0;
@@ -298,6 +298,7 @@ int16u AMSTrRawCluster::getdaqid(int i){
       return -1;
 }
 }
+
 
  
 int16u AMSTrRawCluster::getdaqidRaw(int i){
@@ -322,7 +323,12 @@ int16u AMSTrRawCluster::getdaqidCompressed(int i){
 
 integer AMSTrRawCluster::checkdaqid(int16u id){
  for(int i=0;i<getmaxblocks();i++){
-  if((id&31)==getdaqid(i))return i+1;
+  if((id)==getdaqid(i))return i+1;
+ }
+ for(int i=0;i<getmaxblocks();i++){
+  char sstr[128];
+  sprintf(sstr,"JF-T%d",i);
+  if(DAQEvent::ismynode(id,sstr))return i+1; 
  }
  return 0;
 }

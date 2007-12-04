@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.81 2007/11/27 10:52:42 choutko Exp $
+//  $Id: daqevt.C,v 1.82 2007/12/04 18:29:52 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -118,7 +118,7 @@ const char* DAQEvent::_NodeNames[512]={
     "TPD-7A", "TPD-7B", "TPD-7P", "TPD-7S", "TTCE-A", "TTCE-B", "TTCE-P", "TTCE-S",     // 104 - 111
     "UPD-0A", "UPD-0B", "UPD-0P", "UPD-0S", "UPD-1A", "UPD-1B", "UPD-1P", "UPD-1S",     // 112 - 119
     "UGPD-A", "UGPD-B", "UGPD-P", "UGPD-S", "CAB-A",  "CAB-B",  "CAB-P",  "CAB-S",      // 120 - 127
-    "JINJ-0", "JINJ-1", "JINJ-2", "JINJ-3", "JINJ-P", "JINJ-S", "JINJ-T", "JINJ-Q",     // 128 - 135
+    "JINJ-0", "JINJ-1", "JINJ-2", "JINJ-3", "JINJ-P", "JINJ-S", "JINJ-T", "JINJ-Q",     // 128 - 135
     "JLV1-A", "JLV1-B", "JLV1-P", "JLV1-S", "ETRG0A", "ETRG0B", "ETRG0P", "ETRG0S",     // 136 - 143
     "ETRG1A", "ETRG1B", "ETRG1P", "ETRG1S", "N-X094", "N-X095", "JF-E0A", "JF-E0B",     // 144 - 151
     "JF-E0P", "JF-E0S", "JF-E1A", "JF-E1B", "JF-E1P", "JF-E1S", "JF-R0A", "JF-R0B",     // 152 - 159
@@ -210,6 +210,7 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
 
 
 void DAQEvent::buildDAQ(uinteger btype){
+return;
 DAQBlockType *fpl=_pBT[btype];
 if(fpl == NULL && btype){
   static int init=0;
@@ -257,7 +258,7 @@ if(_create(btype) ){
 uinteger DAQEvent::_cl(int16u *pdata){
 const  int16u lmask=0x8000; 
 const int16u hmask=lmask-1;
-uinteger len=(*pdata)&lmask?*(pdata+1)|(((*pdata)&hmask)<<16): *(pdata);
+uinteger len=(*pdata)&lmask?(*(pdata+1)|(((*pdata)&hmask)<<16))+sizeof(pdata[0]): *(pdata);
 len/=sizeof(pdata[0]);
  return len+_OffsetL;
 }
@@ -280,6 +281,16 @@ else return false;
 
 bool    DAQEvent::_isjinf(int16u id){
 if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=150 && ((id>>5)&((1<<9)-1))<=205 && (id>>14)==2)return true;
+else return false;
+}
+
+bool    DAQEvent::_issdr(int16u id){
+if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>>14)==2)return true;
+else return false;
+}
+
+bool    DAQEvent::_isjlvl1(int16u id){
+if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=137 && ((id>>5)&((1<<9)-1))<=140 && (id>>14)==2)return true;
 else return false;
 }
 
@@ -434,8 +445,13 @@ integer DAQEvent::_HeaderOK(){
       cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
        time_t tmin=1180000000;
+       time_t tmax=1280000000;
        if(_Time<tmin){
-         cerr <<"DAQEvent::_HeaderOK-E-TimeProbles-Resetting "<<ctime(&_Time)<<endl;
+         cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
+         _Time=tmin;
+       }
+       if(_Time>tmax){
+         cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
          _Time=tmin;
        }
  
@@ -452,10 +468,7 @@ integer DAQEvent::_HeaderOK(){
 integer DAQEvent::_DDGSBOK(){
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(_isddg(*(_pcur+_cll(_pcur)))){
-      if(!_isjinj(*(_pcur+_cll(_pcur))) && !_isjinf(*(_pcur+_cll(_pcur))) ){
-        cerr<<"DAQEvent::_DDGSBOK-E-XDRModeNotYetImplemented "<<_getnodename(*(_pcur+_cll(_pcur)))<<endl;
-        return 0;
-      }
+      if(_isjinj(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
       if(event !=  (_Event&((1<<16)-1))){
        cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
@@ -467,21 +480,57 @@ integer DAQEvent::_DDGSBOK(){
 #ifdef __AMSDEBUG__
         int16u port=_getportj(*(p+*p));
         int16u status=(*(p+*p))>>5;
-     if(_isjinj(*(_pcur+_cll(_pcur)))){
-        cout <<"  JINJ Port "<<port <<" "<<_PortNamesJ[port]<<"  Length "<<*p<<" Status "<<status<<endl;
-     }
-     else if(_isjinf(*(_pcur+_cll(_pcur)))){
-        cout <<"  JINF Port "<<port <<" "<<"  Length "<<*p<<" Status "<<status<<endl;
-     }
+         cout <<"  JINJ Port "<<port <<" "<<_PortNamesJ[port]<<"  Length "<<*p<<" Status "<<status<<endl;
 #endif
-      }
+     }
       if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
-        cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<_cl(_pcur)<<endl;
+        cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<ntot<<endl;
         return 0;
       }
-  break;
- }
-}
+   }
+   else if(_isjlvl1(*(_pcur+_cll(_pcur)))){
+      int16u event=*(_pcur+_cll(_pcur)+1);
+      if(event !=  (_Event&((1<<16)-1))){
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
+       return 0;
+      }
+#ifdef __AMSDEBUG__
+         int16u status=(*(_pcur+_cl(_pcur))-1)>>5;
+         cout <<"  JLV1 Port "<<_getnodename(*(_pcur+_cll(_pcur))) <<" "<<"  Length "<<_cl(_pcur)<<" Status "<<status<<endl;
+#endif
+   }
+   else if(_isjinf(*(_pcur+_cll(_pcur)))){
+      int16u event=*(_pcur+_cll(_pcur)+1);
+      if(event !=  (_Event&((1<<16)-1))){
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
+       return 0;
+      }
+#ifdef __AMSDEBUG__
+         int16u status=(*(_pcur+_cl(_pcur))-1)>>5;
+         cout <<"  JINF Port "<<_getnodename(*(_pcur+_cll(_pcur))) <<" "<<"  Length "<<_cl(_pcur)<<" Status "<<status<<endl;
+#endif
+      int ntot=0;
+      for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2;p+=*p+1){
+        ntot+=*p+1;
+#ifdef __AMSDEBUG__
+        int16u port=_getportj(*(p+*p));
+        int16u status=(*(p+*p))>>5;
+         cout <<"  JINF Port "<<port <<"  Length "<<*p<<" Status "<<status<<endl;
+#endif
+     }
+      if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
+        cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<ntot<<endl;
+        return 0;
+      }
+
+
+   }
+   else{
+        cerr<<"DAQEvent::_DDGSBOK-E-XDRModeNotYetImplemented "<<_getnodename(*(_pcur+_cll(_pcur)))<<endl;
+        return 0;
+   }
+  }
+  }
 return 1;
 }
 
@@ -504,6 +553,20 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(*pdown,psafe);
      }
     }
+    }
+    else if(_isjlvl1(id)){
+     if(fpl->_pgetid(id)){
+      int16u *pdown=_pcur+_cll(_pcur)+2;
+      int16u *psafe=pdown;
+      fpl->_pputdata(_cl(_pcur)-_cll(_pcur)-2-1,psafe);
+     }
+    }
+    else if(_isjinf(id)){
+     if(fpl->_pgetid(id)){
+      int16u *pdown=_pcur+_cll(_pcur)+2;
+      int16u *psafe=pdown;
+      fpl->_pputdata(_cl(_pcur)-_cll(_pcur)-2-1,psafe);
+     }
     }
     else if(_isddg(id)){    // normal data if any...
      cerr <<"   not supported !!!! "<<endl;
@@ -829,9 +892,10 @@ _BufferOwner=1;
 _BufferLock=1;
 }
 if(_pData){
- _pData[0]=(_Length-_OffsetL)%65536;
- _pData[1]=(btype<<13) | (_Length-_OffsetL)/65536;  // Event ID
- _pcur=_pData+2;
+//   This is for daq creation only, skip for the moment
+// _pData[0]=(_Length-_OffsetL)%65536;
+// _pData[1]=(btype<<13) | (_Length-_OffsetL)/65536;  // Event ID
+// _pcur=_pData+2;
 }
 return _pData != NULL ;
 }
