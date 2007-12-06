@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.347 2007/11/22 16:34:27 choutko Exp $
+//  $Id: event.C,v 1.348 2007/12/06 13:31:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -413,7 +413,7 @@ AMSUser::InitRun();
 
 void AMSEvent::_siamsinitevent(){
  TOF2DBc::debug=0;
- AMSBitstr::setclkphase();//set trig.electronics clock-pulse phase
+ AMSBitstr::setclkphase();//set trig.electronics clock-pulse phases for JLV1 and SPT2
  _sitofinitevent();
  _siantiinitevent();
  _siecalinitevent();
@@ -791,6 +791,7 @@ void AMSEvent::_sitrdinitevent(){
 //--------------
 void AMSEvent::_sitofinitevent(){
   int il;
+  geant dummy(-1);
   AMSNode *ptr;
   integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
 //
@@ -818,6 +819,12 @@ void AMSEvent::_sitofinitevent(){
       }
     }
   }
+//---> set T0's for SFET(A)'s TDCs (desincr. withing its CC(11bits) ovfl-period 2048*25ns=51200ns):
+    for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
+      for(int sf=0;sf<TOF2GC::SCFETA;sf++){
+        TOF2Tovt::TofATdcT0[cr][sf]=2048*number(TOF2DBc::tdcbin(3))*number(RNDM(dummy));//ns
+      }
+    }
 //
 }
 

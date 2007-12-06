@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.14 2007/07/12 07:31:41 choumilo Exp $
+//  $Id: ecid.h,v 1.15 2007/12/06 13:31:22 choumilo Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include "typedefs.h"
@@ -90,7 +90,7 @@ static void inittable();
 static int16u hwseqn(int16u crat, int16u slot, int16u rdch);
 static int16u swseqn(int16u slay, int16u tube, int16u pix, int16u gn);
 static integer hw2swid(int16u crate, int16u slot, int16u rdch);
-static int16 crdid2sl(int16u side, int16u crdid);
+static int16 crdid2sl(int16u &side, int16u crdid);
 };
 
 

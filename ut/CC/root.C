@@ -2398,7 +2398,8 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
 
   swid=ptr->_swid;
-  hwid=ptr->_hwid;
+  hwidt=ptr->_hwidt;
+  for(int i=0; i<4; i++)hwidq[i]=ptr->_hwidq[i];
   nftdc=ptr->_nftdc;
   for(int i=0; i<nftdc; i++)ftdc[i]=ptr->_ftdc[i];
   nstdc=ptr->_nstdc;

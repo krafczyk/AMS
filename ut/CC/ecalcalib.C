@@ -818,6 +818,7 @@ void ECREUNcalib::mfit(){
   char inum[11];
   char in[2]="0";
 //
+  cout<<endl<<"====> Starting ECREUNcalib::mfit...."<<endl<<endl;
   strcpy(inum,"0123456789");
   npmx=ECALDBc::slstruc(4);//numb.of PM's/sl
   refsl=ECCAFFKEY.refpid/100;// <=====Ref.PM(counting from 1->9 and 1->36)
@@ -958,9 +959,9 @@ void ECREUNcalib::mfit(){
 //
 // ------------> check that ref.pm OK (pm & sc  eff. are reasonable):
 //
-  cout<<"ECREUNcalib:: RefPM: SL="<<refsl<<" PM="<<refpm<<" Crossings :"<<tevpmc[pmslr]<<endl;
-  cout<<"Crossings in 4-subc: "<<tevsbc[pmslr][0]<<" "<<tevsbc[pmslr][1]                    
-                            <<" "<<tevsbc[pmslr][2]<<" "<<tevsbc[pmslr][3]<<endl;
+  cout<<"      ECREUNcalib:: RefPM: SL="<<refsl<<" PM="<<refpm<<" Crossings :"<<tevpmc[pmslr]<<endl;
+  cout<<"      Crossings in 4-subc: "<<tevsbc[pmslr][0]<<" "<<tevsbc[pmslr][1]                    
+                                     <<" "<<tevsbc[pmslr][2]<<" "<<tevsbc[pmslr][3]<<endl;
   bad=0;
   if(tevpmc[pmslr]>5.){
     for(i=0;i<4;i++){
@@ -973,7 +974,7 @@ void ECREUNcalib::mfit(){
   }
   else bad=1;
   if(bad){
-    cout<<"ECREUNcalib: Problem with reference PM, no calibration done..."<<endl;
+    cout<<"<---- ECREUNcalib: Problem with reference PM, no calibration done..."<<endl;
     return;
   }
   cout<<endl<<endl;
@@ -997,7 +998,7 @@ void ECREUNcalib::mfit(){
         else pxstat[i][j]=90;//unusable subc(very low eff or statistics)
       }
       if(pxstat[i][j]==90)
-          cout<<"ECREUNcalib:unusable SubCell!!,sl="<<sl<<" pm="<<pm<<" sc="<<j<<endl;
+          cout<<"   <--ECREUNcalib:unusable SubCell!!,sl="<<sl<<" pm="<<pm<<" sc="<<j<<endl;
       if(pxstat[i][j]>=0){
         sum4+=sbcres[i][j];
 	nof4+=1;
@@ -1060,7 +1061,7 @@ void ECREUNcalib::mfit(){
     ier=0;
     MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
     if(ier!=0){
-      cout<<"ECREUN-calib: Param-init problem for par-id="<<pnam[i]<<'\n';
+      cout<<"<---- ECREUN-calib: Param-init problem for par-id="<<pnam[i]<<'\n';
       exit(10);
     }
     argl[0]=number(i+1);
@@ -1068,7 +1069,7 @@ void ECREUNcalib::mfit(){
       ier=0;
       MNEXCM(mfun,"FIX",argl,1,ier,0);
       if(ier!=0){
-        cout<<"ECREUN-calib: Param-fix problem for par-id="<<pnam[i]<<'\n';
+        cout<<"<---- ECREUN-calib: Param-fix problem for par-id="<<pnam[i]<<'\n';
         exit(10);
       }
     }
@@ -1122,7 +1123,7 @@ void ECREUNcalib::mfit(){
       }
       if((pm==1 || pm==17 || pm==(npmx-2))){// <---- fit for monitored PM's
         if(nbins>(ECCLBMX-2)){//<-- do fit if have enough bins
-          cout<<"Start uniformity-fit for sl/pm="<<sl<<" "<<pm<<" nbins="<<nbins<<endl;
+          cout<<"   -->Start uniformity-fit for sl/pm="<<sl<<" "<<pm<<" nbins="<<nbins<<endl;
           i=0;//<--- reinit for param #1 with realistic value from 1st bin
 	  start[i]=values[0];
           strcpy(pnm,pnam[i]);
@@ -1130,43 +1131,43 @@ void ECREUNcalib::mfit(){
           argl[0]=number(0);
           MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
           if(ier!=0){
-            cout<<"ECREUN-calib: Param-ReInit problem for param="<<pnam[i]<<'\n';
+            cout<<"<---- ECREUN-calib: Param-ReInit problem for param="<<pnam[i]<<'\n';
             exit(10);
           }
           argl[0]=0.;
           ier=0;
           MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
           if(ier!=0){
-            cout<<"ECREUN-calib: MINIMIZE problem !"<<'\n';
+            cout<<"      ECREUN-calib: MINIMIZE problem !"<<'\n';
             continue;
           }  
           MNEXCM(mfun,"MINOS",argl,0,ier,0);
           if(ier!=0){
-            cout<<"ECREUN-calib: MINOS problem !"<<'\n';
+            cout<<"      ECREUN-calib: MINOS problem !"<<'\n';
             continue;
           }
           argl[0]=number(3);
           ier=0;
           MNEXCM(mfun,"CALL FCN",argl,1,ier,0);
           if(ier!=0){
-            cout<<"ECREUN-calib: final CALL_FCN problem !"<<'\n';
+            cout<<"      ECREUN-calib: final CALL_FCN problem !"<<'\n';
             continue;
           }
-          cout<<"fit OK"<<endl<<endl;
+          cout<<"-->>> fit OK <<<--"<<endl<<endl;
         }//--> end of fit
 	else{
-	  cout<<"SL/PM="<<sl<<" "<<pm<<" not enought lbins to fit!, nbins="<<nbins<<endl; 
+	  cout<<"      SL/PM="<<sl<<" "<<pm<<" not enought lbins to fit!, nbins="<<nbins<<endl; 
 	}
       }//--> endif of monitored pm
     }//---> end of pm loop
   }//--->end of sl loop
   cout<<endl<<endl;
-  cout<<"REUN(FIAT)-calibration: nfits="<<nfits<<endl;
+  cout<<"   <--REUN(FIAT)-calibration: nfits="<<nfits<<endl;
   if(nfits>0){
     slslow/=number(nfits);
     slfast/=number(nfits);
     fastfr/=number(nfits);
-    cout<<" slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl;
+    cout<<"      slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl;
   }
 //
 // ----------------> calc. PM relative gains (wrt ref.PM):
@@ -1177,7 +1178,7 @@ void ECREUNcalib::mfit(){
     cout<<"PM-rel-gain calibr: ref.PM events/averresp="<<pmcrs[pmslr]<<" "<<avr<<endl;
   }
   else{
-    cout<<"No PM-rel-gain calibr. done(PM-ref low stat) "<<pmcrs[pmslr]<<endl;
+    cout<<"<---- No PM-rel-gain calibr. done(PM-ref low stat) "<<pmcrs[pmslr]<<endl;
     return; 
   }
   geant glscan[ECSLMX],gtscan[ECPMSMX];
@@ -1206,7 +1207,7 @@ void ECREUNcalib::mfit(){
     if(nlscan>0)glscan[sl]/=geant(nlscan);
   }
   if(ECREFFKEY.reprtf[0]!=0)HPAK(ECHISTC+13,glscan);
-  cout<<"totr1/totr2="<<totr1<<" "<<totr2<<" tote1/2="<<tote1<<" "<<tote2<<endl;
+  cout<<"      totr1/totr2="<<totr1<<" "<<totr2<<" tote1/2="<<tote1<<" "<<tote2<<endl;
 //
 // ---------> print PM rel.gains:
 //
@@ -1355,8 +1356,9 @@ void ECREUNcalib::mfit(){
 //  
   char fname[80];
   char frdate[30];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
   integer cfvn;
   uinteger StartRun;
   time_t StartTime;
@@ -1365,21 +1367,6 @@ void ECREUNcalib::mfit(){
 //--> create RLGA output file(PM/SubCell rel.gains,Hi2Low-ratios,An2Dyn-ratios):
 // 
   integer endfm(12345);
-  strcpy(inum,"0123456789");
-  cfvn=ECCAFFKEY.cfvers%1000;
-  strcpy(fname,"ecalrlga");
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
 //
 //--> get run/time of the first event
 //
@@ -1387,15 +1374,27 @@ void ECREUNcalib::mfit(){
   StartTime=AMSEcalRawEvent::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
+  strcpy(fname,"EcalRlga");
+  if(AMSJob::gethead()->isMCData()){
+    strcat(fname,vers1);
+    sprintf(fext,"%d",(ECMCFFKEY.calvern+1));//MC-versn
+  }
+  else{
+    strcat(fname,vers2);
+    sprintf(fext,"%d",StartRun);//hope it is start-run UTC
+  }
+  strcat(fname,".");
+  strcat(fname,fext);
+//
     ofstream tcfile(fname,ios::out|ios::trunc);
     if(!tcfile){
-      cerr<<"ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
+      cerr<<"<---- ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
       exit(8);
     }
-    cout<<"Open file for RLGA-calibration output, fname:"<<fname<<endl;
-    cout<<" First run used for calibration is "<<StartRun<<endl;
-    cout<<" Date of the first event : "<<frdate<<endl;
-    cout<<"Pixels status will be written !"<<endl;
+    cout<<"      Opening file for RLGA-calibration output, fname:"<<fname<<endl;
+    cout<<"      First run used for calibration is "<<StartRun<<endl;
+    cout<<"      Date of the first event : "<<frdate<<endl;
+    cout<<"      Pixels status will be written !"<<endl;
     tcfile.setf(ios::fixed);
     tcfile.width(3);
     tcfile.precision(1);// precision for status
@@ -1412,7 +1411,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
 //
-    cout<<"PM RelGains will be written !"<<endl;
+    cout<<"      PM RelGains will be written !"<<endl;
     tcfile.width(5);
     tcfile.precision(2);// precision for PM Rel.gain
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1440,7 +1439,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
 //
-    cout<<"Pixel Hi/Low Gain ratios will be written !"<<'\n';
+    cout<<"      Pixel Hi/Low Gain ratios will be written !"<<'\n';
     tcfile.width(4);
     tcfile.precision(1);// precision for Hi/Low ratio
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1455,7 +1454,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
 //
-    cout<<"PM Anode/Dynode ratios will be written !"<<'\n';
+    cout<<"      PM Anode/Dynode ratios will be written !"<<'\n';
     tcfile.width(4);
     tcfile.precision(1);// precision for PM Anode/Dynode ratio
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1471,37 +1470,36 @@ void ECREUNcalib::mfit(){
     tcfile << endl;
 //
     tcfile << endl<<"======================================================"<<endl;
-    tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
-    tcfile << endl<<" Date of the first event : "<<frdate<<endl;
+    tcfile << endl<<"      First run used for calibration is "<<StartRun<<endl;
+    tcfile << endl<<"      Date of the first event : "<<frdate<<endl;
     tcfile.close();
-    cout<<"ECREUNcalib: RLGA output file closed !"<<endl;
+    cout<<"<---- ECREUNcalib: RLGA-calibration is done, output file closed !"<<endl;
 //-------------------------------------------------------
 //
 //--> create FIAT output file(fiber att.parameters):
 //
   if(ECREFFKEY.relogic[1]==2){//only if both RLGA and FIAT parts are requested 
-    strcpy(fname,"ecalfiat");
-    dig=cfvn/100;
-    in[0]=inum[dig];
-    strcat(fname,in);
-    dig=(cfvn%100)/10;
-    in[0]=inum[dig];
-    strcat(fname,in);
-    dig=cfvn%10;
-    in[0]=inum[dig];
-    strcat(fname,in);
-    if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-    else strcat(fname,vers2);
-    strcat(fname,".cof");
+    strcpy(fname,"EcalFiat");
+    if(AMSJob::gethead()->isMCData()){
+      strcat(fname,vers1);
+      sprintf(fext,"%d",(ECMCFFKEY.calvern+1));//MC-versn
+    }
+    else{
+      strcat(fname,vers2);
+      sprintf(fext,"%d",StartRun);//hope it is start-run UTC
+    }
+    strcat(fname,".");
+    strcat(fname,fext);
+//
     ofstream fifile(fname,ios::out|ios::trunc);
     if(!fifile){
-      cerr<<"ECREUNcalib:error opening FIAT-file for output"<<fname<<endl;
+      cerr<<"<---- ECREUNcalib:error opening FIAT-file for output"<<fname<<endl;
       exit(8);
     }
-    cout<<"Open file for FIAT-calibration output, fname:"<<fname<<endl;
-    cout<<" First run used for calibration is "<<StartRun<<endl;
-    cout<<" Date of the first event : "<<frdate<<endl;
-    cout<<"lfast/lslow/frac will be written !"<<endl;
+    cout<<"      Opening file for FIAT-calibration output, fname:"<<fname<<endl;
+    cout<<"      First run used for calibration is "<<StartRun<<endl;
+    cout<<"      Date of the first event : "<<frdate<<endl;
+    cout<<"      lfast/lslow/frac will be written !"<<endl;
     fifile.setf(ios::fixed);
     fifile.width(4);
     fifile.precision(1);// precision for slfast
@@ -1540,10 +1538,10 @@ void ECREUNcalib::mfit(){
     fifile << endl;
 //
     fifile << endl<<"======================================================"<<endl;
-    fifile << endl<<" First run used for calibration is "<<StartRun<<endl;
-    fifile << endl<<" Date of the first event : "<<frdate<<endl;
+    fifile << endl<<"      First run used for calibration is "<<StartRun<<endl;
+    fifile << endl<<"      Date of the first event : "<<frdate<<endl;
     fifile.close();
-    cout<<"ECREUNcalib: FIAT output file closed !"<<endl;
+    cout<<"<---- ECREUNcalib: FIAT-calibration is done, output file closed !"<<endl;
   }
 //
 }
@@ -2332,17 +2330,18 @@ void ECREUNcalib::mfite(){
   pmax[2]=0.9;
   HFITHN(ECHISTC+18,chfun,chopt,3,par,step,pmin,pmax,sigp,chi2);
   cout<<endl<<endl;
-  cout<<" ECCALIB-ANOR-fit: Mp/resol="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
+  cout<<"      ECCALIB-ANOR-fit: Mp/resol="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
   HPRINT(ECHISTC+18);
   anorf=ad2mv*par[1];// New (1) ad2mv factor
-  cout<<" ECCALIB-ANOR: old/new ADC->Mev factor = "<<ad2mv<<" / "<<anorf<<endl;
+  cout<<"      ECCALIB-ANOR: old/new ADC->Mev factor = "<<ad2mv<<" / "<<anorf<<endl;
 //
 //------------> write outp.files :
 //  
   char fname[80];
   char frdate[30];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
   integer cfvn;
   uinteger StartRun;
   time_t StartTime;
@@ -2351,21 +2350,6 @@ void ECREUNcalib::mfite(){
 //
 //--> create ANOR output file(absolute normalization factor(the same for all PM's):
 // 
-  strcpy(inum,"0123456789");
-  cfvn=ECCAFFKEY.cfvers%1000;
-  strcpy(fname,"ecalanor");
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
 //
 //--> get run/time of the first event
 //
@@ -2373,15 +2357,27 @@ void ECREUNcalib::mfite(){
   StartTime=AMSEcalRawEvent::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
+  strcpy(fname,"EcalAnor");
+  if(AMSJob::gethead()->isMCData()){
+    strcat(fname,vers1);
+    sprintf(fext,"%d",(ECMCFFKEY.calvern+1));//MC-versn
+  }
+  else{
+    strcat(fname,vers2);
+    sprintf(fext,"%d",StartRun);//hope it is start-run UTC
+  }
+  strcat(fname,".");
+  strcat(fname,fext);
+//
     ofstream tcfile(fname,ios::out|ios::trunc);
     if(!tcfile){
-      cerr<<"ECREUNcalib:error opening ANOR-file for output"<<fname<<endl;
+      cerr<<"<---- ECREUNcalib:error opening ANOR-file for output"<<fname<<endl;
       exit(8);
     }
-    cout<<"Open file for ANOR-calibration output, fname:"<<fname<<endl;
-    cout<<" First run used for calibration is "<<StartRun<<endl;
-    cout<<" Date of the first event : "<<frdate<<endl;
-    cout<<"Abs.normaliz.factors will be written !"<<endl;
+    cout<<"      Opening file for ANOR-calibration output, fname:"<<fname<<endl;
+    cout<<"      First run used for calibration is "<<StartRun<<endl;
+    cout<<"      Date of the first event : "<<frdate<<endl;
+    cout<<"      Abs.normaliz.factors will be written !"<<endl;
     tcfile.setf(ios::fixed);
     tcfile.width(5);
     tcfile.precision(3);// precision
@@ -2394,10 +2390,10 @@ void ECREUNcalib::mfite(){
     tcfile << endl;
 //
     tcfile << endl<<"======================================================"<<endl;
-    tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
-    tcfile << endl<<" Date of the first event : "<<frdate<<endl;
+    tcfile << endl<<"      First run used for calibration is "<<StartRun<<endl;
+    tcfile << endl<<"      Date of the first event : "<<frdate<<endl;
     tcfile.close();
-    cout<<"ECREUNcalib: ANOR output file closed !"<<endl;
+    cout<<"<---- ECREUNcalib: ANOR-calibration is done, output file closed !"<<endl;
 //
 }
 //------------------------------------------------------------------------------------

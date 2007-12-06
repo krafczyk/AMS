@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.25 2007/10/01 13:30:52 choumilo Exp $
+//  $Id: antirec02.C,v 1.26 2007/12/06 13:31:12 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -189,7 +189,7 @@ void Anti2RawEvent::mc_build(int &stat){
   int16u phbit,maxv,id,chsta;
   geant adca,daqthr,adc2pe;
   integer nftdc,ftdc[ANTI2C::ANTHMX], nhtdc,htdc[ANTI2C::ANTHMX],itt;
-  number edep,ede,edept(0),time,z,tlev1,ftrig,t1,t2,dt;
+  number edep,ede,edept(0),time,z,tlev1,ftrig,lev1tm,lev1tms,htims,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
   geant hdthr,tdthr,gain[2],fladcb,htdcb,htdpr,hdmn;
   geant ped,sig,am,amp,tm,tmp,tmd1u,tmd1d,td1b1u,td1b1d,td1b2u,td1b2d,tmark;
@@ -213,6 +213,7 @@ void Anti2RawEvent::mc_build(int &stat){
   geant daqp7,daqp10;
   geant nebav;
   int nebin;
+  int16u crat(0),sslot(0);
   bool anchok;
 //
   static integer first=0;
@@ -248,6 +249,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //
   integer ftpatt(0);
   ftrig=TOF2RawSide::gettrtime();//get FTrigger time in S-crate(incl.delay from JLV1) 
+  lev1tm=ftrig+TOF2DBc::lev1del();// "Lev1"-signal abs.time at S-crate
   ftpatt=TOF2RawSide::getftpatt();//get globFT members pattern (after masking)
   if(ftpatt==0)return;//<=== no globFT and ExtTrig
   ANTI2JobStat::addmc(7);//count FT existance
@@ -523,6 +525,10 @@ void Anti2RawEvent::mc_build(int &stat){
       }//======> endof flash-adc buffer loop
 //-------------
       if(ATMCFFKEY.mcprtf>1 && nptr>1)ANTI2DBc::displ_a("AntiC_MultiFT, PM-pulse:id(PPS)=",id,20,parr);
+// get current crate/sslot:
+      AMSSCIds antid(nlogs,j,0,0);//otyp=0(anode),mtyp=0(LT-time)
+      crat=antid.getcrate();
+      sslot=antid.gettempsn();//formally is temper.sensor#(1,2,...,5), but give also SFET,SFEA seq.slot number
 //
 //---> Create charge raw-hits:
 //
@@ -557,15 +563,16 @@ void Anti2RawEvent::mc_build(int &stat){
       }
 //      if(ATMCFFKEY.mcprtf>0)HF1(2634+j,adca,1.);
 //
-//---> Create history raw-hits:
+//---> Create history(LT) raw-hits:
 //
       nhtdc=0;
       for(i=0;i<nhtup;i++){//        <--- htdc-hits loop ---
         t1=htup[i];// TimeHist abs.time, FIFO readout order(1st elem = 1st stored(first read)) 
-        it=integer(floor(t1/ANTI2DBc::htdcbw())); // ns -> TDC-ch
-        dt=t1-ftrig;// Time-hit(t1) age wrt FT(at TOF-crate)("-"==>younger, "+"==>older)
-        if(dt>=TOF2DBc::hagemn() && dt<=TOF2DBc::hagemx()){//inside of search window(-10mks,+6mks) ?
-          htdc[nhtdc]=it;//write TDC in Actel buffer
+        htims=t1+TOF2Tovt::TofATdcT0[crat][sslot-1];//add sincronization(CoarseCounter state)
+        lev1tms=lev1tm+TOF2Tovt::TofATdcT0[crat][sslot-1];//add sincronization(TrigTimeTagCounter state)
+	it=TofTdcCorMS::getbins(htims,lev1tms);//TDC's bin number (linear mode)
+	if(it>=0){//hit is in TDC's search window
+          htdc[nhtdc]=it;
           nhtdc+=1;
 	}
 	else{

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.102 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: ntuple.h,v 1.103 2007/12/06 13:31:22 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -605,6 +605,7 @@ public:
   float ECALtrsum[MAXLVL1];
   float LiveTime[MAXLVL1];
   float TrigRates[MAXLVL1][6];
+  unsigned int TrigTime[MAXLVL1][4];
 
 friend class Trigger2LVL1;
 friend class AMSNtuple;
@@ -645,7 +646,8 @@ class TofRawSideNtuple {
 public:
   int Ntofraws;
   int swid[MAXTOFRAWS];
-  int hwid[MAXTOFRAWS];
+  int hwidt[MAXTOFRAWS];
+  int hwidq[MAXTOFRAWS][4];
   int stat[MAXTOFRAWS];
   int nftdc[MAXTOFRAWS];
   int ftdc[MAXTOFRAWS][8];

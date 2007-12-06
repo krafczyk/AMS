@@ -13,7 +13,7 @@
 //
 class DAQECBlock {
 private:
-  static int16u nodeids[2*ecalconst::ECRT];// valid JINF-node_id's (incl. 2 sides)
+  static int16u nodeids[ecalconst::ECRT];// valid JINF-node_id's (1x2crates)
   static int16u format;// currently processing DATA-format: 0-raw, 1-compressed, 2-mixed
   static integer totbll;//total length of all(MAX 4) blocks
 public:
@@ -24,13 +24,13 @@ public:
   static void setcomf(){format=1;}
   static void setmixf(){format=2;}
   static int16u getformat(){return format;}
-  static void node2crs(int16u nodeid, int16u &cr, int16u &sd);
+  static void node2crs(int16u nodeid, int16u &cr);
   static integer checkblockid(int16u id);
   static void buildraw(integer len, int16u *p);
   static integer getmaxblocks();
   static integer calcblocklength(integer ibl);
   static void buildblock(integer ibl, integer len, int16u *p);
-  static void frbdump(int16u *p, int16u len);//fragment bits-dump 
+  static void frbdump(int16u *p, int16u len, char name);//fragment bits-dump 
 };
 
 #endif

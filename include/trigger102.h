@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.15 2007/05/15 11:39:24 choumilo Exp $
+//  $Id: trigger102.h,v 1.16 2007/12/06 13:31:23 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -128,6 +128,7 @@ protected:
  geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev)
  geant _LiveTime;//Live time fraction
  geant _TrigRates[6];//some TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
+ uinteger _TrigTime[4];//trig.times:[0]->calibr;[1]->reset's counter;[2]-[3]->40bits(32+8) of 0.64mks counter
  static Scalers _scaler;
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LiveTime " << float(_LiveTime)/1000.<<endl;}
@@ -135,11 +136,11 @@ protected:
 public:
  static Lvl1TrigConfig l1trigconf;//current TrigSystemConfiguration
  static ScalerMon scalmon;//current scalers values
- static int16u nodeids[2];//LVL1 node IDs(side a/b)
+ static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  
  Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer toffl1,integer toffl2, 
               integer tofpatt1[],integer tofpatt2[], integer antipatt, integer ecflg,
-                    int16u ectrpatt[6][3], geant ectrsum, geant LiveTime, geant rates[]):
+                    int16u ectrpatt[6][3], geant ectrsum, geant LiveTime, geant rates[],uinteger trt[]):
       _PhysBPatt(PhysBPatt),_JMembPatt(JMembPatt),_tofflag1(toffl1),_tofflag2(toffl2),
                _antipatt(antipatt),_ecalflag(ecflg),_ectrsum(ectrsum),_LiveTime(LiveTime){
    int i,j;
@@ -147,6 +148,7 @@ public:
    for( i=0;i<TOF2GC::SCLRS;i++)_tofpatt2[i]=tofpatt2[i];
    for(i=0;i<6;i++)for(j=0;j<3;j++)_ectrpatt[i][j]=ectrpatt[i][j];
    for(i=0;i<6;i++)_TrigRates[i]=rates[i];
+   for(i=0;i<4;i++)_TrigTime[i]=trt[i];
  }
  bool IsECHighEnergy()const {return _ecalflag/10>2;}
  bool IsECEMagEnergy()const {return _ecalflag%10==2;}
@@ -158,6 +160,7 @@ public:
   static integer getscalerssize(){return sizeof(_scaler);}
   geant getlivetime () const {return _LiveTime;}
  number gettrrates(int i){return _TrigRates[i];}
+ uinteger gettrtime(int i){return _TrigTime[i];}
  integer gettoflag1() {return _tofflag1;}
  integer gettoflag2() {return _tofflag2;}
  integer getecflag() {return _ecalflag;}
@@ -184,7 +187,7 @@ public:
       static integer checkdaqid(int16u id);
       static void node2side(int16u nodeid, int16u &sid);
       static integer calcdaqlength(int i){return 19;}
-      static integer getmaxblocks(){return 1;}
+      static integer getmaxblocks(){return 2;}
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
 #ifdef __WRITEROOT__
@@ -206,7 +209,7 @@ private:
 //          i=7 =>
 //         i=15 => HW-created LVL1 found
 // 
-  static integer daqc1[15];//daq-decoding counters
+  static integer daqc1[20];//daq-decoding counters
 //            i=0 -> LVL1-segment entries
 //             =1 -> ............ non empty
 //             =2 -> ............ no assembl_errors
@@ -214,16 +217,20 @@ private:
 //             =4 -> ............ with b-side
 //             =5 -> TrigPattBlock entries 
 //             =6 -> ............. length OK 
-//             =7 -> ScalersBlock entries 
-//             =8 -> ............ length OK
+//             =7 -> LiveTimeBlock entries 
+//             =8 -> ............. length OK 
 //             =9 -> TrigSetupBlock entries 
-//            =10 -> .............. length OK
-//            =11 -> total LVL1-segment errors
+//             =10-> .............. length OK
+//             =11-> ScalersBlock entries 
+//             =12-> ............ length OK
+//             =13-> total LVL1-segment errors
+//             =14-> total good LiveTime/Rates LVL1-obj
+//             =15-> total bad LiveTime/Rates cases
 //
 public:
   inline static void resetstat(){
     for(int i=0;i<20;i++)countev[i]=0;
-    for(int i=0;i<15;i++)daqc1[i]=0;
+    for(int i=0;i<20;i++)daqc1[i]=0;
   }
   inline static void addev(int i){
     assert(i>=0 && i< 20);
@@ -231,7 +238,7 @@ public:
   }
   static void daqs1(integer info){
 #ifdef __AMSDEBUG__
-      assert(info>=0 && info<15 );
+      assert(info>=0 && info<20 );
 #endif
     daqc1[info]+=1;
   }

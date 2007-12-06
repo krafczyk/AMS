@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.61 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.62 2007/12/06 13:31:12 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -1120,97 +1120,94 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   char fname[80];
   char name[80];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
-  char in[2]="0";
-  char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  int ctyp,ntypes;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
 //
   integer status[ECPMSL][4],statusd[ECPMSL];
   geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
   geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
 //
-  strcpy(inum,"0123456789");
+// ---> read list of calibration-files version-numbers (menu-file) :
 //
-// ---> read list of calibration-type-versions list (menu-file) :
-//
-  integer cfvn;
-  cfvn=ECCAFFKEY.cfvers%1000;
-  strcpy(name,"ecalcvlist");// basic name for file of cal-files list 
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"EcalCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ECMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ECREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
 //
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"      Open verslist-file: "<<fname<<'\n';
+  cout<<"====> ECcalib::build:Opening Calib_vers_list-file: "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
-    cerr <<"<---- ECcalib_build:Error: missing verslist-file "<<fname<<endl;
+    cerr <<"<---- ECcalib_build:Error: missing Calib_vers_list-file "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(i=0;i<ntypes;i++){
-    vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
+    vlfile >> verids[i];
   }
-  vlfile.close();
-  cout<<"   <--Verslist-file is successfully read !"<<endl;
 //
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      TofCflistRD-file begin_date: %s",ctime(&utct)); 
+  }
+//
+  vlfile.close();
 //------------------------------
 //
-//   --->  Read status/rel.gains calib. file :
+//   --->  Read RLGA(status/rel.gains) calib. file :
 //
-  ctyp=1;//1st type of calibration (really may be single)
-  strcpy(name,"ecalrlga");
-  mcvn=mcvern[ctyp-1]%1000;
-  rlvn=rlvern[ctyp-1]%1000;
-  if(AMSJob::gethead()->isMCData()) //      for MC-event
-  {
-       cout <<"      MC: reading real(not Seed!)RLGA-calib file..."<<endl;
-       dig=mcvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(mcvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=mcvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers1);
-  }
-  else                              //      for Real events
-  {
-       cout <<"      RD: reading RLGA-calib file..."<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers2);
-  }
-//
-  strcat(name,".dat");
+  ctyp=1;//1st type of calibration is RLGA(really may be single)
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalRlga");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"      Open file : "<<fname<<'\n';
+  cout<<"      Opening RLGA-calib file "<<fname<<" ..."<<endl;
   ifstream rlgfile(fname,ios::in); // open  file for reading
   if(!rlgfile){
-    cerr <<"<---- ECcalib_build: Error: missing status/rel.gains file !!? "<<fname<<endl;
+    cerr <<"<---- ECcalib_build: Error: missing RLGA-file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1274,56 +1271,29 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   rlgfile.close();
   if(endflab==12345){
-    cout<<"   <--RLGA-calibration file is successfully read !"<<endl;
+    cout<<"      RLGA-calibration file is successfully read !"<<endl;
   }
   else{cout<<"<---- ECcalib::build: ERROR: problems while reading RLGA-calib.file !!?"<<endl;
     exit(1);
   }
 //==================================================================
 //
-//   --->  Read fiber-attenuation calib. file :
+//   --->  Read FIAT(fiber-attenuation) calib. file :
 //
   ctyp=2;//2nd type of calibration 
-  strcpy(name,"ecalfiat");
-  mcvn=mcvern[ctyp-1]%1000;
-  rlvn=rlvern[ctyp-1]%1000;
-  if(AMSJob::gethead()->isMCData()) //      for MC-event
-  {
-       cout <<"      MC: reading FIAT-calib file..."<<endl;
-       dig=mcvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(mcvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=mcvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers1);
-  }
-  else                              //      for Real events
-  {
-       cout <<"      RD: reading FIAT-calib file..."<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers2);
-  }
-//
-  strcat(name,".dat");
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalFiat");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"      Open file : "<<fname<<'\n';
+  cout<<"      Opening FIAT-calib.file "<<fname<<" ..."<<endl;
   ifstream fatfile(fname,ios::in); // open  file for reading
   if(!fatfile){
-    cerr <<"<---- ECcalib_build::Error: missing fiber_att.param. file !!? "<<fname<<endl;
+    cerr <<"<---- ECcalib_build::Error: missing FIAT-calib.file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1355,7 +1325,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   fatfile.close();
   if(endflab==12345){
-    cout<<"   <--FIAT-calibration file is successfully read !"<<endl;
+    cout<<"      FIAT-calibration file is successfully read !"<<endl;
   }
   else{cout<<"<---- ECcalib_build: ERROR:problems while reading FIAT-calib.file !!?"<<endl;
     exit(1);
@@ -1365,46 +1335,19 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //   --->  Read abs.norm. calib. file :
 //
   ctyp=3;//3rd type of calibration 
-  strcpy(name,"ecalanor");
-  mcvn=mcvern[ctyp-1]%1000;
-  rlvn=rlvern[ctyp-1]%1000;
-  if(AMSJob::gethead()->isMCData()) //      for MC-event
-  {
-       cout <<"      MC: reading ANOR-calib file..."<<endl;
-       dig=mcvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(mcvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=mcvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers1);
-  }
-  else                              //      for Real events
-  {
-       cout <<"      RD: reading ANOR-calib file..."<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       strcat(name,vers2);
-  }
-//
-  strcat(name,".dat");
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalAnor");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"      Open file : "<<fname<<'\n';
+  cout<<"      Opening ANOR-calib.file "<<fname<<" ..."<<endl;
   ifstream anrfile(fname,ios::in); // open  file for reading
   if(!anrfile){
-    cerr <<"<---- ECcalib_build:Error: missing ANOR(abs.calib) file !!? "<<fname<<endl;
+    cerr <<"<---- ECcalib_build:Error: missing ANOR-calib file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1418,7 +1361,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   anrfile.close();
   if(endflab==12345){
-    cout<<"   <--ANOR-calibration file is successfully read !"<<endl;
+    cout<<"      ANOR-calibration file is successfully read !"<<endl;
   }
   else{cout<<"<---- ECcalib_build: ERROR: problems while reading ANOR-calib.file !!?"<<endl;
     exit(1);
@@ -1503,34 +1446,27 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   char fname[80];
   char name[80];
-  char vers1[3]="mc";
-  char vers2[3]="sd";
-  char in[2]="0";
-  char inum[11];
-  int ctyp,ntypes,mcvern[10],rlvern[10];
-  int mcvn,rlvn,dig;
+  char vers1[3]="MC";
+  char vers2[3]="SD";
+  int ctyp,ntypes,mcvn,mcvern[10];
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
 //
   integer status[ECPMSL][4],statusd[ECPMSL];
   geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
   geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
 //
-  strcpy(inum,"0123456789");
-//
 // ---> read list of calibration-type-versions list (menu-file) :
 //
-  integer cfvn;
-  cfvn=ECCAFFKEY.cfvers%1000;
-  strcpy(name,"ecalcvlist");// basic name for file of cal-files list 
-  dig=cfvn/100;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  dig=cfvn%10;
-  in[0]=inum[dig]; 
-  strcat(name,in);
-  strcat(name,".dat");
+  strcpy(name,"EcalCflistMC");// basic name for file of cal-files list 
+  strcat(name,".");
+  sprintf(ext,"%d",ECMCFFKEY.calvern);//got TofCflistMC. file extention
+  strcat(name,ext);
 //
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
@@ -1544,43 +1480,55 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(i=0;i<ntypes;i++){
     vlfile >> mcvern[i];// first number - for mc
-    vlfile >> rlvern[i];// second number - for real
   }
+  vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+  vlfile >> date[1];//HHMMSS ......................................
   vlfile.close();
-  cout<<"   <--Verslist-file is successfully read !"<<endl;
 //
-//------------------------------
+  year=date[0]/10000;//2004->
+  mon=(date[0]%10000)/100;//1-12
+  day=(date[0]%100);//1-31
+  hour=date[1]/10000;//0-23
+  min=(date[1]%10000)/100;//0-59
+  sec=(date[1]%100);//0-59
+  begin.tm_isdst=0;
+  begin.tm_sec=sec;
+  begin.tm_min=min;
+  begin.tm_hour=hour;
+  begin.tm_mday=day;
+  begin.tm_mon=mon-1;
+  begin.tm_year=year-1900;
+  utct=mktime(& begin);
+  iutct=uinteger(utct);
+  cout<<"      EcalCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+  cout<<"                                      hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+  cout<<"                                          UTC-time = "<<iutct<<endl;
+//------------------------------------------------
 //
 // --->  Read copy of RealData RLGA calib. file(to use as MC-Seed) :
 //                   (or MC, if silogic[1]=1)
   ctyp=1;//1st type of calibration 
-  strcpy(name,"ecalrlga");
-  mcvn=mcvern[ctyp-1]%1000;
-  rlvn=rlvern[ctyp-1]%1000;
+  strcpy(name,"EcalRlga");
+  mcvn=mcvern[ctyp-1];
 // 
-       cout<<"      MC: reading Real/Seed RLGA(stat/rel.gains)-calibr. file..."<<endl;
-       cout<<"      (normally Real(*mc.dat)-file is the CalibProg outp.file when the Seed"<<endl;
-       cout<<"      -file(*sd.dat) was chosen to be read at this stage !!!)"<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       if(ECMCFFKEY.silogic[1]==0)strcat(name,vers1);//mc
-       else strcat(name,vers2);//sd = copy of rl
+  cout<<"      Start to read MC/SD-type of RLGA/FIAT-calibr. files as MC-Seed :"<<endl;
+  cout<<"      (normally MC(*MC.n)-file is the CalibProg outp.file when the Seed"<<endl;
+  cout<<"      -file(*SD.n, normally=RD_copy) was chosen to be read at this stage !!!)"<<endl;
 //
-  strcat(name,".dat");
+  if(ECMCFFKEY.silogic[1]==0)strcpy(datt,vers1);//mc
+  else strcpy(datt,vers2);//sd = copy of rl
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",mcvn);//
+  strcat(name,ext);
+//
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"      Open file : "<<fname<<'\n';
+  cout<<"      Opening MC/SD-type of RLGA-calib file "<<fname<<" ..."<<endl;
   ifstream rlgfile(fname,ios::in); // open  file for reading
   if(!rlgfile){
-    cerr <<"<---- ECcalibMS_build:Error: missing Real/Seed RLGA file !!? "<<fname<<endl;
+    cerr <<"<---- ECcalibMS_build:Error: missing MC/SD-type of RLGA-calib file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1644,9 +1592,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   rlgfile.close();
   if(endflab==12345){
-    cout<<"   <--MC Real/Seed RLGA-calib file is successfully read as MCSeed !"<<endl;
+    cout<<"   <--"<<datt<<"-type of RLGA-calib file is successfully read as MCSeed !"<<endl;
   }
-  else{cout<<"<---- ECcalibMS_build:Error reading MC Real/Seed RLGA-calib.file as MCSeed !!?"<<endl;
+  else{cout<<"<---- ECcalibMS_build:Error reading MC/SD-type of RLGA-calib.file(as MCSeed) !!?"<<endl;
     exit(1);
   }
 //==================================================================
@@ -1654,30 +1602,22 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //   --->  Read copy of RealData FIAT calib. file(used as MC-Seeds) :
 //                      (or MC)
   ctyp=2;//2nd type of calibration 
-  strcpy(name,"ecalfiat");
-  mcvn=mcvern[ctyp-1]%1000;
-  rlvn=rlvern[ctyp-1]%1000;
-       cout <<"      MC: reading Real(as Seed)/Seed(true) FIAT(fiber_att)-calibr. file..."<<endl;
-       dig=rlvn/100;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=(rlvn%100)/10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       dig=rlvn%10;
-       in[0]=inum[dig];
-       strcat(name,in);
-       if(ECMCFFKEY.silogic[1]==0)strcat(name,vers1);//mc
-       else strcat(name,vers2);//sd = copy of rl
+  strcpy(name,"EcalFiat");
+  mcvn=mcvern[ctyp-1];
+  if(ECMCFFKEY.silogic[1]==0)strcpy(datt,vers1);//mc
+  else strcpy(datt,vers2);//sd = copy of rl
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",mcvn);
+  strcat(name,ext);
 //
-  strcat(name,".dat");
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"      Open file : "<<fname<<'\n';
+  cout<<"      Opening MC/SD-type of FIAT-calib file "<<fname<<" ..."<<endl;
   ifstream fatfile(fname,ios::in); // open  file for reading
   if(!fatfile){
-    cerr <<"<---- ECcalibMS_build:Error: missing Real/Seed FIATcalib file !!? "<<fname<<endl;
+    cerr <<"<---- ECcalibMS_build:Error: missing MC/SD-type of FIAT-calib file !!? "<<fname<<endl;
     exit(1);
   }
 //
@@ -1709,9 +1649,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   fatfile.close();
   if(endflab==12345){
-    cout<<"   <--Real/Seed FIAT-calibr. file is successfully read as MCSeed !"<<endl;
+    cout<<"   <--"<<datt<<"-type of FIAT-calibr. file is successfully read as MCSeed !"<<endl;
   }
-  else{cout<<"<---- ECcalibMS_build:Error: reading MC Real/Seed FIAT-calib.file as MCSeed !"<<endl;
+  else{cout<<"<---- ECcalibMS_build: Error reading MC/SD-type of FIAT-calib.file(as MCSeed) !"<<endl;
     exit(1);
   }
 //------------------------------
@@ -1750,7 +1690,7 @@ void ECALVarp::init(geant daqth[20], geant cuts[5]){
 }
 //==========================================================================
 //
-void ECPMPeds::build(){// create ECPeds-objects for each cell
+void ECPMPeds::build(){// create MC/RD ECPeds-objects for each cell from MC/RD- default_files
 //
   int i,isl,ipm,isc,cnum;
   integer sid,endflab(0);
@@ -1893,7 +1833,7 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
 }
 //==========================================================================
 //
-void ECPMPeds::mcbuild(){// create default ECPeds-objects(MC) for each cell
+void ECPMPeds::mcbuild(){// create MC ECPeds-objects for each cell by smearing of seed-values from DataCards
 //
   int i,isl,ipm,isc,cnum;
   integer sid,endflab(0);

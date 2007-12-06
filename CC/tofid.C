@@ -23,6 +23,8 @@ using namespace ANTI2C;
 //    "Q-data" slot_id(link#):  9*      0         1       10*     2         3         4     5  6  7  8
 //    "T-data" slot_id(link#):  9*      0         1       10*     2         3         4     5* 6* 7* 8*
 //     "*" means that given link# is fictitious and should not be found in data !!!
+//sequential Q-measuring slots numbering vs crate's slots:
+  int16u AMSSCIds::chrsln[SCSLTM]={0,1,2,0,3,4,5,6,7,8,9};// same for all crates
 //----
 //slot-id's map for Q(Time)Links( link(=slot_id) numbers vs seq.slot): 
   int16u AMSSCIds::cardids[SCCRAT][SCSLTM]={ 9, 0, 1,10, 2, 3, 4, 5, 6, 7, 8, //cr-1
@@ -68,7 +70,7 @@ int16u slt;
   _side=(swid%1000)/100-1;
   _pmt=(swid%100)/10;
 
-//_swch => glogal sequential sw-channel(TOF+ANTI, incl pmts and mtyps)
+//_swch => global sequential sw-channel(TOF+ANTI, incl pmts and mtyps)
   _swch=swseqn(_dtype,_layer,_bar,_side,_pmt,_mtyp);
   
   _hwid=hidlst[_swch];//CSSRR
@@ -79,6 +81,14 @@ int16u slt;
     _sltyp=sltymap[_crate][_slot];
 //    _crdid=cardids[_crate][_slot];
     _hwch=hwseqn(_crate,_slot,_rdch);//global sequential hw/channel
+    if(_sltyp==3){//SFEC
+      _inpch=_rdch;//for SFEC inpch=outch(rdch),(0,...9)    }
+    }
+    else{//SFET,SFEA(imply structure 5x(T+Q) + 3xT as in sidlst[]-array 
+      if(_mtyp==1)_inpch=(_rdch+1)/2-1;//Q: 0,1,2,3,4
+      else if(_mtyp==0)_inpch=_rdch/2;//LT-time:0,1,2,3,4
+      else _inpch=_rdch-5;//5,6,7->FT,sHT,sSHT-times
+    }
   }
   else{
     _dummy=1;
@@ -107,6 +117,14 @@ AMSSCIds::AMSSCIds(int16u layer, int16u bar, int16u side, int16u pmt, int16u mty
     _sltyp=sltymap[_crate][_slot];
 //    _crdid=cardids[_crate][_slot];
     _hwch=hwseqn(_crate,_slot,_rdch);//global sequential hw/channel
+    if(_sltyp==3){//SFEC
+      _inpch=_rdch;//for SFEC inpch=outch(rdch),(0,...9)    }
+    }
+    else{//SFET,SFEA(imply structure 5x(T+Q) + 3xT as in sidlst[]-array 
+      if(_mtyp==1)_inpch=(_rdch+1)/2-1;//Q: 0,1,2,3,4
+      else if(_mtyp==0)_inpch=_rdch/2;//LT-time:0,1,2,3,4
+      else _inpch=_rdch-5;//5,6,7->FT,sHT,sSHT-times
+    }
   }
   else{
     _dummy=1;
@@ -136,6 +154,9 @@ AMSSCIds::AMSSCIds(int16u bar, int16u side, int16u pmt, int16u mtyp):_dummy(0){
     _sltyp=sltymap[_crate][_slot];
 //    _crdid=cardids[_crate][_slot];
     _hwch=hwseqn(_crate,_slot,_rdch);//global sequential hw-channel
+    if(_mtyp==1)_inpch=(_rdch+1)/2-1;//Q: 0,1,2,3,4
+    else if(_mtyp==0)_inpch=_rdch/2;//LT-time:0,1,2,3,4
+    else _inpch=_rdch-5;//5,6,7->FT,sHT,sSHT-times
   }
   else{
     _dummy=1;
@@ -166,6 +187,14 @@ AMSSCIds::AMSSCIds(int16u crate, int16u slot, int16u rdch):_crate(crate),_slot(s
     _pmt=(_swid%100)/10;
 //  _swch => global sequential sw-channel(TOF+ANTI, incl pmts and mtyps)
     _swch=swseqn(_dtype,_layer,_bar,_side,_pmt,_mtyp);
+    if(_sltyp==3){//SFEC
+      _inpch=rdch;//for SFEC inpch=outch(rdch),(0,...9)    }
+    }
+    else{//SFET,SFEA(imply structure 5x(T+Q) + 3xT as in sidlst[]-array 
+      if(_mtyp==1)_inpch=(rdch+1)/2-1;//Q: 0,1,2,3,4
+      else if(_mtyp==0)_inpch=rdch/2;//LT-time:0,1,2,3,4
+      else _inpch=rdch-5;//5,6,7->FT,sHT,sSHT-times
+    }
   }//endof "swid>0" check
   else{
     _dummy=1;
@@ -187,7 +216,7 @@ int AMSSCIds::gettpbas(int16u crt, int16u bit){//return LBBS for TrigPatt bit(0-
 int16u AMSSCIds::ich2rdch(int16u crate, int16u slot, int16u inpch, int16u mtyp){
 //Input:SC-crate(0-3);slot(0-10),InpCh(0-(maxv-1));mtyp(1/!=1)->Q/Any_kind_of_Time, imply
 // the inp.ch. structure 5x(T+Q) + 3xT(FT,sHT,sSHT) ==> certain seq.of rdch(as in sidlst[]-array) !!!!!
-// Output:ReadoutCh(1-maxv),if =0 -> empty
+// Output:ReadoutCh(1,maxv),if =0 -> empty
 // or illegal(no corresponding output(rdch)) input channel
 //
   int16u rdch(0),sltyp,hwch;
@@ -211,6 +240,40 @@ int16u AMSSCIds::ich2rdch(int16u crate, int16u slot, int16u inpch, int16u mtyp){
   hwch=hwseqn(crate,slot,rdch);//glob. hw outp.seq.# 
   swid=sidlst[hwch];
   if(swid>0)return rdch+1;//1,...,maxv
+  else return(0);//empty inp.ch
+}
+//--------------
+int16u AMSSCIds::rdch2ich(int16u crate, int16u slot, int16u rdch, int16u mtyp){
+//Input:SC-crate(0-3);slot(0-10),ReadouCh(0-(maxv-1));mtyp(1/!=1)->Q/Any_kind_of_Time, imply
+// the inp.ch. structure 5x(T+Q) + 3xT(FT,sHT,sSHT) ==> certain seq.of rdch(as in sidlst[]-array) !!!!!
+// Output:InpCh(1-maxv),if =0 -> empty
+// or illegal output channel
+//
+  int16u inch(0),sltyp,hwch;
+  integer swid;
+  sltyp=sltymap[crate][slot];//1/2/3/4/5->SFET/SFEA/SFEC/SDR/SPT
+  if(sltyp>3)return(0);//not direct_input data-slot(ie.SPT or SDR)
+  if(rdch>=ochpsty[sltyp-1])return(0);//illegal for given sltyp
+  if(sltyp==3){//SFEC
+    inch=rdch;//for SFEC inpch=outch(rdch),(0,...9)
+  }
+  else{//SFET,SFEA(imply structure 5x(T+Q) + 3xT as in sidlst[]-array 
+    if(mtyp==1){//Q-meas
+      if(rdch<10 && (rdch%2)==1)inch=(rdch+1)/2-1;//Q: 0,1,2,3,4
+      else return(0);//not Q-measuring inp.channels
+    }
+    else{//time-measurements
+      if(rdch<10){
+        if(rdch%2==0)inch=rdch/2;//LT-time:0,1,2,3,4
+	else return(0);//illegal rdch (non T)
+      }
+      else if(rdch<=12)inch=rdch-5;//5,6,7->FT,sHT,sSHT-times
+      else return(0);//illegal rdch
+    }
+  }
+  hwch=hwseqn(crate,slot,rdch);//glob. hw outp.seq.# 
+  swid=sidlst[hwch];
+  if(swid>0)return inch+1;//1,...,maxv
   else return(0);//empty inp.ch
 }
 //--------------

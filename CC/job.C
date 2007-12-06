@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.503 2007/11/22 16:34:28 choutko Exp $
+// $Id: job.C,v 1.504 2007/12/06 13:31:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -656,7 +656,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.mcprtf[2]=0;     //(8) ...................... histograms
   TFMCFFKEY.mcprtf[3]=0;     //(9) Debug-printing
   TFMCFFKEY.mcprtf[4]=0;     //(10) spare
-  TFMCFFKEY.trlogic[0]=1; //(11) spare 
+  TFMCFFKEY.trlogic[0]=1; //(11) 1/0->do/not (CP+BZ) trpatt-masking in SPT2(not affect trigger decision) 
   TFMCFFKEY.trlogic[1]=0; //(12) spare 
   TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC requirement)
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
@@ -665,10 +665,12 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
 //     
-  TFMCFFKEY.ReadConstFiles=0;//(19)PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->DB/RawFiles
+  TFMCFFKEY.ReadConstFiles=1000;//(19)LPTS(L=TDClinCocSD,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);L(P,T,S)=0/1->DB/RawFiles
 //
   TFMCFFKEY.addpeds=0;//(20) add peds into empty(no MC dE/dX) channels
-  TFMCFFKEY.calvern=1;//(21) TofCflistMC-file(barcal_files vers. list) vrsion number
+  TFMCFFKEY.calvern=1;//(21) TofCflistMC-file(barcal_files vers. list) version number
+  TFMCFFKEY.tdclin=0;//(22) 1/0->do/not activate TDC-linearity logic for MC
+  TFMCFFKEY.tdcovf=1;//(23) 1/0->do/not activate TDC-overf.protection logic(= usage of TDC TrigTimeTag subtraction)
 //
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -685,7 +687,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
   ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
-  ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MCSeeds
+  ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
   ECMCFFKEY.mev2adc=0.873/1.023;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
@@ -711,6 +713,8 @@ void AMSJob::_siecaldata(){
 //     
   ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|Peds:C=1/0->Read MSCalibFile/DB
 //                                          P=1/0->ReadFromFile/ReadFromDB
+  ECMCFFKEY.calvern=1;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
+//
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
@@ -757,7 +761,9 @@ void AMSJob::_reecaldata(){
 //                            D=1/0-> Take from DataCards/DB
 //                            C=1/0-> Take from CalibFiles/DB
 //                            P=1/0-> Take from CalibFiles/DB
-  ECREFFKEY.Thr1DSeed=10;//(35) this and below is for Vitali's clust. algorithm
+  ECREFFKEY.calutc=1167606001;//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
+//
+  ECREFFKEY.Thr1DSeed=10;//(36) this and below is for Vitali's clust. algorithm
   ECREFFKEY.Thr1DRSeed=0.18;
   ECREFFKEY.Cl1DLeakSize=9;
   ECREFFKEY.Cl1DCoreSize=2;
@@ -775,8 +781,9 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.EMDirCorrection=1.03;
   ECREFFKEY.HiEnThr=1650;
   ECREFFKEY.HiEnCorFac=0.225;
+//
 //  
-  ECREFFKEY.sec[0]=0;//53 
+  ECREFFKEY.sec[0]=0;//54 
   ECREFFKEY.sec[1]=0;//
   ECREFFKEY.min[0]=0;//
   ECREFFKEY.min[1]=0;//
@@ -787,12 +794,12 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.mon[0]=0;//
   ECREFFKEY.mon[1]=0;//
   ECREFFKEY.year[0]=101;//
-  ECREFFKEY.year[1]=110;//64
+  ECREFFKEY.year[1]=110;//65
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
 // RLGA/FIAT part:
-  ECCAFFKEY.cfvers=4;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
+  ECCAFFKEY.cfvers=4;     // (1) spare, not used now
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
   ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/proton tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
@@ -1120,7 +1127,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
   TFREFFKEY.reprtf[4]=0; //(7) print flag for Debug needs  
 //
-  TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/STRR+AVSD/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run. 
+  TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run. 
   TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
   TFREFFKEY.relogic[2]=0;//(10) 0/1-> force 1-side suppression(useful for MC processing)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
@@ -1128,7 +1135,7 @@ void AMSJob::_retof2data(){
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
   TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
-  TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
+  TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig(50% of He-mip)  
   TFREFFKEY.daqthr[3]=2.5;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=2.5;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)
 //
@@ -1143,8 +1150,9 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
   TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
 //
-  TFREFFKEY.ReadConstFiles=100;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThrCuts-set(datacards),P->Peds(rd),
-//                                                                       C->CalibConst(rd/mc));
+  TFREFFKEY.ReadConstFiles=10100;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
+//                                           D->ThrCuts-set(datacards),P->Peds(rd),C->CalibConst(rd/mc));
+// L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
 // D=1/0->Take ThreshCuts-set from DataCards/DB,
 // P=1/0->Take Peds(rd) from RawFiles/DB,
@@ -1209,6 +1217,9 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.pedcpr[0]=0.01; // (32) PedCalibJobClass: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedcpr[1]=0.1;  // (33) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedoutf=2;      // (34)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+//TOFTdcCalib:
+  TFCAFFKEY.minstat=100;//(35) min.acceptable statistics per channel
+  TFCAFFKEY.tdccum=10;//(36)tdc-calib usege mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1254,7 +1265,7 @@ void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
 DAQCFFKEY.OldFormat=0;
 DAQCFFKEY.LCrateinDAQ=1;
-DAQCFFKEY.SCrateinDAQ=-1;
+DAQCFFKEY.SCrateinDAQ=-1;//not used by me (EC)
 DAQCFFKEY.NoRecAtAll=0;
 DAQCFFKEY.TrFormatInDAQ=3;
 VBLANK(DAQCFFKEY.ifile,40);
@@ -1844,11 +1855,11 @@ void AMSJob::_sitof2initjob(){
     AMSgObj::BookTimer.book("TovtPM2sloopscmcscan");
     AMSgObj::BookTimer.book("TovtPM2sloopsum");
     AMSgObj::BookTimer.book("TovtOther");
-//---------(.ReadConstFiles card convention : tfmc->PTS, tfre->DPC)
+//---------(*.ReadConstFiles card convention : tfmc->LPTS, tfre->LQDPC)
   if((TFMCFFKEY.ReadConstFiles%100)/10==1
-              || TFREFFKEY.ReadConstFiles%10==1){//(T) MC-Time-Distr from ext.files
+              || TFREFFKEY.ReadConstFiles%10==1){//(T) MC-TimeScanDistr from ext.files
 //  
-    TOFWScan::build();//create scmcscan-objects (MC Bars Time/Eff-distributions)
+    TOFWScan::build();//create scmcscan-objects (MC Bar's scan Time/Eff-distributions)
   }
   if(TFMCFFKEY.ReadConstFiles%10==1 && !isRealData()){//(S)
     TOFBrcalMS::build();//create sc.bar "MC Seeds" scbrcal-objects
@@ -1856,6 +1867,11 @@ void AMSJob::_sitof2initjob(){
 //---------
   if((TFMCFFKEY.ReadConstFiles%1000)/100>0 && !isRealData()){//(P) def.MCPeds from ext.files
     TOFBPeds::mcbuild();//create sc.bar scbrped-objects
+  }
+//---------
+  if(TFMCFFKEY.tdclin>0 && (TFMCFFKEY.ReadConstFiles/1000)>0
+                         && !isRealData()){//(L) MCSeed LinCorr(if requested) from ext.files
+    TofTdcCorMS::build();//create MCSeed TofTdcCor objects
   }
 //---------
 //
@@ -2016,8 +2032,7 @@ for(i=0;i<nalg;i++){
 //============================================================================
 void AMSJob::_catof2initjob(){
  if(TFREFFKEY.relogic[0]==1){
-   TOF2STRRcalib::init();// TOF STRR-calibr.
-   cout<<"<----- TOF2STRRcalib-init done !!!"<<'\n';
+   TOFTdcCalib::init();// TOF TDC-calibr.
  }
  if(TFREFFKEY.relogic[0]==2){
    TOF2TDIFcalib::init();// TOF TDIF-calibr.
@@ -2116,23 +2131,32 @@ void AMSJob::_retof2initjob(){
 //
     TOF2JobStat::bookhist();
 //
-//-------------------------
-  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(QDPC) Take ThreshCuts-set from Data-Cards
+//---------(*.ReadConstFiles card convention : tfmc->LPTS, tfre->LQDPC)
+//--------
+  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(D) Take ThreshCuts-set from Data-Cards
     TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create ThrCuts-obj from Data-Cards
   }
 //--------
-  if(TFREFFKEY.ReadConstFiles%10>0){//(QDPC) Take Paddles CalibConst from CalibFiles
+  if(TFREFFKEY.ReadConstFiles%10>0){//(C) Take Paddles CalibConst from CalibFiles
     TOF2Brcal::build();//create scbrcal-objects from CalibFiles
   }
 //--------
 //
-  if((TFREFFKEY.ReadConstFiles%100)/10>0 && isRealData()){//(QDPC) Take default RealData-Peds from file
+  if((TFREFFKEY.ReadConstFiles%100)/10>0 && isRealData()){//(P) Take default RealData-Peds from file
     TOFBPeds::build();//create RealData scbrped-objects from peds-file
   }
 // 
 //--------
-  if(TFREFFKEY.ReadConstFiles/1000>0){//(QDPC) Take ChargeCalibPDFs(mc|rd) from files
+  if((TFREFFKEY.ReadConstFiles%10000)/1000>0){//(Q) Take ChargeCalibPDFs(mc|rd) from files
     TofElosPDF::build();//create PDF-objects from CalibFiles
+  }
+//---------
+  if((TFREFFKEY.ReadConstFiles/10000)>0 && isRealData()){//(L) RD LinCorr from ext.files
+    TofTdcCor::build();//create TofTdcCor (RD) objects
+  }
+//---------
+  if((TFMCFFKEY.ReadConstFiles/1000)>0 && TFMCFFKEY.tdclin>0 && !isRealData()){//(L) MC LinCorr from ext.files
+    TofTdcCor::build();//create TofTdcCor (MC) objects
   }
 //
 //-----------
@@ -2582,9 +2606,9 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_mon=TFREFFKEY.mon[1];
   end.tm_year=TFREFFKEY.year[1];
 //-----
-//tfre->QDPC,tfmc->PTS
+//tfre->LQDPC,tfmc->LPTS
 //-----
-if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//CalibConst from DB
+if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//(C)BarCalibConst from DB
   
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
@@ -2592,7 +2616,7 @@ if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//CalibConst f
    
   end.tm_year=TFREFFKEY.year[1];
 //-----
-if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//ThreshCuts-set from DB
+if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//(D)ThreshCuts-set from DB
 
   TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
     begin,end,sizeof(TOF2Varp::tofvpar),
@@ -2600,7 +2624,7 @@ if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//Thre
     
   end.tm_year=TFREFFKEY.year[1];
 //----- 
-if((TFREFFKEY.ReadConstFiles/1000)==0)end.tm_year=TFREFFKEY.year[0]-1;//ChargeCalibPDFs from DB
+if((TFREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(Q)ChargeCalibPDFs from DB
 
   TID.add (new AMSTimeID(AMSID("Tofcpdfs",isRealData()),
     begin,end,sizeof(TofElosPDF::TofEPDFs),
@@ -2622,7 +2646,7 @@ if((TFMCFFKEY.ReadConstFiles%1000)/100==0 &&
    
   end.tm_year=TFREFFKEY.year[1];
 //----- 
-if((TFMCFFKEY.ReadConstFiles%100)/10==0 && !isRealData())end.tm_year=TFREFFKEY.year[0]-1;//MCTimeDistr.fromDB
+if((TFMCFFKEY.ReadConstFiles%100)/10==0 && !isRealData())end.tm_year=TFREFFKEY.year[0]-1;//(T)MCTimeDistr.fromDB
 
   TID.add (new AMSTimeID(AMSID("Tofmcscans2",0),
     begin,end,TOF2GC::SCBTPN*sizeof(TOFWScan::scmcscan[0]),
@@ -2631,7 +2655,7 @@ if((TFMCFFKEY.ReadConstFiles%100)/10==0 && !isRealData())end.tm_year=TFREFFKEY.y
   end.tm_year=TFREFFKEY.year[1];
 //-----
 if(!isRealData()){ 
-  if(TFMCFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//"MC Seeds" fromDB
+  if(TFMCFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//(S)BarCal "MC Seeds" fromDB
     
   TID.add (new AMSTimeID(AMSID("TofbarcalMS",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBrcalMS::scbrcal[0][0]),
@@ -2639,7 +2663,24 @@ if(!isRealData()){
     
   end.tm_year=TFREFFKEY.year[1];
 }
- 
+//-----
+integer TOFCRSL=TOF2GC::SCCRAT*(TOF2GC::SCFETA-1);
+if(!isRealData() && TFMCFFKEY.tdclin>0){ 
+  if(TFMCFFKEY.ReadConstFiles/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor "MC Seeds" fromDB
+    
+  TID.add (new AMSTimeID(AMSID("TofTdcCorMS",isRealData()),
+    begin,end,TOFCRSL*sizeof(TofTdcCorMS::tdccor[0][0]),
+    (void*)&TofTdcCorMS::tdccor[0][0],server,NeededByDefault));
+    
+  end.tm_year=TFREFFKEY.year[1];
+}
+//----- 
+if((TFREFFKEY.ReadConstFiles/10000)==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor(MC/RD) from DB
+  TID.add (new AMSTimeID(AMSID("TofTdcCor",isRealData()),
+    begin,end,TOFCRSL*sizeof(TofTdcCor::tdccor[0][0]),
+    (void*)&TofTdcCor::tdccor[0][0],server,NeededByDefault));
+    
+  end.tm_year=TFREFFKEY.year[1];
 //
    
 }
@@ -3425,6 +3466,9 @@ void AMSJob::_tof2endjob(){
   if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==7){
     TOFPedCalib::ntuple_close();// close OnBoardPedsTable ntuple 
   }
+  if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==1){
+    TOFTdcCalib::outp(TFCAFFKEY.tdccum);
+  }
 }
 //-----------------------------------------------------------------------
 void AMSJob::_anti2endjob(){
@@ -3548,18 +3592,18 @@ void AMSJob::_dbendjob(){
     //
      
 // ecal
-   if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==0){
-    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildSigmaPed);
-   }
-   else if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==-1){
-    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildPedDiff);
-   }
-   else{
+//   if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==0){
+//    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildSigmaPed);
+//   }
+//   else if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==-1){
+//    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildPedDiff);
+//   }
+//   else{
 //    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSEcalRawEvent::buildrawRaw);
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
     DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,
                            &DAQECBlock::buildblock);//for MC ?
-   }
+//   }
 
   {  // mc
     if(!isRealData()){
@@ -3581,7 +3625,7 @@ void AMSJob::_dbendjob(){
   }
 
 
-  {
+{
     // lvl1
 
     DAQEvent::addsubdetector(&Trigger2LVL1::checkdaqid,&Trigger2LVL1::buildraw);
@@ -3608,12 +3652,12 @@ void AMSJob::_dbendjob(){
     &TriggerLVL302::builddaq);
 
 }    
-if(DAQCFFKEY.SCrateinDAQ){
+///if(DAQCFFKEY.SCrateinDAQ){
 //         tof+anti+???
     DAQEvent::addsubdetector(&DAQS2Block::checkblockid,&DAQS2Block::buildraw);
     DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,
                            &DAQS2Block::buildblock);
-}    
+//}    
 
 if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
  {

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.163 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: ntuple.C,v 1.164 2007/12/06 13:31:12 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -148,7 +148,7 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
 
-"nlvl1[0,2],LVL1PhysBPatt(nlvl1),LVL1JMembPatt(nlvl1),LVL1Flag1(nlvl1)[-10,20],LVL1Flag2(nlvl1)[-10,20],LVL1TOFPatt1(4,nlvl1),LVL1TOFPatt2(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECALpatt(3,6,nlvl1),LVL1ECtrsum(nlvl1):R,LVL1LiveTime(nlvl1):R,LVL1TrigRates(6,nlvl1):R");
+"nlvl1[0,2],LVL1PhysBPatt(nlvl1),LVL1JMembPatt(nlvl1),LVL1Flag1(nlvl1)[-10,20],LVL1Flag2(nlvl1)[-10,20],LVL1TOFPatt1(4,nlvl1),LVL1TOFPatt2(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECALpatt(3,6,nlvl1),LVL1ECtrsum(nlvl1):R,LVL1LiveTime(nlvl1):R,LVL1TrigRates(6,nlvl1):R,LVL1TrigTime(4,nlvl1)");
 
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
@@ -159,7 +159,7 @@ void AMSNtuple::init(){
  
  
  
-HBNAME(_lun,"TofRawSd",&_tofraws.Ntofraws,"ntofraws[0,70],tofrsswid(ntofraws):I,tofrshwid(ntofraws):I,tofrsnftdc(ntofraws)[0,8]:I,tofrsftdc(8,ntofraws),tofrsnstdc(ntofraws)[0,16]:I,tofrsstdc(16,ntofraws),tofrsnsumh(ntofraws)[0,16]:I,tofrssumh(16,ntofraws),tofrsnsumsh(ntofraws)[0,16]:I,tofrssumsh(16,ntofraws),tofrsadca(ntofraws),tofrsnadcd(ntofraws)[0,3]:I,tofrsadcd(3,ntofraws),tofrstempT(ntofraws),tofrstempC(ntofraws),tofrstempP(ntofraws)");
+HBNAME(_lun,"TofRawSd",&_tofraws.Ntofraws,"ntofraws[0,70],tofrsswid(ntofraws):I,tofrshwidt(ntofraws):I,tofrshwidq(4,ntofraws):I,tofrsnftdc(ntofraws)[0,8]:I,tofrsftdc(8,ntofraws),tofrsnstdc(ntofraws)[0,16]:I,tofrsstdc(16,ntofraws),tofrsnsumh(ntofraws)[0,16]:I,tofrssumh(16,ntofraws),tofrsnsumsh(ntofraws)[0,16]:I,tofrssumsh(16,ntofraws),tofrsadca(ntofraws),tofrsnadcd(ntofraws)[0,3]:I,tofrsadcd(3,ntofraws),tofrstempT(ntofraws),tofrstempC(ntofraws),tofrstempP(ntofraws)");
  
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,250],sid(nsignals):I,"

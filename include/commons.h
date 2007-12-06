@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.217 2007/11/14 16:19:47 mdelgado Exp $
+//  $Id: commons.h,v 1.218 2007/12/06 13:31:22 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -173,6 +173,8 @@ geant hfnoise;     // high freq. noise
 integer ReadConstFiles;
 integer addpeds;
 integer calvern;//  TofCflistMC-file version number (file extention)
+integer tdclin;//flag to activate(if =1) TDC-linearity logic for MC
+integer tdcovf;//flag to activate(if =1) TDC-ovfl protection logic
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
@@ -282,7 +284,8 @@ geant pedd; //Ped-DyCh
 geant peddv;//ch-to-ch variation(%)     
 geant pedds;//PedSig-DyCh    
 geant peddsv;//ch-to-ch variation(%)
-integer ReadConstFiles;     
+integer ReadConstFiles;
+integer calvern;     
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
@@ -294,6 +297,7 @@ public:
   geant thresh[15];       //Time dependent DAQ/Trig-thresholds
   geant cuts[10];       // ........ RECO cuts (clust.thr.,...)
   integer ReadConstFiles;
+  integer calutc;//EcalCflistRD-file extention(utc-time)
 //
   float Thr1DSeed;        // Threshold for 1d cluster search
   float Thr1DRSeed;        // Threshold for 1d cluster search
@@ -322,7 +326,7 @@ COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
 //---
 class ECCAFFKEY_DEF {
 public:
-  integer cfvers;// 1-999 -> vers.number for ecalcvlistNNN.dat file
+  integer cfvers;// not used now
   integer cafdir;// 0/1-> use officical/private directory for calib.files
   integer truse; // 1/0-> use/not tracker info
   integer refpid;// ref.pm id
@@ -503,6 +507,9 @@ geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!)
 //                to use when previous calibration suppose to be good enought
 geant pedcpr[2];//PedCalJob: portion of highest adcs to remove for ped-calc(Class/DScal)
 integer pedoutf;//           PedOutputFlag
+// TOFTdcCalib (LINC)
+integer minstat;//min.stat/ch
+integer tdccum;//tdc-calib usage mode
 };
 #define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
 COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);

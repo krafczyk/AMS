@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.253 2007/10/03 07:38:06 choutko Exp $
+#  $Id: datacards.doc,v 1.254 2007/12/06 13:31:22 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -675,7 +675,7 @@ I  7   Print-flag(0)       // to print PMT pulses if=1
 I  8   Print-flag(0)       // to print MC-histograms if=1        
 I  9   Print-flag(0)       // spare        
 I 10   Print-flag(0)       // spare
-I 11   trlogic-flag(1)     //  spare   
+I 11   trlogic-flag(1)     //  1/0-> do/not (CP+BZ) trpatt-masking in SPT2 (not affect trig-decision)  
 I 12   trlogic-flag(0)     //  spare         
 I 13   fast(0)             //  0/1/2(for fast gener. in mceventg.C),0->off; 1->require initial
                                direction not to touch ANTI; 2->+ require to touch top surface of EC
@@ -688,9 +688,11 @@ I 16   mcseedo(0)          // 1/0->Use RealDataCalib_Copy(*sd.dat)/MCCalib(*mc.d
 R 17   blshift(0.)         // base line shift at fast discr.input (mv)
 R 18   hfnoise(5.)         // high freq. noise .......   
 //     
-I 19   ReadConstFiles(000)   // PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->read DB/RawFiles
+I 19   ReadConstFiles(0000)// LPTS(L=TDCLinCorMC,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->read DB/RawFiles
 I 20   addpeds(0)          // 1/0-> add/not peds into empty(no MC dE/dX) channels
-I 21   calvern(1)          // TofCflistMC-file(barcal_files vers. list) vrsion number
+I 21   calvern(1)          // TofCflistMC-file(barcal_files vers. list) version number
+I 22   tdclin(0)           // 1/0->do/not activate TDC-linearity simulation logic 
+I 23   tdcovf(1)           // 1/0->do/not activate TDC-overf.protection logic(= usage of TDC TrigTimeTag subtr)
 
 
 // AMS02 TOF Reconstruction
@@ -703,7 +705,7 @@ I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encodi
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
 I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
-I 8   RECO logic-flag(0)  // Normal_/STRR+AVSD_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_
+I 8   RECO logic-flag(0)  // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_
 //                               /OBPT_calibr run(if=0/1/2/3/4/5/6/7),where OBPT=OnBoardPedTable
 I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
 I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
@@ -726,7 +728,9 @@ R 25  cuts[7] (8)       // internal longit.coo matching cut ...Not used (spare)
 R 26  cuts[8] (26)      // spare
 R 27  cuts[9] (40)      // spare
 //
-I 28  ReadConstFiles(100)   // QDPC(Q->ChargeCalib,D->ThreshCuts-set,P->Peds,C->CalibConst(RD/MC))
+I 28  ReadConstFiles(100)   // LQDPC(L->TDCLinCalib(RD/MC),Q->ChargeCalib,D->ThreshCuts-set,
+//                                                                        P->Peds,C->CalibConst(RD/MC))
+// L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
 // D=1/0->Take ThrCuts-set from Data-Cards/DB
 // P=1/0->Take Peds(rd) from RawFiles/DB
@@ -735,6 +739,7 @@ I 28  ReadConstFiles(100)   // QDPC(Q->ChargeCalib,D->ThreshCuts-set,P->Peds,C->
 I 29 TempHandlMode(0)     // CPT(Slow:C->SFEC,P->PMT; Fast:T->SFET)=> Temperature Handling Mode 
 //                               C(P,T)=1/0->do/not corresponding temper-corrections at reco-stage
 I 30 calutc(1167606001)   //(20070101 0000001)TofCflistRD-file(barcal_files vers. list) begin UTC-time
+//
 I 31-32   sec[2](0,0)        // Validity time: beg/end
 I 33-34   min[2](0,0)        //
 I 35-36   hour[2](0,0)       // 
@@ -818,6 +823,7 @@ R 27   peddsv(30)                // ch-to-ch variation(%)
 //
 I 28   ReadConstFiles(00)        // CP=MCCalibSeeds|Peds:C=1/0->Read MCCalibSeedsFile/DB
 //                                                       P=1/0->GeneratePeds/ReadFromDB
+I 29   calvern(1) //EcalCflistMC-file vers.number(list of RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 // 
 
     ECAL reconstruction:
@@ -860,34 +866,36 @@ R 33   cuts[9](0.65)       // LVL3-trig. EC-algorithm: "peak"/"average" methode 
 I 34   ReadConstFiles(00)  // DC(RecoThresCuts|CalibConst),C=0/1->Take CalibConst(RD/MC) from DB/RawFiles
                            // D=0/1->Take ThreshCuts-set from DB/DataCards
 			    
-R 35   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
-R 36   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
-R 37   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
-R 38   Cl1DcoreSize(2)    //  max core cluster size(+-cells)
-R 39   Thr2Dmax(1.2)      //  max tangent for shower direction
-R 40   Lenghth2DMin(3)    //  min-1 2d cluster length (planes)
-R 41   Chi22DMax(1000)    //  max chi2 for direction fit
-R 42   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
-R 43   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
-R 44   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
-R 45-48SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
-R 49   CalorTransSize(32)  // trans calorimeter size (cm)     
-R 50   EMDirCorrection(1.035)  // em shower shape direction correction 
-R 51   HiEnThr(1650)           // pmt saturation limit (gev)
-R 52   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
+I 35   calutc(1167606001)//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
+//
+R 36   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
+R 37   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
+R 38   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
+R 39   Cl1DcoreSize(2)    //  max core cluster size(+-cells)
+R 40   Thr2Dmax(1.2)      //  max tangent for shower direction
+R 41   Lenghth2DMin(3)    //  min-1 2d cluster length (planes)
+R 42   Chi22DMax(1000)    //  max chi2 for direction fit
+R 43   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
+R 44   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
+R 46   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
+R 45-49SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
+R 50   CalorTransSize(32)  // trans calorimeter size (cm)     
+R 51   EMDirCorrection(1.035)  // em shower shape direction correction 
+R 52   HiEnThr(1650)           // pmt saturation limit (gev)
+R 53   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
  
-R 53 sec[0](0)                // cards below are used as validity time when need to write
-R 54 sec[1](0)                // to DB new calibration/status parameters
-R 55 min[0](0)                //
-R 56 min[1](0)                //
-R 57 hour[0](0)               //
-R 58 hour[1](0)               //
-R 59 day[0](1)                //
-R 60 day[1](1)                //
-R 61 mon[0](0)                //
-R 62 mon[1](0)                //
-R 63 year[0](101)             //
-R 64 year[1](108)             //
+R 54 sec[0](0)                // cards below are used as validity time when need to write
+R 55 sec[1](0)                // to DB new calibration/status parameters
+R 56 min[0](0)                //
+R 57 min[1](0)                //
+R 58 hour[0](0)               //
+R 59 hour[1](0)               //
+R 60 day[0](1)                //
+R 61 day[1](1)                //
+R 62 mon[0](0)                //
+R 63 mon[1](0)                //
+R 64 year[0](101)             //
+R 65 year[1](108)             //
 
    ECAL calibration:
 
@@ -895,7 +903,7 @@ ECCA
 (REUN-Calibration  parameters)
 //
 (RLGA/FIAT part:)
-I  1  cfvers(4)          // 1-999 -> vers.number for ecalcvlistNNN.dat file
+I  1  cfvers(4)          // spare, not used now
 I  2  cafdir(0)          // 0/1-> use official/private directory for calibr.files
 I  3  truse(1)           // 1/0-> use He4/prot tracks for calibration
 I  4  refpid(118)        // ref.PM ID (SPP-> S=SupLayer, PP=PM number) 

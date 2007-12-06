@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.19 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: tofuser02.C,v 1.20 2007/12/06 13:31:13 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -44,7 +44,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number eacut=0.3;// cut on E-anti (mev)
   number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   int16u crat,slot,tsens;
-  integer swid,hwid;
+  integer swid,hwid,shwid;
   number temper,stimes[4],strr,offs,tinp,tout;
   static number tinpp,toutp,first(0);
   TOF2RawSide *ptrt;
@@ -75,9 +75,10 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //-----> look at TOF2RawSide-hits(test for temper.study):
   while(ptrt){ // <--- loop over TOF2RawSide hits
     swid=ptrt->getsid();//LBBS
-    hwid=ptrt->gethid();//CS
-    crat=hwid/10;
-    slot=hwid%10;
+    hwid=ptrt->gethidt();//CSIIII(Cr(1-4)|SeqSlot(1-5)|Ich(1-5)|FTIch(6)|SumHTIch(7)|SumSHTIch(8))
+    shwid=hwid/10000;
+    crat=shwid/10;
+    slot=shwid%10;//SeqSlot(1,2,3,4,5=>SFET1,SFET2,SFET3,SFET4,SFEA)
 //    ptrt->getstdc(stimes);
     temper=ptrt->gettempT();//SFET-based temperature
 //    tinp=stimes[0]-stimes[1];

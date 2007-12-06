@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.30 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.31 2007/12/06 13:31:22 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -59,6 +59,7 @@ const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15t
 const int16u SCPHBPA=32768;// phase bit position in Raw-format address word (16th bit)
 const int16u SCADCMX=4095;// MAX. value in ADC (12bits-1)
 const int16u SCPUXMX=3700;// MAX. value provided by PUX-chip(adc chan)
+const int16u SCTDCCH=8;//input channels per TDC-chip(1 chip per SFET(A))
 
 const integer SCCRAT=4; // number of crates with TOF(+ANTI)-channels (S-crates)
 const integer SCSLTM=11;// number of slots(all types) per crate(max)
@@ -124,18 +125,18 @@ private:
   static geant _adc2q;       // not used (now taken from TFCA card #21) 
   static geant _fladctb;     // MC flash-ADC time-binning (ns)
   static geant _tdcscl;      // max TDC-scale
-  static geant _tdcbin[4];   // TDC binning for Time(FT)TDC, supl.DAQ binning for ADC
+  static geant _tdcbin[4];   // TDC binning for Time(FT)TDC, supl.DAQ binning for ADC, etc
   static geant _trigtb;      // MC time-binning in logic(trig) pulse handling
   static geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
   static geant _daqpwd[15];  // DAQ-system pulse_widths/dead_times/...
-  static geant _hagemx;      // TimeTDC-hit max.age wrt FT(accepted by Actel buffer)
-  static geant _hagemn;      // TimeTDC-hit min.age wrt FT(accepted by Actel buffer)
+  static geant _tdctrdel;    // TDC Trig(Lvl1)suppl.delay on SFET(A) board
+  static geant _tdctrlat;    // TDC trig.latency
+  static geant _tdcmatw;     // TDC matching window
+  static geant _lev1del;     // "Lev-1" signal delay wrt FT (JLV1 decision, ns)
   static geant _ftc2cj;      // FT signal crate-to-crate jitter(ns)  
   static geant _fts2sj;      // .......... slot-to-slot  jitter(ns)
   static geant _ltagew[2];   // true LTtime-hit wrt FT age-window(ns) 
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
-  static geant _accdel;      // "Lev-1"(Common stop) signal delay wrt FT (ns)
-  static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
   static geant _clkperJLV;      // JLVTrig.electronics(JLV1-crate) clock period(ns)
   static geant _clkperSPT;      // SPTpreTrig.electronics(S-crates) clock period(ns)
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
@@ -191,10 +192,9 @@ public:
   static geant fladctb();
   static geant tdcscl();
 //
-  static geant accdel();
+  static geant lev1del();
   static geant ltagew(int i);
   static geant ftdelm();
-  static geant fstdcd();
   static geant clkperJLV();
   static geant clkperSPT();
   static geant sespar(int ibt, int ipar);
@@ -210,8 +210,9 @@ public:
 //
   static geant strflu();
 //
-  static geant hagemx();
-  static geant hagemn();
+  static geant tdctrdel();
+  static geant tdctrlat();
+  static geant tdcmatw();
 //
   static geant tdcbin(int i);
 //
@@ -345,6 +346,7 @@ private:
 //          =34 -> TOF reco with EC in LVL1
 //
 //          =38 -> entries to PEDS-calibration
+//          =39 -> entries to TDCL-calibration
 //------
   static integer chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];//channel statistics
 //                              [0] -> RawSide channel entries(with FT-time!)  
@@ -725,5 +727,60 @@ public:
   number getlkhd(int nhits, int hstat[], number ehit[], number beta);
   static void build();  
 }; 
+//-------------------------------------------------
+class TofTdcCor{
+//To keep TofTdc Integral nonlinearity correction and other data
+private:
+  int _bmap;//bit-map of abs.chan.numbers presented in calib.data ( lsb -> 1st ch.)
+  geant _icor[TOF2GC::SCTDCCH-2][1024];//integr.nonlin. corrections, based on 10 lsb of TDC-count(bin#)
+public:
+  TofTdcCor(){};
+  TofTdcCor(int bmap, geant icor[TOF2GC::SCTDCCH-2][1024]):_bmap(bmap){
+    for(int ch=0;ch<TOF2GC::SCTDCCH-2;ch++){
+      for(int bn=0;bn<1024;bn++)_icor[ch][bn]=icor[ch][bn];
+    }
+  };
+  geant getcor(int time, int ch);
+//
+  bool truech(int ch){
+#ifdef __AMSDEBUG__
+    if(TOF2DBc::debug){
+      assert(ch>=0 && ch < TOF2GC::SCTDCCH-2);
+    }
+#endif
+    return ((_bmap & (1<<ch))!=0);
+  }
+  static void build();
+  static TofTdcCor tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
+};
+//---------------
+class TofTdcCorMS{
+//To keep TofTdc Integral nonlinearity correction and other data
+private:
+  int _bmap;//bit-map of abs.ch# presented in calib.data ( lsb -> 1st ch.)
+  geant _icor[TOF2GC::SCTDCCH-2][1024];//integr.nonlin. corrections, based on 10 lsb of TDC-count(bin#)
+public:
+  TofTdcCorMS(){};
+  TofTdcCorMS(int bmap, geant icor[TOF2GC::SCTDCCH-2][1024]):_bmap(bmap){
+    for(int ch=0;ch<TOF2GC::SCTDCCH-2;ch++){
+      for(int bn=0;bn<1024;bn++)_icor[ch][bn]=icor[ch][bn];
+    }
+  };
+  int getbin(number htim, number ttim, int ch);//ch=0,1,...
+  geant getinval(int ch, int bn){return _icor[ch][bn];}
+//
+  bool truech(int ch){
+#ifdef __AMSDEBUG__
+    if(TOF2DBc::debug){
+      assert(ch>=0 && ch < TOF2GC::SCTDCCH-2);
+    }
+#endif
+    return ((_bmap & (1<<ch))!=0);
+  }
+  static void build();
+  static int getbins(number htim, number ttim);//no lin-corr, suitable for ACC also !!!
+  static TofTdcCorMS tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
+};
+//-------------------------------------------------
 #endif
 

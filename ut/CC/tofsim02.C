@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.37 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: tofsim02.C,v 1.38 2007/12/06 13:31:12 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -43,6 +43,7 @@ geant TOF2Tovt::SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC 
 int TOF2Tovt::SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1]; 
 geant TOF2Tovt::SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];
 int TOF2Tovt::SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
+number TOF2Tovt::TofATdcT0[TOF2GC::SCCRAT][TOF2GC::SCFETA];//SFET(A) T0s withing 2048*25ns CC(11bits)-ovfl period
 geant AMSBitstr::clkfasJLV=0;
 geant AMSBitstr::clkfasSPT[4]={0,0,0,0};
 //============================================================
@@ -1390,7 +1391,7 @@ number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
       ibar=id%100-1;
       ilay=id/100-1;
       intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));//TofInTrig from DB
-      if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
+      if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side is in trigger(not masked)
 //
         ntr=ptr->gettr1(ttru,ttrd);// get number and up/down times of "z>=1"==HT branch 
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
@@ -1861,7 +1862,7 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
       ibar=id%100-1;
       ilay=id/100-1;
       intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));
-      if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
+      if(intrig==1 || (intrig>1 && (intrig-2)!=isd) || TFMCFFKEY.trlogic[0]==0){//bar/side in trigger(not masked)
         ntr=ptr->gettr1(ttru,ttrd);// get number and times of "z>=1"==HT hits
         trbs.bitclr(1,0);
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
@@ -1906,6 +1907,10 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 // 
     }//         --- end of Tovt-hits loop in layer --->
 //
+    if(TFMCFFKEY.trlogic[0]==1){
+      toftrp1[ilay]|=(1<<11);//set fict.padd_12 (for both sides) as masking flag
+      toftrp1[ilay]|=(1<<27);
+    }
   } //                               --- end of layer loop --->
 // 
 // ---> create counters sides pattern(SHT(z>=2)):
@@ -1923,7 +1928,7 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
       ibar=id%100-1;
       ilay=id/100-1;
       intrig=Trigger2LVL1::l1trigconf.tofinzmask(int(ilay),int(ibar));//TofInTrig from DB
-      if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
+      if(intrig==1 || (intrig>1 && (intrig-2)!=isd) || TFMCFFKEY.trlogic[0]==0){//bar/side in trigger(not masked)
         ntr=ptr->gettr3(ttru,ttrd);// get number and times of "z>=2"==SHT hits
         trbs.bitclr(1,0);
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
@@ -1968,6 +1973,10 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 // 
     }//         --- end of Tovt-hits loop in layer --->
 //
+    if(TFMCFFKEY.trlogic[0]==1){
+      toftrp2[ilay]|=(1<<11);//set fict.padd_12 (for both sides) as masking flag
+      toftrp2[ilay]|=(1<<27);
+    }
   } //                               --- end of layer loop --->
 //
 }
@@ -2221,13 +2230,14 @@ void AMSBitstr::setclkphase(){
 void TOF2RawSide::mc_build(int &status)
 {
   integer i,j,jj,ilay,last,ibar,isd,stat(0);
-  int16u id,idd,_sta,hid;
+  int16u id,idd,_sta;
+  integer nhits,hid,hidt,hidq[4];
   integer nftdc,nstdc,nsumh,nsumsh,nadcd,itt,ntstdc,ntadcd;
   number tstdc[TOF2GC::SCTHMX3];
   number tadca,tadcd[TOF2GC::PMTSMX];
   integer  ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3],sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   geant adca,adcd[TOF2GC::PMTSMX];
-  number t,t1,t2,t3,t4,ttrig,dt,cstopt,tl1d,ftrig,ecftrig;
+  number t,t1,t2,t3,t4,ttrig,dt,lev1tm,tl1d,ftrig,ecftrig;
   number ftctime,ftztime,ftetime,ftmin,dummy;
   geant charge,edep,strr[2][2],str,offs,temT,temC,temP;
   geant daqta,daqtd,rrr;
@@ -2364,7 +2374,7 @@ void TOF2RawSide::mc_build(int &status)
       cout<<"    BZflag/code="<<bztr<<" "<<trcodez<<endl;
     }
 //
-    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//globFT abs time(+fixed delay) as it came to S-crate from "JLV1"
+    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//globFT abs time at S-crate (the one at "JLV1 +delay"
 //    (used as average value to create FT-hits in SFET(A)s by adding cr-to-cr and sl-to-sl jitters)
     TOF2Tovt::spt2patt(ftrig,trpatt,trpattz);//<=== create TOF(HT/SHT-signals in SPT2) padd/side patterns
 //
@@ -2382,55 +2392,81 @@ void TOF2RawSide::mc_build(int &status)
     TOF2RawSide::setpatt(trpatt);// set SPT2 TOF(HT) pattern(z>=1)
     TOF2RawSide::setpattz(trpattz);// set SPT2 TOF(SHT) pattern(z>=2)
     TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (at S-crate) 
-//    cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
-    if(TGL1FFKEY.printfl>0)cout<<"   FTAbsTime="<<ttrig<<"(inSPT2:"<<ftrig<<")"<<endl;
+    lev1tm=ftrig+TOF2DBc::lev1del();// "Lev1"-signal abs.time at S-crate
+//    cout<<"Original ttrig/ftrig/lev1tm="<<ttrig<<" "<<ftrig<<" "<<lev1tm<<endl;
   }//===> endof "NotExtTrigger" check
 //-----
   else{//<==== external trigger
     ftpatt|=(1<<3);
     ttrig=0.;//tempor (true ExtTrigSignal-time)
-    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
+    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time at S-crate(fixed delay added)
     TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (in S-crate) 
     TOF2RawSide::setftpatt(ftpatt);//set  globFT members pattern
-    cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     TOF2JobStat::addmc(22);
+    lev1tm=ftrig+TOF2DBc::lev1del();// "Lev1"-signal abs.time at S-crate
   }
 //
   status=0;//<============ OK because globFT conditions was found above
 //
-  if(TFMCFFKEY.mcprtf[3]>0)cout<<"    FTabsTime="<<ttrig<<" inSPT2(delayed)="<<ftrig<<endl;
+  if(TGL1FFKEY.printfl>0 || TFMCFFKEY.mcprtf[3]>0){
+    cout<<"   FTAbsTime(at JLV1)="<<ttrig<<"(at S-crate:"<<ftrig<<")"<<endl;
+    cout<<" Lev1-time at S-crate:"<<lev1tm<<endl;
+  }
 //  
-//<---- create TOFRawSide static FTtime-channels arrays(digitization of FT-time, INCLUDING Anti-slots ):
-  number ftcrat,ftslot;
+//<---- create TOFRawSide static FTtime-channels array(digitization of FT-time, INCLUDING Anti-slots ):
+  number ftcrat,ftslot,ftslots,lev1tms,htim,htims;
+  int tdcbin;
   if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Generated FT-signals in crates/slots:"<<endl;
   for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
     ftcrat=ftrig+rnormx()*TOF2DBc::ftc2cj();//actual FT-time in crate(cr-2-cr jitter)
-    if(TFMCFFKEY.mcprtf[3]>0)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
+    if(TGL1FFKEY.printfl>0 || TFMCFFKEY.mcprtf[3]>0)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
     for(int sl=0;sl<TOF2GC::SCFETA;sl++){
       ftslot=ftcrat+rnormx()*TOF2DBc::fts2sj();//actual FT-time in slot(sl-2-sl jitter)
-      if(TFMCFFKEY.mcprtf[3]>0)cout<<"      ssl="<<sl<<" SlotFTtime="<<ftslot<<endl;
-      TOF2RawSide::FTtime[cr][sl][0]=integer(floor(ftslot/TOF2DBc::tdcbin(1)));//digitization
-      TOF2RawSide::FThits[cr][sl]=1;//only one hit for MC
+      ftslots=ftslot+TOF2Tovt::TofATdcT0[cr][sl];//add sincronization(CoarseCounter state)
+      lev1tms=lev1tm+TOF2Tovt::TofATdcT0[cr][sl];//add sincronization(TrigTimeTagCounter state)
+      if(TGL1FFKEY.printfl>0 || TFMCFFKEY.mcprtf[3]>0){
+        cout<<"---> DigiFT: ssl="<<sl<<" SlotFTtime="<<ftslot<<" sincronized:"<<ftslots<<endl;
+        cout<<"      SlotLev1time="<<lev1tm<<" sincronized:"<<lev1tms<<endl;
+      }
+      if(TFMCFFKEY.tdclin>0 && sl<(TOF2GC::SCFETA-1)
+	                    && TofTdcCorMS::tdccor[cr][sl].truech(5)){//get FTtdc counts in nonlin mode(only TOF)
+	tdcbin=TofTdcCorMS::tdccor[cr][sl].getbin(ftslots,lev1tms,5);
+	if(tdcbin>=0)TOF2RawSide::FTtime[cr][sl][0]=tdcbin;
+	if(TFMCFFKEY.mcprtf[3]>0){
+          jj=TofTdcCorMS::getbins(ftslots,lev1tms); 
+	  cout<<"      FTtime-bin="<<TOF2RawSide::FTtime[cr][sl][0]<<", nonCor:"<<jj<<endl;
+	}
+      }
+      else{//get FTtdc counts in linear mode (TOF,ACC)
+        tdcbin=TofTdcCorMS::getbins(ftslots,lev1tms);
+        if(tdcbin>=0)TOF2RawSide::FTtime[cr][sl][0]=tdcbin; 
+      }
+      if(tdcbin>=0)TOF2RawSide::FThits[cr][sl]=1;//only one hit for MC
     }
   }
 //
 //----> create LT-time, charge hits scanning TOF2Tovt-objects :
 //
-  int16u mtyp(0),otyp(0),crat,slot;
+  int16u mtyp(0),pmtn(0),crat(0),slot(0),sslot(0),inpch(0);
+  int nbpl,sbn;
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
                                getheadC("TOF2Tovt",ilay,0);
     while(ptr){// <--- Tovt-hits loop in layer ---
+      hidt=0;
+      for(i=0;i<4;i++)hidq[i]=0;
       idd=ptr->getid();// LBBS
       id=idd/10;// short id=LBB
       ibar=id%100-1;
       isd=idd%10-1;
-      mtyp=0;
-      otyp=0;
-      AMSSCIds tofid(ilay,ibar,isd,otyp,mtyp);//otyp=0(anode),mtyp=0(TimeTDC))
-      crat=tofid.getcrate();//current crate#
-      slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
-      hid=tofid.gethwid()/100;//CSS(Crate|Slot=>shorthwid) 
+      mtyp=0;//LT-time
+      pmtn=0;//anode
+      AMSSCIds toft(ilay,ibar,isd,pmtn,mtyp);//otyp=0(anode),mtyp=0(LT-time))
+      crat=toft.getcrate();//current crate#(0-3)
+      slot=toft.getslot();//crate's sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
+      sslot=AMSSCIds::sl2tsid(slot);//SFET(A) SeqSlot#(1-5)
+      inpch=toft.getinpch();//card's inp.ch=0,1,..
+      hidt=100000*(crat+1)+10000*sslot;//non standard time-hwid=CSIIII (Cr=1-4;Sslot=1-9;Inch=1-8)
       _sta=ptr->getstat();
       charge=ptr->getcharg();
       edep=ptr->getedep();
@@ -2439,25 +2475,61 @@ void TOF2RawSide::mc_build(int &status)
       ntstdc=ptr->getstdc(tstdc);// get number and times of TDC LTtime-hits
       nstdc=0;
       if(TOFBrcalMS::scbrcal[ilay][ibar].SchOK(isd)){//LTtime-ch alive in "MC Seeds" DB
-      if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Check/digitize LT-hits for id="<<idd<<" cr/sl="<<crat
-                                                             <<" "<<slot<<" hid="<<hid<<endl;
+      if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Check/digitize LT-hits for id="<<idd<<" cr/ssl="<<crat
+                                                             <<" "<<sslot<<" hidt="<<hidt<<endl;
 // 0---- young_hits......FT...old_hits ----->time
         for(j=0;j<ntstdc;j++){//       <--- stdc-hits loop ---
-          t1=tstdc[j];//LTtime-channle abs.time
-	  it1=integer(floor(t1/TOF2DBc::tdcbin(1)));//ns->TDCch
-          dt=t1-ftrig;// Time-hit(t1) age wrt FT("-"==>younger, "+"==>older)
-          if(TFMCFFKEY.mcprtf[3]>0)cout<<"      Hit="<<j+1<<" AbsTime/dig="<<t1<<" "<<it1
-                                                    <<" t-ttrig="<<dt<<" lims="<<
-                                                    TOF2DBc::hagemn()<<" "<<TOF2DBc::hagemx()<<endl;
-          if(dt<TOF2DBc::hagemn())TOF2JobStat::addmc(7);//too young hit	    
-          else if(dt>TOF2DBc::hagemx())TOF2JobStat::addmc(8);//too old	    
-	  else{//ok(no check on maxv because of age check)unirun.job
-            stdc[nstdc]=it1;
+          htim=tstdc[j];//LTtime-channel abs.time
+          htims=htim+TOF2Tovt::TofATdcT0[crat][sslot-1];//add sincronization(CoarseCounter state)
+          lev1tms=lev1tm+TOF2Tovt::TofATdcT0[crat][sslot-1];//add sincronization(TrigTimeTagCounter state)
+          if(TFMCFFKEY.tdclin>0){
+	    if(!TofTdcCorMS::tdccor[crat][sslot-1].truech(inpch))break;//illegal channel for nonlin-procedure
+	    tdcbin=TofTdcCorMS::tdccor[crat][sslot-1].getbin(htims,lev1tms,inpch);
+//	    if(idd==1041){
+//	      jj=TofTdcCorMS::getbins(htims,lev1tms);
+//	      cout<<"   LTtim="<<htim<<" sincr="<<htims<<" lev1tms="<<lev1tms<<endl;   
+//	      cout<<"   LT-bin="<<tdcbin<<", nonCor:"<<jj<<endl;
+//	    }
+	  }
+	  else tdcbin=TofTdcCorMS::getbins(htims,lev1tms);
+          if(tdcbin<0){//not in TDC's search window
+	    TOF2JobStat::addmc(7);
+	  }	    
+	  else{//ok(no check on maxv because of matching check)
+            stdc[nstdc]=tdcbin;
             nstdc+=1;
           }//--endof hit-age check-->
         }//--- end of stdc-hits loop --->
       }//--> end of alive check
+//
+      nbpl=TOF2DBc::getbppl(ilay);//bars/plane
+      if((ibar+1)%2==1)sbn=nbpl+1;//FT(sHT,sSHT)-signals have bar#: (ibar+1) +1(if odd) +2(if even)
+      else sbn=nbpl+2;
+//
+      if(nstdc>0){
+        inpch=toft.getinpch();//card's inp.ch=0-9
+	hidt+=1000*(inpch+1);//add LTime InpCh# into time-hwid
+      }
+      nhits=TOF2RawSide::FThits[crat][sslot-1];
+      if(nhits>0){
+        AMSSCIds toftt(ilay,sbn-1,isd,0,2);//otyp=0(anode),mtyp=2(FT-time))
+        inpch=toftt.getinpch();//card's FTinp.ch=5
+        hidt+=100*(inpch+1);//
+      }
+      nhits=TOF2Tovt::SumHTh[crat][sslot-1];
+      if(nhits>0){
+        AMSSCIds toftt(ilay,sbn-1,isd,0,3);//otyp=0(anode),mtyp=3(SumHT-time))
+        inpch=toftt.getinpch();//card's SunHTinp.ch=6
+        hidt+=10*(inpch+1);//
+      }
+      nhits=TOF2Tovt::SumSHTh[crat][sslot-1];
+      if(nhits>0){
+        AMSSCIds toftt(ilay,sbn-1,isd,0,4);//otyp=0(anode),mtyp=4(SumSHT-time))
+        inpch=toftt.getinpch();//card's SunHTinp.ch=7
+        hidt+=(inpch+1);//
+      }
 //----------------
+    mtyp=1;//Q
 //Qanode:
     adca=0;
     if(TOFBrcalMS::scbrcal[ilay][ibar].AchOK(isd)){//A(h)-ch alive in "MC Seeds" DB
@@ -2482,6 +2554,15 @@ void TOF2RawSide::mc_build(int &status)
       }
 //cout<<"    Anode: ped/sig="<<pedv<<" "<<peds<<" iamp="<<iamp<<" adca(ped-subtracted)="<<adca<<endl;
     }//--> end of alive check
+    if(adca>0){
+      pmtn=0;//anode
+      AMSSCIds tofq(ilay,ibar,isd,pmtn,mtyp);//pmtn=0(anode),mtyp=1(Q))
+      crat=tofq.getcrate();//current crate#(0-3)
+      slot=tofq.getslot();//crate's sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
+      sslot=AMSSCIds::sl2qsid(slot);//SFET,SFEA,SFEC SeqSlot#(1-9) for Q-measurements
+      inpch=tofq.getinpch();//card's Qinp.ch(0-9)
+      hidq[0]=1000*(crat+1)+100*sslot+inpch+1;//non standard Q-hwid=CSII (Cr=1-4;Sslot=1-9;IInch=1-10)
+    }
 //--------------------
 //Qdynode:
     nadcd=0;
@@ -2515,6 +2596,15 @@ void TOF2RawSide::mc_build(int &status)
         }
       }//--> end of alive check
 //cout<<"    Dynode: pm/ped/sig="<<j<<" "<<pedv<<" "<<peds<<" iamp="<<iamp<<" adcd(ped-subtr)="<<adcd[j]<<endl;
+      if(adcd[j]>0){
+        pmtn=j+1;//dynodes
+        AMSSCIds tofq(ilay,ibar,isd,pmtn,mtyp);//pmtn=0(anode),mtyp=1(Q))
+        crat=tofq.getcrate();//current crate#(0-3)
+        slot=tofq.getslot();//crate's sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
+        sslot=AMSSCIds::sl2qsid(slot);//SFET,SFEA,SFEC SeqSlot#(1-9) for Q-measurements
+        inpch=tofq.getinpch();//card's Qinp.ch(0-9)
+        hidq[j+1]=1000*(crat+1)+100*sslot+inpch+1;//non standard Q-hwid=CSII (Cr=1-4;Sslot=1-9;IInch=1-10)
+      }
     }//--- end of Dyn-pm loop --->
 //---------------------
 //     ---> create/fill RawEvent-object :
@@ -2528,7 +2618,7 @@ void TOF2RawSide::mc_build(int &status)
       if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtraction/suppression)
       fmask[ilay][ibar][isd]=1;//mark fired side
 //
-      AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,temT,temC,temP,
+      AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hidt,hidq,_sta,charge,temT,temC,temP,
 	                           nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
 //
       ptr=ptr->next();// take next Tovt-hit
@@ -2539,7 +2629,7 @@ void TOF2RawSide::mc_build(int &status)
 //-----------------------------
 // <--- create static TOF2RawSide::SumHTt/SumSHTt-arrays(selection of good(out-of-tdcDT) hits in TOF2Tovt):
 //      (TOF2TovT::sumHTt/sumSHT-hits are already arranged in incr.order at the end of TOF2TovT::build()) 
-  int nhits,phn,nhn,nhnmin;
+  int phn,nhn,nhnmin;
   geant tprev,tnext;
   integer itprev;
   geant apw=TOF2DBc::daqpwd(11);//PW>=tdcDT for SumHT-ch on ACTEL-output(= TDC-input) 
@@ -2549,7 +2639,10 @@ void TOF2RawSide::mc_build(int &status)
       if(nhits>0){//<====== non-empty slot with SumHTt-hits
         for(phn=0;phn<nhits;phn++){//<---TOF2Tovt prev.hit loop
 	  tprev=TOF2Tovt::SumHTt[ic][sl][phn];
-	  itprev=integer(floor(tprev/TOF2DBc::tdcbin(1)));//digitization
+          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(CoarseCounter state)
+          lev1tms=lev1tm+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(TrigTimeTagCounter state)
+	  itprev=TofTdcCorMS::getbins(htims,lev1tms);//linear mode
+	  if(itprev<0)continue;//not in TDC's search window, take next hit
 	  TOF2RawSide::SumHTt[ic][sl][TOF2RawSide::SumHTh[ic][sl]]=itprev;//store digitized current "prev"
 	  TOF2RawSide::SumHTh[ic][sl]+=1;
 	  nhnmin=phn+1;
@@ -2567,7 +2660,10 @@ void TOF2RawSide::mc_build(int &status)
       if(nhits>0){//<-- non-empty slot with SumSHTt-hits
         for(phn=0;phn<nhits;phn++){//<---TOF2Tovt prev.hit loop
 	  tprev=TOF2Tovt::SumSHTt[ic][sl][phn];
-	  itprev=integer(floor(tprev/TOF2DBc::tdcbin(1)));//digitization
+          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(CoarseCounter state)
+          lev1tms=lev1tm+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(TrigTimeTagCounter state)
+	  itprev=TofTdcCorMS::getbins(htims,lev1tms);//linear mode
+	  if(itprev<0)continue;//not in TDC's search window, take next hit
 	  TOF2RawSide::SumSHTt[ic][sl][TOF2RawSide::SumSHTh[ic][sl]]=itprev;//store digitized current "prev"
 	  TOF2RawSide::SumSHTh[ic][sl]+=1;
 	  nhnmin=phn+1;
@@ -2591,13 +2687,9 @@ void TOF2RawSide::mc_build(int &status)
       for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
         for(int is=0;is<2;is++){
 	  if(fmask[il][ib][is]==0){//empty side
+            for(i=0;i<4;i++)hidq[i]=0;
 	    idd=1000*(il+1)+10*(ib+1)+is+1;//LBBS
-            mtyp=1;
-            otyp=0;
-            AMSSCIds tofid(il,ib,is,otyp,mtyp);//otyp=0(anode),mtyp=1(q)
-            crat=tofid.getcrate();//current crate#
-            slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
-            hid=tofid.gethwid()/100;//CSS(Crate|Slot=>shorthwid) 
+            mtyp=1;//Q
             adca=0;
             if(TOFBrcalMS::scbrcal[il][ib].AchOK(is)){//Anode-ch alive in "MC Seeds" DB
               pedv=TOFBPeds::scbrped[il][ib].apeda(is);
@@ -2612,6 +2704,15 @@ void TOF2RawSide::mc_build(int &status)
 	        else adca=0;
               }
 	    }//--->endof alive check
+            if(adca>0){
+              pmtn=0;//anode
+              AMSSCIds tofq(ilay,ibar,isd,pmtn,mtyp);//pmtn=0(anode),mtyp=1(Q))
+              crat=tofq.getcrate();//current crate#(0-3)
+              slot=tofq.getslot();//crate's sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
+              sslot=AMSSCIds::sl2qsid(slot);//SFET,SFEA,SFEC SeqSlot#(1-9) for Q-measurements
+              inpch=tofq.getinpch();//card's Qinp.ch(1-10)
+              hidq[0]=1000*(crat+1)+100*sslot+inpch;//non standard Q-hwid=CSII (Cr=1-4;Sslot=1-9;IInch=1-10)
+            }
             nadcd=0;
             for(j=0;j<TOF2GC::PMTSMX;j++)adcd[j]=0;
             for(j=0;j<TOF2DBc::npmtps(il,ib);j++){// <--- Dyn-pmts loop ---
@@ -2634,6 +2735,15 @@ void TOF2RawSide::mc_build(int &status)
 	          else adcd[j]=0;
 		}
               }//--->endof alive check
+              if(adcd[j]>0){
+                pmtn=j+1;//dynodes
+                AMSSCIds tofq(ilay,ibar,isd,pmtn,mtyp);//pmtn=0(anode),mtyp=1(Q))
+                crat=tofq.getcrate();//current crate#(0-3)
+                slot=tofq.getslot();//crate's sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
+                sslot=AMSSCIds::sl2qsid(slot);//SFET,SFEA,SFEC SeqSlot#(1-9) for Q-measurements
+                inpch=tofq.getinpch();//card's Qinp.ch(1-10)
+                hidq[j+1]=1000*(crat+1)+100*sslot+inpch;//non standard Q-hwid=CSII (Cr=1-4;Sslot=1-9;IInch=1-10)
+              }
             }//--->endof Dyn-pmt-loop
 //     ---> create/fill "ped" RawEvent-object :
             if(adca>0 || nadcd>0){
@@ -2647,7 +2757,7 @@ void TOF2RawSide::mc_build(int &status)
               nsumsh=0;
 //
               if(TFREFFKEY.relogic[0]==5||TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtr/suppr)
-              AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hid,_sta,charge,
+              AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hidt,hidq,_sta,charge,
 	                                 temT,temC,temP,
 	                                 nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
 	    }
@@ -2725,16 +2835,17 @@ integer TOF2Tovt::getadcd(number arr[]){
 
 
 
-TOF2RawSide::TOF2RawSide(int16u sid, int16u hid, int16u sta, geant charge,
+TOF2RawSide::TOF2RawSide(int16u sid, int hidt, int hidq[4], int16u sta, geant charge,
    geant tT, geant tC, geant tP,
    integer nftdc, integer ftdc[],
    integer nstdc, integer stdc[],
    integer nsumh, integer sumht[],
    integer nsumsh, integer sumsht[],
    geant adca,
-   integer nadcd, geant adcd[]):_swid(sid),_hwid(hid),_status(sta)
+   integer nadcd, geant adcd[]):_swid(sid),_hwidt(hidt),_status(sta)
    {
      integer i;
+     for(i=0;i<4;i++)_hwidq[i]=hidq[i];
      _nftdc=nftdc;
      for(i=0;i<nftdc;i++)_ftdc[i]=ftdc[i];
      _nstdc=nstdc;
@@ -2818,9 +2929,9 @@ integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
 // Note: at the moment of call FT-time is still not attached to RawSide-obj, so i need to take FT
 // from static store, where FT-times stored after decoding as crat/slot arrays !!!
   integer ilay,ibar,isid;
-  int i,j,nrwt;
+  int i,j,nrwt,hwid;
   int statdb[2];
-  int16u hwid,crat,otyp(0),mtyp(0),slot,tsens;
+  int16u crat,otyp(0),mtyp(0),slot,tsens;
   int16u id,rwt[10];
   int16 rawt;
   integer nftt,ftt[TOF2GC::SCTHMX1];
@@ -2835,7 +2946,7 @@ integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
   if(TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid)){ // side OK(F&S&A), read out it
     hwid=tofid.gethwid();//CSRR(Crate|Slot|Readout_channel)
     crat=tofid.getcrate();//current crate#(0,1,..)
-    slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+    slot=tofid.getslot();//sequential slot# in crate(0,1,...10)(4 last are fictitious for d-adcs)
     tsens=tofid.gettempsn();//... sensor#(1,2,...,5),coinsides with SFET(A) seq.slot number!
     nftt=TOF2RawSide::FThits[crat][tsens-1];
     if(nftt>0)for(i=0;i<nftt;i++)ftt[i]=TOF2RawSide::FTtime[crat][tsens-1][i];

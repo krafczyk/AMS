@@ -473,7 +473,8 @@ public:
 class TofRawSideR {
 public:
   int swid;//short softw-id(LBBS)
-  int hwid;//short hardw-id(C(rate)S(lot), for SFET(C)-type measurements:stdc,ftdc,adca,adcd
+  int hwidt;//time hardw-id CSIIII(Crate|SSlot|each I(1-9) is TDC InpChNumb for LT,FT,SumHT,SumSHT measurements
+  int hwidq[4];//array of CSII, where II is ADC InpChNumb for Anode and Dynodes charge-measurements(II=1-10)
   int stat;// 0/1->ok/bad
   int nftdc;//numb.of FTtime-hits
   int ftdc[8];//FTtime-hits(FastTrigger-channel time, ns)
@@ -496,7 +497,7 @@ public:
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
   
-  ClassDef(TofRawSideR ,4)       //TofRawSideR
+  ClassDef(TofRawSideR ,5)       //TofRawSideR
 };
 
 
@@ -1107,7 +1108,8 @@ public:
   unsigned short int EcalPatt[6][3];///< EC DynodesPattern for 6 "trigger"-SupLayers(36dynodes use 36of(3x16)lsbits)
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
   float LiveTime;  ///< Fraction of "nonBusy" time
-  float TrigRates[6]; ///< TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx                    
+  float TrigRates[6]; ///< TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
+  unsigned int TrigTime[4];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb)                    
 
   Level1R(){};
   Level1R(Trigger2LVL1 *ptr);
@@ -1125,7 +1127,7 @@ public:
   return _Info;
   }
   virtual ~Level1R(){};
-ClassDef(Level1R,2)       //Level1R
+ClassDef(Level1R,3)       //Level1R
 };
 
 

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.10 2007/07/12 07:31:41 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.11 2007/12/06 13:31:22 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -228,4 +228,26 @@ public:
   static uinteger & BRun(){return BeginRun;}
   static void ntuple_close();
 };
-//--------------------------
+//------------------------------------------------------------------
+//==================> TOF-tdc calibration:
+//  class to manipulate with PedSig-calibration  data:
+class TOFTdcCalib{
+private:
+  static integer evpch[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2];//events/tdc_chan
+  static number diflin[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2][1024];//chann's diff.nonlin
+  static geant intlin[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2][1024];//chann's integr.nonlin
+  static number avtemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//average chip's temperature(use 1st ch entries only)
+  static integer tempev[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//temper.statistics(use 1st ch. entries only)
+  static geant mntemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//min ...................... 
+  static geant mxtemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//max ...................... 
+  static geant iavtemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//interm.aver ...................... 
+  static integer istore[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2][1024];//interm. storage
+  static integer iupnum;//numb. of interm.storage file updates
+  static time_t BeginTime;
+  static uinteger BeginRun;
+public:
+  static void init();
+  static void fill(int crt, int ssl, int ch, int tdc, geant temp);
+  static void ifill(int crt, int ssl, int ch, int tdc, geant temp);
+  static void outp(int flg);
+};

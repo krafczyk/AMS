@@ -16,39 +16,39 @@ using namespace ecalconst;
 //
 int16u DAQECBlock::format=0; // default format (raw)
 //
-int16u DAQECBlock::nodeids[2*ecalconst::ECRT]=//valid EC_nodes(JINFs) id(link#)(*2 due to 2 halfs) 
+int16u DAQECBlock::nodeids[ecalconst::ECRT]=//valid EC_nodes(JINFs) id(link#)(2 JINF => 2crates)  
   {
-    12,13, //  a-sides, crates 1->2 (tempor !!!) 
-    12,13  //  b-sides, ...........
+    12,13, // crate 1/2 
   };
 //
 integer DAQECBlock::totbll=0;
 //
 // functions for EC-blocks class:
 //
-void DAQECBlock::node2crs(int16u nodeid, int16u &crat, int16u &sid){
-//  on input: nodeid(JINF-nodes only!!!)=(blid&0x001F)
-//  on output: crate=1-2, =0 if ID is not found; side=(1,2) -> (a,b)
+void DAQECBlock::node2crs(int16u nodeid, int16u &crat){//called by me only
+//  on input: slaveid(JINF-nodes only!!!)=(blid&0x001F)
+//  on output: crate=1-2, =0 if ID is not found;
   crat=0;
-  sid=0;
-  for(int i=0;i<2*ecalconst::ECRT;i++){
+  for(int i=0;i<ecalconst::ECRT;i++){
     if(nodeid==nodeids[i]){
-      crat=int16u(i%2)+1;//seq.crate# 1,...2
-      sid=int16u(floor(geant(i)/2)+1);//side# 1,2(a,b)
+      crat=i+1;//seq.crate# 1,...2
     }
   }
 }
 //
-integer DAQECBlock::checkblockid(int16u blid){//have to be redefined !!!
+integer DAQECBlock::checkblockid(int16u blid){//called by VC
   int valid(0);
-  for(int i=0;i<2*ecalconst::ECRT;i++)if((blid & (0x001F)) == nodeids[i])valid=1;
-//            (this "2*" due to redundancy)
+  for(int i=0;i<ecalconst::ECRT;i++)if(blid == nodeids[i])valid=1;
+//  cout<<"----> In DAQECBlock::checkblockid, blid(hex)="<<hex<<blid<<",addr="<<dec<<(blid&(0x001F))<<",valid="<<valid<<endl;
+  if(valid==0){
+   return DAQEvent::ismynode(blid,"JF-E")?1:0;
+  } 
   return valid;
 }
 //-------------------------------------------------------
 void DAQECBlock::buildraw(integer leng, int16u *p){
 // it is implied that event_fragment is EC-JINF's one (validity is checked in calling procedure)
-//           *p=pointer_to_beggining_of_block_data(i.e. to len-word) ?????
+//           *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!)
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
@@ -92,7 +92,9 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   }
 //
   EcalJobStat::daqs1(0);//count entries
-  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
+  p=p-1;//to follow VC-convention
+//  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
+  jleng=leng;//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment
@@ -105,16 +107,17 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
   jaddr=jblid&(0x001F);//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
-//  cout<<"====> InBuildRaw: JIN_length="<<jleng<<" JINF-addr:"<<jaddr<<endl;
+  cout<<"====> In DAQECBlock::buildraw: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
   if(jleng>1)EcalJobStat::daqs1(1);//<=== count non-empty fragments
   else goto BadExit;
   noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && !cdpnod);
   if(noerr)EcalJobStat::daqs1(2);//<=== count no_ass_errors JINF-fragments for given DATA-type     
   else goto BadExit;
-  node2crs(jaddr,crat,csid);//get crate#(1-2, =0,if notfound),card_side(1-2<->a-b)
-//  cout<<"     crate/side="<<crat<<" "<<csid<<endl;
-  if(crat>0)EcalJobStat::daqs1(3+2*(crat-1)+csid-1);//crates/sides sharing of "no_ass_err" entries
+  node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
+  csid=1;//here is dummy(no redundancy for JINFs), later it is defined from card_id(EDR(a,b),ETRG(a,b))
+//  cout<<"      crate="<<crat<<endl;
+  if(crat>0)EcalJobStat::daqs1(3+2*(crat-1)+csid-1);//crates sharing of "no_ass_err" entries
   else goto BadExit;
 //-----------
   if(ECREFFKEY.relogic[1]==4)PedCal=true;//tempor(use later info about presence of ClassPedData from header ?)
@@ -153,7 +156,8 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     if(noerr)EcalJobStat::daqs2(crat-1,2+formt);//"no_ass_err" entries per crate/format
     else goto NextBlock;
 //
-    slots=AMSECIds::crdid2sl(csid-1,eaddr);//get seq.slot#(0-5 =>EDRs; =6 =>ETRG;-1==>not_found)
+    slots=AMSECIds::crdid2sl(csid,eaddr);//get seq.slot#(0-5 =>EDRs; =6 =>ETRG;-1==>not_found) ans side
+    csid=csid+1;//1/2->active EDR/ETRG side
 //    cout<<"    SeqSlot="<<slots<<endl;
     if(slots<0){
 #ifdef __AMSDEBUG__
@@ -424,7 +428,7 @@ BadExit:
 //  
 }
 //------------------------------------
-void frbdump(int16u *p, int16u len, char name){//fragment bits-dump
+void DAQECBlock::frbdump(int16u *p, int16u len, char name){//fragment bits-dump
   int16u tstw,tstb;
   int i,j;
   cout<<"-----------------------------------------------------------"<<endl;
@@ -444,7 +448,7 @@ void frbdump(int16u *p, int16u len, char name){//fragment bits-dump
   cout<<"-----------------------------------------------------------"<<endl;
 } 
 //------------------------------------
-integer DAQECBlock::getmaxblocks(){return 2;}//for MC where only one side in any slot is implied(no redundancy)
+integer DAQECBlock::getmaxblocks(){return 2;}//only one JINF in any crate is implied(no redundancy)
 integer DAQECBlock::calcblocklength(integer ibl){return 0;}
 void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   int leng=*p;

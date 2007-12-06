@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.82 2007/12/04 18:29:52 choutko Exp $
+//  $Id: daqevt.C,v 1.83 2007/12/06 13:31:12 choumilo Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -118,7 +118,7 @@ const char* DAQEvent::_NodeNames[512]={
     "TPD-7A", "TPD-7B", "TPD-7P", "TPD-7S", "TTCE-A", "TTCE-B", "TTCE-P", "TTCE-S",     // 104 - 111
     "UPD-0A", "UPD-0B", "UPD-0P", "UPD-0S", "UPD-1A", "UPD-1B", "UPD-1P", "UPD-1S",     // 112 - 119
     "UGPD-A", "UGPD-B", "UGPD-P", "UGPD-S", "CAB-A",  "CAB-B",  "CAB-P",  "CAB-S",      // 120 - 127
-    "JINJ-0", "JINJ-1", "JINJ-2", "JINJ-3", "JINJ-P", "JINJ-S", "JINJ-T", "JINJ-Q",     // 128 - 135
+    "JINJ-0", "JINJ-1", "JINJ-2", "JINJ-3", "JINJ-P", "JINJ-S", "JINJ-T", "JINJ-Q",     // 128 - 135
     "JLV1-A", "JLV1-B", "JLV1-P", "JLV1-S", "ETRG0A", "ETRG0B", "ETRG0P", "ETRG0S",     // 136 - 143
     "ETRG1A", "ETRG1B", "ETRG1P", "ETRG1S", "N-X094", "N-X095", "JF-E0A", "JF-E0B",     // 144 - 151
     "JF-E0P", "JF-E0S", "JF-E1A", "JF-E1B", "JF-E1P", "JF-E1S", "JF-R0A", "JF-R0B",     // 152 - 159

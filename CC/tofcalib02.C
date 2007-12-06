@@ -1,5 +1,6 @@
-//  $Id: tofcalib02.C,v 1.20 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.21 2007/12/06 13:31:12 choumilo Exp $
 #include "tofdbc02.h"
+#include "tofid.h"
 #include "point.h"
 #include "typedefs.h"
 #include "event.h"
@@ -225,7 +226,7 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
   strcpy(fname,"TofTzslw");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",TFMCFFKEY.calvern);//MC-versn
+    sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
   }
   else{
     strcat(fname,vers2);
@@ -1097,7 +1098,7 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   strcpy(fname,"TofTdelv");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",TFMCFFKEY.calvern);//MC-versn
+    sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
   }
   else{
     strcat(fname,vers2);
@@ -2115,7 +2116,7 @@ void TOF2AMPLcalib::fit(){
   strcpy(fname,"TofAmplf");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",TFMCFFKEY.calvern);//MC-versn
+    sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
   }
   else{
     strcat(fname,vers2);
@@ -4830,5 +4831,462 @@ void TOFPedCalib::ntuple_close(){
   HREND ("tofpedsig");
   CLOSEF(IOPA.hlun+1);
 //
+}
+//=============================================================================
+//======> TOFTdcCalib:
+integer TOFTdcCalib::evpch[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2];//events/tdc_chan
+number TOFTdcCalib::diflin[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2][1024];//chann's diff.nonlin
+geant TOFTdcCalib::intlin[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2][1024];//chann's integr.nonlin
+number TOFTdcCalib::avtemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//average chip's temperature(use 1st ch entries only)
+integer TOFTdcCalib::tempev[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//temper.statistics(use 1st ch. entries only)
+geant TOFTdcCalib::mntemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//min ...................... 
+geant TOFTdcCalib::mxtemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//max ...................... 
+geant TOFTdcCalib::iavtemp[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];//interm.aver ......................
+integer TOFTdcCalib::iupnum; 
+time_t TOFTdcCalib::BeginTime;
+uinteger TOFTdcCalib::BeginRun;
+integer TOFTdcCalib::istore[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2][1024];//statistics store
+//--------------------------
+void TOFTdcCalib::init(){ // ----> initialization for TofTdc-calibration
+//called in catofinitjob()
+  int crt,ssl,ich,bin,csl,i,j;
+  char fname[20];
+  strcpy(fname,"TofTdcIStore.dat");
+//
+  cout<<"====> TOFTdcCalib::init, use Mode:"<<TFCAFFKEY.tdccum<<endl;
+  if(TFCAFFKEY.tdccum/10==1 && TFCAFFKEY.tdccum%10>0){//not valid, correct it for economy mode priority !
+    i=TFCAFFKEY.tdccum/10;
+    TFCAFFKEY.tdccum=i*10;
+    cout<<"     Mode is not valid, corrected to Mode:"<<TFCAFFKEY.tdccum<<endl;
+  }
+// book hist:
+  HBOOK1(1600,"Bin-statistics for Cr0SL3Ch1(LBBS=1041)",1024,0.,1024.,0.);
+  HBOOK1(1601,"Bin-statistics for Cr2SL2Ch4(LBBS=3092)",1024,0.,1024.,0.);
+  HBOOK1(1602,"Integr.Linearity for Cr0SL3Ch1(LBBS=1041)",256,0.,256.,0.);
+  HBOOK1(1603,"Integr.Linearity for Cr0SL3Ch5(same crt FT)",256,0.,256.,0.);
+  HBOOK1(1604,"Integr.Linearity for Cr1SL3Ch1(LBBS=1022)",256,0.,256.,0.);
+  if(AMSJob::gethead()->isMCData()){
+    HBOOK1(1610,"Integr.Linearity SD-MC for Cr2Sl2,Ch=0",50,-5.,5.,0.);
+    HBOOK1(1611,"Integr.Linearity SD-MC for Cr2Sl2,Ch=1",50,-5.,5.,0.);
+    HBOOK1(1612,"Integr.Linearity SD-MC for Cr2Sl2,Ch=2",50,-5.,5.,0.);
+    HBOOK1(1613,"Integr.Linearity SD-MC for Cr2Sl2,Ch=3",50,-5.,5.,0.);
+    HBOOK1(1614,"Integr.Linearity SD-MC for Cr2Sl2,Ch=4",50,-5.,5.,0.);
+    HBOOK1(1615,"Integr.Linearity SD-MC for Cr2Sl2,Ch=5",50,-5.,5.,0.);
+    
+    HBOOK1(1616,"Integr.Linearity SD-MC for Cr1Sl2,Ch=0",50,-5.,5.,0.);
+    HBOOK1(1617,"Integr.Linearity SD-MC for Cr1Sl2,Ch=1",50,-5.,5.,0.);
+    HBOOK1(1618,"Integr.Linearity SD-MC for Cr1Sl2,Ch=2",50,-5.,5.,0.);
+    HBOOK1(1619,"Integr.Linearity SD-MC for Cr1Sl2,Ch=3",50,-5.,5.,0.);
+    HBOOK1(1620,"Integr.Linearity SD-MC for Cr1Sl2,Ch=4",50,-5.,5.,0.);
+    HBOOK1(1621,"Integr.Linearity SD-MC for Cr1Sl2,Ch=5",50,-5.,5.,0.);
+  }
+  HBOOK1(1700,"Crate min.statistics status (ok/not->0/1) in slot/chan, Crt=1",40,1.,41.,0.);
+  HBOOK1(1701,"Crate min.statistics status (ok/not->0/1) in slot/chan, Crt=2",40,1.,41.,0.);
+  HBOOK1(1702,"Crate min.statistics status (ok/not->0/1) in slot/chan, Crt=3",40,1.,41.,0.);
+  HBOOK1(1703,"Crate min.statistics status (ok/not->0/1) in slot/chan, Crt=4",40,1.,41.,0.);
+//
+  iupnum=0; 
+  for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+    for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+      avtemp[crt][ssl]=0;
+      iavtemp[crt][ssl]=0;
+      tempev[crt][ssl]=0;
+      mntemp[crt][ssl]=999;
+      mxtemp[crt][ssl]=-999;
+      csl=crt*(TOF2GC::SCFETA-1)+ssl;
+      for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+        evpch[csl][ich]=0;
+        for(bin=0;bin<1024;bin++){
+	  diflin[csl][ich][bin]=0;
+	  intlin[csl][ich][bin]=0;
+	}
+      }
+    }
+  }
+//
+  if(TFCAFFKEY.tdccum%10>0){//use ext.file to collect/keep statistics
+    if(TFCAFFKEY.tdccum%10==1){//start from scratch(clear array and later rewrite storage file)
+      for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+        for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+          csl=crt*(TOF2GC::SCFETA-1)+ssl;
+          for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+            for(bin=0;bin<1024;bin++)istore[csl][ich][bin]=0;
+          }
+        }
+      }
+    }
+//
+    else{//read existing interm.storage file
+      ifstream icfile(fname,ios::in);
+      if(!icfile){
+        cerr<<"<---- Error opening interm.storage file"<<fname<<'\n';
+        exit(8);
+      }
+      cout<<"      Open file for TOFTdc-calibration interm.storage: "<<fname<<'\n';
+      icfile >> iupnum;
+      for(crt=0;crt<TOF2GC::SCCRAT;crt++){//crate loop
+        for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){//SFET(A) seq.slot(link#) loop
+          csl=crt*(TOF2GC::SCFETA-1)+ssl;
+	  icfile >> mntemp[crt][ssl];
+	  icfile >> iavtemp[crt][ssl];
+	  icfile >> mxtemp[crt][ssl];
+          for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){//channel-loop:
+            for(bin=0;bin<1024;bin++){//bin loop
+              icfile >> istore[csl][ich][bin];
+            }//--->endof bin-loop
+          }//--->endof chan-loop
+        }//--->endof SFET(A) seq.slot(link#) loop
+      }//--->endof crate-loop
+      icfile.close();
+//    
+    }
+  }
+  cout<<"<==== TOFTdcCalib::init done !"<<endl;
+}
+//-----------------------
+void TOFTdcCalib::outp(int flg){
+  int crt,ssl,ich,bin,csl,i,j,binmin;
+  int sstat[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2];
+  time_t BeginTime=TOF2RawSide::getstime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
+  uinteger BeginRun=TOF2RawSide::getsrun();//1st event run# 
+  time_t end,insert;
+  char fname[80],ifname[80];
+  char frdate[30];
+  char vers1[3]="MC";
+  char vers2[3]="RD";
+  char fext[20];
+  char DataDate[30],WrtDate[30];
+  geant bincon[1024],lincor[1024],lincor4[256];
+  integer endflab(12345);
+//
+  cout<<endl<<endl;
+  cout<<"====> TOFTdcCalibration results:"<<endl;
+  strcpy(DataDate,asctime(localtime(&BeginTime)));
+  time(&insert);
+  strcpy(WrtDate,asctime(localtime(&insert)));
+  strcpy(ifname,"TofTdcIStore.dat");
+//
+//--> calc. run's and interm. aver.temperatures:
+//
+  for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+    for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+      if(tempev[crt][ssl]>0)avtemp[crt][ssl]/=tempev[crt][ssl];
+      cout<<"      Crate/SSlot:"<<crt<<" "<<ssl<<" Run Aver.temper="<<avtemp[crt][ssl]<<
+                                            " min/max="<<mntemp[crt][ssl]<<" "<<mxtemp[crt][ssl]<<endl<<endl;
+      iavtemp[crt][ssl]=(iupnum*iavtemp[crt][ssl]+avtemp[crt][ssl])/(iupnum+1);//imply equal statistics updates
+    }
+  }
+//
+//--> write interm.output file (if requested):
+//
+  if(TFCAFFKEY.tdccum%10>0){//store temper/diff.lin. data into interm.storage file
+    ofstream osfile(ifname,ios::out|ios::trunc);
+    if(!osfile){
+      cerr<<"<---- Error opening interm.storage file for output"<<ifname<<'\n';
+      exit(8);
+    }
+    cout<<"      Open file for TOFTdc-calibration interm.storage: "<<ifname<<'\n';
+    cout<<"      First run used for calibration is "<<BeginRun<<endl;
+    cout<<"      Date of the first event : "<<DataDate<<endl;
+    osfile.setf(ios::dec);
+    osfile << (iupnum+1)<<endl;
+    for(crt=0;crt<TOF2GC::SCCRAT;crt++){//crate loop
+      for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){//SFET(A) seq.slot(link#) loop
+        osfile << mntemp[crt][ssl]<<" ";
+        osfile << iavtemp[crt][ssl]<<" ";
+        osfile << mxtemp[crt][ssl];
+        osfile <<endl;
+        csl=crt*(TOF2GC::SCFETA-1)+ssl;
+        for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){//channel-loop:
+          for(bin=0;bin<1024;bin++){//bin loop
+            osfile << istore[csl][ich][bin]<<" ";
+            if(bin%32==31)osfile << endl;
+          }//--->endof bin-loop
+          osfile << endl;
+        }//--->endof chan-loop
+        osfile << endl;
+        osfile << endl;
+      }//--->endof SFET(A) seq.slot(link#) loop
+    }//--->endof crate-loop
+    osfile << endl<<"======================================================"<<endl;
+    osfile << endl<<"     First run used for calibration is "<<BeginRun<<endl;
+    osfile << endl<<"     Date of the first event : "<<DataDate<<endl;
+    osfile.close();
+    cout<<"<---- TOFTdcCalib:output interm.storage file is closed !"<<endl;
+  }
+//-----
+  if(TFCAFFKEY.tdccum%10>2 || TFCAFFKEY.tdccum%10==0){//norm(1stage) or last interm.storage run : 
+    strcpy(fname,"TofTdcor");
+    if(AMSJob::gethead()->isMCData()){
+      strcat(fname,vers1);
+      sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
+    }
+    else{
+      strcat(fname,vers2);
+      sprintf(fext,"%d",BeginRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
+    }
+    strcat(fname,".");
+    strcat(fname,fext);
+    if(TFCAFFKEY.tdccum/10==1)strcat(fname,"_ecom");
+    else strcat(fname,"_norm");
+//
+//---> prepare standard evpch/diflin arrays:
+//
+    if(TFCAFFKEY.tdccum%10>2){//final interm.store mode: fill standard arrays with data from interm.store
+      for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+        for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+          csl=crt*(TOF2GC::SCFETA-1)+ssl;
+          for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+            for(bin=0;bin<1024;bin++){
+	      evpch[csl][ich]+=istore[csl][ich][bin];
+	      diflin[csl][ich][bin]=number(istore[csl][ich][bin]);
+	    }
+	  }
+	}
+      }
+    }
+//----
+    if(TFCAFFKEY.tdccum/10==1){//economy mode: copy crt/ssl=0 data to other crt/ssl
+      for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+        for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+	  if(crt==0 && ssl==0)continue;//skip crt/ssl=0 because it is already filled by fill-routine
+          csl=crt*(TOF2GC::SCFETA-1)+ssl;
+          for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+	    evpch[csl][ich]=evpch[0][ich];
+            for(bin=0;bin<1024;bin++){
+	      diflin[csl][ich][bin]=diflin[0][ich][bin];
+	    }
+	  }
+	}
+      }
+    }
+//
+    for(bin=0;bin<1024;bin++)bincon[bin]=geant(diflin[3][1][bin]);//cr=0,sl=3,ch=1(LBBS=1041)
+    HPAK(1600,bincon);
+    for(bin=0;bin<1024;bin++)bincon[bin]=geant(diflin[10][4][bin]);//cr=2,sl=2,ch=4(LBBS=3092)
+    HPAK(1601,bincon);
+//
+//---> prepare D/I linearity corrections from standard arrays :
+//
+    number cref,dnl,inl;
+    geant evbinmn,evbinmx;
+    cref=0;
+    for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+      cout<<"--->Crate:"<<crt<<endl;
+      for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+        csl=crt*(TOF2GC::SCFETA-1)+ssl;
+	cout<<"    SSlot:"<<ssl<<endl;
+        for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+	  cout<<"      Chan:"<<ich<<endl;
+          sstat[csl][ich]=0;//clear statistics status array(0=ok)
+          cref=number(evpch[csl][ich])/1024;
+	  evbinmn=1000000;
+	  evbinmx=0;
+	  for(i=0;i<1024;i++){
+	    if(diflin[csl][ich][i] < evbinmn){
+	      evbinmn=diflin[csl][ich][i];
+	      binmin=i;
+	    }
+	  }
+	  for(i=0;i<1024;i++)if(diflin[csl][ich][i] > evbinmx)evbinmx=diflin[csl][ich][i];
+	  cout<<"      Aver.events/ch/bin="<<cref<<" Evs/bin min/max="<<evbinmn<<" "<<evbinmx<<endl;
+	  if(evbinmn < TFCAFFKEY.minstat){
+	    sstat[csl][ich]=1;
+	    cout<<"   <--Warning:Low-stats chan/bin:"<<ich<<" "<<binmin<<endl;
+	  }
+          inl=0;
+          for(bin=0;bin<1024;bin++){
+	    dnl=1.-diflin[csl][ich][bin]/cref;
+	    diflin[csl][ich][bin]=dnl;
+	    inl+=dnl;
+	    intlin[csl][ich][bin]=geant(inl);
+	  }
+        }
+      }
+    }
+//---  histograms of integr.nonlinearity in scale*4 for few channels:
+    geant sum4;
+    crt=0;
+    ssl=3;
+    ich=1;
+    csl=crt*(TOF2GC::SCFETA-1)+ssl;
+    for(i=0;i<256;i++){
+      sum4=0;
+      for(j=0;j<4;j++){
+        bin=i*4+j;
+        sum4+=intlin[csl][ich][bin];
+      }  
+      lincor4[i]=sum4;
+    }
+    HPAK(1602,lincor4);
+//
+    crt=0;
+    ssl=3;
+    ich=5;
+    csl=crt*(TOF2GC::SCFETA-1)+ssl;
+    for(i=0;i<256;i++){
+      sum4=0;
+      for(j=0;j<4;j++){
+        bin=i*4+j;
+        sum4+=intlin[csl][ich][bin];
+      }  
+      lincor4[i]=sum4;
+    }
+    HPAK(1603,lincor4);
+//
+    crt=1;
+    ssl=3;
+    ich=1;
+    csl=crt*(TOF2GC::SCFETA-1)+ssl;
+    for(i=0;i<256;i++){
+      sum4=0;
+      for(j=0;j<4;j++){
+        bin=i*4+j;
+        sum4+=intlin[csl][ich][bin];
+      }  
+      lincor4[i]=sum4;
+    }
+    HPAK(1604,lincor4);
+//
+//    
+    for(crt=0;crt<TOF2GC::SCCRAT;crt++){
+      for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+        csl=crt*(TOF2GC::SCFETA-1)+ssl;
+        for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++)if(sstat[csl][ich]>0)HF1(1700+crt,geant(ssl*10+ich+1),1.);  
+      }
+      HPRINT(1700+crt);
+    }
+//-------- hist of bin-by-bin seed-calc lin.corr for 2 crt and 2 slt in each channel:
+    geant diff;
+    if(AMSJob::gethead()->isMCData()){//check 6 channels of cr/sl=2/2,3(where ch4 is present)
+      crt=2;
+      ssl=2;
+      csl=crt*(TOF2GC::SCFETA-1)+ssl;
+      for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+        if(!TofTdcCorMS::tdccor[crt][ssl].truech(ich))continue;//illegal(empty) channel for nonlin-procedure
+        for(bin=0;bin<1024;bin++){
+          diff=TofTdcCorMS::tdccor[crt][ssl].getinval(ich,bin)-intlin[csl][ich][bin];
+//	  if(ich==4){
+//	    cout<<"bin/seed="<<bin<<" "<<TofTdcCorMS::tdccor[crt][ssl].getinval(ich,bin)<<" ";
+//	    cout<<"calc="<<intlin[csl][ich][bin]<<" diff="<<diff<<endl;
+//	  }
+	  HF1(1610+ich,diff,1.);
+        }
+        HPRINT(1610+ich);
+      }
+//
+      crt=1;
+      ssl=2;
+      csl=crt*(TOF2GC::SCFETA-1)+ssl;
+      for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+        if(!TofTdcCorMS::tdccor[crt][ssl].truech(ich))continue;//illegal(empty) channel for nonlin-procedure
+        for(bin=0;bin<1024;bin++){
+          diff=TofTdcCorMS::tdccor[crt][ssl].getinval(ich,bin)-intlin[csl][ich][bin];
+	  HF1(1616+ich,diff,1.);
+        }
+        HPRINT(1616+ich);
+      }
+    }
+//
+// ---> write TDC-corr to file:
+//
+    int16u rdch,mtyp;
+    int16 slot;
+    integer chbmap; 
+    ofstream ocfile(fname,ios::out|ios::trunc);
+    if(!ocfile){
+      cerr<<"<----- Error opening file for output"<<fname<<'\n';
+      exit(8);
+    }
+    cout<<"     Open file for TOFTdc-calibration output, fname:"<<fname<<'\n';
+    cout<<"     TDC linearity-corrections will be written !"<<'\n';
+    cout<<"     First run used for calibration is "<<BeginRun<<endl;
+    cout<<"     Date of the first event : "<<DataDate<<endl;
+//
+    ocfile.setf(ios::fixed);
+    ocfile.width(6);
+    ocfile.precision(2);// precision for Lspeed and Tdiff's
+    for(crt=0;crt<TOF2GC::SCCRAT;crt++){//crate loop
+      ocfile << (crt+1);
+      ocfile << endl;
+      for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){//SFET(A) seq.slot(link#) loop
+        slot=AMSSCIds::crdid2sl(int16u(crt),int16u(ssl));//SFET(A)seq.slt(link#)=>glob.seq.slot#(0-10)
+        if(slot<0){
+	  cout<<"<--- Illegal glob.seq.Slot !"<<endl;
+	  exit(1);
+        }
+        chbmap=0;
+        for(i=0;i<TOF2GC::SCTDCCH-2;i++){//loop to prepare non-empty inp.ch map
+	  mtyp=0;//here means any time-type chan (LT,FT,...)
+          rdch=AMSSCIds::ich2rdch(int16u(crt),int16u(slot),int16u(i),mtyp);//1,...(=0 if ich empty)
+          if(rdch!=0)(chbmap|=(1<<i));
+        }
+        ocfile <<"  "<<(ssl+1)<<endl;
+        csl=crt*(TOF2GC::SCFETA-1)+ssl;
+        ocfile <<"   "<<chbmap<<endl;
+        for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){//channel-loop:
+          if((chbmap&(1<<ich))==0)continue;//skip empty inp.channel
+          for(bin=0;bin<1024;bin++){//bin loop
+            ocfile << intlin[csl][ich][bin]<<" ";
+            if(bin%32==31)ocfile << endl;
+          }//--->endof bin-loop
+          ocfile << endl;
+        }//--->endof chan-loop
+        ocfile << endl;
+        ocfile << endl;
+      }//--->endof SFET(A) seq.slot(link#) loop
+    }//--->endof crate-loop
+    ocfile << endflab;
+//
+    ocfile << endl;
+    ocfile << endl<<"======================================================"<<endl;
+    ocfile << endl<<" First run used for calibration is "<<BeginRun<<endl;
+    ocfile << endl<<" Date of the first event : "<<DataDate<<endl;
+    ocfile.close();
+    cout<<"<--- TOFTdcCalib:output file is closed !"<<endl;
+    cout<<endl<<endl;
+    HPRINT(1600);
+    HPRINT(1601);
+    HPRINT(1602);
+    HPRINT(1603);
+    HPRINT(1604);
+  }
+  cout<<"<==== TOFTdcCalibration is finished !"<<endl;
+  cout<<endl<<endl;
+}
+//-------------------------- 
+void TOFTdcCalib::fill(int cr, int sl, int ch, int tdc, geant temp){//for normal/economy mode
+  int crt,ssl;
+  integer time10=(tdc&(0x3FFL));//10 lsb
+  if(!TofTdcCorMS::tdccor[cr][sl].truech(ch)){//illegal(empty) channel
+    cout<<"  TOFTdcCalib::fill: Illegal ch="<<ch<<"  call in Crate/SSl="<<cr<<" "<<sl<<endl; 
+  }
+  if(TFCAFFKEY.tdccum/10==0){//normal(non-economy) mode
+    crt=cr;
+    ssl=sl;
+  }
+  else {
+    crt=0;
+    ssl=0;
+  }
+  diflin[crt*(TOF2GC::SCFETA-1)+ssl][ch][time10]+=1.;
+  evpch[crt*(TOF2GC::SCFETA-1)+ssl][ch]+=1;
+  if(ch==0 && fabs(temp)<999.){
+    avtemp[cr][sl]+=temp;
+    tempev[cr][sl]+=1;
+    if(temp > mxtemp[cr][sl])mxtemp[cr][sl]=temp;
+    if(temp < mntemp[cr][sl])mntemp[cr][sl]=temp;
+  }
+}
+//-------------------------- 
+void TOFTdcCalib::ifill(int crt, int ssl, int ch, int tdc, geant temp){//for interm.storage mode
+  integer time10=(tdc&(0x3FFL));//10 lsb
+  istore[crt*(TOF2GC::SCFETA-1)+ssl][ch][time10]+=1;
+  if(ch==0 && fabs(temp)<999.){
+    avtemp[crt][ssl]+=temp;
+    tempev[crt][ssl]+=1;
+    if(temp > mxtemp[crt][ssl])mxtemp[crt][ssl]=temp;
+    if(temp < mntemp[crt][ssl])mntemp[crt][ssl]=temp;
+  }
 }
 //=============================================================================

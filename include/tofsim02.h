@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.16 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: tofsim02.h,v 1.17 2007/12/06 13:31:23 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -286,6 +286,7 @@ static geant SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC Sum
 static int SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of TDC SumHT-channel time-hits 
 static geant SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC SumSHT-channel time-hits(vs CRATE/SFET)
 static int SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of TDC SumSHT-channel time-hits
+static number TofATdcT0[TOF2GC::SCCRAT][TOF2GC::SCFETA];//SFET(A) T0s withing 2048*25ns TDC CCount(11bit)-ovfl period
 // 
 TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
   integer _ntr1, number _ttr1u[], number _ttr1d[], integer _ntr3, number _ttr3u[], number _ttr3d[],
@@ -396,7 +397,8 @@ private:
  static integer _bzflag;//1/0->BZtrigOK/not
  static number _trtime; //  abs. FTrigger time(ns, input to SFET(A), fix decision-delay included) 
  int16u _swid;        // short SW-id(LBBS->Lay|BarBar|Side (as in Tovt MC-obj))
- int16u _hwid;          // short HW-id(CSS->cr|sl, slot by Anode meas.,if it is present,otherw. by Dynode)
+ int _hwidt;// time_hwid: CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
+ int _hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), I=1-10) 
  int16u _status;        // channel status (usable/not/ ... --> 0/1/...)
  
  integer _nftdc;//number of FastTrig(FT)-TDC hits, =1 in MC(filled at validation stage !!)
@@ -426,7 +428,8 @@ public:
  static integer SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumSHT-channel time-hits
  static integer Out(integer);
 // 
- TOF2RawSide(int16u swid, int16u hwid, int16u sta, geant charge, geant tempT, geant tempC, geant tempP,
+ TOF2RawSide(int16u swid, int hwidt, int hwidq[], int16u sta, geant charge,
+   geant tempT, geant tempC, geant tempP,
    integer nftdc, integer ftdc[],
    integer nstdc, integer stdc[],
    integer nsumh, integer sumht[],
@@ -444,7 +447,8 @@ public:
   return _swid<((TOF2RawSide*)(&o))->_swid;}
 
  int16u getsid(){return _swid;}
- int16u gethid(){return _hwid;}
+ int gethidt(){return _hwidt;}
+ int gethidq(int i){return _hwidq[i];}
  int16u getstat(){return _status;}
  void updstat(int16u sta){_status=sta;}
  geant getcharg(){return _charge;}
@@ -531,7 +535,8 @@ protected:
  void _printEl(ostream &stream){
   int i;
   stream <<"TOF2RawSide: swid="<<dec<<_swid<<endl;
-  stream <<"hwid="<<dec<<_hwid<<endl;
+  stream <<"hwidt="<<dec<<_hwidt<<endl;
+  stream <<"hwidq:"<<dec<<_hwidq[0]<<" "<<_hwidq[1]<<" "<<_hwidq[2]<<" "<<_hwidq[3]<<endl;
   stream <<"stat="<<dec<<_status<<endl;
   stream <<"nftdc="<<dec<<_nftdc<<endl;
   for(i=0;i<_nftdc;i++)stream <<hex<<_ftdc[i]<<endl;

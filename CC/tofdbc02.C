@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.40 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.41 2007/12/06 13:31:12 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -22,6 +22,8 @@ TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// mem.reserv. TOF i
 TOFBrcalMS TOFBrcalMS::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// the same for "MC Seeds" 
 TOFBPeds TOFBPeds::scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];//mem.reserv. TOF-bar pedestals/sigmas/...
 TofElosPDF TofElosPDF::TofEPDFs[MaxZTypes];
+TofTdcCor TofTdcCor::tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
+TofTdcCorMS TofTdcCorMS::tdccor[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
 //-----------------------------------------------------------------------
 //  =====> TOF2DBc class variables definition :
 //
@@ -94,12 +96,12 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::_adc2q=1.;       // not used (now taken from TFCA #21)
   geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
   geant TOF2DBc::_tdcscl=50331.;  // max TDC-scale(ns)(21bit*24ps)
-  geant TOF2DBc::_strflu=0.36;     // Stretcher "end-mark" time uncertainty (ns)
+  geant TOF2DBc::_strflu=0.36;     //
   geant TOF2DBc::_tdcbin[4]={
-    0.0244,                        // LTtime/FTtime/SumHTtime-TDC binning(ns).
-    0.024,                         // 
+    0.0244141,                        // LTtime/FTtime/SumHTtime-TDC binning(ns).
+    0.0244141,                         // LTtime/FTtime/SumHTtime-TDC binning(ns).
     0.5,                           // supl.DAQ binning for charge meas.(in ADC-chan units)
-    0.                             // spare
+    25.                            // Tof TDC coarse counter bin (ns, corresp. to 40Mhz clock)
   };
   geant TOF2DBc::_daqpwd[15]={
     250.,   // (0)PW of "z>=1(FTC)"(HT-branch) output signal(ACTEL-outp going to SPT)[ns] 
@@ -122,14 +124,16 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     10.36   // (14)spare 
   };
   geant TOF2DBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOF2DBc::_hagemx=6000.;  // max.TimeTDC-hit age(wrt FT,ns) accepted by Actel buffer
-  geant TOF2DBc::_hagemn=-10000.;// min....................................................
-  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
-  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
-  geant TOF2DBc::_accdel=6000.;// "CommonStop" signal delay with respect to FT (ns)
-  geant TOF2DBc::_ltagew[2]={20,640};//LTtime-hit(true) wrt FTtime age-window(ns) 
-  geant TOF2DBc::_ftdelm=250.; // FT max delay (allowed by stretcher logic) (ns)
-  geant TOF2DBc::_fstdcd=28.;  // spare       (because now taken from DC/DB)
+  geant TOF2DBc::_tdctrdel=6000.; // TDC Trig(Lev1) supplementary delay in SFET(A) 
+  geant TOF2DBc::_tdctrlat=17000.;// TDC trig. latency setting
+  geant TOF2DBc::_tdcmatw=16000.;// TDC matching window
+//  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
+//  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
+  geant TOF2DBc::_ftc2cj=0.; // FT-signal crate-to-crate jitter(ns)
+  geant TOF2DBc::_fts2sj=0.; // FT-signal slot-to-slot jitter(ns)
+  geant TOF2DBc::_lev1del=1000.;// "Lev1" stand.delay (in JLV1) with respect to FT 
+  geant TOF2DBc::_ltagew[2]={20,640};//RECO: LTtime-hit(true) wrt FTtime age-window(ns) 
+  geant TOF2DBc::_ftdelm=250.; //
   geant TOF2DBc::_clkperJLV=40.;  // JLVTrig.electronics(JLV1-crate) clock period(ns)
   geant TOF2DBc::_clkperSPT=20.;  // SPTpreTrig.electronics(S-crates) clock period(ns)
   integer TOF2DBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0)
@@ -382,10 +386,12 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
 //
   geant TOF2DBc::edep2ph(){return _edep2ph;}
   geant TOF2DBc::fladctb(){return _fladctb;}
+  geant TOF2DBc::tdcmatw(){return _tdcmatw;}
   geant TOF2DBc::tdcscl(){return _tdcscl;}
 //
-  geant TOF2DBc::hagemn(){return _hagemn;}
-  geant TOF2DBc::hagemx(){return _hagemx;}
+  geant TOF2DBc::tdctrdel(){return _tdctrdel;}
+  geant TOF2DBc::tdctrlat(){return _tdctrlat;}
+  geant TOF2DBc::lev1del(){return _lev1del;}
 //
   geant TOF2DBc::strflu(){return _strflu;}
 //
@@ -393,10 +399,8 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
 //
   geant TOF2DBc::fts2sj(){return _fts2sj;}
 //
-  geant TOF2DBc::accdel(){return _accdel;}
   geant TOF2DBc::ltagew(int i){return _ltagew[i];}
   geant TOF2DBc::ftdelm(){return _ftdelm;}
-  geant TOF2DBc::fstdcd(){return _fstdcd;}
   geant TOF2DBc::clkperJLV(){return _clkperJLV;}
   geant TOF2DBc::clkperSPT(){return _clkperSPT;}
   
@@ -1866,8 +1870,8 @@ void TOF2JobStat::printstat(){
   printf("        SumHTtime-hits buffer overflows     : % 6d\n",mccount[26]);
   printf("        SumSHTtime-hits buffer overflows    : % 6d\n",mccount[27]);
   printf("   TovT->RawEvent(FT) OK(err.stat.follow)   : % 6d\n",mccount[2]);
-  printf("        TooOld Time-hits                    : % 6d\n",mccount[7]);
-  printf("        TooYoung Time-hits                  : % 6d\n",mccount[8]);
+  printf("        T-hit out of Trig.match window      : % 6d\n",mccount[7]);
+  printf("                                            : % 6d\n",mccount[8]);
   printf("        Anode-ADC overflows                 : % 6d\n",mccount[9]);
   printf("        Dynode-ADC overflows                : % 6d\n",mccount[10]);
   printf("   FastTrigStatistics :\n");
@@ -1909,6 +1913,7 @@ void TOF2JobStat::printstat(){
     printf(" TDIF: multiplicity OK     : % 6d\n",recount[18]);
     printf(" TDIF: Tracker OK          : % 6d\n",recount[19]);
     printf(" Entr to PEDS-calibr       : % 6d\n",recount[38]);
+    printf(" Entr to TDCL-calibr       : % 6d\n",recount[39]);
   }
   else{
     printf(" TOFUser entries            : % 6d\n",recount[21]);
@@ -2399,6 +2404,8 @@ void TOF2JobStat::bookhist(){
     }
     
     HBOOK1(1137,"LTime-FTtime for LBBS=1041",70,-640.,60.,0.);
+    HBOOK1(1138,"LTtime for LBBS=1041",100,0.,52000.,0.);
+    HBOOK1(1139,"FTtime for LBBS=1041",100,0.,52000.,0.);
 //
     HBOOK1(1532,"T1-T3(ns,NormIncidence,1b/L evnt)",80,1.,9.,0.);
 //
@@ -2436,8 +2443,11 @@ void TOF2JobStat::bookhist(){
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1781 are booked in init-function for BarRawTime histogr.!!!(TDLV)
 //    }
-    if(TFREFFKEY.relogic[0]==1){// <==================== TofPed-calibr. runs
+    if(TFREFFKEY.relogic[0]>=5){// <==================== TofPed-calibr. runs
 //   hist. 1790-1999 are booked in init.function
+    }
+    if(TFREFFKEY.relogic[0]==1){// <==================== TofTdc-calibr.(TDCL) runs
+//   hist. 1600-> 1800 are booked in init.function
     }
     if(TFREFFKEY.relogic[0]==2){// <==================== TDIF-calibr. runs
       HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
@@ -2651,8 +2661,8 @@ void TOF2JobStat::outp(){
          HPRINT(1113);
          HPRINT(1114);
          HPRINT(1137);
-	 
-	 
+	 HPRINT(1138);
+	 HPRINT(1139);
 //         HPRINT(1095);
 //         HPRINT(1096);
 //         HPRINT(1097);
@@ -2798,18 +2808,8 @@ void TOF2JobStat::outp(){
        }
 //
 //
-       if(TFREFFKEY.relogic[0]==1){// for STRR-calibr. runs
-           TOF2STRRcalib::outp();
-           HPRINT(1200);
-           HPRINT(1201);
-           HPRINT(1202);
-           HPRINT(1204);
-           HPRINT(1205);
-           HPRINT(1206);
-           HPRINT(1207);
-           HPRINT(1208);
-           HPRINT(1209);
-           HPRINT(1210);
+       if(TFREFFKEY.relogic[0]==1){// for TDCL-calibr. runs
+//           TOFTdcCalib::outp(0);
        }
 //
        if(TFREFFKEY.relogic[0]==2){// for TDIF-calibr. runs
@@ -3194,7 +3194,315 @@ number TofElosPDF::getlkhd(int nhits, int hstat[], number ehit[], number beta){
   }
   return lkhd;
 }
-
+//---------------------------------------------------------------------------
+void TofTdcCor::build(){// create TofTdcCor-objects array for real/mc data
+//
+  char fname[80];
+  char name[80];
+  int ctyp,ntypes,bmap;
+  integer crat,sslt,chan,bin,endflab;
+  integer rdcr,rdsl;
+//
+// ---> read file with the list of version numbers for all needed calib.files :
+//
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
+  geant corr[TOF2GC::SCTDCCH-2][1024];
+//
+  for(int i=0;i<TOF2GC::SCTDCCH-2;i++){
+    for(int j=0;j<1024;j++)corr[i][j]=0;
+  }
+//
+  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
+    ctyp=7;
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",TFREFFKEY.calutc);//RD-utc
+    ctyp=6;// because TofSfmap-file is missing in RD list-file
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+//
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"====> TofTdcCor::build: Opening Calib_vers_list-file "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in);
+  if(!vlfile){
+    cout <<"<---- Error: missing vers.list-file !!? "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];// 
+  }
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      TofCflistRD-file begin_date: %s",ctime(&utct)); 
+  }
+  vlfile.close();
+//----
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"TofTdcor");//generic TDC-Calib file-name
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);//got TofCflistMC(RD). file extention
+  strcat(name,ext);
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening TofTdcCor-file : "<<fname<<'\n';
+  ifstream crfile(fname,ios::in); // open file for reading
+  if(!crfile){
+    cout <<"<---- Error: Missing TofTdcCor-file !!? "<<fname<<endl;
+    exit(1);
+  }
+//----
+  for(crat=0;crat<TOF2GC::SCCRAT;crat++){//crates loop
+    crfile >> rdcr;
+    if(rdcr!=(crat+1)){
+      cout<<"<---- Error: Broken structure, crate="<<crat+1<<" red as "<<rdcr<<endl;
+      exit(1);
+    }
+    for(sslt=0;sslt<TOF2GC::SCFETA-1;sslt++){// SFETs loop (no corr. for ACC (SFEA-card))
+      crfile >> rdsl;
+      if(rdsl!=(sslt+1)){
+        cout<<"<---- Error: Broken structure, slot="<<sslt+1<<" red as "<<rdsl<<endl;
+        exit(1);
+      }
+      crfile >> bmap;
+      for(chan=0;chan<TOF2GC::SCTDCCH-2;chan++){//Card channels loop
+        if((bmap & (1<<chan))==0)continue;//empty or non-correctable channel
+        for(bin=0;bin<1024;bin++)crfile >> corr[chan][bin];//read one channel
+      }
+      tdccor[crat][sslt]=TofTdcCor(bmap,corr);
+    }
+  }
+//
+  crfile >> endflab;//read endfile-label
+  crfile.close();
+//
+  if(endflab==12345){
+    cout<<"      TofTdcCor-file is successfully read !"<<endl;
+  }
+  else{
+    cout<<"<---- Error: broken structure in TofTdcCor-file !!!"<<endl;
+    exit(1);
+  }
+}
+//-------------------------
+geant TofTdcCor::getcor(int time, int ch){//ch=0,1,...
+  int t10=(time&(0x3FFL));//10 lsb of TDC-count(time measurement)
+  if(t10<=0)return(0);
+  return _icor[ch][t10-1];
+}
+//-----------------------------------------------------------------------
+void TofTdcCorMS::build(){// create TofTdcCor-objects array for real/mc data
+//
+  char fname[80];
+  char name[80];
+  int ctyp,ntypes,bmap;
+  integer crat,sslt,chan,bin,endflab;
+  integer rdcr,rdsl;
+//
+// ---> read file with the list of version numbers for all needed calib.files :
+//
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[10],verid;
+  geant corr[TOF2GC::SCTDCCH-2][1024];
+//
+  for(int i=0;i<TOF2GC::SCTDCCH-2;i++){
+    for(int j=0;j<1024;j++)corr[i][j]=0;
+  }
+//
+  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  strcpy(datt,"MC");
+  sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
+  ctyp=7;
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+//
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"====> TofTdcCorMS::build: Opening Calib_vers_list-file "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in);
+  if(!vlfile){
+    cout <<"<---- Error: missing vers.list-file !!? "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];// 
+  }
+  vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+  vlfile >> date[1];//HHMMSS ......................................
+  year=date[0]/10000;//2004->
+  mon=(date[0]%10000)/100;//1-12
+  day=(date[0]%100);//1-31
+  hour=date[1]/10000;//0-23
+  min=(date[1]%10000)/100;//0-59
+  sec=(date[1]%100);//0-59
+  begin.tm_isdst=0;
+  begin.tm_sec=sec;
+  begin.tm_min=min;
+  begin.tm_hour=hour;
+  begin.tm_mday=day;
+  begin.tm_mon=mon-1;
+  begin.tm_year=year-1900;
+  utct=mktime(& begin);
+  iutct=uinteger(utct);
+  cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+  cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+  cout<<"                                         UTC-time = "<<iutct<<endl;
+  vlfile.close();
+//----
+  verid=verids[ctyp-1];//MC-versn
+  strcpy(name,"TofTdcorSD");//generic TDC-Calib MC-Seed file-name
+  strcat(name,".");
+  sprintf(ext,"%d",verid);//got TofCflistMC(RD). file extention
+  strcat(name,ext);
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening MCSeed TofTdcCor-file : "<<fname<<'\n';
+  ifstream crfile(fname,ios::in); // open file for reading
+  if(!crfile){
+    cout <<"<---- Error: Missing TofTdcCor-file !!? "<<fname<<endl;
+    exit(1);
+  }
+//----
+  for(crat=0;crat<TOF2GC::SCCRAT;crat++){//crates loop
+    crfile >> rdcr;
+    if(rdcr!=(crat+1)){
+      cout<<"<---- Error: Broken structure, crate="<<crat+1<<" red as "<<rdcr<<endl;
+      exit(1);
+    }
+    for(sslt=0;sslt<TOF2GC::SCFETA-1;sslt++){// SFETs loop (no corr. for ACC (SFEA-card))
+      crfile >> rdsl;
+      if(rdsl!=(sslt+1)){
+        cout<<"<---- Error: Broken structure, slot="<<sslt+1<<" red as "<<rdsl<<endl;
+        exit(1);
+      }
+      crfile >> bmap;
+      for(chan=0;chan<TOF2GC::SCTDCCH-2;chan++){//Card channels loop
+        if((bmap & (1<<chan))==0)continue;//empty or non-correctable channel
+        for(bin=0;bin<1024;bin++)crfile >> corr[chan][bin];//read one channel
+      }
+      tdccor[crat][sslt]=TofTdcCorMS(bmap,corr);
+    }
+  }
+//
+  crfile >> endflab;//read endfile-label
+  crfile.close();
+//
+  if(endflab==12345){
+    cout<<"      MCSeed TofTdcCor-file is successfully read !"<<endl;
+  }
+  else{
+    cout<<"<---- Error: broken structure in MCSeed TofTdcCor-file !!!"<<endl;
+    exit(1);
+  }
+}
+//-------------------
+int TofTdcCorMS::getbin(number htime, number ttime, int ch){//ch=0,1,...
+//on input hit/trig(lev1)-times are inside of 51.2mks(11bits*25ns) range, TDC Coarse and
+//TrigTimeTag counters are internally 12bits and sincronized, so when TrigTimeTag subtraction
+// is "on" - no problem with OVFLs, when "off" - hit OVFL is simulated
+// the match-window is checked, if outside - return(-1) !!!
+  integer lsbt,msbt,bin,bn,timeCC,timeTT,low,hiw;
+  number t10;
+//
+  timeTT=integer(floor((ttime+TOF2DBc::tdctrdel())/TOF2DBc::tdcbin(3)));//+"board" delay, TT-counter(<=12msb) not overflowed !
+//(imply that tdctrdel < 25mks what is the case !!!)
+  timeCC=integer(floor(htime/TOF2DBc::tdcbin(3)));//CCounter(<=12msb) not overflowed !
+  low=timeTT-integer(floor(TOF2DBc::tdctrlat()/TOF2DBc::tdcbin(3)));// low-lim for match-window check
+  hiw=low+integer(floor(TOF2DBc::tdcmatw()/TOF2DBc::tdcbin(3)));// high-lim for match-window check
+  if((timeCC < low) || (timeCC > hiw))return(-1);//out of match-window !!!
+//
+  t10=(htime-timeCC*number(TOF2DBc::tdcbin(3)))/number(TOF2DBc::tdcbin(1));//fine(PLL+DLL+RC) time(<25ns) -> 10 lsb
+  if(TFMCFFKEY.tdclin>0){// find FINE-bin(within 25ns range) taking into account nonlinearity
+    for(bn=0;bn<1024;bn++){
+      if(t10<(number(bn+1)-number(_icor[ch][bn])))break;
+    }
+    if(bn>=1024)bn=1023;//pc accur. protection
+  }
+  else bn=integer(floor(t10));
+//
+  if(TFMCFFKEY.tdcovf>0)msbt=timeCC-low;//TrTimeTag "subtraction", so OVFL not possible(msbt < 12bits range) 
+  else msbt=(timeCC&0x7FFL);//keep only 11bits, so OVFL may happen !!
+//
+  bin=1024*msbt;  
+  return(bin+bn);
+}
+//------------------------
+int TofTdcCorMS::getbins(number htime, number ttime){//no lin-corr, suitable for ATC also !!!
+//on input hit/trig(lev1)-times are inside of 51.2mks(11bits*25ns) range, TDC Coarse and
+//TrigTimeTag counters are internally 12bits and sincronized, so when TrigTimeTag subtraction
+// is "on" - no problem with OVFLs, when "off" - hit OVFL is simulated
+// the match-window is checked, if outside - return(-1) !!!
+  integer lsbt,msbt,bin,bn,timeCC,timeTT,low,hiw;
+  number t10;
+//  return integer(floor(htime/TOF2DBc::tdcbin(1)));
+//
+  timeTT=integer(floor((ttime+TOF2DBc::tdctrdel())/TOF2DBc::tdcbin(3)));//+"board" delay, TT-counter(<=12msb) no overfl !
+//(imply that tdctrdel < 25mks what is the case !!!)
+  timeCC=integer(floor(htime/TOF2DBc::tdcbin(3)));//CCounter(<=12msb) not overflowed !
+  low=timeTT-integer(floor(TOF2DBc::tdctrlat()/TOF2DBc::tdcbin(3)));// low-lim for match-window check
+  hiw=low+integer(floor(TOF2DBc::tdcmatw()/TOF2DBc::tdcbin(3)));// high-lim for match-window check
+//cout<<"In getbins: htm/ttm="<<htime<<" "<<ttime<<" tTT/tCC="<<timeTT<<" "<<timeCC<<" low/hiw="<<low<<" "<<hiw<<endl;
+  if((timeCC < low) || (timeCC > hiw))return(-1);//out of match-window !!!
+//  cout<<"   Match OK"<<endl;
+//
+  t10=htime-timeCC*TOF2DBc::tdcbin(3);//fine(PLL+DLL+RC) time(<25ns) -> 10 lsb
+  bn=integer(floor(t10/TOF2DBc::tdcbin(1)));
+//  cout<<"   ht/tCC*25="<<htime<<timeCC*TOF2DBc::tdcbin(3)<<" t10/bn="<<t10<<" "<<bn<<endl;
+//
+  if(TFMCFFKEY.tdcovf>0)msbt=timeCC-low;//TrTimeTag "subtraction", so OVFL not possible(msbt < 12bits range) 
+  else msbt=(timeCC&0x7FFL);//keep only 11bits, so OVFL may happen !!
+//  cout<<"   msbt="<<msbt<<endl;
+//
+  bin=1024*msbt;  
+  return(bin+bn);
+}
 //-----------------------------------------------------------------------
 
 

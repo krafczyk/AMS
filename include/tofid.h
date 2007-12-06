@@ -44,8 +44,8 @@ class AMSSCIds{
 //                                    3->SFEC(10inp max)/4->SDR/5->SPT...
 //                    
 //  int16u _crdid; //card id(may be different from slot#, = link number)
-  int16u _rdch;  //readout channel(internal card-output numbering)
-  int16u _inpch; //inp.channel(internal card-input numbering)
+  int16u _rdch;  //readout channel(internal card-output numbering, 0-12)
+  int16u _inpch; //inp.channel(internal card-input numbering,0-9)
   int16u _hwch;//sequential h/w-channels numbering: C(1)SS(1)RR(1),...C(1)SS(1)RR(Nmax for slot_1),
 // C(1)SS(2)RR(1),...C(1)SS(2)RR(max for slot_2),..............
 // C(Nmax)SS(max slots in this cr)RR(max for this slot)
@@ -58,7 +58,8 @@ class AMSSCIds{
   static int16u ochpsty[TOF2GC::SCSLTY];//outp.channels per slot-type
   static int16u ichpsty[TOF2GC::SCSLTY];//inp.channels per slot-type
   static int totswch[2];//total s/w-channels for TOF, ANTI
-  static int16u tmpsln[TOF2GC::SCSLTM];//map of temp-sensor numbers in slots
+  static int16u tmpsln[TOF2GC::SCSLTM];//temp-sensors seq.numbers in slots(=T-meas slots sequential numbering)
+  static int16u chrsln[TOF2GC::SCSLTM];//charge-meas slots sequential numbering
   static int trpatba[TOF2GC::SCCRAT][2*TOF2GC::SCMXBR];//LBBS<->TrigPattBits assignment
   static int envsensid[TOF2GC::SCLRS][2][8];//tof-envelops temp.sensors IDs by layer/chain/sens#
  public:
@@ -96,7 +97,9 @@ class AMSSCIds{
   static int hw2swid(int16u cr, int16u sl, int16u ch);
   static int16  crdid2sl(int16u crate, int16u crdid);
   static int16u sl2tsid(int16u slot){return tmpsln[slot];}//abs.slot#->temp.sensor id(sequential slot#)
+  static int16u sl2qsid(int16u slot){return chrsln[slot];}//abs.slot#->Q-slot id(sequential slot#)
   static int16u ich2rdch(int16u crate, int16u slot, int16u ich, int16u mtyp);
+  static int16u rdch2ich(int16u crate, int16u slot, int16u rdch, int16u mtyp);
   static int getenvsensid(int lay, int chain, int senn){return envsensid[lay][chain][senn];}
 //                            0-3,      0-1,       0-7
 };
