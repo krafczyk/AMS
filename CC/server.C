@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.134 2007/11/15 17:01:48 choutko Exp $
+//  $Id: server.C,v 1.135 2007/12/07 10:13:10 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2298,6 +2298,7 @@ if(pcur->InactiveClientExists(getType()))return;
      ((ac.ars)[0]).IOR=(const char *)(" ");
      ((ac.ars)[0]).Type=DPS::Client::Generic;
      ((ac.ars)[0]).uid=0;
+     bool runmc=false;
     if(_parent->IsMC()){
       // find run from very beginning, as whole script path depend on it
         DPS::Producer::RunEvInfo_var   reinfo;
@@ -2315,6 +2316,8 @@ if(pcur->InactiveClientExists(getType()))return;
         }
         else{
           _Submit=reinfo->Run-1;
+          if(reinfo->uid!=0)_Submit=reinfo->uid-1;
+          runmc=reinfo->DataMC==0;
           ac.StatusType=DPS::Client::OneRunOnly;
           ac.id.StatusType=DPS::Client::OneRunOnly;
           (*cli)->WholeScriptPath=CORBA::string_dup(reinfo->FilePath);
@@ -2330,7 +2333,7 @@ if(pcur->InactiveClientExists(getType()))return;
     submit+=" ";
     if(!(*cli)->LogInTheEnd){
      submit+=(const char*)((*cli)->LogPath);  
-     if(_parent->IsMC())submit+="MC";
+     if(runmc)submit+="MC";
      submit+="Producer.";
      submit+=uid;
      submit+=".log ";
@@ -2383,7 +2386,7 @@ if(pcur->InactiveClientExists(getType()))return;
     if((*cli)->LogInTheEnd){
      submit+=" ";
      submit+=(const char*)((*cli)->LogPath);  
-     if(_parent->IsMC())submit+="MC";
+     if(runmc)submit+="MC";
      submit+="Producer.";
      submit+=uid;
      submit+=".log ";
@@ -2952,6 +2955,7 @@ return length;
 #include <new.h>
 Producer_impl::TIDI & Producer_impl::_findTDV(const DPS::Producer::TDVName & tdv){
 AMSID id((const char*)tdv.Name,tdv.DataMC);
+cout <<"findtdv "<<id<<endl;
 TIDI li=_tid.find(id);
 if(li==_tid.end()){
 try{
@@ -2960,6 +2964,7 @@ try{
   time_t b=tdv.Entry.Begin;
   time_t e=tdv.Entry.End;
   _tid[id]=new AMSTimeID(id,(*(localtime(&b))),(*(localtime(&e))),tdv.Size-sizeof(uinteger),pdata,AMSTimeID::Server);
+ cout <<" new tdv "<<id<<endl;
  li=_tid.find(id);
  }
 }

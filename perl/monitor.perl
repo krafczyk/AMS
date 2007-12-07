@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: monitor.perl,v 1.11 2005/12/13 16:34:49 choutko Exp $
+#  $Id: monitor.perl,v 1.12 2007/12/07 10:13:16 choutko Exp $
 
 use Error qw(:try);
 use Gtk;
@@ -19,7 +19,7 @@ use lib::monitorUI;
 
 #my $mc="-m";
 #unshift @ARGV, $mc;
-   $#ARGV=-1;
+#   $#ARGV=-1;
      unshift @ARGV, "-DOracle:";
      unshift @ARGV, "-Famsdb";
                                                                                             

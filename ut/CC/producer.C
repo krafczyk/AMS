@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.103 2007/11/15 17:01:47 choutko Exp $
+//  $Id: producer.C,v 1.104 2007/12/07 10:13:10 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -113,12 +113,7 @@ void AMSProducer::sendid(){
     _pid.Mips=AMSCommonsI::getmips();
     cout <<"  Mips:  "<<_pid.Mips<<endl;
     bool ok=SetDataCards();
-    if(AMSJob::isRealData()){
-     _pid.StatusType=DPS::Producer::Permanent;
-    }
-    else{
      _pid.StatusType=DPS::Producer::OneRunOnly;
-    }
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
 //      _pid.StatusType=DPS::Producer::OneRunOnly;
@@ -308,7 +303,9 @@ again:
    else{
 
     if(_dstinfo->Mode==DPS::Producer::RILO || _dstinfo->Mode==DPS::Producer::RIRO){ 
-     DAQEvent::setfile((const char *)(_reinfo->FilePath));
+     if(_pid.StatusType!=DPS::Producer::OneRunOnly){
+      DAQEvent::setfile((const char *)(_reinfo->FilePath));
+     }
 }
 else{
      AString fpath=(const char *)_dstinfo->OutputDirPath;
@@ -504,6 +501,7 @@ AMSmceventg::SaveSeeds();
 ntend->rndm1=GCFLAG.NRNDM[0];
 ntend->rndm2=GCFLAG.NRNDM[1];
 //cout <<"  Sending Last Event " <<ntend->LastEvent<<" "<<ntend->rndm1<<" "<<ntend->rndm2<<endl;
+cout<< " sending last event "<<ntend->LastEvent<<" "<<ntend->End<<endl;
 if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 {
    AString a=(const char*)ntend->Name;
@@ -1316,7 +1314,7 @@ FMessage("AMSProducer::getinitTDV-F-tdvgetFailed",DPS::Client::CInAbort);
 }
 
 bool AMSProducer::getTDV(AMSTimeID * tdv, int id){
-cout <<" ttrying to get tdv "<<tdv->getname()<<endl;
+cout <<" trying to get tdv "<<tdv->getname()<<" "<<tdv->getid()<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -1377,7 +1375,7 @@ if(name.Success){
 return false;
 }
 bool AMSProducer::getSplitTDV(AMSTimeID * tdv, int id){
-cout <<" trying to get tdv "<<tdv->getname()<<endl;
+cout <<" trying to get tdv "<<tdv->getname()<<" "<<tdv->getid()<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -1746,7 +1744,7 @@ bool AMSProducer::SetDataCards(){
   AString fout="/tmp/";
   fout+=tmp;
   fout+=".dc"; 
-  AString cmd="ps -elfw --cols 200 | grep ";
+  AString cmd="ps -elfw --cols 400 | grep ";
   cmd+=tmpp;
   cmd+=" 1>";
   cmd+=(const char*)fout;
@@ -1757,9 +1755,10 @@ bool AMSProducer::SetDataCards(){
    ifstream fbin;
    fbin.open((const char*)fout);
    AString fscript="";
+   cout <<"looking for "<<tmpu<<endl;
     while(fbin.good() && !fbin.eof()){
      fbin.ignore(1024,' ');
-     char tmpbuf[256];
+     char tmpbuf[1024];
      fbin>>tmpbuf;
      if(strstr(tmpbuf,tmpu) && strstr(tmpbuf,".job")){
       cout <<"   Found job "<<tmpbuf<<endl;

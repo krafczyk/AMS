@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.28 2007/10/03 07:38:18 choutko Exp $
+#  $Id: POADBServer.pm,v 1.29 2007/12/07 10:13:19 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -147,7 +147,11 @@ OUT:
                 $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly" ){
                 
-                if($rtb->{History} ne "Failed" and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+                 my $compar=$rtb->{Run};
+                 if($rtb->{DataMC}==1){
+                     $compar=$rtb->{uid};
+                 }
+                if($rtb->{History} ne "Failed" and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $compar and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
@@ -158,7 +162,7 @@ else {
    $sortedrtb[$i]->{cuid}=$cid->{uid};
   }
   else{
-    $sortedrtb[$i]->{cuid}=$rtb->{Run};
+    $sortedrtb[$i]->{cuid}=$compar;
   }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
@@ -171,7 +175,11 @@ else {
             foreach my $rtb (@sortedrtb){
                  $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
-                 if($rtb->{History} eq "Failed" and ($host ne $rtb->{cinfo}->{HostName} or $rtb->{Status} ne "ToBeRerun") and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+                 my $compar=$rtb->{Run};
+                 if($rtb->{DataMC}==1){
+                     $compar=$rtb->{uid};
+                 }
+                 if($rtb->{History} eq "Failed" and ($host ne $rtb->{cinfo}->{HostName} or $rtb->{Status} ne "ToBeRerun") and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $compar and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
     if(($rtb->{Status} eq "Allocated" ) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
@@ -182,7 +190,7 @@ else {
    $sortedrtb[$i]->{cuid}=$cid->{uid};
   }
   else{
-    $sortedrtb[$i]->{cuid}=$rtb->{Run};
+    $sortedrtb[$i]->{cuid}=$compar;
   }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
@@ -196,7 +204,11 @@ else {
             foreach my $rtb (@sortedrtb){
                  $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
-                 if($rtb->{History} eq "Failed" and  ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+                 my $compar=$rtb->{Run};
+                 if($rtb->{DataMC}==1){
+                     $compar=$rtb->{uid};
+                 }
+                 if($rtb->{History} eq "Failed" and  ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $compar and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
     if(($rtb->{Status} eq "Allocated" ) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
@@ -207,7 +219,7 @@ else {
    $sortedrtb[$i]->{cuid}=$cid->{uid};
   }
   else{
-    $sortedrtb[$i]->{cuid}=$rtb->{Run};
+    $sortedrtb[$i]->{cuid}=$compar;
   }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
@@ -217,14 +229,14 @@ else {
              }
              }
             foreach my $rtb (@sortedrtb){ 
-            warn "  problem with run allocation   $rtb->{Run} $rtb->{History} $rtb->{Status} $rtb->{cinfo}->{HostName} $cid->{uid} $cid->{StatusType}\n"; 
+            warn "  problem with run allocation   $rtb->{Run} $rtb->{uid} $rtb->{History} $rtb->{Status} $rtb->{cinfo}->{HostName} $cid->{uid} $cid->{StatusType}\n"; 
             }
                    $hash{rtb}=\@sortedrtb;
                    $dv->{DieHard}=1;
                     untie %hash;
                     close(LOCK);
                     return (${$ref->{rtb}}[0],$dv);
-         }
+}
        else{
              throw DPS::DBProblem message=>"getrunevinfo Unable to Open DB File";
        } 

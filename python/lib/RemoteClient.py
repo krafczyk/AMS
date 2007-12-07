@@ -1168,19 +1168,6 @@ class RemoteClient:
                     gb=disk[2]
                     break
         timew=time.time()
-        if(fsmutexes.has_key(outputdisk)):
-            print "acquirng fs mutex for ",outputdisk
-            mutex.release()
-            fsmutexes[outputdisk].acquire()
-            mutex.acquire()
-            print "got fs mutex for ",outputdisk
-        else:
-            fsmutexes[outputdisk]=thread.allocate_lock()
-            mutex.release()
-            print "acquirng first fs mutex for ",outputdisk
-            fsmutexes[outputdisk].acquire()
-            mutex.acquire()
-            print "got first fs mutex for ",outputdisk
         return outputpath,gb,outputdisk,time.time()-timew
            
            

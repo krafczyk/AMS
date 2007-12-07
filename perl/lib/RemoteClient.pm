@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.472 2007/11/22 16:34:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.473 2007/12/07 10:13:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -794,9 +794,10 @@ if($#{$self->{DataSetsT}}==-1){
      foreach my $job (@jobs){
          if($job=~/^data=true/){
              $dataset->{datamc}=1;
+#             $self->{DataMC}=1;
          }
      }
-     if(dataset->{datamc}==0){
+     if($dataset->{datamc}==0){
      foreach my $job (@jobs){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
@@ -934,7 +935,7 @@ if($#{$self->{DataSetsT}}==-1){
  }
      else{
 # here data type datasets
-
+      #datamc==1
 
      foreach my $job (@jobs){
          if($job=~/^version=/){
@@ -955,7 +956,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX", "PART","OPENCLOSE","CPUPEREVENTPERGHZ");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -984,63 +985,19 @@ if($#{$self->{DataSetsT}}==-1){
 #   for the corresponding window put number of events fixed (10000000)
 #   but correctly count number of events according to the run info....
 #
+         if($template->{initok}==1){       
+
               my $datasetfound = 0;
               foreach my $ds (@{$datasetsDB}){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
                if ($datasetsNameDB eq $dataset->{name}) {
                  $dataset->{did}=$datasetsDidDB;
-                  $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
-                  my $rtn1=$self->{sqlserver}->Query($sql);
-                   my $tm=time();
-                  $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
-                  my $rtn2=$self->{sqlserver}->Query($sql);
-#                 foreach my $job (@{$jobsDB}){
-#                   my $jobsJidDB     = $job->[0];
-#                   my $jobsTimeDB    = $job->[1];
-#                   my $jobsTrigDB    = $job->[2];
-#                   my $jobsTimeOutDB = $job->[3];
-#                   my $jobsDidDB     = $job->[4];
-#                   my $jobsNameDB    = $job->[5];
-#                   my $rtrig=$job->[6];
-#                   if ($jobsDidDB == $dataset->{did}) {
-#                     my @junk     = split '\.',$jobsNameDB;
-#                     my $jobname = $junk[2];
-#                     for my $n (3..$#junk) {
-#                         $jobname = $jobname.".".$junk[$n];
-#                     }
-#                         if ($jobname eq $template->{filename}) {
-#                            if(defined  $rtrig and $rtrig>0 ) {
-#                               $template->{TOTALEVENTS}-=$rtrig;
-#                              }
-#                             elsif(time()-$jobsTimeDB < $jobsTimeOutDB){
-#                             #$st[3]+=1;
-##
-## subtract allocated events
-#                             $template->{TOTALEVENTS}-=$jobsTrigDB;
-#                         }
-#                        } # $jobname eq %$template->{filename}
-#                  } # $jobsDidDB == $dataset->{did)
-#                 } # loop for all jobs started after ProductionSetStartTime
-               $datasetfound = 1;
-                 my $rtrig=$rtn1->[0][0];
-                 my $subm= $rtn2->[0][0];
-                 if(not defined $rtrig){
-                  $rtrig=0;
-                 }              
-                 if(not defined $subm){
-                  $subm=0;
-                 }              
-                 $template->{TOTALEVENTS}-= $rtrig+$subm;
-                 if($template->{TOTALEVENTS}<0){
-                     $template->{TOTALEVENTS}=0;
-                 }
-#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
-               last;
+                 $datasetfound = 1;
+                 last;
              } # $datasetsNameDB eq $dataset->{name}
             }
-
-           if ($datasetfound == 0) {  # new dataset
+            if ($datasetfound == 0) {  # new dataset
                my $did = 1;
                $sql = "SELECT MAX(did) From DataSets";
                my $ret=$self->{sqlserver}->Query($sql);
@@ -1053,8 +1010,17 @@ if($#{$self->{DataSetsT}}==-1){
                $self->{sqlserver}->Update($sql);
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
-
-           }
+             }
+                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                 my $rtn=$self->{sqlserver}->Query($sql);
+                 if(defined $rtn){
+                  $template->{TOTALEVENTS}=$rtn->[0][0];
+                  $template->{TOTALRUNS}=$rtn->[0][1];
+                 }
+                 else{
+                     $template->{TOTALEVENTS}=0;
+                 }
+#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
 
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
 
@@ -1063,18 +1029,19 @@ if($#{$self->{DataSetsT}}==-1){
             $template->{filebody}=$buf;
             my $desc=$sbuf[0];
             substr($desc,0,1)=" ";
-            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
+            $template->{filedesc}=$desc." Runs/Events Left $template->{TOTALRUNS} $template->{TOTALEVENTS} ";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
             $dataset->{eventstotal} += $template->{TOTALEVENTSC};
-            if($template->{TOTALEVENTS}>1000){
+            if($template->{TOTALEVENTS}>0){
              push @tmpa, $template;
          }
           }
    }
+   }
      } # end jobs of jobs
 
 
-     }
+ }
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
@@ -5221,6 +5188,556 @@ print qq`
           $q->param("QRun",1);
           $template= ${$dataset->{jobs}}[$Any]->{filename};
         }
+       if(defined $dataset and $dataset->{datamc}==1){
+#  Data type dataset
+#  03.12.2007 vc
+         foreach my $tmp (@{$dataset->{jobs}}) {
+            if($template eq $tmp->{filename} and $tmp->{TOTALEVENTS}>0){
+                $templatebuffer=$tmp->{filebody};
+                if(not defined $q->param("QCPUPEREVENT")){
+                    $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
+                }
+                my $runno=$q->param("QEv");
+                if(not $runno =~/^\d+$/ or $runno <1 or $runno>100 ){
+                    $runno=1;
+                }  
+                $q->param("QRun",$runno);
+                $q->param("QRunMi",$tmp->{RUNMIN});
+                $q->param("QRunMa",$tmp->{RUNMAX});
+                last;
+            }
+        }
+        if(not defined $templatebuffer){
+            $self->ErrorPlus("Could not find file for $template template. $tmps");
+        }
+         my $ntdir=$q->param("NTDIR");
+         if (not defined $ntdir) {
+             $self->ErrorPlus("The NTuples output directory NOT DEFINED");
+         } else {
+             if (not $ntdir =~ /\//  ) {
+              $self->ErrorPlus("Invalid NTuples output directory : $ntdir");
+            } else {
+                $self->{AMSDSTOutputDir}=$ntdir;
+            }
+         }
+         my $cputime=200000;
+        my $clock=3000;
+        my $corr=1.00;
+            if (defined $q->param("QCPUType")){
+              $corr=$self->{cputypes}->{$q->param("QCPUType")};
+            }
+
+        my $cput=50;
+
+        my $runno=$q->param("QRun");
+        my $runmi=$q->param("QRunMi");
+        my $runma=$q->param("QRunMa");
+        if(not $runno =~/^\d+$/ or $runno <1 or $runno>100){
+             $self->ErrorPlus("Runs no $runno is out of range (1,100)");
+        }
+#
+#  get runs from database
+#
+                 my $sql="select datafiles.run,datafiles.path  from datafiles where run>=$runmi and run<=$runma and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
+          my $runsret=$self->{sqlserver}->Query($sql);
+          $timeout=$q->param("QTimeOut");
+          if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
+             $self->ErrorPlus("Time  $timeout is out of range (1,40) days. ");
+          }
+          $timeout=int($timeout*3600*24);
+            #get job
+          if(not defined $runsret){
+            $self->ErrorPlus("No More Runs to do... ");
+            return;
+          }             
+       my $job;
+    if(not defined $job){
+        my $sql="select maxrun from Cites where name='$self->{CCA}' and state=0";
+        my $res=$self->{sqlserver}->Query($sql);
+        if( not defined $res->[0][0]){
+            my $mes="Cite $self->{CCA} does not exist or locked";
+              foreach my $chop (@{$self->{MailT}}) {
+              if($chop->{rserver}==1){
+                  my $address=$chop->{address};
+                  my $message=" see subject";
+                  $self->sendmailmessage($address,$mes,$message);
+                  last;
+              }
+            }
+            $self->ErrorPlus($mes);
+        }
+        else{
+            my $time = time();
+            $sql="update Cites set state=1, timestamp=$time where name='$self->{CCA}'";
+            $self->{sqlserver}->Update($sql);
+            $job=$res->[0][0];
+        }
+    }
+# 4.12.03             my $switch=1<<27;
+             my $switch=1<<$MAX_RUN_POWER;
+             my $max=$switch-1;
+             if (($job%$switch)+$runno >$max){
+              foreach my $chop (@{$self->{MailT}}) {
+              if($chop->{rserver}==1){
+               my $address=$chop->{address};
+               my $subject="AMS02MC Request Form: job Capacity Exceeded for Cite $self->{CCA} $job";
+               my $message=" see subject";
+               $self->sendmailmessage($address,$subject,$message);
+               last;
+              }
+             }
+             $self->ErrorPlus("Run Capacity Exceeds.");
+             return;
+          }
+
+#       now everything is o.k except server check
+
+        if (not $self->ServerConnect()){
+        foreach my $chop (@{$self->{MailT}}) {
+              if($chop->{rserver}==1){
+                  my $address=$chop->{address};
+                  $self->sendmessage($address,"unable to connect to servers by $self->{CEM}"," ");
+                  last;
+              }
+          }
+            $self->ErrorPlus("Unable to Connect to Server.");
+         }
+        my $key='gbatch';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive gbatch name from db");
+        }
+        $dataset->{version}='v4.00';
+
+        my $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+        my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
+        if($#stag<0){
+              $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
+        }
+        $key='getior';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive getior name from db");
+        }
+         my $gr=$ret->[0][0];
+         my @stag2=stat "$self->{AMSSoftwareDir}/$gr";
+        if($#stag2<0){
+              $self->ErrorPlus("Unable to find $gr on the Server ");
+        }
+        $key='ntuplevalidator';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive ntuplevalidator name from db");
+        }
+         my $nv=$ret->[0][0];
+         my @stag1=stat "$self->{AMSSoftwareDir}/$nv";
+        if($#stag1<0){
+              $self->ErrorPlus("Unable to find $nv on the Server ");
+        }
+        my $runmax=$#{@{$runsret}}+1;
+        if($runmax>$runno){
+            $runno=$runmax;
+        }
+        
+
+        for my $i (1 ... $runno){
+         my $run=$runsret->[$i-1][0];
+         my $path=$runsret->[$i-1][1];
+         #find buffer and patch it accordingly
+         my $evts=100000000;
+#read header
+         my $buf=$self->{tsyntax}->{headers}->{$self->{CCT}};
+         my $tmpb=$templatebuffer;
+         if(not defined $buf){
+             $self->ErrorPlus("Unable to find   header file. ");
+         }
+         my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
+         my $ret=$self->{sqlserver}->Query($sql);
+         if(defined $ret->[0][0] && $self->{CCT} ne 'remote'){
+             my $subs=$ret->[0][0]."/jou";
+           #  $subs=~s/\//\\\//g;
+           $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
+             #die " $subs $buf \n";
+          }
+         $buf=~ s/RUN=/RUN=$run/;
+         $buf=~ s/JOB=/JOB=$job/;
+         my $cputf=sprintf("%.3f",$cput);
+
+         $buf=~ s/CPULIM=/CPULIM=$cputf/;
+         my $cpus=$q->param("QCPUTime");
+         my $cpusf=sprintf("%.3f",$cpus);
+         if(defined  $q->param("QCPUTime")){
+          my $cpus=$q->param("QCPUTime");
+          my $cpusf=sprintf("%.3f",$cpus);
+          if($q->param("ForceCpuLimit")){
+           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/;
+          }
+         }
+         my $nickname=$q->param("QNick");
+         $buf=~ s/JOB=/NICKNAME=$nickname \nJOB=/;
+         $buf=~ s/JOB=/DATASETNAME=$dataset->{name} \nJOB=/;
+         $buf=~ s/JOB=/CPUTIME=$cpus \nJOB=/;
+         my $rootntuple=$q->param("RootNtuple");
+         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
+         $buf=~ s/RUNDIR=/RUNDIR=$path/;
+         $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
+         my $cputype=$q->param("QCPUType");
+         $buf=~ s/JOB=/CPUTYPE=\"$cputype\" \nJOB=/;
+         $buf=~ s/JOB=/CLOCK=$clock \nJOB=/;
+         my $ctime=time();
+         $buf=~ s/JOB=/SUBMITTIME=$ctime\nJOB=/;
+         if($self->{CCT} eq "local"){
+           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;
+         }
+         else{
+             my @gbc=split "\/", $gbatch;
+
+          $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
+      }
+         my $script="$self->{CCA}.$job.$template";
+         my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
+         "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
+         if($self->{q}->param("ProductionQuery") eq "Submit Request" and $self->{CCT} eq "local"   ){
+# add one more check here using save state
+            my $time = time();
+            $sql="update Cites set state=0, timestamp=$time  where name='$self->{CCA}'";
+            $self->{sqlserver}->Update($sql);
+             my $save="$self->{UploadsDir}/$self->{CCA}.$run.$self->{CEMID}save";
+             my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
+            $q->param($param,"Save");
+            $q->param("FEM",$save);
+             save_state($q,$save);
+             htmlTop();
+            $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
+          if($self->{CCT} eq "local"){
+              print "<B><font color=red size= 3>
+                     <i> the password is required </i></font></B>";
+              print "<p></p>\n";
+         }
+          print "<input type=\"hidden\" name=\"CEM\" value=$cem>        ";
+          print "<input type=\"hidden\" name=\"FEM\" value=$save>        ";
+          print "<p></p>\n";
+          print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
+          print "<BR><TR>";
+         if($self->{CCT} eq "local"){
+          print "Password :  <input type=\"password\" name=\"password\" value=\"\">  ";
+          print "<TR><BR>";
+         }
+         print $q->submit(-name=>$param, -value=>"Save");
+         print htmlBottom();
+         return 1;
+        }
+         my $adddst=$template; 
+         $adddst=~ s/\.job//;
+         open(FILE,">".$root) or die "Unable to open file $root\n";
+         if($self->{CCT} eq "local"){
+          if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
+ print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst/$run \n";
+ print FILE "export NtupleDir=/dat0/local/logs/nt \n";
+}
+        my $key='ntuplevalidator';
+        my $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive ntuplevalidator name from db");
+        }
+          my @tmpa=split '/', $ret->[0][0];
+          print FILE "export NtupleValidatorExec=$tmpa[$#tmpa] \n";
+        $key='getior';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive getior name from db");
+        }
+           @tmpa=split '/', $ret->[0][0];
+          print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
+          print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
+          print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
+      }
+#
+# check here custom/generic
+#
+         if(defined $q->param("JST") and  $q->param("JST") eq 'C'){
+             my $sdir="$self->{AMSSoftwareDir}/scripts/";
+             my $newfile=$sdir."$self->{CCA}";
+             open(FILEI,"<".$newfile) or die " Unable to find script file $newfile.  Please make sure you did send your custom script requirements to ams production team. ";
+             my $sbuf;
+             read(FILEI,$sbuf,16384);
+             close FILEI;
+             my @ssbuf = split ',;',$sbuf;
+             if($#ssbuf ne 1){
+              die " Could not parse script $newfile $#ssbuf";
+             }
+
+             $buf=~ s/export/$ssbuf[0]\nexport/;
+             $tmpb =~ s/\!/\!\n$ssbuf[1]/;
+         }
+
+         print FILE $buf;
+         print FILE $tmpb;
+         if($self->{CCT} eq "local"){
+             print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
+         }
+         close FILE;
+         my $j=system("chmod +x  $root");
+         $buf=~s/\$/\\\$/g;
+         $buf=~s/\"/\\\"/g;
+         $buf=~s/\(/\\\(/g;
+         $buf=~s/\)/\\\)/g;
+         $buf=~s/\'/\\'/g;
+         if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
+            $buf =~ s/'/''/g;
+         }
+         $tmpb=~s/\"/\\\"/g;
+         $tmpb=~s/\(/\\\(/g;
+         $tmpb=~s/\)/\\\)/g;
+         $tmpb=~s/\$/\\\$/g;
+         $tmpb=~s/\'/\\'/g;
+    if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
+         $tmpb =~ s/'/''/g;
+    }
+         $ctime=time();
+         $nickname = $q->param("QNick");
+         my $stalone  = "STANDALONE";
+         if ($q->param("STALONE") eq "No") {
+          my $stalone  = "CLIENT";
+         }
+         my $pid = $self->getProductionSetIdByDatasetId($did);
+#check run alrdy exist
+ $sql="select FEvent from DataRuns where jid=$job";
+ $ret=$self->{sqlserver}->Query($sql);
+ while(defined $ret->[0][0]){
+ $job++;
+ $sql="select FEvent from DataRuns where jid=$job";
+ $ret=$self->{sqlserver}->Query($sql);
+}
+
+            
+            $insertjobsql="INSERT INTO Jobs VALUES
+                             ($job,
+                              '$script',
+                              $self->{CEMID},
+                              $self->{CCID},
+                              $did,
+                              $ctime,
+                              $evts,
+                              $timeout,
+                              '$buf$tmpb',
+                              $ctime,
+                              '$nickname',
+                               'host',0,0,0,0,'$stalone',
+                              -1, $pid,-1,0)";
+#creat corresponding runevinfo
+         $sql ="select fevent,levent,fetime,letime,nevents from datafiles where run=$run";
+         my $r1=$self->{sqlserver}->Query($sql);
+         my $ri={};
+         $ri->{uid}=$job;
+         $ri->{Run}=$run;
+         $ri->{FirstEvent}=$r1->[0][0];
+         $ri->{LastEvent}=$r1->[0][1];
+         $ri->{TFEvent}=$r1->[0][2];
+         $ri->{TLEvent}=$r1->[0][3];
+         $ri->{Priority}=0;
+         $ri->{FilePath}=$script;
+         $ri->{rndm1}=0;
+         $ri->{rndm2}=0;
+         $ri->{DataMC}=1;
+             $ri->{Status}="ToBeRerun";
+             $ri->{History}="ToBeRerun";
+             $ri->{CounterFail}=0;
+             $ri->{cuid}=0;
+         $ri->{SubmitTime}=time();
+         $ri->{cinfo}={};
+         $ri->{cinfo}->{Run}=$ri->{Run};
+         $ri->{cinfo}->{EventsProcessed}=0;
+         $ri->{cinfo}->{LastEventProcessed}=0;
+         $ri->{cinfo}->{ErrorsFound}=0;
+         $ri->{cinfo}->{CriticalErrorsFound}=0;
+         $ri->{cinfo}->{CPUTimeSpent}=0;
+         $ri->{cinfo}->{CPUMipsTimeSpent}=0;
+         $ri->{cinfo}->{Mips}=-1;
+         $ri->{cinfo}->{TimeSpent}=0;
+         $ri->{cinfo}->{Status}=$ri->{Status};
+         $ri->{cinfo}->{HostName}=" ";
+         push @{$self->{Runs}}, $ri;
+         $self->insertDataRun(
+                       $ri->{Run},
+                       $job,
+                       $ri->{FirstEvent},
+                       $ri->{LastEvent},
+                       $ri->{TFEvent},
+                       $ri->{TLEvent},
+                       $ri->{SubmitTime},
+                       $ri->{Status});
+         $job=$job+1;
+         if($pid>0){          
+           $self->{sqlserver}->Update($insertjobsql);
+         }
+
+        }
+       
+
+
+#
+# Add files to server
+#
+        if(defined $self->{dbserver} ){
+            if($self->{dwldaddon}==0 ){
+            foreach my $ri (@{$self->{Runs}}){
+              DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
+           }
+            my $lu=time();
+            my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}' and datamc=$self->{DataMC}";
+            $self->{sqlserver}->Update($sqll);
+            }
+        }
+        else{
+            $self->ErrorPlus("Unable To Communicate With Server");
+        }
+# insert into Jobs
+#        if (defined $insertjobsql) {
+#         $self->{sqlserver}->Update($insertjobsql);
+#        }
+
+        my $address=$self->{CEM};
+        if($address eq 'vitali@afl3u1.cern.ch'){
+          $address='vitali.choutko@cern.ch';
+        }
+        my $frun=$job-$runno;
+        my $lrun=$job-1;
+        my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
+                 my $message;
+                 if($self->{dwldaddon}==1){
+                   $message=$self->{tsyntax}->{headers}->{readmestandalone};
+                 }
+                 else{
+                   $message=$self->{tsyntax}->{headers}->{readmecorba};
+                 }
+        $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
+        my $note='please contact vitali.choutko@cern.ch for details';
+        $ret = $self->{sqlserver}->Query($sql);
+
+        if (defined $ret->[0][0]) {
+         $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
+         }
+         $message=$message.$note;
+                  my $attach;
+         my $totalreq=$self->{CEMR}+$runno;
+         my $time=time();
+         $sql="Update Mails set requests=$totalreq, timeu1=$self->{TU1}, timeu2=$self->{TU2}, timestamp=$time where mid=$self->{CEMID}";
+         $self->{sqlserver}->Update($sql);
+         $subject="Data Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
+         $self->sendmailerror($subject," ");
+         $sql="SELECT mid FROM Cites WHERE cid=$self->{CCID}";
+         $ret=$self->{sqlserver}->Query($sql);
+         if(defined $ret->[0][0] && $ret->[0][0] != $self->{CEMID}){
+           $sql="SELECT address FROM Mails WHERE mid=$ret->[0][0]";
+           $ret=$self->{sqlserver}->Query($sql);
+           if(defined $ret->[0][0]){
+             $self->sendmailmessage($ret->[0][0],$subject," ");
+           } else {
+            $self->ErrorPlus("Unable to obtain mail address for MailId = $ret->[0][0] and Cite=$self->{CCID}");
+           }
+       }
+           $time=time();
+           $sql="update Cites set state=0, maxrun=$job, timestamp=$time where name='$self->{CCA}'";
+            $self->{sqlserver}->Update($sql);
+
+        foreach my $cite (@{$self->{CiteT}}){
+            if($self->{CCA} eq $cite->{name}){
+              $cite->{maxrun}=$job;
+              last;
+          }
+        }
+
+                  my $dir=$self->{UploadsDir};
+                  open DIR,$dir;
+                  my @allfiles= readdir THISDIR;
+                  closedir DIR;
+                  foreach my $file (@allfiles){
+                     my $pat='/$\.'."$self->{CEMID}.save/";
+                     if($file =~$pat){
+                       unlink $file;
+                     }
+                  }
+# check last download time
+# but first check local/remote cite
+      my $cite_status="remote";
+      $sql="SELECT Cites.status FROM Cites, Mails WHERE Cites.cid=Mails.cid  AND ADDRESS='$self->{CEM}'";
+      my $recites=$self->{sqlserver}->Query($sql);
+      if(defined $ret->[0][0]){
+        $cite_status= $recites->[0][0];
+      }
+# check last download time
+     if ($cite_status eq "remote") {
+          my $uplt0 = 0;                   #last upload
+          my $uplt1 = 0;                   # for filedb and filedb.addon
+          my $vdb   = 'XYZ';               # lastdb version loaded
+          my $vvv   = $dataset->{version}; # dataset version
+          $sql="SELECT timeu1, timeu2, vdb  FROM Mails WHERE ADDRESS='$self->{CEM}'";
+          my $retime=$self->{sqlserver}->Query($sql);
+          if(defined $retime->[0][0]){
+           $vdb = trimblanks($retime->[0][2]);
+           $uplt0    = $retime->[0][0];
+           $uplt1    = $retime->[0][1];
+          }
+
+       $self->DownloadTime();
+
+        my $timeFileDB     = 0; # file xyzmcdb.tar.gz time
+        my $timeFileAttDB  = 0; #      xyzmcdbaddon.tar.gz time
+        my $i              = 0;
+
+        foreach my $filedb (@{$self->{FileDB}}) {
+          $self->{FileDBLastLoad} ->[$i] = 0;
+          if ($filedb =~ m/$vvv/) {
+           $timeFileDB=(stat($filedb))[9];
+           $self->{FileDBLastLoad} ->[$i] = $uplt0;
+           last;
+         }
+         $i++;
+        }
+
+        $i = 0;
+        foreach my $filedb (@{$self->{FileAttDB}}) {
+          $self->{FileAttDBLastLoad} ->[$i] = 0;
+          if ($filedb =~ m/$vvv/) {
+           $timeFileAttDB=(stat($filedb))[9];
+           $self->{FileAttDBLastLoad} ->[$i] = $uplt1;
+           last;
+         }
+          $i++;
+      }
+
+       if ($vvv =~ $vdb) {
+        if ($uplt0 == 0 || $uplt1 == 0) {
+            $self->Download($vvv, $vdb);
+         } elsif ($timeFileDB == 0 || $timeFileAttDB == 0) {
+            $self->Download($vvv, $vdb);
+         } elsif ($uplt0 < $timeFileDB || $uplt1 < $timeFileAttDB) {
+            $self->Download($vvv, $vdb);
+         } else {
+          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";
+
+         }
+       } else {
+         $self->Download($vvv, $vdb);
+        }
+     } else {
+      $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";
+
+     }
+
+
+
+
+
+
+       }
+       else{
 anyagain:
        if(defined $dataset){
          foreach my $tmp (@{$dataset->{jobs}}) {
@@ -5298,7 +5815,6 @@ anyagain:
         if(not defined $templatebuffer){
             $self->ErrorPlus("Could not find file for $template template. $tmps");
         }
-
         my $a=1;
         my $b=2147483647;
         my $rndm1=$q->param("QRNDM1");
@@ -5539,6 +6055,7 @@ anyagain:
         }
         }
     }
+
         my $gbatch=$ret->[0][0].".$dataset->{version}";
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
@@ -6142,11 +6659,11 @@ anyagain:
 anynext:
          $Any+=1;
          $Any=$Any%($#{$dataset->{jobs}}+1);
-         if(${$dataset->{jobs}}[$Any]->{TOTALEVENTS}<=0){
+         if(${ $dataset->{jobs}}[$Any]->{TOTALEVENTS}<=0){
            goto anynext;
          }
          if($qrunno>1){
-           $template= ${$dataset->{jobs}}[$Any]->{filename};
+           $template= ${ $dataset->{jobs}}[$Any]->{filename};
            $qrunno--;
                     $q->delete("QRNDM1");
                     $q->delete("QRNDM2");
@@ -6165,6 +6682,7 @@ anynext:
         if($Any>=0){
          $runno=$srunno-$qrunno+1;
         }
+
 
 #
 # Add files to server
@@ -6343,6 +6861,7 @@ anynext:
       $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";
 
      }
+}
 }
 #here the default action
  if($self->{read}==0){
@@ -10889,6 +11408,62 @@ sub insertRun {
         if ($status eq "Completed") {
           $self->updateRunCatalog($run);
           if ($verbose == 1) {print "Update RunCatalog table : $run->{Run}\n";}
+       }
+   }
+}
+
+sub insertDataRun {
+
+    my $self   = shift;
+    my $run    = shift;
+    my $jid    = shift;
+    my $fevent = shift;
+    my $levent = shift;
+    my $fetime = shift;
+    my $letime = shift;
+    my $submit = shift;
+    my $status = shift;
+
+    my $doinsert = 0;
+    my $sql      = undef;
+
+    $sql="SELECT run, jid, fevent, levent, status
+          FROM dataRuns WHERE jid=$jid";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+     my $dbrun = $ret->[0][0];
+     my $dbjid = $ret->[0][1];
+     my $dbfevent = $ret->[0][2];
+     my $dblevent = $ret->[0][3];
+     my $dbstatus = $ret->[0][4];
+     if ($dbrun == $run &&
+          $dbfevent == $fevent &&
+          $dblevent == $levent &&
+          $dbstatus eq $status) {
+            print "InsertRun -W- Run $run already exists  \n";
+           } else {
+            $sql="DELETE runs WHERE run=$run";
+            $self->{sqlserver}->Update($sql);
+            $doinsert = 1;
+            }
+      } else {
+        $doinsert = 1;
+      }
+      if ($doinsert == 1) {
+       $sql="INSERT INTO dataRuns VALUES(
+                    $run,
+                    $fevent,
+                    $levent,
+                    $fetime,
+                    $letime,
+                    '$status',
+                    $jid,
+                    $submit)";
+        $self->{sqlserver}->Update($sql);
+        if ($verbose == 1) {print "$sql \n";}
+        if ($status eq "Completed") {
+#          $self->updateRunCatalog($run);
+#          if ($verbose == 1) {print "Update RunCatalog table : $run->{Run}\n";}
        }
    }
 }

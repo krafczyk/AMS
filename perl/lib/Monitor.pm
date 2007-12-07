@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.116 2007/11/12 10:10:14 choutko Exp $
+# $Id: Monitor.pm,v 1.117 2007/12/07 10:13:19 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -76,7 +76,8 @@ my $id = $self->{root_poa}->activate_object($self->{mypoamonitor});
 $self->{myref}=$self->{root_poa}->id_to_reference ($id);
 $self->{myior} = $self->{orb}->object_to_string ($self->{myref});
 $self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
-
+$self->{DataMC}=1;
+$self->{updatesviadb}=0;
 foreach my $chop  (@ARGV){
     if($chop =~/^-m/){
         $self->{DataMC}=0;
@@ -84,19 +85,21 @@ foreach my $chop  (@ARGV){
     if($chop =~/^-d/){
         $self->{updatesviadb}=1;
 #amsdatadir
-
+    }
+}
+    if($self->{updatesviadb}==1){
         my $dir=$ENV{AMSataDir};
         if (defined $dir){
             $self->{AMSDataDir}=$dir;
         }
         else{
-            $self->{AMSDataDir}="/f0dat1/AMSDataDir";
+            $self->{AMSDataDir}="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
             $ENV{AMSDataDir}=$self->{AMSDataDir};
         }
         $self->{sqlserver}=new DBSQLServer();
         $self->{sqlserver}->Connect();
 #try to get ior
-    my $sql="select dbfilename,lastupdate,IORS from Servers where status='Active'";
+    my $sql="select dbfilename,lastupdate,IORS from Servers where status='Active' and datamc=$self->{DataMC}";
         my $ret=$self->{sqlserver}->Query($sql);
         my $updlast=0;
         foreach my $upd (@{$ret}){
@@ -107,13 +110,8 @@ foreach my $chop  (@ARGV){
             }
         }
     }
-}
-    my $mc=shift;
-    if(defined $mc){
-    if($mc =~/^-m/){
-        $self->{DataMC}=0;
-    }
-}
+
+
 
 
 
@@ -524,10 +522,11 @@ sub Update2{
 sub getior{
 #
 # new method based on oracle
-#
+# 
+    my $self=shift;
     my $sqls=new DBSQLServer();
     if($sqls->Connect()){
-     my $sql="select IORS,IORP,dbfilename from Servers where status='Active' order by lastupdate desc";
+     my $sql="select IORS,IORP,dbfilename from Servers where status='Active' and datamc=$self->{DataMC} order by lastupdate desc";
      my $ret=$sqls->Query($sql);
      if(defined $ret->[0][0]){
          my $ref=shift;
@@ -737,7 +736,6 @@ sub getactivehosts{
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
                          if(($1 eq $host) ){
 #           if( $rdstc->{HostName} eq $host){
-             print " pidarasy $rdst->{Run}   Host $rdstc->{HostName}  $rdstc->{EventsProcessed} $rdstc->{CPUTimeSpent} $rdstc->{CPUMipsTimeSpent} $rdstc->{Mips} \n";
                $evt+=$rdstc->{EventsProcessed};
                $cerr+=$rdstc->{CriticalErrorsFound};
                $err+=$rdstc->{ErrorsFound};

@@ -35,7 +35,7 @@ IOPA 1=0 127=2 128='/f2users/choutko/ams02daq.root' 43=101
 AMSJOB 1=11   2=0      3=5.   4=1  5=0 46='AMS02'
 C Special HP-UX
 TIME 3=10000000
-DAQC 1=1 2='/f2users/choutko/HRDL/decode/0305419896'
+DAQC 1=1 2='/f2users/choutko/HRDL/decode/0305419896' 84=1
 TERM 1=1234567890
 END
 

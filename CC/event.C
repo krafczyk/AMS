@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.348 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: event.C,v 1.349 2007/12/07 10:13:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2832,8 +2832,11 @@ void AMSEvent::buildraw(
   //  time=(*(p+7)) |  (*(p+8))<<16;
   //  usec=(*(p+9)) |  (*(p+10))<<16;
 
-    run=(*(p+2)) |  (*(p+1))<<16;
-    runtype=(*(p+4)) |  (*(p+3))<<16;
+  //!   Swap
+//    run=(*(p+2)) |  (*(p+1))<<16;
+//    runtype=(*(p+4)) |  (*(p+3))<<16;
+    runtype=(*(p+2)) |  (*(p+1))<<16;
+    run=(*(p+4)) |  (*(p+3))<<16;
     id=(*(p+6)) |  (*(p+5))<<16;
     time=(*(p+8)) |  (*(p+7))<<16;
     usec=(*(p+10)) |  (*(p+9))<<16;
