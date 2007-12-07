@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: transfer.py,v 1.1 2007/11/29 11:02:28 choutko Exp $
+#  $Id: transfer.py,v 1.2 2007/12/07 16:16:34 ams Exp $
 # this script suppose to check & transfer data files from
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -11,7 +11,7 @@ import RemoteClient
 
 v=1
 i=0
-u=0
+u=1
 run2p=0
 h=0
 source=""
