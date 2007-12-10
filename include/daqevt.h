@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.32 2007/12/04 18:29:59 choutko Exp $
+//  $Id: daqevt.h,v 1.33 2007/12/10 12:53:22 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -116,6 +116,7 @@ uinteger GetBlType(){return _GetBlType();}
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0){}
 static bool ismynode(int16u id,char * sstr){return _getnode(id)>127 && strstr(_getnodename(id),sstr);}
+static bool isRawMode(int16u id){return (id&64)>0;}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}

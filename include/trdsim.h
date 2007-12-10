@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.7 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trdsim.h,v 1.8 2007/12/10 12:53:22 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -61,8 +61,12 @@ static void sitrdnoise();
 
 //interface withdaq
 
+ static integer getmaxblocks(){return AMSTRDIdSoft::ncrates();}
+ static int16 getdaqid(int i);
+ static integer checkdaqid(int16u id);
+ static integer calcdaqlength(integer i);
 static void builddaq(int n, int16u* p);
-static void buildraw(int i, int n, int16u*p);
+static void buildraw(int n, int16u*p);
 #ifdef __WRITEROOT__
  friend class TrdRawHitR;
 #endif

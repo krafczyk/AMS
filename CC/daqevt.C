@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.83 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: daqevt.C,v 1.84 2007/12/10 12:53:21 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -547,10 +547,12 @@ void DAQEvent::buildRawStructures(){
     int16u id=*(_pcur+_cll(_pcur));
     if(_isjinj(id)){
      for(int16u * pdown=_pcur+_cll(_pcur)+2;pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
-     if(fpl->_pgetid(_getportj(*(pdown+*pdown)))){
+     int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
+     if(ic>=0){
       cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<endl;
       int16u *psafe=pdown+1;
-      fpl->_pputdata(*pdown,psafe);
+      integer n=(ic<<16) | (*pdown);
+      fpl->_pputdata(n,psafe);
      }
     }
     }
@@ -562,10 +564,12 @@ void DAQEvent::buildRawStructures(){
      }
     }
     else if(_isjinf(id)){
-     if(fpl->_pgetid(id)){
+     int ic=fpl->_pgetid(id)-1;
+     if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
       int16u *psafe=pdown;
-      fpl->_pputdata(_cl(_pcur)-_cll(_pcur)-2-1,psafe);
+      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur)-2-1);
+      fpl->_pputdata(n,psafe);
      }
     }
     else if(_isddg(id)){    // normal data if any...

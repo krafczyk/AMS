@@ -131,17 +131,78 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 }
 
+int16 AMSTRDRawHit::getdaqid(int id){
+   switch(id){
+    case 0:
+      return 8;
+    case 1:
+      return 2;
+    default:
+      return -1;      
+}
+}
 
+integer AMSTRDRawHit::checkdaqid(int16u id){
 
+ for(int i=0;i<getmaxblocks();i++){
+  if((id)==getdaqid(i))return i+1;
+ }
+ for(int i=0;i<getmaxblocks();i++){
+  char sstr[128];
+  sprintf(sstr,"JF-U%d",i);
+  if(DAQEvent::ismynode(id,sstr))return i+1; 
+ }
+ return 0;
 
-
-void AMSTRDRawHit::builddaq(int n, int16u* p){
 
 }
 
-void AMSTRDRawHit::buildraw(int i, int n, int16u*p){
+
+void AMSTRDRawHit::buildraw(int n, int16u* pbeg){
+int length=n&32767;
+int ic=(n>>16);
+
+for (int16u* p=pbeg;p<pbeg+length;p+=*p+1){
+ bool raw=DAQEvent::isRawMode(*(p+*p));
+ int udr=((*(p+*p))&31)/4;
+ if(raw){
+#ifdef __AMSDEBUG__
+  if(*p!=449){
+   cerr<<"AMSTRDRawHit::buildraw-E-WrongSubBlockLengthInRoawMode "<<*p<<endl;
+  }
+  cout <<"  UDR No "<<udr<<endl;
+#endif
+  for (int i=0;i<*p-1;i++){
+        int ufe=i%7;
+        int cha=i/7;
+        int tube=cha%16;
+        int ute=cha/4;
+        AMSTRDIdSoft id(ic,udr,ufe,ute,tube);
+        if(!id.dead()){
+         AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
+         AMSTRDRawHit(id,(((*(p+i))&32767)-id.getped())*TRDMCFFKEY.f2i));
+//         cout <<id<<" "<<((*(p+i))&32767)<<" "<<id.getped()<<endl;
+       }
+       else{
+//         cerr<<"AMSTRDRawHit::buildraw-E-IDDead"<<id<<endl;
+       }
+  }
+ }
+ else{
+  // compressed mode detected
+ }
+ }
+
+
 }
 
+void AMSTRDRawHit::builddaq(int n, int16u*p){
+}
+
+integer AMSTRDRawHit::calcdaqlength(integer i){
+
+
+}
 
 void AMSTRDRawHit::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)

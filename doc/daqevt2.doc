@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.1 2007/11/06 10:41:48 choutko Exp $
+#  $Id: daqevt2.doc,v 1.2 2007/12/10 12:53:22 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -108,7 +108,7 @@ of the following form (names are not relevant)
 
  static void buildraw(integer length, int16u *p);  // builds raw from daq from p
                                                    //  p points to idsubdbl    
-                                                   // length==LSubDBl      
+                                                   // length==LSubDBl |  (crate_number<<8)
 
 
 b. Raw->Daq conversion

@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.9 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trdid.C,v 1.10 2007/12/10 12:53:21 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -137,8 +137,10 @@ for (int i=0;i<TRDDBc::LayersNo(0);i++){
   for(int j=0;j<TRDDBc::LaddersNo(0,i);j++){
     for(int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
     AMSTRDIdSoft id(i,j,k);
+    if(!id.dead()){
     if(id.getcrate()==crateno && id.checkstatus(AMSDBc::BAD))badch++;
     if(id.getcrate()==crateno && id.getgain()==0)zerog++;
+    }
      }
   }
 }
@@ -183,7 +185,7 @@ void AMSTRDIdSoft::inittable(){
 
 
 
-     //     integer AMSTRDIdSoft::_GetGeo[ncrt]][nufe][nudr][nute][2];
+     //     integer AMSTRDIdSoft::_GetGeo[ncrt]][nudr][nufe][nute][2];
      //     integer AMSTRDIdSoft::_GetHard[maxlay][maxlad][4];     
      int i,j,k;
      for(i=0;i<trdid::ncrt;i++){
@@ -230,13 +232,30 @@ void AMSTRDIdSoft::inittable(){
     }
    }
 
-
    for(i=0;i<trdid::nufe;i++){
     for(int k=0;k<trdid::nute;k++){
      _GetGeo[1][1][i][k][0]=k;               //  layer
      _GetGeo[1][1][i][k][1]=9+i;                  //  ladder
     }
    }
+
+
+
+
+
+    for(int k=0;k<trdid::nute;k++){
+     _GetGeo[0][1][0][k][0]=-1;               //  layer
+     _GetGeo[0][1][0][k][1]=-1;                  //  ladder
+    }
+
+    for(int k=0;k<trdid::nute;k++){
+     _GetGeo[0][5][6][k][0]=k;               //  layer
+     _GetGeo[0][5][6][k][1]=2;                  //  ladder
+    }
+
+
+
+
 
 
 

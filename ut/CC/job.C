@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.505 2007/12/07 10:13:10 choutko Exp $
+// $Id: job.C,v 1.506 2007/12/10 12:53:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3694,17 +3694,13 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
 else {
 
 if(DAQCFFKEY.LCrateinDAQ){
-//           tracker reduced
-/*
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidCompressed,&AMSTrRawCluster::buildrawCompressed);
-*/
+
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
 
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 
+    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
 
 
     //Tracker ped/sigma etc ( "Event" mode)
