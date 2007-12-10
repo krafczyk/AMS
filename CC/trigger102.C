@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.36 2007/12/06 13:31:13 choumilo Exp $
+//  $Id: trigger102.C,v 1.37 2007/12/10 14:43:39 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -15,6 +15,11 @@
 #include "antirec02.h"
 #include "ecalrec.h"
 #include "ntuple.h"
+#include <iostream.h>
+#include <fstream.h>
+#include <iomanip.h>
+#include <time.h>
+#include "timeid.h"
 using namespace std;
 using namespace ecalconst;
 //
@@ -25,7 +30,7 @@ using namespace ecalconst;
  integer TGL1JobStat::daqc1[20];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
 //
-void Trigger2LVL1::build(){
+void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //build lvl1-obj for MC; Complete(+rebuild) lvl1 for RealData.
 // 
   integer PhysBPatt(0);//Lvl1 phys.branches pattern(e,p,gamma,unbiased,...,external; 8 in total)
@@ -70,6 +75,7 @@ void Trigger2LVL1::build(){
       ptr->setecpat(ectrpatt);
       ptr->setectrs(ectrsum);
       TGL1JobStat::addev(16);
+      if(TGL1FFKEY.Lvl1ConfSave>0)l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup 
     }
 //-------------------------------------------
 /*
@@ -366,17 +372,18 @@ void Trigger2LVL1::init(){
   TGL1JobStat::resetstat();
 }
 //--------------------
-void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
+void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from def.file
   char fname[80];
   char name[80];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
   int mrfp;
-  char in[2]="0";
-  char inum[11];
   int mcvn,rlvn,dig,endflab(0);
 //
-  strcpy(inum,"0123456789");
 //reset:
  _globftmask=0;
  _globl1mask=0;
@@ -393,45 +400,28 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
    }
  }
 //
- strcpy(name,"lvl1conf");//generic Lvl1ConfData file name
- if(AMSJob::gethead()->isMCData())           // for MC-data
- {
-   cout <<" Trigger2LVL1::Init: LVL1TrigConf-data for MC are requested"<<endl;
-   mcvn=TGL1FFKEY.Lvl1ConfMCVers%1000;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real-data
- {
-   cout <<" Trigger2LVL1::Init: LVL1TrigConf-data for RealData are requested"<<endl;
-   rlvn=TGL1FFKEY.Lvl1ConfRDVers%1000;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
-   strcat(name,".dat");
+  strcpy(name,"Lvl1Conf");//generic Lvl1ConfData file name
+  if(AMSJob::gethead()->isMCData()){
+    cout <<"====> Trigger2LVL1::Init: LVL1TrigConf-data for MC are requested:"<<endl;
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ECMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    cout <<"====> Trigger2LVL1::Init: LVL1TrigConf-data for RealData are requested:"<<endl;
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ECREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+//
    if(TGL1FFKEY.Lvl1ConfRead/10==0)strcpy(fname,AMSDATADIR.amsdatadir);//M
    if(TGL1FFKEY.Lvl1ConfRead/10==1)strcpy(fname,"");
    strcat(fname,name);
-   cout<<"Open file : "<<fname<<'\n';
+   cout<<"      Opening file : "<<fname<<'\n';
    ifstream tgfile(fname,ios::in); // open file for reading
    if(!tgfile){
-     cerr <<"Trigger2LVL1::Init: Missing Lvl1ConfData file "<<fname<<endl;
+     cerr <<"<---- Trigger2LVL1::Init: Missing Lvl1ConfData file "<<fname<<endl;
      exit(1);
    }
 //---->>> TOF:
@@ -439,7 +429,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
     for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
       tgfile >> _tofinmask[il][ib];
       if(tgfile.eof()){
-        cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TofInTrigMask(z>=1) !!!"<<endl;
+        cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading TofInTrigMask(z>=1) !!!"<<endl;
 	exit(1);
       }
     }
@@ -449,7 +439,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
     for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
       tgfile >> _tofinzmask[il][ib];
       if(tgfile.eof()){
-        cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TofInTrigMask(z>=2) !!!"<<endl;
+        cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading TofInTrigMask(z>=2) !!!"<<endl;
 	exit(1);
       }
     }
@@ -458,7 +448,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
   for(int il=0;il<TOF2DBc::getnplns();il++){
     tgfile >> _tofoamask[il];
     if(tgfile.eof()){
-      cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Tof PlaneSidesOrAndMask(z>=1) !!!"<<endl;
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading Tof PlaneSidesOrAndMask(z>=1) !!!"<<endl;
       exit(1);
     }
   }
@@ -466,7 +456,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
   for(int il=0;il<TOF2DBc::getnplns();il++){
     tgfile >> _tofoazmask[il];
     if(tgfile.eof()){
-      cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Tof PlaneSidesOrAndMask(z>=2) !!!"<<endl;
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading Tof PlaneSidesOrAndMask(z>=2) !!!"<<endl;
       exit(1);
     }
   }
@@ -479,32 +469,32 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
 //  
   tgfile >> _toflut2;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TOF LayerConfLut2(z>=1) !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading TOF LayerConfLut2(z>=1) !!!"<<endl;
     exit(1);
   }
 //
   tgfile >> _toflutbz;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TOF LayerConfLutbz(z>=2) !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading TOF LayerConfLutbz(z>=2) !!!"<<endl;
     exit(1);
   }
 //
   tgfile >> _toflcsz;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TOF LayerConfSlowZ(z>=2) !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading TOF LayerConfSlowZ(z>=2) !!!"<<endl;
     exit(1);
   }
 //
   tgfile >> _tofextwid;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TOF SlowZExtWidth(z>=2) !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading TOF SlowZExtWidth(z>=2) !!!"<<endl;
     exit(1);
   }
 //----->>> ANTI:  
   for(int is=0;is<ANTI2C::MAXANTI;is++){
     tgfile >> _antinmask[is];
     if(tgfile.eof()){
-      cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Anti InTrigMask !!!"<<endl;
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading Anti InTrigMask !!!"<<endl;
       exit(1);
     }
   }
@@ -512,7 +502,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
   for(int is=0;is<ANTI2C::MAXANTI;is++){
     tgfile >> _antoamask[is];
     if(tgfile.eof()){
-      cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Anti OrAndMask !!!"<<endl;
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading Anti OrAndMask !!!"<<endl;
       exit(1);
     }
   }
@@ -527,7 +517,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
 //----->>> EcalOrAndFlag and ActiveProjMask:
   tgfile >> _ecorand;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading EcalProjOrAndFlag !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading EcalProjOrAndFlag !!!"<<endl;
     exit(1);
   }
 //-----
@@ -539,13 +529,13 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
 //----->>> globalFastTrig:  
   tgfile >> _globftmask;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading GlobalFTrigMask !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading GlobalFTrigMask !!!"<<endl;
     exit(1);
   }
 //----->>> globalLVL1:  
   tgfile >> _globl1mask;
   if(tgfile.eof()){
-    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading lLvl1SubTrigMask !!!"<<endl;
+    cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading lLvl1SubTrigMask !!!"<<endl;
     exit(1);
   }
 //----->>> TrigMembSetting each of 8 PhysBranches:
@@ -560,22 +550,232 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed lvl1trig-masks
   for(int ip=0;ip<8;ip++){
     tgfile >> _phbrprescf[ip];
     if(tgfile.eof()){
-      cerr<<"Trigger2LVL1::Init:Unexpected EOF reading PhysBranchesPrescFactors !!!"<<endl;
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading PhysBranchesPrescFactors !!!"<<endl;
       exit(1);
     }
   }
 //-----
+  if(AMSJob::gethead()->isMCData()){
+    tgfile >> date[0];//YYYYMMDD beg.validity of Lvl1ConfMC.ext file
+    if(tgfile.eof()){
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading validity date !!!"<<endl;
+      exit(1);
+    }
+    tgfile >> date[1];//HHMMSS beg.validity of Lvl1ConfMC.ext file
+    if(tgfile.eof()){
+      cerr<<"<---- Trigger2LVL1::Init:Unexpected EOF reading validity date !!!"<<endl;
+      exit(1);
+    }
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      Lvl1ConfMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+  }
+  else{
+    utct=time_t(TGL1FFKEY.Lvl1ConfRDVers);
+    printf("      Lvl1ConfRD-file begin_date: %s",ctime(&utct)); 
+  }
+//
   tgfile>>endflab;
 //
   tgfile.close();
 //
   if(endflab==12345){
-    cout<<"Trigger2LVL1::Init ======> Lvl1FTrigConfig-data are successfully read !"<<endl;
+    cout<<"<---- Lvl1Config-data are successfully read !"<<endl;
   }
-  else{cout<<"Trigger2LVL1::Init ======> Error reading Lvl1FTrigConfig-data !"<<endl;
+  else{cout<<"<---- Error reading Lvl1Config-data !"<<endl;
     exit(1);
   }
 //
+}
+//---------
+void Trigger2LVL1::Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig-params(masks,...) to def.file(+DB)
+//
+//flg=1/2-> save2file/+DB
+  integer endflab(12345);
+  char fname[80];
+  char name[80];
+  char buf[20];
+  static integer runno(-1);
+//
+  time_t begin=AMSEvent::gethead()->gettime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
+  uinteger runn=AMSEvent::gethead()->getrun();//1st event run# 
+  time_t end,insert;
+  char DataDate[30],WrtDate[30];
+  strcpy(DataDate,asctime(localtime(&begin)));
+  time(&insert);
+  strcpy(WrtDate,asctime(localtime(&insert)));
+//
+  cout<<"====> Lvl1TrigConfig::saveRD: Config is going to be saved in file and DB !!!"<<endl;
+  if(runno!=runn){
+    cout<<"      New/old Runn="<<runn<<"/"<<runno<<endl;
+    if(uinteger(begin)!=runn){
+      cout<<"<---- Lvl1TrigConfig::saveRD: Warning - RunN/1stEvtTime mismatch, 1stEvtT:"<<uinteger(begin)<<endl;
+    }
+    runno=runn;
+  }
+  else {
+    cout<<"<---- Lvl1TrigConfig::saveRD: Warning - repeated run number - ignore !"<<endl;
+    return;
+  }
+//
+// ---> prepare update of DB :
+  if(flg==2){//Update DB "on flight"
+    AMSTimeID *ptdv;
+    ptdv = AMSJob::gethead()->gettimestructure(AMSID("Lvl1Config",AMSJob::gethead()->isRealData()));
+    ptdv->UpdateMe()=1;
+    ptdv->UpdCRC();
+    time(&insert);
+    end=begin+86400*30;//30 days ???
+    ptdv->SetTime(insert,begin,end);
+//
+    if(AMSFFKEY.Update==2 ){
+      AMSTimeID * offspring = 
+         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
+      while(offspring){
+        if(offspring->UpdateMe())cout << "         Start update Lvl1Config DB "<<*offspring; 
+        if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+        cerr <<"<---- Problem To Update Lvl1Config in DB"<<*offspring;
+        offspring=(AMSTimeID*)offspring->next();//get one-by-one
+      }
+    }
+  }
+// ---> write Lvl1Cinfig to file:
+  if(flg==1 || flg==2){
+    strcpy(name,"Lvl1ConfRD.");//
+    sprintf(buf,"%d",runn);
+    strcat(name,buf);
+    strcpy(fname,name);//creat in current dir.
+    cout<<"       Opening file for writing : "<<fname<<'\n';
+    cout<<"       Date of the first used event : "<<DataDate<<endl;
+    cout<<"       Date of the file writing   : "<<WrtDate<<endl;
+    cout<<"       RunN="<<runn<<endl;
+    ofstream icfile(fname,ios::out|ios::trunc); // open config-file for writing
+    if(!icfile){
+      cerr <<"<---- Problems to write new Lvl1ConfRD-file !!? "<<fname<<endl;
+      exit(1);
+    }
+    icfile.setf(ios::fixed);
+//
+//---->>> TOF:
+    for(int il=0;il<TOF2DBc::getnplns();il++){
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        icfile << _tofinmask[il][ib] <<" ";
+      }
+      icfile << endl;
+    }
+    icfile << endl;
+//  
+    for(int il=0;il<TOF2DBc::getnplns();il++){
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        icfile << _tofinzmask[il][ib] <<" ";
+      }
+      icfile << endl;
+    }
+    icfile << endl;
+//  
+    for(int il=0;il<TOF2DBc::getnplns();il++){
+      icfile << _tofoamask[il] <<" ";
+    }
+    icfile << endl;
+    icfile << endl;
+//  
+    for(int il=0;il<TOF2DBc::getnplns();il++){
+      icfile << _tofoazmask[il] <<" ";
+    }
+    icfile << endl;
+    icfile << endl;
+//  
+    icfile << _toflut1;
+    icfile << endl;
+    icfile << endl;
+//  
+    icfile << _toflut2;
+    icfile << endl;
+    icfile << endl;
+//
+    icfile << _toflutbz;
+    icfile << endl;
+    icfile << endl;
+//
+    icfile << _toflcsz;
+    icfile << endl;
+    icfile << endl;
+//
+    icfile << _tofextwid;
+    icfile << endl;
+    icfile << endl;
+//----->>> ANTI:  
+    for(int is=0;is<ANTI2C::MAXANTI;is++){
+      icfile << _antinmask[is] <<" ";
+    }
+    icfile << endl;
+    icfile << endl;
+//-----
+    for(int is=0;is<ANTI2C::MAXANTI;is++){
+      icfile << _antoamask[is] <<" ";
+    }
+    icfile << endl;
+    icfile << endl;
+//-----
+    for(int ip=0;ip<2;ip++){
+      icfile << _antsectmx[ip] <<" ";
+    }
+    icfile << endl;
+    icfile << endl;
+//----->>> EcalOrAndFlag and ActiveProjMask:
+    icfile << _ecorand;
+    icfile << endl;
+    icfile << endl;
+//-----
+    icfile << _ecprjmask;
+    icfile << endl;
+    icfile << endl;
+//----->>> globalFastTrig:  
+    icfile << _globftmask;
+    icfile << endl;
+    icfile << endl;
+//----->>> globalLVL1:  
+    icfile << _globl1mask;
+    icfile << endl;
+    icfile << endl;
+//----->>> TrigMembSetting each of 8 PhysBranches:
+    for(int ip=0;ip<8;ip++){
+      icfile << _physbrmemb[ip];
+      icfile << endl;
+    }
+    icfile << endl;
+//----->>> Phys.branches prescale-factors:  
+    for(int ip=0;ip<8;ip++){
+      icfile << _phbrprescf[ip] <<" ";
+    }
+    icfile << endl;
+    icfile << endl;
+//
+    icfile << endflab;
+    icfile << endl;
+//
+    icfile << endl<<"======================================================"<<endl;
+    icfile << endl<<" Date of the 1st used event : "<<DataDate<<endl;
+    icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
+    icfile.close();
+//
+    cout<<"<---- Real Lvl1TrigConfig data are successfully saved !!!"<<endl<<endl;
+  }//--->endof file writing 
 }
 //---------
 void Trigger2LVL1::ScalerMon::setdefs(){
@@ -1183,6 +1383,10 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   }//---> endof scalers block
 //---------------------------
   if((sbpatt%1000)/100>0){//<---- trig-setup info(masks,...)
+//=====> This section updates TrigConfig parameters of current Lvl1TrigConfig-object in memory
+//=====> CP/CT/BZinp-masks are not srored in Lvl1TrigConfig-object for the moment, so the related 
+//       decoded info is not used now !!!!!!
+//
     TGL1JobStat::daqs1(9);//"TrigSetupBlock" entries
     word=*(p+trgsbias);//Anti-mask
     for(i=0;i<ANTI2C::MAXANTI;i++){//update antinmask
@@ -1276,7 +1480,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //---
     for(i=0;i<8;i++){//update PhysBranche's members pattern(composition)
       word=*(p+trgsbias+16+i);//particulal PhysBranch composition mask(disable bits)
-      l1trigconf.physbrmemb(i)=integer(~(word&0x7FFF));//Lin(disable)->Me(anable),except bit15 !
+      l1trigconf.physbrmemb(i)=integer((~(word&0x7FFF))&0x7FFF);//Lin(disable)->Me(anable),except bit15 !
     }
 //---
     for(i=0;i<8;i++){//PhysBranches loop
@@ -1292,7 +1496,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	                           <<hex<<psfcode<<dec<<" PhBr="<<i<<endl;
       }
     }
-    if(TGL1FFKEY.printfl>0){
+    if(TGL1FFKEY.printfl>0){//print setup info (if requested):
       cout<<"               TrigSetup :"<<endl;
       cout<<"      Anabled ATC-sectors/sides:";
       for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antinmask(i)<<" ";
@@ -1348,7 +1552,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       
       cout<<"      ACC NsectThresholds(accept Ns<thr):"<<l1trigconf.antsectmx(0)<<"(equ) "
                                                        <<l1trigconf.antsectmx(1)<<"(pol)"<<endl; 
-    }
+    }//---> endof "PrintSetupInfo"
+// Don't save here to file/DB - tofinmask,tofinzmask may be not yet decoded, so save later in Trigger2LVL1::build
   }//---> endof "trig-setup" block
 //
 //---------> create Lev1-object:

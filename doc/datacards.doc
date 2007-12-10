@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.254 2007/12/06 13:31:22 choumilo Exp $
+#  $Id: datacards.doc,v 1.255 2007/12/10 14:43:53 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -638,14 +638,16 @@ R 14 TheMagCut(0.7)         // geom.latitude cut for anti-cut selection(below-#7
 I 15 ecorand(2)*           // 1/2=>OR/END of 2 proj. requirement on min.multiplicity
 I 16 ecprjmask (1111)*     // proj.mask(lkji: ij=1/0->XYproj act/disab in FT; kl=same for LVL1(angle)
 
-I 17 Lvl1ConfMCVers(1)     // MC def.version number of "lvl1conf***mc" -file
-I 18 Lvl1ConfRDVers(1)     // RD def.version number of "lvl1conf***rl" -file
+I 17 Lvl1ConfMCVers(1)     // MC def.version number of "Lvl1ConfMC.*" -file
+I 18 Lvl1ConfRDVers(1167606001)//RD def. UTC-extention of "Lvl1ConfRD.***" -file (=> 20070101 0000001)
 I 19 Lvl1ConfRead(0)       // MN, N=0/1->read Lvl1Config-data from DB/raw_file
                            //     M=0/1->read Lvl1Config raw file from official/private directory
 
 I 20 printfl(0);           // PrintControl=0/>0 -> noPrint/Print event-by-event FT/LVL1 info
 
-I 21->                     // Begin/End dates for trigger TDVs
+I 21 Lvl1ConfSave(0)       // If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
+
+I 22->                     // Begin/End dates for trigger TDVs
 
  *** <--- For these parameters the default values are recomendations in case of manual control.
      By default all these params. are set to -99 to use more detailed and up-to-date DB-settings :  

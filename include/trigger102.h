@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.16 2007/12/06 13:31:23 choumilo Exp $
+//  $Id: trigger102.h,v 1.17 2007/12/10 14:43:53 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -104,6 +104,7 @@ protected:
    integer &physbrmemb(int br){return _physbrmemb[br];}
    integer &phbrprescf(int br){return _phbrprescf[br];}
    void read();
+   void saveRD(int flag);
  };
 //
  class Scalers{//old ones !

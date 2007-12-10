@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.506 2007/12/10 12:53:21 choutko Exp $
+// $Id: job.C,v 1.507 2007/12/10 14:43:39 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -347,13 +347,15 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.ecorand=-99;   //(15) 1/2=>OR/END of 2 proj. requirements on min. layer multiplicity
   TGL1FFKEY.ecprjmask=-99; //(16) proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
 //
-  TGL1FFKEY.Lvl1ConfMCVers=1;//(17)MC def.version number of "lvl1conf***mc" -file
-  TGL1FFKEY.Lvl1ConfRDVers=1;//(18)RD def.version number of "lvl1conf***rl" -file
-  TGL1FFKEY.Lvl1ConfRead=0;  //(19) MN, N=0/1->read Lvl1Config-data from DB/raw_file
+  TGL1FFKEY.Lvl1ConfMCVers=1;//(17)MC def.version number of "Lvl1ConfMC.*" -file
+  TGL1FFKEY.Lvl1ConfRDVers=1167606001;//(18)RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
+  TGL1FFKEY.Lvl1ConfRead=1;  //(19) MN, N=0/1->read Lvl1Config-data from DB/raw_file
 //                                      M=0/1->read Lvl1Config raw-file from official/private dir
   TGL1FFKEY.printfl=0;      // (20) PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=1 ->max)
 //
-  TGL1FFKEY.sec[0]=0;//(21) 
+  TGL1FFKEY.Lvl1ConfSave=0; // (21) If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
+//
+  TGL1FFKEY.sec[0]=0;//(22) 
   TGL1FFKEY.sec[1]=0;
   TGL1FFKEY.min[0]=0;
   TGL1FFKEY.min[1]=0;
@@ -364,7 +366,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.mon[0]=0;
   TGL1FFKEY.mon[1]=0;
   TGL1FFKEY.year[0]=101;
-  TGL1FFKEY.year[1]=110;//(32)
+  TGL1FFKEY.year[1]=110;//(33)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
