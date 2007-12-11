@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.37 2007/12/10 14:43:39 choumilo Exp $
+//  $Id: trigger102.C,v 1.38 2007/12/11 08:17:49 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1090,7 +1090,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   TGL1JobStat::daqs1(0);//count entries
   p=p-1;//to follow VC-convention(here points to length-word)
 //  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
-  jleng=len;
+  jleng=int16u(len&(0xFFFFL));
   jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.14 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: daqs2block.C,v 1.15 2007/12/11 08:17:49 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -134,7 +134,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   TOF2JobStat::daqsfr(0);//count entries
   p=p-1;//to follow VC-convention !!! 
 //  len=*p;//fragment's 1st word(length in bytes, not including length word itself)
-  len=leng;//fragment's length in 16b-words(not including length word itself)
+  len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
   blid=*(p+len);// fragment's last word: Status+slaveID
 //  cout<<"    blid="<<hex<<blid<<dec<<endl;
   bool dataf=((blid&(0x8000))>0);//data-fragment

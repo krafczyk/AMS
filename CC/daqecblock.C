@@ -94,7 +94,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   EcalJobStat::daqs1(0);//count entries
   p=p-1;//to follow VC-convention
 //  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
-  jleng=leng;//fragment's 1st word(block length) call value
+  jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment
