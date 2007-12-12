@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.476 2007/12/12 10:45:52 ams Exp $
+# $Id: RemoteClient.pm,v 1.475 2007/12/12 10:43:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11714,6 +11714,7 @@ sub insertNtuple {
     $sizemb = sprintf("%.f",$ntsize);
   }
 #
+  my $datamc=0;
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',
