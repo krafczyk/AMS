@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.474 2007/12/12 10:43:32 ams Exp $
+# $Id: RemoteClient.pm,v 1.476 2007/12/12 10:45:52 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4794,16 +4794,28 @@ DDTAB:          $self->htmlTemplateTable(" ");
            htmlTableEnd();
              if ($self->{CCT} ne "remote") {
                my $ntdir="Not Defined";
-               my $maxavail=0;
-               foreach my $fs (@{$self->{FilesystemT}}){
-                if ($fs->{available} > $maxavail) {
-                   $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path}."/".$ProductionPeriod."/$dataset->{name}";
-                   if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path}."/".$ProductionPeriod."/$dataset->{name}";
-                   }
-                 }
+               my $path='/MC';
+               if($dataset->{datamc} !=0 ){
+                 $path='/Data';
                }
+               my $sqlfs="select disk,path,available from filesystems where status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
+               my $fs = $self->{sqlserver}->Query($sqlfs);
+               if(not defined $fs->[0][0]){
+                 $self->ErrorPlus("Unable to Obtain Active File System $sqlfs");               }
+               else{
+                   $ntdir = $fs->[0][0].$fs->[0][1]."/".$ProductionPeriod."/$dataset->{name}";
+               }
+
+
+#               my $maxavail=0;
+#               foreach my $fs (@{$self->{FilesystemT}}){
+#                if ($fs->{available} > $maxavail) {
+#                   $maxavail = $fs->{available};
+#                   if ($fs->{disk} =~ /vice/) {
+#                    $ntdir = $fs->{path}."/".$ProductionPeriod."/$dataset->{name}";
+#                   }
+#                 }
+#               }
 DDTAB:         $self->htmlTemplateTable(" ");
                print "<tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
@@ -11702,7 +11714,6 @@ sub insertNtuple {
     $sizemb = sprintf("%.f",$ntsize);
   }
 #
-  my $datamc=0;
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',

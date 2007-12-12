@@ -715,6 +715,7 @@ class RemoteClient:
         odisk=None
         rmcmd=[]
         rmbad=[]
+        rmdir=""
         cpntuples=[]
         mvntuples=[]
         timestamp=int(time.time())
@@ -872,7 +873,7 @@ class RemoteClient:
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
                                                         self.nBadCopiesInRow=0
-                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,0)
+                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.Run,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,0,run.DataMC)
                                                         output.write("insert %d %s %s %d" %(run.Run, outputpath, status,int(ntuple.size)))
                                                         self.copied=self.copied+1
                                                         self.gbDST=self.gbDST+ntuple.size
@@ -945,12 +946,17 @@ class RemoteClient:
                             self.sqlserver.Update(sql)
                         for ntuple in cpntuples:
                             cmd="rm "+ntuple
+                            rmpath=ntuple.split('/')
+                            rmdir="rm -r "
+                            for i in range (0,rmpath.len()-1):
+                                rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
                                 if(ntuple == mn):
                                     cmd=" "
                                     break
                             os.system(cmd)
                             warn=" validation done "+cmd
+                           
                             output.write(warn)
                             print warn
                         
@@ -969,6 +975,7 @@ class RemoteClient:
                             del rmbad [:]
         del cpntuples[:]
         del mvntuples[:]
+        os.system(rmdir)
         print "run finished ",run.Run
 	self.sqlserver.Commit()
         mutex.release()
