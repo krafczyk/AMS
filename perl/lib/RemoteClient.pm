@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.473 2007/12/07 10:13:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.474 2007/12/12 10:43:32 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1779,7 +1779,7 @@ my $fevt=-1;
                                                $outputpath,
                                                $ntuple->{crc},
                                                $ntuple->{Insert},
-                                               1,0);
+                                               1,0,$run->{DataMC});
                            print FILEV "insert : $run->{Run}, $outputpath, $status, $ntuple->{size} \n";
                            $copied++;
                            $gbDST[0] = $gbDST[0] + $ntuple->{size};
@@ -1831,7 +1831,7 @@ my $fevt=-1;
                                                $fpath,
                                                $ntuple->{crc},
                                                $ntuple->{Insert},
-                                               1,0);
+                                               1,0,$run->{DataMC});
                            print FILEV "insert : $run->{Run}, $fpath, $status, $ntuple->{size} \n";
                            $copied++;
                            $gbDST[0] = $gbDST[0] + $ntuple->{size};
@@ -2259,7 +2259,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                                $ntuple->{size},
                                $status,
                                $ntuple->{Name},
-                               $ntuple->{crc});
+                               $ntuple->{crc},$ntuple->{Insert},1,0,$run->{DataMC});
               }
           }
         }
@@ -10840,7 +10840,7 @@ foreach my $block (@blocks) {
                                $ntstatus,
                                $outputpath,
                                $ntcrc,
-                               $timestamp, 1, 0);
+                               $timestamp, 1, 0,$run->{DataMC});
 
              print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
              $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
@@ -11442,7 +11442,7 @@ sub insertDataRun {
           $dbstatus eq $status) {
             print "InsertRun -W- Run $run already exists  \n";
            } else {
-            $sql="DELETE runs WHERE run=$run";
+            $sql="DELETE dataruns WHERE run=$run";
             $self->{sqlserver}->Update($sql);
             $doinsert = 1;
             }
@@ -11676,6 +11676,7 @@ sub insertNtuple {
   my $crctime  = shift;   # last CRC calc time
   my $crcflag  = shift;   # CRC flag
   my $castortime = shift; # last castor copy time
+  my $datamc=shift;
 #
   my $sql      = undef;
   my $ret      = undef;
