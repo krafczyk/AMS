@@ -948,7 +948,7 @@ class RemoteClient:
                             cmd="rm "+ntuple
                             rmpath=ntuple.split('/')
                             rmdir="rm -r "
-                            for i in range (0,rmpath.len()-1):
+                            for i in range (1,len(rmpath)-1):
                                 rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
                                 if(ntuple == mn):
@@ -985,6 +985,7 @@ class RemoteClient:
         mutex.acquire()
         print "run started ",run.Run,run.uid
         odisk=None
+        rmdir=""
         rmcmd=[]
         rmbad=[]
         cpntuples=[]
@@ -1215,6 +1216,10 @@ class RemoteClient:
                             self.sqlserver.Update(sql)
                         for ntuple in cpntuples:
                             cmd="rm "+ntuple
+                            rmpath=ntuple.split('/')
+                            rmdir="rm -r "
+                            for i in range (1,len(rmpath)-1):
+                                rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
                                 if(ntuple == mn):
                                     cmd=" "
@@ -1237,6 +1242,7 @@ class RemoteClient:
                             del rmbad [:]
         del cpntuples[:]
         del mvntuples[:]
+        os.system(rmdir)
         print "run finished ",run.Run,run.uid
 	self.sqlserver.Commit()
         mutex.release()

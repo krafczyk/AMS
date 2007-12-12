@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.477 2007/12/12 10:59:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.478 2007/12/12 11:03:32 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12486,10 +12486,10 @@ $self->CheckFS(1);
      my $tme=time();
      if($tme%2 ==0){ 
       $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE 
-                   status='Active' and isonline=1 and path=$path ORDER BY priority DESC, available ";
+                   status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available ";
      }
      else{
-     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE                    status='Active' and isonline=1 and path=$path ORDER BY priority DESC, available DESC";
+     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE                    status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
 
      }
      $ret = $self->{sqlserver}->Query($sql);
@@ -15084,7 +15084,7 @@ sub CheckFS{
                unlink "$stf";
                if($stat[7]==0){
                 $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
-                if(defined vrb and $vrb==1){
+                if(defined $vrb and $vrb==1){
                  print " $fs->[1]:$fs->[0] is not online \n";
                 }
                 if(defined $updatedb and $updatedb!=0){
