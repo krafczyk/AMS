@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.475 2007/12/12 10:43:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.477 2007/12/12 10:59:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11714,7 +11714,6 @@ sub insertNtuple {
     $sizemb = sprintf("%.f",$ntsize);
   }
 #
-  my $datamc=0;
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',
@@ -15085,7 +15084,7 @@ sub CheckFS{
                unlink "$stf";
                if($stat[7]==0){
                 $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
-                if($vrb==1){
+                if(defined vrb and $vrb==1){
                  print " $fs->[1]:$fs->[0] is not online \n";
                 }
                 if(defined $updatedb and $updatedb!=0){
