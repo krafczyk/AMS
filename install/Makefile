@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.38 2007/10/02 16:06:51 mdelgado Exp $
+#  $Id: Makefile,v 1.39 2007/12/18 08:09:55 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -149,7 +149,7 @@ COMMON_FILES += $(SCC)cern.C       $(SFF)sgif.F    $(SCC)rnormx.C  $(SFF)geocoor
 
 
 #Tracker
-COMMON_FILES += $(SCC)trid.C       $(SCC)trrec.C   $(SCC)trcalib.C $(SCC)tralig.C  \
+COMMON_FILES += $(SCC)trid.C       $(SCC)trrec.C   $(SCC)trdcalib.C $(SCC)trcalib.C $(SCC)tralig.C  \
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C    $(SFF)TrackFit_utils.F \

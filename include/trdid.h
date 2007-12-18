@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.8 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trdid.h,v 1.9 2007/12/18 08:09:54 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -63,7 +63,7 @@ static uinteger _CrateNo[trdid::ncrt];
 void _check();
 void _mkhaddr();
 void _mkcrate();
- static integer _GetGeo[trdid::ncrt][trdid::nudr][trdid::nufe][trdid::nute][2];   // crate,nufe,nudr,nute ->     //layer,ladder 
+ static integer _GetGeo[trdid::ncrt][trdid::nudr][trdid::nufe][trdid::nute][3];   // crate,nufe,nudr,nute ->     //layer,ladder,direction(0,1) 
  static integer _GetHard[trdconst::maxlay][trdconst::maxlad][4];     // layer,ladder ->// nute,nufe,nudr, crate
 static geant *_ped;
 static geant *_sig;
@@ -71,9 +71,10 @@ static geant *_gain;
 static uinteger *_status;
 static integer _NROCh;
 public:
+integer getchannel() const {return _address+_tube;}
 bool dead()const{return _dead==1;}
 friend ostream &operator << (ostream &o, const  AMSTRDIdSoft &b )
-   {return o<<" lay "<<b._layer<<" lad "<<b._ladder<<" tube "<<b._tube<<endl;}
+   {return o<<" lay "<<b._layer<<" lad "<<b._ladder<<" tube "<<b._tube<<" crate "<<b._crate<<" ute "<<((b._haddr>>4)&3)<<" ufe "<<((b._haddr>>6)&7)<<" udr "<<((b._haddr>>9)&7)<<endl;}
 AMSTRDIdSoft():_layer(0),_ladder(0),_tube(0),_address(0){};
 ~AMSTRDIdSoft(){};
 
@@ -88,7 +89,6 @@ _check();
 }
 
 AMSTRDIdSoft(uinteger crate, uinteger haddr):_crate(crate){
-_tube=haddr&15;
 uinteger ute=(haddr>>4)&3;
 uinteger ufe=(haddr>>6)&7;
 uinteger udr=(haddr>>9)&7;
@@ -99,12 +99,21 @@ else{
 _dead=0;
 _layer=_GetGeo[crate][udr][ufe][ute][0];
 _ladder=_GetGeo[crate][udr][ufe][ute][1];
+_tube=haddr&15;
+if(_GetGeo[crate][udr][ufe][ute][2]!=0)_tube=trdconst::maxtube-1-_tube;
 _mkhaddr();
 _address=cmpta();
 }
 }
 
-AMSTRDIdSoft(uinteger crate, uinteger udr, uinteger ufe, uinteger ute, uinteger tube):_tube(tube),_crate(crate){
+AMSTRDIdSoft(uinteger crate, uinteger udr, uinteger ufe, uinteger ute, uinteger roch):_tube(roch),_crate(crate){
+#ifdef __AMSDEBUG__
+assert(crate<ncrates());
+assert(udr<trdid::nudr);
+assert (ufe<trdid::nufe);
+assert (ute<trdid::nute);
+assert (roch<trdconst::maxtube);
+#endif
 if(_GetGeo[crate][udr][ufe][ute][0]<0){
   _dead=1;
 }
@@ -112,6 +121,7 @@ else{
 _dead=0;
 _layer=_GetGeo[crate][udr][ufe][ute][0];
 _ladder=_GetGeo[crate][udr][ufe][ute][1];
+if(_GetGeo[crate][udr][ufe][ute][2]!=0)_tube=trdconst::maxtube-1-_tube;
 _mkhaddr();
 _address=cmpta();
 }
@@ -154,7 +164,7 @@ geant getsig(){return _sig[_address+_tube];}
 geant getgain(){return _gain[_address+_tube];}
 static integer overflow(){return TRDMCFFKEY.adcoverflow;}
 //
-static integer NROCh(){return _NROCh;}
+static uinteger NROCh(){return _NROCh;}
 uinteger cmpt() const;
 uinteger cmpta() const;
 uinteger gethaddr() const;   //  hardware address to be defined
@@ -164,6 +174,7 @@ friend class AMSTRDIdGeom;
 friend class AMSJob;
 AMSTRDIdSoft(const  AMSTRDIdGeom & o);
 static uinteger CalcBadCh(uinteger crate);
+static uinteger getnchan() {return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
 static uinteger getpedsize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
 static uinteger getsigsize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
 static uinteger getstasize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}

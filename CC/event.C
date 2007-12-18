@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.349 2007/12/07 10:13:09 choutko Exp $
+//  $Id: event.C,v 1.350 2007/12/18 08:09:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -34,6 +34,7 @@
 #include "ntuple.h"
 #include "timeid.h"
 #include "trcalib.h"
+#include "trdcalib.h"
 #include "tralig.h"
 #include "trigger102.h"
 #include "trigger302.h"
@@ -1324,10 +1325,14 @@ void AMSEvent::_reamsevent(){
 }
 
 void AMSEvent::_caamsinitevent(){
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxinitevent();
+}
+
+void AMSEvent::_catrdinitevent(){
 }
 
 void AMSEvent::_catkinitevent(){
@@ -1355,6 +1360,7 @@ void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantievent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal)_caecevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
 }
 
@@ -1385,6 +1391,14 @@ for(i=0;i<nalg;i++){
 }
   }
   AMSgObj::BookTimer.stop("CalTrFill");
+
+}
+void AMSEvent::_catrdevent(){
+  AMSgObj::BookTimer.start("CalTRDFill");
+  if(TRDCALIB.CalibProcedureNo == 1){
+    AMSTRDIdCalib::check();
+  }
+  AMSgObj::BookTimer.stop("CalTRDFill");
 
 }
 

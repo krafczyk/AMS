@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.325 2007/12/10 12:53:20 choutko Exp $
+//  $Id: commons.C,v 1.326 2007/12/18 08:09:51 choutko Exp $
 
 
 #include <unistd.h>
@@ -45,6 +45,7 @@ CCFFKEY_DEF CCFFKEY;
 GMFFKEY_DEF GMFFKEY; //ISN
 TRCLFFKEY_DEF TRCLFFKEY;
 TRCALIB_DEF TRCALIB;
+TRDCALIB_DEF TRDCALIB;
 TRALIG_DEF TRALIG;
 G4FFKEY_DEF G4FFKEY;
 //=============================

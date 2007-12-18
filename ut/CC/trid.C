@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.41 2007/12/07 10:13:10 choutko Exp $
+//  $Id: trid.C,v 1.42 2007/12/18 08:09:52 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -438,7 +438,7 @@ void AMSTrIdSoft::init(){
      }
      _numel=num;
      cout <<
-     "AMSTrIdSoft::init-I-Total of " <<num<< " channels  and "<<
+     "AMSTrIdSoft::init-I-Total of " <<_numell<<" "<<num<< " channels  and "<<
      nc<<" drps found."<<endl;
      status=new integer[num];
      for(int l=0;l<num;l++)status[l]=AMSDBc::BAD;    // All are bad

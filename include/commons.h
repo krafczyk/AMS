@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.219 2007/12/10 14:43:53 choumilo Exp $
+//  $Id: commons.h,v 1.220 2007/12/18 08:09:53 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -891,6 +891,20 @@ integer EventsPerRun;
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
 
+
+
+
+class TRDCALIB_DEF{
+public:
+integer CalibProcedureNo;
+integer EventsPerCheck;
+geant PedAccRequired; 
+integer Validity[2];
+geant BadChanThr[2];
+integer PrintBadChList;
+};
+#define TRDCALIB COMMON_BLOCK(TRDCALIB,trdcalib)
+COMMON_BLOCK_DEF(TRDCALIB_DEF,TRDCALIB);
 
 
 

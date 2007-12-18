@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.84 2007/12/10 12:53:21 choutko Exp $
+//  $Id: daqevt.C,v 1.85 2007/12/18 08:09:52 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -673,7 +673,8 @@ integer DAQEvent::read(){
 #ifdef __ALPHA__ 
  fbin.close();
 #else
-     if(fbin.is_open())fbin.close();
+    fbin.clear();       
+    if(fbin.is_open())fbin.close();
 #endif
      for(;;){
       fbin.open(fnam,ios::in);
@@ -723,6 +724,7 @@ DAQEvent::InitResult DAQEvent::init(){
 #ifdef __ALPHA__ 
  fbin.close();
 #else
+    fbin.clear();
     if(fbin.is_open())fbin.close();
 #endif
     fbin.open(fnam,ios::in);

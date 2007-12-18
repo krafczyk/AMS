@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.507 2007/12/10 14:43:39 choumilo Exp $
+// $Id: job.C,v 1.508 2007/12/18 08:09:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -33,6 +33,7 @@
 #include "timeid.h"
 #include "mceventg.h"
 #include "trcalib.h"
+#include "trdcalib.h"
 #include "antidbc02.h"
 #include "tofsim02.h"
 #include "tofrec02.h"
@@ -577,6 +578,20 @@ for( i=0;i<6;i++){
   TRALIG.GlobalGoodLimit=0.085;
   TRALIG.SingleLadderEntryLimit=10000;
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
+
+
+
+
+
+TRDCALIB.CalibProcedureNo=0;
+TRDCALIB.EventsPerCheck=100;
+TRDCALIB.PedAccRequired=0.1;
+TRDCALIB.Validity[0]=0;
+TRCALIB.Validity[1]=36000;
+TRCALIB.BadChanThr[0]=3.3;
+TRCALIB.BadChanThr[1]=0.002;
+TRCALIB.PrintBadChList=0;
+ FFKEY("TRDALIB",(float*)&TRDCALIB,sizeof(TRDCALIB_DEF)/sizeof(integer),"MIXED");
 
 
 
@@ -2057,6 +2072,8 @@ void AMSJob::_catof2initjob(){
 }
 //=================================================================================
 void AMSJob::_catrdinitjob(){
+  AMSTRDIdCalib::initcalib();
+  AMSgObj::BookTimer.book("CalTRDFill");
 }
 void AMSJob::_casrdinitjob(){
 }
@@ -3443,9 +3460,6 @@ for(i=0;i<nalg;i++){
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 3){
     AMSTrIdCalib::ntuple(AMSEvent::getSRun());
   }
-  if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 4){
-    AMSTrIdCalib::getaverage();
-  }
   if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll)){
    AMSTrIdCalib::offmonhist();    
   }
@@ -3506,6 +3520,15 @@ void AMSJob::_ecalendjob(){
 }
 //-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){
+
+  if((isCalibration() & AMSJob::CTRD) && TRDCALIB.CalibProcedureNo == 1){
+    AMSTRDIdCalib::check(1);
+    AMSTRDIdCalib::printbadchanlist();
+    AMSTRDIdCalib::ntuple(AMSEvent::getSRun());
+  }
+  
+
+
 
 }
 

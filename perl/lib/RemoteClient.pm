@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.478 2007/12/12 11:03:32 ams Exp $
+# $Id: RemoteClient.pm,v 1.479 2007/12/18 08:09:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2703,6 +2703,73 @@ CheckCite:            if (defined $q->param("QCite")) {
  }
 # getDSTID end here
 #
+
+
+
+    if ($self->{q}->param("getDataFileID")) {
+     $self->{read}=1;
+     if ($self->{q}->param("getDataFileID") eq "Submit") {
+        htmlTop();
+        my $title = "DataFiles List ";
+        my $runid = 0;
+        my $runmin= 0;
+        my $runmax= 0;
+        if (defined $q->param("DataFileID")) {
+         $self->htmlTemplateTable($title);
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">Run </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >FilePath </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >StartTime </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Tag </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >SizeMB </font></b></td>";
+               print "</tr>\n";
+            if ($q->param("DataFileID") =~ /-/) {
+                ($runmin,$runmax) = split '-',$q->param("DataFileID");
+                $title = $title.$q->param("RunID");
+                $sql = "SELECT run, path,fetime, nevents, tag, sizemb
+                          FROM datafiles
+                          WHERE run>$runmin AND run<$runmax
+                          ORDER BY run";
+            } else {
+             $runid =  trimblanks($q->param("DataFileID"));
+             if(not $runid =~/^\d+$/){
+               $self->ErrorPlus("Run no $runid is not digit");
+             }
+             $title = $title.$runid;
+                $sql = "SELECT run, path,fetime, nevents,  tag, sizemb 
+                          FROM datafiles
+                          WHERE run=$runid";
+            }
+         my $ret=$self->{sqlserver}->Query($sql);
+         if (defined $ret->[0][0]) {
+          foreach my $r (@{$ret}){
+             my $run       = $r->[0];
+             my $path      = trimblanks($r->[1]);
+             my $starttime = EpochToDDMMYYHHMMSS($r->[2]);
+             my $nevents   = $r->[3];
+             my $tag   = $r->[4];
+             my $sizemb   = $r->[5];
+             print "<td><b> $run </td></b>
+                    <td><b> $path </td>
+                    <td><b> $starttime </b></td>
+                    <td align=middle><b> $nevents </b></td>
+                    <td align=middle><b> $tag </b></td>
+                    <td><b> $sizemb </b></td>\n";
+             print "</font></tr>\n";
+         }
+      }
+       htmlTableEnd();
+      htmlTableEnd();
+     }
+    htmlBottom();
+    }
+ }
+# getDataFileID end here
+#
+
+
+
 #queryDB04
    if ($self->{q}->param("queryDB04")) {
      $self->{read}=1;
@@ -3834,6 +3901,19 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
         print "<b>RunID : </b> <input type =\"text\" name=\"DSTID\">\n";
         print "<input type=\"submit\" name=\"getDSTID\" value=\"Submit\"> \n";
+        print "</form>\n";
+        print "</table> \n";
+
+
+       print "<br><p>\n";
+        print "<tr></tr>\n";
+        print "<p></p>\n";
+        print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
+        print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
+        print "Find DataFile(s) : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
+        print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+        print "<b>RunID : </b> <input type =\"text\" name=\"DataFileID\">\n";
+        print "<input type=\"submit\" name=\"getDataFileID\" value=\"Submit\"> \n";
         print "</form>\n";
         print "</table> \n";
 

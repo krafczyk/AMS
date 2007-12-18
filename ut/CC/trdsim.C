@@ -159,8 +159,8 @@ integer AMSTRDRawHit::checkdaqid(int16u id){
 
 
 void AMSTRDRawHit::buildraw(int n, int16u* pbeg){
-int length=n&32767;
-int ic=(n>>16);
+unsigned int length=n&65535;
+unsigned int ic=(n>>16);
 
 for (int16u* p=pbeg;p<pbeg+length;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
@@ -175,9 +175,10 @@ for (int16u* p=pbeg;p<pbeg+length;p+=*p+1){
   for (int i=0;i<*p-1;i++){
         int ufe=i%7;
         int cha=i/7;
-        int tube=cha%16;
-        int ute=cha/4;
-        AMSTRDIdSoft id(ic,udr,ufe,ute,tube);
+        int roch=cha%16;
+        int ute=cha/16;
+
+        AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
         if(!id.dead()){
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
          AMSTRDRawHit(id,(((*(p+i))&32767)-id.getped())*TRDMCFFKEY.f2i));
