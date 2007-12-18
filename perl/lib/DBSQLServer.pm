@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.80 2007/11/09 10:27:39 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.81 2007/12/18 10:13:47 choutko Exp $
 
 #
 #
@@ -54,7 +54,7 @@ use Time::localtime;
 my $MCCitesMailsFile = "../doc/mc.cites.mails"; # file with cites and mails definitions
 my $MCFilesystems="../doc/mc.filesystems";      # file with filesystems definitions
 
-@DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update Commit set_oracle_env);
+@DBSQLServer::EXPORT= qw(new Connect ConnectRO QueryAll Query Update Commit set_oracle_env);
 my %fields=(
      start=>undef,
      cid=>undef,
@@ -152,6 +152,15 @@ sub Connect{
         return 1;
     }
 }
+sub ConnectRO{
+    my $self=shift;
+    my $user   = "amsro";
+    my $pwd="amsMC02";
+     set_oracle_env();
+    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => $self->{one}}) or die "Cannot connect: ".$DBI::errstr;
+        return 1;
+}
+
 sub UpdateOnce{
 # add tables(s) in database
 

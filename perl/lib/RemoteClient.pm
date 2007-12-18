@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.479 2007/12/18 08:09:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.480 2007/12/18 10:13:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns);
+@RemoteClient::EXPORT= qw(new  Connect  Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns);
 
 # debugging
 my $benchmarking = 0;
@@ -2328,9 +2328,15 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 
 sub ConnectOnlyDB{
     my $self = shift;
+    my $ronly=shift;
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
-    $self->{sqlserver}->Connect();
+    if(defined $ronly and $ronly==1){
+     $self->{sqlserver}->ConnectRO();
+   }
+    else{
+     $self->{sqlserver}->Connect();
+    }
 #
    my $dir=$ENV{AMSDataDir};
    if (defined $dir){
