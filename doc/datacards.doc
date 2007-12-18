@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.255 2007/12/10 14:43:53 choumilo Exp $
+#  $Id: datacards.doc,v 1.256 2007/12/18 08:24:17 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -470,8 +470,12 @@ I 1 mode(0)                         // 0 do nothing
                                     // (mode/10)%10 = 1 write daq (noreplace)
                                     // (mode/10)%10 = 2 write daq (append)
                                     // mode/100 = 1  compress tracker on fly
-I 2 ifile[40]("")                   // input file name 
-                                    // if last char is "/" 
+I 2 ifile[40]("")                   // input file(s) name(s) 
+                                    // format: path/r1-r2,r3,r4,r5-r6  etc.
+                                    // where path is path to the files directory
+                                    // r1,r2,r4,r4,r5,r6,,,rx are file names
+                                    //
+                                    // eg if last char is "/" 
                                     // all directory will be read
 I42 ofile[40]("")                   // output file name
 I82 OldFormat(0)                    // old(1) new(0) format
