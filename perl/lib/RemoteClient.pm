@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.480 2007/12/18 10:13:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.481 2007/12/19 17:27:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -909,7 +909,7 @@ if($#{$self->{DataSetsT}}==-1){
                }
                $dataset->{did}=$did;
                my $timestamp = time();
-               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}')";
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dataset->{datamc})";
                $self->{sqlserver}->Update($sql);
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
@@ -1006,7 +1006,7 @@ if($#{$self->{DataSetsT}}==-1){
                }
                $dataset->{did}=$did;
                my $timestamp = time();
-               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}')";
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dataset->{datamc})";
                $self->{sqlserver}->Update($sql);
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
@@ -2801,7 +2801,7 @@ CheckCite:            if (defined $q->param("QCite")) {
      my $qtrigger   = undef;
 
     if ($self->{q}->param("queryDB04") eq "DoQuery") {
-
+        my $datamc=0;
       my $sql     = undef;
       my $sqlNT   = undef; # will be used to get NT paths for ROOT file
       my $dataset = undef;
@@ -2813,7 +2813,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 #   vc   -  remove monstrous loop in summary
 #
-      my $sqlsum=  "SELECT COUNT(ntuples.RUN), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, runs,jobs,runcatalog ";
+      my $sqlsum=  "SELECT COUNT(ntuples.RUN), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, runs,jobs,runcatalog where ntuples.datamc=$datamc";
       my $rsum=undef;
 #
 # Template is defined explicitly
@@ -2897,7 +2897,8 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
+
+        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
            $rsum=$self->{sqlserver}->Query($sqlsum);
         # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
 
@@ -2985,7 +2986,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
+        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
 #         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
          # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
       }
@@ -3054,7 +3055,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
+        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
 #              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
               $rsum=$self->{sqlserver}->Query($sqlsum);
 #             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
@@ -3687,8 +3688,849 @@ CheckCite:            if (defined $q->param("QCite")) {
      htmlReturnToQuery();
     htmlBottom();
    }
+   
 # queryDB04 / doQuery ends here
-  } elsif ($self->{q}->param("queryDB04") eq "Continue") {
+}    elsif ($self->{q}->param("queryDB04") eq "DoQueryD") {
+        my $datamc=1;
+      my $sql     = undef;
+      my $sqlNT   = undef; # will be used to get NT paths for ROOT file
+      my $dataset = undef;
+      my $particle= undef;
+      my $sqlmom="";
+      my $sqlamom="";
+      my $sqlmom1="";
+      my $sqlamom1="";
+#
+#   vc   -  remove monstrous loop in summary
+#
+      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc where ntuples.datamc=$datamc";
+      my $rsum=undef;
+#
+# Template is defined explicitly
+#
+       my $qpp=$q->param("QPPer");
+       my $pps="";
+       if($qpp>0){
+         $pps=$pps." and jobs.pid=$qpp ";
+       }
+       elsif($qpp==-1){
+#         active
+         my $sqlaa = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+         my $ret = $self->{sqlserver}->Query($sqlaa);
+         $pps=undef;
+         foreach my $pp  (@{$ret}){
+          if(defined $pps){
+            $pps=$pps." or jobs.pid =";
+          }
+          else{
+           $pps=" and ( jobs.pid =";
+          }
+         $pps=$pps." $pp->[0] ";
+        }
+       if(defined $pps){
+        $pps=$pps." ) ";
+       }
+       else{
+        $pps="";
+       }
+  }
+
+
+
+      if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
+
+       $dataset = $q->param("QTempDataset");
+       $dataset = trimblanks($dataset);
+       $qtemplate = $dataset;
+#- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
+       $sql = "SELECT dataruns.run, jobs.jobname, dataruns.submit FROM dataruns, jobs,datasetsdesc
+                   WHERE dataruns.jid=jobs.jid  AND dataruns.status='Completed'";
+                   $sqlmom=" and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname)  AND
+                        (datasetsdesc.jobdesc LIKE '%$dataset%' ) ";
+                   $sqlamom="  and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname) AND
+           (datasetsdesc.jobdesc not LIKE '%$dataset%' )";
+
+
+           if ($q->param("QBuildNum")){
+               my @buildNumber= buildnum_string($q->param("QBuildNum"));
+               my $buildnum_min = $buildNumber[0];
+               my $buildnum_max = $buildNumber[1];
+               $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
+               $sqlamom1=$sqlamom1." And (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+           }
+
+
+       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                 FROM dataruns, jobs, datasetsdesc, ntuples
+                   WHERE dataruns.jid=jobs.jid and dataruns.run=ntuples.run  AND dataruns.status='Completed'";
+       $sql=$sql.$sqlmom;
+       $sqlNT=$sqlNT.$sqlmom;
+
+#
+
+      my @garbage= split /WHERE/,$sql;
+       my $rf="NFS";
+         if (defined $q->param("ROOTACCESS")) {
+             $rf = $q->param("ROOTACCESS");
+         } 
+      if($#garbage>0){
+          my $addf="";
+        if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
+            $addf=" and ntuples.path not like '%castor%'";
+        }
+        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+           $rsum=$self->{sqlserver}->Query($sqlsum);
+        # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
+
+     }
+
+       $sql = $sql.$pps."ORDER BY dataRuns.Run";
+      $sqlmom=$sqlmom.$sqlmom1;
+      $sqlamom=$sqlamom.$sqlamom1;
+       $sqlNT = $sqlNT.$sqlmom1." ".$pps."ORDER BY dataRuns.Run";
+
+       my $r1=$self->{sqlserver}->Query($sql);
+        if (defined $r1->[0][0]) {
+         foreach my $r (@{$r1}){
+               push @runs,$r->[0];
+               push @jobnames,$r->[1];
+               push @submits,$r->[2];
+         }
+        }
+#
+# Template 'Any', particle (dataset) is defined
+#
+      } elsif (defined $q->param("QPart") and
+                   ($q->param("QPart") ne "Any" and
+                    $q->param("QPart") ne "ANY" and $q->param("QPart") ne "any"))  {
+         $particle = $q->param("QPart");
+         $qparticle = $particle;
+         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle'";
+         my $r0=$self->{sqlserver}->Query($sql);
+         if (defined $r0->[0][0]) {
+          foreach my $r (@{$r0}){
+           my $did = $r->[0];
+           $sql  = "SELECT dataRuns.Run, Jobs.JOBNAME, Runs.SUBMIT
+                    FROM dataRuns, Jobs, datasetsdesc
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and
+                             AND dataRuns.Status='Completed'";
+      $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                    FROM dataRuns, Jobs, NTuples
+                     WHERE Jobs.DID=$did AND Jobs.JID=dataRuns.JID AND
+                            dataRuns.run=Ntuples.run AND
+                            dataRuns.Status='Completed'";
+           if ($q->param("QBuildNum")){
+               my @buildNumber= buildnum_string($q->param("QBuildNum"));
+               my $buildnum_min = $buildNumber[0];
+               my $buildnum_max = $buildNumber[1];
+               $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
+               $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+           }
+
+
+#
+       
+
+       my $rf="NFS";
+         if (defined $q->param("ROOTACCESS")) {
+             $rf = $q->param("ROOTACCESS");
+         } 
+
+       my @garbage= split /WHERE/,$sql;
+        if($#garbage>0){
+          my $addf="";
+        if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
+            $addf=" and ntuples.path not like '%castor%'";
+        }
+        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+#         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
+         # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
+      }
+            $sql = $sql.$pps." ORDER BY dataRuns.Run";
+            $sqlNT = $sqlNT.$pps." ORDER BY dataRuns.Run";
+            my $r1=$self->{sqlserver}->Query($sql);
+            if (defined $r1->[0][0]) {
+             foreach my $r (@{$r1}){
+               push @runs,$r->[0];
+               push @jobnames,$r->[1];
+               push @submits,$r->[2];
+              }
+             }
+            }
+      }
+     } else {
+        $sql = "SELECT dataRuns.RUN, Jobs.JOBNAME, Runs.SUBMIT
+                    FROM dataRuns, Jobs
+                     WHERE dataRuns.JID=Jobs.JID AND dataRuns.Status='Completed'  ";
+        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
+                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
+                    FROM dataRuns, Jobs, Ntuples
+                     WHERE
+                        dataRuns.JID=Jobs.JID AND
+                         dataRuns.Status='Completed' AND
+                           dataRuns.run = Ntuples.run ";
+
+           if ($q->param("QBuildNum")){
+               my @buildNumber= buildnum_string($q->param("QBuildNum"));
+               my $buildnum_min = $buildNumber[0];
+               my $buildnum_max = $buildNumber[1];
+               $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
+               $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+           }
+
+
+#
+            my @garbage= split /WHERE/,$sql;
+       my $rf="NFS";
+         if (defined $q->param("ROOTACCESS")) {
+             $rf = $q->param("ROOTACCESS");
+         } 
+             if($#garbage>0){
+          my $addf="";
+        if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
+            $addf=" and ntuples.path not like '%castor%'";
+        }
+        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+#              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";
+              $rsum=$self->{sqlserver}->Query($sqlsum);
+#             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
+          }
+            $sql = $sql.$pps." ORDER BY dataRuns.Run";
+            $sqlNT = $sqlNT.$pps." ORDER BY dataRuns.Run";
+            my $r1=$self->{sqlserver}->Query($sql);
+            #die " $sql $#{$r1} ";
+            if (defined $r1->[0][0]) {
+             foreach my $r (@{$r1}){
+               push @runs,$r->[0];
+               push @jobnames,$r->[1];
+               push @submits,$r->[2];
+              }
+             }
+    }
+# now check output
+      my $accessmode       = "xyz";
+      my $remotecite       = "xyz";
+      my $rootfile         = undef;
+      my $rootfileaccess   = undef;
+
+      if (defined $q->param("REMOTEACCESS")) {
+          $accessmode="REMOTE";
+          $remotecite = $q->param("REMOTEACCESS");
+      }
+      if (defined $q->param("NTOUT")) {
+       $self->htmlTop();
+        $self->htmlTemplateTable("Selected Query Keys :");
+
+        if (defined $qparticle) {
+         print "<tr><td><b><font size=\"4\" color=\"tomato\"> Particle/dataset :";
+         print "</font></b></td>";
+         print " <td><b><font size=\"4\"> $qparticle </font></b></td></tr>";
+       }
+
+       if (defined $qtemplate) {
+        my @description = split /Total/,$qtemplate;
+        print "<tr><td><b><font size=\"4\" color=\"green\"> Template :";
+        print "</font></b></td>";
+        print "<td><b><font size=\"4\">$description[0] </font></b></td></tr>\n";
+       } else {
+        if (defined $qmomentumI and defined $qmomentumA) {
+         print "<tr><td><b><font size=\"4\" color=\"green\">Momentum ";
+         print "</font></b></td>";
+         print "<td><b><font size=\"4\">$qmomentumI ... $qmomentumA [GeV/c]";
+         print "</font></b></td></tr> \n";
+        }
+       }
+
+       if (defined $qtrigger) {
+        print "<tr><td><b><font size=\"4\" color=\"green\">Trigger Type ";
+        print "</font></b></td>";
+        print "<td><b><font size=\"4\">$qtrigger </font></b></td></tr>\n";
+       }
+
+       if ($accessmode eq "REMOTE" && $q->param("NTOUT") ne "SUMM") {
+        print "<tr><td><b><font size=\"4\" color=\"blue\">Print ONLY Files copied to ";
+        print "</font></b></td>";
+        print "<td><b><font size=\"4\" color=\"red\">$remotecite </font></b></td></tr>\n";
+       }
+
+       if ($q->param("NTOUT") eq "ROOT") {
+        $rootfile = $q->param("ROOT");
+        if (not $rootfile =~ /\//  ) {
+            my $ctime = time();
+            $rootfile = "/tmp/".$rootfile.$ctime;
+        }
+        print "<tr><td><b><font size=\"4\" color=\"blue\">ROOT script  ";
+        print "</font></b></td>";
+         if (defined $q->param("ROOTACCESS")) {
+             $rootfileaccess = $q->param("ROOTACCESS");
+         } else {
+             $rootfileaccess = "NFS";
+         }
+         print "<td><b><font size=\"4\" color=\"black\">$rootfile </font></b><i> (access via $rootfileaccess) </i></td></tr>\n";
+      }
+      htmlTableEnd();
+      print "<BR><BR>\n";
+       if (defined $#runs) {
+           my $nruns = $#runs+1;
+           print "<LI><font size=5 color=tomato><i> Total Runs Found in Database ... </font></i> $nruns </li>\n";
+           print "<BR><BR>\n";
+       }
+# ....print 'ALL' information
+       if ($q->param("NTOUT") eq "ALL") {
+              my $i       = 0;
+              my $runold  = 0;
+              my $run     = 0;
+              $sql = $sqlNT;
+              my $r0=$self->{sqlserver}->Query($sql);
+              if (defined $r0->[0][0]) {
+               foreach my $nt (@{$r0}){
+                my $printit = 1;
+                $run = $nt->[1];
+                if ($run != $runold) {
+                 if ($accessmode eq "REMOTE") {
+                  $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+                  my $r0=$self->{sqlserver}->Query($sql);
+                  if (not defined $r0->[0]) {
+                   $printit = 0;
+                  }
+                 }
+                 if ($printit == 1) {
+                  $i = 0;
+                  foreach my $r (@runs) {
+                   if ($r == $run) {
+                    my $jobname = $jobnames[$i];
+                    my $submit  = $submits[$i];
+                    print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Submitted : $submit";
+                    print "</font></b></td></tr>\n";
+                    if ($runold != 0) {            htmlTableEnd();}
+                    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+                    print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+                    print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
+                    print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
+                    print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
+                    print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
+                    print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
+                    print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
+                    print "</tr>\n";
+                   }
+                   $i++;
+                  }
+                 }
+                 $runold = $run;
+                }
+                 my $path    = trimblanks($nt->[0]);
+                 if ($accessmode eq "REMOTE") {
+                  my $subpath = getPathNoDisk($path);
+                  $sql = "SELECT prefix, path FROM MC_DST_COPY WHERE CITE='$remotecite' and path like '%$subpath%'";
+                  my $r2=$self->{sqlserver}->Query($sql);
+                  if (defined $r2->[0][0]) {
+                     my $prefix = trimblanks($r2->[0][0]);
+                     my $spath  = trimblanks($r2->[0][1]);
+                     $path = $prefix."/".$spath;
+                  } else {
+                      $printit = 0;
+                  }
+                 }
+                 if ($printit == 1) {
+                  my $timel =localtime($nt->[4]);
+                  my ($wday,$mon,$day,$time,$year) = split " ",$timel;
+                  my $status=$nt->[5];
+                  my $color=statusColor($status);
+                  print "<td width=50%><b> $path    </td></b><td><b> $nt->[2] </td>
+                        <td align=middle width=5%><b> $nt->[3] </b></td>
+                        <td align=middle width=5%><b> $nt->[6] </b></td>
+                        <td align=middle width=25%><b> $mon $day, $time, $year </b></td>
+                        <td align=middle width=10%><b><font color=$color> $status </font></b></td> \n";
+                 print "</font></tr>\n";
+              }
+            }
+            htmlTableEnd();
+            print "<BR><BR>\n";
+           }
+   } elsif ($q->param("NTOUT") eq "RUNS") {
+# ... print Runs
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<td><b><font color=\"blue\">Job </font></b></td>";
+     print "<td><b><font color=\"blue\" >Run </font></b></td>";
+     print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
+     print "</tr>\n";
+     my $color="black";
+     my $i =0;
+       foreach my $run (@runs){
+         my $jobname = $jobnames[$i];
+         my $submit  = $submits[$i];
+         my $printit = 1;
+         if ($accessmode eq "REMOTE") {
+          $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+          my $r0=$self->{sqlserver}->Query($sql);
+          if (not defined $r0->[0]) {
+           $printit = 0;
+           }
+         }
+         if ($printit == 1) {
+          $i++;
+          print "
+            <td><b><font color=$color> $jobname </font></td></b>
+            <td><b><font color=$color> $run </font></b></td>
+            <td><b><font color=$color> $submit </font></b></td>\n";
+            print "</font></tr>\n";
+        }
+     }
+   htmlTableEnd();
+  } elsif ($q->param("NTOUT") eq "FILES") {
+# ... print DSTs
+    print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    print "<td><b><font color=\"blue\" >File Path </font></b></td>";
+    print "</tr>\n";
+     my $i =0;
+       foreach my $run (@runs){
+               if ($accessmode eq "REMOTE") {
+                $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+                my $r0=$self->{sqlserver}->Query($sql);
+                foreach my $path (@{$r0}) {
+                   print "<td><b><font color=$color> $path->[0]/$path->[1] </font></td></b></font></tr>\n";
+               }
+            } else {
+             my $jobname = $jobnames[$i];
+             my $submit  = localtime($submits[$i]);
+             $i++;
+             $sql = "SELECT path From Ntuples WHERE Run=$run";
+             my $r1=$self->{sqlserver}->Query($sql);
+             foreach my $path (@{$r1}) {
+             print "<td><b><font color=$color> $path->[0] </font></td></b></font></tr>\n";
+           }
+         }
+      }
+      htmlTableEnd();
+   } elsif ($q->param("NTOUT") eq "SUMM") {
+# ... print summary
+        my @titles= (
+        "Template",
+        "Jobs",
+        "DSTs",
+        "DSTs GB",
+        "Events",
+        "Triggers",);
+        my $query= $q->param('QPart');
+        my $q2= $q->param("QTempDataset");
+        if($q2 eq "Any"){
+          $q2=undef;
+        }
+        my $buffer="Summary for $query  ";
+        my @output=();
+        my @temp=();
+         my $sql;
+        if($query eq "Any"){
+          $titles[0]="Dataset";
+           $sql = "SELECT dataset,did FROM DatasetsDesc order by did";
+        }
+        else{
+         $sql="SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'"; 
+        }
+         my $rquery=$self->{sqlserver}->Query($sql);
+         my $nruns=0;
+         my $prev="";
+         foreach my $templat (@{$rquery}){
+          $#temp=-1;
+           my $like=trimblanks($templat->[0]);
+           if($like eq $prev or  (defined $q2 and  $q2 ne $templat->[0])){
+              next;
+           }
+           if($query eq "Any"){
+             $sql=$sqlsum." and (jobs.did=$templat->[1]) ";
+           }
+           else{
+            $sql=$sqlsum;
+           }
+          my $rsump=$self->{sqlserver}->Query($sql);
+           my @sqla=split 'where',$sql;
+#           $sqla[1]=~s/and ntuples.run=runs.run//;
+#           $sqla[1]=~s/and ntuples.path not like \'\%castor\%\'//;
+           $sql="select count(jobs.jid) from jobs,dataruns,ntuples,datasetsdesc where ".$sqla[1]." group by ntuples.run";
+          my $rsuma=$self->{sqlserver}->Query($sql);
+          my $i=0;
+          foreach my $p (@{$rsuma}){
+              $i++;
+          }
+          push @temp,$like;
+          push @temp,$i;
+          $nruns+=$i;
+          push @temp,$rsump->[0][0];
+          push @temp,int($rsump->[0][1]/100)/10; 
+          push @temp,$rsump->[0][2];
+           push @temp,$rsump->[0][3];
+            push @temp,"dum";
+           push @output,[@temp];
+           $prev=$like;
+         }
+          $#temp=-1;
+           push @temp,"Total of";
+          push @temp,$nruns;
+          push @temp,$rsum->[0][0];
+         push @temp,int($rsum->[0][1]/100)/10;  
+          push @temp,$rsum->[0][2];
+           push @temp,$rsum->[0][3];
+           push @temp,"dum";
+           push @output,[@temp];
+
+         monitorHTML::print_table($q,$buffer,$#titles,@titles,@output);
+       
+
+  } elsif ($q->param("NTOUT") eq "ROOT") {
+#... write RootAnalysisTemplate
+      my $RootAnalysisTextNFS =
+         "// ROOT files accessed via NFS
+         ";
+      my $RootAnalysisTextCastor =
+         "// it is assumed that CASTOR directory
+          //   structure is similar to one on AMS disks.
+          //   /castor/cern.ch/MC/AMS02/ProductionPeriod/...
+         ";
+      my $RootAnalysisTextHTTP =
+         "// wildcards are not implemented yet in ROOT.
+          //   still  have to check what is the HTTPD protocol for
+          //   getting a list of files.
+         ";
+
+      my $RootAnalysisTextRemote =
+         "// it is assumed that REMOTE directory structure and lib(s) path are similar to one on AMS disks.
+         ";
+      my $RootAnalysisTemplateTxt =
+         "  gROOT->Reset();
+          // for linux load
+          gSystem->Load(\"/Offline/vdev/lib/linux/icc/ntuple.so\");
+          //
+          //  for dunix aka ams.cern.ch load
+          //  gSystem->Load(\"/Offline/vdev/lib/osf1/ntuple.so\");
+          //
+          TChain chain(\"AMSRoot\");
+      ";
+        
+#...... check files access option
+      my $prefix     = "xyz";
+          if ($rootfileaccess eq "HTTP") {
+              $prefix     = "http://$self->{HTTPserver}";
+          }
+          if ($rootfileaccess eq "CASTOR") {
+              $prefix     = "rfio:/castor/cern.ch/ams";
+          }
+#..... remote cite (if any)
+      if (defined $q->param("REMOTEACCESS")) {
+          $rootfileaccess="REMOTE";
+          $remotecite = $q->param("REMOTEACCESS");
+      }
+
+    my $buff=undef;
+    my @dirs=();
+    $#{dirs} =-1;
+    my @dirs_runs=();
+    $#{dirs_runs} =-1;
+    my @dirs_ntuples=();
+    $#dirs_ntuples =-1;
+    my @dirs_triggers=();
+    $#{dirs_triggers} =-1;
+    my @dirs_hr=();
+     $#dirs_hr=-1;
+      if ($rootfileaccess eq "HTTP") {
+         $buff = $RootAnalysisTextHTTP;
+         print "<tr><td>$RootAnalysisTextHTTP</td></tr><br>";
+     } elsif ($rootfileaccess eq "CASTOR") {
+         $buff = $RootAnalysisTextCastor;
+         $RootAnalysisTextCastor=~s/\n/<br>/g;
+         print "<tr><td>$RootAnalysisTextCastor</td></tr><br>";
+     } elsif ($rootfileaccess eq "REMOTE") {
+         $buff = $RootAnalysisTextRemote;
+         print "<tr><td>$RootAnalysisTextRemote</td></tr><br>";
+     } else {
+         $buff = $RootAnalysisTextNFS;
+         $RootAnalysisTextNFS=~s/\n/<br>/g;
+         print "<tr><td>$RootAnalysisTextNFS</td></tr>\n";
+     }
+        
+        $buff=$buff."\n";
+         $buff=$buff.$RootAnalysisTemplateTxt."\n";
+         $RootAnalysisTemplateTxt=~s/\n/<br>/g;
+         print "<tr><td>$RootAnalysisTemplateTxt</td></tr>\n";
+#
+      my $sql =$sqlNT;
+      my $r1=$self->{sqlserver}->Query($sql);
+      if ($rootfileaccess=~/^NFS/ or $rootfileaccess eq "CASTOR") {
+          my $oldrun=0;
+          foreach my $nt (@{$r1}) {
+           my $path=trimblanks($nt->[0]);
+           if ($path =~ m/castor/ and $rootfileaccess=~/^NFS/) {
+#           skip it, file has only archived copy 
+           }
+           elsif($rootfileaccess eq "NFSONLY" and $nt->[7]>0){
+#           skip it, file has  archived copy 
+           } elsif($rootfileaccess=~/^NFS/ or $nt->[7] > 0){
+            my @junk = split '/',$path;
+            my $tdir ="";
+            my @jrun=split '\.',$junk[$#junk];
+            my $run=$jrun[0]; 
+            if($rootfileaccess eq "CASTOR"){
+                $junk[1]=$prefix;
+            }
+            for (my $i=1; $i<$#junk; $i++) {
+             $tdir = $tdir."/".$junk[$i];
+            }
+            $tdir = trimblanks($tdir);
+            my $dirfound = -1;
+
+            for my $i(0...$#dirs){
+                
+             if ($dirs[$i] eq $tdir) {
+              $dirfound = $i;
+              last;
+          }
+         }
+         if ($dirfound >=0) {
+# skip it
+             $dirs_ntuples[$dirfound]++;
+          $dirs_triggers[$dirfound]+=$nt->[8]-$nt->[9]+1;
+             if($run != $oldrun){
+                 $dirs_runs[$dirfound]++;
+                 $oldrun=$run;
+             }
+                
+         } 
+         else {
+          $dirs[$#dirs+1] = $tdir;
+          $dirs_ntuples[$#dirs]=1;
+          $dirs_runs[$#dirs]=1;
+          $dirs_triggers[$#dirs]=$nt->[8]-$nt->[9]+1;
+          $oldrun=$run;
+           $dirs_hr[$#dirs]="root";
+           if($path=~/\.hbk$/){
+               $dirs_hr[$#dirs]="hbk";
+             }
+
+          }
+        }
+       }
+          my $rs=0;
+          my $ns=0;
+          my $ntr=0;
+          for my $ind (0...$#dirs){
+              $rs+=$dirs_runs[$ind];
+              $ns+=$dirs_ntuples[$ind];
+              $ntr+=$dirs_triggers[$ind];
+          }
+          my $s="  // Total Of  runs: $rs  ntuples: $ns   triggers: $ntr";
+          print "<tr><td> $s </tr></td><br>";
+          $buff = $buff.$s."\n";
+          for my $ind (0...$#dirs){
+#//
+#// to be sure everything is o.k.
+#// try to open dir and check all the files are in place
+#//
+           my $ntd=0;
+           if($rootfileaccess=~/^NFS/){
+                #print "<tr><td> $dirs[$ind] </tr></td><br>";
+               opendir THISDIR, $dirs[$ind];
+               my @files=readdir THISDIR;
+               closedir THISDIR;
+               foreach my $file (@files){
+                if($file =~ /\.root$/ or $file=~ /\.hbk/){
+                    $ntd++;
+               }
+              }       
+           my $offline=0; 
+           if($ntd != $dirs_ntuples[$ind] and $sqlmom eq ""){
+             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
+              my @junk=split '/',$dirs[$ind];
+              $sql="select isonline from filesystems where disk='/$junk[1]'";
+              #die "  $sql $dirs[$ind] ";
+              my $rtn=$self->{sqlserver}->Query($sql);
+              if(defined  $rtn and $rtn->[0][0]==0){
+                $offline=1;
+                $s=$s."//   Because /$junk[1]  is Offline \n"; 
+           }
+           else{
+            $s=$s." //  please inform vitali.choutko\@cern.ch about discrepancy \n"; 
+          }        
+          $buff = $buff.$s."\n";
+          $s=~s/\n/<br>/g;
+          print "<tr><td><font color=red> $s </tr></td><font color=black>";
+          if(not $offline){
+          opendir THISDIR, $dirs[$ind];
+          my @files = readdir THISDIR;
+          closedir THISDIR;
+          if($ntd>$dirs_ntuples[$ind]){
+            foreach my $file (@files){
+              if($file=~/\.root$/ or $file=~/\.hbk/){
+               my $found=0;
+               foreach my $nt (@{$r1}){
+                 my $path=trimblanks($nt->[0]);
+                 if($path=~/$dirs[$ind]/){
+                   if($path=~/$file/){
+                    $found=1;
+                    last;
+                  }
+                 }
+               }
+               if($found==0 and $sqlmom eq ""){
+                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";         
+               }
+               }
+             }                  
+          }
+          else{
+          my $ok=0;
+          my $patho="";
+          my $runo=0;
+         
+           sub nprio1{ $b->[0] cmp $a->[0];}
+           my @ntsorted=sort nprio1 @{$r1}; 
+#          foreach my $nt (@{$r1}) {
+          foreach my $nt (@ntsorted) {
+           my $path=trimblanks($nt->[0]);
+            if(not $path=~/$dirs[$ind]/ ){
+               next;
+            }
+            my $found=0;
+            foreach my $file (@files){
+               if($file =~ /\.root$/ or $file=~/\.hbk$/){ 
+             if($path=~/$file/){
+              $found=1;
+              last;
+             }
+             }
+            }
+             if($path eq $patho){
+              #die "$sqlNT"; 
+           print "<tr><td><font color=red> //$ok $found $path is duplicated for runs $runo $nt->[1]</tr></td><font color=black><br>";
+             }
+              $patho=$path;
+              $runo=$nt->[1];
+	      if($found==0 && $ntd>0){
+             print "<tr><td><font color=red> // $path is absent on disk</tr></td><font color=black><br>";
+            }
+            else{
+             $ok++;
+             #print "<tr><td><font color=green> //$ok $path is ok</tr></td><font color=black><br>";
+
+            }
+          }
+          }
+         }
+         }
+         }
+           $sqlmom=~s/dataruns\.run/ntuples\.run/;
+           $sqlamom=~s/dataruns\.run/ntuples\.run/;
+           if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
+               $sqlamom=~s/not LIKE/LIKE/;
+           }
+           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%'   $sqlamom group by ntuples.run ";
+            my $r4=undef;
+            if($sqlmom ne ""){
+              $r4=$self->{sqlserver}->Query($negative);
+            }
+#           die "- $sqlmom - $negative - $#{@{$r4}} \n";
+           if(($sqlmom eq "" or $#{$r4} ==-1)  ){
+#          if(($sqlmom eq "" or $#{$r4} ==-1) and $sqlmom1 eq "" ){
+           if($dirs_hr[$ind] eq "root"){ 
+            $s = "chain.Add(\"".$dirs[$ind]."/*.$dirs_hr[$ind]\");";
+           }
+           else{
+            $s="nt/chain chain $dirs[$ind]/*.$dirs_hr[$ind]"
+           } 
+          print "<tr><td> $s </tr></td><br>";
+          $buff = $buff.$s."\n";
+       }
+          else{
+            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%'  $sqlmom group by ntuples.run ";
+            my $r3=$self->{sqlserver}->Query($positive);
+            foreach my $path (@{$r3}) {
+                  my $pth =$path->[0];
+                  if($dirs_hr[$ind] eq "root"){
+                     $s = "chain.Add(\"".$dirs[$ind]."/$pth.*.$dirs_hr[$ind]\");";
+                  }
+                   else {
+                       $s="nt/chain chain $dirs[$ind]/$pth.*.$dirs_hr[$ind]"; 
+                   }
+          print "<tr><td> $s </tr></td><br>";
+          $buff = $buff.$s."\n";
+	   }
+          }
+          }
+            } elsif ($rootfileaccess eq "HTTP") {
+          foreach my $nt (@{$r1}) {
+          my $path=trimblanks($nt->[0]);
+          if ($path =~ m/castor/) {
+#          skip it, file has only archived copy only
+          } else {
+           my $httppath=$prefix.$path;
+           my $s = "chain.Add(\"$httppath\");";
+           print "<tr><td> $s </tr></td>\n";
+           $buff = $buff.$s."\n";
+       }
+      }
+     } elsif ($rootfileaccess eq "REMOTE") {
+        my $rrun = 0; # run
+        foreach my $nt (@{$r1}) {
+         if ($rrun != $nt->[1]) {
+           $rrun = $nt->[1]; # run
+           my $sql = "SELECT prefix,path From MC_DST_COPY WHERE Run=$rrun AND Cite='$remotecite'";
+           my $r1=$self->{sqlserver}->Query($sql);
+           if (defined $r1->[0][0]) {
+            foreach my $p (@{$r1}) {
+              my $prefix = trimblanks($p->[0]);
+              my $local  = trimblanks($p->[1]);
+              my $path=$prefix."/".$local;
+              my $s = "chain.Add(\"$path\");";
+              print "<tr><td> $s </tr></td>\n";
+              $buff = $buff.$s."\n";
+           }
+        }
+       }
+      }
+     } elsif ($rootfileaccess eq "CASTOR obsolete") {
+          foreach my $nt (@{$r1}) {
+# check castortime
+           if ($nt->[7] > 0) {
+            my $path=trimblanks($nt->[0]);
+            my @junk = split '/',$path;
+            my $tdir ="";
+            for (my $i=2; $i<$#junk; $i++) {
+             $tdir = $tdir."/".$junk[$i];
+            }
+           $tdir = trimblanks($tdir);
+           my $dirfound = 0;
+           foreach my $dir (@dirs) {
+           if ($dir eq $tdir) {
+            $dirfound = 1;
+            last;
+           }
+          }
+          if ($dirfound == 1) {
+# skip it
+          } else {
+           #$dirs[$#dirs] = $tdir;
+           my $s = "chain.Add(\"".$prefix.$tdir."/*.root\");";
+           print "<tr><td> $s </tr></td>\n";
+           $buff = $buff.$s."\n";
+           push @dirs, $tdir;
+         }
+        }
+       }
+      }
+     htmlTableEnd();
+      if (defined $buff) {
+       $self-> writetofile($rootfile,$buff);
+      }
+    }
+     htmlReturnToQuery();
+    htmlBottom();
+   }
+    
+
+# queryDB04 / doQueryd ends here
+
+
+  } elsif ($self->{q}->param("queryDB04") eq "Continue" ) {
      my $query=$q->param("QPart");
     my $qpp=$q->param("QPPer");
 
@@ -3794,8 +4636,111 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<TR></TR>\n";
 
      print "<p><br>\n";
+     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"0\">\n";
      print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n";
      print "<input type=\"submit\" name=\"queryDB04\" value=\"DoQuery\">        ";
+     print "</form>\n";
+
+     htmlReturnToQuery();
+   htmlBottom();
+  } elsif ($self->{q}->param("queryDB04") eq "ContinueD" ) {
+     my $query=$q->param("QPartD");
+     if(not defined $query){
+         $query="AnyData";
+     }
+    my $qpp=$q->param("QPPer");
+
+     foreach my $dataset (@{$self->{DataSetsT}}){
+      if($dataset->{name} eq $query){
+                 foreach $cite (@{$dataset->{jobs}}){
+                 if(not ($cite->{filename} =~/^\./)){
+                  push @tempnam, $cite->{filename};
+                  $hash->{$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash ->{$cite->{filename}};
+              }
+           }
+        }
+      }
+   htmlTop();
+    $self->htmlAMSHeader("AMS-02 Data Database Query Form");
+    print "<ul>\n";
+    htmlMCWelcome();
+    print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+      print "<tr><td><b><font color=\"green\">Datasets </font></b>\n";
+      print "</td><td>\n";
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+       print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPPer\" VALUE=\"$qpp\">\n";
+      htmlTableEnd();
+     if ($query ne "AnyData" and $query ne "ANYDATA" and $query ne "anydata") {
+# Job Template
+      print "<tr><td><b><font color=\"green\">Template</font></b>\n";
+      print "</td><td>\n";
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+       print "<tr valign=middle><td align=left><b><font size=\"-1\"> </b></td> <td colspan=1>\n";
+       print "<select name=\"QTempDataset\" >\n";
+       my $i=0;
+       print "<option value=\"Any\"> ANY </option>\n";
+      if ($query =~ "Any") {
+         print "<option value=\"Any\">ANY </option>\n";
+      } else {
+       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
+       my $r5=$self->{sqlserver}->Query($sql);
+       if(defined $r5->[0][0]){
+        foreach my $template (@{$r5}){
+         print "<option value=\"$template->[0]\">$template->[0] </option>\n";
+        }
+       } else {
+         print "<option value=\"Any\">ANY </option>\n";
+       }
+      }
+        print "</select>\n";
+        print "</b></td></tr>\n";
+      htmlTableEnd();
+   }
+     print "<tr><td><b><font color=\"green\">Job Parameters</font></b>\n";
+     print "</td><td>\n";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<tr valign=middle><td align=left><b><font size=\"-1\"> Trigger </b></td> <td colspan=1>\n";
+     htmlTextField("Build Number ","number",14,0.,"QBuildNum");
+     htmlTableEnd();
+    htmlTableEnd();
+# Build Number
+
+
+
+# Output format
+   print "<b><font color=green> Output :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" > Full Listing\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\" CHECKED> Summary \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ROOT\"> ROOT Analysis Filename <INPUT TYPE=\"text\" name=\"ROOT\">";
+   print "<br><TR></TR>";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> ROOT Files \@CERN  </font>\n";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> Access Mode  </font>\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\" CHECKED> NFS \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFSONLY\" > NFSONLY \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"HTTP\"> via WebServer \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"CASTOR\">  rfio CASTOR\n";
+   print "<i><font color=green> (Note : files are copied to CASTOR weekly, access via HTTP is slow) </font><i>\n";
+   print "<TR></TR>\n";
+
+   print "<br><TR></TR>";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> Files Available on Remote Cites (Note : no access from CERN, ask cite's Rep for details) :  </font>\n";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> Cite :  </font>\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"REMOTEACCESS\" VALUE=\"lyon\">  Lyon \n";
+   print "<TR></TR>\n";
+
+     print "<p><br>\n";
+     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"1\">\n";
+     print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n";
+     print "<input type=\"submit\" name=\"queryDB04\" value=\"DoQueryD\">        ";
      print "</form>\n";
 
      htmlReturnToQuery();
@@ -3842,10 +4787,10 @@ CheckCite:            if (defined $q->param("QCite")) {
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
            print "</b>
-                   <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANY<BR>\n";
+                   <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANYMC<BR>\n";
            print "</b></font></td></tr>\n";
            my @datasets = ();
-           my $sql = "SELECT dataset FROM DatasetsDesc";
+           my $sql = "SELECT datasetsdesc.dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=0 group by dataset";
            my $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
             foreach my $ds (@{$r5}){
@@ -3870,6 +4815,36 @@ CheckCite:            if (defined $q->param("QCite")) {
      print "<input type=\"submit\" name=\"queryDB04\" value=\"Continue\">        ";
      print "</form>\n";
       print "<tr></tr>\n";
+
+    print "<TABLE BORDER=\"1\" WIDTH=\"50%\">";
+     print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (Data Production)</font></b></tr>\n";
+     print "</td><td>\n";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<tr><td><font size=\"-1\"<b>\n";
+           print "</b>
+                   <INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR>\n";
+           print "</b></font></td></tr>\n";
+           $#datasets = -1;
+           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
+           $r5=$self->{sqlserver}->Query($sql);
+           if(defined $r5->[0][0]){
+            foreach my $ds (@{$r5}){
+                push @datasets, $ds->[0];
+            }
+           }
+           foreach my $dataset (@datasets) {
+             print "</b>
+                     <INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=$dataset>$dataset<BR>\n";
+#              print "</b></font></td></tr>\n";
+           }
+        htmlTableEnd();
+      htmlTableEnd();
+   print "<p><br>\n";
+     print "<input type=\"submit\" name=\"queryDB04\" value=\"ContinueD\">        ";
+     print "</form>\n";
+      print "<tr></tr>\n";
+
+
       print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
       print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
       print "Find Job : (eg 805306383 or From-To) </B></font></td></tr></table> \n";
@@ -14775,7 +15750,7 @@ sub readDataSets() {
                }
                $dataset->{did}=$did;
                my $timestamp = time();
-               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dataset->{datamc})";
                print "SKIP : $sql \n";
            }
 

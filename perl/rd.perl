@@ -1,8 +1,8 @@
-#!/usr/bin/perl -w
-#  $Id: rd.perl,v 1.1 2007/12/18 10:13:41 choutko Exp $
+#!/usr/local/bin/perl -w
+#  $Id: rd.perl,v 1.2 2007/12/19 17:27:16 choutko Exp $
 use strict;
 
-use lib::RemoteClient;
+use lib::DBSQLServer;
 
 
 my $debug="-d";
@@ -11,14 +11,13 @@ unshift @ARGV, "-Famsdb";
 
 
 
-my $nocgi=1;
-my $o=new RemoteClient(1);
-my $ok=$o->ConnectOnlyDB();
+    my $o=new DBSQLServer();
+     my $ok=$o->ConnectRO();
 if($ok){
     my $runmin=0;
     my $runmax=2000000000;
     my $sql = "SELECT run, path,fetime, nevents, tag, sizemb FROM amsdes.datafiles WHERE run>$runmin AND run<$runmax ORDER BY run";
-         my $ret=$o->{sqlserver}->Query($sql);
+         my $ret=$o->Query($sql);
          if (defined $ret->[0][0]) {
           foreach my $r (@{$ret}){
              my $run       = $r->[0];

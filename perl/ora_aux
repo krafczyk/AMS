@@ -114,3 +114,32 @@ CREATE OR REPLACE
 /
    show errors
 !
+
+ create or replace function split
+(
+    p_list varchar2,
+    p_del varchar2 := '.'
+) return varchar2
+is
+    l_idx    pls_integer;
+    l_list    varchar2(32767) := p_list;
+    l_value    varchar2(32767);
+begin
+    loop
+        l_idx := instr(l_list,p_del);
+        if l_idx > 0 then
+            l_list := substr(l_list,l_idx+length(p_del));
+            l_idx := instr(l_list,p_del);
+            if l_idx > 0 then
+               l_list := substr(l_list,l_idx+length(p_del));
+               return (l_list);
+            else
+               return (l_list);
+            end if;
+        else
+            return (l_list);
+        end if;
+    end loop;
+end split;
+/
+show errors;
