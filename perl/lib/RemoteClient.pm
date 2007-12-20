@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.481 2007/12/19 17:27:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.482 2007/12/20 08:42:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3287,7 +3287,11 @@ CheckCite:            if (defined $q->param("QCite")) {
          my $sql;
         if($query eq "Any"){
           $titles[0]="Dataset";
-           $sql = "SELECT dataset,did FROM DatasetsDesc order by did";
+          my $dmc=$q->param('DataMC');
+          if(not defined $dmc){
+              $dmc=0;
+          }
+           $sql = "SELECT datasetsdesc.dataset,datasetsdesc.did FROM datasets,DatasetsDesc where datasets.datamc=$dmc and datasets.did=datasetsdesc.did order by datasetsdesc.did ";
         }
         else{
          $sql="SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'"; 
@@ -3811,7 +3815,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
            my $did = $r->[0];
-           $sql  = "SELECT dataRuns.Run, Jobs.JOBNAME, Runs.SUBMIT
+           $sql  = "SELECT dataRuns.Run, Jobs.JOBNAME, dataRuns.SUBMIT
                     FROM dataRuns, Jobs, datasetsdesc
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and
                              AND dataRuns.Status='Completed'";
@@ -3861,7 +3865,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             }
       }
      } else {
-        $sql = "SELECT dataRuns.RUN, Jobs.JOBNAME, Runs.SUBMIT
+        $sql = "SELECT dataRuns.RUN, Jobs.JOBNAME, dataRuns.SUBMIT
                     FROM dataRuns, Jobs
                      WHERE dataRuns.JID=Jobs.JID AND dataRuns.Status='Completed'  ";
         $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
@@ -4113,7 +4117,10 @@ CheckCite:            if (defined $q->param("QCite")) {
         "DSTs GB",
         "Events",
         "Triggers",);
-        my $query= $q->param('QPart');
+        my $query= $q->param('QPartD');
+        if($query eq "AnyData"){
+            $query="Any";
+        }
         my $q2= $q->param("QTempDataset");
         if($q2 eq "Any"){
           $q2=undef;
@@ -4124,7 +4131,11 @@ CheckCite:            if (defined $q->param("QCite")) {
          my $sql;
         if($query eq "Any"){
           $titles[0]="Dataset";
-           $sql = "SELECT dataset,did FROM DatasetsDesc order by did";
+          my $dmc=$q->param('DataMC');
+          if(not defined $dmc){
+              $dmc=1;
+          }
+           $sql = "SELECT datasetsdesc.dataset,datasetsdesc.did FROM datasets,DatasetsDesc where datasets.datamc=$dmc and datasets.did=datasetsdesc.did order by datasetsdesc.did ";
         }
         else{
          $sql="SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'"; 
@@ -4382,7 +4393,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           my $patho="";
           my $runo=0;
          
-           sub nprio1{ $b->[0] cmp $a->[0];}
+#           sub nprio1{ $b->[0] cmp $a->[0];}
            my @ntsorted=sort nprio1 @{$r1}; 
 #          foreach my $nt (@{$r1}) {
           foreach my $nt (@ntsorted) {
@@ -4671,7 +4682,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       print "</td><td>\n";
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
-       print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPartD\" VALUE=\"$query\">\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPPer\" VALUE=\"$qpp\">\n";
       htmlTableEnd();
      if ($query ne "AnyData" and $query ne "ANYDATA" and $query ne "anydata") {
