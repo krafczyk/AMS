@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.85 2007/12/18 08:09:52 choutko Exp $
+//  $Id: daqevt.C,v 1.86 2007/12/20 16:39:08 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -452,7 +452,8 @@ integer DAQEvent::_HeaderOK(){
        }
        if(_Time>tmax){
          cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
-         _Time=tmin;
+    const uinteger _OffsetT=0x12d53d80;
+         _Time-=_OffsetT;
        }
  
       // fix against event 0
