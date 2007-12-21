@@ -22,7 +22,7 @@ integer AMSTRDCluster::build(int rerun){
         adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
 #ifdef __AMSDEBUG__
         if(id.getgain()<=0){
-         cerr <<"AMSTRDCluster::build-E-zero gain for "<<id<<" "<<id.getgain()<<endl;
+          cerr <<"AMSTRDCluster::build-E-zero gain for "<<id<<" "<<id.getgain()<<endl;
         }
 #endif
         number ref=-FLT_MAX;

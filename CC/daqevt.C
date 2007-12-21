@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.86 2007/12/20 16:39:08 choutko Exp $
+//  $Id: daqevt.C,v 1.87 2007/12/21 16:24:51 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -446,8 +446,10 @@ integer DAQEvent::_HeaderOK(){
 #endif
        time_t tmin=1180000000;
        time_t tmax=1280000000;
-       if(_Time<tmin){
-         cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
+       static int rep=0;
+       if(_Time<tmin ){
+
+         if(rep++<100)cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
          _Time=tmin;
        }
        if(_Time>tmax){
@@ -550,7 +552,9 @@ void DAQEvent::buildRawStructures(){
      for(int16u * pdown=_pcur+_cll(_pcur)+2;pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
      int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
      if(ic>=0){
+#ifdef __AMSDEBUG__
       cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<endl;
+#endif
       int16u *psafe=pdown+1;
       integer n=(ic<<16) | (*pdown);
       fpl->_pputdata(n,psafe);

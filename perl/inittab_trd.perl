@@ -14,6 +14,9 @@ while (<FILE>){
     my $lay=$args[3]-1;
     my $lad=$args[4];
     my $left=int($args[5]);
+    if($lay==0 or $lay==4){
+        $left=1-$left;
+    }
     if($lad<0){
        $lad+=$ladders[$lay];
     }

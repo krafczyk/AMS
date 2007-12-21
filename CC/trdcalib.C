@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.1 2007/12/18 08:09:52 choutko Exp $
+//  $Id: trdcalib.C,v 1.2 2007/12/21 16:24:51 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -109,7 +109,9 @@ if(!AMSEvent::gethead())return;
       cid.updADC2Raw(p->Amp());
       cid.updADCMax(p->Amp());
       cid.updcounter();
+      nn++;
     }
+    nnt++;
     p=p->next();
    }
    cout <<" crate "<<icll<<" "<<nn<<" "<<nnt<<endl;
@@ -187,7 +189,8 @@ void AMSTRDIdCalib::_update(){
           int ch=cid.getchannel();
           cout <<cid.getped()<<" "<<_ADCRaw[ch]<<endl;
           cid.setped()=_ADCRaw[ch];
-          cout <<cid.getsig()<<" "<<_ADC2Raw[ch]<<endl;
+          cid.setgain()=1;
+          cout <<"sig "<<cid.getsig()<<" "<<_ADC2Raw[ch]<<endl;
           cid.setsig()=_ADC2[ch];
          }
         }
@@ -197,8 +200,8 @@ void AMSTRDIdCalib::_update(){
     AMSTimeID *ptdv;
      time_t begin,end,insert;
     if(total){
-      const int ntrd=2;
-      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas"};
+      const int ntrd=3;
+      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDGains"};
       for (int i=0;i<ntrd;i++){
       ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
       ptdv->UpdateMe()=1;

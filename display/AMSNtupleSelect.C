@@ -10,9 +10,21 @@ bool IsGolden(AMSEventR *ev){
 // This is a user function to be modified
 //  return true if event has to be drawn false otherwise
 //
- if(ev && ev->nParticle()>0 && ev->nTrTrack()>0){
-   cout <<"working"<<endl;
-   return true;
+ if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>2 ){
+   cout <<"working "<<(ev->TrdTrack(0)).NTrdSegment()<<endl;
+   TrdTrackR trd=ev->TrdTrack(0);   
+   for(int i=0;i<trd.NTrdSegment();i++){
+     TrdSegmentR s=ev->TrdSegment(trd.iTrdSegment(i));
+     for (int j=0;j<s.NTrdCluster();j++){
+      TrdClusterR c=ev->TrdCluster(s.iTrdCluster(j));
+      TrdRawHitR h=ev->TrdRawHit(c.iTrdRawHit());
+      if(h.Layer<4 and h.Ladder==1){
+       cout <<c.Coo[0]<<" "<<c.Coo[1]<<" "<<c.Coo[2]<<" "<<c.Layer<<endl;
+       return true;
+      }
+     }
+   }
+   return false;
  }
   else return false;
 }

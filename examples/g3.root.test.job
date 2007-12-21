@@ -16,7 +16,7 @@ fi
 
 $AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
-KINE 3
+KINE 14 
 LOSS 1
 HADR 1
 MULS 1

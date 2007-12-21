@@ -181,7 +181,7 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
         if(!id.dead()){
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
-         AMSTRDRawHit(id,(((*(p+i))&32767)-id.getped())*TRDMCFFKEY.f2i));
+         AMSTRDRawHit(id,(((*(p+i))&32767))*TRDMCFFKEY.f2i));
 //         cout <<id<<" "<<((*(p+i))&32767)<<" "<<id.getped()<<endl;
        }
        else{
@@ -190,9 +190,6 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
   }
  }
  else{
-   if (*p>2){
-       cout <<"  trd compressed mode!!!"<<endl;
-   }
   for (int j=1;j<*p;j+=2){
         uint16 adr=*(p+j);
         int ufe=adr/64;
@@ -203,7 +200,7 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
         if(!id.dead()){
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
          AMSTRDRawHit(id,((*(p+j+1))&32767)));
-         cout <<id<<" "<<((*(p+j+1))&32767)<<" "<<id.getped()<<endl;
+  //       cout <<id<<" "<<((*(p+j+1))&32767)<<" "<<id.getped()<<endl;
        }
        else{
 //         cerr<<"AMSTRDRawHit::buildraw-E-IDDead"<<id<<endl;
