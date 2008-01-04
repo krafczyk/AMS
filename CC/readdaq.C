@@ -1,4 +1,4 @@
-//  $Id: readdaq.C,v 1.4 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: readdaq.C,v 1.5 2008/01/04 15:45:25 choutko Exp $
 #include "daqevt.h"
 #include "commons.h"
 AMSDATADIR_DEF AMSDATADIR;
@@ -29,7 +29,8 @@ int main(int argc, char* argv[]){
      DAQEvent::setfiles(fnamd,pnull);
    }
    SELECTFFKEY.Run=-1;
-   DAQEvent::init(1,1);
+   SELECTFFKEY.Event=0;
+   DAQEvent::init();
   }
 return 0;
 }

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.509 2007/12/21 16:24:51 choutko Exp $
+// $Id: job.C,v 1.510 2008/01/04 15:45:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -210,8 +210,8 @@ char amsp[12]="AMSParticle";
 UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
-IOPA.MaxNtupleEntries=1000000;
-IOPA.MaxFileSize=180000000;
+IOPA.MaxNtupleEntries=10000000;
+IOPA.MaxFileSize=1900000000;
 IOPA.MaxFileTime=86400*3;
 IOPA.BuildMin=-1;
 IOPA.WriteRoot=0;

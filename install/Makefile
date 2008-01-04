@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.39 2007/12/18 08:09:55 choutko Exp $
+#  $Id: Makefile,v 1.40 2008/01/04 15:45:26 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -229,8 +229,17 @@ MYOBJS1:=$(FILESC:$(SFF)%.F=$(BIN)%.o)
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
+
+FILESR= $(COMMON_FILES)     $(SCC)readdaq.C
+MYOBJS1:=$(FILESR:$(SFF)%.F=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
+
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
 		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o
+
+OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
+		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o
 
 
 #------------------------------------------------------------------------------
@@ -281,6 +290,12 @@ gbatch: $(EXE)gbatch.exe
 
 $(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
+         $(TIMEL) $(LDFLAGSSTATIC)
+
+readdaq: $(EXE)readdaq
+
+$(EXE)readdaq:  $(OBJECTR) $(BIN)ctype.o
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)readdaq $(OBJECTR)\
          $(TIMEL) $(LDFLAGSSTATIC)
 
 

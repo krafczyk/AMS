@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.39 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: tofrec02.C,v 1.40 2008/01/04 15:45:25 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1426,7 +1426,7 @@ void AMSTOFCluster::build2(int &stat){
 	    if(fabs(time-timen)<3*etime*sqrt(2.))HF1(1549,cl-cln,1.);
 	    HF1(1550,time-timen,1.);
 	  }
-	  if(fabs(time-timen)<3*etime*sqrt(2.)
+	  if(fabs(time-timen)<3*etime*sqrt(2.)  
 	             && fabs(cl-cln)<3*clne*sqrt(2.)){//t+coo match -> create cluster(glue "next")
 	    etime=etime/sqrt(2.);//recalc. parameters using glued bar
 	    time=0.5*(time+timen);

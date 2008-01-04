@@ -249,7 +249,7 @@ AMSID id(idd,Service::Dir);
  }
 }
 
-void AMSEventR::hfit1(int id, char func[]){
+void AMSEventR::hfit1(int id, char func[],double xmin, double xmax){
    AMSID idd(id,Service::Dir);
    char fit[255];
    Service::hb1i i1=Service::hb1.find(idd);
@@ -261,7 +261,7 @@ void AMSEventR::hfit1(int id, char func[]){
    strcat(fit,func+1);
   }
   else strcpy(fit,func);
-  i1->second->Fit(fit);
+  i1->second->Fit(fit,"" ,"",xmin,xmax);
  }
 }
 

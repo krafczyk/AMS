@@ -12,15 +12,26 @@ bool IsGolden(AMSEventR *ev){
 //
  if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>2 ){
    cout <<"working "<<(ev->TrdTrack(0)).NTrdSegment()<<endl;
+   int ib=0;
    TrdTrackR trd=ev->TrdTrack(0);   
    for(int i=0;i<trd.NTrdSegment();i++){
      TrdSegmentR s=ev->TrdSegment(trd.iTrdSegment(i));
      for (int j=0;j<s.NTrdCluster();j++){
       TrdClusterR c=ev->TrdCluster(s.iTrdCluster(j));
       TrdRawHitR h=ev->TrdRawHit(c.iTrdRawHit());
-      if(h.Layer<4 and h.Ladder==1){
+      if(h.Layer<4 and h.Ladder==10){
        cout <<c.Coo[0]<<" "<<c.Coo[1]<<" "<<c.Coo[2]<<" "<<c.Layer<<endl;
-       return true;
+       ib++;
+       break;
+       //return true;
+      }
+     }
+     for (int j=0;j<s.NTrdCluster();j++){
+      TrdClusterR c=ev->TrdCluster(s.iTrdCluster(j));
+      TrdRawHitR h=ev->TrdRawHit(c.iTrdRawHit());
+      if(h.Layer>15 and h.Ladder==8){
+       cout <<c.Coo[0]<<" "<<c.Coo[1]<<" "<<c.Coo[2]<<" "<<c.Layer<<endl;
+       if(ib>0)return true;
       }
      }
    }

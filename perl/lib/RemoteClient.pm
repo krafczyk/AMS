@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.482 2007/12/20 08:42:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.483 2008/01/04 15:45:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6624,7 +6624,7 @@ print qq`
          $ri->{LastEvent}=$r1->[0][1];
          $ri->{TFEvent}=$r1->[0][2];
          $ri->{TLEvent}=$r1->[0][3];
-         $ri->{Priority}=0;
+         $ri->{Priority}=1;
          $ri->{FilePath}=$script;
          $ri->{rndm1}=0;
          $ri->{rndm2}=0;
@@ -9615,7 +9615,7 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
          my $vdb               = $prodperiod->{vdb};
          my $periodStartTime   = $prodperiod->{begin};
          my $periodId          = $prodperiod->{id};
-         $sql = "SELECT did, name FROM datasets where did > 111 and version='$vdb'";
+         $sql = "SELECT did, name FROM datasets where did > 111 and version='$vdb' ";
          my $r5=$self->{sqlserver}->Query($sql);
          if ($webmode == 1) {print_bar($bluebar,3);}
          if(defined $r5->[0][0]){
@@ -14215,7 +14215,15 @@ sub calculateMipsVC {
        opendir THISDIR, $newfile or die "unable to open $newfile";
        my @jobs=readdir THISDIR;
        closedir THISDIR;
+      $dataset->{datamc}=0;
+      foreach my $job (@jobs){
+          if($job=~/^data=true/){
+              $dataset->{datamc}=1;
+          }
+     }
           push @{$self->{DataSetsT}}, $dataset;
+
+       if($dataset->{datamc}==0){
        foreach my $job (@jobs){
         if($job =~ /\.job$/){
         if($job =~ /^\./){
@@ -14257,6 +14265,7 @@ sub calculateMipsVC {
 #
 # get no of events
 #
+
         my $sql="select did from DataSets where name='$dataset->{name}'";
                my $ret=$self->{sqlserver}->Query($sql);
               if( defined $ret->[0][0]){
@@ -14352,7 +14361,7 @@ sub calculateMipsVC {
 #
 # subtract allocated events
                              $template->{TOTALEVENTS}-=$job->[2];
-                              $submitted+=$job->[2]; 
+                             $submitted+=$job->[2]; 
                          }
                    }
                  }
@@ -14384,7 +14393,201 @@ sub calculateMipsVC {
      
         $rcpu+=$template->{CPUPEREVENTPERGHZ}*$template->{TOTALEVENTS};
          }
-       }
+    }
+
+   }
+          else{
+       foreach my $job (@jobs){
+        if($job =~ /\.job$/){
+        if($job =~ /^\./){
+            next;
+        }
+           my $template={};
+           my $full="$newfile/$job";
+           my $buf;
+           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+           read(FILE,$buf,1638400) or next;
+           $template->{bufi}=$buf;
+           $template->{full}=$full;
+           close FILE;
+           $template->{filename}=$job;
+           my @sbuf=split "\n",$buf;
+           my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ");
+           foreach my $ent (@farray){
+            foreach my $line (@sbuf){
+               if($line =~/$ent=/){
+                   my @junk=split "$ent=",$line;
+                   $template->{$ent}=$junk[$#junk];
+                   $buf=~ s/$ent=/C $ent=/;
+                   last;
+               }
+            }
+        }
+           $template->{initok}=1;
+           foreach my $ent (@farray){
+             if(not defined $template->{$ent}){
+               $template->{initok}=undef;
+             }
+           }
+#
+# get no of events
+#
+
+
+
+        my $sql="select did from DataSets where name='$dataset->{name}'";
+               my $ret=$self->{sqlserver}->Query($sql);
+              if( defined $ret->[0][0]){
+              if($vrb){
+               print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} $template->{CPUPEREVENTPERGHZ} total \n";
+               }
+                 $dataset->{did}=$ret->[0][0];
+                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  ";
+#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                 my $rtn=$self->{sqlserver}->Query($sql);
+                 if(defined $rtn){
+                  $template->{TOTALEVENTS}=$rtn->[0][0];
+                  $template->{TOTALRUNS}=$rtn->[0][1];
+                 }
+                 else{
+                     $template->{TOTALEVENTS}=0;
+                 }
+#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
+        $totevt+=$template->{TOTALEVENTS};
+        $totcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+        $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+              if($vrb){
+               print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} $template->{CPUPEREVENTPERGHZ} total \n";
+               }
+
+
+
+                 my $sqlsum="select sum(cputime*mips/1000/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+              my $r2= $self->{sqlserver}->Query($sqlsum);
+              my $sum=$r2->[0][0];
+                  $sqlsum="select count(cputime*mips/1000/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+              $r2= $self->{sqlserver}->Query($sqlsum);
+              my $count=$r2->[0][0];
+               $sqlsum="select sum(cputime*mips/1000/realtriggers*cputime*mips/1000/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+              $r2= $self->{sqlserver}->Query($sqlsum);
+              my $sum2=$r2->[0][0];
+#              print " $sum $count $sum2 \n";
+              if(defined $count and $count>0){
+                  $sum/=$count;
+                  $sum2/=$count;
+                  $sum2=sqrt(abs($sum2-$sum*$sum))/sqrt($count);
+              if($vrb){
+                  print " Sum/Sigma  $sum $sum2 \n";
+              }
+                  if($sum2/$sum<0.001){
+                      $sum2=$sum*0.001;
+                  }
+                  $template->{SUM}=$sum;
+                      $template->{SUM2}=$sum2;
+              }
+              if($fast){
+                  $sql="select sum(realtriggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
+                  my $rtn1=$self->{sqlserver}->Query($sql);
+                   my $tm=time();
+                  $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
+                  my $rtn2=$self->{sqlserver}->Query($sql);
+                  $completed+=$rtn1->[0][0];
+                  $submitted+=$rtn1->[0][0];
+                  $template->{TOTALEVENTS}-=$rtn1->[0][0];
+#                  $submitted+=$rtn2->[0][0];
+#                  $template->{TOTALEVENTS}-=$rtn2->[0][0];
+              }
+              else{
+                 $sql="select jid,time,triggers,timeout,realtriggers from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}'".$pps;
+                  $r2= $self->{sqlserver}->Query($sql);
+                 if(defined $r2->[0][0]){
+                     foreach my $job (@{$r2}){
+                       if (time()-$job->[1]>$job->[3] or $job->[4]>0){
+                         my $rtrig=$job->[4];
+                         if(not defined $rtrig ){
+                             if($vrb){
+                             warn " real trig not defined or 0 for $job->[0] \n";
+                             }
+                             $rtrig=0;
+                             $sql="select sum(LEvent-FEvent+1) from Runs where jid=$job->[0] and  (status='Completed')";
+                             my $r3=$self->{sqlserver}->Query($sql);
+                             if(defined $r3->[0][0]){
+                                 $rtrig=$r3->[0][0];
+                                 $sql="UPDATE Jobs SET realtriggers=$rtrig, timekill=0 WHERE jid=$job->[0]";
+                                 $self->{sqlserver}->Update($sql);
+                             }
+
+                         }
+#
+# take same from ntuples
+#
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,jobs where ntuples.jid=jobs.jid and jobs.jid=$job->[0]";
+                          my $r4=$self->{sqlserver}->Query($sql);
+                         my $ntevt=$r4->[0][0];
+                         if(not defined $ntevt){
+                             $ntevt=0;
+                         }
+                          if( $ntevt ne $rtrig  and $rtrig>0){
+                           warn "  ntuples/run mismatch $ntevt $rtrig $job->[0] \n";
+                       }
+                         if(defined $rtrig and $ntevt!=$rtrig and $ntevt>0){
+                           $sql="select  LEvent from dataRuns where jid=$job->[0]";
+                           my $qq=$self->{sqlserver}->Query($sql);
+                           my $levent=$qq->[0][0]+$ntevt-$rtrig;
+#                           warn "$levent $ntevt $rtrig $qq->[0][0] \n";
+                             $sql="UPDATE dataRuns SET Levent=$levent WHERE jid=$job->[0]";
+                              $self->{sqlserver}->Update($sql);
+                              $sql="UPDATE Jobs SET realtriggers=$ntevt WHERE jid=$job->[0]";
+                              $self->{sqlserver}->Update($sql);
+#                           die "qq \n";
+                       }
+                          $rtrig=$ntevt;
+                         $completed+=$rtrig;
+                         $submitted+=$rtrig;
+                         $template->{TOTALEVENTS}-=$rtrig;
+
+                     }
+
+                         else {
+#
+# subtract allocated events
+#                             $template->{TOTALEVENTS}-=$job->[2];
+#                              $submitted+=$job->[2]; 
+                         }
+                   }
+                 }
+             }
+          }
+           else{
+               if($vrb){
+               warn "Dataset $dataset->{name}  not defined, skipped \n";
+               }
+           }
+              if($vrb){
+        print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} rest \n";
+    }
+        if ( $template->{TOTALEVENTS} <0){
+            $template->{TOTALEVENTS}=0;
+        }
+       $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+        if(!$fast){
+        if(defined $template->{SUM} and abs( $template->{CPUPEREVENTPERGHZ} - $template->{SUM}) >3*$template->{SUM2}){
+                 warn " ***change*** $full  $template->{CPUPEREVENTPERGHZ} $template->{SUM} \n";
+           open(FILE,">".$full) or die "Unable to open dataset file $full \n";
+                 my $fac=$template->{CPUPEREVENTPERGHZ};
+                 my $newfac=int($template->{SUM}*100000)/100000.;
+                 $template->{bufi}=~ s/CPUPEREVENTPERGHZ=$fac/CPUPEREVENTPERGHZ=$newfac/;
+                 print FILE $template->{bufi};
+           close(FILE)
+           }
+         }
+     
+        $rcpu+=$template->{CPUPEREVENTPERGHZ}*$template->{TOTALEVENTS};
+         }
+    }
+
+   }
+
        push @tmpa, $dataset->{name},$totevt,int(1000*$submitted/($totevt+1))/10.,int(1000*$completed/($totevt+1))/10,int(10*$totcpu/86400,)/10.,int(10*$rcpu/86400)/10.;
        push @output, [@tmpa];
         if($vrb){
@@ -14405,7 +14608,8 @@ sub calculateMipsVC {
     push @output,[@tmpa];
 return @output;
 
-}
+    }
+
 
 sub getEventsLeft {
  my $self = shift;
@@ -16289,9 +16493,15 @@ sub UploadToCastor{
 #   1 if ok  0 otherwise
 #
 
-    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer)= @_;
+    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer,$datamc)= @_;
+  if(not defined $datamc){
+     $datamc=0;
+  }  
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
+    if($datamc !=0){
+    $castorPrefix = '/castor/cern.ch/ams/Data';
+    }
     my $errors=0;
     if(not defined $maxer){
         $maxer=2;
@@ -16326,7 +16536,8 @@ sub UploadToCastor{
         return 0;
     }
 
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+     
    $ret =$self->{sqlserver}->Query($sql);
    my $uplsize=0;
    foreach my $run (@{$ret}){
@@ -16337,7 +16548,7 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
-        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,undef,1);
+        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,undef,1,$datamc);
         if(!$ok){
             $errors++;
             if($errors>=$maxer){
@@ -16345,7 +16556,7 @@ sub UploadToCastor{
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%'";
+        $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and datamc=$datamc";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
@@ -16432,7 +16643,7 @@ sub UploadToCastor{
 #
    if($cmp){
       $self->CheckFS(1);
-      $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%'";
+      $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
       my $ret_nt =$self->{sqlserver}->Query($sql);
        foreach my $ntuple (@{$ret_nt}){
          if($ntuple->[0]=~/^#/){
@@ -16504,7 +16715,7 @@ sub CheckCRC{
 #   1 if ok  0 otherwise
 #
 # 
-    my ($self,$verbose,$irm,$update,$run2p,$force,$dir,$nocastoronly)= @_;
+    my ($self,$verbose,$irm,$update,$run2p,$force,$dir,$nocastoronly,$datamc)= @_;
     my $rm;                                                                                
     if($irm){
         $rm="rm -i ";
@@ -16528,7 +16739,13 @@ sub CheckCRC{
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
-    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '$castorPrefix%' "; 
+    if(not defined $datamc){
+        $datamc=0;
+    }
+    if($datamc!=0){
+        $delimiter='Data';
+    }
+    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '$castorPrefix%' and datamc=$datamc "; 
     if(!$force){
        $sql=$sql."  and ( ntuples.status='OK' or ntuples.status='Validated') ";
     }

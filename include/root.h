@@ -1989,7 +1989,7 @@ static  void hreset(int id);
 /// scale histogram id content by fac 
 static  void hscale(int id, double fac);
 /// fit 1d histogram by   func = "g" "e" "pN"
-static  void hfit1(int id,char func[]);
+static  void hfit1(int id,char func[],double xmin=0,double xmax=0);
 ///  change dir to dir
 static void chdir(const char dir[]="");
 /// list current dir

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.87 2007/12/21 16:24:51 choutko Exp $
+//  $Id: daqevt.C,v 1.88 2008/01/04 15:45:24 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -372,7 +372,7 @@ integer DAQEvent::_EventOK(){
      _pcur=_pData+2;
      for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL) {
       ntot+=*(_pcur)+_OffsetL;
-      if (AMSJob::gethead() -> isMonitoring()) {
+      if (AMSJob::gethead() && AMSJob::gethead() -> isMonitoring()) {
         int l   = *(_pcur) + _OffsetL;
         int bid = *(_pcur+1);
         int aid = bid;
@@ -392,7 +392,7 @@ integer DAQEvent::_EventOK(){
          }
       }
      }
-    if (AMSJob::gethead()->isMonitoring()) {
+    if (AMSJob::gethead() && AMSJob::gethead()->isMonitoring()) {
      HF1(300000,_Length,1.);
      if (tofL) HF1(300001,tofL,1.);
      if (trkL) HF1(300002,trkL,1.);
@@ -432,7 +432,7 @@ integer DAQEvent::_HeaderOK(){
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
-    if (AMSJob::gethead()->isMonitoring()) {
+    if (AMSJob::gethead() && AMSJob::gethead()->isMonitoring()) {
      if (Time_1 != 0 && _usec > Time_1) {
       geant d = _usec - Time_1;
             d = d/1000.;
@@ -453,7 +453,7 @@ integer DAQEvent::_HeaderOK(){
          _Time=tmin;
        }
        if(_Time>tmax){
-         cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
+         if(rep++<100)cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
     const uinteger _OffsetT=0x12d53d80;
          _Time-=_OffsetT;
        }
@@ -643,6 +643,7 @@ integer DAQEvent::read(){
   enum open_mode{binary=0x80};
   do{
     if(fbin.eof()){
+        fbin.clear();
 #ifdef __ALPHA__ 
  fbin.close();
 #else
@@ -734,11 +735,16 @@ DAQEvent::InitResult DAQEvent::init(){
 #endif
     fbin.open(fnam,ios::in);
     if(fbin){ 
+       cout <<"DAQEvent::init-I-opened file "<<fnam<<endl;
     if(Run){
      DAQEvent daq;
      integer run=-1;
      integer ok=1;
      integer iposr=0;
+     uinteger tfevent=0;
+     uinteger tlevent=0;
+     integer fevent=0;
+     integer levent=0;
      while(ok){
       if(GCFLAG.IEOTRI){
        cerr<<"DAQEvent::init-F-Interrupt"<<endl;
@@ -747,12 +753,26 @@ DAQEvent::InitResult DAQEvent::init(){
       fbin.clear();
       ok=daq.read();
       if(ok){
+         if(Run==-1){
+           SELECTFFKEY.Event+=1;
+          }
+
        iposr++;
          if (daq.runno() != run){
+         if(run>0){
+           cout <<" DAQEvent::init-I-Run "<<run<<" events "<<SELECTFFKEY.Event-1<<" "<<fevent<<" "<<levent<<endl;
+         }
           cout <<" DAQEvent::init-I-New Run "<<daq.runno()<<endl;
           run=daq.runno();
           Time_1 = 0;
+          fevent=daq.eventno();
+          tfevent=daq.time();
+          if(Run==-1){
+           SELECTFFKEY.Event=1;
+          }
         } 
+         levent=daq.eventno();
+         tlevent=daq.time();
          if(Event >=0 && daq.runno() == Run &&
          daq.eventno() >= Event)break;
          if(daq.runno() == Run && iposr ==-Event)break;
@@ -768,6 +788,10 @@ DAQEvent::InitResult DAQEvent::init(){
 
      }
      else {
+        if(run>0){
+           cout <<" DAQEvent::init-I-Run "<<run<<" events "<<SELECTFFKEY.Event<<" "<<fevent<<" "<<levent<<endl;
+         }
+
         cerr <<"DAQEvent::init-F-Failed to select Run = "<<
         Run<<" Event >= "<<Event<<endl;
         return UnableToFindRunEvent;
@@ -1002,19 +1026,25 @@ int DAQEvent::parser(char a[], char **& fname){
 #else
        ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
 #endif
-
+      int ngood=0;
       if(ntot>0){
           fname =new char*[ntot];
+          char ftemp[1025];
           for(int i=0;i<ntot;i++){
-            fname[i]=new char[strlen(a)+strlen(namelist[i]->d_name)+1];
-            strcpy(fname[i],a);
-            strcat(fname[i],namelist[i]->d_name);
-//             cout << i<< "  "<< fname[i]<<endl;
+            strcpy(ftemp,a);
+            strcat(ftemp,namelist[i]->d_name);
+           struct stat statbuf;
+          if(!stat (ftemp,&statbuf) && statbuf.st_size>0){
+            fname[ngood]=new char[strlen(a)+strlen(namelist[i]->d_name)+1];
+            strcpy(fname[ngood],a);
+            strcat(fname[ngood++],namelist[i]->d_name);
+//             cout << i<< "  "<< fname[ngood-1]<<endl;
+           }
             free(namelist[i]);
           }
           free(namelist);
       }
-      return ntot>0?ntot:0;      
+      return ngood>0?ngood:0;      
   }
 
 
