@@ -10,7 +10,9 @@ integer AMSTRDCluster::build(int rerun){
     number Thr1R=TRDCLFFKEY.Thr1R;
     number Thr1H=TRDCLFFKEY.Thr1H/TRDCLFFKEY.ADC2KeV;
     number adc[trdconst::maxtube+3];
+    AMSTRDRawHit * ptra[trdconst::maxtube+3];
     VZERO(adc,sizeof(adc)/sizeof(integer));
+    VZERO(ptra,sizeof(ptra)/sizeof(integer));
     for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
      AMSTRDRawHit * ptr=
      (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2);  
@@ -20,6 +22,7 @@ integer AMSTRDCluster::build(int rerun){
        integer ilad=id.getladder();
        if(ptr->testlast()){
         adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
+        ptra[ptr->getidsoft().gettube()]=ptr;
 #ifdef __AMSDEBUG__
         if(id.getgain()<=0){
           cerr <<"AMSTRDCluster::build-E-zero gain for "<<id<<" "<<id.getgain()<<endl;
@@ -65,6 +68,8 @@ integer AMSTRDCluster::build(int rerun){
           number ssum=0;
           number pos=0;
           number rms=0;
+           AMSTRDRawHit* ptrmx=ptr;
+           number adcmx=-1;
           for (int j=left;j<right+1;j++){
            id.upd(j);
            if(status==AMSDBc::WIDE && j==right){
@@ -73,6 +78,11 @@ integer AMSTRDCluster::build(int rerun){
             ssum+=id.getsig()*id.getsig();
             pos+=(j-center)*adc[j]/2;
             rms+=(j-center)*(j-center)*adc[j]/2;
+             if(adc[j]/2>adcmx && ptra[j]){
+               adcmx=adc[j]/2;
+               ptrmx=ptra[j];
+              }
+
             adc[j]=adc[j]/2;
            }            
            else{
@@ -81,6 +91,10 @@ integer AMSTRDCluster::build(int rerun){
               ssum+=id.getsig()*id.getsig();
               pos+=(j-center)*adc[j];
               rms+=(j-center)*(j-center)*adc[j];
+              if(adc[j]>adcmx && ptra[j]){
+               adcmx=adc[j];
+               ptrmx=ptra[j];
+              }
               adc[j]=0;
            }
           }
@@ -103,83 +117,97 @@ integer AMSTRDCluster::build(int rerun){
            coo=coo+cdir*pos;           
            AMSDir zdir(fabs(pv->getnrmA(0,2)),fabs(pv->getnrmA(1,2)),fabs(pv->getnrmA(2,2)));
            ptr->setstatus(AMSDBc::USED);
+           for (int j=left;j<right+1;j++){
+             if(ptra[j]){
+              (ptra[j])->setstatus(AMSDBc::USED);
+             }
+           }
            status=status | AMSDBc::GOOD;
-           AMSEvent::gethead()->addnext(AMSID("AMSTRDCluster",ilay),new AMSTRDCluster(status,ilay,coo,rad,z,zdir,sum*TRDCLFFKEY.ADC2KeV,right-left+1,hmul,ptr)); 
-          }
-          else {
-           cerr<< "AMSTRDCluster::build-S-Nogeomvolumefound "<<idg.crgid()<<endl;
-          }          
-         }
-         else if(adc[i]>Thr1A){
-          id.upd(i);
-          if(id.checkstatus(AMSDBc::BAD)==0 && 
-           id.getsig() < Thr1S && 
-           adc[i]/id.getsig() >Thr1R){
-           ref=adc[i];
-          }
-         }
-       }
-         VZERO(adc,sizeof(adc)/sizeof(integer));
-      }
-      else adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
-        ptr=ptr->next();
-      }
-    }
-return 1;
-}
+           //cout <<" center "<<center<<" "<<ptra[center]<<endl;
+           if(adcmx<Thr1A){
+		     //cout <<" pisec "<<adcmx<<" "<<sum<<endl;
+		   }
+		   if(sum>Thr1A){
+		   AMSEvent::gethead()->addnext(AMSID("AMSTRDCluster",ilay),new AMSTRDCluster(status,ilay,coo,rad,z,zdir,sum*TRDCLFFKEY.ADC2KeV,right-left+1,hmul,ptrmx)); 
+		  }
+	}
+		  else {
+		   cerr<< "AMSTRDCluster::build-S-Nogeomvolumefound "<<idg.crgid()<<endl;
+		  }          
+		 }
+		 else if(adc[i]>Thr1A){
+		  id.upd(i);
+		  if(id.checkstatus(AMSDBc::BAD)==0 && 
+		   id.getsig() < Thr1S && 
+		   adc[i]/id.getsig() >Thr1R){
+		   ref=adc[i];
+		  }
+		 }
+	       }
+		 VZERO(adc,sizeof(adc)/sizeof(integer));
+	      }
+	      else{
+                 adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
+                 ptra[ptr->getidsoft().gettube()]=ptr;
+                }
+		ptr=ptr->next();
+	      }
+	    }
+	return 1;
+	}
 
 
 
-void AMSTRDCluster::_writeEl(){
-  integer flag =    (IOPA.WriteAll%10==1)
-                 || (checkstatus(AMSDBc::USED));
-  if(AMSTRDCluster::Out(flag) ){
-#ifdef __WRITEROOT__
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
-  TRDClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdcl();
+	void AMSTRDCluster::_writeEl(){
+	  integer flag =    (IOPA.WriteAll%10==1)
+			 || (checkstatus(AMSDBc::USED));
+	  if(AMSTRDCluster::Out(flag) ){
+	#ifdef __WRITEROOT__
+	    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+	#endif
+	  TRDClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdcl();
 
-   if (TrN->Ntrdcl>=MAXTRDCL) return;
-   TrN->Status[TrN->Ntrdcl]=_status;
-   TrN->Layer[TrN->Ntrdcl]=_layer;
-   for(int i=0;i<3;i++)TrN->Coo[TrN->Ntrdcl][i]=_Coo[i];
-   for(int i=0;i<3;i++)TrN->CooDir[TrN->Ntrdcl][i]=_CooDir[i];
-   TrN->Multip[TrN->Ntrdcl]=_Multiplicity;
-   TrN->HMultip[TrN->Ntrdcl]=_HighMultiplicity;
-   TrN->EDep[TrN->Ntrdcl]=_Edep;
-   TrN->pRawHit[TrN->Ntrdcl]=_pmaxhit->getpos();
-   if(AMSTRDRawHit::Out(IOPA.WriteAll%10==1)){
-      for(int i=0;i<_pmaxhit->getidsoft().getcrate();i++){
-        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDRawHit",i);
-        TrN->pRawHit[TrN->Ntrdcl]+=pc->getnelem();
-      }
-   }
-    else{
-      //Write only USED hits
-      for(int i=0;i<_pmaxhit->getidsoft().getcrate();i++){
-        AMSTRDRawHit *ptr=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",i);
-        while(ptr && ptr->checkstatus(AMSDBc::USED) ){
-         TrN->pRawHit[TrN->Ntrdcl]++;
-          ptr=ptr->next();
-        }
-      }
-    }
-   TrN->Ntrdcl++;
-  }
+	   if (TrN->Ntrdcl>=MAXTRDCL) return;
+	   TrN->Status[TrN->Ntrdcl]=_status;
+	   TrN->Layer[TrN->Ntrdcl]=_layer;
+	   for(int i=0;i<3;i++)TrN->Coo[TrN->Ntrdcl][i]=_Coo[i];
+	   for(int i=0;i<3;i++)TrN->CooDir[TrN->Ntrdcl][i]=_CooDir[i];
+	   TrN->Multip[TrN->Ntrdcl]=_Multiplicity;
+	   TrN->HMultip[TrN->Ntrdcl]=_HighMultiplicity;
+	   TrN->EDep[TrN->Ntrdcl]=_Edep;
+	   TrN->pRawHit[TrN->Ntrdcl]=_pmaxhit->getpos();
+	   if(AMSTRDRawHit::Out(IOPA.WriteAll%10==1)){
+	      for(int i=0;i<_pmaxhit->getidsoft().getcrate();i++){
+		AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDRawHit",i);
+		TrN->pRawHit[TrN->Ntrdcl]+=pc->getnelem();
+	      }
+	   }
+	    else{
+	      //Write only USED hits
+	      for(int i=0;i<_pmaxhit->getidsoft().getcrate();i++){
+		AMSTRDRawHit *ptr=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",i);
+		while(ptr && ptr->checkstatus(AMSDBc::USED) ){
+		 TrN->pRawHit[TrN->Ntrdcl]++;
+		  ptr=ptr->next();
+		}
+	      }
+	    }
+	   TrN->Ntrdcl++;
+	  }
 
 
-}
+	}
 
-void AMSTRDCluster::_copyEl(){
-#ifdef __WRITEROOT__
- if(PointerNotSet())return;
-   TrdClusterR & ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrdCluster(_vpos);
-    if (_pmaxhit) ptr.fTrdRawHit= _pmaxhit->GetClonePointer();
-    else ptr.fTrdRawHit=-1;
-#endif
-}
+	void AMSTRDCluster::_copyEl(){
+	#ifdef __WRITEROOT__
+	 if(PointerNotSet())return;
+	   TrdClusterR & ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrdCluster(_vpos);
+	    if (_pmaxhit) ptr.fTrdRawHit= _pmaxhit->GetClonePointer();
+	    else ptr.fTrdRawHit=-1;
+	#endif
+	}
 
-void AMSTRDCluster::_printEl(ostream &o){
+	void AMSTRDCluster::_printEl(ostream &o){
 o<<_layer<<" "<<"Multiplicity "<<_Multiplicity<<" Ampl "<<_Edep<<" Dir&Coo "<<_CooDir<<_Coo<<endl;
 }
 

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.16 2005/02/23 15:33:14 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.17 2008/01/07 11:04:51 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -329,7 +329,7 @@ if(pcl){
   u[0]=sin(pcl->Theta)*cos(pcl->Phi);
   u[1]=sin(pcl->Theta)*sin(pcl->Phi);
   u[2]=cos(pcl->Theta);
-  float z1=85;   //tmp
+  float z1=65;   //tmp
   float x1=pcl->Coo[0]+u[0]/u[2]*(z1-pcl->Coo[2]);
   float y1=pcl->Coo[1]+u[1]/u[2]*(z1-pcl->Coo[2]);
  float z2=150; 

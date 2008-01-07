@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.40 2008/01/04 15:45:25 choutko Exp $
+//  $Id: tofrec02.C,v 1.41 2008/01/07 11:04:49 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1399,7 +1399,7 @@ void AMSTOFCluster::build2(int &stat){
       }
       if((status&TOFGC::SCBADB3)>0)ok=0;//bar "ib" is bad for t-meas. according to DB
 //
-      if(ok==1 && ib+1<bmax && eplane[ib+1]> TFREFFKEY.Thr1){// try next(adjacent) bar if prev.OK
+      if(ib+1<bmax && eplane[ib+1]> TFREFFKEY.Thr1){// try next(adjacent) bar if prev.OK
         ptrn=xptr[ib+1];
         barl=TOF2DBc::brlen(il,ib+1);// peak bar length
         czn=ptrn->getz();          //next bar(raw clust) Z-coord.
@@ -1417,9 +1417,8 @@ void AMSTOFCluster::build2(int &stat){
           else cln=-clnm;
 	  ok=0;//means bar with suspicious time measurement 
         }
-	if(ok==1 && (statusn&TOFGC::SCBADB2)==0
-                 && (statusn&TOFGC::SCBADB3)==0	
-	                                       ){//<--- next bar good for gluing ?
+        bool okb=ok==1 && (statusn&TOFGC::SCBADB2)==0 && (statusn&TOFGC::SCBADB3)==0;
+	if(	1 ){
           timen=ptrn->gettime();// time from ib+1 bar(ns) 
           etimen=TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(0.15ns,later put in TOFBrcal needed data!)
 	  if(TFREFFKEY.reprtf[2]>0){
@@ -1428,15 +1427,28 @@ void AMSTOFCluster::build2(int &stat){
 	  }
 	  if(fabs(time-timen)<3*etime*sqrt(2.)  
 	             && fabs(cl-cln)<3*clne*sqrt(2.)){//t+coo match -> create cluster(glue "next")
+           if(okb){
 	    etime=etime/sqrt(2.);//recalc. parameters using glued bar
 	    time=0.5*(time+timen);
 	    cle=cle/sqrt(2.);
 	    cl=0.5*(cl+cln);
+            }
 	    cte=(TOF2DBc::plnstr(3)+TOF2DBc::plnstr(4)
+            
 	                           +TOF2DBc::plnstr(6))/sqrt(12.);//max.estim(overlap+v.gap+thickn)
-	    ct=0.5*(ct+ctn);
+//	    ct=0.5*(ct+ctn);
+//          here have to be carefull as bars are not nec rect  vc 07.0.108
+            if(ib>0 && ib+1<bmax-1){
+         	    ct=0.5*(ct+ctn);
+            }
+            else if(ib==0){
+             ct=ctn-barw/2;
+            }
+            else{
+              ct=ct+barw/2;
+            }
 	    cz=0.5*(cz+czn);
-	    if(edep<edepn)barn=ib+2;//use bar-number for cluster from highest edep bar 
+	    if(edep<edepn && okb)barn=ib+2;//use bar-number for cluster from highest edep bar 
 	    edass=(edep-edepn)/(edep+edepn);//edep,edepn>thresh>0 
 	    if(TFREFFKEY.reprtf[2]>0)HF1(1548,edass,1.);
             if(fabs(edass)<TOF2Varp::tofvpar.eclass()){//tempor(need real data to clarify algor.)

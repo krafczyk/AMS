@@ -10,6 +10,7 @@ bool IsGolden(AMSEventR *ev){
 // This is a user function to be modified
 //  return true if event has to be drawn false otherwise
 //
+/*
  if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>2 ){
    cout <<"working "<<(ev->TrdTrack(0)).NTrdSegment()<<endl;
    int ib=0;
@@ -37,6 +38,21 @@ bool IsGolden(AMSEventR *ev){
    }
    return false;
  }
+*/
+ if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>3 ){
+
+    int nmemb=0;
+    int nlay=0;
+    for (int i=0;i<ev->nTofCluster();i++){
+     if(ev->TofCluster(i).Layer<3){
+     nlay+=ev->TofCluster(i).Layer;
+      if(ev->TofCluster(i).NTofRawCluster()==2)nmemb+=ev->TofCluster(i).Layer;
+     }
+    }
+    if(nlay==3 && nmemb==3)return true;
+    else return false;     
+
+    }     
   else return false;
 }
 };

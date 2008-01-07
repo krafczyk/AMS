@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.510 2008/01/04 15:45:25 choutko Exp $
+// $Id: job.C,v 1.511 2008/01/07 11:04:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -944,10 +944,10 @@ TRDMCFFKEY.day[1]=1;
 TRDMCFFKEY.mon[0]=0;
 TRDMCFFKEY.mon[1]=0;
 TRDMCFFKEY.year[0]=101;
-TRDMCFFKEY.year[1]=110;
+TRDMCFFKEY.year[1]=112;
 TRDMCFFKEY.GenerateConst=0;
 TRDMCFFKEY.NoiseLevel=0.01;
-TRDMCFFKEY.DeadLevel=0.015;
+TRDMCFFKEY.DeadLevel=0.;
 TRDMCFFKEY.multiples=0;
 
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1190,7 +1190,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.mon[0]=0;
   TFREFFKEY.mon[1]=0;
   TFREFFKEY.year[0]=101;//(since year 1900)
-  TFREFFKEY.year[1]=110;//(42)
+  TFREFFKEY.year[1]=112;//(42)
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -1266,7 +1266,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.mon[0]=0;
   ATREFFKEY.mon[1]=0;
   ATREFFKEY.year[0]=101;//(21)
-  ATREFFKEY.year[1]=110;//(22)
+  ATREFFKEY.year[1]=112;//(22)
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   ATCAFFKEY.cfvers=4; //(1) not used now (spare)
@@ -1328,7 +1328,7 @@ CHARGEFITFFKEY.day[1]=1;
 CHARGEFITFFKEY.mon[0]=0;
 CHARGEFITFFKEY.mon[1]=0;
 CHARGEFITFFKEY.year[0]=101;
-CHARGEFITFFKEY.year[1]=110;
+CHARGEFITFFKEY.year[1]=112;
 //-------
 BETAFITFFKEY.pattern[0]=1;
 BETAFITFFKEY.pattern[1]=1;
@@ -2556,16 +2556,16 @@ end.tm_mon=TRDMCFFKEY.mon[1];
 end.tm_year=TRDMCFFKEY.year[1];
  TID.add (new AMSTimeID(AMSID("TRDPedestals",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
-    (void*)AMSTRDIdSoft::_ped,server,NeededByDefault));
+    (void*)AMSTRDIdSoft::_ped,server,1));
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
-    (void*)AMSTRDIdSoft::_gain,server,NeededByDefault));
+    (void*)AMSTRDIdSoft::_gain,server,1));
  TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::getsigsize(),
-    (void*)AMSTRDIdSoft::_sig,server,NeededByDefault));
+    (void*)AMSTRDIdSoft::_sig,server,1));
  TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
-    (void*)AMSTRDIdSoft::_status,server,NeededByDefault));
+    (void*)AMSTRDIdSoft::_status,server,1));
 }
 
 
