@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.23 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.24 2008/01/07 16:22:25 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -591,7 +591,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   for(int i=0;i<ntofrs;i++){ // <--- loop over TOF2RawSide hits
     p2raws=ntuple->pTofRawSide(i);
     swid=p2raws->swid;//LBBS
-    hwid=p2raws->hwid;//CS
+    hwid=(p2raws->hwidt)/10000;//CS
     crat=hwid/10;
     slot=hwid%10;
     nfthits=p2raws->nftdc;

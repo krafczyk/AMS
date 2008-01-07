@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.41 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.42 2008/01/07 16:22:15 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1626,29 +1626,59 @@ void TOF2JobStat::printstat(){
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][2],sltr[1][5][2],sltr[2][5][2],sltr[3][5][2]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][2],sltr[1][6][2],sltr[2][6][2],sltr[3][6][2]);
   printf("\n");
-  printf("SFET_1  NonTDC_Wtype   :  %7d   %7d   %7d   %7d\n",sltr[0][1][3],sltr[1][1][3],sltr[2][1][3],sltr[3][1][3]);
+  printf("SFET_1  SkipBadWtype   :  %7d   %7d   %7d   %7d\n",sltr[0][1][3],sltr[1][1][3],sltr[2][1][3],sltr[3][1][3]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][3],sltr[1][2][3],sltr[2][2][3],sltr[3][2][3]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][3],sltr[1][4][3],sltr[2][4][3],sltr[3][4][3]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][3],sltr[1][5][3],sltr[2][5][3],sltr[3][5][3]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][3],sltr[1][6][3],sltr[2][6][3],sltr[3][6][3]);
   printf("\n");
-  printf("SFET_1 TDC_BadStr/Tout :  %7d   %7d   %7d   %7d\n",sltr[0][1][4],sltr[1][1][4],sltr[2][1][4],sltr[3][1][4]);
+  printf("SFET_1   NoTrailer     :  %7d   %7d   %7d   %7d\n",sltr[0][1][4],sltr[1][1][4],sltr[2][1][4],sltr[3][1][4]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][4],sltr[1][2][4],sltr[2][2][4],sltr[3][2][4]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][4],sltr[1][4][4],sltr[2][4][4],sltr[3][4][4]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][4],sltr[1][5][4],sltr[2][5][4],sltr[3][5][4]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][4],sltr[1][6][4],sltr[2][6][4],sltr[3][6][4]);
   printf("\n");
-  printf("SFET_1 TDC_InternErr   :  %7d   %7d   %7d   %7d\n",sltr[0][1][5],sltr[1][1][5],sltr[2][1][5],sltr[3][1][5]);
+  printf("SFET_1   TrailerAlone  :  %7d   %7d   %7d   %7d\n",sltr[0][1][5],sltr[1][1][5],sltr[2][1][5],sltr[3][1][5]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][5],sltr[1][2][5],sltr[2][2][5],sltr[3][2][5]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][5],sltr[1][4][5],sltr[2][4][5],sltr[3][4][5]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][5],sltr[1][5][5],sltr[2][5][5],sltr[3][5][5]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][5],sltr[1][6][5],sltr[2][6][5],sltr[3][6][5]);
   printf("\n");
-  printf("SFET_1  TDC_Data_OK    :  %7d   %7d   %7d   %7d\n",sltr[0][1][6],sltr[1][1][6],sltr[2][1][6],sltr[3][1][6]);
+  printf("SFET_1 TDC_BadStr/Tout :  %7d   %7d   %7d   %7d\n",sltr[0][1][6],sltr[1][1][6],sltr[2][1][6],sltr[3][1][6]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][6],sltr[1][2][6],sltr[2][2][6],sltr[3][2][6]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][6],sltr[1][4][6],sltr[2][4][6],sltr[3][4][6]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][6],sltr[1][5][6],sltr[2][5][6],sltr[3][5][6]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][6],sltr[1][6][6],sltr[2][6][6],sltr[3][6][6]);
+  printf("\n");
+  printf("SFET_1 Trail+ErrW only :  %7d   %7d   %7d   %7d\n",sltr[0][1][7],sltr[1][1][7],sltr[2][1][7],sltr[3][1][7]);
+  printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][7],sltr[1][2][7],sltr[2][2][7],sltr[3][2][7]);
+  printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][7],sltr[1][4][7],sltr[2][4][7],sltr[3][4][7]);
+  printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][7],sltr[1][5][7],sltr[2][5][7],sltr[3][5][7]);
+  printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][7],sltr[1][6][7],sltr[2][6][7],sltr[3][6][7]);
+  printf("\n");
+  printf("SFET_1 NoHead | NoTemp :  %7d   %7d   %7d   %7d\n",sltr[0][1][8],sltr[1][1][8],sltr[2][1][8],sltr[3][1][8]);
+  printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][8],sltr[1][2][8],sltr[2][2][8],sltr[3][2][8]);
+  printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][8],sltr[1][4][8],sltr[2][4][8],sltr[3][4][8]);
+  printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][8],sltr[1][5][8],sltr[2][5][8],sltr[3][5][8]);
+  printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][8],sltr[1][6][8],sltr[2][6][8],sltr[3][6][8]);
+  printf("\n");
+  printf("SFET_1     TimeOut     :  %7d   %7d   %7d   %7d\n",sltr[0][1][9],sltr[1][1][9],sltr[2][1][9],sltr[3][1][9]);
+  printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][9],sltr[1][2][9],sltr[2][2][9],sltr[3][2][9]);
+  printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][9],sltr[1][4][9],sltr[2][4][9],sltr[3][4][9]);
+  printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][9],sltr[1][5][9],sltr[2][5][9],sltr[3][5][9]);
+  printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][9],sltr[1][6][9],sltr[2][6][9],sltr[3][6][9]);
+  printf("\n");
+  printf("SFET_1  StructOK+ErrW  :  %7d   %7d   %7d   %7d\n",sltr[0][1][10],sltr[1][1][10],sltr[2][1][10],sltr[3][1][10]);
+  printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][10],sltr[1][2][10],sltr[2][2][10],sltr[3][2][10]);
+  printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][10],sltr[1][4][10],sltr[2][4][10],sltr[3][4][10]);
+  printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][10],sltr[1][5][10],sltr[2][5][10],sltr[3][5][10]);
+  printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][10],sltr[1][6][10],sltr[2][6][10],sltr[3][6][10]);
+  printf("\n");
+  printf("SFET_1  TDC_Data_OK    :  %7d   %7d   %7d   %7d\n",sltr[0][1][11],sltr[1][1][11],sltr[2][1][11],sltr[3][1][11]);
+  printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][11],sltr[1][2][11],sltr[2][2][11],sltr[3][2][11]);
+  printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][11],sltr[1][4][11],sltr[2][4][11],sltr[3][4][11]);
+  printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][11],sltr[1][5][11],sltr[2][5][11],sltr[3][5][11]);
+  printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][11],sltr[1][6][11],sltr[2][6][11],sltr[3][6][11]);
   printf("\n");
   printf("-----> Charge-channels statistics :\n\n");
   for(icr=0;icr<TOF2GC::SCCRAT;icr++){
@@ -2348,8 +2378,9 @@ void TOF2JobStat::printstat(){
 }
 //------------------------------------------
 void TOF2JobStat::bookhist(){
-  int i,j,k,ich,il,ib,ii,jj,ic,is;
-  char htit1[60];
+  int i,j,k,ich,il,ib,ii,jj,ic,is,id;
+  char htit1[80];
+  char idname[80];
   char inum[11];
   char in[2]="0";
 //
@@ -2428,18 +2459,22 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1549,"TOFClus cand. Y-match(cm, dt ok)",80,-40.,40.,0.);
     HBOOK1(1550,"TOFClus cand. T-match(ns)",80,-10.,10.,0.);
 //
-//    if(TFREFFKEY.relogic[0]==1){ // <==================== STRR-calibration
-//      HBOOK1(1200,"Stretcher-ratio for indiv. channel,bin.meth",80,35.,55.,0.);
-//      HBOOK1(1201,"Offsets for indiv. channels,bin.meth",80,-100.,2300.,0.);
-//      HBOOK1(1202,"Chi2 for indiv. channel,bin.meth",50,0.,10.,0.);
-//      HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit,bin.meth",50,0.,10.,0.);
-//      HBOOK1(1205,"Stretcher-ratio for indiv. channel,pnt.meth",80,35.,55.,0.);
-//      HBOOK1(1206,"Offsets for indiv. channels,pnt.meth",80,-100.,2300.,0.);
-//      HBOOK1(1207,"Chi2 for indiv. channel,pnt.meth",50,0.,10.,0.);
-//      HBOOK1(1208,"Stretcher-ratio for indiv. channel,comb.meth",80,35.,55.,0.);
-//      HBOOK1(1209,"Offsets for indiv. channels,comb.meth",80,-100.,2300.,0.);
-//      HBOOK1(1210,"Chi2 for indiv. channel,comb.meth",50,0.,10.,0.);
-      
+    if(TFREFFKEY.reprtf[4]==1){ // <==================== TOF-debug
+      for(il=0;il<TOF2GC::SCLRS;il++){// RawADC histogr
+        for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+          for(is=0;is<2;is++){
+            strcpy(htit1,"Raw AnodeADC for chan(LBBS):");
+	    id=1000*(il+1)+10*(ib+1)+is+1;
+	    sprintf(idname,"%d",id);
+	    strcat(htit1,idname);
+	    ich=2*TOF2DBc::barseqn(il,ib)+is;//0-67
+	    HBOOK1(1400+ich,htit1,50,0.,250.,0.);
+	  }
+        }
+      }
+      HBOOK1(1470," A>25,trpat>0",32,0.,32.,0.);
+      HBOOK1(1471," A>25,trpat=0",32,0.,32.,0.);
+    }
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1781 are booked in init-function for BarRawTime histogr.!!!(TDLV)
 //    }
@@ -2629,7 +2664,7 @@ void TOF2JobStat::bookhistmc(){
 }
 //----------------------------
 void TOF2JobStat::outp(){
-  int i,j,k,ich;
+  int i,j,k,ich,il,ib,is;
   geant dedx[TOF2GC::SCMXBR],dedxe[TOF2GC::SCMXBR];
        if(TFREFFKEY.reprtf[2]!=0){ // print RECO-hists
          HPRINT(1535);
@@ -2702,6 +2737,20 @@ void TOF2JobStat::outp(){
              }
            }
          }
+//---
+         if(TFREFFKEY.reprtf[4]==1){ // <==================== TOF-debug
+           for(il=0;il<TOF2GC::SCLRS;il++){// RawADC histogr
+             for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+               for(is=0;is<2;is++){
+	         ich=2*TOF2DBc::barseqn(il,ib)+is;//0-67
+	         HPRINT(1400+ich);
+	       }
+             }
+           }
+	   HPRINT(1470);
+	   HPRINT(1471);
+         }
+//--- 
        }
 // ---> calibration specific :
        if(TFREFFKEY.relogic[0]==3){// for TZSL-calibr. runs

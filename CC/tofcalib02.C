@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.21 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.22 2008/01/07 16:22:15 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4188,8 +4188,8 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
     strcat(htit1,in);
     id=1790+i;
     HBOOK1(id,htit1,50,1.,51.,0.);
-    HMINIM(id,75.);
-    HMAXIM(id,125.);
+    HMINIM(id,10.);
+    HMAXIM(id,510.);
   }
   for(i=0;i<2;i++){
     strcpy(htit1,"Anode ped-rms vs paddle for Side-");
@@ -4209,8 +4209,8 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
       strcat(htit1,in);
       id=1794+3*i+j;
       HBOOK1(id,htit1,50,1.,51.,0.);
-      HMINIM(id,75.);
-      HMAXIM(id,125.);
+      HMINIM(id,10.);
+      HMAXIM(id,510.);
     }
   }
   for(i=0;i<2;i++){
@@ -4463,7 +4463,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
 	     cout<<" ped/rms2="<<adc[ch][pm]<<" "<<adc2[ch][pm]<<endl;
 	     if(adc2[ch][pm]>0
 	                     && adc2[ch][pm]<=(TFPCSIMX*TFPCSIMX)
-		                                    && adc[ch][pm]<300){//chan.OK
+		                                    && adc[ch][pm]<500){//chan.OK
 	       peds[ch][pm]=geant(adc[ch][pm]);
 	       sigs[ch][pm]=geant(sqrt(adc2[ch][pm]));
 	       stas[ch][pm]=0;//ok
@@ -4507,6 +4507,10 @@ void TOFPedCalib::outp(int flg){// very preliminary
    cout<<"TOFPedCalib: MinAcceptableStatistics/channel was:"<<statmin<<endl; 
 //   
 // ---> prepare update of DB :
+   if(statmin==9999){
+     cout<<"<---- TOFPedCalib: No channels with good statistics - abort writing of outp file !!!"<<endl;
+     goto IgnoreWrite;
+   }
    if(flg==1){
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofpeds",AMSJob::gethead()->isRealData()));
@@ -4537,8 +4541,9 @@ void TOFPedCalib::outp(int flg){// very preliminary
      }
      sprintf(buf,"%d",runn);
      strcat(name,buf);
-     if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-     if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+//     if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+//     if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcpy(fname,"");
      strcat(fname,name);
      cout<<"Open file : "<<fname<<'\n';
      cout<<" Date of the first used event : "<<DataDate<<endl;
@@ -4604,6 +4609,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
 //
    }//--->endof file writing 
 //
+IgnoreWrite:
    for(i=0;i<22;i++)HPRINT(1790+i);
    cout<<endl;
    cout<<"====================== TOFPedCalib: job is completed ! ======================"<<endl;

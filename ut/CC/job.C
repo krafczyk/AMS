@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.512 2008/01/07 11:14:44 choutko Exp $
+// $Id: job.C,v 1.513 2008/01/07 16:22:15 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -340,7 +340,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.RebuildLVL1=0;//(11) (for RealData) rebuil lvl1-obj from subdet.RawEvent objects
 // 
   TGL1FFKEY.MaxScalersRate=20000;//(12)
-  TGL1FFKEY.MinLifeTime=0.015;//(13)
+  TGL1FFKEY.MinLifeTime=0.;//(13)
 //
 // --> orbit:
   TGL1FFKEY.TheMagCut=0.7;// (14)geom.latitude cut for anti-cut selection(below-#5, above-#6)

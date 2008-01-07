@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.15 2007/12/11 08:17:49 choumilo Exp $
+//  $Id: daqs2block.C,v 1.16 2008/01/07 16:22:14 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -65,7 +65,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 // Length counting does not includes length-word itself !!! 
 //
   integer i,j,il,ib,is,ic,icn,nh,lent,im,irl1,irl2,irs1,irs2;
-  int swid,swidn,pmmx,hwid,hwidc,hwidt,hwidq[4];
+  int swid,swidn,pmmx,hwid,hwidc,hwidt,hwidq[4],hwidtc;
   int16u sswid,sswidn,shwid;
   int16u mt,pmt,mtyp,swch,bpnt,rdch,inch,slot,crat,slid,csid,val16,tsens,sslot;
   int16u blid,dtyp,naddr,datyp,len,lenraw(0),lencom(0),sdrlen,formt,evnum;
@@ -96,8 +96,8 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool PedCal(false);//means PedCal job, using event-by-event in RawFMT or DownScaled 
   bool DownScal(false);//tempor:  how to recognize it ???
   static int FirstDScalBlk(0);
-//  int16u PedSubt[SCCRAT]={1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
-  int16u PedSubt[SCCRAT]={0,0,0,0};//temporTest 0/1->no/yes PedSubtr at RawEvent creation
+  int16u PedSubt[SCCRAT]={1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
+//  int16u PedSubt[SCCRAT]={0,0,0,0};//temporTest 0/1->no/yes PedSubtr at RawEvent creation
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -148,8 +148,12 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool noerr;
   naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
   datyp=(blid&(0x00C0))>>6;//0,1,2,3
-//cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
-//cout<<"      leng(in call)="<<leng<<" eventn="<<*(p+1)<<endl;
+//
+  if(TFREFFKEY.reprtf[4]>1){//debug
+    cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
+    cout<<"      leng(in call)="<<leng<<endl;
+  }
+//
   if(datyp>0 && len>1){
     if(pedblk)TOF2JobStat::daqsfr(8);//<=== count non-empty fragments of PedTable-type
     else TOF2JobStat::daqsfr(1+datyp);//<=== count non-empty fragments of given DATA-type
@@ -166,7 +170,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //---------
   if(TFREFFKEY.relogic[0]==5
              || ATREFFKEY.relogic==2)PedCal=true;//tempor(use later info on ClassPedData presence from header ?)
-  if(!PedCal && (TFREFFKEY.relogic[1]==5 || ATREFFKEY.relogic==2)){
+  if(!PedCal && (TFREFFKEY.relogic[0]==5 || ATREFFKEY.relogic==2)){
     cout<<"DAQS2Block::buildraw-W-Not ClassicPedCalibData when classic PedCal job is requested !!!"<<endl;
     return;
   }
@@ -198,30 +202,10 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //
   if(formt==2)bufpnt=SCRCMX;//pointer to 2nd half of decoded buffer to store Raw format
 // data if mixed format; if non-mixed format - decoded data are stored in 1st half of the buffer
-//----- 
-#ifdef __AMSDEBUG__
-  if(TFREFFKEY.reprtf[1]>=1 || ATREFFKEY.reprtf[1]>=1){
-    cout<<"-----------------------------------------------------------"<<endl;
-    cout<<"   DAQS2Block::decoding: Segment_id="<<hex<<blid<<dec<<endl; 
-    cout<<"      node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" crate="<<crat<<endl;
-    cout<<"      block_length="<<len<<endl<<endl;
 //
-    cout<<"  Block hex/binary dump follows :"<<endl<<endl;
-    int16u tstw,tstb;
-    for(i=0;i<len+1;i++){
-      tstw=*(p+i);
-      cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
-      for(j=0;j<16;j++){
-        tstb=(1<<(15-j));
-        if((tstw&tstb)!=0)cout<<"x"<<"|";
-        else cout<<" "<<"|";
-      }
-      cout<<endl;
-    }
-    cout<<dec<<endl<<endl;
-  }
-#endif
-//============================> "On_Board_PedCalib_Table" processing (if present):
+  if(TFREFFKEY.reprtf[4]>1)EventBitDump(leng,p,"Event-by-event:");//debug
+// 
+//============================> "On_Board_PedCalib_Table" processing (if present/requested):
   bias=1;//tempor: here len=90x3+1(blid)
   if(formt==3 && (TFREFFKEY.relogic[0]==7 || ATREFFKEY.relogic==4)){
     TOF2JobStat::daqscr(2,crat-1,0);// PedCalFormat entries/crate
@@ -237,10 +221,10 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
       goto BadExit;    
     }
     PedBlkOK=true;
-    while(bias<(len-1)){
+    while(bias<=90){
       word=*(p+bias);//ped
-      nword=*(p+bias+1);//sig
-      nnword=*(p+bias+2);//stat
+      nword=*(p+bias+90);//sig
+      nnword=*(p+bias+180);//stat
       slid=(bias-1)%9;//position(in block)  defined link# (0,1,...8)
 //      val16=word&(0x0FFF);// charge value (=0, if link problem)
       slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
@@ -280,7 +264,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	  ANTPedCalib::filltb(ib, is, ped, sig, sta);//store values
 	}
       }//--->endof "rdch>0" check
-      bias+=3; 
+      bias+=1; 
     }//--->endof ped-block loop
     if(PedBlkOK)PedBlkCrat[crat-1]=1;//mark good processed crate
     TotPedBlks+=1;//counts tot# of processed PedBlocks
@@ -311,10 +295,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   if(formt==0 || formt==2){// <=========================  RawFMT is present - process it:
 //bias_min=1 (pr+bias_min always points to 1st word of raw (sub-)segment) (i.e. 1st word of Q-block !!!)
 // pr+bias_max always points to wcount-word (last word of raw (sub-)segment) 
-    evnum=*(p+1);//event number
     if(formt==0){//(0) raw alone
-      pr=p+1;//points to evnum (next word is beginning of Q-blk)
-      biasmx=len-2;//bias_max (-2 to exclude evnum and blid words)
+      pr=p;//points to length-word (then next word is beginning of Q-blk)
+      biasmx=len-1;//bias_max (-1 to exclude blid words)
     }
     else{//(2) raw in mixt
       pr=p+2;//points to lenraw-word (next word is beginning of Q-blk)
@@ -353,18 +336,18 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	slid=dlink;
 	plink=(bias-1)%9;//"in block" position defined link# (0,1,...8)
 	if(dlink!=plink || slid>8){
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::Error:link<->position mismatch, crate/dlink/plink="<<crat<<" "<<dlink<<" "<<plink<<endl;
-#endif
+//#endif
           TOF2JobStat::daqscr(0,crat-1,3);//charge_link <-> position mismatch
 	  goto BadExit;    
 	}
 	val16=word&(0x0FFF);// charge value (=0, if link problem)
 	slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::Error:NotChargeSlotNumber , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
-#endif
+//#endif
 	  TOF2JobStat::daqscr(0,crat-1,4);//invalid slot number
 	  goto BadExit;    
 	}
@@ -405,7 +388,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	tmout=((ltmoutf&(0x0004))!=0);//if true -> found timeout
         sptcmdh=*(pr+biasmx-eoslenr+2);//SPT_CMD_H word from EOS
 	if((sptcmdh&(0x1000))!=(0x1000))sptcmdt=0;//error(not read-mode !)
-	else if((sptcmdh&(0xFFF))==(0x401))sptcmdt=1;//not masked
+	else if((sptcmdh&(0xFFF))==(0x400))sptcmdt=1;//not masked
 	else if((sptcmdh&(0xFFF))==(0x405))sptcmdt=2;//CP-masked
 	else if((sptcmdh&(0xFFF))==(0x40A))sptcmdt=3;//CT-masked (rubbish)
 	else sptcmdt=0;//error
@@ -509,40 +492,41 @@ SkipTPpr:
 	wtyp=((word&(0xF000))>>12);
 	slid=dlink;//0,1,2,3,4 => SFET_0,_1,_2,_3,SFEA
 	if(slid>4){
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::TimeBlErr: invalid link, crate/dlink="<<crat<<" "<<dlink<<endl;
-#endif
+//#endif
           TOF2JobStat::daqscr(0,crat-1,7);//invalid link number
 	  goto BadExit;    
         }
 	slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>7){//check slot# validity
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::TimeBlErr: invalid slot, crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
-#endif
+//#endif
 	  TOF2JobStat::daqscr(0,crat-1,8);//invalid slot number
 	  goto BadExit;    
 	}
-	if(wtyp==8 || wtyp==2 || wtyp==3 || wtyp==6 ||wtyp==5){//time(+temper) wtype ?
+	if(wtyp==8 || wtyp==2 || wtyp==3 || wtyp==6 ||wtyp==4){//time(+temper) wtype ?
 	  TOF2JobStat::daqssl(0,crat-1,slot-1,1);//count TDC-buff entries(pairs of 16bits words)
-	  if(tdcbfn[slid-1]<(8*SCTHMX2+4)){//fill TDC-buffer
+	  if(tdcbfn[slid]<(8*SCTHMX2+4)){//fill TDC-buffer
 	    val32=(uinteger(word)<<16);//msb
 	    val32|=uinteger(nword);//lsb
-	    tdcbfh[slid-1][tdcbfn[slid-1]]=val32;//store 32-bits word in TDC-buff
-	    tdcbfn[slid-1]+=1;
+	    tdcbfh[slid][tdcbfn[slid]]=val32;//store 32-bits word in TDC-buff
+	    tdcbfn[slid]+=1;
 	  }
 	  else{//TDC-buff overflow
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	    cout<<"DAQS2Block::TimeErr: internal TDC-buff Ovfl, crate/link="<<crat<<" "<<slid<<endl;
-#endif
-	    if(tdcbfo[slid-1]==0)TOF2JobStat::daqssl(0,crat-1,slot-1,2);//counts Events with TDC-buff ovfl
-	    tdcbfo[slid-1]=1;
+//#endif
+cout<<" ovffl="<<tdcbfo[slid]<<" cr/sl/bufcounter="<<crat<<" "<<slid<<" "<<tdcbfn[slid]<<endl;
+	    if(tdcbfo[slid]==0)TOF2JobStat::daqssl(0,crat-1,slot-1,2);//counts Events with TDC-buff ovfl
+	    tdcbfo[slid]=1;
 	  }
 	}
 	else{
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	  cout<<"DAQS2Block::TimeErr: InvalidWordType, crate/link/wtyp="<<crat<<" "<<slid<<" "<<wtyp<<endl;
-#endif
+//#endif
 	  TOF2JobStat::daqssl(0,crat-1,slot-1,3);//count  invalid wtyp
 	  goto BadExit;    
 	}
@@ -567,26 +551,40 @@ SkipTPpr:
       tdcbfo[slid-1]=0;
       nwtdcb=tdcbfn[slid-1];//number of filled 32b-words in TDC(slid)
       if(nwtdcb==0)continue;//empty buffer->skip it
-      wttem=((tdcbfh[slid-1][0]&(0xF0000000L))>>28);//wtyp of 1st word
-      if(nwtdcb>1){
-        wthed=((tdcbfh[slid-1][1]&(0xF0000000L))>>28);//wtyp of 2nd word
-	wterr=((tdcbfh[slid-1][nwtdcb-2]&(0xF0000000L))>>28);//wtyp of prev. to last word
-      }
       wttrl=((tdcbfh[slid-1][nwtdcb-1]&(0xF0000000L))>>28);//wtyp of last word
-      if(wttrl==3)wds2tdc=(tdcbfh[slid-1][nwtdcb-1]&(0xFFFL));//nwords given by trailer(last word)
+      if(wttrl!=3){
+        TOF2JobStat::daqssl(0,crat-1,slot-1,4);//count links with no trailer - bad
+	continue;//next slot
+      }
+      if(nwtdcb==1){
+        TOF2JobStat::daqssl(0,crat-1,slot-1,5);//trailer alone - bad
+	continue;//next slot
+      }
+// now we have situation: trailer + something (i.e. >= 2words):
+      wttem=((tdcbfh[slid-1][0]&(0xF0000000L))>>28);//wtyp of 1st word
+      wthed=((tdcbfh[slid-1][1]&(0xF0000000L))>>28);//wtyp of 2nd word
+      wterr=((tdcbfh[slid-1][nwtdcb-2]&(0xF0000000L))>>28);//wtyp of prev. to last word
+      wds2tdc=(tdcbfh[slid-1][nwtdcb-1]&(0xFFFL));//nwords given by trailer(last word)
       if(slid<=2)tmout=((ltmoutf&(1<<(slid-1)))>0);//time-out flag from eos
       else tmout=((ltmoutf&(1<<slid))>0);//to skip already checked SPT-timeout bit (bit2 starting from 0)
       slot=AMSSCIds::crdid2sl(crat-1,slid-1)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
       sslot=AMSSCIds::sl2tsid(slot-1);//seq.numbering of T-measuting slots(1-5=>,4xSFET,1xSFEA)
-      if(wttem!=8 || wthed!=2 || wttrl!=3 || tmout || nwtdcb!=(wds2tdc+1)){//broken structure
-        TOF2JobStat::daqssl(0,crat-1,slot-1,4);//count links with broken struct
+      if(wttem!=8 || wthed!=2 || tmout || nwtdcb!=(wds2tdc+1)){//trailer present, but broken structure
+cout<<"slid="<<slid<<" wttem/wthed="<<wttem<<" "<<wthed<<" tmout="<<tmout<<" nwtdcb/wds2tdc="<<
+                                                                      nwtdcb<<" "<<wds2tdc<<endl;
+        TOF2JobStat::daqssl(0,crat-1,slot-1,6);//count links with broken struct
+	if(wttem!=8 && wthed!=2 && wterr==6)TOF2JobStat::daqssl(0,crat-1,slot-1,7);//case1:trailer+err
+	if((wttem!=8 || wthed!=2) && wterr!=6)TOF2JobStat::daqssl(0,crat-1,slot-1,8);//case2:NoErr,but NoHead/Temp
+	if(tmout)TOF2JobStat::daqssl(0,crat-1,slot-1,9);//case3:TimeOut
+	EventBitDump(leng,p,"BrokenStructure !!!");
 	continue;//skip link(TDC) with broken structure (or time-out)
       }
       if(wterr==6){
-        TOF2JobStat::daqssl(0,crat-1,slot-1,5);//count links with TDC-error
+cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
+        TOF2JobStat::daqssl(0,crat-1,slot-1,10);//case32:count links when structure OK, but + Err
 	continue;//skip link(TDC) with internal error
       }
-      TOF2JobStat::daqssl(0,crat-1,slot-1,6);//count good links
+      TOF2JobStat::daqssl(0,crat-1,slot-1,11);//count good links
 //
       val32=tdcbfh[slid-1][0];//lst word(temperature)
       tem1=((val32&(0xFFF000L))>>12);
@@ -625,10 +623,10 @@ SkipTPpr:
 	    swnbuf[bpnt]+=1;//increase counter of given swch
 	  }
 	  else{
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
 	    if(tdcbfo[slid-1]==0)cout<<"DAQS2Block::Error:SWCH_Buf_Ovfl, hwid/swid="<<hwid<<" "<<swid<<endl;
 	    tdcbfo[slid-1]=1;
-#endif
+//#endif
 	    TOF2JobStat::daqsch(0,crat-1,slot-1,rdch-1,2);//count Nhit overflows in time channels
 	  }
 	}//--->endof "rdch>0" check
@@ -1034,8 +1032,8 @@ SkipTPpr1:
   integer crsta;
   bool subtrped;
   geant athr,dthr,anthr;
-  athr=TOF2Varp::tofvpar.daqthr(3);//tof daq readout thr(ped sigmas) for anode
-  dthr=TOF2Varp::tofvpar.daqthr(4);//tof daq-thr. for dynode
+  athr=1.5*TOF2Varp::tofvpar.daqthr(3);//tof daq readout thr(ped sigmas) for anode
+  dthr=1.5*TOF2Varp::tofvpar.daqthr(4);//tof daq-thr. for dynode
   temp=999;//for AntiRawEvent-obj, 999 mean undefined value (real/default one will be set at validation stage)
   geant temp1,temp2,temp3;
   temp1=999;//for TofRawSide-obj(SFET/SFEC/PMT-temper), 999 mean undefined values  
@@ -1074,7 +1072,7 @@ SkipTPpr1:
       if(swidn>0)sswidn=swidn/100;//next LBBS
       else sswidn=9999;//means all icn>ic are "0"
       il=swid/100000;
-      mtyp=swid%10;
+      mtyp=swid%10;//phys.bars Time/Charge:0/1 fict.extra.bars FT/sumHT/sumSHT-times:2/3/4
       if(il==0)dtyp=2;//anti
       else{
         dtyp=1;//tof
@@ -1083,8 +1081,11 @@ SkipTPpr1:
       ib=(swid%100000)/1000-1;
       is=(swid%1000)/100-1;
       pmt=(swid%100)/10;
-      if(dtyp==1)pmmx=TOF2DBc::npmtps(il,ib);
-      if(dtyp==2)pmmx=1;
+      if(mtyp<2){
+        if(dtyp==1)pmmx=TOF2DBc::npmtps(il,ib);
+        if(dtyp==2)pmmx=1;
+      }
+      else pmmx=0;//for fict.bars, not used really
       nh=swnbuf[ic];//#of hits for given sw-chan(in accordance with mtyp)
       hwid=hwibuf[ic];//NonStandard hwid: Crat(1-4)|SeqSlot(1-9 i.e. 4xSFET,1xSFEA,4xSFEC)|IInpch(1-10)
       shwid=hwid/100;//Crat|SeqSlot
@@ -1139,19 +1140,22 @@ SkipTPpr1:
 	  }
 	  break;
         case 2:
-	  hwidt+=100*(hwid%100);//store FTime InpCh#(1-9) in time-hwid(CS|Ich|Ift|Isht|Issht)
+	  hwidtc=100*(hwid%100);//store FTime InpCh#(1-9) in time-hwid(CS|Ich|Ift|Isht|Issht)
 	  TOF2RawSide::FThits[crat-1][sslt-1]=nh;
 	  for(i=0;i<nh;i++)TOF2RawSide::FTtime[crat-1][sslt-1][i]=swcbuf[ic][i];
+	  TOF2RawSide::FTSchan[crat-1][sslt-1]+=hwidtc;//store Ich number(6)
 	  break;
 	case 3:
-	  hwidt+=10*(hwid%100);//store sumHTime InpCh#(1-9) in time-hwid(CS|Ich|Ift|Isht|Issht)
+	  hwidtc=10*(hwid%100);//store sumHTime InpCh#(1-9) in time-hwid(CS|Ich|Ift|Isht|Issht)
           TOF2RawSide::SumHTh[crat-1][sslt-1]=nh; 
           for(i=0;i<nh;i++)TOF2RawSide::SumHTt[crat-1][sslt-1][i]=swcbuf[ic][i];
+	  TOF2RawSide::FTSchan[crat-1][sslt-1]+=hwidtc;//store Ich number(7)
 	  break;
 	case 4:
-	  hwidt+=(hwid%100);//store sumSHTime InpCh#(1-9) in time-hwid(CS|Ich|Ift|Isht|Issht)
+	  hwidtc=(hwid%100);//store sumSHTime InpCh#(1-9) in time-hwid(CS|Ich|Ift|Isht|Issht)
           TOF2RawSide::SumSHTh[crat-1][sslt-1]=nh; 
           for(i=0;i<nh;i++)TOF2RawSide::SumSHTt[crat-1][sslt-1][i]=swcbuf[ic][i];
+	  TOF2RawSide::FTSchan[crat-1][sslt-1]+=hwidtc;//store Ich number(8)
 	  break;
         default:
 	  cout<<"Buf-scan:unknown measurement type ! swid="<<swid<<endl;
@@ -1161,22 +1165,24 @@ SkipTPpr1:
     if(sswid!=sswidn){//new/last LBBS found -> create RawEvent-obj for current LBBS
 // (after 1st swid>0 sswid is = last filled LBBS, sswidn is = LBBS of next nonempty channel or =9999)
 //  at this stage temp is not defined, will be redefined at validation-stage using static job-store or DB)
+// here FT/sHT/sSHT Inp.ch# in hwidt are still not defined(will be added during validate-stage from static arr)	  
       crsta=0;
       if(dtyp==1){//TOF
 	if(nstdc>0 || adca>0 || nadcd>0){//create tof-raw-side obj
 	  if(PedSubt[crat-1])sta=0;//ok(normal TOF2RawSide object with subtracted ped)
 	  else sta=1;//for the moment it is a flag for Validate-stage that Peds was not subtracted !!!
-	  
 	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
 	  nsumh=0;
 	  nsumsh=0;
-//	  cout<<endl;
-//	  cout<<"    ==> Create TOFRawSide: short swid/hwid="<<sswid<<" "<<shwid<<endl;
-//	  cout<<"                               shwida/shwidd="<<shwida<<" "<<shwidd<<endl;
-//	  cout<<"    nLT-hits="<<nstdc;
-//	  for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
-//	  cout<<endl;
-//	  cout<<"    adca="<<adca<<" nadcd="<<nadcd<<"  dynh="<<adcd[0]<<" "<<adcd[1]<<" "<<adcd[2]<<endl;
+          if(TFREFFKEY.reprtf[4]>1){//<---debug
+	    cout<<endl;
+	    cout<<"    ==> Create TOFRawSide: short swid/hwidt="<<sswid<<" "<<hwidt<<endl;
+	    cout<<"                           hwidq="<<hwidq[0]<<" "<<hwidq[1]<<" "<<hwidq[2]<<" "<<hwidq[3]<<endl;
+	    cout<<"    nLT-hits="<<nstdc;
+	    for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
+	    cout<<endl;
+	    cout<<"    adca="<<adca<<" nadcd="<<nadcd<<"  dynh="<<adcd[0]<<" "<<adcd[1]<<" "<<adcd[2]<<endl;
+          }
 // for the moment i do not use hwidq (no Q-linearity coorr foreseen now !??)
           if(AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0),
                  new TOF2RawSide(sswid,hwidt,hwidq,sta,charge,temp1,temp2,temp3,
@@ -1192,12 +1198,14 @@ SkipTPpr1:
 	  if(PedSubt[crat-1])sta=0;//ok(normal Anti2RawEvent object with subtracted ped)
 	  else sta=1;//for the moment it is a flag for Validate-stage that Peds was not subtracted !!!
 	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
-//	  cout<<"   ==> Create AntiRawEvent: swid="<<sswid<<endl;
-//	  cout<<"    nLT-hits="<<nstdc;
-//	  for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
-//	  cout<<endl;
-//	  cout<<"    adca="<<adca<<endl;
-//	  cout<<endl;
+          if(TFREFFKEY.reprtf[4]>1){//<---debug
+	    cout<<"   ==> Create AntiRawEvent: swid="<<sswid<<endl;
+	    cout<<"    nLT-hits="<<nstdc;
+	    for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
+	    cout<<endl;
+	    cout<<"    adca="<<adca<<endl;
+	    cout<<endl;
+          }
           AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                                     new Anti2RawEvent(sswid,sta,temp,adca,nftdc,ftdc,nstdc,stdc));
 	}
@@ -1214,7 +1222,7 @@ SkipTPpr1:
     }//-->endof next/last LBBS check
   }//-->endof scan
 //
-/*
+  if(TFREFFKEY.reprtf[4]>1){//<---debug
   cout<<"    FT-time hits report:"<<endl;
   for(int isla=0;isla<5;isla++){
     cout<<"SFETA-slot="<<isla+1<<" hits:"<<endl;
@@ -1285,13 +1293,50 @@ SkipTPpr1:
     if((trpat[il]&(1<<28))>0)cout<<"       other-SPTside BZbit-on";
     cout<<endl;
   }
-*/
+  }//--->endof debug
 //--------
   return;
 BadExit:
   TOF2JobStat::daqsfr(1);//count rejected entries(segments)    
 //  
 }
+//----------------------------------------------------
+void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
+  int16u blid,len,naddr,datyp;
+  len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
+  blid=*(p+len);// fragment's last word: Status+slaveID
+  bool dataf=((blid&(0x8000))>0);//data-fragment
+  bool crcer=((blid&(0x4000))>0);//CRC-error
+  bool asser=((blid&(0x2000))>0);//assembly-error
+  bool amswer=((blid&(0x1000))>0);//amsw-error   
+  bool timoer=((blid&(0x0800))>0);//timeout-error   
+  bool fpower=((blid&(0x0400))>0);//FEpower-error   
+  bool seqer=((blid&(0x0400))>0);//sequencer-error
+  bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
+  bool noerr;
+  naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
+  datyp=(blid&(0x00C0))>>6;//0,1,2,3
+  noerr=(dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && cdpnod);
+  cout<<"----> DAQS2Block::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
+  cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
+  cout<<" node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" block_length="<<len<<endl;
+//
+  cout<<"  Block hex/binary dump follows :"<<endl<<endl;
+  int16u tstw,tstb;
+  for(int i=0;i<len+1;i++){
+    tstw=*(p+i);
+    cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
+    for(int j=0;j<16;j++){
+      tstb=(1<<(15-j));
+      if((tstw&tstb)!=0)cout<<"x"<<"|";
+      else cout<<" "<<"|";
+    }
+    cout<<endl;
+  }
+  cout<<"-----------------------------------------------------------"<<endl;
+  cout<<dec<<endl<<endl;
+}//
 //----------------------------------------------------
 integer DAQS2Block::calcblocklength(integer ibl){//tempor, have to be changed !
   integer tofl(0),antil(0),fmt,lent;

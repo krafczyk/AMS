@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.20 2007/12/06 13:31:13 choumilo Exp $
+//  $Id: tofuser02.C,v 1.21 2008/01/07 16:22:15 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -148,7 +148,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   }
 //------> check  clust/layer=1 :
   bad=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] != 1)bad=1;
+  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] > 1)bad=1;
 //  for(i=0;i<2;i++)if(nbrlc[i] != 1)bad=1;//tempor for l=1,2
 //  for(i=2;i<4;i++)if(nbrlc[i] > 2)bad=1;//tempor for l=3,4
   

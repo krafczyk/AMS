@@ -1,4 +1,4 @@
-//  $Id: daqs2block.h,v 1.4 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: daqs2block.h,v 1.5 2008/01/07 16:22:24 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__
@@ -33,6 +33,7 @@ public:
   static integer getmaxblocks();
   static integer calcblocklength(integer ibl);
   static void buildblock(integer ibl, integer len, int16u *p);
+  static void EventBitDump(integer leng, int16u *p, char * message);
 };
 
 #endif

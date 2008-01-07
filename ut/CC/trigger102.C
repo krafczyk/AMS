@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.38 2007/12/11 08:17:49 choumilo Exp $
+//  $Id: trigger102.C,v 1.39 2008/01/07 16:22:15 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1149,7 +1149,11 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((word&0x000F)==0x0009)TofFlag1=6;//1,4
     else if((word&0x000F)==0x0006)TofFlag1=7;//2,3
     else if((word&0x000F)==0x000A)TofFlag1=8;//2,4
-    else TofFlag1=-1;
+    else if((word&0x000F)==0x0003)TofFlag1=9;//1,2(miss3,4)
+    else{
+      TofFlag1=-1;
+      cout<<"   <-- Trigger2LVL1::buildraw:WrongCP/CT/BZword="<<hex<<word<<dec<<endl;
+    }
 //
     word=word>>8;//to select BZ
     if((word&0x000F)==0x000F)TofFlag2=0;
@@ -1161,6 +1165,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((word&0x000F)==0x0009)TofFlag2=6;
     else if((word&0x000F)==0x0006)TofFlag2=7;
     else if((word&0x000F)==0x000A)TofFlag2=8;
+    else if((word&0x000F)==0x0003)TofFlag2=9;//1,2(miss3,4)
     else TofFlag2=-1;
 // 
     word=*(p+5);//1st 16bits of time
@@ -1195,7 +1200,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     trtime[0]=timcal;
 //---> print info:
     if(TGL1FFKEY.printfl>0){
-      cout<<"      Triggered by :";
+      cout<<"      Triggered by (hex="<<trigby<<") :";
       if((trigby&1)>0)cout<<"LA-0"<<endl;
       if((trigby&2)>0)cout<<"LA-1"<<endl;
       if((trigby&4)>0)cout<<"????"<<endl;
@@ -1559,8 +1564,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //---------> create Lev1-object:
 // 
 //  integer tm=int(floor(TOF2Varp::tofvpar.getmeantoftemp(0)));
-     
-  if(scalmon.TOFrateMX()<TGL1FFKEY.MaxScalersRate && LiveTime1>TGL1FFKEY.MinLifeTime){
+//cout<<"TOFrateMX="<<scalmon.TOFrateMX()<<"  HiLim="<<TGL1FFKEY.MaxScalersRate<<endl;
+//cout<<"LiveTime1="<<LiveTime1<<"  LowLim="<<TGL1FFKEY.MinLifeTime<<endl;     
+  if(scalmon.TOFrateMX()<TGL1FFKEY.MaxScalersRate && LiveTime1>=TGL1FFKEY.MinLifeTime){
     AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new Trigger2LVL1(PhysBPatt,JMembPatt,
              TofFlag1,TofFlag2,tofpat1,tofpat2,AntiPatt,EcalFlag,ecpat,ectrs,LiveTime1,TrigRates,trtime));
     TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    

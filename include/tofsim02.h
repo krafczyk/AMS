@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.17 2007/12/06 13:31:23 choumilo Exp $
+//  $Id: tofsim02.h,v 1.18 2008/01/07 16:22:25 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -421,7 +421,8 @@ private:
 //
 public:
  static integer FTtime[TOF2GC::SCCRAT][TOF2GC::SCFETA][TOF2GC::SCTHMX1];//FT-channel time-hits(incl.ANTI)
- static integer FThits[TOF2GC::SCCRAT][TOF2GC::SCFETA];//number of FT-channel hits ....... 
+ static integer FThits[TOF2GC::SCCRAT][TOF2GC::SCFETA];//number of FT-channel hits .......
+ static integer FTSchan[TOF2GC::SCCRAT][TOF2GC::SCFETA];//FT/sumHT/sumSHT inp.chan. numbers(6/7/8) as I|I|I 
  static integer SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TOF SumHT-channel time-hits
  static integer SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumHT-channel time-hits 
  static integer SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TOF SumSHT-channel time-hits
@@ -465,6 +466,7 @@ public:
  
  integer getftdc(integer arr[]);
  void putftdc(integer nelem, integer arr[]);
+ void updhwidt(int ftsich){_hwidt+=ftsich;}
  
  integer getstdc(integer arr[]);
  integer getnstdc(){return _nstdc;}
