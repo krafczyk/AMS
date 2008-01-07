@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.220 2007/12/18 08:09:53 choutko Exp $
+//  $Id: commons.h,v 1.221 2008/01/07 11:14:45 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -21,6 +21,7 @@
 class TRMFFKEY_DEF{
 public:
 integer OKAY;
+integer TIME;
 };
 #define TRMFFKEY COMMON_BLOCK(TRMFFKEY,trmffkey)
 COMMON_BLOCK_DEF(TRMFFKEY_DEF,TRMFFKEY);

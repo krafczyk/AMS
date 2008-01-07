@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.511 2008/01/07 11:04:49 choutko Exp $
+// $Id: job.C,v 1.512 2008/01/07 11:14:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -218,6 +218,7 @@ IOPA.WriteRoot=0;
 VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
+TRMFFKEY.TIME=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
 MISCFFKEY.BTempCorrection=1;
 MISCFFKEY.BeamTest=0;
