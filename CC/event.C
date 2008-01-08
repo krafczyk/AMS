@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.351 2008/01/07 16:22:15 choumilo Exp $
+//  $Id: event.C,v 1.352 2008/01/08 17:10:13 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2337,16 +2337,18 @@ void AMSEvent::_copyEl(){
 }
 
 void AMSEvent::_printEl(ostream & stream){
-  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
-   ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
-   " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
-  stream <<"TOFTemperature(crate_1,sensor_1): "<<TOF2JobStat::gettemp(0,0);
+  stream << "===>>> Run:"<<_run<<" "<<getname()<<" "<< getid()<<" Time: " 
+   <<ctime(&_time)<<"."<<_usec<<" Station R:"<<_StationRad<<" Theta:"<<_StationTheta*AMSDBc::raddeg
+   <<" Phi:"<<_StationPhi*AMSDBc::raddeg<<" Speed:"<<_StationSpeed
+   <<" Pole:"<<_NorthPolePhi*AMSDBc::raddeg<<endl;
+  stream <<"   TOFSlot1Temper(4crates):"<<TOF2JobStat::gettemp(0,0)<<","<<TOF2JobStat::gettemp(1,0)
+                                          <<","<<TOF2JobStat::gettemp(2,0)<<","<<TOF2JobStat::gettemp(3,0);
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr){
-    stream <<" FastTrigRate/LiveTime "<<Trigger2LVL1::scalmon.FTrate()<<"  "<<ptr->getlivetime()<<endl;
+    stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime();
 //   stream <<" Average Scaler Rate & LifeTime "<<Trigger2LVL1::getscalersp()->getsum(gettime())<<"  "<<Trigger2LVL1::getscalersp()->getlifetime(gettime())<<endl;
   }
-  stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
+  stream <<" AverMagnetTemper:"<<MagnetVarp::getmeanmagnetmtemp()<<endl;
 }
 //=====================================================================
 void AMSEvent::_writeEl(){

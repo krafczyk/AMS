@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.16 2008/01/07 16:22:14 choumilo Exp $
+//  $Id: daqs2block.C,v 1.17 2008/01/08 17:10:12 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -1090,7 +1090,8 @@ SkipTPpr1:
       hwid=hwibuf[ic];//NonStandard hwid: Crat(1-4)|SeqSlot(1-9 i.e. 4xSFET,1xSFEA,4xSFEC)|IInpch(1-10)
       shwid=hwid/100;//Crat|SeqSlot
       sslt=(shwid%10);//SeqSlot# (1-9)
-      if(mtyp!=1 && hwidt==0)hwidt=10000*shwid;//CS0000
+      if(hwidt==0)hwidt=10000*shwid;//CS0000
+//      if(mtyp!=1 && hwidt==0)hwidt=10000*shwid;//CS0000
       if(mtyp>=2)assert(sslt>0 && sslt<=SCFETA);//SFET+SFEA seq.slot# is used for FT/sHT/sSHT storing
       subtrped=(PedSubt[crat-1]==1);//true/false->subtr/not peds
 //

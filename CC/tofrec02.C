@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.42 2008/01/07 16:22:15 choumilo Exp $
+//  $Id: tofrec02.C,v 1.43 2008/01/08 17:10:16 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -263,14 +263,18 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
         chnum=2*TOF2DBc::barseqn(ilay,ibar)+isid;//0-67
         if(adca>0)HF1(1400+chnum,adca,1.);
 //        if(nadcd==2)HF1(1400+chnum,adcd[0]+adcd[1],1.);
-	if(adca>50){
-	  if(ilay==0 && isid==1){
-            if((trpat[ilay]&(1<<(16+ibar)))>0)HF1(1470,geant(16+ibar),1.);
-	    else HF1(1471,geant(16+ibar),1.);
+	if(adca>25){
+          if((trpat[ilay]&(1<<(16*isid+ibar)))>0)HF1(1470,geant(1+ibar+10*isid+20*ilay),1.);
+	  else {
+	    HF1(1471,geant(1+ibar+10*isid+20*ilay),1.);
+	    if(nstdc>0)HF1(1472,geant(1+ibar+10*isid+20*ilay),1.);
 	  }
-	  if(ilay==1 && isid==0){
-            if((trpat[ilay]&(1<<ibar))>0)HF1(1470,geant(ibar),1.);
-	    else HF1(1471,geant(ibar),1.);
+	}
+	if(adca>100){
+          if((trpatz[ilay]&(1<<(16*isid+ibar)))>0)HF1(1473,geant(1+ibar+10*isid+20*ilay),1.);
+	  else {
+	    HF1(1474,geant(1+ibar+10*isid+20*ilay),1.);
+	    if(nstdc>0)HF1(1475,geant(1+ibar+10*isid+20*ilay),1.);
 	  }
 	}
       }

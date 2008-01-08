@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.42 2008/01/07 16:22:15 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.43 2008/01/08 17:10:16 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2472,8 +2472,12 @@ void TOF2JobStat::bookhist(){
 	  }
         }
       }
-      HBOOK1(1470," A>25,trpat>0",32,0.,32.,0.);
-      HBOOK1(1471," A>25,trpat=0",32,0.,32.,0.);
+      HBOOK1(1470,"A>Athr Paddles/Side/Layer visibility when TrPattBit On",80,1.,81.,0.);
+      HBOOK1(1471,"A>Athr Paddles/Side/Layer visibility when TrPattBit Off",80,1.,81.,0.);
+      HBOOK1(1472,"A>Athr,TimeHits>0 Paddles/Side/Layer visibility when TrPattBit Off",80,1.,81.,0.);
+      HBOOK1(1473,"A>Athr Paddles/Side/Layer visibility when BZTrPattBit On",80,1.,81.,0.);
+      HBOOK1(1474,"A>Athr Paddles/Side/Layer visibility when BZPattBit Off",80,1.,81.,0.);
+      HBOOK1(1475,"A>Athr,TimeHits>0 Paddles/Side/Layer visibility when BZPattBit Off",80,1.,81.,0.);
     }
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1781 are booked in init-function for BarRawTime histogr.!!!(TDLV)
@@ -2749,6 +2753,10 @@ void TOF2JobStat::outp(){
            }
 	   HPRINT(1470);
 	   HPRINT(1471);
+	   HPRINT(1472);
+	   HPRINT(1473);
+	   HPRINT(1474);
+	   HPRINT(1475);
          }
 //--- 
        }
