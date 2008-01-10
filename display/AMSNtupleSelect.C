@@ -40,7 +40,24 @@ bool IsGolden(AMSEventR *ev){
  }
 */
  if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>3 ){
-
+   int count[20];
+   for(int k=0;k<20;k++)count[k]=0;
+   for(int i=0;i<(ev->TrdTrack(0)).NTrdSegment();i++){
+     TrdSegmentR s=ev->TrdSegment((ev->TrdTrack(0)).iTrdSegment(i));
+     for (int j=0;j<s.NTrdCluster();j++){
+      TrdClusterR c=ev->TrdCluster(s.iTrdCluster(j));
+      TrdRawHitR h=ev->TrdRawHit(c.iTrdRawHit());
+      int id=10000+h.Layer*100+h.Ladder;
+      for(int k=0;k<20;k++){
+       float thr=2+float(k)/10.;
+       if(c.EDep>thr){
+        count[k]++;
+       }
+      }
+     }
+    }
+//    if(count[19]>10)return true;
+//    else return false;
     int nmemb=0;
     int nlay=0;
     for (int i=0;i<ev->nTofCluster();i++){
@@ -51,7 +68,29 @@ bool IsGolden(AMSEventR *ev){
     }
     if(nlay==3 && nmemb==3)return true;
     else return false;     
-
+    TrdTrackR trd=ev->TrdTrack(0);
+    double nx=sin(trd.Theta)*cos(trd.Phi);
+    double ny=sin(trd.Theta)*sin(trd.Phi);
+    double nz=cos(trd.Theta);
+    for (int i=0;i<ev->nTofCluster();i++){
+     if(ev->TofCluster(i).Layer==1 ){
+      number yc=ev->TofCluster(i).Coo[1];
+      number zc=ev->TofCluster(i).Coo[2];
+      
+      number cross=trd.Coo[1]+(-trd.Coo[2]+zc)*ny/nz;
+      if(fabs(cross-yc)>10){
+         cout <<" "<<cross<<" "<<ev->TofCluster(i).Coo[1]<<" "<<trd.Coo[2]<<" "<<trd.Coo[1]<<" "<<ny<<" "<<nz<<" "<<zc<<endl;
+         return true;
+      }
+     }
+     else if(ev->TofCluster(i).Layer==2){
+      number xc=ev->TofCluster(i).Coo[0];
+      number zc=ev->TofCluster(i).Coo[2];
+      number cross=trd.Coo[0]+(zc-trd.Coo[2])*nx/nz;
+      //if(fabs(cross-xc)>7)return true;
+     }
+    }
+    return false;
     }     
   else return false;
 }

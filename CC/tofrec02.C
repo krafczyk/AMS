@@ -1,11 +1,11 @@
-//  $Id: tofrec02.C,v 1.43 2008/01/08 17:10:16 choumilo Exp $
+//  $Id: tofrec02.C,v 1.44 2008/01/10 09:19:28 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
 //                                       TOF2RawCluster::sitofdigi modified for trigg.
 //              26.06.97   E.Choumilov - DAQ decoding/encoding added
 //              22.08.05   E.Choumilov - gain5 logic removed
-//  !!!!!  15.03.06   E.Choumilov - complete rebuild caused by new readout(new TDC)
+//  !!!!!  15.03.06   E.Choumilov - complete rebuild caused by tnew readout(new TDC)
 //
 //
 #include "tofdbc02.h"
@@ -417,6 +417,20 @@ void TOF2RawCluster::build(int &ostatus){
     ilay=id/100-1;
     ibar=id%100-1;
     isid=idd%10-1;
+    int ilayo=ilay;
+    int ibaro=ibar;
+    if(ilay==0){
+      ilay=1;
+   }
+    else{
+      ilay=0;
+    }
+     if(ibar==1)ibar=4;
+     else if(ibar==2)ibar=1;
+     else if(ibar==3)ibar=5;
+     else if(ibar==4)ibar=2;
+     else if(ibar==5)ibar=6;
+     else if(ibar==6)ibar=3;
     mtyp=0;
     otyp=0;
     AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
@@ -441,7 +455,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
     if(stat[isid]%10==0                              //<--- validation status(FTtime is absolutely required)
 //      && TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid) //<--- check hit DB(calibr)-status
-      && TOFBPeds::scbrped[ilay][ibar].PedAchOK(isid)//<--- check hit DB(ped)-status
+      && TOFBPeds::scbrped[ilayo][ibaro].PedAchOK(isid)//<--- check hit DB(ped)-status
 //      && TOFBPeds::scbrped[ilay][ibar].PedDchOK(isid) //tempor commented
                                                      ){
       TOF2JobStat::addch(chnum,0);//statistics on input channel
@@ -1461,7 +1475,7 @@ void AMSTOFCluster::build2(int &stat){
 	    HF1(1550,time-timen,1.);
 	  }
 	  if(fabs(time-timen)<3*etime*sqrt(2.)  
-	             && fabs(cl-cln)<3*clne*sqrt(2.)){//t+coo match -> create cluster(glue "next")
+	             && fabs(cl-cln)<3*clne*sqrt(2.) || !okb){//t+coo match -> create cluster(glue "next")
            if(okb){
 	    etime=etime/sqrt(2.);//recalc. parameters using glued bar
 	    time=0.5*(time+timen);
