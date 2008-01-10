@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: checkfs.cgi,v 1.4 2005/12/20 16:50:39 choutko Exp $
+#  $Id: checkfs.cgi,v 1.5 2008/01/10 09:20:00 choutko Exp $
 #use Gtk;
 use strict;
 
@@ -24,7 +24,7 @@ my $html=new RemoteClient(1);
 
  my $ok=$html->ConnectOnlyDB();
     $ok=$html->CheckFS(1,1,1);
-
+    $ok=$html->CheckFS(1,1,1,'/Data');
  
 #work
  

@@ -204,7 +204,9 @@ public:
   void   Set(EventNtuple02 *ptr);
 #endif
   friend class AMSEventR;
-  /// \return human readable info about HeaderR
+   /*!
+    \return human readable info about HeaderR
+  */
   char * Info(){
                          double cp=cos(Pitch);
                          double sp=sin(Pitch);
@@ -367,6 +369,7 @@ class EcalShowerR {
 static char _Info[255];
 public:
   unsigned int   Status;    ///< status word \sa EcalHitR status
+  ///
   float Dir[3];    ///< direction cos array 
   float EMDir[3];  ///< direction cos array for emag type shower
   float Entry[3];  ///< entry point (cm)
@@ -472,24 +475,24 @@ public:
 
 class TofRawSideR {
 public:
-  int swid;//short softw-id(LBBS)
-  int hwidt;//time hardw-id CSIIII(Crate|SSlot|each I(1-9) is TDC InpChNumb for LT,FT,SumHT,SumSHT measurements
-  int hwidq[4];//array of CSII, where II is ADC InpChNumb for Anode and Dynodes charge-measurements(II=1-10)
-  int stat;// 0/1->ok/bad
-  int nftdc;//numb.of FTtime-hits
-  int ftdc[8];//FTtime-hits(FastTrigger-channel time, ns)
-  int nstdc;//numb.of LTtime-hits
-  int stdc[16];//LTtime-hits(LowThreshold-channel time. ns)
-  int nsumh;//numb.of SumHTtime-hits
-  int sumht[16];//SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, ns)
-  int nsumsh;//numb.of SumSHTtime-hits
-  int sumsht[16];//SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, ns)
-  float adca;//Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
-  int nadcd;//number of Dynode nonzero(!) signals
-  float adcd[3];//Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
-  float temp;//Anode-readout temperature (given by probe in SFET(A) slots)  
-  float tempC;//Dynode-readout temperature (given by probe in SFEC card)  
-  float tempP;//PM-temperature (averaged over PMTs of 1side, based on probes in TOP-plane envelop)  
+  int swid;///<short softw-id(LBBS)
+  int hwidt;///<time hardw-id CSIIII(Crate|SSlot|each I(1-9) is TDC InpChNumb for LT,FT,SumHT,SumSHT measurements
+  int hwidq[4];///<array of CSII, where II is ADC InpChNumb for Anode and Dynodes charge-measurements(II=1-10)
+  int stat;///< 0/1->ok/bad
+  int nftdc;///<numb.of FTtime-hits
+  int ftdc[8];///<FTtime-hits(FastTrigger-channel time, ns)
+  int nstdc;///<numb.of LTtime-hits
+  int stdc[16];///<LTtime-hits(LowThreshold-channel time. ns)
+  int nsumh;///<numb.of SumHTtime-hits
+  int sumht[16];///<SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, ns)
+  int nsumsh;///<numb.of SumSHTtime-hits
+  int sumsht[16];///<SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, ns)
+  float adca;///<Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
+  int nadcd;///<number of Dynode nonzero(!) signals
+  float adcd[3];///<Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
+  float temp;///<Anode-readout temperature (given by probe in SFET(A) slots)  
+  float tempC;///<Dynode-readout temperature (given by probe in SFEC card)  
+  float tempP;///<PM-temperature (averaged over PMTs of 1side, based on probes in TOP-plane envelop)  
 
   TofRawSideR(){};
   TofRawSideR(TOF2RawSide *ptr);
@@ -598,6 +601,7 @@ ClassDef(AntiClusterR,1)       //AntiClusterR
 class TrRawClusterR {
 public:
   int address;   ///<Address \sa TrClusterR Idsoft
+  ///
   int nelem;     ///< number of strips 
   float s2n;     ///< signal/noise for seed strip
 
@@ -680,6 +684,7 @@ class TrRecHitR {
 static char _Info[255];
 public:
   unsigned int   Status;   ///< statusword \sa TrClusterR Status
+  ///
   int   Layer;             ///<Layer no 1-6 up-down
   float Hit[3];            ///< cluster coordinates
   float EHit[3];           ///< error to above
@@ -728,6 +733,7 @@ class TrTrackR {
 static char _Info[255];
 public:
   unsigned int Status;   ///< statusword \sa TrClusterR
+  ///
   int Pattern;  ///< see datacards.doc
   int Address;  ///< ladders combination code (see trrec.C buildaddress)
   float LocDBAver;   ///< mean ratio of true momentum to measured one from testbeam
@@ -762,6 +768,7 @@ public:
   TrTrackR(){};
  /// select good tracks (i.e. tracks having x & y hits from tracker)
   /// \return true if good false otherwise
+ ///
    bool IsGood()const {return !(Status & 16384) && AdvancedFitDone!=0;}
   /// access function to TrRecHitR objects used
   /// \return number of TrRecHitR used
@@ -827,6 +834,7 @@ public:
   RichHitR(AMSRichRawEvent *ptr, float x, float y, float z);
     /// \param number index in container
   /// \return human readable info about RichHitR
+ ///
   char * Info(int number=-1){
     sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
   return _Info;
@@ -1297,6 +1305,7 @@ class BetaR {
  public:
   unsigned int       Status;   ///< status word  4 - ambig
   int       Pattern;   ///< beta pattern \sa beta.doc
+ ///
   float     Beta;     ///< velocity
   float     BetaC;    ///< corrected velocity (taking into account true velocity < 1)
   float     Error;   ///< error (1/beta)
@@ -2120,7 +2129,7 @@ public:
 public:
  
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
-
+   ///
 // Some functions for inter root
 //
 #ifdef __ROOTSHAREDLIBRARY__
@@ -2130,44 +2139,77 @@ public:
 
 
 int Version() const {return fHeader.Version/4;} ///< \return producer version number
+///
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
-
+///
 unsigned int Run() const {return fHeader.Run;} ///< \return Run number
+///
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
+///
 char * Time() const {return ctime((time_t*)&(fHeader.Time[0]));} ///< \return  Time
-
+///
 int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)              
+///
 int   nEcalCluster()const { return fHeader.EcalClusters;} ///< \return number of EcalClusterR elements (fast)
+///
 int   nEcal2DCluster()const { return fHeader.Ecal2DClusters;} ///< \return number of Ecal2DClusterR elements (fast)
+///
 int   nEcalShower()const { return fHeader.EcalShowers;} ///< \return number of EcalShowerR elements (fast)
+///
 int   nRichHit()const { return fHeader.RichHits;} ///< \return number of RichHitR elements (fast)
+///
 int   nRichRing()const { return fHeader.RichRings;} ///< \return number of RichRingR elements (fast)
+///
 int   nTofRawCluster()const { return fHeader.TofRawClusters;} ///< \return number of TofRawClusterR elements (fast)
+///
 int   nTofRawSide()const { return fHeader.TofRawSides;} ///< \return number of TofRawSideR elements (fast)
+///
 int   nTofCluster()const { return fHeader.TofClusters;} ///< \return number of TofClusterR elements (fast)  
+///
 int   nAntiCluster()const { return fHeader.AntiClusters;} ///< \return number of AntiClusterR elements (fast)
+///
 int   nTrRawCluster()const { return fHeader.TrRawClusters;} ///< \return number of TrRawClusterR elements (fast)
+///
 int   nTrCluster()const { return fHeader.TrClusters;} ///< \return number of TrClusterR elements (fast)
+///
 int   nTrRecHit()const { return fHeader.TrRecHits;} ///< \return number of TrRecHitR elements (fast)
+///
 int   nTrTrack()const { return fHeader.TrTracks;} ///< \return number of TrTrackR elements (fast)
+///
 int   nTrdRawHit()const { return fHeader.TrdRawHits;} ///< \return number of TrdRawHitR elements (fast)
+///
 int   nTrdCluster()const { return fHeader.TrdClusters;} ///< \return number of TrdClusterR elements (fast)
+///
 int   nTrdSegment()const { return fHeader.TrdSegments;} ///< \return number of TrdSegmentR elements (fast)
+///
 int   nTrdTrack()const { return fHeader.TrdTracks;} ///< \return number of TrdTrackR elements (fast)
+///
 int   nLevel1()const { return fHeader.Level1s;} ///< \return number of Level1R elements (fast)
+///
 int   nLevel3()const { return fHeader.Level3s;} ///< \return number of Level3R elements (fast)
+///
 int   nBeta()const { return fHeader.Betas;} ///< \return number of BetaR elements (fast) 
+///
 int   nVertex()const { return fHeader.Vertexs;} ///< \return number of VertexR elements (fast) 
+///
 int   nCharge()const { return fHeader.Charges;} ///< \return number of ChargeR elements (fast)  
+///
 int   nParticle()const { return fHeader.Particles;} ///< \return number of ParticleR elements (fast)  
+///
 int   nAntiMCCluster()const { return fHeader.AntiMCClusters;} ///< \return number of AntiMCClusterR elements (fast)
+///
 int   nTrMCCluster()const { return fHeader.TrMCClusters;} ///< \return number of TrMCClusterR elements (fast)
+///
 int   nTofMCCluster()const { return fHeader.TofMCClusters;} ///< \return number of TofMCClusterR elements (fast)
+///
 int   nTrdMCCluster()const { return fHeader.TrdMCClusters;} ///< \return number of TrdMCClusterR elements (fast)
+///
 int   nRichMCCluster()const { return fHeader.RichMCClusters;} ///< \return number of RichMCClusterR elements (fast)
+///
 int   nMCTrack()const { return fHeader.MCTracks;} ///< \return number of MCTrackR elements (fast)
+///
 int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEventgR elements (fast)
-
+///
 
 
   protected:
@@ -2250,11 +2292,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
      void GetAllContents();
 
       ///  \return number of EcalHitR
+      ///
       unsigned int   NEcalHit()  {
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
         return fEcalHit.size();
       }
       ///  \return reference of EcalHitR Collection
+      ///
       vector<EcalHitR> & EcalHit()  {
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
          return  fEcalHit;
@@ -2263,6 +2307,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  EcalHitR accessor
        /// \param l index of EcalHitR Collection
       ///  \return reference to corresponding EcalHitR element
+      ///
        EcalHitR &   EcalHit(unsigned int l) {
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
          return fEcalHit.at(l);
@@ -2271,6 +2316,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  EcalHitR accessor
        /// \param l index of EcalHitR Collection
       ///  \return pointer to corresponding EcalHitR element
+      ///
       EcalHitR *   pEcalHit(unsigned int l) {
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
         return l<fEcalHit.size()?&(fEcalHit[l]):0;
@@ -2278,12 +2324,14 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
       ///  EcalClusterR accessor
       ///  \return number of EcalClusterR
+      ///
       unsigned int   NEcalCluster()  {
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
         return fEcalCluster.size();
       }
       ///  EcalClusterR accessor
       ///  \return reference of EcalClusterR Collection
+      ///
       vector<EcalClusterR> & EcalCluster()  {
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
          return  fEcalCluster;
@@ -2292,6 +2340,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  EcalClusterR accessor
        /// \param l index of EcalClusterR Collection
       ///  \return reference to corresponding EcalClusterR element
+      ///
        EcalClusterR &   EcalCluster(unsigned int l) {
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
          return fEcalCluster.at(l);
@@ -2300,6 +2349,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  EcalClusterR accessor
        /// \param l index of EcalClusterR Collection
       ///  \return pointer to corresponding EcalClusterR element
+      ///
       EcalClusterR *   pEcalCluster(unsigned int l) {
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
         return l<fEcalCluster.size()?&(fEcalCluster[l]):0;
@@ -2309,12 +2359,14 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
       
       ///  Ecal2DClusterR accessor
       ///  \return number of Ecal2DClusterR
+      ///
       unsigned int   NEcal2DCluster()  {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
         return fEcal2DCluster.size();
       }
             ///  Ecal2DClusterR accessor
       ///  \return reference of Ecal2DClusterR Collection
+      ///
       vector<Ecal2DClusterR> & Ecal2DCluster()  {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
          return  fEcal2DCluster;
@@ -2322,6 +2374,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
              ///  Ecal2DClusterR accessor
       /// \param l index of Ecal2DClusterR Collection
      ///  \return reference to corresponding Ecal2DClusterR element
+      ///
        Ecal2DClusterR &   Ecal2DCluster(unsigned int l) {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
          return fEcal2DCluster.at(l);
@@ -2329,6 +2382,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
                  ///  Ecal2DClusterR accessor
     /// \param l index of Ecal2DClusterR Collection
    ///  \return pointer to corresponding Ecal2DClusterR element
+      ///
       Ecal2DClusterR *   pEcal2DCluster(unsigned int l) {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
         return l<fEcal2DCluster.size()?&(fEcal2DCluster[l]):0;
@@ -2336,11 +2390,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of EcalShowerR
+      ///
       unsigned int   NEcalShower()  {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
         return fEcalShower.size();
       }
        ///  \return reference of EcalShowerR Collection
+      ///
       vector<EcalShowerR> & EcalShower()  {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
          return  fEcalShower;
@@ -2348,6 +2404,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
                  ///  EcalShowerR accessor
    /// \param l index of EcalShowerR Collection
   ///  \return reference to corresponding EcalShowerR element
+      ///
        EcalShowerR &   EcalShower(unsigned int l) {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
          return fEcalShower.at(l);
@@ -2355,6 +2412,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
                 ///  EcalShowerR accessor
   /// \param l index of EcalShowerR Collection
  ///  \return pointer to corresponding EcalShowerR element
+      ///
       EcalShowerR *   pEcalShower(unsigned int l) {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
         return l<fEcalShower.size()?&(fEcalShower[l]):0;
@@ -2363,11 +2421,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of RichHitR
+      ///
       unsigned int   NRichHit()  {
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
         return fRichHit.size();
       }
       ///  \return reference of RichHitR Collection
+      ///
       vector<RichHitR> & RichHit()  {
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
          return  fRichHit;
@@ -2376,6 +2436,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  RichHitR accessor
        /// \param l index of RichHitR Collection
       ///  \return reference to corresponding RichHitR element
+      ///
        RichHitR &   RichHit(unsigned int l) {
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
          return fRichHit.at(l);
@@ -2384,6 +2445,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  RichHitR accessor
        /// \param l index of RichHitR Collection
       ///  \return pointer to corresponding RichHitR element
+      ///
       RichHitR *   pRichHit(unsigned int l) {
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
         return l<fRichHit.size()?&(fRichHit[l]):0;
@@ -2395,6 +2457,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of RichRingR
+      ///
       unsigned int   NRichRing()  {
         if(fHeader.RichRings && fRichRing.size()==0){
            bRichRing->GetEntry(_Entry);
@@ -2402,6 +2465,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
         return fRichRing.size();
       }
       ///  \return reference of RichRingR Collection
+      ///
       vector<RichRingR> & RichRing()  {
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
          return  fRichRing;
@@ -2410,6 +2474,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  RichRingR accessor
        /// \param l index of RichRingR Collection
       ///  \return reference to corresponding RichRingR element
+      ///
        RichRingR &   RichRing(unsigned int l) {
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
          return fRichRing.at(l);
@@ -2418,6 +2483,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  RichRingR accessor
        /// \param l index of RichRingR Collection
       ///  \return pointer to corresponding RichRingR element
+      ///
       RichRingR *   pRichRing(unsigned int l) {
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
         return l<fRichRing.size()?&(fRichRing[l]):0;
@@ -2429,11 +2495,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of TofRawClusterR
+      ///
       unsigned int   NTofRawCluster()  {
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
         return fTofRawCluster.size();
       }
       ///  \return reference of TofRawClusterR Collection
+      ///
       vector<TofRawClusterR> & TofRawCluster()  {
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
          return  fTofRawCluster;
@@ -2442,6 +2510,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofRawClusterR accessor
        /// \param l index of TofRawClusterR Collection
       ///  \return reference to corresponding TofRawClusterR element
+      ///
        TofRawClusterR &   TofRawCluster(unsigned int l) {
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
          return fTofRawCluster.at(l);
@@ -2450,6 +2519,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofRawClusterR accessor
        /// \param l index of TofRawClusterR Collection
       ///  \return pointer to corresponding TofRawClusterR element
+      ///
       TofRawClusterR *   pTofRawCluster(unsigned int l) {
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
         return l<fTofRawCluster.size()?&(fTofRawCluster[l]):0;
@@ -2461,6 +2531,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of TofRawSideR
+      ///
       unsigned int   NTofRawSide()  {
         if(fHeader.TofRawSides  && fTofRawSide.size()==0){
           if(bTofRawSide)bTofRawSide->GetEntry(_Entry);
@@ -2468,6 +2539,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
           return fTofRawSide.size();
       }
       ///  \return reference of TofRawSideR Collection
+      ///
       vector<TofRawSideR> & TofRawSide()  {
         if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
          return  fTofRawSide;
@@ -2476,6 +2548,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofRawSideR accessor
        /// \param l index of TofRawSideR Collection
       ///  \return reference to corresponding TofRawSideR element
+      ///
        TofRawSideR &   TofRawSide(unsigned int l) {
         if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
          return fTofRawSide.at(l);
@@ -2484,6 +2557,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofRawSideR accessor
        /// \param l index of TofRawSideR Collection
       ///  \return pointer to corresponding TofRawSideR element
+      ///
       TofRawSideR *   pTofRawSide(unsigned int l) {
         if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
         return l<fTofRawSide.size()?&(fTofRawSide[l]):0;
@@ -2493,11 +2567,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of TofClusterR
+      ///
       unsigned int   NTofCluster()  {
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
         return fTofCluster.size();
       }
       ///  \return reference of TofClusterR Collection
+      ///
       vector<TofClusterR> & TofCluster()  {
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
          return  fTofCluster;
@@ -2506,6 +2582,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofClusterR accessor
        /// \param l index of TofClusterR Collection
       ///  \return reference to corresponding TofClusterR element
+      ///
        TofClusterR &   TofCluster(unsigned int l) {
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
          return fTofCluster.at(l);
@@ -2514,6 +2591,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofClusterR accessor
        /// \param l index of TofClusterR Collection
       ///  \return pointer to corresponding TofClusterR element
+      ///
       TofClusterR *   pTofCluster(unsigned int l) {
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
         return l<fTofCluster.size()?&(fTofCluster[l]):0;
@@ -2523,11 +2601,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of AntiClusterR
+      ///
       unsigned int   NAntiCluster()  {
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
         return fAntiCluster.size();
       }
       ///  \return reference of AntiClusterR Collection
+      ///
       vector<AntiClusterR> & AntiCluster()  {
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
          return  fAntiCluster;
@@ -2536,6 +2616,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  AntiClusterR accessor
        /// \param l index of AntiClusterR Collection
       ///  \return reference to corresponding AntiClusterR element
+      ///
        AntiClusterR &   AntiCluster(unsigned int l) {
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
          return fAntiCluster.at(l);
@@ -2544,6 +2625,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  AntiClusterR accessor
        /// \param l index of AntiClusterR Collection
       ///  \return pointer to corresponding AntiClusterR element
+      ///
       AntiClusterR *   pAntiCluster(unsigned int l) {
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
         return l<fAntiCluster.size()?&(fAntiCluster[l]):0;
@@ -2551,11 +2633,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of TrRawClusterR
+      ///
       unsigned int   NTrRawCluster()  {
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
         return fTrRawCluster.size();
       }
       ///  \return reference of TrRawClusterR Collection
+      ///
       vector<TrRawClusterR> & TrRawCluster()  {
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
          return  fTrRawCluster;
@@ -2564,6 +2648,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrRawClusterR accessor
        /// \param l index of TrRawClusterR Collection
       ///  \return reference to corresponding TrRawClusterR element
+      ///
        TrRawClusterR &   TrRawCluster(unsigned int l) {
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
          return fTrRawCluster.at(l);
@@ -2572,6 +2657,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrRawClusterR accessor
        /// \param l index of TrRawClusterR Collection
       ///  \return pointer to corresponding TrRawClusterR element
+      ///
       TrRawClusterR *   pTrRawCluster(unsigned int l) {
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
         return l<fTrRawCluster.size()?&(fTrRawCluster[l]):0;
@@ -2581,11 +2667,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
       ///  \return number of TrClusterR
+      ///
       unsigned int   NTrCluster()  {
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
         return fTrCluster.size();
       }
       ///  \return reference of TrClusterR Collection
+      ///
       vector<TrClusterR> & TrCluster()  {
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
          return  fTrCluster;
@@ -2594,6 +2682,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrClusterR accessor
        /// \param l index of TrClusterR Collection
       ///  \return reference to corresponding TrClusterR element
+      ///
        TrClusterR &   TrCluster(unsigned int l) {
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
          return fTrCluster.at(l);
@@ -2602,6 +2691,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrClusterR accessor
        /// \param l index of TrClusterR Collection
       ///  \return pointer to corresponding TrClusterR element
+      ///
       TrClusterR *   pTrCluster(unsigned int l) {
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
         return l<fTrCluster.size()?&(fTrCluster[l]):0;
@@ -2612,11 +2702,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrRecHitR accessor
       ///  \return number of TrRecHitR
+      ///
       unsigned int   NTrRecHit()  {
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
         return fTrRecHit.size();
       }
       ///  \return reference of TrRecHitR Collection
+      ///
       vector<TrRecHitR> & TrRecHit()  {
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
          return  fTrRecHit;
@@ -2625,6 +2717,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrRecHitR accessor
        /// \param l index of TrRecHitR Collection
       ///  \return reference to corresponding TrRecHitR element
+      ///
        TrRecHitR &   TrRecHit(unsigned int l) {
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
          return fTrRecHit.at(l);
@@ -2633,6 +2726,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrRecHitR accessor
        /// \param l index of TrRecHitR Collection
       ///  \return pointer to corresponding TrRecHitR element
+      ///
       TrRecHitR *   pTrRecHit(unsigned int l) {
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
         return l<fTrRecHit.size()?&(fTrRecHit[l]):0;
@@ -2641,11 +2735,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrTrackR accessor
       ///  \return number of TrTrackR
+      ///
       unsigned int   NTrTrack()  {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
         return fTrTrack.size();
       }
       ///  \return reference of TrTrackR Collection
+      ///
       vector<TrTrackR> & TrTrack()  {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
          return  fTrTrack;
@@ -2654,6 +2750,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrTrackR accessor
        /// \param l index of TrTrackR Collection
       ///  \return reference to corresponding TrTrackR element
+      ///
        TrTrackR &   TrTrack(unsigned int l) {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
          return fTrTrack.at(l);
@@ -2662,6 +2759,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrTrackR accessor
        /// \param l index of TrTrackR Collection
       ///  \return pointer to corresponding TrTrackR element
+      ///
       TrTrackR *   pTrTrack(unsigned int l) {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
         return l<fTrTrack.size()?&(fTrTrack[l]):0;
@@ -2672,11 +2770,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrdRawHitR accessor
       ///  \return number of TrdRawHitR
+      ///
       unsigned int   NTrdRawHit()  {
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
         return fTrdRawHit.size();
       }
       ///  \return reference of TrdRawHitR Collection
+      ///
       vector<TrdRawHitR> & TrdRawHit()  {
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
          return  fTrdRawHit;
@@ -2685,6 +2785,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdRawHitR accessor
        /// \param l index of TrdRawHitR Collection
       ///  \return reference to corresponding TrdRawHitR element
+      ///
        TrdRawHitR &   TrdRawHit(unsigned int l) {
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
          return fTrdRawHit.at(l);
@@ -2693,6 +2794,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdRawHitR accessor
        /// \param l index of TrdRawHitR Collection
       ///  \return pointer to corresponding TrdRawHitR element
+      ///
       TrdRawHitR *   pTrdRawHit(unsigned int l) {
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
         return l<fTrdRawHit.size()?&(fTrdRawHit[l]):0;
@@ -2701,11 +2803,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrdClusterR accessor
       ///  \return number of TrdClusterR
+      ///
       unsigned int   NTrdCluster()  {
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
         return fTrdCluster.size();
       }
       ///  \return reference of TrdClusterR Collection
+      ///
       vector<TrdClusterR> & TrdCluster()  {
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
          return  fTrdCluster;
@@ -2714,6 +2818,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdClusterR accessor
        /// \param l index of TrdClusterR Collection
       ///  \return reference to corresponding TrdClusterR element
+      ///
        TrdClusterR &   TrdCluster(unsigned int l) {
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
          return fTrdCluster.at(l);
@@ -2722,6 +2827,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdClusterR accessor
        /// \param l index of TrdClusterR Collection
       ///  \return pointer to corresponding TrdClusterR element
+      ///
       TrdClusterR *   pTrdCluster(unsigned int l) {
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
         return l<fTrdCluster.size()?&(fTrdCluster[l]):0;
@@ -2730,11 +2836,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrdSegmentR accessor
       ///  \return number of TrdSegmentR
+      ///
       unsigned int   NTrdSegment()  {
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
         return fTrdSegment.size();
       }
       ///  \return reference of TrdSegmentR Collection
+      ///
       vector<TrdSegmentR> & TrdSegment()  {
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
          return  fTrdSegment;
@@ -2743,6 +2851,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdSegmentR accessor
        /// \param l index of TrdSegmentR Collection
       ///  \return reference to corresponding TrdSegmentR element
+      ///
        TrdSegmentR &   TrdSegment(unsigned int l) {
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
          return fTrdSegment.at(l);
@@ -2751,6 +2860,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdSegmentR accessor
        /// \param l index of TrdSegmentR Collection
       ///  \return pointer to corresponding TrdSegmentR element
+      ///
       TrdSegmentR *   pTrdSegment(unsigned int l) {
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
         return l<fTrdSegment.size()?&(fTrdSegment[l]):0;
@@ -2760,11 +2870,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrdTrackR accessor
       ///  \return number of TrdTrackR
+      ///
       unsigned int   NTrdTrack()  {
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
         return fTrdTrack.size();
       }
       ///  \return reference of TrdTrackR Collection
+      ///
       vector<TrdTrackR> & TrdTrack()  {
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
          return  fTrdTrack;
@@ -2773,6 +2885,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdTrackR accessor
        /// \param l index of TrdTrackR Collection
       ///  \return reference to corresponding TrdTrackR element
+      ///
        TrdTrackR &   TrdTrack(unsigned int l) {
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
          return fTrdTrack.at(l);
@@ -2781,6 +2894,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdTrackR accessor
        /// \param l index of TrdTrackR Collection
       ///  \return pointer to corresponding TrdTrackR element
+      ///
       TrdTrackR *   pTrdTrack(unsigned int l) {
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
         return l<fTrdTrack.size()?&(fTrdTrack[l]):0;
@@ -2791,11 +2905,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  Level1R accessor
       ///  \return number of Level1R
+      ///
       unsigned int   NLevel1()  {
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
         return fLevel1.size();
       }
       ///  \return reference of Level1R Collection
+      ///
       vector<Level1R> & Level1()  {
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
          return  fLevel1;
@@ -2804,6 +2920,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  Level1R accessor
        /// \param l index of Level1R Collection
       ///  \return reference to corresponding Level1R element
+      ///
        Level1R &   Level1(unsigned int l) {
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
          return fLevel1.at(l);
@@ -2812,6 +2929,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  Level1R accessor
        /// \param l index of Level1R Collection
       ///  \return pointer to corresponding Level1R element
+      ///
       Level1R *   pLevel1(unsigned int l=0) {
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
         return l<fLevel1.size()?&(fLevel1[l]):0;
@@ -2824,11 +2942,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  Level3R accessor
       ///  \return number of Level3R
+      ///
       unsigned int   NLevel3()  {
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
         return fLevel3.size();
       }
       ///  \return reference of Level3R Collection
+      ///
       vector<Level3R> & Level3()  {
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
          return  fLevel3;
@@ -2837,6 +2957,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  Level3R accessor
        /// \param l index of Level3R Collection
       ///  \return reference to corresponding Level3R element
+      ///
        Level3R &   Level3(unsigned int l) {
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
          return fLevel3.at(l);
@@ -2845,6 +2966,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  Level3R accessor
        /// \param l index of Level3R Collection
       ///  \return pointer to corresponding Level3R element
+      ///
       Level3R *   pLevel3(unsigned int l) {
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
         return l<fLevel3.size()?&(fLevel3[l]):0;
@@ -2861,11 +2983,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  BetaR accessor
       ///  \return number of BetaR
+      ///
       unsigned int   NBeta()  {
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
         return fBeta.size();
       }
       ///  \return reference of BetaR Collection
+      ///
       vector<BetaR> & Beta()  {
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
          return  fBeta;
@@ -2874,6 +2998,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  BetaR accessor
        /// \param l index of BetaR Collection
       ///  \return reference to corresponding BetaR element
+      ///
        BetaR &   Beta(unsigned int l) {
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
          return fBeta.at(l);
@@ -2882,6 +3007,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  BetaR accessor
        /// \param l index of BetaR Collection
       ///  \return pointer to corresponding BetaR element
+      ///
       BetaR *   pBeta(unsigned int l) {
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
         return l<fBeta.size()?&(fBeta[l]):0;
@@ -2898,11 +3024,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  ChargeR accessor
       ///  \return number of ChargeR
+      ///
       unsigned int   NCharge()  {
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
         return fCharge.size();
       }
       ///  \return reference of ChargeR Collection
+      ///
       vector<ChargeR> & Charge()  {
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
          return  fCharge;
@@ -2911,6 +3039,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  ChargeR accessor
        /// \param l index of ChargeR Collection
       ///  \return reference to corresponding ChargeR element
+      ///
        ChargeR &   Charge(unsigned int l) {
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
          return fCharge.at(l);
@@ -2919,6 +3048,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  ChargeR accessor
        /// \param l index of ChargeR Collection
       ///  \return pointer to corresponding ChargeR element
+      ///
       ChargeR *   pCharge(unsigned int l) {
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
         return l<fCharge.size()?&(fCharge[l]):0;
@@ -2927,11 +3057,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  VertexR accessor
       ///  \return number of VertexR
+      ///
       unsigned int   NVertex()  {
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
         return fVertex.size();
       }
       ///  \return reference of VertexR Collection
+      ///
       vector<VertexR> & Vertex()  {
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
          return  fVertex;
@@ -2940,6 +3072,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  VertexR accessor
        /// \param l index of VertexR Collection
       ///  \return reference to corresponding VertexR element
+      ///
        VertexR &   Vertex(unsigned int l) {
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
          return fVertex.at(l);
@@ -2948,6 +3081,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  VertexR accessor
        /// \param l index of VertexR Collection
       ///  \return pointer to corresponding VertexR element
+      ///
       VertexR *   pVertex(unsigned int l) {
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
         return l<fVertex.size()?&(fVertex[l]):0;
@@ -2955,11 +3089,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  ParticleR accessor
       ///  \return number of ParticleR
+      ///
       unsigned int   NParticle()  {
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
         return fParticle.size();
       }
       ///  \return reference of ParticleR Collection
+      ///
       vector<ParticleR> & Particle()  {
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
          return  fParticle;
@@ -2968,6 +3104,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  ParticleR accessor
        /// \param l index of ParticleR Collection
       ///  \return reference to corresponding ParticleR element
+      ///
        ParticleR &   Particle(unsigned int l) {
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
          return fParticle.at(l);
@@ -2976,6 +3113,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  ParticleR accessor
        /// \param l index of ParticleR Collection
       ///  \return pointer to corresponding ParticleR element
+      ///
       ParticleR *   pParticle(unsigned int l) {
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
         return l<fParticle.size()?&(fParticle[l]):0;
@@ -2986,11 +3124,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  AntiMCClusterR accessor
       ///  \return number of AntiMCClusterR
+      ///
       unsigned int   NAntiMCCluster()  {
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
         return fAntiMCCluster.size();
       }
       ///  \return reference of AntiMCClusterR Collection
+      ///
       vector<AntiMCClusterR> & AntiMCCluster()  {
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
          return  fAntiMCCluster;
@@ -2999,6 +3139,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  AntiMCClusterR accessor
        /// \param l index of AntiMCClusterR Collection
       ///  \return reference to corresponding AntiMCClusterR element
+      ///
        AntiMCClusterR &   AntiMCCluster(unsigned int l) {
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
          return fAntiMCCluster.at(l);
@@ -3007,6 +3148,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  AntiMCClusterR accessor
        /// \param l index of AntiMCClusterR Collection
       ///  \return pointer to corresponding AntiMCClusterR element
+      ///
       AntiMCClusterR *   pAntiMCCluster(unsigned int l) {
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
         return l<fAntiMCCluster.size()?&(fAntiMCCluster[l]):0;
@@ -3018,11 +3160,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TofMCClusterR accessor
       ///  \return number of TofMCClusterR
+      ///
       unsigned int   NTofMCCluster()  {
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
         return fTofMCCluster.size();
       }
       ///  \return reference of TofMCClusterR Collection
+      ///
       vector<TofMCClusterR> & TofMCCluster()  {
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
          return  fTofMCCluster;
@@ -3031,6 +3175,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofMCClusterR accessor
        /// \param l index of TofMCClusterR Collection
       ///  \return reference to corresponding TofMCClusterR element
+      ///
        TofMCClusterR &   TofMCCluster(unsigned int l) {
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
          return fTofMCCluster.at(l);
@@ -3039,6 +3184,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TofMCClusterR accessor
        /// \param l index of TofMCClusterR Collection
       ///  \return pointer to corresponding TofMCClusterR element
+      ///
       TofMCClusterR *   pTofMCCluster(unsigned int l) {
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
         return l<fTofMCCluster.size()?&(fTofMCCluster[l]):0;
@@ -3049,11 +3195,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrMCClusterR accessor
       ///  \return number of TrMCClusterR
+      ///
       unsigned int   NTrMCCluster()  {
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
         return fTrMCCluster.size();
       }
       ///  \return reference of TrMCClusterR Collection
+      ///
       vector<TrMCClusterR> & TrMCCluster()  {
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
          return  fTrMCCluster;
@@ -3062,6 +3210,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrMCClusterR accessor
        /// \param l index of TrMCClusterR Collection
       ///  \return reference to corresponding TrMCClusterR element
+      ///
        TrMCClusterR &   TrMCCluster(unsigned int l) {
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
          return fTrMCCluster.at(l);
@@ -3070,6 +3219,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrMCClusterR accessor
        /// \param l index of TrMCClusterR Collection
       ///  \return pointer to corresponding TrMCClusterR element
+      ///
       TrMCClusterR *   pTrMCCluster(unsigned int l) {
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
         return l<fTrMCCluster.size()?&(fTrMCCluster[l]):0;
@@ -3081,11 +3231,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  TrdMCClusterR accessor
       ///  \return number of TrdMCClusterR
+      ///
       unsigned int   NTrdMCCluster()  {
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
         return fTrdMCCluster.size();
       }
       ///  \return reference of TrdMCClusterR Collection
+      ///
       vector<TrdMCClusterR> & TrdMCCluster()  {
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
          return  fTrdMCCluster;
@@ -3094,6 +3246,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdMCClusterR accessor
        /// \param l index of TrdMCClusterR Collection
       ///  \return reference to corresponding TrdMCClusterR element
+      ///
        TrdMCClusterR &   TrdMCCluster(unsigned int l) {
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
          return fTrdMCCluster.at(l);
@@ -3102,6 +3255,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  TrdMCClusterR accessor
        /// \param l index of TrdMCClusterR Collection
       ///  \return pointer to corresponding TrdMCClusterR element
+      ///
       TrdMCClusterR *   pTrdMCCluster(unsigned int l) {
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
         return l<fTrdMCCluster.size()?&(fTrdMCCluster[l]):0;
@@ -3113,11 +3267,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  RichMCClusterR accessor
       ///  \return number of RichMCClusterR
+      ///
       unsigned int   NRichMCCluster()  {
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
         return fRichMCCluster.size();
       }
       ///  \return reference of RichMCClusterR Collection
+      ///
       vector<RichMCClusterR> & RichMCCluster()  {
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
          return  fRichMCCluster;
@@ -3126,6 +3282,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  RichMCClusterR accessor
        /// \param l index of RichMCClusterR Collection
       ///  \return reference to corresponding RichMCClusterR element
+      ///
        RichMCClusterR &   RichMCCluster(unsigned int l) {
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
          return fRichMCCluster.at(l);
@@ -3134,6 +3291,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  RichMCClusterR accessor
        /// \param l index of RichMCClusterR Collection
       ///  \return pointer to corresponding RichMCClusterR element
+      ///
       RichMCClusterR *   pRichMCCluster(unsigned int l) {
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
         return l<fRichMCCluster.size()?&(fRichMCCluster[l]):0;
@@ -3145,11 +3303,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  MCTrackR accessor
       ///  \return number of MCTrackR
+      ///
       unsigned int   NMCTrack()  {
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
         return fMCTrack.size();
       }
       ///  \return reference of MCTrackR Collection
+      ///
       vector<MCTrackR> & MCTrack()  {
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
          return  fMCTrack;
@@ -3158,6 +3318,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  MCTrackR accessor
        /// \param l index of MCTrackR Collection
       ///  \return reference to corresponding MCTrackR element
+      ///
        MCTrackR &   MCTrack(unsigned int l) {
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
          return fMCTrack.at(l);
@@ -3166,6 +3327,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  MCTrackR accessor
        /// \param l index of MCTrackR Collection
       ///  \return pointer to corresponding MCTrackR element
+      ///
       MCTrackR *   pMCTrack(unsigned int l) {
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
         return l<fMCTrack.size()?&(fMCTrack[l]):0;
@@ -3178,11 +3340,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
        ///  MCEventgR accessor
       ///  \return number of MCEventgR
+      ///
       unsigned int   NMCEventg()  {
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
         return fMCEventg.size();
       }
       ///  \return reference of MCEventgR Collection
+      ///
       vector<MCEventgR> & MCEventg()  {
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
          return  fMCEventg;
@@ -3191,6 +3355,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  MCEventgR accessor
        /// \param l index of MCEventgR Collection
       ///  \return reference to corresponding MCEventgR element
+      ///
        MCEventgR &   MCEventg(unsigned int l) {
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
          return fMCEventg.at(l);
@@ -3199,6 +3364,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  MCEventgR accessor
        /// \param l index of MCEventgR Collection
       ///  \return pointer to corresponding MCEventgR element
+      ///
       MCEventgR *   pMCEventg(unsigned int l) {
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
         return l<fMCEventg.size()?&(fMCEventg[l]):0;

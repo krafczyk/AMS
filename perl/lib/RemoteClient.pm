@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.483 2008/01/04 15:45:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.484 2008/01/10 09:20:01 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9118,6 +9118,7 @@ sub listAll {
          $self -> listRuns();
           $self -> listNtuples();
             $self -> listDisks();
+            $self -> listDisks('Data');
     htmlBottom();
 }
 
@@ -9164,6 +9165,7 @@ sub listShort {
       $self -> listMails();
        $self -> listServers();
         $self -> listDisks();
+            $self -> listDisks('Data');
     htmlBottom();
 }
 
@@ -9858,6 +9860,10 @@ sub listCites {
 
 sub listDisks {
     my $self    = shift;
+    my $path=shift;
+    if(not defined $path){
+        $path='MC';
+    }
     my $lastupd = undef;
     my $sql     = undef;
 
@@ -9885,13 +9891,13 @@ sub listDisks {
               print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
               print "<td><b><font color=\"blue\" >Size [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Allowed [GB]</font></b></td>";
-              print "<td><b><font color=\"blue\" >MC [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >$path [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Available [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
       print_bar($bluebar,3);
      }
      $sql="SELECT host, disk, path, totalsize, occupied, available, status,
-           timestamp, isonline,allowed FROM Filesystems ORDER BY available DESC";
+           timestamp, isonline,allowed FROM Filesystems where path like'%$path' ORDER BY available DESC  ";
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
@@ -9943,7 +9949,7 @@ sub listDisks {
            }
       }
     }
-    $sql="SELECT SUM(totalsize), SUM(occupied), SUM(available) FROM Filesystems";
+    $sql="SELECT SUM(totalsize), SUM(occupied), SUM(available) FROM Filesystems where path like '%$path'";
     my $r4=$self->{sqlserver}->Query($sql);
     if(defined $r4->[0][0]){
 #      foreach my $tt (@{$r4}){

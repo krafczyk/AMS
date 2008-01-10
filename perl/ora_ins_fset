@@ -1,0 +1,1 @@
+insert into filesystems values ('pcamss0', '/s0dat0','/Data',0,0,0,90,'Active',0,0,0);
