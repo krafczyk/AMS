@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: transfer.py,v 1.2 2007/12/07 16:16:34 ams Exp $
+#  $Id: transfer.py,v 1.3 2008/01/10 17:22:45 ams Exp $
 # this script suppose to check & transfer data files from
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -8,7 +8,7 @@ sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
 sys.path.insert(0,'./lib')
 import RemoteClient
 
-
+c=1
 v=1
 i=0
 u=1
@@ -22,6 +22,7 @@ for x in sys.argv:
     elif x == "-i": i=1
     elif x == "-v": v=1
     elif x == "-u": u=1
+    elif x == "-c": c=1
     elif x[0:2] == "-r" :
         run2p=int(x[2:len(x)])
     elif x[0:2] == "-s" :
@@ -32,6 +33,6 @@ if(len(source)<2):
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 #if(html.ServerConnect(1)):
-html.TransferDataFiles(run2p,i,v,u,h,source)
+html.TransferDataFiles(run2p,i,v,u,h,source,c)
 
 

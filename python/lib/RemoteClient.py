@@ -2345,7 +2345,7 @@ class RemoteClient:
                                     
                                 
             
-    def TransferDataFiles(self,run2p,i,v,u,h,source):
+    def TransferDataFiles(self,run2p,i,v,u,h,source,c):
         global mutex
         mutex=thread.allocate_lock()
         mutex.acquire()
@@ -2370,83 +2370,87 @@ class RemoteClient:
         self.BadRuns=[0]
         delay=86400
         joudir=source+"/jou";
-        for filej in os.listdir(joudir):
-            pfilej=os.path.join(joudir,filej)
-            if(filej.find(".jou.1")>=0):
-                continue
-            if(filej.find(".jou")<0):
-                continue
-            writetime=os.stat(pfilej)[ST_MTIME]
-            timenow=time.time()
-            file=filej.split(".jou")[0]
-            pfile=os.path.join(source,file)
-            if(not os.path.isfile(pfile)):
-                print "file not found ",pfile
-                continue
-            sql="select path from datafiles where path like '%"+file+"'"
-            ret=self.sqlserver.Query(sql);
-            if(len(ret)>0):
-               continue
-            fltdvo=open(pfilej,'r')
-            good=0
-            crc=""
-            fevent=""
-            levent=""
-            events=""
-            size=""
-            tfevent=""
-            tlevent=""
-            path=""
-            errors=""
-            timestamp=""
-            tag=""
-            run=""
-            version=""
-            for linea in fltdvo.readlines():
-                line=linea.split('\n')[0]
-                if(line.find("Run")>=0):
-                    run=line.split("=")[1]
-                elif(line.find("FEvent")>=0):
-                    fevent=line.split("=")[1]
-                elif(line.find("LEvent")>=0):
-                    levent=line.split("=")[1]
-                elif(line.find("TFevent")>=0):
-                    tfevent=line.split("=")[1]
-                elif(line.find("TLevent")>=0):
-                    tlevent=line.split("=")[1]
-                elif(line.find("Version")>=0):
-                    version=line.split("=")[1]
-                elif(line.find("NEvent")>=0):
-                    events=line.split("=")[1]
-                elif(line.find("NError")>=0):
-                    errors=line.split("=")[1]
-                elif(line.find("CRC")>=0):
-                    crc=line.split("=")[1]
-                elif(line.find("Size")>=0):
-                    size=line.split("=")[1]
-                elif(line.find("Timestamp")>=0):
-                    rtime=line.split("=")[1]
-                elif(line.find("Path")>=0):
-                    path=line.split("=")[1]
-                elif(line.find("Tag")>=0):
-                    tag=line.split("=")[1]
-            fltdvo.close()
-            if(len(size)>1 and len(crc)>1 and len(events)>1 and len(tlevent)>1 and len(tfevent)>1 and len(levent)>1 and len(fevent)>1 and len(run)>1 and len(rtime)>1):
-                (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
-                if(ret==1):
-                    sizemb=int(size)/1024
-                    sql ="insert into datafiles values(%s,'%s','RawFile',%s,%s,%s,%s,%s,%d,'OK','%s',' ',%s,%s,0,0,%s,%s,%s)" %(run,version,fevent,levent,events,errors,rtime,sizemb,outputpath,crc,int(timenow),tag,tfevent,tlevent)
-                    self.sqlserver.Update(sql)
-                    self.sqlserver.Commit(1)
-                    cmd="rm -rf "+pfile
-                    os.system(cmd)
-                    cmd="mv "+pfilej+" "+pfilej+".1"
-                    os.system(cmd)
-                else:
-                    if(outputpath!=None):
-                        cmd="rm -rf "+outputpath
+        while 1:
+            for filej in os.listdir(joudir):
+                pfilej=os.path.join(joudir,filej)
+                if(filej.find(".jou.1")>=0):
+                    continue
+                if(filej.find(".jou")<0):
+                    continue
+                writetime=os.stat(pfilej)[ST_MTIME]
+                timenow=time.time()
+                file=filej.split(".jou")[0]
+                pfile=os.path.join(source,file)
+                if(not os.path.isfile(pfile)):
+                    print "file not found ",pfile
+                    continue
+                sql="select path from datafiles where path like '%"+file+"'"
+                ret=self.sqlserver.Query(sql);
+                if(len(ret)>0):
+                    continue
+                fltdvo=open(pfilej,'r')
+                good=0
+                crc=""
+                fevent=""
+                levent=""
+                events=""
+                size=""
+                tfevent=""
+                tlevent=""
+                path=""
+                errors=""
+                timestamp=""
+                tag=""
+                run=""
+                version=""
+                for linea in fltdvo.readlines():
+                    line=linea.split('\n')[0]
+                    if(line.find("Run")>=0):
+                        run=line.split("=")[1]
+                    elif(line.find("FEvent")>=0):
+                        fevent=line.split("=")[1]
+                    elif(line.find("LEvent")>=0):
+                        levent=line.split("=")[1]
+                    elif(line.find("TFevent")>=0):
+                        tfevent=line.split("=")[1]
+                    elif(line.find("TLevent")>=0):
+                        tlevent=line.split("=")[1]
+                    elif(line.find("Version")>=0):
+                        version=line.split("=")[1]
+                    elif(line.find("NEvent")>=0):
+                        events=line.split("=")[1]
+                    elif(line.find("NError")>=0):
+                        errors=line.split("=")[1]
+                    elif(line.find("CRC")>=0):
+                        crc=line.split("=")[1]
+                    elif(line.find("Size")>=0):
+                        size=line.split("=")[1]
+                    elif(line.find("Timestamp")>=0):
+                        rtime=line.split("=")[1]
+                    elif(line.find("Path")>=0):
+                        path=line.split("=")[1]
+                    elif(line.find("Tag")>=0):
+                        tag=line.split("=")[1]
+                fltdvo.close()
+                if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
+                    (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
+                    if(ret==1):
+                        sizemb=int(size)/1024
+                        sql ="insert into datafiles values(%s,'%s','RawFile',%s,%s,%s,%s,%s,%d,'OK','%s',' ',%s,%s,0,0,%s,%s,%s)" %(run,version,fevent,levent,events,errors,rtime,sizemb,outputpath,crc,int(timenow),tag,tfevent,tlevent)
+                        self.sqlserver.Update(sql)
+                        self.sqlserver.Commit(1)
+                        cmd="rm -rf "+pfile
                         os.system(cmd)
-                    
+                        cmd="mv "+pfilej+" "+pfilej+".1"
+                        os.system(cmd)
+                    else:
+                        if(outputpath!=None):
+                            cmd="rm -rf "+outputpath
+                            os.system(cmd)
+            if(c==0 or run2p!=0):
+                break;
+            else:
+                time.sleep(60)
 #                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
 #                    if(suc==1):
 #                        self.sqlserver.Commit(1)
