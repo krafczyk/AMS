@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.70 2007/12/18 08:09:52 choutko Exp $
+//  $Id: trrawcluster.C,v 1.71 2008/01/11 14:40:58 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -464,16 +464,18 @@ return l;
 }
 
 
-void AMSTrRawCluster::buildraw(integer n, int16u *p){
+void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
 //  have to split integer n; add crate number on the upper part...
-  uinteger ic=(n>>16);
-  integer ic1=checkdaqid(*(p-1+n))-1;
-  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
   unsigned int leng=n&65535;
+  uinteger ic=(n>>16);
+  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
+  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
   int16u * ptr;
+  int le=0;
  return; 
-  for(ptr=p+1;ptr<p+n-1;ptr+=leng+3){      // cluster length > 1 
-     leng=(*ptr)&63;
+for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
+  for(ptr=p+1;ptr<p+n-1;ptr+=le+3){      // cluster length > 1 
+     le=(*ptr)&63;
           int16 sn=(((*ptr)>>6)&63);
           float s2n=float(sn)/8;
      AMSTrIdSoft id(ic,int16u(*(ptr+1)));
@@ -485,28 +487,6 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
         (int16*)ptr+2,s2n));
 
         //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
-        if(AMSJob::gethead()->isMonitoring()){
-          
-          static int jpa=0;
-          if(!jpa){
-            HBOOK1(501101,"diff",200,-20.,20.,0.);
-            jpa=1;
-          }
-          float snm=0;
-          int olds=id.getstrip();
-          for (int k=0;k<leng+1;k++){
-            id.upd(olds+k);
-            if(id.getsig() && (*((int16*)ptr+2+k))/id.getsig() > snm){
-              snm=*((int16*)ptr+2+k)/id.getsig();
-            }
-          }       
-          id.upd(olds);
-          //if( 1 ||  sn>snm){
-          //cout <<sn<<" "<<snm<<" "<<id.getsig()<<" "<<id<<endl;
-          //}
-          HF1(501101,float(sn-snm),1.);
-          
-        }         
 
        }
         else {
@@ -523,6 +503,7 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
           
         }
      }
+
 #ifdef __AMSDEBUG__
      else {
        cerr <<" AMSTrRawCluster::buildraw-E-Id.Dead "<<id.gethaddr()<<" "<<
@@ -532,6 +513,7 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
      //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
      // <<id.getstrip()<<" "<<leng<<" "<<*((int16*)ptr+2)<<endl;
   }
+}
   
 
 
@@ -542,8 +524,9 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
 }
 #endif
 
-   matchKS();
+//   matchKS();
 }
+
  void AMSTrRawCluster::matchKS(){
   // Get rid of K without S 
 

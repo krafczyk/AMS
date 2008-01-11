@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.39 2008/01/07 16:22:15 choumilo Exp $
+//  $Id: trigger102.C,v 1.40 2008/01/11 14:40:58 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1152,7 +1152,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((word&0x000F)==0x0003)TofFlag1=9;//1,2(miss3,4)
     else{
       TofFlag1=-1;
-      cout<<"   <-- Trigger2LVL1::buildraw:WrongCP/CT/BZword="<<hex<<word<<dec<<endl;
+#ifdef __AMSDEBUG__
+      cerr<<"   <-- Trigger2LVL1::buildraw:WrongCP/CT/BZword="<<hex<<word<<dec<<endl;
+#endif
     }
 //
     word=word>>8;//to select BZ

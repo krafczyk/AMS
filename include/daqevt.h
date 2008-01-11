@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.33 2007/12/10 12:53:22 choutko Exp $
+//  $Id: daqevt.h,v 1.34 2008/01/11 14:40:59 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -131,6 +131,7 @@ void setoffset(uinteger offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 void close(){ fbin.close();fbout.close();}
+static char * _DirName;
 static char ** ifnam;
 static integer InputFiles;
 static integer KIFiles;

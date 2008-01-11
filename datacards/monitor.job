@@ -1,0 +1,49 @@
+
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+
+fi
+/f2users/choutko/AMS/exe/$MACHINE/gbatch.exe <<!
+LIST
+KINE 14
+MULS 1
+LOSS 1 
+CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
+HADR 1
+TRIG 10000000
+DEBUG -1 10 1000
+C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
+RNDM  1310381404  1978925784
+C      Simul Debug    CpuLim  Read Write Jobname
+IOPA 1=0 127=2 128='/tmp/1029n.root' 43=101 44=0.01
+45='TriggerLVL1   ' 
+AMSJOB 1=1011   2=0      3=5.   4=1  5=0 46='AMS02'
+C Special HP-UX
+TIME 3=10000000
+C DAQC 1=1 2='/daq/HRDL/SCI/0000/' 84=1
+DAQC 1=1 2='/f2users/choutko/BLOCKS/HRDL/SCI/0000/' 84=1
+TFRE 3=1 5=1 6=1 7=1
+C     8=0
+    28=10111
+C TGL1 19=11 20=0 21=1
+C TFCA 29=1
+TERM 1=1234567890 2=1198173513
+END
+
+
+!
+

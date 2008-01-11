@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.90 2008/01/07 11:14:44 choutko Exp $
+//  $Id: daqevt.C,v 1.91 2008/01/11 14:40:58 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include "astring.h"
 #include <fstream.h>
+#include <unistd.h>
 #ifndef __ALPHA__
 using std::ostrstream;
 using std::istrstream;
@@ -169,6 +170,7 @@ const char* DAQEvent::_NodeNames[512]={
 };
 
 const integer DAQEvent::_OffsetL=1;
+char *  DAQEvent::_DirName=0;
 char ** DAQEvent::ifnam=0;
 integer DAQEvent::InputFiles=0;
 integer DAQEvent::KIFiles=0;
@@ -191,6 +193,10 @@ return ifnam[0];
 
 void DAQEvent::setfiles(char *ifile, char *ofile){
   if(ifile){
+   if(!_DirName){
+     _DirName=new char[strlen(ifile)+1];
+      strcpy(_DirName,ifile);
+    }
    InputFiles=parser(ifile,ifnam);
    if(InputFiles)
     cout <<"DAQEvent::setfiles-I-"<<InputFiles<<" input files parsed"<<endl;
@@ -696,6 +702,7 @@ integer DAQEvent::read(){
        break;
      }    
      else{
+        fbin.clear();
         cerr<<"DAQEvent::read-F-cannot open file "<<fnam<<endl;
         if((fnam=_getNextFile(Run, Event))==0)return 0;
      
@@ -1177,9 +1184,22 @@ else{
 run=0;
 event=0;
 }
-if(KIFiles<InputFiles)return ifnam[KIFiles++];
-else return 0;
-
+if (AMSJob::gethead()->isMonitoring()) {
+ while(KIFiles>=InputFiles){
+  sleep(60);
+  if(ifnam){
+   delete[] ifnam;
+   ifnam=0;
+  }
+  InputFiles=parser(_DirName,ifnam); 
+ }
+        AMSJob::gethead()->urinit(ifnam[KIFiles]);
+        return ifnam[KIFiles++];
+}
+else{
+ if(KIFiles<InputFiles)return ifnam[KIFiles++];
+ else return 0;
+}
 
 }
 

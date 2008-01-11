@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.514 2008/01/10 09:19:28 choutko Exp $
+// $Id: job.C,v 1.515 2008/01/11 14:40:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -202,7 +202,7 @@ void AMSJob::_siamsdata(){
 IOPA.hlun=0;
 VBLANK(IOPA.hfile,40);
 IOPA.ntuple=1;
-IOPA.Portion=.1;
+IOPA.Portion=.2;
 IOPA.WriteAll=102;
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
@@ -3333,6 +3333,17 @@ else AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,
 #endif
 }
 }
+void AMSJob::urinit(char fnam[]){
+  if(_pntuple)_pntuple->endR();
+    strcpy(_rootfilename,fnam);
+    strcat(_rootfilename,".root");
+    if(_pntuple)_pntuple->initR(_rootfilename);
+    else{
+        _pntuple = new AMSNtuple(_rootfilename);
+        _pntuple->initR(_rootfilename);
+    }
+    _NtupleActive=true;
+}
 
 void AMSJob::urinit(integer run, integer eventno, time_t tt)
 throw (amsglobalerror){
@@ -3462,7 +3473,7 @@ for(i=0;i<nalg;i++){
     AMSTrIdCalib::ntuple(AMSEvent::getSRun());
   }
   if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll)){
-   AMSTrIdCalib::offmonhist();    
+//   AMSTrIdCalib::offmonhist();    
   }
 
 
