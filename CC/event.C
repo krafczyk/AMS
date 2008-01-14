@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.352 2008/01/08 17:10:13 choumilo Exp $
+//  $Id: event.C,v 1.353 2008/01/14 10:57:41 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2337,7 +2337,7 @@ void AMSEvent::_copyEl(){
 }
 
 void AMSEvent::_printEl(ostream & stream){
-  stream << "===>>> Run:"<<_run<<" "<<getname()<<" "<< getid()<<" Time: " 
+  stream << "======>>> Run:"<<_run<<" "<<getname()<<" "<< getid()<<" Time: " 
    <<ctime(&_time)<<"."<<_usec<<" Station R:"<<_StationRad<<" Theta:"<<_StationTheta*AMSDBc::raddeg
    <<" Phi:"<<_StationPhi*AMSDBc::raddeg<<" Speed:"<<_StationSpeed
    <<" Pole:"<<_NorthPolePhi*AMSDBc::raddeg<<endl;

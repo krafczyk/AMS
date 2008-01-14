@@ -482,7 +482,7 @@ public:
   int nftdc;///<numb.of FTtime-hits
   int ftdc[8];///<FTtime-hits(FastTrigger-channel time, ns)
   int nstdc;///<numb.of LTtime-hits
-  int stdc[16];///<LTtime-hits(LowThreshold-channel time. ns)
+  int stdc[16];///<LTtime-hits(LowThreshold-channel time, ns)
   int nsumh;///<numb.of SumHTtime-hits
   int sumht[16];///<SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, ns)
   int nsumsh;///<numb.of SumSHTtime-hits
@@ -1098,7 +1098,7 @@ public:
 		    */
   int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch 
   int   TofFlag1;   ///< FTC(z>=1) layers pattern code, <0->noFTC,>=0->(0-8)->miss.planes-code;
-  int   TofFlag2;   ///< BZ(z>=2) layers pattern code, <0->noFTC,>=0->(0-8)->miss.planes-code;
+  int   TofFlag2;   ///< BZ(z>=2) layers pattern code, <0->noBZ,>=0->(0-8)->miss.planes-code;
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
 
@@ -1131,7 +1131,7 @@ public:
      }
     }
     
-    sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV",TofFlag1%10==0?"4/4":"3/4",TofFlag2>0?">1":"=1",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum);
+    sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV",TofFlag1%10==0?"4/4":"<=3/4",TofFlag2==0?"4/4":"<=3/4",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum);
   return _Info;
   }
   virtual ~Level1R(){};

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.35 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.36 2008/01/14 10:57:50 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -155,15 +155,15 @@ public:
   static void daqs2(int16u crat, integer info){
 #ifdef __AMSDEBUG__
       assert(info>=0 && info< ecalconst::ECJSTA);
-      assert(crat>=0 && crat< ecalconst::ECRT);
+      assert(crat< ecalconst::ECRT);
 #endif
     daqc2[crat][info]+=1;
   }
   static void daqs3(int16u crat, int16u slot, integer info){
 #ifdef __AMSDEBUG__
       assert(info>=0 && info< ecalconst::ECJSTA);
-      assert(crat>=0 && crat< ecalconst::ECRT);
-      assert(slot>=0 && slot< ecalconst::ECSLOTS);
+      assert(crat< ecalconst::ECRT);
+      assert(slot< ecalconst::ECSLOTS);
 #endif
     daqc3[crat][slot][info]+=1;
   }

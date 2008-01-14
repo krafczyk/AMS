@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.40 2008/01/11 14:40:58 choutko Exp $
+//  $Id: trigger102.C,v 1.41 2008/01/14 10:57:41 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1054,6 +1054,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   integer gftmsk(0),ftzlmsk(0);
   int16u ftzwdcode(0);
   static geant LiveTime1,LiveTime2,TrigRates[6];//static to save them if blocks come not simultaneously
+  static geant LiveTprev1(-1),LiveTprev2(-1),tgprev1(-1),tgprev2(-1);
+  uinteger ltimec[2];
+  geant ltimeg[2];
   uinteger ntrst(0),timcal(0);
   uinteger time[2]={0,0};
   uinteger trtime[4]={0,0,0,0};
@@ -1068,9 +1071,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   integer i,j,iw,il,ib,is,ic,lent,dlen,wvar;
   int16u blid,btyp,naddr,word;
   uinteger lword;
-  integer ltim(0);
+  uinteger ltim(0);
   geant tgate;
-  int16u timgid;
+  uinteger timgid;
 //  
   int16u datyp,formt,evnum;
   int16u jbias,jblid,jleng,jaddr,csid,psfcode;
@@ -1103,9 +1106,11 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
   jaddr=jblid&(0x001F);//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
-  if(TGL1FFKEY.printfl>0){
+  if(TGL1FFKEY.printfl>1){
     cout<<endl;
     cout<<"====> In Trigger2LVL1::buildraw: JLV1_length(in call)="<<*p<<"("<<jleng<<"), slave_id:"<<jaddr<<endl;
+    EventBitDump(jleng,p,"Dump Event-by-Event:");//debug
+    
   }
   if(jleng>1)TGL1JobStat::daqs1(1);//<=== count non-empty fragments
   else goto BadExit;
@@ -1201,7 +1206,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     timcal|=(lword<<16);
     trtime[0]=timcal;
 //---> print info:
-    if(TGL1FFKEY.printfl>0){
+    if(TGL1FFKEY.printfl>1){
       cout<<"      Triggered by (hex="<<trigby<<") :";
       if((trigby&1)>0)cout<<"LA-0"<<endl;
       if((trigby&2)>0)cout<<"LA-1"<<endl;
@@ -1252,41 +1257,55 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   if((sbpatt%100)/10>0){// <--- LiveTimeBlock info
     TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
 //                    --->LiveTime "all busy":
-    ltim=0;
-    timgid=0;
     word=*(p+ltimbias);//1st 16bits of live-time
-    ltim|=word;
+    ltim=uinteger(word);
     lword=uinteger(*(p+ltimbias+1));//last 11bits of live_time + time_gate.id
-    ltim|=((lword&0x07FF)<<16);
-    timgid|=((lword&0x3000)>>12);//2bits of time_gate.id
+    ltim|=((lword&0x07FFL)<<16);
+    timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
     if(timgid==3)tgate=2;//time-gate(sec)
     else if(timgid==0)tgate=0.25;
     else if(timgid==1)tgate=0.5;
     else tgate=1;
+    ltimec[0]=ltim;
+    ltimeg[0]=tgate;
     LiveTime1=ltim*(2.e-8)/tgate;//livetime fraction(imply 20ns pulses period)
     if(LiveTime1>1){
     if(TGL1FFKEY.printfl>0)cout<<"<---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<tgate<<" "<<ltim<<" LTim1="<<LiveTime1<<endl;
-      LiveTime1=1; 
+//      LiveTime1=1; 
       TGL1JobStat::daqs1(6);//LTim1>1
     } 
 //                    --->LiveTime "FE busy":
     word=*(p+ltimbias+2);//1st 16bits of live-time
-    ltim|=word;
+    ltim=uinteger(word);
     lword=uinteger(*(p+ltimbias+3));//last 11bits of live_time + time_gate.id
-    ltim|=((lword&0x07FF)<<16);
-    timgid|=((lword&0x3000)>>12);//2bits of time_gate.id
+    ltim|=((lword&0x07FFL)<<16);
+    timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
     if(timgid==3)tgate=2;//time-gate(sec)
     else if(timgid==0)tgate=0.25;
     else if(timgid==1)tgate=0.5;
     else tgate=1;
+    ltimec[1]=ltim;
+    ltimeg[1]=tgate;
     LiveTime2=ltim*(2.e-8)/tgate;//livetime fraction(imply 20ns pulses period)
     if(LiveTime2>1){
     if(TGL1FFKEY.printfl>0)cout<<"<---- Trigger2LVL1::buildraw:W - LiveTime2>1!, tg/lt="<<tgate<<" "<<ltim<<" LTim2="<<LiveTime2<<endl;
-      LiveTime2=1; 
+//      LiveTime2=1; 
       TGL1JobStat::daqs1(8);//LTim2>1
     }
     if(TGL1FFKEY.printfl>0){
-      cout<<"      All_Busy_LiveTime:"<<LiveTime1<<", FE_Busy_LiveTime:"<<LiveTime2<<endl<<endl;;
+      if(LiveTime1!=LiveTprev1 || LiveTime2!=LiveTprev2 || ltimeg[0]!=tgprev1 || ltimeg[1]!=tgprev2){
+        cout<<endl<<"----> LiveTimePars changed: Event/Time= "<<AMSEvent::gethead()->getid()<<" "
+	                                                      <<AMSEvent::gethead()->gettime()<<endl;
+        cout<<"      LiveTime1/2:"<<LiveTime1<<"/"<<LiveTime2<<" Counts:"<<ltimec[0]
+                                                                    <<" "<<ltimec[1]
+							     <<" Tgates:"<<ltimeg[0]
+							            <<" "<<ltimeg[1]<<endl<<endl;
+	if(LiveTime1!=LiveTprev1)LiveTprev1=LiveTime1;
+	if(LiveTime2!=LiveTprev2)LiveTprev2=LiveTime2;
+	if(ltimeg[0]!=tgprev1)tgprev1=ltimeg[0];
+	if(ltimeg[1]!=tgprev2)tgprev2=ltimeg[1];
+        EventBitDump(jleng,p,"Dump on Change of LiveTimePars:");//debug
+      }
     }
   }//--->endof "LiveTime" block 
 //-----------------------------
@@ -1443,15 +1462,16 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //---
     word=*(p+trgsbias+6);
     for(i=0;i<TOF2GC::SCLRS;i++){//update tofoamask and tofoazmask
-      if((word&1<<i)>0)l1trigconf.tofoamask(i)=1;//or for CP-sides(FTC)
+      if((word&(1<<i))>0)l1trigconf.tofoamask(i)=1;//or for CP-sides(FTC)
       else l1trigconf.tofoamask(i)=0;//and
-      if((word&1<<(i+8))>0)l1trigconf.tofoazmask(i)=1;//or for BZ-sides
+      if((word&(1<<(i+8)))>0)l1trigconf.tofoazmask(i)=1;//or for BZ-sides
       else l1trigconf.tofoazmask(i)=0;//and
     }
 //---
     word=*(p+trgsbias+7);
     for(i=0;i<ANTI2C::MAXANTI;i++){//update antioamask
-      if((word&1<<i)>0)l1trigconf.antoamask(i)=1;//or
+      if((word&(1<<i))>0)l1trigconf.antoamask(i)=1;//or
+      else l1trigconf.antoamask(i)=0;//and
     }
 //---          ignore 2words(bias+8,+9) with InternTrig period, LA-trig
 //---
@@ -1503,12 +1523,12 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	                           <<hex<<psfcode<<dec<<" PhBr="<<i<<endl;
       }
     }
-    if(TGL1FFKEY.printfl>0){//print setup info (if requested):
+    if(TGL1FFKEY.printfl>1){//print setup info (if requested):
       cout<<"               TrigSetup :"<<endl;
       cout<<"      Anabled ATC-sectors/sides:";
       for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antinmask(i)<<" ";
       cout<<endl;
-      cout<<"              ATC-sectors side OR(1)/AND(0) pattern:";
+      cout<<"              ATC-sectors side_OR(1)/AND(0) flags:";
       for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antoamask(i)<<" ";
       cout<<endl;
       
@@ -1522,6 +1542,11 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       cout<<"      Anabled ECAL [FTE(x|y)|ANG(x|y)]:"<<wvar<<endl;
       cout<<"              ECAL-proj OR/AND(->1/2):"<<l1trigconf.ecorand()<<endl;
       
+      cout<<"      TOF-Layers Sides_OR(1)/AND(0) flags(CP/BZ):"<<" ";
+      for(i=0;i<TOF2GC::SCLRS;i++)cout<<l1trigconf.tofoamask(i)<<" "; 
+      for(i=0;i<TOF2GC::SCLRS;i++)cout<<"  "<<l1trigconf.tofoazmask(i)<<" ";
+      cout<<endl; 
+      
       cout<<"      Anabled globFT-members pattern(FTE|FTZ|FTC<-):"<<gftmsk<<endl;
       
       bool ftztbor=(ftzlmsk/10==1);
@@ -1533,7 +1558,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
                                                                             <<"/"<<l1trigconf.toflutbz()<<endl;
 									    
       geant pwextt=geant(20*(1+(l1trigconf.tofextwid()&31)));//ext.width for top-coinc. signal
-      geant pwextb=geant(20*(1+(l1trigconf.tofextwid()&(31<<5))>>5));//ext.width for bot-coins. signal
+      geant pwextb=geant(20*(1+((l1trigconf.tofextwid()&(31<<5))>>5)));//ext.width for bot-coins. signal
       cout<<"      TOF-FTZ top/bot pulse ext.width(ns):"<<pwextt<<" "<<pwextb<<endl;
       
       cout<<"      Anabled Lev1PhysBranchMembersPattern :"<<endl; 
@@ -1565,9 +1590,10 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //
 //---------> create Lev1-object:
 // 
-//  integer tm=int(floor(TOF2Varp::tofvpar.getmeantoftemp(0)));
 //cout<<"TOFrateMX="<<scalmon.TOFrateMX()<<"  HiLim="<<TGL1FFKEY.MaxScalersRate<<endl;
-//cout<<"LiveTime1="<<LiveTime1<<"  LowLim="<<TGL1FFKEY.MinLifeTime<<endl;     
+//cout<<"LiveTime1="<<LiveTime1<<"  LowLim="<<TGL1FFKEY.MinLifeTime<<endl;
+  if(LiveTime1==0 && LiveTime2>0)LiveTime1=LiveTime2;//tempor fix     
+  if(LiveTime2==0 && LiveTime1>0)LiveTime2=LiveTime1;     
   if(scalmon.TOFrateMX()<TGL1FFKEY.MaxScalersRate && LiveTime1>=TGL1FFKEY.MinLifeTime){
     AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new Trigger2LVL1(PhysBPatt,JMembPatt,
              TofFlag1,TofFlag2,tofpat1,tofpat2,AntiPatt,EcalFlag,ecpat,ectrs,LiveTime1,TrigRates,trtime));
@@ -1621,6 +1647,43 @@ void Trigger2LVL1::node2side(int16u nodeid, int16u &side){
   side=0;
   for(int i=0;i<2;i++)if(nodeid == nodeids[i])side=i+1;
 }
+//----------------------------------------------------
+void Trigger2LVL1::EventBitDump(integer leng, int16u *p, char * message){
+  int16u blid,len,naddr,datyp;
+  len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
+  blid=*(p+len);// fragment's last word: Status+slaveID
+  bool dataf=((blid&(0x8000))>0);//data-fragment
+  bool crcer=((blid&(0x4000))>0);//CRC-error
+  bool asser=((blid&(0x2000))>0);//assembly-error
+  bool amswer=((blid&(0x1000))>0);//amsw-error   
+  bool timoer=((blid&(0x0800))>0);//timeout-error   
+  bool fpower=((blid&(0x0400))>0);//FEpower-error   
+  bool seqer=((blid&(0x0400))>0);//sequencer-error
+  bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
+  bool noerr;
+  naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
+  datyp=(blid&(0x00C0))>>6;//0,1,2,3
+  noerr=(dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && cdpnod);
+  cout<<"----> Lev1DaqBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
+  cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
+  cout<<" node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" block_length="<<len<<endl;
+//
+  cout<<"  Block hex/binary dump follows :"<<endl<<endl;
+  int16u tstw,tstb;
+  for(int i=0;i<len+1;i++){
+    tstw=*(p+i);
+    cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
+    for(int j=0;j<16;j++){
+      tstb=(1<<(15-j));
+      if((tstw&tstb)!=0)cout<<"x"<<"|";
+      else cout<<" "<<"|";
+    }
+    cout<<endl;
+  }
+  cout<<"-----------------------------------------------------------"<<endl;
+  cout<<dec<<endl<<endl;
+}//
 
 
 

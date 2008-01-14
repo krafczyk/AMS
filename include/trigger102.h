@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.17 2007/12/10 14:43:53 choumilo Exp $
+//  $Id: trigger102.h,v 1.18 2008/01/14 10:57:50 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -73,7 +73,7 @@ protected:
    integer _toflut2;//accepted FT tof-layers config-2 (2nd LookUpTabel, z>=1)
    integer _toflutbz;//accepted LVL1 tof-layers config(z>=2 lvl1)
    integer _toflcsz;//MN, layer-logic for FTZ(slowZ>=2),M=0/1->and/or of top and bot logic, N->top(bot)logic
-   integer _tofextwid;//5_lowsignbits/next5moresignbits=>widthExtentionCode for TopTOF/BotTOF 
+   integer _tofextwid;//5_lowsignbits/next5moresignbits=>widthExtentionCodes for TopTOF/BotTOF 
    integer _antinmask[ANTI2C::MAXANTI];//=0/1/2/3=>Not_in_trig/both/s1(bot)/s2(top), in_trigger mask
    integer _antoamask[ANTI2C::MAXANTI];//=0/1=>And/Or of two LogicSector-sides mask
    integer _antsectmx[2];//two maxlimits on acceptable numb. of fired ANTI-sectors(logical),equat/polar reg.
@@ -191,6 +191,7 @@ public:
       static integer getmaxblocks(){return 2;}
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
+      static void EventBitDump(integer leng, int16u *p, char * message);
 #ifdef __WRITEROOT__
       friend class Level1R;
 #endif

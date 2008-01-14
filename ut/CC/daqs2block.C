@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.17 2008/01/08 17:10:12 choumilo Exp $
+//  $Id: daqs2block.C,v 1.18 2008/01/14 10:57:41 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -82,7 +82,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   int16u wcount(0);//sequencer Word-counter
   int16u svermsk(0);//stat.verification mask in TrPatt/Stat-block of ComprFMT 
 // for onboard ped-cal tables:
-  bool pedblk(false);//tempor:ped-calib_data flag(shoulld be passed here from header !!!)
+  bool ONBpedblk(false);//tempor:ped-calib_data flag(shoulld be passed here from header !!!)
   geant ped,sig,pedc,sigc;
   int16u sta,stac,nblkok;
   AMSTimeID *ptdv;
@@ -93,11 +93,11 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   integer static PedBlkCrat[SCCRAT]={0,0,0,0};
   bool PedBlkOK(false);
 // for classic ped-run events or for DownScaled events
-  bool PedCal(false);//means PedCal job, using event-by-event in RawFMT or DownScaled 
+  bool TofPedCal(false);//Separate TofPedCal-job(ev-by-ev) using RawFMT(class/DownScaled mode)  
+  bool AccPedCal(false);//Separate AccPedCal-job(ev-by-ev) using RawFMT(only fmt for AccQ)(class/DownScaled mode)  
+  bool subtpedTof(false),subtpedAcc(false);
   bool DownScal(false);//tempor:  how to recognize it ???
   static int FirstDScalBlk(0);
-  int16u PedSubt[SCCRAT]={1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
-//  int16u PedSubt[SCCRAT]={0,0,0,0};//temporTest 0/1->no/yes PedSubtr at RawEvent creation
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -155,34 +155,34 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   }
 //
   if(datyp>0 && len>1){
-    if(pedblk)TOF2JobStat::daqsfr(8);//<=== count non-empty fragments of PedTable-type
+    if(ONBpedblk)TOF2JobStat::daqsfr(8);//<=== count non-empty fragments of PedTable-type
     else TOF2JobStat::daqsfr(1+datyp);//<=== count non-empty fragments of given DATA-type
   }
   else goto BadExit;
   noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
   if(noerr){
-    if(pedblk)TOF2JobStat::daqsfr(9);//<=== count non-empty fragments of PedTble-type
+    if(ONBpedblk)TOF2JobStat::daqsfr(9);//<=== count non-empty fragments of PedTble-type
     else TOF2JobStat::daqsfr(4+datyp);//<=== count no-errors fragments for given DATA-type
   }     
   else goto BadExit;
   node2crs(naddr,crat,csid);//get crate#(1-4),card_side(1-2<->a-b)
+//---
+  if(datyp==1)setrawf();
+  else if(datyp==2)setcomf();
+  else if(datyp==3)setmixf();
+  if(ONBpedblk)setpedf();//tempor: ONBpedblk flag is known only from header and should be already known here
+  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
+//cout<<"    format="<<formt<<" crate="<<crat<<endl;     
 //---------
-  if(TFREFFKEY.relogic[0]==5
-             || ATREFFKEY.relogic==2)PedCal=true;//tempor(use later info on ClassPedData presence from header ?)
-  if(!PedCal && (TFREFFKEY.relogic[0]==5 || ATREFFKEY.relogic==2)){
+  if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)TofPedCal=true;//TofPedCal-job(Class/DownScaled) requested
+  if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)AccPedCal=true;//AccPedCal-job(Class/DownSc) requested 
+  if((TofPedCal && (formt>0 || !DownScal)) || (AccPedCal && formt==3)){
     cout<<"DAQS2Block::buildraw-W-Not ClassicPedCalibData when classic PedCal job is requested !!!"<<endl;
     return;
   }
 //
-  if(TFREFFKEY.relogic[0]==6 || ATREFFKEY.relogic==3)PedCal=true;// DownScaledEvents PedCalib job is requested 
 //---------
-  if(datyp==1)setrawf();
-  else if(datyp==2)setcomf();
-  else if(datyp==3)setmixf();
-  if(pedblk)setpedf();//tempor: pedblk flag is known only from header and should be passed here
-  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
-//cout<<"    format="<<formt<<" crate="<<crat<<endl;     
   if(formt<=1)TOF2JobStat::daqscr(formt,crat-1,0);//count crate-entries with stand-alone  raw/comp format
   else if(formt==2){//mix.form
     TOF2JobStat::daqscr(0,crat-1,0);//count crate-entries with raw format
@@ -205,7 +205,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //
   if(TFREFFKEY.reprtf[4]>1)EventBitDump(leng,p,"Event-by-event:");//debug
 // 
-//============================> "On_Board_PedCalib_Table" processing (if present/requested):
+//============================> "On_Board_PedCalib_Table" processing (if present/requested,tof+acc):
   bias=1;//tempor: here len=90x3+1(blid)
   if(formt==3 && (TFREFFKEY.relogic[0]==7 || ATREFFKEY.relogic==4)){
     TOF2JobStat::daqscr(2,crat-1,0);// PedCalFormat entries/crate
@@ -632,8 +632,6 @@ cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
 	}//--->endof "rdch>0" check
       }//--->endof time-hits-loop
     }//--->endof TDC-buffers loop
-//-------------------------
-    if(PedCal)PedSubt[crat-1]=0;//flag to subtr(1)/not(0) peds at RawEvent-creation(for Raw only by whole crate)
 //------
 //cout<<"*******> endof RawFMT-decoding !"<<endl;
   }//=========================> endof "RawFMT presence check/processing
@@ -1030,16 +1028,19 @@ SkipTPpr1:
   int16u aslt,sslt;
   integer nsumh,nsumsh,sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
   integer crsta;
-  bool subtrped;
   geant athr,dthr,anthr;
-  athr=1.5*TOF2Varp::tofvpar.daqthr(3);//tof daq readout thr(ped sigmas) for anode
-  dthr=1.5*TOF2Varp::tofvpar.daqthr(4);//tof daq-thr. for dynode
+  athr=TOF2Varp::tofvpar.daqthr(3);//tof daq readout thr(ped sigmas) for anode
+  dthr=TOF2Varp::tofvpar.daqthr(4);//tof daq-thr. for dynode
   temp=999;//for AntiRawEvent-obj, 999 mean undefined value (real/default one will be set at validation stage)
   geant temp1,temp2,temp3;
   temp1=999;//for TofRawSide-obj(SFET/SFEC/PMT-temper), 999 mean undefined values  
 //                            (real/default ones will be set during validation stage)
   temp2=999;
   temp3=999;
+//
+  if((getformat()==0 || DownScal) && !TofPedCal)subtpedTof=true;//norm.RawFmt/DownScaled Tof-data are in crate
+  if(!AccPedCal)subtpedAcc=true;//always RawFmt AccCharge-data are in crate
+//  (ONBoardPedTable already identified and processed, so no thise data can be found at this level !!!))
 //
 //for(ic=0;ic<SCRCMX;ic++){
 //  if(swibuf[ic]>0){
@@ -1093,7 +1094,6 @@ SkipTPpr1:
       if(hwidt==0)hwidt=10000*shwid;//CS0000
 //      if(mtyp!=1 && hwidt==0)hwidt=10000*shwid;//CS0000
       if(mtyp>=2)assert(sslt>0 && sslt<=SCFETA);//SFET+SFEA seq.slot# is used for FT/sHT/sSHT storing
-      subtrped=(PedSubt[crat-1]==1);//true/false->subtr/not peds
 //
       switch(mtyp){//fill RawEvent arrays
         case 0:
@@ -1110,7 +1110,7 @@ SkipTPpr1:
 	      if(dtyp==1){//tof
 	        ped=TOFBPeds::scbrped[il][ib].apeda(is);
 	        sig=TOFBPeds::scbrped[il][ib].asiga(is);
-		if(subtrped){
+		if(subtpedTof){
 		  if((adca-ped)>athr*sig)adca-=ped;
 		  else adca=0;
 		}
@@ -1118,8 +1118,8 @@ SkipTPpr1:
 	      if(dtyp==2 ){//anti
                 ped=ANTIPeds::anscped[ib].apeda(is);
                 sig=ANTIPeds::anscped[ib].asiga(is);
-                anthr=ANTI2SPcal::antispcal[ib].getdqthr();
-		if(subtrped){
+                anthr=ANTI2SPcal::antispcal[ib].getdqthr();//tempor is not side-individual !!!
+		if(subtpedAcc){
 		  if((adca-ped)>anthr*sig)adca-=ped;
 		  else adca=0;
 		}
@@ -1127,7 +1127,7 @@ SkipTPpr1:
 	    }
 	    else{//dynode
 	      adcd[pmt-1]=geant(swcbuf[ic][0])+0.5;
-	      if(subtrped){
+	      if(subtpedTof){
 	        ped=TOFBPeds::scbrped[il][ib].apedd(is,pmt-1);
 	        sig=TOFBPeds::scbrped[il][ib].asigd(is,pmt-1);
 		if((adcd[pmt-1]-ped)>dthr*sig){
@@ -1170,7 +1170,7 @@ SkipTPpr1:
       crsta=0;
       if(dtyp==1){//TOF
 	if(nstdc>0 || adca>0 || nadcd>0){//create tof-raw-side obj
-	  if(PedSubt[crat-1])sta=0;//ok(normal TOF2RawSide object with subtracted ped)
+	  if(subtpedTof)sta=0;//ok(normal TOF2RawSide object with subtracted ped)
 	  else sta=1;//for the moment it is a flag for Validate-stage that Peds was not subtracted !!!
 	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
 	  nsumh=0;
@@ -1196,7 +1196,7 @@ SkipTPpr1:
       }
       else{//ANTI 
 	if(nstdc>0 || adca>0){
-	  if(PedSubt[crat-1])sta=0;//ok(normal Anti2RawEvent object with subtracted ped)
+	  if(subtpedAcc)sta=0;//ok(normal Anti2RawEvent object with subtracted ped)
 	  else sta=1;//for the moment it is a flag for Validate-stage that Peds was not subtracted !!!
 	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
           if(TFREFFKEY.reprtf[4]>1){//<---debug

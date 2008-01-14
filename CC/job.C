@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.515 2008/01/11 14:40:58 choutko Exp $
+// $Id: job.C,v 1.516 2008/01/14 10:57:41 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -353,7 +353,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.Lvl1ConfRDVers=1167606001;//(18)RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
   TGL1FFKEY.Lvl1ConfRead=1;  //(19) MN, N=0/1->read Lvl1Config-data from DB/raw_file
 //                                      M=0/1->read Lvl1Config raw-file from official/private dir
-  TGL1FFKEY.printfl=0;      // (20) PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=1 ->max)
+  TGL1FFKEY.printfl=0;      // (20) PrintControl=0/n>0 -> noPrint/PrintWithPriority(more n -> more details)
 //
   TGL1FFKEY.Lvl1ConfSave=0; // (21) If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
 //
@@ -908,7 +908,7 @@ void AMSJob::_sianti2data(){
   ATMCFFKEY.mcprtf=0;//(1)print-flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
   ATMCFFKEY.LZero=0; // (2)spare
   ATMCFFKEY.LSpeed=14.7;// (3)Eff. light speed in anti-paddle (cm/ns)
-  ATMCFFKEY.ReadConstFiles=0;//(4)Sp|Rp(Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
+  ATMCFFKEY.ReadConstFiles=0;//(4)Seedp|Realp(Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
   ATMCFFKEY.calvern=1;//(5)TccCflistMC-file(acccal_files vers. list) version number
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
@@ -1147,15 +1147,15 @@ void AMSJob::_retof2data(){
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run. 
   TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
-  TFREFFKEY.relogic[2]=0;//(10) 0/1-> force 1-side suppression(useful for MC processing)
+  TFREFFKEY.relogic[2]=0;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->create(+write)/not TOF2RawSideObject-info into ntuple
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
   TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
   TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig(50% of He-mip)  
-  TFREFFKEY.daqthr[3]=2.5;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
-  TFREFFKEY.daqthr[4]=2.5;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)
+  TFREFFKEY.daqthr[3]=4.;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
+  TFREFFKEY.daqthr[4]=4.;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)
 //
   TFREFFKEY.cuts[0]=10.;//(18) window(ns) to find "corresponding" hits in LT-/sumHT-channels
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
@@ -1168,7 +1168,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
   TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
 //
-  TFREFFKEY.ReadConstFiles=10100;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
+  TFREFFKEY.ReadConstFiles=10111;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
 //                                           D->ThrCuts-set(datacards),P->Peds(rd),C->CalibConst(rd/mc));
 // L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
@@ -1248,7 +1248,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.relogic=0;  //(3) =0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/PedCal_OnBoardTable
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
-  ATREFFKEY.daqthr=3.;  //(6) spare
+  ATREFFKEY.daqthr=3.;  //(6) spare (now sector-individual,taken from AccStparRD(MC).-file or DB
   ATREFFKEY.ftdel=72.;  //(7) FT-delay wrt correlated Anti history-pulse
   ATREFFKEY.ftwin=54.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.257 2008/01/12 17:49:44 mdelgado Exp $
+#  $Id: datacards.doc,v 1.258 2008/01/14 10:57:49 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -647,7 +647,7 @@ I 18 Lvl1ConfRDVers(1167606001)//RD def. UTC-extention of "Lvl1ConfRD.***" -file
 I 19 Lvl1ConfRead(0)       // MN, N=0/1->read Lvl1Config-data from DB/raw_file
                            //     M=0/1->read Lvl1Config raw file from official/private directory
 
-I 20 printfl(0);           // PrintControl=0/>0 -> noPrint/Print event-by-event FT/LVL1 info
+I 20 printfl(0);           // =0/n>0 -> noPrint/Print(higher n - more details) event-by-event FT/LVL1 info
 
 I 21 Lvl1ConfSave(0)       // If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
 
@@ -714,7 +714,7 @@ I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 hist
 I 8   RECO logic-flag(0)  // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_
 //                               /OBPT_calibr run(if=0/1/2/3/4/5/6/7),where OBPT=OnBoardPedTable
 I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
-I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
+I 10  RECO logic-flag(0)  // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
 I 11  RECO logic-flag(0)  // do/not recovering of missing side 
 I 12  RECO logic-flag(1)  // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 
 R 13  DAQ-thresh-1 (40)   // thresh.(mv) for fast t-discriminator (z>=1 trig)

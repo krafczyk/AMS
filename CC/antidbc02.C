@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.20 2007/10/01 13:30:52 choumilo Exp $
+//  $Id: antidbc02.C,v 1.21 2008/01/14 10:57:41 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -739,7 +739,7 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
 }
 //==========================================================================
 //
-void ANTIPedsMS::build(){//tempor solution for RealData peds. 
+void ANTIPedsMS::build(){//tempor solution for MC-Seed peds. 
 //
   int i,j,is;
   integer sid;

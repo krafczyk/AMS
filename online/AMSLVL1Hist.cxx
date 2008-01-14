@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.15 2006/01/25 11:21:40 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.16 2008/01/14 10:57:50 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -57,11 +57,11 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("MissingPlaneCode");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("trigh8","TOF-pads pattern in Z>=1(Side1,globFT)",40,1.,41.));
+  _filled.push_back(new TH1F("trigh8","TOF-pads pattern in Z>=1(Side1,globFT)",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(3);
    
-  _filled.push_back(new TH1F("trigh9","TOF-pads pattern Z>=1(Side2,globFT)",40,1.,41.));
+  _filled.push_back(new TH1F("trigh9","TOF-pads pattern Z>=1(Side2,globFT)",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(3);
    
@@ -69,11 +69,11 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("MissingPlaneCode");
   _filled[_filled.size()-1]->SetFillColor(4);
   
-  _filled.push_back(new TH1F("trigh11","TOF-pads pattern in Z>=2(Side1,globFT)",40,1.,41.));
+  _filled.push_back(new TH1F("trigh11","TOF-pads pattern in Z>=2(Side1,globFT)",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(4);
    
-  _filled.push_back(new TH1F("trigh12","TOF-pads pattern in Z>=2(Side2,globFT)",40,1.,41.));
+  _filled.push_back(new TH1F("trigh12","TOF-pads pattern in Z>=2(Side2,globFT)",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(4);
    
@@ -477,11 +477,11 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     for(int il=0;il<lmax;il++){
       for(int ip=0;ip<padpl[il];ip++){
         nch=il*10+ip+1;
-        if((tofpat1[il]&1<<ip)>0)_filled[8]->Fill(nch,1.);//s1-patt, z>=1
-	if((tofpat1[il]&1<<(16+ip))>0)_filled[9]->Fill(nch,1.);//s2-patt, z>=1
+        if((tofpat1[il]&(1<<ip))>0)_filled[8]->Fill(nch,1.);//s1-patt, z>=1
+	if((tofpat1[il]&(1<<(16+ip)))>0)_filled[9]->Fill(nch,1.);//s2-patt, z>=1
 	if(bz){  
-          if((tofpat2[il]&1<<ip)>0)_filled[11]->Fill(nch,1.);//s1-patt, Z>=2
-	  if((tofpat2[il]&1<<(16+ip))>0)_filled[12]->Fill(nch,1.);//s2-patt, Z>=2
+          if((tofpat2[il]&(1<<ip))>0)_filled[11]->Fill(nch,1.);//s1-patt, Z>=2
+	  if((tofpat2[il]&(1<<(16+ip)))>0)_filled[12]->Fill(nch,1.);//s2-patt, Z>=2
 	}  
       }
     }
