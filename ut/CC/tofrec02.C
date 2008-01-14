@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.45 2008/01/14 10:57:41 choumilo Exp $
+//  $Id: tofrec02.C,v 1.46 2008/01/14 13:35:15 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -425,12 +425,14 @@ void TOF2RawCluster::build(int &ostatus){
     else{
       ilay=0;
     }
-//     if(ibar==1)ibar=4;
-//     else if(ibar==2)ibar=1;
-//     else if(ibar==3)ibar=5;
-//     else if(ibar==4)ibar=2;
-//     else if(ibar==5)ibar=6;
-//     else if(ibar==6)ibar=3;
+/*
+     if(ibar==1)ibar=4;
+     else if(ibar==2)ibar=1;
+     else if(ibar==3)ibar=5;
+     else if(ibar==4)ibar=2;
+     else if(ibar==5)ibar=6;
+     else if(ibar==6)ibar=3;
+*/
     mtyp=0;
     otyp=0;
     AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.31 2007/12/06 13:31:22 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.32 2008/01/14 13:35:17 choutko Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -745,7 +745,10 @@ public:
   bool truech(int ch){
 #ifdef __AMSDEBUG__
     if(TOF2DBc::debug){
-      assert(ch>=0 && ch < TOF2GC::SCTDCCH-2);
+      //assert(ch>=0 && ch < TOF2GC::SCTDCCH-2);
+      if(!(ch>=0 && ch < TOF2GC::SCTDCCH-2)){
+         cerr<<"/assert(ch>=0 && ch < TOF2GC::SCTDCCH-2) "<<ch<<endl;
+      }
     }
 #endif
     return ((_bmap & (1<<ch))!=0);

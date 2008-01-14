@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.71 2008/01/11 14:40:58 choutko Exp $
+//  $Id: trrawcluster.C,v 1.72 2008/01/14 13:35:16 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -469,50 +469,54 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
   unsigned int leng=n&65535;
   uinteger ic=(n>>16);
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
-  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
-  int16u * ptr;
-  int le=0;
- return; 
+//  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
 for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
-  for(ptr=p+1;ptr<p+n-1;ptr+=le+3){      // cluster length > 1 
-     le=(*ptr)&63;
-          int16 sn=(((*ptr)>>6)&63);
-          float s2n=float(sn)/8;
-     AMSTrIdSoft id(ic,int16u(*(ptr+1)));
+ //cout <<" length "<<leng<<" "<<*p<<" "<<((*(p+*p))&31)<<endl;
+ int16u tdr=(*(p+*p))&31;
+ for(int16u* paux=p+1;paux<p+*p-17;paux+=*paux+2){
+  int16u haddr=*(paux+1);
+  if(haddr>1023 ){
+#ifdef __AMSDEBUG__
+    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrOutOfRange  "<<haddr<<" "<<*paux<<endl;
+#endif
+    continue;
+  }
+//#ifdef __AMSDEBUG__
+  if(haddr<640 && haddr+*(paux)>=640){
+    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
+    continue;
+ }
+ else if(haddr>=640 && haddr+*(paux)>=1023){
+    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
+    continue;
+ }
+//#endif
+// get common noise also instead of s2n which not exists for ams02
+  int va=haddr/64;
+  geant cn=*(p+*p-16+va)/8.;
+  haddr=haddr| (tdr<<10);
+  AMSTrIdSoft id(ic,haddr);
      if(!id.dead() ){
-       if(id.teststrip(id.getstrip()+leng)){
-
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-        AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
-        (int16*)ptr+2,s2n));
-
-        //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
-
-       }
-        else {
-          // split into two clusters;
-          //cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
-        AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-        AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips()-1,
-        (int16*)ptr+2,s2n));
-        integer second=id.getstrip()+leng-id.getmaxstrips();
-        id.upd(0);
-         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-         AMSTrRawCluster(id.getaddr(),id.getstrip(),second,
-         (int16*)ptr+2+leng-second,s2n));
-          
+        AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux,
+        (int16*)paux+2,cn));
+//        cout <<"  id "<<id<<" "<<id.getstrip()<<" "<<id.getstrip()+*paux<<endl;
+        if(id.getgain()==0){
+          for(int k=id.getstrip();k<(id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux);k++){
+            id.upd(k);
+            id.setgain()=8;
+            id.setsig()=2.5;
+            id.clearstatus(AMSDBc::BAD);
+          }
         }
      }
-
 #ifdef __AMSDEBUG__
-     else {
+     else{
        cerr <<" AMSTrRawCluster::buildraw-E-Id.Dead "<<id.gethaddr()<<" "<<
        ic<<endl;
      }
 #endif
-     //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
-     // <<id.getstrip()<<" "<<leng<<" "<<*((int16*)ptr+2)<<endl;
-  }
+   } 
 }
   
 
@@ -524,7 +528,7 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
 }
 #endif
 
-//   matchKS();
+   matchKS();
 }
 
  void AMSTrRawCluster::matchKS(){
@@ -537,6 +541,8 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
     while(pk){
        AMSTrIdSoft idk(pk->_address);
        if(idk.getside()==0){
+            pk->setstatus(AMSTrRawCluster::MATCHED);
+            break;
         AMSTrRawCluster *ps=pb;
         while(ps){
           AMSTrIdSoft ids(ps->_address);

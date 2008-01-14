@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.516 2008/01/14 10:57:41 choumilo Exp $
+// $Id: job.C,v 1.517 2008/01/14 13:35:15 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1024,8 +1024,8 @@ TRCLFFKEY.ThrClS[1]=15;
 TRCLFFKEY.ThrClR[0]=3.;
 TRCLFFKEY.ThrClR[1]=4.;
 
-TRCLFFKEY.Thr1A[0] =8.;
-TRCLFFKEY.Thr1A[1] =8.;
+TRCLFFKEY.Thr1A[0] =6.;
+TRCLFFKEY.Thr1A[1] =6.;
 
 TRCLFFKEY.Thr2A[0] =4.;
 TRCLFFKEY.Thr2A[1] =3.;

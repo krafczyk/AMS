@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.183 2006/09/14 15:34:50 choutko Exp $
+//  $Id: trrec.C,v 1.184 2008/01/14 13:35:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -216,6 +216,9 @@ integer AMSTrCluster::build(integer refit){
       }                      
      }
      else{
+//      if(adc[i]>0){
+//        cout <<" adc "<< i<<" "<<adc[i]<<" " <<TRCLFFKEY.Thr1A[side]<<" "<<side<<endl;
+//      }
       if(adc[i] > TRCLFFKEY.Thr1A[side]){
        // susp bump found
        id.upd(i-TRCLFFKEY.ThrClNEl[side]/2);

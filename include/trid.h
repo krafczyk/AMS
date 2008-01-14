@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.28 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trid.h,v 1.29 2008/01/14 13:35:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -200,6 +200,15 @@ return strip>=0 && strip <getmaxstrips();
 }
 inline void upd(integer strip){
 #ifdef __AMSDEBUG__
+/*
+if(_side==1 && !(strip>=0 && strip <getmaxstrips())){
+  cerr<<  "kva!!!"<<endl;
+}
+else if(_side==0 && !(strip>=-TRCLFFKEY.ThrClNEl[_side]/2
+       && strip <getmaxstrips()+TRCLFFKEY.ThrClNEl[_side]/2)){
+ cerr<<" kvakva!!!"<<endl;
+}
+*/
        if(_side==1)assert (strip>=0 && strip <getmaxstrips());
        else assert (strip>=-TRCLFFKEY.ThrClNEl[_side]/2 
        && strip <getmaxstrips()+TRCLFFKEY.ThrClNEl[_side]/2);
