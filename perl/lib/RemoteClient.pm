@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.484 2008/01/10 09:20:01 choutko Exp $
+# $Id: RemoteClient.pm,v 1.485 2008/01/15 20:38:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10035,7 +10035,7 @@ sub listMails {
           my $resp   = 'no';
           if ($mail->[2] == 1) { $resp = 'yes';}
           if ($webmode == 1) {
-           if($req>0){
+           if($req>0 || $mail->[2] == 1){
            print "<tr><font size=\"2\">\n";
            print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </b></td><td><b> $status </b></td>\n";
            print "</font></tr>\n";
@@ -10280,13 +10280,13 @@ sub listJobs {
     $sql="SELECT Runs.jid, Runs.status from Runs
                   WHERE
                     Runs.submit >= $timelate-86400*30 ORDER BY Runs.jid";
-    my $r3=$self->{sqlserver}->Query($sql);
-    if (defined $r3->[0][0]) {
-      foreach my $r (@{$r3}){
-         push @runId, $r->[0];
-                 push @runStatus, $r->[1];
-       }
-     }
+#    my $r3=$self->{sqlserver}->Query($sql);
+#    if (1) {
+#      foreach my $r (@{$r3}){
+#         push @runId, $r->[0];
+#                 push @runStatus, $r->[1];
+#       }
+#     }
 
 
 
@@ -10295,28 +10295,29 @@ sub listJobs {
                  Jobs.time, Jobs.timeout,
                  Jobs.triggers,
                  Cites.cid, Cites.name, Cites.descr,
-                 Mails.name,jobs.timekill
-           FROM   Jobs, Cites, Mails
+                 Mails.name,jobs.timekill,runs.status,dataruns.status 
+           FROM   Jobs left join dataruns on dataruns.jid=jobs.jid  left join runs on runs.jid=jobs.jid , Cites, Mails  
             WHERE
-                  Jobs.timestamp > $timelate AND
-                   $pps  AND
+                 ( Jobs.timestamp <= $timelate or jobs.timeout>0) AND
+                 $pps  AND  
                     Jobs.cid=Cites.cid AND
-                     Jobs.mid=Mails.mid
+                     Jobs.mid=Mails.mid  and (dataruns.status !='Completed' or dataruns.status is null) and ((runs.status!='Completed' and runs.status!='Finished') or runs.status is null)
              ORDER  BY Cites.name,  jobs.timekill desc, Jobs.timestamp+jobs.timeout ":"SELECT
                  Jobs.jid, Jobs.jobname,
                  Jobs.time, Jobs.timeout,
                  Jobs.triggers,
                  Cites.cid, Cites.name, Cites.descr,
-                 Mails.name,jobs.timekill
-           FROM   Jobs, Cites, Mails
+                 Mails.name,jobs.timekill,runs.status,dataruns.status 
+           FROM   Jobs left join dataruns on dataruns.jid=jobs.jid  left join runs on runs.jid=jobs.jid , Cites, Mails  
             WHERE
-                  Jobs.timestamp > $timelate 
+                  (Jobs.timestamp <= $timelate or jobs.timeout>0) 
                      AND
                     Jobs.cid=Cites.cid AND
-                     Jobs.mid=Mails.mid
+                     Jobs.mid=Mails.mid and  (dataruns.status !='Completed' or dataruns.status is null) and ((runs.status!='Completed' and runs.status!='Finished') or runs.status is null)
              ORDER  BY Cites.name,  jobs.timekill desc, Jobs.timestamp+jobs.timeout ";
 
-    $r3=$self->{sqlserver}->Query($sql);
+    my $r3=$self->{sqlserver}->Query($sql);
+    #die $sql;
 
      if ($webmode == 1) {print_bar($bluebar,3);}
      my $newline = " ";
@@ -10375,22 +10376,27 @@ sub listJobs {
           if ($njobs < $PrintMaxJobsPerCite) {
            $status = "Submitted";
            $color  = "black";
-           for (my $i=0; $i<$#runId+1; $i++) {
-               if ($runId[$i] == $jid) {
-                 $status = $runStatus[$i];
-                 $color  = statusColor($status);
-                 last;
-               } elsif ($runId[$i] > $jid) {
-                   last;
-               }
-           }
-                if($status eq 'Completed'){
-                   next;
-                 }
-                elsif($status eq "Submitted" and $job->[9] >0 ) {
+#           for (my $i=0; $i<$#runId+1; $i++) {
+#               if ($runId[$i] == $jid) {
+#                 $status = $runStatus[$i];
+#                 $color  = statusColor($status);
+#                 last;
+#               } elsif ($runId[$i] > $jid) {
+#                   last;
+#               }
+#           }
+#                if($status eq 'Completed'){
+#                   next;
+#                 }
+#                elsif($status eq "Submitted" and $job->[9] >0 ) {
+#                  $status='TimeOut';
+#                  $color  = statusColor($status);
+#                }
+           if(($job->[10] eq "Submitted" or $job->[11] eq "Submitted") and  $job->[9] >0){
                   $status='TimeOut';
                   $color  = statusColor($status);
-                }
+             }
+                
 
             if ($webmode == 1) {
                  print "
@@ -14491,8 +14497,12 @@ sub calculateMipsVC {
                   $template->{SUM}=$sum;
                       $template->{SUM2}=$sum2;
               }
+#
+# rectify jobs realtriggers
+#
+
               if($fast){
-                  $sql="select sum(realtriggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
+                  $sql="select sum(datafiles.nevents/(datafiles.levent+1-datafiles.fevent)*jobs.realtriggers)  from jobs,dataruns,datafiles where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
                   $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
@@ -14515,7 +14525,7 @@ sub calculateMipsVC {
                              warn " real trig not defined or 0 for $job->[0] \n";
                              }
                              $rtrig=0;
-                             $sql="select sum(LEvent-FEvent+1) from Runs where jid=$job->[0] and  (status='Completed')";
+                             $sql="select sum(LEvent-FEvent+1) from dataRuns where jid=$job->[0] and  (status='Completed')";
                              my $r3=$self->{sqlserver}->Query($sql);
                              if(defined $r3->[0][0]){
                                  $rtrig=$r3->[0][0];
@@ -14548,6 +14558,9 @@ sub calculateMipsVC {
 #                           die "qq \n";
                        }
                           $rtrig=$ntevt;
+                          $sql="select datafiles.nevents/(datafiles.levent-datafiles.fevent+1) from datafiles,dataruns,jobs where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.jid=$job->[0]";
+                          my $qq=$self->{sqlserver}->Query($sql);
+                          $rtrig*=$qq->[0][0];
                          $completed+=$rtrig;
                          $submitted+=$rtrig;
                          $template->{TOTALEVENTS}-=$rtrig;
