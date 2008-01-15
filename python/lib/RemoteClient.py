@@ -1658,7 +1658,7 @@ class RemoteClient:
        
     def InsertDataRun(self,Run):
             run=Run.Run
-            jid=Run.Run
+            jid=Run.uid;
             fevent=Run.FirstEvent
             levent=Run.LastEvent
             fetime=Run.TFEvent

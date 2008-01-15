@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: transfer.py,v 1.3 2008/01/10 17:22:45 ams Exp $
+#  $Id: transfer.py,v 1.4 2008/01/15 21:05:20 ams Exp $
 # this script suppose to check & transfer data files from
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -22,7 +22,7 @@ for x in sys.argv:
     elif x == "-i": i=1
     elif x == "-v": v=1
     elif x == "-u": u=1
-    elif x == "-c": c=1
+    elif x == "-c0": c=0
     elif x[0:2] == "-r" :
         run2p=int(x[2:len(x)])
     elif x[0:2] == "-s" :
