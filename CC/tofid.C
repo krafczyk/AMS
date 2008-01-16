@@ -34,10 +34,10 @@ using namespace ANTI2C;
 					   };
 //Trig.patt.bits assignment to LBBS  in SPT2 info:
   int AMSSCIds::trpatba[TOF2GC::SCCRAT][2*TOF2GC::SCMXBR]={
-                           2012,2032,2052,2072,   0,2022,2042,2062,2082,   0, //cr-1
-                           1011,1031,1051,1071,   0,1021,1041,1061,1081,   0,
-			   2011,2031,2051,2071,   0,2021,2041,2061,2081,   0, //cr-2
-			   1012,1032,1052,1072,   0,1022,1042,1062,1082,   0,
+                           1011,1031,1051,1071,   0,1021,1041,1061,1081,   0, //cr-1
+                           2012,2032,2052,2072,   0,2022,2042,2062,2082,   0,
+			   1012,1032,1052,1072,   0,1022,1042,1062,1082,   0, //cr-2
+			   2011,2031,2051,2071,   0,2021,2041,2061,2081,   0,
 			   4012,4032,4052,4072,   0,4022,4042,4062,4082,   0, //cr-3			   
 			   3012,3032,3052,3072,3092,3022,3042,3062,3082,3102, 
 			   4011,4031,4051,4071,   0,4021,4041,4061,4081,   0, //cr-4
@@ -309,35 +309,7 @@ void AMSSCIds::inittable(){
   int bias(0);
 // <=========================================== crate-SC0 (top/wake)
 //--->TOF(anodes,SFET):
-  sidlst[bias]=   201200;//t   l2/b1/s2  cr0/sl_2  
-  sidlst[bias+1]= 201201;//q
-  sidlst[bias+2]= 203200;//t      b3/s2
-  sidlst[bias+3]= 203201;//q
-  sidlst[bias+4]= 205200;//t      b5/s2
-  sidlst[bias+5]= 205201;//q
-  sidlst[bias+6]= 207200;//t      b7/s2
-  sidlst[bias+7]= 207201;//q
-  sidlst[bias+8]= 0;
-  sidlst[bias+9]= 0;
-  sidlst[bias+10]=209202;//ft     fb9/s2
-  sidlst[bias+11]=209203;//SumHT, fb9/s2
-  sidlst[bias+12]=209204;//SumSHT fb9/s2
-  bias+=13;
-  sidlst[bias]=   202200;//t    l2/b2/s2 cr0/sl_3 
-  sidlst[bias+1]= 202201;//q
-  sidlst[bias+2]= 204200;//t       b4/s2
-  sidlst[bias+3]= 204201;//q
-  sidlst[bias+4]= 206200;//t       b6/s2
-  sidlst[bias+5]= 206201;//q
-  sidlst[bias+6]= 208200;//t       b8/s2
-  sidlst[bias+7]= 208201;//q
-  sidlst[bias+8]= 0;
-  sidlst[bias+9]= 0;
-  sidlst[bias+10]=210202;//ft     fb10/s2
-  sidlst[bias+11]=210203;//SumHT, fb10/s2
-  sidlst[bias+12]=210204;//SumSHT,fb10/s2
-  bias+=13;
-  sidlst[bias]=   101100;//t   l1/b1/s1  cr0/sl_5  
+  sidlst[bias]=   101100;//t   l1/b1/s1  cr0/sl_2  
   sidlst[bias+1]= 101101;//q
   sidlst[bias+2]= 103100;//t      b3/s1
   sidlst[bias+3]= 103101;//q
@@ -351,7 +323,7 @@ void AMSSCIds::inittable(){
   sidlst[bias+11]=109103;//SumHT, fb9/s1
   sidlst[bias+12]=109104;//SumSHT fb9/s1
   bias+=13;
-  sidlst[bias]=   102100;//t    l1/b2/s1 cr0/sl_6 
+  sidlst[bias]=   102100;//t    l1/b2/s1 cr0/sl_3 
   sidlst[bias+1]= 102101;//q
   sidlst[bias+2]= 104100;//t       b4/s1
   sidlst[bias+3]= 104101;//q
@@ -363,7 +335,35 @@ void AMSSCIds::inittable(){
   sidlst[bias+9]= 0;
   sidlst[bias+10]=110102;//ft     fb10/s1
   sidlst[bias+11]=110103;//SumHT, fb10/s1
-  sidlst[bias+12]=110104;//SumSHT,fb10/s1 
+  sidlst[bias+12]=110104;//SumSHT,fb10/s1
+  bias+=13;
+  sidlst[bias]=   201200;//t   l2/b1/s2  cr0/sl_5  
+  sidlst[bias+1]= 201201;//q
+  sidlst[bias+2]= 203200;//t      b3/s2
+  sidlst[bias+3]= 203201;//q
+  sidlst[bias+4]= 205200;//t      b5/s2
+  sidlst[bias+5]= 205201;//q
+  sidlst[bias+6]= 207200;//t      b7/s2
+  sidlst[bias+7]= 207201;//q
+  sidlst[bias+8]= 0;
+  sidlst[bias+9]= 0;
+  sidlst[bias+10]=209202;//ft     fb9/s2
+  sidlst[bias+11]=209203;//SumHT, fb9/s2
+  sidlst[bias+12]=209204;//SumSHT fb9/s2
+  bias+=13;
+  sidlst[bias]=   202200;//t    l2/b2/s2 cr0/sl_6 
+  sidlst[bias+1]= 202201;//q
+  sidlst[bias+2]= 204200;//t       b4/s2
+  sidlst[bias+3]= 204201;//q
+  sidlst[bias+4]= 206200;//t       b6/s2
+  sidlst[bias+5]= 206201;//q
+  sidlst[bias+6]= 208200;//t       b8/s2
+  sidlst[bias+7]= 208201;//q
+  sidlst[bias+8]= 0;
+  sidlst[bias+9]= 0;
+  sidlst[bias+10]=210202;//ft     fb10/s2
+  sidlst[bias+11]=210203;//SumHT, fb10/s2
+  sidlst[bias+12]=210204;//SumSHT,fb10/s2 
   bias+=13;
 //--->ANTI(anodes,SFEA):
   sidlst[bias]=   1200;//t       b1/s2  cr0/sl_7
@@ -424,37 +424,9 @@ void AMSSCIds::inittable(){
   sidlst[bias+9]= 0;//              empty  
   bias+=10;  
 //
-// <======================================== crate-SC1 (top/ram=L1/S1)  
+// <======================================== crate-SC1 (top/ram)  
 //--->TOF(anodes,SFET):
-  sidlst[bias]=   201100;//t   l2/b1/s1  cr1/sl_2  
-  sidlst[bias+1]= 201101;//q
-  sidlst[bias+2]= 203100;//t      b3/s1
-  sidlst[bias+3]= 203101;//q
-  sidlst[bias+4]= 205100;//t      b5/s1
-  sidlst[bias+5]= 205101;//q
-  sidlst[bias+6]= 207100;//t      b7/s1
-  sidlst[bias+7]= 207101;//q
-  sidlst[bias+8]= 0;
-  sidlst[bias+9]= 0;
-  sidlst[bias+10]=209102;//ft     fb9/s1
-  sidlst[bias+11]=209103;//SumHT, fb9/s1
-  sidlst[bias+12]=209104;//SumSHT fb9/s1
-  bias+=13;
-  sidlst[bias]=   202100;//t    l2/b2/s1 cr1/sl_3 
-  sidlst[bias+1]= 202101;//q
-  sidlst[bias+2]= 204100;//t       b4/s1
-  sidlst[bias+3]= 204101;//q
-  sidlst[bias+4]= 206100;//t       b6/s1
-  sidlst[bias+5]= 206101;//q
-  sidlst[bias+6]= 208100;//t       b8/s1
-  sidlst[bias+7]= 208101;//q
-  sidlst[bias+8]= 0;
-  sidlst[bias+9]= 0;
-  sidlst[bias+10]=210102;//ft     fb10/s1
-  sidlst[bias+11]=210103;//SumHT, fb10/s1
-  sidlst[bias+12]=210104;//SumSHT,fb10/s1
-  bias+=13;
-  sidlst[bias]=   101200;//t   l1/b1/s2  cr1/sl_5  
+  sidlst[bias]=   101200;//t   l1/b1/s2  cr1/sl_2  
   sidlst[bias+1]= 101201;//q
   sidlst[bias+2]= 103200;//t      b3/s2
   sidlst[bias+3]= 103201;//q
@@ -468,7 +440,7 @@ void AMSSCIds::inittable(){
   sidlst[bias+11]=109203;//SumHT, fb9/s2
   sidlst[bias+12]=109204;//SumSHT fb9/s2
   bias+=13;
-  sidlst[bias]=   102200;//t    l1/b2/s2 cr1/sl_6 
+  sidlst[bias]=   102200;//t    l1/b2/s2 cr1/sl_3 
   sidlst[bias+1]= 102201;//q
   sidlst[bias+2]= 104200;//t       b4/s2
   sidlst[bias+3]= 104201;//q
@@ -478,9 +450,37 @@ void AMSSCIds::inittable(){
   sidlst[bias+7]= 108201;//q
   sidlst[bias+8]= 0;
   sidlst[bias+9]= 0;
-  sidlst[bias+10]=   110202;//ft fb10/s2
+  sidlst[bias+10]=110202;//ft     fb10/s2
   sidlst[bias+11]=110203;//SumHT, fb10/s2
-  sidlst[bias+12]=110204;//SumSHT fb10/s2 
+  sidlst[bias+12]=110204;//SumSHT,fb10/s2
+  bias+=13;
+  sidlst[bias]=   201100;//t   l2/b1/s1  cr1/sl_5  
+  sidlst[bias+1]= 201101;//q
+  sidlst[bias+2]= 203100;//t      b3/s1
+  sidlst[bias+3]= 203101;//q
+  sidlst[bias+4]= 205100;//t      b5/s1
+  sidlst[bias+5]= 205101;//q
+  sidlst[bias+6]= 207100;//t      b7/s1
+  sidlst[bias+7]= 207101;//q
+  sidlst[bias+8]= 0;
+  sidlst[bias+9]= 0;
+  sidlst[bias+10]=209102;//ft     fb9/s1
+  sidlst[bias+11]=209103;//SumHT, fb9/s1
+  sidlst[bias+12]=209104;//SumSHT fb9/s1
+  bias+=13;
+  sidlst[bias]=   202100;//t    l2/b2/s1 cr1/sl_6 
+  sidlst[bias+1]= 202101;//q
+  sidlst[bias+2]= 204100;//t       b4/s1
+  sidlst[bias+3]= 204101;//q
+  sidlst[bias+4]= 206100;//t       b6/s1
+  sidlst[bias+5]= 206101;//q
+  sidlst[bias+6]= 208100;//t       b8/s1
+  sidlst[bias+7]= 208101;//q
+  sidlst[bias+8]= 0;
+  sidlst[bias+9]= 0;
+  sidlst[bias+10]=210102;//ft fb10/s1
+  sidlst[bias+11]=210103;//SumHT, fb10/s1
+  sidlst[bias+12]=210104;//SumSHT fb10/s1 
   bias+=13;
 //--->ANTI(anodes,SFEA):
   sidlst[bias]=   5200;//t       b1/s2  cr1/sl_7

@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.26 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: antirec02.C,v 1.27 2008/01/16 14:40:06 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -114,7 +114,11 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //   (some value may be still set to undefined in RawSide-obj) 
     else temp=TOF2Varp::tofvpar.Tdtemp();//set true(DataCard/TDV) def.value for MC
     chnum=sector*2+isid;//channels numbering
-    stat=ptr->getstat();//=0 upto now(ok)
+    stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(if PedSubtracted))
+    if(stat>0 && ATREFFKEY.relogic==0){
+      cout<<"AntiRawEvent::validate:-E- Found not PedSubtracted Data while NormalRun-Job  !!"<<endl;
+      exit(2);
+    } 
 //
 //--->  fill working arrays for given side:
 //

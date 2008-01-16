@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.46 2008/01/14 13:35:15 choutko Exp $
+//  $Id: tofrec02.C,v 1.47 2008/01/16 14:40:06 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -417,22 +417,20 @@ void TOF2RawCluster::build(int &ostatus){
     ilay=id/100-1;
     ibar=id%100-1;
     isid=idd%10-1;
-    int ilayo=ilay;//Vitali's swapping
-    int ibaro=ibar;
-    if(ilay==0){
-      ilay=1;
-    }
-    else{
-      ilay=0;
-    }
-/*
-     if(ibar==1)ibar=4;
-     else if(ibar==2)ibar=1;
-     else if(ibar==3)ibar=5;
-     else if(ibar==4)ibar=2;
-     else if(ibar==5)ibar=6;
-     else if(ibar==6)ibar=3;
-*/
+//    int ilayo=ilay;//Vitali's swapping
+//    int ibaro=ibar;
+//    if(ilay==0){
+//      ilay=1;
+//    }
+//    else{
+//      ilay=0;
+//    }
+//     if(ibar==1)ibar=4;
+//     else if(ibar==2)ibar=1;
+//     else if(ibar==3)ibar=5;
+//     else if(ibar==4)ibar=2;
+//     else if(ibar==5)ibar=6;
+//     else if(ibar==6)ibar=3;
     mtyp=0;
     otyp=0;
     AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
@@ -459,10 +457,10 @@ void TOF2RawCluster::build(int &ostatus){
     }
 //
     if(stat[isid]%10==0                              //<--- validation status(FTtime is absolutely required)
-//      && TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid) //<--- check hit DB(calibr)-status
-//      && TOFBPeds::scbrped[ilay][ibar].PedAchOK(isid)//<--- check hit DB(ped)-status
-      && TOF2Brcal::scbrcal[ilayo][ibaro].SideOK(isid) //<--- check hit DB(calibr)-status
-      && TOFBPeds::scbrped[ilayo][ibaro].PedAchOK(isid)//<--- check hit DB(ped)-status
+      && TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid) //<--- check hit DB(calibr)-status
+      && TOFBPeds::scbrped[ilay][ibar].PedAchOK(isid)//<--- check hit DB(ped)-status
+//      && TOF2Brcal::scbrcal[ilayo][ibaro].SideOK(isid) //<--- check hit DB(calibr)-status
+//      && TOFBPeds::scbrped[ilayo][ibaro].PedAchOK(isid)//<--- check hit DB(ped)-status
 //      && TOFBPeds::scbrped[ilay][ibar].PedDchOK(isid) 
                                                      ){
       TOF2JobStat::addch(chnum,0);//statistics on input channel

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.18 2008/01/14 10:57:41 choumilo Exp $
+//  $Id: daqs2block.C,v 1.19 2008/01/16 14:40:06 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -96,7 +96,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool TofPedCal(false);//Separate TofPedCal-job(ev-by-ev) using RawFMT(class/DownScaled mode)  
   bool AccPedCal(false);//Separate AccPedCal-job(ev-by-ev) using RawFMT(only fmt for AccQ)(class/DownScaled mode)  
   bool subtpedTof(false),subtpedAcc(false);
-  bool DownScal(false);//tempor:  how to recognize it ???
+  bool DownScal(true);//tempor:  how to recognize it ???
   static int FirstDScalBlk(0);
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
@@ -177,7 +177,8 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //---------
   if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)TofPedCal=true;//TofPedCal-job(Class/DownScaled) requested
   if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)AccPedCal=true;//AccPedCal-job(Class/DownSc) requested 
-  if((TofPedCal && (formt>0 || !DownScal)) || (AccPedCal && formt==3)){
+//  if((TofPedCal && (formt>0 || !DownScal)) || (AccPedCal && formt==3)){
+  if((TofPedCal && (!DownScal)) || (AccPedCal && formt==3)){//tempor
     cout<<"DAQS2Block::buildraw-W-Not ClassicPedCalibData when classic PedCal job is requested !!!"<<endl;
     return;
   }

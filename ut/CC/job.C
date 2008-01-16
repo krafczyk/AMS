@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.517 2008/01/14 13:35:15 choutko Exp $
+// $Id: job.C,v 1.518 2008/01/16 14:40:06 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1252,7 +1252,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.ftdel=72.;  //(7) FT-delay wrt correlated Anti history-pulse
   ATREFFKEY.ftwin=54.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //
-  ATREFFKEY.ReadConstFiles=0;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
+  ATREFFKEY.ReadConstFiles=111;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  
   ATREFFKEY.calutc=1167606001;//(10)(20070101 0000001)TccCflistRD-file(acccal_files vers. list) begin UTC-time
 //
@@ -1272,7 +1272,7 @@ void AMSJob::_reanti2data(){
 // defaults for calibration:
   ATCAFFKEY.cfvers=4; //(1) not used now (spare)
   ATCAFFKEY.cafdir=0;// (2)  0/1-> use official/private directory for calibr.files
-  ATCAFFKEY.pedcpr[0]=0.01; // (3) PedCalibJobRandom(classic): portion of highest adcs to remove
+  ATCAFFKEY.pedcpr[0]=0.005; // (3) PedCalibJobRandom(classic): portion of highest adcs to remove
   ATCAFFKEY.pedcpr[1]=0.035;// (4) PedCalibJobDownScaled(in trig): portion of highest adcs to remove
   ATCAFFKEY.pedoutf=2;      // (5)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
 //

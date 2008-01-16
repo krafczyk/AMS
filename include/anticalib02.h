@@ -31,7 +31,7 @@ public:
 const integer ATPCSTMX=100;// PedCalib max.values's stack size (max)
 const integer ATPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
 const integer ATPCEVMX=1000;//max.statistics on events/channel
-const geant ATPCSIMX=6.;//max Ped-rms to accept channel as good
+const geant ATPCSIMX=8.;//max Ped-rms to accept channel as good
 const geant ATPCSPIK=20.;//Anode ADC-value(adc-ch) to be considered as spike(~1mip)
 //
 //  class to manipulate with PedSig-calibration  data:

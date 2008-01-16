@@ -722,10 +722,10 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
 //
   HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
   HMINIM(2670,75.);
-  HMAXIM(2670,125.);
+  HMAXIM(2670,275.);
   HBOOK1(2671,"Ped-rms vs paddle for bot/top sides",20,1.,21.,0.);
   HMINIM(2671,0.);
-  HMAXIM(2671,4.);
+  HMAXIM(2671,8.);
   HBOOK1(2672,"Ped-stat(1=bad) vs paddle for bot/top sides",20,1.,21.,0.);
   HMINIM(2672,0.);
   HMAXIM(2672,1.);
@@ -741,7 +741,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
       in[0]=inum[j+1];
       strcat(htit1,in);
       id=2674+i*2+j;
-    HBOOK1(id,htit1,80,80.,160.,0.);
+    HBOOK1(id,htit1,80,80.,240.,0.);
     }
   }
   //
@@ -773,10 +773,10 @@ void ANTPedCalib::resetb(){ // ----> to work with OnBoardPedTables
   if(first==0){
     HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
     HMINIM(2670,75.);
-    HMAXIM(2670,125.);
+    HMAXIM(2670,275.);
     HBOOK1(2671,"Ped-rms vs paddle for bot/top sides",20,1.,21.,0.);
     HMINIM(2671,0.);
-    HMAXIM(2671,4.);
+    HMAXIM(2671,8.);
     HBOOK1(2672,"Ped-stat(1=bad) vs paddle for bot/top sides",20,1.,21.,0.);
     HMINIM(2672,0.);
     HMAXIM(2672,1.);
