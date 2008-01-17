@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.518 2008/01/16 14:40:06 choumilo Exp $
+// $Id: job.C,v 1.519 2008/01/17 08:58:32 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1585,15 +1585,8 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::inittable(2);
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
-#ifndef __USERICHPMTMANAGER__
-       AMSRICHIdGeom::Init();
-#else
        RichPMTsManager::Init();
-#endif
        RichRadiatorTileManager::Init();	
-#ifndef __USERICHPMTMANAGER__
-       AMSRICHIdSoft::Init();
-#endif
        AMSTRDIdSoft::inittable();
        AMSECIds::inittable();
     }
@@ -2855,64 +2848,6 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   end.tm_year=RICFFKEY.year[1];
 
 
-#ifndef __USERICHPMTMANAGER__
-
-  TID.add (new AMSTimeID(AMSID("RichPedCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-			 *sizeof(AMSRICHIdSoft::_ped[0]),
-                         (void*)&AMSRICHIdSoft::_ped[0],server,NeededByDefault));
-
-  TID.add (new AMSTimeID(AMSID("RichSpedCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-                         *sizeof(AMSRICHIdSoft::_sig_ped[0]),
-                         (void*)&AMSRICHIdSoft::_sig_ped[0],server,NeededByDefault));
-
-
-  TID.add (new AMSTimeID(AMSID("Richlambdacalib",isRealData()),
-			 begin,end,AMSRICHIdSoft::_nchannels*2
-			           *sizeof(AMSRICHIdSoft::_lambda[0]),
-			 (void*)&AMSRICHIdSoft::_lambda[0],server,NeededByDefault));
-
-
-  TID.add (new AMSTimeID(AMSID("RichScaleCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-			 *sizeof(AMSRICHIdSoft::_scale[0]),
-                         (void*)&AMSRICHIdSoft::_scale[0],server,NeededByDefault));
-
-  TID.add (new AMSTimeID(AMSID("RichTransmCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-			 *sizeof(AMSRICHIdSoft::_transparency[0]),
-                         (void*)&AMSRICHIdSoft::_transparency[0],server,NeededByDefault));
-
-  
-  TID.add (new AMSTimeID(AMSID("RichLDynCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-                         *sizeof(AMSRICHIdSoft::_lambda_dyn[0]),
-                         (void*)&AMSRICHIdSoft::_lambda_dyn[0],server,NeededByDefault));
-  
-  TID.add (new AMSTimeID(AMSID("RichSDynCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-                         *sizeof(AMSRICHIdSoft::_scale_dyn[0]),
-                         (void*)&AMSRICHIdSoft::_scale_dyn[0],server,NeededByDefault));
-
-  TID.add (new AMSTimeID(AMSID("RichThresholdCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels*2
-                         *sizeof(AMSRICHIdSoft::_threshold[0]),
-                         (void*)&AMSRICHIdSoft::_threshold[0],server,NeededByDefault));
-
-  TID.add (new AMSTimeID(AMSID("RichModeBoundaryCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels
-                         *sizeof(AMSRICHIdSoft::_gain_mode_boundary[0]),
-                         (void*)&AMSRICHIdSoft::_gain_mode_boundary[0],server,NeededByDefault));
-
-
-  TID.add (new AMSTimeID(AMSID("RichStatusCalib",isRealData()),
-                         begin,end,AMSRICHIdSoft::_nchannels
-                         *sizeof(AMSRICHIdSoft::_status[0]),
-                         (void*)&AMSRICHIdSoft::_status[0],server,NeededByDefault));
-
-#else
-
   TID.add (new AMSTimeID(AMSID("RichPMTChannelStatus",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows
 			 *sizeof(RichPMTsManager::_status[0]),
@@ -2948,10 +2883,6 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 			 *sizeof(RichPMTsManager::_gain_sigma[0]),
                          (void*)&RichPMTsManager::_gain_sigma[0],server,NeededByDefault));
   
-
-
-#endif
-
 }
 
 

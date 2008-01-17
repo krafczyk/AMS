@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.76 2007/11/15 17:01:47 choutko Exp $
+//  $Id: richrec.C,v 1.77 2008/01/17 08:58:32 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -70,54 +70,31 @@ void AMSRichRawEvent::mc_build(){
 	// Simulate the gainX5 mode
 	geant pedestal=nnoisy>0?AMSRichMCHit::noise(channel,1):AMSRichMCHit::adc_empty(channel,1);
 	geant signal=AMSRichMCHit::adc_hit(nhits,channel,1);
-#ifndef __USERICHPMTMANAGER__
-	AMSRICHIdSoft calibration(channel);
-#else
 	RichPMTChannel calibration(channel);
 	//	cout<<"*****SIMULATING SIGNAL "<<signal<<" WHERE nhits="<<nhits<<" WHERE PED="<<pedestal<<" gain threshold "<<calibration.gain_threshold<<" Channel "<<channel<<endl;
-#endif
 	geant threshold;
 	integer mode=1;
 
-#ifndef __USERICHPMTMANAGER__
-	if(integer(signal+pedestal)>calibration.getboundary()){
-#else
         if(integer(signal+pedestal)>calibration.gain_threshold){
 	  //	  cout<<"*** CHANGING to gainx1 mode "<<endl;
-#endif
 	  // Change to gainX1 mode
 	  mode=0;
 	  pedestal=nnoisy>0?AMSRichMCHit::noise(channel,0):AMSRichMCHit::adc_empty(channel,0);
-#ifndef __USERICHPMTMANAGER__
-	  signal*=calibration.getgain(0)/calibration.getgain(1);
-#else
 	  signal*=calibration.gain[0]/calibration.gain[1];  // FIXME!!!!
-#endif
 	}
 
-#ifndef __USERICHPMTMANAGER__
-	threshold=calibration.getthreshold(mode)*calibration.getsped(mode)+calibration.getped(mode);
-#else
 	threshold=calibration.pedestal_threshold[mode]*calibration.pedestal_sigma[mode]+calibration.pedestal[mode];
 	//	cout<<"****THRE COMP "<<mode<<" "<<calibration.pedestal_threshold[mode]<<" "<<calibration.pedestal_sigma[mode]<<" "<<calibration.pedestal[mode]<<endl;
-#endif
 
 
 	nnoisy=0;
 	nhits=0;
 	//	ndark=0;
 
-#ifndef __USERICHPMTMANAGER__
-
-	if(integer(signal+pedestal)>threshold && calibration.getstatus()){
-	  AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
-				       new AMSRichRawEvent(channel,integer(signal+pedestal-calibration.getped(mode)),(mode==0?0:gain_mode)));
-#else
 	  //	cout<<"** OVER THRESHOLD "<<integer(signal+pedestal)<<" "<<threshold<<" "<<calibration.status<<" "<<calibration.gain[0]<<" "<<calibration.gain[1]<<endl;
 	if(integer(signal+pedestal)>threshold && calibration.status){
 	  AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
 				       new AMSRichRawEvent(channel,integer(signal+pedestal-calibration.pedestal[mode]),(mode==0?0:gain_mode)));
-#endif
 
 	  hitn++;
 	  
@@ -361,11 +338,7 @@ void AMSRichRawEvent::Select(int howmany,int size,int lista[]){
 
 void AMSRichRawEvent::_writeEl(){
   
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdGeom channel(_channel);
-#else
   RichPMTChannel channel(_channel);
-#endif
 
 #ifdef __WRITEROOT__
     float x = channel.x();
@@ -401,11 +374,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   // Reconstruct the beta values for this hit. Assumes direction as unitary
   static const geant z=RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height-
                        RICradmirgap-RIClgdmirgap-RICHDB::rich_height;
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdGeom channel(_channel);
-#else
   RichPMTChannel channel(_channel);
-#endif
   geant x=channel.x();
   geant y=channel.y();
 
@@ -532,11 +501,7 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   double c=sqrt(c2);
   double alp=1/sqrt(1+zk);
   
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdGeom channel(_channel);
-#else
   RichPMTChannel channel(_channel);
-#endif
   double xf=channel.x();
   double yf=channel.y();
 
@@ -1417,11 +1382,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     *xb=r2[0];
     *yb=r2[1];
 
-#ifndef __USERICHPMTMANAGER__
-    *beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
-#else
     *beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
-#endif
     *tflag=*beff?3:5;
     return (*beff)*lgeff(r2,u1,lguide); 
   }
@@ -1475,11 +1436,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     //    //      return 0;
     //    //    }
     
-#ifndef __USERICHPMTMANAGER__
-    *beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
-#else
     *beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
-#endif
     *tflag=*beff?4:5;
     return *beff*lgeff(r3,u2,lguide);
     
@@ -1688,12 +1645,7 @@ geant AMSRichRing::lgeff(AMSPoint r,
     AMSRICHIdGeom basura(4805);
     for(geant y=basura.y()-3.4/2-2.;y<=basura.y()+3.4/2+2;y+=0.1){
       for(geant x=basura.x()-3.4/2-2;x<=basura.x()+3.4/2+2;x+=0.1){
-#ifndef	__USERICHPMTMANAGER__
-	integer wnd=AMSRICHIdGeom::get_channel_from_top(x,y);
-#else
 	integer wnd=RichPMTsManager::FindWindow(x,y);
-#endif
-
 	char c=32;
 
 	if(wnd>=0) c='A'+wnd; else c=' ';
@@ -1735,11 +1687,7 @@ geant AMSRichRing::lgeff(AMSPoint r,
 
   }
 
-#ifndef __USERICHPMTMANAGER__
-  wnd=AMSRICHIdGeom::get_channel_from_top(r[0],r[1]);
-#else
   wnd=RichPMTsManager::FindWindow(r[0],r[1]);
-#endif
   if(wnd==-1){
     *lguide=0;
     return 0;
@@ -1921,22 +1869,15 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
       LIPDAT.hitsadc_c[actual]=hit->getcounts();
       LIPDAT.hitsnpe_c[actual]=hit->getnpe();
-#ifndef __USERICHPMTMANAGER__
-      AMSRICHIdGeom  hitch(hit->getchannel());
-#else
       RichPMTChannel hitch(hit->getchannel());
-#endif
+
       LIPDAT.hitscoo_c[actual][0]=hitch.x();
       LIPDAT.hitscoo_c[actual][1]=hitch.y();
       LIPDAT.hitscoo_c[actual][2]=RICHDB::RICradpos()-hitch.z(); // Z : AMS frame -> RICH frame
 
       int hgain=hit->getbit(gain_mode_bit);
 
-#ifndef __USERICHPMTMANAGER__
-      LIPDAT.hitshid_c[actual]=10*(16*hitch.getpmt()+hitch.getpixel())+hgain;
-#else
       LIPDAT.hitshid_c[actual]=10*(16*hitch.pmt_geom_id+hitch.channel_geom_id)+hgain;
-#endif
 
       actual++;
     }
@@ -2142,11 +2083,7 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
       l=RIClgdmirgap/u1[2];
       for(i=0;i<3;i++) r2[i]+=l*u1[i];
 
-#ifndef __USERICHPMTMANAGER__
-      geant beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
-#else
       geant beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
-#endif
 
       direct+=beff/NPHI;
       continue;
@@ -2178,11 +2115,7 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
     
     if(rbase>RICHDB::bottom_radius) continue; 
 
-#ifndef __USERICHPMTMANAGER__
-    geant beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
-#else
     geant beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
-#endif
 
     reflected+=beff/NPHI;
 

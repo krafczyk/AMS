@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.47 2007/10/02 16:06:46 mdelgado Exp $
+//  $Id: richdbc.C,v 1.48 2008/01/17 08:58:32 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -321,38 +321,12 @@ geant RICHDB::lg_mirror_pos(integer i)
   return 0;
 }
 
-#ifndef __USERICHPMTMANAGER__
-geant RICHDB::x(integer id){AMSRICHIdGeom channel(id);return channel.x();};
-geant RICHDB::y(integer id){AMSRICHIdGeom channel(id);return channel.y();};
-#else
 geant RICHDB::x(integer id){return RichPMTsManager::GetChannelPos(id,0);};
 geant RICHDB::y(integer id){return RichPMTsManager::GetChannelPos(id,1);};
-#endif
 
 integer RICHDB::detcer(geant photen)
 {
-#ifdef __USERICHPMTMANAGER__
   return RichPMTsManager::detcer(photen);
-#endif
-   integer upper=-1,i;
-
-   for(i=1;i<RICHDB::entries;i++) 
-     if(2*3.1415926*197.327e-9/RICHDB::wave_length[i]>=photen)
-        {upper=i;break;}
-
-   if(upper==-1) return 0;
-   i=upper;
-
-   geant xufact=RICHDB::eff[i]-RICHDB::eff[i-1];
-   xufact/=2*3.1415926*197.327e-9*(1/RICHDB::wave_length[i]-1/RICHDB::wave_length[i-1]);
-
-   geant deteff=RICHDB::eff[i-1]+(photen-2*3.1415926*197.327e-9/RICHDB::wave_length[i-1])*xufact;
-
-   geant dummy=0;
-   geant ru=RNDM(dummy);
-
-   if(100*ru<deteff) return 1;
-   return 0;
 }
    
 

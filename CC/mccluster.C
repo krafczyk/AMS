@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.72 2007/11/15 17:01:47 choutko Exp $
+//  $Id: mccluster.C,v 1.73 2008/01/17 08:58:32 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include "trid.h"
@@ -544,11 +544,7 @@ void AMSRichMCHit::sirichhits(integer id,
     return;
   }
 
-#ifndef __USERICHPMTMANAGER__
- AMSRICHIdGeom channel(pmt,position[0],position[1]);
-#else
  RichPMTChannel channel(pmt,position[0],position[1]);
-#endif 
 
 
 #ifdef __AMSDEBUG__
@@ -576,13 +572,6 @@ void AMSRichMCHit::sirichhits(integer id,
   
   else
     
-#ifndef __USERICHPMTMANAGER__
-    if(channel.getchannel()>=0){
-
-	AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-				     new AMSRichMCHit(id,channel.getchannel(),adc,
-						      r,u,status));
-#else
     if(channel.pmt_geom_id>=0){
       // Take into account the quantum efficiency
       geant dummy;
@@ -590,7 +579,6 @@ void AMSRichMCHit::sirichhits(integer id,
 	AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 				     new AMSRichMCHit(id,channel.GetPacked(),adc,
 						      r,u,status));
-#endif
 }
 }
 
@@ -607,11 +595,8 @@ geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts f
   geant u1,u2,dummy,r;
   assert(mode==0 || mode==1);
 
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdSoft calibration(channel);
-#else
   RichPMTChannel calibration(channel);
-#endif
+
   /*
   //  r=sqrt(-2.*log(1.-RNDM(dummy)));
   //  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant (2pi)should be moved to a namespace
@@ -621,11 +606,7 @@ geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts f
   */
   geant value=0;
   for(int i=0;i<n;i++){  // Start adding hits
-#ifndef __USERICHPMTMANAGER__
-    value+=calibration.simulate_single_pe(mode);
-#else
     value+=calibration.SimulateSinglePE(mode);
-#endif
 
   }
   return value;
@@ -636,21 +617,12 @@ geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts f
 geant AMSRichMCHit::adc_empty(integer channel,integer mode){ // ADC count without a hit
   geant u1,u2,dummy,r;
   assert(mode==0 || mode==1);
-
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdSoft calibration(channel);
-#else
   RichPMTChannel calibration(channel);
-#endif
   //  r=sqrt(-2.*log(1.-RNDM(dummy)));
   //  u1=r*sin(RNDM(dummy)*6.28318595886);
 
   
-#ifndef __USERICHPMTMANAGER__
-  return rnormx()*calibration.getsped(mode)+calibration.getped(mode);
-#else
   return rnormx()*calibration.pedestal_sigma[mode]+calibration.pedestal[mode];
-#endif
 }
 
 
@@ -659,27 +631,15 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
   assert(mode==0 || mode==1);  
   geant u1,u2,dummy,r;
   
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdSoft current(channel);
-#else
   RichPMTChannel current(channel);
-#endif
 
   int loops=0;
   do{
-#ifndef __USERICHPMTMANAGER__
-    float limit=int(current.getthreshold(mode)*current.getsped(mode))+1;
-#else
     float limit=int(current.pedestal_threshold[mode]*current.pedestal_sigma[mode])+1;
-#endif
     r=sqrt(limit*limit-2.*log(1.-RNDM(dummy)));
     geant par=RNDM(dummy)*6.28318595886;
     u1=r*sin(par);
-#ifndef __USERICHPMTMANAGER__
-    if(u1<current.getthreshold(mode)*current.getsped(mode))
-#else
     if(u1<current.pedestal_threshold[mode]*current.pedestal_sigma[mode])
-#endif
       u1=r*cos(par);
     loops++;
 
@@ -693,17 +653,10 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
     if(loops>100){
       cout<<"AMSRichMCHit::noise--too many loops"<<endl; 
       AMSgObj::BookTimer.stop("SIRINoise");
-#ifndef __USERICHPMTMANAGER__
-      return current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)+1.;
-#else
       return current.pedestal_threshold[mode]*current.pedestal_sigma[mode]+current.pedestal[mode]+1.;
-#endif
     }
-#ifndef __USERICHPMTMANAGER__
-  }while(integer(u1+current.getped(mode))<integer(current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)));
-#else
   }while(integer(u1+current.pedestal[mode])<integer(current.pedestal_threshold[mode]*current.pedestal_sigma[mode]+current.pedestal[mode]));
-#endif
+
   
   //  do u1=current.getped(mode)+current.getsped(mode)*rnormx(); 
   //  while(integer(u1)<=integer(current.getthreshold(1)*current.getsped(mode)+current.getped(mode)));
@@ -717,11 +670,7 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
 
   AMSgObj::BookTimer.stop("SIRINoise");
 
-#ifndef __USERICHPMTMANAGER__
-  return u1+current.getped(mode);
-#else
   return u1+current.pedestal[mode];
-#endif
 }
 
 

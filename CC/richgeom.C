@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.32 2007/10/02 16:06:46 mdelgado Exp $
+//  $Id: richgeom.C,v 1.33 2008/01/17 08:58:32 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -1193,16 +1193,11 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
                                  rel));
 
   ///// Positioning PMTs
-#ifndef __USERICHPMTMANAGER__
-  AMSRICHIdGeom pmts;
-#endif
-
   par[0]=RICHDB::lg_length>PMT_electronics+RICpmtshield?
                            RICHDB::lg_length/2:PMT_electronics/2+RICpmtshield/2;
   par[1]=par[0];
   par[2]=RICHDB::pmtb_height()/2;  
 
-#ifdef __USERICHPMTMANAGER__
   for(int copia=0;copia<RICmaxpmts;copia++){
     coo[0]=RichPMTsManager::GetRichPMTPos(copia,0);
     coo[1]=RichPMTsManager::GetRichPMTPos(copia,1);
@@ -1226,33 +1221,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 #endif
 
   }
-#else
 
-  for(int copia=0;copia<pmts.getpmtnb();copia++){
-    coo[0]=AMSRICHIdGeom::pmt_pos(copia,0);
-    coo[1]=AMSRICHIdGeom::pmt_pos(copia,1);
-    coo[2]=RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(copia,2);
-
-    lig=rich->add(new AMSgvolume("RICH VACUUM",
-				 0,
-				 "PMTB",
-				 "BOX",
-				 par,
-				 3,
-				 coo,
-				 nrm,
-				 "ONLY",
-				 0,
-				 copia+1,
-				 rel));
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia+1);
-#endif
-  }
-
-#endif
 
 #ifdef __G4AMS__
   if(MISCFFKEY.G3On)

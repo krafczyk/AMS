@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.38 2007/10/02 16:06:50 mdelgado Exp $
+//  $Id: richrec.h,v 1.39 2008/01/17 08:58:34 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -68,30 +68,20 @@ private:
 	 
 public:
   AMSRichRawEvent(integer channel,integer counts,uinteger status=0):AMSlink(status),
-    _channel(channel),_counts(counts){};
+    _channel(channel),_counts(counts){};  // counts above the pedestal
   ~AMSRichRawEvent(){};
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
   integer getchannel() const {return _channel;}
   inline geant getpos(integer i){
-#ifndef __USERICHPMTMANAGER__
-    AMSRICHIdGeom channel(_channel);
-#else
     RichPMTChannel channel(_channel);
-#endif
     return i<=0?channel.x():channel.y();
   }
 
   integer getcounts() {return _counts;}
   geant getnpe(){ 
-#ifndef __USERICHPMTMANAGER__
-    AMSRICHIdSoft calibration(_channel);
-    return _counts/calibration.getgain(_status&gain_mode?1:0);
-#else
     RichPMTChannel calibration(_channel);
     return _counts/calibration.gain[_status&gain_mode?1:0];
-#endif
-
   }
 
   static void mc_build();
@@ -116,6 +106,13 @@ public:
   void inline unsetbit(int bit_number){_status&=~(1<<bit_number);}
   integer inline getbit(int bit_number){return (_status&(1<<bit_number))>>bit_number;}
 
+  // Get the channel information 
+  int getchannelstatus(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Status(pmt,channel);}
+  float getchannelpedestal(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Pedestal(pmt,channel,getbit(gain_mode_bit));}
+  float getchannelsigmapedestal(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::PedestalSigma(pmt,channel,getbit(gain_mode_bit));}
+  float getchannelgain(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Gain(pmt,channel,getbit(gain_mode_bit));}
+  float getchannelsigagain(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::GainSigma(pmt,channel,getbit(gain_mode_bit));}
+  int getchannelgainmode(){return getbit(gain_mode_bit);}
 
   // Get betas from last call to reconstruct
   inline geant getbeta(integer i){
