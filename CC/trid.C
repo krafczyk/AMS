@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.42 2007/12/18 08:09:52 choutko Exp $
+//  $Id: trid.C,v 1.43 2008/01/17 15:38:07 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -242,6 +242,7 @@ _check();
 
 }
 
+ integer AMSTrIdSoft::_Calib[ncrt][ntdr];
  integer AMSTrIdSoft::_GetGeo[ncrt][ntdr][2][3];
  integer AMSTrIdSoft::_GetHard[maxlay][maxlad][2][3];
 AMSTrIdSoft::AMSTrIdSoft(int16u crate, int16u haddr):_crate(crate),
@@ -469,6 +470,7 @@ void AMSTrIdSoft::inittable(integer setup){
      int i,j,k;
      for(i=0;i<ncrt;i++){
        for( j=0;j<ntdr;j++){
+        _Calib[i][j]=0;
         for(k=0;k<2;k++){
          for(int l=0;l<3;l++)_GetGeo[i][j][k][l]=-1;
         }

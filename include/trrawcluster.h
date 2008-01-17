@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.29 2007/12/04 18:29:59 choutko Exp $
+//  $Id: trrawcluster.h,v 1.30 2008/01/17 15:38:07 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -61,6 +61,7 @@ static void sitkdigi();
 
  static int16 getdaqid(int i);
  static integer checkdaqid(int16u id);
+ static integer checkdaqidS(int16u id);
  static integer calcdaqlength(integer i);
  static int16u getdaqidRaw(int i);
  static int16u getdaqidMixed(int i);
@@ -94,6 +95,7 @@ static void sitkdigi();
   static integer checksigSRawid(int16u id) ;
   static integer checkstatusSRawid(int16u id) ;
   static integer checksigmaSid(int16u id);
+  static void updtrcalibS(integer length,int16u *p); 
   static void updstatusS(integer length,int16u *p); 
   static void updpedSRaw(integer length,int16u *p); 
   static void updcmnSRaw(integer length,int16u *p); 
@@ -121,6 +123,7 @@ static void sitkdigi();
   static AMSID getTDVCmnNoise();
   static AMSID getTDVIndNoise();
   static AMSID getTDVped(int i);
+  static AMSID getTDVgains(int i);
   static AMSID getTDVsigma(int i);
   static AMSID getTDVrawsigma(int i);
   static AMSID getTDVrhomatrix(int i);

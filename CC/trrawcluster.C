@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.72 2008/01/14 13:35:16 choutko Exp $
+//  $Id: trrawcluster.C,v 1.73 2008/01/17 15:38:07 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -10,6 +10,20 @@
 #include "trid.h"
 #include "ntuple.h"
 #include "event.h"
+class TrCalib_def{
+public:
+integer Layer;
+integer Ladder;
+integer Half;
+integer Side;
+integer Strip;
+geant Ped;
+geant Sigma;
+geant BadCh;
+geant CmnNoise;
+integer Crate;
+integer Haddr;
+};
 using trid::ntdr;
 const integer AMSTrRawCluster::MATCHED=1;
 integer AMSTrRawCluster::TestRawMode(){
@@ -333,6 +347,26 @@ integer AMSTrRawCluster::checkdaqid(int16u id){
  return 0;
 }
 
+
+integer AMSTrRawCluster::checkdaqidS(int16u id){
+ 
+ for(int i=0;i<getmaxblocks();i++){
+ for(int j=0;j<trid::ntdr;j++){
+  char sstr[128];
+  char ab[2];
+  ab[1]='\0';
+  ab[0]='A';
+  if(j%2)ab[0]='B';
+  sprintf(sstr,"TDR%x%x%s",i,j/2,ab);
+  if(DAQEvent::ismynode(id,sstr)){
+       return j+i*trid::ntdr+1; 
+  }
+ }
+ }
+ return 0;
+}
+
+
 integer AMSTrRawCluster::checkdaqidRaw(int16u id){
  for(int i=0;i<getmaxblocksRaw();i++){
   if(id==getdaqidRaw(i))return i+1;
@@ -486,7 +520,7 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
     cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
     continue;
  }
- else if(haddr>=640 && haddr+*(paux)>=1023){
+ else if(haddr>=640 && haddr+*(paux)>=1024){
     cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
     continue;
  }
@@ -1656,7 +1690,152 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
    cout <<" Time End "<<ctime(&end);
 }
 
+void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
+  uinteger leng=(n&65535);
+  leng-=13;
+  uinteger in=(n>>16);
+  uinteger ic=in/trid::ntdr;
+  uinteger tdr=in%trid::ntdr;
+//  cout << "crate tdr "<<ic<<" "<<tdr<<endl;
+  int leng4=leng/4;
+  if(leng4!=1024){
+   cerr<<"AMSTrRawCluster::updtrcalibS-WrongLength "<<leng4<<endl;
+   return;
+  }
+  AMSTrIdSoft::_Calib[ic][tdr]=1;
+ for(int i=0;i<leng4;i++){
+  int16u haddr=(tdr<<10) | i;
+  AMSTrIdSoft id(ic,haddr);
+  if(!id.dead()){
+   if(id.getgain()==0){
+    id.setgain()=TRMCFFKEY.gain[id.getside()];
+   }
+   if(*(p+leng4+i)!=0)id.setstatus(AMSDBc::BAD);
+   else id.clearstatus(AMSDBc::BAD);
+   if(*(p+i)>32768)id.setstatus(AMSDBc::BAD);
+   else id.setped()=geant(*(p+i))/id.getgain();
+   if(*(p+i+2*leng4)>32768)id.setstatus(AMSDBc::BAD);
+   else id.setsig()=geant(*(p+i+2*leng4))/id.getgain();
+   if(*(p+i+3*leng4)>32768)id.setstatus(AMSDBc::BAD);
+   else id.setsigraw()=geant(*(p+i+3*leng4))/id.getgain();
+   if(i%64==0){
+    number cmn=0;
+    number ncmn=0;
+    for (int k=i;k<i+64;k++){
+      if(*(p+i+2*leng4)<32768 &&  *(p+i+3*leng4)<32768){
+       ncmn++;
+       cmn+=((*(p+i+3*leng4))*(*(p+i+3*leng4))-(*(p+i+2*leng4))*(*(p+i+2*leng4)))/id.getgain()/id.getgain();
+      }   
+    }
+    if(ncmn>32){
+      cmn=sqrt(cmn/ncmn);
+      
+      id.setcmnnoise()=cmn;
+    }
+    else id.setstatus(AMSDBc::BAD);
+   }
+  }  
+#ifdef __AMSDEBUG__
+     else{
+       cerr <<" AMSTrRawCluster::updtrcalibS-E-Id.Dead "<<id.gethaddr()<<" "<<
+       ic<<endl;
+     }
+#endif
+}
+  bool update=true;
+  int nc=0;
+  for(int i=0;i<getmaxblocks();i++){
+   for (int j=0;j<trid::ntdr;j++){
+    if(!AMSTrIdSoft::_Calib[i][j]){
+     update=false;
+    }
+    else nc++;
+  }
+  }
+  cout <<" nc "<<nc<<endl;
+  if(update || nc>=70){
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trid::ntdr;j++){
+     AMSTrIdSoft::_Calib[i][j]=0;
+    }
+   }
+   for (int i=0;i<2;i++){
+   AMSTimeID * ptdv;
+  for (int k=0;k<=TRCALIB.Method;k++){
+    if(k==0)ptdv = AMSJob::gethead()->gettimestructure(getTDVped(i));
+    else if(k==1)ptdv = AMSJob::gethead()->gettimestructure(getTDVsigma(i));
+    else if(k==2)ptdv = AMSJob::gethead()->gettimestructure(getTDVstatus(i));
+    else if(k==3)ptdv = AMSJob::gethead()->gettimestructure(getTDVrawsigma(i));
+    else if(k==4)ptdv = AMSJob::gethead()->gettimestructure(getTDVgains(i));
+    else if(k==5 && i==0)ptdv = AMSJob::gethead()->gettimestructure(getTDVCmnNoise());
+    else break;
+   if(update)ptdv->UpdateMe()=1;
+   ptdv->UpdCRC();
+   time_t begin,end,insert;
+   time(&insert);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+8640000);
+   cout <<" Tracker H/K  info has been read for "<<*ptdv;
+   ptdv->gettime(insert,begin,end);
+   cout <<" Time Insert "<<ctime(&insert);
+   cout <<" Time Begin "<<ctime(&begin);
+   cout <<" Time End "<<ctime(&end);
+   }
+  }
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    char filename[256];
+    strcpy(filename,hfile);
+    sprintf(filename,"%s.%d",hfile,AMSEvent::gethead()->gettime());
+    integer iostat;
+    integer rsize=1024;
+    char event[80];  
+    HROPEN(IOPA.hlun+1,"trcalibration",filename,"NP",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening trcalib ntuple file "<<filename<<endl;
+     exit(1);
+    }
+    else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
 
+   TrCalib_def TRCALIB;
+   HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
+   HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,CmnNoise:R,Crate:I,Haddr:I");
+   int i,j,k,l,m;
+    for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        if(id.dead())continue;
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
+          id.upd(m);
+          TRCALIB.Layer=i+1;
+          TRCALIB.Ladder=j+1;
+          TRCALIB.Half=k;
+          TRCALIB.Side=l;
+          TRCALIB.Strip=m;
+          TRCALIB.Ped=id.getped();
+          TRCALIB.Sigma=id.getsig();
+          TRCALIB.BadCh=id.checkstatus(AMSDBc::BAD);
+          TRCALIB.CmnNoise=id.getcmnnoise();
+          TRCALIB.Crate=id.getcrate();
+          TRCALIB.Haddr=id.gethaddr();
+          HFNT(IOPA.ntuple);
+         }
+        }
+       }
+     }
+    }
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//trcalibration";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (1, ICYCL, " ");
+  HREND ("trcalibration");
+  CLOSEF(IOPA.hlun+1);
+
+  }
+ }
 
 void AMSTrRawCluster::updpedS(integer n, int16u* p){
 
@@ -2132,7 +2311,7 @@ AMSID AMSTrRawCluster::getTDVstatus(int i){
 }
 
 AMSID AMSTrRawCluster::getTDVCmnNoise(){
-  return AMSID("TrackerCmnNoise",AMSJob::gethead()->isRealData());
+  return AMSID(AMSTrIdSoft::TrackerCmnNoise(),AMSJob::gethead()->isRealData());
 }
 
 AMSID AMSTrRawCluster::getTDVIndNoise(){
@@ -2155,6 +2334,10 @@ AMSID AMSTrRawCluster::getTDVrhomatrix(int i){
 
 AMSID AMSTrRawCluster::getTDVped(int i){
   return AMSID(AMSTrIdSoft::TrackerPedestals(i),AMSJob::gethead()->isRealData());
+}
+
+AMSID AMSTrRawCluster::getTDVgains(int i){
+  return AMSID(AMSTrIdSoft::TrackerGains(i),AMSJob::gethead()->isRealData());
 }
 
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.519 2008/01/17 08:58:32 mdelgado Exp $
+// $Id: job.C,v 1.520 2008/01/17 15:38:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3643,8 +3643,8 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
   else{
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrIdCalib::buildSigmaPedB);
- 
-    if(TRMCFFKEY.GenerateConst){
+if(TRMCFFKEY.GenerateConst){
+
     //Tracker ped/sigma etc ( "Event" mode)
 
       DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
@@ -3681,43 +3681,12 @@ if(DAQCFFKEY.LCrateinDAQ){
 
 }  
 
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
 
-if(DAQCFFKEY.LCrateinDAQ ){
-//           tracker raw
-
-  if(DAQCFFKEY.OldFormat || !isRealData()){
-    if(TRCALIB.Method == 1)
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRaw);
-    else
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawA);
-  }
-  else{
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawB);
-  }
-
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
-    &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
-
-
-
-}    
-
-
-{
 //           tracker H/K Static
 
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSid,&AMSTrRawCluster::updstatusS,4);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSid,&AMSTrRawCluster::updpedS,4);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigmaSid,&AMSTrRawCluster::updsigmaS,4);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
-    &AMSTrRawCluster::calcstatusSl,&AMSTrRawCluster::writestatusS,4);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
-    &AMSTrRawCluster::calcpedSl,&AMSTrRawCluster::writepedS,4);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
-    &AMSTrRawCluster::calcsigmaSl,&AMSTrRawCluster::writesigmaS,4);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,20);
 
-
-}    
 
 }
 }

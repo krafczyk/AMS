@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.29 2008/01/14 13:35:17 choutko Exp $
+//  $Id: trid.h,v 1.30 2008/01/17 15:38:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -16,7 +16,7 @@
 namespace trid{
 const integer ms=4000;
 const int ncrt=8;
-const int ntdr=32;
+const int ntdr=24;
 }
 class AMSTrIdGeom{
 integer _layer;    // from 1 to TKDBc::nlay()
@@ -124,6 +124,7 @@ const static integer _VAChannels;
 void _check();
 void _mkhaddr();
 void _mkcrate();
+ static integer _Calib[trid::ncrt][trid::ntdr];   
  static integer _GetGeo[trid::ncrt][trid::ntdr][2][3];   // crate,tdrs,side ->
                                              //layer,ladder,half
  static integer _GetHard[trconst::maxlay][trconst::maxlad][2][3];     // layer,ladder,half ->
@@ -180,6 +181,7 @@ void  setstatus(integer changer)
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] | changer;}
 void  clearstatus(integer changer)  
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] & ~changer;}
+friend class AMSTrRawCluster;
 friend class AMSTrIdGeom;
 friend class AMSJob;
 AMSTrIdSoft(int16u crate, int16u haddr);

@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.27 2008/01/16 14:40:06 choumilo Exp $
+//  $Id: antirec02.C,v 1.28 2008/01/17 15:38:06 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -159,6 +159,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 	stat+=10;;//mark missing HistoryTime
       }
       if(nftdc>0 && ntdct>0)tmfound=1;//found object with LTtime & FTtime 
+      if(nftdc>0 || ntdct>0)tmfound=1;//found object with LTtime & FTtime 
 //
 //
 //---> check Charge-ADC :

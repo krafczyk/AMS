@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.91 2008/01/11 14:40:58 choutko Exp $
+//  $Id: daqevt.C,v 1.92 2008/01/17 15:38:07 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -294,6 +294,10 @@ bool    DAQEvent::_issdr(int16u id){
 if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>>14)==2)return true;
 else return false;
 }
+bool    DAQEvent::_istdr(int16u id){
+if( ((id>>5)&((1<<9)-1))>=288 && ((id>>5)&((1<<9)-1))<=465 )return true;
+else return false;
+}
 
 bool    DAQEvent::_isjlvl1(int16u id){
 if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=137 && ((id>>5)&((1<<9)-1))<=140 && (id>>14)==2)return true;
@@ -317,6 +321,7 @@ return 0;
 integer DAQEvent::getpreset(int16u *pdata){
 const  int16u lmask=0x8000; 
 const int16u rtype=0x1f;
+const int16u rtypec=0x14;
 integer offset=5;
 integer nodetype=1;
 if(pdata && _cl(pdata)>4){
@@ -327,14 +332,21 @@ if(pdata && _cl(pdata)>4){
  if((pdata[nodetype]&rtype) == rtype ){
    offset++;
  }
+ else if((pdata[nodetype]&rtype) == rtypec){
+  offset=0;
+ } 
  return offset;
 }
 else return 0;
 
 }
 
+bool DAQEvent::_ComposedBlock(){
+ return _GetBlType()!=20;
+}
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
+  if(_GetBlType()==29)return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
   if(_Length >1 && _pData ){
@@ -344,7 +356,7 @@ integer DAQEvent::_EventOK(){
      }
     if(ntot != _Length){            
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
-         _Length<<" Blocks say length is "<<ntot<<endl;
+         _Length<<" Blocks say length is "<<ntot<<" "<<_GetBlType()<<endl;
        cerr <<" SubBlock dump follows"<<endl;
      _pcur=_pData+preset;
      for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur))
@@ -435,6 +447,15 @@ integer DAQEvent::_EventOK(){
 
 integer DAQEvent::_HeaderOK(){
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
+    if(!_ComposedBlock()){
+     _Event=1;
+     _Run=1;
+     _RunType=_GetBlType();
+     _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
+//     const uinteger _OffsetT=0x12d53d80;
+//    _Time+=_OffsetT;
+     return 1;
+    }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
@@ -478,6 +499,7 @@ integer DAQEvent::_HeaderOK(){
 }
 
 integer DAQEvent::_DDGSBOK(){
+
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(_isddg(*(_pcur+_cll(_pcur)))){
       if(_isjinj(*(_pcur+_cll(_pcur)))){
@@ -586,6 +608,15 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
+    else if(_istdr(id)){
+     int ic=fpl->_pgetid(id)-1;
+     if(ic>=0){
+      int16u *pdown=_pcur+_cll(_pcur)+5;
+      int16u *psafe=pdown;
+      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
+      fpl->_pputdata(n,psafe);
+     }
+    }   
     else if(_isddg(id)){    // normal data if any...
      cerr <<"   not supported !!!! "<<endl;
      if(fpl->_pgetid(*(_pcur+_cll(_pcur)))){

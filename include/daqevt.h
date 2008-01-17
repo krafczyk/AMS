@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.34 2008/01/11 14:40:59 choutko Exp $
+//  $Id: daqevt.h,v 1.35 2008/01/17 15:38:07 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -53,7 +53,7 @@ _maxbl(0),_plength(0){}
 
 friend class DAQEvent;
 };
-const integer nbtps=8;    // blocks num 
+const integer nbtps=24;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
 integer _BufferOwner;
@@ -93,8 +93,10 @@ bool    _isjinj(int16u id);       //  identify the detector data group sub block
 bool    _isjinf(int16u id);       //  identify the detector data group sub block
 bool    _isjlvl1(int16u id);       //  identify the detector data group sub block
 bool    _issdr(int16u id);       //  identify the detector data group sub block
+bool    _istdr(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();
 uinteger _GetBlType();
+bool _ComposedBlock();
 void _convert();
 void _convertl(int16u & l16);
 integer _create(uinteger btype=0);

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.485 2008/01/15 20:38:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.486 2008/01/17 15:38:08 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2589,6 +2589,10 @@ CheckCite:            if (defined $q->param("QCite")) {
         my $runid = 0;
         my $runmin= 0;
         my $runmax= 0;
+        my $datamc="";
+        if(defined $q->param("QTypeD") and $q->param("QTypeD") eq "Data"){
+          $datamc="data";
+        }
         if (defined $q->param("RunID")) {
          $self->htmlTemplateTable($title);
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -2602,13 +2606,13 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("RunID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("RunID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs
+                $sql = "SELECTrun, jid, fevent, levent, submit, status FROM $datamc"."Runs
                           WHERE run>$runmin AND run<$runmax
                           ORDER BY run";
             } else {
              $runid =  trimblanks($q->param("RunID"));
              $title = $title.$runid;
-              $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs
+              $sql = "SELECT run, jid, fevent, levent, submit, status FROM $datamc"."Runs
                           WHERE run=$runid";
             }
          my $ret=$self->{sqlserver}->Query($sql);
@@ -2653,6 +2657,10 @@ CheckCite:            if (defined $q->param("QCite")) {
         my $runid = 0;
         my $runmin= 0;
         my $runmax= 0;
+       my $datamc=0;
+        if(defined $q->param("QTypeD") and $q->param("QTypeD") eq "Data"){
+          $datamc=1; 
+        }
         if (defined $q->param("DSTID")) {
          $self->htmlTemplateTable($title);
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -2670,13 +2678,13 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $title = $title.$q->param("RunID");
                 $sql = "SELECT jid, run, timestamp, nevents, neventserr, status
                           FROM ntuples
-                          WHERE run>$runmin AND run<$runmax
+                          WHERE run>$runmin AND run<$runmax and datamc=$datamc 
                           ORDER BY run";
             } else {
              $runid =  trimblanks($q->param("DSTID"));
              $title = $title.$runid;
              $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
-                      FROM ntuples  WHERE run=$runid";
+                      FROM ntuples  WHERE run=$runid and datamc=$datamc";
             }
          my $ret=$self->{sqlserver}->Query($sql);
          if (defined $ret->[0][0]) {
@@ -4881,7 +4889,10 @@ CheckCite:            if (defined $q->param("QCite")) {
        print "Find Run : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
        print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
        print "<b>RunID : </b> <input type =\"text\" name=\"RunID\">\n";
-       print "<input type=\"submit\" name=\"getRunID\" value=\"Submit\"> \n";
+ print "<input type=\"submit\" name=\"getRunID\" value=\"Submit\"> \n";
+ print "<p><br>\n";
+       print "</b> <INPUT TYPE=\"radio\" NAME=\"QTypeD\" VALUE=\"MC\" CHECKED>MC<BR>";
+       print "<b> <INPUT TYPE=\"radio\" NAME=\"QTypeD\" VALUE=\"Data\" >Data<BR>\n";
        print "</form>\n";
        print "</table> \n";
        print "<br><p>\n";
@@ -4893,6 +4904,10 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
         print "<b>RunID : </b> <input type =\"text\" name=\"DSTID\">\n";
         print "<input type=\"submit\" name=\"getDSTID\" value=\"Submit\"> \n";
+ print "<p><br>\n";
+       print "</b> <INPUT TYPE=\"radio\" NAME=\"QTypeD\" VALUE=\"MC\" CHECKED>MC<BR>";
+       print "<b> <INPUT TYPE=\"radio\" NAME=\"QTypeD\" VALUE=\"Data\" >Data<BR>\n";
+
         print "</form>\n";
         print "</table> \n";
 
@@ -10251,7 +10266,7 @@ sub listJobs {
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-     htmlTable("MC Jobs ( $PrintMaxJobsPerCite  jobs per cite submitted  earlier than 30 days ago or not completed)");
+     htmlTable(" Jobs ( $PrintMaxJobsPerCite  jobs per cite submitted  earlier than 30 days ago or not completed)");
      print_bar($bluebar,3);
     }
 
@@ -10427,7 +10442,7 @@ sub listRuns {
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
-     htmlTable("MC02 Runs");
+     htmlTable("Runs");
      my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
      print "<tr><font color=blue><b><i> Only 50 runs submitted/finished during last 24h are listed,  to get complete list
             <a href=$href> click here</a>
@@ -10482,7 +10497,7 @@ sub listNtuples {
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><b>MC NTuples </font></b>";
+     print "<TR><B><font color=green size= 5><b>NTuples </font></b>";
      my $href = $self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
      print "<tr><font color=blue><b><i> DSTs produced in last 24h, to get complete list
             <a href=$href> click here</a>
@@ -10888,7 +10903,7 @@ sub ht_Menus {
         <a href=\"#disks\"><b><font color=green>Disks and Filesystems \@CERN</b></font></a>\n";
  print "<dt><img src=\"$bluebullet\">&#160;&#160;
         <a href=$rchtml>
-        <b><font color=green>Submit MC Job</b></font></a>\n";
+        <b><font color=green>Submit  Job</b></font></a>\n";
  print "<dt><img src=\"$maroonbullet\">&#160;&#160;<a href=$rchtml>
         <b><font color=green>User and/or Cite Registration Form</b></font></a>\n";
  print "<dt><img src=\"$silverbullet\">&#160;&#160;
