@@ -818,7 +818,7 @@ public:
 .
 .
 .
-29- Unused
+29- Channel taggeg as good in calibration
 30- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
 31- Hit belongs to a PMT apparently crossed by a charged particle
 
@@ -836,7 +836,17 @@ public:
   /// \return human readable info about RichHitR
  ///
   char * Info(int number=-1){
-    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
+    //    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
+    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d OK=%s",
+	    number,
+	    Channel,
+	    Counts,
+	    Npe,
+	    Coo[0],Coo[1],Coo[2],
+	    Status%2048,
+	    (Status>>29)%2?5:1,             // Check richconst to be wure about this
+	    (Status>>30),
+	    (Status>>28)&1?"true":"false");
   return _Info;
   } 
 
@@ -2133,7 +2143,7 @@ public:
 // Some functions for inter root
 //
 #ifdef __ROOTSHAREDLIBRARY__
-#include "root_methods.h"
+  //#include "root_methods.h"
 #endif
 
 

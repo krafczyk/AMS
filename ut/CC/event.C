@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.354 2008/01/17 15:38:07 choutko Exp $
+//  $Id: event.C,v 1.355 2008/01/22 16:36:46 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -47,6 +47,7 @@
 #include "ecalcalib.h"
 #include "richrec.h"
 #include "richdbc.h"
+#include "richcal.h"
 #include "geantnamespace.h"
 #include <sys/types.h>
 #include <sys/time.h>
@@ -1330,6 +1331,7 @@ void AMSEvent::_caamsinitevent(){
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantinitevent();
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CRICH)_carichinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxinitevent();
 }
 
@@ -1352,6 +1354,10 @@ void AMSEvent::_cantinitevent(){
 }
 
 
+void AMSEvent::_carichinitevent(){
+}
+
+
 void AMSEvent::_caaxinitevent(){
 }
 
@@ -1362,6 +1368,7 @@ void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal)_caecevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CRICH)_carichevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
 }
 
@@ -1445,6 +1452,11 @@ void AMSEvent::_caecevent(){
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
 // PedCal mode has no special select-routine( select/fill is done at validate stages)
     }
+}
+
+//---------------------------------------------------------------------------
+void AMSEvent::_carichevent(){
+  AMSRichCal::process_event();
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caaxevent(){

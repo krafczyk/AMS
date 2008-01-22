@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.39 2008/01/17 08:58:34 mdelgado Exp $
+//  $Id: richrec.h,v 1.40 2008/01/22 16:36:53 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -18,42 +18,6 @@ PROTOCCALLSFSUB1(RICHRECLIP,richreclip,INT)
 
 #include<string.h>
 
-     /*
-// First a simple template to use safe arrays. The value of should
-// be always greater than 0
-
-template<class T,int S>
-class safe_array{
-private:
-  T *_origin;
-  T _org[S];
-  int _size;
-public:
-  T error;
-  safe_array(int size=0){
-    if(size<=0) {_size=-S;_origin=_org;} else {
-    _origin=new T[size];
-    _size=size;}
-  }
-  ~safe_array(){
-    if(_origin!=_org && _size>0){
-      delete []_origin;
-    }
-  };
-
-  T& operator [](int pos){
-    if(pos>=abs(_size) || pos<0) {
-      cout << "RICH Safe array overflow. Request: "<<pos<<" of "<<abs(_size)<<endl;
-      return error;
-    }
-    return *(_origin+pos);
-  }
-  int size(){return abs(_size);}
-};
-
-typedef safe_array<geant,3> geant_small_array;
-typedef safe_array<integer,3> integer_small_array;
-     */
 
 /////////////////////////////////////////////
 //         Container for hits              //
@@ -68,7 +32,9 @@ private:
 	 
 public:
   AMSRichRawEvent(integer channel,integer counts,uinteger status=0):AMSlink(status),
-    _channel(channel),_counts(counts){};  // counts above the pedestal
+    _channel(channel),_counts(counts){
+    if((getchannelstatus()%10)==Status_good_channel) _status|=ok_status;
+  };  // counts above the pedestal
   ~AMSRichRawEvent(){};
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
@@ -307,7 +273,6 @@ public:
       _pmtpos[1]=0;
       _pmtpos[2]=0;
     }
-
   };
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}

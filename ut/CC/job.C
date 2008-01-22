@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.520 2008/01/17 15:38:07 choutko Exp $
+// $Id: job.C,v 1.521 2008/01/22 16:37:57 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -54,6 +54,7 @@
 #include "status.h"
 #include "richdbc.h"
 #include "richid.h"
+#include "richcal.h"
 #include "richradid.h"
 #include "mccluster.h"
 #include <sys/stat.h>
@@ -2014,6 +2015,7 @@ if(isCalibration() & CTracker)_catkinitjob();
   if(isCalibration() & CEcal)_caecinitjob();
   if(isCalibration() & CTRD)_catrdinitjob();
   if(isCalibration() & CSRD)_casrdinitjob();
+  if(isCalibration() & CRICH)_carichinitjob();
 
 if(isCalibration() & CAMS)_caaxinitjob();
 //if(isCalibration() & CCerenkov)_cactcinitjob();
@@ -2097,6 +2099,12 @@ void AMSJob::_caecinitjob(){
 
 
 }
+
+
+void AMSJob::_carichinitjob(){
+  AMSRichCal::init();
+}
+
 //==========================================
 
 void AMSJob::_caaxinitjob(){

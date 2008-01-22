@@ -92,7 +92,7 @@ class RichPMTsManager{
   //        0  1  2  3
   //
 
-  static int   _status[RICmaxpmts*RICnwindows];                  // Channel status word
+  static int   _status[RICmaxpmts*RICnwindows];                  // Channel status word (this is (good?1:0)+10*other information) other information could include all the stuff related to the calibration process
   static geant _pedestal[2*RICmaxpmts*RICnwindows];              // Pedestal position (x2 gains) high,low
   static geant _pedestal_sigma[2*RICmaxpmts*RICnwindows];        // Pedestal width (x2 gains)
   static geant _pedestal_threshold[2*RICmaxpmts*RICnwindows];    // Pedestal threshold width (x2 gains)
@@ -112,11 +112,11 @@ class RichPMTsManager{
   // Accessors
 
   static int& _Status(int Geom_id,int Geom_Channel);
-  static geant& _Pedestal(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant& _PedestalSigma(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant& _PedestalThreshold(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant& _Gain(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant& _GainSigma(int Geom_id,int Geom_Channel,int low_gain=1);
+  static geant& _Pedestal(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant& _PedestalSigma(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant& _PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant& _Gain(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant& _GainSigma(int Geom_id,int Geom_Channel,int high_gain=1);
   static int& _GainThreshold(int Geom_id,int Geom_Channel);
   static geant& _Eff(int Geom_id,int Geom_Channel);
 
@@ -131,11 +131,11 @@ class RichPMTsManager{
 
 
   static int Status(int Geom_id,int Geom_Channel);
-  static geant Pedestal(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant PedestalSigma(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant PedestalThreshold(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant Gain(int Geom_id,int Geom_Channel,int low_gain=1);
-  static geant GainSigma(int Geom_id,int Geom_Channel,int low_gain=1);
+  static geant Pedestal(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant PedestalSigma(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant Gain(int Geom_id,int Geom_Channel,int high_gain=1);
+  static geant GainSigma(int Geom_id,int Geom_Channel,int high_gain=1);
   static int GainThreshold(int Geom_id,int Geom_Channel);
   static geant Eff(int Geom_id,int Geom_Channel);
 
@@ -188,6 +188,7 @@ class RichPMTsManager{
   ~RichPMTsManager(){};
 
   friend class AMSJob;  // To alow access to TDV
+  friend class AMSRichCal;
 };
 
 

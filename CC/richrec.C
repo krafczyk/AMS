@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.77 2008/01/17 08:58:32 mdelgado Exp $
+//  $Id: richrec.C,v 1.78 2008/01/22 16:36:49 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -71,12 +71,10 @@ void AMSRichRawEvent::mc_build(){
 	geant pedestal=nnoisy>0?AMSRichMCHit::noise(channel,1):AMSRichMCHit::adc_empty(channel,1);
 	geant signal=AMSRichMCHit::adc_hit(nhits,channel,1);
 	RichPMTChannel calibration(channel);
-	//	cout<<"*****SIMULATING SIGNAL "<<signal<<" WHERE nhits="<<nhits<<" WHERE PED="<<pedestal<<" gain threshold "<<calibration.gain_threshold<<" Channel "<<channel<<endl;
 	geant threshold;
 	integer mode=1;
 
         if(integer(signal+pedestal)>calibration.gain_threshold){
-	  //	  cout<<"*** CHANGING to gainx1 mode "<<endl;
 	  // Change to gainX1 mode
 	  mode=0;
 	  pedestal=nnoisy>0?AMSRichMCHit::noise(channel,0):AMSRichMCHit::adc_empty(channel,0);
@@ -84,15 +82,12 @@ void AMSRichRawEvent::mc_build(){
 	}
 
 	threshold=calibration.pedestal_threshold[mode]*calibration.pedestal_sigma[mode]+calibration.pedestal[mode];
-	//	cout<<"****THRE COMP "<<mode<<" "<<calibration.pedestal_threshold[mode]<<" "<<calibration.pedestal_sigma[mode]<<" "<<calibration.pedestal[mode]<<endl;
-
-
 	nnoisy=0;
 	nhits=0;
 	//	ndark=0;
 
-	  //	cout<<"** OVER THRESHOLD "<<integer(signal+pedestal)<<" "<<threshold<<" "<<calibration.status<<" "<<calibration.gain[0]<<" "<<calibration.gain[1]<<endl;
-	if(integer(signal+pedestal)>threshold && calibration.status){
+	if(integer(signal+pedestal)>threshold && (calibration.status%10)==Status_good_channel){
+	  //	if(integer(signal+pedestal)>threshold){
 	  AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
 				       new AMSRichRawEvent(channel,integer(signal+pedestal-calibration.pedestal[mode]),(mode==0?0:gain_mode)));
 
@@ -119,74 +114,6 @@ void AMSRichRawEvent::mc_build(){
 }
 
 
-
-/*
-void AMSRichRawEvent::build(){
-  // Flag the PMTs which are likely to be crossed by a charged particle using the
-  // bit number 'bit_crosse_pmt'
-
-  double PMTSignal[RICmaxpmts];
-
-  for(int i=0;i<RICHDB::total;PMTSignal[i++]=0);
-  
-  int nhits=0;
-  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
-	getheadC("AMSRichRawEvent",0);current;current=current->next()){
-    current->unsetbit(crossed_pmt_bit);
-    int pmt=current->getchannel()/16;
-    nhits++;
-    if(pmt>=RICHDB::total){
-      cerr<< "AMSRichRawEvent::build-ChannelNoError "<<pmt<<endl;
-      return;
-    }
-    PMTSignal[pmt]+=current->getnpe();
-  }
-  
-  double mean=0;
-  double mean2=0;
-  double rms=0;
-  double threshold;
-  int total=0;
-  
-  for(int i=0;i<RICHDB::total;i++)
-    if(PMTSignal[i]>0){
-      total++;
-      mean+=PMTSignal[i];
-      mean2+=PMTSignal[i]*PMTSignal[i];
-    }
-  
-  if(total>0){
-    mean/=total;
-    mean2/=total;
-    rms=sqrt(mean2-mean*mean);
-    threshold=mean+3*rms;
-  }
-  
-  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
-	getheadC("AMSRichRawEvent",0);current;current=current->next()){
-    int pmt_number=current->getchannel()/16;
-    if(PMTSignal[pmt_number]>threshold)
-      current->setbit(crossed_pmt_bit);
-  }
-
-}
-
-
-
-int AMSRichRawEvent::Npart(){
-  int PMTFlagged[RICmaxpmts];
-  for(int i=0;i<RICmaxpmts;i++) PMTFlagged[i]=0;
-  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
-        getheadC("AMSRichRawEvent",0);current;current=current->next()){
-    int pmt_number=current->getchannel()/16;
-    PMTFlagged[pmt_number]+=current->getbit(crossed_pmt_bit);
-  }
-  int npart=0;
-  for(int i=0;i<RICmaxpmts;i++) if(PMTFlagged[i]) npart++;
-  return npart;
-}
-*/
-
 int AMSRichRawEvent::_npart=0;
 int AMSRichRawEvent::Npart(){return _npart;}
 
@@ -207,6 +134,10 @@ void AMSRichRawEvent::build(){
   for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);current;current=current->next()){
     current->unsetbit(crossed_pmt_bit);
+
+    // Skip it if its status if cero
+    if((current->getchannelstatus()%10)!=Status_good_channel) continue;
+
     int pmt=current->getchannel()/16;
     if(pmt>=RICHDB::total){
       cerr<< "AMSRichRawEvent::build-ChannelNoError "<<pmt<<endl;
@@ -250,12 +181,6 @@ void AMSRichRawEvent::build(){
       if(mean2<best_sigma){
         best_mean=mean;
         best_sigma=mean2;
-
-	//	cout<<"CURRENT BEST SIGMA IS "<<best_sigma<<" FOR "<<endl;
-	//	for(int j=0;j<npmt;j++){
-	//	  if(!test[j]) continue;
-	//	  cout<<"    pmt "<<hid[j]<<" "<<signal[hid[j]]<<endl;
-	//	}
       }
     }
 
@@ -263,11 +188,12 @@ void AMSRichRawEvent::build(){
     // Flag hits and pmts and count number of good/bad PMTs
     //
     
-
-    
     for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
 	  getheadC("AMSRichRawEvent",0);current;current=current->next()){
       current->unsetbit(crossed_pmt_bit);
+
+      if((current->getchannelstatus()%10)!=Status_good_channel) continue;
+
       int pmt=current->getchannel()/16;
       
       if(signal[pmt]-best_mean>flag_threshold*best_sigma) current->setbit(crossed_pmt_bit);
@@ -277,32 +203,6 @@ void AMSRichRawEvent::build(){
     for(int i=0;i<npmt;i++) if(signal[hid[i]]-best_mean>flag_threshold*best_sigma) _npart++;
     
   }
-
-//   if(_npart>0){
-//     cout<<"*************************************"<<endl;
-//     cout<<" MEAN PER PMT "<<best_mean<<endl;
-//     cout<<" SIGMA        "<<best_sigma<<endl;
-//     cout<<" DUMPING FLAGGED PMTS "<<endl;
-//     for(int i=0;i<npmt;i++) if(signal[hid[i]]-best_mean>flag_threshold*best_sigma) cout<<" PMT "<<hid[i]<<" SIGNAL "<<signal[hid[i]]<<endl;;
-//     cout<<"*************************************"<<endl;
-
-//     if(best_sigma<0.5){
-//       cout<<"--------- SIGMA TOO LOW DUMPING HITS -------"<<endl;
-//       for(int i=0;i<npmt;i++){
-// 	int dumped=0;
-// 	for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
-// 	      getheadC("AMSRichRawEvent",0);current;current=current->next()){
-// 	  int pmt=current->getchannel()/16;
-// 	  if(pmt!=hid[i]) continue;
-// 	  cout<<" PMT "<<hid[i]<<" HIT "<<current->getnpe()<<endl;
-// 	  dumped++;
-// 	}
-// 	if(dumped) cout<<"=============="<<endl;
-//       }
-//     }
-
-//   }
-
 }
 
 
@@ -354,9 +254,7 @@ void AMSRichRawEvent::_writeEl(){
   cluster->channel[cluster->Nhits]=_channel;
   cluster->adc[cluster->Nhits]=_counts;
 
-   cluster->npe[cluster->Nhits]=getnpe();
-
-
+  cluster->npe[cluster->Nhits]=getnpe();
   cluster->x[cluster->Nhits]=channel.x();
   cluster->y[cluster->Nhits]=channel.y();
   cluster->status[cluster->Nhits]=_status;
@@ -750,7 +648,8 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
-    
+    if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
+
     // Checks bounds
     if(actual>=RICmaxpmts*RICnwindows/2) {
       cout << "AMSRichRing::build : Event too long."<<endl;
@@ -908,14 +807,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
       bit++;  
     } else {
       if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
-      //	// Add empty ring to keep track of no recostructed tracks
-      //	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
-      //				     new AMSRichRing(track,
-      //						     0,
-      //						     0.,
-      //						     0.,
-      //						     0. // Unused by now
-      //						     ));
     }
   }while(current_ring_status&dirty_ring);   // Do it again if we want to clean it up once
   return first_done;
@@ -976,11 +867,13 @@ void AMSRichRing::_copyEl(){
    else ptr.fTrTrack=-1;
 
    // Add the hit used status
-   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->getheadC("AMSRichRawEvent",0);hit;hit=hit->next())
+   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+     if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
+
      if((hit->getstatus()>>_vpos)%2){
        ptr.fRichHit.push_back(hit->GetClonePointer());   
      }
-   
+   }
 #endif
 }
 void AMSRichRing::CalcBetaError(){
@@ -1002,13 +895,6 @@ void AMSRichRing::CalcBetaError(){
     sqrt(AMSRichRing::Sigma(_beta,A,B)*
 	 AMSRichRing::Sigma(_beta,A,B)/geant(_used)+0.016e-2*0.016e-2):1;
 }
-
-
-
-
-
-
-
 
 
 ////////////////////////////////////
@@ -1225,7 +1111,7 @@ trig=(trig+1)%freq;
 
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){  
-    
+    if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
     geant betas[3];
     for(int n=0;n<3;n++) betas[n]=hit->getbeta(n);
     geant value=fabs(_beta-betas[closest(_beta,betas)])/sigma;
@@ -1382,7 +1268,22 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     *xb=r2[0];
     *yb=r2[1];
 
-    *beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
+    // Take into account status and efficiency
+    int channel_number=RichPMTsManager::FindChannel(r2[0],r2[1]);
+    if(channel_number<0){
+      *beff=0;
+    }else{
+      int pmt,channel;
+      RichPMTsManager::UnpackGeom(channel_number,pmt,channel);
+      int status=RichPMTsManager::Status(pmt,channel);
+      if((status%10)!=Status_good_channel){
+	*beff=0;
+      }else{
+	*beff=RichPMTsManager::Eff(pmt,channel);
+      }
+    }
+    //    *beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
+
     *tflag=*beff?3:5;
     return (*beff)*lgeff(r2,u1,lguide); 
   }
@@ -1635,31 +1536,6 @@ geant AMSRichRing::lgeff(AMSPoint r,
   static float LG_Tran,Eff_Area;
   static float bwd=0.04;
   static int first=1;
-/*
-#ifdef __AMSDEBUG__
-  if(first){
-    // Check the get_from_top stuff
-
-    cout <<"DUMPING OF MAP"<<endl<<"***************"<<endl;
-
-    AMSRICHIdGeom basura(4805);
-    for(geant y=basura.y()-3.4/2-2.;y<=basura.y()+3.4/2+2;y+=0.1){
-      for(geant x=basura.x()-3.4/2-2;x<=basura.x()+3.4/2+2;x+=0.1){
-	integer wnd=RichPMTsManager::FindWindow(x,y);
-	char c=32;
-
-	if(wnd>=0) c='A'+wnd; else c=' ';
-	cout <<c;
-
-      }
-      cout <<endl;
-    }
-  }
-
-#endif
-*/
-
-
 
   if(first){
     first=0;
@@ -1859,6 +1735,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
     for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	  getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+      if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
 
       if(actual>=LIPDAT.nbhitsmax_c) {
 	cout << "AMSRichRing::build : Event too long."<<endl;

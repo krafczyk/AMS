@@ -1,4 +1,6 @@
 #include"richid.h"
+#include"richcal.h" 
+#include"timeid.h" 
 #include"commons.h"
 #include "job.h"
 #include <fstream.h>
@@ -144,6 +146,7 @@ void RichPMTsManager::Init(){
   // Initialize probability tables if is simulation
   // 
   if(AMSJob::gethead()->isSimulation()){
+    cout<<"RichPMTsManager::Init -- Initializing PMT simulation tables."<<endl; 
     for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
   }
 
@@ -314,6 +317,35 @@ void RichPMTsManager::Finish(){
     SaveToFile(name);
   }
 
+  if(AMSFFKEY.Update && AMSRichCal::isCalibration()){  // If update and calibration, update database
+    AMSTimeID *ptdv;
+    char *tdvs[]={"RichPMTChannelStatus",
+		  "RichPMTChannelGain",
+		  "RichPMTChannelGainSigma",
+		  ""};
+    for(int i=0;strlen(tdvs[i])>0;i++){
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID(tdvs[i],0));
+      assert(ptdv);
+      /*
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+
+      // To be defined but probably coming from the calibration parameters:
+      // my proposal is insert=now, begin when run begins end=when run ends, or parameters in the datacard
+      time_t insert,begin,end;
+      time(&insert);
+      ptdv->SetTime(insert,begin,end);
+      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+      */
+    }
+  }
+
+  //  if(0) AMSRichCal::finish(); // If calibration cleanup memory
+
 }
 
 void RichPMTsManager::Init_Default(){
@@ -379,8 +411,8 @@ void RichPMTsManager::Init_Default(){
 	_PedestalSigma(pmt,cat,1)=4.;
 	_PedestalThreshold(pmt,cat,0)=4.;  // In sigmas
 	_PedestalThreshold(pmt,cat,1)=4.;
-	_Gain(pmt,cat,1)=gain;
 	_Gain(pmt,cat,0)=gain_low;
+	_Gain(pmt,cat,1)=gain;
 	_GainSigma(pmt,cat,1)=sigma_gain;
 	_GainSigma(pmt,cat,0)=sigma_gain_low;
 	_GainThreshold(pmt,cat)=3000;
@@ -504,31 +536,31 @@ int RichPMTsManager::Status(int Geom_id,int Geom_Channel){
   return _status[RICnwindows*Geom_id+Geom_Channel];
 }
 
-geant RichPMTsManager::Pedestal(int Geom_id,int Geom_Channel,int low_gain){
-  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1) return -1;
-  return _pedestal[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant RichPMTsManager::Pedestal(int Geom_id,int Geom_Channel,int high_gain){
+  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1) return -1;
+  return _pedestal[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
-geant RichPMTsManager::PedestalSigma(int Geom_id,int Geom_Channel,int low_gain){
-  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1) return -1;
-  return _pedestal_sigma[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant RichPMTsManager::PedestalSigma(int Geom_id,int Geom_Channel,int high_gain){
+  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1) return -1;
+  return _pedestal_sigma[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
-geant RichPMTsManager::PedestalThreshold(int Geom_id,int Geom_Channel,int low_gain){
-  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1) return -1;
-  return _pedestal_threshold[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
-}
-
-
-geant RichPMTsManager::Gain(int Geom_id,int Geom_Channel,int low_gain){
-  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1) return -1;
-  return _gain[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant RichPMTsManager::PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain){
+  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1) return -1;
+  return _pedestal_threshold[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
-geant RichPMTsManager::GainSigma(int Geom_id,int Geom_Channel,int low_gain){
-  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1) return -1;
-  return _gain_sigma[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant RichPMTsManager::Gain(int Geom_id,int Geom_Channel,int high_gain){
+  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1) return -1;
+  return _gain[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
+}
+
+
+geant RichPMTsManager::GainSigma(int Geom_id,int Geom_Channel,int high_gain){
+  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1) return -1;
+  return _gain_sigma[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
@@ -551,31 +583,31 @@ int& RichPMTsManager::_Status(int Geom_id,int Geom_Channel){
   return _status[RICnwindows*Geom_id+Geom_Channel];
 }
 
-geant& RichPMTsManager::_Pedestal(int Geom_id,int Geom_Channel,int low_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1));
-  return _pedestal[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant& RichPMTsManager::_Pedestal(int Geom_id,int Geom_Channel,int high_gain){
+  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  return _pedestal[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
-geant& RichPMTsManager::_PedestalSigma(int Geom_id,int Geom_Channel,int low_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1));
-  return _pedestal_sigma[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant& RichPMTsManager::_PedestalSigma(int Geom_id,int Geom_Channel,int high_gain){
+  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  return _pedestal_sigma[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
-geant& RichPMTsManager::_PedestalThreshold(int Geom_id,int Geom_Channel,int low_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1));
-  return _pedestal_threshold[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
-}
-
-
-geant& RichPMTsManager::_Gain(int Geom_id,int Geom_Channel,int low_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1));
-  return _gain[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant& RichPMTsManager::_PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain){
+  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  return _pedestal_threshold[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
-geant& RichPMTsManager::_GainSigma(int Geom_id,int Geom_Channel,int low_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || low_gain<0 || low_gain>1));
-  return _gain_sigma[2*RICnwindows*Geom_id+RICnwindows*low_gain+Geom_Channel];
+geant& RichPMTsManager::_Gain(int Geom_id,int Geom_Channel,int high_gain){
+  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  return _gain[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
+}
+
+
+geant& RichPMTsManager::_GainSigma(int Geom_id,int Geom_Channel,int high_gain){
+  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  return _gain_sigma[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
@@ -622,6 +654,7 @@ void RichPMT::compute_tables(){
 
       // Check that the table have not been previously computed
       // (save time if using the default calibration)
+      /*
       int done=0;
       for(int i=0;i<_geom_id;i++){
 	for(int j=0;j<(i==_geom_id)?channel:RICnwindows;j++){
@@ -636,6 +669,7 @@ void RichPMT::compute_tables(){
       }
 
       if(done) continue;
+      */
 
       geant lambda,scale;
       GETRLRS(gain,gain_sigma,lambda,scale);
@@ -659,7 +693,6 @@ void RichPMT::compute_tables(){
 	_cumulative_prob[channel][mode][i]/=
 	  _cumulative_prob[channel][mode][RIC_prob_bins-1];
     }
-
 }
 
 ////////////////////////

@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.38 2007/10/02 16:06:50 mdelgado Exp $
+//  $Id: richdbc.h,v 1.39 2008/01/22 16:36:52 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -79,9 +79,15 @@ const integer Status_primary_tracker=-8;
 const integer Status_primary_tof=-8;
 const integer Status_primary_radb=-9;
 
+// Status word for good channels
+const integer Status_good_channel=1;
+
+
 // Dword for the hits status 
+const uinteger ok_status_bit=28;
 const uinteger gain_mode_bit=29;
 const uinteger crossed_pmt_bit=30;
+const uinteger ok_status=uinteger(1)<<ok_status_bit;
 const uinteger gain_mode=uinteger(1)<<gain_mode_bit;
 const uinteger crossed_pmt=uinteger(1)<<crossed_pmt_bit;
 const geant npe_crossed_signature=6.;  // Minimum number of p.e. to consider  
