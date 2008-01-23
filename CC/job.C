@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.522 2008/01/23 07:35:14 choutko Exp $
+// $Id: job.C,v 1.523 2008/01/23 15:34:33 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1282,11 +1282,11 @@ void AMSJob::_reanti2data(){
 //========================================================================
 void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
-DAQCFFKEY.OldFormat=0;
+DAQCFFKEY.BTypeInDAQ[0]=0;
+DAQCFFKEY.BTypeInDAQ[1]=1023;
 DAQCFFKEY.LCrateinDAQ=1;
-DAQCFFKEY.SCrateinDAQ=-1;//not used by me (EC)
+DAQCFFKEY.SCrateinDAQ=1;//not used by me (EC)
 DAQCFFKEY.NoRecAtAll=0;
-DAQCFFKEY.TrFormatInDAQ=3;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -3632,7 +3632,7 @@ void AMSJob::_dbendjob(){
 if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
  {
 
-  if(DAQCFFKEY.OldFormat || !isRealData()){
+  if( !isRealData()){
 // special tracker ped/sigma calc
     if(TRCALIB.Method == 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
@@ -3669,15 +3669,9 @@ if(DAQCFFKEY.LCrateinDAQ){
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
+    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib,6);
 
 
-    //Tracker ped/sigma etc ( "Event" mode)
-/*
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
-*/
 
 }  
 
@@ -3685,7 +3679,7 @@ if(DAQCFFKEY.LCrateinDAQ){
 
 //           tracker H/K Static
 
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,20);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
 
 
 }

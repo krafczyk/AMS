@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.9 2007/12/18 08:09:54 choutko Exp $
+//  $Id: trdid.h,v 1.10 2008/01/23 15:34:35 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -63,6 +63,7 @@ static uinteger _CrateNo[trdid::ncrt];
 void _check();
 void _mkhaddr();
 void _mkcrate();
+ static integer _Calib[trdid::ncrt][trdid::nudr];   
  static integer _GetGeo[trdid::ncrt][trdid::nudr][trdid::nufe][trdid::nute][3];   // crate,nufe,nudr,nute ->     //layer,ladder,direction(0,1) 
  static integer _GetHard[trdconst::maxlay][trdconst::maxlad][4];     // layer,ladder ->// nute,nufe,nudr, crate
 static geant *_ped;
@@ -171,6 +172,7 @@ uinteger gethaddr() const;   //  hardware address to be defined
 static void init();
 static void inittable();
 friend class AMSTRDIdGeom;
+friend class AMSTRDRawHit;
 friend class AMSJob;
 AMSTRDIdSoft(const  AMSTRDIdGeom & o);
 static uinteger CalcBadCh(uinteger crate);

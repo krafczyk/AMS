@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.93 2008/01/23 07:35:13 choutko Exp $
+//  $Id: daqevt.C,v 1.94 2008/01/23 15:34:32 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -298,6 +298,10 @@ bool    DAQEvent::_istdr(int16u id){
 if( ((id>>5)&((1<<9)-1))>=288 && ((id>>5)&((1<<9)-1))<=465 )return true;
 else return false;
 }
+bool    DAQEvent::_isudr(int16u id){
+if( ((id>>5)&((1<<9)-1))>=474 && ((id>>5)&((1<<9)-1))<=509 )return true;
+else return false;
+}
 
 bool    DAQEvent::_isjlvl1(int16u id){
 if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=137 && ((id>>5)&((1<<9)-1))<=140 && (id>>14)==2)return true;
@@ -308,6 +312,7 @@ uinteger DAQEvent::_GetBlType(){
 uinteger type=(*(_pData+_cll(_pData)))&31;
 //cout <<" type "<<*(_pData+_cl(_pData))<<" "<<_cll(_pData)<<" "<<type<<endl;
 if(type==5)return 0;
+else if(type==0)return 5;
 else return type;
 }
 
@@ -342,11 +347,11 @@ else return 0;
 }
 
 bool DAQEvent::_ComposedBlock(){
- return _GetBlType()!=20;
+ return _GetBlType()==0 || _GetBlType()==6;
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
-  if(_GetBlType()!=0 && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 )return 0;
+  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
   if(_Length >1 && _pData ){
@@ -446,7 +451,7 @@ integer DAQEvent::_EventOK(){
 }
 
 integer DAQEvent::_HeaderOK(){
-  if(_GetBlType()!=0 && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 )return 0;
+  if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(!_ComposedBlock()){
      _Event=1;
@@ -490,7 +495,7 @@ integer DAQEvent::_HeaderOK(){
        }
  
       // fix against event 0
-      if(_Event==0)return 0;
+      if(_Event==0 && _GetBlType()==0)return 0;
             
       return 1;
     }
@@ -583,9 +588,10 @@ void DAQEvent::buildRawStructures(){
     if(_isjinj(id)){
      for(int16u * pdown=_pcur+_cll(_pcur)+2;pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
      int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
+
      if(ic>=0){
 #ifdef __AMSDEBUG__
-      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<endl;
+      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
 #endif
       int16u *psafe=pdown+1;
       integer n=(ic<<16) | (*pdown);
@@ -609,10 +615,10 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id)){
+    else if(_istdr(id) || _isudr(id)){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
-      int16u *pdown=_pcur+_cll(_pcur)+5;
+      int16u *pdown=_pcur+_cll(_pcur)+2;
       int16u *psafe=pdown;
       int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
       fpl->_pputdata(n,psafe);

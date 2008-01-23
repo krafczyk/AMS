@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.258 2008/01/14 10:57:49 choumilo Exp $
+#  $Id: datacards.doc,v 1.259 2008/01/23 15:34:34 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -478,11 +478,10 @@ I 2 ifile[40]("")                   // input file(s) name(s)
                                     // eg if last char is "/" 
                                     // all directory will be read
 I42 ofile[40]("")                   // output file name
-I82 OldFormat(0)                    // old(1) new(0) format
-I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
-I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
-I85 NoRecAtAll(0)                   // skip or not reconstruction phase
-I86 TrformatInDAQ(3)                // 0 no 1 reduced 2 raw 3 both in daq
+I82 BTypeInDaq[2](0,1023)           // block types in daq [0] <= btype <= [1] 
+I84 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
+I85 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
+I86 NoRecAtAll(0)                   // skip or not reconstruction phase
 
 BMAP   // Magnetic field control
 I  1  mfile                          // mag file name 'fld97int.txt'

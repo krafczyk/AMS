@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.35 2008/01/17 15:38:07 choutko Exp $
+//  $Id: daqevt.h,v 1.36 2008/01/23 15:34:35 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -94,6 +94,7 @@ bool    _isjinf(int16u id);       //  identify the detector data group sub block
 bool    _isjlvl1(int16u id);       //  identify the detector data group sub block
 bool    _issdr(int16u id);       //  identify the detector data group sub block
 bool    _istdr(int16u id);       //  identify the detector data group sub block
+bool    _isudr(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();
 uinteger _GetBlType();
 bool _ComposedBlock();
@@ -119,6 +120,7 @@ DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0){}
 static bool ismynode(int16u id,char * sstr){return _getnode(id)>127 && strstr(_getnodename(id),sstr);}
 static bool isRawMode(int16u id){return (id&64)>0;}
+static bool isError(int16u id){return (id&512)>0;}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}

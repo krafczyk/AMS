@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.2 2007/12/21 16:24:51 choutko Exp $
+//  $Id: trdcalib.C,v 1.3 2008/01/23 15:34:33 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -33,25 +33,22 @@ for(i=0;i<getnchan();i++){
 
 
 void AMSTRDIdCalib::ntuple(integer s){
-  if(IOPA.hlun){
+  if(IOPA.hlun>=0){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     char filename[256];
-    strcpy(filename,hfile);
     integer iostat;
     integer rsize=1024;
-    char event[80];  
-    sprintf(event,"%d",s);
-    strcat(filename,event);
+    sprintf(filename,"%s.%d",hfile,s);
     HROPEN(IOPA.hlun+1,"trdcalibration",filename,"NP",rsize,iostat);
     if(iostat){
-     cerr << "Error opening trcalib ntuple file "<<filename<<endl;
+     cerr << "Error opening trdcalib ntuple file "<<filename<<endl;
      exit(1);
     }
     else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
 
    TRDCalib_def TRDCALIB;
-   HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
+   HBNT(IOPA.ntuple,"Trd Calibaration"," ");
    HBNAME(IOPA.ntuple,"TrdCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
    int i,j,k,l,m;
      for(i=0;i<TRDDBc::nlay();i++){

@@ -4,7 +4,8 @@
 #include "tofsim02.h"
 #include "ntuple.h"
 #include "mceventg.h"
-
+#include "timeid.h"
+#include "trdcalib.h"
 using namespace trdsim;
 void AMSTRDRawHit::lvl3CompatibilityAddress(int16u ptr,uinteger& udr, uinteger & ufe,uinteger& ute,uinteger& chan){
  chan = ptr & 15;
@@ -142,6 +143,20 @@ int16 AMSTRDRawHit::getdaqid(int id){
 }
 }
 
+integer AMSTRDRawHit::checkdaqidS(int16u id){
+ 
+ for(int i=0;i<getmaxblocks();i++){
+ for(int j=0;j<trdid::nudr;j++){
+  char sstr[128];
+  sprintf(sstr,"UDR%x%x",i,j);
+  if(DAQEvent::ismynode(id,sstr)){
+       return j+i*trdid::nudr+1; 
+  }
+ }
+ }
+ return 0;
+}
+
 integer AMSTRDRawHit::checkdaqid(int16u id){
 
  for(int i=0;i<getmaxblocks();i++){
@@ -155,6 +170,74 @@ integer AMSTRDRawHit::checkdaqid(int16u id){
  return 0;
 
 
+}
+
+void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
+  integer leng=(n&65535);
+  leng-=9;
+  uinteger in=(n>>16);
+  uinteger ic=in/trdid::nudr;
+  uinteger udr=in%trdid::nudr;
+  int leng2=leng/2;
+  if(leng2!=448){
+   cerr<<"AMSTRDRaw::updtrcalib-WrongLength "<<leng2<<endl;
+   return;
+  }
+  int status=*(p+leng+4);
+  if(DAQEvent::isError(status)){
+   cerr<<"AMSTRDRaw::updtrcalib-ErrorBitSet "<<endl;
+   return;
+  }
+  AMSTRDIdSoft::_Calib[ic][udr]=1;
+  for (int i=0;i<leng2;i++){
+        int ufe=i%7;
+        int cha=i/7;
+        int roch=cha%16;
+        int ute=cha/16;
+        AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
+       if(!id.dead()){
+         if(id.getgain()==0)id.setgain()=1;
+         id.setped()=*(p+i)/TRDMCFFKEY.f2i;
+         id.setsig()=*(p+leng2+i)/TRDMCFFKEY.f2i;
+       }
+  }
+  bool update=true;
+  int nc=0;
+  for(int i=0;i<getmaxblocks();i++){
+   for (int j=0;j<trdid::nudr;j++){
+    if(!AMSTRDIdSoft::_Calib[i][j]){
+     update=false;
+    }
+    else nc++;
+  }
+ }
+ cout <<"  nc "<<nc<<endl;
+  if(update){
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trdid::nudr;j++){
+     AMSTRDIdSoft::_Calib[i][j]=0;
+    }
+   }
+   AMSTRDIdCalib::ntuple(AMSEvent::gethead()->gettime());
+   AMSTimeID *ptdv;
+     time_t begin,end,insert;
+      const int ntrd=3;
+      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDGains"};
+      for (int i=0;i<ntrd;i++){
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-86400,AMSEvent::gethead()->gettime()-86400+100000000);
+      cout <<" TRD H/K  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+
+ }
+
+}
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: readdaq.C,v 1.5 2008/01/04 15:45:25 choutko Exp $
+//  $Id: readdaq.C,v 1.6 2008/01/23 15:34:33 choutko Exp $
 #include "daqevt.h"
 #include "commons.h"
 AMSDATADIR_DEF AMSDATADIR;
@@ -16,6 +16,8 @@ int main(int argc, char* argv[]){
    break;
   }
   int i;
+  DAQCFFKEY.BTypeInDAQ[0]=0;
+  DAQCFFKEY.BTypeInDAQ[1]=1023;
   for(i=1;i<argc;i++){
    delete [] fnam;
    if(id==0){

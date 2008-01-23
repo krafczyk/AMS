@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.74 2008/01/23 07:35:14 choutko Exp $
+//  $Id: trrawcluster.C,v 1.75 2008/01/23 15:34:34 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -19,7 +19,8 @@ integer Side;
 integer Strip;
 geant Ped;
 geant Sigma;
-geant BadCh;
+geant RawSigma;
+integer BadCh;
 geant CmnNoise;
 integer Crate;
 integer Haddr;
@@ -508,6 +509,15 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
 for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
  //cout <<" length "<<leng<<" "<<*p<<" "<<((*(p+*p))&31)<<endl;
  int16u tdr=(*(p+*p))&31;
+ if(DAQEvent::isRawMode(*(p+*p))){
+  #ifdef __AMSDEBUG__
+   cerr<<" AMSTrRawCluster::buildraw-E-RawModeNotSupportedYet "<<endl;
+  #endif
+   return;
+ }
+ if(DAQEvent::isError(*(p+*p))){
+  cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
+ }
  for(int16u* paux=p+1;paux<p+*p-1-cmn;paux+=*paux+2){
   int16u haddr=*(paux+1);
   if(haddr>1023 ){
@@ -865,193 +875,6 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
 
 
 void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
-  integer const ms=640;
-  integer len;
-  static geant id[ms];
-  //VZERO(id,ms*sizeof(id[0])/sizeof(integer));
-  int i,j,k;
-  integer ic=checkdaqidMixed(*p)-1;
-  int16u * ptr=p+1;
-  // Main loop
-  while (ptr<p+n){
-    // Read two tdrs
-    uinteger subl=*ptr;
-    if(subl ==0){
-      cerr <<"AMSTrRawCluster::buildrawMixed-E-SubLengthZero, skipped event"<<endl;
-      return;
-    } 
-    int16u *ptro=ptr;
-    integer ntdr = *(ptr+1) & 31;
-    //cout <<"ntdr "<<subl<<" "<<ntdr<<endl;
-    integer mode = ((*(ptr+1))>>11) & 31;
-    if (mode != (getdaqidMixed(ic) & 31)) {
-      cerr <<"AMSTrRawCluster::buildrawMixed-E-ModeWrong Expected "<< 
-        ((getdaqidMixed(ic))&31)<<" Get "<<mode<<endl;
-    }
-    if(mode == (getdaqidCompressed(ic) & 31)){
-#ifdef __AMSDEBUG__
-      cout<<"AMSTrRawCluster::buildrawMixed-W-Switch2CompressMode"<<endl;
-#endif
-      buildrawCompressed(n,  p);
-      return;
-    }
-    ptr+=2;
-    for(i=0;i<ntdr;i++){
-     int16u tdrn=*ptr;
-     int16u lreca=*(ptr+1);
-     int16u lrec=*(ptr+3);
-     
-     //cout <<"tdrn "<<tdrn<<" "<<lrec<<endl;
-     ptr+=3;
-     if(DAQCFFKEY.TrFormatInDAQ>=2){
-     if(tdrn < 16){
-       // S side
-       len=640;
-       for(j=0;j<2;j++){
-         int16u conn,tdrs;
-         tdrs=tdrn/2;
-         if(tdrn%2==0){
-          if(j==0)conn=0;
-          else conn=1;
-         }
-         else {
-          if(j==0)conn=2;
-          else conn=3;
-         }
-         int16u haddr=(conn<<10) | (tdrs <<12);
-         AMSTrIdSoft idd(ic,haddr);
-         if(!idd.dead()){
-          // copy to local buffer and subtract peds
-          for(k=0;k<320;k++){
-           idd.upd(k);
-           id[k]=float(*(ptr+2+k+j*(640)))-idd.getped(); 
-          }
-          for(k=320;k<640;k++){
-           idd.upd(k);
-           id[k]=float(*(ptr+2+k+j*(640)))-idd.getped(); 
-          }
-          buildpreclusters(idd,len,id);
-         }
-       }
-     }
-     else if(tdrn<24){
-       // K Side
-       len=384;
-       for(j=0;j<4;j++){
-          int16u conn, tdrk;
-          if(tdrn%2 ==0){
-            if(j<2)conn=j;
-            else conn=j;
-          }
-          else {
-           if(j<2)conn=j;
-           else conn=j;
-           conn+= 4;
-          }
-          tdrk=(tdrn-16)/2;
-          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
-          AMSTrIdSoft idd(ic,haddr);
-         if(!idd.dead()){
-          // copy to local buffer and subtract peds
-          for(k=0;k<384;k++){
-           idd.upd(k);
-          id[k]=float(*(ptr+2+k+j*384))-idd.getped(); 
-          }
-          buildpreclusters(idd,len,id);
-         }
-       }
-     }
-     else {
-       cerr<<"trrawcluster::buildrawMixed-ETDRNOutOfRange "<<tdrn<<endl;
-     }
-     }
-     ptr+=lrec;
-     // Now reduced format
-     int rl=*ptr;
-     if(rl+lrec+2!=lreca){
-       cerr<<"trrawcluster::buildrawMixed-LengthMismatch All "<<lreca-2<<" Raw "<<lrec<<" Compressed "<<rl<<endl;
-     }
-     //  cout<<"mixed: "<<lreca-2<<" Raw "<<lrec<<" Compressed "<<rl<<endl;
-     if(DAQCFFKEY.TrFormatInDAQ%2){
-      int16u *p2=ptr;
-      int leng=0;
-      for(p2=ptr+2;p2<ptr+rl-1;p2+=leng+3){
-        leng=(*p2)&63;
-
-        // change here TSRA
-        if(tdrn<16){
-          //S
-          *(p2+1)= (*(p2+1)) & (~(15<<11));
-          *(p2+1)= (*(p2+1)) | (tdrn<<11);
-        }
-        else {
-          // K;
-                    *(p2+1)= (*(p2+1)) & (~(7<<12));
-                    *(p2+1)= (*(p2+1)) | ((tdrn-16)<<12);
-        }
-
-        AMSTrIdSoft id(ic,int16u(*(p2+1)));
-        if(!id.dead() ){
-          int16 sn=(((*p2)>>6)&63);
-          float s2n=float(sn)/8;
-          if(id.teststrip(id.getstrip()+leng)){
-            /*
-            
-              static int jpa=0;
-              if(!jpa){
-               HBOOK1(501101,"diff",100,-18.,2.,0.);
-               jpa=1;
-              }
-              int16 snm=0;
-              int olds=id.getstrip();
-              for (int k=0;k<leng+1;k++){
-               id.upd(olds+k);
-               if(id.getsig() && (*((int16*)p2+2+k))/id.getsig() > snm){
-                snm=*((int16*)p2+2+k)/id.getsig();
-               }
-              }       
-              id.upd(olds);
-              if(sn>snm){
-                cout <<sn<<" "<<snm<<" "<<id.getsig()<<" "<<id<<endl;
-              }
-              HF1(501101,float(sn-snm),1.);
-            */
-
-
-            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-            AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
-            (int16*)p2+2,s2n));
-          }
-          else {
-            // split into two clusters;
-            // cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
-            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-            AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips()-1,
-           (int16*)p2+2,s2n));
-            integer second=id.getstrip()+leng-id.getmaxstrips();
-            id.upd(0);
-            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-            AMSTrRawCluster(id.getaddr(),id.getstrip(),second,
-            (int16*)p2+2+leng-second,s2n));
-          }
-        }
-        #ifdef __AMSDEBUG__
-        else cerr <<" AMSTrRawCluster::buildrawMixed-E-Id.Dead "<<id.gethaddr()<<endl;
-        #endif
-      } 
-     }
-     ptr+=rl;
-     
-    }
-      ptr=ptro+subl;         // add one word
-      
-  }
-
-  // Get rid of K without S 
-
-   matchKS();         
-
-
 }
 
 
@@ -1693,7 +1516,7 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
 
 void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
   uinteger leng=(n&65535);
-  leng-=13;
+  leng-=10;
   uinteger in=(n>>16);
   uinteger ic=in/trid::ntdr;
   uinteger tdr=in%trid::ntdr;
@@ -1704,6 +1527,17 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
    return;
   }
   AMSTrIdSoft::_Calib[ic][tdr]=1;
+ int version=*(p+leng);
+ geant sig_d=*(p+leng+1);
+ geant rawsig_d=*(p+leng+3);
+ int nerr=0;
+/*
+ cout <<"  AMSTrRawCluster::updtrcalibS-I-Parameters ";
+ for(int i=0;i<13;i++){
+  cout <<*(p+leng+i)<<" ";
+ }
+ cout <<endl;
+*/
  for(int i=0;i<leng4;i++){
   int16u haddr=(tdr<<10) | i;
   AMSTrIdSoft id(ic,haddr);
@@ -1716,21 +1550,26 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
    if(*(p+i)>32768)id.setstatus(AMSDBc::BAD);
    else id.setped()=geant(*(p+i))/id.getgain();
    if(*(p+i+2*leng4)>32768)id.setstatus(AMSDBc::BAD);
-   else id.setsig()=geant(*(p+i+2*leng4))/id.getgain();
+   else id.setsig()=geant(*(p+i+2*leng4))/sig_d;
    if(*(p+i+3*leng4)>32768)id.setstatus(AMSDBc::BAD);
-   else id.setsigraw()=geant(*(p+i+3*leng4))/id.getgain();
+   else id.setsigraw()=geant(*(p+i+3*leng4))/id.getgain()/rawsig_d;
+   if(id.setsig()>id.setsigraw()){
+    nerr++;
+//     cerr <<"  AMSTrRawCluster::updtrcalibS-E-SigmaProblems "<<id.getsigraw()<<" "<<id.getsig() <<" "<<id<<endl;
+//     cerr <<"  AMSTrRawCluster::updtrcalibS-I-Version "<<version<<" "<<sig_d<<" "<<rawsig_d<<endl;
+   }
    if(i%64==0){
     number cmn=0;
     number ncmn=0;
     for (int k=i;k<i+64;k++){
       if(*(p+i+2*leng4)<32768 &&  *(p+i+3*leng4)<32768){
        ncmn++;
-       cmn+=((*(p+i+3*leng4))*(*(p+i+3*leng4))-(*(p+i+2*leng4))*(*(p+i+2*leng4)))/id.getgain()/id.getgain();
+       cmn+=((*(p+i+3*leng4))*(*(p+i+3*leng4))/id.getgain()/rawsig_d/id.getgain()/rawsig_d-(*(p+i+2*leng4))*(*(p+i+2*leng4))/sig_d/sig_d);
       }   
     }
     if(ncmn>32){
-      cmn=sqrt(cmn/ncmn);
-      
+      if(cmn>0)cmn=sqrt(cmn/ncmn);
+      else cmn=0;
       id.setcmnnoise()=cmn;
     }
     else id.setstatus(AMSDBc::BAD);
@@ -1742,6 +1581,9 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
        ic<<endl;
      }
 #endif
+}
+if(nerr>0){
+     cerr <<"  AMSTrRawCluster::updtrcalibS-E-RawSigmaProblems "<<nerr<<endl;
 }
   bool update=true;
   int nc=0;
@@ -1799,7 +1641,7 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
 
    TrCalib_def TRCALIB;
    HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
-   HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,CmnNoise:R,Crate:I,Haddr:I");
+   HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,RawSigma:R,BadCh:I,CmnNoise:R,Crate:I,Haddr:I");
    int i,j,k,l,m;
     for(l=0;l<2;l++){
     for(k=0;k<2;k++){
@@ -1816,6 +1658,7 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
           TRCALIB.Strip=m;
           TRCALIB.Ped=id.getped();
           TRCALIB.Sigma=id.getsig();
+          TRCALIB.RawSigma=id.getsigraw();
           TRCALIB.BadCh=id.checkstatus(AMSDBc::BAD);
           TRCALIB.CmnNoise=id.getcmnnoise();
           TRCALIB.Crate=id.getcrate();

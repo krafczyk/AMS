@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.13 2007/12/21 16:24:51 choutko Exp $
+//  $Id: trdid.C,v 1.14 2008/01/23 15:34:33 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -11,6 +11,7 @@
 using namespace trdconst;
 
 uinteger AMSTRDIdSoft::_CrateNo[trdid::ncrt];
+ integer AMSTRDIdSoft::_Calib[trdid::ncrt][trdid::nudr];
 integer AMSTRDIdSoft::_GetGeo[trdid::ncrt][trdid::nudr][trdid::nufe][trdid::nute][3];   // crate,nufe,nudr,nute ->     //layer,ladder,direction
  integer AMSTRDIdSoft::_GetHard[trdconst::maxlay][trdconst::maxlad][4];     // layer,ladder -> nute,nufe,nudr, crate
 
@@ -193,6 +194,7 @@ void AMSTRDIdSoft::inittable(){
      int i,j,k;
      for(i=0;i<trdid::ncrt;i++){
        for( j=0;j<trdid::nudr;j++){
+        _Calib[i][j]=0;
         for(k=0;k<trdid::nufe;k++){
         for(int l=0;l<trdid::nute;l++){
          for(int m=0;m<3;m++)_GetGeo[i][j][k][l][m]=-1;
