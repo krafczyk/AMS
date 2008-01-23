@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.92 2008/01/17 15:38:07 choutko Exp $
+//  $Id: daqevt.C,v 1.93 2008/01/23 07:35:13 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -321,7 +321,7 @@ return 0;
 integer DAQEvent::getpreset(int16u *pdata){
 const  int16u lmask=0x8000; 
 const int16u rtype=0x1f;
-const int16u rtypec=0x14;
+const int16u rtypec[2]={0x13,0x14};
 integer offset=5;
 integer nodetype=1;
 if(pdata && _cl(pdata)>4){
@@ -332,7 +332,7 @@ if(pdata && _cl(pdata)>4){
  if((pdata[nodetype]&rtype) == rtype ){
    offset++;
  }
- else if((pdata[nodetype]&rtype) == rtypec){
+ else if((pdata[nodetype]&rtype) == rtypec[0] || (pdata[nodetype]&rtype) == rtypec[1] ){
   offset=0;
  } 
  return offset;
@@ -346,7 +346,7 @@ bool DAQEvent::_ComposedBlock(){
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
-  if(_GetBlType()==29)return 0;
+  if(_GetBlType()!=0 && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 )return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
   if(_Length >1 && _pData ){
@@ -446,6 +446,7 @@ integer DAQEvent::_EventOK(){
 }
 
 integer DAQEvent::_HeaderOK(){
+  if(_GetBlType()!=0 && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 )return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(!_ComposedBlock()){
      _Event=1;
@@ -494,7 +495,7 @@ integer DAQEvent::_HeaderOK(){
       return 1;
     }
   }
-  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<endl;
+  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<" "<<_GetBlType()<<endl;
  return 0;
 }
 
@@ -1215,7 +1216,8 @@ else{
 run=0;
 event=0;
 }
-if (AMSJob::gethead()->isMonitoring()) {
+
+if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
  while(KIFiles>=InputFiles){
   sleep(60);
   if(ifnam){

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.521 2008/01/22 16:37:57 mdelgado Exp $
+// $Id: job.C,v 1.522 2008/01/23 07:35:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3613,14 +3613,6 @@ void AMSJob::_dbendjob(){
 
 }
 
-{
-//           Header
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
-    &AMSEvent::builddaq);
-//           Header Tracker HK
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcTrackerHKl,
-    &AMSEvent::buildTrackerHKdaq,4);
-}
 
 
 {

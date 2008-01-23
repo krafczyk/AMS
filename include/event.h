@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.74 2008/01/22 16:36:52 mdelgado Exp $
+//  $Id: event.h,v 1.75 2008/01/23 07:35:14 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -283,7 +283,6 @@ inline void printH(){
 }
 static AMSID getTDVStatus();
 // Interface with DAQ
-static int16u  getdaqid(int btype){return 5 | btype <<5| 1<<15;}
 static integer checkdaqid(int16u id);
 static int16u  getdaqidSh(){return 1 | 14<<9;}
 static integer checkdaqidSh(int16u id);
@@ -297,7 +296,6 @@ static integer calcdaqlengthSh(integer i){return 21;}
 static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
 static void builddaqSh(integer i, integer length, int16u *p);
-static void buildTrackerHKdaq(integer i, integer length, int16u *p);
 static integer getselrun(integer i=0);
 friend class AMSJob;
 #ifdef __WRITEROOT__

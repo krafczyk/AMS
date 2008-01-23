@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.355 2008/01/22 16:36:46 mdelgado Exp $
+//  $Id: event.C,v 1.356 2008/01/23 07:35:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2780,7 +2780,7 @@ pdaq->buildDAQ(4);
 
 void AMSEvent::builddaq(integer i, integer length, int16u *p){
 
-*p= getdaqid(0);
+*p=7 | (1<<15); 
 *(p+2)=int16u(_Head->_run&65535);
 *(p+1)=int16u((_Head->_run>>16)&65535);
 *(p+4)=int16u(_Head->_runtype&65535);
@@ -2794,22 +2794,6 @@ uinteger _event=uinteger(_Head->_id);
 *(p+9)=int16u((_Head->_usec>>16)&65535);
 }
 
-
-void AMSEvent::buildTrackerHKdaq(integer i, integer length, int16u *p){
-
-*p= getdaqid(4);
-*(p+2)=int16u(_Head->_run&65535);
-*(p+1)=int16u((_Head->_run>>16)&65535);
-*(p+4)=int16u(_Head->_runtype&65535);
-*(p+3)=int16u(_Head->_runtype>>16&65535);
-uinteger _event=uinteger(_Head->_id);
-*(p+6)=int16u(_event&65535);
-*(p+5)=int16u((_event>>16)&65535);
-*(p+8)=int16u(_Head->_time&65535);
-*(p+7)=int16u((_Head->_time>>16)&65535);
-*(p+10)=int16u(_Head->_usec&65535);
-*(p+9)=int16u((_Head->_usec>>16)&65535);
-}
 
 
 
@@ -2906,15 +2890,10 @@ void AMSEvent::buildrawSh(integer length, int16u *p){
 
 
 integer AMSEvent::checkdaqid(int16u id){
-for (int k=0;k<4;k++){
- if(id==getdaqid(k))return k+1;
-}
-return 0;
-/*
-if(id==getdaqid(0))return 1;
-else if(id==getdaqid(4))return 5 ;
+int16u type=id&31;
+int16u node=(id>>5)&1023;
+if((type==5 || type==7) && node<16)return node+1;
 else return 0;
-*/
 
 }
 
