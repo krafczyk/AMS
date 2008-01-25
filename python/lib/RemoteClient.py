@@ -2401,7 +2401,12 @@ class RemoteClient:
                 errors=""
                 timestamp=""
                 tag=""
+                t0=""
+                t1=""
+                t2=""
                 run=""
+                f1=""
+                f2=""
                 version=""
                 for linea in fltdvo.readlines():
                     line=linea.split('\n')[0]
@@ -2431,12 +2436,37 @@ class RemoteClient:
                         path=line.split("=")[1]
                     elif(line.find("Tag")>=0):
                         tag=line.split("=")[1]
+                    elif(line.find("Type0")>=0):
+                        t0=line.split("=")[1]
+                    elif(line.find("Type1")>=0):
+                        t1=line.split("=")[1]
+                    elif(line.find("Type2")>=0):
+                        t2=line.split("=")[1]
+                    elif(line.find("FileF")>=0):
+                        f1=line.split("=")[1]
+                    elif(line.find("FileL")>=0):
+                        f2=line.split("=")[1]
                 fltdvo.close()
                 if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
+                    if(run2p!=0 and int(run)!=run2p):
+                        continue
                     (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/1024
-                        sql ="insert into datafiles values(%s,'%s','RawFile',%s,%s,%s,%s,%s,%d,'OK','%s',' ',%s,%s,0,0,%s,%s,%s)" %(run,version,fevent,levent,events,errors,rtime,sizemb,outputpath,crc,int(timenow),tag,tfevent,tlevent)
+                        type="UNK"
+                        if(t0=="5"):
+                            type="SCI"
+                        elif (t0=="6"):
+                            type="CAL"
+                        type=type+" "+t0+" "+t1+" "+t2
+                        orig=f1.split('/')
+                        origpath=""
+                        if(len(orig)>1):
+                             origpath=origpath+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        orig=f2.split('/')
+                        if(len(orig)>1):
+                             origpath=origpath+" "+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,0,0,%s,%s,%s)" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),tag,tfevent,tlevent)
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
                         cmd="rm -rf "+pfile
