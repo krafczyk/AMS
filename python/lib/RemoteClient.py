@@ -2373,7 +2373,7 @@ class RemoteClient:
         while 1:
             for filej in os.listdir(joudir):
                 pfilej=os.path.join(joudir,filej)
-                if(filej.find(".jou.1")>=0):
+                if(filej.find(".jou.")>=0):
                     continue
                 if(filej.find(".jou")<0):
                     continue
