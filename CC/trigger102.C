@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.43 2008/01/29 16:25:18 choutko Exp $
+//  $Id: trigger102.C,v 1.44 2008/01/29 17:22:56 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -369,6 +369,7 @@ void Trigger2LVL1::init(){
   HBOOK1(1096,"LVL1:EC ProjConfig(when FTE&TOF_FT, masked)",30,0.,30.,0.);
   HBOOK1(1097,"LVL1:EC ProjConfig(when FTE, masked, val: M|N=FTE|ANG, M(N)=1/2->or/end_proj)",30,0.,30.,0.);
   HBOOK1(1098,"LVL1:fired-branches(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+  HBOOK1(1094,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   TGL1JobStat::resetstat();
 }
 //--------------------
@@ -850,6 +851,7 @@ void Trigger2LVL1::ScalerMon::setdefs(){
 }  
 //---------
 void TGL1JobStat::printstat(){
+  HPRINT(1094);
   HPRINT(1097);
   HPRINT(1096);
   HPRINT(1095);
@@ -1060,6 +1062,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   int16u ftzwdcode(0);
   static geant LiveTime1,LiveTime2,TrigRates[6];//static to save them if blocks come not simultaneously
   static geant LiveTprev1(-1),LiveTprev2(-1),tgprev1(-1),tgprev2(-1);
+  static number evtprev(-1);
+  number evtcurr(0),delevt;
   uinteger ltimec[2];
   geant ltimeg[2];
   uinteger ntrst(0),timcal(0);
@@ -1091,6 +1095,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //
   int ltimbias;//tempor bias to live-time data(in "trig"-block)
   int trgsbias;//bias to trig.setup/status block
+  int pattbias;//bias to trig.patt sub-block
   int scaltgbs(1);//tempor bias to scalers time-gate(in scaler's block)
   int scalbias(2);//tempor bias to scalers data(...)
   int sbpatt(0);//trig_info sub-blocks pattern:1->trig_patt(15w),10->livetime(4w),100->trig_setup(32w),1000->scalers(10w)
@@ -1111,8 +1116,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
-  jaddr=jblid&(0x001F);//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
-  datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
+  jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
+  datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
 //
   if(TGL1FFKEY.printfl>1){
     cout<<endl;
@@ -1156,29 +1161,39 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   if(noerr)TGL1JobStat::daqs1(4);//<=== count no_ass_errors JLV1-fragments for given DATA-type     
   else goto BadExit;
 //
-  if(jleng==52){
+  if(jleng==52 && datyp==2){//compr.data
     sbpatt+=1;//1st 15w of ev-by-ev block
     sbpatt+=10;//4w of live-time block
     sbpatt+=100;//32w of trig-setup block
-    trgsbias=16;
-    ltimbias=48;
+    pattbias=0;//bias to patt. sub-block
+    trgsbias=16;//bias to trig-setup sub-block
+    ltimbias=48;//bias to time sub-block
+  } 
+  else if(jleng==53 && datyp==1){//raw.data(incl.evnum on top)
+    sbpatt+=1;//1st 15w of ev-by-ev block
+    sbpatt+=10;//4w of live-time block
+    sbpatt+=100;//32w of trig-setup block
+    pattbias=1;//bias to patt. sub-block
+    trgsbias=17;//bias to trig-setup sub-block
+    ltimbias=49;//bias to time sub-block
   } 
   else {
       TGL1JobStat::daqs1(10);//wrong segment length
-      if(TGL1FFKEY.printfl>0)cout<<"<---- Trigger2LVL1::buildraw:TriPattBlock length error, len="<<jleng<<" addr="<<jaddr<<endl;
+      if(TGL1FFKEY.printfl>0)cout<<"<---- Trigger2LVL1::buildraw: length/fmt error, len="
+                                                   <<jleng<<" addr="<<jaddr<<" datyp="<<datyp<<endl;
       goto BadExit;
   }
 //
   if(sbpatt%10==1){//---> "Event-by-event" trig-info(patterns,..)
     TGL1JobStat::daqs1(5);//"TrigPatternsBlock" entries
-    word=*(p+1);//JMembPatt(FTC,FTCP0,...FTZ,...EXT-GATE1
+    word=*(p+1+pattbias);//JMembPatt(FTC,FTCP0,...FTZ,...EXT-GATE1
     JMembPatt=integer(word);
-    word=*(p+2);//Lev1PhysMembPatt
+    word=*(p+2+pattbias);//Lev1PhysMembPatt
     PhysBPatt=integer(word&0x00FF);
     trigby=((word&0x1F00)>>8);//triggered by whom
-    word=*(p+3);//AntiPatt
+    word=*(p+3+pattbias);//AntiPatt
     AntiPatt=integer(word&0x00FF);
-    word=*(p+4);//Tof CP,CT,BZ layers pattern
+    word=*(p+4+pattbias);//Tof CP,CT,BZ layers pattern
     if((word&0x000F)==0x000F)TofFlag1=0;//all4
     else if((word&0x000F)==0x000E)TofFlag1=1;//2,3,4(miss1)
     else if((word&0x000F)==0x000D)TofFlag1=2;//1,3,4(miss2)
@@ -1196,7 +1211,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 #endif
     }
 //
-    word=word>>8;//to select BZ
+    word=(word>>8);//to select BZ
     if((word&0x000F)==0x000F)TofFlag2=0;
     else if((word&0x000F)==0x000E)TofFlag2=1;
     else if((word&0x000F)==0x000D)TofFlag2=2;
@@ -1209,34 +1224,43 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((word&0x000F)==0x0003)TofFlag2=9;//1,2(miss3,4)
     else TofFlag2=-1;
 // 
-    word=*(p+5);//1st 16bits of time
-    time[0]|=word;
-    lword=uinteger(*(p+6));//2nd 16bits of time
+    time[0]=0;
+    time[1]=0;
+    word=*(p+5+pattbias);//1st 16bits of time
+    time[0]|=uinteger(word);
+    lword=uinteger(*(p+6+pattbias));//2nd 16bits of time
     time[0]|=(lword<<16);
-    word=*(p+7);//last 8bits of time +1st 8bits of ntrst
+    word=*(p+7+pattbias);//last 8bits of time +1st 8bits of ntrst
     time[1]=uinteger((word&0x00FF));
     ntrst|=uinteger((word&0xFF00)>>8);
-    lword=uinteger(*(p+8));//last 16bits of ntrst
+    lword=uinteger(*(p+8+pattbias));//last 16bits of ntrst
     ntrst|=(lword<<8);
     trtime[1]=ntrst;
     trtime[2]=time[0];
     trtime[3]=time[1];
+    evtcurr=number(time[0])*0.64+number(time[1]*pow(2.,32))*0.64;//mksec
+    if(evtprev>0){
+      delevt=evtcurr-evtprev;
+      evtprev=evtcurr;
+      HF1(1094,geant(delevt),1.);
+    }
+    else evtprev=evtcurr;
 //
-    word=*(p+9);//busy-patt,err
+    word=*(p+9+pattbias);//busy-patt,err
     busyerr=((word&1)>0);
     if(!busyerr){
       busypat[0]|=uinteger((word&0xFF00)>>8);//1st 8bits of patt
-      lword=uinteger(*(p+10));//next 16bits of patt
+      lword=uinteger(*(p+10+pattbias));//next 16bits of patt
       busypat[0]|=(lword<<8);
-      lword=uinteger(*(p+11));//last 16bits of patt
+      lword=uinteger(*(p+11+pattbias));//last 16bits of patt
       busypat[0]|=(lword<<24);
       busypat[1]|=(lword>>8);
     }
 //---> attention: for the moment i suppose that 0x0C and 0x0E words exist but empty(skip them) !!! tempor
     timcal=0;
-    word=*(p+12);//1st 16bits of time-calib word
+    word=*(p+12+pattbias);//1st 16bits of time-calib word
     timcal|=uinteger(word);
-    lword=uinteger(*(p+14));//last 16bits of time-calib word
+    lword=uinteger(*(p+14+pattbias));//last 16bits of time-calib word
     timcal|=(lword<<16);
     trtime[0]=timcal;
 //---> print info:
@@ -1302,7 +1326,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else tgate=1;
     ltimec[0]=ltim;
     ltimeg[0]=tgate;
-    LiveTime1=ltim*(2.e-8)/tgate;//livetime fraction(imply 20ns pulses period)
+    LiveTime1=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
     if(LiveTime1>1){
     if(TGL1FFKEY.printfl>0)cout<<"<---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<tgate<<" "<<ltim<<" LTim1="<<LiveTime1<<endl;
 //      LiveTime1=1; 
@@ -1320,7 +1344,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else tgate=1;
     ltimec[1]=ltim;
     ltimeg[1]=tgate;
-    LiveTime2=ltim*(2.e-8)/tgate;//livetime fraction(imply 20ns pulses period)
+    LiveTime2=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
     if(LiveTime2>1){
     if(TGL1FFKEY.printfl>0)cout<<"<---- Trigger2LVL1::buildraw:W - LiveTime2>1!, tg/lt="<<tgate<<" "<<ltim<<" LTim2="<<LiveTime2<<endl;
 //      LiveTime2=1; 

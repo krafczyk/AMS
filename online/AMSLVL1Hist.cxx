@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.16 2008/01/14 10:57:50 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.17 2008/01/29 17:23:05 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -156,6 +156,18 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
   _filled.push_back(new TProfile("trigh31","ECFT-MaxRate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
+  
+  
+  AddSet("EventTimeDiff in LVL1");
+  
+  _filled.push_back(new TH1F("trigh32","ConsecEvents TrigTimeDiff",100,0,500.));
+  _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Mksec)");
+  _filled[_filled.size()-1]->SetYTitle("Number of events");
+  _filled[_filled.size()-1]->SetFillColor(3);
+  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",100,0,50.));
+  _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Msec)");
+  _filled[_filled.size()-1]->SetYTitle("Number of events");
+  _filled[_filled.size()-1]->SetFillColor(3);
 }
 
 
@@ -353,6 +365,19 @@ case 7:
     _filled[i+29]->Draw("P");//Rates 
     gPadSave->cd();
   }
+  break;
+case 8:
+  gPad->Divide(1,2);
+  for(i=0;i<2;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    gStyle->SetOptStat(100010);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+32]->Draw();//ConcecEvent TrigTimeDiff 
+    gPadSave->cd();
+  }
 //
   }
 //
@@ -375,6 +400,11 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
   static int first(1),etime0(0),evnloc;
   float time[3];
   float rates[6];
+  UInt_t itrtime[4];
+  Double_t trigt;
+  Float_t trigtdif;
+  static Double_t trigtprev(-1);
+  
   UShort_t ecpatt[6][3]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 //
 //  cout<<"Start evnum:"<<evnloc<<endl;
@@ -570,6 +600,16 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       Lvl1Pars::setdat3(ntuple->GetTime());
     }
     ((TProfile*)_filled[28])->Fill(time[2]-timez[2],ltime,1.);
+//trig-time histogr: 
+    for(int i=0;i<4;i++)itrtime[i]=ntuple->pLevel1(0)->TrigTime[i];
+    trigt=Double_t(itrtime[2])*0.64+Double_t(itrtime[3]*pow(2.,32))*0.64;//mksec
+    if(trigtprev>0){
+      trigtdif=Float_t(trigt-trigtprev);
+      trigtprev=trigt;
+      _filled[32]->Fill(trigtdif,1.);//TrigTimeDiff of 2 consecutive events (mksec)
+      _filled[33]->Fill(trigtdif/1000.,1.);//...............................(msec)
+    }
+    else trigtprev=trigt;
 //
   }
   evnloc+=1; 
