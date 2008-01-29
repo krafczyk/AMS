@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.22 2008/01/07 16:22:15 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.23 2008/01/29 09:08:59 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4334,6 +4334,7 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
    int i,ist,nev,ch,evs2rem,ibl,ibr;
    geant lohil[2]={0,9999};//means no limits on val, if partial ped is bad
    geant ped,sig,sig2,gainf,spikethr,gnf[2];
+   geant pedmin,pedmax,sigmin,sigmax;
    bool accept(true);
    geant por2rem;
 //
@@ -4344,6 +4345,8 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
    TOF2Brcal::scbrcal[il][ib].geta2dr(gnf);
    if(pm==0)gainf=1.;//an
    else gainf=gnf[is]*TOF2DBc::npmtps(il,ib);//dyn (aver. per 1pm)
+   sigmin=TFCAFFKEY.siglim[0];
+   sigmax=TFCAFFKEY.siglim[1];
 //
    ch=il*TOF2GC::SCMXBR*2+ib*2+is;//seq. channels numbering
    nev=nevt[ch][pm];
@@ -4359,7 +4362,7 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
      ped=adc[ch][pm]/number(nev-evs2rem);//truncated average
      sig2=adc2[ch][pm]/number(nev-evs2rem);
      sig2=sig2-ped*ped;// truncated rms**2
-     if(sig2>0 && sig2<=(2.25*TFPCSIMX*TFPCSIMX)){//2.25->1.5*SigMax
+     if(sig2>0 && sig2<=(2.25*sigmax*sigmax)){//2.25->1.5*SigMax
        sigs[ch][pm]=sqrt(sig2);
        peds[ch][pm]=ped;//is used now as flag that SS-PedS ok
      }
@@ -4427,6 +4430,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
 // flg=0/1/2/3=>HistosOnly/write2DB+file/write2file
    int i,il,ib,is,pm,ch,statmin(9999);
    geant pdiff,por2rem,p2r;
+   geant pedmin,pedmax,sigmin,sigmax;
    time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
    uinteger runn=BRun();//1st event run# 
    time_t end,insert;
@@ -4438,6 +4442,10 @@ void TOFPedCalib::outp(int flg){// very preliminary
    integer evs2rem;
    if(TFREFFKEY.relogic[0]==5)por2rem=TFCAFFKEY.pedcpr[0];//ClassPed(random)
    else if(TFREFFKEY.relogic[0]==6)por2rem=TFCAFFKEY.pedcpr[1];//DownScaled(in trigger)
+   pedmin=TFCAFFKEY.pedlim[0];
+   pedmax=TFCAFFKEY.pedlim[1];
+   sigmin=TFCAFFKEY.siglim[0];
+   sigmax=TFCAFFKEY.siglim[1];
 //
    cout<<endl;
    cout<<"=====> TOFPedCalib-Report:"<<endl<<endl;
@@ -4461,9 +4469,8 @@ void TOFPedCalib::outp(int flg){// very preliminary
 	     adc2[ch][pm]/=number(nevt[ch][pm]-evs2rem);
 	     adc2[ch][pm]=adc2[ch][pm]-adc[ch][pm]*adc[ch][pm];//truncated rms**2
 	     cout<<" ped/rms2="<<adc[ch][pm]<<" "<<adc2[ch][pm]<<endl;
-	     if(adc2[ch][pm]>0
-	                     && adc2[ch][pm]<=(TFPCSIMX*TFPCSIMX)
-		                                    && adc[ch][pm]<500){//chan.OK
+	     if(adc2[ch][pm]>(sigmin*sigmin) && adc2[ch][pm]<=(sigmax*sigmax)
+	                         && adc[ch][pm]>pedmin && adc[ch][pm]<=pedmax){//chan.OK
 	       peds[ch][pm]=geant(adc[ch][pm]);
 	       sigs[ch][pm]=geant(sqrt(adc2[ch][pm]));
 	       stas[ch][pm]=0;//ok
@@ -4623,6 +4630,7 @@ void TOFPedCalib::outptb(int flg){// very preliminary
    int i,il,ib,is,pm,ch;
    int totch(0),goodtbch(0),goodch(0);
    geant pedo,sigo;
+   geant pedmin,pedmax,sigmin,sigmax;
    int stao;
    geant pdiff;
    time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
@@ -4662,6 +4670,11 @@ void TOFPedCalib::outptb(int flg){// very preliminary
    }// layer
    cout<<"      <-- Ntuple filled..."<<endl<<endl;
 //----
+   pedmin=TFCAFFKEY.pedlim[0];
+   pedmax=TFCAFFKEY.pedlim[1];
+   sigmin=TFCAFFKEY.siglim[0];
+   sigmax=TFCAFFKEY.siglim[1];
+//
    for(il=0;il<TOF2DBc::getnplns();il++){
      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
        for(is=0;is<2;is++){
@@ -4683,8 +4696,8 @@ void TOFPedCalib::outptb(int flg){// very preliminary
 //
 	   if(peds[ch][pm]>0 && stas[ch][pm]==0){// channel OK in table ? tempor: stas-definition from Kunin ?
 	     goodtbch+=1;
-	     if(sigs[ch][pm]>0 && sigs[ch][pm]<=TFPCSIMX
-		          && peds[ch][pm]<200 && fabs(pdiff)<11){//MyCriteria:chan.OK
+	     if(sigs[ch][pm]>sigmin && sigs[ch][pm]<=sigmax &&
+		peds[ch][pm]>pedmin && peds[ch][pm]<=pedmax && fabs(pdiff)<11){//MyCriteria:chan.OK
 	       goodch+=1;
 	       if(pm==0){//anodes
 	         TOFBPeds::scbrped[il][ib].apeda(is)=peds[ch][pm];

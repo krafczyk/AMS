@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.41 2008/01/14 10:57:41 choumilo Exp $
+//  $Id: trigger102.C,v 1.42 2008/01/29 09:08:59 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -27,7 +27,7 @@ using namespace ecalconst;
  Trigger2LVL1::Lvl1TrigConfig Trigger2LVL1::l1trigconf;
  Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
  integer TGL1JobStat::countev[20];
- integer TGL1JobStat::daqc1[20];
+ integer TGL1JobStat::daqc1[35];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
 //
 void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
@@ -860,9 +860,14 @@ void TGL1JobStat::printstat(){
   printf(" LVL1-segment entries                : % 8d\n",daqc1[0]);
   if(daqc1[0]>0){
     printf(" LVL1-segments non empty             : % 8d\n",daqc1[1]);
-    printf(" ............. no_assembl_errors     : % 8d\n",daqc1[2]);
-    printf(" ............. from A-side           : % 8d\n",daqc1[3]);
-    printf(" ............. from B-side           : % 8d\n",daqc1[4]);
+    printf(" ............. from A-side           : % 8d\n",daqc1[2]);
+    printf(" ............. from B-side           : % 8d\n",daqc1[3]);
+    printf(" ... with format(unkn/raw/comp/mix   : %8d %8d %8d %8d\n",daqc1[20],daqc1[21],daqc1[22],daqc1[23]);
+    printf(" ... NonDATA segments(fatal)         : % 8d\n",daqc1[24]);
+    printf(" ReplyStatus:  CRCerr  ASSMerr  AMSWerr  TimeOut FEPOWerr   SEQerr  CDPnode:\n");
+   printf("             %8d %8d %8d %8d %8d %8d %8d\n",
+                                 daqc1[25],daqc1[26],daqc1[27],daqc1[28],daqc1[29],daqc1[30],daqc1[31]); 
+    printf(" Segments with reply-status bits OK  : % 8d\n",daqc1[4]);
     printf(" ............. bad length            : % 8d\n",daqc1[10]);
     printf(" TrigPatternBlock entries            : % 8d\n",daqc1[5]);
     printf(" LiveTimeBlock entries               : % 8d\n",daqc1[7]);
@@ -1106,20 +1111,48 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
   jaddr=jblid&(0x001F);//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
+  datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
+//
   if(TGL1FFKEY.printfl>1){
     cout<<endl;
-    cout<<"====> In Trigger2LVL1::buildraw: JLV1_length(in call)="<<*p<<"("<<jleng<<"), slave_id:"<<jaddr<<endl;
+    cout<<"====> In Trigger2LVL1::buildraw: JLV1_length(in call)="<<*p<<"("<<jleng<<"), slave_id="<<jaddr
+                                                                            <<" data-type="<<datyp<<endl;
     EventBitDump(jleng,p,"Dump Event-by-Event:");//debug
     
   }
   if(jleng>1)TGL1JobStat::daqs1(1);//<=== count non-empty fragments
   else goto BadExit;
-  noerr=(dataf && !crcer && !asser && !amswer 
-                                       && !timoer && !fpower && !seqer && cdpnod);
-  if(noerr)TGL1JobStat::daqs1(2);//<=== count no_ass_errors JLV1-fragments for given DATA-type     
-  else goto BadExit;
+//
   node2side(jaddr,csid);//card_side(1/2<->a/b)
-  if(csid>0 && csid<3)TGL1JobStat::daqs1(3+csid-1);//sides sharing of "no_ass_err" entries
+  if(csid>0 && csid<3)TGL1JobStat::daqs1(2+csid-1);//sides sharing
+  else goto BadExit;
+//
+  TGL1JobStat::daqs1(20+datyp);//<=== count lvl1's format-types
+  if(datyp==0){
+//    goto BadExit;//unknown format
+  }
+//
+  if(!dataf){
+    TGL1JobStat::daqs1(24);//<=== count lvl1's notData segments
+    goto BadExit;//tempor
+  }
+//
+  if(crcer)TGL1JobStat::daqs1(25);
+  if(asser)TGL1JobStat::daqs1(26);
+  if(amswer)TGL1JobStat::daqs1(27);
+  if(timoer)TGL1JobStat::daqs1(28);
+  if(fpower)TGL1JobStat::daqs1(29);
+  if(seqer)TGL1JobStat::daqs1(30);
+  if(cdpnod)TGL1JobStat::daqs1(31);
+//
+  noerr=(!crcer 
+//               && !asser
+	                && !amswer 
+			          && !timoer 
+				            && !fpower 
+					              && !seqer
+						               && cdpnod);
+  if(noerr)TGL1JobStat::daqs1(4);//<=== count no_ass_errors JLV1-fragments for given DATA-type     
   else goto BadExit;
 //
   if(jleng==52){

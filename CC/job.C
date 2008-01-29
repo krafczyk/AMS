@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.523 2008/01/23 15:34:33 choutko Exp $
+// $Id: job.C,v 1.524 2008/01/29 09:08:59 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -740,7 +740,7 @@ FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;   // (1) print_hist flag (0/1->no/yes)
   ECREFFKEY.reprtf[1]=0;   // (2) print_profile flag (0/1->no/yes)
-  ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints if =1
+  ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints if =1 (more details if =2)
 //
   ECREFFKEY.relogic[0]=1;  // (4) 1/0->write/not EcalHits into Ntuple
   ECREFFKEY.relogic[1]=0;  // (5) 0/1/2/3/4/5/6->norm/RLGA/RLGA+FIAT/ANOR/PedClassic/PedDowdScaled/OnBoardPedTable_calib
@@ -1152,9 +1152,9 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->create(+write)/not TOF2RawSideObject-info into ntuple
 //
-  TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
-  TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
-  TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig(50% of He-mip)  
+  TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(LT=30mV) for fine-time TDC 
+  TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(HT=100mV) for FT-trigger TDC(z>=1)  
+  TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(SHT=940mV) for "z>=2"-trig(50% of He-mip)  
   TFREFFKEY.daqthr[3]=4.;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=4.;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)
 //
@@ -1228,17 +1228,22 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ..............................
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
-  TFCAFFKEY.dynflg=0; // (27)  not used now
+  TFCAFFKEY.tofbetac=0.5;// (27) if nonzero->low beta cut (own TOF measurements !!!)
   TFCAFFKEY.cfvers=2; // (28) not used (spare)
+//
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
+//TOFPedsCalib:
   TFCAFFKEY.mcainc=0;// (30) spare
-  TFCAFFKEY.tofbetac=0.5;// (31) if nonzero->low beta cut (own TOF measurements !!!)
-  TFCAFFKEY.pedcpr[0]=0.01; // (32) PedCalibJobClass: portion of highest adcs to remove for ped-calc
-  TFCAFFKEY.pedcpr[1]=0.1;  // (33) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
-  TFCAFFKEY.pedoutf=2;      // (34)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+  TFCAFFKEY.pedcpr[0]=0.01; // (31) PedCalibJobClass: portion of highest adcs to remove for ped-calc
+  TFCAFFKEY.pedcpr[1]=0.1;  // (32) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
+  TFCAFFKEY.pedoutf=2;      // (33)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+  TFCAFFKEY.pedlim[0]=10.;  // (34) Ped low-lim in PedCalibJobs
+  TFCAFFKEY.pedlim[1]=400.; // (35)      hi-lim ...............
+  TFCAFFKEY.siglim[0]=0.4;  // (36) PedSig low-lim ............
+  TFCAFFKEY.siglim[1]=10.; //  (37)         hi-lim ............
 //TOFTdcCalib:
-  TFCAFFKEY.minstat=100;//(35) min.acceptable statistics per channel
-  TFCAFFKEY.tdccum=10;//(36)tdc-calib usege mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
+  TFCAFFKEY.minstat=100;//(38) min.acceptable statistics per channel
+  TFCAFFKEY.tdccum=10;//(39)tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1276,6 +1281,10 @@ void AMSJob::_reanti2data(){
   ATCAFFKEY.pedcpr[0]=0.005; // (3) PedCalibJobRandom(classic): portion of highest adcs to remove
   ATCAFFKEY.pedcpr[1]=0.035;// (4) PedCalibJobDownScaled(in trig): portion of highest adcs to remove
   ATCAFFKEY.pedoutf=2;      // (5)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+  ATCAFFKEY.pedlim[0]=10.;  // (6) Ped low-lim in PedCalibJobs
+  ATCAFFKEY.pedlim[1]=400.; // (7)      hi-lim ...............
+  ATCAFFKEY.siglim[0]=0.4;  // (8) PedSig low-lim ............
+  ATCAFFKEY.siglim[1]=10.; //  (9)         hi-lim ............
 //
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }

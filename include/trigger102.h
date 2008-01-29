@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.18 2008/01/14 10:57:50 choumilo Exp $
+//  $Id: trigger102.h,v 1.19 2008/01/29 09:09:11 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -211,12 +211,12 @@ private:
 //          i=7 =>
 //         i=15 => HW-created LVL1 found
 // 
-  static integer daqc1[20];//daq-decoding counters
+  static integer daqc1[35];//daq-decoding counters
 //            i=0 -> LVL1-segment entries
 //             =1 -> ............ non empty
-//             =2 -> ............ no assembl_errors
-//             =3 -> ............ with a-side 
-//             =4 -> ............ with b-side
+//             =2 -> ............ with a-side 
+//             =3 -> ............ with b-side
+//             =4 -> ............ no assembl_errors
 //             =5 -> TrigPattBlock entries 
 //             =6 -> ............. length OK 
 //             =7 -> LiveTimeBlock entries 
@@ -228,11 +228,14 @@ private:
 //             =13-> total LVL1-segment errors
 //             =14-> total good LiveTime/Rates LVL1-obj
 //             =15-> total bad LiveTime/Rates cases
+//             =20/23-> format-types entries
+//             =24-> nonDATA segments
+//             =25/31-> reply status bits
 //
 public:
   inline static void resetstat(){
     for(int i=0;i<20;i++)countev[i]=0;
-    for(int i=0;i<20;i++)daqc1[i]=0;
+    for(int i=0;i<35;i++)daqc1[i]=0;
   }
   inline static void addev(int i){
     assert(i>=0 && i< 20);
@@ -240,7 +243,7 @@ public:
   }
   static void daqs1(integer info){
 #ifdef __AMSDEBUG__
-      assert(info>=0 && info<20 );
+      assert(info>=0 && info<35 );
 #endif
     daqc1[info]+=1;
   }

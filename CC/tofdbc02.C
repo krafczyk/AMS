@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.43 2008/01/08 17:10:16 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.44 2008/01/29 09:08:59 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1584,10 +1584,15 @@ void TOF2JobStat::printstat(){
   printf("\n");
   printf("    ======================= JOB DAQ-decoding statistics ====================\n");
   printf("\n");
-  printf("Total calls to SDRsegment-decoding : %7d\n",daqsf[0]);
-  printf("Rejected as empty or errored       : %7d\n",daqsf[1]);
+  printf("Total calls to SDRsegment-decoding : %7d\n\n",daqsf[0]);
+  printf("ReplyStatus:   CRCerr  ASSMerr  AMSWerr  TimeOut FEPOWerr   SEQerr  CDPnode:\n");
+  printf("       Data: %8d %8d %8d %8d %8d %8d %8d\n",
+                                daqsf[15],daqsf[16],daqsf[17],daqsf[18],daqsf[19],daqsf[20],daqsf[21]); 
+  printf("    NotData: %8d %8d %8d %8d %8d %8d %8d\n\n",
+                                daqsf[22],daqsf[23],daqsf[24],daqsf[25],daqsf[26],daqsf[27],daqsf[28]); 
   printf("NonEmpty segments (raw/com/mix/ped): %7d %7d %7d %7d\n",daqsf[2],daqsf[3],daqsf[4],daqsf[8]);
-  printf(" + No SegmentBuild ErrFlags found  : %7d %7d %7d %7d\n",daqsf[5],daqsf[6],daqsf[7],daqsf[9]);
+  printf(" + node reply-status bits OK       : %7d %7d %7d %7d\n\n",daqsf[5],daqsf[6],daqsf[7],daqsf[9]);
+  printf("Finally rejected as bad(notData,Empty,FatalErr)  : %7d\n",daqsf[1]);
   printf("\n");
 //
   if(daqsf[2]>0 || daqsf[4]>0){

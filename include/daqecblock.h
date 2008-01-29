@@ -30,7 +30,8 @@ public:
   static integer getmaxblocks();
   static integer calcblocklength(integer ibl);
   static void buildblock(integer ibl, integer len, int16u *p);
-  static void frbdump(int16u *p, int16u len, char name);//fragment bits-dump 
+//  static void frbdump(int16u *p, int16u len, char name);//fragment bits-dump 
+  static void EventBitDump(integer leng, int16u *p, char * message);
 };
 
 #endif

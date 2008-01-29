@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.11 2007/12/06 13:31:22 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.12 2008/01/29 09:09:11 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -180,7 +180,6 @@ public:
 const integer TFPCSTMX=100;// PedCalib max.values's stack size (max)
 const integer TFPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
 const integer TFPCEVMX=1000;//max.statistics on events/channel
-const geant TFPCSIMX=6.;//max Ped-rms to accept channel as good
 const geant TFPCSPIK=50.;//Anode ADC-value(adc-ch) to be considered as spike(~1mip)
 //
 //  class to manipulate with PedSig-calibration  data:

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.222 2008/01/23 15:34:35 choutko Exp $
+//  $Id: commons.h,v 1.223 2008/01/29 09:09:08 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -449,6 +449,8 @@ class ATCAFFKEY_DEF {
   integer cafdir; // use official/private directory for calib.file
   geant pedcpr[2]; //PedCalibJob: Class/DownScaled: portion of highest adcs to remove for ped-calc
   integer pedoutf;//              PedOutputFlag
+  geant pedlim[2];// Ped-limits for PedCalibJobs
+  geant siglim[2];// PedSig-limits .............
 };
 #define ATCAFFKEY COMMON_BLOCK(ATCAFFKEY,atcaffkey)
 COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);
@@ -499,14 +501,15 @@ geant adc2q;//adc->charge conv.factor(pC/ADCch)(hope = for all ADC chips)
 geant plhec[2];//low/high cuts on tracker mom. for earth calibration
 geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
-integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
-integer cfvers;// spare
-integer cafdir;// 0/1->use officical/private directory for calib.files
-integer mcainc;// to swich on/off A-integr. calibr. in MC
 geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
 //                to use when previous calibration suppose to be good enought
+integer cfvers;// spare
+integer cafdir;// 0/1->use officical/private directory for calib.files
+integer mcainc;// spare
 geant pedcpr[2];//PedCalJob: portion of highest adcs to remove for ped-calc(Class/DScal)
 integer pedoutf;//           PedOutputFlag
+geant pedlim[2];// Ped-limits for PedCalibJobs
+geant siglim[2];// PedSig-limits .............
 // TOFTdcCalib (LINC)
 integer minstat;//min.stat/ch
 integer tdccum;//tdc-calib usage mode

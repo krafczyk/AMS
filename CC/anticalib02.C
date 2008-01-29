@@ -807,9 +807,12 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
    geant ped,sig,sig2,spikethr;
    bool accept(true);
    geant por2rem;
+   geant pedmn,pedmx,sigmn,sigmx;
 //
    if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
    else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
+   sigmn=ATCAFFKEY.siglim[0];
+   sigmx=ATCAFFKEY.siglim[1];
 //
 //cout<<"--->In ANTPedCalib::fill: sect/sid="<<sr<<" "<<sd<<" val="<<val<<endl;
    nev=nevt[sr][sd];
@@ -825,7 +828,7 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
      ped=adc[sr][sd]/number(nev-evs2rem);//truncated average
      sig2=adc2[sr][sd]/number(nev-evs2rem);
      sig2=sig2-ped*ped;// truncated rms**2
-     if(sig2>0 && sig2<=(2.25*ATPCSIMX*ATPCSIMX)){//2.25->1.5*SigMax
+     if(sig2>0 && sig2<=(2.25*sigmx*sigmx)){//2.25->1.5*SigMax
        sigs[sr][sd]=sqrt(sig2);
        peds[sr][sd]=ped;//is used now as flag that SS-PedS ok
      }
@@ -890,6 +893,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 // flg=0/1/2=>HistOnly/write2DB+file/write2file
    int i,sr,sd,statmin(9999);
    geant pdiff,por2rem,p2r;
+   geant pedmn,pedmx,sigmn,sigmx;
    time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
    uinteger runn=BRun();//1st event run# 
    time_t end,insert;
@@ -901,6 +905,10 @@ void ANTPedCalib::outp(int flg){// very preliminary
    integer evs2rem;
    if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
    else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
+   pedmn=ATCAFFKEY.pedlim[0];
+   pedmx=ATCAFFKEY.pedlim[1];
+   sigmn=ATCAFFKEY.siglim[0];
+   sigmx=ATCAFFKEY.siglim[1];
 //
    cout<<endl;
    cout<<"=====> ANTPedCalib-Report:"<<endl<<endl;
@@ -917,9 +925,8 @@ void ANTPedCalib::outp(int flg){// very preliminary
 	 adc[sr][sd]/=number(nevt[sr][sd]-evs2rem);//truncated average
 	 adc2[sr][sd]/=number(nevt[sr][sd]-evs2rem);
 	 adc2[sr][sd]=adc2[sr][sd]-adc[sr][sd]*adc[sr][sd];//truncated rms**2
-	 if(adc2[sr][sd]>0
-	                   && adc2[sr][sd]<=(ATPCSIMX*ATPCSIMX)
-		                                       && adc[sr][sd]<300){//chan.OK
+	 if(adc2[sr][sd]>(sigmn*sigmn) && adc2[sr][sd]<=(sigmx*sigmx)
+		               && adc[sr][sd]>pedmn && adc[sr][sd]<=pedmx){//chan.OK
 	   peds[sr][sd]=geant(adc[sr][sd]);
 	   sigs[sr][sd]=geant(sqrt(adc2[sr][sd]));
 	   stas[sr][sd]=0;//ok
@@ -1028,6 +1035,7 @@ void ANTPedCalib::outptb(int flg){// very preliminary
    int i,sr,sd;
    int totch(0),goodtbch(0),goodch(0);
    geant pedo,sigo,pdiff;
+   geant pedmn,pedmx,sigmn,sigmx;
    int stao;
    time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
    uinteger runn=BRun();//1st event run# 
@@ -1051,6 +1059,11 @@ void ANTPedCalib::outptb(int flg){// very preliminary
      HFNT(IOPA.ntuple);
    }
 //----
+   pedmn=ATCAFFKEY.pedlim[0];
+   pedmx=ATCAFFKEY.pedlim[1];
+   sigmn=ATCAFFKEY.siglim[0];
+   sigmx=ATCAFFKEY.siglim[1];
+//
    for(sr=0;sr<ANTI2C::MAXANTI;sr++){
      for(sd=0;sd<2;sd++){
        totch+=1;
@@ -1061,8 +1074,8 @@ void ANTPedCalib::outptb(int flg){// very preliminary
 //
        if(peds[sr][sd]>0 && stas[sr][sd]==0){//channel OK in table ? tempor: stas-definition from Kunin ?
 	 goodtbch+=1;
-	 if(sigs[sr][sd]>0 && sigs[sr][sd]<=ATPCSIMX
-		                   && peds[sr][sd]<200 && fabs(pdiff)<10){//MyCriteria:chan.OK 
+	 if(sigs[sr][sd]>sigmn && sigs[sr][sd]<=sigmx &&
+            peds[sr][sd]>pedmn && peds[sr][sd]<=pedmx && fabs(pdiff)<10){//MyCriteria:chan.OK 
 	   goodch+=1;
 //update ped-object in memory:
 	   ANTIPeds::anscped[sr].apeda(sd)=peds[sr][sd];

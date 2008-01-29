@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.62 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.63 2008/01/29 09:08:58 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -477,17 +477,23 @@ void EcalJobStat::printstat(){
   printf("\n");
   if(daqc1[0]>0){
    printf("     Decoding report :\n");
-   printf(" JINF entries                      : % 7d\n",daqc1[0]);
-   printf(" non empty                         : % 7d\n",daqc1[1]);
-   printf(" no assembly errors                : % 7d\n",daqc1[2]);
+   printf("JINFs entries                      : % 7d\n",daqc1[0]);
+   printf(" ...........valid, non empty       : % 7d\n",daqc1[1]);
+   printf("JINF_1/2 notData-type(ignored)     : % 8d % 8d\n",daqc1[2],daqc1[3]);
+   printf("ReplyStatus:   CRCerr  ASSMerr  AMSWerr  TimeOut FEPOWerr   SEQerr  CDPnode:\n");
+   printf("     JINF_1: %8d %8d %8d %8d %8d %8d %8d\n",
+                                daqc1[10],daqc1[11],daqc1[12],daqc1[13],daqc1[14],daqc1[15],daqc1[16]); 
+   printf("     JINF_2: %8d %8d %8d %8d %8d %8d %8d\n\n",
+                                daqc1[17],daqc1[18],daqc1[19],daqc1[20],daqc1[21],daqc1[22],daqc1[23]); 
+   printf("JINF_1/2 reply-status bits OK      : % 8d %8d\n",daqc1[4],daqc1[5]);
+   printf("Finally rejected JINFs(notData,Empty,FatalErr)  : %7d\n",daqc1[ECJSTA-1]);
    printf(" Crates appearence frequency         crate-1:   crate-2:\n");
-   printf(" with side-A readout               : % 7d    % 7d\n",daqc1[3],daqc1[5]);
-   printf(" with side-B readout               : % 7d    % 7d\n",daqc1[4],daqc1[6]);
    printf(" RawFMT EDR/ETRG blocks            : % 7d    % 7d\n",daqc2[0][0],daqc2[1][0]);
    printf(" ComprFMT EDR/ETRG blocks          : % 7d    % 7d\n",daqc2[0][1],daqc2[1][1]);
-   printf(" RawFMT EDR/ETRG no_assembly_err   : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
+   printf(" RawFMT EDRs reply-status bits OK  : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
+   printf(" CompFMT EDRs reply-status bits OK : % 7d    % 7d\n",daqc2[0][3],daqc2[1][3]);
    printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
-   printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
+   printf(" Illegal EDR/ETRG ID(compr)        : % 7d    % 7d\n",daqc2[0][5],daqc2[1][5]);
    cout<<"---> Crate-1: entries per slot:"<<endl;
    for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][0]<<" ";
    cout<<endl;

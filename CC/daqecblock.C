@@ -93,7 +93,6 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 //
   EcalJobStat::daqs1(0);//count entries
   p=p-1;//to follow VC-convention
-//  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
 //
@@ -106,18 +105,35 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
-  jaddr=jblid&(0x001F);//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
-  cout<<"====> In DAQECBlock::buildraw: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
-  if(jleng>1)EcalJobStat::daqs1(1);//<=== count non-empty fragments
-  else goto BadExit;
-  noerr=(dataf && !crcer && !asser && !amswer 
-                                       && !timoer && !fpower && !seqer && !cdpnod);
-  if(noerr)EcalJobStat::daqs1(2);//<=== count no_ass_errors JINF-fragments for given DATA-type     
-  else goto BadExit;
+  jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
+//
+  if(ECREFFKEY.reprtf[2]>1){//debug
+    cout<<"====> In DAQECBlock::buildraw: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
+    if(ECREFFKEY.reprtf[2]>1)EventBitDump(leng,p,"Event-by-event:");
+  }
+//
   node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
   csid=1;//here is dummy(no redundancy for JINFs), later it is defined from card_id(EDR(a,b),ETRG(a,b))
 //  cout<<"      crate="<<crat<<endl;
-  if(crat>0)EcalJobStat::daqs1(3+2*(crat-1)+csid-1);//crates sharing of "no_ass_err" entries
+  if(jleng>1 && crat>0)EcalJobStat::daqs1(1);//<=== count non-empty, valid JINF-fragments
+  else goto BadExit;
+//
+  if(dataf){
+    if(crcer)EcalJobStat::daqs1(10+7*(crat-1));
+    if(asser)EcalJobStat::daqs1(11+7*(crat-1));
+    if(amswer)EcalJobStat::daqs1(12+7*(crat-1));
+    if(timoer)EcalJobStat::daqs1(13+7*(crat-1));
+    if(fpower)EcalJobStat::daqs1(14+7*(crat-1));
+    if(seqer)EcalJobStat::daqs1(15+7*(crat-1));
+    if(cdpnod)EcalJobStat::daqs1(16+7*(crat-1));
+  }
+  else{
+    EcalJobStat::daqs1(2+crat-1);//<=== count JINF's notData segments
+  }
+//
+  noerr=(dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && !cdpnod);
+  if(noerr)EcalJobStat::daqs1(4+crat-1);//<=== count JINF-reply status OK     
   else goto BadExit;
 //-----------
   if(ECREFFKEY.relogic[1]==4)PedCal=true;//tempor(use later info about presence of ClassPedData from header ?)
@@ -127,17 +143,17 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   }
 //
   if(ECREFFKEY.relogic[1]==5)PedCal=true;// DownScaledEvents PedCalib job is requested
-     
+// 
 //-----------
   jbias=1;
   while(jbias<jleng){//<---- JINF-words loop
     eleng=*(p+jbias);//deeper level (EDR2/ETRG) fragment's length
     eblid=*(p+jbias+eleng);//deeper level (EDR2/ETRG) fragment's Status+slaveID(EDR/ETRG id) 
-    eaddr=eblid&(0x001F);//slaveID(="NodeAddr"=ERD/ETRGaddr here)(one of 7/side permitted)
-    datyp=(eblid&(0x00C0))>>6;//0,1,2(only raw or compr)
+    eaddr=(eblid&(0x001F));//slaveID(="NodeAddr"=ERD/ETRGaddr here)(one of 7/side permitted)
+    datyp=((eblid&(0x00C0))>>6);//0,1,2(only raw or compr)
     if(datyp==1)setrawf();
     if(datyp==2)setcomf();
-    formt=getformat();//0/1->raw/compr flag for current EDR
+    formt=getformat();//0/1->raw/compr flag for current EDR/ETRG
 //    cout<<"    XDR_length/addr="<<eleng<<" "<<eaddr<<"  datyp="<<datyp<<endl;
     if(eleng>1 && datyp>0)EcalJobStat::daqs2(crat-1,formt);//entries per crate/format
     else goto NextBlock;
@@ -153,7 +169,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
 //    if(noerr)cout<<" status-bits OK..."<<endl;
-    if(noerr)EcalJobStat::daqs2(crat-1,2+formt);//"no_ass_err" entries per crate/format
+    if(noerr)EcalJobStat::daqs2(crat-1,2+formt);//"EDR/ETRG-reply status OK" entries per crate/format
     else goto NextBlock;
 //
     slots=AMSECIds::crdid2sl(csid,eaddr);//get seq.slot#(0-5 =>EDRs; =6 =>ETRG;-1==>not_found) ans side
@@ -164,7 +180,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
       cout<<"ECBlock::Error:illegal CardID, crate/side/fmt/id="<<crat<<" "<<csid<<" "<<formt
                                                                 <<" "<<hex<<eaddr<<dec<<endl;
 #endif
-      EcalJobStat::daqs2(crat-1,4);//illegal CardId
+      EcalJobStat::daqs2(crat-1,4+formt);//illegal CardId
       goto NextBlock;    
     }
     slot=int16u(slots);
@@ -383,7 +399,7 @@ NextBlock:
 //General: it is implied that given pixel info(ah/al/d) is always contained within one slot(EDR)
       crsta=0;
       if(padc[0]>0 || padc[1]>0){//create EcalRawEvent obj
-        if(ECREFFKEY.reprtf[2]>0){//debug-prints
+        if(ECREFFKEY.reprtf[2]>1){//debug-prints
 	  cout<<"    ==> Create EcalRawEvent: short swid/hwid="<<sswid<<" "<<shwid<<endl;
 	  cout<<"    Aadc(hi/low)="<<padc[0]<<" "<<padc[1]<<endl;
 	  cout<<endl;
@@ -400,7 +416,7 @@ NextBlock:
     }//-->endof next/last LTTP check
   }//-->endof scan
 //
-  if(ECREFFKEY.reprtf[2]>0){//debug-prints
+  if(ECREFFKEY.reprtf[2]>1){//debug-prints
     cout<<"===> Fired Dynodes map after processing of crate="<<crat<<":"<<endl;
     cout<<"           (reading direction: pm=1--->pm=36)"<<endl<<endl;
     for(slay=0;slay<ECSLMX;slay++){
@@ -428,25 +444,42 @@ BadExit:
 //  
 }
 //------------------------------------
-void DAQECBlock::frbdump(int16u *p, int16u len, char name){//fragment bits-dump
-  int16u tstw,tstb;
-  int i,j;
-  cout<<"-----------------------------------------------------------"<<endl;
+void DAQECBlock::EventBitDump(integer leng, int16u *p, char * message){
+  int16u blid,len,naddr,datyp;
+  len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
+  blid=*(p+len);// fragment's last word: Status+slaveID
+  bool dataf=((blid&(0x8000))>0);//data-fragment
+  bool crcer=((blid&(0x4000))>0);//CRC-error
+  bool asser=((blid&(0x2000))>0);//assembly-error
+  bool amswer=((blid&(0x1000))>0);//amsw-error   
+  bool timoer=((blid&(0x0800))>0);//timeout-error   
+  bool fpower=((blid&(0x0400))>0);//FEpower-error   
+  bool seqer=((blid&(0x0400))>0);//sequencer-error
+  bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
+  bool noerr;
+  naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
+  datyp=(blid&(0x00C0))>>6;//0,1,2,3
+  noerr=(dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && cdpnod);
+  cout<<"----> DAQECBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
+  cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
+  cout<<" node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" block_length="<<len<<endl;
 //
-  cout<<"  EC_Block"<<name<<" hex/binary dump follows :"<<endl<<endl;
-  for(i=0;i<len;i++){
+  cout<<"  Block hex/binary dump follows :"<<endl<<endl;
+  int16u tstw,tstb;
+  for(int i=0;i<len+1;i++){
     tstw=*(p+i);
     cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
-    for(j=0;j<16;j++){
+    for(int j=0;j<16;j++){
       tstb=(1<<(15-j));
       if((tstw&tstb)!=0)cout<<"x"<<"|";
       else cout<<" "<<"|";
     }
     cout<<endl;
   }
-  cout<<dec<<endl;
   cout<<"-----------------------------------------------------------"<<endl;
-} 
+  cout<<dec<<endl<<endl;
+}//
 //------------------------------------
 integer DAQECBlock::getmaxblocks(){return 2;}//only one JINF in any crate is implied(no redundancy)
 integer DAQECBlock::calcblocklength(integer ibl){return 0;}

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.19 2008/01/16 14:40:06 choumilo Exp $
+//  $Id: daqs2block.C,v 1.20 2008/01/29 09:08:58 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -146,12 +146,31 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool seqer=((blid&(0x0400))>0);//sequencer-error
   bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   bool noerr;
-  naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
-  datyp=(blid&(0x00C0))>>6;//0,1,2,3
+  naddr=(blid&(0x001F));//slaveID(="NodeAddr"=SDR_link#)
+  datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3
+  if(dataf){
+    if(crcer)TOF2JobStat::daqsfr(15);
+    if(asser)TOF2JobStat::daqsfr(16);
+    if(amswer)TOF2JobStat::daqsfr(17);
+    if(timoer)TOF2JobStat::daqsfr(18);
+    if(fpower)TOF2JobStat::daqsfr(19);
+    if(seqer)TOF2JobStat::daqsfr(20);
+    if(cdpnod)TOF2JobStat::daqsfr(21);
+  }
+  else{
+    if(crcer)TOF2JobStat::daqsfr(22);
+    if(asser)TOF2JobStat::daqsfr(23);
+    if(amswer)TOF2JobStat::daqsfr(24);
+    if(timoer)TOF2JobStat::daqsfr(25);
+    if(fpower)TOF2JobStat::daqsfr(26);
+    if(seqer)TOF2JobStat::daqsfr(27);
+    if(cdpnod)TOF2JobStat::daqsfr(28);
+  }
 //
   if(TFREFFKEY.reprtf[4]>1){//debug
     cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
-    cout<<"      leng(in call)="<<leng<<endl;
+    cout<<"      leng(in call)="<<leng<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
+    dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
 //
   if(datyp>0 && len>1){
@@ -159,8 +178,14 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
     else TOF2JobStat::daqsfr(1+datyp);//<=== count non-empty fragments of given DATA-type
   }
   else goto BadExit;
-  noerr=(dataf && !crcer && !asser && !amswer 
-                                       && !timoer && !fpower && !seqer && cdpnod);
+  noerr=(dataf 
+              && !crcer 
+//	               && !asser 
+		                && !amswer 
+                                          && !timoer 
+					            && !fpower 
+						              && !seqer 
+							               && cdpnod);
   if(noerr){
     if(ONBpedblk)TOF2JobStat::daqsfr(9);//<=== count non-empty fragments of PedTble-type
     else TOF2JobStat::daqsfr(4+datyp);//<=== count no-errors fragments for given DATA-type
@@ -661,17 +686,19 @@ cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
       ntwrds=(*(pc+8+nqwrds)&(0x3FFF))+1;//t-group wordfs,......
 //cout<<" CompInMixFMT:lenraw/lencom="<<lenraw<<" "<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
       if(lencom!=(7+nqwrds+ntwrds)){
-        TOF2JobStat::daqscr(1,crat-1,4);//count length mismatch inside ComprFMT
+        TOF2JobStat::daqscr(1,crat-1,4);//count length mismatch inside ComprSection(inside mixFMT
 	goto BadExit;    
       }
     }
     else{//<=============== ComprFMT is stand-alone
-      pc=p+1;//points to evnum of stand-alone ComprFMT segment
-      evnum=*pc;
-      lencom=len-2;//tot.length of compressed subsegment(excl. evnum and (Stat+SlaveId)- word)
+//      pc=p+1;//points to evnum of stand-alone ComprFMT segment
+      pc=p;//points to 1st word of stand-alon ComprFMT segm (length)
+//      evnum=*pc;
+//      lencom=len-2;//tot.length of compressed subsegment(excl. evnum and (Stat+SlaveId)- word)
+      lencom=len-1;//tot.length of compressed subsegment(excl. (Stat+SlaveId)- word)
       nqwrds=*(pc+8)+1;//q-group words, "+1"->nwords-word itself
       ntwrds=(*(pc+8+nqwrds)&(0x3FFF))+1;//t-group wordfs,......
-//cout<<" CompAloneFMT:lencom="<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
+cout<<" CompAloneFMT:lencom="<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
       if(lencom!=(7+nqwrds+ntwrds)){
         TOF2JobStat::daqscr(1,crat-1,5);//count length mismatch inside ComprFMT
 	goto BadExit;    
@@ -680,7 +707,7 @@ cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
 //                                                                        
 //
 //<==================== TrPatt/Status section:
-//        cout<<"  ComprSegment::TrPatt/Status-decoding:"<<endl;
+        cout<<"  ComprSegment::TrPatt/Status-decoding:"<<endl;
         pss=pc;
 	bias=1;//pss+bias points2 1st word of TrPatt-section
         ltmoutf=*(pss+bias+4);//links time_out_flags word from Kunin's Status sub-section
@@ -790,14 +817,15 @@ SkipTPpr1:
 //=========>endof TrPatt/Status section
 //
 //<====================== Charge-section:
-//cout<<"  ComprSegment::Qsection-decoding:"<<endl;
+cout<<"  ComprSegment::Qsection-decoding:"<<endl;
       bias=1;
 // !!! here pss+bias points to nwords-word
       while(bias<nqwrds){//q-block words loop(nqwrds=1 if Kunin's nwords=0
 	word=*(pss+bias+1);// current link header(+1 to bypass nwords-word)
-	slid=(word&0x000F);//0,..,8
+	slid=(word&0x000F)-1;//0,..,8
 	qlowchf=0;
 	if((word&(0x4000))>0)qlowchf=1;//set negat.(adc-ped) presence flag
+cout<<"  bias="<<bias<<" word="<<hex<<word<<dec<<" slid="<<slid<<endl;
 	if((word&(0x8000))>0 && slid<9){//header's marker,link# OK
 	  slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	  if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
@@ -845,6 +873,7 @@ SkipTPpr1:
 	}//--->endof "link-header OK"
 	else{
 	  TOF2JobStat::daqscr(1,crat-1,9);//wrong link-header in Q-section
+cout<<" <-- wrong link-header in Qsect !"<<endl;
 	  goto BadExit;    
 	}
       }//--->endof q-block words loop
