@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.487 2008/01/23 07:35:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.488 2008/01/29 14:01:51 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6065,7 +6065,7 @@ print qq`
 
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" $defNTUPLE>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=1800000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=2000000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -6337,7 +6337,7 @@ print qq`
 #
 #  get runs from database
 #
-                 my $sql="select datafiles.run,datafiles.path  from datafiles where run>=$runmi and run<=$runma and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -6445,6 +6445,10 @@ print qq`
         for my $i (1 ... $runno){
          my $run=$runsret->[$i-1][0];
          my $path=$runsret->[$i-1][1];
+         my $paths=$runsret->[$i-1][2];
+         if($paths=~/$run/){
+           $path=$paths;
+         }
          #find buffer and patch it accordingly
          my $evts=100000000;
 #read header
@@ -12877,7 +12881,7 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=1800000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=2000000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
@@ -17234,6 +17238,9 @@ sub MoveBetweenDisks{
        if($run2p ne 0 and $run2p ne $run){
            next;
        }
+       if($verbose){
+         print "processing run $run... $ds->[1] mb \n";
+       }
        $sql=" select path,castortime from ntuples where run=$ds->[0]";
        my $r1=$self->{sqlserver}->Query($sql);
        my $disk=$self->CheckFS(1,30);
@@ -17247,6 +17254,7 @@ sub MoveBetweenDisks{
         my $mkdir=1;
        foreach my $ds1 (@{$r1}){
            my $file=$ds1->[0];
+             
            my @junk=split '\/',$file;
            my $newfile=$disk;
            for my $j (2...$#junk){

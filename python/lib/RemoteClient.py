@@ -2346,6 +2346,15 @@ class RemoteClient:
                                 
             
     def TransferDataFiles(self,run2p,i,v,u,h,source,c):
+        if(os.environ.has_key('RunsDir')):
+            runsdir=os.environ['RunsDir']
+        else:
+            sql = "SELECT myvalue from Environment where mykey='RunsDir'"
+            ret=self.sqlserver.Query(sql)
+            if(len(ret)>=0):
+                runsdir=ret[0][0]
+            else:
+                runsdir="/Offline/RunsDir"
         global mutex
         mutex=thread.allocate_lock()
         mutex.acquire()
@@ -2458,6 +2467,15 @@ class RemoteClient:
                             type="SCI"
                         elif (t0=="6"):
                             type="CAL"
+                        bpath=runsdir+"/"+type
+                        cmd="ln -sf "+outputpath+" "+bpath
+                        i=os.system(cmd)
+                        if(i):
+                            print "Command Failed ",cmd
+                            bpath=" "
+                        else:
+                            bpath=bpath+"/"+file
+                        
                         type=type+" "+t0+" "+t1+" "+t2
                         orig=f1.split('/')
                         origpath=""
@@ -2466,7 +2484,7 @@ class RemoteClient:
                         orig=f2.split('/')
                         if(len(orig)>1):
                              origpath=origpath+" "+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
-                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,0,0,%s,%s,%s)" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),tag,tfevent,tlevent)
+                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,0,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),tag,tfevent,tlevent,bpath)
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
                         cmd="rm -rf "+pfile
