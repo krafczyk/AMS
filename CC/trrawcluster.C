@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.75 2008/01/23 15:34:34 choutko Exp $
+//  $Id: trrawcluster.C,v 1.76 2008/01/29 16:25:18 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -78,9 +78,29 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,  integer matchedo
 
 void AMSTrRawCluster::expand(number *adc)const {
 AMSTrIdSoft id(_address);
+        if(TRCALIB.LaserRun){
+        number sum=0;
+        number max=-100000;
+        int imax=-100000;
+        for (int i=0;i<_nelem;i++){
+          sum+=_array[i];
+          if(_array[i]>max){
+             max=_array[i];
+             imax=i;
+          }
+         }
+   
+        for (int i=0;i<_nelem;i++){
+          if(imax>=0)_array[i]+=-max/2;
+         }
+      } 
+
+
   for (int i=0;i<_nelem;i++){
    id.upd(_strip+i);
-   if(TRCALIB.LaserRun)adc[id.getstrip()]=_array[i]/id.getgain()/id.getlaser();
+   if(TRCALIB.LaserRun){
+     adc[id.getstrip()]=_array[i]/id.getgain()/id.getlaser();
+   }
    else adc[id.getstrip()]=_array[i]/id.getgain();
   }
 
@@ -358,7 +378,7 @@ integer AMSTrRawCluster::checkdaqidS(int16u id){
   ab[1]='\0';
   ab[0]='A';
   if(j%2)ab[0]='B';
-  sprintf(sstr,"TDR%x%x%s",i,j/2,ab);
+  sprintf(sstr,"TDR%X%X%s",i,j/2,ab);
   if(DAQEvent::ismynode(id,sstr)){
        return j+i*trid::ntdr+1; 
   }
@@ -508,6 +528,8 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
 //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
 for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
  //cout <<" length "<<leng<<" "<<*p<<" "<<((*(p+*p))&31)<<endl;
+ //if(ic==2)ic=1;
+ //if(ic==3)ic=0;
  int16u tdr=(*(p+*p))&31;
  if(DAQEvent::isRawMode(*(p+*p))){
   #ifdef __AMSDEBUG__
@@ -518,7 +540,7 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
  if(DAQEvent::isError(*(p+*p))){
   cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
  }
- for(int16u* paux=p+1;paux<p+*p-1-cmn;paux+=*paux+2){
+ for(int16u* paux=p+1;paux<p+*p-1-cmn;paux+=*paux+2+1){
   int16u haddr=*(paux+1);
   if(haddr>1023 ){
 #ifdef __AMSDEBUG__
@@ -527,10 +549,6 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
     continue;
   }
 //#ifdef __AMSDEBUG__
-  if(haddr<640 && haddr+*(paux)>=640){
-    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
-    continue;
- }
  else if(haddr>=640 && haddr+*(paux)>=1024){
     cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
     continue;
@@ -542,13 +560,34 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
   haddr=haddr| (tdr<<10);
   AMSTrIdSoft id(ic,haddr);
      if(!id.dead() ){
+        if(id.getside()==1 && id.getstrip()+*paux>=id.getmaxstrips()){
+// algo feature
+#ifdef __AMSDEBUG__
+    cerr<<"  AMSTrRawCluster::buildraw-W-HaddrExtOutOfRange "<<id.getstrip()<<" "<< id.getstrip()+*(paux)<<endl;
+#endif
+           int cl=id.getstrip()+*paux-id.getmaxstrips();
+           int16u haddr1=id.getmaxstrips();
+            haddr1=haddr1| (tdr<<10);
+            AMSTrIdSoft id1(ic,haddr1);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+        AMSTrRawCluster(id1.getaddr(),id1.getstrip(),id1.getstrip()+cl,(int16*)(paux+2+id.getmaxstrips()-id.getstrip()),cn));
+          for(int k=id1.getstrip();k<id1.getstrip()+cl+1;k++){
+            id1.upd(k);
+            if(id1.getgain()==0){
+            id1.setgain()=8;
+            id1.setsig()=2.5;
+            id1.clearstatus(AMSDBc::BAD);
+          }
+        }
+
+        }
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux,
-        (int16*)paux+2,cn));
+        (int16*)(paux+2),cn));
 //        cout <<"  id "<<id<<" "<<id.getstrip()<<" "<<id.getstrip()+*paux<<endl;
-        if(id.getgain()==0){
           for(int k=id.getstrip();k<(id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux);k++){
             id.upd(k);
+            if(id.getgain()==0){
             id.setgain()=8;
             id.setsig()=2.5;
             id.clearstatus(AMSDBc::BAD);
@@ -1523,21 +1562,25 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
 //  cout << "crate tdr "<<ic<<" "<<tdr<<endl;
   int leng4=leng/4;
   if(leng4!=1024){
-   cerr<<"AMSTrRawCluster::updtrcalibS-WrongLength "<<leng4<<endl;
+   cerr<<"AMSTrRawCluster::updtrcalibS-E-WrongLength "<<leng4<<endl;
    return;
   }
+  cout <<"  Crate TDR "<<ic<<"  "<<tdr<<endl;
+  if(AMSTrIdSoft::_Calib[ic][tdr]==1){
+   cerr<<" AMSTrRawCluster::updtrcalibS-W-ICTDRAlreadySet "<<ic<<" "<<tdr<<endl;
+  }
   AMSTrIdSoft::_Calib[ic][tdr]=1;
- int version=*(p+leng);
- geant sig_d=*(p+leng+1);
- geant rawsig_d=*(p+leng+3);
+
+  int version=*(p+leng);
+  geant sig_d=*(p+leng+1);
+  geant rawsig_d=*(p+leng+3);
+  cout <<version<<" "<<sig_d<<" "<<rawsig_d<<endl;
  int nerr=0;
-/*
  cout <<"  AMSTrRawCluster::updtrcalibS-I-Parameters ";
  for(int i=0;i<13;i++){
   cout <<*(p+leng+i)<<" ";
  }
  cout <<endl;
-*/
  for(int i=0;i<leng4;i++){
   int16u haddr=(tdr<<10) | i;
   AMSTrIdSoft id(ic,haddr);
@@ -1596,7 +1639,7 @@ if(nerr>0){
   }
   }
   cout <<" nc "<<nc<<endl;
-  if(update || nc>=70){
+  if(update || nc>=TRCALIB.EventsPerCheck){
    for(int i=0;i<getmaxblocks();i++){
     for (int j=0;j<trid::ntdr;j++){
      AMSTrIdSoft::_Calib[i][j]=0;

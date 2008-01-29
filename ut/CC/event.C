@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.357 2008/01/23 15:34:33 choutko Exp $
+//  $Id: event.C,v 1.358 2008/01/29 16:25:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2372,6 +2372,7 @@ void AMSEvent::_writeEl(){
   EN->EventStatus[0]=getstatus()[0];
   EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;
+  cout <<"  called "<<_id<<endl;
   EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
   EN->RawWords+=(AMSCommonsI::getosno())<<18;
   EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
@@ -2540,6 +2541,7 @@ void AMSEvent::_writeEl(){
   }
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->fHeader.Set(EN);
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(myp); 
 #endif
   
 }
@@ -2856,7 +2858,7 @@ void AMSEvent::buildraw(
     time=(*(p+8)) |  (*(p+7))<<16;
     usec=(*(p+10)) |  (*(p+9))<<16;
     const uinteger _OffsetT=0x12d53d80;
-    time+=_OffsetT;
+    if(run<1000000000)time+=_OffsetT;
 }
 
 void AMSEvent::buildrawSh(integer length, int16u *p){

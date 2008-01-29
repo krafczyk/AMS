@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.94 2008/01/23 15:34:32 choutko Exp $
+//  $Id: daqevt.C,v 1.95 2008/01/29 16:25:12 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -295,7 +295,7 @@ if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>
 else return false;
 }
 bool    DAQEvent::_istdr(int16u id){
-if( ((id>>5)&((1<<9)-1))>=288 && ((id>>5)&((1<<9)-1))<=465 )return true;
+if( ((id>>5)&((1<<9)-1))>=288 && ((id>>5)&((1<<9)-1))<=473 )return true;
 else return false;
 }
 bool    DAQEvent::_isudr(int16u id){
@@ -458,13 +458,15 @@ integer DAQEvent::_HeaderOK(){
      _Run=1;
      _RunType=_GetBlType();
      _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
-//     const uinteger _OffsetT=0x12d53d80;
-//    _Time+=_OffsetT;
-     return 1;
+     const uinteger _OffsetT=0x12d53d80;
+    _Time+=_OffsetT;
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
+    //if(_Run == 885142115){
+    //  cout <<"  run got "<<_Run<<" "<<_Event<<endl;
+    //}
     if (AMSJob::gethead() && AMSJob::gethead()->isMonitoring()) {
      if (Time_1 != 0 && _usec > Time_1) {
       geant d = _usec - Time_1;
@@ -517,11 +519,51 @@ integer DAQEvent::_DDGSBOK(){
       int ntot=0;
       for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2;p+=*p+1){
         ntot+=*p+1;
-#ifdef __AMSDEBUG__
         int16u port=_getportj(*(p+*p));
+#ifdef __AMSDEBUG__
         int16u status=(*(p+*p))>>5;
          cout <<"  JINJ Port "<<port <<" "<<_PortNamesJ[port]<<"  Length "<<*p<<" Status "<<status<<endl;
 #endif
+                switch(port){
+        case 0:
+        case 1:
+        case 3:
+        case 9:
+        case 16:
+        case 17:
+        case 22:
+        case 23:
+         _SubLength[0]+=*p;
+         break;
+        case 2:
+        case 8:
+         _SubLength[1]+=*p;
+         break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 18:
+        case 19:
+        case 20:
+        case 21:
+         _SubLength[2]+=*p;
+         break;
+        case 10:
+        case 11:
+         _SubLength[3]+=*p;
+         break;
+        case 12:
+        case 13:
+         _SubLength[4]+=*p;
+         break;
+        case 14:
+        case 15:
+         _SubLength[5]+=*p;
+         break;
+       }
+
+       
      }
       if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
         cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<ntot<<endl;
@@ -552,8 +594,8 @@ integer DAQEvent::_DDGSBOK(){
       int ntot=0;
       for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2;p+=*p+1){
         ntot+=*p+1;
-#ifdef __AMSDEBUG__
         int16u port=_getportj(*(p+*p));
+#ifdef __AMSDEBUG__
         int16u status=(*(p+*p))>>5;
          cout <<"  JINF Port "<<port <<"  Length "<<*p<<" Status "<<status<<endl;
 #endif

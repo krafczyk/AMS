@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.524 2008/01/29 09:08:59 choumilo Exp $
+// $Id: job.C,v 1.525 2008/01/29 16:25:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1016,8 +1016,8 @@ FFKEY("BMAP",(float*)&TKFIELD,60,"MIXED");
 void AMSJob::_retkdata(){
 
 //number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
-TRCLFFKEY.ThrClA[0]=10.;
-TRCLFFKEY.ThrClA[1]=10.;
+TRCLFFKEY.ThrClA[0]=12.;
+TRCLFFKEY.ThrClA[1]=12.;
 
 TRCLFFKEY.ThrClS[0]=20;
 TRCLFFKEY.ThrClS[1]=15;
@@ -1025,8 +1025,8 @@ TRCLFFKEY.ThrClS[1]=15;
 TRCLFFKEY.ThrClR[0]=3.;
 TRCLFFKEY.ThrClR[1]=4.;
 
-TRCLFFKEY.Thr1A[0] =6.;
-TRCLFFKEY.Thr1A[1] =6.;
+TRCLFFKEY.Thr1A[0] =8.;
+TRCLFFKEY.Thr1A[1] =8.;
 
 TRCLFFKEY.Thr2A[0] =4.;
 TRCLFFKEY.Thr2A[1] =3.;
@@ -3203,7 +3203,7 @@ AMSJob::~AMSJob(){
   HPRINT(9797+1);
   _signendjob();
   if(isSimulation())uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
-  else uhend();
+  else uhend(0,0,CCFFKEY.curtime);
   cout <<"   uhend finished"<<endl;
   _tkendjob();
   cout <<"   tkendjob finished"<<endl;

@@ -579,6 +579,7 @@ TBranch* AMSEventR::bTrdMCCluster;
 TBranch* AMSEventR::bRichMCCluster;
 TBranch* AMSEventR::bMCTrack;
 TBranch* AMSEventR::bMCEventg;
+TBranch* AMSEventR::bDaqEvent;
 TBranch* AMSEventR::bAux;
 
 void* AMSEventR::vHeader=0;
@@ -615,7 +616,7 @@ void* AMSEventR::vMCTrack=0;
 void* AMSEventR::vMCEventg=0;
 void* AMSEventR::vAux=0;
 
-
+char   DaqEventR::_Info[255];
 char  AntiClusterR::_Info[255];
 char  TofClusterR::_Info[255];
 char  ParticleR::_Info[255];
@@ -1295,6 +1296,12 @@ void AMSEventR::GetBranch(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fDaqEvent");
+     bDaqEvent=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fAux");
      bAux=fChain->GetBranch(tmp);
     }
@@ -1537,6 +1544,7 @@ void AMSEventR::SetCont(){
  fHeader.RichMCClusters=fRichMCCluster.size();
  fHeader.MCTracks=fMCTrack.size();
  fHeader.MCEventgs=fMCEventg.size();
+ fHeader.DaqEvents=fDaqEvent.size();
 // cout <<" fHeader.TrRecHits "<<fHeader.TrRecHits<<endl;
 }
 bool AMSEventR::ReadHeader(int entry){
@@ -1697,6 +1705,7 @@ fRichMCCluster.clear();
 
 fMCTrack.clear();
 fMCEventg.clear();
+fDaqEvent.clear();
 
 }
 
@@ -1705,6 +1714,9 @@ fMCEventg.clear();
 //------------- AddAMSObject 
 #ifndef __ROOTSHAREDLIBRARY__
 
+void AMSEventR::AddAMSObject(DAQEvent *ptr){
+  if(ptr)fDaqEvent.push_back(DaqEventR(ptr));
+}
 
 
 void AMSEventR::AddAMSObject(AMSEcalHit *ptr)
@@ -1828,7 +1840,7 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
 void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
-    if(fTrRecHit.size()>root::MAXTRRH02*2 && !ptr->checkstatus(AMSDBc::USED))return;
+    if(fTrRecHit.size()>root::MAXTRRH02*200 && !ptr->checkstatus(AMSDBc::USED))return;
   fTrRecHit.push_back(TrRecHitR(ptr));
   ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {
@@ -2217,6 +2229,9 @@ Level1R::Level1R(Trigger2LVL1 *ptr){
   EcalTrSum= ptr->_ectrsum;
   LiveTime   = ptr->_LiveTime;
   for(int i=0; i<6; i++)TrigRates[i]  = ptr->_TrigRates[i];
+  for(int i=0; i<sizeof(TrigTime)/sizeof(TrigTime[0]); i++){
+    TrigTime[i]  = ptr->_TrigTime[i];
+  }
 #endif
 }
 
@@ -2486,6 +2501,7 @@ TrClusterR::TrClusterR(AMSTrCluster *ptr){
   Status = ptr->_status;
   NelemL = ptr->_NelemL;
   NelemR = ptr->_NelemR;
+  StripM= ptr->_Id.getstrip();
   Sum    = ptr->_Sum;
   Sigma  = ptr->_Sigma;
   Mean   = ptr->_Mean;
@@ -2667,6 +2683,20 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
   }
 #endif
 }
+
+DaqEventR::DaqEventR(DAQEvent *ptr){
+#ifndef __ROOTSHAREDLIBRARY__ 
+Length=ptr->getlength();
+Tdr=ptr->getsublength(0);
+Udr=ptr->getsublength(1);
+Sdr=ptr->getsublength(2);
+Rdr=ptr->getsublength(3);
+Edr=ptr->getsublength(4);
+L1dr=ptr->getsublength(5);
+L3dr=ptr->getsublength(6);
+#endif
+}   
+
 
 EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
@@ -3092,6 +3122,7 @@ void AMSEventR::GetAllContents() {
             bRichMCCluster->GetEntry(_Entry);
             bMCTrack->GetEntry(_Entry);
             bMCEventg->GetEntry(_Entry);
+            bDaqEvent->GetEntry(_Entry);
       }
 
 

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.39 2005/12/13 14:08:42 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.40 2008/01/29 16:25:19 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -308,7 +308,8 @@ void AMSDisplay::AddParticleInfo(char * obj){
    static TLatex text;
    text.SetTextAlign(22);
    text.SetTextSize(0.4/sqrt(m_scale));
-   text.DrawLatex(0.5,0.75,m_ntuple->pParticle(0)?m_ntuple->pParticle(0)->Info(0):atext);
+   text.DrawLatex(0.5,0.75,m_ntuple->NParticle()?m_ntuple->pParticle(0)->Info(0):atext);
+//   text.DrawLatex(0.5,0.75,m_ntuple->pParticle(0)?m_ntuple->pParticle(0)->Info(0):atext);
 
    
    m_ObjInfoPad->SetEditable(false);
@@ -615,7 +616,9 @@ void AMSDisplay::ShowNextEvent(Int_t delta){
       while(m_ntuple->ReadOneEvent(entry)==0){
          entry+=delta;
       }
-      if(entry>=0)DrawEvent();
+      if(entry>=0){
+        DrawEvent();
+      }
    }
 
 

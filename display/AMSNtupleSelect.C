@@ -39,6 +39,9 @@ bool IsGolden(AMSEventR *ev){
    return false;
  }
 */
+ if(ev && ev->nTrTrack()>0){
+return true;
+}
  if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>3 ){
    int count[20];
    for(int k=0;k<20;k++)count[k]=0;

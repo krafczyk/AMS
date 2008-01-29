@@ -83,7 +83,9 @@ AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
 NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 #NAGDIR=/Offline/n
 # change defaults if intel compiler 
+
 ORBIT2DIR=/opt/Orbit2
+
 ifdef AMSICC
   CERN_LEVEL = pro
   CERNSRCDIR = /cern/$(CERN_LEVEL)
@@ -251,9 +253,9 @@ LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 
-CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I$(BIN)
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
 
 
 ifdef AMSDEBUG

@@ -148,7 +148,7 @@ integer AMSTRDRawHit::checkdaqidS(int16u id){
  for(int i=0;i<getmaxblocks();i++){
  for(int j=0;j<trdid::nudr;j++){
   char sstr[128];
-  sprintf(sstr,"UDR%x%x",i,j);
+  sprintf(sstr,"UDR%X%X",i,j);
   if(DAQEvent::ismynode(id,sstr)){
        return j+i*trdid::nudr+1; 
   }
@@ -211,7 +211,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
     else nc++;
   }
  }
- cout <<"  nc "<<nc<<endl;
+ cout <<"  nc TRD "<<nc<<endl;
   if(update){
    for(int i=0;i<getmaxblocks();i++){
     for (int j=0;j<trdid::nudr;j++){
@@ -249,12 +249,13 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
  int udr=((*(p+*p))&31)/4;
  if(raw){
-#ifdef __AMSDEBUG__
   if(*p!=449){
+#ifdef __AMSDEBUG__
    cerr<<"AMSTRDRawHit::buildraw-E-WrongSubBlockLengthInRoawMode "<<*p<<endl;
-  }
-  cout <<"  UDR No "<<udr<<endl;
+   cerr <<"  UDR No "<<udr<<endl;
 #endif
+   return;
+  }  
   for (int i=0;i<*p-1;i++){
         int ufe=i%7;
         int cha=i/7;

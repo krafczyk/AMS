@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.104 2007/12/07 10:13:10 choutko Exp $
+//  $Id: producer.C,v 1.105 2008/01/29 16:25:13 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -212,9 +212,9 @@ if (_Solo){
     _reinfo->History=DPS::Producer::Foreign;
     _reinfo->CounterFail=0;
    }
-    SELECTFFKEY.Run=_reinfo->Run;
+    //SELECTFFKEY.Run=_reinfo->Run;
     //SELECTFFKEY.Event=_reinfo->FirstEvent;
-    SELECTFFKEY.RunE=_reinfo->Run;
+    //SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=0;
@@ -254,7 +254,7 @@ again:
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
     SELECTFFKEY.Run=_reinfo->Run;
-    //SELECTFFKEY.Event=_reinfo->FirstEvent;
+    SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _cinfo.Mips=AMSCommonsI::getmips();
@@ -494,7 +494,8 @@ if(success){
 else ntend->Status=DPS::Producer::Failure;
 //ntend->Status=success?(DPS::Producer::Success):(DPS::Producer::Failure);
 ntend->EventNumber=entries;
-ntend->LastEvent=last;
+if(last)ntend->LastEvent=last;
+else ntend->LastEvent =_cinfo.LastEventProcessed;
 ntend->End=end;
 ntend->Type=type;
 AMSmceventg::SaveSeeds();

@@ -1,4 +1,4 @@
-//  $Id: LinkDef.h,v 1.12 2006/02/01 17:13:39 choutko Exp $
+//  $Id: LinkDef.h,v 1.13 2008/01/29 16:25:19 choutko Exp $
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -48,7 +48,7 @@
 #pragma link C++ class RichHitR+;
 #pragma link C++ class RichRingR+;
 #pragma link C++ class VertexR+;
-
+#pragma link C++ class DaqEventR+;
 
 
 #endif

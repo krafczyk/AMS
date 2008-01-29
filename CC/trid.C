@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.43 2008/01/17 15:38:07 choutko Exp $
+//  $Id: trid.C,v 1.44 2008/01/29 16:25:17 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -123,12 +123,12 @@ number * AMSTrIdGeom::_swxyRl[maxlay][2];
 number * AMSTrIdGeom::_swxyR[maxlay][2];
 geant AMSTrIdSoft::laser[maxlay][2]={   1.,  1.,
                                          1.,  1.,
-                                         2.,  2.,
-                                         10., 12.,
-                                         70., 90.,
-                                         200.,240.,
-                                         0.,0.,
-                                         0.,0.};                                 
+                                         1.,  1.,
+                                         1., 1.,
+                                         1., 1.,
+                                         1.,1.,
+                                         1.,1.,
+                                         1.,1.};                                 
 geant * AMSTrIdSoft::gains=0;
 geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;
@@ -925,6 +925,8 @@ else if(setup==2){
        _GetHard[0][6][1][2]=0; //crate 
        _GetHard[0][6][1][0]=11; //side x 
        _GetHard[0][6][1][1]=11; //side y 
+
+
        _GetHard[0][7][0][2]=2; //crate 
        _GetHard[0][7][0][0]=6; //side x 
        _GetHard[0][7][0][1]=6; //side y 
@@ -937,6 +939,23 @@ else if(setup==2){
        _GetHard[0][8][1][2]=0; //crate 
        _GetHard[0][8][1][0]=10; //side x 
        _GetHard[0][8][1][1]=10; //side y 
+
+
+/*
+       _GetHard[0][8][0][2]=2; //crate 
+       _GetHard[0][8][0][0]=6; //side x 
+       _GetHard[0][8][0][1]=6; //side y 
+       _GetHard[0][8][1][2]=0; //crate 
+       _GetHard[0][8][1][0]=6; //side x 
+       _GetHard[0][8][1][1]=6; //side y 
+       _GetHard[0][7][0][2]=2; //crate 
+       _GetHard[0][7][0][0]=11; //side x 
+       _GetHard[0][7][0][1]=11; //side y 
+       _GetHard[0][7][1][2]=0; //crate 
+       _GetHard[0][7][1][0]=10; //side x 
+       _GetHard[0][7][1][1]=10; //side y 
+*/
+
        _GetHard[0][9][0][2]=2; //crate 
        _GetHard[0][9][0][0]=12; //side x 
        _GetHard[0][9][0][1]=12; //side y 
@@ -1411,6 +1430,7 @@ else if(setup==2){
        _GetHard[7][6][1][2]=4; //crate 
        _GetHard[7][6][1][0]=1; //side x 
        _GetHard[7][6][1][1]=1; //side y 
+
        _GetHard[7][7][0][2]=6; //crate 
        _GetHard[7][7][0][0]=4; //side x 
        _GetHard[7][7][0][1]=4; //side y 
@@ -1423,6 +1443,24 @@ else if(setup==2){
        _GetHard[7][8][1][2]=4; //crate 
        _GetHard[7][8][1][0]=0; //side x 
        _GetHard[7][8][1][1]=0; //side y 
+
+
+
+/*
+       _GetHard[7][8][0][2]=6; //crate 
+       _GetHard[7][8][0][0]=4; //side x 
+       _GetHard[7][8][0][1]=4; //side y 
+       _GetHard[7][8][1][2]=4; //crate 
+       _GetHard[7][8][1][0]=4; //side x 
+       _GetHard[7][8][1][1]=4; //side y 
+       _GetHard[7][7][0][2]=6; //crate 
+       _GetHard[7][7][0][0]=1; //side x 
+       _GetHard[7][7][0][1]=1; //side y 
+       _GetHard[7][7][1][2]=4; //crate 
+       _GetHard[7][7][1][0]=0; //side x 
+       _GetHard[7][7][1][1]=0; //side y 
+
+*/
        _GetHard[7][9][0][2]=6; //crate 
        _GetHard[7][9][0][0]=22; //side x 
        _GetHard[7][9][0][1]=22; //side y 

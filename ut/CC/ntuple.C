@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.164 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: ntuple.C,v 1.165 2008/01/29 16:25:13 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -251,10 +251,11 @@ void AMSNtuple::initR(char* fname){
    }
    _rfile= new TFile(fname,"RECREATE");
 #ifdef __CORBA__
-   _dc.SetString(AMSProducer::GetDataCards());
-   //cout <<_dc.GetString()<<endl;
+     _dc.SetString(AMSProducer::GetDataCards());
+//   cout <<_dc.GetString()<<endl;
 #endif
    _dc.Write("DataCards");
+
    if(!_rfile || _rfile->IsZombie())throw amsglobalerror("UnableToOpenRootFile",3);
 
    cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;

@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.24 2008/01/07 16:22:25 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.25 2008/01/29 16:25:21 choutko Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -587,7 +587,6 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   Float_t strtms[4];
   Int_t ntofrs=ntuple->NTofRawSide();//total tof-raw_sides
   TofRawSideR * p2raws;//pointer to raw-side members
-  if(ntuple->Version()<=170)cout<<"Ntuple-version:"<<ntuple->Version()<<endl;
   for(int i=0;i<ntofrs;i++){ // <--- loop over TOF2RawSide hits
     p2raws=ntuple->pTofRawSide(i);
     swid=p2raws->swid;//LBBS

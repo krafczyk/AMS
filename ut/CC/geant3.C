@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.100 2008/01/17 08:58:32 mdelgado Exp $
+//  $Id: geant3.C,v 1.101 2008/01/29 16:25:12 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -818,8 +818,8 @@ AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("OMIR",1));
 if(    AMSEvent::gethead()->HasNoCriticalErrors()){
   RICHDB::Nph()=0;
    try{
+     CCFFKEY.curtime=AMSEvent::gethead()->gettime();
    if(AMSJob::gethead()->isSimulation()){
-         CCFFKEY.curtime=AMSEvent::gethead()->gettime();
       if(GCFLAG.IEOTRI)AMSJob::gethead()->uhend(AMSEvent::gethead()->getrun(),
 AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
@@ -1085,7 +1085,53 @@ try{
       //  AMSJob::gethead()->uhinit(pdaq->runno(),pdaq->eventno());
       }
       guout_();
-      if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
+      if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT){
+#ifdef __CORBA__
+    try{
+     AMSJob::gethead()->uhend(run,event,tt);
+     AMSID tdvs=AMSEvent::getTDVStatus();
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
+  if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
+     AMSID tdvs=AMSEvent::getTDVStatus();
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begino,endo,inserto;
+      ptdv->gettime(inserto,begino,endo);
+      time_t begin,end,insert;
+      begin=AMSJob::gethead()->getstatustable()->getbegin();
+      end=AMSJob::gethead()->getstatustable()->getend();
+      time(&insert);
+      ptdv->SetTime(insert,begin,end);
+      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+      cout << " Starting to update "<<*ptdv; 
+      bool fail=false;
+      if(  !ptdv->write(AMSDATADIR.amsdatabase)){
+         cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
+          fail=true;
+      }
+      AMSStatus *p=AMSJob::gethead()->getstatustable();
+      uinteger first,last;
+      p->getFL(first,last);
+      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+      ptdv->SetTime(inserto,begino,endo);
+      AMSJob::gethead()->getstatustable()->reset();      
+  }
+
+     AMSProducer::gethead()->sendRunEnd(DAQEvent::Interrupt);
+    }
+    catch (AMSClientError a){
+     cerr<<a.getMessage()<<endl;
+     break;
+    }
+#endif
+         break;
+
+      }
       GCFLAG.IEVENT++;
     }
     else{
@@ -1138,7 +1184,17 @@ try{
 #endif
     }
    }
-   else if (res==DAQEvent::Interrupt)break;
+   else if (res==DAQEvent::Interrupt){
+#ifdef __CORBA__
+  AMSClientError ab("Process Interrupted",DPS::Client::CInAbort);
+  cerr<<" CORBA-ProcessInterruped"<<endl;
+ if(AMSProducer::gethead()){
+  AMSProducer::gethead()->Error()=ab;
+  AMSProducer::gethead()->sendRunEnd(res);
+ }
+#endif
+     break;
+   }
    else{
 #ifdef __CORBA__
     try{

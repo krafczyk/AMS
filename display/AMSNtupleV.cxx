@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.19 2006/07/13 15:16:05 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.20 2008/01/29 16:25:19 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -6,6 +6,18 @@ char * AMSNtupleV::GetObjInfo(int px, int py){
 static char* info=0;
 int dist=99999;
 info=0;
+
+{
+ int cand=-1;
+ for(int i=0;i<fDaqV.size();i++){
+   int current=fDaqV[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+  }
+ }
+  if(dist<7 && cand>=0)info=fDaqV[cand].GetObjectInfo(px,py);
+}
 
 
 
@@ -246,6 +258,11 @@ if(type==kall || type==kusedonly || type==kanticlusters){
 }
 
 if(type==kall){
+  fDaqV.clear();
+  for(int i=0;i<NDaqEvent();i++){
+   fDaqV.push_back( DaqV(this,i));
+  }
+
   fTrigger1V.clear();
   for(int i=0;i<NLevel1();i++){
    fTrigger1V.push_back( Trigger1V(this,i));
@@ -397,6 +414,11 @@ if(type==kall || type==kparticles){
 
 
 void AMSNtupleV::Draw( EAMSType type){
+
+for(int i=0;i<fDaqV.size();i++){
+   fDaqV[i].AppendPad();
+  }
+
 
  for(int i=0;i<fTrigger1V.size();i++){
    fTrigger1V[i].AppendPad();

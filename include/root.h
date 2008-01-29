@@ -64,6 +64,7 @@ class TOF2RawSide;
 class Trigger2LVL1;
 class TriggerLVL302;
 class EventNtuple02;
+class DAQEvent;
 #else
 class AMSAntiCluster{};
 class AMSAntiMCCluster{};
@@ -99,6 +100,7 @@ class TOF2RawSide{};
 class Trigger2LVL1{};
 class TriggerLVL302{};
 class EventNtuple02{};
+class DAQEvent{};
 #endif
 
 //!  Root Header class
@@ -196,6 +198,7 @@ int   TrdMCClusters;
 int   RichMCClusters;
 int   MCTracks;
 int   MCEventgs;
+int   DaqEvents;
 public:
 
   /// A constructor.
@@ -216,12 +219,42 @@ public:
                          double sr=sin(Roll);
                          double cams=-sr*sy*sp+cr*cp;
                          cams=acos(cams)*180/3.1415926; 
-    sprintf(_Info,"Header: Status %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} ",(Status[0] & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams);
+    sprintf(_Info,"Header: Status %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",(Status[0] & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
   return _Info;
   }
 
   virtual ~HeaderR(){};
   ClassDef(HeaderR,4)       //HeaderR
+};
+
+
+
+//!  DAQ Parameters Structure
+/*!
+
+   \author vitali.choutko@cern.ch
+*/
+class DaqEventR {
+static char _Info[255];
+public:
+  unsigned int Length;    ///<Event length in bytes
+  unsigned int Tdr;  ///< Tracker  length in bytes 
+  unsigned int Udr;  ///< TRD  length in bytes 
+  unsigned int Sdr;  ///< TOF+Anti  length in bytes 
+  unsigned int Rdr;  ///< RICH  length in bytes 
+  unsigned int Edr;  ///< Ecal length in bytes 
+  unsigned int L1dr;  ///< Lvl1  length in bytes
+  unsigned int L3dr;  ///< Lvl3  length in bytes
+  DaqEventR(DAQEvent *ptr);
+  DaqEventR(){};
+  virtual ~DaqEventR(){};
+
+  /// \return human readable info about DaqEventR
+  char * Info(int number=-1){
+    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d LVL3 %d",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,L3dr);
+  return _Info;
+  } 
+ClassDef(DaqEventR,1)       //DaqEventR
 };
 
 
@@ -657,7 +690,8 @@ public:
 23 - Object Overflow                                     (status&(65536*64)!=0) \n
 26 - CATLEAK  (Ecal only)                               (status&(65536*256)!=0) \n 
                  */ 
-  int NelemL;   ///< -Number of strips left to max
+  int NelemL;   ///< Number of strips left to max
+  int StripM;   ///< Strip at Max 
   int NelemR;   ///< Number of strips right to max
   float Sum;    ///< Amplitude total
   float Sigma;  ///< Sigma total
@@ -669,7 +703,7 @@ public:
   TrClusterR(){};
   TrClusterR(AMSTrCluster *ptr);
   virtual ~TrClusterR(){};
-ClassDef(TrClusterR,1)       //TrClusterR
+ClassDef(TrClusterR,2)       //TrClusterR
 };
 
 
@@ -709,7 +743,22 @@ public:
   /// \param number index in container
   /// \return human readable info about TrRecHitR
   char * Info(int number=-1){
-   sprintf(_Info,"TrRecHit no %d Layer %d Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x)",number,Layer,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status);
+   TrClusterR *x=pTrCluster('x');
+   TrClusterR *y=pTrCluster('y');
+    int lay=-1;
+    int lad=-1;
+    int half=-1;
+    int stripx=-1;
+    int stripy=-1;
+   if(x)stripx=x->StripM;
+   if(y){
+    int id=y->Idsoft;
+    lay=id%10;
+    lad=(id/10)%100;
+    half=(id/1000)%10-2;
+    stripy=y->StripM;
+   }
+   sprintf(_Info,"TrRecHit no %d Layer %d Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x,llhss=%d %d %d %d %d)",number,Layer,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status,lay,lad,half,stripx,stripy);
      return _Info;
 }
 
@@ -1140,8 +1189,16 @@ public:
        antif++;
      }
     }
-    
-    sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV",TofFlag1%10==0?"4/4":"<=3/4",TofFlag2==0?"4/4":"<=3/4",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum);
+    static int evento=number;
+    static double xtimeo=0;
+    double xtime=0.64*TrigTime[2]+0.64*TrigTime[3]*pow(2.,32);    
+    static double xtimed=0;
+    if(number!=evento || xtimeo==0){
+         xtimed=(xtime-xtimeo)/1000.;
+         xtimeo=xtime;
+         evento=number;
+    }
+    sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV TimeD [ms]%6.2f",TofFlag1%10==0?"4/4":"<=3/4",TofFlag2==0?"4/4":"<=3/4",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum,xtimed);
   return _Info;
   }
   virtual ~Level1R(){};
@@ -1926,6 +1983,7 @@ static TBranch*  bTrdMCCluster;
 static TBranch*  bRichMCCluster;
 static TBranch*  bMCTrack;
 static TBranch*  bMCEventg;
+static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 
 
@@ -2143,7 +2201,7 @@ public:
 // Some functions for inter root
 //
 #ifdef __ROOTSHAREDLIBRARY__
-  //#include "root_methods.h"
+  #include "root_methods.h"
 #endif
 
 
@@ -2220,6 +2278,8 @@ int   nMCTrack()const { return fHeader.MCTracks;} ///< \return number of MCTrack
 ///
 int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEventgR elements (fast)
 ///
+int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEventgR elements (fast)
+///
 
 
   protected:
@@ -2291,6 +2351,8 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
   vector<MCTrackR>       fMCTrack;
   vector<MCEventgR>      fMCEventg;
 
+  //DAQ 
+  vector<DaqEventR>      fDaqEvent;
 
   //Aux
 
@@ -2322,6 +2384,8 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
          return fEcalHit.at(l);
       }
+
+
 
        ///  EcalHitR accessor
        /// \param l index of EcalHitR Collection
@@ -3346,6 +3410,23 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
 
+       ///  DaqEventR accessor
+      ///  \return number of DaqEventR
+      ///
+      unsigned int   NDaqEvent()  {
+        if(fHeader.DaqEvents && fDaqEvent.size()==0)bDaqEvent->GetEntry(_Entry);
+        return fDaqEvent.size();
+      }
+
+
+       ///  DaqEventR accessor
+       /// \param l index of DaqEventR Collection
+      ///  \return pointer to corresponding DaqEventR element
+      ///
+      DaqEventR *   pDaqEvent(unsigned int l) {
+        if(fHeader.DaqEvents && fDaqEvent.size()==0)bDaqEvent->GetEntry(_Entry);
+        return l<fDaqEvent.size()?&(fDaqEvent[l]):0;
+      }
 
 
        ///  MCEventgR accessor
@@ -3400,6 +3481,7 @@ if(!--_Count){
 void clear();
 
 #ifndef __ROOTSHAREDLIBRARY__
+void         AddAMSObject(DAQEvent *ptr);
 void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);

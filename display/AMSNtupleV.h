@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.17 2008/01/07 11:04:51 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.18 2008/01/29 16:25:19 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -68,10 +68,22 @@ class Trigger1V: public   TPaveLabel, public AMSDrawI{
 public:
 Trigger1V():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"Level1","TR"){};
 Trigger1V(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.89,0.98,-0.81,"Level1","TR"){};
-char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pLevel1(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pLevel1(fRef)->Info(fEv->Event()):0;}
 
 
 };
+
+
+class DaqV: public   TPaveLabel, public AMSDrawI{
+public:
+DaqV():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"DAQ","TR"){};
+DaqV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.99,0.98,-0.91,"DAQ","TR"){};
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pDaqEvent(fRef)->Info(fRef):0;}
+
+
+};
+
+
 
 class Trigger3V: public   TPaveLabel, public AMSDrawI{
 public:
@@ -485,6 +497,7 @@ vector<RichRingV> fRichRingV;
 vector<ParticleV> fParticleV;
 vector<MCEventgV> fMCEventgV;
 vector<Trigger1V> fTrigger1V;
+vector<DaqV>      fDaqV;
 vector<Trigger3V> fTrigger3V;
 vector<HeaderV> fHeaderV;
 

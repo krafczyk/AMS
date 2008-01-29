@@ -45,12 +45,12 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
       fbout.open((const char*)fout);
       dirent ** namelist;
       dirent ** namelistsubdir;
-      int nptrdir=scandir((const char *)fdir,&namelistsubdir,&_selectsdir,&_sort);
+      int nptrdir=scandir((const char *)fdir,&namelistsubdir,&_selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
        for(int is=nptrdir-1;is<nptrdir;is++){
         AString fsdir(fdir);
 //        fsdir+="/";     
 //        fsdir+=namelistsubdir[is]->d_name;
-       int nptr=scandir((const char *)fsdir,&namelist,_select,_sorta);
+       int nptr=scandir((const char *)fsdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sorta));
         for(int ii=0;ii<nptr;ii++){
          AString fnam(fsdir);
          fnam+="/";

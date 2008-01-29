@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.50 2007/11/20 17:06:22 choutko Exp $
+//  $Id: tkdbc.C,v 1.51 2008/01/29 16:25:14 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2010,17 +2010,6 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                  20,23,26,28,29,30,30,30,30,30,
                                  29,28,26,23,20,0,0};
    UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
-/*
-   const integer nhalf[_nlay][maxlad]={
-                               10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,0,0,
-                               7,14,9,11,11,12,12,12,12,11,11,9,14,7,0,0,0,
-                               14,9,11,11,12,12,12,12,11,11,9,14,0,0,0,0,0,
-                               9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
-                               9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
-                               14,9,11,11,12,12,12,12,11,11,9,14,0,0,0,0,0,
-                               7,14,9,11,11,12,12,12,12,11,11,9,14,7,0,0,0,
-                               10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,0,0};
-*/
    const integer nhalf[_nlay][maxlad]={
                                10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,0,0,
                                7,14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,
@@ -2057,26 +2046,6 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                            5.,.8,-0.015,
                                            5.,.8,-0.015 };
    UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
-/*
-   const integer nladshuttle[_nlay][2]={15,15,
-                                        14,10,
-                                        12,10,
-                                        10,10,
-                                        10,10,
-                                        12,10,
-                                        14,10,
-                                        15,15};
-   UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
-   const integer boundladshuttle[_nlay][2]={1,1,
-                                         1,3,
-                                         1,2,
-                                         1,1,
-                                         1,1,
-                                         1,2,
-                                         1,3,
-                                         1,1};
-   UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
-*/
 
    const integer nladshuttle[_nlay][2]={15,15,
                                         12,12,

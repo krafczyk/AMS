@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.36 2008/01/23 15:34:35 choutko Exp $
+//  $Id: daqevt.h,v 1.37 2008/01/29 16:25:20 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -68,6 +68,7 @@ int16u *  _pcur;
 int16u * _pData;
 static const char *_NodeNames[512];
 static const char *_PortNamesJ[32];
+ unsigned int _SubLength[7];   //  tracker trd tof rich ecal lvl1 lvl3
 static DAQSubDet * _pSD[nbtps];
 static DAQBlockType * _pBT[nbtps];
 static const integer _OffsetL;
@@ -117,7 +118,9 @@ public:
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
-_Time(0),_RunType(0),_usec(0),_BufferOwner(0){}
+_Time(0),_RunType(0),_usec(0),_BufferOwner(0){
+for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
+}
 static bool ismynode(int16u id,char * sstr){return _getnode(id)>127 && strstr(_getnodename(id),sstr);}
 static bool isRawMode(int16u id){return (id&64)>0;}
 static bool isError(int16u id){return (id&512)>0;}
@@ -134,6 +137,7 @@ integer getoffset();
 void setoffset(uinteger offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
+integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_SubLength[0])?_SubLength[i]*sizeof(_pData[0]):0;}
 void close(){ fbin.close();fbout.close();}
 static char * _DirName;
 static char ** ifnam;
