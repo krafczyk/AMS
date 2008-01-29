@@ -1,7 +1,10 @@
-//  $Id: daqevt.C,v 1.95 2008/01/29 16:25:12 choutko Exp $
+//  $Id: daqevt.C,v 1.96 2008/01/29 17:34:25 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
+#ifdef __WRITEROOT__
+#include "ntuple.h"
+#endif
 #include "commons.h"
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -981,6 +984,13 @@ void DAQEvent::_convertl(int16u & l16){
 void DAQEvent::_copyEl(){
    if(DAQCFFKEY.mode/10)write();
 
+
+}
+
+void DAQEvent::_writeEl(){
+#ifdef __WRITEROOT__
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this); 
+#endif
 
 }
 

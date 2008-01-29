@@ -614,6 +614,7 @@ void* AMSEventR::vTrdMCCluster=0;
 void* AMSEventR::vRichMCCluster=0;
 void* AMSEventR::vMCTrack=0;
 void* AMSEventR::vMCEventg=0;
+void* AMSEventR::vDaqEvent=0;
 void* AMSEventR::vAux=0;
 
 char   DaqEventR::_Info[255];
@@ -877,6 +878,13 @@ void AMSEventR::SetBranchA(TTree *fChain){
      fChain->SetBranchAddress(tmp,&fMCEventg);
     }
 
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fDaqEvent");
+     vDaqEvent=&fDaqEvent;
+     fChain->SetBranchAddress(tmp,&fDaqEvent);
+    }
+
 
    {
      strcpy(tmp,_Name);
@@ -1086,6 +1094,11 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
      strcpy(tmp,_Name);
      strcat(tmp,"fMCEventg");
      fChain->SetBranchAddress(tmp,vMCEventg);
+    }
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fDaqEvent");
+     fChain->SetBranchAddress(tmp,vDaqEvent);
     }
 
    {
@@ -1506,6 +1519,11 @@ void AMSEventR::GetBranchA(TTree *fChain){
      strcat(tmp,"fMCEventg");
      vMCEventg=fChain->GetBranch(tmp)->GetAddress();
     }
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fDaqEvent");
+     vDaqEvent=fChain->GetBranch(tmp)->GetAddress();
+    }
 
 }
 
@@ -1545,7 +1563,6 @@ void AMSEventR::SetCont(){
  fHeader.MCTracks=fMCTrack.size();
  fHeader.MCEventgs=fMCEventg.size();
  fHeader.DaqEvents=fDaqEvent.size();
-// cout <<" fHeader.TrRecHits "<<fHeader.TrRecHits<<endl;
 }
 bool AMSEventR::ReadHeader(int entry){
     static unsigned int runo=0;

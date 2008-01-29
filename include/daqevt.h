@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.37 2008/01/29 16:25:20 choutko Exp $
+//  $Id: daqevt.h,v 1.38 2008/01/29 17:34:28 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -103,7 +103,7 @@ void _convert();
 void _convertl(int16u & l16);
 integer _create(uinteger btype=0);
 void _copyEl();
-void _writeEl(){}
+void _writeEl();
 void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
