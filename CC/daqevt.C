@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.96 2008/01/29 17:34:25 choutko Exp $
+//  $Id: daqevt.C,v 1.97 2008/01/30 14:46:52 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -989,6 +989,7 @@ void DAQEvent::_copyEl(){
 
 void DAQEvent::_writeEl(){
 #ifdef __WRITEROOT__
+  cout <<" qq "<<endl;
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this); 
 #endif
 
