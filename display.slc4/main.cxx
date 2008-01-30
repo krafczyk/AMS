@@ -1,4 +1,5 @@
-//  $Id: main.cxx,v 1.1 2007/11/07 12:52:53 choutko Exp $
+//  $Id: main.cxx,v 1.2 2008/01/30 17:07:07 choutko Exp $
+#include <getopt.h>
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -62,11 +63,33 @@ int main(int argc, char *argv[]){
      *signal(SIGQUIT, handler);
 #endif
   char * filename = 0;		// default file name
+    int option_index = 0;
+    static struct option long_options[] = {
+        {"title", 1, 0, 't'},
+        {"help",    0, 0, 'h'},
+        {0, 0, 0, 0}
+    };
+    int c = getopt_long (argc, argv, "t:hH:?", long_options, &option_index);
+        char title[]="AMS Event Display";
+        char * tit;
+         tit=title;
+        switch (c) {
+            case 't':             /* title */
+             tit=optarg;
+             break;
+            case 'h':
+            case 'H':
+            case '?':
+             break;
+            default:            /* help */
+                break;
+        }
+    char logfile[100] = "";
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
   }
-  AMSNtupleV *pntuple=0;
+   AMSNtupleV *pntuple=0;
   TChain chain("AMSRoot");
   if(filename){
    OpenChain(chain,filename); 
@@ -111,7 +134,7 @@ int main(int argc, char *argv[]){
   }
 
 
-  AMSDisplay * amd= new AMSDisplay("AMSRoot Offline Display",geo,pntuple);
+  AMSDisplay * amd= new AMSDisplay(tit,geo,pntuple);
   amd->SetApplication(theApp);
   amd->Init();
    theApp->SetDisplay(amd);  

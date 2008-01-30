@@ -5,6 +5,7 @@
 #ifeq  "$(shell uname)"  "Linux"
 
 ARCH         := $(shell root-config --arch)
+VER          := $(shell root-config --version | grep 5.14)
 
 SLC3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
@@ -168,7 +169,10 @@ ifdef SLC3system
  SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
 endif
 ifdef SLC4system
- SOFLAGS+= -L/$(ROOTSYS)/lib  -lRIO -lTree -lSQL -lNet -lHist -lHistPainter -lGraf -lMatrix 
+ifdef VER
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL -lNet -lHist -lHistPainter -lGraf -lMatrix 
+endif
 endif
 
  SHLDFLAGS=   

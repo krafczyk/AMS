@@ -1,6 +1,6 @@
-#  $Id: Makefile,v 1.28 2007/11/02 17:04:58 choutko Exp $
+#  $Id: Makefile,v 1.29 2008/01/30 17:07:06 choutko Exp $
 
-ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
 PREFIX        = $(AMSWD)/display/
 RH9add=
@@ -27,6 +27,7 @@ OPTC          = -O2
 NOOPT         = -g
 NOOPTC         = -g
 LD            = /opt/intel/compiler80/bin/icc
+VER         := $(shell $(ROOTSYS)/bin/root-config --version )
 LDFLAGS       = 
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre
@@ -113,7 +114,7 @@ HDRS          =  ../include/root_RVS.h\
                 TMarker3DCl.h \
                 ../include/id.h \
                 LinkDef.h
-DICT          = AMSCint_$(ARCH).cxx
+DICT          = AMSCint_$(ARCH)_$(SLC4).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -135,9 +136,25 @@ ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO) 
 
 
-
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
+endif
+ifdef SLC4system
+else
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
+endif
+ifdef SLC4system
+AMSPRG       = $(PREFIX)amsed4
+AMSPRGC       = $(PREFIX)amsed4c
+SLC4=y
+else
 AMSPRG       = $(PREFIX)amsed
 AMSPRGC       = $(PREFIX)amsedc
+SLC4=n
+endif
 ifeq ($(ARCH),win32)
 AMSPRG       = $(PREFIX)amsed.exe
 endif

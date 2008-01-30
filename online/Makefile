@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.21 2007/11/02 17:05:07 choutko Exp $
+#  $Id: Makefile,v 1.22 2008/01/30 17:07:07 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -123,7 +123,7 @@ HDRS          =   \
                 AMSNtuple.h\
                 ../include/id.h \
                 LinkDef.h
-DICT          = AMSCint_$(ARCH).cxx
+DICT          = AMSCint_$(ARCH)_$(SLC4).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -149,8 +149,25 @@ AMSLIB       = libAMS.a
 AMSSHAREDLIB = libAMS.so
 
 
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
+endif
+ifdef SLC4system
+else
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
+endif
+ifdef SLC4system
+AMSPRG       = $(PREFIX)offmon4
+AMSPRGC       = $(PREFIX)offmon4c
+SLC4=y
+else
 AMSPRG       = $(PREFIX)offmon
 AMSPRGC       = $(PREFIX)offmonc
+SLC4=n
+endif
 ifeq ($(ARCH),win32)
 AMSPRG       = $(PREFIX)offmon.exe
 endif

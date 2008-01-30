@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.1 2007/11/07 12:52:52 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.2 2008/01/30 17:07:06 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -101,7 +101,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):
    //
    // Create title pad
    // ----------------------------
-   m_TitlePad = new TPad("TitlePad", "AMS Title", xsep,0.95, 1.0, 1.0);
+   m_TitlePad = new TPad("TitlePad", title, xsep,0.95, 1.0, 1.0);
    m_TitlePad->Draw();
    m_TitlePad->Modified();
    //m_TitlePad->SetFillColor(33);
@@ -112,7 +112,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):
    //
    // Create main display pad
    // ----------------------------
-   m_Pad = new TPad("ViewPad", "AMS Event Display",xsep,0.05,1,0.95);
+   m_Pad = new TPad("ViewPad", title,xsep,0.05,1,0.95);
    m_Pad->Modified();
    m_Pad->SetFillColor(0);	//white 
    m_Pad->SetBorderSize(2);
@@ -270,7 +270,7 @@ void AMSDisplay::DrawTitle(Option_t *option){
 
    
 
-   sprintf(atext,"AMS Event Display         Run %d/ %d %s",m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
+   sprintf(atext,"%s         Run %d/ %d %s",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();

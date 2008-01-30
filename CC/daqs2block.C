@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.20 2008/01/29 09:08:58 choumilo Exp $
+//  $Id: daqs2block.C,v 1.21 2008/01/30 17:07:05 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -606,7 +606,7 @@ cout<<"slid="<<slid<<" wttem/wthed="<<wttem<<" "<<wthed<<" tmout="<<tmout<<" nwt
 	continue;//skip link(TDC) with broken structure (or time-out)
       }
       if(wterr==6){
-cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
+//cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
         TOF2JobStat::daqssl(0,crat-1,slot-1,10);//case32:count links when structure OK, but + Err
 	continue;//skip link(TDC) with internal error
       }
@@ -698,7 +698,9 @@ cout<<"slid="<<slid<<" wterr="<<wterr<<endl;
       lencom=len-1;//tot.length of compressed subsegment(excl. (Stat+SlaveId)- word)
       nqwrds=*(pc+8)+1;//q-group words, "+1"->nwords-word itself
       ntwrds=(*(pc+8+nqwrds)&(0x3FFF))+1;//t-group wordfs,......
+#ifdef __AMSDEBUG__
 cout<<" CompAloneFMT:lencom="<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
+#endif
       if(lencom!=(7+nqwrds+ntwrds)){
         TOF2JobStat::daqscr(1,crat-1,5);//count length mismatch inside ComprFMT
 	goto BadExit;    
@@ -707,7 +709,7 @@ cout<<" CompAloneFMT:lencom="<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<e
 //                                                                        
 //
 //<==================== TrPatt/Status section:
-        cout<<"  ComprSegment::TrPatt/Status-decoding:"<<endl;
+//        cout<<"  ComprSegment::TrPatt/Status-decoding:"<<endl;
         pss=pc;
 	bias=1;//pss+bias points2 1st word of TrPatt-section
         ltmoutf=*(pss+bias+4);//links time_out_flags word from Kunin's Status sub-section
@@ -817,7 +819,7 @@ SkipTPpr1:
 //=========>endof TrPatt/Status section
 //
 //<====================== Charge-section:
-cout<<"  ComprSegment::Qsection-decoding:"<<endl;
+//cout<<"  ComprSegment::Qsection-decoding:"<<endl;
       bias=1;
 // !!! here pss+bias points to nwords-word
       while(bias<nqwrds){//q-block words loop(nqwrds=1 if Kunin's nwords=0
@@ -825,7 +827,7 @@ cout<<"  ComprSegment::Qsection-decoding:"<<endl;
 	slid=(word&0x000F)-1;//0,..,8
 	qlowchf=0;
 	if((word&(0x4000))>0)qlowchf=1;//set negat.(adc-ped) presence flag
-cout<<"  bias="<<bias<<" word="<<hex<<word<<dec<<" slid="<<slid<<endl;
+//cout<<"  bias="<<bias<<" word="<<hex<<word<<dec<<" slid="<<slid<<endl;
 	if((word&(0x8000))>0 && slid<9){//header's marker,link# OK
 	  slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	  if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
