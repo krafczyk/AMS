@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.51 2008/01/29 16:25:14 choutko Exp $
+//  $Id: tkdbc.C,v 1.52 2008/01/30 08:36:21 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2011,14 +2011,14 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                  29,28,26,23,20,0,0};
    UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
    const integer nhalf[_nlay][maxlad]={
-                               10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,0,0,
+                               10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0,
                                7,14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,
-                               14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,
+                               0,9,11,11,12,12,12,12,11,11,9,14,0,0,0,0,0,
                                9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
                                9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
                                14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,
-                               7,14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,
-                               10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,0,0};
+                               0,0,9,11,11,12,12,12,12,11,11,9,14,7,0,0,0,
+                               10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0};
    UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
    const number  zpos[_nlay]={0,0,0,0,0,0,0,0};
    UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
@@ -2058,11 +2058,11 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
    const integer boundladshuttle[_nlay][2]={1,1,
                                          1,3,
-                                         1,2,
+                                         2,1,
                                          1,1,
                                          1,1,
                                          1,2,
-                                         1,3,
+                                         3,1,
                                          1,1};
    UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
 

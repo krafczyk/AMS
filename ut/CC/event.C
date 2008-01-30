@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.359 2008/01/29 17:34:25 choutko Exp $
+//  $Id: event.C,v 1.360 2008/01/30 08:36:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -687,7 +687,7 @@ void AMSEvent::_signinitevent(){
 void AMSEvent::_regnevent(){
 
     // Add mceventg if BeamTest
-    if(MISCFFKEY.BeamTest){
+    if(MISCFFKEY.BeamTest>1  ){
 
 
     static integer hintb=0;
@@ -1280,7 +1280,7 @@ void AMSEvent::_reamsevent(){
 
    // get beam par if any;
    _regnevent();
-   if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest){
+   if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest>1){
       // skip event if there is no mceventg record
       AMSContainer *p=getC("AMSmceventg",0);
       if(!p || p->getnelem()==0){

@@ -14,6 +14,18 @@ while (<FILE>){
     my $octant=$args[4]-1;
     my $tdrs=$args[5];
     if($sta!=0){
+       if($layer==0){
+        $ladder=14-$ladder;
+       }
+       elsif($layer==2){
+        $ladder=11-$ladder;
+       }
+       elsif($layer==4){
+        $ladder=9-$ladder;
+       }
+       elsif($layer==6){
+        $ladder=13-$ladder;
+       }
         my $crate;
         if($octant==0){
             $crate=0;

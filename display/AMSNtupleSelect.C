@@ -39,6 +39,10 @@ bool IsGolden(AMSEventR *ev){
    return false;
  }
 */
+
+ if(ev && ev->nParticle()>0){
+return true;
+}
  if(ev && ev->nTrTrack()>0){
 return true;
 }
