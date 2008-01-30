@@ -2465,6 +2465,8 @@ class RemoteClient:
                         type="UNK"
                         if(t0=="5"):
                             type="SCI"
+                            if(tag=="202"):
+                                type="LAS"
                         elif (t0=="6"):
                             type="CAL"
                         bpath=runsdir+"/"+type

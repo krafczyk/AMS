@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.489 2008/01/29 16:25:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.490 2008/01/30 11:19:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -956,7 +956,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -1011,7 +1011,11 @@ if($#{$self->{DataSetsT}}==-1){
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
              }
-                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and type not like '%CAL%' and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+           my $qtype="";
+           if($template->{QTYPE}!=""){
+               $qtype="and datafiles.pathb like '$template->{QTYPE}%'";
+            }
+                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and type not like '%CAL%' $qtype and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];
@@ -2749,7 +2753,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("DataFileID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DataFileID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
@@ -2759,14 +2763,14 @@ CheckCite:            if (defined $q->param("QCite")) {
 #               $self->ErrorPlus("Run no $runid is not digit");
                 $runmin=0;
                 $runmax=2000000000;                
-                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
              }
              else{
              $title = $title.$runid;
-                $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb 
+                $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb,paths 
                           FROM datafiles
                           WHERE run=$runid ";
          }
@@ -2781,9 +2785,10 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $tag   = $r->[4];
              my $sizemb   = $r->[5];
              my $opath=$r->[6];
+             my $paths=$r->[7];
              my $runx=sprintf("%x",$run);
              print "<td><b> $run / $runx </td></b>
-                    <td><b> $path </td>
+                    <td><b> $paths / $path </td>
                     <td><b> $starttime </b></td>
                     <td align=middle><b> $nevents </b></td>
                     <td align=middle><b> $tag </b></td>
@@ -4940,7 +4945,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
         print "<b>RunID : </b> <input type =\"text\" name=\"DataFileID\">\n";
         print "<input type=\"submit\" name=\"getDataFileID\" value=\"Submit\"> \n";
-        print "<b>RunType ( SCI, CAL, ANY) : </b> <input type =\"text\" name=\"DataFileType\" value=\"ANY\">\n";
+        print "<b>RunType ( SCI, CAL, LAS, ANY) : </b> <input type =\"text\" name=\"DataFileType\" value=\"ANY\">\n";
         print "</form>\n";
         print "</table> \n";
 
@@ -6357,7 +6362,11 @@ print qq`
 #
 #  get runs from database
 #
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
+           my $qtype="";
+           if($template->{QTYPE}!=""){
+               $qtype="and datafiles.pathb like '$template->{QTYPE}%'";
+            }
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and  datafiles.nevents>0 $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
