@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.76 2008/01/29 16:25:18 choutko Exp $
+//  $Id: trrawcluster.C,v 1.77 2008/01/30 18:18:02 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -539,6 +539,7 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
  }
  if(DAQEvent::isError(*(p+*p))){
   cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
+  break;
  }
  for(int16u* paux=p+1;paux<p+*p-1-cmn;paux+=*paux+2+1){
   int16u haddr=*(paux+1);
@@ -549,7 +550,7 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
     continue;
   }
 //#ifdef __AMSDEBUG__
- else if(haddr>=640 && haddr+*(paux)>=1024){
+ else if(haddr+*(paux)>=1024){
     cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
     continue;
  }
