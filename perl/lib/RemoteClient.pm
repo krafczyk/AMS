@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.490 2008/01/30 11:19:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.491 2008/01/30 14:47:06 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1012,10 +1012,10 @@ if($#{$self->{DataSetsT}}==-1){
                $datasetsDB =$self->{sqlserver}->Query($sql);
              }
            my $qtype="";
-           if($template->{QTYPE}!=""){
-               $qtype="and datafiles.pathb like '$template->{QTYPE}%'";
+           if($template->{QTYPE} ne ""){
+               $qtype="and datafiles.type like '$template->{QTYPE}%'";
             }
-                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and type not like '%CAL%' $qtype and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and type not like '%CAL%' and datafiles.status='OK' $qtype and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];
@@ -2788,7 +2788,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $paths=$r->[7];
              my $runx=sprintf("%x",$run);
              print "<td><b> $run / $runx </td></b>
-                    <td><b> $paths / $path </td>
+                    <td><b> $paths  </td>
                     <td><b> $starttime </b></td>
                     <td align=middle><b> $nevents </b></td>
                     <td align=middle><b> $tag </b></td>
@@ -6309,7 +6309,6 @@ print qq`
         my $runsave=undef;
         if($template eq "Any"){
           $Any=0;
-          $q->param("QRun",1);
           $template= ${$dataset->{jobs}}[$Any]->{filename};
         }
        if(defined $dataset and $dataset->{datamc}==1){
@@ -6321,13 +6320,16 @@ print qq`
                 if(not defined $q->param("QCPUPEREVENT")){
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
-                my $runno=$q->param("QEv");
+                my $runno=$q->param("QRun");
                 if(not $runno =~/^\d+$/ or $runno <1 or $runno>100 ){
                     $runno=1;
                 }  
                 $q->param("QRun",$runno);
                 $q->param("QRunMi",$tmp->{RUNMIN});
                 $q->param("QRunMa",$tmp->{RUNMAX});
+                if($tmp->{QTYPE} ne ""){
+                  $q->param("QType",$tmp->{QTYPE});
+                }
                 last;
             }
         }
@@ -6363,10 +6365,11 @@ print qq`
 #  get runs from database
 #
            my $qtype="";
-           if($template->{QTYPE}!=""){
-               $qtype="and datafiles.pathb like '$template->{QTYPE}%'";
+           if(defined $q->param("QType")){
+               my $qt=$q->param("QType");
+               $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and  datafiles.nevents>0 $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and  datafiles.nevents>0 and datafiles.status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){

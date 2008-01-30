@@ -1194,7 +1194,7 @@ public:
   return _Info;
   }
   virtual ~Level1R(){};
-ClassDef(Level1R,4)       //Level1R
+ClassDef(Level1R,5)       //Level1R
 };
 
 
@@ -3510,7 +3510,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,3)       //AMSEventR
+ClassDef(AMSEventR,4)       //AMSEventR
 };
 
 //!  AMSChain class

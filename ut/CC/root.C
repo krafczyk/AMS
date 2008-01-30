@@ -59,6 +59,7 @@ using namespace root;
   ClassImp(RichMCClusterR)
   ClassImp(MCTrackR)
   ClassImp(MCEventgR)
+  ClassImp(DaqEventR)
 */
   ClassImp(AMSEventR)
   ClassImp(AMSChain)
