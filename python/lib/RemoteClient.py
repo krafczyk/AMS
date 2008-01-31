@@ -1444,7 +1444,7 @@ class RemoteClient:
         #
         # select disk to be used to store ntuples
         #
-        self.CheckFS(1)
+        self.CheckFS(1,60,path)
         tme=int(time.time())
         if(tme%2 ==0):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
@@ -1485,7 +1485,7 @@ class RemoteClient:
         #
         # select disk to be used to store ntuples
         #
-        self.CheckFS(1)
+        self.CheckFS(1,300,path)
         tme=int(time.time())
         if(tme%2 ==0):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
