@@ -505,7 +505,7 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,datamc=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,datamc=0):
         self.failedcp=0
         self.thrusted=0
         self.copied=0
@@ -533,7 +533,10 @@ class RemoteClient:
         else: self.rm="rm -f "
         if(d==1):
             self.delete=1
-        else: self.delete=0 
+        else: self.delete=0
+        if(b==1):
+            self.deletebad=1
+        else: self.deletebad=0 
         if(h==1):
             print HelpText
             return 1
@@ -640,6 +643,8 @@ class RemoteClient:
         self.setprocessingflag(0,timenow)
         if(self.delete):
             for run in self.dbclient.rtb:
+                if(run2p!=0 and run2p!=run.Run):
+                    continue
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     uid=run.uid;
@@ -651,8 +656,22 @@ class RemoteClient:
                     if(len(ret)>0):
                         print " deleting ",run.Run
                         self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
-                    
-              
+        if(self.deletebad):
+              for run in self.dbclient.rtb:
+                if(run2p!=0 and run2p!=run.Run):
+                    continue
+                status=self.dbclient.cr(run.Status)
+                if(status=='Failed' and datamc==1):
+                    uid=run.uid;
+                    sql=" update datafiles set status='BAD' where run=%d " %(run.Run)
+                    self.sqlserver.Update(sql)
+                    sql="update dataruns set status='Failed' where jid=%d " %(uid)
+                    self.sqlserver.Update(sql)
+                    print " deleting ",run.Run
+                    self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+                    self.sqlserver.Commit()
+
+    
                 
         return 1
     def getValidationDir(self):

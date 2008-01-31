@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.50 2008/01/31 07:24:20 choutko Exp $
+#  $Id: monitorUI.pm,v 1.51 2008/01/31 07:27:49 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -586,6 +586,7 @@ sub notebook_create_pages {
                         $#titles=-1;
                 	@titles = (
 	    "Run",
+            "Uid",
 	    "Time",
 	    "First Event",
 	    "Last Event",
@@ -604,7 +605,6 @@ sub notebook_create_pages {
                         $#titles=-1;
                 	@titles = (
 	    "Run",
-            "Uid",
 	    "Time",
 	    "First Event",
 	    "Last Event",
