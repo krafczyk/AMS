@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.77 2008/01/30 18:18:02 choutko Exp $
+//  $Id: trrawcluster.C,v 1.78 2008/01/31 10:19:57 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -531,6 +531,10 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
  //if(ic==2)ic=1;
  //if(ic==3)ic=0;
  int16u tdr=(*(p+*p))&31;
+if(tdr>=trid::ntdr){
+cerr<<" AMSTrRawCluster::buildraw-E-tdrOutOfRange "<<tdr<<endl;
+continue;
+}
  if(DAQEvent::isRawMode(*(p+*p))){
   #ifdef __AMSDEBUG__
    cerr<<" AMSTrRawCluster::buildraw-E-RawModeNotSupportedYet "<<endl;

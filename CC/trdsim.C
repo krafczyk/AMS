@@ -248,6 +248,10 @@ unsigned int ic=(n>>16);
 for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
  int udr=((*(p+*p))&31)/4;
+ if(udr>=trdid::nudr){
+   cerr<<"AMSTRDRawHit::buildraw-E-udrOutOfRange "<<udr;
+   continue;
+ }
  if(raw){
   if(*p!=449){
 #ifdef __AMSDEBUG__
@@ -280,6 +284,10 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
         int cha=adr%64;
         int roch=cha%16;
         int ute=cha/16;
+        if(ufe>=trdid::nufe){
+         cerr<<"AMSTRDRawHit::buildraw-E-ufeOutOfRange "<<ufe;
+         continue;
+        }
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
         if(!id.dead()){
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
