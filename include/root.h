@@ -1176,7 +1176,7 @@ public:
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
   float LiveTime;  ///< Fraction of "nonBusy" time
   float TrigRates[6]; ///< TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
-  unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), time diff in 0.64 mksec/bin                    
+  unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec                    
 
   Level1R(){};
   Level1R(Trigger2LVL1 *ptr);
@@ -1189,7 +1189,7 @@ public:
        antif++;
      }
     }
-    double xtime=0.64*TrigTime[4]/1000.;
+    double xtime=TrigTime[4]/1000.;
     sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV TimeD [ms]%6.2f",TofFlag1%10==0?"4/4":"<=3/4",TofFlag2==0?"4/4":"<=3/4",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum,xtime);
   return _Info;
   }

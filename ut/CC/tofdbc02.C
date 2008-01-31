@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.44 2008/01/29 09:08:59 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.45 2008/01/31 09:48:09 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2473,7 +2473,8 @@ void TOF2JobStat::bookhist(){
 	    sprintf(idname,"%d",id);
 	    strcat(htit1,idname);
 	    ich=2*TOF2DBc::barseqn(il,ib)+is;//0-67
-	    HBOOK1(1400+ich,htit1,50,0.,250.,0.);
+//	    HBOOK1(1400+ich,htit1,50,0.,250.,0.);
+	    HBOOK2(1400+ich,htit1,50,0.,400.,50,0.,100.,0.);
 	  }
         }
       }

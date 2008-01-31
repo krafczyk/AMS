@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.20 2008/01/29 17:34:29 choutko Exp $
+//  $Id: trigger102.h,v 1.21 2008/01/31 09:48:24 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -130,6 +130,7 @@ protected:
  geant _LiveTime;//Live time fraction
  geant _TrigRates[6];//some TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
  uinteger _TrigTime[5];//trig.times:[0]->calibr;[1]->reset's counter;[2]-[3]->40bits(32+8) of 0.64mks counter
+//                                  [4]->DeltaTrigTime(mksec, 2 consecutive events)
  static Scalers _scaler;
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LiveTime " << float(_LiveTime)/1000.<<endl;}
@@ -144,30 +145,12 @@ public:
                     int16u ectrpatt[6][3], geant ectrsum, geant LiveTime, geant rates[],uinteger trt[]):
       _PhysBPatt(PhysBPatt),_JMembPatt(JMembPatt),_tofflag1(toffl1),_tofflag2(toffl2),
                _antipatt(antipatt),_ecalflag(ecflg),_ectrsum(ectrsum),_LiveTime(LiveTime){
-   static uinteger tt[5]={0,0,0,0,0};
    int i,j;
    for(i=0;i<TOF2GC::SCLRS;i++)_tofpatt1[i]=tofpatt1[i];
    for( i=0;i<TOF2GC::SCLRS;i++)_tofpatt2[i]=tofpatt2[i];
    for(i=0;i<6;i++)for(j=0;j<3;j++)_ectrpatt[i][j]=ectrpatt[i][j];
    for(i=0;i<6;i++)_TrigRates[i]=rates[i];
-   for(i=0;i<4;i++)_TrigTime[i]=trt[i];
-   if(tt[4]==0){
-    tt[4]=1;
-    _TrigTime[4]=0;
-    for(i=0;i<4;i++)tt[i]=trt[i];
-   }
-   else{
-    if(tt[3]==trt[3]){
-      _TrigTime[4]=trt[2]-tt[2];
-    }
-    else if(trt[3]-tt[3]==1 && trt[2]>tt[2]+1){
-      _TrigTime[4]=0xFFFFFFFF+(tt[2]+1-trt[2]);
-    }
-    else  _TrigTime[4]=0xFFFFFFFF;
-    for(i=0;i<4;i++)tt[i]=trt[i];
-   }     
-   //cout << _TrigTime[4]<<endl;   
-    
+   for(i=0;i<5;i++)_TrigTime[i]=trt[i];
  }
  bool IsECHighEnergy()const {return _ecalflag/10>2;}
  bool IsECEMagEnergy()const {return _ecalflag%10==2;}

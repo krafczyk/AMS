@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.44 2008/01/29 17:22:56 choumilo Exp $
+//  $Id: trigger102.C,v 1.45 2008/01/31 09:48:09 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1068,7 +1068,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   geant ltimeg[2];
   uinteger ntrst(0),timcal(0);
   uinteger time[2]={0,0};
-  uinteger trtime[4]={0,0,0,0};
+  uinteger trtime[5]={0,0,0,0,0};
   uinteger busypat[2]={0,0};//1st word->bits 0-31, 2nd word-> bits 32-39 of 40-bits busy patt.word
   bool busyerr(0);
 //
@@ -1236,13 +1236,17 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     lword=uinteger(*(p+8+pattbias));//last 16bits of ntrst
     ntrst|=(lword<<8);
     trtime[1]=ntrst;
-    trtime[2]=time[0];
-    trtime[3]=time[1];
-    evtcurr=number(time[0])*0.64+number(time[1]*pow(2.,32))*0.64;//mksec
+    trtime[2]=time[0];//lsb
+    trtime[3]=time[1];//msb
+//
+    if(ntrst>0)evtcurr=1000000.*(ntrst-1)+time[0]*0.64+time[1]*pow(2.,32)*0.64;//mksec
+    else evtcurr=time[0]*0.64+time[1]*pow(2.,32)*0.64;//tempor
     if(evtprev>0){
       delevt=evtcurr-evtprev;
       evtprev=evtcurr;
-      HF1(1094,geant(delevt),1.);
+      if(delevt>(0xFFFF))trtime[4]=uinteger(0xFFFF);
+      else trtime[4]=uinteger(floor(delevt));
+      HF1(1094,geant(trtime[4]),1.);
     }
     else evtprev=evtcurr;
 //
@@ -1299,12 +1303,14 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       cout<<"      Instant CP_LayerPatt(myFTCflg):"<<TofFlag1<<", BZ_LayerPatt(myBZflg):"<<TofFlag2<<endl<<endl;
      
       cout<<"      FineTimeCounter value(8msb|32lsb):"<<time[1]<<"|"<<time[0]<<", CoarseTimeCounter:"<<ntrst<<endl;
+      number tmksec;
       if(ntrst>0){     
-        number timesec=number(time[0])*0.00000064+number(time[1]*pow(2.,32))*0.00000064+number(ntrst-1);
-        cout<<"      TimeTag(sec):"<<timesec<<endl;
+        tmksec=time[0]*0.64+time[1]*pow(2.,32)*0.64+1000000.*(ntrst-1);
+        cout<<"      TimeTag(mksec):"<<tmksec<<"  delta="<<trtime[4]<<endl;
       }
       else{
-        cout<<"      TimeTag(sec) is unknown (CoarseTimeCounter=0 !!!)"<<endl;
+        tmksec=time[0]*0.64+time[1]*pow(2.,32)*0.64;
+        cout<<"      TimeTag-problem (CoarseTimeCounter=0 !!!)"<<" tmksec/delta="<<tmksec<<" "<<trtime[4]<<endl;
       }
       if(!busyerr)cout<<"      BusyPattern(msb|lsb)(hex):"<<hex<<busypat[1]<<"|"<<busypat[0]<<dec<<endl;
       else cout<<"      BusyError found !!!"<<endl;
