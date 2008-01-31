@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.118 2008/01/30 17:06:06 ams Exp $
+# $Id: Monitor.pm,v 1.119 2008/01/31 07:24:19 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -941,7 +941,7 @@ sub getruns{
      if($hash->{DataMC}==0){
          $datamc="MC";
      }
-     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{CounterFail},$datamc,$hash->{Status};
+     push @text, $hash->{Run},$hash->{uid},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{CounterFail},$datamc,$hash->{Status};
      if ($hash->{Status} eq "Failed" and $hash->{History} eq "Failed"){
          push @text, 2;
      }elsif($hash->{History} eq "Failed" and $hash->{Status} ne "Finished"){

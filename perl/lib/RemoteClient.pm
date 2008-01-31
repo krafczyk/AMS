@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.491 2008/01/30 14:47:06 choutko Exp $
+# $Id: RemoteClient.pm,v 1.492 2008/01/31 07:24:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2687,9 +2687,19 @@ CheckCite:            if (defined $q->param("QCite")) {
             } else {
              $runid =  trimblanks($q->param("DSTID"));
              $title = $title.$runid;
+             if(not $runid =~/^\d+$/){
+                $runmin=0;
+                $runmax=2000000000;                
+                $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
+                          FROM ntuples
+                          WHERE run>=$runmin AND run<=$runmax and datamc=$datamc 
+                          ORDER BY run";
+             }
+             else{
              $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
                       FROM ntuples  WHERE run=$runid and datamc=$datamc";
             }
+         }
          my $ret=$self->{sqlserver}->Query($sql);
          if (defined $ret->[0][0]) {
           foreach my $r (@{$ret}){
@@ -2742,6 +2752,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "<td align=center><b><font color=\"blue\" >Type </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >SizeMB </font></b></td>";
               print "<td align=center><b><font color=\"blue\" >OrigFiles </font></b></td>";
+
          my $type="";
             if ($q->param("DataFileType") =~ /ANY/) {
              }                         
@@ -2753,7 +2764,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("DataFileID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DataFileID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status 
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
@@ -2763,14 +2774,14 @@ CheckCite:            if (defined $q->param("QCite")) {
 #               $self->ErrorPlus("Run no $runid is not digit");
                 $runmin=0;
                 $runmax=2000000000;                
-                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status 
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
              }
              else{
              $title = $title.$runid;
-                $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb,paths 
+                $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb,paths,status 
                           FROM datafiles
                           WHERE run=$runid ";
          }
@@ -2786,12 +2797,13 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $sizemb   = $r->[5];
              my $opath=$r->[6];
              my $paths=$r->[7];
+             my $status=$r->[8];
              my $runx=sprintf("%x",$run);
              print "<td><b> $run / $runx </td></b>
                     <td><b> $paths  </td>
                     <td><b> $starttime </b></td>
                     <td align=middle><b> $nevents </b></td>
-                    <td align=middle><b> $tag </b></td>
+                    <td align=middle><b> $tag / $status </b></td>
                     <td><b> $sizemb </b></td>
                     <td><b> $opath </b></td>\n";
              print "</font></tr>\n";
@@ -4868,7 +4880,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                    <INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR>\n";
            print "</b></font></td></tr>\n";
            $#datasets = -1;
-           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
+           $sql = "SELECT name FROM datasets  where datamc=1 ";
+#           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
            $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
             foreach my $ds (@{$r5}){
@@ -14475,7 +14488,7 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ");
+           my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -14505,8 +14518,13 @@ sub calculateMipsVC {
                print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} $template->{CPUPEREVENTPERGHZ} total \n";
                }
                  $dataset->{did}=$ret->[0][0];
-                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  ";
-#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+           my $qtype="";
+           if($template->{QTYPE} ne ""){
+               $qtype="and datafiles.type like '$template->{QTYPE}%'";
+            }
+
+                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype ";
+#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];

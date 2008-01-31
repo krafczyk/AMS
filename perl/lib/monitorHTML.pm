@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.24 2006/02/01 17:14:18 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.25 2008/01/31 07:24:20 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -280,6 +280,7 @@ sub Update{
      $#titles=-1;
                         @titles = (
             "Run",
+            "Uid",
             "SubmitTime",
             "First Event",
             "Last Event",
