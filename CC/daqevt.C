@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.98 2008/01/30 14:47:16 choutko Exp $
+//  $Id: daqevt.C,v 1.99 2008/01/31 11:28:38 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -49,6 +49,26 @@ uinteger      Time_1;
 DAQEvent::~DAQEvent(){
 shrink();
 }
+
+int16u DAQEvent::calculate_CRC16(int16u *dat, int16u len) {
+
+  int i;
+  int16u CRC = 0xFFFF;
+  int16u g = 0x1021;
+
+  for (i=0; i<len; i++) {
+    int j;
+//    int16u d = (((dat[i])&255)<<8) | (dat[i]>>8); 
+    int16u d = dat[i];
+    for (j=0; j<16; j++) {
+      if ((CRC ^ d) & 0x8000) CRC = (CRC << 1) ^ g;
+      else                    CRC = (CRC << 1);
+      d <<= 1;
+    }
+  }
+  return CRC;
+}
+
 
 void DAQEvent::shrink(){
 
@@ -510,9 +530,13 @@ integer DAQEvent::_HeaderOK(){
 }
 
 integer DAQEvent::_DDGSBOK(){
-
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(_isddg(*(_pcur+_cll(_pcur)))){
+      if(calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
+       cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
+       return 0;
+      }
+
       if(_isjinj(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
       if(event !=  (_Event&((1<<16)-1))){

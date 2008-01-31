@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.38 2008/01/29 17:34:28 choutko Exp $
+//  $Id: daqevt.h,v 1.39 2008/01/31 11:28:43 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -62,6 +62,7 @@ uinteger _Length;
 uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
+int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
 uinteger _usec;
 int16u *  _pcur;
