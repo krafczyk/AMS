@@ -2480,7 +2480,7 @@ class RemoteClient:
                         continue
                     (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
-                        sizemb=int(size)/1024
+                        sizemb=int(size)/2
                         type="UNK"
                         if(t0=="5"):
                             type="SCI"
