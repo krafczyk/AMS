@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.260 2008/01/30 08:37:34 choutko Exp $
+#  $Id: datacards.doc,v 1.261 2008/01/31 09:10:43 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -85,13 +85,16 @@ I170 BuildMin(-1)                  // min build version (production only)
 
 RICAL
 I 1  ReadFile(0)        // Read calibration file at initialization if 1
-                        // use nominal values for all the PMTs if 0
+                        // use nominal values for all the PMTs if 0, write
+			// calibration file if /10!=0
 I 2  sec[2](0,0)        // Validity time:              
 I 4  min[2](0,0)        //
 I 6  hour[2](0,0)       //
 I 8  day[2](1,1)        //
 I10  mon[2](0,0)        //
 I12  year[2](101,110)   // year-1900
+I14  Input filename(200)
+I214 Output filename(200)
 
 RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
