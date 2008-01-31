@@ -360,13 +360,19 @@ class RemoteClient:
         #  isonline: 1/0 
         #  return disk with highest available and online=1 and path like req
         #
+        if(path== ""):
+           sql="select disk from filesystems where isonline=1 and status='Active'  order by available desc" 
+        else:
            sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
-           ret=self.sqlserver.Query(sql);
-           if(time.time()-cachetime < self.dbfsupdate() and len(ret)>0):
-               return ret[0][0]
+        ret=self.sqlserver.Query(sql);
+        if(time.time()-cachetime < self.dbfsupdate() and len(ret)>0):
+            return ret[0][0]
+        if(path == ""):
+           sql="select disk,host,status,allowed  from filesystems " 
+        else:
            sql="select disk,host,status,allowed  from filesystems where path='%s'" %(path)
-           ret=self.sqlserver.Query(sql);
-           for fs in ret:
+        ret=self.sqlserver.Query(sql);
+        for fs in ret:
                #
                #          check to see if it is can be readed
                #
@@ -381,6 +387,8 @@ class RemoteClient:
                os.unlink(stf)
                if stat[ST_SIZE]==0:
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
+                   if(self.v):
+                       print stf," Is Offline"
                    if updatedb!=0:
                        self.sqlserver.Update(sql)
                    continue
@@ -423,9 +431,12 @@ class RemoteClient:
                    if updatedb>0:
                     self.sqlserver.Update(sql)
                     self.sqlserver.Commit()
+        if(path == ""):
+           sql="select disk from filesystems where isonline=1 and status='Active'  order by available desc" 
+        else:
            sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
-           ret=self.sqlserver.Query(sql)
-           return ret[0][0]
+        ret=self.sqlserver.Query(sql)
+        return ret[0][0]
 
     def  dblupdate(self):
            part=0
