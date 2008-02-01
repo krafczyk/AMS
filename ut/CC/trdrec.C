@@ -21,7 +21,7 @@ integer AMSTRDCluster::build(int rerun){
        integer ilay=id.getlayer();
        integer ilad=id.getladder();
        if(ptr->testlast()){
-        adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
+        if(!id.checkstatus(AMSDBc::BAD))adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
         ptra[ptr->getidsoft().gettube()]=ptr;
 #ifdef __AMSDEBUG__
         if(id.getgain()<=0){

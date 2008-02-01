@@ -19,7 +19,7 @@ echo $UNAME is not supported yet
 fi
 
 RUN=1201277695
-CRUN=0885063519
+CRUN=1201198407 
 $AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14
