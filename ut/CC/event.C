@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.361 2008/02/01 11:20:20 choutko Exp $
+//  $Id: event.C,v 1.362 2008/02/01 13:00:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1294,6 +1294,13 @@ void AMSEvent::_reamsevent(){
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
+  for(int i=0;;i++){
+    AMSContainer *pctr=AMSEvent::gethead()->getC("TriggerLVL1",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+  }
+
+
      AMSgObj::BookTimer.stop("REAMSEVENT");  
      return;    
   }
