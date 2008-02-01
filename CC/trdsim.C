@@ -157,6 +157,8 @@ integer AMSTRDRawHit::checkdaqidS(int16u id){
  return 0;
 }
 
+
+
 integer AMSTRDRawHit::checkdaqid(int16u id){
 
  for(int i=0;i<getmaxblocks();i++){
@@ -170,6 +172,16 @@ integer AMSTRDRawHit::checkdaqid(int16u id){
  return 0;
 
 
+}
+
+void AMSTRDRawHit::updtrdcalibJ(int n, int16u* pbeg){
+ unsigned int length=n&65535;
+ unsigned int ic=(n>>16);
+ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
+  int udr=((*(p+*p))&31)/4;
+  uinteger leng= ((*p)+4) | ( (udr+ic*trdid::nudr)<<16);
+  updtrdcalib(leng,p+1);
+ }
 }
 
 void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
@@ -199,6 +211,10 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
          if(id.getgain()==0)id.setgain()=1;
          id.setped()=*(p+i)/TRDMCFFKEY.f2i;
          id.setsig()=*(p+leng2+i)/TRDMCFFKEY.f2i;
+         if(id.getsig()>TRDCALIB.BadChanThr){
+             id.setstatus(AMSDBc::BAD);
+          }
+         else id.clearstatus(AMSDBc::BAD);
        }
   }
   bool update=true;
@@ -218,17 +234,17 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
      AMSTRDIdSoft::_Calib[i][j]=0;
     }
    }
-   AMSTRDIdCalib::ntuple(AMSEvent::gethead()->gettime());
+   AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
    AMSTimeID *ptdv;
      time_t begin,end,insert;
-      const int ntrd=3;
-      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDGains"};
+      const int ntrd=4;
+      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDGains","TRDStatus"};
       for (int i=0;i<ntrd;i++){
       ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
-      ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-86400,AMSEvent::gethead()->gettime()-86400+100000000);
+      ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
       cout <<" TRD H/K  info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
@@ -247,20 +263,25 @@ unsigned int ic=(n>>16);
 
 for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
+ bool compressed=DAQEvent::isCompMode(*(p+*p));
  int udr=((*(p+*p))&31)/4;
  if(udr>=trdid::nudr){
    cerr<<"AMSTRDRawHit::buildraw-E-udrOutOfRange "<<udr;
    continue;
  }
- if(raw){
-  if(*p!=449){
+ int len=*p;
+ int rawl=0;
+ if(raw ){
+  rawl=448;
+  if(len!=rawl+1 && !compressed){
 #ifdef __AMSDEBUG__
    cerr<<"AMSTRDRawHit::buildraw-E-WrongSubBlockLengthInRoawMode "<<*p<<endl;
    cerr <<"  UDR No "<<udr<<endl;
 #endif
    return;
-  }  
-  for (int i=0;i<*p-1;i++){
+  }
+  else if(!compressed ||(compressed && (AMSJob::gethead()->isCalibration() & AMSJob::CTRD))){
+  for (int i=0;i<rawl;i++){
         int ufe=i%7;
         int cha=i/7;
         int roch=cha%16;
@@ -269,7 +290,7 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
         if(!id.dead()){
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
-         AMSTRDRawHit(id,(((*(p+i))&32767))*TRDMCFFKEY.f2i));
+         AMSTRDRawHit(id,(((*(p+i))&32767)-id.getped())*TRDMCFFKEY.f2i));
 //         cout <<id<<" "<<((*(p+i))&32767)<<" "<<id.getped()<<endl;
        }
        else{
@@ -277,8 +298,10 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
        }
   }
  }
- else{
-  for (int j=1;j<*p;j+=2){
+ }
+ if(compressed){
+  // compressed mode detected
+  for (int j=1+rawl;j<len;j+=2){
         uint16 adr=*(p+j);
         int ufe=adr/64;
         int cha=adr%64;
@@ -299,7 +322,6 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
        }
   }
    
-  // compressed mode detected
  }
  }
 

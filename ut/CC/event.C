@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.360 2008/01/30 08:36:05 choutko Exp $
+//  $Id: event.C,v 1.361 2008/02/01 11:20:20 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1290,6 +1290,7 @@ void AMSEvent::_reamsevent(){
         return;
       }
    }
+  if(AMSJob::gethead()->isReconstruction() )_redaqevent();//create subdetectors RawEvent-Objects
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
@@ -1299,13 +1300,6 @@ void AMSEvent::_reamsevent(){
 
 
 
-#ifndef __AMSDEBUG__  
-  if(AMSJob::gethead()->isReconstruction() )_redaqevent();//create subdetectors RawEvent-Objects
-//                                                         +lvl1(but some det.trig.patt still missing!)
-#else
- // temporary : no daq for ams02 yet
-  if(AMSJob::gethead()->isReconstruction() || !strstr(AMSJob::gethead()->getsetup(),"AMS02")) _redaqevent();
-#endif
   // Skip EveryThing 
   if(DAQCFFKEY.NoRecAtAll){
     AMSgObj::BookTimer.stop("REAMSEVENT");  

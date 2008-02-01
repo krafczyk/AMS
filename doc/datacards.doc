@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.261 2008/01/31 09:10:43 mdelgado Exp $
+#  $Id: datacards.doc,v 1.262 2008/02/01 11:20:29 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -557,7 +557,7 @@ R7   pedsigma(102)       // sigma
 R8   sigma(6)       // sigma
 R9   gain(1)        //gain
 R10   cmn(16)
-I11   f2i(8)         // float to int convertor in raw format
+R11   f2i(8)         // float to int convertor in raw format
 I12   adcoverflow(4095)    // 12 bit adc 
 I13   NoiseOn(1)            // Generate(1) do not generate(0) noise in trd
 R14   GeV2ADC(1e8)

@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.39 2008/01/31 11:28:43 choutko Exp $
+//  $Id: daqevt.h,v 1.40 2008/02/01 11:20:29 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -124,6 +124,7 @@ for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
 }
 static bool ismynode(int16u id,char * sstr){return _getnode(id)>127 && strstr(_getnodename(id),sstr);}
 static bool isRawMode(int16u id){return (id&64)>0;}
+static bool isCompMode(int16u id){return (id&128)>0;}
 static bool isError(int16u id){return (id&512)>0;}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
@@ -134,7 +135,7 @@ void buildDAQ(uinteger btype=0);
 void buildRawStructures();
 void write();
 integer read();
-integer getoffset();
+uinteger getoffset();
 void setoffset(uinteger offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}

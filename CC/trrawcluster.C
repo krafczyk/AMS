@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.78 2008/01/31 10:19:57 choutko Exp $
+//  $Id: trrawcluster.C,v 1.79 2008/02/01 11:20:21 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -1645,6 +1645,7 @@ if(nerr>0){
   }
   cout <<" nc "<<nc<<endl;
   if(update || nc>=TRCALIB.EventsPerCheck){
+     update=true;
    for(int i=0;i<getmaxblocks();i++){
     for (int j=0;j<trid::ntdr;j++){
      AMSTrIdSoft::_Calib[i][j]=0;
@@ -1664,7 +1665,7 @@ if(nerr>0){
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+8640000);
+   ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()+8640000);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);
@@ -1676,7 +1677,7 @@ if(nerr>0){
     UHTOC(IOPA.hfile,40,hfile,160);  
     char filename[256];
     strcpy(filename,hfile);
-    sprintf(filename,"%s.%d",hfile,AMSEvent::gethead()->gettime());
+    sprintf(filename,"%s_tra.%d",hfile,AMSEvent::gethead()->getrun());
     integer iostat;
     integer rsize=1024;
     char event[80];  

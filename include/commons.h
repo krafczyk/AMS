@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.223 2008/01/29 09:09:08 choumilo Exp $
+//  $Id: commons.h,v 1.224 2008/02/01 11:20:29 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -202,7 +202,7 @@ geant pedsig;
 geant sigma;
 geant gain;
 geant cmn;
-int   f2i;
+geant   f2i;
 integer adcoverflow;
 integer NoiseOn;
 float GeV2ADC;
@@ -903,8 +903,7 @@ integer CalibProcedureNo;
 integer EventsPerCheck;
 geant PedAccRequired; 
 integer Validity[2];
-geant BadChanThr[2];
-integer PrintBadChList;
+geant BadChanThr;
 };
 #define TRDCALIB COMMON_BLOCK(TRDCALIB,trdcalib)
 COMMON_BLOCK_DEF(TRDCALIB_DEF,TRDCALIB);

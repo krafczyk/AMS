@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.3 2008/01/23 15:34:33 choutko Exp $
+//  $Id: trdcalib.C,v 1.4 2008/02/01 11:20:21 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -33,23 +33,22 @@ for(i=0;i<getnchan();i++){
 
 
 void AMSTRDIdCalib::ntuple(integer s){
-  if(IOPA.hlun>=0){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     char filename[256];
     integer iostat;
     integer rsize=1024;
-    sprintf(filename,"%s.%d",hfile,s);
+    sprintf(filename,"%s_trd.%d",hfile,s);
     HROPEN(IOPA.hlun+1,"trdcalibration",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening trdcalib ntuple file "<<filename<<endl;
      exit(1);
     }
-    else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
+    else cout <<"trdcalib ntuple file "<<filename<<" opened."<<endl;
 
    TRDCalib_def TRDCALIB;
-   HBNT(IOPA.ntuple,"Trd Calibaration"," ");
-   HBNAME(IOPA.ntuple,"TrdCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
+   HBNT(IOPA.ntuple,"trd calibaration"," ");
+   HBNAME(IOPA.ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
    int i,j,k,l,m;
      for(i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
@@ -75,7 +74,6 @@ void AMSTRDIdCalib::ntuple(integer s){
   HREND ("trdcalibration");
   CLOSEF(IOPA.hlun+1);
 
-}
 }
   
 
@@ -185,7 +183,7 @@ void AMSTRDIdCalib::_update(){
           total++;
           int ch=cid.getchannel();
           cout <<cid.getped()<<" "<<_ADCRaw[ch]<<endl;
-          cid.setped()=_ADCRaw[ch];
+          cid.setped()=cid.getped()+_ADCRaw[ch];
           cid.setgain()=1;
           cout <<"sig "<<cid.getsig()<<" "<<_ADC2Raw[ch]<<endl;
           cid.setsig()=_ADC2[ch];

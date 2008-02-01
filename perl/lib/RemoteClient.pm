@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.492 2008/01/31 07:24:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.493 2008/02/01 11:20:29 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9739,7 +9739,7 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
                  $output[$#output]->[$k]+=$hash->[$k]*$fac;
                }
                
-              }
+           }
     elsif ($output[$#output]->[1]>1){
         $output[$#output]->[2]/=$output[$#output]->[1];
         $output[$#output]->[3]/=$output[$#output]->[1];
@@ -14574,10 +14574,10 @@ sub calculateMipsVC {
                   $sql="select sum(datafiles.nevents/(datafiles.levent+1-datafiles.fevent)*jobs.realtriggers)  from jobs,dataruns,datafiles where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
-                  $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
+                  $sql="select sum(datafiles.nevents)  from jobs,dataruns,datafiles where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers<0 and datafiles.status='OK'".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
                   $completed+=$rtn1->[0][0];
-                  $submitted+=$rtn1->[0][0];
+                  $submitted+=$rtn2->[0][0];
                   $template->{TOTALEVENTS}-=$rtn1->[0][0];
 #                  $submitted+=$rtn2->[0][0];
 #                  $template->{TOTALEVENTS}-=$rtn2->[0][0];
@@ -14631,7 +14631,6 @@ sub calculateMipsVC {
                           my $qq=$self->{sqlserver}->Query($sql);
                           $rtrig*=$qq->[0][0];
                          $completed+=$rtrig;
-                         $submitted+=$rtrig;
                          $template->{TOTALEVENTS}-=$rtrig;
 
                      }

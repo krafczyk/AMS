@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.99 2008/01/31 11:28:38 choutko Exp $
+//  $Id: daqevt.C,v 1.100 2008/02/01 11:20:20 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -309,7 +309,8 @@ else return false;
 }
 
 bool    DAQEvent::_isjinf(int16u id){
-if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=150 && ((id>>5)&((1<<9)-1))<=205 && (id>>14)==2)return true;
+//if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=150 && ((id>>5)&((1<<9)-1))<=205 && (id>>14)==2)return true;
+if( ((id>>5)&((1<<9)-1))>=150 && ((id>>5)&((1<<9)-1))<=205 && (id>>14)==2)return true;
 else return false;
 }
 
@@ -649,7 +650,7 @@ return 1;
 
 void DAQEvent::buildRawStructures(){
 #ifdef __AMS02DAQ__
-  if(_Checked ||(_EventOK()==1 && (_HeaderOK()) && _DDGSBOK()) ){
+  if((_Checked ||(_EventOK()==1 && _HeaderOK())) && _DDGSBOK() ){
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
    for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur=_pcur+_cl(_pcur)){
@@ -743,11 +744,11 @@ void DAQEvent::write(){
 
 }
 
-integer DAQEvent::getoffset(){
-   if(fbin)return integer(fbin.tellg())-sizeof(_pData[0])*(_Length);
+uinteger DAQEvent::getoffset(){
+   if(fbin)return uinteger(fbin.tellg())-sizeof(_pData[0])*(_Length);
    else {
     cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
-    return -1;
+    return 0;
    }
 }
 
@@ -783,6 +784,7 @@ integer DAQEvent::read(){
     }
     if(fbin.good() && !fbin.eof()){
      int16u l16[2];
+     int16u l16c[2];
      fbin.read(( char*)(l16),sizeof(l16));
      _convertl(l16[0]);
      _convertl(l16[1]);
@@ -819,19 +821,23 @@ integer DAQEvent::read(){
     }
      if(fbin.good() && !fbin.eof()){
       if(_create()){
-       fbin.seekg(integer(fbin.tellg())-2*sizeof(_pData[0]));
+//       fbin.seekg(integer(fbin.tellg())-2*sizeof(_pData[0]));
+       int off=-2*sizeof(_pData[0]);
+       fbin.seekg(off,ios::cur);
        fbin.read(( char*)(_pData),sizeof(_pData[0])*(_Length));
        _convert();
       }
       else{
-       fbin.seekg(integer(fbin.tellg())+sizeof(_pData[0])*(_Length-1));
+//       fbin.seekg(integer(fbin.tellg())+sizeof(_pData[0])*(_Length-1));
+       int off=sizeof(_pData[0])*(_Length-1);
+       fbin.seekg(off,ios::cur);
        _Length=0;
       }
      }
      else break;
     }
     else break;  
-  }while(_EventOK()==0 || (_HeaderOK()==0 )|| _DDGSBOK()==0);
+  }while(_EventOK()==0 || (_HeaderOK()==0 ));
    return fbin.good() && !fbin.eof();
 }
 
@@ -899,7 +905,8 @@ DAQEvent::InitResult DAQEvent::init(){
      }
      // pos back if fbin.good
      if(ok){
-            fbin.seekg(integer(fbin.tellg())-daq.getlength());
+            int off=-daq.getlength();
+            fbin.seekg(off,ios::cur);
             cout<<"DAQEvent::init-I-Selected Run = "<<Run<<
               " Event = "<<daq.eventno()<< " Position = "<<iposr<<" Time "<<ctime(&daq.time())<<endl;
 
@@ -1301,16 +1308,82 @@ event=0;
 
 if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
  while(KIFiles>=InputFiles){
-  sleep(60);
+// Check if up directory isdigital, exists, and has files
+  char dir[255];
+  char newdir[1025];
+  char delims[]="/";
+  strcpy(newdir,_DirName);
+  char *result=strtok(newdir,delims);
+  while(result){
+     strcpy(dir,result);
+     result = strtok( NULL, delims );
+   }
+    bool digit=true;
+    for(int j=0;j<strlen(dir);j++){
+      if(!isdigit(dir[j])){
+        digit=false;
+        break;
+      }
+    }
+    if(digit){
+      int q=atoi(dir)+1;
+      if(q<10000){
+       strcpy(newdir,_DirName);
+       result=strstr(newdir,dir);
+       sprintf(dir,"%04d",q);
+       for(int i=0;i<4;i++){
+        *(result+i)=dir[i];
+       }
+        dirent ** namelist;
+#ifdef __LINUXGNU__
+       int ntot=scandir((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+#else
+       int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
+#endif
+       if(ntot>0){
+         for(int i=0;i<ntot;i++){
+            free(namelist[i]);
+         }            
+            free(namelist);
+       }
+       strcpy(_DirName,newdir); 
+       KIFiles=0;
+       cout <<"DAQEvent-I-SwitchingToNewDirFound "<<_DirName<<endl;
+      }
+     }
+  else sleep(60);
   if(ifnam){
    delete[] ifnam;
    ifnam=0;
   }
   InputFiles=parser(_DirName,ifnam); 
  }
-        AMSJob::gethead()->urinit(ifnam[KIFiles]);
-        return ifnam[KIFiles++];
-}
+         
+          char rootdir[1025];
+          strcpy(rootdir,ifnam[KIFiles]);
+          char *last=strstr(rootdir,"ACOP");
+          if(last){
+              *last='R';
+              *(last+1)='O';
+              *(last+2)='O';
+              *(last+3)='T';
+              char cmd[1025];
+              strcpy(cmd,"mkdir -p ");
+              last=strrchr(rootdir,'/');
+              if(last){
+               strncat(cmd,rootdir,(last-rootdir));
+               }
+              if(system(cmd)){
+                cerr<<"DAQEvent-E-Parser-Unableto "<< cmd<<endl;
+              }
+             }
+             else{
+               cerr<<"DAQEvent-F-Parser-InvalidFirctoryStructure "<< rootdir<<endl;
+               abort();
+              }             
+              AMSJob::gethead()->urinit(rootdir);
+              return ifnam[KIFiles++];
+        }
 else{
  if(KIFiles<InputFiles)return ifnam[KIFiles++];
  else return 0;
