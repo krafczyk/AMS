@@ -317,11 +317,8 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
 #ifdef __AMSDEBUG__
             if(amp<0)cerr<<"AMSTRDRawHit::buildraw-W-AmpProblem "<<amp<<endl;
 #endif
-         if(amp>0){
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
          AMSTRDRawHit(id,amp));
-  //       cout <<id<<" "<<((*(p+j+1))&32767)<<" "<<id.getped()<<endl;
-         }
        }
        else{
 //         cerr<<"AMSTRDRawHit::buildraw-E-IDDead"<<id<<endl;
