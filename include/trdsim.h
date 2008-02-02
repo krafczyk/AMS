@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.10 2008/02/01 11:20:29 choutko Exp $
+//  $Id: trdsim.h,v 1.11 2008/02/02 15:29:03 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -15,7 +15,7 @@ using trdsim::numvawf;
 
 class AMSTRDRawHit: public AMSlink {
 AMSTRDIdSoft _id;  
-uinteger _Amp;
+integer _Amp;
 protected:
 void _init(){};
 void _copyEl();
@@ -31,7 +31,7 @@ static number delay_sf(number usec);
  static void init_delay_table();
 static void lvl3CompatibilityAddress(int16u address,uinteger &udr, uinteger & ufe, uinteger & ute,uinteger & chan);
 static bool & HardWareCompatibilityMode(){return _HardWareCompatibilityMode;}
-AMSTRDRawHit( const AMSTRDIdSoft & id,uinteger amp):AMSlink(),_id(id),_Amp(amp){};
+AMSTRDRawHit( const AMSTRDIdSoft & id,integer amp):AMSlink(),_id(id),_Amp(amp){};
 uinteger getid() const {return _id.cmpt();}
 static integer Out(integer status);
 AMSTRDIdSoft & getidsoft()  {return _id;}

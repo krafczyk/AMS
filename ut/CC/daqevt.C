@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.100 2008/02/01 11:20:20 choutko Exp $
+//  $Id: daqevt.C,v 1.101 2008/02/02 15:29:02 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -1307,6 +1307,7 @@ event=0;
 }
 
 if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
+again:
  while(KIFiles>=InputFiles){
 // Check if up directory isdigital, exists, and has files
   char dir[255];
@@ -1345,14 +1346,18 @@ if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
             free(namelist[i]);
          }            
             free(namelist);
-       }
+       
        strcpy(_DirName,newdir); 
        KIFiles=0;
        cout <<"DAQEvent-I-SwitchingToNewDirFound "<<_DirName<<endl;
       }
+       }
      }
   else sleep(60);
   if(ifnam){
+   for(int i=0;i<InputFiles;i++){
+   delete[] ifnam[i];
+  }
    delete[] ifnam;
    ifnam=0;
   }
@@ -1380,7 +1385,32 @@ if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
              else{
                cerr<<"DAQEvent-F-Parser-InvalidFirctoryStructure "<< rootdir<<endl;
                abort();
-              }             
+              }  
+/*             
+              struct stat f_stat;
+              char lockfile[1024];
+              strcpy(lockfile,rootdir);
+              strcat(lockfile,".lock");
+              if(!stat(lockfile,&f_stat)){
+                KIFiles++;
+                goto again;
+              }
+              else{
+               char cmd[1024];
+               strcpy(cmd,"touch ");
+               strcat(cmd,lockfile);
+               if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
+              } 
+*/
+              struct stat f_stat;
+              sleep(2);
+              char rootfile[1024];
+              strcpy(rootfile,rootdir);
+              strcat(rootfile,".root");
+              if(!stat(rootfile,&f_stat)){
+                KIFiles++;
+                goto again;   
+              } 
               AMSJob::gethead()->urinit(rootdir);
               return ifnam[KIFiles++];
         }

@@ -18,6 +18,7 @@ echo $UNAME is not supported yet
 
 fi
 RUN=1201279137
+rm -rf /tmp/last.root
 $AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14
