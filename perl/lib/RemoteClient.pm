@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.493 2008/02/01 11:20:29 choutko Exp $
+# $Id: RemoteClient.pm,v 1.494 2008/02/04 11:04:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -802,7 +802,10 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
              $dataset->{version}=$vrs[1];
+             last;
          }
+      }
+      foreach my $job (@jobs){
       if($job =~ /\.job$/){
        if($job =~ /^\./){
             next;
@@ -6322,7 +6325,7 @@ print qq`
         my $runsave=undef;
         if($template eq "Any"){
           $Any=0;
-          $template= ${$dataset->{jobs}}[$Any]->{filename};
+          $template=${$dataset->{jobs}}[$Any]->{filename};
         }
        if(defined $dataset and $dataset->{datamc}==1){
 #  Data type dataset
@@ -6662,8 +6665,6 @@ print qq`
  $sql="select FEvent from DataRuns where jid=$job";
  $ret=$self->{sqlserver}->Query($sql);
 }
-
-            
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($job,
                               '$script',
@@ -7483,7 +7484,7 @@ anyagain:
           }
         unlink $readme;
      }
-
+         
         for my $i (1 ... $runno){
          #find buffer and patch it accordingly
          my $evts=$evperrun;
@@ -7733,8 +7734,6 @@ anyagain:
  $sql="select FEvent from Runs where jid=$run";
  $ret=$self->{sqlserver}->Query($sql);
 }
-
-            
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($run,
                               '$script',
@@ -7794,6 +7793,9 @@ anyagain:
          $ri->{cinfo}->{HostName}=" ";
          push @{$self->{Runs}}, $ri;
          $run=$run+1;
+    if($Any>=0 and defined $dataset){
+         last;
+     }
         }
        
        if($Any>=0 and defined $dataset){
@@ -7806,7 +7808,12 @@ anyagain:
        if($evtl>0){
 anynext:
          $Any+=1;
-         $Any=$Any%($#{$dataset->{jobs}}+1);
+         if($#{$dataset->{jobs}}<=0){
+           $Any=0;
+         }
+         else{
+           $Any=$Any%($#{$dataset->{jobs}}+1);
+         }
          if(${ $dataset->{jobs}}[$Any]->{TOTALEVENTS}<=0){
            goto anynext;
          }
@@ -7824,9 +7831,9 @@ anynext:
                     $q->delete("QEv");
                     $runsave=$run;
             goto anyagain;
-}
-}
-}
+         }
+       }
+     }
         if($Any>=0){
          $runno=$srunno-$qrunno+1;
         }
@@ -9701,24 +9708,7 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
              }
            my $did       = $ds->[0];
            my $dataset   = trimblanks($ds->[1]);
-#
-#           $td[0] = time();
-#           $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs
-#                    WHERE
-#                     Runs.submit > $periodStartTime AND
-#                      Jobs.pid = $periodId AND
-#                       Jobs.did = $did AND
-#                        Jobs.jid = Runs.jid AND
-#                        (Runs.status='Completed' OR Runs.status='Finished') AND
-#                          Jobs.cid != $TestCiteId
-#                       ";
-#           my $r6=$self->{sqlserver}->Query($sql);
-#           $td[1] = time();
-#           my $events = 0;
-#           if(defined $r6->[0][0]){
-#             $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
               my $ggot=-1;
-              
              for my $got (0...$#output) {
                my $hash=$output[$got];
                 if($dataset eq $hash->[0]){
@@ -14629,9 +14619,11 @@ sub calculateMipsVC {
                           $rtrig=$ntevt;
                           $sql="select datafiles.nevents/(datafiles.levent-datafiles.fevent+1) from datafiles,dataruns,jobs where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.jid=$job->[0]";
                           my $qq=$self->{sqlserver}->Query($sql);
+                          if(defined $qq->[0][0]){
                           $rtrig*=$qq->[0][0];
                          $completed+=$rtrig;
                          $template->{TOTALEVENTS}-=$rtrig;
+                         }
 
                      }
 
