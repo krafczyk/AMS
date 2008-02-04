@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.494 2008/02/04 11:04:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.495 2008/02/04 12:25:18 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1561,8 +1561,7 @@ sub ValidateRuns {
          $sql   = "SELECT runs.status, jobs.content, cites.status
                     FROM runs,jobs,cites
                      WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid AND cites.cid=jobs.cid";
-         my $r1 = $self->{sqlserver}->Query($sql);
-         if (not defined $r1->[0][0]) {
+         if($self->findJob($run->{Run},undef,undef,1)!=$run->{Run}){
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}";
           $self->{sqlserver}->Update($sql);
           $warn = "cannot find status, content in Jobs for JID=$run->{Run}. *TRY* Delete Run=$run->{Run} from server \n";
@@ -1571,7 +1570,9 @@ sub ValidateRuns {
 #          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
           print "--- done --- \n";
           print FILEV "--- done --- \n";
-         } else { #0
+         }
+         else { #0
+          my $r1=$self->{sqlserver}->Query($sql);
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
           my $citestatus = $r1->[0][2];
@@ -12679,6 +12680,33 @@ my %CloseDSTPatterns = (
     my $cpat={
       %CloseDSTPatterns,
     };
+    if(not defined $buf){
+     my $joudir="";
+     my $sql="select dirpath from journals where cid=$cid";
+     my $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+       $joudir=$ret->[0][0];
+     }
+     else{
+      return 0;
+     }
+     $joudir=$joudir."/jou/MCProducer/";
+     opendir THISDIR,$joudir or return 0;
+     my @files=readdir THISDIR;
+     closedir THISDIR;
+    foreach my $file (@files){
+        if($file=~/$jid/ and $file=~m/journal/){
+         my $newfile=$joudir.$file;
+         open(FILE,"<".$newfile) or return 0;
+         read (FILE, $buf,65536);
+         close FILE;
+         last;
+       } 
+    }
+    }
+    if(not defined $buf){
+      return 0;
+    }
             my @blocks =  split "-I-TimeStamp ",$buf;
             my @junk=split ' ',$blocks[1];
             my $ctime=$junk[0];
@@ -12699,7 +12727,10 @@ my %CloseDSTPatterns = (
             my @jhost=split ':',$cpat->{Name};
             my $host=$jhost[0];
             my @junk=split '\/', $cpat->{Name};
-            my $fnam=$dir.'/'.$junk[$#junk];
+            my $fnam=$jhost[1];
+            if(defined $dir){
+             $fnam=$dir.'/'.$junk[$#junk];
+            }
             my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fnam 0 2 0 1";
             system($validatecmd);
              $fnam=$fnam.'.jou'; 
