@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.135 2007/12/07 10:13:10 choutko Exp $
+//  $Id: server.C,v 1.136 2008/02/05 10:37:11 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3228,6 +3228,31 @@ void Producer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne, DPS::Cli
   break;
 }
 //         cout <<" exiting Producer_impl::sendRunEvInfo"<<endl;
+
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+       if(rc==DPS::Client::Delete)dvar->sendRunEvInfo(ne,rc);
+    }
+   catch (CORBA::SystemException &ex){
+     // Have to Kill Servers Here
+   }
+
+  }
+
+ }
+}
+}
+
+
+
 }
 
 void Producer_impl::sendDSTInfo(const  DPS::Producer::DSTInfo & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){

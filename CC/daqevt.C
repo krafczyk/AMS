@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.101 2008/02/02 15:29:02 choutko Exp $
+//  $Id: daqevt.C,v 1.102 2008/02/05 10:37:11 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -533,7 +533,7 @@ integer DAQEvent::_HeaderOK(){
 integer DAQEvent::_DDGSBOK(){
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(_isddg(*(_pcur+_cll(_pcur)))){
-      if(calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
+      if(_RunType!=202 && calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
        cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
        return 0;
       }
@@ -1351,7 +1351,9 @@ again:
        KIFiles=0;
        cout <<"DAQEvent-I-SwitchingToNewDirFound "<<_DirName<<endl;
       }
+      else sleep(60);
        }
+       else sleep(60);
      }
   else sleep(60);
   if(ifnam){
