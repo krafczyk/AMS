@@ -6,7 +6,7 @@ import CORBA
 from DBSQLServer import DBSQLServer
 class DBServer:
     fields={'cid':None,'start':None,'ac':None,'orb':None,'root_poa':None,'mypoadbserver':None,'myref':None,'myior':None,'arsref':[],'arpref':[],'nhl':None,'ahls':None,'acl':None,'aml':None,'asl':None,'adbsl':None,'acl_maxc':0,'aml_maxc':0,'asl_maxc':0,'adbsl_maxc':0,'nsl':None,'ncl':None,'nkl':None,'rtb':None,'rtb_maxr':None,'dsti':None,'dsts':None,'db':None,'env':None,'rn':None,'dbfile':None,'ok':0,'rundummy':None}
-    def __init__(self,ior):
+    def __init__(self,ior,iord):
         if(ior == None):
             #start server
             self.start=time.time();
@@ -22,6 +22,13 @@ class DBServer:
             self.cid.Type=self.tm.Producer
             (length,ars)=self.tm.getARS(self.cid,self.tm.Any,0,1)
             self.iorp=self.orb.string_to_object(ars[0].IOR)
+            self.cid.Type=self.tm.DBServer
+            (length,ars)=self.tm.getARS(self.cid,self.tm.Any,0,1)
+            if(length>0):
+              self.iord=self.orb.string_to_object(ars[0].IOR)
+              print self.iord.getId().Type
+            else:
+              self.iord=self.orb.string_to_object(iord)
             self.UpdateEverything()
     def CreateRun(self,run,fevent,levent,tfevent,tlevent,priority,datamc,path):
         self.dummyrun.Run=run

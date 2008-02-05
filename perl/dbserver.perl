@@ -54,12 +54,13 @@ foreach my $chop  (@ARGV){
          }
           warn " IORP $sqls->{IORP} \n";
           warn " IORS $sqls->{IORS} \n";
+          warn "IORD $sqls->{IORD} \n";
           if(defined $sqls->{IORP} and defined $sqls->{IORS}){
             warn " updating sql \n"; 
             my $createt=time();
             my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
             $sqls->Update($sql);
-            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}',NULL,'Active',$ac->{Start},$createt,0)";
+            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,0)";
                  $sqls->Update($sql);
                  last;
         }

@@ -11,10 +11,10 @@ class RemoteClient:
         if self.sqlconnected==-1:
             self.ConnectDB()
         if(self.sqlconnected==1):
-            sql="select IORS,IORP,dbfilename from Servers where status='Active' and datamc=%d order by lastupdate desc" %(datamc)
+            sql="select IORS,IORP,IORD,dbfilename from Servers where status='Active' and datamc=%d order by lastupdate desc" %(datamc)
             ret=self.sqlserver.Query(sql)
             if(len(ret)>0):
-                return ret[0][0]
+                return ret[0][0],ret[0][2]
             else: return ""
     def ConnectDB(self,one=0):
         self.sqlserver=DBSQLServer(sys.argv,one)
@@ -1289,8 +1289,8 @@ class RemoteClient:
 
     def ServerConnect(self,datamc=0):
         try:
-            ior=self.getior(datamc)
-            self.dbclient=DBServer(ior)
+            (ior,iord)=self.getior(datamc)
+            self.dbclient=DBServer(ior,iord)
             return 1
         except:
             print "Problem to ConnectServer "

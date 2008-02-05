@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.120 2008/02/04 12:25:18 ams Exp $
+# $Id: Monitor.pm,v 1.121 2008/02/05 10:37:49 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -445,7 +445,7 @@ sub UpdateARS{ my $ref=shift; my $arsref; if(not $ref->{ok}){ return
 
          $cid{Type}="DBServer";
          ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
-
+           
          if($length==0 ){
 #            carp "updars returns zero \n";
             return 1;
@@ -460,6 +460,7 @@ sub UpdateARS{ my $ref=shift; my $arsref; if(not $ref->{ok}){ return
           }
          }
          foreach $ior (@$pars){
+             print "$ior->{IOR} \n";
              try{
               my $newref=$ref->{orb}->string_to_object($ior->{IOR});
               if(rand >0.5){
@@ -1641,8 +1642,8 @@ sub RemoveRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-#     if($rdst{Status} eq "Canceled"){
-     if($rdst{Status} eq "Finished"){
+     if($rdst{Status} eq "Canceled"){
+#     if($rdst{Status} eq "Finished"){
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
