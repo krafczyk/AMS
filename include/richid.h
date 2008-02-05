@@ -37,6 +37,8 @@ class RichPMT{
   int _pmtaddc;
   int _pmtnumb;
 
+  int BSearch(int channel,int mode,geant value);
+
   geant _global_position[3];                           // Position with respect to global system
   geant _local_position[3];                            // Position with respect to grid system (unused)
   geant _channel_position[RICnwindows][3];             // Channel global position as a function of the geometric channel id
@@ -98,8 +100,11 @@ class RichPMTsManager{
   static geant _pedestal_threshold[2*RICmaxpmts*RICnwindows];    // Pedestal threshold width (x2 gains)
   static geant _gain[2*RICmaxpmts*RICnwindows];                  // Gain (x2 gains) high,low
   static geant _gain_sigma[2*RICmaxpmts*RICnwindows];            // Gain width (x2 gains)
-  static int _gain_threshold[RICmaxpmts*RICnwindows];           // Gain threshold 
-  static geant _relative_efficiency[RICmaxpmts*RICnwindows];    // Efficiency with respect to an arbitrary PMT 
+  static int _gain_threshold[RICmaxpmts*RICnwindows];            // Gain threshold 
+  static geant _relative_efficiency[RICmaxpmts*RICnwindows];     // Efficiency with respect to an arbitrary PMT 
+
+  static short int _rdr_starts[RICH_JINFs*RICH_RDRperJINF];            // In which PMT (geom id) starts each RDR
+  static short int _rdr_pmt_count[RICH_JINFs*RICH_RDRperJINF];         // How many pmts this RDR has 
 
   static time_t _eff_begin,_eff_insert,_eff_end;  // Monitor changes eff tables in order to
                                                   // recompute the efficiency tables 
@@ -130,21 +135,23 @@ class RichPMTsManager{
   static void Finish_Default();
 
 
-  static int Status(int Geom_id,int Geom_Channel);
-  static geant Pedestal(int Geom_id,int Geom_Channel,int high_gain=1);
-  static geant PedestalSigma(int Geom_id,int Geom_Channel,int high_gain=1);
-  static geant PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain=1);
-  static geant Gain(int Geom_id,int Geom_Channel,int high_gain=1);
-  static geant GainSigma(int Geom_id,int Geom_Channel,int high_gain=1);
-  static int GainThreshold(int Geom_id,int Geom_Channel);
-  static geant Eff(int Geom_id,int Geom_Channel);
+  static int Status(int Geom_id,int Geom_Channel);                                 // Return the status 
+  static geant Pedestal(int Geom_id,int Geom_Channel,int high_gain=1);             // Return the pedestal
+  static geant PedestalSigma(int Geom_id,int Geom_Channel,int high_gain=1);        // Return the pedestal sigma
+  static geant PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain=1);    // Return the pedestal threshold 
+  static geant Gain(int Geom_id,int Geom_Channel,int high_gain=1);                 // Return the gain
+  static geant GainSigma(int Geom_id,int Geom_Channel,int high_gain=1);            // Return the gain sigma
+  static int GainThreshold(int Geom_id,int Geom_Channel);                          // Return the threshold to change the gain mode
+  static geant Eff(int Geom_id,int Geom_Channel);                                  // Return the relative quantum efficiency
 
-  static geant MeanEff(){return _mean_eff;}
-  static geant MaxEff(){return _max_eff;}
+  static geant MeanEff(){return _mean_eff;}                                        // Return the mean channel efficiency
+  static geant MaxEff(){return _max_eff;}                                          // Return the max efficiency
   
-  static int GetGeomPMTID(int pos);
-  static int GetGeomChannelID(int pos,int pixel);
-  static void GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix);
+  static int GetGeomPMTID(int pos);                                                // Given the pos number, return the geometric pmt id
+  static int GetGeomChannelID(int geom_pos,int pixel);                             // Given the pmt geom id and the pixel number return the geometric channel id: Unchecked!!!
+  static void GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix);            // The same for both numbers as references
+
+  static int GetGeomPMTIdFromRDR(int RDR,int pmt);                                 // Given the RDR number (0-23) and the pmt within such RDR (0-30) return the geom id
 
   static int PackGeom(int pmt,int channel){return pmt*RICnwindows+channel;}
   static void UnpackGeom(int packed,int &pmt,int &channel){

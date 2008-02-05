@@ -105,6 +105,9 @@ geant RichPMTsManager::_max_eff=0;
 geant RichPMTsManager::_mean_eff=0;
 int RichPMTsManager::_grid_nb_of_pmts[8];
 int *RichPMTsManager::_grid_pmts[8];    
+short int RichPMTsManager::_rdr_starts[RICH_JINFs*RICH_RDRperJINF];
+short int RichPMTsManager::_rdr_pmt_count[RICH_JINFs*RICH_RDRperJINF];
+
 
 void RichPMTsManager::Init(){
   Init_Default();
@@ -419,7 +422,34 @@ void RichPMTsManager::Init_Default(){
 	_Eff(pmt,cat)=1;
       }
   }
-       
+
+
+  // Initialize tables to get the pmt position from rdr number and pmt number
+  for(int i=0;i<RICH_JINFs*RICH_RDRperJINF;i++) {_rdr_starts[i]=0;_rdr_pmt_count[i]=0;} 
+
+  int last=-1;
+  int position=0;
+  for(int i=0;i<RICmaxpmts;i++)
+    if(pmtaddh[i]!=last){
+      _rdr_starts[position++]=i;
+      last=pmtaddh[i];
+    }
+  
+  for(int i=0;i<position;i++){
+    int count=0; 
+    for(int j=_rdr_starts[i];pmtaddh[_rdr_starts[i]]==pmtaddh[j];j++){
+      count++;
+    }
+    _rdr_pmt_count[i]=count;
+  }
+
+#ifdef __AMSDEBUG__
+
+  for(int i=0;i<RICH_JINFs*RICH_RDRperJINF;i++){
+    cout<<"RDR: "<<i<<"   Geom PMTid: "<<_rdr_starts[i]<<"  Number of PMTs: "<<_rdr_pmt_count[i]<<endl; 
+  }
+
+#endif
 
 }
 
@@ -633,6 +663,12 @@ int RichPMTsManager::GetGeomChannelID(int pos,int pixel){
 }
 
 
+int RichPMTsManager::GetGeomPMTIdFromRDR(int RDR,int pmt){
+  assert(RDR>=0 && RDR<RICH_RDRperJINF);
+  assert(pmt>=0 && pmt<_rdr_pmt_count[RDR]);
+  return _rdr_starts[RDR]+pmt;
+}
+
 void RichPMTsManager::GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix){
   geom_pos=GetGeomPMTID(pos);
   if(geom_pos==-1 || pixel<0 || pixel>15) geom_pix==-1;
@@ -699,13 +735,33 @@ void RichPMT::compute_tables(){
 // RichPMT simulation //
 ////////////////////////
 
+
 geant RichPMT::SimulateSinglePE(int channel,int mode){
   // Sample from the _cumulative_prob for _address and mode
   geant dummy=0;
   geant value=RNDM(dummy);
+
+  return BSearch(channel,mode,value)*_step[channel][mode];
+  /*
   for(int i=0;i<RIC_prob_bins;i++){
     if(value<=_cumulative_prob[channel][mode][i])
       return i*_step[channel][mode];
   }
+  */
 }
 
+
+int RichPMT::BSearch(int channel,int mode,geant value){
+  int upper=RIC_prob_bins-1;
+  int lower=0;
+
+  while(upper-lower>1){
+    int middle=(upper+lower)>>1;
+    if(_cumulative_prob[channel][mode][middle]>value) upper=middle;
+    else if(_cumulative_prob[channel][mode][middle]<value) lower=middle;
+    else break;
+  }
+
+  return upper;
+
+}

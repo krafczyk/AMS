@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.527 2008/02/01 11:20:21 choutko Exp $
+// $Id: job.C,v 1.528 2008/02/05 08:42:18 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -56,6 +56,7 @@
 #include "richid.h"
 #include "richcal.h"
 #include "richradid.h"
+#include "richdaq.h"
 #include "mccluster.h"
 #include <sys/stat.h>
 #include "producer.h"
@@ -3591,6 +3592,11 @@ void AMSJob::_dbendjob(){
     DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,
                            &DAQECBlock::buildblock);//for MC ?
 //   }
+
+// rich
+    DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
+    DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+
 
   {  // mc
     if(!isRealData()){
