@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.52 2008/01/30 08:36:21 choutko Exp $
+//  $Id: tkdbc.C,v 1.53 2008/02/07 16:26:18 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -3610,7 +3610,7 @@ if(!_Cumulus){
  _Cumulus = new uinteger[nlay()];
  _Cumulus[0]=1;
   for(int i=1;i<nlay();i++){
-   _Cumulus[i]=_Cumulus[i-1]*(2+2*nlad(i));
+   _Cumulus[i]=_Cumulus[i-1]*(1+nlad(i));
   }
 }
 return _Cumulus[layer-1];

@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.30 2008/01/17 15:38:07 choutko Exp $
+//  $Id: trid.h,v 1.31 2008/02/07 16:26:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -18,6 +18,30 @@ const integer ms=4000;
 const int ncrt=8;
 const int ntdr=24;
 }
+
+class uintl{
+protected:
+uinteger _a[2];  // low 
+public:
+uintl(const uintl &a){_a[0]=a._a[0];_a[1]=a._a[1];}
+uintl(integer a, integer b){_a[0]=a;_a[1]=b;}
+uintl(uinteger a=0, uinteger b=0){_a[0]=a;_a[1]=b;}
+uintl(uinteger a[2]){_a[0]=a[0];_a[1]=a[1];}
+uinteger & operator () (uinteger l) {return _a[l];}
+uinteger v(uinteger l)const {return l<sizeof(_a)/sizeof(_a[0])?_a[l]:0;}
+friend ostream &operator << (ostream &o, const uintl &b ){return (o<<" [0] "<<b.v(0)<<" [1] "<<b.v(1));}
+bool operator < (const uintl&a) const{
+if(v(1)==a.v(1))return v(0)<a.v(0);
+else return v(1)<a.v(1);
+}
+bool operator == (const uintl&a) const{
+return v(1)==a.v(1) && v(0)==a.v(0);
+}
+bool operator == (uinteger a) const{
+return v(1)==0 && v(0)==a;
+}
+};
+
 class AMSTrIdGeom{
 integer _layer;    // from 1 to TKDBc::nlay()
 integer _ladder;   // from 1 to TKDBc::nlad(_layer)

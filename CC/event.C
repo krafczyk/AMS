@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.362 2008/02/01 13:00:36 choutko Exp $
+//  $Id: event.C,v 1.363 2008/02/07 16:26:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -936,7 +936,7 @@ void AMSEvent::_reecalinitevent(){
 }
 void AMSEvent::_retrdinitevent(){
 
-  for(int i=0;i<AMSTRDIdSoft::ncrates();i++) AMSEvent::gethead()->add (
+  for(int i=0;i<2*AMSTRDIdSoft::ncrates();i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDRawHit",i),0));
 
   for(int i=0;i<trdconst::maxlay;i++) AMSEvent::gethead()->add (
@@ -947,6 +947,8 @@ void AMSEvent::_retrdinitevent(){
 
   for(int i=0;i<1;i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDTrack",i),&AMSTRDTrack::build,0));
+
+
 
 
 }
@@ -1051,7 +1053,7 @@ void  AMSEvent::write(int trig){
 for(int il=0;il<TKDBc::nlay();il++){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
 }
-for(int il=0;il<AMSTRDIdSoft::ncrates();il++){
+for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
   AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
 }
 for(int il=0;il<trdconst::maxlay;il++){

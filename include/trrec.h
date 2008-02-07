@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.86 2007/05/15 11:39:24 choumilo Exp $
+//  $Id: trrec.h,v 1.87 2008/02/07 16:26:24 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -30,6 +30,7 @@
 #include <vector>
 
 using namespace std;
+
 
 class Test: public AMSlink{
 protected:
@@ -278,7 +279,7 @@ public:
 class AMSTrTrack: public AMSlink{
 protected:
 AMSTrRecHit * _Pthit[trconst::maxlay];
-uinteger _Address;
+uintl _Address;
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;
@@ -353,9 +354,9 @@ void _crHit();
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
-static void decodeaddress(integer ladder[2][trconst::maxlay], uinteger address);
-static uinteger  encodeaddress(integer lad[2][trconst::maxlay]);
-static uinteger * getchild(uinteger address, uinteger &nchild);
+static void decodeaddress(integer ladder[2][trconst::maxlay], uintl address);
+static uintl  encodeaddress(integer lad[2][trconst::maxlay]);
+static uintl * getchild(uintl address, uinteger &nchild);
 public:
   static geant & TimeLimit(){return _TimeLimit;}
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local, integer icase=0);
@@ -387,7 +388,7 @@ integer operator < (AMSlink & o) const {
   friend class AMSTrAligPar;
   friend class TOF2User;
 
-uinteger getaddress(){return _Address;}
+uintl getaddress(){return _Address;}
 void   AdvancedFit();
 integer getpattern()const{return _Pattern;}
 AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, number chi2MS, number jchi2MS, number rigFMS, number grigms);

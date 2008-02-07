@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.16 2005/07/20 15:41:13 choutko Exp $
+//  $Id: tralig.h,v 1.17 2008/02/07 16:26:23 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -16,7 +16,7 @@ class AMSTrAligPar{
 public:
 class AMSTrAligDBEntry{
 public:
- uinteger address;
+ uintl address;
  uinteger status;  // 0 if implicit
                    // 1++ if explicit
  
@@ -28,8 +28,9 @@ public:
  geant pav2;      // pmom sigma 
  int operator < (const AMSTrAligDBEntry&o) const{ return address<o.address;}
  int operator == (const AMSTrAligDBEntry&o) const{ return address==o.address;}
- AMSTrAligDBEntry(uinteger _address=0):address(_address){};
- AMSTrAligDBEntry(uinteger _address,  uinteger _status, AMSTrAligPar o[6], number _fcnb, number _fcna, number _pav, number _pav2):address(_address),status(_status),chi2b(_fcnb), chi2a(_fcna),pav(_pav),pav2(_pav2){
+ AMSTrAligDBEntry():address(0,0){};
+ AMSTrAligDBEntry(uintl _address):address(_address){};
+ AMSTrAligDBEntry(uintl _address,  uinteger _status, AMSTrAligPar o[6], number _fcnb, number _fcna, number _pav, number _pav2):address(_address),status(_status),chi2b(_fcnb), chi2a(_fcna),pav(_pav),pav2(_pav2){
   for(int i=0;i<6;i++){
    for(int k=0;k<3;k++){
     coo[i][k]=o[i].getcoo()[k];
@@ -89,8 +90,8 @@ static integer maxdbentries(){return 15000;}
 static AMSTrAligDBEntry * getdbtopp(){return _traldb.arr;}
 static AMSTrAligPar * getparp(){return par;}
 static void InitDB(){_traldb.Nentries=0;}
-static AMSTrAligPar * SearchDB(uinteger address, integer & found, number DB[2]);
-static void UpdateDB(uinteger address,  AMSTrAligPar o[], number _fcnb, number _fcna, number _pav, number _pav2  );
+static AMSTrAligPar * SearchDB(uintl address, integer & found, number DB[2]);
+static void UpdateDB(uintl address,  AMSTrAligPar o[], number _fcnb, number _fcna, number _pav, number _pav2  );
 static void LockDB();
 static void UnlockDB();
 static void _lockunlock(integer lock);
@@ -119,7 +120,7 @@ class AMSTrAligData{
 protected:
   integer _NHits;
   integer _Pattern;
-  uinteger _Address;
+  uintl _Address;
   AMSPoint * _Hits;
   AMSPoint * _EHits;
   integer _Pid;
@@ -128,7 +129,7 @@ protected:
   
 public:
 AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
-_InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0){};
+_InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0,0){};
 void Init(AMSParticle * ptr, AMSmceventg * pgen);
 friend class AMSTrAligFit;
 ~AMSTrAligData(){ delete [] _Hits; delete[] _EHits;}
@@ -143,7 +144,7 @@ class TrAlig_def{
 public:
 integer Pattern;
 integer Alg;
-integer Address;
+uintl Address;
 geant FCN;
 geant FCNI;
 geant Pfit;
@@ -175,7 +176,7 @@ geant Angle[3];
 integer Stat;
 };
 protected:
-uinteger _Address;
+uintl _Address;
 integer  _Pattern; 
 integer* _PlaneNo;
 integer* _ParNo;
@@ -209,8 +210,8 @@ void _init(){};
 public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
 AMSTrAligFit();
-AMSTrAligFit(uinteger _Address, integer pattern, integer data, integer alg, integer nodeno);
-static integer glDBOK(uinteger add);
+AMSTrAligFit(uintl _Address, integer pattern, integer data, integer alg, integer nodeno);
+static integer glDBOK(uintl add);
 static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}
 static void InitDB();
@@ -218,14 +219,14 @@ static void Test(int i=0);
 static void Testgl(int i=0);
 static AMSID getTDVGLDB();
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
-integer AddressOK(uinteger address, integer strict=0);
+integer AddressOK(uintl address, integer strict=0);
 void Fit();
 void Fitgl();
 void RebuildNoActivePar();
 void Anal();
 void Analgl();
 
-uinteger getaddress(){ return _Address;}
+uintl getaddress(){ return _Address;}
 ~AMSTrAligFit();
 
 };

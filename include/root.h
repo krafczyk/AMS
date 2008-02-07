@@ -784,7 +784,7 @@ public:
   unsigned int Status;   ///< statusword \sa TrClusterR
   ///
   int Pattern;  ///< see datacards.doc
-  int Address;  ///< ladders combination code (see trrec.C buildaddress)
+  int Address[2];  ///< ladders combination code (see trrec.C buildaddress)
   float LocDBAver;   ///< mean ratio of true momentum to measured one from testbeam
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
@@ -837,7 +837,7 @@ public:
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,5)       //TrTrackR
+ClassDef(TrTrackR,6)       //TrTrackR
 friend class AMSTrTrack;
 friend class AMSEventR;
 };
@@ -996,12 +996,13 @@ public:
   int Ladder;  ///<  Ladder  number
   int Tube;    ///< tube number
   float Amp;   ///< amplitude (adc counts)
-
+  int Haddr;   ///< Hardware Address cufhh  c crate[0-1],u udr[0-6] f ufe [0-7] hh channel[0-63]
+  
   TrdRawHitR(){};
   TrdRawHitR(AMSTRDRawHit *ptr);
 
   virtual ~TrdRawHitR(){};
-ClassDef(TrdRawHitR,1)       //TrdRawHitR
+ClassDef(TrdRawHitR,2)       //TrdRawHitR
 };
 
 /// TRDClusterR structure
@@ -1022,7 +1023,6 @@ public:
   int   Multip;    ///< multiplicity
   int   HMultip;   ///< multiplicity above threshold (5.9 kev)
   float EDep;      ///< energy dposition (kev)
-
   protected:
   int fTrdRawHit;   ///< pointer to trdrawhit with max ampl
   public:
@@ -1039,7 +1039,7 @@ public:
   /// \param number index in container
   /// \return human readable info about TrdClusterR
   char * Info(int number=-1){
-   sprintf(_Info,"TRD Cluster No %d Layer %d TubeDir %s Coo %5.1f,%5.1f,%5.1f  Mult  %d HMult %d E_{Dep}(Kev) %5.1f ",number,Layer,(Direction==0?"x":"y"),Coo[0], Coo[1], Coo[2],Multip,HMultip,EDep);
+   sprintf(_Info,"TRD Cluster No %d Layer %d TubeDir %s Coo %5.1f,%5.1f,%5.1f  Mult  %d HMult %d E_{Dep}(Kev) %5.1f Amp %5.1f Haddr %d Status %x",number,Layer,(Direction==0?"x":"y"),Coo[0], Coo[1], Coo[2],Multip,HMultip,EDep,pTrdRawHit()->Amp,pTrdRawHit()->Haddr,Status);
    return _Info;
   }
   virtual ~TrdClusterR(){};

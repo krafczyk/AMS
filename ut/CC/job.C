@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.528 2008/02/05 08:42:18 mdelgado Exp $
+// $Id: job.C,v 1.529 2008/02/07 16:26:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -588,7 +588,7 @@ for( i=0;i<6;i++){
 
 TRDCALIB.CalibProcedureNo=0;
 TRDCALIB.EventsPerCheck=2000;
-TRDCALIB.PedAccRequired=0.1;
+TRDCALIB.PedAccRequired=0.01;
 TRDCALIB.Validity[0]=1;
 TRDCALIB.Validity[1]=86400;
 TRDCALIB.BadChanThr=3.3;
@@ -3091,6 +3091,7 @@ if(MISCFFKEY.BeamTest>1){
                           getstatustable()->getptr(),server));
 }
 
+/*
 {
   tm begin;
   tm end;
@@ -3108,7 +3109,7 @@ if(MISCFFKEY.BeamTest>1){
                           AMSTrAligPar::gettraligdbp(),server));
 }
 
-
+*/
 
 {
   tm begin;

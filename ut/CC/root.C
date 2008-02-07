@@ -2462,6 +2462,7 @@ TrdClusterR::TrdClusterR(AMSTRDCluster *ptr){
   Multip = ptr->_Multiplicity;
   HMultip= ptr->_HighMultiplicity;
   EDep   = ptr->_Edep;
+  //a=TrdRawHitR(ptr->_pmaxhit);
   fTrdRawHit =-1;
 #endif
 }
@@ -2486,6 +2487,8 @@ TrdRawHitR::TrdRawHitR(AMSTRDRawHit *ptr){
   Ladder = ptr->_id.getladder();
   Tube   = ptr->_id.gettube();
   Amp    = ptr->Amp();
+  int hadr=   ptr->_id.gethaddr();
+  Haddr=(hadr&63)+100*((hadr>>6)&7)+1000*((hadr>>9)&7)+10000*ptr->_id.getcrate();
 #endif
 }
 
@@ -2580,7 +2583,8 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
-  Address   = ptr->_Address;
+  Address[0]   = ptr->_Address.v(0);
+  Address[1]   = ptr->_Address.v(1);
   LocDBAver       = ptr->_Dbase[0];
   GeaneFitDone    = ptr->_GeaneFitDone;
   AdvancedFitDone = ptr->_AdvancedFitDone;

@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.13 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trdrec.h,v 1.14 2008/02/07 16:26:23 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -42,9 +42,15 @@ number getHitL(){return _ClSizeZ;}
 uinteger getlayer()const {return _layer;}
 const AMSDir & getCooDir()const {return _CooDir;}
  AMSPoint & getCoo() {return _Coo;}
-inline integer Good() { 
-  return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0)
-             && checkstatus(AMSDBc::GOOD));
+inline integer Good(int bit,int exist=false) {
+  bool cond=((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0)&& checkstatus(AMSDBc::GOOD));
+  if(exist){
+  return bit<0?cond:cond && (checkstatus(bit)!=0);
+  }
+  else{
+  return bit<0?cond:cond && (checkstatus(bit)==0);
+  } 
+             
 }
 uinteger getmult()const{return _Multiplicity;}
 uinteger gethmult()const {return _HighMultiplicity;}
@@ -62,6 +68,7 @@ if(i>=0 && i <TRDDBc::nlay())_Head[i]=(AMSTRDCluster*)head;
 
 class AMSTRDSegment: public AMSlink{
 protected:
+static integer _case;
 integer _Orientation;
 number _FitPar[2];
 number _Chi2;
@@ -110,8 +117,15 @@ static integer Out(integer status);
 
 static bool Distance1D(number par[2], AMSTRDCluster *ptr);
 
-inline integer Good() { 
-  return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0));
+inline integer Good(int bit,int exist=false) {
+  bool cond=(TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0);
+  if(exist){
+  return bit<0?cond:cond && (checkstatus(bit)!=0);
+  }
+  else{
+  return bit<0?cond:cond && (checkstatus(bit)==0);
+  } 
+             
 }
 AMSTRDSegment *  next(){return (AMSTRDSegment*)_next;}
 
@@ -189,6 +203,7 @@ TrackPar _StrLine;
 TrackPar _Real;
 TrackBase _Base;
 TrackBaseS _BaseS;
+static integer _case;
 bool _update;
 void _init(){};
 void _printEl(ostream &o);

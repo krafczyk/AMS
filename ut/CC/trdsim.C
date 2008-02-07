@@ -280,26 +280,30 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
 #endif
    return;
   }
-  else if(!compressed ||(compressed && (AMSJob::gethead()->isCalibration() & AMSJob::CTRD))){
+  else {
   for (int i=0;i<rawl;i++){
         int ufe=i%7;
         int cha=i/7;
         int roch=cha%16;
         int ute=cha/16;
-
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
         if(!id.dead()){
-         AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
-         AMSTRDRawHit(id,(((*(p+i))&32767)-id.getped())*TRDMCFFKEY.f2i));
-//         cout <<id<<" "<<((*(p+i))&32767)<<" "<<id.getped()<<endl;
+         AMSTRDRawHit *ph=new AMSTRDRawHit(id,(((*(p+i+1))&4095)-id.getped())*TRDMCFFKEY.f2i);
+         int icn=ic;
+         if(compressed){
+          ph->setstatus(AMSDBc::RECOVERED);
+          if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTRD))icn+=2;      
+         }
+         AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",icn), ph);
+         //cout <<id<<" "<<((*(p+i))&32767)-id.getped()<<" "<<id.getsig()<<endl;
        }
        else{
-//         cerr<<"AMSTRDRawHit::buildraw-E-IDDead"<<id<<endl;
+         //cerr<<"AMSTRDRawHit::buildraw-E-IDDead"<<id<<endl;
        }
   }
  }
  }
- if(compressed){
+ if(compressed && !(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)){
   // compressed mode detected
   for (int j=1+rawl;j<len;j+=2){
         uint16 adr=*(p+j);

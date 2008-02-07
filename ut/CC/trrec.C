@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.184 2008/01/14 13:35:16 choutko Exp $
+//  $Id: trrec.C,v 1.185 2008/02/07 16:26:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2694,6 +2694,7 @@ void AMSTrTrack::_writeEl(){
     // in TrTrackR constructor
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   TrTrackNtuple02* TrTN = AMSJob::gethead()->getntuple()->Get_trtr02();
   if (TrTN->Ntrtr>=MAXTRTR02) return;
 
@@ -2701,7 +2702,7 @@ void AMSTrTrack::_writeEl(){
     TrTN->Status[TrTN->Ntrtr]=_status;
     TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
     TrTN->NHits[TrTN->Ntrtr]=_NHits;
-    TrTN->Address[TrTN->Ntrtr]=_Address;
+//    TrTN->Address[TrTN->Ntrtr]=_Address;
 //    for(i=0;i<2;i++)TrTN->Dbase[TrTN->Ntrtr][i]=_Dbase[i];
     
     int k;
@@ -2789,7 +2790,9 @@ void AMSTrTrack::_writeEl(){
     TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
     TrTN->PiRigidity[TrTN->Ntrtr]=(geant)_PIRigidity;
     TrTN->Ntrtr++;
+*/
   }
+
 }
 void AMSTrTrack::_copyEl(){
 #ifdef __WRITEROOT__
@@ -3364,9 +3367,8 @@ void AMSTrTrack::_crHit(){
  //decodeaddress();
  integer found=0;
  AMSTrAligPar * par(0);
- if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
-// if(!TRALIG.UpdateDB &&  !checkstatus(AMSDBc::GlobalDB))par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
- if(!TRALIG.UpdateDB )par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
+ //if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
+ //if(!TRALIG.UpdateDB )par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
   if(found && fabs(_Dbase[1]-TRALIG.One)>TRALIG.GlobalGoodLimit && 
      fabs(_Dbase[0]-1.025)<TRALIG.GlobalGoodLimit){
    for(int i=0;i<_NHits;i++){
@@ -3394,33 +3396,36 @@ void AMSTrTrack::_crHit(){
 }
 
 void AMSTrTrack::_buildaddress(){
-  _Address=0;
+  _Address(0)=0;
+  _Address(1)=0;
   for(int i=0;i<_NHits;i++){
     AMSTrIdSoft id = _Pthit[i]->getClusterP(1)->getid();
     int layer=id.getlayer();
     int ladder=id.getdrp();
     int half=id.gethalf();
-    _Address+=TKDBc::Cumulus(layer)*(ladder+half*(TKDBc::nlad(layer)+1));
+     _Address(0)+=TKDBc::Cumulus(layer)*ladder;
+     _Address(1)+=TKDBc::Cumulus(layer)*(half);
+    }
   } 
 
-}
 
-void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uinteger _Address){
+void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uintl _Address){
    for(int i=0;i<TKDBc::nlay();i++){
-    uinteger lad=(_Address/TKDBc::Cumulus(i+1))%(2*TKDBc::nlad(i+1)+2);
+    uinteger lad=(_Address(0)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)+1);
+    uinteger half=(_Address(1)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)+1);
     ladder[0][i]=lad%(TKDBc::nlad(i+1)+1);
-    ladder[1][i]=lad/(TKDBc::nlad(i+1)+1);
+    ladder[1][i]=half%(TKDBc::nlad(i+1)+1);
     //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
 }
 
-uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
+uintl * AMSTrTrack::getchild(uintl address, uinteger & nchild){
    // suppress childs;
     nchild=0;
     return 0;
 
     const int maxchld=21;
-    static uinteger achld[maxchld];
+    static uintl achld[maxchld];
     integer lad[2][trconst::maxlay];    
     integer lad1[2][trconst::maxlay];    
     integer npt=0;
@@ -3466,10 +3471,11 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
 }
 
 
-uinteger AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
-   uinteger address=0;
+uintl AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
+   uintl address(0,0);
    for(int i=0;i<TKDBc::nlay();i++){
-     address+= TKDBc::Cumulus(i+1)*(ladder[0][i]+ladder[1][i]*(TKDBc::nlad(i+1)+1));
+     address(0)+= TKDBc::Cumulus(i+1)*(ladder[0][i]);
+     address(1)+= TKDBc::Cumulus(i+1)*(ladder[1][i]);
    }
    return address;
 }
@@ -3614,8 +3620,7 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
- 
+_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0,0){
   for(int i=0;i<2;i++)_Dbase[i]=0;
   _Chi2StrLine=0;
 _Chi2WithoutMS=0;

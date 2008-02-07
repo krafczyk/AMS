@@ -5,6 +5,8 @@
 #include"trigger302.h"
 AMSTRDCluster * AMSTRDCluster::_Head[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 integer AMSTRDCluster::build(int rerun){
+for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
+//for(int mode=0;mode<AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
     number Thr1A=TRDCLFFKEY.Thr1A/TRDCLFFKEY.ADC2KeV;
     number Thr1S=TRDCLFFKEY.Thr1S/TRDCLFFKEY.ADC2KeV;
     number Thr1R=TRDCLFFKEY.Thr1R;
@@ -13,7 +15,7 @@ integer AMSTRDCluster::build(int rerun){
     AMSTRDRawHit * ptra[trdconst::maxtube+3];
     VZERO(adc,sizeof(adc)/sizeof(integer));
     VZERO(ptra,sizeof(ptra)/sizeof(integer));
-    for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
+    for (int n=mode;n<mode+AMSTRDIdSoft::ncrates();n++){
      AMSTRDRawHit * ptr=
      (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2);  
      while(ptr){
@@ -128,8 +130,10 @@ integer AMSTRDCluster::build(int rerun){
 		     //cout <<" pisec "<<adcmx<<" "<<sum<<endl;
 		   }
 		   if(sum>Thr1A){
-		   AMSEvent::gethead()->addnext(AMSID("AMSTRDCluster",ilay),new AMSTRDCluster(status,ilay,coo,rad,z,zdir,sum*TRDCLFFKEY.ADC2KeV,right-left+1,hmul,ptrmx)); 
-		  }
+                   AMSTRDCluster *ph=new AMSTRDCluster(status,ilay,coo,rad,z,zdir,sum*TRDCLFFKEY.ADC2KeV,right-left+1,hmul,ptrmx);
+                   if(mode)ph->setstatus(AMSDBc::RECOVERED);
+  		    AMSEvent::gethead()->addnext(AMSID("AMSTRDCluster",ilay),ph);
+     		  }
 	}
 		  else {
 		   cerr<< "AMSTRDCluster::build-S-Nogeomvolumefound "<<idg.crgid()<<endl;
@@ -153,6 +157,7 @@ integer AMSTRDCluster::build(int rerun){
 		ptr=ptr->next();
 	      }
 	    }
+         }
 	return 1;
 	}
 
@@ -165,6 +170,7 @@ integer AMSTRDCluster::build(int rerun){
 	#ifdef __WRITEROOT__
 	    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 	#endif
+/*
 	  TRDClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdcl();
 
 	   if (TrN->Ntrdcl>=MAXTRDCL) return;
@@ -193,8 +199,8 @@ integer AMSTRDCluster::build(int rerun){
 	      }
 	    }
 	   TrN->Ntrdcl++;
+*/
 	  }
-
 
 	}
 
@@ -241,12 +247,15 @@ if(orr==0)return _Coo[0]*_CooDir[1]-_Coo[1]*_CooDir[0];
 else return _Coo[2];
 }
 
+integer AMSTRDSegment::_case=0;
+integer AMSTRDTrack::_case=0;
 
   number AMSTRDSegment::par[2]={0,0};
  AMSTRDCluster * AMSTRDSegment::phit[trdconst::maxhits];
 
 integer AMSTRDSegment::build(int rerun){
   int nseg=0;
+ for(_case=0;_case<2;_case++){
 for(int iseg=0;iseg<TRDDBc::nlayS();iseg++){  
   bool      WeakCaseWanted=true;
   integer NTrackFound=-1;
@@ -258,10 +267,10 @@ for(int iseg=0;iseg<TRDDBc::nlayS();iseg++){
       integer second=TRDDBc::patconfH(pat,fp,iseg)-1;
       phit[0]=AMSTRDCluster::gethead(first);
       while( phit[0]){
-       if(phit[0]->Good()){
+       if(phit[0]->Good(AMSDBc::RECOVERED,_case)){
        phit[fp]=AMSTRDCluster::gethead(second);
        while( phit[fp]){
-        if(phit[fp]->Good()){
+        if(phit[fp]->Good(AMSDBc::RECOVERED,_case)){
         par[0]=(phit[fp]-> getHit(0)-phit[0]-> getHit(0))/
                (phit[fp]-> getHit(1)-phit[0]-> getHit(1));
         par[1]=phit[0]-> getHit(0)-par[0]*phit[0]-> getHit(1);
@@ -287,7 +296,7 @@ out:
   }
 if(NTrackFound>0)nseg++;
 }
-
+}
 return nseg;
 }
 
@@ -302,7 +311,7 @@ integer AMSTRDSegment::_TrSearcher(int icall,uinteger iseg){
            
            phit[icall]=AMSTRDCluster::gethead(TRDDBc::patconfH(pat,icall,iseg)-1);
            while(phit[icall]){
-             if(phit[icall]->Good() && !Distance1D(par,phit[icall])){
+             if(phit[icall]->Good(AMSDBc::RECOVERED,_case) && !Distance1D(par,phit[icall])){
               if(TRDDBc::patpointsH(pat,iseg) >icall+2){         
                 return _TrSearcher(++icall,iseg); 
               }                
@@ -327,7 +336,9 @@ integer AMSTRDSegment::_addnext(integer pat, integer nhit, uinteger iseg, AMSTRD
 cerr<< "AMSTRSegment::_addnext-F-UPOOL not supported yet"<<endl;
 abort();
 #else
+     
     AMSTRDSegment *ptrack=   new AMSTRDSegment(iseg,pat, nhit ,TRDDBc::oriseg(iseg),pthit);
+    if(pthit[0]->checkstatus(AMSDBc::RECOVERED))ptrack->setstatus(AMSDBc::RECOVERED);
 #endif
 
     ptrack->Fit();
@@ -514,6 +525,7 @@ _Start();
   
 
 integer NTrackFound=-1;
+ for( _case=0;_case<2;_case++){
 bool      WeakCaseWanted=false;
 for (pat=0;pat<TRDDBc::npatS();pat++){
     if(TRDDBc::patallowS(pat) || (TRDDBc::patallow2S(pat) && WeakCaseWanted)){
@@ -523,10 +535,10 @@ for (pat=0;pat<TRDDBc::npatS();pat++){
       integer second=TRDDBc::patconfS(pat,fp)-1;
       phit[0]=AMSTRDSegment::gethead(first);
       while( phit[0]){
-       if(phit[0]->Good()){
+       if(phit[0]->Good(AMSDBc::RECOVERED,_case)){
        phit[fp]=AMSTRDSegment::gethead(second);
        while( phit[fp]){
-        if(phit[fp]->Good()){
+        if(phit[fp]->Good(AMSDBc::RECOVERED,_case)){
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
         integer npfound=_TrSearcher(1);
@@ -557,7 +569,7 @@ out:
 //        cout <<ptr->_Base._PCluster[i]->getCoo()[proj]<<endl;
       }
     }
-
+}
 return NTrackFound;
 }
 
@@ -631,7 +643,7 @@ integer AMSTRDTrack::_TrSearcher(int icall){
            
            if(TRDDBc::patpointsS(pat)> icall+1)phit[icall]=AMSTRDSegment::gethead(TRDDBc::patconfS(pat,icall)-1);
            while(phit[icall]){
-             if(phit[icall]->Good() ){
+             if(phit[icall]->Good(AMSDBc::RECOVERED,_case) ){
               if(TRDDBc::patpointsS(pat) >icall+2){         
                 return _TrSearcher(++icall); 
               }                
@@ -659,6 +671,8 @@ abort();
 #else
     AMSTRDTrack::TrackBaseS s(pat,nhit,pthit);
     AMSTRDTrack *ptrack=   new AMSTRDTrack(s);
+    if(pthit[0]->checkstatus(AMSDBc::RECOVERED))ptrack->setstatus(AMSDBc::RECOVERED);
+
 #endif
 
     ptrack->StrLineFit();

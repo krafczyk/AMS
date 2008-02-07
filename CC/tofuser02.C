@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.21 2008/01/07 16:22:15 choumilo Exp $
+//  $Id: tofuser02.C,v 1.22 2008/02/07 16:26:18 choutko Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -189,7 +189,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
     number the,phi,trl,rid,err,ctran,charge,partq;
     integer chargeTOF,chargeTracker,betpatt,trpatt,trhits(0);
-    uinteger traddr(0);
+    uintl traddr(0,0);
     integer ilad[2][8]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);

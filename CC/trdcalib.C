@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.4 2008/02/01 11:20:21 choutko Exp $
+//  $Id: trdcalib.C,v 1.5 2008/02/07 16:26:19 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -185,8 +185,8 @@ void AMSTRDIdCalib::_update(){
           cout <<cid.getped()<<" "<<_ADCRaw[ch]<<endl;
           cid.setped()=cid.getped()+_ADCRaw[ch];
           cid.setgain()=1;
-          cout <<"sig "<<cid.getsig()<<" "<<_ADC2Raw[ch]<<endl;
-          cid.setsig()=_ADC2[ch];
+          cout <<"sig "<<cid.getsig()<<" "<<_ADC2[ch]<<endl;
+          //cid.setsig()=_ADC2[ch];
          }
         }
        }

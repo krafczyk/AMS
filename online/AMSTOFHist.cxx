@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.25 2008/01/29 16:25:21 choutko Exp $
+//  $Id: AMSTOFHist.cxx,v 1.26 2008/02/07 16:26:25 choutko Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -710,7 +710,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     cutf[5]=(id==0);// --> NOt false TOFX
 
     Int_t trkpat=p2trktr->Pattern;
-    Int_t trladd=p2trktr->Address;
+    Int_t trladd=p2trktr->Address[0];
   
     Float_t trkrigp=0;//J.A. methode
     Float_t trkrigpe=p2trktr->PiErrRig;//err to 1/above (<0 means fit is failed)
