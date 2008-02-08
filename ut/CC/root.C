@@ -2583,9 +2583,9 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
-  Address[0]   = ptr->_Address.v(0);
-  Address[1]   = ptr->_Address.v(1);
-  LocDBAver       = ptr->_Dbase[0];
+  Address   = ptr->_Address(0);
+  AddressA   = ptr->_Address(1);
+  //LocDBAver       = ptr->_Dbase[0];
   GeaneFitDone    = ptr->_GeaneFitDone;
   AdvancedFitDone = ptr->_AdvancedFitDone;
   Chi2StrLine     = ptr->_Chi2StrLine;

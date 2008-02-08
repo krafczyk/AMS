@@ -784,8 +784,8 @@ public:
   unsigned int Status;   ///< statusword \sa TrClusterR
   ///
   int Pattern;  ///< see datacards.doc
-  int Address[2];  ///< ladders combination code (see trrec.C buildaddress)
-  float LocDBAver;   ///< mean ratio of true momentum to measured one from testbeam
+  int Address;  ///< ladders combination code (see trrec.C buildaddress)
+  int AddressA;  ///< ladders combination code (see trrec.C buildaddress)
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
   float Chi2StrLine;  ///< chi2 sz fit
@@ -837,7 +837,7 @@ public:
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,6)       //TrTrackR
+ClassDef(TrTrackR,7)       //TrTrackR
 friend class AMSTrTrack;
 friend class AMSEventR;
 };

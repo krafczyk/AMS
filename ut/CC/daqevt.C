@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.102 2008/02/05 10:37:11 choutko Exp $
+//  $Id: daqevt.C,v 1.103 2008/02/08 12:25:34 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -506,13 +506,14 @@ integer DAQEvent::_HeaderOK(){
        time_t tmin=1180000000;
        time_t tmax=1280000000;
        static int rep=0;
+       static int time=_Time;
        if(_Time<tmin ){
 
          if(rep++<100)cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
          if(TRMFFKEY.TIME==0){
            _Time=tmin;
          }
-         else _Time+=TRMFFKEY.TIME;
+         else _Time+=TRMFFKEY.TIME-time;
        }
        if(_Time>tmax){
          if(rep++<100)cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;

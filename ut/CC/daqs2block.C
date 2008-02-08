@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.21 2008/01/30 17:07:05 choutko Exp $
+//  $Id: daqs2block.C,v 1.22 2008/02/08 12:25:34 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -596,13 +596,13 @@ cout<<" ovffl="<<tdcbfo[slid]<<" cr/sl/bufcounter="<<crat<<" "<<slid<<" "<<tdcbf
       slot=AMSSCIds::crdid2sl(crat-1,slid-1)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
       sslot=AMSSCIds::sl2tsid(slot-1);//seq.numbering of T-measuting slots(1-5=>,4xSFET,1xSFEA)
       if(wttem!=8 || wthed!=2 || tmout || nwtdcb!=(wds2tdc+1)){//trailer present, but broken structure
-cout<<"slid="<<slid<<" wttem/wthed="<<wttem<<" "<<wthed<<" tmout="<<tmout<<" nwtdcb/wds2tdc="<<
-                                                                      nwtdcb<<" "<<wds2tdc<<endl;
+//cout<<"slid="<<slid<<" wttem/wthed="<<wttem<<" "<<wthed<<" tmout="<<tmout<<" nwtdcb/wds2tdc="<<
+//                                                                      nwtdcb<<" "<<wds2tdc<<endl;
         TOF2JobStat::daqssl(0,crat-1,slot-1,6);//count links with broken struct
 	if(wttem!=8 && wthed!=2 && wterr==6)TOF2JobStat::daqssl(0,crat-1,slot-1,7);//case1:trailer+err
 	if((wttem!=8 || wthed!=2) && wterr!=6)TOF2JobStat::daqssl(0,crat-1,slot-1,8);//case2:NoErr,but NoHead/Temp
 	if(tmout)TOF2JobStat::daqssl(0,crat-1,slot-1,9);//case3:TimeOut
-	EventBitDump(leng,p,"BrokenStructure !!!");
+	if(TFREFFKEY.reprtf[4]>1)EventBitDump(leng,p,"BrokenStructure !!!");
 	continue;//skip link(TDC) with broken structure (or time-out)
       }
       if(wterr==6){
