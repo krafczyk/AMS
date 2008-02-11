@@ -1,5 +1,6 @@
 #include "richdaq.h"
-#include "richid_default_values.h"
+#include "richid.h"
+#include "richrec.h"
 
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
@@ -9,7 +10,7 @@ int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (l
 
 // Now a table giving, for each pair RICH_JINF link and RDR link, which physical
 // RDR it is (counting from 0 clockwise, starting from crate 1) 
-int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links. Currently dummy 
+int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links (really ports). Currently dummy 
   {
     { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11},       //JINR0
     {12,13,14,15,16,17,18,19,20,21,22,23,12,13,14,15,16,17,18,19,20,21,22,23}        //JINR1
@@ -46,38 +47,109 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   for(int i=0;i<RICH_JINFs;i++) if(JINFId[i]==id) {JINF=i;break;}
   if(JINF==-1) Do(kJINFIdError);
   
-  // Go through each RDR
+  // Go through each CDP
   int16u *pointer=p;
-  int RDRFound;          // Counter for the number of RDR found
+  int CDPFound;          // Counter for the number of CDP found
   
-  for(RDRFound=0;;RDRFound++){
+  int low_gain[RICH_PMTperCDP][RICnwindows];       // Buffer to store low gain information just in case it is needed
+  for(CDPFound=0;;CDPFound++){
     if(pointer>p-1+length) break;   // Last fragment processed       
     
-    FragmentParser rdr(pointer);
-    if(rdr.status.errors) Do(kRDRError);
+    FragmentParser cdp(pointer);
+    if(cdp.status.errors) Do(kCDPError);
     
-    int RDR=rdr.status.slaveId;
+    int CDP=cdp.status.slaveId;
     
-    // Process RDR data
-    if(!rdr.status.isRaw && !rdr.status.isCompressed) Do(kCalibration);
+    // Process data
+    if(!cdp.status.isRaw && !cdp.status.isCompressed) Do(kCalibration);
     
-    if(rdr.status.isRaw){
+    if(cdp.status.isRaw){
+      if(cdp.length!=1+         // Status word
+	 RICH_PMTperCDP*RICnwindows*2) Do(kCDPRawTruncated);
+
       // Fill raw information
       // Simple loop getting all the information
+
+      DSPRawParser channel(cdp.data);
+
+      do{
+	// First comes the low gain, the high gain then
+	if(channel.gain==0) {low_gain[channel.pmt][channel.pixel]=channel.counts;}
+	else{
+	  // Get the geom ID for this channel
+	  int physical_cdp=Links[JINF][CDP];
+	  int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
+	  if(geom_id>=0){
+	    // Get the pixel geom id, substract the pedestal, check that
+	    // it is above it and use low gain if necessary
+	    int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
+
+	    if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
+	      int mode=1;                 // High gain
+	      int counts=channel.counts;
+
+	      if(channel.counts>RichPMTsManager::GainThreshold(geom_id,pixel_id)){
+		counts=low_gain[channel.pmt][channel.pixel];
+		mode=0;
+	      }
+	      
+	      // Add the hit
+	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
+	      counts-=RichPMTsManager::Pedestal(geom_id,pixel_id,mode);
+	      
+	      AMSEvent::gethead()->
+		addnext(
+			AMSID("AMSRichRawEvent",0),
+			new AMSRichRawEvent(channel_geom_number,
+					    counts,
+					    mode?0:gain_mode)
+			);
+	    }
+	  }
+	}
+      }while(channel.Next());
+
     }
     
-    if(rdr.status.isCompressed){
-      if(rdr.status.isRaw)Do(kMixedMode);
+    if(cdp.status.isCompressed){
+      if(cdp.status.isRaw)Do(kMixedMode);
       else{
-	// Fill compressed mode
+	// Fill compressed mode if something to fill 
+	if(cdp.length-1>0){
+	  DSPCompressedParser channel(cdp.data,cdp.length-1);
+
+	  do{
+	    int physical_cdp=Links[JINF][CDP];
+	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
+
+	    if(geom_id<0) Do(kWrongCDPChannelNumber);
+
+	      // Get the pixel geom id, substract the pedestal, check that
+	      // it is above it and use low gain if necessary
+	      int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
+	      
+	      if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
+		int mode=channel.gain;                 // High gain
+		int counts=channel.counts;
+		int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
+
+		AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
+					     new AMSRichRawEvent(channel_geom_number,
+								 counts,
+								 mode?0:gain_mode));
+		
+	      }
+	  }while(channel.Next());
+	    
+	}
       }
     }
-    
-    pointer=rdr.next;
+
+    pointer=cdp.next;
   }
 
   
-  if(RDRFound!=RICH_RDRperJINF) Do(kTruncated);
+  //  if(CDPFound!=RICH_CDPperJINF) Do(kTruncated);  // This is only valid in RAW mode
 
 }
 
@@ -99,19 +171,47 @@ int DAQRichBlock::Emit(int code){
     case kJINFError:
       cout<<"DAQRichBlock::buildraw -- JINF Id int status word does not belong to RICH"<<endl;
       return 1; break;
-    case kRDRError:
-      cout<<"DAQRichBlock::buildraw -- RDR status word flag errors"<<endl;
+    case kCDPError:
+      cout<<"DAQRichBlock::buildraw -- CDP status word flag errors"<<endl;
       return 1; break;
     case kCalibration:
-      cout<<"DAQRichBlock::buildraw -- RDR Calibration mode processing is not yet implemented"<<endl;
+      cout<<"DAQRichBlock::buildraw -- CDP Calibration mode processing is not yet implemented"<<endl;
       return 1; break;
     case kMixedMode:
-      cout<<"DAQRichBlock::buildraw -- RDR Mixed mode: will ignore compressed data"<<endl;
+      cout<<"DAQRichBlock::buildraw -- CDP Mixed mode: will ignore compressed data"<<endl;
       return 0; break;
     case kTruncated:
-      cout<<"DAQRichBlock::buildraw -- JINF information seems to be truncated: not enough RDRs. Ignored"<<endl;
+      cout<<"DAQRichBlock::buildraw -- JINF information seems to be truncated: not enough CDPs. Ignored"<<endl;
       return 0; break;
+    case kCDPRawTruncated:
+      cout<<"DAQRichBlock::buildraw -- CDP information seems to be truncated."<<endl;
+      return 1; break;
+    case kWrongCDPChannelNumber:
+      cout<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
+      return 1; break;
     default:
       return 0;break;
     }
 } 
+
+void DAQRichBlock::DSPRawParser::parse(){
+  const int PMTs=RICH_PMTperCDP;
+  const int channels=RICH_PMTperCDP*RICnwindows;
+
+  pmt=_current_record%PMTs;
+  pixel=_current_record/PMTs;
+  gain=_current_record%channels;
+  int16u *pointer=_root+_current_record;
+  counts=*pointer;
+}
+
+
+void DAQRichBlock::DSPCompressedParser::parse(){
+  const int PMTs=RICH_PMTperCDP;
+
+  int16u channelid=*(_root+_current_record);
+  int16u data=*(_root+_current_record+1);
+  pmt=channelid%PMTs;
+  pixel=channelid/PMTs;
+  gain=data&0x1000?0:1;                    // This is reversed: no bit= high gain (gina mode=1)
+}

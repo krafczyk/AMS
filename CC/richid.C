@@ -105,8 +105,8 @@ geant RichPMTsManager::_max_eff=0;
 geant RichPMTsManager::_mean_eff=0;
 int RichPMTsManager::_grid_nb_of_pmts[8];
 int *RichPMTsManager::_grid_pmts[8];    
-short int RichPMTsManager::_rdr_starts[RICH_JINFs*RICH_RDRperJINF];
-short int RichPMTsManager::_rdr_pmt_count[RICH_JINFs*RICH_RDRperJINF];
+short int RichPMTsManager::_rdr_starts[RICH_JINFs*RICH_CDPperJINF];
+short int RichPMTsManager::_rdr_pmt_count[RICH_JINFs*RICH_CDPperJINF];
 
 
 void RichPMTsManager::Init(){
@@ -425,7 +425,7 @@ void RichPMTsManager::Init_Default(){
 
 
   // Initialize tables to get the pmt position from rdr number and pmt number
-  for(int i=0;i<RICH_JINFs*RICH_RDRperJINF;i++) {_rdr_starts[i]=0;_rdr_pmt_count[i]=0;} 
+  for(int i=0;i<RICH_JINFs*RICH_CDPperJINF;i++) {_rdr_starts[i]=0;_rdr_pmt_count[i]=0;} 
 
   int last=-1;
   int position=0;
@@ -445,8 +445,8 @@ void RichPMTsManager::Init_Default(){
 
 #ifdef __AMSDEBUG__
 
-  for(int i=0;i<RICH_JINFs*RICH_RDRperJINF;i++){
-    cout<<"RDR: "<<i<<"   Geom PMTid: "<<_rdr_starts[i]<<"  Number of PMTs: "<<_rdr_pmt_count[i]<<endl; 
+  for(int i=0;i<RICH_JINFs*RICH_CDPperJINF;i++){
+    cout<<"CDP: "<<i<<"   Geom PMTid: "<<_rdr_starts[i]<<"  Number of PMTs: "<<_rdr_pmt_count[i]<<endl; 
   }
 
 #endif
@@ -663,10 +663,10 @@ int RichPMTsManager::GetGeomChannelID(int pos,int pixel){
 }
 
 
-int RichPMTsManager::GetGeomPMTIdFromRDR(int RDR,int pmt){
-  assert(RDR>=0 && RDR<RICH_RDRperJINF);
-  assert(pmt>=0 && pmt<_rdr_pmt_count[RDR]);
-  return _rdr_starts[RDR]+pmt;
+int RichPMTsManager::GetGeomPMTIdFromCDP(int CDP,int pmt){
+  assert(CDP>=0 && CDP<RICH_CDPperJINF);
+  if(pmt<0 || pmt>=_rdr_pmt_count[CDP]) return -1;
+  return _rdr_starts[CDP]+pmt;
 }
 
 void RichPMTsManager::GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix){

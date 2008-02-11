@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.40 2008/02/05 08:42:19 mdelgado Exp $
+//  $Id: richdbc.h,v 1.41 2008/02/11 10:09:55 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -115,9 +115,9 @@ const integer RIC_prob_bins=1000;
 
 // DAQ related constants
 const int RICH_JINFs=2;
-const int RICH_RDRperJINF=12;
+const int RICH_CDPperJINF=12;
 const int RICH_LinksperJINF=24; 
-const int RICH_PMTperRDR=31;
+const int RICH_PMTperCDP=31;
 }
 
 using namespace richconst;

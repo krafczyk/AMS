@@ -10,7 +10,7 @@
 class DAQRichBlock{
   // Varibles
   static int JINFId[RICH_JINFs];
-  static int Links[RICH_JINFs][RICH_LinksperJINF];                    // These are the link id to physical RDR
+  static int Links[RICH_JINFs][RICH_LinksperJINF];                    // These are the link id to physical CDP
 
   class StatusParser{  // This class implements the status parser
   public:
@@ -56,7 +56,7 @@ class DAQRichBlock{
     DAQRichBlock::StatusParser status;  // The parsed status 
     
     FragmentParser(int16u *pointer){
-      length=*pointer;
+      length=(*pointer)/sizeof(uint16); // Count length in words instead of bytes
       data=pointer+1;
       next=pointer+1+length;            //+1 is because length does not count itself
       status=*(pointer+length); 
@@ -75,19 +75,44 @@ class DAQRichBlock{
     int gain;
     int counts;
 
-    DSPRawParser(int16u *p):_root(p),_current_record(0){};
-    int Next(){};                 // This fill t he variables pmt,pixel,gain and counts
+    DSPRawParser(int16u *p):_root(p),_current_record(0){parse();}
+    int Next(){
+      const int max_record=31*16*2; // Max Number of pmts per CDP * 16 channels * 2 gains
+      _current_record++; 
+      if(_current_record>=max_record) return 0;
+      parse();
+      return 1;
+    };                 // This fill t he variables pmt,pixel,gain and counts
   };
 
 
   class DSPCompressedParser{
+  private:
+    int16u *_root;
+    int _current_record;
+    int _length;
+
+    void parse();
+  public:
+    int pmt;
+    int pixel;
+    int gain;
+    int counts;
+
+    DSPCompressedParser(int16u *p,int16u length):_root(p),_current_record(0),_length(length){parse();}
+    int Next(){
+      _current_record+=2; 
+      if(_current_record>=_length) return 0;
+      parse();
+      return 1;
+    };                 // This fill t he variables pmt,pixel,gain and counts
   };
 
 
   enum {
     kOk,kLengthError,kDataError,kJINFIdError,              //  Possible error codes
-    kTruncated,kRDRError,kCalibration,kMixedMode,
-    kJINFError
+    kTruncated,kCDPError,kCalibration,kMixedMode,
+    kJINFError,kCDPRawTruncated,kWrongCDPChannelNumber
   };                       
 
   static int Emit(int code);                              // Perform task accordingly to erro. Return 1 if should exit  

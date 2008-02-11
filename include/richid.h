@@ -103,8 +103,8 @@ class RichPMTsManager{
   static int _gain_threshold[RICmaxpmts*RICnwindows];            // Gain threshold 
   static geant _relative_efficiency[RICmaxpmts*RICnwindows];     // Efficiency with respect to an arbitrary PMT 
 
-  static short int _rdr_starts[RICH_JINFs*RICH_RDRperJINF];            // In which PMT (geom id) starts each RDR
-  static short int _rdr_pmt_count[RICH_JINFs*RICH_RDRperJINF];         // How many pmts this RDR has 
+  static short int _rdr_starts[RICH_JINFs*RICH_CDPperJINF];            // In which PMT (geom id) starts each RDR
+  static short int _rdr_pmt_count[RICH_JINFs*RICH_CDPperJINF];         // How many pmts this RDR has 
 
   static time_t _eff_begin,_eff_insert,_eff_end;  // Monitor changes eff tables in order to
                                                   // recompute the efficiency tables 
@@ -151,7 +151,7 @@ class RichPMTsManager{
   static int GetGeomChannelID(int geom_pos,int pixel);                             // Given the pmt geom id and the pixel number return the geometric channel id: Unchecked!!!
   static void GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix);            // The same for both numbers as references
 
-  static int GetGeomPMTIdFromRDR(int RDR,int pmt);                                 // Given the RDR number (0-23) and the pmt within such RDR (0-30) return the geom id
+  static int GetGeomPMTIdFromCDP(int CDO,int pmt);                                 // Given the RDR number (0-23) and the pmt within such RDR (0-30) return the geom id
 
   static int PackGeom(int pmt,int channel){return pmt*RICnwindows+channel;}
   static void UnpackGeom(int packed,int &pmt,int &channel){
@@ -232,6 +232,17 @@ class RichPMTChannel{
   geant y(){return position[1];}
   geant z(){return position[2];}
 };
+
+
+// TODO LIST
+//
+// - Verify that the the orientation of the PMT pixels is the right one
+// - Use the physical pixel position in the calibration input and output instead
+//   of the geometric ID (it is uninmportant for the PMT itself because the
+//   pmtpos id is set)
+// - Eliminate the pmtaddh and pmtaddc checks from loading the calibration. Use only
+//   the pmtpos
+
 #endif
 
 
