@@ -1623,7 +1623,7 @@ bool AMSEventR::ReadHeader(int entry){
       fService.TotalTrig+=Event()-evento;
      }
      else{
-      cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
+      if(Event()-evento>2)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
       fService.TotalTrig++;
      }
     }

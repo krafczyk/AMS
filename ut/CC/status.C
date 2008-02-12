@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.21 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: status.C,v 1.22 2008/02/12 18:29:23 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -115,10 +115,10 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
 }
 
 
-void AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
+bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
   if(_Run && run != _Run){
    cerr<<"AMSStatus::geteventpos-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
-   return;
+   return false;
   }
   // try hint +
   int out;
@@ -128,7 +128,7 @@ void AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
    _Hint=out;
    //event found;
  ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][out-1]);
-  return;   
+  return true;   
  }
  else {
    // No Match Found
@@ -142,6 +142,7 @@ void AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
     cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][-out]);
    }
+   return false;
 }
 }
 

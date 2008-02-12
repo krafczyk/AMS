@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.40 2008/02/01 11:20:29 choutko Exp $
+//  $Id: daqevt.h,v 1.41 2008/02/12 18:29:25 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -151,6 +151,7 @@ static fstream fbout;
 void SetEOFIn();
 enum InitResult{Interrupt,NoInputFile,UnableToOpenFile,UnableToFindRunEvent,OK};
 static InitResult init();
+static void select();
 static char * _getNextFile(integer & run, integer & event);
 static void initO(integer run);
 static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);

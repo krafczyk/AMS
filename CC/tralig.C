@@ -1,14 +1,14 @@
-//  $Id: tralig.C,v 1.34 2008/02/07 16:26:19 choutko Exp $
-#include "tralig.h"
-#include "event.h"
+//  $Id: tralig.C,v 1.35 2008/02/12 18:29:23 choutko Exp $
+#include <tralig.h>
+#include <event.h>
 #include <math.h>
-#include "timeid.h"
-#include "trrawcluster.h"
+#include <timeid.h>
+#include <trrawcluster.h>
 #include <float.h>
-#include "mccluster.h"
-#include "tkdbc.h"
-#include "amsstl.h"
-#include "event.h"
+#include <mccluster.h>
+#include <tkdbc.h>
+#include <amsstl.h>
+#include <event.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -246,7 +246,7 @@ if(AMSFFKEY.Update){
 
 // Here AMSTrAligFit
 
-AMSTrAligFit::AMSTrAligFit():_Address(),_Pattern(0),_NData(0),_PositionData(0),
+AMSTrAligFit::AMSTrAligFit():_Address(0,0),_Pattern(0),_NData(0),_PositionData(0),
 _pData(0),_PlaneNo(0),_HalfNo(0),_LadderNo(0),_ParNo(0),AMSNode(AMSID("AMSTrAligFit",0)){
   int i;
   for(i=0;i<trconst::maxlay;i++){
@@ -255,7 +255,6 @@ _pData(0),_PlaneNo(0),_HalfNo(0),_LadderNo(0),_ParNo(0),AMSNode(AMSID("AMSTrAlig
   for(int k=0;k<sizeof(chi2)/sizeof(chi2[0]);k++){
    chi2[k]=chi2i[k]=0;
   }
-
 }
 
 AMSTrAligFit::AMSTrAligFit(uintl address, integer pattern, integer ndatmax,
@@ -268,7 +267,7 @@ if(_Address==1){
 // global Fit
 
   int i;
-  for(i=0;i<maxlad;i++){
+  for(i=0;i<trconst::maxlad;i++){
    for(int j=0;j<2;j++){
     for(int k=0;k<trconst::maxlay;k++){   
        if(TRALIG.LayersOnly)_pPargl[i][j][k].NEntries()=0;
@@ -281,29 +280,22 @@ if(_Address==1){
 
 
 _NoActivePar=0;
-for( i=0;i<trconst::maxlay;i++){
-  int nprp=0;
-  for(int j=0;j<6;j++){
-    if(TRALIG.ActiveParameters[i][j]){
-      nprp++;
+   for( i=0;i<trconst::maxlay;i++){
+      for(int l=0;l<trconst::maxlad;l++){
+       for(int m=0;m<2;m++){
+         if(TKDBc::activeladdshuttle(i+1,l+1,m)){
+          int nprp=0;
+          for(int j=0;j<6;j++){
+           if(TRALIG.ActiveParameters[i][j]){
+            nprp++;
+           }
+          }
+          _NoActivePar+=nprp;
+         }
+       }
+      }
     }
-  }
- _NoActivePar+=nprp;
-}
-
-
-// Find No of ladders
-int nladders=0;
-for(i=0;i<TKDBc::nlay();i++){
- for(int j=0;j<maxlad;j++){
-  for(int s=0;s<2;s++){
-    if(TKDBc::activeladdshuttle(i+1,j+1,s))nladders++;
-  }
- }
-}
-_NoActivePar*=nladders;
-_NoActivePar/=trconst::maxlay;
-cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<" "<<nladders<<endl;
+cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<" "<<endl;
 
 _PlaneNo= new integer[_NoActivePar];
 _ParNo= new integer[_NoActivePar];
@@ -312,7 +304,7 @@ _HalfNo=new integer[_NoActivePar];
 _NoActivePar=0;
 
     for( i=0;i<trconst::maxlay;i++){
-      for(int l=0;l<maxlad;l++){
+      for(int l=0;l<trconst::maxlad;l++){
        for(int m=0;m<2;m++){
          if(TKDBc::activeladdshuttle(i+1,l+1,m)){
           int nprp=0;
@@ -330,7 +322,7 @@ _NoActivePar=0;
        }
       }
     }
-
+cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<" "<<endl;
 
 }
 else{
@@ -344,7 +336,7 @@ for(i=0;i<trconst::maxlay;i++){
  for(int k=1;k<trconst::maxlay;k++){
  if(i==TKDBc::patconf(pattern,k)-1){
   int nprp=0;
-  for(int j=0;j<6;j++){
+  for(int j=0;j<trconst::maxlay;j++){
     if(TRALIG.ActiveParameters[i][j]){
 //       _PlaneNo[_NoActivePar+nprp]=i;
 //       _ParNo[_NoActivePar+nprp]=j;
@@ -365,7 +357,7 @@ for(i=0;i<trconst::maxlay;i++){
  for(int k=1;k<trconst::maxlay;k++){
  if(i==TKDBc::patconf(pattern,k)-1){
   int nprp=0;
-  for(int j=0;j<6;j++){
+  for(int j=0;j<trconst::maxlay;j++){
     if(TRALIG.ActiveParameters[i][j]){
        _PlaneNo[_NoActivePar+nprp]=i;
        _ParNo[_NoActivePar+nprp]=j;
@@ -401,16 +393,16 @@ AMSNode *pnode =AMSJob::gethead()->getaligstructure();
 AMSTrAligFit * pal = (AMSTrAligFit *)pnode->down();
 
 if(forced==0){
- AMSParticle * ptr=0;
+ AMSTrTrack * ptrack=0;
  AMSmceventg * ptrg=0;
-  if(Select(ptr,ptrg,TRALIG.Algorithm)){
-     AMSTrTrack * ptrack= ptr->getptrack();
+  if(Select(ptrack,ptrg,TRALIG.Algorithm)){
+//     AMSTrTrack * ptrack= ptr->getptrack();
      integer nnodes=0;
      integer found=0;
       while(pal){
         nnodes++;
         if(pal->AddressOK(ptrack->getaddress(),int(TRALIG.Cuts[9][0]))){
-           if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+           if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptrack,ptrg);
            if(pal->AddressOK(ptrack->getaddress(),1))found=1;
            else if(found==0)found=-1;
         }
@@ -424,7 +416,7 @@ if(forced==0){
            if(TRALIG.ReWriteDB  || found<=0){
             pal=new AMSTrAligFit(ptrack->getaddress(),
             ptrack->getpattern(), TRALIG.MaxEventsPerFit, TRALIG.Algorithm, nnodes+1);
-            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptrack,ptrg);
             pnode->add(pal);       
             cout <<"AMSTrAligFit::Test-I-NewPatternAdded " <<ptrack->getaddress()<<" "<<TRALIG.Algorithm<<endl;
            }
@@ -471,10 +463,9 @@ AMSNode *pnode =AMSJob::gethead()->getaligstructure();
 AMSTrAligFit * pal = (AMSTrAligFit *)pnode->down();
 
 if(forced==0){
- AMSParticle * ptr=0;
+ AMSTrTrack  * ptrack=0;
  AMSmceventg * ptrg=0;
-  if(Select(ptr,ptrg,TRALIG.Algorithm)){
-     AMSTrTrack * ptrack= ptr->getptrack();
+  if(Select(ptrack,ptrg,TRALIG.Algorithm)){
      integer nnodes=0;
      integer found=0;
       while(pal){
@@ -483,9 +474,9 @@ if(forced==0){
           int itst=GCFLAG.ITEST>10?GCFLAG.ITEST/10:1;        
            if(pal->_PositionData%itst==1)cout <<"AMSTrAligFit::Testgl-I "<<pal->_PositionData<<" events in memory "<<endl;
            if(pal->_PositionData%GCFLAG.ITEST==1){
-             for(int ilay=0;ilay<maxlay;ilay++){
+             for(int ilay=0;ilay<trconst::maxlay;ilay++){
                for(int iside=0;iside<2;iside++){
-                for(int ilad=0;ilad<maxlad;ilad++){
+                for(int ilad=0;ilad<trconst::maxlad;ilad++){
                  if(_pPargl[ilad][iside][ilay].NEntries()>0){
                    cout << ilay<<" "<<iside<<" "<<ilad<<" "<< _pPargl[ilad][iside][ilay].NEntries()<<endl;
                  }
@@ -499,14 +490,14 @@ if(forced==0){
              AMSTrTrack::decodeaddress(ladder,ptrack->getaddress());
              int add=0;
              int i;
-             for(i=0;i<maxlay;i++){
+             for(i=0;i<trconst::maxlay;i++){
               if(ladder[0][i]){
                 add+=_pPargl[ladder[0][i]-1][ladder[1][i]][i].AddOne();
               }
              }
-             if(add)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+             if(add)(pal->_pData[(pal->_PositionData)++]).Init(ptrack,ptrg);
              else{
-              for( i=0;i<maxlay;i++){
+              for( i=0;i<trconst::maxlay;i++){
                if(ladder[0][i]){
                 _pPargl[ladder[0][i]-1][ladder[1][i]][i].MinusOne();
                }
@@ -519,7 +510,8 @@ if(forced==0){
            }
            else {
               cout <<"AMSTrAligFit::Testgl-I-MaxEventNoReached.Terminating 1 "<<pal->_NData<<endl;
-              raise(SIGTERM);
+                Testgl(1);
+//              raise(SIGTERM);
            }
            if(skip++>TRALIG.EventsPerRun){
               //if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
@@ -532,7 +524,7 @@ if(forced==0){
       if(nnodes<TRALIG.MaxPatternsPerJob){
            integer found=0;
             pal=new AMSTrAligFit(1,0, TRALIG.MaxEventsPerFit, TRALIG.Algorithm, nnodes+1);
-            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptrack,ptrg);
             pnode->add(pal);       
             cout <<"AMSTrAligFit::TestGl-I-PatternAdded " <<1<<" "<<TRALIG.Algorithm<<endl;
            }
@@ -615,8 +607,8 @@ void AMSTrAligFit::Fit(){
       }
      }
      if(ifail==0){
-      AMSPoint outc[maxlay];
-      AMSPoint outa[maxlay];
+      AMSPoint outc[trconst::maxlay];
+      AMSPoint outa[trconst::maxlay];
       for(i=0;i<trconst::maxlay;i++){
         outc[i]=0;
         outa[i]=0;
@@ -628,7 +620,7 @@ void AMSTrAligFit::Fit(){
        else outa[plane][parno-3]=x[i]*AMSDBc::pi/180.;
       }
  
-      for(i=0;i<maxlay;i++){
+      for(i=0;i<trconst::maxlay;i++){
         (_pParC[i]).setpar(outc[i],outa[i]);
       }
       _fcn=f;
@@ -652,7 +644,7 @@ void AMSTrAligFit::Fitgl(){
       cout << "Global AMSTrAligFit::Fit started" <<endl;
   // Fit Here
   // number of parameters to fit
-    const integer mp=999;
+    const integer mp=350;
     number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
 
    // rebuild noactivepar
@@ -662,10 +654,32 @@ void AMSTrAligFit::Fitgl(){
     integer n=_NoActivePar;
     integer iw=n+1;
     integer ifail=1;
-    integer maxcal=25000;
-    number tol=3.99e-2;
+    integer maxcal=100000;
+    number tol=1.e-2;
     int i,j;
+     _Chi2Max=0;
     for(i=0;i<mp;i++)x[i]=0;
+    _flag=3;
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+    cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
+     number chi2s=0;
+     number chi22s=0;
+     number chi2n=0;
+    for (int i=0;i<sizeof(chi2)/sizeof(chi2[0]);i++){
+     if(chi2[i]>0){
+      chi2s+=chi2[i];
+      chi22s+=chi2[i]*chi2[i];
+      chi2n++;
+     }
+    }
+    if(chi2n>1){
+      chi2s/=chi2n;    
+      chi22s/=chi2n;    
+      chi22s=sqrt(chi22s-chi2s*chi2s);
+    }
+    _Chi2Max=chi2s+chi22s/2;
+    cout <<"AMSTrAligFit::Fit Chi2MaxSet "<<_Chi2Max<<" "<<endl;
+    ifail=1;
     _flag=3;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
@@ -674,12 +688,13 @@ void AMSTrAligFit::Fitgl(){
      ifail=1;
      number fd;
      integer one(1);
+     _Chi2Max=0;
      e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
-     AMSPoint outc[maxlad][2][maxlay];
-     AMSPoint outa[maxlad][2][maxlay];
-     for(i=0;i<maxlad;i++){ 
+     AMSPoint outc[trconst::maxlad][2][trconst::maxlay];
+     AMSPoint outa[trconst::maxlad][2][trconst::maxlay];
+     for(i=0;i<trconst::maxlad;i++){ 
      for(j=0;j<2;j++){
-     for(int k=0;k<maxlay;k++){
+     for(int k=0;k<trconst::maxlay;k++){
        outc[i][j][k]=AMSPoint(0,0,0);
        outa[i][j][k]=AMSPoint(0,0,0);
      }
@@ -695,7 +710,7 @@ void AMSTrAligFit::Fitgl(){
       else outa[ladder][half][plane][parno-3]=x[i]*AMSDBc::pi/180.;
      }
 
-     for(i=0;i<maxlad;i++){
+     for(i=0;i<trconst::maxlad;i++){
      for(j=0;j<2;j++){
      for(int k=0;k<trconst::maxlay;k++){
        (_pPargl[i][j][k]).setpar(outc[i][j][k],outa[i][j][k]);
@@ -743,14 +758,14 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
     else cout <<"tralig ntuple file "<<filename<<" opened."<<endl;
 
    HBNT(IOPA.ntuple+1,"Tracker Alignment"," ");
-   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Pattern:I,Alg:I,Address(2):I,FCN:R,FCNI:R,CHI2(1000):R,CHI2I(1000):R,ndata:I,PFIT:R,PFITS:R,Coo(3,8):R,Angle(3,8):R");
+   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Pattern:I,Alg:I,Address(2):I,FCN:R,FCNI:R,PFIT:R,PFITS:R,Coo(3,6):R,Angle(3,6):R");
 
   }
   int i,j,k,l;
       TRALIGG.Pattern=_Pattern;
       TRALIGG.Alg=_Algorithm;
-      TRALIGG.Address(0)=_Address(0);
-      TRALIGG.Address(1)=_Address(1);
+      TRALIGG.Address[0]=_Address(0);
+      TRALIGG.Address[1]=_Address(1);
       TRALIGG.FCN=_fcn;
       TRALIGG.FCNI=_fcnI;
       TRALIGG.Pfit=_pfit;
@@ -767,7 +782,7 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
    // I need to convert _pParc to a local ladder level
    integer ladder[2][maxlay];
    AMSTrTrack::decodeaddress(ladder,_Address);
-   for(int il=0;il<maxlay;il++){
+   for(int il=0;il<trconst::maxlay;il++){
     if(ladder[0][il]){
      integer sensor= ladder[1][il]==0? 1: TKDBc::nhalf(il+1,ladder[0][il])+1;
      AMSTrIdGeom amd(il+1,ladder[0][il],sensor,0,0);
@@ -796,7 +811,7 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
         }
       }
       cooN=cooN+coov.mm3(nrmN);
-      amsprotected::mm3(nrmN,coom,0);
+      mm3(nrmN,coom,0);
       _pParC[il].setcoo(cooN);
       for( j=0;j<3;j++){
        _pParC[il].setmtx(j)= AMSDir(coom[j][0],coom[j][1],coom[j][2]);  
@@ -835,19 +850,20 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
     else cout <<"tralig ntuple file "<<filename<<" opened."<<endl;
 
    HBNT(IOPA.ntuple+1,"Tracker Alignment"," ");
-   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Alg:I,Layer:I,Ladder:I,Side:I,FCN:R,FCNI:R,PFIT:R,PFITS:R,Coo(3):R,Angle(3):R,Stat:I");
+   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Alg:I,Layer:I,Ladder:I,Side:I,FCN:R,FCNI:R,CHI2(10000):R,CHI2I(10000):R,ndata:I,PFIT:R,PFITS:R,Coo(3):R,Angle(3):R,Stat:I");
  
 
   }
   int i,j,k,l;
    for(j=0;j<trconst::maxlay;j++){
-     for(int nlad=0;nlad<maxlad;nlad++){
+     for(int nlad=0;nlad<trconst::maxlad;nlad++){
        for(int side=0;side<2;side++){
         if(TKDBc::activeladdshuttle(j+1,nlad+1,side )|| TRALIG.LayersOnly){
           TRALIGG.Alg=10000*_Algorithm+action-1;
           TRALIGG.Layer=j+1;
           TRALIGG.Ladder=nlad+1;
           TRALIGG.Side=side;
+          TRALIGG.ndata=_PositionData;
           TRALIGG.FCN=_fcn;
           TRALIGG.FCNI=_fcnI;
           TRALIGG.Pfit=_pfit;
@@ -862,11 +878,12 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
             TRALIGG.Angle[k]=_pPargl[nlad][side][j].getang()[k];
            }
            HFNT(IOPA.ntuple+1);
+           if(TRALIG.LayersOnly)goto nah;
           }
          }
         }
    }
-
+nah:
   UpdateDBgl();
 
 
@@ -875,10 +892,10 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
 
 
 
-integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, integer alg){
-      ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",0);
+integer AMSTrAligFit::Select(AMSTrTrack * & ptr, AMSmceventg * & pmcg, integer alg){
+      AMSParticle * ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",0);
       pmcg=0;
-      if(!ppart)return 0;      // Particle Should be Present always
+      if(!ppart && alg!=2)return 0;      // Particle Should be Present always
 
   // Algorithm == 0 presumes momentum is knows,
   // pmcg may exist, if not create it from datacards
@@ -910,7 +927,8 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
        }
    }
    else if(alg==2){
-    //  no magnetic field algo
+        //  assumes no mag field ; fitting by str lines
+       
    }
    else{
      cerr<<"AMSTrAligFit::Select-F-AlgNo "<<alg<<" IsNotSupportedYet"<<endl;
@@ -926,7 +944,7 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
         number recharge=ppart->getcharge();
         if(ppart->getmomentum()<0)recharge=-recharge;
         if(recharge==charge){
-           AMSTrTrack *ptr=ppart->getptrack();              
+           ptr=ppart->getptrack();              
            number chi2_3d, chi2z, rid;
            ptr->getParSimpleFit(chi2_3d,chi2z,rid);
            number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
@@ -960,7 +978,7 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
              static int tot5=0;
              static int tot6=0;
              static int tot7=0;
-           AMSTrTrack *ptr=ppart->getptrack();              
+           ptr=ppart->getptrack();              
            number chi2_3d, chi2z, rid;
            ptr->getParSimpleFit(chi2_3d,chi2z,rid);
            number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
@@ -990,10 +1008,29 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
       }
    }
    if(alg==2){
-    number recharge=ppart->getcharge();
-    if(recharge<3){
-     AMSTrTrack *ptr=ppart->getptrack();              
-    }
+      // alg 2 cuts
+      // only one tr track
+      // only  one trd track
+      // less than 5 trd segments 
+      int ntrd=(AMSEvent::gethead()->getC("AMSTRDTrack",0))->getnelem();
+      int ntrds=0;
+      for(int i=0;i<5;i++)ntrds+=(AMSEvent::gethead()->getC("AMSTRDSegment",i))->getnelem();
+      int ntrk=(AMSEvent::gethead()->getC("AMSTrTrack",0))->getnelem();
+      if(ntrk==1 && ntrd==1 && ntrds<6){
+      ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
+      if(ptr->getnhits()>5){
+        int ntof=(AMSEvent::gethead()->getC("AMSTOFCluster",0))->getnelem()+
+                  (AMSEvent::gethead()->getC("AMSTOFCluster",1))->getnelem();
+        if(ntof==2  ){
+           if(ptr->getchi2()<100000){
+            return 1;
+           }
+           else{
+             cerr<<"  event rejected "<<" "<<ptr->getchi2()<<endl;
+          }
+       }
+      }
+   }
    }
    return 0;
 }
@@ -1026,7 +1063,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
   }
   integer npfit=0;
    // convert parameters
-   AMSTrAligPar par[trconst::maxlay];
+   AMSTrAligPar par[6];
    static integer idontwanttofit=0;
    static number fool_e04ccf=0; 
  {
@@ -1047,7 +1084,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
       else outa[plane][parno-3]=xc[i]*AMSDBc::pi/180.;
      }
 
-     for(i=0;i<trconst::maxlay;i++){
+     for(i=0;i<6;i++){
        par[i].setpar(outc[i],outa[i]);
      }
 
@@ -1075,7 +1112,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
       TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ia,ims,layer,out1);
       out[5]=out1[5];
       geant xx=out[5]*p->_pData[niter]._InvRigidity;
-      //HF1(p->_Address+p->_flag,xx,1.);
+//      HF1(p->_Address+p->_flag,xx,1.);
       pav+=1./out[5]/p->_pData[niter]._InvRigidity;
       pav2+=1./out[5]/out[5]/p->_pData[niter]._InvRigidity/p->_pData[niter]._InvRigidity;
     }
@@ -1087,7 +1124,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
   if(npfit < n+2)fc=FLT_MAX;
   else fc=fc/(npfit-n);
   //cout <<" fc "<<fc<<" "<< npfit<<endl;
-  //if(p->_flag)HPRINT(p->_Address+p->_flag);
+//  if(p->_flag)HPRINT(p->_Address+p->_flag);
   if(p->_flag==2 && npfit>1){
        pav/=npfit;
        pav2/=npfit;
@@ -1118,7 +1155,6 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
 
 void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p){
 if(MAGSFFKEY.magstat>0){
-
   integer i,niter;
   fc=0;
   for(i=0;i<n;i++){
@@ -1151,20 +1187,20 @@ if(MAGSFFKEY.magstat>0){
   integer ialgo=11;
   integer ims=0;
   geant out[9];
-  for(i=0;i<maxlay;i++){
+  for(i=0;i<trconst::maxlay;i++){
      normal[i][0]=0;
      normal[i][1]=0;
      normal[i][2]=-1;
   }
   integer npfit=0;
    // convert parameters
-   AMSTrAligPar par[maxlad][2][maxlay];
+   AMSTrAligPar par[trconst::maxlad][2][trconst::maxlay];
  {
-     AMSPoint outc[maxlad][2][maxlay];
-     AMSPoint outa[maxlad][2][maxlay];
-     for(i=0;i<maxlad;i++){
+     AMSPoint outc[trconst::maxlad][2][trconst::maxlay];
+     AMSPoint outa[trconst::maxlad][2][trconst::maxlay];
+     for(i=0;i<trconst::maxlad;i++){
      for(int j=0;j<2;j++){
-     for(int k=0;k<maxlay;k++){
+     for(int k=0;k<trconst::maxlay;k++){
        outc[i][j][k]=0;
        outa[i][j][k]=0;
      }
@@ -1179,9 +1215,9 @@ if(MAGSFFKEY.magstat>0){
       else outa[ladder][half][plane][parno-3]=xc[i]*AMSDBc::pi/180.;
      }
 
-     for(i=0;i<maxlad;i++){
+     for(i=0;i<trconst::maxlad;i++){
      for(int j=0;j<2;j++){
-     for(int k=0;k<maxlay;k++){
+     for(int k=0;k<trconst::maxlay;k++){
        par[i][j][k].setpar(outc[i][j][k],outa[i][j][k]);
      }
      }
@@ -1259,10 +1295,13 @@ mbreak:
        p->_tmp=fc;
        p->_flag=0;
        fool_e04ccf=fc;
+
       }
+
 }
 else{
-// no magnetic field;  str line fit
+
+// no mag field
   integer i,niter;
   fc=0;
   for(i=0;i<n;i++){
@@ -1301,12 +1340,13 @@ else{
      normal[i][2]=-1;
   }
   integer npfit=0;
+  integer npfitp=0;
    // convert parameters
-   AMSTrAligPar par[maxlad][2][trconst::maxlay];
+   AMSTrAligPar par[trconst::maxlad][2][trconst::maxlay];
  {
-     AMSPoint outc[maxlad][2][trconst::maxlay];
-     AMSPoint outa[maxlad][2][trconst::maxlay];
-     for(i=0;i<maxlad;i++){
+     AMSPoint outc[trconst::maxlad][2][trconst::maxlay];
+     AMSPoint outa[trconst::maxlad][2][trconst::maxlay];
+     for(i=0;i<trconst::maxlad;i++){
      for(int j=0;j<2;j++){
      for(int k=0;k<trconst::maxlay;k++){
        outc[i][j][k]=0;
@@ -1323,7 +1363,7 @@ else{
       else outa[ladder][half][plane][parno-3]=xc[i]*AMSDBc::pi/180.;
      }
 
-     for(i=0;i<maxlad;i++){
+     for(i=0;i<trconst::maxlad;i++){
      for(int j=0;j<2;j++){
      for(int k=0;k<trconst::maxlay;k++){
        par[i][j][k].setpar(outc[i][j][k],outa[i][j][k]);
@@ -1334,7 +1374,7 @@ else{
  }
    number pav=0;
    number pav2=0;
-   //if(p->_flag)HBOOK1(p->_Address+p->_flag,"my distr",50,0.,2.,0.);
+  // if(p->_flag)HBOOK1(p->_Address+p->_flag,"my distr",50,0.,2.,0.);
   for(niter=0;niter<p->_PositionData;niter++){
    integer npt=TKDBc::patpoints((p->_pData)[niter]._Pattern);
    uintl address=(p->_pData)[niter]._Address;
@@ -1365,22 +1405,24 @@ else{
    out[0]=p->_pData[niter]._InvRigidity;
    TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ialgo,ims,layer,out);
 mbreak2: 
-   if(out[7]==0 ){
-    fc+=out[6];
+   if(out[7]==0 && (p->_Chi2Max==0 || out[6]<p->_Chi2Max)){
+//    cout <<" i "<<i<<" "<<out[6]<<endl;
+    fc+=out[6]*npt;
     if(p->_flag==3){
      //p->chi2[npfit]=0;
-     p->chi2i[npfit]=out[6];
+     if(npfit<sizeof(p->chi2)/sizeof(p->chi2[0]))p->chi2i[npfit]=out[6];
     }
     else{
-     p->chi2[npfit]=out[6];
+     if(npfit<sizeof(p->chi2)/sizeof(p->chi2[0]))p->chi2[npfit]=out[6];
      //p->chi2i[npfit]=0;
     }
     npfit++;
+    npfitp+=npt;
    }
    
   }
-  if(npfit < n+2)fc=FLT_MAX;
-  else fc=fc/(npfit-n);
+  if(npfitp < n+2)fc=FLT_MAX;
+  else fc=fc/(npfitp-n);
   //if(p->_flag)HPRINT(p->_Address+p->_flag);
   if(p->_flag==2 && npfit>1){
        for(i=0;i<6;i++)cout <<" "<<xc[i]<<" ";
@@ -1388,7 +1430,7 @@ mbreak2:
        p->_flag=0;
 
   }
-       for(i=0;i<8;i++)cout <<" "<<xc[i]<<" ";
+       for(i=0;i<6;i++)cout <<" "<<xc[i]<<" ";
        cout << endl<<" alfun out " <<fc<<" "<<npfit<<" "<<pav<<" "<<pav2<<" "<<n<<endl;
       if(p->_flag==3){
        p->_tmp=fc;
@@ -1396,20 +1438,21 @@ mbreak2:
        fool_e04ccf=fc;
       }
 
-
 }
 }
 
 
 
-void AMSTrAligData::Init(AMSParticle *ppart, AMSmceventg *pmcg){
-    AMSTrTrack * ptrack=ppart->getptrack();
+void AMSTrAligData::Init(AMSTrTrack *ptrack, AMSmceventg *pmcg){
+//    AMSTrTrack * ptrack=ppart->getptrack();
     integer pattern=ptrack->getpattern();
    _Pattern=pattern;
    _Address=ptrack->getaddress();
-   _InvRigidity=pmcg->getcharge()/pmcg->getmom();
+   if(pmcg)_InvRigidity=pmcg->getcharge()/pmcg->getmom();
+    else _InvRigidity=0;
    _ErrInvRigidity=0.01*_InvRigidity;
-   _Pid=pmcg->pid();
+   if(pmcg)_Pid=pmcg->pid();
+   else _Pid=5;
   _NHits=TKDBc::patpoints(pattern);
   _Hits= new AMSPoint[_NHits];
   _EHits=new AMSPoint[_NHits];
@@ -1422,7 +1465,6 @@ void AMSTrAligData::Init(AMSParticle *ppart, AMSmceventg *pmcg){
      }
     }
   }
-
   return ;
 }
 
@@ -1435,7 +1477,7 @@ return AMSID("TrAligglDB",AMSJob::gethead()->isRealData());
 
 }
 
-AMSTrAligPar  AMSTrAligFit::_pPargl[17][2][maxlay];
+AMSTrAligPar  AMSTrAligFit::_pPargl[trconst::maxlad][2][trconst::maxlay];
 
 integer AMSTrAligFit::AddressOK(uintl address, integer strict){
   
@@ -1444,7 +1486,7 @@ integer AMSTrAligFit::AddressOK(uintl address, integer strict){
   integer lad2[2][maxlay];
   AMSTrTrack::decodeaddress(lad1,address);
    AMSTrTrack::decodeaddress(lad2,_Address);
-  for(int i=0;i<maxlay;i++){
+  for(int i=0;i<trconst::maxlay;i++){
      if(lad1[0][i]!=0){
       for(int j=0;j<2;j++){
        if(lad1[j][i]!=lad2[j][i]){
@@ -1563,7 +1605,7 @@ if(TRALIG.LayersOnly){
          for(j=0;j<3;j++){
           coo[j]=_pPargl[0][0][i].getcoo()[j]+(_pPargl[0][0][i].getmtx(j)).prod(Coo);
          }
-         amsprotected::mm3(nrmN,nrm,0);
+         mm3(nrmN,nrm,0);
          TKDBc::SetLayer(i+1,status,coo,nrm,rgid);
       }
          TKDBc::write(4);
@@ -1575,7 +1617,7 @@ else{
          geant coo[3];
          number nrm[3][3];
 int i;
-for(i=0;i<maxlay;i++){
+for(i=0;i<trconst::maxlay;i++){
  integer statusy;
  integer rgidy;
  geant cooy[3];
@@ -1584,7 +1626,7 @@ for(i=0;i<maxlay;i++){
  number nrmyT[3][3];
  transpose(nrmy,nrmyT);
  AMSPoint Cooy(cooy);
- for(int nlad=0;nlad<maxlad;nlad++){
+ for(int nlad=0;nlad<trconst::maxlad;nlad++){
   for(int side=0;side<2;side++){
     if((TKDBc::activeladdshuttle(i+1,nlad+1,side))){
        TKDBc::GetLadder(i,nlad,side,status,coo,nrm,rgid);
@@ -1601,10 +1643,10 @@ for(i=0;i<maxlay;i++){
        number nrmz0[3][3];
        number nrmz1[3][3];
        UCOPY(nrmN,nrmz0,sizeof(nrmz0)/sizeof(integer));
-       amsprotected::mm3(nrmyT,nrmz0,0);
+       mm3(nrmyT,nrmz0,0);
        UCOPY(nrmy,nrmz1,sizeof(nrmz0)/sizeof(integer));
-       amsprotected::mm3(nrmN,nrmz1,0);
-       amsprotected::mm3(nrmyT,nrmz1,0);
+       mm3(nrmN,nrmz1,0);
+       mm3(nrmyT,nrmz1,0);
         
        for(j=0;j<3;j++){
           AMSDir d0(nrmyT[j][0],nrmyT[j][1],nrmyT[j][2]);
@@ -1612,9 +1654,9 @@ for(i=0;i<maxlay;i++){
           AMSDir d2(nrmz1[j][0],nrmz1[j][1],nrmz1[j][2]);
           coo[j]=d0.prod(_pPargl[nlad][side][i].getcoo()-Cooy)+d1.prod(Cooy)+d2.prod(Coo);
        }
-       amsprotected::mm3(nrmy,nrm,0);
-       amsprotected::mm3(nrmN,nrm,0);
-       amsprotected::mm3(nrmyT,nrm,0);
+       mm3(nrmy,nrm,0);
+       mm3(nrmN,nrm,0);
+       mm3(nrmyT,nrm,0);
        if(_pPargl[nlad][side][i].NEntries()>TRALIG.MinEventsPerFit){
          TKDBc::SetLadder(i,nlad,side,status,coo,nrm,rgid);
          _pPargl[nlad][side][i].NEntries()=-_pPargl[nlad][side][i].NEntries(); 
@@ -1632,9 +1674,9 @@ for(i=0;i<maxlay;i++){
 
       // UpdateDB
 
-     for(i=0;i<maxlay;i++){
+     for(i=0;i<trconst::maxlay;i++){
       int j;
-      for(j=0;j<maxlad;j++){
+      for(j=0;j<trconst::maxlad;j++){
         for(int k=0;k<2;k++){
          _gldb[j][k][i].nentries=-_pPargl[j][k][i].NEntries();
          for(int l=0;l<3;l++){
@@ -1664,9 +1706,9 @@ void AMSTrAligFit::RebuildNoActivePar(){
 if(TRALIG.LayersOnly){
 
  _NoActivePar=0;
- for(int i=0;i<maxlay;i++){
+ for(int i=0;i<trconst::maxlay;i++){
   int ntr=0;
-  for(int l=0;l<maxlad;l++){
+  for(int l=0;l<trconst::maxlad;l++){
    for(int m=0;m<2;m++){
     if(_pPargl[l][m][i].NEntries()>0)ntr+=_pPargl[l][m][i].NEntries();
    }
@@ -1695,12 +1737,12 @@ if(TRALIG.LayersOnly){
 }
 else{
  _NoActivePar=0;
- for(int i=0;i<maxlay;i++){
-  for(int l=0;l<maxlad;l++){
+ for(int i=0;i<trconst::maxlay;i++){
+  for(int l=0;l<trconst::maxlad;l++){
    for(int m=0;m<2;m++){
     if(_pPargl[l][m][i].NEntries()>TRALIG.MinEventsPerFit/2){
      int nprp=0;
-     for(int j=0;j<maxlay;j++){ 
+     for(int j=0;j<6;j++){ 
       if(TRALIG.ActiveParameters[i][j]){
         _PlaneNo[_NoActivePar+nprp]=i;
         _ParNo[_NoActivePar+nprp]=j;
@@ -1725,9 +1767,9 @@ cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<endl;
 
 void AMSTrAligFit::InitDB(){
 
-  for(int i=0;i<maxlad;i++){
+  for(int i=0;i<trconst::maxlad;i++){
    for(int j=0;j<2;j++){
-    for(int k=0;k<maxlay;k++){   
+    for(int k=0;k<trconst::maxlay;k++){   
        _gldb[i][j][k].nentries=0;
          for(int l=0;l<3;l++){
           _gldb[j][k][i].coo[l]=0;
@@ -1740,13 +1782,13 @@ void AMSTrAligFit::InitDB(){
 
 }
 
-AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[maxlad][2][maxlay];
+AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[trconst::maxlad][2][maxlay];
 
 
-integer AMSTrAligFit::glDBOK(uintl address){
+integer AMSTrAligFit::glDBOK(uinteger address){
    integer ladder[2][maxlay];
    AMSTrTrack::decodeaddress(ladder,address);
-   for(int i=0;i<maxlay;i++){
+   for(int i=0;i<trconst::maxlay;i++){
      if(ladder[0][i]){
        if(!_gldb[ladder[0][i]-1][ladder[1][i]][i].nentries)return 0;
      }

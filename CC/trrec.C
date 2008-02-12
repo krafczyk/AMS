@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.185 2008/02/07 16:26:19 choutko Exp $
+//  $Id: trrec.C,v 1.186 2008/02/12 18:29:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1885,9 +1885,11 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
     number gers=0.03;
     if(TRFITFFKEY.OldTracking)ptrack->VerySimpleFit(AMSPoint(gers,gers,gers));
     else ptrack->SimpleFit(AMSPoint(gers,gers,gers));
+    //cout<<ptrack->_NHits<<" "<<ptrack->_Chi2StrLine<<" "<<ptrack->_Chi2WithoutMS<<endl;
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
      if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
       fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
+           //cout<<ptrack->_NHits<<" "<<ptrack->_Chi2StrLine<<" "<<ptrack->_Chi2WithoutMS<<" "<<ptrack->Fit(0)<<endl;
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK() ){
          // permanently add;
@@ -2116,14 +2118,17 @@ integer AMSTrTrack::TOFOK(){
     if(pc){
       AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
       number SearchReg(4);
+      number MaxCos(0.1);
       integer trdf=0;
       while(ptrd){
        trdf++;
        number theta,phi,sleng;
        AMSDir s(ptrd->gettheta(),ptrd->getphi());
+       AMSDir s1(gettheta(),getphi());
+       number c=s1.prod(s);
        if(s[2]!=0){
          number x=ptrd->getCooStr()[0]+s[0]/s[2]*(_P0[2]-ptrd->getCooStr()[2]);
-         if(fabs(x-_P0[0])<SearchReg)return 1;       
+         if(fabs(x-_P0[0])<SearchReg && acos(c)<MaxCos)return 1;       
        }
 /*
        AMSPoint Res;
@@ -2135,6 +2140,7 @@ integer AMSTrTrack::TOFOK(){
        ptrd=ptrd->next();
       }
       if(trdf)return 0;
+      else if(TRFITFFKEY.UseTRD>1 && !trdf)return 0;
     }
     }
     if (TRFITFFKEY.UseTOF && (TKDBc::ambig(_Pattern) || 

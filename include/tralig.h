@@ -1,15 +1,15 @@
-//  $Id: tralig.h,v 1.17 2008/02/07 16:26:23 choutko Exp $
+//  $Id: tralig.h,v 1.18 2008/02/12 18:29:25 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
 #define __AMSTRALIG__
-#include "typedefs.h"
-#include  "commons.h"
-#include "link.h"
-#include "point.h"
-#include "particle.h"
-#include "trid.h"
-#include "mceventg.h"
+#include <typedefs.h>
+#include  <commons.h>
+#include <link.h>
+#include <point.h>
+#include <particle.h>
+#include <trid.h>
+#include <mceventg.h>
 using namespace amsprotected;
 class AMSTrAligDB;
 class AMSTrAligPar{
@@ -30,8 +30,8 @@ public:
  int operator == (const AMSTrAligDBEntry&o) const{ return address==o.address;}
  AMSTrAligDBEntry():address(0,0){};
  AMSTrAligDBEntry(uintl _address):address(_address){};
- AMSTrAligDBEntry(uintl _address,  uinteger _status, AMSTrAligPar o[6], number _fcnb, number _fcna, number _pav, number _pav2):address(_address),status(_status),chi2b(_fcnb), chi2a(_fcna),pav(_pav),pav2(_pav2){
-  for(int i=0;i<6;i++){
+ AMSTrAligDBEntry(uintl _address,  uinteger _status, AMSTrAligPar o[trconst::maxlay], number _fcnb, number _fcna, number _pav, number _pav2):address(_address),status(_status),chi2b(_fcnb), chi2a(_fcna),pav(_pav),pav2(_pav2){
+  for(int i=0;i<trconst::maxlad;i++){
    for(int k=0;k<3;k++){
     coo[i][k]=o[i].getcoo()[k];
     angle[i][k]=o[i].getang()[k];
@@ -55,7 +55,7 @@ AMSDir _Dir[3];
 void _a2m();
 void _m2a();
 static AMSTrAligDB _traldb;
-static AMSTrAligPar par[8];
+static AMSTrAligPar par[trconst::maxlay];
 public:
 AMSTrAligPar():_Coo(0,0,0),_Angles(0,0,0),_NEntries(0){};
 AMSTrAligPar(const AMSPoint & coo, const AMSPoint & angles);
@@ -130,7 +130,7 @@ protected:
 public:
 AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
 _InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0,0){};
-void Init(AMSParticle * ptr, AMSmceventg * pgen);
+void Init(AMSTrTrack * ptr, AMSmceventg * pgen);
 friend class AMSTrAligFit;
 ~AMSTrAligData(){ delete [] _Hits; delete[] _EHits;}
 };
@@ -144,13 +144,13 @@ class TrAlig_def{
 public:
 integer Pattern;
 integer Alg;
-uintl Address;
+integer Address[2];
 geant FCN;
 geant FCNI;
 geant Pfit;
 geant Pfitsig;
-geant Coo[8][3];
-geant Angle[8][3];
+geant Coo[trconst::maxlad][3];
+geant Angle[trconst::maxlad][3];
 };
 class gldb_def{
 public:
@@ -166,8 +166,8 @@ int Ladder;
 int Side;
 geant FCN;
 geant FCNI;
-geant CHI2[1000];
-geant CHI2I[1000];
+geant CHI2[10000];
+geant CHI2I[10000];
 int ndata;
 geant Pfit;
 geant Pfitsig;
@@ -198,9 +198,10 @@ number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
 number chi2[1000];
 number chi2i[1000];
-AMSTrAligPar _pParC[8];
-static AMSTrAligPar _pPargl[17][2][8];
-static gldb_def _gldb[trconst::maxlad][2][8];
+number _Chi2Max;
+AMSTrAligPar _pParC[trconst::maxlad];
+static AMSTrAligPar _pPargl[trconst::maxlad][2][trconst::maxlay];
+static gldb_def _gldb[trconst::maxlad][2][trconst::maxlay];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
@@ -211,14 +212,14 @@ public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
 AMSTrAligFit();
 AMSTrAligFit(uintl _Address, integer pattern, integer data, integer alg, integer nodeno);
-static integer glDBOK(uintl add);
+static integer glDBOK(uinteger add);
 static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}
 static void InitDB();
 static void Test(int i=0);
 static void Testgl(int i=0);
 static AMSID getTDVGLDB();
-static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
+static integer Select(AMSTrTrack * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uintl address, integer strict=0);
 void Fit();
 void Fitgl();

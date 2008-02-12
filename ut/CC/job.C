@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.529 2008/02/07 16:26:17 choutko Exp $
+// $Id: job.C,v 1.530 2008/02/12 18:29:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -213,7 +213,7 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=10000000;
-IOPA.MaxFileSize=1900000000;
+IOPA.MaxFileSize=2000000000;
 IOPA.MaxFileTime=86400*3;
 IOPA.BuildMin=-1;
 IOPA.WriteRoot=0;
@@ -568,13 +568,17 @@ for(i=0;i<6;i++){
   TRALIG.Cuts[6][1]=0.04;   
 
 TRALIG.Algorithm=0;
-for( i=0;i<6;i++){
-  TRALIG.ActiveParameters[i][0]=1;   // x
-  TRALIG.ActiveParameters[i][1]=1;   // y
-  TRALIG.ActiveParameters[i][2]=1;   // z
-  TRALIG.ActiveParameters[i][3]=1;   // pitch  zx
-  TRALIG.ActiveParameters[i][4]=1;   // yaw    xy
-  TRALIG.ActiveParameters[i][5]=1;   // roll   yz
+for( i=0;i<8;i++){
+  int one=1;
+  int zero=0;
+//  if(i>0 &&i<7)one=0;
+  if(i==1)one=0;
+  TRALIG.ActiveParameters[i][0]=one;   // x
+  TRALIG.ActiveParameters[i][1]=one;   // y
+  TRALIG.ActiveParameters[i][2]=one;   // z
+  TRALIG.ActiveParameters[i][3]=one;   // pitch  zx
+  TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
+  TRALIG.ActiveParameters[i][5]=one;   // roll   yz
 }
   TRALIG.EventsPerRun=1001;
   TRALIG.LayersOnly=0;
@@ -1100,8 +1104,8 @@ FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
 TRFITFFKEY.UseTRD=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
-TRFITFFKEY.Chi2StrLine=10;
-TRFITFFKEY.Chi2WithoutMS=5;
+TRFITFFKEY.Chi2StrLine=100;
+TRFITFFKEY.Chi2WithoutMS=50;
 TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;

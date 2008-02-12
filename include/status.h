@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.11 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: status.h,v 1.12 2008/02/12 18:29:25 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -57,7 +57,7 @@ public:
   integer   getnextok();
   static void UpdateStatusTableDB();
   statusI getstatus(uinteger evt, uinteger run);
-  void geteventpos(uinteger run, uinteger evt, uinteger curevent);
+  bool geteventpos(uinteger run, uinteger evt, uinteger curevent);
   static AMSStatus* create(int version);
   static void init();
   static void setmode(integer mode){_Mode=mode;}

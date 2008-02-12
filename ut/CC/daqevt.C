@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.103 2008/02/08 12:25:34 choutko Exp $
+//  $Id: daqevt.C,v 1.104 2008/02/12 18:29:23 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -844,7 +844,23 @@ integer DAQEvent::read(){
 
 
 
+void DAQEvent::select(){
+          DAQEvent daq;
+           int ok;
+         while(ok=daq.read()){
+          if(daq.eventno() >=0 && daq.runno() == SELECTFFKEY.Run &&
+         daq.eventno() >= SELECTFFKEY.Event)break;
+         daq.shrink();
+         }
+     // pos back if fbin.good
+     if(ok){
+            int off=-daq.getlength();
+            fbin.seekg(off,ios::cur);
+            cout<<"DAQEvent::select-I-Selected Run = "<<daq.runno()<<
+              " Event = "<<daq.eventno()<<" Time "<<ctime(&daq.time())<<endl;
 
+     }
+}
 
 DAQEvent::InitResult DAQEvent::init(){
   enum open_mode{binary=0x80};

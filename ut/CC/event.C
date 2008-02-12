@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.363 2008/02/07 16:26:17 choutko Exp $
+//  $Id: event.C,v 1.364 2008/02/12 18:29:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1203,7 +1203,11 @@ void AMSEvent::event(){
        }
       if(_SelectedEvents->Event){
        if(o!=*_SelectedEvents){
-         AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event);
+        if(! AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event)){
+           SELECTFFKEY.Run=_SelectedEvents->Run;
+           SELECTFFKEY.Event=_SelectedEvents->Event;
+           DAQEvent::select();
+         }
          return;
        }
        _SelectedEvents++;
@@ -3084,6 +3088,7 @@ void AMSEvent::setfile(char file[]){
        _SelectedEvents=new EventId[nar];
        if(_SelectedEvents){
          cout << " AMSEvent::setfile-I-SelectedEventsFound "<<nline<<endl;
+         ifile.clear();
          ifile.close();
          ifile.open(file);
          nline=0;

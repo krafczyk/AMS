@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.22 2008/01/30 17:07:07 choutko Exp $
+#  $Id: Makefile,v 1.23 2008/02/12 18:29:25 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -108,6 +108,7 @@ SRCS          = AMSDisplay.cxx \
 
 HDRS          =   \
                 ../include/root_RVS.h\
+                ../include/root.h\
 		AMSDisplay.h \
 		AMSHist.h \
 		AMSAntiHist.h \

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.262 2008/02/01 11:20:29 choutko Exp $
+#  $Id: datacards.doc,v 1.263 2008/02/12 18:29:24 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -286,7 +286,7 @@ I64  ForceAdvencedFit(1)    // Force(1) or not advanced fit for all particles
 R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
 R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
 I69  MaxTrRecHitsPerLayer(50) // to try pattern rec
-I70  UseTRD(1)                    // Use(>=1 == Min No TOF clusters matched)/
+I70  UseTRD(1)                    // Use(>=1 always use)/
 I71  LowMargin(0)          //  use/not use any 5 planes patterns for track reconstruction
 I72 OnlyGammaVtx(0)       //  Reconstruct vertices up to 2 tracks only
 I73 UseGeaneFitting(1)   //   Use Geane(1) or Yale (0) fitting method
@@ -410,14 +410,14 @@ I4     MaxEventsPerFit(9999);
 I5     MinEventsPerFit(999);
 I6     MaxPatternsPerJob(99);
 R7     Cuts[10][2];    // Cuts (left - right), not yet completely defined
-I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta
+I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta 2 chisq
 I28 ActiveParameters[8][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
 I76 GlobalFit(0)                   // global fit (1) local(0)
 I77 EventsPerRun(1001)            
-I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
-R67 GlobalGoodLimit(0.06)             // invoke local db if beyond
-I68 SingleLadderEntryLimit(10000)     
-R69 One(1.025)
+I78 LayersOnly(0)                     // ladder(0) or layer(1) based alig
+R79 GlobalGoodLimit(0.06)             // invoke local db if beyond
+I80 SingleLadderEntryLimit(10000)     
+R81 One(1.025)
 
 //----------------------------------------------------------------------
 

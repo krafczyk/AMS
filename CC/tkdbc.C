@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.53 2008/02/07 16:26:18 choutko Exp $
+//  $Id: tkdbc.C,v 1.54 2008/02/12 18:29:23 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1969,7 +1969,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
    const number  yposl[_nlay]={0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-   const number  zposl[_nlay]={54.515,29.185,25.315,1.685,-2.185,-25.315,-29.185,-54.515};
+   const number  zposl[_nlay]={52.985,29.185,25.315,1.685,-2.185,-25.315,-29.185,-52.985};
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
    const number nrml[_nlay][3][3]={
                                           1,0,0,

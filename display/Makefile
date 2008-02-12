@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.29 2008/01/30 17:07:06 choutko Exp $
+#  $Id: Makefile,v 1.30 2008/02/12 18:29:24 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
@@ -105,6 +105,7 @@ SRCSN          = AMSR_GeometrySetter.cxx \
                 AMSR_Axis.cxx 
 
 HDRS          =  ../include/root_RVS.h\
+                ../include/root.h\
 		ControlFrame.h \
 		AMSDisplay.h \
 		AMSNtupleV.h \
