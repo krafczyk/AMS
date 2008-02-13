@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.263 2008/02/12 18:29:24 choutko Exp $
+#  $Id: datacards.doc,v 1.264 2008/02/13 20:07:51 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -74,7 +74,7 @@ I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 I127  WriteRoot(0)               // write (!0) or not write(0) root file
                                  // the value is used to set Root Compression Level-1
 I128  rfile(160*' ')             // root file name
-I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
+I168 MaxFileSize(4000000)      // max ntuplefilesize (kbytes)
 I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
 I170 BuildMin(-1)                  // min build version (production only)
 
@@ -312,7 +312,7 @@ I12 ims(1)        // 0 -Multiple scattering accounting off; 1 - on
 // AMS Global Reconstruction
 
 BETAFIT
-I 1 Pattern[9](5*1,4*0)
+I 1 Pattern[10](9*1,1*0)
   //    Number              Descr             Points      Default
   //    0                   1234              4           on
   //    1                   123               3           on
@@ -323,15 +323,16 @@ I 1 Pattern[9](5*1,4*0)
   //    6                   14                2           on
   //    7                   23                2           on
   //    8                   24                2           on
-R10 Chi2(10.)       //  Max acceptable chi2 for betafit
-R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
+  //    9                   12                2           off
+R11 Chi2(10.)       //  Max acceptable chi2 for betafit
+R12 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16
 
-R14 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
+R15 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
                               if possible 
-I15 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
-R16 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
-I17 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
+I16 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
+R17 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
+I18 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
 
 CHARGEFIT
 I 1 NmembMax(3)          // maximum number of members for TOF clusters

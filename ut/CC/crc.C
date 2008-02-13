@@ -33,8 +33,8 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
       _inittable();
       AString fdir(argv[1]);
       AString fout(fdir);
-          struct stat statdir_map;
-          stat((const char*)fdir,&statdir_map);
+          struct stat64 statdir_map;
+          stat64((const char*)fdir,&statdir_map);
          ifstream fbin;
           if((statdir_map.st_mode & 16384) ){
             if( crc_to_compare!=0){
@@ -58,9 +58,9 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
          fbin.open((const char*)fnam);
          unsigned int data;
          unsigned int crc;
-          struct stat statbuf_map;
-          stat((const char*)fnam,&statbuf_map);
-          int fsize=statbuf_map.st_size;
+          struct stat64 statbuf_map;
+          stat64((const char*)fnam,&statbuf_map);
+          long long fsize=statbuf_map.st_size;
           unsigned int chunk[32000]; 
          int i=0;
          for(;;){

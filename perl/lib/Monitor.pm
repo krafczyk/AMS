@@ -1,7 +1,7 @@
-# $Id: Monitor.pm,v 1.121 2008/02/05 10:37:49 ams Exp $
+# $Id: Monitor.pm,v 1.122 2008/02/13 20:07:51 choutko Exp $
 
 package Monitor;
-use CORBA::ORBit idl => [ '../include/server.idl'];
+use CORBA::ORBit idl => [ '/usr/include/server.idl'];
 use Error qw(:try);
 use Carp;
 use strict;
@@ -975,7 +975,7 @@ sub getntuples{
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
      my $smartsize=$hash->{size};
-     if($smartsize>2000){
+     if($smartsize>10000){
         $smartsize=int($smartsize/1024/1024+0.5);
     }
      push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{crc},$smartsize,$hash->{Status};
@@ -1122,7 +1122,7 @@ sub PNtupleSort{
           $#text=-1;
           my $hash=$sortedoutput[$i];
      my $smartsize=$hash->{size};
-     if($smartsize>2000){
+     if($smartsize>10000){
         $smartsize=int($smartsize/1024/1024+0.5);
     }
           push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$smartsize,$hash->{Status},$hash->{Type};

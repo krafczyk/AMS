@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.18 2008/02/12 18:29:25 choutko Exp $
+//  $Id: tralig.h,v 1.19 2008/02/13 20:07:51 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -20,8 +20,8 @@ public:
  uinteger status;  // 0 if implicit
                    // 1++ if explicit
  
- geant coo[6][3];
- geant angle[6][3];
+ geant coo[trconst::maxlay][3];
+ geant angle[trconst::maxlay][3];
  geant chi2b; // before
  geant chi2a; // after
  geant pav;       // rel pmom
@@ -31,7 +31,7 @@ public:
  AMSTrAligDBEntry():address(0,0){};
  AMSTrAligDBEntry(uintl _address):address(_address){};
  AMSTrAligDBEntry(uintl _address,  uinteger _status, AMSTrAligPar o[trconst::maxlay], number _fcnb, number _fcna, number _pav, number _pav2):address(_address),status(_status),chi2b(_fcnb), chi2a(_fcna),pav(_pav),pav2(_pav2){
-  for(int i=0;i<trconst::maxlad;i++){
+  for(int i=0;i<trconst::maxlay;i++){
    for(int k=0;k<3;k++){
     coo[i][k]=o[i].getcoo()[k];
     angle[i][k]=o[i].getang()[k];
@@ -106,13 +106,6 @@ friend ostream &operator << (ostream &o, const  AMSTrAligPar &b )
   {return o<<" "<<b._Coo<<" "<<b._Angles<<" "<<b._Dir[0]<<" "<<b._Dir[1]<<" "<<b._Dir[2];}
 };
 
-class AMSTrAligDB{
- public:
- uinteger Nentries;
- AMSTrAligPar::AMSTrAligDBEntry arr[10000];
-AMSTrAligDB():Nentries(0){};
-friend class  AMSTrAligPar;
-};
 
 
 
@@ -157,6 +150,8 @@ public:
  integer nentries;
  geant coo[3];
  geant ang[3];
+ AMSPoint getcoo(){return AMSPoint(coo);}
+ AMSPoint getang(){return AMSPoint(ang);}
 };
 class TrAligg_def{
 public:
@@ -196,22 +191,25 @@ number _fcnI;   // pointer to fcns;
 number _pfit;  //pointer to fitterd mom
 number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
-number chi2[1000];
-number chi2i[1000];
+number chi2[10000];
+number chi2i[10000];
 number _Chi2Max;
 AMSTrAligPar _pParC[trconst::maxlad];
 static AMSTrAligPar _pPargl[trconst::maxlad][2][trconst::maxlay];
-static gldb_def _gldb[trconst::maxlad][2][trconst::maxlay];
+static gldb_def _gldb[trconst::maxlad+1][2][trconst::maxlay];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
 static void alfungl(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
 static void UpdateDBgl();
+static void ReadDBgl();
 void _init(){};
 public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
 AMSTrAligFit();
 AMSTrAligFit(uintl _Address, integer pattern, integer data, integer alg, integer nodeno);
+static AMSTrAligPar * SearchDBgl(uintl address);
+static const char * GetAligString();
 static integer glDBOK(uinteger add);
 static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}

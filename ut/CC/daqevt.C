@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.104 2008/02/12 18:29:23 choutko Exp $
+//  $Id: daqevt.C,v 1.105 2008/02/13 20:07:49 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -538,11 +538,11 @@ integer DAQEvent::_DDGSBOK(){
        cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
        return 0;
       }
-
+      static int nprint=0;
       if(_isjinj(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
-      if(event !=  (_Event&((1<<16)-1))){
-       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
+      if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event<<endl;
        return 0;
       }
       int ntot=0;

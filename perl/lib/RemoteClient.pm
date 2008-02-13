@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.495 2008/02/04 12:25:18 ams Exp $
+# $Id: RemoteClient.pm,v 1.496 2008/02/13 20:07:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6106,8 +6106,8 @@ print qq`
 #    $self->getProductionVersion();
 
    print qq`
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" $defNTUPLE>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=2000000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000 2=" $defNTUPLE>Ntuple
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=4000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -6386,7 +6386,7 @@ print qq`
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and  datafiles.nevents>0 and datafiles.status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and  datafiles.nevents>0 and datafiles.status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -12947,8 +12947,8 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=2000000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=4000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }

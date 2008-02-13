@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.105 2008/01/29 16:25:13 choutko Exp $
+//  $Id: producer.C,v 1.106 2008/02/13 20:07:50 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -599,12 +599,12 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
 
 
 
-    struct stat statbuf;
-    stat((const char*)a(bstart), &statbuf);
+    struct stat64 statbuf;
+    stat64((const char*)a(bstart), &statbuf);
     
 
 ntend->Insert=statbuf.st_ctime;
-ntend->size=statbuf.st_size;
+ntend->size=statbuf.st_size/1024./1024.+0.5;
 ntend->ErrorNumber=0;
 
 //add crc
@@ -618,7 +618,7 @@ ntend->ErrorNumber=0;
    if(fbin){
           unsigned int chunk[32000]; 
          int i=0;
-          int fsize=statbuf.st_size;
+          long long fsize=statbuf.st_size;
          for(;;){
            if(!fsize) break;
            int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
@@ -735,8 +735,12 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
     fpath.fname=(const char*)a(start);    
     fpath.pos=0;
     cout <<" file name "<<a<<" "<<start<<endl;    
-    struct stat statbuf;
-    stat((const char*)a(bstart), &statbuf);
+    struct stat64 statbuf;
+    int suc=stat64((const char*)a(bstart), &statbuf);
+    if(suc){
+      FMessage("AMSProducer::sendNtupleEnd-F-UnableToStatNtuplein mode RO ",DPS::Client::CInAbort);
+     }
+
    ifstream fbin;
    fbin.open((const char*)a(bstart));
    if(fbin){
@@ -744,7 +748,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
     const int maxs=2000000;
      DPS::Producer::RUN_var vrun=new DPS::Producer::RUN();
     while(st !=DPS::Producer::End){
-     int last=statbuf.st_size-fpath.pos;
+     long long last=statbuf.st_size-fpath.pos;
      if(last>maxs)last=maxs;
      else st=DPS::Producer::End;
      vrun->length(last);
@@ -862,8 +866,8 @@ ntend->ErrorNumber=0;
 ntend->Status=DPS::Producer::InProgress;
 ntend->Type=type;
 ntend->size=0;
-     struct statfs buffer;
-     int fail=statfs((const char *)name, &buffer);
+     struct statfs64 buffer;
+     int fail=statfs64((const char *)name, &buffer);
     if(fail){
       ntend->FreeSpace=-1;
       ntend->TotalSpace=-1;
@@ -984,8 +988,8 @@ ntend->Status=DPS::Producer::InProgress;
      break;
     }
    }
-    struct stat statbuf;
-    stat((const char*)a(bstart), &statbuf);
+    struct stat64 statbuf;
+    stat64((const char*)a(bstart), &statbuf);
     
 
 ntend->Insert=statbuf.st_ctime;

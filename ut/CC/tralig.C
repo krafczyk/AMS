@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.35 2008/02/12 18:29:23 choutko Exp $
+//  $Id: tralig.C,v 1.36 2008/02/13 20:07:50 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -270,8 +270,7 @@ if(_Address==1){
   for(i=0;i<trconst::maxlad;i++){
    for(int j=0;j<2;j++){
     for(int k=0;k<trconst::maxlay;k++){   
-       if(TRALIG.LayersOnly)_pPargl[i][j][k].NEntries()=0;
-       else _pPargl[i][j][k].NEntries()=-_gldb[i][j][k].nentries;
+       _pPargl[i][j][k].NEntries()=0;
        if(_pPargl[i][j][k].NEntries())cout <<i<<" "<<j<<" "<<k<<" "<<_pPargl[i][j][k].NEntries()<<endl;
     }
    }
@@ -680,7 +679,6 @@ void AMSTrAligFit::Fitgl(){
     _Chi2Max=chi2s+chi22s/2;
     cout <<"AMSTrAligFit::Fit Chi2MaxSet "<<_Chi2Max<<" "<<endl;
     ifail=1;
-    _flag=3;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
     if(ifail ==0 || ifail==2){
@@ -1473,7 +1471,7 @@ return AMSID("TrAligDB",AMSJob::gethead()->isRealData());
 
 }
 AMSID AMSTrAligFit::getTDVGLDB(){
-return AMSID("TrAligglDB",AMSJob::gethead()->isRealData());
+return AMSID("TrAligglDB02",AMSJob::gethead()->isRealData());
 
 }
 
@@ -1610,6 +1608,15 @@ if(TRALIG.LayersOnly){
       }
          TKDBc::write(4);
 
+      // UpdateDB
+
+     for(int i=0;i<trconst::maxlay;i++){
+         _gldb[trconst::maxlad][0][i].nentries=-_pPargl[0][0][i].NEntries();
+         for(int l=0;l<3;l++){
+          _gldb[trconst::maxlad][0][i].coo[l]=_pPargl[0][0][i].getcoo()[l];
+          _gldb[trconst::maxlad][0][i].ang[l]=_pPargl[0][0][i].getang()[l];
+         }
+        }
 }
 else{
          integer status;
@@ -1688,19 +1695,79 @@ for(i=0;i<trconst::maxlay;i++){
      }
     
 
+    TKDBc::write(3);
+}
+     _gldb[trconst::maxlad][1][0].nentries=1;
+
     if (AMSFFKEY.Update ){
        AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVGLDB());
              ptdv->UpdCRC();
+             time_t begin,end,insert;
+            time(&insert);
+             ptdv->SetTime(insert,insert-86400*61,insert+86400*1000);
+             
              if( !ptdv->write(AMSDATADIR.amsdatabase)){
                 cerr <<"AMSTrAligPar::updateDB-F-ProblemtoUpdate "<<*ptdv;
                 exit(1);
+             }
+             else{
+      cout <<" TrAligflDB  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
              }              
     }
-    TKDBc::write(3);
+
 }
 
 
+AMSTrAligPar* AMSTrAligFit::SearchDBgl(uintl address){
+if(!_gldb[trconst::maxlad][1][0].nentries)return 0;
+AMSTrAligPar *alig=AMSTrAligPar::getparp();
+bool lyonly=false;
+for(int i=0;i<trconst::maxlay;i++){
+if(_gldb[trconst::maxlad][0][i].nentries){
+  lyonly=true;
+  break;
 }
+}
+if(lyonly){
+     for(int i=0;i<trconst::maxlay;i++){
+          (alig+i)->setpar(_gldb[trconst::maxlad][0][i].getcoo(),_gldb[trconst::maxlad][0][i].getang());
+        }
+}   
+else{
+    integer lad[2][trconst::maxlay];    
+    AMSTrTrack::decodeaddress(lad,address);
+     for(int i=0;i<trconst::maxlay;i++){
+          int ld=lad[0][i]-1;
+          if(ld>=0){
+           (alig+i)->setpar(_gldb[ld][lad[1][i]][i].getcoo(),_gldb[ld][lad[1][i]][i].getang());
+          }
+          else{
+           (alig+i)->setpar(AMSPoint(),AMSPoint());
+          }
+        }
+}
+return alig;
+}
+
+const char * AMSTrAligFit::GetAligString(){
+ static AString w;
+ w="";
+ char string[1025];
+  for(int i=0;i<trconst::maxlad+1;i++){
+   for(int j=0;j<2;j++){
+    for(int k=0;k<trconst::maxlay;k++){   
+       sprintf(string,"%d %d %d %d %15.7g %15.7g %15.7g %15.7g %15.7g %15.7g \n",i,j,k, _gldb[i][j][k].nentries,_gldb[i][j][k].coo[0],_gldb[i][j][k].coo[1],_gldb[i][j][k].coo[2],_gldb[i][j][k].ang[0],_gldb[i][j][k].ang[1],_gldb[i][j][k].ang[2]);
+  w+=string;
+ }
+}
+}
+return (const char*)w;
+}
+
 
 void AMSTrAligFit::RebuildNoActivePar(){
 if(TRALIG.LayersOnly){
@@ -1782,7 +1849,7 @@ void AMSTrAligFit::InitDB(){
 
 }
 
-AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[trconst::maxlad][2][maxlay];
+AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[trconst::maxlad+1][2][maxlay];
 
 
 integer AMSTrAligFit::glDBOK(uinteger address){

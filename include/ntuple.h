@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.104 2008/01/30 08:37:34 choutko Exp $
+//  $Id: ntuple.h,v 1.105 2008/02/13 20:07:51 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -773,6 +773,7 @@ protected:
   static TTree* _tree;  
   static TFile* _rfile;
   static TObjString _dc; 
+  static TObjString _ta; 
 #endif
   virtual void _init(){};
 

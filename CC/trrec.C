@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.186 2008/02/12 18:29:24 choutko Exp $
+//  $Id: trrec.C,v 1.187 2008/02/13 20:07:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3373,7 +3373,7 @@ void AMSTrTrack::_crHit(){
  //decodeaddress();
  integer found=0;
  AMSTrAligPar * par(0);
- //if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
+  
  //if(!TRALIG.UpdateDB )par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
   if(found && fabs(_Dbase[1]-TRALIG.One)>TRALIG.GlobalGoodLimit && 
      fabs(_Dbase[0]-1.025)<TRALIG.GlobalGoodLimit){
@@ -3387,6 +3387,20 @@ void AMSTrTrack::_crHit(){
     }
    }
    setstatus(AMSDBc::LocalDB);
+  }
+  else if(par=AMSTrAligFit::SearchDBgl(_Address)){
+   setstatus(AMSDBc::GlobalDB);
+   _Dbase[0]=0;
+   _Dbase[1]=0;
+   for(int i=0;i<_NHits;i++){
+    int plane=TKDBc::patconf(_Pattern,i)-1;
+    for(int j=0;j<3;j++){
+     _Hit[i][j]=(par[plane].getcoo())[j]+
+      (par[plane].getmtx(j)).prod(_Pthit[i]->getHit());
+     _EHit[i][j]=fabs((par[plane].getmtx(j)).prod(_Pthit[i]->getEHit()));
+//     cout <<i<<" "<<j<<" "<<_Hit[i][j]<<" "<<_Pthit[i]->getHit()[j]<<endl; 
+    }
+   }
   }
   else{
    _Dbase[0]=0;

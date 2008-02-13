@@ -41,10 +41,13 @@ bool IsGolden(AMSEventR *ev){
 */
 
  if(ev && ev->nParticle()>0){
-return true;
+//return true;
 }
  if(ev && ev->nTrTrack()>0){
 return true;
+}
+if(ev && ev->nAntiCluster()>0){
+ return true;
 }
  if(ev &&  ev->nTrdTrack()==1 &&(ev->TrdTrack(0)).NTrdSegment()>3 ){
    int count[20];

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.531 2008/02/13 14:06:53 choumilo Exp $
+// $Id: job.C,v 1.532 2008/02/13 20:07:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -87,18 +87,18 @@ using namespace AMSChargConst;
 char AMSJob::_ntuplefilename[256]="";
 char AMSJob::_rootfilename[256]="";
 
-long AMSJob::GetNtupleFileSize(){
- struct stat buffer;
- long size_n=stat(_ntuplefilename,&buffer)? 0:buffer.st_size;
- long size_r=stat(_rootfilename,&buffer)? 0:buffer.st_size;
- return size_n>size_r?size_n:size_r;
+long long AMSJob::GetNtupleFileSize(){
+ struct stat64 buffer;
+ long long size_n=stat64(_ntuplefilename,&buffer)? 0:buffer.st_size;
+ long long size_r=stat64(_rootfilename,&buffer)? 0:buffer.st_size;
+ return size_n>size_r?size_n/1024:size_r/1024;
 }
 time_t AMSJob::GetNtupleFileTime(){
- struct stat buffer;
+ struct stat64 buffer;
   time_t timenow=0;
   time(&timenow);
- time_t size_n=stat(_ntuplefilename,&buffer)? 0:buffer.st_atime;
- time_t size_r=stat(_rootfilename,&buffer)? 0:buffer.st_atime;
+ time_t size_n=stat64(_ntuplefilename,&buffer)? 0:buffer.st_atime;
+ time_t size_r=stat64(_rootfilename,&buffer)? 0:buffer.st_atime;
  return size_n>size_r?timenow-size_n:timenow-size_r;
 }
 
@@ -213,7 +213,7 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=10000000;
-IOPA.MaxFileSize=2000000000;
+IOPA.MaxFileSize=4000000;
 IOPA.MaxFileTime=86400*3;
 IOPA.BuildMin=-1;
 IOPA.WriteRoot=0;
@@ -639,8 +639,8 @@ CCFFKEY.earth=0;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
-CCFFKEY.begindate=2062008;
-CCFFKEY.enddate=1112009;
+CCFFKEY.begindate=1012008;
+CCFFKEY.enddate=  1062012;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
 CCFFKEY.oldformat=0;
@@ -1353,6 +1353,7 @@ BETAFITFFKEY.pattern[5]=1;
 BETAFITFFKEY.pattern[6]=1;
 BETAFITFFKEY.pattern[7]=1;
 BETAFITFFKEY.pattern[8]=1;
+BETAFITFFKEY.pattern[9]=1;
 BETAFITFFKEY.Chi2=50;
 BETAFITFFKEY.Chi2S=15;
 BETAFITFFKEY.SearchReg[0]=3.;
@@ -3119,7 +3120,7 @@ if(MISCFFKEY.BeamTest>1){
   tm begin;
   tm end;
   AMSTrAligFit::InitDB();
-  if(AMSFFKEY.Update==90){
+  if(TRALIG.UpdateDB){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }
@@ -3127,21 +3128,17 @@ if(MISCFFKEY.BeamTest>1){
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
-/*
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglDB",
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglDB02",
                           isRealData()),begin,end,AMSTrAligFit::gettraliggldbsize(),
 
                           AMSTrAligFit::gettraliggldbp(),server));
-*/
+   if(TRALIG.ReWriteDB)ptdv->UpdateMe();
 }
 
 
 
 if (AMSFFKEY.Update){
 
-#ifdef __DB__
-  if (AMSFFKEY.Write == 0 ) {
-#endif
   // Here update dbase
 
     AMSTimeID * offspring=(AMSTimeID*)TID.down();
@@ -3153,9 +3150,6 @@ if (AMSFFKEY.Update){
       cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
     offspring=(AMSTimeID*)offspring->next();
     }
-#ifdef __DB__
-  } 
-#endif  
 }
 }
 

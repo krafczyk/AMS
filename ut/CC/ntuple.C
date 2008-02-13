@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.165 2008/01/29 16:25:13 choutko Exp $
+//  $Id: ntuple.C,v 1.166 2008/02/13 20:07:50 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -9,7 +9,7 @@
 #include "ntuple.h"
 #include "job.h"
 #include "ecaldbc.h"
-
+#include "tralig.h"
 
 #include <iostream>
 #include <iomanip>
@@ -32,6 +32,7 @@
 TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
+TObjString AMSNtuple::_ta("");
 const int branchSplit=1;
 
 #endif
@@ -228,7 +229,12 @@ void AMSNtuple::write(integer addentry){
 
 void AMSNtuple::endR(){
 #ifdef __WRITEROOT__
+// write tracker alignment structure
+
    if(_rfile){
+     _ta.SetString(AMSTrAligFit::GetAligString());
+     //cout <<AMSTrAligFit::GetAligString()<<endl;
+     _ta.Write("TrackerAlignment");
      _rfile->Write();
      _rfile->Close();
      delete _rfile;

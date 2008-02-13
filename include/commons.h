@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.224 2008/02/01 11:20:29 choutko Exp $
+//  $Id: commons.h,v 1.225 2008/02/13 20:07:51 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -147,7 +147,7 @@ integer ffile[40];
 integer MaxNtupleEntries;
 integer WriteRoot;
 integer rfile[40];
-integer MaxFileSize;
+uinteger MaxFileSize;
 integer MaxFileTime;
 integer BuildMin;
 };
@@ -587,7 +587,7 @@ geant BadCh[2];
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
 
 //
-const integer npatb=9;
+const integer npatb=10;
 class BETAFITFFKEY_DEF {
 public:
   integer pattern[npatb];  //patterns  to fit; Priority decreases with number
@@ -601,6 +601,7 @@ public:
   //    6                   14                2           on
   //    7                   23                2           on
   //    8                   24                2           on
+  //    9                   12                2           off
   geant Chi2;  //  Max acceptable chi2 for betafit
   geant SearchReg[3]; // Max distance between track & tof hit
   geant LowBetaThr;   // Threshold below refit should be done if possible 

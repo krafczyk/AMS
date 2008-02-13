@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.365 2008/02/13 14:06:53 choumilo Exp $
+//  $Id: event.C,v 1.366 2008/02/13 20:07:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1117,7 +1117,7 @@ for(int il=0;il<2;il++){
     // check if one want to close ntuple 
     if( IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
-      // cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
+//       cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
        if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
       || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime){
         if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
