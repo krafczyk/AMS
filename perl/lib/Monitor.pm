@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.122 2008/02/13 20:07:51 choutko Exp $
+# $Id: Monitor.pm,v 1.123 2008/02/13 23:16:02 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -597,9 +597,9 @@ sub getdbok{
     push @text, int $Monitor::Singleton->{db}->{dbtotal};
     push @text, int $Monitor::Singleton->{db}->{dbfree};
     push @text, int $Monitor::Singleton->{db}->{dbfree}/($Monitor::Singleton->{db}->{dbtotal}+1.1)*100;
-    if($text[1]<0 or $text[2]<0 or $text[2]<200){
+    if($text[1]<0 or $text[2]<0 or $text[2]<2000){
       push @text ,1;
-  }elsif($text[2]<100){
+  }elsif($text[2]<1000){
       push @text ,2;
   }else{
       push @text ,0;
@@ -648,19 +648,13 @@ sub getdbok{
      
 #     warn "  string in rd $string \n";
     push @text, $string;
-    push @text, int  $fst{$string}/1024;           
-    push @text, int $fsf{$string}/1024;           
+    push @text, int  $fst{$string};           
+    push @text, int $fsf{$string};           
     push @text, int $fsf{$string}/($fst{$string}+2)*100; 
-    if($text[1]<0){
-      $text[1]=4194304+$text[1];
-    }
-    if($text[2]<0){
-      $text[2]=4194304+$text[2];
-    }
      
-    if($text[1]<0 or $text[2]<0 or $text[2]<2000){
+    if($text[1]<0 or $text[2]<0 or $text[2]<20000){
       push @text ,1;
-  }elsif($text[2]<1000){
+  }elsif($text[2]<5000){
       push @text ,2;
   }else{
       push @text ,0;
