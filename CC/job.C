@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.530 2008/02/12 18:29:23 choutko Exp $
+// $Id: job.C,v 1.531 2008/02/13 14:06:53 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1241,7 +1241,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.pedcpr[1]=0.1;  // (32) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedoutf=2;      // (33)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
   TFCAFFKEY.pedlim[0]=10.;  // (34) Ped low-lim in PedCalibJobs
-  TFCAFFKEY.pedlim[1]=400.; // (35)      hi-lim ...............
+  TFCAFFKEY.pedlim[1]=500.; // (35)      hi-lim ...............
   TFCAFFKEY.siglim[0]=0.4;  // (36) PedSig low-lim ............
   TFCAFFKEY.siglim[1]=10.; //  (37)         hi-lim ............
 //TOFTdcCalib:
@@ -1258,8 +1258,8 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.daqthr=3.;  //(6) spare (now sector-individual,taken from AccStparRD(MC).-file or DB
-  ATREFFKEY.ftdel=72.;  //(7) FT-delay wrt correlated Anti history-pulse
-  ATREFFKEY.ftwin=54.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
+  ATREFFKEY.ftdel=80.;  //(7) FT-delay wrt correlated Anti history-pulse(72 mc)
+  ATREFFKEY.ftwin=60.;  //(8) window for Hist-hit/FT coincidence(+- around FT-delay corrected value)(54 mc)
 //
   ATREFFKEY.ReadConstFiles=111;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  

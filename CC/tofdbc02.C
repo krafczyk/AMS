@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.45 2008/01/31 09:48:09 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.46 2008/02/13 14:06:54 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1649,31 +1649,31 @@ void TOF2JobStat::printstat(){
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][5],sltr[1][5][5],sltr[2][5][5],sltr[3][5][5]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][5],sltr[1][6][5],sltr[2][6][5],sltr[3][6][5]);
   printf("\n");
-  printf("SFET_1 TDC_BadStr/Tout :  %7d   %7d   %7d   %7d\n",sltr[0][1][6],sltr[1][1][6],sltr[2][1][6],sltr[3][1][6]);
+  printf("SFET_1  TDC_BadStruct  :  %7d   %7d   %7d   %7d\n",sltr[0][1][6],sltr[1][1][6],sltr[2][1][6],sltr[3][1][6]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][6],sltr[1][2][6],sltr[2][2][6],sltr[3][2][6]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][6],sltr[1][4][6],sltr[2][4][6],sltr[3][4][6]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][6],sltr[1][5][6],sltr[2][5][6],sltr[3][5][6]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][6],sltr[1][6][6],sltr[2][6][6],sltr[3][6][6]);
   printf("\n");
-  printf("SFET_1 Trail+ErrW only :  %7d   %7d   %7d   %7d\n",sltr[0][1][7],sltr[1][1][7],sltr[2][1][7],sltr[3][1][7]);
+  printf("SFET_1 *** miss Temper :  %7d   %7d   %7d   %7d\n",sltr[0][1][7],sltr[1][1][7],sltr[2][1][7],sltr[3][1][7]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][7],sltr[1][2][7],sltr[2][2][7],sltr[3][2][7]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][7],sltr[1][4][7],sltr[2][4][7],sltr[3][4][7]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][7],sltr[1][5][7],sltr[2][5][7],sltr[3][5][7]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][7],sltr[1][6][7],sltr[2][6][7],sltr[3][6][7]);
   printf("\n");
-  printf("SFET_1 NoHead | NoTemp :  %7d   %7d   %7d   %7d\n",sltr[0][1][8],sltr[1][1][8],sltr[2][1][8],sltr[3][1][8]);
+  printf("SFET_1 *** miss Header :  %7d   %7d   %7d   %7d\n",sltr[0][1][8],sltr[1][1][8],sltr[2][1][8],sltr[3][1][8]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][8],sltr[1][2][8],sltr[2][2][8],sltr[3][2][8]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][8],sltr[1][4][8],sltr[2][4][8],sltr[3][4][8]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][8],sltr[1][5][8],sltr[2][5][8],sltr[3][5][8]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][8],sltr[1][6][8],sltr[2][6][8],sltr[3][6][8]);
   printf("\n");
-  printf("SFET_1     TimeOut     :  %7d   %7d   %7d   %7d\n",sltr[0][1][9],sltr[1][1][9],sltr[2][1][9],sltr[3][1][9]);
+  printf("SFET_1 *** TimeOut     :  %7d   %7d   %7d   %7d\n",sltr[0][1][9],sltr[1][1][9],sltr[2][1][9],sltr[3][1][9]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][9],sltr[1][2][9],sltr[2][2][9],sltr[3][2][9]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][9],sltr[1][4][9],sltr[2][4][9],sltr[3][4][9]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][9],sltr[1][5][9],sltr[2][5][9],sltr[3][5][9]);
   printf("SFEA_1   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][6][9],sltr[1][6][9],sltr[2][6][9],sltr[3][6][9]);
   printf("\n");
-  printf("SFET_1  StructOK+ErrW  :  %7d   %7d   %7d   %7d\n",sltr[0][1][10],sltr[1][1][10],sltr[2][1][10],sltr[3][1][10]);
+  printf("SFET_1 *** Error Word  :  %7d   %7d   %7d   %7d\n",sltr[0][1][10],sltr[1][1][10],sltr[2][1][10],sltr[3][1][10]);
   printf("SFET_2   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][2][10],sltr[1][2][10],sltr[2][2][10],sltr[3][2][10]);
   printf("SFET_3   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][4][10],sltr[1][4][10],sltr[2][4][10],sltr[3][4][10]);
   printf("SFET_4   ..........    :  %7d   %7d   %7d   %7d\n",sltr[0][5][10],sltr[1][5][10],sltr[2][5][10],sltr[3][5][10]);
@@ -2473,8 +2473,8 @@ void TOF2JobStat::bookhist(){
 	    sprintf(idname,"%d",id);
 	    strcat(htit1,idname);
 	    ich=2*TOF2DBc::barseqn(il,ib)+is;//0-67
-//	    HBOOK1(1400+ich,htit1,50,0.,250.,0.);
-	    HBOOK2(1400+ich,htit1,50,0.,400.,50,0.,100.,0.);
+	    HBOOK1(1400+ich,htit1,50,0.,250.,0.);
+//	    HBOOK2(1400+ich,htit1,50,0.,400.,50,0.,100.,0.);
 	  }
         }
       }

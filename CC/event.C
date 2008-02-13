@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.364 2008/02/12 18:29:23 choutko Exp $
+//  $Id: event.C,v 1.365 2008/02/13 14:06:53 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1323,13 +1323,17 @@ void AMSEvent::_reamsevent(){
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
     _reanti2event();
+#ifndef __TFAPEDC__
     _retrdevent();
     _retkevent(); 
     _rerichevent();
     _reecalevent();
+#endif
   }
+#ifndef __TFAPEDC__
   _reaxevent();
    AMSUser::Event();
+#endif
    AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 

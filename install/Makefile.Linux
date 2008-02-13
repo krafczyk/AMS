@@ -107,6 +107,10 @@ ifdef TFADBW
 CPPFLAGS+=  -D__TFADBW__
 endif
 
+ifdef TFAPEDC
+CPPFLAGS+=  -D__TFAPEDC__
+endif
+
 ifdef SLC3system
   CPPFLAGS+= -D__SLC3__ -D__LINUXGNU__
 else

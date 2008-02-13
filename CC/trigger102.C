@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.45 2008/01/31 09:48:09 choumilo Exp $
+//  $Id: trigger102.C,v 1.46 2008/02/13 14:06:54 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -66,14 +66,18 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
       TGL1JobStat::addev(15);
-      TOF2RawSide::getpatt(tofpatt1);
+      TOF2RawSide::getpatt(tofpatt1);//extract tof-patt
       TOF2RawSide::getpattz(tofpatt2);
       AMSEcalRawEvent::gettrpatt(ectrpatt);//masked trpatt[6][3]: max 3x16bits in 6 "trigger" sup.layers
       ectrsum=AMSEcalRawEvent::gettrsum();
-      ptr->settofpat1(tofpatt1);
+      ptr->settofpat1(tofpatt1);//copy tof-patt into lev1-obj
       ptr->settofpat2(tofpatt2);
       ptr->setecpat(ectrpatt);
       ptr->setectrs(ectrsum);
+      antipatt=ptr->getantipatt();//extract antipatt from lvl1-obj
+      for(i=0;i<8;i++)if((antipatt & (1<<i))>0)nanti+=1;//count nsectors
+      Anti2RawEvent::setpatt(uinteger(antipatt));//copy antipatt/nanti into AntiRawEvent-obj
+      Anti2RawEvent::setncoinc(nanti);
       TGL1JobStat::addev(16);
       if(TGL1FFKEY.Lvl1ConfSave>0)l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup 
     }
@@ -1246,7 +1250,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       evtprev=evtcurr;
       if(delevt>(0xFFFF))trtime[4]=uinteger(0xFFFF);
       else trtime[4]=uinteger(floor(delevt));
-      HF1(1094,geant(trtime[4]),1.);
+//      HF1(1094,geant(trtime[4]),1.);
     }
     else evtprev=evtcurr;
 //

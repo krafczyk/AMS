@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.21 2008/01/31 09:48:24 choumilo Exp $
+//  $Id: trigger102.h,v 1.22 2008/02/13 14:07:06 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -181,6 +181,7 @@ public:
  integer checktofpattor(integer tofc, integer paddle);
  integer checktofpattand(integer tofc, integer paddle);
  integer checkantipatt(integer counter){return _antipatt & (1<<counter);}
+ integer getantipatt(){return _antipatt;}
  static void build();
  static void init();
 

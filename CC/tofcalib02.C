@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.23 2008/01/29 09:08:59 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.24 2008/02/13 14:06:53 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4468,7 +4468,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
 	     adc[ch][pm]/=number(nevt[ch][pm]-evs2rem);//truncated average
 	     adc2[ch][pm]/=number(nevt[ch][pm]-evs2rem);
 	     adc2[ch][pm]=adc2[ch][pm]-adc[ch][pm]*adc[ch][pm];//truncated rms**2
-	     cout<<" ped/rms2="<<adc[ch][pm]<<" "<<adc2[ch][pm]<<endl;
+//	     cout<<" ped/rms2="<<adc[ch][pm]<<" "<<adc2[ch][pm]<<endl;
 	     if(adc2[ch][pm]>(sigmin*sigmin) && adc2[ch][pm]<=(sigmax*sigmax)
 	                         && adc[ch][pm]>pedmin && adc[ch][pm]<=pedmax){//chan.OK
 	       peds[ch][pm]=geant(adc[ch][pm]);
@@ -4504,8 +4504,10 @@ void TOFPedCalib::outp(int flg){// very preliminary
 	     }
 	   }//--->endof "good statistics" check
 	   else{
-	     cout<<"TOFPedCalib:LowStatCh=Lay/Pad/Side/Pmi="<<il<<" "<<ib<<" "<<is<<" "<<pm<<endl;
-	     cout<<"                             Nevents="<<nevt[ch][pm]<<endl;    
+	     if(nevt[ch][pm]>0){
+	       cout<<"TOFPedCalib:LowStatCh=Lay/Pad/Side/Pmi="<<il<<" "<<ib<<" "<<is<<" "<<pm<<endl;
+	       cout<<"                             Nevents="<<nevt[ch][pm]<<endl;
+	     }    
 	   }
 	}//--->endof pm-loop 
       }//--->endof side-loop

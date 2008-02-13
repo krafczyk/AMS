@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.28 2008/01/17 15:38:06 choutko Exp $
+//  $Id: antirec02.C,v 1.29 2008/02/13 14:06:52 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -43,7 +43,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u id,idN,stat;
   integer sector,isid,isds;
   integer tmfound,complm;
-  integer i,j,im,nhit,chnum,am[2],sta,st;
+  integer i,j,im,nhit,chnum,am[2],sta,st,chn;
   int16u mtyp(0),otyp(0),crat(0),slot(0),tsens(0);
   geant ped,sig,temp;
   number adcf,rdthr,dt;
@@ -122,18 +122,24 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
 //--->  fill working arrays for given side:
 //
+      chn=isid*8+sector;
       isds+=1;
       ANTI2JobStat::addch(chnum,5);
       adca=ptr->getadca();
       nadca=0;
       if(adca>0)nadca=1;
       ntdct=ptr->gettdct(tdct);
+      nftdc=TOF2RawSide::FThits[crat][tsens-1];
+      if(ATREFFKEY.reprtf[0]>0){
+        HF1(2519,geant(nadca),1.);
+        HF1(2519,geant(ntdct+10),1.);
+        HF1(2519,geant(nftdc+20),1.);
+      }
       tmfound=0;
       complm=0;
 //
 //---> check FTtime info in related crat/slot :
 //
-      nftdc=TOF2RawSide::FThits[crat][tsens-1];
       if(nftdc>0){
         for(i=0;i<nftdc;i++)ftdc[i]=TOF2RawSide::FTtime[crat][tsens-1][i];
 	ptr->putftdc(nftdc,ftdc);//attach FTtime info to given AntiRawEvent-object
@@ -147,9 +153,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //---> check LTtime info :
 //
       if(ntdct>0){
-        if(nftdc==1 && ATREFFKEY.reprtf[0]>0){
+        if(nftdc>0 && ATREFFKEY.reprtf[0]>0){
           for(i=0;i<ntdct;i++){
-	    dt=tdct[i]-ftdc[0];
+	    dt=(ftdc[0]-tdct[i])*ANTI2DBc::htdcbw();//ns
             HF1(2520,geant(dt),1.);//look at LTtime/FTtime correl
 	  }
 	}
@@ -158,23 +164,29 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         ANTI2JobStat::addch(chnum,8);
 	stat+=10;;//mark missing HistoryTime
       }
-      if(nftdc>0 && ntdct>0)tmfound=1;//found object with LTtime & FTtime 
-      if(nftdc>0 || ntdct>0)tmfound=1;//found object with LTtime & FTtime 
+//
+      if(nftdc>0 && ntdct>0)tmfound=1;//found object with LTtime & FTtime
+// 
+      if(tmfound==1 && ATREFFKEY.reprtf[0]>1)HF1(2587,geant(chn+1),1.);
 //
 //
 //---> check Charge-ADC :
 //
       if(adca>0){//---->ped-subtr. and DAQ-readout thr. was already done during decoding or mcbuild stage
         if(tmfound==1)complm=1;//found object with complete t+amp measurement
+	if(ATREFFKEY.reprtf[0]>1)HF1(2570+chn,geant(adca),1.);
       }
       else{
         ANTI2JobStat::addch(chnum,9);
 	stat+=100;//mark missing Ampl.info
       }
+//
+      if(complm==1 && ATREFFKEY.reprtf[0]>1)HF1(2586,geant(chn+1),1.);
 //---
 //
       ptr->updstat(stat);//set RawEvent-obj status to filter at reco-stage(befor it was =0(ok))
       if(complm==1)bad=0;//found at least one channel with t+amp measurement per event - accept event
+//      if(nadca>0)bad=0;//tempor: found at least one channel with amp measurement per event - accept event
 //---------------
     ptr=ptr->next();// to take next RawEvent hit
   }//----> endof RawEvent hits loop
@@ -837,7 +849,8 @@ void AMSAntiCluster::build2(int &statt){
     fttim=0;
     anchok=(sta%10==0                       //<--- validation status(FTtime is absolutely required)
                 && ANTIPeds::anscped[sector].PedStOK(isid)
-                && ANTI2VPcal::antivpcal[sector].CalStOK(isid));//DBstat OK
+//                && ANTI2VPcal::antivpcal[sector].CalStOK(isid)
+		                                             );//DBstat OK
     if(anchok){// <--- channel alive according validation and DB
 //channel statistics :
       ANTI2JobStat::addch(chnum,0); 
@@ -847,20 +860,19 @@ void AMSAntiCluster::build2(int &statt){
       adcf=number(adca);
 //---
       rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)
-      rdthr*=1;//tempor: can apply slightly higher threshold than in DAQ    
+      rdthr*=1;//tempor: can apply slightly higher threshold than in DAQ
       if(adcf>rdthr*sig){//----> Above additional thr.
         ANTI2JobStat::addch(chnum,2);
         ntdct=ptr->gettdct(tdct);
         if(ntdct>0)ANTI2JobStat::addch(chnum,3);
         if(ntdct==1)ANTI2JobStat::addch(chnum,4);//1hit
 	nftdc=ptr->getftdc(ftdc);//should be >=1 due above stat-selection
-        if(nftdc>0)fttim=ftdc[nftdc-1]*ANTI2DBc::htdcbw();// tempor use last FTtime-hit (ch->ns)
+        if(nftdc>0)fttim=ftdc[0]*ANTI2DBc::htdcbw();// tempor use 1st FTtime-hit (ch->ns)
         isdn[nsds]=isid+1;
 //DAQ-ch-->edep(mev):
         edep[nsds]=adcf
                   *ANTI2SPcal::antispcal[sector].getadc2pe() //ADC-ch-->p.e.
                   /ANTI2VPcal::antivpcal[sector].getmev2pec(isid); //p.e.-->Edep(Mev)
-//cout<<"    decoded edep="<<edep[nsds]<<endl; 
 //TDC-ch-->time(ns):
         nuptm[nsds]=0;
         nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
@@ -876,7 +888,6 @@ void AMSAntiCluster::build2(int &statt){
             if(fabs(dt-ftdel)<ftwin){//found coincidence(ftdel is exp.measured aver. FT-delay wrt Anti-hit)
 	      ftc+=1;//count coinc.
               uptm[nsds][nuptm[nsds]]=t1;//keep all FTcoincided hits   
-//cout<<"    Ft-coincided History-time="<<t1<<endl;
               nuptm[nsds]+=1;
 	    }
 	  }
@@ -973,14 +984,14 @@ void AMSAntiCluster::build2(int &statt){
       }//--->endof 2s-case
 //                                                  <--------- case1=1side:
       if(nsds==1){
-        isid=isdn[nsds];//=1,2
-        edep2=edep[nsds]*2;//rough estimation to compensate missing side
+        isid=isdn[nsds-1];//=1,2
+        edep2=edep[nsds-1]*2;//rough estimation to compensate missing side
 	zc=0.;
 	erz=padlen/sqrt(12.);
         status|=TOFGC::SCBADB2;// set bit for one-side paddles
         if(isid==2)status|=TOFGC::SCBADB4;// set missing-side bit(s=2 if set)
       }//--->endof 1s-case
-      if(ATREFFKEY.reprtf[0] && nsds==2)HF1(2508,geant(edep2),1.);
+      if(ATREFFKEY.reprtf[0]>0)HF1(2508,geant(edep2),1.);
 //---
       if(nsds>0 && edep2>ATREFFKEY.Edthr){//non-empty paddle -> create object
         for(i=0;i<nsds;i++){// add all unpaired times

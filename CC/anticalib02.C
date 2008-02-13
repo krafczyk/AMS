@@ -948,7 +948,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 	 }
        }//--->endof "good statistics" check
        else{
-	 cout<<"      LowStatCh=Sector/Side="<<sr<<" "<<sd<<" Nevents="<<nevt[sr][sd]<<endl;    
+	 if(nevt[sr][sd]>0)cout<<"      LowStatCh=Sector/Side="<<sr<<" "<<sd<<" Nevents="<<nevt[sr][sd]<<endl;    
        }
      }//--->endof side-loop
    }//--->endof sector-loop
@@ -985,8 +985,9 @@ void ANTPedCalib::outp(int flg){// very preliminary
      }
      sprintf(buf,"%d",runn);
      strcat(name,buf);
-     if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-     if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+//     if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+//     if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcpy(fname,"");
      strcat(fname,name);
      cout<<"Open file : "<<fname<<'\n';
      cout<<" Date of the first used event : "<<DataDate<<endl;

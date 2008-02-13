@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.48 2008/01/31 09:48:09 choumilo Exp $
+//  $Id: tofrec02.C,v 1.49 2008/02/13 14:06:54 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -259,10 +259,10 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(nsumsh+70),1.);
 //
 //-----
-      if(TFREFFKEY.reprtf[4]==1){ // <==================== TOF-debug
+      if(TFREFFKEY.reprtf[4]>=1){ // <==================== TOF-debug
         chnum=2*TOF2DBc::barseqn(ilay,ibar)+isid;//0-67
-        if(adca>50 && nadcd==2)HF2(1400+chnum,adca,adcd[0]+adcd[1],1.);
-//        if(adca>0)HF1(1400+chnum,adca,1.);
+//        if(adca>50 && nadcd==2)HF2(1400+chnum,adca,adcd[0]+adcd[1],1.);
+        if(adca>0)HF1(1400+chnum,adca,1.);
 //        if(nadcd==2)HF1(1400+chnum,adcd[0]+adcd[1],1.);
 	if(adca>25){
           if((trpat[ilay]&(1<<(16*isid+ibar)))>0)HF1(1470,geant(1+ibar+10*isid+20*ilay),1.);
