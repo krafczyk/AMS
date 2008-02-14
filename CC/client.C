@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.38 2007/12/07 10:13:09 choutko Exp $
+//  $Id: client.C,v 1.39 2008/02/14 10:38:11 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -271,7 +271,7 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Producer::DSTInfo & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<" DSType "<<DSTT2string(a.type)<<" NtupleOutput "<<(a.OutputDirPath?a.OutputDirPath:" ")<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
+_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<" DSType "<<DSTT2string(a.type)<<" NtupleOutput "<<(a.OutputDirPath?a.OutputDirPath:" ")<<" FreeMb "<<a.FreeSpace<<" TotalMb "<<a.TotalSpace<<ends;
 return _streambuffer;
 }
 
@@ -279,7 +279,7 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<(a.Name?a.Name:" ")<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<" , FrreSpace "<<a.FreeSpace<<" , TotalSpace "<<a.TotalSpace<<ends;
+_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<(a.Name?a.Name:" ")<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<" , FreeSpace "<<a.FreeSpace<<" , TotalSpace "<<a.TotalSpace<<ends;
 return _streambuffer;
 }
 

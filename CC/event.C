@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.366 2008/02/13 20:07:49 choutko Exp $
+//  $Id: event.C,v 1.367 2008/02/14 10:38:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1580,7 +1580,9 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
     // Reconstruction of 4S + 3K
     if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
       itrk=buildC("AMSTrTrackFalseX",TKDBc::nlay()-3);
-      itrk=buildC("AMSTrTrack_PathIntegral",refit);
+      if(itrk>0){
+        itrk=buildC("AMSTrTrack_PathIntegral",refit);
+      }
 #ifdef __AMSDEBUG__
       if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
 #endif

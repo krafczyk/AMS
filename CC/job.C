@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.532 2008/02/13 20:07:49 choutko Exp $
+// $Id: job.C,v 1.533 2008/02/14 10:38:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1117,7 +1117,7 @@ TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
 TRFITFFKEY.MinRefitCos[1]=0.5;
 TRFITFFKEY.FastTracking=1;
-TRFITFFKEY.WeakTracking=1;
+TRFITFFKEY.WeakTracking=0;
 TRFITFFKEY.FalseXTracking=1;
 TRFITFFKEY.Chi2FalseX=3.;
 TRFITFFKEY.ForceFalseTOFX=1;

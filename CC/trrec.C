@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.187 2008/02/13 20:07:50 choutko Exp $
+//  $Id: trrec.C,v 1.188 2008/02/14 10:38:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1451,17 +1451,19 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                                     pbest = phitl;
                               }
                           }
-                          if (!pbest) goto next_3;
-                          ptest._Pthit[0] = pbest;
 
-                          if (_NoMoreTime()) { 
-                              remove_track(ptrack); 
+                        if ( _NoMoreTime(true)) {     
+                              remove_track(ptrack);
                               if (AMSEvent::debug){
                                 cout << " buildPathIntegral Cpulimit Exceeded!!!! " << endl;
                               }
                               throw AMSTrTrackError(" Cpulimit Exceeded ");
                               return NTrackFound;
-	                    }
+                            }
+
+                          if (!pbest) goto next_3;
+                          ptest._Pthit[0] = pbest;
+
 
                           // Build final track
 	                    if (j==0){
@@ -1485,6 +1487,11 @@ next_3:
 next_pattern:
             // Check next pattern only if no tracks has been found
             if (ptrack) break;
+                         if (_NoMoreTime(true)) {
+                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              return NTrackFound;
+                            }
+
 
       }
 
@@ -1705,17 +1712,18 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
                                     pbest = phitl;
                               }
                           }
-                          if (!pbest) goto next_3;
-                          ptest._Pthit[0] = pbest;
-
-                          if (_NoMoreTime()) { 
-                              remove_track(ptrack); 
+                         if (_NoMoreTime()) {
+                              remove_track(ptrack);
                               if (AMSEvent::debug){
                                 cout << " buildWEAKPathIntegral Cpulimit Exceeded!!!! " << endl;
                               }
                               throw AMSTrTrackError(" Cpulimit Exceeded ");
                               return NTrackFound;
-	                    }
+                            }
+
+                          if (!pbest) goto next_3;
+                          ptest._Pthit[0] = pbest;
+
 
                           // Build final track
 	                    if (j==0){
@@ -1739,6 +1747,12 @@ next_3:
 next_pattern:
             // Check next pattern only if no tracks has been found
             if (ptrack) break;
+                         if (_NoMoreTime(true)) {
+                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              return NTrackFound;
+                            }
+
+
 
       }
 
@@ -3627,9 +3641,9 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
 
 }
 
-bool AMSTrTrack::_NoMoreTime(){
+bool AMSTrTrack::_NoMoreTime(bool force){
 static unsigned int count=0;
-if( (count++)%512==0 ){
+if( (count++)%512==0 || force){
  return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
 }
 else return false;

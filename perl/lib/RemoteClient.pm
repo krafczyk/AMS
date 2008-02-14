@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.496 2008/02/13 20:07:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.497 2008/02/14 10:38:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -975,6 +975,9 @@ if($#{$self->{DataSetsT}}==-1){
              if(not defined $template->{$ent}){
                $template->{initok}=undef;
              }
+           }
+           if($template->{OPENCLOSE}==0){
+             $template->{RUNMAX}=1;
            }
 
 
@@ -6370,7 +6373,7 @@ print qq`
               $corr=$self->{cputypes}->{$q->param("QCPUType")};
             }
 
-        my $cput=50;
+        my $cput=5;
 
         my $runno=$q->param("QRun");
         my $runmi=$q->param("QRunMi");
@@ -14526,6 +14529,10 @@ sub calculateMipsVC {
                $template->{initok}=undef;
              }
            }
+           if($template->{OPENCLOSE}==0){
+             $template->{RUNMAX}=1;
+           }
+
 #
 # get no of events
 #

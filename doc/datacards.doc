@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.264 2008/02/13 20:07:51 choutko Exp $
+#  $Id: datacards.doc,v 1.265 2008/02/14 10:38:20 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -272,7 +272,7 @@ I57  FastTracking(1)        // 0-1-2-3-4 faster-faster-faster-faster
                             //   2 + everything -(trigger3==3)
                             //   1 + (trigger3==3)
                             //   0 + slow down system + better tracking qua   
-I58  WeakTracking(1)        // Make(1) do not make(0) weak clusters fitting
+I58  WeakTracking(0)        // Make(1) do not make(0) weak clusters fitting
 I59  FalseXTracking(1)      // Make(1) do not make(0) 4y + 3x tracking
 R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
 I61  ForceFalseTOFX(1)      // Force additional FalseTOFX track in each event

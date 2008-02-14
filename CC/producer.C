@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.106 2008/02/13 20:07:50 choutko Exp $
+//  $Id: producer.C,v 1.107 2008/02/14 10:38:13 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -569,15 +569,15 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
     rm+=a(bstart);
     system((const char*)rm);
     cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl;
-     struct statfs buffer;
-     int fail=statfs((const char*)destdir, &buffer);
+     struct statfs64 buffer;
+     int fail=statfs64((const char*)destdir, &buffer);
     if(fail){
       ntend->FreeSpace=-1;
       ntend->TotalSpace=-1;
     }
     else{
-     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
     AString b="";
     for(int k=0;k<bstart;k++)b+=a[k];
@@ -873,10 +873,10 @@ ntend->size=0;
       ntend->TotalSpace=-1;
     }
     else{
-     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
-//cout <<" sendntuplestart start "<<name<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
+cout <<" sendntuplestart start "<<name<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 
 
 
@@ -996,15 +996,15 @@ ntend->Insert=statbuf.st_ctime;
 ntend->size=statbuf.st_size/1024./1024.+0.5;
 
 
-     struct statfs buffer;
-     int fail=statfs((const char*)a(bstart), &buffer);
+     struct statfs64 buffer;
+     int fail=statfs64((const char*)a(bstart), &buffer);
     if(fail){
       ntend->FreeSpace=-1;
       ntend->TotalSpace=-1;
     }
     else{
-     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
 
 //cout <<" sendntupleupdate start "<<a(bstart)<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
@@ -1590,15 +1590,15 @@ else FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagBeginInfo ",DPS::Cl
 
 void AMSProducer::sendDSTInfo(){
 
-     struct statfs buffer;
-     int fail=statfs((const char *)_dstinfo->OutputDirPath, &buffer);
+     struct statfs64 buffer;
+     int fail=statfs64((const char *)_dstinfo->OutputDirPath, &buffer);
     if(fail){
       _dstinfo->FreeSpace=-1;
       _dstinfo->TotalSpace=-1;
     }
     else{
-     _dstinfo->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     _dstinfo->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     _dstinfo->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
+     _dstinfo->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
     for( list<DPS::Producer_var>::iterator ni = _plist.begin();ni!=_plist.end();++ni){
       try{

@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.87 2008/02/07 16:26:24 choutko Exp $
+//  $Id: trrec.h,v 1.88 2008/02/14 10:38:22 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -324,7 +324,7 @@ static void _Start(){TIMEX(_Time);time(&__Time);}
 static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
 static int _CheckTimeE(){time_t tt1;time(&tt1);return tt1-__Time;}
 
-static bool _NoMoreTime();
+static bool _NoMoreTime(bool force=false);
 static geant _Time;
 static time_t __Time;
 static geant _TimeLimit;
