@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.191 2007/11/28 12:06:43 pzuccon Exp $
+//  $Id: amsgeom.C,v 1.192 2008/02/15 19:17:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1898,13 +1898,25 @@ ostrstream ost(name,sizeof(name));
          ost.clear();
          ost.seekp(0);
          ost << "L" << i+1<<(j+1)*2+k<<ends;
-         if(k==0)par[0]=TKDBc::ssize_inactive(i,0)*TKDBc::nhalf(i+1,j+1)/2.;
-         else par[0]=TKDBc::ssize_inactive(i,0)*
-         (TKDBc::nsen(i+1,j+1)-TKDBc::nhalf(i+1,j+1))/2.;
+         double pairx=0;
+         if(k==0){
+           par[0]=TKDBc::ssize_inactive(i,0)*TKDBc::nhalf(i+1,j+1)/2.;
+           pairx=TKDBc::ssize_inactive(i,0)*
+                (TKDBc::nsen(i+1,j+1)-TKDBc::nhalf(i+1,j+1))/2.;
+        }
+         else{
+           par[0]=TKDBc::ssize_inactive(i,0)*
+          (TKDBc::nsen(i+1,j+1)-TKDBc::nhalf(i+1,j+1))/2.;
+           pairx=TKDBc::ssize_inactive(i,0)*TKDBc::nhalf(i+1,j+1)/2.;
+         }
          par[1]=TKDBc::ssize_inactive(i,1)/2;
          par[2]=TKDBc::silicon_z(i)/2;
          coo[0]=(2*k-1)*(TKDBc::ssize_inactive(i,0)*TKDBc::nsen(i+1,j+1)/2+
          TKDBc::halfldist(i)-par[0]);
+         if(pairx==0){
+           coo[0]+=-(2*k-1)*TKDBc::halfldist(i);
+           //cout <<"  Coo[0] was changed "<<" "<<i<<" "<<coo[0]<<endl;         
+         }
          coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
          (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
          coo[2]=TKDBc::zpos(i);
@@ -1936,8 +1948,12 @@ ostrstream ost(name,sizeof(name));
         if(!par[0]>0){
           status=0;
         }
+        //cout <<"Lad "<<i<<" "<<j<<" "<<k<<" "<< coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
         if(TKDBc::update())TKDBc::SetLadder(i,j,k,status,coo,nrm,gid);
         else               TKDBc::GetLadder(i,j,k,status,coo,nrm,rgid);
+        if(TKDBc::update()){
+        cout <<"Lad "<<i<<" "<<j<<" "<<k<<" "<< coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
+        }
         //        if(i==5){
         //          cout <<"Lad "<<j<<" "<<k<<" "<< coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
         //        }

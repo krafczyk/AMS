@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.107 2008/02/15 14:37:21 choutko Exp $
+//  $Id: daqevt.C,v 1.108 2008/02/15 19:18:00 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -822,6 +822,7 @@ unexpected:
      }
     }
     }
+    else break;
     }
      if(fbin.good() && !fbin.eof()){
       if(_create()){
@@ -839,7 +840,6 @@ unexpected:
       }
      }
      else {
-     cerr<<"DAQEvent::read-E-UnexpectedEndofFile "<<endl;
      goto unexpected;  
     }
     }

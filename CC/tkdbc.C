@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.54 2008/02/12 18:29:23 choutko Exp $
+//  $Id: tkdbc.C,v 1.55 2008/02/15 19:18:00 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1963,7 +1963,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                1.92,0.,54.0,0.,54.0, 
                                5.3,0.,72. ,0.,72.};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
-   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
+   const number halfldist[_nlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
+//   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
    const number  xposl[_nlay]={0,0,0,0,0,0,0};
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
@@ -2025,6 +2026,16 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
                        3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
    UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
+/*
+   const number  ssize_inactive[_nlay][2]={4.136000,7.2045,
+                                                    4.136000,7.2045,
+                                                    4.136000,7.2045,
+                                                    4.136000,7.2045,
+                                                    4.136000,7.2045,
+                                                    4.136000,7.2045,
+                                                    4.136000,7.2045,
+                                                    4.136000,7.2045};
+*/
    const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
@@ -2068,7 +2079,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
 // center to center for ladders
-const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+const number  c2c[_nlay]={7.3045,7.3045,7.3045,7.3045,7.3045,7.3045,7.3045,7.3045};
+//const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
    UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
 // support foam width;
 const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
