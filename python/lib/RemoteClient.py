@@ -2533,7 +2533,7 @@ class RemoteClient:
                         os.system(cmd)
                         cmd="mv "+pfilej+" "+pfilej+".1"
                         os.system(cmd)
-                        notify++;
+                        notify=notify+1
                     else:
                         if(outputpath!=None):
                             cmd="rm -rf "+outputpath
