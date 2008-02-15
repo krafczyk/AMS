@@ -128,6 +128,15 @@ class RemoteClient:
         if v and ntp>0:
             print "Total of ",runs,"  runs, ",ntp," ntuples  processed. \n ",ntpb," bad ntuples found. \n ",ntpf,"  ntuples could not be repared\n ",ntna," ntuples could not be verified"
 
+    def NotifyResp(self,message):
+        # send mail message responsible for the server
+        sql ="select address from mails where rserver=1"
+        ret_a=self.sqlserver.Query(sql)
+        if(len(ret_a[0][0])):
+            address=ret_a[0][0]
+            self.sendmailmessage(address,message," ")
+
+         
     def CheckCRCT(self,v,irm,upd,run2p,force,dir,nocastoronly):
         #
         #  threaded version one thread per fs
@@ -2410,6 +2419,7 @@ class RemoteClient:
         delay=86400
         joudir=source+"/jou";
         while 1:
+            notify=0
             for filej in os.listdir(joudir):
                 pfilej=os.path.join(joudir,filej)
                 if(filej.find(".jou.")>=0):
@@ -2523,6 +2533,7 @@ class RemoteClient:
                         os.system(cmd)
                         cmd="mv "+pfilej+" "+pfilej+".1"
                         os.system(cmd)
+                        notify++;
                     else:
                         if(outputpath!=None):
                             cmd="rm -rf "+outputpath
@@ -2531,6 +2542,10 @@ class RemoteClient:
                 break;
             else:
                 time.sleep(60)
+                if(notify):
+                    message="%d New DataRuns Transferred " %(notify)
+                    self.NotifyResp(message)
+                    notify=0
 #                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
 #                    if(suc==1):
 #                        self.sqlserver.Commit(1)
