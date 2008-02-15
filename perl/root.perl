@@ -1,4 +1,4 @@
-# $Id: root.perl,v 1.3 2003/12/17 17:06:23 choutko Exp $
+# $Id: root.perl,v 1.4 2008/02/15 15:51:28 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -98,8 +98,9 @@ while ( my $line = <FILEI>){
             @sp2=split /\]/,$sp1[$#sp1-1];
             my $max1=$sp2[0];
             my $output="$type $class\_$var(unsigned int j, unsigned int k, unsigned int i){return (j<$max1 && k<$max2 && p$Class\(i))?p$Class\(i)->$Var\[j]\[k]:0;} \n";
+#            print $output;
            print FILEO $output;
-           }
+        }
            else{
                warn "***triple array found *** $var ****  do nothing \n";
            }

@@ -810,6 +810,7 @@ public:
   float PiErrRig;    ///< PathInt err(1/rig) (<0 means fit was not succesful)
   float RigidityMS;  ///< fast rigidity mscat off
   float PiRigidity;  ///<  PathInt rigidity
+  float Hit[8][3];   ///< Track Coordinate (after alignment)
   TrTrackR(AMSTrTrack *ptr);
   protected:
   vector<int> fTrRecHit;
@@ -837,7 +838,7 @@ public:
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,7)       //TrTrackR
+ClassDef(TrTrackR,8)       //TrTrackR
 friend class AMSTrTrack;
 friend class AMSEventR;
 };

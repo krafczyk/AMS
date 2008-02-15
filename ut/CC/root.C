@@ -2600,6 +2600,11 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   GChi2           = (float)ptr->_GChi2;
   GRigidity       = (float)ptr->_GRidgidity;;
   GErrRigidity    = (float)ptr->_GErrRidgidity;
+  for(int i=0;i<trconst::maxlay;i++){
+    for(int k=0;k<3;k++){
+    Hit[i][k]=(float)ptr->_Hit[i][k];
+    }
+  }
   if(AdvancedFitDone){
   for (int i=0; i<2; i++) {
         HChi2[i]        = (float)ptr->_HChi2[i];
