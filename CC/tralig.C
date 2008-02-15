@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.36 2008/02/13 20:07:50 choutko Exp $
+//  $Id: tralig.C,v 1.37 2008/02/15 13:23:25 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -392,10 +392,10 @@ AMSNode *pnode =AMSJob::gethead()->getaligstructure();
 AMSTrAligFit * pal = (AMSTrAligFit *)pnode->down();
 
 if(forced==0){
- AMSTrTrack * ptrack=0;
+ AMSParticle * ppart=0;
  AMSmceventg * ptrg=0;
-  if(Select(ptrack,ptrg,TRALIG.Algorithm)){
-//     AMSTrTrack * ptrack= ptr->getptrack();
+  if(Select(ppart,ptrg,TRALIG.Algorithm)){
+     AMSTrTrack * ptrack= ppart->getptrack();
      integer nnodes=0;
      integer found=0;
       while(pal){
@@ -462,9 +462,10 @@ AMSNode *pnode =AMSJob::gethead()->getaligstructure();
 AMSTrAligFit * pal = (AMSTrAligFit *)pnode->down();
 
 if(forced==0){
- AMSTrTrack  * ptrack=0;
+ AMSParticle  * ppart=0;
  AMSmceventg * ptrg=0;
-  if(Select(ptrack,ptrg,TRALIG.Algorithm)){
+  if(Select(ppart,ptrg,TRALIG.Algorithm)){
+     AMSTrTrack *ptrack=ppart->getptrack();
      integer nnodes=0;
      integer found=0;
       while(pal){
@@ -890,10 +891,10 @@ nah:
 
 
 
-integer AMSTrAligFit::Select(AMSTrTrack * & ptr, AMSmceventg * & pmcg, integer alg){
-      AMSParticle * ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",0);
+integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, integer alg){
+      ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",0);
       pmcg=0;
-      if(!ppart && alg!=2)return 0;      // Particle Should be Present always
+      if(!ppart )return 0;      // Particle Should be Present always
 
   // Algorithm == 0 presumes momentum is knows,
   // pmcg may exist, if not create it from datacards
@@ -942,7 +943,7 @@ integer AMSTrAligFit::Select(AMSTrTrack * & ptr, AMSmceventg * & pmcg, integer a
         number recharge=ppart->getcharge();
         if(ppart->getmomentum()<0)recharge=-recharge;
         if(recharge==charge){
-           ptr=ppart->getptrack();              
+           AMSTrTrack *ptr=ppart->getptrack();              
            number chi2_3d, chi2z, rid;
            ptr->getParSimpleFit(chi2_3d,chi2z,rid);
            number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
@@ -976,7 +977,7 @@ integer AMSTrAligFit::Select(AMSTrTrack * & ptr, AMSmceventg * & pmcg, integer a
              static int tot5=0;
              static int tot6=0;
              static int tot7=0;
-           ptr=ppart->getptrack();              
+           AMSTrTrack *ptr=ppart->getptrack();              
            number chi2_3d, chi2z, rid;
            ptr->getParSimpleFit(chi2_3d,chi2z,rid);
            number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
@@ -1015,12 +1016,12 @@ integer AMSTrAligFit::Select(AMSTrTrack * & ptr, AMSmceventg * & pmcg, integer a
       for(int i=0;i<5;i++)ntrds+=(AMSEvent::gethead()->getC("AMSTRDSegment",i))->getnelem();
       int ntrk=(AMSEvent::gethead()->getC("AMSTrTrack",0))->getnelem();
       if(ntrk==1 && ntrd==1 && ntrds<6){
-      ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
-      if(ptr->getnhits()>5){
+      AMSTrTrack *     ptr=ppart->getptrack();              
+      if(ptr->getnhits()>TRALIG.Cuts[7][0]){
         int ntof=(AMSEvent::gethead()->getC("AMSTOFCluster",0))->getnelem()+
                   (AMSEvent::gethead()->getC("AMSTOFCluster",1))->getnelem();
         if(ntof==2  ){
-           if(ptr->getchi2()<100000){
+           if(ptr->getchi2()<TRALIG.Cuts[7][1]){
             return 1;
            }
            else{

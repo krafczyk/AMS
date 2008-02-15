@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.136 2008/02/05 10:37:11 choutko Exp $
+//  $Id: server.C,v 1.137 2008/02/15 13:23:24 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2304,6 +2304,24 @@ if(pcur->InactiveClientExists(getType()))return;
         DPS::Producer::RunEvInfo_var   reinfo;
         DPS::Producer::DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);     
+        cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
+        if(reinfo->Priority>1 && strstr((const char*)reinfo->cinfo.HostName,"ams")){
+         for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+           if((*i)->Status!=DPS::Server::NoResponse && (*i)->Status!=DPS::Server::InActive){
+    if(!(strstr((const char *)(*i)->HostName,(const char*)reinfo->cinfo.HostName)))continue;
+      DPS::Client::CID cid=_parent->getcid();      
+      cid.Type=getType();
+      cid.Interface= (const char *) " "; 
+      (ahlv)->Status=DPS::Client::OK; 
+     PropagateAH(cid,(ahlv),DPS::Client::Update);
+     ahlv=*i;
+     cout <<" host found "<<(const char*)(*i)->HostName<<endl;
+     break;
+    }
+   }
+}         
+     (ac.id).HostName=CORBA::string_dup((ahlv)->HostName);
+     ac.id.Interface=(ahlv)->Interface;
         ac.id.StatusType=DPS::Client::OneRunOnly;  
         if(dstinfo->DieHard){
            cout << " failed "<<dstinfo->DieHard<<endl;

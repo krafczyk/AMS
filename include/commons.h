@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.225 2008/02/13 20:07:51 choutko Exp $
+//  $Id: commons.h,v 1.226 2008/02/15 13:23:29 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -64,9 +64,6 @@ integer mode;
 integer ifile[40];
 integer ofile[40];
 integer BTypeInDAQ[2];
-integer LCrateinDAQ;
-integer SCrateinDAQ;
-integer NoRecAtAll;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);

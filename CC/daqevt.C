@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.105 2008/02/13 20:07:49 choutko Exp $
+//  $Id: daqevt.C,v 1.106 2008/02/15 13:23:21 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -774,6 +774,7 @@ integer DAQEvent::read(){
        fbin.open(fnam,ios::in);
        if(fbin){ 
         cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
+        GCFLAG.IEORUN=0;
         break;
        }    
        else{
@@ -805,6 +806,7 @@ integer DAQEvent::read(){
       fbin.open(fnam,ios::in);
       if(fbin){ 
        cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
+       GCFLAG.IEORUN=0;
        fbin.read(( char*)(l16),sizeof(l16));
        _convertl(l16[0]);
        _convertl(l16[1]);
@@ -876,6 +878,7 @@ DAQEvent::InitResult DAQEvent::init(){
     fbin.open(fnam,ios::in);
     if(fbin){ 
        cout <<"DAQEvent::init-I-opened file "<<fnam<<endl;
+       GCFLAG.IEORUN=0;
     if(Run){
      DAQEvent daq;
      integer run=-1;

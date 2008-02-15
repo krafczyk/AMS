@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.497 2008/02/14 10:38:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.498 2008/02/15 13:23:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -959,7 +959,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -972,14 +972,16 @@ if($#{$self->{DataSetsT}}==-1){
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent}){
+             if(not defined $template->{$ent} and ($ent != "HOST" and $ent!="ROOTNTUPLE")){
                $template->{initok}=undef;
              }
            }
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
            }
-
+       if(defined $template->{ROOTNTUPLE}  ){
+           $dataset->{rootntuple}=$template->{ROOTNTUPLE};
+       }
 
 #
 # get no of events
@@ -1017,11 +1019,11 @@ if($#{$self->{DataSetsT}}==-1){
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
              }
-           my $qtype="";
+           my $qtype="and  datafiles.type not like '%CAL%' ";
            if($template->{QTYPE} ne ""){
                $qtype="and datafiles.type like '$template->{QTYPE}%'";
             }
-                   my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and type not like '%CAL%' and datafiles.status='OK' $qtype and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and datafiles.status='OK' $qtype and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];
@@ -5064,7 +5066,13 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $checked="";
                 }
 #                print "</b>";
-                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.00002 or  $dataset->{eventstodo}<1000 or ($dataset->{datamc}==1 and $self->{CCT} ne "local")){
+                my $minratio=0.00002;
+                my $minsize=1000;
+                if($dataset->{datamc}==1 and $self->{CCT} eq "local"){
+                    $minratio=0;
+                    $minsize=10;
+                }
+                if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) < $minratio or  $dataset->{eventstodo}<$minsize){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
                  }
@@ -5842,7 +5850,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                 if ($p->{vdb} =~ $dataset->{version}) {
                  print "<option value=\"$p->{name}\">$p->{name} </option>\n";
                  $ProductionPeriod = $p->{name};
-                 if ($p->{vdb} =~ /v3.00/) {
+                 if ($p->{vdb} =~ /v3.00/ or (defined $dataset->{rootntuple} and $dataset->{rootntuple}==0)) {
                     $defROOT = "";
                     $defNTUPLE = "CHECKED";
                 } else {
@@ -6109,7 +6117,7 @@ print qq`
 #    $self->getProductionVersion();
 
    print qq`
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000 2=" $defNTUPLE>Ntuple
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000 170=$self->{Build} 2=" $defNTUPLE>Ntuple 
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=4000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
@@ -6296,6 +6304,7 @@ print qq`
 #
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
+        my $templatehost=undef;
          my $tmps="";
         my $template=undef;
         my $did=$q->param("DID");
@@ -6337,6 +6346,7 @@ print qq`
          foreach my $tmp (@{$dataset->{jobs}}) {
             if($template eq $tmp->{filename} and $tmp->{TOTALEVENTS}>0){
                 $templatebuffer=$tmp->{filebody};
+                $templatehost=$tmp->{HOST};
                 if(not defined $q->param("QCPUPEREVENT")){
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
@@ -6384,12 +6394,12 @@ print qq`
 #
 #  get runs from database
 #
-           my $qtype="";
+           my $qtype="and  datafiles.type not like '%CAL%' ";
            if(defined $q->param("QType")){
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma  and  datafiles.type not like '%CAL%' and  datafiles.nevents>0 and datafiles.status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -6536,6 +6546,7 @@ print qq`
          $buf=~ s/JOB=/DATASETNAME=$dataset->{name} \nJOB=/;
          $buf=~ s/JOB=/CPUTIME=$cpus \nJOB=/;
          my $rootntuple=$q->param("RootNtuple");
+         $buf=~ s/ROOTNTUPLE=\d/ROOTNTUPLE=/;
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $buf=~ s/RUNDIR=/RUNDIR=$path/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
@@ -6704,6 +6715,13 @@ print qq`
              $ri->{cuid}=0;
          $ri->{SubmitTime}=time();
          $ri->{cinfo}={};
+         if(defined $templatehost and $templatehost=~/ams/){
+          $ri->{Priority}=2;
+          $ri->{cinfo}->{HostName}=$templatehost;
+        }
+        else{
+         $ri->{cinfo}->{HostName}=" ";
+        }
          $ri->{cinfo}->{Run}=$ri->{Run};
          $ri->{cinfo}->{EventsProcessed}=0;
          $ri->{cinfo}->{LastEventProcessed}=0;
@@ -6714,7 +6732,6 @@ print qq`
          $ri->{cinfo}->{Mips}=-1;
          $ri->{cinfo}->{TimeSpent}=0;
          $ri->{cinfo}->{Status}=$ri->{Status};
-         $ri->{cinfo}->{HostName}=" ";
          push @{$self->{Runs}}, $ri;
          $self->insertDataRun(
                        $ri->{Run},
@@ -7794,7 +7811,6 @@ anyagain:
          $ri->{cinfo}->{Mips}=-1;
          $ri->{cinfo}->{TimeSpent}=0;
          $ri->{cinfo}->{Status}=$ri->{Status};
-         $ri->{cinfo}->{HostName}=" ";
          push @{$self->{Runs}}, $ri;
          $run=$run+1;
     if($Any>=0 and defined $dataset){
@@ -12951,7 +12967,7 @@ sub printJobParamFormatDST {
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=4000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000  170=$self->{Build} 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
@@ -14512,7 +14528,7 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -14525,7 +14541,7 @@ sub calculateMipsVC {
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent}){
+             if(not defined $template->{$ent} and ($ent != "HOST" and $ent!="ROOTNTUPLE")){
                $template->{initok}=undef;
              }
            }
@@ -14533,6 +14549,9 @@ sub calculateMipsVC {
              $template->{RUNMAX}=1;
            }
 
+       if(defined $template->{ROOTNTUPLE}  ){
+           $dataset->{rootntuple}=$template->{ROOTNTUPLE};
+       }
 #
 # get no of events
 #

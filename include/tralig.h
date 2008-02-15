@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.19 2008/02/13 20:07:51 choutko Exp $
+//  $Id: tralig.h,v 1.20 2008/02/15 13:23:30 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -217,7 +217,7 @@ static void InitDB();
 static void Test(int i=0);
 static void Testgl(int i=0);
 static AMSID getTDVGLDB();
-static integer Select(AMSTrTrack * & ptr, AMSmceventg * & mcg, integer alg);
+static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uintl address, integer strict=0);
 void Fit();
 void Fitgl();

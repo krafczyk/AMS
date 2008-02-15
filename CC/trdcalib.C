@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.5 2008/02/07 16:26:19 choutko Exp $
+//  $Id: trdcalib.C,v 1.6 2008/02/15 13:23:25 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -39,13 +39,15 @@ void AMSTRDIdCalib::ntuple(integer s){
     integer iostat;
     integer rsize=1024;
     sprintf(filename,"%s_trd.%d",hfile,s);
+/*
     HROPEN(IOPA.hlun+1,"trdcalibration",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening trdcalib ntuple file "<<filename<<endl;
      exit(1);
     }
     else cout <<"trdcalib ntuple file "<<filename<<" opened."<<endl;
-
+*/
+  if(IOPA.hlun){
    TRDCalib_def TRDCALIB;
    HBNT(IOPA.ntuple,"trd calibaration"," ");
    HBNAME(IOPA.ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
@@ -65,6 +67,8 @@ void AMSTRDIdCalib::ntuple(integer s){
          }
         }
     }
+}
+/*
   char hpawc[256]="//PAWC";
   HCDIR (hpawc, " ");
   char houtput[]="//trdcalibration";
@@ -73,7 +77,7 @@ void AMSTRDIdCalib::ntuple(integer s){
   HROUT (1, ICYCL, " ");
   HREND ("trdcalibration");
   CLOSEF(IOPA.hlun+1);
-
+*/
 }
   
 

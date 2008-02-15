@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.367 2008/02/14 10:38:11 choutko Exp $
+//  $Id: event.C,v 1.368 2008/02/15 13:23:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1078,7 +1078,7 @@ for(int il=0;il<2;il++){
 
 
    
-  if(IOPA.hlun || IOPA.WriteRoot){
+  if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
     AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
     _writeEl();
     AMSNode * cur;
@@ -1313,11 +1313,6 @@ void AMSEvent::_reamsevent(){
 
 
 
-  // Skip EveryThing 
-  if(DAQCFFKEY.NoRecAtAll){
-    AMSgObj::BookTimer.stop("REAMSEVENT");  
-    return;
-  }
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//add missing parts to existing(!) lvl1-obj
 //                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage 
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){

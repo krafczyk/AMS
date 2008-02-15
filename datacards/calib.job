@@ -41,21 +41,21 @@ DEBUG -1 10 1000
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
-IOPA 1=0 2='/f2users/choutko/calib' 127=1 
-128='/f2users/choutko/last2.root' 43=101
+IOPA 1=1 2='/f2users/choutko/calib.hbk' 127=0  
+43=101
 45='TriggerLVL1   ' 
 AMSJOB 1=11   2=0      3=5.   4=1  5=0 46='AMS02'
 87=1 88='TRD|Tracker'
 C Special HP-UX
 TIME 3=100000000
 DAQC 1=1 
-2='/Offline/RunsDir/CAL/' 
+2='/Offline/RunsDir/CAL/1201175257' 
 TRCALIB 2=90 9=5
 TRMC 36=1
 TRDMC 16=1
 TERM 1=1234567890 
-C SELECT 1=1200929694 43=1202728327
-SELECT 1=1201175257 43=1202728327
+SELECT 1=1201175257 43=1201175257
+C SELECT 1=1201175257 43=1202728327
 END
 
 

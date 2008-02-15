@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.533 2008/02/14 10:38:12 choutko Exp $
+// $Id: job.C,v 1.534 2008/02/15 13:23:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -566,6 +566,8 @@ for(i=0;i<6;i++){
   TRALIG.Cuts[5][1]=2.0;    
   TRALIG.Cuts[6][0]=0.;         // betaerror cut
   TRALIG.Cuts[6][1]=0.04;   
+  TRALIG.Cuts[7][0]=6;         //min tr point cut
+  TRALIG.Cuts[7][1]=10000;     //max chi2   
 
 TRALIG.Algorithm=0;
 for( i=0;i<8;i++){
@@ -1296,9 +1298,6 @@ void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
 DAQCFFKEY.BTypeInDAQ[0]=0;
 DAQCFFKEY.BTypeInDAQ[1]=1023;
-DAQCFFKEY.LCrateinDAQ=1;
-DAQCFFKEY.SCrateinDAQ=1;//not used by me (EC)
-DAQCFFKEY.NoRecAtAll=0;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1502,9 +1501,6 @@ else{
   cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
   exit(1);
 }
-  if(DAQCFFKEY.SCrateinDAQ<0){
-   DAQCFFKEY.SCrateinDAQ=0;
-  }
   TKDBc::init(TKGEOMFFKEY.ZShift);
   TRDDBc::init();
 {
@@ -3137,7 +3133,7 @@ if(MISCFFKEY.BeamTest>1){
 
 
 
-if (AMSFFKEY.Update){
+if (AMSFFKEY.Update>1){
 
   // Here update dbase
 
@@ -3338,7 +3334,6 @@ void AMSJob::uhinit(integer run, integer eventno, time_t tt)
 throw (amsglobalerror){
   if(_NtupleActive)uhend();
   if(IOPA.hlun ){
-   
    strcpy(_ntuplefilename,(const char *)_hextname);
    AString mdir("mkdir -p ");
    mdir+=_ntuplefilename;
@@ -3352,25 +3347,36 @@ throw (amsglobalerror){
       }
       sprintf(event,"%d",run);
       strcat(_ntuplefilename,event);
-      sprintf(event,".%d",eventno);
+      sprintf(event,".%08d",eventno);
       strcat(_ntuplefilename,event);
       strcat(_ntuplefilename,".hbk");
      }
-    
+     else if(run){
+      char event[80];  
+      if(isProduction()){
+       system((const char*)mdir);
+       strcat(_ntuplefilename,"/");
+      }
+      sprintf(event,"%d",run);
+      strcat(_ntuplefilename,event);
+      strcat(_ntuplefilename,".hbk");
+     }
     cout <<"Trying to open histo file "<<_ntuplefilename<<endl;
     npq_(); 
-    HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
+     HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<_ntuplefilename<<endl;
      throw amsglobalerror("UnableToOpenHistoFile",3);
     }
     else cout <<"Histo file "<<_ntuplefilename<<" opened."<<endl;
 
-// Open the n-tuple
+// Open the n-tuple  //  never open the ntuple
+/*
     if(_pntuple)_pntuple->init();
     else{
         _pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
     }
+*/
     _NtupleActive=true;
 #ifdef __CORBA__
       AMSProducer::gethead()->sendNtupleStart(DPS::Producer::Ntuple,_ntuplefilename,run,eventno,tt);
@@ -3570,28 +3576,19 @@ void AMSJob::_dbendjob(){
 
 
 
-//=================================================================================================
   void AMSJob::_redaq2initjob(){
      AMSgObj::BookTimer.book("SIDAQ");
      AMSgObj::BookTimer.book("REDAQ");
      if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaq2initjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
     // Add subdetectors to daq
-    //
+
+if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal 
+
+//ecal
      
-// ecal
-//   if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==0){
-//    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildSigmaPed);
-//   }
-//   else if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==-1){
-//    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildPedDiff);
-//   }
-//   else{
-//    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSEcalRawEvent::buildrawRaw);
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
     DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,
                            &DAQECBlock::buildblock);//for MC ?
-//   }
-
 // rich
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
     DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
@@ -3613,8 +3610,8 @@ void AMSJob::_dbendjob(){
     DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
     &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
     }
-
-  }
+}
+  
 
 
 {
@@ -3635,202 +3632,35 @@ void AMSJob::_dbendjob(){
     DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,
     &TriggerLVL302::builddaq);
 
-}    
-///if(DAQCFFKEY.SCrateinDAQ){
-//         tof+anti+???
+}
+    
+//tof + anti 
+
     DAQEvent::addsubdetector(&DAQS2Block::checkblockid,&DAQS2Block::buildraw);
     DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,
                            &DAQS2Block::buildblock);
-//}    
-
-if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
- {
-
-  if( !isRealData()){
-// special tracker ped/sigma calc
-    if(TRCALIB.Method == 1)
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
-    else
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,
-&AMSTrIdCalib::buildSigmaPedA);
-  }
-  else{
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrIdCalib::buildSigmaPedB);
-if(TRMCFFKEY.GenerateConst){
-
-    //Tracker ped/sigma etc ( "Event" mode)
-
-      DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
-      DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
-      DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
-      DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
-      DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
 
 
-    }
-  }
-
- }
-}
-else {
-
-if(DAQCFFKEY.LCrateinDAQ){
+//tracker
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
 
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
-    &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+
+//trd
 
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
+
+
+
+}
+if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // calib 
+  
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib,6);
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::updtrdcalibJ,6);
 
 
-
-}  
-
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
-
-//           tracker H/K Static
-
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
-
-
-}
-}
-//==========================================================================================
-#ifdef __DB__
-
-integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, 
-                              integer &S, time_t &I, time_t &B, time_t &E)
-//
-//  (1) find TDV by name in tdvNameTab
-//  (2) find timeB =< timeV =< timeE
-//  for all TDV's which satisfies (2) choose one with the latest 
-//  insert time
-//
-// name   - object name
-// id     - object id
-// time   - object time
-// S      - object size
-// I,B,E  - insert, begin, end time the most satisfies to 'time'
-//
-// rstatus = -1  not found
-// rstatus =  1  found
-{
-  integer rstatus = -1;
-#ifdef __DB__
-  //geant t1, t2;
-  //TIMEX(t1);
-  for (int i=0; i<ntdvNames; i++) {
-    if(strcmp(name,tdvNameTab[i]) == 0) {
-     if(_ptr_start[i] > -1 && _ptr_end[i] > -1) {
-       integer  ptr = -1;
-       time_t   insert = 0;
-       for (int j=_ptr_start[i]; j<_ptr_end[i]; j++) {
-        if(_tdv[j]._id == id) {
-         if (timeV >= _tdv[j]._begin && timeV <= _tdv[j]._end) {
-           if (_ptr_end[i] - _ptr_start[i] - 1 != 0) {
-             if (insert == 0) {
-               insert = _tdv[j]._insert;
-               ptr    = j;
-             } else {
-               if (insert < _tdv[j]._insert) {
-                insert = _tdv[j]._insert;
-                ptr    = j;
-               }
-             }
-           } else {
-            ptr = j;
-           }
-         }
-        } // compare id's
-       }
-       if (ptr > -1) {
-        I = _tdv[ptr]._insert;
-        B = _tdv[ptr]._begin;
-        E = _tdv[ptr]._end;
-        S = _tdv[ptr]._size;
-#ifdef __AMSDEBUG__
-        //TIMEX(t2);
-        //cout <<t2-t1<<" sec."<<endl;
-        //cout <<"found TDV for "<<tdvNameTab[i]<<", size "<<S<<endl;
-        //cout <<"Time of Event "<<asctime(localtime(&timeV))<<endl;
-        //cout <<"i/b/e "<<asctime(localtime(&_tdv[ptr]._insert))
-        //<<"      "<<asctime(localtime(&_tdv[ptr]._begin))
-        //<<"      "<<asctime(localtime(&_tdv[ptr]._end))<<endl;
-#endif
-       rstatus = 1;
-       } else {
-         cerr <<"AMSJob::FindTheBestTDV -W- cannot find TDV for "<<name<<endl;
-         cerr <<"time "<<asctime(localtime(&timeV))<<endl;
-       }
-      break;
-     } else {
-       cout<<"AMSJob::FindTheBestTDV -W- no TDV for "<<name<<endl;
-       rstatus = -1;
-     }
-    }
-  }
-#endif
- return rstatus;
 }
 
-#endif
-
-#ifdef __DB__
-
-integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
-//
-// Fill TDV table by values read from database
-//
-{
-  integer rstatus = -1;
-
-  
-  if (nobj < 1) {
-    cerr <<"AMSJob::FillJobTDV -E- value out of range "<<nobj<<endl;
-    return rstatus;
-  }
-  _tdv = new tdv_time[nobj];
-  for (int i=0; i<nobj; i++) { _tdv[i] = tdv[i];}
- 
-  return 1;
-}
-#endif
-
-
-#ifdef __DB__
-
-integer AMSJob::SetTDVPtrs(integer start[], integer end[])
-//
-// Set start/end ptrs for TDV table 
-//
-{
-  for (int i=0; i<ntdvNames; i++) {
-   _ptr_start[i] = start[i];
-   _ptr_end[i]   = end[i];
-  }
- return 1;
-}
-integer AMSJob::FillTDVTable(){
-
-AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
-AMSTimeID * offspring=(AMSTimeID*)ptid->down();
-integer nobj = 0;
-while(offspring){
-  tdvNameTab[nobj] = offspring -> getname();
-  tdvIdTab[nobj]   = offspring -> getid();
-  nobj++;
-  offspring=(AMSTimeID*)offspring->next();
-}
-if (_ptr_start) delete [] _ptr_start;
-if (_ptr_end)   delete [] _ptr_end;
-_ptr_start = new integer[nobj];
-_ptr_end   = new integer[nobj];
-ntdvNames  = nobj;
-return nobj;
 }
 
-#endif
