@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.106 2008/02/15 13:23:21 choutko Exp $
+//  $Id: daqevt.C,v 1.107 2008/02/15 14:37:21 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -791,7 +791,7 @@ integer DAQEvent::read(){
      _convertl(l16[0]);
      _convertl(l16[1]);
      _Length=_cl(l16);
-
+unexpected:
     if(fbin.eof()){
       integer Run,Event;
       char * fnam=_getNextFile(Run, Event);
@@ -799,6 +799,7 @@ integer DAQEvent::read(){
 #ifdef __ALPHA__ 
  fbin.close();
 #else
+    fbin.close();
     fbin.clear();       
     if(fbin.is_open())fbin.close();
 #endif
@@ -837,9 +838,14 @@ integer DAQEvent::read(){
        _Length=0;
       }
      }
-     else break;
+     else {
+     cerr<<"DAQEvent::read-E-UnexpectedEndofFile "<<endl;
+     goto unexpected;  
     }
-    else break;  
+    }
+    else {
+     break;
+   }
   }while(_EventOK()==0 || (_HeaderOK()==0 ));
    return fbin.good() && !fbin.eof();
 }
