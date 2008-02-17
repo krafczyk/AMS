@@ -2383,6 +2383,56 @@ class RemoteClient:
 
                                     
                                 
+    def DeleteDataSet(self,run2p,dataset,u,v):
+        self.update=u
+        self.verbose=v
+        self.run2p=run2p
+        rund=""
+        runn=""
+        if(run2p!=0):
+            rund=" and dataruns.run=%d " %(run2p)
+            runn=" and ntuples.run=%d " %(run2p)
+            sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
+        files=self.sqlserver.Query(sql)
+        if(len(files)>0):
+            sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid and dataruns.status='Completed' %s  " %(dataset,rund)
+            self.sqlserver.Update(sql)
+            sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%' and dataruns.status='Completed' %s )" %(dataset,rund)
+            self.sqlserver.Update(sql)
+            sql="delete from   (select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid and dataruns.status='Completed' %s )" %(dataset,rund) 
+            self.sqlserver.Update(sql)
+            sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn)
+            self.sqlserver.Update(sql)
+            if(self.update):
+                for file in files:
+                    cmd="rm "+file[0]
+                    i=os.system(cmd)
+                    if(i):
+                        print " Command Failed ",cmd
+                        self.sqlserver.Commit(0)
+                        return
+                    else:
+                        if(self.verbose):
+                            print "deleted ",file[0]
+                    if(file[1]>0):
+                        castorPrefix='/castor/cern.ch/ams'
+                        delimiter='Data'
+                        junk=ntuple[0].split(delimiter)
+                        if len(junk)>=2:
+                            castorfile=castorPrefix+junk[1]
+                            castordel="/usr/bin/rfrm "+castorfile
+                            i=os.system(castordel)
+                            if(i):
+                                print " CastorCommand Failed ",castordel
+                                
+                
+                self.sqlserver.Commit(1)
+
+            else:
+                self.sqlserver.Commit(0)
+               
+
+
             
     def TransferDataFiles(self,run2p,i,v,u,h,source,c):
         if(os.environ.has_key('RunsDir')):
