@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.123 2008/02/13 23:16:02 ams Exp $
+# $Id: Monitor.pm,v 1.124 2008/02/18 21:01:48 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -652,11 +652,13 @@ sub getdbok{
     push @text, int $fsf{$string};           
     push @text, int $fsf{$string}/($fst{$string}+2)*100; 
      
-    if($text[1]<0 or $text[2]<0 or $text[2]<20000){
-      push @text ,1;
-  }elsif($text[2]<5000){
+  if($text[2]<5000 and $text[2]>=0 and $text[3]<10){
       push @text ,2;
-  }else{
+  }  
+elsif($text[1]<0 or $text[2]<0 or $text[2]<20000){
+      push @text ,1;
+  }
+else{
       push @text ,0;
   }
     push @output, [@text];
@@ -2811,7 +2813,7 @@ sub FinishFailedRuns{
          }
      }
     }
-         if($rdst{Run}>(1<<26)){
+         if($rdst{uid}>(1<<26)){
           $rdst{Status}="Foreign";
           }
      }
