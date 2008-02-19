@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.499 2008/02/15 19:18:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.500 2008/02/19 16:26:58 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12915,11 +12915,11 @@ sub insertNtuple {
     print "------------- $ret->[0][1] \n";
 #   $self->{sqlserver}->Update($sql);
   }
-  my $sizemb = $ntsize; # since May 7.03 size in bytes
-  if ($ntsize > 2000) {
-    $ntsize = $ntsize/1024/1024;
+  my $sizemb = $ntsize; # since 01.08 size in mbytes
+#  if ($ntsize > 4000) {
+#    $ntsize = $ntsize;
     $sizemb = sprintf("%.f",$ntsize);
-  }
+#  }
 #
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',

@@ -729,7 +729,7 @@ class RemoteClient:
         print l1
         output.write(l0)
         output.write(l1)
-        totalgb=self.gbDST/1024./1024./1024.
+        totalgb=self.gbDST/1024.
         chgb="Total GB %3.1f " %(totalgb)
         print chgb
         hours   = float(timenow - self.valStTime)/60./60.
@@ -1616,7 +1616,7 @@ class RemoteClient:
         if(len(ret)>0):
             sql="DELETE ntuples WHERE jid=%d AND path like  '%%%s%%'" %(jid,filename)
             print sql,ret[0][1]
-        ntsize=float(size)/1024/1024
+        ntsize=float(size)
         sizemb="%.f" %(ntsize)
         sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
         self.sqlserver.Update(sql)
@@ -2415,11 +2415,11 @@ class RemoteClient:
                         if(self.verbose):
                             print "deleted ",file[0]
                     if(file[1]>0):
-                        castorPrefix='/castor/cern.ch/ams'
+                        castorPrefix='/castor/cern.ch/ams/'
                         delimiter='Data'
-                        junk=ntuple[0].split(delimiter)
+                        junk=file[0].split(delimiter)
                         if len(junk)>=2:
-                            castorfile=castorPrefix+junk[1]
+                            castorfile=castorPrefix+delimiter+junk[1]
                             castordel="/usr/bin/rfrm "+castorfile
                             i=os.system(castordel)
                             if(i):
