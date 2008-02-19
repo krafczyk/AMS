@@ -2468,10 +2468,14 @@ class RemoteClient:
         self.BadRuns=[0]
         delay=86400
         joudir=source+"/jou";
+        filesfound=0
+        timenotify=0
         while 1:
-            notify=0
+            notify=1
             for filej in os.listdir(joudir):
                 pfilej=os.path.join(joudir,filej)
+                if(filej.find(".jou.0")>=0):
+                    notify=0
                 if(filej.find(".jou.")>=0):
                     continue
                 if(filej.find(".jou")<0):
@@ -2583,7 +2587,8 @@ class RemoteClient:
                         os.system(cmd)
                         cmd="mv "+pfilej+" "+pfilej+".1"
                         os.system(cmd)
-                        notify=notify+1
+                        notify=0
+                        filesfound=filesfound+1
                     else:
                         if(outputpath!=None):
                             cmd="rm -rf "+outputpath
@@ -2592,10 +2597,10 @@ class RemoteClient:
                 break;
             else:
                 time.sleep(60)
-                if(notify):
-                    message="%d New DataRuns Transferred " %(notify)
+                if(notify>0 and filesfound>0):
+                    message="%d New DataRuns Transferred " %(filesfound)
                     self.NotifyResp(message)
-                    notify=0
+                    filesfound=0
 #                    suc=self.dbserver.CreateRun(run,fevent,levent,tfevent,tlevent,0,1,outputpath)
 #                    if(suc==1):
 #                        self.sqlserver.Commit(1)
