@@ -2383,16 +2383,17 @@ class RemoteClient:
 
                                     
                                 
-    def DeleteDataSet(self,run2p,dataset,u,v):
+    def DeleteDataSet(self,run2p,dataset,u,v,f):
         self.update=u
         self.verbose=v
         self.run2p=run2p
+        self.force=f
         rund=""
         runn=""
         if(run2p!=0):
             rund=" and dataruns.run=%d " %(run2p)
             runn=" and ntuples.run=%d " %(run2p)
-            sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
+        sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
         files=self.sqlserver.Query(sql)
         if(len(files)>0):
             sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid and dataruns.status='Completed' %s  " %(dataset,rund)
@@ -2407,7 +2408,7 @@ class RemoteClient:
                 for file in files:
                     cmd="rm "+file[0]
                     i=os.system(cmd)
-                    if(i):
+                    if(i and self.force==0):
                         print " Command Failed ",cmd
                         self.sqlserver.Commit(0)
                         return
