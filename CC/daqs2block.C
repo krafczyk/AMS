@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.23 2008/02/13 14:06:53 choumilo Exp $
+//  $Id: daqs2block.C,v 1.24 2008/02/20 14:22:51 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -92,6 +92,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   integer static TotPedBlks(0);
   integer static PedBlkCrat[SCCRAT]={0,0,0,0};
   bool PedBlkOK(false);
+  static integer firstevs(0);
 // for classic ped-run events or for DownScaled events
   bool TofPedCal(false);//Separate TofPedCal-job(ev-by-ev) using RawFMT(class/DownScaled mode)  
   bool AccPedCal(false);//Separate AccPedCal-job(ev-by-ev) using RawFMT(only fmt for AccQ)(class/DownScaled mode)  
@@ -203,8 +204,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)TofPedCal=true;//TofPedCal-job(Class/DownScaled) requested
   if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)AccPedCal=true;//AccPedCal-job(Class/DownSc) requested 
 //  if((TofPedCal && (formt>0 || !DownScal)) || (AccPedCal && formt==3)){
-  if((TofPedCal && (!DownScal)) || (AccPedCal && formt==3)){//tempor
-    cout<<"DAQS2Block::buildraw-W-Not ClassicPedCalibData when classic PedCal job is requested !!!"<<endl;
+  if((TofPedCal && formt>0) || (AccPedCal && formt>1)){//tempor
+    if(firstevs==0)cout<<"<====== DAQS2Block::buildraw: Unproper format when class/ondata PedCal-job is requested !!!"<<endl;
+    firstevs=1;
     return;
   }
 //

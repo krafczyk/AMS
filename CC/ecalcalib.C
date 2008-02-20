@@ -2730,6 +2730,8 @@ void ECREUNcalib::mfite(){
    uinteger runn=BRun();//1st event run# 
    time_t end,insert;
    char DataDate[30],WrtDate[30];
+   int totchs(0),goodchs(0);
+   geant goodchp(0);
 //   strcpy(DataDate,asctime(localtime(&begin)));
    strcpy(DataDate,asctime(localtime(&begin)));
    time(&insert);
@@ -2746,6 +2748,7 @@ void ECREUNcalib::mfite(){
          gnm=2;
 	 if(pix==4)gnm=1;//only hi-gain for dynodes
          for(gn=0;gn<gnm;gn++){
+	   totchs+=1;
 	   if(nevt[ch][pix][gn]>=ECPCEVMN){//statistics ok
 	     evs2rem=floor(ECCAFFKEY.pedcpr*nevt[ch][pix][gn]+0.5);
 	     if(evs2rem>nstacksz)evs2rem=nstacksz;
@@ -2763,6 +2766,7 @@ void ECREUNcalib::mfite(){
 	       peds[ch][pix][gn]=geant(adc[ch][pix][gn]);
 	       sigs[ch][pix][gn]=geant(sqrt(adc2[ch][pix][gn]));
 	       stas[ch][pix][gn]=0;//ok
+	       goodchs+=1;
 //update ped-object in memory:
 	       if(pix<4){//anodes
 	         pdiff=peds[ch][pix][gn]-ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
@@ -2804,10 +2808,11 @@ void ECREUNcalib::mfite(){
        }//--->endof pixel-loop
      }//--->endof pmt-loop
    }//--->endof Slayer-loop
-   cout<<"       MinAcceptableStatistics/channel was:"<<statmin<<endl; 
+   goodchp=geant(goodchs)/totchs;
+   cout<<"       MinAcceptableStatistics/channel was:"<<statmin<<" GoodChcPort="<<goodchp<<endl; 
 //   
 // ---> prepare update of DB :
-   if(flg==1){
+   if(flg==1 && goodchp>=0.5){
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
      ptdv->UpdateMe()=1;
@@ -2815,6 +2820,9 @@ void ECREUNcalib::mfite(){
      time(&insert);
      end=begin+86400*30;
      ptdv->SetTime(insert,begin,end);
+   }
+   else{
+     if(flg==1 && goodchp<0.5)cout<<" <-- GoogChsPortion is too small - block writing to DB !"<<endl;
    }
 // ---> write RD default-peds file:
    if(flg==1 || flg==2){
@@ -2957,7 +2965,8 @@ void ECREUNcalib::mfite(){
  void ECPedCalib::outptb(int flg){
 // flg=0/1/2=>No/write2DB+file/write2file
    int i,j;
-   int totch(0),goodtbch(0),goodch(0);
+   int totchs(0),goodtbch(0),goodchs(0);
+   geant goodchp(0);
    geant pedo,sigo;
    int stao;
    geant pdiff;
@@ -3008,7 +3017,7 @@ void ECREUNcalib::mfite(){
          gnm=2;
 	 if(pix==4)gnm=1;//only hi-gain for dynodes
          for(gn=0;gn<gnm;gn++){//<--- gain loop
-	   totch+=1;
+	   totchs+=1;
 	   if(pix<4){//anode
 	     pedo=ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
 	     sigo=ECPMPeds::pmpeds[sl][pm].sig(pix,gn);
@@ -3025,7 +3034,7 @@ void ECREUNcalib::mfite(){
 	     goodtbch+=1;
 	     if(sigs[ch][pix][gn]>0 && sigs[ch][pix][gn]<=ECPCSIMX
 		          && peds[ch][pix][gn]<200 && fabs(pdiff)<11){//MyCriteria:chan.OK
-	       goodch+=1;
+	       goodchs+=1;
 	       if(pix<4){//anodes
 	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];
 	         ECPMPeds::pmpeds[sl][pm].sig(pix,gn)=sigs[ch][pix][gn];
@@ -3063,11 +3072,12 @@ void ECREUNcalib::mfite(){
        }//--->endof pixel-loop
      }//--->endof pmt-loop
    }//--->endof Slayer-loop
+   goodchp=geant(goodchs)/totchs;
 //
-   cout<<"       BadChannels(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<endl;  
+   cout<<"       BadChannels(Table/My)="<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
 //   
 // ---> prepare update of DB :
-   if(goodch==goodtbch && flg==1){//Update DB "on flight"
+   if(goodchp>=0.5 && flg==1){//Update DB "on flight"
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
      ptdv->UpdateMe()=1;
@@ -3086,6 +3096,9 @@ void ECREUNcalib::mfite(){
          offspring=(AMSTimeID*)offspring->next();//get one-by-one
        }
      }
+   }
+   else{
+     if(flg==1 && goodchp<0.5)cout<<" <-- GoodChsPortion is too small - block writing to DB !"<<endl;
    }
 // ---> write OnBoardPedTable to ped-file:
    if(flg==1 || flg==2){

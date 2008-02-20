@@ -147,37 +147,37 @@
     but the color for new ones will be changed (repetition
     period is 5) with each new fill.
     
-    "DataLengthTimeScanPlot-Button:"
-                      plots time evolution of file data
-    length. It should be fixed for each subdetector. If
-    some data length is wrong - point will be in red and
-    corresponding file will be AUTOMATICALLY removed from 
-    the list for DB-update.
+    "NonEmpty/GoogStat-channels(%)-Button:"
+                      plots time evolution of the portion(%)
+    of NonEmpty/GoodStatus-channels in ped_table file
+    (separately for anodes and dynodes). If these numbers 
+    are too low - you can mark this file add remove it 
+    by "Mark above file as bad"-button (to prevent 
+    it from writing to DB on Exit-stage).
     
     "PedRmsTimeScanPlot-Button:"
                       plots time-evolution of Ped_Rms for
-    Anode and Dynode(shifted up by 10). Each point
-    pepresents AVERAGE of all Anodes(Dynodes) channels Rms
-    for given ped_table file. Also plotted is minimal
-    channel's Rms (as bottom end of vertical line) and
-    maximum channel's Rms (as top end of this line). Wnen
-    you click any point, the corresponding ped_table file
-    name is shown in yellow intry-window below. Using 
-    special "Mark above file as bad"-button below you can 
-    mark this file as bad, i.e. it will not be writted to DB.
+    particular channel LBBSP(BBS). Its value is shown in 
+    yellow entry-window below (default value can be changed).
+    Again you can click on any bad point to mark this file
+    (its name appears in the lowest yellow entry window).
+    Using the special "Mark above file as bad"-button below 
+    you can mark this file as bad, i.e. it will not be 
+    written to DB. You can also see its log-file using "View
+    above file JobLog"-button.
     
     "PedTimeScanPlot-Button:"
                       plots time evolution of ped and rms
-    (2*rms is the height of the "point" and "middle of the
+    (+-5*rms is the height of the "point" and "middle of the
     point" position corresponds to the value of pedestal)
     for ONE particular channel (fill-in it in advance 
     according to the prompt, but do not remove the prompt 
     itself, or remove it completely !!!). If you see some 
     suspicious point (ped value and/or rms) click it and 
     the correcponding ped_table file name will appear in 
-    the yellow entry area. Now you can see all-channels 
+    the yellow entry area. Now you can look at all-channels 
     peds/rms values for this file if you click the next 
-    button (see below).
+    button (see below). Or you can mark this file as bad.
     
     "OneFilePedsPlot-Button:"
                      plots all-channels peds for file name

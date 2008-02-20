@@ -898,6 +898,8 @@ void ANTPedCalib::outp(int flg){// very preliminary
    uinteger runn=BRun();//1st event run# 
    time_t end,insert;
    char DataDate[30],WrtDate[30];
+   int totchs(0),goodchs(0);
+   geant goodchp(0);
    strcpy(DataDate,asctime(localtime(&begin)));
    time(&insert);
    strcpy(WrtDate,asctime(localtime(&insert)));
@@ -914,6 +916,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
    cout<<"=====> ANTPedCalib-Report:"<<endl<<endl;
    for(sr=0;sr<ANTI2C::MAXANTI;sr++){
      for(sd=0;sd<2;sd++){
+       totchs+=1;
        if(nevt[sr][sd]>=ATPCEVMN){//statistics ok
 	 evs2rem=integer(floor(por2rem*nevt[sr][sd]+0.5));
 	 if(evs2rem>nstacksz)evs2rem=nstacksz;
@@ -930,6 +933,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 	   peds[sr][sd]=geant(adc[sr][sd]);
 	   sigs[sr][sd]=geant(sqrt(adc2[sr][sd]));
 	   stas[sr][sd]=0;//ok
+	   goodchs+=1;
 //update ped-object in memory:
 	   pdiff=peds[sr][sd]-ANTIPeds::anscped[sr].apeda(sd);
 	   ANTIPeds::anscped[sr].apeda(sd)=peds[sr][sd];
@@ -952,10 +956,11 @@ void ANTPedCalib::outp(int flg){// very preliminary
        }
      }//--->endof side-loop
    }//--->endof sector-loop
-   cout<<"      MinAcceptableStatistics/channel was:"<<statmin<<endl; 
+   goodchp=geant(goodchs)/totchs;
+   cout<<"      MinAcceptableStatistics/channel was:"<<statmin<<"  GoodChsPort="<<goodchp<<endl; 
 //   
 // ---> prepare update of DB :
-   if(flg==1){
+   if(flg==1 && goodchp>=0.5){
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Antipeds",AMSJob::gethead()->isRealData()));
      ptdv->UpdateMe()=1;
@@ -963,6 +968,9 @@ void ANTPedCalib::outp(int flg){// very preliminary
      time(&insert);
      end=begin+86400*30;
      ptdv->SetTime(insert,begin,end);
+   }
+   else{
+     if(flg==1 && goodchp<0.5)cout<<" <-- Too small GoodChsPortion - block automatic writing to DB !"<<endl;
    }
 // ---> write MC/RD ped-file:
    if(flg==1 || flg==2){

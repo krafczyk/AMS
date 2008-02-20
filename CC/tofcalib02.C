@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.24 2008/02/13 14:06:53 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.25 2008/02/20 14:22:54 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4198,7 +4198,7 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
     id=1792+i;
     HBOOK1(id,htit1,50,1.,51.,0.);
     HMINIM(id,0.);
-    HMAXIM(id,5.);
+    HMAXIM(id,10.);
   }
   for(i=0;i<2;i++){
     for(j=0;j<TOF2GC::PMTSMX;j++){
@@ -4223,10 +4223,10 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
       id=1800+3*i+j;
       HBOOK1(id,htit1,50,1.,51.,0.);
       HMINIM(id,0.);
-      HMAXIM(id,5.);
+      HMAXIM(id,10.);
     }
   }
-  HBOOK1(1806,"Anode peds for LBBS=4041",100,50.,150.,0.);
+  HBOOK1(1806,"Anode peds for LBBS=2011",100,50.,150.,0.);
   HBOOK1(1807,"Dynode-2 peds for LBBS=4041",100,50.,150.,0.);
   HBOOK1(1808,"All Anode-channels PedRms",50,0.,25.,0.);
   HBOOK1(1809,"All Anode-channels PedDiff",50,-10.,10.,0.);
@@ -4410,7 +4410,7 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
        }
      }
    }//-->endof "in limits" check
-   if(il==3 && ib==3 && is==0 && accept){
+   if(il==1 && ib==0 && is==0 && accept){
      if(pm==0)HF1(1806,val,1.);
      if(pm==1)HF1(1807,val,1.);
    } 
@@ -4440,6 +4440,8 @@ void TOFPedCalib::outp(int flg){// very preliminary
    strcpy(WrtDate,asctime(localtime(&insert)));
 //
    integer evs2rem;
+   integer totchs(0),goodchs(0);
+   geant goodchp(0);
    if(TFREFFKEY.relogic[0]==5)por2rem=TFCAFFKEY.pedcpr[0];//ClassPed(random)
    else if(TFREFFKEY.relogic[0]==6)por2rem=TFCAFFKEY.pedcpr[1];//DownScaled(in trigger)
    pedmin=TFCAFFKEY.pedlim[0];
@@ -4455,6 +4457,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
          ch=il*TOF2GC::SCMXBR*2+ib*2+is;//seq. channels numbering
 //
          for(pm=0;pm<TOF2DBc::npmtps(il,ib)+1;pm++){//<--- pm-loop(0/1-3 => an/dyn1-3)
+	   totchs+=1;
 	   if(nevt[ch][pm]>=TFPCEVMN){//statistics ok
              if(pm==0)p2r=por2rem;//an
 	     else p2r=por2rem/5;//tempor: reduced for dyn, more clever - later
@@ -4474,6 +4477,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
 	       peds[ch][pm]=geant(adc[ch][pm]);
 	       sigs[ch][pm]=geant(sqrt(adc2[ch][pm]));
 	       stas[ch][pm]=0;//ok
+	       goodchs+=1;
 //update ped-object in memory:
 	       if(pm==0){//anodes
 	         pdiff=peds[ch][pm]-TOFBPeds::scbrped[il][ib].apeda(is);
@@ -4513,14 +4517,11 @@ void TOFPedCalib::outp(int flg){// very preliminary
       }//--->endof side-loop
     }//--->endof paddle-loop
   }//--->endof layer-loop
-   cout<<"TOFPedCalib: MinAcceptableStatistics/channel was:"<<statmin<<endl; 
+  goodchp=geant(goodchs)/totchs;
+   cout<<"TOFPedCalib: MinAcceptableStatistics/channel was:"<<statmin<<" GoodChsPport="<<goodchp<<endl; 
 //   
 // ---> prepare update of DB :
-   if(statmin==9999){
-     cout<<"<---- TOFPedCalib: No channels with good statistics - abort writing of outp file !!!"<<endl;
-     goto IgnoreWrite;
-   }
-   if(flg==1){
+   if(flg==1 && goodchp>=0.5){
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofpeds",AMSJob::gethead()->isRealData()));
      ptdv->UpdateMe()=1;
@@ -4528,6 +4529,11 @@ void TOFPedCalib::outp(int flg){// very preliminary
      time(&insert);
      end=begin+86400*30;
      ptdv->SetTime(insert,begin,end);
+   }
+   else{
+     if(flg==1 && goodchp<0.5){
+       cout<<"<---- TOFPedCalib: Not enough good channels - abort automatic writing to DB !!!"<<endl;
+     }
    }
 // ---> write MC/RD ped-file:
    if(flg==1 || flg==2){
@@ -4618,7 +4624,6 @@ void TOFPedCalib::outp(int flg){// very preliminary
 //
    }//--->endof file writing 
 //
-IgnoreWrite:
    for(i=0;i<22;i++)HPRINT(1790+i);
    cout<<endl;
    cout<<"====================== TOFPedCalib: job is completed ! ======================"<<endl;
@@ -4630,7 +4635,7 @@ IgnoreWrite:
 void TOFPedCalib::outptb(int flg){// very preliminary
 // flg=0/1/2=>No/write2DB+file/write2file
    int i,il,ib,is,pm,ch;
-   int totch(0),goodtbch(0),goodch(0);
+   int totchs(0),goodtbch(0),goodchs(0);
    geant pedo,sigo;
    geant pedmin,pedmax,sigmin,sigmax;
    int stao;
@@ -4639,6 +4644,7 @@ void TOFPedCalib::outptb(int flg){// very preliminary
    uinteger runn=BRun();//1st event run# 
    time_t end,insert;
    char DataDate[30],WrtDate[30];
+   geant goodchp(0);
    strcpy(DataDate,asctime(localtime(&begin)));
    time(&insert);
    strcpy(WrtDate,asctime(localtime(&insert)));
@@ -4683,7 +4689,7 @@ void TOFPedCalib::outptb(int flg){// very preliminary
          ch=il*TOF2GC::SCMXBR*2+ib*2+is;//seq. channels numbering
 //
          for(pm=0;pm<TOF2DBc::npmtps(il,ib)+1;pm++){//<--- pm-loop(0/1-3 => an/dyn1-3)
-	   totch+=1;
+	   totchs+=1;
 	   if(pm==0){
 	     pedo=TOFBPeds::scbrped[il][ib].apeda(is);
 	     sigo=TOFBPeds::scbrped[il][ib].asiga(is);
@@ -4700,7 +4706,7 @@ void TOFPedCalib::outptb(int flg){// very preliminary
 	     goodtbch+=1;
 	     if(sigs[ch][pm]>sigmin && sigs[ch][pm]<=sigmax &&
 		peds[ch][pm]>pedmin && peds[ch][pm]<=pedmax && fabs(pdiff)<11){//MyCriteria:chan.OK
-	       goodch+=1;
+	       goodchs+=1;
 	       if(pm==0){//anodes
 	         TOFBPeds::scbrped[il][ib].apeda(is)=peds[ch][pm];
 	         TOFBPeds::scbrped[il][ib].asiga(is)=sigs[ch][pm];
@@ -4734,10 +4740,11 @@ void TOFPedCalib::outptb(int flg){// very preliminary
       }//--->endof side-loop
     }//--->endof paddle-loop
   }//--->endof layer-loop
+  goodchp=geant(goodchs)/totchs;
 // 
-  cout<<"       BadChannels(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<endl;  
+  cout<<"       BadChs(Table/My)="<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
 // ---> prepare update of DB :
-   if(goodch==goodtbch && flg==1){//Update DB "on flight"
+   if(goodchp>=0.5 && flg==1){//Update DB "on flight"
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofpeds",AMSJob::gethead()->isRealData()));
      ptdv->UpdateMe()=1;
@@ -4756,6 +4763,9 @@ void TOFPedCalib::outptb(int flg){// very preliminary
          offspring=(AMSTimeID*)offspring->next();//get one-by-one
        }
      }
+   }
+   else{
+     if(flg==1 && goodchp<0.5)cout<<" <-- Too small GoodChsPortion - block automatic writing to DB !"<<endl;
    }
 // ---> write OnBoardPedTable to ped-file:
    if(flg==1 || flg==2){
