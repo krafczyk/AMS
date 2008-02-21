@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.266 2008/02/15 13:23:28 choutko Exp $
+#  $Id: datacards.doc,v 1.267 2008/02/21 13:25:09 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -494,7 +494,7 @@ TKGEOM   // Read/Write tracker geom control
 I 1 ReadGeomFromFile(1)             
 I 2 WriteGeomToFile(0)
 I 3 UpdateGeomFile(0)
-
+I 4 gfile[40](" ")                    // geometry file
 
 ESTATUS // Select events with corresponding properties ,all statuses combined by AND, all bits inside statuses combined by OR, 0 means select everything  (see status.doc for details)
 I 1  status[32](32*0)    // 

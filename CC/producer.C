@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.107 2008/02/14 10:38:13 choutko Exp $
+//  $Id: producer.C,v 1.108 2008/02/21 13:25:06 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -15,7 +15,7 @@
 #include <sys/file.h>
 AMSProducer * AMSProducer::_Head=0;
 AString * AMSProducer::_dc=0; 
-AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false){
+AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false),_FreeSpace(-1){
 DPS::Producer_var pnill=DPS::Producer::_nil();
 _plist.push_back(pnill);
 if(_Head){
@@ -579,6 +579,7 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
      ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
      ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
+    _FreeSpace=ntend->FreeSpace;
     AString b="";
     for(int k=0;k<bstart;k++)b+=a[k];
     b+=destdir;
@@ -876,6 +877,7 @@ ntend->size=0;
      ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
      ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
+    _FreeSpace=ntend->FreeSpace;
 cout <<" sendntuplestart start "<<name<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 
 
@@ -1006,6 +1008,7 @@ ntend->size=statbuf.st_size/1024./1024.+0.5;
      ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
      ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
     }
+    _FreeSpace=ntend->FreeSpace;
 
 //cout <<" sendntupleupdate start "<<a(bstart)<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 

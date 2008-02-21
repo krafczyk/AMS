@@ -1623,7 +1623,8 @@ bool AMSEventR::ReadHeader(int entry){
       fService.TotalTrig+=Event()-evento;
      }
      else{
-      if(Event()-evento>2)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
+      static int ntotm=0;
+      if(Event()-evento>2 && ntotm++<50)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
       fService.TotalTrig++;
      }
     }
@@ -2568,7 +2569,7 @@ TrRecHitR::TrRecHitR(AMSTrRecHit *ptr){
   fTrClusterX = -1;
   fTrClusterY = -1;
   Status= ptr->_status;
-  Layer = ptr->_Layer;
+  Id = ptr->_Id.cmptr();
   for (int i=0; i<3; i++) Hit[i]  = ptr->_Hit[i];
   for (int i=0; i<3; i++) EHit[i] = ptr->_EHit[i];
   Sum     = ptr->_Sum;

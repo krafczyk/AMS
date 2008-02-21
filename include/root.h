@@ -719,7 +719,7 @@ static char _Info[255];
 public:
   unsigned int   Status;   ///< statusword \sa TrClusterR Status
   ///
-  int   Layer;             ///<Layer no 1-6 up-down
+  int  Id;             ///<ssddhl ss sensor(1:xx) dd ladder(1:15) h half(0:1) l layer(1u:8d)
   float Hit[3];            ///< cluster coordinates
   float EHit[3];           ///< error to above
   float Sum;               ///< Amplitude (x+y)
@@ -740,16 +740,16 @@ public:
   /// \param  xy = 'x' for x projection, any other for y projection
   /// \return pointer to TrClusterR TrClusterR object in TrClusterR collection or 0
   TrClusterR * pTrCluster(char xy);
-  /// \param number index in container
-  /// \return human readable info about TrRecHitR
-  char * Info(int number=-1){
-   TrClusterR *x=pTrCluster('x');
-   TrClusterR *y=pTrCluster('y');
-    int lay=-1;
-    int lad=-1;
-    int half=-1;
-    int stripx=-1;
-    int stripy=-1;
+  ///
+ ///  \return layer(1....),ladder(1...), stripx(0...) stripy (0...)
+ void Geom(int &lay, int &lad, int &half, int &stripx, int &stripy){
+    TrClusterR  *x=pTrCluster('x');
+    TrClusterR *y=pTrCluster('y');
+     lay=-1;
+     lad=-1;
+     half=-1;
+     stripx=-1;
+     stripy=-1;
    if(x)stripx=x->StripM;
    if(y){
     int id=y->Idsoft;
@@ -758,7 +758,35 @@ public:
     half=(id/1000)%10-2;
     stripy=y->StripM;
    }
-   sprintf(_Info,"TrRecHit no %d Layer %d Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x,llhss=%d %d %d %d %d)",number,Layer,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status,lay,lad,half,stripx,stripy);
+}
+
+   ///
+  /// \return layer
+      int lay()const{return Id%10;}
+  /// \return ladder
+      int lad()const{return (Id/100)%100;}
+  /// \return half
+      int half()const{return (Id/10)%10;}
+  /// \return sensor
+      int sen()const{return (Id/10000)%100;}
+  /// 
+ ///  \return stripx
+ int  stripx(){
+    TrClusterR  *x=pTrCluster('x');
+   if(x)return x->StripM;
+   else return -1;
+}
+  ///
+ ///  \return stripy
+ int  stripy(){
+    TrClusterR *y=pTrCluster('y');
+   if(y)return y->StripM;
+   else return -1;
+}
+   ///
+  /// \return human readable info about TrRecHitR
+  char * Info(int number=-1){
+   sprintf(_Info,"TrRecHit no %d Id %d Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x,llhsss=%d %d %d %d %d %d)",number,Id,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status,lay(),lad(),half(),sen(),stripx(),stripy());
      return _Info;
 }
 
@@ -767,7 +795,7 @@ public:
   friend class AMSTrRecHit;
   friend class AMSEventR;
   virtual ~TrRecHitR(){};
-ClassDef(TrRecHitR,2)       //TrRecHitR
+ClassDef(TrRecHitR,3)       //TrRecHitR
 };
 
 

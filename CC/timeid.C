@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.87 2007/11/20 17:06:22 choutko Exp $
+//  $Id: timeid.C,v 1.88 2008/02/21 13:25:06 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -236,7 +236,25 @@ if(_Type!=Client){
     buf+=getname();
     system((char *)buf);     
 // now put the record intodb
-      updatemap(dir);       
+
+uinteger *ibe[5];
+for(int i=0;i<5;i++){
+ ibe[i]=new uinteger[_DataBaseSize+1];
+}
+ for(int j=0;j<_DataBaseSize;j++){
+    ibe[0][j]=_pDataBaseEntries[0][j];
+    ibe[1][j]=_pDataBaseEntries[1][j];
+    ibe[2][j]=_pDataBaseEntries[2][j];
+    ibe[3][j]=_pDataBaseEntries[3][j];
+  }
+    ibe[0][_DataBaseSize]=_Insert;
+    ibe[1][_DataBaseSize]=_Insert;
+    ibe[2][_DataBaseSize]=_Begin;
+    ibe[3][_DataBaseSize]=_End;
+    fillDB(_DataBaseSize+1,ibe);
+
+      
+      updatemap(dir,true);       
       return fbin.good();
     }
      else{
@@ -855,7 +873,6 @@ void AMSTimeID::checkupdate(const char * tdvc){
         }
 }
 
-#ifdef __CORBA__
 void AMSTimeID::fillDB (int length, uinteger *ibe[5]){
 if(length==0)return;
 _DataBaseSize=length;
@@ -889,7 +906,6 @@ for(int  i=0;i<5;i++){
 
 
 
-#endif
 
 
 AMSTimeID::IBE & AMSTimeID::findsubtable(time_t begin, time_t end){
@@ -922,28 +938,28 @@ return _ibe;
 
 
 
-bool AMSTimeID::updatemap(const char *dir){
-
+bool AMSTimeID::updatemap(const char *dir,bool slp){
+   if(slp)sleep(1);
+    
     AString fmap(dir);
     fmap+=".";
     fmap+=getname();
     fmap+=getid()==0?".0.map":".1.map";
     fstream fbin;
-      fbin.open(fmap,ios::out|ios::trunc);
+    unlink(fmap);
+      fbin.open(fmap,ios::out);
       if(fbin){
-#ifdef __AMSDEBUG__
-        cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<endl; 
-#endif
+        cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<" "<<_DataBaseSize<<endl; 
         fbin<<_DataBaseSize<<endl;
         for(int i=0;i<5;i++){
           for(int k=0;k<_DataBaseSize;k++){
             fbin<<_pDataBaseEntries[i][k]<<endl;
           }
         }
+        fbin.close();
         char cmd[255];
         sprintf(cmd,"chmod g+w %s",(const char*)fmap);
         system(cmd);
-        fbin.close();
         return true;
       }
       return false;

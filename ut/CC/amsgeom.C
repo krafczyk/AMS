@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.192 2008/02/15 19:17:58 choutko Exp $
+//  $Id: amsgeom.C,v 1.193 2008/02/21 13:25:03 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1914,11 +1914,12 @@ ostrstream ost(name,sizeof(name));
          coo[0]=(2*k-1)*(TKDBc::ssize_inactive(i,0)*TKDBc::nsen(i+1,j+1)/2+
          TKDBc::halfldist(i)-par[0]);
          if(pairx==0){
-           coo[0]+=-(2*k-1)*TKDBc::halfldist(i);
+           //coo[0]+=-(2*k-1)*TKDBc::halfldist(i);
            //cout <<"  Coo[0] was changed "<<" "<<i<<" "<<coo[0]<<endl;         
          }
          coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
          (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
+          //coo[1]+=(2*k-1)*0.008;
          coo[2]=TKDBc::zpos(i);
          VZERO(nrm,9*sizeof(nrm[0][0])/4);
          if(k==0){

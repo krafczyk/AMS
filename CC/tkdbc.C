@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.55 2008/02/15 19:18:00 choutko Exp $
+//  $Id: tkdbc.C,v 1.56 2008/02/21 13:25:07 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1966,12 +1966,22 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    const number halfldist[_nlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
 //   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
-   const number  xposl[_nlay]={0,0,0,0,0,0,0};
+   const number  xposl[_nlay]={0,0,0,0,0,0,0,0};
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
-   const number  yposl[_nlay]={0,0,0,0,0,0,0};
+   const number  yposl[_nlay]={0,0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-   const number  zposl[_nlay]={52.985,29.185,25.315,1.685,-2.185,-25.315,-29.185,-52.985};
+//   const number  zposl[_nlay]={52.985,29.185,25.315,1.685,-2.185,-25.315,-29.185,-52.985};
+ const number  zposl[_nlay]={52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-52.985};
+
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
+   _zposl[0]+=-0.01;
+   _zposl[1]+=0.01;
+   _zposl[2]+=-0.01;
+   _zposl[3]+=0.024;
+   _zposl[4]+=0.;
+   _zposl[5]+=0.;
+   _zposl[6]+=-0.018;
+   _zposl[7]+=0.;
    const number nrml[_nlay][3][3]={
                                           1,0,0,
                                           0,-1,0,
@@ -2026,16 +2036,6 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
                        3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
    UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
-/*
-   const number  ssize_inactive[_nlay][2]={4.136000,7.2045,
-                                                    4.136000,7.2045,
-                                                    4.136000,7.2045,
-                                                    4.136000,7.2045,
-                                                    4.136000,7.2045,
-                                                    4.136000,7.2045,
-                                                    4.136000,7.2045,
-                                                    4.136000,7.2045};
-*/
    const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
@@ -2079,8 +2079,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
 // center to center for ladders
-const number  c2c[_nlay]={7.3045,7.3045,7.3045,7.3045,7.3045,7.3045,7.3045,7.3045};
-//const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
    UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
 // support foam width;
 const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
@@ -2245,17 +2244,24 @@ void TKDBc::read(){
 if(!TKGEOMFFKEY.ReadGeomFromFile)return;
 
 AString fnam=(const char*)AMSDATADIR.amsdatadir;
-fnam+="TKGeom_";
-AString tmp(AMSJob::gethead()->getsetup());
-char del[]=" ";
+    char hfile[161];
+    UHTOC(TKGEOMFFKEY.gfile,40,hfile,160);  
+ fnam+="TKGeom_";
+if(hfile[0]=='\0'){
+ AString tmp(AMSJob::gethead()->getsetup());
+ char del[]=" ";
 for(char* result=strtok((char*)tmp,del);result;result=strtok(NULL,del)){
   if(strstr(result,"AMS")){
     fnam+=result;
     break;
   }
+}
+fnam+= AMSJob::gethead()->isRealData()?".1":".0";
+}
+else{
+fnam+=hfile;
 }  
 
-fnam+= AMSJob::gethead()->isRealData()?".1":".0";
 ifstream iftxt((const char *)fnam,ios::in);
 int active=0;
 if(iftxt){

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.500 2008/02/19 16:26:58 ams Exp $
+# $Id: RemoteClient.pm,v 1.501 2008/02/21 13:25:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1050,7 +1050,7 @@ if($#{$self->{DataSetsT}}==-1){
             $template->{filebody}=$buf;
             my $desc=$sbuf[0];
             substr($desc,0,1)=" ";
-            $template->{filedesc}=$desc." Runs/Events Left $template->{TOTALRUNS} $template->{TOTALEVENTS} ";
+            $template->{filedesc}=$desc." Total Events/Runs Left $template->{TOTALEVENTS} $template->{TOTALRUNS}  ";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
             $dataset->{eventstotal} += $template->{TOTALEVENTSC};
             if($template->{TOTALEVENTS}>0){
@@ -1249,6 +1249,7 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
          my %cid=%{$ref->{cid}};
              try{
                my $dbfile=$ard->getDBFilePath(\%cid);
+FilePath(\%cid);
 
                if(not defined $ref->{dbfile} or $ref->{dbfile} ne $dbfile){
 # put another server into dead mode
@@ -2690,7 +2691,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "<td align=center><b><font color=\"blue\">Run </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Updated</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >FilePath </font></b></td>";
-               print "<td align=center><b><font color=\"blue\" >CRC </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Size(MB) </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Errors </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
@@ -2698,7 +2699,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("DSTID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DSTID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
+                $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,sizemb
                           FROM ntuples
                           WHERE run>=$runmin AND run<=$runmax and datamc=$datamc 
                           ORDER BY run";
@@ -2708,13 +2709,13 @@ CheckCite:            if (defined $q->param("QCite")) {
              if(not $runid =~/^\d+$/){
                 $runmin=0;
                 $runmax=2000000000;                
-                $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
+                $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,sizemb
                           FROM ntuples
                           WHERE run>=$runmin AND run<=$runmax and datamc=$datamc 
                           ORDER BY run";
              }
              else{
-             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
+             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,sizemb
                       FROM ntuples  WHERE run=$runid and datamc=$datamc";
             }
          }
@@ -5829,7 +5830,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                          $buf=~ s/#/C /;
                          $buf =~ s/'/''/g;
                          $sql = "INSERT INTO DatasetsDesc Values($ret->[0][0],'$dataset->{name}','$self->{AMSSoftwareDir}/DataSet','$cite->{filename}','$junk[0]','$buf',$timenow,$timenow)";
-                        # die "$sql";
+#                         die "$sql";
                          $self->{sqlserver}->Update($sql);
                      }
                      }
@@ -6347,6 +6348,9 @@ print qq`
         my $runsave=undef;
         if($template eq "Any"){
           $Any=0;
+          if(not defined $dataset or  $dataset->{datamc}!=1){
+           $q->param("QRun",1);
+          }
           $template=${$dataset->{jobs}}[$Any]->{filename};
         }
        if(defined $dataset and $dataset->{datamc}==1){
@@ -6361,7 +6365,7 @@ print qq`
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
                 my $runno=$q->param("QRun");
-                if(not $runno =~/^\d+$/ or $runno <1 or $runno>100 ){
+                if(not $runno =~/^\d+$/ or $runno <1 or $runno>200 ){
                     $runno=1;
                 }  
                 $q->param("QRun",$runno);
@@ -7833,7 +7837,7 @@ anyagain:
          push @{$self->{Runs}}, $ri;
          $run=$run+1;
     if($Any>=0 and defined $dataset){
-         last;
+#         last;
      }
         }
        

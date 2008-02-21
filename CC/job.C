@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.534 2008/02/15 13:23:23 choutko Exp $
+// $Id: job.C,v 1.535 2008/02/21 13:25:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -417,7 +417,7 @@ void AMSJob::_sitkdata(){
 TKGEOMFFKEY.ReadGeomFromFile=1;
 TKGEOMFFKEY.WriteGeomToFile=0;
 TKGEOMFFKEY.UpdateGeomFile=0;
-TKGEOMFFKEY.ZShift=0;
+VBLANK(TKGEOMFFKEY.gfile,40);
 FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 "MIXED");
 
@@ -573,14 +573,29 @@ TRALIG.Algorithm=0;
 for( i=0;i<8;i++){
   int one=1;
   int zero=0;
-//  if(i>0 &&i<7)one=0;
+
+// layersonly
+/*
   if(i==1)one=0;
+  TRALIG.ActiveParameters[i][0]=zero;   // x
+  TRALIG.ActiveParameters[i][1]=zero;   // y
+  TRALIG.ActiveParameters[i][2]=one;   // z
+  TRALIG.ActiveParameters[i][3]=zero;   // pitch  zx
+  TRALIG.ActiveParameters[i][4]=zero;   // yaw    xy
+  TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
+*/
+//ladders 
+
+
   TRALIG.ActiveParameters[i][0]=one;   // x
   TRALIG.ActiveParameters[i][1]=one;   // y
-  TRALIG.ActiveParameters[i][2]=one;   // z
-  TRALIG.ActiveParameters[i][3]=one;   // pitch  zx
+  TRALIG.ActiveParameters[i][2]=zero;   // z
+  TRALIG.ActiveParameters[i][3]=zero;   // pitch  zx
   TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
-  TRALIG.ActiveParameters[i][5]=one;   // roll   yz
+  TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
+   
+
+
 }
   TRALIG.EventsPerRun=1001;
   TRALIG.LayersOnly=0;
@@ -1501,7 +1516,7 @@ else{
   cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
   exit(1);
 }
-  TKDBc::init(TKGEOMFFKEY.ZShift);
+  TKDBc::init(0);
   TRDDBc::init();
 {
 int len=cl-1;

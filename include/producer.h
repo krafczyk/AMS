@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.21 2006/01/23 21:56:03 choutko Exp $
+//  $Id: producer.h,v 1.22 2008/02/21 13:25:10 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -28,6 +28,7 @@ DPS::Producer::RunEvInfo_var   _reinfo;
 DPS::Producer::DSTInfo_var   _dstinfo;
 double _ST0;
 float _T0;
+int   _FreeSpace;
 void _init(){};
 public:
 
@@ -40,6 +41,7 @@ DPS::Producer::DST * getdst(DPS::Producer::DSTType type);
 bool & OnAir(){return _OnAir;}
 bool  IsLocal(){return _Local;}
 bool  IsSolo(){return _Solo;}
+int FreeSpace()const{return _FreeSpace;}
 bool getior(const char * getiorvar);
 void AddEvent();
 void UpdateARS();

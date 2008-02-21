@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.33 2005/12/16 12:30:02 choutko Exp $
+//  $Id: timeid.h,v 1.34 2008/02/21 13:25:10 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -80,12 +80,12 @@ void SetTime (time_t insert, time_t begin, time_t end) ;
 integer validate(time_t & Time,integer reenter=0);
 bool updatedb();
 void rereaddb(bool force=false);
-bool updatemap(const char *dir);
+bool updatemap(const char *dir,bool slp=false);
 bool write(const char * dir, int sleep=1);
 bool read(const char * dir,int run, time_t begin, int index=0);
 integer readDB(const char * dir, time_t time,integer reenter=0);
-#ifdef __CORBA__
 void fillDB(int length, uinteger * ibe[5]);
+#ifdef __CORBA__
 friend class AMSProducer;
 #endif
 #ifdef __DB__

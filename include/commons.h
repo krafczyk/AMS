@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.226 2008/02/15 13:23:29 choutko Exp $
+//  $Id: commons.h,v 1.227 2008/02/21 13:25:09 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -383,7 +383,7 @@ public:
   integer ReadGeomFromFile;
   integer WriteGeomToFile;
   integer UpdateGeomFile;
-  float ZShift;
+  integer gfile[40];
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
 COMMON_BLOCK_DEF(TKGEOMFFKEY_DEF,TKGEOMFFKEY);

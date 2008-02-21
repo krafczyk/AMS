@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.37 2008/02/15 13:23:25 choutko Exp $
+//  $Id: tralig.C,v 1.38 2008/02/21 13:25:07 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -677,10 +677,10 @@ void AMSTrAligFit::Fitgl(){
       chi22s/=chi2n;    
       chi22s=sqrt(chi22s-chi2s*chi2s);
     }
-    _Chi2Max=chi2s+chi22s/2;
+    _Chi2Max=chi2s+chi22s;
     cout <<"AMSTrAligFit::Fit Chi2MaxSet "<<_Chi2Max<<" "<<endl;
-    ifail=1;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+//    ifail=1;
+//    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
     if(ifail ==0 || ifail==2){
      _flag=2;
@@ -876,13 +876,13 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
             TRALIGG.Coo[k]=_pPargl[nlad][side][j].getcoo()[k];
             TRALIGG.Angle[k]=_pPargl[nlad][side][j].getang()[k];
            }
-           HFNT(IOPA.ntuple+1);
-           if(TRALIG.LayersOnly)goto nah;
+           if(TRALIG.LayersOnly && nlad==0 &&side==0){
+            HFNT(IOPA.ntuple+1);
+           }
           }
          }
         }
    }
-nah:
   UpdateDBgl();
 
 

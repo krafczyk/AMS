@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.188 2008/02/14 10:38:13 choutko Exp $
+//  $Id: trrec.C,v 1.189 2008/02/21 13:25:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -874,7 +874,7 @@ integer AMSTrRecHit::build(integer refit){
              (pid+i)->crgid()<<endl;          
          }
          else{
-          _addnext(p,0,ilay,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
+          _addnext(p,pid,0,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
           p->str2pnt(x->getcofg(pid+i),y->getcofg(pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
@@ -933,7 +933,7 @@ integer AMSTrRecHit::buildWeak(integer refit){
          }
          else{
            //           cout <<" rec hit weak added "<<endl;
-          _addnext(p,AMSDBc::WEAK,ilay,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
+          _addnext(p,pid,AMSDBc::WEAK,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
           p->str2pnt(x->getcofg(pid+i),y->getcofg(pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
@@ -1109,7 +1109,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 
- void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, number cofgx, number cofgy, AMSTrCluster *x,
+ void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
                             AMSTrCluster * y, const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
@@ -1134,8 +1134,8 @@ integer AMSTrRecHit::markAwayTOFHits(){
     geant bfield[3], ghit[3];
     for (int j=0;j<3;j++) { ghit[j] = (float)hit[j]; }
     GUFLD(ghit, bfield);
-    AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
-    new     AMSTrRecHit(pSen, status,layer,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));
+    AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",pid->getlayer()-1),
+    new     AMSTrRecHit(pSen, status,pid,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));
 //    cout <<"cfgx  "<<cofgx<<" "<<ptr<<" "<<layer<<" "<<cofgy<<endl;
     if(ptr && GOOD)ptr->setstatus(AMSDBc::GOOD);  
 }
@@ -1150,6 +1150,7 @@ void AMSTrRecHit::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
 // Fill the ntuple 
  TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
   if (THN->Ntrrh>=root::MAXTRRH02) return;
@@ -1210,6 +1211,8 @@ void AMSTrRecHit::_writeEl(){
     for(i=0;i<3;i++)THN->Bfield[THN->Ntrrh][i]=_Bfield[i];
     THN->Ntrrh++;
   }
+*/
+}
 }
 
 void AMSTrRecHit::_copyEl(){
@@ -2056,7 +2059,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
                                      TRFITFFKEY.ResCutStrLine,TRFITFFKEY.ResCutStrLine);
                         if((hit-P1).abs() < Err){
 //                          cout <<id.getlayer()<<" "<<P1<<"  " <<hit<<" "<<idy.gethalf()<<endl;
-                          AMSTrRecHit::_addnext(pls,AMSDBc::FalseX,id.getlayer(),-1,-1,0,py,hit,
+                          AMSTrRecHit::_addnext(pls,&id,AMSDBc::FalseX,-1,-1,0,py,hit,
                                                 AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
                           pointfound++;
                         } 
@@ -3184,8 +3187,8 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // Create a new Fake hit with TOF on X
       AMSTrRecHit::_addnext(
         psensor,
+        &idgeom,
         AMSDBc::FalseTOFX,
-        idsoft.getlayer(),
         -1,
         -1,
         0,

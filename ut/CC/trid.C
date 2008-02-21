@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.45 2008/01/30 08:36:21 choutko Exp $
+//  $Id: trid.C,v 1.46 2008/02/21 13:25:07 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -14,6 +14,10 @@ using trid::ntdr;
 using std::ostrstream;
 #endif
 using namespace trconst;
+int AMSTrIdGeom::cmptr() const{
+ int isen=_sensor -(_sensor>TKDBc::nhalf(_layer,_ladder)? TKDBc::nhalf(_layer,_ladder):0);
+ return _layer+gethalf()*10+_ladder*100+isen*10000;
+}
 AMSID AMSTrIdGeom::crgid() const{
          static char name[5];
          static ostrstream ost(name,sizeof(name));
@@ -330,17 +334,27 @@ integer  AMSTrIdGeom::_R2Gy(integer stripy)const {
 }
 
 integer AMSTrIdGeom::_R2Gx(integer stripx)const {
+//ams02 scheme
    integer __stripx;
    if(AMSJob::gethead()->isRealData()){
      if(_layer == 1 || _layer ==TKDBc::nlay()){  // still old bonding scheme!!
-       //K7
-       if(stripx<64)__stripx=3*stripx;
-       else if (stripx<64+97)__stripx=63*3+(stripx-63)*4;
-       else __stripx=63*3+97*4+(stripx-64-96)*3;
+       //K5       //K7
+//      if(stripx<64)__stripx=3*stripx;
+        if(stripx<64){
+          if(stripx%2==0)__stripx=3*stripx;
+          else __stripx=3*(stripx-1)+4;
+         }
+       else if (stripx<160){
+         __stripx=188+(stripx-63)*4;
+       }
+       else {
+          if(stripx%2==0)__stripx=576+(stripx-160)*3;
+          else __stripx=576+3*(stripx-161)+4;
+       }
      }
      else{
-       //K5
-        __stripx=4*stripx+1;   // new bonding scheme !!!  
+//        __stripx=4*stripx+1;  
+         __stripx=stripx<191?4*stripx:766;   // new bonding scheme !!!  
        
      }
    }
@@ -1606,7 +1620,7 @@ void AMSTrIdGeom::init(){
        for(k=1;k<TKDBc::NStripsSen(i+1,j)+1;k++){
         _swxyl[i][j][k]=_swxyl[i][j][k-1]+_swxy[i][j][k-1];
        }
-       if(fabs(_swxyl[i][j][TKDBc::NStripsSen(i+1,j)] -
+       if(fabs(_swxyl[i][j][TKDBc::NStripsSen(i+1,j)] -_swxyl[i][j][0]-
           TKDBc::ssize_active(i,j)) > 1.e-4){
          cerr <<"AMSTrIdGeom::init-F-SizeDoesNotMatch "<<i<<" "<<j<<" "<<
          _swxyl[i][j][TKDBc::NStripsSen(i+1,j)]<<" "<<
@@ -1618,11 +1632,11 @@ void AMSTrIdGeom::init(){
      for(i=0;i<TKDBc::nlay();i++){
       for(j=0;j<2;j++){
         _swxyRl[i][j]=new number[TKDBc::NStripsSenR(i+1,j)+1];
-        _swxyRl[i][j][0]=0;
+        _swxyRl[i][j][0]=j==0?_swxyR[i][j][0]/2:0;
        for(k=1;k<TKDBc::NStripsSenR(i+1,j)+1;k++){
         _swxyRl[i][j][k]=_swxyRl[i][j][k-1]+_swxyR[i][j][k-1];
        }
-       if(fabs(_swxyRl[i][j][TKDBc::NStripsSenR(i+1,j)] -
+       if(fabs(_swxyRl[i][j][TKDBc::NStripsSenR(i+1,j)] -_swxyRl[i][j][0] -
           TKDBc::ssize_active(i,j)) > 1.e-4){
          cerr <<"AMSTrIdGeom::init-F-SizeDoesNotMatch (R) "<<i<<" "<<j<<" "<<
          _swxyRl[i][j][TKDBc::NStripsSenR(i+1,j)]<<" "<<

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.108 2008/02/15 19:18:00 choutko Exp $
+//  $Id: daqevt.C,v 1.109 2008/02/21 13:25:04 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -487,18 +487,20 @@ integer DAQEvent::_HeaderOK(){
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
+      static int nmsg=0;
+      int shift=0;
+      if((*(_pcur+12)) & (1<<15)){
+          if(nmsg++<100){
+          cout<< "DAQEVent::_HeadrOK-I-GPSInfoFound "<<endl;
+          }
+          shift=5;
+      }
+      if( int mask= ((*(_pcur+12)>>5) & 15)){
+          if(nmsg++<100){
+          cout<< "DAQEVent::_HeadrOK-I-CrateMaskInfoFound "<<mask<<endl;
+          }
+      }
       _Checked=1;
-    //if(_Run == 885142115){
-    //  cout <<"  run got "<<_Run<<" "<<_Event<<endl;
-    //}
-    if (AMSJob::gethead() && AMSJob::gethead()->isMonitoring()) {
-     if (Time_1 != 0 && _usec > Time_1) {
-      geant d = _usec - Time_1;
-            d = d/1000.;
-      HF1(300003,d,1.);
-     }
-     Time_1 = _usec;
-    }      
 #ifdef __AMSDEBUG__
       cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
       cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
@@ -1430,16 +1432,23 @@ again:
                if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
               } 
 */
-              struct stat f_stat;
-              sleep(2);
+              struct stat64 f_stat;
+//              sleep(1);
               char rootfile[1024];
               strcpy(rootfile,rootdir);
               strcat(rootfile,".root");
-              if(!stat(rootfile,&f_stat)){
+              if(!stat64(rootfile,&f_stat)){
                 KIFiles++;
                 goto again;   
               } 
+              try{
               AMSJob::gethead()->urinit(rootdir);
+              }
+              catch (amsglobalerror e){
+                cerr << "Catached "<<e.getmessage()<<endl;
+                KIFiles++;
+                goto again;   
+              }
               return ifnam[KIFiles++];
         }
 else{

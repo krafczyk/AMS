@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.166 2008/02/13 20:07:50 choutko Exp $
+//  $Id: ntuple.C,v 1.167 2008/02/21 13:25:05 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #ifdef __CORBA__
 #include "producer.h"
 #endif
@@ -254,16 +255,26 @@ void AMSNtuple::initR(char* fname){
      _rfile->Write();
      _rfile->Close();
      delete _rfile;
+     _rfile=0;
    }
-   _rfile= new TFile(fname,"RECREATE");
+              struct stat64 f_stat;
+              bool open=!(AMSJob::gethead()->isProduction() || AMSJob::gethead()->isMonitoring()) ||   stat64(fname,&f_stat);
+              if( open){
+              _rfile= new TFile(fname,"RECREATE");
+              } 
 #ifdef __CORBA__
      _dc.SetString(AMSProducer::GetDataCards());
 //   cout <<_dc.GetString()<<endl;
 #endif
+
+   if(!_rfile || _rfile->IsZombie()){
+       if(_rfile){
+         delete _rfile;
+         _rfile=0;
+       }
+       throw amsglobalerror("UnableToOpenRootFile",3);
+   }
    _dc.Write("DataCards");
-
-   if(!_rfile || _rfile->IsZombie())throw amsglobalerror("UnableToOpenRootFile",3);
-
    cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
    cout<<"Set Split Level ..."<<branchSplit<<endl;
 

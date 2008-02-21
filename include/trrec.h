@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.88 2008/02/14 10:38:22 choutko Exp $
+//  $Id: trrec.h,v 1.89 2008/02/21 13:25:11 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -142,9 +142,9 @@ class AMSTrRecHit: public AMSlink{
 public:
 protected:
 AMSgSen * _pSen;
+AMSTrIdGeom _Id;
 AMSTrCluster *_Xcl;
 AMSTrCluster *_Ycl;
-integer      _Layer;
 AMSPoint     _Hit;
 AMSPoint     _EHit;
 number       _Sum;
@@ -154,14 +154,14 @@ number       _cofgy;
 AMSPoint     _Bfield;
 
 static AMSTrRecHit* _Head[trconst::maxlay];
-static void _addnext(AMSgSen * p, integer ,integer ,number, number, AMSTrCluster *, 
+static void _addnext(AMSgSen * p, AMSTrIdGeom* id, integer ,number, number, AMSTrCluster *, 
             AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
   void _copyEl();
   void _writeEl();
 
 public:
-  void _printEl(ostream & stream){ stream << " Status " << _status << " Layer " << 
-  _Layer <<" Coo " << _Hit<< endl;}
+  void _printEl(ostream & stream){ stream << " Status " << _status << "  " << 
+  _Id <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
 
@@ -228,11 +228,11 @@ static AMSTrRecHit * gethead(integer i=0){
 
 
 
-AMSTrRecHit(AMSgSen *p, integer good,integer layer, number cofgx, number cofgy,AMSTrCluster * xcl, AMSTrCluster * ycl,
+AMSTrRecHit(AMSgSen *p, integer good,AMSTrIdGeom *pid, number cofgx, number cofgy,AMSTrCluster * xcl, AMSTrCluster * ycl,
             const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs, const AMSPoint & bfield): AMSlink(good,0),
-            _pSen(p), _Layer(layer),_Xcl(xcl),_cofgx(cofgx),_cofgy(cofgy),
+            _pSen(p), _Xcl(xcl),_cofgx(cofgx),_cofgy(cofgy),_Id(*pid),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs),_Bfield(bfield){};
-AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0),_cofgx(0),_cofgy(0){};
+AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0),_cofgx(0),_cofgy(0),_Id(){};
 static integer build(integer refit=0);
 static integer buildWeak(integer refit=0);
 static void print();
@@ -245,7 +245,7 @@ inline  AMSPoint  getHit(){return _Hit;}
 AMSPoint  getlocHit(){ return (_pSen->up())->gl2loc(_Hit);}
 inline  AMSPoint  getEHit(){return _EHit;}
 inline  AMSPoint  getBfield(){return _Bfield;}
-integer       getLayer() const            {return _Layer;}
+integer       getLayer() const            {return _Id.getlayer();}
 AMSTrCluster* getClusterP(integer n) const {
                                               if(n==0)return _Xcl;
                                               else if(n==1)return _Ycl;
