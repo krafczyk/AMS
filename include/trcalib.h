@@ -1,4 +1,4 @@
-//  $Id: trcalib.h,v 1.28 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trcalib.h,v 1.29 2008/02/21 14:40:02 choutko Exp $
 // Author V. Choutko 4-mar-1997
 
 #ifndef __AMSTRCALIB__
@@ -194,9 +194,6 @@ static void initcalib();
 static void check(integer forcedw=0);
 static void ntuple(integer s);
  static void buildpreclusters( AMSTrIdSoft & idd, integer len, geant id[]);
-static void buildSigmaPed(integer n, int16u* p);
-static void buildSigmaPedA(integer n, int16u* p);
-static void buildSigmaPedB(integer n, int16u* p);
 inline integer getcount() const {return _Count[getchannel()];}
 geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}
 void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn*cmn;}

@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.41 2008/02/12 18:29:25 choutko Exp $
+//  $Id: daqevt.h,v 1.42 2008/02/21 14:40:02 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -84,10 +84,10 @@ static integer _getnode(int16u id){
 static const char *  _getnodename(int16u id){
    return _NodeNames[((id>>5)&((1<<9)-1))];
 }
-integer _getportj(int16u id){
+static integer _getportj(int16u id){
    return (id&0x1F);
 }
-const char *  _getportnamej(int16u id){
+static const char *  _getportnamej(int16u id){
    return _PortNamesJ[(id&0x1F)];
 }
 bool    _isddg(int16u id);       //  identify the detector data group sub block
@@ -122,7 +122,7 @@ DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0){
 for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
 }
-static bool ismynode(int16u id,char * sstr){return _getnode(id)>127 && strstr(_getnodename(id),sstr);}
+static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(_getnode(id)>127 && strstr(_getnodename(id),sstr));}
 static bool isRawMode(int16u id){return (id&64)>0;}
 static bool isCompMode(int16u id){return (id&128)>0;}
 static bool isError(int16u id){return (id&512)>0;}
