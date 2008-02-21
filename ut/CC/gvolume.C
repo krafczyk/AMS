@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.55 2006/07/13 15:16:04 choutko Exp $
+//  $Id: gvolume.C,v 1.56 2008/02/21 18:29:59 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -170,7 +170,7 @@ void AMSgvolume::_init(){
 }
 
 ostream & AMSgvolume::print(ostream & stream)const{
-return(AMSID::print(stream) << _shape <<  " GV" << endl);}
+return(AMSID::print(stream) << " "<<_shape <<  " "<<_cooA << " "<<*_nrmA<<endl);}
 
 
 AMSPoint AMSgvolume::gl2loc(AMSPoint vect){

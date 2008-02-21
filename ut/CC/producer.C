@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.108 2008/02/21 13:25:06 choutko Exp $
+//  $Id: producer.C,v 1.109 2008/02/21 18:30:01 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -192,7 +192,7 @@ if (_Solo){
     if(_debug)cout <<"T0 "<<_T0<<endl;
      _reinfo =new DPS::Producer::RunEvInfo(); 
      _dstinfo =new DPS::Producer::DSTInfo(); 
-     _dstinfo->UpdateFreq=1000;
+     _dstinfo->UpdateFreq=5000;
      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
      else _dstinfo->type = DPS::Producer::Ntuple;
      _reinfo->uid=0;
@@ -1233,6 +1233,8 @@ if(_cinfo.Run == AMSEvent::gethead()->getrun()){
     struct timeb  ft;
     ftime(&ft);
     double st=ft.time+ft.millitm/1000.;
+double cll=AMSFFKEY.CpuLimit;
+if(cll<20)cll=20;
 
 if(AMSEvent::gethead()->HasFatalErrors()){
  FMessage("AMSProducer::AddEvent-F-EventHasFatalError ",DPS::Client::CInAbort);
@@ -1246,7 +1248,7 @@ _cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000
 
   sendCurrentRunInfo();
 }
-else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpent>AMSFFKEY.CpuLimit){
+else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpent>cll){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 _cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;

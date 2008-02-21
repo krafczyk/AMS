@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.167 2008/02/21 13:25:05 choutko Exp $
+//  $Id: ntuple.C,v 1.168 2008/02/21 18:29:59 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -34,6 +34,7 @@ TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
 TObjString AMSNtuple::_ta("");
+TObjString AMSNtuple::_ag("");
 const int branchSplit=1;
 
 #endif
@@ -266,7 +267,6 @@ void AMSNtuple::initR(char* fname){
      _dc.SetString(AMSProducer::GetDataCards());
 //   cout <<_dc.GetString()<<endl;
 #endif
-
    if(!_rfile || _rfile->IsZombie()){
        if(_rfile){
          delete _rfile;
@@ -275,6 +275,16 @@ void AMSNtuple::initR(char* fname){
        throw amsglobalerror("UnableToOpenRootFile",3);
    }
    _dc.Write("DataCards");
+const int size=5000000;
+char * name=new char[size];
+if(name){
+ostrstream ost(name,size);
+     AMSJob::gethead()->getgeom()->printN(ost);
+     _ag.SetString(name);
+//     cout <<_ag.GetString();
+     delete [] name;
+}
+   _ag.Write("AMS02Geometry");
    cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
    cout<<"Set Split Level ..."<<branchSplit<<endl;
 

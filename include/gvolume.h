@@ -1,4 +1,4 @@
-//  $Id: gvolume.h,v 1.24 2006/07/06 14:48:45 choutko Exp $
+//  $Id: gvolume.h,v 1.25 2008/02/21 18:30:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Aug 08, 1996. ak.  First try with Objectivity.
@@ -38,7 +38,11 @@ class AMSgvolume : public AMSNode {
       integer operator ==(const _amsrm & o) const{
         return !(*this!=o);
       }
-
+    friend ostream &operator << (ostream &o, const _amsrm &b )
+   {return b.print(o);}  
+      ostream & print(ostream & stream)const{
+         return( stream <<_nrm[0][0]<<" "<<_nrm[1][0]<<" "<<_nrm[2][0]<<" "<<_nrm[0][1]<<" "<<_nrm[1][1]<<" "<<_nrm[2][1]<<" "<<_nrm[0][2]<<" "<<_nrm[1][2]<<" "<<_nrm[2][2]);
+      }
     }; 
 #ifdef __G4AMS__
     amsg4pv * _pg4v;

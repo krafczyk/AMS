@@ -1,4 +1,4 @@
-//  $Id: id.C,v 1.19 2006/11/21 15:57:14 choutko Exp $
+//  $Id: id.C,v 1.20 2008/02/21 18:29:59 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "id.h"
@@ -50,7 +50,7 @@ void  AMSID::PrintError(){cout << _error <<endl;}
     ostream &operator << (ostream &o, const AMSID &b )
    {return b.print(o);}  
     ostream & AMSID::print(ostream &o)const{
-    return(o <<_name << "  id = "<<_id << endl);
+    return(o <<_name << "  id = "<<_id );
 }
 //compare
 

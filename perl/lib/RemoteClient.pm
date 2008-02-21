@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.501 2008/02/21 13:25:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.502 2008/02/21 18:30:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6402,8 +6402,8 @@ print qq`
         my $runno=$q->param("QRun");
         my $runmi=$q->param("QRunMi");
         my $runma=$q->param("QRunMa");
-        if(not $runno =~/^\d+$/ or $runno <1 or $runno>100){
-             $self->ErrorPlus("Runs no $runno is out of range (1,100)");
+        if(not $runno =~/^\d+$/ or $runno <1 or $runno>200){
+             $self->ErrorPlus("Runs no $runno is out of range (1,200)");
         }
 #
 #  get runs from database
