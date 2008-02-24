@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.502 2008/02/21 18:30:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.503 2008/02/24 09:18:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -972,7 +972,7 @@ if($#{$self->{DataSetsT}}==-1){
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent != "HOST" and $ent!="ROOTNTUPLE" and $ent!="RUNLIST")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST")){
                $template->{initok}=undef;
              }
            }
@@ -14564,7 +14564,7 @@ sub calculateMipsVC {
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent != "HOST" and $ent!="ROOTNTUPLE" and $ent!="RUNLIST")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST")){
                $template->{initok}=undef;
              }
            }
