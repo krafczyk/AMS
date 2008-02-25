@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.51 2008/01/31 07:27:49 ams Exp $
+#  $Id: monitorUI.pm,v 1.52 2008/02/25 19:07:49 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1341,6 +1341,7 @@ sub show_sample{
         @titles=(
 "Uid",
 "CUid",
+"HostName",
 "Run",
 "FirstEvent",
 "LastEvent",

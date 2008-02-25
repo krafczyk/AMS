@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.125 2008/02/19 16:26:55 ams Exp $
+# $Id: Monitor.pm,v 1.126 2008/02/25 19:07:48 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1139,7 +1139,7 @@ sub PNtupleSort{
           }
           }
          }
-         push @text,  $hash->{uid},$hash->{cuid},$hash->{Run},$hash->{FirstEvent}, 
+         push @text,  $hash->{uid},$hash->{cuid},$hash->{cinfo}->{HostName},$hash->{Run},$hash->{FirstEvent}, 
         $hash->{LastEvent}, $hash->{Priority}, $hash->{FilePath}, 
          $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},;
          push @output, [@text];   
@@ -1389,6 +1389,8 @@ warn " sent via arpref\n";
         my %nc=%{${$ref->{rtb}}[$row]};
         $nc{uid}=shift @data;
         $nc{cuid}=shift @data;
+        my $rdstc=$nc{cinfo};
+        $rdstc->{HostName}=shift @data;
         $nc{Run}=shift @data;
         $nc{FirstEvent}=shift @data;
         $nc{LastEvent}=shift @data;
@@ -1399,8 +1401,8 @@ warn " sent via arpref\n";
         shift @data;
         $nc{CounterFail}=shift @data;
         if($nc{History} eq "ToBeRerun"){
-         my $rdstc=$nc{cinfo};
-         $rdstc->{HostName}="      ";
+#         my $rdstc=$nc{cinfo};
+#         $rdstc->{HostName}="      ";
         }
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){

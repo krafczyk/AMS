@@ -1676,7 +1676,7 @@ class RemoteClient:
                 dbjid=ret[0][1]
                 dbfevent=ret[0][2]
                 dblevent=ret[0][3]
-                dbststus=ret[0][4]
+                dbstatus=ret[0][4]
                 if(dbjid==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
                     print "InsertRun-E-",run,"AlreadyExists"
                 else:
@@ -1712,8 +1712,8 @@ class RemoteClient:
                 dbjid=ret[0][1]
                 dbfevent=ret[0][2]
                 dblevent=ret[0][3]
-                dbststus=ret[0][4]
-                if(dbrun==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
+                dbstatus=ret[0][4]
+                if(dbjid==jid and dbrun==run and dbfevent==fevent and dblevent==levent and dbstatus==status):
                     print "InsertRun-E-",run,"AlreadyExists"
                 else:
                     sql="DELETE dataruns WHERE run=%d" %(run)
