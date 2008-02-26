@@ -174,6 +174,19 @@ void RichPMTsManager::Init(){
 
 }
 
+
+//
+// Calibration file format
+//
+// pmtpos_number
+// status pedestal_low_gain pedestal_high_gain ped_sigma_low ped_sigma_high ped_threshold_low ped_threshol_high gain_low gain_high gain_sigma_low gain_sigma_high gain_threshold relative_eff : pixel 0 (hadr id)
+// status pedestal_low_gain pedestal_high_gain ped_sigma_low ped_sigma_high ped_threshold_low ped_threshol_high gain_low gain_high gain_sigma_low gain_sigma_high gain_threshold relative_eff : pixel 1 (hadr id)
+// ... up to pixel 15
+// pmtpos_number
+// ...
+
+
+
 void RichPMTsManager::ReadFromFile(const char *filename){
   cout<<"RichPMTsManager::ReadFromFile: reading calibration from file"<<endl;
   fstream calib(filename,ios::in); // open  file for reading
@@ -196,20 +209,22 @@ void RichPMTsManager::ReadFromFile(const char *filename){
       // Read the identification information
       int pos,pmtaddh,pmtaddc,pmtnumb;
 
-      calib >> pos >> pmtaddh >> pmtaddc >> pmtnumb;
+      //      calib >> pos >> pmtaddh >> pmtaddc >> pmtnumb;
+      calib >> pos;
 
       // Use the information to search the geom id and check that everything
       // is correct
       int found=-1;
       for(int i=0;i<RICmaxpmts;i++){
 	if(_pmts[i]._pos==pos)
-	  if(pmtaddh != _pmts[i]._pmtaddh || pmtaddc!=_pmts[i]._pmtaddc || pmtnumb!=_pmts[i]._pmtnumb){
-	    cerr<<"RichPMTsManager::ReadFromFile: Found pmt at pos "<<pos<<" but identification fails: "<<pmtaddh<<" vs "<<_pmts[i]._pmtaddh<<" -- "<<pmtaddc<<" vs "<<_pmts[i]._pmtaddc<<" -- "<<pmtnumb<<" -- "<<_pmts[i]._pmtnumb<<endl;
-	    exit(1);
-	  }else{
-	    found=i;
-	    break;
-	  }
+	  //	  if(pmtaddh != _pmts[i]._pmtaddh || pmtaddc!=_pmts[i]._pmtaddc || pmtnumb!=_pmts[i]._pmtnumb){
+	  //	    cerr<<"RichPMTsManager::ReadFromFile: Found pmt at pos "<<pos<<" but identification fails: "<<pmtaddh<<" vs "<<_pmts[i]._pmtaddh<<" -- "<<pmtaddc<<" vs "<<_pmts[i]._pmtaddc<<" -- "<<pmtnumb<<" -- "<<_pmts[i]._pmtnumb<<endl;
+	  //	    exit(1);
+	  //	  }else{
+	  //	    found=i;
+	  //	    break;
+	  //	  }
+	  {found=i;break;}
       }
 
       if(found==-1){
@@ -252,7 +267,8 @@ void RichPMTsManager::SaveToFile(const char *filename){
 
   for(int geom_id=0;geom_id<RICmaxpmts;geom_id++){
       // Save the identification information
-      calib << _pmts[geom_id]._pos << " " << _pmts[geom_id]._pmtaddh << " " << _pmts[geom_id]._pmtaddc << " " << _pmts[geom_id]._pmtnumb<<endl;
+    //      calib << _pmts[geom_id]._pos << " " << _pmts[geom_id]._pmtaddh << " " << _pmts[geom_id]._pmtaddc << " " << _pmts[geom_id]._pmtnumb<<endl;
+    calib << _pmts[geom_id]._pos<<endl;
 
       for(int window=0;window<RICnwindows;window++){
 	// Save the status pedestals sigmas, thresholds gains
@@ -741,13 +757,13 @@ geant RichPMT::SimulateSinglePE(int channel,int mode){
   geant dummy=0;
   geant value=RNDM(dummy);
 
-  return BSearch(channel,mode,value)*_step[channel][mode];
-  /*
+  //  return BSearch(channel,mode,value)*_step[channel][mode];
+  
   for(int i=0;i<RIC_prob_bins;i++){
     if(value<=_cumulative_prob[channel][mode][i])
       return i*_step[channel][mode];
   }
-  */
+  
 }
 
 
