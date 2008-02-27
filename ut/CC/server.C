@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.137 2008/02/15 13:23:24 choutko Exp $
+//  $Id: server.C,v 1.138 2008/02/27 09:50:11 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -758,7 +758,9 @@ if(NH){
    nh.HostName=(const char *)hn;
    fbin>>tmpbuf;
    nh.OS= (const char*)tmpbuf;
-   fbin>>nh.CPUNumber>>nh.Memory>>nh.Clock;
+   int a;
+   fbin>>nh.CPUNumber>>nh.Memory>>nh.Clock>>a;
+   nh.Clock=nh.Clock | (a<<16);
    DPS::Client::NominalHost_var vnh= new  DPS::Client::NominalHost(nh);
    if(fbin.good())_nhl.push_back(vnh);  
  }
@@ -1115,8 +1117,9 @@ if(_ahl.size())return;
    ah.LastFailed=0;
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
-   ah.Clock=(*i)->Clock;  
-   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
+   ah.Clock=((*i)->Clock)&32767;  
+//   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
+   ah.ClientsAllowed=(*i)->Clock>>16;  
  
    time_t tt;
    time(&tt);
@@ -1871,7 +1874,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
    if(rc ==DPS::Client::Create){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(as.id).HostName)){
-            as.id.Mips=(*i)->Clock;
+            as.id.Mips=((*i)->Clock)&32767;
             cout << " host found for creating "<<endl;
             PropagateAH(asid,*i,DPS::Client::Update);
             break;
@@ -2199,9 +2202,10 @@ else{
    ah.LastFailed=0;
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
-   ah.Clock=(*i)->Clock;  
+   ah.Clock=((*i)->Clock)&32767;  
    
-   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded+0.5f,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
+//   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded+0.5f,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
+   ah.ClientsAllowed=(*i)->Clock>>16;
 
    time_t tt;
    time(&tt);
@@ -2307,7 +2311,7 @@ if(pcur->InactiveClientExists(getType()))return;
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
         if(reinfo->Priority>1 && strstr((const char*)reinfo->cinfo.HostName,"ams")){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
-           if((*i)->Status!=DPS::Server::NoResponse && (*i)->Status!=DPS::Server::InActive){
+           if((*i)->Status!=DPS::Server::NoResponse ){
     if(!(strstr((const char *)(*i)->HostName,(const char*)reinfo->cinfo.HostName)))continue;
       DPS::Client::CID cid=_parent->getcid();      
       cid.Type=getType();

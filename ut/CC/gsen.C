@@ -1,4 +1,4 @@
-//  $Id: gsen.C,v 1.5 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: gsen.C,v 1.6 2008/02/27 09:50:11 choutko Exp $
 #include "gsen.h"
 #include "trid.h"
 integer AMSgSen::getsenstrip(AMSPoint & loc){
@@ -13,7 +13,7 @@ integer AMSgSen::getsenstrip(AMSPoint & loc){
      loc[0]<-2*AMSgvolume::dgeant ||
      loc[1]<-2*AMSgvolume::dgeant   ){
        cerr << "AMSgSen::getsenstrip-S-Error loc " 
-       << loc << size << endl;
+       << loc << " "<<size << endl;
        return 0;
   }
   if(loc[0]<0)loc[0]=0;

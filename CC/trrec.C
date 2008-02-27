@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.189 2008/02/21 13:25:08 choutko Exp $
+//  $Id: trrec.C,v 1.190 2008/02/27 09:50:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -874,7 +874,7 @@ integer AMSTrRecHit::build(integer refit){
              (pid+i)->crgid()<<endl;          
          }
          else{
-          _addnext(p,pid,0,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
+          _addnext(p,pid+i,0,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
           p->str2pnt(x->getcofg(pid+i),y->getcofg(pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
@@ -933,7 +933,7 @@ integer AMSTrRecHit::buildWeak(integer refit){
          }
          else{
            //           cout <<" rec hit weak added "<<endl;
-          _addnext(p,pid,AMSDBc::WEAK,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
+          _addnext(p,pid+i,AMSDBc::WEAK,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
           p->str2pnt(x->getcofg(pid+i),y->getcofg(pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
@@ -3415,7 +3415,7 @@ void AMSTrTrack::_crHit(){
      _Hit[i][j]=(par[plane].getcoo())[j]+
       (par[plane].getmtx(j)).prod(_Pthit[i]->getHit());
      _EHit[i][j]=fabs((par[plane].getmtx(j)).prod(_Pthit[i]->getEHit()));
-//     cout <<i<<" "<<j<<" "<<_Hit[i][j]<<" "<<_Pthit[i]->getHit()[j]<<endl; 
+//      cout <<i<<" "<<j<<" "<<_Hit[i][j]<<" "<<_Pthit[i]->getHit()[j]<<endl; 
     }
    }
   }

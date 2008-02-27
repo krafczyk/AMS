@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.20 2008/02/15 13:23:30 choutko Exp $
+//  $Id: tralig.h,v 1.21 2008/02/27 09:50:12 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -115,6 +115,7 @@ protected:
   integer _Pattern;
   uintl _Address;
   AMSPoint * _Hits;
+  AMSPoint *_CooA;
   AMSPoint * _EHits;
   integer _Pid;
   geant _InvRigidity;
@@ -124,6 +125,7 @@ public:
 AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
 _InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0,0){};
 void Init(AMSTrTrack * ptr, AMSmceventg * pgen);
+void Init(integer patter, uintl address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[]);
 friend class AMSTrAligFit;
 ~AMSTrAligData(){ delete [] _Hits; delete[] _EHits;}
 };
@@ -221,6 +223,7 @@ static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uintl address, integer strict=0);
 void Fit();
 void Fitgl();
+static bool Fillgl(AMSNode *pal);
 void RebuildNoActivePar();
 void Anal();
 void Analgl();

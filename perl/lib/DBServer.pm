@@ -1,7 +1,7 @@
-# $Id: DBServer.pm,v 1.18 2007/06/14 13:53:55 ams Exp $
+# $Id: DBServer.pm,v 1.19 2008/02/27 09:50:13 choutko Exp $
 
 package DBServer;
- use CORBA::ORBit idl => [ '/var/www/cgi-bin/mon/include/server.idl'];
+ use CORBA::ORBit idl => [ '/usr/include/server.idl'];
 use Error qw(:try);
 use Carp;
 use strict;

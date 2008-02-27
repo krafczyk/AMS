@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.18 2008/01/29 16:25:19 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.19 2008/02/27 09:50:12 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -316,6 +316,9 @@ if(pcl){
   for(int i=0;i<3;i++){
    for(int k=0;k<3;k++)array[3+3*15+3*i+k]=pcl->EcalCoo[i][k];
   } 
+  for(int i=0;i<npoint;i++){
+//    cout <<" i "<<i<<array[3*i]<<" "<<array[3*i+1]<<" "<<array[3*i+2]<<" "<<endl;
+  }
    SetPolyLine(npoint,array);
    SetLineColor(2);
    SetLineWidth(1);

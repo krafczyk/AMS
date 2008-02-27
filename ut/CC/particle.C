@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.156 2007/10/02 16:06:46 mdelgado Exp $
+//  $Id: particle.C,v 1.157 2008/02/27 09:50:11 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -146,7 +146,6 @@ out:
             ppart->richfit();
              AMSgObj::BookTimer.stop("ReRICHRefit"); 
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
-          if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
@@ -158,7 +157,6 @@ out:
             ppart->trdfit();
             ppart->trd_likelihood();
             AMSgObj::BookTimer.stop("ReTRDRefit"); 
-          }
            ppart=ppart->next();
          }
         }   

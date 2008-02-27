@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.227 2008/02/21 13:25:09 choutko Exp $
+//  $Id: commons.h,v 1.228 2008/02/27 09:50:12 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -925,6 +925,7 @@ integer LayersOnly;
 geant GlobalGoodLimit;
 integer SingleLadderEntryLimit;
 geant One;
+integer gfile[40];
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
 COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);

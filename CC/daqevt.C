@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.109 2008/02/21 13:25:04 choutko Exp $
+//  $Id: daqevt.C,v 1.110 2008/02/27 09:50:11 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -866,7 +866,8 @@ void DAQEvent::select(){
      if(ok){
             int off=-daq.getlength();
             fbin.seekg(off,ios::cur);
-            cout<<"DAQEvent::select-I-Selected Run = "<<daq.runno()<<
+            static int nmsg=0;
+            if(nmsg++<100)cout<<"DAQEvent::select-I-Selected Run = "<<daq.runno()<<
               " Event = "<<daq.eventno()<<" Time "<<ctime(&daq.time())<<endl;
 
      }
@@ -1192,8 +1193,8 @@ int DAQEvent::parser(char a[], char **& fname){
           for(int i=0;i<ntot;i++){
             strcpy(ftemp,a);
             strcat(ftemp,namelist[i]->d_name);
-           struct stat statbuf;
-          if(!stat (ftemp,&statbuf) && statbuf.st_size>0){
+           struct stat64 statbuf;
+          if(!stat64 (ftemp,&statbuf) && statbuf.st_size>0){
             fname[ngood]=new char[strlen(a)+strlen(namelist[i]->d_name)+1];
             strcpy(fname[ngood],a);
             strcat(fname[ngood++],namelist[i]->d_name);

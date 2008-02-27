@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.56 2008/02/21 13:25:07 choutko Exp $
+//  $Id: tkdbc.C,v 1.57 2008/02/27 09:50:11 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -3103,9 +3103,9 @@ AString fnam(AMSDATADIR.amsdatadir);
 fnam+="TKGeom_";
 fnam+=AMSJob::gethead()->getsetup();
 if(update)fnam+=".update";
-if(update==2)fnam+=".2";
-else if (update==3)fnam+=".3";
-else if (update==4)fnam+=".4";
+char add[256];
+sprintf(add,".%d",update);
+fnam+=add;
 ofstream iftxt;
 if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
 #if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)

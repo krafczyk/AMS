@@ -56,12 +56,12 @@ IDLCPP=orbit-idl-2 -l cpp
 
 
 ifdef AMSICC
-    FF=$(INTELDIR)/compiler70/ia32/bin/ifc
+    FF=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
 endif
 
 
 ifeq ($(ARCH),linuxicc)
-  FF=$(INTELDIR)/compiler70/ia32/bin/ifc
+  FF=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
   CXX=$(INTELDIR)/compiler70/ia32/bin/icc  
   CC=$(INTELDIR)/compiler70/ia32/bin/icc  
   LD=$(INTELDIR)/compiler70/ia32/bin/icc

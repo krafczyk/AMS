@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.22 2008/02/12 18:29:23 choutko Exp $
+//  $Id: status.C,v 1.23 2008/02/27 09:50:11 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -136,7 +136,8 @@ bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][_Nelem-1]);
    }
    else if(curevent>_Status[0][_Nelem-1]){ 
-    cerr<<"AMSStatus::geteventpos-E-NoMatchfound "<<run<<" "<<curevent<<" "<<_Status[0][_Nelem-1]<<" "<<endl;
+    static int npr=0;
+    if(npr++<100)cerr<<"AMSStatus::geteventpos-E-NoMatchfound "<<run<<" "<<curevent<<" "<<_Status[0][_Nelem-1]<<" "<<endl;
    }
    else if(evt<_Status[0][_Nelem-1]){ 
     cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;

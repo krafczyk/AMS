@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.81 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: gbatch.C,v 1.82 2008/02/27 09:50:11 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -26,12 +26,16 @@ GCBANK_DEF GCBANK;
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
-
+void my_unexpected () {
+if (!std::uncaught_exception())
+std::cerr << "my_unexpected called\n";
+}
 void (handler)(int);
  namespace glconst{
   integer cpul=1;
  }
 int main(int argc, char * argv[] ){
+std::set_unexpected (my_unexpected);
 //for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
 //  pchar++;
 //  switch (*pchar){

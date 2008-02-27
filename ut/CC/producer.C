@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.109 2008/02/21 18:30:01 choutko Exp $
+//  $Id: producer.C,v 1.110 2008/02/27 09:50:11 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -192,7 +192,7 @@ if (_Solo){
     if(_debug)cout <<"T0 "<<_T0<<endl;
      _reinfo =new DPS::Producer::RunEvInfo(); 
      _dstinfo =new DPS::Producer::DSTInfo(); 
-     _dstinfo->UpdateFreq=5000;
+     _dstinfo->UpdateFreq=1000;
      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
      else _dstinfo->type = DPS::Producer::Ntuple;
      _reinfo->uid=0;

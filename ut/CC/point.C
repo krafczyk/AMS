@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.9 2007/11/28 12:06:43 pzuccon Exp $
+//  $Id: point.C,v 1.10 2008/02/27 09:50:11 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
@@ -137,7 +137,7 @@ AMSPoint operator*(const AMSRotMat& mat, const AMSPoint& Point){
   for(int ii=0;ii<3;ii++)
     out[ii]=mat._nrm[ii][0]*Point._x+
       mat._nrm[ii][1]*Point._y+
-      mat._nrm[ii][1]*Point._z;
+      mat._nrm[ii][2]*Point._z;
   return out;
   
 }

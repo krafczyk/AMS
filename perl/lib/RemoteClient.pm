@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.504 2008/02/25 09:32:27 ams Exp $
+# $Id: RemoteClient.pm,v 1.505 2008/02/27 09:50:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2781,7 +2781,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("DataFileID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DataFileID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status 
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status,tag 
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
@@ -2791,14 +2791,14 @@ CheckCite:            if (defined $q->param("QCite")) {
 #               $self->ErrorPlus("Run no $runid is not digit");
                 $runmin=0;
                 $runmax=2000000000;                
-                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status 
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status ,tag
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
              }
              else{
              $title = $title.$runid;
-                $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb,paths,status 
+                $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb,paths,status ,tag 
                           FROM datafiles
                           WHERE run=$runid ";
          }
@@ -2815,8 +2815,9 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $opath=$r->[6];
              my $paths=$r->[7];
              my $status=$r->[8];
+             my $tag=$r->[9];
              my $runx=sprintf("%x",$run);
-             print "<td><b> $run / $runx </td></b>
+             print "<td><b> $run / $tag </td></b>
                     <td><b> $paths  </td>
                     <td><b> $starttime </b></td>
                     <td align=middle><b> $nevents </b></td>

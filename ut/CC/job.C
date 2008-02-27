@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.535 2008/02/21 13:25:05 choutko Exp $
+// $Id: job.C,v 1.536 2008/02/27 09:50:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -589,11 +589,17 @@ for( i=0;i<8;i++){
 
   TRALIG.ActiveParameters[i][0]=one;   // x
   TRALIG.ActiveParameters[i][1]=one;   // y
-  TRALIG.ActiveParameters[i][2]=zero;   // z
-  TRALIG.ActiveParameters[i][3]=zero;   // pitch  zx
+  TRALIG.ActiveParameters[i][2]=-one;   // z
+  TRALIG.ActiveParameters[i][3]=-one;   // pitch  zx
+  TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
   TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
+  TRALIG.ActiveParameters[i][5]=-one;   // roll   yz
   TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
-   
+  if(i==1){
+   for (int k=0;k<6;k++){
+   if(TRALIG.ActiveParameters[i][k]==-one)TRALIG.ActiveParameters[i][k]=zero;  
+   }
+  }     
 
 
 }
@@ -2051,7 +2057,7 @@ AMSgObj::BookTimer.book("CalTrFill");
 AMSgObj::BookTimer.book("CalTrFit");
 if(TRALIG.UpdateDB){
 
-  gethead()->addup( new AMSTrAligFit());
+  AMSTrAligFit::Fillgl(gethead()->addup( new AMSTrAligFit()));
 }
 if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
   AMSTrIdCalib::initcalib();
