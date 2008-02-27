@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.39 2008/02/27 09:50:11 choutko Exp $
+//  $Id: tralig.C,v 1.40 2008/02/27 12:03:02 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -1700,6 +1700,7 @@ void AMSTrAligData::Init(AMSTrTrack *ptrack, AMSmceventg *pmcg){
   _NHits=TKDBc::patpoints(pattern);
   _Hits= new AMSPoint[_NHits];
   _EHits=new AMSPoint[_NHits];
+  _CooA=new AMSPoint[_NHits];
   for(int i=0;i<TKDBc::patpoints(pattern);i++){
     for(int j=0;j<ptrack->getnhits();j++){
      AMSTrRecHit * ph= ptrack->getphit(j);

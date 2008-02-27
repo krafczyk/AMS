@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.5 2008/02/27 09:50:12 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.6 2008/02/27 12:03:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.6  2008/02/27 12:03:03  choutko
+* *** empty log message ***
+*
 * Revision 1.5  2008/02/27 09:50:12  choutko
 * *** empty log message ***
 *
@@ -104,7 +107,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.5 2008/02/27 09:50:12 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.6 2008/02/27 12:03:03 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4066,15 +4069,15 @@ CDECK  ID>, TKFINI.
            call ffkey('HISE',ihvse,2,'MIXED' )
 999          end
 CDECK  ID>, TKFITG. 
-         subroutine tkgetres(out)
+         subroutine tkgetres(out,nplan)
 *
 *          
 *
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
-             real *4 out(7,maxpl)
-             call ucopy(outa,out,7*maxpl)
+             real *4 out(7,*)
+             call ucopy(outa,out,7*nplan)
          end    
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
      +   ialgo,imsa,layer,out)
@@ -6567,7 +6570,7 @@ c         ENDIF
       real sigma(nplan,2),z(nplan)
       integer ncases,i,j,k,l,ntot,ifail,npt,ialgo
       real out(9),hits(3,nplan),xsigma(3,nplan),normal(3,nplan),
-     + res(7,nplan)
+     + outa(7,nplan),res(2,nplan)
       integer layer(nplan),ilayer(nplan),ims,ialg,ifail
       double precision dd(nplan,nlad,nhalf,npar),ch(2)
       double precision ddxx(nplan,nlad,nhalf,npar)
@@ -6689,6 +6692,11 @@ c         ENDIF
       chi2a=0
       ntot=0
       do i=1,ncases
+c        do m=1,nplan
+c           if(array(m,4,i).ne.0)then
+c             z(m)=array(m,3,i)+param(m,array(m,4,i),array(m,5,i),3)
+c           endif
+c        enddo
         if(mod(algo,2).eq.0)then
               ims=0
               ialgo=1
@@ -6698,28 +6706,61 @@ c         ENDIF
                normal(3,m)=-1
               enddo
               npt=0
-              do m=1,nplan     
-               ilayer(m)=0
-               if(array(m,4,i).ne.0)then
+              do j=1,nplan     
+               ilayer(j)=0
+               if(array(j,4,i).ne.0)then
                 npt=npt+1
-                layer(npt)=m
-                ilayer(m)=npt
-                do k=1,3
-                 hits(k,npt)=array(m,k,i)
-                 xsigma(k,npt)=array(m,k+3,i)
-                 xsigma(3,npt)=xsigma(1,npt)
+                layer(npt)=j
+                ilayer(j)=npt
+          cooloc(1)=array(j,1,i)
+          cooloc(2)=array(j,2,i)
+          cooloc(3)=array(j,3,i)
+          sy=sin(fr*phi(j,array(j,4,i),array(j,5,i),2)-
+     +    (1-fr)*phi(j,array(j,4,i),array(j,5,i),1))
+          cy=cos(fr*phi(j,array(j,4,i),array(j,5,i),2)-
+     +    (1-fr)*phi(j,array(j,4,i),array(j,5,i),1))
+          cp=cos(pitch(j,array(j,4,i),array(j,5,i),1))
+          sp=sin(pitch(j,array(j,4,i),array(j,5,i),1))
+          cr=cos(roll(j,array(j,4,i),array(j,5,i),1))
+          sr=sin(roll(j,array(j,4,i),array(j,5,i),1))
+            mtx(1,1)=cy*cp
+            mtx(2,1)=-sy
+            mtx(3,1)=cy*sp
+            mtx(1,2)=cr*sy*cp-sr*sp
+            mtx(2,2)=cr*cy
+            mtx(3,2)=cr*sy*sp+sr*cp
+            mtx(1,3)=-sr*sy*cp-cr*sp
+            mtx(2,3)=-sr*cy
+            mtx(3,3)=-sr*sy*sp+cr*cp
+            s1=array(j,1,i)-cool(1,j,array(j,4,i),array(j,5,i))
+            s2=array(j,2,i)-cool(2,j,array(j,4,i),array(j,5,i))
+            d3=mtx(1,3)*s1+mtx(2,3)*s2
+            s3=array(j,3,i)-cool(3,j,array(j,4,i),array(j,5,i))+d3
+            d(1)=mtx(1,1)*s1+mtx(2,1)*s2+mtx(3,1)*s3
+            d(2)=mtx(1,2)*s1+mtx(2,2)*s2+mtx(3,2)*s3
+                do k=1,2
+                 hits(k,npt)=d(k)+cool(k,j,array(j,4,i),array(j,5,i))+
+     +           param(j,array(j,4,i),array(j,5,i),k)
+                 xsigma(k,npt)=array(j,k+5,i)
                 enddo
+                 hits(3,npt)=array(j,3,i)+
+     +           param(j,array(j,4,i),array(j,5,i),3)+d3
+                 xsigma(3,npt)=xsigma(1,npt)
                endif
                enddo
               out(1)=1./1000000.
              call tkfitg(npt,hits,xsigma,normal,5,ialgo,ims,layer,out)
-             call tkgetres(res)
+             call tkgetres(outa,nplan)
+             if(i.le.0)then
+              write(*,*)npt
+              write(*,*)'hits' ,hits
+              write(*,*)'sigma' ,xsigma
+              write(*,*)'normal ',normal
+              write(*,*)'out ',out
+              write(*,*)'outa ',outa
+             endif
         endif
-c        do m=1,nplan
-c           if(array(m,4,i).ne.0)then
-c             z(m)=array(m,3,i)+param(m,array(m,4,i),array(m,5,i),3)
-c           endif
-c        enddo
+
        do l=1,2
        x=0
        y=0
@@ -6778,10 +6819,19 @@ c        enddo
          chi2=0
          do j=1,nplan
           sigma(j,l)=array(j,5+l,i)
+            if(mod(algo,2).eq.1)then
+             res(l,j)=(dy(j)-b-a*z(j)) 
+            else
+             res(1,j)=-(outa(1,ilayer(j))-hits(1,ilayer(j)))
+             res(2,j)=-(outa(2,ilayer(j))-hits(2,ilayer(j)))
+            endif
           if(array(j,4,i).ne.0)then
-           chi2=chi2+(dy(j)-b-a*z(j))**2/sigma(j,l)**2
+           chi2=chi2+(res(l,j))**2/sigma(j,l)**2
           endif
          enddo
+         if(mod(algo,2).eq.0)then
+           chi2=out(7)
+         endif
         if(i.le.10)then
 c          write(*,*)'chi2 ',i,iter,chi2
         endif
@@ -6794,15 +6844,18 @@ c          write(*,*)'chi2 ',i,iter,chi2
         endif
         if(chi2.lt.chi2max)then
          do j=1,nplan
-          if(array(j,4,i).ne.0.and.abs(dy(j)-b-a*z(j)).lt.rmax)then
+          if(mod(algo,2).eq.0)then
+             a=outa(3+l,j)/outa(6,j)
+          endif
+          if(array(j,4,i).ne.0.and.abs(res(l,j)).lt.rmax)then
          dd(j,array(j,4,i),array(j,5,i),l)=
-     +        dd(j,array(j,4,i),array(j,5,i),l)+(dy(j)-b-a*z(j)) 
+     +        dd(j,array(j,4,i),array(j,5,i),l)+res(l,j)
          ddxx(j,array(j,4,i),array(j,5,i),l)=
      +        ddxx(j,array(j,4,i),array(j,5,i),l)+
-     +       (dy(j)-b-a*z(j))*a*array(j,l,i)
+     +       (res(l,j))*a*array(j,l,i)
          ddxy(j,array(j,4,i),array(j,5,i),l)=
      +        ddxy(j,array(j,4,i),array(j,5,i),l)+
-     +       (dy(j)-b-a*z(j))*a*array(j,3-l,i) 
+     +       (res(l,j))*a*array(j,3-l,i) 
          xnx(j,array(j,4,i),array(j,5,i),l)=
      +        xnx(j,array(j,4,i),array(j,5,i),l)+(a*array(j,l,i))
          xnx2(j,array(j,4,i),array(j,5,i),l)=
@@ -6826,19 +6879,19 @@ c          write(*,*)'chi2 ',i,iter,chi2
      +   averz(j,array(j,4,i),array(j,5,i),2)+a*a
 
          averxz(j,array(j,4,i),array(j,5,i),1)=
-     +   averxz(j,array(j,4,i),array(j,5,i),1)+a*(dy(j)-b-a*z(j))
+     +   averxz(j,array(j,4,i),array(j,5,i),1)+a*res(l,j)
 
          averxz(j,array(j,4,i),array(j,5,i),2)=
-     +   averxz(j,array(j,4,i),array(j,5,i),2)+(dy(j)-b-a*z(j))
+     +   averxz(j,array(j,4,i),array(j,5,i),2)+res(l,j)
  
          aver(j,array(j,4,i),array(j,5,i),l)=
-     +   aver(j,array(j,4,i),array(j,5,i),l)+(dy(j)-b-a*z(j))
+     +   aver(j,array(j,4,i),array(j,5,i),l)+res(l,j)
  
          averx(j,array(j,4,i),array(j,5,i),l)=
      +   averx(j,array(j,4,i),array(j,5,i),l)+array(j,3-l,i)
 
          averxy(j,array(j,4,i),array(j,5,i),l)=
-     +   averxy(j,array(j,4,i),array(j,5,i),l)+(dy(j)-b-a*z(j))*
+     +   averxy(j,array(j,4,i),array(j,5,i),l)+(res(l,j))*
      +   array(j,3-l,i)
 
          aver2(j,array(j,4,i),array(j,5,i),l)=
@@ -7010,7 +7063,8 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
         xf(1)=chi2a
       endif
         xf(2)=chi2a
-      if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter)then
+      if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter.and.
+     +  chi2a.le.chi2o)then
        iter=iter+1
        chi2o=chi2a
        goto 10
