@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.505 2008/02/27 09:50:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.506 2008/02/27 13:52:01 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -97,7 +97,7 @@ my @inputFiles;           # list of file names in input dir
 
 package RemoteClient;
 use Storable;
- use CORBA::ORBit idl => [ '/var/www/cgi-bin/mon/include/server.idl'];
+ use CORBA::ORBit idl => [ '/usr/include/server.idl'];
 use Error qw(:try);
 use CGI qw(-unique_headers);
 use Carp;
@@ -2810,7 +2810,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $path      = trimblanks($r->[1]);
              my $starttime = EpochToDDMMYYHHMMSS($r->[2]);
              my $nevents   = $r->[3];
-             my $tag   = $r->[4];
+             my $type   = $r->[4];
              my $sizemb   = $r->[5];
              my $opath=$r->[6];
              my $paths=$r->[7];
@@ -2821,7 +2821,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     <td><b> $paths  </td>
                     <td><b> $starttime </b></td>
                     <td align=middle><b> $nevents </b></td>
-                    <td align=middle><b> $tag / $status </b></td>
+                    <td align=middle><b> $type / $status </b></td>
                     <td><b> $sizemb </b></td>
                     <td><b> $opath </b></td>\n";
              print "</font></tr>\n";
@@ -5815,11 +5815,12 @@ DDTAB:          $self->htmlTemplateTable(" ");
                   my @junk=split 'Total Events',$cite->{filedesc};
                   if($#junk>0){
                       my $mdesc=$junk[0];
-                      $mdesc=~s/ /%/g;
+                      $mdesc=~s/   /%/g;
                       
                   $sql="select dirpath from datasetsdesc where dataset='$dataset->{name}' and jobdesc like '$mdesc'";
                    
                      my $ret=$self->{sqlserver}->Query($sql);
+#                      die "$sql $ret->[0][0]";
                      if(not defined $ret->[0][0]){
                          $sql = "SELECT did from Datasets WHERE name='$dataset->{name}'";
                          $ret=$self->{sqlserver}->Query($sql);

@@ -228,13 +228,13 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
   }
  }
  cout <<"  nc TRD "<<nc<<endl;
+   if(nc)AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
   if(update){
    for(int i=0;i<getmaxblocks();i++){
     for (int j=0;j<trdid::nudr;j++){
      AMSTRDIdSoft::_Calib[i][j]=0;
     }
    }
-   AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
    AMSTimeID *ptdv;
      time_t begin,end,insert;
       const int ntrd=4;
