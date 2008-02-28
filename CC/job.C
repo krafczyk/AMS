@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.536 2008/02/27 09:50:11 choutko Exp $
+// $Id: job.C,v 1.537 2008/02/28 08:35:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3219,9 +3219,6 @@ AMSJob::~AMSJob(){
   cout << "   ~AMSJob called "<<endl;
   HPRINT(9797+1);
   _signendjob();
-  if(isSimulation())uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
-  else uhend(0,0,CCFFKEY.curtime);
-  cout <<"   uhend finished"<<endl;
   _tkendjob();
   cout <<"   tkendjob finished"<<endl;
     _tof2endjob();
@@ -3241,6 +3238,12 @@ _dbendjob();
   cout <<"   dbendjob finished"<<endl;
 _axendjob();
   cout <<"   axendjob finished"<<endl;
+
+  if(isSimulation())uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
+  else uhend(0,0,CCFFKEY.curtime);
+  cout <<"   uhend finished"<<endl;
+
+
 #ifndef __TFADBW__  
  TGL1JobStat::printstat();
  TriggerLVL302::printfc();
@@ -3507,11 +3510,17 @@ void AMSJob::_ecalendjob(){
 }
 //-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){
+//   AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
 
-  if((isCalibration() & AMSJob::CTRD) && TRDCALIB.CalibProcedureNo == 1){
+  if((isCalibration() & AMSJob::CTRD) ){
+   if( TRDCALIB.CalibProcedureNo == 1){
     AMSTRDIdCalib::check(1);
     AMSTRDIdCalib::printbadchanlist();
     AMSTRDIdCalib::ntuple(AMSEvent::getSRun());
+    }
+   else{
+//      AMSTRDIdCalib::ntuple(AMSEvent::getSRun());
+   }
   }
   
 

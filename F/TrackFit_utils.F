@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.6 2008/02/27 12:03:03 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.7 2008/02/28 08:35:01 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.7  2008/02/28 08:35:01  choutko
+* *** empty log message ***
+*
 * Revision 1.6  2008/02/27 12:03:03  choutko
 * *** empty log message ***
 *
@@ -107,7 +110,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.6 2008/02/27 12:03:03 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.7 2008/02/28 08:35:01 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6598,6 +6601,7 @@ c         ENDIF
       common /param$/param,phi,roll,pitch
       if(what.eq.-1)then
         ncases=0
+        call vzero(xchi2,2*10000)
         return
       else if(what.eq.0.and.ncases.lt.maxcases)then
          do i=1,nplan
@@ -6845,7 +6849,7 @@ c          write(*,*)'chi2 ',i,iter,chi2
         if(chi2.lt.chi2max)then
          do j=1,nplan
           if(mod(algo,2).eq.0)then
-             a=outa(3+l,j)/outa(6,j)
+             a=outa(3+l,ilayer(j))/outa(6,ilayer(j))
           endif
           if(array(j,4,i).ne.0.and.abs(res(l,j)).lt.rmax)then
          dd(j,array(j,4,i),array(j,5,i),l)=

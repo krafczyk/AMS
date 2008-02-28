@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.40 2008/02/27 12:03:02 choutko Exp $
+//  $Id: tralig.C,v 1.41 2008/02/28 08:35:00 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -567,7 +567,7 @@ again:
 //              for(int j=0;j<3;j++)arr[j][plane]=((pal->_pData)[ip]._Hits[i])[j];
               for(int j=0;j<3;j++)arr[j+5][plane]=((pal->_pData)[ip]._EHits[i])[j];
               for(int j=0;j<3;j++)arr[j+7][plane]=((pal->_pData)[ip]._CooA[i])[j];
-              if(TRALIG.Algorithm%2==0)for(int j=0;j<3;j++)arr[j+7][plane]=0;
+//              if(TRALIG.Algorithm%2==0)for(int j=0;j<3;j++)arr[j+7][plane]=0;
 //              if(plane==2)arr[2][plane]+=0.1;
               arr[3][plane]=lad;
               arr[4][plane]=half+1;
@@ -624,7 +624,7 @@ again:
              AMSPoint outa;
              AMSPoint coo;
              for(int i=0;i<trconst::maxlay;i++){
-//              number addon[8]={-1.1e-2,0,-6e-3,0,0,0,8e-3,0};
+//              number addon[8]={-1e-2,0,-6e-3,0,0,0,4e-3,0};
               number addon[8]={0,0,0,0,0,0,0,0};
               outc=AMSPoint(arr[0][i],arr[1][i],arr[2][i]+addon[i]);
               outa=AMSPoint(arr[3][i],arr[4][i],arr[5][i]); 
