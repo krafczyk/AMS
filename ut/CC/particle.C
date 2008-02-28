@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.157 2008/02/27 09:50:11 choutko Exp $
+//  $Id: particle.C,v 1.158 2008/02/28 16:14:54 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -813,8 +813,11 @@ AMSgObj::BookTimer.start("ReTKRefit");
       number beta=_pbeta?_pbeta->getbeta():_Beta;
     for(int layer=0;layer<TKDBc::nlay();layer++){
        number theta,phi;
-      if(_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1)
-      setstatus(AMSDBc::BADINTERPOL);
+       bool bad=false;
+       if(!_ptrack->getres(layer,_TrCoo[layer])){
+         bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;
+       }
+      if(bad)setstatus(AMSDBc::BADINTERPOL);
 // Change theta,phi,coo 
       if(beta>=0 && layer==0){
           _Theta=theta;

@@ -1859,7 +1859,7 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
 void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
-    if(fTrRecHit.size()>root::MAXTRRH02*10 && !ptr->checkstatus(AMSDBc::USED))return;
+    if(fTrRecHit.size()>root::MAXTRRH02*3 && !ptr->checkstatus(AMSDBc::USED))return;
   fTrRecHit.push_back(TrRecHitR(ptr));
   ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {
@@ -2586,7 +2586,8 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   Pattern   = ptr->_Pattern;
   Address   = ptr->_Address(0);
   AddressA   = ptr->_Address(1);
-  //LocDBAver       = ptr->_Dbase[0];
+  DBase[0]       = ptr->_Dbase[0];
+  DBase[1]       = ptr->_Dbase[1];
   GeaneFitDone    = ptr->_GeaneFitDone;
   AdvancedFitDone = ptr->_AdvancedFitDone;
   Chi2StrLine     = ptr->_Chi2StrLine;

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.228 2008/02/27 09:50:12 choutko Exp $
+//  $Id: commons.h,v 1.229 2008/02/28 16:14:55 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -709,6 +709,7 @@ public:
   integer OnlyGammaVtx;
   integer UseGeaneFitting; // Use Geane(1) or Yale (0) fitting method
   integer OldTracking;  //Use Old (VC) or new (JA) pattern recognition
+  integer MainAlg;     //
 };
 //
 

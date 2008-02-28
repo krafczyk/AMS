@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.537 2008/02/28 08:35:00 choutko Exp $
+// $Id: job.C,v 1.538 2008/02/28 16:14:54 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -590,6 +590,7 @@ for( i=0;i<8;i++){
   TRALIG.ActiveParameters[i][0]=one;   // x
   TRALIG.ActiveParameters[i][1]=one;   // y
   TRALIG.ActiveParameters[i][2]=-one;   // z
+  TRALIG.ActiveParameters[i][2]=zero;   // z
   TRALIG.ActiveParameters[i][3]=-one;   // pitch  zx
   TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
   TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
@@ -1124,6 +1125,7 @@ FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
 {
   for( int k=0;k<sizeof(TRFITFFKEY.patternp)/sizeof(TRFITFFKEY.patternp[0]);k++)TRFITFFKEY.patternp[k]=0;
 }
+TRFITFFKEY.MainAlg=541;
 TRFITFFKEY.UseTRD=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;

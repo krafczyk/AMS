@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.5 2006/02/16 13:21:28 choutko Exp $
+*  $Id: rkms.F,v 1.6 2008/02/28 16:14:54 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -69,6 +69,10 @@ c      write(6,'(a3,8f8.2)')'  z',  z ! deb
       Out(8) = 0.                                 ! Not Used
       Out(9) = dR/(R*R)                           ! err(1/Rig)
 *     =============================================
+      do i=1,NPma
+        xyz(1,i)=xt(i)
+        xyz(2,i)=yt(i)
+      enddo
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
@@ -216,8 +220,8 @@ cer        endif                                       !
           Call MNPOUT(i,CHNAM,Xout(i),Er(i),bnd1,bnd2,ivar) ! Extraction
         enddo
 
-        Chi2=0.
-        if(2*npo-npa.gt.0) Chi2=Dhi2/(2.*npo-npa)      ! Chi2/d.f.
+        Chi2=Dhi2
+c        if(2*npo-npa.gt.0) Chi2=Dhi2/(2.*npo-npa)      ! Chi2/d.f.
 
         if(it.eq.1) then
           Chi2B=Chi2
@@ -261,7 +265,8 @@ c      write(6,*)'iflag,Fu',iflag,Fu       ! debug ###
 *-------------------------
 #include "rkms.h"
 *-------------------------
-      double precision pin(3),xin(3),xt(NPma),yt(NPma) ! r8
+
+      double precision pin(3),xin(3) ! r8
 
       pin(1) = par(1) ! Px or cx
       pin(2) = par(2) ! Py or cy
@@ -942,6 +947,7 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       Rc = 0.0003*Bx*Rad ! *sgn                      ! ragidity (GeV)
       call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
       Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
+      if(bx.eq.0)rc=10000000
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
@@ -1046,8 +1052,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.5 2006/02/16 13:21:28 choutko Exp $
+* $Id: rkms.F,v 1.6 2008/02/28 16:14:54 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.6  2008/02/28 16:14:54  choutko
+* *** empty log message ***
+*
 * Revision 1.5  2006/02/16 13:21:28  choutko
 * work around g77 shared
 *
@@ -1204,8 +1213,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.5 2006/02/16 13:21:28 choutko Exp $
+* $Id: rkms.F,v 1.6 2008/02/28 16:14:54 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.6  2008/02/28 16:14:54  choutko
+* *** empty log message ***
+*
 * Revision 1.5  2006/02/16 13:21:28  choutko
 * work around g77 shared
 *

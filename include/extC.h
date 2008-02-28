@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.17 2008/02/27 09:50:12 choutko Exp $
+//  $Id: extC.h,v 1.18 2008/02/28 16:14:55 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -24,7 +24,7 @@ extern "C" void trafit_(integer & ifit, geant x[],  geant y[], geant wxy[],
                        geant &chiz,  geant & xmom, geant & exmom,
                         geant p0[], geant & dip, geant & phis);
 #define TRAFIT trafit_
-extern "C" void tkgetres_(geant res[][3]);
+extern "C" void tkgetres_(geant res[][7], integer &nplan);
 #define TKGETRES tkgetres_
 extern "C" void tkfitg_(integer &npt,geant hits[][3], geant sigma[][3],
 geant normal[][3], integer &ipart,  integer &ialgo, integer &ims, integer layer[], geant out[]);

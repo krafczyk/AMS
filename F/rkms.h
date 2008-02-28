@@ -1,10 +1,12 @@
-*  $Id: rkms.h,v 1.3 2008/02/27 09:50:12 choutko Exp $
+*  $Id: rkms.h,v 1.4 2008/02/28 16:14:54 choutko Exp $
       integer npma
       parameter(NPma=8) 
       integer npoc
       double precision xc,yc,zc,wxy,Dhi2
       common/rkms_1/xc(NPma),yc(NPma),zc(NPma),wxy(NPma,NPma),Dhi2,npoc
       double precision rkstep
+      common /rkms_2/xt,yt
+      double precision xt(NPma),yt(NPma)
       common/rkst/     rkstep
       real SiThick,zz0
       data SiThick/0.0300/    ! plane thicknes in cm. (300mkm Si)

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.190 2008/02/27 09:50:11 choutko Exp $
+//  $Id: trrec.C,v 1.191 2008/02/28 16:14:54 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2123,6 +2123,7 @@ void AMSTrTrack::AdvancedFit(){
       Fit(1);
       Fit(2);
     }
+    Fit(6);
     Fit(4);
     Fit(5);
 }
@@ -2464,15 +2465,15 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   // fit =0  fit pattern
   // fit =1  fit 1st part if pat=0,1,2,3, ... etc  
   // fit =2  fit 2nd half if pat=0,1,2,3  ... etc + interpolate to beg of 1st
-  // fit =3  Geanefit pattern
+  // fit =3  rkms
   // fit =4  fast fit with ims=0
-
-// ! Changed
   // fit =5  Juans fit with ims=1
+  //  fit=6 -> fit ==0 nodb
 
 
    // Create Proper Hit/Ehit things
-   _crHit();
+   
+   _crHit(fits==6);
 
   // Protection from too low mass
     if(ipart==2)ipart=5;
@@ -2484,18 +2485,17 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   static geant sigma[maxhits][3];
   static geant normal[maxhits][3];
   static integer layer[maxhits];
-  integer ialgo=1;
+  integer ialgo=TRFITFFKEY.MainAlg%10;
   geant out[9];
   integer i;
     integer fit =abs(fits);
-    if(fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:5;      
-    else if(fit==5)ialgo=4;
+    if(fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:(TRFITFFKEY.MainAlg/100)%10;        else if(fit==5)ialgo=(TRFITFFKEY.MainAlg/10)%10;
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
      normal[i][1]=0;
      normal[i][2]=fits<0?1:-1;
     }
-  if(fit == 0 || fit==3 || fit==4 || fit==5){
+  if(fit == 0 || fit==3 || fit==4 || fit==5 || fit==6){
     for(i=0;i<_NHits;i++){
      layer[i]=_Pthit[i]->getLayer();
      for(int j=0;j<3;j++){
@@ -2584,6 +2584,11 @@ else ims=1;
      out[0]=charge/momentum;
     }
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
+if(fit==0){
+int ml=trconst::maxlay;
+TKGETRES(_Res,ml);
+_RC=1;
+}
 if(fit==0){
 _FastFitDone=1;
 _Chi2FastFit=out[6];
@@ -2677,7 +2682,11 @@ _PIPhi=out[4];
 _PIP0=AMSPoint(out[0],out[1],out[2]);
 _PIChi2=out[6];
 }
-
+else if(fit==6){
+_Dbase[0]=out[5];
+_Dbase[1]=out[6];
+if(out[7] != 0)_Dbase[1]=FLT_MAX;
+}
 return _Chi2FastFit;
 }
 
@@ -3383,7 +3392,7 @@ integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number 
   return 1;
 }
 
-void AMSTrTrack::_crHit(){
+void AMSTrTrack::_crHit(bool nodb=false){
  // build address
 
  _buildaddress();
@@ -3391,7 +3400,7 @@ void AMSTrTrack::_crHit(){
  integer found=0;
  AMSTrAligPar * par(0);
   
- //if(!TRALIG.UpdateDB )par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
+ //if(!TRALIG.UpdateDB && !nodb)par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
   if(found && fabs(_Dbase[1]-TRALIG.One)>TRALIG.GlobalGoodLimit && 
      fabs(_Dbase[0]-1.025)<TRALIG.GlobalGoodLimit){
    for(int i=0;i<_NHits;i++){
@@ -3405,10 +3414,8 @@ void AMSTrTrack::_crHit(){
    }
    setstatus(AMSDBc::LocalDB);
   }
-  else if(par=AMSTrAligFit::SearchDBgl(_Address)){
+  else if(!nodb && (par=AMSTrAligFit::SearchDBgl(_Address))){
    setstatus(AMSDBc::GlobalDB);
-   _Dbase[0]=0;
-   _Dbase[1]=0;
    for(int i=0;i<_NHits;i++){
     int plane=TKDBc::patconf(_Pattern,i)-1;
     for(int j=0;j<3;j++){
@@ -3420,8 +3427,6 @@ void AMSTrTrack::_crHit(){
    }
   }
   else{
-   _Dbase[0]=0;
-   _Dbase[1]=0;
    for(int i=0;i<_NHits;i++){
     int plane=TKDBc::patconf(_Pattern,i)-1;
     for(int j=0;j<3;j++){
@@ -3518,7 +3523,7 @@ uintl AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
 }
 
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_RC(0),
 _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
@@ -3529,7 +3534,7 @@ _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
 }
 
 AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_RC(0),
 _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
@@ -3657,7 +3662,7 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0,0){
+_NHits(nht),_FastFitDone(FFD),_RC(0),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0,0){
   for(int i=0;i<2;i++)_Dbase[i]=0;
   _Chi2StrLine=0;
 _Chi2WithoutMS=0;
@@ -4035,3 +4040,13 @@ exit_nobeta:
 
 }
 
+bool AMSTrTrack::getres(int layer, AMSPoint& res){
+     if(!RCDone())return false;
+     for( int i=0;i<_NHits;i++){
+      if(TKDBc::patconf(_Pattern,i)-1 == layer){
+       res.setp(_Res[i][0],_Res[i][1],_Res[i][2]);
+       return true;
+      }
+     }
+     return false;
+}

@@ -839,6 +839,7 @@ public:
   float RigidityMS;  ///< fast rigidity mscat off
   float PiRigidity;  ///<  PathInt rigidity
   float Hit[8][3];   ///< Track Coordinate (after alignment)
+  float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr);
   protected:
   vector<int> fTrRecHit;
@@ -862,11 +863,11 @@ public:
   /// \param number index in container
   /// \return human readable info about TrTrackR
   char * Info(int number=-1){
-    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,8)       //TrTrackR
+ClassDef(TrTrackR,9)       //TrTrackR
 friend class AMSTrTrack;
 friend class AMSEventR;
 };

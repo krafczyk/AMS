@@ -1,5 +1,5 @@
       SUBROUTINE TKFITA(NPOINTS, XM, EXM, IPLANEZ,
-     + IMSCAT, XMASS, OUTPAR, CHI2, NDOF, IERR)
+     + IMSCAT, XMASS, OUTPAR, CHI2, NDOF, IERR,xout)
 *********************************************************************
 *
 *     Fitting NPOINTS (consecutive) (maximum 8 points)
@@ -349,6 +349,14 @@ C Convert rigidity to GV
       IERR = 0
 
 999   CONTINUE
+      do l=1,npoints
+        xm(1,l)=0
+        xm(2,l)=0
+        DO K = 1, 5
+         xm(1,l)=xm(1,l) + D(L,K)*OUTPAR(K)
+         xm(2,l)=xm(2,l)+ D(L+NPOINTS,K)*OUTPAR(K)
+        END DO
+      enddo
 *
       END
 *>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

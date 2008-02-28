@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.7 2008/02/28 08:35:01 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.8 2008/02/28 16:14:54 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.8  2008/02/28 16:14:54  choutko
+* *** empty log message ***
+*
 * Revision 1.7  2008/02/28 08:35:01  choutko
 * *** empty log message ***
 *
@@ -110,7 +113,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.7 2008/02/28 08:35:01 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.8 2008/02/28 16:14:54 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4082,6 +4085,21 @@ CDECK  ID>, TKFITG.
              real *4 out(7,*)
              call ucopy(outa,out,7*nplan)
          end    
+         subroutine tksetres(xh,nplan)
+*
+*          
+*
+              parameter (maxpl=20)
+              common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
+     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
+             real *4 xh(3,*)
+              
+              do i=1,nplan
+                 do k=1,3
+                   outa(k,i)=xh(k,i)
+                 enddo 
+              enddo
+         end    
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
      +   ialgo,imsa,layer,out)
 *
@@ -4097,7 +4115,7 @@ CDECK  ID>, TKFITG.
 *               =2     GEANE banded matrix inv
 *               =3     GEANE Kalman filter
 *               =4     Juan algo
-*              =5i     A. Chikanian algo 
+*               =5     A. Chikanian algo 
 *
 * Output   out(9) ! x0,y0,z0,theta,phi,rig,chi2,ier, err(1/rig)
 *
@@ -4213,10 +4231,12 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
              else if(ialg.eq.4)then
               call TKFITA(NPt, Xhits, ysigma, layer,
      +        IMSa, xmz, OUT, chi2, ndof, IERR)
+              call tksetres(xhits,npt)
               theta=aycos(-sqrt(1-out(3)**2-out(4)**2))
               phi=atan2(out(4),out(3))
               z0=xhits(3,1)
-              rig=1/out(5)
+              rig=10000000
+              if(out(5).ne.0)rig=1/out(5)
               erig=out(6)
               out(3)=z0
               out(4)=theta
@@ -4228,6 +4248,7 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               goto 999
              else if(ialg.eq.5)then
               call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
+              call tksetres(xhits,npt)
               out(8)=0
               goto 999
            else
@@ -6840,11 +6861,11 @@ c        enddo
 c          write(*,*)'chi2 ',i,iter,chi2
         endif
         ch(l)=chi2
-        if(l.eq.2.and.i.lt.10000)then
+        if(l.eq.2.and.i.gt.ncases-10000)then
           if(iter.eq.0)then
-            xchi2(1,i)=ch(1)+ch(2)
+            xchi2(1,ncases+1-i)=ch(1)+ch(2)
           endif
-            xchi2(2,i)=ch(1)+ch(2)
+            xchi2(2,ncases+1-i)=ch(1)+ch(2)
         endif
         if(chi2.lt.chi2max)then
          do j=1,nplan

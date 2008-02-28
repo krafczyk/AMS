@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.89 2008/02/21 13:25:11 choutko Exp $
+//  $Id: trrec.h,v 1.90 2008/02/28 16:14:55 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -283,8 +283,10 @@ uintl _Address;
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;
+integer _RC;
 integer _GeaneFitDone;
 integer _AdvancedFitDone;
+geant _Res[trconst::maxlay][7];
 AMSPoint _Hit[trconst::maxlay];
 AMSPoint _EHit[trconst::maxlay];
 number _Dbase[2];
@@ -350,7 +352,7 @@ static integer Distance(number par[2][3], AMSTrRecHit *ptr){
 }
 static integer DistanceTOF(number par[2][3], AMSTrRecHit *ptr);
 static integer _RefitIsNeeded;
-void _crHit();
+void _crHit(bool nodb);
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
@@ -404,7 +406,7 @@ void SetPar(number rig, number theta, number phi, AMSPoint P0,integer icase=0){
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
-AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
+AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0),_RC(0)
   {init(  phit);}
 AMSTrTrack(AMSDir dir, AMSPoint point,number rig=10000000,number errig=10000000);
 AMSTrTrack(number theta, number phi, AMSPoint point);
@@ -434,12 +436,15 @@ void getParSimpleFit(number & Chi2xy, number &Chi2sz, number & Rid)const;
 integer AdvancedFitDone()const{return _AdvancedFitDone;}
 integer GeaneFitDone()const{return _GeaneFitDone;}
 bool FastFitDone()const{return _FastFitDone!=0;}
+bool RCDone()const{return _RC==1;}
+bool  getres(int layer, AMSPoint & coo);
+
 void getParAdvancedFit(number&   GChi2, number&  GRid, number&  GErr,
 number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
 number HPhi[2], AMSPoint  HP0[2] ) const;
 
-AMSTrTrack() {_Pattern = -1; _NHits   = -1; 
+AMSTrTrack() {_Pattern = -1; _NHits   = -1; _RC=0;
    for (int i=0; i<trconst::maxlay; i++) _Pthit[i] = NULL; }
 void   setHitP(AMSTrRecHit* p, integer n) {if (n< trconst::maxlay)  _Pthit[n] = p;}
 //-
