@@ -116,11 +116,11 @@ void RichPMTsManager::Init(){
   // Here we should load tables or wahtever
   // 
   if(RICFFKEY.ReadFile%10){
-    char name[200];
+    char name[801];
 
-    UHTOC(RICFFKEY.fname_in,200,name,200);
+    UHTOC(RICFFKEY.fname_in,200,name,800);
 
-    for(int i=199;i>=0;i--){
+    for(int i=800;i>=0;i--){
       if(name[i]!=' '){
 	name[i+1]=0;
 	break;
@@ -155,7 +155,15 @@ void RichPMTsManager::Init(){
     // and save the file 
     char filename[201];
     UHTOC(RICCONTROLFFKEY.pmttables,50,filename,200);
- 
+
+    
+    for(int i=200;i>=0;i--){
+      if(filename[i]!=' '){
+	filename[i+1]=0;
+	break;
+      }
+    } 
+
     if(filename[0]=='\0'){
       // Try a default file, which is not necessarilly the best one
       sprintf(filename,"%s/%s/RichDefaultPMTTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
@@ -218,7 +226,15 @@ void RichPMTsManager::Init(){
       for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
     }
     
-    UHTOC(RICCONTROLFFKEY.pmttables_out,200,filename,200);
+    UHTOC(RICCONTROLFFKEY.pmttables_out,50,filename,200);
+    
+    for(int i=200;i>=0;i--){
+      if(filename[i]!=' '){
+	filename[i+1]=0;
+	break;
+      }
+    }
+
     if(strlen(filename)!=0){
       // Save current table in file
       fstream stream;
@@ -406,11 +422,11 @@ void RichPMTsManager::Finish(){
   Finish_Default();
 
   if(RICFFKEY.ReadFile/10){
-    char name[200];
+    char name[801];
     
-    UHTOC(RICFFKEY.fname_out,200,name,200);
+    UHTOC(RICFFKEY.fname_out,200,name,800);
     
-    for(int i=199;i>=0;i--){
+    for(int i=800;i>=0;i--){
       if(name[i]!=' '){
 	name[i+1]=0;
 	break;

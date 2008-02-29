@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.230 2008/02/29 09:06:57 mdelgado Exp $
+//  $Id: commons.h,v 1.231 2008/02/29 14:43:19 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -972,8 +972,8 @@ class RICCONTROLFFKEY_DEF{
 public:
 integer iflgk_flag;
 integer tsplit; // Allows task time spliting at the end of the job for OPTIMIZATION
-integer pmttables[200];     // Precomputed input PMT tables if any
-integer pmttables_out[200]; // Output of precomputed PMT tables if any
+integer pmttables[50];     // Precomputed input PMT tables if any
+integer pmttables_out[50]; // Output of precomputed PMT tables if any
 };
 #define RICCONTROLFFKEY COMMON_BLOCK(RICCONTROLFFKEY,riccontrolffkey)
 COMMON_BLOCK_DEF(RICCONTROLFFKEY_DEF,RICCONTROLFFKEY);
