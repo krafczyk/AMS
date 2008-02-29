@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.8 2008/02/28 16:14:54 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.9 2008/02/29 13:35:46 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.9  2008/02/29 13:35:46  choutko
+* g77 compat
+*
 * Revision 1.8  2008/02/28 16:14:54  choutko
 * *** empty log message ***
 *
@@ -113,7 +116,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.8 2008/02/28 16:14:54 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.9 2008/02/29 13:35:46 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6587,12 +6590,12 @@ c         ENDIF
       real xf(2)
       real xchi2(2,10000)
       real cool(3,nplan,nlad,nhalf),s1,s2,s3
-      common /arr$/ncases,array,fixpar,cool
+      common /arrcommon/ncases,array,fixpar,cool
       real arr(nplan,*),chi2m
       real array(nplan,7,maxcases)  ! x,y,z,lad,half,ex,ey
       integer fixpar(nplan,nlad,nhalf,6) ! -1 fixed 0 one for all ladders 1 free
       real sigma(nplan,2),z(nplan)
-      integer ncases,i,j,k,l,ntot,ifail,npt,ialgo
+      integer ncases,i,j,k,l,ntot,npt,ialgo
       real out(9),hits(3,nplan),xsigma(3,nplan),normal(3,nplan),
      + outa(7,nplan),res(2,nplan)
       integer layer(nplan),ilayer(nplan),ims,ialg,ifail
@@ -6619,7 +6622,7 @@ c         ENDIF
       double precision naver(nplan,nlad,nhalf,npar)
       double precision x,y,xy,x2,y2,nx,a,b,comp,dyz,dz2,dxz,fr
       double precision chi2,chi2a,chi2max,chi2o,tol,dz,dy2,rmax
-      common /param$/param,phi,roll,pitch
+      common /paramcommon/param,phi,roll,pitch
       if(what.eq.-1)then
         ncases=0
         call vzero(xchi2,2*10000)
