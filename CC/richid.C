@@ -153,15 +153,13 @@ void RichPMTsManager::Init(){
 
     // Check if there is a file containing the information. If not compute the table 
     // and save the file 
-    char filename[200];
-    UHTOC(RICCONTROLFFKEY.pmttables,200,filename,200);
+    char filename[201];
+    UHTOC(RICCONTROLFFKEY.pmttables,50,filename,200);
  
-    if(strlen(filename)==0){
+    if(filename[0]=='\0'){
       // Try a default file, which is not necessarilly the best one
       sprintf(filename,"%s/%s/RichDefaultPMTTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-    }
-
-
+     } 
     bool done=false;
     geant table_gain[RICmaxpmts*RICnwindows*2];
     geant table_sigma_gain[RICmaxpmts*RICnwindows*2];
