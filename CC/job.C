@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.538 2008/02/28 16:14:54 choutko Exp $
+// $Id: job.C,v 1.539 2008/02/29 09:06:56 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -272,6 +272,9 @@ void AMSJob::_sirichdata(){
 
   RICCONTROLFFKEY.iflgk_flag=0;  // This should be always zero
   RICCONTROLFFKEY.tsplit=0;      // Bo time splitting at the end 
+  VBLANK(RICCONTROLFFKEY.pmttables,200);
+  VBLANK(RICCONTROLFFKEY.pmttables_out,200);
+
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
   FFKEY("RICCONT",(float *)&RICCONTROLFFKEY,sizeof(RICCONTROLFFKEY_DEF)/sizeof(integer),"MIXED");
 

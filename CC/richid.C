@@ -150,7 +150,108 @@ void RichPMTsManager::Init(){
   // 
   if(AMSJob::gethead()->isSimulation()){
     cout<<"RichPMTsManager::Init -- Initializing PMT simulation tables."<<endl; 
-    for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
+
+    // Check if there is a file containing the information. If not compute the table 
+    // and save the file 
+    char filename[200];
+    UHTOC(RICCONTROLFFKEY.pmttables,200,filename,200);
+ 
+    if(strlen(filename)==0){
+      // Try a default file, which is not necessarilly the best one
+      sprintf(filename,"%s/%s/RichDefaultPMTTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+    }
+
+
+    bool done=false;
+    geant table_gain[RICmaxpmts*RICnwindows*2];
+    geant table_sigma_gain[RICmaxpmts*RICnwindows*2];
+
+    if(strlen(filename)!=0){
+      //Load table from file
+      cout<<"RichPMTsManager::Init -- Loading from "<<filename<<endl; 
+      fstream stream;
+      stream.open(filename,fstream::in);
+      if(stream.is_open() && !stream.fail()){
+	stream.read((char*)table_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	stream.read((char*)table_sigma_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+
+	if(!stream.eof()){
+	  // First, check the gains of all the PMTs
+	  int index=0;
+	  for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	    for(int channel=0;channel<RICnwindows;channel++)
+	      for(int mode=0;mode<2;mode++){
+		geant my_gain=RichPMTsManager::Gain(_pmts[pmt]._geom_id,channel,mode);
+		geant my_sigma_gain=RichPMTsManager::GainSigma(_pmts[pmt]._geom_id,channel,mode);
+		
+		if(my_gain!=table_gain[index] || my_sigma_gain!=table_sigma_gain[index]){
+  		  cout<<"RichPMTsManager::Init -- File "<<filename<<" content incompatible with calibration... computing new ones"<<endl; 
+		  goto check_finished;
+		} 
+		
+		index++;
+	      }
+	}
+
+	// Tables seem to be OK, start reading their contents 
+	for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	  for(int channel=0;channel<RICnwindows;channel++)
+	    for(int mode=0;mode<2;mode++){
+	      stream.read((char*)(&_pmts[pmt]._step[channel][mode]),sizeof(_pmts[0]._step[0][0]));
+	      stream.read((char*)(_pmts[pmt]._cumulative_prob[channel][mode]),sizeof(_pmts[0]._cumulative_prob[0][0][0])*RIC_prob_bins);
+	      
+	      if(stream.eof() || stream.fail()){
+		cout<<"RichPMTsManager::Init -- Fail while reading file "<<filename<<" tables... computing new ones"<<endl; 
+		goto check_finished;
+	      }
+	      
+	      
+	    }	  
+
+	done=true;	
+      }
+
+    }
+    
+  check_finished:
+
+    if(!done){
+      cout<<"RichPMTsManager::Init -- Explicitly computing tables..."<<endl;
+      for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
+    }
+    
+    UHTOC(RICCONTROLFFKEY.pmttables_out,200,filename,200);
+    if(strlen(filename)!=0){
+      // Save current table in file
+      fstream stream;
+      stream.open(filename,fstream::out);
+      cout<<"RichPMTsManager::Init -- Saving the tables in "<<filename<<endl;
+      if(stream.is_open()){
+	// Fill the gain and sigma gain tables and write them
+	int index=0;
+	  for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	    for(int channel=0;channel<RICnwindows;channel++)
+	      for(int mode=0;mode<2;mode++){
+		table_gain[index]=RichPMTsManager::Gain(_pmts[pmt]._geom_id,channel,mode);
+		table_sigma_gain[index]=RichPMTsManager::GainSigma(_pmts[pmt]._geom_id,channel,mode);
+		index++;	
+	      }
+	stream.write((char*)table_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	stream.write((char*)table_sigma_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	// Now start writing the tables
+	for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	  for(int channel=0;channel<RICnwindows;channel++)
+	    for(int mode=0;mode<2;mode++){
+	    stream.write((char*)(&_pmts[pmt]._step[channel][mode]),sizeof(_pmts[0]._step[0][0]));
+	      stream.write((char*)(_pmts[pmt]._cumulative_prob[channel][mode]),sizeof(_pmts[0]._cumulative_prob[0][0][0])*RIC_prob_bins);
+	    }
+
+	stream.close();
+      }else{
+	cout<<"RichPMTsManager::Init -- Failed when writing to file "<<filename<<"   Ignoring"<<endl;
+      }
+      
+    }
   }
 
   //

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.269 2008/02/28 16:14:55 choutko Exp $
+#  $Id: datacards.doc,v 1.270 2008/02/29 09:06:57 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -98,8 +98,14 @@ I214 Output filename(200)
 
 RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
-I 2  tsplit(0)                    // 1 Split time spent information (for optimization
-                                 // purposes); 0 do no split
+I 2  tsplit(0)                  // 1 Split time spent information (for optimization
+                                // purposes); 0 do no split
+I 3    mcinputtables[200]       // File to load precomputed single p.e. simulation tables
+                                // If no file is present, the file $AMSDataDir/$version/RichDefaultPMTTables.dat
+                                // is searched. If it is not found, or the calibration values differ
+                                // from the ones used to compute the tables, the tables are recomputed, but not saved 
+                                // unless explicitly stated in next key register 
+I 203  mcoutputtables[200]      // File to svae compute single p.e. simulation tables
 
 RICREC
 I 1  recon[0](1)                    //  RICH BETA reconstruction switch 
