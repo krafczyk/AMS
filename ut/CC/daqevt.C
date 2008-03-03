@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.110 2008/02/27 09:50:11 choutko Exp $
+//  $Id: daqevt.C,v 1.111 2008/03/03 16:11:18 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -347,6 +347,13 @@ if(pdata){
 }
 return 0;
 }
+
+integer DAQEvent::_cltype(int16u *pdata){
+const int16u rtype=0x1f;
+return  ((*pdata)&rtype)==rtype?2:1;
+}
+
+
 integer DAQEvent::getpreset(int16u *pdata){
 const  int16u lmask=0x8000; 
 const int16u rtype=0x1f;
@@ -473,7 +480,12 @@ integer DAQEvent::_EventOK(){
   else return 0;
 #endif
 }
-
+bool DAQEvent::CalibRequested(unsigned int crate,unsigned int xdr){
+if(crate<sizeof(_CalibData)/sizeof(_CalibData[0])){
+  return (_CalibData[crate] & (1<<xdr))!=0;
+}
+else return false;
+}
 integer DAQEvent::_HeaderOK(){
   if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
@@ -495,10 +507,13 @@ integer DAQEvent::_HeaderOK(){
           }
           shift=5;
       }
-      if( int mask= ((*(_pcur+12)>>5) & 15)){
-          if(nmsg++<100){
-          cout<< "DAQEVent::_HeadrOK-I-CrateMaskInfoFound "<<mask<<endl;
-          }
+      int mask= ((*(_pcur+shift+12)>>6) & 15);
+      _setcalibdata(mask);
+      if(mask){
+       for(int16u* pmask=_pcur+shift+12+3;pmask<_pcur+_cl(_pcur);pmask+=2){
+        int16u portj=_getportj(*pmask>>8);
+        _CalibData[portj]=(((*pmask)&255)<<16) | *(pmask+1);        
+       }
       }
       _Checked=1;
 #ifdef __AMSDEBUG__
@@ -682,9 +697,9 @@ void DAQEvent::buildRawStructures(){
     else if(_isjinf(id)){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
-      int16u *pdown=_pcur+_cll(_pcur)+2;
+      int16u *pdown=_pcur+_cll(_pcur)+_cltype(_pcur+_cll(_pcur));
       int16u *psafe=pdown;
-      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur)-2-1);
+      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur)-_cltype(_pcur+_cll(_pcur))-1);
       fpl->_pputdata(n,psafe);
      }
     }

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.540 2008/02/29 14:43:19 mdelgado Exp $
+// $Id: job.C,v 1.541 2008/03/03 16:11:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -593,12 +593,12 @@ for( i=0;i<8;i++){
   TRALIG.ActiveParameters[i][0]=one;   // x
   TRALIG.ActiveParameters[i][1]=one;   // y
   TRALIG.ActiveParameters[i][2]=-one;   // z
-  TRALIG.ActiveParameters[i][2]=zero;   // z
+  //TRALIG.ActiveParameters[i][2]=zero;
   TRALIG.ActiveParameters[i][3]=-one;   // pitch  zx
-  TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
+  //TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
   TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
   TRALIG.ActiveParameters[i][5]=-one;   // roll   yz
-  TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
+  //TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
   if(i==1){
    for (int k=0;k<6;k++){
    if(TRALIG.ActiveParameters[i][k]==-one)TRALIG.ActiveParameters[i][k]=zero;  
@@ -1707,9 +1707,9 @@ _reamsinitjob();
 
 
 
-if(isCalibration())_caamsinitjob();
 _timeinitjob();
 map(1);
+if(isCalibration())_caamsinitjob();
 _dbinitjob();
 cout << *this;
 }
@@ -3156,6 +3156,29 @@ if(MISCFFKEY.BeamTest>1){
                           AMSTrAligFit::gettraliggldbp(),server));
    if(TRALIG.ReWriteDB)ptdv->UpdateMe();
 }
+
+
+
+
+if(!isRealData()){
+  tm begin;
+  tm end;
+  AMSTrAligFit::InitADB();
+  if(TRALIG.UpdateDB){
+    begin=AMSmceventg::Orbit.Begin;
+    end=AMSmceventg::Orbit.End;
+  }
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
+
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglADB02",
+                          isRealData()),begin,end,AMSTrAligFit::gettraliggladbsize(),
+
+                          AMSTrAligFit::gettraliggladbp(),server));
+}
+
 
 
 

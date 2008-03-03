@@ -132,15 +132,10 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 }
 
-int16 AMSTRDRawHit::getdaqid(int id){
-   switch(id){
-    case 0:
-      return 8;
-    case 1:
-      return 2;
-    default:
-      return -1;      
-}
+integer AMSTRDRawHit::getdaqid(int16u crate){
+ for(int i=0;i<31;i++){
+   if(checkdaqid(i)-1 == crate)return i;
+ }
 }
 
 integer AMSTRDRawHit::checkdaqidS(int16u id){
@@ -161,11 +156,12 @@ integer AMSTRDRawHit::checkdaqidS(int16u id){
 
 integer AMSTRDRawHit::checkdaqid(int16u id){
 
+  char sstr[128];
  for(int i=0;i<getmaxblocks();i++){
-  if((id)==getdaqid(i))return i+1;
+  sprintf(sstr,"JINFU%X",i);
+  if(DAQEvent::ismynode(id,sstr))return i+1; 
  }
  for(int i=0;i<getmaxblocks();i++){
-  char sstr[128];
   sprintf(sstr,"JF-U%d",i);
   if(DAQEvent::ismynode(id,sstr))return i+1; 
  }
@@ -217,18 +213,24 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
          else id.clearstatus(AMSDBc::BAD);
        }
   }
+   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
   bool update=true;
   int nc=0;
+  int ncp=0;
   for(int i=0;i<getmaxblocks();i++){
    for (int j=0;j<trdid::nudr;j++){
-    if(!AMSTRDIdSoft::_Calib[i][j]){
+    bool creq=false;
+    for(int k=0;k<4;k++){
+     creq=creq || (pdaq && pdaq->CalibRequested(getdaqid(i),j*4+k));
+    }
+    if(!AMSTRDIdSoft::_Calib[i][j] && creq){
      update=false;
     }
-    else nc++;
+    else if(AMSTRDIdSoft::_Calib[i][j])nc++;
+    if(creq)ncp++;
   }
  }
- cout <<"  nc TRD "<<nc<<endl;
-    if(nc>=6)AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
+ cout <<"  nc TRD "<<nc<<" "<<ncp<<endl;
   if(update){
     AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
    for(int i=0;i<getmaxblocks();i++){
@@ -313,7 +315,8 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
         int roch=cha%16;
         int ute=cha/16;
         if(ufe>=trdid::nufe){
-         cerr<<"AMSTRDRawHit::buildraw-E-ufeOutOfRange "<<ufe;
+         static int nmsg=0;
+         if(nmsg++<100)cerr<<"AMSTRDRawHit::buildraw-E-ufeOutOfRange "<<ufe;
          continue;
         }
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
@@ -351,6 +354,7 @@ void AMSTRDRawHit::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
     TRDRawHitNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdht();
     if (TrN->Ntrdht>=MAXTRDRHT) return;
     TrN->Layer[TrN->Ntrdht]=_id.getlayer();
@@ -358,6 +362,7 @@ void AMSTRDRawHit::_writeEl(){
     TrN->Tube[TrN->Ntrdht]=_id.gettube();
     TrN->Amp[TrN->Ntrdht]=Amp();
     TrN->Ntrdht++;
+*/
   }
 
 }

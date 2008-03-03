@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.22 2008/02/27 12:03:03 choutko Exp $
+//  $Id: tralig.h,v 1.23 2008/03/03 16:11:20 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -199,6 +199,7 @@ number _Chi2Max;
 AMSTrAligPar _pParC[trconst::maxlad];
 static AMSTrAligPar _pPargl[trconst::maxlad][2][trconst::maxlay];
 static gldb_def _gldb[trconst::maxlad+1][2][trconst::maxlay];
+static gldb_def _antigldb[trconst::maxlad+1][2][trconst::maxlay];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
@@ -211,14 +212,19 @@ public:
 AMSTrAligFit();
 AMSTrAligFit(uintl _Address, integer pattern, integer data, integer alg, integer nodeno);
 static AMSTrAligPar * SearchDBgl(uintl address);
+static AMSTrAligPar * SearchAntiDBgl(AMSTrIdGeom*pid);
 static const char * GetAligString();
 static integer glDBOK(uinteger add);
 static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}
+static gldb_def * gettraliggladbp(){ return &(_antigldb[0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}
+static integer gettraliggladbsize(){return sizeof(_antigldb);}
 static void InitDB();
+static void InitADB();
 static void Test(int i=0);
 static void Testgl(int i=0);
 static AMSID getTDVGLDB();
+static AMSID getTDVAGLDB();
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uintl address, integer strict=0);
 void Fit();

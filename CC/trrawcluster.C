@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.81 2008/02/21 14:40:02 choutko Exp $
+//  $Id: trrawcluster.C,v 1.82 2008/03/03 16:11:19 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -311,6 +311,12 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 }
 
 
+integer AMSTrRawCluster::getdaqid(int16u crate){
+ for(int i=0;i<31;i++){
+   if(checkdaqid(i)-1==crate)return i;
+ }
+ return -1;
+}
 integer AMSTrRawCluster::checkdaqid(int16u id){
   char sstr[128];
  for(int i=0;i<getmaxblocks();i++){
@@ -728,17 +734,20 @@ if(nerr>0){
      cerr <<"  AMSTrRawCluster::updtrcalibS-E-RawSigmaProblems "<<nerr<<endl;
 }
   bool update=true;
+   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
   int nc=0;
+  int ncp=0;
   for(int i=0;i<getmaxblocks();i++){
    for (int j=0;j<trid::ntdr;j++){
-    if(!AMSTrIdSoft::_Calib[i][j]){
+    if(!AMSTrIdSoft::_Calib[i][j] && (pdaq && pdaq->CalibRequested(getdaqid(i),j))){
      update=false;
     }
-    else nc++;
+    else if(AMSTrIdSoft::_Calib[i][j])nc++;
+    if( (pdaq && pdaq->CalibRequested(getdaqid(i),j)))ncp++;
   }
   }
-  cout <<" nc "<<nc<<endl;
-  if(update || nc>=TRCALIB.EventsPerCheck){
+  cout <<" nc "<<nc<<" "<<ncp<<endl;
+  if(update ){
      update=true;
    for (int i=0;i<2;i++){
    AMSTimeID * ptdv;

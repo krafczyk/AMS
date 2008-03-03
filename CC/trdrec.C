@@ -409,6 +409,7 @@ void AMSTRDSegment::_writeEl(){
 #ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
    TRDSegmentNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdseg();
    if (TrN->Ntrdseg>=MAXTRDSEG) return;
    TrN->Status[TrN->Ntrdseg]=_status;
@@ -439,8 +440,8 @@ void AMSTRDSegment::_writeEl(){
     }
    }
    TrN->Ntrdseg++;
+*/
   }
-
 }
 
 void AMSTRDSegment::_copyEl(){
@@ -582,6 +583,7 @@ void AMSTRDTrack::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   TRDTrackNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdtrk();
 
   if (TrN->Ntrdtrk>=MAXTRDTRK) return;
@@ -615,8 +617,8 @@ void AMSTRDTrack::_writeEl(){
     }
    }
    TrN->Ntrdtrk++;
+*/
   }
-
 }
 
 void AMSTRDTrack::_copyEl(){

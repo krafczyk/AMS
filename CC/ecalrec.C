@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.99 2007/10/01 13:30:53 choumilo Exp $
+//  $Id: ecalrec.C,v 1.100 2008/03/03 16:11:18 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -961,6 +961,7 @@ void AMSEcalHit::_writeEl(){
 #ifdef __WRITEROOT__
        AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
     if (TN->Necht>=MAXECHITS ) return;
 // Fill the ntuple
     TN->Status[TN->Necht]=_status;
@@ -989,6 +990,7 @@ void AMSEcalHit::_writeEl(){
     TN->Ped[TN->Necht][2]=ic.getpedd();
     TN->Gain[TN->Necht]=ic.getgain();
     TN->Necht++;
+*/
   }
 }
 //---------------------------------------------------
@@ -1023,6 +1025,7 @@ void Ecal1DCluster::_writeEl(){
 #ifdef __WRITEROOT__
      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   EcalClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecclust();
 
   if (TN->Neccl>=MAXECCLUST) return;
@@ -1071,6 +1074,7 @@ void Ecal1DCluster::_writeEl(){
       }
      else TN->pLeft[TN->Neccl]=-1;
     TN->Neccl++;
+*/
   }
 }
 void Ecal1DCluster::_copyEl(){
@@ -1399,6 +1403,7 @@ void AMSEcal2DCluster::_writeEl(){
 #ifdef __WRITEROOT__
        AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
 // Fill the ntuple
   Ecal2DClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_ec2dclust();
 
@@ -1440,6 +1445,7 @@ void AMSEcal2DCluster::_writeEl(){
         }
 
     TN->Nec2dcl++;
+*/
   }
 }
 
@@ -1847,6 +1853,7 @@ void AMSEcalShower::_writeEl(){
 #ifdef __WRITEROOT__
      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   EcalShowerNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecshow();
 
   if (TN->Necsh>=MAXECSHOW) return;
@@ -1887,8 +1894,8 @@ void AMSEcalShower::_writeEl(){
      TN->N2DCl[TN->Necsh]  = _N2dCl;
      for(int i=0;i<2;i++)TN->p2DCl[TN->Necsh][i]=_pCl[i]->getpos();
     TN->Necsh++;
+*/
   }
-
 }
 
 void AMSEcalShower::DirectionFit(){

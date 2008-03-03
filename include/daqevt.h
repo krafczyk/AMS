@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.42 2008/02/21 14:40:02 choutko Exp $
+//  $Id: daqevt.h,v 1.43 2008/03/03 16:11:20 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -62,6 +62,7 @@ uinteger _Length;
 uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
+ uinteger _CalibData[32];
 int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
 uinteger _usec;
@@ -78,6 +79,7 @@ integer _EventOK();
 integer getpreset(int16u *pdata);
 uinteger _cl(int16u *pdata);
 integer _cll(int16u *pdata);  // calculate length of length !!!
+integer _cltype(int16u *pdata);  // calculate length of length !!!
 static integer _getnode(int16u id){
    return ((id>>5)&((1<<9)-1));
 }
@@ -109,6 +111,9 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 #if !defined( __ALPHA__) && !defined(sun)
+void _setcalibdata(int mask){
+for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
+}
 static integer _select(const dirent * entry=0);
 static int _sort(const dirent **e1, const dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #else
@@ -116,11 +121,13 @@ static integer _select(dirent * entry=0);
 static int _sort(dirent ** e1,  dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 public:
+
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0){
 for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
+_setcalibdata(0);
 }
 static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(_getnode(id)>127 && strstr(_getnodename(id),sstr));}
 static bool isRawMode(int16u id){return (id&64)>0;}
@@ -140,6 +147,8 @@ void setoffset(uinteger offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_SubLength[0])?_SubLength[i]*sizeof(_pData[0]):0;}
+uinteger getcalibdata(unsigned int i) const {return i<sizeof(_CalibData)/sizeof(_CalibData[0])?_CalibData[i]:0;}
+bool  CalibRequested(unsigned int crate, unsigned int xdr);
 void close(){ fbin.close();fbout.close();}
 static char * _DirName;
 static char ** ifnam;

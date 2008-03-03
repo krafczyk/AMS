@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.191 2008/02/28 16:14:54 choutko Exp $
+//  $Id: trrec.C,v 1.192 2008/03/03 16:11:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -802,6 +802,7 @@ void AMSTrCluster::_writeEl(){
 #ifdef __WRITEROOT__
      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
     TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
 
     if (TrN->Ntrcl>=MAXTRCL) return;
@@ -818,6 +819,7 @@ void AMSTrCluster::_writeEl(){
     for(i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
     for(i=getnelem();i<5;i++)TrN->Amplitude[TrN->Ntrcl][i]=0;
     TrN->Ntrcl++;
+*/
   }
 }
 
@@ -1110,7 +1112,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
  void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
-                            AMSTrCluster * y, const AMSPoint & hit,
+                            AMSTrCluster * y,  const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
     number ss1,ss2;
@@ -1134,8 +1136,21 @@ integer AMSTrRecHit::markAwayTOFHits(){
     geant bfield[3], ghit[3];
     for (int j=0;j<3;j++) { ghit[j] = (float)hit[j]; }
     GUFLD(ghit, bfield);
+     AMSPoint hitN(hit);
+    if(!AMSJob::gethead()->isRealData()){
+       AMSTrAligPar * par(0);
+    if( par=AMSTrAligFit::SearchAntiDBgl(pid)){
+     status=status | (AMSDBc::LocalDB);
+     for(int j=0;j<3;j++){
+      hitN[j]=(par[pid->getlayer()-1].getcoo())[j]+
+       (par[pid->getlayer()-1].getmtx(j)).prod(hit);
+      }
+//      cout <<"  local db "<<hit-hitN<<" "<<hitN<<endl;
+     }
+
+    }   
     AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",pid->getlayer()-1),
-    new     AMSTrRecHit(pSen, status,pid,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));
+    new     AMSTrRecHit(pSen, status,pid,cofgx,cofgy,x,y,hitN,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));
 //    cout <<"cfgx  "<<cofgx<<" "<<ptr<<" "<<layer<<" "<<cofgy<<endl;
     if(ptr && GOOD)ptr->setstatus(AMSDBc::GOOD);  
 }
