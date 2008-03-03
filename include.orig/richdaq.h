@@ -56,7 +56,8 @@ class DAQRichBlock{
     DAQRichBlock::StatusParser status;  // The parsed status 
     
     FragmentParser(int16u *pointer){
-      length=(*pointer)/sizeof(uint16); // Count length in words instead of bytes
+      //      length=(*pointer)/sizeof(uint16); // Count length in words instead of bytes
+      length=(*pointer);  // Count length in words instead of bytes (the CDP provided the length in words directly)
       data=pointer+1;
       next=pointer+1+length;            //+1 is because length does not count itself
       status=*(pointer+length); 

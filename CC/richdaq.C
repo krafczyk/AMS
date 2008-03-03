@@ -10,10 +10,12 @@ int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (l
 
 // Now a table giving, for each pair RICH_JINF link and RDR link, which physical
 // RDR it is (counting from 0 clockwise, starting from crate 1) 
-int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links (really ports). Currently dummy 
+int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links (really ports) -> given the JINF (0 ot 1 corresponding to ports 10 and 11) and the link number, you get the
+                                                          // physical CDP number  
   {
-    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11},       //JINR0
-    {12,13,14,15,16,17,18,19,20,21,22,23,12,13,14,15,16,17,18,19,20,21,22,23}        //JINR1
+//    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22
+    { 7, 5,-1,-1, 6, 9,-1,-1,10,11,-1,-1, 8, 2,-1,-1, 1, 0,-1,-1, 3, 4,-1},  // JINF-R-0-P
+    {19,23,-1,-1,18,21,-1,-1,22,17,-1,-1,20,14,-1,-1,13,12,-1,-1,15,16,-1}   // JINF-R-1-P
   };
 int DAQRichBlock::Status=DAQRichBlock::kOk;
 
@@ -39,7 +41,8 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   
   // This is supposed to be a JINF block: get the status word and check it
   StatusParser status(*(p-1+length));
-  if(!status.isData || status.errors || status.isCDP) Do(kDataError);
+  // if(!status.isData || status.errors || status.isCDP) Do(kDataError);
+  if(status.errors || status.isCDP) Do(kDataError);
   
   // Get the JINF number
   uint id=status.slaveId;  
@@ -53,7 +56,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   
   int low_gain[RICH_PMTperCDP][RICnwindows];       // Buffer to store low gain information just in case it is needed
   for(CDPFound=0;;CDPFound++){
-    if(pointer>p-1+length) break;   // Last fragment processed       
+    if(pointer>=p-1+length) break;   // Last fragment processed       
     
     FragmentParser cdp(pointer);
     if(cdp.status.errors) Do(kCDPError);
@@ -78,6 +81,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 	else{
 	  // Get the geom ID for this channel
 	  int physical_cdp=Links[JINF][CDP];
+	  assert(physical_cdp!=-1);
 	  int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
 	  if(geom_id>=0){
 	    // Get the pixel geom id, substract the pedestal, check that
@@ -120,6 +124,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
 	  do{
 	    int physical_cdp=Links[JINF][CDP];
+	    assert(physical_cdp!=-1);
 	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
 
 	    if(geom_id<0) Do(kWrongCDPChannelNumber);
