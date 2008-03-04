@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.90 2008/02/28 16:14:55 choutko Exp $
+//  $Id: trrec.h,v 1.91 2008/03/04 12:56:49 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -426,7 +426,7 @@ AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
 void SimpleFit();
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length, int icase=0);
-void interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
+bool interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
                     AMSPoint & P1, number & theta, number & phi, 
                     number & length);
 void getParFastFit(number&  Chi2, number& Rid, number&  Err, 

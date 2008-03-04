@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.158 2008/02/28 16:14:54 choutko Exp $
+//  $Id: particle.C,v 1.159 2008/03/04 12:56:49 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -238,6 +238,8 @@ for(kk=0;kk<4;kk++){
 
 void AMSParticle::antifit(){
 number theta, phi, sleng;
+_AntiCoo[0]=AMSPoint(0,0,10000);
+_AntiCoo[1]=AMSPoint(0,0,10000);
 for(int kk=0;kk<2;kk++){
    AMSAntiCluster d(0,1);
    AMSgvolume *p=AMSJob::gethead()->getgeomvolume(d.crgid());
@@ -245,7 +247,10 @@ for(int kk=0;kk<2;kk++){
       AMSPoint coo(p->getcooA(0),p->getcooA(1),p->getcooA(2));
       number rad=(p->getpar(0)+p->getpar(1))/2.;
       AMSDir dir(p->getnrmA(2,0),p->getnrmA(2,1),p->getnrmA(2,2));
-     _ptrack->interpolateCyl(coo,dir,rad,2*kk-1,_AntiCoo[kk],theta,phi,sleng);
+     if(!_ptrack->interpolateCyl(coo,dir,rad,2*kk-1,_AntiCoo[kk],theta,phi,sleng)){
+     _AntiCoo[kk]=AMSPoint(0,0,10000);
+     break;
+   }
    }
    else {
    cerr << " antifit-S- No sector no " << kk+1<<endl ;

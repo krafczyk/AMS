@@ -1688,7 +1688,9 @@ public:
   /// \param number index in container
   /// \return human readable info about ParticleR
   char * Info(int number=-1){
-   sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f Coo=(%5.2f,%5.2f,%5.2f)",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,Coo[0],Coo[1],Coo[2]);
+   double anti=AntiCoo[0][2];
+   if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
+   sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f Coo=(%5.2f,%5.2f,%5.2f) AntiC=%5.2f ",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,Coo[0],Coo[1],Coo[2],anti);
    return _Info;
   }
   ParticleR(){};

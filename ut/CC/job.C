@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.541 2008/03/03 16:11:19 choutko Exp $
+// $Id: job.C,v 1.542 2008/03/04 12:56:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -495,6 +495,7 @@ TRCALIB.Method=2;
 TRCALIB.Pass=1;
 TRCALIB.DPS=1;
 TRCALIB.UPDF=4;
+TRCALIB.LaserRun=0;
 TRCALIB.PrintBadChList=0;
 TRCALIB.EventsPerIteration[0]=100;
 TRCALIB.EventsPerIteration[1]=100;

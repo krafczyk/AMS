@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.111 2008/03/03 16:11:18 choutko Exp $
+//  $Id: daqevt.C,v 1.112 2008/03/04 12:56:49 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -487,6 +487,8 @@ if(crate<sizeof(_CalibData)/sizeof(_CalibData[0])){
 else return false;
 }
 integer DAQEvent::_HeaderOK(){
+  const integer Laser=204;
+  static int lr=-1;
   if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(!_ComposedBlock()){
@@ -499,6 +501,14 @@ integer DAQEvent::_HeaderOK(){
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
+      if(_RunType==Laser && TRCALIB.LaserRun==0){
+          TRCALIB.LaserRun=22;
+          cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
+      }
+      else if(_RunType!=Laser && TRCALIB.LaserRun==22){
+           cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
+           TRCALIB.LaserRun=0;
+      }
       static int nmsg=0;
       int shift=0;
       if((*(_pcur+12)) & (1<<15)){
@@ -549,9 +559,10 @@ integer DAQEvent::_HeaderOK(){
 }
 
 integer DAQEvent::_DDGSBOK(){
+  const integer Laser=204;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(_isddg(*(_pcur+_cll(_pcur)))){
-      if(_RunType!=202 && calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
+      if(_RunType!=Laser && calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
        cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
        return 0;
       }

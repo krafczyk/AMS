@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.192 2008/03/03 16:11:19 choutko Exp $
+//  $Id: trrec.C,v 1.193 2008/03/04 12:56:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2917,7 +2917,7 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
   length=slength;  
 }
 
-void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
+bool AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
                                 number CylRadius, number idir, AMSPoint & P1,
                                 number & theta, number & phi, number & length){
 
@@ -2941,10 +2941,13 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
   number s2=(CylCenter-_P0).prod(CylCenter-_P0);
   number s1=(CylCenter-_P0).prod(CylAxis);
   number sdist=CylRadius-sqrt(s2-s1*s1);
-  number local;
+  number sleng;
   if(sdist<0){
-    // interpolate to 2nd ladder first;
-   integer ok=intercept(P1,2,theta,phi,local);
+//  try  to interpolate to smth reasonable
+   AMSDir Dir(_Theta,_Phi);
+   number t=-((_P0-CylCenter)[0]*Dir[0]+(_P0-CylCenter)[1]*Dir[1])/(Dir[0]*Dir[0]+Dir[1]*Dir[1]);
+   AMSPoint Coo=_P0+Dir*t;
+   interpolate(Coo,CylAxis,P1,theta,phi,sleng);    
    AMSDir dir(idir*sin(theta)*cos(phi),
              idir*sin(theta)*sin(phi),
              idir*cos(theta));
@@ -2954,6 +2957,9 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
    init[3]=dir[0];
    init[4]=dir[1];
    init[5]=dir[2];
+    s2=(CylCenter-P1).prod(CylCenter-P1);
+    s1=(CylCenter-P1).prod(CylAxis);
+    sdist=CylRadius-sqrt(s2-s1*s1);
   }
   else {
    AMSDir dir(idir*sin(_Theta)*cos(_Phi),
@@ -2966,6 +2972,9 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
    init[4]=dir[1];
    init[5]=dir[2];
   }
+  if(sdist<0){
+   return false;
+  }
    init[6]=_Ridgidity;
    TKFITPARCYL(init, charge,  point,  out,  m55, slength);
   P1[0]=out[0];
@@ -2974,6 +2983,7 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
   theta=acos(out[5]);
   phi=atan2(out[4],out[3]);
   length=slength;  
+   return length<1000000;
 }
 
 
