@@ -227,7 +227,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,4)       //HeaderR
+  ClassDef(HeaderR,5)       //HeaderR
 };
 
 
@@ -3616,7 +3616,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,4)       //AMSEventR
+ClassDef(AMSEventR,5)       //AMSEventR
 };
 
 //!  AMSChain class
