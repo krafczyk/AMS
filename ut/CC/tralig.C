@@ -1,4 +1,5 @@
-//  $Id: tralig.C,v 1.43 2008/03/05 10:49:35 choutko Exp $
+
+//  $Id: tralig.C,v 1.44 2008/03/05 19:52:58 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -553,6 +554,7 @@ again:
           geant chi2[10000][2];
          FIT(arr,fixpar,chi2m,alg,what,xf,chi2);
          what=0;
+         cout <<" Total "<<pal->_PositionData<<endl;
          for(int ip=0;ip<pal->_PositionData;ip++){
              integer ladder[2][maxlay];
              AMSTrTrack::decodeaddress(ladder,pal->_pData[ip]._Address);
@@ -1957,6 +1959,7 @@ for(i=0;i<trconst::maxlay;i++){
           _gldb[j][k][i].coo[l]=_pPargl[j][k][i].getcoo()[l];
           _gldb[j][k][i].ang[l]=_pPargl[j][k][i].getang()[l];
          }
+            cout <<" ijk "<<i<<" "<<j<<" "<<k<<" "<< _gldb[j][k][i].getcoo()<<endl;
         }
       }
      }
@@ -2023,7 +2026,8 @@ return alig;
 
 
 
-AMSTrAligPar* AMSTrAligFit::SearchAntiDBgl(AMSTrIdGeom*pid){
+AMSTrAligPar* AMSTrAligFit::SearchAntiDBgl(AMSTrIdGeom*pid,bool anti){
+if(anti){
 if(!_antigldb[trconst::maxlad][1][0].nentries)return 0;
 AMSTrAligPar *alig=AMSTrAligPar::getparp();
 bool lyonly=false;
@@ -2051,6 +2055,36 @@ else{
           }
 }
 return alig;
+}
+else{
+if(!_gldb[trconst::maxlad][1][0].nentries)return 0;
+AMSTrAligPar *alig=AMSTrAligPar::getparp();
+bool lyonly=false;
+for(int i=0;i<trconst::maxlay;i++){
+if(_gldb[trconst::maxlad][0][i].nentries){
+  lyonly=true;
+  break;
+}
+}
+if(lyonly){
+     int i=pid->getlayer()-1;
+          (alig+i)->setpar(_gldb[trconst::maxlad][0][i].getcoo(),_gldb[trconst::maxlad][0][i].getang());
+}   
+else{
+    integer lad[2][trconst::maxlay];    
+     int i=pid->getlayer()-1;
+     lad[0][i]=pid->getladder();
+     lad[1][i]=pid->gethalf();
+          int ld=lad[0][i]-1;
+          if(ld>=0){
+           (alig+i)->setpar(_gldb[ld][lad[1][i]][i].getcoo(),_gldb[ld][lad[1][i]][i].getang());
+          }
+          else{
+           (alig+i)->setpar(AMSPoint(),AMSPoint());
+          }
+}
+return alig;
+}
 }
 
 
@@ -2110,6 +2144,7 @@ else{
   for(int l=0;l<trconst::maxlad;l++){
    for(int m=0;m<2;m++){
     if(_pPargl[l][m][i].NEntries()>TRALIG.MinEventsPerFit/2){
+     //cout <<" "<<l<<" "<<m<<" "<<i<<" "<<_pPargl[l][m][i].NEntries()<<endl;
      int nprp=0;
      for(int j=0;j<6;j++){ 
       if(TRALIG.ActiveParameters[i][j]){

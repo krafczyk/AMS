@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.91 2008/03/04 12:56:49 choutko Exp $
+//  $Id: trrec.h,v 1.92 2008/03/05 19:52:59 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -146,7 +146,9 @@ AMSTrIdGeom _Id;
 AMSTrCluster *_Xcl;
 AMSTrCluster *_Ycl;
 AMSPoint     _Hit;
+AMSPoint     _HitA;
 AMSPoint     _EHit;
+AMSPoint     _EHitA;
 number       _Sum;
 number       _DifoSum;
 number       _cofgx;
@@ -231,7 +233,7 @@ static AMSTrRecHit * gethead(integer i=0){
 AMSTrRecHit(AMSgSen *p, integer good,AMSTrIdGeom *pid, number cofgx, number cofgy,AMSTrCluster * xcl, AMSTrCluster * ycl,
             const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs, const AMSPoint & bfield): AMSlink(good,0),
             _pSen(p), _Xcl(xcl),_cofgx(cofgx),_cofgy(cofgy),_Id(*pid),
-            _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs),_Bfield(bfield){};
+            _Ycl(ycl), _Hit(hit),_EHit(ehit),_Sum(sum),_DifoSum(dfs),_Bfield(bfield){sethit();};
 AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0),_cofgx(0),_cofgy(0),_Id(){};
 static integer build(integer refit=0);
 static integer buildWeak(integer refit=0);
@@ -241,9 +243,10 @@ number getsum()const{return _Sum;}
 number getsonly()const {return _Sum*(1-_DifoSum);}
 number getkonly()const {return _Sum*(1+_DifoSum);}
 AMSgSen * getpsen()const{return _pSen;}
-inline  AMSPoint  getHit(){return _Hit;}
+inline  AMSPoint  getHit(bool alig=true){return alig?_HitA:_Hit;}
+inline  AMSPoint  getEHit(bool alig=true){return alig?_EHitA:_EHit;}
+void sethit();
 AMSPoint  getlocHit(){ return (_pSen->up())->gl2loc(_Hit);}
-inline  AMSPoint  getEHit(){return _EHit;}
 inline  AMSPoint  getBfield(){return _Bfield;}
 integer       getLayer() const            {return _Id.getlayer();}
 AMSTrCluster* getClusterP(integer n) const {

@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.33 2008/03/05 10:49:36 choutko Exp $
+//  $Id: trrawcluster.h,v 1.34 2008/03/05 19:52:59 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -16,6 +16,7 @@
 
 class AMSTrRawCluster : public AMSlink{
 protected:
+geant  _sub;
 integer _address;   // as for idsoft
 integer _strip;
 integer _nelem;
@@ -47,10 +48,10 @@ integer operator < (AMSlink & o) const {
 }
 ~AMSTrRawCluster();
 AMSTrRawCluster(integer id=0):AMSlink(),_address(id),_strip(0),_nelem(0),
-_array(0),_s2n(0){}
+_array(0),_s2n(0),_sub(0){}
 AMSTrRawCluster(integer id,  integer nleft, integer nright,geant *p, geant s2n);
 AMSTrRawCluster(integer id,  integer nleft, integer nright,int16 *p, geant s2n);
-void expand( number *p) const ;
+void expand( number *p)  ;
 integer lvl3format(int16 * ptr, integer nmax,  integer matchedonly=0);
 static void sitkdigi();
   AMSTrRawCluster *  next(){return (AMSTrRawCluster*)_next;}

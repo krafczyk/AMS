@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.23 2008/03/03 16:11:20 choutko Exp $
+//  $Id: tralig.h,v 1.24 2008/03/05 19:52:59 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -212,7 +212,7 @@ public:
 AMSTrAligFit();
 AMSTrAligFit(uintl _Address, integer pattern, integer data, integer alg, integer nodeno);
 static AMSTrAligPar * SearchDBgl(uintl address);
-static AMSTrAligPar * SearchAntiDBgl(AMSTrIdGeom*pid);
+static AMSTrAligPar * SearchAntiDBgl(AMSTrIdGeom*pid,bool anti=true);
 static const char * GetAligString();
 static integer glDBOK(uinteger add);
 static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}

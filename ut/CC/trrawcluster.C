@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.83 2008/03/05 10:49:35 choutko Exp $
+//  $Id: trrawcluster.C,v 1.84 2008/03/05 19:52:58 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -76,7 +76,7 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,  integer matchedo
 
 
 
-void AMSTrRawCluster::expand(number *adc)const {
+void AMSTrRawCluster::expand(number *adc) {
 AMSTrIdSoft id(_address);
         if(TRCALIB.LaserRun>0){
         number sum=0;
@@ -93,6 +93,7 @@ AMSTrIdSoft id(_address);
         for (int i=0;i<_nelem;i++){
           if(imax>=0)_array[i]+=-max/2;
          }
+        if(imax>=0)_sub=max/2;
       } 
 
 
@@ -114,20 +115,20 @@ AMSTrRawCluster::~AMSTrRawCluster(){
 }
 
 geant AMSTrRawCluster::getamp(int k){
-    return k>=0 && k<_nelem?_array[k]:0;
+    return k>=0 && k<_nelem?_array[k]+_sub:0;
 }
 
 
 AMSTrRawCluster::AMSTrRawCluster(integer ad, integer left, integer right, 
                                  geant *p, geant s2n):_address(ad),
-                                 _strip(left),_nelem(right-left+1),_s2n(s2n){
+                                 _strip(left),_nelem(right-left+1),_s2n(s2n),_sub(0){
     _array=(integer*)UPool.insert(sizeof(_array[0])*_nelem);
     for(int k=0;k<_nelem;k++)_array[k]=integer(*(p+k));  
 }
 
 AMSTrRawCluster::AMSTrRawCluster(integer ad, integer left, integer right, 
                                  int16 *p, geant s2n):_address(ad),
-                                 _strip(left),_nelem(right-left+1),_s2n(s2n){
+                                 _strip(left),_nelem(right-left+1),_s2n(s2n),_sub(0){
     _array=(integer*)UPool.insert(sizeof(_array[0])*_nelem);
     for(int k=0;k<_nelem;k++)_array[k]=*(p+k);  
 }

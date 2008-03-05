@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.193 2008/03/04 12:56:49 choutko Exp $
+//  $Id: trrec.C,v 1.194 2008/03/05 19:52:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1357,7 +1357,7 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)&& !TRCALIB.LaserRun){
     AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
 //      cout <<" nrh "<<nrh<<" "<<ptr302->skip()<<" "<<ptr302->MainTrigger()<<endl;
@@ -1982,8 +1982,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
              }
            }
           }
-         // Make sure that the path integral fit is always tried
-         ptrack->Fit(5,2);
+         if(TRCALIB.LaserRun)ptrack->AdvancedFit();
          // permanently add;
           AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",0),ptrack);
 }
@@ -2134,6 +2133,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 
 
 void AMSTrTrack::AdvancedFit(){
+  _AdvancedFitDone=1;
     if(TKDBc::patpoints(_Pattern)>3){
       Fit(1);
       Fit(2);
@@ -2629,7 +2629,6 @@ _HP0[0]=AMSPoint(out[0],out[1],out[2]);
 
 }
 else if(fit==2){
-_AdvancedFitDone=1;
 _HChi2[1]=out[6];
 if(out[7] != 0)_HChi2[1]=FLT_MAX;
 _HRidgidity[1]=out[5];
@@ -3439,24 +3438,26 @@ void AMSTrTrack::_crHit(bool nodb=false){
    }
    setstatus(AMSDBc::LocalDB);
   }
-  else if(!nodb && (par=AMSTrAligFit::SearchDBgl(_Address))){
+//  else if(!nodb && (par=AMSTrAligFit::SearchDBgl(_Address))){
+  else if(!nodb ){
    setstatus(AMSDBc::GlobalDB);
    for(int i=0;i<_NHits;i++){
-    int plane=TKDBc::patconf(_Pattern,i)-1;
+//    int plane=TKDBc::patconf(_Pattern,i)-1;
     for(int j=0;j<3;j++){
-     _Hit[i][j]=(par[plane].getcoo())[j]+
-      (par[plane].getmtx(j)).prod(_Pthit[i]->getHit());
-     _EHit[i][j]=fabs((par[plane].getmtx(j)).prod(_Pthit[i]->getEHit()));
-//      cout <<i<<" "<<j<<" "<<_Hit[i][j]<<" "<<_Pthit[i]->getHit()[j]<<endl; 
+     _Hit[i][j]=_Pthit[i]->getHit(true)[j];
+     _EHit[i][j]=_Pthit[i]->getEHit(true)[j];
+//     _Hit[i][j]=(par[plane].getcoo())[j]+
+//      (par[plane].getmtx(j)).prod(_Pthit[i]->getHit(false));
+//    _EHit[i][j]=fabs((par[plane].getmtx(j)).prod(_Pthit[i]->getEHit()));
     }
    }
   }
   else{
    for(int i=0;i<_NHits;i++){
-    int plane=TKDBc::patconf(_Pattern,i)-1;
+//    int plane=TKDBc::patconf(_Pattern,i)-1;
     for(int j=0;j<3;j++){
-     _Hit[i][j]=_Pthit[i]->getHit()[j];
-     _EHit[i][j]=_Pthit[i]->getEHit()[j];
+     _Hit[i][j]=_Pthit[i]->getHit(false)[j];
+     _EHit[i][j]=_Pthit[i]->getEHit(false)[j];
     }
    }
   }
@@ -4074,4 +4075,19 @@ bool AMSTrTrack::getres(int layer, AMSPoint& res){
       }
      }
      return false;
+}
+
+
+
+void AMSTrRecHit::sethit(){
+       _HitA=_Hit;
+       _EHitA=_EHit;
+       AMSTrAligPar * par(0);
+    if( (par=AMSTrAligFit::SearchAntiDBgl(&_Id,false))){
+     for(int j=0;j<3;j++){
+      _HitA[j]=(par[_Id.getlayer()-1].getcoo())[j]+
+       (par[_Id.getlayer()-1].getmtx(j)).prod(_Hit);
+      _EHitA[j]=(par[_Id.getlayer()-1].getmtx(j)).prod(_EHit);
+      }
+     }
 }

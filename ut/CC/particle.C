@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.159 2008/03/04 12:56:49 choutko Exp $
+//  $Id: particle.C,v 1.160 2008/03/05 19:52:58 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -146,6 +146,7 @@ out:
             ppart->richfit();
              AMSgObj::BookTimer.stop("ReRICHRefit"); 
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
+           ppart->refit();
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
