@@ -21,6 +21,8 @@ $prog2run="TofAccPedCalculator";
 $outlogf="out.log";
 $binw_tev=120;#binwidth(sec/pix) for time-evolution graphs(2 min)
 $RunNum=0;
+$RunType=" ";
+$FileSize=0;
 $ServConnect=0;
 $ServObject=0;
 @barsppl=(8,8,10,8);
@@ -551,7 +553,9 @@ $mwnd->Label(-textvariable=>\$message,-background=>"yellow",-foreground=>darkred
 $log_fram=$mwnd->Frame(-label=>"LogFileFrame", -relief=>'groove', -borderwidth=>5)->place(
                                                       -relwidth=>0.7, -relheight=>0.95,
                                                       -relx=>0.3, -rely=>0);
-$logtext=$log_fram->Scrolled("Text",-width=>80, -height=>200,
+$logtext=$log_fram->Scrolled("Text",
+#                                                -scrollbars=>'osoe',
+#                                               -width=>80, -height=>200,
                                                     -font=>$font5,
 #						    -foreground=>blue,
                                                     -background=>LightBlue)
@@ -608,6 +612,8 @@ sub setRunDefs
      $stjob_b_state='normal';
      $Evs2Read=2000;
      $MinEvsInFile=10000;
+     $RunType="SCI";
+     $FileSize=100;#mb
   }
   elsif($pedcaltyp eq "Data"){
      if($tofantsel eq "useTOF"){$TruncCut="0.1";}
@@ -616,13 +622,17 @@ sub setRunDefs
      $stjob_b_state='normal';
      $Evs2Read=2000;
      $MinEvsInFile=10000;
+     $RunType="SCI";
+     $FileSize=100;#mb
   }
-  else{
+  else{#OnBoardTable
      $TruncCut="dummy";
      $par5_e_state='disabled';
      $stjob_b_state='normal';
      $Evs2Read=1;
      $MinEvsInFile=1;
+     $RunType="CAL";
+     $FileSize=0.5;#mb
   }
 #--
   if($tofantsel eq "useTOF"){
@@ -1202,26 +1212,29 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
   if($ServConnect){
     my $runmin=$fnum1;
     my $runmax=$fnum2;
-    my $sql = "SELECT run, path,fetime, nevents, tag, sizemb FROM amsdes.datafiles WHERE run>=$runmin AND run<=$runmax ORDER BY run";
+    my $sql = "SELECT run,type,path,fetime, nevents, tag, sizemb FROM amsdes.datafiles WHERE run>=$runmin AND run<=$runmax ORDER BY run";
     my $ret=$ServObject->Query($sql);
     if(defined $ret->[0][0]) {
       foreach my $r (@{$ret}){
         my $run       = $r->[0];
-        my $path      = $r->[1];
-        my $starttime = $r->[2];
-        my $nevents   = $r->[3];
-        my $tag   = $r->[4];
-        my $sizemb   = $r->[5];
-#	$rtype = $r->[6];
+	my $type      = $r->[1];
+        my $path      = $r->[2];
+        my $starttime = $r->[3];
+        my $nevents   = $r->[4];
+        my $tag   = $r->[5];
+        my $sizemb   = $r->[6];
+	$rtype = substr($type,0,3);#LAS,SCI,CAL,UNK
 	$path =~ s/\w+(?!\/)$//s;
 #	$path =~ s/$\d+(?=\/)//s;
-        $curline="  Run/RunTag:".$run."  ".$tag."   StTime/Size(mb):".$starttime."  ".$sizemb."  path:".$path."\n";
+        $fdat=run2time($starttime);
+	$fdat=substr($fdat,0,16);
+        $curline="  Run/Tag/RType:".$run." ".$tag." ".$rtype."  StTime=".$fdat." Evs/size:".$nevents." ".$sizemb."  Path:".$path."\n";
         $logtext->insert('end',$curline);
         $logtext->yview('end');
         $daqfstat[$ndaqfound]=1;#status=found
-	if($sizemb>10
-	              && $nevents>=$MinEvsInFile
-		      && $rtyp==0
+	if(($sizemb>$FileSize)
+	              && ($nevents>=$MinEvsInFile)
+		      && ($rtype eq $RunType)
 		                             ){
           $daqfstat[$ndaqfound]+=10;#status=selected(good)
           $ndaqgood+=1;
@@ -1820,20 +1833,22 @@ sub dlen_tscan
       open(INPFN,"< $sfname") or show_warn_setfstat("   <-- Cannot open $sfname for reading $!",$i);
       if($daqfstat[$i] == 211){
         show_warn("   <-- Missing file $sfname !");
-	next;
+#	next;
       }
-      while(defined ($line = <INPFN>)){
-        chomp $line;
-        if($line =~/^\s*$/){next;}# skip empty or all " "'s lines
-        if($line =~/==========/){last;}# break on my internal EOF
-        if($line =~/12345/){last;}# break on my internal EOF
-	$nzlines+=1;
-	$line =~s/^\s+//s;# remove " "'s at the beg.of line
-	@words=split(/\s+/,$line);#split by any number of continious " "'s
-	$nwords=scalar(@words);
-	push(@globpeds,@words);
+      else {
+        while(defined ($line = <INPFN>)){
+          chomp $line;
+          if($line =~/^\s*$/){next;}# skip empty or all " "'s lines
+          if($line =~/==========/){last;}# break on my internal EOF
+          if($line =~/12345/){last;}# break on my internal EOF
+	  $nzlines+=1;
+	  $line =~s/^\s+//s;# remove " "'s at the beg.of line
+	  @words=split(/\s+/,$line);#split by any number of continious " "'s
+	  $nwords=scalar(@words);
+	  push(@globpeds,@words);
+        }
+        close(INPFN) or show_warn("   <-- Cannot open $sfname after reading $!");
       }
-      close(INPFN) or show_warn("   <-- Cannot open $sfname after reading $!");
 #--
       $seqnum=0;
 #--->first - anodes:

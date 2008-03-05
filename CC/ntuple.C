@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.168 2008/02/21 18:29:59 choutko Exp $
+//  $Id: ntuple.C,v 1.169 2008/03/05 10:03:25 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -72,7 +72,8 @@ void AMSNtuple::init(){
 //
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-         "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,ISSEqAsc:R,ISSEqDec:R,ISSGalLong:R,ISSGalLat:R,AMSEqAsc:R,AMSeqDec:R,AMSGalLat:R,AMSGalLong:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I," //ISN
+        
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,ISSEqAsc:R,ISSEqDec:R,ISSGalLong:R,ISSGalLat:R,AMSEqAsc:R,AMSeqDec:R,AMSGalLat:R,AMSGalLong:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFRawSides[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,AntiRawSides[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I," //ISN
 "RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I"); 
 
   HBNAME(_lun,"Beta",&_beta02.Nbeta,
@@ -164,6 +165,9 @@ void AMSNtuple::init(){
  
 HBNAME(_lun,"TofRawSd",&_tofraws.Ntofraws,"ntofraws[0,70],tofrsswid(ntofraws):I,tofrshwidt(ntofraws):I,tofrshwidq(4,ntofraws):I,tofrsnftdc(ntofraws)[0,8]:I,tofrsftdc(8,ntofraws),tofrsnstdc(ntofraws)[0,16]:I,tofrsstdc(16,ntofraws),tofrsnsumh(ntofraws)[0,16]:I,tofrssumh(16,ntofraws),tofrsnsumsh(ntofraws)[0,16]:I,tofrssumsh(16,ntofraws),tofrsadca(ntofraws),tofrsnadcd(ntofraws)[0,3]:I,tofrsadcd(3,ntofraws),tofrstempT(ntofraws),tofrstempC(ntofraws),tofrstempP(ntofraws)");
  
+HBNAME(_lun,"AntiRawSd",&_antirs.Nantirs,"naccraws[0,16],accrsswid(naccraws):I,accrssta(naccraws):I,accrstempT(naccraws),accrsadca(naccraws),accrsnftdc(naccraws)[0,8]:I,accrsftdc(8,naccraws),accrsntdct(naccraws)[0,16]:I,accrstdct(16,ntofraws)");
+ 
+
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,250],sid(nsignals):I,"
   	 "rimcorg(3,nsignals),rimcdir(3,nsignals),rimcstatus(nsignals):I,"
@@ -210,6 +214,7 @@ void AMSNtuple::reset(int full){
    _mcg02.Nmcg = 0;
    _mct.Nmct = 0;   
    _anti.Nanti = 0;
+   _antirs.Nantirs = 0;
    _antimc.Nantimc = 0;
    _lvl302.Nlvl3 = 0;
    _lvl102.Nlvl1 = 0;

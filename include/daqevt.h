@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.43 2008/03/03 16:11:20 choutko Exp $
+//  $Id: daqevt.h,v 1.44 2008/03/05 10:03:34 choumilo Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -133,6 +133,8 @@ static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id
 static bool isRawMode(int16u id){return (id&64)>0;}
 static bool isCompMode(int16u id){return (id&128)>0;}
 static bool isError(int16u id){return (id&512)>0;}
+static const char *  getnodename(int16u idn){return _NodeNames[idn];}
+static const char *  getportname(int16u idn){return _PortNamesJ[idn];}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}

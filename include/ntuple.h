@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.106 2008/02/21 18:30:02 choutko Exp $
+//  $Id: ntuple.h,v 1.107 2008/03/05 10:03:34 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -15,6 +15,7 @@ const int MAXTOFRAW  =    48;
 const int MAXTOFRAWS  =   70;
 const int MAXTOFMC   =   100;
 const int MAXANTICL  =    8;
+const int MAXANTIRS  =    16;
 const int MAXANTIMC  =   100;
 const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
@@ -104,11 +105,13 @@ public:
   int TrRawClusters;
   int TrMCClusters;
   int TOFClusters;
+  int TOFRawSides;
   int TOFMCClusters;
   int AntiMCClusters;
   int TRDMCClusters;
   int AntiClusters;
-   int EcalClusters;
+  int AntiRawSides;
+  int EcalClusters;
   int EcalHits;
   int RICMCClusters;//CJM
   int RICHits;//CJM
@@ -552,6 +555,25 @@ friend class AMSAntiCluster;
 friend class AMSNtuple;
 };
 
+class AntiRawSideNtuple {
+public:
+  int Nantirs;
+  int swid[MAXANTIRS];// BBS
+  int stat[MAXANTIRS];// status 
+  float temp[MAXANTIRS];// board temperature
+  float adca[MAXANTIRS];// anode pulse-charge hit(ADC-counts, ped-subtracted if not PedCalibJob)
+  int nftdc[MAXANTIRS];// number of FastTrig(FT) hits (normally =1)
+  int ftdc[MAXANTIRS][8];// FT-hits(tdc-chan),1/4-plane common, but stored for each sector
+  int ntdct[MAXANTIRS];// number of Time(LT-chan) hits 
+  int tdct[MAXANTIRS][16];// Time hits
+  
+
+friend class Anti2RawEvent;
+friend class AMSNtuple;
+};
+
+
+
 class ANTIMCClusterNtuple {
 public:
   int Nantimc;
@@ -754,6 +776,7 @@ protected:
   TrTrackNtuple02 _trtr02;
   MCTrackNtuple _mct;// tempor 02??
   MCEventGNtuple02 _mcg02;
+  AntiRawSideNtuple _antirs;
   AntiClusterNtuple _anti;
   ANTIMCClusterNtuple _antimc;
   LVL3Ntuple02 _lvl302;
@@ -811,6 +834,7 @@ public:
   MCTrackNtuple* Get_mct() {return &_mct;}
   MCEventGNtuple02* Get_mcg02() {return &_mcg02;}
   AntiClusterNtuple* Get_anti() {return &_anti;}
+  AntiRawSideNtuple* Get_antirs() {return &_antirs;}
   ANTIMCClusterNtuple* Get_antimc() {return &_antimc;}
   LVL3Ntuple02* Get_lvl302() {return &_lvl302;}
   LVL1Ntuple02* Get_lvl102() {return &_lvl102;}

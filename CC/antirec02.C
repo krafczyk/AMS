@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.29 2008/02/13 14:06:52 choumilo Exp $
+//  $Id: antirec02.C,v 1.30 2008/03/05 10:03:24 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -71,7 +71,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //---------
 // ====> check for PedCalib data if PedCalJob :
 //
-  if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3){//PedCalJob
+  if((ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)
+                           && AMSJob::gethead()->isCalibration()
+			                                          ){//PedCalJob
   int pedobj(0);
     ANTI2JobStat::addre(19);
     ANTPedCalib::hiamreset();
@@ -132,7 +134,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
       if(ATREFFKEY.reprtf[0]>0){
         HF1(2519,geant(nadca),1.);
-        HF1(2519,geant(ntdct+10),1.);
+	if(ntdct<10)nhit=ntdct;
+	else nhit=9;
+        HF1(2519,geant(nhit+10),1.);
         HF1(2519,geant(nftdc+20),1.);
       }
       tmfound=0;
@@ -1063,6 +1067,46 @@ integer AMSAntiCluster::Out(integer status){
     integer ntrig=AMSJob::gethead()->gettriggerN();
     for(int n=0;n<ntrig;n++){
       if(strcmp("AMSAntiCluster",AMSJob::gethead()->gettriggerC(n))==0){
+        WriteAll=1;
+        break;
+      }
+    }
+  }
+  return (WriteAll || status);
+}
+
+//===================================================================================
+//
+void Anti2RawEvent::_writeEl(){
+//
+  if(Anti2RawEvent::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+   int i;
+#ifdef __WRITEROOT__
+   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+// fill the ntuple
+    AntiRawSideNtuple* TN = AMSJob::gethead()->getntuple()->Get_antirs();
+    if (TN->Nantirs>=MAXANTIRS) return;
+    TN->swid[TN->Nantirs] = _idsoft;
+    TN->stat[TN->Nantirs] = _status;
+    TN->temp[TN->Nantirs] = _temp;
+    TN->adca[TN->Nantirs] = _adca;
+    TN->nftdc[TN->Nantirs] = _nftdc;
+    for(int i=0;i<_nftdc;i++)TN->ftdc[TN->Nantirs][i] = _ftdc[i];
+    TN->ntdct[TN->Nantirs] = _ntdct;
+    for(int i=0;i<_ntdct;i++)TN->tdct[TN->Nantirs][i] = _tdct[i];
+    TN->Nantirs++;
+  }
+}
+//------
+integer Anti2RawEvent::Out(integer status){
+  static integer init=0;
+  static integer WriteAll=1;
+  if(init == 0){
+    init=1;
+    integer ntrig=AMSJob::gethead()->gettriggerN();
+    for(int n=0;n<ntrig;n++){
+      if(strcmp("Anti2RawEvent",AMSJob::gethead()->gettriggerC(n))==0){
         WriteAll=1;
         break;
       }

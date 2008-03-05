@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.63 2008/01/29 09:08:58 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.64 2008/03/05 10:03:24 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -490,10 +490,13 @@ void EcalJobStat::printstat(){
    printf(" Crates appearence frequency         crate-1:   crate-2:\n");
    printf(" RawFMT EDR/ETRG blocks            : % 7d    % 7d\n",daqc2[0][0],daqc2[1][0]);
    printf(" ComprFMT EDR/ETRG blocks          : % 7d    % 7d\n",daqc2[0][1],daqc2[1][1]);
-   printf(" RawFMT EDRs reply-status bits OK  : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
-   printf(" CompFMT EDRs reply-status bits OK : % 7d    % 7d\n",daqc2[0][3],daqc2[1][3]);
-   printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
-   printf(" Illegal EDR/ETRG ID(compr)        : % 7d    % 7d\n",daqc2[0][5],daqc2[1][5]);
+   printf(" OnBoard PedTable  blocks          : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
+   printf(" RawFMT EDRs reply-status bits OK  : % 7d    % 7d\n",daqc2[0][3],daqc2[1][3]);
+   printf(" CompFMT EDRs reply-status bits OK : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
+   printf(" OnBoardPedTabel status bits OK    : % 7d    % 7d\n",daqc2[0][5],daqc2[1][5]);
+   printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][6],daqc2[1][6]);
+   printf(" Illegal EDR/ETRG ID(compr)        : % 7d    % 7d\n",daqc2[0][7],daqc2[1][7]);
+   printf(" Illegal EDR ID(OnBoardPed)        : % 7d    % 7d\n",daqc2[0][8],daqc2[1][8]);
    cout<<"---> Crate-1: entries per slot:"<<endl;
    for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][0]<<" ";
    cout<<endl;
@@ -502,6 +505,9 @@ void EcalJobStat::printstat(){
    cout<<endl;
    cout<<"  + block length OK (compFMT):"<<endl;
    for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][2]<<" ";
+   cout<<endl;
+   cout<<"  + block length OK (OnBrdPed):"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][3]<<" ";
    cout<<endl;
 //
    cout<<"---> Crate-2: entries per slot:"<<endl;
@@ -512,6 +518,9 @@ void EcalJobStat::printstat(){
    cout<<endl;
    cout<<"  + block length OK (compFMT):"<<endl;
    for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][2]<<" ";
+   cout<<endl;
+   cout<<"  + block length OK (OnBrdPed):"<<endl;
+   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][3]<<" ";
    cout<<endl;
   }
 //

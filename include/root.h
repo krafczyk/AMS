@@ -61,6 +61,7 @@ class AMSEcal2DCluster;
 class AMSEcalShower;
 class TOF2RawCluster;
 class TOF2RawSide;
+class Anti2RawEvent;
 class Trigger2LVL1;
 class TriggerLVL302;
 class EventNtuple02;
@@ -97,6 +98,7 @@ class AMSEcal2DCluster{};
 class AMSEcalShower{};
 class TOF2RawCluster{};
 class TOF2RawSide{};
+class Anti2RawEvent{};
 class Trigger2LVL1{};
 class TriggerLVL302{};
 class EventNtuple02{};
@@ -176,6 +178,7 @@ int   RichRings;
 int   TofRawClusters;
 int   TofRawSides;
 int   TofClusters;  
+int   AntiRawSides;
 int   AntiClusters;
 int   TrRawClusters;
 int   TrClusters;
@@ -513,13 +516,13 @@ public:
   int hwidq[4];///<array of CSII, where II is ADC InpChNumb for Anode and Dynodes charge-measurements(II=1-10)
   int stat;///< 0/1->ok/bad
   int nftdc;///<numb.of FTtime-hits
-  int ftdc[8];///<FTtime-hits(FastTrigger-channel time, ns)
+  int ftdc[8];///<FTtime-hits(FastTrigger-channel time, TDC-ch)
   int nstdc;///<numb.of LTtime-hits
-  int stdc[16];///<LTtime-hits(LowThreshold-channel time, ns)
+  int stdc[16];///<LTtime-hits(LowThreshold-channel time, TDC-ch)
   int nsumh;///<numb.of SumHTtime-hits
-  int sumht[16];///<SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, ns)
+  int sumht[16];///<SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, TDC-ch)
   int nsumsh;///<numb.of SumSHTtime-hits
-  int sumsht[16];///<SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, ns)
+  int sumsht[16];///<SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, TDC-ch)
   float adca;///<Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
   int nadcd;///<number of Dynode nonzero(!) signals
   float adcd[3];///<Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
@@ -534,6 +537,36 @@ public:
   virtual ~TofRawSideR(){};
   
   ClassDef(TofRawSideR ,5)       //TofRawSideR
+};
+
+
+
+
+/// AntiRawSideR structure
+
+/*!
+ \author e.choumilov@cern.ch
+
+*/
+
+class AntiRawSideR {
+public:
+  int swid;///< BBS (Bar/Side)
+  int stat;///< status (0/1/... -> alive/dead/...)
+  float temp;///< board temperature (SFEA-sensor reading)
+  float adca;///< anode pulse-charge hit(ADC-counts, ped-subtracted if not PedCalibJob)
+  int nftdc;///< number of FastTrig(FT) hits (normally =1)
+  int ftdc[8];///< FT-hits(tdc-chan),1/4-plane common, but stored for each sector
+  int ntdct;///< number of Time(LT-chan) hits 
+  int tdct[16];///< Time hits
+
+  AntiRawSideR(){};
+  AntiRawSideR(Anti2RawEvent *ptr);
+  friend class Anti2RawEvent;
+  friend class AMSEventR;
+  virtual ~AntiRawSideR(){};
+  
+  ClassDef(AntiRawSideR ,1)       //AntiRawSideR
 };
 
 
@@ -1985,6 +2018,7 @@ static TBranch*  bRichRing;
 static TBranch*  bTofRawCluster;
 static TBranch*  bTofRawSide;
 static TBranch*  bTofCluster;
+static TBranch*  bAntiRawSide;
 static TBranch*  bAntiCluster;
 static TBranch*  bTrRawCluster;
 static TBranch*  bTrCluster;
@@ -2021,6 +2055,7 @@ static void*  vRichRing;
 static void*  vTofRawCluster;
 static void*  vTofRawSide;
 static void*  vTofCluster;
+static void*  vAntiRawSide;
 static void*  vAntiCluster;
 static void*  vTrRawCluster;
 static void*  vTrCluster;
@@ -2259,6 +2294,8 @@ int   nTofRawSide()const { return fHeader.TofRawSides;} ///< \return number of T
 ///
 int   nTofCluster()const { return fHeader.TofClusters;} ///< \return number of TofClusterR elements (fast)  
 ///
+int   nAntiRawSide()const { return fHeader.AntiRawSides;} ///< \return number of AntiRawSideR elements (fast)
+///
 int   nAntiCluster()const { return fHeader.AntiClusters;} ///< \return number of AntiClusterR elements (fast)
 ///
 int   nTrRawCluster()const { return fHeader.TrRawClusters;} ///< \return number of TrRawClusterR elements (fast)
@@ -2331,6 +2368,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
   //Anti
+  vector<AntiRawSideR> fAntiRawSide;
   vector<AntiClusterR> fAntiCluster;
 
 
@@ -2694,6 +2732,42 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       TofClusterR *   pTofCluster(unsigned int l) {
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
         return l<fTofCluster.size()?&(fTofCluster[l]):0;
+      }
+
+
+
+
+      ///  \return number of AntiRawSideR
+      ///
+      unsigned int   NAntiRawSide()  {
+        if(fHeader.AntiRawSides  && fAntiRawSide.size()==0){
+          if(bAntiRawSide)bAntiRawSide->GetEntry(_Entry);
+        }
+          return fAntiRawSide.size();
+      }
+      ///  \return reference of AntiRawSideR Collection
+      ///
+      vector<AntiRawSideR> & AntiRawSide()  {
+        if(fHeader.AntiRawSides && fAntiRawSide.size()==0)bAntiRawSide->GetEntry(_Entry);
+         return  fAntiRawSide;
+       }
+
+       ///  AntiRawSideR accessor
+       /// \param l index of AntiRawSideR Collection
+      ///  \return reference to corresponding AntiRawSideR element
+      ///
+       AntiRawSideR &   AntiRawSide(unsigned int l) {
+        if(fHeader.AntiRawSides && fAntiRawSide.size()==0)bAntiRawSide->GetEntry(_Entry);
+         return fAntiRawSide.at(l);
+      }
+
+       ///  AntiRawSideR accessor
+       /// \param l index of AntiRawSideR Collection
+      ///  \return pointer to corresponding AntiRawSideR element
+      ///
+      AntiRawSideR *   pAntiRawSide(unsigned int l) {
+        if(fHeader.AntiRawSides && fAntiRawSide.size()==0)bAntiRawSide->GetEntry(_Entry);
+        return l<fAntiRawSide.size()?&(fAntiRawSide[l]):0;
       }
 
 
@@ -3507,6 +3581,7 @@ void clear();
 
 #ifndef __ROOTSHAREDLIBRARY__
 void         AddAMSObject(DAQEvent *ptr);
+void         AddAMSObject(Anti2RawEvent *ptr);
 void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);

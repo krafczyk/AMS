@@ -210,10 +210,10 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     AMSBeta *pbeta;
     int npart,ipatt,bad;
     npart=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
+    cptr=AMSEvent::gethead()->getC("AMSParticle",0);//pointer to envelop "0" with true(trk)-track part
     if(cptr)
            npart+=cptr->getnelem();
-    if(npart<1)return;// require events with 1 particle at least
+    if(npart<1)return;// require events with 1 true(trk)-track particle at least
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     bad=1;
@@ -235,6 +235,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
           chargeTOF=pcharge->getchargeTOF();
           pmas=ppart->getmass();
 	  bad=0;
+	  break;//1st good trk-track
 	}
       }
       ppart=ppart->next();
@@ -735,7 +736,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
 //
   for(i=0;i<ANTI2C::MAXANTI;i++){
     for(j=0;j<2;j++){
-      strcpy(htit1,"Raw ADCs for Sector/Side=");
+      strcpy(htit1,"AccPedCalib:Raw ADCs(when accepted) for Sector/Side=");
       in[0]=inum[i+1];
       strcat(htit1,in);
       in[0]=inum[j+1];

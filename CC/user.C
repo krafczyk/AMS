@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.15 2006/01/25 11:21:14 choumilo Exp $
+//  $Id: user.C,v 1.16 2008/03/05 10:03:25 choumilo Exp $
 #include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
@@ -12,6 +12,7 @@
 #include "event.h"
 #include "trigger102.h"
 #include "daqevt.h"
+#include "particle.h"
 void AMSUser::InitJob(){
   if(!AMSJob::gethead()->isCalibration()){
     TOF2User::InitJob();
@@ -26,11 +27,12 @@ void AMSUser::InitEvent(){
 
 void AMSUser::Event(){
   bool glft(0);
-//
+//------
   if(!AMSJob::gethead()->isCalibration()){
       Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
       if(ptr)glft=ptr->GlobFasTrigOK();
       if(!glft)return;// "no globFT in LVL1-trigger"
+//      if(!ptr)return;// 
       TOF2User::Event();
   }
 }

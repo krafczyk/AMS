@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.32 2008/01/14 13:35:17 choutko Exp $
+//  $Id: tofdbc02.h,v 1.33 2008/03/05 10:03:34 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -80,7 +80,7 @@ const integer SCTHMX1=8;//max TDC FTrigger-channel hits
 const integer SCTHMX2=16;//max TDC SumHT(SHT)-channel (history) hits  
 const integer SCTHMX3=16;//max TDC LTtime-channel hits
 const integer SCTHMX4=1;//max adca(anode) hits  
-const integer SCJSTA=40;   //size of Job-statistics array
+const integer SCJSTA=50;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
 const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)
@@ -341,7 +341,7 @@ private:
 //          =17 -> entries to TDIF-calibration
 //          =18 -> TDIF: multiplicity OK
 //          =19 -> TDIF: tracker OK
-//           21-25 TOF-user event-counters
+//           21-29,40 TOF-user event-counters
 //          =33 -> TOF reco with TOF in LVL1
 //          =34 -> TOF reco with EC in LVL1
 //

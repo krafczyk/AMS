@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.37 2008/01/29 09:09:10 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.38 2008/03/05 10:03:34 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -133,13 +133,18 @@ private:
   static integer daqc2[ecalconst::ECRT][ecalconst::ECJSTA];
 //            i=0 -> EDR-level RawFormat entries per crate
 //             =1 -> .........CompFormat .................
-//             =2 -> ....no_assembl_err (raw)  
-//             =3 -> ....no_assembl_err (comp)  
-//             =4 -> .... IllegalCardId(EDR/ETRG blockID)(any type)  
+//             =2 -> .........OnBoardPTable .................
+//             =3 -> ....no_assembl_err (raw)  
+//             =4 -> ....no_assembl_err (comp)  
+//             =5 -> ....no_assembl_err (OnBoardPed)  
+//             =6 -> .... IllegalCardId(EDR/ETRG blockID)(raw)  
+//             =7 -> .... IllegalCardId(EDR/ETRG blockID)(compr)  
+//             =8 -> .... IllegalCardId(EDR blockID)(OnBoardPed)  
   static integer daqc3[ecalconst::ECRT][ecalconst::ECSLOTS][ecalconst::ECJSTA];
 //            i=0 -> EDR/ETRG-level entrs per crate/slot
 //            i=1 -> EDR length OK per crate/slot
-//            i=2 -> 
+//            i=2 -> ETRG ...
+//            i=3 -> OnBoardPedTable ...
 public:
   static number zprofa[2*ecalconst::ECSLMX];//  SubCellPlanes  profile
   static number zprofapm[ecalconst::ECSLMX];// SL profile

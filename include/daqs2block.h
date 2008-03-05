@@ -1,4 +1,4 @@
-//  $Id: daqs2block.h,v 1.5 2008/01/07 16:22:24 choumilo Exp $
+//  $Id: daqs2block.h,v 1.6 2008/03/05 10:03:34 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__
@@ -15,7 +15,8 @@
 //
 class DAQS2Block {
 private:
-  static int16u nodeids[2*TOF2GC::SCCRAT];// valid node_id's (incl. sides)
+//  static int16u nodeids[2*TOF2GC::SCCRAT];// valid node_id's (incl. a/b-sides) for Data
+//  static int16u nodeidsP[4*TOF2GC::SCCRAT];// valid node_id's (incl. a/b-sides,prim,sec) for OnBoard-Peds
   static int16u format;// currently processing DATA-format: 0-raw, 1-compressed, 2-mixed, 3-pedcal
   static integer totbll;//total length of all(MAX 4) scint. blocks
 public:
@@ -28,8 +29,11 @@ public:
   static void setpedf(){format=3;}
   static int16u getformat(){return format;}
   static void node2crs(int16u nodeid, int16u &cr, int16u &sd);
+  static void node2crsP(int16u nodeid, int16u &cr, int16u &sd);
   static integer checkblockid(int16u id);
+  static integer checkblockidP(int16u id);
   static void buildraw(integer len, int16u *p);
+  static void buildonbP(integer len, int16u *p);
   static integer getmaxblocks();
   static integer calcblocklength(integer ibl);
   static void buildblock(integer ibl, integer len, int16u *p);

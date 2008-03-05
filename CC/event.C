@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.369 2008/02/21 13:25:05 choutko Exp $
+//  $Id: event.C,v 1.370 2008/03/05 10:03:24 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1320,7 +1320,7 @@ void AMSEvent::_reamsevent(){
 
 
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//add missing parts to existing(!) lvl1-obj
-//                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage 
+//                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
     _reanti2event();
@@ -1661,6 +1661,8 @@ void AMSEvent::_reanti2event(){
 //===============================================================================
 void AMSEvent::_retof2event(){
 int stat;
+static int firstev(0);
+uinteger runtyp=AMSEvent::getruntype();
 bool tofftok(0),ecalftok(0),extrigok(0);
 //
 //
@@ -1674,6 +1676,10 @@ bool tofftok(0),ecalftok(0),extrigok(0);
     }
     if(!tofftok && !ecalftok && !extrigok){
       AMSgObj::BookTimer.stop("RETOFEVENT");
+      if(firstev==0){
+        cout<<"<======== Warning-Retofevent: no TOF,ECAL or EXTERN trigger, runtype="<<runtyp<<endl;
+        firstev=1;
+      }
       return;// "no TOF/EC/Ext in LVL1-trigger"
     }   
     TOF2JobStat::addre(1);

@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.13 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: antirec02.h,v 1.14 2008/03/05 10:03:33 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -39,6 +39,11 @@ public:
   };
   ~Anti2RawEvent(){};
   Anti2RawEvent * next(){return (Anti2RawEvent*)_next;}
+
+#ifdef __WRITEROOT__
+   friend class AntiRawSideR;
+#endif
+
 //
   integer operator < (AMSlink & o)const{
                 return _idsoft<((Anti2RawEvent*)(&o))->_idsoft;}
@@ -89,23 +94,24 @@ public:
   static void validate(int &stat);
 //
 // interface with DAQ :
-static integer calcdaqlength(int16u blid);
-static void builddaq(int16u blid, integer &len, int16u *p);
-static void buildraw(int16u blid, integer &len, int16u *p);
+  static integer calcdaqlength(int16u blid);
+  static void builddaq(int16u blid, integer &len, int16u *p);
+  static void buildraw(int16u blid, integer &len, int16u *p);
+  static integer Out(integer status);
 //
 protected:
-void _printEl(ostream &stream){
-  int i;
-  stream <<"Anti2RawEvent: id="<<dec<<_idsoft<<endl;
-  stream <<dec<<_adca<<endl;
-  stream <<"ntdct="<<dec<<_ntdct<<endl;
-  for(i=0;i<_ntdct;i++)stream <<dec<<_tdct[i]<<endl;
-  stream <<"_nftdc="<<dec<<_nftdc<<endl;
-  for(i=0;i<_nftdc;i++)stream <<dec<<_ftdc[i]<<endl;
-  stream <<dec<<endl<<endl;
-}
-void _writeEl(){};
-void _copyEl(){};
+  void _printEl(ostream &stream){
+   int i;
+   stream <<"Anti2RawEvent: id="<<dec<<_idsoft<<endl;
+   stream <<dec<<_adca<<endl;
+   stream <<"ntdct="<<dec<<_ntdct<<endl;
+   for(i=0;i<_ntdct;i++)stream <<dec<<_tdct[i]<<endl;
+   stream <<"_nftdc="<<dec<<_nftdc<<endl;
+   for(i=0;i<_nftdc;i++)stream <<dec<<_ftdc[i]<<endl;
+   stream <<dec<<endl<<endl;
+ }
+ void _writeEl();
+ void _copyEl(){};
 //
 };
 //===================================================================

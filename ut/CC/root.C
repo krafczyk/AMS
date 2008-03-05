@@ -38,6 +38,7 @@ using namespace root;
   ClassImp(TofRawClusterR)
   ClassImp(TofRawSideR)
   ClassImp(TofClusterR)
+  ClassImp(AntiRawSideR)
   ClassImp(AntiClusterR)
   ClassImp(TrRawClusterR)
   ClassImp(TrClusterR)
@@ -558,6 +559,7 @@ TBranch* AMSEventR::bRichRing;
 TBranch* AMSEventR::bTofRawCluster;
 TBranch* AMSEventR::bTofRawSide;
 TBranch* AMSEventR::bTofCluster;
+TBranch* AMSEventR::bAntiRawSide;
 TBranch* AMSEventR::bAntiCluster;
 TBranch* AMSEventR::bTrRawCluster;
 TBranch* AMSEventR::bTrCluster;
@@ -593,6 +595,7 @@ void* AMSEventR::vRichRing=0;
 void* AMSEventR::vTofRawCluster=0;
 void* AMSEventR::vTofRawSide=0;
 void* AMSEventR::vTofCluster=0;
+void* AMSEventR::vAntiRawSide=0;
 void* AMSEventR::vAntiCluster=0;
 void* AMSEventR::vTrRawCluster=0;
 void* AMSEventR::vTrCluster=0;
@@ -718,6 +721,13 @@ void AMSEventR::SetBranchA(TTree *fChain){
      strcat(tmp,"fTofCluster");
      vTofCluster=&fTofCluster;
      fChain->SetBranchAddress(tmp,&fTofCluster);
+    }
+    
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiRawSide");
+     vAntiRawSide=&fAntiRawSide;
+     fChain->SetBranchAddress(tmp,&fAntiRawSide);
     }
 
    {
@@ -962,6 +972,12 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fAntiRawSide");
+     fChain->SetBranchAddress(tmp,vAntiRawSide);
+    }
+
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fAntiCluster");
      fChain->SetBranchAddress(tmp,vAntiCluster);
     }
@@ -1170,6 +1186,12 @@ void AMSEventR::GetBranch(TTree *fChain){
      strcpy(tmp,_Name);
      strcat(tmp,"fTofCluster");
      bTofCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiRawSide");
+     bAntiRawSide=fChain->GetBranch(tmp);
     }
 
    {
@@ -1387,6 +1409,12 @@ void AMSEventR::GetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fAntiRawSide");
+     vAntiRawSide=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fAntiCluster");
      vAntiCluster=fChain->GetBranch(tmp)->GetAddress();
     }
@@ -1541,6 +1569,7 @@ void AMSEventR::SetCont(){
  fHeader.TofRawClusters=fTofRawCluster.size();
  fHeader.TofRawSides=fTofRawSide.size();
  fHeader.TofClusters=fTofCluster.size();
+ fHeader.AntiRawSides=fAntiRawSide.size();
  fHeader.AntiClusters=fAntiCluster.size();
  fHeader.TrRawClusters=fTrRawCluster.size();
  fHeader.TrClusters=fTrCluster.size();
@@ -1654,6 +1683,7 @@ fRichRing.reserve(MAXRICHRIN);
 fTofRawCluster.reserve(MAXTOFRAW);
 fTofRawSide.reserve(MAXTOFRAWS);
 fTofCluster.reserve(MAXTOF);
+fAntiRawSide.reserve(MAXANTIRS);
 fAntiCluster.reserve(MAXANTICL);
 
 fTrRawCluster.reserve(MAXTRRAW);
@@ -1696,6 +1726,7 @@ fRichRing.clear();
 fTofRawCluster.clear();
 fTofRawSide.clear();
 fTofCluster.clear();
+fAntiRawSide.clear();
 fAntiCluster.clear();
 
 fTrRawCluster.clear();
@@ -1821,6 +1852,17 @@ void AMSEventR::AddAMSObject(TOF2RawSide *ptr)
   ptr->SetClonePointer(fTofRawSide.size()-1);
   }  else {
    cout<<"AddAMSObject -E- TOF2RawSide ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(Anti2RawEvent *ptr)
+{
+  if (ptr) {
+  fAntiRawSide.push_back(AntiRawSideR(ptr));
+  ptr->SetClonePointer(fAntiRawSide.size()-1);  
+  }  else {
+    cout<<"AddAMSObject -E- Anti2RawEvent ptr is NULL"<<endl;
   }
 }
 
@@ -2102,6 +2144,21 @@ void HeaderR::Set(EventNtuple02* ptr){
 
 
 
+
+
+AntiRawSideR::AntiRawSideR(Anti2RawEvent *ptr)
+{
+#ifndef __ROOTSHAREDLIBRARY__
+  swid = ptr->_idsoft;
+  stat = ptr->_status;
+  temp = ptr->_temp;
+  adca = ptr->_adca;
+  nftdc = ptr->_nftdc;
+  for(int i=0;i<nftdc;i++)ftdc[i] = ptr->_ftdc[i];
+  ntdct = ptr->_ntdct;
+  for(int i=0;i<ntdct;i++)tdct[i] = ptr->_tdct[i];
+#endif
+}
 
 
 AntiClusterR::AntiClusterR(AMSAntiCluster *ptr)
@@ -2434,6 +2491,7 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
   swid=ptr->_swid;
   hwidt=ptr->_hwidt;
   for(int i=0; i<4; i++)hwidq[i]=ptr->_hwidq[i];
+  stat=ptr->_status;
   nftdc=ptr->_nftdc;
   for(int i=0; i<nftdc; i++)ftdc[i]=ptr->_ftdc[i];
   nstdc=ptr->_nstdc;
@@ -3129,6 +3187,7 @@ void AMSEventR::GetAllContents() {
             bTofRawCluster->GetEntry(_Entry);
             NTofRawSide();
             bTofCluster->GetEntry(_Entry);
+            NAntiRawSide();
             bAntiCluster->GetEntry(_Entry);
             bTrRawCluster->GetEntry(_Entry);
             bTrCluster->GetEntry(_Entry);
