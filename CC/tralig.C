@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.42 2008/03/03 16:11:19 choutko Exp $
+//  $Id: tralig.C,v 1.43 2008/03/05 10:49:35 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -1480,8 +1480,8 @@ if(MAGSFFKEY.magstat>0){
         goto mbreak;
      }
      for(int j=0;j<3;j++){
-       hits[i][j]=(par[ladno][halfno][plane].getcoo())[j]+((p->_pData)[niter]._CooA[i])[j]+
-       (par[ladno][halfno][plane].getmtx(j)).prod((p->_pData)[niter]._Hits[i]-(p->_pData)[niter]._CooA[i]);
+//       hits[i][j]=(par[ladno][halfno][plane].getcoo())[j]+(par[ladno][halfno][plane].getmtx(j)).prod((p->_pData)[niter]._Hits[i]);
+       hits[i][j]=(par[ladno][halfno][plane].getcoo())[j]+((p->_pData)[niter]._CooA[i])[j]+(par[ladno][halfno][plane].getmtx(j)).prod((p->_pData)[niter]._Hits[i]-(p->_pData)[niter]._CooA[i]);
        sigma[i][j]=(par[ladno][halfno][plane].getmtx(j)).prod((p->_pData)[niter]._EHits[i]);
      }
        _pPargl[ladno][halfno][plane].setpar(((p->_pData)[niter]._CooA[i]),AMSPoint());
@@ -1633,6 +1633,7 @@ else{
        (par[ladno][halfno][plane].getmtx(j)).prod((p->_pData)[niter]._Hits[i]-(p->_pData)[niter]._CooA[i]);
        sigma[i][j]=(par[ladno][halfno][plane].getmtx(j)).prod((p->_pData)[niter]._EHits[i]);
      }
+       _pPargl[ladno][halfno][plane].setpar(((p->_pData)[niter]._CooA[i]),AMSPoint());
    }
    out[0]=p->_pData[niter]._InvRigidity;
    TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ialgo,ims,layer,out);
@@ -2133,7 +2134,7 @@ cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<endl;
 
 }
 
-void AMSTrAligFit::InitDB(){
+void AMSTrAligFit::InitADB(){
   static bool initdbdone=false;
   if(!initdbdone){
   for(int i=0;i<trconst::maxlad;i++){
@@ -2144,14 +2145,13 @@ void AMSTrAligFit::InitDB(){
           _antigldb[i][j][k].coo[l]=0;
           _antigldb[i][j][k].ang[l]=0;
          }
-//       _pPargl[i][j][k]=AMSTrAligPar(); 
     }
    }
   }
   initdbdone=true;
  }
 }
-void AMSTrAligFit::InitADB(){
+void AMSTrAligFit::InitDB(){
   static bool initdbdone=false;
   if(!initdbdone){
   for(int i=0;i<trconst::maxlad;i++){

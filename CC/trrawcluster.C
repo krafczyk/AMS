@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.82 2008/03/03 16:11:19 choutko Exp $
+//  $Id: trrawcluster.C,v 1.83 2008/03/05 10:49:35 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -78,7 +78,7 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,  integer matchedo
 
 void AMSTrRawCluster::expand(number *adc)const {
 AMSTrIdSoft id(_address);
-        if(TRCALIB.LaserRun){
+        if(TRCALIB.LaserRun>0){
         number sum=0;
         number max=-100000;
         int imax=-100000;
@@ -98,7 +98,7 @@ AMSTrIdSoft id(_address);
 
   for (int i=0;i<_nelem;i++){
    id.upd(_strip+i);
-   if(TRCALIB.LaserRun){
+   if(TRCALIB.LaserRun>0){
      adc[id.getstrip()]=_array[i]/id.getgain()/id.getlaser();
    }
    else adc[id.getstrip()]=_array[i]/id.getgain();
@@ -111,6 +111,10 @@ AMSTrIdSoft id(_address);
 
 AMSTrRawCluster::~AMSTrRawCluster(){
       UPool.udelete(_array);
+}
+
+geant AMSTrRawCluster::getamp(int k){
+    return k>=0 && k<_nelem?_array[k]:0;
 }
 
 

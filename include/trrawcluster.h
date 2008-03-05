@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.32 2008/03/03 16:11:20 choutko Exp $
+//  $Id: trrawcluster.h,v 1.33 2008/03/05 10:49:36 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -29,6 +29,7 @@ void _writeEl();
 integer _matched();
 public:
     static const integer MATCHED;
+geant getamp(int i);
 
 static integer Out(integer);
 static void lvl3CompatibilityAddress(int16u address, 

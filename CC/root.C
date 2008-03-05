@@ -1901,7 +1901,7 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
 void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
-    if(fTrRecHit.size()>root::MAXTRRH02*3 && !ptr->checkstatus(AMSDBc::USED))return;
+    if(fTrRecHit.size()>root::MAXTRRH02*(TRCALIB.LaserRun>0?30:3) && !ptr->checkstatus(AMSDBc::USED))return;
   fTrRecHit.push_back(TrRecHitR(ptr));
   ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {
@@ -2617,8 +2617,9 @@ TrMCClusterR::TrMCClusterR(AMSTrMCCluster *ptr){
 TrRawClusterR::TrRawClusterR(AMSTrRawCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   address = ptr->_address+ptr->_strip*10000;
-  nelem   = ptr->_nelem;
   s2n     = ptr->_s2n;
+  amp.clear(); 
+  for(int k=0;k<ptr->_nelem;k++)amp.push_back(ptr->getamp(k));
 #endif
 }
 

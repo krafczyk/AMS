@@ -269,7 +269,7 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
  bool compressed=DAQEvent::isCompMode(*(p+*p));
  int udr=((*(p+*p))&31)/4;
  if(udr>=trdid::nudr){
-   cerr<<"AMSTRDRawHit::buildraw-E-udrOutOfRange "<<udr;
+   cerr<<"AMSTRDRawHit::buildraw-E-udrOutOfRange "<<udr<<endl;
    continue;
  }
  int len=*p;
@@ -316,7 +316,7 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
         int ute=cha/16;
         if(ufe>=trdid::nufe){
          static int nmsg=0;
-         if(nmsg++<100)cerr<<"AMSTRDRawHit::buildraw-E-ufeOutOfRange "<<ufe;
+         if(nmsg++<100)cerr<<"AMSTRDRawHit::buildraw-E-ufeOutOfRange "<<ufe<<endl;
          continue;
         }
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);

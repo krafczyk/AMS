@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.508 2008/03/03 16:11:20 choutko Exp $
+# $Id: RemoteClient.pm,v 1.509 2008/03/05 10:49:36 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7053,6 +7053,9 @@ anyagain:
              $self->ErrorPlus("Computer Clock $cput  is too low for the AMS02 MC (min 600)");
         }
          my $cputime=$q->param("QCPUTime");
+        if(not defined $cputime){
+           $cputime=100000
+        }
         if($cputime < 86400  and $self->{CCA} ne 'test'){
              $self->ErrorPlus("CPU Time Limit Per Job $cputime is too low for the AMS02 MC (min 86400 sec) ");
         }

@@ -666,15 +666,14 @@ ClassDef(AntiClusterR,1)       //AntiClusterR
 */
 class TrRawClusterR {
 public:
-  int address;   ///<Address \sa TrClusterR Idsoft
-  ///
-  int nelem;     ///< number of strips 
-  float s2n;     ///< signal/noise for seed strip
+  int address;   ///<Address of leftmost strip \sa TrClusterR Idsoft
+  float s2n;     ///< signal to noise for the seed strip
+  vector<float> amp; ///<amplitudes
 
   TrRawClusterR(){};
   TrRawClusterR(AMSTrRawCluster *ptr);
   virtual ~TrRawClusterR(){};
-ClassDef(TrRawClusterR,1)       //TrRawClusterR
+ClassDef(TrRawClusterR,2)       //TrRawClusterR
 };
 
 

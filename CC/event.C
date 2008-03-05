@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.370 2008/03/05 10:03:24 choumilo Exp $
+//  $Id: event.C,v 1.371 2008/03/05 10:49:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -425,8 +425,9 @@ void AMSEvent::_siamsinitevent(){
 
 void AMSEvent::_reamsinitevent(){
 #ifdef __CORBA__
- if( getrun() != SELECTFFKEY.Run){
+ if( !AMSProducer::gethead()->IsSolo() && getrun() != SELECTFFKEY.Run ){
    seterror(2);
+   
    throw amsglobalerror("AMSProducer-E-RunIsDifferent ",2);
  }
 #endif
