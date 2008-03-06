@@ -517,7 +517,8 @@ void RichPMTsManager::Init_Default(){
       if(pmt._orientation==0)
 	pmt._channel_id2geom_id[i]=i;
       else
-	pmt._channel_id2geom_id[i]=4*(i%4)+(3-(i/4));  // CHECK!!!!!!
+	//	pmt._channel_id2geom_id[i]=4*(i%4)+(3-(i/4));  // CHECK!!!!!!
+	pmt._channel_id2geom_id[i]=15-(i%4)-(i/4)*4;
 
     // Channel position, with Z in half the PMT
     for(int i=0;i<RICnwindows;i++){
