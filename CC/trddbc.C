@@ -1,9 +1,17 @@
-//  $Id: trddbc.C,v 1.51 2007/05/15 11:38:33 choumilo Exp $
+//  $Id: trddbc.C,v 1.52 2008/03/06 22:56:07 pzuccon Exp $
 #include "trddbc.h"
 #include "amsdbc.h"
 #include <math.h>
-#include "tkdbc.h"
 #include "commons.h"
+
+uinteger Factorial(uinteger n);
+uinteger Factorial(uinteger n){
+    if(n>0)return n*Factorial(n-1);
+      else return 1;
+}
+
+
+
 using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","VACUUM","TRDHC","TRDHC",
@@ -2503,7 +2511,7 @@ for(int i=0;i<nlayS();i++){
 #endif
 //initialize patterns
    for(minc=nlayS();minc>1;minc--){
-     _NpatS+=TKDBc::factorial(nlayS())/TKDBc::factorial(minc)/TKDBc::factorial(nlayS()-minc);
+     _NpatS+=Factorial(nlayS())/Factorial(minc)/Factorial(nlayS()-minc);
      _patdS[nlayS()-minc+1]=_NpatS;
    }
    for(int nl=0;nl<nlayS();nl++){

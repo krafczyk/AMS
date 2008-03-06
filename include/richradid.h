@@ -3,6 +3,7 @@
 #include"richdbc.h"
 #include "timeid.h"
 #include "job.h"
+#include "trrec.h"
 
 ///////////////////////////////////////////
 // This class contains all the information used in the reconstruction

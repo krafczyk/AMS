@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.17 2005/05/17 09:56:37 pzuccon Exp $
+//  $Id: trigger302.h,v 1.18 2008/03/06 22:56:23 pzuccon Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include "link.h"
@@ -8,7 +8,7 @@
 #include "ecaldbc.h"
 #include "amsdbc.h"
 #include "amsstl.h"
-#include "trid.h"
+//#include "trid.h"
 #include "trdid.h"
 #include "commons.h"
 //

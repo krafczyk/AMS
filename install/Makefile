@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.43 2008/03/06 16:01:34 pzuccon Exp $
+#  $Id: Makefile,v 1.44 2008/03/06 22:55:01 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -153,7 +153,7 @@ COMMON_FILES += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trd
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C    $(SFF)TrackFit_utils.F \
-		$(SFF)rkms.F       $(SFF)tkmccl.F 
+		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C 
 
 #TRD 
 COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C 

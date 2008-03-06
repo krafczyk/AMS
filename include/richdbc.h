@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.41 2008/02/11 10:09:55 mdelgado Exp $
+//  $Id: richdbc.h,v 1.42 2008/03/06 22:56:23 pzuccon Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -11,7 +11,9 @@
 
 #include"job.h"
 #include"commons.h" 
-#include"trrec.h"
+//PZ #include"trrec.h"
+//PZ
+#include "mceventg.h"
 
 // Constants
 namespace richconst{

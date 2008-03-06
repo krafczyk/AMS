@@ -1,11 +1,11 @@
-//  $Id: richrec.h,v 1.40 2008/01/22 16:36:53 mdelgado Exp $
+//  $Id: richrec.h,v 1.41 2008/03/06 22:56:23 pzuccon Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
 #include "richdbc.h"
 #include <iostream>
 #include "richid.h"
-
+#include "trrec.h"
 
 PROTOCCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT)
 #define SOLVE(A1,A2,A3,A4,A5,A6) CCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT,A1,A2,A3,A4,A5,A6)
