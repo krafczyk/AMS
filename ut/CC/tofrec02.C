@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.49 2008/02/13 14:06:54 choumilo Exp $
+//  $Id: tofrec02.C,v 1.50 2008/03/06 16:57:36 pzuccon Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -22,7 +22,7 @@
 #include "tofid.h"
 #include "tofrec02.h"
 #include "antirec02.h"
-#include "particle.h"
+//#include "particle.h"
 #include "daqs2block.h"
 #include "tofcalib02.h"
 #include "ntuple.h"

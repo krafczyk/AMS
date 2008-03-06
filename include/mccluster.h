@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.36 2008/03/06 16:01:34 pzuccon Exp $
+//  $Id: mccluster.h,v 1.37 2008/03/06 16:57:28 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -13,7 +13,6 @@
 #define __AMSMCCLUSTER__
 #include "upool.h"
 #include "apool.h"
-#include "gsen.h"
 
 #include "link.h"
 #include "commons.h"

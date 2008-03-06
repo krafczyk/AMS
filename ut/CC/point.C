@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.10 2008/02/27 09:50:11 choutko Exp $
+//  $Id: point.C,v 1.11 2008/03/06 16:57:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
@@ -162,5 +162,70 @@ void AMSRotMat::ZParity(){
   number nn[3][3]={{1,0,0},{0,1,0},{0,0,-1}};
   AMSRotMat aa(nn);
   (*this)*aa;
+  return;
+}
+
+void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
+  
+  number nn1[3][3];
+  nn1[0][0]=cos(alpha);
+  nn1[0][1]=sin(alpha);
+  nn1[0][2]=0;
+
+  nn1[1][0]=-sin(alpha);
+  nn1[1][1]=cos(alpha);
+  nn1[1][2]=0;
+
+  nn1[2][0]=0;
+  nn1[2][1]=0;
+  nn1[2][2]=1;
+  
+  AMSRotMat aa(nn1);
+
+
+  number nn2[3][3];
+  nn2[0][0]=cos(beta);
+  nn2[0][1]=0;
+  nn2[0][2]=-sin(beta);
+
+  nn2[1][0]=0;
+  nn2[1][1]=1;
+  nn1[1][2]=0;
+
+  nn2[2][0]=sin(beta);
+  nn2[2][1]=0;
+  nn2[2][2]=cos(beta);
+
+  
+  AMSRotMat bb(nn2);
+
+  number nn3[3][3];
+  nn3[0][0]=1;
+  nn3[0][1]=0;
+  nn3[0][2]=0;
+
+  nn3[1][0]=0;
+  nn3[1][1]=cos(gamma);
+  nn3[1][2]=sin(gamma);
+
+  nn3[2][0]=0;
+  nn3[2][1]=-sin(gamma);
+  nn3[2][2]=cos(gamma);
+
+  
+  AMSRotMat cc(nn3);
+
+  (*this)=cc;
+  (*this)*bb;
+  (*this)*aa;
+  return;
+}
+
+
+void  AMSRotMat::GetRotAngles(double& alpha, double& beta, double& gamma){
+
+  gamma = atan2(_nrm[1][2],_nrm[2][2]);
+  alpha = atan2(_nrm[0][1],_nrm[0][0]);
+  beta  = atan2( (-1*_nrm[0][2]),(_nrm[2][2]/cos(gamma)));
   return;
 }
