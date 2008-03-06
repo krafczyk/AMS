@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.11 2008/03/05 19:52:59 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.12 2008/03/06 10:39:13 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.12  2008/03/06 10:39:13  choutko
+* *** empty log message ***
+*
 * Revision 1.11  2008/03/05 19:52:59  choutko
 * *** empty log message ***
 *
@@ -122,7 +125,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.11 2008/03/05 19:52:59 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.12 2008/03/06 10:39:13 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6683,7 +6686,7 @@ c         ENDIF
           fr=1
       miter=100
        chi2o=10000000
-       tol=2.e-4
+       tol=1.e-3
       do i=nplan+1,nplan+1
        do j=1,nlad
          do k=1,nhalf
@@ -6873,11 +6876,11 @@ c        enddo
 c          write(*,*)'chi2 ',i,iter,chi2
         endif
         ch(l)=chi2
-        if(l.eq.2.and.i.gt.ncases-10000)then
+        if(l.eq.2.and.i.le.10000)then
           if(iter.eq.0)then
-            xchi2(1,ncases+1-i)=ch(1)+ch(2)
+            xchi2(1,i)=ch(1)+ch(2)
           endif
-            xchi2(2,ncases+1-i)=ch(1)+ch(2)
+            xchi2(2,i)=ch(1)+ch(2)
         endif
         if(chi2.lt.chi2max)then
          do j=1,nplan
@@ -7000,7 +7003,7 @@ c           naver(i,j,k,l)=0
            c=b
            e=xnx2(i,j,k,2)-xnx(i,j,k,2)**2+
      +       xny2(i,j,k,1)-xny(i,j,k,1)**2
-          roll(i,j,k,1)=roll(i,j,k,1)-(a*a2-c*a1)/(a*e-b*c)*0.5
+          roll(i,j,k,1)=roll(i,j,k,1)-(a*a2-c*a1)/(a*e-b*c)
            pitch(i,j,k,1)=pitch(i,j,k,1)-(a1*e-a2*b)/(a*e-b*c)
            param(i,j,k,3)=param(i,j,k,3)+(averxz(i,j,k,1)-
      +     averxz(i,j,k,2)*averz(i,j,k,1))/
@@ -7101,7 +7104,7 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
       endif
         xf(2)=chi2a
       if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter.and.
-     +  chi2a.le.chi2o)then
+     +  chi2a.le.chi2a)then
        iter=iter+1
        chi2o=chi2a
        goto 10
