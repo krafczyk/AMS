@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.194 2008/03/05 19:52:58 choutko Exp $
+//  $Id: trrec.C,v 1.195 2008/03/06 16:01:34 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -22,7 +22,7 @@
 //#include <trigger3.h>
 #include "trigger302.h"
 #include "tralig.h"
-#include "mccluster.h"
+#include "trmccluster.h"
 #include "trdrec.h"
 #include "vtx.h"
 //

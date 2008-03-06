@@ -1,11 +1,11 @@
-//  $Id: trrawcluster.C,v 1.84 2008/03/05 19:52:58 choutko Exp $
+//  $Id: trrawcluster.C,v 1.85 2008/03/06 16:01:34 pzuccon Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
 #include "commons.h"
 #include <math.h>
 #include "amsgobj.h"
-#include "mccluster.h"
+#include "trmccluster.h"
 #include "timeid.h"
 #include "trid.h"
 #include "ntuple.h"

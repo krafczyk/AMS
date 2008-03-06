@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.544 2008/03/05 10:49:34 choutko Exp $
+// $Id: job.C,v 1.545 2008/03/06 16:01:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -25,8 +25,9 @@
 #include <iostream.h>
 #include <fstream.h>
 //#include "trid.h"
-#include "mccluster.h"
 #include "extC.h"
+#include "trmccluster.h"
+#include "mccluster.h"
 #include "job.h"
 #include "event.h"
 #include "charge.h"

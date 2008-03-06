@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.371 2008/03/05 10:49:34 choutko Exp $
+//  $Id: event.C,v 1.372 2008/03/06 16:01:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -19,8 +19,9 @@
 #include "commons.h"
 #include "amsgobj.h"
 #include "trrec.h"
-#include "mccluster.h"
 #include "tofrec02.h"
+#include "trmccluster.h"
+#include "mccluster.h"
 #include "beta.h"
 #include "charge.h"
 #include "particle.h"

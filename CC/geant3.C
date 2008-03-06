@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.101 2008/01/29 16:25:12 choutko Exp $
+//  $Id: geant3.C,v 1.102 2008/03/06 16:01:33 pzuccon Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -19,8 +19,9 @@
 #include <time.h>
 #include "gvolume.h"
 #include "gmat.h"
-#include "mccluster.h"
 #include "event.h"
+#include "trmccluster.h"
+#include "mccluster.h"
 #include "cont.h"
 #include "trrec.h"
 #include "daqevt.h"
