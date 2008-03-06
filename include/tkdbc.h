@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.16 2007/04/04 12:02:10 choutko Exp $
+//  $Id: tkdbc.h,v 1.17 2008/03/06 16:14:50 pzuccon Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -7,6 +7,12 @@
 #include <iostream.h>
 #include <fstream.h>
 #include "amsdbc.h"
+
+namespace trid{
+const integer ms=4000;
+const int ncrt=8;
+const int ntdr=24;
+}
 
 namespace trconst{
  const integer maxlay=8;

@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.32 2008/02/21 13:25:11 choutko Exp $
+//  $Id: trid.h,v 1.33 2008/03/06 16:14:50 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -13,34 +13,9 @@
 #include "link.h"
 #include "job.h"
 #include "tkdbc.h"
-namespace trid{
-const integer ms=4000;
-const int ncrt=8;
-const int ntdr=24;
-}
 
-class uintl{
-protected:
-uinteger _a[2];  // low 
-public:
-uintl(const uintl &a){_a[0]=a._a[0];_a[1]=a._a[1];}
-uintl(integer a, integer b){_a[0]=a;_a[1]=b;}
-uintl(uinteger a=0, uinteger b=0){_a[0]=a;_a[1]=b;}
-uintl(uinteger a[2]){_a[0]=a[0];_a[1]=a[1];}
-uinteger & operator () (uinteger l) {return _a[l];}
-uinteger v(uinteger l)const {return l<sizeof(_a)/sizeof(_a[0])?_a[l]:0;}
-friend ostream &operator << (ostream &o, const uintl &b ){return (o<<" [0] "<<b.v(0)<<" [1] "<<b.v(1));}
-bool operator < (const uintl&a) const{
-if(v(1)==a.v(1))return v(0)<a.v(0);
-else return v(1)<a.v(1);
-}
-bool operator == (const uintl&a) const{
-return v(1)==a.v(1) && v(0)==a.v(0);
-}
-bool operator == (uinteger a) const{
-return v(1)==0 && v(0)==a;
-}
-};
+
+
 
 class AMSTrIdGeom{
 integer _layer;    // from 1 to TKDBc::nlay()
