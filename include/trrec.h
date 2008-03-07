@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.92 2008/03/05 19:52:59 choutko Exp $
+//  $Id: trrec.h,v 1.93 2008/03/07 17:02:02 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -117,6 +117,7 @@ AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 //default builder
 static integer build(integer refit=0);
+static integer buildLaser(integer refit=0);
 static integer buildWeak(integer refit=0);
 
 static void print();

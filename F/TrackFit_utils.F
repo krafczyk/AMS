@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.13 2008/03/07 07:49:56 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.14 2008/03/07 17:01:56 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.14  2008/03/07 17:01:56  choutko
+* *** empty log message ***
+*
 * Revision 1.13  2008/03/07 07:49:56  choutko
 * *** empty log message ***
 *
@@ -128,7 +131,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.13 2008/03/07 07:49:56 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.14 2008/03/07 17:01:56 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6601,7 +6604,7 @@ c         ENDIF
 #ifdef __CORBA__
       parameter (maxcases=20000)
 #else
-      parameter (maxcases=500000)
+      parameter (maxcases=200000)
 #endif
       real xf(2)
       real xchi2(2,10000)
