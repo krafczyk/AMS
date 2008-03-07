@@ -1,9 +1,10 @@
-//  $Id: geant4.C,v 1.64 2008/01/17 08:58:32 mdelgado Exp $
+//  $Id: geant4.C,v 1.65 2008/03/07 16:23:04 pzuccon Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
 #include "richdbc.h"
 #include "richid.h"
+#include "trmccluster.h"
 #include "mccluster.h"
 #include "daqevt.h"
 #include "mceventg.h"
