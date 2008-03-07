@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.113 2008/03/07 07:49:28 choutko Exp $
+//  $Id: daqevt.C,v 1.114 2008/03/07 19:03:06 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -862,7 +862,7 @@ unexpected:
       }
       else{
 //       fbin.seekg(integer(fbin.tellg())+sizeof(_pData[0])*(_Length-1));
-       int off=sizeof(_pData[0])*(_Length-1);
+       unsigned int off=sizeof(_pData[0])*(_Length-1);
        fbin.seekg(off,ios::cur);
        _Length=0;
       }
@@ -874,7 +874,7 @@ unexpected:
     else {
      break;
    }
-  }while(_EventOK()==0 || (_HeaderOK()==0 ));
+  }while(_Length==0 || _EventOK()==0 || (_HeaderOK()==0 ));
    return fbin.good() && !fbin.eof();
 }
 
@@ -1105,8 +1105,13 @@ DAQEventI::~DAQEventI(){
 integer DAQEvent::_create(uinteger btype){
 if(_pData)shrink();
 if(_Length <=0 )return 0;
-if(_Length*sizeof(_pData[0])> sizeof(_Buffer) || _BufferLock)
+if(_Length*sizeof(_pData[0])> sizeof(_Buffer) || _BufferLock){
+if(_Length>100000000){
+   cerr<<" DAQEvent::_create-E-LengthIsTooBig "<<_Length<<endl;
+   return 0;
+}
 _pData= (int16u*)UPool.insert(sizeof(_pData[0])*_Length);
+}
 else {
 _pData=(int16u*)_Buffer;
 _BufferOwner=1;
