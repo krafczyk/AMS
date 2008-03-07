@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.29 2005/12/13 14:08:42 choutko Exp $
+//  $Id: main.cxx,v 1.30 2008/03/07 16:00:36 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -24,6 +24,7 @@
 #include "AMSNtupleV.h"
 #include "main.h"
 #include <TString.h>
+#include <getopt.h>
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
@@ -63,9 +64,41 @@ int main(int argc, char *argv[]){
 #endif
   char * filename = 0;		// default file name
 
+ int c;
+ int sec=10;
+ char title[256];
+    strcpy(title,"AMS Event Display");
+    int option_index = 0;
+    static struct option long_options[] = {
+        {"title", 1, 0, 't'},
+        {"help",    0, 0, 'h'},
+        {"scan",  1, 0, 's'},
+        {0, 0, 0, 0}
+    };
+
   if ( argc > 1 ) {		// now take the file name
-    filename = *++argv;
-  }
+    filename = argv[1];
+  }   
+    while (1) {
+        c = getopt_long (argc, argv, "t:hHs:?", long_options, &option_index);
+        if (c == -1) break;
+
+        switch (c) {
+            case 's':             /* display */
+             sec=atoi(optarg);
+             break;
+            case 't':             
+                strcpy(title, optarg);
+                break;
+            case 'h':
+            case 'H':
+            case '?':
+            default:            /* help */
+                cout<<"$amsed(c) file -scan[s] -title[t]"<<endl;
+                return 0;
+                break;
+        }
+    }
   AMSNtupleV *pntuple=0;
   TChain chain("AMSRoot");
   if(filename){
@@ -111,7 +144,7 @@ int main(int argc, char *argv[]){
   }
 
 
-  AMSDisplay * amd= new AMSDisplay("AMSRoot Offline Display",geo,pntuple);
+  AMSDisplay * amd= new AMSDisplay(title,geo,pntuple,sec);
   amd->SetApplication(theApp);
   amd->Init();
    theApp->SetDisplay(amd);  

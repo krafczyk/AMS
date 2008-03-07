@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.19 2008/02/27 09:50:12 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.20 2008/03/07 16:00:36 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -129,14 +129,18 @@ if(pcl){
   SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]+fDz);
   SetDirection(0,0);
   if(gAMSDisplay->ShowTrClProfile()){
-   float x[20];
+   float x[100];
   if(pcl->pTrCluster('y')){
-    for (int k=0;k<pcl->pTrCluster('y')->Amplitude.size();k++)x[k]=pcl->pTrCluster('y')->Amplitude[k]/(pcl->pTrCluster('y')->Sum+1.e-20);
+    int kmax=pcl->pTrCluster('y')->Amplitude.size();
+    if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+    for (int k=0;k<kmax;k++)x[k]=pcl->pTrCluster('y')->Amplitude[k]/(pcl->pTrCluster('y')->Sum+1.e-20);
     SetProfileY(pcl->pTrCluster('y')->Amplitude.size(),x);
     SetShowProfileY(true);
   }
   if(pcl->pTrCluster('x')){
-    for (int k=0;k<pcl->pTrCluster('x')->Amplitude.size();k++)x[k]=pcl->pTrCluster('x')->Amplitude[k]/(pcl->pTrCluster('x')->Sum+1.e-20);
+    int kmax=pcl->pTrCluster('x')->Amplitude.size();
+    if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+    for (int k=0;k<kmax;k++)x[k]=pcl->pTrCluster('x')->Amplitude[k]/(pcl->pTrCluster('x')->Sum+1.e-20);
     SetProfileX(pcl->pTrCluster('x')->Amplitude.size(),x);
     SetShowProfileX(true);
   }

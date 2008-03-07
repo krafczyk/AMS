@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.40 2008/01/29 16:25:19 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.41 2008/03/07 16:00:36 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -38,7 +38,7 @@
 #include "Help.h"
 AMSDisplay *gAMSDisplay;
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):m_ntuple(ntuple), TObject(){
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, int sec):m_ntuple(ntuple), m_sec(sec),TObject(){
 
 
      fCooDef[0][0]=-115.;
@@ -112,7 +112,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):
    //
    // Create main display pad
    // ----------------------------
-   m_Pad = new TPad("ViewPad", "AMS Event Display",xsep,0.05,1,0.95);
+   m_Pad = new TPad("ViewPad", m_Canvas->GetTitle(),xsep,0.05,1,0.95);
    m_Pad->Modified();
    m_Pad->SetFillColor(0);	//white 
    m_Pad->SetBorderSize(2);
@@ -270,7 +270,7 @@ void AMSDisplay::DrawTitle(Option_t *option){
 
    
 
-   sprintf(atext,"AMS Event Display         Run %d/ %d %s",m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
+   sprintf(atext,"%s         Run %d/ %d %s",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
@@ -733,7 +733,7 @@ int  AMSDisplay::ReLoad(){
 
 void AMSDisplay::StartStop(bool setidle){
   m_idle=setidle;
-  if(m_idle)m_theapp->SetIdleTimer(10,"");
+  if(m_idle)m_theapp->SetIdleTimer(m_sec,"");
   else  m_theapp->RemoveIdleTimer();
 }
 
