@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.547 2008/03/07 16:19:51 pzuccon Exp $
+// $Id: job.C,v 1.548 2008/03/07 18:07:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1006,7 +1006,7 @@ TRDCALIB.PedAccRequired=0.01;
 TRDCALIB.Validity[0]=1;
 TRDCALIB.Validity[1]=86400;
 TRDCALIB.BadChanThr=3.3;
- FFKEY("TRDCALIB",(float*)&TRDCALIB,sizeof(TRDCALIB_DEF)/sizeof(integer),"MIXED");
+ FFKEY("TRDALIB",(float*)&TRDCALIB,sizeof(TRDCALIB_DEF)/sizeof(integer),"MIXED");
 
 
 }
