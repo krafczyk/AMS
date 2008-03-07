@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.545 2008/03/06 16:01:33 pzuccon Exp $
+// $Id: job.C,v 1.546 2008/03/07 07:49:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -597,10 +597,10 @@ for( i=0;i<8;i++){
   TRALIG.ActiveParameters[i][2]=-one;   // z
   //TRALIG.ActiveParameters[i][2]=zero;
   TRALIG.ActiveParameters[i][3]=-one;   // pitch  zx
-  TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
+  //TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
   TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
   TRALIG.ActiveParameters[i][5]=-one;   // roll   yz
-  TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
+  //TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
   if(i==1){
    for (int k=0;k<6;k++){
    if(TRALIG.ActiveParameters[i][k]==-one)TRALIG.ActiveParameters[i][k]=zero;  

@@ -1902,7 +1902,7 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
 void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
-    if(fTrRecHit.size()>root::MAXTRRH02*(TRCALIB.LaserRun>0?30:3) && !ptr->checkstatus(AMSDBc::USED))return;
+    if(fTrRecHit.size()>root::MAXTRRH02*(TRCALIB.LaserRun>0?20:2) && !ptr->checkstatus(AMSDBc::USED))return;
   fTrRecHit.push_back(TrRecHitR(ptr));
   ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {

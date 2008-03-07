@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.44 2008/03/06 22:55:01 pzuccon Exp $
+#  $Id: Makefile,v 1.45 2008/03/07 07:49:56 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -152,7 +152,7 @@ COMMON_FILES += $(SCC)cern.C       $(SFF)sgif.F    $(SCC)rnormx.C  $(SFF)geocoor
 COMMON_FILES += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trdcalib.C $(SCC)trcalib.C $(SCC)tralig.C  \
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
-		$(SFF)tptcir.F     $(SCC)gsen.C    $(SFF)TrackFit_utils.F \
+		$(SFF)tptcir.F     $(SCC)gsen.C     \
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C 
 
 #TRD 
@@ -200,7 +200,7 @@ COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C
 
 FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)geant3.C      \
 		$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F  $(SFF)gskpho.F  \
-		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C $(SCC)ntuple.C
+		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C $(SCC)ntuple.C $(SFF)TrackFit_utils.F
 
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
@@ -236,7 +236,7 @@ MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o $(BIN)TrackFit_utils_c.o
 
 OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
 		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o
@@ -367,7 +367,8 @@ endif
 
 $(BIN)ntuple_c.o:   $(SCC)ntuple.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o                                                                                  
-
+$(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
+	$(FF) -c $(FFLAGS) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
 ifeq  "$(shell uname)"  "SunOS" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F

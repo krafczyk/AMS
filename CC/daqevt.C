@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.112 2008/03/04 12:56:49 choutko Exp $
+//  $Id: daqevt.C,v 1.113 2008/03/07 07:49:28 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -562,7 +562,7 @@ integer DAQEvent::_DDGSBOK(){
   const integer Laser=204;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
     if(_isddg(*(_pcur+_cll(_pcur)))){
-      if(_RunType!=Laser && calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
+      if( calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
        cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
        return 0;
       }
