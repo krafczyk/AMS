@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.546 2008/03/07 07:49:28 choutko Exp $
+// $Id: job.C,v 1.547 2008/03/07 16:19:51 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -232,6 +232,18 @@ MISCFFKEY.dbwrbeg=0;//DBwriter UIC-time begin
 MISCFFKEY.dbwrend=0;//DBwriter UIC-time end
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
+
+
+G4FFKEY.BFOrder=4;
+G4FFKEY.Delta=0.001;
+G4FFKEY.UniformMagField=0;
+G4FFKEY.Geant3CutsOn=1;
+G4FFKEY.PhysicsListUsed=1;
+G4FFKEY.LowEMagProcUsed=0;
+FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
+
+PRODFFKEY.Debug=0;
+FFKEY("PROD",(float*)&PRODFFKEY,sizeof(PRODFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
 _sitkdata();
@@ -619,28 +631,6 @@ for( i=0;i<8;i++){
 
 
 
-TRDCALIB.CalibProcedureNo=0;
-TRDCALIB.EventsPerCheck=2000;
-TRDCALIB.PedAccRequired=0.01;
-TRDCALIB.Validity[0]=1;
-TRDCALIB.Validity[1]=86400;
-TRDCALIB.BadChanThr=3.3;
- FFKEY("TRDALIB",(float*)&TRDCALIB,sizeof(TRDCALIB_DEF)/sizeof(integer),"MIXED");
-
-
-
-G4FFKEY.BFOrder=4;
-G4FFKEY.Delta=0.001;
-G4FFKEY.UniformMagField=0;
-G4FFKEY.Geant3CutsOn=1;
-G4FFKEY.PhysicsListUsed=1;
-G4FFKEY.LowEMagProcUsed=0;
-FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
-
-PRODFFKEY.Debug=0;
-FFKEY("PROD",(float*)&PRODFFKEY,sizeof(PRODFFKEY_DEF)/sizeof(integer),"MIXED");
-
-
 }
 
 void AMSJob::_signdata(){
@@ -1008,6 +998,16 @@ TRDCLFFKEY.MaxHitsInCluster=3;
 LVL3FFKEY.TRDHMulThr=TRDCLFFKEY.Thr1H/TRDCLFFKEY.ADC2KeV*TRDMCFFKEY.f2i;
 LVL3FFKEY.TRDHMulPart=0.249;
 FFKEY("TRDCL",(float*)&TRDCLFFKEY,sizeof(TRDCLFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+TRDCALIB.CalibProcedureNo=0;
+TRDCALIB.EventsPerCheck=2000;
+TRDCALIB.PedAccRequired=0.01;
+TRDCALIB.Validity[0]=1;
+TRDCALIB.Validity[1]=86400;
+TRDCALIB.BadChanThr=3.3;
+ FFKEY("TRDCALIB",(float*)&TRDCALIB,sizeof(TRDCALIB_DEF)/sizeof(integer),"MIXED");
+
 
 }
 

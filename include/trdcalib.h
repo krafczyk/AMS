@@ -1,4 +1,4 @@
-//  $Id: trdcalib.h,v 1.1 2007/12/18 08:09:54 choutko Exp $
+//  $Id: trdcalib.h,v 1.2 2008/03/07 16:19:51 pzuccon Exp $
 // Author V. Choutko 4-mar-1997
 
 #ifndef __AMSTRDCALIB__
@@ -7,7 +7,9 @@
 #include  "commons.h"
 #include "link.h"
 #include "point.h"
-#include "particle.h"
+//PZ #include "particle.h"
+//PZ 
+#include "trdrec.h"
 #include "trdid.h"
 class AMSmceventg;
 using namespace amsprotected;
