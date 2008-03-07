@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.372 2008/03/06 16:01:33 pzuccon Exp $
+//  $Id: event.C,v 1.373 2008/03/07 17:01:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1009,11 +1009,18 @@ void AMSEvent::_retkinitevent(){
   for(i=0;i<AMSTrIdSoft::ncrates();i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",i),0));
 
-  for( i=0;i<2;i++)  ptr = AMSEvent::gethead()->add (
+  if( TRCALIB.LaserRun){
+  for( i=0;i<2;i++)ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),&AMSTrCluster::buildLaser,0));
+   }
+   else{
+  for( i=0;i<2;i++)ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),&AMSTrCluster::build,0));
+  
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrClusterWeak",i),&AMSTrCluster::buildWeak,0));
 
+  }
   for( i=0;i<TKDBc::nlay();i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",i),&AMSTrRecHit::build,0));
 

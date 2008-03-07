@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.195 2008/03/06 16:01:34 pzuccon Exp $
+//  $Id: trrec.C,v 1.196 2008/03/07 17:01:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -298,6 +298,105 @@ integer AMSTrCluster::build(integer refit){
   }
   return 1;
 }
+
+
+
+
+integer AMSTrCluster::buildLaser(integer refit){
+// find laser clusters
+
+  AMSContainer * pct[2];
+  geant THR2R[2]={50,50};
+  geant THR2A[2]={1.1,1.1};
+  integer ThrClNEl[2]={50,1};
+  integer ThrMinEl[2]={5,5};
+ 
+  integer size=(TKDBc::maxstripsdrp()+1+
+  2*max(ThrClNEl[0],ThrClNEl[1]))*sizeof(number);
+  number *  adc  = (number*)UPool.insert(size); 
+  AMSTrIdSoft id;
+  for(int icll=0;icll<AMSTrIdSoft::ncrates();icll++){
+   AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
+   getheadC("AMSTrRawCluster",icll,1);
+   VZERO(adc,size/4);
+   while(p){
+    // Unpack cluster into tmp space
+     id=AMSTrIdSoft(p->getid());
+     integer ilay=id.getlayer();
+     integer side=id.getside();
+     p->expand(adc+ThrClNEl[side]);
+    if(p->testlast()){
+              
+     // Circle buffer for x layers 1 && 8;
+     // 
+     if(side==0 && (ilay==1 || ilay==TKDBc::nlay())){
+       for (int iloc=0;iloc<ThrClNEl[side];iloc++){
+        adc[iloc]=adc[id.getmaxstrips()+iloc];
+        adc[iloc+id.getmaxstrips()+ThrClNEl[side]]=
+        adc[iloc+ThrClNEl[side]];
+       }  
+     }
+//   find max amplitude strip
+     geant thr=THR2R[side];
+again:
+     number ref=-FLT_MAX;
+     int imax=-1;
+     for (int i=ThrClNEl[side];i<id.getmaxstrips()+ThrClNEl[side];i++){
+       if(ref<adc[i]){
+        ref=adc[i];
+        imax=i;
+      }
+     }
+     if(ref>thr){
+//    cluster cand found
+       int nrig=0;
+       for(int k=imax+1;k<id.getmaxstrips()+ThrClNEl[side];k++){
+        if(adc[k]>0 && adc[k]<adc[k-1]*THR2A[side])nrig++;
+        else break;
+       }           
+       int nlef=0;
+       for(int k=imax-1;k>=0;k--){
+        if(adc[k]>0 && adc[k]<adc[k+1]*THR2A[side])nlef++;
+        else break;
+       }           
+      number sum=0;
+      number ssum=0;
+      number pos=0;
+      number rms=0;
+      integer status=0;
+      for (int j=imax-nlef;j<imax+nrig+1;j++){
+       id.upd(j-ThrClNEl[side]);
+        sum+=adc[j];
+        ssum=ssum+id.getsig()*id.getsig();
+        pos=pos+1*(j-imax)*adc[j];
+        rms=rms+(j-imax)*(j-imax)*adc[j];
+      }
+       if(sum !=0){
+        rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
+        pos=pos/sum+1*0.5;
+        ssum=sqrt(ssum);
+       }
+         id.upd(imax-ThrClNEl[side]);
+         int shift=imax-nlef;
+         if(nrig+nlef>ThrMinEl[side]){
+          AMSTrCluster* pclnew=_addnext(
+         id,status,-nlef,nrig+1,sum,ssum,pos,rms,0.,adc+shift);
+//         cout <<" added "<<ilay<<" "<<side<<" "<<" "<<imax<<" "<<nlef<<" "<<nrig<<" "<<sum<<endl;
+        }
+        for(int k=imax-nlef;k<imax+nrig+1;k++)adc[k]=0;
+        if(thr<ref*0.25)thr=ref*0.25;
+        goto again;
+      }
+     VZERO(adc,size/4);
+    }
+     p=p->next();           
+  }
+  }
+  UPool.udelete(adc);
+
+  return 1;
+}
+
 
 
 
@@ -700,7 +799,7 @@ void AMSTrCluster::_ErrorCalc(){
 integer side=_Id.getside();
 if(side==1)_ErrorMean =TRCLFFKEY.ErrY;
 else  _ErrorMean =TRCLFFKEY.ErrX;
-
+if(TRCALIB.LaserRun)_ErrorMean/=2;
 #else
 // Here is the right code
 
