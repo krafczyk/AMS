@@ -66,13 +66,13 @@ AMSRichRing *AMSRichCal::event_selection(){
 
   AMSRichRing *ring=particle->getprich();
   if(!ring) {reason=4;return 0;}
-  uinteger naf_ring=ring->checkstatus(naf_ring);
+  uinteger naf_ring=ring->checkstatus(richconst::naf_ring);
   if(naf_ring){reason=5;return 0;}
 
   // Check that the event is clean enough
   if(AMSRichRawEvent::Npart()>2){reason=6; return 0;}
 
-  uinteger dirty_ring=ring->checkstatus(dirty_ring);
+  uinteger dirty_ring=ring->checkstatus(richconst::dirty_ring);
   if(dirty_ring){
     // Check if it has been rebuilt
     AMSRichRing *next=ring->next();

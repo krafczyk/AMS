@@ -880,6 +880,7 @@ geant RichPMT::SimulateSinglePE(int channel,int mode){
       return i*_step[channel][mode];
   }
   
+  return RIC_prob_bins*_step[channel][mode];  // Just in case
 }
 
 
