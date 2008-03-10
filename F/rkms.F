@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.6 2008/02/28 16:14:54 choutko Exp $
+*  $Id: rkms.F,v 1.7 2008/03/10 22:07:14 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -132,19 +132,21 @@ c there is no type definition (integer ...) in  iounit.inc
 
       if(first) then ! ----------------- first
         first = .false.
-#if defined __IFC
+#if defined __IFC ||  defined __INTEL_COMPILER
         open(unit=lun8,form='formatted',file='/dev/null',
-     +  status='unknown',shared,err=100)
+     +  status='unknown',shared)
 #else
        open(unit=lun8,form='formatted',file='/dev/null',
-     +  status='unknown',err=100)
+     +  status='unknown')
 #endif
 
  100    continue
+         lun8=6
         Call MNINIT(5,lun8,lun8) ! Read, Write, Save
         na = 1             ! # of arguments
         arglis(1)=-1.      ! suppr. output
         Call MNEXCM(FunMI,'SET PRINT',arglis,na,ierflg,0)
+        Call MNEXCM(FunMI,'SET NOWARN',arglis,na,ierflg,0)
         If(ierflg.ne.0) write(6,*)'MNEXCM: Print ierflg=',ierflg
         arglis(1)= 1.
         Call MNEXCM(FunMI,'SET GRAD',arglis,na,ierflg,0) ! Gradients
@@ -1052,8 +1054,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.6 2008/02/28 16:14:54 choutko Exp $
+* $Id: rkms.F,v 1.7 2008/03/10 22:07:14 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.7  2008/03/10 22:07:14  choutko
+* *** empty log message ***
+*
 * Revision 1.6  2008/02/28 16:14:54  choutko
 * *** empty log message ***
 *
@@ -1213,8 +1218,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.6 2008/02/28 16:14:54 choutko Exp $
+* $Id: rkms.F,v 1.7 2008/03/10 22:07:14 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.7  2008/03/10 22:07:14  choutko
+* *** empty log message ***
+*
 * Revision 1.6  2008/02/28 16:14:54  choutko
 * *** empty log message ***
 *

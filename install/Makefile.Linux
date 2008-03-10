@@ -59,12 +59,13 @@ ifdef AMSICC
     FF=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
 endif
 
-
+FFOLD=$(FF)
 ifeq ($(ARCH),linuxicc)
   FF=$(INTELDIR)/fc/10.1.012/bin/ifort -W0
   CXX=$(INTELDIR)/cc/10.1.012/bin/icc
   CC=$(INTELDIR)/cc/10.1.012/bin/icc
   LD=$(INTELDIR)/cc/10.1.012/bin/icpc
+  FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
 FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/fc/10.1.012/lib     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 else
 FORTRAN2_LIBS= 
