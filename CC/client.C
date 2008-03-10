@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.39 2008/02/14 10:38:11 choutko Exp $
+//  $Id: client.C,v 1.40 2008/03/10 20:07:38 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -18,7 +18,7 @@ if(!logdir){
  logdir=getenv("AMSDataDir");
  if(!logdir){
   AString a("AMSDataDirNotDefined ");
-    FMessage((char *) a,DPS::Client::CInAbort);
+    FMessage((const char *) a,DPS::Client::CInAbort);
  }
  fnam=logdir;
  fnam+="/prod.log";
@@ -43,7 +43,7 @@ else fnam=logdir;
  if(!_fbin){
     AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");
      a+=fnam; 
-    FMessage((char *) a,DPS::Client::CInAbort);
+    FMessage((const char *) a,DPS::Client::CInAbort);
   }
  else{
     AString a("AMSClient::_openLogFile-I-opened");
@@ -65,13 +65,13 @@ else fnam=logdir;
    else{
     AString a("AMSClient::_openLogFile-F-JournalFileAlreadyExists");
      a+=fnam2; 
-    FMessage((char *) a,DPS::Client::CInAbort);
+    FMessage((const char *) a,DPS::Client::CInAbort);
    }
   }
  if(!_fbin2){
     AString a("AMSClient::_openLogFile-F-UnableOpenJournalFile ");
      a+=fnam2; 
-    FMessage((char *) a,DPS::Client::CInAbort);
+    FMessage((const char *) a,DPS::Client::CInAbort);
   }
  else{
     AString a("AMSClient::_openLogFile-I-JournalFileOpened");

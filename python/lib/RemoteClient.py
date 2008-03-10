@@ -2560,7 +2560,7 @@ class RemoteClient:
                         type="UNK"
                         if(t0=="5"):
                             type="SCI"
-                            if(tag=="202" or tag=="2163208" or tag=="204"):
+                            if(tag=="202" or tag=="2163208" or tag=="204"  or tag=="205"  or tag=="206" or tag=="207" or tag=="208"):
                                 type="LAS"
                         elif (t0=="6"):
                             type="CAL"

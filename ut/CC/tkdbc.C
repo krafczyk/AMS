@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.57 2008/02/27 09:50:11 choutko Exp $
+//  $Id: tkdbc.C,v 1.58 2008/03/10 20:07:39 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -3111,7 +3111,7 @@ if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
 #if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)
 else iftxt.open((const char *)fnam,ios::out);
 #else
-else iftxt.open((const char *)fnam,ios::out|ios::noreplace);
+else iftxt.open((const char *)fnam,ios::out);
 #endif
 if(iftxt){
   // Write file

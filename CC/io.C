@@ -1,4 +1,4 @@
-//  $Id: io.C,v 1.29 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: io.C,v 1.30 2008/03/10 20:07:38 choutko Exp $
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "io.h"
@@ -203,7 +203,7 @@ void AMSIO::init(integer mode,integer format){
 #if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__) || defined(sun) || defined(__ICC__)
     (fbin.rdbuf())->pubsetbuf(buffer,32*sizeof(AMSIO));
 #else
-    (fbin.rdbuf())->setbuf(buffer,32*sizeof(AMSIO));
+    (fbin.rdbuf())->pubsetbuf(buffer,32*sizeof(AMSIO));
 #endif
   }
   else {

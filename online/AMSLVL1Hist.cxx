@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.18 2008/01/31 09:48:24 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.19 2008/03/10 20:07:44 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -400,7 +400,6 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
   static int first(1),etime0(0),evnloc;
   float time[3];
   float rates[6];
-  UInt_t itrtime[4];
   Double_t trigt;
   Float_t trigtdif;
   static Double_t trigtprev(-1);
@@ -601,6 +600,8 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     }
     ((TProfile*)_filled[28])->Fill(time[2]-timez[2],ltime,1.);
 //trig-time histogr: 
+ UInt_t itrtime[5];
+
     for(int i=0;i<5;i++)itrtime[i]=ntuple->pLevel1(0)->TrigTime[i];
     trigt=itrtime[2]*0.64+itrtime[3]*pow(2.,32)*0.64+1000000.*itrtime[1] ;//mksec
       trigtdif=Float_t(itrtime[4]);

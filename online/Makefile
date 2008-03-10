@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.23 2008/02/12 18:29:25 choutko Exp $
+#  $Id: Makefile,v 1.24 2008/03/10 20:07:44 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -20,15 +20,15 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=   -pthread
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/compiler80/bin/icc
+CXX           =  /opt/intel/cc/10.1.012/bin/icc
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
 OPT           = -O2
 OPTC          = -O2
 NOOPT         = -g
 NOOPTC         = -g
-LD            = /opt/intel/compiler80/bin/icc
+LD            =  /opt/intel/cc/10.1.012/bin/icpc
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl

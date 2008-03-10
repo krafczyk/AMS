@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.548 2008/03/07 18:07:44 choutko Exp $
+// $Id: job.C,v 1.549 2008/03/10 20:07:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1759,7 +1759,7 @@ void AMSJob::_sitkinitjob(){
     fnam+="trsigma.hbk";
     int iostat;
     int rstat=1024;
-    HROPEN(1,"input",fnam,"P",rstat,iostat);
+    HROPEN(1,"input",fnam.operator char*(),"P",rstat,iostat);
     if(iostat){
      cerr << "Error opening TrSigmaFile file "<<fnam<<endl;
      throw amsglobalerror("UnableToOpenHistoFile",3);
@@ -3166,7 +3166,7 @@ if(!isRealData()){
   tm begin;
   tm end;
   AMSTrAligFit::InitADB();
-  if(TRALIG.UpdateDB){
+  if(TRALIG.UpdateDB>1){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }

@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.88 2008/02/21 13:25:06 choutko Exp $
+//  $Id: timeid.C,v 1.89 2008/03/10 20:07:39 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -207,7 +207,7 @@ if(_Type!=Client){
     fnam+="/";
     AString mkdir("mkdir -p ");
     mkdir+=fnam;
-    system((char*)mkdir);
+    system((const char*)mkdir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
         char name[255];
@@ -234,7 +234,7 @@ if(_Type!=Client){
     AString buf("touch ");
     buf+=dir;
     buf+=getname();
-    system((char *)buf);     
+    system((const char *)buf);     
 // now put the record intodb
 
 uinteger *ibe[5];
@@ -471,7 +471,7 @@ integer AMSTimeID::_select(
 const 
 #endif
 dirent *entry){
-return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;    
+return strstr(entry->d_name,(const char*)*_selectEntry)!=NULL;    
 }
 
 integer AMSTimeID::_selectsdir(
@@ -592,7 +592,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         for(i=0;i<nptr;i++) {
           int valid=0;
           int kvalid=0;
-          for(int k=strlen((char*)fnam);k<strlen(namelist[i]->d_name);k++){
+          for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
             if((namelist[i]->d_name)[k]=='.' )valid++;
             if((namelist[i]->d_name)[k]=='.')kvalid=k;
           }
@@ -786,7 +786,7 @@ void AMSTimeID::_checkcompatibility(const char *dir){
         for(i=0;i<nptr;i++) {
           int valid=0;
           int kvalid=0;
-          for(int k=strlen((char*)fnam);k<strlen(namelist[i]->d_name);k++){
+          for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
             if((namelist[i]->d_name)[k]=='.' )valid++;
             if((namelist[i]->d_name)[k]=='.')kvalid=k;
           }
@@ -834,7 +834,7 @@ void AMSTimeID::_rewrite(const char *dir, AString & ffile){
                  delete [] pdata;
                  AString rm("rm -f ");
                  rm+=ffile;
-                 if(ok)system((char *)rm);
+                 if(ok)system((const char *)rm);
                 }
                 else {
                   cout<<"AMSTimeID::read-W-Problems to Read File "<<

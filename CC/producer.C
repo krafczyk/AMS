@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.110 2008/02/27 09:50:11 choutko Exp $
+//  $Id: producer.C,v 1.111 2008/03/10 20:07:39 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1080,7 +1080,7 @@ if(!CORBA::is_nil(*li)){
      }   
      if(_MT){
      for(int i=0;i<length;i++){
-        CORBA::Object_var obj=_orb->string_to_object((ars[i]).IOR);
+        CORBA::Object_var obj=_orb->string_to_object((ars.operator[](i)).IOR);
         if(!CORBA::is_nil(obj)){
         DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
         if(!CORBA::is_nil(_pvar)){
@@ -1093,7 +1093,7 @@ if(!CORBA::is_nil(*li)){
      else{
       bool LocalHostFound=false;
      for(int i=0;i<length;i++){
-        CORBA::Object_var obj=_orb->string_to_object((ars[i]).IOR);
+        CORBA::Object_var obj=_orb->string_to_object((ars.operator[](i)).IOR);
         if(!CORBA::is_nil(obj)){
         DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
         if(!CORBA::is_nil(_pvar)){
@@ -1310,10 +1310,10 @@ for(int i=0;i<5;i++){
  ibe[i]=new uinteger[length];
 }
  for(int j=0;j<length;j++){
-    ibe[0][j]=tvar[j].id;
-    ibe[1][j]=tvar[j].Insert;
-    ibe[2][j]=tvar[j].Begin;
-    ibe[3][j]=tvar[j].End;
+    ibe[0][j]=tvar.operator[](j).id;
+    ibe[1][j]=tvar.operator[](j).Insert;
+    ibe[2][j]=tvar.operator[](j).Begin;
+    ibe[3][j]=tvar.operator[](j).End;
   }
   pser->fillDB(length,ibe);
 }
@@ -1354,7 +1354,6 @@ again:
   catch  (const CORBA::SystemException &  a){
      cerr<< "Problems with TDV "<<endl;
 //     cerr<< "Problems with TDV "<< a._orbitcpp_get_repoid()<<endl;
-endl;
     _OnAir=false;
   }
  }
@@ -1435,7 +1434,7 @@ else{
  DPS::Producer::TDVbody_var vbody=pbody;
  vb2->length(totallength+length);
  for(int i=0;i<length;i++){
-  vb2[i+totallength]=vbody[i];
+  vb2[i+totallength]=vbody.operator[](i);
  }
 }
 totallength+=length;

@@ -61,10 +61,13 @@ endif
 
 
 ifeq ($(ARCH),linuxicc)
-  FF=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
-  CXX=$(INTELDIR)/compiler70/ia32/bin/icc  
-  CC=$(INTELDIR)/compiler70/ia32/bin/icc  
-  LD=$(INTELDIR)/compiler70/ia32/bin/icc
+  FF=$(INTELDIR)/fc/10.1.012/bin/ifort -W0
+  CXX=$(INTELDIR)/cc/10.1.012/bin/icc
+  CC=$(INTELDIR)/cc/10.1.012/bin/icc
+  LD=$(INTELDIR)/cc/10.1.012/bin/icpc
+FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/fc/10.1.012/lib     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+else
+FORTRAN2_LIBS= 
 endif
 
 ifeq "$(shell $(CXX) -v 2>&1 | grep -c 2.95)" "2"
@@ -228,7 +231,7 @@ else
 FORTRAN_LIBS=-lg2c
 endif
 
-LDFLAGSI=    -static  \
+LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
@@ -237,7 +240,7 @@ LDFLAGSI=    -static  \
 -lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN_LIBS) $(RH9add)
 
-LDFLAGS=       \
+LDFLAGS=      $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \

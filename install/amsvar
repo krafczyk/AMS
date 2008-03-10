@@ -1,5 +1,5 @@
-#  $Id: amsvar,v 1.58 2008/03/05 10:49:36 choutko Exp $
-setenv ROOTSYS /dat0/root.v514i/root
+#  $Id: amsvar,v 1.59 2008/03/10 20:07:44 choutko Exp $
+setenv ROOTSYS /f2users/choutko/root.v514i/root
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f0dah1/users/choutko/root

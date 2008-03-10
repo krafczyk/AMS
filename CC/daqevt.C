@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.114 2008/03/07 19:03:06 choutko Exp $
+//  $Id: daqevt.C,v 1.115 2008/03/10 20:07:38 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -1004,7 +1004,7 @@ void DAQEvent::initO(integer run){
      if(fbout)fbout.close();
      if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
 #if !defined(__USE_STD_IOSTREAM) && !defined(__STDC_HOSTED__) 
-    if((mode/10)%10 ==1)fbout.open(name,ios::out|ios::noreplace);
+    if((mode/10)%10 ==1)fbout.open(name,ios::out);
 #else
     if((mode/10)%10 ==1)fbout.open(name,ios::out);
 #endif
@@ -1016,7 +1016,7 @@ void DAQEvent::initO(integer run){
       (fbout.rdbuf())->pubsetbuf(buffer,2048);
 #else
       //      (fbout.rdbuf())->pubsetbuf(buffer,2048);
-      (fbout.rdbuf())->setbuf(buffer,2048);
+      (fbout.rdbuf())->pubsetbuf(buffer,2048);
 #endif
       cout<<"DAQEvent::initO-I- opened file "<<name<<" in mode "<<mode<<endl;
 

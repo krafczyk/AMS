@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.509 2008/03/05 10:49:36 choutko Exp $
+# $Id: RemoteClient.pm,v 1.510 2008/03/10 20:07:44 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5814,10 +5814,14 @@ DDTAB:          $self->htmlTemplateTable(" ");
 #
                   my @junk=split 'Total Events',$cite->{filedesc};
                   if($#junk>0){
-                      my $mdesc=$junk[0];
-                      $mdesc=~s/   /%/g;
-                      
-                  $sql="select dirpath from datasetsdesc where dataset='$dataset->{name}' and jobdesc like '$mdesc'";
+                      my $smdesc="";
+                      my @junk2=split   " ",$junk[0];
+                      foreach my $mdesc (@junk2){
+                       $smdesc=$smdesc." and ";
+                       $mdesc=~s/ //g; 
+                       $smdesc= $smdesc." jobdesc like '%$mdesc%' ";
+                      }
+                  $sql="select dirpath from datasetsdesc where dataset='$dataset->{name}' $smdesc";
                    
                      my $ret=$self->{sqlserver}->Query($sql);
 #                      die "$sql $ret->[0][0]";

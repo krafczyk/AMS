@@ -136,6 +136,7 @@ integer AMSTRDRawHit::getdaqid(int16u crate){
  for(int i=0;i<31;i++){
    if(checkdaqid(i)-1 == crate)return i;
  }
+ return -1;
 }
 
 integer AMSTRDRawHit::checkdaqidS(int16u id){
@@ -344,7 +345,7 @@ void AMSTRDRawHit::builddaq(int n, int16u*p){
 
 integer AMSTRDRawHit::calcdaqlength(integer i){
 
-
+return 0;
 }
 
 void AMSTRDRawHit::_writeEl(){
