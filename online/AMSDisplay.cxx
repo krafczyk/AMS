@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.25 2006/02/01 17:13:56 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.26 2008/03/11 14:38:44 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -176,19 +176,15 @@ void AMSOnDisplay::Draw(Option_t *option)
 void AMSOnDisplay::DrawTitle(Option_t *option)
 {
 
-   static TText * text=0;
    static char atext[255];
 
    sprintf(atext, "Alpha Magnetic Spectrometer Online Display    %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
    sprintf(_grset,"%d",gAMSDisplay->getCurSubDet()->getCSet());
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
+   m_TitlePad->Clear();
 
-   if (! text) {
-	text = new TText(0.5, 0.5, atext);
-   }
-   else
-	text->SetText(0.5, 0.5, atext);
+	TText * text = new TText(0.5, 0.5, atext);
 
 //   text->SetTextFont(7);
    text->SetTextAlign(22);

@@ -61,10 +61,15 @@ endif
 
 FFOLD=$(FF)
 ifeq ($(ARCH),linuxicc)
-  FF=$(INTELDIR)/fc/10.1.012/bin/ifort -W0
-  CXX=$(INTELDIR)/cc/10.1.012/bin/icc
-  CC=$(INTELDIR)/cc/10.1.012/bin/icc
-  LD=$(INTELDIR)/cc/10.1.012/bin/icpc
+ifdef AMSPARALLEL
+  PARALLEL=-parallel
+else
+  PARALLEL=
+endif
+  FF=$(INTELDIR)/fc/10.1.012/bin/ifort -W0 -m32 -axT $(PARALLEL)
+  CXX=$(INTELDIR)/cc/10.1.012/bin/icc  -m32 -axT  $(PARALLEL)
+  CC=$(INTELDIR)/cc/10.1.012/bin/icc -m32 -axT
+  LD=$(INTELDIR)/cc/10.1.012/bin/icpc -m32 -axT  $(PARALLEL)
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
 FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/fc/10.1.012/lib     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 else
@@ -168,8 +173,8 @@ ifdef AMSICC
     FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g 
     FFLAGSn=    -D__ICC__ -tpp6 -mp1 -xi -fp_port   -g 
   else
-    FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O 
-    FFLAGSn=   -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O  
+    FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O3 
+    FFLAGSn=   -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O3 
   endif
 endif
 

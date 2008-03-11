@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.31 2008/03/11 12:56:25 choutko Exp $
+#  $Id: Makefile,v 1.32 2008/03/11 14:38:38 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
@@ -21,9 +21,9 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
 endif
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/cc/10.1.012/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
-OPT           = -O2
-OPTC          = -O2
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   -axT
+OPT           = -O3
+OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
 LD            = /opt/intel/cc/10.1.012/bin/icpc
