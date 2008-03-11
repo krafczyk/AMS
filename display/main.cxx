@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.30 2008/03/07 16:00:36 choutko Exp $
+//  $Id: main.cxx,v 1.31 2008/03/11 12:56:26 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -46,7 +46,7 @@ void Myapp::HandleIdleTimer(){
   }
 //  SetReturnFromRun(1);
 //Terminate();
-  cout <<"exiting handler"<<endl;
+  //cout <<"exiting handler"<<endl;
 }
 
 void (handler)(int);

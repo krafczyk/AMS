@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.30 2008/02/12 18:29:24 choutko Exp $
+#  $Id: Makefile,v 1.31 2008/03/11 12:56:25 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
@@ -20,17 +20,17 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=  -pthread
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/compiler80/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
+CXX           =  /opt/intel/cc/10.1.012/bin/icc
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
 OPT           = -O2
 OPTC          = -O2
 NOOPT         = -g
 NOOPTC         = -g
-LD            = /opt/intel/compiler80/bin/icc
+LD            = /opt/intel/cc/10.1.012/bin/icpc
 VER         := $(shell $(ROOTSYS)/bin/root-config --version )
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 LIBS          =  $(ROOTLIBS) -lm -ldl 
 LIBSA          =  $(ROOTLIBSA) -lm -ldl 
 else

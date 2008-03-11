@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.41 2008/03/07 16:00:36 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.42 2008/03/11 12:56:25 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -163,7 +163,6 @@ Int_t AMSDisplay::DistancetoPrimitive(Int_t px, Int_t py){
 
 
 void AMSDisplay::Draw(Option_t *option){
-
 //    Insert current event in graphics pad list
 
 
@@ -218,29 +217,32 @@ void AMSDisplay::DrawAllViews(){
    // draw 30 deg view
    m_Pad->cd(1);
    DrawView(30, 30, 0);
+  if(m_PrevView!=m_View){
    DrawCaption();
-
+  }
    // draw top view
    m_Pad->cd(2);
    DrawView(0, -90, 1);
+  if(m_PrevView!=m_View){
    DrawCaption("Top");
-
+  }
    // draw front view
    m_Pad->cd(3);
 
    DrawView(90, 0, 2);
+  if(m_PrevView!=m_View){
    DrawCaption("Front");
-
+  }
    // draw side view
    m_Pad->cd(4);
    DrawView(90, -90, 3);
+  if(m_PrevView!=m_View){
    DrawCaption("Side ");
-
+  }
    m_Pad->cd(2);
 }
 
 void AMSDisplay::DrawFrontAndSideViews(){
-
    m_Pad->cd();
    if(m_PrevView!=m_View){
     m_Pad->SetFillColor(15);
@@ -250,14 +252,16 @@ void AMSDisplay::DrawFrontAndSideViews(){
    // draw front view
    m_Pad->cd(1);
    DrawView(90, 0, 0);
+   if(m_PrevView!=m_View){
    DrawCaption("Front");
-
+   }
    // draw side view
    m_Pad->cd(2);
    DrawView(90, -90, 1);
-   DrawCaption("Side");
-
-   m_Pad->cd(1);
+   if(m_PrevView!=m_View){
+     DrawCaption("Side");
+     m_Pad->Update();
+   }
 }
 
 
@@ -265,7 +269,6 @@ void AMSDisplay::DrawFrontAndSideViews(){
 void AMSDisplay::DrawTitle(Option_t *option){
    m_TitlePad->SetEditable(true);
 
-   static TText * text=0;
    static char  atext[255];
 
    
@@ -274,12 +277,9 @@ void AMSDisplay::DrawTitle(Option_t *option){
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
+   m_TitlePad->Clear();
 
-   if (! text) {
-	text = new TText(0.5, 0.5, atext);
-   }
-   else
-	text->SetText(0.5, 0.5, atext);
+	TText* text = new TText(0.5, 0.5, atext);
 
    text->SetTextAlign(22);
    text->SetTextSize(0.65);
@@ -335,7 +335,7 @@ void AMSDisplay::DrawCaption(Option_t *option)
    if (strlen(option) == 0) {
 
    } else {
-      TPaveLabel *label = new TPaveLabel(xmin +0.01*dx, ymax-0.15*dy, xmin +0.25*dx, ymax-0.01*dy,option);
+      TPaveLabel *label = new TPaveLabel(xmin +0.01*dx, ymax-0.09*dy, xmin +0.15*dx, ymax-0.01*dy,option);
       label->SetBit(kCanDelete);
       label->SetFillColor(42);
       label->Draw();
@@ -445,13 +445,11 @@ void AMSDisplay::DrawTrigger(){
 
 void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
 //    Draw a view of AMS
-
-   static TPaveText * angle=0;
    m_Theta=theta;
    m_Phi=phi; 
    gPad->SetFillColor(10);	//white for easy printing
    TView *view=gPad->GetView();
-   if(  m_PrevView!=m_View){
+   if(  m_PrevView!=m_View ){
     m_geosetter->UpdateGeometry(m_View);
     gPad->Clear();
     // add itself to the list
@@ -475,6 +473,7 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    }
    else {
     gPad->GetListOfPrimitives()->Remove(this);
+     //cout <<" draw"<<endl;
     m_ntuple->Draw();
     AppendPad();
    }
@@ -611,6 +610,7 @@ void AMSDisplay::ShowNextEvent(Int_t delta){
 //    delta = -1 show previous event
 
 
+//     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
 
       int entry=m_ntuple->CurrentEntry()+delta;      
       while(m_ntuple->ReadOneEvent(entry)==0){
