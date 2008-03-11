@@ -1,15 +1,14 @@
-#  $Id: amsvar,v 1.60 2008/03/10 22:07:15 choutko Exp $
-setenv ROOTSYS /f2users/choutko/root.v514i/root
-#setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
+setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f0dah1/users/choutko/root
 #setenv ROOTSYS /f2users/choutko/root/vdev
 #setenv ROOTSYS /f2users/choutko/root 
 set path=($ROOTSYS/bin $path . /usr/sbin  )
-setenv LD_LIBRARY_PATH .:$ROOTSYS/lib:/opt/intel/compiler80/lib:/opt/intel/cc/10.1.012/lib
+setenv LD_LIBRARY_PATH .:$ROOTSYS/lib:/opt/intel/compiler80/lib
 setenv CVSROOT $Offline/CVS
 setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
 setenv CVS_RSH ssh
+setenv ProductionRunsDir /s0fc00/Data/Deframing
 setenv AMSDataDir $Offline/AMSDataDir
 setenv EDITOR  emacs
 setenv CVSEDITOR  emacs

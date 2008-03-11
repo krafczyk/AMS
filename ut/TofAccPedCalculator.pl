@@ -23,6 +23,8 @@ $binw_tev=120;#binwidth(sec/pix) for time-evolution graphs(2 min)
 $RunNum=0;
 $RunType=" ";
 $FileSize=0;
+$nprocruns=0;
+$stopjob=0;
 $ServConnect=0;
 $ServObject=0;
 @barsppl=(8,8,10,8);
@@ -516,27 +518,25 @@ $exitbt->bind("<ButtonRelease-3>", \&exitbt_help);
 #                                     -relwidth=>0.075,-relheight=>0.05);
 #$upddbbt->bind("<Button-3>", \&upddbbt_help);
 #---
-$stjob_state='disabled';
 $sjobbt=$mwnd->Button(-text => "StartJob", -font=>$font2, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 			      -background=>"green",
                               -borderwidth=>5,-relief=>'raised',
 			      -cursor=>hand2,
-			      -state=>$stjob_state,
                               -command => \&StartJob)->place(
                                          -relx=>0,-rely=>0.95,
                                          -relwidth=>0.075,-relheight=>0.05);
 $sjobbt->bind("<Button-3>", \&startjob_help);
 #---
-$check_b_state='disabled';
-$checkbt=$mwnd->Button(-text => "Check", -font=>$font2, 
+$checkbtxt="StopJob";
+$checkbt=$mwnd->Button(-text => $checkbtxt, -font=>$font2, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
-			      -background=>"green",
+			      -background=>"orange",
                               -borderwidth=>5,-relief=>'raised',
 			      -cursor=>hand2,
-			      -state=>$check_b_state,
+			      -textvariable=>\$checkbtxt,
                               -command => \&checkq)->place(
                                          -relx=>0.075,-rely=>0.95,
                                          -relwidth=>0.075,-relheight=>0.05);
@@ -613,7 +613,7 @@ sub setRunDefs
      $Evs2Read=2000;
      $MinEvsInFile=10000;
      $RunType="SCI";
-     $FileSize=100;#mb
+     $FileSize=30;#mb
   }
   elsif($pedcaltyp eq "Data"){
      if($tofantsel eq "useTOF"){$TruncCut="0.1";}
@@ -623,7 +623,7 @@ sub setRunDefs
      $Evs2Read=2000;
      $MinEvsInFile=10000;
      $RunType="SCI";
-     $FileSize=100;#mb
+     $FileSize=30;#mb
   }
   else{#OnBoardTable
      $TruncCut="dummy";
@@ -699,6 +699,7 @@ sub setRunDefs
     $fnum2o=$fnum2;
     $fdat1o=$fdat1;
     $fdat2o=$fdat2;
+    print "$files $fnum1 $fnum2\n";
   }
   else{
     if($NPrevRuns > 0){
@@ -966,7 +967,7 @@ sub checkbt_help{
     if($htextagi1 ne ""){$helptext->tagRemove('lookat',$htextagi1,$htextagi2);}
   }
   $helptext->see("end");
-  my $indx=$helptext->search(-backwards, "Check-Button:",'end');
+  my $indx=$helptext->search(-backwards, "StopJob/Check-Button:",'end');
   if($indx eq ""){
     show_warn("   <-- No info yet !");
   }
@@ -1188,6 +1189,7 @@ sub fpedplbt_help{
 #------------------------------------------------------------------------------
 sub scanddir{ # scan DAQ-directories to search for needed files in required date(runN)-window
 #
+  $nprocruns=0;
   @daqfrunn=();
   @daqftags=();
   @daqftyps=();
@@ -1393,12 +1395,12 @@ sub open_browser_window{ # open mozilla browser
 sub StartJob
 {
 #
-  $checkbt->configure(-state=>$check_b_state);
   if($ndaqgood==0){
     show_warn("   <-- Missing good daq-files !?");
     return;
   }
 #
+  my @daqfstatr=();
   my ($logfn,$detname,$pedtyp,$logfn,$pedrlogf,$daqfn);
   if($tofantsel eq "useTOF"){$detname="tofp";}
   else{$detname="antp";}
@@ -1412,6 +1414,7 @@ sub StartJob
   $perc_done=0;
   $nsuccruns=0;
   $nprocruns=0;
+  $stopjob=0;
 #
 #---> clean pedcalib-dir from old ped/log-files:
   my $stat=0;
@@ -1426,6 +1429,7 @@ sub StartJob
   $mwnd->update;
 #
   $daqfrunmn=4294000000;#put max to find min
+  push(@daqfstatr,@daqfstat);#save to tempor.array for possible re-StartJob without DAQ-dir rescan.
 #
 #---> Run gbatch for each selected daq-file:
 #
@@ -1456,15 +1460,42 @@ sub StartJob
 #
     $perc_done=100*($percent/$ndaqgood);
     $mwnd->update;
+    if($stopjob!=0){
+      show_warn("   <-- PedCalib-Job $RunNum was interrupted by user !!!");
+      last;
+    }
   }#--->endof daq-files loop
-  $curline="<=========== PedCalib-Job finished with $nsuccruns successful runs from $nprocruns processed !\n\n";
-  $logtext->insert('end',$curline);
-  $logtext->yview('end');
-  $checkbt->configure(-state => 'normal');
+#
+  if($stopjob==0){
+    $curline="<=========== PedCalib-Job finished with $nsuccruns successful runs from $nprocruns processed !\n\n";
+    $logtext->insert('end',$curline);
+    $logtext->yview('end');
+    if($nsuccruns==0){
+      show_warn("   <-- No good runs ! Check conditions and rescan DAQ-dirs or edit run-list accordingly !");
+    }
+    else{
+      $checkbtxt="CheckJob";
+      $checkbt->configure(-background => "green");
+      show_warn(" ");
+    }
+  }
+  else{
+    $stopjob=0;
+    @daqfstat=();
+    push(@daqfstat,@daqfstatr);#restore statuses to original when job was interrupted by user
+    for($i=0;$i<$ndaqfound;$i++){print "$daqfstat[$i]\n";}
+    show_warn("   <-- Change conditions and rescan DAQ-dirs or just re-StartJob if run-list ok !!!");
+  }
+  $mwnd->update;
 }
 #----------------------------------------------------------------
 sub checkq{# create TopLevel with canvas and control panel
 #
+if($checkbtxt eq "StopJob"){
+  $stopjob=1;
+#  $checkbt->configure(-background => "orange");
+  return;
+}
 if(! Exists($topl1)){# <-- define size and create 2nd window:
   $topl1=$mwnd->Toplevel();
   $swdszx=$mnwdszx;#X-size of 2nd window (portion of display x-size)

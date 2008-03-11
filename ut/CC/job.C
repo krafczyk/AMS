@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.549 2008/03/10 20:07:38 choutko Exp $
+// $Id: job.C,v 1.550 2008/03/11 13:17:46 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -896,8 +896,13 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.b2scut[3]=0.2;  // (53) max backgr/signal energy(bound.from above) for pl-4 
   ECCAFFKEY.b2scut[4]=0.15; // (54) max backgr/signal energy(bound.from above) for pl-5 
   ECCAFFKEY.b2scut[5]=0.15; // (55) max backgr/signal energy(bound.from above) for pl-6
-  ECCAFFKEY.pedcpr=0.04;    // (56) PedCal : portion of highest amplitudes to remove for ped/sig calc
+// PedCalib:
+  ECCAFFKEY.pedcpr=0.04;    // (56) PedCal : def portion of highest amplitudes to remove for ped/sig calc
   ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+  ECCAFFKEY.pedlim[0]=50.;  // (58) Ped low-lim in PedCalibJobs
+  ECCAFFKEY.pedlim[1]=500.; // (59)      hi-lim ...............
+  ECCAFFKEY.siglim[0]=0.5;  // (60) PedSig low-lim ............
+  ECCAFFKEY.siglim[1]=10.; //  (61)         hi-lim ............
 //g.chen
   ECCAFFKEY.ecshswit=0;        // (58) 0/1 switch to/(not to) use shower info in ANOR calibration
   ECCAFFKEY.chi2dirmx=10.;     //     max chi2 of shower dir fit
@@ -1268,7 +1273,7 @@ void AMSJob::_retof2data(){
 //TOFPedsCalib:
   TFCAFFKEY.mcainc=0;// (30) spare
   TFCAFFKEY.pedcpr[0]=0.01; // (31) PedCalibJobClass: portion of highest adcs to remove for ped-calc
-  TFCAFFKEY.pedcpr[1]=0.1;  // (32) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
+  TFCAFFKEY.pedcpr[1]=0.25;  // (32) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedoutf=2;      // (33)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
   TFCAFFKEY.pedlim[0]=10.;  // (34) Ped low-lim in PedCalibJobs
   TFCAFFKEY.pedlim[1]=500.; // (35)      hi-lim ...............
@@ -1317,7 +1322,7 @@ void AMSJob::_reanti2data(){
   ATCAFFKEY.pedlim[0]=10.;  // (6) Ped low-lim in PedCalibJobs
   ATCAFFKEY.pedlim[1]=400.; // (7)      hi-lim ...............
   ATCAFFKEY.siglim[0]=0.4;  // (8) PedSig low-lim ............
-  ATCAFFKEY.siglim[1]=10.; //  (9)         hi-lim ............
+  ATCAFFKEY.siglim[1]=15.; //  (9)         hi-lim ............
 //
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }

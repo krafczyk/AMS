@@ -29,7 +29,7 @@ public:
 //--------------------------
 //
 const integer ATPCSTMX=100;// PedCalib max.values's stack size (max)
-const integer ATPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
+const integer ATPCEVMN=100;//min ev/ch to calc.ped/sig(also for partial average calc)
 const integer ATPCEVMX=1000;//max.statistics on events/channel
 const geant ATPCSPIK=20.;//Anode ADC-value(adc-ch) to be considered as spike(~1mip)
 //
@@ -39,6 +39,7 @@ private:
   static number adc[ANTI2C::MAXANTI][2];//store Anode/Dynode adc sum
   static number adc2[ANTI2C::MAXANTI][2];//store adc-squares sum
   static number adcm[ANTI2C::MAXANTI][2][ATPCSTMX];//max. adc-values stack
+  static number port2r[ANTI2C::MAXANTI][2];//portion of hi-ampl to remove
   static integer nevt[ANTI2C::MAXANTI][2];// events in sum
   static geant peds[ANTI2C::MAXANTI][2];
   static geant sigs[ANTI2C::MAXANTI][2];

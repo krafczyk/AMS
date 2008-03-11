@@ -2405,6 +2405,7 @@ void ECREUNcalib::mfite(){
  number ECPedCalib::adc[ECPMSL][5][2];
  number ECPedCalib::adc2[ECPMSL][5][2];//**2
  number ECPedCalib::adcm[ECPMSL][5][2][ECPCSTMX];//stack of ECPCSS max's (Highest is 1st)
+ number ECPedCalib::port2r[ECPMSL][5][2];//portion of hi-ampl to remove
  integer ECPedCalib::nevt[ECPMSL][5][2];
  integer ECPedCalib::hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event) 
  geant ECPedCalib::peds[ECPMSL][5][2];
@@ -2441,13 +2442,8 @@ void ECREUNcalib::mfite(){
      return;
    }
 //
-   nstacksz=floor(ECCAFFKEY.pedcpr*ECPCEVMX+0.5);
-   if(nstacksz>ECPCSTMX){
-     cout<<"====> ECPedCalib::init-W-Stack too small, change Trunc-value or max.events/ch !!!"<<nstacksz<<endl;
-     cout<<"                Its size set back to max-possible:"<<ECPCSTMX<<endl;
-     nstacksz=ECPCSTMX;
-   }
-   if(nstacksz<1)nstacksz=1;
+//   nstacksz=floor(ECCAFFKEY.pedcpr*ECPCEVMX+0.5);
+   nstacksz=ECPCSTMX;
    cout<<"====> ECPedCalib::init: real stack-size="<<nstacksz<<endl;
 //
    for(sl=0;sl<ECSLMX;sl++){
@@ -2460,6 +2456,7 @@ void ECREUNcalib::mfite(){
 	   adc[ch][pix][gn]=0;
 	   adc2[ch][pix][gn]=0;
 	   for(i=0;i<ECPCSTMX;i++)adcm[ch][pix][gn][i]=0;
+           port2r[ch][pix][gn]=0;//portion of hi-ampl to remove
 	   nevt[ch][pix][gn]=0;
 	   peds[ch][pix][gn]=0;
 	   sigs[ch][pix][gn]=0;
@@ -2511,15 +2508,18 @@ void ECREUNcalib::mfite(){
      HMINIM(ECHISTC+181+sl,0.2);
      HMAXIM(ECHISTC+181+sl,2.);
    }
-   HBOOK1(ECHISTC+190,"Sl/Pm/Pix=5/18/2 AnodeH",100,50.,250.,0.);
-   HBOOK1(ECHISTC+191,"Sl/Pm/Pix=5/18/2 AnodeL",100,50.,250.,0.);
-   HBOOK1(ECHISTC+192,"Sl/Pm=5/18 Dynode",100,50.,250.,0.);
+   HBOOK1(ECHISTC+190,"Sl/Pm/Pix=5/18/2 AnodeH(raw)",100,50.,250.,0.);
+   HBOOK1(ECHISTC+191,"Sl/Pm/Pix=5/18/2 AnodeL(raw)",100,50.,250.,0.);
+   HBOOK1(ECHISTC+192,"Sl/Pm=5/18 Dynode(raw)",100,50.,250.,0.);
    HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-2.5,2.5,0.);
    HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-2.5,2.5,0.);
    HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+199,"Sl/Pm/Pix=5/18/2 AnodeH(inlim)",100,50.,250.,0.);
+   HBOOK1(ECHISTC+200,"Sl/Pm/Pix=5/18/2 AnodeL(inlim)",100,50.,250.,0.);
+   HBOOK1(ECHISTC+201,"Sl/Pm=5/18 Dynode(inlim)",100,50.,250.,0.);
    cout<<"====> ECPedCalib::init done..."<<endl<<endl;;
  }
 //-----
@@ -2619,6 +2619,15 @@ void ECREUNcalib::mfite(){
    int pml,pmr;
 //
    integer evs2rem;
+   geant por2rem,p2r;
+   geant apor2rm[10]={0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,};
+   number ad,ad2,dp,ds;
+   geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+   geant sigi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+   geant pedmin,pedmax,sigmin,sigmax;
+//
+   sigmin=ECCAFFKEY.siglim[0];
+   sigmax=ECCAFFKEY.siglim[1];
 //
    sl=swid/10000;
    sl=sl-1;//0-8
@@ -2631,31 +2640,71 @@ void ECREUNcalib::mfite(){
 //
    nev=nevt[ch][pix][gn];
 // peds[ch][pix][gn];//SmalSample(SS) ped (set to "0" at init)
-   if(peds[ch][pix][gn]==0 && nev==ECPCEVMN){//calc. SS-ped/sig when ECPCEVMN events is collected
-     evs2rem=floor(ECCAFFKEY.pedcpr*nev+0.5);
-     if(evs2rem>nstacksz)evs2rem=nstacksz;
-     if(evs2rem<1)evs2rem=1;
-     for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
-       adc[ch][pix][gn]=adc[ch][pix][gn]-adcm[ch][pix][gn][i];
-       adc2[ch][pix][gn]=adc2[ch][pix][gn]-adcm[ch][pix][gn][i]*adcm[ch][pix][gn][i];
+   if(peds[ch][pix][gn]==0 && nev==ECPCEVMN){//calc. SubSet-ped/sig when ECPCEVMN events is collected
+//
+//     cout<<"<----- start SS-peds calculation for L/B/S/PM="<<il<<" "<<ib<<" "<<is<<" "<<pm<<endl;
+//     for(i=0;i<nstacksz;i++){
+//       cout<<adcm[ch][pix][gn][i]<<" ";
+//       if((i+1)%10==0)cout<<endl;
+//     }
+//     cout<<endl;   
+     int llindx(-1);   
+     for(int ip2r=0;ip2r<10;ip2r++){//<--- portion to remove loop
+       p2r=apor2rm[ip2r];
+       evs2rem=int(floor(p2r*nev+0.5));
+       if(evs2rem>nstacksz)evs2rem=nstacksz;
+       ad=adc[ch][pix][gn];
+       ad2=adc2[ch][pix][gn];
+       for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
+         ad=ad-adcm[ch][pix][gn][i];
+         ad2=ad2-adcm[ch][pix][gn][i]*adcm[ch][pix][gn][i];
+       }
+       ped=ad/number(nev-evs2rem);//truncated average
+       sig2=ad2/number(nev-evs2rem);
+       sig2=sig2-ped*ped;// truncated rms**2
+       if(sig2>0)sig=sqrt(sig2);
+       else sig=0;
+       if(ip2r>0){
+         dp=pedi[ip2r-1]-ped;
+         ds=sigi[ip2r-1]-sig;
+       }
+       else{
+         dp=9999;
+         ds=9999;
+       }
+       pedi[ip2r]=ped;
+       sigi[ip2r]=sig;
+//       cout<<"<-- ip2r/por2r="<<ip2r<<"/"<<p2r<<" ped/dp="<<ped<<" "<<dp<<" sig/ds="<<sig<<" "<<ds<<endl;
+       if((sig < sigmax && sig>sigmin)
+                                      && (dp < 1.0)
+                                                   && (ds < 0.5)
+		                                                && ip2r > 0){
+         port2r[ch][pix][gn]=p2r;
+         llindx=ip2r;
+	 break;
+       }
+//       cout<<"   pedi/sigi="<<pedi[ip2r]<<" "<<sigi[ip2r]<<endl;
+     }//--->endof portion to remove loop
+//
+     if(llindx<0){//fail to find SubSet-ped/sig - suspicious channel
+       sig=0;
+       ped=0;
+       port2r[ch][pix][gn]=-1;
      }
-     ped=adc[ch][pix][gn]/number(nev-evs2rem);//truncated average
-     sig2=adc2[ch][pix][gn]/number(nev-evs2rem);
-     sig2=sig2-ped*ped;// truncated rms**2
-     if(sig2>0 && sig2<=(2.25*ECPCSIMX*ECPCSIMX)){//2.25->1.5*SigMax
-       sigs[ch][pix][gn]=sqrt(sig2);
-       peds[ch][pix][gn]=ped;//is used now as flag that SS-PedS ok
-     }
+//
+     sigs[ch][pix][gn]=sig;
+     peds[ch][pix][gn]=ped;//is used now as flag that SS-PedS ok
      adc[ch][pix][gn]=0;//reset to start new life(with real selection limits)
      adc2[ch][pix][gn]=0;
      nevt[ch][pix][gn]=0;
      for(i=0;i<ECPCSTMX;i++)adcm[ch][pix][gn][i]=0;
-   }
+   }//--->endof SS(1st 100evs) check
+//
    ped=peds[ch][pix][gn];//now !=0 or =0 
    sig=sigs[ch][pix][gn];
 //
    if(ped>0){//set val-limits if partial ped OK
-     lohil[0]=ped-3*sig;
+     lohil[0]=ped-3.5*sig;
      lohil[1]=ped+5*sig;
      if(gn==0){//hi(an or dyn)
        if(pix<4)gainf=1.;//hi an
@@ -2694,10 +2743,15 @@ void ECREUNcalib::mfite(){
        }
      }
    }//-->endof "in limits" check
-   if(sl==4 && pm==17 && accept){
+   if(sl==4 && pm==17){
      if(pix==1 && gn==0)HF1(ECHISTC+190,val,1.);
      if(pix==1 && gn==1)HF1(ECHISTC+191,val,1.);
      if(pix==4 && gn==0)HF1(ECHISTC+192,val,1.);
+     if(ped>0 && val>lohil[0] && val<lohil[1] && accept){
+       if(pix==1 && gn==0)HF1(ECHISTC+199,val,1.);
+       if(pix==1 && gn==1)HF1(ECHISTC+200,val,1.);
+       if(pix==4 && gn==0)HF1(ECHISTC+201,val,1.);
+     }
    } 
  }
 //-----
@@ -2724,6 +2778,8 @@ void ECREUNcalib::mfite(){
 // flg=0/1/2=>HistosOnly/write2DB+File/write2file
    int i,j;
    geant pdiff;
+   geant por2rem,p2r;
+   geant pedmin,pedmax,sigmin,sigmax;
    integer statmin(9999);
    int16u sl,pm,pix,gn,gnm,pln,cll,ch;
    time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival) 
@@ -2739,6 +2795,12 @@ void ECREUNcalib::mfite(){
 //
    integer evs2rem;
 //
+   por2rem=ECCAFFKEY.pedcpr;//def port. of hi-ampl to remove for DownScaled(in trigger)
+   pedmin=ECCAFFKEY.pedlim[0];
+   pedmax=ECCAFFKEY.pedlim[1];
+   sigmin=ECCAFFKEY.siglim[0];
+   sigmax=ECCAFFKEY.siglim[1];
+//
    cout<<endl;
    cout<<"=====> ECPedCalib-Report:"<<endl<<endl;
    for(sl=0;sl<ECSLMX;sl++){
@@ -2749,10 +2811,15 @@ void ECREUNcalib::mfite(){
 	 if(pix==4)gnm=1;//only hi-gain for dynodes
          for(gn=0;gn<gnm;gn++){
 	   totchs+=1;
+           if(port2r[ch][pix][gn]<0)p2r=por2rem;//use default for suspicious channel
+           else{
+	     if(pm==0)p2r=port2r[ch][pix][gn]/10;//use reduced value because of the ped+-n*sig limits
+	     else p2r=port2r[ch][pix][gn]/15;
+	   }
 	   if(nevt[ch][pix][gn]>=ECPCEVMN){//statistics ok
-	     evs2rem=floor(ECCAFFKEY.pedcpr*nevt[ch][pix][gn]+0.5);
+	     evs2rem=floor(p2r*nevt[ch][pix][gn]+0.5);
 	     if(evs2rem>nstacksz)evs2rem=nstacksz;
-//             if(evs2rem<1)evs2rem=1;
+             if(evs2rem<1)evs2rem=1;
 	     for(i=0;i<evs2rem;i++){//remove highest amplitudes
 	       adc[ch][pix][gn]=adc[ch][pix][gn]-adcm[ch][pix][gn][i];
 	       adc2[ch][pix][gn]=adc2[ch][pix][gn]-adcm[ch][pix][gn][i]*adcm[ch][pix][gn][i];
@@ -2760,9 +2827,9 @@ void ECREUNcalib::mfite(){
 	     adc[ch][pix][gn]/=number(nevt[ch][pix][gn]-evs2rem);//truncated average
 	     adc2[ch][pix][gn]/=number(nevt[ch][pix][gn]-evs2rem);
 	     adc2[ch][pix][gn]=adc2[ch][pix][gn]-adc[ch][pix][gn]*adc[ch][pix][gn];//truncated rms**2
-	     if(adc2[ch][pix][gn]>0
-	                     && adc2[ch][pix][gn]<=(ECPCSIMX*ECPCSIMX)
-		                                    && adc[ch][pix][gn]<300){//chan.OK
+//
+	     if(adc2[ch][pix][gn]>(sigmin*sigmin) && adc2[ch][pix][gn]<=(sigmax*sigmax)
+	                           && adc[ch][pix][gn]>pedmin && adc[ch][pix][gn]<=pedmax){//chan.OK
 	       peds[ch][pix][gn]=geant(adc[ch][pix][gn]);
 	       sigs[ch][pix][gn]=geant(sqrt(adc2[ch][pix][gn]));
 	       stas[ch][pix][gn]=0;//ok
@@ -2955,7 +3022,7 @@ void ECREUNcalib::mfite(){
 //
    }//--->endof file writing 
 //
-   for(i=0;i<99;i++)HPRINT(ECHISTC+100+i);
+   for(i=0;i<102;i++)HPRINT(ECHISTC+100+i);
    cout<<endl;
    cout<<"====================== ECPedCalib: job is completed ! ======================"<<endl;
    cout<<endl;
@@ -2968,6 +3035,7 @@ void ECREUNcalib::mfite(){
    int totchs(0),goodtbch(0),goodchs(0);
    geant goodchp(0);
    geant pedo,sigo;
+   geant pedmin,pedmax,sigmin,sigmax;
    int stao;
    geant pdiff;
    int16u sl,pm,pix,gn,gnm,pln,cll,ch;
@@ -2979,6 +3047,11 @@ void ECREUNcalib::mfite(){
    strcpy(DataDate,asctime(localtime(&begin)));
    time(&insert);
    strcpy(WrtDate,asctime(localtime(&insert)));
+//
+   pedmin=ECCAFFKEY.pedlim[0];
+   pedmax=ECCAFFKEY.pedlim[1];
+   sigmin=ECCAFFKEY.siglim[0];
+   sigmax=ECCAFFKEY.siglim[1];
 //
    cout<<endl;
    cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
@@ -3032,8 +3105,8 @@ void ECREUNcalib::mfite(){
 //
 	   if(peds[ch][pix][gn]>0 && stas[ch][pix][gn]==0){// channel OK in table ? tempor: stas-definition from Kunin ?
 	     goodtbch+=1;
-	     if(sigs[ch][pix][gn]>0 && sigs[ch][pix][gn]<=ECPCSIMX
-		          && peds[ch][pix][gn]<200 && fabs(pdiff)<11){//MyCriteria:chan.OK
+	     if(sigs[ch][pix][gn]>sigmin && sigs[ch][pix][gn]<=sigmax
+		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<20){//MyCriteria:chan.OK
 	       goodchs+=1;
 	       if(pix<4){//anodes
 	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];

@@ -66,10 +66,9 @@ class ECREUNcalib {
 // red out. The peds/sigmas are calculated at the end of the job
 // and can be saved into DB and/or ped-file.
 //
-const integer ECPCSTMX=50;// PedCalib max.values's stack size (max)
-const integer ECPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
+const integer ECPCSTMX=100;// PedCalib max.values's stack size (max)
+const integer ECPCEVMN=100;//min ev/ch to calc.ped/sig(also for partial average calc)
 const integer ECPCEVMX=1000;//max.statistics on events/channel
-const number ECPCSIMX=2.5;//max Ped-rms to accept channel as good
 const geant ECPCSPIK=10.;//signal threshold to be the "Spike"(~>1mips in Hgain chan)
 //
 class ECPedCalib {
@@ -79,6 +78,7 @@ class ECPedCalib {
     static number adc[ecalconst::ECPMSL][5][2];
     static number adc2[ecalconst::ECPMSL][5][2];//square
     static number adcm[ecalconst::ECPMSL][5][2][ECPCSTMX];//max's  stack
+    static number port2r[ecalconst::ECPMSL][5][2];//portion of hi-ampl to remove
     static integer nevt[ecalconst::ECPMSL][5][2];
     static integer hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event) 
     static geant peds[ecalconst::ECPMSL][5][2];

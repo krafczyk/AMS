@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.25 2008/03/05 10:03:24 choumilo Exp $
+//  $Id: daqs2block.C,v 1.26 2008/03/11 13:17:46 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -212,7 +212,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool amswer=((blid&(0x1000))>0);//amsw-error   
   bool timoer=((blid&(0x0800))>0);//timeout-error   
   bool fpower=((blid&(0x0400))>0);//FEpower-error   
-  bool seqer=((blid&(0x0400))>0);//sequencer-error
+  bool seqer=((blid&(0x0200))>0);//sequencer-error
   bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   bool noerr;
   naddr=(blid&(0x001F));//slaveID(="NodeAddr"=SDR_link#)
@@ -1676,7 +1676,7 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){//tempor, have 
 //
 //  blid=nodeids[ibl];// valid block_id
 // ---> wrire block-id :
-  *p=blid;
+//  *p=blid;
   next+=1;//now points to first subdet_data word (usually TOF)
   lent+=1;
 //

@@ -667,11 +667,12 @@ void AntiCalib::fit(){
   number ANTPedCalib::adc[ANTI2C::MAXANTI][2];//store Anode/Dynode adc sum
   number ANTPedCalib::adc2[ANTI2C::MAXANTI][2];//store adc-squares sum
   number ANTPedCalib::adcm[ANTI2C::MAXANTI][2][ATPCSTMX];//max. adc-values stack
+  number ANTPedCalib::port2r[ANTI2C::MAXANTI][2];//portion of hi-ampl to remove
   integer ANTPedCalib::nevt[ANTI2C::MAXANTI][2];// events in sum
   geant ANTPedCalib::peds[ANTI2C::MAXANTI][2];
   geant ANTPedCalib::sigs[ANTI2C::MAXANTI][2];
   uinteger ANTPedCalib::stas[ANTI2C::MAXANTI][2];
-  integer ANTPedCalib::nstacksz;//really needed stack size (ev2rem*ANPCEVMX)
+  integer ANTPedCalib::nstacksz;//really needed stack size
   integer ANTPedCalib::hiamap[ANTI2C::MAXANTI];//high signal Paddles map (1 event) 
   time_t ANTPedCalib::BeginTime;
   uinteger ANTPedCalib::BeginRun;
@@ -679,7 +680,7 @@ void AntiCalib::fit(){
 //
 void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration 
   integer i,j,k,il,ib,id,ii,jj,chan;
-  char htit1[60];
+  char htit1[60],htit2[60];
   char inum[11];
   char in[2]="0";
   geant por2rem;
@@ -710,7 +711,8 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
 //
   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
-  nstacksz=integer(floor(por2rem*ATPCEVMX+0.5));
+//  nstacksz=integer(floor(por2rem*ATPCEVMX+0.5));
+  nstacksz=ATPCSTMX;
   if(nstacksz>ATPCSTMX){
     cout<<"ANTPedCalib::init-W- Stack size too small, change truncate-value or max.events/ch !!!"<<nstacksz<<endl;
     cout<<"                Its size set back to max-possible:"<<ATPCSTMX<<endl;
@@ -737,12 +739,16 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
   for(i=0;i<ANTI2C::MAXANTI;i++){
     for(j=0;j<2;j++){
       strcpy(htit1,"AccPedCalib:Raw ADCs(when accepted) for Sector/Side=");
+      strcpy(htit2,"AccPedCalib:Raw ADCs(raw) for Sector/Side=");
       in[0]=inum[i+1];
       strcat(htit1,in);
+      strcat(htit2,in);
       in[0]=inum[j+1];
       strcat(htit1,in);
+      strcat(htit2,in);
       id=2674+i*2+j;
-    HBOOK1(id,htit1,80,80.,240.,0.);
+      HBOOK1(id,htit1,80,80.,240.,0.);
+      HBOOK1(id+16,htit2,80,80.,240.,0.);
     }
   }
   //
@@ -756,6 +762,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
       peds[i][j]=0;
       sigs[i][j]=0;
       stas[i][j]=1;//bad
+      port2r[i][j]=0;
       for(k=0;k<ATPCSTMX;k++)adcm[i][j][k]=0;
     }
   }
@@ -807,32 +814,73 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
    geant lohil[2]={0,9999};//means no limits on val, if partial ped is bad
    geant ped,sig,sig2,spikethr;
    bool accept(true);
-   geant por2rem;
+   geant por2rem,p2r;
    geant pedmn,pedmx,sigmn,sigmx;
+   geant apor2rm[10]={0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,};
+   number ad,ad2,dp,ds;
+   geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+   geant sigi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 //
-   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
-   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
+   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//def ClassPed(random)
+   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//def DownScaled(in trigger)
    sigmn=ATCAFFKEY.siglim[0];
    sigmx=ATCAFFKEY.siglim[1];
 //
 //cout<<"--->In ANTPedCalib::fill: sect/sid="<<sr<<" "<<sd<<" val="<<val<<endl;
    nev=nevt[sr][sd];
 // peds[sr][sd];//SmalSample(SS) ped (set to "0" at init)
-   if(peds[sr][sd]==0 && nev==ATPCEVMN){//calc. SS-ped/sig when TFPCEVMN events is collected
-     evs2rem=int(floor(por2rem*nev+0.5));
-     if(evs2rem>nstacksz)evs2rem=nstacksz;
-     if(evs2rem<1)evs2rem=1;
-     for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
-       adc[sr][sd]=adc[sr][sd]-adcm[sr][sd][i];
-       adc2[sr][sd]=adc2[sr][sd]-adcm[sr][sd][i]*adcm[sr][sd][i];
+   if(peds[sr][sd]==0 && nev==ATPCEVMN){//calc. SubSet-ped/sig when TFPCEVMN events is collected
+//
+//     cout<<"<----- start SS-peds calculation for Sec/Sid="<<sr+1<<" "<<sd+1<<endl;
+//     for(i=0;i<nstacksz;i++){
+//       cout<<adcm[sr][sd][i]<<" ";
+//       if((i+1)%10==0)cout<<endl;
+//     }
+//     cout<<endl;
+     int llindx(-1);   
+     for(int ip2r=0;ip2r<10;ip2r++){//<--- portion-to-remove loop
+       p2r=apor2rm[ip2r];
+       evs2rem=int(floor(p2r*nev+0.5));
+       if(evs2rem>nstacksz)evs2rem=nstacksz;
+       ad=adc[sr][sd];
+       ad2=adc2[sr][sd];
+       for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
+         ad=ad-adcm[sr][sd][i];
+         ad2=ad2-adcm[sr][sd][i]*adcm[sr][sd][i];
+       }
+       ped=ad/number(nev-evs2rem);//truncated average
+       sig2=ad2/number(nev-evs2rem);
+       sig2=sig2-ped*ped;// truncated rms**2
+       if(sig2>0)sig=sqrt(sig2);
+       else sig=0;
+       if(ip2r>0){
+         dp=pedi[ip2r-1]-ped;
+         ds=sigi[ip2r-1]-sig;
+       }
+       else{
+         dp=9999;
+         ds=9999;
+       }
+       pedi[ip2r]=ped;
+       sigi[ip2r]=sig;
+//       cout<<"  ip2r/p2r="<<ip2r<<" "<<p2r<<" p/s="<<ped<<" "<<sig<<" dp/ds="<<dp<<" "<<ds<<" s2="<<sig2<<endl;
+       if((sig < sigmx && sig>sigmn)
+                                      && (dp < 1.)
+                                                   && (ds < 0.5)
+		                                                && ip2r > 0){
+         port2r[sr][sd]=p2r;
+         llindx=ip2r;
+	 break;
+       }
+     }//--->endof portion to remove loop
+//
+     if(llindx<0){//fail to find SubSet-ped/sig - suspicious channel
+       sig=0;
+       ped=0;
+       port2r[sr][sd]=-1;
      }
-     ped=adc[sr][sd]/number(nev-evs2rem);//truncated average
-     sig2=adc2[sr][sd]/number(nev-evs2rem);
-     sig2=sig2-ped*ped;// truncated rms**2
-     if(sig2>0 && sig2<=(2.25*sigmx*sigmx)){//2.25->1.5*SigMax
-       sigs[sr][sd]=sqrt(sig2);
-       peds[sr][sd]=ped;//is used now as flag that SS-PedS ok
-     }
+     sigs[sr][sd]=sig;
+     peds[sr][sd]=ped;//is used now as flag that SS-PedS ok
      adc[sr][sd]=0;//reset to start new life(with real selection limits)
      adc2[sr][sd]=0;
      nevt[sr][sd]=0;
@@ -840,28 +888,29 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
 //     cout<<"PartialPed:sr/sd="<<sr<<" "<<sd<<endl;
 //     cout<<"           ped/sig2="<<ped<<" "<<sig2<<endl;
 //     cout<<"           evs2rem="<<evs2rem<<endl;
-   }
+   }//--->endof SS-peds calculations
+//
    ped=peds[sr][sd];//now !=0 or =0 
    sig=sigs[sr][sd];
 //
    if(ped>0){//set val-limits if partial ped OK
-     lohil[0]=ped-3*sig;
-     lohil[1]=ped+5*sig;
-     spikethr=max(5*sig,ATPCSPIK);
+     lohil[0]=ped-4*sig;
+     lohil[1]=ped+6*sig;
+     spikethr=max(6*sig,ATPCSPIK);
      if(val>(ped+spikethr)){//spike(>~1mips in higain chan)
-//       hiamap[sr][sd]=1;//put it into map
+       hiamap[sr]=1;//put it into map
        accept=false;//mark as bad for filling
      }
-//     else{//candidate for "fill" - check neigbours
-//       if(sr>0)srl=sr-1;
-//       else srl=0;
-//       if(sr<(MAXANTI)srr=sr+1;
-//       else srr=MAXANTI-1;
-//       accept=(hiamap[srl]==0 && hiamap[srr]==0);//not accept if there is any neighbour
-//     }
+     else{//candidate for "fill" - check neigbours
+       if(sr>0)srl=sr-1;
+       else srl=0;
+       if(sr < (ANTI2C::MAXANTI-1))srr=sr+1;
+       else srr=ANTI2C::MAXANTI-1;
+       accept=(hiamap[srl]==0 && hiamap[srr]==0);//not accept if there is any neighbour
+     }
    }
 //
-   accept=true;//tempor to switch-off spike algorithm
+//   accept=true;//tempor to switch-off spike algorithm
 //
    if(val>lohil[0] && val<lohil[1] && accept){//check "in_limits/not_spike"
      if(nev<ATPCEVMX){//limit statistics(to keep max-stack size small)
@@ -877,10 +926,10 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
        }
      }
    }//-->endof "in limits" check
-   if(accept){
-     id=2674+sr*2+sd;
-     HF1(id,val,1.);
-   } 
+//
+   id=2674+sr*2+sd;
+   if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(id,val,1.); 
+   HF1(id+16,val,1.);
 }
 //-------------------------------------------
 void ANTPedCalib::filltb(int sr, int sd, geant ped, geant sig, int sta){
@@ -906,8 +955,8 @@ void ANTPedCalib::outp(int flg){// very preliminary
    strcpy(WrtDate,asctime(localtime(&insert)));
 //
    integer evs2rem;
-   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
-   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
+   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//def ClassPed(random)
+   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//def DownScaled(in trigger)
    pedmn=ATCAFFKEY.pedlim[0];
    pedmx=ATCAFFKEY.pedlim[1];
    sigmn=ATCAFFKEY.siglim[0];
@@ -918,10 +967,12 @@ void ANTPedCalib::outp(int flg){// very preliminary
    for(sr=0;sr<ANTI2C::MAXANTI;sr++){
      for(sd=0;sd<2;sd++){
        totchs+=1;
+       if(port2r[sr][sd]<0)p2r=por2rem;//use default for suspicious channel
+       else p2r=port2r[sr][sd]/5;//use reduced value because of the ped+-n*sig limits
        if(nevt[sr][sd]>=ATPCEVMN){//statistics ok
-	 evs2rem=integer(floor(por2rem*nevt[sr][sd]+0.5));
+	 evs2rem=integer(floor(p2r*nevt[sr][sd]+0.5));
 	 if(evs2rem>nstacksz)evs2rem=nstacksz;
-//           if(evs2rem<1)evs2rem=1;
+         if(evs2rem<1)evs2rem=1;
 	 for(i=0;i<evs2rem;i++){//remove highest amplitudes
 	   adc[sr][sd]=adc[sr][sd]-adcm[sr][sd][i];
 	   adc2[sr][sd]=adc2[sr][sd]-adcm[sr][sd][i]*adcm[sr][sd][i];
@@ -1033,7 +1084,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 //
    }//--->endof file writing 
 //
-   for(i=0;i<20;i++)HPRINT(2670+i);
+   for(i=0;i<36;i++)HPRINT(2670+i);
    cout<<endl;
    cout<<"====================== ANTPedCalib: job is completed ! ======================"<<endl;
    cout<<endl;

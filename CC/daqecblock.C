@@ -134,7 +134,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   bool amswer=((jblid&(0x1000))>0);//amsw-error   
   bool timoer=((jblid&(0x0800))>0);//timeout-error   
   bool fpower=((jblid&(0x0400))>0);//FEpower-error   
-  bool seqer=((jblid&(0x0400))>0);//sequencer-error
+  bool seqer=((jblid&(0x0200))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)

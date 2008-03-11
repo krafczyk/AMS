@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.12 2008/01/29 09:09:11 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.13 2008/03/11 13:17:53 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -178,7 +178,7 @@ public:
 //===============> TOF PedCalib:
 //
 const integer TFPCSTMX=100;// PedCalib max.values's stack size (max)
-const integer TFPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
+const integer TFPCEVMN=100;//min ev/ch to calc.ped/sig(also for partial average calc)
 const integer TFPCEVMX=1000;//max.statistics on events/channel
 const geant TFPCSPIK=50.;//Anode ADC-value(adc-ch) to be considered as spike(~1mip)
 //
@@ -188,6 +188,7 @@ private:
   static number adc[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store Anode/Dynode adc sum
   static number adc2[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store adc-squares sum
   static number adcm[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1][TFPCSTMX];//max. adc-values stack
+  static number port2r[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//portion of hi-ampl to remove
   static integer nevt[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];// events in sum
   static geant peds[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
   static geant sigs[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];

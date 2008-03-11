@@ -111,8 +111,18 @@
     window (last procecced run+1 is used as left boundary
     of the search window).
     
-    "Check-Button:"
-                    open the control pannel for ped_table
+    "StopJob/Check-Button:"
+                    initially appears as orange "StopJob" to
+    give user the possibility to interrupt the job (after 
+    StartJob-button was clicked) if something goes wrong (you
+    see, for example, bad diagnostics for every selected run
+    because you forgot setenv AMSDataDir correctly or your 
+    runs selection was not appropriate or ...). In this case
+    you can change conditions (rescan daq-dir or just edit run
+    list) and repeate "StartJob". In good case (no user 
+    interruption, nonzero number of successfully processed runs)
+    this button is changed to green "CheckJob" state. Clicking
+    this button will open the control pannel for ped_table
     files quality control. Based on shown plots you can
     remove any of processed files from the list of 
     candidates for DB-updating.

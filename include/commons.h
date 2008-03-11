@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.231 2008/02/29 14:43:19 mdelgado Exp $
+//  $Id: commons.h,v 1.232 2008/03/11 13:17:53 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -360,8 +360,10 @@ public:
   geant scdismx[6];    // max sc-track dist. to consider hit as backgroubd(pl 1-6) 
   geant scdisrs;       // as above for all other planes(not used really)
   geant b2scut[6];     // max backgr/signal energy(bound.from above) for pl 1-6
-  geant pedcpr;        //PedCal: portion of highest amplitude to remove for ped calc.
+  geant pedcpr;        //PedCal: def portion of highest amplitude to remove for ped calc.
   integer pedoutf;     //        PedOutpFlag 
+  geant pedlim[2];     // Ped-limits for PedCalibJobs
+  geant siglim[2];     // PedSig-limits .............
 //g.chen
   integer ecshswit;      // 0/1 switch to/(not to)  use shower info in calibration
   geant chi2dirmx;     // max chi2 of shower dir fit

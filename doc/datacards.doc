@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.271 2008/03/03 10:14:28 mdelgado Exp $
+#  $Id: datacards.doc,v 1.272 2008/03/11 13:17:53 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -974,8 +974,12 @@ R 52  b2scut[2] (0.2) // max backgr/signal energy(bound.from above) for pl-3
 R 53  b2scut[3] (0.2) // max backgr/signal energy(bound.from above) for pl-4 
 R 54  b2scut[4] (0.15)// max backgr/signal energy(bound.from above) for pl-5 
 R 55  b2scut[5] (0.15)// max backgr/signal energy(bound.from above) for pl-6
-R 56  pedcpr    (0.04)// PedCal : portion of highest amplitudes to remove for ped/sig calc
+R 56  pedcpr    (0.04)// PedCal : def portion of highest amplitudes to remove for ped/sig calc
 I 57  pedoutf     (2) // PedCal-output type:0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+R 58  pedlim[0] (50.) // Low lim on ped to be accepted as good
+R 59  pedlim[1] (500.)// High lim on ped to be accepted as good
+R 60  siglim[0] (0.5) // Low lim on rms to be accepted as good
+R 61  siglim[1] (10.) // High lim on rms to be accepted as good
  
 //--------------------------------------------------------------------------------
 

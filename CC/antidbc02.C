@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.23 2008/03/05 10:03:24 choumilo Exp $
+//  $Id: antidbc02.C,v 1.24 2008/03/11 13:17:46 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -1083,22 +1083,22 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2511,"ANTI-REC: FTCoincSector frequency(0 when TrPatt=0)",10,0.,10.,0.);
   }
   if(ATREFFKEY.reprtf[0]>1){//low prior.hist
-    HBOOK1(2570,"ANTI-VAL:ADC Sect-1, Side-1",80,0.,4000.,0.);
-    HBOOK1(2571,"ANTI-VAL:ADC Sect-2, Side-1",80,0.,4000.,0.);
-    HBOOK1(2572,"ANTI-VAL:ADC Sect-3, Side-1",80,0.,4000.,0.);
-    HBOOK1(2573,"ANTI-VAL:ADC Sect-4, Side-1",80,0.,4000.,0.);
-    HBOOK1(2574,"ANTI-VAL:ADC Sect-5, Side-1",80,0.,4000.,0.);
-    HBOOK1(2575,"ANTI-VAL:ADC Sect-6, Side-1",80,0.,4000.,0.);
-    HBOOK1(2576,"ANTI-VAL:ADC Sect-7, Side-1",80,0.,4000.,0.);
-    HBOOK1(2577,"ANTI-VAL:ADC Sect-8, Side-1",80,0.,4000.,0.);
-    HBOOK1(2578,"ANTI-VAL:ADC Sect-1, Side-2",80,0.,4000.,0.);
-    HBOOK1(2579,"ANTI-VAL:ADC Sect-2, Side-2",80,0.,4000.,0.);
-    HBOOK1(2580,"ANTI-VAL:ADC Sect-3, Side-2",80,0.,4000.,0.);
-    HBOOK1(2581,"ANTI-VAL:ADC Sect-4, Side-2",80,0.,4000.,0.);
-    HBOOK1(2582,"ANTI-VAL:ADC Sect-5, Side-2",80,0.,4000.,0.);
-    HBOOK1(2583,"ANTI-VAL:ADC Sect-6, Side-2",80,0.,4000.,0.);
-    HBOOK1(2584,"ANTI-VAL:ADC Sect-7, Side-2",80,0.,4000.,0.);
-    HBOOK1(2585,"ANTI-VAL:ADC Sect-8, Side-2",80,0.,4000.,0.);
+    HBOOK1(2570,"ANTI-VAL:ADC Sect-1, Side-1",80,0.,1600.,0.);
+    HBOOK1(2571,"ANTI-VAL:ADC Sect-2, Side-1",80,0.,1600.,0.);
+    HBOOK1(2572,"ANTI-VAL:ADC Sect-3, Side-1",80,0.,1600.,0.);
+    HBOOK1(2573,"ANTI-VAL:ADC Sect-4, Side-1",80,0.,1600.,0.);
+    HBOOK1(2574,"ANTI-VAL:ADC Sect-5, Side-1",80,0.,1600.,0.);
+    HBOOK1(2575,"ANTI-VAL:ADC Sect-6, Side-1",80,0.,1600.,0.);
+    HBOOK1(2576,"ANTI-VAL:ADC Sect-7, Side-1",80,0.,1600.,0.);
+    HBOOK1(2577,"ANTI-VAL:ADC Sect-8, Side-1",80,0.,1600.,0.);
+    HBOOK1(2578,"ANTI-VAL:ADC Sect-1, Side-2",80,0.,1600.,0.);
+    HBOOK1(2579,"ANTI-VAL:ADC Sect-2, Side-2",80,0.,1600.,0.);
+    HBOOK1(2580,"ANTI-VAL:ADC Sect-3, Side-2",80,0.,1600.,0.);
+    HBOOK1(2581,"ANTI-VAL:ADC Sect-4, Side-2",80,0.,1600.,0.);
+    HBOOK1(2582,"ANTI-VAL:ADC Sect-5, Side-2",80,0.,1600.,0.);
+    HBOOK1(2583,"ANTI-VAL:ADC Sect-6, Side-2",80,0.,1600.,0.);
+    HBOOK1(2584,"ANTI-VAL:ADC Sect-7, Side-2",80,0.,1600.,0.);
+    HBOOK1(2585,"ANTI-VAL:ADC Sect-8, Side-2",80,0.,1600.,0.);
     
     HBOOK1(2586,"ANTI-VAL:Found(ADC+Time) for Sect+(Side-1)*8",16,1.,17.,0.);
     HBOOK1(2587,"ANTI-VAL:Found(Time) for Sect+(Side-1)*8",16,1.,17.,0.);

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.25 2008/02/20 14:22:54 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.26 2008/03/11 13:17:46 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4127,6 +4127,7 @@ void TOF2AVSDcalib::fit(number slop[TOF2GC::SCCHMX], number offs[TOF2GC::SCCHMX]
 number TOFPedCalib::adc[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store Anode/Dynode adc sum
 number TOFPedCalib::adc2[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store adc-squares sum
 number TOFPedCalib::adcm[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1][TFPCSTMX];//max. adc-values stack
+number TOFPedCalib::port2r[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//portion of hi-ampl to remove
 integer TOFPedCalib::nevt[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];// events in sum
 geant TOFPedCalib::peds[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
 geant TOFPedCalib::sigs[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
@@ -4169,15 +4170,10 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
      return;
    }
 //
-  if(TFREFFKEY.relogic[0]==5)por2rem=TFCAFFKEY.pedcpr[0];//ClassPed(random)
-  else if(TFREFFKEY.relogic[0]==6)por2rem=TFCAFFKEY.pedcpr[1];//DownScaled(in trigger)
-  nstacksz=integer(floor(por2rem*TFPCEVMX+0.5));
-  if(nstacksz>TFPCSTMX){
-    cout<<"====> TOFPedCalib::init-W- Stack size too small, change truncate-value or max.events/ch !!!"<<nstacksz<<endl;
-    cout<<"                Its size set back to max-possible:"<<TFPCSTMX<<endl;
-    nstacksz=TFPCSTMX;
-  }
-  if(nstacksz<1)nstacksz=1;
+  if(TFREFFKEY.relogic[0]==5)por2rem=TFCAFFKEY.pedcpr[0];//def ClassPed(random)
+  else if(TFREFFKEY.relogic[0]==6)por2rem=TFCAFFKEY.pedcpr[1];//def DownScaled(in trigger)
+//  nstacksz=integer(floor(por2rem*TFPCEVMX+0.5));
+  nstacksz=TFPCSTMX;
   cout<<"====> TOFPedCalib::init: real stack-size="<<nstacksz<<endl;
 //
 //  ---> book hist.  :
@@ -4226,12 +4222,15 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
       HMAXIM(id,10.);
     }
   }
-  HBOOK1(1806,"Anode peds for LBBS=2011",100,50.,150.,0.);
-  HBOOK1(1807,"Dynode-2 peds for LBBS=4041",100,50.,150.,0.);
   HBOOK1(1808,"All Anode-channels PedRms",50,0.,25.,0.);
   HBOOK1(1809,"All Anode-channels PedDiff",50,-10.,10.,0.);
   HBOOK1(1810,"All Dynode-channels PedRms",50,0.,25.,0.);
   HBOOK1(1811,"All Dynode-channels PedDiff",50,-10.,10.,0.);
+//
+  HBOOK1(1820,"Anode peds for LBBS=1012(raw)",100,250.,450.,0.);
+  HBOOK1(1821,"Anode peds for LBBS=1012(inlim)",100,250.,450.,0.);
+  HBOOK1(1830,"Dynode-1 peds for LBBS=2011(raw)",100,100.,300.,0.);
+  HBOOK1(1831,"Dynode-1 peds for LBBS=2011(inlim)",100,100.,300.,0.);
 // ---> clear arrays:
 //
   for(i=0;i<TOF2GC::SCCHMX;i++){
@@ -4239,9 +4238,11 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
       nevt[i][j]=0;
       adc[i][j]=0;
       adc2[i][j]=0;
+      port2r[i][j]=0;
       peds[i][j]=0;
       sigs[i][j]=0;
       stas[i][j]=1;//bad
+      port2r[i][j]=0;
       for(k=0;k<TFPCSTMX;k++)adcm[i][j][k]=0;
     }
   }
@@ -4336,11 +4337,14 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
    geant ped,sig,sig2,gainf,spikethr,gnf[2];
    geant pedmin,pedmax,sigmin,sigmax;
    bool accept(true);
-   geant por2rem;
+   geant por2rem,p2r;
+   geant apor2rm[10]={0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,};
+   number ad,ad2,dp,ds;
+   geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+   geant sigi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 //
    if(TFREFFKEY.relogic[0]==5)por2rem=TFCAFFKEY.pedcpr[0];//ClassPed(random)
    else if(TFREFFKEY.relogic[0]==6)por2rem=TFCAFFKEY.pedcpr[1];//DownScaled(in trigger)
-   if(pm>0)por2rem/=5;//tempor: reduced for dyn, more clever - later
 //
    TOF2Brcal::scbrcal[il][ib].geta2dr(gnf);
    if(pm==0)gainf=1.;//an
@@ -4351,47 +4355,83 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
    ch=il*TOF2GC::SCMXBR*2+ib*2+is;//seq. channels numbering
    nev=nevt[ch][pm];
 // peds[ch][pm];//SmalSample(SS) ped (set to "0" at init)
-   if(peds[ch][pm]==0 && nev==TFPCEVMN){//calc. SS-ped/sig when TFPCEVMN events is collected
-     evs2rem=int(floor(por2rem*nev+0.5));
-     if(evs2rem>nstacksz)evs2rem=nstacksz;
-     if(evs2rem<1)evs2rem=1;
-     for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
-       adc[ch][pm]=adc[ch][pm]-adcm[ch][pm][i];
-       adc2[ch][pm]=adc2[ch][pm]-adcm[ch][pm][i]*adcm[ch][pm][i];
+   if(peds[ch][pm]==0 && nev==TFPCEVMN){//calc. SubSet-ped/sig when TFPCEVMN events is collected
+//
+//     cout<<"<----- start SS-peds calculation for L/B/S/PM="<<il<<" "<<ib<<" "<<is<<" "<<pm<<endl;
+//     for(i=0;i<nstacksz;i++){
+//       cout<<adcm[ch][pm][i]<<" ";
+//       if((i+1)%10==0)cout<<endl;
+//     }
+//     cout<<endl;   
+     int llindx(-1);   
+     for(int ip2r=0;ip2r<10;ip2r++){//<--- portion to remove loop
+       p2r=apor2rm[ip2r];
+       evs2rem=int(floor(p2r*nev+0.5));
+       if(evs2rem>nstacksz)evs2rem=nstacksz;
+       ad=adc[ch][pm];
+       ad2=adc2[ch][pm];
+       for(i=0;i<evs2rem;i++){//remove "evs2rem" highest amplitudes
+         ad=ad-adcm[ch][pm][i];
+         ad2=ad2-adcm[ch][pm][i]*adcm[ch][pm][i];
+       }
+       ped=ad/number(nev-evs2rem);//truncated average
+       sig2=ad2/number(nev-evs2rem);
+       sig2=sig2-ped*ped;// truncated rms**2
+       if(sig2>0)sig=sqrt(sig2);
+       else sig=0;
+       if(ip2r>0){
+         dp=pedi[ip2r-1]-ped;
+         ds=sigi[ip2r-1]-sig;
+       }
+       else{
+         dp=9999;
+         ds=9999;
+       }
+       pedi[ip2r]=ped;
+       sigi[ip2r]=sig;
+//       cout<<"<-- ip2r/por2r="<<ip2r<<"/"<<p2r<<" ped/dp="<<ped<<" "<<dp<<" sig/ds="<<sig<<" "<<ds<<endl;
+       if((sig < sigmax && sig>sigmin)
+                                      && (dp < 1.0)
+                                                   && (ds < 0.5)
+		                                                && ip2r > 0){
+         port2r[ch][pm]=p2r;
+         llindx=ip2r;
+	 break;
+       }
+//       cout<<"   pedi/sigi="<<pedi[ip2r]<<" "<<sigi[ip2r]<<endl;
+     }//--->endof portion to remove loop
+//
+     if(llindx<0){//fail to find SubSet-ped/sig - suspicious channel
+       sig=0;
+       ped=0;
+       port2r[ch][pm]=-1;
      }
-     ped=adc[ch][pm]/number(nev-evs2rem);//truncated average
-     sig2=adc2[ch][pm]/number(nev-evs2rem);
-     sig2=sig2-ped*ped;// truncated rms**2
-     if(sig2>0 && sig2<=(2.25*sigmax*sigmax)){//2.25->1.5*SigMax
-       sigs[ch][pm]=sqrt(sig2);
-       peds[ch][pm]=ped;//is used now as flag that SS-PedS ok
-     }
+//
+     sigs[ch][pm]=sig;
+     peds[ch][pm]=ped;//is used now as flag that SS-PedS ok
      adc[ch][pm]=0;//reset to start new life(with real selection limits)
      adc2[ch][pm]=0;
      nevt[ch][pm]=0;
      for(i=0;i<TFPCSTMX;i++)adcm[ch][pm][i]=0;
-//     cout<<"PartialPed:il/ib/is/pm="<<il<<" "<<ib<<" "<<is<<" "<<pm<<" ch="<<ch<<endl;
-//     cout<<"           ped/sig2="<<ped<<" "<<sig2<<endl;
-//     cout<<"           evs2rem="<<evs2rem<<endl;
-   }
+   }//--->endof SS(1st 100evs) check
    ped=peds[ch][pm];//now !=0 or =0 
    sig=sigs[ch][pm];
 //
    if(ped>0){//set val-limits if partial ped OK
-     lohil[0]=ped-3*sig;
+     lohil[0]=ped-3.5*sig;
      lohil[1]=ped+5*sig;
      spikethr=max(5*sig,TFPCSPIK/gainf);
      if(val>(ped+spikethr)){//spike(>~1mips in higain chan)
-//       hiamap[il][ib]=1;//put it into map
+       hiamap[il][ib]=1;//put it into map
        accept=false;//mark as bad for filling
      }
-//     else{//candidate for "fill" - check neigbours
-//       if(ib>0)ibl=ib-1;
-//       else ibl=0;
-//       if(ib<(TOF2DBc::getbppl(il)-1))ibr=ib+1;
-//       else ibr=TOF2DBc::getbppl(il)-1;
-//       accept=(hiamap[il][ibl]==0 && hiamap[il][ibr]==0);//not accept if there is any neighbour(horizontal)
-//     }
+     else{//candidate for "fill" - check neigbours
+       if(ib>0)ibl=ib-1;
+       else ibl=0;
+       if(ib<(TOF2DBc::getbppl(il)-1))ibr=ib+1;
+       else ibr=TOF2DBc::getbppl(il)-1;
+       accept=(hiamap[il][ibl]==0 && hiamap[il][ibr]==0);//not accept if there is any neighbour(horizontal)
+     }
    }
 //
 //   accept=true;//tempor to switch-off spike algorithm
@@ -4410,9 +4450,15 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
        }
      }
    }//-->endof "in limits" check
-   if(il==1 && ib==0 && is==0 && accept){
-     if(pm==0)HF1(1806,val,1.);
-     if(pm==1)HF1(1807,val,1.);
+   if(il==0 && ib==0 && is==1){
+     if(pm==0){
+       HF1(1820,val,1.);
+       if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(1821,val,1.);
+     }
+     if(pm==1){
+       HF1(1830,val,1.);
+       if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(1831,val,1.);
+     }
    } 
 }
 //-------------------------------------------
@@ -4458,12 +4504,15 @@ void TOFPedCalib::outp(int flg){// very preliminary
 //
          for(pm=0;pm<TOF2DBc::npmtps(il,ib)+1;pm++){//<--- pm-loop(0/1-3 => an/dyn1-3)
 	   totchs+=1;
+           if(port2r[ch][pm]<0)p2r=por2rem;//use default for suspicious channel
+           else{
+	     if(pm==0)p2r=port2r[ch][pm]/10;//use reduced value because of the ped+-n*sig limits
+	     else p2r=port2r[ch][pm]/15;
+	   }
 	   if(nevt[ch][pm]>=TFPCEVMN){//statistics ok
-             if(pm==0)p2r=por2rem;//an
-	     else p2r=por2rem/5;//tempor: reduced for dyn, more clever - later
 	     evs2rem=integer(floor(p2r*nevt[ch][pm]+0.5));
 	     if(evs2rem>nstacksz)evs2rem=nstacksz;
-//             if(evs2rem<1)evs2rem=1;
+             if(evs2rem<1)evs2rem=1;
 	     for(i=0;i<evs2rem;i++){//remove highest amplitudes
 	       adc[ch][pm]=adc[ch][pm]-adcm[ch][pm][i];
 	       adc2[ch][pm]=adc2[ch][pm]-adcm[ch][pm][i]*adcm[ch][pm][i];
@@ -4518,7 +4567,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
     }//--->endof paddle-loop
   }//--->endof layer-loop
   goodchp=geant(goodchs)/totchs;
-   cout<<"TOFPedCalib: MinAcceptableStatistics/channel was:"<<statmin<<" GoodChsPport="<<goodchp<<endl; 
+   cout<<"TOFPedCalib: MinAcceptableStatistics/channel was:"<<statmin<<" GoodChsPort="<<goodchp<<endl; 
 //   
 // ---> prepare update of DB :
    if(flg==1 && goodchp>=0.5){
@@ -4625,6 +4674,10 @@ void TOFPedCalib::outp(int flg){// very preliminary
    }//--->endof file writing 
 //
    for(i=0;i<22;i++)HPRINT(1790+i);
+   HPRINT(1820);
+   HPRINT(1821);
+   HPRINT(1830);
+   HPRINT(1831);
    cout<<endl;
    cout<<"====================== TOFPedCalib: job is completed ! ======================"<<endl;
    cout<<endl;
