@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.550 2008/03/11 13:17:46 choumilo Exp $
+// $Id: job.C,v 1.551 2008/03/12 13:59:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -585,6 +585,8 @@ for(i=0;i<6;i++){
   TRALIG.Cuts[6][1]=0.04;   
   TRALIG.Cuts[7][0]=6;         //min tr point cut
   TRALIG.Cuts[7][1]=10000;     //max chi2   
+  TRALIG.Cuts[8][0]=0;     //min rig   
+  TRALIG.Cuts[8][1]=1;     //min iter   
 
 TRALIG.Algorithm=0;
 for( i=0;i<8;i++){

@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.14 2008/03/07 17:01:56 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.15 2008/03/12 13:59:40 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.15  2008/03/12 13:59:40  choutko
+* alignment with mag field
+*
 * Revision 1.14  2008/03/07 17:01:56  choutko
 * *** empty log message ***
 *
@@ -131,7 +134,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.14 2008/03/07 17:01:56 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.15 2008/03/12 13:59:40 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6592,7 +6595,7 @@ c         ENDIF
       END
 
 
-      subroutine fit(arr,prm,chi2m,algo,what,xf,xchi2)
+      subroutine fit(arr,prm,chi2m,algo,what,xf,xchi2,rigmin,itermin)
       implicit none
       integer nplan,m,algo,what
       integer nlad,nhalf,npar,iter,miter,nmin,maxcases
@@ -6602,10 +6605,12 @@ c         ENDIF
       parameter (npar=2)
       integer prm(nplan,*)
 #ifdef __CORBA__
-      parameter (maxcases=20000)
+      parameter (maxcases=2000)
 #else
-      parameter (maxcases=200000)
+      parameter (maxcases=500000)
 #endif
+      real rig,rigmin
+      integer itermin
       real xf(2)
       real xchi2(2,10000)
       real cool(3,nplan,nlad,nhalf),s1,s2,s3
@@ -6642,7 +6647,7 @@ c         ENDIF
       double precision x,y,xy,x2,y2,nx,a,b,comp,dyz,dz2,dxz,fr
       double precision chi2,chi2a,chi2max,chi2o,tol,dz,dy2,rmax
       common /paramcommon/param,phi,roll,pitch
-      if(what.eq.-1)then
+      if(what.eq.-2)then
         ncases=0
         call vzero(xchi2,2*10000)
         return
@@ -6684,7 +6689,7 @@ c         ENDIF
          enddo
         enddo 
         return
-       else if(what.eq.1)then
+       else if(abs(what).eq.1)then
        else
         return
        endif
@@ -6697,6 +6702,7 @@ c         ENDIF
       miter=100
        chi2o=10000000
        tol=1.e-3
+       if(what.eq.1)then
       do i=nplan+1,nplan+1
        do j=1,nlad
          do k=1,nhalf
@@ -6738,6 +6744,7 @@ c         ENDIF
         enddo
       enddo
       enddo
+      endif
  10   continue
       chi2a=0
       ntot=0
@@ -6879,8 +6886,10 @@ c        enddo
            chi2=chi2+(res(l,j))**2/sigma(j,l)**2
           endif
          enddo
+         rig=10000
          if(mod(algo,2).eq.0)then
            chi2=out(7)
+           rig=abs(out(6))
          endif
         if(i.le.10)then
 c          write(*,*)'chi2 ',i,iter,chi2
@@ -6892,7 +6901,7 @@ c          write(*,*)'chi2 ',i,iter,chi2
           endif
             xchi2(2,i)=ch(1)+ch(2)
         endif
-        if(chi2.lt.chi2max)then
+        if((chi2.lt.chi2max.and.rig.gt.rigmin).or.iter.lt.itermin)then
          do j=1,nplan
           if(mod(algo,2).eq.0)then
              a=outa(3+l,ilayer(j))/outa(6,ilayer(j))

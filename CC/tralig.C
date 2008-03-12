@@ -1,5 +1,4 @@
-
-//  $Id: tralig.C,v 1.45 2008/03/07 07:49:28 choutko Exp $
+//  $Id: tralig.C,v 1.46 2008/03/12 13:59:36 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -456,6 +455,40 @@ else {
 
 
 bool AMSTrAligFit::Fillgl(AMSNode *pnode){
+if(MAGSFFKEY.magstat>0){
+ time_t timenow;
+time(&timenow);
+
+AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
+AMSTimeID * offspring=dynamic_cast<AMSTimeID*>(ptid->down());
+while(offspring){
+  if(!strstr(offspring->getname(),"MagneticFieldMap") || !offspring->Verify()){
+    offspring=(AMSTimeID*)offspring->next();
+    continue;
+  }
+  integer nb=offspring->GetNbytes();
+  if(offspring->validate(timenow)){
+    if(print)cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
+      " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
+      offspring->getCRC()<<endl;                                              
+   }
+    else {
+      cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;
+      time_t b,e,i;
+      offspring->gettime(i,b,e);
+      cerr<<" Time: "<<ctime(&timenow)<<endl;
+      cerr<<" Begin : " <<ctime(&b)<<endl; 
+      cerr<<" End : " <<ctime(&e)<<endl; 
+      cerr<<" Insert : " <<ctime(&i)<<endl; 
+      throw amsglobalerror("TDV Not    Validated ",3);
+ 
+    }
+    offspring=(AMSTimeID*)offspring->next();
+  }
+
+}
+
+
     char hfile[161];
     UHTOC(TRALIG.gfile,40,hfile,160);
        if(hfile[0]=='\0'){
@@ -545,14 +578,16 @@ bool AMSTrAligFit::Fillgl(AMSNode *pnode){
          pal->RebuildNoActivePar();
          bool alreadydone=false;
 again:
-         int what=-1;
+         int what=-2;
          geant arr[11][8];
          int fixpar[6][8];
          int alg=TRALIG.Algorithm;
           geant chi2m=0;
           geant xf[2]; 
           geant chi2[10000][2];
-         FIT(arr,fixpar,chi2m,alg,what,xf,chi2);
+          geant rigmin=0;
+          int itermin=0;
+         FIT(arr,fixpar,chi2m,alg,what,xf,chi2,rigmin,itermin);
          what=0;
          cout <<" Total "<<pal->_PositionData<<endl;
          for(int ip=0;ip<pal->_PositionData;ip++){
@@ -569,8 +604,6 @@ again:
 //              for(int j=0;j<3;j++)arr[j][plane]=((pal->_pData)[ip]._Hits[i])[j];
               for(int j=0;j<3;j++)arr[j+5][plane]=((pal->_pData)[ip]._EHits[i])[j];
               for(int j=0;j<3;j++)arr[j+7][plane]=((pal->_pData)[ip]._CooA[i])[j];
-//              if(TRALIG.Algorithm%2==0)for(int j=0;j<3;j++)arr[j+7][plane]=0;
-//              if(plane==2)arr[2][plane]+=0.1;
               arr[3][plane]=lad;
               arr[4][plane]=half+1;
               for(int j=0;j<6;j++){
@@ -578,7 +611,7 @@ again:
                 if(_pPargl[lad-1][half][plane].NEntries()<TRALIG.MinEventsPerFit)fixpar[j][plane]=0;
               }
              }
-             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2);
+             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
              if(ip<10){
               int ims=0;
               int ialgo=1;
@@ -609,8 +642,31 @@ again:
             }
             what=1;
             chi2m=TRALIG.Cuts[7][1];
-            cout <<" chi2m "<<chi2m<<endl;
-            FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2);
+            rigmin=TRALIG.Cuts[8][0];
+            itermin=TRALIG.Cuts[8][1];
+            cout <<" chi2m "<<chi2m<<"rigmin "<<rigmin<<" itermin "<<itermin<<endl;
+            FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+
+             number nchi2a=0;
+             float chi2a=0;
+             number chi22a=0;
+             for(int i=0;i<sizeof(chi2)/sizeof(chi2[0][0])/2;i++){
+              if(chi2[i][1]>0 && chi2[i][1]<chi2m){
+               nchi2a++;
+               chi2a+=chi2[i][1];
+               chi22a+=chi2[i][1]*chi2[i][1];
+             }
+             }
+            if(nchi2a>0){
+              chi2a/=nchi2a;
+              chi22a/=nchi2a;
+             }
+             if(chi2a<chi2m/5)chi2a=chi2m/5;
+             cout <<"  Chi2 Changed "<<chi2a<<endl;
+             what=-1;
+             itermin=0;
+             FIT(arr,fixpar,chi2a,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+
             pal->_fcnI=xf[0];
             pal->_fcn=xf[1];
             for(int i=0;i<sizeof(pal->chi2)/sizeof(pal->chi2[0]);i++){
@@ -621,7 +677,7 @@ again:
             int whato;
             do{
              whato=what;             
-             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2);
+             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
              AMSPoint outc;
              AMSPoint outa;
              AMSPoint coo;
