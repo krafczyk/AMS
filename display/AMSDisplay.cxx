@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.42 2008/03/11 12:56:25 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.43 2008/03/12 10:16:58 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -38,9 +38,9 @@
 #include "Help.h"
 AMSDisplay *gAMSDisplay;
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, int sec):m_ntuple(ntuple), m_sec(sec),TObject(){
-
-
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, int sec):m_ntuple(ntuple), m_sec(sec),m_nodate(false),TObject(){
+     m_sec=abs(sec);
+     m_nodate=sec<0;
      fCooDef[0][0]=-115.;
      fCooDef[0][1]=-115.;
      fCooDef[0][2]=-170;
@@ -272,8 +272,14 @@ void AMSDisplay::DrawTitle(Option_t *option){
    static char  atext[255];
 
    
-
+if(!m_nodate){
    sprintf(atext,"%s         Run %d/ %d %s",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
+
+}
+else{
+   sprintf(atext,"%s         Run %d/ %d ",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event());
+}
+
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();

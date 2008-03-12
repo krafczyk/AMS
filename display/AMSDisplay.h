@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.18 2008/03/07 16:00:36 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.19 2008/03/12 10:16:58 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -55,6 +55,7 @@ private:
    bool                  m_zoom;
    bool m_idle;                              // idleing
    int m_sec;                              // idleing
+   bool m_nodate;
    bool m_trclpr;                           //  show tr cluster profile
    bool m_drawrichringfromplex;
     bool m_drawsolid;                       //  box style

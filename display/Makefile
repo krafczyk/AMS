@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.32 2008/03/11 14:38:38 choutko Exp $
+#  $Id: Makefile,v 1.33 2008/03/12 10:16:58 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
@@ -26,7 +26,7 @@ OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
-LD            = /opt/intel/cc/10.1.012/bin/icpc
+LD            = /opt/intel/cc/10.1.012/bin/icpc -axT
 VER         := $(shell $(ROOTSYS)/bin/root-config --version )
 LDFLAGS       = 
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
