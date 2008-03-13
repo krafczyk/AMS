@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.46 2008/03/12 13:59:36 choutko Exp $
+//  $Id: tralig.C,v 1.47 2008/03/13 09:52:33 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -468,7 +468,7 @@ while(offspring){
   }
   integer nb=offspring->GetNbytes();
   if(offspring->validate(timenow)){
-    if(print)cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
+    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
       " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
       offspring->getCRC()<<endl;                                              
    }
