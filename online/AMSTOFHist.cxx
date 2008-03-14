@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.28 2008/02/13 14:07:06 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.29 2008/03/14 14:51:32 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -579,7 +579,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   if(!LVL1OK)return;//=====> no LVL1-trig
   RunPar::addsev(1);//<--passed lvl1 check
 //
-//--------> StrRatio temperature behaviour study(based on TofRawSide-Obj):
+//--------> temperature behaviour study(based on TofRawSide-Obj):
 //
   Int_t swid,hwid,crat,slot,nfthits,ntmhits,nhihits;
   Float_t tinp,tout,strr,offs;

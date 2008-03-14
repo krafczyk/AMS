@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.100 2008/03/03 16:11:18 choutko Exp $
+//  $Id: ecalrec.C,v 1.101 2008/03/14 14:51:14 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -413,8 +413,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
       }
       else{
       }
-      radc=0;
       adcd=integer(floor(radc));//"digitization")(on board)(>=0)
+      radc=0;
       if(adcd>adcdmx)adcdmx=adcd;
       if(adcd>=ECADCMX[2])adcd=ECADCMX[2];//"ADC-saturation (12 bit)"(on board)
       if(ECREFFKEY.relogic[1]==4){//<-Just test for RD class.PedCal (no "ped" subtraction/suppression)

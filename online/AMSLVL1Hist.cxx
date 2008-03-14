@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.19 2008/03/10 20:07:44 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.20 2008/03/14 14:51:32 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -552,7 +552,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
           word=pm/16;
           bit=pm%16;
           sset=sl/2;
-          if((ecpatt[sl][word]&(1<<bit))>0)_filled[24]->Fill(float(pm+1+40*sset),1.);
+          if((ecpatt[sl][word]&(1<<bit))>0)_filled[24]->Fill(float(pm+1+40*sset),1.);//x-pr
         }
       }
       for(int sl=1;sl<6;sl+=2){
@@ -560,7 +560,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
           word=pm/16;
           bit=pm%16;
           sset=(sl-1)/2;
-          if((ecpatt[sl][word]&(1<<bit))>0)_filled[25]->Fill(float(pm+1+40*sset),1.);
+          if((ecpatt[sl][word]&(1<<bit))>0)_filled[25]->Fill(float(pm+1+40*sset),1.);//y-pr
         }
       }
     }

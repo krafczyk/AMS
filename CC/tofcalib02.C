@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.26 2008/03/11 13:17:46 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.27 2008/03/14 14:51:14 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4227,8 +4227,8 @@ void TOFPedCalib::init(){ // ----> initialization for TofPed-calibration
   HBOOK1(1810,"All Dynode-channels PedRms",50,0.,25.,0.);
   HBOOK1(1811,"All Dynode-channels PedDiff",50,-10.,10.,0.);
 //
-  HBOOK1(1820,"Anode peds for LBBS=1012(raw)",100,250.,450.,0.);
-  HBOOK1(1821,"Anode peds for LBBS=1012(inlim)",100,250.,450.,0.);
+  HBOOK1(1820,"Anode peds for LBBS=1042(raw)",100,100.,300.,0.);
+  HBOOK1(1821,"Anode peds for LBBS=1042(inlim)",100,100.,300.,0.);
   HBOOK1(1830,"Dynode-1 peds for LBBS=2011(raw)",100,100.,300.,0.);
   HBOOK1(1831,"Dynode-1 peds for LBBS=2011(inlim)",100,100.,300.,0.);
 // ---> clear arrays:
@@ -4450,7 +4450,8 @@ void TOFPedCalib::fill(int il, int ib, int is, int pm, geant val){//pm=0/1-3 => 
        }
      }
    }//-->endof "in limits" check
-   if(il==0 && ib==0 && is==1){
+//
+   if(il==0 && ib==3 && is==1 && nev<TFPCEVMX){
      if(pm==0){
        HF1(1820,val,1.);
        if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(1821,val,1.);

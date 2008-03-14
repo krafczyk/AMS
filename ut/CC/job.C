@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.551 2008/03/12 13:59:36 choutko Exp $
+// $Id: job.C,v 1.552 2008/03/14 14:51:14 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -778,8 +778,8 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.thresh[2]=0.;     // (11) spare
   ECREFFKEY.thresh[3]=0.;     // (12) spare
   ECREFFKEY.thresh[4]=3.;     // (13) Dynode chan. readout thershold(in sigmas)
-  ECREFFKEY.thresh[5]=1.;     // (14) Trig. PMDynThr sl1(y)
-  ECREFFKEY.thresh[6]=70.;    // (15) Trig. PMDynThr sl2(x)
+  ECREFFKEY.thresh[5]=1.;     // (14) Trig. PMDynThr sl1(y) (in mev from S. Di Falco)
+  ECREFFKEY.thresh[6]=70.;    // (15) Trig. PMDynThr sl2(x) ...
   ECREFFKEY.thresh[7]=100.;   // (16) Trig. PMDynThr sl3(y)
   ECREFFKEY.thresh[8]=80.;    // (17) Trig. PMDynThr sl4(x)
   ECREFFKEY.thresh[9]=60.;    // (18) Trig. PMDynThr sl5(y)

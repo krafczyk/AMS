@@ -1,7 +1,6 @@
-//  $Id: AMSTOFHist.h,v 1.7 2006/01/25 11:21:40 choumilo Exp $
+//  $Id: AMSTOFHist.h,v 1.8 2008/03/14 14:51:32 choumilo Exp $
 #ifndef __AMSTOFHIST__
 #define __AMSTOFHIST__
-#include "AMSHist.h"
 #include "AMSHist.h"
 
 const Float_t toftrange[3]={120,120,120};//mins,hours,days

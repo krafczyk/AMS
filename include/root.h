@@ -270,7 +270,7 @@ ClassDef(DaqEventR,1)       //DaqEventR
 class EcalHitR {
 public:
   unsigned int   Status;   ///< Statusword
-  int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  0:8/0:35/0:3  
+  int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4  
                /*!<
 Idsoft SubCells(pixels) numbering(+Z is top):\n
 ---------------|0|1|------------------\n
@@ -278,8 +278,8 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
 ---------------|2|3|------------------\n
                 */
   int   Proj;     ///< projection (0-x,1-y)
-  int   Plane;    ///< ECAL plane number (0,...)
-  int   Cell;     ///< ECAL Cell number (0,...)    
+  int   Plane;    ///< ECAL plane number (0,...17)
+  int   Cell;     ///< ECAL Cell number (0,...71)    
   float Edep;     ///< ECAL measured energy (MeV)
   float EdCorr;   ///< ECAL PMsaturation1-correction(MeV) added to Edep
   float AttCor;   ///<  Attenuation Correction applied (w/r  to center of ecal) (MeV)
