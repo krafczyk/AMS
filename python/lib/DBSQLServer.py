@@ -1,5 +1,6 @@
 import cx_Oracle
 import time
+import os
 class DBSQLServer:
     one=0
     dbinit=0
@@ -17,19 +18,24 @@ class DBSQLServer:
     def Connect(self):
         user="amsdes"
         pwd=""
-#        self.set_oracle_env()
+        self.set_oracle_env()
         oracle="/var/www/cgi-bin/mon/lib/.oracle.oracle"
         input=open(oracle,'r')
         pwd=input.read()
         input.close()
         connstring=user+"/"+pwd+"@"+self.dbfile
         try:
+
             self.dbhandler=cx_Oracle.connect(connstring,twophase=self.one)
             self.dbcursor=self.dbhandler.cursor()
         except cx_Oracle.Error,e:
             print e
             return 0
         return 1
+    def set_oracle_env(self):
+        if(not (os.environ.has_key('ORACLE_HOME'))):
+            os.putenv('ORACLE_HOME','/afs/cern.ch/project/oracle/@sys/prod') 
+            os.putenv('TNS_ADMIN','/afs/cern.ch/exp/ams/Offline/oracle/admin')
     def Query(self,string):
         self.dbcursor.execute(string)
         return self.dbcursor.fetchall()
