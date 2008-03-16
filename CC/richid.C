@@ -796,7 +796,7 @@ int RichPMTsManager::GetGeomChannelID(int pos,int pixel){
 
 
 int RichPMTsManager::GetGeomPMTIdFromCDP(int CDP,int pmt){
-  assert(CDP>=0 && CDP<RICH_CDPperJINF);
+  assert(CDP>=0 && CDP<RICH_CDPperJINF*RICH_JINFs);
   if(pmt<0 || pmt>=_rdr_pmt_count[CDP]) return -1;
   return _rdr_starts[CDP]+pmt;
 }

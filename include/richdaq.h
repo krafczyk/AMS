@@ -18,6 +18,7 @@ class DAQRichBlock{
     uint isCDP;
     uint isRaw;
     uint isCompressed;
+    uint isCumulative;
     uint errors;
     /*********** UNUSED **************
     uint cumulative;     
@@ -33,7 +34,8 @@ class DAQRichBlock{
   private:
     void assign(int16u status){
       isData=status&(0x8000);
-      errors=status&(0x7F00);
+      errors=status&(0x7E00);
+      isCumulative=status&(0x0100);
       isCompressed=status&(0x0080);
       isRaw=status&(0x0040);
       isCDP=status&(0x0020);
@@ -56,6 +58,11 @@ class DAQRichBlock{
     DAQRichBlock::StatusParser status;  // The parsed status 
     
     FragmentParser(int16u *pointer){
+      // Dump the fragment
+      for(int i=0;i<=(*pointer);i++){
+	printf("%i %x\n",i,*(pointer+i));
+      }
+
       //      length=(*pointer)/sizeof(uint16); // Count length in words instead of bytes
       length=(*pointer);  // Count length in words instead of bytes (the CDP provided the length in words directly)
       data=pointer+1;
