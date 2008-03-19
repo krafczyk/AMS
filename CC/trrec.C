@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.196 2008/03/07 17:01:50 choutko Exp $
+//  $Id: trrec.C,v 1.197 2008/03/19 13:44:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1245,8 +1245,9 @@ integer AMSTrRecHit::markAwayTOFHits(){
        (par[pid->getlayer()-1].getmtx(j)).prod(hit);
       }
 //      cout <<"  local db "<<hit-hitN<<" "<<hitN<<endl;
+      cofgx=hit[0];
+      cofgy=hit[1];
      }
-
     }   
     AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",pid->getlayer()-1),
     new     AMSTrRecHit(pSen, status,pid,cofgx,cofgy,x,y,hitN,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));

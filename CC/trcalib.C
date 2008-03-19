@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.58 2008/03/06 16:01:34 pzuccon Exp $
+//  $Id: trcalib.C,v 1.59 2008/03/19 13:44:51 choutko Exp $
 #include "trcalib.h"
 #include "event.h"
 #include <math.h>
@@ -1178,6 +1178,7 @@ void AMSTrIdCalib::_update(){
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
+      if(CALIB.InsertTimeProc)insert=getrun();
       ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
       cout <<" Tracker H/K  info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
@@ -1191,6 +1192,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
+     if(CALIB.InsertTimeProc)insert=getrun();
      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
@@ -1208,6 +1210,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
+     if(CALIB.InsertTimeProc)insert=getrun();
      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
@@ -1219,6 +1222,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
+      if(CALIB.InsertTimeProc)insert=getrun();
      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
@@ -1233,6 +1237,7 @@ void AMSTrIdCalib::_update(){
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
+      if(CALIB.InsertTimeProc)insert=getrun();
       ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
       cout <<" Tracker H/K  info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
@@ -1261,6 +1266,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
+     if(CALIB.InsertTimeProc)insert=getrun();
      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);

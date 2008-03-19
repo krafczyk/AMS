@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.15 2008/03/12 13:59:40 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.16 2008/03/19 13:44:51 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.16  2008/03/19 13:44:51  choutko
+* *** empty log message ***
+*
 * Revision 1.15  2008/03/12 13:59:40  choutko
 * alignment with mag field
 *
@@ -134,7 +137,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.15 2008/03/12 13:59:40 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.16 2008/03/19 13:44:51 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6607,7 +6610,7 @@ c         ENDIF
 #ifdef __CORBA__
       parameter (maxcases=2000)
 #else
-      parameter (maxcases=500000)
+      parameter (maxcases=2000000)
 #endif
       real rig,rigmin
       integer itermin

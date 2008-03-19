@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.47 2008/03/13 09:52:33 choutko Exp $
+//  $Id: tralig.C,v 1.48 2008/03/19 13:44:51 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -498,13 +498,13 @@ while(offspring){
        InitDB();
        ifstream ftxt;
        ftxt.open(hfile);
-       if(ftxt){
         integer nh;
         number chi2;
         AMSPoint hits[trconst::maxlay],ehits[trconst::maxlay],cooa[trconst::maxlay];
         geant hit[3],ehit[3];
         integer lay,lad,half,sen,pattern,add1,add2;        
         int ntot=0;
+   if(ftxt && 0){
         while(ftxt.good() && !ftxt.eof()){
          ftxt>>nh>>chi2>>pattern>>add1>>add2;
          for(int i=0;i<nh;i++){
@@ -512,9 +512,11 @@ while(offspring){
          }
          ntot++;
         }
+       }
         ftxt.clear();
         ftxt.close();
         ftxt.open(hfile);
+        ntot=TRALIG.MaxEventsPerFit;
         if(ftxt){
            cout<<"TRALIG-I-EventFound "<<ntot<<endl;;
            AMSTrAligFit * pal =new AMSTrAligFit(1,0, ntot, TRALIG.Algorithm, 1);
@@ -719,11 +721,6 @@ again:
         }
         else{
          cerr<<"TRALIG-E-FillglUnabletoOpenFile "<<hfile<<endl;
-          return false;
-       }  
-       }
-       else{
-         cerr<<"TRALIG-E-FillglUnableToOpenFile "<<hfile<<endl;
           return false;
        }  
       }

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.115 2008/03/10 20:07:38 choutko Exp $
+//  $Id: daqevt.C,v 1.116 2008/03/19 13:44:50 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -1470,10 +1470,12 @@ again:
               strcpy(rootfile,rootdir);
               strcat(rootfile,".root");
               if(!stat64(rootfile,&f_stat)){
+                cout <<"DAQEvent::_getNextFile-I-"<<rootfile<<" skipped"<<endl;  
                 KIFiles++;
                 goto again;   
               } 
               try{
+              cout << "trying "<<rootdir<<endl;
               AMSJob::gethead()->urinit(rootdir);
               }
               catch (amsglobalerror e){

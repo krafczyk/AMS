@@ -248,6 +248,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
+      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
       ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
       cout <<" TRD H/K  info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);

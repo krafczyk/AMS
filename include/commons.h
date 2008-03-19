@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.232 2008/03/11 13:17:53 choumilo Exp $
+//  $Id: commons.h,v 1.233 2008/03/19 13:44:51 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -894,6 +894,16 @@ integer EventsPerRun;
 };
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
+
+
+
+class CALIB_DEF{
+public:
+integer InsertTimeProc;             // 0 (default) by current time ; 1 by run time
+};
+#define CALIB COMMON_BLOCK(CALIB,calib)
+COMMON_BLOCK_DEF(CALIB_DEF,CALIB);
+
 
 
 

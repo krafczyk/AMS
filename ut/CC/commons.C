@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.353 2008/03/07 18:07:43 choutko Exp $
+//  $Id: commons.C,v 1.354 2008/03/19 13:44:50 choutko Exp $
 
 
 #include <unistd.h>
@@ -45,6 +45,7 @@ CCFFKEY_DEF CCFFKEY;
 GMFFKEY_DEF GMFFKEY; //ISN
 TRCLFFKEY_DEF TRCLFFKEY;
 TRCALIB_DEF TRCALIB;
+CALIB_DEF CALIB;
 TRDCALIB_DEF TRDCALIB;
 TRALIG_DEF TRALIG;
 G4FFKEY_DEF G4FFKEY;
@@ -77,7 +78,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=237;
+uinteger AMSCommonsI::_build=239;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];

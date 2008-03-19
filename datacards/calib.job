@@ -12,7 +12,7 @@ elif [ "$UNAME" = "HP-UX" ] ; then
 elif [ "$UNAME" = "IRIX" ] ; then
     MACHINE="irix"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc"
+    MACHINE="linux/icc2"
 else
 echo $UNAME is not supported yet
 
@@ -42,6 +42,7 @@ RUN=1204195363
 RUN=1204214800
 RUN=1204271579
 RUN=1204313972
+RUN=1205913293
 $AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14
@@ -66,6 +67,7 @@ DAQC 1=1
 TRCALIB 2=90 9=5
 TRMC 36=1
 TRDMC 16=1
+CALIB 1=1
 TERM 1=1234567890 
 C SELECT 1=1201175257 43=1201175257
 C SELECT 1=1201175257 43=1202728327
