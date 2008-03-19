@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.46 2008/03/10 22:07:15 choutko Exp $
+#  $Id: Makefile,v 1.47 2008/03/19 09:16:24 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -350,6 +350,9 @@ $(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/ro
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
+
+$(BIN)daqevt.o:         $(SCC)daqevt.C
+	$(CXX) -c $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
