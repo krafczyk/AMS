@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.553 2008/03/19 13:44:50 choutko Exp $
+// $Id: job.C,v 1.554 2008/03/20 14:02:47 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1717,9 +1717,6 @@ AMSgObj::BookTimer.book("GUKINE");
 
 _siamsinitjob();
 _reamsinitjob();
-
-
-
 _timeinitjob();
 map(1);
 if(isCalibration())_caamsinitjob();
@@ -1741,6 +1738,22 @@ AMSgObj::BookTimer.book("SIAMSEVENT");
 
 
 void AMSJob::_dbinitjob(){
+if (AMSFFKEY.Update>1){
+
+  // Here update dbase
+
+    AMSTimeID * offspring=(AMSTimeID*)TID.down();
+    while(offspring){
+            for(int i=0;i<AMSJob::gethead()->gettdvn();i++){     
+               offspring->checkupdate(AMSJob::gethead()->gettdvc(i));
+             }
+    if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+      cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
+    offspring=(AMSTimeID*)offspring->next();
+    }
+}
+
+
   AMSgObj::BookTimer.book("EventStatus");
   AMSStatus::init();
 }
@@ -3195,20 +3208,6 @@ if(!isRealData()){
 
 
 
-if (AMSFFKEY.Update>1){
-
-  // Here update dbase
-
-    AMSTimeID * offspring=(AMSTimeID*)TID.down();
-    while(offspring){
-            for(int i=0;i<AMSJob::gethead()->gettdvn();i++){     
-               offspring->checkupdate(AMSJob::gethead()->gettdvc(i));
-             }
-    if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
-      cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
-    offspring=(AMSTimeID*)offspring->next();
-    }
-}
 }
 
 //===============================================================================
