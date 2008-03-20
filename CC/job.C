@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.554 2008/03/20 14:02:47 choutko Exp $
+// $Id: job.C,v 1.555 2008/03/20 14:06:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1742,7 +1742,8 @@ if (AMSFFKEY.Update>1){
 
   // Here update dbase
 
-    AMSTimeID * offspring=(AMSTimeID*)TID.down();
+     AMSTimeID * offspring = 
+     (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
     while(offspring){
             for(int i=0;i<AMSJob::gethead()->gettdvn();i++){     
                offspring->checkupdate(AMSJob::gethead()->gettdvc(i));
