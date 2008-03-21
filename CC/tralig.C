@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.48 2008/03/19 13:44:51 choutko Exp $
+//  $Id: tralig.C,v 1.49 2008/03/21 09:54:47 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -501,12 +501,12 @@ while(offspring){
         integer nh;
         number chi2;
         AMSPoint hits[trconst::maxlay],ehits[trconst::maxlay],cooa[trconst::maxlay];
-        geant hit[3],ehit[3];
+        geant hit[3],ehit[3],rig;
         integer lay,lad,half,sen,pattern,add1,add2;        
         int ntot=0;
    if(ftxt && 0){
         while(ftxt.good() && !ftxt.eof()){
-         ftxt>>nh>>chi2>>pattern>>add1>>add2;
+         ftxt>>nh>>chi2>>pattern>>add1>>add2>>rig;
          for(int i=0;i<nh;i++){
           ftxt>>hit[0]>>hit[1]>>hit[2]>>ehit[0]>>ehit[1]>>ehit[2]>>lay>>lad>>half>>sen;
          }
@@ -523,7 +523,7 @@ while(offspring){
             pnode->add(pal);       
             cout <<"AMSTrAligFit::FillGl-I-PatternAdded " <<1<<" "<<TRALIG.Algorithm<<endl;
         while(ftxt.good() && !ftxt.eof()){
-         ftxt>>nh>>chi2>>pattern>>add1>>add2;
+         ftxt>>nh>>chi2>>pattern>>add1>>add2>>rig;
          uintl address(add1,add2);
          for(int i=0;i<nh;i++){
           ftxt>>hit[0]>>hit[1]>>hit[2]>>ehit[0]>>ehit[1]>>ehit[2]>>lay>>lad>>half>>sen;
@@ -544,7 +544,7 @@ while(offspring){
 
           
          }
-         if(nh>=TRALIG.Cuts[7][0] && chi2<TRALIG.Cuts[7][1]*100){
+         if(nh>=TRALIG.Cuts[7][0] && chi2<TRALIG.Cuts[7][1]*100 && fabs(rig)>TRALIG.Cuts[8][0]/1.5){
           if(pal->_PositionData<pal->_NData){
             // UPdateGlobalParSpace;
              integer ladder[2][maxlay];

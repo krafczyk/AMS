@@ -62,7 +62,7 @@ endif
 FFOLD=$(FF)
 ifeq ($(ARCH),linuxicc)
 ifdef AMSPARALLEL
-  PARALLEL=-parallel
+  PARALLEL= -D__AMSPARALLEL__ -openmp 
 else
   PARALLEL=
 endif

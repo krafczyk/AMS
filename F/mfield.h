@@ -1,4 +1,4 @@
-*  $Id: mfield.h,v 1.10 2007/10/11 08:43:55 choutko Exp $
+*  $Id: mfield.h,v 1.11 2008/03/21 09:54:51 choutko Exp $
       integer nx,ny,nz
       PARAMETER (nx=41,ny=41,nz=41)
       real X(nx),y(ny),z(nz)
@@ -20,6 +20,7 @@
 *       iniok=-2 special procedure to initialize  b...c values 
 *       iniok=2  special simulation procedure to generate with b...c
 *         
+         !$OMP threadprivate(/my_hint/)
       common /amsdatadir/amsdlength,amsdblength,amsdatadir,
      +                   amsdatabase,fname
       integer amsdlength,amsdblength,iniok

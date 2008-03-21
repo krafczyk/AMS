@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.17 2007/10/11 08:43:55 choutko Exp $
+*  $Id: mfield.F,v 1.18 2008/03/21 09:54:51 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -350,7 +350,7 @@ c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
          endif
-        if(magstat.gt.0)then
+        if(magstat.gt.0 )then
          CALL BTEMPCOR (factor)
          b(1) = b(1) * factor
          b(2) = b(2) * factor
@@ -380,14 +380,16 @@ c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
            goto 999
 #endif          
 
-          sx=sign(1.,xx(1))
-          sy=sign(1.,xx(2))
-          sz=sign(1.,xx(3))
+c          sx=sign(1.,xx(1))
+c          sy=sign(1.,xx(2))
+c          sz=sign(1.,xx(3))
           do i=1,2
-            axx(i)=abs(xx(i))
+c            axx(i)=abs(xx(i))
+            axx(i)=xx(i)
           enddo
           CALL BZCORR(xfac)
-          axx(3)=abs(xx(3))*xfac
+c          axx(3)=abs(xx(3))*xfac
+          axx(3)=(xx(3))*xfac
 c          if(iniok.eq.1)then
 
 c           hxy(1,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1))
@@ -460,14 +462,14 @@ c           hxy(3,2)=qy(1)
 c          endif
 c         endif
 
-          if(magstat.gt.0)then
-           CALL BTEMPCOR (factor)
-           hxy(1,1) = hxy(1,1) * sx * factor
-           hxy(2,1) = hxy(2,1) * sy * factor
-           hxy(3,1) = hxy(3,1) * sz * factor
-           hxy(1,2) = hxy(1,2) * sy * factor
-           hxy(2,2) = hxy(2,2) * sx * factor
-           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
+          if(magstat.gt.0 )then
+c           CALL BTEMPCOR (factor)
+c           hxy(1,1) = hxy(1,1) * sx * factor
+c           hxy(2,1) = hxy(2,1) * sy * factor
+c           hxy(3,1) = hxy(3,1) * sz * factor
+c           hxy(1,2) = hxy(1,2) * sy * factor
+c           hxy(2,2) = hxy(2,2) * sx * factor
+c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
           else
            hxy(1,1) = 0
            hxy(2,1) = 0

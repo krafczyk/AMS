@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.16 2008/03/19 13:44:51 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.17 2008/03/21 09:54:51 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.17  2008/03/21 09:54:51  choutko
+* multithread alignment
+*
 * Revision 1.16  2008/03/19 13:44:51  choutko
 * *** empty log message ***
 *
@@ -137,7 +140,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.16 2008/03/19 13:44:51 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.17 2008/03/21 09:54:51 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4103,6 +4106,7 @@ CDECK  ID>, TKFITG.
 *
 *          
 *
+       !$OMP THREADPRIVATE (/tkfrunC/)
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
@@ -4148,6 +4152,7 @@ CDECK  ID>, TKFITG.
 * by datacard TKFIT 12=0
 *
               integer layer(1)
+       !$OMP THREADPRIVATE (/tkgdefC/,/tftimeC/,/tkcorrC/,/tkfrunC/)
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
@@ -4587,6 +4592,8 @@ c        print *,' Fit failed ',ifail
 999         end
           subroutine tkhmd(icase,n,xc,fc,tol,mxcal,ifail,er)
 #      include "mfield.h"
+       !$OMP THREADPRIVATE (/tkgdefC/,/tftimeC/,/tkcorrC/,/tkfrunC/)
+       !$OMP THREADPRIVATE (/tkclearC/)
           common /tkclearC/clear
           integer clear
 
@@ -4780,6 +4787,7 @@ c           if(fc/(2*npoint-5+1.e-3).le.2.)ifail=0
           end
 CDECK  ID>, TKFITPAR.   
          subroutine tkfitpar(init,chrg,point,out,m55,stept)
+       !$OMP THREADPRIVATE (/tkgdefC/,/tftimeC/,/tkcorrC/)
 
 *
 * Input init(7) x0,y0,z0,nx,ny,nz,p
@@ -4900,7 +4908,7 @@ c          stepa=0
           endif
           step=min(smax,sfield,sdist,sfield-stepa,smax-stepa)
           stept=stept+step*idir
-          if(step.gt.steps)then
+          if(step.gt.steps )then
            call grkuta(chrg,step,vin,out)
           else
             out(1)=vin(1)+step*vin(4)
@@ -5091,14 +5099,16 @@ c          call dmm55(beg(1,1),m55,dum)
 
 CDECK  ID>, TKFUNXY.
           subroutine tkfunxy(in,out,derl)
-          common /tkclearC/clear
+       !$OMP THREADPRIVATE (/tkclearC/)
+          common /tkclearC/clear,der
           integer clear
           data clear/1/
           real der(10,2)
-          save der
-          real derl(*)
+c          save der
+          real derl(10)
            real *4 in(*),out(*),xx(3),h(3),hxy(3,3)
            if(clear.le.0)clear=1
+c           clear=1
            if(clear.eq.2)then
             call ucopy( der(1,2),der(1,1),10)
           endif
@@ -5973,6 +5983,7 @@ c        ENDIF
       END
 CDECK  ID>, TKERMT. 
              function tkermt(pred,meas,sig,ims,xms,cc,aa,bb)
+       !$OMP THREADPRIVATE (/tkfrunC/)
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
@@ -6597,7 +6608,6 @@ c         ENDIF
 *
       END
 
-
       subroutine fit(arr,prm,chi2m,algo,what,xf,xchi2,rigmin,itermin)
       implicit none
       integer nplan,m,algo,what
@@ -6610,7 +6620,11 @@ c         ENDIF
 #ifdef __CORBA__
       parameter (maxcases=2000)
 #else
-      parameter (maxcases=2000000)
+#ifdef __AMSPARALLEL__
+      parameter (maxcases=2500000)
+#else
+      parameter (maxcases=300000)
+#endif
 #endif
       real rig,rigmin
       integer itermin
@@ -6650,6 +6664,9 @@ c         ENDIF
       double precision x,y,xy,x2,y2,nx,a,b,comp,dyz,dz2,dxz,fr
       double precision chi2,chi2a,chi2max,chi2o,tol,dz,dy2,rmax
       common /paramcommon/param,phi,roll,pitch
+#ifdef __AMSPARALLEL__
+      include "omp_lib.h"
+#endif
       if(what.eq.-2)then
         ncases=0
         call vzero(xchi2,2*10000)
@@ -6719,15 +6736,16 @@ c         ENDIF
         enddo
        enddo
       enddo
+      endif
       do i=1,nplan
        do j=1,nlad
          do k=1,nhalf
          do l=1,npar
-           param(i,j,k,l)=0
-           param(i,j,k,3)=0
-           pitch(i,j,k,l)=0
-           roll(i,j,k,l)=0
-           phi(i,j,k,l)=0
+c           param(i,j,k,l)=0
+c           param(i,j,k,3)=0
+c           pitch(i,j,k,l)=0
+c           roll(i,j,k,l)=0
+c           phi(i,j,k,l)=0
            aver(i,j,k,l)=0
            averx(i,j,k,l)=0
            averxy(i,j,k,l)=0
@@ -6747,10 +6765,24 @@ c         ENDIF
         enddo
       enddo
       enddo
-      endif
  10   continue
       chi2a=0
       ntot=0
+#ifdef __AMSPARALLEL__
+       call omp_set_num_threads(omp_get_num_procs())
+c       call omp_set_num_threads(1)
+       !$OMP PARALLEL   DEFAULT(NONE) PRIVATE(ims,
+     + ialgo,npt,layer,
+     +m,normal,j,ilayer,cooloc,sy,cy,cp,sp,cr,sr,mtx,s1,s2,
+     +d3,s3,d,k,hits,xsigma,out,outa,x,y,x2,y2,nx,xy,
+     +a,b,sigma,res,dy,z,chi2,rig,ch,i,l)
+     + SHARED(param,roll,pitch,phi,fr,iter,array,
+     +cool,ncases,chi2max,rigmin,
+     +itermin,rmax,algo,xchi2) 
+     +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
+     + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,averx)
+#endif
+      !$OMP DO   
       do i=1,ncases
 c        do m=1,nplan
 c           if(array(m,4,i).ne.0)then
@@ -6810,8 +6842,14 @@ c        enddo
                enddo
               out(1)=1./1000000.
              call tkfitg(npt,hits,xsigma,normal,5,ialgo,ims,layer,out)
+#ifdef  __AMSPARALLEL__
+             if(out(7).ne.out(7))then
+              write(*,*)' nan ',out
+             endif
+#endif
              call tkgetres(outa,nplan)
              if(i.le.0)then
+              write(*,*)i
               write(*,*)npt
               write(*,*)'hits' ,hits
               write(*,*)'sigma' ,xsigma
@@ -6868,6 +6906,7 @@ c        enddo
         endif
        enddo
         if(nx.gt.nplan-3)then
+         chi2=0
          x=x/nx
          y=y/nx
          xy=xy/nx
@@ -6876,7 +6915,6 @@ c        enddo
          x2=(x2-x*x)
          a=(xy-x*y)/x2
          b=y-a*x
-         chi2=0
          do j=1,nplan
           sigma(j,l)=array(j,5+l,i)
             if(mod(algo,2).eq.1)then
@@ -6893,18 +6931,23 @@ c        enddo
          if(mod(algo,2).eq.0)then
            chi2=out(7)
            rig=abs(out(6))
-         endif
-        if(i.le.10)then
-c          write(*,*)'chi2 ',i,iter,chi2
+          ch(1)=chi2
+          ch(2)=chi2
+        else
+         ch(l)=chi2
         endif
-        ch(l)=chi2
+c          if(i.le.1)write(*,*)'chi2 ',i,iter,chi2
+c        if(i.le.10)then
+c          write(*,*)'chi2 ',i,iter,chi2
+c        endif
         if(l.eq.2.and.i.le.10000)then
           if(iter.eq.0)then
             xchi2(1,i)=ch(1)+ch(2)
-          endif
+         endif
             xchi2(2,i)=ch(1)+ch(2)
         endif
         if((chi2.lt.chi2max.and.rig.gt.rigmin).or.iter.lt.itermin)then
+       !$OMP  CRITICAL
          do j=1,nplan
           if(mod(algo,2).eq.0)then
              a=outa(3+l,ilayer(j))/outa(6,ilayer(j))
@@ -6963,13 +7006,16 @@ c          write(*,*)'chi2 ',i,iter,chi2
          enddo
          ntot=ntot+1
          chi2a=chi2a+chi2
+       !$OMP END CRITICAL
          endif
          endif
-         if(mod(ntot,100).eq.1)then
+c         if(mod(ntot,100).eq.1)then
 c           write(*,*)'l ',l,chi2,chi2a,chi2a/ntot,ntot
-         endif
+c         endif
       enddo 
-      enddo 
+      enddo
+      !$OMP END DO 
+      !$OMP END PARALLEL
       chi2a=chi2a/ntot
       write(*,*)'iter ',iter,chi2a,ntot,nmin
       do i=1,nplan
@@ -7126,7 +7172,7 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
       endif
         xf(2)=chi2a
       if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter.and.
-     +  chi2a.le.chi2a)then
+     +  chi2a.le.chi2o)then
        iter=iter+1
        chi2o=chi2a
        goto 10
@@ -7140,7 +7186,227 @@ c            write(*,*)i,j,k,l,param(i,j,k,l),phi(i,j,k,l)
         enddo
       enddo
       enddo
-      
       end                        
 
+
+* $Id: TrackFit_utils.F,v 1.17 2008/03/21 09:54:51 choutko Exp $
+*
+* $Log: TrackFit_utils.F,v $
+* Revision 1.17  2008/03/21 09:54:51  choutko
+* multithread alignment
+*
+* Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
+* Geant
+*
+*
+*CMZ :  3.21/02 29/03/94  15.41.23  by  S.Giani
+*-- Author :
+      SUBROUTINE GRKUTA (CHARGE,STEP,VECT,VOUT)
+C.
+C.    ******************************************************************
+C.    *                                                                *
+C.    *  Runge-Kutta method for tracking a particle through a magnetic *
+C.    *  field. Uses Nystroem algorithm (See Handbook Nat. Bur. of     *
+C.    *  Standards, procedure 25.5.20)                                 *
+C.    *                                                                *
+C.    *  Input parameters                                              *
+C.    *       CHARGE    Particle charge                                *
+C.    *       STEP      Step size                                      *
+C.    *       VECT      Initial co-ords,direction cosines,momentum     *
+C.    *  Output parameters                                             *
+C.    *       VOUT      Output co-ords,direction cosines,momentum      *
+C.    *  User routine called                                           *
+C.    *       CALL GUFLD(X,F)                                          *
+C.    *                                                                *
+C.    *    ==>Called by : <USER>, GUSWIM                               *
+C.    *       Authors    R.Brun, M.Hansroul  *********                 *
+C.    *                  V.Perevoztchikov (CUT STEP implementation)    *
+C.    *                                                                *
+C.    *                                                                *
+C.    ******************************************************************
+C.
+#if !defined(CERNLIB_SINGLE)
+      IMPLICIT DOUBLE PRECISION(A-H,O-Z)
+#endif
+      REAL CHARGE, STEP, VECT(*), VOUT(*), F(4)
+      REAL XYZT(3), XYZ(3), X, Y, Z, XT, YT, ZT
+      DIMENSION SECXS(4),SECYS(4),SECZS(4),HXP(3)
+      EQUIVALENCE (X,XYZ(1)),(Y,XYZ(2)),(Z,XYZ(3)),
+     +            (XT,XYZT(1)),(YT,XYZT(2)),(ZT,XYZT(3))
+*
+      PARAMETER (MAXIT = 1992, MAXCUT = 11)
+      PARAMETER (EC=2.9979251D-4,DLT=1D-4,DLT32=DLT/32)
+      PARAMETER (ZERO=0, ONE=1, TWO=2, THREE=3)
+      PARAMETER (THIRD=ONE/THREE, HALF=ONE/TWO)
+      PARAMETER (PISQUA=.986960440109D+01)
+      PARAMETER      (IX=1,IY=2,IZ=3,IPX=4,IPY=5,IPZ=6)
+*.
+*.    ------------------------------------------------------------------
+*.
+*             This constant is for units CM,GEV/C and KGAUSS
+*
+      ITER = 0
+      NCUT = 0
+      DO 10 J=1,7
+         VOUT(J)=VECT(J)
+   10 CONTINUE
+      PINV   = EC * CHARGE / VECT(7)
+      TL = 0.
+      H      = STEP
+*
+*
+   20 REST  = STEP-TL
+      IF (ABS(H).GT.ABS(REST)) H = REST
+      CALL GUFLD(VOUT,F)
+*
+*             Start of integration
+*
+      X      = VOUT(1)
+      Y      = VOUT(2)
+      Z      = VOUT(3)
+      A      = VOUT(4)
+      B      = VOUT(5)
+      C      = VOUT(6)
+*
+      H2     = HALF * H
+      H4     = HALF * H2
+      PH     = PINV * H
+      PH2    = HALF * PH
+      SECXS(1) = (B * F(3) - C * F(2)) * PH2
+      SECYS(1) = (C * F(1) - A * F(3)) * PH2
+      SECZS(1) = (A * F(2) - B * F(1)) * PH2
+      ANG2 = (SECXS(1)**2 + SECYS(1)**2 + SECZS(1)**2)
+      IF (ANG2.GT.PISQUA) GO TO 40
+      DXT    = H2 * A + H4 * SECXS(1)
+      DYT    = H2 * B + H4 * SECYS(1)
+      DZT    = H2 * C + H4 * SECZS(1)
+      XT     = X + DXT
+      YT     = Y + DYT
+      ZT     = Z + DZT
+*
+*              Second intermediate point
+*
+      EST = ABS(DXT)+ABS(DYT)+ABS(DZT)
+      IF (EST.GT.H) GO TO 30
+ 
+      CALL GUFLD(XYZT,F)
+      AT     = A + SECXS(1)
+      BT     = B + SECYS(1)
+      CT     = C + SECZS(1)
+*
+      SECXS(2) = (BT * F(3) - CT * F(2)) * PH2
+      SECYS(2) = (CT * F(1) - AT * F(3)) * PH2
+      SECZS(2) = (AT * F(2) - BT * F(1)) * PH2
+      AT     = A + SECXS(2)
+      BT     = B + SECYS(2)
+      CT     = C + SECZS(2)
+      SECXS(3) = (BT * F(3) - CT * F(2)) * PH2
+      SECYS(3) = (CT * F(1) - AT * F(3)) * PH2
+      SECZS(3) = (AT * F(2) - BT * F(1)) * PH2
+      DXT    = H * (A + SECXS(3))
+      DYT    = H * (B + SECYS(3))
+      DZT    = H * (C + SECZS(3))
+      XT     = X + DXT
+      YT     = Y + DYT
+      ZT     = Z + DZT
+      AT     = A + TWO*SECXS(3)
+      BT     = B + TWO*SECYS(3)
+      CT     = C + TWO*SECZS(3)
+*
+      EST = ABS(DXT)+ABS(DYT)+ABS(DZT)
+      IF (EST.GT.2.*ABS(H)) GO TO 30
+ 
+      CALL GUFLD(XYZT,F)
+*
+      Z      = Z + (C + (SECZS(1) + SECZS(2) + SECZS(3)) * THIRD) * H
+      Y      = Y + (B + (SECYS(1) + SECYS(2) + SECYS(3)) * THIRD) * H
+      X      = X + (A + (SECXS(1) + SECXS(2) + SECXS(3)) * THIRD) * H
+*
+      SECXS(4) = (BT*F(3) - CT*F(2))* PH2
+      SECYS(4) = (CT*F(1) - AT*F(3))* PH2
+      SECZS(4) = (AT*F(2) - BT*F(1))* PH2
+      A      = A+(SECXS(1)+SECXS(4)+TWO * (SECXS(2)+SECXS(3))) * THIRD
+      B      = B+(SECYS(1)+SECYS(4)+TWO * (SECYS(2)+SECYS(3))) * THIRD
+      C      = C+(SECZS(1)+SECZS(4)+TWO * (SECZS(2)+SECZS(3))) * THIRD
+*
+      EST    = ABS(SECXS(1)+SECXS(4) - (SECXS(2)+SECXS(3)))
+     ++        ABS(SECYS(1)+SECYS(4) - (SECYS(2)+SECYS(3)))
+     ++        ABS(SECZS(1)+SECZS(4) - (SECZS(2)+SECZS(3)))
+*
+      IF (EST.GT.DLT .AND. ABS(H).GT.1.E-4) GO TO 30
+      ITER = ITER + 1
+      NCUT = 0
+*               If too many iterations, go to HELIX
+      IF (ITER.GT.MAXIT) GO TO 40
+*
+      TL = TL + H
+      IF (EST.LT.(DLT32)) THEN
+         H = H*TWO
+      ENDIF
+      CBA    = ONE/ SQRT(A*A + B*B + C*C)
+      VOUT(1) = X
+      VOUT(2) = Y
+      VOUT(3) = Z
+      VOUT(4) = CBA*A
+      VOUT(5) = CBA*B
+      VOUT(6) = CBA*C
+      REST = STEP - TL
+      IF (STEP.LT.0.) REST = -REST
+      IF (REST .GT. 1.E-5*ABS(STEP)) GO TO 20
+*
+      GO TO 999
+*
+**              CUT STEP
+   30 NCUT = NCUT + 1
+*               If too many cuts , go to HELIX
+      IF (NCUT.GT.MAXCUT)       GO TO 40
+      H = H*HALF
+      GO TO 20
+*
+**              ANGLE TOO BIG, USE HELIX
+   40 F1  = F(1)
+      F2  = F(2)
+      F3  = F(3)
+      F4  = SQRT(F1**2+F2**2+F3**2)
+      RHO = -F4*PINV
+      TET = RHO * STEP
+      IF(TET.NE.0.) THEN
+         HNORM = ONE/F4
+         F1 = F1*HNORM
+         F2 = F2*HNORM
+         F3 = F3*HNORM
+*
+         HXP(1) = F2*VECT(IPZ) - F3*VECT(IPY)
+         HXP(2) = F3*VECT(IPX) - F1*VECT(IPZ)
+         HXP(3) = F1*VECT(IPY) - F2*VECT(IPX)
+ 
+         HP = F1*VECT(IPX) + F2*VECT(IPY) + F3*VECT(IPZ)
+*
+         RHO1 = ONE/RHO
+         SINT = SIN(TET)
+         COST = TWO*SIN(HALF*TET)**2
+*
+         G1 = SINT*RHO1
+         G2 = COST*RHO1
+         G3 = (TET-SINT) * HP*RHO1
+         G4 = -COST
+         G5 = SINT
+         G6 = COST * HP
+ 
+         VOUT(IX) = VECT(IX) + (G1*VECT(IPX) + G2*HXP(1) + G3*F1)
+         VOUT(IY) = VECT(IY) + (G1*VECT(IPY) + G2*HXP(2) + G3*F2)
+         VOUT(IZ) = VECT(IZ) + (G1*VECT(IPZ) + G2*HXP(3) + G3*F3)
+ 
+         VOUT(IPX) = VECT(IPX) + (G4*VECT(IPX) + G5*HXP(1) + G6*F1)
+         VOUT(IPY) = VECT(IPY) + (G4*VECT(IPY) + G5*HXP(2) + G6*F2)
+         VOUT(IPZ) = VECT(IPZ) + (G4*VECT(IPZ) + G5*HXP(3) + G6*F3)
+*
+      ELSE
+         VOUT(IX) = VECT(IX) + STEP*VECT(IPX)
+         VOUT(IY) = VECT(IY) + STEP*VECT(IPY)
+         VOUT(IZ) = VECT(IZ) + STEP*VECT(IPZ)
+*
+      ENDIF
+*
+  999 END
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.26 2008/03/18 16:47:15 choutko Exp $
+#  $Id: Makefile,v 1.27 2008/03/21 09:54:55 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -21,13 +21,13 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
 endif
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/cc/10.1.012/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axT  
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axT -parallel -openmp  
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
 LD            =  /opt/intel/cc/10.1.012/bin/icpc
-LDFLAGS       =  -axT
+LDFLAGS       =  -axT -parallel
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
