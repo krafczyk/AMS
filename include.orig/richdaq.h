@@ -60,7 +60,7 @@ class DAQRichBlock{
     FragmentParser(int16u *pointer){
       // Dump the fragment
       for(int i=0;i<=(*pointer);i++){
-	printf("%i %x\n",i,*(pointer+i));
+	//printf("%i %x\n",i,*(pointer+i));
       }
 
       //      length=(*pointer)/sizeof(uint16); // Count length in words instead of bytes
