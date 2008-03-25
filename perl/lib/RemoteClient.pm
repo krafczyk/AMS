@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.510 2008/03/10 20:07:44 choutko Exp $
+# $Id: RemoteClient.pm,v 1.511 2008/03/25 08:47:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4496,7 +4496,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
                $sqlamom=~s/not LIKE/LIKE/;
            }
-           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%'   $sqlamom group by ntuples.run ";
+           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%' and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
             my $r4=undef;
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
@@ -4514,7 +4514,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           $buff = $buff.$s."\n";
        }
           else{
-            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%'  $sqlmom group by ntuples.run ";
+            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%'  and ntuples.jid=jobs.jid $sqlmom group by ntuples.run ";
             my $r3=$self->{sqlserver}->Query($positive);
             foreach my $path (@{$r3}) {
                   my $pth =$path->[0];

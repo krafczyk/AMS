@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rd.perl,v 1.2 2007/12/19 17:27:16 choutko Exp $
+#  $Id: rd.perl,v 1.3 2008/03/25 08:47:46 choutko Exp $
 use strict;
 
 use lib::DBSQLServer;
@@ -8,6 +8,29 @@ use lib::DBSQLServer;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
 unshift @ARGV, "-Famsdb";
+
+# DESCRIBE DATAFILES
+# RUN                                       NOT NULL NUMBER(38)
+# VERSION                                            VARCHAR2(64)
+# TYPE                                               VARCHAR2(64)
+# FEVENT                                             NUMBER(38)
+# LEVENT                                             NUMBER(38)
+# NEVENTS                                            NUMBER(38)
+# NEVENTSERR                                         NUMBER(38)
+# TIMESTAMP                                          NUMBER(38)
+# SIZEMB                                             NUMBER(38)
+# STATUS                                             VARCHAR2(64)
+# PATH                                               VARCHAR2(255)
+# PATHB                                              VARCHAR2(255)
+# CRC                                                NUMBER(38)
+# CRCTIME                                            NUMBER(38)
+# CASTORTIME                                         NUMBER(38)
+# BACKUPTIME                                         NUMBER(38)
+# TAG                                                NUMBER(38)
+# FETIME                                             NUMBER(38)
+# LETIME                                             NUMBER(38)
+# PATHS                                              VARCHAR2(255)
+
 
 
 
