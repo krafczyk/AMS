@@ -99,7 +99,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 	      
 	      // Add the hit
 	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
-	      counts-=RichPMTsManager::Pedestal(geom_id,pixel_id,mode);
+	      counts-=int(RichPMTsManager::Pedestal(geom_id,pixel_id,mode));
 	      
 	      AMSEvent::gethead()->
 		addnext(
@@ -164,7 +164,7 @@ int DAQRichBlock::Emit(int code){
   static long error_counter=0;
   Status=code;
 
-  if(error_counter>=10){
+  if(error_counter==10){
     cerr<<"DAQRichBlock::buildraw -- Too many errors. Neglecting output"<<endl;
   }
 
@@ -174,39 +174,39 @@ int DAQRichBlock::Emit(int code){
     case kOk:
       return 0; break;
     case kLengthError:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- Fragment length too short"<<endl;
       return 1; break;
     case kDataError:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- Status does not agree with a JINF fragment"<<endl;
       return 1; break;
     case kJINFError:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- JINF Id int status word does not belong to RICH"<<endl;
       return 1; break;
     case kCDPError:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP status word flag errors"<<endl;
       return 1; break;
     case kCalibration:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP Calibration mode processing is not yet implemented"<<endl;
       return 1; break;
     case kMixedMode:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP Mixed mode: will ignore compressed data"<<endl;
       return 0; break;
     case kTruncated:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- JINF information seems to be truncated: not enough CDPs. Ignored"<<endl;
       return 0; break;
     case kCDPRawTruncated:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP information seems to be truncated."<<endl;
       return 1; break;
     case kWrongCDPChannelNumber:
-      if(10<error_counter++)
+      if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
       return 1; break;
     default:
