@@ -161,38 +161,53 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
 // Deal with errors with this function. Return 1 if exit needed, 0 otherwise
 int DAQRichBlock::Emit(int code){
+  static long error_counter=0;
   Status=code;
+
+  if(error_counter>=10){
+    cerr<<"DAQRichBlock::buildraw -- Too many errors. Neglecting output"<<endl;
+  }
+
 
   switch(Status)
     {
     case kOk:
       return 0; break;
     case kLengthError:
-      cout<<"DAQRichBlock::buildraw -- Fragment length too short"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- Fragment length too short"<<endl;
       return 1; break;
     case kDataError:
-      cout<<"DAQRichBlock::buildraw -- Status does not agree with a JINF fragment"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- Status does not agree with a JINF fragment"<<endl;
       return 1; break;
     case kJINFError:
-      cout<<"DAQRichBlock::buildraw -- JINF Id int status word does not belong to RICH"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- JINF Id int status word does not belong to RICH"<<endl;
       return 1; break;
     case kCDPError:
-      cout<<"DAQRichBlock::buildraw -- CDP status word flag errors"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- CDP status word flag errors"<<endl;
       return 1; break;
     case kCalibration:
-      cout<<"DAQRichBlock::buildraw -- CDP Calibration mode processing is not yet implemented"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- CDP Calibration mode processing is not yet implemented"<<endl;
       return 1; break;
     case kMixedMode:
-      cout<<"DAQRichBlock::buildraw -- CDP Mixed mode: will ignore compressed data"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- CDP Mixed mode: will ignore compressed data"<<endl;
       return 0; break;
     case kTruncated:
-      cout<<"DAQRichBlock::buildraw -- JINF information seems to be truncated: not enough CDPs. Ignored"<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- JINF information seems to be truncated: not enough CDPs. Ignored"<<endl;
       return 0; break;
     case kCDPRawTruncated:
-      cout<<"DAQRichBlock::buildraw -- CDP information seems to be truncated."<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- CDP information seems to be truncated."<<endl;
       return 1; break;
     case kWrongCDPChannelNumber:
-      cout<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
+      if(10<error_counter++)
+	cerr<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
       return 1; break;
     default:
       return 0;break;
