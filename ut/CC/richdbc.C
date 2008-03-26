@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.48 2008/01/17 08:58:32 mdelgado Exp $
+//  $Id: richdbc.C,v 1.49 2008/03/26 08:57:42 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -375,7 +375,7 @@ geant RICHDB::mean_height(){
     n=(RICHDB::index[i]+RICHDB::index[i+1])/2.;
     dl=RICHDB::wave_length[i]-RICHDB::wave_length[i+1];
     if(rad_clarity==0. && l_scat!=1e6){
-      cout <<"RICHDB::mean_height : radiador clarity is zero."<<endl;
+      cerr <<"RICHDB::mean_height : radiador clarity is zero."<<endl;
       l_scat=1e6;
     }else
       l_scat=(lambda/1000.)*(lambda/1000.)*(lambda/1000.)*(lambda/1000.)/
@@ -393,7 +393,7 @@ geant RICHDB::mean_height(){
     }
   }
   if(!densum){
-    cout<<"RICHDB::mean_height : Error"<<endl;
+    cerr<<"RICHDB::mean_height : Error"<<endl;
   }else{
     value=rad_height-sum/densum;
 

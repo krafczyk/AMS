@@ -54,7 +54,7 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
       if(naf_boxes[i][j]==1) _number_of_rad_tiles++;
     }
  
-  cout<<"   RichRadiatorTileManager::Init_Default-number of radiator tiles: "<<_number_of_rad_tiles<<endl;
+  cout<<"RichRadiatorTileManager::Init_Default-number of radiator tiles: "<<_number_of_rad_tiles<<endl;
 
   _tiles=new RichRadiatorTile*[_number_of_rad_tiles];
 
@@ -207,7 +207,7 @@ void RichRadiatorTileManager::Finish(){
 
 
 void RichRadiatorTileManager::Finish_Default(){
-  cout<<" RichTileManager finishing"<<endl;
+  cout<<"RichTileManager finishing"<<endl;
 }
 
 
@@ -338,7 +338,7 @@ void RichRadiatorTileManager::_compute_mean_height(geant *index,
     }
   }
   if(!densum){
-    cout<<"RichRadiatorTileManager::_mean_height : Error"<<endl;
+    cerr<<"RichRadiatorTileManager::_mean_height : Error"<<endl;
   }else{
     height=rheight-sum/densum;
     eff_index=sum_index/densum;
@@ -350,7 +350,9 @@ geant RichRadiatorTileManager::get_refractive_index(geant x,geant y,geant wavele
   int tile_number=get_tile_number(x,y);
 
   if(tile_number<0){
+#ifdef __AMSDEBUG__
     cout<<"-- WARNING: RichRadiatorTileManager::get_refractive_index: out of tile"<<endl;
+#endif
     return 0.0;  
   }
   
@@ -430,7 +432,7 @@ void RichRadiatorTileManager::GetFromTDV(){
   if(insert!=_parameters_insert || 
      begin!=_parameters_begin || 
      end!=_parameters_end){
-    cerr<<"-- Updating RichRad optical --"<<endl;
+    cout<<"-- Updating RichRad optical --"<<endl;
 
     const int n_=4;
     for(int i=0;i<_number_of_rad_tiles;i++){

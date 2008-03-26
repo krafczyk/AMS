@@ -174,8 +174,10 @@ void AMSRichCal::process_event(){
       rms/=counts;
       rms-=mean*mean;
       double error=sqrt(mean/counts);
-      
+
+#ifdef __AMSDEBUG__
       cout<<">>> Monitoring of "<<i<<" gives "<<mean<<" "<<error<<endl;
+#endif
 
       // Compare the obtained value with the expected one
       if((mean-1)>_threshold*error){

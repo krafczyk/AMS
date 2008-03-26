@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.78 2008/01/22 16:36:49 mdelgado Exp $
+//  $Id: richrec.C,v 1.79 2008/03/26 08:57:42 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -652,7 +652,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
     // Checks bounds
     if(actual>=RICmaxpmts*RICnwindows/2) {
-      cout << "AMSRichRing::build : Event too long."<<endl;
+      cerr << "AMSRichRing::build : Event too long."<<endl;
       break;
     }
     
@@ -1293,9 +1293,11 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     c=SQR(r1[0])+SQR(r1[1])-SQR(kc*(r1[2]-ac));
     d=SQR(b)-4*a*c;
     if(d<0){
+#ifdef __AMSDEBUG__
       printf("AMSRichRing::trace Crossing Point not found\n");
       printf(" kc %f, ac %f\n",kc,ac);
       printf(" a %f, b %f, c %f\n",a,b,c);
+#endif
       return 0;}
     l=(-b+sqrt(d))/2./a;
     if(l<0){
@@ -1738,7 +1740,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
       if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
 
       if(actual>=LIPDAT.nbhitsmax_c) {
-	cout << "AMSRichRing::build : Event too long."<<endl;
+	cerr << "AMSRichRing::build : Event too long."<<endl;
 	break;
       }
 
