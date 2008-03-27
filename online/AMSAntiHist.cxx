@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.cxx,v 1.11 2006/01/25 11:21:39 choumilo Exp $
+//  $Id: AMSAntiHist.cxx,v 1.12 2008/03/27 09:21:57 choumilo Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream>
@@ -12,15 +12,27 @@
 #include <TCanvas.h>
 #include "AMSAntiHist.h"
 
+const Int_t kNants=8;//ANTI sectors
+const Float_t kTDCbin=0.024414;//TDC-bin(ns)
+const Int_t accscale=2;//(1-3)scale for time-evolutions
 char AntiPars::dat1[30];
 char AntiPars::dat2[30];
 char AntiPars::dat3[30];
 Int_t AntiPars::evcount[20];
+const Int_t hbias[7]={0,0,0,0,19,27,31};//bias for set-i(0,1,...)
+//
+Bool_t AntiPars::patbcheck(int sect, int patt){
+// sect=0-7
+    return (sect>=0 && sect<8 && (patt&(1<<sect)) != 0);
+}
 
 
 void AMSAntiHist::Book(){
-
-  AddSet("Anti-Visibility");
+//
+   char title[128];
+   char hname[128];
+//-------------
+  AddSet("Anti-Visibility");//set-0
   
   _filled.push_back(new TH1F("antih0","NAntiSectors/event(when found)",9,0.,9.));
   _filled[_filled.size()-1]->SetXTitle("Total fired sectors");
@@ -44,9 +56,10 @@ void AMSAntiHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("AnySideConfig                   S2-miss                                 S1-miss                                 ");
   _filled[_filled.size()-1]->SetFillColor(3);
   _filled[_filled.size()-1]->SetTitleSize(0.05,"X");
-  
+//-----------
+//  
 
-  AddSet("Anti-TimeHitsMultipl");
+  AddSet("Anti-TimeHitsMultipl");//set-1
   
   _filled.push_back(new TH1F("antih5","Sectors 1-4 TimeHitsMult(FTcoincEvents)",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Sect1                 Sect2                   Sect3                  Sect4                       ");
@@ -63,9 +76,9 @@ void AMSAntiHist::Book(){
   _filled.push_back(new TH1F("antih8","Sectors 5-8 TimeHitsMult(FTcoinc+PairedEvents)",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Sect5                 Sect6                   Sect7                  Sect8                       ");
   _filled[_filled.size()-1]->SetFillColor(3);
-  
-
-  AddSet("Anti-Edep");
+//------------  
+//
+  AddSet("Anti-Edep");//set-2
   
   _filled.push_back(new TH1F("antih9","Sector-1 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
@@ -98,9 +111,9 @@ void AMSAntiHist::Book(){
   _filled.push_back(new TH1F("antih16","Sector-8 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
-  
-  
-  AddSet("Anti-Events Rates");
+//-----------  
+//  
+  AddSet("Anti-Events Rates");//set-3
   
   _filled.push_back(new TH1F("antih17","Anti-events rates",6,0.,6.));
   _filled[_filled.size()-1]->SetYTitle("number of events");
@@ -109,7 +122,56 @@ void AMSAntiHist::Book(){
   _filled.push_back(new TH1F("antih18","Anti-event FT-correlations",12,0.,12.));
   _filled[_filled.size()-1]->SetYTitle("number of events");
   _filled[_filled.size()-1]->SetFillColor(44);
+//-----------  
+//  
+  AddSet("AntiTrigPatt Efficiency");//set-4(bias=19)
   
+  for (int j = 0; j < kNants; j++){
+     sprintf(hname,"antih%2d",hbias[4]+j);
+     sprintf(title,"ACCTrigPatt efficiency, Sector=%1d",j+1);
+    _filled.push_back(new TProfile(hname,title,50,0.,50.,0.,1.1));
+    _filled[_filled.size()-1]->SetYTitle("Efficiency");
+    _filled[_filled.size()-1]->SetXTitle("Sector signal(adc-channels)");
+    _filled[_filled.size()-1]->SetFillColor(44);
+  }
+//-----------
+//
+  AddSet("AntiParans time evolution");//set-5(bias=27)
+  
+  sprintf(hname,"antih%2d",hbias[5]);
+  _filled.push_back(new TProfile(hname,"Min/MaxRawSideTimeHits vs Time",120,0.,acctrange[accscale],0,20.));
+  _filled[_filled.size()-1]->SetYTitle("RawSideHits");
+  
+  sprintf(hname,"antih%2d",hbias[5]+1);
+  _filled.push_back(new TProfile(hname,"Min/MaxRawSideTimeHits vs Time",120,0.,acctrange[accscale],0,20.));
+  _filled[_filled.size()-1]->SetYTitle("RawSideHits");
+  
+  sprintf(hname,"antih%2d",hbias[5]+2);
+  _filled.push_back(new TProfile(hname,"Min/MaxSFEATemperature vs Time",120,0.,acctrange[accscale],-45,45.));
+  _filled[_filled.size()-1]->SetYTitle("Temperature(oC)");
+  
+  sprintf(hname,"antih%2d",hbias[5]+3);
+  _filled.push_back(new TProfile(hname,"Min/MaxSFEATemperature vs Time",120,0.,acctrange[accscale],-45,45.));
+  _filled[_filled.size()-1]->SetYTitle("Temperature(oC)");
+//-------------
+//  
+  AddSet("FTtime-Time");//set-6(bias=31)
+  
+  for (Int_t j = 0; j < 2; j++){
+     sprintf(hname,"antih%2d",hbias[6]+2*j);
+     sprintf(title,"FastTrigTime-SectorTime(1hit case), Sector=1, Side=%1d",j+1);
+    _filled.push_back(new TH1F(hname,title,100,-50.,250.));
+    _filled[_filled.size()-1]->SetYTitle("Events");
+    _filled[_filled.size()-1]->SetXTitle("TimeDifference(ns)");
+    _filled[_filled.size()-1]->SetFillColor(3);
+     sprintf(hname,"antih%2d",hbias[6]+2*j+1);
+     sprintf(title,"FastTrigTime-SectorTime(1hit case), Sector=5, Side=%1d",j+1);
+    _filled.push_back(new TH1F(hname,title,100,-50.,250.));
+    _filled[_filled.size()-1]->SetYTitle("Events");
+    _filled[_filled.size()-1]->SetXTitle("TimeDifference(ns)");
+    _filled[_filled.size()-1]->SetFillColor(3);
+  }
+//
 }
 
 
@@ -119,7 +181,9 @@ void AMSAntiHist::ShowSet(Int_t Set){
   TVirtualPad * gPadSave = gPad;
   int i;
   TAxis *xax;
+  TText *txt=new TText();
   char name[60],dat[30];
+  Char_t text[100];
 //
 
   switch(Set){
@@ -221,8 +285,97 @@ case 3:
   _filled[18]->SetStats(kFALSE);
   _filled[18]->Draw("hbar2");//Anti-event Correlations  
   gPadSave->cd();
+  break;
 //  
+case 4:
+  gPad->Divide(4,2);
+  for(i=0;i<kNants;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    gStyle->SetOptStat(110010);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+hbias[4]]->SetMinimum(-0.01);
+    _filled[i+hbias[4]]->SetMaximum(1.1);
+    _filled[i+hbias[4]]->SetMarkerStyle(20);
+    _filled[i+hbias[4]]->SetMarkerColor(2);
+    _filled[i+hbias[4]]->SetMarkerSize(0.5);
+    _filled[i+hbias[4]]->Draw("P");// Anti TrigPatt-eff 
+    gPadSave->cd();
   }
+  break;
+//
+case 5:
+  gPad->Divide(1,2);
+  for(i=0;i<4;i++){
+    if(i<2)gPad->cd(1);
+    else gPad->cd(2);
+    gPad->SetGrid();
+    gStyle->SetOptStat(110010);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+hbias[5]]->SetMarkerSize(0.75);
+    _filled[i+hbias[5]]->SetMarkerStyle(20);
+    if(i<2){
+      _filled[i+hbias[5]]->SetMinimum(0);
+      _filled[i+hbias[5]]->SetMaximum(18);
+      _filled[i+hbias[5]]->SetMarkerColor(2+i);
+    }
+    else{
+      _filled[i+hbias[5]]->SetMinimum(-45);
+      _filled[i+hbias[5]]->SetMaximum(45);
+      _filled[i+hbias[5]]->SetMarkerColor(2+i-2);
+    }
+    if(accscale==1){
+      strcpy(name,"Last 120 mins since ");
+      strcpy(dat,AntiPars::getdat1());
+    }
+    else if(accscale==2){
+      strcpy(name,"Last 120 hours since ");
+      strcpy(dat,AntiPars::getdat2());
+    }
+    else if(accscale==3){
+      strcpy(name,"Last 120 days since ");
+      strcpy(dat,AntiPars::getdat3());
+    }
+    strcat(name,dat);
+    xax=_filled[i+hbias[5]]->GetXaxis();
+    xax->SetTitle(name);
+    xax->SetTitleSize(0.05);
+    if(i==0)_filled[i+hbias[5]]->Draw("P");//Nhits min
+    else if(i==1)_filled[i+hbias[5]]->Draw("PSAME");//Nhits max 
+    else if(i==2)_filled[i+hbias[5]]->Draw("P");//SFEA-temper min
+    else if(i==3)_filled[i+hbias[5]]->Draw("PSAME");//SFEA-temper max 
+    if(i<2){
+      txt->SetTextSize(0.05);
+      txt->SetTextColor(2+i);
+      if(i==0)txt->DrawText(20.,17.,"Min");
+      else txt->DrawText(30.,17.,"Max");
+    }
+    else{
+      txt->SetTextSize(0.05);
+      txt->SetTextColor(2+i-2);
+      if(i==2)txt->DrawText(20.,41.,"Min");
+      else txt->DrawText(30.,41.,"Max");
+    }
+    gPadSave->cd();
+  }
+  break;
+case 6:
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    gStyle->SetOptStat(111111);
+    _filled[i+hbias[6]]->Draw();//Sect1/5(side=1,2) FTtime-Time
+    gPadSave->cd();
+  }
+  break;
+  }//--->endof switch
 }
 
 
@@ -235,9 +388,40 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   Bool_t LVL1OK(0);
   Int_t ECTrigFl(0);
   Int_t TOFTrigFl1(0),TOFTrigFl2(0);
-  bool ftc(0),ftz(0),bz(0),fte(0),glft(0);
-  int physbpat(0),membpat(0);
+  Bool_t ftc(0),ftz(0),bz(0),fte(0),glft(0);
+  Int_t physbpat(0),membpat(0),antipat(0);
+  Int_t is,ih,i,j;
+  Float_t ltime(1);
+  Int_t etime[2],evnum,runum;
+  Char_t date[30];
+  static Float_t range[3],timez[3];
+  static Int_t first(1),etime0(0),evnloc;
+  Float_t time[3];
+  Float_t dt;
 //
+//-----
+  etime[0]=ntuple->fHeader.Time[0];//unix-time(sec)
+  etime[1]=ntuple->fHeader.Time[1];
+  evnum=ntuple->fHeader.Event;
+  runum=ntuple->fHeader.Run;
+  strcpy(date,ntuple->GetTime());
+//
+  if(first==1){
+    first=0;
+    etime0=etime[0];
+    cout<<"Anti: 1st event Run/event:"<<runum<<" "<<evnum<<" date:"<<date<<" evloc="<<evnloc<<endl;
+    for(i=0;i<3;i++){
+      timez[i]=0;
+    }
+    evnloc=0;
+    AntiPars::setdat1(ntuple->GetTime());
+    AntiPars::setdat2(ntuple->GetTime());
+    AntiPars::setdat3(ntuple->GetTime());
+  }
+  time[0]=(etime[0]-etime0)/60;//ev.time starting from beg.of.run(min)
+  time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
+  time[2]=(etime[0]-etime0)/86400;//ev.time starting from beg.of.run(day)
+//-----
   if(ntuple->nLevel1()>0){
     p2lev1=ntuple->pLevel1(0);
     LVL1OK=1;
@@ -245,6 +429,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     TOFTrigFl2=p2lev1->TofFlag2;
     ECTrigFl=p2lev1->EcalFlag;
     membpat=ntuple->pLevel1(0)->JMembPatt;
+    antipat=ntuple->pLevel1(0)->AntiPatt;
     ftc=((membpat&1)>0);//Z>=1
     ftz=((membpat&1<<5)>0);//SlowZ>=2
     fte=((membpat&1<<6)>0);//ec-FT
@@ -261,7 +446,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   Int_t necshow=ntuple->nEcalShower();
   Int_t nasftc(0),nasprd(0),nasftpr(0);
 //
-  if(nasects>0){//Anti-event
+  if(nasects>0){//Anti-event (clust)
     AntiPars::addstat(2);//<--- Found any fired Anti
 //
     AntiClusterR *p;
@@ -270,7 +455,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     Float_t htime[16];
     Bool_t ftcok(0),miside(0),s1ok(0),s2ok(0);
 //
-    for(int is=0;is<nasects;is++){//<-- loop over Clusters(fired sectors)
+    for(is=0;is<nasects;is++){//<-- loop over Clusters(fired sectors)
       p=ntuple->pAntiCluster(is);
       sect=p->Sector;//1-8
       status=p->Status;// Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
@@ -286,7 +471,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
       ntpairs=p->Npairs;
       if(ntpairs>0)nasprd+=1;//count sectors with t-paired sides
       if(ftcok && ntpairs>0)nasftpr+=1;//count sectors with FTcoins+paired 
-      for(int i=0;i<nthits;i++)htime[i]=p->Times[i];
+      for(i=0;i<nthits;i++)htime[i]=p->Times[i];
       eantit+=eanti;
     
       _filled[2]->Fill(sect,1.);
@@ -316,8 +501,79 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     _filled[1]->Fill(nasftc,1.);
     if(nasftc>0)AntiPars::addstat(3);//<--- event with at least 1 fired+FTcoinc sector
     if(nasftc>0 && nasprd>0)AntiPars::addstat(4);//<--- event with at least 1 fired+FTcoinc+Paired sector
-  }//--->endof "anti-event" check
+  }//--->endof "anti-event"(clust) check
+//-----------------
+  AntiRawSideR * p2raws;
+  Int_t nantrs=ntuple->NAntiRawSide();
+  int swid,sect,side,stat,tdct[2][kNants][16],ftdc[2][kNants][8];
+  Int_t ntdct[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  Int_t nftdc[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  Float_t ampl,temper,mxtemp(-273),mntemp(9999);
+  Int_t nhmin(999),nhmax(0);
+  Float_t adca[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  Float_t temp[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  
+  for(is=0;is<nantrs;is++){//<-- loop over RawSide-objects
+    p2raws=ntuple->pAntiRawSide(is);
+    swid=p2raws->swid;//BBS
+    sect=swid/10-1;//0-7
+    side=swid%10-1;//0-1
+    stat=p2raws->stat;
+    adca[side][sect]=p2raws->adca;
+    ntdct[side][sect]=p2raws->ntdct;
+    if(ntdct[side][sect]>0 && ntdct[side][sect]<nhmin)nhmin=ntdct[side][sect];
+    if(ntdct[side][sect]>0 && ntdct[side][sect]>nhmax)nhmax=ntdct[side][sect];
+    for(ih=0;ih<ntdct[side][sect];ih++)tdct[side][sect][ih]=p2raws->tdct[ih];
+    nftdc[side][sect]=p2raws->nftdc;
+    for(ih=0;ih<nftdc[side][sect];ih++)ftdc[side][sect][ih]=p2raws->ftdc[ih];
+    temper=p2raws->temp;
+    if(temper==999)temper=20-40*(is%2);//tempor for debugging
+    temp[side][sect]=temper;
+    if(temp[side][sect]<mntemp)mntemp=temp[side][sect];
+    if(temp[side][sect]>mxtemp)mxtemp=temp[side][sect];
+  }
 //
+  for(is=0;is<kNants;is++){//<-- loop over sectors
+    ampl=0;
+    if(adca[0][is]>0 || adca[1][is]>0){
+      ampl=adca[0][is];
+      if(ampl<adca[1][is])ampl=adca[1][is];
+      ((TProfile*)_filled[hbias[4]+is])->Fill(ampl,(AntiPars::patbcheck(is,antipat)?1:0),1.);//bitpatt eff
+//      ((TProfile*)_filled[hbias[4]])->Fill(ampl,(AntiPars::patbcheck(is,antipat)?1:0),1.);//bitpatt eff
+    }
+  }
+//FT-time(sect=1/5)
+  for(i=0;i<2;i++){//side loop
+    if(nftdc[i][0]==1 && ntdct[1][0]==1){//sect-1
+      dt=(ftdc[i][0][0]-tdct[i][0][0])*kTDCbin;
+      _filled[hbias[6]+2*i]->Fill(dt,1.);
+    }
+    if(nftdc[i][4]==1 && ntdct[1][4]==1){//sect-5
+      dt=(ftdc[i][4][0]-tdct[i][4][0])*kTDCbin;
+      _filled[hbias[6]+2*i+1]->Fill(dt,1.);
+    }
+  }
+//---------------------
+//---> time-evolution:
+//
+  if((time[accscale-1]-timez[accscale-1])>=acctrange[accscale-1]){
+    ((TProfile*)_filled[hbias[5]])->Reset("");
+    ((TProfile*)_filled[hbias[5]+1])->Reset("");
+    ((TProfile*)_filled[hbias[5]+2])->Reset("");
+    ((TProfile*)_filled[hbias[5]+3])->Reset("");
+    timez[accscale-1]=time[accscale-1];
+    time[accscale-1]+=0.001;
+    if(accscale==1)AntiPars::setdat1(ntuple->GetTime());
+    if(accscale==2)AntiPars::setdat2(ntuple->GetTime());
+    if(accscale==3)AntiPars::setdat3(ntuple->GetTime());
+  }
+  if(nhmin<999)((TProfile*)_filled[hbias[5]])->Fill(time[accscale-1]-timez[accscale-1],nhmin,1.);//Min RawSide-hits
+  if(nhmax>0)((TProfile*)_filled[hbias[5]+1])->Fill(time[accscale-1]-timez[accscale-1],nhmax+0.15,1.);//Max RawSide-hits
+  if(mntemp<9999)((TProfile*)_filled[hbias[5]+2])->Fill(time[accscale-1]-timez[accscale-1],mntemp,1.);//Min SFEA temper
+  if(mntemp>-273)((TProfile*)_filled[hbias[5]+3])->Fill(time[accscale-1]-timez[accscale-1],mxtemp,1.);//Max SFEA temper
+//
+//
+//-----------------
   if(glft){
     AntiPars::addstat(6);//globFT OK
     if(ftc && fte)AntiPars::addstat(7);//ChargEMTrig

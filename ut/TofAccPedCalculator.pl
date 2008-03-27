@@ -616,8 +616,8 @@ sub setRunDefs
      $FileSize=30;#mb
   }
   elsif($pedcaltyp eq "Data"){
-     if($tofantsel eq "useTOF"){$TruncCut="0.1";}
-     else{$TruncCut="0.035";}
+     if($tofantsel eq "useTOF"){$TruncCut="0.15";}
+     else{$TruncCut="0.05";}
      $par5_e_state='normal';
      $stjob_b_state='normal';
      $Evs2Read=2000;
@@ -640,7 +640,7 @@ sub setRunDefs
     $fname="TofPrevRuns";
     $PedRmsMx="10.";
     $par2_e_state='normal';
-    $PedValMx="500.";
+    $PedValMx="700.";
     $par4_e_state='normal';
   }
   else{
@@ -648,7 +648,7 @@ sub setRunDefs
     $fname="AccPrevRuns";
     $PedRmsMx="10.";
     $par2_e_state='normal';
-    $PedValMx="500.";
+    $PedValMx="700.";
     $par4_e_state='normal';
   }
   $PrevRunsFN=$fname.".".$pedcaltyp;
@@ -1344,6 +1344,8 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 							    )->pack(-fill=>'both', -expand=>1);
   @rlistbox=();
   my ($lbitem,$fdat,$run,$tag,$rtype,$nevs,$stat);
+  show_messg("   <-- Editor: Enter with $ndaqgood good files !");
+  $ndaqgood=0;
   for($i=0;$i<$ndaqfound;$i++){#prepare list
     $run=$daqfrunn[$i];
     $tag=$daqftags[$i];
@@ -1354,8 +1356,10 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 #    $lbitem=sprintf("Run/Tag: %10d %11u   Date: %s Type: %10d Nevs: %8d Stat: %4d",$run,$tag,$fdat,$rtype,$nevs,$stat);
     $lbitem="Run/Tag:".$run."  ".$tag."    RunDate: ".$fdat."    Type:".$rtype."    Nev=".$nevs."    Stat=".$stat;
     push(@rlistbox,$lbitem);
+    if($stat==11){$ndaqgood+=1;}
   }
   $edit_lb->insert("end",@rlistbox);
+  show_messg("   <-- Editor: really found $ndaqgood good files !");
 #
 }
 #-------
@@ -1363,9 +1367,11 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
   {
     my @selected=$edit_lb->curselection();
     foreach (@selected) {
-      $daqfstat[$_]=11;#set "found+selected"
       $edit_lb->selectionClear($_);
-      $ndaqgood+=1;
+      if($daqfstat[$_]==1){
+        $daqfstat[$_]=11;#set "found+selected"
+        $ndaqgood+=1;
+      }
     }
   }
 #---
@@ -1373,9 +1379,11 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
   {
     my @selected=$edit_lb->curselection();
     foreach (@selected) {
-      $daqfstat[$_]=1;#set "found"=Bad
       $edit_lb->selectionClear($_);
-      $ndaqgood-=1;
+      if($daqfstat[$_]==11){
+        $daqfstat[$_]=1;#set "found"(not selected)
+        $ndaqgood-=1;
+      }
     }
   }
 #---

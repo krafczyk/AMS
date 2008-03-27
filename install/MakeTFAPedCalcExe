@@ -1,0 +1,14 @@
+#/bin/tcsh
+cd /f2users/choumilo/AMS/exe/linux/icc
+mv gbatch.exe gbatch.exe.base
+cd /f2users/choumilo/AMS/install
+touch ../CC/event.C
+setenv TFAPEDC 1
+gmake
+cd /f2users/choumilo/AMS/exe/linux/icc
+mv gbatch.exe /f2users/tofaccuser/pedcalib/pedgbatch.exe
+mv gbatch.exe.base gbatch.exe
+cd /f2users/choumilo/AMS/install
+unsetenv TFAPEDC
+touch ../CC/event.C
+

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.555 2008/03/20 14:06:46 choutko Exp $
+// $Id: job.C,v 1.556 2008/03/27 09:21:42 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1213,7 +1213,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
   TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
 //
-  TFREFFKEY.ReadConstFiles=10111;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
+  TFREFFKEY.ReadConstFiles=11101;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
 //                                           D->ThrCuts-set(datacards),P->Peds(rd),C->CalibConst(rd/mc));
 // L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
@@ -1282,7 +1282,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.pedcpr[1]=0.25;  // (32) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedoutf=2;      // (33)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
   TFCAFFKEY.pedlim[0]=10.;  // (34) Ped low-lim in PedCalibJobs
-  TFCAFFKEY.pedlim[1]=500.; // (35)      hi-lim ...............
+  TFCAFFKEY.pedlim[1]=700.; // (35)      hi-lim ...............
   TFCAFFKEY.siglim[0]=0.4;  // (36) PedSig low-lim ............
   TFCAFFKEY.siglim[1]=10.; //  (37)         hi-lim ............
 //TOFTdcCalib:
@@ -1302,7 +1302,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.ftdel=80.;  //(7) FT-delay wrt correlated Anti history-pulse(72 mc)
   ATREFFKEY.ftwin=60.;  //(8) window for Hist-hit/FT coincidence(+- around FT-delay corrected value)(54 mc)
 //
-  ATREFFKEY.ReadConstFiles=111;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
+  ATREFFKEY.ReadConstFiles=11;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  
   ATREFFKEY.calutc=1167606001;//(10)(20070101 0000001)TccCflistRD-file(acccal_files vers. list) begin UTC-time
 //
@@ -1368,7 +1368,7 @@ CHARGEFITFFKEY.TrackerKSRatio=0.67;//(19)
 CHARGEFITFFKEY.TrackerProbOnly=9;
 CHARGEFITFFKEY.TrkPDFileMCVers=1;//MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
 CHARGEFITFFKEY.TrkPDFileRDVers=1;//RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
-CHARGEFITFFKEY.TrkPDFileRead=0;//read TrkPDF-info from DB(0) OR RawFile (1)
+CHARGEFITFFKEY.TrkPDFileRead=1;//read TrkPDF-info from DB(0) OR RawFile (1)
 CHARGEFITFFKEY.sec[0]=0; 
 CHARGEFITFFKEY.sec[1]=0;
 CHARGEFITFFKEY.min[0]=0;
@@ -2256,7 +2256,7 @@ void AMSJob::_reanti2initjob(){
     ANTI2JobStat::clear();
 //-----------
 //
-  if(ATREFFKEY.ReadConstFiles/10>0 && isRealData()){// (PC) RealData Peds from ext.files
+  if(ATREFFKEY.ReadConstFiles/100>0 && isRealData()){// (PVS) RealData Peds from ext.files
 //
     ANTIPeds::build();//create sc.bar anscped-objects
   }
@@ -2647,11 +2647,13 @@ end.tm_year=TRDMCFFKEY.year[1];
  tm end;
  begin.tm_isdst=0;
  end.tm_isdst=0;
- 
+ int needval=1;
+ if(isCalibration() && CTOF)needval=0;
 #ifdef __TFADBW__
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;
   int jobt=AMSFFKEY.Jobtype;
+  int need=0;
   if(jobt==211){//real data reco/calib
     tm * begdbw = localtime(& bdbw);
     TFREFFKEY.sec[0]=begdbw->tm_sec;
@@ -2694,18 +2696,17 @@ end.tm_year=TRDMCFFKEY.year[1];
 //tfre->LQDPC,tfmc->LPTS
 //-----
 if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//(C)BarCalibConst from DB
-  
+
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
-    (void*)&TOF2Brcal::scbrcal[0][0],server,NeededByDefault));
-   
+    (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
   end.tm_year=TFREFFKEY.year[1];
 //-----
 if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//(D)ThreshCuts-set from DB
 
   TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
     begin,end,sizeof(TOF2Varp::tofvpar),
-    (void*)&TOF2Varp::tofvpar,server,NeededByDefault));
+    (void*)&TOF2Varp::tofvpar,server,needval));
     
   end.tm_year=TFREFFKEY.year[1];
 //----- 
@@ -2713,11 +2714,11 @@ if((TFREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(Q
 
   TID.add (new AMSTimeID(AMSID("Tofcpdfs",isRealData()),
     begin,end,sizeof(TofElosPDF::TofEPDFs),
-    (void*)&TofElosPDF::TofEPDFs[0],server,NeededByDefault));
+    (void*)&TofElosPDF::TofEPDFs[0],server,needval));
     
   TID.add (new AMSTimeID(AMSID("ChargeIndxTof",isRealData()),
     begin,end,MaxZTypes*sizeof(AMSCharge::_chargeTOF[0]),
-    (void*)AMSCharge::_chargeTOF,server,NeededByDefault));
+    (void*)AMSCharge::_chargeTOF,server,needval));
    
   end.tm_year=TFREFFKEY.year[1];
 //----- 
@@ -2725,9 +2726,10 @@ if((TFREFFKEY.ReadConstFiles%100)/10==0 &&
     isRealData())end.tm_year=TFREFFKEY.year[0]-1;//Real data Peds.fromDB
 if((TFMCFFKEY.ReadConstFiles%1000)/100==0 &&
      !isRealData())end.tm_year=TFREFFKEY.year[0]-1;//MC data Peds.fromDB
+     
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),
-    (void*)&TOFBPeds::scbrped[0][0],server,NeededByDefault));
+    (void*)&TOFBPeds::scbrped[0][0],server,needval));
    
   end.tm_year=TFREFFKEY.year[1];
 //----- 
@@ -2735,7 +2737,7 @@ if((TFMCFFKEY.ReadConstFiles%100)/10==0 && !isRealData())end.tm_year=TFREFFKEY.y
 
   TID.add (new AMSTimeID(AMSID("Tofmcscans2",0),
     begin,end,TOF2GC::SCBTPN*sizeof(TOFWScan::scmcscan[0]),
-    (void*)&TOFWScan::scmcscan[0],server,NeededByDefault));
+    (void*)&TOFWScan::scmcscan[0],server,needval));
     
   end.tm_year=TFREFFKEY.year[1];
 //-----
@@ -2744,7 +2746,7 @@ if(!isRealData()){
     
   TID.add (new AMSTimeID(AMSID("TofbarcalMS",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBrcalMS::scbrcal[0][0]),
-    (void*)&TOFBrcalMS::scbrcal[0][0],server,NeededByDefault));
+    (void*)&TOFBrcalMS::scbrcal[0][0],server,needval));
     
   end.tm_year=TFREFFKEY.year[1];
 }
@@ -2755,15 +2757,16 @@ if(!isRealData() && TFMCFFKEY.tdclin>0){
     
   TID.add (new AMSTimeID(AMSID("TofTdcCorMS",isRealData()),
     begin,end,TOFCRSL*sizeof(TofTdcCorMS::tdccor[0][0]),
-    (void*)&TofTdcCorMS::tdccor[0][0],server,NeededByDefault));
+    (void*)&TofTdcCorMS::tdccor[0][0],server,needval));
     
   end.tm_year=TFREFFKEY.year[1];
 }
 //----- 
 if((TFREFFKEY.ReadConstFiles/10000)==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor(MC/RD) from DB
+
   TID.add (new AMSTimeID(AMSID("TofTdcCor",isRealData()),
     begin,end,TOFCRSL*sizeof(TofTdcCor::tdccor[0][0]),
-    (void*)&TofTdcCor::tdccor[0][0],server,NeededByDefault));
+    (void*)&TofTdcCor::tdccor[0][0],server,needval));
     
   end.tm_year=TFREFFKEY.year[1];
 //
@@ -2800,7 +2803,7 @@ if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-
   
   TID.add (new AMSTimeID(AMSID("Lvl1Config",isRealData()),
     begin,end,sizeof(Trigger2LVL1::l1trigconf),
-    (void*)&Trigger2LVL1::l1trigconf,server,NeededByDefault));
+    (void*)&Trigger2LVL1::l1trigconf,server,1));
    
   end.tm_year=TGL1FFKEY.year[1];
 }
@@ -2813,6 +2816,8 @@ if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-
  tm end;
  begin.tm_isdst=0;
  end.tm_isdst=0;
+ int needval=1;
+ if(isCalibration() && CAnti)needval=0;
  
 #ifdef __TFADBW__
   time_t bdbw=MISCFFKEY.dbwrbeg;
@@ -2862,7 +2867,7 @@ if(ATREFFKEY.ReadConstFiles%10==0)end.tm_year=ATREFFKEY.year[0]-1;//StableParams
 //
   TID.add (new AMSTimeID(AMSID("Antispcal2",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2SPcal::antispcal[0]),
-                         (void*)&ANTI2SPcal::antispcal[0],server,NeededByDefault));
+                         (void*)&ANTI2SPcal::antispcal[0],server,needval));
 //
   end.tm_year=ATREFFKEY.year[1];
 //---------
@@ -2870,7 +2875,7 @@ if((ATREFFKEY.ReadConstFiles/10)%10==0)end.tm_year=ATREFFKEY.year[0]-1;//Variabl
 //
   TID.add (new AMSTimeID(AMSID("Antivpcal2",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2VPcal::antivpcal[0]),
-                         (void*)&ANTI2VPcal::antivpcal[0],server,NeededByDefault));
+                         (void*)&ANTI2VPcal::antivpcal[0],server,needval));
 //
   end.tm_year=ATREFFKEY.year[1];
 //---------
@@ -2882,7 +2887,7 @@ if(ATMCFFKEY.ReadConstFiles%10==0 &&
 //
   TID.add (new AMSTimeID(AMSID("Antipeds",isRealData()),
     begin,end,ANTI2C::MAXANTI*sizeof(ANTIPeds::anscped[0]),
-                            (void*)&ANTIPeds::anscped[0],server,NeededByDefault));
+                            (void*)&ANTIPeds::anscped[0],server,needval));
   end.tm_year=ATREFFKEY.year[1];
 //---------
 if(ATMCFFKEY.ReadConstFiles/10==0 &&
@@ -2890,7 +2895,7 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 //
   TID.add (new AMSTimeID(AMSID("AntipedsMS",isRealData()),
     begin,end,ANTI2C::MAXANTI*sizeof(ANTIPedsMS::anscped[0]),
-                            (void*)&ANTIPedsMS::anscped[0],server,NeededByDefault));
+                            (void*)&ANTIPedsMS::anscped[0],server,needval));
   end.tm_year=ATREFFKEY.year[1];
 //---------
 //
@@ -2969,6 +2974,8 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   tm end;
   begin.tm_isdst=0;
   end.tm_isdst=0;
+ int needval=1;
+ if(isCalibration() && CEcal)needval=0;
  
   begin.tm_sec=ECREFFKEY.sec[0];
   begin.tm_min=ECREFFKEY.min[0];
@@ -2990,14 +2997,14 @@ if((ECREFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(
 
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
-                                  (void*)&ECcalib::ecpmcal[0][0],server));
+                                  (void*)&ECcalib::ecpmcal[0][0],server,needval));
   end.tm_year=ECREFFKEY.year[1];
 //--------				  
 if(ECREFFKEY.ReadConstFiles/100==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
 
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
      begin,end,sizeof(ECALVarp::ecalvpar),
-                                      (void*)&ECALVarp::ecalvpar,server));
+                                      (void*)&ECALVarp::ecalvpar,server,needval));
   end.tm_year=ECREFFKEY.year[1];
 //--------
 if(!isRealData()){//"MC.Seeds" TDV only for MC-run.    
@@ -3005,7 +3012,7 @@ if(!isRealData()){//"MC.Seeds" TDV only for MC-run.
 	     
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMS(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalibMS::ecpmcal[0][0]),
-                                  (void*)&ECcalibMS::ecpmcal[0][0],server));
+                                  (void*)&ECcalibMS::ecpmcal[0][0],server,needval));
   end.tm_year=ECREFFKEY.year[1];
 }
 //--------
@@ -3016,7 +3023,7 @@ if(ECMCFFKEY.ReadConstFiles%10==0 &&
 	     
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVped(),
     begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
-                                    (void*)&ECPMPeds::pmpeds[0][0],server));
+                                    (void*)&ECPMPeds::pmpeds[0][0],server,needval));
   end.tm_year=ECREFFKEY.year[1];
 //--------
 }
@@ -3048,11 +3055,11 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
   TID.add (new AMSTimeID(AMSID("Trkcpdfs",isRealData()),
     begin,end,sizeof(TrkElosPDF::TrkEPDFs),
-    (void*)&TrkElosPDF::TrkEPDFs[0],server,NeededByDefault));
+    (void*)&TrkElosPDF::TrkEPDFs[0],server,1));
     
   TID.add (new AMSTimeID(AMSID("ChargeIndxTrk",isRealData()),
     begin,end,MaxZTypes*sizeof(AMSCharge::_chargeTracker[0]),
-    (void*)AMSCharge::_chargeTracker,server,NeededByDefault));
+    (void*)AMSCharge::_chargeTracker,server,1));
     
   end.tm_year=CHARGEFITFFKEY.year[1];
 
@@ -3068,7 +3075,7 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
    tm end=AMSmceventg::Orbit.Begin;
    TID.add (new AMSTimeID(AMSID("TofEnvelopsTemper",isRealData()),
                   begin,end,
-                  sizeof(TofSlowTemp::tofstemp),(void*)&TofSlowTemp::tofstemp,server,NeededByDefault));
+                  sizeof(TofSlowTemp::tofstemp),(void*)&TofSlowTemp::tofstemp,server,0));
   }  
 }
 //-----------------------------
@@ -3598,7 +3605,7 @@ void AMSJob::_axendjob(){
 }
 
 void AMSJob::_dbendjob(){
-
+cout<<"<---- In dbendjob, UpdateFlag="<<AMSFFKEY.Update<<endl;
 
   //Status Stuff
 #ifndef __CORBA__

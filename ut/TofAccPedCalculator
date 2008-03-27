@@ -85,7 +85,7 @@ TRIG $NEVENTS
 DEBUG -1 10 100
 
 TFRE 3=0 5=0 7=0  8=$TOFRTYP 
-c  28=10111
+  28=11101
 c 3=1/(0)->print/not (full/ reco-statistics
 c 5=1/(0)->print/not reco-histograms
 c 7=(0)/1/>1=>tofdebugprint(no/hist/details)

@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.h,v 1.5 2006/01/25 11:21:39 choumilo Exp $
+//  $Id: AMSAntiHist.h,v 1.6 2008/03/27 09:21:57 choumilo Exp $
 #ifndef __AMSANTIHIST__
 #define __AMSANTIHIST__
 #include "AMSHist.h"
@@ -6,6 +6,7 @@
 #include "AMSHist.h"
 
 const Int_t ANTISECMX=8;
+const Float_t acctrange[3]={120,120,120};//mins,hours,days
 
 class AntiPars{
   private:
@@ -22,7 +23,8 @@ class AntiPars{
     inline static char* getdat3(){return dat3;}
     inline static void addstat(Int_t k){evcount[k]+=1;}
     inline static Int_t getstat(Int_t k){return evcount[k];}
-    inline static void clearstat(){for(int i=0;i<20;i++)evcount[i]=0;} 
+    inline static void clearstat(){for(int i=0;i<20;i++)evcount[i]=0;}
+    static bool patbcheck(int i, int patt); 
 };
 
 

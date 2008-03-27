@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.3 2008/03/14 14:51:32 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.4 2008/03/27 09:21:57 choumilo Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -449,6 +449,30 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
     EcalRunPar::setdat3(ntuple->GetTime());
   }
   ((TProfile*)_filled[10])->Fill(time[2]-timez[2],nechts,1.);
+//
+//----------------> Correlations with TRK-track:
+//
+  if(ntuple->NParticle()==0)return;
+  EcalRunPar::addsev(2);//<--passed Part check
+//  
+  Int_t itrktr(-1),itrdtr(-1),pindex(-1);
+  for(int i=0;i<ntuple->NParticle();i++){//search for 1st Part. with trk-track
+    itrktr = ntuple->Particle(i).iTrTrack(); 
+    itrdtr = ntuple->Particle(i).iTrdTrack();
+    if(itrktr>=0)pindex=i; 
+    if(itrktr>=0)break;
+  }
+  if(pindex<0)return;
+  EcalRunPar::addsev(3);//<--- passed TRK-track check
+//
+  Float_t eccros[3][3];//[entr/cent/exit][x/y/z]
+  Float_t pmom;
+  pmom=ntuple->pParticle(pindex)->Momentum;
+  for(i=0;i<3;i++){
+    for(j=0;j<3;j++){
+      eccros[i][j]=ntuple->pParticle(pindex)->EcalCoo[i][j];
+    }
+  }
 //
 //<---------------
 //

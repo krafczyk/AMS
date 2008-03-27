@@ -1,0 +1,18 @@
+#/bin/tcsh
+cd /f2users/choumilo/AMS/exe/linux/icc
+mv gbatch.exe gbatch.exe.base
+cd /f2users/choumilo/AMS/install
+touch ../CC/job.C
+touch ../CC/tofdbc02.C
+touch ../CC/antidbc02.C
+setenv TFADBW 1
+gmake
+cd /f2users/choumilo/AMS/exe/linux/icc
+mv gbatch.exe /f2users/tofaccuser/pedcalib/dbwgbatch.exe
+mv gbatch.exe.base gbatch.exe
+cd /f2users/choumilo/AMS/install
+unsetenv TFADBW
+touch ../CC/job.C
+touch ../CC/tofdbc02.C
+touch ../CC/antidbc02.C
+

@@ -215,7 +215,7 @@ $set_fram->Button(-text=>"RunDate", -font=>$font2,
 #
 $dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)->place(-relwidth=>0.12, -relheight=>$drh2,
                                                              -relx=>0, -rely=>($shf2+2*$drh2));
-$fdat1="2008.01.01 00:00:01";#def. file-date-from 
+$fdat1="2007.12.17 00:00:01";#def. file-date-from 
 $fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
                                                                    -font=>$font3,
                                                                    -textvariable=>\$fdat1)->place(
@@ -2400,7 +2400,8 @@ sub upd_db
   my ($begtm,$endtm,$tdvname,$instm,$instmm,$updflg);
   my ($pedfn,$pedfile,$mapdir,$mapfile);
   $mapdir=$AMSDD."/DataBase";
-  $mapfile="pedmap.dat";
+
+  $mapfile="pedmap.dat";# to store copy of current real one
   my ($mapfn,$daysdir,$ndaysd);
   if($tofantsel eq "useTOF"){
     $daysdir=$AMSDD."/DataBase/Tofpeds";
@@ -2415,33 +2416,36 @@ sub upd_db
     $len=8;
   }
 #
-#--- call of DBWriter just to update official map-file (dry-run):
+#--- call of DBWriter-script just to update official map-file :
 #
   $dbwlfname="dbwlogf.log";#tempor DBwriter log-file (also copied into $logtext window !)
-  $updflg=0;#dry run
+  $updflg=0;#dummy(dry) run
   $begtm=1000000000;
   $endtm=1581120000;
 #
-  $curline="=====> Start DBwriter to update map-file (dry-run)\n\n";
+# ===> !!! due to following action (dummy run) map-file will be updated(recreated if was deleted befor)
+#     according to existing contents of day-subdirs(containing real ped-files DB-objects) <=== !!!
+#
+  $curline="=====> Start DBwriter-script to inspect current map-file (dummy run) \n\n";
   $logtext->insert('end',$curline);
   $logtext->yview('end');
   $mwnd->update;
 # make def.ped-file from the 1st existing one (i need it now pure formally for offline-program)
   $pedfn=$pathpeds."/".$sfilelist[0];
   $pedfile=$calibdir."/".$detnam[0]."_df_rl.dat";#default input ped-file name required by offline-program
-  copy($pedfn,$pedfile) or die show_warn("   <-- Copy failed into work-dir for $pedfn (dry-run)!");#copy 
+  copy($pedfn,$pedfile) or die show_warn("   <-- Copy failed into work-dir for $pedfn (dummy run)!");#copy 
 #
-  open(DBWLOGF,"+> $dbwlfname") or die show_warn("   <-- Cannot open $dbwlfname (dry-run) $!");# clear if exists
+  open(DBWLOGF,"+> $dbwlfname") or die show_warn("   <-- Cannot open $dbwlfname (dummy run) $!");# clear if exists
   $status = system("$prog2run $tdvname $begtm $endtm $updflg >> $dbwlfname");#<-- call DBWriter 
-  if($status != 0) {die  show_warn("   <-- $prog2run exited badly(dry-run) $!");}
+  if($status != 0) {die  show_warn("   <-- $prog2run exited badly(dummy run) $!");}
   while(<DBWLOGF>){
     $curline=$_;
     $logtext->insert('end',$curline);
     $logtext->yview('end');
   }
-  close(DBWLOGF) or die show_warn("   <-- Cannot close DBWLOGF (dry-run) !");
+  close(DBWLOGF) or die show_warn("   <-- Cannot close DBWLOGF (dummy run) !");
 #
-  $curline="<===== Finished DBWriter dry-run !\n\n";
+  $curline="<===== Finished DBWriter inspect(dummy) run !\n\n";
   $logtext->insert('end',$curline);
   $logtext->yview('end');
   $mwnd->update;
@@ -2481,8 +2485,8 @@ sub upd_db
     if($nrecmap>0){
     show_messg("       BeginTime-ordered Begin/End/Insert-times list is followed:\n");
       for($i=0;$i<$nrecmap;$i++){
-        $begtm=$mapfcont[1+4*$nrecmap+$i];
-	for($j=0;$j<$nrecmap;$j++){# find corresponding end/ins-times
+        $begtm=$mapfcont[1+4*$nrecmap+$i];# Beg-sorted
+	for($j=0;$j<$nrecmap;$j++){# find corresponding to beg-time end/ins-times
 	  if($begtm==$mapfcont[1+2*$nrecmap+$j]){
 	    $endtm=$mapfcont[1+3*$nrecmap+$j];
 	    $instm=$mapfcont[1+$j];
@@ -2494,7 +2498,7 @@ sub upd_db
       $mwnd->update;
     }
   }
-  if($dryrunval==1){return;}
+  if($dryrunval==1){return;} # = was dry run
   if($nrecmap==0){goto UPDATE;}# empty(def) map-file is equivalent to "DB clean up" mode
 #
 #---> get list of "day"-directories:
@@ -2508,32 +2512,40 @@ sub upd_db
   my ($sdir,$fmt,$rest);
   my @dbrlist=();
   if($dbwrsel eq "RewrDB"){#<--- only for "clean up" mode
+    show_messg("   <------ Preparing to DB clean-up procedure ...");
     $patt=$tdvname.".1.";
-    for($i=0;$i<$ndaysd;$i++){#<-- day-directories loop
+#
+    for($i=0;$i<$ndaysd;$i++){#<-- loop over day-directories(subdirs of TDVname-dir)
       if((($TIMEL-$daysdlist[$i])<=86400 && ($daysdlist[$i]-$TIMEH)<=86400)
-                                         || ($TIMEL > $TIMEH)){;#need day-subdirs only in the range
-        $sdir=$daysdir."/".$daysdlist[$i];
-        opendir(DDIR,$sdir);#open sub-dir of days-dir
-	@dbrnlist=grep{/$patt/} readdir(DDIR);# select real_data ped-record names
-	foreach $dbrn(@dbrnlist) {#<--- records loop
+                                         || ($TIMEL > $TIMEH)){;#need day-subdirs only in range(+-1day)
+        $sdir=$daysdir."/".$daysdlist[$i];#full day-subdir name
+        opendir(DDIR,$sdir);#open day-subdir of days-dir
+	@dbrnlist=grep{/$patt/} readdir(DDIR);# fill array of real_data ped-files names
+#
+	foreach $dbrn(@dbrnlist) {#<--- records(real Tofpeds.1.instm files) loop
 	  $fmt="A".$len;
-	  ($rest,$instm)=unpack("$fmt x3 A*",$dbrn);#get insert-time of db-record from his name
+	  ($rest,$instm)=unpack("$fmt x3 A*",$dbrn);#get insert-time of real db-record (from his name)
+#
 	  for($im=0;$im<$nrecmap;$im++){#<--- map-file content loop
 	    $instmm=$mapfcont[1+$im];#instime from map-file
-	    if($instmm>0 && $instmm==$instm){# check map<->dir instime match 
-	      $mapfcont[1+$im]=0;#clear map entry 
+	    if($instmm>0 && $instmm==$instm){# found map-file record, corresponding to real Tofpeds.1.instm file
+	      $mapfcont[1+$im]=0;#clear map-file instm-entry (in memory)
               $begtm=$mapfcont[1+2*$nrecmap+$im];
-	      if(($begtm>=$TIMEL && $begtm<=$TIMEH) || ($TIMEL > $TIMEH)){#delete file because it in time-range
-		unlink($sdir."/".$dbrn) or die show_warn("   <-- Cannot delete TDV-record $dbrn !");
+	      if(($begtm>=$TIMEL && $begtm<=$TIMEH) || ($TIMEL > $TIMEH)){#delete real ped-file(it in time-range)
+		unlink($sdir."/".$dbrn) or die show_warn("   <-- Cannot delete TDV-record $dbrn $!");
 		last;#skip the rest of map-file
 	      }
-	    }#--->endof names-match check
-	  }#--->endof map-file loop
-	}#--->endof records loop
-	close(DDIR);
+	    }#--->endof "found map-file record"
+	  }#--->endof map-file content loop
+#
+	}#--->endof records(real-data ped-files) loop
+	close(DDIR);#close given day-subdir
+#
       }#--->endof "day-subdir in the range" check
     }#--->endof day-dirs loop
-    unlink($mapfn) or die show_warn("   <-- Cannot delete map-file $mapfn !");#delete original map-file
+#
+    unlink($mapfn) or die show_warn("   <-- Cannot delete map-file $mapfn: $!");#delete original map-file
+    show_messg("   <------ DB clean up done, old map-file $mapfn deleted !!!"); 
   }#--->endof DB clean up request
 #---------
 # 
@@ -2560,6 +2572,7 @@ UPDATE:
       $endtm=0;
       if(($dbwrsel eq "RewrDB") || ($nrecmap == 0) ){#<--- "DB clean up" mode
         $endtm=1581120000;# till year 2020
+	show_messg("   <------ RewriteDB: ped-file $sfilelist[$i],  begtm=$begtm, endtm=$endtm");
       }
       else{#<-- "insert"-mode
         if($begtm < $mapfcont[1+4*$nrecmap]){
@@ -2575,9 +2588,10 @@ UPDATE:
 	      last;
 	    }
 	  }
+	  show_messg("   <------ InsertDB: ped-file $sfilelist[$i],  begtm=$begtm, endtm=$endtm");
         }
       }#-->endof "insert"-mode
-      $updflg=1; 
+      $updflg=2; 
       $status = system("$prog2run $tdvname $begtm $endtm $updflg >> $dbwlfname");#<-- call DBWriter 
       if($status != 0) {die  show_warn("   <-- $prog2run exited badly $!");}
       while(<DBWLOGF>){

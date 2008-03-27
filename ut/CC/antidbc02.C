@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.24 2008/03/11 13:17:46 choumilo Exp $
+//  $Id: antidbc02.C,v 1.25 2008/03/27 09:21:42 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -701,8 +701,10 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
   }
 //
   strcat(name,".dat");
-  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcpy(fname,"");
+#ifndef __TFADBW__
+  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);//use official-dir only when not in pedDBWR-mode
+#endif
   strcat(fname,name);
   cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading

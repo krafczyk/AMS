@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.47 2008/03/05 10:03:25 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.48 2008/03/27 09:21:42 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1435,8 +1435,10 @@ void TOFBPeds::build(){// tempor solution for RealData peds.
   }
 //
   strcat(name,".dat");
-  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcpy(fname,"");
+#ifndef __TFADBW__
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);//use official dir only when not in pedDBWR-mode
+#endif
   strcat(fname,name);
   cout<<"      Open file : "<<fname<<'\n';
   ifstream icfile(fname,ios::in); // open pedestals-file for reading
