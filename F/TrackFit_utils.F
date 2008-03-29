@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.17 2008/03/21 09:54:51 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.18 2008/03/29 13:01:58 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.18  2008/03/29 13:01:58  choutko
+* improving yaw calculation
+*
 * Revision 1.17  2008/03/21 09:54:51  choutko
 * multithread alignment
 *
@@ -140,7 +143,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.17 2008/03/21 09:54:51 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.18 2008/03/29 13:01:58 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6661,7 +6664,7 @@ c         ENDIF
       double precision averxz(nplan,nlad,nhalf,npar)
       double precision mtx(3,3),a1,a2,c,e,parav,nparav
       double precision naver(nplan,nlad,nhalf,npar)
-      double precision x,y,xy,x2,y2,nx,a,b,comp,dyz,dz2,dxz,fr
+      double precision x,y,xy,x2,y2,nx,a,b,comp,dyz,dz2,dxz
       double precision chi2,chi2a,chi2max,chi2o,tol,dz,dy2,rmax
       common /paramcommon/param,phi,roll,pitch
 #ifdef __AMSPARALLEL__
@@ -6718,10 +6721,9 @@ c         ENDIF
       rmax=0.1
       nmin=20
       iter=0
-          fr=1
       miter=100
        chi2o=10000000
-       tol=1.e-3
+       tol=2.e-3
        if(what.eq.1)then
       do i=nplan+1,nplan+1
        do j=1,nlad
@@ -6776,7 +6778,7 @@ c       call omp_set_num_threads(1)
      +m,normal,j,ilayer,cooloc,sy,cy,cp,sp,cr,sr,mtx,s1,s2,
      +d3,s3,d,k,hits,xsigma,out,outa,x,y,x2,y2,nx,xy,
      +a,b,sigma,res,dy,z,chi2,rig,ch,i,l)
-     + SHARED(param,roll,pitch,phi,fr,iter,array,
+     + SHARED(param,roll,pitch,phi,iter,array,
      +cool,ncases,chi2max,rigmin,
      +itermin,rmax,algo,xchi2) 
      +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
@@ -6807,10 +6809,8 @@ c        enddo
           cooloc(1)=array(j,1,i)
           cooloc(2)=array(j,2,i)
           cooloc(3)=array(j,3,i)
-          sy=sin(fr*phi(j,array(j,4,i),array(j,5,i),2)-
-     +    (1-fr)*phi(j,array(j,4,i),array(j,5,i),1))
-          cy=cos(fr*phi(j,array(j,4,i),array(j,5,i),2)-
-     +    (1-fr)*phi(j,array(j,4,i),array(j,5,i),1))
+          sy=sin(phi(j,array(j,4,i),array(j,5,i),2))
+          cy=cos(phi(j,array(j,4,i),array(j,5,i),2))
           cp=cos(pitch(j,array(j,4,i),array(j,5,i),1))
           sp=sin(pitch(j,array(j,4,i),array(j,5,i),1))
           cr=cos(roll(j,array(j,4,i),array(j,5,i),1))
@@ -6871,10 +6871,8 @@ c        enddo
           cooloc(1)=array(j,1,i)
           cooloc(2)=array(j,2,i)
           cooloc(3)=array(j,3,i)
-          sy=sin(fr*phi(j,array(j,4,i),array(j,5,i),2)-
-     +    (1-fr)*phi(j,array(j,4,i),array(j,5,i),1))
-          cy=cos(fr*phi(j,array(j,4,i),array(j,5,i),2)-
-     +    (1-fr)*phi(j,array(j,4,i),array(j,5,i),1))
+          sy=sin(phi(j,array(j,4,i),array(j,5,i),2))
+          cy=cos(phi(j,array(j,4,i),array(j,5,i),2))
           cp=cos(pitch(j,array(j,4,i),array(j,5,i),1))
           sp=sin(pitch(j,array(j,4,i),array(j,5,i),1))
           cr=cos(roll(j,array(j,4,i),array(j,5,i),1))
@@ -7041,10 +7039,13 @@ c         endif
      +      (naver(i,j,k,1)+naver(i,j,k,2))
             aver2(i,j,k,l)=aver2(i,j,k,l)/naver(i,j,k,l)
             param(i,j,k,l)=param(i,j,k,l)-aver(i,j,k,l)
-            phi(i,j,k,l)=phi(i,j,k,l)-
-     +      atan((averxy(i,j,k,l)-aver(i,j,k,l)*
-     +      averx(i,j,k,l))/(aver2(i,j,k,l)-averx(i,j,k,l)**2))
-
+            if(l.eq.2)then
+            phi(i,j,k,2)=phi(i,j,k,2)-
+     +      atan((averxy(i,j,k,2)-aver(i,j,k,2)*
+     +      averx(i,j,k,2)-averxy(i,j,k,1)+aver(i,j,k,1)*
+     +      averx(i,j,k,1))/(aver2(i,j,k,2)-averx(i,j,k,2)**2+
+     +      aver2(i,j,k,1)-averx(i,j,k,1)**2))
+            endif
             if(fixpar(i,j,k,l).eq.0)then
               param(i,j,k,l)=0
             endif
@@ -7172,7 +7173,7 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
       endif
         xf(2)=chi2a
       if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter.and.
-     +  chi2a.le.chi2o)then
+     +  chi2a.le.chi2a)then
        iter=iter+1
        chi2o=chi2a
        goto 10
@@ -7189,9 +7190,12 @@ c            write(*,*)i,j,k,l,param(i,j,k,l),phi(i,j,k,l)
       end                        
 
 
-* $Id: TrackFit_utils.F,v 1.17 2008/03/21 09:54:51 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.18 2008/03/29 13:01:58 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.18  2008/03/29 13:01:58  choutko
+* improving yaw calculation
+*
 * Revision 1.17  2008/03/21 09:54:51  choutko
 * multithread alignment
 *
