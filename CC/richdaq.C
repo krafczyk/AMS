@@ -208,7 +208,7 @@ int DAQRichBlock::Emit(int code){
     case kWrongCDPChannelNumber:
       if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
-      return 1; break;
+      return 0; break;
     default:
       return 0;break;
     }
@@ -234,4 +234,5 @@ void DAQRichBlock::DSPCompressedParser::parse(){
   pmt=channelid%PMTs;
   pixel=channelid/PMTs;
   gain=data&0x1000?0:1;                    // This is reversed: no bit= high gain (gina mode=1)
+  counts=data&0x0FFF;
 }
