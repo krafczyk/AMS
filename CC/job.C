@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.556 2008/03/27 09:21:42 choumilo Exp $
+// $Id: job.C,v 1.557 2008/04/04 08:49:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -223,7 +223,7 @@ FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
 TRMFFKEY.TIME=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
-MISCFFKEY.BTempCorrection=1;
+MISCFFKEY.BTempCorrection=0;
 MISCFFKEY.BeamTest=0;
 MISCFFKEY.BZCorr=1;
 MISCFFKEY.G3On=1;
@@ -495,7 +495,7 @@ for(i=0;i<8;i++){
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRCALIB.CalibProcedureNo=0;
-TRCALIB.EventsPerCheck=100;
+TRCALIB.EventsPerCheck=1000;
 TRCALIB.PedAccRequired[0]=0.12;
 TRCALIB.PedAccRequired[1]=0.09;
 TRCALIB.Validity[0]=0;
@@ -587,7 +587,8 @@ for(i=0;i<6;i++){
   TRALIG.Cuts[7][1]=10000;     //max chi2   
   TRALIG.Cuts[8][0]=0;     //min rig   
   TRALIG.Cuts[8][1]=1;     //min iter   
-
+  TRALIG.Cuts[9][0]=100000000; //diff between positive and negative rig
+  TRALIG.Cuts[9][1]=0;   // 1 only pos rig -1 only neg rig
 TRALIG.Algorithm=0;
 for( i=0;i<8;i++){
   int one=1;

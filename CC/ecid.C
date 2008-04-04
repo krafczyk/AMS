@@ -201,7 +201,11 @@ int16u AMSECIds::hwseqn(int16u crate, int16u slot, int16u rdch){
 // calc. global sequential hw-channel(0,1,...242;no empty chan !!):
   int16u hwch(0),slt;
 //
-  assert(crate<ECRT && slot<ECEDRS && rdch<ECEDRC);
+  //assert(crate<ECRT && slot<ECEDRS && rdch<ECEDRC);
+  if(!(crate<ECRT && slot<ECEDRS && rdch<ECEDRC)){
+    cerr<<"  AMSECIds::hwseqn-E-assrtfailed "<<crate<<" "<<slot<<" "<<rdch<<endl;
+    return 0;
+  }
 //  for(int cr=0;cr<crate;cr++){//1st->count in crates befor current one
 //    for(int sl=0;sl<ECEDRS;sl++){
 //      slt=_sltymap[cr][sl];

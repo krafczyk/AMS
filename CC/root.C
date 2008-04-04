@@ -288,7 +288,11 @@ void AMSEventR::hprint(int idd, char opt[]){
  }
 }
 
-
+bool AMSEventR::Status(unsigned int bit){
+if(bit<32)return (fHeader.Status[0] & (1<<bit));
+else if(bit<64)return (fHeader.Status[1] & (1<<(bit-32)));
+else return false;
+}
 void AMSEventR::hlist(char ptit[]){
 for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
 if(strlen(ptit)<1 || strstr(i->second->GetTitle(),ptit))cout<<" 1D "<<i->first<<" "<<i->second->GetTitle()<<endl;

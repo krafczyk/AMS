@@ -2264,7 +2264,7 @@ public:
 #endif
 
 
-
+bool Status(unsigned int bit);                  ///< \return true if corresponding bit set 
 int Version() const {return fHeader.Version/4;} ///< \return producer version number
 ///
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )

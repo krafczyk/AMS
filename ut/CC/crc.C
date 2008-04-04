@@ -100,7 +100,7 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
          }
          unsigned int data;
          unsigned int crc;
-          int fsize=statdir_map.st_size;
+          long long  fsize=statdir_map.st_size;
           unsigned int chunk[32000]; 
          int i=0;
          for(;;){
@@ -168,11 +168,11 @@ strcpy(tmp,(*e1)->d_name);
 for (int i=strlen(tmp)-1;i>=0;i--){
    if(tmp[i]=='/'){
     for (int j=i+1;j<strlen(tmp);j++){
-     if(tmp[j]='.'){
+     if(tmp[j]=='.'){
       tmp[j]='\0';
       sscanf(tmp+i+1,"%d",&run1);
       for (int k=j+1;k<strlen(tmp);k++){
-      if(tmp[k]='.'){
+      if(tmp[k]=='.'){
        tmp[k]='\0';
        sscanf(tmp+j+1,"%d",&ev1);
       }
@@ -188,11 +188,11 @@ strcpy(tmp,(*e2)->d_name);
 for (int i=strlen(tmp)-1;i>=0;i--){
    if(tmp[i]=='/'){
     for (int j=i+1;j<strlen(tmp);j++){
-     if(tmp[j]='.'){
+     if(tmp[j]=='.'){
       tmp[j]='\0';
       sscanf(tmp+i+1,"%d",&run2);
       for (int k=j+1;k<strlen(tmp);k++){
-      if(tmp[k]='.'){
+      if(tmp[k]=='.'){
        tmp[k]='\0';
        sscanf(tmp+j+1,"%d",&ev2);
       }

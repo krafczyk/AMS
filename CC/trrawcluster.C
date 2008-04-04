@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.87 2008/03/19 13:44:51 choutko Exp $
+//  $Id: trrawcluster.C,v 1.88 2008/04/04 08:49:17 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -752,7 +752,7 @@ if(nerr>0){
   }
   }
   cout <<" nc "<<nc<<" "<<ncp<<endl;
-  if(update ){
+  if(update || nc>=TRCALIB.EventsPerCheck){
      update=true;
    for (int i=0;i<2;i++){
    AMSTimeID * ptdv;

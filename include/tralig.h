@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.24 2008/03/05 19:52:59 choutko Exp $
+//  $Id: tralig.h,v 1.25 2008/04/04 08:49:39 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -125,7 +125,7 @@ public:
 AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
 _InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0,0){};
 void Init(AMSTrTrack * ptr, AMSmceventg * pgen);
-void Init(integer patter, uintl address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[]);
+void Init(integer patter, uintl address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[], geant mcrig=0);
 friend class AMSTrAligFit;
 ~AMSTrAligData(){ delete [] _Hits; delete[] _EHits; delete[] _CooA;}
 };

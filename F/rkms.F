@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.7 2008/03/10 22:07:14 choutko Exp $
+*  $Id: rkms.F,v 1.8 2008/04/04 08:49:38 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -72,6 +72,9 @@ c      write(6,'(a3,8f8.2)')'  z',  z ! deb
       do i=1,NPma
         xyz(1,i)=xt(i)
         xyz(2,i)=yt(i)
+        dxyz(1,i)=wt(1,i)
+        dxyz(2,i)=wt(2,i)
+        dxyz(3,i)=wt(3,i)
       enddo
       end
 
@@ -282,7 +285,7 @@ c      write(6,*)'iflag,Fu',iflag,Fu       ! debug ###
         yt(i)=-999.   !*** let it be !!!
       enddo           !*****************
 *     ==========================
-      call rk_trk(pin,xin,xt,yt)
+      call rk_trk(pin,xin,xt,yt,wt)
       Fun = chi2su(xt,yt)
 *     ==========================
 *=============================
@@ -354,7 +357,7 @@ c#include "../RKMSFIT/debug5.h"
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine rk_trk(pin,xin,x0,y0)
+      subroutine rk_trk(pin,xin,x0,y0,w0)
 *---------------------------------------------------
 * Runge-Kutta integration for particle in Magn.field
 * A.Chikanian, Yale, Feb.,2003
@@ -373,7 +376,7 @@ c#include "../RKMSFIT/debug5.h"
 *==================================
 *#include "../RKMSFIT/instedgeant.h"
 *==================================
-      double precision xm,pin(3),xin(3),x0(NPma),y0(NPma) ! r8
+      double precision xm,pin(3),xin(3),x0(NPma),y0(NPma),w0(3,npma) ! r8
       double precision step,vect(7),vout(7),Stot,vni      ! r8
 *                           vect(7) is  x,y,z,px,py,pz,P
 *                                   or  x,y,z,cx,cy,cz,P
@@ -403,6 +406,9 @@ cxy3 ---
           w=(zc(np)-vout(3))/(vect(3)-vout(3))
           x0(np) = vect(1)*w + vout(1)*(1.d0-w)
           y0(np) = vect(2)*w + vout(2)*(1.d0-w)
+          w0(1,np)= vect(4)*w + vout(4)*(1.d0-w)   
+          w0(2,np)= vect(5)*w + vout(5)*(1.d0-w)   
+          w0(3,np)= vect(6)*w + vout(6)*(1.d0-w)   
 c          write(6,'(a3,i2,a3,8f10.5)')' np',np,' x0',x0 ! debug ###
 c          write(6,'(   5x,a3,8f10.5)')         ' y0',y0 ! debug ###
           if(np.eq.npoc) return  !!!!!!!!! Done
@@ -1054,8 +1060,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.7 2008/03/10 22:07:14 choutko Exp $
+* $Id: rkms.F,v 1.8 2008/04/04 08:49:38 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.8  2008/04/04 08:49:38  choutko
+* *** empty log message ***
+*
 * Revision 1.7  2008/03/10 22:07:14  choutko
 * *** empty log message ***
 *
@@ -1218,8 +1227,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.7 2008/03/10 22:07:14 choutko Exp $
+* $Id: rkms.F,v 1.8 2008/04/04 08:49:38 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.8  2008/04/04 08:49:38  choutko
+* *** empty log message ***
+*
 * Revision 1.7  2008/03/10 22:07:14  choutko
 * *** empty log message ***
 *

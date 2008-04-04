@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.18 2008/03/21 09:54:51 choutko Exp $
+*  $Id: mfield.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -351,10 +351,10 @@ c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
          endif
         if(magstat.gt.0 )then
-         CALL BTEMPCOR (factor)
-         b(1) = b(1) * factor
-         b(2) = b(2) * factor
-         b(3) = b(3) * factor
+c         CALL BTEMPCOR (factor)
+c         b(1) = b(1) * factor
+c         b(2) = b(2) * factor
+c         b(3) = b(3) * factor
         else
          b(1)=0
          b(2)=0

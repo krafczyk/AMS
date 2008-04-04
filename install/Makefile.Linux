@@ -221,8 +221,8 @@ ifeq ($(ARCH),linuxicc)
   BINMT=$(AMSWD)/bin/linux/icc2/mt/
   BIN=$(AMSWD)/bin/linux/icc2/
   EXE=$(AMSWD)/exe/linux/icc2/
-  LIB=$(AMSWD)/lib/linux/icc2
-  SHLD=$(LIB)/ntuple.so
+  LIB=$(AMSWD)/lib/linux/
+  SHLD=$(LIB)/ntuple_slc4_icc.so
 endif
 
 #----------------------------------------------------

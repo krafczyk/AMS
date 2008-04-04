@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.18 2008/03/29 13:01:58 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.19  2008/04/04 08:49:38  choutko
+* *** empty log message ***
+*
 * Revision 1.18  2008/03/29 13:01:58  choutko
 * improving yaw calculation
 *
@@ -143,7 +146,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.18 2008/03/29 13:01:58 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4131,6 +4134,21 @@ CDECK  ID>, TKFITG.
                  enddo 
               enddo
          end    
+         subroutine tksetresd(xh,nplan)
+*
+*          
+*
+              parameter (maxpl=20)
+              common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
+     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
+             real *4 xh(3,*)
+              
+              do i=1,nplan
+                 do k=4,6
+                   outa(k,i)=xh(k,i)
+                 enddo 
+              enddo
+         end    
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
      +   ialgo,imsa,layer,out)
 *
@@ -4264,6 +4282,12 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               call TKFITA(NPt, Xhits, ysigma, layer,
      +        IMSa, xmz, OUT, chi2, ndof, IERR)
               call tksetres(xhits,npt)
+              do k=1,npt
+              ysigma(1,k)=out(3)
+              ysigma(2,k)=out(4)
+              ysigma(3,k)=-sqrt(1-out(3)**2-out(4)**2)
+              enddo
+              call tksetresd(ysigma,npt) 
               theta=aycos(-sqrt(1-out(3)**2-out(4)**2))
               phi=atan2(out(4),out(3))
               z0=xhits(3,1)
@@ -4281,6 +4305,7 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
              else if(ialg.eq.5)then
               call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
               call tksetres(xhits,npt)
+              call tksetresd(ysigma,npt)
               out(8)=0
               goto 999
            else
@@ -6634,9 +6659,10 @@ c         ENDIF
       real xf(2)
       real xchi2(2,10000)
       real cool(3,nplan,nlad,nhalf),s1,s2,s3
-      common /arrcommon/ncases,array,fixpar,cool
+      common /arrcommon/ncases,array,fixpar,cool,mcrig
       real arr(nplan,*),chi2m
       real array(nplan,7,maxcases)  ! x,y,z,lad,half,ex,ey
+      real mcrig(maxcases)   !   mc rigidity
       integer fixpar(nplan,nlad,nhalf,6) ! -1 fixed 0 one for all ladders 1 free
       real sigma(nplan,2),z(nplan)
       integer ncases,i,j,k,l,ntot,npt,ialgo
@@ -6665,7 +6691,7 @@ c         ENDIF
       double precision mtx(3,3),a1,a2,c,e,parav,nparav
       double precision naver(nplan,nlad,nhalf,npar)
       double precision x,y,xy,x2,y2,nx,a,b,comp,dyz,dz2,dxz
-      double precision chi2,chi2a,chi2max,chi2o,tol,dz,dy2,rmax
+      double precision chi2,chi2a,chi2max,chi2o,tol,dz,dy2,rmax,rigr
       common /paramcommon/param,phi,roll,pitch
 #ifdef __AMSPARALLEL__
       include "omp_lib.h"
@@ -6686,6 +6712,7 @@ c         ENDIF
             array(i,j,ncases+1)=arr(i,j)
            enddo
          enddo
+         mcrig(ncases+1)=arr(1,11)
          ncases=ncases+1
          return
        else if(what.gt.1)then
@@ -6769,6 +6796,7 @@ c           phi(i,j,k,l)=0
       enddo
  10   continue
       chi2a=0
+      rigr=0
       ntot=0
 #ifdef __AMSPARALLEL__
        call omp_set_num_threads(omp_get_num_procs())
@@ -6779,10 +6807,10 @@ c       call omp_set_num_threads(1)
      +d3,s3,d,k,hits,xsigma,out,outa,x,y,x2,y2,nx,xy,
      +a,b,sigma,res,dy,z,chi2,rig,ch,i,l)
      + SHARED(param,roll,pitch,phi,iter,array,
-     +cool,ncases,chi2max,rigmin,
+     +cool,mcrig,ncases,chi2max,rigmin,
      +itermin,rmax,algo,xchi2) 
      +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
-     + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,averx)
+     + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,rigr,averx)
 #endif
       !$OMP DO   
       do i=1,ncases
@@ -6934,7 +6962,7 @@ c        enddo
         else
          ch(l)=chi2
         endif
-c          if(i.le.1)write(*,*)'chi2 ',i,iter,chi2
+c          if(i.le.10)write(*,*)'chi2 ',i,iter,chi2,rig,mcrig(i)
 c        if(i.le.10)then
 c          write(*,*)'chi2 ',i,iter,chi2
 c        endif
@@ -7004,6 +7032,7 @@ c        endif
          enddo
          ntot=ntot+1
          chi2a=chi2a+chi2
+         rigr=rigr+abs(mcrig(i)/rig) 
        !$OMP END CRITICAL
          endif
          endif
@@ -7015,7 +7044,8 @@ c         endif
       !$OMP END DO 
       !$OMP END PARALLEL
       chi2a=chi2a/ntot
-      write(*,*)'iter ',iter,chi2a,ntot,nmin
+      rigr=rigr/ntot
+      write(*,*)'iter ',iter,chi2a,rigr,ntot,nmin
       do i=1,nplan
        do j=1,nlad
          do k=1,nhalf
@@ -7190,9 +7220,12 @@ c            write(*,*)i,j,k,l,param(i,j,k,l),phi(i,j,k,l)
       end                        
 
 
-* $Id: TrackFit_utils.F,v 1.18 2008/03/29 13:01:58 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.19  2008/04/04 08:49:38  choutko
+* *** empty log message ***
+*
 * Revision 1.18  2008/03/29 13:01:58  choutko
 * improving yaw calculation
 *

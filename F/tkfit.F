@@ -217,8 +217,9 @@ C    add radiation lengths in case of missing measurements
 C Inverse of the covariance matrix S=V**{-1}
         CALL DINV (2*NPOINTS, ER2, 2*NHITS, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-          PRINT*,' ER2 Covariance Matrix is Singular !!!'
+c          PRINT*,' ER2 Covariance Matrix is Singular !!!'
           outpar(5)=0
+          chi2=10000000
           GOTO 999
         ENDIF
 
@@ -259,8 +260,9 @@ c        PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
 C (F*S_x*F + G*S_y*G)**{-1}
         CALL DINV (5, DD, 5, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-          PRINT*,' DD Covariance Matrix is Singular !!!'
+c          PRINT*,' DD Covariance Matrix is Singular !!!'
           outpar(5)=0
+          chi2=10000000
           GOTO 999
         ENDIF
 

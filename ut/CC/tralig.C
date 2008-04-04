@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.49 2008/03/21 09:54:47 choutko Exp $
+//  $Id: tralig.C,v 1.50 2008/04/04 08:49:17 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -499,9 +499,9 @@ while(offspring){
        ifstream ftxt;
        ftxt.open(hfile);
         integer nh;
-        number chi2;
+        geant chi2;
         AMSPoint hits[trconst::maxlay],ehits[trconst::maxlay],cooa[trconst::maxlay];
-        geant hit[3],ehit[3],rig;
+        geant hit[3],ehit[3],rig,mcrig;
         integer lay,lad,half,sen,pattern,add1,add2;        
         int ntot=0;
    if(ftxt && 0){
@@ -522,11 +522,34 @@ while(offspring){
            AMSTrAligFit * pal =new AMSTrAligFit(1,0, ntot, TRALIG.Algorithm, 1);
             pnode->add(pal);       
             cout <<"AMSTrAligFit::FillGl-I-PatternAdded " <<1<<" "<<TRALIG.Algorithm<<endl;
+        int num[2];
+         num[0]=num[1]=0;
         while(ftxt.good() && !ftxt.eof()){
-         ftxt>>nh>>chi2>>pattern>>add1>>add2>>rig;
+          rig=10000;
+          mcrig=10000;
+//         ftxt>>nh>>chi2>>pattern>>add1>>add2>>rig;
+         ftxt.read((char*)&nh,sizeof(nh));
+         ftxt.read((char*)&chi2,sizeof(chi2));
+         ftxt.read((char*)&pattern,sizeof(pattern));
+         ftxt.read((char*)&add1,sizeof(add1));
+         ftxt.read((char*)&add2,sizeof(add2));
+         ftxt.read((char*)&rig,sizeof(rig));
+         ftxt.read((char*)&mcrig,sizeof(mcrig));
+         //ftxt>>nh>>chi2>>pattern>>add1>>add2;
          uintl address(add1,add2);
          for(int i=0;i<nh;i++){
-          ftxt>>hit[0]>>hit[1]>>hit[2]>>ehit[0]>>ehit[1]>>ehit[2]>>lay>>lad>>half>>sen;
+           ftxt.read((char*)&(hit[0]),sizeof(hit[0]));
+           ftxt.read((char*)&(hit[1]),sizeof(hit[1]));
+           ftxt.read((char*)&(hit[2]),sizeof(hit[2]));
+           ftxt.read((char*)&(ehit[0]),sizeof(ehit[0]));
+           ftxt.read((char*)&(ehit[1]),sizeof(ehit[1]));
+           ftxt.read((char*)&(ehit[2]),sizeof(ehit[2]));
+           ftxt.read((char*)&lay,sizeof(lay));
+           ftxt.read((char*)&lad,sizeof(lad));
+           ftxt.read((char*)&half,sizeof(half));
+           ftxt.read((char*)&sen,sizeof(sen));
+//           cout <<" nh "<<i<<" "<<rig<<" "<<mcrig<<" "<<nh<<" "<<lay<<" "<<lad<<" "<<half<<" "<<sen<<endl;
+//          ftxt>>hit[0]>>hit[1]>>hit[2]>>ehit[0]>>ehit[1]>>ehit[2]>>lay>>lad>>half>>sen;
           hits[i]=AMSPoint(hit);
           ehits[i]=AMSPoint(ehit);
      integer sensor= half==0? sen: TKDBc::nhalf(lay,lad)+sen;
@@ -544,7 +567,9 @@ while(offspring){
 
           
          }
-         if(nh>=TRALIG.Cuts[7][0] && chi2<TRALIG.Cuts[7][1]*100 && fabs(rig)>TRALIG.Cuts[8][0]/1.5){
+         bool cut=fabs(num[1]-num[0])<TRALIG.Cuts[9][0] || (num[1]-num[0])*rig>0;
+         if(TRALIG.Cuts[9][1]!=0)cut= (TRALIG.Cuts[9][1]*rig>0);
+         if(nh>=TRALIG.Cuts[7][0] && chi2<TRALIG.Cuts[7][1]*100 && fabs(rig)>TRALIG.Cuts[8][0]/1.5 &&cut){
           if(pal->_PositionData<pal->_NData){
             // UPdateGlobalParSpace;
              integer ladder[2][maxlay];
@@ -556,7 +581,11 @@ while(offspring){
                 add+=_pPargl[ladder[0][i]-1][ladder[1][i]][i].AddOne();
               }
              }
-             if(add)(pal->_pData[(pal->_PositionData)++]).Init(pattern,address,hits,ehits,cooa);
+             if(add){
+                (pal->_pData[(pal->_PositionData)++]).Init(pattern,address,hits,ehits,cooa,mcrig);
+                if(rig>0)num[0]++;
+                else num[1]++;
+             }
              else{
               for( i=0;i<trconst::maxlay;i++){
                if(ladder[0][i]){
@@ -592,7 +621,7 @@ again:
          FIT(arr,fixpar,chi2m,alg,what,xf,chi2,rigmin,itermin);
          what=0;
          cout <<" Total "<<pal->_PositionData<<endl;
-         for(int ip=0;ip<pal->_PositionData;ip++){
+         for(int ip=0;ip<pal->_PositionData-1;ip++){
              integer ladder[2][maxlay];
              AMSTrTrack::decodeaddress(ladder,pal->_pData[ip]._Address);
              VZERO(arr,sizeof(arr)/sizeof(arr[0][0]));
@@ -608,6 +637,7 @@ again:
               for(int j=0;j<3;j++)arr[j+7][plane]=((pal->_pData)[ip]._CooA[i])[j];
               arr[3][plane]=lad;
               arr[4][plane]=half+1;
+              arr[10][0]=1./(pal->_pData)[ip]._InvRigidity;
               for(int j=0;j<6;j++){
                fixpar[j][plane]=TRALIG.ActiveParameters[plane][j];
                 if(_pPargl[lad-1][half][plane].NEntries()<TRALIG.MinEventsPerFit)fixpar[j][plane]=0;
@@ -664,17 +694,17 @@ again:
               chi22a/=nchi2a;
              }
              if(chi2a<chi2m/5)chi2a=chi2m/5;
-             cout <<"  Chi2 Changed "<<chi2a<<endl;
-             what=-1;
-             itermin=0;
-             FIT(arr,fixpar,chi2a,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
-
             pal->_fcnI=xf[0];
             pal->_fcn=xf[1];
             for(int i=0;i<sizeof(pal->chi2)/sizeof(pal->chi2[0]);i++){
               pal->chi2i[i]=chi2[i][0];
               pal->chi2[i]=chi2[i][1];
             }
+             cout <<"  Chi2 Changed "<<chi2a<<endl;
+             what=-1;
+             itermin=0;
+             FIT(arr,fixpar,chi2a,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+
             what=2;
             int whato;
             do{
@@ -1731,10 +1761,10 @@ mbreak2:
 
 
 
-void AMSTrAligData::Init(integer pattern, uintl address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[]){
+void AMSTrAligData::Init(integer pattern, uintl address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[],geant mcrig){
    _Pattern=pattern;
    _Address=address;
-    _InvRigidity=0;
+    _InvRigidity=1/mcrig;
    _ErrInvRigidity=0.01*_InvRigidity;
    _Pid=5;
   _NHits=TKDBc::patpoints(pattern);

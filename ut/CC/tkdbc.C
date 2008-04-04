@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.58 2008/03/10 20:07:39 choutko Exp $
+//  $Id: tkdbc.C,v 1.59 2008/04/04 08:49:17 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2207,7 +2207,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
        for ( i=0;i<nlay();i++){
         for ( j=0;j<nlad(i+1);j++){
          _NumberLadder++;
-         if(nhalf(i+1,j+1)<nsen(i+1,j+1))nhalflad++;
+         if(nhalf(i+1,j+1)<nsen(i+1,j+1)&& nhalf(i+1,j+1)>0)nhalflad++;
         }
        }
        nhalflad+=_NumberLadder;
