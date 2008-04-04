@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.50 2008/04/04 08:49:17 choutko Exp $
+//  $Id: tralig.C,v 1.51 2008/04/04 14:42:33 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -567,7 +567,7 @@ while(offspring){
 
           
          }
-         bool cut=fabs(num[1]-num[0])<TRALIG.Cuts[9][0] || (num[1]-num[0])*rig>0;
+         bool cut=abs(num[1]-num[0])<TRALIG.Cuts[9][0] || (num[1]-num[0])*rig>0;
          if(TRALIG.Cuts[9][1]!=0)cut= (TRALIG.Cuts[9][1]*rig>0);
          if(nh>=TRALIG.Cuts[7][0] && chi2<TRALIG.Cuts[7][1]*100 && fabs(rig)>TRALIG.Cuts[8][0]/1.5 &&cut){
           if(pal->_PositionData<pal->_NData){
