@@ -518,6 +518,8 @@ void RichPMTsManager::Init_Default(){
     pmt._global_position[1]=grid_y[pmt.grid()-1]+pmt._local_position[1];
     pmt._global_position[2]=RICHDB::total_height()/2-RICHDB::pmt_pos();
 
+
+
     for(int i=0;i<RICnwindows;i++)
       if(pmt._orientation==0)
 	pmt._channel_id2geom_id[i]=i;
@@ -530,7 +532,21 @@ void RichPMTsManager::Init_Default(){
       pmt._channel_position[i][0]=(2*(i%4)-3)*RICHDB::lg_length/8.0+pmt._global_position[0];
       pmt._channel_position[i][1]=(2*(i/4)-3)*RICHDB::lg_length/8.0+pmt._global_position[1];
       pmt._channel_position[i][2]=pmt._global_position[2];
-     }
+    }
+
+
+    // TEMPORAL FIX
+    // Correct for x<->-x and y<->-y swapping
+    pmt._local_position[0]*=-1;
+    pmt._local_position[1]*=-1;
+    pmt._global_position[0]*=-1;
+    pmt._global_position[1]*=-1;
+    for(int i=0;i<RICnwindows;i++){
+      // THIS HAVE TO BE CHECKED
+      pmt._channel_position[i][0]*=-1;
+      pmt._channel_position[i][1]*=-1;
+    }
+
   }
 
   //

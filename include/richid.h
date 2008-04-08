@@ -228,8 +228,8 @@ class RichPMTChannel{
   }
 
   int GetPacked(){if(pmt_geom_id<0 || pmt_geom_id>RICmaxpmts || channel_geom_id<0 || channel_geom_id>RICnwindows) return -1;return RichPMTsManager::PackGeom(pmt_geom_id,channel_geom_id);}
-  geant x(){return -position[0];}
-  geant y(){return -position[1];}
+  geant x(){return position[0];}
+  geant y(){return position[1];}
   geant z(){return position[2];}
 };
 
