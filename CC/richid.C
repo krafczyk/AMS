@@ -142,6 +142,11 @@ void RichPMTsManager::Init(){
       strcat(name,".002");  // Version
     }
     ReadFromFile(name);
+  }else{
+    // Read the default 
+    char name[801];
+    sprintf(name,"%s/%s/RichDefaultCalibration.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+    ReadFromFile(name);
   }
 
 
@@ -307,7 +312,7 @@ void RichPMTsManager::ReadFromFile(const char *filename){
   fstream calib(filename,ios::in); // open  file for reading
   
   if(calib){
-    cout<<"RichPMTsManager::ReadFromFile: Local "<<filename<<" Opened"<<endl;
+    cout<<"RichPMTsManager::ReadFromFile: "<<filename<<" Opened"<<endl;
   }else{
     char newname[1024];
     strcpy(newname,AMSDATADIR.amsdatadir);
@@ -797,6 +802,9 @@ int RichPMTsManager::GetGeomChannelID(int pos,int pixel){
 
 int RichPMTsManager::GetGeomPMTIdFromCDP(int CDP,int pmt){
   assert(CDP>=0 && CDP<RICH_CDPperJINF*RICH_JINFs);
+#ifdef __AMSDEBUG__
+  cout<<"Count is "<<_rdr_pmt_count[CDP]<<" CDP "<<CDP<<" pmt "<<pmt<<endl;
+#endif
   if(pmt<0 || pmt>=_rdr_pmt_count[CDP]) return -1;
   return _rdr_starts[CDP]+pmt;
 }

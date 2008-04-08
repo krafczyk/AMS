@@ -97,7 +97,7 @@ class RichPMTsManager{
   static int   _status[RICmaxpmts*RICnwindows];                  // Channel status word (this is (good?1:0)+10*other information) other information could include all the stuff related to the calibration process
   static geant _pedestal[2*RICmaxpmts*RICnwindows];              // Pedestal position (x2 gains) high,low
   static geant _pedestal_sigma[2*RICmaxpmts*RICnwindows];        // Pedestal width (x2 gains)
-  static geant _pedestal_threshold[2*RICmaxpmts*RICnwindows];    // Pedestal threshold width (x2 gains)
+  static geant _pedestal_threshold[2*RICmaxpmts*RICnwindows];    // Pedestal threshold width in pedestal sigma units (x2 gains)
   static geant _gain[2*RICmaxpmts*RICnwindows];                  // Gain (x2 gains) high,low
   static geant _gain_sigma[2*RICmaxpmts*RICnwindows];            // Gain width (x2 gains)
   static int _gain_threshold[RICmaxpmts*RICnwindows];            // Gain threshold 

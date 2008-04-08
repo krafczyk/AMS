@@ -4,6 +4,7 @@
 #include "typedefs.h"
 #include "richdbc.h"
 #include "job.h"
+#include "root.h"
 
 #define Do(x) ({if(Emit(x)) return;})
 
@@ -136,6 +137,9 @@ class DAQRichBlock{
   static integer calcdaqlength(int i){return 0;}
   static void builddaq(integer i,integer length,int16u *p){return;}
 
+  // Histograms for raw mode
+  static TH1F **daq_histograms;
+  
   static int Status;                                                     //  Exit status for debugging
 };
 

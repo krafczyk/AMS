@@ -6,7 +6,7 @@
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
 
 int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (link identification from JINJ)
-
+TH1F **DAQRichBlock::daq_histograms=0;
 
 // Now a table giving, for each pair RICH_JINF link and RDR link, which physical
 // RDR it is (counting from 0 clockwise, starting from crate 1) 
@@ -67,6 +67,19 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
     if(!cdp.status.isRaw && !cdp.status.isCompressed) Do(kCalibration);
     
     if(cdp.status.isRaw){
+
+      // Prepare some nice histograms
+      if(daq_histograms==0){
+	daq_histograms=new TH1F*[RICmaxpmts*RICnwindows*2];   // pixels*gains*pmts
+	for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	  for(int pixel=0;pixel<RICnwindows;pixel++)
+	    for(int gain=0;gain<2;gain++){
+	      char histo_name[1024];
+	      sprintf(histo_name,"Rich_PMT_%i_pixel_%i_gain_%i",pmt,pixel,gain);
+	      daq_histograms[gain+2*pixel+2*RICnwindows*pmt]=new TH1F(histo_name,histo_name,4096,-0.5,4095.5);
+	    }
+      }
+
       if(cdp.length!=1+         // Status word
 	 RICH_PMTperCDP*RICnwindows*2) Do(kCDPRawTruncated);
 
@@ -76,87 +89,95 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
       DSPRawParser channel(cdp.data);
 
       do{
+	// Fill raw histograms
+	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
+
 	// First comes the low gain, the high gain then
 	if(channel.gain==0) {low_gain[channel.pmt][channel.pixel]=channel.counts;}
 	else{
 	  // Get the geom ID for this channel
 	  int physical_cdp=Links[JINF][CDP];
-	  assert(physical_cdp!=-1);
-	  int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
-	  if(geom_id>=0){
-	    // Get the pixel geom id, substract the pedestal, check that
-	    // it is above it and use low gain if necessary
-	    int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
 
-	    if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
-	      int mode=1;                 // High gain
-	      int counts=channel.counts;
+	  if(physical_cdp!=-1){
+	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
+	    if(geom_id>=0){
+	      // Get the pixel geom id, substract the pedestal, check that
+	      // it is above it and use low gain if necessary
+	      int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
+	      
+	      if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
+		int mode=1;                 // High gain
+		int counts=channel.counts;
+		
+		if(channel.counts>RichPMTsManager::GainThreshold(geom_id,pixel_id)){
+		  counts=low_gain[channel.pmt][channel.pixel];
+		  mode=0;
+		}
 
-	      if(channel.counts>RichPMTsManager::GainThreshold(geom_id,pixel_id)){
-		counts=low_gain[channel.pmt][channel.pixel];
-		mode=0;
+		float threshold=RichPMTsManager::PedestalThreshold(geom_id,pixel_id,mode)*
+		  RichPMTsManager::PedestalSigma(geom_id,pixel_id,mode);
+		
+		// Add the hit
+		int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
+		counts-=int(RichPMTsManager::Pedestal(geom_id,pixel_id,mode));
+		
+		if(!cdp.status.isCompressed)
+		  if(counts>threshold)	// Just in case it is Mixed mode			
+		  AMSEvent::gethead()->
+		    addnext(
+			    AMSID("AMSRichRawEvent",0),
+			    new AMSRichRawEvent(channel_geom_number,
+						counts,
+						mode?0:gain_mode)
+			    );
 	      }
-	      
-	      // Add the hit
-	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
-	      counts-=int(RichPMTsManager::Pedestal(geom_id,pixel_id,mode));
-	      
-	      AMSEvent::gethead()->
-		addnext(
-			AMSID("AMSRichRawEvent",0),
-			new AMSRichRawEvent(channel_geom_number,
-					    counts,
-					    mode?0:gain_mode)
-			);
 	    }
 	  }
 	}
       }while(channel.Next());
 
     }
-    
+  
     if(cdp.status.isCompressed){
-      if(cdp.status.isRaw)Do(kMixedMode);
-      else{
-	// Fill compressed mode if something to fill 
-	if(cdp.length-1>0){
-	  DSPCompressedParser channel(cdp.data,cdp.length-1);
-
-	  do{
-	    int physical_cdp=Links[JINF][CDP];
-	    assert(physical_cdp!=-1);
+      //      if(cdp.status.isRaw)Do(kMixedMode); // Nothing to do indeed
+      // Fill compressed mode if something to fill 
+      if(cdp.length-1>0){
+	DSPCompressedParser channel(cdp.data,cdp.length-1);
+	
+	do{
+	  int physical_cdp=Links[JINF][CDP];
+	  //	    assert(physical_cdp!=-1);
+	  if(physical_cdp!=-1){
 	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
-
-	    if(geom_id<0) Do(kWrongCDPChannelNumber);
-
-	      // Get the pixel geom id, substract the pedestal, check that
-	      // it is above it and use low gain if necessary
-	      int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
-	      
-	      if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
-		int mode=channel.gain;                 // High gain
-		int counts=channel.counts;
-		int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
-
-		AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
-					     new AMSRichRawEvent(channel_geom_number,
-								 counts,
-								 mode?0:gain_mode));
-		
-	      }
-	  }while(channel.Next());
 	    
-	}
+	    if(geom_id<0) Do(kWrongCDPChannelNumber);
+	    
+	    // Get the pixel geom id, substract the pedestal, check that
+	    // it is above it and use low gain if necessary
+	    int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
+	    
+	    if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
+	      int mode=channel.gain;                 // High gain
+	      int counts=channel.counts;
+	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
+	      
+	      AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
+					   new AMSRichRawEvent(channel_geom_number,
+							       counts,
+							       mode?0:gain_mode));
+	      
+	    }
+	  }
+	}while(channel.Next());
+	
       }
     }
-
     pointer=cdp.next;
   }
-
   
-  //  if(CDPFound!=RICH_CDPperJINF) Do(kTruncated);  // This is only valid in RAW mode
 
 }
+
 
 
 // Deal with errors with this function. Return 1 if exit needed, 0 otherwise
