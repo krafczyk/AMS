@@ -90,7 +90,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
       do{
 	// Fill raw histograms
-	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
+//	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
 
 	// First comes the low gain, the high gain then
 	if(channel.gain==0) {low_gain[channel.pmt][channel.pixel]=channel.counts;}
