@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.79 2008/03/26 08:57:42 mdelgado Exp $
+//  $Id: richrec.C,v 1.80 2008/04/08 13:24:37 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -757,11 +757,13 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	  // Store resolution per hit
 #ifdef __AMSDEBUG__
 	  {
+/*
 	    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
 	    number mass=pmcg->getmass();
 	    number mom=pmcg->getmom();
 	    number beta=mom/sqrt(mom*mom+mass*mass);
 	    HF1(123456+(closest>0),100.*(recs[i][closest]/beta-1),1.);
+*/
 	  }
 #endif
 	  if(prob>=9) continue;
@@ -1786,14 +1788,15 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
   // get simulation information for particle
 
   // NOTE: HERE WE SHOUL CHECK IF THIS IS SIMULATION 
-
+  //  NOTE:  comment out vc 08.04.2008
+/*
   AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
   number pmass=pmcg->getmass();
   LIPTRK.pmom_c   = pmcg->getmom();
   LIPTRK.pchg_c   = pmcg->getcharge();
   LIPTRK.pbeta_c  = LIPTRK.pmom_c/sqrt(SQR(LIPTRK.pmom_c)+SQR(pmass));
   LIPTRK.cerang_c = acos(1./(_index*LIPTRK.pbeta_c));
-
+*/
   int ievnumb=AMSEvent::gethead()->getEvent();
 
   //  cout << "pcoo " << LIPTRK.pcoopmt_c[0] <<" " <<LIPTRK.pcoopmt_c[1] <<" " <<LIPTRK.pcoopmt_c[2] <<    endl;
