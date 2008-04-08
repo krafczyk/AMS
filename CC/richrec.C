@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.80 2008/04/08 13:24:37 choutko Exp $
+//  $Id: richrec.C,v 1.81 2008/04/08 17:57:29 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1787,16 +1787,20 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
   // get simulation information for particle
 
-  // NOTE: HERE WE SHOUL CHECK IF THIS IS SIMULATION 
-  //  NOTE:  comment out vc 08.04.2008
-/*
-  AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-  number pmass=pmcg->getmass();
-  LIPTRK.pmom_c   = pmcg->getmom();
-  LIPTRK.pchg_c   = pmcg->getcharge();
-  LIPTRK.pbeta_c  = LIPTRK.pmom_c/sqrt(SQR(LIPTRK.pmom_c)+SQR(pmass));
-  LIPTRK.cerang_c = acos(1./(_index*LIPTRK.pbeta_c));
-*/
+  if(AMSJob::gethead()->isSimulation()){
+    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    number pmass=pmcg->getmass();
+    LIPTRK.pmom_c   = pmcg->getmom();
+    LIPTRK.pchg_c   = pmcg->getcharge();
+    LIPTRK.pbeta_c  = LIPTRK.pmom_c/sqrt(SQR(LIPTRK.pmom_c)+SQR(pmass));
+    LIPTRK.cerang_c = acos(1./(_index*LIPTRK.pbeta_c));
+  }else{
+    LIPTRK.pmom_c   = 0;
+    LIPTRK.pchg_c   = 0;
+    LIPTRK.pbeta_c  = 0;
+    LIPTRK.cerang_c = 0;
+  }
+
   int ievnumb=AMSEvent::gethead()->getEvent();
 
   //  cout << "pcoo " << LIPTRK.pcoopmt_c[0] <<" " <<LIPTRK.pcoopmt_c[1] <<" " <<LIPTRK.pcoopmt_c[2] <<    endl;
