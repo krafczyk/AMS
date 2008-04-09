@@ -1,4 +1,4 @@
-//  $Id: AMSRICHHist.cxx,v 1.6 2008/04/09 13:54:43 mdelgado Exp $
+//  $Id: AMSRICHHist.cxx,v 1.7 2008/04/09 15:35:39 mdelgado Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -250,7 +250,7 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
 	}
       
     }
-    
+  }
 }
 
 
