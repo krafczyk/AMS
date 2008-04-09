@@ -1,4 +1,4 @@
-//  $Id: AMSRICHHist.cxx,v 1.5 2008/04/09 13:35:23 choutko Exp $
+//  $Id: AMSRICHHist.cxx,v 1.6 2008/04/09 13:54:43 mdelgado Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -163,6 +163,7 @@ void AMSRICHHist::ShowSet(Int_t Set){
 
 
 void AMSRICHHist::Fill(AMSNtupleR *ntuple){ 
+  if(ntuple->nLevel1()){
     _filled[0]->Fill(ntuple->nRichHit(),1.);
     for(int i=0;i<ntuple->nRichHit();i++){
       RichHitR current=ntuple->RichHit(i);
