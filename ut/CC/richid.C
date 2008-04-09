@@ -494,7 +494,7 @@ void RichPMTsManager::Init_Default(){
   //
   //          8| 1 |2
   //          -+---+-
-  //          7|   |3
+  //          7|   |3   <-> x->-x and y->-y accrodingly to cosmic runs 
   //          -+---+-
   //          6| 5 |4
   RICHDB::total=RICmaxpmts;  // This is used is other parts in the code
@@ -510,22 +510,23 @@ void RichPMTsManager::Init_Default(){
     pmt._pmtnumb=pmtnumb[geom_id];
 
     // PMT position
-    pmt._local_position[0]=pos_x[geom_id];
-    pmt._local_position[1]=pos_y[geom_id];
+    pmt._local_position[0]=-pos_x[geom_id];  // Swap corrected
+    pmt._local_position[1]=-pos_y[geom_id];  // Swap corrected
     pmt._local_position[2]=0;
 
-    pmt._global_position[0]=grid_x[pmt.grid()-1]+pmt._local_position[0];
-    pmt._global_position[1]=grid_y[pmt.grid()-1]+pmt._local_position[1];
+    pmt._global_position[0]=-grid_x[pmt.grid()-1]+pmt._local_position[0]; //Swap corrected
+    pmt._global_position[1]=-grid_y[pmt.grid()-1]+pmt._local_position[1]; //Swap corrected
     pmt._global_position[2]=RICHDB::total_height()/2-RICHDB::pmt_pos();
 
 
-
+    // CHECK THIS!!!! 
     for(int i=0;i<RICnwindows;i++)
       if(pmt._orientation==0)
-	pmt._channel_id2geom_id[i]=i;
+	//	pmt._channel_id2geom_id[i]=i;
+	pmt._channel_id2geom_id[i]=15-(i%4)-(i/4)*4;  // Swap corrected
       else
-	//	pmt._channel_id2geom_id[i]=4*(i%4)+(3-(i/4));  // CHECK!!!!!!
-	pmt._channel_id2geom_id[i]=15-(i%4)-(i/4)*4;
+	//	pmt._channel_id2geom_id[i]=15-(i%4)-(i/4)*4;
+	pmt._channel_id2geom_id[i]=i; // Swap corrected
 
     // Channel position, with Z in half the PMT
     for(int i=0;i<RICnwindows;i++){
@@ -534,7 +535,7 @@ void RichPMTsManager::Init_Default(){
       pmt._channel_position[i][2]=pmt._global_position[2];
     }
 
-
+    /*
     // TEMPORAL FIX
     // Correct for x<->-x and y<->-y swapping
     pmt._local_position[0]*=-1;
@@ -546,6 +547,7 @@ void RichPMTsManager::Init_Default(){
       pmt._channel_position[i][0]*=-1;
       pmt._channel_position[i][1]*=-1;
     }
+    */
 
   }
 
@@ -641,25 +643,25 @@ int RichPMTsManager::FindPMT(geant x,geant y){
 
   // Grid positioning is according to next drawing
   //
-  //          8| 1 |2
+  //          8| 1 |2                           2| 5 |8
   //          -+---+-
-  //          7|   |3
+  //          7|   |3  -> DUE TO SWAPPING ->    3|   |7  
   //          -+---+-
-  //          6| 5 |4
+  //          6| 5 |4                           4| 1 |6
 
   integer grid=-1;
 
   if(x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
-    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=2;
-    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=4;
-    else grid=3;
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=8;//grid=2;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=6;//grid=4;
+    else grid=7;//grid=3;
   } else if(-x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
-    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=8;
-    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=6;
-    else grid=7;
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=2;//grid=8;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=4;//grid=6;
+    else grid=3;//grid=7;
   }else{
-    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=1;
-    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=5;
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=5;//grid=1;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=1;//grid=5;
     else return -1;
   }
 
@@ -897,7 +899,7 @@ geant RichPMT::SimulateSinglePE(int channel,int mode){
   geant dummy=0;
   geant value=RNDM(dummy);
 
-  //  return BSearch(channel,mode,value)*_step[channel][mode];
+  //  return BSearch(channel,mode,value)*_step[channel][mode]; // Does not work!!! Fix!
   
   for(int i=0;i<RIC_prob_bins;i++){
     if(value<=_cumulative_prob[channel][mode][i])
