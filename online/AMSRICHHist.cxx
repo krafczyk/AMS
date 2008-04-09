@@ -1,4 +1,4 @@
-//  $Id: AMSRICHHist.cxx,v 1.4 2008/02/26 14:25:46 mdelgado Exp $
+//  $Id: AMSRICHHist.cxx,v 1.5 2008/04/09 13:35:23 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -57,11 +57,11 @@ AddSet("RICH Raw");       // About occupancy and so on
   _filled[_filled.size()-1]->SetFillColor(41);
 
   _filled.push_back(new TH1F("RICHBeta","RICH Beta ",50,0.97,1.01));
-  _filled[_filled.size()-1]->SetXTitle("#beta_{RICH}(prob>0.01)");
+  _filled[_filled.size()-1]->SetXTitle("#beta_{RICH}(prob>0.001)");
   _filled[_filled.size()-1]->SetFillColor(41);
 
   _filled.push_back(new TH1F("RICHCharge","RICH Charge ",100,0.,10.));
-  _filled[_filled.size()-1]->SetXTitle("#Z_{RICH}(prob>0.01)");
+  _filled[_filled.size()-1]->SetXTitle("#Z_{RICH}(prob>0.001)");
   _filled[_filled.size()-1]->SetFillColor(41);
 
   AddSet("RICH alignment");     // About RICH/Tracker alignment
@@ -163,7 +163,6 @@ void AMSRICHHist::ShowSet(Int_t Set){
 
 
 void AMSRICHHist::Fill(AMSNtupleR *ntuple){ 
-  if(ntuple->nLevel3()){
     _filled[0]->Fill(ntuple->nRichHit(),1.);
     for(int i=0;i<ntuple->nRichHit();i++){
       RichHitR current=ntuple->RichHit(i);
@@ -182,7 +181,7 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
       if(current.pRichRing())
 	{
 	  _filled[6]->Fill(current.pRichRing()->Prob,1.);
-	  if(current.pRichRing()->Prob>1e-2){
+	  if(current.pRichRing()->Prob>1e-3){
 	    _filled[7]->Fill(current.pRichRing()->BetaRefit,1.);
 	    if(current.pRichRing()->NpExp>0)
 	      _filled[8]->Fill(sqrt((current.pRichRing()->NpCol)/
@@ -251,7 +250,6 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
       
     }
     
-  }
 }
 
 
