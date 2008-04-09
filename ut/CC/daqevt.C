@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.116 2008/03/19 13:44:50 choutko Exp $
+//  $Id: daqevt.C,v 1.117 2008/04/09 07:40:47 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -319,7 +319,7 @@ if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>
 else return false;
 }
 bool    DAQEvent::_istdr(int16u id){
-if( ((id>>5)&((1<<9)-1))>=288 && ((id>>5)&((1<<9)-1))<=473 )return true;
+if( ((id>>5)&((1<<9)-1))>=282 && ((id>>5)&((1<<9)-1))<=473 )return true;
 else return false;
 }
 bool    DAQEvent::_isudr(int16u id){

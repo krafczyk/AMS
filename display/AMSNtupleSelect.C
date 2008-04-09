@@ -43,7 +43,7 @@ bool IsGolden(AMSEventR *ev){
  if(ev && ev->nParticle()>0){
 //return true;
 }
- if(ev && ev->nTrTrack()>0){
+ if(ev && (ev->nTrTrack()>0 || ev->nRichRing()>0)){
 return true;
 }
 if(ev && ev->nAntiCluster()>0){

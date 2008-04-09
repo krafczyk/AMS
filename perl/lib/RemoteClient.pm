@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.511 2008/03/25 08:47:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.512 2008/04/09 07:40:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6354,6 +6354,7 @@ print qq`
           $Any=0;
           if(not defined $dataset or  $dataset->{datamc}!=1){
            $q->param("QRun",1);
+           $q->param("QEv",0);
           }
           $template=${$dataset->{jobs}}[$Any]->{filename};
         }
@@ -6994,7 +6995,7 @@ anyagain:
                     }
                     $q->param("QEv",$evno);
                     $tmp->{TOTALEVENTS}-=$evno;
-                   
+#                    warn "template $tmp->{TOTALEVENTS} runsave:$runsave  \n";                   
                 }
                 last;
             }
@@ -7535,12 +7536,12 @@ anyagain:
           }
         unlink $readme;
      }
-         
         for my $i (1 ... $runno){
          #find buffer and patch it accordingly
          my $evts=$evperrun;
          if($i eq $runno){
              $evts=$lastrunev;
+            
          }
 #read header
          my $buf=$self->{tsyntax}->{headers}->{$self->{CCT}};
