@@ -2572,8 +2572,13 @@ class RemoteClient:
                             bpath=" "
                         else:
                             bpath=bpath+"/"+file
-                        
-                        type=type+" "+t0+" "+t1+" "+t2
+                        it2=int(t2)
+                        type=type+" "+t0+" "+t1+" "
+                        mnemonic=" TUSREL3";
+                        for i in range (0,7):
+                            it=(it2>>(i*4))&15;
+                            type=type+mnemonic[i]
+                            type="%s%d" %(type,it)
                         orig=f1.split('/')
                         origpath=""
                         if(len(orig)>1):
