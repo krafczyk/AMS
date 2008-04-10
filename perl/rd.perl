@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rd.perl,v 1.3 2008/03/25 08:47:46 choutko Exp $
+#  $Id: rd.perl,v 1.4 2008/04/10 15:52:32 choutko Exp $
 use strict;
 
 use lib::DBSQLServer;
@@ -39,7 +39,7 @@ unshift @ARGV, "-Famsdb";
 if($ok){
     my $runmin=0;
     my $runmax=2000000000;
-    my $sql = "SELECT run, path,fetime, nevents, tag, sizemb FROM amsdes.datafiles WHERE run>$runmin AND run<$runmax ORDER BY run";
+    my $sql = "SELECT run, path,fetime, nevents, tag, sizemb, type FROM amsdes.datafiles  WHERE run>$runmin AND run<$runmax ORDER BY run";
          my $ret=$o->Query($sql);
          if (defined $ret->[0][0]) {
           foreach my $r (@{$ret}){
@@ -49,7 +49,8 @@ if($ok){
              my $nevents   = $r->[3];
              my $tag   = $r->[4];
              my $sizemb   = $r->[5];
-             print "$run,$path,$starttime,$nevents,$tag,$sizemb \n";
+             my $type= $r->[6];
+             print "$run,$path,$starttime,$nevents,$tag,$sizemb,$type \n";
          }
       }
 }

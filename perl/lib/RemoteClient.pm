@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.512 2008/04/09 07:40:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.513 2008/04/10 15:52:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2778,6 +2778,35 @@ CheckCite:            if (defined $q->param("QCite")) {
              $type=" and type like '%$dt%' ";
          }
                print "</tr>\n";
+         my $types="";
+            if ($q->param("DataFileTypeS") =~ /ANY/) {
+             }                         
+         else{
+             my $dts=$q->param("DataFileTypeS");
+             my $dt="";
+             if($dts=~/S/){
+                 $type=$type." and type like '% 1%S%' ";
+             }
+             if($dts=~/T/){
+                 $type=$type." and type like '% 1%T%' ";
+             }
+             if($dts=~/E/){
+                 $type=$type." and type like '% 1%E%' ";
+             }
+             if($dts=~/U/){
+                 $type=$type." and type like '% 1%U%' ";
+             }
+             if($dts=~/R/){
+                 $type=$type." and type like '% 1%R%' ";
+             }
+             if($dts=~/L/){
+                 $type=$type." and type like '% 1%L%' ";
+             }
+             if($dts=~/V/){
+                 $type=$type." and type like '% V%3%' ";
+             }
+         }
+               print "</tr>\n";
             if ($q->param("DataFileID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DataFileID");
                 $title = $title.$q->param("RunID");
@@ -4977,6 +5006,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "<b>RunID : </b> <input type =\"text\" name=\"DataFileID\">\n";
         print "<input type=\"submit\" name=\"getDataFileID\" value=\"Submit\"> \n";
         print "<b>RunType ( SCI, CAL, LAS, ANY) : </b> <input type =\"text\" name=\"DataFileType\" value=\"ANY\">\n";
+        print "<b>SubDetectors ( Combination of TURESL3) : </b> <input type =\"text\" name=\"DataFileTypeS\" value=\"ANY\">\n";
         print "</form>\n";
         print "</table> \n";
 
