@@ -1,4 +1,4 @@
-//  $Id: AMSRICHHist.cxx,v 1.7 2008/04/09 15:35:39 mdelgado Exp $
+//  $Id: AMSRICHHist.cxx,v 1.8 2008/04/11 09:52:29 mdelgado Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -17,14 +17,14 @@ void AMSRICHHist::Book(){
 
 AddSet("RICH Raw");       // About occupancy and so on
 
-  _filled.push_back(new TH1F("RICHOccupancy","RICH Occupancy",16*680,0,16*680));
+  _filled.push_back(new TH1F("RICHOccupancy","RICH Number of hits",16*680,0,16*680));
   _filled[_filled.size()-1]->SetXTitle("Rich hits");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(41);
 
 
 
-  _filled.push_back(new TH1F("RICHOccupancy2","RICH Occupancy2",16*680,0,16*680));
+  _filled.push_back(new TH1F("RICHOccupancy2","RICH Occupancy per channel",16*680,0,16*680));
   _filled[_filled.size()-1]->SetXTitle("Rich soft Channel");
   _filled[_filled.size()-1]->SetYTitle("Number of hits");
   _filled[_filled.size()-1]->SetFillColor(41);
@@ -32,7 +32,7 @@ AddSet("RICH Raw");       // About occupancy and so on
 
   AddSet("RICH Hits");      // About hits information (signals and so on)
 
-  _filled.push_back(new TH1F("RICHSignal","RICH Signal",500,0,100));
+  _filled.push_back(new TH1F("RICHSignal","RICH Charge",500,0,100));
   _filled[_filled.size()-1]->SetXTitle("Number of photoelectrons");
   _filled[_filled.size()-1]->SetFillColor(41);
 
@@ -48,7 +48,7 @@ AddSet("RICH Raw");       // About occupancy and so on
 
   AddSet("RICH Rings");     // About reconstructed rings
   
-  _filled.push_back(new TH1F("RICHRings","RICH Rings",30,0,30));
+  _filled.push_back(new TH1F("RICHRings","RICH Nb. of Rings",30,0,30));
   _filled[_filled.size()-1]->SetXTitle("RICH rings");
   _filled[_filled.size()-1]->SetFillColor(41);
 
@@ -56,16 +56,17 @@ AddSet("RICH Raw");       // About occupancy and so on
   _filled[_filled.size()-1]->SetXTitle("Ring probability");
   _filled[_filled.size()-1]->SetFillColor(41);
 
-  _filled.push_back(new TH1F("RICHBeta","RICH Beta ",50,0.97,1.01));
+  _filled.push_back(new TH1F("RICHBeta","RICH Beta spectrum",50,0.97,1.01));
   _filled[_filled.size()-1]->SetXTitle("#beta_{RICH}(prob>0.001)");
   _filled[_filled.size()-1]->SetFillColor(41);
 
-  _filled.push_back(new TH1F("RICHCharge","RICH Charge ",100,0.,10.));
+  _filled.push_back(new TH1F("RICHCharge","RICH Charge spectrum",100,0.,10.));
   _filled[_filled.size()-1]->SetXTitle("#Z_{RICH}(prob>0.001)");
   _filled[_filled.size()-1]->SetFillColor(41);
 
   AddSet("RICH alignment");     // About RICH/Tracker alignment
   
+  /*
   _filled.push_back(new TProfile("TrXvsRichX","Tracker X vs Rich X",70,-70,70));
   _filled[_filled.size()-1]->SetXTitle("Tracker X vs Rich X");
   _filled[_filled.size()-1]->SetFillColor(41);
@@ -74,12 +75,35 @@ AddSet("RICH Raw");       // About occupancy and so on
   _filled[_filled.size()-1]->SetXTitle("Tracker Y vs Rich Y");
   _filled[_filled.size()-1]->SetFillColor(41);
 
-  _filled.push_back(new TProfile("TrX-RichX","Tracker X vs Rich X vs cosine track",100,0,1));
-  _filled[_filled.size()-1]->SetXTitle("Tracker X-Rich X vs cos #theta");
+
+  _filled.push_back(new TProfile("TrX-RichX","Tracker X-Rich X vs cosine track",100,0,1));
+  _filled[_filled.size()-1]->SetXTitle("cos #theta for track");
+  _filled[_filled.size()-1]->SetYTitle("Tracker X-Rich X");
   _filled[_filled.size()-1]->SetFillColor(41);
 
-  _filled.push_back(new TProfile("TrY-RichY","Tracker Y vs Rich Y vs cosine track",100,0,1));
-  _filled[_filled.size()-1]->SetXTitle("Tracker Y-Rich Y vs cos #theta");
+  _filled.push_back(new TProfile("TrY-RichY","Tracker Y-Rich Y vs cosine track",100,0,1));
+  _filled[_filled.size()-1]->SetXTitle("cos #theta for track");
+  _filled[_filled.size()-1]->SetYTitle("Tracker Y-Rich Y");
+  _filled[_filled.size()-1]->SetFillColor(41);
+  */
+
+  _filled.push_back(new TProfile("TrXvsRichX","Tracker X vs Rich X",70,-70,70));
+  _filled[_filled.size()-1]->SetXTitle("Tracker X");
+  _filled[_filled.size()-1]->SetYTitle("RICH X-Tracker X");
+  _filled[_filled.size()-1]->SetFillColor(41);
+
+  _filled.push_back(new TProfile("TrYvsRichY","Tracker Y vs Rich Y",70,-70,70));
+  _filled[_filled.size()-1]->SetXTitle("Tracker Y");
+  _filled[_filled.size()-1]->SetYTitle("RICH Y-Tracker Y");
+  _filled[_filled.size()-1]->SetFillColor(41);
+
+
+  _filled.push_back(new TH1F("TrX-RichX","Tracker X-Rich X",200,-12,12));
+  _filled[_filled.size()-1]->SetXTitle("Tracker X-Rich X");
+  _filled[_filled.size()-1]->SetFillColor(41);
+
+  _filled.push_back(new TH1F("TrY-RichY","Tracker Y-Rich",200,-12,12));
+  _filled[_filled.size()-1]->SetXTitle("Tracker Y-Rich Y");
   _filled[_filled.size()-1]->SetFillColor(41);
 
 
@@ -195,8 +219,8 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
 	    
 	    static float pmtx[680],pmty[680],entries[680];
 	    memset(pmtx,0,sizeof(pmtx));
-	    memset(pmtx,0,sizeof(pmty));
-	    memset(pmtx,0,sizeof(entries));
+	    memset(pmty,0,sizeof(pmty));
+	    memset(entries,0,sizeof(entries));
 
 	    int mask=1<<30;                               // Mask of crossed channels
 
@@ -219,8 +243,11 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
 	      if(entries[i]==0) continue;
 	      pmtx[i]/=entries[i];
 	      pmty[i]/=entries[i];
+
+
 	      
 	      float dist=(pmtx[i]-crossingpoint[0])*(pmtx[i]-crossingpoint[0])+(pmty[i]-crossingpoint[1])*(pmty[i]-crossingpoint[1]);
+
 	      if(dist<winnerdist)
 		{
 		  winnerdist=dist;
@@ -231,17 +258,20 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
 	     
 	    if(winner!=-1){
 	      // We have a candidate: fill the histograms
-
 	      float cosine=(current.pRichRing()->TrPMTPos[0]-current.pRichRing()->TrRadPos[0])*(current.pRichRing()->TrPMTPos[0]-current.pRichRing()->TrRadPos[0])+
 		(current.pRichRing()->TrPMTPos[1]-current.pRichRing()->TrRadPos[1])*(current.pRichRing()->TrPMTPos[1]-current.pRichRing()->TrRadPos[1])+
 		(current.pRichRing()->TrPMTPos[2]-current.pRichRing()->TrRadPos[2])*(current.pRichRing()->TrPMTPos[2]-current.pRichRing()->TrRadPos[2]);
 	      cosine=sqrt((current.pRichRing()->TrPMTPos[2]-current.pRichRing()->TrRadPos[2])*(current.pRichRing()->TrPMTPos[2]-current.pRichRing()->TrRadPos[2])/cosine);
 		
 
-	      ((TProfile*)_filled[9])->Fill(pmtx[winner],crossingpoint[0]);
-	      ((TProfile*)_filled[10])->Fill(pmty[winner],crossingpoint[1]);
-	      ((TProfile*)_filled[11])->Fill(crossingpoint[0]-pmtx[winner],cosine);
-	      ((TProfile*)_filled[12])->Fill(crossingpoint[1]-pmty[winner],cosine);
+	      //	      ((TProfile*)_filled[9])->Fill(pmtx[winner],crossingpoint[0]);
+	      //	      ((TProfile*)_filled[10])->Fill(pmty[winner],crossingpoint[1]);
+	      ((TProfile*)_filled[9])->Fill(crossingpoint[0],pmtx[winner]-crossingpoint[0]);
+	      ((TProfile*)_filled[10])->Fill(crossingpoint[1],pmty[winner]-crossingpoint[1]);
+	      //	      ((TProfile*)_filled[11])->Fill(crossingpoint[0]-pmtx[winner],cosine);
+	      //	      ((TProfile*)_filled[12])->Fill(crossingpoint[1]-pmty[winner],cosine);
+	      ((TH1F*)_filled[11])->Fill(crossingpoint[0]-pmtx[winner]);
+	      ((TH1F*)_filled[12])->Fill(crossingpoint[1]-pmty[winner]);
 	    }
 	    
 
