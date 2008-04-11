@@ -196,6 +196,7 @@ class RichPMTsManager{
 
   friend class AMSJob;  // To alow access to TDV
   friend class AMSRichCal;
+  friend class DAQRichBlock;  // To allow reading calibration tables
 };
 
 

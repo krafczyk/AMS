@@ -12,6 +12,8 @@ class DAQRichBlock{
   // Varibles
   static int JINFId[RICH_JINFs];
   static int Links[RICH_JINFs][RICH_LinksperJINF];                    // These are the link id to physical CDP
+  static int FirstNode;   // Node number for CDP 0
+  static int LastNode;   // Node number for CDP 23
 
   class StatusParser{  // This class implements the status parser
   public:
@@ -128,9 +130,12 @@ class DAQRichBlock{
  public:
   // Declaration of functions (that can be seen from outside)
   // RAW -> DAQ
-
   static integer checkdaqid(int16u id);
   static void buildraw(integer length,int16u *p);
+
+  // CALIBRATION
+  static integer checkcalid(int16u id);
+  static void buildcal(integer length,int16u *p);;
 
   // DAQ -> RAW: uninplemented
   static integer getmaxblocks(){return 0;}

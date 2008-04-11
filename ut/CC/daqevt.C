@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.118 2008/04/11 09:21:35 choutko Exp $
+//  $Id: daqevt.C,v 1.119 2008/04/11 23:27:07 mdelgado Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -37,6 +37,8 @@ extern "C" int scandir(		const char *, struct dirent ***,
                                 int (*)(struct dirent *),  
                                 int (*)(struct dirent **, struct dirent **));
 #endif
+
+
 
 
 
@@ -324,6 +326,11 @@ else return false;
 }
 bool    DAQEvent::_isudr(int16u id){
 if( ((id>>5)&((1<<9)-1))>=474 && ((id>>5)&((1<<9)-1))<=509 )return true;
+else return false;
+}
+
+bool   DAQEvent::_isrdr(int16u id){  // cpied from udr
+if( ((id>>5)&((1<<9)-1))>=242 && ((id>>5)&((1<<9)-1))<=265 )return true;
 else return false;
 }
 
@@ -727,7 +734,7 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id)){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id)){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;

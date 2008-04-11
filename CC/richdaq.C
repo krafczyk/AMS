@@ -1,11 +1,14 @@
 #include "richdaq.h"
 #include "richid.h"
 #include "richrec.h"
+#include "timeid.h"
 
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
 
 int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (link identification from JINJ)
+int DAQRichBlock::FirstNode=242;
+int DAQRichBlock::LastNode=265;
 TH1F **DAQRichBlock::daq_histograms=0;
 
 // Now a table giving, for each pair RICH_JINF link and RDR link, which physical
@@ -20,12 +23,11 @@ int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links (rea
 int DAQRichBlock::Status=DAQRichBlock::kOk;
 
 
-integer DAQRichBlock::checkdaqid(int16u id){
+integer DAQRichBlock::checkdaqid(int16u id){   // RICH AS PORTS
   // Take a block id and return if the block is a rich block
   for(int i=0;i<RICH_JINFs;i++) if(id==JINFId[i]) return 1;   // It comes through one of the ports (2 JINF for rich)
   return 0;
 }
-
 
 
 void DAQRichBlock::buildraw(integer length,int16u *p){
@@ -121,8 +123,8 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 		int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
 		counts-=int(RichPMTsManager::Pedestal(geom_id,pixel_id,mode));
 		
-		if(!cdp.status.isCompressed)
-		  if(counts>threshold)	// Just in case it is Mixed mode			
+		if(!cdp.status.isCompressed)  	   // Just in case it is Mixed mode			
+		  if(counts>threshold || mode==0)
 		  AMSEvent::gethead()->
 		    addnext(
 			    AMSID("AMSRichRawEvent",0),
@@ -256,4 +258,110 @@ void DAQRichBlock::DSPCompressedParser::parse(){
   pixel=channelid/PMTs;
   gain=data&0x1000?1:0;                    // This is reversed: no bit= high gain (in all the s/w gain mode=1 is high gain)
   counts=data&0x0FFF;
+}
+
+
+integer DAQRichBlock::checkcalid(int16u id){
+  // Take a block id and return if the block is a rich block
+  if( ((id>>5)&((1<<9)-1))>=FirstNode && ((id>>5)&((1<<9)-1))<=LastNode ) return 1;
+  return 0;
+}
+
+
+void DAQRichBlock::buildcal(integer length,int16u *p){
+  // This is calibration event for RDR
+  // Length is in words
+  const int block_size=2483;  // The length in words of the calibration table for a single RDR
+  const int table_size=RICH_PMTperCDP*RICnwindows;; // 496 entries per table
+
+  if(length!=block_size) return;
+
+
+  p-=1;  // Go to the true starting point of the data
+
+  // General checks
+  int16u id=*(p-1);
+  int16u node_type=id&31;
+  if(node_type!=0x14) return;
+  int16u status=*(p-2+length-1);
+  if(status!=0x120) return;
+
+  int16u node_number=((id>>5)&((1<<9)-1));
+  int physical_cdp=node_number-FirstNode;
+  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
+
+
+  for(int i=0;i<table_size;i++){
+    // Get the address
+    int pmt=i%RICH_PMTperCDP;
+    int pixel=i/RICH_PMTperCDP;
+    // Get the geometric information
+    int pmt_geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,pmt);
+    if(pmt_geom_id<0) continue;
+    int pixel_geom_id=RichPMTsManager::GetGeomChannelID(pmt_geom_id,pixel);
+
+    int pedx1=*(p+i);
+    int pedx5=*(p+i+table_size);
+    int thresholdx5=*(p+i+2*table_size)-pedx5;
+    float sigma_pedx5=float(*(p+i+3*table_size))/1024;
+    float sigma_pedx1=sigma_pedx5*pedx1/pedx5;
+    int status=*(p+i+4*table_size);
+    status=status&0xc000?0:1;       // This is the right computation
+
+    if(sigma_pedx5==0){
+      thresholdx5=4096;
+      status=0;
+    }else{
+      thresholdx5=int(thresholdx5/sigma_pedx5+0.5);
+    }
+    int thresholdx1=thresholdx5;
+
+    //    RichPMTChannel channel(pmt_geom_id,pixel_geom_id);
+#ifdef __AMSDEBUG__
+    cout<<"PEDx1 "<<RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,0)<<" -- "<<pedx1<<endl
+	<<"PEDx5 "<<RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,1)<<" -- "<<pedx5<<endl
+	<<"SIGMAx1 "<<RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,0)<<" -- "<<sigma_pedx1<<endl
+	<<"SIGMAx5 "<<RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,1)<<" -- "<<sigma_pedx5<<endl
+	<<"THRESHOLDx1 "<<RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,0)<<" -- "<<thresholdx1<<endl
+	<<"THRESHOLDx5 "<<RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)<<" -- "<<thresholdx5<<endl
+	<<"Status "<<RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)<<" "<<status<<endl<<endl;
+#endif
+
+
+
+
+    // Update the calibration tables
+    RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,0)=pedx1;
+    RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,1)=pedx5;
+    RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,0)=sigma_pedx1;
+    RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,1)=sigma_pedx5;
+    RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,0)=thresholdx1;
+    RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)=thresholdx5;
+    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=status;
+  }
+  
+  
+  // Update the TDV tables
+
+  AMSTimeID *ptdv;
+  time_t begin,end,insert;
+  const int ntdv=4;
+  const char* TDV2Update[ntdv]={"RichPMTChannelPedestal",
+				"RichPMTChannelPedestalSigma",
+				"RichPMTChannelPedestalThreshold",
+				"RichPMTChannelStatus"};
+  for (int i=0;i<ntdv;i++){
+    ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+    ptdv->UpdCRC();
+    //    if(ptdv->UpdateMe()) continue;  // SKip if it has been previously done  
+    ptdv->UpdateMe()=1;
+    time(&insert);
+    if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
+    ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
+    cout <<" RICH  RDR-"<<physical_cdp<<" info has been updated for "<<*ptdv;
+    ptdv->gettime(insert,begin,end);
+    cout <<" Time Insert "<<ctime(&insert);
+    cout <<" Time Begin "<<ctime(&begin);
+    cout <<" Time End "<<ctime(&end);
+  }
 }
