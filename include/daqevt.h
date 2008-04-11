@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.44 2008/03/05 10:03:34 choumilo Exp $
+//  $Id: daqevt.h,v 1.45 2008/04/11 09:21:35 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -71,6 +71,7 @@ int16u * _pData;
 static const char *_NodeNames[512];
 static const char *_PortNamesJ[32];
  unsigned int _SubLength[7];   //  tracker trd tof rich ecal lvl1 lvl3
+ unsigned int _SubCount[7];   //  tracker trd tof rich ecal lvl1 lvl3
 static DAQSubDet * _pSD[nbtps];
 static DAQBlockType * _pBT[nbtps];
 static const integer _OffsetL;
@@ -127,6 +128,7 @@ uinteger GetBlType(){return _GetBlType();}
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0){
 for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
+for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
 _setcalibdata(0);
 }
 static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(_getnode(id)>127 && strstr(_getnodename(id),sstr));}
@@ -149,6 +151,7 @@ void setoffset(uinteger offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_SubLength[0])?_SubLength[i]*sizeof(_pData[0]):0;}
+integer getsubcount(unsigned int i) const {return i<sizeof(_SubCount)/sizeof(_SubCount[0])?_SubCount[i]:0;}
 uinteger getcalibdata(unsigned int i) const {return i<sizeof(_CalibData)/sizeof(_CalibData[0])?_CalibData[i]:0;}
 bool  CalibRequested(unsigned int crate, unsigned int xdr);
 void close(){ fbin.close();fbout.close();}

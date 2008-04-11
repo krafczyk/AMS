@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.160 2008/03/05 19:52:58 choutko Exp $
+//  $Id: particle.C,v 1.161 2008/04/11 09:21:35 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -733,7 +733,10 @@ void AMSParticle::pid(){
     _emom=_emom*_emom;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     geant chi2=f;
-    prob[i]=PROB(chi2,1);
+    if(chi2==chi2){
+     prob[i]=PROB(chi2,1);
+    }
+    else prob[i]=0;
     if(_pcharge){
       prob[i]*=_pcharge->getprobcharge(int(chrg));   // work around case when charge defined by rich
 //      cout<<" probCharge="<<_pcharge->getprobcharge(int(chrg))<<" chrg="<<chrg<<endl;

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.117 2008/04/09 07:40:47 choutko Exp $
+//  $Id: daqevt.C,v 1.118 2008/04/11 09:21:35 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -591,10 +591,12 @@ integer DAQEvent::_DDGSBOK(){
         case 22:
         case 23:
          _SubLength[0]+=*p;
+         _SubCount[0]++;
          break;
         case 2:
         case 8:
          _SubLength[1]+=*p;
+         _SubCount[1]++;
          break;
         case 4:
         case 5:
@@ -605,18 +607,22 @@ integer DAQEvent::_DDGSBOK(){
         case 20:
         case 21:
          _SubLength[2]+=*p;
+         _SubCount[2]++;
          break;
         case 10:
         case 11:
          _SubLength[3]+=*p;
+         _SubCount[3]++;
          break;
         case 12:
         case 13:
          _SubLength[4]+=*p;
+         _SubCount[4]++;
          break;
         case 14:
         case 15:
          _SubLength[5]+=*p;
+         _SubCount[5]++;
          break;
        }
 
@@ -625,6 +631,13 @@ integer DAQEvent::_DDGSBOK(){
       if(ntot !=_cl(_pcur)-2-1-1-_cll(_pcur)){
         cerr<<"DAQEvent::_DDGSBOK-E-LengthMismatch Event says block length is "<<_cl(_pcur)-2-1-1-_cll(_pcur)<<" Block says it is "<<ntot<<endl;
         return 0;
+      }
+      int maxl[8]={8,2,8,2,2,2,2,2};
+      static int nerr=0;
+      for(int i=0;i<6;i++){
+        if(getsubcount(i)>maxl[i]){
+          if(nerr++<100)cerr<<"DAQEvent::_DDGSBOK-W-TooManyBlocksFor "<<i<<" "<<getsubcount(i)<<endl;
+        }
       }
    }
    else if(_isjlvl1(*(_pcur+_cll(_pcur)))){
