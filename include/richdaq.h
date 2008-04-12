@@ -10,6 +10,7 @@
 
 class DAQRichBlock{
   // Varibles
+  static integer _Calib[2][24];
   static int JINFId[RICH_JINFs];
   static int Links[RICH_JINFs][RICH_LinksperJINF];                    // These are the link id to physical CDP
   static int FirstNode;   // Node number for CDP 0
@@ -44,7 +45,6 @@ class DAQRichBlock{
       isCDP=status&(0x0020);
       slaveId=(status&(0x001F));
     }
-
   public:
     StatusParser(int16u status){assign(status);}
     StatusParser(){assign(0);}
@@ -138,6 +138,7 @@ class DAQRichBlock{
   static void buildcal(integer length,int16u *p);;
 
   // DAQ -> RAW: uninplemented
+  static integer getdaqid(uint16 crate);
   static integer getmaxblocks(){return 0;}
   static integer calcdaqlength(int i){return 0;}
   static void builddaq(integer i,integer length,int16u *p){return;}

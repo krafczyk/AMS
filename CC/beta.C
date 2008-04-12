@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.57 2008/02/13 20:07:49 choutko Exp $
+//  $Id: beta.C,v 1.58 2008/04/12 13:50:38 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -772,7 +772,7 @@ number AMSBeta::betacorr(number zint,number z0,number part){
  number zb=z0+1;
  number x0;
  integer ntry=0;
- integer ntrymax=255;
+ integer ntrymax=99;
  while(DERFC(zb)>zmin && ntry++<ntrymax)zb=zb+1;
  integer ierr;
  rzerowrapper_(z0,zb,x0,zmin,ierr);

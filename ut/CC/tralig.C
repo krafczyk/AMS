@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.51 2008/04/04 14:42:33 choutko Exp $
+//  $Id: tralig.C,v 1.52 2008/04/12 13:50:38 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -2240,7 +2240,7 @@ else{
      }
      _NoActivePar+=nprp;
     }
-    else if(_pPargl[l][m][i].NEntries()>0){
+    else if(_pPargl[l][m][i].NEntries()>=0){
       cout <<" AMSTrAligFit::RebuildNoActivePar-I-TooFewEvents "<<_pPargl[l][m][i].NEntries()<<" "<<l<<" "<<m << " " <<i<<endl;
       _pPargl[l][m][i].NEntries()=0;
     }

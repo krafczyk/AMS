@@ -1,4 +1,4 @@
-//  $Id: AMSGenHist.cxx,v 1.4 2004/02/22 15:39:39 choutko Exp $
+//  $Id: AMSGenHist.cxx,v 1.5 2008/04/12 13:50:38 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -13,15 +13,98 @@
 
 
 void AMSGenHist::Book(){ 
+  AddSet("EventLengths");
+  _filled.push_back(new TH1F("tofl","TOF Length bytes",200,0.,2000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("trkl","TRK Length bytes",500,0.,25000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("trdl","TRD Length bytes",200,0.,2000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("richl","RICH Length bytes",200,0.,4000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("ecall","ECAL Length bytes",200,0.,4000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("lvl1l","LVL1 Length bytes",200,0.,2000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("lvl3l","LVL3 Length bytes",200,0.,2000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+  _filled.push_back(new TH1F("total","Event Length bytes",400,0.,40000.));
+_filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
+
+  AddSet("EventLengthsCorrelations");
+  _filled.push_back(new TProfile("toflvsd","TOFLength vs TimeD msec",1000,0,50));
+_filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
+_filled[_filled.size()-1]->SetYTitle("Length (bytes)");
+  _filled.push_back(new TProfile("trklvsd","TRKLength vs TimeD msec",1000,0,50));
+_filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
+_filled[_filled.size()-1]->SetYTitle("Length (bytes)");
+  _filled.push_back(new TProfile("trdlvsd","TRDLength vs TimeD msec",1000,0,50));
+_filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
+_filled[_filled.size()-1]->SetYTitle("Length (bytes)");
+  _filled.push_back(new TProfile("richlvsd","RICHLength vs TimeD msec",1000,0,50));
+_filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
+_filled[_filled.size()-1]->SetYTitle("Length (bytes)");
+  _filled.push_back(new TProfile("ecallvsd","ECALLength vs TimeD msec",1000,0,50));
+_filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
+_filled[_filled.size()-1]->SetYTitle("Length (bytes)");
+  _filled.push_back(new TProfile("totallvsd","TotalLength vs TimeD msec",1000,0,50));
+_filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
+_filled[_filled.size()-1]->SetYTitle("Length (bytes)");
 }
 
 
 void AMSGenHist::ShowSet(Int_t Set){
+  gPad->Clear();
+  TVirtualPad * gPadSave = gPad;
+switch(Set){
+case 0:
+gPad->Divide(4,2);
+for(int i=0;i<8;i++){
+ gPad->cd(i+1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled[i]->Draw();
+ gPadSave->cd();
+}
+break;
+case 1:
+gPad->Divide(3,2);
+for(int i=0;i<6;i++){
+ gPad->cd(i+1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled[i+8]->Draw();
+ gPadSave->cd();
+}
+break;
+}
 }
 
 
 
 void AMSGenHist::Fill(AMSNtupleR *ntuple){ 
+  if(ntuple->nDaqEvent()){
+    _filled[0]->Fill(ntuple->pDaqEvent(0)->Sdr,1);
+    _filled[1]->Fill(ntuple->pDaqEvent(0)->Tdr,1);
+    _filled[2]->Fill(ntuple->pDaqEvent(0)->Udr,1);
+    _filled[3]->Fill(ntuple->pDaqEvent(0)->Rdr,1);
+    _filled[4]->Fill(ntuple->pDaqEvent(0)->Edr,1);
+    _filled[5]->Fill(ntuple->pDaqEvent(0)->L1dr,1);
+    _filled[6]->Fill(ntuple->pDaqEvent(0)->L3dr,1);
+    _filled[7]->Fill(ntuple->pDaqEvent(0)->Length,1);
+    if(ntuple->nLevel1()){
+      float xtime=ntuple->pLevel1(0)->TrigTime[4]/1000.;
+//      cout << " xtime "<<xtime<<endl;
+      ((TProfile*)_filled[8])->Fill(xtime,ntuple->pDaqEvent(0)->Sdr);  
+      ((TProfile*)_filled[9])->Fill(xtime,ntuple->pDaqEvent(0)->Tdr);  
+      ((TProfile*)_filled[10])->Fill(xtime,ntuple->pDaqEvent(0)->Udr);  
+      ((TProfile*)_filled[11])->Fill(xtime,ntuple->pDaqEvent(0)->Rdr);  
+      ((TProfile*)_filled[12])->Fill(xtime,ntuple->pDaqEvent(0)->Edr);  
+      ((TProfile*)_filled[13])->Fill(xtime,ntuple->pDaqEvent(0)->Length);  
+    }
+   }
     Float_t xm=0;
 //    if(ntuple->nMCEventg()>0){		
 //     MCEventgR mc_ev=ntuple->MCEventg(0);

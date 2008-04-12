@@ -6,6 +6,7 @@
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
 
+ integer DAQRichBlock::_Calib[2][24]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (link identification from JINJ)
 int DAQRichBlock::FirstNode=242;
 int DAQRichBlock::LastNode=265;
@@ -22,7 +23,9 @@ int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links (rea
   };
 int DAQRichBlock::Status=DAQRichBlock::kOk;
 
-
+integer DAQRichBlock::getdaqid(int16u crate){
+ return crate<2?JINFId[crate]:-1;
+}
 integer DAQRichBlock::checkdaqid(int16u id){   // RICH AS PORTS
   // Take a block id and return if the block is a rich block
   for(int i=0;i<RICH_JINFs;i++) if(id==JINFId[i]) return 1;   // It comes through one of the ports (2 JINF for rich)
@@ -288,9 +291,15 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
   int16u node_number=((id>>5)&((1<<9)-1));
   int physical_cdp=node_number-FirstNode;
-  //  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
-
-
+    cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
+  for(int i=0;i<2;i++){
+   for (int j=0;j<24;j++){
+    if(Links[i][j]==physical_cdp){
+    _Calib[i][j]=1;
+    break;
+   }
+  }
+ }
   for(int i=0;i<table_size;i++){
     // Get the address
     int pmt=i%RICH_PMTperCDP;
@@ -343,6 +352,30 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
   
   // Update the TDV tables
 
+
+  bool update=true;
+   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
+  int nc=0;
+  int ncp=0;
+
+  for(int i=0;i<2;i++){
+   for (int j=0;j<24;j++){
+    if( (!_Calib[i][j] &&(pdaq && pdaq->CalibRequested(getdaqid(i),j)))){
+     update=false;
+    }
+    else if(_Calib[i][j])nc++;
+    if( (pdaq && pdaq->CalibRequested(getdaqid(i),j)))ncp++;
+  }
+  }
+  
+  cout <<" nc "<<nc<<" "<<ncp<<" "<<update<<endl;
+ if(update){
+    for(int i=0;i<2;i++){
+     for(int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
+       _Calib[i][j]=0;
+     }
+   }
+
   AMSTimeID *ptdv;
   time_t begin,end,insert;
   const int ntdv=4;
@@ -364,4 +397,5 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     cout <<" Time Begin "<<ctime(&begin);
     cout <<" Time End "<<ctime(&end);
   }
+}
 }

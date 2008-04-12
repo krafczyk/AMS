@@ -226,7 +226,8 @@ void AMSVtx::set_vertex(){
         }
        }
        else{
-         cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
+         static int nerr=0;
+         if(nerr++<100)cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
          setstatus(AMSDBc::BAD);
        }
     }
@@ -234,10 +235,11 @@ void AMSVtx::set_vertex(){
   }
   }
   for (int j=0; j<3; j++) {
-      _Vertex[j] = _Vertex[j]/number_of_pairs;
+      if(number_of_pairs)_Vertex[j] = _Vertex[j]/(number_of_pairs);
   }
+#ifdef __AMSDEBUG__
   if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
-  
+#endif  
 
 }
 
