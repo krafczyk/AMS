@@ -288,7 +288,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
   int16u node_number=((id>>5)&((1<<9)-1));
   int physical_cdp=node_number-FirstNode;
-  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
+  //  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
 
 
   for(int i=0;i<table_size;i++){
@@ -353,12 +353,12 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
   for (int i=0;i<ntdv;i++){
     ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
     ptdv->UpdCRC();
-    //    if(ptdv->UpdateMe()) continue;  // SKip if it has been previously done  
+    if(ptdv->UpdateMe()) continue;  // SKip if it has been previously done  
     ptdv->UpdateMe()=1;
     time(&insert);
     if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
-    cout <<" RICH  RDR-"<<physical_cdp<<" info has been updated for "<<*ptdv;
+    cout <<" RICH info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
     cout <<" Time Begin "<<ctime(&begin);
