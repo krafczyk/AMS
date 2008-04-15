@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.33 2008/03/06 16:14:50 pzuccon Exp $
+//  $Id: trid.h,v 1.34 2008/04/15 15:35:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -16,7 +16,7 @@
 
 
 
-
+class AMSTrIdSoft;
 class AMSTrIdGeom{
 integer _layer;    // from 1 to TKDBc::nlay()
 integer _ladder;   // from 1 to TKDBc::nlad(_layer)

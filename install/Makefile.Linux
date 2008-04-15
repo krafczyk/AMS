@@ -129,9 +129,7 @@ else
  ifdef RAS3system
    CPPFLAGS+= -D__SLC3__ -D__LINUXGNU__
  else
- ifdef SLC4system
    CPPFLAGS+= -D__LINUXGNU__
- endif
  endif
 
 endif

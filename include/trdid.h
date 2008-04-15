@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.10 2008/01/23 15:34:35 choutko Exp $
+//  $Id: trdid.h,v 1.11 2008/04/15 15:35:17 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -19,6 +19,7 @@ namespace trdid{
   const uinteger nufe=7;
   const uinteger nute=4;
 }
+class AMSTRDIdSoft;
 class AMSTRDIdGeom{
 uinteger _octagon;  // from 0 to 0l
 uinteger _layer;    // from 0 to TRDDBc::LayersNo(_octagon)-1
