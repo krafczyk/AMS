@@ -6,7 +6,11 @@
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
 
- integer DAQRichBlock::_Calib[2][24]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+integer DAQRichBlock::_Calib[2][24]={
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
+
 int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (link identification from JINJ)
 int DAQRichBlock::FirstNode=242;
 int DAQRichBlock::LastNode=265;
@@ -17,9 +21,9 @@ TH1F **DAQRichBlock::daq_histograms=0;
 int DAQRichBlock::Links[RICH_JINFs][RICH_LinksperJINF]=   // Table of links (really ports) -> given the JINF (0 ot 1 corresponding to ports 10 and 11) and the link number, you get the
                                                           // physical CDP number  
   {
-//    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22
-    { 7, 5,-1,-1, 6, 9,-1,-1,10,11,-1,-1, 8, 2,-1,-1, 1, 0,-1,-1, 3, 4,-1},  // JINF-R-0-P
-    {19,23,-1,-1,18,21,-1,-1,22,17,-1,-1,20,14,-1,-1,13,12,-1,-1,15,16,-1}   // JINF-R-1-P
+//    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+    { 7, 5,-1,-1, 6, 9,-1,-1,10,11,-1,-1, 8, 2,-1,-1, 1, 0,-1,-1, 3, 4,-1,-1},  // JINF-R-0-P
+    {19,23,-1,-1,18,21,-1,-1,22,17,-1,-1,20,14,-1,-1,13,12,-1,-1,15,16,-1,-1}   // JINF-R-1-P
   };
 int DAQRichBlock::Status=DAQRichBlock::kOk;
 
@@ -279,7 +283,6 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
   if(length!=block_size) return;
 
-
   p-=1;  // Go to the true starting point of the data
 
   // General checks
@@ -291,15 +294,17 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
   int16u node_number=((id>>5)&((1<<9)-1));
   int physical_cdp=node_number-FirstNode;
-    cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
+  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
   for(int i=0;i<2;i++){
-   for (int j=0;j<24;j++){
-    if(Links[i][j]==physical_cdp){
-    _Calib[i][j]=1;
-    break;
-   }
+    for (int j=0;j<24;j++){
+      if(Links[i][j]==physical_cdp){
+	_Calib[i][j]=1;
+	break;
+      }
+    }
   }
- }
+
+  // Check if we really want to read these tables
   for(int i=0;i<table_size;i++){
     // Get the address
     int pmt=i%RICH_PMTperCDP;
@@ -350,9 +355,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
   }
   
   
-  // Update the TDV tables
-
-
+  // Update the TDV tables id needed
   bool update=true;
    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
   int nc=0;
@@ -360,42 +363,41 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
   for(int i=0;i<2;i++){
    for (int j=0;j<24;j++){
-    if( (!_Calib[i][j] &&(pdaq && pdaq->CalibRequested(getdaqid(i),j)))){
-     update=false;
-    }
-    else if(_Calib[i][j])nc++;
-    if( (pdaq && pdaq->CalibRequested(getdaqid(i),j)))ncp++;
-  }
+     if( (!_Calib[i][j] &&(pdaq && pdaq->CalibRequested(getdaqid(i),j)))){
+       update=false;
+     }
+     if(_Calib[i][j])nc++;
+     if( (pdaq && pdaq->CalibRequested(getdaqid(i),j)))ncp++;
+   }
   }
   
   cout <<" nc "<<nc<<" "<<ncp<<" "<<update<<endl;
- if(update){
+  if(update){
     for(int i=0;i<2;i++){
-     for(int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
-       _Calib[i][j]=0;
-     }
-   }
-
-  AMSTimeID *ptdv;
-  time_t begin,end,insert;
-  const int ntdv=4;
-  const char* TDV2Update[ntdv]={"RichPMTChannelPedestal",
-				"RichPMTChannelPedestalSigma",
-				"RichPMTChannelPedestalThreshold",
-				"RichPMTChannelStatus"};
-  for (int i=0;i<ntdv;i++){
-    ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
-    ptdv->UpdCRC();
-    if(ptdv->UpdateMe()) continue;  // SKip if it has been previously done  
-    ptdv->UpdateMe()=1;
-    time(&insert);
-    if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
-    ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
-    cout <<" RICH info has been updated for "<<*ptdv;
-    ptdv->gettime(insert,begin,end);
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
+      for(int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
+	_Calib[i][j]=0;
+      }
+    }
+    
+    AMSTimeID *ptdv;
+    time_t begin,end,insert;
+    const int ntdv=4;
+    const char* TDV2Update[ntdv]={"RichPMTChannelPedestal",
+				  "RichPMTChannelPedestalSigma",
+				  "RichPMTChannelPedestalThreshold",
+				  "RichPMTChannelStatus"};
+    for (int i=0;i<ntdv;i++){
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+      ptdv->UpdCRC();
+      ptdv->UpdateMe()=1;
+      time(&insert);
+      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
+      ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
+      cout <<" RICH info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+    }
   }
-}
 }

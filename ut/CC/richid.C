@@ -366,7 +366,6 @@ void RichPMTsManager::ReadFromFile(const char *filename){
 	      >> _GainThreshold(pmt,cat)
 	      >> _Eff(pmt,cat);
 
-      
       }
   }
   calib.close();
