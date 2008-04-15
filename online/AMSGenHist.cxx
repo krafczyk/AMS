@@ -1,4 +1,4 @@
-//  $Id: AMSGenHist.cxx,v 1.5 2008/04/12 13:50:38 choutko Exp $
+//  $Id: AMSGenHist.cxx,v 1.6 2008/04/15 16:03:53 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -85,6 +85,7 @@ break;
 
 
 void AMSGenHist::Fill(AMSNtupleR *ntuple){ 
+  static int evno=0;
   if(ntuple->nDaqEvent()){
     _filled[0]->Fill(ntuple->pDaqEvent(0)->Sdr,1);
     _filled[1]->Fill(ntuple->pDaqEvent(0)->Tdr,1);
@@ -94,7 +95,7 @@ void AMSGenHist::Fill(AMSNtupleR *ntuple){
     _filled[5]->Fill(ntuple->pDaqEvent(0)->L1dr,1);
     _filled[6]->Fill(ntuple->pDaqEvent(0)->L3dr,1);
     _filled[7]->Fill(ntuple->pDaqEvent(0)->Length,1);
-    if(ntuple->nLevel1()){
+    if(ntuple->nLevel1() && ntuple->Event()-evno==1){
       float xtime=ntuple->pLevel1(0)->TrigTime[4]/1000.;
 //      cout << " xtime "<<xtime<<endl;
       ((TProfile*)_filled[8])->Fill(xtime,ntuple->pDaqEvent(0)->Sdr);  
@@ -105,7 +106,8 @@ void AMSGenHist::Fill(AMSNtupleR *ntuple){
       ((TProfile*)_filled[13])->Fill(xtime,ntuple->pDaqEvent(0)->Length);  
     }
    }
-    Float_t xm=0;
+   evno=ntuple->Event();
+     Float_t xm=0;
 //    if(ntuple->nMCEventg()>0){		
 //     MCEventgR mc_ev=ntuple->MCEventg(0);
 //      xm = log(mc_ev.Momentum);

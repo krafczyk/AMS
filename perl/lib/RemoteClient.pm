@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.513 2008/04/10 15:52:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.514 2008/04/15 16:03:53 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8942,7 +8942,7 @@ sub checkJobsTimeout {
        my $address      = "vitali.choutko\@cern.ch";
        $sql="SELECT runs.run, runs.status
               FROM runs
-              WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked' OR runs.status='Foreign' )  AND runs.jid=$jid";
+              WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked' OR runs.status='Foreign' or runs.status='ToBeRerun')  AND runs.jid=$jid";
        my $r4=$self->{sqlserver}->Query($sql);
        if (defined $r4->[0][0]) {
         $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
@@ -10436,7 +10436,7 @@ sub listJobs {
                  ( Jobs.timestamp <= $timelate or jobs.timeout>0) AND
                  $pps  AND  
                     Jobs.cid=Cites.cid AND
-                     Jobs.mid=Mails.mid  and (dataruns.status !='Completed' or dataruns.status is null) and ((runs.status!='Completed' and runs.status!='Finished') or runs.status is null)
+                     Jobs.mid=Mails.mid  and (dataruns.status !='Completed' or (dataruns.status is null and jobs.realtriggers<=0)) and ((runs.status!='Completed' and runs.status!='Finished') or runs.status is null)
              ORDER  BY Cites.name,  jobs.timekill desc, Jobs.timestamp+jobs.timeout ":"SELECT
                  Jobs.jid, Jobs.jobname,
                  Jobs.time, Jobs.timeout,

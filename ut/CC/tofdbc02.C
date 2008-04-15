@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.48 2008/03/27 09:21:42 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.49 2008/04/15 16:03:52 choutko Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -982,6 +982,7 @@ void TOF2Brcal::tmd2p(number tmf[2], number amf[2], int hlf,
   }
 //  uv=0.;//tempor
   coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);
+  if(tmf[0]==tmf[1])coo=0;  // vc 15.04.08
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
   eco=td2pos[1];
