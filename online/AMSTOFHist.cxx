@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.29 2008/03/14 14:51:32 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.30 2008/04/16 10:19:52 choutko Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -105,7 +105,7 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("used layers: 0->all4,1:4->miss.layer#,etc");
   _filled[_filled.size()-1]->SetFillColor(8);
   
-  _filled.push_back(new TH1F("tofh7","TofBeta",80,-2.,2.));
+  _filled.push_back(new TH1F("tofh7","TofBeta",800,-2.,2.));
   _filled[_filled.size()-1]->SetXTitle("velocity/c");
   _filled[_filled.size()-1]->SetFillColor(8);
   

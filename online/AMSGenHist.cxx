@@ -1,4 +1,4 @@
-//  $Id: AMSGenHist.cxx,v 1.6 2008/04/15 16:03:53 choutko Exp $
+//  $Id: AMSGenHist.cxx,v 1.7 2008/04/16 10:19:52 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -95,7 +95,7 @@ void AMSGenHist::Fill(AMSNtupleR *ntuple){
     _filled[5]->Fill(ntuple->pDaqEvent(0)->L1dr,1);
     _filled[6]->Fill(ntuple->pDaqEvent(0)->L3dr,1);
     _filled[7]->Fill(ntuple->pDaqEvent(0)->Length,1);
-    if(ntuple->nLevel1() && ntuple->Event()-evno==1){
+    if(ntuple->nLevel1() && (1 || ntuple->Event()-evno==1)){
       float xtime=ntuple->pLevel1(0)->TrigTime[4]/1000.;
 //      cout << " xtime "<<xtime<<endl;
       ((TProfile*)_filled[8])->Fill(xtime,ntuple->pDaqEvent(0)->Sdr);  

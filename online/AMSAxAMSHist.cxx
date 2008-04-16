@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.11 2006/09/14 15:34:56 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.12 2008/04/16 10:19:52 choutko Exp $
 #include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -199,8 +199,10 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
     _filled[0]->Fill(ntuple->pParticle(0)->Momentum,1.);
     _filled[1]->Fill(fabs(ntuple->pParticle(0)->Momentum),1.);
     _filled[2]->Fill(ntuple->pParticle(0)->Charge,1.);
+    if(ntuple->pParticle(0)->ErrBeta<1){
     _filled[3]->Fill(ntuple->pParticle(0)->Beta,1.);
     _filled[4]->Fill(ntuple->pParticle(0)->Mass,1.);
+    }
     ((TH2F*)_filled[5])->Fill(log(fabs(ntuple->pParticle(0)->Momentum)),ntuple->pParticle(0)->Beta,1.);
     float err=ntuple->pParticle(0)->ErrMomentum;
     if(err<100000){

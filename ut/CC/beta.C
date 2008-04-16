@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.58 2008/04/12 13:50:38 choutko Exp $
+//  $Id: beta.C,v 1.59 2008/04/16 10:19:51 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -84,7 +84,8 @@ integer AMSBeta::build(integer refit){
          }
          AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
          ptrack,sleng[0],td);
-         if (!(dst<=SearchReg)) continue;
+         
+         if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
          chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 
 // Loop on second TOF plane
@@ -96,7 +97,7 @@ integer AMSBeta::build(integer refit){
            }
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td);
-           if (!(dst<=SearchReg)) continue;
+           if (!(dst<=SearchReg*phit[1]->getnmemb())) continue;
            chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 2-point combination found
            if(AMSBeta::patpoints[patb]==2){
@@ -116,7 +117,7 @@ integer AMSBeta::build(integer refit){
                }
              AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
              getecoo(),ptrack,sleng[2],td);
-             if(!(dst<=SearchReg)) continue;
+             if(!(dst<=SearchReg*phit[2]->getnmemb())) continue;
              chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 3-point combination found
              if(AMSBeta::patpoints[patb]==3){
@@ -136,7 +137,7 @@ integer AMSBeta::build(integer refit){
                }
                AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
                getecoo(),ptrack,sleng[3],td);
-               if(!(dst<=SearchReg)) continue;
+               if(!(dst<=SearchReg*phit[3]->getnmemb())) continue;
                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 4-point combination found
                if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,td,chi2space)){
@@ -190,7 +191,7 @@ if( !bfound ){
          }
          AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
          ptrack,sleng[0],td);
-         if (!(dst<=SearchReg)) continue;
+         if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
          chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 
 // Loop on second TOF plane
@@ -202,7 +203,7 @@ if( !bfound ){
            }
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td);
-           if (!(dst<=SearchReg)) continue;
+           if (!(dst<=SearchReg*phit[1]->getnmemb())) continue;
            chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 2-point combination found
            if(AMSBeta::patpoints[patb]==2){
@@ -224,7 +225,7 @@ if( !bfound ){
                }
              AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
              getecoo(),ptrack,sleng[2],td);
-             if(!(dst<=SearchReg)) continue;
+             if(!(dst<=SearchReg*phit[2]->getnmemb())) continue;
              chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 3-point combination found
              if(AMSBeta::patpoints[patb]==3){
@@ -245,7 +246,7 @@ if( !bfound ){
                }
                AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
                getecoo(),ptrack,sleng[3],td);
-               if(!(dst<=SearchReg)) continue;
+               if(!(dst<=SearchReg*phit[3]->getnmemb())) continue;
                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 4-point combination found
                if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,chi2space)){
@@ -329,7 +330,7 @@ found:
          if(phit[0]->checkstatus(AMSDBc::BAD)) continue;
          AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
          ptrack,sleng[0],td);
-         if (!(dst<=SearchReg)) continue;
+         if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
          chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 
 // Loop on second TOF plane
@@ -338,7 +339,7 @@ found:
            if(phit[1]->checkstatus(AMSDBc::BAD)) continue;
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td);
-           if (!(dst<=SearchReg)) continue;
+           if (!(dst<=SearchReg*phit[1]->getnmemb())) continue;
            chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 2-point combination found
            if(AMSBeta::patpoints[patb]==2){
@@ -353,7 +354,7 @@ found:
              if(phit[2]->checkstatus(AMSDBc::BAD)) continue;
              AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
              getecoo(),ptrack,sleng[2],td);
-             if(!(dst<=SearchReg)) continue;
+             if(!(dst<=SearchReg*phit[2]->getnmemb())) continue;
              chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 3-point combination found
              if(AMSBeta::patpoints[patb]==3){
@@ -368,7 +369,7 @@ found:
                if(phit[3]->checkstatus(AMSDBc::BAD)) continue;
                AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
                getecoo(),ptrack,sleng[3],td);
-               if(!(dst<=SearchReg)) continue;
+               if(!(dst<=SearchReg*phit[3]->getnmemb())) continue;
                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 4-point combination found
                if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,chi2space))
@@ -508,6 +509,11 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //    }
 //---->
     pbeta->SimpleFit(nhit, sleng);
+    if(pat==9){
+     if(pbeta->_Beta>0)pbeta->_Beta=1;
+     else pbeta->_Beta=-1;
+     pbeta->_InvErrBeta=1;
+    }
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 ){
       // Mark Track as used
          /*
@@ -587,6 +593,11 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 
 
     pbeta->SimpleFit(nhit, sleng);
+    if(pat==9){
+     if(pbeta->_Beta>0)pbeta->_Beta=1;
+     else pbeta->_Beta=-1;
+     pbeta->_InvErrBeta=1;
+    }
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 ){
        if(ptrack->checkstatus(AMSDBc::NOTRACK)){
          pbeta->setstatus(AMSDBc::NOTRACK);
@@ -655,6 +666,12 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
  a=(xy-xa*ya)/(x2-xa*xa);
  b=ya-a*xa;
  _Beta=1/a;
+if(fabs(_Beta)>2){
+ static int nerr=0;
+ if(nhit>2 && nerr++<100)cerr<<" AMSBeta::SimpleFit-W-BetaOutOfRange "<<_Beta<<endl;
+ if(_Beta>0)_Beta=2;
+ else _Beta=-2;
+}
  _Chi2=0;
  _InvErrBeta=0;
  for(i=0;i<nhit;i++)_Chi2+=(y[i]-a*x[i]-b)/ey[i]*(y[i]-a*x[i]-b)/ey[i];
