@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.558 2008/04/11 23:27:07 mdelgado Exp $
+// $Id: job.C,v 1.559 2008/04/21 15:14:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -673,6 +673,7 @@ CCFFKEY.StrMass=-1;
 CCFFKEY.SpecialCut=0;
 VBLANK(CCFFKEY.FluxFile,40);
 VBLANK(CCFFKEY.DirFile,40);
+CCFFKEY.Angle=0;
 CCFFKEY.DirFilePositions[0]=1;
 CCFFKEY.DirFilePositions[1]=0;
 CCFFKEY.curtime=0;
@@ -1541,6 +1542,8 @@ else{
   cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
   exit(1);
 }
+
+  AMSDBc::init();  
   TKDBc::init(0);
   TRDDBc::init();
 {

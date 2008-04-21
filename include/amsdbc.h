@@ -1,9 +1,10 @@
-//  $Id: amsdbc.h,v 1.38 2007/03/23 12:22:22 choumilo Exp $
+//  $Id: amsdbc.h,v 1.39 2008/04/21 15:14:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
 #include "typedefs.h" 
 #include "astring.h"
+#include "point.h"
 
 class amsglobalerror{
 private:
@@ -78,6 +79,8 @@ static char * amsdatabase;
     static integer BigEndian;
   static integer debug;
   static void init();
+  static void transform(geant coo[3]);
+  static void transform(AMSPoint & dir);
 };
 
 

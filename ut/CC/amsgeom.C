@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.194 2008/03/06 22:56:07 pzuccon Exp $
+//  $Id: amsgeom.C,v 1.195 2008/04/21 15:14:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -109,7 +109,10 @@ static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX ",parf,3,coo,nrm
 char optn[5];
   if(strstr(AMSJob::gethead()->getsetup(),"BIG"))strcpy(optn,"MANY");
   else strcpy(optn,"ONLY");
-static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,optn,0,gid,1);  // AMS mother volume
+
+  
+//static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,optn,0,gid,1);  // AMS mother volume
+static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,nrm,optn,0,gid,1);  // AMS mother volume
 AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);
 //
@@ -2061,7 +2064,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
     }
     else{
 #endif
-    for(ip=0;ip<3;ip++)coo[ip]+=oct[itrd]->getcooA(ip);
+    geant cooo[3];
+    for(ip=0;ip<3;ip++)cooo[ip]=oct[itrd]->getcooA(ip);
+    for(ip=0;ip<3;ip++)coo[ip]+=cooo[ip];
    dau=(AMSgvolume*)mother.add(new AMSgvolume("VACUUM",
        nrot++,name,"BOX",par,3,coo,nrm, "MANY",0,gid,1));
 #ifdef __G4AMS__

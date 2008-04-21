@@ -1,9 +1,10 @@
-//  $Id: amsdbc.C,v 1.49 2007/03/23 12:22:11 choumilo Exp $
+//  $Id: amsdbc.C,v 1.50 2008/04/21 15:14:41 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
 #include "amsdbc.h"
 #include "amsstl.h"
+#include "commons.h"
 //
 
 char* AMSDBc::amsdatabase=0;
@@ -53,7 +54,7 @@ number AMSDBc::ams_nrm[3][3];
 const geant AMSDBc::amsdext=43.;
 
 void AMSDBc::init(){
- number angle=0;
+ number angle=CCFFKEY.Angle/180*AMSDBc::pi;
  ams_nrm[0][0]=cos(angle);
  ams_nrm[1][0]=0;
  ams_nrm[2][0]=-sin(angle);
@@ -63,5 +64,25 @@ void AMSDBc::init(){
  ams_nrm[0][2]=sin(angle);
  ams_nrm[1][2]=0;
  ams_nrm[2][2]=cos(angle);
+// cout <<"  angle "<<angle<<endl;
+}
 
+void AMSDBc::transform(geant coo[3]){
+geant coo1[3];
+memcpy(coo1,coo,sizeof(coo1));
+for(int i=0;i<3;i++){
+ coo[i]=0;
+ for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
+}
+}
+
+void AMSDBc::transform(AMSPoint & dir){
+number coo[3];
+number coo1[3];
+for(int k=0;k<3;k++)coo1[k]=dir[k];
+for(int i=0;i<3;i++){
+ coo[i]=0;
+ for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
+}
+for(int k=0;k<3;k++)dir[k]=coo[k];
 }

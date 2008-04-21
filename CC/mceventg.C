@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.137 2007/10/03 07:37:51 choutko Exp $
+//  $Id: mceventg.C,v 1.138 2008/04/21 15:14:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -372,6 +372,11 @@ again:
      number u=RNDM(dummy);
      if(u>=pow(fabs(_dir[2]),_gamma))goto again;
 //      cout <<"accepted  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
+//       cout << " _coo _dir "<< _dir <<" "<<_coo<<endl;
+       AMSDBc::transform(_dir);
+       AMSDBc::transform(_coo);
+//       cout << " _coo _dir trans"<< _dir <<" "<<_coo<<endl;
+
     }
     }//--->endof "random dir"
   }//--->endof "low!=2"

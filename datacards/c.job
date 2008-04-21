@@ -74,8 +74,8 @@ AMSJOB 1=711   2=0      3=5.   4=1  5=0 46='AMS02'
 C Special HP-UX
 TIME 3=100000000
 DAQC 1=1 
-C 2='/Offline/RunsDir/CAL/$RUN' 
-2='/tmp/$RUN'
+2='/Offline/RunsDir/CAL/$RUN' 
+C 2='/tmp/$RUN'
 TRCALIB 2=200 9=5
 TRMC 36=1
 TRDMC 16=1

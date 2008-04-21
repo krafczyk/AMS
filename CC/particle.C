@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.161 2008/04/11 09:21:35 choutko Exp $
+//  $Id: particle.C,v 1.162 2008/04/21 15:14:41 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -703,7 +703,7 @@ void AMSParticle::pid(){
      if(fabs(b1-_beta)<4*sqrt(b2+_ebeta) || _beta<RICHDB::rad_index){
       _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
       _ebeta=1./(1/_ebeta+1/b2);
-      _Beta=_pbeta->getbeta()<0?-1/_beta:1/_beta;
+      _Beta=1/_beta;
       _ErrBeta=sqrt(_ebeta)/_Beta/_Beta;
       _calcmass(_Momentum,_ErrMomentum,_Beta,_ErrBeta,_Mass,_ErrMass);
      }

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.272 2008/03/11 13:17:53 choumilo Exp $
+#  $Id: datacards.doc,v 1.273 2008/04/21 15:14:42 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -196,6 +196,7 @@ I35 FluxFile(' ')                 // file with fluxes (creme96 format)
 I75 curtime                      //  aux
 I76 DirFilePositions[2](1,0)             //  number of positions to be read from dire file
 I78 DirFile(' ')                  // file with positions
+R118 Angle(0)                     //  ams rotation angle
 
 GMSRC   // to specify a point (gamma) source 
 I1 GammaSource(0)              // !=0 activate point source generation    

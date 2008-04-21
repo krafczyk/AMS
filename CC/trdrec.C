@@ -777,7 +777,7 @@ void AMSTRDTrack::StrLineFit(){
 
     if(!nyz || !nxz){
      cerr<<"AMSTRDTrack::StrLineFit-F-TRDIsRotated-FindSmarterAlgorithmPlease"<<endl;
-     abort();     
+     //abort();     
     }
    }
 

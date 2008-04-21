@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.47 2008/03/19 09:16:24 choutko Exp $
+#  $Id: Makefile,v 1.48 2008/04/21 15:14:42 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -211,7 +211,7 @@ OBJECTS+= $(BIN)mtx.o
 #------------------------------------------------------------------------------
 # File list for interactive gbatch compilation
 
-FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C  $(SCC)ntuple.C
+FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)TrackFit_utils.F
 
 MYOBJS1:=$(FILESI:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
