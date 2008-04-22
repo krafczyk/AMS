@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.23 2008/03/05 10:03:25 choumilo Exp $
+//  $Id: tofuser02.C,v 1.24 2008/04/22 11:37:32 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -261,7 +261,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   nantit=Anti2RawEvent::getncoinc();//same from trigger
   if(TFREFFKEY.reprtf[2]>0)HF1(1517,geant(nantit),1.);
 //====================================
-  if(nanti>4)return;// remove events with >1 sector(e>ecut) in Anti
+//  if(nanti>4)return;// remove events with >1 sector(e>ecut) in Anti
   TOF2JobStat::addre(22);
   if(!TofMultLow)return; // remove events with high mult. of Tof-clusters/layer 
   TOF2JobStat::addre(23);
@@ -375,7 +375,7 @@ Nextp:
     if(!GoodTrPart)return;//require part. with good(good interp, TRD|TRK) Track
     TOF2JobStat::addre(44);
 //
-//    if(!GoodTrkTrack)return;//require part. with good TRK-Track
+    if(!GoodTrkTrack)return;//require part. with good TRK-Track
     if(GoodTrkTrack)TOF2JobStat::addre(45);
 //==================================================
     pmom=fabs(rid);
@@ -419,7 +419,7 @@ Nextp:
     number cllc[TOF2GC::SCLRS];//cluster long.coo
     number cltc[TOF2GC::SCLRS];//cluster tran.coo
     for(il=0;il<TOF2GC::SCLRS;il++){
-      crd=clco[il];
+      crd=clco[il];//from cluster
       ib=brnl[il];
       if(ib<0)continue;
       zc[il]=TOF2DBc::getzsc(il,ib);
@@ -431,7 +431,7 @@ Nextp:
         coot[il]=Cout[1];// unrot. (X-meas) planes -> take trk Y-cross as long.c
         ctran=Cout[0];// TRK transv. coord.(abs. r.s.)(X-cross)
 	cltc[il]=crd[0];//Cl.tran.coo(XCl,abs)
-	cllc[il]=crd[1];//Cl.long.coo(YCl,abs) 
+	cllc[il]=crd[1];//Cl.long.coo(YCl,abs)
       }
       else {
         coot[il]=Cout[0];// rot. (Y-meas) planes -> take trk X-cross as long.c.
@@ -439,10 +439,12 @@ Nextp:
 	cllc[il]=crd[0];//cl.long.coo(XCl,abs) 
 	cltc[il]=crd[1];//Cl.tran.coo(YCl,abs)
       }
+//	cllc[il]=coo[il];//long-coo from raw-clust 
       dy=coot[il]-cllc[il];//Long.coo_track-Long.coo_TofClust
       if(TFREFFKEY.reprtf[2]>0){
         if(clmem[il]==1)HF1(1200+il,geant(dy),1.);
         if(clmem[il]==2)HF1(1204+il,geant(dy),1.);
+        if(nbrl[il]==1)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
       }
       dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
       if(TFREFFKEY.reprtf[2]>0){
@@ -705,6 +707,12 @@ void TOF2User::InitJob(){
     HBOOK1(1228,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-9)",80,0.,160.,0.);
     HBOOK1(1229,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-10)",80,0.,160.,0.);
     HBOOK1(1230,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-11)",80,0.,160.,0.);
+
+  HBOOK2(1231,"TofUser:Res_long. vs track coord.,L1",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1232,"TofUser:Res_long. vs track coord.,L2",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1233,"TofUser:Res_long. vs track coord.,L3",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1234,"TofUser:Res_long. vs track coord.,L4",70,-70.,70.,60,-30.,30.,0.);//
+
     
     HBOOK1(1240,"TofUser:AccRaw: Crossed/Fired(+10)/(fired+crossed)(+20) sectors pattern",30,1.,31.,0.);
     HBOOK1(1241,"TofUser:AccRaw: Cyl-track Zcross(noCuts)",75,-75.,75.,0.);
@@ -843,6 +851,11 @@ void TOF2User::EndJob(){
   HPRINT(1228);
   HPRINT(1229);
   HPRINT(1230);
+
+  HPRINT(1231);
+  HPRINT(1232);
+  HPRINT(1233);
+  HPRINT(1234);
   
   HPRINT(1240);
   HPRINT(1241);

@@ -1,11 +1,12 @@
-//  $Id: tofcalib02.h,v 1.13 2008/03/11 13:17:53 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.14 2008/04/22 11:38:02 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
 //
-//  class to manipulate with TZSL-calibration data :
-class TOF2TZSLcalib {
+//  Joined class for TofTime-params calibration:
+class TofTimeCalib {
 private:
+//Tzslw-part:
   static geant slope;
   static geant tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   static number s1;
@@ -21,35 +22,20 @@ private:
   static number s16[TOF2GC::SCMXBR];
   static number events;
   static number resol;
+//Tdelv-part:
+  static integer nbins[TOF2GC::SCBTPN];//numb.of coord-bins vs bar-type(<=TOF2GC::SCTDBM)
+  static number tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// side-times differences (ns)
+  static number tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// square of ...
+  static number clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// impact longit.coordinates(cm)
+  static integer nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// event counters
 public:
-  static void init(){
-    int i,j,il,ib;
-    slope=0.;
-    s1=0.;
-    s4=0.;
-    s8=0.;
-    events=0.;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      for(il=0;il<TOF2GC::SCLRS;il++){
-        tzero[il][ib]=0.;
-        s3[il][ib]=0.;
-      }
-      for(i=0;i<(TOF2GC::SCLRS-1);i++){
-        s6[i][ib]=0.;
-        s15[i][ib]=0.;
-      }
-      s7[ib]=0.;
-      s16[ib]=0.;
-      for(j=0;j<TOF2GC::SCMXBR;j++){
-        s12[ib][j]=0.;
-        s13[ib][j]=0.;
-        s14[ib][j]=0.;
-      }
-    }
-  };
-  static void fill(int ib[4],number tdi[3],number dum[3]);
+  static void initjob();
+  static void endjob();
+//
+  static void inittz();
+  static void filltz(int ib[4],number tdi[3],number dum[3]);
   static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
-  static void mfit();
+  static void fittz();//Tzslw-fits, results->tzero,slope->file
   static void select();
   static geant getslop(){return slope;};
   static void gettzer(geant arr[]){
@@ -61,22 +47,10 @@ public:
     }
     }
   };
-};
-//------------------------------------------------------------------------
 //
-//  class to manipulate with TDIF-calibration data :
-class TOF2TDIFcalib {
-private:
-  static integer nbins[TOF2GC::SCBTPN];//numb.of coord-bins vs bar-type(<=TOF2GC::SCTDBM)
-  static number tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// side-times differences (ns)
-  static number tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// square of ...
-  static number clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// impact longit.coordinates(cm)
-  static integer nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// event counters
-public:
-  static void init();
-  static void fill(integer il, integer ib, number td, number coo);
-  static void select();
-  static void fit();
+  static void inittd();
+  static void filltd(integer il, integer ib, number td, number coo);
+  static void fittd();//Tdelv-fits, results->efflightvel,to->file
 };
 //-----------------------------------------------------------------------
 //  class to manipulate with AMPL-calibration data :

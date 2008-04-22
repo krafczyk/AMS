@@ -2475,8 +2475,8 @@ void ECREUNcalib::mfite(){
        else strcat(htit,"L");
        hnm=2*sl+gn;
        HBOOK1(ECHISTC+100+hnm,htit,72,1.,73.,0.);
-       HMINIM(ECHISTC+100+hnm,100.);
-       HMAXIM(ECHISTC+100+hnm,200.);
+       HMINIM(ECHISTC+100+hnm,20.);
+       HMAXIM(ECHISTC+100+hnm,800.);
      }
    }
    for(sl=0;sl<2*ECSLMX;sl++){
@@ -2488,8 +2488,8 @@ void ECREUNcalib::mfite(){
        else strcat(htit,"L");
        hnm=2*sl+gn;
        HBOOK1(ECHISTC+136+hnm,htit,72,1.,73.,0.);
-       HMINIM(ECHISTC+136+hnm,0.2);
-       HMAXIM(ECHISTC+136+hnm,2.);
+       HMINIM(ECHISTC+136+hnm,0.);
+       HMAXIM(ECHISTC+136+hnm,5.);
      }
    }
    for(sl=0;sl<ECSLMX;sl++){
@@ -2497,29 +2497,29 @@ void ECREUNcalib::mfite(){
      sprintf(buf,"%2d",sl);
      strcat(htit,buf);
      HBOOK1(ECHISTC+172+sl,htit,36,1.,37.,0.);
-     HMINIM(ECHISTC+172+sl,50.);
-     HMAXIM(ECHISTC+172+sl,150.);
+     HMINIM(ECHISTC+172+sl,20.);
+     HMAXIM(ECHISTC+172+sl,800.);
    }
    for(sl=0;sl<ECSLMX;sl++){
      strcpy(htit,"Dynode Sigs vs Pmt for SuperLayer=");
      sprintf(buf,"%2d",sl);
      strcat(htit,buf);
      HBOOK1(ECHISTC+181+sl,htit,36,1.,37.,0.);
-     HMINIM(ECHISTC+181+sl,0.2);
-     HMAXIM(ECHISTC+181+sl,2.);
+     HMINIM(ECHISTC+181+sl,0.);
+     HMAXIM(ECHISTC+181+sl,5.);
    }
-   HBOOK1(ECHISTC+190,"Sl/Pm/Pix=5/18/2 AnodeH(raw)",100,50.,250.,0.);
-   HBOOK1(ECHISTC+191,"Sl/Pm/Pix=5/18/2 AnodeL(raw)",100,50.,250.,0.);
-   HBOOK1(ECHISTC+192,"Sl/Pm=5/18 Dynode(raw)",100,50.,250.,0.);
+   HBOOK1(ECHISTC+190,"Sl/Pm/Pix=5/18/2 AnodeH(raw)",100,50.,550.,0.);
+   HBOOK1(ECHISTC+191,"Sl/Pm/Pix=5/18/2 AnodeL(raw)",100,50.,550.,0.);
+   HBOOK1(ECHISTC+192,"Sl/Pm=5/18 Dynode(raw)",100,50.,550.,0.);
    HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-2.5,2.5,0.);
    HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-2.5,2.5,0.);
    HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-2.5,2.5,0.);
-   HBOOK1(ECHISTC+199,"Sl/Pm/Pix=5/18/2 AnodeH(inlim)",100,50.,250.,0.);
-   HBOOK1(ECHISTC+200,"Sl/Pm/Pix=5/18/2 AnodeL(inlim)",100,50.,250.,0.);
-   HBOOK1(ECHISTC+201,"Sl/Pm=5/18 Dynode(inlim)",100,50.,250.,0.);
+   HBOOK1(ECHISTC+199,"Sl/Pm/Pix=5/18/2 AnodeH(inlim)",100,50.,550.,0.);
+   HBOOK1(ECHISTC+200,"Sl/Pm/Pix=5/18/2 AnodeL(inlim)",100,50.,550.,0.);
+   HBOOK1(ECHISTC+201,"Sl/Pm=5/18 Dynode(inlim)",100,50.,550.,0.);
    cout<<"====> ECPedCalib::init done..."<<endl<<endl;;
  }
 //-----
@@ -2624,10 +2624,11 @@ void ECREUNcalib::mfite(){
    number ad,ad2,dp,ds;
    geant pedi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
    geant sigi[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-   geant pedmin,pedmax,sigmin,sigmax;
+   geant pedmin,pedmax,sigmin,sigmax,smn2;
 //
    sigmin=ECCAFFKEY.siglim[0];
    sigmax=ECCAFFKEY.siglim[1];
+   smn2=sigmin*sigmin;
 //
    sl=swid/10000;
    sl=sl-1;//0-8
@@ -2662,6 +2663,7 @@ void ECREUNcalib::mfite(){
        ped=ad/number(nev-evs2rem);//truncated average
        sig2=ad2/number(nev-evs2rem);
        sig2=sig2-ped*ped;// truncated rms**2
+       if(sig2<=smn2 && sig2>-smn2)sig2=smn2;//tempor bypass accur.problem ???
        if(sig2>0)sig=sqrt(sig2);
        else sig=0;
        if(ip2r>0){
@@ -2675,7 +2677,7 @@ void ECREUNcalib::mfite(){
        pedi[ip2r]=ped;
        sigi[ip2r]=sig;
 //       cout<<"<-- ip2r/por2r="<<ip2r<<"/"<<p2r<<" ped/dp="<<ped<<" "<<dp<<" sig/ds="<<sig<<" "<<ds<<endl;
-       if((sig < sigmax && sig>sigmin)
+       if((sig < sigmax && sig>=sigmin)
                                       && (dp < 1.0)
                                                    && (ds < 0.5)
 		                                                && ip2r > 0){
@@ -2693,7 +2695,7 @@ void ECREUNcalib::mfite(){
      }
 //
      sigs[ch][pix][gn]=sig;
-     peds[ch][pix][gn]=ped;//is used now as flag that SS-PedS ok
+     peds[ch][pix][gn]=ped;//is used now as flag that SubSet-PedS ok
      adc[ch][pix][gn]=0;//reset to start new life(with real selection limits)
      adc2[ch][pix][gn]=0;
      nevt[ch][pix][gn]=0;
@@ -2779,7 +2781,7 @@ void ECREUNcalib::mfite(){
    int i,j;
    geant pdiff;
    geant por2rem,p2r;
-   geant pedmin,pedmax,sigmin,sigmax;
+   geant pedmin,pedmax,sigmin,sigmax,smn2;
    integer statmin(9999);
    int16u sl,pm,pix,gn,gnm,pln,cll,ch;
    time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival) 
@@ -2788,6 +2790,7 @@ void ECREUNcalib::mfite(){
    char DataDate[30],WrtDate[30];
    int totchs(0),goodchs(0);
    geant goodchp(0);
+   geant sigdef(0.4);//to use when sig=0
 //   strcpy(DataDate,asctime(localtime(&begin)));
    strcpy(DataDate,asctime(localtime(&begin)));
    time(&insert);
@@ -2800,6 +2803,7 @@ void ECREUNcalib::mfite(){
    pedmax=ECCAFFKEY.pedlim[1];
    sigmin=ECCAFFKEY.siglim[0];
    sigmax=ECCAFFKEY.siglim[1];
+   smn2=sigmin*sigmin;
 //
    cout<<endl;
    cout<<"=====> ECPedCalib-Report:"<<endl<<endl;
@@ -2827,8 +2831,15 @@ void ECREUNcalib::mfite(){
 	     adc[ch][pix][gn]/=number(nevt[ch][pix][gn]-evs2rem);//truncated average
 	     adc2[ch][pix][gn]/=number(nevt[ch][pix][gn]-evs2rem);
 	     adc2[ch][pix][gn]=adc2[ch][pix][gn]-adc[ch][pix][gn]*adc[ch][pix][gn];//truncated rms**2
+	     if(adc2[ch][pix][gn]<=smn2 && adc2[ch][pix][gn]>-smn2){
+	       cout<<"       SuspCh:Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	       cout<<"                  Nevents="<<nevt[ch][pix][gn]<<endl;    
+	       cout<<"                  ped/sig**2="<<adc[ch][pix][gn]<<" "<<adc2[ch][pix][gn]<<endl;
+	       cout<<"                  Set sig to rms default !!!"<<endl;           
+	       adc2[ch][pix][gn]=smn2;
+	     }
 //
-	     if(adc2[ch][pix][gn]>(sigmin*sigmin) && adc2[ch][pix][gn]<=(sigmax*sigmax)
+	     if(adc2[ch][pix][gn]>=(sigmin*sigmin) && adc2[ch][pix][gn]<=(sigmax*sigmax)
 	                           && adc[ch][pix][gn]>pedmin && adc[ch][pix][gn]<=pedmax){//chan.OK
 	       peds[ch][pix][gn]=geant(adc[ch][pix][gn]);
 	       sigs[ch][pix][gn]=geant(sqrt(adc2[ch][pix][gn]));
@@ -2912,8 +2923,7 @@ void ECREUNcalib::mfite(){
      }
      sprintf(buf,"%d",runn);
      strcat(name,buf);
-     if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-     if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcpy(fname,"");
      strcat(fname,name);
      cout<<"       Open file : "<<fname<<'\n';
      cout<<"       Date of the first used event : "<<DataDate<<endl;
@@ -3156,7 +3166,7 @@ void ECREUNcalib::mfite(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     end=begin+86400*30;
+     end=begin+86400*365*3;
      ptdv->SetTime(insert,begin,end);
 //
      if(AMSFFKEY.Update==2 ){
@@ -3183,8 +3193,7 @@ void ECREUNcalib::mfite(){
      strcpy(name,"eclp_tb_rl.");//from OnBoardTable
      sprintf(buf,"%d",runn);
      strcat(name,buf);
-     if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-     if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcpy(fname,"");
      strcat(fname,name);
      cout<<"       Open file : "<<fname<<'\n';
      cout<<"       Date of the first used event : "<<DataDate<<endl;

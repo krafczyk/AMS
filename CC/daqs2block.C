@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.26 2008/03/11 13:17:46 choumilo Exp $
+//  $Id: daqs2block.C,v 1.27 2008/04/22 11:37:32 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -56,7 +56,7 @@ void DAQS2Block::node2crs(int16u nodeid, int16u &crat, int16u &sid){//called by 
       break;
     default:
       cout<<" ID-problem in DAQS2Block::node2crs, id="<<nodeid<<" crat="<<crat<<" A(B)="<<*(DAQEvent::getportname(nodeid)+5)<<endl;
-      exit(1);
+      crat=0;
   }
 }
 //----
@@ -183,6 +183,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   int16u eoslenr(10);//length of end-of-segment record for raw format
   int16u sptcmdt;//SPT-reading command-type (i.e. format of prig-patt block, =0(err)/1/2/3)
   bool sptgen;//SPT test-generator bit setting
+  int16u datf;
 //
   uinteger swcbuf[2*SCRCMX][SCTHMX2];
 // keep: 1st half->LT/FT/HT-time+ampl values for raw/compr. fmt; 2nd->for raw if mixed fmt   
@@ -207,6 +208,8 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   blid=*(p+len);// fragment's last word: Status+slaveID
 //  cout<<"    blid="<<hex<<blid<<dec<<endl;
   bool dataf=((blid&(0x8000))>0);//data-fragment
+  if(dataf)datf=1;
+  else datf=0;
   bool crcer=((blid&(0x4000))>0);//CRC-error
   bool asser=((blid&(0x2000))>0);//assembly-error
   bool amswer=((blid&(0x1000))>0);//amsw-error   
@@ -217,24 +220,8 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool noerr;
   naddr=(blid&(0x001F));//slaveID(="NodeAddr"=SDR_link#)
   datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3
-  if(dataf){
-    if(crcer)TOF2JobStat::daqsfr(15);
-    if(asser)TOF2JobStat::daqsfr(16);
-    if(amswer)TOF2JobStat::daqsfr(17);
-    if(timoer)TOF2JobStat::daqsfr(18);
-    if(fpower)TOF2JobStat::daqsfr(19);
-    if(seqer)TOF2JobStat::daqsfr(20);
-    if(cdpnod)TOF2JobStat::daqsfr(21);
-  }
-  else{
-    if(crcer)TOF2JobStat::daqsfr(22);
-    if(asser)TOF2JobStat::daqsfr(23);
-    if(amswer)TOF2JobStat::daqsfr(24);
-    if(timoer)TOF2JobStat::daqsfr(25);
-    if(fpower)TOF2JobStat::daqsfr(26);
-    if(seqer)TOF2JobStat::daqsfr(27);
-    if(cdpnod)TOF2JobStat::daqsfr(28);
-  }
+//
+  node2crs(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-2<->a-b)
 //
   if(TFREFFKEY.reprtf[4]>2){//debug
     cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
@@ -242,13 +229,50 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
 //
-  if(datyp>0 && len>1){
-    if(ONBpedblk)TOF2JobStat::daqsfr(8);//<=== count non-empty fragments of PedTable-type
-    else TOF2JobStat::daqsfr(1+datyp);//<=== count non-empty fragments of given DATA-type
+  if(crat<=0){//illegal node-address
+    TOF2JobStat::daqsfr(1);//counts illeg.addr
+    goto BadExit;
   }
-  else goto BadExit;
+  TOF2JobStat::daqsfr(1+crat);//entries/crate
+//
+  if(datyp==1)setrawf();
+  else if(datyp==2)setcomf();
+  else if(datyp==3)setmixf();
+  if(ONBpedblk)setpedf();//tempor: ONBpedblk flag is known only from header and should be already known here
+  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
+  TOF2JobStat::daqsfr(34+datyp);//<=== entries/datatype(illeg,raw,com,mix) 
+  if(ONBpedblk)TOF2JobStat::daqsfr(38);//<=== glob count of OnBoardPedBlocks 
+//cout<<"    format="<<formt<<" crate="<<crat<<endl;
+//
+  if(datyp==0 || len==1){
+    TOF2JobStat::daqsfr(5+crat);//counts illeg.datyp or empty
+    if(TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"Bad DataType | EmptyBlock bitDump:");//debug
+    goto BadExit;
+  }
+//
+  TOF2JobStat::daqsfr(9+crat);//<==== datyp+len_OK/crate
+//
+  if(dataf){
+    if(crcer)TOF2JobStat::daqsfr(40+8*(crat-1));
+    if(asser)TOF2JobStat::daqsfr(41+8*(crat-1));
+    if(amswer)TOF2JobStat::daqsfr(42+8*(crat-1));
+    if(timoer)TOF2JobStat::daqsfr(43+8*(crat-1));
+    if(fpower)TOF2JobStat::daqsfr(44+8*(crat-1));
+    if(seqer)TOF2JobStat::daqsfr(45+8*(crat-1));
+    if(cdpnod)TOF2JobStat::daqsfr(46+8*(crat-1));
+  }
+  else{
+    TOF2JobStat::daqsfr(21+crat);//count nonData
+  }
+//---------     
+  if(ONBpedblk){
+    TOF2JobStat::daqsfr(13+crat);
+//process here
+    return;
+  }
+//---------
   noerr=(dataf 
-              && !crcer 
+             && !crcer 
 //	               && !asser 
 		                && !amswer 
                                           && !timoer 
@@ -256,18 +280,12 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 						              && !seqer 
 							               && cdpnod);
   if(noerr){
-    if(ONBpedblk)TOF2JobStat::daqsfr(9);//<=== count non-empty fragments of PedTble-type
-    else TOF2JobStat::daqsfr(4+datyp);//<=== count no-errors fragments for given DATA-type
+    TOF2JobStat::daqsfr(29+crat);//<=== no errors 
   }     
-  else goto BadExit;
-  node2crs(naddr,crat,csid);//get crate#(1-4),card_side(1-2<->a-b)
-//---
-  if(datyp==1)setrawf();
-  else if(datyp==2)setcomf();
-  else if(datyp==3)setmixf();
-  if(ONBpedblk)setpedf();//tempor: ONBpedblk flag is known only from header and should be already known here
-  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
-//cout<<"    format="<<formt<<" crate="<<crat<<endl;     
+  else{
+    TOF2JobStat::daqsfr(25+crat);
+    goto BadExit;
+  }
 //---------
   if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)TofPedCal=true;//TofPedCal-job(Class/DownScaled) requested
   if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)AccPedCal=true;//AccPedCal-job(Class/DownSc) requested 
@@ -1399,7 +1417,7 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
 //--------
   return;
 BadExit:
-  TOF2JobStat::daqsfr(1);//count rejected entries(segments)    
+  TOF2JobStat::daqsfr(98);//count rejected entries(segments)    
 //  
 }
 //----------------------------------------------------

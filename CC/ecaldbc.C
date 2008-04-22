@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.64 2008/03/05 10:03:24 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.65 2008/04/22 11:37:32 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -472,57 +472,123 @@ void EcalJobStat::clear(){
 // function to print Job-statistics at the end of JOB(RUN):
 void EcalJobStat::printstat(){
 //
+  int crt,fmt,sl;
+//
   printf("\n");
   printf("    =================== ECAL-JOB statistics report ==================\n");
   printf("\n");
   if(daqc1[0]>0){
-   printf("     Decoding report :\n");
+   printf("     DAQ-decoding report :\n");
    printf("JINFs entries                      : % 7d\n",daqc1[0]);
    printf(" ...........valid, non empty       : % 7d\n",daqc1[1]);
+   printf("\n");
    printf("JINF_1/2 notData-type(ignored)     : % 8d % 8d\n",daqc1[2],daqc1[3]);
+   printf("\n");
    printf("ReplyStatus:   CRCerr  ASSMerr  AMSWerr  TimeOut FEPOWerr   SEQerr  CDPnode:\n");
    printf("     JINF_1: %8d %8d %8d %8d %8d %8d %8d\n",
                                 daqc1[10],daqc1[11],daqc1[12],daqc1[13],daqc1[14],daqc1[15],daqc1[16]); 
    printf("     JINF_2: %8d %8d %8d %8d %8d %8d %8d\n\n",
                                 daqc1[17],daqc1[18],daqc1[19],daqc1[20],daqc1[21],daqc1[22],daqc1[23]); 
    printf("JINF_1/2 reply-status bits OK      : % 8d %8d\n",daqc1[4],daqc1[5]);
-   printf("Finally rejected JINFs(notData,Empty,FatalErr)  : %7d\n",daqc1[ECJSTA-1]);
-   printf(" Crates appearence frequency         crate-1:   crate-2:\n");
-   printf(" RawFMT EDR/ETRG blocks            : % 7d    % 7d\n",daqc2[0][0],daqc2[1][0]);
-   printf(" ComprFMT EDR/ETRG blocks          : % 7d    % 7d\n",daqc2[0][1],daqc2[1][1]);
-   printf(" OnBoard PedTable  blocks          : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
-   printf(" RawFMT EDRs reply-status bits OK  : % 7d    % 7d\n",daqc2[0][3],daqc2[1][3]);
-   printf(" CompFMT EDRs reply-status bits OK : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
-   printf(" OnBoardPedTabel status bits OK    : % 7d    % 7d\n",daqc2[0][5],daqc2[1][5]);
-   printf(" Illegal EDR/ETRG ID(raw)          : % 7d    % 7d\n",daqc2[0][6],daqc2[1][6]);
-   printf(" Illegal EDR/ETRG ID(compr)        : % 7d    % 7d\n",daqc2[0][7],daqc2[1][7]);
-   printf(" Illegal EDR ID(OnBoardPed)        : % 7d    % 7d\n",daqc2[0][8],daqc2[1][8]);
-   cout<<"---> Crate-1: entries per slot:"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][0]<<" ";
-   cout<<endl;
-   cout<<"  + block length OK (rawFMT):"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][1]<<" ";
-   cout<<endl;
-   cout<<"  + block length OK (compFMT):"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][2]<<" ";
-   cout<<endl;
-   cout<<"  + block length OK (OnBrdPed):"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[0][sl][3]<<" ";
-   cout<<endl;
+   printf("\n");
+   printf("Finally rejected JINFs(any reasons)               : %7d\n",daqc1[ECJSTA-1]);
+   printf("   caused by JINF's badID                         : %7d\n",daqc1[30]);
+   printf("   caused by JINF's Empty                         : %7d\n",daqc1[31]);
+   printf("   caused by JINF's repl.stat.err(cr1/2)          : %7d %7d\n",daqc1[32],daqc1[33]);
+   printf("   caused by JINF's any ped-block wrong length    : %7d %7d\n",daqc1[34],daqc1[35]);
+   printf("   caused by JINF's ETRG-block bad length         : %7d %7d\n",daqc1[36],daqc1[37]);
+   printf("   caused by JINF's any EDR-block bad length(raw) : %7d %7d\n",daqc1[38],daqc1[39]);
+   printf("   caused by JINF's any EDR-block bad length(com) : %7d %7d\n",daqc1[40],daqc1[41]);
+   printf("   caused by JINF's any EDR-block bad length(mix) : %7d %7d\n",daqc1[42],daqc1[43]);
+   printf("\n");
+   printf(" Crate(JINF) sub-blocks statistics,  crate-1:   crate-2:\n");
+   printf("\n");
+   printf(" RawFMT blocks found               : % 7d    % 7d\n",daqc2[0][0],daqc2[1][0]);
+   printf(" ComprFMT blocks found             : % 7d    % 7d\n",daqc2[0][1],daqc2[1][1]);
+   printf(" MixtFMT blocks found              : % 7d    % 7d\n",daqc2[0][2],daqc2[1][2]);
+   printf(" Illegal block IDs(rawfmt)         : % 7d    % 7d\n",daqc2[0][3],daqc2[1][3]);
+   printf(" Illegal block IDs(compfmt)        : % 7d    % 7d\n",daqc2[0][4],daqc2[1][4]);
+   printf(" Illegal block IDs(mixtfmt)        : % 7d    % 7d\n",daqc2[0][5],daqc2[1][5]);
+   printf("\n");
+   printf("\n");
 //
-   cout<<"---> Crate-2: entries per slot:"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][0]<<" ";
-   cout<<endl;
-   cout<<"  + block length OK (rawFMT):"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][1]<<" ";
-   cout<<endl;
-   cout<<"  + block length OK (compFMT):"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][2]<<" ";
-   cout<<endl;
-   cout<<"  + block length OK (OnBrdPed):"<<endl;
-   for(int sl=0;sl<7;sl++)cout<<daqc3[1][sl][3]<<" ";
-   cout<<endl;
-  }
+   for(crt=0;crt<2;crt++){
+    if(daqc1[crt]>0){
+     cout<<"====> Crate-"<<crt+1<<" statistics slot-by-slot:"<<endl<<endl;
+     cout<<" RawFMT-entries     : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][0];
+     cout<<endl;
+     cout<<" CompFMT-entries    : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][1];
+     cout<<endl;
+     cout<<" MixFMT-entries     : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][2];
+     cout<<endl;
+     cout<<" UnknFMT-entries    : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][6];
+     cout<<endl;
+     cout<<" NonDataBlk-entries : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][3];
+     cout<<endl;
+     cout<<" DownScaled-entries : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][4];
+     cout<<endl;
+     cout<<" PedBlk-length OK   : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][5];
+     cout<<endl<<endl;
+//     
+     for(fmt=0;fmt<3;fmt++){
+       if(daqc2[crt][fmt]>0){
+         if(fmt==0)cout<<" -----> RawFormat decoding in details: "<<endl;
+         if(fmt==1)cout<<" -----> CompFormat decoding in details: "<<endl;
+         if(fmt==2)cout<<" -----> MixtFormat decoding in details: "<<endl;
+         cout<<" CRC-error        : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][7+12*fmt];
+         cout<<endl;
+         cout<<" Assembl-error    : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][8+12*fmt];
+         cout<<endl;
+         cout<<" AMSwire-error    : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][9+12*fmt];
+         cout<<endl;
+         cout<<" TimeOut-error    : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][10+12*fmt];
+         cout<<endl;
+         cout<<" FEpower-error    : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][11+12*fmt];
+         cout<<endl;
+         cout<<" Sequencer-error  : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][12+12*fmt];
+         cout<<endl;
+         cout<<" EmptySlot        : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][13+12*fmt];
+         cout<<endl;
+         cout<<" CDPnodeBit set   : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][14+12*fmt];
+         cout<<endl;
+         cout<<" All StatusBits OK: ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][15+12*fmt];
+         cout<<endl;
+         cout<<" BlockLength OK   : ";
+         for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][16+12*fmt];
+         cout<<endl;
+	 if(fmt==2){
+           cout<<" !=0 ComSubl(Mixt): ";
+           for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][17+12*fmt];
+           cout<<endl;
+	 }
+	 if(fmt>0){
+           cout<<" Wrong ADC-address: ";
+           for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][18+12*fmt];
+           cout<<endl;
+	 }
+         cout<<endl;
+       }
+     }//--->endof formats loop
+     cout<<endl;
+    }
+   }//--->endof crates loop
+  }//--->endof decoding-stat-print check
 //
   printf("\n");
 //
@@ -586,15 +652,15 @@ void EcalJobStat::bookhist(){
   maxsl=ECSLMX;
   strcpy(inum,"0123456789");
     if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
-      HBOOK1(ECHISTR+10,"ECRE: RawEvent-hits number",80,0.,400.,0.);
-      HBOOK1(ECHISTR+11,"ECRE: RawEvent-hits ADCtot(gain-corr)",200,0.,100000.,0.);
-      HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits ADCtot(gain-corr)",100,0.,500.,0.);
-      HBOOK1(ECHISTR+13,"ECRE: EcalHit-hits number",80,0.,160.,0.);
-      HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
-      HBOOK1(ECHISTR+9,"ECRE: EcalHit-hit Energy(Mev)",100,0.,100.,0.);
-      HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits DyCorrectionEn(tot,Mev)",100,0.,100000,0.);
-      HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
-      HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
+      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.numner",80,0.,240.,0.);
+      HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
+      HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,500.,0.);
+      HBOOK1(ECHISTR+13,"ECRE::HitBuild: EcalHit-hits tot.number",80,0.,160.,0.);
+      HBOOK1(ECHISTR+14,"ECRE::HitBuild: RawEvent-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
+      HBOOK1(ECHISTR+9,"ECRE::HitBuild: EcalHit-hit Energy(Mev)",100,0.,100.,0.);
+      HBOOK1(ECHISTR+15,"ECRE::HitBuild: DyCorrectionEn(tot,Mev)",100,0.,1000,0.);
+      HBOOK1(ECHISTR+16,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",200,0.,10000.,0.);
+      HBOOK1(ECHISTR+17,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",100,0.,100.,0.);
 //      HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
       if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
         HBOOK1(ECHISTR+19,"ECRE: T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
@@ -634,6 +700,15 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+54,"ECLVL3: Yhigh-Ylow",50,0.,50.,0.);
       HBOOK1(ECHISTR+55,"ECLVL3: Xec-Xtr",80,-80.,80.,0.);
       HBOOK1(ECHISTR+56,"ECLVL3: Yec-Ytr",80,-80.,80.,0.);
+      HBOOK1(ECHISTR+60,"DAQ: swid(LPP)=218, A1_hig(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+61,"DAQ: swid(LPP)=218, A2_hig(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+62,"DAQ: swid(LPP)=218, A3_hig(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+63,"DAQ: swid(LPP)=218, A4_hig(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+64,"DAQ: swid(LPP)=218, A1_log(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+65,"DAQ: swid(LPP)=218, A2_log(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+66,"DAQ: swid(LPP)=218, A3_log(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+67,"DAQ: swid(LPP)=218, A4_log(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+68,"DAQ: swid(LPP)=218, Dyn(adcch)",80,-10.,790.,0.);
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -895,6 +970,16 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+54);
       HPRINT(ECHISTR+55);
       HPRINT(ECHISTR+56);
+      
+      HPRINT(ECHISTR+60);
+      HPRINT(ECHISTR+61);
+      HPRINT(ECHISTR+62);
+      HPRINT(ECHISTR+63);
+      HPRINT(ECHISTR+64);
+      HPRINT(ECHISTR+65);
+      HPRINT(ECHISTR+66);
+      HPRINT(ECHISTR+67);
+      HPRINT(ECHISTR+68);
     }
     if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
       HPRINT(ECHISTC);

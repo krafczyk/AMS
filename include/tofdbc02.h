@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.33 2008/03/05 10:03:34 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.34 2008/04/22 11:38:02 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -254,12 +254,12 @@ private:
   geant _daqthr[5];   // DAQ-system thresholds (defaults)
 // ---> Cuts :
   geant _cuts[10];                    
-          //  (0) fstdw   -> t-window to identify same hit in LT/sumHT-tdc
+          //  (0) lhtdw   -> t-window(+-) around (LT-sHT)-mp for pairing LT/sumHT-hits
           //  (1) hiscutb -> "befor"-cut in time history(sumHT-ch) (ns)
           //  (2) hiscuta -> "after"-cut in time history(sumHT-ch) (ns)
           //  (3) lcoerr  -> "err. in longit.coord. measurement
           //  (4) ftdelf  -> FT fixed delay
-          //  (5) sftdcd  -> spare 
+          //  (5) lhtdmp ->  MostProb val of LT-SumHT true time-hits 
           //  (6) eclass  -> assim.cut for TOFCluster energy calc.
           //  (7) Tdtemp  -> T-type def.temper (SFET(A))
           //  (8) Pdtemp  -> P-type def.temper (PMTs)
@@ -272,12 +272,12 @@ public:
 //
   void init(geant daqthr[5], geant cuts[10]);
 //
-  geant fstdw(){return _cuts[0];}
+  geant lhtdw(){return _cuts[0];}
   geant hiscutb(){return _cuts[1];}
   geant hiscuta(){return _cuts[2];}
   geant lcoerr(){return _cuts[3];}
   geant ftdelf(){return _cuts[4];}
-  geant sftdcd(){return _cuts[5];}
+  geant lhtdmp(){return _cuts[5];}
   geant eclass(){return _cuts[6];}
   geant Tdtemp(){return _cuts[7];}
   geant Pdtemp(){return _cuts[8];}
@@ -376,7 +376,7 @@ private:
 //                               [2] -> "history-OK"
 //                               [3] -> "2-sided history-OK"
 //------
-  static integer daqsf[30];//fragment statistics
+  static integer daqsf[100];//fragment statistics
   static integer cratr[TOF2GC::SCCRAT][20];//raw fmt
   static integer cratp[TOF2GC::SCCRAT][20];//processed fmt
   static integer cratc[TOF2GC::SCCRAT][20];//on-board-pedcal fmt
@@ -418,6 +418,11 @@ public:
     assert(chnum>=0 && i>=0);
     assert(chnum < TOF2GC::SCCHMX && i < TOF2GC::SCCSTA);
     chcount[chnum][i]+=1;
+  }
+  inline static int getch(int chnum, int i){
+    assert(chnum>=0 && i>=0);
+    assert(chnum < TOF2GC::SCCHMX && i < TOF2GC::SCCSTA);
+    return chcount[chnum][i];
   }
   inline static void addbr(int brnum, int i){
     assert(brnum>=0 && i>=0);
@@ -471,6 +476,7 @@ private:
 //
 public:
   static TOF2Brcal scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+  static uinteger CFlistC[11];//Cflist-file content
   TOF2Brcal(){};
   TOF2Brcal(integer sid, integer npm, integer sta[2], geant gna[2],
            geant gnd[2][TOF2GC::PMTSMX], 

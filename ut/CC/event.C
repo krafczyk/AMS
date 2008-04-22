@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.373 2008/03/07 17:01:50 choutko Exp $
+//  $Id: event.C,v 1.374 2008/04/22 11:37:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1332,6 +1332,7 @@ void AMSEvent::_reamsevent(){
 //                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
+    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){
     _reanti2event();
 #ifndef __TFAPEDC__
     _retrdevent();
@@ -1339,11 +1340,14 @@ void AMSEvent::_reamsevent(){
     _rerichevent();
     _reecalevent();
 #endif
+    }
   }
+    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){
 #ifndef __TFAPEDC__
-  _reaxevent();
-   AMSUser::Event();
+    _reaxevent();
+    AMSUser::Event();
 #endif
+    }
    AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
@@ -1439,13 +1443,14 @@ void AMSEvent::_catofevent(){
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr2)tofft=ptr2->TofFasTrigOK();
     if(!tofft)return;// use only H/W-triggered event
-    if(TFREFFKEY.relogic[0]==2)
-             TOF2TDIFcalib::select();// event selection for TOF TDIF-calibration
-    if(TFREFFKEY.relogic[0]==3){
-      TOF2TZSLcalib::select();// event selection for TOF TZSL-calibration
+//
+    if(TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3 || TFREFFKEY.relogic[0]==23){
+      TofTimeCalib::select();//event selection for TOF Tdelv/Tzslw-calibration
     }
-    if(TFREFFKEY.relogic[0]==4)
-             TOF2AMPLcalib::select();// event selection for TOF AMPL-calibration
+//
+    if(TFREFFKEY.relogic[0]==4){
+      TOF2AMPLcalib::select();// event selection for TOF AMPL-calibration
+    }
 }
 //---------------------------------------------------------------------------
 

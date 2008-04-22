@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.38 2007/12/06 13:31:12 choumilo Exp $
+//  $Id: tofsim02.C,v 1.39 2008/04/22 11:37:32 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -1364,11 +1364,12 @@ number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
     }
     else if(toflc==3){//
 //      lut1=(lut1|(1<<3));//3of4 + 1&2 (add 1&2 to default >=3of4)
+//      lut1=(lut1
 //      lut2=(1<<15);// 4of4
 //      lut1=(1<<3);
 //these 2 lines is special case: LUT2:0, LUT1:"texas"
-      lut2=0;//
-      lut1=(1<<2)+(1<<6)+(1<<10)+(1<<14);//"no_1" + "yes_2" combinations
+//      lut2=0;//Texas:
+//      lut1=(1<<2)+(1<<6)+(1<<10)+(1<<14);//"no_1" + "yes_2" combinations
     }
     else{
       cout<<"    TOF2Tovt::ftctime: Error, wrong layer conf. was requested from data card !!!"<<endl;

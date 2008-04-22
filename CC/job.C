@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.559 2008/04/21 15:14:41 choutko Exp $
+// $Id: job.C,v 1.560 2008/04/22 11:37:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -710,7 +710,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
 //     
-  TFMCFFKEY.ReadConstFiles=1000;//(19)LPTS(L=TDClinCocSD,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);L(P,T,S)=0/1->DB/RawFiles
+  TFMCFFKEY.ReadConstFiles=1000;//(19)LPTS(L=TDClinCorSD,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);L(P,T,S)=0/1->DB/RawFiles
 //
   TFMCFFKEY.addpeds=0;//(20) add peds into empty(no MC dE/dX) channels
   TFMCFFKEY.calvern=1;//(21) TofCflistMC-file(barcal_files vers. list) version number
@@ -766,7 +766,7 @@ FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;   // (1) print_hist flag (0/1->no/yes)
   ECREFFKEY.reprtf[1]=0;   // (2) print_profile flag (0/1->no/yes)
-  ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints if =1 (more details if =2)
+  ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/info_messages/more_details)
 //
   ECREFFKEY.relogic[0]=1;  // (4) 1/0->write/not EcalHits into Ntuple
   ECREFFKEY.relogic[1]=0;  // (5) 0/1/2/3/4/5/6->norm/RLGA/RLGA+FIAT/ANOR/PedClassic/PedDowdScaled/OnBoardPedTable_calib
@@ -903,9 +903,9 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 // PedCalib:
   ECCAFFKEY.pedcpr=0.04;    // (56) PedCal : def portion of highest amplitudes to remove for ped/sig calc
   ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
-  ECCAFFKEY.pedlim[0]=50.;  // (58) Ped low-lim in PedCalibJobs
-  ECCAFFKEY.pedlim[1]=500.; // (59)      hi-lim ...............
-  ECCAFFKEY.siglim[0]=0.5;  // (60) PedSig low-lim ............
+  ECCAFFKEY.pedlim[0]=2.;  // (58) Ped low-lim in PedCalibJobs
+  ECCAFFKEY.pedlim[1]=800.; // (59)      hi-lim ...............
+  ECCAFFKEY.siglim[0]=0.1;  // (60) PedSig low-lim ............
   ECCAFFKEY.siglim[1]=10.; //  (61)         hi-lim ............
 //g.chen
   ECCAFFKEY.ecshswit=0;        // (58) 0/1 switch to/(not to) use shower info in ANOR calibration
@@ -941,7 +941,7 @@ void AMSJob::_sianti2data(){
   ATMCFFKEY.LZero=0; // (2)spare
   ATMCFFKEY.LSpeed=14.7;// (3)Eff. light speed in anti-paddle (cm/ns)
   ATMCFFKEY.ReadConstFiles=0;//(4)Seedp|Realp(Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
-  ATMCFFKEY.calvern=1;//(5)TccCflistMC-file(acccal_files vers. list) version number
+  ATMCFFKEY.calvern=1;//(5)AccCflistMC-file(acccal_files vers. list) version number
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
   "MIXED");
@@ -1204,12 +1204,12 @@ void AMSJob::_retof2data(){
   TFREFFKEY.daqthr[3]=4.;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=4.;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)
 //
-  TFREFFKEY.cuts[0]=10.;//(18) window(ns) to find "corresponding" hits in LT-/sumHT-channels
+  TFREFFKEY.cuts[0]=6.;//(18) window(+-ns) around (LT-SumHT)-m.p for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
   TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
   TFREFFKEY.cuts[4]=40.;//(22) min(fixed) globFT delay(from JLV1- to S-crate, ns)
-  TFREFFKEY.cuts[5]=40.;//(23) spare 
+  TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=2.;// (25) T-type def.temperature (see card #29)
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
@@ -1257,8 +1257,8 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
 //
+  TFCAFFKEY.truse=0;//(12)-1/0/1->(req.TRK/TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
 // AMPL-calibration:
-  TFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
   TFCAFFKEY.plhc[0]=0.5;// (13) track mom. low limit(gev/c) for space calibr
   TFCAFFKEY.plhc[1]=47.;// (14) track mom. high limit(gev/c) ..............
   TFCAFFKEY.minev=80;// (15)min.events needed for measurement in channel or bin
@@ -1269,7 +1269,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.spares[3]=0;//spare integers
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
   TFCAFFKEY.plhec[0]=0.5;//(22)plow-cut for earth calibration
-  TFCAFFKEY.plhec[1]=10.;//(23)phigh-cut ...................
+  TFCAFFKEY.plhec[1]=15.;//(23)phigh-cut ...................
   TFCAFFKEY.bgcut[0]=0.58; //(24) beta*gamma low-cut to be around mip-region(abs.calib)
   TFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ..............................
 //
@@ -1306,7 +1306,7 @@ void AMSJob::_reanti2data(){
 //
   ATREFFKEY.ReadConstFiles=11;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  
-  ATREFFKEY.calutc=1167606001;//(10)(20070101 0000001)TccCflistRD-file(acccal_files vers. list) begin UTC-time
+  ATREFFKEY.calutc=1167606001;//(10)(20070101 0000001)AccCflistRD-file(acccal_files vers. list) begin UTC-time
 //
   ATREFFKEY.sec[0]=0;//(11) 
   ATREFFKEY.sec[1]=0;//(12)
@@ -2113,13 +2113,8 @@ void AMSJob::_catof2initjob(){
  if(TFREFFKEY.relogic[0]==1){
    TOFTdcCalib::init();// TOF TDC-calibr.
  }
- if(TFREFFKEY.relogic[0]==2){
-   TOF2TDIFcalib::init();// TOF TDIF-calibr.
-   cout<<"<----- TOF2TDIFcalib-init done !!!"<<'\n';
- }
- if(TFREFFKEY.relogic[0]==3){
-   TOF2TZSLcalib::init();// TOF TzSl-calibr.
-   cout<<"<----- TOF2TZSLcalib-init done !!!"<<'\n';
+ if(TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3 || TFREFFKEY.relogic[0]==23){
+   TofTimeCalib::initjob();// TOF Tdelv/Tzslw-calibr.
  }
  if(TFREFFKEY.relogic[0]==4){
    TOF2AMPLcalib::init();// TOF AMPL-calibr.
@@ -2652,7 +2647,7 @@ end.tm_year=TRDMCFFKEY.year[1];
  begin.tm_isdst=0;
  end.tm_isdst=0;
  int needval=1;
- if(isCalibration() && CTOF)needval=0;
+//// if(isCalibration() && CTOF)needval=0;
 #ifdef __TFADBW__
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;
@@ -2821,7 +2816,7 @@ if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-
  begin.tm_isdst=0;
  end.tm_isdst=0;
  int needval=1;
- if(isCalibration() && CAnti)needval=0;
+//// if(isCalibration() && CAnti)needval=0;
  
 #ifdef __TFADBW__
   time_t bdbw=MISCFFKEY.dbwrbeg;
@@ -2979,7 +2974,7 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   begin.tm_isdst=0;
   end.tm_isdst=0;
  int needval=1;
- if(isCalibration() && CEcal)needval=0;
+//// if(isCalibration() && CEcal)needval=0;
  
   begin.tm_sec=ECREFFKEY.sec[0];
   begin.tm_min=ECREFFKEY.min[0];
@@ -3519,16 +3514,25 @@ AMSmceventg::endjob();
 void AMSJob::_tof2endjob(){
   if(isSimulation())TOF2JobStat::outpmc();
   TOF2JobStat::outp();
-  TOF2JobStat::printstat(); // Print JOB-TOF statistics
+//
   if((isCalibration() & CTOF) && (TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)){
     TOFPedCalib::outp(TFCAFFKEY.pedoutf);// 0/1/2->HistOnly/Wr2DB+File/Wr2File 
   }
+//
   if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==7){
     TOFPedCalib::ntuple_close();// close OnBoardPedsTable ntuple 
   }
+//
   if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==1){
     TOFTdcCalib::outp(TFCAFFKEY.tdccum);
   }
+//
+  if((isCalibration() & CTOF) && (TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3
+                                                          || TFREFFKEY.relogic[0]==23)){
+    TofTimeCalib::endjob();//Tdelv/Tzslw
+  }
+//
+  TOF2JobStat::printstat(); // Print JOB-TOF statistics
 }
 //-----------------------------------------------------------------------
 void AMSJob::_anti2endjob(){
