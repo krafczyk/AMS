@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.52 2008/03/06 22:56:07 pzuccon Exp $
+//  $Id: trddbc.C,v 1.53 2008/04/22 15:01:20 choutko Exp $
 #include "trddbc.h"
 #include "amsdbc.h"
 #include <math.h>
@@ -1016,7 +1016,7 @@ void TRDDBc::init(){
             //  Bulkhead gap only present for lower and upper 4 layers
             // "x wires"
 
-	    if (fabs(num_from_center)>=4 && (j<=3 || j>=16) )
+	    if (abs(num_from_center)>=4 && (j<=3 || j>=16) )
 	      {
 	        gap = BulkheadGap();
 	      }
@@ -1054,7 +1054,7 @@ void TRDDBc::init(){
 	    //	    if (past_corner)
 	    
 	    int deg = 90;
-	    if (fabs(num_from_center)>=5 || (past_corner && (j<=3 || j>=16)))
+	    if (abs(num_from_center)>=5 || (past_corner && (j<=3 || j>=16)))
 	      {
 		deg = 45;
 		//		cout <<"45 deg condition"<<endl;
@@ -1153,7 +1153,7 @@ void TRDDBc::init(){
             //  Bulkhead gap only present for lower and upper 4 layers
             // "x wires"
 
-	    if (fabs(num_from_center)>=4 && (j<=3 || j>=16) )
+	    if (abs(num_from_center)>=4 && (j<=3 || j>=16) )
 	      {
 	        gap = BulkheadGap();
 	      }

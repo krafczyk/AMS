@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.7 2008/03/07 16:19:51 pzuccon Exp $
+//  $Id: trdcalib.C,v 1.8 2008/04/22 15:01:20 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -49,8 +49,9 @@ void AMSTRDIdCalib::ntuple(integer s){
 */
   if(IOPA.hlun){
    TRDCalib_def TRDCALIB;
-   HBNT(IOPA.ntuple,"trd calibaration"," ");
-   HBNAME(IOPA.ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
+   CALIB.Ntuple++;
+   HBNT(CALIB.Ntuple,"trd calibaration"," ");
+   HBNAME(CALIB.Ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
    int i,j,k,l,m;
      for(i=0;i<TRDDBc::nlay();i++){
        for(j=0;j<TRDDBc::LaddersNo(0,i);j++){
@@ -63,7 +64,7 @@ void AMSTRDIdCalib::ntuple(integer s){
           TRDCALIB.Ped=id.getped();
           TRDCALIB.Sigma=id.getsig();
           TRDCALIB.BadCh=id.checkstatus(AMSDBc::BAD);
-          HFNT(IOPA.ntuple);
+          HFNT(CALIB.Ntuple);
          }
         }
     }

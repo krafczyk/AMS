@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.44 2007/10/01 13:31:09 choumilo Exp $
+//  $Id: ecalrec.h,v 1.45 2008/04/22 15:01:20 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -157,8 +157,8 @@ public:
 	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_edepc(ecorr),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
 	 {for(int i=0;i<3;i++)_adc[i]=adc[i];}
   AMSEcalHit(integer status, integer proj, integer plane, integer cell,
-         number edep,  number coot, number cool, number cooz):AMSlink(status,0),
-	 _idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_edepc(0),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
+         number edep,  number coot, number cool, number cooz,int idsoft):AMSlink(status,0),
+	 _idsoft(idsoft),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_edepc(0),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
 	 {for(int i=0;i<3;i++)_adc[i]=0;};
   ~AMSEcalHit(){};
   AMSEcalHit * next(){return (AMSEcalHit*)_next;}

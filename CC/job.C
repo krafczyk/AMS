@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.560 2008/04/22 11:37:32 choumilo Exp $
+// $Id: job.C,v 1.561 2008/04/22 15:01:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1025,6 +1025,7 @@ void AMSJob::_sisrddata(){
 
 void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=0;  // Insert Time by now
+  CALIB.Ntuple=0;
  FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 

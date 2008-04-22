@@ -224,8 +224,14 @@ int16u AMSECIds::hwseqn(int16u crate, int16u slot, int16u rdch){
 int16u AMSECIds::swseqn(int16u slay, int16u tube, int16u pix, int16u gn){
 //                                0-8           0-35          0-4          0-1
   int16u swch(0);//global sequential sw-channel(incl gainf)=0,1,...2915(no empty chan !!)
-    assert(slay<ECSLMX && tube<ECPMMX && pix<5);
-    if(pix==4)assert(gn==0);//dynode only with high(no attenuation)-gain
+    if(!(slay<ECSLMX && tube<ECPMMX && pix<5 )){
+     cerr<<" assert slay<ECSLMX && tube<ECPMMX && pix<5 failed "<<slay<<" "<<tube<<" "<<pix<<endl;
+    }
+//    assert(slay<ECSLMX && tube<ECPMMX && pix<5);
+//    if(pix==4)assert(gn==0);//dynode only with high(no attenuation)-gain
+    if(pix==4 && gn){
+     cerr<< " assert(gn==0) failed "<<gn<<endl;
+    }
     swch=slay*ECPMMX*(4*2+1)+tube*(4*2+1)+pix*2;
     if(pix<4)swch+=gn;//if anode - count gains befor current one
     return swch;//0,1,...2915

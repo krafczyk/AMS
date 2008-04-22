@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.51 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: tofrec02.C,v 1.52 2008/04/22 15:01:19 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -693,7 +693,7 @@ void TOF2RawCluster::build(int &ostatus){
 		  itmbest[isd]=ittdc[isd][0];//its index in stdc-array
 		}
 		else{//when sHT-match requested - check that this single hit is SumHT matched
-		  j=itmatch[isd][ittdc[isd][i]];//SumHT-hit index in htdc-array, if match ok
+		  j=itmatch[isd][ittdc[isd][0]];//SumHT-hit index in htdc-array, if match ok
 		  if(j>=0){ 
 		    dt=sdtmin[isd][ittdc[isd][0]];//signed dt of LT-sumHT matching for this hit
 	            tmbest[isd]=ttdc[isd][0];

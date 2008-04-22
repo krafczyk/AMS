@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.234 2008/04/21 15:14:42 choutko Exp $
+//  $Id: commons.h,v 1.235 2008/04/22 15:01:20 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -901,6 +901,7 @@ COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
 class CALIB_DEF{
 public:
 integer InsertTimeProc;             // 0 (default) by current time ; 1 by run time
+integer Ntuple; 
 };
 #define CALIB COMMON_BLOCK(CALIB,calib)
 COMMON_BLOCK_DEF(CALIB_DEF,CALIB);

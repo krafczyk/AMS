@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.88 2008/04/04 08:49:17 choutko Exp $
+//  $Id: trrawcluster.C,v 1.89 2008/04/22 15:01:20 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -795,8 +795,9 @@ if(nerr>0){
 */
    if(IOPA.hlun){
    TrCalib_def TRCALIB;
-   HBNT(IOPA.ntuple+1,"Tracker Calibaration"," ");
-   HBNAME(IOPA.ntuple+1,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,RawSigma:R,BadCh:I,CmnNoise:R,Crate:I,Haddr:I");
+   CALIB.Ntuple++;
+   HBNT(CALIB.Ntuple,"Tracker Calibaration"," ");
+   HBNAME(CALIB.Ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,RawSigma:R,BadCh:I,CmnNoise:R,Crate:I,Haddr:I");
    int i,j,k,l,m;
     for(l=0;l<2;l++){
     for(k=0;k<2;k++){
@@ -827,7 +828,7 @@ if(nerr>0){
           }
           TRCALIB.Crate=id.getcrate();
           TRCALIB.Haddr=id.gethaddr();
-          HFNT(IOPA.ntuple+1);
+          HFNT(CALIB.Ntuple);
          }
         }
        }

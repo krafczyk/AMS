@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.101 2008/03/14 14:51:14 choumilo Exp $
+//  $Id: ecalrec.C,v 1.102 2008/04/22 15:01:19 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1184,7 +1184,8 @@ integer Ecal1DCluster::build(int rerun){
         if(adc[i]){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
-         AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2));
+         AMSECIds ids(ipl,i);
+         AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2),ids.makesswid());
 //          cout <<" added****a "<<endl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",ipl), pnew);
           ptrh[i]=pnew;
@@ -1196,7 +1197,8 @@ integer Ecal1DCluster::build(int rerun){
         if(adc[i]){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
-         AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2));
+         AMSECIds ids(ipl,i);
+         AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2),ids.makesswid());
 //          cout <<" added****b "<<endl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",ipl), pnew);
           ptrh[i]=pnew;
@@ -1207,8 +1209,9 @@ integer Ecal1DCluster::build(int rerun){
         adc[i]=(adc[i+1])/2;
         if(adc[i]){
          statusa[i]|=AMSDBc::LEAK;
+         AMSECIds ids(ipl,i);
          int st=statusa[i] | AMSDBc::RECOVERED;
-         AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2));
+         AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2),ids.makesswid());
 //          cout <<" added****c "<<endl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",ipl), pnew);
           ptrh[i]=pnew;
