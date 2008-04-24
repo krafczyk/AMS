@@ -12,6 +12,16 @@ integer DAQRichBlock::_Calib[2][24]={
 };
 
 int DAQRichBlock::JINFId[RICH_JINFs]={10,11};           // JINFR0 and JINFR1  (link identification from JINJ)
+
+int DAQRichBlock::JINFNodes[2][RICH_JINFs][2]=             // List of jinf-r nodes, side a and b, two aliases (a=primary,b=secondary) 
+
+  { // 0           1      -- side  
+    {{158,160},{162,164}},     // primary
+    {{159,161},{163,165}}      //secondary
+  };
+
+
+
 int DAQRichBlock::FirstNode=242;
 int DAQRichBlock::LastNode=265;
 TH1F **DAQRichBlock::daq_histograms=0;
@@ -36,7 +46,93 @@ integer DAQRichBlock::checkdaqid(int16u id){   // RICH AS PORTS
   return 0;
 }
 
+integer DAQRichBlock::checkdaqidnode(int16u node_word){   // RICH AS NODE
+  int id=(node_word>>5)&((1<<9)-1);
 
+  for(int secondary=0;secondary<2;secondary++)
+    for(int side=0;side<RICH_JINFs;side++)
+      for(int alias=0;alias<2;alias++)
+	if(id==JINFNodes[secondary][side][alias]){
+#ifdef __AMSDEBUG__
+	  cout<<"Found node "<<id<<" which is side:"<<side<<" secondary:"<<secondary<<endl;
+#endif
+	  return 1;
+	}
+
+  return 0;
+}
+
+
+
+void DAQRichBlock::buildraw(integer length,int16u *p){
+  // Reset the status bits
+  Status=kOk;
+  
+  // Check that the length size is the correct one: at least I expect to have the node status
+  if(length<1) Do(kLengthError);
+  
+  // This is supposed to be a JINF block: get the status word and check it
+  StatusParser status(*(p-1+length));
+  // if(!status.isData || status.errors || status.isCDP) Do(kDataError);
+  if(status.errors || status.isCDP) Do(kDataError);
+  
+  // Get the JINF number
+  uint id=status.slaveId;  
+  int JINF=-1;
+  for(int i=0;i<RICH_JINFs;i++) if(JINFId[i]==id) {JINF=i;break;}
+  if(JINF==-1) Do(kJINFIdError);
+  
+
+  // Assume that everything here is primary and decode
+  DecodeRich(length,p,JINF,0);
+
+}
+
+
+void DAQRichBlock::buildrawnode(integer length,int16u *p){
+#ifdef __AMSDEBUG
+  cout<<"*** IN DAQRichBlock::buildrawnode "<<endl
+      <<" Length "<<length<<endl;
+  printf(" DUMP %x %x %x %x %x\n",*(p-1),*p,*(p+1),*(p+2),(*p+3));
+#endif
+
+  // In p-1 is the node id and so 
+  // In p is the event number p
+  // In p+1 the first RDR info (its length)
+
+  Status=kOk;
+  if(length<1) Do(kLengthError);
+
+  int id=((*(p-1))>>5)&((1<<9)-1);
+  
+  for(int secondary=0;secondary<2;secondary++)
+    for(int side=0;side<RICH_JINFs;side++)
+      for(int alias=0;alias<2;alias++)
+	if(id==JINFNodes[secondary][side][alias]){
+	  DecodeRich(length-1,p+1,side,secondary);
+	  break;
+	}
+  return;
+  /*  
+  // This is supposed to be a JINF block: get the status word and check it
+  StatusParser status(*(p-1+length));
+  // if(!status.isData || status.errors || status.isCDP) Do(kDataError);
+  if(status.errors || status.isCDP) Do(kDataError);
+  
+  // Get the JINF number
+  uint id=status.slaveId;  
+  int JINF=-1;
+  for(int i=0;i<RICH_JINFs;i++) if(JINFId[i]==id) {JINF=i;break;}
+  if(JINF==-1) Do(kJINFIdError);
+  
+
+  // Assume that everything here is primary and decode
+  DecodeRich(length,p,JINF,0);
+  */
+}
+
+
+/*
 void DAQRichBlock::buildraw(integer length,int16u *p){
   // it is implied that event_fragment is RICH-JINF's one (validity is checked in calling procedure)
   // *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!)
@@ -99,7 +195,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
       do{
 	// Fill raw histograms
-//	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
+	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
 
 	// First comes the low gain, the high gain then
 	if(channel.gain==0) {low_gain[channel.pmt][channel.pixel]=channel.counts;}
@@ -186,7 +282,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   
 
 }
-
+*/
 
 
 // Deal with errors with this function. Return 1 if exit needed, 0 otherwise
@@ -235,9 +331,9 @@ int DAQRichBlock::Emit(int code){
       if(error_counter++<10)
 	cerr<<"DAQRichBlock::buildraw -- CDP information seems to be truncated."<<endl;
       return 1; break;
-    case kWrongCDPChannelNumber:
-      if(error_counter++<10)
-	cerr<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
+    case kWrongCDPChannelNumber:  // This is not a real error
+      //      if(error_counter++<10)
+      //	cerr<<"DAQRichBlock::buildraw -- CDP in reduced mode refers to an inexistent channel."<<endl;
       return 0; break;
     default:
       return 0;break;
@@ -400,4 +496,142 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
       cout <<" Time End "<<ctime(&end);
     }
   }
+}
+
+
+
+
+void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
+  //
+  // This functions perform the actual decoding with the information 
+  // of the side and if it is a primary of secondary block 
+  //
+
+  int16u *pointer=p;
+
+  int CDPFound;          // Counter for the number of CDP found
+  int low_gain[RICH_PMTperCDP][RICnwindows];       // Buffer to store low gain information just in case it is needed
+  for(CDPFound=0;;CDPFound++){
+#ifdef __AMSDEBUG__
+    cout<<"Pointer at "<<pointer-p<<" fence in "<<length-1<<" fence content "<<*(p-1+length)<<endl; 
+#endif
+    if(pointer>=p-1+length) break;   // Last fragment processed       
+    
+    FragmentParser cdp(pointer);
+    if(cdp.status.errors) Do(kCDPError);
+    int CDP=cdp.status.slaveId;
+    if(secondary) if(CDP==1) CDP=9; else if(CDP==9) CDP=1;
+    
+    // Process data
+    //    if(!cdp.status.isRaw && !cdp.status.isCompressed) Do(kCalibration);
+    if(cdp.status.isRaw){
+
+      // Prepare some nice histograms
+      if(daq_histograms==0){
+	daq_histograms=new TH1F*[RICmaxpmts*RICnwindows*2];   // pixels*gains*pmts
+	for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	  for(int pixel=0;pixel<RICnwindows;pixel++)
+	    for(int gain=0;gain<2;gain++){
+	      char histo_name[1024];
+	      sprintf(histo_name,"Rich_PMT_%i_pixel_%i_gain_%i",pmt,pixel,gain);
+	      daq_histograms[gain+2*pixel+2*RICnwindows*pmt]=new TH1F(histo_name,histo_name,4096,-0.5,4095.5);
+	    }
+      }
+
+      if(cdp.length!=1+         // Status word
+	 RICH_PMTperCDP*RICnwindows*2) Do(kCDPRawTruncated);
+
+      // Fill raw information
+      // Simple loop getting all the information
+
+      DSPRawParser channel(cdp.data);
+
+      do{
+	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
+
+	// First comes the low gain, the high gain then
+	if(channel.gain==0) {low_gain[channel.pmt][channel.pixel]=channel.counts;}
+	else{
+	  // Get the geom ID for this channel
+	  int physical_cdp=Links[side][CDP];
+
+	  if(physical_cdp!=-1){
+	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
+	    if(geom_id>=0){
+	      // Get the pixel geom id, substract the pedestal, check that
+	      // it is above it and use low gain if necessary
+	      int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
+	      
+	      if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
+		int mode=1;                 // High gain
+		int counts=channel.counts;
+		
+		if(channel.counts>RichPMTsManager::GainThreshold(geom_id,pixel_id)){
+		  counts=low_gain[channel.pmt][channel.pixel];
+		  mode=0;
+		}
+
+		float threshold=RichPMTsManager::PedestalThreshold(geom_id,pixel_id,mode)*
+		  RichPMTsManager::PedestalSigma(geom_id,pixel_id,mode);
+		
+		// Add the hit
+		int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
+		counts-=int(RichPMTsManager::Pedestal(geom_id,pixel_id,mode));
+		
+		if(!cdp.status.isCompressed)  	   // Just in case it is Mixed mode			
+		  if(counts>threshold || mode==0)
+		  AMSEvent::gethead()->
+		    addnext(
+			    AMSID("AMSRichRawEvent",0),
+			    new AMSRichRawEvent(channel_geom_number,
+						counts,
+						mode?0:gain_mode)
+			    );
+	      }
+	    }
+	  }
+	}
+      }while(channel.Next());
+
+    }
+  
+    if(cdp.status.isCompressed){
+      //      if(cdp.status.isRaw)Do(kMixedMode); // Nothing to do indeed
+      // Fill compressed mode if something to fill 
+      if(cdp.length-1>0){
+	DSPCompressedParser channel(cdp.data,cdp.length-1);
+	
+	do{
+	  int physical_cdp=Links[side][CDP];
+	  if(physical_cdp!=-1){
+	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
+	    
+	    if(geom_id<0) Do(kWrongCDPChannelNumber);
+	    
+	    // Get the pixel geom id, substract the pedestal, check that
+	    // it is above it and use low gain if necessary
+	    int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
+	    
+	    if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
+	      int mode=channel.gain;                 // High gain
+	      int counts=channel.counts;
+	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
+	      
+	      AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
+					   new AMSRichRawEvent(channel_geom_number,
+							       counts,
+							       mode?0:gain_mode));
+	      
+	    }
+	  }
+	}while(channel.Next());
+	
+      }
+    }
+    pointer=cdp.next;
+  }
+
+  
+
+
 }

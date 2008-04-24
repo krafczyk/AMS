@@ -13,6 +13,7 @@ class DAQRichBlock{
   static integer _Calib[2][24];
   static int JINFId[RICH_JINFs];
   static int Links[RICH_JINFs][RICH_LinksperJINF];                    // These are the link id to physical CDP
+  static int JINFNodes[2][RICH_JINFs][2];                             // These are the link id to physical CDP
   static int FirstNode;   // Node number for CDP 0
   static int LastNode;   // Node number for CDP 23
 
@@ -132,6 +133,9 @@ class DAQRichBlock{
   // RAW -> DAQ
   static integer checkdaqid(int16u id);
   static void buildraw(integer length,int16u *p);
+  static integer checkdaqidnode(int16u id);
+  static void buildrawnode(integer length,int16u *p);
+  static void DecodeRich(integer length,int16u *p,int side,int secondary);
 
   // CALIBRATION
   static integer checkcalid(int16u id);
