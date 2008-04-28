@@ -2771,6 +2771,22 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
     lipChi2               = ptr->_lipchi2;
     lipRecProb            = ptr->_liprprob;
     //ENDofLIP    
+
+    // Control variables
+    Hits = (ptr->_hit_pointer).size();
+    BetaDirectHits=new Float_t[Hits];
+    BetaReflectedHits=new Float_t[Hits];
+    UsedBeta =new Int_t[Hits];
+    HitPointer =new Int_t[Hits];
+    
+    for(int i=0;i<Hits;i++){
+      BetaDirectHits[i]=(ptr->_beta_direct)[i];
+      BetaReflectedHits[i]=(ptr->_beta_reflected)[i];
+      UsedBeta[i]=(ptr->_hit_used)[i];
+      HitPointer[i]=(ptr->_hit_pointer)[i];
+    }
+
+
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }

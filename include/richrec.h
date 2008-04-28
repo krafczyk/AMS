@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.41 2008/03/06 22:56:23 pzuccon Exp $
+//  $Id: richrec.h,v 1.42 2008/04/28 16:52:01 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -6,6 +6,8 @@
 #include <iostream>
 #include "richid.h"
 #include "trrec.h"
+#include <vector>
+
 
 PROTOCCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT)
 #define SOLVE(A1,A2,A3,A4,A5,A6) CCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT,A1,A2,A3,A4,A5,A6)
@@ -150,6 +152,11 @@ static geant _Time;
   number  _npexpg;       // Number of expected photons for Z=1
   number  _npexpr;       // Number of expected photons for Z=1
   number  _npexpb;       // Number of expected photons for Z=1
+  
+  vector<float> _beta_direct;
+  vector<float> _beta_reflected;
+  vector<int> _hit_pointer;
+  vector<int> _hit_used;
 
   //+LIP
   // variables
@@ -234,46 +241,7 @@ protected:
   void ReconRingNpexp(geant window_size=3.,int cleanup=0);
 public:
   //+LIP
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob,uinteger status=0,integer build_charge=0):AMSlink(status),
-    _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta),_liphused(liphused),_lipthc(lipthc),_lipbeta(lipbeta),_lipebeta(lipebeta),_liplikep(liplikep),_lipchi2(lipchi2),_liprprob(liprprob){
-    CalcBetaError();
-
-    _npexp=0;
-    _collected_npe=0;
-    _probkl=0;
-    _kdist=1e6;
-    _phi_spread=1e6;
-    _unused_dist=-1;
-
-    if(build_charge){
-      if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
-      ReconRingNpexp(3.,!checkstatus(dirty_ring));
-      if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
-    }
-
-    AMSPoint pnt;
-    number theta,phi,length;
-    
-    _radpos[0]=_emission_p[0];
-    _radpos[1]=_emission_p[1];
-    _radpos[2]=_emission_p[2];
-    
-    _theta=acos(1/_beta/_index);
-    _errortheta=_errorbeta/_beta/tan(_theta);
-
-    track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
-		       AMSDir(0.,0.,-1.),pnt,theta,phi,length);
-    
-    _pmtpos[0]=pnt[0];
-    _pmtpos[1]=pnt[1];
-    _pmtpos[2]=pnt[2];
-
-    if(fabs(RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.-_pmtpos[2])>0.01){
-      _pmtpos[0]=0;
-      _pmtpos[1]=0;
-      _pmtpos[2]=0;
-    }
-  };
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob,geant recs[RICmaxpmts*RICnwindows/2][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],uinteger size,int ring,uinteger status=0,integer build_charge=0);
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 

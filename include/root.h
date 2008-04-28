@@ -1017,6 +1017,11 @@ public:
   float lipChi2;     ///< Chi2 from LIP beta rec.
   float lipRecProb;  ///< Probabbility from LIP beta rec. 
 
+  Int_t Hits;        ///<Number of hits with individual beta reconstruction              
+  Float_t *BetaDirectHits;       //[Hits] <Beta reconstructed as direct
+  Float_t *BetaReflectedHits;    //[Hits] <Beta reconstructed as reflected
+  Int_t *UsedBeta;               //[Hits] <Bit 1 == 0: hit in ring ; Bit 0 == 0: best reconstruction is as direct; Bit 0 == 1: best reconstruction is as reflected  
+  Int_t *HitPointer;             //[Hits] <Pointer to the hit in RichHitR
 
   protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
@@ -1032,7 +1037,7 @@ public:
   /// access function to RichHitR objects used
   /// \return index of RichHitR object in collection or -1
   int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
-   RichRingR(){};
+  RichRingR(){};
   RichRingR(AMSRichRing *ptr);
   friend class AMSRichRing;
   friend class AMSEventR;
@@ -1042,8 +1047,8 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
     return _Info;
   } 
-  virtual ~RichRingR(){};
-  ClassDef(RichRingR,10)           // RichRingR
+  virtual ~RichRingR(){}
+  ClassDef(RichRingR,11)           // RichRingR
 }; 
 
 /// TRDRawHitR structure

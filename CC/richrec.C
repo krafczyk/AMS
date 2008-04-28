@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.81 2008/04/08 17:57:29 mdelgado Exp $
+//  $Id: richrec.C,v 1.82 2008/04/28 16:52:01 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -766,6 +766,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 */
 	  }
 #endif
+
 	  if(prob>=9) continue;
 	  hitp[i]->setbit(bit);
 	  if(cleanup) current_ring_status|=hitp[i]->getbit(crossed_pmt_bit)?dirty_ring:0; 
@@ -802,9 +803,11 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    LIPVAR.liplikep,
 										    LIPVAR.lipchi2,
 										    LIPVAR.liprprob,
+										    recs,hitp,actual,bit,
 										    current_ring_status,  //Status word
 										    (RICRECFFKEY.recon[1]%10)
 										    ));  //LIP
+
       if(!first_done) first_done=done;
       bit++;  
     } else {
@@ -2013,3 +2016,77 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
 }
 
 
+AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
+			 int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,
+			 geant lipchi2, geant liprprob,
+			 geant recs[RICmaxpmts*RICnwindows/2][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],uinteger size,int ring,
+			 uinteger status,integer build_charge):
+  AMSlink(status),_ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta),_liphused(liphused),_lipthc(lipthc),_lipbeta(lipbeta),_lipebeta(lipebeta),_liplikep(liplikep),_lipchi2(lipchi2),_liprprob(liprprob)
+{
+  CalcBetaError();
+  
+#ifdef __AMSDEBUG__
+  cout<<"RING WITH USED: "<<used<<" MUSED "<<mused<<endl; 
+#endif
+  
+  _npexp=0;
+  _collected_npe=0;
+  _probkl=0;
+  _kdist=1e6;
+  _phi_spread=1e6;
+  _unused_dist=-1;
+  
+  
+  // Copy the residues plots
+  _beta_direct.clear();
+  _beta_reflected.clear();
+  _hit_pointer.clear();
+  _hit_used.clear();
+  
+
+  for(int i=0;i<size;i++){
+    int reflected=fabs(recs[i][1]-beta)<=fabs(recs[i][2]-beta)?1:2;
+    int closest=AMSRichRing::closest(beta,recs[i]);
+    _beta_direct.push_back(recs[i][0]);
+    _beta_reflected.push_back(recs[i][reflected]);
+    int used=(closest==0?0:1);
+    int which=0;
+    for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	  getheadC("AMSRichRawEvent",0);hit;hit=hit->next(),which++){
+      if(hit!=hitp[i]) continue;
+      _hit_pointer.push_back(which);
+      if(!hit->getbit(ring)) used+=2;
+      _hit_used.push_back(used);
+      break;
+    }
+  }
+  
+  if(build_charge){
+    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
+    ReconRingNpexp(3.,!checkstatus(dirty_ring));
+    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
+  }
+  
+  AMSPoint pnt;
+  number theta,phi,length;
+  
+  _radpos[0]=_emission_p[0];
+  _radpos[1]=_emission_p[1];
+  _radpos[2]=_emission_p[2];
+  
+  _theta=acos(1/_beta/_index);
+  _errortheta=_errorbeta/_beta/tan(_theta);
+  
+  track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
+		     AMSDir(0.,0.,-1.),pnt,theta,phi,length);
+  
+  _pmtpos[0]=pnt[0];
+  _pmtpos[1]=pnt[1];
+  _pmtpos[2]=pnt[2];
+  
+  if(fabs(RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.-_pmtpos[2])>0.01){
+    _pmtpos[0]=0;
+    _pmtpos[1]=0;
+    _pmtpos[2]=0;
+  }
+}
