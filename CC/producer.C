@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.111 2008/03/10 20:07:39 choutko Exp $
+//  $Id: producer.C,v 1.112 2008/04/28 15:40:12 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -671,7 +671,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
   }
   else{
     i=(i>>8);
-    if(i/128){
+    if(i/128 && ( !AMSEvent::_checkUpdate())){
      ntend->Status=DPS::Producer::Failure;
     }
     else{

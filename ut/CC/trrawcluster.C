@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.89 2008/04/22 15:01:20 choutko Exp $
+//  $Id: trrawcluster.C,v 1.90 2008/04/28 15:40:12 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -392,7 +392,8 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
 //  have to split integer n; add crate number on the upper part...
   unsigned int leng=n&65535;
   uinteger ic=(n>>16);
-  const int cmn=16;
+  //const int cmn=16;
+   const int cmn=0;
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
 //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
 for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
@@ -430,7 +431,7 @@ continue;
 //#endif
 // get common noise also instead of s2n which not exists for ams02
   int va=haddr/64;
-  geant cn=*(p+*p-16+va)/8.;
+  geant cn=*(p+*p-cmn+va)/8.;
   haddr=haddr| (tdr<<10);
   AMSTrIdSoft id(ic,haddr);
      if(!id.dead() ){
@@ -847,7 +848,7 @@ if(nerr>0){
   char houtput[]="//trcalibration";
   HCDIR (houtput, " ");
   integer ICYCL=0;
-  HROUT (1, ICYCL, " ");
+  HROUT (CALIB.Ntuple, ICYCL, " ");
   HREND ("trcalibration");
   CLOSEF(IOPA.hlun+1);
 */

@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.8 2008/04/22 15:01:20 choutko Exp $
+//  $Id: trdcalib.C,v 1.9 2008/04/28 15:40:12 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -50,6 +50,7 @@ void AMSTRDIdCalib::ntuple(integer s){
   if(IOPA.hlun){
    TRDCalib_def TRDCALIB;
    CALIB.Ntuple++;
+    cout <<  " CALIB " <<CALIB.Ntuple<<endl;
    HBNT(CALIB.Ntuple,"trd calibaration"," ");
    HBNAME(CALIB.Ntuple,"TrdCalib",(int*)(&TRDCALIB),"PSLayer:I,PSLadder:I,PSTube:I,Ped:R,Sigma:R,BadCh:R");
    int i,j,k,l,m;
@@ -75,7 +76,7 @@ void AMSTRDIdCalib::ntuple(integer s){
   char houtput[]="//trdcalibration";
   HCDIR (houtput, " ");
   integer ICYCL=0;
-  HROUT (1, ICYCL, " ");
+  HROUT (CALIB.Ntuple, ICYCL, " ");
   HREND ("trdcalibration");
   CLOSEF(IOPA.hlun+1);
 */
