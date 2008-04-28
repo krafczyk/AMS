@@ -2393,6 +2393,9 @@ class RemoteClient:
         if(run2p!=0):
             rund=" and dataruns.run=%d " %(run2p)
             runn=" and ntuples.run=%d " %(run2p)
+        if(run2p<0):
+            rund=" and dataruns.run>=%d " %(-run2p)
+            runn=" and ntuples.run>=%d " %(-run2p)
         sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
         files=self.sqlserver.Query(sql)
         if(len(files)>0):
