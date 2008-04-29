@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.59 2008/04/16 10:19:51 choutko Exp $
+//  $Id: beta.C,v 1.60 2008/04/29 13:16:26 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -680,8 +680,7 @@ if(fabs(_Beta)>2){
  _InvErrBeta=sqrt(1./e2)/sqrt(x2-xa*xa);   
 
 //  Corrected Beta
-
-
+  if(_InvErrBeta==_InvErrBeta && fabs(_InvErrBeta)<FLT_MAX){
   number xibme=fabs(1/_Beta); 
   number z0=(xibme-1)/_InvErrBeta/sqrt(2.);
   number zint=DERFC(z0);
@@ -694,6 +693,8 @@ if(fabs(_Beta)>2){
   number xibcora=zprima*sqrt(2.)*_InvErrBeta+1;
   number xibcorb=zprimb*sqrt(2.)*_InvErrBeta+1;
   _InvErrBetaC=fabs(xibcorb-xibcora)/2;
+  }
+  else _InvErrBetaC=0;
   if(_InvErrBetaC==0){
     _BetaC=_Beta;
     _InvErrBetaC=_InvErrBeta;
