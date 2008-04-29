@@ -1,4 +1,9 @@
 //
+//  NB 
+//  Only stl vectors and scalars are allowed as root file entries
+//
+
+//
 //  NB Please increase the version number in corr classdef 
 //  for any class modification
 //
