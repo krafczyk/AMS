@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.90 2008/04/28 15:40:12 choutko Exp $
+//  $Id: trrawcluster.C,v 1.91 2008/04/29 13:06:05 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -392,8 +392,9 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
 //  have to split integer n; add crate number on the upper part...
   unsigned int leng=n&65535;
   uinteger ic=(n>>16);
-  //const int cmn=16;
-   const int cmn=0;
+    int cmn=0;
+   if(TRCALIB.Version==0)cmn=16;
+   else cmn=0;
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
 //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
 for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){

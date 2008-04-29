@@ -2774,6 +2774,7 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
 
     // Control variables
     Hits = (ptr->_hit_pointer).size();
+/*
     BetaDirectHits=new Float_t[Hits];
     BetaReflectedHits=new Float_t[Hits];
     UsedBeta =new Int_t[Hits];
@@ -2786,7 +2787,7 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
       HitPointer[i]=(ptr->_hit_pointer)[i];
     }
 
-
+*/
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.235 2008/04/22 15:01:20 choutko Exp $
+//  $Id: commons.h,v 1.236 2008/04/29 13:06:05 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -892,6 +892,7 @@ integer Ladder[8];            // ladder*10+half no for each plane 0 == all
 integer PatStart;
 integer MultiRun;
 integer EventsPerRun;
+integer Version;
 };
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);

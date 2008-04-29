@@ -1017,12 +1017,7 @@ public:
   float lipChi2;     ///< Chi2 from LIP beta rec.
   float lipRecProb;  ///< Probabbility from LIP beta rec. 
 
-  Int_t Hits;        ///<Number of hits with individual beta reconstruction              
-  Float_t *BetaDirectHits;       //[Hits] <Beta reconstructed as direct
-  Float_t *BetaReflectedHits;    //[Hits] <Beta reconstructed as reflected
-  Int_t *UsedBeta;               //[Hits] <Bit 1 == 0: hit in ring ; Bit 0 == 0: best reconstruction is as direct; Bit 0 == 1: best reconstruction is as reflected  
-  Int_t *HitPointer;             //[Hits] <Pointer to the hit in RichHitR
-
+  Int_t Hits;        ///<Number of hits with individual beta reconstruction 
   protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
    vector<int> fRichHit; ///< indexes of RichHitR in collection

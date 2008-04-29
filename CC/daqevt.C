@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.119 2008/04/11 23:27:07 mdelgado Exp $
+//  $Id: daqevt.C,v 1.120 2008/04/29 13:06:04 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -508,6 +508,8 @@ integer DAQEvent::_HeaderOK(){
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
+      if(_Run>=1208965123)TRCALIB.Version=1;
+      else TRCALIB.Version=0;
       if(_RunType==Laser && TRCALIB.LaserRun==0){
           TRCALIB.LaserRun=22;
           cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
@@ -1448,7 +1450,7 @@ again:
          
           char rootdir[1025];
           strcpy(rootdir,ifnam[KIFiles]);
-          char *last=strstr(rootdir,"ACOP");
+          char *last=strstr(rootdir,"PMCHRDL");
           if(last){
               *last='R';
               *(last+1)='O';
@@ -1465,7 +1467,7 @@ again:
               }
              }
              else{
-               cerr<<"DAQEvent-F-Parser-InvalidFirctoryStructure "<< rootdir<<endl;
+               cerr<<"DAQEvent-F-Parser-InvalidDirectoryStructure "<< rootdir<<endl;
                abort();
               }  
 /*             

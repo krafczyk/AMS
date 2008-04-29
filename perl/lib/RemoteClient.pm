@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.514 2008/04/15 16:03:53 choutko Exp $
+# $Id: RemoteClient.pm,v 1.515 2008/04/29 13:06:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2778,6 +2778,10 @@ CheckCite:            if (defined $q->param("QCite")) {
              $type=" and type like '%$dt%' ";
          }
                print "</tr>\n";
+         my $showdst=0;
+         if($q->param("ShowDST")){
+            $showdst=1;
+         }
          my $types="";
             if ($q->param("DataFileTypeS") =~ /ANY/) {
              }                         
@@ -2807,6 +2811,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              }
          }
                print "</tr>\n";
+            my $sqld= "";
             if ($q->param("DataFileID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DataFileID");
                 $title = $title.$q->param("RunID");
@@ -2814,6 +2819,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                           FROM datafiles
                           WHERE run>=$runmin AND run<=$runmax $type
                           ORDER BY run";
+                    
             } else {
              $runid =  trimblanks($q->param("DataFileID"));
              if(not $runid =~/^\d+$/){
@@ -2854,6 +2860,15 @@ CheckCite:            if (defined $q->param("QCite")) {
                     <td><b> $sizemb </b></td>
                     <td><b> $opath </b></td>\n";
              print "</font></tr>\n";
+             if($showdst){
+               $sqld="select path from ntuples where run=$run and datamc=1";
+               my $retld=$self->{sqlserver}->Query($sqld);
+               foreach my $ntuple(@{$retld}){
+                             print "<td><b> $ntuple->[0] </td></b>\n";
+                              print "</font></tr>\n";
+
+               } 
+              } 
          }
       }
        htmlTableEnd();
@@ -5007,6 +5022,8 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "<input type=\"submit\" name=\"getDataFileID\" value=\"Submit\"> \n";
         print "<b>RunType ( SCI, CAL, LAS, ANY) : </b> <input type =\"text\" name=\"DataFileType\" value=\"ANY\">\n";
         print "<b>SubDetectors ( Combination of TURESL3) : </b> <input type =\"text\" name=\"DataFileTypeS\" value=\"ANY\">\n";
+        print "<INPUT TYPE=\"checkbox\" NAME=\"ShowDST\" VALUE=\"FCL\" CHECKED>ShowDST ";
+
         print "</form>\n";
         print "</table> \n";
 
