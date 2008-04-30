@@ -1022,10 +1022,10 @@ public:
   float lipChi2;     ///< Chi2 from LIP beta rec.
   float lipRecProb;  ///< Probabbility from LIP beta rec. 
 
-  Int_t Hits;        ///<Number of hits with individual beta reconstruction 
   protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
    vector<int> fRichHit; ///< indexes of RichHitR in collection
+   vector<float> fBetaHit;  ///<Beta Residues for each event hit. A negative value means it is reflected
    void FillRichHits(int m);
   public:
   /// access function to TrTrackR object used
@@ -1037,6 +1037,8 @@ public:
   /// access function to RichHitR objects used
   /// \return index of RichHitR object in collection or -1
   int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
+  float BetaHit(unsigned int i){return (i<fBetaHit.size() && i>=0)?fBetaHit[i]:0;}
+
   RichRingR(){};
   RichRingR(AMSRichRing *ptr);
   friend class AMSRichRing;
@@ -1048,7 +1050,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){}
-  ClassDef(RichRingR,11)           // RichRingR
+  ClassDef(RichRingR,12)           // RichRingR
 }; 
 
 /// TRDRawHitR structure

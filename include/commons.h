@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.236 2008/04/29 13:06:05 choutko Exp $
+//  $Id: commons.h,v 1.237 2008/04/30 18:01:11 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1005,6 +1005,10 @@ COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);
 class RICRECFFKEY_DEF{
 public:
 integer recon[2];
+float   pars0[5];
+float   pars1[5];
+float   pars2[5];
+float   pars3[5];
 };
 #define RICRECFFKEY COMMON_BLOCK(RICRECFFKEY,ricrecffkey)
 COMMON_BLOCK_DEF(RICRECFFKEY_DEF,RICRECFFKEY);

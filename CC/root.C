@@ -2773,7 +2773,31 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
     //ENDofLIP    
 
     // Control variables
-    Hits = (ptr->_hit_pointer).size();
+    int hits = (ptr->_hit_pointer).size();
+
+    fBetaHit.clear();
+
+    for(int i=0;i<AMSEventR::Head()->NRichHit();i++){
+      float value=0;
+      for(int j=0;j<hits;j++){
+	if((ptr->_hit_pointer)[j]==i){
+#ifdef __AMSDEBUG__
+	  cout<<"FOUND "<<(ptr->_hit_pointer)[j]<<" HIT NUMBER "<<i<<endl;
+#endif	  
+	  if((ptr->_hit_used)[j]==0)
+	    value=(ptr->_beta_direct)[j];
+	  else
+	    value=-(ptr->_beta_reflected)[j];
+	  break;
+	}
+      }
+#ifdef __AMSDEBUG__
+      cout<<"PUSHING "<<value<<endl;
+#endif
+      fBetaHit.push_back(value);
+
+    }
+
 /*
     BetaDirectHits=new Float_t[Hits];
     BetaReflectedHits=new Float_t[Hits];
