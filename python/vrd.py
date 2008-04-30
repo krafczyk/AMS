@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: vrd.py,v 1.2 2008/03/10 20:07:45 choutko Exp $
+#  $Id: vrd.py,v 1.3 2008/04/30 10:34:06 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -19,7 +19,10 @@ for x in sys.argv:
     elif x == "-i": i=1
     elif x == "-v": v=1
     elif x == "-d": d=1
-    elif x == "-b": b=1
+    elif x[0:2] == "-b":
+        b=1
+        if(len(x)>2):
+            b=int(x[2:len(x)])
     elif x[0:2] == "-r" :
         run2p=int(x[2:len(x)])
 if(d==0):

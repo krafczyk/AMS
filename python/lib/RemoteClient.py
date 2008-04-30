@@ -545,7 +545,7 @@ class RemoteClient:
      -i    - prompt before files removal
      -v    - verbose mode
      -rRun    -  perfom op only for run  Run;
-     -d     -  delete completed runs/ntuiples from server
+     -d     -  delete completed runs/ntuples from server
      ./validateRuns.py  -v
      """
         if(i ==1):
@@ -554,9 +554,12 @@ class RemoteClient:
         if(d==1):
             self.delete=1
         else: self.delete=0
-        if(b==1):
+        if(b>=1):
             self.deletebad=1
         else: self.deletebad=0 
+        if(b>=2):
+            self.deleteunc=1
+        else: self.deleteunc=0 
         if(h==1):
             print HelpText
             return 1
@@ -689,6 +692,25 @@ class RemoteClient:
                     self.sqlserver.Update(sql)
                     print " deleting ",run.Run
                     self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+                    self.sqlserver.Commit()
+
+        if(self.deleteunc):
+              for run in self.dbclient.rtb:
+                if(run2p!=0 and run2p!=run.Run):
+                    continue
+                status=self.dbclient.cr(run.Status)
+                if(status=='Finished' and datamc==1):
+                    ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
+                    rstatus=ro[0][1]
+                    uid=run.uid;
+                    if(rstatus == 'Unchecked'): 
+                        sql=" update datafiles set status='BAD' where run=%d " %(run.Run)
+                        self.sqlserver.Update(sql)
+                        sql="update dataruns set status='Failed' where jid=%d " %(uid)
+                        self.sqlserver.Update(sql)
+                        print " deleting ",run.Run
+                        self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+
                     self.sqlserver.Commit()
 
     
