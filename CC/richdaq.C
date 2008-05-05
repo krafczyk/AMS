@@ -49,6 +49,10 @@ integer DAQRichBlock::checkdaqid(int16u id){   // RICH AS PORTS
 integer DAQRichBlock::checkdaqidnode(int16u node_word){   // RICH AS NODE
   int id=(node_word>>5)&((1<<9)-1);
 
+#ifdef __AMSDEBUG__
+  cout<<"Checking node "<<id<<endl;
+#endif
+
   for(int secondary=0;secondary<2;secondary++)
     for(int side=0;side<RICH_JINFs;side++)
       for(int alias=0;alias<2;alias++)
@@ -447,7 +451,8 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,1)=sigma_pedx5;
     RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,0)=thresholdx1;
     RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)=thresholdx5;
-    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=status;
+    //    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=status;
+    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=(status &&  RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id))?status:0;  // Do not let channels to recover
   }
   
   
