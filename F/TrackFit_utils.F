@@ -1,10 +1,7 @@
 *
-* $Id: TrackFit_utils.F,v 1.21 2008/05/06 15:48:45 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.20 2008/05/06 15:48:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
-* Revision 1.21  2008/05/06 15:48:45  choutko
-* *** empty log message ***
-*
 * Revision 1.20  2008/05/06 15:48:03  choutko
 * *** empty log message ***
 *
@@ -152,7 +149,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.21 2008/05/06 15:48:45 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.20 2008/05/06 15:48:03 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6970,7 +6967,7 @@ c        enddo
         endif
 c          if(i.le.10)write(*,*)'chi2 ',i,iter,chi2,rig,mcrig(i)
         if(i.le.10)then
-c          write(*,*)'chi2 ',i,iter,chi2
+          write(*,*)'chi2 ',i,iter,chi2
         endif
         if(l.eq.2.and.i.le.10000)then
           if(iter.eq.0)then
@@ -7226,12 +7223,9 @@ c            write(*,*)i,j,k,l,param(i,j,k,l),phi(i,j,k,l)
       end                        
 
 
-* $Id: TrackFit_utils.F,v 1.21 2008/05/06 15:48:45 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.20 2008/05/06 15:48:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
-* Revision 1.21  2008/05/06 15:48:45  choutko
-* *** empty log message ***
-*
 * Revision 1.20  2008/05/06 15:48:03  choutko
 * *** empty log message ***
 *
