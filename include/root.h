@@ -1,6 +1,7 @@
 //
 //  NB 
-//  Only stl vectors and scalars are allowed as root file entries
+//  Only stl vectors ,scalars and fixed size arrays 
+//    are allowed as root file entries
 //
 
 //
@@ -1037,7 +1038,7 @@ public:
   /// access function to RichHitR objects used
   /// \return index of RichHitR object in collection or -1
   int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
-  float BetaHit(unsigned int i){return (i<fBetaHit.size() && i>=0)?fBetaHit[i]:0;}
+  float BetaHit(unsigned int i){return (i<fBetaHit.size())?fBetaHit[i]:0;}
 
   RichRingR(){};
   RichRingR(AMSRichRing *ptr);

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.120 2008/04/29 13:06:04 choutko Exp $
+//  $Id: daqevt.C,v 1.121 2008/05/06 15:47:56 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -290,9 +290,11 @@ uinteger DAQEvent::_cl(int16u *pdata){
 const  int16u lmask=0x8000; 
 const int16u hmask=lmask-1;
 uinteger len=(*pdata)&lmask?(*(pdata+1)|(((*pdata)&hmask)<<16))+sizeof(pdata[0]): *(pdata);
-len/=sizeof(pdata[0]);
+len=(len+sizeof(pdata[0])/2)/sizeof(pdata[0]);
  return len+_OffsetL;
 }
+
+
 
 bool    DAQEvent::_isddg(int16u id){
 #ifdef __AMSDEBUG__
@@ -796,7 +798,8 @@ void DAQEvent::write(){
 }
 
 uinteger DAQEvent::getoffset(){
-   if(fbin)return uinteger(fbin.tellg())-sizeof(_pData[0])*(_Length);
+//   if(fbin)return uinteger(fbin.tellg())-sizeof(_pData[0])*(_Length);
+   if(fbin)return uinteger(fbin.tellg())-getlength();
    else {
     cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
     return 0;

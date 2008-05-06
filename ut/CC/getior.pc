@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.8 2005/10/20 12:25:20 choutko Exp $
+//  $Id: getior.pc,v 1.9 2008/05/06 15:47:56 choutko Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -135,7 +135,7 @@ int oracle_connect()
   strcat(uline,db);
   strcat(uline,"db");
 //
- cout<<uline<<endl;
+ //cout<<uline<<endl;
 //
   EXEC SQL CONNECT :uline;
   if (verbose) {

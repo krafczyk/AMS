@@ -39,7 +39,7 @@ bool IsGolden(AMSEventR *ev){
    return false;
  }
 */
-
+/*
  if(ev && ev->nParticle()>0){
 //return true;
 }
@@ -103,7 +103,26 @@ if(ev && ev->nAntiCluster()>0){
     return false;
     }     
   else return false;
-}
+*/
+ if(ev && ev->nParticle()>0 && ev->nTrTrack()>0){
+    TrTrackR tr=ev->TrTrack(0);
+     const int nbadl=12;
+     int blay[12]={1, 1, 1, 1, 2 ,  2,   4,   6,   7,   7,   8,   8};
+     int blad[12]={1,   1,  15,  15,   1,  14,   7,  12,   1,  14,   7,  15};
+     int bhalf[12]={0 ,  1,   0,   1,   0,   1,   1,   1,   1,   0,   0,   1};
+    for(int i=0;i<tr.NTrRecHit();i++){
+     TrRecHitR rh=ev->TrRecHit(tr.iTrRecHit(i));
+       int lay,lad,half,stripx,stripy;
+       rh.Geom(lay,lad,half,stripx,stripy);
+        for(int k=0;k<nbadl;k++){
+        if(lay==blay[k] && lad==blad[k] && half==bhalf[k]){
+          return true;
+        }
+      }
+     }
+  }
+  return false;
+ }
 };
 
 //

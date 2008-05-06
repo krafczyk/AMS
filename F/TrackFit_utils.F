@@ -1,7 +1,13 @@
 *
-* $Id: TrackFit_utils.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.21 2008/05/06 15:48:45 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.21  2008/05/06 15:48:45  choutko
+* *** empty log message ***
+*
+* Revision 1.20  2008/05/06 15:48:03  choutko
+* *** empty log message ***
+*
 * Revision 1.19  2008/04/04 08:49:38  choutko
 * *** empty log message ***
 *
@@ -146,7 +152,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.21 2008/05/06 15:48:45 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6799,7 +6805,7 @@ c           phi(i,j,k,l)=0
       rigr=0
       ntot=0
 #ifdef __AMSPARALLEL__
-       call omp_set_num_threads(omp_get_num_procs())
+       call omp_set_num_threads(omp_get_num_procs()-1)
 c       call omp_set_num_threads(1)
        !$OMP PARALLEL   DEFAULT(NONE) PRIVATE(ims,
      + ialgo,npt,layer,
@@ -6963,9 +6969,9 @@ c        enddo
          ch(l)=chi2
         endif
 c          if(i.le.10)write(*,*)'chi2 ',i,iter,chi2,rig,mcrig(i)
-c        if(i.le.10)then
+        if(i.le.10)then
 c          write(*,*)'chi2 ',i,iter,chi2
-c        endif
+        endif
         if(l.eq.2.and.i.le.10000)then
           if(iter.eq.0)then
             xchi2(1,i)=ch(1)+ch(2)
@@ -7220,9 +7226,15 @@ c            write(*,*)i,j,k,l,param(i,j,k,l),phi(i,j,k,l)
       end                        
 
 
-* $Id: TrackFit_utils.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.21 2008/05/06 15:48:45 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.21  2008/05/06 15:48:45  choutko
+* *** empty log message ***
+*
+* Revision 1.20  2008/05/06 15:48:03  choutko
+* *** empty log message ***
+*
 * Revision 1.19  2008/04/04 08:49:38  choutko
 * *** empty log message ***
 *

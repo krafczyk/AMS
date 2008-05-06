@@ -188,8 +188,9 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
   uinteger ic=in/trdid::nudr;
   uinteger udr=in%trdid::nudr;
   int leng2=leng/2;
-  if(leng2!=448){
-   cerr<<"AMSTRDRaw::updtrcalib-WrongLength "<<leng2<<endl;
+  const int span=448;
+  if(leng2!=span && leng2!=span*2){
+   cerr<<"AMSTRDRaw::updtrcalib-WrongLength "<<leng2<<" "<<endl;
    return;
   }
   int status=*(p+leng+4);
@@ -198,7 +199,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
    return;
   }
   AMSTRDIdSoft::_Calib[ic][udr]=1;
-  for (int i=0;i<leng2;i++){
+  for (int i=0;i<span;i++){
         int ufe=i%7;
         int cha=i/7;
         int roch=cha%16;
@@ -207,7 +208,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
        if(!id.dead()){
          if(id.getgain()==0)id.setgain()=1;
          id.setped()=*(p+i)/TRDMCFFKEY.f2i;
-         id.setsig()=*(p+leng2+i)/TRDMCFFKEY.f2i;
+         id.setsig()=*(p+span+i)/TRDMCFFKEY.f2i;
          if(id.getsig()>TRDCALIB.BadChanThr){
              id.setstatus(AMSDBc::BAD);
           }

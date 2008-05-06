@@ -12,7 +12,7 @@ elif [ "$UNAME" = "HP-UX" ] ; then
 elif [ "$UNAME" = "IRIX" ] ; then
     MACHINE="irix"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc2"
+    MACHINE="linux/icc"
 else
 echo $UNAME is not supported yet
 
@@ -53,12 +53,8 @@ RUN=1207836254
 RUN=1207908888 
 RUN=1207904364
 RUN=1207911497
-RUN=1208178020
-CRUN=1208455898
-CRUN=1208454013
-CRUN=1208450030
-RUN=1209056988
-RUN=1208436155
+RUN=1208945116
+RUN=1210078286
 $AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14
@@ -75,13 +71,11 @@ IOPA 1=1 2='/f2users/choutko/calib.hbk' 127=0
 43=101
 45='TriggerLVL1   ' 
 AMSJOB 1=711   2=0      3=5.   4=1  5=0 46='AMS02'
-87=1 88=''
+87=0 88=''
 C Special HP-UX
 TIME 3=100000000
 DAQC 1=1 
- 2='/Offline/RunsDir/CAL/$RUN' 
-C 2='/daq/PMCHRDL/0045/084'
-C 2='/tmp/$RUN'
+2='/Offline/RunsDir/CAL/1210078286' 
 TRCALIB 2=200 9=5
 TRMC 36=1
 TRDMC 16=1

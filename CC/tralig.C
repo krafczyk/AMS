@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.53 2008/04/29 16:09:49 choutko Exp $
+//  $Id: tralig.C,v 1.54 2008/05/06 15:47:56 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -569,10 +569,23 @@ while(offspring){
          }
          bool cut=abs(num[1]-num[0])<TRALIG.Cuts[9][0] || (num[1]-num[0])*rig>0;
          if(TRALIG.Cuts[9][1]!=0)cut= (TRALIG.Cuts[9][1]*rig>0);
-         if(nh>=TRALIG.Cuts[7][0] && chi2<TRALIG.Cuts[7][1]*100 && fabs(rig)>TRALIG.Cuts[8][0]/1.5 &&cut){
+         bool smart=false;
+          int nentries=100000000;
+             integer ladder[2][maxlay];
+             AMSTrTrack::decodeaddress(ladder,address);
+             for(int i=0;i<trconst::maxlay;i++){
+              if(ladder[0][i]){
+                int add=_pPargl[ladder[0][i]-1][ladder[1][i]][i].NEntries();
+                if(add<nentries)nentries=add;
+              }
+             }
+
+         for(int k=0;k<4;k++){
+           smart=smart || (nh>=TRALIG.Cuts[7][0]-k && nentries<(TRALIG.SingleLadderEntryLimit>>k));
+         }
+         if(smart && chi2<TRALIG.Cuts[7][1]*100 && fabs(rig)>TRALIG.Cuts[8][0]/1.5 &&cut){
           if(pal->_PositionData<pal->_NData){
             // UPdateGlobalParSpace;
-             integer ladder[2][maxlay];
              AMSTrTrack::decodeaddress(ladder,address);
              int add=0;
              int i;

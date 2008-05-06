@@ -70,9 +70,9 @@ int firstevent=-1;
   rfile->Close();
   if(nevread!=nev)return -2;
   if(nev>2 && LastEvent>0){
-   int rate=(lastevent+1-firstevent)/nevread;
-   if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<endl; 
-   if(abs(LastEvent-lastevent)>5*rate && abs(LastEvent-lastevent)>2*diff){
+   float rate=(lastevent+1-firstevent)/nevread;
+   if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<" "<<rate<<" "<<diff<<endl; 
+   if(abs(LastEvent-lastevent)>10*rate && abs(LastEvent-lastevent)>3*diff){
      return -5;
    } 
   }

@@ -7,7 +7,7 @@ if [ "$UNAME" = "AIX" ] ; then
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc"
+    MACHINE="linux/icc2"
 else
 echo $UNAME is not supported yet
 
@@ -30,8 +30,8 @@ MISC 4=1 5=0
 MCGEN 1=-50. 2=-50. 3=160. 4=50. 5=50. 6=160.
 7=0. 8=0. 9=-1. 10=0. 11=0. 12=-1.
 C 12=-0.95 
-13=10. 14=10. 15=0 16=1. 19=101 20=5 21=0  
- 25=01012008 27=01012010 
+13=256. 14=256. 15=0 16=1. 19=101 20=5 21=0  
+ 25=20102006 27=20102008 
 C 35='el_smin.flux'
 25=20102008 27=19032009
 IOPA 1=0 127=2 128='/f2users/choutko/g3v1g3.root' 43=101
@@ -46,6 +46,7 @@ TIME 3=10000000
 TERM 1234567890
 L3REC 11=0
 G4FF 4=1 5=1 6=0
+TRALIG 3=1
 C TRDMC 1=-2
 C TRFIT 74=1
 END
