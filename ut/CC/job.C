@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.563 2008/04/29 13:06:04 choutko Exp $
+// $Id: job.C,v 1.564 2008/05/07 07:38:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1339,6 +1339,7 @@ void AMSJob::_reanti2data(){
 //========================================================================
 void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
+DAQCFFKEY.Mode=1;
 DAQCFFKEY.BTypeInDAQ[0]=0;
 DAQCFFKEY.BTypeInDAQ[1]=1023;
 VBLANK(DAQCFFKEY.ifile,40);

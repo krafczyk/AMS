@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.91 2008/04/29 13:06:05 choutko Exp $
+//  $Id: trrawcluster.C,v 1.92 2008/05/07 07:38:11 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -403,7 +403,8 @@ for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
  //if(ic==3)ic=0;
  int16u tdr=(*(p+*p))&31;
 if(tdr>=trid::ntdr){
-cerr<<" AMSTrRawCluster::buildraw-E-tdrOutOfRange "<<tdr<<endl;
+static int nerr=0;
+if(nerr++<100)cerr<<" AMSTrRawCluster::buildraw-E-tdrOutOfRange "<<tdr<<endl;
 continue;
 }
  if(DAQEvent::isRawMode(*(p+*p))){
@@ -416,7 +417,7 @@ continue;
   cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
   break;
  }
- for(int16u* paux=p+1;paux<p+*p-1-cmn;paux+=*paux+2+1){
+ for(int16u* paux=p+DAQCFFKEY.Mode;paux<p+*p-1-cmn;paux+=*paux+2+1){
   int16u haddr=*(paux+1);
   if(haddr>1023 ){
 #ifdef __AMSDEBUG__
@@ -426,7 +427,8 @@ continue;
   }
 //#ifdef __AMSDEBUG__
  else if(haddr+*(paux)>=1024){
-    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
+    static int nerr=0;
+    if(nerr++<100)cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
     continue;
  }
 //#endif

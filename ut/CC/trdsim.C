@@ -311,7 +311,9 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
  }
  if(compressed && !(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)){
   // compressed mode detected
-  for (int j=1+rawl;j<len;j+=2){
+//wild guess about data format
+DAQCFFKEY.Mode=len%2==0?2:1;
+  for (int j=DAQCFFKEY.Mode+rawl;j<len;j+=2){
         uint16 adr=*(p+j);
         int ufe=adr/64;
         int cha=adr%64;
