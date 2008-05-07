@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.121 2008/05/06 15:47:56 choutko Exp $
+//  $Id: daqevt.C,v 1.122 2008/05/07 09:23:31 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -581,7 +581,8 @@ integer DAQEvent::_DDGSBOK(){
       if(_isjinj(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
       if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
-       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event<<endl;
+     int ee= (_Event&((1<<16)-1)); 
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<ee<<" DDGSB says it is  "<<event<<endl;
        return 0;
       }
       int ntot=0;
@@ -653,8 +654,8 @@ integer DAQEvent::_DDGSBOK(){
    }
    else if(_isjlvl1(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
-      if(event !=  (_Event&((1<<16)-1))){
-       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
+      if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event<<endl;;
        return 0;
       }
 #ifdef __AMSDEBUG__
@@ -664,8 +665,8 @@ integer DAQEvent::_DDGSBOK(){
    }
    else if(_isjinf(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
-      if(event !=  (_Event&((1<<16)-1))){
-       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event;
+      if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
+       cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event<<endl;;
        return 0;
       }
 #ifdef __AMSDEBUG__
