@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.17 2008/03/06 16:14:50 pzuccon Exp $
+//  $Id: tkdbc.h,v 1.18 2008/05/09 09:37:08 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -17,6 +17,7 @@ const int ntdr=24;
 namespace trconst{
  const integer maxlay=8;
  const integer maxlad=17;
+ const integer maxsen=15;
  const integer TrkTypes=3;//for charge algorithm(
  const integer TrkPdfBins=100;//max bins in Elos PDF's
 }
@@ -40,6 +41,7 @@ private:
  static integer * _patallow2;
  static uinteger _Npat;
  static integer _NumberSen;
+ static integer _NumberSenM;
  static integer _NumberLayer;
  static integer _NumberLadder;
  static integer _NumberMarkers;
@@ -75,6 +77,7 @@ private:
                                                     // 2nd hasan
    static void InitPattern();
    static uinteger * _Cumulus;
+   static uint64 * _CumulusS;
 
 
  class TRLDGM_def{
@@ -191,6 +194,7 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
 
    inline static integer nlay(){return _nlaysi;}
    static uinteger Cumulus(integer ilay);
+   static uint64 CumulusS(integer ilay);
 
    inline static integer nlad(integer ilay){
      #ifdef __AMSDEBUG__

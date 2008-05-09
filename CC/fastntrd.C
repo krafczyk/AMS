@@ -56,7 +56,12 @@
      }
      if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
+try{
        iflg=rootread(fname,nevents,iver,lastevent,jou);
+}
+catch (std::bad_alloc aba){
+      iflg=-5;
+}
       }
       else {
        iflg=IFNTREAD(fname,nevents,iver);

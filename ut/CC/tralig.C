@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.54 2008/05/06 15:47:56 choutko Exp $
+//  $Id: tralig.C,v 1.55 2008/05/09 09:37:06 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -555,10 +555,12 @@ while(offspring){
      integer sensor= half==0? sen: TKDBc::nhalf(lay,lad)+sen;
      AMSTrIdGeom amd(lay,lad,sensor,0,0);
      AMSgvolume * psen= AMSJob::gethead()->getgeom(amd.crgid());
+        if(TRALIG.LaddersOnly){
         psen=psen->up();
         if(psen && TRALIG.LayersOnly){
           psen=psen->up();
         }
+       }
      if(!psen){
        cerr<< " AMSTrAligPar::Fillgl-E-SensorNotfound "<<amd;
        return false;
@@ -646,7 +648,7 @@ again:
               half=ladder[1][plane];
               for(int j=0;j<3;j++)arr[j][plane]=_pPargl[lad-1][half][plane].getcoo()[j]+_pPargl[lad-1][half][plane].getmtx(j).prod(((pal->_pData)[ip]._Hits[i]));
 //              for(int j=0;j<3;j++)arr[j][plane]=((pal->_pData)[ip]._Hits[i])[j];
-              for(int j=0;j<3;j++)arr[j+5][plane]=((pal->_pData)[ip]._EHits[i])[j];
+              for(int j=0;j<3;j++)arr[j+5][plane]=((pal->_pData)[ip]._EHits[0])[j];
               for(int j=0;j<3;j++)arr[j+7][plane]=((pal->_pData)[ip]._CooA[i])[j];
               arr[3][plane]=lad;
               arr[4][plane]=half+1;
@@ -1782,11 +1784,11 @@ void AMSTrAligData::Init(integer pattern, uintl address, AMSPoint hit[],AMSPoint
    _Pid=5;
   _NHits=TKDBc::patpoints(pattern);
   _Hits= new AMSPoint[_NHits];
-  _EHits=new AMSPoint[_NHits];
+  _EHits=new AMSPoint[1];   // all ehits are the same, conserve memory
   _CooA=new AMSPoint[_NHits];
   for(int i=0;i<_NHits;i++){
       _Hits[i]=hit[i];
-      _EHits[i]=ehit[i];
+      _EHits[0]=ehit[i];
       _CooA[i]=cooa[i];
   }
   return ;
@@ -1805,18 +1807,20 @@ void AMSTrAligData::Init(AMSTrTrack *ptrack, AMSmceventg *pmcg){
    else _Pid=5;
   _NHits=TKDBc::patpoints(pattern);
   _Hits= new AMSPoint[_NHits];
-  _EHits=new AMSPoint[_NHits];
+  _EHits=new AMSPoint[1];
   _CooA=new AMSPoint[_NHits];
   for(int i=0;i<TKDBc::patpoints(pattern);i++){
     for(int j=0;j<ptrack->getnhits();j++){
      AMSTrRecHit * ph= ptrack->getphit(j);
      if (ph->getLayer() == TKDBc::patconf(pattern,i)){
       _Hits[i]=ph->getHit();
-      _EHits[i]=ph->getEHit();
+      _EHits[0]=ph->getEHit();
        AMSgvolume * psen= ph->getpsen();
+        if(TRALIG.LaddersOnly){
         psen=psen->up();
         if(psen && TRALIG.LayersOnly){
           psen=psen->up();
+        }
         }
         if(psen)_CooA[i]=psen->getcooA();
         else _CooA[i]=AMSPoint();

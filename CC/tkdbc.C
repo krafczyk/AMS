@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.59 2008/04/04 08:49:17 choutko Exp $
+//  $Id: tkdbc.C,v 1.60 2008/05/09 09:37:06 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -13,6 +13,7 @@ TKDBc * TKDBc::_HeadLayer=0;
 TKDBc * TKDBc::_HeadLadder[2]={0,0};
 TKDBc * TKDBc::_HeadMarker[2]={0,0};
 integer TKDBc::_NumberSen=0;
+integer TKDBc::_NumberSenM=0;
 integer TKDBc::_NumberMarkers=0;
 integer TKDBc::_NumberLayer=0;
 integer TKDBc::_NumberLadder=0;
@@ -47,6 +48,7 @@ integer TKDBc::_ReadOK=0;
      number   TKDBc::_PlMarkerPos[maxlay][2][4][3];  // 1st wjb
                                                    // 2nd hasan
     uinteger * TKDBc::_Cumulus;
+    uint64 * TKDBc::_CumulusS;
 
 
 void TKDBc::init(float zshift ){
@@ -2196,12 +2198,21 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
   // calculate sensor #
        int i,j,k;
        for ( i=0;i<nlay();i++){
+            int nsenl=0;
+            int nsenh=0;
         for ( j=0;j<nlad(i+1);j++){
-         for ( k=0;k<nsen(i+1,j+1);k++)_NumberSen++;
+          nsenh+=nhalf(i+1,j+1);
+         for ( k=0;k<nsen(i+1,j+1);k++){
+          _NumberSen++;
+           nsenl++;
+         }
         }
+         if(_NumberSenM<nsenh)_NumberSenM=nsenh;
+         if(_NumberSenM<nsenl-nsenh)_NumberSenM=nsenl-nsenh;
+         cout << nsenl <<"/"<<nsenh<<" sensors initalized for layer "<<i+1<<endl; 
        }
 
-       cout <<"      Total of " <<_NumberSen<< "  sensors initialized."<<endl;
+       cout <<"      Total of " <<_NumberSen<<" "<<_NumberSenM<< "  sensors initialized."<<endl;
        int nhalflad=0;
   // calculate ladder #
        for ( i=0;i<nlay();i++){
@@ -3633,6 +3644,19 @@ if(!_Cumulus){
 }
 return _Cumulus[layer-1];
 }
+
+
+uint64 TKDBc::CumulusS(integer layer){
+if(!_CumulusS){
+ _CumulusS = new uint64[nlay()];
+ _CumulusS[0]=1;
+  for(int i=1;i<nlay();i++){
+   _CumulusS[i]=_CumulusS[i-1]*(maxsen*nlad(i)+1);
+  }
+}
+return _CumulusS[layer-1];
+}
+
 
  integer * TKDBc::_patconf[maxlay];
  integer * TKDBc::_patpoints;

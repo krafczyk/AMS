@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.93 2008/03/07 17:02:02 choutko Exp $
+//  $Id: trrec.h,v 1.94 2008/05/09 09:37:08 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -163,6 +163,7 @@ static void _addnext(AMSgSen * p, AMSTrIdGeom* id, integer ,number, number, AMST
   void _writeEl();
 
 public:
+  AMSTrIdGeom getid()const {return _Id;}
   void _printEl(ostream & stream){ stream << " Status " << _status << "  " << 
   _Id <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
@@ -283,7 +284,8 @@ public:
 class AMSTrTrack: public AMSlink{
 protected:
 AMSTrRecHit * _Pthit[trconst::maxlay];
-uintl _Address;
+uintl _Address;   // ladder comb address
+uint128 _AddressS;   // sensors comb address
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;
@@ -360,8 +362,11 @@ void _crHit(bool nodb);
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
+void _buildaddressS();
 static void decodeaddress(integer ladder[2][trconst::maxlay], uintl address);
+static void decodeaddressS(integer sensor[3][trconst::maxlay], uint128 address);
 static uintl  encodeaddress(integer lad[2][trconst::maxlay]);
+static uint128  encodeaddressS(integer lad[3][trconst::maxlay]);
 static uintl * getchild(uintl address, uinteger &nchild);
 public:
   static geant & TimeLimit(){return _TimeLimit;}
@@ -395,6 +400,7 @@ integer operator < (AMSlink & o) const {
   friend class TOF2User;
 
 uintl getaddress(){return _Address;}
+uint128 getaddressS(){return _AddressS;}
 void   AdvancedFit();
 integer getpattern()const{return _Pattern;}
 AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, number chi2MS, number jchi2MS, number rigFMS, number grigms);

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.564 2008/05/07 07:38:11 choutko Exp $
+// $Id: job.C,v 1.565 2008/05/09 09:37:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -627,6 +627,7 @@ for( i=0;i<8;i++){
 }
   TRALIG.EventsPerRun=1001;
   TRALIG.LayersOnly=0;
+  TRALIG.LaddersOnly=1;
   TRALIG.GlobalGoodLimit=0.085;
   TRALIG.SingleLadderEntryLimit=10000;
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");

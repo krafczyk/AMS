@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.102 2008/03/06 16:01:33 pzuccon Exp $
+//  $Id: geant3.C,v 1.103 2008/05/09 09:37:06 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1181,7 +1181,8 @@ try{
      break;
     }
 #else
-     break;
+     if(AMSJob::gethead() && AMSJob::gethead() -> isMonitoring())continue;
+     else break;
 #endif
     }
    }

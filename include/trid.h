@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.34 2008/04/15 15:35:19 choutko Exp $
+//  $Id: trid.h,v 1.35 2008/05/09 09:37:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -58,6 +58,7 @@ inline integer getlayer() const {return _layer;}
 inline integer getladder()const {return _ladder;}
 inline integer gethalf()const {return _sensor<=TKDBc::nhalf(_layer,_ladder)?0:1;}
 inline integer getsensor()const {return _sensor;}        
+inline integer getsensorR()const {return _sensor-gethalf()*TKDBc::nhalf(_layer,_ladder);}        
 inline integer cmpt()const {return _layer+10*_ladder+1000*_sensor;}
 int cmptr()const;
 inline integer getstrip (integer i) const{if(i==0)return _stripx;else return _stripy;} 

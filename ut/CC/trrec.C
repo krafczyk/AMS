@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.197 2008/03/19 13:44:51 choutko Exp $
+//  $Id: trrec.C,v 1.198 2008/05/09 09:37:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3520,6 +3520,7 @@ void AMSTrTrack::_crHit(bool nodb=false){
  // build address
 
  _buildaddress();
+ _buildaddressS();
  //decodeaddress();
  integer found=0;
  AMSTrAligPar * par(0);
@@ -3577,12 +3578,38 @@ void AMSTrTrack::_buildaddress(){
   } 
 
 
+
+void AMSTrTrack::_buildaddressS(){
+  _AddressS(0)=0;
+  _AddressS(1)=0;
+  for(int i=0;i<_NHits;i++){
+    AMSTrIdGeom id = _Pthit[i]->getid();
+    int layer=id.getlayer();
+    int ladder=id.getladder();
+    int half=id.gethalf();
+     _AddressS(0)+=TKDBc::CumulusS(layer)*((ladder-1)*(trconst::maxsen)+id.getsensorR()-1);
+     _AddressS(1)+=TKDBc::CumulusS(layer)*(half);
+    }
+  } 
+
+
+
 void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uintl _Address){
    for(int i=0;i<TKDBc::nlay();i++){
     uinteger lad=(_Address(0)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)+1);
     uinteger half=(_Address(1)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)+1);
     ladder[0][i]=lad%(TKDBc::nlad(i+1)+1);
     ladder[1][i]=half%(TKDBc::nlad(i+1)+1);
+    //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
+   }
+}
+void AMSTrTrack::decodeaddressS(integer ladder[3][trconst::maxlay], uint128 _Address){
+   for(int i=0;i<TKDBc::nlay();i++){
+    uint64 sen=(_Address(0)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)*trconst::maxsen+1);
+    uint64 half=(_Address(1)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)*trconst::maxsen+1);
+    ladder[0][i]=sen%(TKDBc::nlad(i+1)*trconst::maxsen+1)/trconst::maxsen+1;
+    ladder[1][i]=half%(TKDBc::nlad(i+1)*trconst::maxsen+1);
+    ladder[2][i]=(sen%(TKDBc::nlad(i+1)*trconst::maxsen+1))%trconst::maxsen+1;
     //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
 }
@@ -3644,6 +3671,14 @@ uintl AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
    for(int i=0;i<TKDBc::nlay();i++){
      address(0)+= TKDBc::Cumulus(i+1)*(ladder[0][i]);
      address(1)+= TKDBc::Cumulus(i+1)*(ladder[1][i]);
+   }
+   return address;
+}
+uint128 AMSTrTrack::encodeaddressS(integer ladder[3][trconst::maxlay]){
+   uint128 address(0,0);
+   for(int i=0;i<TKDBc::nlay();i++){
+     address(0)+= TKDBc::CumulusS(i+1)*((ladder[0][i]-1)*trconst::maxsen+ladder[2][i]-1);
+     address(1)+= TKDBc::CumulusS(i+1)*(ladder[1][i]);
    }
    return address;
 }
@@ -3788,7 +3823,7 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_RC(0),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0,0){
+_NHits(nht),_FastFitDone(FFD),_RC(0),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0,0),_AddressS(0,0){
   for(int i=0;i<2;i++)_Dbase[i]=0;
   _Chi2StrLine=0;
 _Chi2WithoutMS=0;
