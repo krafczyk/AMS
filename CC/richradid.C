@@ -10,7 +10,28 @@ void RichRadiatorTileManager::Init(){  // Default initialization
   if(_number_of_rad_tiles!=0) return; // Not necessary
   //  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
   Init_Default();
+
+  // Read in database entries if needed
+  char filename[201];
+  UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
+  
+  
+  for(int i=200;i>=0;i--){
+    if(filename[i]!=' '){
+      filename[i+1]=0;
+      break;
+    }
+  } 
+  
+  if(filename[0]!='\0') ReadFromFile(filename);
+
+
+
+  // Compute tables
+  _compute_tables();  
+
 }
+
 
 void RichRadiatorTileManager::Init_Default(){  // Default initialization
   if(RICRADSETUPFFKEY.setup!=1){
@@ -115,7 +136,8 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
 
       current++;
     }
-  _compute_tables();
+
+
 
   //
   // Fill static tables
@@ -602,3 +624,47 @@ extern "C" geant getmomentum_(geant *index){
 }
 
 
+//////// Read Radiator tile constants from file
+
+void RichRadiatorTileManager::ReadFromFile(const char *filename){
+  cout<<"RichRadiatorTileManager::ReadFromFile: reading constants from file"<<endl;
+  fstream data(filename,ios::in); // open  file for reading
+  
+  if(data){
+    cout<<"RichRadiatorTileManager::ReadFromFile: "<<filename<<" Opened"<<endl;
+  }else{
+    cerr <<"RichRadiatorTileManager::ReadFromFile: missing "<<filename<<endl;
+    exit(1);
+  }
+
+  // Code to read all the stuff
+  float x,y,index;
+  while(!data.eof()){
+    data>> x >> y >> index;
+    
+    // Get the tile at the position x,y and 
+    int tile_number=get_tile_number(x,y);
+
+    if(tile_number<0){
+      cout<<"RichRadiatorTileManager::ReadFromFile: Tile at "<<x<<" "<<y<<" is not defined"<<endl;
+      continue;
+    }
+    
+    float registered_index=_tiles[tile_number]->index;
+
+    if(registered_index==0 || index==0 || fabs(1-index/registered_index)>1e-2){
+      cout<<"RichRadiatorTileManager::ReadFromFile: Tile index at "<<x<<" "<<y<<" is not correct"<<endl;
+      continue;
+    }
+
+#ifdef __AMSDEBUG__
+    cout<<"   Filling "<<tile_number<<" with "<<index<<endl;
+#endif
+
+    _tiles[tile_number]->index=index;
+
+  }
+
+
+  data.close();
+}

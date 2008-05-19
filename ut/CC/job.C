@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.565 2008/05/09 09:37:06 choutko Exp $
+// $Id: job.C,v 1.566 2008/05/19 15:11:11 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -293,12 +293,30 @@ void AMSJob::_sirichdata(){
 
 
   RICRADSETUPFFKEY.setup=1;
+  VBLANK(RICRADSETUPFFKEY.tables_in,50);
+  VBLANK(RICRADSETUPFFKEY.tables_out,50);
   FFKEY("RICSET",(float *)&RICRADSETUPFFKEY,sizeof(RICRADSETUPFFKEY_DEF)/sizeof(integer),"MIXED");
 
   RICRECFFKEY.recon[0]=11;   //beta reconstruction
   RICRECFFKEY.recon[1]=1;   //Z reconstruction
-  FFKEY("RICREC",(float *)&RICRECFFKEY,sizeof(RICRECFFKEY_DEF)/sizeof(integer),"MIXED");
 
+  RICRECFFKEY.pars0[0]=RICRECFFKEY.pars0[1]=
+    RICRECFFKEY.pars0[2]=RICRECFFKEY.pars0[3]=
+    RICRECFFKEY.pars0[4]=0;
+
+  RICRECFFKEY.pars1[0]=RICRECFFKEY.pars1[1]=
+    RICRECFFKEY.pars1[2]=RICRECFFKEY.pars1[3]=
+    RICRECFFKEY.pars1[4]=0;
+
+  RICRECFFKEY.pars2[0]=RICRECFFKEY.pars2[1]=
+    RICRECFFKEY.pars2[2]=RICRECFFKEY.pars2[3]=
+    RICRECFFKEY.pars2[4]=0;
+
+  RICRECFFKEY.pars3[0]=RICRECFFKEY.pars3[1]=
+    RICRECFFKEY.pars3[2]=RICRECFFKEY.pars3[3]=
+    RICRECFFKEY.pars3[4]=0;
+
+  FFKEY("RICREC",(float *)&RICRECFFKEY,sizeof(RICRECFFKEY_DEF)/sizeof(integer),"MIXED");
 
   RICFFKEY.ReadFile=0;
   RICFFKEY.sec[0]=0;

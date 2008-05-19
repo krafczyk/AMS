@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.239 2008/05/09 09:37:07 choutko Exp $
+//  $Id: commons.h,v 1.240 2008/05/19 15:11:11 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -999,6 +999,8 @@ COMMON_BLOCK_DEF(RICCONTROLFFKEY_DEF,RICCONTROLFFKEY);
 class RICRADSETUPFFKEY_DEF{
 public:
 integer setup;  // Allows to choose among several differen geometries
+integer tables_in[50];     // Input file of radiator tables
+integer tables_out[50];    // Output file of radiator tables
 };
 #define RICRADSETUPFFKEY COMMON_BLOCK(RICRADSETUPFFKEY,ricradsetupffkey)
 COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);

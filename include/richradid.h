@@ -83,7 +83,7 @@ class RichRadiatorTileManager{
 				    geant &height);
 
   static void _compute_tables();
-
+  static void ReadFromFile(const char *filename);
  public:
   static void Init();                    // Init geometry and kinds and so on
   //  static void Init_File(char *filename);
