@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.515 2008/04/29 13:06:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.516 2008/05/26 18:21:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1916,7 +1916,7 @@ my $fevt=-1;
                               $ntevt=0;
                           }
                           if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1){
-                           warn "  ntuples/run mismatch $r4->[0][0] $run->{LastEvent}-$run->{FirstEvent}+1 $run->{Run} \n";
+                           warn "  ntuples/run mismatch $ntevt $run->{LastEvent}-$run->{FirstEvent}+1 $run->{Run} \n";
                        }
           if($ntevt>0){
                              $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt WHERE jid=$run->{Run}";

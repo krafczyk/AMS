@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.126 2008/02/25 19:07:48 ams Exp $
+# $Id: Monitor.pm,v 1.127 2008/05/26 18:21:21 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1693,6 +1693,9 @@ sub ResetFailedRuns{
  }
        if($rdst{Status} eq "Failed"){
          $rdst{Status}="ToBeRerun";
+         if($rdst{Priority}>1){
+            $rdst{History}="ToBeRerun";
+         }
          if($rdst{uid}>(1<<26)){
           $rdst{Status}="Foreign";
           }
