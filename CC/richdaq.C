@@ -50,7 +50,8 @@ integer DAQRichBlock::checkdaqidnode(int16u node_word){   // RICH AS NODE
   int id=(node_word>>5)&((1<<9)-1);
 
 #ifdef __AMSDEBUG__
-  cout<<"Checking node "<<id<<endl;
+  if(AMSFFKEY.Debug>1)
+    cout<<"Checking node "<<id<<endl;
 #endif
 
   for(int secondary=0;secondary<2;secondary++)
@@ -58,7 +59,8 @@ integer DAQRichBlock::checkdaqidnode(int16u node_word){   // RICH AS NODE
       for(int alias=0;alias<2;alias++)
 	if(id==JINFNodes[secondary][side][alias]){
 #ifdef __AMSDEBUG__
-	  cout<<"Found node "<<id<<" which is side:"<<side<<" secondary:"<<secondary<<endl;
+	  if(AMSFFKEY.Debug>1)
+	    cout<<"Found node "<<id<<" which is side:"<<side<<" secondary:"<<secondary<<endl;
 #endif
 	  return 1;
 	}
@@ -95,9 +97,11 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
 void DAQRichBlock::buildrawnode(integer length,int16u *p){
 #ifdef __AMSDEBUG
+  if(AMSFFKEY.Debug>1){
   cout<<"*** IN DAQRichBlock::buildrawnode "<<endl
       <<" Length "<<length<<endl;
   printf(" DUMP %x %x %x %x %x\n",*(p-1),*p,*(p+1),*(p+2),(*p+3));
+  }
 #endif
 
   // In p-1 is the node id and so 
@@ -432,6 +436,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 
     //    RichPMTChannel channel(pmt_geom_id,pixel_geom_id);
 #ifdef __AMSDEBUG__
+    if(AMSFFKEY.Debug>1)
     cout<<"PEDx1 "<<RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,0)<<" -- "<<pedx1<<endl
 	<<"PEDx5 "<<RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,1)<<" -- "<<pedx5<<endl
 	<<"SIGMAx1 "<<RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,0)<<" -- "<<sigma_pedx1<<endl
@@ -518,6 +523,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
   int low_gain[RICH_PMTperCDP][RICnwindows];       // Buffer to store low gain information just in case it is needed
   for(CDPFound=0;;CDPFound++){
 #ifdef __AMSDEBUG__
+    if(AMSFFKEY.Debug>1)
     cout<<"Pointer at "<<pointer-p<<" fence in "<<length-1<<" fence content "<<*(p-1+length)<<endl; 
 #endif
     if(pointer>=p-1+length) break;   // Last fragment processed       
@@ -532,6 +538,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
     if(cdp.status.isRaw){
 
       // Prepare some nice histograms
+      /*
       if(daq_histograms==0){
 	daq_histograms=new TH1F*[RICmaxpmts*RICnwindows*2];   // pixels*gains*pmts
 	for(int pmt=0;pmt<RICmaxpmts;pmt++)
@@ -542,6 +549,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
 	      daq_histograms[gain+2*pixel+2*RICnwindows*pmt]=new TH1F(histo_name,histo_name,4096,-0.5,4095.5);
 	    }
       }
+      */
 
       if(cdp.length!=1+         // Status word
 	 RICH_PMTperCDP*RICnwindows*2) Do(kCDPRawTruncated);
@@ -552,7 +560,9 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
       DSPRawParser channel(cdp.data);
 
       do{
+	/*
 	daq_histograms[channel.gain+2*channel.pixel+2*RICnwindows*channel.pmt]->Fill(channel.counts);
+	*/
 
 	// First comes the low gain, the high gain then
 	if(channel.gain==0) {low_gain[channel.pmt][channel.pixel]=channel.counts;}
