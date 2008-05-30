@@ -12,7 +12,7 @@ elif [ "$UNAME" = "HP-UX" ] ; then
 elif [ "$UNAME" = "IRIX" ] ; then
     MACHINE="irix"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc"
+    MACHINE="linux/icc2"
 else
 echo $UNAME is not supported yet
 

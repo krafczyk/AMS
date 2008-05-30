@@ -1,7 +1,13 @@
 *
-* $Id: TrackFit_utils.F,v 1.20 2008/05/06 15:48:03 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.22 2008/05/30 10:01:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.22  2008/05/30 10:01:03  choutko
+* *** empty log message ***
+*
+* Revision 1.21  2008/05/06 15:48:45  choutko
+* *** empty log message ***
+*
 * Revision 1.20  2008/05/06 15:48:03  choutko
 * *** empty log message ***
 *
@@ -149,7 +155,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.20 2008/05/06 15:48:03 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.22 2008/05/30 10:01:03 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6643,7 +6649,7 @@ c         ENDIF
       implicit none
       integer nplan,m,algo,what
       integer nlad,nhalf,npar,iter,miter,nmin,maxcases
-      parameter(nlad=15)
+      parameter(nlad=15*15)
       parameter (nhalf=2)
       parameter (nplan=8)
       parameter (npar=2)
@@ -6652,7 +6658,7 @@ c         ENDIF
       parameter (maxcases=2000)
 #else
 #ifdef __AMSPARALLEL__
-      parameter (maxcases=2500000)
+      parameter (maxcases=5900000)
 #else
       parameter (maxcases=300000)
 #endif
@@ -6660,7 +6666,7 @@ c         ENDIF
       real rig,rigmin
       integer itermin
       real xf(2)
-      real xchi2(2,10000)
+      real xchi2(2,1000)
       real cool(3,nplan,nlad,nhalf),s1,s2,s3
       common /arrcommon/ncases,array,fixpar,cool,mcrig
       real arr(nplan,*),chi2m
@@ -6701,7 +6707,7 @@ c         ENDIF
 #endif
       if(what.eq.-2)then
         ncases=0
-        call vzero(xchi2,2*10000)
+        call vzero(xchi2,2*1000)
         return
       else if(what.eq.0.and.ncases.lt.maxcases)then
          do i=1,nplan
@@ -6737,7 +6743,7 @@ c         ENDIF
            enddo
           enddo
           what=what+1
-          write(*,*)j,k
+c          write(*,*)j,k
           return
          enddo
         enddo 
@@ -6802,7 +6808,7 @@ c           phi(i,j,k,l)=0
       rigr=0
       ntot=0
 #ifdef __AMSPARALLEL__
-       call omp_set_num_threads(omp_get_num_procs()-1)
+       call omp_set_num_threads(omp_get_num_procs()-3)
 c       call omp_set_num_threads(1)
        !$OMP PARALLEL   DEFAULT(NONE) PRIVATE(ims,
      + ialgo,npt,layer,
@@ -6965,11 +6971,11 @@ c        enddo
         else
          ch(l)=chi2
         endif
-c          if(i.le.10)write(*,*)'chi2 ',i,iter,chi2,rig,mcrig(i)
+c          if(i.le.20)write(*,*)'chi2 ',i,iter,chi2,rig,mcrig(i)
         if(i.le.10)then
-          write(*,*)'chi2 ',i,iter,chi2
+c          write(*,*)'chi2 ',i,iter,chi2
         endif
-        if(l.eq.2.and.i.le.10000)then
+        if(l.eq.2.and.i.le.1000)then
           if(iter.eq.0)then
             xchi2(1,i)=ch(1)+ch(2)
          endif
@@ -7223,9 +7229,15 @@ c            write(*,*)i,j,k,l,param(i,j,k,l),phi(i,j,k,l)
       end                        
 
 
-* $Id: TrackFit_utils.F,v 1.20 2008/05/06 15:48:03 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.22 2008/05/30 10:01:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.22  2008/05/30 10:01:03  choutko
+* *** empty log message ***
+*
+* Revision 1.21  2008/05/06 15:48:45  choutko
+* *** empty log message ***
+*
 * Revision 1.20  2008/05/06 15:48:03  choutko
 * *** empty log message ***
 *

@@ -1,10 +1,10 @@
-//  $Id: amsdbc.C,v 1.50 2008/04/21 15:14:41 choutko Exp $
+//  $Id: amsdbc.C,v 1.51 2008/05/30 10:01:01 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
 #include "amsdbc.h"
 #include "amsstl.h"
-#include "commons.h"
+//#include "commons.h"
 //
 
 char* AMSDBc::amsdatabase=0;
@@ -53,8 +53,8 @@ const integer AMSDBc::ams_rotmno=1;
 number AMSDBc::ams_nrm[3][3];
 const geant AMSDBc::amsdext=43.;
 
-void AMSDBc::init(){
- number angle=CCFFKEY.Angle/180*AMSDBc::pi;
+void AMSDBc::init(float angle){
+ angle=angle/180*AMSDBc::pi;
  ams_nrm[0][0]=cos(angle);
  ams_nrm[1][0]=0;
  ams_nrm[2][0]=-sin(angle);

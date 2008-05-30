@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.566 2008/05/19 15:11:11 mdelgado Exp $
+// $Id: job.C,v 1.567 2008/05/30 10:01:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1565,7 +1565,7 @@ else{
   exit(1);
 }
 
-  AMSDBc::init();  
+  AMSDBc::init(CCFFKEY.Angle);  
   TKDBc::init(0);
   TRDDBc::init();
 {
@@ -2206,6 +2206,8 @@ AMSgObj::BookTimer.book("RETKEVENT");
 AMSgObj::BookTimer.book("TrCluster");
 AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
+AMSgObj::BookTimer.book("TrRecHit_build");
+AMSgObj::BookTimer.book("TrRecHit_add");
 AMSgObj::BookTimer.book("TrTrack");
 AMSgObj::BookTimer.book("TrFalseX");
   if(CHARGEFITFFKEY.TrkPDFileRead%10>0){//(Q) Take ChargeCalibPDFs(mc|rd) from raw files
@@ -3205,8 +3207,7 @@ if(MISCFFKEY.BeamTest>1){
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglDB02",
-                          isRealData()),begin,end,AMSTrAligFit::gettraliggldbsize(),
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSTrAligFit::getTDVGLDB(),begin,end,AMSTrAligFit::gettraliggldbsize(),
 
                           AMSTrAligFit::gettraliggldbp(),server));
    if(TRALIG.ReWriteDB)ptdv->UpdateMe();
@@ -3228,8 +3229,7 @@ if(!isRealData()){
      end=AMSmceventg::Orbit.Begin;
   }
 
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglADB02",
-                          isRealData()),begin,end,AMSTrAligFit::gettraliggladbsize(),
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSTrAligFit::getTDVAGLDB(),begin,end,AMSTrAligFit::gettraliggladbsize(),
 
                           AMSTrAligFit::gettraliggladbp(),server));
 }

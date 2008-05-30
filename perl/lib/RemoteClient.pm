@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.516 2008/05/26 18:21:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.517 2008/05/30 10:01:04 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6743,7 +6743,7 @@ print qq`
          $ctime=time();
          $nickname = $q->param("QNick");
          my $stalone  = "STANDALONE";
-         if ($q->param("STALONE") eq "No") {
+         if (defined  $q->param("STALONE") and $q->param("STALONE") eq "No") {
           my $stalone  = "CLIENT";
          }
          my $pid = $self->getProductionSetIdByDatasetId($did);

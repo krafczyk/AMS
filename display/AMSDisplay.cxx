@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.43 2008/03/12 10:16:58 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.44 2008/05/30 10:01:03 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -155,7 +155,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, 
 Int_t AMSDisplay::DistancetoPrimitive(Int_t px, Int_t py){
 // Compute distance from point px,py to objects in event
    char *info=m_ntuple->GetObjInfo(px,py);
-    AddParticleInfo(info);
+    if(info)AddParticleInfo(info);
        m_ObjInfoPad->Update();
        if(info)return 9999;
        else return -1;

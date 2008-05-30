@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.138 2008/02/27 09:50:11 choutko Exp $
+//  $Id: server.C,v 1.139 2008/05/30 10:01:03 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -488,6 +488,11 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
   if(!force)Listening(count);
   pcur->KillClients(_pid);
   if(check<1000)cout << "  kill ok "<<endl;
+  static int kinit=0;
+  if((kinit++)%128==0){
+       system("kinit -R");
+       system("klist -f");
+  }
 
 }
 if(force)IMessage("ForceSystemCheckSuccessful");      
@@ -1765,6 +1770,8 @@ return length;
     for(;;){
      ((AMSServer*)_parent)->SystemCheck();
      sleep(1);
+     static unsigned int kinit=0;
+     if((kinit++)%128==0)system("kinit -R"); 
     }
    }
    else ((AMSServer*)_parent)->SystemCheck(true);

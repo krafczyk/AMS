@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.52 2008/04/22 15:01:19 choutko Exp $
+//  $Id: tofrec02.C,v 1.53 2008/05/30 10:01:03 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1267,11 +1267,11 @@ void TOF2RawCluster::recovers(number x){ // function to recover missing side
 }
 //-----------------------------------------------------------------------
 void TOF2RawCluster::_writeEl(){
-
   if(TOF2RawCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
 // Fill the ntuple
     TOFRawClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tofraw();
     if (TN->Ntofraw>=MAXTOFRAW) return;
@@ -1289,6 +1289,7 @@ void TOF2RawCluster::_writeEl(){
     TN->time[TN->Ntofraw]=_time;
     TN->cool[TN->Ntofraw]=_timeD;
     TN->Ntofraw++;
+*/
   }
 }
 //------
@@ -1310,6 +1311,7 @@ void TOF2RawSide::_writeEl(){
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // Fill the ntuple
+/*
     TofRawSideNtuple* TN = AMSJob::gethead()->getntuple()->Get_tofraws();
     if (TN->Ntofraws>=MAXTOFRAWS) return;
     TN->swid[TN->Ntofraws]=_swid;
@@ -1331,6 +1333,7 @@ void TOF2RawSide::_writeEl(){
     TN->tempC[TN->Ntofraws]=_tempC;
     TN->tempP[TN->Ntofraws]=_tempP;
     TN->Ntofraws++;
+*/
   }
 }
 //----------------------------------
@@ -1341,6 +1344,7 @@ void AMSTOFCluster::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   TOFClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tof();
 
   if (TN->Ntof>=MAXTOF) return;
@@ -1376,6 +1380,7 @@ void AMSTOFCluster::_writeEl(){
       }
     }
     TN->Ntof++;
+*/
   }
 }
 

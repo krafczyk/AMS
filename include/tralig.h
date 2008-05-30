@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.25 2008/04/04 08:49:39 choutko Exp $
+//  $Id: tralig.h,v 1.26 2008/05/30 10:01:04 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -113,7 +113,7 @@ class AMSTrAligData{
 protected:
   integer _NHits;
   integer _Pattern;
-  uintl _Address;
+  uint128 _Address;
   AMSPoint * _Hits;
   AMSPoint *_CooA;
   AMSPoint * _EHits;
@@ -125,7 +125,7 @@ public:
 AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
 _InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0,0){};
 void Init(AMSTrTrack * ptr, AMSmceventg * pgen);
-void Init(integer patter, uintl address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[], geant mcrig=0);
+void Init(integer patter, uint128 address, AMSPoint hit[],AMSPoint ehit[],AMSPoint cooa[], geant mcrig=0);
 friend class AMSTrAligFit;
 ~AMSTrAligData(){ delete [] _Hits; delete[] _EHits; delete[] _CooA;}
 };
@@ -160,11 +160,12 @@ public:
 integer Alg;
 int Layer;
 int Ladder;
+int Sensor;
 int Side;
 geant FCN;
 geant FCNI;
-geant CHI2[10000];
-geant CHI2I[10000];
+geant CHI2[1000];
+geant CHI2I[1000];
 int ndata;
 geant Pfit;
 geant Pfitsig;
@@ -173,7 +174,7 @@ geant Angle[3];
 integer Stat;
 };
 protected:
-uintl _Address;
+uint128 _Address;
 integer  _Pattern; 
 integer* _PlaneNo;
 integer* _ParNo;
@@ -193,13 +194,13 @@ number _fcnI;   // pointer to fcns;
 number _pfit;  //pointer to fitterd mom
 number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
-number chi2[10000];
-number chi2i[10000];
+number chi2[1000];
+number chi2i[1000];
 number _Chi2Max;
 AMSTrAligPar _pParC[trconst::maxlad];
-static AMSTrAligPar _pPargl[trconst::maxlad][2][trconst::maxlay];
-static gldb_def _gldb[trconst::maxlad+1][2][trconst::maxlay];
-static gldb_def _antigldb[trconst::maxlad+1][2][trconst::maxlay];
+static AMSTrAligPar _pPargl[trconst::maxsen][trconst::maxlad][2][trconst::maxlay];
+static gldb_def _gldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
+static gldb_def _antigldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
@@ -210,31 +211,29 @@ void _init(){};
 public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
 AMSTrAligFit();
-AMSTrAligFit(uintl _Address, integer pattern, integer data, integer alg, integer nodeno);
-static AMSTrAligPar * SearchDBgl(uintl address);
+AMSTrAligFit(uint128 _Address, integer pattern, integer data, integer alg, integer nodeno);
 static AMSTrAligPar * SearchAntiDBgl(AMSTrIdGeom*pid,bool anti=true);
 static const char * GetAligString();
-static integer glDBOK(uinteger add);
-static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}
-static gldb_def * gettraliggladbp(){ return &(_antigldb[0][0][0]);}
+static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0][0]);}
+static gldb_def * gettraliggladbp(){ return &(_antigldb[0][0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}
 static integer gettraliggladbsize(){return sizeof(_antigldb);}
 static void InitDB();
 static void InitADB();
-static void Test(int i=0);
-static void Testgl(int i=0);
+static void Test(int i=0){};
+static void Testgl(int i=0){};
 static AMSID getTDVGLDB();
 static AMSID getTDVAGLDB();
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uintl address, integer strict=0);
 void Fit();
-void Fitgl();
+void Fitgl(){};
 static bool Fillgl(AMSNode *pal);
 void RebuildNoActivePar();
-void Anal();
+void Anal(){};
 void Analgl();
 
-uintl getaddress(){ return _Address;}
+uint128 getaddress(){ return _Address;}
 ~AMSTrAligFit();
 
 };

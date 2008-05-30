@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.198 2008/05/09 09:37:06 choutko Exp $
+//  $Id: trrec.C,v 1.199 2008/05/30 10:01:03 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1210,7 +1210,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 
- void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
+ inline void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
                             AMSTrCluster * y,  const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
@@ -1228,12 +1228,12 @@ integer AMSTrRecHit::markAwayTOFHits(){
       s2=y->getVal();
       y->setstatus(AMSDBc::USED);
       ss2=y->getsigma();
-      if(s2<TRFITFFKEY.ThrClA[1] || (ss2 && s2/ss2 < TRFITFFKEY.ThrClR[1])){
+      if(!GOOD || s2<TRFITFFKEY.ThrClA[1] || (ss2 && s2/ss2 < TRFITFFKEY.ThrClR[1])){
        GOOD=0;
       }
     }
     geant bfield[3], ghit[3];
-    for (int j=0;j<3;j++) { ghit[j] = (float)hit[j]; }
+    for (int j=0;j<3;j++) { ghit[j] = hit[j]; }
     GUFLD(ghit, bfield);
      AMSPoint hitN(hit);
     if(!AMSJob::gethead()->isRealData()){
@@ -3587,10 +3587,11 @@ void AMSTrTrack::_buildaddressS(){
     int layer=id.getlayer();
     int ladder=id.getladder();
     int half=id.gethalf();
-     _AddressS(0)+=TKDBc::CumulusS(layer)*((ladder-1)*(trconst::maxsen)+id.getsensorR()-1);
+     _AddressS(0)+=TKDBc::CumulusS(layer)*((ladder)*(trconst::maxsen+1)+id.getsensorR());
      _AddressS(1)+=TKDBc::CumulusS(layer)*(half);
     }
   } 
+
 
 
 
@@ -3605,11 +3606,11 @@ void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uintl _Addres
 }
 void AMSTrTrack::decodeaddressS(integer ladder[3][trconst::maxlay], uint128 _Address){
    for(int i=0;i<TKDBc::nlay();i++){
-    uint64 sen=(_Address(0)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)*trconst::maxsen+1);
-    uint64 half=(_Address(1)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)*trconst::maxsen+1);
-    ladder[0][i]=sen%(TKDBc::nlad(i+1)*trconst::maxsen+1)/trconst::maxsen+1;
-    ladder[1][i]=half%(TKDBc::nlad(i+1)*trconst::maxsen+1);
-    ladder[2][i]=(sen%(TKDBc::nlad(i+1)*trconst::maxsen+1))%trconst::maxsen+1;
+    uint64 sen=(_Address(0)/TKDBc::CumulusS(i+1))%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1);
+    uint64 half=(_Address(1)/TKDBc::CumulusS(i+1))%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1);
+    ladder[0][i]=(sen%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1))/(trconst::maxsen+1);
+    ladder[1][i]=half%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1);
+    ladder[2][i]=(sen%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1))%(trconst::maxsen+1);
     //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
 }
@@ -3677,8 +3678,8 @@ uintl AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
 uint128 AMSTrTrack::encodeaddressS(integer ladder[3][trconst::maxlay]){
    uint128 address(0,0);
    for(int i=0;i<TKDBc::nlay();i++){
-     address(0)+= TKDBc::CumulusS(i+1)*((ladder[0][i]-1)*trconst::maxsen+ladder[2][i]-1);
-     address(1)+= TKDBc::CumulusS(i+1)*(ladder[1][i]);
+      address(0)+= TKDBc::CumulusS(i+1)*((ladder[0][i])*(trconst::maxsen+1)+ladder[2][i]);
+      address(1)+= TKDBc::CumulusS(i+1)*(ladder[1][i]);
    }
    return address;
 }

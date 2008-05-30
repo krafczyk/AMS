@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.273 2008/04/21 15:14:42 choutko Exp $
+#  $Id: datacards.doc,v 1.274 2008/05/30 10:01:03 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -429,7 +429,8 @@ R79 GlobalGoodLimit(0.06)             // invoke local db if beyond
 I80 SingleLadderEntryLimit(10000)     
 R81 One(1.025)
 I82 gfile[40]                         //  file with track data
-//----------------------------------------------------------------------
+I122LaddersOnly(1)                    //  Alignment  on ladders(1) sensors(0) level
+----------------------------------
 
 L3SIM
 

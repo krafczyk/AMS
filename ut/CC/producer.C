@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.112 2008/04/28 15:40:12 choutko Exp $
+//  $Id: producer.C,v 1.113 2008/05/30 10:01:02 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -349,6 +349,13 @@ else{
     fbin.close();
 }
 }
+//check ROOTSYS; don;t really need it so put dummy value
+  if(char  *crnr=getenv("ROOTSYS")){
+   }
+   else{
+      cerr<<"AMSPRoducer-W-ROOTSYSNotDefined"<<endl;
+      setenv("ROOTSYS","/afs/cern.ch/exp/ams/Offline/root/Linux/pro",1);
+   }
 //  Check here CERN_ROOT;  put /cern/2001 if no
 // check if proposed dst file is writeable
    bool writeable=false;
@@ -484,6 +491,7 @@ void AMSProducer::getASL(){
 
 void AMSProducer::sendNtupleEnd(DPS::Producer::DSTType type,int entries, int last, time_t end, bool success){
 cout <<" sendntupleend start "<<endl;
+ _Transfer=true;
 
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
@@ -530,7 +538,6 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 
 char *destdir=getenv("NtupleDestDir");
 if(destdir && strcmp(destdir,getenv("NtupleDir"))){
- _Transfer=true;
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
@@ -592,7 +599,6 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
    break;
   }
  }
- _Transfer=false;
 }
 
 
@@ -696,7 +702,10 @@ if(exedir && nve && AMSCommonsI::getosname()){
 LMessage(AMSClient::print(*ntend,"CloseDST"));
 
 cout << " nt end " <<ntend->Insert<<" "<<ntend->Begin<<" "<<ntend->End<<endl;
-if(_Solo)return;
+ _Transfer=false;
+if(_Solo){
+  return;
+}
 UpdateARS();
 sendDSTInfo();
 

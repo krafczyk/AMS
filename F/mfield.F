@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.19 2008/04/04 08:49:38 choutko Exp $
+*  $Id: mfield.F,v 1.20 2008/05/30 10:01:03 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -319,7 +319,7 @@ c      end
       data hintc/0,0,0/
       DIMENSION B(3),VV(3),AVV(3)
         if(abs(vv(1)).gt.x(nx).or.abs(vv(2)).gt.y(ny).or.
-     +    abs(vv(3)).gt.z(nz))then
+     +    abs(vv(3)).gt.z(nz).or.magstat.le.-1)then
             call vzero(b(1),3)
             goto 999
         ENDIF
@@ -350,16 +350,16 @@ c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
          endif
-        if(magstat.gt.0 )then
+c        if(magstat.gt.0 )then
 c         CALL BTEMPCOR (factor)
 c         b(1) = b(1) * factor
 c         b(2) = b(2) * factor
 c         b(3) = b(3) * factor
-        else
-         b(1)=0
-         b(2)=0
-         b(3)=0
-        endif
+c        else
+c         b(1)=0
+c         b(2)=0
+c         b(3)=0
+c        endif
 
  999    END
 
