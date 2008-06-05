@@ -620,7 +620,7 @@ sub setRunDefs
      else{$TruncCut="0.05";}
      $par5_e_state='normal';
      $stjob_b_state='normal';
-     $Evs2Read=2000;
+     $Evs2Read=4000;
      $MinEvsInFile=10000;
      $RunType="SCI";
      $FileSize=30;#mb
@@ -1193,6 +1193,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
   @daqfrunn=();
   @daqftags=();
   @daqftyps=();
+  @daqfconfs=();
   @daqfpath=();
   @daqfevts=();
   @daqfleng=();
@@ -1202,7 +1203,8 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
   @rlistbox=();
   my $lbitem=0;
   my $fdat=0;
-  my $rtype=0;
+  my ($rtype,$n1,$n2,$n3,$conf)=(0,0,0,0,0);
+  my @detin=();#L1(0)/TRD(1)/TOF(2)/TRK(3)/RIC(4)/EC(5)
 #
   my $debug="-d";
   if($ServConnect==0){
@@ -1218,6 +1220,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
     my $ret=$ServObject->Query($sql);
     if(defined $ret->[0][0]) {
       foreach my $r (@{$ret}){
+        @detin=();
         my $run       = $r->[0];
 	my $type      = $r->[1];
         my $path      = $r->[2];
@@ -1225,12 +1228,19 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
         my $nevents   = $r->[4];
         my $tag   = $r->[5];
         my $sizemb   = $r->[6];
-	$rtype = substr($type,0,3);#LAS,SCI,CAL,UNK
+        ($rtype,$n1,$n2,$n3,$conf)=unpack("A3 A2 A2 A3 A12",$type);#unpack type
+	if(substr($rtype,0)=~/L1/){$detin[0]=1;}
+	if(substr($rtype,0)=~/U2/){$detin[1]=1;}
+	if(substr($rtype,0)=~/S4/){$detin[2]=1;}
+	if(substr($rtype,0)=~/T8/){$detin[3]=1;}
+	if(substr($rtype,0)=~/R2/){$detin[4]=1;}
+	if(substr($rtype,0)=~/E2/){$detin[5]=1;}
+#	$srtyp = substr($type,0,3);#LAS,SCI,CAL,UNK
 	$path =~ s/\w+(?!\/)$//s;
 #	$path =~ s/$\d+(?=\/)//s;
         $fdat=run2time($starttime);
 	$fdat=substr($fdat,0,16);
-        $curline="  Run/Tag/RType:".$run." ".$tag." ".$rtype."  StTime=".$fdat." Evs/size:".$nevents." ".$sizemb."  Path:".$path."\n";
+        $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  Path:".$path."\n";
         $logtext->insert('end',$curline);
         $logtext->yview('end');
         $daqfstat[$ndaqfound]=1;#status=found
@@ -1245,11 +1255,12 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
         push(@daqfrunn,$run);
         push(@daqftags,$tag);
         push(@daqftyps,$rtype);
+        push(@daqfconfs,$conf);
         push(@daqfpath,$path);
         push(@daqfevts,$nevents);
         push(@daqfleng,$sizemb);
         $fdat=run2time($run);
-	$lbitem="Run/Tag:".$run."  ".$tag."  RunDate: ".$fdat."  Type:".$rtype."  Nev=".$nevents."  Stat=".$daqfstat[$ndaqfound-1]."\n";
+	$lbitem="Run/Tag:".$run."  ".$tag."  Date:".$fdat."  Type:".$rtype." ".$conf."  Nev=".$nevents."  Stat=".$daqfstat[$ndaqfound-1]."\n";
 	push(@rlistbox,$lbitem);
       }
     }
@@ -1343,18 +1354,19 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 							    -selectforeground => "red"
 							    )->pack(-fill=>'both', -expand=>1);
   @rlistbox=();
-  my ($lbitem,$fdat,$run,$tag,$rtype,$nevs,$stat);
+  my ($lbitem,$fdat,$run,$tag,$rtype,$conf,$nevs,$stat);
   show_messg("   <-- Editor: Enter with $ndaqgood good files !");
   $ndaqgood=0;
   for($i=0;$i<$ndaqfound;$i++){#prepare list
     $run=$daqfrunn[$i];
     $tag=$daqftags[$i];
     $rtype=$daqftyps[$i];
+    $conf=$daqfconfs[$i];
     $nevs=$daqfevts[$i];
     $stat=$daqfstat[$i];
     $fdat=run2time($run);
 #    $lbitem=sprintf("Run/Tag: %10d %11u   Date: %s Type: %10d Nevs: %8d Stat: %4d",$run,$tag,$fdat,$rtype,$nevs,$stat);
-    $lbitem="Run/Tag:".$run."  ".$tag."    RunDate: ".$fdat."    Type:".$rtype."    Nev=".$nevs."    Stat=".$stat;
+    $lbitem="Run/Tag:".$run." ".$tag."  Date:".$fdat."   Type:".$rtype."  ".$conf."    Nev=".$nevs."    Stat=".$stat;
     push(@rlistbox,$lbitem);
     if($stat==11){$ndaqgood+=1;}
   }

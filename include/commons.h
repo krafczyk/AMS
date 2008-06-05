@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.240 2008/05/19 15:11:11 mdelgado Exp $
+//  $Id: commons.h,v 1.241 2008/06/05 13:28:24 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -155,7 +155,7 @@ COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
 class TFMCFFKEY_DEF {
 public:
 geant TimeSigma;
-geant TimeSigma2;
+geant sumHTdel;
 geant TimeProbability2;
 geant dzconv;
 geant Thr;
@@ -410,7 +410,7 @@ COMMON_BLOCK_DEF(ATGEFFKEY_DEF,ATGEFFKEY);
 class ATMCFFKEY_DEF {
 public:
 integer mcprtf;// hist. print flag
-geant LZero;
+geant FTdel;
 geant LSpeed;
 //
 integer ReadConstFiles;
@@ -485,10 +485,10 @@ public:
 // TZSL-calibration :
 geant pcut[2];//low/high limits on momentum of calibr. events
 geant bmeanpr;// mean proton velocity in this mom. range
-geant tzref[2];// def. T0 for two reference counters
+geant tzref[2];// def. T0 for reference counter + spare
 geant fixsl;// def. for slope
 geant bmeanmu;// mean muon velocity in this mom. range
-integer idref[2];// LBB for two ref.counter 
+integer idref[2];// LBB for ref.counter and fix/release flag for trapez.counters
 integer ifsl;// 0/1 to fix/release slope param.
 integer caltyp;// 0/1 to select space/earth calibration
 // AMPL-calibration :

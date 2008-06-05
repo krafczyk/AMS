@@ -49,26 +49,28 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
   char side[5]="ABPS";
   char str[2];
 //  cout<<"---> In DAQS2Block::checkblockid, blid(hex)="<<hex<<blid<<",addr:"<<dec<<(blid&(0x001F))<<endl;
-  for(int i=0;i<ecalconst::ECRT;i++){//for EDRs
-    for(int j=0;j<3;j++){
+  for(int i=0;i<ecalconst::ECRT;i++){//check id for EDRs
+   for(int k=0;i<ecalconst::ECEDRS;k++){
+    for(int j=0;j<4;j++){
       str[0]=side[j];
       str[1]='\0';
-      sprintf(sstr,"EDR%X%X%s",i,j,str);
+      sprintf(sstr,"EDR%X%X%s",i,k,str);
       if(DAQEvent::ismynode(blid,sstr)){
-        valid=10*(i+1)+j+1;
+        valid=100*(i+1)+10*(k+1)+j+1;//C(rate)|S(lot)|S(ide)
 //cout<<"<--- valid="<<valid<<endl;
         return valid;
       }
-    } 
+    }
+   } 
   }
   if(valid==0){
-    for(int i=0;i<ecalconst::ECRT;i++){//for JINFs
+    for(int i=0;i<ecalconst::ECRT;i++){//....for JINFs
     for(int j=0;j<4;j++){
       str[0]=side[j];
       str[1]='\0';
       sprintf(sstr,"JF-E%X%s",i,str);
       if(DAQEvent::ismynode(blid,sstr)){
-        valid=10*(i+1)+j+1;
+        valid=10*(i+1)+j+1;//Cr|Side
 //cout<<"<--- valid="<<valid<<endl;
         return valid;
       }
@@ -385,6 +387,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
       else if(formt==1){//<==================== ComprFormat(alone) processing :
 // 
         if(eleng<=(2*ECEDRC+1) && (eleng%2==1)){//<--comprfmt length ok
+	  if(ECREFFKEY.reprtf[0]>0)HF1(ECHISTR+70+6*(crat-1)+slot,geant(eleng),1.);
 	  EcalJobStat::daqs3(crat-1,slot,16+12*formt);//lengthOK
 //cout<<"    ComprFMT,EDR_length OK"<<endl;
           while(ebias<eleng){//<---- EDR-words loop (max 2*243 (rdch# + ADC-valie))

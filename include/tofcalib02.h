@@ -1,10 +1,11 @@
-//  $Id: tofcalib02.h,v 1.14 2008/04/22 11:38:02 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.15 2008/06/05 13:28:24 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
-//
-//  Joined class for TofTime-params calibration:
-class TofTimeCalib {
+//  latest update 12.05.2008
+//-------------------------------
+//  Joined class for TofTimeAmpl-params calibration:
+class TofTmAmCalib {
 private:
 //Tzslw-part:
   static geant slope;
@@ -28,34 +29,7 @@ private:
   static number tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// square of ...
   static number clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// impact longit.coordinates(cm)
   static integer nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// event counters
-public:
-  static void initjob();
-  static void endjob();
-//
-  static void inittz();
-  static void filltz(int ib[4],number tdi[3],number dum[3]);
-  static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
-  static void fittz();//Tzslw-fits, results->tzero,slope->file
-  static void select();
-  static geant getslop(){return slope;};
-  static void gettzer(geant arr[]){
-    int cnum;
-    for(int il=0;il<TOF2GC::SCLRS;il++){
-    for(int ib=0;ib<TOF2GC::SCMXBR;ib++){
-      cnum=il*TOF2GC::SCMXBR+ib;
-      arr[cnum]=tzero[il][ib];
-    }
-    }
-  };
-//
-  static void inittd();
-  static void filltd(integer il, integer ib, number td, number coo);
-  static void fittd();//Tdelv-fits, results->efflightvel,to->file
-};
-//-----------------------------------------------------------------------
-//  class to manipulate with AMPL-calibration data :
-class TOF2AMPLcalib {
-private:
+//Ampl-part:
   static number ambin1[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s1-signals for each ref_bar/bin/event
   static integer nevenb1[TOF2GC::SCBTBN];// s1 events accum. per ref_bar/bin for ambin
   static number ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for each ref_bar/bin/event
@@ -98,55 +72,45 @@ private:
   static integer elbt;//     tot.bins
   static geant elfitp[TOF2GC::SCELFT];// fit-parameters
   static char eltit[60];  // title for fit
+//
 public:
-  static void init();
-  static void fill(integer il, integer ib, geant ama[2], geant coo);
-  static void fillabs(integer il, integer ib, geant ama[2], geant coo, number mom,
-                                                                     number btof);
+  static void initjob();
+  static void endjob();
+//
+  static void inittz();
+  static void filltz(int ib[4],number tdi[3],number dum[3]);
+  static void mfuntz(int &np, number grad[],number &f,number x[],int &flg,int &dum);
+  static void fittz();//Tzslw-fits, results->tzero,slope->file
+  static void select();//Tdelv/Tzslw/Ampl-common select routine
+  static geant getslop(){return slope;};
+  static void gettzer(geant arr[]){
+    int cnum;
+    for(int il=0;il<TOF2GC::SCLRS;il++){
+    for(int ib=0;ib<TOF2GC::SCMXBR;ib++){
+      cnum=il*TOF2GC::SCMXBR+ib;
+      arr[cnum]=tzero[il][ib];
+    }
+    }
+  };
+//
+  static void inittd();
+  static void filltd(integer il, integer ib, number td, number coo);
+  static void fittd();//Tdelv-fits, results->efflightvel,to->file
+  
+  static void initam();
+  static void fillam(integer il, integer ib, geant ama[2], geant coo);
+  static void fillabs(integer il, integer ib, geant ama[2], geant coo);
   static void filla2dg(int il, int ib, geant cin, geant ama[2], geant amd[2][TOF2GC::PMTSMX]);
   
-  static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
+  static void mfunam(int &np, number grad[],number &f,number x[],int &flg,int &dum);
   static void melfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
-  static void select();
-  static void fit();
-};
-//-----------------------------------------------------------------------
-//
-//  class to manipulate  AvsD-calibration data :
-class TOF2AVSDcalib {
-private:
-  static number dtdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean adcd per chan/Abin 
-  static number dtdyn2[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean (adcd)**2 per chan/Abin
-  static integer nevdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// events in above sums per chan/Abin
-  static integer nevdynt[TOF2GC::SCCHMX];// events in above sums per chan
-public:
-  static void init();
-  static void filla2dr(integer chan, geant adca, geant adcd);
-  static void fit(number a2d[], number a2do[], number &av, number &avo);
-};
-//-----------------------------------------------------------------------
-//  class to manipulate with STRR-calibration (StretcherRatio) data:
-class TOF2STRRcalib {
-private:
-  static number dtin[TOF2GC::SCCHMX][TOF2GC::SCSRCHB]; // to calc. mean dtin per chan/bin (150 bins x 1ns)
-  static number dtinq[TOF2GC::SCCHMX][TOF2GC::SCSRCHB];//to calc. mean square dtin per chan/bin
-  static integer nevnt[TOF2GC::SCCHMX][TOF2GC::SCSRCHB];// events per chan/bin 
-  static integer nevtot[TOF2GC::SCCHMX];    // total number of analized events/chan
-  static integer nevnt2[TOF2GC::SCCHMX];// event counters for f/s-tdc time difference
-  static number fstdif[TOF2GC::SCCHMX];// f/s-tdc time difference
-  static number fstdif2[TOF2GC::SCCHMX];// squares ....
-  static number sbins[TOF2GC::SCCHMX];// for "points-fit" method
-  static number ssumc[TOF2GC::SCCHMX];
-  static number ssumt[TOF2GC::SCCHMX];
-  static number ssumid[TOF2GC::SCCHMX];
-  static number ssumct[TOF2GC::SCCHMX];
-  static number ssumc2[TOF2GC::SCCHMX];
-  static number ssumt2[TOF2GC::SCCHMX];
-public:
-  static void init();
-  static void fill(integer ichan, number tm[3]);
-  static void fill2(integer ichan, number tdif);
-  static void outp(); 
+  static void fitam();
+  static void endjam();
+  static integer btyp2id(integer btyp){//id=LBB, btyp=1-11
+    if(btyp>0 && btyp<=TOF2GC::SCBTPN)return rbls[btyp-1];
+    else return(0); 
+  }
+
 };
 //-----------------------------------------------------------------------
 //===============> TOF PedCalib:

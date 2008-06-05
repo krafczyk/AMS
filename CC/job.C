@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.567 2008/05/30 10:01:02 choutko Exp $
+// $Id: job.C,v 1.568 2008/06/05 13:28:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -710,8 +710,8 @@ FFKEY("GMSRC",(float*)&GMFFKEY,sizeof(GMFFKEY_DEF)/sizeof(integer),"MIXED");
 //=================================================================================
 //
 void AMSJob::_sitof2data(){
-  TFMCFFKEY.TimeSigma=0.240; //(1) side time resolution(ns,=CounterResol(0.17)*sqrt(2)) 
-  TFMCFFKEY.TimeSigma2=0.45; //(2)
+  TFMCFFKEY.TimeSigma=0.240; //(1) side time resolution(ns, now =CounterResol(0.17)*sqrt(2)) 
+  TFMCFFKEY.sumHTdel=4.5;    //(2) eff. h/w delay of sumHT(sumSHT)-signal wrt LT-signal for MC
   TFMCFFKEY.TimeProbability2=0.035;//(3)
   TFMCFFKEY.dzconv=0.;        //(4) if !=0 => thickness of optional TungstenConverter
   TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Edep-thresh.(Mev) to participate in Simul.   
@@ -958,7 +958,7 @@ void AMSJob::_sianti2data(){
   
 //---
   ATMCFFKEY.mcprtf=0;//(1)print-flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
-  ATMCFFKEY.LZero=0; // (2)spare
+  ATMCFFKEY.FTdel=10.;// (2)aver FT-delay between JLV1 and S-crate(ns)
   ATMCFFKEY.LSpeed=14.7;// (3)Eff. light speed in anti-paddle (cm/ns)
   ATMCFFKEY.ReadConstFiles=0;//(4)Seedp|Realp(Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
   ATMCFFKEY.calvern=1;//(5)AccCflistMC-file(acccal_files vers. list) version number
@@ -1217,7 +1217,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
   TFREFFKEY.relogic[2]=0;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
-  TFREFFKEY.relogic[4]=1;//(12) 1/0->create(+write)/not TOF2RawSideObject-info into ntuple
+  TFREFFKEY.relogic[4]=1;//(12) 1/0->write/not TOF2RawSideObject-info into ntuple
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(LT=30mV) for fine-time TDC 
   TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(HT=100mV) for FT-trigger TDC(z>=1)  
@@ -1229,8 +1229,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
   TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
-  TFREFFKEY.cuts[4]=40.;//(22) min(fixed) globFT delay(from JLV1- to S-crate, ns)
-  TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to window(cuts[0])  for pairing of LT-/sumHT-hits in channels
+  TFREFFKEY.cuts[4]=70.;//(22) aver(fixed) globFT decision_time+delay(JLV1-> S-crate, ns) at S-crate
+  TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=2.;// (25) T-type def.temperature (see card #29)
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
@@ -1267,18 +1267,18 @@ void AMSJob::_retof2data(){
 // TZSL-calibration:
   TFCAFFKEY.pcut[0]=5.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
   TFCAFFKEY.pcut[1]=100.;// (2)track mom. high limit
-  TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
+  TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in above range
   TFCAFFKEY.tzref[0]=0.;//(4)T0 for ref. counter
   TFCAFFKEY.tzref[1]=0.;//(5) spare
-  TFCAFFKEY.fixsl=5.;// (6)def. slope
-  TFCAFFKEY.bmeanmu=0.997;// (7)mean muon velocity in the above range
-  TFCAFFKEY.idref[0]=104;//(8)LBB for first ref. counter 
+  TFCAFFKEY.fixsl=6.5;// (6)def. slope
+  TFCAFFKEY.bmeanmu=0.994;// (7)mean muon velocity at sea-level
+  TFCAFFKEY.idref[0]=104;//(8)LBB for  ref. counter 
   TFCAFFKEY.idref[1]=0;//(9)0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
   TFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
 //
   TFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
 //
-  TFCAFFKEY.truse=0;//(12)-1/0/1->(req.TRK/TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
+  TFCAFFKEY.truse=0;//(12)-1/0/1->(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
 // AMPL-calibration:
   TFCAFFKEY.plhc[0]=0.5;// (13) track mom. low limit(gev/c) for space calibr
   TFCAFFKEY.plhc[1]=47.;// (14) track mom. high limit(gev/c) ..............
@@ -1322,8 +1322,8 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.daqthr=3.;  //(6) spare (now sector-individual,taken from AccStparRD(MC).-file or DB
-  ATREFFKEY.ftdel=80.;  //(7) FT-delay wrt correlated Anti history-pulse(72 mc)
-  ATREFFKEY.ftwin=60.;  //(8) window for Hist-hit/FT coincidence(+- around FT-delay corrected value)(54 mc)
+  ATREFFKEY.ftdel=120.;  //(7) FT-delay wrt correlated Anti history-pulse
+  ATREFFKEY.ftwin=70.;  //(8) window for Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //
   ATREFFKEY.ReadConstFiles=11;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  
@@ -2132,17 +2132,12 @@ for(i=0;i<nalg;i++){
 }
 //============================================================================
 void AMSJob::_catof2initjob(){
- if(TFREFFKEY.relogic[0]==1){
+ integer cmode=TFREFFKEY.relogic[0];
+ if(cmode==1){
    TOFTdcCalib::init();// TOF TDC-calibr.
  }
- if(TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3 || TFREFFKEY.relogic[0]==23){
-   TofTimeCalib::initjob();// TOF Tdelv/Tzslw-calibr.
- }
- if(TFREFFKEY.relogic[0]==4){
-   TOF2AMPLcalib::init();// TOF AMPL-calibr.
-   cout<<"<----- TOF2AMPLcalib-init done !!!"<<'\n';
-//   TOF2AVSDcalib::init();// TOF AVSD-calibr.
-//   cout<<"TOF2AVSDcalib-init done !!!"<<'\n';
+ if(cmode==2 || cmode==3 || cmode==4 || cmode==23 || cmode==234 || cmode==34){
+   TofTmAmCalib::initjob();// TOF Tdelv/Tzslw/Ampl-calibr.
  }
  if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6 || TFREFFKEY.relogic[0]==7){
    TOFPedCalib::init();// TOF Ped-calibr.
@@ -2671,8 +2666,8 @@ end.tm_year=TRDMCFFKEY.year[1];
  begin.tm_isdst=0;
  end.tm_isdst=0;
  int needval=1;
-//// if(isCalibration() && CTOF)needval=0;
 #ifdef __TFADBW__
+  if(isCalibration() && CTOF)needval=0;
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;
   int jobt=AMSFFKEY.Jobtype;
@@ -2840,9 +2835,9 @@ if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-
  begin.tm_isdst=0;
  end.tm_isdst=0;
  int needval=1;
-//// if(isCalibration() && CAnti)needval=0;
  
 #ifdef __TFADBW__
+  if(isCalibration() && CAnti)needval=0;
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;
   int jobt=AMSFFKEY.Jobtype;
@@ -3549,9 +3544,10 @@ void AMSJob::_tof2endjob(){
     TOFTdcCalib::outp(TFCAFFKEY.tdccum);
   }
 //
-  if((isCalibration() & CTOF) && (TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3
-                                                          || TFREFFKEY.relogic[0]==23)){
-    TofTimeCalib::endjob();//Tdelv/Tzslw
+  integer cmode=TFREFFKEY.relogic[0];
+  if((isCalibration() & CTOF) && (cmode==2 || cmode==3 || cmode==4 || cmode==23
+                                                       || cmode==234 || cmode==34)){
+    TofTmAmCalib::endjob();//Tdelv/Tzslw
   }
 //
   TOF2JobStat::printstat(); // Print JOB-TOF statistics

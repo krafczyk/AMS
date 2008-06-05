@@ -117,9 +117,9 @@ AMSECIds::AMSECIds(int16u sl, int16u pmt, int16u pix, int16u gnf, int16u side):
 //                                 0-1           0,1,4,5,...
 int16 AMSECIds::crdid2sl(int16u &side, int16u crdid){
 //card(slot)_id(node_addr(link#) to sequential slot# and side
-//                                             slot#=0-5 =>EDRs; =6 =>ETRG
-  for(int i=0;i<ECSLOTS;i++){
-    for(int j=0;j<2;j++){
+//                              slot#=0-5 =>EDRs; =6 =>ETRG
+  for(int i=0;i<ECSLOTS;i++){//slot
+    for(int j=0;j<2;j++){//side
       if(_cardids[j][i]==crdid){
         side=j;
         return(i);

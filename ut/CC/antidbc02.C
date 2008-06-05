@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.25 2008/03/27 09:21:42 choumilo Exp $
+//  $Id: antidbc02.C,v 1.26 2008/06/05 13:28:16 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -1067,8 +1067,8 @@ void ANTI2JobStat::bookmch(){
 void ANTI2JobStat::bookh(){
 //
   if(ATREFFKEY.reprtf[0]>0){
-    HBOOK1(2519,"ANTI-VAL:HitsNumber(adc/tdc(+10)/ft(+20), allchann)",30,0.,30.,0.);
-    HBOOK1(2520,"ANTI-VAL:FTtime-HistTime(all chann)",80,0.,240.,0.);
+    HBOOK1(2515,"ANTI-VAL:HitsNumber(adc/tdc(+10)/ft(+20), allchann)",30,0.,30.,0.);
+    HBOOK1(2516,"ANTI-VAL:FTtime-HistTime(all chann)",80,0.,240.,0.);
 //
     HBOOK1(2500,"ANTI-REC: EtotSectors(Mev,Esect>thr)",80,0.,40.,0.);
     HBOOK1(2501,"ANTI-REC: NumbOfSectors(Esect>thr)",16,0.,16.,0.);
@@ -1083,6 +1083,15 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2509,"ANTI-REC: FTtime-SectorSideTime(+T0compens)",80,0.,240.,0.);
     HBOOK1(2510,"ANTI-REC: Total FTCoincSectors(fromTrigPatt)",10,0.,10.,0.);
     HBOOK1(2511,"ANTI-REC: FTCoincSector frequency(0 when TrPatt=0)",10,0.,10.,0.);
+    
+    HBOOK1(2520,"ANTI-REC: SideTimesDiff(1-2), Sector-1",50,-50.,50.,0.);
+    HBOOK1(2521,"ANTI-REC: SideTimesDiff(1-2), Sector-2",50,-50.,50.,0.);
+    HBOOK1(2522,"ANTI-REC: SideTimesDiff(1-2), Sector-3",50,-50.,50.,0.);
+    HBOOK1(2523,"ANTI-REC: SideTimesDiff(1-2), Sector-4",50,-50.,50.,0.);
+    HBOOK1(2524,"ANTI-REC: SideTimesDiff(1-2), Sector-5",50,-50.,50.,0.);
+    HBOOK1(2525,"ANTI-REC: SideTimesDiff(1-2), Sector-6",50,-50.,50.,0.);
+    HBOOK1(2526,"ANTI-REC: SideTimesDiff(1-2), Sector-7",50,-50.,50.,0.);
+    HBOOK1(2527,"ANTI-REC: SideTimesDiff(1-2), Sector-8",50,-50.,50.,0.);
   }
   if(ATREFFKEY.reprtf[0]>1){//low prior.hist
     HBOOK1(2570,"ANTI-VAL:ADC Sect-1, Side-1",80,0.,1600.,0.);
@@ -1164,8 +1173,8 @@ void ANTI2JobStat::outpmc(){
 void ANTI2JobStat::outp(){
 //
   if(ATREFFKEY.reprtf[0]>0){
-    HPRINT(2519);
-    HPRINT(2520);
+    HPRINT(2515);
+    HPRINT(2516);
     HPRINT(2500);
     HPRINT(2501);
     HPRINT(2512);
@@ -1179,6 +1188,8 @@ void ANTI2JobStat::outp(){
     HPRINT(2509);
     HPRINT(2510);
     HPRINT(2511);
+    
+    for(int i=0;i<8;i++)HPRINT(2520+i);
   }
   if(ATREFFKEY.reprtf[0]>1){//low prior.hist
     HPRINT(2570);

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.374 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: event.C,v 1.375 2008/06/05 13:28:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1332,7 +1332,7 @@ void AMSEvent::_reamsevent(){
 //                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
-    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){
+    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){//bypass when tof-tdc lin.calib
     _reanti2event();
 #ifndef __TFAPEDC__
     _retrdevent();
@@ -1342,7 +1342,7 @@ void AMSEvent::_reamsevent(){
 #endif
     }
   }
-    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){
+    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){//bypass when tof-tdc lin.calib
 #ifndef __TFAPEDC__
     _reaxevent();
     AMSUser::Event();
@@ -1438,19 +1438,17 @@ void AMSEvent::_catrdevent(){
 //---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
   bool tofft(0);
+  integer cmode=TFREFFKEY.relogic[0];
   Trigger2LVL1 *ptr2;
 //
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr2)tofft=ptr2->TofFasTrigOK();
-    if(!tofft)return;// use only H/W-triggered event
+    if(!tofft)return;// use only TOF-triggered event
 //
-    if(TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3 || TFREFFKEY.relogic[0]==23){
-      TofTimeCalib::select();//event selection for TOF Tdelv/Tzslw-calibration
+    if(cmode==2 || cmode==3 || cmode==4 || cmode==23 || cmode==234 || cmode==34){
+      TofTmAmCalib::select();//event selection for TOF Tdelv/Tzslw/Ampl-calibration
     }
 //
-    if(TFREFFKEY.relogic[0]==4){
-      TOF2AMPLcalib::select();// event selection for TOF AMPL-calibration
-    }
 }
 //---------------------------------------------------------------------------
 
@@ -1697,8 +1695,8 @@ bool tofftok(0),ecalftok(0),extrigok(0);
       return;// "no TOF/EC/Ext in LVL1-trigger"
     }   
     TOF2JobStat::addre(1);
-    if(tofftok)TOF2JobStat::addre(33);
-    if(!tofftok && ecalftok)TOF2JobStat::addre(34);
+    if(tofftok)TOF2JobStat::addre(5);
+    if(!tofftok && ecalftok)TOF2JobStat::addre(6);
 //
 //                   ===> reco of real or MC events :
 //

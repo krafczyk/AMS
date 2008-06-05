@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.30 2008/03/05 10:03:24 choumilo Exp $
+//  $Id: antirec02.C,v 1.31 2008/06/05 13:28:16 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -133,11 +133,11 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       ntdct=ptr->gettdct(tdct);
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
       if(ATREFFKEY.reprtf[0]>0){
-        HF1(2519,geant(nadca),1.);
+        HF1(2515,geant(nadca),1.);
 	if(ntdct<10)nhit=ntdct;
 	else nhit=9;
-        HF1(2519,geant(nhit+10),1.);
-        HF1(2519,geant(nftdc+20),1.);
+        HF1(2515,geant(nhit+10),1.);
+        HF1(2515,geant(nftdc+20),1.);
       }
       tmfound=0;
       complm=0;
@@ -157,10 +157,10 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //---> check LTtime info :
 //
       if(ntdct>0){
-        if(nftdc>0 && ATREFFKEY.reprtf[0]>0){
+        if(nftdc>0 && adca>10 && ATREFFKEY.reprtf[0]>0){
           for(i=0;i<ntdct;i++){
 	    dt=(ftdc[0]-tdct[i])*ANTI2DBc::htdcbw();//ns
-            HF1(2520,geant(dt),1.);//look at LTtime/FTtime correl
+            HF1(2516,geant(dt),1.);//look at LTtime/FTtime correl
 	  }
 	}
       }
@@ -269,7 +269,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //-----
 //
   integer ftpatt(0);
-  ftrig=TOF2RawSide::gettrtime();//get FTrigger time in S-crate(incl.delay from JLV1) 
+  ftrig=TOF2RawSide::gettrtime();//get FTrigger time in S-crate(incl.delay from JLV1 and decision time) 
   lev1tm=ftrig+TOF2DBc::lev1del();// "Lev1"-signal abs.time at S-crate
   ftpatt=TOF2RawSide::getftpatt();//get globFT members pattern (after masking)
   if(ftpatt==0)return;//<=== no globFT and ExtTrig
@@ -623,7 +623,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //--->check GlobFT/SideTrigPattSignal correlation(physically done in JLV1-crate)
         intrig=Trigger2LVL1::l1trigconf.antinmask(int(nlogs));//AntiInTrig from DB
         if(intrig==1 || (intrig>1 && (intrig-2)!=j)){//<--sector/side is in trigger(not masked)
-          tg1=ftrig-TOF2Varp::tofvpar.ftdelf();//GateUpTime=glFTime(at JLV1 !!!) 
+          tg1=ftrig-ATMCFFKEY.FTdel;//GateUpTime=glFTime(at JLV1 !!!) 
           tg2=tg1+pgate;//gate_end_time
 	  ncoinc=0;
 	  for(i=0;i<nptr;i++){// 1-side "trig-pattern" pulses -> 1-side bitstream pattern
@@ -676,7 +676,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //------> create Anti-trigger pattern, count sectors:
 //(bits 1-8->sectors in coinc.with FT)
 //This pattern is produced in JLV1 !!!, So i need JLV1 FT-time, i.e.need to subtr.delay from S-cr time 
-  tg1=ftrig-TOF2Varp::tofvpar.ftdelf();//GateUpTime=ScrateFTime-delay (come back to JLV1 FT-time)
+  tg1=ftrig-ATMCFFKEY.FTdel;//GateUpTime=ScrateFTime-delay (come back to JLV1 FT-time)
   tg2=tg1+pgate;//gate_end_time
   trpatt=0;//reset patt.
 //-->count FT-coincided sectors,create sector's pattern :
@@ -803,6 +803,7 @@ void AMSAntiCluster::build2(int &statt){
   geant ftdel,ftwin;
   geant rdthr;
   geant tempT[2]={0,0};
+  geant stdifmx(15.);//tempor max(+/-) side-times diff for pairing(ns), later use calib for better accur
   int nphsok;
   integer ftcoinc(0);
   uinteger lspatt(0);
@@ -879,24 +880,24 @@ void AMSAntiCluster::build2(int &statt){
                   /ANTI2VPcal::antivpcal[sector].getmev2pec(isid); //p.e.-->Edep(Mev)
 //TDC-ch-->time(ns):
         nuptm[nsds]=0;
-        nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
-        if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
-        else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
+        nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();//alive PhysSectNumb(0/1, 2 if both OK)
+        if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();//take aver. of 2 PhysSectors tzer
+        else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);//         individual
         ftc=0;
         for(i=0;i<ntdct;i++){//<-- history-hits loop
 	  t1=tdct[i]*ANTI2DBc::htdcbw()
-	                                  + tzer;//TDC-ch-->ns + compens.tzero
+	                                  - tzer;//TDC-ch-->ns + "compens.tzero=fib.delay"(side-independent)
 	  if(fttim>0){//check coinc.with FT
 	    dt=fttim-t1;//Rel.time wrt FT("+" means "befor" FTtime)
             if(ATREFFKEY.reprtf[0]>0)HF1(2509,geant(dt),1.);
             if(fabs(dt-ftdel)<ftwin){//found coincidence(ftdel is exp.measured aver. FT-delay wrt Anti-hit)
 	      ftc+=1;//count coinc.
-              uptm[nsds][nuptm[nsds]]=t1;//keep all FTcoincided hits   
+              uptm[nsds][nuptm[nsds]]=dt;//keep all FTcoincided hit times (wrt FT)   
               nuptm[nsds]+=1;
 	    }
 	  }
         }
-        if(ftc>0)ftcin[nsds]+=ftc;//store nFTcoinc/side
+        if(ftc>0)ftcin[nsds]+=ftc;//store nFTcoinc/side to set cluster OK(FT-coinc) status later
 //
         nsds+=1;
 //---
@@ -921,8 +922,13 @@ void AMSAntiCluster::build2(int &statt){
 //                                                   <-------- case1=2sides:
       if(nsds==2){
 //                        <-- search for true SideTime-pairs(giving best zcoo):
-	n1=nuptm[0];
+	n1=nuptm[0];//FT-coincided
 	n2=nuptm[1];
+	if(n1==1 && n2==1){
+	  t1=uptm[0][0];
+	  t2=uptm[1][0];
+	  if(ATREFFKEY.reprtf[0]>0)HF1(2520+sector,geant(t1-t2),1.);
+	}
 	while(n1>0 && n2>0){//<-- try next pair ?
 	  dtmin=9999.;
 	  for(int i1=0;i1<nuptm[0];i1++){//<-- combinations loop
@@ -941,11 +947,13 @@ void AMSAntiCluster::build2(int &statt){
 	  }//-->endof combin. loop
 	  t1=uptm[0][i1min];//best pair
 	  t2=uptm[1][i2min];
+	  
 //
-	  zc=-0.5*(t1-t2)*ATMCFFKEY.LSpeed;//abs.Z(neglect by possible ANTI Z-shift)
-	  if(fabs(zc)<(0.5*padlen+3*zcer1)){//match found(Zc is within paddle size)
-	    if(zc>0.5*padlen)zc=0.5*padlen;
-	    if(zc<-0.5*padlen)zc=-0.5*padlen;
+          if(fabs(t1-t2)<stdifmx){
+	    zc=-0.5*(t1-t2)*ATMCFFKEY.LSpeed;//abs.Z(neglect by possible ANTI Z-shift)
+//	  if(fabs(zc)<(0.5*padlen+3*zcer1)){//match found(Zc is within paddle size)
+//	    if(zc>0.5*padlen)zc=0.5*padlen;
+//	    if(zc<-0.5*padlen)zc=-0.5*padlen;
 	    zcoo[npairs]=zc;
 	    times[npairs]=0.5*(t1+t2);
 	    etimes[npairs]=zcer1/ATMCFFKEY.LSpeed;

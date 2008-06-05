@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.14 2008/03/05 10:03:33 choumilo Exp $
+//  $Id: antirec02.h,v 1.15 2008/06/05 13:28:24 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -120,7 +120,7 @@ protected:
  integer _sector;  // Sector number 1 - MAXANTI
  integer _ntimes;  //number of time-hits
  integer _npairs;  //number of true(paired) time-hits
- number  _times[ANTI2C::ANTHMX*2];//time-hits(ns)
+ number  _times[ANTI2C::ANTHMX*2];//time-hits(FTime-HitTime, ns)
  number  _etimes[ANTI2C::ANTHMX*2];// approx.time errors(ns)
  number _edep;    // SectorEdep (MeV)
  AMSPoint _coo;   // R, phi , Z

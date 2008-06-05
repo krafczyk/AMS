@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.46 2008/02/13 14:06:54 choumilo Exp $
+//  $Id: trigger102.C,v 1.47 2008/06/05 13:28:16 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -884,6 +884,8 @@ void TGL1JobStat::printstat(){
 //    printf(" ............ length OK              : % 8d\n",daqc1[12]);
     printf(" Total bad structure LVL1-segments   : % 8d\n",daqc1[13]);
     printf(" Total good LiveTime/Rates LVL1-obj  : % 8d\n",daqc1[14]);
+    printf(" Total LVL1-obj with 0-Lev1MembPatt  : % 8d\n",daqc1[32]);
+    printf(" Total LVL1-obj with 0-PhysBranchPatt: % 8d\n",daqc1[33]);
     printf(" Total bad LiveTime/Rates cases      : % 8d\n",daqc1[15]);
   }
 //
@@ -1120,6 +1122,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
+  static integer lut1o(0),lut2o(0),lut3o(0),phbmsko(0);
+  static integer phbmemo[8]={0,0,0,0,0,0,0,0};
+//
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
 //
@@ -1194,7 +1199,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     JMembPatt=integer(word);
     word=*(p+2+pattbias);//Lev1PhysMembPatt
     PhysBPatt=integer(word&0x00FF);
-    trigby=((word&0x1F00)>>8);//triggered by whom
+    trigby=((word&0x1F00)>>8);//triggered by whom(LA-0,LA-1,DSP,intTR)
     word=*(p+3+pattbias);//AntiPatt
     AntiPatt=integer(word&0x00FF);
     word=*(p+4+pattbias);//Tof CP,CT,BZ layers pattern
@@ -1273,7 +1278,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     trtime[0]=timcal;
 //---> print info:
     if(TGL1FFKEY.printfl>1){
-      cout<<"      Triggered by (hex="<<trigby<<") :";
+      cout<<"=======> Event-by-event(instant) LVL1-info (patterns,time-counters,...):"<<endl;
+      cout<<"      Triggered by (hex_patt="<<trigby<<") :";
       if((trigby&1)>0)cout<<"LA-0"<<endl;
       if((trigby&2)>0)cout<<"LA-1"<<endl;
       if((trigby&4)>0)cout<<"????"<<endl;
@@ -1323,11 +1329,12 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   }//--->endof "TrigPatt"(ev-by-ev) block
 //----------------------------
   if((sbpatt%100)/10>0){// <--- LiveTimeBlock info
+// warning: 1st and 2nd words ate interchanged in each livetime pair
     TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
 //                    --->LiveTime "all busy":
-    word=*(p+ltimbias);//1st 16bits of live-time
+    word=*(p+ltimbias+1);//1st 16bits of live-time
     ltim=uinteger(word);
-    lword=uinteger(*(p+ltimbias+1));//last 11bits of live_time + time_gate.id
+    lword=uinteger(*(p+ltimbias));//last 11bits of live_time + time_gate.id
     ltim|=((lword&0x07FFL)<<16);
     timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
     if(timgid==3)tgate=2;//time-gate(sec)
@@ -1343,9 +1350,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       TGL1JobStat::daqs1(6);//LTim1>1
     } 
 //                    --->LiveTime "FE busy":
-    word=*(p+ltimbias+2);//1st 16bits of live-time
+    word=*(p+ltimbias+3);//1st 16bits of live-time
     ltim=uinteger(word);
-    lword=uinteger(*(p+ltimbias+3));//last 11bits of live_time + time_gate.id
+    lword=uinteger(*(p+ltimbias+2));//last 11bits of live_time + time_gate.id
     ltim|=((lword&0x07FFL)<<16);
     timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
     if(timgid==3)tgate=2;//time-gate(sec)
@@ -1361,7 +1368,10 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       TGL1JobStat::daqs1(8);//LTim2>1
     }
     if(TGL1FFKEY.printfl>0){
-      if(LiveTime1!=LiveTprev1 || LiveTime2!=LiveTprev2 || ltimeg[0]!=tgprev1 || ltimeg[1]!=tgprev2){
+      if(
+//         LiveTime1!=LiveTprev1 || LiveTime2!=LiveTprev2 || 
+                  ltimeg[0]!=tgprev1 || ltimeg[1]!=tgprev2){
+        EventBitDump(jleng,p,"Dump on Change of LiveTimePars:");//debug
         cout<<endl<<"----> LiveTimePars changed: Event/Time= "<<AMSEvent::gethead()->getid()<<" "
 	                                                      <<AMSEvent::gethead()->gettime()<<endl;
         cout<<"      LiveTime1/2:"<<LiveTime1<<"/"<<LiveTime2<<" Counts:"<<ltimec[0]
@@ -1372,7 +1382,6 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	if(LiveTime2!=LiveTprev2)LiveTprev2=LiveTime2;
 	if(ltimeg[0]!=tgprev1)tgprev1=ltimeg[0];
 	if(ltimeg[1]!=tgprev2)tgprev2=ltimeg[1];
-        EventBitDump(jleng,p,"Dump on Change of LiveTimePars:");//debug
       }
     }
   }//--->endof "LiveTime" block 
@@ -1591,8 +1600,46 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	                           <<hex<<psfcode<<dec<<" PhBr="<<i<<endl;
       }
     }
+//---some trig-info message on change:
+    bool phbmchange(false);
+    for(i=0;i<8;i++)if(l1trigconf.physbrmemb(i)!=phbmemo[i])phbmchange=true;
+    if(l1trigconf.toflut1()!=lut1o || l1trigconf.toflut2()!=lut2o
+                                   || l1trigconf.toflutbz()!=lut3o
+				   || l1trigconf.globl1mask()!=phbmsko
+				   || phbmchange
+				                                                 ){
+      cout<<"===================================================="<<endl;
+      cout<<"  Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
+      cout<<"  TofTrigConditions changed, New settings are :"<<endl;
+      cout<<"  LUTs: "<<l1trigconf.toflut1()<<" "<<l1trigconf.toflut2()<<" "<<l1trigconf.toflutbz()<<endl;
+      cout<<"     Anabled Lev1PhysBranchesPattern :"<<endl;
+      cout<<"|  FTC| Z>=1| Z>=2|Z>=2s|Elect|Gamma|  FTE|Extrn|"<<endl;  
+      for(i=0;i<8;i++){
+	  if((l1trigconf.globl1mask()&1<<i)>0)cout<<"   X  ";
+	  else cout<<"   0  ";
+      }
+      cout<<endl;
+      cout<<"      Anabled Lev1PhysBranchMembersPattern :"<<endl; 
+      cout<<"|FTP0|FTP1|FTT0|FTT1| FTZ| FTE|ACC0|ACC1|  BZ|ECFA|ECFO|ECAA|ECAO|EXG0|EXG1|"<<endl;
+      for(i=0;i<8;i++){
+        if((l1trigconf.globl1mask()&1<<i)>0){//printonly active
+        for(j=0;j<15;j++){
+	  if((l1trigconf.physbrmemb(i)&1<<j)>0)cout<<"  X  ";
+	  else cout<<"  0  ";
+	}
+	cout<<endl;
+	}
+      }
+      cout<<"===================================================="<<endl;
+      lut1o=l1trigconf.toflut1();
+      lut2o=l1trigconf.toflut2();
+      lut3o=l1trigconf.toflutbz();
+      phbmsko=l1trigconf.globl1mask();
+      for(i=0;i<8;i++)phbmemo[i]=l1trigconf.physbrmemb(i);
+    }
+//---
     if(TGL1FFKEY.printfl>1){//print setup info (if requested):
-      cout<<"               TrigSetup :"<<endl;
+      cout<<"==========> LVL1-Trigger Setup&Status :"<<endl;
       cout<<"      Anabled ATC-sectors/sides:";
       for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antinmask(i)<<" ";
       cout<<endl;
@@ -1663,6 +1710,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   if(LiveTime1==0 && LiveTime2>0)LiveTime1=LiveTime2;//tempor fix     
   if(LiveTime2==0 && LiveTime1>0)LiveTime2=LiveTime1;     
   if(scalmon.TOFrateMX()<TGL1FFKEY.MaxScalersRate && LiveTime1>=TGL1FFKEY.MinLifeTime){
+    if(JMembPatt==0)TGL1JobStat::daqs1(32);//count empty TrigPatt entries
+    if(PhysBPatt==0)TGL1JobStat::daqs1(33);//count empty TrigPatt entries
     AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new Trigger2LVL1(PhysBPatt,JMembPatt,
              TofFlag1,TofFlag2,tofpat1,tofpat2,AntiPatt,EcalFlag,ecpat,ectrs,LiveTime1,TrigRates,trtime));
     TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    
@@ -1733,7 +1782,7 @@ void Trigger2LVL1::EventBitDump(integer leng, int16u *p, char * message){
   datyp=(blid&(0x00C0))>>6;//0,1,2,3
   noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
-  cout<<"----> Lev1DaqBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
+  cout<<"======> Lev1DaqBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
   cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
   cout<<" node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" block_length="<<len<<endl;
 //

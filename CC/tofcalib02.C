@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.28 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.29 2008/06/05 13:28:16 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -29,87 +29,136 @@ extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// TOF peds/sigmas/...
 //
 //
 //--------------------------------------------------------------------
-geant TofTimeCalib::slope;
-geant TofTimeCalib::tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
-number TofTimeCalib::s1;
-number TofTimeCalib::s3[TOF2GC::SCLRS][TOF2GC::SCMXBR];
-number TofTimeCalib::s4;
-number TofTimeCalib::s6[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
-number TofTimeCalib::s7[TOF2GC::SCMXBR];
-number TofTimeCalib::s8;
-number TofTimeCalib::s12[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
-number TofTimeCalib::s13[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
-number TofTimeCalib::s14[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
-number TofTimeCalib::s15[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
-number TofTimeCalib::s16[TOF2GC::SCMXBR];
-number TofTimeCalib::events;
-number TofTimeCalib::resol;
-//
-number TofTimeCalib::tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
-number TofTimeCalib::tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
-number TofTimeCalib::clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
-integer TofTimeCalib::nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
-integer TofTimeCalib::nbins[TOF2GC::SCBTPN]={15,16,16,16,15,
+//Txslw:
+geant TofTmAmCalib::slope;
+geant TofTmAmCalib::tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+number TofTmAmCalib::s1;
+number TofTmAmCalib::s3[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+number TofTmAmCalib::s4;
+number TofTmAmCalib::s6[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
+number TofTmAmCalib::s7[TOF2GC::SCMXBR];
+number TofTmAmCalib::s8;
+number TofTmAmCalib::s12[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
+number TofTmAmCalib::s13[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
+number TofTmAmCalib::s14[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
+number TofTmAmCalib::s15[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
+number TofTmAmCalib::s16[TOF2GC::SCMXBR];
+number TofTmAmCalib::events;
+number TofTmAmCalib::resol;
+//Tdelv:
+number TofTmAmCalib::tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
+number TofTmAmCalib::tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
+number TofTmAmCalib::clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
+integer TofTmAmCalib::nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
+integer TofTmAmCalib::nbins[TOF2GC::SCBTPN]={15,16,16,16,15,
                                     16,17,14,15,16,17};//#coord-bins vs bar-type(<=TOF2GC::SCTDBM)
 //                                                   to have bin width = 8-9cm
+//Ampl:
+number TofTmAmCalib::ambin1[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s1-signals for each ref_bar/bin/event
+integer TofTmAmCalib::nevenb1[TOF2GC::SCBTBN];// s1 events, accumulated per ref_bar/bin
+number TofTmAmCalib::ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for each ref_bar/bin/event
+integer TofTmAmCalib::nevenb2[TOF2GC::SCBTBN];// s2 events, accumulated per ref_bar/bin
+number TofTmAmCalib::amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for each channel/event
+integer TofTmAmCalib::nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel
+geant TofTmAmCalib::gains[TOF2GC::SCCHMX];// ch.signals ("0" impact) relat. to ref.ones
+geant TofTmAmCalib::btamp[2][TOF2GC::SCBTBN];// MostProb bar-signals for each bin(ref.bars,s1/s2) 
+geant TofTmAmCalib::ebtamp[2][TOF2GC::SCBTBN];// MostProb errors for each bin(ref.bars,s1/s2) 
+integer TofTmAmCalib::rbls[TOF2GC::SCBTPN]={101,105,401,404,201,
+                                    202,204,301,302,303,305};//ref.bar id's (for bar types 1-11)
+geant TofTmAmCalib::profb[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin width for each bar type
+geant TofTmAmCalib::profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// middle of the bin .........
+integer TofTmAmCalib::nprbn[TOF2GC::SCBTPN]={16,16,16,16,15,16,16,14,15,16,16};//profile-bins vs bar-type
+
+number TofTmAmCalib::a2dr[TOF2GC::SCCHMX];//sum of An/Sum(Dyn(pmt))-ratios for each channel
+number TofTmAmCalib::a2dr2[TOF2GC::SCCHMX];//sum of ratios**2 for each channel
+integer TofTmAmCalib::neva2d[TOF2GC::SCCHMX];//number of events/channel for above sum
+number TofTmAmCalib::d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dyn(pm)/Sum(Dyn(pm))-gains for LBBS
+number TofTmAmCalib::d2sdr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of ratios**2 
+integer TofTmAmCalib::nevdgn[TOF2GC::SCCHMX];//number of events/channel for above sum
+  
+number TofTmAmCalib::ammrfc[TOF2GC::SCBTPN];//sum for mean charge calculation (ref.c.,"0"-bin)
+integer TofTmAmCalib::nevrfc[TOF2GC::SCBTPN];//events in above sum
+geant TofTmAmCalib::fpar[10]={0,0,0,0,0,0,0,0,0,0};// parameters to fit
+integer TofTmAmCalib::nbinr;//working var. for A-profile fit
+integer TofTmAmCalib::iside;//working var. for A-profile fit
+geant TofTmAmCalib::fun2nb;//working var. for  fit
+number TofTmAmCalib::mcharge[TOF2GC::SCPRBM];
+number TofTmAmCalib::mcoord[TOF2GC::SCPRBM];
+number TofTmAmCalib::emchar[TOF2GC::SCPRBM];
+number TofTmAmCalib::aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP];// A-profile parameters(ref.bars)
+number TofTmAmCalib::clent;
+integer TofTmAmCalib::cbtyp;//bar-type (1-11)
+integer TofTmAmCalib::fitflg;//(0,1)to communicate with FCN
+number TofTmAmCalib::arefb[TOF2GC::SCBTPN][TOF2GC::SCACMX];// tot-signals for each ref_bar/event
+integer TofTmAmCalib::nrefb[TOF2GC::SCBTPN];// numb.of events accum. per ref_bar
+//
+geant TofTmAmCalib::binsta[50];
+geant TofTmAmCalib::bincoo[50];
+integer TofTmAmCalib::elbt;
+geant TofTmAmCalib::elfitp[TOF2GC::SCELFT];
+char TofTmAmCalib::eltit[60];
+//
 //------------------------------
-void TofTimeCalib::initjob(){
+void TofTmAmCalib::initjob(){
   integer mode=TFREFFKEY.relogic[0];
 // common Tdelv/Tzslw histograms:
-  HBOOK1(1500,"TimeC:Anticounter cluster-energy(mev)",80,0.,20.,0.);//
-  HBOOK1(1501,"TimeC:Qmax ratio",80,0.,16.,0.);//
-  HBOOK1(1502,"TimeC:Aver.Q(pC,truncated)",60,0.,600.,0.);//
-  HBOOK1(1503,"TimeC:PrimitiveTofBeta(using previous calibr)",80,0.4,1.2,0.);//
-  HBOOK1(1504,"TimeC:Particle multipl. in calib.events",10,0.,10.,0.);
-  HBOOK1(1505,"TimeC:Part.rigidity from TRK(gv)",100,0.,50.,0.);//
-  HBOOK1(1506,"TimeC:PartBeta(prev.calib)",80,0.4,1.2,0.);// 
-  HBOOK1(1506,"TimeC:TrackBeta(from TRK-rigidity, imply prot/muon)",80,0.4,1.2,0.);//
-  HBOOK1(1507,"TimeC:PartBetaChi2(based on prev calib)",80,0.,16.,0.);//
-  HBOOK1(1508,"TimeC:PartBetaChi2S(based on prev calib)",80,0.,16.,0.);//
-  HBOOK1(1509,"TimeC:PartTrackChi2",80,0.,40.,0.);//
-  HBOOK1(1512,"TimeC:Effective Beta used as reference for Tzslw-calib",80,0.4,1.2,0.);//
+  HBOOK1(1500,"TmAmC:Anticounter cluster-energy(mev)",80,0.,20.,0.);//
+  HBOOK1(1501,"TmAmC:Qmax ratio",80,0.,16.,0.);//
+  HBOOK1(1502,"TmAmC:Aver.Q(pC,truncated)",60,0.,600.,0.);//
+  HBOOK1(1503,"TmAmC:MyTofBeatFit Beta(prev.calib)",80,0.4,1.2,0.);//
+  HBOOK1(1504,"TmAmC:Particle multipl. in calib.events",10,0.,10.,0.);
+  HBOOK1(1505,"TmAmC:Part.rigidity from TRK(gv)",100,0.,50.,0.);//
+  HBOOK1(1506,"TmAmC:PartBeta(prev.calib)",80,0.4,1.2,0.);// 
+  HBOOK1(1507,"TmAmC:PartBetaChi2(based on prev calib)",80,0.,16.,0.);//
+  HBOOK1(1508,"TmAmC:PartBetaChi2S(based on prev calib)",80,0.,16.,0.);//
+  HBOOK1(1509,"TmAmC:PartTrackChi2",80,0.,40.,0.);//
+  HBOOK1(1512,"TmAmC:Effective Beta used as reference for Tzslw-calib",80,0.8,1.,0.);//
       
-//  HBOOK1(1510,"TimeC:Chisq (tof-beta-fit)",50,0.,10.,0.);
-//  HBOOK1(1511,"TimeC:TZSL:Beta(TOFprev.calib,mom-cut,angle-corr)",80,0.4,1.2,0.);
+  HBOOK1(1510,"TmAmC:MyTofBetaFit Chisq(prev.calib)",100,0.,25.,0.);
+  HBOOK1(1511,"TmAmC:MyTofBetaFit Tzero(prev.calib)",50,-1.,1.,0.);
+  HBOOK1(1513,"TmAmC:Primitive(noFit, noTrack required) TofBeta(prev.calib)",50,0.4,1.4,0.);//
       
-  HBOOK1(1200,"TimeC:Res_long.coo(track-sc),L=1",50,-10.,10.,0.);//
-  HBOOK1(1201,"TimeC:Res_long.coo(track-sc),L=2",50,-10.,10.,0.);//
-  HBOOK1(1202,"TimeC:Res_long.coo(track-sc),L=3",50,-10.,10.,0.);//
-  HBOOK1(1203,"TimeC:Res_long.coo(track-sc),L=4",50,-10.,10.,0.);//
-  HBOOK2(1204,"TimeC:Res_long. vs track coord.,L1",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK2(1205,"TimeC:Res_long. vs track coord.,L2",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK2(1206,"TimeC:Res_long. vs track coord.,L3",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK2(1207,"TimeC:Res_long. vs track coord.,L4",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK1(1210,"TimeC:Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);//
-  HBOOK1(1211,"TimeC:Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);//
-  HBOOK1(1212,"TimeC:Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);//
-  HBOOK1(1213,"TimeC:Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);//
-  HBOOK1(1215,"TimeC:TrackImpactCos",50,-1.,1.,0.);//
-  HBOOK1(1217,"TimeC:Cos_sc",50,0.5,1.,0.);
-  HBOOK1(1218,"TimeC:TOF track-fit chi2-x",50,0.,5.,0.);
-  HBOOK1(1219,"TimeC:TOF track-fit chi2-y",50,0.,5.,0.);
+  HBOOK1(1200,"TmAmC:Res_long.coo(track-sc),L=1",50,-10.,10.,0.);//
+  HBOOK1(1201,"TmAmC:Res_long.coo(track-sc),L=2",50,-10.,10.,0.);//
+  HBOOK1(1202,"TmAmC:Res_long.coo(track-sc),L=3",50,-10.,10.,0.);//
+  HBOOK1(1203,"TmAmC:Res_long.coo(track-sc),L=4",50,-10.,10.,0.);//
+  HBOOK2(1204,"TmAmC:Res_long. vs track coord.,L1",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1205,"TmAmC:Res_long. vs track coord.,L2",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1206,"TmAmC:Res_long. vs track coord.,L3",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1207,"TmAmC:Res_long. vs track coord.,L4",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK1(1210,"TmAmC:Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);//
+  HBOOK1(1211,"TmAmC:Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);//
+  HBOOK1(1212,"TmAmC:Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);//
+  HBOOK1(1213,"TmAmC:Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);//
+  HBOOK1(1215,"TmAmC:TrackImpactCos",50,-1.,1.,0.);//
+  HBOOK1(1216,"TmAmC:MeanEdep(truncated,cos/beta corrected)",100,0.,25.,0.);
+//  HBOOK1(1217,"TmAmC:Cos_sc",50,0.5,1.,0.);
+//  HBOOK1(1218,"TmAmC:TOF track-fit chi2-x",50,0.,5.,0.);
+//  HBOOK1(1219,"TmAmC:TOF track-fit chi2-y",50,0.,5.,0.);
 //
-  if(mode==2 || mode==23)inittd();//incl. specific hist-booking
-  if(mode==3 || mode==23)inittz();//incl. specific hist-booking
+  if(mode==2 || mode==23 || mode==234)inittd();//incl. specific hist-booking
+  if(mode==3 || mode==23 || mode==234)inittz();//incl. specific hist-booking
+  if(mode==4 || mode==34 || mode==234)initam();//incl. specific hist-booking
 }
 //------------------------------
-void TofTimeCalib::endjob(){
+void TofTmAmCalib::endjob(){
   integer mode=TFREFFKEY.relogic[0];
-  cout<<"====> Enter TofTimeCalib::endjob in mode:"<<mode<<endl;
+  cout<<"====> Enter TofTimeAmplCalib::endjob in mode:"<<mode<<endl;
 //
 //---> print common hist:
   HPRINT(1500);
   HPRINT(1501);
   HPRINT(1502);
+  HPRINT(1513);
   HPRINT(1503);
+  HPRINT(1510);
+  HPRINT(1511);
   HPRINT(1504);
   HPRINT(1505);
   HPRINT(1506);
   HPRINT(1507);
   HPRINT(1508);
   HPRINT(1509);
-//  HPRINT(1510);
-//  HPRINT(1511);
   HPRINT(1512);
   
   HPRINT(1200);
@@ -125,23 +174,23 @@ void TofTimeCalib::endjob(){
   HPRINT(1212);
   HPRINT(1213);
   HPRINT(1215);
-  HPRINT(1217);
-  HPRINT(1218);
-  HPRINT(1219);
+  HPRINT(1216);
+//  HPRINT(1217);
+//  HPRINT(1218);
+//  HPRINT(1219);
 //Tdelv:
-  if(mode==2 || mode==23)fittd();//Tdelv-fits + print-hist(1600-1605,1610-..) + write2file
+  if(mode==2 || mode==23 || mode==234)fittd();//Tdelv-fits + print(1600-1605,1610-..) + write2file
 //Tzslw:
-  if(mode==3 || mode==23){
+  if(mode==3 || mode==23 || mode==234){
     HPRINT(1515);
     HPRINT(1516);
-    fittz();//Tzslw-fits + print-hist(1517-1518) + write2file
+    fittz();//Tzslw-fits + print(1517-1518) + write2file
+  }
+//Ampl:
+  if(mode==4 || mode==34 || mode==234){
+    endjam();// call fitam and print specific hists + write2file
   }
 //-----------
-//           HPRINT(1550);
-//           HPRINT(1551);
-//           HPRINT(1552);
-//           HPRINT(1553);
-//
   int ctyp,ntypes,cnum;
   char datt[3];
   char ext[80];
@@ -151,12 +200,12 @@ void TofTimeCalib::endjob(){
   uinteger iutct;
   tm begin;
   time_t utct;
-  uinteger verids[11],verid;
+  uinteger verids[11];
   int ic,entr,noft,nolt,noht,noan,nody,stat[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];
-  number bpor,bpormx(0.5);
+  number bpor,bpormx(0.8);
 //
   char frdate[30];
-  uinteger StartRun;
+  uinteger StartRun,overid,verid;
   time_t StartTime;
 //
 //
@@ -169,20 +218,18 @@ void TofTimeCalib::endjob(){
          ic=il*TOF2GC::SCMXBR*2+ib*2+ip;//ch-numbering in TofJobStat arrays
 	 entr=TOF2JobStat::getch(ic,12);
 	 if(entr==0)continue;
-	 noft=TOF2JobStat::getch(ic,13);
-	 bpor=number(noft)/entr;
-	 if(bpor>bpormx)stat[il][ib][ip]+=100000;//no FT
-	 nolt=TOF2JobStat::getch(ic,15);
+	 noht=TOF2JobStat::getch(ic,18);//noSumHT(history)
+	 bpor=number(noht)/entr;
+	 if(TFREFFKEY.relogic[1]==1 && bpor>bpormx)stat[il][ib][ip]+=100000;//no SumHT
+	 nolt=TOF2JobStat::getch(ic,15);//noLT
 	 bpor=number(nolt)/entr;
 	 if(bpor>bpormx)stat[il][ib][ip]+=10000;//no LT
-	 noht=TOF2JobStat::getch(ic,18);
-//          tempor no check
-	 noan=TOF2JobStat::getch(ic,16);
+	 noan=TOF2JobStat::getch(ic,16);//noAn
 	 bpor=number(noan)/entr;
 	 if(bpor>bpormx)stat[il][ib][ip]+=1000;//no Anode
-	 nody=TOF2JobStat::getch(ic,17);
+	 nody=TOF2JobStat::getch(ic,17);//noDy
 	 bpor=number(nody)/entr;
-	 if(bpor>bpormx)stat[il][ib][ip]+=111;//no Dynode
+//	 if(bpor>bpormx)stat[il][ib][ip]+=111;//no Dynode
        }
      }
    }
@@ -195,12 +242,15 @@ void TofTimeCalib::endjob(){
 //
   if(AMSJob::gethead()->isMCData()){
     strcpy(datt,"MC");
-    verid=TOF2Brcal::CFlistC[2]+1;//get new MC-versn 
+    overid=TOF2Brcal::CFlistC[2];
+    verid=overid+1;//get new MC-versn = old+1 
     TOF2Brcal::CFlistC[2]=verid;//update CStatMC-versn in static store
   }
   else{
     strcpy(datt,"RD");
-    verid=StartRun;//new RD-utc ....
+    overid=TOF2Brcal::CFlistC[1];
+    if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+    else verid=StartRun;
     TOF2Brcal::CFlistC[1]=verid;//update CStatRD utc in static store
   }
   strcpy(name,"TofCStat");//generic name
@@ -235,26 +285,31 @@ void TofTimeCalib::endjob(){
   cout <<"  <-- new TofCStat-file "<<name<<" is created !!!"<<endl;
 //--------------------------------------------
 //
-//---> create tempor. TofCflistMC(RD).vers+1 file
+//---> create  TofCflistMC(RD) file:
 //
-  ntypes=integer(TOF2Brcal::CFlistC[0]);
+  ntypes=integer(TOF2Brcal::CFlistC[0]);//7/6->MC/RD
   strcpy(name,"TofCflist");// basic name for vers.list-file  
   if(AMSJob::gethead()->isMCData()){
     strcpy(datt,"MC");
-    sprintf(ext,"%d",(TOF2Brcal::CFlistC[ntypes+1]+1));//current(old) MC-versn +1
+    overid=TOF2Brcal::CFlistC[ntypes+1];
+    verid=overid+1;//new vers = old+1
+    sprintf(ext,"%d",verid);
   }
   else{
     strcpy(datt,"RD");
-    sprintf(ext,"%d",(TOF2Brcal::CFlistC[ntypes+1]+1));//current(old) RD-utc +1
+    overid=TOF2Brcal::CFlistC[ntypes+1];
+    if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+    else verid=StartRun;
+    sprintf(ext,"%d",verid);//new RD-utc
   }
   strcat(name,datt);
   strcat(name,".");
   strcat(name,ext);
 //
-  cout<<"  <--  writing tempor Calib_vers_list-file... "<<name<<'\n';
+  cout<<"  <--  writing new Calib_vers_list-file... "<<name<<'\n';
   ofstream vlfile(name,ios::out|ios::trunc);
   if(!vlfile){
-    cout <<"  <-- Error:Can't write tempor. vers.list-file !!? "<<name<<endl;
+    cout <<"  <-- Error:Can't write new vers.list-file !!? "<<name<<endl;
     exit(1);
   }
   vlfile << ntypes;// total number of calibr. file types in the list
@@ -278,11 +333,11 @@ void TofTimeCalib::endjob(){
     vlfile << endl;
   }
   vlfile.close();
-  cout <<"  <-- temporary CFlist-file "<<name<<" is created !!!"<<endl;
-  cout <<"<==== TofTimeCalib::endjob completed ==="<<endl;
+  cout <<"  <-- New CFlist-file "<<name<<" is created !!!"<<endl;
+  cout <<"<==== TofTimeAmplCalib::endjob completed ==="<<endl;
 }
 //------------------------------
-void TofTimeCalib::inittz(){
+void TofTmAmCalib::inittz(){
   int i,j,il,ib;
   slope=0.;
   s1=0.;
@@ -313,7 +368,7 @@ void TofTimeCalib::inittz(){
   HBOOK1(1518,"T0-difference between ref. and bar-types 4",80,-0.4,0.4,0.);
 }
 //------------------------------
-void TofTimeCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tzero[][]->file
+void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tzero[][]->file
   int i,id,ii,j,ier,il,ib,npar(TOF2GC::SCBLMX+2),nparr,seqnum;
 //
   char pnm[6];
@@ -367,7 +422,7 @@ void TofTimeCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   }
 // ------------> release T0-parameters with good statistics:
 // 
-  printf("====> TofTimeCalib::fittz:Collected events (total) : %9.0f\n",events);
+  printf("====> TofTimeAmplCalib::fittz:Collected events (total) : %9.0f\n",events);
   printf("      Collected events per sc. bar : \n");
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=1;ib<=TOF2DBc::getbppl(il);ib++){
@@ -384,12 +439,12 @@ void TofTimeCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       id=(il+1)*100+ib+1;
       if(s3[il][ib]>=5.){
-        if(TFCAFFKEY.idref[1]==0 
-	     || (TFCAFFKEY.idref[1]==1 && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
-	     || (TFCAFFKEY.idref[1]==2 && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
+//        if(TFCAFFKEY.idref[1]==0 
+//	     || (TFCAFFKEY.idref[1]==1 && (il==1 || il==2) && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
+//	     || (TFCAFFKEY.idref[1]==2 && (il==1 || il==2) && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
           ifit[1+seqnum]=1;//bar with high statist.-> release
           nparr+=1;
-	}
+//	}
         if(id == TFCAFFKEY.idref[0]){
           ifit[1+seqnum]=0;//fix, if ref counter
           nparr-=1;
@@ -425,7 +480,7 @@ void TofTimeCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
     argl[0]=number(i+1);
     if(ifit[i]==0){
       ier=0;
-      MNEXCM(mfun,"FIX",argl,1,ier,0);
+      MNEXCM(mfuntz,"FIX",argl,1,ier,0);
       if(ier!=0){
         cout<<"<---- Fatal: Param-fix problem for par-id="<<pnam[i]<<'\n';
         exit(10);
@@ -435,32 +490,32 @@ void TofTimeCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
 //----
   argl[0]=0.;
   ier=0;
-  MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
+  MNEXCM(mfuntz,"MINIMIZE",argl,0,ier,0);
   if(ier!=0){
     cout<<"<---- Fatal: MINIMIZE problem !"<<'\n';
     exit(10);
   }  
-  MNEXCM(mfun,"MINOS",argl,0,ier,0);
+  MNEXCM(mfuntz,"MINOS",argl,0,ier,0);
   if(ier!=0){
     cout<<"<---- Fatal: MINOS problem !"<<'\n';
     exit(10);
   }
   argl[0]=number(3);
   ier=0;
-  MNEXCM(TofTimeCalib::mfun,"CALL FCN",argl,1,ier,0);
+  MNEXCM(TofTmAmCalib::mfuntz,"CALL FCN",argl,1,ier,0);
   if(ier!=0){
     cout<<"<---- Fatal: final CALL_FCN problem !"<<'\n';
     exit(10);
   }
 //----
-  printf("<==== TofTimeCalib::fittz: Minuit ended with parameters:\n");
+  printf("<==== TofTimeAmplCalib::fittz: Minuit ended with parameters:\n");
   printf("      -----------------------------\n");
   printf("      Resolution(ns) : %6.3e\n",resol);
   printf("      Slope          : %6.3e\n",slope);
 }
 //-----------------------------------------------------------------------
 // This is standard Minuit FCN for Tzslw-calib:
-void TofTimeCalib::mfun(int &np, number grad[], number &f, number x[]
+void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
   int i,j,il,ib,seqnum;
   integer id,ibt,idr,ibtr;
@@ -478,7 +533,7 @@ void TofTimeCalib::mfun(int &np, number grad[], number &f, number x[]
   char vers2[3]="RD";
   char fext[20];
   integer cfvn;
-  uinteger StartRun;
+  uinteger StartRun,overid,verid;
   time_t StartTime;
   int dig;
   strcpy(inum,"0123456789");
@@ -539,7 +594,7 @@ void TofTimeCalib::mfun(int &np, number grad[], number &f, number x[]
    -2.*f10*x[0];
 //----------------------------------
   if(flg==3){
-    cout<<"----> TofTimeCalib::fittz: Final call to FCN(user actions):"<<endl;
+    cout<<"----> TofTimeAmplCalib::fittz: Final call to FCN(user actions):"<<endl;
 //
 //--> get run/time of the first event(set at 1st event valid-stage using related AMSEvent values) 
 //
@@ -552,14 +607,18 @@ void TofTimeCalib::mfun(int &np, number grad[], number &f, number x[]
     strcpy(fname,"TofTzslw");
     if(AMSJob::gethead()->isMCData()){
       strcat(fname,vers1);
-      sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
-      TOF2Brcal::CFlistC[4]=TFMCFFKEY.calvern+1;//update Tzslw-calib version in static store
+      overid=TOF2Brcal::CFlistC[4];
+      verid=overid+1;//new MC-versn = old+1
+      sprintf(fext,"%d",verid);
+      TOF2Brcal::CFlistC[4]=verid;//update Tzslw-calib version in static store
     }
     else{
       strcat(fname,vers2);
-//      sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
-      sprintf(fext,"%d",StartRun+1);//tempor !!!
-      TOF2Brcal::CFlistC[3]=StartRun;//update Tzslw-calib version in static store
+      overid=TOF2Brcal::CFlistC[3];
+      if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+      else verid=StartRun;
+      sprintf(fext,"%d",verid);//RD-Run# = UTC-time of 1st "on-board" event
+      TOF2Brcal::CFlistC[3]=verid;//update Tzslw-calib version in static store
     }
     strcat(fname,".");
     strcat(fname,fext);
@@ -618,12 +677,12 @@ void TofTimeCalib::mfun(int &np, number grad[], number &f, number x[]
     tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
     tcfile << endl<<" Date of the first event : "<<frdate<<endl;
     tcfile.close();
-    cout<<"<==== TofTimeCalib(Tzslw) completed, output file is written !!!"<<endl;
+    cout<<"<==== TofTimeAmplCalib(Tzslw) completed, output file is written !!!"<<endl;
   }
 }
 //-----------------------------------------------------------------------
 // To fill arrays, used by FCN :
-void TofTimeCalib::filltz(int ib[TOF2GC::SCLRS],number dtr[TOF2GC::SCLRS-1], 
+void TofTmAmCalib::filltz(int ib[TOF2GC::SCLRS],number dtr[TOF2GC::SCLRS-1], 
                                                number du[TOF2GC::SCLRS-1]){
   static int first(0);
   int i,j;
@@ -642,20 +701,32 @@ void TofTimeCalib::filltz(int ib[TOF2GC::SCLRS],number dtr[TOF2GC::SCLRS-1],
   for(i=0;i<TOF2DBc::getnplns()-1;i++)s16[ib[0]]+=du[i];
 }
 //========================================================================
-void TofTimeCalib::select(){  // calibr. event selection
+void TofTmAmCalib::select(){  // calibr. event selection
   integer i,j,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector,conf,nanti(0);
+  integer il,ib,ix,iy;
   integer cref[2],lref[2];
   integer badx,bady;
-  number ltim[4],tm[2],am[2],ama[2],amd[2],time,timeD,tamp,edepa,edepd,relt;
+  number ltim[4],tdif[4],trle[4],tm[2],am[2],ama[2],amd[2],time,timeD,tamp,edepa,edepd,relt;
+  geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cosc,cosi,cost,xtr[TOF2GC::SCLRS],ytr[TOF2GC::SCLRS];
+  number edep[TOF2GC::SCLRS];
+  geant ainp[2],dinp[2][TOF2GC::PMTSMX],cinp;
+  number amdr[TOF2GC::PMTSMX];
+  number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS],am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS];
+  number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq;
+  int ip,npmf,npmts,nzpm;
+  number adca[TOF2GC::SCLRS][2],adcd[TOF2GC::SCLRS][2];
+  number dpma1[TOF2GC::SCLRS][TOF2GC::PMTSMX],dpma2[TOF2GC::SCLRS][TOF2GC::PMTSMX];
   number coo[TOF2GC::SCLRS],trp1[TOF2GC::SCLRS],trp2[TOF2GC::SCLRS],arp1[TOF2GC::SCLRS],arp2[TOF2GC::SCLRS];
   number tmsd[TOF2GC::SCLRS],tmsdc[TOF2GC::SCLRS],t14,tmss[TOF2GC::SCLRS];
   geant slops[2],eacl;
   number shft,ftdel,qtotl[TOF2GC::SCLRS],qsd1[TOF2GC::SCLRS],qsd2[TOF2GC::SCLRS],eanti(0),meanq,rr,qmax;
+  number sigt[4]={0.15,0.15,0.15,0.15};// approx. time meas.accuracy in TOF-layers 
   number betof,lflgt,cvel(29.979);
   number eacut=0.6;// cut on E-anti (mev). tempor (no calibration)
   number qrcut=6.;// cut on max/mean-charge ratio
-  number qtcut=200.;// cut on max mean-charge 
-  number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
+  number qtcut=400.;// cut on max mean-charge 
+  number edecut=10.;// max. Aver(truncated) energy(mev)(to avoid ions in Ampl-calib of abs.norm)
+  number adcmin=5;//min 2xAnodes-signal(ADC-ch) for counter to be selected for calibration
   number *pntr[TOF2GC::SCLRS];
   static int first(0);
   TOF2RawCluster *ptr;
@@ -666,11 +737,23 @@ void TofTimeCalib::select(){  // calibr. event selection
   ptra=(AMSAntiCluster*)AMSEvent::gethead()->
                            getheadC("AMSAntiCluster",0);
 //----
-  TOF2JobStat::addre(6);
-  for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)qtotl[i]=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)ltim[i]=0;
-  cref[0]=TFCAFFKEY.idref[0]%100-1;//BB-ref1(0-11)
+  integer mode=TFREFFKEY.relogic[0];//calibr.type
+//
+  TOF2JobStat::addre(10);
+//
+  for(i=0;i<TOF2GC::SCLRS;i++){
+    nbrl[i]=0;
+    qtotl[i]=0;
+    ltim[i]=0;
+    edep[i]=0;
+    brnl[i]=-1;
+    adca[i][0]=0;
+    adca[i][1]=0;
+    am1[i]=0;
+    am2[i]=0;
+  }
+//
+  cref[0]=TFCAFFKEY.idref[0]%100-1;//BB-ref1(0-9)
   lref[0]=TFCAFFKEY.idref[0]/100-1;//L-ref1(0-3)
 //----
   while (ptr){ // <--- loop over TOF2RawCluster hits
@@ -683,16 +766,15 @@ void TofTimeCalib::select(){  // calibr. event selection
 				                                 ){//use only 2-sided 
         ilay=(ptr->getntof())-1;
         ibar=(ptr->getplane())-1;
-	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
-	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
+//	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
+//	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
           ptr->getadca(ama);
-          if(ama[0]>0 && ama[1]>0){// require anode signal
+          if(ama[0]>adcmin && ama[1]>adcmin){// require min. anode signal
             TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
             qtotl[ilay]=am[0]+am[1];
             qsd1[ilay]=am[0];//side q(pC) for Tzslw-calib
             qsd2[ilay]=am[1];
             ptr->getsdtm(tm);// get raw side-times(A-noncorrected)
-            ltim[ilay]=ptr->gettime();// get ampl-corrected time(based on previous calibration)
             nbrl[ilay]+=1;
             brnl[ilay]=ibar;
             trp1[ilay]=tm[0];//store side raw time(noncorrected by q)
@@ -704,8 +786,26 @@ void TofTimeCalib::select(){  // calibr. event selection
             tmss[ilay]=0.5*(tm[0]+tm[1]);// .... side time sum
             TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from Anode-ch)
 //            tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
+// --> some vars for ampl.cal:
+            ltim[ilay]=ptr->gettime();//ampl-corr time(prev.calib)
+            am1[ilay]=am[0];//store Anode-charge(pC) for Anode rel.gains, abs.norm(
+            am2[ilay]=am[1];
+            edepa=ptr->getedepa();//energy in Anode channel(prev calibration !)
+            edepd=ptr->getedepd();//energy in Dynode channel
+            edep[ilay]+=edepa;
+//
+// ===> store Anode-adcs and Dynode_pmts-adcs(to select later centr.bin for a2dr-calc
+//                                                                  and for gaind[ipm]-calc):
+            adca[ilay][0]=ama[0];
+            adca[ilay][1]=ama[1];
+//    
+            ptr->getadcdr(0,amdr);//Dyn-pmts ampls, s1
+            for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma1[ilay][ip]=amdr[ip];
+            ptr->getadcdr(1,amdr);//Dyn-pmts ampls, s2
+            for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma2[ilay][ip]=amdr[ip];
+//------
 	  }
-	}
+//	}
       }
     }
     ptr=ptr->next();
@@ -723,7 +823,7 @@ void TofTimeCalib::select(){  // calibr. event selection
   if(ngdlrs<TOF2DBc::getnplns())return; // require all layers
 //  if(ngdlrs<TOF2DBc::getnplns()-1)return; // accept one missing layer
   if(nbrl[0]==0)return; // always require  1st layer
-  TOF2JobStat::addre(7);
+  TOF2JobStat::addre(11);
 //
 // -----> check Anti-counter :
   eanti=0;
@@ -739,9 +839,11 @@ void TofTimeCalib::select(){  // calibr. event selection
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-////  if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
+//  if(nanti>0)return;// remove events with >0 sector(e>ecut) in Anti
 //
-// -----> check amplitudes in layers :
+  TOF2JobStat::addre(12);
+//
+// -----> check spike-amplitudes in layers :
 //
   for(i=0;i<TOF2DBc::getnplns();i++)pntr[i]=&qtotl[i];
   AMSsortNAG(pntr,TOF2DBc::getnplns());// sort in increasing order
@@ -752,12 +854,37 @@ void TofTimeCalib::select(){  // calibr. event selection
   rr=qmax/meanq;//Qmas/Qaverage_of _the_rest
   HF1(1501,geant(rr),1.);
   HF1(1502,geant(meanq),1.);
-////  if(rr>qrcut)return; // remove events with "spike" dE/dX. 
-////  if(meanq>qtcut)return; // remove events with z>1 dE/dX. 
+  if(rr>qrcut)return; // remove events with "spike" dE/dX.
+// 
+  TOF2JobStat::addre(13);
 //
-// -----> remove albedo and very slow part. :
+// -----> remove albedo, very slow and Beta>>1 particles(using only TOF) :
 //
-  if(ngdlrs==4){//this test only for 4-layers TOF config
+  if(ngdlrs==4){//this is only for 4-layers TOF config
+    ix=0;
+    iy=0;                                
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      ib=brnl[il];
+      zc[il]=TOF2DBc::getzsc(il,ib);
+      if(TOF2DBc::plrotm(il)==0){// unrotated (Long->Yabs) planes(2,3)
+        y[iy]=coo[il];
+        zy[iy]=zc[il];
+        xtr[il]=TOF2DBc::gettsc(il,ib);
+        ytr[il]=y[iy];
+        iy+=1;
+      }
+      else{                    // rotated (Long->Xabs) planes(1,4)
+        x[ix]=coo[il];
+        zx[ix]=zc[il];
+        xtr[il]=x[ix];
+        ytr[il]=TOF2DBc::gettsc(il,ib);
+        ix+=1;
+      }
+    }
+    tgx=(x[0]-x[1])/(zx[0]-zx[1]);
+    tgy=(y[0]-y[1])/(zy[0]-zy[1]);
+    cosc=1./sqrt(1.+tgx*tgx+tgy*tgy);//track impact cos 
+//
     lflgt=TOF2DBc::supstr(1)-TOF2DBc::supstr(2)-
         (TOF2DBc::plnstr(1)+TOF2DBc::plnstr(2)
         +TOF2DBc::plnstr(3)+TOF2DBc::plnstr(6));// aver. top/bot flight distance(norm.inc)
@@ -767,12 +894,13 @@ void TofTimeCalib::select(){  // calibr. event selection
     if(ltim[2]!=0 && ltim[3]!=0)tbot=ltim[2]+ltim[3];
     betof=0;
     if(ttop!=0 && tbot!=0){
-      betof=2.*lflgt/(ttop-tbot)/cvel;//underest.(no angle corr)TOFbeta based on prev.calibr.
-      HF1(1503,geant(betof),1.);
+      betof=2.*lflgt/(ttop-tbot)/cosc/cvel;//primitive(noFit) TOFbeta based on prev.calibr.
+      HF1(1513,geant(betof),1.);
     }
-//    if(betof<0.6)return;
+    if(betof<0.5 || betof>1.3)return;
   }
-  TOF2JobStat::addre(8);
+//
+  TOF2JobStat::addre(14);
 //------>
   number times[TOF2GC::SCLRS];
 //
@@ -791,8 +919,6 @@ void TofTimeCalib::select(){  // calibr. event selection
     number pmom,bet,chi2,betm,beta;
     number chi2t,chi2s,crc;
     number the,phi,rigid,err,trl;
-    int il,ib,ix,iy;
-    geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cosc,cosi,cost,xtr[TOF2GC::SCLRS],ytr[TOF2GC::SCLRS];
     geant scchi2[2],xer[TOF2GC::SCLRS],yer[TOF2GC::SCLRS],lcerr,lvel;
     number trlr[TOF2GC::SCLRS],trlen[TOF2GC::SCLRS-1];
     number ram[TOF2GC::SCLRS],ramm[TOF2GC::SCLRS];
@@ -823,8 +949,9 @@ void TofTimeCalib::select(){  // calibr. event selection
       }
     }
     HF1(1504,geant(npart),1.);
-    if(npart<1)return;// require events with 1 particle at least 
-    TOF2JobStat::addre(24);
+    if(npart<1)return;// require events with 1 particle at least
+// 
+    TOF2JobStat::addre(15);
 //
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",envindx);
@@ -833,30 +960,27 @@ void TofTimeCalib::select(){  // calibr. event selection
     bool GoodTrPart=false;
     bool GoodTrkTrack=false;
 //			      
-    ppart=(AMSParticle*)AMSEvent::gethead()->
-                                      getheadC("AMSParticle",0);
-//
     while(ppart){//<---loop over particles in envindx-envelop
       ptrack=ppart->getptrack();//get pointer of the Track used in given particle
       ptrd=ppart->getptrd();//get pointer of the TRD-track, used in given particle
-      if(ptrd)TOF2JobStat::addre(42);
+      if(ptrd)TOF2JobStat::addre(17);
       if(ptrack){
         AnyTrPart=true;
-        TOF2JobStat::addre(25);
-        trdtr=ptrack->checkstatus(AMSDBc::TRDTRACK)!=0;
-        ecaltr=ptrack->checkstatus(AMSDBc::ECALTRACK)!=0;
-        nottr=ptrack->checkstatus(AMSDBc::NOTRACK)!=0;
-        badint=ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0;
-        if(trdtr)TOF2JobStat::addre(26);
-        if(ecaltr)TOF2JobStat::addre(27);
-        if(nottr)TOF2JobStat::addre(28);
-        if(badint)TOF2JobStat::addre(29);
+        TOF2JobStat::addre(16);
+        trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
+        ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
+        nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
+        badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
+        if(trdtr)TOF2JobStat::addre(18);
+        if(ecaltr)TOF2JobStat::addre(19);
+        if(nottr)TOF2JobStat::addre(20);
+        if(badint)TOF2JobStat::addre(21);
 	if(nottr || ecaltr || badint)goto Nextp;//looking only for TRK/TRD-track particle
 	GoodTrPart=true;
-	TOF2JobStat::addre(40);//good track part
+	TOF2JobStat::addre(22);//good track part
 	if(!trdtr){//tracker-track based part
 	  TrkTrPart=true;
-	  TOF2JobStat::addre(41);
+	  TOF2JobStat::addre(23);
           trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){//trk-track ok
             GoodTrkTrack=true;
@@ -871,24 +995,33 @@ void TofTimeCalib::select(){  // calibr. event selection
             chi2t=pbeta->getchi2();
             chi2s=pbeta->getchi2S();
             chargeTracker=pcharge->getchargeTracker();
-	    TOF2JobStat::addre(43);
+	    TOF2JobStat::addre(24);
           }
 	}//--->endof "trk-track particle" check
       }//--->endof "any track particle" check
-      if(GoodTrPart)break;//accept 1st particle with any good(not ecal-based) track
-//      if(GoodTrkTrack)break;//accept 1st particle with good Trk-track
+//      if(GoodTrPart)break;//accept 1st particle with any good(not ecal-based) track
+      if(GoodTrkTrack)break;//accept 1st particle with good Trk-track
 Nextp:
       ppart=ppart->next();
     }//--->endof particles loop
 //==================================================
     if(!GoodTrPart)return;//require part. with good(good interpol, TRD|TRK-track based) particle
-    TOF2JobStat::addre(44);
+    TOF2JobStat::addre(25);
 //
-    if(GoodTrkTrack)TOF2JobStat::addre(45);
+    if(GoodTrkTrack)TOF2JobStat::addre(26);
 //==================================================
 //
     if(!GoodTrkTrack && TFCAFFKEY.truse>=0)return;//require part. with TRK-track
-    TOF2JobStat::addre(9);
+    TOF2JobStat::addre(27);
+//==================================================
+// define ref.beta for TZSL-calib and check mom-range(if measured, indiv. for tzsl/ampl):
+    bool TzslMomOK(true);
+    bool AmplMomOK(true);
+    bool MomMeasExist(false);
+    number imass;//implied mass
+//
+    if(TFCAFFKEY.caltyp==0)imass=pmas;//space calib (pr)
+    else imass=mumas;//earth calib(mu)
 //
     if(!GoodTrkTrack)rigid=10;//dummy value when no tracker(or magnet off)
     bet=1; 
@@ -899,15 +1032,28 @@ Nextp:
       HF1(1507,chi2t,1.);
       HF1(1508,chi2s,1.);
       HF1(1509,chi2,1.);
-      if(TFCAFFKEY.truse>0 && (pmom<TFCAFFKEY.pcut[0] || pmom>TFCAFFKEY.pcut[1]))return;//remove low/too_high mom.
-      if(TFCAFFKEY.caltyp==0)bet=pmom/sqrt(pmom*pmom+pmas*pmas);// space calibration
-      else bet=pmom/sqrt(pmom*pmom+mumas*mumas);// earth calibration
-    }
+      if(TFCAFFKEY.truse>0){//use momentum-info from tracker for ref.beta calculation
+        MomMeasExist=true;
+	bet=pmom/sqrt(pmom*pmom+imass*imass); 
+        TzslMomOK=(pmom>=TFCAFFKEY.pcut[0] && pmom<=TFCAFFKEY.pcut[1]);//check low/too_high mom.
 //
-    TOF2JobStat::addre(46);
+	if(TFCAFFKEY.caltyp==0)AmplMomOK=(pmom>=TFCAFFKEY.plhc[0] && pmom<=TFCAFFKEY.plhc[1]);
+	else AmplMomOK=(pmom>=TFCAFFKEY.plhec[0] && pmom<=TFCAFFKEY.plhec[1]);
+      }
+      else{//no momentum info from tracker (magnet off) - use implied average beta
+        if(TFCAFFKEY.caltyp==0)bet=TFCAFFKEY.bmeanpr;// aver.beta for space Tzsl-calib(protons)
+        else bet=TFCAFFKEY.bmeanmu;//aver.beta for earth Tzsl-calib(muons)
+      }
+    }
+    betm=bet;//used by Tzslw-calib
+    HF1(1512,betm,1.);
+//
+    
+//=================================================
 //
 // -----> Check TOF-Track match, get track length
 //
+    geant barw,dtcut,dlcut(8);
     bad=0;
     for(il=0;il<TOF2GC::SCLRS-1;il++)trlen[il]=0.;
     int nzlrs=0;
@@ -924,6 +1070,9 @@ Nextp:
         if(nbrl[il]==0)continue;//skip missing layer
 	nzlrs+=1;
         ib=brnl[il];
+        if(ib>0 && (ib+1)<TOF2DBc::getbppl(il))barw=TOF2DBc::plnstr(5);//stand.(not outer) bar width
+        else barw=TOF2DBc::outcp(il,1);//outer counter width
+        dtcut=barw/2+0.25;
         zc[il]=TOF2DBc::getzsc(il,ib);
         C0[2]=zc[il];
         ptrack->interpolate(C0,dir,Cout,the,phi,trl);
@@ -946,188 +1095,152 @@ Nextp:
         }
         dx=ctran-TOF2DBc::gettsc(il,ib);//Transv.coo_tracker-Transv.coo_scint
         if(TFREFFKEY.reprtf[2]>0)HF1(1210+il,geant(dx),1.);
-        if(fabs(dx)>dscut)badx=1;//bad trancv.coo diff
-	if(fabs(dy)>dscut)bady=1;//bad longit.coo diff
+        if(fabs(dx)>dtcut)badx=1;//bad trancv.coo match
+	if(fabs(dy)>dlcut)bady=1;//bad longit.coo match
         if(badx==0){
-	  TofTimeCalib::filltd(il,ib,tmsdc[il],crc);//need only transv.match for Tdelv-calib
+	  TofTmAmCalib::filltd(il,ib,tmsdc[il],crc);//need only transv.match for Tdelv-calib
 	}
 	if(badx>0 || bady>0)bad=1;
 	if(badx>0)bad4tdcal=1;
       }//---> endof layers loop
 //
       cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/nzlrs);//average cos 
+      if(TFREFFKEY.reprtf[2]>0)HF1(1215,cost,1.);
+//
       for(i=0;i<TOF2GC::SCLRS-1;i++){
         if(trlr[i+1]!=0.)trlen[i]=fabs(trlr[0]-trlr[i+1]);//1->2,1->3,1->4(missings=0)
       }
-    }
+    }//-->endof "use TOF/TRD-track"mode check
+//-----
+    if(bad4tdcal==0)TOF2JobStat::addre(28);//was good event for Tdelv
+//===============================================
+    if(mode==2)return;//all is done for Tdelv-calib alone mode, exit
+//-----
+    if(bad)return;// TOF-Tracker 2d-mismatch (bad for Tzslw/Ampl-calib)
 //
-    if(TFREFFKEY.reprtf[2]>0)HF1(1215,cost,1.);
-    if(bad4tdcal==0)TOF2JobStat::addre(10);//was good event for Tdelv
+    TOF2JobStat::addre(29);
+//===============================================
 //
-    if(TFREFFKEY.relogic[0]==2)return;//all is done for Tdelv-calib alone mode, exit
+//--------> more accurate TOF-beta fit :
 //
-    if(bad)return;// remove events with big difference of TOF-Tracker 2d-coord (bad for Tzslw-calib)
-    TOF2JobStat::addre(47);
-//
-/*
-//------> find track impact angle using scint-made transv.coord :
-  if(TFCAFFKEY.tofcoo==0 && ngdlrs==4){
-    ix=0;
-    iy=0;
+    bool TofBetaFitOK(true);
+    trle[0]=0;
+    trle[1]=(zc[0]-zc[1])/fabs(0.5*(cstr[0]+cstr[1]));
+    trle[2]=(zc[0]-zc[2])/fabs(0.5*(cstr[2]+cstr[3]));
+    trle[3]=(zc[0]-zc[3])/fabs(0.5*(cstr[2]+cstr[3]));
+    tdif[0]=0;
+    tdif[1]=ltim[0]-ltim[1];
+    tdif[2]=ltim[0]-ltim[2];
+    tdif[3]=ltim[0]-ltim[3];
+    fpnt=0;
+    sul=0;
+    sut=0;
+    sutl=0;
+    sul2=0;
+    sud=0.;
     for(il=0;il<TOF2GC::SCLRS;il++){
-      ib=brnl[il];
-      zc[il]=TOF2DBc::getzsc(il,ib);
-      if(TOF2DBc::plrotm(il)==0){// unrotated (X-meas) planes
-        x[ix]=TOF2DBc::gettsc(il,ib);
-        zx[ix]=zc[il];
-        ix+=1;
-      }
-      else{                    // rotated (Y-meas) planes
-        y[iy]=TOF2DBc::gettsc(il,ib);
-        zy[iy]=zc[il];
-        iy+=1;
-      }
+      sit2=pow(sigt[il],2);
+      fpnt+=1;
+      sud+=1./sit2;
+      sut+=tdif[il]/sit2;
+      sul+=trle[il]/sit2;
+      sul2+=(trle[il]*trle[il])/sit2;
+      sutl+=(tdif[il]*trle[il])/sit2;
     }
-    tgx=(x[0]-x[1])/(zx[0]-zx[1]);
-    tgy=(y[0]-y[1])/(zy[0]-zy[1]);
-  }
+    bci = (sud*sutl-sut*sul)/(sud*sul2-sul*sul);
+    tzer=(sut*sul2-sutl*sul)/(sud*sul2-sul*sul);
+    chsq=0;
+    for(il=0;il<TOF2GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
+    chsq/=number(fpnt-2);
+    betof=1./bci/cvel;
+    HF1(1503,betof,1.);
+    HF1(1510,chsq,1.);
+    HF1(1511,tzer,1.);
+    TofBetaFitOK=(chsq<20. && betof>0.4 && betof<1.3);//check on chi2/beta
+    if(!TofBetaFitOK)return;
 //
+    TOF2JobStat::addre(30);
 //
-//-------> get track impact angle using scint-made long.coord :
+// ---> Identify events with high(ions) or too low edep.:
 //
-  bad=0;
-  if(TFCAFFKEY.tofcoo==1 && ngdlrs==4){
-    ix=0;
-    iy=0;                                
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      ib=brnl[il];
-      zc[il]=TOF2DBc::getzsc(il,ib);
-      TOF2Brcal::scbrcal[il][ib].getd2p(lvel,lcerr);
-      if(TOF2DBc::plrotm(il)==0){// unrotated (Long->Yabs) planes(2,3)
-        y[iy]=coo[il];
-        zy[iy]=zc[il];
-        xtr[il]=TOF2DBc::gettsc(il,ib);
-        xer[il]=3.46;// bar_wid/sqrt(12.)
-        ytr[il]=y[iy];
-        yer[il]=lcerr;
-        iy+=1;
-      }
-      else{                    // rotated (Long->Xabs) planes(1,4)
-        x[ix]=coo[il];
-        zx[ix]=zc[il];
-        xtr[il]=x[ix];
-        xer[il]=lcerr;
-        ytr[il]=TOF2DBc::gettsc(il,ib);
-        yer[il]=3.46;
-        ix+=1;
-      }
+    bool IonEvent(false);
+    number meanedep(0),maxedep(0);
+    number betnor,absbet;
+//    
+    absbet=fabs(betof);// beta from TOF  
+    if(absbet<0.94)betnor=pow(absbet,number(1.83))
+                       /pow(number(0.94),number(1.83));//norm.factor to MIP(pr/mu)
+    else betnor=1;
+//
+    for(il=0;il<TOF2GC::SCLRS;il++){//correct edep for impact-angle and beta!=1
+      edep[il]*=(fabs(cstr[il])*betnor);//edep is based on previous calibr.
     }
-    tgx=(x[0]-x[1])/(zx[0]-zx[1]);
-    tgy=(y[0]-y[1])/(zy[0]-zy[1]);
+//    
+    for(i=0;i<TOF2DBc::getnplns();i++)pntr[i]=&edep[i];
+    AMSsortNAG(pntr,TOF2DBc::getnplns());// sort in increasing order
+    for(i=0;i<(TOF2DBc::getnplns()-1);i++)meanedep+=(*pntr[i]);
+    meanedep/=number(TOF2DBc::getnplns()-1);//truncatet average
+    maxedep=*pntr[TOF2DBc::getnplns()-1];
+    rr=maxedep/meanedep;//EDmax/EDaverage_of _the_rest
+    HF1(1216,geant(meanedep),1.);
+    IonEvent=(meanedep > edecut); 
+    if(IonEvent)TOF2JobStat::addre(31);
 //
-//--- get track from TOF(coord.fit):
+//========> prepare/fill arrays for TZSL-calibration:
 //
-    for(j=0;j<2;j++){//proj.loop
-      scchi2[j]=0.;
-      sl[j]=0.;
-      t0[j]=0.;
-      sumc=0.;
-      sumc2=0.;
-      sumt=0.;
-      sumt2=0.;
-      sumct=0.;
-      sumid=0.;
-      for(il=0;il<TOF2GC::SCLRS;il++){//layer loop
-        zco=zc[il];
-        if(j==0){//x-proj
-          tco=xtr[il];
-          dis=xer[il];
-        }
-        else{
-          tco=ytr[il];
-          dis=yer[il];
-        }
-        dis=dis*dis;
-        sumc+=(zco/dis);
-        sumt+=(tco/dis);
-        sumid+=(1/dis);
-        sumct+=(zco*tco/dis);
-        sumc2+=(zco*zco/dis);
-        sumt2+=(tco*tco/dis);
+    if(mode==3 || mode==23 || mode==234 || mode==34){//<=== Tzsl-calib requested
+      TOF2JobStat::addre(32);
+//---
+      if(!TzslMomOK)goto SkipTzsl; 
+      TOF2JobStat::addre(33);
+//---
+      bad=0;
+      for(il=0;il<TOF2GC::SCLRS;il++){//check presence of trapez.counters
+        ib=brnl[il];
+        if(TFCAFFKEY.idref[1]==1 && (il==1 || il==2)
+	                         && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))bad=1;
       }
-      t0[j]=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
-      sl[j]=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
-      scchi2[j]=sumt2+t0[j]*t0[j]*sumid+sl[j]*sl[j]*sumc2
-         -2*t0[j]*sumt-2*sl[j]*sumct+2*t0[j]*sl[j]*sumc;
-      scchi2[j]/=2.;
-    }
-    HF1(1218,geant(scchi2[0]),1.); 
-    HF1(1219,geant(scchi2[1]),1.);
-    if(scchi2[0]>4. || scchi2[1]>4.)bad=1; 
+      if(bad==1)goto SkipTzsl;//ignore trapez.counter when requested
+//      if(IonEvent)goto SkipTzsl;
+      TOF2JobStat::addre(34);
 //
-  }
-  if(bad)return;// remove events with bad chi2 of the TOF-track
-//------
-    cosc=1./sqrt(1.+tgx*tgx+tgy*tgy);
-    HF1(1217,cosc,1.);
-    HF1(1221,betof/cosc,1.);
-    cosi=sqrt(1.+tgx*tgx+tgy*tgy);// this is 1/cos(theta) !!!
-//
-    if(TFCAFFKEY.truse<0 && ngdlrs==4){ // track-length from TOF + ang.corr
-      tld[0]=(zc[0]-zc[1])*cosi;//1->2
-      tld[1]=(zc[0]-zc[2])*cosi;//1->3
-      tld[2]=(zc[0]-zc[3])*cosi;//1->4
-    }
-*/
-    if(TFCAFFKEY.truse>=-1){ // use track-length from TRACK
+//---> measured track-lengthes:
       for(il=0;il<TOF2GC::SCLRS-1;il++)tld[il]=trlen[il];//1->2,1->3,1->4(missings=0)
-    }
-    else{
-      return;//TOF-usage alone mode is desactivated now
-    }
-    TOF2JobStat::addre(20);
 //
-//=======> now event is selected for fit
-//
-    if(TFREFFKEY.reprtf[2]>0 && ngdlrs==4 && nzlrs==4){
-      HF1(1515,geant(tld[1]-tld[2]+tld[0]),1.);//Trlen13-Trlen24
-    }
+      if(TFREFFKEY.reprtf[2]>0 && ngdlrs==4 && nzlrs==4){
+        HF1(1515,geant(tld[1]-tld[2]+tld[0]),1.);//Trlen13-Trlen24
+      }
 //---> measured time-didderences:
-    for(i=0;i<TOF2GC::SCLRS-1;i++){
-      tdm[i]=0.;
-      if(times[i+1]!=0.)tdm[i]=times[0]-times[i+1];//1->2,1->3,1->4(missings=0)
-    }
+      for(i=0;i<TOF2GC::SCLRS-1;i++){
+        tdm[i]=0.;
+        if(times[i+1]!=0.)tdm[i]=times[0]-times[i+1];//1->2,1->3,1->4(missings=0)
+      }
 //----
-    for(il=0;il<TOF2GC::SCLRS;il++){//new parametrization(also ready for indiv.slopes)
-      ramm[il]=0.;
-      if(nbrl[il]==0)continue;//skip missing layer
-      ib=brnl[il];
-      TOF2Brcal::scbrcal[il][ib].getslops(slops);
+      for(il=0;il<TOF2GC::SCLRS;il++){//new parametrization(also ready for indiv.slopes)
+        ramm[il]=0.;
+        if(nbrl[il]==0)continue;//skip missing layer
+        ib=brnl[il];
+        TOF2Brcal::scbrcal[il][ib].getslops(slops);
 //      ramm[il]=(slops[0]/qsd1[il]+slops[1]/qsd2[il]);
-      ramm[il]=(slops[0]/sqrt(qsd1[il])+slops[1]/sqrt(qsd2[il]));//works sl.better
-    }
+        ramm[il]=(slops[0]/sqrt(qsd1[il])+slops[1]/sqrt(qsd2[il]));//works sl.better
+      }
 //----
-    ilay=0;
-    tm[0]=trp1[ilay];
-    tm[1]=trp2[ilay];
-    time=0.5*(tm[0]+tm[1]);
-    relt=time-ftdel;// subtract FT fix.delay
-    if(TFREFFKEY.reprtf[2]>0)HF2(1516,geant(ramm[ilay]),geant(relt),1.);
+      ilay=0;
+      tm[0]=trp1[ilay];
+      tm[1]=trp2[ilay];
+      time=0.5*(tm[0]+tm[1]);
+      relt=time-ftdel;// subtract FT fix.delay
+      if(TFREFFKEY.reprtf[2]>0)HF2(1516,geant(ramm[ilay]),geant(relt),1.);
 //----
-    for(i=0;i<TOF2GC::SCLRS-1;i++){
-      dum[i]=0.;
-      if(ramm[i+1]!=0.)dum[i]=ramm[i+1]-ramm[0];//missings=0
-    }
+      for(i=0;i<TOF2GC::SCLRS-1;i++){
+        dum[i]=0.;
+        if(ramm[i+1]!=0.)dum[i]=ramm[i+1]-ramm[0];//missings=0
+      }
 //
-    if(TFCAFFKEY.caltyp==0)betm=TFCAFFKEY.bmeanpr;// aver.beta for space calib(protons)
-    else betm=TFCAFFKEY.bmeanmu;//aver.beta for earth calib(muons)
-    if(TFCAFFKEY.truse>0 && GoodTrkTrack)betm=bet;//beta using tracker-mom(imply prot/muon)
-    HF1(1512,betm,1.);
-//
-    number tdr[TOF2GC::SCLRS-1];
-    for(i=0;i<TOF2GC::SCLRS-1;i++)tdr[i]=tld[i]/betm/cvel;//real(reference) time-diffs
-    number tdrm[TOF2GC::SCLRS-1];
-    for(i=0;i<TOF2GC::SCLRS-1;i++)tdrm[i]=tdr[i]-tdm[i];//(ref.-meas.) time-diffs
+      number tdr[TOF2GC::SCLRS-1];
+      for(i=0;i<TOF2GC::SCLRS-1;i++)tdr[i]=tld[i]/betm/cvel;//real(reference) time-diffs
+      number tdrm[TOF2GC::SCLRS-1];
+      for(i=0;i<TOF2GC::SCLRS-1;i++)tdrm[i]=tdr[i]-tdm[i];//(ref.-meas.) time-diffs
 //----
 //
 //    cout<<"Fired counters:"<<endl;
@@ -1140,10 +1253,135 @@ Nextp:
 //      cout<<"dum[i]="<<dum[i]<<endl;
 //    }
 //
-    TofTimeCalib::filltz(brnl,tdrm,dum); // fill calib.working arrays
+      TofTmAmCalib::filltz(brnl,tdrm,dum); // fill calib.working arrays
+    }//--->endof Tzsl-submode check
+//
+SkipTzsl:
+//
+//=========> prepare/fill arrays for AMPL-calibration:
+//
+  if(mode==4 || mode==234 || mode==24 || mode==34){//<=== Ampl-calib requested
+//
+    TOF2JobStat::addre(36);
+//
+// ---> Fill arrays for a2dr/gaind calculations(no mip-selection upto here,
+//                                                 will use bar mid-bin only):
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      ib=brnl[il];
+      if(ib >= 0){//non-empty layer
+        cinp=coot[il];// loc.r.s.!!!
+	ainp[0]=adca[il][0];//ADC-ch
+	ainp[1]=adca[il][1];
+	for(ip=0;ip<TOF2GC::PMTSMX;ip++){
+	  dinp[0][ip]=dpma1[il][ip];
+	  dinp[1][ip]=dpma2[il][ip];
+	}
+        if(ainp[0]>adcmin && ainp[1]>adcmin){
+	  TofTmAmCalib::filla2dg(il,ib,cinp,ainp,dinp);//for Anode/Sum(Dynode(ip)), Dgain(ip) 
+	}
+      }
+    }
+//----
+    if(IonEvent)return;
+    TOF2JobStat::addre(37);
+//
+// ---> normalize charge to normal incidence :
+//
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      am1[il]*=fabs(cstr[il]);
+      am2[il]*=fabs(cstr[il]);
+    }
+//
+// ------> fill working arrays for Anode relat.gains calib :
+//
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      ib=brnl[il];
+      if(ib>=0){
+        ainp[0]=geant(am1[il]);//q(pC)
+        ainp[1]=geant(am2[il]);
+        cinp=coot[il];// loc.r.s.!!!
+        if(ainp[0]>adcmin && ainp[1]>adcmin)
+	                     TofTmAmCalib::fillam(il,ib,ainp,cinp);//for relat.gains(using Anode) 
+      }//--->endof nonempty layer check
+    }//--->endof layer loop
+//
+// ---> Normalize low beta Edep to MIP(p/m=4) :
+//
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      am1[il]*=betnor;
+      am2[il]*=betnor;
+    }
+//
+// ---> look at mass/beta*gam :
+//
+    number betg(4.);//default p/m(no momexist)
+    number massq,mcut[2];
+    geant prcut[2]={-10.,10.};//cuts on mass**2
+    geant mucut[2]={-0.3,0.3};
+    geant amt;
+    integer id;
+    if(TFCAFFKEY.caltyp==0){// space (prot) calibr.
+      mcut[0]=prcut[0];
+      mcut[1]=prcut[1];
+    }
+    else{                    // earth (mu) calibr.
+      mcut[0]=mucut[0];
+      mcut[1]=mucut[1];
+    }
+//
+    massq=imass*imass;//implied m**2(no momexist)
+    badx=0;
+    bady=0;
+    if(MomMeasExist){
+      massq=pmom*pmom*(1.-betof*betof)/betof/betof;//measured(TOFvsTRK) mass**2
+      betg=pmom/imass;//use "tracker-defined" betg
+      HF1(1225,geant(massq),1.);
+      if(betof<0.92)HF1(1226,geant(massq),1.);
+      HF1(1227,geant(betg),1.);
+      HF2(1228,geant(pmom),geant(betof),1.);
+//
+      for(il=0;il<TOF2GC::SCLRS;il++){
+        ib=brnl[il];
+        id=100*(il+1)+ib+1;
+        amt=am1[il]+am2[il];
+        if(id==TofTmAmCalib::rbls[1])HF2(1229,geant(betg),amt,1.);//Atot vs bg(ref.bar type=2)
+      }
+//
+      if(massq<mcut[0] || massq>mcut[1])badx=1;
+      if(betg<TFCAFFKEY.bgcut[0] || betg>TFCAFFKEY.bgcut[1])bady=1;
+    }
+//
+    if(badx!=0)return;//fail m**2 cut
+    TOF2JobStat::addre(38);
+    if(bady!=0)return;//fail bet*gam(mip) cut
+    TOF2JobStat::addre(39);
+//
+// ------> fill working arrays for Mip abs.normalization calib :
+//
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      ib=brnl[il];
+      if(ib>=0){
+        ainp[0]=geant(am1[il]);//q(pC)
+        ainp[1]=geant(am2[il]);
+        cinp=coot[il];// loc.r.s.!!!
+        if(MomMeasExist){
+          if(ainp[0]>adcmin && ainp[1]>adcmin){
+            TofTmAmCalib::fillabs(il,ib,ainp,cinp);//for abs.normalization(using Anode)
+	  }
+        }
+        else{//no mom-info, put LowBeta-cut to select mip(raw approx)
+          if(ainp[0]>adcmin && ainp[1]>adcmin){
+            if(betof>0.85)TofTmAmCalib::fillabs(il,ib,ainp,cinp);
+	  }
+        }
+      }//--->endof nonempty layer check
+    }//--->endof layer loop
+//----
+  }//--->endof Ampl-calib section
+//-------------------------------
 }
 //=============================================================================
-void TofTimeCalib::inittd(){ // ----> initialization for TDIF-calibration
+void TofTmAmCalib::inittd(){ // ----> initialization for TDIF-calibration
   int i,j,id,il,ib,ii,jj,cnum;
   char htit1[60];
   char htit2[60];
@@ -1198,169 +1436,7 @@ void TofTimeCalib::inittd(){ // ----> initialization for TDIF-calibration
   HBOOK1(1613,"BinTdiff/Coo_Fit Slope (L4 all bars)",80,0.045,0.085,0.);
 }
 //------------------------- 
-/*void TofTimeCalib::selecttd(){ // ------> event selection for TDIF-calibration
-  integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status;
-  integer il,ib,ix,iy,chan;
-  geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,crz;
-  number sdtm[2],tmsd[TOF2GC::SCLRS],tmsdc[TOF2GC::SCLRS],ama[2],crc,t14,tmss[TOF2GC::SCLRS];
-  number am[2],time,qsd1[TOF2GC::SCLRS],qsd2[TOF2GC::SCLRS],q1,q2,qinv,tmin;
-  TOF2RawCluster *ptr;
-  ptr=(TOF2RawCluster*)AMSEvent::gethead()->
-                           getheadC("TOF2RawCluster",0);
-//----
-  TOF2JobStat::addre(17);
-  for(i=0;i<TOF2GC::SCLRS;i++){
-    nbrl[i]=0;
-    qsd1[i]=0;
-    qsd2[i]=0;
-  }
-//
-  while (ptr){ // <--- loop over TOF2RawCluster hits
-    status=ptr->getstatus();
-    if((status&TOFGC::SCBADB1)==0 &&
-       (status&TOFGC::SCBADB3)==0){ //select "good_history/good_for_time_meas_in_DB
-      if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
-      ilay=(ptr->getntof())-1;
-      ibar=(ptr->getplane())-1;
-      nbrl[ilay]+=1;
-      brnl[ilay]=ibar;
-      ptr->getadca(ama);//use  AnodeADC for calibr.(Most are mu or Pr)
-      if(ama[0]>0 && ama[1]>0){
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
-        qsd1[ilay]=am[0];
-        qsd2[ilay]=am[1];
-        ptr->getsdtm(sdtm);// get raw side-times(ns)
-        tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// side time difference
-        tmss[ilay]=0.5*(sdtm[0]+sdtm[1]);// side time sum
-//        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from Anode-ch)
-        tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
-        }
-      }
-    }
-    ptr=ptr->next();
-  }// --- end of hits loop --->
-//
-//------> Select events with bars/layer=1 and non-empty Anode-ch. :
-  bad=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)if((nbrl[i] != 1) || qsd1[i]==0 || qsd2[i]==0)bad=1;
-  if(bad==1)return; // remove events with bars/layer != 1 or empty Ah
-  TOF2JobStat::addre(18);
-  t14=tmsdc[0]-tmsdc[3];
-//
-  q1=qsd1[0];// layer=1
-  q2=qsd2[0];
-  time=tmss[0];
-  ib=brnl[0];
-  if(ib==3 && q1>0. && q2>0.){ // for bar=4
-    qinv=1./q1+1./q2;
-//    HF2(1780,geant(qinv),geant(time),1.);
-  }
-  q1=qsd1[3];// layer=4
-  q2=qsd2[3];
-  time=tmss[3];
-  ib=brnl[3];
-  if(ib==3 && q1>0. && q2>0.){ // for bar=4
-    qinv=1./q1+1./q2;
-//    HF2(1781,geant(qinv),geant(time),1.);
-  }
-//---------------------------------------
-if(TFCAFFKEY.truse < 0){// <------  use only TOF to find track crossing points
-//
-//--- find track slope(in projection) using scint.transv.position :
-  ix=0;
-  iy=0;
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    ib=brnl[il];
-    zc[il]=TOF2DBc::getzsc(il,ib);
-    if(TOF2DBc::plrotm(il)==0){// unrotated (X-meas) planes
-      x[ix]=TOF2DBc::gettsc(il,ib);
-      zx[ix]=zc[il];
-      ix+=1;
-    }
-    else{                    // rotated (Y-meas) planes
-      y[iy]=TOF2DBc::gettsc(il,ib);
-      zy[iy]=zc[il];
-      iy+=1;
-    }
-  }
-  tgx=(x[0]-x[1])/(zx[0]-zx[1]);
-  tgy=(y[0]-y[1])/(zy[0]-zy[1]);
-//
-//-----> find track crossing points(i.e. long.coord for 2 other counters):
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    ib=brnl[il];
-    crz=TOF2DBc::getzsc(il,ib);
-    if(TOF2DBc::plrotm(il)==0){// unrotated (X-meas) planes
-      crc=y[1]+tgy*(crz-zy[1]);// long. crossing coord. in abs. ref.syst.
-    }
-    else{                     // rotated (Y-meas) planes
-      crc=x[1]+tgx*(crz-zx[1]);// long. crossing coord. in abs. ref.syst.
-    }
-    TofTimeCalib::filltd(il,ib,tmsdc[il],crc);
-  }
- }
-//
-else{// <------- use Tracker to find track crossing points:
-//
-    static number pmas(0.938),mumas(0.1057);
-    integer chargeTOF,chargeTracker,betpatt,trpatt;
-    number pmom,bet,chi2;
-    number the,phi,rid,err,trl;
-    number coot[TOF2GC::SCLRS];
-    AMSPoint C0,Cout;
-    AMSDir dir(0,0,1.);
-    AMSContainer *cptr;
-    AMSParticle *ppart;
-    AMSTrTrack *ptrack;
-    int npart,ipatt,bad;
-    npart=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
-    if(cptr)
-           npart+=cptr->getnelem();
-    if(npart<1)return;// require events with 1 particle at least
-    ppart=(AMSParticle*)AMSEvent::gethead()->
-                                      getheadC("AMSParticle",0);
-    bad=1;
-    while(ppart){
-      ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
-      if(ptrack){
-        trpatt=ptrack->getpattern();//TRK-track pattern
-	if(trpatt>=0){
-          ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
-	  bad=0;
-	}
-      }
-      ppart=ppart->next();
-    } 
-//
-    if(bad)return;//require part. with TRK-track
-    pmom=fabs(rid);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
-    if(pmom<=1. || pmom>=50.)return;//remove events with suspicious mom.
-    TOF2JobStat::addre(19);
-    C0[0]=0.;
-    C0[1]=0.;
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      ib=brnl[il];
-      zc[il]=TOF2DBc::getzsc(il,ib);
-      C0[2]=zc[il];
-      ptrack->interpolate(C0,dir,Cout,the,phi,trl);
-      if(TOF2DBc::plrotm(il)==0){
-        coot[il]=Cout[1];// unrot. (X-meas) planes -> take Y-cross as long.coo
-        crc=Cout[1];
-      }
-      else {
-        coot[il]=Cout[0];// rot. (Y-meas) planes -> take X-cross as long.coo
-        crc=Cout[0];
-      }
-      TofTimeCalib::filltd(il,ib,tmsdc[il],crc);
-    }
-//
- }
-}
-*/
-//------------------------- 
-void TofTimeCalib::filltd(integer il,integer ib, number td, number co){//--->fill arrays
+void TofTmAmCalib::filltd(integer il,integer ib, number td, number co){//--->fill arrays
   integer chan,nbin,btyp;
   number bin,hlen,col;
   geant coh[2];
@@ -1397,7 +1473,7 @@ void TofTimeCalib::filltd(integer il,integer ib, number td, number co){//--->fil
   tdif2[chan][nbin]+=(td*td);
 } 
 //------------------------- 
-void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
+void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   int lspflg(1);//0/1->use single/array  for Lspeed
   integer il,ib,chan,nb,btyp,nev,bins,binsl[TOF2GC::SCLRS];
   number bin,len,co,t,dis,sig,sli,meansl(0),bintot(0),speedl,avsll[TOF2GC::SCLRS];
@@ -1411,7 +1487,7 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   char vers2[3]="RD";
   char fext[20];
   integer cfvn;
-  uinteger StartRun;
+  uinteger StartRun,overid,verid;
   time_t StartTime;
   int dig;
   strcpy(inum,"0123456789");
@@ -1427,14 +1503,18 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   strcpy(fname,"TofTdelv");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
-    TOF2Brcal::CFlistC[3]=TFMCFFKEY.calvern+1;//update Tdelv-calib version in static store
+    overid=TOF2Brcal::CFlistC[3];
+    verid=overid+1;// new=old+1
+    sprintf(fext,"%d",verid);//MC-versn
+    TOF2Brcal::CFlistC[3]=verid;//update Tdelv-calib version in static store
   }
   else{
     strcat(fname,vers2);
-//    sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
-    sprintf(fext,"%d",StartRun+1);//tempor !!!
-    TOF2Brcal::CFlistC[2]=StartRun;//update Tdelv-calib version in static store
+    overid=TOF2Brcal::CFlistC[2];
+    if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+    else verid=StartRun;
+    sprintf(fext,"%d",verid);//RD-Run# = UTC-time of 1st "on-board" event
+    TOF2Brcal::CFlistC[2]=verid;//update Tdelv-calib version in static store
   }
   strcat(fname,".");
   strcat(fname,fext);
@@ -1536,7 +1616,7 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   }
 //---  
   cout<<endl<<endl;
-  cout<<"TofTimeCalib::fit: for bar 1-12  Tdiff@center (ns):"<<endl<<endl;
+  cout<<"TofTimeAmplCalib::fit: for bar 1-12  Tdiff@center (ns):"<<endl<<endl;
   chan=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
@@ -1546,7 +1626,7 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
     cout<<endl;
   }
   cout<<endl;
-  cout<<"TofTimeCalib::fit: for bar 1-12  Light speed (cm/ns):"<<endl<<endl;
+  cout<<"TofTimeAmplCalib::fit: for bar 1-12  Light speed (cm/ns):"<<endl<<endl;
   cout<<"Average Lspeed = "<<speedl<<"  , vs layer : "<<avsll[0]<<" "<<avsll[1]
                                    <<" "<<avsll[2]<<" "<<avsll[3]<<endl<<endl;
   chan=0;
@@ -1560,7 +1640,7 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
     cout<<endl;
   }
   cout<<endl;
-  cout<<"TofTimeCalib::fit: for bar 1-12  Chi2 :"<<endl<<endl;
+  cout<<"TofTimeAmplCalib::fit: for bar 1-12  Chi2 :"<<endl<<endl;
   chan=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
@@ -1589,7 +1669,7 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
 // 
   ofstream tcfile(fname,ios::out|ios::trunc);
   if(!tcfile){
-    cerr<<"TofTimeCalib:error opening file for output"<<fname<<'\n';
+    cerr<<"TofTimeAmplCalib:error opening file for output"<<fname<<'\n';
     exit(8);
   }
   cout<<"Open file for TDLV-calibration output, fname:"<<fname<<'\n';
@@ -1625,57 +1705,11 @@ void TofTimeCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
   tcfile << endl<<" Date of the first event : "<<frdate<<endl;
   tcfile.close();
-  cout<<"TOF2TDLVcalib:output file closed !"<<endl;
+  cout<<"TOFTDLVcalib:output file closed !"<<endl;
 }
 //=============================================================================
-//=============================================================================
 //
-number TOF2AMPLcalib::ambin1[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s1-signals for each ref_bar/bin/event
-integer TOF2AMPLcalib::nevenb1[TOF2GC::SCBTBN];// s1 events, accumulated per ref_bar/bin
-number TOF2AMPLcalib::ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for each ref_bar/bin/event
-integer TOF2AMPLcalib::nevenb2[TOF2GC::SCBTBN];// s2 events, accumulated per ref_bar/bin
-number TOF2AMPLcalib::amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for each channel/event
-integer TOF2AMPLcalib::nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel
-geant TOF2AMPLcalib::gains[TOF2GC::SCCHMX];// ch.signals ("0" impact) relat. to ref.ones
-geant TOF2AMPLcalib::btamp[2][TOF2GC::SCBTBN];// MostProb bar-signals for each bin(ref.bars,s1/s2) 
-geant TOF2AMPLcalib::ebtamp[2][TOF2GC::SCBTBN];// MostProb errors for each bin(ref.bars,s1/s2) 
-integer TOF2AMPLcalib::rbls[TOF2GC::SCBTPN]={101,104,401,404,201,
-                                    202,204,301,302,303,305};//ref.bar id's (for bar types 1-11)
-geant TOF2AMPLcalib::profb[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin width for each bar type
-geant TOF2AMPLcalib::profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// middle of the bin .........
-integer TOF2AMPLcalib::nprbn[TOF2GC::SCBTPN]={16,16,16,16,15,16,16,14,15,16,16};//profile-bins vs bar-type
-
-number TOF2AMPLcalib::a2dr[TOF2GC::SCCHMX];//sum of An/Sum(Dyn(pmt))-ratios for each channel
-number TOF2AMPLcalib::a2dr2[TOF2GC::SCCHMX];//sum of ratios**2 for each channel
-integer TOF2AMPLcalib::neva2d[TOF2GC::SCCHMX];//number of events/channel for above sum
-number TOF2AMPLcalib::d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dyn(pm)/Sum(Dyn(pm))-gains for LBBS
-number TOF2AMPLcalib::d2sdr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of ratios**2 
-integer TOF2AMPLcalib::nevdgn[TOF2GC::SCCHMX];//number of events/channel for above sum
-  
-number TOF2AMPLcalib::ammrfc[TOF2GC::SCBTPN];//sum for mean charge calculation (ref.c.,"0"-bin)
-integer TOF2AMPLcalib::nevrfc[TOF2GC::SCBTPN];//events in above sum
-geant TOF2AMPLcalib::fpar[10]={0,0,0,0,0,0,0,0,0,0};// parameters to fit
-integer TOF2AMPLcalib::nbinr;//working var. for A-profile fit
-integer TOF2AMPLcalib::iside;//working var. for A-profile fit
-geant TOF2AMPLcalib::fun2nb;//working var. for  fit
-number TOF2AMPLcalib::mcharge[TOF2GC::SCPRBM];
-number TOF2AMPLcalib::mcoord[TOF2GC::SCPRBM];
-number TOF2AMPLcalib::emchar[TOF2GC::SCPRBM];
-number TOF2AMPLcalib::aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP];// A-profile parameters(ref.bars)
-number TOF2AMPLcalib::clent;
-integer TOF2AMPLcalib::cbtyp;//bar-type (1-11)
-integer TOF2AMPLcalib::fitflg;//(0,1)to communicate with FCN
-number TOF2AMPLcalib::arefb[TOF2GC::SCBTPN][TOF2GC::SCACMX];// tot-signals for each ref_bar/event
-integer TOF2AMPLcalib::nrefb[TOF2GC::SCBTPN];// numb.of events accum. per ref_bar
-//
-geant TOF2AMPLcalib::binsta[50];
-geant TOF2AMPLcalib::bincoo[50];
-integer TOF2AMPLcalib::elbt;
-geant TOF2AMPLcalib::elfitp[TOF2GC::SCELFT];
-char TOF2AMPLcalib::eltit[60];
-//
-//--------------------------
-void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration 
+void TofTmAmCalib::initam(){ // ----> initialization for AMPL-calibration 
   integer i,j,il,ib,ii,jj,id,nadd,nbnr,chan;
   geant blen,dd,bw,bl,bh,hll,hhl;
   integer stbns(4);// number of standard bins
@@ -1687,11 +1721,18 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
   char inum[11];
   char in[2]="0";
 //
-  if(TFCAFFKEY.truse < 0){
-    cout<<"TOF2AMPLcalib::init: Only TOF info will be used !!!"<<endl;
+  if(TFCAFFKEY.truse == -1){
+    cout<<"AMPLcalib::init: Use TRK/TRD-track, no Momentum knowledge !!!"<<endl;
   }
-  else {
-    cout<<"TOF2AMPLcalib::init: Tracker info will be used !!!"<<endl;
+  else if(TFCAFFKEY.truse == 0){
+    cout<<"AMPLcalib::init: Use TRK-track, no Momentum knowledge !!!"<<endl;
+  }
+  else if(TFCAFFKEY.truse == 1){
+    cout<<"AMPLcalib::init: Use TRK-track and Momentum knowledge !!!"<<endl;
+  }
+  else{
+    cout<<"AMPLcalib::init: Unknown mode of track usage !!!"<<endl;
+    exit(1);
   }
   strcpy(inum,"0123456789");
 //
@@ -1756,7 +1797,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
         strcat(htit1,in);
         in[0]=inum[i+1];
         strcat(htit1,in);
-        id=1600+chan;
+        id=1700+chan;
 //        HBOOK1(id,htit1,80,hll,hhl,0.);
         chan+=1;
       }
@@ -1787,7 +1828,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
       strcat(htit2,in);
       in[0]=inum[jj];
       strcat(htit2,in);
-      id=1601+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+i*TOF2GC::SCPRBM+j;
+      id=1701+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+i*TOF2GC::SCPRBM+j;
 //      HBOOK1(id,htit2,80,0.,960.,0.);
     }
   }
@@ -1807,7 +1848,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
     }
     nadd=nbnr-2*stbns;// number of additional bins of THE SAME WIDTH !
     bw=(blen-2*dd)/nadd;// width of additional bins
-    cout<<"TOF2AMPLcalib::init:Bartype="<<i<<" equal_bins width="<<bw<<endl;
+    cout<<"AMPLcalib::init:Bartype="<<i<<" equal_bins width="<<bw<<endl;
     for(j=0;j<nadd;j++){ // complete bin width array
       profb[i][stbns+j]=bw;
     }
@@ -1827,6 +1868,12 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
     }
   }
 //
+  HBOOK1(1225,"Mass**2",80,-1.,19.,0.);
+  HBOOK1(1226,"Mass**2 for beta<0.92",80,-1.,19.,0.);
+  HBOOK1(1227,"Momentum/impl.mass(beta*gamma)",80,0.,24.,0.);
+  HBOOK2(1228,"My TOF-beta vs TrkTrack-momentum",80,0.,4.,60,0.5,1.1,0.);
+  HBOOK2(1229,"Q(ref.btyp=2) vs (beta*gamma)",80,0.,40.,60,0.,300.,0.);
+//
   for(i=0;i<TOF2GC::SCBTPN;i++){// book hist. for longit.imp.point distr.(ref.bar only)
     strcpy(htit1,"Impact point distr.for ref.bar(LBB) ");
     id=rbls[i];
@@ -1844,7 +1891,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
     blen=TOF2DBc::brlen(il-1,ib-1);
     bl=-0.5*blen;
     bh=bl+blen;
-    HBOOK1(1220+i,htit1,70,bl,bh,0.);
+    HBOOK1(1230+i,htit1,70,bl,bh,0.);
     aprofp[i][0]=50.;//defaults param.(A) for A-profile fit(s1)
     aprofp[i][1]=195.;//              (Lh)
     aprofp[i][2]=0.;//                (Wl)
@@ -1859,391 +1906,84 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
     aprofp[i][11]=aprofp[i][5];               
   }
 //
+   HBOOK1(1250,"Instant Ah/Dl(pm-sum)(LBBS=1041,midd.bin)",50,5.,15.,0.);
+   HBOOK1(1251,"Instant Dh(pm) rel.gain(LBBS=1041,PM=1,midd.bin)",50,0.5,1.5,0.);
+   HBOOK1(1252,"Instant Dh(pm) rel.gain(LBBS=1041,PM=2,midd.bin)",50,0.5,1.5,0.);
+   HBOOK1(1254,"Instant Ah/Al for LBBS=1041",60,2.,8.,0.);
+   HBOOK1(1255,"Instant Dh(pm)/Dl(pm) for LBBS=1041,PM=1",50,0.,10.,0.);
+   HBOOK1(1253,"Instant Dh(pm)/Dl(pm) for LBBS=1042,PM=1",50,0.,10.,0.);
+   HBOOK1(1256,"Average Ah/Dh(pm-sum) (all chan, midd.bin)",80,3.,11.,0.);
+   HBOOK1(1257,"RelatRMS of  aver. Ah/Dh(pm-sum) (all chan, midd.bin)",50,0.,1.,0.);
+   HBOOK1(1258,"Average Dh(pm) rel.gains(all chan/pm,m.bin)",50,0.5,1.5,0.);
+   HBOOK1(1259,"RelatRMS of aver. Dh(pm) rel.gains(all chan/pm,m.bin)",50,0.,1.,0.);
+// hist.1800-1911 are booked in init-function for D(h) vs A(h) correlation!!!
+//
+   HBOOK1(1260,"Ref.bar(type=2) Q-distr.(s=1,centre)",80,0.,160.,0.);        
+   HBOOK1(1261,"Ref.bar(type=2) Q-distr.(s=2,centre)",80,0.,160.,0.);
+   HBOOK1(1262,"Relative anode-gains(all channels)",80,0.3,2.5,0.);
+   
+   HBOOK1(1264,"Ref.bar A-profile (s1,type-1)",70,-70.,70.,0.);        
+   HBOOK1(1265,"Ref.bar A-profile (s2,type-1)",70,-70.,70.,0.);        
+   HBOOK1(1266,"Ref.bar A-profile (s1,type-2)",70,-70.,70.,0.);        
+   HBOOK1(1267,"Ref.bar A-profile (s2,type-2)",70,-70.,70.,0.);        
+   HBOOK1(1268,"Ref.bar A-profile (s1,type-3)",70,-70.,70.,0.);        
+   HBOOK1(1269,"Ref.bar A-profile (s2,type-3)",70,-70.,70.,0.);        
+   HBOOK1(1270,"Ref.bar A-profile (s1,type-4)",70,-70.,70.,0.);        
+   HBOOK1(1271,"Ref.bar A-profile (s2,type-4)",70,-70.,70.,0.);        
+   HBOOK1(1272,"Ref.bar A-profile (s1,type-5)",70,-70.,70.,0.);        
+   HBOOK1(1273,"Ref.bar A-profile (s2,type-5)",70,-70.,70.,0.);        
+   HBOOK1(1274,"Ref.bar A-profile (s1,type-6)",70,-70.,70.,0.);        
+   HBOOK1(1275,"Ref.bar A-profile (s2,type-6)",70,-70.,70.,0.);        
+   HBOOK1(1276,"Ref.bar A-profile (s1,type-7)",70,-70.,70.,0.);        
+   HBOOK1(1277,"Ref.bar A-profile (s2,type-7)",70,-70.,70.,0.);        
+   HBOOK1(1278,"Ref.bar A-profile (s1,type-8)",70,-70.,70.,0.);        
+   HBOOK1(1279,"Ref.bar A-profile (s2,type-8)",70,-70.,70.,0.);        
+   HBOOK1(1280,"Ref.bar A-profile (s1,type-9)",70,-70.,70.,0.);        
+   HBOOK1(1281,"Ref.bar A-profile (s2,type-9)",70,-70.,70.,0.);        
+   HBOOK1(1282,"Ref.bar A-profile (s1,type-10)",70,-70.,70.,0.);        
+   HBOOK1(1283,"Ref.bar A-profile (s2,type-10)",70,-70.,70.,0.);        
+   HBOOK1(1284,"Ref.bar A-profile (s1,type-11)",70,-70.,70.,0.);        
+   HBOOK1(1285,"Ref.bar A-profile (s2,type-11)",70,-70.,70.,0.);
+              
+   HBOOK1(1286,"Average Ah/Al(all chan, midd.bin)",50,2.5,7.5,0.);
+   HBOOK1(1287,"RelatRMS of aver. Ah/Al(all chan, midd.bin)",50,0.,5.,0.);
+   HBOOK1(1288,"Average Dh/Dl(all chan/pm, midd.bin)",50,2.5,7.5,0.);
+   HBOOK1(1289,"RelatRMS of aver. Dh/Dl(all chan/pm, midd.bin)",50,0.,2.5,0.);
+//
 }
-//--------------------------------------
-//
-void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
-  integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector,nanti(0);
-  integer il,ib,ix,iy,chan,chnum;
-  geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc,eacl,edepa,edepd,edep[TOF2GC::SCLRS];
-  number ama[2],amd[2];
-  number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
-  number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS],am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS],am[2],eanti(0);
-  number amdr[TOF2GC::PMTSMX];
-  geant ainp[2],dinp[2][TOF2GC::PMTSMX],cinp,trlen[TOF2GC::SCLRS];
-  int ip,npmf,npmts,nzpm;
-  number adca[TOF2GC::SCLRS][2],adcd[TOF2GC::SCLRS][2];
-  number dpma1[TOF2GC::SCLRS][TOF2GC::PMTSMX],dpma2[TOF2GC::SCLRS][TOF2GC::PMTSMX];
-  number ltim[4],tdif[4],trle[4];
-  number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
-  number cvel(29.979);// light velocity
-  number sigt[4]={0.15,0.15,0.15,0.15};// time meas.accuracy in TOF-layers 
-  number eacut=0.6;// cut on E-anti (mev)
-  number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
-  number edecut=10.;// max.energy(mev) per layer(to avoid ions)
-  TOF2RawCluster *ptr;
-  AMSAntiCluster *ptra;
-  uinteger Runum(0);
-  ptr=(TOF2RawCluster*)AMSEvent::gethead()->
-                           getheadC("TOF2RawCluster",0);
-  ptra=(AMSAntiCluster*)AMSEvent::gethead()->
-                           getheadC("AMSAntiCluster",0);
-//----
-  Runum=AMSEvent::gethead()->getrun();// current run number
-  TOF2JobStat::addre(11);
-  for(i=0;i<TOF2GC::SCLRS;i++){
-    nbrl[i]=0;
-    edep[i]=0.;
-  }
-//
-  while(ptr){ // <--- loop over TOF2RawCluster hits
-    status=ptr->getstatus();
-    ilay=(ptr->getntof())-1;
-    ibar=(ptr->getplane())-1;
-    npmts=TOF2Brcal::scbrcal[ilay][ibar].getnpm();
-    ptr->getadca(ama);//Anode-adc(raw,s1/2)
-    ptr->getadcd(amd);//Dynode-adc(equiliz.sum,s1/2, use prev.cal. for gaind)
-    TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//side Anode_adcs->charges(use adc2qf only)
-    am1[ilay]=am[0];//store Anode-charge(pC) for Anode rel.gains, abs.norm
-    am2[ilay]=am[1];
-    edepa=ptr->getedepa();//energy in Anode channel(prev calibration !)
-    edepd=ptr->getedepd();//energy in Dynode channel
-    edep[ilay]+=edepa;
-    chnum=2*TOF2DBc::barseqn(ilay,ibar);//sequential channels numbering (s=1)
-//
-// ===> store Anode-adcs and Dynode_pmts-adcs(to select later centr.bin for a2dr-calc
-//                                                                  and for gaind[ipm]-calc):
-    adca[ilay][0]=ama[0];
-    adca[ilay][1]=ama[1];
-    
-    ptr->getadcdr(0,amdr);//Dyn-pmts ampls, s1
-    for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma1[ilay][ip]=amdr[ip];
-    ptr->getadcdr(1,amdr);//Dyn-pmts ampls, s2
-    for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma2[ilay][ip]=amdr[ip];
-//------
-    if((status&TOFGC::SCBADB1)==0 &&
-                  (status&TOFGC::SCBADB3)==0){ //select "good_history" hits
-      if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
-        nbrl[ilay]+=1;
-        brnl[ilay]=ibar;
-        coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
-        ltim[ilay]=ptr->gettime();// get ampl-corrected time
-      }
-    }
-    ptr=ptr->next();
-  }// --- end of hits loop --->
-//
-//------> Select events with bars/layer=1 :
-  bad=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrl[i] != 1)bad=1;
-  if(bad==1)return; // remove events with bars/layer != 1
-  TOF2JobStat::addre(12);
-//
-// -----> check Anti-counter :
-//
-  eanti=0;
-  nanti=0;
-  while (ptra){ // <--- loop over ANTIRawCluster hits
-    status=ptra->getstatus();
-    if(status==0){ //select only good hits
-      sector=(ptra->getsector())-1;
-      eacl=ptra->getedep();
-      eanti=eanti+(ptra->getedep());
-      if(eacl>eacut)nanti+=1;
-      if(TFREFFKEY.reprtf[2]>0)HF1(1503,geant(eacl),1.);
-    }
-    ptra=ptra->next();
-  }// --- end of hits loop --->
-  if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
-// -----> remove albedo and very slow part. :
-//
-  lflgt=TOF2DBc::supstr(1)-TOF2DBc::supstr(2)-
-        (TOF2DBc::plnstr(1)+TOF2DBc::plnstr(2)
-        +TOF2DBc::plnstr(3)+TOF2DBc::plnstr(6));// aver. top/bot flight distance(norm.inc)
-  geant ttop=0;
-  geant tbot=0;
-  if(ltim[0]!=0 && ltim[1]!=0)ttop=ltim[0]+ltim[1];
-  if(ltim[2]!=0 && ltim[3]!=0)tbot=ltim[2]+ltim[3];
-  betof=0;
-  if(ttop!=0 && tbot!=0){
-    betof=2.*lflgt/(ttop-tbot)/cvel;//under.TOFbeta based on prev.calibr.
-//    HF1(1502,geant(betof),1.);
-  }
-  if(betof<(TFCAFFKEY.tofbetac-0.1))return;// mainly to remove albedo-particles
-//
-  TOF2JobStat::addre(13);
-//
-//
-//------> get parameters from tracker:
-//
-    static number pmas(0.938),mumas(0.1057),imass;
-    number pmom,mom,bet,chi2,betm,pcut[2],massq;
-    number the,phi,trl,rid,err,ctran;
-    integer chargeTOF,chargeTracker,trpatt;
-    AMSPoint C0,Cout;
-    AMSDir dir(0,0,1.);
-    AMSContainer *cptr;
-    AMSParticle *ppart;
-    AMSTrTrack *ptrack;
-    AMSCharge  *pcharge;
-    int npart,ipatt;
-    npart=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
-    if(cptr)
-           npart+=cptr->getnelem();
-    if(TFREFFKEY.reprtf[2]>0)HF1(1506,geant(npart),1.);
-    if(npart<1 && TFCAFFKEY.truse>=0)return;// require events with 1 particle at least
-    ppart=(AMSParticle*)AMSEvent::gethead()->
-                                      getheadC("AMSParticle",0);
-    bad=1;
-    while(ppart){
-      ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
-      if(ptrack){
-        trpatt=ptrack->getpattern();//TRK-track pattern
-	if(trpatt>=0){
-          ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
-          pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
-          chargeTracker=pcharge->getchargeTracker();
-          chargeTOF=pcharge->getchargeTOF();
-	  bad=0;
-	}
-      }
-      ppart=ppart->next();
-    } 
-//
-    if(bad)rid=0;
-    pmom=fabs(rid);
-//
-    if(TFCAFFKEY.truse>=0 && bad==1)return;
-    TOF2JobStat::addre(14);
-//
-    bad=0;
-    if(TFCAFFKEY.truse==1){
-//
-// ----->  find track crossing points/angles with counters:
-//
-      C0[0]=0.;
-      C0[1]=0.;
-      for(il=0;il<TOF2GC::SCLRS;il++){
-        ib=brnl[il];
-        zc[il]=TOF2DBc::getzsc(il,ib);
-        C0[2]=zc[il];
-        ptrack->interpolate(C0,dir,Cout,the,phi,trl);
-        cstr[il]=cos(the);
-        trlen[il]=trl;
-        if(TOF2DBc::plrotm(il)==0){
-          coot[il]=Cout[1];// unrot. (X-meas) planes -> take Y-cross as long.coo
-          ctran=Cout[0];// transv. coord.(abs. r.s.)(X-cross) 
-        }
-        else {
-          coot[il]=Cout[0];// rot. (Y-meas) planes -> take X-cross as long.coo
-          ctran=Cout[1];// transv. coord.(abs. r.s.)(Y-cross) 
-        }
-        dy=coot[il]-coo[il];//Long.coo_track-Long.coo_sc
-        HF1(1200+il,geant(dy),1.);
-        dx=ctran-TOF2DBc::gettsc(il,ib);//Transv.coo_tracker-Transv.coo_scint
-        if(TFREFFKEY.reprtf[2]>0)HF1(1210+il,geant(dx),1.);
-        if(fabs(dx)>dscut || fabs(dy)>dscut)bad=1;//too big dist. of tof-tracker
-      }
-      cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);// average cos from track
-    }
-//
-    if(bad)return;//too big difference of TOF-Tracker coord.
-    TOF2JobStat::addre(15);
-//
-//-------> get track impact angle using scint-made long.coord :
-//
-    ix=0;
-    iy=0;                                
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      ib=brnl[il];
-      zc[il]=TOF2DBc::getzsc(il,ib);
-      if(TOF2DBc::plrotm(il)==0){// unrotated (Long->Yabs) planes
-        y[iy]=coo[il];
-        zy[iy]=zc[il];
-        iy+=1;
-      }
-      else{                    // rotated (Long->-Xabs) planes
-        x[ix]=coo[il];
-        zx[ix]=zc[il];
-        ix+=1;
-      }
-    }
-    tgx=(x[0]-x[1])/(zx[0]-zx[1]);
-    tgy=(y[0]-y[1])/(zy[0]-zy[1]);
-    cosc=1./sqrt(1.+tgx*tgx+tgy*tgy);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1217,cosc,1.);
-//
-//--------> find beta from TOF :
-//
-//
-    trle[0]=0;
-    trle[1]=(zc[0]-zc[1])/cosc;
-    trle[2]=(zc[0]-zc[2])/cosc;
-    trle[3]=(zc[0]-zc[3])/cosc;
-    tdif[0]=0;
-    tdif[1]=ltim[0]-ltim[1];
-    tdif[2]=ltim[0]-ltim[2];
-    tdif[3]=ltim[0]-ltim[3];
-    fpnt=0;
-    sul=0;
-    sut=0;
-    sutl=0;
-    sul2=0;
-    sud=0.;
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      sit2=pow(sigt[il],2);
-      fpnt+=1;
-      sud+=1./sit2;
-      sut+=tdif[il]/sit2;
-      sul+=trle[il]/sit2;
-      sul2+=(trle[il]*trle[il])/sit2;
-      sutl+=(tdif[il]*trle[il])/sit2;
-    }
-    bci = (sud*sutl-sut*sul)/(sud*sul2-sul*sul);
-    tzer=(sut*sul2-sutl*sul)/(sud*sul2-sul*sul);
-    chsq=0;
-    for(il=0;il<TOF2GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
-    chsq/=number(fpnt-2);
-    betof=1./bci/cvel;
-    HF1(1502,betof,1.);
-    HF1(1205,chsq,1.);
-    HF1(1206,tzer,1.);
-    if(chsq>8. || betof<TFCAFFKEY.tofbetac)return;//cut on chi2/beta
-    TOF2JobStat::addre(30);
-//
-// ------> normalize charge to normal incidence :
-//
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      if(TFCAFFKEY.truse == 1){
-        am1[il]*=fabs(cstr[il]);
-        am2[il]*=fabs(cstr[il]);
-	edep[il]*=fabs(cstr[il]);
-      }
-      else{
-        am1[il]*=fabs(cosc);
-        am2[il]*=fabs(cosc);
-	edep[il]*=fabs(cosc);
-      }
-    }
-//
-// ------> Fill arrays for a2dr/gaind calculations(no mip-selection upto here,
-//                                                 will use bar mid-bin only):
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      ib=brnl[il];
-      if(TFCAFFKEY.truse == 1){
-        cinp=coot[il];// loc.r.s.!!!
-	ainp[0]=adca[il][0];
-	ainp[1]=adca[il][1];
-	for(ip=0;ip<TOF2GC::PMTSMX;ip++){
-	  dinp[0][ip]=dpma1[il][ip];
-	  dinp[1][ip]=dpma2[il][ip];
-	}
-        if(ainp[0]>0 && ainp[1]>0){
-	  TOF2AMPLcalib::filla2dg(il,ib,cinp,ainp,dinp);//for Anode/Sum(Dynode(ip)), Dgain(ip) 
-	}
-      }
-      else{
-        cinp=coo[il];// loc.r.s.!!!
-	ainp[0]=adca[il][0];
-	ainp[1]=adca[il][1];
-	for(ip=0;ip<TOF2GC::PMTSMX;ip++){
-	  dinp[0][ip]=dpma1[il][ip];
-	  dinp[1][ip]=dpma2[il][ip];
-	}
-        if(ainp[0]>0 && ainp[1]>0){
-          TOF2AMPLcalib::filla2dg(il,ib,cinp,ainp,dinp);//for Anode/Sum(Dynode(ip)), Dgain(ip)
-	}
-      }
-    }
-//
-// -----> check mom.range :
-//
-    bad=0;
-    if(TFCAFFKEY.truse>=0){
-      if(TFCAFFKEY.caltyp==0){ // space calibration(prot mainly)
-        bet=pmom/sqrt(pmom*pmom+pmas*pmas);//beta from trk, implying known mass
-        imass=pmas;
-        pcut[0]=TFCAFFKEY.plhc[0];
-        pcut[1]=TFCAFFKEY.plhc[1];
-      }
-      else{                     // earth calibration(muon mainly)
-        bet=pmom/sqrt(pmom*pmom+mumas*mumas);
-        imass=mumas;
-        pcut[0]=TFCAFFKEY.plhec[0];
-        pcut[1]=TFCAFFKEY.plhec[1];
-      }
-      HF1(1500,geant(pmom),1.);
-      HF1(1501,bet,1.);
-      if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
-    }
-//
-    if(TFCAFFKEY.truse>=0 && bad==1)return;
-    TOF2JobStat::addre(31);
-//
-//
-// ---> look at mass :
-//
-    number betg(4.);//default (no tracker)
-    massq=imass*imass;//default m**2 (no tracker)
-    if(TFCAFFKEY.truse == 1){
-      massq=pmom*pmom*(1.-betof*betof)/betof/betof;
-      betg=pmom/imass;//use "tracker-defined" betg
-      HF1(1204,geant(massq),1.);
-      if(betof<0.92)HF1(1207,geant(massq),1.);
-      HF1(1208,geant(betg),1.);
-      HF1(1215,(cost-cosc)/cost,1.);
-      HF2(1218,geant(pmom),geant(betof),1.);
-    }
-//
-// ---> Normalize low beta Edep to MIP(p/m=4) :
-//
-    number betnor,absbet;
-    absbet=fabs(betof);// beta from TOF  
-    if(absbet<0.94)betnor=pow(absbet,number(1.83))
-                       /pow(number(0.94),number(1.83));//norm.factor to MIP(pr)
-    else betnor=1;
-//    
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      am1[il]*=betnor;
-      am2[il]*=betnor;
-      edep[il]*=betnor;
-    }
-//
-// ------> <-- Remove events with high(ions) or too low edep.:
-//
-    bad=0;
-    for(il=0;il<TOF2GC::SCLRS;il++){ // 
-      if(edep[il]<0.1 || edep[il]>edecut)bad+=1;
-    }
-    if(bad>1)return;// not more than 1 bad layer
-    TOF2JobStat::addre(32);
-//
-// ------> fill working arrays and histograms :
-//
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      ib=brnl[il];
-      ainp[0]=geant(am1[il]);
-      ainp[1]=geant(am2[il]);
-      if(TFCAFFKEY.truse == 1){
-        cinp=coot[il];// loc.r.s.!!!
-        if(ainp[0]>0. && ainp[1]>0.){
-	  TOF2AMPLcalib::fill(il,ib,ainp,cinp);//for relat.gains(using Anode) 
-          TOF2AMPLcalib::fillabs(il,ib,ainp,cinp,massq,betg);//for abs.normalization(using Anode)
-	}
-      }
-      else{
-        cinp=coo[il];// loc.r.s.!!!
-        if(ainp[0]>0. && ainp[1]>0.){
-          TOF2AMPLcalib::fill(il,ib,ainp,cinp);
-          if(betof>0.85)TOF2AMPLcalib::fillabs(il,ib,ainp,cinp,massq,betg);
-	}
-      }
-    }
-}
+//--------------------------
+void TofTmAmCalib::endjam(){ // ----> print Ampl-hists 
+  HPRINT(1225);//filled in select
+  HPRINT(1226);
+  HPRINT(1227);
+  HPRINT(1228);
+  HPRINT(1229);
+  HPRINT(1260);//filled in fillam
+  HPRINT(1261);//filled in fillam
+  TofTmAmCalib::fitam();//fill h#1250-1259,1264-1285(ref.bar-A-profiles)
+  for(int i=0;i<TOF2GC::SCBTPN;i++)HPRINT(1230+i);//Ref.bars Imp.p.distr,filled in fillam
+  HPRINT(1250);
+  HPRINT(1251);
+  HPRINT(1252);
+  HPRINT(1254);
+  HPRINT(1255);
+  HPRINT(1253);
+  HPRINT(1256);
+  HPRINT(1257);
+  HPRINT(1258);
+  HPRINT(1259);
+  
+  HPRINT(1262);
+  HPRINT(1286);
+  HPRINT(1287);
+  HPRINT(1288);
+  HPRINT(1289);
+	    
+  for(int i=0;i<2*TOF2GC::SCBTPN;i++)HPRINT(1264+i);//ref.bars s1/s2 A-profs, filled in fitam
+} 
 //--------------------------------------
 //   ---> program to accumulate data for relat.gains-calibration:
-void TOF2AMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
+void TofTmAmCalib::fillam(integer il, integer ib, geant am[2], geant coo){
 //
   integer i,id,idr,idh,ibt,btyp,nbn,nb,nbc,isb,chan,nev,bchan;
   geant r;
@@ -2257,7 +1997,7 @@ void TOF2AMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
   id=100*(il+1)+ib+1;
   idr=rbls[btyp];// ref.bar id for given bar
   if(idr==0){
-    cerr<<"TOF2AMPLcalib::fill:illegal ref.bar id ! "<<id<<endl;
+    cerr<<"TofTmAmCalib::fillam:illegal ref.bar id ! "<<id<<endl;
     return;
   }
   nbn=nprbn[btyp];// number of long.bins
@@ -2289,9 +2029,9 @@ void TOF2AMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
       amchan[chan+1][nev]=am[1];
       nevenc[chan+1]+=1;
     }
-    idh=1600+chan+0;// side-1
+    idh=1700+chan+0;// side-1
     HF1(idh,geant(am[0]),1.);
-    idh=1600+chan+1;// side-2
+    idh=1700+chan+1;// side-2
     HF1(idh,geant(am[1]),1.);
   }
 //                             ---> fill profile arrays/hist. for ref. bars:
@@ -2306,24 +2046,21 @@ void TOF2AMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
       ambin2[bchan][nev]=am[1];
       nevenb2[bchan]+=1;
     }
-    HF1(1219+ibt,coo,1.);// longit.imp.point distribution
+    HF1(1230+btyp,coo,1.);// longit.imp.point distribution
     if(ibt == 2 && fabs(coo) < cbin){
-      HF1(1250,am[0],1.);// Q-distr. for ref.bar type=2, s=1
-      HF1(1251,am[1],1.);// Q-distr. for ref.bar type=2, s=2
+      HF1(1260,am[0],1.);// Q-distr. for ref.bar type=2, s=1
+      HF1(1261,am[1],1.);// Q-distr. for ref.bar type=2, s=2
     }
-    idh=1601+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+bchan;
+    idh=1701+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+bchan;
 //    HF1(idh,geant(am[0]+am[1]),1.);
   }
 }
 //--------------------------------------
 //            ---> program to accumulate data for abs.normalization:
-void TOF2AMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
-                                     number massq, number betg){
+void TofTmAmCalib::fillabs(integer il, integer ib, geant am[2], geant coo){
 //
-  integer i,id,idr,ibt,btyp,mflg(0),bgflg(0),nev;
-  static geant cbin(15.);// centr. bin half-width for gain calibr.
-  static geant prcut[2]={-10.,10.};
-  static geant mucut[2]={-0.3,0.3};
+  integer i,id,idr,ibt,btyp,nev;
+  geant cbin(15.);// centr. bin half-width for gain calibr.
   geant amt,mcut[2];
 //
   ibt=TOF2DBc::brtype(il,ib);// bar type (1-10)
@@ -2336,33 +2073,19 @@ void TOF2AMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
 //
   amt=(am[0]+am[1]);
 //
-  if(TFCAFFKEY.caltyp==0){// space (prot) calibr.
-    mcut[0]=prcut[0];
-    mcut[1]=prcut[1];
-  }
-  else{                    // earth (mu) calibr.
-    mcut[0]=mucut[0];
-    mcut[1]=mucut[1];
-  }
-  if(massq>mcut[0] && massq<mcut[1])mflg=1;
-  if(betg>TFCAFFKEY.bgcut[0] && betg<TFCAFFKEY.bgcut[1])bgflg=1;
-//
-  if(id==rbls[1])HF2(1219,geant(betg),amt,1.);// for ref.bar type=2
-  if(bgflg==1 && mflg==1){// mass-mip region ok
-    nevrfc[btyp]+=1;
-    ammrfc[btyp]+=amt;
-    nev=nrefb[btyp];
-    if(nev<TOF2GC::SCACMX){
-      arefb[btyp][nev]=(am[0]+am[1]);
-      nrefb[btyp]+=1;
-    }
+  nevrfc[btyp]+=1;
+  ammrfc[btyp]+=amt;
+  nev=nrefb[btyp];
+  if(nev<TOF2GC::SCACMX){
+    arefb[btyp][nev]=(am[0]+am[1]);
+    nrefb[btyp]+=1;
   }
 }
 //
 //--------------------------------------
 // (prog.to fill arrays for a2dr and Dgain[ip] calculations)
 //
-void TOF2AMPLcalib::filla2dg(int il, int ib, geant cin,
+void TofTmAmCalib::filla2dg(int il, int ib, geant cin,
                                      geant ain[2], geant din[2][TOF2GC::PMTSMX]){
 //
   integer ip,is,chnum,npmts,ngdp[2],chn;
@@ -2399,15 +2122,15 @@ void TOF2AMPLcalib::filla2dg(int il, int ib, geant cin,
 	  dsum[is]+=din[is][ip];
         }
 	r=ain[is]/dsum[is];
-        if(chn==6)HF1(1240,r,1.);//inst.Ah/Dh(pm-sum) for LBBS=1041
+        if(chn==6)HF1(1250,r,1.);//inst.Ah/Dh(pm-sum) for LBBS=1041
 	a2dr[chn]+=r;
 	a2dr2[chn]+=r*r;
 	neva2d[chn]+=1;
 	dsum[is]/=geant(npmts);//Dh average over npmts
 	for(ip=0;ip<npmts;ip++){
 	  r=din[is][ip]/dsum[is];
-          if(chn==6 && ip==0)HF1(1241,r,1.);//inst.Dg(pm) rel.gain for LBBS=1041, pm=1
-          if(chn==6 && ip==1)HF1(1242,r,1.);//inst.Dg(pm) rel.gain for LBBS=1041, pm=2
+          if(chn==6 && ip==0)HF1(1251,r,1.);//inst.Dg(pm) rel.gain for LBBS=1041, pm=1
+          if(chn==6 && ip==1)HF1(1252,r,1.);//inst.Dg(pm) rel.gain for LBBS=1041, pm=2
 	  d2sdr[chn][ip]+=r;
 	  d2sdr2[chn][ip]+=r*r;
 	}
@@ -2418,7 +2141,7 @@ void TOF2AMPLcalib::filla2dg(int il, int ib, geant cin,
 }
 //--------------------------------------
 //            ---> program to get final AMPL-calibration:
-void TOF2AMPLcalib::fit(){
+void TofTmAmCalib::fitam(){
 //
   integer il,ib,is,i,j,k,n,ii,jj,id,idr,btyp;
   integer glosta[TOF2GC::SCCHMX];
@@ -2438,7 +2161,7 @@ void TOF2AMPLcalib::fit(){
   char vers2[3]="RD";
   char fext[20];
   integer cfvn;
-  uinteger StartRun;
+  uinteger StartRun,overid,verid;
   time_t StartTime;
   int dig;
   strcpy(inum,"0123456789");
@@ -2454,11 +2177,18 @@ void TOF2AMPLcalib::fit(){
   strcpy(fname,"TofAmplf");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",(TFMCFFKEY.calvern+1));//MC-versn
+    overid=TOF2Brcal::CFlistC[5];
+    verid=overid+1;//new MC-versn old+1
+    sprintf(fext,"%d",verid);
+    TOF2Brcal::CFlistC[5]=verid;//update Ampl-calib version in static store
   }
   else{
     strcat(fname,vers2);
-    sprintf(fext,"%d",StartRun);//tempor RD-Run# = UTC-time of 1st "on-board" event
+    overid=TOF2Brcal::CFlistC[4];
+    if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+    else verid=StartRun;
+    sprintf(fext,"%d",verid);//RD-Run# = UTC-time of 1st "on-board" event
+    TOF2Brcal::CFlistC[4]=verid;//update Ampl-calib version in static store
   }
   strcat(fname,".");
   strcat(fname,fext);
@@ -2469,18 +2199,13 @@ void TOF2AMPLcalib::fit(){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
         glosta[chan]=0;
-        id=1600+chan;
+        id=1700+chan;
 //        HPRINT(id);
         chan+=1;
       }
     }
   }
 //
-// ---> print impact point hist. for ref. counters:
-//
-  for(i=0;i<TOF2GC::SCBTPN;i++){
-    HPRINT(1220+i);
-  }
 //
 // ---> print "profile"-hist. (tot.signal vs long.bin for ref.counters):
 //
@@ -2488,7 +2213,7 @@ void TOF2AMPLcalib::fit(){
 //    nbnr=nprbn[i];//real numb. of bins
 //    if(nbnr==0)continue;
 //    for(j=0;j<nbnr;j++){ // loop over longit.bins
-//      id=1601+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+i*TOF2GC::SCPRBM+j;
+//      id=1701+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+i*TOF2GC::SCPRBM+j;
 //      HPRINT(id);
 //    }
 //  }
@@ -2644,7 +2369,7 @@ void TOF2AMPLcalib::fit(){
           }
           arglp[0]=number(3);
           ierp=0;
-          MNEXCM(TOF2AMPLcalib::melfun,"CALL FCN",arglp,1,ierp,0);
+          MNEXCM(TofTmAmCalib::melfun,"CALL FCN",arglp,1,ierp,0);
           if(ierp!=0){
             cout<<"TOF:Mp-side-calib: final CALL_FCN problem !"<<'\n';
             continue;
@@ -2693,7 +2418,7 @@ void TOF2AMPLcalib::fit(){
         ar=aref[btyp][i];
         if(ar>0. && gains[chan+i]>0.)gains[chan+i]/=ar;
         else gains[chan+i]=1.;//default value
-        if(id != idr)HF1(1252,gains[chan+i],1.);
+        if(id != idr)HF1(1262,gains[chan+i],1.);
       }
     }
   }
@@ -2826,7 +2551,7 @@ void TOF2AMPLcalib::fit(){
         }
         arglp[0]=number(3);
         ierp=0;
-        MNEXCM(TOF2AMPLcalib::melfun,"CALL FCN",arglp,1,ierp,0);
+        MNEXCM(TofTmAmCalib::melfun,"CALL FCN",arglp,1,ierp,0);
         if(ierp!=0){
           cout<<"TOF:Mp-bin-calib: final CALL_FCN problem !"<<'\n';
           continue;
@@ -2841,7 +2566,7 @@ void TOF2AMPLcalib::fit(){
         HDELET(1599);
 //
       }
-      HF1(1254+2*ibt+isd,profp[ibt][ibn],btamp[isd][bchan]);
+      HF1(1264+2*ibt+isd,profp[ibt][ibn],btamp[isd][bchan]);
     }//---> end of loop for longit.bins
     }//---> end of side loop
   }//---> end of loop for bar-types
@@ -2899,9 +2624,9 @@ void TOF2AMPLcalib::fit(){
   MNINIT(5,6,6);
   MNSETI("Ampl<->Position dependence calibration for TOF-system");
   argl[0]=number(-1);
-  MNEXCM(mfun,"SET PRINT",argl,1,ier,0);
+  MNEXCM(mfunam,"SET PRINT",argl,1,ier,0);
   argl[0]=number(1);//UP(=1-> chi2 methode, =0.5->likelihood)
-  MNEXCM(mfun,"SET ERR",argl,1,ier,0);
+  MNEXCM(mfunam,"SET ERR",argl,1,ier,0);
 //
 //------> start fit for each bar-type:
 //
@@ -2972,7 +2697,7 @@ void TOF2AMPLcalib::fit(){
           ifit[1]=1;
           argl[0]=number(2);//lenhi
           ier=0;
-          MNEXCM(mfun,"RELEASE",argl,1,ier,0);
+          MNEXCM(mfunam,"RELEASE",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-fix problem for par-id="<<pnam[1]<<'\n';
             exit(10);
@@ -2982,7 +2707,7 @@ void TOF2AMPLcalib::fit(){
           ifit[3]=0;
           argl[0]=number(4);//"lenlo"
           ier=0;
-          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          MNEXCM(mfunam,"FIX",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[3]<<'\n';
             exit(10);
@@ -2992,7 +2717,7 @@ void TOF2AMPLcalib::fit(){
           ifit[4]=1;
           argl[0]=number(5);//"aback"
           ier=0;
-          MNEXCM(mfun,"RELEASE",argl,1,ier,0);
+          MNEXCM(mfunam,"RELEASE",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[4]<<'\n';
             exit(10);
@@ -3002,7 +2727,7 @@ void TOF2AMPLcalib::fit(){
           ifit[5]=0;
           argl[0]=number(6);//"lenbk
           ier=0;
-          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          MNEXCM(mfunam,"FIX",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[5]<<'\n';
             exit(10);
@@ -3017,7 +2742,7 @@ void TOF2AMPLcalib::fit(){
           ifit[1]=1;
           argl[0]=number(2);//"lenhi"
           ier=0;
-          MNEXCM(mfun,"RELEASE",argl,1,ier,0);
+          MNEXCM(mfunam,"RELEASE",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[1]<<'\n';
             exit(10);
@@ -3028,7 +2753,7 @@ void TOF2AMPLcalib::fit(){
           ifit[3]=0;
           argl[0]=number(4);//"lenlo"
           ier=0;
-          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          MNEXCM(mfunam,"FIX",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[3]<<'\n';
             exit(10);
@@ -3038,7 +2763,7 @@ void TOF2AMPLcalib::fit(){
           ifit[4]=0;
           argl[0]=number(5);//"aback"
           ier=0;
-          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          MNEXCM(mfunam,"FIX",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-fix problem for par-id="<<pnam[4]<<'\n';
             exit(10);
@@ -3048,7 +2773,7 @@ void TOF2AMPLcalib::fit(){
           ifit[5]=0;
           argl[0]=number(6);//"lenbk"
           ier=0;
-          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          MNEXCM(mfunam,"FIX",argl,1,ier,0);
           if(ier!=0){
             cout<<"TOF-calib: LProfileParam-fix problem for par-id="<<pnam[5]<<'\n';
             exit(10);
@@ -3061,19 +2786,19 @@ void TOF2AMPLcalib::fit(){
       argl[0]=number(1000);//max calls
       argl[1]=number(1);//tolerance, minim. stops when dist<0.001*tolerance*UP
       ier=0;
-      MNEXCM(mfun,"MINIMIZE",argl,2,ier,0);
+      MNEXCM(mfunam,"MINIMIZE",argl,2,ier,0);
       if(ier!=0){
         cout<<"TOF-calib:LprofileFit: MINIMIZE problem !"<<'\n';
         goto nextsd;
       }  
-      MNEXCM(mfun,"MINOS",argl,0,ier,0);
+      MNEXCM(mfunam,"MINOS",argl,0,ier,0);
       if(ier!=0){
         cout<<"TOF-calib:LprofileFit: MINOS problem !"<<'\n';
         goto nextsd;
       }
       argl[0]=number(3);
       ier=0;
-      MNEXCM(TOF2AMPLcalib::mfun,"CALL FCN",argl,1,ier,0);
+      MNEXCM(TofTmAmCalib::mfunam,"CALL FCN",argl,1,ier,0);
       if(ier!=0){
         cout<<"TOF-calib:LprofileFit: final CALL_FCN problem !"<<'\n';
         goto nextsd;
@@ -3196,7 +2921,7 @@ void TOF2AMPLcalib::fit(){
       }
       arglp[0]=number(3);
       ierp=0;
-      MNEXCM(TOF2AMPLcalib::melfun,"CALL FCN",arglp,1,ierp,0);
+      MNEXCM(TofTmAmCalib::melfun,"CALL FCN",arglp,1,ierp,0);
       if(ierp!=0){
         cout<<"TOF:Abs-calib: final CALL_FCN problem !"<<'\n';
         continue;
@@ -3230,8 +2955,8 @@ void TOF2AMPLcalib::fit(){
 	  if(a2dsig>0){
 	    a2dsig=sqrt(a2dsig);//rms
 	    rsig=a2dsig/avr;//rel. rms
-	    HF1(1246,geant(avr),1.);
-	    HF1(1247,geant(rsig),1.);
+	    HF1(1256,geant(avr),1.);
+	    HF1(1257,geant(rsig),1.);
 	    if(rsig<2){//good measurement
 	      a2d[chan]=avr;
 	      a2ds[chan]=a2dsig;
@@ -3292,7 +3017,7 @@ void TOF2AMPLcalib::fit(){
     }
     printf("\n");
     printf("\n");
-    ich+=2*TOF2DBc::getbppl(il);
+    ich+=2*TOF2DBc::getbppl(il);//skip to next layer
   }
     
 //-------------------------------------------------------
@@ -3305,12 +3030,13 @@ void TOF2AMPLcalib::fit(){
 //
 // ---> calculate/print Dyn rel.gains:
 //
-//
+//chan-sequence: L1:B1(s1,s2),...Bn(s1,s2),  L2:.......  L4:B1(s1,s2),...Bn(s1,s2)
   chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+  for(il=0;il<TOF2DBc::getnplns();il++){//<---plane-loop
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){//<---bar-loop
       npmts=TOF2Brcal::scbrcal[il][ib].getnpm();
-      for(i=0;i<2;i++){
+      for(i=0;i<2;i++){//<---side-loop
+//
 	for(ip=0;ip<TOF2GC::PMTSMX;ip++){
 	  dpmg[chan][ip]=0;
 	  dpmgs[chan][ip]=0;
@@ -3323,8 +3049,8 @@ void TOF2AMPLcalib::fit(){
 	    if(dpmsig>0 && avr>0){
 	      dpmsig=sqrt(dpmsig);//rms
 	      rsig=dpmsig/avr;//rel. rms
-	      HF1(1248,geant(avr),1.);
-	      HF1(1249,geant(rsig),1.);
+	      HF1(1258,geant(avr),1.);
+	      HF1(1259,geant(rsig),1.);
 	      if(rsig<2){//good measurement
 	        dpmg[chan][ip]=avr;
 	        dpmgs[chan][ip]=dpmsig;
@@ -3347,6 +3073,7 @@ void TOF2AMPLcalib::fit(){
 	}//-->endof stat-check
 	chan+=1;//seq.numbering of bar sides
       }//-->endof side-loop
+//
     }//-->endof bar-loop
   }//-->endof layer-loop
 //
@@ -3460,7 +3187,7 @@ void TOF2AMPLcalib::fit(){
 //
   ofstream tcfile(fname,ios::out|ios::trunc);
   if(!tcfile){
-    cerr<<"TOF2AMPLcalib:error opening file for output "<<fname<<'\n';
+    cerr<<"TofTmAmCalib::Ampl:error opening file for output "<<fname<<'\n';
     exit(8);
   }
   cout<<"Open file for AMPL-calibration output, fname:"<<fname<<'\n';
@@ -3493,7 +3220,7 @@ void TOF2AMPLcalib::fit(){
 //
     tcfile.precision(2);// precision for A/D ratio
     ic=0;
-    for(il=0;il<TOF2DBc::getnplns();il++){ // 
+    for(il=0;il<TOF2DBc::getnplns();il++){ //
       for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
         chan=ic+2*ib;
         tcfile << a2d[chan]<<" ";
@@ -3512,21 +3239,17 @@ void TOF2AMPLcalib::fit(){
 //
     tcfile.precision(2);// precision for  D-gains
     ic=0;
-    for(il=0;il<TOF2DBc::getnplns();il++){
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        chan=ic+2*ib;
-        for(ip=0;ip<TOF2GC::PMTSMX;ip++)tcfile << dpmg[chan][ip]<<" ";
-	tcfile << " ";
-      }
-      tcfile << endl;
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        chan=ic+2*ib+1;
-        for(ip=0;ip<TOF2GC::PMTSMX;ip++)tcfile << dpmg[chan][ip]<<" ";
-	tcfile << " ";
-      }
-      tcfile << endl;
+    for(il=0;il<TOF2DBc::getnplns();il++){//<---layer-loop
+      for(is=0;is<2;is++){//<--- side-loop
+        for(ib=0;ib<TOF2DBc::getbppl(il);ib++){//<---bar-loop
+	  chan=ic+2*ib+is;
+          for(ip=0;ip<TOF2GC::PMTSMX;ip++)tcfile << dpmg[chan][ip]<<" ";
+	  tcfile << " ";
+        }//--->endof bar-loop
+        tcfile << endl;
+      }//--->endof side-loop
       ic+=2*TOF2DBc::getbppl(il);
-    }
+    }//--->endof layer-loop
     tcfile << endl;
 //
 //                       <------ write mip2q's :
@@ -3557,9 +3280,9 @@ void TOF2AMPLcalib::fit(){
   cout<<"TOF2AMPLcalib:output file closed !"<<endl;
 //
 }
-//-----
+//---------------------
 // This is standard Minuit FCN for uniformity fit:
-void TOF2AMPLcalib::mfun(int &np, number grad[], number &f, number x[]
+void TofTmAmCalib::mfunam(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
   int i,j;
   number ff;
@@ -3615,9 +3338,9 @@ void TOF2AMPLcalib::mfun(int &np, number grad[], number &f, number x[]
     }
   }
 }
-//-----
+//---------------------
 // This is standard Minuit FCN for Landau fit:
-void TOF2AMPLcalib::melfun(int &np, number grad[], number &f, number x[]
+void TofTmAmCalib::melfun(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
   int i,j;
   number fun,sig2,lam;
@@ -3640,827 +3363,6 @@ void TOF2AMPLcalib::melfun(int &np, number grad[], number &f, number x[]
   }
 }
 //
-//=========================================================================
-number TOF2STRRcalib::dtin[TOF2GC::SCCHMX][TOF2GC::SCSRCHB];//for mean Tin calc. in bin (for each channel)
-number TOF2STRRcalib::dtinq[TOF2GC::SCCHMX][TOF2GC::SCSRCHB];//for sigma Tin calc. in bin (for each channel)
-integer TOF2STRRcalib::nevnt[TOF2GC::SCCHMX][TOF2GC::SCSRCHB];// events in bin,channel
-integer TOF2STRRcalib::nevtot[TOF2GC::SCCHMX];       // total number of analized events
-integer TOF2STRRcalib::nevnt2[TOF2GC::SCCHMX];// for f/s-tdc time difference
-number TOF2STRRcalib::fstdif[TOF2GC::SCCHMX];
-number TOF2STRRcalib::fstdif2[TOF2GC::SCCHMX];
-number TOF2STRRcalib::sbins[TOF2GC::SCCHMX];// for "points-fit" method
-number TOF2STRRcalib::ssumc[TOF2GC::SCCHMX];
-number TOF2STRRcalib::ssumt[TOF2GC::SCCHMX];
-number TOF2STRRcalib::ssumid[TOF2GC::SCCHMX];
-number TOF2STRRcalib::ssumct[TOF2GC::SCCHMX];
-number TOF2STRRcalib::ssumc2[TOF2GC::SCCHMX];
-number TOF2STRRcalib::ssumt2[TOF2GC::SCCHMX];
-//----------
-void TOF2STRRcalib::init(){
-  integer i,j,il,ib,id,ii,jj,chan;
-  char htit1[60];
-  char inum[11];
-  char in[2]="0";
-  geant til[2]={15.,15.};// hist.limits for Tin
-  geant tih[2]={95.,95.};
-  geant tol[2]={2000.,2000.};// hist.limits for Tout
-  geant toh[2]={5500.,5500.};
-  integer mrf;
-//
-  strcpy(inum,"0123456789");
-//
-//  ---> book hist. stretcher Tout vs Tin :
-//
-  mrf=0;
-  if(AMSJob::gethead()->isRealData())mrf=1;
-//
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){   
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      for(i=0;i<2;i++){
-        strcpy(htit1,"Stretcher Tout vs Tin for chan(LBBS) ");
-        in[0]=inum[il+1];
-        strcat(htit1,in);
-        ii=(ib+1)/10;
-        jj=(ib+1)%10;
-        in[0]=inum[ii];
-        strcat(htit1,in);
-        in[0]=inum[jj];
-        strcat(htit1,in);
-        in[0]=inum[i+1];
-        strcat(htit1,in);
-        id=1600+chan;
-        HBOOK2(id,htit1,50,til[mrf],tih[mrf],50,tol[mrf],toh[mrf],0.);
-	chan+=1;
-      }
-    }
-  }
-//
-// ---> clear arrays:
-//
-  for(i=0;i<TOF2GC::SCCHMX;i++){
-    nevnt2[i]=0;
-    fstdif[i]=0.;
-    fstdif2[i]=0.;
-    sbins[i]=0.;
-    ssumc[i]=0.;
-    ssumt[i]=0.;
-    ssumid[i]=0.;
-    ssumct[i]=0.;
-    ssumc2[i]=0.;
-    ssumt2[i]=0.;
-    for(j=0;j<TOF2GC::SCSRCHB;j++){
-      dtin[i][j]=0.;
-      dtinq[i][j]=0.;
-      nevnt[i][j]=0;
-    }
-    nevtot[i]=0;
-  }
-} 
-//----------
-void TOF2STRRcalib::fill(integer ichan, number tm[3]){
-  number dti,dto;
-  integer idto,idtol[2];
-//
-  assert(ichan>=0 && ichan<TOF2GC::SCCHMX);
-  if(AMSJob::gethead()->isRealData()){
-    idtol[0]=TOF2GC::SCSRCLB;
-    idtol[1]=TOF2GC::SCSRCHB;
-  }
-  else{
-    idtol[0]=TOF2GC::SCSRCLBMC;
-    idtol[1]=TOF2GC::SCSRCHBMC;
-  }
-  nevtot[ichan]+=1;
-  dti=tm[0]-tm[1];
-  dto=tm[1]-tm[2];
-  idto=integer(dto/TOF2GC::SCSRCTB);// time bin = SCSRCTB ns (Tout)
-  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<100.){
-    nevnt[ichan][idto]+=1;
-    dtin[ichan][idto]+=dti;
-    dtinq[ichan][idto]+=(dti*dti);
-    sbins[ichan]+=1.;// for "points-method"
-    ssumid[ichan]+=1.;
-    ssumc[ichan]+=dto;
-    ssumt[ichan]+=dti;
-    ssumct[ichan]+=(dto*dti);
-    ssumc2[ichan]+=(dto*dto);
-    ssumt2[ichan]+=(dti*dti);
-  }
-  HF2(1600+ichan,geant(dti),geant(dto),1.);
-}
-//-----------
-void TOF2STRRcalib::fill2(integer ichan, number tdif){
-  nevnt2[ichan]+=1;
-  fstdif[ichan]+=tdif;
-  fstdif2[ichan]+=(tdif*tdif);
-}
-//-----------
-void TOF2STRRcalib::outp(){
-  integer i,j,il,ib,id,ic,stat(0),idtol[2],dbsta,chan,chmax;
-  number t0,sl,t,tq,co,dis,nev,bins;
-  number sumc,sumt,sumct,sumc2,sumt2,sumid;
-  number strr[TOF2GC::SCCHMX],offs[TOF2GC::SCCHMX],chi2[TOF2GC::SCCHMX];
-  number strr2[TOF2GC::SCCHMX],offs2[TOF2GC::SCCHMX],chi22[TOF2GC::SCCHMX];
-  number chi2mx(50.);//max.acceptable chi2
-  int replf(0),method(0);// <------ method number to use for fit (0/1->bins/points)
-  number pndis(0.27);// rms**2 (ns) for points-method
-  char fname[80];
-  char frdate[30];
-  char in[2]="0";
-  char inum[11];
-  char vers1[3]="mc";
-  char vers2[3]="rl";
-  integer cfvn;
-  uinteger StartRun;
-  time_t StartTime;
-  int dig;
-//
-//--> create name for output file
-// 
-  strcpy(inum,"0123456789");
-  strcpy(fname,"srcalib");
-  cfvn=TFCAFFKEY.cfvers%1000;
-  dig=cfvn/100;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=(cfvn%100)/10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  dig=cfvn%10;
-  in[0]=inum[dig];
-  strcat(fname,in);
-  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
-  else strcat(fname,vers2);
-  strcat(fname,".cof");
-//
-//--> get run/time of the first event
-//
-  StartRun=TOF2RawSide::getsrun();
-  StartTime=TOF2RawSide::getstime();
-  strcpy(frdate,asctime(localtime(&StartTime)));
-//
-  if(AMSJob::gethead()->isRealData()){
-    idtol[0]=TOF2GC::SCSRCLB;
-    idtol[1]=TOF2GC::SCSRCHB;
-  }
-  else{
-    idtol[0]=TOF2GC::SCSRCLBMC;
-    idtol[1]=TOF2GC::SCSRCHBMC;
-  }
-//
-  chmax=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    chmax+=TOF2DBc::getbppl(il);
-  }
-  chmax*=2;//max.number of sc.channels
-//
-// <-------------------------- "bin-method"
-  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
-    sumc=0.;
-    sumt=0.;
-    sumct=0.;
-    sumc2=0.;
-    sumt2=0.;
-    sumid=0.;
-    bins=0.;
-    t0=0.;
-    sl=0.;
-    strr[ic]=0.;
-    offs[ic]=0.;
-    chi2[ic]=0.;
-    for(j=idtol[0];j<idtol[1];j++){//<-- Tout bin loop
-      nev=number(nevnt[ic][j]);
-      co=(number(j)+0.5)*TOF2GC::SCSRCTB;// mid. of Tout bin
-      if(nev>=3.){ // min. 3 events
-        t=dtin[ic][j]/nev; //get mean
-        tq=dtinq[ic][j]/nev; // mean square
-        dis=tq-t*t;// rms**2
-        if(dis>=0.)HF1(1204,geant(sqrt(dis)),1.);
-        if(dis>=0. && sqrt(dis)<2.){// apply max.cut on rms (2ns)
-          if(dis==0.)dis=1./12.;// if all events was in single Tin bin=1ns
-          dis/=(nev-1.);// rms**2 of the mean
-          bins+=1.;
-          sumc+=(co/dis);
-          sumt+=(t/dis);
-          sumid+=(1./dis);
-          sumct+=(co*t/dis);
-          sumc2+=(co*co/dis);
-          sumt2+=(t*t/dis);
-        }
-      }
-    }//--> end of bin loop
-//
-    if(bins>=15.){
-      t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
-      sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
-      chi2[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
-        -2.*t0*sumt-2.*sl*sumct+2.*t0*sl*sumc;
-      chi2[ic]/=(bins-2.);
-      if(sl>0.){
-        strr[ic]=1./sl;
-        offs[ic]=-t0/sl;
-      }
-      HF1(1200,geant(strr[ic]),1.);
-      HF1(1201,geant(offs[ic]),1.);
-      HF1(1202,geant(chi2[ic]),1.);
-    }
-  }//--> end of chan. loop
-//---
-  printf("\n\n");
-  printf("Stretcher ratios: bin-methode :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.2f",strr[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.2f",strr[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//---
-  printf("Chi2: bin-methode :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.2f",chi2[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.2f",chi2[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//---
-  printf("Offsets(ns),bin-methode :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 6.1f",offs[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 6.1f",offs[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//
-//
-// <----------------------------"points=method"
-//
-  dis=pndis;// rms**2 (ns**2)
-  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
-    t0=0.;
-    sl=0.;
-    strr2[ic]=0.;
-    offs2[ic]=0.;
-    chi22[ic]=0.;
-    sumc=ssumc[ic]/dis;
-    sumt=ssumt[ic]/dis;
-    sumid=ssumid[ic]/dis;
-    sumct=ssumct[ic]/dis;
-    sumc2=ssumc2[ic]/dis;
-    sumt2=ssumt2[ic]/dis;
-    bins=sbins[ic];
-//
-    if(bins>=20.){// really number of events in channel ic
-      t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
-      sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
-      chi22[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
-        -2.*t0*sumt-2.*sl*sumct+2.*t0*sl*sumc;
-      chi22[ic]/=(bins-2.);
-      if(sl>0.){
-        strr2[ic]=1./sl;
-        offs2[ic]=-t0/sl;
-      }
-      HF1(1205,geant(strr2[ic]),1.);
-      HF1(1206,geant(offs2[ic]),1.);
-      HF1(1207,geant(chi22[ic]),1.);
-    }
-  }//--> end of chan. loop
-//---
-  printf("\n\n");
-  printf("Stretcher ratios: points-methode :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.2f",strr2[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.2f",strr2[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//---
-  printf("Chi2: points-methode :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.2f",chi22[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.2f",chi22[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//---
-  printf("Offsets(ns),pnt-methode :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 6.1f",offs2[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 6.1f",offs2[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//
-//
-//<----- combine two methodes(bin-meth. is main):
-//
-  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
-    replf=0;
-    if(chi2[ic]>6. || strr[ic]==0.){//replace by better chi2 from pnt.methode
-      if(strr[ic]==0. && chi22[ic]>0.)replf=1;
-      if(chi2[ic]>0. && chi22[ic]<chi2[ic] && chi22[ic]>0.)replf=1;
-    }
-    if(replf==1){//cancel replacement if have bad strr in point-methode
-      if(strr2[ic]>55. || strr2[ic]<40.)replf=0;
-    }
-    if(replf){
-      chi2[ic]=chi22[ic];
-      strr[ic]=strr2[ic];
-      offs[ic]=offs2[ic];
-    }
-    if(strr[ic]>0.){
-      HF1(1208,geant(strr[ic]),1.);
-      HF1(1209,geant(offs[ic]),1.);
-      HF1(1210,geant(chi2[ic]),1.);
-    }
-  }
-//
-//<----- combine two methodes(points-meth. is main):
-//
-//  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
-//    replf=0;
-//    if(chi22[ic]>3.){//replace by better chi2 from bin-methode
-//      if(chi2[ic]<chi22[ic] && chi2[ic]>0.)replf=1;
-//    }
-//    if(replf==0){//force replacement if bad strr
-//      if(strr2[ic]>47. || strr2[ic]<40.5)replf=1;
-//    }
-//    if(replf){
-//      chi22[ic]=chi2[ic];
-//      strr2[ic]=strr[ic];
-//      offs2[ic]=offs[ic];
-//    }
-//    chi2[ic]=chi22[ic];
-//    strr[ic]=strr2[ic];
-//    offs[ic]=offs2[ic];
-//    if(strr[ic]>0.){
-//      HF1(1208,geant(strr[ic]),1.);
-//      HF1(1209,geant(offs[ic]),1.);
-//      HF1(1210,geant(chi2[ic]),1.);
-//    }
-//  }
-//------------
-  printf("\n\n");
-  printf("===========> Channels STRR-calibration report :\n\n");
-  printf("\n");
-  printf("Event/channel collected :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 6d",nevtot[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 6d",nevtot[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//---
-  printf("Stretcher ratios :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.2f",strr[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.2f",strr[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//---
-  printf("Offsets(ns),comb. :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 6.1f",offs[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 6.1f",offs[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//
-//  printf("Stretcher ratio errors :\n\n");
-//  chan=0;
-//  for(il=0;il<TOF2DBc::getnplns();il++){
-//    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-//      ic=chan+ib*2;
-//      printf(" % 5.2f",s1[ic]);
-//    }
-//    printf("\n");
-//    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-//      ic=chan+ib*2+1;
-//      printf(" % 5.2f",s1[ic]);
-//    }
-//    printf("\n\n");
-//    chan+=2*TOF2DBc::getbppl(il);
-//  }
-//---
-  printf("Chi2 :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.2f",chi2[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.2f",chi2[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//
-//---
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){ // print 2-D histogr.  
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      for(i=0;i<2;i++){
-        id=1600+chan;
-        HPRINT(id);
-	chan+=1;
-      }
-    }
-  }
-//------------------------------------------------
-// ===> f/s-tdc time difference calculation :
-//
-  number fstdm[TOF2GC::SCCHMX],fstds[TOF2GC::SCCHMX];
-  number nttd,tdfs;
-  for(i=0;i<chmax;i++){
-    fstdm[i]=0.;
-    fstds[i]=0.;
-    if(nevnt2[i]>5){
-      nttd=number(nevnt2[i]);
-      fstdm[i]=fstdif[i]/nttd;
-      fstds[i]=fstdif2[i]/nttd;
-      tdfs=fstds[i]-fstdm[i]*fstdm[i];
-      if(tdfs<0.)tdfs=0.;
-      fstds[i]=sqrt(tdfs);
-    }
-  }
-  printf("\n\n");
-  printf("===========> Channels f/s-tdc t-differences :\n\n");
-  printf("\n");
-  printf("Event/channel collected :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 6d",nevnt2[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 6d",nevnt2[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//
-  printf("Time differences :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.1f",fstdm[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.1f",fstdm[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//
-  printf("RMS of time differences :\n\n");
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2;
-      printf(" % 5.1f",fstds[ic]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      ic=chan+ib*2+1;
-      printf(" % 5.1f",fstds[ic]);
-    }
-    printf("\n\n");
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-//------------------------------------------------
-//
-  ofstream tcfile(fname,ios::out|ios::trunc);
-  if(!tcfile){
-    cerr<<"TOF2STRRcalib:error opening file for output"<<fname<<'\n';
-    exit(8);
-  }
-  cout<<"Open file for STRR-calibration output, fname:"<<fname<<'\n';
-  cout<<"Stretcher ratios for indiv.channels will be written !"<<'\n';
-  cout<<" First run used for calibration is "<<StartRun<<endl;
-  cout<<" Date of the first event : "<<frdate<<endl;
-  tcfile.setf(ios::fixed);
-  tcfile.width(6);
-  tcfile.precision(2);// precision
-  chan=0; 
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){// str-ratios
-      ic=chan+ib*2;
-      dbsta=-1;
-      if(chi2[ic]>0.)dbsta=0; 
-      if(chi2[ic]>chi2mx)dbsta=10;//problem with t-measurement
-      tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<"  ";// side-1
-      ic+=1;
-      dbsta=-1;
-      if(chi2[ic]>0.)dbsta=0; 
-      if(chi2[ic]>chi2mx)dbsta=10;//problem with t-measurement
-      tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<endl;// side-2
-    }
-    tcfile << endl;
-    chan+=2*TOF2DBc::getbppl(il);
-  }
-  tcfile << endl<<"======================================================"<<endl;
-  tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
-  tcfile << endl<<" Date of the first event : "<<frdate<<endl;
-  tcfile.close();
-  cout<<"TOF2STRRcalib:output file closed !"<<endl;
-}
-//=============================================================================
-number TOF2AVSDcalib::dtdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean TovT-dynode per chan/bin 
-number TOF2AVSDcalib::dtdyn2[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean (TovT-dynode)**2 per chan/bin
-integer TOF2AVSDcalib::nevdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// events in above sums per chan/bin 
-integer TOF2AVSDcalib::nevdynt[TOF2GC::SCCHMX];// events in above sums per chan
-//--------------------------
-void TOF2AVSDcalib::init(){ // ----> initialization for AVSD-calibration 
-  integer i,j,il,ib,id,ii,jj,chan;
-  char htit1[60];
-  char inum[11];
-  char in[2]="0";
-//
-  strcpy(inum,"0123456789");
-//
-//  ---> book hist. Tovt-D vs Tovt-A :
-//
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){   
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      for(i=0;i<2;i++){
-        strcpy(htit1,"Dynode(h) vs Anode(h) for chan(LBBS) ");
-        in[0]=inum[il+1];
-        strcat(htit1,in);
-        ii=(ib+1)/10;
-        jj=(ib+1)%10;
-        in[0]=inum[ii];
-        strcat(htit1,in);
-        in[0]=inum[jj];
-        strcat(htit1,in);
-        in[0]=inum[i+1];
-        strcat(htit1,in);
-        id=1800+chan;
-        HBOOK2(id,htit1,50,0.,500.,50,0.,50.,0.);
-	chan+=1;
-      }
-    }
-  }
-// ---> clear arrays:
-//
-  for(i=0;i<TOF2GC::SCCHMX;i++){
-    for(j=0;j<TOF2GC::SCACHB;j++){
-      dtdyn[i][j]=0.;
-      dtdyn2[i][j]=0.;
-      nevdyn[i][j]=0;
-    }
-    nevdynt[i]=0;
-  }
-}
-//-------------------------------------------
-//            ---> program to fill a2dr-arrays:
-void TOF2AVSDcalib::filla2dr(integer chan, geant adch, geant adcl){
-//
-  integer ic;
-//
-  adch+=0.5;//tempor +0.5 to be at the middle of ADC-bin=1
-  adcl+=0.5;
-  if(TFREFFKEY.reprtf[2]>1 || chan==6 || chan==7)HF2(1800+chan,adch,adcl,1.);
-      ic=integer(adch/TOF2GC::SCACBW);// get Anode(h) bin #
-      if(ic<TOF2GC::SCACHB && adch>=120. && adcl>0.){//"100" to avoid D-readout thresh. influence 
-        dtdyn[chan][ic]+=adcl;//to calc. later Dynode average for given Anode ic-bin
-        dtdyn2[chan][ic]+=(adcl*adcl);
-        nevdyn[chan][ic]+=1;
-        nevdynt[chan]+=1;
-      }
-}
-//--------------------------------------
-//         ---> program to get slope/offset in Dyn(h) vs An(h) dependence :
-void TOF2AVSDcalib::fit(number slop[TOF2GC::SCCHMX], number offs[TOF2GC::SCCHMX], number &avs, number &avo){
-//
-  integer i,j,il,ib,idd,is,chan,chmax,ich;
-  number t0,sl,t,tq,co,dis,nevf,bins;
-  number sumc,sumt,sumct,sumc2,sumt2,sumid,nonzer;
-  number chi2[TOF2GC::SCCHMX];
-//
-// ---> calculate/print Dynode(h)-Anode(h) channel correl. param.(AVSD-calibr):
-//
-//
-//
-  chmax=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    chmax+=TOF2DBc::getbppl(il);
-  }
-  chmax*=2;//max.number of sc.channels
-//
-  avs=0.;
-  avo=0.;
-  nonzer=0.;
-  for(i=0;i<chmax;i++){ // <-- chan. loop
-    sumc=0.;
-    sumt=0.;
-    sumct=0.;
-    sumc2=0.;
-    sumt2=0.;
-    sumid=0.;
-    bins=0.;
-    t0=0.;
-    sl=0.;
-    slop[i]=0.;
-    offs[i]=0.;
-    chi2[i]=0.;
-    for(j=0;j<TOF2GC::SCACHB;j++){//<-- Anode(h) bins loop
-      nevf=number(nevdyn[i][j]);
-      co=(number(j)+0.5)*TOF2GC::SCACBW;// mid. of Anode(h)-chan. bin
-      if(nevf>5.){ // min. 5 events
-        t=dtdyn[i][j]/nevf; // get Dynode mean
-        tq=dtdyn2[i][j]/nevf; // mean square
-        dis=tq-t*t;// rms**2
-        if(dis>=0.){
-        if(dis==0.)dis=1./12.;// if all events are in single Dyn-chan bin=1
-          dis/=(nevf-1.);// rms**2 of the mean
-          bins+=1.;
-          sumc+=(co/dis);
-          sumt+=(t/dis);
-          sumid+=(1./dis);
-          sumct+=(co*t/dis);
-          sumc2+=(co*co/dis);
-          sumt2+=(t*t/dis);
-        }
-      }
-    }//--> end of bin loop
-//
-    if(bins>=4){
-      t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
-      sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
-      chi2[i]=sumt2+t0*t0*sumid+sl*sl*sumc2
-        -2.*t0*sumt-2.*sl*sumct+2.*t0*sl*sumc;
-      chi2[i]/=(bins-2.);
-      slop[i]=1./sl;//i.e. now A/D ratio
-      offs[i]=t0;
-      nonzer+=1.;
-      avs+=slop[i];
-      avo+=offs[i];
-      HF1(1240,geant(slop[i]),1.);
-      HF1(1241,geant(offs[i]),1.);
-      HF1(1242,geant(chi2[i]),1.);
-    }
-  }//--> end of chan. loop
-//
-  if(nonzer>0){
-    avs/=nonzer;
-    avo/=nonzer;
-  }
-//
-  printf("\n");
-  printf(" ===============>  Anode vs Dynode signal correlation parameters :\n");
-  printf("\n");
-  printf("Average AvsD slop: %6.2f\n",avs);
-  printf("Average DvsA offset: %6.2f\n",avo);
-  printf("\n");
-  ich=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    printf("Layer= %2d\n",(il+1));
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6d",nevdynt[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6d",nevdynt[chan]);
-    }
-    printf("\n");
-    printf("\n");
-    
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6.2f",slop[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6.1f",offs[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6.2f",chi2[chan]);
-    }
-    printf("\n");
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6.2f",slop[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6.1f",offs[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6.2f",chi2[chan]);
-    }
-    printf("\n");
-    printf("\n");
-    ich+=2*TOF2DBc::getbppl(il);
-  }
-//
-//---
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){ // print 2-D histogr.  
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      for(i=0;i<2;i++){
-        idd=1800+chan;
-        if(TFREFFKEY.reprtf[2]>1 || chan==6 || chan==7)HPRINT(idd);
-	chan+=1;
-      }
-    }
-  }
-  HPRINT(1240);
-  HPRINT(1241);
-  HPRINT(1242);
-//
-}
 //=============================================================================
 number TOFPedCalib::adc[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store Anode/Dynode adc sum
 number TOFPedCalib::adc2[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//store adc-squares sum

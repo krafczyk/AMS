@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.53 2008/05/30 10:01:03 choutko Exp $
+//  $Id: tofrec02.C,v 1.54 2008/06/05 13:28:16 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -61,6 +61,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
   integer ilay,last,ibar,isid,isds(0),pedrun(0);
   integer i,j,im,tmfound,complm,chnum,brnum;
   int16u id,idd,idN,stat,idr;
+  integer hisid;
   number dt;
   geant peda,pedd;
   int16u otyp,mtyp,crat,slot,tsens;
@@ -73,7 +74,10 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
   integer trpat[TOF2GC::SCLRS],trpatz[TOF2GC::SCLRS];
   TOF2RawSide::getpatt(trpat);
   TOF2RawSide::getpattz(trpatz);
+  integer sumHTd(0);
 //
+  if(!AMSJob::gethead()->isRealData())
+                sumHTd=floor(0.5+TFMCFFKEY.sumHTdel/TOF2DBc::tdcbin(1));//sumHT-LT signal h/w delay for MC(tdc-ch)
   status=1;//bad
 //
   ptr=(TOF2RawSide*)AMSEvent::gethead()
@@ -104,7 +108,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //
   int chan,il,ib,is;
   if(AMSJob::gethead()->isCalibration() && (TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)){//PedCalJob
-    TOF2JobStat::addre(38);
+    TOF2JobStat::addre(45);
     TOFPedCalib::hiamreset();
     while(ptr){//<--RawSide-objects loop
       idd=ptr->getsid();//LBBS
@@ -234,6 +238,16 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       }
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+30),1.);
 //
+      if(TFREFFKEY.reprtf[2]>0){//<--look at Raw Anodes for reference(in Ampl-calib)-bares      
+        for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
+          idr=TofTmAmCalib::btyp2id(btyp);
+	  if(id==idr){//LBB=refLBB
+	    hisid=1140+btyp-1+TOF2GC::SCBTPN*isid;
+            HF1(hisid,adca,1.);
+	  }
+        }
+      }
+//
 //---> check Dynode-adc :
       im=nadcd;
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+40),1.);
@@ -250,16 +264,16 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       if(tmfound==1 && (adca>0 || nadcd>0))complm=1;//found channel with complete t+amp measurement
       if(complm==1)bad=0;//found at least one channel with t+amp measurement per event - accept event
 //
-//---> check SumHTtime info:
+//---> check SumHTtime info and add h/w-eff.delay if MC:
       nsumh=TOF2RawSide::SumHTh[crat][tsens-1];
-      for(i=0;i<nsumh;i++)sumht[i]=TOF2RawSide::SumHTt[crat][tsens-1][i];
+      for(i=0;i<nsumh;i++)sumht[i]=sumHTd+TOF2RawSide::SumHTt[crat][tsens-1][i];
       ptr->putsumh(nsumh,sumht);//fill object with SumHTtime-hits
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(nsumh+50),1.);
       if(nsumh==0)TOF2JobStat::addch(chnum,18);//miss sumHT info
 //
 //---> check SumSHTtime info:
       nsumsh=TOF2RawSide::SumSHTh[crat][tsens-1];
-      for(i=0;i<nsumsh;i++)sumsht[i]=TOF2RawSide::SumSHTt[crat][tsens-1][i];
+      for(i=0;i<nsumsh;i++)sumsht[i]=sumHTd+TOF2RawSide::SumSHTt[crat][tsens-1][i];
       ptr->putsumsh(nsumsh,sumsht);//fill object with SumSHTtime-hits
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(nsumsh+70),1.);
 //
@@ -301,7 +315,7 @@ NextObj:
   int ichft,ichlt,sslot,oldcr(0),oldsl(0);
   if(TFREFFKEY.relogic[0]==1){//TOFTdcCalib-Job
 //cout<<"----> Entry:"<<endl;
-    TOF2JobStat::addre(39);
+    TOF2JobStat::addre(46);
     ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0,0);
     while(ptr){//<--RawSide-objects loop
       idd=ptr->getsid();//LBBS
@@ -428,20 +442,6 @@ void TOF2RawCluster::build(int &ostatus){
     ilay=id/100-1;
     ibar=id%100-1;
     isid=idd%10-1;
-//    int ilayo=ilay;//Vitali's swapping
-//    int ibaro=ibar;
-//    if(ilay==0){
-//      ilay=1;
-//    }
-//    else{
-//      ilay=0;
-//    }
-//     if(ibar==1)ibar=4;
-//     else if(ibar==2)ibar=1;
-//     else if(ibar==3)ibar=5;
-//     else if(ibar==4)ibar=2;
-//     else if(ibar==5)ibar=6;
-//     else if(ibar==6)ibar=3;
     mtyp=0;
     otyp=0;
     AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LTtime)
@@ -470,8 +470,6 @@ void TOF2RawCluster::build(int &ostatus){
     if(stat[isid]%10==0                              //<--- validation status(FTtime is absolutely required)
       && TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid) //<--- check hit DB(calibr)-status
       && TOFBPeds::scbrped[ilay][ibar].PedAchOK(isid)//<--- check hit DB(ped)-status
-//      && TOF2Brcal::scbrcal[ilayo][ibaro].SideOK(isid) //<--- check hit DB(calibr)-status
-//      && TOFBPeds::scbrped[ilayo][ibaro].PedAchOK(isid)//<--- check hit DB(ped)-status
 //      && TOFBPeds::scbrped[ilay][ibar].PedDchOK(isid) 
                                                      ){
       TOF2JobStat::addch(chnum,0);//statistics on input channel
@@ -494,7 +492,7 @@ void TOF2RawCluster::build(int &ostatus){
       for(int ih=0;ih<nwssht;ih++)fwssht[ih]=number(wssht[ih]);
 //---> Apply TDC linearity corrections(if requested):
      if(TFREFFKEY.relogic[2]>0 && !(!AMSJob::gethead()->isRealData() && TFMCFFKEY.tdclin==0)){
-  cout<<"<============== LinCor is ON"<<endl;
+//  cout<<"<============== LinCor is ON"<<endl;
       hwidt=ptr->gethidt();//CSIIII
       crat=hwidt/100000;//1-4
       sslot=(hwidt%100000)/10000;//1-5
@@ -551,7 +549,7 @@ void TOF2RawCluster::build(int &ostatus){
       nttdc[isid]=0;
       for(i=0;i<nstdc[isid];i++){
         itftcor[isid][i]=0;
-        t1=stdc[isid][i];//t1=0 means FT-time
+        t1=stdc[isid][i];//FT IS subtracted already, so t1=0 means =FTtime
 	if(TFREFFKEY.reprtf[2]>0)HF1(1136,geant(t1),1.);
 	if(t1>TOF2DBc::ltagew(0) && t1<TOF2DBc::ltagew(1)){//notTooYoung(>40ns befFT), notTooOld(<640 befFT)
 	  ttdc[isid][nttdc[isid]]=t1;
@@ -1027,7 +1025,7 @@ void TOF2RawCluster::build(int &ostatus){
     HF1(1112,geant(conf),1.);
   }
 //
-  if((nbrch[0]+nbrch[1]) + (nbrch[2]+nbrch[3])>=1)ostatus=0; // good event
+  if(((nbrch[0]+nbrch[1]) + (nbrch[2]+nbrch[3])) >= 1)ostatus=0; // good event
 // 
 // ---> multtipl. checks for single bar layers:
 //
@@ -1042,13 +1040,13 @@ void TOF2RawCluster::build(int &ostatus){
   if(isum>=3){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
-  if(isum==4)conf=5;
+  if(isum==4)conf=5;//all 4layers with 1bar/layer
   if(TFREFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
     HF1(1113,geant(conf),1.);
   }
 //
-  if(ostatus!=0)return;//remove bad events
+  if(ostatus!=0)return;//remove bad(no rawclusters) events
 //
   if(conf != 5)return;//use only 1bar/layer,4-layer events for next processing
 //
@@ -1164,9 +1162,9 @@ void TOF2RawCluster::build(int &ostatus){
       if(TFREFFKEY.reprtf[2]>1){ 
         for(il=0;il<TOF2GC::SCLRS;il++){// fill de/dx hist. for each bar
           ib=brnl[il];
-          brnum=il*TOF2GC::SCMXBR+ib;//sequential bar numbering
+          brnum=TOF2DBc::barseqn(il,ib);//sequential bar numbering
           elosn=edepa[il]/cosi;//normalized  to norm.inc.
-          HF1(1140+brnum,elosn,1.);
+          HF1(1165+brnum,elosn,1.);
         }
         HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
         HF1(1527,edepa[2],1.); //layer=3 Anode-reconstructed Edep
@@ -1428,10 +1426,12 @@ void AMSTOFCluster::build2(int &stat){
   int nclust,cllay[TOF2GC::SCLRS],nmemb;
   AMSPoint coo,ecoo;
   int i,j,il,ib,bmax;
-  integer ntof,barn,status,statusn,plrot,ok;
+  integer ntof,barn,status,statusn,plrot;
   geant barl,barw,cl,cle,ct,cte,cln,clne,ctn,ctne,cz,czn,clm,clnm;
+  geant barwn;
   geant edep,edepn,edepa,edepd,edepdl,edepdn,edass;
   geant time,etime,timen,etimen,speedl,err;
+  integer timeoks,timeokn;
 //-----
   stat=1; // bad
   for(i=0;i<TOF2GC::SCLRS;i++)cllay[i]=0;
@@ -1465,15 +1465,18 @@ void AMSTOFCluster::build2(int &stat){
   nclust=0;
   bmax=TOF2DBc::getbppl(il);//bars per given plane
   for (ib=0;ib<bmax;ib++){// <---- loop over buffer content (clust. search)
-    if(eplane[ib]> TFREFFKEY.Thr1){//<--- thresh. check
-      ok=1;
+    timeoks=0;//seed bar
+    if(eplane[ib]> TFREFFKEY.Thr1){//<--- thresh. check (seed bar)
+//      cout<<"---> Seed il/ib="<<il<<" "<<ib<<endl;
+      timeoks=1;
       nmemb=0;
       ptr=xptr[ib];
       ntof=il+1;
       barn=ib+1;
       barl=TOF2DBc::brlen(il,ib);// bar length
-      barw=TOF2DBc::plnstr(5);//bar width
-      TOF2Brcal::scbrcal[il][ib].getd2p(speedl,err);//get light speed
+      if(ib>0 && (ib+1)<bmax)barw=TOF2DBc::plnstr(5);//stand.(not outer) bar width
+      else barw=TOF2DBc::outcp(il,1);//outer counter width
+      TOF2Brcal::scbrcal[il][ib].getd2p(speedl,err);//get eff.light speed
       plrot=TOF2DBc::plrotm(il);     // =0/1-unrotated/rotated TOF-plane
       cz=ptr->getz();          //bar(raw clust) Z-coord.
       cl=ptr->gettimeD();// get yloc/err for ib bar
@@ -1484,97 +1487,155 @@ void AMSTOFCluster::build2(int &stat){
       status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       edep=eplane[ib];
       edepd=edplane[ib];
+//      cout<<"    cl/cle="<<cl<<" "<<cle<<" ct/cte="<<ct<<" "<<cte<<" edep="<<edep<<endl;
       if(fabs(cl) > clm+2*cle){//bad l-coord.measurement(out of bar size)
         status|=AMSDBc::BAD; // bad coord. means also bad for t-measurement !!!
         cle=barl/sqrt(12.);
         if(cl>0.)cl=clm;//at bar edge
         else cl=-clm;
-	ok=0;//means bar with suspicious time measurement 
+	timeoks=0;//means bar with suspicious time measurement 
       }
       membp[nmemb]=ptr;//store ib cluster pointer
       nmemb+=1;
       time=ptr->gettime();// time from ib bar(ns) 
       etime=TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(0.15ns,later put in TOFBrcal needed data!)
+//      cout<<"    time/etime="<<time<<" "<<etime<<endl;  
       if((status&TOFGC::SCBADB2)>0){//1-sided
         if(status & TOFGC::SCBADB5){ // recovered 1-sided counter
           etime=2.05*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
         }
         else{
-          etime=(1.e-9)*barl/speedl/sqrt(12.);//(sec !!!)for single-sided counters
+          etime=barl/speedl/sqrt(12.);//for single-sided counters
+	  cl=0;
+	  timeoks=0;//means bar with time meas.problems(i.e. 1-sided & not-recovered) 
         }
-	ok=0;//means bar with time meas.problems 
       }
-      if((status&TOFGC::SCBADB3)>0)ok=0;//bar "ib" is bad for t-meas. according to DB
+      if((status&TOFGC::SCBADB3)>0)timeoks=0;//bar "seed" is bad for t-meas. according to DB
+//      cout<<"    AFC:cl/cle="<<cl<<" "<<cle<<" ct/cte="<<ct<<" "<<cte<<" tmok="<<timeoks<<endl;
+//      cout<<"    time/etime="<<time<<" "<<etime<<endl;  
 //
-      if(ib+1<bmax && eplane[ib+1]> TFREFFKEY.Thr1){// try next(adjacent) bar if prev.OK
+      timeokn=0;//next bar
+      if(ib+1<bmax && eplane[ib+1]> TFREFFKEY.Thr1){// next(adjacent) bar above thr - cand4gluing
+//      cout<<"---> Next il/ib="<<il<<" "<<ib+1<<endl;
+        timeokn=1;//next bar
         ptrn=xptr[ib+1];
-        barl=TOF2DBc::brlen(il,ib+1);// peak bar length
+        barl=TOF2DBc::brlen(il,ib+1);// "next" bar length
+        TOF2Brcal::scbrcal[il][ib+1].getd2p(speedl,err);//get eff.light speed
         czn=ptrn->getz();          //next bar(raw clust) Z-coord.
         cln=ptrn->gettimeD();// get yloc/err for "peak" bar
         clne=ptrn->getetimeD();
         clnm=0.5*barl;// limit on max. long. coord.
         ctn=TOF2DBc::gettsc(il,ib+1);   //transv.pos. of  bar
-        ctne=barw/sqrt(12.);
+        if((ib+1)>0 && (ib+2)<bmax)barwn=TOF2DBc::plnstr(5);//stand.(not outer) bar width
+        else barwn=TOF2DBc::outcp(il,1);//outer counter width
+        ctne=barwn/sqrt(12.);
         statusn=ptrn->getstatus();//may be !=0(bad history/t_meas or single-sided)
         edepn=eplane[ib+1];
+        timen=ptrn->gettime();// time from ib+1 bar(ns) 
+        etimen=TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(0.15ns,later put in TOFBrcal needed data!)
         edepdn=edplane[ib+1];
+//      cout<<"    cl/cle="<<cln<<" "<<clne<<" ct/cte="<<ctn<<" "<<ctne<<" edep="<<edepn<<endl;
+//      cout<<"    time/etime="<<timen<<" "<<etimen<<endl;  
         if(fabs(cln) > clnm+2*clne){//bad l-coord.measurement(out of bar size)
           clne=barl/sqrt(12.);
           if(cln>0.)cln=clnm;//at bar edge
           else cln=-clnm;
-	  ok=0;//means bar with suspicious time measurement 
+	  timeokn=0;//means bar with suspicious time measurement 
         }
-        bool okb=ok==1 && (statusn&TOFGC::SCBADB2)==0 && (statusn&TOFGC::SCBADB3)==0;
-	if(	1 ){
-          timen=ptrn->gettime();// time from ib+1 bar(ns) 
-          etimen=TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(0.15ns,later put in TOFBrcal needed data!)
+        if((statusn&TOFGC::SCBADB2)>0){//1-sided
+          if(statusn & TOFGC::SCBADB5){ // recovered 1-sided counter
+            etimen=2.05*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
+          }
+          else{
+            etimen=barl/speedl/sqrt(12.);//(sec !!!)for single-sided counters
+	    cln=0;
+	    timeokn=0;//means bar with time meas.problems(i.e. 1-sided & not-recovered)  
+          }
+        }
+        if((statusn&TOFGC::SCBADB3)>0)timeokn=0;//bar "next" is bad for t-meas. according to DB
+//      cout<<"    AFC:cl/cle="<<cln<<" "<<clne<<" ct/cte="<<ctn<<" "<<ctne<<" tmok="<<timeokn<<endl;
+//      cout<<"    time/etime="<<timen<<" "<<etimen<<endl;  
+//----> calc.criteria for gluing:
+        bool timeokb=(timeoks==1 && timeokn==1);//both ok(both have reasonable t-meas, incl recovered)
+	bool tmatch(false),cmatch(false);
+	number tterr=sqrt(etime*etime+etimen*etimen);
+	number tcerr=sqrt(cle*cle+clne*clne);
+	if(timeokb){
+	  tmatch=(fabs(time-timen)<3*tterr);
+	  cmatch=(fabs(cl-cln)<3*tcerr);
 	  if(TFREFFKEY.reprtf[2]>0){
-	    if(fabs(time-timen)<3*etime*sqrt(2.))HF1(1549,cl-cln,1.);
+	    if(tmatch)HF1(1549,cl-cln,1.);
 	    HF1(1550,time-timen,1.);
 	  }
-	  if(fabs(time-timen)<3*etime*sqrt(2.)  
-	             && fabs(cl-cln)<3*clne*sqrt(2.) || !okb){//t+coo match -> create cluster(glue "next")
-           if(okb){
-	    etime=etime/sqrt(2.);//recalc. parameters using glued bar
-	    time=0.5*(time+timen);
-	    cle=cle/sqrt(2.);
-	    cl=0.5*(cl+cln);
-            }
-	    cte=(TOF2DBc::plnstr(3)+TOF2DBc::plnstr(4)            
+	}
+//
+	bool ematch(false);
+	edass=(edep-edepn)/(edep+edepn);//here edep,edepn>thresh>0
+	ematch=(fabs(edass)<TOF2Varp::tofvpar.eclass()); 
+	if(tmatch && cmatch && (TFREFFKEY.reprtf[2]>0))HF1(1548,edass,1.);
+//--------> decision to glue:
+	bool glue=(ematch || tmatch || cmatch);//relaxed conditions
+//        bool glue=(tmatch && cmatch);//means glue only if t/c-matched
+//--------
+	if(glue){//<--- condition ok for gluing
+// cout<<"   ******> Glued:"<<endl; 
+          if(tmatch){//both clust - time-matched, recalc. time
+	    time=(time*etimen+timen*etime)/(etime+etimen);//err-weighted
+	    etime=etime*etimen/tterr;
+	  }
+	  else{//no match - use val. from Edep-highest member
+	    if(edep<edepn){
+	      time=timen;
+	      etime=etimen;
+	    }
+	  }
+//
+          if(cmatch){//both clust - coo-matched, recalc. l_coo
+	    cl=(cl*clne+cln*cle)/(cle+clne);//err-weighted
+	    cle=cle*clne/sqrt(cle*cle+clne*clne);
+          }
+	  else{//no match - use val. from Edep-highest member
+	    if(edep<edepn){
+	      cl=cln;
+	      cle=clne;
+	    }
+	  }
+//
+	  cte=(TOF2DBc::plnstr(3)+TOF2DBc::plnstr(4)            
 	                           +TOF2DBc::plnstr(6))/sqrt(12.);//max.estim(overlap+v.gap+thickn)
-            if(ib>0 && ib+1<bmax-1){
-              ct=0.5*(ct+ctn);
-            }
-            else if(ib==0){
-              ct=ctn-barw/2;
-            }
-            else{
-              ct=ct+barw/2;
-            }
-	    cz=0.5*(cz+czn);
-	    if(edep<edepn && okb)barn=ib+2;//use bar-number for cluster from highest edep bar 
-	    edass=(edep-edepn)/(edep+edepn);//edep,edepn>thresh>0 
-	    if(TFREFFKEY.reprtf[2]>0)HF1(1548,edass,1.);
-            if(fabs(edass)<TOF2Varp::tofvpar.eclass()){//tempor(need real data to clarify algor.)
-	      edep=0.5*(edep+edepn);
-	      if(edepd>0 && edepdn>0)edepd=0.5*(edepd+edepdn);
-	      else{
-	        if(edepdn>0)edepd=edepdn;
-	      }
-	    }
+          if(ib>0 && ib+1<bmax-1){//calc.transv-coo
+            ct=0.5*(ct+ctn);//overlap of 2 normal counters
+          }
+          else if(ib==0){
+            ct=ctn-(TOF2DBc::plnstr(5)-TOF2DBc::plnstr(4))/2;//"next"coo-(norm.bar.wid-overlap)/2
+          }
+          else{
+            ct=ct+(TOF2DBc::plnstr(5)-TOF2DBc::plnstr(4))/2;//"seed"coo+(norm.bar.wid-overlap)/2
+          }
+//	cout<<"       ct/cte="<<ct<<" "<<cte<<endl;
+//
+	  cz=0.5*(cz+czn);
+//
+	  if(edep<edepn)barn=ib+2;//use cluster "bar-number" from highest member 
+          if(ematch){//tempor(need real data to clarify algor.)
+	    edep=0.5*(edep+edepn);
+	    if(edepd>0 && edepdn>0)edepd=0.5*(edepd+edepdn);
 	    else{
-	      if(edepn>edep){
-	        edep=edepn;//use highest when big assimetry in edep's
-		edepd=edepdn;
-	      }
+	      if(edepdn>0)edepd=edepdn;
 	    }
-            membp[nmemb]=ptrn;//store glued cluster pointer
-            nmemb+=1;
-            if((statusn&TOFGC::SCBADB1)!=0)status|=TOFGC::SCBADB1;//bad hist OR-ed for members 
-	    ib+=1;//to skip already glued "next" bar in further buffer scan 
-	  }//---> endof time/coo-match check
-	}//endof check for  "next" bar gluing
-      }//---> endof next bar check
+	  }
+	  else{
+	    if(edepn>edep){
+	      edep=edepn;//use highest when big assimetry in edep's
+              edepd=edepdn;
+	    }
+	  }
+          membp[nmemb]=ptrn;//store glued cluster pointer
+          nmemb+=1;
+          if((statusn&TOFGC::SCBADB1)!=0)status|=TOFGC::SCBADB1;//bad hist OR-ed for members 
+	  ib+=1;//to skip already glued "next" bar in further buffer scan 
+	}//endof "glue condition OK"
+      }//---> endof "next(ib+1) bar > thresh"
 //
       coo[2]=cz;
       ecoo[2]=TOF2DBc::plnstr(6)/sqrt(12.);//bar thickness/...   
@@ -1601,8 +1662,6 @@ void AMSTOFCluster::build2(int &stat){
         }
         if(il==1){
           HF1(1539,edep,1.);//Cluster energy distr.,L=2
-          HF1(1543,geant(coo[0]),1.);
-          HF1(1547,geant(coo[1]),1.);
         }
         if(il==2){
           HF1(1536,edep,1.);//Cluster energy distr.,L=3
@@ -1622,17 +1681,20 @@ void AMSTOFCluster::build2(int &stat){
       if((status & TOFGC::SCBADB2)!=0 && (status & TOFGC::SCBADB5)==0)status|=AMSDBc::BAD;
 //          bad=(bar is 1-sided and not recovered -> bad for t-measur)
 //
+//  cout<<"===>NewClust:edep="<<edep<<" Nm="<<nmemb<<" cl/cle="<<cl<<" "<<cle<<" ct/cte="<<ct<<" "<<cte
+//                   <<" t/er="<<-time/1.e-9<<" "<<etime/1.e-9<<endl;
       AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",il), new
         AMSTOFCluster(status,ntof,barn,edep,edepd,coo,ecoo,time,etime,nmemb,membp));
 //
       nclust+=1;
 //------
-    }// ---> end of ib thresh. check    
+    }// ---> end of ib(seed bar) thresh. check    
 //------
   }// ---> end of buffer (ib) loop (clust.search)
   if(nclust>0)cllay[il]=1;
 //------
   }// ---> end of TOF layers (il) loop
+//------------------------------------------------------
   if((cllay[0]+cllay[1]+cllay[2]+cllay[3])>0)stat=0;//at least one layer with cluster
 // 
 }

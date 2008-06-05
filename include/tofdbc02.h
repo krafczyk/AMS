@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.34 2008/04/22 11:38:02 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.35 2008/06/05 13:28:24 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -258,7 +258,7 @@ private:
           //  (1) hiscutb -> "befor"-cut in time history(sumHT-ch) (ns)
           //  (2) hiscuta -> "after"-cut in time history(sumHT-ch) (ns)
           //  (3) lcoerr  -> "err. in longit.coord. measurement
-          //  (4) ftdelf  -> FT fixed delay
+          //  (4) ftdelf  -> FT decision_time+fixed delay
           //  (5) lhtdmp ->  MostProb val of LT-SumHT true time-hits 
           //  (6) eclass  -> assim.cut for TOFCluster energy calc.
           //  (7) Tdtemp  -> T-type def.temper (SFET(A))

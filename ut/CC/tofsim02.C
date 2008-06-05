@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.39 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: tofsim02.C,v 1.40 2008/06/05 13:28:16 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -2345,9 +2345,9 @@ void TOF2RawSide::mc_build(int &status)
     if((ftpatt&(1<<2))>0 && ftetime<ftmin)ftmin=ftetime;
 //
 //<==== globFT time is found:
-    ttrig=ftmin;//this is globFT time in JLV1-crate(need for TOF-Lpatts, ACC-patt creation in JLV1)
+    ttrig=ftmin;//this is globFT abs.time in JLV1-crate(need for TOF-Lpatts, ACC-patt creation in JLV1)
     if(TGL1FFKEY.printfl>0){
-      cout<<"    Final globFT-time(at JLV1)="<<ttrig<<endl;
+      cout<<"    Final globFT-abs.time(at JLV1)="<<ttrig<<endl;
     }
 //
 //--> make TOF L-patt/cpcode for LEV1:
@@ -2375,7 +2375,7 @@ void TOF2RawSide::mc_build(int &status)
       cout<<"    BZflag/code="<<bztr<<" "<<trcodez<<endl;
     }
 //
-    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//globFT abs time at S-crate (the one at "JLV1 +delay"
+    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//globFT abs time at S-crate (the one at "JLV1 + decision + delay"
 //    (used as average value to create FT-hits in SFET(A)s by adding cr-to-cr and sl-to-sl jitters)
     TOF2Tovt::spt2patt(ftrig,trpatt,trpattz);//<=== create TOF(HT/SHT-signals in SPT2) padd/side patterns
 //

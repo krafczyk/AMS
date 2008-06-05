@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.65 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.66 2008/06/05 13:28:16 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -709,6 +709,18 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+66,"DAQ: swid(LPP)=218, A3_log(adcch)",80,-10.,790.,0.);
       HBOOK1(ECHISTR+67,"DAQ: swid(LPP)=218, A4_log(adcch)",80,-10.,790.,0.);
       HBOOK1(ECHISTR+68,"DAQ: swid(LPP)=218, Dyn(adcch)",80,-10.,790.,0.);
+      HBOOK1(ECHISTR+70,"DAQ: ComprFMT EDR-length, Crate_1/Slot_1",50,0.,50.,0.);
+      HBOOK1(ECHISTR+71,"DAQ: ComprFMT EDR-length, Crate_1/Slot_2",50,0.,50.,0.);
+      HBOOK1(ECHISTR+72,"DAQ: ComprFMT EDR-length, Crate_1/Slot_3",50,0.,50.,0.);
+      HBOOK1(ECHISTR+73,"DAQ: ComprFMT EDR-length, Crate_1/Slot_4",50,0.,50.,0.);
+      HBOOK1(ECHISTR+74,"DAQ: ComprFMT EDR-length, Crate_1/Slot_5",50,0.,50.,0.);
+      HBOOK1(ECHISTR+75,"DAQ: ComprFMT EDR-length, Crate_1/Slot_6",50,0.,50.,0.);
+      HBOOK1(ECHISTR+76,"DAQ: ComprFMT EDR-length, Crate_2/Slot_1",50,0.,50.,0.);
+      HBOOK1(ECHISTR+77,"DAQ: ComprFMT EDR-length, Crate_2/Slot_2",50,0.,50.,0.);
+      HBOOK1(ECHISTR+78,"DAQ: ComprFMT EDR-length, Crate_2/Slot_3",50,0.,50.,0.);
+      HBOOK1(ECHISTR+79,"DAQ: ComprFMT EDR-length, Crate_2/Slot_4",50,0.,50.,0.);
+      HBOOK1(ECHISTR+80,"DAQ: ComprFMT EDR-length, Crate_2/Slot_5",50,0.,50.,0.);
+      HBOOK1(ECHISTR+81,"DAQ: ComprFMT EDR-length, Crate_2/Slot_6",50,0.,50.,0.);
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -980,6 +992,7 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+66);
       HPRINT(ECHISTR+67);
       HPRINT(ECHISTR+68);
+      for(int i=0;i<12;i++)HPRINT(ECHISTR+70+i);
     }
     if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
       HPRINT(ECHISTC);

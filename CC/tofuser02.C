@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.24 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: tofuser02.C,v 1.25 2008/06/05 13:28:16 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -36,13 +36,14 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS];
   geant ainp[2],dinp[2],cinp;
   number ltim[TOF2GC::SCLRS],tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
+  number tm[2];
+  number tmss[TOF2GC::SCLRS];
   number cltim[TOF2GC::SCLRS];
   integer clmem[TOF2GC::SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
   number sigt[4]={0.15,0.15,0.15,0.15};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
-  number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   int16u crat,slot,tsens;
   integer swid,hwid,shwid;
   number temper,stimes[4],strr,offs,tinp,tout;
@@ -63,6 +64,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
                            getheadC("AMSAntiCluster",0);
   ptrr=(Anti2RawEvent*)AMSEvent::gethead()
                   ->getheadC("Anti2RawEvent",0);// already sorted after validation
+  AMSmceventg *mcptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+  number mcmom,mcmas,mcbeta;
 //
 //----
   Runum=AMSEvent::gethead()->getrun();// current run number
@@ -70,6 +73,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
   for(i=0;i<TOF2GC::SCLRS;i++)nbrlc[i]=0;
   for(i=0;i<TOF2GC::SCLRS;i++)brnl[i]=-1;
+  for(i=0;i<TOF2GC::SCLRS;i++)brnlc[i]=-1;
+  for(i=0;i<TOF2GC::SCLRS;i++)tmss[i]=0;
+  for(i=0;i<TOF2GC::SCLRS;i++)clmem[i]=0;
   if(first==0){//clear 1st tinp/tout-measurements
     tinpp=-9999;
     toutp=-9999;
@@ -112,8 +118,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     status=ptr->getstatus();
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
-    if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0){ //"good_history/good_in_DB
-//      if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
+    if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0 //"good_history/good_in_DB
+                                  && (status&TOFGC::SCBADB2)==0  // both sides measurement
+                                                               ){
         ptr->getadca(ama);// Anode-ampl(ADC-ch)
         ptr->getadcd(amd);// Dynode(equiliz.sum)-ampl(ADC-ch)
         adca1[ilay]=ama[0];
@@ -132,33 +139,45 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
         elosd[ilay]=ptr->getedepd();
         coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
         ltim[ilay]=ptr->gettime();// get ampl-corrected time
-//      }
+        ptr->getsdtm(tm);// get raw side-times(A-noncorrected)
+        tmss[ilay]=0.5*(tm[0]+tm[1]);// slew-non-corrected side time sum
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
 //
-//=====================================> take Tof Cluster-hits :
+//------> check TofRawClusters/layer low ?
+  bool TofRClMultOK=true;
+  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrl[i] != 1)TofRClMultOK=false;
+  if(TofRClMultOK)TOF2JobStat::addre(30);
+  
+//  if(!TofRClMultOK)return;//tempor
+//
+//=====================================> check TofCluster-hits :
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (TofClus containers) ---
     ptrc=(AMSTOFCluster*)AMSEvent::gethead()->
                            getheadC("AMSTOFCluster",ilay,0);
     while(ptrc){ // <--- loop over AMSTofCluster hits in L=ilay
       ibar=(ptrc->getplane())-1;
-      elosc[ilay]=ptrc->getedep();//continious
-      clco[ilay]=ptrc->getcoo();
-      cltim[ilay]=-(ptrc->gettime())*1.e+9;//(back from V.C. format) 
-      clmem[ilay]=ptrc->getnmemb();
-      nbrlc[ilay]+=1;
-      brnlc[ilay]=ibar;
+      status=ptrc->getstatus();
+      if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0 //"good_history/good_in_DB
+                                    && (status&TOFGC::SCBADB2)==0  // both sides measurement
+                                                                 ){
+        elosc[ilay]=ptrc->getedep();//continious
+        clco[ilay]=ptrc->getcoo();
+        cltim[ilay]=-(ptrc->gettime())*1.e+9;//(back from V.C. format) 
+        clmem[ilay]=ptrc->getnmemb();
+        nbrlc[ilay]+=1;
+        brnlc[ilay]=ibar;
+      }//--->endof status check
       ptrc=ptrc->next();
-    }
-  }
-//------> check  TofcClust/layer=low :
-  bool TofMultLow=true;
-  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] > 1)TofMultLow=false;
-//  for(i=0;i<2;i++)if(nbrlc[i] != 1)TofMultLow=false;//tempor for l=1,2
-//  for(i=2;i<4;i++)if(nbrlc[i] > 2)TofMultLow=false;//tempor for l=3,4
-  
+    }//--->endof bar-loop in given layer
+  }//--->endof layer-loop
+//
+//------> check  TofClust/layer=low :
+  bool TofClMultOK=true;
+  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] != 1)TofClMultOK=false;
+  if(TofClMultOK)TOF2JobStat::addre(31);
 //
 // ========================================> check Anti-counter :
 // -->RawEvent:
@@ -170,7 +189,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number ama1[ANTI2C::MAXANTI],ama2[ANTI2C::MAXANTI];
   integer frsecn[ANTI2C::MAXANTI],frsect;
   integer j,jmax,isid,nsds,stat,chnum,n1,n2,i1min,i2min;
-  geant ftdel[2],padlen,padrad,padth,padfi,paddfi,ped,sig;
+  geant ftdel[2],padlen,padrad,padth,padfi,paddfi,ped[2],sig[2];
   int nphsok;
   padlen=ANTI2DBc::scleng();//z-size
   padrad=ANTI2DBc::scradi();//int radious
@@ -198,8 +217,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     nftdc=ptrr->getftdc(ftdc);
     if(ntdct>=1 && nftdc==1){//select only >=1 Hist/FT-hit events
 //DAQ-ch-->p.e's:
-      ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
-      sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
+      ped[isid]=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
+      sig[isid]=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
 //      ampe[isid]=number(adca)/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
 //              *ANTI2SPcal::antispcal[sector].getadc2pe(); //ADC-ch-->p.e.
       ampe[isid]=number(adca);       
@@ -221,7 +240,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     if(idN != id/10){//next hit is new sector: create 2-sides signal for current sect
 //
       if(nsds>0 
-                && ((ampe[0]>150. && uptm[0]>0) || (ampe[1]>150. && uptm[1]>0))
+                && ((ampe[0]>200) && (ampe[1]>200))
+//                && ((ampe[0]>5*sig[0] && uptm[0]>0) || (ampe[1]>5*sig[1] && uptm[1]>0))
+//                && ((ampe[0]>5*sig[0]) && (ampe[1]>5*sig[1]))
 		                                                               ){//good sector ?
 	 frsecn[sector]=1;//store fired sect.number
 	 ama1[sector]=ampe[0];//store signals(pe's)
@@ -256,15 +277,14 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   }// --- end of hits loop --->
   if(TFREFFKEY.reprtf[2]>0){
     HF1(1505,geant(nanti),1.);
-    if(TofMultLow)HF1(1514,geant(nanti),1.);
+    if(TofClMultOK)HF1(1514,geant(nanti),1.);
   }
   nantit=Anti2RawEvent::getncoinc();//same from trigger
   if(TFREFFKEY.reprtf[2]>0)HF1(1517,geant(nantit),1.);
 //====================================
 //  if(nanti>4)return;// remove events with >1 sector(e>ecut) in Anti
   TOF2JobStat::addre(22);
-  if(!TofMultLow)return; // remove events with high mult. of Tof-clusters/layer 
-  TOF2JobStat::addre(23);
+//====================================
 //
   for(i=0;i<TOF2GC::SCLRS;i++){
     if(brnl[i]>=0)HF1(5040+i,geant(brnl[i]+1),1.);
@@ -274,6 +294,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
     static number pmas(0.938),mumas(0.1057),imass;
     number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
+    number momentum;
     number the,phi,trl,rid,err,ctran,charge,partq;
     integer chargeTOF(0),chargeTracker(0),betpatt,trpatt,trhits(0);
     uintl traddr(0,0);
@@ -290,7 +311,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     AMSTRDTrack *ptrd;
     AMSCharge  *pcharge;
     AMSBeta * pbeta;
-    int npart,ipatt,partindx(0);
+    int npart,ipatt,envindx(0);
     bool trktr,trdtr,ecaltr,nottr,badint;
 //
     npart=0;
@@ -299,22 +320,22 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       if(cptr){
         if(cptr->getnelem()!=0){
           npart+=cptr->getnelem();
-	  partindx=i;
+	  envindx=i;
           break;
         }
       }
     }
-    if(npart<1)return;// require events with 1 particle at least 
+    if(npart<1)return;// require events with 1 particle(in envel) at least 
     TOF2JobStat::addre(24);
 //
     ppart=(AMSParticle*)AMSEvent::gethead()->
-                                      getheadC("AMSParticle",partindx);
+                                      getheadC("AMSParticle",envindx);
     bool TrkTrPart=false;
     bool AnyTrPart=false;
     bool GoodTrPart=false;
     bool GoodTrkTrack=false;
 //			      
-    while(ppart){
+    while(ppart){//<--- loop over envelop content
       partq=ppart->getcharge();
       ptrack=ppart->getptrack();//get pointer of the Track used in given particle
       ptrd=ppart->getptrd();//get pointer of the TRD-track, used in given particle
@@ -322,18 +343,18 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       if(ptrack){
         AnyTrPart=true;
         TOF2JobStat::addre(25);
-        trdtr=ptrack->checkstatus(AMSDBc::TRDTRACK)!=0;
-        ecaltr=ptrack->checkstatus(AMSDBc::ECALTRACK)!=0;
-        nottr=ptrack->checkstatus(AMSDBc::NOTRACK)!=0;
-        badint=ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0;
+        trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
+        ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
+        nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
+        badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
         if(trdtr)TOF2JobStat::addre(26);
         if(ecaltr)TOF2JobStat::addre(27);
         if(nottr)TOF2JobStat::addre(28);
         if(badint)TOF2JobStat::addre(29);
 	if(nottr || ecaltr || badint)goto Nextp;
 	GoodTrPart=true;
-	TOF2JobStat::addre(40);//good track part
-	if(!trdtr && !ecaltr && !nottr && !badint){//tracker-track part
+	TOF2JobStat::addre(40);//good track part(trd|trk)
+	if(!trdtr){//tracker-track part
 	  TrkTrPart=true;
 	  TOF2JobStat::addre(41);
           trpatt=ptrack->getpattern();//TRK-track pattern
@@ -345,6 +366,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
             status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
             pbeta=ppart->getpbeta();
+	    momentum=ppart->getmomentum();
             betpatt=pbeta->getpattern();
             beta=pbeta->getbeta();
             chi2t=pbeta->getchi2();
@@ -362,22 +384,30 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //	       for(i=0;i<8;i++)cout<<ilad[1][i]<<" ";
 //	       cout<<endl;
 //	     }
-          }
-	}
-      }//--->endof part ok
-      if(GoodTrPart)break;//accept 1st particle with any good track
-//      if(GoodTrkTrack)break;//accept 1st particle with good Trk-track
+          }//endof "trk-track ok"
+	}//endof "tracker, not trd-part"
+      }//--->endof "track-part exists"
+//      if(GoodTrPart)break;//accept 1st particle with any good track
+      if(GoodTrkTrack)break;//accept 1st particle with good Trk-track
 Nextp:
       ppart=ppart->next();
-    }
+    }//--->endof envel.content loop
      
 //==================================================
     if(!GoodTrPart)return;//require part. with good(good interp, TRD|TRK) Track
     TOF2JobStat::addre(44);
 //
-    if(!GoodTrkTrack)return;//require part. with good TRK-Track
     if(GoodTrkTrack)TOF2JobStat::addre(45);
-//==================================================
+    if(!GoodTrkTrack)return;//require part. with good TRK-Track
+    TOF2JobStat::addre(49);//Finally accepted 
+//----
+    if(AMSJob::gethead()->isSimulation()){
+      mcmom=mcptr->getmom();
+      mcmas=mcptr->getmass();
+      mcbeta=mcmom/sqrt(mcmom*mcmom+mcmas*mcmas);
+      HF1(1518,mcbeta,1.);
+    }
+// more track-cuts:
     pmom=fabs(rid);
     if(TFCAFFKEY.caltyp==0){ // space calibration
       bet=pmom/sqrt(pmom*pmom+pmas*pmas);
@@ -396,6 +426,12 @@ Nextp:
       HF1(1516,geant(pmom),1.);
     }
 //
+    if(TFREFFKEY.reprtf[2]>0){
+      HF1(1501,beta,1.);
+      HF1(1511,chi2t,1.);
+      HF1(1512,chi2s,1.);
+      HF1(1513,chi2,1.);
+    }
     bad=0;
 //    if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
     if((status&16384)!=0)bad=1;// remove FalseTOFX tracks
@@ -403,70 +439,14 @@ Nextp:
 //
     TOF2JobStat::addre(46);
 //
-    if(TFREFFKEY.reprtf[2]>0)HF1(1501,beta,1.);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1511,chi2t,1.);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1512,chi2s,1.);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1513,chi2,1.);
+//======================================> find/study track crossings with ACC:
+//
     if(TFREFFKEY.reprtf[2]>0)HF1(1515,geant(nanti),1.);
-//
-// =================================>  find track crossing points/angles with counters:
-//
-    bool TofTrackMatch(true);
-    bad=0;
-    C0[0]=0.;
-    C0[1]=0.;
-    AMSPoint crd;
-    number cllc[TOF2GC::SCLRS];//cluster long.coo
-    number cltc[TOF2GC::SCLRS];//cluster tran.coo
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      crd=clco[il];//from cluster
-      ib=brnl[il];
-      if(ib<0)continue;
-      zc[il]=TOF2DBc::getzsc(il,ib);
-      C0[2]=zc[il];
-      ptrack->interpolate(C0,dir,Cout,the,phi,trl);
-      cstr[il]=cos(the);
-      trlr[il]=fabs(trl);
-      if(TOF2DBc::plrotm(il)==0){
-        coot[il]=Cout[1];// unrot. (X-meas) planes -> take trk Y-cross as long.c
-        ctran=Cout[0];// TRK transv. coord.(abs. r.s.)(X-cross)
-	cltc[il]=crd[0];//Cl.tran.coo(XCl,abs)
-	cllc[il]=crd[1];//Cl.long.coo(YCl,abs)
-      }
-      else {
-        coot[il]=Cout[0];// rot. (Y-meas) planes -> take trk X-cross as long.c.
-        ctran=Cout[1];// TRK transv. coord.(abs. r.s.)(Y-cross) 
-	cllc[il]=crd[0];//cl.long.coo(XCl,abs) 
-	cltc[il]=crd[1];//Cl.tran.coo(YCl,abs)
-      }
-//	cllc[il]=coo[il];//long-coo from raw-clust 
-      dy=coot[il]-cllc[il];//Long.coo_track-Long.coo_TofClust
-      if(TFREFFKEY.reprtf[2]>0){
-        if(clmem[il]==1)HF1(1200+il,geant(dy),1.);
-        if(clmem[il]==2)HF1(1204+il,geant(dy),1.);
-        if(nbrl[il]==1)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
-      }
-      dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
-      if(TFREFFKEY.reprtf[2]>0){
-        if(clmem[il]==1)HF1(1210+il,geant(dx),1.);
-        if(clmem[il]==2)HF1(1214+il,geant(dy),1.);
-      }
-      if(fabs(dx)>dscut || fabs(dy)>dscut)TofTrackMatch=false;//too big dist. of tof-track
-//
-      elosc[il]*=geant(fabs(cos(the)));// angle correction for dE/dX(to norm.inc)
-      adca1[il]*=geant(fabs(cos(the)));// .....................adca
-      adca2[il]*=geant(fabs(cos(the)));
-    }//--> endof tof-layer loop
-    cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
-//======================================
-//    if(!TofTrackMatch)return;//too big difference of TOF-Track coord. in any layer
-    TOF2JobStat::addre(47);
-//
-//======================================> find track crossings with ACC:
 //
     number dirt,cpsn,cpcs,cphi,dphi1,dphi2,phil,phih,zcut,zscr,thes,phis;
     integer nseccr(0),isphys(-1);
     bool zcross,phicross;
+    integer nsfir,nscrs;
     zcut=padlen/2-1;//-1 to compens. track accuracy
       dirt=1;//1=>forw, -1=>backw
       ptrack->interpolateCyl(cooCyl,dirCyl,padrad,dirt,crcCyl,the,phi,trl);
@@ -485,12 +465,17 @@ Nextp:
       HF1(1243,geant(phi),1.);
 //
       for(int is=0;is<8;is++){//<-- loop over all ACC-sectors
+        nscrs=0;
+        nsfir=0;
         zcross=false;
         phicross=false;
         padfi=paddfi*(0.5+is);// logical-paddle phi
         phil=padfi-0.5*paddfi;//boundaries of sector
         phih=padfi+0.5*paddfi;
         if(fabs(crcCyl[2])<zcut)zcross=true;//match in Z 
+	if(zcross)nscrs=floor(cphi/45.)+1;
+	if(frsecn[is]>0)nsfir=is+1;
+	if(nscrs>0 && nsfir>0)HF2(1235,geant(nscrs),geant(nsfir),1.);
         dphi1=padfi-cphi;//PHIsect-PHIcrp
 	if(dphi1>180)dphi1=360-dphi1;
 	if(dphi1<-180)dphi1=-(360+dphi1);
@@ -507,7 +492,7 @@ Nextp:
 //
         if(phicross && frsecn[is]>0)HF1(1244,geant(crcCyl[2]),1.);
 	if(zcross && frsecn[is]>0)HF1(1245,geant(cphi),1.);
-	if(zcross && frsecn[is]>0)HF1(1247,geant(dphi1),1.);//PHIsect-PHIcrp
+	if(zcross && frsecn[is]>0)HF1(1270+is,geant(dphi1),1.);//PHIsect-PHIcrp
         if(zcross && phicross && frsecn[is]>0){
           HF1(1246,geant(phi),1.);//inpact phi(degr,+-180)
           HF1(1248,geant(dphi2),1.);//PHIcrp-PHIimpp
@@ -522,17 +507,96 @@ Nextp:
         }
 //      
       }//--->endof ACC-sectors loop
-//====================================
 //
       if(nseccr>0)TOF2JobStat::addre(48);
+//==================================================
+//    if(!TofRClMultOK)return; // remove events with bad mult. of Tof-RawClusters/layer 
+    if(!TofClMultOK)return;// remove events with bad mult. of Tof-Clusters/layer 
+    TOF2JobStat::addre(23);
 //
-//==================================> find beta TOF-times and Tracker track lengthes :
+// =================================>  find track crossing points/angles with Tof-counters:
 //
+    bool TofTrackMatch(true);
+    bool TofExtCounter(false);
+    geant barw,dtcut,dlcut(8);
+    bad=0;
+    C0[0]=0.;
+    C0[1]=0.;
+    AMSPoint crd;
+    number cllc[TOF2GC::SCLRS];//cluster long.coo
+    number cltc[TOF2GC::SCLRS];//cluster tran.coo
+//
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      crd=clco[il];//from cluster
+      ib=brnlc[il];
+      if(ib<0)continue;
+      if(nbrl[il]!=1)continue;//single bar clusters
+//
+      if(ib>0 && (ib+1)<TOF2DBc::getbppl(il))barw=TOF2DBc::plnstr(5);//stand.(not outer) bar width
+      else barw=TOF2DBc::outcp(il,1);//outer counter width
+      dtcut=barw/2+0.25;
+      if(ib==0 || ib==(TOF2DBc::getbppl(il)-1))TofExtCounter=true;//found outer counters in track
+      dtcut=6;
+      zc[il]=TOF2DBc::getzsc(il,ib);
+      C0[2]=zc[il];
+      ptrack->interpolate(C0,dir,Cout,the,phi,trl);
+      cstr[il]=cos(the);
+      trlr[il]=fabs(trl);
+      if(TOF2DBc::plrotm(il)==0){
+        coot[il]=Cout[1];// unrot. (X-meas) planes -> take trk Y-cross as long.c
+        ctran=Cout[0];// TRK transv. coord.(abs. r.s.)(X-cross)
+	cltc[il]=crd[0];//Cl.tran.coo(XCl,abs)
+	cllc[il]=crd[1];//Cl.long.coo(YCl,abs)
+      }
+      else {
+        coot[il]=Cout[0];// rot. (Y-meas) planes -> take trk X-cross as long.c.
+        ctran=Cout[1];// TRK transv. coord.(abs. r.s.)(Y-cross) 
+	cllc[il]=crd[0];//cl.long.coo(XCl,abs) 
+	cltc[il]=crd[1];//Cl.tran.coo(YCl,abs)
+      }
+      dy=coot[il]-cllc[il];//Long.coo_track-Long.coo_TofClust
+      if(TFREFFKEY.reprtf[2]>0){
+        if(clmem[il]==1)HF1(1200+il,geant(dy),1.);
+        if(clmem[il]==2)HF1(1204+il,geant(dy),1.);
+        if(nbrl[il]==1 && fabs(dx)<dtcut)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
+      }
+      dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
+      tgx=sin(the)*cos(phi)/cos(the);
+      tgy=sin(the)*sin(phi)/cos(the);
+      if(TFREFFKEY.reprtf[2]>0){
+        if(clmem[il]==1)HF1(1210+il,geant(dx),1.);
+        if(clmem[il]==2)HF1(1214+il,geant(dx),1.);
+      }
+      if(fabs(dx)>dtcut || fabs(dy)>dlcut)TofTrackMatch=false;//too big dist. of tof-track
+//
+      elosc[il]*=geant(fabs(cos(the)));// angle correction for dE/dX(to norm.inc)
+      adca1[il]*=geant(fabs(cos(the)));// .....................adca
+      adca2[il]*=geant(fabs(cos(the)));
+    }//--> endof tof-layer loop
+    cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
+//======================================
+    if(!TofTrackMatch)return;//too big difference of TOF-Track coord. in any layer
+//    if(TofExtCounter)return;
+    TOF2JobStat::addre(47);
+//===================================
+//
+// some test for t-resolution:
 //
     trle[0]=0.;
-    trle[1]=trlr[0]-trlr[1];//1->2
-    trle[2]=trlr[0]+trlr[2];//1->3
-    trle[3]=trlr[0]+trlr[3];//1->4
+    trle[1]=trlr[0]-trlr[1];//1->2(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
+    tdif[0]=0;
+    tdif[1]=(tmss[1]-tmss[0])*fabs((cstr[0]+cstr[1])/2);//Time L1->L2, cos-corrected
+    if(brnl[0]==3 && brnl[1]==2)HF1(1520,geant(tdif[1]),1.);
+    if(brnl[0]==3 && brnl[1]==3)HF1(1521,geant(tdif[1]),1.);
+    if(brnl[0]==3 && brnl[1]==4)HF1(1522,geant(tdif[1]),1.);
+    if(brnl[0]==3 && brnl[1]==5)HF1(1523,geant(tdif[1]),1.);
+//
+//==================================> Private Beta-fit using TofClusters and TRK-track length :
+//
+    trle[0]=0.;
+    trle[1]=trlr[0]-trlr[1];//1->2(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
+    trle[2]=trlr[0]+trlr[2];//1->3(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
+    trle[3]=trlr[0]+trlr[3];//1->4(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
     tdif[0]=0;
     tdif[1]=cltim[0]-cltim[1];
     tdif[2]=cltim[0]-cltim[2];
@@ -561,7 +625,9 @@ Nextp:
     if(TFREFFKEY.reprtf[2]>0)HF1(1502,betof,1.);
     if(TFREFFKEY.reprtf[2]>0)HF1(1208,chsq,1.);
     if(TFREFFKEY.reprtf[2]>0)HF1(1209,tzer,1.);
-//    if(chsq>6. || betof<0.3)return;//cut on chi2/beta
+//    if(tzer>1)cout<<" BadFitT0: t0="<<tzer<<" ib="<<brnl[0]<<" "<<brnl[1]<<" "<<brnl[2]<<" "<<brnl[3]<<
+//                             " chsq="<<chsq<<endl;
+    if(chsq>10. || betof<0.3)return;//cut on chi2/beta
 //
 //
     geant td13,td24;
@@ -654,15 +720,16 @@ Nextp:
 void TOF2User::InitJob(){
   int i;
   if(TFREFFKEY.reprtf[2]>0){
-    HBOOK1(1500,"TofUser:Part.rigidity from tracker(gv)",100,0.,40.,0.);
-    HBOOK1(1501,"TofUser:Particle beta",80,-1.2,1.2,0.);
-    HBOOK1(1511,"TofUser:Particle betachi2",80,0.,16.,0.);
-    HBOOK1(1512,"TofUser:Particle betachi2S",80,0.,16.,0.);
-    HBOOK1(1513,"TofUser:Particle trackchi2",80,0.,16.,0.);
+    HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
+    HBOOK1(1500,"TofUser:Particle Rigidity(gv)",100,0.,40.,0.);
+    HBOOK1(1501,"TofUser:Particle Beta",100,-1.2,1.3,0.);
+    HBOOK1(1511,"TofUser:Particle BetaChi2",80,0.,16.,0.);
+    HBOOK1(1512,"TofUser:Particle BetaChi2S",80,0.,16.,0.);
+    HBOOK1(1513,"TofUser:Particle TrackChi2",80,0.,240.,0.);
     HBOOK1(1514,"TofUser:Number of Sectors(FTCoinc,E>Thr,TOFmultOK)",20,0.,20.,0.);
     HBOOK1(1515,"TofUser:Number of Sectors(FTCoinc,E>Thr,TOF/ANTImultOK,TrkOK)",20,0.,20.,0.);
-    HBOOK1(1502,"TofUser:MyBeta(tof)",80,0.7,1.2,0.);
-    HBOOK1(1504,"TofUser:TofClust T13-T24(ns,high momentum)",80,-4.,4.,0.);
+    HBOOK1(1502,"TofUser:MyBeta(private beta-fit using TofClust)",80,0.6,1.4,0.);
+    HBOOK1(1504,"TofUser:TofClust T13-T24(ns, TRK-track matched)",80,-4.,4.,0.);
     HBOOK1(1503,"TofUser:Sector energy(mev,FTCoinc)",80,0.,20.,0.);
     HBOOK1(1505,"TofUser:Number of Sectors(FTCoinc,E>Thr)",20,0.,20.,0.);
     HBOOK1(1506,"TofUser:Part.charge(trapez.c <=1)",20,0.,20.,0.);
@@ -670,10 +737,14 @@ void TOF2User::InitJob(){
     HBOOK1(1508,"TofUser:Tracker-charge(trapez.c <=1)",20,0.,20.,0.);
     HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch(trapez.c <=1)",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
-    HBOOK1(1516,"TofUser:Part.rigidity from tracker(gv)",100,0.,1500.,0.);
+    HBOOK1(1516,"TofUser:Part.rigidity(gv)",100,0.,1500.,0.);
     HBOOK1(1517,"TofUser:Number of Sectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
-//    HBOOK1(1518,"TofUser:Number of particles",20,0.,20.,0.);//spare
     HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
+    
+    HBOOK1(1520,"L1/L2 raw time diff(cos-corrected),B4/B3",60,0.,6.,0.);
+    HBOOK1(1521,"L1/L2 raw time diff(cos-corrected),B4/B4",60,0.,6.,0.);
+    HBOOK1(1522,"L1/L2 raw time diff(cos-corrected),B4/B5",60,0.,6.,0.);
+    HBOOK1(1523,"L1/L2 raw time diff(cos-corrected),B4/B6",60,0.,6.,0.);
     
     HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
     HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
@@ -684,17 +755,17 @@ void TOF2User::InitJob(){
     HBOOK1(1206,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=2",50,-10.,10.,0.);
     HBOOK1(1207,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=2",50,-10.,10.,0.);
     
+    HBOOK1(1208,"TofUser:MyBetaChisq(private beta-fit using TofClust)",50,0.,10.,0.);
+    HBOOK1(1209,"TofUser:MyTzero(private beta-fit with TofCl)",50,-2.5,2.5,0.);
+    
     HBOOK1(1210,"TofUser:TranCooDiff(Track-TofCl),L=1,Nmem=1",50,-20.,20.,0.);
     HBOOK1(1211,"TofUser:TranCooDiff(Track-TofCl),L=2,Nmem=1",50,-20.,20.,0.);
     HBOOK1(1212,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=1",50,-20.,20.,0.);
     HBOOK1(1213,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=1",50,-20.,20.,0.);
-    HBOOK1(1214,"TofUser:TranCooDiff(Track-TofCl),L=1,Nmem=2",50,-20.,20.,0.);
-    HBOOK1(1215,"TofUser:TranCooDiff(Track-TofCl),L=2,Nmem=2",50,-20.,20.,0.);
-    HBOOK1(1216,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=2",50,-20.,20.,0.);
-    HBOOK1(1217,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=2",50,-20.,20.,0.);
-    
-    HBOOK1(1208,"TofUser:Chisq(beta-fit with TofCl)",50,0.,10.,0.);
-    HBOOK1(1209,"TofUser:Tzer (beta-fit with TofCl)",50,-2.5,2.5,0.);
+    HBOOK1(1214,"TofUser:TranCooDiff(Track-TofCl),L=1,Nmem=2",50,-2.5,2.5,0.);
+    HBOOK1(1215,"TofUser:TranCooDiff(Track-TofCl),L=2,Nmem=2",50,-2.5,2.5,0.);
+    HBOOK1(1216,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=2",50,-2.5,2.5,0.);
+    HBOOK1(1217,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=2",50,-2.5,2.5,0.);
     
     HBOOK1(1220,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-1)",80,0.,160.,0.);
     HBOOK1(1221,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-2)",80,0.,160.,0.);
@@ -708,10 +779,12 @@ void TOF2User::InitJob(){
     HBOOK1(1229,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-10)",80,0.,160.,0.);
     HBOOK1(1230,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-11)",80,0.,160.,0.);
 
-  HBOOK2(1231,"TofUser:Res_long. vs track coord.,L1",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK2(1232,"TofUser:Res_long. vs track coord.,L2",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK2(1233,"TofUser:Res_long. vs track coord.,L3",70,-70.,70.,60,-30.,30.,0.);//
-  HBOOK2(1234,"TofUser:Res_long. vs track coord.,L4",70,-70.,70.,60,-30.,30.,0.);//
+  HBOOK2(1231,"TofUser:TofClusLcoo-TrkCrosCoo,L1,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+  HBOOK2(1232,"TofUser:TofClusLcoo-TrkCrosCoo,L2,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+  HBOOK2(1233,"TofUser:TofClusLcoo-TrkCrosCoo,L3,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+  HBOOK2(1234,"TofUser:TofClusLcoo-TrkCrosCoo,L4,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+  
+  HBOOK2(1235,"TofUser:ACC NSfired vs NScrossed",10,0,10.,10,0.,10.,0.);
 
     
     HBOOK1(1240,"TofUser:AccRaw: Crossed/Fired(+10)/(fired+crossed)(+20) sectors pattern",30,1.,31.,0.);
@@ -721,9 +794,18 @@ void TOF2User::InitJob(){
     HBOOK1(1244,"TofUser:AccRaw: Sector-track Zcross(fired+PhiMatch)",75,-75.,75.,0.);
     HBOOK1(1245,"TofUser:AccRaw: TRK-track CrossPointPhi(fired+ZMatch)",91,0.,364.,0.);
     HBOOK1(1246,"TofUser:AccRaw: TRK-track ImpactPhi(fired+matched)",91,0.,364.,0.);
-    HBOOK1(1247,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch)",91,-182.,182.,0.);
+//    HBOOK1(1247,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch)",91,-182.,182.,0.);
     HBOOK1(1248,"TofUser:AccRaw: PHIcrosPoint-PHIimp(fired+matched)",91,-182.,182.,0.);
     
+    HBOOK1(1270,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-1",91,-182.,182.,0.);
+    HBOOK1(1271,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-2",91,-182.,182.,0.);
+    HBOOK1(1272,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-3",91,-182.,182.,0.);
+    HBOOK1(1273,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-4",91,-182.,182.,0.);
+    HBOOK1(1274,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-5",91,-182.,182.,0.);
+    HBOOK1(1275,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-6",91,-182.,182.,0.);
+    HBOOK1(1276,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-7",91,-182.,182.,0.);
+    HBOOK1(1277,"TofUser:AccRaw: PHIsect-PHIcrosPoint(fired+ZMatch),Seq-8",91,-182.,182.,0.);
+
     HBOOK1(1250,"TofUser: AccRaw when crossed,Sect-1,side-1",80,0.,3200.,0.);
     HBOOK1(1251,"TofUser: AccRaw when crossed,Sect-2,side-1",80,0.,3200.,0.);
     HBOOK1(1252,"TofUser: AccRaw when crossed,Sect-3,side-1",80,0.,3200.,0.);
@@ -801,6 +883,10 @@ void TOF2User::EndJob(){
   cout<<" TOFTresol-fit: Mp/resol="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
   HPRINT(1504);
 //
+  HPRINT(1208);
+  HPRINT(1209);
+//
+  HPRINT(1518);
   HPRINT(1500);
   HPRINT(1516);
   HPRINT(1501);
@@ -813,8 +899,75 @@ void TOF2User::EndJob(){
   HPRINT(1514);
   HPRINT(1517);
   HPRINT(1515);
+//----  
+  par[0]=200.;//evs in max
+  par[1]=2.5;//most prob
+  par[2]=0.3;//rms
+  step[0]=50.;
+  step[1]=0.2;
+  step[2]=0.05;
+  pmin[0]=10.;
+  pmin[1]=0.;
+  pmin[2]=0.05;
+  pmax[0]=10000.;
+  pmax[1]=6.;
+  pmax[2]=1.;
+  HFITHN(1520,chfun,chopt,3,par,step,pmin,pmax,sigp,chi2);
+  cout<<endl<<endl;
+  cout<<" L1/L2-time fit: Mp/rms="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
+  HPRINT(1520);
   
-//  HPRINT(1518);
+  par[0]=200.;//evs in max
+  par[1]=2.5;//most prob
+  par[2]=0.3;//rms
+  step[0]=50.;
+  step[1]=0.2;
+  step[2]=0.05;
+  pmin[0]=10.;
+  pmin[1]=0.;
+  pmin[2]=0.05;
+  pmax[0]=10000.;
+  pmax[1]=6.;
+  pmax[2]=1.;
+  HFITHN(1521,chfun,chopt,3,par,step,pmin,pmax,sigp,chi2);
+  cout<<endl<<endl;
+  cout<<" L1/L2-time fit: Mp/rms="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
+  HPRINT(1521);
+  
+  par[0]=200.;//evs in max
+  par[1]=2.5;//most prob
+  par[2]=0.3;//rms
+  step[0]=50.;
+  step[1]=0.2;
+  step[2]=0.05;
+  pmin[0]=10.;
+  pmin[1]=0.;
+  pmin[2]=0.05;
+  pmax[0]=10000.;
+  pmax[1]=6.;
+  pmax[2]=1.;
+  HFITHN(1522,chfun,chopt,3,par,step,pmin,pmax,sigp,chi2);
+  cout<<endl<<endl;
+  cout<<" L1/L2-time fit: Mp/rms="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
+  HPRINT(1522);
+  
+  par[0]=200.;//evs in max
+  par[1]=2.5;//most prob
+  par[2]=0.3;//rms
+  step[0]=50.;
+  step[1]=0.2;
+  step[2]=0.05;
+  pmin[0]=10.;
+  pmin[1]=0.;
+  pmin[2]=0.05;
+  pmax[0]=10000.;
+  pmax[1]=6.;
+  pmax[2]=1.;
+  HFITHN(1523,chfun,chopt,3,par,step,pmin,pmax,sigp,chi2);
+  cout<<endl<<endl;
+  cout<<" L1/L2-time fit: Mp/rms="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
+  HPRINT(1523);
+  
   HPRINT(1519);
   HPRINT(1507);
   HPRINT(1508);
@@ -836,8 +989,6 @@ void TOF2User::EndJob(){
   HPRINT(1215);
   HPRINT(1216);
   HPRINT(1217);
-  HPRINT(1208);
-  HPRINT(1209);
   HPRINT(1510);
   
   HPRINT(1220);
@@ -857,6 +1008,8 @@ void TOF2User::EndJob(){
   HPRINT(1233);
   HPRINT(1234);
   
+  HPRINT(1235);
+  
   HPRINT(1240);
   HPRINT(1241);
   HPRINT(1242);
@@ -867,6 +1020,7 @@ void TOF2User::EndJob(){
   HPRINT(1247);
   HPRINT(1248);
   for(i=0;i<2*ANTI2C::MAXANTI;i++)HPRINT(1250+i);
+  for(i=0;i<ANTI2C::MAXANTI;i++)HPRINT(1270+i);
   
   
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5040+i);

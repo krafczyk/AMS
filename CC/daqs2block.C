@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.27 2008/04/22 11:37:32 choumilo Exp $
+//  $Id: daqs2block.C,v 1.28 2008/06/05 13:28:16 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -143,6 +143,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   int16u iw,qchmsk,qlowchf;
   int16u biasmx;
   int16u n16wrds;
+  int16u nhitmx;
 //
   int16u rfmttrf(0);//raw-fmt truncation flag
   int16u ltmoutf(0);//SFET/SFEA/SFEC(link) time-out flags (from raw-eos or from compressed-part)
@@ -156,9 +157,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   AMSTimeID *ptdv;
   time_t begin,end,insert,BeginTime,CurTime;
 // for PedCalTable(onboard calib)
-  integer static FirstPedBlk(0);
-  integer static TotPedBlks(0);
-  integer static PedBlkCrat[SCCRAT]={0,0,0,0};
+  static integer FirstPedBlk(0);
+  static integer TotPedBlks(0);
+  static integer PedBlkCrat[SCCRAT]={0,0,0,0};
   bool PedBlkOK(false);
   static integer firstevs(0);
 // for classic ped-run events or for DownScaled events
@@ -167,6 +168,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool subtpedTof(false),subtpedAcc(false);
   bool DownScal(true);//tempor:  how to recognize it ???
   static int FirstDScalBlk(0);
+// some static vars for debug:
+  static integer fsterr1[SCFETA]={0,0,0,0,0};
+  static bool accswap(false);
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -223,7 +227,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //
   node2crs(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-2<->a-b)
 //
-  if(TFREFFKEY.reprtf[4]>2){//debug
+  if(TFREFFKEY.reprtf[4]>1){//debug
     cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
     cout<<"      leng(in call)="<<leng<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
@@ -622,7 +626,10 @@ SkipTPpr:
 	}
 	if(wtyp==8 || wtyp==2 || wtyp==3 || wtyp==6 ||wtyp==4){//time(+temper) wtype ?
 	  TOF2JobStat::daqssl(0,crat-1,slot-1,1);//count TDC-buff entries(pairs of 16bits words)
+//if(crat==3 && slid==4)cout<<" -----> FillBuf:cr3sfea..."<<" nwbuf="<<tdcbfn[slid]<<" w="<<hex<<word<<" "<<
+//                                                                    nword<<dec<<endl;
 	  if(tdcbfn[slid]<(8*SCTHMX2+4)){//fill TDC-buffer
+//if(crat==3 && slid==4)cout<<"    Filled Wtyp="<<wtyp<<endl;
 	    val32=(uinteger(word)<<16);//msb
 	    val32|=uinteger(nword);//lsb
 	    tdcbfh[slid][tdcbfn[slid]]=val32;//store 32-bits word in TDC-buff
@@ -664,6 +671,7 @@ SkipTPpr:
       wds2tdc=0;
       tdcbfo[slid-1]=0;
       nwtdcb=tdcbfn[slid-1];//number of filled 32b-words in TDC(slid)
+//  if(crat==3 && slid==5)cout<<" -->ReadBuf: n32w="<<nwtdcb<<endl;
       if(nwtdcb==0)continue;//empty buffer->skip it
       wttrl=((tdcbfh[slid-1][nwtdcb-1]&(0xF0000000L))>>28);//wtyp of last word
       if(wttrl!=3){
@@ -679,21 +687,30 @@ SkipTPpr:
       wthed=((tdcbfh[slid-1][1]&(0xF0000000L))>>28);//wtyp of 2nd word
       wterr=((tdcbfh[slid-1][nwtdcb-2]&(0xF0000000L))>>28);//wtyp of prev. to last word
       wds2tdc=(tdcbfh[slid-1][nwtdcb-1]&(0xFFFL));//nwords given by trailer(last word)
+//if(crat==3 && slid==5)cout<<" wttem="<<wttem<<" wthed="<<wthed<<" wterr="<<wterr<<"nw_fr_trl="<<wds2tdc<<endl;  
       if(slid<=2)tmout=((ltmoutf&(1<<(slid-1)))>0);//time-out flag from eos
       else tmout=((ltmoutf&(1<<slid))>0);//to skip already checked SPT-timeout bit (bit2 starting from 0)
       slot=AMSSCIds::crdid2sl(crat-1,slid-1)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
       sslot=AMSSCIds::sl2tsid(slot-1);//seq.numbering of T-measuting slots(1-5=>,4xSFET,1xSFEA)
       if(wttem!=8 || wthed!=2 || tmout || nwtdcb!=(wds2tdc+1)){//trailer present, but broken structure
 #ifdef __AMSDEBUG__
-        cout<<"slid="<<slid<<" wttem/wthed="<<wttem<<" "<<wthed<<" tmout="<<tmout<<" wterr="<<wterr<<
-	                                      " nwtdcb/wds2tdc="<<nwtdcb<<" "<<wds2tdc<<endl;
+        if(crat==3 && slid==5)cout<<"slid="<<slid<<" wttem/wthed="<<wttem<<" "<<wthed<<" tmout="<<tmout
+	                 <<" wterr="<<wterr<<" nwtdcb/wds2tdc="<<nwtdcb<<" "<<wds2tdc<<endl;
 #endif
         TOF2JobStat::daqssl(0,crat-1,slot-1,6);//count links with broken struct
 	if(wttem!=8)TOF2JobStat::daqssl(0,crat-1,slot-1,7);//case1:no temp
 	if(wthed!=2)TOF2JobStat::daqssl(0,crat-1,slot-1,8);//case2:no Head
 	if(tmout)TOF2JobStat::daqssl(0,crat-1,slot-1,9);//case3:TimeOut
         if(wterr==6)TOF2JobStat::daqssl(0,crat-1,slot-1,10);//case4: Err
-	if(TFREFFKEY.reprtf[4]>1)EventBitDump(leng,p,"BrokenStructure !!!");
+	if(fsterr1[slot-1]==0){
+	  fsterr1[slot-1]=1;
+	  cout<<"  ---> TofDecoding:BadTimStruct in Run/evnt="<<AMSEvent::gethead()->getrun()
+	                                                 <<" "<<AMSEvent::gethead()->getid()<<endl;
+	  cout<<"       cr/sl:"<<crat<<" "<<sslot<<" wttem/wthed/wterr(8/2/6)="<<wttem
+	                           <<" "<<wthed<<" "<<wterr<<" wds/trwds="<<nwtdcb<<" "<<wds2tdc<<endl;
+	  cout<<"---------------------------------------------------------"<<endl;
+	  if(TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"BadTimeBlockStructure !!!");
+	}
 	continue;//skip link(TDC) with broken structure (or time-out)
       }
       TOF2JobStat::daqssl(0,crat-1,slot-1,11);//count good links
@@ -724,10 +741,15 @@ SkipTPpr:
 //	  TOF2JobStat::daqsch(0,crat-1,slot-1,rdch-1,1);//counts time outp.channels entries
 	  TOF2JobStat::daqsch(0,crat-1,slot-1,inch,1);//counts time inp.channels entries
           swch=scinid.getswch();//seq. sw-channel (0,1,...)
-	  swid=scinid.getswid();
+	  swid=scinid.getswid();//LBBSPM
+          mtyp=swid%10;//phys.bars Time/Charge:0/1, fict.extra.bars FT/sumHT/sumSHT-times:2/3/4
+	  if(mtyp==0)nhitmx=SCTHMX3;
+	  else if(mtyp==1)nhitmx=1;
+	  else if(mtyp==2)nhitmx=SCTHMX1;
+	  else nhitmx=SCTHMX2;
 	  bpnt=bufpnt+swch;//swch true address in the buffer(buff.half directed)
 	  hwid=scinid.gethwid();
-	  if(swnbuf[bpnt]<SCTHMX2){
+	  if(swnbuf[bpnt]<nhitmx){
 	    swcbuf[bpnt][swnbuf[bpnt]]=htime;//store time-value
 	    swibuf[bpnt]=swid;
 	    hwidc=1000*crat+100*sslot+inch+1;//non-standard hwid !!!(Crat(1-4)|Sslot(1-5)|Ich(1-8))
@@ -911,7 +933,7 @@ SkipTPpr1:
 // !!! here pss+bias points to nwords-word
       while(bias<nqwrds){//q-block words loop(nqwrds=1 if Kunin's nwords=0
 	word=*(pss+bias+1);// current link header(+1 to bypass nwords-word)
-	slid=(word&0x000F)-1;//0,..,8
+	slid=(word&0x000F);//0,..,8
 	qlowchf=0;
 	if((word&(0x4000))>0)qlowchf=1;//set negat.(adc-ped) presence flag
 //cout<<"  bias="<<bias<<" word="<<hex<<word<<dec<<" slid="<<slid<<endl;
@@ -1048,13 +1070,18 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
 //	    TOF2JobStat::daqsch(1,crat-1,slot-1,rdch-1,1);//counts time channels entries
 	    TOF2JobStat::daqsch(1,crat-1,slot-1,inch,1);//counts time channels entries
             swch=scinid.getswch();//seq. sw-channel (0,1,...)
-	    swid=scinid.getswid();
+	    swid=scinid.getswid();//LBBSPM
+            mtyp=swid%10;//phys.bars Time/Charge:0/1, fict.extra.bars FT/sumHT/sumSHT-times:2/3/4
+	    if(mtyp==0)nhitmx=SCTHMX3;
+	    else if(mtyp==1)nhitmx=1;
+	    else if(mtyp==2)nhitmx=SCTHMX1;
+	    else nhitmx=SCTHMX2;
 	    bpnt=swch;//swch true address in the buffer(1st buff.half)
 	    hwid=scinid.gethwid();
 	    htime=((val32&(0x7FFFFL))<<2);//19 msb
 	    htime|=((val32&(0x180000L))>>19);//add 2 lsb
 //cout<<"    time-2-buff="<<htime<<endl;
-	    if(swnbuf[bpnt]<SCTHMX2){
+	    if(swnbuf[bpnt]<nhitmx){
 	      swcbuf[bpnt][swnbuf[bpnt]]=htime;//store time-value
 	      swibuf[bpnt]=swid;
 	      hwidc=1000*crat+100*sslot+inch+1;//non-standard hwid !!!(Crat(1-4)|Sslot(1-5)|Ich(1-8))
@@ -1192,7 +1219,7 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
       if(swidn>0)sswidn=swidn/100;//next LBBS
       else sswidn=9999;//means all icn>ic are "0"
       il=swid/100000;
-      mtyp=swid%10;//phys.bars Time/Charge:0/1 fict.extra.bars FT/sumHT/sumSHT-times:2/3/4
+      mtyp=swid%10;//phys.bars Time/Charge:0/1, fict.extra.bars FT/sumHT/sumSHT-times:2/3/4
       if(il==0)dtyp=2;//anti
       else{
         dtyp=1;//tof
@@ -1294,7 +1321,7 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
 	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
 	  nsumh=0;
 	  nsumsh=0;
-          if(TFREFFKEY.reprtf[4]>2){//<---debug
+          if(TFREFFKEY.reprtf[4]>1){//<---debug
 	    cout<<endl;
 	    cout<<"    ==> Create TOFRawSide: short swid/hwidt="<<sswid<<" "<<hwidt<<endl;
 	    cout<<"                           hwidq="<<hwidq[0]<<" "<<hwidq[1]<<" "<<hwidq[2]<<" "<<hwidq[3]<<endl;
@@ -1318,7 +1345,7 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
 	  if(subtpedAcc)sta=0;//ok(normal Anti2RawEvent object with subtracted ped)
 	  else sta=1;//for the moment it is a flag for Validate-stage that Peds was not subtracted !!!
 	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
-          if(TFREFFKEY.reprtf[4]>2){//<---debug
+          if(TFREFFKEY.reprtf[4]>1){//<---debug
 	    cout<<"   ==> Create AntiRawEvent: swid="<<sswid<<endl;
 	    cout<<"    nLT-hits="<<nstdc;
 	    for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
@@ -1326,6 +1353,32 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
 	    cout<<"    adca="<<adca<<endl;
 	    cout<<endl;
           }
+//ACC-swapping if needed:
+	  if(AMSEvent::gethead()->getrun()<1211886677 && !AccPedCal){//de-swapping
+	    if(!accswap){
+	      cout<<"======================================================"<<endl;
+	      cout<<"========> DAQS2Block::buildraw: ACC-swapping is ON !!!"<<endl;
+	      cout<<"======================================================"<<endl;
+	    }
+	    accswap=true;
+// my
+	    if(sswid==22)sswid=12;
+	    else if(sswid==42)sswid=22;
+	    else if(sswid==12)sswid=42;
+	    
+	    else if(sswid==62)sswid=52;
+	    else if(sswid==82)sswid=62;
+	    else if(sswid==52)sswid=82;
+	    
+	    else if(sswid==31)sswid=21;
+	    else if(sswid==41)sswid=31;
+	    else if(sswid==21)sswid=41;
+	    
+	    else if(sswid==71)sswid=61;
+	    else if(sswid==81)sswid=71;
+	    else if(sswid==61)sswid=81;
+	  }
+//
           AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                                     new Anti2RawEvent(sswid,sta,temp,adca,nftdc,ftdc,nstdc,stdc));
 	}
@@ -1342,7 +1395,7 @@ cout<<" <-- wrong link-header in Qsect !"<<endl;
     }//-->endof next/last LBBS check
   }//-->endof scan
 //
-  if(TFREFFKEY.reprtf[4]>2){//<---debug
+  if(TFREFFKEY.reprtf[4]>1){//<---debug
   cout<<"    FT-time hits report:"<<endl;
   for(int isla=0;isla<5;isla++){
     cout<<"SFETA-slot="<<isla+1<<" hits:"<<endl;
