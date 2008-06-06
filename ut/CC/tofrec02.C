@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.54 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: tofrec02.C,v 1.55 2008/06/06 13:11:33 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1489,7 +1489,7 @@ void AMSTOFCluster::build2(int &stat){
       edepd=edplane[ib];
 //      cout<<"    cl/cle="<<cl<<" "<<cle<<" ct/cte="<<ct<<" "<<cte<<" edep="<<edep<<endl;
       if(fabs(cl) > clm+2*cle){//bad l-coord.measurement(out of bar size)
-        status|=AMSDBc::BAD; // bad coord. means also bad for t-measurement !!!
+        status|=TOFGC::SCBADB3; // bad coord. meas also bad for t-measurement !!!
         cle=barl/sqrt(12.);
         if(cl>0.)cl=clm;//at bar edge
         else cl=-clm;
@@ -1502,15 +1502,16 @@ void AMSTOFCluster::build2(int &stat){
 //      cout<<"    time/etime="<<time<<" "<<etime<<endl;  
       if((status&TOFGC::SCBADB2)>0){//1-sided
         if(status & TOFGC::SCBADB5){ // recovered 1-sided counter
-          etime=2.05*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
+          etime=2.*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
         }
         else{
           etime=barl/speedl/sqrt(12.);//for single-sided counters
 	  cl=0;
 	  timeoks=0;//means bar with time meas.problems(i.e. 1-sided & not-recovered) 
+          status|=TOFGC::SCBADB3; //set as bad for t-measurement !!!
         }
       }
-      if((status&TOFGC::SCBADB3)>0)timeoks=0;//bar "seed" is bad for t-meas. according to DB
+      if((status&TOFGC::SCBADB3)>0)timeoks=0;//"seed" is bad for t-meas.
 //      cout<<"    AFC:cl/cle="<<cl<<" "<<cle<<" ct/cte="<<ct<<" "<<cte<<" tmok="<<timeoks<<endl;
 //      cout<<"    time/etime="<<time<<" "<<etime<<endl;  
 //
@@ -1537,6 +1538,7 @@ void AMSTOFCluster::build2(int &stat){
 //      cout<<"    cl/cle="<<cln<<" "<<clne<<" ct/cte="<<ctn<<" "<<ctne<<" edep="<<edepn<<endl;
 //      cout<<"    time/etime="<<timen<<" "<<etimen<<endl;  
         if(fabs(cln) > clnm+2*clne){//bad l-coord.measurement(out of bar size)
+          statusn|=TOFGC::SCBADB3; // bad coord. meas also bad for t-measurement !!!
           clne=barl/sqrt(12.);
           if(cln>0.)cln=clnm;//at bar edge
           else cln=-clnm;
@@ -1544,19 +1546,20 @@ void AMSTOFCluster::build2(int &stat){
         }
         if((statusn&TOFGC::SCBADB2)>0){//1-sided
           if(statusn & TOFGC::SCBADB5){ // recovered 1-sided counter
-            etimen=2.05*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
+            etimen=2.*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
           }
           else{
             etimen=barl/speedl/sqrt(12.);//(sec !!!)for single-sided counters
 	    cln=0;
 	    timeokn=0;//means bar with time meas.problems(i.e. 1-sided & not-recovered)  
+            statusn|=TOFGC::SCBADB3; //set as bad for t-measurement !!!
           }
         }
-        if((statusn&TOFGC::SCBADB3)>0)timeokn=0;//bar "next" is bad for t-meas. according to DB
+        if((statusn&TOFGC::SCBADB3)>0)timeokn=0;//"next" is bad for t-meas.
 //      cout<<"    AFC:cl/cle="<<cln<<" "<<clne<<" ct/cte="<<ctn<<" "<<ctne<<" tmok="<<timeokn<<endl;
 //      cout<<"    time/etime="<<timen<<" "<<etimen<<endl;  
 //----> calc.criteria for gluing:
-        bool timeokb=(timeoks==1 && timeokn==1);//both ok(both have reasonable t-meas, incl recovered)
+        bool timeokb=(timeoks==1 && timeokn==1);//both ok(both have reasonable t/coo-meas, incl recovered)
 	bool tmatch(false),cmatch(false);
 	number tterr=sqrt(etime*etime+etimen*etimen);
 	number tcerr=sqrt(cle*cle+clne*clne);
@@ -1632,7 +1635,7 @@ void AMSTOFCluster::build2(int &stat){
 	  }
           membp[nmemb]=ptrn;//store glued cluster pointer
           nmemb+=1;
-          if((statusn&TOFGC::SCBADB1)!=0)status|=TOFGC::SCBADB1;//bad hist OR-ed for members 
+          status=(status | statusn);//glued object has status= ORed_memb_status
 	  ib+=1;//to skip already glued "next" bar in further buffer scan 
 	}//endof "glue condition OK"
       }//---> endof "next(ib+1) bar > thresh"
@@ -1676,10 +1679,13 @@ void AMSTOFCluster::build2(int &stat){
       time=-time*1.e-9;// ( ns -> sec ,"-" for V.Shoutko fit)
       etime*=1.e-9;// ( ns -> sec for V.Shoutko fit)
       for(j=0;j<nmemb;j++)membp[j]->setstatus(AMSDBc::USED);// set "used" bit for members
-      if((status & TOFGC::SCBADB3)!=0)status|=AMSDBc::BAD;//bad for t-meas. according to DB 
+      if((
+              (status&TOFGC::SCBADB2)>0      // 1-sided
+           && (status&TOFGC::SCBADB5)==0     //not-recovered
+	                                )
+                                  || (status&TOFGC::SCBADB3)>0      //bad for t-meas    
+                                                               )status|=AMSDBc::BAD;
 //
-      if((status & TOFGC::SCBADB2)!=0 && (status & TOFGC::SCBADB5)==0)status|=AMSDBc::BAD;
-//          bad=(bar is 1-sided and not recovered -> bad for t-measur)
 //
 //  cout<<"===>NewClust:edep="<<edep<<" Nm="<<nmemb<<" cl/cle="<<cl<<" "<<cle<<" ct/cte="<<ct<<" "<<cte
 //                   <<" t/er="<<-time/1.e-9<<" "<<etime/1.e-9<<endl;

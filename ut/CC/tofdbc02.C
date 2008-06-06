@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.51 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.52 2008/06/06 13:11:33 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2022,27 +2022,27 @@ void TOF2JobStat::printstat(){
     }
   }
   else{
-    printf(" TOFUser entries                   : % 6d\n",recount[21]);
-    printf("   with 4Layer of RawClusters/lay=1: % 6d\n",recount[30]);
-    printf("   with 4Layer of Clusters/layer=1 : % 6d\n",recount[31]);
-    printf("   NofAccClSectors Low             : % 6d\n",recount[22]);
-    printf("   Events with nonemp Part-envelop : % 6d\n",recount[24]);
-    printf("   Particle with AnyTrack          : % 6d\n",recount[25]);
-    printf("   ........ with !=0 pTRD          : % 6d\n",recount[42]);
-    printf("   Track status: TRDtrack          : % 6d\n",recount[26]);
-    printf("   Track status: ECALtrack         : % 6d\n",recount[27]);
-    printf("   Track status: NOTrack           : % 6d\n",recount[28]);
-    printf("   Track status: BadInterp         : % 6d\n",recount[29]);
-    printf("   GoodTrackPart(intok,TRK|TRD)    : % 6d\n",recount[40]);
-    printf("   TrkTrack Particle               : % 6d\n",recount[41]);
-    printf("   GoodTrkTrack found              : % 6d\n",recount[43]);
-    printf("   Event with GoodTrackPart        : % 6d\n",recount[44]);
-    printf("   Event with GoodTrkTrackPart     : % 6d\n",recount[45]);
-    printf("   Finally AcceptedTrackPart       : % 6d\n",recount[49]);
-    printf("   TrackParamsOK(Mom,Chi2,FalsX,..): % 6d\n",recount[46]);
-    printf(" Events with nonZero ACC Cros&Fired: % 6d\n",recount[48]);
-    printf("   TofClusters/layer OK            : % 6d\n",recount[23]);
-    printf("   TOF-Track matching Good         : % 6d\n",recount[47]);
+    printf(" TOFUser entries                      : % 6d\n",recount[21]);
+    printf("   with 4Layer of RawClusters/lay=1   : % 6d\n",recount[30]);
+    printf("   with 4Layer of Clusters/layer=1    : % 6d\n",recount[31]);
+    printf("   NofAccClSectors Low                : % 6d\n",recount[22]);
+    printf("   Events with nonemp Part-envelop    : % 6d\n",recount[24]);
+    printf("   Particle with AnyTrack             : % 6d\n",recount[25]);
+    printf("   ........ with !=0 pTRD             : % 6d\n",recount[42]);
+    printf("   Track status: TRDtrack             : % 6d\n",recount[26]);
+    printf("   Track status: ECALtrack            : % 6d\n",recount[27]);
+    printf("   Track status: NOTrack              : % 6d\n",recount[28]);
+    printf("   Track status: BadInterp            : % 6d\n",recount[29]);
+    printf("   GoodTrackPart(intok,TRK|TRD)       : % 6d\n",recount[40]);
+    printf("   TrkTrack Particle                  : % 6d\n",recount[41]);
+    printf("   GoodTrkTrack found                 : % 6d\n",recount[43]);
+    printf("   Event with GoodTrackPart           : % 6d\n",recount[44]);
+    printf("   Event with GoodTrkTrackPart        : % 6d\n",recount[45]);
+    printf("   Finally AcceptedTrackPart          : % 6d\n",recount[49]);
+    printf("   TrackParamsOK(Mom,Chi2,FalsX,..)   : % 6d\n",recount[46]);
+    printf(" Including evs with ACC Cros&Fired    : % 6d\n",recount[48]);
+    printf("   TrackParsOK+TofClusters/layer OK   : % 6d\n",recount[23]);
+    printf("   TOF-Track matching Good            : % 6d\n",recount[47]);
   }
   printf("\n\n");
 //

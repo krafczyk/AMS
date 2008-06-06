@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.25 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: tofuser02.C,v 1.26 2008/06/06 13:11:33 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -70,12 +70,22 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //----
   Runum=AMSEvent::gethead()->getrun();// current run number
   TOF2JobStat::addre(21);
-  for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)nbrlc[i]=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)brnl[i]=-1;
-  for(i=0;i<TOF2GC::SCLRS;i++)brnlc[i]=-1;
-  for(i=0;i<TOF2GC::SCLRS;i++)tmss[i]=0;
-  for(i=0;i<TOF2GC::SCLRS;i++)clmem[i]=0;
+//
+  integer rclstok[TOF2GC::SCLRS],clstok[TOF2GC::SCLRS];
+  for(i=0;i<TOF2GC::SCLRS;i++){
+    nbrl[i]=0;
+    nbrlc[i]=0;
+    brnl[i]=-1;
+    brnlc[i]=-1;
+    tmss[i]=0;
+    clmem[i]=0;
+    cltim[i]=0;
+    clco[i]=0;
+    coo[i]=0;
+    rclstok[i]=0;//bad
+    clstok[i]=0;//bad
+  }
+//
   if(first==0){//clear 1st tinp/tout-measurements
     tinpp=-9999;
     toutp=-9999;
@@ -120,63 +130,83 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     ibar=(ptr->getplane())-1;
     if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0 //"good_history/good_in_DB
                                   && (status&TOFGC::SCBADB2)==0  // both sides measurement
-                                                               ){
-        ptr->getadca(ama);// Anode-ampl(ADC-ch)
-        ptr->getadcd(amd);// Dynode(equiliz.sum)-ampl(ADC-ch)
-        adca1[ilay]=ama[0];
-        adca2[ilay]=ama[1];
-        adcd1[ilay]=amd[0];
-        adcd2[ilay]=amd[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode-ADC convert to charge
-        am1[ilay]=am[0];
-        am2[ilay]=am[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(2,amd,am);// dynode(sum)-ADC convert to charge
-        am1d[ilay]=am[0];
-        am2d[ilay]=am[1];
-        nbrl[ilay]+=1;
-        brnl[ilay]=ibar;
-        elosa[ilay]=ptr->getedepa();
-        elosd[ilay]=ptr->getedepd();
-        coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
-        ltim[ilay]=ptr->gettime();// get ampl-corrected time
-        ptr->getsdtm(tm);// get raw side-times(A-noncorrected)
-        tmss[ilay]=0.5*(tm[0]+tm[1]);// slew-non-corrected side time sum
+                                                               )rclstok[ilay]=1;
+    
+    elosa[ilay]=ptr->getedepa();
+    ptr->getadca(ama);// Anode-ampl(ADC-ch)
+    if(elosa[ilay]>TFREFFKEY.Thr1){//apply the same thresh. as for cluster
+//    if(ama[0]>10 && ama[1]>10){//apply thresh. on side ampl
+      ptr->getadcd(amd);// Dynode(equiliz.sum)-ampl(ADC-ch)
+      adca1[ilay]=ama[0];
+      adca2[ilay]=ama[1];
+      adcd1[ilay]=amd[0];
+      adcd2[ilay]=amd[1];
+      TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode-ADC convert to charge
+      am1[ilay]=am[0];
+      am2[ilay]=am[1];
+      TOF2Brcal::scbrcal[ilay][ibar].adc2q(2,amd,am);// dynode(sum)-ADC convert to charge
+      am1d[ilay]=am[0];
+      am2d[ilay]=am[1];
+      nbrl[ilay]+=1;
+      brnl[ilay]=ibar;
+      elosd[ilay]=ptr->getedepd();
+      coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
+      ltim[ilay]=ptr->gettime();// get ampl-corrected time
+      ptr->getsdtm(tm);// get raw side-times(A-noncorrected)
+      tmss[ilay]=0.5*(tm[0]+tm[1]);// slew-non-corrected side time sum
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
 //
 //------> check TofRawClusters/layer low ?
   bool TofRClMultOK=true;
+//
+//  cout<<"------->RawClusters:"<<endl;
+//  for(i=0;i<TOF2GC::SCLRS;i++){
+//    cout<<"   L/B="<<i+1<<" "<<brnl[i]+1<<" Ncls="<<nbrl[i]<<"  stat="<<rclstok[i]<<endl;
+//  }
+//
   for(i=0;i<TOF2GC::SCLRS;i++)if(nbrl[i] != 1)TofRClMultOK=false;
+//  for(i=0;i<TOF2GC::SCLRS;i++)if(rclstok[i]==0)TofRClMultOK=false;//require status ok also
   if(TofRClMultOK)TOF2JobStat::addre(30);
-  
+//  if(TofRClMultOK)cout<<"    RclMult OK"<<endl;
 //  if(!TofRClMultOK)return;//tempor
 //
 //=====================================> check TofCluster-hits :
 //
+  integer rclmem[4][3]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+  integer nrcls;
+  AMSlink * mptr[3];
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (TofClus containers) ---
     ptrc=(AMSTOFCluster*)AMSEvent::gethead()->
                            getheadC("AMSTOFCluster",ilay,0);
     while(ptrc){ // <--- loop over AMSTofCluster hits in L=ilay
       ibar=(ptrc->getplane())-1;
       status=ptrc->getstatus();
-      if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0 //"good_history/good_in_DB
-                                    && (status&TOFGC::SCBADB2)==0  // both sides measurement
-                                                                 ){
-        elosc[ilay]=ptrc->getedep();//continious
-        clco[ilay]=ptrc->getcoo();
-        cltim[ilay]=-(ptrc->gettime())*1.e+9;//(back from V.C. format) 
-        clmem[ilay]=ptrc->getnmemb();
-        nbrlc[ilay]+=1;
-        brnlc[ilay]=ibar;
-      }//--->endof status check
+      if((status&TOFGC::SCBADB1)==0 && (status&AMSDBc::BAD)==0     //good_hist/good4t 
+                                                                  )clstok[ilay]=1;
+      elosc[ilay]=ptrc->getedep();//continious
+      clco[ilay]=ptrc->getcoo();
+      cltim[ilay]=-(ptrc->gettime())*1.e+9;//(back from V.C. format) 
+      clmem[ilay]=ptrc->getnmemb();
+      nrcls=ptrc->getmemb(mptr);
+      for(i=0;i<clmem[ilay];i++){
+	rclmem[ilay][i]=((TOF2RawCluster*)mptr[i])->getplane();
+      }
+      nbrlc[ilay]+=1;
+      brnlc[ilay]=ibar;
       ptrc=ptrc->next();
     }//--->endof bar-loop in given layer
   }//--->endof layer-loop
 //
 //------> check  TofClust/layer=low :
   bool TofClMultOK=true;
+  bool TofClOneMem(true);
+  geant zcoo;
+//
   for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] != 1)TofClMultOK=false;
+  for(i=0;i<TOF2GC::SCLRS;i++)if(clstok[i]==0)TofClMultOK=false;//require good status also
+  for(i=0;i<TOF2GC::SCLRS;i++)if(clmem[i] != 1)TofClOneMem=false;
   if(TofClMultOK)TOF2JobStat::addre(31);
 //
 // ========================================> check Anti-counter :
@@ -517,7 +547,7 @@ Nextp:
 // =================================>  find track crossing points/angles with Tof-counters:
 //
     bool TofTrackMatch(true);
-    bool TofExtCounter(false);
+    bool TofWithExtPad(false);
     geant barw,dtcut,dlcut(8);
     bad=0;
     C0[0]=0.;
@@ -527,15 +557,15 @@ Nextp:
     number cltc[TOF2GC::SCLRS];//cluster tran.coo
 //
     for(il=0;il<TOF2GC::SCLRS;il++){
-      crd=clco[il];//from cluster
+      crd=clco[il];//from Cluster
       ib=brnlc[il];
       if(ib<0)continue;
-      if(nbrl[il]!=1)continue;//single bar clusters
+//      if(clmem[il]!=1)continue;//single bar clusters
 //
       if(ib>0 && (ib+1)<TOF2DBc::getbppl(il))barw=TOF2DBc::plnstr(5);//stand.(not outer) bar width
       else barw=TOF2DBc::outcp(il,1);//outer counter width
       dtcut=barw/2+0.25;
-      if(ib==0 || ib==(TOF2DBc::getbppl(il)-1))TofExtCounter=true;//found outer counters in track
+      if(ib==0 || ib==(TOF2DBc::getbppl(il)-1))TofWithExtPad=true;//found outer counters in track
       dtcut=6;
       zc[il]=TOF2DBc::getzsc(il,ib);
       C0[2]=zc[il];
@@ -576,7 +606,7 @@ Nextp:
     cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
 //======================================
     if(!TofTrackMatch)return;//too big difference of TOF-Track coord. in any layer
-//    if(TofExtCounter)return;
+//    if(TofWithExtPad)return;
     TOF2JobStat::addre(47);
 //===================================
 //
@@ -593,6 +623,7 @@ Nextp:
 //
 //==================================> Private Beta-fit using TofClusters and TRK-track length :
 //
+//  if(TofClOneMem){//only for all 4 TofClusters with 1memb/layer
     trle[0]=0.;
     trle[1]=trlr[0]-trlr[1];//1->2(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
     trle[2]=trlr[0]+trlr[2];//1->3(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
@@ -625,9 +656,8 @@ Nextp:
     if(TFREFFKEY.reprtf[2]>0)HF1(1502,betof,1.);
     if(TFREFFKEY.reprtf[2]>0)HF1(1208,chsq,1.);
     if(TFREFFKEY.reprtf[2]>0)HF1(1209,tzer,1.);
-//    if(tzer>1)cout<<" BadFitT0: t0="<<tzer<<" ib="<<brnl[0]<<" "<<brnl[1]<<" "<<brnl[2]<<" "<<brnl[3]<<
-//                             " chsq="<<chsq<<endl;
-    if(chsq>10. || betof<0.3)return;//cut on chi2/beta
+//
+    if(chsq>10. || betof<0.3)return;//<==== cut on chi2/beta
 //
 //
     geant td13,td24;
@@ -641,7 +671,8 @@ Nextp:
     td13=tdif[2]*trlnor/trle[2];// normalized to fix(~127cm) distance
     td24=(cltim[1]-cltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~127cm) distance
     if(TFREFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
-//
+//  }//endof "Clust with 1memb/layer" check
+//--------------------------------------------
     if(TFREFFKEY.reprtf[2]>0){
       bad=0;
       for(il=0;il<TOF2GC::SCLRS;il++){
@@ -755,7 +786,7 @@ void TOF2User::InitJob(){
     HBOOK1(1206,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=2",50,-10.,10.,0.);
     HBOOK1(1207,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=2",50,-10.,10.,0.);
     
-    HBOOK1(1208,"TofUser:MyBetaChisq(private beta-fit using TofClust)",50,0.,10.,0.);
+    HBOOK1(1208,"TofUser:MyBetaChisq(private beta-fit using TofClust)",80,0.,40.,0.);
     HBOOK1(1209,"TofUser:MyTzero(private beta-fit with TofCl)",50,-2.5,2.5,0.);
     
     HBOOK1(1210,"TofUser:TranCooDiff(Track-TofCl),L=1,Nmem=1",50,-20.,20.,0.);
@@ -1017,7 +1048,7 @@ void TOF2User::EndJob(){
   HPRINT(1244);
   HPRINT(1245);
   HPRINT(1246);
-  HPRINT(1247);
+//  HPRINT(1247);
   HPRINT(1248);
   for(i=0;i<2*ANTI2C::MAXANTI;i++)HPRINT(1250+i);
   for(i=0;i<ANTI2C::MAXANTI;i++)HPRINT(1270+i);
