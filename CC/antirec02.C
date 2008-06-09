@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.31 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: antirec02.C,v 1.32 2008/06/09 12:51:01 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -1092,6 +1092,7 @@ void Anti2RawEvent::_writeEl(){
 #ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
 // fill the ntuple
     AntiRawSideNtuple* TN = AMSJob::gethead()->getntuple()->Get_antirs();
     if (TN->Nantirs>=MAXANTIRS) return;
@@ -1104,6 +1105,7 @@ void Anti2RawEvent::_writeEl(){
     TN->ntdct[TN->Nantirs] = _ntdct;
     for(int i=0;i<_ntdct;i++)TN->tdct[TN->Nantirs][i] = _tdct[i];
     TN->Nantirs++;
+*/
   }
 }
 //------

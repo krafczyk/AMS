@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.15 2008/06/05 13:28:24 choumilo Exp $
+//  $Id: antirec02.h,v 1.16 2008/06/09 12:51:12 choutko Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -62,7 +62,7 @@ public:
   }
 //
   integer gettdct(integer arr[]){
-    for(int i=0;i<_ntdct;i++)arr[i]=_tdct[i];
+    for(int i=0;i<(_ntdct<ANTI2C::ANTHMX?_ntdct:ANTI2C::ANTHMX);i++)arr[i]=_tdct[i];
     return _ntdct;
   }
   void puttdct(integer nelem, integer arr[]){

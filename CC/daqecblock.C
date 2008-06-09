@@ -50,7 +50,7 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
   char str[2];
 //  cout<<"---> In DAQS2Block::checkblockid, blid(hex)="<<hex<<blid<<",addr:"<<dec<<(blid&(0x001F))<<endl;
   for(int i=0;i<ecalconst::ECRT;i++){//check id for EDRs
-   for(int k=0;i<ecalconst::ECEDRS;k++){
+   for(int k=0;k<ecalconst::ECEDRS;k++){
     for(int j=0;j<4;j++){
       str[0]=side[j];
       str[1]='\0';

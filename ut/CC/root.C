@@ -2160,7 +2160,7 @@ AntiRawSideR::AntiRawSideR(Anti2RawEvent *ptr)
   adca = ptr->_adca;
   nftdc = ptr->_nftdc;
   for(int i=0;i<nftdc;i++)ftdc[i] = ptr->_ftdc[i];
-  ntdct = ptr->_ntdct;
+  ntdct = ptr->_ntdct<sizeof(tdct)/sizeof(tdct[0])?ptr->_ntdct:sizeof(tdct)/sizeof(tdct[0]);
   for(int i=0;i<ntdct;i++)tdct[i] = ptr->_tdct[i];
 #endif
 }
@@ -2499,7 +2499,7 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
   stat=ptr->_status;
   nftdc=ptr->_nftdc;
   for(int i=0; i<nftdc; i++)ftdc[i]=ptr->_ftdc[i];
-  nstdc=ptr->_nstdc;
+  nstdc=ptr->_nstdc<sizeof(stdc)/sizeof(stdc[0])?ptr->_nstdc:sizeof(stdc)/sizeof(stdc[0]);
   for(int i=0; i<nstdc; i++)stdc[i]=ptr->_stdc[i];
   nsumh=ptr->_nsumh;
   for(int i=0; i<nsumh; i++)sumht[i]=ptr->_sumht[i];
