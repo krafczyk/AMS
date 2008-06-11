@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.170 2008/03/05 10:49:35 choutko Exp $
+//  $Id: ntuple.C,v 1.171 2008/06/11 14:51:19 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -266,7 +266,8 @@ void AMSNtuple::initR(char* fname){
               struct stat64 f_stat;
               bool open=!(AMSJob::gethead()->isMonitoring()) ||   stat64(fname,&f_stat);
               if( open){
-              _rfile= new TFile(fname,"RECREATE");
+              if(!(AMSJob::gethead()->isMonitoring()))_rfile= new TFile(fname,"RECREATE");
+              else _rfile=new TFile(fname,"CREATE");
               } 
 #ifdef __CORBA__
      _dc.SetString(AMSProducer::GetDataCards());
