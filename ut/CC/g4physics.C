@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.28 2006/07/13 15:16:02 choutko Exp $
+//  $Id: g4physics.C,v 1.29 2008/06/11 09:46:10 yzhou Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,11 +6,10 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.28 2006/07/13 15:16:02 choutko Exp $
+// $Id: g4physics.C,v 1.29 2008/06/11 09:46:10 yzhou Exp $
 // GEANT4 tag $Name:  $
 //
 // 
-
 
 #include "g4physics.h"
 #include "g4xray.h"
@@ -74,7 +73,7 @@ void AMSG4Physics::ConstructParticle()
    ConstructAllIons();
    ConstructAllShortLiveds();
    G4XRay::XRayDefinition();
-   _init();
+// _init();
   
 }
 
@@ -770,7 +769,8 @@ void AMSG4Physics::ConstructOp()
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
     if (theCerenkovProcess->IsApplicable(*particle) && !particle->IsShortLived()) {
-      pmanager->AddContinuousProcess(theCerenkovProcess);
+      pmanager->AddProcess(theCerenkovProcess);
+      pmanager->SetProcessOrdering(theCerenkovProcess,idxPostStep);
     }
     if (particleName == "opticalphoton") {
       G4cout << " AddDiscreteProcess to OpticalPhoton " << endl;
