@@ -228,6 +228,7 @@ module DPS{
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 
     typedef sequence<DST> DSTS;
     long getDSTS(in CID id, out DSTS dsts);     
+    long getDSTSR(in CID id, in long run,out DSTS dsts);     
     void sendDSTS(in CID id, in DSTS dsts);     
 
     typedef sequence<octet> RUN;

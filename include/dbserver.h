@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.14 2007/06/14 14:24:27 choutko Exp $
+//  $Id: dbserver.h,v 1.15 2008/06/16 07:33:56 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include "server.h"
@@ -67,6 +67,7 @@ public:
   void sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
   void sendDSTInfo(const  DPS::Producer::DSTInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
   int getDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException);
+  int getDSTSR(const DPS::Client::CID & ci,   int  run,DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException);
   void sendCurrentInfo(const DPS::Client::CID & ci, const  DPS::Producer::CurrentInfo &cii, int propagate)throw (CORBA::SystemException);
   void sendDSTEnd(const DPS::Client::CID & ci, const  DPS::Producer::DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    int  getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host)throw (CORBA::SystemException);
