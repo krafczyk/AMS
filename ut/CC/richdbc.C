@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.49 2008/03/26 08:57:42 mdelgado Exp $
+//  $Id: richdbc.C,v 1.50 2008/06/20 10:13:36 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -17,8 +17,7 @@ geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 59
 					  288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
 					  268.116, 266.667};
 
-//geant RICHDB::rad_index=1.02998;
-geant RICHDB::rad_index=1.0529; // updated 10/28/04
+geant RICHDB::rad_index=1.0529;
 geant RICHDB::naf_index=1.33;
 
 // Fused SiO2 scaled to n=1.14
@@ -42,21 +41,6 @@ geant RICHDB::naf_index_table[RICmaxentries]={1.32526,1.32531,1.32535,1.32540,1.
 					      1.33528,1.33669,1.33798,1.33984,1.34134,
 					      1.34283,1.34408,1.34493,1.34583,1.34667,
 					      1.34744,1.34802,1.34849,1.34885};
-
-
-// Values according to matsushita n=1.01
-//
-//geant RICHDB::abs_length[RICmaxentries]={1372.78,1346.82,1321.23,1296.00,1258.84,
-//					 1222.49,1175.25,1118.14,1084.89,1041.71,
-//					 1010.19,959.240,919.900,872.430,826.820,
-//					 783.020,735.330,685.020,639.620,596.520,
-//					 542.480,492.200,445.490,402.200,347.910,
-//					 329.600,267.310,234.460,201.600,186.540,
-//					 158.840,134.550,117.140,97.8200,85.8000,
-//					 76.0500,69.1900,65.1100,61.2100,57.8700,
-//  	 				 55.1100,53.1600,51.6800,50.5700};
- 
-
 
 
 // Best fit to current measures: AGL abs length
@@ -122,10 +106,18 @@ geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1
 				       
 
 
+
 integer RICHDB::entries=RICmaxentries;
-geant RICHDB::top_radius=60.0;                 // Top mirror radius
-geant RICHDB::bottom_radius=66.82;             // Bottom mirror radius
-geant RICHDB::rich_height=45.8;                // Mirror height (for historical reasons it is quoted rich height)
+//geant RICHDB::top_radius=60.0;                 // Top mirror radius
+//geant RICHDB::bottom_radius=66.82;             // Bottom mirror radius
+//geant RICHDB::rich_height=45.8;  // Mirror height (for historical reasons it is quoted rich height)
+
+/*********** updated numbers */
+geant RICHDB::top_radius=57.14;      // Top mirror radius
+geant RICHDB::bottom_radius=67.00;   // Bottom mirror radius
+geant RICHDB::rich_height=46.32;     // Mirror height (for historical reasons it is quoted rich height)
+/****************************/
+
 geant RICHDB::hole_radius[2]={63.8/2.,64.3/2}; // half ECAL hole side length (it is not symmetric)
 geant RICHDB::inner_mirror_height=50;          // UNUSED
 geant RICHDB::rad_clarity=0.0055;              // Radiator clarity: updated 10/28/04

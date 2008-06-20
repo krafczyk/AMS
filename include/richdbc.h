@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.42 2008/03/06 22:56:23 pzuccon Exp $
+//  $Id: richdbc.h,v 1.43 2008/06/20 10:13:37 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -27,8 +27,14 @@ const geant      RICaethk=0.1;         // Radiator support thickness
 const geant      RIClgthk_top=0.02;    // LG    top gap
 const geant      RIClgthk_bot=0.07;    // LG bottom gap
 const geant      RICmithk=0.2;         // Mirror thickness
-const geant      RICradmirgap=0.1;
-const geant      RIClgdmirgap=0.4;
+//const geant      RICradmirgap=0.1;
+//const geant      RIClgdmirgap=0.4;
+
+/*********** updated numbers */
+const geant      RICradmirgap=0.6;
+const geant      RIClgdmirgap=0.6;
+/*****************************/
+
 const geant      RICotherthk=0.08;     // PMT window thickness
 const geant      RICcatolength=1.81;   // cathode window length 
 const geant      RICcatogap=0.03;      // Gap btwn PMT pixels 

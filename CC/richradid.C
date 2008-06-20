@@ -42,7 +42,7 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
   const int agl_boxes_number=11;
   int agl_boxes[agl_boxes_number][agl_boxes_number]={
     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
-    0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1,
@@ -50,7 +50,7 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
     1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0
   };
 
