@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.274 2008/05/30 10:01:03 choutko Exp $
+#  $Id: datacards.doc,v 1.275 2008/06/20 10:39:40 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -120,6 +120,8 @@ I 1  setup(1)                    // 0 use a single radiador; 1 use a Naf
                                  // radiator in the center and agl all around
 
 
+I 2  tables_in[50]               // File to load radiator parameters.
+                                 // Keep it empty to load default tables
 
 //--------------------------------------------------------------------------------
 

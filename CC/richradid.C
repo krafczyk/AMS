@@ -24,7 +24,11 @@ void RichRadiatorTileManager::Init(){  // Default initialization
   } 
   
   if(filename[0]!='\0') ReadFromFile(filename);
-
+  else{
+    char name[801];
+    sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+    ReadFromFile(name);
+  }
 
 
   // Compute tables
