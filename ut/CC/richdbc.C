@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.50 2008/06/20 10:13:36 mdelgado Exp $
+//  $Id: richdbc.C,v 1.51 2008/06/25 11:05:01 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -573,4 +573,112 @@ extern "C" integer testradiator_(integer *numed){
   if(*numed==RICHDB::agl_media) return 1;
   if(*numed==RICHDB::naf_media) return 2;
   return 0;
+}
+
+
+//
+// Alignment class
+//
+
+
+AMSPoint  RichAlignment::_a2rShift;
+AMSPoint  RichAlignment::_r2aShift;
+AMSRotMat RichAlignment::_a2rRot;
+AMSRotMat RichAlignment::_r2aRot;
+
+
+void RichAlignment::LoadFile(char *filename){
+  if(!filename || strlen(filename)==0){
+    cout<<"RichAlignment::LoadFile -- problem with file name... Ignoring."<<endl;
+    return;
+  }
+
+  fstream stream;
+  stream.open(filename,fstream::in);
+  if(!stream.is_open() || stream.fail()){
+    cout<<"RichAlignment::LoadFile -- problem opening file "<<filename<<" ... Ignoring."<<endl;
+    return;
+  }
+
+  cout<<"RichAlignment::LoadFile -- loading "<<filename<<endl;
+
+  // Read the following components of the a2r matrixes
+  double sx,sy,sz;
+  double alpha,beta,gamma;
+
+  stream>>sx>>sy>>sz;
+
+  if(stream.eof()){
+    cout<<"RichAlignment::LoadFile -- truncated... Ingnoring "<<filename<<endl;
+  }
+
+  stream>>alpha>>beta>>gamma;
+
+
+  if(stream.eof()){
+    cout<<"RichAlignment::LoadFile -- truncated... Ingnoring "<<filename<<endl;
+  }
+
+  stream.close();
+
+#ifdef __AMSDEBUG__
+  cout<<"RICH ALIGNMENT PARAMETERS --- "<<sx<<" "<<sy<<" "<<sz<<" --- "<<alpha<<" "<<beta<<" "<<gamma<<endl;
+#endif
+
+  // Fill the a2r shift and matrix
+  _a2rShift.setp(sx,sy,sz);
+  _a2rRot.SetRotAngles(alpha,beta,gamma);
+
+#ifdef __AMSDEBUG__
+  _a2rShift.getp(sx,sy,sz);
+  _a2rRot.GetRotAngles(alpha,beta,gamma);
+
+  cout<<" --- RECOVERED RICH ALIGNMENT PARAMETERS --- "<<sx<<" "<<sy<<" "<<sz<<" --- "<<alpha<<" "<<beta<<" "<<gamma<<endl;
+#endif
+
+
+  // Fill the r2a shift and matrix
+  AMSRotMat t;
+  _r2aRot.SetRotAngles(0,0,-gamma);
+  t.SetRotAngles(0,-beta,0);
+  _r2aRot=t*_r2aRot;
+  t.SetRotAngles(-alpha,0,0);
+  _r2aRot=t*_r2aRot;
+  _r2aShift=(_r2aRot*_a2rShift)*-1.0;
+  
+  // Check that the result is acceptable
+  AMSRotMat test_m=_r2aRot*_a2rRot;
+  test_m.GetRotAngles(alpha,beta,gamma);
+
+  AMSPoint test_p=_a2rShift;
+  test_p=(_r2aRot*test_p)+_r2aShift;
+  test_p.getp(sx,sy,sz);
+
+#ifdef __AMSDEBUG__
+  cout<<" -- RICH AFTER INVERTING --- "<<sx<<" "<<sy<<" "<<sz<<" --- "<<alpha<<" "<<beta<<" "<<gamma<<endl;
+#endif
+
+  assert(fabs(alpha)<0.5e-4 && fabs(beta)<0.5e-4 && fabs(gamma)<0.5e-4);
+  assert(fabs(sx)<0.5e-2 && fabs(sy)<0.5e-2 && fabs(sz)<0.5e-2);
+}
+
+void RichAlignment::Init(){
+  // Reset everything
+  //  _a2rRot.Reset();
+  //  _r2aRot.Reset();
+
+  //  _a2rShift.setp(0,0,0);
+  //  _r2aShift.setp(0,0,0);
+
+
+  // If this is cosmics and real data, load the cosmics alignment.
+  // This should be moved to database in some moment 
+  char name[801];
+
+  if(AMSJob::gethead()->isRealData()  &&     // It is real data
+     MISCFFKEY.BeamTest==1){                 // It is a cosmic run
+    sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+    LoadFile(name);
+  }
+
 }

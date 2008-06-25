@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.568 2008/06/05 13:28:16 choumilo Exp $
+// $Id: job.C,v 1.569 2008/06/25 11:05:01 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2017,6 +2017,7 @@ void AMSJob::_rerichinitjob(){
   AMSgObj::BookTimer.book("RERICHZ");   
   AMSgObj::BookTimer.book("RERICHBETA");
   AMSgObj::BookTimer.book("RERICHHITS");
+  RichAlignment::Init();
 }
 
 //-----------------------------------------------------------------------

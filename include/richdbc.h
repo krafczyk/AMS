@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.43 2008/06/20 10:13:37 mdelgado Exp $
+//  $Id: richdbc.h,v 1.44 2008/06/25 11:05:02 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -250,6 +250,24 @@ public:
   static void dump();
   
 };
+
+
+#include "point.h"
+
+// This class stores all the information about coordinates system:
+//    - A transformation from AMS to RICH (radiator related) coordinates
+//    - A transformation from RICH to AMS
+class RichAlignment{
+ private:
+  static AMSPoint  _a2rShift;
+  static AMSRotMat _a2rRot;
+  static AMSPoint  _r2aShift;
+  static AMSRotMat _r2aRot;
+  static void LoadFile(char *filename);
+ public:
+  static void Init();
+};
+
 
 #endif
 
