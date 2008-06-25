@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.94 2008/05/09 09:37:08 choutko Exp $
+//  $Id: trrec.h,v 1.95 2008/06/25 08:21:47 mdelgado Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -472,6 +472,7 @@ number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi))
 number getpichi2() const {return _PIChi2;}
 number getchi2StrLine() const {return _Chi2StrLine;}
 number getchi2withoutMS() const {return _Chi2WithoutMS;}
+AMSPoint getP0(int icase=0) const {return (icase==0?_P0:(icase==1?_GP0:_PIP0));}
 AMSPoint getpiP0() const {return _PIP0;}
 AMSTrTrack* CloneIt();
 static void remove_track(AMSTrTrack* &ptrack);
