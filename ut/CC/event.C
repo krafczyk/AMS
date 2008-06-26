@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.375 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: event.C,v 1.376 2008/06/26 09:29:50 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -912,7 +912,7 @@ void AMSEvent::_retof2initevent(){
 void AMSEvent::_reecalinitevent(){
   integer i,maxp,maxc;
   AMSNode *ptr;
-  maxp=2*ECALDBc::slstruc(3);// max SubCell-planes
+  maxp=2*ECALDBc::slstruc(3);// max SubCell(pixel)-planes
   maxc=4*ECALDBc::slstruc(3)*ECALDBc::slstruc(4);// max number of SubCell
   for(i=0;i<AMSECIds::ncrates();i++){// <-- book crate type containers for EcalRawEvent
     ptr=AMSEvent::gethead()->add (
@@ -1330,25 +1330,30 @@ void AMSEvent::_reamsevent(){
 
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//add missing parts to existing(!) lvl1-obj
 //                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage
+//
+//----> below is a tempor.solution to speadup ped-type calibrations for tof/acc/ecal:
+bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);
+bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==5);
+bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
+bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==6);
+//
+  calltrk=!(ecpedcal || tftdccal || tfpedcal);
+  calltrd=!(ecpedcal || tftdccal || tfpedcal);
+  callrich=!(ecpedcal || tftdccal || tfpedcal);
+  callax=!(ecpedcal || tftdccal || tfpedcal);
+  calluser=!(ecpedcal || tftdccal || tfpedcal);
+//
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
-    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){//bypass when tof-tdc lin.calib
     _reanti2event();
-#ifndef __TFAPEDC__
-    _retrdevent();
-    _retkevent(); 
-    _rerichevent();
-    _reecalevent();
-#endif
-    }
+    if(calltrd)_retrdevent();
+    if(calltrk)_retkevent(); 
+    if(callrich)_rerichevent();
+    if(callecal)_reecalevent();
   }
-    if(!((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1)){//bypass when tof-tdc lin.calib
-#ifndef __TFAPEDC__
-    _reaxevent();
-    AMSUser::Event();
-#endif
-    }
-   AMSgObj::BookTimer.stop("REAMSEVENT");  
+  if(callax)_reaxevent();
+  if(calluser)AMSUser::Event();
+  AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
 void AMSEvent::_caamsinitevent(){
@@ -1626,7 +1631,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
 //----------------------------------------
 void AMSEvent::_reanti2event(){
   int stat;
-  bool tofftok(0),ecalftok(0),extrigok(0);
+  bool tofftok(false),ecalftok(false),extrigok(false);
 //
 //
   AMSgObj::BookTimer.start("REANTIEVENT");
@@ -1641,13 +1646,13 @@ void AMSEvent::_reanti2event(){
       ecalftok=ptr->EcalFasTrigOK();
       extrigok=ptr->ExternTrigOK();
     }
-    if(!tofftok && !ecalftok && !extrigok){
+    if(!(tofftok || ecalftok || extrigok)){
       AMSgObj::BookTimer.stop("REANTIEVENT");
       return;// "no TOF/EC/Ext in LVL1-trigger"
     }
     ANTI2JobStat::addre(1);
     if(tofftok)ANTI2JobStat::addre(5);
-    if(!tofftok && ecalftok)ANTI2JobStat::addre(6);
+    else if(ecalftok)ANTI2JobStat::addre(6);
 //
     Anti2RawEvent::validate(stat);// RawEvent-->RawEvent
     if(stat!=0){
@@ -1675,7 +1680,7 @@ void AMSEvent::_retof2event(){
 int stat;
 static int firstev(0);
 uinteger runtyp=AMSEvent::getruntype();
-bool tofftok(0),ecalftok(0),extrigok(0);
+bool tofftok(false),ecalftok(false),extrigok(false);
 //
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
@@ -1686,7 +1691,7 @@ bool tofftok(0),ecalftok(0),extrigok(0);
       ecalftok=ptr->EcalFasTrigOK();
       extrigok=ptr->ExternTrigOK();
     }
-    if(!tofftok && !ecalftok && !extrigok){
+    if(!(tofftok || ecalftok || extrigok)){
       AMSgObj::BookTimer.stop("RETOFEVENT");
       if(firstev==0){
         cout<<"<======== Warning-Retofevent: no TOF,ECAL or EXTERN trigger, runtype="<<runtyp<<endl;
@@ -1696,7 +1701,7 @@ bool tofftok(0),ecalftok(0),extrigok(0);
     }   
     TOF2JobStat::addre(1);
     if(tofftok)TOF2JobStat::addre(5);
-    if(!tofftok && ecalftok)TOF2JobStat::addre(6);
+    else if(ecalftok)TOF2JobStat::addre(6);
 //
 //                   ===> reco of real or MC events :
 //
@@ -1739,7 +1744,7 @@ bool tofftok(0),ecalftok(0),extrigok(0);
 void AMSEvent::_reecalevent(){
   Trigger2LVL1 *ptr;
   int stat(0),nsuc(0);
-  bool tofftok(0),ecalftok(0),extrigok(0);
+  bool tofftok(false),ecalftok(false),extrigok(false);
 //
   AMSgObj::BookTimer.start("REECALEVENT");
 //
@@ -1750,30 +1755,31 @@ void AMSEvent::_reecalevent(){
     ecalftok=ptr->EcalFasTrigOK();
     extrigok=ptr->ExternTrigOK();
   }
-  if(!tofftok && !ecalftok && !extrigok){
+  if(!(tofftok || ecalftok || extrigok)){
     AMSgObj::BookTimer.stop("REECALEVENT");
     return;// "no FT/Ext-trig in LVL1"   
   }
 //  if((ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5) && ecalftok)return;//if PedCalib->remove events with EcalFT IN
 // !!! not needed to my mind, Truncation+SpikeSuppression do the job (need to recheck with real data !) 
   EcalJobStat::addre(1);
-  if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
+  if(ecalftok)EcalJobStat::addre(2);
+  if(tofftok && ecalftok)EcalJobStat::addre(3);
 //
-    stat=0;
-    AMSEcalRawEvent::validate(stat);// EcalRawEvent->EcalRawEvent
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REECALEVENT");
-      return;
-    }
-    EcalJobStat::addre(2);
+  stat=0;
+  AMSEcalRawEvent::validate(stat);// EcalRawEvent->EcalRawEvent
+  if(stat!=0){
+    AMSgObj::BookTimer.stop("REECALEVENT");
+    return;
+  }
+  EcalJobStat::addre(4);
 //
-    stat=0;
-    AMSEcalHit::build(stat);// EcalRawEvent->EcalHit
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REECALEVENT");
-      return;
-    }
-    EcalJobStat::addre(3);
+  stat=0;
+  AMSEcalHit::build(stat);// EcalRawEvent->EcalHit
+  if(stat!=0){
+    AMSgObj::BookTimer.stop("REECALEVENT");
+    return;
+  }
+  EcalJobStat::addre(5);
 //
       
        AMSgObj::BookTimer.start("ReEcalShowerFit");
@@ -1786,17 +1792,12 @@ void AMSEvent::_reecalevent(){
        if(!suc)break;
        nsuc+=1;
       }
-      if(nsuc==2)EcalJobStat::addre(4);
+      if(nsuc==2)EcalJobStat::addre(6);
 
        AMSgObj::BookTimer.stop("ReEcalShowerFit");
 
 //
 //
-  }
-  else{    //                         ===> fast algorithm:
-//
-//    to be done
-  }
 //
 //
   AMSgObj::BookTimer.stop("REECALEVENT");

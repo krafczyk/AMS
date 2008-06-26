@@ -114,7 +114,7 @@ AMSECIds::AMSECIds(int16u sl, int16u pmt, int16u pix, int16u gnf, int16u side):
   _hwch=hwseqn(_crate,_slot,_rdch);//0->2915
 }
 //--------------
-//                                 0-1           0,1,4,5,...
+//                                 0-1           0,1,4,5,..23
 int16 AMSECIds::crdid2sl(int16u &side, int16u crdid){
 //card(slot)_id(node_addr(link#) to sequential slot# and side
 //                              slot#=0-5 =>EDRs; =6 =>ETRG
@@ -127,6 +127,12 @@ int16 AMSECIds::crdid2sl(int16u &side, int16u crdid){
     }
   }
   return(-1);//if illegal(not existing) crdid
+}
+//
+integer AMSECIds::sl2crdid(integer side, integer slot){
+//slot#=0-5 =>EDRs; =6 =>ETRG; side#=0/1 => side A/B.
+  if(side>=0 && slot>=0 && side<2 && slot<ECSLOTS)return _cardids[side][slot];
+  else return -1;
 }
 //----------
 void AMSECIds::_pixelh2s(){

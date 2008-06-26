@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.55 2008/06/06 13:11:33 choumilo Exp $
+//  $Id: tofrec02.C,v 1.56 2008/06/26 09:29:51 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -490,7 +490,7 @@ void TOF2RawCluster::build(int &ostatus){
       for(int ih=0;ih<nwltt;ih++)fwltt[ih]=number(wltt[ih]);
       for(int ih=0;ih<nwsht;ih++)fwsht[ih]=number(wsht[ih]);
       for(int ih=0;ih<nwssht;ih++)fwssht[ih]=number(wssht[ih]);
-//---> Apply TDC linearity corrections(if requested):
+//-----> Apply TDC linearity corrections(if requested):
      if(TFREFFKEY.relogic[2]>0 && !(!AMSJob::gethead()->isRealData() && TFMCFFKEY.tdclin==0)){
 //  cout<<"<============== LinCor is ON"<<endl;
       hwidt=ptr->gethidt();//CSIIII
@@ -527,9 +527,9 @@ void TOF2RawCluster::build(int &ostatus){
       }
      }//--->endof LinCor check
 //---
-      for(i=0;i<nwftt;i++)ftdc[isid][i]=fwftt[i]*TOF2DBc::tdcbin(1);//FTtime TDCch->ns)
+      for(i=0;i<nwftt;i++)ftdc[isid][i]=fwftt[i]*TOF2DBc::tdcbin(1);//FTtime TDCch->ns
       nftdc[isid]=nwftt;
-      fttm=ftdc[isid][nftdc[isid]-1];// tempor use last FTtime-hit
+      fttm=ftdc[isid][0];// tempor use 1st FTtime-hit
       if(TFREFFKEY.reprtf[4]>1)cout<<"     FTtime(ns)="<<fttm<<endl;
 //
       for(i=0;i<nwltt;i++)stdc[isid][i]=fttm-fwltt[i]*TOF2DBc::tdcbin(1);//Rel.LTtime(+ means befor FTtime)(+TDCch->ns)
@@ -1577,8 +1577,8 @@ void AMSTOFCluster::build2(int &stat){
 	ematch=(fabs(edass)<TOF2Varp::tofvpar.eclass()); 
 	if(tmatch && cmatch && (TFREFFKEY.reprtf[2]>0))HF1(1548,edass,1.);
 //--------> decision to glue:
-	bool glue=(ematch || tmatch || cmatch);//relaxed conditions
-//        bool glue=(tmatch && cmatch);//means glue only if t/c-matched
+	bool glue=((ematch && tmatch) || (ematch && cmatch));//relaxed conditions
+//        bool glue=(tmatch && cmatch);//nominal, means glue only if t/c-matched
 //--------
 	if(glue){//<--- condition ok for gluing
 // cout<<"   ******> Glued:"<<endl; 

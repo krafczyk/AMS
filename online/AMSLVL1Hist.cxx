@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.20 2008/03/14 14:51:32 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.21 2008/06/26 09:30:00 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -53,7 +53,7 @@ void AMSLVL1Hist::Book(){
   
   AddSet("TOF-patterns in LVL1");
   
-  _filled.push_back(new TH1F("trigh7","TOF MissingPlaneCode, Z>=1(ftc)",10,-1.,9.));
+  _filled.push_back(new TH1F("trigh7","TOF MissingPlaneCode, Z>=1(ftc)",12,-1.,11.));
   _filled[_filled.size()-1]->SetXTitle("MissingPlaneCode");
   _filled[_filled.size()-1]->SetFillColor(3);
   
@@ -65,7 +65,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(3);
    
-  _filled.push_back(new TH1F("trigh10","TOF MissingPlaneCode, Z>=2(bz)",10,-1.,9.));
+  _filled.push_back(new TH1F("trigh10","TOF MissingPlaneCode, Z>=2(bz)",12,-1.,11.));
   _filled[_filled.size()-1]->SetXTitle("MissingPlaneCode");
   _filled[_filled.size()-1]->SetFillColor(4);
   
@@ -105,24 +105,24 @@ void AMSLVL1Hist::Book(){
   
   AddSet("ECAL in LVL1(1)");
   
-  _filled.push_back(new TH1F("trigh19","EcalMultiplFlag(fte, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("MultiplFlag: <MipThr(0)/>MipThr(1)/>LowMult(2)/>HiMylt(3=fte)");
+  _filled.push_back(new TH1F("trigh19","FTE_Flag(if !=0, noTOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/noConfirmInProj/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("trigh20","EcalAngleFlag(fte, noTOF) ",3,0.,3.));
-  _filled[_filled.size()-1]->SetXTitle("AngleFlag(:Unkn(0)/Bad(1)/OK(2->gamma)");
+  _filled.push_back(new TH1F("trigh20","Lvl1_Flag(if !=0, noTOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("Flag: noConfirmInProj(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("trigh21","EcalMultiplFlag(globFT) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("MultiplFlag: <MipThr(0)/>MipThr(1)/>LowMult(2)/>HiMylt(3=fte)");
+  _filled.push_back(new TH1F("trigh21","FTE_Flag(GlobFT-OK) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/noConfirmInProj/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(6);
   
-  _filled.push_back(new TH1F("trigh22","EcalMultiplFlag(fte, &TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("MultiplFlag: <MipThr(0)/>MipThr(1)/>LowMult(2)/>HiMylt(3=fte)");
+  _filled.push_back(new TH1F("trigh22","FTE_Flag(if !=0, & TOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/noConfirmInProj/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
-  _filled.push_back(new TH1F("trigh23","EcalAngleFlag(fte, &TOF) ",3,0.,3.));
-  _filled[_filled.size()-1]->SetXTitle("AngleFlag(:Unkn(0)/Bad(1)/OK(2->electr)");
+  _filled.push_back(new TH1F("trigh23","Lvl1_Flag(if !=0, & TOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("Flag: noConfirmInProj(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   AddSet("ECAL in LVL1(2)");

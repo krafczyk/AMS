@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.569 2008/06/25 11:05:01 mdelgado Exp $
+// $Id: job.C,v 1.570 2008/06/26 09:29:50 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -228,8 +228,8 @@ MISCFFKEY.BeamTest=0;
 MISCFFKEY.BZCorr=1;
 MISCFFKEY.G3On=1;
 MISCFFKEY.G4On=0;
-MISCFFKEY.dbwrbeg=0;//DBwriter UIC-time begin 
-MISCFFKEY.dbwrend=0;//DBwriter UIC-time end
+MISCFFKEY.dbwrbeg=0;//DBwriter UTC-time begin 
+MISCFFKEY.dbwrend=0;//DBwriter UTC-time end
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -784,7 +784,7 @@ FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
 void AMSJob::_reecaldata(){
-  ECREFFKEY.reprtf[0]=0;   // (1) print_hist flag (0/1->no/yes)
+  ECREFFKEY.reprtf[0]=0;   // (1) print_hist flag (0/1/2->no/yes/more)
   ECREFFKEY.reprtf[1]=0;   // (2) print_profile flag (0/1->no/yes)
   ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/info_messages/more_details)
 //
@@ -866,19 +866,19 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 // RLGA/FIAT part:
   ECCAFFKEY.cfvers=4;     // (1) spare, not used now
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
-  ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/proton tracks for calibration
+  ECCAFFKEY.truse=0;      // (3) 1/0-> use He4/proton tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
   ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
-  ECCAFFKEY.adcmin=3.;    // (6) min ADC cut for indiv. SubCell (to remove noise)
-  ECCAFFKEY.adcpmx=1000.; // (7) max ADC cut for indiv SC to consider Plane as bad(non PunchThrough)
+  ECCAFFKEY.adcmin=2.5;    // (6) min ADC cut (~3sig)for indiv. SubCell (to remove noise)
+  ECCAFFKEY.adcpmx=150.;  // (7) max ADC for indiv SC to consider PlaneAmpl as PunchThrough(prot)
   ECCAFFKEY.ntruncl=1;    // (8) remove this number of scPlanes with highest Edep
   ECCAFFKEY.trxac=0.022;  // (9) TRK->EC extrapolation accuracy in X-proj(cm)
   ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
   ECCAFFKEY.nortyp=0;     //(12) normaliz.type 0/1-> by crossed/fired counters
-  ECCAFFKEY.badplmx=0;   // (13) Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
-  ECCAFFKEY.etrunmn=60.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
-  ECCAFFKEY.etrunmx=160.; //(15) Max ECenergy (Etrunc in mev) ......................
+  ECCAFFKEY.badplmx=5;   // (13) Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
+  ECCAFFKEY.etrunmn=80.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
+  ECCAFFKEY.etrunmx=600.; //(15) Max ECenergy (Etrunc in mev) ......................
   ECCAFFKEY.nsigtrk=1.5;  //(16) Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
 // ANOR part:
   ECCAFFKEY.pmin=3.;        // (17) presel-cut on min. mom. of the track(gev/c) 
@@ -1215,7 +1215,7 @@ void AMSJob::_retof2data(){
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run. 
   TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
-  TFREFFKEY.relogic[2]=0;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
+  TFREFFKEY.relogic[2]=1;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->write/not TOF2RawSideObject-info into ntuple
 //
@@ -1236,7 +1236,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
   TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
 //
-  TFREFFKEY.ReadConstFiles=11101;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
+  TFREFFKEY.ReadConstFiles=100;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
 //                                           D->ThrCuts-set(datacards),P->Peds(rd),C->CalibConst(rd/mc));
 // L=1/0->Take TofTdcLinearityCorrections from RawFiles/DB
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
@@ -2166,7 +2166,9 @@ void AMSJob::_cant2initjob(){
 void AMSJob::_caecinitjob(){
  if(ECREFFKEY.relogic[1]>0 && ECREFFKEY.relogic[1]<4){
    ECREUNcalib::init();// ECAL REUN-calibr.
+   cout<<endl;
    cout<<"<----- ECREUNcalib-init done !!!"<<'\n';
+   cout<<endl;
  }
  if(ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5 || ECREFFKEY.relogic[1]==6){
    ECPedCalib::init();
@@ -2667,8 +2669,9 @@ end.tm_year=TRDMCFFKEY.year[1];
  begin.tm_isdst=0;
  end.tm_isdst=0;
  int needval=1;
-#ifdef __TFADBW__
-  if(isCalibration() && CTOF)needval=0;
+//
+if((isCalibration() && CTOF) && AMSFFKEY.Update>0){//only for 
+  if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;
   int jobt=AMSFFKEY.Jobtype;
@@ -2696,8 +2699,8 @@ end.tm_year=TRDMCFFKEY.year[1];
     cout<<" End YY-M-D :"<<(TFREFFKEY.year[1]+1900)<<" "<<(TFREFFKEY.mon[1]+1)<<" "<<TFREFFKEY.day[1];
     cout<<"  hh:mm:ss :"<<TFREFFKEY.hour[1]<<" "<<TFREFFKEY.min[1]<<" "<<TFREFFKEY.sec[1]<<endl;
   }
-#endif
-
+}
+//
   begin.tm_sec=TFREFFKEY.sec[0];
   begin.tm_min=TFREFFKEY.min[0];
   begin.tm_hour=TFREFFKEY.hour[0];
@@ -2837,8 +2840,8 @@ if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-
  end.tm_isdst=0;
  int needval=1;
  
-#ifdef __TFADBW__
-  if(isCalibration() && CAnti)needval=0;
+if((isCalibration() && CAnti) && AMSFFKEY.Update>0){
+  if(ATREFFKEY.relogic==3)needval=0;//only for ds acc-peds to DB
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;
   int jobt=AMSFFKEY.Jobtype;
@@ -2865,7 +2868,7 @@ if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-
     cout<<" End YY-M-D :"<<(ATREFFKEY.year[1]+1900)<<" "<<(ATREFFKEY.mon[1]+1)<<" "<<ATREFFKEY.day[1];
     cout<<"  hh:mm:ss :"<<ATREFFKEY.hour[1]<<" "<<ATREFFKEY.min[1]<<" "<<ATREFFKEY.sec[1]<<endl;
   }
-#endif
+}
 
   begin.tm_sec=ATREFFKEY.sec[0];
   begin.tm_min=ATREFFKEY.min[0];
@@ -3568,20 +3571,19 @@ void AMSJob::_anti2endjob(){
 //-----------------------------------------------------------------------
 void AMSJob::_ecalendjob(){
 //
-
+bool noTFAskip=(!(isCalibration() & CTOF));
   if((isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==6 ){
-//    AMSECIdCalib::getaverage();
-//    AMSECIdCalib::write();
-    ECPedCalib::ntuple_close();
+//    ECPedCalib::ntuple_close();
   }
   if((isCalibration() & AMSJob::CEcal) && (ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5) ){
     ECPedCalib::outp(ECCAFFKEY.pedoutf);// 0/1/2->HistOnly/Writ2DB+File/Write2File 
   }
-#ifndef __TFADBW__
-  EcalJobStat::printstat(); // Print JOB-Ecal statistics
-  if(isSimulation())EcalJobStat::outpmc();
-  EcalJobStat::outp();
-#endif
+//
+  if(noTFAskip){//bypass when TOF/ACC-calib(to keep log-file small)
+    EcalJobStat::printstat(); // Print JOB-Ecal statistics
+    if(isSimulation())EcalJobStat::outpmc();
+    EcalJobStat::outp();
+  }
 }
 //-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){

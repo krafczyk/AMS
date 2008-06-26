@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.28 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: daqs2block.C,v 1.29 2008/06/26 09:29:50 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -104,13 +104,31 @@ integer DAQS2Block::checkblockid(int16u blid){//SDR's ids as Ports
   return 0;
 }
 //----
+integer DAQS2Block::getportid(int16u crat, int16u sdrs){
+// on input crat=0,1,2,3;SDRside=0,1(A,B); return portid >=0, -1 if not found
+  integer valid(-1);
+  char sstr[128];
+  char side[3]="AB";
+  char str[2];
+  if(crat<4 && sdrs<2){
+    str[0]=side[sdrs];
+    str[1]='\0';
+    for(int16u i=0;i<32;i++){
+      sprintf(sstr,"SDR-%X%s",crat,str);
+      valid=DAQEvent::ismynode(i,sstr)?i:-1;
+      if(valid>=0)break;
+    }
+  }
+  return valid;
+}
+//----
 integer DAQS2Block::checkblockidP(int16u blid){//SDR's ids as Nodes
 // here blid is VC's raw "node+type" line from header !!!
   int valid(0);
   char sstr[128];
   char side[5]="ABPS";
   char str[2];
-//  cout<<"---> In DAQS2Block::checkblockidN, blid(hex)="<<hex<<blid<<",addr:"<<dec<<((blid>>5)&(0x1FF))<<endl;
+//  cout<<"---> In DAQS2Block::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<((blid>>5)&(0x1FF))<<endl;
   for(int i=0;i<TOF2GC::SCCRAT;i++){
     for(int j=0;j<4;j++){
       str[0]=side[j];
@@ -124,6 +142,24 @@ integer DAQS2Block::checkblockidP(int16u blid){//SDR's ids as Nodes
     } 
   }
   return 0;
+}
+//----
+integer DAQS2Block::getnodeid(int16u crat, int16u sdrs){
+// on input crat=0,1,2,3;SDRside=0,1,2,3(A,B,P,S); return nodeid >=0, -1 if not found
+  int valid(-1);
+  char sstr[128];
+  char side[5]="ABPS";
+  char str[2];
+  if(crat<4 && sdrs<4){
+    str[0]=side[sdrs];
+    str[1]='\0';
+    for(int16u i=0;i<512;i++){
+      sprintf(sstr,"SDR-%X%s",crat,str);
+      valid=DAQEvent::ismynode(i,sstr)?i:-1;
+      if(valid>=0)break;
+    }
+  }
+  return valid;
 }
 //-------------------------------------------------------
 void DAQS2Block::buildraw(integer leng, int16u *p){
@@ -277,7 +313,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //---------
   noerr=(dataf 
              && !crcer 
-//	               && !asser 
+	               && !asser 
 		                && !amswer 
                                           && !timoer 
 					            && !fpower 
@@ -322,7 +358,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 // data if mixed format; if non-mixed format - decoded data are stored in 1st half of the buffer
 //
   if(TFREFFKEY.reprtf[4]>2)EventBitDump(leng,p,"Event-by-event:");//debug
-// 
+/* 
 //============================> "On_Board_PedCalib_Table" processing (if present):
   bias=1;//tempor: here len=90x3+1(blid)
   if(formt==3 && (TFREFFKEY.relogic[0]==7 || ATREFFKEY.relogic==4)){
@@ -405,6 +441,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
     }//---<endof "last PedBlock processed"
     return;
   }//--->endof formt=3(ped-block)
+*/
 //-----------------------------------------------------------------------------------------------------
 // !!!!!! Warning: Switching-Off of PedSuppression(for classic PedRun or DownScalled events) 
 //  does not(?) automatically means usage of RAW-format (Format may still be Compressed(addr+value)???)
@@ -1534,6 +1571,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   int16u sptcmdh(0);//spt_cmd_h (from raw-eos or from compressed-part)
   int16u wcount(0);//sequencer Word-counter
   int16u svermsk(0);//stat.verification mask in TrPatt/Stat-block of ComprFMT 
+  int16u datf;
 // for onboard ped-cal tables:
   bool ONBpedblk(true);//OnBoard ped-calib_data flag(=true because subr.is called only for OnBoard-pedS)
   geant ped,sig,pedc,sigc;
@@ -1561,67 +1599,84 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   blid=*(p+len);// fragment's last word: Status+slaveID
 //  cout<<"    blid="<<hex<<blid<<dec<<endl;
   bool dataf=((blid&(0x8000))>0);//data-fragment
+  if(dataf)datf=1;
+  else datf=0;
   bool crcer=((blid&(0x4000))>0);//CRC-error
   bool asser=((blid&(0x2000))>0);//assembly-error
   bool amswer=((blid&(0x1000))>0);//amsw-error   
   bool timoer=((blid&(0x0800))>0);//timeout-error   
   bool fpower=((blid&(0x0400))>0);//FEpower-error   
-  bool seqer=((blid&(0x0400))>0);//sequencer-error
+  bool seqer=((blid&(0x0200))>0);//sequencer-error
   bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   bool noerr;
   naddr=(blid&(0x001F));//slaveID(="NodeAddr"=SDR_link#)
   datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3
-  if(dataf){
-    if(crcer)TOF2JobStat::daqsfr(15);
-    if(asser)TOF2JobStat::daqsfr(16);
-    if(amswer)TOF2JobStat::daqsfr(17);
-    if(timoer)TOF2JobStat::daqsfr(18);
-    if(fpower)TOF2JobStat::daqsfr(19);
-    if(seqer)TOF2JobStat::daqsfr(20);
-    if(cdpnod)TOF2JobStat::daqsfr(21);
-  }
-  else{
-    if(crcer)TOF2JobStat::daqsfr(22);
-    if(asser)TOF2JobStat::daqsfr(23);
-    if(amswer)TOF2JobStat::daqsfr(24);
-    if(timoer)TOF2JobStat::daqsfr(25);
-    if(fpower)TOF2JobStat::daqsfr(26);
-    if(seqer)TOF2JobStat::daqsfr(27);
-    if(cdpnod)TOF2JobStat::daqsfr(28);
-  }
 //
-  if(TFREFFKEY.reprtf[4]>2){//debug
-    cout<<"====> In DAQS2Block::buildonbP: len="<<*p<<" data-type:"<<datyp<<" NodeAddr:"<<naddr<<endl;
+  node2crsP(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-4<->a,b,p,s)
+//
+  if(TFREFFKEY.reprtf[4]>1){//debug
+    cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
     cout<<"      leng(in call)="<<leng<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
 //
-  if(datyp>0 && len>1){
-    if(ONBpedblk)TOF2JobStat::daqsfr(8);//<=== count non-empty fragments of PedTable-type
-    else TOF2JobStat::daqsfr(1+datyp);//<=== count non-empty fragments of given DATA-type
+  if(crat<=0){//illegal node-address
+    TOF2JobStat::daqsfr(1);//counts illeg.addr
+    goto BadExit;
   }
-  else goto BadExit;
+  TOF2JobStat::daqsfr(1+crat);//entries/crate
+//
+  if(datyp==1)setrawf();
+  else if(datyp==2)setcomf();
+  else if(datyp==3)setmixf();
+  if(ONBpedblk)setpedf();//tempor: ONBpedblk flag is known only from header and should be already known here
+  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
+  TOF2JobStat::daqsfr(34+datyp);//<=== entries/datatype(illeg,raw,com,mix) 
+  if(ONBpedblk)TOF2JobStat::daqsfr(38);//<=== glob count of OnBoardPedBlocks 
+//cout<<"    format="<<formt<<" crate="<<crat<<endl;
+//
+  if(datyp==0 || len==1){
+    TOF2JobStat::daqsfr(5+crat);//counts illeg.datyp or empty
+    if(TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"Bad DataType | EmptyBlock bitDump:");//debug
+    goto BadExit;
+  }
+//
+  TOF2JobStat::daqsfr(9+crat);//<==== datyp+len_OK/crate
+//
+  if(dataf){
+    if(crcer)TOF2JobStat::daqsfr(40+8*(crat-1));
+    if(asser)TOF2JobStat::daqsfr(41+8*(crat-1));
+    if(amswer)TOF2JobStat::daqsfr(42+8*(crat-1));
+    if(timoer)TOF2JobStat::daqsfr(43+8*(crat-1));
+    if(fpower)TOF2JobStat::daqsfr(44+8*(crat-1));
+    if(seqer)TOF2JobStat::daqsfr(45+8*(crat-1));
+    if(cdpnod)TOF2JobStat::daqsfr(46+8*(crat-1));
+  }
+  else{
+    TOF2JobStat::daqsfr(21+crat);//count nonData
+  }
+//---------     
+  if(ONBpedblk){
+    TOF2JobStat::daqsfr(13+crat);
+//process here
+    return;
+  }
+//---------
   noerr=(dataf 
-              && !crcer 
-//	               && !asser 
+             && !crcer 
+	               && !asser 
 		                && !amswer 
                                           && !timoer 
 					            && !fpower 
 						              && !seqer 
 							               && cdpnod);
   if(noerr){
-    if(ONBpedblk)TOF2JobStat::daqsfr(9);//<=== count non-empty fragments of PedTble-type
-    else TOF2JobStat::daqsfr(4+datyp);//<=== count no-errors fragments for given DATA-type
+    TOF2JobStat::daqsfr(29+crat);//<=== no errors 
   }     
-  else goto BadExit;
-  node2crsP(naddr,crat,csid);//get crate#(1-4),card_side(1-4<->a,b,p,s)
-//---
-  if(datyp==1)setrawf();
-  else if(datyp==2)setcomf();
-  else if(datyp==3)setmixf();
-  if(ONBpedblk)setpedf();//tempor: ONBpedblk flag is known only from header and should be already known here
-  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
-//cout<<"    format="<<formt<<" crate="<<crat<<endl;     
+  else{
+    TOF2JobStat::daqsfr(25+crat);
+    goto BadExit;
+  }
 //---------
   if(formt<=1)TOF2JobStat::daqscr(formt,crat-1,0);//count crate-entries with stand-alone  raw/comp format
   else if(formt==2){//mix.form

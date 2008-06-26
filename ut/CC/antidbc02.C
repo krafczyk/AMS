@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.26 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: antidbc02.C,v 1.27 2008/06/26 09:29:50 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -836,14 +836,14 @@ void ANTI2JobStat::printstat(){
   printf(" MC:     Hist-hits out of search window: % 6d\n",mccount[4]);
   printf(" MC: FT/Anti coincidence               : % 6d\n",mccount[5]);
   printf("--------\n");
-  printf(" RECO-entries            : % 6d\n",recount[0]);
-  printf(" Lev-1 trigger OK        : % 6d\n",recount[1]);
-  printf(" Usage of TOF in LVL1    : % 6d\n",recount[5]);
-  printf(" Usage of EC  in LVL1    : % 6d\n",recount[6]);
-  printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
-  printf(" RawEvent->Cluster OK    : % 6d\n",recount[3]);
+  printf(" RECO-entries                   : % 6d\n",recount[0]);
+  printf(" GlobFT(FTC|FTZ|FTE|Ext) OK     : % 6d\n",recount[1]);
+  printf(" TOF_FT(FTC|FTZ) found in LVL1  : % 6d\n",recount[5]);
+  printf(" NoTOF_FT but ECAL_FT only      : % 6d\n",recount[6]);
+  printf(" RawEvent-validation OK     : % 6d\n",recount[2]);
+  printf(" RawEvent->Cluster OK       : % 6d\n",recount[3]);
   printf("--------\n");
-  printf(" AmplCalib entries      : % 6d\n",recount[11]);
+  printf(" AmplCalib entries       : % 6d\n",recount[11]);
   printf(" Nsectors OK             : % 6d\n",recount[12]);
   printf(" TRK-track found         : % 6d\n",recount[13]);
   printf(" One TRK-Sector crossing : % 6d\n",recount[14]);

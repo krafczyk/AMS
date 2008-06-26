@@ -2289,6 +2289,7 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   for (int i=0; i<4; i++) ParProfile[i] = ptr->_ProfilePar[i+ptr->_Direction*5];
   Chi2Trans = ptr->_TransFitChi2;
   for (int i=0; i<3; i++) SphericityEV[i] = ptr->_SphericityEV[i];
+  Nhits = ptr->_Nhits;
 #endif
 }
 
@@ -2296,8 +2297,9 @@ Level1R::Level1R(Trigger2LVL1 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   PhysBPatt = ptr->_PhysBPatt;
   JMembPatt = ptr->_JMembPatt;
+  AuxTrigPatt = ptr->_AuxTrigPatt;
   TofFlag1 = ptr->_tofflag1;
-  TofFlag2 = ptr->_tofflag1;
+  TofFlag2 = ptr->_tofflag2;
   for (int i=0; i<4; i++) {
     TofPatt1[i] = ptr->_tofpatt1[i];
     TofPatt2[i] = ptr->_tofpatt2[i];

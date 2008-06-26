@@ -16,7 +16,7 @@ using namespace ecalconst;
 //
 int16u DAQECBlock::format=0; // default format (raw)
 //
-int16u DAQECBlock::nodeids[ecalconst::ECRT]=//valid EC_nodes(JINFs) id(link#)(2 JINF => 2crates)  
+int16u DAQECBlock::nodeids[ecalconst::ECRT]=//valid EC_nodes(JINFs) id(JINJ link#(port))(2 JINF => 2crates)  
   {
     12,13, // crate 1/2 
   };
@@ -31,7 +31,7 @@ void DAQECBlock::node2crs(int16u nodeid, int16u &crat){//called by me only
   crat=0;
   crat=atoi(DAQEvent::getportname(nodeid)+5)+1;//1-2, no validity check -> all is verified during VC's call to checkblockid
 }
-//
+//---
 integer DAQECBlock::checkblockid(int16u blid){//JINF's ids as Ports("VC"'s blid), return crt#(1-2)
   int valid(0);
   char sstr[128];
@@ -42,13 +42,26 @@ integer DAQECBlock::checkblockid(int16u blid){//JINF's ids as Ports("VC"'s blid)
   }
   return valid;
 }
+integer DAQECBlock::getportid(int16u crat){
+// on input crat=0,1; return portid >=0, -1 if not found
+  integer valid(-1);
+  char sstr[128];
+  if(crat<2){
+    for(int16u i=0;i<32;i++){
+      sprintf(sstr,"JINFE%X",crat);
+      valid=DAQEvent::ismynode(i,sstr)?i:-1;
+      if(valid>=0)break;
+    }
+  }
+  return valid;
+}
 //----
 integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("VC"'s blid)
   int valid(0);
   char sstr[128];
   char side[5]="ABPS";
   char str[2];
-//  cout<<"---> In DAQS2Block::checkblockid, blid(hex)="<<hex<<blid<<",addr:"<<dec<<(blid&(0x001F))<<endl;
+//  cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<((blid>>5)&(0x1FF))<<endl;
   for(int i=0;i<ecalconst::ECRT;i++){//check id for EDRs
    for(int k=0;k<ecalconst::ECEDRS;k++){
     for(int j=0;j<4;j++){
@@ -106,7 +119,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 // for PedCalTable(onboard calib)
   static integer FirstPedBlk(0);
   static integer TotPedBlks(0);
-  static integer PedBlkCrat[ECRT][ECEDRS]={0,0,0,0,0,0,0,0,0,0,0,0};
+//  static integer PedBlkCrat[ECRT][ECEDRS]={0,0,0,0,0,0,0,0,0,0,0,0};
   bool PedBlkOK(false);
   geant ped,sig;
   int16u sts,nblkok;
@@ -246,52 +259,52 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     }
     else if(!dataf && !badtyp){//datatypeok, but notData(Peds ???)
       EcalJobStat::daqs3(crat-1,slot,3);
-      if(pedbl && slot<=5){//<--- true ped-block
-	if(eleng==(3*ECEDRC+1)){//<-------- PedTable found
-          ebias=1;
-	  EcalJobStat::daqs3(crat-1,slot,5);//PedTable entrie with length OK
-	  if(ECREFFKEY.relogic[1]==6){//PedTable was requested ==> processing...
-            if(FirstPedBlk==0){
-              ECPedCalib::BTime()=AMSEvent::gethead()->gettime();
-              ECPedCalib::BRun()=AMSEvent::gethead()->getrun();
-              ECPedCalib::resetb();
-            }
-            PedBlkOK=true;
-            while(ebias<eleng){//<---- EDR-words loop (3*243 ADC-values)
-              word=*(p+jbias+ebias);//ped, ADC-value(multiplied by 16 in DSP)
-              nword=*(p+jbias+ebias+1);//sig, ADC-value(multiplied by 16 in DSP)
-              nnword=*(p+jbias+ebias+2);//stat, x16 ???
-	      rdch=(ebias-1)/3;//0-242
-	      AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
-	      swid=ecid.getswid();//long sw_id=LTTPG
-              ped=geant(word&0xFFFF)/16;//tempor
-              sig=geant(nword&0xFFFF)/16;//tempor
-              sts=nnword;//tempor 1/0->bad(empty)/ok
-	      ECPedCalib::filltb(swid, ped, sig, sts);//tempor
-	      ebias+=3;
-	    }//--->endof EDR-words loop(PedTable)
-            if(PedBlkOK)PedBlkCrat[crat-1][slot]=1;//mark good processed crate
-            TotPedBlks+=1;//counts tot# of processed PedBlocks
-            FirstPedBlk=1;
+//      if(pedbl && slot<=5){//<--- true ped-block
+//	if(eleng==(3*ECEDRC+1)){//<-------- PedTable found
+//          ebias=1;
+//	  EcalJobStat::daqs3(crat-1,slot,5);//PedTable entrie with length OK
+//	  if(ECREFFKEY.relogic[1]==6){//PedTable was requested ==> processing...
+//            if(FirstPedBlk==0){
+//              ECPedCalib::BTime()=AMSEvent::gethead()->gettime();
+//              ECPedCalib::BRun()=AMSEvent::gethead()->getrun();
+//              ECPedCalib::resetb();
+//            }
+//            PedBlkOK=true;
+//            while(ebias<eleng){//<---- EDR-words loop (3*243 ADC-values)
+//              word=*(p+jbias+ebias);//ped, ADC-value(multiplied by 16 in DSP)
+//              nword=*(p+jbias+ebias+1);//sig, ADC-value(multiplied by 16 in DSP)
+//              nnword=*(p+jbias+ebias+2);//stat, x16 ???
+//	      rdch=(ebias-1)/3;//0-242
+//	      AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
+//	      swid=ecid.getswid();//long sw_id=LTTPG
+//              ped=geant(word&0xFFFF)/16;//tempor
+//              sig=geant(nword&0xFFFF)/16;//tempor
+//              sts=nnword;//tempor 1/0->bad(empty)/ok
+//	      ECPedCalib::filltb(swid, ped, sig, sts);//tempor
+//	      ebias+=3;
+//	    }//--->endof EDR-words loop(PedTable)
+//            if(PedBlkOK)PedBlkCrat[crat-1][slot]=1;//mark good processed crate
+//            TotPedBlks+=1;//counts tot# of processed PedBlocks
+//            FirstPedBlk=1;
 //               call DB- and pedfile-writing if last :
-            if(TotPedBlks==(ECRT*ECEDRS)){//<---last(12th) ped-block processed
-              nblkok=0;
-              for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(PedBlkCrat[i][j]==1)nblkok+=1;
-              if(nblkok==(ECRT*ECEDRS)){// all found blocks OK
-	        ECPedCalib::outptb(ECCAFFKEY.pedoutf);//0/1/2->noactions(only_histos)/write2db+file/write2file
-	      }
-              TotPedBlks=0;//be ready for next calib.blocks sequence
-              FirstPedBlk=0;
-              for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=0;
-            }//---<endof "last PedBlock processed"
-	  }//--->endof PedTable processing
-          goto NextBlock;//next block
-	}//--->endof length-ok check
-	else{
-          EcalJobStat::daqs1(34+crat-1);//<=== count JINF's bad ped-block len
-	  goto BadExit;//bad ped-block length - fatal
-	}
-      }//--->endof true pedblock
+//            if(TotPedBlks==(ECRT*ECEDRS)){//<---last(12th) ped-block processed
+//              nblkok=0;
+//              for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(PedBlkCrat[i][j]==1)nblkok+=1;
+//              if(nblkok==(ECRT*ECEDRS)){// all found blocks OK
+//	        ECPedCalib::outptb(ECCAFFKEY.pedoutf);//0/1/2->noactions(only_histos)/write2db+file/write2file
+//	      }
+//              TotPedBlks=0;//be ready for next calib.blocks sequence
+//              FirstPedBlk=0;
+//              for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=0;
+//            }//---<endof "last PedBlock processed"
+//	  }//--->endof PedTable processing
+//          goto NextBlock;//next block
+//	}//--->endof length-ok check
+//	else{
+//          EcalJobStat::daqs1(34+crat-1);//<=== count JINF's bad ped-block len
+//	  goto BadExit;//bad ped-block length - fatal
+//	}
+//      }//--->endof true pedblock
       goto NextBlock;//not peds ??? skip block
     }//--->endof datatype-ok, but nonData(peds ???)
 //
@@ -387,7 +400,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
       else if(formt==1){//<==================== ComprFormat(alone) processing :
 // 
         if(eleng<=(2*ECEDRC+1) && (eleng%2==1)){//<--comprfmt length ok
-	  if(ECREFFKEY.reprtf[0]>0)HF1(ECHISTR+70+6*(crat-1)+slot,geant(eleng),1.);
+//	  if(ECREFFKEY.reprtf[0]>0)HF1(ECHISTR+70+6*(crat-1)+slot,geant(eleng),1.);
 	  EcalJobStat::daqs3(crat-1,slot,16+12*formt);//lengthOK
 //cout<<"    ComprFMT,EDR_length OK"<<endl;
           while(ebias<eleng){//<---- EDR-words loop (max 2*243 (rdch# + ADC-valie))
@@ -417,7 +430,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
           PedSubt[slot]=1;// tempor fix
 	}//--->endof comprfmt leng.ok
 //---
-	else if(eleng=(ECEDRC+1)){//<--true "downscaled" event(rawfmt in comp.stream, but fmt.bit=comp!!!)
+	else if(eleng==(ECEDRC+1)){//<--true "downscaled" event(rawfmt in comp.stream, but fmt.bit=comp!!!)
 //          if(ECREFFKEY.reprtf[2]>0)EventBitDump(eleng,p+jbias,"---> CompFMT:downscaled EvDump");
 	  DownScal=true;
 	  EcalJobStat::daqs3(crat-1,slot,16+12*formt);//lengthOK
@@ -700,7 +713,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
-  integer i,j,ic,icn;
+  integer i,j,ic,icn,isl,isd;
   integer swid,hwid,crsta(0);
   int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
   int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
@@ -711,28 +724,73 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   int16 slots;
   integer bufpnt(0),lbbs;
   uinteger val32;
+  integer portid,crdid;
 // for PedCalTable(onboard calib)
+  static integer FirstCall(0),NReqEdrs(0);
   static integer FirstPedBlk(0);
   static integer TotPedBlks(0);
-  static integer PedBlkCrat[ECRT][ECEDRS]={0,0,0,0,0,0,0,0,0,0,0,0};
+  static integer PedBlkCrat[ECRT][ECEDRS]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
   bool PedBlkOK(false);
   geant ped,sig;
   int16u sts,nblkok;
 //
   EcalJobStat::daqs1(0);//count entries
+  DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
+  bool pcreq(false);
+  bool sidedoubled(false);
+  bool dataf;//data-fragment
+  bool crcer;//CRC-error
+  bool asser;//assembly-error
+  bool amswer;//amsw-error   
+  bool timoer;//timeout-error   
+  bool fpower;//FEpower-error   
+  bool seqer;//sequencer-error
+  bool cdpnod;//CDP-node(like EDR2-node with no futher fragmentation)
+  bool noerr;
+  if(FirstCall==0){//count/mark requested EDRs on 1st call
+cout<<"---------> DAQECBlock::buildonbP: First call !!!"<<endl;
+    for(ic=0;ic<ECRT;ic++){
+      for(isl=0;isl<ECEDRS;isl++){//sequential slots(EDRs only)
+        portid=DAQECBlock::getportid(ic);//>=0 if exist(12,13 here)
+	for(isd=0;isd<2;isd++){//sides(a/b)
+	  crdid=AMSECIds::sl2crdid(isd,isl);
+          pcreq=(pdaq && portid>=0 && crdid>=0
+	            && pdaq->CalibRequested(uinteger(portid),uinteger(crdid)));//ped-cal requested for given crate/slot ?
+          if(pcreq){
+	    PedBlkCrat[ic][isl]+=1;//mark requested EDRs
+	    NReqEdrs+=1;
+	  }
+	}
+	if(PedBlkCrat[ic][isl]>0){//error: both sides sequested for given crat/slot
+	  cout<<"<----- DAQECBlock::buildonbP:Warning-> both sedes requested for crt/slt="<<ic<<" "<<isl<<endl;
+	  cout<<"       sides's info will superimposed   !!!"<<endl;
+	  PedBlkCrat[ic][isl]=0;//preset by hands
+	  sidedoubled=true;
+	}
+      }
+    }
+    FirstCall=1;
+    if(!sidedoubled && NReqEdrs<(ECRT*ECEDRS)){
+      cout<<"<----- DAQECBlock::buildonbP:Warning-> not all EDRs requested ?!"<<endl;
+//      goto BadExit;
+    }
+    else if(sidedoubled){
+      cout<<"<----- DAQECBlock::buildonbP:Error-> Some sides are doubled, NrequestedEDRs="<<NReqEdrs<<endl;
+      goto BadExit;
+    }
+  }
   p=p-1;//to follow VC-convention
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
 //
-  bool dataf=((jblid&(0x8000))>0);//data-fragment
-  bool crcer=((jblid&(0x4000))>0);//CRC-error
-  bool asser=((jblid&(0x2000))>0);//assembly-error
-  bool amswer=((jblid&(0x1000))>0);//amsw-error   
-  bool timoer=((jblid&(0x0800))>0);//timeout-error   
-  bool fpower=((jblid&(0x0400))>0);//FEpower-error   
-  bool seqer=((jblid&(0x0400))>0);//sequencer-error
-  bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
-  bool noerr;
+  dataf=((jblid&(0x8000))>0);//data-fragment
+  crcer=((jblid&(0x4000))>0);//CRC-error
+  asser=((jblid&(0x2000))>0);//assembly-error
+  amswer=((jblid&(0x1000))>0);//amsw-error   
+  timoer=((jblid&(0x0800))>0);//timeout-error   
+  fpower=((jblid&(0x0400))>0);//FEpower-error   
+  seqer=((jblid&(0x0400))>0);//sequencer-error
+  cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
 //
   if(ECREFFKEY.reprtf[2]>0){//debug
@@ -815,43 +873,45 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
 //------
     if(slot<=5){//<===== EDR-block processing
 //-------
-      if(eleng==(3*ECEDRC+1)){//<-------- PedTable found
+      PedBlkOK=false;
+      if(eleng==(ECEDRC+1)){//<-------- PedTable length OK
 	EcalJobStat::daqs3(crat-1,slot,3);//PedTable entrie with length OK
         if(FirstPedBlk==0){
           ECPedCalib::BTime()=AMSEvent::gethead()->gettime();
           ECPedCalib::BRun()=AMSEvent::gethead()->getrun();
           ECPedCalib::resetb();
         }
-        PedBlkOK=true;
+        PedBlkOK=(PedBlkCrat[crat-1][slot]==0);//true if requested and leng-ok 
         while(ebias<eleng){//<---- EDR-words loop (3*243 ADC-values)
           word=*(p+jbias+ebias);//ped, ADC-value(multiplied by 16 in DSP)
-          nword=*(p+jbias+ebias+1);//sig, ADC-value(multiplied by 16 in DSP)
-          nnword=*(p+jbias+ebias+2);//stat, x16 ???
 	  rdch=(ebias-1)/3;//0-242
 	  AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
 	  swid=ecid.getswid();//long sw_id=LTTPG
           ped=geant(word&0xFFFF)/16;//tempor
-          sig=geant(nword&0xFFFF)/16;//tempor
-          sts=nnword;//tempor 1/0->bad(empty)/ok
+          sig=0.5;//tempor
+          sts=0;//tempor 1/0->bad(empty)/ok
 	  ECPedCalib::filltb(swid, ped, sig, sts);//tempor
-	  ebias+=3;
+	  ebias+=1;
 	}//--->endof EDR-words loop(PedTable)
-        if(PedBlkOK)PedBlkCrat[crat-1][slot]=1;//mark good processed crate
-        TotPedBlks+=1;//counts tot# of processed PedBlocks
+        if(PedBlkOK){
+	  PedBlkCrat[crat-1][slot]=1;//mark good processed crate/edr
+          TotPedBlks+=1;//counts tot# of requested&processed PedBlocks
+	}
         FirstPedBlk=1;
 //               call DB- and pedfile-writing if last :
-        if(TotPedBlks==(ECRT*ECEDRS)){//<---last(12th) ped-block processed
+        if(TotPedBlks==NReqEdrs){//<---last(from requested) ped-block processed
           nblkok=0;
           for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(PedBlkCrat[i][j]==1)nblkok+=1;
-          if(nblkok==(ECRT*ECEDRS)){// all found blocks OK
+          if(nblkok==(ECRT*ECEDRS)){// complete set of blocks - call output
 	    ECPedCalib::outptb(ECCAFFKEY.pedoutf);//0/1/2->noactions(only_histos)/write2db+file/write2file
 	  }
           TotPedBlks=0;//be ready for next calib.blocks sequence
           FirstPedBlk=0;
-          for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=0;
+          FirstCall=0;
+          for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=-1;
         }//---<endof "last PedBlock processed"
         goto NextBlock;//(if any)
-      }//--->endof PedTable presence check
+      }//--->endof PedTable length check
       else goto BadExit;//wrong length ==> stop any further processing
     }//--->endof "slot<=5"(EDR) check
 //----

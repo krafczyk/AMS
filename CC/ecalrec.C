@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.103 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: ecalrec.C,v 1.104 2008/06/26 09:29:50 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -44,10 +44,11 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
   integer ovfl[2];
   AMSEcalRawEvent * ptr;
-  integer ecalflg;
+  integer ecalflg(0);
   integer tofflg;
   static int first(0);
   Trigger2LVL1 *ptrt;
+  bool ecalftok(false);
 //
   stat=1;//bad
 //
@@ -61,23 +62,32 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   }
 //
   ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ECREFFKEY.reprtf[0]>0){
   if(ptrt){
-    for(int sl=0;sl<6;sl+=2){
-      for(int pm=0;pm<36;pm++){
-        k=floor(geant(sl)/2);
-        if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
-      }
-    }
-    for(int sl=1;sl<6;sl+=2){
-      for(int pm=0;pm<36;pm++){
-        k=floor(geant(sl)/2);
-        if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
-      }
-    }
+    EcalJobStat::addre(7);
+    ecalftok=ptrt->EcalFasTrigOK();
+    if(ecalftok)EcalJobStat::addre(8);
     ecalflg=ptrt->getecflag();
-    HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+    if(ecalflg>0)EcalJobStat::addre(9);
   }
+//
+  if(ECREFFKEY.reprtf[0]>0){
+   if(ptrt){
+    if(ecalflg>0){
+      for(int sl=0;sl<6;sl+=2){
+        for(int pm=0;pm<36;pm++){
+          k=floor(geant(sl)/2);
+          if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
+        }
+      }
+      for(int sl=1;sl<6;sl+=2){
+        for(int pm=0;pm<36;pm++){
+          k=floor(geant(sl)/2);
+          if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
+        }
+      }
+      HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+    }
+   }
   }
 //
   if((ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5))ECPedCalib::hiamreset();  
@@ -111,7 +121,10 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //
   } // ---> end of crate-loop
 //
-  if(pedrun && (ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5))return;//PedCal exit with stat=1(bad) to bypass next reco-stages !!!
+  if(pedrun && (ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5)){
+    EcalJobStat::addre(20);//count pedcal-events
+    return;//PedCal exit with stat=1(bad) to bypass next reco-stages !!!
+  }
   else if(pedrun){
     cerr<<"AMSEcalRawEvent::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
     exit(2);
@@ -536,7 +549,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   integer ftmsk=prjmsk%100;//(ki->yx)proj.mask for FT-check
   if(orand==1){//<-OR 
     if((nprx>=nlmin && ftmsk%10==1) || (npry>=nlmin && ftmsk/10==1)){
-      trflen=3;//ElectroMagneticityFound( =FastTrigger)
+      trflen=2;//ElectroMagneticityFound( =FastTrigger)
       trigconf=10;
       EcalJobStat::addsr(3);
     }
@@ -603,7 +616,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
     }
     else{//<-AND 
       if((dbxm<wdxcut && l1msk%10==1) && (dbym<wdycut && l1msk/10==1)){
-        trflwd=2;//EM
+        trflwd=3;//EM
 	trigconf+=2;
         EcalJobStat::addsr(4);
       }
@@ -2034,7 +2047,10 @@ void AMSEcalShower::EnergyFit(){
  _DeadLeak=0;
  _RearLeak=0;
  _OrpLeak=0;
+ _Nhits=0;
  
+  Ecal1DCluster *p1cl;
+  integer n1cl; 
 
   for (int proj=0;proj<_N2dCl;proj++){
     energy+=_pCl[proj]->_Energy;   
@@ -2048,7 +2064,14 @@ void AMSEcalShower::EnergyFit(){
 //
    _DeadLeak+=_pCl[proj]->_DeadLeak;
    _OrpLeak+=_pCl[proj]->_OrpLeak;
+   
+   n1cl=_pCl[proj]->getNClust();
+   for(int ic=0;ic<n1cl;ic++){
+     p1cl=_pCl[proj]->getpClust(ic);
+     _Nhits+=p1cl->getNHits();
+   }
   }
+//
   if(energy){
    _Energy3C/=energy;
    _Energy5C/=energy;
@@ -2143,7 +2166,7 @@ void AMSEcalShower::EnergyFit(){
     number alpha=1-_Edep[Maxrow-1]*ECREFFKEY.SimpleRearLeak[2];
     if(alpha<=0){
      setstatus(AMSDBc::CATLEAK);
-     EcalJobStat::addre(5);
+     EcalJobStat::addre(10);
 #ifdef __AMSDEBUG__
      cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<_Edep[Maxrow-1]<<endl;
 #endif

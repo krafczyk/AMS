@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.22 2008/02/13 14:07:06 choumilo Exp $
+//  $Id: trigger102.h,v 1.23 2008/06/26 09:30:00 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -119,6 +119,7 @@ protected:
 // 
  integer _PhysBPatt;//LVL1 Phys. Branches Pattern(bits 0-7)(unbiased,p,Ion,SlowIon,e,gamma, etc)
  integer _JMembPatt;//LVL1 Joined Members Pattern(bits 1-16)(FTC,FTZ,FTE,ACC0,ACC1,BZ,ECAL-F_and,...)
+ integer _AuxTrigPatt;//Aux.Trig. members pattern (LA1/2,DSP,Int)
  integer _tofflag1;//Tof-layers contrib. in FTC(z>=1) (<0/0/1/2...=>none/all4/miss.layer#)  
  integer _tofflag2;//Tof-layers contrib. in BZ(z>=2) (<0/0/1/2...=>none/all4/miss.layer#)  
  integer _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=1(when globFT)
@@ -140,11 +141,12 @@ public:
  static ScalerMon scalmon;//current scalers values
  static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  
- Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer toffl1,integer toffl2, 
+ Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer auxtrpat, integer toffl1,integer toffl2, 
               integer tofpatt1[],integer tofpatt2[], integer antipatt, integer ecflg,
-                    int16u ectrpatt[6][3], geant ectrsum, geant LiveTime, geant rates[],uinteger trt[]):
-      _PhysBPatt(PhysBPatt),_JMembPatt(JMembPatt),_tofflag1(toffl1),_tofflag2(toffl2),
-               _antipatt(antipatt),_ecalflag(ecflg),_ectrsum(ectrsum),_LiveTime(LiveTime){
+                int16u ectrpatt[6][3], geant ectrsum, geant LiveTime, geant rates[],uinteger trt[]):
+      _PhysBPatt(PhysBPatt),_JMembPatt(JMembPatt),_AuxTrigPatt(auxtrpat),_tofflag1(toffl1),
+      _tofflag2(toffl2),_antipatt(antipatt),_ecalflag(ecflg),_ectrsum(ectrsum),_LiveTime(LiveTime)
+ {
    int i,j;
    for(i=0;i<TOF2GC::SCLRS;i++)_tofpatt1[i]=tofpatt1[i];
    for( i=0;i<TOF2GC::SCLRS;i++)_tofpatt2[i]=tofpatt2[i];
@@ -152,12 +154,13 @@ public:
    for(i=0;i<6;i++)_TrigRates[i]=rates[i];
    for(i=0;i<5;i++)_TrigTime[i]=trt[i];
  }
- bool IsECHighEnergy()const {return _ecalflag/10>2;}
- bool IsECEMagEnergy()const {return _ecalflag%10==2;}
+ bool IsECHighEnergy()const {return _ecalflag/10>=2;}
+ bool IsECEMagEnergy()const {return _ecalflag%10>=2;}
  bool GlobFasTrigOK(){return ((_JMembPatt&1)>0 || (_JMembPatt&(1<<5))>0 || (_JMembPatt&(1<<6))>0);}
  bool TofFasTrigOK(){return ((_JMembPatt&1)>0 || (_JMembPatt&(1<<5))>0);}
  bool EcalFasTrigOK(){return ((_JMembPatt&(1<<6))>0);}
  bool ExternTrigOK(){return ((_JMembPatt&(1<<14))>0);}
+ bool AuxTrigOK(int i){return ((_AuxTrigPatt&(1<<i))>0);}
   static Scalers * getscalersp(){return &_scaler;}
   static integer getscalerssize(){return sizeof(_scaler);}
   geant getlivetime () const {return _LiveTime;}
@@ -213,7 +216,7 @@ private:
 //          i=7 =>
 //         i=15 => HW-created LVL1 found
 // 
-  static integer daqc1[35];//daq-decoding counters
+  static integer daqc1[40];//daq-decoding counters
 //            i=0 -> LVL1-segment entries
 //             =1 -> ............ non empty
 //             =2 -> ............ with a-side 
@@ -233,11 +236,13 @@ private:
 //             =20/23-> format-types entries
 //             =24-> nonDATA segments
 //             =25/31-> reply status bits
-//
+//             =32/33-> empty trig.patt
+//             =34-> non-empty AuxTrigPatt
+//             =35-39
 public:
   inline static void resetstat(){
     for(int i=0;i<20;i++)countev[i]=0;
-    for(int i=0;i<35;i++)daqc1[i]=0;
+    for(int i=0;i<40;i++)daqc1[i]=0;
   }
   inline static void addev(int i){
     assert(i>=0 && i< 20);
@@ -245,7 +250,7 @@ public:
   }
   static void daqs1(integer info){
 #ifdef __AMSDEBUG__
-      assert(info>=0 && info<35 );
+      assert(info>=0 && info<40 );
 #endif
     daqc1[info]+=1;
   }

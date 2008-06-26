@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.52 2008/06/06 13:11:33 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.53 2008/06/26 09:29:50 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -165,22 +165,18 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     }
     
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
+      cout <<"<------ TOFGeom-I-AMS02 setup selected."<<endl;
       if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
         cout <<"      TOFGeom-I-TOF:12PAD setup selected."<<endl;
         strcat(name,vers1);
 	TFCAFFKEY.cfvers=0;//reset vers.numb. to 0 for old(12pads) setup
       }
-      else if(strstr(AMSJob::gethead()->getsetup(),"TOF:011207")){//old pos of TOF-planes
-        cout <<"      CleanRoomSetup since 01.12.07(old TOF-pos) "<<endl;
+      else if(strstr(AMSJob::gethead()->getsetup(),"TOF:010908")){//new pos of TOF-planes
+        cout <<"      CleanRoomSetup since 01.09.08(new TOF-pos) "<<endl;
         strcat(name,vers2);
       }
-      else if(strstr(AMSJob::gethead()->getsetup(),"TOF:210508")){//new pos of TOF-planes
-        cout <<"      CleanRoomSetup since 21.05.08(new TOF-pos) "<<endl;
-        strcat(name,vers3);
-      }
       else{
-        cout <<"      CleanRoomSetup Default(old TOF-pos) "<<endl;
+        cout <<"      CleanRoomSetup Default(01.12.07 TOF-pos) "<<endl;
         strcat(name,vers2);
       }
     }
@@ -1973,9 +1969,9 @@ void TOF2JobStat::printstat(){
   
   
   printf(" RECO-entries                               : % 6d\n",recount[0]);
-  printf("   FT-components(Tof|Ec|Ext) at Lev1 OK     : % 6d\n",recount[1]);
-  printf("   FT with TOF flag                         : % 6d\n",recount[5]);
-  printf("   FT with only ECAL flag                   : % 6d\n",recount[6]);
+  printf("   GlobFT(FTC|FTZ|FTE|Ext) found at LVL1    : % 6d\n",recount[1]);
+  printf("   TOF_FT(FTC|FTZ) found ...............    : % 6d\n",recount[5]);
+  printf("   NoTOF_FT but ECAL_FT(FTE) found .....    : % 6d\n",recount[6]);
   printf("   RawSide-validation OK                    : % 6d\n",recount[2]);
   printf("   RawSide->RawCluster  OK                  : % 6d\n",recount[3]);
   printf("   RawCluster->Cluster OK                   : % 6d\n",recount[4]);
@@ -2483,7 +2479,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,1.,1001.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,2400.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,400.,0.);
-//    HBOOK1(1103,"Time_history: TovT(ns)",80,0.,120.,0.);
+//      HBOOK1(1116,"FTtime-diff,slot-by-slot",80,-10.,10.,0.);
     HBOOK1(1104,"Anode-adc signals(id=104,s1)",100,0.,1000.,0.);
     HBOOK1(1105,"Dynode(pm)-adc signals(id=104,s1)",100,0.,200.,0.);
     HBOOK1(1108,"SumHTtime-channel hits multiplicity(all chan)",20,0.,20.,0.);

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.39 2008/04/22 11:38:01 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.40 2008/06/26 09:30:00 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -109,7 +109,8 @@ private:
   static integer recount[ecalconst::ECJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 ->
-//          i=5 -> CatastrRearLeak detected 
+//          i=10 -> CatastrRearLeak detected
+//          i=20 -> Pedcal-events 
   static integer cacount[ecalconst::ECJSTA];// event passed CALIB-cut "i"
 //          i=0 -> entries
 //          i=1 ->
@@ -239,6 +240,7 @@ private:
   geant _fastf;// percentage of short comp.
 public:
   static ECcalib ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
+  static uinteger CFlistC[7];//Cflist-file content
   ECcalib(){};
   ECcalib(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
        geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):

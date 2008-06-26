@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.66 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.67 2008/06/26 09:29:50 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -14,6 +14,7 @@
 //
 using namespace ecalconst;
 ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.
+uinteger ECcalib::CFlistC[7]; 
 ECcalibMS ECcalibMS::ecpmcal[ECSLMX][ECPMSMX];// the same for MC-Seeds params
 ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
 ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
@@ -594,38 +595,44 @@ void EcalJobStat::printstat(){
 //
   if(MISCFFKEY.dbwrbeg>0)return;//dbwriter job, don't need statistics print
 //
-  printf(" MC: entries                       : % 6d\n",mccount[0]);
-  printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
-  printf(" MCTrigBuild: entries              : % 6d\n",srcount[0]);
-  printf("              Etot>=MIP            : % 6d\n",srcount[1]);
-  printf("              Mult>=Low            : % 6d\n",srcount[2]);
-  printf("              Mult>=EM(FT OK)      : % 6d\n",srcount[3]);
-  printf("              Angle(whenFT) OK     : % 6d\n",srcount[4]);
-  printf(" RECO-entries                      : % 6d\n",recount[0]);
-  printf(" LVL1-trigs(TOF-FT || EC-FT || Ext): % 6d\n",recount[1]);
-  printf(" Validation OK                     : % 6d\n",recount[2]);
-  printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
-  printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
-  printf(" CatastrRearLeak detected          : % 6d\n",recount[5]);
+  printf(" MC: entries                          : % 6d\n",mccount[0]);
+  printf(" MC: MCHit->RawEven(ECTrigfl>0) OK    : % 6d\n",mccount[1]);
+  printf(" MCTrigBuild: entries                 : % 6d\n",srcount[0]);
+  printf("              Etot>=MIP               : % 6d\n",srcount[1]);
+  printf("              Mult>=Low               : % 6d\n",srcount[2]);
+  printf("              Mult>=EM(FT OK)         : % 6d\n",srcount[3]);
+  printf("              Angle(whenFT) OK        : % 6d\n",srcount[4]);
+  printf(" RECO-entries                         : % 6d\n",recount[0]);
+  printf(" GlobFT(FTC|FTZ|FTE|Ext) found at LVL1: % 6d\n",recount[1]);
+  printf(" ECAL_FT(FTE) found at LVL1           : % 6d\n",recount[2]);
+  printf(" TOF_FT & ECAL_FT(FTE) found at LVL1  : % 6d\n",recount[3]);
+  printf(" Validation: LVL1 OK                  : % 6d\n",recount[7]);
+  printf(" Validation: EC_FT OK                 : % 6d\n",recount[8]);
+  printf(" Validation: ECFlg>0                  : % 6d\n",recount[9]);
+  printf(" Validation OK                        : % 6d\n",recount[4]);
+  printf(" RawEvent->EcalHit OK                 : % 6d\n",recount[5]);
+  printf(" EcalHit->EcalCluster OK              : % 6d\n",recount[6]);
+  printf(" CatastrRearLeak detected             : % 6d\n",recount[10]);
   number rrr(0);
-  if(recount[3]>0)rrr=number(srcount[10])/number(recount[3]);
+  if(recount[5]>0)rrr=number(srcount[10])/number(recount[5]);
   printf(" Saturated PMTs per EcalHitOK-event: % 6.4f\n",rrr);
   printf("\n\n");
   if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){
-    printf("    ============== RLGA/FIAT part of REUN_Clibration-statistics ===============\n");
+    printf("    ============== RLGA/FIAT part of REUN_Calibration-statistics ===============\n");
     printf("\n");
-    printf(" REUN: entries(tof/ec_trigflag OK) : % 6d\n",cacount[0]);
-    printf(" REUN: Track found                 : % 6d\n",cacount[1]);
-    printf(" REUN: Track charge OK             : % 6d\n",cacount[2]);
-    printf(" REUN: Track quality OK            : % 6d\n",cacount[3]);
-    printf(" REUN: Track hits EC               : % 6d\n",cacount[4]);
-    printf(" REUN: Recognized as PunchTrough   : % 6d\n",cacount[5]);
-    printf(" REUN: Etruncated in limits        : % 6d\n",cacount[6]);
-    printf(" REUN: At least one PM matched     : % 6d\n",cacount[7]);
+    printf(" REUN: entries(tof/ec_trigflag OK)   : % 6d\n",cacount[0]);
+    printf(" REUN: TrkTrack found                : % 6d\n",cacount[1]);
+    printf(" REUN: Track charge OK               : % 6d\n",cacount[2]);
+    printf(" REUN: Track quality OK              : % 6d\n",cacount[3]);
+    printf(" REUN: Track hits EC                 : % 6d\n",cacount[4]);
+    printf(" REUN: Nhits match PunchTrough       : % 6d\n",cacount[9]);
+    printf(" REUN: Pix/Planes Edep/pattern OK    : % 6d\n",cacount[5]);
+    printf(" REUN: Finally selected(Etrunc=Pr/He): % 6d\n",cacount[6]);
+    printf(" REUN: Used by Calib(>=1 PMs matched): % 6d\n",cacount[7]);
     printf("\n\n");
   }
   if(ECREFFKEY.relogic[1]==3){
-    printf("    ============== ANOR part of REUN_Clibration-statistics ===============\n");
+    printf("    ============== ANOR part of REUN_Calibration-statistics ===============\n");
     printf("\n");
     printf(" REUN: entries(tof/ec_trigflag OK) : % 6d\n",cacount[0]);
     printf(" REUN: ANTI OK                     : % 6d\n",cacount[1]);
@@ -638,6 +645,11 @@ void EcalJobStat::printstat(){
     printf(" REUN: Plane1/6 Ebcg/Esig OK       : % 6d\n",cacount[8]);
     printf("\n\n");
   }
+  if(ECREFFKEY.relogic[1]==5){
+    printf("    ============== DownScaledEvents PedCalibration-statistics ===============\n");
+    printf(" Selected events                   : % 6d\n",recount[20]);
+  }
+  printf("    ===========================================================================\n");
 //
 }
 //------------------------------------------
@@ -652,7 +664,7 @@ void EcalJobStat::bookhist(){
   maxsl=ECSLMX;
   strcpy(inum,"0123456789");
     if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
-      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.numner",80,0.,240.,0.);
+      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,240.,0.);
       HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
       HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,500.,0.);
       HBOOK1(ECHISTR+13,"ECRE::HitBuild: EcalHit-hits tot.number",80,0.,160.,0.);
@@ -671,9 +683,9 @@ void EcalJobStat::bookhist(){
 //      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
 //      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);//not implemented
 //      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
-      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(validate,whenLVL1)",120,1.,121.,0.);
-      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(validate,whenLVL1)",120,1.,121.,0.);
-      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate,whenLVL1)",40,0.,40.,0.);
+      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(when ECTrigFlg!=0,valid-stage)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(when ECTrigFlg!=0,valid-stage)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+30,"ECRE: ECTrigger flag(when ECTrigFlg!=0,valid-stage)",40,0.,40.,0.);
       HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,100000.,0.);
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
@@ -709,41 +721,43 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+66,"DAQ: swid(LPP)=218, A3_log(adcch)",80,-10.,790.,0.);
       HBOOK1(ECHISTR+67,"DAQ: swid(LPP)=218, A4_log(adcch)",80,-10.,790.,0.);
       HBOOK1(ECHISTR+68,"DAQ: swid(LPP)=218, Dyn(adcch)",80,-10.,790.,0.);
-      HBOOK1(ECHISTR+70,"DAQ: ComprFMT EDR-length, Crate_1/Slot_1",50,0.,50.,0.);
-      HBOOK1(ECHISTR+71,"DAQ: ComprFMT EDR-length, Crate_1/Slot_2",50,0.,50.,0.);
-      HBOOK1(ECHISTR+72,"DAQ: ComprFMT EDR-length, Crate_1/Slot_3",50,0.,50.,0.);
-      HBOOK1(ECHISTR+73,"DAQ: ComprFMT EDR-length, Crate_1/Slot_4",50,0.,50.,0.);
-      HBOOK1(ECHISTR+74,"DAQ: ComprFMT EDR-length, Crate_1/Slot_5",50,0.,50.,0.);
-      HBOOK1(ECHISTR+75,"DAQ: ComprFMT EDR-length, Crate_1/Slot_6",50,0.,50.,0.);
-      HBOOK1(ECHISTR+76,"DAQ: ComprFMT EDR-length, Crate_2/Slot_1",50,0.,50.,0.);
-      HBOOK1(ECHISTR+77,"DAQ: ComprFMT EDR-length, Crate_2/Slot_2",50,0.,50.,0.);
-      HBOOK1(ECHISTR+78,"DAQ: ComprFMT EDR-length, Crate_2/Slot_3",50,0.,50.,0.);
-      HBOOK1(ECHISTR+79,"DAQ: ComprFMT EDR-length, Crate_2/Slot_4",50,0.,50.,0.);
-      HBOOK1(ECHISTR+80,"DAQ: ComprFMT EDR-length, Crate_2/Slot_5",50,0.,50.,0.);
-      HBOOK1(ECHISTR+81,"DAQ: ComprFMT EDR-length, Crate_2/Slot_6",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+70,"DAQ: ComprFMT EDR-length, Crate_1/Slot_1",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+71,"DAQ: ComprFMT EDR-length, Crate_1/Slot_2",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+72,"DAQ: ComprFMT EDR-length, Crate_1/Slot_3",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+73,"DAQ: ComprFMT EDR-length, Crate_1/Slot_4",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+74,"DAQ: ComprFMT EDR-length, Crate_1/Slot_5",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+75,"DAQ: ComprFMT EDR-length, Crate_1/Slot_6",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+76,"DAQ: ComprFMT EDR-length, Crate_2/Slot_1",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+77,"DAQ: ComprFMT EDR-length, Crate_2/Slot_2",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+78,"DAQ: ComprFMT EDR-length, Crate_2/Slot_3",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+79,"DAQ: ComprFMT EDR-length, Crate_2/Slot_4",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+80,"DAQ: ComprFMT EDR-length, Crate_2/Slot_5",50,0.,50.,0.);
+//      HBOOK1(ECHISTR+81,"DAQ: ComprFMT EDR-length, Crate_2/Slot_6",50,0.,50.,0.);
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
+	HBOOK1(ECHISTC+37,"ECCA: Total hits(above thr)",100,0.,100.,0.);
+	HBOOK1(ECHISTC+38,"ECCA: Total hits(above thr, when Trk hits EC)",100,0.,100.,0.);
         HBOOK1(ECHISTC+1,"ECCA: Track Imp.point X, SL1",70,-70.,70.,0.);
         HBOOK1(ECHISTC+2,"ECCA: Track Imp.point Y, SL1",70,-70.,70.,0.);
-        HBOOK1(ECHISTC+3,"ECCA: PM-Track Transv-dist,SL1",50,-5.,5.,0.);
-        HBOOK1(ECHISTC+4,"ECCA: PM-Track Transv-dist,SL2",50,-5.,5.,0.);
-        HBOOK1(ECHISTC+5,"ECCA: PM-Track Longit-dist,SL1,PM18 ",70,0.,70.,0.);
-        HBOOK1(ECHISTC+6,"ECCA: Track-fit Chi2 ",80,0.,20.,0.);
+//        HBOOK1(ECHISTC+3,"ECCA: PMCell-Track Transv-dist,SL1",50,-5.,5.,0.);
+//        HBOOK1(ECHISTC+4,"ECCA: PMCell-Track Transv-dist,SL2",50,-5.,5.,0.);
+        HBOOK1(ECHISTC+5,"ECCA: PMT-to-TrkCrossPoint(longit) distance(SL1,PM18) ",70,0.,70.,0.);
+        HBOOK1(ECHISTC+6,"ECCA: Track-fit Chi2 ",80,0.,400.,0.);
 //    hist # +7 is booked inside mfit !!!
         HBOOK1(ECHISTC+8,"ECCA: SubCell Efficiency",50,0.2,1.2,0.);
-        HBOOK1(ECHISTC+9,"ECCA: SubCell RelativeGain",50,0.5,1.5,0.);
+        HBOOK1(ECHISTC+9,"ECCA: SubCell RelativeGain",50,0.1,2.1,0.);
         HBOOK1(ECHISTC+10,"ECCA: RefPmResp. uniformity",ECCLBMX,1.,geant(ECCLBMX+1),0.);
-        HBOOK1(ECHISTC+11,"ECCA: PM relat.gains",100,0.5,1.5,0.);
+        HBOOK1(ECHISTC+11,"ECCA: PM relat.gains",100,0.,2.,0.);
         HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,0.,100.,0.);
         HBOOK1(ECHISTC+13,"ECCA: PM-RelGain L-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-	HMINIM(ECHISTC+13,0.9);
-	HMAXIM(ECHISTC+13,1.1);
-        HBOOK1(ECHISTC+14,"ECCA: SubCell Efficiency L-profile",maxpl,1.,geant(maxpl+1),0.);
+	HMINIM(ECHISTC+13,0.5);
+	HMAXIM(ECHISTC+13,1.5);
+        HBOOK1(ECHISTC+14,"ECCA: Pixel Efficiency L-profile",maxpl,1.,geant(maxpl+1),0.);
         HBOOK1(ECHISTC+15,"ECCA: PM Eff vs SL(full fib.length)",maxsl,1.,geant(maxsl+1),0.);
 	if(ECCAFFKEY.truse==1){//He4
 	  HMINIM(ECHISTC+14,0.8);
-	  HMAXIM(ECHISTC+14,1.);
+	  HMAXIM(ECHISTC+14,1.1);
 	  HMINIM(ECHISTC+15,0.85);
 	  HMAXIM(ECHISTC+15,1.05);
 	}
@@ -753,27 +767,27 @@ void EcalJobStat::bookhist(){
 	  HMINIM(ECHISTC+15,0.5);
 	  HMAXIM(ECHISTC+15,1.1);
 	}
-        HBOOK1(ECHISTC+16,"ECCA: Edep/SLayer(PunchThrough,mev)",100,0.,200.,0.);
-        HBOOK1(ECHISTC+17,"ECCA: Bad(non PunchThrough) scLayers",maxpl+1,0.,geant(maxpl+1),0.);
+        HBOOK1(ECHISTC+16,"ECCA: TruncAverage  Edep/SLayer(PunchThrough,mev)",100,0.,200.,0.);
+        HBOOK1(ECHISTC+17,"ECCA: Bad(non PunchThrough) PixLayers/event",maxpl+1,0.,geant(maxpl+1),0.);
         HBOOK1(ECHISTC+18,"ECCA: SLayerEdep prof(punch-through)",maxsl,1.,geant(maxsl+1),0.);
-	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",80,20.,260.,30,0.,30.,0.);
-        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",80,8.,24.,0.);
+	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",80,10.,330.,30,0.,30.,0.);
+        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",80,8.,48.,0.);
         HBOOK1(ECHISTC+21,"ECCA: Offs(h2lcalib,all chan)",80,-40.,40.,0.);
-        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",80,0.,8.,0.);
-        HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS/Aver(h2lcalib,all chan)",80,0.,1.,0.);
-        HBOOK1(ECHISTC+24,"ECCA: EcalHit Energy(in adc-units)",100,0.,100.,0.);
-        HBOOK1(ECHISTC+25,"ECCA: Fired(above thr) SubCells/Layer",80,0.,80.,0.);
-        HBOOK1(ECHISTC+26,"ECCA: SubCell eff(even SL) ",80,0.5,1.3,0.);
-        HBOOK1(ECHISTC+27,"ECCA: SubCell eff( odd SL) ",80,0.5,1.3,0.);
-        HBOOK1(ECHISTC+28,"ECCA: SL number(punch-through)",maxsl,1.,geant(maxsl+1),0.);
-        HBOOK1(ECHISTC+29,"ECCA: PM spectrum(trk-matched,X-pr)",100,0.,100.,0.);
-        HBOOK1(ECHISTC+30,"ECCA: PM spectrum(trk-matched,Y-pr)",100,0.,100.,0.);
-        HBOOK1(ECHISTC+31,"ECCA: PM eff(even SL) ",80,0.5,1.3,0.);
-        HBOOK1(ECHISTC+32,"ECCA: PM eff( odd SL) ",80,0.5,1.3,0.);
+        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",80,0.,20.,0.);
+        HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS/Aver(h2lcalib,all chan)",80,0.,0.5,0.);
+        HBOOK1(ECHISTC+24,"ECCA: EcalHit(pix) Energy(in adc-units)",100,0.,100.,0.);
+        HBOOK1(ECHISTC+25,"ECCA: Fired(above thr) Pixels/PixLayer",80,0.,80.,0.);
+        HBOOK1(ECHISTC+26,"ECCA: Pixel eff(even SL) ",80,0.5,1.3,0.);
+        HBOOK1(ECHISTC+27,"ECCA: Pixel eff( odd SL) ",80,0.5,1.3,0.);
+        HBOOK1(ECHISTC+28,"ECCA: SuperLayers visibility(fired,punch-through)",maxsl,1.,geant(maxsl+1),0.);
+        HBOOK1(ECHISTC+29,"ECCA: PMT(4pix) spectrum(trk-matched pixels,X-prj,adc)",100,0.,600.,0.);
+        HBOOK1(ECHISTC+30,"ECCA: PMT(4pix) spectrum(trk-matched pixels,Y-prj,adc)",100,0.,400.,0.);
+        HBOOK1(ECHISTC+31,"ECCA: PM eff(even SL) ",100,0.2,1.2,0.);
+        HBOOK1(ECHISTC+32,"ECCA: PM eff( odd SL) ",100,0.2,1.2,0.);
 // test	HBOOK1(ECHISTC+33,"ECCA: TRK imppoint X-accur",60,-0.3,0.3,0.); 
 // test	HBOOK1(ECHISTC+34,"ECCA: TRK imppoint Y-accur",60,-0.3,0.3,0.); 
         HBOOK1(ECHISTC+35,"ECCA: Track beta",96,-1.2,1.2,0.);
-	HBOOK1(ECHISTC+36,"ECCA: Track Z (from tracker)",16,0.,16.,0.);
+	HBOOK1(ECHISTC+36,"ECCA: Track Z(charge) (from tracker)",16,0.,16.,0.);
       }
       if(ECREFFKEY.relogic[1]==3){// =====> ANOR part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -992,47 +1006,49 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+66);
       HPRINT(ECHISTR+67);
       HPRINT(ECHISTR+68);
-      for(int i=0;i<12;i++)HPRINT(ECHISTR+70+i);
+//      for(int i=0;i<12;i++)HPRINT(ECHISTR+70+i);
     }
     if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
-      HPRINT(ECHISTC);
+      HPRINT(ECHISTC+12);
       HPRINT(ECHISTC+6);
       HPRINT(ECHISTC+35);
       HPRINT(ECHISTC+36);
-      HPRINT(ECHISTC+1);
-      HPRINT(ECHISTC+2);
-      HPRINT(ECHISTC+3);
-      HPRINT(ECHISTC+4);
-      HPRINT(ECHISTC+5);
-      ECREUNcalib::mfit();
-      HPRINT(ECHISTC+8);
-      HPRINT(ECHISTC+9);
-//      HPRINT(ECHISTC+10);//already printed inside mfit
-      HPRINT(ECHISTC+11);
-      HPRINT(ECHISTC+12);
-      HPRINT(ECHISTC+13);
-      HPRINT(ECHISTC+14);
-      HPRINT(ECHISTC+15);
-      HPRINT(ECHISTC+16);
+      HPRINT(ECHISTC);
+      HPRINT(ECHISTC+37);
+      HPRINT(ECHISTC+38);
+      HPRINT(ECHISTC+24);
+      HPRINT(ECHISTC+25);
       HPRINT(ECHISTC+17);
+      HPRINT(ECHISTC+28);
       for(int i=0;i<ECSLMX;i++){
         if(nprofac[i]>0)rzprofac[i]=geant(zprofac[i]/nprofac[i]);
 	else rzprofac[i]=0;
       }
       HPAK(ECHISTC+18,rzprofac);
       HPRINT(ECHISTC+18);
-      HPRINT(ECHISTC+28);
+      HPRINT(ECHISTC+16);
+      HPRINT(ECHISTC+1);
+      HPRINT(ECHISTC+2);
+//      HPRINT(ECHISTC+3);
+//      HPRINT(ECHISTC+4);
+      HPRINT(ECHISTC+5);
+      HPRINT(ECHISTC+29);
+      HPRINT(ECHISTC+30);
+      ECREUNcalib::mfit();//fits/write files
+      HPRINT(ECHISTC+8);
+      HPRINT(ECHISTC+9);
+//      HPRINT(ECHISTC+10);//already printed inside mfit
+      HPRINT(ECHISTC+11);
+      HPRINT(ECHISTC+13);
+      HPRINT(ECHISTC+14);
+      HPRINT(ECHISTC+15);
       HPRINT(ECHISTC+19);
       HPRINT(ECHISTC+20);
       HPRINT(ECHISTC+21);
       HPRINT(ECHISTC+22);
       HPRINT(ECHISTC+23);
-      HPRINT(ECHISTC+24);
-      HPRINT(ECHISTC+25);
       HPRINT(ECHISTC+26);
       HPRINT(ECHISTC+27);
-      HPRINT(ECHISTC+29);
-      HPRINT(ECHISTC+30);
       HPRINT(ECHISTC+31);
       HPRINT(ECHISTC+32);
 // test      HPRINT(ECHISTC+33);
@@ -1171,7 +1187,7 @@ void EcalJobStat::outp(){
 	HPRINT(ECHISTC+132);
 	HPRINT(ECHISTC+133);
       }
-      ECREUNcalib::mfite();
+      ECREUNcalib::mfite();//for Anor-calib
     }
 }
 //----------------------------
@@ -1273,7 +1289,9 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   vlfile >> ntypes;// total number of calibr. file types in the list
   for(i=0;i<ntypes;i++){
     vlfile >> verids[i];
+    CFlistC[i+1]=verids[i]; 
   }
+  CFlistC[0]=ntypes;
 //
   if(AMSJob::gethead()->isMCData()){
     vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
@@ -1293,13 +1311,17 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
     begin.tm_year=year-1900;
     utct=mktime(& begin);
     iutct=uinteger(utct);
-    cout<<"      TofCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"      EcalCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
     cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
     cout<<"                                         UTC-time = "<<iutct<<endl;
+    CFlistC[ntypes+1]=ECMCFFKEY.calvern;
+    CFlistC[ntypes+2]=date[0];
+    CFlistC[ntypes+3]=date[1];
   }
   else{
     utct=time_t(TFREFFKEY.calutc);
-    printf("      TofCflistRD-file begin_date: %s",ctime(&utct)); 
+    printf("      EcalCflistRD-file begin_date: %s",ctime(&utct)); 
+    CFlistC[ntypes+1]=ECREFFKEY.calutc;
   }
 //
   vlfile.close();

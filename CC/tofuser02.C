@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.26 2008/06/06 13:11:33 choumilo Exp $
+//  $Id: tofuser02.C,v 1.27 2008/06/26 09:29:51 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -565,8 +565,7 @@ Nextp:
       if(ib>0 && (ib+1)<TOF2DBc::getbppl(il))barw=TOF2DBc::plnstr(5);//stand.(not outer) bar width
       else barw=TOF2DBc::outcp(il,1);//outer counter width
       dtcut=barw/2+0.25;
-      if(ib==0 || ib==(TOF2DBc::getbppl(il)-1))TofWithExtPad=true;//found outer counters in track
-      dtcut=6;
+//      if(ib==0 || ib==(TOF2DBc::getbppl(il)-1))TofWithExtPad=true;//found outer counters in track
       zc[il]=TOF2DBc::getzsc(il,ib);
       C0[2]=zc[il];
       ptrack->interpolate(C0,dir,Cout,the,phi,trl);
@@ -611,7 +610,7 @@ Nextp:
 //===================================
 //
 // some test for t-resolution:
-//
+/*
     trle[0]=0.;
     trle[1]=trlr[0]-trlr[1];//1->2(!!! because my trle is abs of VC'trl("0"<"1"<0; 0<"2"<"3"))
     tdif[0]=0;
@@ -620,7 +619,7 @@ Nextp:
     if(brnl[0]==3 && brnl[1]==3)HF1(1521,geant(tdif[1]),1.);
     if(brnl[0]==3 && brnl[1]==4)HF1(1522,geant(tdif[1]),1.);
     if(brnl[0]==3 && brnl[1]==5)HF1(1523,geant(tdif[1]),1.);
-//
+*/
 //==================================> Private Beta-fit using TofClusters and TRK-track length :
 //
 //  if(TofClOneMem){//only for all 4 TofClusters with 1memb/layer
@@ -772,10 +771,10 @@ void TOF2User::InitJob(){
     HBOOK1(1517,"TofUser:Number of Sectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
     HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
     
-    HBOOK1(1520,"L1/L2 raw time diff(cos-corrected),B4/B3",60,0.,6.,0.);
-    HBOOK1(1521,"L1/L2 raw time diff(cos-corrected),B4/B4",60,0.,6.,0.);
-    HBOOK1(1522,"L1/L2 raw time diff(cos-corrected),B4/B5",60,0.,6.,0.);
-    HBOOK1(1523,"L1/L2 raw time diff(cos-corrected),B4/B6",60,0.,6.,0.);
+//    HBOOK1(1520,"L1/L2 raw time diff(cos-corrected),B4/B3",60,0.,6.,0.);
+//    HBOOK1(1521,"L1/L2 raw time diff(cos-corrected),B4/B4",60,0.,6.,0.);
+//    HBOOK1(1522,"L1/L2 raw time diff(cos-corrected),B4/B5",60,0.,6.,0.);
+//    HBOOK1(1523,"L1/L2 raw time diff(cos-corrected),B4/B6",60,0.,6.,0.);
     
     HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
     HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
@@ -930,7 +929,8 @@ void TOF2User::EndJob(){
   HPRINT(1514);
   HPRINT(1517);
   HPRINT(1515);
-//----  
+//----
+/*  
   par[0]=200.;//evs in max
   par[1]=2.5;//most prob
   par[2]=0.3;//rms
@@ -998,7 +998,7 @@ void TOF2User::EndJob(){
   cout<<endl<<endl;
   cout<<" L1/L2-time fit: Mp/rms="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
   HPRINT(1523);
-  
+*/  
   HPRINT(1519);
   HPRINT(1507);
   HPRINT(1508);

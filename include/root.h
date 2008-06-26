@@ -435,6 +435,7 @@ public:
   float ParProfile[4]; ///< normalization, shower max (cm), rad length, rel rear leak ) for profile fit
   float Chi2Trans;     ///< chi2 transverse fit (sum of two exp)
   float SphericityEV[3]; ///< sphericity tensor eigen values
+  int Nhits;
 
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
@@ -453,7 +454,7 @@ public:
   /// \param number index in container
   /// \return human readable info about EcalShowerR
   char * Info(int number=-1){
-    sprintf(_Info,"EcalShower No %d Energy=%7.3g#pm%5.2g  #theta=%4.2f #phi=%4.2f Coo=(%5.2f,%5.2f,%5.2f) #chi^{2}=%7.3g Asymm=%4.2f Leak_{Side,Rear,Dead,Att,NonLin,Orp}=(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f) Max=%4.2f",number, EnergyC,ErEnergyC,acos(Dir[2]),atan2(Dir[1],Dir[0]),CofG[0],CofG[1],CofG[2],Chi2Dir,DifoSum,SideLeak,RearLeak,DeadLeak,AttLeak,NLinLeak,Orp2DEnergy/(EnergyC+1e-10),ParProfile[1]);
+    sprintf(_Info,"EcalShower No %d NHits %d Energy=%7.3g#pm%5.2g  #theta=%4.2f #phi=%4.2f Coo=(%5.2f,%5.2f,%5.2f) #chi^{2}=%7.3g Asymm=%4.2f Leak_{Side,Rear,Dead,Att,NonLin,Orp}=(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f) Max=%4.2f",number,Nhits, EnergyC,ErEnergyC,acos(Dir[2]),atan2(Dir[1],Dir[0]),CofG[0],CofG[1],CofG[2],Chi2Dir,DifoSum,SideLeak,RearLeak,DeadLeak,AttLeak,NLinLeak,Orp2DEnergy/(EnergyC+1e-10),ParProfile[1]);
   return _Info;
   } 
 
@@ -464,7 +465,7 @@ friend class AMSEcalShower;
 friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,1)       //EcalShowerR
+ClassDef(EcalShowerR,2)       //EcalShowerR
 
 };
 
@@ -1210,8 +1211,8 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 
 class Level1R {
 static char _Info[255];
- bool IsECHighMultipl()const {return EcalFlag/10>2;}
- bool IsECShowAngleOK()const {return EcalFlag%10==2;}
+ bool IsEcalFtrigOK()const {return (EcalFlag/10)>=2;}
+ bool IsEcalLev1OK()const {return (EcalFlag%10)>1;}
 public:
   int   PhysBPatt;   ///< 8 lsbits-> pattern of LVL1 sub-triggers ("predefined physics" branches) 
                     /*!<        LVL1 is (masked) OR of above branches.		         
@@ -1225,9 +1226,10 @@ public:
 		        bit7: unbECAL(FTE)                       \n
 			bit8: External                           \n
 		    */
-  int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch 
-  int   TofFlag1;   ///< FTC(z>=1) layers pattern code, <0->noFTC,>=0->(0-8)->miss.planes-code;
-  int   TofFlag2;   ///< BZ(z>=2) layers pattern code, <0->noBZ,>=0->(0-8)->miss.planes-code;
+  int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch
+  int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
+  int   TofFlag1;   ///< FTC(z>=1) layers pattern code, <0->noFTC,>=0->(0-10)->miss.planes-code;
+  int   TofFlag2;   ///< BZ(z>=2) layers pattern code, <0->noBZ,>=0->(0-10)->miss.planes-code;
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
 
@@ -1239,8 +1241,8 @@ public:
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
                           M=0/1/2/3->Etot<MipThr / Etot>=MipThr / !=0_LayerMultipl/LayerMultiplOK=>EM  \n
-			(this is valid for MC only, for RD 0/3->LowLayersMultipl/LayerMultiplOK=>EM)   \n
-                          N=2/1/0->ShowerAngle(width)Test=OK/Bad/Unknown                              \n
+		               (this is valid for MC only, for RD M=0/1/2/3->FTE:no/yes/in1prj/in2prj) \n
+                          N=3/2/1/0->ShowerAngle=Small(lev1-ok):in2prj/in1prj/in0prj/Unknown                    \n
                     */
   unsigned short int EcalPatt[6][3];///< EC DynodesPattern for 6 "trigger"-SupLayers(36dynodes use 36of(3x16)lsbits)
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
@@ -1259,12 +1261,30 @@ public:
        antif++;
      }
     }
+//
+    char toftyp[5],toftypz[5];
+    if(TofFlag1==0)strcpy(toftyp,"4of4");
+    else if(TofFlag1>0 && TofFlag1<5)strcpy(toftyp,"3of4");
+    else if(TofFlag1>=5 && TofFlag1<8)strcpy(toftyp,"1t1b");
+    else if(TofFlag1>=5 && TofFlag1<8)strcpy(toftyp,"1t1b");
+    else if(TofFlag1==9)strcpy(toftyp,"2top");
+    else if(TofFlag1==10)strcpy(toftyp,"2bot");
+    else strcpy(toftyp,"unkn");
+//
+    if(TofFlag2==0)strcpy(toftypz,"4of4");
+    else if(TofFlag2>0 && TofFlag2<5)strcpy(toftypz,"3of4");
+    else if(TofFlag2>=5 && TofFlag2<8)strcpy(toftypz,"1t1b");
+    else if(TofFlag2>=5 && TofFlag2<8)strcpy(toftypz,"1t1b");
+    else if(TofFlag2==9)strcpy(toftypz,"2top");
+    else if(TofFlag2==10)strcpy(toftypz,"2bot");
+    else strcpy(toftypz,"unkn");
+//
     double xtime=TrigTime[4]/1000.;
-    sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV TimeD [ms]%6.2f",TofFlag1%10==0?"4/4":"<=3/4",TofFlag2==0?"4/4":"<=3/4",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum,xtime);
+    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %s, EcalSum %5.1f GeV TimeD [ms]%6.2f",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",IsEcalLev1OK()?"Yes":"No",EcalTrSum,xtime);
   return _Info;
   }
   virtual ~Level1R(){};
-ClassDef(Level1R,5)       //Level1R
+ClassDef(Level1R,6)       //Level1R
 };
 
 

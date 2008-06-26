@@ -66,8 +66,8 @@ class ECREUNcalib {
 // red out. The peds/sigmas are calculated at the end of the job
 // and can be saved into DB and/or ped-file.
 //
-const integer ECPCSTMX=100;// PedCalib max.values's stack size (max)
-const integer ECPCEVMN=100;//min ev/ch to calc.ped/sig(also for partial average calc)
+const integer ECPCSTMX=500;// PedCalib max.values's stack size (max)
+const integer ECPCEVMN=50;//min ev/ch to calc.ped/sig(also for partial average calc)
 const integer ECPCEVMX=1000;//max.statistics on events/channel
 const geant ECPCSPIK=10.;//signal threshold to be the "Spike"(~>1mips in Hgain chan)
 //

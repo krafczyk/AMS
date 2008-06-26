@@ -1,4 +1,4 @@
-//  $Id: daqs2block.h,v 1.6 2008/03/05 10:03:34 choumilo Exp $
+//  $Id: daqs2block.h,v 1.7 2008/06/26 09:30:00 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__
@@ -34,6 +34,8 @@ public:
   static integer checkblockidP(int16u id);
   static void buildraw(integer len, int16u *p);
   static void buildonbP(integer len, int16u *p);
+  static integer getportid(int16u crat, int16u sdrside);
+  static integer getnodeid(int16u crat, int16u sdrside);
   static integer getmaxblocks();
   static integer calcblocklength(integer ibl);
   static void buildblock(integer ibl, integer len, int16u *p);

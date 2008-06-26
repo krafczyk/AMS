@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.46 2008/06/05 13:28:24 choumilo Exp $
+//  $Id: ecalrec.h,v 1.47 2008/06/26 09:30:00 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -171,7 +171,7 @@ public:
   }
   integer getproj(){return _proj;}
   integer getid(){return _idsoft;}
-  void getadc(float adc[]){for(int i=0;i<2;i++)adc[i]=_adc[i];}
+  void getadc(float adc[]){for(int i=0;i<3;i++)adc[i]=_adc[i];}
   float getadc(uinteger i){return i<3?_adc[i]:0;}
   integer getplane(){return _plane;}
   integer getcell(){return _cell;}
@@ -404,6 +404,7 @@ number  _Dz;
 number _Et;
 integer _ShowerMax;
 integer _N2dCl;
+integer _Nhits;
 AMSEcal2DCluster *_pCl[20];
 number _TmpFit[20];
 number _SphericityEV[3];
@@ -454,6 +455,7 @@ number getEnergy()const {return _EnergyC;}
 number getEnergyXY(int proj)const;
 number getEnergyErr()const{return _ErrEnergyC;}
 integer getDirection() const{return _Direction==0?1:-1;}
+integer getNhits() const{return _Nhits;}
 //gchen
  number getDirChi2() const {return _AngleTrue3DChi2;}
  number getErDir() const {return _Angle3DError;}

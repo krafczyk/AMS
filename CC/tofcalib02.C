@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.29 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.30 2008/06/26 09:29:50 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -758,7 +758,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
 //----
   while (ptr){ // <--- loop over TOF2RawCluster hits
     status=ptr->getstatus();
-    if((status&TOFGC::SCBADB3)==0){ //use only good for t-measurement according to DB) 
+    if((status&TOFGC::SCBADB3)==0){ //use only good for t-measurement according to current knowledge (& DB) 
       if((status&TOFGC::SCBADB2)==0
 //both sides have complete set of measurement in given event (i.e. not 1-sided)
 //                                    || (status&TOFGC::SCBADB5)!=0
@@ -1156,7 +1156,7 @@ Nextp:
     HF1(1503,betof,1.);
     HF1(1510,chsq,1.);
     HF1(1511,tzer,1.);
-    TofBetaFitOK=(chsq<20. && betof>0.4 && betof<1.3);//check on chi2/beta
+    TofBetaFitOK=(chsq<10. && betof>0.4 && betof<1.3);//check on chi2/beta
     if(!TofBetaFitOK)return;
 //
     TOF2JobStat::addre(30);

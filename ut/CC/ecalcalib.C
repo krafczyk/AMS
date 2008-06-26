@@ -97,12 +97,13 @@ void ECREUNcalib::init(){
 //-----------------------------
 void ECREUNcalib::select(){
   int i,j,k;
-  integer sta,status,dbstat,id,idd,isl,pmt,sbc,pmsl,rdir;
-  geant padc[2];
+  integer sta,status,dbstat,id,idd,isl,pmt,sbc,pmsl,rdir,ipl;
+  geant padc[3];
   integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
   number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
   number ct1,ct2,cl1,cl2,dct,z1,z2,hflen,ctcr,ctpm,clcr,clsh,clpm,acorr;
   number sumh[ECPMSMX][4],suml[ECPMSMX][4],pmsum,pmdis; 
+  number wbuff[ECSLMX][ECPMMX][4];
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl,apmt;
   geant pmpit,pxsiz;
   AMSEcalRawEvent * ptr;
@@ -119,46 +120,60 @@ void ECREUNcalib::select(){
   number chi2,the,phi,rid,err,trl,beta,ebeta,momentum;
   integer chargeTOF,chargeTracker;
 //
-  npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl
-  nslmx=ECALDBc::slstruc(3);//numb.of Sl
+  npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl(36)
+  nslmx=ECALDBc::slstruc(3);//numb.of Slayers(9)
   pxsiz=ECALDBc::rdcell(5);// pm(lg)-pixel size(imply =pm_size/2)
   pmpit=ECALDBc::rdcell(7);// pm transv.pitch
-  maxpl=2*ECALDBc::slstruc(3);// SubCell planes
+  maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes
   maxcl=2*ECALDBc::slstruc(4);// SubCells per plane
 //
 // ---------------> get track info :
 //
   EcalJobStat::addca(0);
 // 
+  bool trktr,trdtr,ecaltr,nottr,badint;
+  integer trpatt;
+//
+  rid=0;
+  the=0;
+  chi2=-1;
   ntrk=0;
   sta=1;
-  cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
-  if(cptr)
-          ntrk+=cptr->getnelem();
+  cptr=AMSEvent::gethead()->getC("AMSParticle",0);// envelop 0
+  if(cptr)ntrk+=cptr->getnelem();
   if(ntrk!=1)return;// require events with 1 track.
   ppart=(AMSParticle*)AMSEvent::gethead()->
                                            getheadC("AMSParticle",0);
   if(ppart){
     ptrack=ppart->getptrack();
-    ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
-    pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
-    chargeTracker=pcharge->getchargeTracker();
-    chargeTOF=pcharge->getchargeTOF();
-    pbeta=pcharge->getpbeta();
-    beta=0.;
-    if(pbeta)beta=pbeta->getbeta();
-    ebeta=pbeta->getebeta()*beta*beta;
-    momentum=rid*chargeTracker;
+    if(ptrack){//check track-type
+      trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
+      ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
+      nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
+      badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
+      if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
+        trpatt=ptrack->getpattern();//TRK-track pattern
+	if(trpatt>=0){//trk-track ok
+          ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+          pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
+          chargeTracker=pcharge->getchargeTracker();
+          chargeTOF=pcharge->getchargeTOF();
+          pbeta=pcharge->getpbeta();
+          beta=0.;
+          if(pbeta)beta=pbeta->getbeta();
+          ebeta=pbeta->getebeta()*beta*beta;
+          momentum=rid*chargeTracker;
+	}
+      }
+    }
   } 
-  else{
-    rid=0.;
-    the=0.;
-    chi2=-1.;
-  }
 //
   if(chi2<0)return;
+//
   EcalJobStat::addca(1);
 // ---------------> check that track is high-mom,top->bot and may hit ECAL:
+//
+  if(MAGSFFKEY.magstat<1)rid=2;//magnet-off def, mu
 //
   if(ECREFFKEY.reprtf[0]!=0){
     HF1(ECHISTC+12,geant(fabs(rid)),1.);
@@ -176,13 +191,28 @@ void ECREUNcalib::select(){
   EcalJobStat::addca(2);
 //
   if(!(beta>0. && rid>0.))return;//---> it is not He4(prot)(charge>0) from AMS_top->bot
-  if(chi2>20.)return;//---> bad chi2
-  if(fabs(rid)<ECCAFFKEY.trmin)return;//---> too low rigidity(too high mult.scatt)
-  if(beta<0.88)return;// ----> low beta
+  if(chi2>300.)return;//---> bad chi2
+//  if(fabs(rid)<ECCAFFKEY.trmin)return;//---> too low rigidity(too high mult.scatt)
+  if(beta<0.8)return;// ----> remove low beta
   EcalJobStat::addca(3);
 //
   number dx,dy,sfg(0.5);
   int icr(0);
+  number adcmax;
+  if(ECCAFFKEY.truse==0)adcmax=ECCAFFKEY.adcpmx;//prot(mu)
+  else adcmax=4*ECCAFFKEY.adcpmx;//He
+//---> Nhits when no crossing requirement:
+  integer nhtot(0);
+  for(ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
+    ptr1=(AMSEcalHit*)AMSEvent::gethead()->
+                               getheadC("AMSEcalHit",ipl,0);
+    while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
+      ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
+      if(padc[0]>ECCAFFKEY.adcmin)nhtot+=1;
+      ptr1=ptr1->next();  
+    } // ---> end of EcalHits loop in pixPlane
+  }//---> end of PixPlanes-loop
+  if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+37,geant(nhtot),1.);
 //
   C0[2]=ECALDBc::gendim(7);// Z-top of ECAL
   C0[0]=0.;
@@ -193,21 +223,22 @@ void ECREUNcalib::select(){
   dx=Cout1[0]-ECALDBc::gendim(5);
   dy=Cout1[1]-ECALDBc::gendim(6);
   if(fabs(dx)<(ECALDBc::gendim(1)/2.+sfg) && fabs(dy)<(ECALDBc::gendim(2)/2.+sfg))icr+=1;
+//
   C0[2]=ECALDBc::gendim(7)-nslmx*(ECALDBc::gendim(9)+2.*ECALDBc::gendim(10));// Z-bot of ECAL
   ptrack->interpolate(C0,dir,Cout1,the,phi,trl);//<--- cross. with Zbot of EC
   dx=Cout1[0]-ECALDBc::gendim(5);
   dy=Cout1[1]-ECALDBc::gendim(6);
   if(fabs(dx)<(ECALDBc::gendim(1)/2.+sfg) && fabs(dy)<(ECALDBc::gendim(2)/2.+sfg))icr+=1;
-  if(icr<=1)return;// ----> check crossing 
+  if(icr<=1)return;// ----> No crossing 
 //
   EcalJobStat::addca(4);
 //
-//-------------------------> select Punch-Through(non-interecting) events :
+//--------------------------------> select Punch-Through events and fill working arrays:
 //   (use EcalHits with Edep already gain-corrected(though using Previous(!) calibration)
 //
   number edthr,edep,edlpr[2*ECSLMX],edtpr[2*ECPMSMX];
   integer nsclpr[2*ECSLMX];
-  integer refsl,refpm,ipl,imax,imin;
+  integer refsl,refpm,imax,imin;
   int badsc,badscl(0);
   geant ad2mv;
 //
@@ -215,33 +246,69 @@ void ECREUNcalib::select(){
   refpm=ECCAFFKEY.refpid%100;
   ad2mv=ECcalib::ecpmcal[refsl-1][refpm-1].adc2mev();// ADCch->Emeasured(MeV) factor(OLD!)
 //
-  for(ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell-Planes loop
+//---> cut on number of hits to remove e/gammas:
+//
+  for(ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
     ptr1=(AMSEcalHit*)AMSEvent::gethead()->
                                getheadC("AMSEcalHit",ipl,0);
-    for(i=0;i<maxcl;i++){
+    while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
+      ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
+      if(padc[0]>ECCAFFKEY.adcmin)nhtot+=1;
+      ptr1=ptr1->next();  
+    } // ---> end of EcalHits loop in pixPlane
+  }//---> end of PixPlanes-loop
+  if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+38,geant(nhtot),1.);
+//---
+  if((nhtot > 50) || (nhtot < 6))return;// remove e/gammas
+  EcalJobStat::addca(9);
+//---
+  integer plmask[2*ECSLMX];
+  for(ipl=0;ipl<maxpl;ipl++){//0-17
+    plmask[ipl]=1;//flag of good PixLayers
+  }
+//
+  for(isl=0;isl<nslmx;isl++){//sl(1-9)
+    for(i=0;i<npmx;i++){//pmts(1-36) in SL
+      for(k=0;k<4;k++){
+        wbuff[isl][i][k]=0;
+      }
+    }
+  }
+//---> check Pix/Plane pattern:
+//
+  for(ipl=0;ipl<maxpl;ipl++){ // <----PixPlanes loop(0-17)
+    ptr1=(AMSEcalHit*)AMSEvent::gethead()->
+                               getheadC("AMSEcalHit",ipl,0);
+    for(i=0;i<maxcl;i++){//1-72
       edtpr[i]=0.;
     }
     edlpr[ipl]=0.;
     nsclpr[ipl]=0;
-    while(ptr1){ // <--- EcalHits(fired subcells) loop in plane:
+    while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
+      ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
+      id=ptr1->getid();//LTTP(sLayer/pmTube/Pixel)
+      sbc=id%10-1;//SubCell(0-3)
       edep=ptr1->getedep();//(mev) is already gain-corrected using previous calibration data !!!
       proj=ptr1->getproj();//0/1->X/Y (have to be corresponding to ipl)
-      cell=ptr1->getcell();// 0,...
-      isl=ipl/2;
-      pmt=cell/2;
-      if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+24,geant(edep/ad2mv),1.);
-      if(edep>=(ad2mv*ECCAFFKEY.adcmin)){// because adcmin-threshold is in ADC-units
-        edlpr[ipl]+=edep;
-	edtpr[cell]+=edep;
+      cell=ptr1->getcell();// 0,...71
+      isl=ipl/2;//0-8
+      pmt=cell/2;//0-35
+      if(padc[0]>ECCAFFKEY.adcmin){
+        wbuff[isl][pmt][sbc]=padc[0];//Ah for later use
+        if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+24,geant(edep/ad2mv),1.);
+        if(edep>=(ad2mv*ECCAFFKEY.adcmin)){// because adcmin-threshold is in ADC-units
+          edlpr[ipl]+=edep;//plane edep
+	  edtpr[cell]+=edep;//pix edep
+        }
       }
       ptr1=ptr1->next();  
-    } // ---> end of EcalHits loop in scPlane
+    } // ---> end of EcalHits loop in pixPlane
     badsc=0;
     imin=-1;
     imax=999;
-    for(i=0;i<maxcl;i++){// <--- exam. patt. of fired subcells in plane
-      if(edtpr[i]>ECCAFFKEY.adcpmx*ad2mv)badsc+=1;//count sc with too high signal(interact.,ovfl,...)
-      if(edtpr[i]>0.){
+    for(i=0;i<maxcl;i++){// <--- exam. patt. of fired pixels(1-72) in plane ipl
+      if(edtpr[i]>adcmax*ad2mv)badsc+=1;//count pix with high signal(interact.,ovfl,...) ???
+      if(edtpr[i]>0){
         nsclpr[ipl]+=1;//count fired SubCell's per plane
 	imax=i;//to find most right fired sc
 	if(imin<0)imin=i;//to find most left fired sc
@@ -250,37 +317,46 @@ void ECREUNcalib::select(){
     k=imax-imin;
 //
     if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+25,geant(nsclpr[ipl]),1.);
-    if(nsclpr[ipl]>2 || badsc>0 || k>1)badscl+=1;
-//                        bad Plane(>2 sc(or 2 but separated) or at least one with high signal)
-  }//---> end of scPlane-loop
+    if(nsclpr[ipl]>2 || badsc>1 || k>1){//bad PixPlane(>2 pixels(or 2 but separated) or >1 with high signal)
+      badscl+=1;
+      plmask[ipl]=0;//mark this PixLayer as bad
+      edlpr[ipl]=0;//set to 0 plane edep in bad plane
+    }
+  }//---> end of PixPlanes-loop
+//----
 //
-// ----------> mark scPlanes with highest Edep:
+// -----> mark prev "good" PixPlanes with highest Edep (calc. Truncated average Edep/plane
+//                                                                 to simplify Prot/He4 selection):
 //
   number *pntro[2*ECSLMX];
   number *pntrn[2*ECSLMX];
-  int plmask[2*ECSLMX],ngd(0);
+  integer ngd(0);
   number ampo,ampn,edept;
   for(ipl=0;ipl<maxpl;ipl++){
-    plmask[ipl]=1;//mask of good Sclayers
     pntro[ipl]=&edlpr[ipl];
     pntrn[ipl]=&edlpr[ipl];
   }
-  AMSsortNAG(pntrn,maxpl);//sort ScL-Energies in increasing order
-  for(i=0;i<ECCAFFKEY.ntruncl;i++){// select ntruncl(2) scPlanes with highest Edep
+  AMSsortNAG(pntrn,maxpl);//sort PixPlanes-Energies in increasing order
+  for(i=0;i<ECCAFFKEY.ntruncl;i++){// mark Ntrunc(2) PixPlanes having highest Edep
     for(ipl=0;ipl<maxpl;ipl++){
-      if(pntro[ipl]==pntrn[maxpl-1-i])plmask[ipl]=0;//mark scPlanes with highest Edep
+      if(pntro[ipl]==pntrn[maxpl-1-i]){
+	plmask[ipl]=0;//mark PixPlanes with highest Edep(delt-e)
+	badscl+=1;
+      }
     }
   }
+//
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+17,geant(badscl),1.);
 //
   if(ECCAFFKEY.truse==1){// He4
-    if(badscl>ECCAFFKEY.badplmx)return;// <----limit on number of bad sc planes
+    if(badscl>ECCAFFKEY.badplmx)return;// <----limit on number of bad pix planes
   }
   else{// Prot
-    if(badscl>ECCAFFKEY.badplmx+1)return;// <----limit on number of bad sc planes
+    if(badscl>ECCAFFKEY.badplmx+1)return;// <----limit on number of bad pix planes
   }
   EcalJobStat::addca(5);
-// ----> check Etrunc (to be sure that have needed particle(p or He or ...):
+//
+// ----> check Etrunc using good planes (to be sure that have needed particle(p or He or ...):
   edept=0.;
   for(isl=0;isl<nslmx;isl++){
     if((edlpr[2*isl]*plmask[2*isl]>0) && (edlpr[2*isl+1]*plmask[2*isl+1]>0)){
@@ -308,35 +384,20 @@ void ECREUNcalib::select(){
   number exsc;//extention of SubCell transv.size for search of Sub_Cell-Track crossings
   number zpass;//particle pass from ECAL Zfront to middle of SL
   number mscat;//mult.scatt.par.
-  int sccr;
+  int sccr,kdir;
   mscat=pow((13.6/fabs(rid)/1000.),2)/3./1.04;// ~ SigmaMS**2 /dz**3 (use 1X0~1.04cm)
   mscat=mscat*pow(ECCAFFKEY.mscatp,2);// empirical fine tuning (increase of SigmaMS)
 //
-  for(isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop
-    ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
-               getheadC("AMSEcalRawEvent",isl,0);
-    for(i=0;i<ECALDBc::slstruc(4);i++){
-      for(k=0;k<4;k++){
-        sumh[i][k]=0.;
-        suml[i][k]=0.;
-      }
-    }
+  for(isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop(0-8)
     if(plmask[2*isl]==0 || plmask[2*isl+1]==0)continue;//bad SL(with high Edep) --> try next
 //
     nraw=0;
-    while(ptr){ // <--- RawEvent-hits loop in superlayer:
-      nraw+=1;
-      id=ptr->getid();//SSPPC
-      idd=id/10;
-      sbc=id%10-1;//SubCell(0-3)
-      pmt=idd%100-1;//PMCell(0-...)
-      ptr->getpadc(padc);
-      radc[0]=number(padc[0]);//ADC-high-chain
-      radc[1]=number(padc[1]);//ADC-low-chain
-      sumh[pmt][sbc]+=radc[0];
-      suml[pmt][sbc]+=radc[1];
-      ptr=ptr->next();  
-    } // ---> end of RawEvent-hits loop in superlayer
+    for(i=0;i<npmx;i++){//pmts(0-35) in SL
+      for(k=0;k<4;k++){
+        sumh[i][k]=wbuff[isl][i][k];//36x4 <- 9x36x4
+	nraw+=1;//count !=0 pixels in SL
+      }
+    }
     if(nraw<1)continue;// 0 multiplicity in S-Layer isl -> take next SL
 //
 // ---> extrapolate track to S-Layer "isl" :
@@ -360,12 +421,12 @@ void ECREUNcalib::select(){
     if(proj==0)trc[2]=Cout2[0];//x-proj(0)
     else trc[2]=Cout2[1];//y-proj(1)
     trc[1]=(trc[0]+trc[2])/2.;//trc[0->2] are transv.cross.coo with PM at Z-top/mid/bot
-    k=0;
+    kdir=0;
     if(trc[0]>trc[2]){//arrange in increasing order
       rrr=trc[0];
       trc[0]=trc[2];
       trc[2]=rrr;
-      k=1;
+      kdir=1;
     }
 //
 // ---> check track-SL longit. matching (transv.matching with PM/cell done below ):
@@ -411,7 +472,7 @@ void ECREUNcalib::select(){
     lbin=integer(floor(pmdis/binw));//longit.crossing bin
     expm=2.*exsc; 
 //
-    for(pmt=0;pmt<npmx;pmt++){ // <======== loop over PM's to find crossed and fired cells
+    for(pmt=0;pmt<npmx;pmt++){ // <======== loop over PM's(0-35) to find crossed and fired cells
 //
       pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
       pmb[1]=-(npmx-1)*pmpit/2.+pmt*pmpit;//transv.coo for middle of PM
@@ -429,7 +490,7 @@ void ECREUNcalib::select(){
 //
         apmt=0.;
 	sccr=0;
-        for(sbc=0;sbc<4;sbc++){// <-------- sub-cell loop
+        for(sbc=0;sbc<4;sbc++){// <-------- 4 pixels loop
           if(sbc%2==0){//<-left column of subcells
 	    sbl=pmb[0];//subcell left/right coo
 	    sbr=pmb[1];
@@ -440,7 +501,7 @@ void ECREUNcalib::select(){
 	  }
 //
 	  if(sbc<=1){//<---top pair of subcells
-	    if(k==0){
+	    if(kdir==0){
 	      crl=trc[0];//crossing left/right coo
 	      crr=trc[1];
 	    }
@@ -450,7 +511,7 @@ void ECREUNcalib::select(){
 	    }
 	  }
 	  else{//      <---bot pair of subcells
-	    if(k==0){
+	    if(kdir==0){
 	      crl=trc[1];//crossing left/right coo
 	      crr=trc[2];
 	    }
@@ -463,9 +524,9 @@ void ECREUNcalib::select(){
           sbr+=exsc;
 	  if(sbr<crl || sbl>crr){//  <--- No crossing with subcell
 	  }
-	  else{//                 <------------ Found crossing with subcell
+	  else{//                 <------------ Found crossing with pixel
 	    sccr+=1;
-	    tevsbc[pmsl][sbc]+=1.;//count crossed subcells
+	    tevsbc[pmsl][sbc]+=1.;//count crossed subcells(36x9)x4
             ECPMPeds::pmpeds[isl][pmt].getpedh(pedh);
             ECPMPeds::pmpeds[isl][pmt].getsigh(sigh);
             ECPMPeds::pmpeds[isl][pmt].getpedl(pedl);
@@ -475,21 +536,24 @@ void ECREUNcalib::select(){
             pl=pedl[sbc];
             sl=sigl[sbc];
 	    radc[0]=sumh[pmt][sbc];// hi-ch
-	    radc[1]=suml[pmt][sbc];// low-ch
+//	    radc[1]=suml[pmt][sbc];// low-ch
             ovfl[0]=0;
-            ovfl[1]=0;
-            if(radc[0]>0.)
+            if(radc[0]>0)
 	               if((ECADCMX[0]-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
-            if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0){//<=== fired pixel(hi-channel)
+//if(isl>=2){
+//  cout<<"--->pmt/pix="<<pmt<<" "<<sbc<<" adc/ovfl="<<radc[0]<<" "<<ovfl[0]<<endl;
+//  cout<<"    ped/sig="<<ph<<" "<<sh<<" low:"<<pl<<" "<<sl<<" adcmin="<<ECCAFFKEY.adcmin<<endl;
+//}
+            if(ovfl[0]==0){//<=== fired pixel wit no ovfl(hi-channel)
 	      sta=0;
 	      acorr=1.;
-	      radc[0]*=acorr;//norm. to norm.incidence(for fiber long.dir only !!)
+	      radc[0]*=acorr;//normalization to norm.incidence(for fiber long.dir only !!)
 	      apmt+=radc[0];
 	      ECREUNcalib::fill_1(isl,pmt,sbc,lbin,radc[0]);//<--- fill arrays(PM/SC gain calibr)
             }//---> endif of fired subcell
 //
-          }//---> endif of found subcell crossing
-        }//---> end of subcell loop
+          }//---> endif of found pixel crossing
+        }//-------> end of 4 pixels loop
 //
 	if(sccr>0){//at least 1 crossed SC, i.e. PM pre-crossing confirmed !
           tevpmc[pmsl]+=1.;//count crossed PM's
@@ -501,6 +565,7 @@ void ECREUNcalib::select(){
 	    if(isl==0 && pmt==17)HF1(ECHISTC+5,geant(pmdis),1.);
 	  }
 	}
+//
 	if(apmt>0.){
 	  tevpmf[pmsl]+=1.;//count fired PM's
 	}
@@ -830,13 +895,13 @@ void ECREUNcalib::mfit(){
 //---------> print hist. of event multiplicity/eff in cells:
 //
   if(ECREFFKEY.reprtf[0]>1){
-  for(sl=0;sl<ECALDBc::slstruc(3);sl++){
-    for(pm=0;pm<npmx;pm++){
+  for(sl=0;sl<ECALDBc::slstruc(3);sl++){//1-9
+    for(pm=0;pm<npmx;pm++){//1-36
       pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
       arr[2*pm]=tevsbc[pmsl][0];
       arr[2*pm+1]=tevsbc[pmsl][1];
     }
-    strcpy(htit1,"Crossings, top cells of SL ");
+    strcpy(htit1,"Crossings/Pixel (72 top pixels row of SL ");
     in[0]=inum[sl+1];
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
@@ -848,7 +913,7 @@ void ECREUNcalib::mfit(){
       arr[2*pm]=tevsbc[pmsl][2];
       arr[2*pm+1]=tevsbc[pmsl][3];
     }
-    strcpy(htit1,"Crossings, bot cells of SL ");
+    strcpy(htit1,"Crossings/Pixel (72 bot pixels row of SL ");
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
     HPAK(ECHISTC+7,arr);
@@ -857,7 +922,7 @@ void ECREUNcalib::mfit(){
   }
 // now SC-efficiencies:
 //  
-  for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+  for(sl=0;sl<ECALDBc::slstruc(3);sl++){//<-----SL-loop
     for(pm=0;pm<npmx;pm++){
       pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
       arr[2*pm]=0.;
@@ -865,17 +930,17 @@ void ECREUNcalib::mfit(){
       if(tevsbc[pmsl][0]>0)arr[2*pm]=tevsbf[pmsl][0]/tevsbc[pmsl][0];
       if(tevsbc[pmsl][1]>0)arr[2*pm+1]=tevsbf[pmsl][1]/tevsbc[pmsl][1];
     }
-    strcpy(htit1,"Efficiency, top cells of SL ");
+    strcpy(htit1,"Efficiency/Pixel (72 top pixels row of SL ");
     in[0]=inum[sl+1];
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
     if(ECCAFFKEY.truse==1){//He4
-      HMINIM(ECHISTC+7,0.6);
-      HMAXIM(ECHISTC+7,1.4);
+      HMINIM(ECHISTC+7,0.1);
+      HMAXIM(ECHISTC+7,1.1);
     }
     else{//prot
-      HMINIM(ECHISTC+7,0.3);
-      HMAXIM(ECHISTC+7,0.9);
+      HMINIM(ECHISTC+7,0.1);
+      HMAXIM(ECHISTC+7,1.1);
     }
     HPAK(ECHISTC+7,arr);
     HPRINT(ECHISTC+7);
@@ -898,16 +963,16 @@ void ECREUNcalib::mfit(){
       if(tevsbc[pmsl][2]>0)arr[2*pm]=tevsbf[pmsl][2]/tevsbc[pmsl][2];
       if(tevsbc[pmsl][3]>0)arr[2*pm+1]=tevsbf[pmsl][3]/tevsbc[pmsl][3];
     }
-    strcpy(htit1,"Efficiency, bot cells of SL ");
+    strcpy(htit1,"Efficiency/Pixel (72 bot pixels row of SL ");
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
     if(ECCAFFKEY.truse==1){//He4
-      HMINIM(ECHISTC+7,0.6);
-      HMAXIM(ECHISTC+7,1.4);
+      HMINIM(ECHISTC+7,0.1);
+      HMAXIM(ECHISTC+7,1.1);
     }
     else{//prot
-      HMINIM(ECHISTC+7,0.3);
-      HMAXIM(ECHISTC+7,0.9);
+      HMINIM(ECHISTC+7,0.1);
+      HMAXIM(ECHISTC+7,1.1);
     }
     HPAK(ECHISTC+7,arr);
     HPRINT(ECHISTC+7);
@@ -931,7 +996,7 @@ void ECREUNcalib::mfit(){
 //
   geant pmeflsc[ECSLMX];
   if(ECREFFKEY.reprtf[0]>0){
-    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){//<-----SL-loop
       k=0;
       pmeflsc[sl]=0.;
       for(pm=0;pm<npmx;pm++){
@@ -967,14 +1032,14 @@ void ECREUNcalib::mfit(){
     for(i=0;i<4;i++){
       if(tevsbc[pmslr][i]<15.)bad=1;//too low cr.statistics/subc
       else{
-        eff=tevsbf[pmslr][i]/tevsbc[pmslr][i];
+        eff=tevsbf[pmslr][i]/tevsbc[pmslr][i];//fired/crossed
 	if(eff<0.3)bad=1;//too low eff
       }
     }
   }
   else bad=1;
   if(bad){
-    cout<<"<---- ECREUNcalib: Problem with reference PM, no calibration done..."<<endl;
+    cout<<"<---- ECREUNcalib: Problem with reference PM, no calibration done!, eff="<<eff<<endl;
     return;
   }
   cout<<endl<<endl;
@@ -998,7 +1063,8 @@ void ECREUNcalib::mfit(){
         else pxstat[i][j]=90;//unusable subc(very low eff or statistics)
       }
       if(pxstat[i][j]==90)
-          cout<<"   <--ECREUNcalib:unusable SubCell!!,sl="<<sl<<" pm="<<pm<<" sc="<<j<<endl;
+          cout<<"   <--REUN: Low stat/eff Pixel, Sl/Pm/Pix="<<sl<<" "<<pm<<" "<<j<<" stat/eff="<<
+	               tevsbc[i][j]<<" "<<eff<<endl;
       if(pxstat[i][j]>=0){
         sum4+=sbcres[i][j];
 	nof4+=1;
@@ -1013,7 +1079,7 @@ void ECREUNcalib::mfit(){
   }// ---> end of PM*SL loop
   cout<<endl<<endl;
 //
-//--------------> calc./FIT average resp. in each long.bin:
+//-------------->FIAT-calib: calc./FIT average resp. in each long.bin:
 //
   geant pmprof[ECCLBMX],pmprer[ECCLBMX],pmres[ECPMSL],pmcrs[ECPMSL];
   int first(1); 
@@ -1050,10 +1116,10 @@ void ECREUNcalib::mfit(){
   slfast=0.;
   fastfr=0.;
   nfits=0;
-  cout<<"Start Init. parameters..."<<endl;
+  cout<<"-----> Start FIAT-calibr, init. parameters..."<<endl;
 // ------------> initialize parameters for Minuit:
   MNINIT(5,6,6);
-  MNSETI("ECAL Longit.Resp.Uniformity-calibration");
+  MNSETI("ECAL Fibers Longit.Resp.Uniformity-calibration(FIAT)");
   argl[0]=number(-1);
   MNEXCM(mfun,"SET PRINT",argl,1,ier,0);
   for(i=0;i<4;i++){
@@ -1061,7 +1127,7 @@ void ECREUNcalib::mfit(){
     ier=0;
     MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
     if(ier!=0){
-      cout<<"<---- ECREUN-calib: Param-init problem for par-id="<<pnam[i]<<'\n';
+      cout<<"  <--- Param-init problem for par-id="<<pnam[i]<<'\n';
       exit(10);
     }
     argl[0]=number(i+1);
@@ -1069,12 +1135,12 @@ void ECREUNcalib::mfit(){
       ier=0;
       MNEXCM(mfun,"FIX",argl,1,ier,0);
       if(ier!=0){
-        cout<<"<---- ECREUN-calib: Param-fix problem for par-id="<<pnam[i]<<'\n';
+        cout<<"  <--- Param-fix problem for par-id="<<pnam[i]<<'\n';
         exit(10);
       }
     }
   }
-  cout<<"... init done, start fit ..."<<endl;
+  cout<<"       init done, start fit ..."<<endl;
 // ---> calc. profiles and fitting for monitored pm's:
 //
   for(sl=0;sl<ECALDBc::slstruc(3);sl++){ // <---- SL-loop
@@ -1087,12 +1153,12 @@ void ECREUNcalib::mfit(){
         if(lb>=(ECCLBMX/2-ECLBMID) && lb<=(ECCLBMX/2+ECLBMID-1)){
           pmres[pmsl]+=pmlres[pmsl][lb];//sum PM-resp. for +-ECLBMID central bins(PM RelGain Calib)
 	}
-	if(pmsl==pmslr)cout<<"lb="<<lb<<" ev="<<tevpml[pmsl][lb]<<endl;
+	if(pmsl==pmslr)cout<<"       RefPM: bin="<<lb<<" evs="<<tevpml[pmsl][lb]<<endl;
         if(tevpml[pmsl][lb]>15.){
 	  pmlres[pmsl][lb]/=tevpml[pmsl][lb];//bin-average
 	  pmlres2[pmsl][lb]/=tevpml[pmsl][lb];
 	  rrr=pmlres2[pmsl][lb]-pmlres[pmsl][lb]*pmlres[pmsl][lb];//rms**2
-	  if(pmsl==pmslr)cout<<"aver="<<pmlres[pmsl][lb]<<" rms2="<<rrr<<" av2="<<pmlres2[pmsl][lb]<<endl;
+	  if(pmsl==pmslr)cout<<"       RefPm: aver="<<pmlres[pmsl][lb]<<" rms2="<<rrr<<" av2="<<pmlres2[pmsl][lb]<<endl;
 	  if(rrr>=0)
 	        pmlres2[pmsl][lb]=sqrt(rrr/tevpml[pmsl][lb]);//err.of aver.
 	  else {
@@ -1121,9 +1187,9 @@ void ECREUNcalib::mfit(){
           HPRINT(ECHISTC+10);
 	}
       }
-      if((pm==1 || pm==17 || pm==(npmx-2))){// <---- fit for monitored PM's
+      if((pm==1 || pm==17 || pm==(npmx-2))){// <---- fit for monitored PM's(left,ceter,right)
         if(nbins>(ECCLBMX-2)){//<-- do fit if have enough bins
-          cout<<"   -->Start uniformity-fit for sl/pm="<<sl<<" "<<pm<<" nbins="<<nbins<<endl;
+          cout<<"   --> Start uniformity-fit for Sl/Pm="<<sl<<" "<<pm<<" nbins="<<nbins<<endl;
           i=0;//<--- reinit for param #1 with realistic value from 1st bin
 	  start[i]=values[0];
           strcpy(pnm,pnam[i]);
@@ -1131,19 +1197,19 @@ void ECREUNcalib::mfit(){
           argl[0]=number(0);
           MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
           if(ier!=0){
-            cout<<"<---- ECREUN-calib: Param-ReInit problem for param="<<pnam[i]<<'\n';
+            cout<<"  <--  Param-ReInit problem for param="<<pnam[i]<<'\n';
             exit(10);
           }
           argl[0]=0.;
           ier=0;
           MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
           if(ier!=0){
-            cout<<"      ECREUN-calib: MINIMIZE problem !"<<'\n';
+            cout<<"       MINIMIZE problem !"<<'\n';
             continue;
           }  
           MNEXCM(mfun,"MINOS",argl,0,ier,0);
           if(ier!=0){
-            cout<<"      ECREUN-calib: MINOS problem !"<<'\n';
+            cout<<"       MINOS problem !"<<'\n';
             continue;
           }
           argl[0]=number(3);
@@ -1153,21 +1219,21 @@ void ECREUNcalib::mfit(){
             cout<<"      ECREUN-calib: final CALL_FCN problem !"<<'\n';
             continue;
           }
-          cout<<"-->>> fit OK <<<--"<<endl<<endl;
+          cout<<"       -->>> fit done <<<--"<<endl<<endl;
         }//--> end of fit
 	else{
-	  cout<<"      SL/PM="<<sl<<" "<<pm<<" not enought lbins to fit!, nbins="<<nbins<<endl; 
+	  cout<<"   <-- SL/PM="<<sl<<" "<<pm<<" not enought lbins to fit!, nbins="<<nbins<<endl; 
 	}
       }//--> endif of monitored pm
     }//---> end of pm loop
   }//--->end of sl loop
   cout<<endl<<endl;
-  cout<<"   <--REUN(FIAT)-calibration: nfits="<<nfits<<endl;
+  cout<<"   <-- REUN(FIAT)-calibration finished: nfits done : "<<nfits<<endl;
   if(nfits>0){
     slslow/=number(nfits);
     slfast/=number(nfits);
     fastfr/=number(nfits);
-    cout<<"      slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl;
+    cout<<"      Average slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl<<endl;
   }
 //
 // ----------------> calc. PM relative gains (wrt ref.PM):
@@ -1175,10 +1241,10 @@ void ECREUNcalib::mfit(){
   geant avr;
   if(pmcrs[pmslr]>25){
     avr=pmres[pmslr]/pmcrs[pmslr];//ref.PM ok
-    cout<<"PM-rel-gain calibr: ref.PM events/averresp="<<pmcrs[pmslr]<<" "<<avr<<endl;
+    cout<<"-----> PM-rel.gain calibr: ref.PM events/averresp="<<pmcrs[pmslr]<<" "<<avr<<endl;
   }
   else{
-    cout<<"<---- No PM-rel-gain calibr. done(PM-ref low stat) "<<pmcrs[pmslr]<<endl;
+    cout<<" <---- No PM-rel.gain calibr. done(PM-ref low stat) "<<pmcrs[pmslr]<<endl;
     return; 
   }
   geant glscan[ECSLMX],gtscan[ECPMSMX];
@@ -1217,12 +1283,12 @@ void ECREUNcalib::mfit(){
         pmsl=pm+ECPMSMX*sl;
         gtscan[pm]=pmrgain[pmsl];
       }
-      strcpy(htit1,"PM RelGains in SL ");
+      strcpy(htit1,"RelGain vs PM in SL ");
       in[0]=inum[sl+1];
       strcat(htit1,in);
       HBOOK1(ECHISTC+7,htit1,npmx,1.,geant(npmx+1),0.);
-      HMINIM(ECHISTC+7,0.6);
-      HMAXIM(ECHISTC+7,1.4);
+      HMINIM(ECHISTC+7,0.);
+      HMAXIM(ECHISTC+7,2.);
       HPAK(ECHISTC+7,gtscan);
       HPRINT(ECHISTC+7);
       HDELET(ECHISTC+7);
@@ -1360,7 +1426,7 @@ void ECREUNcalib::mfit(){
   char vers2[3]="RD";
   char fext[20];
   integer cfvn;
-  uinteger StartRun;
+  uinteger StartRun,overid,verid;
   time_t StartTime;
   int dig;
 //
@@ -1377,24 +1443,31 @@ void ECREUNcalib::mfit(){
   strcpy(fname,"EcalRlga");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",(ECMCFFKEY.calvern+1));//MC-versn
+    overid=ECcalib::CFlistC[1];
+    verid=overid+1;//new MC-versn = old+1
+    sprintf(fext,"%d",verid);
+    ECcalib::CFlistC[1]=verid;//update RLGA-calib version in static store
   }
   else{
     strcat(fname,vers2);
-    sprintf(fext,"%d",StartRun);//hope it is start-run UTC
+    overid=ECcalib::CFlistC[1];
+    if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+    else verid=StartRun;
+    sprintf(fext,"%d",verid);//RD-Run# = UTC-time of 1st "on-board" event
+    ECcalib::CFlistC[1]=verid;//update RLGA-calib version in static store
   }
   strcat(fname,".");
   strcat(fname,fext);
 //
     ofstream tcfile(fname,ios::out|ios::trunc);
     if(!tcfile){
-      cerr<<"<---- ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
+      cerr<<" <---- error opening RLGA-file for output"<<fname<<endl;
       exit(8);
     }
-    cout<<"      Opening file for RLGA-calibration output, fname:"<<fname<<endl;
-    cout<<"      First run used for calibration is "<<StartRun<<endl;
-    cout<<"      Date of the first event : "<<frdate<<endl;
-    cout<<"      Pixels status will be written !"<<endl;
+    cout<<"-----> Opening file for RLGA-calibration output, fname:"<<fname<<endl;
+    cout<<"       First run used for calibration is "<<StartRun<<endl;
+    cout<<"       Date of the first event : "<<frdate<<endl;
+    cout<<"       Pixels status will be written !"<<endl;
     tcfile.setf(ios::fixed);
     tcfile.width(3);
     tcfile.precision(1);// precision for status
@@ -1411,7 +1484,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
 //
-    cout<<"      PM RelGains will be written !"<<endl;
+    cout<<"   <-- PM RelGains will be written "<<endl;
     tcfile.width(5);
     tcfile.precision(2);// precision for PM Rel.gain
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1424,7 +1497,7 @@ void ECREUNcalib::mfit(){
     tcfile << endl;
     tcfile << endl;
 //
-    cout<<"Pixel RelGains will be written !"<<endl;
+    cout<<"   <-- Pixel RelGains will be written"<<endl;
     tcfile.width(5);
     tcfile.precision(2);// precision for Pixel rel.gain
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1439,7 +1512,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
 //
-    cout<<"      Pixel Hi/Low Gain ratios will be written !"<<'\n';
+    cout<<"   <-- Pixel Hi/Low Gain ratios will be written"<<'\n';
     tcfile.width(4);
     tcfile.precision(1);// precision for Hi/Low ratio
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1454,7 +1527,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
 //
-    cout<<"      PM Anode/Dynode ratios will be written !"<<'\n';
+    cout<<"   <-- PM Anode/Dynode ratios will be written"<<'\n';
     tcfile.width(4);
     tcfile.precision(1);// precision for PM Anode/Dynode ratio
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
@@ -1473,7 +1546,7 @@ void ECREUNcalib::mfit(){
     tcfile << endl<<"      First run used for calibration is "<<StartRun<<endl;
     tcfile << endl<<"      Date of the first event : "<<frdate<<endl;
     tcfile.close();
-    cout<<"<---- ECREUNcalib: RLGA-calibration is done, output file closed !"<<endl;
+    cout<<"<----- ECREUNcalib: RLGA-calibration is done, output file closed !"<<endl;
 //-------------------------------------------------------
 //
 //--> create FIAT output file(fiber att.parameters):
@@ -1482,24 +1555,31 @@ void ECREUNcalib::mfit(){
     strcpy(fname,"EcalFiat");
     if(AMSJob::gethead()->isMCData()){
       strcat(fname,vers1);
-      sprintf(fext,"%d",(ECMCFFKEY.calvern+1));//MC-versn
+      overid=ECcalib::CFlistC[2];
+      verid=overid+1;//new MC-versn = old+1
+      sprintf(fext,"%d",verid);
+      ECcalib::CFlistC[2]=verid;//update FIAT-calib version in static store
     }
     else{
       strcat(fname,vers2);
-      sprintf(fext,"%d",StartRun);//hope it is start-run UTC
+      overid=ECcalib::CFlistC[2];
+      if(overid==StartRun)verid=overid+1;//for safety when rerun over the same Data
+      else verid=StartRun;
+      sprintf(fext,"%d",verid);//RD-Run# = UTC-time of 1st "on-board" event
+      ECcalib::CFlistC[2]=verid;//update FIAT-calib version in static store
     }
     strcat(fname,".");
     strcat(fname,fext);
 //
     ofstream fifile(fname,ios::out|ios::trunc);
     if(!fifile){
-      cerr<<"<---- ECREUNcalib:error opening FIAT-file for output"<<fname<<endl;
+      cerr<<" <---- ECREUNcalib:error opening FIAT-file for output"<<fname<<endl;
       exit(8);
     }
-    cout<<"      Opening file for FIAT-calibration output, fname:"<<fname<<endl;
-    cout<<"      First run used for calibration is "<<StartRun<<endl;
-    cout<<"      Date of the first event : "<<frdate<<endl;
-    cout<<"      lfast/lslow/frac will be written !"<<endl;
+    cout<<"-----> Opening file for FIAT-calibration output, fname:"<<fname<<endl;
+    cout<<"       First run used for calibration is "<<StartRun<<endl;
+    cout<<"       Date of the first event : "<<frdate<<endl;
+    cout<<"       lfast/lslow/frac will be written !"<<endl;
     fifile.setf(ios::fixed);
     fifile.width(4);
     fifile.precision(1);// precision for slfast
@@ -1541,7 +1621,7 @@ void ECREUNcalib::mfit(){
     fifile << endl<<"      First run used for calibration is "<<StartRun<<endl;
     fifile << endl<<"      Date of the first event : "<<frdate<<endl;
     fifile.close();
-    cout<<"<---- ECREUNcalib: FIAT-calibration is done, output file closed !"<<endl;
+    cout<<"<----- ECREUNcalib: FIAT-calibration is done, output file closed !"<<endl;
   }
 //
 }
@@ -1574,7 +1654,7 @@ void ECREUNcalib::mfun(int &np, number grad[], number &f, number x[]
 }
 //---
 void ECREUNcalib::fill_1(integer sl, integer pm, integer sc, integer lb, number adc){
-//
+//used for Aadc_hgain relat.gains calib 
   integer pmsl;
 //
   pmsl=pm+ECPMSMX*sl;//PM continious numbering through all SL's
@@ -1593,6 +1673,7 @@ void ECREUNcalib::fill_1(integer sl, integer pm, integer sc, integer lb, number 
 }
 //---
 void ECREUNcalib::fill_2(integer sl, integer pm, integer sc, number adc[2]){
+// used for A_hg/A_lg calib
   integer i,slpmc;
   static integer slpmcr,binw,first(0);
 //
@@ -2422,6 +2503,7 @@ void ECREUNcalib::mfite(){
 //
    cout<<endl;
    if(ECREFFKEY.relogic[1]==6){//open Ntuple file (for OnBoardTable only for the moment)
+/*
      char hfile[161];
      UHTOC(IOPA.hfile,40,hfile,160);  
      char filename[256];
@@ -2439,6 +2521,7 @@ void ECREUNcalib::mfite(){
      HBNAME(IOPA.ntuple,"ECPedSig",(int*)(&ECPedCalNT),"Run:I,SLayer:I,PMTNo:I,PedH(5):R,SigH(5):R,"
                                                                                "PedL(5):R,SigL(5):R,"
 									       "StaH(5):I,StaL(5):I");
+*/
      return;
    }
 //
@@ -3066,6 +3149,7 @@ void ECREUNcalib::mfite(){
    cout<<endl;
    cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
 //---> fill ntuple:
+/*
    ECPedCalNT.Run=BRun();
    for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
      ECPedCalNT.SLayer=sl+1;
@@ -3092,6 +3176,7 @@ void ECREUNcalib::mfite(){
      }
    }
    cout<<"      <-- Ntuple filled..."<<endl<<endl;
+*/
 //----
    for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
      for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop

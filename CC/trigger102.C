@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.47 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: trigger102.C,v 1.48 2008/06/26 09:29:51 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -27,7 +27,7 @@ using namespace ecalconst;
  Trigger2LVL1::Lvl1TrigConfig Trigger2LVL1::l1trigconf;
  Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
  integer TGL1JobStat::countev[20];
- integer TGL1JobStat::daqc1[35];
+ integer TGL1JobStat::daqc1[40];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
 //
 void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
@@ -35,6 +35,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 // 
   integer PhysBPatt(0);//Lvl1 phys.branches pattern(e,p,gamma,unbiased,...,external; 8 in total)
   integer JMembPatt(0);//Lvl1 joined members pattern(FTC,FTZ,FTE,ACC0,...,BZ,ECAL-F_and,...; 16 in total)
+  integer auxtrpat(0);
   int i,il,ib,ibmx,ns1,ns2;
   integer ntof=0;
   integer tofpatt1[TOF2GC::SCLRS]={0,0,0,0};//all sides,FTC(z>=1)
@@ -357,10 +358,11 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
     if(comtrok){
       TGL1JobStat::addev(9);
-      if(ratemx<TGL1FFKEY.MaxScalersRate && livetime>TGL1FFKEY.MinLifeTime){
+      if((ratemx<TGL1FFKEY.MaxScalersRate && livetime>TGL1FFKEY.MinLifeTime) || (auxtrpat > 0))
+      {
         TGL1JobStat::addev(10);
         AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(PhysBPatt,JMembPatt,toftrcode1,toftrcode2,tofpatt1,tofpatt2,
+          new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,toftrcode1,toftrcode2,tofpatt1,tofpatt2,
 	                         antipatt,ectrigfl,ectrpatt,ectrsum,livetime,rates,trtime));//create lvl1trig-object
       }
       else AMSEvent::gethead()->seterror();
@@ -883,10 +885,15 @@ void TGL1JobStat::printstat(){
     printf(" ScalersBlock entries                : % 8d\n",daqc1[11]);
 //    printf(" ............ length OK              : % 8d\n",daqc1[12]);
     printf(" Total bad structure LVL1-segments   : % 8d\n",daqc1[13]);
-    printf(" Total good LiveTime/Rates LVL1-obj  : % 8d\n",daqc1[14]);
-    printf(" Total LVL1-obj with 0-Lev1MembPatt  : % 8d\n",daqc1[32]);
-    printf(" Total LVL1-obj with 0-PhysBranchPatt: % 8d\n",daqc1[33]);
-    printf(" Total bad LiveTime/Rates cases      : % 8d\n",daqc1[15]);
+    printf(" At least 1 FT-memb in LVL1          : % 8d\n",daqc1[35]);
+    printf(" Events with JMemb&PhysBrMem_patt >0 : % 8d\n",daqc1[36]);
+    printf(" Events with 0-JMembPatt             : % 8d\n",daqc1[32]);
+    printf(" Events with 0-PhysBranchPatt        : % 8d\n",daqc1[33]);
+    printf(" Events with AuxTrigPatt>0           : % 8d\n",daqc1[34]);
+    printf(" Events with TOF-rates/LiveTime OK   : % 8d\n",daqc1[37]);
+    printf(" Events with TOF&ECAL-FT(in JmembPat): % 8d\n",daqc1[38]);
+    printf(" Created LVL1-objects                : % 8d\n",daqc1[14]);
+    printf(" LVL1data Errors(no LVL1-obj created): % 8d\n",daqc1[15]);
   }
 //
   printf("\n");
@@ -929,15 +936,12 @@ integer Trigger2LVL1::checktofpattand(integer tof, integer paddle){
 
 
 void Trigger2LVL1::_writeEl(){
-
-  LVL1Ntuple02* lvl1N = AMSJob::gethead()->getntuple()->Get_lvl102();
-
-  if (lvl1N->Nlvl1>=MAXLVL1) return;
-
+  // p2memb for Root
 // Fill the ntuple
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   lvl1N->PhysBPatt[lvl1N->Nlvl1]=_PhysBPatt;
   lvl1N->JMembPatt[lvl1N->Nlvl1]=_JMembPatt;
   lvl1N->LiveTime[lvl1N->Nlvl1]=_LiveTime;
@@ -953,6 +957,7 @@ void Trigger2LVL1::_writeEl(){
   for(i=0;i<6;i++)lvl1N->TrigRates[lvl1N->Nlvl1][i]=_TrigRates[i];
   for(i=0;i<4;i++)lvl1N->TrigTime[lvl1N->Nlvl1][i]=_TrigTime[i];
   lvl1N->Nlvl1++;
+*/
 }
 
 
@@ -1061,7 +1066,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 
   }
 //
-  integer JMembPatt(0),PhysBPatt(0),TofFlag1(0),TofFlag2(0),AntiPatt(0),EcalFlag(0);
+  integer JMembPatt(0),PhysBPatt(0),TofFlag1(-1),TofFlag2(-1),AntiPatt(0),EcalFlag(0);
   integer TofPatt1[TOF2GC::SCLRS],TofPatt2[TOF2GC::SCLRS];
   int16u EcTrPatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes)
   integer gftmsk(0),ftzlmsk(0);
@@ -1095,7 +1100,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   int16u prescfcode[8]={0x3FF,0x3FE,0x3FD,0x3FC,0x3FB,0x3FA,0x3F9,0x3F8};//prescale factors codes
   int16u prescfvals[8]={1,2,5,10,20,50,100,1000};//presc.factors(N->N:1)
   int16u cpmask(0),ctmask(0),bzmask(0),trstmsk(0);
-  int16u trigby(0);
+  integer auxtrpat(0);
   int16u cpinmask[TOF2GC::SCLRS],bzinmask[TOF2GC::SCLRS];//my reordered masks
   uinteger febusymsk[2]={0,0};//to store 24+16 bits of FEbusy-mask
 //
@@ -1199,7 +1204,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     JMembPatt=integer(word);
     word=*(p+2+pattbias);//Lev1PhysMembPatt
     PhysBPatt=integer(word&0x00FF);
-    trigby=((word&0x1F00)>>8);//triggered by whom(LA-0,LA-1,DSP,intTR)
+    auxtrpat=((word&0x1F00)>>8);//aux.trig.patt(LA-0,LA-1,DSP,intTR)
     word=*(p+3+pattbias);//AntiPatt
     AntiPatt=integer(word&0x00FF);
     word=*(p+4+pattbias);//Tof CP,CT,BZ layers pattern
@@ -1213,6 +1218,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((word&0x000F)==0x0006)TofFlag1=7;//2,3
     else if((word&0x000F)==0x000A)TofFlag1=8;//2,4
     else if((word&0x000F)==0x0003)TofFlag1=9;//1,2(miss3,4)
+    else if((word&0x000F)==0x000C)TofFlag1=10;//3,4(miss1,2)
     else{
       TofFlag1=-1;
 #ifdef __AMSDEBUG__
@@ -1231,7 +1237,17 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((word&0x000F)==0x0006)TofFlag2=7;
     else if((word&0x000F)==0x000A)TofFlag2=8;
     else if((word&0x000F)==0x0003)TofFlag2=9;//1,2(miss3,4)
+    else if((word&0x000F)==0x000C)TofFlag1=10;//3,4(miss1,2)
     else TofFlag2=-1;
+// create EcalFlag:
+    if((JMembPatt&(1<<6))>0){//means FTE, i.e. Ex/Ey OR(END)(depending on FTE-setup)
+      EcalFlag=10;
+      if((JMembPatt&(1<<10))>0)EcalFlag=30;//FTE with E-ProjAnd
+      else if((JMembPatt&(1<<11))>0)EcalFlag=20;//FTE with E-ProjOR
+      if((JMembPatt&(1<<12))>0)EcalFlag+=3;//Lvl1(Small angle in both proj(AngleAnd)) 
+      else if((JMembPatt&(1<<13))>0)EcalFlag+=2;//Lvl1(Small angle at least in one proj(AngleOr))
+      else EcalFlag+=1;//NoLev1(Big angle in both proj) 
+    }
 // 
     time[0]=0;
     time[1]=0;
@@ -1279,12 +1295,12 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //---> print info:
     if(TGL1FFKEY.printfl>1){
       cout<<"=======> Event-by-event(instant) LVL1-info (patterns,time-counters,...):"<<endl;
-      cout<<"      Triggered by (hex_patt="<<trigby<<") :";
-      if((trigby&1)>0)cout<<"LA-0"<<endl;
-      if((trigby&2)>0)cout<<"LA-1"<<endl;
-      if((trigby&4)>0)cout<<"????"<<endl;
-      if((trigby&8)>0)cout<<"DSP"<<endl;
-      if((trigby&16)>0)cout<<"IntTrig"<<endl;
+      cout<<"      Triggered by (hex_patt="<<auxtrpat<<") :";
+      if((auxtrpat&1)>0)cout<<"LA-0"<<endl;
+      if((auxtrpat&2)>0)cout<<"LA-1"<<endl;
+      if((auxtrpat&4)>0)cout<<"????"<<endl;
+      if((auxtrpat&8)>0)cout<<"DSP"<<endl;
+      if((auxtrpat&16)>0)cout<<"IntTrig"<<endl;
       cout<<endl;
       
       cout<<"      Instant Lev1MembersPattern :"<<endl; 
@@ -1311,6 +1327,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       cout<<endl<<endl;
       
       cout<<"      Instant CP_LayerPatt(myFTCflg):"<<TofFlag1<<", BZ_LayerPatt(myBZflg):"<<TofFlag2<<endl<<endl;
+      
+      cout<<"      Instant ECAL_TrigFlag:"<<EcalFlag<<endl;
      
       cout<<"      FineTimeCounter value(8msb|32lsb):"<<time[1]<<"|"<<time[0]<<", CoarseTimeCounter:"<<ntrst<<endl;
       number tmksec;
@@ -1523,7 +1541,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if(bzinmask[0]==3)bzinmask[0]=2;
 //--- ECAL
     wvar=0;
-    if((word&1<<8)==0)wvar+=1;//ECft x-proj active
+    if((word&1<<8)==0)wvar+=1;//ECft x-proj active(ababled)
     if((word&1<<9)==0)wvar+=10;//ECft y-proj active
     if((word&1<<10)==0)wvar+=100;//ECangl x-proj active
     if((word&1<<11)==0)wvar+=1000;//ECangl y-proj active
@@ -1611,6 +1629,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       cout<<"===================================================="<<endl;
       cout<<"  Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
       cout<<"  TofTrigConditions changed, New settings are :"<<endl;
+      cout<<"  GlobFTmask(FTE/FTZ/FTC,1=anabled):"<<gftmsk<<endl;
       cout<<"  LUTs: "<<l1trigconf.toflut1()<<" "<<l1trigconf.toflut2()<<" "<<l1trigconf.toflutbz()<<endl;
       cout<<"     Anabled Lev1PhysBranchesPattern :"<<endl;
       cout<<"|  FTC| Z>=1| Z>=2|Z>=2s|Elect|Gamma|  FTE|Extrn|"<<endl;  
@@ -1630,6 +1649,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	cout<<endl;
 	}
       }
+      cout<<"  ECAL_Proj_Anabled(Ay/Ax/Ey/Ex): "<<wvar<<" FTE_Ex/Ey OR/AND(1/2):"<<l1trigconf.ecorand()<<endl;
       cout<<"===================================================="<<endl;
       lut1o=l1trigconf.toflut1();
       lut2o=l1trigconf.toflut2();
@@ -1708,17 +1728,28 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //cout<<"TOFrateMX="<<scalmon.TOFrateMX()<<"  HiLim="<<TGL1FFKEY.MaxScalersRate<<endl;
 //cout<<"LiveTime1="<<LiveTime1<<"  LowLim="<<TGL1FFKEY.MinLifeTime<<endl;
   if(LiveTime1==0 && LiveTime2>0)LiveTime1=LiveTime2;//tempor fix     
-  if(LiveTime2==0 && LiveTime1>0)LiveTime2=LiveTime1;     
-  if(scalmon.TOFrateMX()<TGL1FFKEY.MaxScalersRate && LiveTime1>=TGL1FFKEY.MinLifeTime){
-    if(JMembPatt==0)TGL1JobStat::daqs1(32);//count empty TrigPatt entries
-    if(PhysBPatt==0)TGL1JobStat::daqs1(33);//count empty TrigPatt entries
-    AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new Trigger2LVL1(PhysBPatt,JMembPatt,
-             TofFlag1,TofFlag2,tofpat1,tofpat2,AntiPatt,EcalFlag,ecpat,ectrs,LiveTime1,TrigRates,trtime));
+  if(LiveTime2==0 && LiveTime1>0)LiveTime2=LiveTime1;
+//
+  if(TofFlag1>=0 || TofFlag2>=0 || EcalFlag>0)TGL1JobStat::daqs1(35);//FT in LVL1 ok
+  if(JMembPatt>0 && PhysBPatt>0)TGL1JobStat::daqs1(36);//
+  if(JMembPatt==0)TGL1JobStat::daqs1(32);//count empty TrigPatt entries
+  if(PhysBPatt==0)TGL1JobStat::daqs1(33);//count empty TrigPatt entries
+  if(auxtrpat>0)TGL1JobStat::daqs1(34);//count non-empty AuxTrPatt
+  if(((JMembPatt&1)>0 || (JMembPatt&(1<<5))>0) && (JMembPatt&(1<<6))>0)TGL1JobStat::daqs1(38);
+//
+//
+  if(scalmon.TOFrateMX()<TGL1FFKEY.MaxScalersRate && LiveTime1>=TGL1FFKEY.MinLifeTime)TGL1JobStat::daqs1(37);
+//     
+  if(
+       (auxtrpat > 0)                                                               //aux.tr
+                     || (JMembPatt>0 && PhysBPatt>0)
+  ){
+    AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
+    new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,TofFlag1,TofFlag2,tofpat1,tofpat2,
+                                AntiPatt,EcalFlag,ecpat,ectrs,LiveTime1,TrigRates,trtime));
     TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    
   }
-  else if(AMSJob::gethead()->isRealData()
-                                         && scalmon.TOFrateMX()>=TGL1FFKEY.MaxScalersRate
-			                 && LiveTime1<=TGL1FFKEY.MinLifeTime){
+  else{
     TGL1JobStat::daqs1(15);//count errored entries    
     AMSEvent::gethead()->seterror();
   }
