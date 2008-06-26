@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.11 2008/03/06 16:57:36 pzuccon Exp $
+//  $Id: point.C,v 1.12 2008/06/26 14:13:34 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
@@ -109,7 +109,7 @@ AMSRotMat& AMSRotMat::operator=(const AMSRotMat& orig){
 
 
 AMSRotMat& AMSRotMat::operator*(const AMSRotMat& orig){
-  number nrm2[3][3];
+  number nrm2[3][3]={{1,0,0},{0,1,0},{0,0,1}};
   for(int ii=0;ii<3;ii++)
     for(int jj=0;jj<3;jj++)
       nrm2[ii][jj]=
@@ -167,7 +167,7 @@ void AMSRotMat::ZParity(){
 
 void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
   
-  number nn1[3][3];
+  number nn1[3][3]={{1,0,0},{0,1,0},{0,0,1}};
   nn1[0][0]=cos(alpha);
   nn1[0][1]=sin(alpha);
   nn1[0][2]=0;
@@ -183,7 +183,7 @@ void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
   AMSRotMat aa(nn1);
 
 
-  number nn2[3][3];
+  number nn2[3][3]={{1,0,0},{0,1,0},{0,0,1}};
   nn2[0][0]=cos(beta);
   nn2[0][1]=0;
   nn2[0][2]=-sin(beta);
@@ -199,7 +199,7 @@ void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
   
   AMSRotMat bb(nn2);
 
-  number nn3[3][3];
+  number nn3[3][3]={{1,0,0},{0,1,0},{0,0,1}};
   nn3[0][0]=1;
   nn3[0][1]=0;
   nn3[0][2]=0;

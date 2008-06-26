@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.51 2008/06/25 11:05:01 mdelgado Exp $
+//  $Id: richdbc.C,v 1.52 2008/06/26 14:13:34 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -658,8 +658,16 @@ void RichAlignment::LoadFile(char *filename){
   cout<<" -- RICH AFTER INVERTING --- "<<sx<<" "<<sy<<" "<<sz<<" --- "<<alpha<<" "<<beta<<" "<<gamma<<endl;
 #endif
 
-  assert(fabs(alpha)<0.5e-4 && fabs(beta)<0.5e-4 && fabs(gamma)<0.5e-4);
-  assert(fabs(sx)<0.5e-2 && fabs(sy)<0.5e-2 && fabs(sz)<0.5e-2);
+  if(!(fabs(alpha)<0.5e-4 && fabs(beta)<0.5e-4 && fabs(gamma)<0.5e-4)){
+    cout<<"RichAlignment::LoadFile -- problem with rotation matrix "<<alpha<<" "<<beta<<" "<<gamma<<". Ignoring"<<endl;
+    _r2aRot.Reset();
+    _a2rRot.Reset();
+  }
+  if(!(fabs(sx)<0.5e-2 && fabs(sy)<0.5e-2 && fabs(sz)<0.5e-2)){
+    cout<<"RichAlignment::LoadFile -- problem with shift vector "<<sx<<" "<<sy<<" "<<sz<<". Ignoring"<<endl;
+    _r2aShift.setp(0,0,0);
+    _a2rShift.setp(0,0,0);
+  }
 }
 
 void RichAlignment::Init(){
