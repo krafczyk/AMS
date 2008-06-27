@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.104 2008/06/26 09:29:50 choumilo Exp $
+//  $Id: ecalrec.C,v 1.105 2008/06/27 07:35:49 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -798,7 +798,6 @@ void AMSEcalHit::build(int &stat){
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       emeast+=edep;//tot.Mev
       if(fadc>0.){// store good (h+l)-hit info in buffer:
-        nhits+=1;
 	bsta[nsubc]=sta;
 	bsubc[nsubc]=subc+1;
 	bid[nsubc]=id;
@@ -855,6 +854,7 @@ void AMSEcalHit::build(int &stat){
         if(saturf<0)EcalJobStat::addsr(10);
 //
         for(i=0;i<nsubc;i++){//buffer(good subcells) loop to fill AMSEcalHit
+          nhits+=1;
 	  edep=bedep[i];
 	  sta=bsta[i];
 	  if((sta&AMSDBc::AOVERFLOW>0) && dychok>0){//make correction for adc-ovfl if needed/possible

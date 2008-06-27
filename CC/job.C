@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.570 2008/06/26 09:29:50 choumilo Exp $
+// $Id: job.C,v 1.571 2008/06/27 07:35:51 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -869,7 +869,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.truse=0;      // (3) 1/0-> use He4/proton tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
   ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
-  ECCAFFKEY.adcmin=2.5;    // (6) min ADC cut (~3sig)for indiv. SubCell (to remove noise)
+  ECCAFFKEY.adcmin=2.;    // (6) min ADC cut (~3sig)for indiv. SubCell (to remove noise)
   ECCAFFKEY.adcpmx=150.;  // (7) max ADC for indiv SC to consider PlaneAmpl as PunchThrough(prot)
   ECCAFFKEY.ntruncl=1;    // (8) remove this number of scPlanes with highest Edep
   ECCAFFKEY.trxac=0.022;  // (9) TRK->EC extrapolation accuracy in X-proj(cm)
@@ -2997,8 +2997,38 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   begin.tm_isdst=0;
   end.tm_isdst=0;
  int needval=1;
-//// if(isCalibration() && CEcal)needval=0;
- 
+//
+if((isCalibration() && CEcal) && AMSFFKEY.Update>0){//only for 
+  if(ECREFFKEY.relogic[1]==5)needval=0;//only for ds ECAL-peds to DB
+  time_t bdbw=MISCFFKEY.dbwrbeg;
+  time_t edbw=MISCFFKEY.dbwrend;
+  int jobt=AMSFFKEY.Jobtype;
+  int need=0;
+  if(jobt==911){//real data reco/calib
+    tm * begdbw = localtime(& bdbw);
+    ECREFFKEY.sec[0]=begdbw->tm_sec;
+    ECREFFKEY.min[0]=begdbw->tm_min;
+    ECREFFKEY.hour[0]=begdbw->tm_hour;
+    ECREFFKEY.day[0]=begdbw->tm_mday;
+    ECREFFKEY.mon[0]=begdbw->tm_mon;
+    ECREFFKEY.year[0]=begdbw->tm_year;
+    begin.tm_isdst=begdbw->tm_isdst;//to bypass isdst-problem 
+    cout<<" Beg YY-M-D :"<<(ECREFFKEY.year[0]+1900)<<" "<<(ECREFFKEY.mon[0]+1)<<" "<<ECREFFKEY.day[0];
+    cout<<"  hh:mm:ss :"<<ECREFFKEY.hour[0]<<" "<<ECREFFKEY.min[0]<<" "<<ECREFFKEY.sec[0]<<endl;
+//
+    tm * enddbw = localtime(& edbw);
+    ECREFFKEY.sec[1]=enddbw->tm_sec;
+    ECREFFKEY.min[1]=enddbw->tm_min;
+    ECREFFKEY.hour[1]=enddbw->tm_hour;
+    ECREFFKEY.day[1]=enddbw->tm_mday;
+    ECREFFKEY.mon[1]=enddbw->tm_mon;
+    ECREFFKEY.year[1]=enddbw->tm_year;
+    end.tm_isdst=enddbw->tm_isdst;
+    cout<<" End YY-M-D :"<<(ECREFFKEY.year[1]+1900)<<" "<<(ECREFFKEY.mon[1]+1)<<" "<<ECREFFKEY.day[1];
+    cout<<"  hh:mm:ss :"<<ECREFFKEY.hour[1]<<" "<<ECREFFKEY.min[1]<<" "<<ECREFFKEY.sec[1]<<endl;
+  }
+}
+//
   begin.tm_sec=ECREFFKEY.sec[0];
   begin.tm_min=ECREFFKEY.min[0];
   begin.tm_hour=ECREFFKEY.hour[0];

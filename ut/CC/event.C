@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.376 2008/06/26 09:29:50 choumilo Exp $
+//  $Id: event.C,v 1.377 2008/06/27 07:35:51 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1468,7 +1468,7 @@ void AMSEvent::_cantievent(){
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caecevent(){
-  bool globft(0);
+  bool globft(false);
   Trigger2LVL1 *ptr;
 //
     ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);

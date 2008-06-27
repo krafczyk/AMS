@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.67 2008/06/26 09:29:50 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.68 2008/06/27 07:35:49 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -736,8 +736,8 @@ void EcalJobStat::bookhist(){
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
-	HBOOK1(ECHISTC+37,"ECCA: Total hits(above thr)",100,0.,100.,0.);
-	HBOOK1(ECHISTC+38,"ECCA: Total hits(above thr, when Trk hits EC)",100,0.,100.,0.);
+	HBOOK1(ECHISTC+37,"ECCA: Total hits(above thr, when any Trk)",100,0.,200.,0.);
+	HBOOK1(ECHISTC+38,"ECCA: Total hits(above thr, when Trk hits EC)",100,0.,200.,0.);
         HBOOK1(ECHISTC+1,"ECCA: Track Imp.point X, SL1",70,-70.,70.,0.);
         HBOOK1(ECHISTC+2,"ECCA: Track Imp.point Y, SL1",70,-70.,70.,0.);
 //        HBOOK1(ECHISTC+3,"ECCA: PMCell-Track Transv-dist,SL1",50,-5.,5.,0.);

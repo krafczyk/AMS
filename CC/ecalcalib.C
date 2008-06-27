@@ -98,6 +98,7 @@ void ECREUNcalib::init(){
 void ECREUNcalib::select(){
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmt,sbc,pmsl,rdir,ipl;
+  integer nhtot(0);
   geant padc[3];
   integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
   number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
@@ -124,8 +125,8 @@ void ECREUNcalib::select(){
   nslmx=ECALDBc::slstruc(3);//numb.of Slayers(9)
   pxsiz=ECALDBc::rdcell(5);// pm(lg)-pixel size(imply =pm_size/2)
   pmpit=ECALDBc::rdcell(7);// pm transv.pitch
-  maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes
-  maxcl=2*ECALDBc::slstruc(4);// SubCells per plane
+  maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes(18)
+  maxcl=2*ECALDBc::slstruc(4);// SubCells per plane(72)
 //
 // ---------------> get track info :
 //
@@ -201,8 +202,9 @@ void ECREUNcalib::select(){
   number adcmax;
   if(ECCAFFKEY.truse==0)adcmax=ECCAFFKEY.adcpmx;//prot(mu)
   else adcmax=4*ECCAFFKEY.adcpmx;//He
+//
 //---> Nhits when no crossing requirement:
-  integer nhtot(0);
+  nhtot=0;
   for(ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
     ptr1=(AMSEcalHit*)AMSEvent::gethead()->
                                getheadC("AMSEcalHit",ipl,0);
@@ -213,7 +215,7 @@ void ECREUNcalib::select(){
     } // ---> end of EcalHits loop in pixPlane
   }//---> end of PixPlanes-loop
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+37,geant(nhtot),1.);
-//
+//----
   C0[2]=ECALDBc::gendim(7);// Z-top of ECAL
   C0[0]=0.;
   C0[1]=0.;
@@ -248,6 +250,7 @@ void ECREUNcalib::select(){
 //
 //---> cut on number of hits to remove e/gammas:
 //
+  nhtot=0;
   for(ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
     ptr1=(AMSEcalHit*)AMSEvent::gethead()->
                                getheadC("AMSEcalHit",ipl,0);
@@ -259,7 +262,7 @@ void ECREUNcalib::select(){
   }//---> end of PixPlanes-loop
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+38,geant(nhtot),1.);
 //---
-  if((nhtot > 50) || (nhtot < 6))return;// remove e/gammas
+  if((nhtot > 32) || (nhtot < 6))return;// remove e/gammas
   EcalJobStat::addca(9);
 //---
   integer plmask[2*ECSLMX];
@@ -544,7 +547,7 @@ void ECREUNcalib::select(){
 //  cout<<"--->pmt/pix="<<pmt<<" "<<sbc<<" adc/ovfl="<<radc[0]<<" "<<ovfl[0]<<endl;
 //  cout<<"    ped/sig="<<ph<<" "<<sh<<" low:"<<pl<<" "<<sl<<" adcmin="<<ECCAFFKEY.adcmin<<endl;
 //}
-            if(ovfl[0]==0){//<=== fired pixel wit no ovfl(hi-channel)
+            if(radc[0]>0 && ovfl[0]==0){//<=== fired pixel wiht no ovfl(hi-channel)
 	      sta=0;
 	      acorr=1.;
 	      radc[0]*=acorr;//normalization to norm.incidence(for fiber long.dir only !!)
@@ -566,10 +569,10 @@ void ECREUNcalib::select(){
 	  }
 	}
 //
-	if(apmt>0.){
+	if(apmt>0){
 	  tevpmf[pmsl]+=1.;//count fired PM's
 	}
-        if(apmt>0. && ECREFFKEY.reprtf[0]!=0){
+        if(apmt>0 && ECREFFKEY.reprtf[0]!=0){
 	  if(proj==0)HF1(ECHISTC+29,apmt,1.);
 	  else HF1(ECHISTC+30,apmt,1.);
 	}
@@ -1472,9 +1475,9 @@ void ECREUNcalib::mfit(){
     tcfile.width(3);
     tcfile.precision(1);// precision for status
     tcfile << endl;
-    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){//SL-loop
       for(sc=0;sc<4;sc++){
-        for(pm=0;pm<npmx;pm++){
+        for(pm=0;pm<npmx;pm++){//PM-loop
           pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
           tcfile <<" "<<pxstat[pmsl][sc];
         }
@@ -1490,6 +1493,7 @@ void ECREUNcalib::mfit(){
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
       for(pm=0;pm<npmx;pm++){
         pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+	if(pmrgain[pmsl]<=0)pmrgain[pmsl]=1;//set missing chan. gain to default 1
         tcfile <<" "<<pmrgain[pmsl];
       }
       tcfile << endl;
@@ -1768,6 +1772,9 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 //
 // ---------------> get track info :
 //
+  bool trktr,trdtr,ecaltr,nottr,badint;
+  integer trpatt;
+//
   ntrk=0;
   sta=1;
   AdvFit=0;
@@ -1785,72 +1792,83 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     axbcl[i]=0.;//backgr.clusters amp.
     aybcl[i]=0.;
   } 
-  cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
+  cptr=AMSEvent::gethead()->getC("AMSParticle",0);
   if(cptr)
           ntrk+=cptr->getnelem();
-  if(ntrk!=1)return;// require events with 1 matched track.
+  if(ntrk!=1)return;// require events with 1 part
   ppart=(AMSParticle*)AMSEvent::gethead()->
                                            getheadC("AMSParticle",0);
   if(ppart){
     ptrack=ppart->getptrack();
-    ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
-    AdvFit=ptrack->AdvancedFitDone();
-    if(AdvFit)ptrack->
-        getParAdvancedFit(gchi2,grid,gerr,gthe,gphi,gC0,hchi2,hrid,herr,hthe,hphi,Cout);
-    pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
-    chargeTracker=pcharge->getchargeTracker();
-    pbeta=pcharge->getpbeta();
-    beta=0.;
-    if(pbeta)beta=pbeta->getbeta();
+    if(ptrack){//check track-type
+      trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
+      ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
+      nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
+      badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
+      if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
+        trpatt=ptrack->getpattern();//TRK-track pattern
+	if(trpatt>=0){//trk-track ok
+          ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+          AdvFit=ptrack->AdvancedFitDone();
+          if(AdvFit)ptrack->
+             getParAdvancedFit(gchi2,grid,gerr,gthe,gphi,gC0,hchi2,hrid,herr,hthe,hphi,Cout);
+          pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
+          chargeTracker=pcharge->getchargeTracker();
+          pbeta=pcharge->getpbeta();
+          beta=0.;
+          if(pbeta)beta=pbeta->getbeta();
 //
-    ntrh=ptrack->getnhits();
-    for(i=0;i<ntrh;i++){//<---track hits(2Dclust) loop
-      phit=ptrack->getphit(i);
-      hitla=phit->getLayer();
+          ntrh=ptrack->getnhits();
+          for(i=0;i<ntrh;i++){//<---track hits(2Dclust) loop
+            phit=ptrack->getphit(i);
+            hitla=phit->getLayer();
 //
-      pxcl=phit->getClusterP(0);
-      if(pxcl){
-        axtcl[hitla-1]+=pxcl->getVal();
-        x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
-        while (x){//<--- x-clust loop
-          idx=x->getid();
-          ilay=idx.getlayer();
-	  if(hitla==ilay){//the same layer
-	    if(x->checkstatus(AMSDBc::BAD)==0){
-	      if(pxcl==x){
-	      }
-              else{//count background
-	        axbcl[ilay-1]+=x->getVal();
-	        nxcl[ilay-1]+=1;
-	      }
-	    }
-	  }
-          x=x->next();
-        }//---> end of x-clust loop
-      }  
+            pxcl=phit->getClusterP(0);
+            if(pxcl){
+              axtcl[hitla-1]+=pxcl->getVal();
+              x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
+              while (x){//<--- x-clust loop
+                idx=x->getid();
+                ilay=idx.getlayer();
+	        if(hitla==ilay){//the same layer
+	          if(x->checkstatus(AMSDBc::BAD)==0){
+	            if(pxcl==x){
+	            }
+                    else{//count background
+	              axbcl[ilay-1]+=x->getVal();
+	              nxcl[ilay-1]+=1;
+	            }
+	          }
+	        }
+                x=x->next();
+              }//---> end of x-clust loop
+            }//-->pxcl  
 //
-      pycl=phit->getClusterP(1);
-      if(pycl){
-        aytcl[hitla-1]+=pycl->getVal();
-        y=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);
-        while (y){//<--- y-clust loop
-          idy=y->getid();
-          ilay=idy.getlayer();
-	  if(hitla==ilay){//the same layer
-	    if(y->checkstatus(AMSDBc::BAD)==0){
-	      if(pycl==y){
-	      }
-              else{//count background
-	        aybcl[ilay-1]+=y->getVal();
-	        nycl[ilay-1]+=1;
-	      }
-	    }
-	  }
-          y=y->next();
-        }//---> end of y-clust loop
-      }  
+            pycl=phit->getClusterP(1);
+            if(pycl){
+              aytcl[hitla-1]+=pycl->getVal();
+              y=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);
+              while (y){//<--- y-clust loop
+                idy=y->getid();
+                ilay=idy.getlayer();
+	        if(hitla==ilay){//the same layer
+	          if(y->checkstatus(AMSDBc::BAD)==0){
+	            if(pycl==y){
+	            }
+                    else{//count background
+	              aybcl[ilay-1]+=y->getVal();
+	              nycl[ilay-1]+=1;
+	            }
+	          }
+	        }
+                y=y->next();
+              }//---> end of y-clust loop
+            }//-->pycl  
 //
-    }//---> end of track hits loop
+          }//---> end of track hits loop
+        }//--->endof "Trk-track ok" check
+      }//--->endof "Trk-track ?" check
+    }//---> endof if(ptrack)
   }//---> end if(ppart)
 //-----------------------
   if(chi2<0.)return;//--->track not found
