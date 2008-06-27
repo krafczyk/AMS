@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.571 2008/06/27 07:35:51 choumilo Exp $
+// $Id: job.C,v 1.572 2008/06/27 10:36:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2775,7 +2775,7 @@ if(!isRealData()){
 //-----
 integer TOFCRSL=TOF2GC::SCCRAT*(TOF2GC::SCFETA-1);
 if(!isRealData() && TFMCFFKEY.tdclin>0){ 
-  if(TFMCFFKEY.ReadConstFiles/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor "MC Seeds" fromDB
+  if( TFMCFFKEY.ReadConstFiles/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor "MC Seeds" fromDB
     
   TID.add (new AMSTimeID(AMSID("TofTdcCorMS",isRealData()),
     begin,end,TOFCRSL*sizeof(TofTdcCorMS::tdccor[0][0]),
@@ -2785,11 +2785,11 @@ if(!isRealData() && TFMCFFKEY.tdclin>0){
 }
 //----- 
 if((TFREFFKEY.ReadConstFiles/10000)==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor(MC/RD) from DB
-
+if(isRealData()){
   TID.add (new AMSTimeID(AMSID("TofTdcCor",isRealData()),
     begin,end,TOFCRSL*sizeof(TofTdcCor::tdccor[0][0]),
     (void*)&TofTdcCor::tdccor[0][0],server,needval));
-    
+}    
   end.tm_year=TFREFFKEY.year[1];
 //
    

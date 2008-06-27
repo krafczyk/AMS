@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.30 2007/06/14 14:24:41 choutko Exp $
+//  $Id: dbserver.C,v 1.31 2008/06/27 10:36:34 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -1401,6 +1401,13 @@ void  DBServer_impl::_init(){
   return ndsts;
 }
 
+
+
+  int  DBServer_impl::getDSTSR(const DPS::Client::CID & ci,   int  run, DSTS_out dsts){
+  return 0;
+}
+
+
    int  DBServer_impl::getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host)
 {
   int rstatus = 0;
@@ -2043,6 +2050,10 @@ void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Ru
 
 int  DBServer_impl::getDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
 }
+
+int  DBServer_impl::getDSTSR(const DPS::Client::CID & ci, int run,DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
+}
+
 int  DBServer_impl::getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host)throw (CORBA::SystemException){
 }
 int  DBServer_impl::getFreeHostN(const DPS::Client::CID & ci)throw (CORBA::SystemException){

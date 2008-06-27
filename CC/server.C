@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.139 2008/05/30 10:01:03 choutko Exp $
+//  $Id: server.C,v 1.140 2008/06/27 10:36:34 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3325,6 +3325,30 @@ int Producer_impl::getDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out 
 DPS::Producer::DSTS_var acv= new DPS::Producer::DSTS();
 unsigned int length=0;
 length=_dst.size();
+int lm=ci.Mips;
+if(lm<=0i || 1)lm=10000000;
+if(length==0){
+//acv->length(1);
+}
+else{
+if(length>lm)length=lm;
+acv->length(length);
+length=0;
+for(DSTLI li=_dst.begin();li!=_dst.end();++li){
+ acv[length++]=(*li).second;
+ if(length>=lm)break;
+}
+}
+dsts=acv._retn();
+return length;
+}
+
+
+int Producer_impl::getDSTSR(const DPS::Client::CID & ci,   int  run, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
+
+DPS::Producer::DSTS_var acv= new DPS::Producer::DSTS();
+unsigned int length=0;
+length=_dst.size();
 if(length==0){
 //acv->length(1);
 }
@@ -3332,12 +3356,14 @@ else{
 acv->length(length);
 length=0;
 for(DSTLI li=_dst.begin();li!=_dst.end();++li){
- acv[length++]=(*li).second;
+ if((li->second)->Run==run)acv[length++]=(*li).second;
 }
 }
 dsts=acv._retn();
 return length;
 }
+
+
 
 
 void Producer_impl::sendCurrentInfo(const DPS::Client::CID & cid, const  DPS::Producer::CurrentInfo &ci, int propagate)throw (CORBA::SystemException){

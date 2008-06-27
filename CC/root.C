@@ -3011,8 +3011,15 @@ void AMSEventR::Init(TTree *tree){
 }
 
 void AMSEventR::ProcessFill(int entry){ 
+try{
    if (!UProcessCut()) return; 
    UProcessFill();
+}
+
+ catch (bad_alloc a){
+         cerr <<"E-Can not allocate " <<endl;
+         return;
+  }
 }
  
 
