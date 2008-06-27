@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.16 2008/03/06 16:57:28 pzuccon Exp $
+//  $Id: point.h,v 1.17 2008/06/27 14:13:07 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -203,7 +203,7 @@ public:
   //! it does the right product of AMSRotMat on an AMSPoint
   friend AMSPoint operator*(const AMSRotMat& mat, const AMSPoint& Point);
   //! it does the matrix product (right) with another AMSRotMat 
-  AMSRotMat & operator*(const AMSRotMat& matin);
+  AMSRotMat  operator*(const AMSRotMat& matin);
   //! copy operator
   AMSRotMat& operator=(const AMSRotMat& orig);
   //! it requires that the two matrix are identical

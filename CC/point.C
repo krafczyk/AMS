@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.12 2008/06/26 14:13:34 mdelgado Exp $
+//  $Id: point.C,v 1.13 2008/06/27 14:13:08 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
@@ -108,7 +108,7 @@ AMSRotMat& AMSRotMat::operator=(const AMSRotMat& orig){
 
 
 
-AMSRotMat& AMSRotMat::operator*(const AMSRotMat& orig){
+AMSRotMat AMSRotMat::operator*(const AMSRotMat& orig){
   number nrm2[3][3]={{1,0,0},{0,1,0},{0,0,1}};
   for(int ii=0;ii<3;ii++)
     for(int jj=0;jj<3;jj++)
@@ -116,11 +116,9 @@ AMSRotMat& AMSRotMat::operator*(const AMSRotMat& orig){
 	_nrm[ii][0]*orig._nrm[0][jj]+
 	_nrm[ii][1]*orig._nrm[1][jj]+
 	_nrm[ii][2]*orig._nrm[2][jj];
-  for(int ii=0;ii<3;ii++)
-    for(int jj=0;jj<3;jj++)
-       _nrm[ii][jj]=nrm2[ii][jj];
-  
-  return *this;
+
+
+  return AMSRotMat(nrm2);
 }
 
 bool AMSRotMat::operator==(const AMSRotMat& orig){
@@ -146,14 +144,14 @@ AMSPoint operator*(const AMSRotMat& mat, const AMSPoint& Point){
 void AMSRotMat::XParity(){
   number nn[3][3]={{-1,0,0},{0,1,0},{0,0,1}};
   AMSRotMat aa(nn);
-  (*this)*aa;
+  (*this)=(*this)*aa;
   return;
 }
 
 void AMSRotMat::YParity(){
   number nn[3][3]={{1,0,0},{0,-1,0},{0,0,1}};
   AMSRotMat aa(nn);
-  (*this)*aa;
+  (*this)=(*this)*aa;
 
   return;
 }
@@ -161,7 +159,7 @@ void AMSRotMat::YParity(){
 void AMSRotMat::ZParity(){
   number nn[3][3]={{1,0,0},{0,1,0},{0,0,-1}};
   AMSRotMat aa(nn);
-  (*this)*aa;
+  (*this)=(*this)*aa;
   return;
 }
 
@@ -215,9 +213,7 @@ void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
   
   AMSRotMat cc(nn3);
 
-  (*this)=cc;
-  (*this)*bb;
-  (*this)*aa;
+  (*this)=cc*bb*aa;
   return;
 }
 
