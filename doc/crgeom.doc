@@ -1,0 +1,16 @@
+How to update amsed ams02 geometry  form gxint.exe
+ 
+Command [10] rz/file 21 ams02.g3 on
+
+g2rootold ams02.g3
+
+patch ams02.C add at the end
+
+
+ams02->Draw();
+TFile f("ams02.geom","NEW");
+ams02->Write();
+f.Write();
+f.Close();
+ 
+root .x ams02.C

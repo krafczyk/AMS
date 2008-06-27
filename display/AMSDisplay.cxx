@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.44 2008/05/30 10:01:03 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.45 2008/06/27 10:36:45 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -165,8 +165,14 @@ Int_t AMSDisplay::DistancetoPrimitive(Int_t px, Int_t py){
 void AMSDisplay::Draw(Option_t *option){
 //    Insert current event in graphics pad list
 
-
+  try{
    m_ntuple->Prepare();
+  }
+  catch (bad_alloc a){
+         cerr <<"E-Can not allocate " <<endl;
+         return; 
+  }
+
    m_Pad->cd();
    m_Canvas->Modified();
    if ( m_View == kAllView ) {
