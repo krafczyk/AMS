@@ -262,7 +262,7 @@ void ECREUNcalib::select(){
   }//---> end of PixPlanes-loop
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+38,geant(nhtot),1.);
 //---
-  if((nhtot > 32) || (nhtot < 6))return;// remove e/gammas
+  if((nhtot > 32) || (nhtot < 9))return;// remove e/gammas
   EcalJobStat::addca(9);
 //---
   integer plmask[2*ECSLMX];
@@ -1150,14 +1150,14 @@ void ECREUNcalib::mfit(){
     for(pm=0;pm<npmx;pm++){ // <---- PM-loop
       pmsl=pm+ECPMSMX*sl;
       pmres[pmsl]=0.;
-      pmcrs[pmsl]=tevpmm[pmsl];
       nbins=0;
       for(lb=0;lb<ECCLBMX;lb++){ // <---- Bin-loop (lb)
         if(lb>=(ECCLBMX/2-ECLBMID) && lb<=(ECCLBMX/2+ECLBMID-1)){
-          pmres[pmsl]+=pmlres[pmsl][lb];//sum PM-resp. for +-ECLBMID central bins(PM RelGain Calib)
+          pmres[pmsl]+=pmlres[pmsl][lb];//sum PM-resp. for +-ECLBMID central bins( need for PM RelGain Calib)
+          pmcrs[pmsl]+=tevpml[pmsl][lb];
 	}
 	if(pmsl==pmslr)cout<<"       RefPM: bin="<<lb<<" evs="<<tevpml[pmsl][lb]<<endl;
-        if(tevpml[pmsl][lb]>15.){
+        if(tevpml[pmsl][lb]>20){
 	  pmlres[pmsl][lb]/=tevpml[pmsl][lb];//bin-average
 	  pmlres2[pmsl][lb]/=tevpml[pmsl][lb];
 	  rrr=pmlres2[pmsl][lb]-pmlres[pmsl][lb]*pmlres[pmsl][lb];//rms**2
@@ -1178,7 +1178,7 @@ void ECREUNcalib::mfit(){
 	if(pmprof[lb]>0){//non-zero bin -> fill work-arrays for fit
 	  values[nbins]=pmprof[lb];
 	  errors[nbins]=pmprer[lb];
-	  coords[nbins]=binw/2.+lb*binw;
+	  coords[nbins]=binw/2.+lb*binw;//0-fiblength
 	  nbins+=1;
 	}
       }//--->end of lb loop
@@ -1192,6 +1192,7 @@ void ECREUNcalib::mfit(){
       }
       if((pm==1 || pm==17 || pm==(npmx-2))){// <---- fit for monitored PM's(left,ceter,right)
         if(nbins>(ECCLBMX-2)){//<-- do fit if have enough bins
+	  cout<<endl;
           cout<<"   --> Start uniformity-fit for Sl/Pm="<<sl<<" "<<pm<<" nbins="<<nbins<<endl;
           i=0;//<--- reinit for param #1 with realistic value from 1st bin
 	  start[i]=values[0];
@@ -1236,7 +1237,7 @@ void ECREUNcalib::mfit(){
     slslow/=number(nfits);
     slfast/=number(nfits);
     fastfr/=number(nfits);
-    cout<<"      Average slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl<<endl;
+    cout<<"      Average slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl<<endl<<endl<<endl;
   }
 //
 // ----------------> calc. PM relative gains (wrt ref.PM):
@@ -1252,10 +1253,10 @@ void ECREUNcalib::mfit(){
   }
   geant glscan[ECSLMX],gtscan[ECPMSMX];
   number totr1(0),totr2(0),tote1(0),tote2(0);
-  for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+  for(sl=0;sl<ECALDBc::slstruc(3);sl++){//<--SL-loop
     glscan[sl]=0;
     nlscan=0;
-    for(pm=0;pm<npmx;pm++){
+    for(pm=0;pm<npmx;pm++){//<--Pm-loop
       pmsl=pm+ECPMSMX*sl;
       if(pmcrs[pmsl]>0){
         if(sl==0){
@@ -1267,16 +1268,16 @@ void ECREUNcalib::mfit(){
 	  tote2+=pmcrs[pmsl];
 	}
         pmres[pmsl]/=pmcrs[pmsl];
-        pmrgain[pmsl]=pmres[pmsl]/avr;
+        pmrgain[pmsl]=pmres[pmsl]/avr;//rel2ref pm-responce(rel.gain)
         nlscan+=1;
 	glscan[sl]+=geant(pmrgain[pmsl]);
         if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+11,geant(pmrgain[pmsl]),1.);
       }
-    }//---> end of pm loop
+    }//---> end of Pm-loop
     if(nlscan>0)glscan[sl]/=geant(nlscan);
-  }
-  if(ECREFFKEY.reprtf[0]!=0)HPAK(ECHISTC+13,glscan);
-  cout<<"      totr1/totr2="<<totr1<<" "<<totr2<<" tote1/2="<<tote1<<" "<<tote2<<endl;
+  }//--->endof SL-loop
+  if(ECREFFKEY.reprtf[0]!=0)HPAK(ECHISTC+13,glscan);//PM RelGain SL-profile
+//  cout<<"      totr1/totr2="<<totr1<<" "<<totr2<<" tote1/2="<<tote1<<" "<<tote2<<endl;
 //
 // ---------> print PM rel.gains:
 //
@@ -1286,7 +1287,7 @@ void ECREUNcalib::mfit(){
         pmsl=pm+ECPMSMX*sl;
         gtscan[pm]=pmrgain[pmsl];
       }
-      strcpy(htit1,"RelGain vs PM in SL ");
+      strcpy(htit1,"PmRelGain vs PM-number in SL ");
       in[0]=inum[sl+1];
       strcat(htit1,in);
       HBOOK1(ECHISTC+7,htit1,npmx,1.,geant(npmx+1),0.);
@@ -1345,7 +1346,7 @@ void ECREUNcalib::mfit(){
   avs=0.;
   avo=0.;
   nonzer=0.;
-  for(i=0;i<ECPMSL*4;i++){ // <-- SubCell-chan. loop
+  for(i=0;i<ECPMSL*4;i++){ // <-- Pix-chan. loop
     sumc=0.;
     sumt=0.;
     sumct=0.;
@@ -1644,16 +1645,19 @@ void ECREUNcalib::mfun(int &np, number grad[], number &f, number x[]
   }
   if(flg==3){
     f=f/number(nbins-4);
-    cout<<"  chi2="<<f<<endl;
+    cout<<" <-- longit.fit done:"<<endl;
+    cout<<"     chi2="<<f<<endl;
     for(i=0;i<4;i++){
-      cout<<" par-"<<i<<" ---> "<<x[i]<<endl;
+      cout<<"     par-"<<i<<" ---> "<<x[i]<<endl;
     }
     if(f<5.){//chi2 ok
+      cout<<"     Chi2 OK"<<endl;
       nfits+=1;
       slslow+=x[1];
       fastfr+=x[2];
       slfast+=x[3];
     }
+    else cout<<"     Chi2 Bad !"<<endl;
   }
 }
 //---

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.572 2008/06/27 10:36:34 choutko Exp $
+// $Id: job.C,v 1.573 2008/06/27 12:36:09 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -876,7 +876,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
   ECCAFFKEY.nortyp=0;     //(12) normaliz.type 0/1-> by crossed/fired counters
-  ECCAFFKEY.badplmx=5;   // (13) Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
+  ECCAFFKEY.badplmx=5;   // (13) Accept max. bad sc-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
   ECCAFFKEY.etrunmn=80.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
   ECCAFFKEY.etrunmx=600.; //(15) Max ECenergy (Etrunc in mev) ......................
   ECCAFFKEY.nsigtrk=1.5;  //(16) Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
@@ -2784,12 +2784,16 @@ if(!isRealData() && TFMCFFKEY.tdclin>0){
   end.tm_year=TFREFFKEY.year[1];
 }
 //----- 
-if((TFREFFKEY.ReadConstFiles/10000)==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor(MC/RD) from DB
-if(isRealData()){
+if(isRealData() && 
+   (TFREFFKEY.ReadConstFiles/10000)==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor(RD-reco) from DB
+   
+if(!isRealData() && (TFMCFFKEY.tdclin > 0) &&
+   (TFREFFKEY.ReadConstFiles/10000)==0)end.tm_year=TFREFFKEY.year[0]-1;//(L)TofTdcCor(MC-reco) from DB
+
   TID.add (new AMSTimeID(AMSID("TofTdcCor",isRealData()),
     begin,end,TOFCRSL*sizeof(TofTdcCor::tdccor[0][0]),
     (void*)&TofTdcCor::tdccor[0][0],server,needval));
-}    
+    
   end.tm_year=TFREFFKEY.year[1];
 //
    

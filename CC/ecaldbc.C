@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.68 2008/06/27 07:35:49 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.69 2008/06/27 12:36:09 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -747,10 +747,10 @@ void EcalJobStat::bookhist(){
 //    hist # +7 is booked inside mfit !!!
         HBOOK1(ECHISTC+8,"ECCA: SubCell Efficiency",50,0.2,1.2,0.);
         HBOOK1(ECHISTC+9,"ECCA: SubCell RelativeGain",50,0.1,2.1,0.);
-        HBOOK1(ECHISTC+10,"ECCA: RefPmResp. uniformity",ECCLBMX,1.,geant(ECCLBMX+1),0.);
+        HBOOK1(ECHISTC+10,"ECCA: RefPmResp. vs LongBinNumber(uniformity)",ECCLBMX,1.,geant(ECCLBMX+1),0.);
         HBOOK1(ECHISTC+11,"ECCA: PM relat.gains",100,0.,2.,0.);
         HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,0.,100.,0.);
-        HBOOK1(ECHISTC+13,"ECCA: PM-RelGain L-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
+        HBOOK1(ECHISTC+13,"ECCA: PM-RelGain SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
 	HMINIM(ECHISTC+13,0.5);
 	HMAXIM(ECHISTC+13,1.5);
         HBOOK1(ECHISTC+14,"ECCA: Pixel Efficiency L-profile",maxpl,1.,geant(maxpl+1),0.);
@@ -780,7 +780,7 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+26,"ECCA: Pixel eff(even SL) ",80,0.5,1.3,0.);
         HBOOK1(ECHISTC+27,"ECCA: Pixel eff( odd SL) ",80,0.5,1.3,0.);
         HBOOK1(ECHISTC+28,"ECCA: SuperLayers visibility(fired,punch-through)",maxsl,1.,geant(maxsl+1),0.);
-        HBOOK1(ECHISTC+29,"ECCA: PMT(4pix) spectrum(trk-matched pixels,X-prj,adc)",100,0.,600.,0.);
+        HBOOK1(ECHISTC+29,"ECCA: PMT(4pix) spectrum(trk-matched pixels,X-prj,adc)",100,0.,400.,0.);
         HBOOK1(ECHISTC+30,"ECCA: PMT(4pix) spectrum(trk-matched pixels,Y-prj,adc)",100,0.,400.,0.);
         HBOOK1(ECHISTC+31,"ECCA: PM eff(even SL) ",100,0.2,1.2,0.);
         HBOOK1(ECHISTC+32,"ECCA: PM eff( odd SL) ",100,0.2,1.2,0.);

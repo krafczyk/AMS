@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.53 2008/06/26 09:29:50 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.54 2008/06/27 12:36:09 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -171,9 +171,9 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
         strcat(name,vers1);
 	TFCAFFKEY.cfvers=0;//reset vers.numb. to 0 for old(12pads) setup
       }
-      else if(strstr(AMSJob::gethead()->getsetup(),"TOF:010908")){//new pos of TOF-planes
-        cout <<"      CleanRoomSetup since 01.09.08(new TOF-pos) "<<endl;
-        strcat(name,vers2);
+      else if(!AMSJob::gethead()->isRealData()){
+        cout <<"      MC: Original(not CleanRoom)Setup(=old TOF-pos) "<<endl;
+        strcat(name,vers0);
       }
       else{
         cout <<"      CleanRoomSetup Default(01.12.07 TOF-pos) "<<endl;
@@ -351,16 +351,20 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     zc=_supstr[1]+_plnstr[0]+dz/2.;//mid-plane of closest to botHC counters
 //z-biases according design:
 //
-//  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
-//  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
-//  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
-//  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
-// z-biases inverted as follows from data:
+if(!AMSJob::gethead()->isRealData()){//tempor for MC to use old calibration
+  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
+  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
+  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
+  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
+}
 //
+// z-biases inverted as follows from data:
+else{
   if(il==0)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHC
   else if(il==1)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHc
   else if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
   else if(il==3)zc=zc+((ib)%2)*_plnstr[2];//1st counter is close to botHC
+}
 //
   return(zc);
   }  
