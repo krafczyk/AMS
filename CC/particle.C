@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.162 2008/04/21 15:14:41 choutko Exp $
+//  $Id: particle.C,v 1.163 2008/07/01 14:14:04 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -146,7 +146,6 @@ out:
             ppart->richfit();
              AMSgObj::BookTimer.stop("ReRICHRefit"); 
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
-           ppart->refit();
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
@@ -823,9 +822,8 @@ AMSgObj::BookTimer.start("ReTKRefit");
     for(int layer=0;layer<TKDBc::nlay();layer++){
        number theta,phi;
        bool bad=false;
-       if(!_ptrack->getres(layer,_TrCoo[layer])){
-         bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;
-       }
+       if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::nlay()-1){
+         bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
       if(bad)setstatus(AMSDBc::BADINTERPOL);
 // Change theta,phi,coo 
       if(beta>=0 && layer==0){
