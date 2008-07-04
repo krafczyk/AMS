@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.82 2008/04/28 16:52:01 mdelgado Exp $
+//  $Id: richrec.C,v 1.83 2008/07/04 08:20:53 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -309,6 +309,8 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   geant H=RICHDB::rich_height+RICHDB::foil_height+
                        RICradmirgap+RIClgdmirgap
                        -RICHDB::foil_height;   // Correction due to high index
+
+
   geant n=index;
   
   geant u=fabs(sin(theta)/n);
@@ -344,6 +346,25 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   }else{
     betas[0]=0;    // Wrong theta
   }
+
+#ifdef __AMSDEBUG__
+  if(fabs(direction[2])<0.95){
+    // Dump the information about the reconstruction
+    cout<<"-----------------RECONSTRUCTING AS DIRECT "<<endl;
+    cout<<" R= "<<R<<endl;
+    cout<<" h= "<<h<<endl;
+    cout<<" H= "<<H<<endl;
+    cout<<" index= "<<index<<endl;
+    cout<<" beta= "<<betas[0]<<endl;
+    cout<<" origin[2] "<<origin[2]<<endl;
+    cout<<" z "<<z<<endl;
+    cout<<" delta "<<delta<<endl;
+    cout<<" timeout "<<time_out<<endl;
+    cout<<" U "<<u<<endl;
+  }
+
+  return;// TEST
+#endif
 
   //------------------------------------------------------  
 
@@ -383,8 +404,6 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   _beta_hit[0]=betas[0];
   _beta_hit[1]=betas[1];
   _beta_hit[2]=betas[2];
-
-
 }
 
 
@@ -404,6 +423,7 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   double yf=channel.y();
 
   double zf=-false_height-RIClgdmirgap;
+
   double x=origin[0],y=origin[1],
     z=origin[3]-RICHDB::RICradpos()+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
@@ -523,17 +543,11 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   if(ARRAYSIZE==0) return 0;
 
   // Fast but not safe
-
   geant recs[RICmaxpmts*RICnwindows/2][3];
   geant mean[RICmaxpmts*RICnwindows/2][3];
   geant probs[RICmaxpmts*RICnwindows/2][3];
   integer size[RICmaxpmts*RICnwindows/2][3];
   integer mirrored[RICmaxpmts*RICnwindows/2][3];
-  
-  AMSPoint point;
-  number theta,phi,length;
-  AMSPoint pnt(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height);
-  AMSDir dir(0.,0.,-1.);
 
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
 
@@ -542,20 +556,15 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     return 0;
   }
 
-
-  track->interpolate(pnt,dir,point,theta,phi,length);
-
-  if(fabs(point[2]-pnt[2])>0.01) return 0; // Interpolation failed
       
   //============================================================
   // Here we should check if the track goes through the radiator
   //============================================================
-  
+
+
   RichRadiatorTileManager crossed_tile(track);
   
-  
   if(crossed_tile.getkind()==empty_kind) return 0;
-  
   
   _index=crossed_tile.getindex();
   _height=crossed_tile.getheight();
@@ -567,7 +576,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   _kind_of_tile=crossed_tile.getkind();
 
   // LIP RECONSTRUCTION
-
 
   if((RICRECFFKEY.recon[0]/10)%10){
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHLIP");
@@ -608,8 +616,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
   if(_kind_of_tile==naf_kind) // For NaF they are understimated
     {A*=3.44;B*=3.44;}
-
-  
   
   // Reconstruction threshold: maximum beta admited
   geant betamax=1.+5.e-2*(A+B);
@@ -619,8 +625,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // by the particle going through the PMTs
   // Value corrected by Carlos D.
   geant betamin=(1.+RICthreshold*(_index-1.))/_index;
-  
-  
   
   //==================================================
   // The reconstruction starts here
@@ -637,7 +641,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   dird=crossed_tile.getemissiondir();
   refp=crossed_tile.getemissionpoint(1);
   refd=crossed_tile.getemissiondir(1);
-
 
   _emission_p=dirp;
   _emission_d=dird;
@@ -814,6 +817,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
       if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
     }
   }while(current_ring_status&dirty_ring);   // Do it again if we want to clean it up once
+  
   return first_done;
 }
 
@@ -2067,7 +2071,8 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
   }
   
-  AMSPoint pnt;
+  AMSPoint pnt,point(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.);
+  AMSDir dir(0.,0.,-1.);
   number theta,phi,length;
   
   _radpos[0]=_emission_p[0];
@@ -2076,10 +2081,19 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
   
   _theta=acos(1/_beta/_index);
   _errortheta=_errorbeta/_beta/tan(_theta);
+
   
-  track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
-		     AMSDir(0.,0.,-1.),pnt,theta,phi,length);
+  point=RichAlignment::RichToAMS(point);
+  dir=RichAlignment::RichToAMS(dir);
+
   
+  //  track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
+  //		     AMSDir(0.,0.,-1.),pnt,theta,phi,length);
+  track->interpolate(point,dir,
+		     pnt,theta,phi,length);
+  
+  pnt=RichAlignment::AMSToRich(pnt);
+
   _pmtpos[0]=pnt[0];
   _pmtpos[1]=pnt[1];
   _pmtpos[2]=pnt[2];

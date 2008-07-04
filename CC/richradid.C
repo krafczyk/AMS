@@ -12,7 +12,7 @@ void RichRadiatorTileManager::Init(){  // Default initialization
   Init_Default();
 
   // Read in database entries if needed
-  char filename[201];
+  char filename[1000];
   UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
   
   
@@ -264,15 +264,21 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   }
 
   // First decide wich kind of radiator is current
-  AMSPoint pnt(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height),
-    point;
-  AMSDir dir(0.,0.,-1.);
-  
+  AMSPoint pnt(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height),point;
+  AMSDir   dir(0.,0.,-1.);
   number theta,phi,length;
   
+  // Transform RICH plane to AMS plane 
+  pnt=RichAlignment::RichToAMS(pnt);
+  dir=RichAlignment::RichToAMS(dir);
+
+  // Get the track interpolation
   track->interpolate(pnt,dir,point,
 		     theta,phi,length);
 
+  // Transform the point to RICH frame again to get X and Y
+  point=RichAlignment::AMSToRich(point);
+  
   _current_tile=get_tile_number(point[0],point[1]);
   
   if(_current_tile<0){
@@ -284,9 +290,16 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   }
 
   pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+getheight());
+
+  // Transform to AMS
+  pnt=RichAlignment::RichToAMS(pnt);
+
   track->interpolate(pnt,dir,point,
 		     theta,phi,
 		     length);
+
+  // Transform the point to RICH frame again to get X and Y
+  point=RichAlignment::AMSToRich(point);
   
   if(getkind()!=get_tile_kind(get_tile_number(point[0],point[1]))){
     _current_tile=-1;
@@ -298,22 +311,27 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   }
   
   _p_entrance=point;
-  _d_entrance=AMSDir(theta,phi);
+  AMSDir d(theta,phi);
+  _d_entrance=RichAlignment::AMSToRich(d);
 
 
   // Direct photons
   pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_tiles[_current_tile]->mean_height);
+  pnt=RichAlignment::RichToAMS(pnt);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
-  _p_direct=point;
-  _d_direct=AMSDir(theta,phi);
+  _p_direct=RichAlignment::AMSToRich(point);
+  d=AMSDir(theta,phi);
+  _d_direct=RichAlignment::AMSToRich(d);
   
   // Reflected photons
   pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_tiles[_current_tile]->mean_height);
+  pnt=RichAlignment::RichToAMS(pnt);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
-  _p_reflected=point;
-  _d_reflected=AMSDir(theta,phi);
+  _p_reflected=RichAlignment::AMSToRich(point);
+  d=AMSDir(theta,phi);
+  _d_reflected=RichAlignment::AMSToRich(d);
   
   // Use the mean position for the direct photons to estimate the
   // local mean index

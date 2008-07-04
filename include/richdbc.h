@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.44 2008/06/25 11:05:02 mdelgado Exp $
+//  $Id: richdbc.h,v 1.45 2008/07/04 08:20:53 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -266,6 +266,10 @@ class RichAlignment{
   static void LoadFile(char *filename);
  public:
   static void Init();
+  static AMSPoint AMSToRich(AMSPoint &p){return (_a2rRot*p)+_a2rShift;}
+  static AMSPoint RichToAMS(AMSPoint &p){return (_r2aRot*p)+_r2aShift;}
+  static AMSDir   AMSToRich(AMSDir &p){return (_a2rRot*p);}
+  static AMSDir   RichToAMS(AMSDir &p){return (_r2aRot*p);}
 };
 
 
