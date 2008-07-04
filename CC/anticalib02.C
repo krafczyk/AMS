@@ -64,21 +64,21 @@ void AntiCalib::init(){ // ----> initialization for AMPL-calibration
       if(i==0){//s=1
         if(ilh==0){//close
           hll=0.;
-          hhl=160.;
+          hhl=320.;
 	}
 	else{//farther
           hll=0.;
-          hhl=80.;
+          hhl=160.;
 	}
       }
       else{//s=2
         if(ilh==0){//farther
           hll=0.;
-          hhl=80.;
+          hhl=160.;
 	}
 	else{//close
           hll=0.;
-          hhl=160.;
+          hhl=320.;
 	}
       }
       for(ib=0;ib<ANTI2C::ANTISRS;ib++){//phys.sect.loop
@@ -143,7 +143,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     adca=ptr->getadca();
     ntdct=ptr->gettdct(tdct);
     nftdc=ptr->getftdc(ftdc);
-    if(ntdct==1 && nftdc==1){//select only 1 Hist/FT-hit events
+    if(ntdct>0 && ntdct<=2 && nftdc==1){//select only 1 Hist/FT-hit events
 //DAQ-ch-->p.e's:
       ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
@@ -151,7 +151,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
               *ANTI2SPcal::antispcal[sector].getadc2pe(); //ADC-ch-->p.e.
 //cout<<"    decoded signal="<<ampe[nsds]<<endl; 
 //TDC-ch-->time(ns):
-      i=1;//use up-edge(come after down)
       nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
       if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
       else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
@@ -167,7 +166,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //
     if(idN != id/10){//next hit is new sector: create 2-sides signal for current sect
 //
-      if(nsds==2 && (ampe[0]>0 && ampe[1]>0) && (uptm[0]>0 && uptm[1]>0)){//good sector ?
+      if(nsds==2 && (ampe[0]>0.5 && ampe[1]>0.5) && (uptm[0]>0 && uptm[1]>0)){//good sector ?
          ANTI2JobStat::addbr(sector,2);//count good sect
 	 frsecn[frsect]=sector;//store fired sect.number
 	 am1[frsect]=ampe[0];//store signals(pe's)
@@ -197,7 +196,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //
     number pmas;
     number pmom,mom,bet,chi2,betm,pcut[2];
-    number the,phi,trl,rid,err,ctran;
+    number the,phi,trl,rid(2),err,ctran;
     integer chargeTOF,chargeTracker,trpatt;
     AMSPoint C0(0,0,0);
     AMSPoint cooCyl(0,0,0);
@@ -209,6 +208,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     AMSCharge  *pcharge;
     AMSBeta *pbeta;
     int npart,ipatt,bad;
+    bool trktr,trdtr,ecaltr,nottr,badint;
     npart=0;
     cptr=AMSEvent::gethead()->getC("AMSParticle",0);//pointer to envelop "0" with true(trk)-track part
     if(cptr)
@@ -219,23 +219,29 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     bad=1;
     while(ppart){
       ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
-      if(ptrack){
-        trpatt=ptrack->getpattern();//TRK-track pattern
-	if(trpatt>=0){
-          ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
-          status=ptrack->getstatus();
-          pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
-//        pbeta=pcharge->getpbeta();
-          pbeta=ppart->getpbeta();
-//          betpatt=pbeta->getpattern();
-          bet=pbeta->getbeta();
-//          chi2t=pbeta->getchi2();
-//          chi2s=pbeta->getchi2S();
-          chargeTracker=pcharge->getchargeTracker();
-          chargeTOF=pcharge->getchargeTOF();
-          pmas=ppart->getmass();
-	  bad=0;
-	  break;//1st good trk-track
+      if(ptrack){//check track-type
+        trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
+        ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
+        nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
+        badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
+        if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
+          trpatt=ptrack->getpattern();//TRK-track pattern
+	  if(trpatt>=0){
+            ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+            status=ptrack->getstatus();
+            pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
+//          pbeta=pcharge->getpbeta();
+            pbeta=ppart->getpbeta();
+//            betpatt=pbeta->getpattern();
+            bet=pbeta->getbeta();
+//            chi2t=pbeta->getchi2();
+//            chi2s=pbeta->getchi2S();
+            chargeTracker=pcharge->getchargeTracker();
+            chargeTOF=pcharge->getchargeTOF();
+            pmas=ppart->getmass();
+	    bad=0;
+	    break;//1st good trk-track
+	  }
 	}
       }
       ppart=ppart->next();
@@ -251,7 +257,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     integer nseccr(0),isphys(-1);
     phil=padfi-0.5*paddfi;//boundaries of fired sector
     phih=padfi+0.5*paddfi;
-    zcut=padlen/2+1;
+    zcut=padlen/2;
     for(i=0;i<2;i++){
       dir=2*i-1;
       ptrack->interpolateCyl(cooCyl,dirCyl,padrad,dir,crcCyl,the,phi,trl);
@@ -266,7 +272,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
       phi=phi*AMSDBc::raddeg;//inpact phi(degr,+-180)
       if(phi<0)phi=360+phi;//0-360
       HF1(2531,geant(crcCyl[2]),1.);
-      if(fabs(crcCyl[2])<zcut){//match in Z (+1cm extention due to accuracy)
+      if(fabs(crcCyl[2])<zcut){//match in Z 
         if(i==0)HF1(2626,geant(frsecn[0]),1.);
 	else HF1(2627,geant(frsecn[0]),1.);
         HF1(2540,geant(cphi),1.);
@@ -301,14 +307,14 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     ANTI2JobStat::addre(15);
 //
     if(fabs(dphi1)>26)return;//out of logic.sector
-    if(fabs(dphi2)>70)return;//too high impact phi
+    if(fabs(dphi2)>50)return;//too high impact phi
     ANTI2JobStat::addre(16);
 //    
     HF1(2534,geant(pmom),1.);
     HF1(2535,bet,1.);
     HF1(2536,pmas,1.);
     number betg(4);
-    betg=pmom/pmas;//use particle-defined betg
+//    betg=pmom/pmas;//use particle-defined betg
     HF1(2537,betg,1.);
     if(betg>6)return;//non MIP area
     ANTI2JobStat::addre(17);
@@ -319,7 +325,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     dphi2/=AMSDBc::raddeg;//degr->rad
     crlen=padth/(sin(thes)*fabs(cos(dphi2)));//pass-length in scint(ignore local curvature)
     HF1(2538,crlen,1.);
-    if(crlen>5.5)return;//too high cr.length: suspicious
+    if(crlen>3.5)return;//too high cr.length: suspicious
     ANTI2JobStat::addre(18);
     ama[0]=am1[0];//imply single sector event
     ama[1]=am2[0];

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.27 2008/06/26 09:29:50 choumilo Exp $
+//  $Id: antidbc02.C,v 1.28 2008/07/04 14:06:29 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -1124,7 +1124,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2536,"AntiCalib:PartMass(gev)",80,0.,8.,0.);
     HBOOK1(2537,"AntiCalib:Part mom/mass",80,0.,20.,0.);
     HBOOK1(2538,"AntiCalib:PartPassLength in scint",80,0.,20.,0.);
-    HBOOK2(2625,"AntiCalib:Ampl1(trlen/beta-norm) vs bet",50,0.2,1.2,50,0.,50.,0.);
+    HBOOK2(2625,"AntiCalib:Ampl1(trlen/beta-norm) vs bet",60,0.6,1.2,50,10.,210.,0.);
     HBOOK1(2539,"AntiCalib:Matched Physical sector number",16,1.,17.,0.);
     HBOOK1(2540,"AntiCalib:TRK-track CrossPointPhi(Zcr OK)",91,0.,364.,0.);
     HBOOK1(2541,"AntiCalib:TRK-track ImpactPhi(Zcr OK)",91,0.,364.,0.);

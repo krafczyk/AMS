@@ -1228,8 +1228,8 @@ public:
 		    */
   int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch
   int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
-  int   TofFlag1;   ///< FTC(z>=1) layers pattern code, <0->noFTC,>=0->(0-10)->miss.planes-code;
-  int   TofFlag2;   ///< BZ(z>=2) layers pattern code, <0->noBZ,>=0->(0-10)->miss.planes-code;
+  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4
+  int   TofFlag2;   ///< FTZ(z>=2) LayersPatternCode, <0:noFTZ,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
 

@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.21 2008/06/26 09:30:00 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.22 2008/07/04 14:06:48 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -53,8 +53,8 @@ void AMSLVL1Hist::Book(){
   
   AddSet("TOF-patterns in LVL1");
   
-  _filled.push_back(new TH1F("trigh7","TOF MissingPlaneCode, Z>=1(ftc)",12,-1.,11.));
-  _filled[_filled.size()-1]->SetXTitle("MissingPlaneCode");
+  _filled.push_back(new TH1F("trigh7","TOF PlanesPatternCode, Z>=1(ftc)",12,-1.,11.));
+  _filled[_filled.size()-1]->SetXTitle("0:4L,(1-4):missL,5:13,6:14,7:23,8:24,9:12,10:34");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh8","TOF-pads pattern in Z>=1(Side1,globFT)",40,0.,40.));
@@ -65,8 +65,8 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(3);
    
-  _filled.push_back(new TH1F("trigh10","TOF MissingPlaneCode, Z>=2(bz)",12,-1.,11.));
-  _filled[_filled.size()-1]->SetXTitle("MissingPlaneCode");
+  _filled.push_back(new TH1F("trigh10","TOF PlanesPatternCode, Z>=2(bz)",12,-1.,11.));
+  _filled[_filled.size()-1]->SetXTitle("0:4L,(1-4):missL,5:13,6:14,7:23,8:24,9:12,10:34");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   _filled.push_back(new TH1F("trigh11","TOF-pads pattern in Z>=2(Side1,globFT)",40,0.,40.));
@@ -106,23 +106,23 @@ void AMSLVL1Hist::Book(){
   AddSet("ECAL in LVL1(1)");
   
   _filled.push_back(new TH1F("trigh19","FTE_Flag(if !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/noConfirmInProj/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh20","Lvl1_Flag(if !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noConfirmInProj(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: 0ProjCong(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh21","FTE_Flag(GlobFT-OK) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/noConfirmInProj/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(6);
   
   _filled.push_back(new TH1F("trigh22","FTE_Flag(if !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/noConfirmInProj/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   _filled.push_back(new TH1F("trigh23","Lvl1_Flag(if !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noConfirmInProj(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: 0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   AddSet("ECAL in LVL1(2)");
@@ -164,7 +164,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Mksec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(3);
-  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",100,0,50.));
+  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",100,0,25.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Msec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(3);
@@ -470,7 +470,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
 //---
 //                                       <------ TOF
     ntofl=0;
-    mlcode1=tofflg1%10;//miss layers code(ftc)
+    mlcode1=tofflg1;//miss layers code(ftc)
     if(mlcode1>=0){
       if(mlcode1==0)ntofl=4;
       else if(mlcode1<5)ntofl=3;
@@ -478,7 +478,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       _filled[3]->Fill(ntofl,1.);//tot. tof-layers(z>=1)
     }
     ntofl=0;
-    mlcode2=tofflg2%10;//miss layers code(bz)
+    mlcode2=tofflg2;//miss layers code(bz)
     if(mlcode2>=0 && bz){//tofflg2 shows input patt., so it can be >=0 even when bz=0
       if(mlcode2==0)ntofl=4;
       else if(mlcode2<5)ntofl=3;

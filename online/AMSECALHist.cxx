@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.4 2008/03/27 09:21:57 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.5 2008/07/04 14:06:48 choumilo Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -81,7 +81,7 @@ void AMSECALHist::Book(){
   EcalRunPar::init();//clear counters
   EcalRunPar::SetMCF0();//set def(real data)
 //
-  AddSet("Ecal Y(bend_plane)-Cells Accupancy");
+  AddSet("Ecal Y(bend_plane)-Cells Accupancy");//set-0
   
   _filled.push_back(new TH2F("emch0","HighGainChannelOccupancy[Y(bend)-proj]",73,0.5,73.5,19,0.5,19.5));
   _filled[_filled.size()-1]->SetXTitle("Cell number(1-72)");
@@ -96,7 +96,7 @@ void AMSECALHist::Book(){
   _filled[_filled.size()-1]->SetYTitle("SLayer number(1-9)->top2bot");
   
 //
-  AddSet("Ecal X(not_bend_plane)-Cells Accupancy");
+  AddSet("Ecal X(not_bend_plane)-Cells Accupancy");//set-1
   
   _filled.push_back(new TH2F("emch3","HighGainChannelOccupancy[X(nonbend)-proj]",73,0.5,73.5,19,0.5,19.5));
   _filled[_filled.size()-1]->SetXTitle("Cell number(1-72)");
@@ -111,7 +111,7 @@ void AMSECALHist::Book(){
   _filled[_filled.size()-1]->SetYTitle("SLayer number(1-9)->top2bot");
   
 //
-  AddSet("Ecal Dynode Trigger-Cells Accupancy");
+  AddSet("Ecal Dynode Trigger-Cells Accupancy");//set-2
   
   _filled.push_back(new TH2F("emch6","DynodeChanOccupancy(HiAmpl,TrigPatt-bit ON)",37,0.5,37.5,10,0.5,10.5));
   _filled[_filled.size()-1]->SetXTitle("PMT number(1-36)");
@@ -122,7 +122,7 @@ void AMSECALHist::Book(){
   _filled[_filled.size()-1]->SetYTitle("SLayer number(1-9)->top2bot");
   
 //
-  AddSet("EcalTotalHits time evolution");
+  AddSet("EcalTotalHits time evolution");//set-3
   
   _filled.push_back(new TProfile("emch8","TotalHits vs Time",120,0.,emctrange[0],0,1000.));
   _filled[_filled.size()-1]->SetYTitle("Hits");
@@ -131,32 +131,61 @@ void AMSECALHist::Book(){
   _filled.push_back(new TProfile("emch10","TotalHits vs Time",120,0.,emctrange[2],0,1000.));
   _filled[_filled.size()-1]->SetYTitle("Hits");
   
-  AddSet("DynodeTriggerEfficiency");
+  AddSet("DynodeTriggerEfficiency");//set-4
   
-  _filled.push_back(new TProfile("emch11","TrgPattBitON-efficiency vs DynAmpl(SL=X2)",100,0.,500.,0.,1.1));
+  _filled.push_back(new TProfile("emch11","TrgPattBitON-efficiency vs DynAmpl(SL=X2)",100,0.,250.,0.,1.1));
   _filled[_filled.size()-1]->SetXTitle("DynAmpl[adc-chan]");
   _filled[_filled.size()-1]->SetYTitle("Eff");
   
-  _filled.push_back(new TProfile("emch12","TrgPattBitON-efficiency vs DynAmpl(SL=Y3)",100,0.,500.,0.,1.1));
+  _filled.push_back(new TProfile("emch12","TrgPattBitON-efficiency vs DynAmpl(SL=Y3)",100,0.,250.,0.,1.1));
   _filled[_filled.size()-1]->SetXTitle("DynAmpl[adc-chan]");
   _filled[_filled.size()-1]->SetYTitle("Eff");
   
-  _filled.push_back(new TProfile("emch13","TrgPattBitON-efficiency vs DynAmpl(SL=X4)",100,0.,500.,0.,1.1));
+  _filled.push_back(new TProfile("emch13","TrgPattBitON-efficiency vs DynAmpl(SL=X4)",100,0.,250.,0.,1.1));
   _filled[_filled.size()-1]->SetXTitle("DynAmpl[adc-chan]");
   _filled[_filled.size()-1]->SetYTitle("Eff");
   
-  _filled.push_back(new TProfile("emch14","TrgPattBitON-efficiency vs DynAmpl(SL=Y5)",100,0.,500.,0.,1.1));
+  _filled.push_back(new TProfile("emch14","TrgPattBitON-efficiency vs DynAmpl(SL=Y5)",100,0.,250.,0.,1.1));
   _filled[_filled.size()-1]->SetXTitle("DynAmpl[adc-chan]");
   _filled[_filled.size()-1]->SetYTitle("Eff");
   
-  _filled.push_back(new TProfile("emch15","TrgPattBitON-efficiency vs DynAmpl(SL=X6)",100,0.,500.,0.,1.1));
+  _filled.push_back(new TProfile("emch15","TrgPattBitON-efficiency vs DynAmpl(SL=X6)",100,0.,250.,0.,1.1));
   _filled[_filled.size()-1]->SetXTitle("DynAmpl[adc-chan]");
   _filled[_filled.size()-1]->SetYTitle("Eff");
   
-  _filled.push_back(new TProfile("emch16","TrgPattBitON-efficiency vs DynAmpl(SL=Y7)",100,0.,500.,0.,1.1));
+  _filled.push_back(new TProfile("emch16","TrgPattBitON-efficiency vs DynAmpl(SL=Y7)",100,0.,250.,0.,1.1));
   _filled[_filled.size()-1]->SetXTitle("DynAmpl[adc-chan]");
   _filled[_filled.size()-1]->SetYTitle("Eff");
 //  
+//-----------  
+//  
+  AddSet("ECAL spectra");//set-5
+  
+  _filled.push_back(new TH1F("emch17","EcalPixHg(all) amplitude",100,0.,100.));
+  _filled[_filled.size()-1]->SetXTitle("ADC channels");
+  _filled[_filled.size()-1]->SetFillColor(44);
+  
+  _filled.push_back(new TH1F("emch18","EcalPixLg(all) amplitude",100,0.,500.));
+  _filled[_filled.size()-1]->SetXTitle("ADC channels");
+  _filled[_filled.size()-1]->SetFillColor(44);
+  
+  _filled.push_back(new TH1F("emch19","EcalDyn(all) amplitude",100,0.,500.));
+  _filled[_filled.size()-1]->SetXTitle("ADC channels");
+  _filled[_filled.size()-1]->SetFillColor(44);
+  
+  _filled.push_back(new TH1F("emch20","EcalHits per event",100,0.,100.));
+  _filled[_filled.size()-1]->SetXTitle("Number of hits above threshold");
+  _filled[_filled.size()-1]->SetFillColor(44);
+  
+//  
+//-----------  
+//  
+  AddSet("Ecal-Events Rates");//set-6
+  
+  _filled.push_back(new TH1F("emch21","Ecal-events rates",9,1.,10.));
+  _filled[_filled.size()-1]->SetYTitle("number of events");
+  _filled[_filled.size()-1]->SetFillColor(44);
+  // 
 }
 
 
@@ -264,6 +293,52 @@ case 4:
     gPadSave->cd();
   }
   break;
+case 5:
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    gStyle->SetOptStat(110010);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+17]->Draw();// Spectra 
+    gPadSave->cd();
+  }
+  break;
+case 6:
+  gPad->Divide(1,1);
+  gPad->cd(1);
+//  gPad->SetLogx(gAMSDisplay->IsLogX());
+  gPad->SetLogx(1);
+  gPad->SetLogy(gAMSDisplay->IsLogY());
+  gPad->SetLogz(gAMSDisplay->IsLogZ());
+  gPad->SetGrid();
+  xax=_filled[21]->GetXaxis();
+  xax->SetLabelSize(0.04);
+  xax->SetBinLabel(1,"Entries");
+  _filled[21]->SetBinContent(1,EcalRunPar::getsev(0));
+  xax->SetBinLabel(2,"Lvl1OK");
+  _filled[21]->SetBinContent(2,EcalRunPar::getsev(1));
+  xax->SetBinLabel(3,"FTE");
+  _filled[21]->SetBinContent(3,EcalRunPar::getsev(2));
+  xax->SetBinLabel(4,"FTE+FTC|Z");
+  _filled[21]->SetBinContent(4,EcalRunPar::getsev(3));
+  xax->SetBinLabel(5,"FTE-FTC|Z");
+  _filled[21]->SetBinContent(5,EcalRunPar::getsev(4));
+  xax->SetBinLabel(6,"EcActive");
+  _filled[21]->SetBinContent(6,EcalRunPar::getsev(5));
+  xax->SetBinLabel(7,"+Particle");
+  _filled[21]->SetBinContent(7,EcalRunPar::getsev(6));
+   xax->SetBinLabel(8,"+TrkTrack");
+  _filled[21]->SetBinContent(8,EcalRunPar::getsev(7));
+ xax->SetBinLabel(9,"+TrackCros");
+  _filled[21]->SetBinContent(9,EcalRunPar::getsev(8));
+  
+  _filled[21]->SetStats(kFALSE);
+  _filled[21]->Draw("hbar2");//Ecal-events Rates  
+  gPadSave->cd();
+  break;
 //
   }//--->endof switch
 }
@@ -280,6 +355,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
   static Float_t tinpp,toutp;
   UShort_t ecpatt[6][3]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Float_t dynamap[kNsupl][kNpmts];//event dyn-ampls
+  Float_t dynamapA[kNsupl][kNpmts];//event dyn-ampls made from AnodeH
   Int_t i,j,k,ih;
 //
   EcalRunPar::addsev(0);//<--counts inputs
@@ -338,8 +414,11 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
     bz= ((membpat&1<<9)>0);//Z>=2(when ftc)
     glft=(ftc||ftz||fte);//globFT
   }
-  if(!LVL1OK)return;//=====> no LVL1-trig
+  if(!(LVL1OK && glft))return;//=====> no LVL1(glFT)-trig
   EcalRunPar::addsev(1);//<--passed lvl1 check
+  if(fte)EcalRunPar::addsev(2);//<--fte
+  if(fte && (ftc||ftz))EcalRunPar::addsev(3);//<-- ftcz + fte
+  if(fte && !(ftc||ftz))EcalRunPar::addsev(4);//<-- !ftcz + fte
 //
   for(i=0;i<6;i++){//read EC-trig pattern
     for(j=0;j<3;j++){
@@ -349,21 +428,26 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
 //
 //--------> ECAL-hit check :
 //
+  Int_t nechts=ntuple->NEcalHit();//total ecal-hits
+  if(nechts <= 1 && ECTrigFl==0)return;//no ECAL activity
+  EcalRunPar::addsev(5);//<--passed activity check
+//  
   UInt_t stat;
   Int_t swid,plane,proj,cell,pm,sl;
+  Int_t nhtot(0);
   Float_t adc[3],coo[3],ped[3],edep;
   Float_t tinp,tout;
   Float_t temperT(999),temperC(999),temperP(999);
-  Float_t ahthr0=5;//<--- anode(hig) hit-threshold(low=3sig, adc-ch) 
-  Float_t ahthr1=3;//<--- anode(low) hit-threshold(low=3sig, adc-ch) 
-  Float_t dhthr=3;//<--- dynode/anlowg hit-threshold(low=3sig, adc-ch) 
-  Float_t trgthr[9]={0.,30.,30.,30.,30.,30.,30.,0.,0.};//<--- trig-threshold(vs SL adc-ch)
+  Float_t ahthr0=3;//<--- anode(hig) hit-threshold(adc-ch) 
+  Float_t ahthr1=3;//<--- anode(low) hit-threshold(adc-ch) 
+  Float_t dhthr=3;//<--- dynodehit-threshold(adc-ch) 
+  Float_t trgthr[9]={0.,50.,50.,50.,50.,50.,50.,0.,0.};//<--- trig-threshold(vs SL adc-ch)
 // 
-  Int_t nechts=ntuple->NEcalHit();//total ecal-hits
   EcalHitR * p2echt;//pointer to hit members
   for(i=0;i<kNsupl;i++){
     for(j=0;j<kNpmts;j++){
       dynamap[i][j]=0;
+      dynamapA[i][j]=0;
     }
   }
   for(ih=0;ih<nechts;ih++){ // <--- loop over Ecal-hits
@@ -381,7 +465,9 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
       coo[i]=p2echt->Coo[i];
       ped[i]=p2echt->Ped[i];
     }
+    if(adc[0]>ahthr0)nhtot+=1;
     dynamap[sl-1][pm-1]=adc[2];//save Dyn-ampl
+    if(adc[0]>ahthr0)dynamapA[sl-1][pm-1]+=adc[0];//same from AnodeH
     if(proj==1){
       if(adc[0]>ahthr0)_filled[0]->Fill(cell+1,plane+1);//Y-pr, hg
       if(adc[1]>ahthr1)_filled[1]->Fill(cell+1,plane+1);//Y-pr, lg
@@ -390,10 +476,15 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
       if(adc[0]>ahthr0)_filled[3]->Fill(cell+1,plane+1);//X-pr, hg
       if(adc[1]>ahthr1)_filled[4]->Fill(cell+1,plane+1);//X-pr, lg
     }
+    if(adc[0]>0)_filled[17]->Fill(adc[0],1);
+    if(adc[1]>0)_filled[18]->Fill(adc[1],1);
   }//--->endof ECAL-hits loop
+//
+  _filled[20]->Fill(nhtot,1);//Nhits total
 //
   for(i=0;i<kNsupl;i++){//create dyn-occupancy(all) hist
     for(j=0;j<kNpmts;j++){
+      if(dynamap[i][j]>0)_filled[19]->Fill(dynamap[i][j],1);
       if(dynamap[i][j]>dhthr){
         if((i+1)%2==1)_filled[2]->Fill(j+1,i+1);//Y-proj
         if((i+1)%2==0)_filled[5]->Fill(j+1,i+1);//X-proj
@@ -413,7 +504,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
         if((ecpatt[sl][word]&(1<<bit))==0 && dynamap[slabs][pm]>trgthr[slabs])_filled[7]->Fill(pm+1,slabs+1);
       }
     }
-//
+//---> dyn-trig eff (when patt-bit on) vs Adyn
     for(int sl=1;sl<7;sl++){//abs SL-loop for "in trig" layers
       for(int pm=0;pm<36;pm++){
         ((TProfile*)_filled[11+sl-1])->Fill(dynamap[sl][pm],(EcalRunPar::patbcheck(sl,pm,ecpatt)?1:0),1.);
@@ -453,7 +544,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
 //----------------> Correlations with TRK-track:
 //
   if(ntuple->NParticle()==0)return;
-  EcalRunPar::addsev(2);//<--passed Part check
+  EcalRunPar::addsev(6);//<--passed Part check
 //  
   Int_t itrktr(-1),itrdtr(-1),pindex(-1);
   for(int i=0;i<ntuple->NParticle();i++){//search for 1st Part. with trk-track
@@ -463,16 +554,24 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
     if(itrktr>=0)break;
   }
   if(pindex<0)return;
-  EcalRunPar::addsev(3);//<--- passed TRK-track check
+  EcalRunPar::addsev(7);//<--- passed TRK-track check
 //
   Float_t eccros[3][3];//[entr/cent/exit][x/y/z]
   Float_t pmom;
   pmom=ntuple->pParticle(pindex)->Momentum;
   for(i=0;i<3;i++){
     for(j=0;j<3;j++){
-      eccros[i][j]=ntuple->pParticle(pindex)->EcalCoo[i][j];
+      eccros[i][j]=ntuple->pParticle(pindex)->EcalCoo[i][j];//[front/mid/back][x,y,z]
     }
   }
+  Bool_t crosok(true);
+  for(i=0;i<3;i+=2){//front/back
+    for(j=0;j<2;j++){//x,y
+      if(fabs(eccros[i][j])>65.5)crosok=false;
+    }
+  }
+  if(!crosok)return;
+  EcalRunPar::addsev(8);//<--- passed TRK-track/EC crossing test
 //
 //<---------------
 //

@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.cxx,v 1.12 2008/03/27 09:21:57 choumilo Exp $
+//  $Id: AMSAntiHist.cxx,v 1.13 2008/07/04 14:06:48 choumilo Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream>
@@ -14,7 +14,7 @@
 
 const Int_t kNants=8;//ANTI sectors
 const Float_t kTDCbin=0.024414;//TDC-bin(ns)
-const Int_t accscale=2;//(1-3)scale for time-evolutions
+const Int_t accscale=1;//(1-3)scale for time-evolutions
 char AntiPars::dat1[30];
 char AntiPars::dat2[30];
 char AntiPars::dat3[30];
@@ -80,35 +80,35 @@ void AMSAntiHist::Book(){
 //
   AddSet("Anti-Edep");//set-2
   
-  _filled.push_back(new TH1F("antih9","Sector-1 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih9","Sector-1 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih10","Sector-2 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih10","Sector-2 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih11","Sector-3 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih11","Sector-3 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih12","Sector-4 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih12","Sector-4 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih13","Sector-5 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih13","Sector-5 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih14","Sector-6 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih14","Sector-6 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih15","Sector-7 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih15","Sector-7 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih16","Sector-8 Edep(FTcoincEvents,1paired t-hit)",100,0.,25.));
+  _filled.push_back(new TH1F("antih16","Sector-8 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
 //-----------  
@@ -129,7 +129,7 @@ void AMSAntiHist::Book(){
   for (int j = 0; j < kNants; j++){
      sprintf(hname,"antih%2d",hbias[4]+j);
      sprintf(title,"ACCTrigPatt efficiency, Sector=%1d",j+1);
-    _filled.push_back(new TProfile(hname,title,50,0.,50.,0.,1.1));
+    _filled.push_back(new TProfile(hname,title,75,0.,300.,0.,1.1));
     _filled[_filled.size()-1]->SetYTitle("Efficiency");
     _filled[_filled.size()-1]->SetXTitle("Sector signal(adc-channels)");
     _filled[_filled.size()-1]->SetFillColor(44);
@@ -139,11 +139,11 @@ void AMSAntiHist::Book(){
   AddSet("AntiParans time evolution");//set-5(bias=27)
   
   sprintf(hname,"antih%2d",hbias[5]);
-  _filled.push_back(new TProfile(hname,"Min/MaxRawSideTimeHits vs Time",120,0.,acctrange[accscale],0,20.));
+  _filled.push_back(new TProfile(hname,"Aver/MaxRawSideTimeHits vs Time",120,0.,acctrange[accscale],0,20.));
   _filled[_filled.size()-1]->SetYTitle("RawSideHits");
   
   sprintf(hname,"antih%2d",hbias[5]+1);
-  _filled.push_back(new TProfile(hname,"Min/MaxRawSideTimeHits vs Time",120,0.,acctrange[accscale],0,20.));
+  _filled.push_back(new TProfile(hname,"Aver/MaxRawSideTimeHits vs Time",120,0.,acctrange[accscale],0,20.));
   _filled[_filled.size()-1]->SetYTitle("RawSideHits");
   
   sprintf(hname,"antih%2d",hbias[5]+2);
@@ -344,14 +344,14 @@ case 5:
     xax=_filled[i+hbias[5]]->GetXaxis();
     xax->SetTitle(name);
     xax->SetTitleSize(0.05);
-    if(i==0)_filled[i+hbias[5]]->Draw("P");//Nhits min
+    if(i==0)_filled[i+hbias[5]]->Draw("P");//Nhits aver
     else if(i==1)_filled[i+hbias[5]]->Draw("PSAME");//Nhits max 
     else if(i==2)_filled[i+hbias[5]]->Draw("P");//SFEA-temper min
     else if(i==3)_filled[i+hbias[5]]->Draw("PSAME");//SFEA-temper max 
     if(i<2){
       txt->SetTextSize(0.05);
       txt->SetTextColor(2+i);
-      if(i==0)txt->DrawText(20.,17.,"Min");
+      if(i==0)txt->DrawText(20.,17.,"Aver");
       else txt->DrawText(30.,17.,"Max");
     }
     else{
@@ -509,7 +509,8 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   Int_t ntdct[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Int_t nftdc[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Float_t ampl,temper,mxtemp(-273),mntemp(9999);
-  Int_t nhmin(999),nhmax(0);
+  Int_t nhmin(999),nhmax(0),nhnonz(0);
+  Float_t nhavr(0);
   Float_t adca[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Float_t temp[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   
@@ -521,8 +522,11 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     stat=p2raws->stat;
     adca[side][sect]=p2raws->adca;
     ntdct[side][sect]=p2raws->ntdct;
-    if(ntdct[side][sect]>0 && ntdct[side][sect]<nhmin)nhmin=ntdct[side][sect];
-    if(ntdct[side][sect]>0 && ntdct[side][sect]>nhmax)nhmax=ntdct[side][sect];
+    if(ntdct[side][sect]>0){
+      nhavr+=ntdct[side][sect];
+      nhnonz+=1;
+    }
+    if(ntdct[side][sect]>nhmax)nhmax=ntdct[side][sect];
     for(ih=0;ih<ntdct[side][sect];ih++)tdct[side][sect][ih]=p2raws->tdct[ih];
     nftdc[side][sect]=p2raws->nftdc;
     for(ih=0;ih<nftdc[side][sect];ih++)ftdc[side][sect][ih]=p2raws->ftdc[ih];
@@ -532,14 +536,14 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     if(temp[side][sect]<mntemp)mntemp=temp[side][sect];
     if(temp[side][sect]>mxtemp)mxtemp=temp[side][sect];
   }
-//
+  if(nhnonz>0)nhavr/=nhnonz;
+//--->AccTrigPatt Eff:
   for(is=0;is<kNants;is++){//<-- loop over sectors
     ampl=0;
     if(adca[0][is]>0 || adca[1][is]>0){
       ampl=adca[0][is];
       if(ampl<adca[1][is])ampl=adca[1][is];
       ((TProfile*)_filled[hbias[4]+is])->Fill(ampl,(AntiPars::patbcheck(is,antipat)?1:0),1.);//bitpatt eff
-//      ((TProfile*)_filled[hbias[4]])->Fill(ampl,(AntiPars::patbcheck(is,antipat)?1:0),1.);//bitpatt eff
     }
   }
 //FT-time(sect=1/5)
@@ -567,10 +571,11 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     if(accscale==2)AntiPars::setdat2(ntuple->GetTime());
     if(accscale==3)AntiPars::setdat3(ntuple->GetTime());
   }
-  if(nhmin<999)((TProfile*)_filled[hbias[5]])->Fill(time[accscale-1]-timez[accscale-1],nhmin,1.);//Min RawSide-hits
+ 
+  if(nhnonz>0)((TProfile*)_filled[hbias[5]])->Fill(time[accscale-1]-timez[accscale-1],nhavr,1.);//Aver RawSide-hits
   if(nhmax>0)((TProfile*)_filled[hbias[5]+1])->Fill(time[accscale-1]-timez[accscale-1],nhmax+0.15,1.);//Max RawSide-hits
   if(mntemp<9999)((TProfile*)_filled[hbias[5]+2])->Fill(time[accscale-1]-timez[accscale-1],mntemp,1.);//Min SFEA temper
-  if(mntemp>-273)((TProfile*)_filled[hbias[5]+3])->Fill(time[accscale-1]-timez[accscale-1],mxtemp,1.);//Max SFEA temper
+  if(mxtemp>-273)((TProfile*)_filled[hbias[5]+3])->Fill(time[accscale-1]-timez[accscale-1],mxtemp,1.);//Max SFEA temper
 //
 //
 //-----------------

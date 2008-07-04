@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.573 2008/06/27 12:36:09 choumilo Exp $
+// $Id: job.C,v 1.574 2008/07/04 14:06:29 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -871,12 +871,12 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
   ECCAFFKEY.adcmin=2.;    // (6) min ADC cut (~3sig)for indiv. SubCell (to remove noise)
   ECCAFFKEY.adcpmx=150.;  // (7) max ADC for indiv SC to consider PlaneAmpl as PunchThrough(prot)
-  ECCAFFKEY.ntruncl=1;    // (8) remove this number of scPlanes with highest Edep
+  ECCAFFKEY.ntruncl=2;    // (8) remove this number of PixPlanes with highest Edep
   ECCAFFKEY.trxac=0.022;  // (9) TRK->EC extrapolation accuracy in X-proj(cm)
   ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
-  ECCAFFKEY.nortyp=0;     //(12) normaliz.type 0/1-> by crossed/fired counters
-  ECCAFFKEY.badplmx=5;   // (13) Accept max. bad sc-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
+  ECCAFFKEY.nortyp=1;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired counters
+  ECCAFFKEY.badplmx=3;   // (13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
   ECCAFFKEY.etrunmn=80.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
   ECCAFFKEY.etrunmx=600.; //(15) Max ECenergy (Etrunc in mev) ......................
   ECCAFFKEY.nsigtrk=1.5;  //(16) Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)

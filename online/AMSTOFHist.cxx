@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.30 2008/04/16 10:19:52 choutko Exp $
+//  $Id: AMSTOFHist.cxx,v 1.31 2008/07/04 14:06:48 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -16,6 +16,9 @@
 const Int_t kNants=8;//ANTI sectors
 const Int_t kNtofl=4;//TOF layers
 const Int_t kNtofb[4]={8,8,10,8};//TOF bars per layer
+const Float_t kTDCbin=0.024414;//TDC-bin(ns)
+const Int_t tofscales[5]={1,1,1,1,1};//(1-3)scale_type for 5 time-evolution graphs:
+//                                        TimeHits/HistHits/Temp_SFET/_SFEC/_PMT
 //--------------------------------
 class RunPar{ 
 //
@@ -93,20 +96,20 @@ void AMSTOFHist::Book(){
 //  
   AddSet("TofBetaParameters");
   
-  _filled.push_back(new TH1F("tofh4","TofBetaChi2space",50,0.,10.));
+  _filled.push_back(new TH1F("tofh4","TofBeta Chi2space",50,0.,10.));
   _filled[_filled.size()-1]->SetXTitle("space-fit chi2");
   _filled[_filled.size()-1]->SetFillColor(8);
   
-  _filled.push_back(new TH1F("tofh5","TofBetaChi2time",50,0.,10.));
+  _filled.push_back(new TH1F("tofh5","TofBeta Chi2time",50,0.,10.));
   _filled[_filled.size()-1]->SetXTitle("time-fit chi2");
   _filled[_filled.size()-1]->SetFillColor(8);
   
-  _filled.push_back(new TH1F("tofh6","TofBetaLayerPattern",10,0.,10.));
-  _filled[_filled.size()-1]->SetXTitle("used layers: 0->all4,1:4->miss.layer#,etc");
+  _filled.push_back(new TH1F("tofh6","TofBeta UsedLayers Pattern",10,0.,10.));
+  _filled[_filled.size()-1]->SetXTitle("0->4Layers, 1-4->miss(4-1), 5:1+3, 6:1+4, 7:2+3, 8:2+4, 9:1+2");
   _filled[_filled.size()-1]->SetFillColor(8);
   
-  _filled.push_back(new TH1F("tofh7","TofBeta",800,-2.,2.));
-  _filled[_filled.size()-1]->SetXTitle("velocity/c");
+  _filled.push_back(new TH1F("tofh7","TofBeta",600,-1.5,1.5));
+  _filled[_filled.size()-1]->SetXTitle("Velocity/C");
   _filled[_filled.size()-1]->SetFillColor(8);
   
 //  
@@ -169,7 +172,7 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TofPadNumber");
   _filled[_filled.size()-1]->SetYTitle("NormEdep(Mev)");
 
-  _filled.push_back(new TProfile("tofh21","Edep(mip)<->PadNumber, Layer3",8,1,9,0.1,8));
+  _filled.push_back(new TProfile("tofh21","Edep(mip)<->PadNumber, Layer3",10,1,11,0.1,8));
   _filled[_filled.size()-1]->SetXTitle("TofPadNumber");
   _filled[_filled.size()-1]->SetYTitle("NormEdep(Mev)");
 
@@ -189,19 +192,19 @@ void AMSTOFHist::Book(){
 //
   AddSet("TofTimeStability");
   
-    _filled.push_back(new TProfile("tofh25","LBBS=1041 TimeHits vs Time",120,0,toftrange[2],0,16));
+    _filled.push_back(new TProfile("tofh25","LBBS=1041 TimeHits/side vs Time",120,0,toftrange[tofscales[0]],0,16));
     _filled[_filled.size()-1]->SetYTitle("Number of hits");
     
-    _filled.push_back(new TProfile("tofh26","LBBS=1041 HistHits vs Time",120,0,toftrange[2],0,16));
+    _filled.push_back(new TProfile("tofh26","LBBS=1041 HistHits/side vs Time",120,0,toftrange[tofscales[1]],0,16));
     _filled[_filled.size()-1]->SetYTitle("Number of hits");
     
-    _filled.push_back(new TProfile("tofh27","LBBS=1041 Temperature vs Time",120,0,toftrange[2],-40,40));
+    _filled.push_back(new TProfile("tofh27","LBBS=1041 AverTemperature vs Time",120,0,toftrange[tofscales[2]],-40,40));
     _filled[_filled.size()-1]->SetYTitle("Temperature(degree)");
     
-    _filled.push_back(new TProfile("tofh28","LBBS=1041 Temperature vs Time",120,0,toftrange[2],-40,40));
+    _filled.push_back(new TProfile("tofh28","LBBS=1041 AverTemperature vs Time",120,0,toftrange[tofscales[3]],-40,40));
     _filled[_filled.size()-1]->SetYTitle("Temperature(degree)");
   
-    _filled.push_back(new TProfile("tofh29","LBBS=1041 Temperature vs Time",120,0,toftrange[2],-40,40));
+    _filled.push_back(new TProfile("tofh29","LBBS=1041 AverTemperature vs Time",120,0,toftrange[tofscales[4]],-40,40));
     _filled[_filled.size()-1]->SetYTitle("Temperature(degree)");
   
 }
@@ -412,9 +415,9 @@ case 5:
 case 6:
   gPad->Divide(1,3);
   p1min=0;
-  p1max=16;
+  p1max=8;
   p2min=0;
-  p2max=32;
+  p2max=8;
   for(i=0;i<5;i++){
     if(i<=2)gPad->cd(i+1);
     else gPad->cd(3);
@@ -423,25 +426,32 @@ case 6:
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
+    
+    if(tofscales[i]==1){
+      strcpy(name,"Last 120 mins since ");
+      strcpy(dat,AntiPars::getdat1());
+    }
+    else if(tofscales[i]==2){
+      strcpy(name,"Last 120 hours since ");
+      strcpy(dat,AntiPars::getdat2());
+    }
+    else if(tofscales[i]==3){
+      strcpy(name,"Last 120 days since ");
+      strcpy(dat,AntiPars::getdat3());
+    }
+    
     _filled[i+25]->SetMarkerStyle(20);
     _filled[i+25]->SetMarkerSize(0.5);
+    
     if(i==0){
       _filled[i+25]->SetMinimum(p1min);
       _filled[i+25]->SetMaximum(p1max);
       _filled[i+25]->SetMarkerColor(2);
-//      strcpy(name,"Last 120mins since ");
-//      strcpy(dat,RunPar::getdat1());
-      strcpy(name,"Last 120days since ");
-      strcpy(dat,RunPar::getdat3());
     }
     if(i==1){
       _filled[i+25]->SetMinimum(p2min);
       _filled[i+25]->SetMaximum(p2max);
       _filled[i+25]->SetMarkerColor(2);
-//      strcpy(name,"Last 120mins since ");
-//      strcpy(dat,RunPar::getdat1());
-      strcpy(name,"Last 120days since ");
-      strcpy(dat,RunPar::getdat3());
     }
     if(i>=2){
       _filled[i+25]->SetMinimum(-40);
@@ -455,10 +465,6 @@ case 6:
       else{
         _filled[i+25]->SetMarkerColor(4);
       }
-//      strcpy(name,"Last 120mins since ");
-//      strcpy(dat,RunPar::getdat1());
-      strcpy(name,"Last 120days since ");
-      strcpy(dat,RunPar::getdat3());
     }
     strcat(name,dat);
     xax=_filled[i+25]->GetXaxis();
@@ -531,36 +537,42 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
   time[2]=(etime[0]-etime0)/86400;//ev.time starting from beg.of.run(day)
 //
-//--->short Time-range histogr. resets:
-  if((time[0]-timez[0])>=toftrange[0]){
-//    ((TProfile*)_filled[25])->Reset("");
-//    ((TProfile*)_filled[26])->Reset("");
-//    ((TProfile*)_filled[27])->Reset("");
-    timez[0]=time[0];
-    RunPar::setdat1(ntuple->GetTime());
+//---> Time-evolution Histogr. resets:
+//
+  for(int i=0;i<5;i++){
+    if((time[tofscales[i]-1]-timez[tofscales[i]-1])>=toftrange[tofscales[i]-1]){
+      ((TProfile*)_filled[25+i])->Reset("");
+      timez[tofscales[i]-1]=time[tofscales[i]-1];
+      time[tofscales[i]-1]+=0.001;
+      if(tofscales[i]==1)RunPar::setdat1(ntuple->GetTime());
+      if(tofscales[i]==2)RunPar::setdat2(ntuple->GetTime());
+      if(tofscales[i]==3)RunPar::setdat3(ntuple->GetTime());
+    }
   }
+//--->short Time-range histogr. resets:
+//  if((time[0]-timez[0])>=toftrange[0]){
+//    timez[0]=time[0];
+//    RunPar::setdat1(ntuple->GetTime());
+//  }
 //
 //--->mid Time-range histogr. resets:
-  if((time[1]-timez[1])>=toftrange[1]){
-//    ((TProfile*)_filled[25])->Reset("");
-//    ((TProfile*)_filled[26])->Reset("");
-//    ((TProfile*)_filled[27])->Reset("");
-    timez[1]=time[1];
-    RunPar::setdat2(ntuple->GetTime());
-  }
+//  if((time[1]-timez[1])>=toftrange[1]){
+//    timez[1]=time[1];
+//    RunPar::setdat2(ntuple->GetTime());
+//  }
 //
 //--->long Time-range histogr. resets:
 //
-  if((time[2]-timez[2])>=toftrange[2]){
+//  if((time[2]-timez[2])>=toftrange[2]){
   //cout<<"---->Reset"<<endl;
-    ((TProfile*)_filled[25])->Reset("");
-    ((TProfile*)_filled[26])->Reset("");
-    ((TProfile*)_filled[27])->Reset("");
-    ((TProfile*)_filled[28])->Reset("");
-    ((TProfile*)_filled[29])->Reset("");
-    timez[2]=time[2];
-    RunPar::setdat3(ntuple->GetTime());
-  }
+//    ((TProfile*)_filled[25])->Reset("");
+//    ((TProfile*)_filled[26])->Reset("");
+//    ((TProfile*)_filled[27])->Reset("");
+//    ((TProfile*)_filled[28])->Reset("");
+//    ((TProfile*)_filled[29])->Reset("");
+//    timez[2]=time[2];
+//    RunPar::setdat3(ntuple->GetTime());
+ // }
 //<-------------
 //
 //---> LVL-1 params:
@@ -582,6 +594,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //--------> temperature behaviour study(based on TofRawSide-Obj):
 //
   Int_t swid,hwid,crat,slot,nfthits,ntmhits,nhihits;
+  Float_t monval[10];
   Float_t tinp,tout,strr,offs;
   Float_t temperT(999),temperC(999),temperP(999);
   Float_t strtms[4];
@@ -594,17 +607,24 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     crat=hwid/10;
     slot=hwid%10;
     nfthits=p2raws->nftdc;
-    ntmhits=p2raws->nstdc;
-    nhihits=p2raws->nsumh;
-    temperT=p2raws->temp;
-    temperC=p2raws->tempC;
-    temperP=p2raws->tempP;
+    monval[0]=p2raws->nstdc;
+    monval[1]=p2raws->nsumh;
+    monval[2]=p2raws->temp;//SFET-temp
+//    monval[3]=p2raws->tempC;//SFEC-temp
+//    monval[4]=p2raws->tempP;//PMT-temp
+    monval[3]=10;//SFEC-temp
+    monval[4]=-5;//PMT-temp
     if(swid==1041){
-      ((TProfile*)_filled[25])->Fill(time[2]-timez[2],ntmhits,1.);
-      ((TProfile*)_filled[26])->Fill(time[2]-timez[2],nhihits,1.);
-      ((TProfile*)_filled[27])->Fill(time[2]-timez[2],temperT,1.);
-      ((TProfile*)_filled[28])->Fill(time[2]-timez[2],temperC,1.);
-      ((TProfile*)_filled[29])->Fill(time[2]-timez[2],temperP,1.);
+      for(int his=0;his<5;his++){
+        if(his<2){
+	  ((TProfile*)_filled[25+his])->Fill(time[tofscales[his]-1]-timez[tofscales[his]-1],monval[his],1.);
+	}
+	else{
+	  if(monval[his]>-273 && monval[his]<999){
+	    ((TProfile*)_filled[25+his])->Fill(time[tofscales[his]-1]-timez[tofscales[his]-1],monval[his],1.);
+	  }
+	}
+      }
     }
   }// --- end of hits loop --->
 //<--------
@@ -815,7 +835,8 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
 //
     Float_t toftc,toflc;
-    cutf[6]=true;// good tof-track matching 
+    cutf[6]=true;// good long tof-track matching 
+    cutf[7]=true;// good trans tof-track matching 
     for(int ic=0;ic<nbetofc;ic++){//<--beta-used cluster loop
       il=ltof[ic]-1;//0:3
       ib=btof[ic];//1:
@@ -934,8 +955,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
         for(int il=0;il<4;il++){//fill Edep-profiles
           ib=bltof[il];//1:10
           id=100*(il+1)+ib;//tof id (LBB)
-	  if(tofedn[il]>0 && ntofp[il]==1){//use single member clusters
-	    ((TProfile*)_filled[19+il])->Fill(ib,etrtof,1.);//profiles Edep vs TOF-pad
+	  if(tofedn[il]>0 && ntofp[il]==1 && tofmsk[il]==1){//use 1-member clusters, not spike
+//	    ((TProfile*)_filled[19+il])->Fill(ib,etrtof,1.);//profiles Edep vs TOF-pad
+	    ((TProfile*)_filled[19+il])->Fill(ib,tofedn[il],1.);//profiles Edep vs TOF-pad
             if(id==204)((TProfile*)_filled[23])->Fill(clong[il],tofedn[il],1.);
           }
 

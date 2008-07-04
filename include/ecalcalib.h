@@ -10,11 +10,11 @@
 //
 // glob. conts for calibration :
 //
-const integer ECCLBMX=12;// max. long. bins for uniformity study(should be even)
-//const integer ECLBMID=3;// Area (+-bins) from fiber center, used for PM RelGain calibr.
+const integer ECCLBMX=8;// max. long. bins for uniformity study(should be even)
+//const integer ECLBMID=2;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECLBMID=2;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECCHBMX=50;// max. bins in hg-channel for h2lr study
-const integer ECCADCR=100;//max. HGainADC range to use .............. 
+const integer ECCADCR=300;//max. HGainADC range to use .............. 
 //
 class ECREUNcalib {
 

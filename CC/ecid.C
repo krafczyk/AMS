@@ -63,7 +63,7 @@ AMSECIds::AMSECIds(int16u crate, int16u side, int16u slot, int16u rdch):
 }
 //-----------
 //                            LTTP
-AMSECIds::AMSECIds(integer sswid):_aside(0),_gainf(0){//used in MC buildRaw
+AMSECIds::AMSECIds(integer sswid):_aside(0),_gainf(0){//used in MC buildRaw, Root-file fill
   _slay=sswid/1000-1;
   _pmt=(sswid%1000)/10-1;
   _pixel=sswid%10-1;//0-4 (4->dynode)

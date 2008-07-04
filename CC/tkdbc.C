@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.61 2008/05/30 10:01:03 choutko Exp $
+//  $Id: tkdbc.C,v 1.62 2008/07/04 14:06:29 choumilo Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1886,7 +1886,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                (_patmiss[nlay()-2][cpat]==7 && _patmiss[nlay()-1][cpat]==6))
                _patallow[cpat]=0;
          }
-         else if(_patpoints[cpat]==5 && ATREFFKEY.relogic<2){ //for ANTI-calib to allow(if=2) any 5
+         else if(_patpoints[cpat]==5 && ATREFFKEY.relogic<1){ //for ANTI-calib to allow(if=1) any 5
             if(_patmiss[nlay()-3][cpat]==1 || _patmiss[nlay()-2][cpat]==1 || 
                _patmiss[nlay()-1][cpat]==1)_patallow[cpat]=0;
             if(_patmiss[nlay()-3][cpat]==8 || _patmiss[nlay()-2][cpat]==8 || 
@@ -2129,7 +2129,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                (_patmiss[nlay()-2][cpat]==7 && _patmiss[nlay()-1][cpat]==6))
                _patallow[cpat]=0;
          }
-         else if(_patpoints[cpat]==5 && ATREFFKEY.relogic<2){ //for ANTI-calib to allow(if=2) any 5
+         else if(_patpoints[cpat]==5 && ATREFFKEY.relogic<1){ //for ANTI-calib to allow(if=1) any 5
             if(_patmiss[nlay()-3][cpat]==1 || _patmiss[nlay()-2][cpat]==1 || 
                _patmiss[nlay()-1][cpat]==1)_patallow[cpat]=0;
             if(_patmiss[nlay()-3][cpat]==8 || _patmiss[nlay()-2][cpat]==8 || 
