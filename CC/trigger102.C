@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.48 2008/06/26 09:29:51 choumilo Exp $
+//  $Id: trigger102.C,v 1.49 2008/07/07 10:45:48 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -411,12 +411,12 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(ma
   if(AMSJob::gethead()->isMCData()){
     cout <<"====> Trigger2LVL1::Init: LVL1TrigConf-data for MC are requested:"<<endl;
     strcpy(datt,"MC");
-    sprintf(ext,"%d",ECMCFFKEY.calvern);//MC-versn
+    sprintf(ext,"%d",TGL1FFKEY.Lvl1ConfMCVers);//MC-versn
   }
   else{
     cout <<"====> Trigger2LVL1::Init: LVL1TrigConf-data for RealData are requested:"<<endl;
     strcpy(datt,"RD");
-    sprintf(ext,"%d",ECREFFKEY.calutc);//RD-utc
+    sprintf(ext,"%d",TGL1FFKEY.Lvl1ConfRDVers);//RD-utc
   }
   strcat(name,datt);
   strcat(name,".");

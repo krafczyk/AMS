@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.574 2008/07/04 14:06:29 choumilo Exp $
+// $Id: job.C,v 1.575 2008/07/07 10:45:46 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -875,7 +875,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.trxac=0.022;  // (9) TRK->EC extrapolation accuracy in X-proj(cm)
   ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
-  ECCAFFKEY.nortyp=1;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired counters
+  ECCAFFKEY.nortyp=0;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired tracks
   ECCAFFKEY.badplmx=3;   // (13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
   ECCAFFKEY.etrunmn=80.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
   ECCAFFKEY.etrunmx=600.; //(15) Max ECenergy (Etrunc in mev) ......................
