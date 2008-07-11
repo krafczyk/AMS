@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.517 2008/05/30 10:01:04 choutko Exp $
+# $Id: RemoteClient.pm,v 1.518 2008/07/11 17:40:44 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16523,6 +16523,7 @@ sub adda{
               }
           }
 }
+use Filesys::Df;
 require "syscall.ph";
 sub CheckFS{
 #
@@ -16587,7 +16588,17 @@ sub CheckFS{
             my $buf = "\0"x64;
             my $res=syscall(&SYS_statfs, $fs->[0], $buf);
             my ($bsize, $blocks, $bfree, $bavail, $files, $ffree, $namelen) = unpack  "x4 L6 x8 L", $buf;
-              my $isonline = ($res==0);
+            my $isonline = ($res==0);
+               if($res!=0){
+                   my $ref=df($fs->[0]);
+                   if(defined($ref)){
+                       $isonline=1;
+                       $blocks=$ref->{blocks};
+                       $bavail=$ref->{bavail};
+                       $bfree=$ref->{bfree};
+                       $bsize=1024;
+                   }
+               }
               if($isonline){
                 my $timestamp=time();
                 my $status="Active";
