@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.26 2008/02/21 13:25:12 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.27 2008/07/18 07:47:34 ams Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -288,6 +288,7 @@ sub Update{
             "History ",
             "Fails ",
             "DataMC",
+            "Host",
             "Status ",
                                    );
 
