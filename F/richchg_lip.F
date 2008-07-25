@@ -1,0 +1,312 @@
+***********************************************************************
+* In this file
+* ------------
+*      subroutine richchgrec(IEF)
+*      subroutine richinitrechg()
+*
+***********************************************************************
+
+
+******************************
+*** CODE FROM richchgrec.F ***
+******************************
+
+      subroutine richchgrec(IEF)
+****************************************************************
+* Charge reconstruction (LIP)
+* 
+* IN: IEF - Flag to control the efficiency calculation
+*           = 10*PMT_Gap + Ring_Width
+*             PMT_Gap =0,1 (pmt gap taken or not into account)
+*             Ring_Width =0,1 (Ring width)
+*
+****************************************************************
+
+* reconstruction:
+
+#include "../include/richrec_lipf.h"
+
+* ... local variables:
+
+       integer ich,i
+       integer ipartpat,irefpoint,ibranch
+       real pthdeg,thetac,pathrad,phipoint,d2point
+
+       real sin2thc_rec, chgrec2
+
+       real richacca(5),richeffa(8) 
+ 
+       integer idummy
+       data idummy /0/
+
+* **********< INIT
+       real chgwin,d2minip,FNORM
+       data d2minip /25./
+*       data FNORM /146.1/
+       data FNORM /124.84/
+* **********>
+
+       real accgap, accgapdir, accgapref
+
+* ... INIT **************************************
+
+* --> init local variables
+
+      call vzero(richacca,5) 
+      call vzero(richeffa,8) 
+
+      richeff_pni  = -1.
+      richeff_avz  = -1.
+
+
+* --> init common variables
+      call richinitrechg
+   
+* ... AEROGEL RADIATOR **************************************
+      if (chradid.eq.'AGL') then
+* ------> interaction length
+         /* clari   = usrcla     ! clarity : radint = lambda^4(micm)/clarity */
+         alambda = 377.E-3 ! mean wavelength (micm) no foil (higher with foil)
+         if (RADCLARITY.gt.0) then
+            alambda = (0.0327*RADCLARITY**(1.-0.867))**0.25
+            radint  = (alambda)**4/RADCLARITY   
+         else
+            print*,'(richchgrec) clarity not defined...radint=3cm!'
+            radint = 3.
+         endif
+* -----> signal window integration
+         chgwin = 2.1
+* ... NAF RADIATOR
+       elseif(chradid.eq.'NAF')then
+         radint = 1.E2
+         chgwin = 2.76
+       endif
+
+* ... reconstruction criteria 
+      if (ipthetac.eq.0)             return ! beta rec required 
+      if (nbushits(ipthetac).le.2)   return ! beta rec with at least 3 hits
+
+* ... set cerenkov theta value
+      thetac = cangrec(ipthetac)
+     
+* ... flag patterns too close to particle matrix crossing point
+      ipartpat =   0
+* --> compute distance between particle matrix impact point and closest pattern point 
+      call dist2patt(thetac,pcoopmt(1),pcoopmt(2),d2point,phipoint,     
+     &     irefpoint)
+      if (d2point.lt.d2minip) ipartpat = 1
+
+* ... count nb photoelectrons close to pattern
+      do i=1,nbhits
+         if ( iflghit(i).ne.1 .and.                !hits not associated to particle
+     +        sqrt(chi2hit(ipthetac,i)).lt.chgwin  !in the window
+     +      ) then
+            chg_nphe = chg_nphe + hitsnpe(i) ! ADC npe
+            if (ireflechit(1,i).eq.1)
+     +         chg_nphe_ref = chg_nphe_ref + hitsnpe(i) ! ADC npe reflected
+         endif
+      enddo 
+      chg_nphe_dir = chg_nphe - chg_nphe_ref     ! ADC npe (direct)
+
+*      print*,'... chg_nphe = ',chg_nphe
+*      print*,'... chg_nphe_dir = ',chg_nphe_dir
+*      print*,'... chg_nphe_ref = ',chg_nphe_ref
+
+* ... compute particle path length
+      pathrad = hrad/cos(pthe)
+
+* ... compute additional quantities for charge calculation
+      sin2thc_rec = (sin(cangrec(ipthetac)))**2
+
+
+* ... CLASSICAL ACCEPTANCE CALCULATION
+* ... compute acceptances and efficiencies
+      if(LEVACC.eq.0)then
+         call richacc(thetac,richacca,richeffa)
+      elseif(LEVACC.eq.1)then
+* ...... compute acceptance taking into account ring width
+         call richaccsmear(thetac,1,richacca,richeffa) !charge=1 applied
+      endif
+
+* ... compute radiator walls acceptance 
+CC      call richaccradwall(accradwalldir, accradwallref)
+
+
+      richacc_inv  = richacca(1)   ! invisible acceptance
+      richacc_dir  = richacca(2)   ! direct acceptance
+      richacc_mir0 = richacca(3)   ! mirror acceptance 1ref
+      richacc_mir1 = richacca(4)   ! mirror acceptance 2ref
+      richacc_hol  = richacca(5)   ! hole acceptance 
+*
+      richacc_vis = richacc_dir + 
+     +              reflec*richacc_mir0 + 
+     +              reflec**2*richacc_mir1 
+*
+      richacc_ref = reflec*richacc_mir0 + reflec**2*richacc_mir1
+
+      richeff_pni = richeffa(1)       ! radiator eff
+      richeff_rad = richeffa(2)       ! radiator eff * geom acceptance
+      richeff_lg  = richeffa(3)       ! light guide efficiency
+      richeff_avz = richeffa(4)       ! mean photon path
+      richeff_tot = richeffa(5)       ! total efficiency
+      richeff_dir = richeffa(6)       ! total efficiency direct
+      richeff_1rf = richeffa(7)       ! total efficiency 1 reflection
+      richeff_2rf = richeffa(8)       ! total efficiency 2 reflections
+
+*      print*,'... richacca = ',richacca
+*      print*,'... richeffa = ',richeffa
+
+
+* ... is a tiny acceptance event? if so no charge is reconstructed...
+      if(richacc_vis.lt.0.01)  return 
+
+      iflagchg = 1
+      iflagacc = 1
+
+* ... acceptance asymetry
+      assym_acc =(richacc_dir - richacc_mir0)/
+     +           (richacc_dir + richacc_mir0)
+
+*------------------------
+* ... FLIGHT GEOMETRY
+*------------------------
+      if (rcgeom(1).eq.0) then  
+         call richaccpmtgap(accgap,accgapdir,accgapref)
+         richacc_gap    = accgap
+         richacc_gapdir = accgapdir
+         richacc_gapref = accgapref
+      endif
+      
+
+* ... compute reconstructed charge
+      if ( ipartpat.eq.0 ) then         !is particle near the pattern?
+
+
+       if (sin2thc_rec.eq.0.) return         !check thetac
+* =====> overall charge
+         if (richeff_tot.gt.0.) then
+           chgrec2 = chg_nphe/pathrad/richeff_tot/sin2thc_rec ! from simulation ntuple        
+           chgrec  = sqrt(chgrec2/FNORM) 
+* ========> Gap correction for flight
+           if (rcgeom(1).eq.0 .and.   ! Flight geometry
+     +            accgap.gt.0) then   ! No null gap acceptance
+              chgrec2 = chg_nphe/pathrad/richeff_tot/accgap/sin2thc_rec 
+              chgrec_gap = sqrt(chgrec2/FNORM) 
+           else
+              chgrec_gap = -999.
+           endif
+        endif
+*        print*,'after richeff_tot.gt.0.--> chgrec_cor',chgrec_cor
+
+* =====> Direct charge        
+        if (richeff_dir.gt.0.) then
+           chgrec2 = chg_nphe_dir/pathrad/richeff_dir/sin2thc_rec ! from simulation ntuple        
+           chgrec_dir = sqrt(chgrec2/FNORM) 
+        endif
+* =====> Reflected charge   
+        if (richeff_1rf.gt.0.) then
+           chgrec2 = chg_nphe_ref/pathrad/richeff_1rf/sin2thc_rec ! from simulation ntuple        
+           chgrec_ref = sqrt(chgrec2/FNORM)
+        endif
+      
+      else   ! FOR PARTICLES CLOSE TO RING
+     
+ 
+        if (sin2thc_rec.eq.0.) return
+
+        if (irefpoint.ne.0) then ! nearest point is reflected
+
+           if (richeff_dir.gt.0.) then
+              chgrec2 = chg_nphe_dir/pathrad/richeff_dir/sin2thc_rec ! from simulation ntuple        
+              chgrec_dir = sqrt(chgrec2/FNORM) 
+              chgrec     = chgrec_dir
+           endif
+
+        else
+
+           if (richeff_1rf.gt.0.) then
+              chgrec2 = chg_nphe_ref/pathrad/richeff_1rf/sin2thc_rec ! from simulation ntuple        
+              chgrec_ref = sqrt(chgrec2/FNORM) 
+              chgrec     = chgrec_ref
+           endif
+
+        endif
+
+      endif       
+
+* ... charge determinatiomn with gap correction
+      if ( rcgeom(1).eq.0) then ! Flight geometry
+
+* ----->  direct
+         if (accgapdir.gt.0. ) then ! No null gap direct acceptance           
+            if (chgrec_dir.gt.0.) 
+     +           chgrec_gapdir = chgrec_dir/sqrt(accgapdir)
+         else
+            chgrec_gapdir = -999.
+         endif
+
+*     ----->  reflected
+         if (accgapref.gt.0. ) then ! No null gap reflected acceptance 
+             if (chgrec_ref.gt.0.)
+     +           chgrec_gapref = chgrec_ref/sqrt(accgapref)
+          else
+             chgrec_gapref = -999.
+          endif
+       endif
+
+* ... end
+      return
+      end
+
+
+*********************************
+*** CODE FROM richinitrechg.F ***
+*********************************
+
+      subroutine richinitrechg()
+
+#include "../include/richrec_lipf.h"
+
+* Inits charge variables
+
+* ... init charge common variables (in richrec)
+
+      iflagchg     = 0
+      iflagacc     = 0
+
+      chg_nphe     = 0.  !total npe
+      chg_nphe_dir = 0.  !direct npe
+      chg_nphe_ref = 0.  !reflected npe
+
+      chgrec       = -999. 
+      chgrec_dir   = -999. 
+      chgrec_ref   = -999. 
+
+*
+      chgrec_gap       = -999. 
+      chgrec_gapdir   = -999. 
+      chgrec_gapref   = -999.
+
+      richacc_inv  = -1.
+      richacc_dir  = -1.
+      richacc_mir0 = -1.
+      richacc_mir1 = -1.
+      richacc_hol  = -1.
+      richacc_vis  = -1.
+
+      richeff_rad  = -1.
+      richeff_lg   = -1.
+      richeff_tot  = -1.
+      richeff_dir  = -1.
+      richeff_1rf  = -1.
+      richeff_2rf  = -1.    
+
+      richeff_tot_gap  = -1.
+      richeff_dir_gap  = -1.
+      richeff_ref_gap  = -1.
+
+      a_beta = 0.126 !1E-2
+      b_beta = 0.02  !1E-2
+      return
+      end
+

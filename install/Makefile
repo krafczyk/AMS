@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.48 2008/04/21 15:14:42 choutko Exp $
+#  $Id: Makefile,v 1.49 2008/07/25 18:26:32 barao Exp $
 
 #P.Zuccon june 2005
 
@@ -94,6 +94,7 @@ include $(shell echo ${local_makefile})
 CFLAGSB+= $(CPPFLAGS) 
 CFLAGSB+= -D__BATCH__
 
+#FFLAGS+= $(INCPATHS)
 
 
 
@@ -172,9 +173,12 @@ COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C\
 
 #RICH
 COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C      $(SCC)richgeom.C  \
-		$(SFF)richlikebeta_lip.F  $(SFF)richpatt_lip.F   $(SFF)richrec_lip.F \
+		$(SFF)richpatt_lip.F   $(SFF)richrec_lip.F \
 		$(SFF)richpmtlib.F        $(SFF)gtckov.F         $(SFF)graylc.F      $(SFF)cerenkov.F \
-		$(SCC)richradid.C         $(SFF)ggckov.F         $(SCC)richcal.C     $(SCC)richdaq.C
+		$(SCC)richradid.C         $(SFF)ggckov.F         $(SCC)richcal.C     $(SCC)richdaq.C \
+		$(SFF)richbetalike_lip.F \
+		$(SFF)richbetastand_lip.F $(SFF)richchg_lip.F \
+		$(SFF)richutil_lip.F
 
 # High level reconstruction
 COMMON_FILES += $(SCC)vtx.C        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \

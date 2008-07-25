@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.275 2008/06/20 10:39:40 mdelgado Exp $
+#  $Id: datacards.doc,v 1.276 2008/07/25 18:26:32 barao Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -114,6 +114,24 @@ I 1  recon[0](1)                    //  RICH BETA reconstruction switch
 
 I 2  recon[1](1)                    // RICH Z reconstruction switch
                                  // 0 -off; 1 RICH Z reconstruction
+
+I 3  liprflag[2](101,1)  // flags for LIP reconstructions
+                         // (velocity, charge), for each:
+                           // 1 - conventional reconstructions using track objects
+                           // 10 - constrained reconstructions using track objects
+                           // 100 - constrained reconstruction using TOF data
+                           // 1000 - standalone reconstruction using no track
+
+R 5  lipsigma[4]                    // aerogel and NaF: residuals sigmas 
+                                    // (not yet implemented)
+
+R 9  lipdcut[2]                     // aerogel and NaF: hit to ring
+                                    // distance cut in terms of sigmas
+                                    // (not yet implemented)
+
+R 11  lipznorm[2]                   // LIP charge overall factors (aerogel, NaF)
+                                    // (not yet implemented)
+
 
 RICSET 
 I 1  setup(1)                    // 0 use a single radiador; 1 use a Naf 

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.107 2008/03/05 10:03:34 choumilo Exp $
+//  $Id: ntuple.h,v 1.108 2008/07/25 18:26:32 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -730,25 +730,69 @@ public:
   float probkl[MAXRICHRIN];
   float npexp[MAXRICHRIN];
   float collected_npe[MAXRICHRIN];
-  //+LIP 
-  // variables
-  int   liphused[MAXRICHRIN];     //nr of hits used=10000 + nr hits mirror
-  float lipthc[MAXRICHRIN];       // rec. Cerenkov angle
-  float lipbeta[MAXRICHRIN];      // rec. beta 
-  float lipebeta[MAXRICHRIN];    // error on rec. beta
-  float liplikep[MAXRICHRIN];     // likelihood prob. 
-  float lipchi2[MAXRICHRIN];      // chi2 of the fit 
-  float liprprob[MAXRICHRIN];     // ring prob.
-  //ENDofLIP 
+  //+LIP
+//#ifdef __LIPDATASAVE__
+  // New variables
+  // parameters used in array sizes below
+  // (should match those in other files)
+#define LIP_NHITMAX 1000
+#define LIP_NMAXLIPREC 10
+  int   resb_iflag[MAXRICHRIN][LIP_NMAXLIPREC];
+  int   resb_itype[MAXRICHRIN][LIP_NMAXLIPREC];
+  int   resb_itrk[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_beta[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_thc[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_chi2[MAXRICHRIN][LIP_NMAXLIPREC];
+  int   resb_nhit[MAXRICHRIN][LIP_NMAXLIPREC];
+  int   resb_phit[MAXRICHRIN][LIP_NHITMAX][LIP_NMAXLIPREC];
+  int   resb_used[MAXRICHRIN][LIP_NHITMAX][LIP_NMAXLIPREC];
+  float resb_hres[MAXRICHRIN][LIP_NHITMAX][LIP_NMAXLIPREC];
+  float resb_invchi2[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_flatsin[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_flatcos[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_probkl[MAXRICHRIN][LIP_NMAXLIPREC];
+  int   resc_iflag[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_cnpe[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_cnpedir[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_cnperef[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_chg[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_chgdir[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_chgmir[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resc_accgeom[MAXRICHRIN][3][LIP_NMAXLIPREC];
+  float resc_eff[MAXRICHRIN][6][LIP_NMAXLIPREC];
+  float resc_chgprob[MAXRICHRIN][3][LIP_NMAXLIPREC];
+  float resb_pimp[MAXRICHRIN][3][LIP_NMAXLIPREC];
+  float resb_epimp[MAXRICHRIN][3][LIP_NMAXLIPREC];
+  float resb_pthe[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_epthe[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_pphi[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_epphi[MAXRICHRIN][LIP_NMAXLIPREC];
+  float rstd_creclike[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_crecx0[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_crecy0[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_crectheta[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_crecphi[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_crecbeta[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  int   rstd_crecuhits[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_crecpkol[MAXRICHRIN][50][LIP_NMAXLIPREC];
 
+//#else
+/*   // Obsolete variables */
+/*   int   liphused[MAXRICHRIN];     //nr of hits used=10000 + nr hits mirror */
+/*   float lipthc[MAXRICHRIN];       // rec. Cerenkov angle */
+/*   float lipbeta[MAXRICHRIN];      // rec. beta */
+/*   float lipebeta[MAXRICHRIN];    // error on rec. beta */
+/*   float liplikep[MAXRICHRIN];     // likelihood prob. */
+/*   float lipchi2[MAXRICHRIN];      // chi2 of the fit */
+/*   float liprprob[MAXRICHRIN];     // ring prob. */
+//#endif
+  //ENDofLIP 
 /*
   float npexpg[MAXRICHRIN];
   float npexpr[MAXRICHRIN];
   float npexpb[MAXRICHRIN];
   int rad,bas;  /// CORTAR AQUI
 */
-
-
 
 friend class AMSRichRing;
 friend class AMSNtuple;

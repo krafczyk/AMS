@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.42 2008/04/28 16:52:01 mdelgado Exp $
+//  $Id: richrec.h,v 1.43 2008/07/25 18:26:32 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -14,8 +14,12 @@ PROTOCCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT)
 PROTOCCALLSFFUN1(FLOAT,PROBKL,probkl,FLOAT)
 #define PROBKL(A) CCALLSFFUN1(PROBKL,probkl,FLOAT,A) 
 //+LIP
-PROTOCCALLSFSUB1(RICHRECLIP,richreclip,INT)
-#define RICHRECLIP(I1) CCALLSFSUB1(RICHRECLIP,richreclip,INT,I1)
+//PROTOCCALLSFSUB1(RICHRECLIP,richreclip,INT)
+//#define RICHRECLIP(I1) CCALLSFSUB1(RICHRECLIP,richreclip,INT,I1)
+PROTOCCALLSFSUB2(RICHRECLIP,richreclip,INT,INT)
+#define RICHRECLIP(I1,I2) CCALLSFSUB2(RICHRECLIP,richreclip,INT,INT,I1,I2)
+PROTOCCALLSFSUB0(RICHTOFTRACKINIT,richtoftrackinit)
+#define RICHTOFTRACKINIT() CCALLSFSUB0(RICHTOFTRACKINIT,richtoftrackinit)
 //END
 
 #include<string.h>
@@ -158,15 +162,62 @@ static geant _Time;
   vector<int> _hit_pointer;
   vector<int> _hit_used;
 
-  //+LIP
-  // variables
-  integer _liphused;     //nr of hits used=10000 + nr hits mirror
-  number  _lipthc;       // rec. Cerenkov angle
-  number  _lipbeta;      // rec. beta
-  number  _lipebeta;     // error on rec. beta
-  number  _liplikep;     // likelihood prob.
-  number  _lipchi2;      // chi2 of the fit
-  number  _liprprob;     // ring prob.
+  
+//#ifdef __LIPDATASAVE__
+  // NEW VARIABLES
+// parameters used in array sizes below
+// (should match those in other files)
+#define LIP_NHITMAX 1000
+#define LIP_NMAXLIPREC 10
+  integer _resb_iflag[LIP_NMAXLIPREC];
+  integer _resb_itype[LIP_NMAXLIPREC];
+  integer _resb_itrk[LIP_NMAXLIPREC];
+  number  _resb_beta[LIP_NMAXLIPREC];
+  number  _resb_thc[LIP_NMAXLIPREC];
+  number  _resb_chi2[LIP_NMAXLIPREC];
+  integer _resb_nhit[LIP_NMAXLIPREC];
+  integer _resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC];
+  integer _resb_used[LIP_NHITMAX][LIP_NMAXLIPREC];
+  number  _resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC];
+  number  _resb_invchi2[LIP_NMAXLIPREC];
+  number  _resb_flatsin[LIP_NMAXLIPREC];
+  number  _resb_flatcos[LIP_NMAXLIPREC];
+  number  _resb_probkl[LIP_NMAXLIPREC];
+  integer _resc_iflag[LIP_NMAXLIPREC];
+  number  _resc_cnpe[LIP_NMAXLIPREC];
+  number  _resc_cnpedir[LIP_NMAXLIPREC];
+  number  _resc_cnperef[LIP_NMAXLIPREC];
+  number  _resc_chg[LIP_NMAXLIPREC];
+  number  _resc_chgdir[LIP_NMAXLIPREC];
+  number  _resc_chgmir[LIP_NMAXLIPREC];
+  number  _resc_accgeom[3][LIP_NMAXLIPREC];
+  number  _resc_eff[6][LIP_NMAXLIPREC];
+  number  _resc_chgprob[3][LIP_NMAXLIPREC];
+  number  _resb_pimp[3][LIP_NMAXLIPREC];
+  number  _resb_epimp[3][LIP_NMAXLIPREC];
+  number  _resb_pthe[LIP_NMAXLIPREC];
+  number  _resb_epthe[LIP_NMAXLIPREC];
+  number  _resb_pphi[LIP_NMAXLIPREC];
+  number  _resb_epphi[LIP_NMAXLIPREC];
+  number  _rstd_creclike[50][LIP_NMAXLIPREC];
+  number  _rstd_crecx0[50][LIP_NMAXLIPREC];
+  number  _rstd_crecy0[50][LIP_NMAXLIPREC];
+  number  _rstd_crectheta[50][LIP_NMAXLIPREC];
+  number  _rstd_crecphi[50][LIP_NMAXLIPREC];
+  number  _rstd_crecbeta[50][LIP_NMAXLIPREC];
+  integer _rstd_crecuhits[50][LIP_NMAXLIPREC];
+  number  _rstd_crecpkol[50][LIP_NMAXLIPREC];
+//#else
+/*   // OBSOLETE VARIABLES */
+/*   integer _liphused;     //nr of hits used=10000 + nr hits mirror */
+/*   number  _lipthc;       // rec. Cerenkov angle */
+/*   number  _lipbeta;      // rec. beta */
+/*   number  _lipebeta;     // error on rec. beta */
+/*   number  _liplikep;     // likelihood prob. */
+/*   number  _lipchi2;      // chi2 of the fit */
+/*   number  _liprprob;     // ring prob. */
+//#endif
+  
 
   static integer _lipdummy;
   //ENDofLIP
@@ -189,7 +240,7 @@ static geant _Time;
   static int _kind_of_tile;
   
 
-  // ALl the routines from Elisa
+  // All the routines from Elisa
 
   geant trace(AMSPoint r, AMSDir u, 
 	      geant phi, geant *xb, geant *yb, 
@@ -241,7 +292,13 @@ protected:
   void ReconRingNpexp(geant window_size=3.,int cleanup=0);
 public:
   //+LIP
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob,geant recs[RICmaxpmts*RICnwindows/2][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],uinteger size,int ring,uinteger status=0,integer build_charge=0);
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
+//#ifdef __LIPDATASAVE__
+	      int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC],int resb_used[LIP_NHITMAX][LIP_NMAXLIPREC],geant resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[3][LIP_NMAXLIPREC],geant resc_eff[6][LIP_NMAXLIPREC],geant resc_chgprob[3][LIP_NMAXLIPREC],geant resb_pimp[3][LIP_NMAXLIPREC],geant resb_epimp[3][LIP_NMAXLIPREC],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[50][LIP_NMAXLIPREC],geant rstd_crecx0[50][LIP_NMAXLIPREC],geant rstd_crecy0[50][LIP_NMAXLIPREC],geant rstd_crectheta[50][LIP_NMAXLIPREC],geant rstd_crecphi[50][LIP_NMAXLIPREC],geant rstd_crecbeta[50][LIP_NMAXLIPREC],int rstd_crecuhits[50][LIP_NMAXLIPREC],geant rstd_crecpkol[50][LIP_NMAXLIPREC],
+//#else
+/* 	      int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob, */
+//#endif
+	      geant recs[RICmaxpmts*RICnwindows/2][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],uinteger size,int ring,uinteger status=0,integer build_charge=0);
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
@@ -250,6 +307,13 @@ public:
   static AMSRichRing* rebuild(AMSTrTrack *ptrack);
   //+LIP
   static void buildlip(AMSTrTrack *track);
+  // new LIP routines, April/May 2008
+  static void richiniteventlip();
+  static void richinittracklip();
+  static void coordams2lip(float pxams, float pyams, float pzams, float &pxlip, float &pylip, float &pzlip);
+  static void coordlip2ams(float pxlip, float pylip, float pzlip, float &pxams, float &pyams, float &pzams);
+  static void angleams2lip(float theams, float phiams, float &thelip, float &philip);
+  static void anglelip2ams(float thelip, float philip, float &theams, float &phiams);
   //ENDofLIP
 
   AMSTrTrack* gettrack(){return _ptrack;}
@@ -262,10 +326,31 @@ public:
   number getprob(){return _probkl;}
   number getcollnpe(){return _collected_npe;}
 
-  // lipaccesors
-  integer getlipused(){return _liphused;}
-  number getlipprob(){return _liprprob;}
 
+  // lipaccesors
+  integer getlipused(){
+    int lhused = -1;
+    for(int k=0;k<LIP_NMAXLIPREC;k++) {
+      if(_resb_itype[k]==2) {
+	lhused = _resb_nhit[k];
+      }
+      return lhused;
+    }
+  }
+  number getlipprob(){
+    number lrprob = -1.0;
+    for(int k=0;k<LIP_NMAXLIPREC;k++) {
+      if(_resb_itype[k]==2) {
+	lrprob = _resb_probkl[k];
+      }
+      return lrprob;
+    }
+  }
+//#else
+/*   // USING OBSOLETE VARIABLES */
+/*   integer getlipused(){return _liphused;} */
+/*   number getlipprob(){return _liprprob;} */
+//#endif
 
   static geant ring_fraction(AMSTrTrack *ptrack ,geant &direct,
 			     geant &reflected,geant &length,geant beta);

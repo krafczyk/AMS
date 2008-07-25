@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.242 2008/07/23 10:21:39 mdelgado Exp $
+//  $Id: commons.h,v 1.243 2008/07/25 18:26:32 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1009,10 +1009,10 @@ COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);
 class RICRECFFKEY_DEF{
 public:
 integer recon[2];
-float   pars0[5];
-integer   pars1[5];
-integer   pars2[5];
-integer   pars3[5];
+integer liprflag[2];  // LIP reconstruction flags
+float   lipsigma[4];  // LIP residuals sigmas
+float   lipdcut[2];   // LIP distance cut in sigmas
+float   lipznorm[2];  // LIP charge overall factors
 };
 #define RICRECFFKEY COMMON_BLOCK(RICRECFFKEY,ricrecffkey)
 COMMON_BLOCK_DEF(RICRECFFKEY_DEF,RICRECFFKEY);
@@ -1057,87 +1057,175 @@ integer Debug;
 #define PRODFFKEY COMMON_BLOCK(PRODFFKEY,prodffkey)
 COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
 
+
 //+LIP
 // commons
 
-// geometry
-class LIPGEO_DEF{
- public:
-  // dimensions
+// parameters used in array sizes below
+// (should match those in richrec_lipc.h, richrec_lipf.h, richrec.h)
+#define LIP_NBHITSMAX 11000
+#define LIP_NHITMAX 1000
+#define LIP_NRMAX 2
+#define LIP_NMAXTOFCLU 100
+#define LIP_NMAXLIPREC 10
 
-  geant ztoprad_ams;
-  geant zpmtdet_c;
-  geant hmir_c;
-  geant rtmir_c;
-  geant rbmir_c;
-  geant emcxlim_c;
-  geant emcylim_c;
-  geant ztmirgap_c;
-  geant zbmirgap_c;
-  geant reflec_c;
-  // light guides
-  geant lg_length_c;
-  geant lg_height_c;
-  // pmt
-  geant pmt_suptk_c;
-  geant pmt_shdtk_c;
-  geant pmt_sidel_c;
-};
-#define LIPGEO COMMON_BLOCK(LIPGEO,lipgeo)
-COMMON_BLOCK_DEF(LIPGEO_DEF,LIPGEO);
+// input data (see richrec_lipc.h for details)
 
-// radiator
-class LIPRAD_DEF{
+class LIPC2F_DEF{
  public:
 
-  // radiator
+  // job data
+  int jobc_cp_c2f;
 
-  geant hrad_c;
-  geant refindex_c;
-  geant clarity_c;
-  int radtype_c;
-  geant rrad_c;
-  geant ltile_c;
-  int nabslen_c;
-  geant labsrad_c[44];
-  // foil
-  geant hpgl_c;
-  geant pglix_c;
+  // detector data
+  geant ztoprad_ams_c2f;
+  int rcgeom_c2f[2];                           
+  int levgeom_c2f;
+  int levgrad_c2f;	           
+  int levacc_c2f;	           
+  geant ztarg_c2f;                 
+  int nradts_c2f;                
+  geant hrad_c2f;	           
+  geant hrnaf_c2f;	           
+  geant radtile_pitch_c2f;         
+  geant radtile_supthk_c2f;        
+  geant radix_c2f[LIP_NRMAX];
+  geant radclarity_c2f;	           
+  geant hpgl_c2f;	           
+  geant ztmirgap_c2f;	           
+  geant zbmirgap_c2f;	           
+  geant reflec_c2f;	           
+  geant zpmtdet_c2f;	           
+  geant zlgsignal_c2f;
+  geant rtmir_c2f;
+  geant rbmir_c2f;
+  geant hmir_c2f;
+  geant pmtwx_c2f;
+  geant pmtwy_c2f;
+  geant shieldw_c2f;
+  geant pglix_c2f;
+  geant emcxlim_c2f;
+  geant emcylim_c2f;
+  geant lg_top_width_c2f;
+  geant lg_bot_width_c2f;
+  geant lg_pitch_c2f;
+  geant xbc_c2f;
+  geant xbd_c2f;
+  geant yef_c2f;
+  geant xpc_c2f;
+
+  // hit data
+  int nbhits_ev;                 
+  int nbhitsmax_ntup_ev;         
+  geant hitsnpe_sim_ev[LIP_NBHITSMAX]; 
+  int hitspmt_ev[LIP_NBHITSMAX];     
+  geant hitscoo_ev[LIP_NBHITSMAX][3];   
+  geant hitsnpe_ev[LIP_NBHITSMAX];     
+
+  // simulated main track parameters
+  geant pimp_sim[3];               
+  geant pthe_sim;                  
+  geant pphi_sim;                  
+  geant pmom_sim;                  
+  geant pbeta_sim;                 
+  geant pchg_sim;
+
+  // main track parameters
+  geant pimp_main[3];              
+  geant epimp_main[3];              
+  geant pthe_main;                 
+  geant epthe_main;                 
+  geant pphi_main;                 
+  geant epphi_main;                 
+  geant pmom_main;                 
+  int prad_main;                 
+
+  // TOF track parameters
+  int iflag_tof;
+  geant pimp_tof[3];              
+  geant epimp_tof[3];              
+  geant pthe_tof;                 
+  geant epthe_tof;                 
+  geant pphi_tof;                 
+  geant epphi_tof;                 
+  geant pmom_tof;                 
+  int prad_tof;                 
+
+  // TOF cluster data
+  int ntofclu;                   
+  int istatus_tof[LIP_NMAXTOFCLU];   
+  int ilayer_tof[LIP_NMAXTOFCLU];    
+  int ibar_tof[LIP_NMAXTOFCLU];      
+  geant edep_tof[LIP_NMAXTOFCLU];      
+  geant edepd_tof[LIP_NMAXTOFCLU];     
+  geant time_tof[LIP_NMAXTOFCLU];      
+  geant errtime_tof[LIP_NMAXTOFCLU];   
+  geant coo_tof[LIP_NMAXTOFCLU][3];     
+  geant errcoo_tof[LIP_NMAXTOFCLU][3];
+
+  // track and reconstruction counters
+  int irecnumb;
+  int itrknumb;
 };
-#define LIPRAD COMMON_BLOCK(LIPRAD,liprad)
-COMMON_BLOCK_DEF(LIPRAD_DEF,LIPRAD);
+#define LIPC2F COMMON_BLOCK(LIPC2F,lipc2f)
+COMMON_BLOCK_DEF(LIPC2F_DEF,LIPC2F);
 
+// output data (see richrec_lipc.h for details)
 
-// hit parameters
-
-class LIPDAT_DEF{
+class LIPF2C_DEF{
  public:
-  int     nbhitsmax_c;
-  int     nbhits_c;
-  int     hitsadc_c[16000];
-  geant   hitsnpe_c[16000];
-  geant   hitscoo_c[16000][3];
-  int     hitshid_c[16000];
-};
-#define LIPDAT COMMON_BLOCK(LIPDAT,lipdat)
-COMMON_BLOCK_DEF(LIPDAT_DEF,LIPDAT);
 
-// track parameters
-class LIPTRK_DEF{
- public:
-  geant pimp_c[3];
-  geant pmom_c;
-  geant pthe_c;
-  geant pphi_c;
-  geant pcoopmt_c[3];
-  geant cerang_c;
-  geant pbeta_c;
-  geant pchg_c;
-};
-#define LIPTRK COMMON_BLOCK(LIPTRK,liptrk)
-COMMON_BLOCK_DEF(LIPTRK_DEF,LIPTRK);
+  // beta reconstruction results
+  int resb_iflag[LIP_NMAXLIPREC];          
+  int resb_itype[LIP_NMAXLIPREC];          
+  int resb_itrk[LIP_NMAXLIPREC];          
+  geant resb_beta[LIP_NMAXLIPREC];           
+  geant resb_thc[LIP_NMAXLIPREC];
+  geant resb_chi2[LIP_NMAXLIPREC];           
+  int resb_nhit[LIP_NMAXLIPREC];           
+  int resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC];  
+  int resb_used[LIP_NHITMAX][LIP_NMAXLIPREC];  
+  geant resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC];  
+  geant resb_invchi2[LIP_NMAXLIPREC];        
+  geant resb_flatsin[LIP_NMAXLIPREC];        
+  geant resb_flatcos[LIP_NMAXLIPREC];        
+  geant resb_probkl[LIP_NMAXLIPREC];         
 
-// output parameters
+  // charge reconstruction results
+  int resc_iflag[LIP_NMAXLIPREC];          
+  geant resc_cnpe[LIP_NMAXLIPREC];           
+  geant resc_cnpedir[LIP_NMAXLIPREC];        
+  geant resc_cnperef[LIP_NMAXLIPREC];        
+  geant resc_chg[LIP_NMAXLIPREC];            
+  geant resc_chgdir[LIP_NMAXLIPREC];         
+  geant resc_chgmir[LIP_NMAXLIPREC];         
+  geant resc_accgeom[3][LIP_NMAXLIPREC];     
+  geant resc_eff[6][LIP_NMAXLIPREC];         
+  geant resc_chgprob[3][LIP_NMAXLIPREC];
+
+  //track parameters
+  geant resb_pimp[3][LIP_NMAXLIPREC]; 
+  geant resb_epimp[3][LIP_NMAXLIPREC]; 
+  geant resb_pthe[LIP_NMAXLIPREC];           
+  geant resb_epthe[LIP_NMAXLIPREC];           
+  geant resb_pphi[LIP_NMAXLIPREC];           
+  geant resb_epphi[LIP_NMAXLIPREC];           
+
+  //standalone rec details
+  geant rstd_creclike[50][LIP_NMAXLIPREC];
+  geant rstd_crecx0[50][LIP_NMAXLIPREC];
+  geant rstd_crecy0[50][LIP_NMAXLIPREC];
+  geant rstd_crectheta[50][LIP_NMAXLIPREC];
+  geant rstd_crecphi[50][LIP_NMAXLIPREC];
+  geant rstd_crecbeta[50][LIP_NMAXLIPREC];
+  int rstd_crecuhits[50][LIP_NMAXLIPREC];
+  geant rstd_crecpkol[50][LIP_NMAXLIPREC];
+};
+#define LIPF2C COMMON_BLOCK(LIPF2C,lipf2c)
+COMMON_BLOCK_DEF(LIPF2C_DEF,LIPF2C);
+
+// output parameters, obsolete (FOR DEBUGGING ONLY!)
+
 class LIPVAR_DEF{
 public:
 int   liphused;
@@ -1150,10 +1238,8 @@ geant liprprob;
 };
 #define LIPVAR COMMON_BLOCK(LIPVAR,lipvar)
 COMMON_BLOCK_DEF(LIPVAR_DEF,LIPVAR);
+
 // ENDofLIP
-
-
-
 
 
 class AMSCommonsI{

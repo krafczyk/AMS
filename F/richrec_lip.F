@@ -1,202 +1,1354 @@
-* $Id: richrec_lip.F,v 1.3 2004/03/09 17:03:27 mdelgado Exp $
-*// +LIP reconstruction interface
-* created        13/03/2003 
-* last change    03/12/2003
+#define DEBUG
+#undef DEBUG
+*****************************************************************
+* In this file
+* ------------
+*      subroutine richreclip(ievt,irec2do)
+*      subroutine richinitrec
+*      subroutine richtrkhitassoc
 *
-      subroutine richreclip(ievt)
-* ==========================================================
-*  interface for LIP reconstruction      
-* ==========================================================
+*****************************************************************
 
-      implicit none  
-*------------
-*DECLARATIONS 
-*------------
+*****************************************************
+*** RICHRECLIP REPLACES VERSION IN STANDALONE REC ***
+*** (ROUTINE CALLING BETA, CHARGE RECS)           ***
+*****************************************************
+
+      subroutine richreclip(ievt,irec2do)
+*****************************************************
+* IN: ievt    = event number
+*     irec2do = reconstruction to do
+*                 velocity only:
+*                   1 = choose 2 or 3 from track error
+*                   2 = beta rec with fixed track
+*                   3 = beta rec with variable track
+*                   4 = standalone beta rec
+*                 velocity and charge:
+*                  11 = choose 12 or 13 from track error
+*                  12 = beta rec with fixed track
+*                  13 = beta rec with variable track
+*                  14 = standalone beta rec
+*****************************************************
+
 #include "../include/richrec_lipf.h"
+#include "../include/richrec_lipc.h"
 
-      integer ievt
+      integer ievt,irec2do
 
-* ..  local variables
+      real dphistep,probkol
+      real flatsin,flatcos
 
-      integer i,ih
-      integer nbadtrack, nupgtrack,ireflec
-      integer nhit_av_r,nhit_av_d 
-      real pitch,zphemi,zbrad,htest,ztrial
+      integer irecaux
+      integer idobeta,idotof,idostd,idochg
 
+      integer irecnumbini,irectot
 
-      integer ifirst
-      data ifirst/0/ 
+* ... histogram booking
 
-      real dhittrk2,dhittrkass2
-      parameter(dhittrkass2=25.) ! cm 
-      REAL TRICH 
+      data idummy/0/
 
-      integer ipm,ipmmax,nhpm(1000),npmtot
-      real pmweigth
-       
-      double precision thch,phgh,zmirh,dz,thcd,phgd 
-      real thc_av_d,thc_av_r,dzhit(16000)
+      if(idummy.eq.0)then
 
-* ---------------------------------------
-* INITIALIZATION
-* -----------------------------------
+         call hbook1(-110001,'5-par rec, top x error (cm)',
+     +        400,-100.,100.,0.)
+         call hbook1(-110002,'5-par rec, top y error (cm)',
+     +        400,-100.,100.,0.)
+         call hbook1(-110003,'5-par rec, bottom x error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-110004,'5-par rec, bottom y error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-110005,'5-par rec, theta error (deg)',
+     +        1000,-50.,50.,0.)
+         call hbook1(-110006,'5-par rec, phi error (deg)',
+     +        180,-180.,180.,0.)
+         call hbook1(-110007,'5-par rec, thetac error (deg)',
+     +        400,-20.,20.,0.)
+         call hbook1(-110101,'5-par rec (6+ hits), top x error (cm)',
+     +        400,-100.,100.,0.)
+         call hbook1(-110102,'5-par rec (6+ hits), top y error (cm)',
+     +        400,-100.,100.,0.)
+         call hbook1(-110103,'5-par rec (6+ hits), bottom x error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-110104,'5-par rec (6+ hits), bottom y error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-110105,'5-par rec (6+ hits), theta error (deg)',
+     +        1000,-50.,50.,0.)
+         call hbook1(-110106,'5-par rec (6+ hits), phi error (deg)',
+     +        180,-180.,180.,0.)
+         call hbook1(-110107,'5-par rec (6+ hits), thetac error (deg)',
+     +        400,-20.,20.,0.)
 
-      if(ievnumb.ne.ievt) then
-         itknumb=1
-      else
-         itknumb=itknumb+1 
-      endif 
-      ievnumb=ievt 
+         call hbook1(-120001,'TOF rec, top x error (cm)',
+     +        400,-100.,100.,0.)
+         call hbook1(-120002,'TOF rec, top y error (cm)',
+     +        400,-100.,100.,0.)
+         call hbook1(-120003,'TOF rec, bottom x error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-120004,'TOF rec, bottom y error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-120005,'TOF rec, theta error (deg)',
+     +        1000,-50.,50.,0.)
+         call hbook1(-120006,'TOF rec, phi error (deg)',
+     +        180,-180.,180.,0.)
+         call hbook1(-120007,'TOF rec, thetac error (deg)',
+     +        400,-20.,20.,0.)
+         call hbook1(-120101,'TOF rec (6+ hits), top x error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-120102,'TOF rec (6+ hits), top y error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-120103,'TOF rec (6+ hits), bottom x error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-120104,'TOF rec (6+ hits), bottom y error (cm)',
+     +        400,-10.,10.,0.)
+         call hbook1(-120105,'TOF rec (6+ hits), theta error (deg)',
+     +        1000,-50.,50.,0.)
+         call hbook1(-120106,'TOF rec (6+ hits), phi error (deg)',
+     +        180,-180.,180.,0.)
+         call hbook1(-120107,'TOF rec (6+ hits), thetac error (deg)',
+     +        400,-20.,20.,0.)
 
-      if(ifirst.eq.0) then 
-*  matrix placing 
-* (according to richid.C => DMECX e DMECY = 1.1)
-       pitch=pmt_sidel+pmt_shdtk+pmt_suptk
-       pitchx=pitch
-       pitchy=pitch
-       jump=0.5
-       dx0=(pitchx-jump)/2.
-       xlimv=emcxlim-0.2
-       xlimh=emcxlim+0.9
-       ylimh=emcylim-0.7
-       ylimv=emcylim+0.4
-       xcpmm=0.
-       ycpmm=0.
-* (mirror aux. var.)
-       tgmir   =  (rbmir-rtmir)/hmir  
-       vtmir(1)= 0.
-       vtmir(2)= 0.
-       vtmir(3)= -(rtmir/tgmir-(zpmtdet-hmir-zbmirgap))
-       ZBRAD=ZPMTDET-ZBMIRGAP-HMIR-ZTMIRGAP-HPGL  
+         call hbook1(-130010,'basic rec, beta error',
+     +        400,-0.02,0.02,0.)
+         call hbook1(-130110,'basic rec (6+ hits), beta error',
+     +        400,-0.02,0.02,0.)
+
+         call hbook2(-140000,'coords for point with no radiator',
+     +        140,-70.,70.,140,-70.,70.,0.)
+         call hbook2(-140001,'coords for point with aerogel',
+     +        140,-70.,70.,140,-70.,70.,0.)
+         call hbook2(-140002,'coords for point with NaF',
+     +        140,-70.,70.,140,-70.,70.,0.)
+
+         call hbook1(-150001,'entry Z, aerogel',40,-77.,-73.,0.)
+         call hbook1(-150002,'entry Z, NaF',40,-77.,-73.,0.)
+
+         call hbook1(-200001,'std cand hits, rank 1',31,-0.5,30.5,0.)
+         call hbook1(-200002,'std cand hits, diff 1-2',31,-0.5,30.5,0.)
+         call hbook2(-200003,'std cand hits, ranks 1-2',
+     +        31,-0.5,30.5,31,-0.5,30.5,0.)
+         call hbook1(-200004,'std cand like, diff 1-2 (all)',
+     +        275,-5.,50.,0.)
+         call hbook1(-200005,'std cand like, diff 1-2 (same hits)',
+     +        100,0.,20.,0.)
+         call hbook1(-200006,'std cand hits, diff 1-x',31,-0.5,30.5,0.)
+         call hbook2(-200007,'std cand hits, ranks 1-x',
+     +        31,-0.5,30.5,31,-0.5,30.5,0.)
+         call hbook1(-200008,'std cand like, diff 1-x (all)',
+     +        275,-5.,50.,0.)
+         call hbook1(-200009,'std cand like, diff 1-x (same hits)',
+     +        100,0.,20.,0.)
+
+         call hbook1(-200011,'std rec hits, rank 1',31,-0.5,30.5,0.)
+         call hbook1(-200016,'std rec hits, diff 1-x',31,-0.5,30.5,0.)
+         call hbook2(-200017,'std rec hits, ranks 1-x',
+     +        31,-0.5,30.5,31,-0.5,30.5,0.)
+         call hbook1(-200018,'std rec like, diff 1-x (all)',
+     +        275,-5.,50.,0.)
+         call hbook1(-200019,'std rec like, diff 1-x (same hits)',
+     +        100,0.,20.,0.)
+
+         call hbook1(-200021,'std rec x0, diff 1-x (all)',
+     +        200,-10.,10.,0.)
+         call hbook1(-200022,'std rec y0, diff 1-x (all)',
+     +        200,-10.,10.,0.)
+         call hbook1(-200023,'std rec theta, diff 1-x(deg) (all)',
+     +        160,-40.,40.,0.)
+         call hbook1(-200024,'std rec phi, diff 1-x(deg) (all)',
+     +        90,-180.,180.,0.)
+         call hbook1(-200025,'std rec beta, diff 1-x (all)',
+     +        120,-0.03,0.03,0.)
+         call hbook1(-200026,'std rec xtop, diff 1-x (all)',
+     +        200,-50.,50.,0.)
+         call hbook1(-200027,'std rec ytop, diff 1-x (all)',
+     +        200,-50.,50.,0.)
+
+         call hbook1(-200031,'std rec x0, diff 1-x (same hits)',
+     +        200,-10.,10.,0.)
+         call hbook1(-200032,'std rec y0, diff 1-x (same hits)',
+     +        200,-10.,10.,0.)
+         call hbook1(-200033,'std rec theta, diff 1-x(deg) (same hits)',
+     +        160,-40.,40.,0.)
+         call hbook1(-200034,'std rec phi, diff 1-x(deg) (same hits)',
+     +        90,-180.,180.,0.)
+         call hbook1(-200035,'std rec beta, diff 1-x (same hits)',
+     +        120,-0.03,0.03,0.)
+         call hbook1(-200036,'std rec xtop, diff 1-x (same hits)',
+     +        200,-50.,50.,0.)
+         call hbook1(-200037,'std rec ytop, diff 1-x (same hits)',
+     +        200,-50.,50.,0.)
+
+         idummy=1
       endif
 
-*     ---------------------
-*     init event variables: 
-*     ---------------------
+*      print*,'INGOING VARIABLES'
+*      print*,'jobc_cp_c2f        = ',jobc_cp_c2f       
+*      print*,'ztoprad_ams_c2f    = ',ztoprad_ams_c2f   
+*      print*,'rcgeom_c2f         = ',rcgeom_c2f                          
+*      print*,'levgeom_c2f        = ',levgeom_c2f       
+*      print*,'levgrad_c2f        = ',levgrad_c2f       
+*      print*,'levacc_c2f         = ',levacc_c2f        
+*      print*,'ztarg_c2f          = ',ztarg_c2f         
+*      print*,'nradts_c2f         = ',nradts_c2f        
+*      print*,'hrad_c2f           = ',hrad_c2f          
+*      print*,'hrnaf_c2f          = ',hrnaf_c2f         
+*      print*,'radtile_pitch_c2f  = ',radtile_pitch_c2f 
+*      print*,'radtile_supthk_c2f = ',radtile_supthk_c2f
+*      print*,'radix_c2f          = ',radix_c2f         
+*      print*,'radclarity_c2f     = ',radclarity_c2f    
+*      print*,'hpgl_c2f	         = ',hpgl_c2f	         
+*      print*,'ztmirgap_c2f	 = ',ztmirgap_c2f	         
+*      print*,'zbmirgap_c2f       = ',zbmirgap_c2f                      
+*      print*,'reflec_c2f	 = ',reflec_c2f	         
+*      print*,'zpmtdet_c2f	 = ',zpmtdet_c2f	         
+*      print*,'zlgsignal_c2f      = ',zlgsignal_c2f     
+*      print*,'rtmir_c2f          = ',rtmir_c2f         
+*      print*,'rbmir_c2f          = ',rbmir_c2f         
+*      print*,'hmir_c2f           = ',hmir_c2f          
+*      print*,'pmtwx_c2f          = ',pmtwx_c2f         
+*      print*,'pmtwy_c2f          = ',pmtwy_c2f         
+*      print*,'shieldw_c2f        = ',shieldw_c2f       
+*      print*,'pglix_c2f          = ',pglix_c2f         
+*      print*,'emcxlim_c2f        = ',emcxlim_c2f       
+*      print*,'emcylim_c2f        = ',emcylim_c2f       
+*      print*,'lg_top_width_c2f   = ',lg_top_width_c2f  
+*      print*,'lg_bot_width_c2f   = ',lg_bot_width_c2f  
+*      print*,'lg_pitch_c2f       = ',lg_pitch_c2f      
+*      print*,'xbc_c2f            = ',xbc_c2f           
+*      print*,'xbd_c2f            = ',xbd_c2f           
+*      print*,'yef_c2f            = ',yef_c2f           
+*      print*,'xpc_c2f            = ',xpc_c2f           
+*      print*,'nbhits_ev          = ',nbhits_ev              
+*      print*,'nbhitsmax_ntup_ev  = ',nbhitsmax_ntup_ev      
 
+* --- decode rec tasks
 
-      nbhits_used=0.
-      thcrec     =0.
-      betarec    =0.
-      ebetarec   =999.
-      likep      =999.
-      chi2beta   =999.
-      rprob      =999. 
-      
-      do i=1,1000 
-         nhpm(i)=0
+      idobeta = 0
+      idotof = 0
+      idostd = 0
+      idochg = 0
+      irecaux = irec2do
+
+      if(irecaux.gt.10) then
+         idochg = 1
+         irecaux = irecaux-10
+      endif
+
+      if(irecaux.eq.1) then
+         if(epimp_main(1).lt.1.e-4
+     +        .and.epimp_main(2).lt.1.e-4
+     +        .and.epimp_main(3).lt.1.e-4
+     +        .and.epthe_main.lt.1.e-4
+     +        .and.epphi_main.lt.1.e-4) then
+            irecaux = 2
+         else
+            irecaux = 3
+         endif
+      endif
+
+      if(irecaux.eq.2) then
+         idobeta = 1
+      endif
+
+      if(irecaux.eq.3) then
+         idotof = 1
+      endif
+
+      if(irecaux.eq.4) then
+         idostd = 1
+      endif
+
+* --- store kind of data
+      jobc_cp = jobc_cp_c2f
+
+* --- store detector layout
+      rcgeom(1) = rcgeom_c2f(1)
+      rcgeom(2) = rcgeom_c2f(2)
+
+* --- store geometry levels
+      levgeom = levgeom_c2f
+      levgrad = levgrad_c2f
+      levacc = levacc_c2f
+
+*      print*,'levgeom = ',levgeom
+*      print*,'levgrad = ',levgrad
+*      print*,'levacc = ',levacc
+
+* --- store detector and geometry data
+      ztarg          = ztarg_c2f
+      nradts         = nradts_c2f
+      hrad           = hrad_c2f
+      radtile_pitch  = radtile_pitch_c2f
+      radtile_supthk = radtile_supthk_c2f
+      radix(1)       = radix_c2f(1)
+      radix(2)       = radix_c2f(2)
+      radclarity     = radclarity_c2f
+      hpgl           = hpgl_c2f
+      ztmirgap       = ztmirgap_c2f
+      zbmirgap       = zbmirgap_c2f
+      reflec         = reflec_c2f
+      zpmtdet        = zpmtdet_c2f
+      zlgsignal      = zlgsignal_c2f
+
+      hrnaf    = hrnaf_c2f
+      hmir     = hmir_c2f
+      rbmir    = rbmir_c2f
+      rtmir    = rtmir_c2f
+
+      tgmir    = (rbmir-rtmir)/hmir
+      d0mir    = rtmir/(rbmir-rtmir)*hmir-hrad-hpgl-ZTMIRGAP      
+      vtmir(1) = 0.
+      vtmir(2) = 0.
+      vtmir(3) = -d0mir
+
+      pmtwx    = pmtwx_c2f
+      pmtwy    = pmtwy_c2f
+      shieldw  = shieldw_c2f
+      pglix    = pglix_c2f
+      emcxlim  = emcxlim_c2f
+      emcylim  = emcylim_c2f
+
+      lg_bot_width = lg_bot_width_c2f
+      lg_top_width = lg_top_width_c2f
+      lg_pitch     = lg_pitch_c2f
+
+      xbc = xbc_c2f
+      xbd = xbd_c2f
+      yef = yef_c2f
+      xpc = xpc_c2f
+
+*      print*,'xbc_c2f = ',xbc_c2f
+*      print*,'xbd_c2f = ',xbd_c2f
+*      print*,'yef_c2f = ',yef_c2f
+*      print*,'xpc_c2f = ',xpc_c2f
+
+*      print*,'xbc = ',xbc
+*      print*,'xbd = ',xbd
+*      print*,'yef = ',yef
+*      print*,'xpc = ',xpc
+
+      pitchx   = pmtwx+shieldw
+      pitchy   = pmtwy+shieldw
+
+      JUMP  = XBC - 8*PITCHX
+      DMECX = XBD - 17*PITCHX - JUMP
+      DMECY = YEF - 16*PITCHY   
+      DX0   = PITCHX/2. - XPC
+
+* --- store event number
+      itevt = ievt
+
+* --- store hit data
+      nbhits = nbhits_ev
+*      print*,'nbhits = ',nbhits
+*      print*,'nbhitsmax_ntup_ev = ',nbhitsmax_ntup_ev
+      do i=1,nbhits                                
+         hitscoo(1,i)   = hitscoo_ev(1,i)
+         hitscoo(2,i)   = hitscoo_ev(2,i)
+         hitscoo(3,i)   = hitscoo_ev(3,i)
+         hitsnpe(i)     = hitsnpe_ev(i)
+         hitspmt(i)     = hitspmt_ev(i)   ! pmt number : int(int(hitspmt(i)/10)/16) 
+                                          ! pixel      : mod(int(hitspmt(i)/10),16) 
+                                          ! gain       : mod(hitspmt(i),10) 
+         hitsnpe_sim(i) = hitsnpe_sim_ev(i)
+      enddo        
+      nbhitsmax_ntup = nbhitsmax_ntup_ev !max nb hits in ntuple
+
+* --- initialize simulated beta
+      pbeta = pbeta_sim
+
+* --- expected Cerenkov angle (requires determination of refindex through richinitrec)
+
+* --- set track parameters
+      call ucopy(pimp_main,pimp,3)
+      call ucopy(epimp_main,epimp,3)
+      pthe = pthe_main
+      epthe = epthe_main
+      pphi = pphi_main
+      epphi = epphi_main
+      pmom = pmom_main
+
+* --- extrapolated point at PMT matrix
+      pcoopmt(1) = pimp(1)+tan(pthe)*cos(pphi)*(ZPMTDET-pimp(3))
+      pcoopmt(2) = pimp(2)+tan(pthe)*sin(pphi)*(ZPMTDET-pimp(3)) 
+      pcoopmt(3) = ZPMTDET      
+      pcoopmtradius = sqrt(pcoopmt(1)**2+pcoopmt(2)**2)
+
+* --- corrected particle extrapolated point at PMT matrix
+      pcoopmtopt(1) = pimp(1) + 
+     +     tan(pthe)*cos(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3))
+      pcoopmtopt(2) = pimp(2) + 
+     +     tan(pthe)*sin(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3)) 
+      pcoopmtopt(3) = ZPMTDET+ZLGSIGNAL      
+      pcoopmtoptradius = sqrt(pcoopmtopt(1)**2+pcoopmtopt(2)**2)      
+
+* --- set radiator parameters, photon vertex, init hit flags,
+*     transformation matrix (particle frame --> rich frame)
+      call richinitrec
+
+      if (jobc_cp.eq.0) then    ! (0=simulation, 1=real data)
+         cerang = acos(1./refindex/pbeta)
+      else
+         cerang = -999.
+      endif
+
+* --- store current number of reconstructions
+      irecnumbini = irecnumb
+
+*******************************************
+* --- conventional velocity reconstruction
+*******************************************
+
+      if(idobeta.eq.1) then
+
+* ------ count one more reconstruction
+         irecnumb = irecnumb+1
+
+* ------ set track parameters
+         call ucopy(pimp_main,pimp,3)
+         pthe = pthe_main
+         pphi = pphi_main
+         pmom = pmom_main
+
+* ------ extrapolated point at PMT matrix
+         pcoopmt(1) = pimp(1)+tan(pthe)*cos(pphi)*(ZPMTDET-pimp(3))
+         pcoopmt(2) = pimp(2)+tan(pthe)*sin(pphi)*(ZPMTDET-pimp(3)) 
+         pcoopmt(3) = ZPMTDET      
+         pcoopmtradius = sqrt(pcoopmt(1)**2+pcoopmt(2)**2)
+
+* ------ corrected particle extrapolated point at PMT matrix
+         pcoopmtopt(1) = pimp(1) + 
+     +        tan(pthe)*cos(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3))
+         pcoopmtopt(2) = pimp(2) + 
+     +        tan(pthe)*sin(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3)) 
+         pcoopmtopt(3) = ZPMTDET+ZLGSIGNAL      
+         pcoopmtoptradius = sqrt(pcoopmtopt(1)**2+pcoopmtopt(2)**2)      
+
+* ------ set radiator parameters, photon vertex, init hit flags,
+*        transformation matrix (particle frame --> rich frame)
+         call richinitrec
+
+* ------ track/hit association
+         call richtrkhitassoc
+
+* ------ beta rec
+         call richbetarec
+
+* ------ Kolmogorov probability
+         if (ipthetac.ne.0) then
+            dphistep=1.0
+            call richpkolm(dphistep,probkol)
+            pkolmog(ipthetac) = probkol
+         endif
+
+* ------ flatness
+         if (chradid.eq.'AGL')then
+            chgwin = 1.3        !cm
+         elseif(chradid.eq.'NAF')then
+            chgwin = 2.76
+         endif
+         call flatness(1,chgwin,flatsin,flatcos)
+         flatevt(1) = flatsin
+         flatevt(2) = flatcos
+
+* ------ filling of beta rec data
+
+         if(irecnumb.le.NMAXLIPREC) then
+
+            if(betarec.gt.0) then
+               resb_iflag(irecnumb) = 1
+            else
+               resb_iflag(irecnumb) = 0
+            endif
+
+            resb_itype(irecnumb) = 2  ! number 2 = standard LIP rec
+            resb_itrk(irecnumb) = itrknumb
+            resb_beta(irecnumb) = betarec
+            resb_thc(irecnumb) = cangrec(ipthetac)
+            resb_chi2(irecnumb) = chi2rec(ipthetac)
+            resb_nhit(irecnumb) = nbushits(ipthetac)
+
+            do k=1,nbushits(ipthetac)
+               resb_phit(irecnumb,k) = ipushits(ipthetac,k)
+               resb_used(irecnumb,k) =
+     +              ireflechit(ipthetac,ipushits(ipthetac,k))
+            enddo
+
+            do j=1,min(nbhits,nhitmax)
+               resb_hres(irecnumb,j) = chi2hit(ipthetac,j)
+            enddo
+
+            resb_invchi2(irecnumb) = 0.
+            do k=1,nbushits(ipthetac)
+               if (chi2hit(ipthetac,k).gt.CHI2HTCUT) then
+                  resb_invchi2(irecnumb) = resb_invchi2(irecnumb)
+     +                                     +1./chi2hit(ipthetac,k)
+               endif
+            enddo
+
+            resb_flatsin(irecnumb) = flatevt(1)
+            resb_flatcos(irecnumb) = flatevt(2)
+            resb_probkl(irecnumb) = pkolmog(ipthetac)
+
+            do n=1,3
+               resb_pimp(irecnumb,n) = pimp(n)
+               resb_epimp(irecnumb,n) = 0.
+            enddo
+
+            resb_pthe(irecnumb) = pthe
+            resb_epthe(irecnumb) = 0.
+            resb_pphi(irecnumb) = pphi
+            resb_epphi(irecnumb) = 0.
+
+            do i=1,50
+               rstd_creclike(irecnumb,i) = -999.
+               rstd_crecx0(irecnumb,i) = -999.
+               rstd_crecy0(irecnumb,i) = -999.
+               rstd_crectheta(irecnumb,i) = -999.
+               rstd_crecphi(irecnumb,i) = -999.
+               rstd_crecbeta(irecnumb,i) = -999.
+               rstd_crecuhits(irecnumb,i) = -999
+               rstd_crecpkol(irecnumb,i) = -999.
+            enddo
+
+         endif
+
+**************************************
+* --- charge reconstruction (beta rec)
+**************************************
+
+         if(idochg.eq.1) then
+
+* --------- call charge reconstruction
+            call richchgrec
+
+* --------- charge probability
+            if(chgrec.gt.0.) then
+
+*               print*,'*** Charge rec'
+*               print*,'    chgrec = ',chgrec
+
+               chgtest1 = nint(chgrec)-1.
+               chgtest2 = nint(chgrec)+0.
+               chgtest3 = nint(chgrec)+1.
+
+*               print*,'chgtest1 = ',chgtest1
+*               print*,'chgtest2 = ',chgtest2
+*               print*,'chgtest3 = ',chgtest3
+
+               call probchg(chgtest1,0.2,chgrec,chgprob1)
+               call probchg(chgtest2,0.2,chgrec,chgprob2)
+               call probchg(chgtest3,0.2,chgrec,chgprob3)
+
+*               print*,'chgprob1 = ',chgprob1
+*               print*,'chgprob2 = ',chgprob2
+*               print*,'chgprob3 = ',chgprob3
+
+            endif
+
+* --------- filling of charge rec data
+
+            if(irecnumb.le.NMAXLIPREC) then
+
+               if(chgrec.gt.0.) then
+                  resc_iflag(irecnumb) = 1
+               else
+                  resc_iflag(irecnumb) = 0
+               endif
+
+               resc_cnpe(irecnumb) = chg_nphe
+               resc_cnpedir(irecnumb) = chg_nphe_dir
+               resc_cnperef(irecnumb) = chg_nphe_ref
+               resc_chg(irecnumb) = chgrec
+               resc_chgdir(irecnumb) = chgrec_dir
+               resc_chgmir(irecnumb) = chgrec_mir
+               resc_accgeom(irecnumb,1) = richacc_vis
+               resc_accgeom(irecnumb,2) = richacc_dir
+               resc_accgeom(irecnumb,3) = richacc_mir0
+               resc_eff(irecnumb,1) = richeff_tot
+               resc_eff(irecnumb,2) = richeff_dir
+               resc_eff(irecnumb,3) = richeff_1rf
+               resc_eff(irecnumb,4) = richeff_2rf
+               resc_eff(irecnumb,5) = richeff_rad
+               resc_eff(irecnumb,6) = richeff_lg
+               resc_chgprob(irecnumb,1) = chgprob1
+               resc_chgprob(irecnumb,2) = chgprob2
+               resc_chgprob(irecnumb,3) = chgprob3
+
+            endif
+
+         else
+
+            if(irecnumb.le.NMAXLIPREC) then
+               resc_iflag(irecnumb) = -1
+            endif
+
+         endif
+
+      endif
+
+*************************
+* --- TOF reconstruction
+*************************
+
+      if(idotof.eq.1) then
+
+* ------ count one more reconstruction
+         irecnumb = irecnumb+1
+
+* ------ set track parameters
+         call ucopy(pimp_main,pimp,3)
+         pthe = pthe_main
+         pphi = pphi_main
+
+* ------ call TOF reconstruction
+         call richrecflex
+
+* ------ Kolmogorov probability
+         if (ipthetac.ne.0) then
+            dphistep=1.0
+            call richpkolm(dphistep,probkol)
+            pkolmog(ipthetac) = probkol
+         endif
+
+* ------ flatness
+         if (chradid.eq.'AGL')then
+            chgwin = 1.3        !cm
+         elseif(chradid.eq.'NAF')then
+            chgwin = 2.76
+         endif
+         call flatness(1,chgwin,flatsin,flatcos)
+         flatevt(1) = flatsin
+         flatevt(2) = flatcos
+
+* ------ filling of TOF rec data
+
+         if(irecnumb.le.NMAXLIPREC) then
+
+            resb_iflag(irecnumb) = iflag_rectof
+            resb_itype(irecnumb) = 3  ! number 3 = TOF rec
+            resb_itrk(irecnumb) = itrknumb
+            resb_beta(irecnumb) = beta_rectof
+            resb_thc(irecnumb) = thc_rectof
+            resb_chi2(irecnumb) = chi2_rectof
+            resb_nhit(irecnumb) = nuhits_rectof
+            do i=1,nhitmax
+               resb_phit(irecnumb,i) = phit_rectof(i)
+               resb_used(irecnumb,i) = used_rectof(i)
+               resb_hres(irecnumb,i) = hres_rectof(i)
+            enddo
+            resb_invchi2(irecnumb) = invchi2_rectof
+            resb_flatsin(irecnumb) = flatevt(1)
+            resb_flatcos(irecnumb) = flatevt(2)
+            resb_probkl(irecnumb) = pkolmog(ipthetac)
+            do i=1,3
+               resb_pimp(irecnumb,i) = pimp_rectof(i)
+               resb_epimp(irecnumb,i) = epimp_rectof(i)
+            enddo
+            resb_pthe(irecnumb) = pthe_rectof
+            resb_epthe(irecnumb) = epthe_rectof
+            resb_pphi(irecnumb) = pphi_rectof
+            resb_epphi(irecnumb) = epphi_rectof
+
+            do i=1,50
+               rstd_creclike(irecnumb,i) = -999.
+               rstd_crecx0(irecnumb,i) = -999.
+               rstd_crecy0(irecnumb,i) = -999.
+               rstd_crectheta(irecnumb,i) = -999.
+               rstd_crecphi(irecnumb,i) = -999.
+               rstd_crecbeta(irecnumb,i) = -999.
+               rstd_crecuhits(irecnumb,i) = -999
+               rstd_crecpkol(irecnumb,i) = -999.
+            enddo
+
+         endif
+
+*************************************
+* --- charge reconstruction (TOF rec)
+*************************************
+
+         if(idochg.eq.1) then
+
+* --------- call charge reconstruction
+            call richchgrec
+
+* --------- charge probability
+            if(chgrec.gt.0.) then
+
+*               print*,'*** Charge rec'
+*               print*,'    chgrec = ',chgrec
+
+               chgtest1 = nint(chgrec)-1.
+               chgtest2 = nint(chgrec)+0.
+               chgtest3 = nint(chgrec)+1.
+
+*               print*,'chgtest1 = ',chgtest1
+*               print*,'chgtest2 = ',chgtest2
+*               print*,'chgtest3 = ',chgtest3
+
+               call probchg(chgtest1,0.2,chgrec,chgprob1)
+               call probchg(chgtest2,0.2,chgrec,chgprob2)
+               call probchg(chgtest3,0.2,chgrec,chgprob3)
+
+*               print*,'chgprob1 = ',chgprob1
+*               print*,'chgprob2 = ',chgprob2
+*               print*,'chgprob3 = ',chgprob3
+
+            endif
+
+* --------- filling of charge rec data
+
+            if(irecnumb.le.NMAXLIPREC) then
+
+               if(chgrec.gt.0.) then
+                  resc_iflag(irecnumb) = 1
+               else
+                  resc_iflag(irecnumb) = 0
+               endif
+
+               resc_cnpe(irecnumb) = chg_nphe
+               resc_cnpedir(irecnumb) = chg_nphe_dir
+               resc_cnperef(irecnumb) = chg_nphe_ref
+               resc_chg(irecnumb) = chgrec
+               resc_chgdir(irecnumb) = chgrec_dir
+               resc_chgmir(irecnumb) = chgrec_mir
+               resc_accgeom(irecnumb,1) = richacc_vis
+               resc_accgeom(irecnumb,2) = richacc_dir
+               resc_accgeom(irecnumb,3) = richacc_mir0
+               resc_eff(irecnumb,1) = richeff_tot
+               resc_eff(irecnumb,2) = richeff_dir
+               resc_eff(irecnumb,3) = richeff_1rf
+               resc_eff(irecnumb,4) = richeff_2rf
+               resc_eff(irecnumb,5) = richeff_rad
+               resc_eff(irecnumb,6) = richeff_lg
+               resc_chgprob(irecnumb,1) = chgprob1
+               resc_chgprob(irecnumb,2) = chgprob2
+               resc_chgprob(irecnumb,3) = chgprob3
+
+            endif
+
+         else
+
+            if(irecnumb.le.NMAXLIPREC) then
+               resc_iflag(irecnumb) = -1
+            endif
+
+         endif
+
+      endif
+
+********************************
+* --- standalone reconstruction
+********************************
+
+      if(idostd.eq.1) then
+
+* ------ count one more reconstruction
+         irecnumb = irecnumb+1
+
+* ------ call standalone reconstruction
+         call richrecstand
+
+* ------ Kolmogorov probability
+         if (ipthetac.ne.0) then
+            dphistep=1.0
+            call richpkolm(dphistep,probkol)
+            pkolmog(ipthetac) = probkol
+         endif
+
+* ------ flatness
+         if (chradid.eq.'AGL')then
+            chgwin = 1.3        !cm
+         elseif(chradid.eq.'NAF')then
+            chgwin = 2.76
+         endif
+         call flatness(1,chgwin,flatsin,flatcos)
+         flatevt(1) = flatsin
+         flatevt(2) = flatcos
+
+* ------ filling of standalone rec data
+
+         if(irecnumb.le.NMAXLIPREC) then
+
+            resb_iflag(irecnumb) = iflag_recstd
+            resb_itype(irecnumb) = 4  ! number 4 = standalone rec
+            resb_itrk(irecnumb) = itrknumb
+            resb_beta(irecnumb) = beta_recstd
+            resb_thc(irecnumb) = thc_recstd
+            resb_chi2(irecnumb) = chi2_recstd
+            resb_nhit(irecnumb) = nuhits_recstd
+            do i=1,nhitmax
+               resb_phit(irecnumb,i) = phit_recstd(i)
+               resb_used(irecnumb,i) = used_recstd(i)
+               resb_hres(irecnumb,i) = hres_recstd(i)
+            enddo
+            resb_invchi2(irecnumb) = invchi2_recstd
+            resb_flatsin(irecnumb) = flatevt(1)
+            resb_flatcos(irecnumb) = flatevt(2)
+            resb_probkl(irecnumb) = pkolmog(ipthetac)
+            do i=1,3
+               resb_pimp(irecnumb,i) = pimp_recstd(i)
+               resb_epimp(irecnumb,i) = epimp_recstd(i)
+            enddo
+            resb_pthe(irecnumb) = pthe_recstd
+            resb_epthe(irecnumb) = epthe_recstd
+            resb_pphi(irecnumb) = pphi_recstd
+            resb_epphi(irecnumb) = epphi_recstd
+
+            do i=1,50
+               rstd_creclike(irecnumb,i) = creclike(i)
+               rstd_crecx0(irecnumb,i) = crecx0(i)
+               rstd_crecy0(irecnumb,i) = crecy0(i)
+               rstd_crectheta(irecnumb,i) = crectheta(i)
+               rstd_crecphi(irecnumb,i) = crecphi(i)
+               rstd_crecbeta(irecnumb,i) = crecbeta(i)
+               rstd_crecuhits(irecnumb,i) = crecuhits(i)
+               rstd_crecpkol(irecnumb,i) = crecpkol(i)
+            enddo
+
+         endif
+
+********************************************
+* --- charge reconstruction (standalone rec)
+********************************************
+
+         if(idochg.eq.1) then
+
+*********** INITIALIZATION WITH STD DATA...
+
+* --------- call charge reconstruction
+            call richchgrec
+
+* --------- charge probability
+            if(chgrec.gt.0.) then
+
+*               print*,'*** Charge rec'
+*               print*,'    chgrec = ',chgrec
+
+               chgtest1 = nint(chgrec)-1.
+               chgtest2 = nint(chgrec)+0.
+               chgtest3 = nint(chgrec)+1.
+
+*               print*,'chgtest1 = ',chgtest1
+*               print*,'chgtest2 = ',chgtest2
+*               print*,'chgtest3 = ',chgtest3
+
+               call probchg(chgtest1,0.2,chgrec,chgprob1)
+               call probchg(chgtest2,0.2,chgrec,chgprob2)
+               call probchg(chgtest3,0.2,chgrec,chgprob3)
+
+*               print*,'chgprob1 = ',chgprob1
+*               print*,'chgprob2 = ',chgprob2
+*               print*,'chgprob3 = ',chgprob3
+
+            endif
+
+* --------- filling of charge rec data
+
+            if(irecnumb.le.NMAXLIPREC) then
+
+               if(chgrec.gt.0.) then
+                  resc_iflag(irecnumb) = 1
+               else
+                  resc_iflag(irecnumb) = 0
+               endif
+
+               resc_cnpe(irecnumb) = chg_nphe
+               resc_cnpedir(irecnumb) = chg_nphe_dir
+               resc_cnperef(irecnumb) = chg_nphe_ref
+               resc_chg(irecnumb) = chgrec
+               resc_chgdir(irecnumb) = chgrec_dir
+               resc_chgmir(irecnumb) = chgrec_mir
+               resc_accgeom(irecnumb,1) = richacc_vis
+               resc_accgeom(irecnumb,2) = richacc_dir
+               resc_accgeom(irecnumb,3) = richacc_mir0
+               resc_eff(irecnumb,1) = richeff_tot
+               resc_eff(irecnumb,2) = richeff_dir
+               resc_eff(irecnumb,3) = richeff_1rf
+               resc_eff(irecnumb,4) = richeff_2rf
+               resc_eff(irecnumb,5) = richeff_rad
+               resc_eff(irecnumb,6) = richeff_lg
+               resc_chgprob(irecnumb,1) = chgprob1
+               resc_chgprob(irecnumb,2) = chgprob2
+               resc_chgprob(irecnumb,3) = chgprob3
+
+            endif
+
+         else
+
+            if(irecnumb.le.NMAXLIPREC) then
+               resc_iflag(irecnumb) = -1
+            endif
+
+         endif
+
+      endif
+
+* --- Total number of reconstructions performed
+      irectot = irecnumb-irecnumbini
+
+************
+* --- OUTPUT
+************
+
+*      do k=irecnumbini+1,irecnumb
+*         print*,' '
+*         print*,'OUTGOING VARIABLES FOR RECONSTRUCTION ',k
+*         print*,'resb_iflag    = ',resb_iflag(k)
+*         print*,'resb_itype    = ',resb_itype(k)
+*         print*,'resb_itrk     = ',resb_itrk(k)
+*         print*,'resb_beta     = ',resb_beta(k)
+*         print*,'resb_thc (d)  = ',resb_thc(k)*RADDEG
+*         print*,'resb_chi2     = ',resb_chi2(k)     
+*         print*,'resb_nhit     = ',resb_nhit(k)      
+*         print*,'resb_phit     = ',(resb_phit(k,i),i=1,resb_nhit(k))
+*         print*,'resb_used     = ',(resb_used(k,i),i=1,nbhits_ev)
+*         print*,'resb_hres     = ',(resb_hres(k,i),i=1,nbhits_ev)
+*         print*,'resb_invchi2  = ',resb_invchi2(k)    
+*         print*,'resb_flatsin  = ',resb_flatsin(k)    
+*         print*,'resb_flatcos  = ',resb_flatcos(k)    
+*         print*,'resb_probkl   = ',resb_probkl(k)     
+*         print*,'resc_iflag    = ',resc_iflag(k)      
+*         print*,'resc_cnpe     = ',resc_cnpe(k)       
+*         print*,'resc_cnpedir  = ',resc_cnpedir(k)    
+*         print*,'resc_cnperef  = ',resc_cnperef(k)    
+*         print*,'resc_chg      = ',resc_chg(k)        
+*         print*,'resc_chgdir   = ',resc_chgdir(k)     
+*         print*,'resc_chgmir   = ',resc_chgmir(k)     
+*         print*,'resc_accgeom  = ',(resc_accgeom(k,i),i=1,3)
+*         print*,'resc_eff      = ',(resc_eff(k,i),i=1,6)
+*         print*,'resc_chgprob  = ',(resc_chgprob(k,i),i=1,3)
+*         print*,'resb_pimp     = ',(resb_pimp(k,i),i=1,3)
+*         print*,'resb_epimp     = ',(resb_epimp(k,i),i=1,3)
+*         print*,'resb_pthe(d)  = ',resb_pthe(k)*RADDEG 
+*         print*,'resb_epthe(d)  = ',resb_epthe(k)*RADDEG 
+*         print*,'resb_pphi(d)  = ',resb_pphi(k)*RADDEG
+*         print*,'resb_epphi(d)  = ',resb_epphi(k)*RADDEG
+*         print*,' '
+*      enddo
+
+* --- FILL OBSOLETE VARIABLES FROM COMMON LIPVAR
+* ... In IF statement, itype 2 = standard LIP rec
+
+      do k=1,irectot
+         if((resb_iflag(k).eq.1).and.(resb_itype(k).eq.2)) then
+            nbhits_used = resb_nhit(k)
+            thcrec = resb_thc(k)
+            vbetarec = resb_beta(k)
+            vebetarec = 0.
+            likep = 0.
+            chi2beta = resb_chi2(k)
+            rprob = 0.
+         endif
       enddo
 
-      npmtot=0  
-      pmweigth=0.
+*====================
+* CONTROL HISTOGRAMS
+*====================
 
-* ... rotation matrix detector->particle frame             
+* --- filling of control histograms (standalone)
+* ... In IF statement, itype 4 = standalone rec
 
-      irotflg=0
-      if (irotflg.eq.0) then                                                
-         call patmatr                                                       
-         irotflg = 1                                                        
-      endif 
+      do k=1,irectot
+         if((resb_iflag(k).eq.1).and.(resb_itype(k).eq.4)) then
 
-* ... set radiator 
+            err_x0top = resb_pimp(k,1)-pimp_main(1)
+            err_y0top = resb_pimp(k,2)-pimp_main(2)
+            
+            err_x0bot = (resb_pimp(k,1)
+     +           +ZPMTDET*tan(resb_pthe(k))*cos(resb_pphi(k)))
+     +           -(pimp_main(1)+ZPMTDET*tan(pthe_main)*cos(pphi_main))
+            err_y0bot = (resb_pimp(k,2)
+     +           +ZPMTDET*tan(resb_pthe(k))*sin(resb_pphi(k)))
+     +           -(pimp_main(2)+ZPMTDET*tan(pthe_main)*sin(pphi_main))
+            
+            err_theta = resb_pthe(k)-pthe_main
+            err_phi = resb_pphi(k)-pphi_main
+            if(err_phi.lt.-pi) then
+               err_phi = err_phi+twopi
+            endif
+            if(err_phi.gt.pi) then
+               err_phi = err_phi-twopi
+            endif
+            
+            err_thetac = resb_thc(k)-cerang
+            
+            call hf1(-110001,err_x0top,1.)
+            call hf1(-110002,err_y0top,1.)
+            call hf1(-110003,err_x0bot,1.)
+            call hf1(-110004,err_y0bot,1.)
+            call hf1(-110005,err_theta*RADDEG,1.)
+            call hf1(-110006,err_phi*RADDEG,1.)
+            call hf1(-110007,err_thetac*RADDEG,1.)
+            
+            if(resb_nhit(k).ge.6) then
+               call hf1(-110101,err_x0top,1.)
+               call hf1(-110102,err_y0top,1.)
+               call hf1(-110103,err_x0bot,1.)
+               call hf1(-110104,err_y0bot,1.)
+               call hf1(-110105,err_theta*RADDEG,1.)
+               call hf1(-110106,err_phi*RADDEG,1.)
+               call hf1(-110107,err_thetac*RADDEG,1.)
+            endif
+            
+         endif
+      enddo
 
-      if(radtype.eq.1) then
-         chradid='AGL'
-         zphemi=0.6
-      elseif(radtype.eq.2) then
-         chradid='NAF'
-         zphemi=0.5
-      elseif(radtype.eq.0) then 
-         return 
-      endif  
+* --- filling of control histograms (TOF)
+* ... In IF statement, itype 3 = standalone rec
 
-      CALL TIMED(TRICH)
- 
-* => RECONSTRUCTION REQUIREMENTS:
+      do k=1,irectot
+         if((resb_iflag(k).eq.1).and.(resb_itype(k).eq.3)) then
 
-      if(nbhits.eq.0)        return
+            err_x0top = resb_pimp(k,1)-pimp_main(1)
+            err_y0top = resb_pimp(k,2)-pimp_main(2)
+            
+            err_x0bot = (resb_pimp(k,1)
+     +           +ZPMTDET*tan(resb_pthe(k))*cos(resb_pphi(k)))
+     +           -(pimp_main(1)+ZPMTDET*tan(pthe_main)*cos(pphi_main))
+            err_y0bot = (resb_pimp(k,2)
+     +           +ZPMTDET*tan(resb_pthe(k))*sin(resb_pphi(k)))
+     +           -(pimp_main(2)+ZPMTDET*tan(pthe_main)*sin(pphi_main))
+            
+            err_theta = resb_pthe(k)-pthe_main
+            err_phi = resb_pphi(k)-pphi_main
+            if(err_phi.lt.-pi) then
+               err_phi = err_phi+twopi
+            endif
+            if(err_phi.gt.pi) then
+               err_phi = err_phi-twopi
+            endif
+            
+            err_thetac = resb_thc(k)-cerang
+            
+            call hf1(-120001,err_x0top,1.)
+            call hf1(-120002,err_y0top,1.)
+            call hf1(-120003,err_x0bot,1.)
+            call hf1(-120004,err_y0bot,1.)
+            call hf1(-120005,err_theta*RADDEG,1.)
+            call hf1(-120006,err_phi*RADDEG,1.)
+            call hf1(-120007,err_thetac*RADDEG,1.)
+            
+            if(resb_nhit(k).ge.6) then
+               call hf1(-120101,err_x0top,1.)
+               call hf1(-120102,err_y0top,1.)
+               call hf1(-120103,err_x0bot,1.)
+               call hf1(-120104,err_y0bot,1.)
+               call hf1(-120105,err_theta*RADDEG,1.)
+               call hf1(-120106,err_phi*RADDEG,1.)
+               call hf1(-120107,err_thetac*RADDEG,1.)
+            endif
+            
+         endif
+      enddo
 
-      HTEST=ZBRAD-PIMP(3) 
-      if(ABS(HTEST-HRAD).GT.0.1) then
-       nbadtrack=nbadtrack+1
-       return
-      endif  
-      if(pthe.gt.90.*degrad) then
-       nupgtrack= nupgtrack+1
-       return 
-      endif  
+* --- filling of control histograms (beta)
+* ... In IF statement, itype 2 = standard LIP rec
 
-* =>    BETA RECONSTRUCTION
+      do k=1,irectot
+         if((resb_iflag(k).eq.1).and.(resb_itype(k).eq.2)) then
 
-*... set photon emission vertex
-      ztrial=pimp(3)+HRAD*zphemi 
+            err_beta = (resb_beta(k)-pbeta)/pbeta
+*            print*,'resb_beta = ',resb_beta
+*            print*,'pbeta = ',pbeta
+*            print*,'err_beta = ',err_beta
 
+            call hf1(-130010,err_beta,1.)
+
+            if(resb_nhit(k).ge.6) then
+               call hf1(-130110,err_beta,1.)
+            endif
+
+         endif
+      enddo
+
+* --- end of main LIP routine
+
+      return
+
+      end
+
+
+*******************************
+*** CODE FROM richinitrec.F ***
+*******************************
+
+*-------------------------------------------------------------------
+      subroutine richinitrec
+*-------------------------------------------------------------------
+********************************************************************
+*
+* This routine shall be called before the cerenkov angle rec and it
+* is used to set on an event by event basis: 
+*
+* - the rotation matrix -> track data should be already loaded
+* - the radiator parameters (CHRADID, REFINDEX)
+* - the photon emission vertex (PCERVTX) -> track data should be already loaded
+* - initialization of the hit flags
+* - initialization of cerenkov angle rec boundaries
+*
+* Notes: 
+* - the track parameters (PIMP, PTHE, PPHI) are initialised on RECEVENT 
+* - the geometry is initialized in lipinit (once)
+*
+* Last Revision: 12/Fev/2007 (F.Barao)
+********************************************************************
+
+#include "../include/richrec_lipf.h"
+
+      logical LEVTFAST
+
+      integer rad_kind !1/0 = NaF/otherwise; -1 = none
+      real ztest, pdum(3)
+
+      integer amsrk
+      real amsri
+
+      integer idummy
+      data idummy /0/
+
+* --- init
+      ipthetac = 0 !reset thetac rec pointer 
+      call vzero(iflghit,nhitmax)
+
+* --- photons Tracing Variables init  /Begin/
+*     rotation matrix for loaded track was forced
+      irotflg = 0              !reset rotation matrix flag
+      call patmatr                 
+      irotflg = 1
+
+* --- set radiator parameters 
+      IF (RCGEOM(1).EQ.0) THEN !FLIGHT
+
+* ...... in which radiator is the particle?
+         ZTEST   = ZTARG+(HRAD-HRNAF)
+         pdum(3) = ZTEST
+         pdum(2) = pimp(2) + tan(pthe)*sin(pphi)*(ZTEST-pimp(3)) 
+         pdum(1) = pimp(1) + tan(pthe)*cos(pphi)*(ZTEST-pimp(3)) 
+
+* ------ Determination of radiator
+
+* ...... Old method
+c$$$         if (abs(pdum(1)).lt.(0.5*3.*radtile_pitch) .and.
+c$$$     +       abs(pdum(2)).lt.(0.5*3.*radtile_pitch)) then 
+c$$$            rad_kind = 1        !NAF
+c$$$         else
+c$$$            rad_kind = 0        !AGL
+c$$$         endif
+
+* ...... New method using data from global simulation
+         call lipgetrad(pdum(1),pdum(2),pdum(3),pthe,pphi,amsrk,amsri)
+*         print*,'(A) amsrk = ',amsrk
+
+         if(amsrk.eq.0) then  ! no radiator
+            rad_kind = -1
+         endif
+
+         if(amsrk.eq.1) then  ! aerogel
+            rad_kind = 0
+         endif
+
+         if(amsrk.eq.2) then  ! NaF
+            rad_kind = 1
+         endif
+
+         if(amsrk.eq.0) then
+            call hf2(-140000,pimp(1),pimp(2),1.)
+         endif
+         if(amsrk.eq.1) then
+            call hf2(-140001,pimp(1),pimp(2),1.)
+*            call hf1(-150001,amsrad_entrance_p(3),1.)
+         endif
+         if(amsrk.eq.2) then
+            call hf2(-140002,pimp(1),pimp(2),1.)
+*            call hf1(-150002,amsrad_entrance_p(3),1.)
+         endif
+
+      ELSEIF (RCGEOM(1).EQ.9) THEN !PROTOTYPE
+
+         rad_kind = 0
+         if (radix(1).gt.1.15) rad_kind = 1
+
+      ENDIF
+
+* --- set rad parameters
+      if (rad_kind.eq.0) then !particle inciding on aerogel
+         refindex = radix(1)
+         chradid  = 'AGL'
+*         ZPHEMI   = 0.55239
+*         ZPHEMI   = 0.59065
+         ZPHEMI   = 0.60
+         ZTRIAL   = ZTARG+HRAD*ZPHEMI
+      elseif (rad_kind.eq.1) then !particle inciding on NaF
+         refindex = radix(2)
+         chradid  = 'NAF'
+         ZPHEMI   = 0.5
+         ZTRIAL   = ZTARG+(HRAD-HRNAF)+HRNAF*ZPHEMI
+      else
+*         print*,'(richinitrec) rad_kind = ',rad_kind     
+      endif
+
+* --- set photon vertex                                         
       pcervtx(3) = ZTRIAL                                         
       pcervtx(2) = pimp(2) + tan(pthe)*sin(pphi)*(ZTRIAL-pimp(3)) 
       pcervtx(1) = pimp(1) + tan(pthe)*cos(pphi)*(ZTRIAL-pimp(3)) 
 
-* ... hits associated to track (clean and check once per track)
-      call vzero(iflghit,nbhitsmax) 
-      nbhits_nass=nbhits
-      ipmmax=0  
+* --- set thetac rec boundaries
+      cangrecup  = acos(1./refindex)*1.10
+#ifdef NVAR
+      cangrecup  = acos(1./refindex)*1.50
+#endif
+      cangreclow = 2.0*DEGRAD
 
-      do 2 i=1,nbhits
-* ... hits associated to particle
-        dhittrk2=(hitscoo(1,i)-pcoopmt(1))**2+     
-     +           (hitscoo(2,i)-pcoopmt(2))**2
-        if(dhittrk2.lt.dhittrkass2) then
-         iflghit(i)=1
-         nbhits_nass=nbhits_nass-1    
-        endif 
-* ... clusters (hitshid=10*(16*pmt+pixel)+gain)
-        ipm=int(hitshid(i)/160.)
-        if(ipm.le.1000) then
-         nhpm(ipm)=nhpm(ipm)+1
-         ipmmax=max(ipmmax,ipm)
-        else 
-C         print*,'IPM > 1000',ipm 
-        endif
- 2    continue
+* --- set track hit distance for association
+      trhitass2 = 5.**2 !cm
 
-      if(nbhits_nass.lt.3) return 
+* --- set hit residue cut
+      hitresmax = 20. !cm
 
-      do i=1,ipmmax
-        if(nhpm(i).gt.0) then
-          npmtot=npmtot+1 
-         endif 
-      enddo   
-
-* ... attempt at clusterization....
-
-      do i=1,ipmmax
-       pmweigth= nhpm(i)/(1.*nbhits_nass)
-       if(nhpm(i).gt.0) then 
-        if(nhpm(i).gt.3.and.pmweigth*nhpm(i).gt.1.1) then 
-         do ih=1,nbhits 
-          if(iflghit(ih).eq.0.and.int(hitshid(ih)/160.).eq.i) then 
-            iflghit(ih)=3 
-            nbhits_nass=nbhits_nass-1    
-          endif
-         enddo 
-        endif 
-       endif 
-      enddo 
-      if(nbhits_nass.lt.3) return 
-
-      call richlikebeta_lip(0,ireflec)
-
-      if (ipthetac.ne.0.and.nbushits(ipthetac).gt.0) then
-
-       nbhits_used=nbushits(ipthetac)
-       thcrec     =cangrec(ipthetac)  
-       likep      =likerec(ipthetac)
-       chi2beta   =chi2rec(ipthetac)    
-*       ebetarec   =ireflec*1.  ! numero de hits reflectidos
-*     rprob      =radtype*1.  ! tipo de radiador 1:AGL/2:NAF
-      else
-       betarec=0.
+* --- set event kind
+      LEVTFAST = .FALSE.
+      if (rcgeom(1).eq.0) then !flight
+         if ( (pcoopmtradius.lt.50. .and. abs(refindex-1.03).lt.0.005) 
+     +        .or.
+     +        (pcoopmtradius.lt.40. .and. abs(refindex-1.05).lt.0.005)
+     +      ) LEVTFAST = .TRUE. 
+      elseif (rcgeom(1).eq.9) then !prototype
+         if (rcgeom(2).ne.1) LEVTFAST = .TRUE. !no mirror
       endif
 
+* --- set reconstruction parameters 
+      NSIGCUT = 4. ! nb sigmas to count fitted hits
+      if (rcgeom(1).ne.9) then !-------------------------[ FLIGHT
+         FDISTAN    =  134.      ! detector matrix dimension
+         if (chradid.eq.'AGL') then
+            PHISTEP   = 10.0      ! phi step for hit chi2 scanning 
+            if (LEVTFAST) then    ! thetac step for Likelihood F. scanning 
+               THCSTEP   =  2.5
+            else
+               THCSTEP   =  1.2
+            endif
+            F1SIGMA2  =  0.374**2 ! likelihood function width 
+            F2SIGMA2  =  1.348**2 ! likelihood function width 
+            F1NORMG   =  0.76     ! likelihood function width 
+            FBACKGR   =  0.776    ! background fraction
+            CHI2HTCUT =  2.1**2   ! signal hits distance cut
+* --------- single gaussian
+C           FSIGMA2   =  0.45**2  ! likelihood function width  
+C           FBACKGR   =  0.949    ! background fraction    
+C           CHI2HTCUT =  0.598**2   ! signal hits distance cut        
+         elseif (chradid.eq.'NAF' .or. chradid.eq.'PGL') then
+            PHISTEP   =  5.        ! phi step for hit chi2 scanning 
+            THCSTEP   =  1.5       ! thetac step for Likelihood F. scanning
+            F1SIGMA2  =  0.5424**2 ! likelihood function width 
+            F2SIGMA2  =  1.3500**2 ! likelihood function width 
+            F1NORMG   =  0.4723    ! likelihood function width 
+            FBACKGR   =  0.2059    ! background fraction 
+            CHI2HTCUT =  4.0**2    !signal hits distance cut
+* --------- single gaussian
+C            FSIGMA2   =  0.7**2 ! likelihood function width
+         endif
+      else !--------------------------------------[ PROTOTYPE 
+         FDISTAN    =  20.      ! detector matrix dimension
+         if(rcgeom(2).eq.0) then !no mirror
+            if (chradid.eq.'AGL') then
+               PHISTEP   = 50.0     ! phi step for hit chi2 scanning  
+               THCSTEP   =  2.0     ! thetac step for Likelihood F. scanning 
+               F1NORMG   =  1.0     ! signal gaussian normalization
+               F1SIGMA2  =  0.33**2 ! likelihood function width  
+               F2SIGMA2  =  0.33**2 ! dummy if F1NORMG=1 
+               FBACKGR   =  0.1943  ! background fraction
+               CHI2HTCUT =  0.873**2
+            elseif (chradid.eq.'NAF' .or. chradid.eq.'PGL') then
+               PHISTEP   = 50.0     ! phi step for hit chi2 scanning  
+               THCSTEP   =  1.5     ! thetac step for Likelihood F. scanning
+               F1NORMG   =  1.0     ! signal gaussian normalization
+               F1SIGMA2  =  0.75**2 !  
+               F2SIGMA2  =  0.75**2 ! dummy if F1NORMG=1 
+               FBACKGR   =  0.10     ! background fraction
+               CHI2HTCUT =  2.18**2
+            endif
+         else                   ! PROTOTYPE TESTBEAM 2003 (MIRROR)
+            IF (chradid.eq.'AGL') then
+               PHISTEP   = 10.0      ! phi step for hit chi2 scanning      
+               THCSTEP   =  1.0      ! thetac step for Likelihood F. scanning
+               F1NORMG   =  1.0      ! signal gaussian normalization 
+               F1SIGMA2  =  0.25**2  ! likelihood function width  
+               F2SIGMA2  =  0.25**2  ! dummy if F1NORMG=1 
+               FBACKGR   =  0.689    ! background fraction
+               CHI2HTCUT =  0.873**2
+            elseif (chradid.eq.'NAF' .or. chradid.eq.'PGL') then
+               PHISTEP   =  5.0      ! phi step for hit chi2 scanning 
+               THCSTEP   =  1.5      ! thetac step for Likelihood F. scanning 
+               F1NORMG   =  1.0      ! signal gaussian normalization 
+               F1SIGMA2  =  0.75**2  ! lorentz function width 
+               F2SIGMA2  =  0.75**2  ! dummy if F1NORMG=1 
+               FBACKGR   =  0.10      ! background fraction
+               CHI2HTCUT =  2.18**2
+            endif
+         endif
+      endif
+
+* --- end
       return
       end
+
+
+
+
+
+***********************************
+*** CODE FROM richtrkhitassoc.F ***
+***********************************
+
+      subroutine richtrkhitassoc
+************************************************************
+*
+* Performs track-hit association
+* Hits associated to track have iflghit(i)=1
+*
+*************************************************************
+
+#include "../include/richrec_lipf.h"
+
+      real difextrap2
+
+* --- init
+      nbhits_nass = 0
+
+* --- set RICH hits flags (associated to particle)
+*     remind: nbhitsmax      = nb hits event limit (richdat.inc)
+*             nhitmax        = nb hits rec limit (richrec.inc)
+*             nbhitsmax_ntup = nb hits limit stored in ntuple
+
+*      print*,'(richtrkhitassoc) pcoopmt = ',pcoopmt
+*      print*,'(richtrkhitassoc) pthe (deg) = ',pthe*RADDEG,
+*     +                       ', pphi (deg) = ',pphi*RADDEG
+
+*      print*,'(richtrkhitassoc) trhitass2 = ',trhitass2
+*      print*,'(richtrkhitassoc) pcoopmt = ',
+*     +             pcoopmt(1),pcoopmt(2),pcoopmt(3)
+*      print*,'(richtrkhitassoc) nbhits = ',nbhits
+*      print*,'(richtrkhitassoc) nbhitsmax_ntup = ',nbhitsmax_ntup
+*      print*,'(richtrkhitassoc) nhitmax = ',nhitmax
+
+      do i=1,min(min(nbhits,nbhitsmax_ntup),nhitmax)
+         difextrap2 = (hitscoo(1,i)-(pcoopmt(1)
+     +        +ZLGSIGNAL*atan(pthe)*cos(pphi)))**2 +
+     +        (hitscoo(2,i)-(pcoopmt(2)
+     +        +ZLGSIGNAL*atan(pthe)*sin(pphi)))**2
+*         print*,'... hit ',i,' - difextrap2 = ',difextrap2
+         if (difextrap2.lt.TRHITASS2) then
+            iflghit(i) = 1 
+         else
+            iflghit(i) = 0
+            nbhits_nass = nbhits_nass + 1
+            if (nbhits_nass.le.nhitmax) ip_nass(nbhits_nass) = i
+         endif    
+      enddo
+*      print*,'(richtrkhitassoc) nbhits_nass = ',nbhits_nass
+
+* --- end
+      return
+      end
+
 

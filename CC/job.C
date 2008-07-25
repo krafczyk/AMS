@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.575 2008/07/07 10:45:46 choumilo Exp $
+// $Id: job.C,v 1.576 2008/07/25 18:26:31 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -300,21 +300,17 @@ void AMSJob::_sirichdata(){
   RICRECFFKEY.recon[0]=11;   //beta reconstruction
   RICRECFFKEY.recon[1]=1;   //Z reconstruction
 
-  RICRECFFKEY.pars0[0]=RICRECFFKEY.pars0[1]=
-    RICRECFFKEY.pars0[2]=RICRECFFKEY.pars0[3]=
-    RICRECFFKEY.pars0[4]=0;
+  RICRECFFKEY.liprflag[0]=101;  // LIP beta reconstructions to be performed
+  RICRECFFKEY.liprflag[1]=1;  // LIP charge reconstructions to be performed
 
-  RICRECFFKEY.pars1[0]=RICRECFFKEY.pars1[1]=
-    RICRECFFKEY.pars1[2]=RICRECFFKEY.pars1[3]=
-    RICRECFFKEY.pars1[4]=0;
+  RICRECFFKEY.lipsigma[0]=RICRECFFKEY.lipsigma[1]=     // LIP residuals sigmas
+    RICRECFFKEY.lipsigma[2]=RICRECFFKEY.lipsigma[3]=0.; //(not yet implemented)
 
-  RICRECFFKEY.pars2[0]=RICRECFFKEY.pars2[1]=
-    RICRECFFKEY.pars2[2]=RICRECFFKEY.pars2[3]=
-    RICRECFFKEY.pars2[4]=0;
+  RICRECFFKEY.lipdcut[0]=RICRECFFKEY.lipdcut[1]=0.; // LIP distance cut
+                                                      //(not yet implemented) 
 
-  RICRECFFKEY.pars3[0]=RICRECFFKEY.pars3[1]=
-    RICRECFFKEY.pars3[2]=RICRECFFKEY.pars3[3]=
-    RICRECFFKEY.pars3[4]=0;
+  RICRECFFKEY.lipznorm[0]=RICRECFFKEY.lipznorm[1]=0.; // LIP chg overall fact
+                                                      //(not yet implemented) 
 
   FFKEY("RICREC",(float *)&RICRECFFKEY,sizeof(RICRECFFKEY_DEF)/sizeof(integer),"MIXED");
 
