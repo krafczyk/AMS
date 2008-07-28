@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.108 2008/07/25 18:26:32 barao Exp $
+//  $Id: ntuple.h,v 1.109 2008/07/28 19:34:04 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -744,9 +744,9 @@ public:
   float resb_thc[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_chi2[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_nhit[MAXRICHRIN][LIP_NMAXLIPREC];
-  int   resb_phit[MAXRICHRIN][LIP_NHITMAX][LIP_NMAXLIPREC];
-  int   resb_used[MAXRICHRIN][LIP_NHITMAX][LIP_NMAXLIPREC];
-  float resb_hres[MAXRICHRIN][LIP_NHITMAX][LIP_NMAXLIPREC];
+  int   resb_phit[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];
+  int   resb_used[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];
+  float resb_hres[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];
   float resb_invchi2[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_flatsin[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_flatcos[MAXRICHRIN][LIP_NMAXLIPREC];
@@ -758,23 +758,23 @@ public:
   float resc_chg[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_chgdir[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_chgmir[MAXRICHRIN][LIP_NMAXLIPREC];
-  float resc_accgeom[MAXRICHRIN][3][LIP_NMAXLIPREC];
-  float resc_eff[MAXRICHRIN][6][LIP_NMAXLIPREC];
-  float resc_chgprob[MAXRICHRIN][3][LIP_NMAXLIPREC];
-  float resb_pimp[MAXRICHRIN][3][LIP_NMAXLIPREC];
-  float resb_epimp[MAXRICHRIN][3][LIP_NMAXLIPREC];
+  float resc_accgeom[MAXRICHRIN][LIP_NMAXLIPREC][3];
+  float resc_eff[MAXRICHRIN][LIP_NMAXLIPREC][6];
+  float resc_chgprob[MAXRICHRIN][LIP_NMAXLIPREC][3];
+  float resb_pimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
+  float resb_epimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_pthe[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_epthe[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_pphi[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_epphi[MAXRICHRIN][LIP_NMAXLIPREC];
-  float rstd_creclike[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  float rstd_crecx0[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  float rstd_crecy0[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  float rstd_crectheta[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  float rstd_crecphi[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  float rstd_crecbeta[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  int   rstd_crecuhits[MAXRICHRIN][50][LIP_NMAXLIPREC];
-  float rstd_crecpkol[MAXRICHRIN][50][LIP_NMAXLIPREC];
+  float rstd_creclike[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  float rstd_crecx0[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  float rstd_crecy0[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  float rstd_crectheta[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  float rstd_crecphi[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  float rstd_crecbeta[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  int   rstd_crecuhits[MAXRICHRIN][LIP_NMAXLIPREC][50];
+  float rstd_crecpkol[MAXRICHRIN][LIP_NMAXLIPREC][50];
 
 //#else
 /*   // Obsolete variables */

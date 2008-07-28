@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.43 2008/07/25 18:26:32 barao Exp $
+//  $Id: richrec.h,v 1.44 2008/07/28 19:34:04 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -176,9 +176,9 @@ static geant _Time;
   number  _resb_thc[LIP_NMAXLIPREC];
   number  _resb_chi2[LIP_NMAXLIPREC];
   integer _resb_nhit[LIP_NMAXLIPREC];
-  integer _resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC];
-  integer _resb_used[LIP_NHITMAX][LIP_NMAXLIPREC];
-  number  _resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC];
+  integer _resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX];
+  integer _resb_used[LIP_NMAXLIPREC][LIP_NHITMAX];
+  number  _resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX];
   number  _resb_invchi2[LIP_NMAXLIPREC];
   number  _resb_flatsin[LIP_NMAXLIPREC];
   number  _resb_flatcos[LIP_NMAXLIPREC];
@@ -190,23 +190,23 @@ static geant _Time;
   number  _resc_chg[LIP_NMAXLIPREC];
   number  _resc_chgdir[LIP_NMAXLIPREC];
   number  _resc_chgmir[LIP_NMAXLIPREC];
-  number  _resc_accgeom[3][LIP_NMAXLIPREC];
-  number  _resc_eff[6][LIP_NMAXLIPREC];
-  number  _resc_chgprob[3][LIP_NMAXLIPREC];
-  number  _resb_pimp[3][LIP_NMAXLIPREC];
-  number  _resb_epimp[3][LIP_NMAXLIPREC];
+  number  _resc_accgeom[LIP_NMAXLIPREC][3];
+  number  _resc_eff[LIP_NMAXLIPREC][6];
+  number  _resc_chgprob[LIP_NMAXLIPREC][3];
+  number  _resb_pimp[LIP_NMAXLIPREC][3];
+  number  _resb_epimp[LIP_NMAXLIPREC][3];
   number  _resb_pthe[LIP_NMAXLIPREC];
   number  _resb_epthe[LIP_NMAXLIPREC];
   number  _resb_pphi[LIP_NMAXLIPREC];
   number  _resb_epphi[LIP_NMAXLIPREC];
-  number  _rstd_creclike[50][LIP_NMAXLIPREC];
-  number  _rstd_crecx0[50][LIP_NMAXLIPREC];
-  number  _rstd_crecy0[50][LIP_NMAXLIPREC];
-  number  _rstd_crectheta[50][LIP_NMAXLIPREC];
-  number  _rstd_crecphi[50][LIP_NMAXLIPREC];
-  number  _rstd_crecbeta[50][LIP_NMAXLIPREC];
-  integer _rstd_crecuhits[50][LIP_NMAXLIPREC];
-  number  _rstd_crecpkol[50][LIP_NMAXLIPREC];
+  number  _rstd_creclike[LIP_NMAXLIPREC][50];
+  number  _rstd_crecx0[LIP_NMAXLIPREC][50];
+  number  _rstd_crecy0[LIP_NMAXLIPREC][50];
+  number  _rstd_crectheta[LIP_NMAXLIPREC][50];
+  number  _rstd_crecphi[LIP_NMAXLIPREC][50];
+  number  _rstd_crecbeta[LIP_NMAXLIPREC][50];
+  integer _rstd_crecuhits[LIP_NMAXLIPREC][50];
+  number  _rstd_crecpkol[LIP_NMAXLIPREC][50];
 //#else
 /*   // OBSOLETE VARIABLES */
 /*   integer _liphused;     //nr of hits used=10000 + nr hits mirror */
@@ -294,7 +294,7 @@ public:
   //+LIP
   AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
 //#ifdef __LIPDATASAVE__
-	      int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC],int resb_used[LIP_NHITMAX][LIP_NMAXLIPREC],geant resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[3][LIP_NMAXLIPREC],geant resc_eff[6][LIP_NMAXLIPREC],geant resc_chgprob[3][LIP_NMAXLIPREC],geant resb_pimp[3][LIP_NMAXLIPREC],geant resb_epimp[3][LIP_NMAXLIPREC],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[50][LIP_NMAXLIPREC],geant rstd_crecx0[50][LIP_NMAXLIPREC],geant rstd_crecy0[50][LIP_NMAXLIPREC],geant rstd_crectheta[50][LIP_NMAXLIPREC],geant rstd_crecphi[50][LIP_NMAXLIPREC],geant rstd_crecbeta[50][LIP_NMAXLIPREC],int rstd_crecuhits[50][LIP_NMAXLIPREC],geant rstd_crecpkol[50][LIP_NMAXLIPREC],
+	      int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX],int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[LIP_NMAXLIPREC][3],geant resc_eff[LIP_NMAXLIPREC][6],geant resc_chgprob[LIP_NMAXLIPREC][3],geant resb_pimp[LIP_NMAXLIPREC][3],geant resb_epimp[LIP_NMAXLIPREC][3],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[LIP_NMAXLIPREC][50],geant rstd_crecx0[LIP_NMAXLIPREC][50],geant rstd_crecy0[LIP_NMAXLIPREC][50],geant rstd_crectheta[LIP_NMAXLIPREC][50],geant rstd_crecphi[LIP_NMAXLIPREC][50],geant rstd_crecbeta[LIP_NMAXLIPREC][50],int rstd_crecuhits[LIP_NMAXLIPREC][50],geant rstd_crecpkol[LIP_NMAXLIPREC][50],
 //#else
 /* 	      int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob, */
 //#endif
@@ -333,18 +333,20 @@ public:
     for(int k=0;k<LIP_NMAXLIPREC;k++) {
       if(_resb_itype[k]==2) {
 	lhused = _resb_nhit[k];
+	break;
       }
-      return lhused;
     }
+    return lhused;
   }
   number getlipprob(){
     number lrprob = -1.0;
     for(int k=0;k<LIP_NMAXLIPREC;k++) {
       if(_resb_itype[k]==2) {
 	lrprob = _resb_probkl[k];
+        break;
       }
-      return lrprob;
     }
+    return lrprob;
   }
 //#else
 /*   // USING OBSOLETE VARIABLES */

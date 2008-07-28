@@ -2777,9 +2777,9 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
       lipChi2[k]            = ptr->_resb_chi2[k];           
       lipHitsUsed[k]        = ptr->_resb_nhit[k];           
       for(int i=0;i<LIP_NHITMAX;i++){
-	lipHitPtr[i][k]       = ptr->_resb_phit[i][k];  
-	lipHitFlag[i][k]      = ptr->_resb_used[i][k];  
-	lipHitResid[i][k]     = ptr->_resb_hres[i][k];  
+	lipHitPtr[k][i]       = ptr->_resb_phit[k][i];  
+	lipHitFlag[k][i]      = ptr->_resb_used[k][i];  
+	lipHitResid[k][i]     = ptr->_resb_hres[k][i];  
       }
       lipSumInvChi2[k]      = ptr->_resb_invchi2[k];        
       lipFlatSin[k]         = ptr->_resb_flatsin[k];        
@@ -2794,18 +2794,18 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
       lipChgDir[k]          = ptr->_resc_chgdir[k];         
       lipChgMir[k]          = ptr->_resc_chgmir[k];         
       for(int i=0;i<3;i++){
-	lipAccGeom[i][k]      = ptr->_resc_accgeom[i][k];     
+	lipAccGeom[k][i]      = ptr->_resc_accgeom[k][i];     
       }
       for(int i=0;i<6;i++){
-	lipEff[i][k]          = ptr->_resc_eff[i][k];         
+	lipEff[k][i]          = ptr->_resc_eff[k][i];       
       }
       for(int i=0;i<3;i++){
-	lipChgProb[i][k]      = ptr->_resc_chgprob[i][k];     
+	lipChgProb[k][i]      = ptr->_resc_chgprob[k][i];     
       }
       // Track data
       for(int i=0;i<3;i++){
-	lipImpPt[i][k]        = ptr->_resb_pimp[i][k];        
-	lipErrImpPt[i][k]        = ptr->_resb_epimp[i][k];        
+	lipImpPt[k][i]        = ptr->_resb_pimp[k][i];        
+	lipErrImpPt[k][i]     = ptr->_resb_epimp[k][i];        
       }
       lipTheta[k]           = ptr->_resb_pthe[k];           
       lipErrTheta[k]        = ptr->_resb_epthe[k];           

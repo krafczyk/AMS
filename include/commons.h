@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.243 2008/07/25 18:26:32 barao Exp $
+//  $Id: commons.h,v 1.244 2008/07/28 19:34:04 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1183,9 +1183,9 @@ class LIPF2C_DEF{
   geant resb_thc[LIP_NMAXLIPREC];
   geant resb_chi2[LIP_NMAXLIPREC];           
   int resb_nhit[LIP_NMAXLIPREC];           
-  int resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC];  
-  int resb_used[LIP_NHITMAX][LIP_NMAXLIPREC];  
-  geant resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC];  
+  int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX];  
+  int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX];
+  geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX];  
   geant resb_invchi2[LIP_NMAXLIPREC];        
   geant resb_flatsin[LIP_NMAXLIPREC];        
   geant resb_flatcos[LIP_NMAXLIPREC];        
@@ -1199,27 +1199,27 @@ class LIPF2C_DEF{
   geant resc_chg[LIP_NMAXLIPREC];            
   geant resc_chgdir[LIP_NMAXLIPREC];         
   geant resc_chgmir[LIP_NMAXLIPREC];         
-  geant resc_accgeom[3][LIP_NMAXLIPREC];     
-  geant resc_eff[6][LIP_NMAXLIPREC];         
-  geant resc_chgprob[3][LIP_NMAXLIPREC];
+  geant resc_accgeom[LIP_NMAXLIPREC][3];
+  geant resc_eff[LIP_NMAXLIPREC][6];
+  geant resc_chgprob[LIP_NMAXLIPREC][3];
 
   //track parameters
-  geant resb_pimp[3][LIP_NMAXLIPREC]; 
-  geant resb_epimp[3][LIP_NMAXLIPREC]; 
+  geant resb_pimp[LIP_NMAXLIPREC][3];
+  geant resb_epimp[LIP_NMAXLIPREC][3];
   geant resb_pthe[LIP_NMAXLIPREC];           
   geant resb_epthe[LIP_NMAXLIPREC];           
   geant resb_pphi[LIP_NMAXLIPREC];           
   geant resb_epphi[LIP_NMAXLIPREC];           
 
   //standalone rec details
-  geant rstd_creclike[50][LIP_NMAXLIPREC];
-  geant rstd_crecx0[50][LIP_NMAXLIPREC];
-  geant rstd_crecy0[50][LIP_NMAXLIPREC];
-  geant rstd_crectheta[50][LIP_NMAXLIPREC];
-  geant rstd_crecphi[50][LIP_NMAXLIPREC];
-  geant rstd_crecbeta[50][LIP_NMAXLIPREC];
-  int rstd_crecuhits[50][LIP_NMAXLIPREC];
-  geant rstd_crecpkol[50][LIP_NMAXLIPREC];
+  geant rstd_creclike[LIP_NMAXLIPREC][50];
+  geant rstd_crecx0[LIP_NMAXLIPREC][50];
+  geant rstd_crecy0[LIP_NMAXLIPREC][50];
+  geant rstd_crectheta[LIP_NMAXLIPREC][50];
+  geant rstd_crecphi[LIP_NMAXLIPREC][50];
+  geant rstd_crecbeta[LIP_NMAXLIPREC][50];
+  int rstd_crecuhits[LIP_NMAXLIPREC][50];
+  geant rstd_crecpkol[LIP_NMAXLIPREC][50];
 };
 #define LIPF2C COMMON_BLOCK(LIPF2C,lipf2c)
 COMMON_BLOCK_DEF(LIPF2C_DEF,LIPF2C);

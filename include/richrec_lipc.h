@@ -153,9 +153,9 @@
      +                 resb_thc(nmaxliprec),            ! rec Cerenkov angle
      +                 resb_chi2(nmaxliprec),           ! chi2 of reconstruction
      +                 resb_nhit(nmaxliprec),           ! number of used hits
-     +                 resb_phit(nmaxliprec,nhitmax),   ! pointers to used hits
-     +                 resb_used(nmaxliprec,nhitmax),   ! flags of used hits
-     +                 resb_hres(nmaxliprec,nhitmax),   ! hit residues (to rec pattern)
+     +                 resb_phit(nhitmax,nmaxliprec),   ! pointers to used hits
+     +                 resb_used(nhitmax,nmaxliprec),   ! flags of used hits
+     +                 resb_hres(nhitmax,nmaxliprec),   ! hit residues (to rec pattern)
      +                 resb_invchi2(nmaxliprec),        ! sum of inv chi2 for non-assoc hits
      +                 resb_flatsin(nmaxliprec),        ! flatness (sin)
      +                 resb_flatcos(nmaxliprec),        ! flatness (cos)
@@ -169,25 +169,25 @@
      +                 resc_chg(nmaxliprec),            ! rec charge (total)
      +                 resc_chgdir(nmaxliprec),         ! rec charge (dir branch)
      +                 resc_chgmir(nmaxliprec),         ! rec charge (ref branch)
-     +                 resc_accgeom(nmaxliprec,3),      ! geom acceptance
-     +                 resc_eff(nmaxliprec,6),          ! efficiency
-     +                 resc_chgprob(nmaxliprec,3),      ! charge probabilities (Z-1,Z,Z+1)
+     +                 resc_accgeom(3,nmaxliprec),      ! geom acceptance
+     +                 resc_eff(6,nmaxliprec),          ! efficiency
+     +                 resc_chgprob(3,nmaxliprec),      ! charge probabilities (Z-1,Z,Z+1)
                      ! [ TRACK PARAMETERS ]
-     +                 resb_pimp(nmaxliprec,3),         ! impact point at radiator top
-     +                 resb_epimp(nmaxliprec,3),        ! error in impact point
+     +                 resb_pimp(3,nmaxliprec),         ! impact point at radiator top
+     +                 resb_epimp(3,nmaxliprec),        ! error in impact point
      +                 resb_pthe(nmaxliprec),           ! rec theta
      +                 resb_epthe(nmaxliprec),          ! error in rec theta
      +                 resb_pphi(nmaxliprec),           ! rec phi
      +                 resb_epphi(nmaxliprec),          ! error in rec phi
                      ! [ STANDALONE RECONSTRUCTION DETAILS ]
-     +                 rstd_creclike(nmaxliprec,50),    ! likelihood
-     +                 rstd_crecx0(nmaxliprec,50),      ! x impact point
-     +                 rstd_crecy0(nmaxliprec,50),      ! y impact point
-     +                 rstd_crectheta(nmaxliprec,50),   ! rec theta
-     +                 rstd_crecphi(nmaxliprec,50),     ! rec phi
-     +                 rstd_crecbeta(nmaxliprec,50),    ! rec beta
-     +                 rstd_crecuhits(nmaxliprec,50),   ! number of used hits
-     +                 rstd_crecpkol(nmaxliprec,50)     ! Kolmogorov probability
+     +                 rstd_creclike(50,nmaxliprec),    ! likelihood
+     +                 rstd_crecx0(50,nmaxliprec),      ! x impact point
+     +                 rstd_crecy0(50,nmaxliprec),      ! y impact point
+     +                 rstd_crectheta(50,nmaxliprec),   ! rec theta
+     +                 rstd_crecphi(50,nmaxliprec),     ! rec phi
+     +                 rstd_crecbeta(50,nmaxliprec),    ! rec beta
+     +                 rstd_crecuhits(50,nmaxliprec),   ! number of used hits
+     +                 rstd_crecpkol(50,nmaxliprec)     ! Kolmogorov probability
 
 
 ***********************************************************************

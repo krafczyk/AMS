@@ -468,13 +468,13 @@
             resb_nhit(irecnumb) = nbushits(ipthetac)
 
             do k=1,nbushits(ipthetac)
-               resb_phit(irecnumb,k) = ipushits(ipthetac,k)
-               resb_used(irecnumb,k) =
+               resb_phit(k,irecnumb) = ipushits(ipthetac,k)
+               resb_used(k,irecnumb) =
      +              ireflechit(ipthetac,ipushits(ipthetac,k))
             enddo
 
             do j=1,min(nbhits,nhitmax)
-               resb_hres(irecnumb,j) = chi2hit(ipthetac,j)
+               resb_hres(j,irecnumb) = chi2hit(ipthetac,j)
             enddo
 
             resb_invchi2(irecnumb) = 0.
@@ -490,8 +490,8 @@
             resb_probkl(irecnumb) = pkolmog(ipthetac)
 
             do n=1,3
-               resb_pimp(irecnumb,n) = pimp(n)
-               resb_epimp(irecnumb,n) = 0.
+               resb_pimp(n,irecnumb) = pimp(n)
+               resb_epimp(n,irecnumb) = 0.
             enddo
 
             resb_pthe(irecnumb) = pthe
@@ -500,14 +500,14 @@
             resb_epphi(irecnumb) = 0.
 
             do i=1,50
-               rstd_creclike(irecnumb,i) = -999.
-               rstd_crecx0(irecnumb,i) = -999.
-               rstd_crecy0(irecnumb,i) = -999.
-               rstd_crectheta(irecnumb,i) = -999.
-               rstd_crecphi(irecnumb,i) = -999.
-               rstd_crecbeta(irecnumb,i) = -999.
-               rstd_crecuhits(irecnumb,i) = -999
-               rstd_crecpkol(irecnumb,i) = -999.
+               rstd_creclike(i,irecnumb) = -999.
+               rstd_crecx0(i,irecnumb) = -999.
+               rstd_crecy0(i,irecnumb) = -999.
+               rstd_crectheta(i,irecnumb) = -999.
+               rstd_crecphi(i,irecnumb) = -999.
+               rstd_crecbeta(i,irecnumb) = -999.
+               rstd_crecuhits(i,irecnumb) = -999
+               rstd_crecpkol(i,irecnumb) = -999.
             enddo
 
          endif
@@ -561,18 +561,18 @@
                resc_chg(irecnumb) = chgrec
                resc_chgdir(irecnumb) = chgrec_dir
                resc_chgmir(irecnumb) = chgrec_mir
-               resc_accgeom(irecnumb,1) = richacc_vis
-               resc_accgeom(irecnumb,2) = richacc_dir
-               resc_accgeom(irecnumb,3) = richacc_mir0
-               resc_eff(irecnumb,1) = richeff_tot
-               resc_eff(irecnumb,2) = richeff_dir
-               resc_eff(irecnumb,3) = richeff_1rf
-               resc_eff(irecnumb,4) = richeff_2rf
-               resc_eff(irecnumb,5) = richeff_rad
-               resc_eff(irecnumb,6) = richeff_lg
-               resc_chgprob(irecnumb,1) = chgprob1
-               resc_chgprob(irecnumb,2) = chgprob2
-               resc_chgprob(irecnumb,3) = chgprob3
+               resc_accgeom(1,irecnumb) = richacc_vis
+               resc_accgeom(2,irecnumb) = richacc_dir
+               resc_accgeom(3,irecnumb) = richacc_mir0
+               resc_eff(1,irecnumb) = richeff_tot
+               resc_eff(2,irecnumb) = richeff_dir
+               resc_eff(3,irecnumb) = richeff_1rf
+               resc_eff(4,irecnumb) = richeff_2rf
+               resc_eff(5,irecnumb) = richeff_rad
+               resc_eff(6,irecnumb) = richeff_lg
+               resc_chgprob(1,irecnumb) = chgprob1
+               resc_chgprob(2,irecnumb) = chgprob2
+               resc_chgprob(3,irecnumb) = chgprob3
 
             endif
 
@@ -632,17 +632,17 @@
             resb_chi2(irecnumb) = chi2_rectof
             resb_nhit(irecnumb) = nuhits_rectof
             do i=1,nhitmax
-               resb_phit(irecnumb,i) = phit_rectof(i)
-               resb_used(irecnumb,i) = used_rectof(i)
-               resb_hres(irecnumb,i) = hres_rectof(i)
+               resb_phit(i,irecnumb) = phit_rectof(i)
+               resb_used(i,irecnumb) = used_rectof(i)
+               resb_hres(i,irecnumb) = hres_rectof(i)
             enddo
             resb_invchi2(irecnumb) = invchi2_rectof
             resb_flatsin(irecnumb) = flatevt(1)
             resb_flatcos(irecnumb) = flatevt(2)
             resb_probkl(irecnumb) = pkolmog(ipthetac)
             do i=1,3
-               resb_pimp(irecnumb,i) = pimp_rectof(i)
-               resb_epimp(irecnumb,i) = epimp_rectof(i)
+               resb_pimp(i,irecnumb) = pimp_rectof(i)
+               resb_epimp(i,irecnumb) = epimp_rectof(i)
             enddo
             resb_pthe(irecnumb) = pthe_rectof
             resb_epthe(irecnumb) = epthe_rectof
@@ -650,14 +650,14 @@
             resb_epphi(irecnumb) = epphi_rectof
 
             do i=1,50
-               rstd_creclike(irecnumb,i) = -999.
-               rstd_crecx0(irecnumb,i) = -999.
-               rstd_crecy0(irecnumb,i) = -999.
-               rstd_crectheta(irecnumb,i) = -999.
-               rstd_crecphi(irecnumb,i) = -999.
-               rstd_crecbeta(irecnumb,i) = -999.
-               rstd_crecuhits(irecnumb,i) = -999
-               rstd_crecpkol(irecnumb,i) = -999.
+               rstd_creclike(i,irecnumb) = -999.
+               rstd_crecx0(i,irecnumb) = -999.
+               rstd_crecy0(i,irecnumb) = -999.
+               rstd_crectheta(i,irecnumb) = -999.
+               rstd_crecphi(i,irecnumb) = -999.
+               rstd_crecbeta(i,irecnumb) = -999.
+               rstd_crecuhits(i,irecnumb) = -999
+               rstd_crecpkol(i,irecnumb) = -999.
             enddo
 
          endif
@@ -711,18 +711,18 @@
                resc_chg(irecnumb) = chgrec
                resc_chgdir(irecnumb) = chgrec_dir
                resc_chgmir(irecnumb) = chgrec_mir
-               resc_accgeom(irecnumb,1) = richacc_vis
-               resc_accgeom(irecnumb,2) = richacc_dir
-               resc_accgeom(irecnumb,3) = richacc_mir0
-               resc_eff(irecnumb,1) = richeff_tot
-               resc_eff(irecnumb,2) = richeff_dir
-               resc_eff(irecnumb,3) = richeff_1rf
-               resc_eff(irecnumb,4) = richeff_2rf
-               resc_eff(irecnumb,5) = richeff_rad
-               resc_eff(irecnumb,6) = richeff_lg
-               resc_chgprob(irecnumb,1) = chgprob1
-               resc_chgprob(irecnumb,2) = chgprob2
-               resc_chgprob(irecnumb,3) = chgprob3
+               resc_accgeom(1,irecnumb) = richacc_vis
+               resc_accgeom(2,irecnumb) = richacc_dir
+               resc_accgeom(3,irecnumb) = richacc_mir0
+               resc_eff(1,irecnumb) = richeff_tot
+               resc_eff(2,irecnumb) = richeff_dir
+               resc_eff(3,irecnumb) = richeff_1rf
+               resc_eff(4,irecnumb) = richeff_2rf
+               resc_eff(5,irecnumb) = richeff_rad
+               resc_eff(6,irecnumb) = richeff_lg
+               resc_chgprob(1,irecnumb) = chgprob1
+               resc_chgprob(2,irecnumb) = chgprob2
+               resc_chgprob(3,irecnumb) = chgprob3
 
             endif
 
@@ -777,17 +777,17 @@
             resb_chi2(irecnumb) = chi2_recstd
             resb_nhit(irecnumb) = nuhits_recstd
             do i=1,nhitmax
-               resb_phit(irecnumb,i) = phit_recstd(i)
-               resb_used(irecnumb,i) = used_recstd(i)
-               resb_hres(irecnumb,i) = hres_recstd(i)
+               resb_phit(i,irecnumb) = phit_recstd(i)
+               resb_used(i,irecnumb) = used_recstd(i)
+               resb_hres(i,irecnumb) = hres_recstd(i)
             enddo
             resb_invchi2(irecnumb) = invchi2_recstd
             resb_flatsin(irecnumb) = flatevt(1)
             resb_flatcos(irecnumb) = flatevt(2)
             resb_probkl(irecnumb) = pkolmog(ipthetac)
             do i=1,3
-               resb_pimp(irecnumb,i) = pimp_recstd(i)
-               resb_epimp(irecnumb,i) = epimp_recstd(i)
+               resb_pimp(i,irecnumb) = pimp_recstd(i)
+               resb_epimp(i,irecnumb) = epimp_recstd(i)
             enddo
             resb_pthe(irecnumb) = pthe_recstd
             resb_epthe(irecnumb) = epthe_recstd
@@ -795,14 +795,14 @@
             resb_epphi(irecnumb) = epphi_recstd
 
             do i=1,50
-               rstd_creclike(irecnumb,i) = creclike(i)
-               rstd_crecx0(irecnumb,i) = crecx0(i)
-               rstd_crecy0(irecnumb,i) = crecy0(i)
-               rstd_crectheta(irecnumb,i) = crectheta(i)
-               rstd_crecphi(irecnumb,i) = crecphi(i)
-               rstd_crecbeta(irecnumb,i) = crecbeta(i)
-               rstd_crecuhits(irecnumb,i) = crecuhits(i)
-               rstd_crecpkol(irecnumb,i) = crecpkol(i)
+               rstd_creclike(i,irecnumb) = creclike(i)
+               rstd_crecx0(i,irecnumb) = crecx0(i)
+               rstd_crecy0(i,irecnumb) = crecy0(i)
+               rstd_crectheta(i,irecnumb) = crectheta(i)
+               rstd_crecphi(i,irecnumb) = crecphi(i)
+               rstd_crecbeta(i,irecnumb) = crecbeta(i)
+               rstd_crecuhits(i,irecnumb) = crecuhits(i)
+               rstd_crecpkol(i,irecnumb) = crecpkol(i)
             enddo
 
          endif
@@ -858,18 +858,18 @@
                resc_chg(irecnumb) = chgrec
                resc_chgdir(irecnumb) = chgrec_dir
                resc_chgmir(irecnumb) = chgrec_mir
-               resc_accgeom(irecnumb,1) = richacc_vis
-               resc_accgeom(irecnumb,2) = richacc_dir
-               resc_accgeom(irecnumb,3) = richacc_mir0
-               resc_eff(irecnumb,1) = richeff_tot
-               resc_eff(irecnumb,2) = richeff_dir
-               resc_eff(irecnumb,3) = richeff_1rf
-               resc_eff(irecnumb,4) = richeff_2rf
-               resc_eff(irecnumb,5) = richeff_rad
-               resc_eff(irecnumb,6) = richeff_lg
-               resc_chgprob(irecnumb,1) = chgprob1
-               resc_chgprob(irecnumb,2) = chgprob2
-               resc_chgprob(irecnumb,3) = chgprob3
+               resc_accgeom(1,irecnumb) = richacc_vis
+               resc_accgeom(2,irecnumb) = richacc_dir
+               resc_accgeom(3,irecnumb) = richacc_mir0
+               resc_eff(1,irecnumb) = richeff_tot
+               resc_eff(2,irecnumb) = richeff_dir
+               resc_eff(3,irecnumb) = richeff_1rf
+               resc_eff(4,irecnumb) = richeff_2rf
+               resc_eff(5,irecnumb) = richeff_rad
+               resc_eff(6,irecnumb) = richeff_lg
+               resc_chgprob(1,irecnumb) = chgprob1
+               resc_chgprob(2,irecnumb) = chgprob2
+               resc_chgprob(3,irecnumb) = chgprob3
 
             endif
 
@@ -900,9 +900,9 @@
 *         print*,'resb_thc (d)  = ',resb_thc(k)*RADDEG
 *         print*,'resb_chi2     = ',resb_chi2(k)     
 *         print*,'resb_nhit     = ',resb_nhit(k)      
-*         print*,'resb_phit     = ',(resb_phit(k,i),i=1,resb_nhit(k))
-*         print*,'resb_used     = ',(resb_used(k,i),i=1,nbhits_ev)
-*         print*,'resb_hres     = ',(resb_hres(k,i),i=1,nbhits_ev)
+*         print*,'resb_phit     = ',(resb_phit(i,k),i=1,resb_nhit(k))
+*         print*,'resb_used     = ',(resb_used(i,k),i=1,nbhits_ev)
+*         print*,'resb_hres     = ',(resb_hres(i,k),i=1,nbhits_ev)
 *         print*,'resb_invchi2  = ',resb_invchi2(k)    
 *         print*,'resb_flatsin  = ',resb_flatsin(k)    
 *         print*,'resb_flatcos  = ',resb_flatcos(k)    
@@ -914,11 +914,11 @@
 *         print*,'resc_chg      = ',resc_chg(k)        
 *         print*,'resc_chgdir   = ',resc_chgdir(k)     
 *         print*,'resc_chgmir   = ',resc_chgmir(k)     
-*         print*,'resc_accgeom  = ',(resc_accgeom(k,i),i=1,3)
-*         print*,'resc_eff      = ',(resc_eff(k,i),i=1,6)
-*         print*,'resc_chgprob  = ',(resc_chgprob(k,i),i=1,3)
-*         print*,'resb_pimp     = ',(resb_pimp(k,i),i=1,3)
-*         print*,'resb_epimp     = ',(resb_epimp(k,i),i=1,3)
+*         print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
+*         print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
+*         print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
+*         print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
+*         print*,'resb_epimp     = ',(resb_epimp(i,k),i=1,3)
 *         print*,'resb_pthe(d)  = ',resb_pthe(k)*RADDEG 
 *         print*,'resb_epthe(d)  = ',resb_epthe(k)*RADDEG 
 *         print*,'resb_pphi(d)  = ',resb_pphi(k)*RADDEG
@@ -951,13 +951,13 @@
       do k=1,irectot
          if((resb_iflag(k).eq.1).and.(resb_itype(k).eq.4)) then
 
-            err_x0top = resb_pimp(k,1)-pimp_main(1)
-            err_y0top = resb_pimp(k,2)-pimp_main(2)
+            err_x0top = resb_pimp(i,k)-pimp_main(1)
+            err_y0top = resb_pimp(i,k)-pimp_main(2)
             
-            err_x0bot = (resb_pimp(k,1)
+            err_x0bot = (resb_pimp(1,k)
      +           +ZPMTDET*tan(resb_pthe(k))*cos(resb_pphi(k)))
      +           -(pimp_main(1)+ZPMTDET*tan(pthe_main)*cos(pphi_main))
-            err_y0bot = (resb_pimp(k,2)
+            err_y0bot = (resb_pimp(2,k)
      +           +ZPMTDET*tan(resb_pthe(k))*sin(resb_pphi(k)))
      +           -(pimp_main(2)+ZPMTDET*tan(pthe_main)*sin(pphi_main))
             
@@ -999,13 +999,13 @@
       do k=1,irectot
          if((resb_iflag(k).eq.1).and.(resb_itype(k).eq.3)) then
 
-            err_x0top = resb_pimp(k,1)-pimp_main(1)
-            err_y0top = resb_pimp(k,2)-pimp_main(2)
+            err_x0top = resb_pimp(1,k)-pimp_main(1)
+            err_y0top = resb_pimp(2,k)-pimp_main(2)
             
-            err_x0bot = (resb_pimp(k,1)
+            err_x0bot = (resb_pimp(1,k)
      +           +ZPMTDET*tan(resb_pthe(k))*cos(resb_pphi(k)))
      +           -(pimp_main(1)+ZPMTDET*tan(pthe_main)*cos(pphi_main))
-            err_y0bot = (resb_pimp(k,2)
+            err_y0bot = (resb_pimp(2,k)
      +           +ZPMTDET*tan(resb_pthe(k))*sin(resb_pphi(k)))
      +           -(pimp_main(2)+ZPMTDET*tan(pthe_main)*sin(pphi_main))
             

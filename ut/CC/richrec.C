@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.84 2008/07/25 18:26:31 barao Exp $
+//  $Id: richrec.C,v 1.85 2008/07/28 19:34:04 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -953,9 +953,9 @@ void AMSRichRing::_writeEl(){
     cluster->resb_chi2[cluster->NRings][k]=_resb_chi2[k];
     cluster->resb_nhit[cluster->NRings][k]=_resb_nhit[k];
     for(int i=0;i<LIP_NHITMAX;i++) {
-      cluster->resb_phit[cluster->NRings][i][k]=_resb_phit[i][k];
-      cluster->resb_used[cluster->NRings][i][k]=_resb_used[i][k];
-      cluster->resb_hres[cluster->NRings][i][k]=_resb_hres[i][k];
+      cluster->resb_phit[cluster->NRings][k][i]=_resb_phit[k][i];
+      cluster->resb_used[cluster->NRings][k][i]=_resb_used[k][i];
+      cluster->resb_hres[cluster->NRings][k][i]=_resb_hres[k][i];
     }
     cluster->resb_invchi2[cluster->NRings][k]=_resb_invchi2[k];
     cluster->resb_flatsin[cluster->NRings][k]=_resb_flatsin[k];
@@ -969,31 +969,31 @@ void AMSRichRing::_writeEl(){
     cluster->resc_chgdir[cluster->NRings][k]=_resc_chgdir[k];
     cluster->resc_chgmir[cluster->NRings][k]=_resc_chgmir[k];
     for(int i=0;i<3;i++) {
-      cluster->resc_accgeom[cluster->NRings][i][k]=_resc_accgeom[i][k];
+      cluster->resc_accgeom[cluster->NRings][k][i]=_resc_accgeom[k][i];
     }
     for(int i=0;i<6;i++) {
-      cluster->resc_eff[cluster->NRings][i][k]=_resc_eff[i][k];
+      cluster->resc_eff[cluster->NRings][k][i]=_resc_eff[k][i];
     }
     for(int i=0;i<3;i++) {
-      cluster->resc_chgprob[cluster->NRings][i][k]=_resc_chgprob[i][k];
+      cluster->resc_chgprob[cluster->NRings][k][i]=_resc_chgprob[k][i];
     }
     for(int i=0;i<3;i++) {
-      cluster->resb_pimp[cluster->NRings][i][k]=_resb_pimp[i][k];
-      cluster->resb_epimp[cluster->NRings][i][k]=_resb_epimp[i][k];
+      cluster->resb_pimp[cluster->NRings][k][i]=_resb_pimp[k][i];
+      cluster->resb_epimp[cluster->NRings][k][i]=_resb_epimp[k][i];
     }
     cluster->resb_pthe[cluster->NRings][k]=_resb_pthe[k];
     cluster->resb_epthe[cluster->NRings][k]=_resb_epthe[k];
     cluster->resb_pphi[cluster->NRings][k]=_resb_pphi[k];
     cluster->resb_epphi[cluster->NRings][k]=_resb_epphi[k];
     for(int i=0;i<50;i++) {
-      cluster->rstd_creclike[cluster->NRings][i][k]=_rstd_creclike[i][k];
-      cluster->rstd_crecx0[cluster->NRings][i][k]=_rstd_crecx0[i][k];
-      cluster->rstd_crecy0[cluster->NRings][i][k]=_rstd_crecy0[i][k];
-      cluster->rstd_crectheta[cluster->NRings][i][k]=_rstd_crectheta[i][k];
-      cluster->rstd_crecphi[cluster->NRings][i][k]=_rstd_crecphi[i][k];
-      cluster->rstd_crecbeta[cluster->NRings][i][k]=_rstd_crecbeta[i][k];
-      cluster->rstd_crecuhits[cluster->NRings][i][k]=_rstd_crecuhits[i][k];
-      cluster->rstd_crecpkol[cluster->NRings][i][k]=_rstd_crecpkol[i][k];
+      cluster->rstd_creclike[cluster->NRings][k][i]=_rstd_creclike[k][i];
+      cluster->rstd_crecx0[cluster->NRings][k][i]=_rstd_crecx0[k][i];
+      cluster->rstd_crecy0[cluster->NRings][k][i]=_rstd_crecy0[k][i];
+      cluster->rstd_crectheta[cluster->NRings][k][i]=_rstd_crectheta[k][i];
+      cluster->rstd_crecphi[cluster->NRings][k][i]=_rstd_crecphi[k][i];
+      cluster->rstd_crecbeta[cluster->NRings][k][i]=_rstd_crecbeta[k][i];
+      cluster->rstd_crecuhits[cluster->NRings][k][i]=_rstd_crecuhits[k][i];
+      cluster->rstd_crecpkol[cluster->NRings][k][i]=_rstd_crecpkol[k][i];
     }
   }
   *************************/
@@ -2359,7 +2359,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
 */
 AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
 //#ifdef __LIPDATASAVE__
-			 int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NHITMAX][LIP_NMAXLIPREC],int resb_used[LIP_NHITMAX][LIP_NMAXLIPREC],geant resb_hres[LIP_NHITMAX][LIP_NMAXLIPREC],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[3][LIP_NMAXLIPREC],geant resc_eff[6][LIP_NMAXLIPREC],geant resc_chgprob[3][LIP_NMAXLIPREC],geant resb_pimp[3][LIP_NMAXLIPREC],geant resb_epimp[3][LIP_NMAXLIPREC],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[50][LIP_NMAXLIPREC],geant rstd_crecx0[50][LIP_NMAXLIPREC],geant rstd_crecy0[50][LIP_NMAXLIPREC],geant rstd_crectheta[50][LIP_NMAXLIPREC],geant rstd_crecphi[50][LIP_NMAXLIPREC],geant rstd_crecbeta[50][LIP_NMAXLIPREC],int rstd_crecuhits[50][LIP_NMAXLIPREC],geant rstd_crecpkol[50][LIP_NMAXLIPREC],
+			 int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX],int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[LIP_NMAXLIPREC][3],geant resc_eff[LIP_NMAXLIPREC][6],geant resc_chgprob[LIP_NMAXLIPREC][3],geant resb_pimp[LIP_NMAXLIPREC][3],geant resb_epimp[LIP_NMAXLIPREC][3],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[LIP_NMAXLIPREC][50],geant rstd_crecx0[LIP_NMAXLIPREC][50],geant rstd_crecy0[LIP_NMAXLIPREC][50],geant rstd_crectheta[LIP_NMAXLIPREC][50],geant rstd_crecphi[LIP_NMAXLIPREC][50],geant rstd_crecbeta[LIP_NMAXLIPREC][50],int rstd_crecuhits[LIP_NMAXLIPREC][50],geant rstd_crecpkol[LIP_NMAXLIPREC][50],
 //#else
 //  			 int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,
 //  			 geant lipchi2, geant liprprob,
@@ -2389,9 +2389,9 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     _resb_nhit[k] = resb_nhit[k];
 
     for(int i=0;i<LIP_NHITMAX;i++) {
-      _resb_phit[i][k] = resb_phit[i][k];
-      _resb_used[i][k] = resb_used[i][k];
-      _resb_hres[i][k] = resb_hres[i][k];
+      _resb_phit[k][i] = resb_phit[k][i];
+      _resb_used[k][i] = resb_used[k][i];
+      _resb_hres[k][i] = resb_hres[k][i];
     }
 
     _resb_invchi2[k] = resb_invchi2[k];
@@ -2408,20 +2408,20 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     _resc_chgmir[k] = resc_chgmir[k];
 
     for(int i=0;i<3;i++) {
-      _resc_accgeom[i][k] = resc_accgeom[i][k];
+      _resc_accgeom[k][i] = resc_accgeom[k][i];
     }
 
     for(int i=0;i<6;i++) {
-      _resc_eff[i][k] = resc_eff[i][k];
+      _resc_eff[k][i] = resc_eff[k][i];
     }
 
     for(int i=0;i<3;i++) {
-      _resc_chgprob[i][k] = resc_chgprob[i][k];
+      _resc_chgprob[k][i] = resc_chgprob[k][i];
     }
 
     for(int i=0;i<3;i++) {
-      _resb_pimp[i][k] = resb_pimp[i][k];
-      _resb_epimp[i][k] = resb_epimp[i][k];
+      _resb_pimp[k][i] = resb_pimp[k][i];
+      _resb_epimp[k][i] = resb_epimp[k][i];
     }
 
     _resb_pthe[k] = resb_pthe[k];
@@ -2430,14 +2430,14 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     _resb_epphi[k] = resb_epphi[k];
 
     for(int i=0;i<50;i++) {
-      _rstd_creclike[i][k] = rstd_creclike[i][k];
-      _rstd_crecx0[i][k] = rstd_crecx0[i][k];
-      _rstd_crecy0[i][k] = rstd_crecy0[i][k];
-      _rstd_crectheta[i][k] = rstd_crectheta[i][k];
-      _rstd_crecphi[i][k] = rstd_crecphi[i][k];
-      _rstd_crecbeta[i][k] = rstd_crecbeta[i][k];
-      _rstd_crecuhits[i][k] = rstd_crecuhits[i][k];
-      _rstd_crecpkol[i][k] = rstd_crecpkol[i][k];
+      _rstd_creclike[k][i] = rstd_creclike[k][i];
+      _rstd_crecx0[k][i] = rstd_crecx0[k][i];
+      _rstd_crecy0[k][i] = rstd_crecy0[k][i];
+      _rstd_crectheta[k][i] = rstd_crectheta[k][i];
+      _rstd_crecphi[k][i] = rstd_crecphi[k][i];
+      _rstd_crecbeta[k][i] = rstd_crecbeta[k][i];
+      _rstd_crecuhits[k][i] = rstd_crecuhits[k][i];
+      _rstd_crecpkol[k][i] = rstd_crecpkol[k][i];
     }
 
   }

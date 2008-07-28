@@ -1036,9 +1036,9 @@ public:
   //float lipThetaC[10];    		    ///< LIP reconstructed Cerenkov angle
   //float lipChi2[10];		            ///< Chi2 for LIP reconstruction
   //int   lipHitsUsed[10];	            ///< LIP hits used
-  //int   lipHitPtr[1000][10];	            ///< Pointers to LIP used hits
-  //int   lipHitFlag[1000][10];             ///< Flags of LIP used hits
-  //float lipHitResid[1000][10];            ///< Residues of all hits in LIP reconstruction
+  //int   lipHitPtr[10][1000];	            ///< Pointers to LIP used hits
+  //int   lipHitFlag[10][1000];             ///< Flags of LIP used hits
+  //float lipHitResid[10][1000];            ///< Residues of all hits in LIP reconstruction
   //float lipSumInvChi2[10];		    ///< LIP sum of inv sq residues for non-ring hits
   //float lipFlatSin[10];                   ///< LIP flatness (sin)
   //float lipFlatCos[10];		    ///< LIP flatness (cos)
@@ -1050,11 +1050,11 @@ public:
   //float lipChg[10];			    ///< LIP reconstructed charge (full ring)
   //float lipChgDir[10];		    ///< LIP reconstructed charge (direct branch)
   //float lipChgMir[10];		    ///< LIP reconstructed charge (reflected branch)
-  //float lipAccGeom[3][10];		    ///< LIP ring geometrical acceptances
-  //float lipEff[6][10];		    ///< LIP ring efficiencies
-  //float lipChgProb[3][10];    	    ///< LIP probabilities for nearest integer charges
-  //float lipImpPt[3][10];	            ///< LIP track impact point (at top of radiator)
-  //float lipErrImpPt[3][10];	            ///< LIP track impact point error
+  //float lipAccGeom[10][3];		    ///< LIP ring geometrical acceptances
+  //float lipEff[10][6];		    ///< LIP ring efficiencies
+  //float lipChgProb[10][3];    	    ///< LIP probabilities for nearest integer charges
+  //float lipImpPt[10][3];	            ///< LIP track impact point (at top of radiator)
+  //float lipErrImpPt[10][3];	            ///< LIP track impact point error
   //float lipTheta[10];		            ///< LIP track theta
   //float lipErrTheta[10];	 	    ///< LIP track theta error
   //float lipPhi[10];		            ///< LIP track phi
