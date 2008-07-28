@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.122 2008/05/07 09:23:31 choutko Exp $
+//  $Id: daqevt.C,v 1.123 2008/07/28 13:40:00 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -324,6 +324,10 @@ else return false;
 }
 bool    DAQEvent::_istdr(int16u id){
 if( ((id>>5)&((1<<9)-1))>=282 && ((id>>5)&((1<<9)-1))<=473 )return true;
+else return false;
+}
+bool    DAQEvent::_isedr(int16u id){
+if( ((id>>5)&((1<<9)-1))>=206 && ((id>>5)&((1<<9)-1))<=241 )return true;
 else return false;
 }
 bool    DAQEvent::_isudr(int16u id){
@@ -739,7 +743,7 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id)){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id)){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;

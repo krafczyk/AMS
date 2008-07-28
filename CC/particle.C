@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.163 2008/07/01 14:14:04 choutko Exp $
+//  $Id: particle.C,v 1.164 2008/07/28 13:40:00 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -553,6 +553,7 @@ break;
 
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, phi, phigl);
 #endif
+/*
   ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
   if (PN->Npart>=MAXPART02) return;
 // Fill the ntuple 
@@ -642,6 +643,7 @@ break;
   PN->Cutoff[PN->Npart]=_CutoffMomentum;
   for(int i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[0][i];
   PN->Npart++;
+*/
 }
 
 

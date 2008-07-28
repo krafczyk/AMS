@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.46 2008/04/11 23:27:07 mdelgado Exp $
+//  $Id: daqevt.h,v 1.47 2008/07/28 13:40:02 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -99,6 +99,7 @@ bool    _isjinf(int16u id);       //  identify the detector data group sub block
 bool    _isjlvl1(int16u id);       //  identify the detector data group sub block
 bool    _issdr(int16u id);       //  identify the detector data group sub block
 bool    _istdr(int16u id);       //  identify the detector data group sub block
+bool    _isedr(int16u id);       //  identify the detector data group sub block
 bool    _isudr(int16u id);       //  identify the detector data group sub block
 bool    _isrdr(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();

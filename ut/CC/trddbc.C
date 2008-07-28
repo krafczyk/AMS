@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.53 2008/04/22 15:01:20 choutko Exp $
+//  $Id: trddbc.C,v 1.54 2008/07/28 13:40:00 choutko Exp $
 #include "trddbc.h"
 #include "amsdbc.h"
 #include <math.h>
@@ -703,7 +703,7 @@ void TRDDBc::init(){
       geant coo[3];
       for(i=0;i<PrimaryOctagonNo();i++){
        for(j=0;j<3;j++){
-        coo[j]=0;
+         coo[j]=0;
        }
 
 // For all these, subtract half-width from position of top of volume

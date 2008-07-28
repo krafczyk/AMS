@@ -85,7 +85,7 @@ endif
 ########################################################################
 CERN_LEVEL = pro
 
-CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift
+CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 

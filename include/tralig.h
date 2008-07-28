@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.26 2008/05/30 10:01:04 choutko Exp $
+//  $Id: tralig.h,v 1.27 2008/07/28 13:40:02 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -229,6 +229,7 @@ integer AddressOK(uintl address, integer strict=0);
 void Fit();
 void Fitgl(){};
 static bool Fillgl(AMSNode *pal);
+static bool Fillgle(AMSNode *pal);
 void RebuildNoActivePar();
 void Anal(){};
 void Analgl();

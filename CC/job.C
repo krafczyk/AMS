@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.576 2008/07/25 18:26:31 barao Exp $
+// $Id: job.C,v 1.577 2008/07/28 13:40:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1016,7 +1016,7 @@ FFKEY("TRDFI",(float*)&TRDFITFFKEY,sizeof(TRDFITFFKEY_DEF)/sizeof(integer),"MIXE
 
 TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
 TRDCLFFKEY.Thr1S=0.11;
-TRDCLFFKEY.Thr1A=0.33;
+TRDCLFFKEY.Thr1A=0.13;
 TRDCLFFKEY.Thr1R=7;
 TRDCLFFKEY.Thr1H=5.8;
 TRDCLFFKEY.MaxHitsInCluster=3;
@@ -2113,6 +2113,7 @@ AMSgObj::BookTimer.book("CalTrFit");
 if(TRALIG.UpdateDB){
 
   AMSTrAligFit::Fillgl(gethead()->addup( new AMSTrAligFit()));
+//  AMSTrAligFit::Fillgle(gethead()->addup( new AMSTrAligFit()));
 }
 if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
   AMSTrIdCalib::initcalib();

@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.56 2008/05/30 10:01:03 choutko Exp $
+//  $Id: tralig.C,v 1.57 2008/07/28 13:40:00 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -784,6 +784,164 @@ again:
       }
  return false;
       }
+
+bool AMSTrAligFit::Fillgle(AMSNode *pnode){
+return true;
+}
+/*
+
+    char hfile[161];
+    UHTOC(TRALIG.gfile,40,hfile,160);
+       if(hfile[0]=='\0'){
+        return false;
+       }
+         int what=-2;
+         int fixpar[6][20];
+         for(int i=0;i<6;i++){
+           for(int j=0;j<20;j++)fixpar[i][j]=0;
+         }  
+         geant arr[13][20];  // array :  x,y,z,nlad,nhalf,ex,ey,xr,yr,zr,mcrig
+// first tof for the moment
+         int nplan=2;  
+          geant chi2m=0;
+          geant xf[2]; 
+          geant chi2[1000][2];
+          geant rigmin=0;
+          int itermin=0;
+         FITE(arr,fixpar,chi2m,nplan,what,xf,chi2,rigmin,itermin);
+
+
+        ifstream ftxt;
+        int ntot=0;
+        ftxt.open(hfile);
+        ntot=TRALIG.MaxEventsPerFit;
+        int ngood=0;
+        while(ftxt.good() && !ftxt.eof()){
+          float rig=10000;
+          float mcrig=10000;
+          float tofcoo[4][6];
+          float TRDCoo[2][3];
+          float TOFCoo[4][3];
+          float EcalCoo[3][3];    
+          float nxz,nyz;
+//      ftxt.read((char *)clcoo,sizeof(clcoo));
+      for(int i=0;i<4;i++){
+         for(int j=0;j<6;j++){
+          ftxt.read((char *)&(tofcoo[i][j]),sizeof(tofcoo[0][0]));
+       }
+      } 
+          ftxt.read((char *)&(nxz),sizeof(nxz));
+          ftxt.read((char *)&(nyz),sizeof(nyz));
+      for(int i=0;i<2;i++){
+         for(int j=0;j<3;j++){
+          ftxt.read((char*)&(TRDCoo[i][j]),sizeof(TRDCoo[0][0]));
+         }
+      }
+      for(int i=0;i<4;i++){
+         for(int j=0;j<3;j++){
+          ftxt.read((char*)&(TOFCoo[i][j]),sizeof(TOFCoo[0][0]));
+         }
+      }
+      for(int i=0;i<3;i++){
+         for(int j=0;j<3;j++){
+          ftxt.read((char*)&(EcalCoo[i][j]),sizeof(EcalCoo[0][0]));
+         }
+      }
+//    TOF 1-2
+//  fill  the arrays       
+
+
+             what=0;
+             VZERO(arr,sizeof(arr)/sizeof(arr[0][0]));
+             VZERO(fixpar,sizeof(fixpar)/sizeof(fixpar[0][0]));
+              bool good=true;
+
+              for(int plane=0;plane<nplan;plane++){
+               for(int j=0;j<3;j++)arr[j][plane]=tofcoo[plane+2][j];
+               for(int j=0;j<3;j++)arr[j+7][plane]=TOFCoo[plane+2][j];
+               for(int j=0;j<2;j++)arr[j+5][plane]=tofcoo[plane+2][j+4];
+               good=good && tofcoo[plane][3]>=0;
+               if(plane+2==0 || plane+2==3){
+                 arr[5][plane]=-100000;
+               }
+               else{
+                 arr[6][plane]=-100000;
+               } 
+// / *
+              nplan=20;
+              
+               for(int plane=0;plane<nplan;plane++){
+               for(int j=xi20;j<3;j++)arr[j][plane]=trdcoo[plane][j];
+               arr[7][plane]=TRDCoo[0][0]+nxz*(trdcoo[plane][2]-TRDCoo[0][2]);
+               arr[8][plane]=TRDCoo[0][1]+nyz*(trdcoo[plane][2]-TRDCoo[0][2]);
+               arr[9][plane]=trdcoo[plane][2];
+               for(int j=0;j<2;j++)arr[j+5][plane]=trdcoo[plane][j+4];
+               good=good && tofcoo[plane][3]>=0;
+               if(plane+2==0 || plane+2==3){
+                 arr[5][plane]=-100000;
+               }
+               else{
+                 arr[6][plane]=-100000;
+               }
+// * / 
+              arr[3][plane]=1;
+               arr[4][plane]=1;
+               arr[10][plane]=nxz;
+               arr[11][plane]=nyz;
+               arr[12][plane]=10000;
+              }
+              if(good){
+                ngood++;
+               FITE(arr,fixpar,chi2m,nplan,what,xf,chi2,rigmin,itermin);
+              }
+             if(ngood>200000)break;
+                      
+        }
+        ftxt.clear();
+        ftxt.close();
+            what=1;
+            chi2m=TRALIG.Cuts[7][1];
+            rigmin=TRALIG.Cuts[8][0];
+            itermin=TRALIG.Cuts[8][1];
+            cout <<" chi2m "<<chi2m<<"rigmin "<<rigmin<<" itermin "<<itermin<<endl;
+            FITE(arr,fixpar,chi2m,nplan,what,xf,chi2,rigmin,itermin);
+             number nchi2a=0;
+             float chi2a=0;
+             number chi22a=0;
+             for(int i=0;i<sizeof(chi2)/sizeof(chi2[0][0])/2;i++){
+              if(chi2[i][1]>0 && chi2[i][1]<chi2m){
+               nchi2a++;
+               chi2a+=chi2[i][1];
+               chi22a+=chi2[i][1]*chi2[i][1];
+             }
+             }
+            
+            if(nchi2a>0){
+              chi2a/=nchi2a;
+              chi22a/=nchi2a;
+             }
+            what=2;
+            int whato;
+            do{
+             whato=what;             
+             FITE(arr,fixpar,chi2m,nplan,what,xf,chi2,rigmin,itermin);
+             AMSPoint outc;
+             AMSPoint outa;
+             AMSPoint coo;
+              outc=AMSPoint(arr[0][0],arr[1][0],arr[2][0]);
+              outa=AMSPoint(arr[3][0],arr[4][0],arr[5][0]); 
+              coo=AMSPoint(arr[8][0],arr[9][0],arr[10][0]);
+              (_pPargl[0][0][0][0]).setpar(outc,outa); 
+//              for(int j=0;j<3;j++)outc[j]=outc[j]+coo[j]-(_pPargl[sens][lad][half][i].getmtx(j)).prod(coo);
+//             cout <<" "<<i<<" "<<lad<<" "<<half<<" "<<outc<<" "<<outa<<endl;
+
+//               _pPargl[sens][lad][half][i].setpar(outc,outa);
+             break;
+            }while(what!=whato);
+            return true;
+        }
+*/
+
 
 
 /*
