@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.85 2008/07/28 19:34:04 barao Exp $
+//  $Id: richrec.C,v 1.86 2008/07/29 10:18:41 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -605,7 +605,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // LIP RECONSTRUCTION
 
   if((RICRECFFKEY.recon[0]/10)%10){
-    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHLIP");
+    AMSgObj::BookTimer.start("RERICHLIP");
     int liprecstat=1;
     buildlip(track);
     //    if(!LIPVAR.liphused) liprecstat=0;
@@ -618,7 +618,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 #ifdef __AMSDEBUG__
     cout << " >>>> LIP status " << liprecstat << endl;
 #endif
-    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHLIP");
+    AMSgObj::BookTimer.stop("RERICHLIP");
   }
 
   //ENDofLIP
