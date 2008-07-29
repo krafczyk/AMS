@@ -4865,7 +4865,7 @@ CC      if (chradid.eq.'NAF') pardou(1) = dble(0.5)
          return
       endif
       if (factroot.lt.0. .and. abs(factroot).lt.1.E-3) then  
-         print*,'(patints): warning factroot negative and gt 1E-3'
+*         print*,'(patints): warning factroot negative and gt 1E-3'
          factroot = 0.0
       endif
       srtfroot = sqrt(factroot)      
