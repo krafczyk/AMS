@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.276 2008/07/25 18:26:32 barao Exp $
+#  $Id: datacards.doc,v 1.277 2008/07/30 10:43:45 barao Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -108,14 +108,14 @@ I 3    mcinputtables[50]       // File to load precomputed single p.e. simulatio
 I 53  mcoutputtables[50]      // File to svae compute single p.e. simulation tables
 
 RICREC
-I 1  recon[0](1)                    //  RICH BETA reconstruction switch 
+I 1  recon[0](1)                    //  RICH BETA reconstruction switch + LIP rec main switch 
                                  // 0 -off; 1 RICH beta reconstruction ; 
-                                 // 10 LIP beta reconstruction;
+                                 // 10 LIP reconstruction (detailed switches below);
 
 I 2  recon[1](1)                    // RICH Z reconstruction switch
                                  // 0 -off; 1 RICH Z reconstruction
 
-I 3  liprflag[2](101,1)  // flags for LIP reconstructions
+I 3  liprflag[2](1,1)    // detailed flags for RICH LIP reconstructions
                          // (velocity, charge), for each:
                            // 1 - conventional reconstructions using track objects
                            // 10 - constrained reconstructions using track objects
