@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.29 2008/06/26 09:29:50 choumilo Exp $
+//  $Id: daqs2block.C,v 1.30 2008/07/30 07:03:03 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -79,7 +79,8 @@ void DAQS2Block::node2crsP(int16u nodeid, int16u &crat, int16u &sid){//called by
       break;
     default:
       cout<<" ID-problem in DAQS2Block::node2crs, id="<<nodeid<<" crat="<<crat<<" A(B)="<<*(DAQEvent::getnodename(nodeid)+5)<<endl;
-      exit(1);
+      //exit(1);
+      return;
   }
 }
 //----

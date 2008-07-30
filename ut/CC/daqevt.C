@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.123 2008/07/28 13:40:00 choutko Exp $
+//  $Id: daqevt.C,v 1.124 2008/07/30 07:03:03 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -308,7 +308,8 @@ else return false;
 
 
 bool    DAQEvent::_isjinj(int16u id){
-if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
+//if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
+if( ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
 else return false;
 }
 
@@ -364,6 +365,25 @@ return 0;
 integer DAQEvent::_cltype(int16u *pdata){
 const int16u rtype=0x1f;
 return  ((*pdata)&rtype)==rtype?2:1;
+}
+
+uinteger DAQEvent::_clll(int16u *pdata){
+//  return if event seq is present in jinj block
+//
+const  int16u lmask=0x8000;
+const int16u rtype=0x1f;
+const int16u rtypec[2]={0x13,0x14};
+integer nodetype=1;
+if(pdata && _cl(pdata)>4){
+ if (*pdata & lmask){
+  nodetype=2;
+ }
+  if((pdata[nodetype]&rtype) == rtypec[0]  ){
+ return 0; 
+ }
+ else return 1; 
+}
+else return 0;
 }
 
 
@@ -584,13 +604,13 @@ integer DAQEvent::_DDGSBOK(){
       static int nprint=0;
       if(_isjinj(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
-      if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
+      if(event !=  (_Event&((1<<16)-1)) && nprint++<100 ){
      int ee= (_Event&((1<<16)-1)); 
        cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<ee<<" DDGSB says it is  "<<event<<endl;
-       return 0;
+       //return 0;
       }
       int ntot=0;
-      for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2;p+=*p+1){
+      for(int16u *p=_pcur+_cll(_pcur)+1+_clll(_pcur);p<_pcur+_cl(_pcur)-2;p+=*p+1){
         ntot+=*p+1;
         int16u port=_getportj(*(p+*p));
 #ifdef __AMSDEBUG__
@@ -658,9 +678,9 @@ integer DAQEvent::_DDGSBOK(){
    }
    else if(_isjlvl1(*(_pcur+_cll(_pcur)))){
       int16u event=*(_pcur+_cll(_pcur)+1);
-      if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
+      if(event !=  (_Event&((1<<16)-1)) && nprint++<100 ){
        cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event<<endl;;
-       return 0;
+       //return 0;
       }
 #ifdef __AMSDEBUG__
          int16u status=(*(_pcur+_cl(_pcur))-1)>>5;
@@ -671,7 +691,7 @@ integer DAQEvent::_DDGSBOK(){
       int16u event=*(_pcur+_cll(_pcur)+1);
       if(event !=  (_Event&((1<<16)-1)) && nprint++<100){
        cerr<<"DAQEvent::_DDGSBOK-E-EventNoMismatch  Header says event 16 lsb is "<<(_Event&((1<<16)-1))<<" DDGSB says it is  "<<event<<endl;;
-       return 0;
+       //return 0;
       }
 #ifdef __AMSDEBUG__
          int16u status=(*(_pcur+_cl(_pcur))-1)>>5;
@@ -714,7 +734,7 @@ void DAQEvent::buildRawStructures(){
    for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur=_pcur+_cl(_pcur)){
     int16u id=*(_pcur+_cll(_pcur));
     if(_isjinj(id)){
-     for(int16u * pdown=_pcur+_cll(_pcur)+2;pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
+     for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
      int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
 
      if(ic>=0){

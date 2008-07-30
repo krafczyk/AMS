@@ -90,6 +90,11 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
     } 
     }
   }
+  for(int i=0;i<ecalconst::ECRT;i++){
+  sprintf(sstr,"JINFE%X",i);
+  if(DAQEvent::ismynode(blid,sstr))return i+1;
+ }
+
   return 0;
 }
 //-------------------------------------------------------
