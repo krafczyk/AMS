@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.578 2008/07/29 10:18:41 choutko Exp $
+// $Id: job.C,v 1.579 2008/07/30 10:49:49 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -301,7 +301,7 @@ void AMSJob::_sirichdata(){
   RICRECFFKEY.recon[0]=1;   //beta reconstruction  //no lip by default
   RICRECFFKEY.recon[1]=1;   //Z reconstruction
 
-  RICRECFFKEY.liprflag[0]=101;  // LIP beta reconstructions to be performed
+  RICRECFFKEY.liprflag[0]=1;  // LIP beta reconstructions to be performed
   RICRECFFKEY.liprflag[1]=1;  // LIP charge reconstructions to be performed
 
   RICRECFFKEY.lipsigma[0]=RICRECFFKEY.lipsigma[1]=     // LIP residuals sigmas
