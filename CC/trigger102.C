@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.49 2008/07/07 10:45:48 choumilo Exp $
+//  $Id: trigger102.C,v 1.50 2008/07/31 14:49:11 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -29,6 +29,7 @@ using namespace ecalconst;
  integer TGL1JobStat::countev[20];
  integer TGL1JobStat::daqc1[40];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
+ bool Trigger2LVL1::SetupIsChanged(false);
 //
 void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //build lvl1-obj for MC; Complete(+rebuild) lvl1 for RealData.
@@ -80,7 +81,10 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       Anti2RawEvent::setpatt(uinteger(antipatt));//copy antipatt/nanti into AntiRawEvent-obj
       Anti2RawEvent::setncoinc(nanti);
       TGL1JobStat::addev(16);
-      if(TGL1FFKEY.Lvl1ConfSave>0)l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup 
+      if(TGL1FFKEY.Lvl1ConfSave>0 && SetupIsChanged){
+        l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup
+	SetupIsChanged=false;
+      } 
     }
 //-------------------------------------------
 /*
@@ -1347,7 +1351,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   }//--->endof "TrigPatt"(ev-by-ev) block
 //----------------------------
   if((sbpatt%100)/10>0){// <--- LiveTimeBlock info
-// warning: 1st and 2nd words ate interchanged in each livetime pair
+// warning: 1st and 2nd words are interchanged in each livetime pair
     TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
 //                    --->LiveTime "all busy":
     word=*(p+ltimbias+1);//1st 16bits of live-time
@@ -1626,6 +1630,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 				   || l1trigconf.globl1mask()!=phbmsko
 				   || phbmchange
 				                                                 ){
+      SetupIsChanged=true;
+//
       cout<<"===================================================="<<endl;
       cout<<"  Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
       cout<<"  TofTrigConditions changed, New settings are :"<<endl;

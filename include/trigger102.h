@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.23 2008/06/26 09:30:00 choumilo Exp $
+//  $Id: trigger102.h,v 1.24 2008/07/31 14:49:19 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -140,6 +140,7 @@ public:
  static Lvl1TrigConfig l1trigconf;//current TrigSystemConfiguration
  static ScalerMon scalmon;//current scalers values
  static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
+ static bool SetupIsChanged;
  
  Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer auxtrpat, integer toffl1,integer toffl2, 
               integer tofpatt1[],integer tofpatt2[], integer antipatt, integer ecflg,

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.579 2008/07/30 10:49:49 barao Exp $
+// $Id: job.C,v 1.580 2008/07/31 14:49:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -863,7 +863,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 // RLGA/FIAT part:
   ECCAFFKEY.cfvers=4;     // (1) spare, not used now
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
-  ECCAFFKEY.truse=0;      // (3) 1/0-> use He4/proton tracks for calibration
+  ECCAFFKEY.prtuse=-1;    // (3) 1/0/-1 -> use He4/proton/mu tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
   ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
   ECCAFFKEY.adcmin=2.;    // (6) min ADC cut (~3sig)for indiv. SubCell (to remove noise)
@@ -873,14 +873,14 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
   ECCAFFKEY.nortyp=0;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired tracks
-  ECCAFFKEY.badplmx=3;   // (13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
-  ECCAFFKEY.etrunmn=80.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
-  ECCAFFKEY.etrunmx=600.; //(15) Max ECenergy (Etrunc in mev) ......................
-  ECCAFFKEY.nsigtrk=1.5;  //(16) Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
+  ECCAFFKEY.badplmx=3;    // (13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
+  ECCAFFKEY.etrunmn=240.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
+  ECCAFFKEY.etrunmx=1400.; //(15) Max ECenergy (Etrunc in mev) ......................
+  ECCAFFKEY.nsigtrk=1.;   //(16) ImpPoint accur. extention param. for cell-crossing check
 // ANOR part:
   ECCAFFKEY.pmin=3.;        // (17) presel-cut on min. mom. of the track(gev/c) 
   ECCAFFKEY.pmax=15.;       // (18) presel-cut on max. mom. of the track 
-  ECCAFFKEY.scmin=3.;       // (19) min ADC for indiv. SubCell (to remove ped,noise)
+  ECCAFFKEY.scmin=2.;       // (19) min ADC for indiv. SubCell (to remove ped,noise)
   ECCAFFKEY.scmax=1500.;    // (20) max ADC .................. (to remove sparks,ovfl,...)
   ECCAFFKEY.spikmx=0;       // (21) max SC's(spikes) with ADC>max  (to remove sparks,ovfl,...)
   ECCAFFKEY.nhtlmx[0]=3;    // (22) max hits in 1st sc-plane (to remove early showering)
@@ -919,7 +919,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.b2scut[5]=0.15; // (55) max backgr/signal energy(bound.from above) for pl-6
 // PedCalib:
   ECCAFFKEY.pedcpr=0.04;    // (56) PedCal : def portion of highest amplitudes to remove for ped/sig calc
-  ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+  ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB/PedWr2File+Hist
   ECCAFFKEY.pedlim[0]=2.;  // (58) Ped low-lim in PedCalibJobs
   ECCAFFKEY.pedlim[1]=800.; // (59)      hi-lim ...............
   ECCAFFKEY.siglim[0]=0.1;  // (60) PedSig low-lim ............

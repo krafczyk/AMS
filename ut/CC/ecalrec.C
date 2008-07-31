@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.106 2008/07/04 14:06:29 choumilo Exp $
+//  $Id: ecalrec.C,v 1.107 2008/07/31 14:49:11 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -791,7 +791,7 @@ void AMSEcalHit::build(int &stat){
 //
       edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);// adc gain corr(really 1/pmrg/pmscg
 //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
-      if(ECREFFKEY.reprtf[0]>0){
+      if(ECREFFKEY.reprtf[0]>0 && edep>2){
         HF1(ECHISTR+16,geant(edep),1.);//adc
         HF1(ECHISTR+17,geant(edep),1.);
       }

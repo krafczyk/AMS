@@ -58,10 +58,15 @@ integer DAQECBlock::getportid(int16u crat){
 //----
 integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("VC"'s blid)
   int valid(0);
+  int id;
   char sstr[128];
   char side[5]="ABPS";
   char str[2];
-//  cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<((blid>>5)&(0x1FF))<<endl;
+  id=((blid>>5)&(0x1FF));
+//  if(id>=206 && id<=241)
+//    cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<id<<endl;
+//  else cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<blid<<endl;
+//
   for(int i=0;i<ecalconst::ECRT;i++){//check id for EDRs
    for(int k=0;k<ecalconst::ECEDRS;k++){
     for(int j=0;j<4;j++){
@@ -70,12 +75,13 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
       sprintf(sstr,"EDR%X%X%s",i,k,str);
       if(DAQEvent::ismynode(blid,sstr)){
         valid=100*(i+1)+10*(k+1)+j+1;//C(rate)|S(lot)|S(ide)
-//cout<<"<--- valid="<<valid<<endl;
+//cout<<"<--- Found "<<sstr<<" CratSlotSide="<<valid<<endl;
         return valid;
       }
     }
    } 
   }
+//
   if(valid==0){
     for(int i=0;i<ecalconst::ECRT;i++){//....for JINFs
     for(int j=0;j<4;j++){
@@ -84,17 +90,22 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
       sprintf(sstr,"JF-E%X%s",i,str);
       if(DAQEvent::ismynode(blid,sstr)){
         valid=10*(i+1)+j+1;//Cr|Side
-//cout<<"<--- valid="<<valid<<endl;
+//cout<<"<--- Found "<<sstr<<"  CratSlot="<<valid<<endl;
         return valid;
       }
     } 
     }
   }
-  for(int i=0;i<ecalconst::ECRT;i++){
-  sprintf(sstr,"JINFE%X",i);
-  if(DAQEvent::ismynode(blid,sstr))return i+1;
- }
-
+//
+  if(valid==0){
+    for(int i=0;i<ecalconst::ECRT;i++){
+      sprintf(sstr,"JINFE%X",i);
+      if(DAQEvent::ismynode(blid,sstr)){
+//cout<<"<--- Found "<<sstr<<" Crat="<<i+1<<endl;
+        return i+1;
+      }
+    }
+  }
   return 0;
 }
 //-------------------------------------------------------
@@ -730,10 +741,12 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   integer bufpnt(0),lbbs;
   uinteger val32;
   integer portid,crdid;
+  uinteger runn;
 // for PedCalTable(onboard calib)
-  static integer FirstCall(0),NReqEdrs(0);
+  static integer NReqEdrs(0);
   static integer FirstPedBlk(0);
-  static integer TotPedBlks(0);
+  static integer GoodPedBlks(0),FoundPedBlks(0);
+  static uinteger lastrunn(0);
   static integer PedBlkCrat[ECRT][ECEDRS]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
   bool PedBlkOK(false);
   geant ped,sig;
@@ -752,8 +765,22 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   bool seqer;//sequencer-error
   bool cdpnod;//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
-  if(FirstCall==0){//count/mark requested EDRs on 1st call
-cout<<"---------> DAQECBlock::buildonbP: First call !!!"<<endl;
+  bool empty;
+  bool badtyp;
+  bool newrun;
+//
+  runn=AMSEvent::gethead()->getrun();
+  newrun=(lastrunn!=runn);
+//
+  if(newrun){//count/mark requested EDRs on 1st call of new run
+    cout<<endl;
+    cout<<"---------> DAQECBlock::buildOnbPed: First call for new run "<<runn<< " !!!"<<endl;
+    cout<<"           Good PedBlocks in prev.run :"<<GoodPedBlks<<", total found:"<<FoundPedBlks<<endl;
+    GoodPedBlks=0;//start new calib.sequence
+    FoundPedBlks=0;
+    FirstPedBlk=0;
+    NReqEdrs=0;
+    for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=-1;
     for(ic=0;ic<ECRT;ic++){
       for(isl=0;isl<ECEDRS;isl++){//sequential slots(EDRs only)
         portid=DAQECBlock::getportid(ic);//>=0 if exist(12,13 here)
@@ -766,21 +793,21 @@ cout<<"---------> DAQECBlock::buildonbP: First call !!!"<<endl;
 	    NReqEdrs+=1;
 	  }
 	}
-	if(PedBlkCrat[ic][isl]>0){//error: both sides sequested for given crat/slot
-	  cout<<"<----- DAQECBlock::buildonbP:Warning-> both sedes requested for crt/slt="<<ic<<" "<<isl<<endl;
-	  cout<<"       sides's info will superimposed   !!!"<<endl;
+	if(PedBlkCrat[ic][isl]>0){//error: both sides requested for given crat/slot
+	  cout<<"      <--- Warning: found that both sides are requested for crt/slt="<<ic<<" "<<isl<<endl;
 	  PedBlkCrat[ic][isl]=0;//preset by hands
 	  sidedoubled=true;
 	}
       }
     }
-    FirstCall=1;
+    lastrunn=runn;
+    cout<<"           Total EDRs requested:"<<NReqEdrs<<endl;
     if(!sidedoubled && NReqEdrs<(ECRT*ECEDRS)){
-      cout<<"<----- DAQECBlock::buildonbP:Warning-> not all EDRs requested ?!"<<endl;
+      cout<<"      <--- DAQECBlock::buildonbP:Warning-> not all EDRs requested ?!"<<endl;
 //      goto BadExit;
     }
     else if(sidedoubled){
-      cout<<"<----- DAQECBlock::buildonbP:Error-> Some sides are doubled, NrequestedEDRs="<<NReqEdrs<<endl;
+      cout<<"<--------- Error: Some sides are doubled, NrequestedEDRs="<<NReqEdrs<<endl;
       goto BadExit;
     }
   }
@@ -800,14 +827,18 @@ cout<<"---------> DAQECBlock::buildonbP: First call !!!"<<endl;
 //
   if(ECREFFKEY.reprtf[2]>0){//debug
     cout<<"====> In DAQECBlock::buildraw: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
-    if(ECREFFKEY.reprtf[2]>1)EventBitDump(leng,p,"Event-by-event:");
+    if(ECREFFKEY.reprtf[2]>2)EventBitDump(leng,p,"Event-by-event:");
   }
 //
   node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
   csid=1;//here is dummy(no redundancy for JINFs), later it is defined from card_id(EDR(a,b),ETRG(a,b))
 //  cout<<"      crate="<<crat<<endl;
   if(jleng>1 && crat>0)EcalJobStat::daqs1(1);//<=== count non-empty, valid JINF-fragments
-  else goto BadExit;
+  else{
+    if(crat==0)EcalJobStat::daqs1(30);//badExit caused by JINF badID
+    if(jleng<=1)EcalJobStat::daqs1(31);//badExit caused by JINF empty
+    goto BadExit;
+  }
 //
   if(dataf){
     if(crcer)EcalJobStat::daqs1(10+7*(crat-1));
@@ -827,27 +858,37 @@ cout<<"---------> DAQECBlock::buildonbP: First call !!!"<<endl;
   if(noerr)EcalJobStat::daqs1(4+crat-1);//<=== count JINF-reply status OK     
   else goto BadExit;
 //-----------
-  if(ECREFFKEY.relogic[1]!=6){
-    cout<<"DAQECBlock::buildonbP: Called while OnBoardPedCal job is not requested !!!"<<endl;
-    return;
-  }
-// 
-//-----------
   jbias=1;
   while(jbias<jleng){//<---- JINF-words loop
     eleng=*(p+jbias);//deeper level (EDR2/ETRG) fragment's length
     eblid=*(p+jbias+eleng);//deeper level (EDR2/ETRG) fragment's Status+slaveID(EDR/ETRG id) 
     eaddr=(eblid&(0x001F));//slaveID(="NodeAddr"=ERD/ETRGaddr here)(one of 7/side permitted)
     datyp=((eblid&(0x00C0))>>6);//0,1,2(only raw or compr)
-    if(datyp==1)setrawf();
+    if(datyp==0 || datyp==1)setrawf();//or OnBoardPeds
     if(datyp==2)setcomf();
-    formt=getformat();//0/1->raw/compr flag for current EDR/ETRG
-    if(ECREFFKEY.relogic[1]==6)formt=2;
-//    cout<<"    XDR_length/addr="<<eleng<<" "<<eaddr<<"  datyp="<<datyp<<endl;
-    if(eleng>1 && datyp>0)EcalJobStat::daqs2(crat-1,formt);//entries per crate/format
-    else goto NextBlock;
+    if(datyp==3)setmixf();
+    badtyp=(datyp>0);//not OnBoardPeds format 
+    empty=(eleng==1);
+    formt=getformat();//0/1/2->raw(OnBpeds)/compr/mix flag for current EDR/ETRG
+    if(ECREFFKEY.reprtf[2]>1)cout<<" ---> XDR_length/addr="<<eleng<<" "<<eaddr<<"  datyp="<<datyp<<
+                                                                           " formt="<<formt<<endl;
+    EcalJobStat::daqs2(crat-1,formt);//<--- entries per crate/format
+    slots=AMSECIds::crdid2sl(csid,eaddr);//get seq.slot#(0-5 =>EDRs; =6 =>ETRG;-1==>not_found) ans side
+    csid=csid+1;//1/2->active EDR/ETRG side
+    if(ECREFFKEY.reprtf[2]>1)cout<<"      SeqSlot(0-6)="<<slots<<endl;
+    if(ECREFFKEY.reprtf[2]>1)EventBitDump(eleng,p+jbias,"---> Block-by-block EvDump");
+    if(slots<0){//not found in the list of ids
+#ifdef __AMSDEBUG__
+      cout<<"ECBlock::Error:illegal CardID, crate/side/fmt/id="<<crat<<" "<<csid<<" "<<formt
+                                                                <<" "<<hex<<eaddr<<dec<<endl;
+#endif
+      EcalJobStat::daqs2(crat-1,3+formt);//illegal CardId
+      goto NextBlock;    
+    }
+    slot=int16u(slots);//0-5,6
+    EcalJobStat::daqs3(crat-1,slot,formt);//entries per crate/slot vs fmt
 //edr/etrg status-bits:
-    dataf=((eblid&(0x8000))>0);//data-fragment
+    dataf=((eblid&(0x8000))>0);//data-fragment(=1 for OnBoardPed Table as for normal data)
     crcer=((eblid&(0x4000))>0);//CRC-error
     asser=((eblid&(0x2000))>0);//assembly-error
     amswer=((eblid&(0x1000))>0);//amsw-error   
@@ -855,65 +896,71 @@ cout<<"---------> DAQECBlock::buildonbP: First call !!!"<<endl;
     fpower=((eblid&(0x0400))>0);//FEpower-error   
     seqer=((eblid&(0x0400))>0);//sequencer-error
     cdpnod=((eblid&(0x0020))>0);//CDP-node(like EDR2/ETRG-node with no futher fragmentation)
+//
+    if(dataf && !badtyp){
+      if(crcer)EcalJobStat::daqs3(crat-1,slot,7+12*formt);
+      if(asser)EcalJobStat::daqs3(crat-1,slot,8+12*formt);
+      if(amswer)EcalJobStat::daqs3(crat-1,slot,9+12*formt);
+      if(timoer)EcalJobStat::daqs3(crat-1,slot,10+12*formt);
+      if(fpower)EcalJobStat::daqs3(crat-1,slot,11+12*formt);
+      if(seqer)EcalJobStat::daqs3(crat-1,slot,12+12*formt);
+      if(empty)EcalJobStat::daqs3(crat-1,slot,13+12*formt);
+      if(cdpnod)EcalJobStat::daqs3(crat-1,slot,14+12*formt);
+    }
+    else if(!dataf && !badtyp){//format ok, but notData(not OnBoardPeds)
+      EcalJobStat::daqs3(crat-1,slot,3);
+      goto NextBlock;// skip block
+    }//--->endof datatype-ok, but nonData(peds ???)
+//
+    else if(badtyp){//not requested(implied) format 
+      EcalJobStat::daqs3(crat-1,slot,6);//<=== bad slot-format(not raw=OnBped) - take next block
+      goto NextBlock;
+    }
+//    
     noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
-//    if(noerr)cout<<" status-bits OK..."<<endl;
-    if(noerr)EcalJobStat::daqs2(crat-1,3+formt);//"EDR/ETRG-reply status OK" entries per crate/format
+    if(noerr)EcalJobStat::daqs3(crat-1,slot,15+12*formt);//"EDR/ETRG-reply status OK" entries per crate/format
     else goto NextBlock;
 //
-    slots=AMSECIds::crdid2sl(csid,eaddr);//get seq.slot#(0-5 =>EDRs; =6 =>ETRG;-1==>not_found) ans side
-    csid=csid+1;//1/2->active EDR/ETRG side
-//    cout<<"    SeqSlot="<<slots<<endl;
-    if(slots<0){
-#ifdef __AMSDEBUG__
-      cout<<"ECBlock::Error:illegal CardID, crate/side/fmt/id="<<crat<<" "<<csid<<" "<<formt
-                                                                <<" "<<hex<<eaddr<<dec<<endl;
-#endif
-      EcalJobStat::daqs2(crat-1,6+formt);//illegal CardId
-      goto NextBlock;    
-    }
-    slot=int16u(slots);
-    EcalJobStat::daqs3(crat-1,slot,0);//entries per crate/slot
     ebias=1;
 //------
     if(slot<=5){//<===== EDR-block processing
 //-------
+      FoundPedBlks+=1;
       PedBlkOK=false;
       if(eleng==(ECEDRC+1)){//<-------- PedTable length OK
-	EcalJobStat::daqs3(crat-1,slot,3);//PedTable entrie with length OK
+	EcalJobStat::daqs3(crat-1,slot,5);//PedTable entrie with length OK
         if(FirstPedBlk==0){
           ECPedCalib::BTime()=AMSEvent::gethead()->gettime();
           ECPedCalib::BRun()=AMSEvent::gethead()->getrun();
           ECPedCalib::resetb();
         }
+        FirstPedBlk=1;
         PedBlkOK=(PedBlkCrat[crat-1][slot]==0);//true if requested and leng-ok 
-        while(ebias<eleng){//<---- EDR-words loop (3*243 ADC-values)
+        while(ebias<eleng){//<---- EDR-words loop (243 ADC-values)
           word=*(p+jbias+ebias);//ped, ADC-value(multiplied by 16 in DSP)
-	  rdch=(ebias-1)/3;//0-242
+	  rdch=(ebias-1);//0-242
 	  AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
 	  swid=ecid.getswid();//long sw_id=LTTPG
           ped=geant(word&0xFFFF)/16;//tempor
-          sig=0.5;//tempor
+          sig=0.6;//tempor
           sts=0;//tempor 1/0->bad(empty)/ok
 	  ECPedCalib::filltb(swid, ped, sig, sts);//tempor
 	  ebias+=1;
 	}//--->endof EDR-words loop(PedTable)
         if(PedBlkOK){
 	  PedBlkCrat[crat-1][slot]=1;//mark good processed crate/edr
-          TotPedBlks+=1;//counts tot# of requested&processed PedBlocks
+          GoodPedBlks+=1;//counts tot# of requested&processed PedBlocks
 	}
-        FirstPedBlk=1;
 //               call DB- and pedfile-writing if last :
-        if(TotPedBlks==NReqEdrs){//<---last(from requested) ped-block processed
+        if(GoodPedBlks==NReqEdrs || FoundPedBlks>=NReqEdrs){//<---last(from requested) ped-block processed
           nblkok=0;
           for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(PedBlkCrat[i][j]==1)nblkok+=1;
-          if(nblkok==(ECRT*ECEDRS)){// complete set of blocks - call output
-	    ECPedCalib::outptb(ECCAFFKEY.pedoutf);//0/1/2->noactions(only_histos)/write2db+file/write2file
+          if(nblkok==NReqEdrs){// complete set of blocks - call output
+	    ECPedCalib::outptb(ECCAFFKEY.pedoutf);//0/1/2->noactions(hist only)/write2db/write2file+hist
 	  }
-          TotPedBlks=0;//be ready for next calib.blocks sequence
-          FirstPedBlk=0;
-          FirstCall=0;
-          for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=-1;
+	  cout<<"<--------- EcalOnbPedCalib Sequence Done: blocks found/requested/good:"<<FoundPedBlks<<
+	                                          " "<<NReqEdrs<<" "<<GoodPedBlks<<endl<<endl;
         }//---<endof "last PedBlock processed"
         goto NextBlock;//(if any)
       }//--->endof PedTable length check
@@ -945,7 +992,7 @@ void DAQECBlock::EventBitDump(integer leng, int16u *p, char * message){
   bool noerr;
   naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
   datyp=(blid&(0x00C0))>>6;//0,1,2,3
-  noerr=(dataf && !crcer && !asser && !amswer 
+  noerr=(!crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
   cout<<"----> DAQECBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
   cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 

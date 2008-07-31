@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.5 2008/07/04 14:06:48 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.6 2008/07/31 14:49:19 choumilo Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -165,11 +165,11 @@ void AMSECALHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("ADC channels");
   _filled[_filled.size()-1]->SetFillColor(44);
   
-  _filled.push_back(new TH1F("emch18","EcalPixLg(all) amplitude",100,0.,500.));
+  _filled.push_back(new TH1F("emch18","EcalPixLg(all) amplitude",100,0.,100.));
   _filled[_filled.size()-1]->SetXTitle("ADC channels");
   _filled[_filled.size()-1]->SetFillColor(44);
   
-  _filled.push_back(new TH1F("emch19","EcalDyn(all) amplitude",100,0.,500.));
+  _filled.push_back(new TH1F("emch19","EcalDyn(all) amplitude",100,0.,250.));
   _filled[_filled.size()-1]->SetXTitle("ADC channels");
   _filled[_filled.size()-1]->SetFillColor(44);
   

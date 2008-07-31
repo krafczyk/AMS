@@ -103,9 +103,11 @@ void ECREUNcalib::select(){
   integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
   number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
   number ct1,ct2,cl1,cl2,dct,z1,z2,hflen,ctcr,ctpm,clcr,clsh,clpm,acorr;
-  number sumh[ECPMSMX][4],suml[ECPMSMX][4],pmsum,pmdis; 
+  number sumh[ECPMSMX][4],suml[ECPMSMX][4],pmsum,pmdis;
+  number sumhe[ECPMSMX][4]; 
   number wbuff[ECSLMX][ECPMMX][4];
-  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl,apmt;
+  number webuff[ECSLMX][ECPMMX][4];
+  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl,apmt,epmt,epix;
   geant pmpit,pxsiz;
   AMSEcalRawEvent * ptr;
   AMSEcalHit * ptr1;
@@ -118,7 +120,7 @@ void ECREUNcalib::select(){
   AMSPoint C0,Cout1,Cout2,Cpmt;
   AMSDir dir(0,0,1.);
   int ntrk,ipatt;
-  number chi2,the,phi,rid,err,trl,beta,ebeta,momentum;
+  number chi2,the,phi,rid,err,trl,beta,ebeta,momentum,betap,pmass;
   integer chargeTOF,chargeTracker;
 //
   npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl(36)
@@ -163,7 +165,6 @@ void ECREUNcalib::select(){
           beta=0.;
           if(pbeta)beta=pbeta->getbeta();
           ebeta=pbeta->getebeta()*beta*beta;
-          momentum=rid*chargeTracker;
 	}
       }
     }
@@ -174,33 +175,47 @@ void ECREUNcalib::select(){
   EcalJobStat::addca(1);
 // ---------------> check that track is high-mom,top->bot and may hit ECAL:
 //
-  if(MAGSFFKEY.magstat<1)rid=2;//magnet-off def, mu
+  if(MAGSFFKEY.magstat<1){
+    if(ECCAFFKEY.prtuse==-1)rid=3;//magnet-off, average earth mu
+    if(ECCAFFKEY.prtuse==1)rid=2;//magnet-off, average space He4
+    if(ECCAFFKEY.prtuse==0)rid=2;//magnet-off, average space pr
+  }
+//
+  if(ECCAFFKEY.prtuse==-1)pmass=0.105;//gev
+  if(ECCAFFKEY.prtuse==0)pmass=0.938;
+  if(ECCAFFKEY.prtuse==1)pmass=3.84;
+  momentum=rid*chargeTracker;
+  betap=momentum/sqrt(momentum*momentum+pmass*pmass);
 //
   if(ECREFFKEY.reprtf[0]!=0){
-    HF1(ECHISTC+12,geant(fabs(rid)),1.);
+    HF1(ECHISTC+12,geant(rid),1.);
     HF1(ECHISTC+6,geant(chi2),1.);
     HF1(ECHISTC+35,geant(beta),1.);
     HF1(ECHISTC+36,geant(chargeTracker),1.);
   }
 //
-  if(ECCAFFKEY.truse==1){//select He4
+  if(ECCAFFKEY.prtuse==1){//select He4
     if(chargeTracker!=2)return;
   }
-  else{//select Protons
+  else{//select Protons/mu
     if(chargeTracker!=1)return;
   }
   EcalJobStat::addca(2);
+//---
+  if(ECREFFKEY.reprtf[0]!=0){
+    HF1(ECHISTC+47,geant(betap),1.);
+  }
 //
   if(!(beta>0. && rid>0.))return;//---> it is not He4(prot)(charge>0) from AMS_top->bot
-  if(chi2>300.)return;//---> bad chi2
+  if(chi2>400.)return;//---> bad chi2
 //  if(fabs(rid)<ECCAFFKEY.trmin)return;//---> too low rigidity(too high mult.scatt)
-  if(beta<0.8)return;// ----> remove low beta
+  if(beta<0.85 || beta>1.1)return;// ----> remove low/wrong beta
   EcalJobStat::addca(3);
 //
   number dx,dy,sfg(0.5);
   int icr(0);
   number adcmax;
-  if(ECCAFFKEY.truse==0)adcmax=ECCAFFKEY.adcpmx;//prot(mu)
+  if(ECCAFFKEY.prtuse==0)adcmax=ECCAFFKEY.adcpmx;//prot(mu)
   else adcmax=4*ECCAFFKEY.adcpmx;//He
 //
 //---> Nhits when no crossing requirement:
@@ -274,6 +289,7 @@ void ECREUNcalib::select(){
     for(i=0;i<npmx;i++){//pmts(1-36) in SL
       for(k=0;k<4;k++){
         wbuff[isl][i][k]=0;
+        webuff[isl][i][k]=0;
       }
     }
   }
@@ -297,7 +313,8 @@ void ECREUNcalib::select(){
       isl=ipl/2;//0-8
       pmt=cell/2;//0-35
       if(padc[0]>ECCAFFKEY.adcmin){
-        wbuff[isl][pmt][sbc]=padc[0];//Ah for later use
+        wbuff[isl][pmt][sbc]=padc[0];//pix Ah for later use
+	webuff[isl][pmt][sbc]=edep;//pix Edep(GainCorrected)
         if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+24,geant(edep/ad2mv),1.);
         if(edep>=(ad2mv*ECCAFFKEY.adcmin)){// because adcmin-threshold is in ADC-units
           edlpr[ipl]+=edep;//plane edep
@@ -351,7 +368,7 @@ void ECREUNcalib::select(){
 //
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+17,geant(badscl),1.);
 //
-  if(ECCAFFKEY.truse==1){// He4
+  if(ECCAFFKEY.prtuse==1){// He4
     if(badscl>ECCAFFKEY.badplmx)return;// <----limit on number of bad pix planes
   }
   else{// Prot
@@ -372,11 +389,11 @@ void ECREUNcalib::select(){
   }
   edept/=ngd;
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+16,geant(edept),1.);
-  if(ECCAFFKEY.truse==1){//select He4
+  if(ECCAFFKEY.prtuse==1){//select He4
     if(edept>ECCAFFKEY.etrunmx || edept<ECCAFFKEY.etrunmn)return;//--->Etrunc->He4 ?
   }
-  else{//select Protons
-    if(edept>ECCAFFKEY.etrunmx/4 || edept<ECCAFFKEY.etrunmn/4)return;//--->Etrunc->prot ?
+  else{//select Protons/muons
+    if(edept>ECCAFFKEY.etrunmx/4 || edept<ECCAFFKEY.etrunmn/4)return;//--->Etrunc->prot/mu ?
   }
   EcalJobStat::addca(6);
 // 
@@ -388,9 +405,9 @@ void ECREUNcalib::select(){
   number zpass;//particle pass from ECAL Zfront to middle of SL
   number mscat;//mult.scatt.par.
   int sccr,kdir;
-  number pixam[4];
+  number pixam[4],pixed[4];
   integer pixcr[4];
-  mscat=pow((13.6/fabs(rid)/1000.),2)/3./1.04;// ~ SigmaMS**2 /dz**3 (use 1X0~1.04cm)
+  mscat=pow((13.6/fabs(betap*rid)/1000.),2)/3./1.04;// ~ SigmaMS**2 /dz**3 (use 1X0~1.04cm)
   mscat=mscat*pow(ECCAFFKEY.mscatp,2);// empirical fine tuning (increase of SigmaMS)
 //
   for(isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop(0-8)
@@ -400,6 +417,7 @@ void ECREUNcalib::select(){
     for(i=0;i<npmx;i++){//pmts(0-35) in SL
       for(k=0;k<4;k++){
         sumh[i][k]=wbuff[isl][i][k];//36x4 <- 9x36x4
+        sumhe[i][k]=webuff[isl][i][k];//36x4 <- 9x36x4
 	nraw+=1;//count !=0 pixels in SL
       }
     }
@@ -426,12 +444,12 @@ void ECREUNcalib::select(){
     if(proj==0)trc[2]=Cout2[0];//x-proj(0)
     else trc[2]=Cout2[1];//y-proj(1)
     trc[1]=(trc[0]+trc[2])/2.;//trc[0->2] are transv.cross.coo with PM at Z-top/mid/bot
-    kdir=0;
+    kdir=0;// neans "\"
     if(trc[0]>trc[2]){//arrange in increasing order
       rrr=trc[0];
       trc[0]=trc[2];
       trc[2]=rrr;
-      kdir=1;
+      kdir=1;// means "/"
     }
 //
 // ---> check track-SL longit. matching (transv.matching with PM/cell done below ):
@@ -450,7 +468,7 @@ void ECREUNcalib::select(){
       clsh=ECALDBc::gendim(6);//EC-pos in y
       acorr=1./sqrt(1.+pow(sin(the)*sin(phi)/cos(the),2));
       exsc=sqrt(pow(ECCAFFKEY.trxac,2)+mscat*pow(zpass,3));//imp.point accuracy vs SL
-//      exsc=ECCAFFKEY.nsigtrk*(ECCAFFKEY.trxac+ECCAFFKEY.tryac)-exsc;//N-Sig extent. to Pix transv.size
+      exsc*=ECCAFFKEY.nsigtrk;//N-Sig extent. to Pix transv.size
     }
     else{//        <--- y-proj (1)
       ctcr=Cpmt[1];
@@ -460,9 +478,10 @@ void ECREUNcalib::select(){
       clsh=ECALDBc::gendim(5);//EC-pos in x
       acorr=1./sqrt(1.+pow(sin(the)*cos(phi)/cos(the),2));
       exsc=sqrt(pow(ECCAFFKEY.tryac,2)+mscat*pow(zpass,3));
-//      exsc=ECCAFFKEY.nsigtrk*(ECCAFFKEY.trxac+ECCAFFKEY.tryac)-exsc;
+      exsc*=ECCAFFKEY.nsigtrk;
     }
     if(fabs(clcr-clsh)>hflen)continue;//track out of SL ===> try next SL
+    if(ECREFFKEY.reprtf[0]!=0)HF2(ECHISTC+46,geant(isl+1),geant(exsc),1.);
     clpm=(cl1+cl2)/2.;// middle of fiber in AMS r.s.!
     if(rdir>0){
       clpm=clpm-hflen;//pm-pos if pm is at -x(-y) (i.e. rdir=1)
@@ -475,7 +494,7 @@ void ECREUNcalib::select(){
     pmdis=fabs(clcr-clpm);//cr.point dist. from PM (0-2*hflen)
     binw=2.*hflen/ECCLBMX;
     lbin=integer(floor(pmdis/binw));//longit.crossing bin
-    expm=exsc;//pm-extention is 1 sigma 
+    expm=exsc;//use pm-cell size extention as for pixel  
 //
     for(pmt=0;pmt<npmx;pmt++){ // <======== loop over PM's(0-35) to find crossed and fired cells
 //
@@ -496,9 +515,11 @@ void ECREUNcalib::select(){
       else{//          <--------- Found Pre-Crossing with PM, now check SubCells
 //
         apmt=0.;
+	epmt=0;
 	sccr=0;
 	for(i=0;i<4;i++){
 	  pixam[i]=0;
+	  pixed[i]=0;
 	  pixcr[i]=0;
 	}
 //
@@ -539,9 +560,11 @@ void ECREUNcalib::select(){
 	  if(sbr<crl || sbl>crr){//  <--- No crossing with subcell
 	  }
 	  else{//                 <------------ Found crossing with pixel
-	    radc[0]=sumh[pmt][sbc];// hi-ch
+	    radc[0]=sumh[pmt][sbc];// hi-ch, ADC-ch
+	    epix=sumhe[pmt][sbc];// hi-ch Edep(GainCorrected)
 	    acorr=1.;
 	    radc[0]*=acorr;//normalization to norm.incidence(for fiber long.dir only !!)
+	    epix*=acorr;
 	    if(ECREFFKEY.reprtf[0]!=0){
 	      rrr=0.5*(crl+crr)-0.5*(sbl+sbr);//check Pix-TrkCros mismatch
 	      if(proj==0)HF1(ECHISTC+39,geant(rrr),1.);
@@ -549,6 +572,7 @@ void ECREUNcalib::select(){
 	    }
 	    sccr+=1;
 	    pixam[sbc]=radc[0];
+	    pixed[sbc]=epix;
 	    pixcr[sbc]=1;
           }//---> endif of found pixel crossing
         }//-------> end of 4 pixels loop
@@ -568,32 +592,46 @@ void ECREUNcalib::select(){
             pl=pedl[sbc];
             sl=sigl[sbc];
 	    radc[0]=pixam[sbc];
+	    epix=pixed[sbc]/ad2mv;//Edep->ADC ( gain-corrected ADC)
 	    apmt+=radc[0];
+	    epmt+=epix;
             ovfl[0]=0;
             if(radc[0]>0)
 	               if((ECADCMX[0]-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
             if(radc[0]>0 && ovfl[0]==0){//<=== fired pixel wiht no ovfl(hi-channel)
-	      ECREUNcalib::fill_1(isl,pmt,sbc,lbin,radc[0]);//<--- fill arrays(PM/SC gain calibr)
+	      if(ECREFFKEY.reprtf[0]!=0){
+	        HF1(ECHISTC+44,radc[0],1.);//single pix signals(adc)
+	        HF1(ECHISTC+45,epix,1.);//single pix signals(adc, GainCorr)
+	      }
+	      ECREUNcalib::fill_1(isl,pmt,sbc,lbin,radc[0]);//<--- fill arrays(SC gain calibr)
             }//---> endif of fired subcell
 	  }//--->endof good comb. pix-loop
-//--> look at PM :
-          tevpmc[pmsl]+=1.;//count crossed PM's
-	  if(ECCAFFKEY.nortyp==0){// <-- if want normalize by crossings
-            if(lbin>=(ECCLBMX/2-ECLBMID) && lbin<=(ECCLBMX/2+ECLBMID-1))
-	                  tevpmm[pmsl]+=1.;//crossed at EC-center(+-ECLBMID bins from center)
-	  }
-	  if(ECREFFKEY.reprtf[0]!=0){
-	    if(isl==0 && pmt==17)HF2(ECHISTC+5,geant(pmdis),geant(apmt),1.);
-            padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//extract Dynode
-	    HF1(ECHISTC+43,padc[2],1.);
-	  }
+//--> look at PM and fill arrays for PM-cal(anodes sum) :
+          tevpmc[pmsl]+=1.;//count crossed/fired PM's (and vs lbin)
+          if(apmt>0 && lbin<ECCLBMX){
+            pmlres[pmsl][lbin]+=apmt;
+            pmlres2[pmsl][lbin]+=(apmt*apmt);
+            tevpml[pmsl][lbin]+=1.;//count fired longit.bins
+          }
 //
 	  if(apmt>0){
 	    tevpmf[pmsl]+=1.;//count fired PM's
             if(ECREFFKEY.reprtf[0]!=0){
-	      if(proj==0)HF1(ECHISTC+29,apmt,1.);
-	      else HF1(ECHISTC+30,apmt,1.);
+	      HF1(ECHISTC+29,apmt,1.);//4pix-sum (adc)
+	      HF1(ECHISTC+30,epmt,1.);//4pix-sum (adc,GainCorr)
 	    }
+	  }
+//	  
+          if(lbin>=(ECCLBMX/2-ECLBMID) && lbin<=(ECCLBMX/2+ECLBMID-1)){//EC-center(+-ECLBMID bins from center)
+	    if(ECCAFFKEY.nortyp==0)tevpmm[pmsl]+=1.;// <-- if want normalize PM-resp by crossings
+	    else if(ECCAFFKEY.nortyp==1 && apmt>0)tevpmm[pmsl]+=1.;// <-- if want normalize PM-resp by firings
+          }
+//	  
+	  if(ECREFFKEY.reprtf[0]!=0){
+//	    if(isl==0 && pmt==17)HF2(ECHISTC+5,geant(pmdis),geant(apmt),1.);
+	    HF2(ECHISTC+5,geant(pmdis),geant(apmt),1.);
+            padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//extract Dynode
+	    HF1(ECHISTC+43,padc[2],1.);
 	  }
 //---
 	}//--->endof Good(correct pix-combination) PM-crossing
@@ -959,11 +997,11 @@ void ECREUNcalib::mfit(){
     in[0]=inum[sl+1];
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
-    if(ECCAFFKEY.truse==1){//He4
+    if(ECCAFFKEY.prtuse==1){//He4
       HMINIM(ECHISTC+7,0.1);
       HMAXIM(ECHISTC+7,1.1);
     }
-    else{//prot
+    else{//prot/mu
       HMINIM(ECHISTC+7,0.1);
       HMAXIM(ECHISTC+7,1.1);
     }
@@ -991,11 +1029,11 @@ void ECREUNcalib::mfit(){
     strcpy(htit1,"Efficiency/Pixel (72 bot pixels row of SL ");
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
-    if(ECCAFFKEY.truse==1){//He4
+    if(ECCAFFKEY.prtuse==1){//He4
       HMINIM(ECHISTC+7,0.1);
       HMAXIM(ECHISTC+7,1.1);
     }
-    else{//prot
+    else{//prot/mu
       HMINIM(ECHISTC+7,0.1);
       HMAXIM(ECHISTC+7,1.1);
     }
@@ -1081,8 +1119,8 @@ void ECREUNcalib::mfit(){
 //      if(tevsbc[i][j]>25){
       if(tevsbf[i][j]>20){
         eff=tevsbf[i][j]/tevsbc[i][j];
-//	sbcres[i][j]/=tevsbc[i][j];// aver.signal(using "crossed" counter)
-	sbcres[i][j]/=tevsbf[i][j];// aver.signal(using "fired" counter)
+	sbcres[i][j]/=tevsbc[i][j];// aver. pix-signal(using "crossed" cases -> include pix-eff)
+//	sbcres[i][j]/=tevsbf[i][j];// aver. pix-signal(using "fired" cases to exclude pix-eff)
       } 
       if(eff<0.3){
         if(eff>0.1)pxstat[i][j]=10;//limited quality subc(low eff)
@@ -1125,7 +1163,7 @@ void ECREUNcalib::mfit(){
   start[2]=0.;//admix
   start[3]=32.5;//lenlow
   pstep[0]=5.;
-  pstep[1]=50.;
+  pstep[1]=10.;
   pstep[2]=0.05;
   pstep[3]=5.;
   plow[0]=1.;
@@ -1198,8 +1236,8 @@ void ECREUNcalib::mfit(){
 	  pmlres[pmsl][lb]=0;
 	  pmlres2[pmsl][lb]=0;
 	}
-	pmprof[lb]=pmlres[pmsl][lb];// = or > 0
-	pmprer[lb]=pmlres2[pmsl][lb];
+	pmprof[lb]=pmlres[pmsl][lb];//bin.aver  = or > 0
+	pmprer[lb]=pmlres2[pmsl][lb];//err
 	if(pmprof[lb]>0){//non-zero bin -> fill work-arrays for fit
 	  values[nbins]=pmprof[lb];
 	  errors[nbins]=pmprer[lb];
@@ -1262,7 +1300,8 @@ void ECREUNcalib::mfit(){
     slslow/=number(nfits);
     slfast/=number(nfits);
     fastfr/=number(nfits);
-    cout<<"      Average slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<endl<<endl<<endl<<endl;
+    cout<<"      Average slow/fast/frac="<<slslow<<" "<<slfast<<" "<<fastfr<<" nfits="<<nfits<<
+                                                                       endl<<endl<<endl<<endl;
   }
 //
 // ----------------> calc. PM relative gains (wrt ref.PM):
@@ -1678,14 +1717,14 @@ void ECREUNcalib::mfun(int &np, number grad[], number &f, number x[]
     for(i=0;i<4;i++){
       cout<<"     par-"<<i<<" ---> "<<x[i]<<endl;
     }
-    if(f<5. && x[1]<1000){//chi2 ok
+    if(f<5. && x[1]<999.9){//chi2 ok
       cout<<"     Chi2 OK, SlopeSlow below limit - Fit OK"<<endl;
       nfits+=1;
       slslow+=x[1];
       fastfr+=x[2];
       slfast+=x[3];
     }
-    else cout<<"     Chi2 Bad or SlopeSlow above the limit - Bad Fit !"<<endl;
+    else cout<<"     Chi2 Bad or SlopeSlow > limit - Bad Fit: chi2/SSl="<<f<<" "<<x[1]<<endl;
   }
 }
 //---
@@ -1694,15 +1733,6 @@ void ECREUNcalib::fill_1(integer sl, integer pm, integer sc, integer lb, number 
   integer pmsl;
 //
   pmsl=pm+ECPMSMX*sl;//PM continious numbering through all SL's
-  if(lb<ECCLBMX){
-    pmlres[pmsl][lb]+=adc;
-    pmlres2[pmsl][lb]+=(adc*adc);
-    tevpml[pmsl][lb]+=1.;//count fired longit.bins
-  }
-  if(ECCAFFKEY.nortyp==1){// <-- if want to normalize by firings
-    if(lb>=(ECCLBMX/2-ECLBMID) && lb<=(ECCLBMX/2+ECLBMID-1))
-	                  tevpmm[pmsl]+=1.;//fired at EC-center(+-ECLBMID bins from center)
-  }
   sbcres[pmsl][sc]+=adc;
   tevsbf[pmsl][sc]+=1.;
 //
@@ -2547,6 +2577,9 @@ void ECREUNcalib::mfite(){
  geant ECPedCalib::peds[ECPMSL][5][2];
  geant ECPedCalib::sigs[ECPMSL][5][2];
  uinteger ECPedCalib::stas[ECPMSL][5][2];
+ geant ECPedCalib::rpeds[ECPMSL][5][2];
+ geant ECPedCalib::rsigs[ECPMSL][5][2];
+ uinteger ECPedCalib::rstas[ECPMSL][5][2];
  integer ECPedCalib::nstacksz;//needed stack size (ev2rem*ECPCEVMX)
  ECPedCalib::ECPedCalib_ntpl  ECPedCalib::ECPedCalNT;
 //-----
@@ -2652,9 +2685,9 @@ void ECREUNcalib::mfite(){
    HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
-   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-2.5,2.5,0.);
-   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-2.5,2.5,0.);
-   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-5.,5.,0.);
+   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-5.,5.,0.);
+   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-5.,5.,0.);
    HBOOK1(ECHISTC+199,"Sl/Pm/Pix=5/18/2 AnodeH(inlim)",100,50.,550.,0.);
    HBOOK1(ECHISTC+200,"Sl/Pm/Pix=5/18/2 AnodeL(inlim)",100,50.,550.,0.);
    HBOOK1(ECHISTC+201,"Sl/Pm=5/18 Dynode(inlim)",100,50.,550.,0.);
@@ -2670,7 +2703,6 @@ void ECREUNcalib::mfite(){
    static int first(0);
    char hmod[2]=" ";
 //
-   cout<<endl;
 //
   if(first==0){
    for(sl=0;sl<2*ECSLMX;sl++){
@@ -2682,8 +2714,8 @@ void ECREUNcalib::mfite(){
        else strcat(htit,"L");
        hnm=2*sl+gn;
        HBOOK1(ECHISTC+100+hnm,htit,72,1.,73.,0.);
-       HMINIM(ECHISTC+100+hnm,100.);
-       HMAXIM(ECHISTC+100+hnm,200.);
+       HMINIM(ECHISTC+100+hnm,20.);
+       HMAXIM(ECHISTC+100+hnm,800.);
      }
    }
    for(sl=0;sl<2*ECSLMX;sl++){
@@ -2695,8 +2727,8 @@ void ECREUNcalib::mfite(){
        else strcat(htit,"L");
        hnm=2*sl+gn;
        HBOOK1(ECHISTC+136+hnm,htit,72,1.,73.,0.);
-       HMINIM(ECHISTC+136+hnm,0.2);
-       HMAXIM(ECHISTC+136+hnm,2.);
+       HMINIM(ECHISTC+136+hnm,0.);
+       HMAXIM(ECHISTC+136+hnm,5.);
      }
    }
    for(sl=0;sl<ECSLMX;sl++){
@@ -2704,27 +2736,52 @@ void ECREUNcalib::mfite(){
      sprintf(buf,"%2d",sl);
      strcat(htit,buf);
      HBOOK1(ECHISTC+172+sl,htit,36,1.,37.,0.);
-     HMINIM(ECHISTC+172+sl,50.);
-     HMAXIM(ECHISTC+172+sl,150.);
+     HMINIM(ECHISTC+172+sl,20.);
+     HMAXIM(ECHISTC+172+sl,800.);
    }
    for(sl=0;sl<ECSLMX;sl++){
      strcpy(htit,"Dynode Sigs vs Pmt for SuperLayer=");
      sprintf(buf,"%2d",sl);
      strcat(htit,buf);
      HBOOK1(ECHISTC+181+sl,htit,36,1.,37.,0.);
-     HMINIM(ECHISTC+181+sl,0.2);
-     HMAXIM(ECHISTC+181+sl,2.);
+     HMINIM(ECHISTC+181+sl,0.);
+     HMAXIM(ECHISTC+181+sl,5.);
    }
    HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
    HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
-   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-2.5,2.5,0.);
-   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-2.5,2.5,0.);
-   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-2.5,2.5,0.);
+   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-5.,5.,0.);
+   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-5.,5.,0.);
+   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-5.,5.,0.);
+//-->save ref ped/sig/sta:
+   for(sl=0;sl<ECSLMX;sl++){
+     for(pm=0;pm<ECPMSMX;pm++){
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){
+	   if(pix<4){//anode
+	     rpeds[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
+	     rsigs[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].sig(pix,gn);
+	     rstas[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].sta(pix,gn);
+	   }
+	   else{//dyn
+	     rpeds[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].pedd();
+	     rsigs[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].sigd();
+	     rstas[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].stad();
+	   }
+	 }
+       }
+     }
+   }
    first=1;
   }
   else{
-    for(i=0;i<100;i++)HRESET(ECHISTC+100+i,hmod);
+    for(i=0;i<100;i++){
+      if(i==90 || i==91 || i==92 || i==99)continue;
+      HRESET(ECHISTC+100+i,hmod);
+    }
   }
 //
    for(sl=0;sl<ECSLMX;sl++){
@@ -2742,7 +2799,10 @@ void ECREUNcalib::mfite(){
      }
    }
 //
-   cout<<"====> ECPedCalib::OnBoardPedTable/Histos Reset done..."<<endl<<endl;;
+   if(ECREFFKEY.reprtf[2]>0){
+     cout<<endl;
+     cout<<"====> ECPedCalib::OnBoardPedTable/Histos Reset done..."<<endl<<endl;
+   }
  }
 //-----
  void ECPedCalib::fill(integer swid, geant val){//called at validate-stage
@@ -3202,7 +3262,7 @@ void ECREUNcalib::mfite(){
    sigmax=ECCAFFKEY.siglim[1];
 //
    cout<<endl;
-   cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
+   if(ECREFFKEY.reprtf[2]>0)cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
 //---> fill ntuple:
 /*
    ECPedCalNT.Run=BRun();
@@ -3241,22 +3301,15 @@ void ECREUNcalib::mfite(){
 	 if(pix==4)gnm=1;//only hi-gain for dynodes
          for(gn=0;gn<gnm;gn++){//<--- gain loop
 	   totchs+=1;
-	   if(pix<4){//anode
-	     pedo=ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
-	     sigo=ECPMPeds::pmpeds[sl][pm].sig(pix,gn);
-	     stao=ECPMPeds::pmpeds[sl][pm].sta(pix,gn);
-	   }
-	   else{
-	     pedo=ECPMPeds::pmpeds[sl][pm].pedd();
-	     sigo=ECPMPeds::pmpeds[sl][pm].sigd();
-	     stao=ECPMPeds::pmpeds[sl][pm].stad();
-	   }
+	   pedo=rpeds[ch][pix][gn];
+	   sigo=rsigs[ch][pix][gn];
+	   stao=rstas[ch][pix][gn];
 	   pdiff=peds[ch][pix][gn]-pedo;
 //
-	   if(peds[ch][pix][gn]>0 && stas[ch][pix][gn]==0){// channel OK in table ? tempor: stas-definition from Kunin ?
+	   if(peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && stas[ch][pix][gn]==0){// channel OK in table ? 
 	     goodtbch+=1;
 	     if(sigs[ch][pix][gn]>sigmin && sigs[ch][pix][gn]<=sigmax
-		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<20){//MyCriteria:chan.OK
+		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<50){//MyCriteria:chan.OK
 	       goodchs+=1;
 	       if(pix<4){//anodes
 	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];
@@ -3282,14 +3335,18 @@ void ECREUNcalib::mfite(){
 	       }
 	     }
 	     else{//MyCriteria: bad chan
-	       cout<<"       MyCriteriaBadCh: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
-	       cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
-	       cout<<"                        PedDiff="<<pdiff<<endl;    
+	       if(ECREFFKEY.reprtf[2]>0){
+	         cout<<"       MyCriteriaBadCh: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	         cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
+	         cout<<"                        PedDiff="<<pdiff<<endl;
+	       }    
 	     }
 	   }//--->endof "channel OK in table ?" check
 	   else{
-	     cout<<"       BadTableChan: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
-	     cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
+	     if(ECREFFKEY.reprtf[2]>0){
+	       cout<<"       BadTableChan: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	       cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;
+	     }    
 	   } 
 	 }//--->endof gain-loop
        }//--->endof pixel-loop
@@ -3297,34 +3354,41 @@ void ECREUNcalib::mfite(){
    }//--->endof Slayer-loop
    goodchp=geant(goodchs)/totchs;
 //
-   cout<<"       BadChannels(Table/My)="<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
+   if(ECREFFKEY.reprtf[2]>0)
+    cout<<"     BadChannels(Criteria table/My):"<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
 //   
-// ---> prepare update of DB :
-   if(goodchp>=0.5 && flg==1){//Update DB "on flight"
+// ---> prepare update of DB if requested :
+   if(goodchp>=0.5 && (flg==1 || AMSFFKEY.Update==1)){//set params 
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     end=begin+86400*365*3;
-     ptdv->SetTime(insert,begin,end);
+     if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
+     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*365);
+     cout <<"      <--- EcalOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
+     ptdv->gettime(insert,begin,end);
+     cout<<"           Time ins/beg/end: "<<endl;
+     cout<<"           "<<ctime(&insert);
+     cout<<"           "<<ctime(&begin);
+     cout<<"           "<<ctime(&end);
 //
-     if(AMSFFKEY.Update==2 ){
-       AMSTimeID * offspring = 
-         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
-       while(offspring){
-         if(offspring->UpdateMe())cout << "         Start update Ecal-peds DB "<<*offspring; 
-         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
-         cerr <<"         Problem To Update Ecal-peds in DB"<<*offspring;
-         offspring=(AMSTimeID*)offspring->next();//get one-by-one
-       }
-     }
+//     if(AMSFFKEY.Update==2 ){
+//       AMSTimeID * offspring = 
+//         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
+//       while(offspring){
+//         if(offspring->UpdateMe())cout << "         Start update Ecal-peds DB "<<*offspring; 
+//         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+//         cerr <<"         Problem To Update Ecal-peds in DB"<<*offspring;
+//         offspring=(AMSTimeID*)offspring->next();//get one-by-one
+//       }
+//     }
    }
    else{
-     if(flg==1 && goodchp<0.5)cout<<" <-- GoodChsPortion is too small - block writing to DB !"<<endl;
+     if(flg==1 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
    }
 // ---> write OnBoardPedTable to ped-file:
-   if(flg==1 || flg==2){
+   if(flg==2 && AMSFFKEY.Update==0){
      integer endflab(12345);
      char fname[80];
      char name[80];
@@ -3442,10 +3506,14 @@ void ECREUNcalib::mfite(){
 //
    }//--->endof file writing 
 //
-   for(i=0;i<99;i++)HPRINT(ECHISTC+100+i);
-   cout<<endl;
-   cout<<"====================== ECPedCalib:OnBoardTable job is completed ! ======================"<<endl;
-   cout<<endl;
+   if((flg==2 || flg==0) && AMSFFKEY.Update==0){
+     for(i=0;i<36;i++)HPRINT(ECHISTC+100+i);
+     for(i=0;i<8;i++)HPRINT(ECHISTC+172+i);
+     for(i=0;i<6;i++)HPRINT(ECHISTC+193+i);
+     cout<<endl;
+     cout<<"====================== ECPedCalib:OnBoardTable job is completed ! ======================"<<endl;
+     cout<<endl;
+   }
 //
  }
 //--------------

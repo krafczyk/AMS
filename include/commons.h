@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.244 2008/07/28 19:34:04 barao Exp $
+//  $Id: commons.h,v 1.245 2008/07/31 14:49:19 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -326,7 +326,7 @@ class ECCAFFKEY_DEF {
 public:
   integer cfvers;// not used now
   integer cafdir;// 0/1-> use officical/private directory for calib.files
-  integer truse; // 1/0-> use/not tracker info
+  integer prtuse; // 1/0/-1 -> use He/pr/mu for calib
   integer refpid;// ref.pm id
 //   RLGA+FIAT part
   geant trmin;// presel.cut on min. rigidity of the track
