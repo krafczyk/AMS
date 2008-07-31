@@ -149,6 +149,11 @@ endif
  FFLAGS=       -fno-automatic 
  FFLAGSn=      -fno-automatic 
 
+ifdef AMSPROFILE 
+  FFLAGS+=-pg
+  FFLAGSn+=-pg
+endif
+
 ifdef AMSDEBUG
     CFLAGS       += -g      
     CFLAGSTOFSIM += -g
@@ -250,6 +255,10 @@ LDFLAGS=      $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
 $(FORTRAN_LIBS)  $(PFLAGS) 
+
+ifdef AMSPROFILE
+  LDFLAGS+=-pg
+endif
 
 LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
 
