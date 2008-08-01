@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.1 2008/08/01 15:50:44 choutko Exp $
+#  $Id: status02.doc,v 1.2 2008/08/01 22:54:42 choutko Exp $
 status word definition
 
 0
@@ -38,8 +38,13 @@ status word definition
  23  charge
  24
  25
-
 15
+ 26 z=1 lvl1 x-1 of 4
+ 27
+16
+ 28 z>1
+ 29
+17
  30   event has errors
 
  31   status not found

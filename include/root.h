@@ -228,7 +228,13 @@ public:
                          double sr=sin(Roll);
                          double cams=-sr*sy*sp+cr*cp;
                          cams=acos(cams)*180/3.1415926; 
-    sprintf(_Info,"Header: Status %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",(Status[0] & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
+                          int cont=0;;
+                          for(int i=0;i<6;i++){
+                            if(Status[0] & (1<<(i+2))){
+                             cont+=pow(10,double(i));
+                           } 
+                        } 
+                         sprintf(_Info,"Header: Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",cont,(Status[0] & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
   return _Info;
   }
 

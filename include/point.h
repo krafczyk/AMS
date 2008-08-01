@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.17 2008/06/27 14:13:07 mdelgado Exp $
+//  $Id: point.h,v 1.18 2008/08/01 22:54:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -93,11 +93,29 @@ public:
 	(_y-o._y)*(_y-o._y)+
 	(_z-o._z)*(_z-o._z));}
   //! it allows the use of the array notation for an AMSPoint
-  number &  operator[](integer i){
-      if(i<=0)return _x;else if(i==1)return _y; else return _z;}
+  number &  operator[](uinteger i){
+      switch (i){
+        case 0:
+         return _x;
+        case 1:
+         return _y;
+        default:
+         return _z;
+     }
+    } 
+     // if(i<=0)return _x;else if(i==1)return _y; else return _z;}
   //! it allow the use of the array notation for an AMSPoint
-  number   operator[](integer i) const{
-      if(i<=0)return _x;else if(i==1)return _y; else return _z;}
+  number   operator[](uinteger i) const{
+     switch (i){
+        case 0:
+         return _x;
+        case 1:
+         return _y;
+        default:
+         return _z;
+     }
+     }
+     // if(i<=0)return _x;else if(i==1)return _y; else return _z;}
 
   //! print out to a stream the values of the AMSPoint
   friend ostream &operator << (ostream &o, const  AMSPoint &b )

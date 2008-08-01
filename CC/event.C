@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.378 2008/08/01 15:50:41 choutko Exp $
+//  $Id: event.C,v 1.379 2008/08/01 22:54:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3088,7 +3088,9 @@ void AMSEvent::_collectstatus(){
 //     19-20      --------- Vertex
 //     21-22   -------   Anti
 //     23-25   --------- Charge Mag
-
+//     26-27   -------   lvl1 z=1 xof 4
+//     28-29   --------  lvl1 z>1 x of 4
+//     30      --------  error
 
     AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
     AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
@@ -3142,7 +3144,26 @@ void AMSEvent::_collectstatus(){
         if(charge>7)charge=7;
        __status|=(charge<<23);
        }
-       
+        Trigger2LVL1 *ptrt= dynamic_cast<Trigger2LVL1*>(getheadC("TriggerLVL1",0));         
+             if(ptrt){
+               int z1=0;
+               if(ptrt->gettoflag1()>=0){
+               if(ptrt->gettoflag1()==0)z1=3;
+               else if(ptrt->gettoflag1()<5)z1=2;
+               else if(ptrt->gettoflag1()<11)z1=1;
+               }
+               __status|=(z1<<26);
+               int z2=0;
+                if(ptrt->gettoflag1()>=0){
+               if(ptrt->gettoflag2()==0)z2=3;
+               else if(ptrt->gettoflag2()<5)z2=2;
+               else if(ptrt->gettoflag2()<11)z2=1;
+               }
+               __status|=(z2<<28);
+
+
+             }
+          
        _status[0]=__status;
        _status[1]=__status1;
 

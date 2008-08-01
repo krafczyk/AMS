@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.13 2008/08/01 15:50:44 choutko Exp $
+//  $Id: status.h,v 1.14 2008/08/01 22:54:42 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -7,8 +7,8 @@
 #include "cern.h"
 #include "amsdbc.h"
 #include <time.h>
-const integer STATUSSIZE=47000;
-const integer MAXDAQRATE=3000;
+const integer STATUSSIZE=48000;
+const integer MAXDAQRATE=2000;
 class AMSStatus : public AMSNode {
 protected:
   class statusI{

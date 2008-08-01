@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.24 2008/08/01 15:50:41 choutko Exp $
+//  $Id: status.C,v 1.25 2008/08/01 22:54:42 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -189,7 +189,7 @@ integer AMSStatus::statusok(uinteger event, uinteger run){
 integer AMSStatus::_statusok(statusI status){
     uinteger one=1;
     if(!(status[0] & (one<<31))){    // Status exists
-      const int nsta=16;
+      const int nsta=18;
       uinteger Status[nsta];
       Status[0]=((status[0] & ((1<<2)-1)));
       Status[1]=((status[0]>>2) & ((1<<1)-1));
@@ -206,7 +206,9 @@ integer AMSStatus::_statusok(statusI status){
       Status[12]=((status[0]>>19) & ((1<<2)-1));
       Status[13]=((status[0]>>21) & ((1<<2)-1));
       Status[14]=((status[0]>>23) & ((1<<3)-1));
-      Status[15]=((status[0]>>30) & ((1<<1)-1));
+      Status[15]=((status[0]>>26) & ((1<<2)-1));
+      Status[16]=((status[0]>>28) & ((1<<2)-1));
+      Status[17]=((status[0]>>30) & ((1<<1)-1));
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
@@ -217,9 +219,9 @@ integer AMSStatus::_statusok(statusI status){
           for (int j=0;j<nbit;j++){
             uinteger stbit=(st%STATUSFFKEY.status[33])>0?1:0;
             if((stbit<<j) & (1<<Status[i])){
-//              if(i==10){
-//               cout <<" got it "<<j<<" "<<stbit<<" "<<Status[i]<<endl;
-//              }
+          //    if(i==15){
+          //     cout <<" got it "<<j<<" "<<stbit<<" "<<Status[i]<<endl;
+          //    }
               local=1;
               break; 
             }

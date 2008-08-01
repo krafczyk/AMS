@@ -2299,7 +2299,7 @@ Level1R::Level1R(Trigger2LVL1 *ptr){
   JMembPatt = ptr->_JMembPatt;
   AuxTrigPatt = ptr->_AuxTrigPatt;
   TofFlag1 = ptr->_tofflag1;
-  TofFlag2 = ptr->_tofflag1;
+  TofFlag2 = ptr->_tofflag2;
   for (int i=0; i<4; i++) {
     TofPatt1[i] = ptr->_tofpatt1[i];
     TofPatt2[i] = ptr->_tofpatt2[i];
