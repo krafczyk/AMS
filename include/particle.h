@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.51 2006/02/22 12:16:59 mdelgado Exp $
+//  $Id: particle.h,v 1.52 2008/08/01 15:50:44 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -102,7 +102,7 @@ public:
 #ifdef __WRITEROOT__
   friend class ParticleR;
 #endif
-
+friend class AMSEvent;
   static number trdespect[30];
   static number trdpspect[30];
   AMSParticle *  next(){return (AMSParticle*)_next;}

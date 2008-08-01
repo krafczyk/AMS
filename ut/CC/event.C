@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.377 2008/06/27 07:35:51 choumilo Exp $
+//  $Id: event.C,v 1.378 2008/08/01 15:50:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3076,11 +3076,75 @@ void AMSEvent::_collectstatus(){
   // Now Set Event Error
      if(_Error==1){
       __status=__status | (1<<30);
-
      }   
 
-      _status[0]=__status;
-      _status[1]=__status1;
+//   0-1    number of particles
+//   2-7    presence of (TRD,ToF,Tracker,RICH,Vertex in particle)
+//   8-9    number of TRD Tr
+//   10-12   -----    TOF Clusters
+//     13-14   --------  Tracker Tr
+//     15-16   --------  Rich Rings
+//     17-18   --------- EcalShowaers
+//     19-20      --------- Vertex
+//     21-22   -------   Anti
+//     23-25   --------- Charge Mag
+
+
+    AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
+    AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
+    int npart=0;
+    AMSContainer *ptrc;
+    if(ptr){
+      ptrc=getC("AMSParticle",0);
+    }
+    else if(ptr1){
+      ptr=ptr1;     
+      ptrc=getC("AMSParticle",1);
+    }
+    if(ptr){
+      npart=ptrc->getnelem();
+      if(npart>3)npart=3;
+      __status= __status | (npart);
+       if(ptr->_ptrd)__status|=(1<<2);
+       if(ptr->_pbeta)__status|=(1<<3);
+       if(ptr->_ptrack && getheadC("AMSParticle",0))__status|=(1<<4);
+       if(ptr->_prich)__status|=(1<<5);
+       if(ptr->_pShower)__status|=(1<<6);
+       if(ptr->_pvert)__status|=(1<<7);
+    }
+       ptrc=getC("AMSTRDTrack",0);
+       int ntrd=ptrc?ptrc->getnelem():0;
+       if(ntrd>3)ntrd=3;
+       __status|=(ntrd<<8);
+       int ntof =0;
+       for(int i=0;i<4;i++)ntof+=getC("AMSTOFCluster",i)->getnelem();
+       if(ntof>7)ntof=7;
+       __status|=(ntof<<10);
+       int ntr=getC("AMSTrTrack",0)->getnelem();
+       if(ntr>3)ntr=3;   
+       __status|=(ntr<<13);
+
+        int nrich=getC("AMSRichRing",0)->getnelem();
+        if(nrich>3)nrich=3;
+       __status|=(nrich<<15);
+        int necal=getC("EcalShower",0)->getnelem();
+        if(necal>3)necal=3;
+       __status|=(necal<<17);
+
+        int nvtx=getC("AMSVtx",0)->getnelem();
+        if(nvtx>3)nvtx=3;
+       __status|=(nvtx<<19);
+        int nanti=getC("AMSAntiCluster",0)->getnelem();
+        if(nanti>3)nanti=3;
+       __status|=(nanti<<21);
+       if(ptr){
+        integer charge=ptr->getcharge();
+        if(charge>7)charge=7;
+       __status|=(charge<<23);
+       }
+       
+       _status[0]=__status;
+       _status[1]=__status1;
 
 //}
 }

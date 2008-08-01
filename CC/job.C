@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.580 2008/07/31 14:49:11 choumilo Exp $
+// $Id: job.C,v 1.581 2008/08/01 15:50:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -175,7 +175,7 @@ void AMSJob::data(){
   FFKEY(SELECT,(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),MIXED);
 
   { 
-    for(int i=0;i<32;i++){
+    for(int i=0;i<33;i++){
       STATUSFFKEY.status[i]=0;
     }
         STATUSFFKEY.status[33]=10;
@@ -1041,7 +1041,7 @@ void AMSJob::_sisrddata(){
 }
 
 void AMSJob:: _reamsdata(){
-  CALIB.InsertTimeProc=0;  // Insert Time by now
+  CALIB.InsertTimeProc=1;  // Insert Time by now
   CALIB.Ntuple=0;
  FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 

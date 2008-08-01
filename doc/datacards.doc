@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.277 2008/07/30 10:43:45 barao Exp $
+#  $Id: datacards.doc,v 1.278 2008/08/01 15:50:44 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -528,21 +528,17 @@ I 4 gfile[40](" ")                    // geometry file
 
 ESTATUS // Select events with corresponding properties ,all statuses combined by AND, all bits inside statuses combined by OR, 0 means select everything  (see status.doc for details)
 I 1  status[32](32*0)    // 
-                             [0] lvl3
-                             [1] prescaled event
-                             [2] charge
-                             [3] momentumsign                       
-                             [4] velocitysign                       
-                             [5] trackerpattern
-                             [6] betapattern
-                             [7] ctclayerfired
-                             [8] antisectorfired
-                             [9] npartfound
-                             [10] rigidity range
-                             [11] track quality
-                             [12] shuttle geomag latitude
-                             [13] localdb used for tracker alignment
-                             [14] error bit        
+                             [0] npart
+                             [1-6] trd/tof/tr/rich/ecal/vtx  presented in particles
+                             [7] ntrd tr 
+                             [8]  ntofcl                      
+                             [9] ntr tr                       
+                             [10] nrich rings 
+                             [11] necalshow 
+                             [12] nvtx 
+                             [13] nanti
+                             [14] ncharge 
+                             [15] error bit        
 
 I33  sword                   // service word
 I34  base(10)                base to calculate bit<->status correspondance

@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.23 2008/02/27 09:50:11 choutko Exp $
+//  $Id: status.C,v 1.24 2008/08/01 15:50:41 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -189,23 +189,24 @@ integer AMSStatus::statusok(uinteger event, uinteger run){
 integer AMSStatus::_statusok(statusI status){
     uinteger one=1;
     if(!(status[0] & (one<<31))){    // Status exists
-      const int nsta=15;
+      const int nsta=16;
       uinteger Status[nsta];
-      Status[0]=((status[0] & ((1<<4)-1)));
-      Status[1]=((status[0]>>4) & ((1<<1)-1));
-      Status[2]=((status[0]>>5) & ((1<<3)-1));
-      Status[3]=((status[0]>>8) & ((1<<1)-1));
-      Status[4]=((status[0]>>9) & ((1<<1)-1));
-      Status[5]=((status[0]>>10) & ((1<<5)-1));
-      Status[6]=((status[0]>>15) & ((1<<2)-1));
-      Status[7]=((status[0]>>17) & ((1<<2)-1));
-      Status[8]=((status[0]>>19) & ((1<<2)-1));
-      Status[9]=((status[0]>>21) & ((1<<2)-1));
-      Status[10]=((status[0]>>23) & ((1<<2)-1));
-      Status[11]=((status[0]>>25) & ((1<<2)-1));
-      Status[12]=((status[0]>>27) & ((1<<2)-1));
-      Status[13]=((status[0]>>29) & ((1<<1)-1));
-      Status[14]=((status[0]>>30) & ((1<<1)-1));
+      Status[0]=((status[0] & ((1<<2)-1)));
+      Status[1]=((status[0]>>2) & ((1<<1)-1));
+      Status[2]=((status[0]>>3) & ((1<<1)-1));
+      Status[3]=((status[0]>>4) & ((1<<1)-1));
+      Status[4]=((status[0]>>5) & ((1<<1)-1));
+      Status[5]=((status[0]>>6) & ((1<<1)-1));
+      Status[6]=((status[0]>>7) & ((1<<1)-1));
+      Status[7]=((status[0]>>8) & ((1<<2)-1));
+      Status[8]=((status[0]>>10) & ((1<<3)-1));
+      Status[9]=((status[0]>>13) & ((1<<2)-1));
+      Status[10]=((status[0]>>15) & ((1<<2)-1));
+      Status[11]=((status[0]>>17) & ((1<<2)-1));
+      Status[12]=((status[0]>>19) & ((1<<2)-1));
+      Status[13]=((status[0]>>21) & ((1<<2)-1));
+      Status[14]=((status[0]>>23) & ((1<<3)-1));
+      Status[15]=((status[0]>>30) & ((1<<1)-1));
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
@@ -215,7 +216,6 @@ integer AMSStatus::_statusok(statusI status){
           uinteger nbit=32.*log(2.)/log(number(STATUSFFKEY.status[33]))+0.5;
           for (int j=0;j<nbit;j++){
             uinteger stbit=(st%STATUSFFKEY.status[33])>0?1:0;
-//            if(i==10)cout <<"qq "<<stbit <<" "<<j<<" "<<Status[i]<<" "<<i<<endl;
             if((stbit<<j) & (1<<Status[i])){
 //              if(i==10){
 //               cout <<" got it "<<j<<" "<<stbit<<" "<<Status[i]<<endl;
@@ -235,7 +235,7 @@ integer AMSStatus::_statusok(statusI status){
     else if(isDBUpdateR()){
      _Rejected++;
      return 0;
-    }
+    }   
     _Accepted++;
     return 1;
 

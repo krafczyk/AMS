@@ -1,0 +1,61 @@
+#  $Id: status02.doc,v 1.1 2008/08/01 15:50:44 choutko Exp $
+status word definition
+
+0
+ 0   npart
+ 1   
+
+1-6
+ 2   trd in part
+ 3   tof in part
+ 4   tr in part
+ 5   rich in part
+ 6   ecal in part
+ 7   vtx in part
+7
+ 8  ntrd
+ 9
+8
+ 10  ntof
+ 11
+ 12
+9
+ 13  ntr
+ 14
+10
+ 15  nrich
+ 16
+11
+ 17  necal
+ 18
+12
+ 19  nvtx
+ 20
+13
+ 21  nanti
+ 22
+14
+ 23  charge
+ 24
+ 25
+
+15
+ 30   event has errors
+
+ 31   status not found
+
+
+
+correspondance between bits & status datacards words:
+
+values 0123...etc --> 1 10 100 1000    (in fact base ESTA 34)
+                      0 in datacards means select everything
+
+
+
+
+N.B.
+
+Due to lack of bits there is no "undefined state" bits,
+so to ensure proper functionality one has to require 
+particle (datacards: ESTA 1=1110) for most other status bits

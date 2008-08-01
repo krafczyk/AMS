@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.12 2008/02/12 18:29:25 choutko Exp $
+//  $Id: status.h,v 1.13 2008/08/01 15:50:44 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -7,8 +7,8 @@
 #include "cern.h"
 #include "amsdbc.h"
 #include <time.h>
-const integer STATUSSIZE=48500;
-const integer MAXDAQRATE=1500;
+const integer STATUSSIZE=47000;
+const integer MAXDAQRATE=3000;
 class AMSStatus : public AMSNode {
 protected:
   class statusI{
@@ -28,7 +28,6 @@ protected:
   uinteger _Run;
   integer  _Nelem;
   uinteger _Status[4][STATUSSIZE+MAXDAQRATE];  //eventno, status, offset
-//  uinteger _Status[3][STATUSSIZE+MAXDAQRATE];  //eventno, status, offset
  
    void _init();
   AMSStatus (const AMSStatus&);   // do not want cc

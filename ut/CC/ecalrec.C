@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.107 2008/07/31 14:49:11 choumilo Exp $
+//  $Id: ecalrec.C,v 1.108 2008/08/01 15:50:41 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1366,6 +1366,11 @@ integer Ecal1DCluster::build(int rerun){
        x2/=ec;
        x2=sqrt(fabs(x2-x*x));
      }
+           if(AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()<1213469291){
+            coo[0]+=0.15;
+            coo[1]+=-0.1;
+            coo[2]+=1.5;
+           }
      
      AMSEvent::gethead()->addnext(AMSID("Ecal1DCluster",proj),new Ecal1DCluster(status,proj,ipl,left,right,center,ec,ec3,ec5,ec9,leak,dead,coo,w,x2,ptrh));
 //     cout<<" 1d cluster found proj "<<proj<<" plane "<<ipl <<" center "<<center <<" ec "<<ec<<" coo "<<coo<<endl;
@@ -1394,6 +1399,9 @@ integer Ecal1DCluster::build(int rerun){
      coox2/=ec;
      coox2=sqrt(fabs(coox2-coox*coox));
      
+           if(AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()<1213469291){
+            coo[2]+=1.5;
+           }
      AMSEvent::gethead()->addnext(AMSID("Ecal1DCluster",proj),new Ecal1DCluster(status,proj,ipl,0,0,0,-ec,0,0,0,0,0,coo,0,coox2,0));
     }
 }

@@ -3358,14 +3358,14 @@ void ECREUNcalib::mfite(){
     cout<<"     BadChannels(Criteria table/My):"<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
 //   
 // ---> prepare update of DB if requested :
-   if(goodchp>=0.5 && (flg==1 || AMSFFKEY.Update==1)){//set params 
+   if(goodchp>=0.5 && (flg==1 || 1)){//set params 
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
-     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*365);
+     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*30);
      cout <<"      <--- EcalOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
      ptdv->gettime(insert,begin,end);
      cout<<"           Time ins/beg/end: "<<endl;
