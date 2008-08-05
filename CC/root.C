@@ -288,10 +288,12 @@ void AMSEventR::hprint(int idd, char opt[]){
  }
 }
 
+bool AMSEventR::Status(unsigned int group, unsigned int bitgroup){
+      return true;
+}
 bool AMSEventR::Status(unsigned int bit){
-if(bit<32)return (fHeader.Status[0] & (1<<bit));
-else if(bit<64)return (fHeader.Status[1] & (1<<(bit-32)));
-else return false;
+ if(bit<64)return (fStatus & (1<<bit));
+ else return false;
 }
 void AMSEventR::hlist(char ptit[]){
 for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
@@ -554,6 +556,7 @@ void AMSEventR::hf2(int idd, float a, float b, float w=1){
  }
 }
 
+TBranch* AMSEventR::bStatus;
 TBranch* AMSEventR::bHeader;
 TBranch* AMSEventR::bEcalHit;
 TBranch* AMSEventR::bEcalCluster;
@@ -590,6 +593,7 @@ TBranch* AMSEventR::bMCEventg;
 TBranch* AMSEventR::bDaqEvent;
 TBranch* AMSEventR::bAux;
 
+void* AMSEventR::vStatus=0;
 void* AMSEventR::vHeader=0;
 void* AMSEventR::vEcalHit=0;
 void* AMSEventR::vEcalCluster=0;
@@ -662,6 +666,15 @@ void AMSEventR::SetBranchA(TTree *fChain){
      strcat(tmp,"fHeader");
      vHeader=&fHeader;
      fChain->SetBranchAddress(tmp,&fHeader);
+    }
+
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fStatus");
+     vStatus=&fStatus;
+     fChain->SetBranchAddress(tmp,&fStatus);
     }
 
 
@@ -923,6 +936,11 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
     }
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fStatus");
+     fChain->SetBranchAddress(tmp,vStatus);
+    }
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fEcalHit");
      fChain->SetBranchAddress(tmp,vEcalHit);
     }
@@ -1134,6 +1152,11 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
 void AMSEventR::GetBranch(TTree *fChain){
      char tmp[255];
 
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fStatus");
+     bStatus = fChain->GetBranch(tmp);
+    }
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fHeader");
@@ -1357,6 +1380,11 @@ void AMSEventR::GetBranchA(TTree *fChain){
      strcpy(tmp,_Name);
      strcat(tmp,"fHeader");
      vHeader = fChain->GetBranch(tmp)->GetAddress();
+    }
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fStatus");
+     vStatus = fChain->GetBranch(tmp)->GetAddress();
     }
    {
      strcpy(tmp,_Name);
@@ -1606,6 +1634,23 @@ bool AMSEventR::ReadHeader(int entry){
     static double dif;
     static double difm;
     static double dif2;
+    fStatus=0;
+    if(bStatus){
+    int j=bStatus->GetEntry(entry);
+    if(j>0){
+       _Entry=entry;
+       if(_Entry!=0 && !UProcessStatus(fStatus)){
+         fService.TotalTrig++;
+         return false;
+       }
+    }
+    }
+    else{
+     static int nold=0;
+      if(!nold++){
+       cerr<<"AMSEvent::ReadHeader-E-OldVersionUprocessStatusNotProcessed "<<endl;
+      }
+    }
     if(this!=_Head){
        cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
       _Entry=entry;
@@ -2118,8 +2163,8 @@ void HeaderR::Set(EventNtuple02* ptr){
     Run=       ptr->Run;
     RunType=   ptr->RunType;
     Event=     ptr->Eventno;
-    Status[0]= ptr->EventStatus[0];
-    Status[1]= ptr->EventStatus[1];
+//    Status[0]= ptr->EventStatus[0];
+//    Status[1]= ptr->EventStatus[1];
     Raw=       ptr->RawWords%(1<<18);
     Version=   (ptr->RawWords)>>18;
     Time[0]=   ptr->Time[0];
@@ -3293,6 +3338,7 @@ int AMSEventList::GetEvent(int i){return _EVENTs[i];};
 
 void AMSEventR::GetAllContents() {
             clear();
+            bStatus->GetEntry(_Entry);
             bHeader->GetEntry(_Entry);
             bEcalHit->GetEntry(_Entry);
             bEcalCluster->GetEntry(_Entry);

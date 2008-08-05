@@ -30,8 +30,9 @@
     void UTerminate():   called at the end of a loop on the tree,
                          a convenient place to draw/fit your histograms. \n
  
- The following member function is optional: \n
-    bool UProcessCut(): called in the entry loop to accept/reject an event \n
+ The following member functions are optional: \n
+    bool UProcessStatus(unsigned long long status): called in the entry loop to very fastly accept/reject an event based on status info only \n
+    bool UProcessCut(): called in the entry loop to fastly accept/reject  event based on header info only \n
 
    To use this file, try the following session on your Tree T: \n
  Root > T->Process("stlv.C+") -> compile library if not up to date \n
@@ -58,6 +59,13 @@ class ad : public AMSEventR {
    /// User Function called to preselect events (NOT MANDATORY).
    /// Called for all entries.
    virtual bool    UProcessCut();
+
+
+
+   /// User Function called tofastly preselect events based on status info only(NOT MANDATORY).
+   /// Called for all entries.
+   virtual bool    UProcessStatus(unsigned long long status);
+
 
    /// User Function called to analyze each event.
    /// Called for all entries.
@@ -145,6 +153,15 @@ void ad::UBegin(){
    
 
 }
+bool ad::UProcessStatus(unsigned long long status){
+/*
+   if( !(status & 3) || !(status & (3<<8)) || !(status & (3<<13))  || !(status & (3<<17)))return false;
+  else return true;
+
+*/
+return true;
+}
+
 
 // UProcessCut() is not mandatory
 bool ad::UProcessCut(){

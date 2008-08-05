@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.379 2008/08/01 22:54:41 choutko Exp $
+//  $Id: event.C,v 1.380 2008/08/05 14:47:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -95,7 +95,7 @@ void AMSEvent::_init(){
       end=AMSJob::gethead()->getstatustable()->getend();
       time(&insert);
       ptdv->SetTime(insert,begin,end);
-      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      cout <<" Event Status info  event has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
       cout <<" Time Begin "<<ctime(&begin);
@@ -121,6 +121,7 @@ void AMSEvent::_init(){
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
+      cout <<" sending eventtag begin "<<endl;
      AMSProducer::gethead()->sendEventTagBegin(ptdv->getname(),p->getrun(),first);       
     }
 #endif
@@ -2573,6 +2574,7 @@ void AMSEvent::_writeEl(){
   }
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->fHeader.Set(EN);
+  AMSJob::gethead()->getntuple()->Get_evroot02()->fStatus=getstatus64();
 #endif
   
 }

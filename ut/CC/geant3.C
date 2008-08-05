@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.103 2008/05/09 09:37:06 choutko Exp $
+//  $Id: geant3.C,v 1.104 2008/08/05 14:47:38 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1104,7 +1104,7 @@ try{
       end=AMSJob::gethead()->getstatustable()->getend();
       time(&insert);
       ptdv->SetTime(insert,begin,end);
-      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      cout <<" Event Status info  geant3 has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
       cout <<" Time Begin "<<ctime(&begin);
@@ -1153,7 +1153,7 @@ try{
       end=AMSJob::gethead()->getstatustable()->getend();
       time(&insert);
       ptdv->SetTime(insert,begin,end);
-      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      cout <<" Event Status info  geant33 has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
       cout <<" Time Begin "<<ctime(&begin);

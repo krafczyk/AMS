@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.113 2008/05/30 10:01:02 choutko Exp $
+//  $Id: producer.C,v 1.114 2008/08/05 14:47:38 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1526,8 +1526,13 @@ _evtag.Insert=insert;
 _evtag.Begin=begin;
 _evtag.End=end;
 _evtag.Run=run;
+_evtag.Version="";
 _evtag.Type=DPS::Producer::EventTag;
-_evtag.size=0;
+    struct stat64 statbuf;
+    stat64((const char*)name,&statbuf);
+_evtag.size=statbuf.st_size;
+LMessage(AMSClient::print(_evtag,"CloseDST"));
+if(_Solo)return;
 
 UpdateARS();
 again:
@@ -1573,8 +1578,13 @@ _evtag.Insert=0;
 _evtag.Begin=0;
 _evtag.End=0;
 _evtag.Run=run;
+_evtag.Version="";
+_evtag.size=0;
 _evtag.Type=DPS::Producer::EventTag;
 
+
+LMessage(AMSClient::print(_evtag,"OpenDST"));
+if(_Solo)return;
 
 UpdateARS();
 again:

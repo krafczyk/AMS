@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.140 2008/06/27 10:36:34 choutko Exp $
+//  $Id: server.C,v 1.141 2008/08/05 14:47:38 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2406,7 +2406,7 @@ if(pcur->InactiveClientExists(getType()))return;
     submit+=uid;
     if(_parent->MT())submit+=" -M";
     if(_parent->Debug())submit+=" -D1";
-    int corfac=70000/((ahlv)->Clock>0?(ahlv)->Clock:1000);
+    int corfac=200000/((ahlv)->Clock>0?(ahlv)->Clock:1000);
     char cuid[80];
     sprintf(cuid," -C%d",corfac);
     submit+=cuid;
@@ -3326,7 +3326,7 @@ DPS::Producer::DSTS_var acv= new DPS::Producer::DSTS();
 unsigned int length=0;
 length=_dst.size();
 int lm=ci.Mips;
-if(lm<=0i || 1)lm=10000000;
+if(lm<=0 || 1)lm=10000000;
 if(length==0){
 //acv->length(1);
 }
@@ -3435,7 +3435,8 @@ else{
 
 
 void Producer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DPS::Producer::DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
-//         cout <<" exiting Producer_impl::sendDSTEnd"<<endl;
+//         cout <<" entering Producer_impl::sendDSTEnd "<<rc<<endl;
+//   _parent->EMessage(AMSClient::print(ne,"entering senddstend"));
 _UpdateACT(ci,DPS::Client::Active);
 if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
   _parent->IMessage(AMSClient::print(ci,"senddstinfo get from "));
@@ -3445,6 +3446,7 @@ if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
  pair<DSTLI,DSTLI>b=_dst.equal_range(ne.Type);
  switch (rc){
  case DPS::Client::Create:
+//         cout <<" entering create"<<endl;
  for(DSTLI li=b.first;li!=b.second;++li){
   if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
    _parent->EMessage(AMSClient::print(li->second,"Create:DST Already exists"));
@@ -3458,8 +3460,26 @@ if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
 //         cout <<" exiting Producer_impl::sendDSTEnd create"<<endl;
  break;
  case DPS::Client::Update:
+//         cout <<" entering update"<<endl;
  for(DSTLI li=b.first;li!=b.second;++li){
-//  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
+if (ne.Type ==DPS::Producer::EventTag){
+  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
+     switch ((li->second)->Status){
+    case DPS::Producer::InProgress:
+     (li->second)=vne;
+      if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
+      return;
+    default:
+    _parent->EMessage(AMSClient::print(vne,"Update:DST Already Exists "));
+     (li->second)=vne;
+      if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
+    return;
+   }
+  }
+
+
+}
+else{
 //
 // Change cmp vy comp name and file name only
 // 
@@ -3498,11 +3518,13 @@ if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
    break;
   }
  }
+}
     _parent->EMessage(AMSClient::print(vne,"Update:DST Not Found "));
  _dst.insert(make_pair(ne.Type,vne));
   if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
  break;
  case DPS::Client::Delete:
+         cout <<" entering deletee"<<endl;
  for(DSTLI li=b.first;li!=b.second;++li){
   if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
       if(ci.Type!=DPS::Client::Server)PropagateDST((*li).second,rc,DPS::Client::AnyButSelf,_parent->getcid().uid);
@@ -3511,8 +3533,11 @@ if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
      return;       
       
   }
- } 
+ }
     _parent->EMessage(AMSClient::print(vne,"Delete:DST Not Found "));
+  break;
+  default: 
+    _parent->EMessage(AMSClient::print(ne,"Unknown rc "));
  
 }
 }

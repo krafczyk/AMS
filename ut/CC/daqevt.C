@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.124 2008/07/30 07:03:03 choutko Exp $
+//  $Id: daqevt.C,v 1.125 2008/08/05 14:47:38 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -822,17 +822,16 @@ void DAQEvent::write(){
 
 }
 
-uinteger DAQEvent::getoffset(){
-//   if(fbin)return uinteger(fbin.tellg())-sizeof(_pData[0])*(_Length);
-   if(fbin)return uinteger(fbin.tellg())-getlength();
+uint64 DAQEvent::getoffset(){
+   if(fbin)return uint64(fbin.tellg())-getlength();
    else {
     cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
     return 0;
    }
 }
 
-void DAQEvent::setoffset(uinteger offset){
-   if(fbin)fbin.seekg(offset);
+void DAQEvent::setoffset(uint64 offset){
+      if(fbin)fbin.seekg(offset);
 }
 
 integer DAQEvent::read(){

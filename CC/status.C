@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.25 2008/08/01 22:54:42 choutko Exp $
+//  $Id: status.C,v 1.26 2008/08/05 14:47:38 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -23,7 +23,7 @@ AMSStatus* AMSStatus::create(int version){
    return &tstatus;
  }
 else{
-   static AMSStatus tstatus("EventStatus2Table",version);
+   static AMSStatus tstatus("EventStatusTable02",version);
    return &tstatus;
 }
 
@@ -44,7 +44,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
         _Errors++;
         return 1;
 }
-  return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) ;
+  return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
 }
 
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
@@ -52,6 +52,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
     _Nelem=0;
     _Run=run;
     _Begin=time;
+    _Offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
     if(_Begin==0){
       cerr <<"AMSStatus::adds-E-BeginTimeIsZeroForRun"<<" "<<_Run<<endl;
       _Errors++;
@@ -60,7 +61,8 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   _End=time;
   _Status[0][_Nelem]=evt;
   _Status[1][_Nelem]=status[0];
-  _Status[2][_Nelem]=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
+   uinteger offset=uinteger(((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset);
+  _Status[2][_Nelem]=offset;
   _Status[3][_Nelem]=status[1];
   _Nelem++;
 }
@@ -127,13 +129,13 @@ bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
  if (out>0){
    _Hint=out;
    //event found;
- ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][out-1]);
+ ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][out-1]);
   return true;   
  }
  else {
    // No Match Found
    if(evt>_Status[0][_Nelem-1] && curevent<_Status[0][_Nelem-1]){
-      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][_Nelem-1]);
+      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
    }
    else if(curevent>_Status[0][_Nelem-1]){ 
     static int npr=0;
@@ -141,7 +143,7 @@ bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
    }
    else if(evt<_Status[0][_Nelem-1]){ 
     cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
-      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][-out]);
+      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][-out]);
    }
    return false;
 }
@@ -248,13 +250,13 @@ integer AMSStatus::getnextok(){
  int skipped=0;
  for(int i=_Hint;i<_Nelem;i++){
    if(_statusok(statusI(_Status[1][i],_Status[3][i]))){
-     ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
+     ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][i]);
      _Hint=i;
      return skipped;
    }
    skipped++;
  }
- if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][_Nelem-1]);
+ if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
  else  if(AMSFFKEY.Update && isDBUpdateR()){
    UpdateStatusTableDB();
  }
@@ -271,7 +273,7 @@ void AMSStatus::UpdateStatusTableDB(){
        ptdv->gettime(insert,begin,end);
        time(&insert);
        ptdv->SetTime(insert,begin,end);
-       cout <<" Event Status info  info has been updated for "<<*ptdv;
+       cout <<" Event Status info  status has been updated for "<<*ptdv;
        cout <<" Time Insert "<<ctime(&insert);
        cout <<" Time Begin "<<ctime(&begin);
        cout <<" Time End "<<ctime(&end);

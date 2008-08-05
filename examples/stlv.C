@@ -30,9 +30,10 @@
     void UTerminate():   called at the end of a loop on the tree,
                          a convenient place to draw/fit your histograms. \n
  
- The following member function is optional: \n
-    bool UProcessCut(): called in the entry loop to accept/reject an event \n
-
+ The following member functions are optional: \n
+    bool UProcessStatus(unsigned long long status): called in the entry loop to very fastly accept/reject an event based on status info only \n
+    bool UProcessCut(): called in the entry loop to fastly accept/reject  event based on header info only \n
+    
    To use this file, try the following session on your Tree T: \n
  Root > T->Process("tracc.C+") -> compile library if not up to date \n
  Root > T->Process("tracc.C++") -> force always compilation \n

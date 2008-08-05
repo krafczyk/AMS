@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.20 2008/03/07 16:00:36 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.21 2008/08/05 14:47:38 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -54,12 +54,11 @@ Int_t DistancetoPrimitive(Int_t px, Int_t py){
    return dist;
 }
 };
-
 class  HeaderV: public   TPaveLabel, public AMSDrawI{
 public:
 HeaderV():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"Header","TR"){};
 HeaderV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.79,0.98,-0.71,"Header","TR"){};
-char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->fHeader.Info():0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->fHeader.Info(fEv->fStatus):0;}
 
 
 };

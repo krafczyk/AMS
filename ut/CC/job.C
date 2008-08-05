@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.581 2008/08/01 15:50:41 choutko Exp $
+// $Id: job.C,v 1.582 2008/08/05 14:47:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2504,6 +2504,27 @@ AMSTimeID::CType server=AMSTimeID::Standalone;
 #ifdef __CORBA__
 if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
 #endif
+
+{
+  tm begin;
+  tm end;
+  if(AMSFFKEY.Update==88){
+    begin=AMSmceventg::Orbit.Begin;
+    end=AMSmceventg::Orbit.End;
+  }
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
+                          isRealData()),begin,end,getstatustable()->getsize(),
+                          getstatustable()->getptr(),server));
+
+  if(AMSFFKEY.Update==88)return;
+
+}
+
+
 {
 tm begin;
 tm end;
@@ -3190,21 +3211,6 @@ if(MISCFFKEY.BeamTest>1){
 
 
 
-{
-  tm begin;
-  tm end;
-  if(AMSFFKEY.Update==88){
-    begin=AMSmceventg::Orbit.Begin;
-    end=AMSmceventg::Orbit.End;
-  }
-  else{
-     begin=AMSmceventg::Orbit.End;
-     end=AMSmceventg::Orbit.Begin;
-  }
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
-                          isRealData()),begin,end,getstatustable()->getsize(),
-                          getstatustable()->getptr(),server));
-}
 
 /*
 {
@@ -3586,7 +3592,7 @@ void AMSJob::_tof2endjob(){
     TofTmAmCalib::endjob();//Tdelv/Tzslw
   }
 //
-  TOF2JobStat::printstat(); // Print JOB-TOF statistics
+  //TOF2JobStat::printstat(); // Print JOB-TOF statistics
 }
 //-----------------------------------------------------------------------
 void AMSJob::_anti2endjob(){

@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.14 2008/08/01 22:54:42 choutko Exp $
+//  $Id: status.h,v 1.15 2008/08/05 14:47:39 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -7,8 +7,8 @@
 #include "cern.h"
 #include "amsdbc.h"
 #include <time.h>
-const integer STATUSSIZE=48000;
-const integer MAXDAQRATE=2000;
+const integer STATUSSIZE=100000;
+const integer MAXDAQRATE=3000;
 class AMSStatus : public AMSNode {
 protected:
   class statusI{
@@ -26,6 +26,7 @@ protected:
   integer _Accepted;
   integer _Rejected;
   uinteger _Run;
+  uint64 _Offset;   
   integer  _Nelem;
   uinteger _Status[4][STATUSSIZE+MAXDAQRATE];  //eventno, status, offset
  
@@ -42,13 +43,13 @@ public:
    if(_Rejected)cout<<"AMSStatus Rejected : "<<_Rejected<<endl;
   }
   AMSStatus (): AMSNode(0),_Nelem(0){};
-  AMSStatus (const char name[], integer version): AMSNode(0),_Accepted(0),_Rejected(0),_Errors(0),_Hint(0),_Nelem(0),_Begin(0),_End(0),_Run(0){setname(name);setid(version);}
+  AMSStatus (const char name[], integer version): AMSNode(0),_Accepted(0),_Rejected(0),_Errors(0),_Hint(0),_Nelem(0),_Begin(0),_End(0),_Run(0),_Offset(0){setname(name);setid(version);}
   integer getnelem()const{return _Nelem;}
   AMSStatus * next(){return (AMSStatus *)AMSNode::next();}
   AMSStatus * prev(){return (AMSStatus *)AMSNode::prev();}
   AMSStatus * up(){return   (AMSStatus *)AMSNode::up();}
   AMSStatus * down(){return (AMSStatus *)AMSNode::down();}
-  integer getsize(){return _id==0?sizeof(_Run)+sizeof(_Nelem)+3*sizeof(_Status)/4:sizeof(_Run)+sizeof(_Nelem)+sizeof(_Status);}
+  integer getsize(){return _id==0?sizeof(_Run)+sizeof(_Nelem)+3*sizeof(_Status)/4:sizeof(_Run)+sizeof(_Nelem)+sizeof(_Status)+sizeof(_Offset);}
   void * getptr(){return &_Run;}
   void updates(uinteger run, uinteger evt, uinteger* status, time_t time=0);
   void adds(uinteger run, uinteger evt, uinteger * status, time_t time=0);

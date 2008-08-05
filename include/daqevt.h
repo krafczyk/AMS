@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.48 2008/07/30 07:03:04 choutko Exp $
+//  $Id: daqevt.h,v 1.49 2008/08/05 14:47:38 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -22,7 +22,6 @@ typedef void  (*pputdata)(integer n, int16u* data);
 typedef integer (*pgetmaxblocks)();
 typedef integer (*pgetl)(integer i);
 typedef void  (*pgetdata)(integer i, integer n, int16u* data);
-
 class DAQSubDet  {
 protected:
 pid _pgetid;
@@ -53,6 +52,7 @@ _maxbl(0),_plength(0){}
 
 friend class DAQEvent;
 };
+//const uinteger UINT_MAX=4294967295;
 const integer nbtps=24;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
@@ -149,8 +149,8 @@ void buildDAQ(uinteger btype=0);
 void buildRawStructures();
 void write();
 integer read();
-uinteger getoffset();
-void setoffset(uinteger offset);
+uint64 getoffset();
+void setoffset(uint64 offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_SubLength[0])?_SubLength[i]*sizeof(_pData[0]):0;}

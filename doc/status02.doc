@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.2 2008/08/01 22:54:42 choutko Exp $
+#  $Id: status02.doc,v 1.3 2008/08/05 14:47:38 choutko Exp $
 status word definition
 
 0
@@ -49,6 +49,7 @@ status word definition
 
  31   status not found
 
+32 up not yet defined
 
 
 correspondance between bits & status datacards words:

@@ -126,7 +126,7 @@ class DAQEvent{};
   object counters, aka arrays dimensions (protected, access via coo functions)
  \sa AMSEventR 
 
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 class HeaderR{
@@ -141,7 +141,6 @@ static char _Info[255];
   unsigned int Run;         ///<run  number
   unsigned int RunType;     ///<runtype(data), RNDM(1) MC
   unsigned int Event;      ///<event number
-  unsigned int Status[2];  ///<event status
   int Raw;            ///<raw event length in bytes
   int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
   int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
@@ -219,7 +218,7 @@ public:
    /*!
     \return human readable info about HeaderR
   */
-  char * Info(){
+  char * Info(unsigned long long status){
                          double cp=cos(Pitch);
                          double sp=sin(Pitch);
                          //double cy=cos(Yaw);
@@ -228,18 +227,16 @@ public:
                          double sr=sin(Roll);
                          double cams=-sr*sy*sp+cr*cp;
                          cams=acos(cams)*180/3.1415926; 
-                          int cont=0;;
-                          for(int i=0;i<6;i++){
-                            if(Status[0] & (1<<(i+2))){
-                             cont+=pow(10,double(i));
-                           } 
-                        } 
-                         sprintf(_Info,"Header: Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",cont,(Status[0] & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
+                         unsigned int comp=0;
+                         for(int i=0;i<6;i++){
+                          if(status&(1<<(i+2)))comp+=pow(10.,i);
+                         }
+                         sprintf(_Info,"Header:  Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",comp,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
   return _Info;
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,5)       //HeaderR
+  ClassDef(HeaderR,6)       //HeaderR
 };
 
 
@@ -309,7 +306,7 @@ ClassDef(EcalHitR,1)       //EcalHitR
 /// EcalCluster structure
 /*!
 
-   \author v.choutko@cern.ch
+   \author vitali.choutko@cern.ch
 */
 class EcalClusterR {
 static char _Info[255];
@@ -368,7 +365,7 @@ ClassDef(EcalClusterR,1)       //EcalClusterR
 
 /*!
 
-   \author v.choutko@cern.ch
+   \author vitali.choutko@cern.ch
 */
 
 class Ecal2DClusterR{
@@ -409,7 +406,7 @@ friend class AMSEventR;
   \brief 3d ecal shower description
 
    \sa ecalrec.h ecalrec.C
-   \author v.choutko@cern.ch
+   \author vitali.choutko@cern.ch
 */
 
 
@@ -674,7 +671,7 @@ ClassDef(AntiClusterR,1)       //AntiClusterR
 /// TrRawClusterR structure
 
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 class TrRawClusterR {
@@ -692,7 +689,7 @@ ClassDef(TrRawClusterR,2)       //TrRawClusterR
 
 /// TrClusterR structure  
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 class TrClusterR {
@@ -755,7 +752,7 @@ ClassDef(TrClusterR,2)       //TrClusterR
 
 /// TrRecHitR structure   (3D- tracker clusters)
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -847,7 +844,7 @@ ClassDef(TrRecHitR,3)       //TrRecHitR
 
 /// TrTrackR structure 
 /*!
- \author j.alcaraz@cern.ch v.choutko@cern.ch
+ \author j.alcaraz@cern.ch vitali.choutko@cern.ch
 
 */
 
@@ -1100,7 +1097,7 @@ public:
 
 /// TRDRawHitR structure
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -1121,7 +1118,7 @@ ClassDef(TrdRawHitR,2)       //TrdRawHitR
 
 /// TRDClusterR structure
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -1162,7 +1159,7 @@ ClassDef(TrdClusterR,2)       //TrdClusterR
 
 /// TRDSegmentR structure
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -1200,7 +1197,7 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 
 /// TRDTrackR structure
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -1333,7 +1330,7 @@ ClassDef(Level1R,6)       //Level1R
 
 /// Level3 trigger structure 
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -1489,7 +1486,7 @@ ClassDef(Level3R,1)       //Level3R
 
 /// Tof Beta (Velocity/c) structure
 /*!
- \author v.choutko@cern.ch
+ \author vitali.choutko@cern.ch
 
 */
 
@@ -1662,7 +1659,7 @@ public:
       -# Charge set to 0 or +-1 
       -# Velocity may or may not be set depending on fBeta index
 
-\author v.choutko@cern.ch
+\author vitali.choutko@cern.ch
       
 */     
          
@@ -1825,7 +1822,7 @@ ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
 /// TrMCCluster structure
 /*!
 
-   \author v.choutko@cern.ch
+   \author vitali.choutko@cern.ch
 */
 class TrMCClusterR {
 static char _Info[255];
@@ -1963,7 +1960,7 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 /*! 
 Contains radiation/absorption length ticknesses. 
  Activated bt SCAN TRUE datacard
-\author v.choutko@cern.ch
+\author vitali.choutko@cern.ch
 */
 
 class MCTrackR {
@@ -1982,7 +1979,7 @@ ClassDef(MCTrackR,1)       //MCTrackR
 /// MC particle structure
 /*!
 
-   \author v.choutko@cern.ch
+   \author vitali.choutko@cern.ch
 */
 class MCEventgR {
 static char _Info[255];
@@ -2049,8 +2046,8 @@ ClassDef(MCEventgR,1)       //MCEventgR
 - hsub
 - hscale 
 
-    \sa ad.C stlv
-    \author v.choutko@cern.ch
+    \sa ad.C \sa stlv.C \sa daqe.C
+    \author vitali.choutko@cern.ch
 */
 #include <map>
 class AMSEventR: public  TSelector {   
@@ -2078,6 +2075,7 @@ Service():_pOut(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 };
 protected:
 Service  fService;
+static TBranch*  bStatus;
 static TBranch*  bHeader;
 static TBranch*  bEcalHit;
 static TBranch*  bEcalCluster;
@@ -2115,6 +2113,7 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 
 
+static void*  vStatus;
 static void*  vHeader;
 static void*  vEcalHit;
 static void*  vEcalCluster;
@@ -2293,6 +2292,9 @@ public:
    /// Place to book histos etc
    /// \sa stlv.C
    virtual void UBegin();
+   /// Fast User Selection function called event by event
+   /// \sa stlv.C
+   inline virtual bool UProcessStatus(unsigned long long status){return true;}
    /// User Selection function called event by event
    /// May return false as soon as a bad event is detected.\n
    /// \sa stlv.C
@@ -2326,6 +2328,93 @@ public:
 
 public:
  
+//!  Status Word
+/*!
+    Contains:
+
+0
+
+ 0   
+ 1   npart
+
+1-6
+
+ 2   trd in part
+ 3   tof in part
+ 4   tr in part
+ 5   rich in part
+ 6   ecal in part
+ 7   vtx in part
+
+7
+
+ 8  
+ 9 ntrd
+
+8
+
+ 10  
+ 11
+ 12 ntof
+
+9
+
+ 13  
+ 14 ntr
+
+10
+
+ 15  
+ 16 nrich
+
+11
+
+ 17  
+ 18 necal
+
+12
+
+ 19 
+ 20 nvtx
+
+13
+
+ 21 
+ 22 nanti
+
+14
+
+ 23    
+ 24
+ 25 charge
+
+15
+
+ 26 
+ 27 z=1 lvl1 x-1 of 4
+
+16
+
+ 28 
+ 29 z>1 lvl1 x-1 of 4
+
+17
+
+ 30   event has errors
+
+18
+
+ 31   status not found
+
+19
+
+ 32 and up to 63 are not yet defined
+
+ \author vitali.choutko@cern.ch
+
+*/
+
+  unsigned long long  fStatus;  ///<  Event Status 
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
    ///
 // Some functions for inter root
@@ -2335,7 +2424,8 @@ public:
 #endif
 
 
-bool Status(unsigned int bit);                  ///< \return true if corresponding bit set 
+bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set 
+bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group 
 int Version() const {return fHeader.Version/4;} ///< \return producer version number
 ///
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
@@ -3687,7 +3777,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,5)       //AMSEventR
+ClassDef(AMSEventR,6)       //AMSEventR
 };
 
 //!  AMSChain class
