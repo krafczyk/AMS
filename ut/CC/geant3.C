@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.104 2008/08/05 14:47:38 choutko Exp $
+//  $Id: geant3.C,v 1.105 2008/08/07 18:38:51 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1086,7 +1086,13 @@ try{
       //  AMSJob::gethead()->uhinit(pdaq->runno(),pdaq->eventno());
       }
       guout_();
-      if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT){
+      
+      static time_t oldtime;
+      static int count=0;
+      if(GCFLAG.IEOTRI){
+        if(!count++)oldtime=tt;
+      }
+      if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
 #ifdef __CORBA__
     try{
      AMSJob::gethead()->uhend(run,event,tt);

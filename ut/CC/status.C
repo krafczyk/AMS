@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.26 2008/08/05 14:47:38 choutko Exp $
+//  $Id: status.C,v 1.27 2008/08/07 18:38:51 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -29,7 +29,7 @@ else{
 
 }
 
-integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
+integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
   oldtime=time;
@@ -44,7 +44,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
         _Errors++;
         return 1;
 }
-  return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
+  return ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
 }
 
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){

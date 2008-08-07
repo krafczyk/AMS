@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.83 2008/08/05 14:47:38 choutko Exp $
+//  $Id: gbatch.C,v 1.84 2008/08/07 18:38:51 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -118,7 +118,7 @@ using namespace glconst;
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
-    AMSStatus::setmode(0);
+    //AMSStatus::setmode(0);
     AMSFFKEY.CpuLimit=30;
     break;
   case SIGQUIT:

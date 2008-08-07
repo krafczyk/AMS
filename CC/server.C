@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.141 2008/08/05 14:47:38 choutko Exp $
+//  $Id: server.C,v 1.142 2008/08/07 18:38:51 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3233,7 +3233,7 @@ void Producer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne, DPS::Cli
 (pinfo->cinfo).CriticalErrorsFound=((*li)->cinfo).CriticalErrorsFound;
 (pinfo->cinfo).ErrorsFound=((*li)->cinfo).ErrorsFound;
    *li=pinfo;
-   cout <<"  replaCING run with "<< (pinfo->cinfo).EventsProcessed<<endl;
+   //cout <<"  replaCING run with "<< (pinfo->cinfo).EventsProcessed<<endl;
   }
   break;
  case DPS::Client::Delete:
@@ -3331,10 +3331,16 @@ if(length==0){
 //acv->length(1);
 }
 else{
+length=0;
+for(DSTLI li=_dst.begin();li!=_dst.end();++li){
+ //if((*li).first==DPS::Producer::EventTag)continue; 
+ length++;
+}
 if(length>lm)length=lm;
 acv->length(length);
 length=0;
 for(DSTLI li=_dst.begin();li!=_dst.end();++li){
+// if((*li).first==DPS::Producer::EventTag)continue; 
  acv[length++]=(*li).second;
  if(length>=lm)break;
 }
@@ -3353,10 +3359,14 @@ if(length==0){
 //acv->length(1);
 }
 else{
+length=0;
+for(DSTLI li=_dst.begin();li!=_dst.end();++li){
+ if((li->second)->Run==run || run==0)length++;
+}
 acv->length(length);
 length=0;
 for(DSTLI li=_dst.begin();li!=_dst.end();++li){
- if((li->second)->Run==run)acv[length++]=(*li).second;
+ if((li->second)->Run==run || run==0)acv[length++]=(*li).second;
 }
 }
 dsts=acv._retn();
@@ -4027,7 +4037,10 @@ uinteger Producer_impl::getSmartFirst(uinteger run, uinteger rndm[2]){
  }
  
  uinteger veryfirst=INT_MAX;
- for(int i=0;i<3;i++){
+//
+// event tag not count against smart
+//
+ for(int i=0;i<2;i++){
   if(veryfirst>first[i] && first[i]>0){
     veryfirst=first[i];
     rndm[0]=rndmm[i][0];

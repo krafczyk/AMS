@@ -6,8 +6,8 @@ if [ "$UNAME" = "AIX" ] ; then
    MACHINE="aix"
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
-elif [ "$UNAME" = "HP-UX" ] ; then
-    MACHINE="hpux"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc2"
 else
 echo $UNAME is not supported yet
 
@@ -15,7 +15,7 @@ fi
 
 
 
-../exe/$MACHINE/gbatch.exe <<!
+$AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 
 MULS 2 
@@ -38,7 +38,7 @@ C 45='TriggerLVL1&AMSTOFMCCluster  '
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v203 Protons ' 87=88
-88='EventStatusTable'
+88='EventStatusTable02'
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890

@@ -61,7 +61,7 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
           struct stat64 statbuf_map;
           stat64((const char*)fnam,&statbuf_map);
           long long fsize=statbuf_map.st_size;
-          unsigned int chunk[32000]; 
+          unsigned int chunk[1024000]; 
          int i=0;
          for(;;){
            if(!fsize) break;
