@@ -830,7 +830,7 @@ class RemoteClient:
                         self.sqlserver.Update("delete ntuples where run="+str(run.Run))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
-                            if(ntuple.Type!=2):
+                            if(self.dbclient.ct(ntuple.Type)!="RootFile"):
                                 continue
                             #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
@@ -1103,7 +1103,7 @@ class RemoteClient:
                         self.sqlserver.Update("delete ntuples where jid="+str(run.uid))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
-                            if(ntuple.Type!=2):
+                            if(self.dbclient.ct(ntuple.Type)!="RootFile"):
                                 continue
                             #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):

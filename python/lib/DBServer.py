@@ -46,10 +46,25 @@ class DBServer:
 #            return 0
         
     def UpdateEverything(self):
-	(length,self.dsts)=self.iorp.getDSTS(self.cid)
+        self.dsts=[]
+#	(length,self.dsts)=self.iorp.getDSTS(self.cid)
         maxr=1000
         (length,self.rtb,maxrun1)=self.iorp.getRunEvInfoS(self.cid,maxr)
         self.rundummy=self.rtb[0]
+        len=0
+        l1=0
+        for run in self.rtb:
+            if(run.Status==self.iorp.Finished):
+                try:
+                    (l,self.dst)=self.iorp.getDSTSR(self.cid,run.Run)
+                    len=len+l
+                    for ntuple in self.dst:
+                        if(ntuple.Type!=self.iorp.EventTag):
+                            self.dsts.append(ntuple)
+                            l1=l1+1
+                except:
+                    print "Exception ",run.Run
+        print l1
     def ct(self,status):
         if status==self.iorp.Ntuple:
             return "Ntuple"
