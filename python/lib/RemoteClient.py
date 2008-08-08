@@ -2416,6 +2416,9 @@ class RemoteClient:
         self.force=f
         rund=""
         runn=""
+        runst=" "
+        if(self.force!=0):
+            runst=" and dataruns.status='Completed' "
         if(run2p!=0):
             rund=" and dataruns.run=%d " %(run2p)
             runn=" and ntuples.run=%d " %(run2p)
@@ -2425,11 +2428,11 @@ class RemoteClient:
         sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
         files=self.sqlserver.Query(sql)
         if(len(files)>0):
-            sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid and dataruns.status='Completed' %s  " %(dataset,rund)
+            sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
             self.sqlserver.Update(sql)
-            sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%' and dataruns.status='Completed' %s )" %(dataset,rund)
+            sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%' %s %s )" %(dataset,runst,rund)
             self.sqlserver.Update(sql)
-            sql="delete from   (select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid and dataruns.status='Completed' %s )" %(dataset,rund) 
+            sql="delete from   (select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid %s %s )" %(dataset,runst,rund) 
             self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn)
             self.sqlserver.Update(sql)
