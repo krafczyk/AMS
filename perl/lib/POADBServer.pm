@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.32 2008/08/08 08:12:35 choutko Exp $
+#  $Id: POADBServer.pm,v 1.33 2008/08/08 08:44:39 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -173,7 +173,7 @@ else {
 # protection from db glitch
 #
    if($rtb->{DataMC}!=0){
-       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLevent}<$rtb->{Run}){
+       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLEvent}<$rtb->{Run}){
           my $sqls=$DBSQLServer::Singleton;
           my $sql="select fetime,letime from dataruns where run=$rtb->{Run}";
           my $ret=$sqls->QuerySafe($sql);
@@ -220,7 +220,7 @@ else {
 # protection from db glitch
 #
    if($rtb->{DataMC}!=0){
-       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLevent}<$rtb->{Run}){
+       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLEvent}<$rtb->{Run}){
           my $sqls=$DBSQLServer::Singleton;
           my $sql="select fetime,letime from dataruns where run=$rtb->{Run}";
           my $ret=$sqls->QuerySafe($sql);
@@ -268,7 +268,7 @@ else {
 # protection from db glitch
 #
    if($rtb->{DataMC}!=0){
-       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLevent}<$rtb->{Run}){
+       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLEvent}<$rtb->{Run}){
           my $sqls=$DBSQLServer::Singleton;
           my $sql="select fetime,letime from dataruns where run=$rtb->{Run}";
           my $ret=$sqls->QuerySafe($sql);
