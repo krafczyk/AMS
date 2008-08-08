@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.27 2008/07/18 07:47:34 ams Exp $
+#  $Id: monitorHTML.pm,v 1.28 2008/08/08 08:14:19 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -399,6 +399,8 @@ sub Update{
 "Status",
 "History",
 "Fails",
+"TFevent",
+"TLevent",
                  );
 }elsif( $name eq "Killer"){
     $#titles=-1;

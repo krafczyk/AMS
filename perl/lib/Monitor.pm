@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.129 2008/08/07 14:15:26 choutko Exp $
+# $Id: Monitor.pm,v 1.130 2008/08/08 08:12:35 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -344,7 +344,7 @@ NEXT:
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Producer";
-
+         #       my ($run,$dv)=$arsref->getRunEvInfo(\%cid);
          my $maxr=0;
         ($length,$ahl)=$arsref->getRunEvInfoS(\%cid, \$maxr);
          if($length==0){

@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.81 2007/12/18 10:13:47 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.82 2008/08/08 08:12:35 choutko Exp $
 
 #
 #
@@ -54,7 +54,7 @@ use Time::localtime;
 my $MCCitesMailsFile = "../doc/mc.cites.mails"; # file with cites and mails definitions
 my $MCFilesystems="../doc/mc.filesystems";      # file with filesystems definitions
 
-@DBSQLServer::EXPORT= qw(new Connect ConnectRO QueryAll Query Update Commit set_oracle_env);
+@DBSQLServer::EXPORT= qw(new Connect ConnectRO QueryAll Query QuerySafe Update Commit set_oracle_env);
 my %fields=(
      start=>undef,
      cid=>undef,
@@ -899,6 +899,25 @@ my $sql;
 }
 
 
+sub QuerySafe{
+    my $self=shift;
+    my $query=shift;
+    my $ret=undef;
+    my $dbh=$self->{dbhandler};
+    my $sth=$dbh->prepare($query);
+    if(defined $sth){
+     if($sth->execute){
+      $ret=$sth->fetchall_arrayref();     
+      $sth->finish();
+     }
+    else{
+     warn "Cannot execute ".$dbh->errstr();
+    }
+ }
+    return $ret;
+  }  
+    
+
 sub Query{
     my $self=shift;
     my $query=shift;
@@ -911,6 +930,7 @@ sub Query{
     
     
 } 
+
 sub QueryAll{
     my $self=shift;
     my $query=shift;

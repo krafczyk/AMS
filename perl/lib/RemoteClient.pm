@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.519 2008/07/28 13:40:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.520 2008/08/08 08:12:35 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6417,7 +6417,7 @@ print qq`
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
                 my $runno=$q->param("QRun");
-                if(not $runno =~/^\d+$/ or $runno <1 or $runno>200 ){
+                if(not $runno =~/^\d+$/ or $runno <1 or $runno>500 ){
                     $runno=1;
                 }  
                 $q->param("QRun",$runno);
@@ -6454,7 +6454,7 @@ print qq`
         my $runno=$q->param("QRun");
         my $runmi=$q->param("QRunMi");
         my $runma=$q->param("QRunMa");
-        if(not $runno =~/^\d+$/ or $runno <1 or $runno>200){
+        if(not $runno =~/^\d+$/ or $runno <1 or $runno>500){
              $self->ErrorPlus("Runs no $runno is out of range (1,200)");
         }
 #

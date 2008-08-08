@@ -1,10 +1,11 @@
-#  $Id: POADBServer.pm,v 1.31 2008/08/07 14:15:26 choutko Exp $
+#  $Id: POADBServer.pm,v 1.32 2008/08/08 08:12:35 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
 use Fcntl ":flock";
 use Fcntl;
 use MLDBM qw(DB_File Storable);
+use lib::DBSQLServer;
 @POADBServer::ISA = qw(POA_DPS::DBServer);
 @POADBServer::EXPORT =qw(new);
             
@@ -168,8 +169,27 @@ else {
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
                     close(LOCK);
+#
+# protection from db glitch
+#
+   if($rtb->{DataMC}!=0){
+       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLevent}<$rtb->{Run}){
+          my $sqls=$DBSQLServer::Singleton;
+          my $sql="select fetime,letime from dataruns where run=$rtb->{Run}";
+          my $ret=$sqls->QuerySafe($sql);
+          if(defined $ret){
+              $rtb->{TFEvent}=$ret->[0][0];
+              $rtb->{TLEvent}=$ret->[0][1];   
+          }
+          else{
+              warn "$sql connect failed last attempt \n";
+              $rtb->{TFEvent}=$rtb->{Run};
+              $rtb->{TLEvent}=$rtb->{Run}+86400;   
+          }              
+      }
+   }
                     return ($rtb,$dv);
-                }
+           }
             }
             }
             $i=-1;
@@ -196,6 +216,25 @@ else {
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
                     close(LOCK);
+#
+# protection from db glitch
+#
+   if($rtb->{DataMC}!=0){
+       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLevent}<$rtb->{Run}){
+          my $sqls=$DBSQLServer::Singleton;
+          my $sql="select fetime,letime from dataruns where run=$rtb->{Run}";
+          my $ret=$sqls->QuerySafe($sql);
+          if(defined $ret){
+              $rtb->{TFEvent}=$ret->[0][0];
+              $rtb->{TLEvent}=$ret->[0][1];   
+          }
+          else{
+              warn "$sql connect failed last attempt \n";
+              $rtb->{TFEvent}=$rtb->{Run};
+              $rtb->{TLEvent}=$rtb->{Run}+86400;   
+          }              
+      }
+   }
                     return ($rtb,$dv);
                 }
              }
@@ -225,6 +264,25 @@ else {
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
                      close(LOCK);
+#
+# protection from db glitch
+#
+   if($rtb->{DataMC}!=0){
+       if($rtb->{TFEvent}<$rtb->{Run} or $rtb->{TLevent}<$rtb->{Run}){
+          my $sqls=$DBSQLServer::Singleton;
+          my $sql="select fetime,letime from dataruns where run=$rtb->{Run}";
+          my $ret=$sqls->QuerySafe($sql);
+          if(defined $ret){
+              $rtb->{TFEvent}=$ret->[0][0];
+              $rtb->{TLEvent}=$ret->[0][1];   
+          }
+          else{
+              warn "$sql connect failed last attempt \n";
+              $rtb->{TFEvent}=$rtb->{Run};
+              $rtb->{TLEvent}=$rtb->{Run}+86400;   
+          }              
+      }
+   }
                     return ($rtb,$dv);
                 }
              }
