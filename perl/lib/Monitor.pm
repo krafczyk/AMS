@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.130 2008/08/08 08:12:35 choutko Exp $
+# $Id: Monitor.pm,v 1.131 2008/08/08 08:13:21 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -363,7 +363,8 @@ NEXT:
          else {
              $ref->{dsti}=$ahl;
          }
-         
+        my $run=0; 
+        #($length,$ahl)=$arsref->getDSTSR(\%cid,$run);
         ($length,$ahl)=$arsref->getDSTS(\%cid);
          if($length==0){
              $ref->{dsts}=undef;
@@ -1124,10 +1125,13 @@ sub PNtupleSort{
           push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$smartsize,$hash->{Status},$hash->{Type};
           push @output, [@text];   
       }
-    }elsif( $name eq "Run"){        
-     for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
+    }elsif( $name eq "Run"){
+     sub prio{ $a->{Run} <=> $b->{Run};}
+     my @sortedrtb=sort prio @{$Monitor::Singleton->{rtb}};
+        
+     for my $i (0 ... $#sortedrtb){
          $#text=-1;
-         my $hash=$Monitor::Singleton->{rtb}[$i];
+         my $hash=$sortedrtb[$i];
          my $st="Undefined";
          if($hash->{cuid} ne 0){
          for my $j (0 ... $#{$Monitor::Singleton->{acl}}){
@@ -1141,8 +1145,11 @@ sub PNtupleSort{
          }
          push @text,  $hash->{uid},$hash->{cuid},$hash->{cinfo}->{HostName},$hash->{Run},$hash->{FirstEvent}, 
         $hash->{LastEvent}, $hash->{Priority}, $hash->{FilePath}, 
-         $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},;
-         push @output, [@text];   
+         $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},$hash->{TFEvent},$hash->{TLEvent},;
+         push @output, [@text];
+         if($hash->{TFEvent}<$hash->{Run} and $hash->{DataMC}!=0){
+           warn "Run time problem  $hash->{Run} $hash->{TFEvent} \n";
+         }  
      }
     }elsif( $name eq "Killer"){        
      for my $i (0 ... $#{$Monitor::Singleton->{nkl}}){
