@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.45 2008/07/04 08:20:53 mdelgado Exp $
+//  $Id: richdbc.h,v 1.46 2008/08/11 15:24:40 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -15,13 +15,17 @@
 //PZ
 #include "mceventg.h"
 
+class RichAlignment;
+
 // Constants
 namespace richconst{
 const integer RICnrot=30001;   // Rot. matrix no.
 
 // Geometry parameters
 //const geant      RICradpos=-71.87;     // Top of the radiator position
-const geant      RICradposs=-73.5;   //  changed by VC as not allow change the ricxh geo on the fly 
+//const geant      RICradposs=-73.5;   //  changed by VC as not allow change the ricxh geo on the fly 
+const geant      RICradposs=-71.87;   //  changed by VC as not allow change the ricxh geo on the fly 
+
 const geant      RICaethk=0.1;         // Radiator support thickness
 #define RIClgthk (2.5*RIClgthk_top)    // A simple fix in the meanwhile
 const geant      RIClgthk_top=0.02;    // LG    top gap
@@ -45,7 +49,7 @@ const geant      RICshiheight=6.5;     // This for the new LG with 3.4
 const geant      RICpmtshield=0.1;     // PMT shield thickness 
 const geant      RICepsln=0.002;       // Epsilon
 const geant      RICpmtfoil=0.1;       // thickness of the goil over the LG
-const geant      RICpmtsupportheight=11.1;  // support structure height
+const geant      RICpmtsupportheight=11.1-2.0;  // support structure height
 const geant      PMT_electronics=3.0;    // PMT side size
 const geant      cato_inner_pixel=0.42;  // Inner pixel side size in the photocathode
 const geant      cathode_length=RICcatolength+RICcatogap;

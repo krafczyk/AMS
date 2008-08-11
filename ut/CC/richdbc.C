@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.52 2008/06/26 14:13:34 mdelgado Exp $
+//  $Id: richdbc.C,v 1.53 2008/08/11 15:24:40 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -586,7 +586,6 @@ AMSPoint  RichAlignment::_r2aShift;
 AMSRotMat RichAlignment::_a2rRot;
 AMSRotMat RichAlignment::_r2aRot;
 
-
 void RichAlignment::LoadFile(char *filename){
   if(!filename || strlen(filename)==0){
     cout<<"RichAlignment::LoadFile -- problem with file name... Ignoring."<<endl;
@@ -685,8 +684,7 @@ void RichAlignment::Init(){
 
   if(AMSJob::gethead()->isRealData()  &&     // It is real data
      MISCFFKEY.BeamTest==1){                 // It is a cosmic run
-    sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+    sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.2.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
     LoadFile(name);
   }
-
 }

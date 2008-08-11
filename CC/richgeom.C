@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.34 2008/04/28 16:02:57 mdelgado Exp $
+//  $Id: richgeom.C,v 1.35 2008/08/11 15:24:40 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -92,7 +92,7 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 			  3,
 			  coo,
 			  rm45,
-			  "ONLY",
+			  "MANY",
 			  0,
 			  10*copia+1,
 			  rel));
@@ -110,7 +110,7 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 			  3,
 			  coo,
 			  rm45,
-			  "ONLY",
+			  "MANY",
 			  0,
 			  10*copia+2,
 			  rel));
@@ -127,7 +127,7 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 			  3,
 			  coo,
 			  rm45,
-			  "ONLY",
+			  "MANY",
 			  0,
 			  10*copia+3,
 			  rel));
@@ -144,7 +144,7 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
 			  3,
 			  coo,
 			  rm45,
-			  "ONLY",
+			  "MANY",
 			  0,
 			  10*copia+4,
 			  rel));
@@ -813,7 +813,8 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 					    3,
 					    coo,
 					    nrm,
-					    "ONLY",
+					    "MANY",
+					    //					    coo[0]*coo[0]+coo[1]*coo[1]<(RICradiator_box_radius-RichRadiatorTileManager::get_tile_boundingbox(n,0)*2)*(RICradiator_box_radius-RichRadiatorTileManager::get_tile_boundingbox(n,0)*2)?"ONLY":"MANY",
 					    0,
 					    copia1++,
 					    rel));
@@ -948,7 +949,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				      3,
 				      coo,
 				      nrm,
-				      "ONLY",
+				      "MANY",
 				      0,
 				      1,
 				      rel));
@@ -965,7 +966,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				      3,
 				      coo,
 				      nrm,
-				      "ONLY",
+				      "MANY",
 				      0,
 				      2,
 				      rel));
@@ -981,7 +982,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				      3,
 				      coo,
 				      nrm,
-				      "ONLY",
+				      "MANY",
 				      0,
 				      3,
 				      rel));
@@ -997,7 +998,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				      3,
 				      coo,
 				      nrm,
-				      "ONLY",
+				      "MANY",
 				      0,
 				      4,
 				      rel));
@@ -1019,7 +1020,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				coo,
 				nrm,
-				"ONLY",
+				"MANY",
 				0,
 				1,
 				rel));
@@ -1035,7 +1036,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				coo,
 				nrm,
-				"ONLY",
+				"MANY",
 				0,
 				2,
 				rel));
@@ -1051,7 +1052,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				coo,
 				nrm,
-				"ONLY",
+				"MANY",
 				0,
 				3,
 				rel));
@@ -1073,7 +1074,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				coo,
 				nrm,
-				"ONLY",
+				"MANY",
 				0,
 				1,
 				rel));
@@ -1089,7 +1090,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				coo,
 				nrm,
-				"ONLY",
+				"MANY",
 				0,
 				2,
 				rel));
@@ -1105,7 +1106,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 				3,
 				coo,
 				nrm,
-				"ONLY",
+				"MANY",
 				0,
 				3,
 				rel));
