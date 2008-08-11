@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.114 2008/08/05 14:47:38 choutko Exp $
+//  $Id: producer.C,v 1.115 2008/08/11 07:39:20 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1346,6 +1346,7 @@ tdv->gettime(i,b,e);
 name.Entry.Insert=i;
 name.Entry.Begin=b;
 name.Entry.End=e;
+cout <<" time ibe "<<i<<" "<<b<<" "<<e<<endl;
  int length=0;
  int suc=0;
  bool oncemore=false;
@@ -1393,7 +1394,7 @@ if(name.Success){
 return false;
 }
 bool AMSProducer::getSplitTDV(AMSTimeID * tdv, int id){
-cout <<" trying to get tdv "<<tdv->getname()<<" "<<tdv->getid()<<endl;
+cout <<" trying to get split tdv "<<tdv->getname()<<" "<<tdv->getid()<<" "<<id<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -1406,6 +1407,7 @@ tdv->gettime(i,b,e);
 name.Entry.Insert=i;
 name.Entry.Begin=b;
 name.Entry.End=e;
+cout <<" time ibe "<<i<<" "<<b<<" "<<e<<endl;
  int length=0;
  uinteger pos=0;
  DPS::Producer::TransferStatus st=DPS::Producer::Begin;

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.142 2008/08/07 18:38:51 choutko Exp $
+//  $Id: server.C,v 1.143 2008/08/11 07:39:20 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3327,23 +3327,12 @@ unsigned int length=0;
 length=_dst.size();
 int lm=ci.Mips;
 if(lm<=0 || 1)lm=10000000;
-if(length==0){
-//acv->length(1);
-}
-else{
-length=0;
-for(DSTLI li=_dst.begin();li!=_dst.end();++li){
- //if((*li).first==DPS::Producer::EventTag)continue; 
- length++;
-}
 if(length>lm)length=lm;
 acv->length(length);
 length=0;
 for(DSTLI li=_dst.begin();li!=_dst.end();++li){
-// if((*li).first==DPS::Producer::EventTag)continue; 
  acv[length++]=(*li).second;
  if(length>=lm)break;
-}
 }
 dsts=acv._retn();
 return length;

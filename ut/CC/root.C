@@ -1707,6 +1707,7 @@ bool AMSEventR::ReadHeader(int entry){
       fService.TotalTrig++;
      }
     }
+     if(_Entry==0 && bStatus &&  !UProcessStatus(fStatus))return false;
     evento=Event();
    }
    else fService.BadEv++;    
