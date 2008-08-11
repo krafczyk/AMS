@@ -2408,7 +2408,46 @@ class RemoteClient:
                                     self.sqlserver.Commit(commit)
 
                                     
-                                
+    def CheckDataSet(self,run2p,dataset,v,f):
+        self.verbose=v
+        self.run2p=run2p
+        self.force=f
+        rundd=""
+        rund=""
+        runn=""
+        if(run2p!=0):
+            rundd=" and datafiles.run=%d " %(run2p)
+            rund=" and dataruns.run=%d " %(run2p)
+            runn=" and ntuples.run=%d " %(run2p)
+        if(self.force):
+            sql="select run from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
+            files=self.sqlserver.Query(sql)
+            sql="select run from datafiles where status='OK' and type like 'SCI%%' %s " %(rundd)
+            runs=self.sqlserver.Query(sql)
+            if(len(files)>0):
+                for run in runs:
+                    found=0
+                    for file in files:
+                        if(run==file):
+                            found=1
+                            break
+                    if(found==0):
+                        print "Run ",run,"  not found in dataset ",dataset
+        else:
+            sql="select run from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
+            files=self.sqlserver.Query(sql)
+            sql="select run from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s%%' %s" %(dataset,rund)
+            runs=self.sqlserver.Query(sql)
+            if(len(files)>0):
+                for run in runs:
+                    found=0
+                    for file in files:
+                        if(run==file):
+                            found=1
+                            break
+                    if(found==0):
+                        print "Run ",run,"  not found in dataset ",dataset
+
     def DeleteDataSet(self,run2p,dataset,u,v,f):
         self.update=u
         self.verbose=v
