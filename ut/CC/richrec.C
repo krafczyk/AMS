@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.86 2008/07/29 10:18:41 choutko Exp $
+//  $Id: richrec.C,v 1.87 2008/08/11 22:01:08 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -24,8 +24,8 @@ extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, i
   number radentd[3];
 
   // Convert arguments to AMS coordinates
-  AMSRichRing::coordlip2ams(*x,*y,*z,xams,yams,zams);
-  AMSRichRing::anglelip2ams(*theta,*phi,thetaams,phiams);
+  coordlip2ams(*x,*y,*z,xams,yams,zams);
+  anglelip2ams(*theta,*phi,thetaams,phiams);
 
   // All the coordinates should be in the AMSPoint
   AMSTrTrack track(thetaams,phiams,AMSPoint(xams,yams,zams));
@@ -561,7 +561,7 @@ void AMSRichRing::build(){
 
 
 AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
-  
+
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
   // using, for example, a structure (~completely public class)
@@ -846,6 +846,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    LIPF2C.resb_beta,
 										    LIPF2C.resb_thc,
 										    LIPF2C.resb_chi2,
+										    LIPF2C.resb_like,
 										    LIPF2C.resb_nhit,
 										    LIPF2C.resb_phit,
 										    LIPF2C.resb_used,
@@ -951,6 +952,7 @@ void AMSRichRing::_writeEl(){
     cluster->resb_beta[cluster->NRings][k]=_resb_beta[k];
     cluster->resb_thc[cluster->NRings][k]=_resb_thc[k];
     cluster->resb_chi2[cluster->NRings][k]=_resb_chi2[k];
+    cluster->resb_like[cluster->NRings][k]=_resb_like[k];
     cluster->resb_nhit[cluster->NRings][k]=_resb_nhit[k];
     for(int i=0;i<LIP_NHITMAX;i++) {
       cluster->resb_phit[cluster->NRings][k][i]=_resb_phit[k][i];
@@ -1941,7 +1943,7 @@ void AMSRichRing::richiniteventlip() {
   LIPC2F.ztoprad_ams_c2f = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height;
   LIPC2F.rcgeom_c2f[0] = 0;                           
   LIPC2F.rcgeom_c2f[1] = 0;
-  LIPC2F.levgeom_c2f = 4;
+  LIPC2F.levgeom_c2f = 4; //4;
   LIPC2F.levgrad_c2f = 2;	           
   LIPC2F.levacc_c2f = 1;	           
   LIPC2F.ztarg_c2f = 0.;
@@ -1988,7 +1990,7 @@ void AMSRichRing::richiniteventlip() {
     if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
 
     if(actual>=LIP_NBHITSMAX) {
-      cout << "AMSRichRing::build : Event too long."<<endl;
+      cout << "AMSRichRing::richiniteventlip : Event too long."<<endl;
       break;
     }
 
@@ -1998,10 +2000,6 @@ void AMSRichRing::richiniteventlip() {
     RichPMTChannel hitch(hit->getchannel());
 
     coordams2lip(hitch.x(),hitch.y(),hitch.z(),LIPC2F.hitscoo_ev[actual][0],LIPC2F.hitscoo_ev[actual][1],LIPC2F.hitscoo_ev[actual][2]);
-
-    //LIPC2F.hitscoo_ev[actual][0]=hitch.x();
-    //LIPC2F.hitscoo_ev[actual][1]=hitch.y();
-    //LIPC2F.hitscoo_ev[actual][2]=RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-hitch.z(); // Z : AMS frame -> RICH frame
 
     int hgain=hit->getbit(gain_mode_bit);
 
@@ -2117,19 +2115,6 @@ void AMSRichRing::richinittracklip() {
   LIPC2F.epimp_main[0] = 0.;
   LIPC2F.epimp_main[1] = 0.;
   LIPC2F.epimp_main[2] = 0.;
-
-  //LIPC2F.pthe_main = acos(-_entrance_d[2]);
-  //LIPC2F.epthe_main = 0.;
-  //LIPC2F.pphi_main = atan2(_entrance_d[1],_entrance_d[0]);
-  //LIPC2F.epphi_main = 0.;
-  //if ( LIPC2F.pphi_main<0 )  LIPC2F.pphi_main=LIPC2F.pphi_main+2*PI;
-
-  //LIPC2F.pimp_main[0] = _entrance_p[0]+tan(LIPC2F.pthe_main)*cos(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
-  //LIPC2F.epimp_main[0] = 0.;
-  //LIPC2F.pimp_main[1] = _entrance_p[1]+tan(LIPC2F.pthe_main)*sin(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
-  //LIPC2F.epimp_main[1] = 0.;
-  //LIPC2F.pimp_main[2] = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-_entrance_p[2];
-  //LIPC2F.epimp_main[2] = 0.;
 
   LIPC2F.pmom_main = 0.; // SHOULD BE FILLED (currently not used in LIP rec)
   LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
@@ -2359,7 +2344,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
 */
 AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
 //#ifdef __LIPDATASAVE__
-			 int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX],int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[LIP_NMAXLIPREC][3],geant resc_eff[LIP_NMAXLIPREC][6],geant resc_chgprob[LIP_NMAXLIPREC][3],geant resb_pimp[LIP_NMAXLIPREC][3],geant resb_epimp[LIP_NMAXLIPREC][3],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[LIP_NMAXLIPREC][50],geant rstd_crecx0[LIP_NMAXLIPREC][50],geant rstd_crecy0[LIP_NMAXLIPREC][50],geant rstd_crectheta[LIP_NMAXLIPREC][50],geant rstd_crecphi[LIP_NMAXLIPREC][50],geant rstd_crecbeta[LIP_NMAXLIPREC][50],int rstd_crecuhits[LIP_NMAXLIPREC][50],geant rstd_crecpkol[LIP_NMAXLIPREC][50],
+			 int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],geant resb_like[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX],int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[LIP_NMAXLIPREC][3],geant resc_eff[LIP_NMAXLIPREC][6],geant resc_chgprob[LIP_NMAXLIPREC][3],geant resb_pimp[LIP_NMAXLIPREC][3],geant resb_epimp[LIP_NMAXLIPREC][3],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[LIP_NMAXLIPREC][50],geant rstd_crecx0[LIP_NMAXLIPREC][50],geant rstd_crecy0[LIP_NMAXLIPREC][50],geant rstd_crectheta[LIP_NMAXLIPREC][50],geant rstd_crecphi[LIP_NMAXLIPREC][50],geant rstd_crecbeta[LIP_NMAXLIPREC][50],int rstd_crecuhits[LIP_NMAXLIPREC][50],geant rstd_crecpkol[LIP_NMAXLIPREC][50],
 //#else
 //  			 int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,
 //  			 geant lipchi2, geant liprprob,
@@ -2386,6 +2371,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     _resb_beta[k] = resb_beta[k];
     _resb_thc[k] = resb_thc[k];
     _resb_chi2[k] = resb_chi2[k];
+    _resb_like[k] = resb_like[k];
     _resb_nhit[k] = resb_nhit[k];
 
     for(int i=0;i<LIP_NHITMAX;i++) {
@@ -2523,4 +2509,679 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     _pmtpos[1]=0;
     _pmtpos[2]=0;
   }
+}
+
+//////////////////////////////////////////////////////////// LIP
+
+// Default values... currently unused: filled during reconstruction
+number AMSRichRingLip::_index=1.05;
+number AMSRichRingLip::_height=3.;
+AMSPoint AMSRichRingLip::_entrance_p=AMSPoint(0,0,0);
+AMSDir   AMSRichRingLip::_entrance_d=AMSDir(0,0);
+AMSPoint AMSRichRingLip::_emission_p=AMSPoint(0,0,0);
+AMSDir   AMSRichRingLip::_emission_d=AMSDir(0,0);
+geant   AMSRichRingLip::_clarity=0.0113;
+geant   *AMSRichRingLip::_abs_len=0;
+geant   *AMSRichRingLip::_index_tbl=0;
+
+int     AMSRichRingLip::_kind_of_tile=0;
+
+geant AMSRichRingLip::_Time=0;
+
+
+////////////////////////////////////////// methods
+
+AMSRichRingLip::AMSRichRingLip(AMSTrTrack* track, int Status) {  
+_ptrack = track;
+_Status = Status;
+_HitsResiduals.clear();
+_HitsStatus.clear();   
+_HitsAssoc.clear();    
+_TrackRec.clear();     
+}
+
+int AMSRichRingLip::buildlip(){
+
+  int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
+  if(ARRAYSIZE==0) return 0;
+
+  if (_ptrack != NULL ) {
+
+    RichRadiatorTileManager crossed_tile(_ptrack);
+    if(crossed_tile.getkind()==empty_kind) return 0;
+  
+    _index=crossed_tile.getindex();
+    _height=crossed_tile.getheight();
+    _entrance_p=crossed_tile.getentrancepoint();
+    _entrance_d=crossed_tile.getentrancedir();
+    _clarity=crossed_tile.getclarity();
+    _abs_len=crossed_tile.getabstable();
+    _index_tbl=crossed_tile.getindextable();
+    _kind_of_tile=crossed_tile.getkind();
+
+    richinittracklip(_entrance_p,_entrance_d);
+  }
+
+  int ievnumb = AMSEvent::gethead()->getEvent();
+
+  if (_ptrack == NULL && ( _Status == 3 || _Status == 13) ) {
+    RICHTOFTRACKINIT();
+    if(LIPC2F.iflag_tof==1) {  // TOF track successful
+      // replace track data with TOF track data
+      for(int i=0;i<3;i++) {
+	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
+	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
+      }
+      LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
+      LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
+    }
+    else {
+      return 0;
+    }
+  }
+
+  RICHRECLIP(ievnumb,_Status);
+
+  if (goodLIPREC()) {
+    fillresult();
+    AMSEvent::gethead()->addnext(AMSID("AMSRichRingLip",0),this);
+    return 1;
+  } 
+  else {
+    return 0;
+  }
+
+}
+
+
+void AMSRichRingLip::fillresult(){
+
+  // Fill the container
+
+  int nr = LIPC2F.irecnumb-1;
+  
+  _Beta = LIPF2C.resb_beta[nr];
+  _AngleRec = LIPF2C.resb_thc[nr];
+  _Chi2 = LIPF2C.resb_chi2[nr];
+  _Likelihood = LIPF2C.resb_like[nr];
+  _Used = LIPF2C.resb_nhit[nr];
+  _ProbKolm = LIPF2C.resb_probkl[nr];
+  _Flatness[0] = LIPF2C.resb_flatsin[nr];
+  _Flatness[1] = LIPF2C.resb_flatcos[nr];
+  _ChargeRec = LIPF2C.resc_chg[nr];
+  _ChargeProb[3];
+  for (int i=0;i<3;i++) {
+    _ChargeProb[i] = LIPF2C.resc_chgprob[nr][i];
+  }
+  _ChargeRecDir = LIPF2C.resc_chgdir[nr];
+  _ChargeRecMir = LIPF2C.resc_chgmir[nr];
+  _NpeRing = LIPF2C.resc_cnpe[nr];
+  _NpeRingDir = LIPF2C.resc_cnpedir[nr];
+  _NpeRingRef = LIPF2C.resc_chgmir[nr];
+
+  for(int i=0;i<3;i++) {
+    _RingAcc[i] = LIPF2C.resc_accgeom[nr][i];
+  }
+
+  for(int i=0;i<6;i++) {
+    _RingEff[i] = LIPF2C.resc_eff[nr][i];
+  }
+
+  for(int i=0;i<LIPC2F.nbhits_ev;i++) {
+    _HitsResiduals.push_back(LIPF2C.resb_hres[nr][i]);
+    _HitsStatus.push_back(LIPF2C.resb_used[nr][i]);
+  }
+
+  for(int i=0;i<LIPF2C.resb_nhit[nr];i++) {
+    _HitsAssoc.push_back(LIPF2C.resb_phit[nr][i]);
+  }
+
+  if(LIPF2C.resb_itype[nr]==3 || LIPF2C.resb_itype[nr]==4) {  // store rec track data
+    for(int i=0;i<3;i++) {
+      _TrackRec.push_back(LIPF2C.resb_pimp[nr][i]);
+      _TrackRec.push_back(LIPF2C.resb_epimp[nr][i]);
+    }
+    _TrackRec.push_back(LIPF2C.resb_pthe[nr]);
+    _TrackRec.push_back(LIPF2C.resb_epthe[nr]);
+    _TrackRec.push_back(LIPF2C.resb_pphi[nr]);
+    _TrackRec.push_back(LIPF2C.resb_epphi[nr]);
+  }
+
+  /*
+
+  // test prints for debugging
+  cout << "-----------------------------" << endl;
+  cout << "DATA STORED IN AMSRichRingLip" << endl;
+  cout << "-----------------------------" << endl;
+  cout << "Status = " << done->getStatus() << endl;
+  cout << "Beta = " << done->getBeta() << endl;
+  cout << "AngleRec (deg) = " << 180./3.14159265*done->getAngleRec() << endl;
+  cout << "Chi2 = " << done->getChi2() << endl;
+  cout << "Likelihood = " << done->getLikelihood() << endl;
+  cout << "Used = " << done->getUsed() << endl;
+  cout << "ProbKolm = " << done->getProbKolm() << endl;
+  cout << "Flatness = ";
+  for(int i=0;i<2;i++) {
+    cout << done->getFlatness(i) << " ";
+  }
+  cout << endl;
+  cout << "ChargeRec = " << done->getChargeRec() << endl;
+  cout << "ChargeProb = ";
+  for(int i=0;i<3;i++) {
+    cout << done->getChargeProb(i) << " ";
+  }
+  cout << endl;
+  cout << "ChargeRecDir = " << done->getChargeRecDir() << endl;
+  cout << "ChargeRecMir = " << done->getChargeRecMir() << endl;
+  cout << "NpeRing = " << done->getNpeRing() << endl;
+  cout << "NpeRingDir = " << done->getNpeRingDir() << endl;
+  cout << "NpeRingRef = " << done->getNpeRingRef() << endl;
+  cout << "RingAcc = ";
+  for(int i=0;i<3;i++) {
+    cout << done->getRingAcc(i) << " ";
+  }
+  cout << endl;
+  cout << "RingEff = ";
+  for(int i=0;i<6;i++) {
+    cout << done->getRingEff(i) << " ";
+  }
+  cout << endl;
+  vector<float> tmpHitsResiduals = done->getHitsResiduals();
+  cout << "HitsResiduals = ";
+  for(int i=0;i<tmpHitsResiduals.size();i++) {
+    cout << tmpHitsResiduals[i] << " ";
+  }
+  cout << endl;
+  vector<int> tmpHitsStatus = done->getHitsStatus();
+  cout << "HitsStatus = ";
+  for(int i=0;i<tmpHitsStatus.size();i++) {
+    cout << tmpHitsStatus[i] << " ";
+  }
+  cout << endl;
+  vector<int> tmpHitsAssoc = done->getHitsAssoc();
+  cout << "HitsAssoc = ";
+  for(int i=0;i<tmpHitsAssoc.size();i++) {
+    cout << tmpHitsAssoc[i] << " ";
+  }
+  cout << endl;
+  vector<float> tmpTrackRec = done->getTrackRec();
+  cout << "HitsTrackRec (7-10 in deg) = ";
+  for(int i=0;i<tmpTrackRec.size();i++) {
+    if(i<6) {
+      cout << tmpTrackRec[i] << " ";
+    }
+    else {
+      cout << 180./3.14159265*tmpTrackRec[i] << " ";
+    }
+  }
+  cout << endl;
+  // end of test prints for debugging
+  
+  */
+
+}
+
+
+void AMSRichRingLip::_writeEl(){
+#define LIP_NHITMAX 1000
+#ifdef __WRITEROOT__
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+  RICRingLip* cluster=AMSJob::gethead()->getntuple()->Get_ringlip();
+  
+  if(cluster->NRingLips>=MAXRICHRINLIP) return;
+
+  // LINK TO USED TRACK... TO BE DONE
+  //if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRingLips]=-1;
+  //else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRingLips]=-1;
+  //else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRingLips]=-1;
+  //else cluster->track[cluster->NRingLips]=_ptrack->getpos();
+
+  cluster->Status[cluster->NRingLips]=_Status;
+  cluster->Beta[cluster->NRingLips]=_Beta;
+  cluster->AngleRec[cluster->NRingLips]=_AngleRec;
+  cluster->Chi2[cluster->NRingLips]=_Chi2;
+  cluster->Likelihood[cluster->NRingLips]=_Likelihood;
+  cluster->Used[cluster->NRingLips]=_Used;
+  cluster->ProbKolm[cluster->NRingLips]=_ProbKolm;
+  for(int i=0;i<2;i++){
+    cluster->Flatness[cluster->NRingLips][i]=_Flatness[i];
+  }
+  cluster->ChargeRec[cluster->NRingLips]=_ChargeRec;
+  for(int i=0;i<3;i++){
+    cluster->ChargeProb[cluster->NRingLips][i]=_ChargeProb[i];
+  }
+  cluster->ChargeRecDir[cluster->NRingLips]=_ChargeRecDir;
+  cluster->ChargeRecMir[cluster->NRingLips]=_ChargeRecMir;
+  cluster->NpeRing[cluster->NRingLips]=_NpeRing;
+  cluster->NpeRingDir[cluster->NRingLips]=_NpeRingDir;
+  cluster->NpeRingRef[cluster->NRingLips]=_NpeRingRef;
+  for(int i=0;i<3;i++){
+    cluster->RingAcc[cluster->NRingLips][i]=_RingAcc[i];
+  }
+  for(int i=0;i<6;i++){
+    cluster->RingEff[cluster->NRingLips][i]=_RingEff[i];
+  }
+  for(int i=0;i<LIP_NHITMAX;i++){
+    if(i<_HitsResiduals.size()) {
+      cluster->HitsResiduals[cluster->NRingLips][i]=_HitsResiduals[i];
+    }
+    else {
+      cluster->HitsResiduals[cluster->NRingLips][i]=-999.;
+    }
+  }
+  for(int i=0;i<LIP_NHITMAX;i++){
+    if(i<_HitsStatus.size()) {
+      cluster->HitsStatus[cluster->NRingLips][i]=_HitsStatus[i];
+    }
+    else {
+      cluster->HitsStatus[cluster->NRingLips][i]=-999;
+    }
+  }
+  for(int i=0;i<10;i++){
+    if(i<_TrackRec.size()) {
+      cluster->TrackRec[cluster->NRingLips][i]=_TrackRec[i];
+    }
+    else {
+      cluster->TrackRec[cluster->NRingLips][i]=-999;
+    }
+  }
+
+  cluster->NRingLips++;
+}
+
+
+void AMSRichRingLip::_copyEl(){  // TO BE DONE
+#ifdef __WRITEROOT__
+  //if(PointerNotSet())return;
+  //RichRingLipR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingLip(_vpos);
+  //if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
+  //else ptr.fTrTrack=-1;
+#endif
+}
+
+
+AMSRichRingLip::AMSRichRingLip(AMSTrTrack* track,int Status,float Beta,float AngleRec,float Chi2,float Likelihood,int Used,float ProbKolm,float Flatness[2],float ChargeRec,float ChargeProb[3],float ChargeRecDir,float ChargeRecMir,float NpeRing,float NpeRingDir,float NpeRingRef,float RingAcc[3],float RingEff[6],std::vector<float> HitsResiduals,std::vector<int> HitsStatus,std::vector<int> HitsAssoc,std::vector<float> TrackRec):
+  _Status(Status),_Beta(Beta),_AngleRec(AngleRec),_Chi2(Chi2),_Likelihood(Likelihood),_Used(Used),_ProbKolm(ProbKolm),_ChargeRec(ChargeRec),_ChargeRecDir(ChargeRecDir),_ChargeRecMir(ChargeRecMir),_NpeRing(NpeRing),_NpeRingDir(NpeRingDir),_NpeRingRef(NpeRingRef),_HitsResiduals(HitsResiduals),_HitsStatus(HitsStatus),_HitsAssoc(HitsAssoc),_TrackRec(TrackRec)
+{
+  //track 
+  _ptrack = track;
+
+  //LIP specific
+  for(int i=0;i<2;i++) {
+    _Flatness[i] = Flatness[i];
+  }
+  for(int i=0;i<3;i++) {
+    _ChargeProb[i] = ChargeProb[i];
+  }
+  for(int i=0;i<3;i++) {
+    _RingAcc[i] = RingAcc[i];
+  }
+  for(int i=0;i<6;i++) {
+    _RingEff[i] = RingEff[i];
+  }
+}
+
+
+//////////////////////////////////////////////////////////// LIP Ring set
+
+
+AMSRichRingLipSet::AMSRichRingLipSet () {ringset.clear();}
+
+AMSRichRingLipSet::~AMSRichRingLipSet () {
+  for (int i=0; i<ringset.size(); i++) {
+    delete ringset[i];
+  }
+  ringset.clear();
+}
+
+void AMSRichRingLipSet::reset() {
+  ringset.clear();
+}
+
+
+AMSRichRingLip* AMSRichRingLipSet::getring(int i) {
+  if (i<ringset.size()) {
+    return ringset[i];
+  }
+  else {
+    return NULL;
+  }
+}
+
+void AMSRichRingLipSet::AddRing(AMSRichRingLip* ring) {ringset.push_back(ring);}
+
+void AMSRichRingLipSet::init() {
+    richiniteventlip();
+}
+
+int AMSRichRingLipSet::NumberOfRings() { return (int)ringset.size();}
+
+void AMSRichRingLipSet::build() {
+
+  // Build rec rings for all the tracks 
+
+  int16u lipflag = 0;
+
+  if(RICRECFFKEY.liprflag[0]%10) lipflag+=1;
+  if((RICRECFFKEY.liprflag[0]/10)%10) lipflag+=2;
+  if((RICRECFFKEY.liprflag[0]/100)%10) lipflag+=4;
+  if((RICRECFFKEY.liprflag[0]/1000)%10) lipflag+=8;
+
+  if(RICRECFFKEY.liprflag[1]%10) lipflag+=16;
+  if((RICRECFFKEY.liprflag[1]/10)%10) lipflag+=32;
+  if((RICRECFFKEY.liprflag[1]/100)%10) lipflag+=64;
+  if((RICRECFFKEY.liprflag[1]/1000)%10) lipflag+=128;
+
+  // reset reconstruction flags (internal LIP data set)
+  for(int k=0;k<LIP_NMAXLIPREC;k++) {
+    LIPF2C.resb_iflag[k] = -1;
+    LIPF2C.resb_itype[k] = 0;
+    LIPF2C.resb_itrk[k] = -999;
+    LIPF2C.resc_iflag[k] = -1;
+  }
+
+  //Loop on ams tracks
+  AMSTrTrack *track;
+  AMSRichRingLip *pliprec;
+  int j=0,k=0;
+  for(int id=0;;){
+    track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
+    if(!track) break;
+    for(;track;track=track->next()) {
+
+      //cout << "Event Number = " << AMSEvent::gethead()->getid() << endl;
+      //cout << "Track: nb hits = " << track->getnhits() << endl;  
+      //cout << "Track: theta   = " << track->gettheta() << endl;  
+
+      LIPC2F.itrknumb++;
+
+      //standard ams track
+      if (lipflag&0x0001 || lipflag&0x0010) {
+	j++;
+        if (lipflag&0x0010) {
+	  pliprec = new AMSRichRingLip(track, 12);
+        } else {
+	  pliprec = new AMSRichRingLip(track, 2);
+	}
+	if ( pliprec->buildlip() ) {
+	  k++;
+	  AddRing(pliprec);
+	} 
+      }
+      
+      //flexible standard ams track
+      if (lipflag&0x0002 || lipflag&0x0020) {
+	j++;
+        if (lipflag&0x0020) {
+	  pliprec = new AMSRichRingLip(track, 13);
+        } else {
+	  pliprec = new AMSRichRingLip(track, 3);
+	}
+	if ( pliprec->buildlip() ) {
+	  k++;
+	  AddRing(pliprec);
+	} 
+      }
+    }
+
+  }
+
+  // do not proceed to special reconstructions unless there is at least one TrTrack
+  //track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
+  //if(!track) return;
+
+  //additional reconstructions beyond ams tracks
+
+  /* TOF track */
+  LIPC2F.itrknumb = -1;
+  if (lipflag&0x0004 || lipflag&0x0040) {
+    if (lipflag&0x0040) {
+      pliprec = new AMSRichRingLip(NULL, 13);
+    } else {
+      pliprec = new AMSRichRingLip(NULL, 3);
+    }
+    if ( pliprec->buildlip() ) {
+      k++;
+      AddRing(pliprec);
+    } 
+  }
+
+  /* standalone */
+  LIPC2F.itrknumb = 0;
+  if (lipflag&0x0008 || lipflag&0x0080) {
+    if (lipflag&0x0080) {
+      pliprec = new AMSRichRingLip(NULL, 14);
+    } else {
+      pliprec = new AMSRichRingLip(NULL, 4);
+    }
+    if ( pliprec->buildlip() ) {
+      k++;
+      AddRing(pliprec);
+    } 
+  }
+
+}
+
+
+////////////////////////////////////////////////////////////////////// LIP functions
+
+int goodLIPREC() {
+  int nr = LIPC2F.irecnumb-1;
+  return (LIPF2C.resb_iflag[nr]==1);
+}
+
+void richiniteventlip() {
+
+  // job data
+  LIPC2F.jobc_cp_c2f = 0; // means this is simulation - should come from code
+
+  // detector data
+  LIPC2F.ztoprad_ams_c2f = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height;
+  LIPC2F.rcgeom_c2f[0] = 0;                           
+  LIPC2F.rcgeom_c2f[1] = 0;
+  LIPC2F.levgeom_c2f = 4; //4;
+  LIPC2F.levgrad_c2f = 2;	           
+  LIPC2F.levacc_c2f = 1;	           
+  LIPC2F.ztarg_c2f = 0.;
+  LIPC2F.nradts_c2f = 1;
+  LIPC2F.hrad_c2f = RICHDB::rad_agl_height;
+  LIPC2F.hrnaf_c2f = RICHDB::naf_height;
+  LIPC2F.radtile_pitch_c2f = 11.4; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.radtile_supthk_c2f = 0.1; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.radix_c2f[0] = RICHDB::rad_index;
+  LIPC2F.radix_c2f[1] = RICHDB::naf_index;
+  LIPC2F.radclarity_c2f = RICHDB::rad_clarity;
+  LIPC2F.hpgl_c2f = RICHDB::foil_height;
+  LIPC2F.ztmirgap_c2f = RICradmirgap;
+  LIPC2F.zbmirgap_c2f = RIClgdmirgap;
+  LIPC2F.reflec_c2f = RICmireff;
+  LIPC2F.zpmtdet_c2f = RICHDB::rad_agl_height+RICHDB::foil_height+RICradmirgap+RICHDB::rich_height+RIClgdmirgap;
+  LIPC2F.zlgsignal_c2f = 1.8;
+  LIPC2F.rtmir_c2f = RICHDB::top_radius;
+  LIPC2F.rbmir_c2f = RICHDB::bottom_radius;
+  LIPC2F.hmir_c2f = RICHDB::rich_height;
+  LIPC2F.pmtwx_c2f = 3.4; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.pmtwy_c2f = 3.4; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.shieldw_c2f = 0.3; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.pglix_c2f = RICHDB::foil_index;
+  LIPC2F.emcxlim_c2f = RICHDB::hole_radius[0];
+  LIPC2F.emcylim_c2f = RICHDB::hole_radius[1];
+  LIPC2F.lg_top_width_c2f = 3.4; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.lg_bot_width_c2f = 1.77; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.lg_pitch_c2f = 3.7; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.xbc_c2f = 30.1;
+  LIPC2F.xbd_c2f = 64.5;
+  LIPC2F.yef_c2f = 60.3;
+  LIPC2F.xpc_c2f = 0.25;
+
+  // hit data
+
+  LIPC2F.nbhitsmax_ntup_ev = LIP_NHITMAX;
+
+  int actual = 0;
+  LIPC2F.nbhits_ev = 0;
+
+  for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+    if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
+
+    if(actual>=LIP_NBHITSMAX) {
+      cout << "AMSRichRingLip::richiniteventlip : Event too long."<<endl;
+      break;
+    }
+
+    LIPC2F.nbhits_ev++;
+
+    LIPC2F.hitsnpe_ev[actual]=hit->getnpe();
+    RichPMTChannel hitch(hit->getchannel());
+
+    coordams2lip(hitch.x(),hitch.y(),hitch.z(),LIPC2F.hitscoo_ev[actual][0],LIPC2F.hitscoo_ev[actual][1],LIPC2F.hitscoo_ev[actual][2]);
+
+    //LIPC2F.hitscoo_ev[actual][0]=hitch.x();
+    //LIPC2F.hitscoo_ev[actual][1]=hitch.y();
+    //LIPC2F.hitscoo_ev[actual][2]=RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-hitch.z(); // Z : AMS frame -> RICH frame
+
+    int hgain=hit->getbit(gain_mode_bit);
+
+    LIPC2F.hitspmt_ev[actual]=10*(16*hitch.pmt_geom_id+hitch.channel_geom_id)+hgain;
+
+    actual++;
+  }
+
+  //cout << "LIPC2F.nbhits_ev = " << LIPC2F.nbhits_ev << endl;
+
+  // TOF cluster data
+
+  // Get TOF cluster data
+
+  LIPC2F.ntofclu = 0;
+  LIPC2F.iflag_tof = 0;
+
+  for(int ilay=0;ilay<TOF2GC::SCLRS;ilay++){ // loop over layers
+    AMSTOFCluster* ptrc=(AMSTOFCluster*)AMSEvent::gethead()->
+                           getheadC("AMSTOFCluster",ilay,0);
+    while(ptrc && LIPC2F.ntofclu<LIP_NMAXTOFCLU){ // loop over AMSTofCluster hits in layer
+      LIPC2F.istatus_tof[LIPC2F.ntofclu] = ptrc->getstatus();
+      LIPC2F.ilayer_tof[LIPC2F.ntofclu] = ptrc->getntof();
+      LIPC2F.ibar_tof[LIPC2F.ntofclu] = ptrc->getplane();
+      LIPC2F.edep_tof[LIPC2F.ntofclu] = ptrc->getedep();
+      LIPC2F.edepd_tof[LIPC2F.ntofclu] = ptrc->getedepd();
+      LIPC2F.time_tof[LIPC2F.ntofclu] = ptrc->gettime();
+      LIPC2F.errtime_tof[LIPC2F.ntofclu] = ptrc->getetime();
+
+      coordams2lip(ptrc->getcoo()[0],ptrc->getcoo()[1],ptrc->getcoo()[2],LIPC2F.coo_tof[LIPC2F.ntofclu][0],LIPC2F.coo_tof[LIPC2F.ntofclu][1],LIPC2F.coo_tof[LIPC2F.ntofclu][2]);
+      for(int i=0;i<3;i++) {
+	LIPC2F.errcoo_tof[LIPC2F.ntofclu][i] = ptrc->getecoo()[i];
+      }
+
+      //for(int i=0;i<3;i++) {
+      //LIPC2F.coo_tof[LIPC2F.ntofclu][i] = ptrc->getcoo()[i];
+      //LIPC2F.errcoo_tof[LIPC2F.ntofclu][i] = ptrc->getecoo()[i];
+      //}
+      // // change Z coordinate to LIP RICH reference frame
+      //LIPC2F.coo_tof[LIPC2F.ntofclu][2] = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-LIPC2F.coo_tof[LIPC2F.ntofclu][2];
+
+      //cout << "\nTOF cluster " << LIPC2F.ntofclu << endl;
+      //cout << "-------------" << endl;
+      //cout << "istatus = " << LIPC2F.istatus_tof[LIPC2F.ntofclu] << endl;
+      //cout << "ilayer = " << LIPC2F.ilayer_tof[LIPC2F.ntofclu] << endl;
+      //cout << "ibar = " << LIPC2F.ibar_tof[LIPC2F.ntofclu] << endl;
+      //cout << "edep = " << LIPC2F.edep_tof[LIPC2F.ntofclu] << endl;
+      //cout << "edepd = " << LIPC2F.edepd_tof[LIPC2F.ntofclu] << endl;
+      //cout << "time = " << LIPC2F.time_tof[LIPC2F.ntofclu] << endl;
+      //cout << "errtime = " << LIPC2F.errtime_tof[LIPC2F.ntofclu] << endl;
+      //cout << "coo = " << LIPC2F.coo_tof[LIPC2F.ntofclu][0] << "," << LIPC2F.coo_tof[LIPC2F.ntofclu][1] << "," << LIPC2F.coo_tof[LIPC2F.ntofclu][2] << endl;
+      //cout << "errcoo = " << LIPC2F.errcoo_tof[LIPC2F.ntofclu][0] << "," << LIPC2F.errcoo_tof[LIPC2F.ntofclu][1] << "," << LIPC2F.errcoo_tof[LIPC2F.ntofclu][2] << endl;
+
+      LIPC2F.ntofclu++;
+      ptrc = ptrc->next();
+    }
+  }
+
+  // reset track and reconstruction counters
+  LIPC2F.irecnumb = 0;
+  LIPC2F.itrknumb = 0;
+
+}
+
+
+void richinittracklip(AMSPoint entrance_p, AMSDir entrance_d) {
+
+#define PI 3.14159265359
+#define SQR(x) ((x)*(x))
+
+  // LIPVAR values (kept for debugging)
+  LIPVAR.liphused = 0;
+  LIPVAR.lipbeta = 0.;
+  LIPVAR.lipthc = 0.;
+  LIPVAR.liplikep = 99999.;
+  LIPVAR.lipchi2 = 99999.;
+  LIPVAR.liprprob = 99999.;
+
+  // simulated main track parameters
+
+  if(AMSJob::gethead()->isSimulation()){
+    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    number pmass=pmcg->getmass();
+    LIPC2F.pmom_sim = pmcg->getmom();
+    LIPC2F.pbeta_sim = LIPC2F.pmom_sim/sqrt(SQR(LIPC2F.pmom_sim)+SQR(pmass));
+    LIPC2F.pchg_sim = pmcg->getcharge();
+  }
+  else {
+    LIPC2F.pmom_sim = -999.;
+    LIPC2F.pbeta_sim = -999.;
+    LIPC2F.pchg_sim = -999.;
+  }
+
+  LIPC2F.pthe_sim = 0.; // SHOULD BE FILLED IF SIMULATION
+  LIPC2F.pphi_sim = 0.; // SHOULD BE FILLED IF SIMULATION
+
+  LIPC2F.pimp_sim[0] = 0.; // SHOULD BE FILLED IF SIMULATION
+  LIPC2F.pimp_sim[1] = 0.; // SHOULD BE FILLED IF SIMULATION
+  LIPC2F.pimp_sim[2] = 0.; // SHOULD BE FILLED IF SIMULATION
+
+  // main track parameters (errors assumed to be zero for the moment)
+  float ptmainams = acos(- entrance_d[2]);
+  float ppmainams = atan2(entrance_d[1],entrance_d[0]);
+  if ( ppmainams<0 )  ppmainams=ppmainams+2*PI;
+  angleams2lip(ptmainams,ppmainams,LIPC2F.pthe_main,LIPC2F.pphi_main);
+  LIPC2F.epthe_main = 0.;
+  LIPC2F.epphi_main = 0.;
+
+  float pmainams0 = entrance_p[0]+tan(LIPC2F.pthe_main)*cos(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
+  float pmainams1 = entrance_p[1]+tan(LIPC2F.pthe_main)*sin(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
+  float pmainams2 = entrance_p[2]+RICHDB::rad_agl_height-RICHDB::rad_height;
+  coordams2lip(pmainams0,pmainams1,pmainams2,LIPC2F.pimp_main[0],LIPC2F.pimp_main[1],LIPC2F.pimp_main[2]);
+  LIPC2F.epimp_main[0] = 0.;
+  LIPC2F.epimp_main[1] = 0.;
+  LIPC2F.epimp_main[2] = 0.;
+
+  LIPC2F.pmom_main = 0.; // SHOULD BE FILLED (currently not used in LIP rec)
+  LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
+}
+
+
+// conversion between AMS and LIP coordinate systems
+
+void coordams2lip(float pxams, float pyams, float pzams, float &pxlip, float &pylip, float &pzlip) {  
+  pxlip = pxams;
+  pylip = pyams;
+  pzlip = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzams;
+}
+
+void coordlip2ams(float pxlip, float pylip, float pzlip, float &pxams, float &pyams, float &pzams) {  
+  pxams = pxlip;
+  pyams = pylip;
+  pzams = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzlip;
+}
+
+void angleams2lip(float theams, float phiams, float &thelip, float &philip) {
+  thelip = theams;
+  philip = phiams;
+}
+
+void anglelip2ams(float thelip, float philip, float &theams, float &phiams) {
+  theams = thelip;
+  phiams = philip;
 }

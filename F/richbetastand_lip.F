@@ -44,6 +44,8 @@
       real resax,resbx,resvarx
       real resay,resby,resvary
 
+*      print*,'Entering RICHTOFTRACKINIT'
+
 *      print*,'ntofclu = ',ntofclu
 *      do i=1,ntofclu
 *         print*,'coo_tof(*,',i,') = ',
@@ -424,14 +426,18 @@ c$$$      thetac_in = acos(1./refind_in)
          chi2_out = chi2rec_fit/real(nbushits_fit)
          nuhits_out = nbushits_fit
          if(nuhits_out.gt.0) then
-            do k=1,nuhits_out
-               phit_out(k) = ipushits_fit(k)
-               used_out(k) = ireflechit_fit(ipushits_fit(k))
-            enddo
             do j=1,min(nbhits,nhitmax)
                hres_out(j) = chi2hit_fit(j)
+               used_out(j) = -1
+            enddo
+            do k=1,nuhits_out
+               phit_out(k) = ipushits_fit(k)
+               used_out(ipushits_fit(k))
+     +              = ireflechit_fit(ipushits_fit(k))
             enddo
          endif
+
+         resvlike = vlike
 
       else
          iflag_out = 0
@@ -443,6 +449,7 @@ c$$$      thetac_in = acos(1./refind_in)
          phi_out = -999.
          chi2_out = -999.
          nuhits_out = -999
+         resvlike = -999.
       endif
 
 * --- Filling of TOF common data
@@ -477,9 +484,9 @@ c$$$      thetac_in = acos(1./refind_in)
       if(nuhits_rectof.gt.0) then
          do k=1,nuhits_rectof
             phit_rectof(k) = phit_out(k)
-            used_rectof(k) = used_out(k)
          enddo
          do j=1,min(nbhits,nhitmax)
+            used_rectof(j) = used_out(j)
             hres_rectof(j) = hres_out(j)
          enddo
          invchi2_rectof = 0.
@@ -948,15 +955,16 @@ c$$$         nuhits_best = -999
                   chi2_out = chi2rec_fit/real(nbushits_fit)
                   nuhits_out = nbushits_fit                  
                   if(nuhits_out.gt.0) then
-                     do k=1,nuhits_out
-                        phit_out(k) = ipushits_fit(k)
-                        used_out(k) = ireflechit_fit(ipushits_fit(k))
-                     enddo
                      do j=1,min(nbhits,nhitmax)
                         hres_out(j) = chi2hit_fit(j)
+                        used_out(j) = -1
+                     enddo
+                     do k=1,nuhits_out
+                        phit_out(k) = ipushits_fit(k)
+                        used_out(ipushits_fit(k))
+     +                       = ireflechit_fit(ipushits_fit(k))
                      enddo
                   endif
-
                   dphistep=1.0
                   call richpkolm(dphistep,pk)  ! Kolmogorov probability
 
@@ -1087,12 +1095,14 @@ c$$$         nuhits_best = -999
             chi2_best = chi2rec_fit/real(nbushits_fit)
             nuhits_best = nbushits_fit                  
             if(nuhits_best.gt.0) then
-               do k=1,nuhits_best
-                  phit_best(k) = ipushits_fit(k)
-                  used_best(k) = ireflechit_fit(ipushits_fit(k))
-               enddo
                do j=1,min(nbhits,nhitmax)
                   hres_best(j) = chi2hit_fit(j)
+                  used_best(j) = -1
+               enddo
+               do k=1,nuhits_best
+                  phit_best(k) = ipushits_fit(k)
+                  used_best(ipushits_fit(k))
+     +                 = ireflechit_fit(ipushits_fit(k))
                enddo
             endif
 
@@ -1206,9 +1216,9 @@ c$$$         nuhits_best = -999
          if(nuhits_recstd.gt.0) then
             do k=1,nuhits_recstd
                phit_recstd(k) = phit_best(k)
-               used_recstd(k) = used_best(k)
             enddo
             do j=1,min(nbhits,nhitmax)
+               used_recstd(j) = used_best(j)
                hres_recstd(j) = hres_best(j)
             enddo
             invchi2_recstd = 0.
@@ -1220,6 +1230,8 @@ c$$$         nuhits_best = -999
          else
             invchi2_recstd = -999.
          endif
+
+         resvlike = vlike_best
 
       else
          print*,'RICHGRIDSTAND: unknown option!'
@@ -1705,7 +1717,7 @@ CU    USES amotry,funk
       endif
       if (iter.ge.ITMAX) then
 CC         pause 'ITMAX exceeded in amoeba'
-         print *,'(amoeba) ITMAX exceeded in amoeba' 
+*         print *,'(amoeba) ITMAX exceeded in amoeba' 
          ierr = 1
          return
       endif

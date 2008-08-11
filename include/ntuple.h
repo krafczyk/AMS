@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.109 2008/07/28 19:34:04 barao Exp $
+//  $Id: ntuple.h,v 1.110 2008/08/11 22:02:12 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -33,6 +33,7 @@ const int MAXLVL1    =     2;
 const int MAXRICMC   =   250;
 const int MAXRICHITS =   10880;
 const int MAXRICHRIN =   10;
+const int MAXRICHRINLIP =   10;
 const int MAXTRDCLMC   =   200;
 const int MAXTRDRHT   =   200;
 const int MAXTRDCL   =   100;
@@ -743,6 +744,7 @@ public:
   float resb_beta[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_thc[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_chi2[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_like[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_nhit[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_phit[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];
   int   resb_used[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];
@@ -798,6 +800,36 @@ friend class AMSRichRing;
 friend class AMSNtuple;
 }; 
 
+class RICRingLip {
+#define LIP_NHITMAX 1000
+public:
+  int NRingLips;
+  int Status[MAXRICHRINLIP];
+  float Beta[MAXRICHRINLIP];
+  float AngleRec[MAXRICHRINLIP];
+  float Chi2[MAXRICHRINLIP];
+  float Likelihood[MAXRICHRINLIP];
+  float Used[MAXRICHRINLIP];
+  float ProbKolm[MAXRICHRINLIP];
+  float Flatness[MAXRICHRINLIP][2];
+  float ChargeRec[MAXRICHRINLIP];
+  float ChargeProb[MAXRICHRINLIP][3];
+  float ChargeRecDir[MAXRICHRINLIP];
+  float ChargeRecMir[MAXRICHRINLIP];
+  float NpeRing[MAXRICHRINLIP];
+  float NpeRingDir[MAXRICHRINLIP];
+  float NpeRingRef[MAXRICHRINLIP];
+  float RingAcc[MAXRICHRINLIP][3];
+  float RingEff[MAXRICHRINLIP][6];
+  float HitsResiduals[MAXRICHRINLIP][LIP_NHITMAX];
+  int HitsStatus[MAXRICHRINLIP][LIP_NHITMAX];
+  //  int HitsAssoc[MAXRICHRINLIP][LIP_NHITMAX];
+  float TrackRec[MAXRICHRINLIP][10];
+
+friend class AMSRichRingLip;
+friend class AMSNtuple;
+}; 
+
 class AMSNtuple : public AMSNode{
 protected:
   integer _lun;
@@ -835,6 +867,7 @@ protected:
   RICMCNtuple _richmc;
   RICEventNtuple _richevent;
   RICRing _ring;
+  RICRingLip _ringlip;
 #ifdef __WRITEROOT__
   AMSEventR   _evroot02;
   static TTree* _tree;  
@@ -892,6 +925,7 @@ public:
   RICMCNtuple* Get_richmc() {return &_richmc;}
   RICEventNtuple* Get_richevent() {return &_richevent;}
   RICRing* Get_ring(){return &_ring;}
+  RICRingLip* Get_ringlip(){return &_ringlip;}
 
   void MemMonitor(const int n, int N);
 

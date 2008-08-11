@@ -46,6 +46,8 @@
 
 #include "../include/richrec_lipf.h"
 
+      betarec = -999.
+
       if(rad_kind.eq.-1) return
 
       if (nbhits_nass.eq.0) return
@@ -253,6 +255,8 @@ CC            prob_evt = fliketotall(cangrecmin)
                enddo
 * -----------> store beta reconstruction
                betarec = 1./refindex/cos(cangrec(ipthetac))
+* -----------> store likelihood value
+               resvlike = fliketotall(cangrec(ipthetac))
             else
                ipthetac = 0
                ntherec  = 0
@@ -260,6 +264,7 @@ CC            prob_evt = fliketotall(cangrecmin)
                call vfill(cangrec,ntherecmax,-999.)
                call vzero(nbushits, ntherecmax)
                call vfill(cangrec,ntherecmax,-999.)
+               resvlike = -999.
             endif
          endif
       enddo

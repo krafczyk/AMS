@@ -329,6 +329,10 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       real chgtest1,chgtest2,chgtest3
       real chgprob1,chgprob2,chgprob3
 
+* --- likelihood value
+
+      real resvlike
+
       common /richbetc/ 
      +         ipthetac,                       ! pointer to best fit
      +         ntherec,                        ! nb of rec cerenkov thetas
@@ -357,6 +361,9 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       common /chgprobres/
      +         chgtest1,chgtest2,chgtest3,     ! test charge values
      +         chgprob1,chgprob2,chgprob3      ! test charge probabilities
+
+      common /likeres/
+     +         resvlike                        ! likelihood function value at minimum
 
 * -----------------------------------------------------------------------
 * --- variables for cerenkov charge reconstruction (per event)

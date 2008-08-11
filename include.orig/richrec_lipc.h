@@ -131,7 +131,7 @@
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,
      +        resb_used,resc_iflag
-      real resb_beta,resb_thc,resb_chi2,
+      real resb_beta,resb_thc,resb_chi2,resb_like,
      +     resb_hres,resb_invchi2,resb_flatsin,resb_flatcos,
      +     resb_probkl,
      +     resc_cnpe,resc_cnpedir,resc_cnperef,resc_chg,resc_chgdir,
@@ -152,6 +152,7 @@
      +                 resb_beta(nmaxliprec),           ! rec velocity
      +                 resb_thc(nmaxliprec),            ! rec Cerenkov angle
      +                 resb_chi2(nmaxliprec),           ! chi2 of reconstruction
+     +                 resb_like(nmaxliprec),           ! likelihood value
      +                 resb_nhit(nmaxliprec),           ! number of used hits
      +                 resb_phit(nhitmax,nmaxliprec),   ! pointers to used hits
      +                 resb_used(nhitmax,nmaxliprec),   ! flags of used hits

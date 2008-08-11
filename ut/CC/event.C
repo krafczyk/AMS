@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.380 2008/08/05 14:47:38 choutko Exp $
+//  $Id: event.C,v 1.381 2008/08/11 22:01:00 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -110,6 +110,7 @@ void AMSEvent::_init(){
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
+      cout <<" sending eventtag begin "<<endl;
       AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
 #endif
       ptdv->SetTime(inserto,begino,endo);
@@ -961,6 +962,8 @@ void AMSEvent::_rerichinitevent(){
      new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
   ptr=AMSEvent::gethead()->add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRing",0),0));
+  ptr=AMSEvent::gethead()->add(
+    new AMSContainer(AMSID("AMSContainer:AMSRichRingLip",0),0));
 }
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
@@ -1856,10 +1859,19 @@ void AMSEvent::_rerichevent(){
     return;// "no FT/Ext-trig in LVL1 trigger"   
   }
   // Reconstruction CJD
-  if(RICRECFFKEY.recon[0])
+  if(RICRECFFKEY.recon[0]) {
     AMSRichRing::build();
-//
-//
+  }
+  // LIP reconstruction
+  if((RICRECFFKEY.recon[0]/10)%10) {
+    AMSRichRingLipSet LipRings;
+    LipRings.init();
+    LipRings.build();
+    //cout << "------------------------------ LIP results " << endl;
+    //cout << "Number of LIP Rings = " << LipRings.NumberOfRings() << endl;
+    LipRings.reset();
+  }
+
   AMSgObj::BookTimer.stop("RERICH");
 }
 //========================================================================

@@ -48,6 +48,7 @@ class AMSParticle;
 class AMSRichMCHit;
 class AMSRichRawEvent;
 class AMSRichRing;
+class AMSRichRingLip;
 class AMSNtuple;
 class AMSTOFCluster;
 class AMSTOFMCCluster;
@@ -85,6 +86,7 @@ class AMSParticle{};
 class AMSRichMCHit{};
 class AMSRichRawEvent{};
 class AMSRichRing{};
+class AMSRichRingLip{};
 class AMSNtuple{};
 class AMSTOFCluster{};
 class AMSTOFMCCluster{};
@@ -180,6 +182,7 @@ int   Ecal2DClusters;
 int   EcalShowers;
 int   RichHits;
 int   RichRings;
+int   RichRingLips;
 int   TofRawClusters;
 int   TofRawSides;
 int   TofClusters;  
@@ -236,7 +239,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,6)       //HeaderR
+  ClassDef(HeaderR,7)       //HeaderR
 };
 
 
@@ -1038,6 +1041,7 @@ public:
   //float lipBeta[10];                      ///< LIP reconstructed velocity
   //float lipThetaC[10];    		    ///< LIP reconstructed Cerenkov angle
   //float lipChi2[10];		            ///< Chi2 for LIP reconstruction
+  //float lipLikelihood[10];		    ///< Likelihood for LIP reconstruction
   //int   lipHitsUsed[10];	            ///< LIP hits used
   //int   lipHitPtr[10][1000];	            ///< Pointers to LIP used hits
   //int   lipHitFlag[10][1000];             ///< Flags of LIP used hits
@@ -1091,9 +1095,151 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
     return _Info;
   } 
-  virtual ~RichRingR(){}
+  virtual ~RichRingR(){};
   ClassDef(RichRingR,12)           // RichRingR
 }; 
+
+
+//!  LIP Rich Ring Structure
+
+/*!
+ \authors barao@lip.pt, pereira@lip.pt
+*/
+
+class RichRingLipR {
+static char _Info[255];
+ public:
+
+  int Status;                          ///< Reconstruction status
+                                       ///< Status = i+10*j,
+                                       ///< Kind of velocity reconstruction performed:
+                                       ///<          i = 2    (from standard track)
+                                       ///<          i = 3    (from standard track with larger errors, or from TOF data)
+                                       ///<          i = 4    (from RICH standalone)
+                                       ///< Charge reconstruction:
+                                       ///<          j = 0    (off)
+                                       ///<          j = 1    (on)
+  float Beta;                          ///< reconstructed velocity
+  float AngleRec;                      ///< reconstructed Cerenkov angle (rad)
+  float Chi2;                          ///< chi2 for reconstruction
+  float Likelihood;                    ///< likelihood prob for reconstruction
+  int Used;                            ///< number of hits used in reconstruction
+  float ProbKolm;                      ///< Kolmogorov prob for ring hits uniformity
+  float Flatness[2];                   ///< flatness parameter (sin,cos)
+  float ChargeRec;                     ///< reconstructed charge (full ring)
+  float ChargeProb[3];                 ///< probabilities for nearest integer charges
+  float ChargeRecDir;	               ///< reconstructed charge (from direct branch)
+  float ChargeRecMir;                  ///< reconstructed charge (from reflected branch)
+  float NpeRing;	               ///< n. of photoelectrons in ring (full ring)
+  float NpeRingDir;	               ///< n. of photoelectrons in ring (direct branch)
+  float NpeRingRef;	               ///< n. of photoelectrons in ring (reflected branch)
+  float RingAcc[3];	               ///< geometrical ring acceptances
+                                       ///< [0] = visible acceptance
+                                       ///< [1] = direct acceptance
+                                       ///< [2] = mirror acceptance, 1 reflection
+  float RingEff[6];                    ///< ring efficiencies
+                                       ///< [0] = total efficiency
+                                       ///< [1] = total efficiency, direct
+                                       ///< [2] = total efficiency, 1 reflection
+                                       ///< [3] = total efficiency, 2 reflection
+                                       ///< [4] = radiator efficiency * geometrical accceptance
+                                       ///< [5] = light guide efficiency
+  std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
+  std::vector<int> HitsStatus;         ///< hit status:
+                                       ///<         -1 = not associated to ring
+                                       ///<          0 = direct
+                                       ///<          1,2,... = reflected 1,2,... times
+  std::vector<float> TrackRec;         ///< reconstructed track parameters (rec. i=3,4 only)
+                                       ///< TrackRec[0] = x                TrackRec[1] = error in x
+                                       ///< TrackRec[2] = y                TrackRec[3] = error in y
+                                       ///< TrackRec[4] = z                TrackRec[5] = error in z
+                                       ///< TrackRec[6] = theta (radians)  TrackRec[7] = error in theta
+                                       ///< TrackRec[8] = phi (radians)    TrackRec[9] = error in phi
+
+ protected:
+  int fTrTrack;   ///< index of  TrTrackR in collection or null if rec. i=3 from on ToF data or i=4
+  vector<int> fRichHit; ///< indexes of RichHitR in collection
+  //void FillRichHits(int ringlip);
+ public:
+  /// access function to TrTrackR object used
+  /// \return index of TrTrackR object in collection or -1
+  int iTrTrack()const {return fTrTrack;}
+  /// access function to TrTrackR object used
+  /// \return pointer to TrTrackR object or 0
+  TrTrackR * pTrTrack();
+  /// access function to RichHitR objects used
+  /// \return index of RichHitR object in collection or -1
+  int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
+
+  RichRingLipR(){};
+  RichRingLipR(AMSRichRingLip *ptr);
+  friend class AMSRichRingLip;
+  friend class AMSEventR;
+  /// \param number index in container
+  /// \return human readable info about RichRingLipR
+  char * Info(int number=-1){
+    int tkStatus;
+    if(Status>10)
+      tkStatus=Status-10;
+    else
+      tkStatus=Status;
+    //sprintf(_Info,"RichRingLip No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
+    //sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
+
+
+
+
+
+
+
+  float Beta;                          ///< reconstructed velocity
+  float AngleRec;                      ///< reconstructed Cerenkov angle (rad)
+  float Chi2;                          ///< chi2 for reconstruction
+  float Likelihood;                    ///< likelihood prob for reconstruction
+  int Used;                            ///< number of hits used in reconstruction
+  float ProbKolm;                      ///< Kolmogorov prob for ring hits uniformity
+  float Flatness[2];                   ///< flatness parameter (sin,cos)
+  float ChargeRec;                     ///< reconstructed charge (full ring)
+  float ChargeProb[3];                 ///< probabilities for nearest integer charges
+  float ChargeRecDir;	               ///< reconstructed charge (from direct branch)
+  float ChargeRecMir;                  ///< reconstructed charge (from reflected branch)
+  float NpeRing;	               ///< n. of photoelectrons in ring (full ring)
+  float NpeRingDir;	               ///< n. of photoelectrons in ring (direct branch)
+  float NpeRingRef;	               ///< n. of photoelectrons in ring (reflected branch)
+  float RingAcc[3];	               ///< geometrical ring acceptances
+                                       ///< [0] = visible acceptance
+                                       ///< [1] = direct acceptance
+                                       ///< [2] = mirror acceptance, 1 reflection
+  float RingEff[6];                    ///< ring efficiencies
+                                       ///< [0] = total efficiency
+                                       ///< [1] = total efficiency, direct
+                                       ///< [2] = total efficiency, 1 reflection
+                                       ///< [3] = total efficiency, 2 reflection
+                                       ///< [4] = radiator efficiency * geometrical accceptance
+                                       ///< [5] = light guide efficiency
+  std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
+  std::vector<int> HitsStatus;         ///< hit status:
+                                       ///<         -1 = not associated to ring
+                                       ///<          0 = direct
+                                       ///<          1,2,... = reflected 1,2,... times
+  std::vector<float> TrackRec;         ///< reconstructed track parameters (rec. i=3,4 only)
+                                       ///< TrackRec[0] = x                TrackRec[1] = error in x
+                                       ///< TrackRec[2] = y                TrackRec[3] = error in y
+                                       ///< TrackRec[4] = z                TrackRec[5] = error in z
+                                       ///< TrackRec[6] = theta (radians)  TrackRec[7] = error in theta
+                                       ///< TrackRec[8] = phi (radians)    TrackRec[9] = error in phi
+
+
+
+
+
+
+    return _Info;
+  } 
+  virtual ~RichRingLipR(){};
+  ClassDef(RichRingLipR,1)           // RichRingLipR
+}; 
+
 
 /// TRDRawHitR structure
 /*!
@@ -2083,6 +2229,7 @@ static TBranch*  bEcal2DCluster;
 static TBranch*  bEcalShower;
 static TBranch*  bRichHit;
 static TBranch*  bRichRing;
+static TBranch*  bRichRingLip;
 static TBranch*  bTofRawCluster;
 static TBranch*  bTofRawSide;
 static TBranch*  bTofCluster;
@@ -2121,6 +2268,7 @@ static void*  vEcal2DCluster;
 static void*  vEcalShower;
 static void*  vRichHit;
 static void*  vRichRing;
+static void*  vRichRingLip;
 static void*  vTofRawCluster;
 static void*  vTofRawSide;
 static void*  vTofCluster;
@@ -2448,6 +2596,8 @@ int   nRichHit()const { return fHeader.RichHits;} ///< \return number of RichHit
 ///
 int   nRichRing()const { return fHeader.RichRings;} ///< \return number of RichRingR elements (fast)
 ///
+int   nRichRingLip()const { return fHeader.RichRingLips;} ///< \return number of RichRingLipR elements (fast)
+///
 int   nTofRawCluster()const { return fHeader.TofRawClusters;} ///< \return number of TofRawClusterR elements (fast)
 ///
 int   nTofRawSide()const { return fHeader.TofRawSides;} ///< \return number of TofRawSideR elements (fast)
@@ -2518,6 +2668,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   //RICH
   vector<RichHitR> fRichHit;
   vector<RichRingR> fRichRing;
+  vector<RichRingLipR> fRichRingLip;
 
 
 
@@ -2784,6 +2935,44 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       RichRingR *   pRichRing(unsigned int l) {
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
         return l<fRichRing.size()?&(fRichRing[l]):0;
+      }
+
+
+
+
+
+
+      ///  \return number of RichRingLipR
+      ///
+      unsigned int   NRichRingLip()  {
+        if(fHeader.RichRingLips && fRichRingLip.size()==0){
+           bRichRingLip->GetEntry(_Entry);
+        }
+        return fRichRingLip.size();
+      }
+      ///  \return reference of RichRingLipR Collection
+      ///
+      vector<RichRingLipR> & RichRingLip()  {
+        if(fHeader.RichRingLips && fRichRingLip.size()==0)bRichRingLip->GetEntry(_Entry);
+         return  fRichRingLip;
+       }
+
+       ///  RichRingLipR accessor
+       /// \param l index of RichRingLipR Collection
+      ///  \return reference to corresponding RichRingLipR element
+      ///
+       RichRingLipR &   RichRingLip(unsigned int l) {
+        if(fHeader.RichRingLips && fRichRingLip.size()==0)bRichRingLip->GetEntry(_Entry);
+         return fRichRingLip.at(l);
+      }
+
+       ///  RichRingLipR accessor
+       /// \param l index of RichRingLipR Collection
+      ///  \return pointer to corresponding RichRingLipR element
+      ///
+      RichRingLipR *   pRichRingLip(unsigned int l) {
+        if(fHeader.RichRingLips && fRichRingLip.size()==0)bRichRingLip->GetEntry(_Entry);
+        return l<fRichRingLip.size()?&(fRichRingLip[l]):0;
       }
 
 
@@ -3755,6 +3944,7 @@ void         AddAMSObject(AMSVtx *ptr);
 void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
 void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
 void         AddAMSObject(AMSRichRing *ptr);
+void         AddAMSObject(AMSRichRingLip *ptr);
 void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z);
 void         AddAMSObject(AMSTOFCluster *ptr);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
@@ -3777,7 +3967,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,7)       //AMSEventR
+ClassDef(AMSEventR,8)       //AMSEventR
 };
 
 //!  AMSChain class

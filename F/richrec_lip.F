@@ -179,47 +179,51 @@
 
          idummy=1
       endif
-
-*      print*,'INGOING VARIABLES'
-*      print*,'jobc_cp_c2f        = ',jobc_cp_c2f       
-*      print*,'ztoprad_ams_c2f    = ',ztoprad_ams_c2f   
-*      print*,'rcgeom_c2f         = ',rcgeom_c2f                          
-*      print*,'levgeom_c2f        = ',levgeom_c2f       
-*      print*,'levgrad_c2f        = ',levgrad_c2f       
-*      print*,'levacc_c2f         = ',levacc_c2f        
-*      print*,'ztarg_c2f          = ',ztarg_c2f         
-*      print*,'nradts_c2f         = ',nradts_c2f        
-*      print*,'hrad_c2f           = ',hrad_c2f          
-*      print*,'hrnaf_c2f          = ',hrnaf_c2f         
-*      print*,'radtile_pitch_c2f  = ',radtile_pitch_c2f 
-*      print*,'radtile_supthk_c2f = ',radtile_supthk_c2f
-*      print*,'radix_c2f          = ',radix_c2f         
-*      print*,'radclarity_c2f     = ',radclarity_c2f    
-*      print*,'hpgl_c2f	         = ',hpgl_c2f	         
-*      print*,'ztmirgap_c2f	 = ',ztmirgap_c2f	         
-*      print*,'zbmirgap_c2f       = ',zbmirgap_c2f                      
-*      print*,'reflec_c2f	 = ',reflec_c2f	         
-*      print*,'zpmtdet_c2f	 = ',zpmtdet_c2f	         
-*      print*,'zlgsignal_c2f      = ',zlgsignal_c2f     
-*      print*,'rtmir_c2f          = ',rtmir_c2f         
-*      print*,'rbmir_c2f          = ',rbmir_c2f         
-*      print*,'hmir_c2f           = ',hmir_c2f          
-*      print*,'pmtwx_c2f          = ',pmtwx_c2f         
-*      print*,'pmtwy_c2f          = ',pmtwy_c2f         
-*      print*,'shieldw_c2f        = ',shieldw_c2f       
-*      print*,'pglix_c2f          = ',pglix_c2f         
-*      print*,'emcxlim_c2f        = ',emcxlim_c2f       
-*      print*,'emcylim_c2f        = ',emcylim_c2f       
-*      print*,'lg_top_width_c2f   = ',lg_top_width_c2f  
-*      print*,'lg_bot_width_c2f   = ',lg_bot_width_c2f  
-*      print*,'lg_pitch_c2f       = ',lg_pitch_c2f      
-*      print*,'xbc_c2f            = ',xbc_c2f           
-*      print*,'xbd_c2f            = ',xbd_c2f           
-*      print*,'yef_c2f            = ',yef_c2f           
-*      print*,'xpc_c2f            = ',xpc_c2f           
-*      print*,'nbhits_ev          = ',nbhits_ev              
-*      print*,'nbhitsmax_ntup_ev  = ',nbhitsmax_ntup_ev      
-
+/*
+      print*,'INGOING VARIABLES'
+      print*,'jobc_cp_c2f        = ',jobc_cp_c2f       
+      print*,'ztoprad_ams_c2f    = ',ztoprad_ams_c2f   
+      print*,'rcgeom_c2f         = ',rcgeom_c2f                          
+      print*,'levgeom_c2f        = ',levgeom_c2f       
+      print*,'levgrad_c2f        = ',levgrad_c2f       
+      print*,'levacc_c2f         = ',levacc_c2f        
+      print*,'ztarg_c2f          = ',ztarg_c2f         
+      print*,'nradts_c2f         = ',nradts_c2f        
+      print*,'hrad_c2f           = ',hrad_c2f          
+      print*,'hrnaf_c2f          = ',hrnaf_c2f         
+      print*,'radtile_pitch_c2f  = ',radtile_pitch_c2f 
+      print*,'radtile_supthk_c2f = ',radtile_supthk_c2f
+      print*,'radix_c2f          = ',radix_c2f         
+      print*,'radclarity_c2f     = ',radclarity_c2f    
+      print*,'hpgl_c2f	         = ',hpgl_c2f	         
+      print*,'ztmirgap_c2f	 = ',ztmirgap_c2f	         
+      print*,'zbmirgap_c2f       = ',zbmirgap_c2f                      
+      print*,'reflec_c2f	 = ',reflec_c2f	         
+      print*,'zpmtdet_c2f	 = ',zpmtdet_c2f	         
+      print*,'zlgsignal_c2f      = ',zlgsignal_c2f     
+      print*,'rtmir_c2f          = ',rtmir_c2f         
+      print*,'rbmir_c2f          = ',rbmir_c2f         
+      print*,'hmir_c2f           = ',hmir_c2f          
+      print*,'pmtwx_c2f          = ',pmtwx_c2f         
+      print*,'pmtwy_c2f          = ',pmtwy_c2f         
+      print*,'shieldw_c2f        = ',shieldw_c2f       
+      print*,'pglix_c2f          = ',pglix_c2f         
+      print*,'emcxlim_c2f        = ',emcxlim_c2f       
+      print*,'emcylim_c2f        = ',emcylim_c2f       
+      print*,'lg_top_width_c2f   = ',lg_top_width_c2f  
+      print*,'lg_bot_width_c2f   = ',lg_bot_width_c2f  
+      print*,'lg_pitch_c2f       = ',lg_pitch_c2f      
+      print*,'xbc_c2f            = ',xbc_c2f           
+      print*,'xbd_c2f            = ',xbd_c2f           
+      print*,'yef_c2f            = ',yef_c2f           
+      print*,'xpc_c2f            = ',xpc_c2f           
+      print*,'nbhits_ev          = ',nbhits_ev              
+      print*,'nbhitsmax_ntup_ev  = ',nbhitsmax_ntup_ev      
+      print*,'INGOING TRACK'
+      print*,'pimp_main          = ',pimp_main
+      print*,'pthe_main (deg)    = ',pthe_main*RADDEG
+      print*,'pphi_main (deg)    = ',pphi_main*RADDEG
+*/
 * --- decode rec tasks
 
       idobeta = 0
@@ -452,136 +456,147 @@
 
 * ------ filling of beta rec data
 
-         if(irecnumb.le.NMAXLIPREC) then
-
-            if(betarec.gt.0) then
-               resb_iflag(irecnumb) = 1
-            else
-               resb_iflag(irecnumb) = 0
-            endif
-
-            resb_itype(irecnumb) = 2  ! number 2 = standard LIP rec
-            resb_itrk(irecnumb) = itrknumb
-            resb_beta(irecnumb) = betarec
-            resb_thc(irecnumb) = cangrec(ipthetac)
-            resb_chi2(irecnumb) = chi2rec(ipthetac)
-            resb_nhit(irecnumb) = nbushits(ipthetac)
-
-            do k=1,nbushits(ipthetac)
-               resb_phit(k,irecnumb) = ipushits(ipthetac,k)
-               resb_used(k,irecnumb) =
-     +              ireflechit(ipthetac,ipushits(ipthetac,k))
-            enddo
-
-            do j=1,min(nbhits,nhitmax)
-               resb_hres(j,irecnumb) = chi2hit(ipthetac,j)
-            enddo
-
-            resb_invchi2(irecnumb) = 0.
-            do k=1,nbushits(ipthetac)
-               if (chi2hit(ipthetac,k).gt.CHI2HTCUT) then
-                  resb_invchi2(irecnumb) = resb_invchi2(irecnumb)
-     +                                     +1./chi2hit(ipthetac,k)
-               endif
-            enddo
-
-            resb_flatsin(irecnumb) = flatevt(1)
-            resb_flatcos(irecnumb) = flatevt(2)
-            resb_probkl(irecnumb) = pkolmog(ipthetac)
-
-            do n=1,3
-               resb_pimp(n,irecnumb) = pimp(n)
-               resb_epimp(n,irecnumb) = 0.
-            enddo
-
-            resb_pthe(irecnumb) = pthe
-            resb_epthe(irecnumb) = 0.
-            resb_pphi(irecnumb) = pphi
-            resb_epphi(irecnumb) = 0.
-
-            do i=1,50
-               rstd_creclike(i,irecnumb) = -999.
-               rstd_crecx0(i,irecnumb) = -999.
-               rstd_crecy0(i,irecnumb) = -999.
-               rstd_crectheta(i,irecnumb) = -999.
-               rstd_crecphi(i,irecnumb) = -999.
-               rstd_crecbeta(i,irecnumb) = -999.
-               rstd_crecuhits(i,irecnumb) = -999
-               rstd_crecpkol(i,irecnumb) = -999.
-            enddo
-
+         if (ipthetac.eq.0) then 
+            resb_iflag(irecnumb) = 0
+            resc_iflag(irecnumb) = 0
          endif
+
+         if (ipthetac.gt.0) then
+
+            if (irecnumb.le.NMAXLIPREC) then
+
+               if(betarec.gt.0.5) then ! here cut at 0 is not good since failed recs give zero
+                  resb_iflag(irecnumb) = 1
+               else
+                  resb_iflag(irecnumb) = 0
+               endif
+               
+               resb_itype(irecnumb) = 2 ! number 2 = standard LIP rec
+               resb_itrk(irecnumb) = itrknumb
+               resb_beta(irecnumb) = betarec
+               resb_thc(irecnumb) = cangrec(ipthetac)
+               resb_chi2(irecnumb) = chi2rec(ipthetac)
+               resb_like(irecnumb) = resvlike
+               resb_nhit(irecnumb) = nbushits(ipthetac)
+               
+               do j=1,min(nbhits,nhitmax)
+                  resb_hres(j,irecnumb) = chi2hit(ipthetac,j)
+                  resb_used(j,irecnumb) = -1
+               enddo
+               
+               do k=1,nbushits(ipthetac)
+                  resb_phit(k,irecnumb) = ipushits(ipthetac,k)
+                  resb_used(ipushits(ipthetac,k),irecnumb) =
+     +                 ireflechit(ipthetac,ipushits(ipthetac,k))
+               enddo
+               
+               resb_invchi2(irecnumb) = 0.
+               do k=1,nbushits(ipthetac)
+                  if (chi2hit(ipthetac,k).gt.CHI2HTCUT) then
+                     resb_invchi2(irecnumb) = resb_invchi2(irecnumb)
+     +                    +1./chi2hit(ipthetac,k)
+                  endif
+               enddo
+               
+               resb_flatsin(irecnumb) = flatevt(1)
+               resb_flatcos(irecnumb) = flatevt(2)
+               resb_probkl(irecnumb) = pkolmog(ipthetac)
+               
+               do n=1,3
+                  resb_pimp(n,irecnumb) = pimp(n)
+                  resb_epimp(n,irecnumb) = 0.
+               enddo
+               
+               resb_pthe(irecnumb) = pthe
+               resb_epthe(irecnumb) = 0.
+               resb_pphi(irecnumb) = pphi
+               resb_epphi(irecnumb) = 0.
+               
+               do i=1,50
+                  rstd_creclike(i,irecnumb) = -999.
+                  rstd_crecx0(i,irecnumb) = -999.
+                  rstd_crecy0(i,irecnumb) = -999.
+                  rstd_crectheta(i,irecnumb) = -999.
+                  rstd_crecphi(i,irecnumb) = -999.
+                  rstd_crecbeta(i,irecnumb) = -999.
+                  rstd_crecuhits(i,irecnumb) = -999
+                  rstd_crecpkol(i,irecnumb) = -999.
+               enddo
+               
+            endif
 
 **************************************
 * --- charge reconstruction (beta rec)
 **************************************
 
-         if(idochg.eq.1) then
+            if (idochg.eq.1) then
 
-* --------- call charge reconstruction
-            call richchgrec
+*     --------- call charge reconstruction
+               call richchgrec
+               
+*     --------- charge probability
+               if (chgrec.gt.0.) then
+               
+*     print*,'*** Charge rec'
+*     print*,'    chgrec = ',chgrec
 
-* --------- charge probability
-            if(chgrec.gt.0.) then
-
-*               print*,'*** Charge rec'
-*               print*,'    chgrec = ',chgrec
-
-               chgtest1 = nint(chgrec)-1.
-               chgtest2 = nint(chgrec)+0.
-               chgtest3 = nint(chgrec)+1.
-
-*               print*,'chgtest1 = ',chgtest1
-*               print*,'chgtest2 = ',chgtest2
-*               print*,'chgtest3 = ',chgtest3
-
-               call probchg(chgtest1,0.2,chgrec,chgprob1)
-               call probchg(chgtest2,0.2,chgrec,chgprob2)
-               call probchg(chgtest3,0.2,chgrec,chgprob3)
-
-*               print*,'chgprob1 = ',chgprob1
+                  chgtest1 = nint(chgrec)-1.
+                  chgtest2 = nint(chgrec)+0.
+                  chgtest3 = nint(chgrec)+1.
+                  
+*     print*,'chgtest1 = ',chgtest1
+*     print*,'chgtest2 = ',chgtest2
+*     print*,'chgtest3 = ',chgtest3
+                  
+                  call probchg(chgtest1,0.2,chgrec,chgprob1)
+                  call probchg(chgtest2,0.2,chgrec,chgprob2)
+                  call probchg(chgtest3,0.2,chgrec,chgprob3)
+               
+*     print*,'chgprob1 = ',chgprob1
 *               print*,'chgprob2 = ',chgprob2
-*               print*,'chgprob3 = ',chgprob3
-
-            endif
+*     print*,'chgprob3 = ',chgprob3
+               
+               endif
 
 * --------- filling of charge rec data
 
-            if(irecnumb.le.NMAXLIPREC) then
+               if (irecnumb.le.NMAXLIPREC) then
 
-               if(chgrec.gt.0.) then
-                  resc_iflag(irecnumb) = 1
-               else
-                  resc_iflag(irecnumb) = 0
+                  if(chgrec.gt.0.) then
+                     resc_iflag(irecnumb) = 1
+                  else
+                     resc_iflag(irecnumb) = 0
+                  endif
+                  
+                  resc_cnpe(irecnumb) = chg_nphe
+                  resc_cnpedir(irecnumb) = chg_nphe_dir
+                  resc_cnperef(irecnumb) = chg_nphe_ref
+                  resc_chg(irecnumb) = chgrec
+                  resc_chgdir(irecnumb) = chgrec_dir
+                  resc_chgmir(irecnumb) = chgrec_mir
+                  resc_accgeom(1,irecnumb) = richacc_vis
+                  resc_accgeom(2,irecnumb) = richacc_dir
+                  resc_accgeom(3,irecnumb) = richacc_mir0
+                  resc_eff(1,irecnumb) = richeff_tot
+                  resc_eff(2,irecnumb) = richeff_dir
+                  resc_eff(3,irecnumb) = richeff_1rf
+                  resc_eff(4,irecnumb) = richeff_2rf
+                  resc_eff(5,irecnumb) = richeff_rad
+                  resc_eff(6,irecnumb) = richeff_lg
+                  resc_chgprob(1,irecnumb) = chgprob1
+                  resc_chgprob(2,irecnumb) = chgprob2
+                  resc_chgprob(3,irecnumb) = chgprob3
+               
                endif
+            
+            else
 
-               resc_cnpe(irecnumb) = chg_nphe
-               resc_cnpedir(irecnumb) = chg_nphe_dir
-               resc_cnperef(irecnumb) = chg_nphe_ref
-               resc_chg(irecnumb) = chgrec
-               resc_chgdir(irecnumb) = chgrec_dir
-               resc_chgmir(irecnumb) = chgrec_mir
-               resc_accgeom(1,irecnumb) = richacc_vis
-               resc_accgeom(2,irecnumb) = richacc_dir
-               resc_accgeom(3,irecnumb) = richacc_mir0
-               resc_eff(1,irecnumb) = richeff_tot
-               resc_eff(2,irecnumb) = richeff_dir
-               resc_eff(3,irecnumb) = richeff_1rf
-               resc_eff(4,irecnumb) = richeff_2rf
-               resc_eff(5,irecnumb) = richeff_rad
-               resc_eff(6,irecnumb) = richeff_lg
-               resc_chgprob(1,irecnumb) = chgprob1
-               resc_chgprob(2,irecnumb) = chgprob2
-               resc_chgprob(3,irecnumb) = chgprob3
-
+               if(irecnumb.le.NMAXLIPREC) then
+                  resc_iflag(irecnumb) = -1
+               endif
+               
             endif
-
-         else
-
-            if(irecnumb.le.NMAXLIPREC) then
-               resc_iflag(irecnumb) = -1
-            endif
-
+            
          endif
 
       endif
@@ -630,6 +645,7 @@
             resb_beta(irecnumb) = beta_rectof
             resb_thc(irecnumb) = thc_rectof
             resb_chi2(irecnumb) = chi2_rectof
+            resb_like(irecnumb) = resvlike
             resb_nhit(irecnumb) = nuhits_rectof
             do i=1,nhitmax
                resb_phit(i,irecnumb) = phit_rectof(i)
@@ -775,6 +791,7 @@
             resb_beta(irecnumb) = beta_recstd
             resb_thc(irecnumb) = thc_recstd
             resb_chi2(irecnumb) = chi2_recstd
+            resb_like(irecnumb) = resvlike
             resb_nhit(irecnumb) = nuhits_recstd
             do i=1,nhitmax
                resb_phit(i,irecnumb) = phit_recstd(i)
@@ -889,41 +906,48 @@
 ************
 * --- OUTPUT
 ************
+/*
+      do k=irecnumbini+1,irecnumb
+         print*,' '
+         print*,'OUTGOING VARIABLES FOR RECONSTRUCTION ',k
+         print*,'resb_iflag    = ',resb_iflag(k)
+         print*,'resb_itype    = ',resb_itype(k)
+         print*,'resb_itrk     = ',resb_itrk(k)
+         print*,'resb_beta     = ',resb_beta(k)
+         print*,'resb_thc (d)  = ',resb_thc(k)*RADDEG
+         print*,'resb_chi2     = ',resb_chi2(k)     
+         print*,'resb_like     = ',resb_like(k)     
+         print*,'resb_nhit     = ',resb_nhit(k)      
+         print*,'resb_phit     = ',(resb_phit(i,k),i=1,resb_nhit(k))
+         print*,'resb_used     = ',(resb_used(i,k),i=1,nbhits_ev)
+         print*,'resb_hres     = ',(resb_hres(i,k),i=1,nbhits_ev)
+         print*,'resb_invchi2  = ',resb_invchi2(k)    
+         print*,'resb_flatsin  = ',resb_flatsin(k)    
+         print*,'resb_flatcos  = ',resb_flatcos(k)    
+         print*,'resb_probkl   = ',resb_probkl(k)     
+         print*,'resc_iflag    = ',resc_iflag(k)      
+         print*,'resc_cnpe     = ',resc_cnpe(k)       
+         print*,'resc_cnpedir  = ',resc_cnpedir(k)    
+         print*,'resc_cnperef  = ',resc_cnperef(k)    
+         print*,'resc_chg      = ',resc_chg(k)        
+         print*,'resc_chgdir   = ',resc_chgdir(k)     
+         print*,'resc_chgmir   = ',resc_chgmir(k)     
+         print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
+         print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
+         print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
+         print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
+         print*,'resb_epimp     = ',(resb_epimp(i,k),i=1,3)
+         print*,'resb_pthe(d)  = ',resb_pthe(k)*RADDEG 
+         print*,'resb_epthe(d)  = ',resb_epthe(k)*RADDEG 
+         print*,'resb_pphi(d)  = ',resb_pphi(k)*RADDEG
+         print*,'resb_epphi(d)  = ',resb_epphi(k)*RADDEG
+         print*,' '
+      enddo
+*/
 
 *      do k=irecnumbini+1,irecnumb
-*         print*,' '
-*         print*,'OUTGOING VARIABLES FOR RECONSTRUCTION ',k
-*         print*,'resb_iflag    = ',resb_iflag(k)
-*         print*,'resb_itype    = ',resb_itype(k)
-*         print*,'resb_itrk     = ',resb_itrk(k)
-*         print*,'resb_beta     = ',resb_beta(k)
-*         print*,'resb_thc (d)  = ',resb_thc(k)*RADDEG
-*         print*,'resb_chi2     = ',resb_chi2(k)     
-*         print*,'resb_nhit     = ',resb_nhit(k)      
-*         print*,'resb_phit     = ',(resb_phit(i,k),i=1,resb_nhit(k))
-*         print*,'resb_used     = ',(resb_used(i,k),i=1,nbhits_ev)
-*         print*,'resb_hres     = ',(resb_hres(i,k),i=1,nbhits_ev)
-*         print*,'resb_invchi2  = ',resb_invchi2(k)    
-*         print*,'resb_flatsin  = ',resb_flatsin(k)    
-*         print*,'resb_flatcos  = ',resb_flatcos(k)    
-*         print*,'resb_probkl   = ',resb_probkl(k)     
-*         print*,'resc_iflag    = ',resc_iflag(k)      
-*         print*,'resc_cnpe     = ',resc_cnpe(k)       
-*         print*,'resc_cnpedir  = ',resc_cnpedir(k)    
-*         print*,'resc_cnperef  = ',resc_cnperef(k)    
-*         print*,'resc_chg      = ',resc_chg(k)        
-*         print*,'resc_chgdir   = ',resc_chgdir(k)     
-*         print*,'resc_chgmir   = ',resc_chgmir(k)     
-*         print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
-*         print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
-*         print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
-*         print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
-*         print*,'resb_epimp     = ',(resb_epimp(i,k),i=1,3)
-*         print*,'resb_pthe(d)  = ',resb_pthe(k)*RADDEG 
-*         print*,'resb_epthe(d)  = ',resb_epthe(k)*RADDEG 
-*         print*,'resb_pphi(d)  = ',resb_pphi(k)*RADDEG
-*         print*,'resb_epphi(d)  = ',resb_epphi(k)*RADDEG
-*         print*,' '
+*         print*,'LIP flag/type/track/beta:',resb_iflag(k),
+*     +        resb_itype(k),resb_itrk(k),resb_beta(k)
 *      enddo
 
 * --- FILL OBSOLETE VARIABLES FROM COMMON LIPVAR
@@ -935,7 +959,7 @@
             thcrec = resb_thc(k)
             vbetarec = resb_beta(k)
             vebetarec = 0.
-            likep = 0.
+            likep = resb_like(k)
             chi2beta = resb_chi2(k)
             rprob = 0.
          endif

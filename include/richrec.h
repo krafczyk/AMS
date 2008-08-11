@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.44 2008/07/28 19:34:04 barao Exp $
+//  $Id: richrec.h,v 1.45 2008/08/11 22:02:18 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -163,7 +163,7 @@ static geant _Time;
   vector<int> _hit_used;
 
   
-//#ifdef __LIPDATASAVE__
+//#ifdef __LIPDAASAVE__
   // NEW VARIABLES
 // parameters used in array sizes below
 // (should match those in other files)
@@ -175,6 +175,7 @@ static geant _Time;
   number  _resb_beta[LIP_NMAXLIPREC];
   number  _resb_thc[LIP_NMAXLIPREC];
   number  _resb_chi2[LIP_NMAXLIPREC];
+  number  _resb_like[LIP_NMAXLIPREC];
   integer _resb_nhit[LIP_NMAXLIPREC];
   integer _resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX];
   integer _resb_used[LIP_NMAXLIPREC][LIP_NHITMAX];
@@ -290,11 +291,12 @@ protected:
   void _copyEl();
   void CalcBetaError();
   void ReconRingNpexp(geant window_size=3.,int cleanup=0);
+
 public:
   //+LIP
   AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
 //#ifdef __LIPDATASAVE__
-	      int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX],int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[LIP_NMAXLIPREC][3],geant resc_eff[LIP_NMAXLIPREC][6],geant resc_chgprob[LIP_NMAXLIPREC][3],geant resb_pimp[LIP_NMAXLIPREC][3],geant resb_epimp[LIP_NMAXLIPREC][3],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[LIP_NMAXLIPREC][50],geant rstd_crecx0[LIP_NMAXLIPREC][50],geant rstd_crecy0[LIP_NMAXLIPREC][50],geant rstd_crectheta[LIP_NMAXLIPREC][50],geant rstd_crecphi[LIP_NMAXLIPREC][50],geant rstd_crecbeta[LIP_NMAXLIPREC][50],int rstd_crecuhits[LIP_NMAXLIPREC][50],geant rstd_crecpkol[LIP_NMAXLIPREC][50],
+	      int resb_iflag[LIP_NMAXLIPREC],int resb_itype[LIP_NMAXLIPREC],int resb_itrk[LIP_NMAXLIPREC],geant resb_beta[LIP_NMAXLIPREC],geant resb_thc[LIP_NMAXLIPREC],geant resb_chi2[LIP_NMAXLIPREC],geant resb_like[LIP_NMAXLIPREC],int resb_nhit[LIP_NMAXLIPREC],int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX],int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_hres[LIP_NMAXLIPREC][LIP_NHITMAX],geant resb_invchi2[LIP_NMAXLIPREC],geant resb_flatsin[LIP_NMAXLIPREC],geant resb_flatcos[LIP_NMAXLIPREC],geant resb_probkl[LIP_NMAXLIPREC],int resc_iflag[LIP_NMAXLIPREC],geant resc_cnpe[LIP_NMAXLIPREC],geant resc_cnpedir[LIP_NMAXLIPREC],geant resc_cnperef[LIP_NMAXLIPREC],geant resc_chg[LIP_NMAXLIPREC],geant resc_chgdir[LIP_NMAXLIPREC],geant resc_chgmir[LIP_NMAXLIPREC],geant resc_accgeom[LIP_NMAXLIPREC][3],geant resc_eff[LIP_NMAXLIPREC][6],geant resc_chgprob[LIP_NMAXLIPREC][3],geant resb_pimp[LIP_NMAXLIPREC][3],geant resb_epimp[LIP_NMAXLIPREC][3],geant resb_pthe[LIP_NMAXLIPREC],geant resb_epthe[LIP_NMAXLIPREC],geant resb_pphi[LIP_NMAXLIPREC],geant resb_epphi[LIP_NMAXLIPREC],geant rstd_creclike[LIP_NMAXLIPREC][50],geant rstd_crecx0[LIP_NMAXLIPREC][50],geant rstd_crecy0[LIP_NMAXLIPREC][50],geant rstd_crectheta[LIP_NMAXLIPREC][50],geant rstd_crecphi[LIP_NMAXLIPREC][50],geant rstd_crecbeta[LIP_NMAXLIPREC][50],int rstd_crecuhits[LIP_NMAXLIPREC][50],geant rstd_crecpkol[LIP_NMAXLIPREC][50],
 //#else
 /* 	      int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob, */
 //#endif
@@ -360,6 +362,156 @@ public:
 #ifdef __WRITEROOT__
 friend class RichRingR;
 #endif
+};
+
+
+
+// Container for LIP rings
+
+class AMSRichRingLip: public AMSlink{
+
+#ifdef __WRITEROOT__
+  friend class AMSTrTrack;
+#endif
+ private:
+
+  static void _Start(){TIMEX(_Time);}
+  static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
+  static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
+  static geant _Time;
+
+  AMSTrTrack* _ptrack;
+
+  // reconstruction status
+  int _Status;            // status of reconstruction
+  // velocity reconstruction
+  float _Beta;            // reconstructed velocity
+  float _AngleRec;        // reconstructed Cerenkov angle
+  float _Chi2;            // chi2 for reconstruction
+  float _Likelihood;      // likelihood for reconstruction
+  int _Used;              // number of hits used in reconstruction
+  float _ProbKolm;        // Kolmogorov probability for reconstruction
+  float _Flatness[2];     // flatness parameter (sin,cos)
+  // charge reconstruction
+  float _ChargeRec;       // reconstructed charge (full ring)
+  float _ChargeProb[3];   // probabilities for nearest integer charges
+  float _ChargeRecDir;	  // reconstructed charge (direct branch)
+  float _ChargeRecMir;    // reconstructed charge (reflected branch)
+  float _NpeRing;	  // no. photoelectrons in ring (full ring)
+  float _NpeRingDir;	  // no. photoelectrons in ring (direct branch)
+  float _NpeRingRef;	  // no. photoelectrons in ring (reflected branch)
+  float _RingAcc[3];	  // ring geometrical acceptances
+  float _RingEff[6];	  // ring efficiencies
+
+ protected:
+
+  // hit data
+  std::vector<float> _HitsResiduals;    // residuals of (ring and non-ring) hits in reconstruction
+  std::vector<int>   _HitsStatus;       // status of hits
+  std::vector<int>   _HitsAssoc;        // list of hits associated to reconstructed ring
+  std::vector<float> _TrackRec;         // track parameters obtained in LIP reconstruction
+                                        // _TrackRec[0] = x                _TrackRec[1] = error in x
+                                        // _TrackRec[2] = y                _TrackRec[3] = error in y
+                                        // _TrackRec[4] = z                _TrackRec[5] = error in z
+                                        // _TrackRec[6] = theta (radians)  _TrackRec[7] = error in theta
+                                        // _TrackRec[8] = phi (radians)    _TrackRec[9] = error in phi
+
+  void _printEl(ostream &stream){stream<<" Lip Beta "<<_Beta<<" Cerenkov Angle "<<_AngleRec<<endl;}
+  void _writeEl();
+  void _copyEl();
+
+  // Data from the class RichRadiatorTile
+
+  static number _index;  // refractive index used in the reconstruction
+                         // intended for using with two radiators
+  static number _height; // Radiator height
+  static AMSPoint _entrance_p;  // Entrance point in the radiator 
+  static AMSDir   _entrance_d;  // Entrance direction
+
+  static AMSPoint _emission_p;
+  static AMSDir   _emission_d;
+
+  static geant   _clarity;
+  static geant *_abs_len;
+  static geant *_index_tbl;
+  static int _kind_of_tile;
+
+ public:
+
+  AMSRichRingLip(AMSTrTrack* , int);
+  AMSRichRingLip(AMSTrTrack* , int , float , float , float , float ,
+                 int , float , float*, float , float *, 
+                 float , float , float , float , float ,
+                 float *, float *, std::vector<float> , std::vector<int> , 
+                 std::vector<int> , std::vector<float> );
+  ~AMSRichRingLip(){};
+  //AMSRichRingLip * next(){return (AMSRichRingLip*)_next;}
+
+  int buildlip();
+  void fillresult();
+
+  AMSTrTrack* gettrack(){return _ptrack;}
+
+  int getStatus(){return _Status;}
+  float getBeta(){return _Beta;}
+  float getAngleRec(){return _AngleRec;}
+  float getChi2(){return _Chi2;}
+  float getLikelihood(){return _Likelihood;}
+  float getUsed(){return _Used;}
+  float getProbKolm(){return _ProbKolm;}
+  float getFlatness(int i){return _Flatness[i];}
+  float getChargeRec(){return _ChargeRec;}
+  float getChargeProb(int i){return _ChargeProb[i];}
+  float getChargeRecDir(){return _ChargeRecDir;}
+  float getChargeRecMir(){return _ChargeRecMir;}
+  float getNpeRing(){return _NpeRing;}
+  float getNpeRingDir(){return _NpeRingDir;}
+  float getNpeRingRef(){return _NpeRingRef;}
+  float getRingAcc(int i){return _RingAcc[i];}
+  float getRingEff(int i){return _RingEff[i];}
+  std::vector<float> getHitsResiduals(){return _HitsResiduals;}
+  std::vector<int> getHitsStatus(){return _HitsStatus;}
+  std::vector<int> getHitsAssoc(){return _HitsAssoc;}
+  std::vector<float> getTrackRec(){return _TrackRec;}
+#ifdef __WRITEROOT__
+  friend class RichRingLipR;
+#endif
+};
+
+// LIP functions prototype
+void richiniteventlip();
+void richinittracklip(AMSPoint, AMSDir);
+void coordams2lip(float pxams, float pyams, float pzams, float &pxlip, float &pylip, float &pzlip);
+void coordlip2ams(float pxlip, float pylip, float pzlip, float &pxams, float &pyams, float &pzams);
+void angleams2lip(float theams, float phiams, float &thelip, float &philip);
+void anglelip2ams(float thelip, float philip, float &theams, float &phiams);
+int goodLIPREC();
+
+
+// Container for LIP ring recs
+
+class AMSRichRingLipSet {
+
+ public:
+
+  AMSRichRingLipSet();
+  ~AMSRichRingLipSet();
+  void reset();
+  void build();
+  void init();
+  AMSRichRingLip* getring(int);
+  void AddRing(AMSRichRingLip*);
+  int NumberOfRings();
+
+ private:
+
+  vector<AMSRichRingLip*> ringset;
+
+  static void _Start(){TIMEX(_Time);}
+  static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
+  static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
+  static geant _Time;
+
 };
 
 
