@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.88 2008/08/13 08:14:43 mdelgado Exp $
+//  $Id: richrec.C,v 1.89 2008/08/13 13:34:16 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2520,24 +2520,24 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
 //////////////////////////////////////////////////////////// LIP
 
 // Default values... currently unused: filled during reconstruction
-number AMSRichRingLip::_index=1.05;
-number AMSRichRingLip::_height=3.;
-AMSPoint AMSRichRingLip::_entrance_p=AMSPoint(0,0,0);
-AMSDir   AMSRichRingLip::_entrance_d=AMSDir(0,0);
-AMSPoint AMSRichRingLip::_emission_p=AMSPoint(0,0,0);
-AMSDir   AMSRichRingLip::_emission_d=AMSDir(0,0);
-geant   AMSRichRingLip::_clarity=0.0113;
-geant   *AMSRichRingLip::_abs_len=0;
-geant   *AMSRichRingLip::_index_tbl=0;
+number AMSRichRingNew::_index=1.05;
+number AMSRichRingNew::_height=3.;
+AMSPoint AMSRichRingNew::_entrance_p=AMSPoint(0,0,0);
+AMSDir   AMSRichRingNew::_entrance_d=AMSDir(0,0);
+AMSPoint AMSRichRingNew::_emission_p=AMSPoint(0,0,0);
+AMSDir   AMSRichRingNew::_emission_d=AMSDir(0,0);
+geant   AMSRichRingNew::_clarity=0.0113;
+geant   *AMSRichRingNew::_abs_len=0;
+geant   *AMSRichRingNew::_index_tbl=0;
 
-int     AMSRichRingLip::_kind_of_tile=0;
+int     AMSRichRingNew::_kind_of_tile=0;
 
-geant AMSRichRingLip::_Time=0;
+geant AMSRichRingNew::_Time=0;
 
 
 ////////////////////////////////////////// methods
 
-AMSRichRingLip::AMSRichRingLip(AMSTrTrack* track, int Status) {  
+AMSRichRingNew::AMSRichRingNew(AMSTrTrack* track, int Status) {  
 _ptrack = track;
 _Status = Status;
 _HitsResiduals.clear();
@@ -2546,7 +2546,7 @@ _HitsAssoc.clear();
 _TrackRec.clear();     
 }
 
-int AMSRichRingLip::buildlip(){
+int AMSRichRingNew::buildlip(){
 
   int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
   if(ARRAYSIZE==0) return 0;
@@ -2590,7 +2590,7 @@ int AMSRichRingLip::buildlip(){
 
   if (goodLIPREC()) {
     fillresult();
-    AMSEvent::gethead()->addnext(AMSID("AMSRichRingLip",0),this);
+    AMSEvent::gethead()->addnext(AMSID("AMSRichRingNew",0),this);
     return 1;
   } 
   else {
@@ -2600,7 +2600,7 @@ int AMSRichRingLip::buildlip(){
 }
 
 
-void AMSRichRingLip::fillresult(){
+void AMSRichRingNew::fillresult(){
 
   // Fill the container
 
@@ -2657,7 +2657,7 @@ void AMSRichRingLip::fillresult(){
 
   // test prints for debugging
   cout << "-----------------------------" << endl;
-  cout << "DATA STORED IN AMSRichRingLip" << endl;
+  cout << "DATA STORED IN AMSRichRingNew" << endl;
   cout << "-----------------------------" << endl;
   cout << "Status = " << done->getStatus() << endl;
   cout << "Beta = " << done->getBeta() << endl;
@@ -2728,125 +2728,104 @@ void AMSRichRingLip::fillresult(){
 }
 
 
-void AMSRichRingLip::_writeEl(){
+void AMSRichRingNew::_writeEl(){
 #define LIP_NHITMAX 1000
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
-  RICRingLip* cluster=AMSJob::gethead()->getntuple()->Get_ringlip();
+  RICRingNew* cluster=AMSJob::gethead()->getntuple()->Get_ringnew();
   
-  if(cluster->NRingLips>=MAXRICHRINLIP) return;
+  if(cluster->NRingNews>=MAXRICHRINLIP) return;
 
   // LINK TO USED TRACK... TO BE DONE
-  //if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRingLips]=-1;
-  //else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRingLips]=-1;
-  //else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRingLips]=-1;
-  //else cluster->track[cluster->NRingLips]=_ptrack->getpos();
+  //if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRingNews]=-1;
+  //else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRingNews]=-1;
+  //else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRingNews]=-1;
+  //else cluster->track[cluster->NRingNews]=_ptrack->getpos();
 
-  cluster->Status[cluster->NRingLips]=_Status;
-  cluster->Beta[cluster->NRingLips]=_Beta;
-  cluster->AngleRec[cluster->NRingLips]=_AngleRec;
-  cluster->Chi2[cluster->NRingLips]=_Chi2;
-  cluster->Likelihood[cluster->NRingLips]=_Likelihood;
-  cluster->Used[cluster->NRingLips]=_Used;
-  cluster->ProbKolm[cluster->NRingLips]=_ProbKolm;
+  cluster->Status[cluster->NRingNews]=_Status;
+  cluster->Beta[cluster->NRingNews]=_Beta;
+  cluster->AngleRec[cluster->NRingNews]=_AngleRec;
+  cluster->Chi2[cluster->NRingNews]=_Chi2;
+  cluster->Likelihood[cluster->NRingNews]=_Likelihood;
+  cluster->Used[cluster->NRingNews]=_Used;
+  cluster->ProbKolm[cluster->NRingNews]=_ProbKolm;
   for(int i=0;i<2;i++){
-    cluster->Flatness[cluster->NRingLips][i]=_Flatness[i];
+    cluster->Flatness[cluster->NRingNews][i]=_Flatness[i];
   }
-  cluster->ChargeRec[cluster->NRingLips]=_ChargeRec;
+  cluster->ChargeRec[cluster->NRingNews]=_ChargeRec;
   for(int i=0;i<3;i++){
-    cluster->ChargeProb[cluster->NRingLips][i]=_ChargeProb[i];
+    cluster->ChargeProb[cluster->NRingNews][i]=_ChargeProb[i];
   }
-  cluster->ChargeRecDir[cluster->NRingLips]=_ChargeRecDir;
-  cluster->ChargeRecMir[cluster->NRingLips]=_ChargeRecMir;
-  cluster->NpeRing[cluster->NRingLips]=_NpeRing;
-  cluster->NpeRingDir[cluster->NRingLips]=_NpeRingDir;
-  cluster->NpeRingRef[cluster->NRingLips]=_NpeRingRef;
+  cluster->ChargeRecDir[cluster->NRingNews]=_ChargeRecDir;
+  cluster->ChargeRecMir[cluster->NRingNews]=_ChargeRecMir;
+  cluster->NpeRing[cluster->NRingNews]=_NpeRing;
+  cluster->NpeRingDir[cluster->NRingNews]=_NpeRingDir;
+  cluster->NpeRingRef[cluster->NRingNews]=_NpeRingRef;
   for(int i=0;i<3;i++){
-    cluster->RingAcc[cluster->NRingLips][i]=_RingAcc[i];
+    cluster->RingAcc[cluster->NRingNews][i]=_RingAcc[i];
   }
   for(int i=0;i<6;i++){
-    cluster->RingEff[cluster->NRingLips][i]=_RingEff[i];
+    cluster->RingEff[cluster->NRingNews][i]=_RingEff[i];
   }
   for(int i=0;i<LIP_NHITMAX;i++){
     if(i<_HitsResiduals.size()) {
-      cluster->HitsResiduals[cluster->NRingLips][i]=_HitsResiduals[i];
+      cluster->HitsResiduals[cluster->NRingNews][i]=_HitsResiduals[i];
     }
     else {
-      cluster->HitsResiduals[cluster->NRingLips][i]=-999.;
+      cluster->HitsResiduals[cluster->NRingNews][i]=-999.;
     }
   }
   for(int i=0;i<LIP_NHITMAX;i++){
     if(i<_HitsStatus.size()) {
-      cluster->HitsStatus[cluster->NRingLips][i]=_HitsStatus[i];
+      cluster->HitsStatus[cluster->NRingNews][i]=_HitsStatus[i];
     }
     else {
-      cluster->HitsStatus[cluster->NRingLips][i]=-999;
+      cluster->HitsStatus[cluster->NRingNews][i]=-999;
     }
   }
   for(int i=0;i<10;i++){
     if(i<_TrackRec.size()) {
-      cluster->TrackRec[cluster->NRingLips][i]=_TrackRec[i];
+      cluster->TrackRec[cluster->NRingNews][i]=_TrackRec[i];
     }
     else {
-      cluster->TrackRec[cluster->NRingLips][i]=-999;
+      cluster->TrackRec[cluster->NRingNews][i]=-999;
     }
   }
 
-  cluster->NRingLips++;
+  cluster->NRingNews++;
 }
 
 
-void AMSRichRingLip::_copyEl(){  // TO BE DONE
+void AMSRichRingNew::_copyEl(){  // TO BE DONE
 #ifdef __WRITEROOT__
   //if(PointerNotSet())return;
-  //RichRingLipR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingLip(_vpos);
+  //RichRingNewR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingNew(_vpos);
   //if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
   //else ptr.fTrTrack=-1;
 #endif
 }
 
 
-AMSRichRingLip::AMSRichRingLip(AMSTrTrack* track,int Status,float Beta,float AngleRec,float Chi2,float Likelihood,int Used,float ProbKolm,float Flatness[2],float ChargeRec,float ChargeProb[3],float ChargeRecDir,float ChargeRecMir,float NpeRing,float NpeRingDir,float NpeRingRef,float RingAcc[3],float RingEff[6],std::vector<float> HitsResiduals,std::vector<int> HitsStatus,std::vector<int> HitsAssoc,std::vector<float> TrackRec):
-  _Status(Status),_Beta(Beta),_AngleRec(AngleRec),_Chi2(Chi2),_Likelihood(Likelihood),_Used(Used),_ProbKolm(ProbKolm),_ChargeRec(ChargeRec),_ChargeRecDir(ChargeRecDir),_ChargeRecMir(ChargeRecMir),_NpeRing(NpeRing),_NpeRingDir(NpeRingDir),_NpeRingRef(NpeRingRef),_HitsResiduals(HitsResiduals),_HitsStatus(HitsStatus),_HitsAssoc(HitsAssoc),_TrackRec(TrackRec)
-{
-  //track 
-  _ptrack = track;
-
-  //LIP specific
-  for(int i=0;i<2;i++) {
-    _Flatness[i] = Flatness[i];
-  }
-  for(int i=0;i<3;i++) {
-    _ChargeProb[i] = ChargeProb[i];
-  }
-  for(int i=0;i<3;i++) {
-    _RingAcc[i] = RingAcc[i];
-  }
-  for(int i=0;i<6;i++) {
-    _RingEff[i] = RingEff[i];
-  }
-}
-
 
 //////////////////////////////////////////////////////////// LIP Ring set
 
 
-AMSRichRingLipSet::AMSRichRingLipSet () {ringset.clear();}
+AMSRichRingNewSet::AMSRichRingNewSet () {ringset.clear();}
 
-AMSRichRingLipSet::~AMSRichRingLipSet () {
+AMSRichRingNewSet::~AMSRichRingNewSet () {
   for (int i=0; i<ringset.size(); i++) {
     delete ringset[i];
   }
   ringset.clear();
 }
 
-void AMSRichRingLipSet::reset() {
+void AMSRichRingNewSet::reset() {
   ringset.clear();
 }
 
 
-AMSRichRingLip* AMSRichRingLipSet::getring(int i) {
+AMSRichRingNew* AMSRichRingNewSet::getring(int i) {
   if (i<ringset.size()) {
     return ringset[i];
   }
@@ -2855,15 +2834,15 @@ AMSRichRingLip* AMSRichRingLipSet::getring(int i) {
   }
 }
 
-void AMSRichRingLipSet::AddRing(AMSRichRingLip* ring) {ringset.push_back(ring);}
+void AMSRichRingNewSet::AddRing(AMSRichRingNew* ring) {ringset.push_back(ring);}
 
-void AMSRichRingLipSet::init() {
+void AMSRichRingNewSet::init() {
     richiniteventlip();
 }
 
-int AMSRichRingLipSet::NumberOfRings() { return (int)ringset.size();}
+int AMSRichRingNewSet::NumberOfRings() { return (int)ringset.size();}
 
-void AMSRichRingLipSet::build() {
+void AMSRichRingNewSet::build() {
 
   // Build rec rings for all the tracks 
 
@@ -2889,7 +2868,7 @@ void AMSRichRingLipSet::build() {
 
   //Loop on ams tracks
   AMSTrTrack *track;
-  AMSRichRingLip *pliprec;
+  AMSRichRingNew *pliprec;
   int j=0,k=0;
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
@@ -2906,9 +2885,9 @@ void AMSRichRingLipSet::build() {
       if (lipflag&0x0001 || lipflag&0x0010) {
 	j++;
         if (lipflag&0x0010) {
-	  pliprec = new AMSRichRingLip(track, 12);
+	  pliprec = new AMSRichRingNew(track, 12);
         } else {
-	  pliprec = new AMSRichRingLip(track, 2);
+	  pliprec = new AMSRichRingNew(track, 2);
 	}
 	if ( pliprec->buildlip() ) {
 	  k++;
@@ -2920,9 +2899,9 @@ void AMSRichRingLipSet::build() {
       if (lipflag&0x0002 || lipflag&0x0020) {
 	j++;
         if (lipflag&0x0020) {
-	  pliprec = new AMSRichRingLip(track, 13);
+	  pliprec = new AMSRichRingNew(track, 13);
         } else {
-	  pliprec = new AMSRichRingLip(track, 3);
+	  pliprec = new AMSRichRingNew(track, 3);
 	}
 	if ( pliprec->buildlip() ) {
 	  k++;
@@ -2943,9 +2922,9 @@ void AMSRichRingLipSet::build() {
   LIPC2F.itrknumb = -1;
   if (lipflag&0x0004 || lipflag&0x0040) {
     if (lipflag&0x0040) {
-      pliprec = new AMSRichRingLip(NULL, 13);
+      pliprec = new AMSRichRingNew(NULL, 13);
     } else {
-      pliprec = new AMSRichRingLip(NULL, 3);
+      pliprec = new AMSRichRingNew(NULL, 3);
     }
     if ( pliprec->buildlip() ) {
       k++;
@@ -2957,9 +2936,9 @@ void AMSRichRingLipSet::build() {
   LIPC2F.itrknumb = 0;
   if (lipflag&0x0008 || lipflag&0x0080) {
     if (lipflag&0x0080) {
-      pliprec = new AMSRichRingLip(NULL, 14);
+      pliprec = new AMSRichRingNew(NULL, 14);
     } else {
-      pliprec = new AMSRichRingLip(NULL, 4);
+      pliprec = new AMSRichRingNew(NULL, 4);
     }
     if ( pliprec->buildlip() ) {
       k++;
@@ -3033,7 +3012,7 @@ void richiniteventlip() {
     if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
 
     if(actual>=LIP_NBHITSMAX) {
-      cout << "AMSRichRingLip::richiniteventlip : Event too long."<<endl;
+      cout << "AMSRichRingNew::richiniteventlip : Event too long."<<endl;
       break;
     }
 

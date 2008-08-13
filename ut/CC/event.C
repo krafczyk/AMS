@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.381 2008/08/11 22:01:00 barao Exp $
+//  $Id: event.C,v 1.382 2008/08/13 13:34:16 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -963,7 +963,7 @@ void AMSEvent::_rerichinitevent(){
   ptr=AMSEvent::gethead()->add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRing",0),0));
   ptr=AMSEvent::gethead()->add(
-    new AMSContainer(AMSID("AMSContainer:AMSRichRingLip",0),0));
+    new AMSContainer(AMSID("AMSContainer:AMSRichRingNew",0),0));
 }
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
@@ -1864,12 +1864,12 @@ void AMSEvent::_rerichevent(){
   }
   // LIP reconstruction
   if((RICRECFFKEY.recon[0]/10)%10) {
-    AMSRichRingLipSet LipRings;
-    LipRings.init();
-    LipRings.build();
+    AMSRichRingNewSet NewRings;
+    NewRings.init();
+    NewRings.build();
     //cout << "------------------------------ LIP results " << endl;
-    //cout << "Number of LIP Rings = " << LipRings.NumberOfRings() << endl;
-    LipRings.reset();
+    //cout << "Number of LIP Rings = " << NewRings.NumberOfRings() << endl;
+    NewRings.reset();
   }
 
   AMSgObj::BookTimer.stop("RERICH");

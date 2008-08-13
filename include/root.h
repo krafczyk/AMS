@@ -48,7 +48,7 @@ class AMSParticle;
 class AMSRichMCHit;
 class AMSRichRawEvent;
 class AMSRichRing;
-class AMSRichRingLip;
+class AMSRichRingNew;
 class AMSNtuple;
 class AMSTOFCluster;
 class AMSTOFMCCluster;
@@ -86,7 +86,7 @@ class AMSParticle{};
 class AMSRichMCHit{};
 class AMSRichRawEvent{};
 class AMSRichRing{};
-class AMSRichRingLip{};
+class AMSRichRingNew{};
 class AMSNtuple{};
 class AMSTOFCluster{};
 class AMSTOFMCCluster{};
@@ -182,7 +182,7 @@ int   Ecal2DClusters;
 int   EcalShowers;
 int   RichHits;
 int   RichRings;
-int   RichRingLips;
+int   RichRingNews;
 int   TofRawClusters;
 int   TofRawSides;
 int   TofClusters;  
@@ -239,7 +239,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,7)       //HeaderR
+  ClassDef(HeaderR,8)       //HeaderR
 };
 
 
@@ -1106,7 +1106,7 @@ public:
  \authors barao@lip.pt, pereira@lip.pt
 */
 
-class RichRingLipR {
+class RichRingNewR {
 static char _Info[255];
  public:
 
@@ -1159,7 +1159,7 @@ static char _Info[255];
  protected:
   int fTrTrack;   ///< index of  TrTrackR in collection or null if rec. i=3 from on ToF data or i=4
   vector<int> fRichHit; ///< indexes of RichHitR in collection
-  //void FillRichHits(int ringlip);
+  //void FillRichHits(int ringnew);
  public:
   /// access function to TrTrackR object used
   /// \return index of TrTrackR object in collection or -1
@@ -1171,19 +1171,19 @@ static char _Info[255];
   /// \return index of RichHitR object in collection or -1
   int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
 
-  RichRingLipR(){};
-  RichRingLipR(AMSRichRingLip *ptr);
-  friend class AMSRichRingLip;
+  RichRingNewR(){};
+  RichRingNewR(AMSRichRingNew *ptr);
+  friend class AMSRichRingNew;
   friend class AMSEventR;
   /// \param number index in container
-  /// \return human readable info about RichRingLipR
+  /// \return human readable info about RichRingNewR
   char * Info(int number=-1){
     int tkStatus;
     if(Status>10)
       tkStatus=Status-10;
     else
       tkStatus=Status;
-    //sprintf(_Info,"RichRingLip No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
+    //sprintf(_Info,"RichRingNew No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
     //sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
 
 
@@ -1236,8 +1236,8 @@ static char _Info[255];
 
     return _Info;
   } 
-  virtual ~RichRingLipR(){};
-  ClassDef(RichRingLipR,1)           // RichRingLipR
+  virtual ~RichRingNewR(){};
+  ClassDef(RichRingNewR,1)           // RichRingNewR
 }; 
 
 
@@ -2229,7 +2229,7 @@ static TBranch*  bEcal2DCluster;
 static TBranch*  bEcalShower;
 static TBranch*  bRichHit;
 static TBranch*  bRichRing;
-static TBranch*  bRichRingLip;
+static TBranch*  bRichRingNew;
 static TBranch*  bTofRawCluster;
 static TBranch*  bTofRawSide;
 static TBranch*  bTofCluster;
@@ -2268,7 +2268,7 @@ static void*  vEcal2DCluster;
 static void*  vEcalShower;
 static void*  vRichHit;
 static void*  vRichRing;
-static void*  vRichRingLip;
+static void*  vRichRingNew;
 static void*  vTofRawCluster;
 static void*  vTofRawSide;
 static void*  vTofCluster;
@@ -2596,7 +2596,7 @@ int   nRichHit()const { return fHeader.RichHits;} ///< \return number of RichHit
 ///
 int   nRichRing()const { return fHeader.RichRings;} ///< \return number of RichRingR elements (fast)
 ///
-int   nRichRingLip()const { return fHeader.RichRingLips;} ///< \return number of RichRingLipR elements (fast)
+int   nRichRingNew()const { return fHeader.RichRingNews;} ///< \return number of RichRingNewR elements (fast)
 ///
 int   nTofRawCluster()const { return fHeader.TofRawClusters;} ///< \return number of TofRawClusterR elements (fast)
 ///
@@ -2668,7 +2668,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   //RICH
   vector<RichHitR> fRichHit;
   vector<RichRingR> fRichRing;
-  vector<RichRingLipR> fRichRingLip;
+  vector<RichRingNewR> fRichRingNew;
 
 
 
@@ -2942,37 +2942,37 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 
-      ///  \return number of RichRingLipR
+      ///  \return number of RichRingNewR
       ///
-      unsigned int   NRichRingLip()  {
-        if(fHeader.RichRingLips && fRichRingLip.size()==0){
-           bRichRingLip->GetEntry(_Entry);
+      unsigned int   NRichRingNew()  {
+        if(fHeader.RichRingNews && fRichRingNew.size()==0){
+           bRichRingNew->GetEntry(_Entry);
         }
-        return fRichRingLip.size();
+        return fRichRingNew.size();
       }
-      ///  \return reference of RichRingLipR Collection
+      ///  \return reference of RichRingNewR Collection
       ///
-      vector<RichRingLipR> & RichRingLip()  {
-        if(fHeader.RichRingLips && fRichRingLip.size()==0)bRichRingLip->GetEntry(_Entry);
-         return  fRichRingLip;
+      vector<RichRingNewR> & RichRingNew()  {
+        if(fHeader.RichRingNews && fRichRingNew.size()==0)bRichRingNew->GetEntry(_Entry);
+         return  fRichRingNew;
        }
 
-       ///  RichRingLipR accessor
-       /// \param l index of RichRingLipR Collection
-      ///  \return reference to corresponding RichRingLipR element
+       ///  RichRingNewR accessor
+       /// \param l index of RichRingNewR Collection
+      ///  \return reference to corresponding RichRingNewR element
       ///
-       RichRingLipR &   RichRingLip(unsigned int l) {
-        if(fHeader.RichRingLips && fRichRingLip.size()==0)bRichRingLip->GetEntry(_Entry);
-         return fRichRingLip.at(l);
+       RichRingNewR &   RichRingNew(unsigned int l) {
+        if(fHeader.RichRingNews && fRichRingNew.size()==0)bRichRingNew->GetEntry(_Entry);
+         return fRichRingNew.at(l);
       }
 
-       ///  RichRingLipR accessor
-       /// \param l index of RichRingLipR Collection
-      ///  \return pointer to corresponding RichRingLipR element
+       ///  RichRingNewR accessor
+       /// \param l index of RichRingNewR Collection
+      ///  \return pointer to corresponding RichRingNewR element
       ///
-      RichRingLipR *   pRichRingLip(unsigned int l) {
-        if(fHeader.RichRingLips && fRichRingLip.size()==0)bRichRingLip->GetEntry(_Entry);
-        return l<fRichRingLip.size()?&(fRichRingLip[l]):0;
+      RichRingNewR *   pRichRingNew(unsigned int l) {
+        if(fHeader.RichRingNews && fRichRingNew.size()==0)bRichRingNew->GetEntry(_Entry);
+        return l<fRichRingNew.size()?&(fRichRingNew[l]):0;
       }
 
 
@@ -3944,7 +3944,7 @@ void         AddAMSObject(AMSVtx *ptr);
 void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
 void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
 void         AddAMSObject(AMSRichRing *ptr);
-void         AddAMSObject(AMSRichRingLip *ptr);
+void         AddAMSObject(AMSRichRingNew *ptr);
 void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z);
 void         AddAMSObject(AMSTOFCluster *ptr);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
@@ -3967,7 +3967,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,8)       //AMSEventR
+ClassDef(AMSEventR,9)       //AMSEventR
 };
 
 //!  AMSChain class

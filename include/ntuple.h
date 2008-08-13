@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.110 2008/08/11 22:02:12 barao Exp $
+//  $Id: ntuple.h,v 1.111 2008/08/13 13:34:16 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -800,10 +800,10 @@ friend class AMSRichRing;
 friend class AMSNtuple;
 }; 
 
-class RICRingLip {
+class RICRingNew {
 #define LIP_NHITMAX 1000
 public:
-  int NRingLips;
+  int NRingNews;
   int Status[MAXRICHRINLIP];
   float Beta[MAXRICHRINLIP];
   float AngleRec[MAXRICHRINLIP];
@@ -826,7 +826,7 @@ public:
   //  int HitsAssoc[MAXRICHRINLIP][LIP_NHITMAX];
   float TrackRec[MAXRICHRINLIP][10];
 
-friend class AMSRichRingLip;
+friend class AMSRichRingNew;
 friend class AMSNtuple;
 }; 
 
@@ -867,7 +867,7 @@ protected:
   RICMCNtuple _richmc;
   RICEventNtuple _richevent;
   RICRing _ring;
-  RICRingLip _ringlip;
+  RICRingNew _ringnew;
 #ifdef __WRITEROOT__
   AMSEventR   _evroot02;
   static TTree* _tree;  
@@ -925,7 +925,7 @@ public:
   RICMCNtuple* Get_richmc() {return &_richmc;}
   RICEventNtuple* Get_richevent() {return &_richevent;}
   RICRing* Get_ring(){return &_ring;}
-  RICRingLip* Get_ringlip(){return &_ringlip;}
+  RICRingNew* Get_ringnew(){return &_ringnew;}
 
   void MemMonitor(const int n, int N);
 

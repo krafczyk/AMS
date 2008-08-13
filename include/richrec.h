@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.45 2008/08/11 22:02:18 barao Exp $
+//  $Id: richrec.h,v 1.46 2008/08/13 13:34:16 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -368,7 +368,7 @@ friend class RichRingR;
 
 // Container for LIP rings
 
-class AMSRichRingLip: public AMSlink{
+class AMSRichRingNew: public AMSlink{
 
 #ifdef __WRITEROOT__
   friend class AMSTrTrack;
@@ -438,14 +438,9 @@ class AMSRichRingLip: public AMSlink{
 
  public:
 
-  AMSRichRingLip(AMSTrTrack* , int);
-  AMSRichRingLip(AMSTrTrack* , int , float , float , float , float ,
-                 int , float , float*, float , float *, 
-                 float , float , float , float , float ,
-                 float *, float *, std::vector<float> , std::vector<int> , 
-                 std::vector<int> , std::vector<float> );
-  ~AMSRichRingLip(){};
-  //AMSRichRingLip * next(){return (AMSRichRingLip*)_next;}
+  AMSRichRingNew(AMSTrTrack* , int);
+  ~AMSRichRingNew(){};
+  //AMSRichRingNew * next(){return (AMSRichRingNew*)_next;}
 
   int buildlip();
   void fillresult();
@@ -474,7 +469,7 @@ class AMSRichRingLip: public AMSlink{
   std::vector<int> getHitsAssoc(){return _HitsAssoc;}
   std::vector<float> getTrackRec(){return _TrackRec;}
 #ifdef __WRITEROOT__
-  friend class RichRingLipR;
+  friend class RichRingNewR;
 #endif
 };
 
@@ -490,22 +485,22 @@ int goodLIPREC();
 
 // Container for LIP ring recs
 
-class AMSRichRingLipSet {
+class AMSRichRingNewSet {
 
  public:
 
-  AMSRichRingLipSet();
-  ~AMSRichRingLipSet();
+  AMSRichRingNewSet();
+  ~AMSRichRingNewSet();
   void reset();
   void build();
   void init();
-  AMSRichRingLip* getring(int);
-  void AddRing(AMSRichRingLip*);
+  AMSRichRingNew* getring(int);
+  void AddRing(AMSRichRingNew*);
   int NumberOfRings();
 
  private:
 
-  vector<AMSRichRingLip*> ringset;
+  vector<AMSRichRingNew*> ringset;
 
   static void _Start(){TIMEX(_Time);}
   static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
