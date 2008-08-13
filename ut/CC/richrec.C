@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.89 2008/08/13 13:34:16 barao Exp $
+//  $Id: richrec.C,v 1.90 2008/08/13 15:31:20 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1842,7 +1842,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 #define LIP_NMAXLIPREC 10
   for(int k=0;k<LIP_NMAXLIPREC;k++) {
     LIPF2C.resb_iflag[k] = -1;
-    LIPF2C.resb_itype[k] = 0;
+    LIPF2C.resb_itype[k] = -999;
     LIPF2C.resb_itrk[k] = -999;
     LIPF2C.resc_iflag[k] = -1;
   }
@@ -1914,7 +1914,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
     if((lipflag & 0x0008) == 0x0008) {
       //cout << "LIP STANDALONE REC MODULE" << endl;
-      LIPC2F.itrknumb = 0;
+      LIPC2F.itrknumb = -2;
 
       iliparg = 4;  // standalone reconstruction (no track used)
       if((lipflag & 0x0080) == 0x0080) {
@@ -2065,8 +2065,8 @@ void AMSRichRing::richiniteventlip() {
   }
 
   // reset track and reconstruction counters
-  LIPC2F.irecnumb = 0;
-  LIPC2F.itrknumb = 0;
+  LIPC2F.irecnumb = -1;  // value is increased in beginning of cycle, so 1st reconstruction will have number 0
+  LIPC2F.itrknumb = -1;  // value is increased in beginning of cycle, so 1st track will have number 0
 
 }
 
@@ -2604,7 +2604,7 @@ void AMSRichRingNew::fillresult(){
 
   // Fill the container
 
-  int nr = LIPC2F.irecnumb-1;
+  int nr = LIPC2F.irecnumb;
   
   _Beta = LIPF2C.resb_beta[nr];
   _AngleRec = LIPF2C.resb_thc[nr];
@@ -2861,7 +2861,7 @@ void AMSRichRingNewSet::build() {
   // reset reconstruction flags (internal LIP data set)
   for(int k=0;k<LIP_NMAXLIPREC;k++) {
     LIPF2C.resb_iflag[k] = -1;
-    LIPF2C.resb_itype[k] = 0;
+    LIPF2C.resb_itype[k] = -999;
     LIPF2C.resb_itrk[k] = -999;
     LIPF2C.resc_iflag[k] = -1;
   }
@@ -2933,7 +2933,7 @@ void AMSRichRingNewSet::build() {
   }
 
   /* standalone */
-  LIPC2F.itrknumb = 0;
+  LIPC2F.itrknumb = -2;
   if (lipflag&0x0008 || lipflag&0x0080) {
     if (lipflag&0x0080) {
       pliprec = new AMSRichRingNew(NULL, 14);
@@ -2952,7 +2952,7 @@ void AMSRichRingNewSet::build() {
 ////////////////////////////////////////////////////////////////////// LIP functions
 
 int goodLIPREC() {
-  int nr = LIPC2F.irecnumb-1;
+  int nr = LIPC2F.irecnumb;
   return (LIPF2C.resb_iflag[nr]==1);
 }
 
@@ -3085,8 +3085,8 @@ void richiniteventlip() {
   }
 
   // reset track and reconstruction counters
-  LIPC2F.irecnumb = 0;
-  LIPC2F.itrknumb = 0;
+  LIPC2F.irecnumb = -1;  // value is increased in beginning of cycle, so 1st reconstruction will have number 0
+  LIPC2F.itrknumb = -1;  // value is increased in beginning of cycle, so 1st track will have number 0
 
 }
 

@@ -124,8 +124,8 @@
      +                  coo_tof(3,nmaxtofclu),     ! TOF cluster coordinates (cm)
      +                  errcoo_tof(3,nmaxtofclu),  ! TOF cluster coordinate errors (cm)
                       ! [ TRACK AND RECONSTRUCTION COUNTERS ]
-     +                  irecnumb,                  ! Number of LIP recs performed so far
-     +                  itrknumb                   ! Number of tracks used by LIP so far
+     +                  irecnumb,                  ! Number of LIP recs performed so far (minus one)
+     +                  itrknumb                   ! Number of tracks used by LIP so far (minus one)
 
 * ===============================================================================================
 
@@ -148,7 +148,7 @@
                                                         ! (-1=not called, 0=bad, 1=good)
      +                 resb_itype(nmaxliprec),          ! rec type, follows RICH convention
                                                         ! (2=standard, 3=TOF, 4=standalone)
-     +                 resb_itrk(nmaxliprec),           ! track used (1-N=from global rec, 0=standalone, -1=LIP-TOF)
+     +                 resb_itrk(nmaxliprec),           ! track used (0-N=from global rec, -1=LIP-TOF, -2=standalone)
      +                 resb_beta(nmaxliprec),           ! rec velocity
      +                 resb_thc(nmaxliprec),            ! rec Cerenkov angle
      +                 resb_chi2(nmaxliprec),           ! chi2 of reconstruction

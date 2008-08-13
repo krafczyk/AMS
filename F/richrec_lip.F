@@ -457,70 +457,70 @@
 * ------ filling of beta rec data
 
          if (ipthetac.eq.0) then 
-            resb_iflag(irecnumb) = 0
-            resc_iflag(irecnumb) = 0
+            resb_iflag(irecnumb+1) = 0
+            resc_iflag(irecnumb+1) = 0
          endif
 
          if (ipthetac.gt.0) then
 
-            if (irecnumb.le.NMAXLIPREC) then
+            if (irecnumb+1.le.NMAXLIPREC) then
 
                if(betarec.gt.0.5) then ! here cut at 0 is not good since failed recs give zero
-                  resb_iflag(irecnumb) = 1
+                  resb_iflag(irecnumb+1) = 1
                else
-                  resb_iflag(irecnumb) = 0
+                  resb_iflag(irecnumb+1) = 0
                endif
                
-               resb_itype(irecnumb) = 2 ! number 2 = standard LIP rec
-               resb_itrk(irecnumb) = itrknumb
-               resb_beta(irecnumb) = betarec
-               resb_thc(irecnumb) = cangrec(ipthetac)
-               resb_chi2(irecnumb) = chi2rec(ipthetac)
-               resb_like(irecnumb) = resvlike
-               resb_nhit(irecnumb) = nbushits(ipthetac)
+               resb_itype(irecnumb+1) = 2 ! number 2 = standard LIP rec
+               resb_itrk(irecnumb+1) = itrknumb
+               resb_beta(irecnumb+1) = betarec
+               resb_thc(irecnumb+1) = cangrec(ipthetac)
+               resb_chi2(irecnumb+1) = chi2rec(ipthetac)
+               resb_like(irecnumb+1) = resvlike
+               resb_nhit(irecnumb+1) = nbushits(ipthetac)
                
                do j=1,min(nbhits,nhitmax)
-                  resb_hres(j,irecnumb) = chi2hit(ipthetac,j)
-                  resb_used(j,irecnumb) = -1
+                  resb_hres(j,irecnumb+1) = chi2hit(ipthetac,j)
+                  resb_used(j,irecnumb+1) = -1
                enddo
                
                do k=1,nbushits(ipthetac)
-                  resb_phit(k,irecnumb) = ipushits(ipthetac,k)
-                  resb_used(ipushits(ipthetac,k),irecnumb) =
+                  resb_phit(k,irecnumb+1) = ipushits(ipthetac,k)
+                  resb_used(ipushits(ipthetac,k),irecnumb+1) =
      +                 ireflechit(ipthetac,ipushits(ipthetac,k))
                enddo
                
-               resb_invchi2(irecnumb) = 0.
+               resb_invchi2(irecnumb+1) = 0.
                do k=1,nbushits(ipthetac)
                   if (chi2hit(ipthetac,k).gt.CHI2HTCUT) then
-                     resb_invchi2(irecnumb) = resb_invchi2(irecnumb)
+                     resb_invchi2(irecnumb+1) = resb_invchi2(irecnumb+1)
      +                    +1./chi2hit(ipthetac,k)
                   endif
                enddo
                
-               resb_flatsin(irecnumb) = flatevt(1)
-               resb_flatcos(irecnumb) = flatevt(2)
-               resb_probkl(irecnumb) = pkolmog(ipthetac)
+               resb_flatsin(irecnumb+1) = flatevt(1)
+               resb_flatcos(irecnumb+1) = flatevt(2)
+               resb_probkl(irecnumb+1) = pkolmog(ipthetac)
                
                do n=1,3
-                  resb_pimp(n,irecnumb) = pimp(n)
-                  resb_epimp(n,irecnumb) = 0.
+                  resb_pimp(n,irecnumb+1) = pimp(n)
+                  resb_epimp(n,irecnumb+1) = 0.
                enddo
                
-               resb_pthe(irecnumb) = pthe
-               resb_epthe(irecnumb) = 0.
-               resb_pphi(irecnumb) = pphi
-               resb_epphi(irecnumb) = 0.
+               resb_pthe(irecnumb+1) = pthe
+               resb_epthe(irecnumb+1) = 0.
+               resb_pphi(irecnumb+1) = pphi
+               resb_epphi(irecnumb+1) = 0.
                
                do i=1,50
-                  rstd_creclike(i,irecnumb) = -999.
-                  rstd_crecx0(i,irecnumb) = -999.
-                  rstd_crecy0(i,irecnumb) = -999.
-                  rstd_crectheta(i,irecnumb) = -999.
-                  rstd_crecphi(i,irecnumb) = -999.
-                  rstd_crecbeta(i,irecnumb) = -999.
-                  rstd_crecuhits(i,irecnumb) = -999
-                  rstd_crecpkol(i,irecnumb) = -999.
+                  rstd_creclike(i,irecnumb+1) = -999.
+                  rstd_crecx0(i,irecnumb+1) = -999.
+                  rstd_crecy0(i,irecnumb+1) = -999.
+                  rstd_crectheta(i,irecnumb+1) = -999.
+                  rstd_crecphi(i,irecnumb+1) = -999.
+                  rstd_crecbeta(i,irecnumb+1) = -999.
+                  rstd_crecuhits(i,irecnumb+1) = -999
+                  rstd_crecpkol(i,irecnumb+1) = -999.
                enddo
                
             endif
@@ -560,39 +560,39 @@
 
 * --------- filling of charge rec data
 
-               if (irecnumb.le.NMAXLIPREC) then
+               if (irecnumb+1.le.NMAXLIPREC) then
 
                   if(chgrec.gt.0.) then
-                     resc_iflag(irecnumb) = 1
+                     resc_iflag(irecnumb+1) = 1
                   else
-                     resc_iflag(irecnumb) = 0
+                     resc_iflag(irecnumb+1) = 0
                   endif
                   
-                  resc_cnpe(irecnumb) = chg_nphe
-                  resc_cnpedir(irecnumb) = chg_nphe_dir
-                  resc_cnperef(irecnumb) = chg_nphe_ref
-                  resc_chg(irecnumb) = chgrec
-                  resc_chgdir(irecnumb) = chgrec_dir
-                  resc_chgmir(irecnumb) = chgrec_mir
-                  resc_accgeom(1,irecnumb) = richacc_vis
-                  resc_accgeom(2,irecnumb) = richacc_dir
-                  resc_accgeom(3,irecnumb) = richacc_mir0
-                  resc_eff(1,irecnumb) = richeff_tot
-                  resc_eff(2,irecnumb) = richeff_dir
-                  resc_eff(3,irecnumb) = richeff_1rf
-                  resc_eff(4,irecnumb) = richeff_2rf
-                  resc_eff(5,irecnumb) = richeff_rad
-                  resc_eff(6,irecnumb) = richeff_lg
-                  resc_chgprob(1,irecnumb) = chgprob1
-                  resc_chgprob(2,irecnumb) = chgprob2
-                  resc_chgprob(3,irecnumb) = chgprob3
+                  resc_cnpe(irecnumb+1) = chg_nphe
+                  resc_cnpedir(irecnumb+1) = chg_nphe_dir
+                  resc_cnperef(irecnumb+1) = chg_nphe_ref
+                  resc_chg(irecnumb+1) = chgrec
+                  resc_chgdir(irecnumb+1) = chgrec_dir
+                  resc_chgmir(irecnumb+1) = chgrec_mir
+                  resc_accgeom(1,irecnumb+1) = richacc_vis
+                  resc_accgeom(2,irecnumb+1) = richacc_dir
+                  resc_accgeom(3,irecnumb+1) = richacc_mir0
+                  resc_eff(1,irecnumb+1) = richeff_tot
+                  resc_eff(2,irecnumb+1) = richeff_dir
+                  resc_eff(3,irecnumb+1) = richeff_1rf
+                  resc_eff(4,irecnumb+1) = richeff_2rf
+                  resc_eff(5,irecnumb+1) = richeff_rad
+                  resc_eff(6,irecnumb+1) = richeff_lg
+                  resc_chgprob(1,irecnumb+1) = chgprob1
+                  resc_chgprob(2,irecnumb+1) = chgprob2
+                  resc_chgprob(3,irecnumb+1) = chgprob3
                
                endif
             
             else
 
-               if(irecnumb.le.NMAXLIPREC) then
-                  resc_iflag(irecnumb) = -1
+               if(irecnumb+1.le.NMAXLIPREC) then
+                  resc_iflag(irecnumb+1) = -1
                endif
                
             endif
@@ -637,43 +637,43 @@
 
 * ------ filling of TOF rec data
 
-         if(irecnumb.le.NMAXLIPREC) then
+         if(irecnumb+1.le.NMAXLIPREC) then
 
-            resb_iflag(irecnumb) = iflag_rectof
-            resb_itype(irecnumb) = 3  ! number 3 = TOF rec
-            resb_itrk(irecnumb) = itrknumb
-            resb_beta(irecnumb) = beta_rectof
-            resb_thc(irecnumb) = thc_rectof
-            resb_chi2(irecnumb) = chi2_rectof
-            resb_like(irecnumb) = resvlike
-            resb_nhit(irecnumb) = nuhits_rectof
+            resb_iflag(irecnumb+1) = iflag_rectof
+            resb_itype(irecnumb+1) = 3  ! number 3 = TOF rec
+            resb_itrk(irecnumb+1) = itrknumb
+            resb_beta(irecnumb+1) = beta_rectof
+            resb_thc(irecnumb+1) = thc_rectof
+            resb_chi2(irecnumb+1) = chi2_rectof
+            resb_like(irecnumb+1) = resvlike
+            resb_nhit(irecnumb+1) = nuhits_rectof
             do i=1,nhitmax
-               resb_phit(i,irecnumb) = phit_rectof(i)
-               resb_used(i,irecnumb) = used_rectof(i)
-               resb_hres(i,irecnumb) = hres_rectof(i)
+               resb_phit(i,irecnumb+1) = phit_rectof(i)
+               resb_used(i,irecnumb+1) = used_rectof(i)
+               resb_hres(i,irecnumb+1) = hres_rectof(i)
             enddo
-            resb_invchi2(irecnumb) = invchi2_rectof
-            resb_flatsin(irecnumb) = flatevt(1)
-            resb_flatcos(irecnumb) = flatevt(2)
-            resb_probkl(irecnumb) = pkolmog(ipthetac)
+            resb_invchi2(irecnumb+1) = invchi2_rectof
+            resb_flatsin(irecnumb+1) = flatevt(1)
+            resb_flatcos(irecnumb+1) = flatevt(2)
+            resb_probkl(irecnumb+1) = pkolmog(ipthetac)
             do i=1,3
-               resb_pimp(i,irecnumb) = pimp_rectof(i)
-               resb_epimp(i,irecnumb) = epimp_rectof(i)
+               resb_pimp(i,irecnumb+1) = pimp_rectof(i)
+               resb_epimp(i,irecnumb+1) = epimp_rectof(i)
             enddo
-            resb_pthe(irecnumb) = pthe_rectof
-            resb_epthe(irecnumb) = epthe_rectof
-            resb_pphi(irecnumb) = pphi_rectof
-            resb_epphi(irecnumb) = epphi_rectof
+            resb_pthe(irecnumb+1) = pthe_rectof
+            resb_epthe(irecnumb+1) = epthe_rectof
+            resb_pphi(irecnumb+1) = pphi_rectof
+            resb_epphi(irecnumb+1) = epphi_rectof
 
             do i=1,50
-               rstd_creclike(i,irecnumb) = -999.
-               rstd_crecx0(i,irecnumb) = -999.
-               rstd_crecy0(i,irecnumb) = -999.
-               rstd_crectheta(i,irecnumb) = -999.
-               rstd_crecphi(i,irecnumb) = -999.
-               rstd_crecbeta(i,irecnumb) = -999.
-               rstd_crecuhits(i,irecnumb) = -999
-               rstd_crecpkol(i,irecnumb) = -999.
+               rstd_creclike(i,irecnumb+1) = -999.
+               rstd_crecx0(i,irecnumb+1) = -999.
+               rstd_crecy0(i,irecnumb+1) = -999.
+               rstd_crectheta(i,irecnumb+1) = -999.
+               rstd_crecphi(i,irecnumb+1) = -999.
+               rstd_crecbeta(i,irecnumb+1) = -999.
+               rstd_crecuhits(i,irecnumb+1) = -999
+               rstd_crecpkol(i,irecnumb+1) = -999.
             enddo
 
          endif
@@ -713,39 +713,39 @@
 
 * --------- filling of charge rec data
 
-            if(irecnumb.le.NMAXLIPREC) then
+            if(irecnumb+1.le.NMAXLIPREC) then
 
                if(chgrec.gt.0.) then
-                  resc_iflag(irecnumb) = 1
+                  resc_iflag(irecnumb+1) = 1
                else
-                  resc_iflag(irecnumb) = 0
+                  resc_iflag(irecnumb+1) = 0
                endif
 
-               resc_cnpe(irecnumb) = chg_nphe
-               resc_cnpedir(irecnumb) = chg_nphe_dir
-               resc_cnperef(irecnumb) = chg_nphe_ref
-               resc_chg(irecnumb) = chgrec
-               resc_chgdir(irecnumb) = chgrec_dir
-               resc_chgmir(irecnumb) = chgrec_mir
-               resc_accgeom(1,irecnumb) = richacc_vis
-               resc_accgeom(2,irecnumb) = richacc_dir
-               resc_accgeom(3,irecnumb) = richacc_mir0
-               resc_eff(1,irecnumb) = richeff_tot
-               resc_eff(2,irecnumb) = richeff_dir
-               resc_eff(3,irecnumb) = richeff_1rf
-               resc_eff(4,irecnumb) = richeff_2rf
-               resc_eff(5,irecnumb) = richeff_rad
-               resc_eff(6,irecnumb) = richeff_lg
-               resc_chgprob(1,irecnumb) = chgprob1
-               resc_chgprob(2,irecnumb) = chgprob2
-               resc_chgprob(3,irecnumb) = chgprob3
+               resc_cnpe(irecnumb+1) = chg_nphe
+               resc_cnpedir(irecnumb+1) = chg_nphe_dir
+               resc_cnperef(irecnumb+1) = chg_nphe_ref
+               resc_chg(irecnumb+1) = chgrec
+               resc_chgdir(irecnumb+1) = chgrec_dir
+               resc_chgmir(irecnumb+1) = chgrec_mir
+               resc_accgeom(1,irecnumb+1) = richacc_vis
+               resc_accgeom(2,irecnumb+1) = richacc_dir
+               resc_accgeom(3,irecnumb+1) = richacc_mir0
+               resc_eff(1,irecnumb+1) = richeff_tot
+               resc_eff(2,irecnumb+1) = richeff_dir
+               resc_eff(3,irecnumb+1) = richeff_1rf
+               resc_eff(4,irecnumb+1) = richeff_2rf
+               resc_eff(5,irecnumb+1) = richeff_rad
+               resc_eff(6,irecnumb+1) = richeff_lg
+               resc_chgprob(1,irecnumb+1) = chgprob1
+               resc_chgprob(2,irecnumb+1) = chgprob2
+               resc_chgprob(3,irecnumb+1) = chgprob3
 
             endif
 
          else
 
-            if(irecnumb.le.NMAXLIPREC) then
-               resc_iflag(irecnumb) = -1
+            if(irecnumb+1.le.NMAXLIPREC) then
+               resc_iflag(irecnumb+1) = -1
             endif
 
          endif
@@ -783,43 +783,43 @@
 
 * ------ filling of standalone rec data
 
-         if(irecnumb.le.NMAXLIPREC) then
+         if(irecnumb+1.le.NMAXLIPREC) then
 
-            resb_iflag(irecnumb) = iflag_recstd
-            resb_itype(irecnumb) = 4  ! number 4 = standalone rec
-            resb_itrk(irecnumb) = itrknumb
-            resb_beta(irecnumb) = beta_recstd
-            resb_thc(irecnumb) = thc_recstd
-            resb_chi2(irecnumb) = chi2_recstd
-            resb_like(irecnumb) = resvlike
-            resb_nhit(irecnumb) = nuhits_recstd
+            resb_iflag(irecnumb+1) = iflag_recstd
+            resb_itype(irecnumb+1) = 4  ! number 4 = standalone rec
+            resb_itrk(irecnumb+1) = itrknumb
+            resb_beta(irecnumb+1) = beta_recstd
+            resb_thc(irecnumb+1) = thc_recstd
+            resb_chi2(irecnumb+1) = chi2_recstd
+            resb_like(irecnumb+1) = resvlike
+            resb_nhit(irecnumb+1) = nuhits_recstd
             do i=1,nhitmax
-               resb_phit(i,irecnumb) = phit_recstd(i)
-               resb_used(i,irecnumb) = used_recstd(i)
-               resb_hres(i,irecnumb) = hres_recstd(i)
+               resb_phit(i,irecnumb+1) = phit_recstd(i)
+               resb_used(i,irecnumb+1) = used_recstd(i)
+               resb_hres(i,irecnumb+1) = hres_recstd(i)
             enddo
-            resb_invchi2(irecnumb) = invchi2_recstd
-            resb_flatsin(irecnumb) = flatevt(1)
-            resb_flatcos(irecnumb) = flatevt(2)
-            resb_probkl(irecnumb) = pkolmog(ipthetac)
+            resb_invchi2(irecnumb+1) = invchi2_recstd
+            resb_flatsin(irecnumb+1) = flatevt(1)
+            resb_flatcos(irecnumb+1) = flatevt(2)
+            resb_probkl(irecnumb+1) = pkolmog(ipthetac)
             do i=1,3
-               resb_pimp(i,irecnumb) = pimp_recstd(i)
-               resb_epimp(i,irecnumb) = epimp_recstd(i)
+               resb_pimp(i,irecnumb+1) = pimp_recstd(i)
+               resb_epimp(i,irecnumb+1) = epimp_recstd(i)
             enddo
-            resb_pthe(irecnumb) = pthe_recstd
-            resb_epthe(irecnumb) = epthe_recstd
-            resb_pphi(irecnumb) = pphi_recstd
-            resb_epphi(irecnumb) = epphi_recstd
+            resb_pthe(irecnumb+1) = pthe_recstd
+            resb_epthe(irecnumb+1) = epthe_recstd
+            resb_pphi(irecnumb+1) = pphi_recstd
+            resb_epphi(irecnumb+1) = epphi_recstd
 
             do i=1,50
-               rstd_creclike(i,irecnumb) = creclike(i)
-               rstd_crecx0(i,irecnumb) = crecx0(i)
-               rstd_crecy0(i,irecnumb) = crecy0(i)
-               rstd_crectheta(i,irecnumb) = crectheta(i)
-               rstd_crecphi(i,irecnumb) = crecphi(i)
-               rstd_crecbeta(i,irecnumb) = crecbeta(i)
-               rstd_crecuhits(i,irecnumb) = crecuhits(i)
-               rstd_crecpkol(i,irecnumb) = crecpkol(i)
+               rstd_creclike(i,irecnumb+1) = creclike(i)
+               rstd_crecx0(i,irecnumb+1) = crecx0(i)
+               rstd_crecy0(i,irecnumb+1) = crecy0(i)
+               rstd_crectheta(i,irecnumb+1) = crectheta(i)
+               rstd_crecphi(i,irecnumb+1) = crecphi(i)
+               rstd_crecbeta(i,irecnumb+1) = crecbeta(i)
+               rstd_crecuhits(i,irecnumb+1) = crecuhits(i)
+               rstd_crecpkol(i,irecnumb+1) = crecpkol(i)
             enddo
 
          endif
@@ -861,39 +861,39 @@
 
 * --------- filling of charge rec data
 
-            if(irecnumb.le.NMAXLIPREC) then
+            if(irecnumb+1.le.NMAXLIPREC) then
 
                if(chgrec.gt.0.) then
-                  resc_iflag(irecnumb) = 1
+                  resc_iflag(irecnumb+1) = 1
                else
-                  resc_iflag(irecnumb) = 0
+                  resc_iflag(irecnumb+1) = 0
                endif
 
-               resc_cnpe(irecnumb) = chg_nphe
-               resc_cnpedir(irecnumb) = chg_nphe_dir
-               resc_cnperef(irecnumb) = chg_nphe_ref
-               resc_chg(irecnumb) = chgrec
-               resc_chgdir(irecnumb) = chgrec_dir
-               resc_chgmir(irecnumb) = chgrec_mir
-               resc_accgeom(1,irecnumb) = richacc_vis
-               resc_accgeom(2,irecnumb) = richacc_dir
-               resc_accgeom(3,irecnumb) = richacc_mir0
-               resc_eff(1,irecnumb) = richeff_tot
-               resc_eff(2,irecnumb) = richeff_dir
-               resc_eff(3,irecnumb) = richeff_1rf
-               resc_eff(4,irecnumb) = richeff_2rf
-               resc_eff(5,irecnumb) = richeff_rad
-               resc_eff(6,irecnumb) = richeff_lg
-               resc_chgprob(1,irecnumb) = chgprob1
-               resc_chgprob(2,irecnumb) = chgprob2
-               resc_chgprob(3,irecnumb) = chgprob3
+               resc_cnpe(irecnumb+1) = chg_nphe
+               resc_cnpedir(irecnumb+1) = chg_nphe_dir
+               resc_cnperef(irecnumb+1) = chg_nphe_ref
+               resc_chg(irecnumb+1) = chgrec
+               resc_chgdir(irecnumb+1) = chgrec_dir
+               resc_chgmir(irecnumb+1) = chgrec_mir
+               resc_accgeom(1,irecnumb+1) = richacc_vis
+               resc_accgeom(2,irecnumb+1) = richacc_dir
+               resc_accgeom(3,irecnumb+1) = richacc_mir0
+               resc_eff(1,irecnumb+1) = richeff_tot
+               resc_eff(2,irecnumb+1) = richeff_dir
+               resc_eff(3,irecnumb+1) = richeff_1rf
+               resc_eff(4,irecnumb+1) = richeff_2rf
+               resc_eff(5,irecnumb+1) = richeff_rad
+               resc_eff(6,irecnumb+1) = richeff_lg
+               resc_chgprob(1,irecnumb+1) = chgprob1
+               resc_chgprob(2,irecnumb+1) = chgprob2
+               resc_chgprob(3,irecnumb+1) = chgprob3
 
             endif
 
          else
 
-            if(irecnumb.le.NMAXLIPREC) then
-               resc_iflag(irecnumb) = -1
+            if(irecnumb+1.le.NMAXLIPREC) then
+               resc_iflag(irecnumb+1) = -1
             endif
 
          endif
@@ -907,9 +907,9 @@
 * --- OUTPUT
 ************
 /*
-      do k=irecnumbini+1,irecnumb
+      do k=irecnumbini+2,irecnumb+1
          print*,' '
-         print*,'OUTGOING VARIABLES FOR RECONSTRUCTION ',k
+         print*,'OUTGOING VARIABLES FOR RECONSTRUCTION ',k-1
          print*,'resb_iflag    = ',resb_iflag(k)
          print*,'resb_itype    = ',resb_itype(k)
          print*,'resb_itrk     = ',resb_itrk(k)
@@ -945,7 +945,7 @@
       enddo
 */
 
-*      do k=irecnumbini+1,irecnumb
+*      do k=irecnumbini+2,irecnumb+1
 *         print*,'LIP flag/type/track/beta:',resb_iflag(k),
 *     +        resb_itype(k),resb_itrk(k),resb_beta(k)
 *      enddo
