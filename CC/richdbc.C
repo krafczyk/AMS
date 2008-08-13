@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.53 2008/08/11 15:24:40 mdelgado Exp $
+//  $Id: richdbc.C,v 1.54 2008/08/13 08:14:43 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -113,7 +113,7 @@ integer RICHDB::entries=RICmaxentries;
 //geant RICHDB::rich_height=45.8;  // Mirror height (for historical reasons it is quoted rich height)
 
 /*********** updated numbers */
-geant RICHDB::top_radius=57.14;      // Top mirror radius
+geant RICHDB::top_radius=60.10;      // Top mirror radius
 geant RICHDB::bottom_radius=67.00;   // Bottom mirror radius
 geant RICHDB::rich_height=46.32;     // Mirror height (for historical reasons it is quoted rich height)
 /****************************/

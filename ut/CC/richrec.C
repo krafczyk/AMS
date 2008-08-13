@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.87 2008/08/11 22:01:08 barao Exp $
+//  $Id: richrec.C,v 1.88 2008/08/13 08:14:43 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -577,6 +577,12 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   integer mirrored[RICmaxpmts*RICnwindows/2][3];
 
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
+
+  if(bit>16){
+    //    cout<<"AMSRichRing::build -- Too many rings -- aborting "<<endl;
+    return 0;
+  }
+
 
   if(bit==crossed_pmt_bit){
     //cout<<" AMSRichRing::build-too-many-tracks "<<endl;
