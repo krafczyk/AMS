@@ -2415,6 +2415,13 @@ class RemoteClient:
         rundd=""
         rund=""
         runn=""
+        types=["0SCI","0LAS","0CAL"]
+        for type in types:
+           sql="select path from datafiles where type like '%s%%'" %(type)
+           files=self.sqlserver.Query(sql)
+           for file in files:
+                sysc="ln -sf "+file[0]+" /Offline/RunsDir/"+type+"/"
+                os.system(sysc)
         if(run2p!=0):
             rundd=" and datafiles.run=%d " %(run2p)
             rund=" and dataruns.run=%d " %(run2p)

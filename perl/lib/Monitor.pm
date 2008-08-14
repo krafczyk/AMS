@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.131 2008/08/08 08:13:21 ams Exp $
+# $Id: Monitor.pm,v 1.132 2008/08/14 16:11:30 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1126,8 +1126,8 @@ sub PNtupleSort{
           push @output, [@text];   
       }
     }elsif( $name eq "Run"){
-     sub prio{ $a->{Run} <=> $b->{Run};}
-     my @sortedrtb=sort prio @{$Monitor::Singleton->{rtb}};
+     sub prioo{ $a->{Run} <=> $b->{Run};}
+     my @sortedrtb=sort prioo @{$Monitor::Singleton->{rtb}};
         
      for my $i (0 ... $#sortedrtb){
          $#text=-1;

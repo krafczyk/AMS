@@ -1023,7 +1023,6 @@ public:
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
 
-  // OLD VARIABLES. CURRENTLY KEPT IN THE FILE
   int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
   float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
   float lipBeta;    ///< Beta from LIP beta rec.
@@ -1033,40 +1032,6 @@ public:
   float lipRecProb;  ///< Probabbility from LIP beta rec. 
 
 
-  /*************** NEW VARIABLES: CURRENTLY NOT KEPT *****************
-  // Please, comment the meaning of each variable
-  //int   lipBetaFlag[10];                  ///< LIP velocity reconstruction flag (-1=not called,0=failed,1=successful)
-  //int   lipBetaType[10];                  ///< LIP velocity reconstruction type (2=fixed track,3=flex track,4=standalone)
-  //int   lipBetaTrk[10];                   ///< Track used in LIP rec (1,2,...=from Tracker,-1=TOF-based,0=none(standalone))
-  //float lipBeta[10];                      ///< LIP reconstructed velocity
-  //float lipThetaC[10];    		    ///< LIP reconstructed Cerenkov angle
-  //float lipChi2[10];		            ///< Chi2 for LIP reconstruction
-  //float lipLikelihood[10];		    ///< Likelihood for LIP reconstruction
-  //int   lipHitsUsed[10];	            ///< LIP hits used
-  //int   lipHitPtr[10][1000];	            ///< Pointers to LIP used hits
-  //int   lipHitFlag[10][1000];             ///< Flags of LIP used hits
-  //float lipHitResid[10][1000];            ///< Residues of all hits in LIP reconstruction
-  //float lipSumInvChi2[10];		    ///< LIP sum of inv sq residues for non-ring hits
-  //float lipFlatSin[10];                   ///< LIP flatness (sin)
-  //float lipFlatCos[10];		    ///< LIP flatness (cos)
-  //float lipRecProb[10];		    ///< Kolmogorov probability for LIP reconstruction
-  //int   lipChgFlag[10];		    ///< LIP charge reconstruction flag (-1=not called,0=failed,1=successful)
-  //float lipNpCol[10];                     ///< LIP no. photoelectrons in ring (full ring)
-  //float lipNpColDir[10];		    ///< LIP no. photoelectrons in ring (direct branch)
-  //float lipNpColRef[10];		    ///< LIP no. photoelectrons in ring (reflected branch)
-  //float lipChg[10];			    ///< LIP reconstructed charge (full ring)
-  //float lipChgDir[10];		    ///< LIP reconstructed charge (direct branch)
-  //float lipChgMir[10];		    ///< LIP reconstructed charge (reflected branch)
-  //float lipAccGeom[10][3];		    ///< LIP ring geometrical acceptances
-  //float lipEff[10][6];		    ///< LIP ring efficiencies
-  //float lipChgProb[10][3];    	    ///< LIP probabilities for nearest integer charges
-  //float lipImpPt[10][3];	            ///< LIP track impact point (at top of radiator)
-  //float lipErrImpPt[10][3];	            ///< LIP track impact point error
-  //float lipTheta[10];		            ///< LIP track theta
-  //float lipErrTheta[10];	 	    ///< LIP track theta error
-  //float lipPhi[10];		            ///< LIP track phi
-  //float lipErrPhi[10];	            ///< LIP track phi error
-  **************************************************************/
 
   protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
@@ -1186,7 +1151,7 @@ static char _Info[255];
     //sprintf(_Info,"RichRingNew No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
     //sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
 
-
+/*
 
 
 
@@ -1232,7 +1197,7 @@ static char _Info[255];
 
 
 
-
+*/
 
     return _Info;
   } 
