@@ -3381,7 +3381,7 @@ void AMSEventR::GetAllContents() {
             bEcalShower->GetEntry(_Entry);
             bRichHit->GetEntry(_Entry);
             bRichRing->GetEntry(_Entry);
-            bRichRingNew->GetEntry(_Entry);
+            if(bRichRingNew)bRichRingNew->GetEntry(_Entry);
             bTofRawCluster->GetEntry(_Entry);
             NTofRawSide();
             bTofCluster->GetEntry(_Entry);
