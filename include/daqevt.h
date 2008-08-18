@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.49 2008/08/05 14:47:38 choutko Exp $
+//  $Id: daqevt.h,v 1.50 2008/08/18 09:39:30 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -118,11 +118,11 @@ static integer _BufferLock;
 void _setcalibdata(int mask){
 for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
 }
-static integer _select(const dirent * entry=0);
-static int _sort(const dirent **e1, const dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
+static integer _select(const dirent64 * entry=0);
+static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #else
-static integer _select(dirent * entry=0);
-static int _sort(dirent ** e1,  dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
+static integer _select(dirent64 * entry=0);
+static int _sort(dirent64 ** e1,  dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 public:
 

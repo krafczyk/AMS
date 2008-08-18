@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.520 2008/08/08 08:12:35 choutko Exp $
+# $Id: RemoteClient.pm,v 1.521 2008/08/18 09:39:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9287,7 +9287,7 @@ sub listAll {
          $self -> listRuns();
           $self -> listNtuples();
             $self -> listDisks();
-            $self -> listDisks('Data');
+            $self -> listDisks('/Data');
     htmlBottom();
 }
 
@@ -9334,7 +9334,7 @@ sub listShort {
       $self -> listMails();
        $self -> listServers();
         $self -> listDisks();
-            $self -> listDisks('Data');
+            $self -> listDisks('/Data');
     htmlBottom();
 }
 
@@ -10013,8 +10013,10 @@ sub listCites {
 sub listDisks {
     my $self    = shift;
     my $path=shift;
+    my $ct=1;
     if(not defined $path){
-        $path='MC';
+        $path='/MC';
+        $ct=60;
     }
     my $lastupd = undef;
     my $sql     = undef;
@@ -10024,7 +10026,7 @@ sub listDisks {
     my $usedGBMC = 0;
     my $totalGBMC= 0;
     my $tall=0;
-    my $disk=$self->CheckFS(1);
+    my $disk=$self->CheckFS(1,$ct,0,$path);
     $self->getProductionPeriods(0);
     $sql="SELECT MAX(timestamp) FROM Filesystems";
     my $r0=$self->{sqlserver}->Query($sql);
@@ -10121,7 +10123,7 @@ sub listDisks {
           } 
           }
           else{
-           $sql="select disk from filesystems where isonline=0";
+           $sql="select disk from filesystems where isonline=0 and path like '%$path'";
            my $deg=$self->{sqlserver}->Query($sql);
            if(defined $deg->[0][0]){
             $status='Degraded';
@@ -16546,7 +16548,6 @@ sub CheckFS{
            if(not defined $path){
              $path='/MC';
            }
-       
            my $sql="select disk from filesystems where isonline=1 and status='Active' and path='$path' order by available desc";
            my $ret=$self->{sqlserver}->Query($sql);
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0] and $cachetime>0){

@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.89 2008/03/10 20:07:39 choutko Exp $
+//  $Id: timeid.C,v 1.90 2008/08/18 09:39:30 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -26,6 +26,9 @@
 extern "C" int scandir(		const char *, struct dirent ***, 
                                 int (*)(struct dirent *),  
                                 int (*)(struct dirent **, struct dirent **));
+extern "C" int scandir64(		const char *, struct dirent64 ***, 
+                                int (*)(struct dirent64 *),  
+                                int (*)(struct dirent64 **, struct dirent64 **));
 
 #else
 
@@ -47,6 +50,9 @@ his */
 extern "C" int scandir(		const char *, struct dirent ***, 
                                 int (*)(struct dirent *),  
                                 int (*)(struct dirent **, struct dirent **));
+extern "C" int scandir64(		const char *, struct dirent64 ***, 
+                                int (*)(struct dirent64 *),  
+                                int (*)(struct dirent64 **, struct dirent64 **));
 #endif
 
 #ifdef __DB__
@@ -470,7 +476,7 @@ integer AMSTimeID::_select(
 #if !defined( __ALPHA__) && !defined(sun)
 const 
 #endif
-dirent *entry){
+dirent64 *entry){
 return strstr(entry->d_name,(const char*)*_selectEntry)!=NULL;    
 }
 
@@ -478,7 +484,7 @@ integer AMSTimeID::_selectsdir(
 #if !defined( __ALPHA__) && !defined(sun)
 const 
 #endif
-dirent *entry){
+dirent64 *entry){
 return (entry->d_name)[0] != '.';   
 }
 
@@ -497,8 +503,8 @@ time_t AMSTimeID::_stat_adv(const char *dir){
     if(statbuf_dir.st_mtime>tm){
       tm=statbuf_dir.st_mtime;
     }
-      dirent ** namelistsubdir;
-      int nptrdir=scandir(dir,&namelistsubdir,NULL,NULL);
+      dirent64 ** namelistsubdir;
+      int nptrdir=scandir64(dir,&namelistsubdir,NULL,NULL);
       for(int is=0;is<nptrdir;is++){
        AString fsdir(dir);
        fsdir+=namelistsubdir[is]->d_name;
@@ -563,15 +569,15 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
       AString fnam(getname());
       fnam+= getid()==0?".0":".1";
       _selectEntry=&fnam;
-      dirent ** namelistsubdir;
+      dirent64 ** namelistsubdir;
       int size=0;
-      int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
+      int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
       for(int is=0;is<nptrdir;is++){
        AString fsdir(fdir);
        fsdir+=namelistsubdir[is]->d_name;
        fsdir+="/";     
-      dirent ** namelist;
-      int nptr=scandir((const char *)fsdir,&namelist,&_select,NULL);     
+      dirent64 ** namelist;
+      int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
       if(nptr>0){
         if(_DataBaseSize && size<_DataBaseSize+nptr){
           uinteger *tmp=new uinteger[_DataBaseSize];
@@ -769,8 +775,8 @@ void AMSTimeID::_checkcompatibility(const char *dir){
       AString fnam(getname());
       fnam+= getid()==0?".0":".1";
       _selectEntry=&fnam;
-      dirent ** namelist;
-      int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
+      dirent64 ** namelist;
+      int nptr=scandir64((const char *)fdir,&namelist,&_select,NULL);     
       if(nptr>0){
        cerr <<"AMSTimeID::_checkcompatibility-W-OldStructureFound"<<endl;
        char y;

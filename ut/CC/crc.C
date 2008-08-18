@@ -8,10 +8,10 @@
 unsigned int * _Table=0;
 const unsigned int CRC32=0x04c11db7;
 void _inittable();
-extern "C" int _select(const dirent *entry);
-extern "C" int _selectsdir(const dirent *entry);
-extern "C" int _sort(const dirent ** e1, const dirent ** e2);
-extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
+extern "C" int _select(const dirent64 *entry);
+extern "C" int _selectsdir(const dirent64 *entry);
+extern "C" int _sort(const dirent64 ** e1, const dirent64 ** e2);
+extern "C" int _sorta(const dirent64 ** e1, const dirent64 ** e2);
 
 // return codes 
 //       1         everything ok
@@ -43,14 +43,14 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
       fout+=".crc";
       ofstream fbout;
       fbout.open((const char*)fout);
-      dirent ** namelist;
-      dirent ** namelistsubdir;
-      int nptrdir=scandir((const char *)fdir,&namelistsubdir,&_selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+      dirent64 ** namelist;
+      dirent64 ** namelistsubdir;
+      int nptrdir=scandir64((const char *)fdir,&namelistsubdir,&_selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
        for(int is=nptrdir-1;is<nptrdir;is++){
         AString fsdir(fdir);
 //        fsdir+="/";     
 //        fsdir+=namelistsubdir[is]->d_name;
-       int nptr=scandir((const char *)fsdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sorta));
+       int nptr=scandir64((const char *)fsdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sorta));
         for(int ii=0;ii<nptr;ii++){
          AString fnam(fsdir);
          fnam+="/";
@@ -133,8 +133,8 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
    return 0;
   }
 
-int _select(const dirent *entry){
- return strstr(entry->d_name,".hbk")!=NULL;    
+int _select(const dirent64 *entry){
+ return strstr(entry->d_name,".root")!=NULL;    
 }
 
 void _inittable(){
@@ -151,16 +151,16 @@ void _inittable(){
   }
 }
 
-int _selectsdir(const dirent *entry){
+int _selectsdir(const dirent64 *entry){
 return (entry->d_name)[0] != '.';   
 }
 
-int _sort(const dirent ** e1, const dirent ** e2){
+int _sort(const dirent64 ** e1, const dirent64 ** e2){
 
  return strcmp((*e1)->d_name,(*e2)->d_name);
 
 }
-int _sorta(const dirent ** e1, const dirent ** e2){
+int _sorta(const dirent64 ** e1, const dirent64 ** e2){
 char tmp[255];
 char buf[255];
       unsigned int run1(0),run2(0),ev1(0),ev2(0);

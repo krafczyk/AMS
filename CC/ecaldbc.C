@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.73 2008/08/14 16:11:29 choutko Exp $
+//  $Id: ecaldbc.C,v 1.74 2008/08/18 09:39:30 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -100,7 +100,7 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     }
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<"   <--ECALGeom-I-AMS02 setup selected."<<endl;
-// VC 01.08.08
+// VC 14.08.08
 	  _gendim[6]+=2.5+1.5;
           strcat(name,vers3);
     }

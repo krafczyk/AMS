@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.34 2008/02/21 13:25:10 choutko Exp $
+//  $Id: timeid.h,v 1.35 2008/08/18 09:39:30 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -6,7 +6,7 @@
 #include "astring.h"
 #include <list>
 using namespace std;
-struct dirent;
+struct dirent64;
 class AMSTimeID: public AMSNode {
 private:
 AMSTimeID(const AMSTimeID & o){};
@@ -50,12 +50,12 @@ static integer _select(
 #if !defined( __ALPHA__) && !defined(sun)
 const
 #endif
-dirent * entry=0);
+dirent64 * entry=0);
 static integer _selectsdir(
 #if !defined( __ALPHA__) && !defined(sun)
 const
 #endif
-dirent * entry=0);
+dirent64 * entry=0);
 static AString *_selectEntry;
 public:
 AMSTimeID():AMSNode(),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),

@@ -1,5 +1,5 @@
-#setenv ROOTSYS /f2users/choutko/root.v514i.p/root
-setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
+setenv ROOTSYS /f2users/choutko/root.v514i/root
+#setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f0dah1/users/choutko/root
 #setenv ROOTSYS /f2users/choutko/root/vdev

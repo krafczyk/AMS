@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.45 2008/06/27 10:36:45 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.46 2008/08/18 09:39:30 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -687,13 +687,13 @@ int  AMSDisplay::ReLoad(){
         if(!CC){
           setenv("CC","g++",0);
         }
-        char cmd[]="$CC -I$ROOTSYS/include -I../include -c AMSNtupleSelect.C";
+        char cmd[]="$CC -m32 -I$ROOTSYS/include -I../include -c AMSNtupleSelect.C";
         int $i=system(cmd);
         if(!$i){
 #ifdef __APPLE__
-         char cmd1[]="ld -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o libuser.so";
 #else
-         char cmd1[]="ld -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
 #endif
          $i=system(cmd1);
          if( !$i){  

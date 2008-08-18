@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.125 2008/08/05 14:47:38 choutko Exp $
+//  $Id: daqevt.C,v 1.126 2008/08/18 09:39:30 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -33,9 +33,9 @@ using std::istrstream;
 // */
 // };
 
-extern "C" int scandir(		const char *, struct dirent ***, 
-                                int (*)(struct dirent *),  
-                                int (*)(struct dirent **, struct dirent **));
+extern "C" int scandir64(		const char *, struct dirent64 ***, 
+                                int (*)(struct dirent64 *),  
+                                int (*)(struct dirent64 **, struct dirent64 **));
 #endif
 
 
@@ -1258,13 +1258,13 @@ int DAQEvent::parser(char a[], char **& fname){
 
   if(kl==0 || kl==strlen(a)){
       // Whole directory  wanted
-      dirent ** namelist;
+      dirent64 ** namelist;
       AString fdir(a);
       
 #ifdef __LINUXGNU__
-       ntot=scandir((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+       ntot=scandir64((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
 #else
-       ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
+       ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
 #endif
       int ngood=0;
       if(ntot>0){
@@ -1374,7 +1374,7 @@ integer DAQEvent::_select(
 #if !defined( __ALPHA__) && !defined(sun)
 const
 #endif
-dirent *entry){
+dirent64 *entry){
 for(int i=0;i<strlen(entry->d_name);i++){
  if(!isdigit((entry->d_name)[i]))return 0;
 }
@@ -1444,11 +1444,11 @@ again:
        for(int i=0;i<4;i++){
         *(result+i)=dir[i];
        }
-        dirent ** namelist;
+        dirent64 ** namelist;
 #ifdef __LINUXGNU__
-       int ntot=scandir((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+       int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
 #else
-       int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
+       int ntot=scandir64((const char *)newdir,&namelist,&_select,&_sort);
 #endif
        if(ntot>0){
          for(int i=0;i<ntot;i++){
