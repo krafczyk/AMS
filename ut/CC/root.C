@@ -2848,87 +2848,13 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
       TrRadPos[i]  = ptr->_radpos[i];
       TrPMTPos[i]  = ptr->_pmtpos[i];
     }
-    /************* NEW VARIABLES COMMENTED OUT *****************
-#define LIP_NHITMAX 1000
-#define LIP_NMAXLIPREC 10
-    for(int k=0;k<LIP_NMAXLIPREC;k++) {
-      // Beta reconstruction
-      lipBetaFlag[k]        = ptr->_resb_iflag[k];          
-      lipBetaType[k]        = ptr->_resb_itype[k];          
-      lipBetaTrk[k]         = ptr->_resb_itrk[k];          
-      lipBeta[k]            = ptr->_resb_beta[k];           
-      lipThetaC[k]          = ptr->_resb_thc[k];
-      lipChi2[k]            = ptr->_resb_chi2[k];           
-      lipLikelihood[k]      = ptr->_resb_like[k];           
-      lipHitsUsed[k]        = ptr->_resb_nhit[k];           
-      for(int i=0;i<LIP_NHITMAX;i++){
-	lipHitPtr[k][i]       = ptr->_resb_phit[k][i];  
-	lipHitFlag[k][i]      = ptr->_resb_used[k][i];  
-	lipHitResid[k][i]     = ptr->_resb_hres[k][i];  
-      }
-      lipSumInvChi2[k]      = ptr->_resb_invchi2[k];        
-      lipFlatSin[k]         = ptr->_resb_flatsin[k];        
-      lipFlatCos[k]         = ptr->_resb_flatcos[k];        
-      lipRecProb[k]         = ptr->_resb_probkl[k];         
-      // Charge reconstruction
-      lipChgFlag[k]         = ptr->_resc_iflag[k];          
-      lipNpCol[k]           = ptr->_resc_cnpe[k];           
-      lipNpColDir[k]        = ptr->_resc_cnpedir[k];        
-      lipNpColRef[k]        = ptr->_resc_cnperef[k];        
-      lipChg[k]             = ptr->_resc_chg[k];            
-      lipChgDir[k]          = ptr->_resc_chgdir[k];         
-      lipChgMir[k]          = ptr->_resc_chgmir[k];         
-      for(int i=0;i<3;i++){
-	lipAccGeom[k][i]      = ptr->_resc_accgeom[k][i];     
-      }
-      for(int i=0;i<6;i++){
-	lipEff[k][i]          = ptr->_resc_eff[k][i];       
-      }
-      for(int i=0;i<3;i++){
-	lipChgProb[k][i]      = ptr->_resc_chgprob[k][i];     
-      }
-      // Track data
-      for(int i=0;i<3;i++){
-	lipImpPt[k][i]        = ptr->_resb_pimp[k][i];        
-	lipErrImpPt[k][i]     = ptr->_resb_epimp[k][i];        
-      }
-      lipTheta[k]           = ptr->_resb_pthe[k];           
-      lipErrTheta[k]        = ptr->_resb_epthe[k];           
-      lipPhi[k]             = ptr->_resb_pphi[k];           
-      lipErrPhi[k]          = ptr->_resb_epphi[k];           
-    }
-    ****************************************************/
-    //+LIP
-    for(int k=0;k<LIP_NMAXLIPREC;k++) {
-      if(ptr->_resb_iflag[k]==1 && ptr->_resb_itype[k]==2) {
-	lipHitsUsed           = ptr->_resb_nhit[k];
-	lipThetaC             = ptr->_resb_thc[k];
-	lipBeta               = ptr->_resb_beta[k];
-	lipErrorBeta          = 0;
-	lipLikelihoodProb     = ptr->_resb_like[k];
-	lipChi2               = ptr->_resb_chi2[k];
-	lipRecProb            = ptr->_resb_probkl[k];
-	break;
-      }
-      lipHitsUsed           = 0;
-      lipThetaC             = -999.;
-      lipBeta               = -999.;
-      lipErrorBeta          = 0;
-      lipLikelihoodProb     = -999.;
-      lipChi2               = -999.;
-      lipRecProb            = -999.;
-      break;
-    }
-    /************** OLD FILLING *******************
-    lipHitsUsed           = ptr->_liphused;
-    lipThetaC             = ptr->_lipthc;
-    lipBeta               = ptr->_lipbeta;
-    lipErrorBeta          = ptr->_lipebeta;
-    lipLikelihoodProb     = ptr->_liplikep;
-    lipChi2               = ptr->_lipchi2;
-    lipRecProb            = ptr->_liprprob;
-    */
-    //ENDofLIP    
+    lipHitsUsed           = 0;
+    lipThetaC             = 0;
+    lipBeta               = 0;
+    lipErrorBeta          = 0;
+    lipLikelihoodProb     = 0;
+    lipChi2               = 0;
+    lipRecProb            = 0;
 
     // Control variables
     int hits = (ptr->_hit_pointer).size();

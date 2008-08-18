@@ -128,7 +128,31 @@ void AMSRichCal::process_event(){
       if(hit->checkstatus(uinteger(1)<<ring_counter)){
 	// Hit belongs to ring, thus add it
 	int id=hit->getchannel();
-	_channel[id]->add(hit->getnpe());
+	//	_channel[id]->add(hit->getnpe());
+
+
+	// Use dynamic gain if within the right range
+	if(hit->getnpe()<0.25 || hit->getnpe()>1.75) continue;
+
+	int counts=hit->getcounts();
+	int pmt,window;
+	RichPMTsManager::UnpackGeom(id,pmt,window);
+
+	geant old_gain=RichPMTsManager::_Gain(pmt,window);
+	geant sigma_over_q=RichPMTsManager::_GainSigma(pmt,window)/
+	  old_gain;
+	geant gain1_over_gain5=RichPMTsManager::_Gain(pmt,window,0)/
+	  old_gain;
+	geant sigma_over_q_0=RichPMTsManager::_GainSigma(pmt,window,0)/
+	  RichPMTsManager::_Gain(pmt,window,0);
+
+	geant new_gain=0.9*old_gain+0.1*geant(counts);
+	
+	RichPMTsManager::_Gain(pmt,window)=new_gain;
+	RichPMTsManager::_GainSigma(pmt,window)=sigma_over_q*new_gain;
+	RichPMTsManager::_Gain(pmt,window,0)=gain1_over_gain5*new_gain;
+	RichPMTsManager::_GainSigma(pmt,window,0)=sigma_over_q_0*gain1_over_gain5*new_gain;
+
 #ifdef __AMSDEBUG__
 	hits_accounted++;  // this is for DEBUGGING
 #endif
@@ -136,6 +160,7 @@ void AMSRichCal::process_event(){
     }
  
   }
+  /*
 #ifdef __AMSDEBUG__
   cout<<"Monitoring inform: processes events "<<_processed_events<<" event "<<AMSEvent::gethead()->getEvent()<<" orbits "<<_processed_events/_events_per_orbit<<" HITS "<<hits_accounted<<" TIME FROM START "<<(AMSEvent::gethead()->gettime()-init_time)/60<<" minutes  ring was"<<ring<<" HITS "<<(ring?ring->getused():0)<<" REASON "<<reason<<" hits "<<AMSEvent::gethead()->getC("AMSRichRawEvent",0)->getnelem()<<endl;
 #endif
@@ -208,5 +233,5 @@ void AMSRichCal::process_event(){
 
  
   }
-
+  */
 }

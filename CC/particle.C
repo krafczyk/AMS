@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.164 2008/07/28 13:40:00 choutko Exp $
+//  $Id: particle.C,v 1.165 2008/08/18 13:38:04 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -503,16 +503,11 @@ void AMSParticle::richfit(){
 
   while(ptr){
     if(ptr->gettrack()==real_track){
-      //      if(ptr->getused()>2) _prich=ptr;
-      if(ptr->getused()>2 || ptr->getlipused()>2) _prich=ptr;
+      if(ptr->getused()>2) _prich=ptr;
       if(! ptr->IsGood() && ptr->next())
-	//	if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
-	if(ptr->next()->gettrack()==real_track && (ptr->next()->getused()>2 || ptr->next()->getlipused()>2))
+	if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
 	  if(RICRECFFKEY.recon[1]%10){
-	    //	    if(ptr->next()->getprob()>ptr->getprob())_prich=ptr->next();
-	    if((ptr->next()->getprob()>ptr->getprob() && ptr->next()->getused()>2) || 
-	       (ptr->next()->getlipprob()>ptr->getprob() && ptr->next()->getlipused()>2))
-	      _prich=ptr->next();
+	    if(ptr->next()->getprob()>ptr->getprob() && ptr->next()->getused()>2) _prich=ptr->next();
 	  }else _prich=ptr->next();
       //	  if(ptr->getused()>2 & ptr->IsGood())_prich=ptr;
     break;
