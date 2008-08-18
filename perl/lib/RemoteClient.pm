@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.521 2008/08/18 09:39:31 choutko Exp $
+# $Id: RemoteClient.pm,v 1.522 2008/08/18 14:45:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16611,7 +16611,7 @@ sub CheckFS{
                     goto offline;
                  }
                  my $occ=($blocks-$bfree)*$fac;
-                 $sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '$fs->[0]%'";
+                 $sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '$fs->[0]%' and path like '%$path%'";
                  my $sizemb=$self->{sqlserver}->Query($sql);
                  my $rused=0;
                  if(defined $sizemb->[0][0]){

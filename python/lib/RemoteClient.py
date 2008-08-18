@@ -421,7 +421,10 @@ class RemoteClient:
                    if isonline:
                 	status="Active"
                         occ=(blocks-bfree)*fac
-                 	sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"
+                        if(path==""):
+                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"
+                        else:
+                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"
                  	sizemb=self.sqlserver.Query(sql)
                  	rused=0
                         if len(sizemb)>0 and sizemb[0][0] != None:
