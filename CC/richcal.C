@@ -70,9 +70,10 @@ AMSRichRing *AMSRichCal::event_selection(){
   if(naf_ring){reason=5;return 0;}
 
   // Check that the event is clean enough
-  if(AMSRichRawEvent::Npart()>2){reason=6; return 0;}
+  if(AMSRichRawEvent::Npart()>1){reason=6; return 0;}
 
   uinteger dirty_ring=ring->checkstatus(richconst::dirty_ring);
+  /*
   if(dirty_ring){
     // Check if it has been rebuilt
     AMSRichRing *next=ring->next();
@@ -81,17 +82,25 @@ AMSRichRing *AMSRichCal::event_selection(){
     if(next->checkstatus(dirty_ring)) {reason=9;return 0;}  // not rebuilt
     ring=next;
   }
+  */
+  if(dirty_ring){reason=9;return 0;}
 
   number npexp=ring->getnpexp();
   number prob=ring->getprob();
   number npcol=ring->getcollnpe();
+  integer nused=ring->getused();
 
   if(npexp<2) {reason=10;return 0;}
-  if(prob<1e-3){reason=11;return 0;}
+  if(prob<1e-2){reason=11;return 0;}
   if(npcol<=0){reason=12;return 0;}
+  if(nused<3) {reason=13;return 0;}
 
   double charge=sqrt(npcol/npexp);
   if(charge<_charge_lower_threshold || charge>_charge_upper_threshold) {reason=12;return 0;}
+
+
+  number beta=ring->getbeta();
+  if(beta<0.997 || beta>1.003){reason=14;return 0;}
 
   return ring;   // Selected
 }
@@ -131,8 +140,10 @@ void AMSRichCal::process_event(){
 	//	_channel[id]->add(hit->getnpe());
 
 
+
 	// Use dynamic gain if within the right range
-	if(hit->getnpe()<0.25 || hit->getnpe()>1.75) continue;
+	//	if(hit->getnpe()<0.25 || hit->getnpe()>1.75) continue;
+	if(hit->getnpe()<0.01 || hit->getnpe()>3) continue;	
 
 	int counts=hit->getcounts();
 	int pmt,window;
