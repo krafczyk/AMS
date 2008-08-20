@@ -1149,7 +1149,15 @@ static char _Info[255];
     else
       tkStatus=Status;
     
-    sprintf(_Info,"RichRingB No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
+    sprintf(_Info,"RichRingB No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",
+	    number,fTrTrack,
+	    Status>10?"velocity+charge":"velocity only",
+	    tkStatus==2?"standard rec.":"",
+	    tkStatus==3?"flexible rec.":"",
+	    tkStatus==4?"standalone rec.":"",
+	    Used,
+	    Beta,
+	    AngleRec*180./3.14159265);
     return _Info;
   } 
   virtual ~RichRingBR(){};
