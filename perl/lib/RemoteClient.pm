@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.522 2008/08/18 14:45:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.523 2008/08/20 08:50:40 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10075,8 +10075,15 @@ sub listDisks {
              $totalGBMC = $totalGBMC + $r4->[0][0];
              $used   = $used + $r4->[0][0];
             }
+            $sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '$ppath%'";
+             $r4=$self->{sqlserver}->Query($sql);
+            if (defined $r4->[0][0]) {
+             $totalGBMC = $totalGBMC + $r4->[0][0];
+             $used   = $used + $r4->[0][0];
             }
-          }
+
+        }
+        }
            $size   = $size + $dd->[3];
            $avail  = $avail+ $dd->[5];
            $status   = trimblanks($dd->[6]);
@@ -16548,7 +16555,15 @@ sub CheckFS{
            if(not defined $path){
              $path='/MC';
            }
-           my $sql="select disk from filesystems where isonline=1 and status='Active' and path='$path' order by available desc";
+           my $dss=shift;
+           if(not defined $dss){
+               $dss=1;
+           }
+           my $desc="";
+           if($dss){
+               $desc="desc";
+           }
+           my $sql="select disk from filesystems where isonline=1 and status='Active' and path='$path' order by available $desc";
            my $ret=$self->{sqlserver}->Query($sql);
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0] and $cachetime>0){
               return $ret->[0][0];
@@ -16616,6 +16631,11 @@ sub CheckFS{
                  my $rused=0;
                  if(defined $sizemb->[0][0]){
                   $rused=$sizemb->[0][0];
+              }
+                 $sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '$fs->[0]%' and path like '%$path%'";
+                 $sizemb=$self->{sqlserver}->Query($sql);
+                 if(defined $sizemb->[0][0]){
+                  $rused+=$sizemb->[0][0];
                  } 
                  my $ava=$bavail*$fac;
                  my $ava1=$tot*$fs->[3]/100-$rused;
@@ -16646,7 +16666,7 @@ offline:
             }
              $self->{sqlserver}->Commit();
 
-          $sql="select disk from filesystems where isonline=1 and status='Active'  and path='$path' order by available desc";
+          $sql="select disk from filesystems where isonline=1 and status='Active'  and path='$path' order by available $desc";
            $ret=$self->{sqlserver}->Query($sql);
            return $ret->[0][0];
 
@@ -17431,7 +17451,17 @@ sub MoveBetweenDisks{
        }
        $sql=" select path,castortime from ntuples where run=$ds->[0]";
        my $r1=$self->{sqlserver}->Query($sql);
-       my $disk=$self->CheckFS(1,30);
+       my $path='/MC';
+       if(defined $r1->[0][0]){
+           if($r1->[0][0]=~/$path/){
+               $path='/MC';
+           }
+           else{
+               $path='/Data';
+           }
+       }
+       my $tme=time();
+       my $disk=$self->CheckFS(1,60,0,$path,$tme%2);
        if(defined $newd){
         $sql="select available from filesystems where disk='$newd' and isonline=1";
         my $r2=$self->{sqlserver}->Query($sql);
