@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.91 2008/08/18 13:38:04 mdelgado Exp $
+//  $Id: richrec.C,v 1.92 2008/08/20 10:21:22 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2212,7 +2212,7 @@ void AMSRichRingNew::_writeEl(){
 void AMSRichRingNew::_copyEl(){  // TO BE DONE
 #ifdef __WRITEROOT__
   //if(PointerNotSet())return;
-  //RichRingNewR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingNew(_vpos);
+  //RichRingBR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingNew(_vpos);
   //if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
   //else ptr.fTrTrack=-1;
 #endif

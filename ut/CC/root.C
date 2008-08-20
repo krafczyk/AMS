@@ -36,7 +36,7 @@ using namespace root;
   ClassImp(EcalShowerR)
   ClassImp(RichHitR)
   ClassImp(RichRingR)
-  ClassImp(RichRingNewR)
+  ClassImp(RichRingBR)
   ClassImp(TofRawClusterR)
   ClassImp(TofRawSideR)
   ClassImp(TofClusterR)
@@ -565,7 +565,7 @@ TBranch* AMSEventR::bEcal2DCluster;
 TBranch* AMSEventR::bEcalShower;
 TBranch* AMSEventR::bRichHit;
 TBranch* AMSEventR::bRichRing;
-TBranch* AMSEventR::bRichRingNew;
+TBranch* AMSEventR::bRichRingB;
 TBranch* AMSEventR::bTofRawCluster;
 TBranch* AMSEventR::bTofRawSide;
 TBranch* AMSEventR::bTofCluster;
@@ -603,7 +603,7 @@ void* AMSEventR::vEcal2DCluster=0;
 void* AMSEventR::vEcalShower=0;
 void* AMSEventR::vRichHit=0;
 void* AMSEventR::vRichRing=0;
-void* AMSEventR::vRichRingNew=0;
+void* AMSEventR::vRichRingB=0;
 void* AMSEventR::vTofRawCluster=0;
 void* AMSEventR::vTofRawSide=0;
 void* AMSEventR::vTofCluster=0;
@@ -645,7 +645,7 @@ char EcalClusterR::_Info[255];
 char EcalShowerR::_Info[255];
 char RichHitR::_Info[255];
 char RichRingR::_Info[255];
-char RichRingNewR::_Info[255];
+char RichRingBR::_Info[255];
 char TrMCClusterR::_Info[255];
 char MCEventgR::_Info[255];
 char Level1R::_Info[255];
@@ -726,9 +726,9 @@ void AMSEventR::SetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
-     strcat(tmp,"fRichRingNew");
-     vRichRingNew=&fRichRingNew;
-     fChain->SetBranchAddress(tmp,&fRichRingNew);
+     strcat(tmp,"fRichRingB");
+     vRichRingB=&fRichRingB;
+     fChain->SetBranchAddress(tmp,&fRichRingB);
     }
 
    {
@@ -988,8 +988,8 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
-     strcat(tmp,"fRichRingNew");
-     fChain->SetBranchAddress(tmp,vRichRingNew);
+     strcat(tmp,"fRichRingB");
+     fChain->SetBranchAddress(tmp,vRichRingB);
     }
 
    {
@@ -1217,8 +1217,8 @@ void AMSEventR::GetBranch(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
-     strcat(tmp,"fRichRingNew");
-     bRichRingNew=fChain->GetBranch(tmp);
+     strcat(tmp,"fRichRingB");
+     bRichRingB=fChain->GetBranch(tmp);
     }
 
    {
@@ -1447,8 +1447,8 @@ void AMSEventR::GetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
-     strcat(tmp,"fRichRingNew");
-     vRichRingNew=fChain->GetBranch(tmp)->GetAddress();
+     strcat(tmp,"fRichRingB");
+     vRichRingB=fChain->GetBranch(tmp)->GetAddress();
     }
 
    {
@@ -1628,7 +1628,7 @@ void AMSEventR::SetCont(){
  fHeader.EcalShowers=fEcalShower.size();
  fHeader.RichHits=fRichHit.size();
  fHeader.RichRings=fRichRing.size();
- fHeader.RichRingNews=fRichRingNew.size();
+ fHeader.RichRingBs=fRichRingB.size();
  fHeader.TofRawClusters=fTofRawCluster.size();
  fHeader.TofRawSides=fTofRawSide.size();
  fHeader.TofClusters=fTofCluster.size();
@@ -1760,7 +1760,7 @@ fEcalShower.reserve(MAXECSHOW);
 
 fRichHit.reserve(MAXRICHITS);
 fRichRing.reserve(MAXRICHRIN);
-fRichRingNew.reserve(MAXRICHRINLIP);
+fRichRingB.reserve(MAXRICHRINLIP);
 
 fTofRawCluster.reserve(MAXTOFRAW);
 fTofRawSide.reserve(MAXTOFRAWS);
@@ -1804,7 +1804,7 @@ fEcalShower.clear();
 
 fRichHit.clear();
 fRichRing.clear();
-fRichRingNew.clear();
+fRichRingB.clear();
 
 fTofRawCluster.clear();
 fTofRawSide.clear();
@@ -1905,8 +1905,8 @@ void AMSEventR::AddAMSObject(AMSRichRing *ptr)
 
 void AMSEventR::AddAMSObject(AMSRichRingNew *ptr)
 {
-  fRichRingNew.push_back(RichRingNewR(ptr));
-  ptr->SetClonePointer(fRichRingNew.size()-1);
+  fRichRingB.push_back(RichRingBR(ptr));
+  ptr->SetClonePointer(fRichRingB.size()-1);
 }
 
 
@@ -2902,17 +2902,17 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
 #endif
 }
 
-//void RichRingNewR::FillRichHits(int ringnew){
+//void RichRingBR::FillRichHits(int ringnew){
 //  fRichHit.clear();
 //  for(int i=0;i<HitsStatus.size();i++) {
 //    if(HitsStatus[i]>=0) {
-//      cout << "Adding hit " << i << " to RichRingNewR" << endl;
+//      cout << "Adding hit " << i << " to RichRingBR" << endl;
 //      fRichHit.push_back(i);
 //    }
 //  }
 //}
 
-RichRingNewR::RichRingNewR(AMSRichRingNew *ptr) {
+RichRingBR::RichRingBR(AMSRichRingNew *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   fTrTrack = -1;
   if (ptr) {
@@ -3028,7 +3028,7 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
    }
 
 
-   TrTrackR* RichRingNewR::pTrTrack(){
+   TrTrackR* RichRingBR::pTrTrack(){
      return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
    }
 
@@ -3381,7 +3381,7 @@ void AMSEventR::GetAllContents() {
             bEcalShower->GetEntry(_Entry);
             bRichHit->GetEntry(_Entry);
             bRichRing->GetEntry(_Entry);
-            if(bRichRingNew)bRichRingNew->GetEntry(_Entry);
+            if(bRichRingB)bRichRingB->GetEntry(_Entry);
             bTofRawCluster->GetEntry(_Entry);
             NTofRawSide();
             bTofCluster->GetEntry(_Entry);

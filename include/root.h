@@ -182,7 +182,7 @@ int   Ecal2DClusters;
 int   EcalShowers;
 int   RichHits;
 int   RichRings;
-int   RichRingNews;
+int   RichRingBs;
 int   TofRawClusters;
 int   TofRawSides;
 int   TofClusters;  
@@ -1071,7 +1071,7 @@ public:
  \authors barao@lip.pt, pereira@lip.pt
 */
 
-class RichRingNewR {
+class RichRingBR {
 static char _Info[255];
  public:
 
@@ -1136,73 +1136,24 @@ static char _Info[255];
   /// \return index of RichHitR object in collection or -1
   int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
 
-  RichRingNewR(){};
-  RichRingNewR(AMSRichRingNew *ptr);
+  RichRingBR(){};
+  RichRingBR(AMSRichRingNew *ptr);
   friend class AMSRichRingNew;
   friend class AMSEventR;
   /// \param number index in container
-  /// \return human readable info about RichRingNewR
+  /// \return human readable info about RichRingBR
   char * Info(int number=-1){
     int tkStatus;
     if(Status>10)
       tkStatus=Status-10;
     else
       tkStatus=Status;
-    //sprintf(_Info,"RichRingNew No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
-    //sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
-
-/*
-
-
-
-
-
-  float Beta;                          ///< reconstructed velocity
-  float AngleRec;                      ///< reconstructed Cerenkov angle (rad)
-  float Chi2;                          ///< chi2 for reconstruction
-  float Likelihood;                    ///< likelihood prob for reconstruction
-  int Used;                            ///< number of hits used in reconstruction
-  float ProbKolm;                      ///< Kolmogorov prob for ring hits uniformity
-  float Flatness[2];                   ///< flatness parameter (sin,cos)
-  float ChargeRec;                     ///< reconstructed charge (full ring)
-  float ChargeProb[3];                 ///< probabilities for nearest integer charges
-  float ChargeRecDir;	               ///< reconstructed charge (from direct branch)
-  float ChargeRecMir;                  ///< reconstructed charge (from reflected branch)
-  float NpeRing;	               ///< n. of photoelectrons in ring (full ring)
-  float NpeRingDir;	               ///< n. of photoelectrons in ring (direct branch)
-  float NpeRingRef;	               ///< n. of photoelectrons in ring (reflected branch)
-  float RingAcc[3];	               ///< geometrical ring acceptances
-                                       ///< [0] = visible acceptance
-                                       ///< [1] = direct acceptance
-                                       ///< [2] = mirror acceptance, 1 reflection
-  float RingEff[6];                    ///< ring efficiencies
-                                       ///< [0] = total efficiency
-                                       ///< [1] = total efficiency, direct
-                                       ///< [2] = total efficiency, 1 reflection
-                                       ///< [3] = total efficiency, 2 reflection
-                                       ///< [4] = radiator efficiency * geometrical accceptance
-                                       ///< [5] = light guide efficiency
-  std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
-  std::vector<int> HitsStatus;         ///< hit status:
-                                       ///<         -1 = not associated to ring
-                                       ///<          0 = direct
-                                       ///<          1,2,... = reflected 1,2,... times
-  std::vector<float> TrackRec;         ///< reconstructed track parameters (rec. i=3,4 only)
-                                       ///< TrackRec[0] = x                TrackRec[1] = error in x
-                                       ///< TrackRec[2] = y                TrackRec[3] = error in y
-                                       ///< TrackRec[4] = z                TrackRec[5] = error in z
-                                       ///< TrackRec[6] = theta (radians)  TrackRec[7] = error in theta
-                                       ///< TrackRec[8] = phi (radians)    TrackRec[9] = error in phi
-
-
-
-
-*/
-
+    
+    sprintf(_Info,"RichRingB No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",number,fTrTrack,Status>10?"velocity+charge":"velocity only",tkStatus==2?"standard rec.":"",tkStatus==3?"flexible rec.":"",tkStatus==4?"standalone rec.":"",Used,Beta,AngleRec*180./3.14159265,Chi2,Likelihood,ProbKolm,ChargeRec,NpeRing,RingAcc[0]);
     return _Info;
   } 
-  virtual ~RichRingNewR(){};
-  ClassDef(RichRingNewR,1)           // RichRingNewR
+  virtual ~RichRingBR(){};
+  ClassDef(RichRingBR,1)           // RichRingBR
 }; 
 
 
@@ -2194,7 +2145,7 @@ static TBranch*  bEcal2DCluster;
 static TBranch*  bEcalShower;
 static TBranch*  bRichHit;
 static TBranch*  bRichRing;
-static TBranch*  bRichRingNew;
+static TBranch*  bRichRingB;
 static TBranch*  bTofRawCluster;
 static TBranch*  bTofRawSide;
 static TBranch*  bTofCluster;
@@ -2233,7 +2184,7 @@ static void*  vEcal2DCluster;
 static void*  vEcalShower;
 static void*  vRichHit;
 static void*  vRichRing;
-static void*  vRichRingNew;
+static void*  vRichRingB;
 static void*  vTofRawCluster;
 static void*  vTofRawSide;
 static void*  vTofCluster;
@@ -2561,7 +2512,7 @@ int   nRichHit()const { return fHeader.RichHits;} ///< \return number of RichHit
 ///
 int   nRichRing()const { return fHeader.RichRings;} ///< \return number of RichRingR elements (fast)
 ///
-int   nRichRingNew()const { return fHeader.RichRingNews;} ///< \return number of RichRingNewR elements (fast)
+int   nRichRingB()const { return fHeader.RichRingBs;} ///< \return number of RichRingBR elements (fast)
 ///
 int   nTofRawCluster()const { return fHeader.TofRawClusters;} ///< \return number of TofRawClusterR elements (fast)
 ///
@@ -2633,7 +2584,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   //RICH
   vector<RichHitR> fRichHit;
   vector<RichRingR> fRichRing;
-  vector<RichRingNewR> fRichRingNew;
+  vector<RichRingBR> fRichRingB;
 
 
 
@@ -2907,37 +2858,37 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 
-      ///  \return number of RichRingNewR
+      ///  \return number of RichRingBR
       ///
-      unsigned int   NRichRingNew()  {
-        if(fHeader.RichRingNews && fRichRingNew.size()==0){
-           bRichRingNew->GetEntry(_Entry);
+      unsigned int   NRichRingB()  {
+        if(fHeader.RichRingBs && fRichRingB.size()==0){
+           bRichRingB->GetEntry(_Entry);
         }
-        return fRichRingNew.size();
+        return fRichRingB.size();
       }
-      ///  \return reference of RichRingNewR Collection
+      ///  \return reference of RichRingBR Collection
       ///
-      vector<RichRingNewR> & RichRingNew()  {
-        if(fHeader.RichRingNews && fRichRingNew.size()==0)bRichRingNew->GetEntry(_Entry);
-         return  fRichRingNew;
+      vector<RichRingBR> & RichRingB()  {
+        if(fHeader.RichRingBs && fRichRingB.size()==0)bRichRingB->GetEntry(_Entry);
+         return  fRichRingB;
        }
 
-       ///  RichRingNewR accessor
-       /// \param l index of RichRingNewR Collection
-      ///  \return reference to corresponding RichRingNewR element
+       ///  RichRingBR accessor
+       /// \param l index of RichRingBR Collection
+      ///  \return reference to corresponding RichRingBR element
       ///
-       RichRingNewR &   RichRingNew(unsigned int l) {
-        if(fHeader.RichRingNews && fRichRingNew.size()==0)bRichRingNew->GetEntry(_Entry);
-         return fRichRingNew.at(l);
+       RichRingBR &   RichRingB(unsigned int l) {
+        if(fHeader.RichRingBs && fRichRingB.size()==0)bRichRingB->GetEntry(_Entry);
+         return fRichRingB.at(l);
       }
 
-       ///  RichRingNewR accessor
-       /// \param l index of RichRingNewR Collection
-      ///  \return pointer to corresponding RichRingNewR element
+       ///  RichRingBR accessor
+       /// \param l index of RichRingBR Collection
+      ///  \return pointer to corresponding RichRingBR element
       ///
-      RichRingNewR *   pRichRingNew(unsigned int l) {
-        if(fHeader.RichRingNews && fRichRingNew.size()==0)bRichRingNew->GetEntry(_Entry);
-        return l<fRichRingNew.size()?&(fRichRingNew[l]):0;
+      RichRingBR *   pRichRingB(unsigned int l) {
+        if(fHeader.RichRingBs && fRichRingB.size()==0)bRichRingB->GetEntry(_Entry);
+        return l<fRichRingB.size()?&(fRichRingB[l]):0;
       }
 
 

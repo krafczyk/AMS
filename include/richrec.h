@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.47 2008/08/18 13:38:37 mdelgado Exp $
+//  $Id: richrec.h,v 1.48 2008/08/20 10:21:22 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -363,7 +363,7 @@ class AMSRichRingNew: public AMSlink{
   std::vector<int> getHitsAssoc(){return _HitsAssoc;}
   std::vector<float> getTrackRec(){return _TrackRec;}
 #ifdef __WRITEROOT__
-  friend class RichRingNewR;
+  friend class RichRingBR;
 #endif
 };
 
