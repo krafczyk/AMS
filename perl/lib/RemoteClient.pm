@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.523 2008/08/20 08:50:40 choutko Exp $
+# $Id: RemoteClient.pm,v 1.524 2008/08/20 09:04:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17462,6 +17462,30 @@ sub MoveBetweenDisks{
        }
        my $tme=time();
        my $disk=$self->CheckFS(1,60,0,$path,$tme%2);
+# get production set path
+       my @pat=split '\/',$dir;
+       my $oldd="";
+       if($#pat<1){
+           $oldd=$pat[0];
+       }
+       else{
+           $oldd=$pat[1];
+       }
+     if($tme%2 ==0){ 
+      $sql = "SELECT disk FROM filesystems WHERE 
+                   status='Active' and isonline=1 and path='$path' and disk not like '%$oldd%' ORDER BY priority DESC, available ";
+     }
+     else{
+     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE                    status='Active' and isonline=1 and path='$path' and disk not like '%$oldd%'ORDER BY priority DESC, available DESC";
+
+     }
+        my $r3=$self->{sqlserver}->Query($sql);
+       if(defined $r3->[0][0]){
+           $disk=$r3->[0][0];
+       }
+       else{
+        die "No FileSystems Available \n"
+        }
        if(defined $newd){
         $sql="select available from filesystems where disk='$newd' and isonline=1";
         my $r2=$self->{sqlserver}->Query($sql);
