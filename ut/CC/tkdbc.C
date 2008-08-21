@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.62 2008/07/04 14:06:29 choumilo Exp $
+//  $Id: tkdbc.C,v 1.63 2008/08/21 13:06:38 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1956,14 +1956,14 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                384,640,384,640,384,640};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
    const number layd[_nlay][5]={
-                               5.3,0.,72., 0.,72.,
+                               5.3,0.,75., 0.,70.,
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
-                               5.3,0.,72. ,0.,72.};
+                               5.3,0.,75. ,0.,70.};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
    const number halfldist[_nlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
 //   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};

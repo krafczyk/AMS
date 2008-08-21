@@ -91,7 +91,7 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
     }
 #endif
-    int npar=3;
+    int npar=5;
     if(npar==5){
       for ( ii=0;ii<npar;ii++)par[ii]=TKDBc::layd(i,ii);
       dau=(AMSgvolume*)mother.add(new AMSgvolume(
