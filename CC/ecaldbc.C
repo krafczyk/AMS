@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.74 2008/08/18 09:39:30 choutko Exp $
+//  $Id: ecaldbc.C,v 1.75 2008/08/22 12:48:56 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -28,11 +28,11 @@ integer ECALDBc::debug=1;
 //
 //---> default structural. data:
 //
-geant ECALDBc::_gendim[10]={
+geant ECALDBc::_gendim[10]={// Warning: only alignment params are readout from EcalAlign*.dat file
    65.8,65.8,0., // i=1-2  x,y-dimentions of EC-radiator; 3->spare
    8.2,          //  =4    dx(dy) thickn.of (PMT+electronics)-support(frame)
-   0.,0.,        //  =5,6    center shift in x,y   
-  -142.3,        //  =7      Radiator(incl.glue) front face Z-pozition
+   0.,0.,        //  =5,6    center shift in x,y (real values are read from EcalAlign* files !!!) 
+  -142.3,        //  =7      Radiator(incl.glue) front face Z-pozition (........................)
    4.18,         //  =8      top(bot) honeycomb thickness
    1.83,         //  =9      lead thickness of 1 SuperLayer
    0.01          //  =10     Thickness of glue on top(bot) side of SL 
@@ -73,52 +73,57 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
 // ---> function to read geomconfig-files 
 //                  Called from ECALgeom :
   void ECALDBc::readgconf(){
-
-//   add some checks VC
-     if(_slstruc[2] >ecalconst::ECSLMX){
-      _slstruc[2]=ecalconst::ECSLMX;
-      cerr <<"====> ECALDBc::readgconf-W-Resetting ECSLMX to "<<_slstruc[2]<<endl;
-     }
-    if(_slstruc[2]==8){
-     ECCAFFKEY.cfvers=10;
-
-    }
 //
     int i;
     char fname[80];
-    char name[80]="ecalgeom";
-    char vers1[3]="01";
-    char vers2[4]="001";
-    char vers3[3]="02";
-    geant ZShift=-AMSDBc::amsdext;
+    char name[80]="EcalAlign";
+    char vers1[10]="MC";
+    char vers2[10]="PreAss";//=clean room
+    char vers3[10]="Space";//final
+    geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
-          cout <<"   <--ECALGeom-I-AMS02D setup selected."<<endl;
-          strcat(name,vers3);
-	  _gendim[6]+=ZShift;
-	  cout<<"    <--ZShift="<<ZShift<<endl;
+      cout <<"<------ ECALGeom-I- AMS02D configuration is used..."<<endl;
+      strcat(name,vers3);//as space
+      ZShift=-AMSDBc::amsdext;
+      cout<<"        ZShift="<<ZShift<<endl;
     }
+//
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-          cout <<"   <--ECALGeom-I-AMS02 setup selected."<<endl;
-// VC 14.08.08
-	  _gendim[6]+=2.5+1.5;
-          strcat(name,vers3);
+      cout <<"<------ ECALGeom-I- AMS02 configuration is used..."<<endl;
+      if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+        cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
+        strcat(name,vers2);//clean room
+      }
+      else if(!AMSJob::gethead()->isRealData()){
+        cout <<"      MC: Space(not CleanRoom) setup selected..."<<endl;
+        strcat(name,vers1);//mc
+      }
+      else{
+        cout <<"      Space (default) setup selected..."<<endl;
+        strcat(name,vers3);//space
+      }
     }
+//
     else
     {
-          cout <<"<----- Error: unknown setup !??"<<endl;
-          exit(1);
+      cout <<"<------ Error: unknown setup !??"<<endl;
+      exit(1);
     }
     strcat(name,".dat");
-//    if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-//    if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
-//    strcat(fname,name);
-//    cout<<"ECALDBc::readgconf: Open file : "<<fname<<'\n';
-//    ifstream tcfile(fname,ios::in); // open needed config-file for reading
-//    if(!tcfile){
-//      cerr <<"ECgeom-read: missing geomconfig-file "<<fname<<endl;
-//      exit(1);
-//    }
+//
+    if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+    if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+    strcat(fname,name);
+    cout<<"        Open file : "<<fname<<'\n';
+    ifstream tcfile(fname,ios::in); // open needed config-file for reading
+    if(!tcfile){
+      cerr <<"<------ EcalGeom-read: missing geomconfig-file "<<fname<<endl;
+      exit(1);
+    }
+    for(i=0;i<3;i++) tcfile >> _gendim[4+i];//1 3-numbers row (dx,dy,Z values)
+    _gendim[6]+=ZShift;//Zshift!=0 only for AMS02D configuration !!!
+    cout<<"<------ ECALDBc::readgconf: Setup selection is done !"<<endl<<endl;
   }
 //---
 //
@@ -306,11 +311,11 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
   int nfl=_slstruc[1];// numb.of fiber-layers per super-layer
   int npm=_slstruc[3];// numb.of PM's per super-layer
   int nfb;
-  geant dzrad1=_gendim[8];// z-size of 1SL EC radiator(lead)
-  geant alpth=_gendim[9];// Al-plate(on rad. top/bot) thickness
-  geant pmpit=_rdcell[6];//PM-pitch(transv)
-  geant pxsiz=_rdcell[4];// SubCell(pixel) size
-  geant piz=_fpitch[1];
+  geant dzrad1=_gendim[8];// z-size of 1SL radiator(lead)
+  geant alpth=_gendim[9];// glue(on rad. top/bot) thickness
+  geant pmpit=_rdcell[6];//  PM-pitch(transv)
+  geant pxsiz=_rdcell[4];//  SubCell(pixel) size
+  geant piz=_fpitch[1];//  fibers pitch in z
   geant pizz,dz;
 //
   #ifdef __AMSDEBUG__
@@ -413,18 +418,14 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
   // icoo - 0 transverse
   //        1  longit
   //        2  z
-// temporary -> work for eugeni
-  
-    if(ico==0){    //transverse
-     return _rdcell[4];
+    if(ico==0){    //transverse(dx=dy)
+      return _rdcell[4];
     }
     else if(ico==1){  //longit
-     return (gendim(1)+gendim(2))/4;  //wrong - ask eugeni to correct
+      return _gendim[0];//lx=ly(imply square form of EC-radiator)
     }
     else{
-     cerr<<"ECALDBc::CellSize-S-NotYetImplemented "<<ico<<endl;
-     abort();
-     return 0;
+      return _rdcell[4];//dx=dy=dz(square form of readout cell)
     }
   }
 

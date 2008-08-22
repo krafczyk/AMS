@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.195 2008/04/21 15:14:41 choutko Exp $
+//  $Id: amsgeom.C,v 1.196 2008/08/22 12:48:56 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -378,6 +378,7 @@ par[2]=TOF2DBc::supstr(12)/2; //Dz
 coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(6);    // y-shift ...
 coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(12)/2.;// z-centre of bot supp. honeycomb
+cout<<"TOF_BotHoneycomb:z/hsize="<<coo[2]<<" "<<par[2]<<endl;
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
@@ -2494,8 +2495,8 @@ ECALDBc::readgconf();//
   nflpsl=ECALDBc::slstruc(2);// numb.of fiber-layers per super-layer
   nfpl[0]=ECALDBc::nfibpl(1);// fibers/(1st layer) 
   nfpl[1]=ECALDBc::nfibpl(2);// fibers/(2nd layer)
-  dz=(dzrad1+2.*alpth)*nsupl;//ECrad. tot.thickness(incl. Al-plates(now glue), excl. Honeyc)
-  cout<<"====> Amsgeom::ecalgeom02: EC total radiator(incl.Al-plates) thickness "<<dz<<" cm"<<endl;
+  dz=(dzrad1+2.*alpth)*nsupl;//ECrad. tot.thickness(incl. Al-plates(now replaced by glue), excl. Honeyc)
+  cout<<"====> Amsgeom::ecalgeom02: EC total radiator(incl.glue betw.SLs) thickness "<<dz<<" cm"<<endl;
   dzh=ECALDBc::gendim(8);// Z-thickness of honeycomb
   xpos=ECALDBc::gendim(5);// x-pos EC-radiator center
   ypos=ECALDBc::gendim(6);// y-pos

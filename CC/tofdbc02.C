@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.54 2008/06/27 12:36:09 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.55 2008/08/22 12:48:56 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -149,35 +149,32 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   void TOF2DBc::readgconf(){
     int i,j;
     char fname[80];
-    char name[80]="tof2const";
-    char vers0[10]="1";//default(original=wrong)
-    char vers1[10]="12p";
-    char vers2[10]="011207";//OldTofPos(ddmmyy)
-    char vers3[10]="210508";//NewTofPos
+    char name[80]="TofGeom";
+    char vers0[10]="MC";//def for MC
+    char vers1[10]="PreAss";//pre-assembly in clean room
+    char vers2[10]="Space";//in space (incl.
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
-      cout <<" TOFGeom-I-AMS02D setup selected."<<endl;
-      cout <<" TOFGeom-I-TOF:8/8/10/8-pads setup selected."<<endl;
-      strcat(name,vers2);
+      cout <<"<------ TOFGeom-I- AMS02D configuration is used..."<<endl;
+      strcat(name,vers2);//as space
       ZShift=AMSDBc::amsdext;
-      cout<<" TOFGeom-I-ZShift="<<ZShift<<endl;
+      cout<<"        ZShift="<<ZShift<<endl;
     }
     
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      cout <<"<------ TOFGeom-I-AMS02 setup selected."<<endl;
-      if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
-        cout <<"      TOFGeom-I-TOF:12PAD setup selected."<<endl;
-        strcat(name,vers1);
-	TFCAFFKEY.cfvers=0;//reset vers.numb. to 0 for old(12pads) setup
+      cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
+      if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+        cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
+        strcat(name,vers1);//clean room
       }
       else if(!AMSJob::gethead()->isRealData()){
-        cout <<"      MC: Original(not CleanRoom)Setup(=old TOF-pos) "<<endl;
-        strcat(name,vers0);
+        cout <<"      MC: Space(not CleanRoom) setup selected..."<<endl;
+        strcat(name,vers0);//mc
       }
       else{
-        cout <<"      CleanRoomSetup Default(01.12.07 TOF-pos) "<<endl;
-        strcat(name,vers2);
+        cout <<"      Space (default) setup selected..."<<endl;
+        strcat(name,vers2);//space
       }
     }
     
@@ -193,7 +190,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     cout<<"      Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed config-file for reading
     if(!tcfile){
-      cout <<"      missing geomconfig-file "<<fname<<endl;
+      cout <<"      missing TofGeom-file "<<fname<<endl;
       exit(1);
     }
     tcfile >> _planes;// 1 row
@@ -215,7 +212,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     }
     _supstr[0]+=ZShift;//used for AMS02D-setup !!! for normal one ZShift=0 !!!
     _supstr[1]-=ZShift;
-    cout<<"<---- TOF2DBc::readgconf: succsessfully done !"<<endl<<endl;
+    cout<<"<------ TOF2DBc::readgconf: Setup selection is done !"<<endl<<endl;
   }
 //---
   integer TOF2DBc::brtype(integer ilay, integer ibar){

@@ -405,6 +405,7 @@ void ECREUNcalib::select(){
   number zpass;//particle pass from ECAL Zfront to middle of SL
   number mscat;//mult.scatt.par.
   int sccr,kdir;
+  bool patt1,patt2;
   number pixam[4],pixed[4];
   integer pixcr[4];
   mscat=pow((13.6/fabs(betap*rid)/1000.),2)/3./1.04;// ~ SigmaMS**2 /dz**3 (use 1X0~1.04cm)
@@ -577,8 +578,9 @@ void ECREUNcalib::select(){
           }//---> endif of found pixel crossing
         }//-------> end of 4 pixels loop
 //
-	if(sccr>1 && ((pixcr[0]==1 && pixcr[2]==1) ||
-	              (pixcr[1]==1 && pixcr[3]==1))){//Good cross(pix 0&2 or 1&3)
+        patt1=((pixcr[0]==1 && pixcr[2]==1) || (pixcr[1]==1 && pixcr[3]==1));//pix 0&2|1&3
+//
+	if(sccr>0){//at least 1 crossing
 	  sta=0;
 	  for(sbc=0;sbc<4;sbc++){// <-------- fill pix-arrays using good combination pixels
 	    if(pixcr[sbc]==0)continue;
@@ -598,7 +600,7 @@ void ECREUNcalib::select(){
             ovfl[0]=0;
             if(radc[0]>0)
 	               if((ECADCMX[0]-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
-            if(radc[0]>0 && ovfl[0]==0){//<=== fired pixel wiht no ovfl(hi-channel)
+            if(patt1 && radc[0]>0 && ovfl[0]==0){//<=== PixGain calib: select good patt1 + fired pixel + no ovfl
 	      if(ECREFFKEY.reprtf[0]!=0){
 	        HF1(ECHISTC+44,radc[0],1.);//single pix signals(adc)
 	        HF1(ECHISTC+45,epix,1.);//single pix signals(adc, GainCorr)
@@ -606,7 +608,7 @@ void ECREUNcalib::select(){
 	      ECREUNcalib::fill_1(isl,pmt,sbc,lbin,radc[0]);//<--- fill arrays(SC gain calibr)
             }//---> endif of fired subcell
 	  }//--->endof good comb. pix-loop
-//--> look at PM and fill arrays for PM-cal(anodes sum) :
+//--> look at PM and fill arrays for PMgain-calib(4anodes sum) :
           tevpmc[pmsl]+=1.;//count crossed/fired PM's (and vs lbin)
           if(apmt>0 && lbin<ECCLBMX){
             pmlres[pmsl][lbin]+=apmt;
@@ -634,7 +636,7 @@ void ECREUNcalib::select(){
 	    HF1(ECHISTC+43,padc[2],1.);
 	  }
 //---
-	}//--->endof Good(correct pix-combination) PM-crossing
+	}//--->endof "at least 1 pix crossed
 //
       }//---> endif of PM pre-crossing 
 //
