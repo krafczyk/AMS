@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.524 2008/08/20 09:04:07 choutko Exp $
+# $Id: RemoteClient.pm,v 1.525 2008/08/25 07:03:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3889,11 +3889,11 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid "." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
            $rsum=$self->{sqlserver}->Query($sqlsum);
         # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
 
-     }
+      }
 
        $sql = $sql.$pps."ORDER BY dataRuns.Run";
       $sqlmom=$sqlmom.$sqlmom1;
@@ -3954,7 +3954,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
 #         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
          # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
       }
@@ -4002,7 +4002,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
 #              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";
               $rsum=$self->{sqlserver}->Query($sqlsum);
 #             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";

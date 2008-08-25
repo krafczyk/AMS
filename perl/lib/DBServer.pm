@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.19 2008/02/27 09:50:13 choutko Exp $
+# $Id: DBServer.pm,v 1.20 2008/08/25 07:03:47 choutko Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -829,7 +829,7 @@ OUT:
              }
              elsif($rc eq "Create"){
                  if($hash{rtb_maxr}>$ri->{uid}){
-                    $ri->{uid}=$hash{rtb_maxr};
+                    warn " dbase rtb_maxr is wrong $hash{rtb_maxr} \n"; 
                  }
                          $hash{rtb_maxr}=$ri->{uid}+1;
                          $#{$ref->{rtb}}=$#{$ref->{rtb}}+1;

@@ -96,7 +96,7 @@ $FILE="</etc/cluster/cluster.conf";
           $port=$spat[1];
           $hfound=0;  
          }
-         elsif($line=~/$host/ ){
+         elsif($line=~/$host.hrdl/ ){
              $hfound=1;
          }
          if($line=~/fence_sanbox2/){
