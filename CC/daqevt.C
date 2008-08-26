@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.126 2008/08/18 09:39:30 choutko Exp $
+//  $Id: daqevt.C,v 1.127 2008/08/26 13:13:06 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -856,6 +856,7 @@ integer DAQEvent::read(){
        }    
        else{
         cerr<<"DAQEvent::read-F-cannot open file "<<fnam<<endl;
+        fbin.clear();
         if((fnam=_getNextFile(Run, Event))==0)return 0;
        }
      }

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.525 2008/08/25 07:03:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.526 2008/08/26 13:10:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3417,6 +3417,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            else{
             $sql=$sqlsum." and (runcatalog.jobname LIKE '%$like%' AND runcatalog.run=runs.run)";
            }
+          
           my $rsump=$self->{sqlserver}->Query($sql);
            my @sqla=split 'where',$sql;
 #           $sqla[1]=~s/and ntuples.run=runs.run//;
@@ -3437,7 +3438,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             push @temp,"dum";
            push @output,[@temp];
            $prev=$like;
-         }
+      }
           $#temp=-1;
            push @temp,"Total of";
           push @temp,$nruns;
@@ -4002,7 +4003,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
 #              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";
               $rsum=$self->{sqlserver}->Query($sqlsum);
 #             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
@@ -4248,6 +4249,10 @@ CheckCite:            if (defined $q->param("QCite")) {
         }
          my $rquery=$self->{sqlserver}->Query($sql);
          my $nruns=0;
+        my $dsts=0;
+        my $gb=0;
+        my $evt=0;
+        my $trg=0;
          my $prev="";
          foreach my $templat (@{$rquery}){
           $#temp=-1;
@@ -4259,7 +4264,8 @@ CheckCite:            if (defined $q->param("QCite")) {
              $sql=$sqlsum." and (jobs.did=$templat->[1]) ";
            }
            else{
-            $sql=$sqlsum;
+            $sql=$sqlsum." and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname)  AND (datasetsdesc.jobdesc LIKE '$templat->[0]' ) ";
+#             die "2 $query $templat->[0] $sql ";
            }
           my $rsump=$self->{sqlserver}->Query($sql);
            my @sqla=split 'where',$sql;
@@ -4274,6 +4280,10 @@ CheckCite:            if (defined $q->param("QCite")) {
           push @temp,$like;
           push @temp,$i;
           $nruns+=$i;
+          $dsts+=$rsump->[0][0];
+          $gb+=int($rsump->[0][1]/100)/10; 
+          $evt+=$rsump->[0][2];
+          $trg+=$rsump->[0][3];
           push @temp,$rsump->[0][0];
           push @temp,int($rsump->[0][1]/100)/10; 
           push @temp,$rsump->[0][2];
@@ -4285,10 +4295,10 @@ CheckCite:            if (defined $q->param("QCite")) {
           $#temp=-1;
            push @temp,"Total of";
           push @temp,$nruns;
-          push @temp,$rsum->[0][0];
-         push @temp,int($rsum->[0][1]/100)/10;  
-          push @temp,$rsum->[0][2];
-           push @temp,$rsum->[0][3];
+        push @temp,$dsts;
+        push @temp,$gb;
+        push @temp,$evt;
+        push @temp,$trg;
            push @temp,"dum";
            push @output,[@temp];
 

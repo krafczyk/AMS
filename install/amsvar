@@ -9,8 +9,9 @@ setenv LD_LIBRARY_PATH .:/opt/intel/cc/10.1.012/lib:$ROOTSYS/lib:/opt/intel/comp
 setenv CVSROOT $Offline/CVS
 setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
 setenv CVS_RSH ssh
-setenv ProductionRunsDir /s0fc00/Data/Deframing
+setenv ProductionRunsDir /s0dat0/Data/Deframing
 setenv AMSDataDir $Offline/AMSDataDir
+setenv AMSDataDirRW $Offline/.../AMSDataDir
 setenv EDITOR  emacs
 setenv CVSEDITOR  emacs
 setenv RunsDir $Offline/RunsDir

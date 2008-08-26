@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.115 2008/08/11 07:39:20 choutko Exp $
+//  $Id: producer.C,v 1.116 2008/08/26 13:13:06 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1785,6 +1785,7 @@ bool AMSProducer::SetDataCards(){
    ifstream fbin;
    fbin.open((const char*)fout);
    AString fscript="";
+    bool found=false;
    cout <<"looking for "<<tmpu<<endl;
     while(fbin.good() && !fbin.eof()){
      fbin.ignore(1024,' ');
@@ -1793,11 +1794,12 @@ bool AMSProducer::SetDataCards(){
      if(strstr(tmpbuf,tmpu) && strstr(tmpbuf,".job")){
       cout <<"   Found job "<<tmpbuf<<endl;
       fscript+=tmpbuf;
+      found=true;
       break;
      } 
     }
     fbin.close();
-    unlink((const char*)fout);
+    if(found)unlink((const char*)fout);
     ifstream f1;
     f1.open((const char *)fscript);
     if(f1){
