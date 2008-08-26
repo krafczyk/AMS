@@ -1107,7 +1107,7 @@ static char _Info[255];
                                        ///< [1] = total efficiency, direct
                                        ///< [2] = total efficiency, 1 reflection
                                        ///< [3] = total efficiency, 2 reflection
-                                       ///< [4] = radiator efficiency * geometrical accceptance
+                                       ///< [4] = radiator efficiency * geometrical acceptance
                                        ///< [5] = light guide efficiency
   std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
   std::vector<int> HitsStatus;         ///< hit status:

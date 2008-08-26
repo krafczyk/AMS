@@ -573,7 +573,7 @@
                   resc_cnperef(irecnumb+1) = chg_nphe_ref
                   resc_chg(irecnumb+1) = chgrec
                   resc_chgdir(irecnumb+1) = chgrec_dir
-                  resc_chgmir(irecnumb+1) = chgrec_mir
+                  resc_chgmir(irecnumb+1) = chgrec_ref
                   resc_accgeom(1,irecnumb+1) = richacc_vis
                   resc_accgeom(2,irecnumb+1) = richacc_dir
                   resc_accgeom(3,irecnumb+1) = richacc_mir0
@@ -726,7 +726,7 @@
                resc_cnperef(irecnumb+1) = chg_nphe_ref
                resc_chg(irecnumb+1) = chgrec
                resc_chgdir(irecnumb+1) = chgrec_dir
-               resc_chgmir(irecnumb+1) = chgrec_mir
+               resc_chgmir(irecnumb+1) = chgrec_ref
                resc_accgeom(1,irecnumb+1) = richacc_vis
                resc_accgeom(2,irecnumb+1) = richacc_dir
                resc_accgeom(3,irecnumb+1) = richacc_mir0
@@ -874,7 +874,7 @@
                resc_cnperef(irecnumb+1) = chg_nphe_ref
                resc_chg(irecnumb+1) = chgrec
                resc_chgdir(irecnumb+1) = chgrec_dir
-               resc_chgmir(irecnumb+1) = chgrec_mir
+               resc_chgmir(irecnumb+1) = chgrec_ref
                resc_accgeom(1,irecnumb+1) = richacc_vis
                resc_accgeom(2,irecnumb+1) = richacc_dir
                resc_accgeom(3,irecnumb+1) = richacc_mir0
@@ -936,11 +936,11 @@
          print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
          print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
          print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
-         print*,'resb_epimp     = ',(resb_epimp(i,k),i=1,3)
+         print*,'resb_epimp    = ',(resb_epimp(i,k),i=1,3)
          print*,'resb_pthe(d)  = ',resb_pthe(k)*RADDEG 
-         print*,'resb_epthe(d)  = ',resb_epthe(k)*RADDEG 
+         print*,'resb_epthe(d) = ',resb_epthe(k)*RADDEG 
          print*,'resb_pphi(d)  = ',resb_pphi(k)*RADDEG
-         print*,'resb_epphi(d)  = ',resb_epphi(k)*RADDEG
+         print*,'resb_epphi(d) = ',resb_epphi(k)*RADDEG
          print*,' '
       enddo
 */

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.92 2008/08/20 10:21:22 mdelgado Exp $
+//  $Id: richrec.C,v 1.93 2008/08/26 15:44:35 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2035,7 +2035,7 @@ void AMSRichRingNew::fillresult(){
   _ChargeRecMir = LIPF2C.resc_chgmir[nr];
   _NpeRing = LIPF2C.resc_cnpe[nr];
   _NpeRingDir = LIPF2C.resc_cnpedir[nr];
-  _NpeRingRef = LIPF2C.resc_chgmir[nr];
+  _NpeRingRef = LIPF2C.resc_cnperef[nr];
 
   for(int i=0;i<3;i++) {
     _RingAcc[i] = LIPF2C.resc_accgeom[nr][i];
@@ -2209,12 +2209,16 @@ void AMSRichRingNew::_writeEl(){
 }
 
 
-void AMSRichRingNew::_copyEl(){  // TO BE DONE
+void AMSRichRingNew::_copyEl(){
 #ifdef __WRITEROOT__
-  //if(PointerNotSet())return;
-  //RichRingBR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingNew(_vpos);
-  //if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
-  //else ptr.fTrTrack=-1;
+  if(PointerNotSet())return;
+  RichRingBR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRingB(_vpos);
+  if (_Status==4 || _Status==14) {
+    ptr.fTrTrack=-2;
+    return;
+  }
+  if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
+  else ptr.fTrTrack=-1;
 #endif
 }
 
