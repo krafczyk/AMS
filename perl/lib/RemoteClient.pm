@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.527 2008/08/27 06:38:15 ams Exp $
+# $Id: RemoteClient.pm,v 1.528 2008/08/27 07:59:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3646,7 +3646,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                  }
                }
                if($found==0 and $sqlmom eq ""){
-                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";         
+                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";        
+ 
                }
                }
              }                  
@@ -3681,6 +3682,14 @@ CheckCite:            if (defined $q->param("QCite")) {
               $runo=$nt->[1];
 	      if($found==0 && $ntd>0){
              print "<tr><td><font color=red> // $path is absent on disk</tr></td><font color=black><br>";
+                  if($path=~'xyzf4bck0' ){
+                  my $nd =$path;
+                   $nd=~s/f4bck0/f8dah3/;
+                   my $sq="update ntuples set path='$nd' where path='$path'";
+#                   die "$sq";
+                   $self->{sqlserver}->Update($sq);
+}
+
             }
             else{
              $ok++;
@@ -4382,6 +4391,23 @@ CheckCite:            if (defined $q->param("QCite")) {
          print "<tr><td>$RootAnalysisTemplateTxt</td></tr>\n";
 #
       my $sql =$sqlNT;
+       my $dmc=$q->param('DataMC');
+          if(not defined $dmc){
+              $dmc=0;
+          }
+          else{
+            my $qpartd=$q->param("QPartD");
+            if(not defined $qpartd or $qpartd eq "AnyData"){
+                $qpartd="";
+             }
+             else{
+              $qpartd="and path like '%".$qpartd."%'"; 
+             }
+            $sql=~s/ORDER BY/ and ntuples.jid=jobs.jid and DataMC=$dmc $qpartd ORDER BY/;
+
+}
+
+#      die "$sql";
       my $r1=$self->{sqlserver}->Query($sql);
       if ($rootfileaccess=~/^NFS/ or $rootfileaccess eq "CASTOR") {
           my $oldrun=0;
@@ -4404,6 +4430,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              $tdir = $tdir."/".$junk[$i];
             }
             $tdir = trimblanks($tdir);
+#            $tdir=$tdir."/";
             my $dirfound = -1;
 
             for my $i(0...$#dirs){
@@ -4464,6 +4491,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     $ntd++;
                }
               }       
+
            my $offline=0; 
            if($ntd != $dirs_ntuples[$ind] and $sqlmom eq ""){
              $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
@@ -4499,8 +4527,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                  }
                }
                if($found==0 and $sqlmom eq ""){
-                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";         
-               }
+                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";          
+             }
                }
              }                  
           }
@@ -4526,7 +4554,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              }
              }
             }
-             if($path eq $patho){
+             if($path eq $patho and $dmc!=1){
               #die "$sqlNT"; 
            print "<tr><td><font color=red> //$ok $found $path is duplicated for runs $runo $nt->[1]</tr></td><font color=black><br>";
              }
@@ -4534,6 +4562,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               $runo=$nt->[1];
 	      if($found==0 && $ntd>0){
              print "<tr><td><font color=red> // $path is absent on disk</tr></td><font color=black><br>";
+
             }
             else{
              $ok++;
