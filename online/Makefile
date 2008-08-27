@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.28 2008/07/28 13:40:02 choutko Exp $
+#  $Id: Makefile,v 1.29 2008/08/27 08:43:42 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -28,7 +28,7 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            =  /opt/intel/cc/10.1.012/bin/icpc
 LDFLAGS       =  -axT 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl

@@ -1,7 +1,16 @@
-import sys,os,time,string,re,thread,smtplib
+import sys,os,time,string,re,thread,smtplib,commands,math
 from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
+def sorta(s,o):
+    timenow=int(time.time())
+    dts=timenow-s[2]
+    dto=timenow-o[2]
+    dss=s[1]/1024
+    dso=o[2]/1024
+    qs=math.sqrt(dts*dss)
+    qo=math.sqrt(dto*dso)
+    return (qs>qo)
 class RemoteClient:
     env={}
     dbclient=""
@@ -2513,8 +2522,86 @@ class RemoteClient:
             else:
                 self.sqlserver.Commit(0)
                
-
-
+    def CheckQuota(self,dir,wl,hl,i,v):
+        self.v=v
+        delay=43200
+        sleep=300
+        self.filesfound=0
+        self.timenotify=0
+        filelist=[]
+        while 1:
+            notify=1
+            problem=0
+            cmd="du -ks "+dir
+            p=commands.getstatusoutput(cmd)
+            if(p[0]==0):
+                problem=0
+                size=int(p[1].split(dir)[0])
+                if(size<wl):
+                    time.sleep(sleep)
+                else:
+                    try:
+                        self.GetFiles(dir,filelist)
+                    except:
+                        print " problem to rad files from "+dir
+                timenow=int(time.time())
+                filelist.sort(sorta)
+                nd1=0
+                nd2=0
+                if(size>hl):
+                    i=-1;
+                    for tuple in filelist:
+                        i=i+1
+                        if(size<hl):
+                            break
+                        else:
+                            try:
+                                os.unlink(tuple[0])
+                                size=size-tuple[1]
+                                del filelist[i]
+                                i=i-1 
+                                nd1=nd1+1
+                            except:
+                                continue
+                if(size>wl):
+                    i=-1;
+                    for tuple in filelist:
+                        i=i+1
+                        if(size<wl):
+                            break
+                        else:
+                            if(timenow-tuple[2]>delay):
+                                try:
+                                    os.unlink(tuple[0])
+                                    size=size-tuple[1]
+                                    del filelist[i]
+                                    i=i-1 
+                                    nd2=nd2+1
+                                except:
+                                    continue
+                message ="size reduced to %d %d %d files deleted "  %(size,nd1,nd2)
+                print message
+                time.sleep(sleep)
+                 
+            else:
+                problem=problem+1
+                if(problem%100 == 1):
+                    message=" problem to "+cmd
+                    self.NotifyResp(message)
+                time.sleep(sleep)
+                                       
+    def GetFiles(self,dir,filelist):
+        for file in os.listdir(dir):
+            pfile=os.path.join(dir,file)
+            if(not os.path.islink(pfile) and os.path.isdir(pfile)):
+                self.GetFiles(pfile,filelist)
+            else:
+                if(not os.path.islink(pfile)):
+                    try:
+                        o=(pfile,os.stat(pfile)[ST_SIZE]/1024,os.stat(pfile)[ST_MTIME])
+                        filelist.append(o)
+                    except:
+                        print "problem get attributes ",pfile 
             
     def TransferDataFiles(self,run2p,i,v,u,h,source,c,replace):
         if(os.environ.has_key('RunsDir')):
@@ -2710,4 +2797,3 @@ class RemoteClient:
 #                        self.sqlserver.Commit(0)
 
 
-            
