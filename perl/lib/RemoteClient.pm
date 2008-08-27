@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.526 2008/08/26 13:10:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.527 2008/08/27 06:38:15 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17561,7 +17561,21 @@ sub MoveBetweenDisks{
                  last;
              }
               else{
+#
+# do final check
+#
+               $sql="select path from ntuples where path='$newfile'";
+               my $fchk=$self->{sqlserver}->Query($sql);
+               if(not defined $fchk->[0][0]){
+                 if($verbose){
+                     print " Failure after succ Commit $file $newfile\n";                                      }
+                 system("$rm  $newfile");
+                 last;
+
+               }
+               else{
                   system("$rm  $file");
+              }
               }
           }
        }

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.132 2008/08/14 16:11:30 choutko Exp $
+# $Id: Monitor.pm,v 1.133 2008/08/27 06:38:15 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -626,6 +626,9 @@ sub getdbok{
      my @sortedrtb=sort prioi @{$Monitor::Singleton->{dsts}};
     for $i (0 ... $#sortedrtb){
      my $hash=$sortedrtb[$i];
+     if($hash->{Type} eq "EventTag"){
+       next;
+     }
      my $tring=$hash->{Name};
      my @spar= split /\//,$tring;
      my $string;
