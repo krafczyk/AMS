@@ -1,3 +1,4 @@
+#include "tkdcards.h"
 #include "trmccluster.h"
 #include <math.h>
 #include "event.h"

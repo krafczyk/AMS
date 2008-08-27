@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.127 2008/08/26 13:13:06 choutko Exp $
+//  $Id: daqevt.C,v 1.128 2008/08/27 18:17:37 pzuccon Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -6,12 +6,15 @@
 #include "ntuple.h"
 #endif
 #include "commons.h"
+#include "tkdcards.h"
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <ctype.h>
 #include "astring.h"
 #include <fstream.h>
 #include <unistd.h>
+#include <strstream>
+
 #ifndef __ALPHA__
 using std::ostrstream;
 using std::istrstream;

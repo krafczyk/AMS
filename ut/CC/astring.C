@@ -1,4 +1,4 @@
-//  $Id: astring.C,v 1.5 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: astring.C,v 1.6 2008/08/27 18:17:37 pzuccon Exp $
 #include "astring.h"
 
 
@@ -150,7 +150,7 @@ AString & AString::operator +=(const AString & a){
  
 }
 
-AString AString::operator ()(int i) {
+AString AString::operator()(int i) {
  return AString((pData->pString)+i);
 }
 

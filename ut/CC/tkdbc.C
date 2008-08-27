@@ -1,10 +1,12 @@
-//  $Id: tkdbc.C,v 1.63 2008/08/21 13:06:38 choutko Exp $
+//  $Id: tkdbc.C,v 1.64 2008/08/27 18:17:37 pzuccon Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
 #include "job.h"
 #include "commons.h"
 #include "trcalib.h"
+#include "amscommonsi.h"
+
 using namespace trconst;
 using namespace AMSChargConst;
 TrkElosPDF TrkElosPDF::TrkEPDFs[MaxZTypes];

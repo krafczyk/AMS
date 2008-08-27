@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.9 2008/04/28 15:40:12 choutko Exp $
+//  $Id: trdcalib.C,v 1.10 2008/08/27 18:17:37 pzuccon Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -8,6 +8,7 @@
 #include "mccluster.h"
 #include "trddbc.h"
 #include "mceventg.h"
+#include "amscommonsi.h"
 
 time_t AMSTRDIdCalib::_BeginTime=0;
 time_t AMSTRDIdCalib::_CurTime=0;

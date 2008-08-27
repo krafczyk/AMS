@@ -1,4 +1,4 @@
-//  $Id: astring.h,v 1.4 2001/01/22 17:32:42 choutko Exp $
+//  $Id: astring.h,v 1.5 2008/08/27 18:17:45 pzuccon Exp $
 #ifndef __ASTRING___
 #define __ASTRING___
 
@@ -6,100 +6,104 @@
 
 //  AMS AString (AString)
 
-#include <iostream.h>
+#include <iostream>
 
-
+using namespace std;
 extern "C" {
 #include <string.h>
 }
 
 
 
+
+/*! \class AString
+  \brief AMS string class implementation
+  A AString is a sequence of characters of type char.  The sequence of
+    characters is stored as a null-terminated array (ASCIZ format).
+    Therefore, a AString may NOT contain a null character.  More than one
+    AString may share the same data (string representation structure).
+    Garbage collection is done with a reference count in the string
+    representation.
+*/
+/*! \class AString::Data
+  \brief AString's representation
+ */
 class AString{
 
-//
-//	A AString is a sequence of characters of type char.  The sequence of
-//	characters is stored as a null-terminated array (ASCIZ format).
-//	Therefore, a AString may NOT contain a null character.  More than one
-//	AString may share the same data (string representation structure).
-//	Garbage collection is done with a reference count in the string
-//	representation.
-//--
-
 protected:
- class	 Data{		// AString's representation
- public:
- char *pString ;        // Pointer to the data
- unsigned int   RefC;            // Reference count
- Data();
- Data(const char *);
- Data(char c, int n=0);
- Data(const Data &);
- ~Data();
- 
- };
-
- Data *  pData;	// Pointer to AString representation
- static Data* defaultData();
- void _mutator();
-public:
-    AString(): pData(defaultData()){}
-    AString(const AString & s):pData(s.pData){(pData->RefC)++;}
-    AString(const char * s){pData=new Data(s);}
-    AString(const char & c){pData=new Data(c);}
-    AString( Data * p):pData(p){}
-    ~AString();
+  class	 Data{		// AString's representation
+  public:
+    char *pString ;        /// Pointer to the data
+    unsigned int   RefC;            /// Reference count
+    Data();
+    Data(const char *);
+    Data(char c, int n=0);
+    Data(const Data &);
+    ~Data();
     
+  };
 
-    // Assignments
-    AString		&operator=(const AString &);
-    AString		&operator=(const char *);
-
-    // Conversions
-    inline		operator char *() ;
-    inline		operator const char *() ;
-    inline		operator const char *() const;
-
-    // Operators
-    friend inline ostream	&operator<<(ostream &, const AString &);
-    friend istream		&operator>>(istream &, AString &);
-    friend inline int		operator==(const AString &, const AString &);
-    friend inline int		operator==(const AString &, const char *);
-    friend inline int		operator==(const char *, const AString &);
-    friend inline int		operator!=(const AString &, const AString &);
-    friend inline int		operator!=(const AString &, const char *);
-    friend inline int		operator!=(const char *, const AString &);
-    friend inline int		operator<(const AString &, const AString &);
-    friend inline int		operator<(const AString &, const char *);
-    friend inline int		operator<(const char *, const AString &);
-    friend inline int		operator>(const AString &, const AString &);
-    friend inline int		operator>(const AString &, const char *);
-    friend inline int		operator>(const char *, const AString &);
-    friend inline int		operator<=(const AString &, const AString &);
-    friend inline int		operator<=(const AString &, const char *);
-    friend inline int		operator<=(const char *, const AString &);
-    friend inline int		operator>=(const AString &, const AString &);
-    friend inline int		operator>=(const AString &, const char *);
-    friend inline int		operator>=(const char *, const AString &);
-
-    AString 		operator+(const AString &);
-    AString 		operator+(const char *);
-    friend AString 		operator+(const char *, const AString &);
-    AString			&operator+=(const AString &);
-    AString			&operator+=(const char *);
-    AString			operator()(int , int );
-    AString			operator()(int  , int ) const;
-    AString			operator()(int  );
-    AString			operator()(int   ) const;
-    inline char			operator[](int) const;
-    inline char			&operator[](int);
-
-    // Additional member functions
-    inline unsigned int	length() const;
-    AString		upper() const;
-    AString		lower() const;
-    int			index(const AString &) const;
-
+  Data *  pData;	/// Pointer to AString representation
+  static Data* defaultData();
+  void _mutator();
+public:
+  AString(): pData(defaultData()){}
+  AString(const AString & s):pData(s.pData){(pData->RefC)++;}
+  AString(const char * s){pData=new Data(s);}
+  AString(const char & c){pData=new Data(c);}
+  AString( Data * p):pData(p){}
+  ~AString();
+  
+  
+  // Assignments
+  AString		&operator=(const AString &);
+  AString		&operator=(const char *);
+  
+  // Conversions
+  inline		operator char *() ;
+  inline		operator const char *() ;
+  inline		operator const char *() const;
+  
+  // Operators
+  friend inline ostream	&operator<<(ostream &, const AString &);
+  friend istream		&operator>>(istream &, AString &);
+  friend inline int		operator==(const AString &, const AString &);
+  friend inline int		operator==(const AString &, const char *);
+  friend inline int		operator==(const char *, const AString &);
+  friend inline int		operator!=(const AString &, const AString &);
+  friend inline int		operator!=(const AString &, const char *);
+  friend inline int		operator!=(const char *, const AString &);
+  friend inline int		operator<(const AString &, const AString &);
+  friend inline int		operator<(const AString &, const char *);
+  friend inline int		operator<(const char *, const AString &);
+  friend inline int		operator>(const AString &, const AString &);
+  friend inline int		operator>(const AString &, const char *);
+  friend inline int		operator>(const char *, const AString &);
+  friend inline int		operator<=(const AString &, const AString &);
+  friend inline int		operator<=(const AString &, const char *);
+  friend inline int		operator<=(const char *, const AString &);
+  friend inline int		operator>=(const AString &, const AString &);
+  friend inline int		operator>=(const AString &, const char *);
+  friend inline int		operator>=(const char *, const AString &);
+  
+  AString 		operator+(const AString &);
+  AString 		operator+(const char *);
+  friend AString 		operator+(const char *, const AString &);
+  AString			&operator+=(const AString &);
+  AString			&operator+=(const char *);
+//   AString			operator()(int , int );
+//   AString			operator()(int  , int ) const;
+  AString			operator()(int  );
+//   AString			operator()(int   ) const;
+  inline char			operator[](unsigned int) const;
+  inline char			&operator[](unsigned int);
+  
+  // Additional member functions
+  inline unsigned int	length() const;
+  // AString		upper() const;
+  //  AString		lower() const;
+  //  int			index(const AString &) const;
+  
 
 };
 
@@ -657,7 +661,7 @@ inline int operator>=(
 
 
 inline char AString::operator[](
-    int position 	// Index into string
+				unsigned int position 	// Index into string
     )
     const
 
@@ -681,7 +685,7 @@ inline char AString::operator[](
 
 
 inline char & AString::operator[](
-    int position 	// Index into string
+    unsigned int position 	// Index into string
     )
 
 //++

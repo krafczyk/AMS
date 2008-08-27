@@ -1,4 +1,4 @@
-//  $Id: amsgobj.C,v 1.6 2005/05/17 09:54:02 pzuccon Exp $
+//  $Id: amsgobj.C,v 1.7 2008/08/27 18:17:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "node.h"

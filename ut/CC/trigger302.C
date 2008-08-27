@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.33 2007/07/12 07:30:50 choumilo Exp $
+//  $Id: trigger302.C,v 1.34 2008/08/27 18:17:37 pzuccon Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -12,6 +12,8 @@
 #include "trrawcluster.h"
 #include "trdsim.h"
 #include "ntuple.h"
+#include "amscommonsi.h"
+
 using namespace std;
 using namespace trconst;
 using namespace trigger302const;

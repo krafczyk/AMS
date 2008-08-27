@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.196 2008/08/22 12:48:56 choumilo Exp $
+//  $Id: amsgeom.C,v 1.197 2008/08/27 18:17:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -26,6 +26,8 @@
 #include "job.h"
 #include "commons.h"
 #include "tkdbc.h"
+#include <strstream>
+
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_

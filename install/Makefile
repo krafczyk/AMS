@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.49 2008/07/25 18:26:32 barao Exp $
+#  $Id: Makefile,v 1.50 2008/08/27 18:17:58 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -131,7 +131,7 @@ INCS= $(wildcard ../include/*.h)
 COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
 		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
 		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
-		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C
+		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)amscommonsi.C
 
 
 #Geant Interface
@@ -154,7 +154,7 @@ COMMON_FILES += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trd
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C     \
-		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C 
+		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C  $(SCC)tkdcards.C
 
 #TRD 
 COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C 
@@ -344,7 +344,7 @@ endif
 
 $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/point.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h ../include/root_methods.h

@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.51 2008/05/30 10:01:01 choutko Exp $
+//  $Id: amsdbc.C,v 1.52 2008/08/27 18:17:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -54,35 +54,35 @@ number AMSDBc::ams_nrm[3][3];
 const geant AMSDBc::amsdext=43.;
 
 void AMSDBc::init(float angle){
- angle=angle/180*AMSDBc::pi;
- ams_nrm[0][0]=cos(angle);
- ams_nrm[1][0]=0;
- ams_nrm[2][0]=-sin(angle);
- ams_nrm[0][1]=0;
- ams_nrm[1][1]=1;
- ams_nrm[2][1]=0;
- ams_nrm[0][2]=sin(angle);
- ams_nrm[1][2]=0;
- ams_nrm[2][2]=cos(angle);
-// cout <<"  angle "<<angle<<endl;
+  angle=angle/180*AMSDBc::pi;
+  ams_nrm[0][0]=cos(angle);
+  ams_nrm[1][0]=0;
+  ams_nrm[2][0]=-sin(angle);
+  ams_nrm[0][1]=0;
+  ams_nrm[1][1]=1;
+  ams_nrm[2][1]=0;
+  ams_nrm[0][2]=sin(angle);
+  ams_nrm[1][2]=0;
+  ams_nrm[2][2]=cos(angle);
+  // cout <<"  angle "<<angle<<endl;
 }
 
 void AMSDBc::transform(geant coo[3]){
-geant coo1[3];
-memcpy(coo1,coo,sizeof(coo1));
-for(int i=0;i<3;i++){
- coo[i]=0;
- for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
-}
+  geant coo1[3];
+  memcpy(coo1,coo,sizeof(coo1));
+  for(int i=0;i<3;i++){
+    coo[i]=0;
+    for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
+  }
 }
 
 void AMSDBc::transform(AMSPoint & dir){
-number coo[3];
-number coo1[3];
-for(int k=0;k<3;k++)coo1[k]=dir[k];
-for(int i=0;i<3;i++){
- coo[i]=0;
- for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
-}
-for(int k=0;k<3;k++)dir[k]=coo[k];
+  number coo[3];
+  number coo1[3];
+  for(int k=0;k<3;k++)coo1[k]=dir[k];
+  for(int i=0;i<3;i++){
+    coo[i]=0;
+    for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
+  }
+  for(int k=0;k<3;k++)dir[k]=coo[k];
 }

@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.46 2008/02/21 13:25:07 choutko Exp $
+//  $Id: trid.C,v 1.47 2008/08/27 18:17:37 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -7,6 +7,7 @@
 #include "commons.h"
 #include "amsstl.h"
 #include <stdio.h>
+#include <strstream>
 using trid::ms;
 using trid::ncrt;
 using trid::ntdr;

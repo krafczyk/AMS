@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.50 2008/07/31 14:49:11 choumilo Exp $
+//  $Id: trigger102.C,v 1.51 2008/08/27 18:17:37 pzuccon Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -20,6 +20,8 @@
 #include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
+#include "amscommonsi.h"
+
 using namespace std;
 using namespace ecalconst;
 //

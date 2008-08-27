@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.4 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: rnormx.C,v 1.5 2008/08/27 18:17:37 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -12,16 +12,20 @@
 //           RGEN2=2.*PI*Rndm(dummy)
 //           R1=RGEN1*COS(RGEN2)
 //           end
-#include "cern.h"
+
 #include <math.h>
+#include "random.h"
+
+
+#include "typedefs.h" 
 extern "C" number rnormx(){
-double const pi=3.1415926;
-number qq,qq2;
-geant dummy=0;
- do {
-  qq=RNDM(dummy);
-  qq2=2*pi*RNDM(dummy);
- }while (qq==0.);
- return cos(qq2)*sqrt(-2*log(qq));
+  double const pi=3.1415926;
+  number qq,qq2;
+  geant dummy=0;
+  do {
+    qq=RNDM(dummy);
+    qq2=2*pi*RNDM(dummy);
+  }while (qq==0.);
+  return cos(qq2)*sqrt(-2*log(qq));
 
 }

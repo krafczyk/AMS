@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.40 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: tofsim02.C,v 1.41 2008/08/27 18:17:37 pzuccon Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -23,6 +23,9 @@
 #include "mceventg.h"
 #include "ecalrec.h"
 #include "tofid.h"
+#include "amscommonsi.h"
+
+
 //
 using namespace std;
 //
