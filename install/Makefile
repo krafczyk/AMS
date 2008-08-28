@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.50 2008/08/27 18:17:58 pzuccon Exp $
+#  $Id: Makefile,v 1.51 2008/08/28 13:43:20 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -76,6 +76,7 @@ INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
 CPPFLAGS+= $(INCPATHS)
 
 IDLFLAGS=-D__CORBA__ -I$(BIN)
+AMSLIB= ../lib/$(ARCH)/
 
 #-- CALL OS SPECIFIC FILE-------------------------------------------
 
@@ -90,11 +91,10 @@ endif
 include $(shell echo ${local_makefile})
 
 
-
 CFLAGSB+= $(CPPFLAGS) 
 CFLAGSB+= -D__BATCH__
 
-#FFLAGS+= $(INCPATHS)
+FFLAGS+= $(INCPATHS)
 
 
 
@@ -157,7 +157,7 @@ COMMON_FILES += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trd
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C  $(SCC)tkdcards.C
 
 #TRD 
-COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C 
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C $(SFF)trd.F
 
 
 #TOF + ACC
@@ -285,14 +285,17 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #------------------------------------------------------------------------------
 #----   TARGETS
 #------------------------------------------------------------------------------
+all: gbatch
 
+$(LIB)/libamsut.a:
+	$(MAKE) -C ../amsut/
 
 #------------------------------------------------------------------------------
 #  Gbatch standalone batch processing
 
-gbatch: $(EXE)gbatch.exe 
+gbatch:  $(EXE)gbatch.exe
 
-$(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o
+$(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o $(LIB)/libamsut.a 
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
          $(TIMEL) $(LDFLAGSSTATIC)
 
@@ -309,14 +312,14 @@ $(EXE)readdaq:  $(OBJECTR) $(BIN)ctype.o
 gxint :	$(EXE)gxint.exe 
 
 
-$(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o
+$(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o $(LIB)/libamsut.a
 	$(LD) -v -o $(EXE)/gxint.exe  $(OBJECTSI) $(LDFLAGSI)
 
 
-$(BIN)geanti.o:      $(SCC)geant.C
+$(BIN)geanti.o:      $(SCC)geant.C  $(LIB)/libamsut.a
 	$(CXX) -c  $(CPPFLAGS) $(SCC)geant.C -o $(BIN)/geanti.o
 
-$(BIN)geant3i.o:      $(SCC)geant3.C
+$(BIN)geant3i.o:      $(SCC)geant3.C  $(LIB)/libamsut.a
 	$(CXX) -c  $(CPPFLAGS) $(SCC)geant3.C -o $(BIN)/geant3i.o
 
 #------------------------------------------------------------------------------
@@ -461,9 +464,9 @@ $(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
 
 SERVER=$(EXE)amsprodserver.exe
 
-server:	$(SERVER)
+server:	$(SERVER) 
 
-$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
+$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o $(LIB)/libamsut.a
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
 
@@ -473,10 +476,10 @@ $(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)
 
 CLIENT=$(EXE)gbatch-orbit.exe
 
-producer:	$(CLIENT)
+producer:	$(CLIENT) 
 
 
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(LIB)/libamsut.a
 	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 #---------------------------------------------------------------------------------
