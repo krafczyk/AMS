@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.93 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: trrawcluster.C,v 1.94 2008/08/28 20:33:37 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -10,7 +10,6 @@
 #include "trid.h"
 #include "ntuple.h"
 #include "event.h"
-
 class TrCalib_def{
 public:
 integer Layer;

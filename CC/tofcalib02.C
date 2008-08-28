@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.31 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: tofcalib02.C,v 1.32 2008/08/28 20:33:37 choutko Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -22,8 +22,6 @@
 #include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
-#include "amscommonsi.h"
-
 //
 //
 extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// TOF peds/sigmas/...

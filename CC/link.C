@@ -1,4 +1,4 @@
-//  $Id: link.C,v 1.7 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: link.C,v 1.8 2008/08/28 20:33:37 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "link.h"

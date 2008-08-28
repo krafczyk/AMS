@@ -20,8 +20,6 @@
 #include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
-#include "amscommonsi.h"
-
 using namespace std;
 //
 //

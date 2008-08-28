@@ -239,7 +239,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,9)       //HeaderR
+  ClassDef(HeaderR,8)       //HeaderR
 };
 
 

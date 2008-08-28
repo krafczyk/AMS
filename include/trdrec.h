@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.15 2008/08/27 18:17:45 pzuccon Exp $
+//  $Id: trdrec.h,v 1.16 2008/08/28 20:33:39 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -6,10 +6,6 @@
 #include "link.h"
 #include "cont.h"
 #include "trdsim.h"
-// PZ FIXME !
-#include "tkdcards.h"
-
-
 
 class AMSTRDCluster: public AMSlink{
 protected:

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.53 2008/08/28 14:48:00 pzuccon Exp $
+#  $Id: Makefile,v 1.54 2008/08/28 20:33:39 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -76,7 +76,6 @@ INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
 CPPFLAGS+= $(INCPATHS)
 
 IDLFLAGS=-D__CORBA__ -I$(BIN)
-AMSLIB= ../lib/$(ARCH)/
 
 #-- CALL OS SPECIFIC FILE-------------------------------------------
 
@@ -91,10 +90,11 @@ endif
 include $(shell echo ${local_makefile})
 
 
+
 CFLAGSB+= $(CPPFLAGS) 
 CFLAGSB+= -D__BATCH__
 
-FFLAGS+= $(INCPATHS)
+#FFLAGS+= $(INCPATHS)
 
 
 
@@ -131,7 +131,7 @@ INCS= $(wildcard ../include/*.h)
 COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
 		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
 		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
-		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)amscommonsi.C
+		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C
 
 
 #Geant Interface
@@ -154,10 +154,10 @@ COMMON_FILES += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trd
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C     \
-		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C  $(SCC)tkdcards.C
+		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C 
 
 #TRD 
-COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C $(SFF)trd.F
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C 
 
 
 #TOF + ACC
@@ -285,20 +285,14 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #------------------------------------------------------------------------------
 #----   TARGETS
 #------------------------------------------------------------------------------
-all: gbatch
 
-test:
-	echo $(AMSLIB)
-
-$(LIB)/libamsut.a:
-	$(MAKE) -C ../amsut/
 
 #------------------------------------------------------------------------------
 #  Gbatch standalone batch processing
 
-gbatch:  $(EXE)gbatch.exe
+gbatch: $(EXE)gbatch.exe 
 
-$(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o $(LIB)/libamsut.a 
+$(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
          $(TIMEL) $(LDFLAGSSTATIC)
 
@@ -315,14 +309,14 @@ $(EXE)readdaq:  $(OBJECTR) $(BIN)ctype.o
 gxint :	$(EXE)gxint.exe 
 
 
-$(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o $(LIB)/libamsut.a
+$(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o
 	$(LD) -v -o $(EXE)/gxint.exe  $(OBJECTSI) $(LDFLAGSI)
 
 
-$(BIN)geanti.o:      $(SCC)geant.C  $(LIB)/libamsut.a
+$(BIN)geanti.o:      $(SCC)geant.C
 	$(CXX) -c  $(CPPFLAGS) $(SCC)geant.C -o $(BIN)/geanti.o
 
-$(BIN)geant3i.o:      $(SCC)geant3.C  $(LIB)/libamsut.a
+$(BIN)geant3i.o:      $(SCC)geant3.C
 	$(CXX) -c  $(CPPFLAGS) $(SCC)geant3.C -o $(BIN)/geant3i.o
 
 #------------------------------------------------------------------------------
@@ -350,12 +344,12 @@ endif
 
 $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/point.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h ../include/root_methods.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/point.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
@@ -467,9 +461,9 @@ $(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
 
 SERVER=$(EXE)amsprodserver.exe
 
-server:	$(SERVER) 
+server:	$(SERVER)
 
-$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o $(LIB)/libamsut.a
+$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
 
@@ -479,10 +473,10 @@ $(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)
 
 CLIENT=$(EXE)gbatch-orbit.exe
 
-producer:	$(CLIENT) 
+producer:	$(CLIENT)
 
 
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(LIB)/libamsut.a
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 #---------------------------------------------------------------------------------

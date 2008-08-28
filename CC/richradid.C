@@ -1,5 +1,5 @@
 #include "richradid.h"
-#include "amscommonsi.h"
+
 /////////////////////////////////////////////////
 
 integer RichRadiatorTileManager::_number_of_rad_tiles=0;

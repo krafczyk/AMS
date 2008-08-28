@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.583 2008/08/27 18:17:37 pzuccon Exp $
+// $Id: job.C,v 1.584 2008/08/28 20:33:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -66,8 +66,6 @@
 #include "daqecblock.h"
 #include "tofid.h"
 #include "charge.h"
-#include "amscommonsi.h"
-
 #ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
@@ -447,19 +445,210 @@ void AMSJob::_sitrig2data(){
 //===============================================================================
 //
 void AMSJob::_sitkdata(){
+TKGEOMFFKEY.ReadGeomFromFile=1;
+TKGEOMFFKEY.WriteGeomToFile=0;
+TKGEOMFFKEY.UpdateGeomFile=0;
+VBLANK(TKGEOMFFKEY.gfile,40);
+FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
+"MIXED");
 
-  TKGEOMFFKEY.init();
-  FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
-	"MIXED");
-  
-  TRMCFFKEY.init();
-  FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
-  TRCALIB.init();
-  FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
+TRMCFFKEY.alpha=250;
+TRMCFFKEY.beta=0.46;
+TRMCFFKEY.gamma=0.25;
+TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
+TRMCFFKEY.dedx2nprel=0.33e6;
+TRMCFFKEY.ped[0]=500;
+TRMCFFKEY.ped[1]=500;
+TRMCFFKEY.gain[0]=8;
+TRMCFFKEY.gain[1]=8;
+TRMCFFKEY.sigma[1]=55./14./sqrt(3.); // sig/noise ratio is about 14 for y
+TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
+TRMCFFKEY.delta[0]=-0.67;
+TRMCFFKEY.delta[1]=1.0;
+TRMCFFKEY.gammaA[0]=-0.3;
+TRMCFFKEY.gammaA[1]=0.1;
+TRMCFFKEY.NonGaussianPart[0]=0;
+TRMCFFKEY.NonGaussianPart[1]=0.1;
+TRMCFFKEY.BadCh[0]=0.01;
+TRMCFFKEY.BadCh[1]=0.01;
 
-  TRALIG.init();
-  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
+TRMCFFKEY.cmn[0]=10;
+TRMCFFKEY.cmn[1]= 6;
+TRMCFFKEY.adcoverflow=32700;
+TRMCFFKEY.NoiseOn=1;
+TRMCFFKEY.sec[0]=0;
+TRMCFFKEY.sec[1]=0;
+TRMCFFKEY.min[0]=0;
+TRMCFFKEY.min[1]=0;
+TRMCFFKEY.hour[0]=0;
+TRMCFFKEY.hour[1]=0;
+TRMCFFKEY.day[0]=1;
+TRMCFFKEY.day[1]=1;
+TRMCFFKEY.mon[0]=0;
+TRMCFFKEY.mon[1]=0;
+TRMCFFKEY.year[0]=102;
+TRMCFFKEY.year[1]=120;
+TRMCFFKEY.GenerateConst=0;
+TRMCFFKEY.WriteHK=0;
+TRMCFFKEY.thr1R[0]=-2.75;
+TRMCFFKEY.thr1R[1]=3.5;
+TRMCFFKEY.thr2R[0]=1;
+TRMCFFKEY.thr2R[1]=1;
+TRMCFFKEY.neib[0]=0;
+TRMCFFKEY.neib[1]=1;
+TRMCFFKEY.CalcCmnNoise[0]=1;
+TRMCFFKEY.CalcCmnNoise[1]=0;
+{
+int i,j,k;
+for(i=0;i<8;i++){
+  for(j=0;j<2;j++){
+   for(k=0;k<32;k++)TRMCFFKEY.RawModeOn[i][j][k]=0;
+  }
+}
+}
+FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
+
+TRCALIB.CalibProcedureNo=0;
+TRCALIB.EventsPerCheck=1000;
+TRCALIB.PedAccRequired[0]=0.12;
+TRCALIB.PedAccRequired[1]=0.09;
+TRCALIB.Validity[0]=0;
+TRCALIB.Validity[1]=36000;
+TRCALIB.RhoThrA=0.7;
+TRCALIB.RhoThrV=0.8;
+TRCALIB.BadChanThr[0]=3.3;
+TRCALIB.BadChanThr[1]=0.002;
+TRCALIB.Method=2;
+TRCALIB.Pass=1;
+TRCALIB.DPS=1;
+TRCALIB.UPDF=4;
+TRCALIB.LaserRun=0;
+TRCALIB.PrintBadChList=0;
+TRCALIB.EventsPerIteration[0]=100;
+TRCALIB.EventsPerIteration[1]=100;
+TRCALIB.EventsPerIteration[2]=100;
+TRCALIB.EventsPerIteration[3]=100;
+TRCALIB.NumberOfIterations[0]=100;
+TRCALIB.NumberOfIterations[1]=100;
+TRCALIB.NumberOfIterations[2]=100;
+TRCALIB.NumberOfIterations[3]=100;
+TRCALIB.BetaCut[0][0]=0.7;
+TRCALIB.BetaCut[0][1]=10.;
+TRCALIB.BetaCut[1][0]=1;
+TRCALIB.BetaCut[1][1]=10;
+TRCALIB.BetaCut[2][0]=0.7;
+TRCALIB.BetaCut[2][1]=1.4;
+TRCALIB.BetaCut[3][0]=0.7;
+TRCALIB.BetaCut[3][1]=1.4;
+TRCALIB.HitsRatioCut[0]=2.2;
+TRCALIB.HitsRatioCut[1]=2.2;
+TRCALIB.HitsRatioCut[2]=0.998;
+TRCALIB.HitsRatioCut[3]=0.998;
+TRCALIB.MomentumCut[0][0]=-FLT_MAX;
+TRCALIB.MomentumCut[0][1]=FLT_MAX;
+TRCALIB.MomentumCut[1][0]=3;
+TRCALIB.MomentumCut[1][1]=FLT_MAX;
+TRCALIB.MomentumCut[2][0]=0.4;
+TRCALIB.MomentumCut[2][1]=2.5;
+TRCALIB.MomentumCut[3][0]=0.1;
+TRCALIB.MomentumCut[3][1]=10;
+TRCALIB.Chi2Cut[0]=3;
+TRCALIB.Chi2Cut[1]=3;
+TRCALIB.Chi2Cut[2]=100;
+TRCALIB.Chi2Cut[3]=100;
+TRCALIB.PatStart=0;
+TRCALIB.MultiRun=0;
+TRCALIB.Version=0;
+TRCALIB.EventsPerRun=10000001;
+int i;
+for(i=0;i<6;i++){
+  TRCALIB.Ladder[i]=0;
+  TRCALIB.ActiveParameters[i][0]=1;   // x
+  TRCALIB.ActiveParameters[i][1]=1;   // y
+  TRCALIB.ActiveParameters[i][2]=0;   // z
+  TRCALIB.ActiveParameters[i][3]=0;   // pitch  zx
+  TRCALIB.ActiveParameters[i][4]=1;   // yaw    xy
+  TRCALIB.ActiveParameters[i][5]=0;   // roll   yz
+}
+ FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
+
+
+
+ TRALIG.One=1.025;
+ TRALIG.GlobalFit=0;
+ TRALIG.InitDB=0;
+ TRALIG.ReWriteDB=0;
+ TRALIG.UpdateDB=0;
+ TRALIG.MaxPatternsPerJob=50;
+ TRALIG.MaxEventsPerFit=9999;
+ TRALIG.MinEventsPerFit=999;
+ for(i=0;i<9;i++){
+  TRALIG.Cuts[i][0]=0;
+  TRALIG.Cuts[i][1]=0;
+}
+  TRALIG.Cuts[0][1]=1;      // chi2 cut for alg=0
+  TRALIG.Cuts[1][0]=0.992;   // cos  cut for alg =0 
+  TRALIG.Cuts[2][0]=0.5;     //rel mom cut
+  TRALIG.Cuts[2][1]=2;
+  TRALIG.Cuts[3][0]=0;      // beta cut
+  TRALIG.Cuts[3][1]=1.4;    
+  TRALIG.Cuts[4][0]=0;      // beta pattern cut
+  TRALIG.Cuts[4][1]=0;    
+  TRALIG.Cuts[5][0]=0.5;      // mass cut
+  TRALIG.Cuts[5][1]=2.0;    
+  TRALIG.Cuts[6][0]=0.;         // betaerror cut
+  TRALIG.Cuts[6][1]=0.04;   
+  TRALIG.Cuts[7][0]=6;         //min tr point cut
+  TRALIG.Cuts[7][1]=10000;     //max chi2   
+  TRALIG.Cuts[8][0]=0;     //min rig   
+  TRALIG.Cuts[8][1]=1;     //min iter   
+  TRALIG.Cuts[9][0]=100000000; //diff between positive and negative rig
+  TRALIG.Cuts[9][1]=0;   // 1 only pos rig -1 only neg rig
+TRALIG.Algorithm=0;
+for( i=0;i<8;i++){
+  int one=1;
+  int zero=0;
+
+// layersonly
+/*
+  if(i==1)one=0;
+  TRALIG.ActiveParameters[i][0]=zero;   // x
+  TRALIG.ActiveParameters[i][1]=zero;   // y
+  TRALIG.ActiveParameters[i][2]=one;   // z
+  TRALIG.ActiveParameters[i][3]=zero;   // pitch  zx
+  TRALIG.ActiveParameters[i][4]=zero;   // yaw    xy
+  TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
+*/
+//ladders 
+
+
+  TRALIG.ActiveParameters[i][0]=one;   // x
+  TRALIG.ActiveParameters[i][1]=one;   // y
+  TRALIG.ActiveParameters[i][2]=one;   // z
+  //TRALIG.ActiveParameters[i][2]=zero;
+  TRALIG.ActiveParameters[i][3]=one;   // pitch  zx
+  //TRALIG.ActiveParameters[i][3]=zero;   // roll   yz
+  TRALIG.ActiveParameters[i][4]=one;   // yaw    xy
+  TRALIG.ActiveParameters[i][5]=one;   // roll   yz
+  //TRALIG.ActiveParameters[i][5]=zero;   // roll   yz
+  if(i==1){
+   for (int k=0;k<6;k++){
+   if(TRALIG.ActiveParameters[i][k]==-one)TRALIG.ActiveParameters[i][k]=zero;  
+   }
+  }     
+
+
+}
+  TRALIG.EventsPerRun=1001;
+  TRALIG.LayersOnly=0;
+  TRALIG.LaddersOnly=1;
+  TRALIG.GlobalGoodLimit=0.085;
+  TRALIG.SingleLadderEntryLimit=10000;
+ FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
+
+
+
 
 
 }
@@ -889,13 +1078,124 @@ FFKEY("BMAP",(float*)&TKFIELD,60,"MIXED");
 
 void AMSJob::_retkdata(){
 
-  //number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
-  TRCLFFKEY.init();
-  FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
-  
-  TRFITFFKEY.init();
-  FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
-  TKFINI();
+//number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
+TRCLFFKEY.ThrClA[0]=12.;
+TRCLFFKEY.ThrClA[1]=12.;
+
+TRCLFFKEY.ThrClS[0]=20;
+TRCLFFKEY.ThrClS[1]=15;
+
+TRCLFFKEY.ThrClR[0]=3.;
+TRCLFFKEY.ThrClR[1]=4.;
+
+TRCLFFKEY.Thr1A[0] =8.;
+TRCLFFKEY.Thr1A[1] =8.;
+
+TRCLFFKEY.Thr2A[0] =4.;
+TRCLFFKEY.Thr2A[1] =3.;
+
+TRCLFFKEY.Thr1S[0] =20;
+TRCLFFKEY.Thr1S[1] =15;
+
+TRCLFFKEY.Thr2S[0] =15;
+TRCLFFKEY.Thr2S[1] =10;
+
+TRCLFFKEY.Thr1R[0] =-2.75;
+TRCLFFKEY.Thr1R[1] =3.5;
+
+TRCLFFKEY.ThrClS[0]=20;
+TRCLFFKEY.Thr1S[0] =15;
+TRCLFFKEY.Thr2S[0] =15;
+
+TRCLFFKEY.Thr2R[0] =1.;
+TRCLFFKEY.Thr2R[1] =3.1;  // should be around 1 if ThrClNEl[1]=3;
+                         // should be around 3 if ThrClNEl[1]=5;
+TRCLFFKEY.Thr3R[0] =-2.;
+TRCLFFKEY.Thr3R[1] =-2.;
+
+TRCLFFKEY.ThrClNMin[0]=1;
+TRCLFFKEY.ThrClNMin[1]=1;
+
+TRCLFFKEY.ThrClNEl[0]=3;
+TRCLFFKEY.ThrClNEl[1]=5;
+
+TRCLFFKEY.ErrX=34.e-4;
+TRCLFFKEY.ErrY=20.e-4;
+TRCLFFKEY.ErrZ=34.e-4;
+TRCLFFKEY.ThrDSide=1.;
+
+TRCLFFKEY.CorFunParA[0][0]=400e-4;
+//TRCLFFKEY.CorFunParB[0][0]=0.85;
+TRCLFFKEY.CorFunParB[0][0]=1.;
+TRCLFFKEY.CorFunParA[0][5]=400e-4;
+TRCLFFKEY.CorFunParB[0][5]=1.;
+int k;
+for (k=1;k<5;k++){
+ TRCLFFKEY.CorFunParA[0][k]=400e-4;
+ TRCLFFKEY.CorFunParB[0][k]=1.;
+}
+for ( k=0;k<6;k++){
+ TRCLFFKEY.CorFunParA[1][k]=65e-4;
+ // TRCLFFKEY.CorFunParB[1][k]=0.5;
+ TRCLFFKEY.CorFunParB[1][k]=1.;
+}
+
+for(k=0;k<6;k++){
+  for(int l=0;l<3;l++){
+   TRCLFFKEY.ResFunX[l][k]=0;
+   TRCLFFKEY.ResFunY[l][k]=0;
+  }
+}
+  TRCLFFKEY.CommonGain[0]=1.;
+  TRCLFFKEY.CommonGain[1]=1.;
+  TRCLFFKEY.CommonShift[0]=0.;
+  TRCLFFKEY.CommonShift[1]=0.;
+
+  TRCLFFKEY.EtaCor[0]=1;
+  TRCLFFKEY.EtaCor[1]=0;
+
+
+FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
+
+// Fit Par
+{
+  for( int k=0;k<sizeof(TRFITFFKEY.patternp)/sizeof(TRFITFFKEY.patternp[0]);k++)TRFITFFKEY.patternp[k]=0;
+}
+TRFITFFKEY.MainAlg=541;
+TRFITFFKEY.UseTRD=1;
+TRFITFFKEY.UseTOF=2;
+TRFITFFKEY.Chi2FastFit=2000;
+TRFITFFKEY.Chi2StrLine=100;
+TRFITFFKEY.Chi2WithoutMS=50;
+TRFITFFKEY.ResCutFastFit=0.5;
+TRFITFFKEY.ResCutStrLine=0.5;
+TRFITFFKEY.ResCutCircle=0.5;
+TRFITFFKEY.SearchRegFastFit=1;
+TRFITFFKEY.SearchRegStrLine=1.5;
+TRFITFFKEY.SearchRegCircle=10.;
+TRFITFFKEY.RidgidityMin=0.02;
+TRFITFFKEY.FullReco=0;
+TRFITFFKEY.MinRefitCos[0]=0.7;
+TRFITFFKEY.MinRefitCos[1]=0.5;
+TRFITFFKEY.FastTracking=1;
+TRFITFFKEY.WeakTracking=0;
+TRFITFFKEY.FalseXTracking=1;
+TRFITFFKEY.Chi2FalseX=3.;
+TRFITFFKEY.ForceFalseTOFX=1;
+TRFITFFKEY.FalseTOFXTracking=1;
+TRFITFFKEY.TOFTracking=1;
+TRFITFFKEY.ForceAdvancedFit=1;
+TRFITFFKEY.ThrClA[0]=0.;
+TRFITFFKEY.ThrClA[1]=0.;
+TRFITFFKEY.ThrClR[0]=0.;
+TRFITFFKEY.ThrClR[1]=0.;
+TRFITFFKEY.MaxTrRecHitsPerLayer=250;
+TRFITFFKEY.LowMargin=0;
+TRFITFFKEY.OnlyGammaVtx=0;
+TRFITFFKEY.UseGeaneFitting=0;
+TRFITFFKEY.OldTracking=0;
+FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
+TKFINI();
 }
 //=================================================================================
 //

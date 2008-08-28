@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.56 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: tofdbc02.C,v 1.57 2008/08/28 20:33:37 choutko Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -13,8 +13,6 @@
 #include "tofrec02.h"
 #include "tofcalib02.h"
 #include "charge.h"
-#include "amscommonsi.h"
-
 //
 using namespace AMSChargConst;
 //

@@ -4,7 +4,6 @@
 #include"commons.h"
 #include "job.h"
 #include <fstream.h>
-#include "amscommonsi.h"
 
 RichPMTChannel::RichPMTChannel(int packed_id){
   int pmt,channel;

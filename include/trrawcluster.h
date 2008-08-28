@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.35 2008/08/27 18:17:45 pzuccon Exp $
+//  $Id: trrawcluster.h,v 1.36 2008/08/28 20:33:39 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -11,7 +11,6 @@
 #include "amsstl.h"
 #include "commons.h"
 #include "trid.h"
-#include "tkdcards.h"
 
 // Tracker RAW bank
 

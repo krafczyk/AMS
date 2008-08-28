@@ -1,8 +1,18 @@
-//  $Id: uzstat.h,v 1.12 2008/08/27 18:17:46 pzuccon Exp $
+//  $Id: uzstat.h,v 1.13 2008/08/28 20:33:39 choutko Exp $
 // Author V. Choutko 24-may-1996
+ 
+// The "uztime L3" like package
+// to check the CPU time consuming by different code parts.
+// To use it:
+// AMSgObj:BookTimer.book("string");   // books the timer
+// AMSgObj:BookTimer.start("string");   // starts the timer
+// AMSgObj:BookTimer.stop("string");   // stops the timer & update the statistics
+// AMSgObj::BookTimer.print();        // prints the timers statistics, i.e.
+//                                    // min,max,average,sum
+
 #ifndef __AMSUZSTAT__
 #define __AMSUZSTAT__
-
+#include "cern.h"
 #include "typedefs.h"
 #include <limits.h>
 #include <math.h>
@@ -10,51 +20,34 @@
 #include "snode.h"
 #include <float.h>
 
+// High granularity time
 
- 
-/*! \class AMSStat 
-   \brief The "uztime L3" like package
- The "uztime L3" like package
- to check the CPU time consuming by different code parts.
- To use it:
-
- AMSgObj:BookTimer.book("string");   // books the timer
-
- AMSgObj:BookTimer.start("string");   // starts the timer
-
- AMSgObj:BookTimer.stop("string");   // stops the timer & update the statistics
-
- AMSgObj::BookTimer.print();        // prints the timers statistics, i.e.
-*/                                    // min,max,average,sum
-
-
-//! High granularity time
 extern "C" number HighResTime();
 
 
 class AMSStatNode: public AMSNode{
 
-  friend class AMSStat;
+friend class AMSStat;
 
 private:
-  integer _startstop;
-  number _time;
-  number _entry;
-  number _sum;
-  number _max;
-  number _min;
-  integer _freq;
+integer _startstop;
+number _time;
+number _entry;
+number _sum;
+number _max;
+number _min;
+integer _freq;
 public:
-  AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
-  AMSStatNode(char * name, int freq):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
-  void _init(){};
-  ostream & print(ostream & stream ) const;
+AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
+AMSStatNode(char * name, int freq):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
+void _init(){};
+ostream & print(ostream & stream ) const;
 };
 
 
 class AMSStat: public AMSNodeMap{
 private:
-  AMSStatNode Timer;
+AMSStatNode Timer;
 public: 
   AMSStat();
   ~AMSStat();
@@ -69,49 +62,49 @@ public:
 
 class AMSStatErrNode: public AMSNode{
 
-  friend class AMSStatErr;
+friend class AMSStatErr;
 
 private:
-  char _severity;
-  uinteger _entry;
+uinteger _entry;
+char _severity;
 public:
-  AMSStatErrNode():AMSNode(0),_severity('I'),_entry(0){};
-  AMSStatErrNode(char * name, uinteger severity ):AMSNode(name),_entry(0){
-    switch (severity){
-    case 0:
-      _severity='I';
-      break;
-    case 1:
-      _severity='W';
-      break;
-    case 2:
-      _severity='E';
-      break;
-    case 3:
-      _severity='S';
-      break;
-    case 4:
-      _severity='F';
-      break;
-    default:
-      _severity='I';
-    }
+AMSStatErrNode():AMSNode(0),_severity('I'),_entry(0){};
+AMSStatErrNode(char * name, uinteger severity ):AMSNode(name),_entry(0){
+  switch (severity){
+  case 0:
+   _severity='I';
+   break;
+  case 1:
+   _severity='W';
+   break;
+  case 2:
+   _severity='E';
+   break;
+  case 3:
+   _severity='S';
+   break;
+  case 4:
+   _severity='F';
+   break;
+  default:
+   _severity='I';
   }
+}
 
-  void _init(){};
-  ostream & print(ostream & stream ) const;
+void _init(){};
+ostream & print(ostream & stream ) const;
 };
 
 
 
 class AMSStatErr: public AMSNodeMap{
 private:
-  AMSStatErrNode Timer;
+AMSStatErrNode Timer;
 public:
-  AMSStatErr();
-  ~AMSStatErr();
-  void book(char * name, char severity);
-  void print(char * name, char *message=0, uinteger maxprint=10);
-  void print();
+AMSStatErr();
+~AMSStatErr();
+void book(char * name, char severity);
+void print(char * name, char *message=0, uinteger maxprint=10);
+void print();
 };
 #endif

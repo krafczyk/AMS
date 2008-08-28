@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include "gvolume.h"
 #include "amsgobj.h"
-#include <strstream>
 
+#include "commons.h"
 #include "tkdbc.h"
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);

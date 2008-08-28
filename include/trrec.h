@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.96 2008/08/27 18:17:46 pzuccon Exp $
+//  $Id: trrec.h,v 1.97 2008/08/28 20:33:39 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -24,7 +24,7 @@
 #include "gsen.h"
 #include "trid.h"
 #include "link.h"
-#include "tkdcards.h"
+#include "commons.h"
 #include "cont.h"
 #include "event.h"
 #include <vector>

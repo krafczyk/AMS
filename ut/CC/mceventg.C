@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.139 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: mceventg.C,v 1.140 2008/08/28 20:33:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -6,18 +6,17 @@
 #include <math.h>
 #include "amsdbc.h"
 #include "event.h"
-#include "amscommonsi.h"
+#include "commons.h"
 #include "ntuple.h"
 #include "io.h"
 #include "extC.h"
 #include "ecaldbc.h"
 #include "tofdbc02.h"
 #include "astro.h" //ISN 
-
 #ifdef __G4AMS__
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
-
+#include <iostream.h>
 #endif
 orbit AMSmceventg::Orbit;
 integer AMSmceventg::_hid=20001;

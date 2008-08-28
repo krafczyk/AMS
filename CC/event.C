@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.384 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: event.C,v 1.385 2008/08/28 20:33:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -17,7 +17,6 @@
 #include "event.h"
 #include "cont.h"
 #include "commons.h"
-#include "amscommonsi.h"
 #include "amsgobj.h"
 #include "trrec.h"
 #include "tofrec02.h"

@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.28 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: status.C,v 1.29 2008/08/28 20:33:37 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -8,8 +8,6 @@
 #include <iostream.h>
 #include "event.h"
 #include "timeid.h"
-#include "amscommonsi.h"
-
 integer AMSStatus::_Mode=0;
 void AMSStatus::_init(){
      _Nelem=0;

@@ -1,4 +1,4 @@
-//  $Id: amsgobj.h,v 1.7 2008/08/27 18:17:45 pzuccon Exp $
+//  $Id: amsgobj.h,v 1.8 2008/08/28 20:33:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSGOBJ__

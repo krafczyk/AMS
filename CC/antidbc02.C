@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.29 2008/08/27 18:17:36 pzuccon Exp $
+//  $Id: antidbc02.C,v 1.30 2008/08/28 20:33:36 choutko Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -14,8 +14,6 @@
 #include "antidbc02.h"
 #include "antirec02.h"
 #include "anticalib02.h"
-#include "amscommonsi.h"
-
 //
 ANTI2SPcal ANTI2SPcal::antispcal[ANTI2C::MAXANTI];//mem.resrv. for ANTI-ReadoutPaddles stab.calib.objects
 ANTI2VPcal ANTI2VPcal::antivpcal[ANTI2C::MAXANTI];//mem.resrv. for ANTI-ReadoutPaddles variab.calib.objects

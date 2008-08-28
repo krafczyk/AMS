@@ -89,11 +89,12 @@ CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
-#AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
 NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 
+#AMSLIB =  /amssw/AMSlib/linux
 #NAGDIR = /amssw/AMSlib/linux
-
+#NAGDIR=/Offline/n
 # change defaults if intel compiler 
 
 ORBIT2DIR=/opt/Orbit2

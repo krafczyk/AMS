@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.60 2008/08/27 18:17:37 pzuccon Exp $
+//  $Id: trcalib.C,v 1.61 2008/08/28 20:33:37 choutko Exp $
 #include "trcalib.h"
 #include "event.h"
 #include <math.h>
@@ -8,8 +8,6 @@
 #include "trmccluster.h"
 #include "tkdbc.h"
 #include "mceventg.h"
-#include "amscommonsi.h"
-
 //PROTOCCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT)
 //#define E04CCF(N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL) CCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT,N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL)
 

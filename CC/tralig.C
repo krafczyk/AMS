@@ -1,20 +1,19 @@
-//  $Id: tralig.C,v 1.58 2008/08/27 18:17:37 pzuccon Exp $
-#include "tralig.h"
-#include "event.h"
+//  $Id: tralig.C,v 1.59 2008/08/28 20:33:37 choutko Exp $
+#include <tralig.h>
+#include <event.h>
 #include <math.h>
-#include "timeid.h"
-#include "trrawcluster.h"
+#include <timeid.h>
+#include <trrawcluster.h>
 #include <float.h>
-#include "mccluster.h"
-#include "tkdbc.h"
-#include "amsstl.h"
+#include <mccluster.h>
+#include <tkdbc.h>
+#include <amsstl.h>
+#include <event.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <signal.h>
-#include "amscommonsi.h"
-
 using namespace trconst;
 //PROTOCCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT)
 //#define E04CCF(N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL) CCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT,N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL)
