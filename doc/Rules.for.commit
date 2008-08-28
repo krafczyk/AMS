@@ -1,0 +1,23 @@
+a.  No general changes in AMS software are aloowd without agreement with AMS software responsible and/or his deputy
+
+b.    after the changes and BEFORE the commit the author must ensure:
+
+      cd AMS/install 
+      gmake ,gmake gxint , gmake shared   are ok with:
+
+      icc +ifc
+      gcc +icc
+      gcc +g77
+    
+      gmake producer -i  is ok 
+        icc+ifc
+        gcc+ifc
+
+      gmake server is ok with 
+        gcc+ifc
+      
+      cd display,online
+        gmake, gmake osdepend are ok 
+
+c. Run the produced images /except the server one/ and ensure everythig is ok.
+d.  Load the shared library ibid.  
