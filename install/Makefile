@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.51 2008/08/28 13:43:20 pzuccon Exp $
+#  $Id: Makefile,v 1.52 2008/08/28 14:38:12 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -286,6 +286,9 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #----   TARGETS
 #------------------------------------------------------------------------------
 all: gbatch
+
+test:
+	echo $(AMSLIB)
 
 $(LIB)/libamsut.a:
 	$(MAKE) -C ../amsut/
