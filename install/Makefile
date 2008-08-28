@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.52 2008/08/28 14:38:12 pzuccon Exp $
+#  $Id: Makefile,v 1.53 2008/08/28 14:48:00 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -355,7 +355,7 @@ $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.
 
 $(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h ../include/root_methods.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/point.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
