@@ -3891,7 +3891,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,9)       //AMSEventR
+ClassDef(AMSEventR,10)       //AMSEventR
 };
 
 //!  AMSChain class
