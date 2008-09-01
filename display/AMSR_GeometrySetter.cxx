@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.7 2004/02/22 15:27:16 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.8 2008/09/01 11:30:58 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -110,6 +110,14 @@ AMSR_GeometrySetter::AMSR_GeometrySetter(TGeometry * geo)
           recur(lnk,"TRB");
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TRR");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"ELL");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"ELR");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"FOA");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"AVR");
 
 
 
@@ -130,7 +138,7 @@ void    AMSR_GeometrySetter::recur(TObjLink *lnk, char *exclude, bool what){
           }
           if(off){
             obj->SetVisibility(what);
-            //cout <<" name "<<name <<(what?" inseted ":" removed ")<<endl;
+//            cout <<" name "<<name <<(what?" inseted ":" removed ")<<endl;
           }
           if(obj->GetListOfNodes())recur(obj->GetListOfNodes()->FirstLink(),exclude,what); 
           lnk = lnk->Next();                                 
@@ -212,19 +220,20 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           TObjLink *lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"T",true);          
           lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"EL",true);          
-          lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"L",true);          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"RAD",true);          
-          lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"FOA",true);          
           lnk = first->GetListOfNodes()->FirstLink();
             recur(lnk,"TRDT");
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TOPR");          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TRDW");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TO");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TFEN");
+        
 /*
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"STK");
