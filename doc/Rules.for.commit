@@ -27,6 +27,7 @@ d.  Load the shared library ibid.
 The details of compiler/builds are:
 
 
+to be used:
 
 The icc/gcc compilers as well the linux version as installed on pcamsf2.cern.ch and/or pcamsp1.cern.ch
 
@@ -34,7 +35,7 @@ The icc/gcc compilers as well the linux version as installed on pcamsf2.cern.ch 
 The root version as pointed by /Offline/vdev/install/amsvar (icc)
 and /Offline/vdev/install/amsvar.slc4 (gcc)
 
-currently (from today) the root version is to 5.21
+currently  the root version is to 5.21
 
 online.slc4 and display.slc4 are now obsolete, as we don;t support slc3 anymore.
 
