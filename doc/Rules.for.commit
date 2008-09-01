@@ -21,3 +21,83 @@ b.   BEFORE to commit the changes the author must ensure:
 
 c. Run the produced images /except the server one/ and ensure everythig is ok.
 d.  Load the shared library ibid.  
+
+
+
+The details of compiler/builds are:
+
+
+
+The icc/gcc compilers as well the linux version as installed on pcamsf2.cern.ch and/or pcamsp1.cern.ch
+
+
+The root version as pointed by /Offline/vdev/install/amsvar (icc)
+and /Offline/vdev/install/amsvar.slc4 (gcc)
+
+currently (from today) the root version is to 5.21
+
+online.slc4 and display.slc4 are now obsolete, as we don;t support slc3 anymore.
+
+
+There are 3 basic flavours of gbatch build:
+cd AMS/install
+gmake
+gmake shared
+gmake gxint
+gmake producer
+gmake server
+
+
+a. icc 10.1.12 + ifc 10.1.12 + ifc 7.00 .  The latter is needed because cernlib was compiled with it.
+
+ activates by:
+     setenv AMSICC 1
+     source /Offline/vdev/install/amsvar
+
+ features:
+     fastest exec
+     requires intel db to debug (not tested!)
+     gmake server doesn;t work
+     gmake producer requires -i 
+
+
+b. gcc 3.4.x + ifc 7.00
+activates by:
+     setenv AMSICC 1
+     source /Offline/vdev/install/amsvar.slc4
+
+
+
+ features:
+   
+     requires gdb to debug. fortran routines coiuld not be debug.
+     gmake server works.
+  
+
+
+c. gcc/g77 3.4.x  
+
+   activates by:
+     unsetenv AMSICC 
+     source /Offline/vdev/install/amsvar.slc4
+
+
+
+
+ features:
+     
+     requires gdb to debug. fortran routines could be debugged.
+   
+  
+
+There is only one set of display /online bulid
+
+source /Offline/vdev/install/amsvar
+
+cd AMS/display{online}
+
+gmake 
+gmake osdepend
+
+
+ 
