@@ -1,6 +1,6 @@
-#  $Id: Makefile,v 1.1 2007/11/07 12:52:52 choutko Exp $
+#  $Id: Makefile,v 1.2 2008/09/01 09:00:02 choutko Exp $
 
-ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
 PREFIX        = $(AMSWD)/display/
 RH9add=
@@ -20,34 +20,35 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=  -pthread
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/compiler80/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
-OPT           = -O2
-OPTC          = -O2
+CXX           =  /opt/intel/cc/10.1.012/bin/icc
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   -axT
+OPT           = -O3
+OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
-LD            = /opt/intel/compiler80/bin/icc
+LD            = /opt/intel/cc/10.1.012/bin/icpc -axT
+VER         := $(shell $(ROOTSYS)/bin/root-config --version )
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib   -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre   -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 LIBS          =  $(ROOTLIBS) -lm -ldl 
 LIBSA          =  $(ROOTLIBSA) -lm -ldl 
 else
-CXX           =  g++ -Wno-deprecated
+CXX           =  g++ -m32 -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g
 NOOPTC         = -g
-LD            = g++
+LD            = g++ -m32
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lgif -lcrypt -lcrypto -L/usr/X11R6/lib   -lXpm -lXmu -lXft   -lXrender -lXt -lXext -lX11  $(RH9adda) -lshift -lpcre  -lgif  -lfontconfig -lfreetype -lexpat  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -lgif -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib   -lXpm -lXmu -lXft   -lXrender -lXt -lXext -lX11  $(RH9adda) -lshift -lpcre  -lgif  -lfontconfig -lfreetype -lexpat  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient  -lXrdNet -lXrdOuc -lXrdSys
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
 endif
 ifeq ($(ARCH),macosx)
-CXX           =  g++ -Wno-deprecated
+CXX           =  g++  -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
 OPTC          = -O0
@@ -93,27 +94,28 @@ GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d
 
 ROOTH         = TTree.h TFile.h TH1.h
 
-SRCS          = ../display/TGRunEventDialog.cxx \
-                ../display/ControlFrame.cxx \
-                ../display/AMSNtupleV.cxx \
-                ../display/Help.cxx
+SRCS          = TGRunEventDialog.cxx \
+                ControlFrame.cxx \
+                AMSNtupleV.cxx \
+                Help.cxx
 
-SRCSN          = ../display/AMSR_GeometrySetter.cxx \
+SRCSN          = AMSR_GeometrySetter.cxx \
                  AMSDisplay.cxx \
                 TMarker3DCl.cxx \
-                ../display/AMSR_Axis.cxx 
+                AMSR_Axis.cxx 
 
 HDRS          =  ../include/root_RVS.h\
-		../display/ControlFrame.h \
+                ../include/root.h\
+		ControlFrame.h \
 		AMSDisplay.h \
-		../display/AMSNtupleV.h \
-                ../display/AMSR_GeometrySetter.h \
-                ../display/AMSR_Axis.h \
-                ../display/TGRunEventDialog.h \
+		AMSNtupleV.h \
+                AMSR_GeometrySetter.h \
+                AMSR_Axis.h \
+                TGRunEventDialog.h \
                 TMarker3DCl.h \
                 ../include/id.h \
-                ../display/LinkDef.h
-DICT          = AMSCint_$(ARCH).cxx
+                LinkDef.h
+DICT          = AMSCint_$(ARCH)_$(SLC4).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -135,9 +137,25 @@ ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO) 
 
 
-
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
+endif
+ifdef SLC4system
+else
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
+endif
+ifdef SLC4system
 AMSPRG       = $(PREFIX)amsed4
 AMSPRGC       = $(PREFIX)amsed4c
+SLC4=y
+else
+AMSPRG       = $(PREFIX)amsed
+AMSPRGC       = $(PREFIX)amsedc
+SLC4=n
+endif
 ifeq ($(ARCH),win32)
 AMSPRG       = $(PREFIX)amsed.exe
 endif
@@ -198,16 +216,16 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSR): $(PREFIX)%.o : ../CC/%.C 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSN): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSC): $(PREFIX)%.o : ../online/%.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 
 	$(CXX) $(NOOPT) $(CXXFLAGS)  -c $(<)  -o $(@)

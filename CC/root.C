@@ -69,7 +69,6 @@ using namespace root;
   ClassImp(AMSEventList)
 
 
-
 //------------------- constructors -----------------------
 
 AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
@@ -1746,13 +1745,18 @@ bool AMSEventR::ReadHeader(int entry){
     return i>0;
 }
 
-
-
+#ifdef __root__new
+#include <TStreamerInfo.h>
+#include <TMatrix.h>
+#include <TCanvas.h>
+#endif
 AMSEventR::AMSEventR():TSelector(){
  if(_Count++)cerr<<"AMSEventR::ctor-W-OnlyOneSingletonAllowed "<<this<<" "<<_Count<<endl;
- else cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
-
-
+ else{ cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
+#ifdef __root__new
+TStreamerInfo::fgInfoFactory=new TStreamerInfo(); 
+#endif
+}
 fEcalHit.reserve(MAXECHITS);
 fEcalCluster.reserve(MAXECCLUST);
 fEcal2DCluster.reserve(MAXEC2DCLUST);

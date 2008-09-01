@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.20 2007/11/02 17:04:57 choutko Exp $
+#  $Id: 00index.txt,v 1.21 2008/09/01 08:59:58 choutko Exp $
 =========================================================================
 
      Introduction  to  AMS    Event  Display  Based  on  ROOT
@@ -20,7 +20,7 @@
    System: Linux 7.3,fc1,slc3 & root  4.xx gcc3.(2)3.x || and/or icc v7.1           Macosx 10.4 gcc4.0
            Win32gcc
 
-   Attention: TPad.h, TPad.cxx  TRootCanvas.h TView.h TView.cxx 
+   Attention: TPad.h, TPad.cxx  TRootCanvas.h TView(3d).h TView(3d).cxx 
    need to be modified
                           
    Status: beta release 

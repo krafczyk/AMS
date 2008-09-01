@@ -232,7 +232,7 @@ public:
                          cams=acos(cams)*180/3.1415926; 
                          unsigned int comp=0;
                          for(int i=0;i<6;i++){
-                          if(status&(1<<(i+2)))comp+=pow(10.,i);
+                          if(status&(1<<(i+2)))comp+=int(pow(10.,i));
                          }
                          sprintf(_Info,"Header:  Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",comp,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
   return _Info;

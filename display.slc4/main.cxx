@@ -1,5 +1,4 @@
-//  $Id: main.cxx,v 1.2 2008/01/30 17:07:07 choutko Exp $
-#include <getopt.h>
+//  $Id: main.cxx,v 1.3 2008/09/01 09:00:02 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -20,11 +19,13 @@
 #include <TRFIOFile.h>
 #include <TXNetFile.h>
 #endif
+#include <TASImage.h>
 #include <stdlib.h>
 #include <signal.h>
-#include "../display/AMSNtupleV.h"
+#include "AMSNtupleV.h"
 #include "main.h"
 #include <TString.h>
+#include <getopt.h>
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
@@ -46,7 +47,7 @@ void Myapp::HandleIdleTimer(){
   }
 //  SetReturnFromRun(1);
 //Terminate();
-  cout <<"exiting handler"<<endl;
+  //cout <<"exiting handler"<<endl;
 }
 
 void (handler)(int);
@@ -63,33 +64,43 @@ int main(int argc, char *argv[]){
      *signal(SIGQUIT, handler);
 #endif
   char * filename = 0;		// default file name
+
+ int c;
+ int sec=10;
+ char title[256];
+    strcpy(title,"AMS Event Display");
     int option_index = 0;
     static struct option long_options[] = {
         {"title", 1, 0, 't'},
         {"help",    0, 0, 'h'},
+        {"scan",  1, 0, 's'},
         {0, 0, 0, 0}
     };
-    int c = getopt_long (argc, argv, "t:hH:?", long_options, &option_index);
-        char title[]="AMS Event Display";
-        char * tit;
-         tit=title;
+
+  if ( argc > 1 ) {		// now take the file name
+    filename = argv[1];
+  }   
+    while (1) {
+        c = getopt_long (argc, argv, "t:hHs:?", long_options, &option_index);
+        if (c == -1) break;
+
         switch (c) {
-            case 't':             /* title */
-             tit=optarg;
+            case 's':             /* display */
+             sec=atoi(optarg);
              break;
+            case 't':             
+                strcpy(title, optarg);
+                break;
             case 'h':
             case 'H':
             case '?':
-             break;
             default:            /* help */
+                cout<<"$amsed(c) file -scan[s] -title[t]"<<endl;
+                return 0;
                 break;
         }
-    char logfile[100] = "";
-
-  if ( argc > 1 ) {		// now take the file name
-    filename = *++argv;
-  }
-   AMSNtupleV *pntuple=0;
+    }
+  AMSNtupleV *pntuple=0;
   TChain chain("AMSRoot");
   if(filename){
    OpenChain(chain,filename); 
@@ -102,11 +113,12 @@ int main(int argc, char *argv[]){
     Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
   gVirtualX=new TGX11("X11","Root Interface to X11");
-  //gGuiFactory=new TRootGuiFactory();
+  TASImage a;
+//gGuiFactory=new TRootGuiFactory();
   Myapp *theApp = new Myapp("App", &argcc, argv);
   theApp->SetStatic();
 #endif
-//  gDebug=6; 
+  //gDebug=1; 
 
 
 
@@ -134,7 +146,7 @@ int main(int argc, char *argv[]){
   }
 
 
-  AMSDisplay * amd= new AMSDisplay(tit,geo,pntuple);
+  AMSDisplay * amd= new AMSDisplay(title,geo,pntuple,sec);
   amd->SetApplication(theApp);
   amd->Init();
    theApp->SetDisplay(amd);  

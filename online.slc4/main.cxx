@@ -1,11 +1,11 @@
-//  $Id: main.cxx,v 1.1 2007/11/07 12:53:12 choutko Exp $
+//  $Id: main.cxx,v 1.2 2008/09/01 09:00:02 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TGeometry.h>
-#include "../online/AMSDisplay.h"
+#include "AMSDisplay.h"
 #include <iostream>
 #include <fstream>
 #ifndef WIN32
@@ -13,20 +13,21 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #endif
+#include <TASImage.h>
 #include <stdlib.h>
 #include <signal.h>
-#include "../online/AMSNtuple.h"
-#include "../online/AMSAntiHist.h"
-#include "../online/AMSTrackerHist.h"
-#include "../online/AMSTOFHist.h"
-#include "../online/AMSLVL1Hist.h"
-#include "../online/AMSLVL3Hist.h"
-#include "../online/AMSRICHHist.h"
-#include "../online/AMSECALHist.h"
-#include "../online/AMSTRDHist.h"
-#include "../online/AMSAxAMSHist.h"
-#include "../online/AMSGenHist.h"
-#include "../online/AMSEverything.h"
+#include "AMSNtuple.h"
+#include "AMSAntiHist.h"
+#include "AMSTrackerHist.h"
+#include "AMSTOFHist.h"
+#include "AMSLVL1Hist.h"
+#include "AMSLVL3Hist.h"
+#include "AMSRICHHist.h"
+#include "AMSECALHist.h"
+#include "AMSTRDHist.h"
+#include "AMSAxAMSHist.h"
+#include "AMSGenHist.h"
+#include "AMSEverything.h"
 #include "main.h"
 #ifndef WIN32
 #include <dirent.h>
@@ -73,8 +74,7 @@ int main(int argc, char *argv[])
   char * filename = 0;		// default file name
 
   if ( argc > 1 ) {		// now take the file name
-    //filename = *++argv;
-    filename=argv[1];
+    filename = *++argv;
   }
 
   
@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
 Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
   gVirtualX=new TGX11("X11","Root Interface to X11");
+TASImage a;
   //gGuiFactory=new TRootGuiFactory();
   Myapp *theApp = new Myapp("App", &argcc, argv);
 //  gDebug=6; 

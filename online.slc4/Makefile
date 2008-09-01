@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.1 2007/11/07 12:53:12 choutko Exp $
+#  $Id: Makefile,v 1.2 2008/09/01 09:00:02 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -20,27 +20,27 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=   -pthread
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/compiler80/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
-OPT           = -O2
-OPTC          = -O2
+CXX           =  /opt/intel/cc/10.1.012/bin/icc
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axT   
+OPT           = -O3
+OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
-LD            = /opt/intel/compiler80/bin/icc
-LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
+LD            =  /opt/intel/cc/10.1.012/bin/icpc
+LDFLAGS       =  -axT 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
 else
-CXX           =  g++ -Wno-deprecated
+CXX           =  g++ -m32  -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g
-LD            = g++
+LD            = g++ -m32
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lAfterImage -ljpeg -lpng -ltiff  -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXft   -lXrender -lXt -lXext -lX11  -lshift -lpcre  -lgif  -lfontconfig -lfreetype -lexpat  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -53,7 +53,7 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat  -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -68,7 +68,7 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lXft -lfontconfig -lXrender  -lexpat  -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm 
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm
 endif
@@ -91,40 +91,40 @@ GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d
 
 ROOTH         = TTree.h TFile.h TH1.h
 
-SRCS          = ../online/AMSDisplay.cxx \
-                ../online/AMSHist.cxx \
-                ../online/AMSAntiHist.cxx\
-                ../online/AMSTrackerHist.cxx\
-                ../online/AMSRICHHist.cxx\
-                ../online/AMSECALHist.cxx\
-                ../online/AMSTRDHist.cxx\
-                ../online/AMSTOFHist.cxx\
-                ../online/AMSLVL1Hist.cxx\
-                ../online/AMSLVL3Hist.cxx\
-                ../online/AMSAxAMSHist.cxx\
-                ../online/AMSGenHist.cxx\
-                ../online/AMSNtuple.cxx \
-                ../online/ControlFrame.cxx \
-                ../online/AMSEverything.cxx
+SRCS          = AMSDisplay.cxx \
+                AMSHist.cxx \
+                AMSAntiHist.cxx\
+                AMSTrackerHist.cxx\
+                AMSRICHHist.cxx\
+                AMSECALHist.cxx\
+                AMSTRDHist.cxx\
+                AMSTOFHist.cxx\
+                AMSLVL1Hist.cxx\
+                AMSLVL3Hist.cxx\
+                AMSAxAMSHist.cxx\
+                AMSGenHist.cxx\
+                AMSNtuple.cxx \
+                AMSEverything.cxx
 
 HDRS          =   \
                 ../include/root_RVS.h\
-		../online/AMSDisplay.h \
-		../online/AMSHist.h \
-		../online/AMSAntiHist.h \
-		../online/AMSTrackerHist.h \
-                ../online/AMSRICHHist.h\
-                ../online/AMSECALHist.h\
-                ../online/AMSTRDHist.h\
-                ../online/AMSTOFHist.h\
-                ../online/AMSLVL1Hist.h\
-                ../online/AMSLVL3Hist.h ../online/ControlFrame.h\
-                ../online/AMSAxAMSHist.h\
-                ../online/AMSGenHist.h\
-                ../online/AMSNtuple.h\
+                ../include/root.h\
+		AMSDisplay.h \
+		AMSHist.h \
+		AMSAntiHist.h \
+		AMSTrackerHist.h \
+                AMSRICHHist.h\
+                AMSECALHist.h\
+                AMSTRDHist.h\
+                AMSTOFHist.h\
+                AMSLVL1Hist.h\
+                AMSLVL3Hist.h ControlFrame.h\
+                AMSAxAMSHist.h\
+                AMSGenHist.h\
+                AMSNtuple.h\
                 ../include/id.h \
-                ../online/LinkDef.h
-DICT          = AMSCint_$(ARCH).cxx
+                LinkDef.h
+DICT          = AMSCint_$(ARCH)_$(SLC4).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -150,8 +150,25 @@ AMSLIB       = libAMS.a
 AMSSHAREDLIB = libAMS.so
 
 
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
+endif
+ifdef SLC4system
+else
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
+endif
+ifdef SLC4system
 AMSPRG       = $(PREFIX)offmon4
 AMSPRGC       = $(PREFIX)offmon4c
+SLC4=y
+else
+AMSPRG       = $(PREFIX)offmon
+AMSPRGC       = $(PREFIX)offmonc
+SLC4=n
+endif
 ifeq ($(ARCH),win32)
 AMSPRG       = $(PREFIX)offmon.exe
 endif
@@ -172,13 +189,13 @@ osdepend:  $(AMSPRGC)
 
 
 
-$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) 
-		$(LDS)    $(LDFLAGS) $(ALLOBJS) $(OBJSR)   $(DICTO)  $(LIBSA)  \
+$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSC)
+		$(LDS)    $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBSA)  \
 		-o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) 
-		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR)    $(LIBS) -o $(AMSPRGC) 
+$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS)
@@ -219,16 +236,16 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx ../include/root_methods.h
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSC): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPTC) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSR): $(PREFIX)%.o : ../CC/%.C 
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPT)  $(CXXFLAGS)  -c $(<)  -o $(@)
+	$(CXX) $(OPT)  $(CXXFLAGS)  -c $(<)  -o $(@)
 
 
 ##### DEPENDENCIES #####

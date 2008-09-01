@@ -2529,17 +2529,16 @@ class RemoteClient:
         self.filesfound=0
         self.timenotify=0
         filelist=[]
+        turn=0
         while 1:
+            turn=turn+1
             notify=1
-            problem=0
             cmd="du -ks "+dir
             p=commands.getstatusoutput(cmd)
             if(p[0]==0):
                 problem=0
                 size=int(p[1].split(dir)[0])
-                if(size<wl):
-                    time.sleep(sleep)
-                else:
+                if(size>wl):
                     try:
                         self.GetFiles(dir,filelist)
                     except:
@@ -2579,15 +2578,19 @@ class RemoteClient:
                                     nd2=nd2+1
                                 except:
                                     continue
-                message ="size reduced to %d %d %d files deleted "  %(size,nd1,nd2)
-                print message
+                message ="Size reduced to %d %d+%d files deleted \n"  %(size,nd1,nd2)
+                if(nd1+nd2>0):
+                    print message
+                else:
+                    if(turn%100==1):
+                        message="Size keep at %d \n" %(size)
+                        print message
                 time.sleep(sleep)
                  
             else:
                 problem=problem+1
                 if(problem%100 == 1):
                     message=" problem to "+cmd
-                    self.NotifyResp(message)
                 time.sleep(sleep)
                                        
     def GetFiles(self,dir,filelist):

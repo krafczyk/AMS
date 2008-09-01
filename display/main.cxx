@@ -1,4 +1,5 @@
-//  $Id: main.cxx,v 1.31 2008/03/11 12:56:26 choutko Exp $
+//  $Id: main.cxx,v 1.32 2008/09/01 08:59:59 choutko Exp $
+#include <TASImage.h>
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -112,7 +113,8 @@ int main(int argc, char *argv[]){
     Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
   gVirtualX=new TGX11("X11","Root Interface to X11");
-  gGuiFactory=new TRootGuiFactory();
+  //gGuiFactory=new TRootGuiFactory();
+TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
   theApp->SetStatic();
 #endif

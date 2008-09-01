@@ -1,8 +1,13 @@
-#  $Id: Makefile,v 1.30 2008/08/28 15:04:20 pzuccon Exp $
+#  $Id: Makefile,v 1.31 2008/09/01 09:00:02 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
+VER         := $(shell $(ROOTSYS)/bin/root-config --version )
+NEW             :=_new
+ifneq (,$(findstring 5.14,$(VER)))
+NEW             :=
+endif
 RH9add=
 RH9adda=
 ifdef RH9
@@ -21,14 +26,14 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
 endif
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/cc/10.1.012/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axT   
+CXXFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axT   
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
 LD            =  /opt/intel/cc/10.1.012/bin/icpc
 LDFLAGS       =  -axT 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot   -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -40,7 +45,7 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++ -m32
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -124,7 +129,7 @@ HDRS          =   \
                 AMSNtuple.h\
                 ../include/id.h \
                 LinkDef.h
-DICT          = AMSCint_$(ARCH)_$(SLC4).cxx
+DICT          = AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -161,8 +166,8 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 endif
 ifdef SLC4system
-AMSPRG       = $(PREFIX)offmon4
-AMSPRGC       = $(PREFIX)offmon4c
+AMSPRG       = $(PREFIX)offmon
+AMSPRGC       = $(PREFIX)offmonc
 SLC4=y
 else
 AMSPRG       = $(PREFIX)offmon

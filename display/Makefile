@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.34 2008/08/28 15:04:20 pzuccon Exp $
+#  $Id: Makefile,v 1.35 2008/09/01 08:59:59 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
@@ -19,18 +19,24 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9adda= -pthread
  RH9add=  -pthread
 endif
+VER         := $(shell $(ROOTSYS)/bin/root-config --version )
+NEW             :=_new
+ifneq (,$(findstring 5.14,$(VER)))
+NEW             :=
+endif
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/cc/10.1.012/bin/icc
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   -axT
+CXXFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   -axT
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
 LD            = /opt/intel/cc/10.1.012/bin/icpc -axT
 VER         := $(shell $(ROOTSYS)/bin/root-config --version )
+
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 LIBS          =  $(ROOTLIBS) -lm -ldl 
 LIBSA          =  $(ROOTLIBSA) -lm -ldl 
 else
@@ -42,8 +48,8 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++ -m32
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
 endif
@@ -100,8 +106,8 @@ SRCS          = TGRunEventDialog.cxx \
                 Help.cxx
 
 SRCSN          = AMSR_GeometrySetter.cxx \
-                 AMSDisplay.cxx \
-                TMarker3DCl.cxx \
+                 AMSDisplay$(NEW).cxx \
+                TMarker3DCl$(NEW).cxx \
                 AMSR_Axis.cxx 
 
 HDRS          =  ../include/root_RVS.h\
@@ -115,7 +121,7 @@ HDRS          =  ../include/root_RVS.h\
                 TMarker3DCl.h \
                 ../include/id.h \
                 LinkDef.h
-DICT          = AMSCint_$(ARCH)_$(SLC4).cxx
+DICT          = AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -148,8 +154,8 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 endif
 ifdef SLC4system
-AMSPRG       = $(PREFIX)amsed4
-AMSPRGC       = $(PREFIX)amsed4c
+AMSPRG       = $(PREFIX)amsed
+AMSPRGC       = $(PREFIX)amsedc
 SLC4=y
 else
 AMSPRG       = $(PREFIX)amsed

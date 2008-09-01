@@ -1,12 +1,12 @@
-//  $Id: TMarker3DCl.cxx,v 1.8 2008/09/01 08:59:59 choutko Exp $
+//  $Id: TMarker3DCl_new.cxx,v 1.1 2008/09/01 08:59:59 choutko Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
-#include "TView.h"
+#include "TView3D.h"
 #include "TMarker3DCl.h"
 #include "TVirtualPad.h"
 #include "TVirtualGL.h"
-#include "TPadView3D.h"
+//#include "TPadView3D.h"
 #include "TH1.h"
 #include "TH3.h"
 #include "TFile.h"
@@ -123,7 +123,7 @@ Int_t TMarker3DCl::DistancetoPrimitive(Int_t px, Int_t py){
    Int_t dist = 9999;
    Float_t points[3*numPoints];
 
-   TView *view = gPad->GetView();
+   TView3D *view = (TView3D*)gPad->GetView();
    if (!view) return dist;
    Bool_t shprx=fShowProfileX;
    Bool_t shpry=fShowProfileY;
@@ -257,16 +257,18 @@ void TMarker3DCl::Paint(Option_t *option)
    if (!points) return;
 
    SetPoints(points);
-
+/*
    TPadView3D *view3D = (TPadView3D*)gPad->GetView3D();
+*/
    Bool_t rangeView = option && *option && strcmp(option,"range")==0 ? kTRUE : kFALSE;
+/*
    if (view3D && !rangeView) {
      if(gVirtualGL){
        gVirtualGL->SetLineAttr(GetLineColor(),GetLineWidth());
        PaintGLPoints(points);
      }
    }
-
+*/
    Int_t c = ((GetLineColor() % 8) - 1) * 4;  // Basic colors: 0, 1, ... 7
    if (c < 0) c = 0;
 
@@ -344,7 +346,7 @@ void TMarker3DCl::PaintGLPoints(Float_t *vertex)
 {
 //*-*-*-*-*-*-*-*-*-*-*Direct copy of TBRIK::PaintGLPoints*-*-*-*-*-*-*-*-*-*
 //*-*                  ===================================
-    gVirtualGL->PaintBrik(vertex);
+    //gVirtualGL->PaintBrik(vertex);
 }
 //______________________________________________________________________________
 void TMarker3DCl::PaintShape3D(X3DBuffer *buff, Bool_t rangeView)
@@ -401,7 +403,7 @@ void TMarker3DCl::PaintShape3D(X3DBuffer *buff, Bool_t rangeView)
     }
     }
     if (rangeView){
-      TView *view = gPad->GetView();
+      TView3D *view = (TView3D*)gPad->GetView();
       //if (view->GetAutoRange()) view->SetRange(x0,y0,z0,x1,y1,z1,kExpandView);
     }
 
@@ -452,7 +454,7 @@ void TMarker3DCl::PaintShape(X3DBuffer *buff, Bool_t rangeView)
     }
     }
     if (rangeView){
-      TView *view = gPad->GetView();
+      TView3D *view = (TView3D*)gPad->GetView();
       if (view->GetAutoRange()) view->SetRange(x0,y0,z0,x1,y1,z1,kExpandView);
     }
 

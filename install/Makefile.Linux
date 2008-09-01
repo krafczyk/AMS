@@ -4,9 +4,13 @@
 
 #ifeq  "$(shell uname)"  "Linux"
 
-ARCH         := $(shell root-config --arch)
-VER          := $(shell root-config --version | grep 5.14)
-
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
+VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
+ifdef VER
+NEW = 
+else
+NEW = _new
+endif
 SLC3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC3system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 3")
@@ -136,7 +140,7 @@ endif
 
 
 
-CFLAGSB= -Wno-deprecated  -mcpu=i686
+CFLAGSB= -Wno-deprecated  -mcpu=i686 -D__root_$(NEW)
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg

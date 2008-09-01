@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.1 2007/11/07 12:52:52 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.2 2008/09/01 09:00:02 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -24,7 +24,7 @@
 #include <TGTab.h>
 #include <TGSlider.h>
 #include <TGFileDialog.h>
-#include "../display/ControlFrame.h"
+#include "ControlFrame.h"
 #include <TChain.h>
 class AMSNtupleV;
 
@@ -54,6 +54,8 @@ private:
    EAMSR_View            m_View;		     //view
    bool                  m_zoom;
    bool m_idle;                              // idleing
+   int m_sec;                              // idleing
+   bool m_nodate;
    bool m_trclpr;                           //  show tr cluster profile
    bool m_drawrichringfromplex;
     bool m_drawsolid;                       //  box style
@@ -114,7 +116,7 @@ public:
                         }
                        }
             
-      AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple);
+      AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple,int sec=10);
      virtual                  ~AMSDisplay(){};
             Bool_t      AllViews() {return (m_View == kAllView);}
            EAMSR_View    GetView() {return m_View;}

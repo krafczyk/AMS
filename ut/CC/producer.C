@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.116 2008/08/26 13:13:06 choutko Exp $
+//  $Id: producer.C,v 1.117 2008/09/01 08:59:56 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -490,6 +490,7 @@ void AMSProducer::getASL(){
 
 
 void AMSProducer::sendNtupleEnd(DPS::Producer::DSTType type,int entries, int last, time_t end, bool success){
+if(_Solo)return;
 cout <<" sendntupleend start "<<endl;
  _Transfer=true;
 
@@ -847,6 +848,7 @@ FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
 
 
 void AMSProducer::sendNtupleStart(DPS::Producer::DSTType type,const char * name, int run, int first,time_t begin){
+if(_Solo)return;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
 AString a=(const char*)_pid.HostName;

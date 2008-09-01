@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: chkquota.py,v 1.1 2008/08/28 07:09:27 choutko Exp $
+#  $Id: chkquota.py,v 1.2 2008/09/01 09:00:02 choutko Exp $
 
 #
 # this script suppose to check disk space usage
@@ -14,9 +14,9 @@ import RemoteClient
 
 v=1
 i=0
-dir="/r0fc00/scratch"
+dir="/s0fc00/scratch"
 warml=2000000000
-hardl=3000000000
+hardl=2500000000
 for x in sys.argv:
     if x == "-i": i=1
     elif x == "-v": v=1
