@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.8 2008/09/01 11:30:58 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.9 2008/09/01 11:55:32 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -232,7 +232,11 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TO");
           lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TOD",true);
+          lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TFEN");
+         lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TFH");
         
 /*
           lnk = first->GetListOfNodes()->FirstLink();
