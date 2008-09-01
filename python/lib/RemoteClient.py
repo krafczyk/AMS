@@ -1660,11 +1660,11 @@ class RemoteClient:
         self.sqlserver.Update(sql)
    
     def setenv(self):
-        if(os.environ.has_key('AMSDataDir')):
-            dir=os.environ['AMSDataDir']
+        if(os.environ.has_key('AMSDataDirRW')):
+            dir=os.environ['AMSDataDirRW']
         else:
-            dir="/afs/ams.cern.ch/AMSDataDir"
-            os.environ['AMSDataDir']=dir
+            dir="/afs/ams.cern.ch/.../AMSDataDir"
+            os.environ['AMSDataDirRW']=dir
         self.env['AMSDataDir']=dir
         key='AMSSoftwareDir'
         sql="select myvalue from Environment where mykey='"+key+"'";
@@ -2346,10 +2346,10 @@ class RemoteClient:
                                            
        
     def buildTDV(self,name,commit,verbose):
-        if(os.environ.has_key('AMSDataDir')):
-            amsdatadir=os.environ['AMSDataDir']
+        if(os.environ.has_key('AMSDataDirRW')):
+            amsdatadir=os.environ['AMSDataDirRW']
         else:
-            amsdatadir="/afs/ams.cern.ch/AMSDataDir"
+            amsdatadir="/afs/ams.cern.ch/.../AMSDataDir"
         dbdir=os.path.join(amsdatadir,"DataBase")
         ltdv=dbdir+"/ltdv"
         for file in os.listdir(dbdir):

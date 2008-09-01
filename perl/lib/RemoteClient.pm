@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.528 2008/08/27 07:59:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.529 2008/09/01 09:32:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -455,13 +455,13 @@ my %mv=(
 
 #amsdatadir
 
- my $dir=$ENV{AMSDataDir};
+ my $dir=$ENV{AMSDataDirRW};
  if (defined $dir){
      $self->{AMSDataDir}=$dir;
  }
  else{
-     $self->{AMSDataDir}="/afs/ams.cern.ch/AMSDataDir";
-     $ENV{AMSDataDir}=$self->{AMSDataDir};
+     $self->{AMSDataDir}="/afs/ams.cern.ch/.../AMSDataDir";
+     $ENV{AMSDataDirRW}=$self->{AMSDataDir};
  }
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
@@ -2359,13 +2359,13 @@ sub ConnectOnlyDB{
      $self->{sqlserver}->Connect();
     }
 #
-   my $dir=$ENV{AMSDataDir};
+   my $dir=$ENV{AMSDataDirRW};
    if (defined $dir){
      $self->{AMSDataDir}=$dir;
    }
     else{
-     $self->{AMSDataDir}="/afs/ams.cern.ch/AMSDataDir";
-     $ENV{AMSDataDir}=$self->{AMSDataDir};
+     $self->{AMSDataDir}="/afs/ams.cern.ch/.../AMSDataDir";
+     $ENV{AMSDataDirRW}=$self->{AMSDataDir};
     }
      if (not defined $self->{AMSSoftwareDir}) {
          $dir =  $self->getDefByKey("AMSSoftwareDir");
