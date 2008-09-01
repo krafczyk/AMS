@@ -194,7 +194,7 @@ endif
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL -lNet -lHist -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lHist -lHistPainter -lGraf -lMatrix 
 endif
 endif
 
