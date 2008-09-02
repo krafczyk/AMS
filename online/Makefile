@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.31 2008/09/01 09:00:02 choutko Exp $
+#  $Id: Makefile,v 1.32 2008/09/02 14:34:47 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -39,7 +39,7 @@ LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
 else
 CXX           =  g++ -m32  -Wno-deprecated
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CXXFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g

@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.12 2008/03/03 16:11:20 choutko Exp $
+//  $Id: trdsim.h,v 1.13 2008/09/02 14:34:35 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -64,11 +64,13 @@ static void sitrdnoise();
  static integer getmaxblocks(){return AMSTRDIdSoft::ncrates();}
  static integer getdaqid(int16u i);
  static integer checkdaqid(int16u id);
+ static integer checkdaqidJ(int16u id);
  static integer checkdaqidS(int16u id);
  static integer calcdaqlength(integer i);
  
 static void builddaq(int n, int16u* p);
 static void buildraw(int n, int16u*p);
+static void buildrawJ(int n, int16u*p);
 static void updtrdcalib(int n, int16u*p);
 static void updtrdcalibJ(int n, int16u*p);
 #ifdef __WRITEROOT__

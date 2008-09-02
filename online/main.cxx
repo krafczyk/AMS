@@ -1,6 +1,4 @@
-//  $Id: main.cxx,v 1.28 2008/09/01 09:00:02 choutko Exp $
-#include <TASImage.h>
-#include <THistPainter.h>
+//  $Id: main.cxx,v 1.29 2008/09/02 14:34:47 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -92,15 +90,14 @@ int main(int argc, char *argv[])
 Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
   gVirtualX=new TGX11("X11","Root Interface to X11");
-  TASImage a;
-  //TVirtualHistPainter::fgPainter=(TClass*)new THistPainter() ;
+  TGuiFactory *p=new TGuiFactory("root");
+
 Myapp *theApp = new Myapp("App", &argcc, argv);
 //  gDebug=6; 
   theApp->SetStatic();
 #endif
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",pntuple);
   theApp->SetDisplay(amd);  
-
   AMSAntiHist  antih("&AntiCounters","Anti counter Hists");
   amd->AddSubDet(antih);
 

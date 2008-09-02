@@ -1,4 +1,7 @@
-//  $Id: main.h,v 1.7 2007/11/02 17:05:07 choutko Exp $
+//  $Id: main.h,v 1.8 2008/09/02 14:34:47 choutko Exp $
+#include <TASImage.h>
+#include <THistPainter.h>
+#include <TGraphPainter.h>
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -25,6 +28,9 @@ public:
  Myapp(const char *appClassName,int *argc, char **argv):TApplication(appClassName,argc, argv),fDisplay(0){
 }
  void SetStatic(){
+  TASImage a;
+  TVirtualHistPainter::fgPainter=(TClass*)new THistPainter() ;
+  TVirtualGraphPainter::fgPainter= new TGraphPainter() ;
 #ifndef WIN32
        const char *ttpath = gEnv->GetValue("Root.TTFontPath","$(HOME)/ttf/fonts");
    if(ttpath && !getenv("OffmonNoTTF")){
