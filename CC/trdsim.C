@@ -162,6 +162,14 @@ integer AMSTRDRawHit::checkdaqid(int16u id){
   sprintf(sstr,"JINFU%X",i);
   if(DAQEvent::ismynode(id,sstr))return i+1; 
  }
+ return 0;
+
+
+}
+
+integer AMSTRDRawHit::checkdaqidJ(int16u id){
+
+  char sstr[128];
  for(int i=0;i<getmaxblocks();i++){
   sprintf(sstr,"JF-U%d",i);
   if(DAQEvent::ismynode(id,sstr))return i+1; 
@@ -170,6 +178,7 @@ integer AMSTRDRawHit::checkdaqid(int16u id){
 
 
 }
+
 
 void AMSTRDRawHit::updtrdcalibJ(int n, int16u* pbeg){
  unsigned int length=n&65535;
@@ -262,11 +271,12 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
 }
 }
 
-
+void AMSTRDRawHit::buildrawJ(int n, int16u* pbeg){
+ buildraw(n-1,pbeg+1);
+}
 void AMSTRDRawHit::buildraw(int n, int16u* pbeg){
 unsigned int length=n&65535;
 unsigned int ic=(n>>16);
-
 for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
  bool compressed=DAQEvent::isCompMode(*(p+*p));

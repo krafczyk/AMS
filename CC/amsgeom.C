@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.198 2008/08/28 20:33:36 choutko Exp $
+//  $Id: amsgeom.C,v 1.199 2008/09/02 14:34:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -438,6 +438,9 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
       }
     }
     coc[2]=TOF2DBc::getzsc(ip,ib);
+#ifdef __AMSDEBUG__
+     cout <<"  tof "<<ip<<" "<<ib<<" " <<coc[0]<<" "<<coc[1]<<" "<<coc[2]<<endl;
+#endif
 //
     gid=100*(ip+1)+ib+1;
     strcpy(vname,"TF");

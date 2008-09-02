@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.129 2008/08/28 20:33:36 choutko Exp $
+//  $Id: daqevt.C,v 1.130 2008/09/02 14:34:27 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -596,6 +596,13 @@ integer DAQEvent::_HeaderOK(){
 integer DAQEvent::_DDGSBOK(){
   const integer Laser=204;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
+
+#ifdef __TRDOFFLINE__
+    if(*(_pcur+_cll(_pcur)) == 0x8001) *(_pcur+_cll(_pcur))=0x98C1; // U0-EPP-id 0x8001 -> JINF-U0A-id 0x98C1
+
+    if(*(_pcur+_cll(_pcur)) == 0x8021) *(_pcur+_cll(_pcur))=0x9941; // U1-EPP-id 0x8021 -> JINF-U1A-id 0x9941
+#endif
+
     if(_isddg(*(_pcur+_cll(_pcur)))){
       if( calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
        cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
