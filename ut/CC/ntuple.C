@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.171 2008/06/11 14:51:19 choutko Exp $
+//  $Id: ntuple.C,v 1.172 2008/09/04 14:52:32 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -254,6 +254,7 @@ void AMSNtuple::endR(){
 
 void AMSNtuple::initR(char* fname){
 #ifdef __WRITEROOT__
+  TTree::SetMaxTreeSize(0xFFFFFFFFFFLL);
   static TROOT _troot("S","S");
    cout << "Initializing tree...\n"<<endl;
   _Nentries=0;

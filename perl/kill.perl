@@ -74,15 +74,15 @@ for my $pid (@pids){
                    if($i>=-1){
                       unshift @killed,$pid;
                   }
+                      my $strt=time2str(time());
                       if($go){
                        system($cmd);
                        my $add=$pidinfo[0].'@mail.cern.ch';
-                       my $subj="Process Killed $cmd ";
+                       my $subj="Process Killed $strt $cmd @pidinfo";
                        my $message="All noninteractive jobs should be submitted only via lsf. \n Please use man bsub and refs wherein to control jobs submission."; 
                        sendmailmessage($add,$subj,$message);
                        } 
                #   print " $avload \n";
-                      my $strt=time2str(time());
                    print " $strt killed $avload $cmd @pidinfo \n";
                   }
                   
