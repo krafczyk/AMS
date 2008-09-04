@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.93 2008/08/26 15:44:35 barao Exp $
+//  $Id: richrec.C,v 1.94 2008/09/04 07:54:42 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1184,7 +1184,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     u0[1]=sc*sp;
     u0[2]=cc;}
 
-  if(tile(r0))*geff=1;
+  if(tile(r0)!=-1)*geff=1;
 
   /* propagate to radiator end */
   l=(RICHDB::rad_height-r0[2])/u0[2];
@@ -1194,7 +1194,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 
   // Check if the ray crossed the tiles-wall.
 
-  if (!tile(r0) || tile(r1)!=tile(r0)){
+  if (tile(r0)==-1 || tile(r1)!=tile(r0)){
     *tflag=6;
     return 0;
   }
@@ -1358,7 +1358,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 
 int AMSRichRing::tile(AMSPoint r){ // Check if a track hits the radator support struycture
   integer tile=RichRadiatorTileManager::get_tile_number(r[0],r[1]);
-  if(RichRadiatorTileManager::get_tile_kind(tile)==empty_kind) return 0;
+  if(RichRadiatorTileManager::get_tile_kind(tile)==empty_kind) return -1;
   // Next should be guaranteed by RichRadiatorTileManager
   //  if(fabs(RichRadiatorTileManager::get_tile_x(tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.
   //     ||fabs(RichRadiatorTileManager::get_tile_y(tile)-r[1])>RICHDB::rad_length/2.-RICaethk/2.) return 0;
