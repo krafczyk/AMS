@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.529 2008/09/01 09:32:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.530 2008/09/04 14:07:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2535,7 +2535,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               print "<td align=left><b><font color=$color> $jid </font></td></b>";
               print "<td align=center><b><font color=$color> $jobname </font></td></b>";
               print "<td align=center><b><font color=$color> $triggers </font></b></td>";
-              if ($cite eq 'Any') {
+              if ($cite ne 'Any') {
                print "<td align=center><b><font color=$color> $cite </font></td></b>";
               }
               print "<td align=center><b><font color=$color> $host </font></td></b>";

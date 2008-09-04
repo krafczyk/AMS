@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-use MIME::Lite;
+use HTTP::Date;
 use Unix::PID;
 use GTop();
 use strict;
@@ -53,7 +53,7 @@ for my $pid (@pids){
                   while($ppid!=1 and $ppid!=0){
                    $ppid=$proc_uid->ppid;
                    my @ppidinfo=$pida->pid_info($ppid);
-                   if($ppidinfo[10]=~/sbatchd/){
+                   if($ppidinfo[10]=~/sbatchd/ and $ppidinfo[0]=~/root/){
                        $lsf=1;
                        last;
                    }
@@ -81,8 +81,9 @@ for my $pid (@pids){
                        my $message="All noninteractive jobs should be submitted only via lsf. \n Please use man bsub and refs wherein to control jobs submission."; 
                        sendmailmessage($add,$subj,$message);
                        } 
-                  print " $avload \n";
-                   print " killed $cmd @pidinfo \n";
+               #   print " $avload \n";
+                      my $strt=time2str(time());
+                   print " $strt killed $avload $cmd @pidinfo \n";
                   }
                   
 
