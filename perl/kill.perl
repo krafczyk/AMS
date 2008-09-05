@@ -61,17 +61,15 @@ for my $pid (@pids){
                    }      
                   if($lsf==0){
                       my $cmd="kill $pid";
-                      my $i=-1;
+                      my $found=0;
                    for my $kill (@killed){
-                       $i++;
                        if($kill==$pid){
                         $cmd="kill -9 $pid";
-                        splice(@killed,$i,1);
-                        $i=-2;
+                        $found=1;
                         last;
                        }
                    }
-                   if($i>=-1){
+                   if(not $found){
                       unshift @killed,$pid;
                   }
                       my $strt=time2str(time());
@@ -82,7 +80,6 @@ for my $pid (@pids){
                        my $message="All noninteractive jobs should be submitted only via lsf. \n Please use man bsub and refs wherein to control jobs submission."; 
                        sendmailmessage($add,$subj,$message);
                        } 
-               #   print " $avload \n";
                    print " $strt killed $avload $cmd @pidinfo \n";
                   }
                   

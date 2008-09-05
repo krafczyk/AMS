@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.530 2008/09/04 14:07:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.531 2008/09/05 13:06:30 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1128,7 +1128,7 @@ foreach my $file (@allfiles){
     if (not defined $self->{TempT}){
         die "No Basic Templates Available";
     }
-     $self->CheckFS(1,86400);
+     $self->CheckFS(1,86400,0,'/');
 # filesystems table
      $#{$self->{FilesystemT}}=-1;
      $sql="select * from Filesystems WHERE status='Active' and isonline=1 ";
@@ -13795,7 +13795,7 @@ sub getOutputPath {
         $path='/MC';
     }
 #
-$self->CheckFS(1);
+$self->CheckFS(1,60,0,$path);
 # get production set path
      my $tme=time();
      if($tme%2 ==0){ 
@@ -16602,12 +16602,12 @@ sub CheckFS{
            if($dss){
                $desc="desc";
            }
-           my $sql="select disk from filesystems where isonline=1 and status='Active' and path='$path' order by available $desc";
+           my $sql="select disk from filesystems where isonline=1 and status='Active' and path like '$path%' order by available $desc";
            my $ret=$self->{sqlserver}->Query($sql);
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0] and $cachetime>0){
               return $ret->[0][0];
             }
-            $sql="select disk,host,status,allowed  from filesystems where path='$path'";
+            $sql="select disk,host,status,allowed  from filesystems where path like '$path%'";
             $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
 #
@@ -16705,7 +16705,7 @@ offline:
             }
              $self->{sqlserver}->Commit();
 
-          $sql="select disk from filesystems where isonline=1 and status='Active'  and path='$path' order by available $desc";
+          $sql="select disk from filesystems where isonline=1 and status='Active'  and path like '$path%' order by available $desc";
            $ret=$self->{sqlserver}->Query($sql);
            return $ret->[0][0];
 
@@ -16754,7 +16754,7 @@ my $self=shift;
 sub DiskIsOnline{
 my $self=shift;
 my $disk=shift;
-$self->CheckFS(1,300);
+$self->CheckFS(1,300,0,'/');
 my $sql="select disk from filesystems where isonline=1 and disk like '$disk'";
 my $ret=$self->{sqlserver}->Query($sql);
 if(defined $ret->[0][0]){
@@ -16821,7 +16821,7 @@ sub UploadToCastor{
         return 0;
     }
 
-     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
      
    $ret =$self->{sqlserver}->Query($sql);
    my $uplsize=0;
@@ -16927,7 +16927,7 @@ sub UploadToCastor{
 # now optionally compare castorfiles with data
 #
    if($cmp){
-      $self->CheckFS(1);
+      $self->CheckFS(1,300,0,'/');
       $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
       my $ret_nt =$self->{sqlserver}->Query($sql);
        foreach my $ntuple (@{$ret_nt}){
@@ -16969,7 +16969,7 @@ again:
                  unlink $ltmp;
                  my @size_l= split ' ',$line_l;
                  my @size_c= split ' ',$line_c;
-                 if((not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
+                 if(($#size_c<4 or not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
                   print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor $line_c $line_l \n";
                  }
 
@@ -17060,7 +17060,7 @@ sub CheckCRC{
             $totmb+=$ntuple->[6];
           } 
           my $times=time();
-          $self->CheckFS(1);
+          $self->CheckFS(1,60,0,"/$delimiter");
           foreach my $ntuple (@{$ret_nt}){
               if($run ne $ntuple->[3]){
                           my @junk=split $delimiter,$ntuple->[0];
@@ -17346,7 +17346,7 @@ sub UploadToDisks{
         my $dir=undef;
        if(defined $ret_nt->[0][0]){
            if(not defined $filesystem){
-            $disk=$self->CheckFS(1,300);
+            $disk=$self->CheckFS(1,300,0,'/');
            }
            else{
                $disk=$filesystem;
