@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.534 2008/09/10 21:23:08 ams Exp $
+# $Id: RemoteClient.pm,v 1.535 2008/09/10 21:23:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8316,7 +8316,7 @@ anyagain:
 #
 #creat corresponding runevinfo
          my $ri={};
-         $ri->{uid}=0;
+         $ri->{uid}=$run;
          $ri->{Run}=$run;
          $ri->{FirstEvent}=1;
          $ri->{LastEvent}=$evts;
@@ -8351,6 +8351,7 @@ anyagain:
          $ri->{cinfo}->{Mips}=-1;
          $ri->{cinfo}->{TimeSpent}=0;
          $ri->{cinfo}->{Status}=$ri->{Status};
+         $ri->{cinfo}->{HostName}=" ";
          push @{$self->{Runs}}, $ri;
          $run=$run+1;
     if($Any>=0 and defined $dataset){
@@ -13314,7 +13315,7 @@ my %CloseDSTPatterns = (
      else{
       return 0;
      }
-     $joudir=$joudir."/jou/MCProducer/";
+#     $joudir=$joudir."/jou/MCProducer/";
      opendir THISDIR,$joudir or return 0;
      my @files=readdir THISDIR;
      closedir THISDIR;

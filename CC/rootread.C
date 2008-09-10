@@ -59,7 +59,7 @@ int firstevent=-1;
   int nevread=0;
   for (int i=0;i<nevents;i++){
    if(!pev->ReadHeader(i))break;
-   if((pev->fHeader.Status[0]/1073741824)%2)nbadev++;
+   if((pev->fStatus/1073741824)%2)nbadev++;
    if(firstevent<0)firstevent=pev->fHeader.Event;
    if(lastevent && abs(lastevent-int(pev->fHeader.Event))>diff){
      diff=std::abs(lastevent-int(pev->fHeader.Event));
