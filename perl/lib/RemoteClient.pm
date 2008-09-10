@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.533 2008/09/10 13:10:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.534 2008/09/10 21:23:08 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13367,7 +13367,8 @@ my %CloseDSTPatterns = (
              my $job={};
              my @cont=split '\n',$bufj;
              my @pats=("DATASETNAME","ScriptName","TRIG","NICKNAME","SUBMITTIME");
-             foreach my $line (@cont){
+             $job->{TRIG}=100000000;
+               foreach my $line (@cont){
               foreach my $pat (@pats){
                 if($line =~/$pat=/){
                   my @junk=split '=',$line;
@@ -13376,7 +13377,9 @@ my %CloseDSTPatterns = (
                    $job->{$pat}=trimblanks($j2[$#j2]);
                   }
                   else{
-                   $job->{$pat}=trimblanks($junk[1]);
+                   if($#junk>0){
+                     $job->{$pat}=trimblanks($junk[1]);
+                   }
                   }
                 }
               }
