@@ -6,7 +6,7 @@ use strict;
 my $cpuload=10;
 my $cpuloada=.5;
 my $time=300;
-my $delay=60;
+my $delay=120;
 my $go=1;
    my @killed;
    $#killed=-1;
@@ -60,6 +60,10 @@ for my $pid (@pids){
                    $proc_uid=$gtop->proc_uid($ppid);
                    }      
                   if($lsf==0){
+                   if($pidinfo[10]=~/root.exe/ and $cpt<1800 and $avload<0.9){
+                      next;
+}
+ 
                       my $cmd="kill $pid";
                       my $found=0;
                    for my $kill (@killed){
@@ -82,14 +86,19 @@ for my $pid (@pids){
                        } 
                    print " $strt killed $avload $cmd @pidinfo \n";
                   }
-                  
+                 
 
               }
           }
        }
    }
  }
+if($#killed>=0){
+ sleep($delay/2);
+}
+else{
 sleep($delay);
+}
 }
 
 

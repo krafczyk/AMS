@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.531 2008/09/05 13:06:30 choutko Exp $
+# $Id: RemoteClient.pm,v 1.532 2008/09/10 12:45:57 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -547,6 +547,7 @@ my %mv=(
     else{
      push @{$self->{FileDB}}, "v3.00mcdb.tar.gz";
      push @{$self->{FileDB}}, "v4.00mcdb.tar.gz";
+     push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
     }
      $#{$self->{FileAttDB}}=-1;
     $key='FileAttDB';
@@ -560,6 +561,7 @@ my %mv=(
     else{
       push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v4.00rddb.addon.tar.gz";
     }
 
 #-
@@ -659,7 +661,9 @@ my %mv=(
           else{
            my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
              my  @sta = stat $save;
-             my $lupdate=-1;
+#             my $lupdate=-1;
+             my $lupdate=$self->dblupdate();
+#              die "  $lupdate $sta[9] $cachetime \n";
              if($lupdate>0){
                $cachetime*=24;
              }
@@ -979,6 +983,12 @@ if($#{$self->{DataSetsT}}==-1){
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
            }
+       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
+             $template->{RUNMAX}=1;
+         }
+       elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
+             $template->{RUNMAX}=1;
+         }
        if(defined $template->{ROOTNTUPLE}  ){
            $dataset->{rootntuple}=$template->{ROOTNTUPLE};
        }
@@ -1631,7 +1641,7 @@ sub ValidateRuns {
           print FILEV "$sql \n";
 # validate ntuples
 # Find corresponding ntuples from server
-               $sql = "DELETE ntuples WHERE run=$run->{Run}";
+               $sql = "DELETE ntuples WHERE jid=$run->{uid}";
                $self->{sqlserver}->Update($sql);
             my @ntuplelist=();
              foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
@@ -1777,7 +1787,7 @@ my $fevt=-1;
                            $badevents=int($i*$ntuple->{EventNumber}/100);
                            $validated++;
                            my $jobid = $run->{Run};
-                           my($outputpatha,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc},$ntuple->{Version},$outputpath);
+                           my($outputpatha,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc},$ntuple->{Version},$outputpath,$run->{DataMC});
                            $outputpath=$outputpatha;   
                            if(defined $outputpath){
                               push @mvntuples, $outputpath;
@@ -1889,7 +1899,7 @@ my $fevt=-1;
                 $failedcp++;
                 $copied--;
                }
-               $sql = "DELETE ntuples WHERE run=$run->{Run}";
+               $sql = "DELETE ntuples WHERE jid=$run->{uid}";
                $self->{sqlserver}->Update($sql);
                $runupdate = "UPDATE runs SET ";
            }
@@ -2017,6 +2027,13 @@ sub doCopy {
      my $crc       = shift;
      my $version   = shift;
      my $outputpath=shift;
+     my $datamc=shift;
+     my $path='/MC';
+     if(defined $datamc){
+         if($datamc==1){
+             $path='/Data'
+             }
+     }
 #
      my $sql   = undef;
      my $cmd   = undef;
@@ -2046,7 +2063,7 @@ sub doCopy {
      if ($filesize > 0) {
 # get output disk
          if(not defined $outputpath){
-      my($outputpatha, $gb) = $self->getOutputPath($period);
+      my($outputpatha, $gb) = $self->getOutputPath($period,$path);
       $outputpath=$outputpatha;
          if ($outputpath =~ 'xyz' || $gb == 0) {
              if ($webmode == 0) {
@@ -5163,13 +5180,17 @@ CheckCite:            if (defined $q->param("QCite")) {
 #                print "</b>";
                 my $minratio=0.00002;
                 my $minsize=1000;
-                if($dataset->{datamc}==1 and $self->{CCT} eq "local"){
+                if($dataset->{datamc}==1){
                     $minratio=0;
                     $minsize=10;
+                }
+                if(not $self->{CCTP}=~/$dataset->{datamc}/){
+                    $minsize=20000000000;
                 }
                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) < $minratio or  $dataset->{eventstodo}<$minsize){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
+                  $firstdataset--;
                  }
                   else {
                     print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name}<BR>";
@@ -5294,7 +5315,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
              my $time=time();
              my $citedesc = "new cite";
-             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time,0)";
+             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time,0,'0')";
              $self->{sqlserver}->Update($sql);
 
             }
@@ -5380,7 +5401,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 # 4.12.03 $MAX_CITES changed from 16 to 32
 #            my $run=(($cid-1)<<27)+1;
              my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
-             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time,0)";
+             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time,0,'0')";
              $self->{sqlserver}->Update($sql);
 # add responsible
              $sql="select MAX(mid) from Mails";
@@ -6472,7 +6493,8 @@ print qq`
             $self->ErrorPlus("Could not find file for $template template. $tmps");
         }
          my $ntdir=$q->param("NTDIR");
-         if (not defined $ntdir) {
+       if( $self->{CCT} eq "local"){
+         if (  not defined $ntdir) {
              $self->ErrorPlus("The NTuples output directory NOT DEFINED");
          } else {
              if (not $ntdir =~ /\//  ) {
@@ -6481,6 +6503,7 @@ print qq`
                 $self->{AMSDSTOutputDir}=$ntdir;
             }
          }
+       }
          my $cputime=200000;
         my $clock=3000;
         my $corr=1.00;
@@ -6513,7 +6536,7 @@ print qq`
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths  from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -6612,6 +6635,314 @@ print qq`
         if($#stag1<0){
               $self->ErrorPlus("Unable to find $nv on the Server ");
         }
+        my $file2tar;
+        my $filedb;
+        my $filedb_att;
+        my $vdb ='XYZ';
+        my $stt ='UNK';
+
+        if($self->{CCT} eq "remote"){
+#+
+         $self->  getProductionPeriods(0);
+         foreach my $mc (@productionPeriods) {
+          if ($mc->{status} =~ 'Active') {
+           my $vdb = $mc->{vdb};
+           if ($vdb =~ $dataset->{version}) {
+            foreach my $file (@{$self->{FileDB}}) {
+             if ( $file =~ m/$vdb/ and $file =~/rddb/) {
+                $filedb = "$self->{UploadsDir}/$file";
+                last;
+             }
+            }
+           }
+          }
+         }
+          if (not defined $filedb) {
+            $self->ErrorPlus("unable to find corrsponding database file ($dataset->{name},$dataset->{version}, $vdb, $stt)");
+         }
+#-
+        my @sta = stat $filedb;
+        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
+           $self->{senddb}=2;
+        my $filen="$self->{UploadsDir}/ams02mcdb.tar.$job";
+#        $key='dbversion';
+#        $sql="select myvalue from Environment where mykey='".$key."'";
+#        my $ret=$self->{sqlserver}->Query($sql);
+#        if( not defined $ret->[0][0]){
+#            $self->ErrorPlus("unable to retreive db version from db");
+#        }
+#
+#        my $dbversion=$ret->[0][0];
+        my $dbversion=$dataset->{version};
+        my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.dat";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/L* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/L\*";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/A* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/A\*";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/t\*";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/T\*";
+       if($dbversion=~/v4/){
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/ri\*";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
+        unlink "$self->{AMSDataDir}/$dbversion/\*.flux";
+       }
+        $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1";
+        if($i){
+              $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen  $i    tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1");
+         }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
+          }
+         $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar flukaaf.dat to $filen ");
+          }
+
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $nv to $filen  ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $gr to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar prod/tnsnames.ora to $filen ");
+          }
+
+          $i=system("gzip -f $filen");
+          if($i){
+           $self->ErrorPlus("Unable to gzip  $filen");
+          }
+          $i=system("mv $filedb $filedb.o");
+          $i=system("mv $filen.gz $filedb");
+          unlink "$filedb.o";
+       }
+        elsif($sta[9]>$self->{TU1}){
+            $self->{senddb}=2;
+        }
+#
+         foreach my $mc (@productionPeriods) {
+          if ($mc->{status} =~ 'Active') {
+           my $vdb = $mc->{vdb};
+           if ($vdb =~ $dataset->{version}) {
+            foreach my $file (@{$self->{FileAttDB}}) {
+             if ( $file =~ m/$vdb/) {
+                $filedb_att = "$self->{UploadsDir}/$file";
+                last;
+             }
+            }
+           }
+          }
+         }
+
+#         die $filedb, $filedb_att;
+#        $filedb_att=~s/ams02/$dataset->{version}/;
+        @sta = stat $filedb_att;
+
+#         my @stag3=stat "$self->{AMSDataDir}/DataBase";
+#        if($#stag3<0){
+#              $self->ErrorPlus("Unable to find $self->{AMSDataDir}/DataBase on the Server ");
+#        }
+#        if(($#sta<0 or time()-$sta[9] >86400*180  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
+
+         my $dte=stat_adv ("$self->{AMSDataDir}/DataBase",0,0,1);
+#        For the moment Never Update beacuse of timeout 
+        if((($#sta<0 or time()-$sta[9] >86400*180  or $dte > $sta[9] ) and $self->{dwldaddon}==1) and 0){
+
+           $self->{sendaddon}=2;
+        my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$job";
+        my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap* $self->{UploadsDir}/DataBase";
+        $key='dbversion';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive db version from db");
+        }
+#
+#        my $dbversion=$ret->[0][0];
+         my $dbversion=$dataset->{version};
+          my $rtn=0;
+           if($dbversion =~/v4/){
+
+           closedir THISDIR;
+           my $suc=opendir THISDIR,"$self->{AMSDataDir}/DataBase";
+           if(!$suc){
+              $self->ErrorPlus("Unable to opendir $self->{AMSDataDir}/DataBase");            }
+     my @allfiles=readdir THISDIR;
+     closedir THISDIR;
+       foreach my $file (@allfiles){
+         my $newfile="$self->{AMSDataDir}/DataBase/".$file;
+         if(readlink $newfile){
+#           next;
+         }
+         my @sta=stat $newfile;
+         if($sta[2]>32000){
+          if($newfile =~/\.1$/){
+           $i=system "ln -s $newfile $self->{UploadsDir}/DataBase";
+         }
+         }
+         else{
+    if ($file =~/^\./){
+       next;
+    }
+        $i=system " rm -rf $self->{UploadsDir}/DataBase/$file";
+        if($file=~/Shuttle/ or $file=~/Scaler/ or $file=~/Temperature/ or $file =~/s\.r/ or $file=~/s\.l/ or $file eq "EventStatusTable"){
+           next;
+        }
+        $i=system " mkdir -p $self->{UploadsDir}/DataBase/$file";
+           $suc=opendir THISDIR,"$newfile";
+           if(!$suc){
+              $self->ErrorPlus("Unable to opendir $self->{AMSDataDir}/DataBase/$file");            }
+         my @allnew=readdir THISDIR;
+         closedir THISDIR;
+         foreach my $new (@allnew){
+    if ($new =~/^\./){
+       next;
+    }
+          my $newfile1="$self->{AMSDataDir}/DataBase/$file/$new";
+          if(readlink $newfile1){
+            next;
+          }
+          my @sta=stat $newfile1;
+          if($sta[2]<32000){
+            $i=system " rm -rf $self->{UploadsDir}/DataBase/$file/$new";
+           $i=system " mkdir -p $self->{UploadsDir}/DataBase/$file/$new";
+           $suc=opendir THISDIR,"$self->{AMSDataDir}/DataBase/$file/$new";
+           if(!$suc){
+              $self->ErrorPlus("Unable to opendir $self->{AMSDataDir}/DataBase/$file/$new");            }
+         my @allvar=readdir THISDIR;
+         closedir THISDIR;
+         foreach my $var (@allvar){
+          if($var=~/\.1\./){
+           $i=system "ln -s $self->{AMSDataDir}/DataBase/$file/$new/$var $self->{UploadsDir}/DataBase/$file/$new/$var";
+          }
+         }
+
+         }
+        }
+         }
+       }
+
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerStatus.l";
+
+        $rtn=system "tar -C$self->{UploadsDir} -h -czf $filen.gz DataBase  1>/dev/null 2>&1";
+    }
+           else{
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/895964400 $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/896828400/ $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/896914800/ $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/897260400/ $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/895964400/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/896828400/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/896914800/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/897260400/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/895964400/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/896828400/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/896914800/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/897260400/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/895964400/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/896828400/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/896914800/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/897260400/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/895964400/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/896828400/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/896914800/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/897260400/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/895964400/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/896828400/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/896914800/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/897260400/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/895964400/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/896828400/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/896914800/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/897260400/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerG* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Anti* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/C* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase";
+        $rtn=system "tar -C$self->{UploadsDir} -h -czf $filen.gz DataBase  1>/dev/null 2>&1";
+           }
+        if($rtn){
+        #      $self->ErrorPlus("Unable to tar $self->{UploadsDir} DataBase to $filen.gz $rtn");
+        }
+#          $i=system("gzip -f $filen");
+#                      if($i){
+#              $self->ErrorPlus("Unable to gzip  $filen");
+#          }
+          $i=system("mv $filedb_att $filedb_att.o");
+          $i=system("mv $filen.gz $filedb_att");
+          unlink "$filedb_att.o";
+       }
+        elsif($sta[9]>$self->{TU2}){
+            $self->{sendaddon}=2;
+        }
+
+
+# write readme file
+        my $readme="$self->{UploadsDir}/README.$job";
+        open(FILE,">".$readme) or die "Unable to open file $readme (specify the exact path and/or check dir protection)\n";
+        if($self->{dwldaddon}==1){
+         $self->{tsyntax}->{headers}->{readmestandalone_data}=~s/ams02/$dataset->{version}/g;
+         print FILE  $self->{tsyntax}->{headers}->{readmestandalone_data};
+        }
+        else{
+         $self->{tsyntax}->{headers}->{readmecorba}=~s/ams02/$dataset->{version}/g;
+         print FILE  $self->{tsyntax}->{headers}->{readmecorba};
+        }
+        my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
+        my $note='please contact vitali.choutko@cern.ch for details';
+        my $ret = $self->{sqlserver}->Query($sql);
+
+        if (defined $ret->[0][0]) {
+         $note ="DST directory path : $ret->[0][0]/nt
+                \n Journal files directory path : $ret->[0][0]/jou
+                \n Validation log files directory path : $ret->[0][0]/log
+                \n";
+         }
+        print FILE  $note;
+        close FILE;
+         my $i;
+         if($Any<0 or $srunno eq $qrunno){
+         $file2tar="$self->{UploadsDir}/$dataset->{version}script.$job.tar";
+           $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$job  1>/dev/null 2>&1");
+     }
+         else{
+           $i=system("tar -C$self->{UploadsDir} -uf  $file2tar README.$job  1>/dev/null 2>&1");
+         }
+          if($i){
+              $self->ErrorPlus("Unable to tar readme to $file2tar ");
+          }
+        unlink $readme;
+     }
+
+
+
+
+
         my $runmax=$#{@{$runsret}}+1;
         if($runno>$runmax){
             $runno=$runmax;
@@ -6620,6 +6951,8 @@ print qq`
 
         for my $i (1 ... $runno){
          my $run=$runsret->[$i-1][0];
+         my $fevent=$runsret->[$i-1][3];
+         my $levent=$runsret->[$i-1][4];
          my $path=$runsret->[$i-1][1];
          my $paths=$runsret->[$i-1][2];
          if($paths=~/$run/){
@@ -6673,9 +7006,10 @@ print qq`
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;
          }
          else{
+           $tmpb=~ s/END/SELECT 1=$run 2=$fevent 43=$run 44=$levent \n END/;
              my @gbc=split "\/", $gbatch;
 
-          $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
+          $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$job  -M -D1 -G$aft -S$stalone/;
       }
          my $script="$self->{CCA}.$job.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
@@ -6763,6 +7097,13 @@ print qq`
          }
          close FILE;
          my $j=system("chmod +x  $root");
+         if($self->{CCT} eq "remote"){
+         $j=system("tar -C$self->{UploadsDir} -uf  $file2tar $script  1>/dev/null 2>&1");
+          if($j){
+              $self->ErrorPlus("Unable to tar $script to $file2tar ");
+          }
+          unlink $root;
+          }
          $buf=~s/\$/\\\$/g;
          $buf=~s/\"/\\\"/g;
          $buf=~s/\(/\\\(/g;
@@ -6823,10 +7164,18 @@ print qq`
          $ri->{rndm1}=0;
          $ri->{rndm2}=0;
          $ri->{DataMC}=1;
+            if ($self->{CCT} eq "remote"){
+             $ri->{Status}="Foreign";
+             $ri->{History}="Foreign";
+             $ri->{CounterFail}=0;
+             $ri->{cuid}=$ri->{Run};
+            }
+            else{
              $ri->{Status}="ToBeRerun";
              $ri->{History}="ToBeRerun";
              $ri->{CounterFail}=0;
              $ri->{cuid}=0;
+            }
          $ri->{SubmitTime}=time();
          $ri->{cinfo}={};
          if(defined $templatehost and $templatehost=~/ams/){
@@ -6881,6 +7230,12 @@ print qq`
         else{
             $self->ErrorPlus("Unable To Communicate With Server");
         }
+         if ($self->{CCT} eq "remote"){
+          my $i=system("gzip -f $file2tar");
+          if($i){
+              $self->ErrorPlus("Unable to gzip  $file2tar");
+          }
+        }
 # insert into Jobs
 #        if (defined $insertjobsql) {
 #         $self->{sqlserver}->Update($insertjobsql);
@@ -6892,10 +7247,10 @@ print qq`
         }
         my $frun=$job-$runno;
         my $lrun=$job-1;
-        my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
+        my $subject="AMS02 Data Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                  my $message;
                  if($self->{dwldaddon}==1){
-                   $message=$self->{tsyntax}->{headers}->{readmestandalone};
+                   $message=$self->{tsyntax}->{headers}->{readmestandalone_data};
                  }
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
@@ -6909,6 +7264,28 @@ print qq`
          }
          $message=$message.$note;
                   my $attach;
+       if ($self->{CCT} eq "remote"){
+          if($self->{senddb}==1){
+          $self->{TU1}=time();
+           $attach="$file2tar.gz,$dataset->{version}rdscripts.tar.gz;$filedb,ams02rddb.tar.gz";
+          }
+          elsif($self->{sendaddon}==1){
+              $self->{TU2}=time();
+              $self->{sendaddon}=0;
+             $attach= "$file2tar.gz,$dataset->{version}rdscripts.tar.gz;$filedb_att,ams02rddb.addon.tar.gz";
+          }
+          else{
+              $attach= "$file2tar.gz,$dataset->{version}rdscripts.tar.gz";
+          }
+                  $self->sendmailmessage($address,$subject,$message,$attach);
+                  my $i=unlink "$file2tar.gz";
+                  if($self->{sendaddon}==1){
+                   $self->{TU2}=time();
+                   $attach="$filedb_att,ams02rddb.addon.tar.gz";
+                   $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
+                   $self->sendmailmessage($address,$subject,$message,$attach);
+               }
+              }
          my $totalreq=$self->{CEMR}+$runno;
          my $time=time();
          $sql="Update Mails set requests=$totalreq, timeu1=$self->{TU1}, timeu2=$self->{TU2}, timestamp=$time where mid=$self->{CEMID}";
@@ -6940,7 +7317,7 @@ print qq`
                   my $dir=$self->{UploadsDir};
                   open DIR,$dir;
                   my @allfiles= readdir THISDIR;
-                  closedir DIR;
+                  closedir THISDIR;
                   foreach my $file (@allfiles){
                      my $pat='/$\.'."$self->{CEMID}.save/";
                      if($file =~$pat){
@@ -6960,7 +7337,7 @@ print qq`
           my $uplt0 = 0;                   #last upload
           my $uplt1 = 0;                   # for filedb and filedb.addon
           my $vdb   = 'XYZ';               # lastdb version loaded
-          my $vvv   = $dataset->{version}; # dataset version
+          my $vvv   = "$dataset->{version}rddb"; # dataset version
           $sql="SELECT timeu1, timeu2, vdb  FROM Mails WHERE ADDRESS='$self->{CEM}'";
           my $retime=$self->{sqlserver}->Query($sql);
           if(defined $retime->[0][0]){
@@ -6977,7 +7354,7 @@ print qq`
 
         foreach my $filedb (@{$self->{FileDB}}) {
           $self->{FileDBLastLoad} ->[$i] = 0;
-          if ($filedb =~ m/$vvv/) {
+          if ($filedb =~ m/$vvv/ ) {
            $timeFileDB=(stat($filedb))[9];
            $self->{FileDBLastLoad} ->[$i] = $uplt0;
            last;
@@ -6996,7 +7373,7 @@ print qq`
           $i++;
       }
 
-       if ($vvv =~ $vdb) {
+       if ($vvv =~ $vdb ) {
         if ($uplt0 == 0 || $uplt1 == 0) {
             $self->Download($vvv, $vdb);
          } elsif ($timeFileDB == 0 || $timeFileAttDB == 0) {
@@ -7384,7 +7761,7 @@ anyagain:
            my $vdb = $mc->{vdb};
            if ($vdb =~ $dataset->{version}) {
             foreach my $file (@{$self->{FileDB}}) {
-             if ( $file =~ m/$vdb/) {
+             if ( $file =~ m/$vdb/ and $file =~/mcdb/) {
                 $filedb = "$self->{UploadsDir}/$file";
                 last;
              }
@@ -7415,6 +7792,10 @@ anyagain:
            unlink "$self->{AMSDataDir}/$dbversion/\*.dat";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/t\*";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/L* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/L\*";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/A* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/A\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/T\*";
        if($dbversion=~/v4/){
@@ -7503,19 +7884,61 @@ anyagain:
          my $dbversion=$dataset->{version};
           my $rtn=0;
            if($dbversion =~/v4/){
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Anti* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof*2 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/*cpd* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tofpeds* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof*MS $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/TRD* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Cha* $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Lvl1* $self->{UploadsDir}/DataBase";
+           closedir THISDIR;
+           my $suc=opendir THISDIR,"$self->{AMSDataDir}/DataBase";
+           if(!$suc){
+              $self->ErrorPlus("Unable to opendir $self->{AMSDataDir}/DataBase");            }
+     my @allfiles=readdir THISDIR;
+     closedir THISDIR;
+       foreach my $file (@allfiles){
+         my $newfile="$self->{AMSDataDir}/DataBase/".$file;
+         if(readlink $newfile){
+#           next;
+         }
+         my @sta=stat $newfile;
+         if($sta[2]>32000){
+          if($newfile =~/\.0$/){
+           $i=system "ln -s $newfile $self->{UploadsDir}/DataBase";
+         }
+         }
+         else{
+    if ($file =~/^\./){
+       next;
+    }
+        $i=system " rm -rf $self->{UploadsDir}/DataBase/$file";
+        $i=system " mkdir -p $self->{UploadsDir}/DataBase/$file";
+           $suc=opendir THISDIR,"$newfile";
+           if(!$suc){
+              $self->ErrorPlus("Unable to opendir $self->{AMSDataDir}/DataBase/$file");            }
+         my @allnew=readdir THISDIR;
+         closedir THISDIR;
+         foreach my $new (@allnew){
+    if ($new =~/^\./){
+       next;
+    }
+          my $newfile1="$self->{AMSDataDir}/DataBase/$file/$new";
+          if(readlink $newfile1){
+            next;
+          }
+          my @sta=stat $newfile1;
+          if($sta[2]<32000){
+            $i=system " rm -rf $self->{UploadsDir}/DataBase/$file/$new";
+           $i=system " mkdir -p $self->{UploadsDir}/DataBase/$file/$new";
+           $suc=opendir THISDIR,"$self->{AMSDataDir}/DataBase/$file/$new";
+           if(!$suc){
+              $self->ErrorPlus("Unable to opendir $self->{AMSDataDir}/DataBase/$file/$new");            }
+         my @allvar=readdir THISDIR;
+         closedir THISDIR;
+         foreach my $var (@allvar){
+          if($var=~/\.0\./){
+           $i=system "ln -s $self->{AMSDataDir}/DataBase/$file/$new/$var $self->{UploadsDir}/DataBase/$file/$new/$var";
+          }
+         }
+
+         }
+        }
+         }
+       }
         $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerCmnNoise";
         $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerSigmas.r";
         $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerSigmas.l";
@@ -8099,7 +8522,8 @@ anynext:
           my $uplt0 = 0;                   #last upload
           my $uplt1 = 0;                   # for filedb and filedb.addon
           my $vdb   = 'XYZ';               # lastdb version loaded
-          my $vvv   = $dataset->{version}; # dataset version
+          my $vvv   = "$dataset->{version}mcdb"; # dataset version
+
           $sql="SELECT timeu1, timeu2, vdb  FROM Mails WHERE ADDRESS='$self->{CEM}'";
           my $retime=$self->{sqlserver}->Query($sql);
           if(defined $retime->[0][0]){
@@ -8134,7 +8558,7 @@ anynext:
          }
           $i++;
       }
-
+       
        if ($vvv =~ $vdb) {
         if ($uplt0 == 0 || $uplt1 == 0) {
             $self->Download($vvv, $vdb);
@@ -8352,6 +8776,7 @@ sub findemail(){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
                         $self->{CCT}=$cite->{status};
+                        $self->{CCTP}=$cite->{priv};
                         $self->{CCID}=$cite->{cid};
                         last;
                     }
@@ -8372,6 +8797,7 @@ sub findemail(){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
                         $self->{CCT}=$cite->{status};
+                        $self->{CCTP}=$cite->{priv};
                         $self->{CCID}=$cite->{cid};
                         last;
                     }
@@ -10850,9 +11276,11 @@ sub DownloadSA {
 
     push @{$self->{FileDB}}, "v3.00mcdb.tar.gz";
     push @{$self->{FileDB}}, "v4.00mcdb.tar.gz";
+    push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
 
     push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
+    push @{$self->{FileAttDB}}, "v4.00rddb.addon.tar.gz";
 
     $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
     $self->{FileBookKeeping}  ="ams02bookkeeping.tar.gz";
@@ -11610,7 +12038,6 @@ my $jobmips = -1;
  my $leti=0;
  my $feti=2000000000;
 
-    my $run  = 0;
 
     open(FILE,"<",$inputfile) or die "Unable to open $inputfile";
     my $buf;
@@ -11660,6 +12087,21 @@ my $jobmips = -1;
  my $copylog = $logdir."/copyValidateCRC.".$joufile.".log";
 
  open(FILE,">".$copylog) or die "Unable to open file $copylog\n";
+
+#
+#  check run incomplete block for data run
+#
+    my $run_incompleted=0;
+    my $run_finished=0;
+foreach my $block (@blocks) {
+      if ($block =~/RunIncomplete/) {
+          $run_incompleted=1;
+      }
+      if ($block =~/RunFinished/) {
+          $run_finished=1;
+      }
+  }
+
 foreach my $block (@blocks) {
       if ($block =~/RunValidated/) {
        my @junk = split ",",$block;
@@ -11692,6 +12134,7 @@ foreach my $block (@blocks) {
 #, Errors 4364 , CPU 100271 , Elapsed 126696 , CPU/Event 0.615564 , Status Failed
 
       if ($block =~/RunIncomplete/) {
+
           if ($startingrunR == 1) {
               print FILE "RunIncomplete : Ntuples Validated : $validated. Continue\n";
               print FILE "$block \n";
@@ -11717,9 +12160,15 @@ foreach my $block (@blocks) {
        }
    if ($patternsmatched == $#RunIncompletePatterns+1) { #RunIncomplete has a pair CInfo
     $runincomplete[0] = "RunIncomplete";
-    $run              = $runincomplete[2];
+    my $run              = $runincomplete[2];
 
     $runfinishedR   = 1;
+    if($#startingrun<20 or $startingrun[21]==1){
+#    data do not allow incomplete run
+        warn "  Run $run incomplete while real data mode  do nothing \n";
+         system("mv $inputfile $inputfile.0");
+        return 0;
+    }
     my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runincomplete[4]";
     my $ret = $self->{sqlserver}->Query($sql);
     if (not defined $ret->[0][0]) {
@@ -11881,7 +12330,7 @@ foreach my $block (@blocks) {
       my @StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent",
                                  "Prio","Path","Status","History","CounterFail", "ClientID",
                                  "SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent",
-                                 "Errors","CPU","Elapsed","CPU/Event","Status");
+                                 "Errors","CPU","Elapsed","CPU/Event","Status","DataMC");
 
       my $j = 0;
       foreach my $pat (@StartingRunPatterns) {
@@ -11901,18 +12350,20 @@ foreach my $block (@blocks) {
 
 
    if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4) {
-    $run = $startingrun[2];
+    my $run = $startingrun[2];
+    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
     $startingrun[0] = "StartingRun";
-    my $sql=" select status from runs where jid=$run";
+    my $sql=" select status from $dataruns where jid=$lastjobid";
         my $rq=$self->{sqlserver}->Query($sql);
     if(defined $rq->[0][0] and $rq->[0][0] =~/Completed/){
-        warn "  Run $ run already completed in database do nothing \n";
+        warn "  Run $run already completed in database do nothing \n";
          system("mv $inputfile $inputfile.1");
         return 0;
     }
     $startingrunR   = 1;
 # insert run : run #, $jid, $fevent, $levent, $fetime, $letime, $submit, $status;
     $CheckedRuns[$nCheckedCite]++;
+    if($startingrun[21]==0){
     $self->insertRun(
              $startingrun[2],
              $lastjobid,
@@ -11923,9 +12374,29 @@ foreach my $block (@blocks) {
              $startingrun[12],
              $startingrun[7]);
 
+}
+    else{
+    $self->insertDataRun(
+             $startingrun[2],
+             $lastjobid,
+             $startingrun[3],
+             $startingrun[4],
+             $feti,
+             $leti,
+             $startingrun[12],
+             $startingrun[7]);
+
+    }
      if (defined $startingrun[13]) {
       $host=$startingrun[13];
-     }
+  }
+    if( $startingrun[21]==1 and ($run_incompleted==1 or $run_finished==0)){
+#    data do not allow incomplete run
+        warn "  Run $startingrun[2] incomplete or not finished while real data mode  do nothing \n";
+         system("mv $inputfile $inputfile.0");
+        return 0;
+    }
+
      $sql = "UPDATE Jobs SET
                  host='$host',
                  events=$startingrun[14], errors=$startingrun[16],
@@ -12052,7 +12523,7 @@ foreach my $block (@blocks) {
        my $version  =$closedst[4];
        my $ntcrc    =$closedst[6];
        my $run      =$closedst[10];
-       my $jobid    =$closedst[10];
+       my $jobid    =$lastjobid;
        my $dstfevent=$closedst[11];
        my $dstlevent=$closedst[12];
        my $ntevents =$closedst[13];
@@ -12115,7 +12586,7 @@ foreach my $block (@blocks) {
             $terrors += $badevents;
             $validated++;
             $ntstatus = "Validated";
-             my ($outputpatha,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version,$outputpath);
+             my ($outputpatha,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version,$outputpath,$startingrun[21]);
             $outputpath=$outputpatha;
             if(defined $outputpath){
               push @mvntuples, $outputpath;
@@ -12136,7 +12607,7 @@ foreach my $block (@blocks) {
                                $ntstatus,
                                $outputpath,
                                $ntcrc,
-                               $timestamp, 1, 0,$run->{DataMC});
+                               $timestamp, 1, 0,$startingrun[21]);
 
              print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
              $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
@@ -12182,7 +12653,8 @@ foreach my $block (@blocks) {
        $patternsmatched == $#RunFinishedPatterns) { #RunFinsihed has a pair CInfo
     $runfinished[0] = "RunFinished";
     $runfinishedR   = 1;
-    $sql = "UPDATE Runs SET LEVENT=$runfinished[4] WHERE run=$run";
+    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    $sql = "UPDATE $dataruns SET LEVENT=$runfinished[4] WHERE jid=$lastjobid";
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
 
@@ -12192,7 +12664,7 @@ foreach my $block (@blocks) {
     $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5],
                                    cputime=$cputime, elapsed=$elapsed,
                                    host='$host',timestamp = $timestamp
-                               where jid = (select runs.jid from runs where runs.jid = $run)";
+                               where jid =$lastjobid";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
  
@@ -12238,6 +12710,7 @@ foreach my $block (@blocks) {
                  }
                  $outp=$outp."$junk[$i]";
              }
+    my $run=$startingrun[2];
     print FILEO ", RunValidated , Run $run , DST $dst , Path $outp  \n";
     close(FILEO);
     $GoodRuns[$nCheckedCite]++;
@@ -12252,9 +12725,9 @@ foreach my $block (@blocks) {
       print FILE "$sql \n";
       $self->{sqlserver}->Update($sql);
   }
+    if($startingrun[21]==0){
 
-
-                         $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=$run";
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=$run and ntuples.datamc=0";
                           my $r4=$self->{sqlserver}->Query($sql);
                           my $ntevt=$r4->[0][0];
                           my $fevt=$r4->[0][1];
@@ -12267,6 +12740,7 @@ foreach my $block (@blocks) {
     $sql=" update jobs set realtriggers=$ntevt, timekill=0 where jid=$run";
                              $self->{sqlserver}->Update($sql);
                          }
+                     }
     foreach my $ntuple (@cpntuples) {
       $cmd="rm  $ntuple";
       if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
@@ -12281,6 +12755,7 @@ foreach my $block (@blocks) {
  }
 }
   else{
+    my $run=$startingrun[2];
    print FILE "Validation/copy failed = $copyfailed for  Run =$run \n";
    $status='Unchecked';
    $BadRuns[$nCheckedCite]++;
@@ -12292,13 +12767,14 @@ foreach my $block (@blocks) {
      system($cmd);
     }
 
-    $sql = "DELETE ntuples WHERE run=$run";
+    $sql = "DELETE ntuples WHERE jid=$lastjobid";
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
-    $runupdate = "UPDATE runs SET ";
+    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    $runupdate = "UPDATE $dataruns SET ";
 }
- if ($run != 0) {
-   $sql = $runupdate." STATUS='$status' WHERE run=$run";
+ if ($startingrun[2] != 0) {
+   $sql = $runupdate." STATUS='$status' WHERE jid=$lastjobid";
    $self->{sqlserver}->Update($sql);
    print FILE "Update Runs : $sql \n";
    if ($status eq "Failed" || $status eq "Unchecked") {
@@ -12307,7 +12783,7 @@ foreach my $block (@blocks) {
      if( defined $ret->[0][0]){
       my $junkdir = $ret->[0][0];
       if($verbose){
-          print "run status $status  moving mv $dirpath/*$run* $junkdir \n";
+          print "run status $status  moving mv $dirpath/*$startingrun[2]* $junkdir \n";
       }
       #$cmd = "mkdir $dirpath/bad";
       #system($cmd);
@@ -12328,8 +12804,11 @@ foreach my $block (@blocks) {
   print FILE "mv $inputfile $inputfileLink\n";
   if ($webmode == 0 && $verbose == 1) {print "mv $inputfile $inputfileLink \n";}
   if ($status eq "Completed") {
-    $self->updateRunCatalog($run);
-    if ($verbose == 1) {print "Update RunCatalog table : $run\n";}
+      if($startingrun[21]==0){
+    $self->updateRunCatalog($startingrun[2]);
+     
+    if ($verbose == 1) {print "Update RunCatalog table : $startingrun[2]\n";}
+}
     return 0;
   }
 }
@@ -13014,13 +13493,13 @@ sub insertNtuple {
               my $buildno=$sp2[0];
 
   $sql = "SELECT run, path FROM ntuples
-          WHERE run=$run AND path like '%$filename%'";
+          WHERE jid=$jid AND path like '%$filename%'";
   $ret = $self->{sqlserver}->Query($sql);
   if (defined $ret->[0][0]) {
-    $sql = "DELETE ntuples WHERE run=$run AND path like '%$filename%'";
+    $sql = "DELETE ntuples WHERE jid=$jid AND path like '%$filename%'";
     print "------------- $sql \n";
     print "------------- $ret->[0][1] \n";
-#   $self->{sqlserver}->Update($sql);
+   $self->{sqlserver}->Update($sql);
   }
   my $sizemb = $ntsize; # since 01.08 size in mbytes
 #  if ($ntsize > 4000) {
@@ -14674,6 +15153,12 @@ sub calculateMipsVC {
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
            }
+       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
+             $template->{RUNMAX}=1;
+         }
+       elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
+             $template->{RUNMAX}=1;
+         }
 
        if(defined $template->{ROOTNTUPLE}  ){
            $dataset->{rootntuple}=$template->{ROOTNTUPLE};
@@ -14696,8 +15181,17 @@ sub calculateMipsVC {
                $qtype="and datafiles.type like '$template->{QTYPE}%'";
             }
 
-                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype ";
-#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+           my $runlist="";
+            if(defined $template->{RUNLIST}){
+                my @junk=split   ",",$template->{RUNLIST};
+                $runlist=" and (";
+                foreach my $r (@junk){
+                    $runlist=$runlist." run=$r or ";
+                }
+                $runlist=$runlist." run=-1)";
+            }
+                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype $runlist";
+#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype $runlist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];

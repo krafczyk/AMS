@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.391 2008/08/28 20:33:36 choutko Exp $
+//  $Id: commons.C,v 1.392 2008/09/10 12:45:55 choutko Exp $
 
 
 #include <unistd.h>
@@ -78,7 +78,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=290;
+uinteger AMSCommonsI::_build=291;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -223,10 +223,11 @@ void AMSCommonsI::init(){
            else _cor=0.85;
           }
           else if(strstr(syscom,"Pentium(R) M"))_cor=1.07;
-          else if(strstr(syscom,"E5") or strstr(syscom,"X5"))_cor=1.45;
+          else if(strstr(syscom,"E5") or strstr(syscom,"X5"))_cor=1.6;
           else if(strstr(syscom,"Xeon"))_cor=0.8;
           else if(strstr(syscom,"Athlon"))_cor=1.15;
-          else if(strstr(syscom,"Core(TM)2 Duo"))_cor=1.1;
+          else if(strstr(syscom,"Core(TM)2 Duo"))_cor=1.35;
+          else if(strstr(syscom,"Phenom"))_cor=1.3;
           else cerr<<"AMSCommonsI-E-UnableToMatchName "<<syscom<<endl;
           _mips*=_cor;
         }

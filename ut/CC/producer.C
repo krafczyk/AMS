@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.117 2008/09/01 08:59:56 choutko Exp $
+//  $Id: producer.C,v 1.118 2008/09/10 12:45:55 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -201,10 +201,12 @@ if (_Solo){
      time(&ct);
      _reinfo->SubmitTime=ct;
      _reinfo->cuid=_pid.uid;
-//     _reinfo->pid=_pid.pid;
+     _reinfo->cinfo.LastEventProcessed=0;
      _reinfo->cinfo.HostName=_pid.HostName; 
      _reinfo->cinfo.Status=DPS::Producer::Processing;
+     _reinfo->Priority=0;
    if(AMSJob::gethead()->isSimulation()){
+    _reinfo->DataMC=0;
     _reinfo->FirstEvent=GCFLAG.IEVENT+1;
     _reinfo->LastEvent=GCFLAG.NEVENT;
     _reinfo->Run=CCFFKEY.run;
@@ -212,12 +214,26 @@ if (_Solo){
     _reinfo->History=DPS::Producer::Foreign;
     _reinfo->CounterFail=0;
    }
+   else{
+   _reinfo->DataMC=1;
+   _reinfo->uid=_pid.uid;
+    _reinfo->CounterFail=0;
+    _reinfo->Status=DPS::Producer::Allocated;
+    _reinfo->History=DPS::Producer::Foreign;
+    _reinfo->Run=SELECTFFKEY.Run;
+    _reinfo->FirstEvent=SELECTFFKEY.Event;
+    _reinfo->LastEvent=SELECTFFKEY.EventE;
+    SELECTFFKEY.Run=0;
+    SELECTFFKEY.Event=0;
+    SELECTFFKEY.EventE=0;
+   }
     //SELECTFFKEY.Run=_reinfo->Run;
     //SELECTFFKEY.Event=_reinfo->FirstEvent;
     //SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=0;
+    _cinfo.LastEventProcessed=0;
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
@@ -227,7 +243,7 @@ if (_Solo){
     _cinfo.HostName=_pid.HostName; 
     _cinfo.Run=_reinfo->Run;
     _reinfo->cinfo=_cinfo;
-     LMessage(AMSClient::print(_reinfo,"StartingRun"));
+     if(_reinfo->Run!=0)LMessage(AMSClient::print(_reinfo,"StartingRun"));
   return;
 }
 
@@ -490,7 +506,6 @@ void AMSProducer::getASL(){
 
 
 void AMSProducer::sendNtupleEnd(DPS::Producer::DSTType type,int entries, int last, time_t end, bool success){
-if(_Solo)return;
 cout <<" sendntupleend start "<<endl;
  _Transfer=true;
 
@@ -848,7 +863,6 @@ FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
 
 
 void AMSProducer::sendNtupleStart(DPS::Producer::DSTType type,const char * name, int run, int first,time_t begin){
-if(_Solo)return;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
 AString a=(const char*)_pid.HostName;
@@ -1151,12 +1165,17 @@ void AMSProducer::sendRunEnd(DAQEvent::InitResult res){
 if(_dstinfo->Mode ==DPS::Producer::LILO || _dstinfo->Mode==DPS::Producer::LIRO){
 unlink( DAQEvent::getfile());
 }
-     if(res!=DAQEvent::OK)FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
-//_cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
-if(res==DAQEvent::OK){
- _cinfo.Status=DPS::Producer::Finished;
+     if(res!=DAQEvent::OK && (res!=DAQEvent::NoInputFile || _cinfo.LastEventProcessed==0)){
+ _cinfo.Status=DPS::Producer::Failed;
+if(_reinfo->Run!=0){
+    FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
 }
-else _cinfo.Status=DPS::Producer::Failed;
+else{
+    FMessage("AMSProducer::sendRunEnd-I-RunFinished ",DPS::Client::CInAbort);
+}
+}
+else _cinfo.Status=DPS::Producer::Finished;
+
 
     struct timeb  ft;
     ftime(&ft);
@@ -1167,6 +1186,8 @@ TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 _cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;
 
+        LMessage(AMSClient::print(_cinfo," RunFinished"));
+        if(_Solo)return;
 UpdateARS();
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
@@ -1466,6 +1487,10 @@ return false;
 
 bool AMSProducer::sendTDV(const AMSTimeID * tdv){
 cout <<" Send tdv get for "<<tdv->getname()<<endl;
+        if(_Solo){
+cerr <<" SendTDV-F-SoloModeDetectedWhileSendTDV "<<tdv->getname()<<endl;
+abort();
+}
 
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -1519,6 +1544,7 @@ return true;
 
 void AMSProducer::sendEventTagEnd(const char * name,uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail){
 //_evtag.Status=fail?DPS::Producer::Failure:DPS::Producer::Success;
+if(_Solo)return;
 if(fail){
  _evtag.Status=DPS::Producer::Failure;
 }
@@ -1563,6 +1589,7 @@ else FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagEndInfo ",DPS::Clie
 
 
 void AMSProducer::sendEventTagBegin(const char * name,uinteger run,uinteger first){
+if(_Solo)return;
 AString a=(const char*)_pid.HostName;
 a+=":";
 a+=name;
