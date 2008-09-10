@@ -2474,13 +2474,13 @@ class RemoteClient:
         else:
             sql="select run from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
             files=self.sqlserver.Query(sql)
-            sql="select run from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s%%' %s" %(dataset,rund)
+            sql="select run,dataruns.jid from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s%%' %s" %(dataset,rund)
             runs=self.sqlserver.Query(sql)
             if(len(files)>0):
                 for run in runs:
                     found=0
                     for file in files:
-                        if(run==file):
+                        if(run[0]==file[0]):
                             found=1
                             break
                     if(found==0):
