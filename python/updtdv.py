@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: updtdv.py,v 1.1 2007/11/09 08:19:42 ams Exp $
+#  $Id: updtdv.py,v 1.2 2008/09/10 08:40:25 choutko Exp $
 
 import sys, os
 sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -8,7 +8,7 @@ import RemoteClient
 
 
 v=1
-commit=0
+commit=1
 name=""
 for x in sys.argv:
     if x == "-h": h=1

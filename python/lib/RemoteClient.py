@@ -62,7 +62,7 @@ class RemoteClient:
         if not (whoami == None or whoami =='ams' or whoami=='casadmva' or whoami=='choutko'):
             print "castorPath -ERROR- script cannot be run from account : ",whoami 
             return 0
-        sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '"+castorPrefix+"%' ";
+        sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb,ntuples.datamc from ntuples where  ntuples.path not like  '"+castorPrefix+"%' ";
         if force==0 :
             sql=sql+"  and ( ntuples.status='OK' or ntuples.status='Validated') "
         if dir != None:
@@ -86,9 +86,13 @@ class RemoteClient:
         times=time.time()
         #print len(ret_nt)
         run=0
-        self.CheckFS(1)
+        self.CheckFS(1,60,'/')
         for ntuple in ret_nt:
             if run != ntuple[3]:
+                if(ntuple[7]==1):
+                        delimiter='Data'
+                else:   
+                        delimiter='MC'
                 junk=string.split(ntuple[0],delimiter)
                 if len(junk)<2:
                     print "fatal problem with ",delimiter," for ",ntuple[0]," do nothing "
@@ -181,7 +185,7 @@ class RemoteClient:
         if not (whoami == None or whoami =='ams' or whoami=='casadmva' or whoami=='choutko'):
             print "castorPath -ERROR- script cannot be run from account : ",whoami 
             return 0
-        sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '"+castorPrefix+"%' ";
+        sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb,ntuples.datamc from ntuples where  ntuples.path not like  '"+castorPrefix+"%' ";
         if force==0 :
             sql=sql+"  and ( ntuples.status='OK' or ntuples.status='Validated') "
         if dir != None:
@@ -207,7 +211,7 @@ class RemoteClient:
         for ntuple in ret_nt:
             totmb=totmb+ntuple[6]
         self.times=time.time()
-        self.CheckFS(1,300)
+        self.CheckFS(1,300,'/')
         sql="select disk from filesystems where isonline=1"
         ret_fs=self.sqlserver.Query(sql)
         global exitmutexes
@@ -234,6 +238,10 @@ class RemoteClient:
         for ntuple in ret_nt:
             mutex.acquire()
             if run != ntuple[3]:
+                if(ntuple[7]==1):
+                        delimiter='Data'
+                else:
+                        delimiter='MC'
                 junk=string.split(ntuple[0],delimiter)
                 if len(junk)<2:
                     print "fatal problem with ",delimiter," for ",ntuple[0]," do nothing "
@@ -368,7 +376,7 @@ class RemoteClient:
             mutex.release()
         exitmutexes[fs].acquire()
 
-    def CheckFS(self,updatedb=0,cachetime=60,path='/MC'):
+    def CheckFS(self,updatedb=0,cachetime=60,path='/'):
         #
         #  check  filesystems, update the tables accordingly if $updatedb is set
         #  status: Active  :  May be used 
@@ -381,14 +389,14 @@ class RemoteClient:
         if(path== ""):
            sql="select disk from filesystems where isonline=1 and status='Active'  order by available desc" 
         else:
-           sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
+           sql="select disk from filesystems where isonline=1 and status='Active' and path like '%s%%' order by available desc" %(path)
         ret=self.sqlserver.Query(sql);
         if(time.time()-cachetime < self.dbfsupdate() and len(ret)>0):
             return ret[0][0]
         if(path == ""):
            sql="select disk,host,status,allowed  from filesystems " 
         else:
-           sql="select disk,host,status,allowed  from filesystems where path='%s'" %(path)
+           sql="select disk,host,status,allowed  from filesystems where path like '%s%%'" %(path)
         ret=self.sqlserver.Query(sql);
         for fs in ret:
                #
@@ -489,7 +497,7 @@ class RemoteClient:
            return lupdate
 
     def DiskIsOnline(self,disk):
-           self.CheckFS(1,300)
+           self.CheckFS(1,300,'/')
            sql="select disk from filesystems where isonline=1 and disk like '"+disk+"'"
            ret=self.sqlserver.Query(sql)
            if len(ret)>0: return 1
@@ -2366,19 +2374,30 @@ class RemoteClient:
                 ret=self.sqlserver.Query(sql)
                 if(len(ret)>0):
                     if(len(name)<=1):
-                        continue
+                        id=ret[0][0]
+#                        sql="delete  from TDV where name='%s'" %file
+#                        self.sqlserver.Update(sql)
+#                        continue
                     else:
                         id=ret[0][0]
-                        sql="delete  from TDV where name='%s'" %file
-                        self.sqlserver.Update(sql)
+#                        sql="delete  from TDV where name='%s'" %file
+#                        self.sqlserver.Update(sql)
                 for dir in os.listdir(path):
                     pdir=os.path.join(path,dir)
                     if(os.path.isdir(pdir)):
                         for tdv in os.listdir(pdir):
                             if(tdv.find(file)>=0):
-                                if(verbose):
-                                    print file;
                                 ptdv=os.path.join(pdir,tdv)
+                                sql= "select timestamp from TDV where path='%s'" %ptdv
+                                ret=self.sqlserver.Query(sql)
+                                if(len(ret)>0):
+                                    if(ret[0][0]==os.stat(ptdv)[ST_MTIME]):
+                                        sql="delete from TDV where path='%s'" %ptdv
+                                        self.sqlserver.Update(sql)
+                                        continue
+                                    
+                                if(verbose):
+                                    print tdv;
                                 if(tdv.find('.0.')>0):
                                     datamc=0
                                 else:
@@ -2415,7 +2434,7 @@ class RemoteClient:
                                         
                                 fltdvo.close()
                                 if(len(size)>1 and len(end)>1 and len(insert)>1 and len(begin)>1 and len(crc)>1):
-                                    sql="insert into tdv values( %d, '%s', '%s',%s,%s,%d,%s,%s,%s)" %(id,file,ptdv,size[0:len(size)-1],crc[0:len(crc)-1],datamc,insert[0:len(insert)-1],begin[0:len(begin)-1],end[0:len(end)-1])
+                                    sql="insert into tdv values( %d, '%s', '%s',%s,%s,%d,%s,%s,%s,%d)" %(id,file,ptdv,size[0:len(size)-1],crc[0:len(crc)-1],datamc,insert[0:len(insert)-1],begin[0:len(begin)-1],end[0:len(end)-1],os.stat(ptdv)[ST_MTIME])
                                     self.sqlserver.Update(sql)
                                     self.sqlserver.Commit(commit)
 
