@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.537 2008/09/11 09:56:27 choutko Exp $
+# $Id: RemoteClient.pm,v 1.538 2008/09/11 10:02:03 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13222,16 +13222,7 @@ sub insertDataRun {
      my $dbfevent = $ret->[0][2];
      my $dblevent = $ret->[0][3];
      my $dbstatus = $ret->[0][4];
-     if ($dbrun == $run &&
-          $dbfevent == $fevent &&
-          $dblevent == $levent &&
-          $dbstatus eq $status) {
-            print "InsertRun -W- Run $run already exists  \n";
-           } else {
-            $sql="DELETE dataruns WHERE jid=$jid";
-            $self->{sqlserver}->Update($sql);
-            $doinsert = 1;
-            }
+            print "InsertRun -W- Run $run $jid already exists  \n";
       } else {
         $doinsert = 1;
       }
