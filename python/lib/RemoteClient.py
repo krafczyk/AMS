@@ -2472,9 +2472,9 @@ class RemoteClient:
                     if(found==0):
                         print "Run ",run,"  not found in dataset ",dataset
         else:
-            sql="select run from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
+            sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
             files=self.sqlserver.Query(sql)
-            sql="select run,dataruns.jid from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s%%' %s" %(dataset,rund)
+            sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s%%' %s" %(dataset,rund)
             runs=self.sqlserver.Query(sql)
             if(len(files)>0):
                 for run in runs:
@@ -2482,10 +2482,11 @@ class RemoteClient:
                     for file in files:
                         if(run[0]==file[0]):
                             found=1
+                            if(run[2]!=file[1]):
+                                print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
                             break
                     if(found==0):
                         print "Run ",run,"  not found in dataset ",dataset
-
     def DeleteDataSet(self,run2p,dataset,u,v,f):
         self.update=u
         self.verbose=v
