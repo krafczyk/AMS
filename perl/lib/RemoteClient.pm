@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.535 2008/09/10 21:23:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.536 2008/09/11 07:46:12 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -980,6 +980,7 @@ if($#{$self->{DataSetsT}}==-1){
                $template->{initok}=undef;
              }
            }
+            if(defined $template->{OPENCLOSE}){
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
            }
@@ -989,6 +990,7 @@ if($#{$self->{DataSetsT}}==-1){
        elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
              $template->{RUNMAX}=1;
          }
+       }
        if(defined $template->{ROOTNTUPLE}  ){
            $dataset->{rootntuple}=$template->{ROOTNTUPLE};
        }
@@ -1052,6 +1054,12 @@ if($#{$self->{DataSetsT}}==-1){
                      $template->{TOTALEVENTS}=0;
                  }
 #               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
+           if(not defined $template->{TOTALEVENTS}){
+               $template->{TOTALEVENTS}=0;
+            } 
+          if(not defined $template->{TOTALEVENTSC}){
+               $template->{TOTALEVENTSC}=0;
+            }
 
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
 
