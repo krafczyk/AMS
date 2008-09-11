@@ -4,8 +4,11 @@
 #include <stdio.h>
 #include "TObjString.h"
 #include <fstream.h>
+#include <TStreamerInfo.h>
 using namespace std;
 int rootread(char * fname, int nev, int iver,  int & lastevent,bool jou){
+TStreamerInfo::fgInfoFactory=new TStreamerInfo();
+
  int LastEvent=lastevent;
  int diff=0;
  lastevent=0;
