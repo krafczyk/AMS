@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.539 2008/09/12 15:47:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.540 2008/09/12 16:10:20 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12084,7 +12084,6 @@ my $jobmips = -1;
 
      my @cpntuples   =();
      my @mvntuples   =();
-     my $runupdate   = "UPDATE runs SET ";
      my $copyfailed  = 0;
 
  my $timenow = time();
@@ -12781,9 +12780,9 @@ foreach my $block (@blocks) {
     $sql = "DELETE ntuples WHERE jid=$lastjobid";
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
-    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
-    $runupdate = "UPDATE $dataruns SET ";
 }
+    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    my $runupdate = "UPDATE $dataruns SET ";
  if ($startingrun[2] != 0) {
    $sql = $runupdate." STATUS='$status' WHERE jid=$lastjobid";
    $self->{sqlserver}->Update($sql);
