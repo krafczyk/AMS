@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.199 2008/09/02 14:34:27 choutko Exp $
+//  $Id: amsgeom.C,v 1.200 2008/09/12 15:58:49 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -367,6 +367,7 @@ par[2]=TOF2DBc::supstr(9)/2; //Dz
 coo[0]=TOF2DBc::supstr(3);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(4);    // y-shift ...
 coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(9)/2;// z-centre of top supp. honeycomb
+cout<<"TOF_TopHoneycomb:z(botface)/hsize="<<(coo[2]-par[2])<<" "<<par[2]<<endl;
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
@@ -378,7 +379,7 @@ par[2]=TOF2DBc::supstr(12)/2; //Dz
 coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(6);    // y-shift ...
 coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(12)/2.;// z-centre of bot supp. honeycomb
-cout<<"TOF_BotHoneycomb:z/hsize="<<coo[2]<<" "<<par[2]<<endl;
+cout<<"TOF_BotHoneycomb:z(topface)/hsize="<<(coo[2]+par[2])<<" "<<par[2]<<endl;
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------

@@ -8,27 +8,43 @@
 // class to manipulate with REUN-calib data:
 //                  (REspons UNiformity)
 //
-// glob. conts for calibration :
+// glob. consts for calibration :
 //
-const integer ECCLBMX=8;// max. long. bins for uniformity study(should be even)
+const integer ECCLBMX=10;// max. long. bins for uniformity study(should be even)
 //const integer ECLBMID=2;// Area (+-bins) from fiber center, used for PM RelGain calibr.
-const integer ECLBMID=2;// Area (+-bins) from fiber center, used for PM RelGain calibr.
+const integer ECLBMID=3;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECCHBMX=50;// max. bins in hg-channel for h2lr study
-const integer ECCADCR=300;//max. HGainADC range to use .............. 
+const integer ECCADCR=300;//max. HGainADC range to use ..............
+const integer ECEVBUF=300;//size of buf. to store ev-by-ev PM-resp vs Lbin (FIAT-calib)
+const integer ECEVEMX=1000;//max events/pm(pix,lbin)
+const integer ECAHBUF=100;//size of highest amplitudes buffer 
 //
 class ECREUNcalib {
 
 
   private:
     static integer pxstat[ecalconst::ECPMSL][4];// PM-subcell status(-1/0/1...->unusable/ok/limited
+    static integer dystat[ecalconst::ECPMSL];// PM-dynodes status(-1/0/1...->unusable/ok/limited
     static number pxrgain[ecalconst::ECPMSL][4];// PM-subcell(pixel) gain(4*(relat.to averaged over PM)) 
-    static number pmrgain[ecalconst::ECPMSL];   // PM gain(relative to reference PM) 
-    static number pmlres[ecalconst::ECPMSL][ECCLBMX];//to store PM vs Longit.bin responce    
-    static number pmlres2[ecalconst::ECPMSL][ECCLBMX];//to store PM vs Longit.bin responce err.    
+    static number pxrgainc[ecalconst::ECPMSL][4];// as above but G-corrected (to check calib) 
+    static number pmrgain[ecalconst::ECPMSL];   // PM gain(relative to aver PM) 
+    static number pmrgainc[ecalconst::ECPMSL];  // PM gain(relative to aver PM, after G-corr)) 
+    static number pmlres[ecalconst::ECPMSL][ECCLBMX][ECEVBUF];//to store ev-by-ev PM vs Longit.bin responce    
+//    static number pmlres[ecalconst::ECPMSL][ECCLBMX];//to store PM vs Longit.bin responce    
+//    static number pmlres2[ecalconst::ECPMSL][ECCLBMX];//to store PM vs Longit.bin responce err.
+//    
+    static number pmcresp[ecalconst::ECPMSL];//for PM rel.gains(central bins aver.responce)    
+    static number pmcrahb[ecalconst::ECPMSL][ECAHBUF+1];//Ahighest buff .....................    
+    static number pmcrespc[ecalconst::ECPMSL];//for PM rel.gains(central bins aver.responce, G-corr)    
+    static integer pmccros[ecalconst::ECPMSL];//............................................
+    static integer pmcrahm[ecalconst::ECPMSL];//Ahighest buff members    
+//    
     static number sbcres[ecalconst::ECPMSL][4];//to store SubCell responce    
+    static number sbcresc[ecalconst::ECPMSL][4];//to store SubCell responce, Gain-corrected    
     static number hi2lowr[ecalconst::ECPMSL][4];// h/l-gain ratios for each PM-subcell(pixel)
     static number an2dynr[ecalconst::ECPMSL];// Anode/Dynode ratios for each PM
-    static number tevpml[ecalconst::ECPMSL][ECCLBMX];// tot.events/Lbin/pm_fired 
+    static number a2dnevs[ecalconst::ECPMSL];// .............Nevents...........
+    static integer tevpml[ecalconst::ECPMSL][ECCLBMX];// tot.events/Lbin/pm_fired (FIAT-calib)
     static number tevsbf[ecalconst::ECPMSL][4];// tot.events/subcell_fired 
     static number tevsbc[ecalconst::ECPMSL][4];// tot.events/subcell_crossed 
     static number tevpmc[ecalconst::ECPMSL];// tot.events/pm_crossed 
@@ -51,6 +67,7 @@ class ECREUNcalib {
     static void init();
     static void fill_1(integer,integer,integer,integer, number );
     static void fill_2(integer,integer,integer,number a[2]);
+    static void fill_3(integer,number,number);
     static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
     static void mfit();
     static void makeToyRLGAfile();

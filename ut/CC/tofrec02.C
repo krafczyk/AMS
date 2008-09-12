@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.56 2008/06/26 09:29:51 choumilo Exp $
+//  $Id: tofrec02.C,v 1.57 2008/09/12 15:58:50 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -958,7 +958,7 @@ void TOF2RawCluster::build(int &ostatus){
               brnl[ilay]=ibar;
               clong[ilay]=co;
               st=0;
-              coo=co;// Local coord.!!!
+              coo=co;// Local long-coord.!!!
               ecoo=eco;
               if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
               if(AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)

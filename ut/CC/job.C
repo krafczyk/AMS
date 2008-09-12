@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.585 2008/09/02 14:34:27 choutko Exp $
+// $Id: job.C,v 1.586 2008/09/12 15:58:50 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -401,7 +401,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.mon[0]=0;
   TGL1FFKEY.mon[1]=0;
   TGL1FFKEY.year[0]=101;
-  TGL1FFKEY.year[1]=110;//(33)
+  TGL1FFKEY.year[1]=112;//(33)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -856,7 +856,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.mon[0]=0;//
   ECREFFKEY.mon[1]=0;//
   ECREFFKEY.year[0]=101;//
-  ECREFFKEY.year[1]=110;//65
+  ECREFFKEY.year[1]=112;//65
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
@@ -873,9 +873,9 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
   ECCAFFKEY.nortyp=0;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired tracks
-  ECCAFFKEY.badplmx=3;    // (13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
-  ECCAFFKEY.etrunmn=240.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
-  ECCAFFKEY.etrunmx=1400.; //(15) Max ECenergy (Etrunc in mev) ......................
+  ECCAFFKEY.badplmx=4;    //(13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
+  ECCAFFKEY.etrunmn=60.;  //(14) Min ECenergy (Etrunc/sl in mev) to select PunchThrough particle(He)
+  ECCAFFKEY.etrunmx=520.; //(15) Max ECenergy (Etrunc/sl in mev) ...................................
   ECCAFFKEY.nsigtrk=1.;   //(16) ImpPoint accur. extention param. for cell-crossing check
 // ANOR part:
   ECCAFFKEY.pmin=3.;        // (17) presel-cut on min. mom. of the track(gev/c) 
@@ -919,7 +919,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.b2scut[5]=0.15; // (55) max backgr/signal energy(bound.from above) for pl-6
 // PedCalib:
   ECCAFFKEY.pedcpr=0.04;    // (56) PedCal : def portion of highest amplitudes to remove for ped/sig calc
-  ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB/PedWr2File+Hist
+  ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB(if AMSJ 87=1)/PedWr2File+Hist
   ECCAFFKEY.pedlim[0]=2.;  // (58) Ped low-lim in PedCalibJobs
   ECCAFFKEY.pedlim[1]=800.; // (59)      hi-lim ...............
   ECCAFFKEY.siglim[0]=0.1;  // (60) PedSig low-lim ............
@@ -1204,7 +1204,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.Thr1=0.2;//(1) Bar threshold (mev) in tof-cluster algorithm
   TFREFFKEY.ThrS=0.2; //(2) Threshold (mev) on total cluster energy(Not used now!)
 //
-  TFREFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics 
+  TFREFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics(2/1/0->big/small/no print) 
   TFREFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TFREFFKEY.reprtf[2]=0; //(5) print flag for histograms
   TFREFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
@@ -3571,8 +3571,8 @@ AMSmceventg::endjob();
 //
 //-------------------------------------------------------------------
 void AMSJob::_tof2endjob(){
-  if(isSimulation())TOF2JobStat::outpmc();
-  TOF2JobStat::outp();
+  if(isSimulation())TOF2JobStat::outpmc();//histogr+some actions
+  TOF2JobStat::outp();//histogr+some actions
 //
   if((isCalibration() & CTOF) && (TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)){
     TOFPedCalib::outp(TFCAFFKEY.pedoutf);// 0/1/2->HistOnly/Wr2DB+File/Wr2File 
@@ -3592,7 +3592,7 @@ void AMSJob::_tof2endjob(){
     TofTmAmCalib::endjob();//Tdelv/Tzslw
   }
 //
-  //TOF2JobStat::printstat(); // Print JOB-TOF statistics
+  if(TFREFFKEY.reprtf[0]>0)TOF2JobStat::printstat(); // Print JOB TOF-statistics
 }
 //-----------------------------------------------------------------------
 void AMSJob::_anti2endjob(){

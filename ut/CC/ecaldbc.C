@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.77 2008/08/28 20:33:37 choutko Exp $
+//  $Id: ecaldbc.C,v 1.78 2008/09/12 15:58:50 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -94,10 +94,6 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
       if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
         cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers2);//clean room
-      }
-      else if(!AMSJob::gethead()->isRealData()){
-        cout <<"      MC: Space(not CleanRoom) setup selected..."<<endl;
-        strcat(name,vers1);//mc
       }
       else{
         cout <<"      Space (default) setup selected..."<<endl;
@@ -737,7 +733,7 @@ void EcalJobStat::bookhist(){
 //      HBOOK1(ECHISTR+80,"DAQ: ComprFMT EDR-length, Crate_2/Slot_5",50,0.,50.,0.);
 //      HBOOK1(ECHISTR+81,"DAQ: ComprFMT EDR-length, Crate_2/Slot_6",50,0.,50.,0.);
 //
-      if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
+      if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// <==== RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
 	HBOOK1(ECHISTC+37,"ECCA: Total hits(above thr, when any Trk)",100,0.,200.,0.);
 	HBOOK1(ECHISTC+38,"ECCA: Total hits(above thr, when Trk hits EC)",100,0.,200.,0.);
@@ -745,19 +741,19 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+2,"ECCA: Track Imp.point Y, SL1",70,-70.,70.,0.);
 //        HBOOK1(ECHISTC+3,"ECCA: PMCell-Track Transv-dist,SL1",50,-5.,5.,0.);
 //        HBOOK1(ECHISTC+4,"ECCA: PMCell-Track Transv-dist,SL2",50,-5.,5.,0.);
-        HBOOK2(ECHISTC+5,"ECCA: PMT-Ampl vs TrkCrossPoint(longit) distance(SL1,PM18) ",70,0.,70.,80,0.,240.,0.);
+        HBOOK1(ECHISTC+5,"ECCA: Anode/Dynode(Gcorrected_4PixSum/Dyn)",100,0.,50.,0.);
         HBOOK1(ECHISTC+6,"ECCA: Track-fit Chi2 ",80,0.,800.,0.);
 //    hist # +7 is booked inside mfit !!!
-        HBOOK1(ECHISTC+8,"ECCA: SubCell Efficiency",60,0.,1.2,0.);
-        HBOOK1(ECHISTC+9,"ECCA: SubCell RelativeGain",50,0.,2.,0.);
-        HBOOK1(ECHISTC+10,"ECCA: RefPmResp. vs LongBinNumber(uniformity)",ECCLBMX,1.,geant(ECCLBMX+1),0.);
-        HBOOK1(ECHISTC+11,"ECCA: PM relat.gains",100,0.,2.,0.);
+        HBOOK1(ECHISTC+8,"ECCA: Pixel Efficiency",60,0.,1.2,0.);
+        HBOOK1(ECHISTC+9,"ECCA: Pixel RelativeGain",50,0.,2.,0.);
+        HBOOK1(ECHISTC+10,"ECCA: PmtResp. vs LongBinNumber(uniformity)",ECCLBMX,1.,geant(ECCLBMX+1),0.);
+        HBOOK1(ECHISTC+11,"ECCA: PMT(4pix-sum) relat.gains",100,0.,3.,0.);
         HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,-50.,50.,0.);
-        HBOOK1(ECHISTC+13,"ECCA: PM-RelGain SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
+        HBOOK1(ECHISTC+13,"ECCA: PMT RelGain SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
 	HMINIM(ECHISTC+13,0.5);
 	HMAXIM(ECHISTC+13,1.5);
-        HBOOK1(ECHISTC+14,"ECCA: Pixel Efficiency L-profile",maxpl,1.,geant(maxpl+1),0.);
-        HBOOK1(ECHISTC+15,"ECCA: PM Eff vs SL(full fib.length)",maxsl,1.,geant(maxsl+1),0.);
+        HBOOK1(ECHISTC+14,"ECCA: Pixel Efficiency SL-profile",maxpl,1.,geant(maxpl+1),0.);
+        HBOOK1(ECHISTC+15,"ECCA: PMT Efficiency SL-profile",maxsl,1.,geant(maxsl+1),0.);
 	if(ECCAFFKEY.prtuse==1){//He4
 	  HMINIM(ECHISTC+14,0.4);
 	  HMAXIM(ECHISTC+14,1.1);
@@ -784,22 +780,26 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+26,"ECCA: Pixel eff(even SL) ",60,0.,1.2,0.);
         HBOOK1(ECHISTC+27,"ECCA: Pixel eff( odd SL) ",60,0.,1.2,0.);
         HBOOK1(ECHISTC+28,"ECCA: SuperLayers visibility(fired,punch-through)",maxsl,1.,geant(maxsl+1),0.);
-        HBOOK1(ECHISTC+29,"ECCA: 4pix-sum spectrum(trk-matched pix,adc)",100,0.,400.,0.);
-        HBOOK1(ECHISTC+30,"ECCA: 4pix-sum spectrum(trk-matched pix,adc,GainCorr)",100,0.,400.,0.);
-        HBOOK1(ECHISTC+31,"ECCA: PM eff(even SL) ",60,0.,1.2,0.);
-        HBOOK1(ECHISTC+32,"ECCA: PM eff( odd SL) ",60,0.,1.2,0.);
+        HBOOK1(ECHISTC+29,"ECCA: PMT(4pix-sum) spectrum(trk-matched pix,center,adc)",100,0.,500.,0.);
+        HBOOK1(ECHISTC+30,"ECCA: PMT(4pix-sum) spectrum(trk-matched pix,center,adc,GainCorr)",100,0.,500.,0.);
+        HBOOK1(ECHISTC+31,"ECCA: PMT eff(even SL) ",60,0.,1.2,0.);
+        HBOOK1(ECHISTC+32,"ECCA: PMT eff( odd SL) ",60,0.,1.2,0.);
 // test	HBOOK1(ECHISTC+33,"ECCA: TRK imppoint X-accur",60,-0.3,0.3,0.); 
 // test	HBOOK1(ECHISTC+34,"ECCA: TRK imppoint Y-accur",60,-0.3,0.3,0.); 
         HBOOK1(ECHISTC+35,"ECCA: Particle beta",96,-1.2,1.2,0.);
 	HBOOK1(ECHISTC+36,"ECCA: Track Z(charge) (from tracker)",16,0.,16.,0.);
 	HBOOK1(ECHISTC+39,"ECCA: Pixel-TrkCross mismatch(when fired, x-proj)",50,-2.5,2.5,0.);
 	HBOOK1(ECHISTC+40,"ECCA: Pixel-TrkCross mismatch(when fired, y-proj)",50,-2.5,2.5,0.);
-	HBOOK1(ECHISTC+41,"ECCA: Long.Bin amplitude(centr.bin,ref.PM)",100,0,100.,0.);
+	HBOOK1(ECHISTC+41,"ECCA: RefPMT Pix-amplitudes(center,adc)",100,0,300.,0.);
 	HBOOK1(ECHISTC+43,"ECCA: PmtDynode signals(adc-ch,when crossed)",100,0,100.,0.);
-	HBOOK1(ECHISTC+44,"ECCA: PmtPix signals(adc-ch,when crossed)",100,0,200.,0.);
-	HBOOK1(ECHISTC+45,"ECCA: PmtPix signals(adc-ch,GainCorr,when crossed)",100,0,200.,0.);
+	HBOOK1(ECHISTC+44,"ECCA: AllPmt Pix-signals(adc-ch,when crossed)",100,0,200.,0.);
+	HBOOK1(ECHISTC+45,"ECCA: AllPmt Pix-signals(adc-ch,GainCorr,when crossed)",100,0,200.,0.);
 	HBOOK2(ECHISTC+46,"ECCA: Impact Extention vs SL",9,1.,10.,50,0.,1.,0.);
         HBOOK1(ECHISTC+47,"ECCA: Mom/mass beta",96,-1.2,1.2,0.);
+        HBOOK1(ECHISTC+48,"ECCA: Anode(4pixSumGcorr)/Dynode ratio(final)",100,0.,50.,0.);
+        HBOOK1(ECHISTC+49,"ECCA: AnodeAver(4pixSum,center,Gcorr)/EcAverTrunc(CalQuality)",100,0.5,1.5,0.);
+// hist # +50 is booked inside mfit !!!
+        HBOOK1(ECHISTC+51,"ECCA: Pixel RelativeGain, GainCorrected",50,0.5,1.5,0.);
       }
       if(ECREFFKEY.relogic[1]==3){// =====> ANOR part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -1058,6 +1058,7 @@ void EcalJobStat::outp(){
       ECREUNcalib::mfit();//fits/write files
       HPRINT(ECHISTC+8);
       HPRINT(ECHISTC+9);
+      HPRINT(ECHISTC+51);
 //      HPRINT(ECHISTC+10);//already printed inside mfit
       HPRINT(ECHISTC+11);
       HPRINT(ECHISTC+13);
@@ -1075,6 +1076,8 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTC+32);
 // test      HPRINT(ECHISTC+33);
 // test      HPRINT(ECHISTC+34);
+      HPRINT(ECHISTC+48);
+      HPRINT(ECHISTC+49);
     }
     if(ECREFFKEY.relogic[1]==3){ // print ANOR-hists
       HPRINT(ECHISTC+39);

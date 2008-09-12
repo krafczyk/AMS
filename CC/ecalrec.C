@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.110 2008/08/22 12:48:56 choumilo Exp $
+//  $Id: ecalrec.C,v 1.111 2008/09/12 15:58:50 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -36,7 +36,7 @@ time_t AMSEcalRawEvent::StartTime(0);
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
-  integer sta,status,dbstat,id,idd,isl,pmt,subc,pedrun(0);
+  integer sta,status,dbstat,id,idd,isl,pmt,subc,pedrun(0),pmsl;
   number radc[2]; 
   geant padc[3];
   geant val16r;
@@ -49,6 +49,9 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   static int first(0);
   Trigger2LVL1 *ptrt;
   bool ecalftok(false);
+  number asum4[ECPMSL],pixrg;
+  integer npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl(36)
+  integer nslmx=ECALDBc::slstruc(3);//numb.of Slayers(9)
 //
   stat=1;//bad
 //
@@ -133,17 +136,21 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //----> fill arrays for Hi2Low-ratio calc.(in REUN-calibration):
 //
   if(ECREFFKEY.relogic[1]<=2){// if REUN-calibration
+    for(i=0;i<ECPMSL;i++)asum4[i]=0;
     for(int nc=0;nc<AMSECIds::ncrates();nc++){ // <-------------- crate(container) loop
       ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",nc,0);
       while(ptr){ // <--- RawEvent-hits loop in crate:
-        isl=ptr->getslay();
+        isl=ptr->getslay();//0,...
         id=ptr->getid();//LTTP
         idd=id/10;
         subc=id%10-1;//Pixel(0-3)
         pmt=idd%100-1;//pmTube(0-...)
+        pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
         ptr->getpadc(padc);
 	sta=ptr->getstatus();
+        pixrg=ECcalib::ecpmcal[isl][pmt].pmscgain(subc)*
+	      ECcalib::ecpmcal[isl][pmt].pmrgain();// pix gain corr(really 1/pmscg) from DB
         ECPMPeds::pmpeds[isl][pmt].getpedh(pedh);
         ECPMPeds::pmpeds[isl][pmt].getsigh(sigh);
         ECPMPeds::pmpeds[isl][pmt].getpedl(pedl);
@@ -169,11 +176,21 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         if(radc[0]>0)if((ECADCMX[0]-(radc[0]+ph))<=1)ovfl[0]=1;// mark as ADC-Overflow
         if(radc[1]>0)if((ECADCMX[1]-(radc[1]+pl))<=1)ovfl[1]=1;// mark as ADC-Overflow
         if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0 
-	              && radc[1]>1.5*ECCAFFKEY.adcmin)ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--- fill 
+	              && radc[1]>1.5*ECCAFFKEY.adcmin)ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--fill
+	if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0)asum4[pmsl]+=(radc[0]*pixrg);//sum4-Gcorrected(for a2d ratio) 
         ptr=ptr->next();  
       } // ---> end of RawEvent-hits loop in crate
 //
     } // ---> end of crates loop
+//--> fill a2d arrays:
+    for(isl=0;isl<nslmx;isl++){
+      for(pmt=0;pmt<npmx;pmt++){
+        pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
+        padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//Dynode
+	if(padc[2]>3*ECCAFFKEY.adcmin
+	   && asum4[pmsl]>60*ECCAFFKEY.adcmin)ECREUNcalib::fill_3(pmsl,padc[2],asum4[pmsl]);
+      }
+    }
   } // ---> endif of REUN-calib
 //
   stat=0;//ok
@@ -902,6 +919,7 @@ void AMSEcalHit::build(int &stat){
 
 //---------------------------------------------------
 void AMSEcalHit::attcor(number coo){//correct measured _edep for atten.in fibers
+ bool eccal=(AMSJob::gethead()->isCalibration() & AMSJob::CEcal);
  if(!checkstatus(AMSDBc::REFITTED) && !checkstatus(AMSDBc::RECOVERED)){
 // coo is longit.coord(i.e. from other projection) in mother ref.syst. !!!
   geant pmdist,hflen,attf,attf0,attfdir,attfrfl;

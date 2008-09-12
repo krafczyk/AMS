@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.57 2008/08/28 20:33:37 choutko Exp $
+//  $Id: tofdbc02.C,v 1.58 2008/09/12 15:58:50 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -150,7 +150,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     int i,j;
     char fname[80];
     char name[80]="TofGeom";
-    char vers0[10]="MC";//def for MC
+    char vers0[10]="MC";//not used now
     char vers1[10]="PreAss";//pre-assembly in clean room
     char vers2[10]="Space";//in space (incl.
     geant ZShift(0);
@@ -167,10 +167,6 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
       if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
         cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers1);//clean room
-      }
-      else if(!AMSJob::gethead()->isRealData()){
-        cout <<"      MC: Space(not CleanRoom) setup selected..."<<endl;
-        strcat(name,vers0);//mc
       }
       else{
         cout <<"      Space (default) setup selected..."<<endl;
@@ -346,22 +342,22 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     zc=_supstr[1]+_plnstr[1]+dz/2.;//mid-plane of closest to botHC counters
   else if(il==3)
     zc=_supstr[1]+_plnstr[0]+dz/2.;//mid-plane of closest to botHC counters
-//z-biases according design:
+//z-biases according old design:
 //
-if(!AMSJob::gethead()->isRealData()){//tempor for MC to use old calibration
-  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
-  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
-  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
-  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
-}
+//if(!AMSJob::gethead()->isRealData()){//tempor for MC to use old calibration
+//  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
+//  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
+//  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
+//  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
+//}
 //
 // z-biases inverted as follows from data:
-else{
+//else{
   if(il==0)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHC
   else if(il==1)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHc
   else if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
   else if(il==3)zc=zc+((ib)%2)*_plnstr[2];//1st counter is close to botHC
-}
+//}
 //
   return(zc);
   }  
@@ -2043,7 +2039,7 @@ void TOF2JobStat::printstat(){
   }
   printf("\n\n");
 //
-  if(TFREFFKEY.reprtf[0]==0)return;
+  if(TFREFFKEY.reprtf[0]<=1)return;
 //
 //----------------------------------------------------------
 //
