@@ -2439,7 +2439,7 @@ class RemoteClient:
                                     self.sqlserver.Commit(commit)
 
                                     
-    def CheckDataSet(self,run2p,dataset,v,f):
+    def CheckDataSet(self,run2p,dataset,v,f,tab=0):
         self.verbose=v
         self.run2p=run2p
         self.force=f
@@ -2447,6 +2447,9 @@ class RemoteClient:
         rund=""
         runn=""
         types=["0SCI","0LAS","0CAL"]
+        if(tab):
+            print "<HR>"
+            print "<table border=1>"
         for type in types:
            sql="select path from datafiles where type like '%s%%'" %(type)
            files=self.sqlserver.Query(sql)
@@ -2458,7 +2461,7 @@ class RemoteClient:
             rund=" and dataruns.run=%d " %(run2p)
             runn=" and ntuples.run=%d " %(run2p)
         if(self.force):
-            sql="select run from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
+            sql="select run from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(dataset,runn)
             files=self.sqlserver.Query(sql)
             sql="select run from datafiles where status='OK' and type like 'SCI%%' %s " %(rundd)
             runs=self.sqlserver.Query(sql)
@@ -2470,11 +2473,16 @@ class RemoteClient:
                             found=1
                             break
                     if(found==0):
-                        print "Run ",run,"  not found in dataset ",dataset
+                        if(tab==0):
+                            print "Run ",run,"  not found in dataset ",dataset
+                        else:
+                            print "<tr>"
+                            print "<td>Run %d  </td><td> not found in dataset %s</td>" %(run[0],dataset)
+                            print "</tr>"
         else:
-            sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s%%' and datamc=1  %s group by run" %(dataset,runn)
+            sql="select run,sum(levent-fevent+1) from ntuples where path like '%%%s/%%' and datamc=1  %s group by run" %(dataset,runn)
             files=self.sqlserver.Query(sql)
-            sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s%%' %s" %(dataset,rund)
+            sql="select run,dataruns.jid,dataruns.levent-dataruns.fevent+1 from dataruns,jobs where  jobs.jid=dataruns.jid and jobs.jobname like '%%%s.job' %s" %(dataset,rund)
             runs=self.sqlserver.Query(sql)
             if(len(files)>0):
                 for run in runs:
@@ -2483,10 +2491,34 @@ class RemoteClient:
                         if(run[0]==file[0]):
                             found=1
                             if(run[2]!=file[1]):
-                                print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
+                                if(tab==0):
+                                    print "Run ",run," and ntuples disagree. run events=",run[2]," ntuple events=",file[1]
+                                else:
+                                    print "<tr>"
+                                    print "<td>Run %d,%d and ntuples disagree.</td><td> Run Events=%d </td><td>Ntuple Events=%d</td>" %(run[0],run[1],run[2],file[1])
+                                    print "</tr>"
                             break
                     if(found==0):
-                        print "Run ",run,"  not found in dataset ",dataset
+                        if(tab==0):
+                            print "Run ",run,"  not found in dataset ",dataset
+                        else:
+                            print "<tr>"
+                            print "<td>Run %d </td><td> Id %d </td><td>  not found in dataset %s</td>" %(run[0],run[1],dataset)
+                            print "</tr>"
+            
+            else:
+                if(tab==0):
+                    print "dataset ",dataset, "not found "
+                else:
+                    print "<tr>"
+                    print "<td>Dataset  %s not found in database</td>" %(dataset)
+                    print "</tr>"
+                
+        if(tab):
+            print """
+            </table>
+            </HR>
+            """
     def DeleteDataSet(self,run2p,dataset,u,v,f):
         self.update=u
         self.verbose=v
@@ -2506,9 +2538,9 @@ class RemoteClient:
         sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
         files=self.sqlserver.Query(sql)
         if(len(files)>0):
-            sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
+            sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s.job' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
             self.sqlserver.Update(sql)
-            sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%' %s %s )" %(dataset,runst,rund)
+            sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(dataset,runst,rund)
             self.sqlserver.Update(sql)
             sql="delete from   (select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid %s %s )" %(dataset,runst,rund) 
             self.sqlserver.Update(sql)
@@ -2550,6 +2582,7 @@ class RemoteClient:
         self.timenotify=0
         filelist=[]
         turn=0
+        problem=0
         while 1:
             turn=turn+1
             notify=1
