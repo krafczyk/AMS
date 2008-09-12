@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.538 2008/09/11 10:02:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.539 2008/09/12 15:47:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6019,7 +6019,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,100000,"QCPUTime"," seconds (Native).");
               htmlTextField("Total Jobs Requested","number",7,50,"QRun"," ");
-                 if($self->{CCT} eq "local"){
+                 if($self->{CCT} eq "local" or $dataset->{datamc}==1){
    print qq`
 <INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" >Force CPULimit<BR>
 `;

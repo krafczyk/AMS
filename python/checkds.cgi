@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: checkds.cgi,v 1.1 2008/09/12 10:17:12 choutko Exp $
+#  $Id: checkds.cgi,v 1.2 2008/09/12 15:47:45 choutko Exp $
 # this script suppose to check datasets
 #
 import sys, os
@@ -25,6 +25,8 @@ i=0
 run2p=0
 h=0
 tabulated=1
+if(form.has_key("cem_frc")):
+    f=1
 for x in sys.argv:
     if x == "-h": h=1
     elif x == "-v": v=1
