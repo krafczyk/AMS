@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.2 2007/12/10 12:53:22 choutko Exp $
+#  $Id: daqevt2.doc,v 1.3 2008/09/15 13:55:56 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -111,7 +111,7 @@ of the following form (names are not relevant)
                                                    // length==LSubDBl |  (crate_number<<8)
 
 
-b. Raw->Daq conversion
+b. Raw->Daq conversion  (in JINF mode)
 
 Each block type (block type = header, trig-1,3, tracker, scrate etc)
 should have 3 functions
