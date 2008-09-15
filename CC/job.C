@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.586 2008/09/12 15:58:50 choumilo Exp $
+// $Id: job.C,v 1.587 2008/09/15 14:17:49 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3738,7 +3738,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqidnode,&DAQRichBlock::buildrawnode);
 
-    DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+    //    DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
 
 
   {  // mc

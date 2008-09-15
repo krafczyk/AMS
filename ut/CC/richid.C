@@ -816,6 +816,10 @@ int RichPMTsManager::GetGeomChannelID(int pos,int pixel){
   return _pmts[pos]._channel_id2geom_id[pixel];
 }
 
+int RichPMTsManager::GetChannelID(int pmtgeom,int pixel){
+  for(int i=0;i<RICnwindows;i++) if(_pmts[pmtgeom]._channel_id2geom_id[i]==pixel) return i;
+  return -1;
+}
 
 int RichPMTsManager::GetGeomPMTIdFromCDP(int CDP,int pmt){
   assert(CDP>=0 && CDP<RICH_CDPperJINF*RICH_JINFs);
@@ -824,6 +828,17 @@ int RichPMTsManager::GetGeomPMTIdFromCDP(int CDP,int pmt){
 #endif
   if(pmt<0 || pmt>=_rdr_pmt_count[CDP]) return -1;
   return _rdr_starts[CDP]+pmt;
+}
+
+
+int RichPMTsManager::GetCDPFromGeomPMTId(int pmt,int &pmt_cdp){
+  pmt_cdp=-1;
+  for(int CDP=0;CDP<RICH_CDPperJINF*RICH_JINFs;CDP++)
+    if(pmt>=_rdr_starts[CDP] && pmt<_rdr_starts[CDP]+_rdr_pmt_count[CDP]){
+      pmt_cdp=pmt-_rdr_starts[CDP];
+      return CDP;
+    }
+  return -1;
 }
 
 void RichPMTsManager::GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix){

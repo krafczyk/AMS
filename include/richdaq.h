@@ -130,7 +130,7 @@ class DAQRichBlock{
   static int Emit(int code);                              // Perform task accordingly to erro. Return 1 if should exit  
  public:
   // Declaration of functions (that can be seen from outside)
-  // RAW -> DAQ
+  // DAQ -> RAW
   static integer checkdaqid(int16u id);
   static void buildraw(integer length,int16u *p);
   static integer checkdaqidnode(int16u id);
@@ -141,11 +141,11 @@ class DAQRichBlock{
   static integer checkcalid(int16u id);
   static void buildcal(integer length,int16u *p);;
 
-  // DAQ -> RAW: uninplemented
-  static integer getdaqid(uint16 crate);
-  static integer getmaxblocks(){return 0;}
+  // RAW -> DAQ: uninplemented
+  static integer getdaqid(int16u crate);
+  static integer getmaxblocks(){return 2;}
   static integer calcdaqlength(int i){return 0;}
-  static void builddaq(integer i,integer length,int16u *p){return;}
+  static void builddaq(integer i,integer length,int16u *p);
 
   // Histograms for raw mode
   static TH1F **daq_histograms;

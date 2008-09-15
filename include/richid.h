@@ -148,10 +148,12 @@ class RichPMTsManager{
   static geant MaxEff(){return _max_eff;}                                          // Return the max efficiency
   
   static int GetGeomPMTID(int pos);                                                // Given the pos number, return the geometric pmt id
-  static int GetGeomChannelID(int geom_pos,int pixel);                             // Given the pmt geom id and the pixel number return the geometric channel id: Unchecked!!!
+  static int GetGeomChannelID(int geom_pos,int pixel);                             // Given the pmt geom id and the pixel number return the geometric channel id.
+  static int GetChannelID(int geom_pos,int pixel);                                 // Given the pmt geom id and the pixel geom id return the pixel id.
   static void GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix);            // The same for both numbers as references
 
-  static int GetGeomPMTIdFromCDP(int CDO,int pmt);                                 // Given the RDR number (0-23) and the pmt within such RDR (0-30) return the geom id
+  static int GetGeomPMTIdFromCDP(int CDP,int pmt);                                 // Given the RDR number (0-23) and the pmt within such RDR (0-30) return the geom id
+  static int GetCDPFromGeomPMTId(int pmt,int &pmt_cdp);                            // Given the geom id, return the CDP number and the pmt within such cdp 
 
   static int PackGeom(int pmt,int channel){return pmt*RICnwindows+channel;}
   static void UnpackGeom(int packed,int &pmt,int &channel){
