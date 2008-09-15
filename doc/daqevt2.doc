@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.3 2008/09/15 13:55:56 choutko Exp $
+#  $Id: daqevt2.doc,v 1.4 2008/09/15 15:28:23 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -14,15 +14,15 @@ All 16 bit unsigned integers.
 
    
 -----------------------------------------------------------------------------
-|EL|EL2|EID|EID2|STA|HID|Time(2)|AuxR(2)|Event(2)|Time(4)|GPS|LSubDBl|IDSubDBl|..dataSubDBl|Evt(1:2)|
+|EL|EL2|EID|EID2|STA|Time(2)|LHID|xEHID|HID|Time(2)|AuxR(2)|Event(2)|Time(4)|GPS|LSubDBl|IDSubDBl|..dataSubDBl|
 -----------------------------------------------------------------------------
 
 Legend:
 
-EL      - low 15bits of total event length -1 if 16th bit is not set
-        - upper 15bits of total event length -1 if 16th bit is set
+EL      - low 15bits of total event length (in bytes!)-2 if 16th bit is not set
+        - upper 15bits of total event length -2 if 16th bit is set
 EL2     - does not exist if 16th bit is not set
-EL2      - low 16bits of total event length -1 if 16th bit is set
+EL2      - low 16bits of total event length -2 if 16th bit is set
 EID      -  low 5 bits:  type then 9 bits node
 EID2     -  does not exist if type != 0x1F
 STA      -  0  ?
@@ -41,7 +41,6 @@ GPT(1:2)       -   gps time
 GP2(1:2)       -   gps fraction of the second       
 LSubDBl - length of subdet block ()-1  (see above for the EL2)
 IDSubDBl- id sub det block see below
-Evt(1:2)  event number
 (!) Header is not necessary follow the EID and should be find by id only.
 
 
@@ -51,7 +50,7 @@ a.
 
 p. MC Particle
 
-ID =  14 <<9 
+Node =  1025; type=1; 
 
 
 
@@ -66,7 +65,7 @@ Word11-12 Coo_z
 
 q. Shuttle Paramaters
 
-ID =  14 <<9   |     1 
+Node = 1026; type=1; 
 
 
 Word1-2    Altitude (cm)
