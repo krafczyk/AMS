@@ -1,4 +1,4 @@
-*  $Id: gtckov.F,v 1.3 2003/09/12 11:11:52 mdelgado Exp $
+*  $Id: gtckov.F,v 1.4 2008/09/15 14:16:05 mdelgado Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
@@ -75,6 +75,8 @@ C.    ------------------------------------------------------------------
       character*4 chname
       real myrndm(3),th,ph
       data cvpwl /1.2398E-9/ /* convert photon energy in GeV to microm */
+      integer testradiator
+      real rrtmindex
 *
 *  <<<<<<<<<<<<<<<<<<< END: USER MODIFS >>>>>>>>>>>>>>>>>>>>>>>>>
 *
@@ -141,6 +143,15 @@ C.    ------------------------------------------------------------------
          ENDIF
          GEKRT1=1.-GEKRAT
          RIN1=Q(JINDEX+IEKBIN)*GEKRT1+Q(JINDEX+IEKBIN+1)*GEKRAT
+
+******* IF IN AEROGEL, GET THE INDEX FROM TABLES
+         if(testradiator(NUMED).ne.0) then
+            PPHOT=VECT(7)*1e-3
+            RIN1=rrtmindex(VECT(1),VECT(2),1e3*cvpwl/VECT(7))
+         endif
+***************************
+
+
          EFFIC=Q(JEFFIC+IEKBIN)*GEKRT1+Q(JEFFIC+IEKBIN+1)*GEKRAT
          STEPLA=Q(JABSCO+IEKBIN)*GEKRT1+Q(JABSCO+IEKBIN+1)*GEKRAT
       ENDIF
@@ -372,6 +383,13 @@ C
                EFFIC2=Q(JEFFI2+IEKBI2)*GEKRT1+Q(JEFFI2+IEKBI2+1)*GEKRT2
                IF(JINDX2.GT.0) THEN
                  RIN2=Q(JINDX2+IEKBI2)*GEKRT1+Q(JINDX2+IEKBI2+1)*GEKRT2
+
+******* IF IN AEROGEL, GET THE INDEX FROM TABLES
+                 if(testradiator(NUMED2).ne.0) then
+                    RIN1=rrtmindex(VOUT(1),VOUT(2),1e3*cvpwl/VECT(7))
+                 endif
+
+
                ELSE
                  RIN2=0.
                ENDIF

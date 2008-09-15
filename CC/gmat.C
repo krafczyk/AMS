@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.92 2007/10/02 16:06:45 mdelgado Exp $
+//  $Id: gmat.C,v 1.93 2008/09/15 14:16:06 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -672,13 +672,14 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD",
            "RICH_AEROGEL",0,'N',0,1,20,10,my_step));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
+  RICHDB::agl_media=pgtmed->getmedia();
   
   // NaF (Secondary radiator)
   pgtmed=(AMSgtmed*)  tmed.add (new AMSgtmed("RICH NAF",
 					     "RICH_NaF",0));
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::naf_abs_length,dummy,
 		  RICHDB::naf_index_table,0.);
-  
+  RICHDB::naf_media=pgtmed->getmedia();  
 
 // PMT window
   
