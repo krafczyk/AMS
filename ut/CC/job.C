@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.587 2008/09/15 14:17:49 mdelgado Exp $
+// $Id: job.C,v 1.588 2008/09/16 19:12:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3732,13 +3732,12 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 //ecal
      
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
-    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,
-                           &DAQECBlock::buildblock);//for MC ?
+//    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
 // rich
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqidnode,&DAQRichBlock::buildrawnode);
-
     //    DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+
 
 
   {  // mc
@@ -3756,6 +3755,12 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
     DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
     &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+
+
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,
+    &AMSEvent::calcdaqlength,&AMSEvent::builddaq);
+
+
     }
 }
   
@@ -3765,8 +3770,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     // lvl1
 
     DAQEvent::addsubdetector(&Trigger2LVL1::checkdaqid,&Trigger2LVL1::buildraw);
-    DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,
-    &Trigger2LVL1::builddaq);
+  //  DAQEvent::addblocktype(&Trigger2LVL1::getmaxblocks,&Trigger2LVL1::calcdaqlength,&Trigger2LVL1::builddaq);
 
 
 }
@@ -3776,16 +3780,14 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 {
 //           lvl3
     DAQEvent::addsubdetector(&TriggerLVL302::checkdaqid,&TriggerLVL302::buildraw);
-    DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,
-    &TriggerLVL302::builddaq);
+//    DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,&TriggerLVL302::builddaq);
 
 }
     
 //tof + anti 
 
     DAQEvent::addsubdetector(&DAQS2Block::checkblockid,&DAQS2Block::buildraw);
-    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,
-                           &DAQS2Block::buildblock);
+//    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
 
 
 //tracker

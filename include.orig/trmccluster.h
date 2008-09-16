@@ -82,7 +82,7 @@ public:
   // Interface with DAQ
 
 
-  static int16u getdaqid(){return (15 <<9);}
+  static int16u getdaqid(){return 26;}
   static integer checkdaqid(int16u id);
   static integer calcdaqlength(integer i);
   static integer getmaxblocks(){return 1;}

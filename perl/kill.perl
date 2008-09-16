@@ -93,12 +93,7 @@ for my $pid (@pids){
        }
    }
  }
-if($#killed>=0){
- sleep($delay/2);
-}
-else{
-sleep($delay);
-}
+ sleep($#killed>=0?$delay/2:$delay);
 }
 
 

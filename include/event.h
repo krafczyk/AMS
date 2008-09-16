@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.76 2008/08/05 14:47:38 choutko Exp $
+//  $Id: event.h,v 1.77 2008/09/16 19:12:04 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -285,15 +285,16 @@ inline void printH(){
 static AMSID getTDVStatus();
 // Interface with DAQ
 static integer checkdaqid(int16u id);
-static int16u  getdaqidSh(){return 1 | 14<<9;}
+static int16u  getdaqidSh(){return 25;}
+static int16u  getdaqid(){return 7;}
 static integer checkdaqidSh(int16u id);
 static void buildrawSh(integer length, int16u *p);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time, uinteger & usec); 
 static integer getmaxblocks(){return 1;}
 static integer getmaxblocksSh(){return 1;}
-static integer calcdaqlength(integer i){return 1+2+2+2+4;}
-static integer calcdaqlengthSh(integer i){return 21;}
+static integer calcdaqlength(integer i){return 12;}
+static integer calcdaqlengthSh(integer i){return -21;}
 static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
 static void builddaqSh(integer i, integer length, int16u *p);

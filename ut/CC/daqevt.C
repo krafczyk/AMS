@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.130 2008/09/02 14:34:27 choutko Exp $
+//  $Id: daqevt.C,v 1.131 2008/09/16 19:12:03 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -123,7 +123,7 @@ const char* DAQEvent::_PortNamesJ[32] = {
     "JINFE0", "JINFE1", "JLV1-A", "JLV1-B",
     "JINFT4", "JINFT5", "SDR-2A", "SDR-2B",
     "SDR-3A", "SDR-3B", "JINFT6", "JINFT7",
-    "     ",  "      ", "      ", "      ",
+    "MCPART",  "MCISSA", "MCTRCL", "      ",
     "     ", "     ", "     ", "      "
 };
 
@@ -241,18 +241,21 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
 
 
 void DAQEvent::buildDAQ(uinteger btype){
-return;
 DAQBlockType *fpl=_pBT[btype];
 if(fpl == NULL && btype){
   static int init=0;
   if(init++==0)cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
   return;
 }
+int16u* pjinj=0;
 integer ntot=0;
+integer ntotm=0;
 while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
-   *(fpl->_plength+i)=(fpl->_pgetlength)(i)+1;
-   if(*(fpl->_plength+i)>1)ntot+=*(fpl->_plength+i);
+   int len=(fpl->_pgetlength)(i);
+   *(fpl->_plength+i)=len>0?len+_OffsetL:len-_OffsetL;
+   if(abs(*(fpl->_plength+i))>1)ntot+=abs(*(fpl->_plength+i));
+   if((*(fpl->_plength+i))<-1)ntotm-=(*(fpl->_plength+i));
  }
  fpl=fpl->_next;
 }
@@ -260,29 +263,62 @@ while(fpl){
 
 // Make array
 
+if(!ntot)return;
+int preset=ntotm?4+5:4;
+_Length=preset+ntot+_OffsetL;
 
-if(ntot)_Length=lover+ntot;
-if(_Length > 65535*4){
-  cerr<<"DAQEvent::buildDAQ-F-lengthToobig "<<_Length<<endl;
-  throw amsglobalerror("The Subject Says It All"); 
+if(_Length-_OffsetL > 32767){
+  cout<<"DAQEvent::buildDAQ-W-lengthToobig "<<_Length<<endl;
+  _Length++;
 }
 #ifdef __AMSDEBUG__
-assert(sizeof(time_t) == sizeof(integer));
+ assert(sizeof(time_t) == sizeof(integer));
 #endif
 
-if(_create(btype) ){
+int btype5=btype;
+if(btype==0)btype5=5;
+else if(btype==5)btype5=0;
+if(_create(btype5) ){
  fpl=_pBT[btype];
  while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
    if(*(fpl->_plength+i)>1){
-    *_pcur=*(fpl->_plength+i)-_OffsetL;
+    *_pcur=(*(fpl->_plength+i)-_OffsetL)*2;
     int16u *psafe=_pcur+1;
     fpl->_pgetdata(i,*(fpl->_plength+i)-1,psafe);
+    _pcur=_pcur+*_pcur/2+_OffsetL;
+   }
+ }
+ fpl=fpl->_next;
+ }
+
+if(ntotm){
+ fpl=_pBT[btype];
+ while(fpl){
+ for(int i=0;i<fpl->_maxbl;i++){
+   if(*(fpl->_plength+i)<-1){
+    if( ntotm){
+     *_pcur=(ntotm+5-_OffsetL)*2;
+      ntotm=0;
+      pjinj=_pcur;
+     *(_pcur+1)=1 | (128<<5) | (1<<15);
+     *(_pcur+2)=AMSEvent::gethead()->getid()&65535;
+     _pcur+=3; 
+    }  
+    *_pcur=-*(fpl->_plength+i)-_OffsetL;
+    int16u *psafe=_pcur+1;
+    fpl->_pgetdata(i,-*(fpl->_plength+i)-1,psafe);
     _pcur=_pcur+*_pcur+_OffsetL;
    }
  }
  fpl=fpl->_next;
  }
+ if(pjinj){
+  *(_pcur)=0;
+  *(_pcur+1)=calculate_CRC16((pjinj+2),*(pjinj)/2-2);
+ }
+}
+
 }
 }
 
@@ -552,7 +588,7 @@ integer DAQEvent::_HeaderOK(){
           }
           shift=5;
       }
-      int mask= ((*(_pcur+shift+12)>>6) & 15);
+      int mask= ((*(_pcur+12)>>6) & 15);
       _setcalibdata(mask);
       if(mask){
        for(int16u* pmask=_pcur+shift+12+3;pmask<_pcur+_cl(_pcur);pmask+=2){
@@ -1059,6 +1095,7 @@ void DAQEvent::initO(integer run){
      //next line gives compiler error on gcc
      // else ost << ofnam<<ends;
      if(fbout)fbout.close();
+     fbout.clear();
      if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
 #if !defined(__USE_STD_IOSTREAM) && !defined(__STDC_HOSTED__) 
     if((mode/10)%10 ==1)fbout.open(name,ios::out);
@@ -1067,13 +1104,13 @@ void DAQEvent::initO(integer run){
 #endif
     if((mode/10)%10 ==2)fbout.open(name,ios::out|ios::app);
      if(fbout){ 
-      static char buffer[2048+1];
+      static char buffer[12048+1];
       // Associate buffer
 #if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)  || defined(sun) || defined(__ICC__)
-      (fbout.rdbuf())->pubsetbuf(buffer,2048);
+      (fbout.rdbuf())->pubsetbuf(buffer,12048);
 #else
-      //      (fbout.rdbuf())->pubsetbuf(buffer,2048);
-      (fbout.rdbuf())->pubsetbuf(buffer,2048);
+      //      (fbout.rdbuf())->pubsetbuf(buffer,12048);
+      (fbout.rdbuf())->pubsetbuf(buffer,12048);
 #endif
       cout<<"DAQEvent::initO-I- opened file "<<name<<" in mode "<<mode<<endl;
 
@@ -1174,11 +1211,28 @@ _pData=(int16u*)_Buffer;
 _BufferOwner=1;
 _BufferLock=1;
 }
-if(_pData){
-//   This is for daq creation only, skip for the moment
-// _pData[0]=(_Length-_OffsetL)%65536;
-// _pData[1]=(btype<<13) | (_Length-_OffsetL)/65536;  // Event ID
-// _pcur=_pData+2;
+if(_pData && AMSJob::gethead()->isSimulation()){
+//   This is for daq creation only
+//   
+if(_Length-_OffsetL<=32767){
+ _pData[0]=(_Length-_OffsetL)*2;
+ _pData[1]=(btype)  ;
+ _pData[2]=0;
+time_t timeu=AMSEvent::gethead()->gettime();
+_pData[4]=timeu&65535;
+_pData[3]=(timeu>>16)&65535;
+_pcur=_pData+5;
+}
+else{
+ _pData[0]=(((_Length-_OffsetL)*2)>>16)&32767;
+ _pData[1]=(((_Length-_OffsetL)*2))&65535;
+ _pData[2]=(btype)  ;
+ _pData[3]=0;
+time_t timeu=AMSEvent::gethead()->gettime();
+_pData[5]=timeu&65535;
+_pData[4]=(timeu>>16)&65535;
+_pcur=_pData+6;
+}
 }
 return _pData != NULL ;
 }

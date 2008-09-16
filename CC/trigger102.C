@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.52 2008/08/28 20:33:37 choutko Exp $
+//  $Id: trigger102.C,v 1.53 2008/09/16 19:12:04 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -969,7 +969,7 @@ void Trigger2LVL1::_writeEl(){
 void Trigger2LVL1::builddaq(integer i, integer n, int16u *p){
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->
   getheadC("TriggerLVL1",i);
-  *p=getdaqid(0);
+  p--;
   //  if(ptr){
     //   *(p+1)=int16u(ptr->_tofpatt[0]);
     //   *(p+2)=int16u(ptr->_tofpatt[1]);

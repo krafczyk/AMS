@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.140 2008/08/28 20:33:37 choutko Exp $
+//  $Id: mceventg.C,v 1.141 2008/09/16 19:12:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1261,7 +1261,7 @@ else return 0;
 void AMSmceventg::builddaq(integer i, integer length, int16u *p){
   AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->
   getheadC("AMSmceventg",0);
- *p=getdaqid();
+ p--;
 while(ptr){ 
 if(ptr->Primary()){
  const uinteger c=65535;
@@ -1288,6 +1288,7 @@ if(ptr->Primary()){
 }
  ptr=ptr->next();
 }
+*(p+1)=getdaqid() ;
 
 }
 
@@ -1295,7 +1296,7 @@ if(ptr->Primary()){
 void AMSmceventg::buildraw(integer n, int16u *p){
  integer ip;
  geant mom;
- for(int16u *ptr=p+1;ptr<p+n;ptr+=12){ 
+ for(int16u *ptr=p;ptr<p+n-1;ptr+=12){ 
   ip=*(ptr);
   uinteger momi= (*(ptr+2)) | (*(ptr+1))<<16;
   mom=momi/1000.;
@@ -1318,7 +1319,7 @@ integer AMSmceventg::calcdaqlength(integer i){
       (AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);pm;pm=pm->next()){
        if(pm->Primary())l+=12;
       }
- return l;
+ return -l;   //in jinj mode
 }
 
 void orbit::UpdateOrbit(number theta, number phi, integer sdir){

@@ -419,7 +419,7 @@ integer AMSTrMCCluster::checkdaqid(int16u id){
 void AMSTrMCCluster::builddaq(integer i, integer length, int16u *p){
   AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
     getheadC("AMSTrMCCluster",0);
-  *p=getdaqid();
+  p--;
   while(ptr){ 
     const uinteger c=65535;
     *(p+1)=ptr->_itra;
@@ -436,14 +436,15 @@ void AMSTrMCCluster::builddaq(integer i, integer length, int16u *p){
   metka:
     ptr=ptr->next();
   }
-
+  *(p+1)=getdaqid() ;
 }
 
 
 void AMSTrMCCluster::buildraw(integer n, int16u *p){
   integer ip;
   geant mom;
-  for(int16u *ptr=p+1;ptr<p+n;ptr+=7){ 
+  int len=n&65535;
+  for(int16u *ptr=p;ptr<p+len-1;ptr+=7){ 
     ip=*(ptr);
     uinteger cdx=  (*(ptr+2)) | (*(ptr+1))<<16;  
     uinteger cdy=  (*(ptr+4)) | (*(ptr+3))<<16;  
@@ -470,6 +471,6 @@ integer AMSTrMCCluster::calcdaqlength(integer i){
       ptr=ptr->next();
     }
   }
-  return len;
+  return -len;
 }
 

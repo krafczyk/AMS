@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.385 2008/08/28 20:33:37 choutko Exp $
+//  $Id: event.C,v 1.386 2008/09/16 19:12:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2810,9 +2810,9 @@ pdaq->buildDAQ();
 
 // H/K simulation 
 
-pdaq=new DAQEvent();
-AMSEvent::gethead()->addnext(AMSID("DAQEvent",4), pdaq);      
-pdaq->buildDAQ(4);
+//pdaq=new DAQEvent();
+//AMSEvent::gethead()->addnext(AMSID("DAQEvent",4), pdaq);      
+//pdaq->buildDAQ(4);
 
 
   AMSgObj::BookTimer.stop("SIDAQ");
@@ -2826,11 +2826,11 @@ pdaq->buildDAQ(4);
 
 void AMSEvent::builddaq(integer i, integer length, int16u *p){
 
-*p=7 | (1<<15); 
-*(p+2)=int16u(_Head->_run&65535);
-*(p+1)=int16u((_Head->_run>>16)&65535);
-*(p+4)=int16u(_Head->_runtype&65535);
-*(p+3)=int16u(_Head->_runtype>>16&65535);
+*p=getdaqid() | (1<<15);
+*(p+4)=int16u(_Head->_run&65535);
+*(p+3)=int16u((_Head->_run>>16)&65535);
+*(p+2)=int16u(_Head->_runtype&65535);
+*(p+1)=int16u(_Head->_runtype>>16&65535);
 uinteger _event=uinteger(_Head->_id);
 *(p+6)=int16u(_event&65535);
 *(p+5)=int16u((_event>>16)&65535);
@@ -2838,6 +2838,7 @@ uinteger _event=uinteger(_Head->_id);
 *(p+7)=int16u((_Head->_time>>16)&65535);
 *(p+10)=int16u(_Head->_usec&65535);
 *(p+9)=int16u((_Head->_usec>>16)&65535);
+*(p+11)=0;
 }
 
 
@@ -2846,7 +2847,7 @@ uinteger _event=uinteger(_Head->_id);
 
 void AMSEvent::builddaqSh(integer i, integer length, int16u *p){
 
-*p= getdaqidSh();
+p--;
 uinteger tmp;
 memcpy(&tmp,&_Head->_StationRad,sizeof(tmp));
 *(p+2)=int16u(tmp&65535);
@@ -2882,7 +2883,7 @@ memcpy(&tmp,&_Head->_VelPhi,sizeof(tmp));
 memcpy(&tmp,&_Head->_NorthPolePhi,sizeof(tmp));
 *(p+20)=int16u(tmp&65535);
 *(p+19)=int16u((tmp>>16)&65535);
-
+*(p+21)=getdaqidSh() ;
 }
 
 
@@ -2905,11 +2906,11 @@ void AMSEvent::buildraw(
     time=(*(p+8)) |  (*(p+7))<<16;
     usec=(*(p+10)) |  (*(p+9))<<16;
     const uinteger _OffsetT=0x12d53d80;
-    if(run<1000000000)time+=_OffsetT;
+    if(run<1000000000 && AMSJob::gethead()->isRealData())time+=_OffsetT;
 }
 
 void AMSEvent::buildrawSh(integer length, int16u *p){
-
+    p--;
     uinteger tmp=(*(p+2)) |  (*(p+1))<<16;
     memcpy(&_Head->_StationRad,&tmp,sizeof(tmp));
      tmp=(*(p+4)) |  (*(p+3))<<16;
@@ -2944,7 +2945,7 @@ else return 0;
 }
 
 integer AMSEvent::checkdaqidSh(int16u id){
- if(id==getdaqidSh())return 1;
+ if((id&31)==getdaqidSh())return 1;
  else return 0;
 }
 

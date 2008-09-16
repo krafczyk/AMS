@@ -2,6 +2,7 @@ import sys,os,time,string,re,thread,smtplib,commands,math
 from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
+import cgi
 def sorta(s,o):
     timenow=int(time.time())
     dts=timenow-s[2]
@@ -2503,7 +2504,7 @@ class RemoteClient:
                             print "Run ",run,"  not found in dataset ",dataset
                         else:
                             print "<tr>"
-                            print "<td>Run %d </td><td> Id %d </td><td>  not found in dataset %s</td>" %(run[0],run[1],dataset)
+                            print "<td>Run %d Events %d  </td><td> Id %d </td><td>  not found in dataset %s</td>" %(run[0],run[2],run[1],dataset)
                             print "</tr>"
             
             else:
@@ -2511,7 +2512,7 @@ class RemoteClient:
                     print "dataset ",dataset, "not found "
                 else:
                     print "<tr>"
-                    print "<td>Dataset  %s not found in database</td>" %(dataset)
+                    print "<td>Dataset  %s not found in database</td>" %(cgi.escape(dataset))
                     print "</tr>"
                 
         if(tab):

@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.43 2007/10/03 07:38:09 choutko Exp $
+//  $Id: mceventg.h,v 1.44 2008/09/16 19:12:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -155,7 +155,7 @@ static void endjob();
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
  // Interface with DAQ
 
- static int16u getdaqid(){return (14 <<9);}
+ static int16u getdaqid(){return 24;}
  static integer checkdaqid(int16u id);
  static integer calcdaqlength(integer i);
  static integer getmaxblocks(){return 1;}
