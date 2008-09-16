@@ -199,7 +199,6 @@
       print*,'ztmirgap_c2f	 = ',ztmirgap_c2f	         
       print*,'zbmirgap_c2f       = ',zbmirgap_c2f                      
       print*,'reflec_c2f	 = ',reflec_c2f	         
-      print*,'zpmtdet_c2f	 = ',zpmtdet_c2f	         
       print*,'zlgsignal_c2f      = ',zlgsignal_c2f     
       print*,'rtmir_c2f          = ',rtmir_c2f         
       print*,'rbmir_c2f          = ',rbmir_c2f         
@@ -290,13 +289,14 @@
       ztmirgap       = ztmirgap_c2f
       zbmirgap       = zbmirgap_c2f
       reflec         = reflec_c2f
-      zpmtdet        = zpmtdet_c2f
       zlgsignal      = zlgsignal_c2f
 
       hrnaf    = hrnaf_c2f
       hmir     = hmir_c2f
       rbmir    = rbmir_c2f
       rtmir    = rtmir_c2f
+
+      zpmtdet = hrad+hpgl+ztmirgap+hmir+zbmirgap
 
       tgmir    = (rbmir-rtmir)/hmir
       d0mir    = rtmir/(rbmir-rtmir)*hmir-hrad-hpgl-ZTMIRGAP      
@@ -1125,7 +1125,7 @@
       real ztest, pdum(3)
 
       integer amsrk
-      real amsri
+      double precision amsri
 
       integer idummy
       data idummy /0/
@@ -1169,10 +1169,12 @@ c$$$         endif
 
          if(amsrk.eq.1) then  ! aerogel
             rad_kind = 0
+            radix(1) = amsri
          endif
 
          if(amsrk.eq.2) then  ! NaF
             rad_kind = 1
+            radix(2) = amsri
          endif
 
          if(amsrk.eq.0) then

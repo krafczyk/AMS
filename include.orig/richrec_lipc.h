@@ -16,7 +16,7 @@
       real ztoprad_ams_c2f,
      +     ztarg_c2f,hrad_c2f,hrnaf_c2f,radtile_pitch_c2f,
      +     radtile_supthk_c2f,radix_c2f,radclarity_c2f,hpgl_c2f,
-     +     ztmirgap_c2f,zbmirgap_c2f,reflec_c2f,zpmtdet_c2f,
+     +     ztmirgap_c2f,zbmirgap_c2f,reflec_c2f,
      +     zlgsignal_c2f,rtmir_c2f,rbmir_c2f,hmir_c2f,
      +     pmtwx_c2f,pmtwy_c2f,shieldw_c2f,
      +     pglix_c2f,emcxlim_c2f,emcylim_c2f,lg_top_width_c2f,
@@ -60,7 +60,6 @@
      +                  ztmirgap_c2f,	           ! top mirror gap
      +                  zbmirgap_c2f,	           ! bottom mirror gap
      +                  reflec_c2f,	           ! mirror reflectivity
-     +                  zpmtdet_c2f,	           ! Z coordinate of PMT detector
      +                  zlgsignal_c2f,	           ! efective Z distance below PMT LG
                                                    ! matrix plane for signal optimization
      +                  rtmir_c2f,	           ! top mirror radius

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.94 2008/09/04 07:54:42 mdelgado Exp $
+//  $Id: richrec.C,v 1.95 2008/09/16 11:41:39 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////
 
 
-extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, int *radkind, int *radindex){
+extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, int *radkind, double *radindex){
   
   float xams,yams,zams;
   float thetaams,phiams;
@@ -2253,7 +2253,7 @@ AMSRichRingNew* AMSRichRingNewSet::getring(int i) {
 void AMSRichRingNewSet::AddRing(AMSRichRingNew* ring) {ringset.push_back(ring);}
 
 void AMSRichRingNewSet::init() {
-    richiniteventlip();
+  richiniteventlip();
 }
 
 int AMSRichRingNewSet::NumberOfRings() { return (int)ringset.size();}
@@ -2397,7 +2397,6 @@ void richiniteventlip() {
   LIPC2F.ztmirgap_c2f = RICradmirgap;
   LIPC2F.zbmirgap_c2f = RIClgdmirgap;
   LIPC2F.reflec_c2f = RICmireff;
-  LIPC2F.zpmtdet_c2f = RICHDB::rad_agl_height+RICHDB::foil_height+RICradmirgap+RICHDB::rich_height+RIClgdmirgap;
   LIPC2F.zlgsignal_c2f = 1.8;
   LIPC2F.rtmir_c2f = RICHDB::top_radius;
   LIPC2F.rbmir_c2f = RICHDB::bottom_radius;
@@ -2437,7 +2436,7 @@ void richiniteventlip() {
     LIPC2F.hitsnpe_ev[actual]=hit->getnpe();
     RichPMTChannel hitch(hit->getchannel());
 
-    coordams2lip(hitch.x(),hitch.y(),hitch.z(),LIPC2F.hitscoo_ev[actual][0],LIPC2F.hitscoo_ev[actual][1],LIPC2F.hitscoo_ev[actual][2]);
+    coordrich2lip(hitch.x(),hitch.y(),hitch.z(),LIPC2F.hitscoo_ev[actual][0],LIPC2F.hitscoo_ev[actual][1],LIPC2F.hitscoo_ev[actual][2]);
 
     //LIPC2F.hitscoo_ev[actual][0]=hitch.x();
     //LIPC2F.hitscoo_ev[actual][1]=hitch.y();
@@ -2543,17 +2542,17 @@ void richinittracklip(AMSPoint entrance_p, AMSDir entrance_d) {
   LIPC2F.pimp_sim[2] = 0.; // SHOULD BE FILLED IF SIMULATION
 
   // main track parameters (errors assumed to be zero for the moment)
-  float ptmainams = acos(- entrance_d[2]);
-  float ppmainams = atan2(entrance_d[1],entrance_d[0]);
-  if ( ppmainams<0 )  ppmainams=ppmainams+2*PI;
-  angleams2lip(ptmainams,ppmainams,LIPC2F.pthe_main,LIPC2F.pphi_main);
+  angleams2lip(entrance_d.gettheta(),entrance_d.getphi(),LIPC2F.pthe_main,LIPC2F.pphi_main);
   LIPC2F.epthe_main = 0.;
   LIPC2F.epphi_main = 0.;
 
-  float pmainams0 = entrance_p[0]+tan(LIPC2F.pthe_main)*cos(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
-  float pmainams1 = entrance_p[1]+tan(LIPC2F.pthe_main)*sin(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
-  float pmainams2 = entrance_p[2]+RICHDB::rad_agl_height-RICHDB::rad_height;
-  coordams2lip(pmainams0,pmainams1,pmainams2,LIPC2F.pimp_main[0],LIPC2F.pimp_main[1],LIPC2F.pimp_main[2]);
+  AMSPoint ptmp = RichAlignment::AMSToRich(entrance_p);
+  float plocal0 = ptmp[0]+tan(LIPC2F.pthe_main)*cos(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
+  float plocal1 = ptmp[1]+tan(LIPC2F.pthe_main)*sin(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
+  float plocal2 = ptmp[2]+RICHDB::rad_agl_height-RICHDB::rad_height;
+  AMSPoint ptmpnew(plocal0,plocal1,plocal2);
+  ptmpnew = RichAlignment::RichToAMS(ptmpnew);
+  coordams2lip(ptmpnew.x(),ptmpnew.y(),ptmpnew.z(),LIPC2F.pimp_main[0],LIPC2F.pimp_main[1],LIPC2F.pimp_main[2]);
   LIPC2F.epimp_main[0] = 0.;
   LIPC2F.epimp_main[1] = 0.;
   LIPC2F.epimp_main[2] = 0.;
@@ -2563,26 +2562,114 @@ void richinittracklip(AMSPoint entrance_p, AMSDir entrance_d) {
 }
 
 
+
 // conversion between AMS and LIP coordinate systems
 
 void coordams2lip(float pxams, float pyams, float pzams, float &pxlip, float &pylip, float &pzlip) {  
-  pxlip = pxams;
-  pylip = pyams;
-  pzlip = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzams;
+
+  AMSPoint pointams(pxams,pyams,pzams);
+  pointams = RichAlignment::AMSToRich(pointams);
+
+  pxlip = pointams.x();
+  pylip = pointams.y();
+  pzlip = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pointams.z();
+
+  //cout << "CALL TO coordams2lip" << endl;
+  //cout << "In - AMS: " << pxams << "," << pyams << "," << pzams << endl;
+  //cout << "Out - LIP: " << pxlip << "," << pylip << "," << pzlip << endl;
 }
 
 void coordlip2ams(float pxlip, float pylip, float pzlip, float &pxams, float &pyams, float &pzams) {  
-  pxams = pxlip;
-  pyams = pylip;
-  pzams = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzlip;
+
+  float pxtmp = pxlip;
+  float pytmp = pylip;
+  float pztmp = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzlip;
+
+  AMSPoint pointams(pxtmp,pytmp,pztmp);
+  pointams = RichAlignment::RichToAMS(pointams);
+
+  pxams = pointams.x();
+  pyams = pointams.y();
+  pzams = pointams.z();
+
+  //cout << "CALL TO coordlip2ams" << endl;
+  //cout << "In - LIP: " << pxlip << "," << pylip << "," << pzlip << endl;
+  //cout << "Out - AMS: " << pxams << "," << pyams << "," << pzams << endl;
 }
 
 void angleams2lip(float theams, float phiams, float &thelip, float &philip) {
-  thelip = theams;
-  philip = phiams;
+
+  AMSDir dirams(theams,phiams);
+  dirams=RichAlignment::AMSToRich(dirams);
+
+  float thetmp = dirams.gettheta();
+  float phitmp = dirams.getphi();
+
+  thelip = 3.14159265-thetmp;
+  philip = phitmp;
+
+  //cout << "CALL TO angleams2lip" << endl;
+  //cout << "In - AMS (theta,phi in deg): " << theams*180./3.14159265 << "," << phiams*180./3.14159265 << endl;
+  //cout << "Out - LIP (theta,phi in deg): " << thelip*180./3.14159265 << "," << philip*180./3.14159265 << endl;
 }
 
 void anglelip2ams(float thelip, float philip, float &theams, float &phiams) {
-  theams = thelip;
-  phiams = philip;
+
+  float thetmp = 3.14159265-thelip;
+  float phitmp = philip;
+
+  AMSDir dirams(thetmp,phitmp);
+  dirams=RichAlignment::RichToAMS(dirams);
+
+  theams = dirams.gettheta();
+  phiams = dirams.getphi();
+
+  //cout << "CALL TO anglelip2ams" << endl;
+  //cout << "In - LIP (theta,phi in deg): " << thelip*180./3.14159265 << "," << philip*180./3.14159265 << endl;
+  //cout << "Out - AMS (theta,phi in deg): " << theams*180./3.14159265 << "," << phiams*180./3.14159265 << endl;
+}
+
+
+// conversion between RICH and LIP coordinate systems
+
+void coordrich2lip(float pxrich, float pyrich, float pzrich, float &pxlip, float &pylip, float &pzlip) {  
+
+  pxlip = pxrich;
+  pylip = pyrich;
+  pzlip = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzrich;
+
+  //cout << "CALL TO coordrich2lip" << endl;
+  //cout << "In - RICH: " << pxrich << "," << pyrich << "," << pzrich << endl;
+  //cout << "Out - LIP: " << pxlip << "," << pylip << "," << pzlip << endl;
+}
+
+void coordlip2rich(float pxlip, float pylip, float pzlip, float &pxrich, float &pyrich, float &pzrich) {  
+
+  pxrich = pxlip;
+  pyrich = pylip;
+  pzrich = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height-pzlip;
+
+  //cout << "CALL TO coordlip2rich" << endl;
+  //cout << "In - LIP: " << pxlip << "," << pylip << "," << pzlip << endl;
+  //cout << "Out - RICH: " << pxrich << "," << pyrich << "," << pzrich << endl;
+}
+
+void anglerich2lip(float therich, float phirich, float &thelip, float &philip) {
+
+  thelip = 3.14159265-therich;
+  philip = phirich;
+
+  //cout << "CALL TO anglerich2lip" << endl;
+  //cout << "In - RICH (theta,phi in deg): " << therich*180./3.14159265 << "," << phirich*180./3.14159265 << endl;
+  //cout << "Out - LIP (theta,phi in deg): " << thelip*180./3.14159265 << "," << philip*180./3.14159265 << endl;
+}
+
+void anglelip2rich(float thelip, float philip, float &therich, float &phirich) {
+
+  therich = 3.14159265-thelip;
+  phirich = philip;
+
+  //cout << "CALL TO anglelip2rich" << endl;
+  //cout << "In - LIP (theta,phi in deg): " << thelip*180./3.14159265 << "," << philip*180./3.14159265 << endl;
+  //cout << "Out - RICH (theta,phi in deg): " << therich*180./3.14159265 << "," << phirich*180./3.14159265 << endl;
 }

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.48 2008/08/20 10:21:22 mdelgado Exp $
+//  $Id: richrec.h,v 1.49 2008/09/16 11:41:39 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -375,6 +375,10 @@ void coordlip2ams(float pxlip, float pylip, float pzlip, float &pxams, float &py
 void angleams2lip(float theams, float phiams, float &thelip, float &philip);
 void anglelip2ams(float thelip, float philip, float &theams, float &phiams);
 int goodLIPREC();
+void coordrich2lip(float pxrich, float pyrich, float pzrich, float &pxlip, float &pylip, float &pzlip);
+void coordlip2rich(float pxlip, float pylip, float pzlip, float &pxrich, float &pyrich, float &pzrich);
+void anglerich2lip(float therich, float phirich, float &thelip, float &philip);
+void anglelip2rich(float thelip, float philip, float &therich, float &phirich);
 
 
 // Container for LIP ring recs

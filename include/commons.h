@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.248 2008/08/28 20:33:38 choutko Exp $
+//  $Id: commons.h,v 1.249 2008/09/16 11:41:39 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1095,7 +1095,6 @@ class LIPC2F_DEF{
   geant ztmirgap_c2f;	           
   geant zbmirgap_c2f;	           
   geant reflec_c2f;	           
-  geant zpmtdet_c2f;	           
   geant zlgsignal_c2f;
   geant rtmir_c2f;
   geant rbmir_c2f;
