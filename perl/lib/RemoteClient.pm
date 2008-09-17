@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.541 2008/09/17 11:51:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.542 2008/09/17 13:19:44 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1568,10 +1568,12 @@ sub ValidateRuns {
      $r0 = $self->{sqlserver}->Query($sql);
       
   }
-     $sql   = "SELECT count(path)  FROM ntuples WHERE run=$run->{Run}";
+     $sql   = "SELECT count(path)  FROM ntuples WHERE run=$run->{Run} and datamc=0";
      my $r1 = $self->{sqlserver}->Query($sql);
+     $sql   = "SELECT count(path)  FROM mcfiles WHERE run=$run->{Run}";
+     my $r2 = $self->{sqlserver}->Query($sql);
       my $status=$r0->[0][1];
-      if(defined $status && $status eq 'Completed' && $r1->[0][0]==0){
+      if(defined $status && $status eq 'Completed' && $r1->[0][0]==0 && $r2->[0][0]==0){
           $status='UnChecked';
       }
         if(defined $status and $status ne "Completed" and $status ne $run->{Status}){
@@ -1653,7 +1655,7 @@ sub ValidateRuns {
                $self->{sqlserver}->Update($sql);
             my @ntuplelist=();
              foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+              if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run} ){
                   $ntuple->{OK}=1;
                   push @ntuplelist, $ntuple;
               }
@@ -1668,7 +1670,9 @@ my $fevt=-1;
          warn "  problems with $run->{Run} $ntuple->{Name} \n";
      }
      else{
-                  $fevt=$ntuple->{FirstEvent};
+                  if($ntuple->{Type} ne "RawFile"){
+                    $fevt=$ntuple->{FirstEvent};
+                }
                   if($ntuple->{Name}=~/:\/dat0/){
                       $dat0=1;
                   }
@@ -13514,6 +13518,25 @@ sub insertNtuple {
     $sizemb = sprintf("%.f",$ntsize);
 #  }
 #
+
+  if($type eq 'RawFile'){
+      if($datamc==0){
+    my $paths='/Offline/RunsDir/MC/';
+    my $cmd="ln -s $path $paths";
+    system($cmd);
+    my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
+    my $fetime=0;
+    my $letime=0;
+    if(defined($ret->[0][0])){
+        $fetime=$ret->[0][0];
+        $letime=$ret->[0][1];
+    }
+    $sql="delete from mcfiles where run=$run";
+     $self->{sqlserver}->Update($sql);
+    $sql=" insert into mcfiles values($run,'$version','$type',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,0,$fetime,$letime,'$paths$run')";
+}
+  }
+  else{
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',
@@ -13528,8 +13551,8 @@ sub insertNtuple {
                                           '$path',
                                            $crc,
                                            $crctime,$crcflag,$castortime,$buildno,$datamc)";
+}
   $self->{sqlserver}->Update($sql);
-
 }
 
 sub printMC02GammaTest {
@@ -14631,7 +14654,7 @@ sub validateDST {
 
      my $dtype       = undef;
      my $validatecmd = undef;
-     my $ret         =  0;     # return code
+     my $ret         =  1;     # return code
      my $vcode       =  0;     # validate code
 
      my $time0 = time();
