@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.540 2008/09/12 16:10:20 choutko Exp $
+# $Id: RemoteClient.pm,v 1.541 2008/09/17 11:51:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8141,6 +8141,9 @@ anyagain:
          $buf=~ s/PART=/DATASETNAME=$dataset->{name} \nPART=/;
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/;
          $rootntuple=$q->param("RootNtuple");
+         if($buf =~/DAQC 1=10/){
+          $rootntuple=~ s/168=40/168=4000/;
+         }
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          $tmpb=~ s/IOPA \$ROOTNTUPLE\'/IOPA \$ROOTNTUPLE\'\n/;

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.118 2008/09/10 12:45:55 choutko Exp $
+//  $Id: producer.C,v 1.119 2008/09/17 11:51:10 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -497,6 +497,7 @@ if(failure)UpdateARS();
 if(force){
   if(IOPA.hlun)sendNtupleUpdate(DPS::Producer::Ntuple);
   else if(IOPA.WriteRoot)sendNtupleUpdate(DPS::Producer::RootFile);
+  if(DAQCFFKEY.mode/10>0)sendNtupleUpdate(DPS::Producer::RawFile);
 }
 //cout <<" sendcurrentinfo end "<<endl;
 }
@@ -668,6 +669,7 @@ ntend->ErrorNumber=0;
          ntend->crc=~crc;
    }
 // add validation
+if(type!=DPS::Producer::RawFile){
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv("NtupleValidatorExec");
 if(exedir && nve && AMSCommonsI::getosname()){
@@ -712,7 +714,10 @@ if(exedir && nve && AMSCommonsI::getosname()){
    cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseOsNameIsNull"<<endl;
  }
 }
-
+else{
+     ntend->Status=DPS::Producer::Validated;
+}
+}
 
 
 LMessage(AMSClient::print(*ntend,"CloseDST"));
@@ -1709,6 +1714,9 @@ return &(_ntend[0]);
 break;
 case DPS::Producer::RootFile:
 return &(_ntend[1]);
+break;
+case DPS::Producer::RawFile:
+return &(_ntend[2]);
 break;
 default:
 return 0;

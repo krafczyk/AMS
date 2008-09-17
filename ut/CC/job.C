@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.588 2008/09/16 19:12:04 choutko Exp $
+// $Id: job.C,v 1.589 2008/09/17 11:51:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3345,7 +3345,10 @@ _dbendjob();
 _axendjob();
   cout <<"   axendjob finished"<<endl;
 
-  if(isSimulation())uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
+  if(isSimulation()){
+      uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
+      DAQEvent::CloseO(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
+  } 
   else uhend(0,0,CCFFKEY.curtime);
   cout <<"   uhend finished"<<endl;
 

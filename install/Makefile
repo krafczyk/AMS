@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.54 2008/08/28 20:33:39 choutko Exp $
+#  $Id: Makefile,v 1.55 2008/09/17 11:51:13 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -189,7 +189,7 @@ COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C
 
 
 #DAQ Interface
-COMMON_FILES += $(SCC)daqevt.C $(SCC)daqs2block.C $(SCC)daqecblock.C 
+COMMON_FILES +=  $(SCC)daqs2block.C $(SCC)daqecblock.C 
 
 #HBOOK interface
 #COMMON_FILES += $(SCC)ntuple.C
@@ -202,7 +202,7 @@ COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C
 #------------------------------------------------------------------------------
 # File list for standard gbatch compilation
 
-FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)geant3.C      \
+FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)daqevt.C $(SCC)geant3.C      \
 		$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F  $(SFF)gskpho.F  \
 		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C $(SCC)ntuple.C $(SFF)TrackFit_utils.F
 
@@ -240,7 +240,7 @@ MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o $(BIN)TrackFit_utils_c.o
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o $(BIN)TrackFit_utils_c.o $(BIN)daqevt_c.o
 
 OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
 		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o
@@ -357,6 +357,9 @@ $(BIN)rootdict.o:         $(BIN)rootdict.C
 
 $(BIN)daqevt.o:         $(SCC)daqevt.C
 	$(CXX) -c $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o 
+
+$(BIN)daqevt_c.o:         $(SCC)daqevt.C
+	$(CXX_ORBIT) -c $(CFLAGSDAQ) $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 

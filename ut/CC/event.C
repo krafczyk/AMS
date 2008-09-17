@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.386 2008/09/16 19:12:04 choutko Exp $
+//  $Id: event.C,v 1.387 2008/09/17 11:51:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -136,7 +136,7 @@ void AMSEvent::_init(){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
      //raise(SIGTERM);
    }
-   DAQEvent::initO(_run);
+   DAQEvent::initO(_run,getid(),gettime());
    
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();

@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.50 2008/08/18 09:39:30 choutko Exp $
+//  $Id: daqevt.h,v 1.51 2008/09/17 11:51:13 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -165,12 +165,14 @@ static integer KIFiles;
 static fstream fbin;
 static char * ofnam;
 static fstream fbout;
+static uinteger _NeventsO;
+static void CloseO(integer run,integer event,time_t tt);
 void SetEOFIn();
 enum InitResult{Interrupt,NoInputFile,UnableToOpenFile,UnableToFindRunEvent,OK};
 static InitResult init();
 static void select();
 static char * _getNextFile(integer & run, integer & event);
-static void initO(integer run);
+static void initO(integer run,integer event,time_t tt);
 static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);
 static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, uinteger btype=0);
 

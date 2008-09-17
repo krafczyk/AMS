@@ -1,4 +1,7 @@
-//  $Id: daqevt.C,v 1.131 2008/09/16 19:12:03 choutko Exp $
+//  $Id: daqevt.C,v 1.132 2008/09/17 11:51:10 choutko Exp $
+#ifdef __CORBA__
+#include <producer.h>
+#endif
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -202,7 +205,7 @@ integer DAQEvent::KIFiles=0;
 char * DAQEvent::ofnam=0;
 fstream DAQEvent::fbin;
 fstream DAQEvent::fbout;
-
+uinteger DAQEvent::_NeventsO=0;
 
 void DAQEvent::setfile(const char *ifile){
 if(ifnam[0])delete [] ifnam[0];
@@ -858,6 +861,7 @@ void DAQEvent::write(){
   if(_Length){
     _convert();
     fbout.write((char*)_pData,sizeof(_pData[0])*_Length);
+    _NeventsO++;
    // Unfortunately we shoulf flush output for each event
    //
    fbout.flush();
@@ -948,7 +952,7 @@ unexpected:
      if(fbin.good() && !fbin.eof()){
       if(_create()){
 //       fbin.seekg(integer(fbin.tellg())-2*sizeof(_pData[0]));
-       int off=-2*sizeof(_pData[0]);
+       int off=-2*int(sizeof(_pData[0]));
        fbin.seekg(off,ios::cur);
        fbin.read(( char*)(_pData),sizeof(_pData[0])*(_Length));
        _convert();
@@ -977,7 +981,7 @@ void DAQEvent::select(){
           DAQEvent daq;
            int ok;
          while(ok=daq.read()){
-          if(daq.eventno() >=0 && daq.runno() == SELECTFFKEY.Run &&
+          if(daq.runno() == SELECTFFKEY.Run &&
          daq.eventno() >= SELECTFFKEY.Event)break;
          daq.shrink();
          }
@@ -1084,7 +1088,7 @@ DAQEvent::InitResult DAQEvent::init(){
 }
 
 
-void DAQEvent::initO(integer run){
+void DAQEvent::initO(integer run,integer eventno,time_t tt){
   enum open_mode{binary=0x80};
   integer mode=DAQCFFKEY.mode;
   if(mode/10 ){
@@ -1097,13 +1101,11 @@ void DAQEvent::initO(integer run){
      if(fbout)fbout.close();
      fbout.clear();
      if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
-#if !defined(__USE_STD_IOSTREAM) && !defined(__STDC_HOSTED__) 
-    if((mode/10)%10 ==1)fbout.open(name,ios::out);
-#else
-    if((mode/10)%10 ==1)fbout.open(name,ios::out);
-#endif
-    if((mode/10)%10 ==2)fbout.open(name,ios::out|ios::app);
+     fbout.open(name,ios::out);
      if(fbout){ 
+#ifdef __CORBA__
+      AMSProducer::gethead()->sendNtupleStart(DPS::Producer::RawFile,name,run,eventno,tt);
+#endif
       static char buffer[12048+1];
       // Associate buffer
 #if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)  || defined(sun) || defined(__ICC__)
@@ -1117,7 +1119,7 @@ void DAQEvent::initO(integer run){
      }
      else{
       cerr<<"DAQEvent::initO-F-cannot open file "<<name<<" in mode "<<mode<<endl;
-      exit(1);
+     throw amsglobalerror("UnableToOpenOutputRawFile",3);
      }
    }
    else {
@@ -1194,6 +1196,17 @@ DAQEventI::~DAQEventI(){
     if(DAQEvent::fbout.is_open())DAQEvent::fbout.close();
 #endif
   }
+}
+
+void DAQEvent::CloseO(integer run,integer eventno,time_t tt){
+    if(DAQEvent::fbout.is_open()){
+      DAQEvent::fbout.close();
+#ifdef __CORBA__
+      AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RawFile,_NeventsO,eventno,tt);
+#endif
+
+
+    }
 }
 
 integer DAQEvent::_create(uinteger btype){

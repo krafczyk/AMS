@@ -116,7 +116,7 @@ module DPS{
     enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown, Allocated,Foreign,Canceled};
     enum DSTStatus{Success,InProgress,Failure,Validated};
     enum RunMode{RILO,LILO,RIRO,LIRO};
-    enum DSTType{Ntuple,EventTag,RootFile};
+    enum DSTType{Ntuple,EventTag,RootFile,RawFile};
     struct TDVTableEntry{
      unsigned long id;
      time Insert;

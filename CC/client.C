@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.40 2008/03/10 20:07:38 choutko Exp $
+//  $Id: client.C,v 1.41 2008/09/17 11:51:08 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -445,6 +445,8 @@ case DPS::Producer::EventTag:
 return "EventTag";
 case DPS::Producer::RootFile:
 return "RootFile";
+case DPS::Producer::RawFile:
+return "RawFile";
 }
 return " ";
 }

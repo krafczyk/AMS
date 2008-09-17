@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.133 2008/08/27 06:38:15 ams Exp $
+# $Id: Monitor.pm,v 1.134 2008/09/17 11:51:13 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -971,7 +971,7 @@ sub getntuples{
     for my $i (0 ... $#sorteddst){
      $#text=-1;
      my $hash=$sorteddst[$i];
-     if($hash->{Type} eq "Ntuple" or $hash->{Type} eq "RootFile"){
+     if($hash->{Type} eq "Ntuple" or $hash->{Type} eq "RootFile" or $hash->{Type} eq "RawFile"){
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
      my $smartsize=$hash->{size};
