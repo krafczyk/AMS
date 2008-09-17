@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.542 2008/09/17 13:19:44 ams Exp $
+# $Id: RemoteClient.pm,v 1.543 2008/09/17 15:05:27 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7007,7 +7007,6 @@ print qq`
          my $rootntuple=$q->param("RootNtuple");
          $buf=~ s/ROOTNTUPLE=\d/ROOTNTUPLE=/;
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
-         $buf=~ s/RUNDIR=/RUNDIR=$path/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          my $cputype=$q->param("QCPUType");
          $buf=~ s/JOB=/CPUTYPE=\"$cputype\" \nJOB=/;
@@ -7015,10 +7014,13 @@ print qq`
          my $ctime=time();
          $buf=~ s/JOB=/SUBMITTIME=$ctime\nJOB=/;
          if($self->{CCT} eq "local"){
+          $tmpb=~ s/\$RUNDIR\/\$RUN/\$RUNDIR/;
+          $buf=~ s/RUNDIR=/RUNDIR=$path/;
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;
          }
          else{
-           $tmpb=~ s/END/SELECT 1=$run 2=$fevent 43=$run 44=$levent \n END/;
+          $buf=~ s/RUNDIR=/CRUNDIR=/;
+          $tmpb=~ s/END/SELECT 1=$run 2=$fevent 43=$run 44=$levent \n END/;
              my @gbc=split "\/", $gbatch;
 
           $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$job  -M -D1 -G$aft -S$stalone/;
@@ -8145,9 +8147,10 @@ anyagain:
          $buf=~ s/PART=/DATASETNAME=$dataset->{name} \nPART=/;
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/;
          $rootntuple=$q->param("RootNtuple");
-         if($buf =~/DAQC 1=10/){
+         if($tmpb =~/DAQC 1=10/){
           $rootntuple=~ s/168=40/168=4000/;
          }
+#         die  " $rootntuple $tmpb"
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          $tmpb=~ s/IOPA \$ROOTNTUPLE\'/IOPA \$ROOTNTUPLE\'\n/;
