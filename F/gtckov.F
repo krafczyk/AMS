@@ -1,4 +1,4 @@
-*  $Id: gtckov.F,v 1.4 2008/09/15 14:16:05 mdelgado Exp $
+*  $Id: gtckov.F,v 1.5 2008/09/17 09:20:41 mdelgado Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
@@ -146,7 +146,6 @@ C.    ------------------------------------------------------------------
 
 ******* IF IN AEROGEL, GET THE INDEX FROM TABLES
          if(testradiator(NUMED).ne.0) then
-            PPHOT=VECT(7)*1e-3
             RIN1=rrtmindex(VECT(1),VECT(2),1e3*cvpwl/VECT(7))
          endif
 ***************************
@@ -386,7 +385,7 @@ C
 
 ******* IF IN AEROGEL, GET THE INDEX FROM TABLES
                  if(testradiator(NUMED2).ne.0) then
-                    RIN1=rrtmindex(VOUT(1),VOUT(2),1e3*cvpwl/VECT(7))
+                    RIN2=rrtmindex(VOUT(1),VOUT(2),1e3*cvpwl/VECT(7))
                  endif
 
 
