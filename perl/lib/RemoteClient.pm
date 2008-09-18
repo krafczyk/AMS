@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.543 2008/09/17 15:05:27 choutko Exp $
+# $Id: RemoteClient.pm,v 1.544 2008/09/18 16:08:40 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1910,7 +1910,7 @@ my $fevt=-1;
                 system($cmd);
                 $failedcp++;
                 $copied--;
-               }
+            }
                $sql = "DELETE ntuples WHERE jid=$run->{uid}";
                $self->{sqlserver}->Update($sql);
                $runupdate = "UPDATE runs SET ";
@@ -12625,7 +12625,7 @@ foreach my $block (@blocks) {
                                $ntstatus,
                                $outputpath,
                                $ntcrc,
-                               $timestamp, 1, 0,$startingrun[21]);
+                               $timestamp, 1, 0,$startingrun[21],$feti,$leti);
 
              print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
              $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
@@ -13496,6 +13496,8 @@ sub insertNtuple {
   my $crcflag  = shift;   # CRC flag
   my $castortime = shift; # last castor copy time
   my $datamc=shift;
+    my $fetime=shift;
+    my $letime=shift;
 #
   my $sql      = undef;
   my $ret      = undef;
@@ -13506,15 +13508,6 @@ sub insertNtuple {
               my @sp2=split '\/',$sp1[1];
               my $buildno=$sp2[0];
 
-  $sql = "SELECT run, path FROM ntuples
-          WHERE jid=$jid AND path like '%$filename%'";
-  $ret = $self->{sqlserver}->Query($sql);
-  if (defined $ret->[0][0]) {
-    $sql = "DELETE ntuples WHERE jid=$jid AND path like '%$filename%'";
-    print "------------- $sql \n";
-    print "------------- $ret->[0][1] \n";
-   $self->{sqlserver}->Update($sql);
-  }
   my $sizemb = $ntsize; # since 01.08 size in mbytes
 #  if ($ntsize > 4000) {
 #    $ntsize = $ntsize;
@@ -13527,19 +13520,28 @@ sub insertNtuple {
     my $paths='/Offline/RunsDir/MC/';
     my $cmd="ln -s $path $paths";
     system($cmd);
-    my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
-    my $fetime=0;
-    my $letime=0;
-    if(defined($ret->[0][0])){
-        $fetime=$ret->[0][0];
-        $letime=$ret->[0][1];
-    }
+#    my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
+#    my $fetime=0;
+#    my $letime=0;
+#    if(defined($ret->[0][0])){
+#        $fetime=$ret->[0][0];
+#        $letime=$ret->[0][1];
+#    }
     $sql="delete from mcfiles where run=$run";
      $self->{sqlserver}->Update($sql);
     $sql=" insert into mcfiles values($run,'$version','$type',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,0,$fetime,$letime,'$paths$run')";
 }
   }
   else{
+  $sql = "SELECT run, path FROM ntuples
+          WHERE jid=$jid AND path like '%$filename'";
+  $ret = $self->{sqlserver}->Query($sql);
+  if (defined $ret->[0][0]) {
+    $sql = "DELETE ntuples WHERE jid=$jid AND path like '%$filename'";
+    print "------------- $sql \n";
+    print "------------- $ret->[0][1] \n";
+   $self->{sqlserver}->Update($sql);
+  }
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',
