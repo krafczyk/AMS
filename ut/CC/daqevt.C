@@ -1,9 +1,10 @@
-//  $Id: daqevt.C,v 1.132 2008/09/17 11:51:10 choutko Exp $
+//  $Id: daqevt.C,v 1.133 2008/09/18 16:07:37 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
 #include <stdio.h>
 #include "daqevt.h"
+#include "trigger102.h"
 #include "event.h"
 #ifdef __WRITEROOT__
 #include "ntuple.h"
@@ -250,6 +251,8 @@ if(fpl == NULL && btype){
   if(init++==0)cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
   return;
 }
+
+
 int16u* pjinj=0;
 integer ntot=0;
 integer ntotm=0;
@@ -263,10 +266,14 @@ while(fpl){
  fpl=fpl->_next;
 }
 
+//
+// Write Out Hard Coded Here:  write only if Level1 Trigger is in DAQ
+//
+_WriteOut=false;
 
 // Make array
 
-if(!ntot)return;
+if(!ntot )return;
 int preset=ntotm?4+5:4;
 _Length=preset+ntot+_OffsetL;
 
@@ -312,6 +319,9 @@ if(ntotm){
     int16u *psafe=_pcur+1;
     fpl->_pgetdata(i,-*(fpl->_plength+i)-1,psafe);
     _pcur=_pcur+*_pcur+_OffsetL;
+    if(Trigger2LVL1::checkdaqid(((*(_pcur-1))&31))){
+      _WriteOut=true;    
+    }
    }
  }
  fpl=fpl->_next;
@@ -858,10 +868,11 @@ void DAQEvent::buildRawStructures(){
 
 
 void DAQEvent::write(){
-  if(_Length){
+  if(_Length && _WriteOut){
     _convert();
     fbout.write((char*)_pData,sizeof(_pData[0])*_Length);
     _NeventsO++;
+    _WriteOut=false;
    // Unfortunately we shoulf flush output for each event
    //
    fbout.flush();
