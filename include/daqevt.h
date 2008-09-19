@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.52 2008/09/18 16:07:37 choutko Exp $
+//  $Id: daqevt.h,v 1.53 2008/09/19 09:14:54 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -59,7 +59,6 @@ protected:
 integer _BufferOwner;
 integer _Checked;
 uinteger _Length;
-bool _WriteOut;
 uinteger _Event;
 uinteger _Run;
 uinteger _RunType;

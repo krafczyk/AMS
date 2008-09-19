@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.133 2008/09/18 16:07:37 choutko Exp $
+//  $Id: daqevt.C,v 1.134 2008/09/19 09:14:54 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -266,10 +266,6 @@ while(fpl){
  fpl=fpl->_next;
 }
 
-//
-// Write Out Hard Coded Here:  write only if Level1 Trigger is in DAQ
-//
-_WriteOut=false;
 
 // Make array
 
@@ -319,9 +315,6 @@ if(ntotm){
     int16u *psafe=_pcur+1;
     fpl->_pgetdata(i,-*(fpl->_plength+i)-1,psafe);
     _pcur=_pcur+*_pcur+_OffsetL;
-    if(Trigger2LVL1::checkdaqid(((*(_pcur-1))&31))){
-      _WriteOut=true;    
-    }
    }
  }
  fpl=fpl->_next;
@@ -868,12 +861,11 @@ void DAQEvent::buildRawStructures(){
 
 
 void DAQEvent::write(){
-  if(_Length && _WriteOut){
+  if(_Length && fbout.is_open()){
     _convert();
     fbout.write((char*)_pData,sizeof(_pData[0])*_Length);
     _NeventsO++;
-    _WriteOut=false;
-   // Unfortunately we shoulf flush output for each event
+   //  should flush output for each event
    //
    fbout.flush();
   }
@@ -1175,7 +1167,6 @@ void DAQEvent::_convertl(int16u & l16){
 
 
 void DAQEvent::_copyEl(){
-   if(DAQCFFKEY.mode/10)write();
 
 
 }

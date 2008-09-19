@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.387 2008/09/17 11:51:10 choutko Exp $
+//  $Id: event.C,v 1.388 2008/09/19 09:14:54 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1090,7 +1090,10 @@ for(int il=0;il<2;il++){
   AMSEvent::gethead()->getheadC("EcalShower",0,2); 
 
 
-   
+    if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
+      DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
+      if(pdaq)pdaq->write();
+    }   
   if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
     AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
     _writeEl();
