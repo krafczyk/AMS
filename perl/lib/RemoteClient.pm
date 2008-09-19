@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.544 2008/09/18 16:08:40 ams Exp $
+# $Id: RemoteClient.pm,v 1.545 2008/09/19 12:28:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2922,6 +2922,7 @@ CheckCite:            if (defined $q->param("QCite")) {
      $#desc=-1;
      my $cite={};
      my @runs=();
+     my @jids=();
      my @submits=();
      my @jobnames=();
      my @datasets=();
@@ -3892,7 +3893,7 @@ CheckCite:            if (defined $q->param("QCite")) {
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
 #- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
-       $sql = "SELECT dataruns.run, jobs.jobname, dataruns.submit FROM dataruns, jobs,datasetsdesc
+       $sql = "SELECT dataruns.run, jobs.jobname, dataruns.submit,dataruns.jid FROM dataruns, jobs,datasetsdesc
                    WHERE dataruns.jid=jobs.jid  AND dataruns.status='Completed'";
                    $sqlmom=" and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname)  AND
                         (datasetsdesc.jobdesc LIKE '%$dataset%' ) ";
@@ -3912,7 +3913,7 @@ CheckCite:            if (defined $q->param("QCite")) {
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
                  FROM dataruns, jobs, datasetsdesc, ntuples
-                   WHERE dataruns.jid=jobs.jid and dataruns.run=ntuples.run  AND dataruns.status='Completed'";
+                   WHERE dataruns.jid=jobs.jid and dataruns.run=ntuples.run  AND dataruns.status='Completed' and dataruns.jid=ntuples.jid";
        $sql=$sql.$sqlmom;
        $sqlNT=$sqlNT.$sqlmom;
 
@@ -3943,10 +3944,11 @@ CheckCite:            if (defined $q->param("QCite")) {
         if (defined $r1->[0][0]) {
          foreach my $r (@{$r1}){
                push @runs,$r->[0];
+               push @jids,$r->[3];
                push @jobnames,$r->[1];
                push @submits,$r->[2];
          }
-        }
+     }
 #
 # Template 'Any', particle (dataset) is defined
 #
@@ -3969,7 +3971,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     FROM dataRuns, Jobs, NTuples
                      WHERE Jobs.DID=$did AND Jobs.JID=dataRuns.JID AND
                             dataRuns.run=Ntuples.run AND
-                            dataRuns.Status='Completed'";
+                            dataRuns.Status='Completed' and dataruns.jid=ntuples.jid";
            if ($q->param("QBuildNum")){
                my @buildNumber= buildnum_string($q->param("QBuildNum"));
                my $buildnum_min = $buildNumber[0];
@@ -4049,7 +4051,6 @@ CheckCite:            if (defined $q->param("QCite")) {
             $sql = $sql.$pps." ORDER BY dataRuns.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY dataRuns.Run";
             my $r1=$self->{sqlserver}->Query($sql);
-            #die " $sql $#{$r1} ";
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
@@ -4234,7 +4235,7 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "<td><b><font color=\"blue\" >File Path </font></b></td>";
     print "</tr>\n";
      my $i =0;
-       foreach my $run (@runs){
+       foreach my $run (@jids){
                if ($accessmode eq "REMOTE") {
                 $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
                 my $r0=$self->{sqlserver}->Query($sql);
@@ -4245,7 +4246,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $jobname = $jobnames[$i];
              my $submit  = localtime($submits[$i]);
              $i++;
-             $sql = "SELECT path From Ntuples WHERE Run=$run";
+             $sql = "SELECT path From Ntuples WHERE jid=$run";
              my $r1=$self->{sqlserver}->Query($sql);
              foreach my $path (@{$r1}) {
              print "<td><b><font color=$color> $path->[0] </font></td></b></font></tr>\n";
