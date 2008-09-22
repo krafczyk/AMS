@@ -38,9 +38,7 @@ endif
 ifdef SLC3system
  RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 endif
-ifdef SLC4system
  RH9add=-pthread $(BIN)ctype.o 
-endif
 
 
 
