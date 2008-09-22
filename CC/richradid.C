@@ -2,9 +2,33 @@
 
 /////////////////////////////////////////////////
 
+geant RichRadiatorTile::LocalIndex(geant dx,geant dy){
+  // In case no fine mesh is available for that tile
+  if(number_of_nodes==0) return index;
+
+  // Use the General RICH frame of reference
+  dx+=position[0];
+  dy+=position[1];
+  float best_index=0;
+  float best_distance=1e6;
+  for(int i=0;i<number_of_nodes;i++){
+    float d=fabs(dx-node_x[i])+fabs(dy-node_y[i]);
+    if(d<best_distance){
+      best_index=node_index[i];
+      best_distance=d;
+    }
+  }
+  
+  return best_index;
+}
+
+
+
+/////////////////////////////////////////////////
+
+
 integer RichRadiatorTileManager::_number_of_rad_tiles=0;
 RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
-
 
 void RichRadiatorTileManager::Init(){  // Default initialization
   if(_number_of_rad_tiles!=0) return; // Not necessary
@@ -30,6 +54,24 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     ReadFromFile(name);
   }
 
+  // Read fine mesh data 
+  UHTOC(RICRADSETUPFFKEY.finemesh_in,50,filename,200);
+  
+  for(int i=200;i>=0;i--){
+    if(filename[i]!=' '){
+      filename[i+1]=0;
+      break;
+    }
+  } 
+  if((RICRADSETUPFFKEY.setup%10)==1){
+    if(filename[0]!='\0') ReadFineMeshFromFile(filename);
+    else{
+      char name[801];
+      sprintf(name,"%s/%s/RichDefaultAGLFineMeshTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      ReadFineMeshFromFile(name);
+    }
+  }
+
 
   // Compute tables
   _compute_tables();  
@@ -38,11 +80,6 @@ void RichRadiatorTileManager::Init(){  // Default initialization
 
 
 void RichRadiatorTileManager::Init_Default(){  // Default initialization
-  if(RICRADSETUPFFKEY.setup!=1){
-    cout<<"RichRadiatorTileManager::Init_Default RICRADSETUPFFKEY.setup!=0 is not longer supported -- forcing default RICRADSETUPFFKEY.setup=1"<<endl;
-    RICRADSETUPFFKEY.setup=1;
-  }
-
   const int agl_boxes_number=11;
   int agl_boxes[agl_boxes_number][agl_boxes_number]={
     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
@@ -341,6 +378,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
     (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/
     (_tiles[_current_tile]->index-1);
+
 } 
 
 
@@ -605,7 +643,7 @@ extern "C" geant getphotons_(geant *charge,geant *min_index,geant *vect,geant *s
 //
 extern "C" geant getmomentum_(geant *index){
   const geant cvpwl=1.2398E-6;  //m*eV=nm*GeV
-  int dummy; 
+  int dummy=0; 
   geant integral=RNDM(dummy);
   
   //
@@ -668,7 +706,7 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
     int tile_number=get_tile_number(x,y);
 
     if(tile_number<0){
-      cout<<"RichRadiatorTileManager::ReadFromFile: Tile at "<<x<<" "<<y<<" is not defined"<<endl;
+      //      cout<<"RichRadiatorTileManager::ReadFromFile: Tile at "<<x<<" "<<y<<" is not defined"<<endl;
       continue;
     }
     
@@ -689,4 +727,90 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
 
 
   data.close();
+}
+
+
+void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
+  cout<<"RichRadiatorTileManager::ReadFineMeshFromFile: reading constants from file"<<endl;
+  fstream data(filename,ios::in); // open  file for reading
+  
+  if(data){
+    cout<<"RichRadiatorTileManager::ReadFineMeshFromFile: "<<filename<<" Opened"<<endl;
+  }else{
+    cerr <<"RichRadiatorTileManager::ReadFineMeshFromFile: missing "<<filename<<endl;
+    exit(1);
+  }
+
+  // First count how many nodes we have
+  float x,y,index;
+  while(!data.eof()){
+    data>> x >> y >> index;
+    if(index<1) continue;
+
+    // Get the tile at the position x,y and 
+    int tile_number=get_tile_number(x,y);
+
+    if(tile_number<0){
+      //      cout<<"RichRadiatorTileManager::ReadFineMeshFromFile: Tile at "<<x<<" "<<y<<" is not defined"<<endl;
+      continue;
+    }
+    
+    _tiles[tile_number]->number_of_nodes++;
+  }
+
+  // Reserve the required heap space 
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    if(!_tiles[i]->number_of_nodes) continue;
+    _tiles[i]->node_x=new float[_tiles[i]->number_of_nodes];
+    _tiles[i]->node_y=new float[_tiles[i]->number_of_nodes];
+    _tiles[i]->node_index=new float[_tiles[i]->number_of_nodes];
+    _tiles[i]->number_of_nodes=0; // Reset it to use it as a counter
+  }
+
+  data.close();
+
+  fstream data_(filename,ios::in); // open  file for reading
+  // Code to read all the stuff
+  while(!data_.eof()){
+    data_>> x >> y >> index;
+    
+    // Get the tile at the position x,y and 
+    int tile_number=get_tile_number(x,y);
+
+    if(tile_number<0){
+      continue;
+    }
+    
+    _tiles[tile_number]->node_x[_tiles[tile_number]->number_of_nodes]=x;
+    _tiles[tile_number]->node_y[_tiles[tile_number]->number_of_nodes]=y;
+    _tiles[tile_number]->node_index[_tiles[tile_number]->number_of_nodes++]=index;
+
+#ifdef __AMSDEBUG__
+    cout<<"Updating tile "<<tile_number<<" with "<< _tiles[tile_number]->number_of_nodes<<endl; 
+#endif
+
+  }
+
+
+  data_.close();
+
+#ifdef __AMSDEBUG__
+  // Check tha the mean umbers are OK
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    if(_tiles[i]->number_of_nodes==0){
+      cout<<"Tile "<<i<<" had no nodes "<<endl;
+    }else{
+      if(!_tiles[i]->node_x){
+	cout<<"Allocation error with tile "<<i<<endl;
+      }else{
+	double sum=0;
+	for(int j=0;j<_tiles[i]->number_of_nodes;j++) sum+=_tiles[i]->node_index[j];
+	cout<<"Tile "<<i<<" Mean index "<<sum/_tiles[i]->number_of_nodes<<" Coarse index "<<_tiles[i]->index<<endl;
+	if(fabs(sum/_tiles[i]->number_of_nodes-_tiles[i]->index)>1e-3)
+	  cout<<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"<<endl<<endl;
+      }
+    }
+  }
+#endif
+
 }

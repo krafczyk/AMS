@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.278 2008/08/01 15:50:44 choutko Exp $
+#  $Id: datacards.doc,v 1.279 2008/09/22 10:00:11 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -134,12 +134,19 @@ R 11  lipznorm[2]                   // LIP charge overall factors (aerogel, NaF)
 
 
 RICSET 
-I 1  setup(1)                    // 0 use a single radiador; 1 use a Naf 
-                                 // radiator in the center and agl all around
+I 1  setup(1)                    // 0 do not use coarse radiator tables.
+	                         // 1 use fine radiator tables
 
 
 I 2  tables_in[50]               // File to load radiator parameters.
                                  // Keep it empty to load default tables
+
+I 52  tables_out[50]             // File to save radiator parameters.
+                                 // Keep it empty to load default tables
+
+I 102  finemesh_in[50]         // File to read finemesh radiator parameters.
+                                // Keep it empty to load default tables
+
 
 //--------------------------------------------------------------------------------
 

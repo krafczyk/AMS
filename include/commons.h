@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.249 2008/09/16 11:41:39 barao Exp $
+//  $Id: commons.h,v 1.250 2008/09/22 10:00:11 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1001,6 +1001,7 @@ public:
 integer setup;  // Allows to choose among several differen geometries
 integer tables_in[50];     // Input file of radiator tables
 integer tables_out[50];    // Output file of radiator tables
+integer finemesh_in[50]; 
 };
 #define RICRADSETUPFFKEY COMMON_BLOCK(RICRADSETUPFFKEY,ricradsetupffkey)
 COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);

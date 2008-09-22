@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.589 2008/09/17 11:51:10 choutko Exp $
+// $Id: job.C,v 1.590 2008/09/22 10:00:12 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -295,6 +295,7 @@ void AMSJob::_sirichdata(){
   RICRADSETUPFFKEY.setup=1;
   VBLANK(RICRADSETUPFFKEY.tables_in,50);
   VBLANK(RICRADSETUPFFKEY.tables_out,50);
+  VBLANK(RICRADSETUPFFKEY.finemesh_in,50);
   FFKEY("RICSET",(float *)&RICRADSETUPFFKEY,sizeof(RICRADSETUPFFKEY_DEF)/sizeof(integer),"MIXED");
 
   RICRECFFKEY.recon[0]=11;   //beta reconstruction

@@ -22,18 +22,24 @@ class RichRadiatorTile{
   double index;
   geant *abs_length;
   geant index_table[RICmaxentries];
-
+  
+  // Fine mesh map
+  int number_of_nodes;
+  float *node_x;
+  float *node_y;
+  float *node_index;
 
   // These are computed a posteriori
   double mean_refractive_index;
   double mean_height;
-  geant LocalIndex(geant dx,geant dy){return index;}
+  //  geant LocalIndex(geant dx,geant dy){return index;}
+  geant LocalIndex(geant dx,geant dy);
   
   // Here we can add all the required histograms
 
  public:
-  RichRadiatorTile(){};
-  ~RichRadiatorTile(){}
+  RichRadiatorTile():number_of_nodes(0),node_x(0),node_y(0),node_index(0){};
+  ~RichRadiatorTile(){if(node_x) delete node_x;if(node_y) delete node_y;if(node_index) delete node_index;}
 
   geant getheight(){return fabs(bounding_box[2][0]-bounding_box[2][1]);}
 
@@ -58,7 +64,7 @@ class RichRadiatorTileManager{
 
   // All the necessary numbers
   static integer _number_of_rad_tiles;       // Number of radiator tiles
-  static RichRadiatorTile **_tiles;           // The tiles themselves
+  static RichRadiatorTile **_tiles;          // The tiles themselves
 
   // Gemetry and alignment
   //  static geant   _alignment[9+3];                    // Alignment parameters:  position (3)+orientation(9) // UNUSED
@@ -84,6 +90,7 @@ class RichRadiatorTileManager{
 
   static void _compute_tables();
   static void ReadFromFile(const char *filename);
+  static void ReadFineMeshFromFile(const char *filename);
  public:
   static void Init();                    // Init geometry and kinds and so on
   //  static void Init_File(char *filename);
