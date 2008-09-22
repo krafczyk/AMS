@@ -773,7 +773,8 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
   // Code to read all the stuff
   while(!data_.eof()){
     data_>> x >> y >> index;
-    
+    if(index<1) continue;    
+
     // Get the tile at the position x,y and 
     int tile_number=get_tile_number(x,y);
 
