@@ -144,7 +144,7 @@ class DAQRichBlock{
   // RAW -> DAQ: uninplemented
   static integer getdaqid(int16u crate);
   static integer getmaxblocks(){return 2;}
-  static integer calcdaqlength(int i){return 0;}
+  static integer calcdaqlength(int i);
   static void builddaq(integer i,integer length,int16u *p);
 
   // Histograms for raw mode

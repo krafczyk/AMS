@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.49 2008/09/16 11:41:39 barao Exp $
+//  $Id: richrec.h,v 1.50 2008/09/24 14:58:08 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -31,7 +31,7 @@ PROTOCCALLSFSUB0(RICHTOFTRACKINIT,richtoftrackinit)
 class AMSRichRawEvent: public AMSlink{
 private:
   integer _channel; // (PMT number-1)*16+window number
-  integer _counts;  // 0 means true, 1 means noise
+  integer _counts;  
   geant   _beta_hit[3];  // Reconstructed betas
 	 
 public:
@@ -43,6 +43,7 @@ public:
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
   integer getchannel() const {return _channel;}
+  integer gainx5() const {return (_status&gain_mode)?1:0;}
   inline geant getpos(integer i){
     RichPMTChannel channel(_channel);
     return i<=0?channel.x():channel.y();

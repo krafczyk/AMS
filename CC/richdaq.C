@@ -479,7 +479,14 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
 	      int mode=channel.gain;                 // High gain
 	      int counts=channel.counts;
 	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
-	      
+
+	      /*
+	      cout<<"ADDING HIT IN COMPRESSED MODE: "<<endl
+		  <<"   PMT GEOM ID "<<channel_geom_number<<endl
+		  <<"   COUNTS  "<<counts<<endl
+		  <<"   HIGH GAIN "<<mode<<endl;
+	      */
+
 	      AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
 					   new AMSRichRawEvent(channel_geom_number,
 							       counts,
@@ -501,6 +508,158 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
 // By the moment we assume that it is reduced mode
 
 
+
+integer DAQRichBlock::calcdaqlength(int jinr_number){
+  // Simply loop through all hits and check if it belongs to jinr_number
+  const int cdps=24;
+  int cdp_used[cdps]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+  AMSRichRawEvent *ptr=(AMSRichRawEvent*)AMSEvent::gethead()->
+    getheadC("AMSRichRawEvent",0);
+
+  // Get CDP range for this block
+  int min_cdp,max_cdp;
+  switch(jinr_number){
+  case 0:
+    min_cdp=0;
+    max_cdp=11;
+    break;
+  case 1:
+    min_cdp=12;
+    max_cdp=23;
+    break;
+  default:
+    cout<<"DAQRichBlock::calcdaqlength -- Unknown block number "<<jinr_number<<endl;
+    return 0;
+    break;
+  }
+  
+  for(;ptr;ptr=ptr->next()){
+    int pmtgeom;
+    int pixelgeom;
+    RichPMTsManager::UnpackGeom(ptr->getchannel(),pmtgeom,pixelgeom);
+    int pmt;
+    int cdp=RichPMTsManager::GetCDPFromGeomPMTId(pmtgeom,pmt);
+
+    if(cdp<min_cdp || cdp>max_cdp) continue;  // Hit does not belong
+                                              // To current block 
+
+    cdp_used[cdp]++;
+  }  
+
+
+  // Compute the total length for this block:
+  int nhits=0;
+  int ncdps=0;
+  for(int i=0;i<cdps;i++){
+    nhits+=cdp_used[i];
+    ncdps+=cdp_used[i]!=0?1:0;
+  }
+
+  int datawords=nhits*2;     // Number of words is 2 per hit 
+  int formatwords=ncdps*2+1; // At least length and status words per CDP + 1 status per block
+
+  
+  return -(datawords+formatwords);  // We return it as a JINF-R Block
+}
+
+
+
+
+void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
+
+  const int PMTs=RICH_PMTperCDP;
+  *(p+length-1)=(JINFId[jinr_number]&31)|(1<<7);// link+compressed mode 
+
+  // Count the non-empty cdps
+  const int cdps=24;
+  int cdp_used[cdps]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+  AMSRichRawEvent *ptr=(AMSRichRawEvent*)AMSEvent::gethead()->
+    getheadC("AMSRichRawEvent",0);
+
+  // Get CDP range for this block
+  int min_cdp,max_cdp;
+  switch(jinr_number){
+  case 0:
+    min_cdp=0;
+    max_cdp=11;
+    break;
+  case 1:
+    min_cdp=12;
+    max_cdp=23;
+    break;
+  default:
+    cout<<"DAQRichBlock::calcdaqlength -- Unknown block number "<<jinr_number<<endl;
+    return;
+    break;
+  }
+
+  
+  for(;ptr;ptr=ptr->next()){
+    int pmtgeom;
+    int pixelgeom;
+    RichPMTsManager::UnpackGeom(ptr->getchannel(),pmtgeom,pixelgeom);
+    int pmt;
+    int cdp=RichPMTsManager::GetCDPFromGeomPMTId(pmtgeom,pmt);
+
+    if(cdp<min_cdp || cdp>max_cdp) continue;  // Hit does not belong
+                                              // To current block 
+
+    cdp_used[cdp]++;
+  }  
+
+  int16u *cdp_p=p;
+
+  // Loop througth cdps, fill the length and status, and the fill the 
+  for(int i=0;i<cdps;i++){
+    if(cdp_used[i]==0) continue;
+
+    *cdp_p=cdp_used[i]*2+1;     // length of CDP block is 1 status word+2 words per hit
+    cdp_p++; // Move pointer to begining of data block
+
+    ptr=(AMSRichRawEvent*)AMSEvent::gethead()->getheadC("AMSRichRawEvent",0);
+    for(;ptr;ptr=ptr->next()){
+      int pmtgeom;
+      int pixelgeom;
+      RichPMTsManager::UnpackGeom(ptr->getchannel(),pmtgeom,pixelgeom);
+      int pmt;  // store the pmt index within CDP
+      int cdp=RichPMTsManager::GetCDPFromGeomPMTId(pmtgeom,pmt);
+      
+      if(cdp!=i) continue;
+
+      // Get physical pixel id
+      int pixel=RichPMTsManager::GetChannelID(pmtgeom,pixelgeom);
+      
+      // Encode channel position
+      int16u data=pmt+PMTs*pixel;+PMTs*16*(ptr->gainx5());
+      *cdp_p=data;
+	
+      // Encode pixel value
+      data=ptr->getcounts()+ptr->getchannelpedestal();
+      data&=0x0FFF;
+      data|=(ptr->gainx5()?1:0)<<12;
+      *(cdp_p+1)=data;
+      cdp_p+=2;      
+
+
+      //      printf("      WRITING HIT GEOM %i ID %x  counts %x\n",ptr->getchannel(),*(cdp_p-2),*(cdp_p-1));
+
+
+    } 
+    int link=-1;
+    for(link=0;link<24;link++) if(Links[jinr_number][link]==i)break;
+    *cdp_p=(link)|(1<<7)|(0x0020); // Status: link+compressed mode+CDP
+    cdp_p++;
+
+  }
+}
+
+
+
+
+
+/**********************************************************
 
 // There is one block per node (CDP) which gives 24 nodes, numbered from 242 to 245
 
@@ -552,3 +711,4 @@ void DAQRichBlock::builddaq(integer block,integer length,int16u *p){
   }
 }
 
+***************************************************************/
