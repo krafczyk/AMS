@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.16 2007/03/29 09:59:02 ams Exp $
+# $Id: NetMonitor.pm,v 1.17 2008/09/24 12:53:33 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -14,6 +14,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
+  excluded=>['pcamsap','pcamsvc'], 
   hostsstat=>[],
   bad=>[],
   badsave=>[],
@@ -38,7 +39,7 @@ my %sfields=(
 $self->{sqlserver}={%sfields,};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.ch 41764874733@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
-
+   #  excluded hosts
     my $mybless=bless $self,$type;
     if(ref($NetMonitor::Singleton)){
         croak "Only Single NetMonitor Allowed\n";
@@ -117,7 +118,17 @@ if(not open(FILE,"<".$self->{hostfile})){
     foreach my $line (@sbuf){
      if($line=~/^\#/){
         next;
+     } 
+     my $found =0;
+     for my $excluded (@{$self->{excluded}}){
+      if($line=~/$excluded/){
+       $found=1;
+       last;
      }
+} 
+     if($found){
+         next;
+    } 
      my @sline=split ' ',$line;
      if($#sline>2){
          my $host=$sline[0].".".$sline[1];
