@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.58 2008/09/12 15:58:50 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.59 2008/09/26 10:23:27 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -96,7 +96,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::_edep2ph=10000.;//(was 8k for old scint)edep(Mev)-to-Photons convertion
   geant TOF2DBc::_adc2q=1.;       // not used (now taken from TFCA #21)
   geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
-  geant TOF2DBc::_tdcscl=50331.;  // max TDC-scale(ns)(21bit*24ps)
+  geant TOF2DBc::_tdcscl=50331.;  // max TDC-scale(ns)((11msb+10lsb)=21bit*24ps)
   geant TOF2DBc::_strflu=0.36;     //
   geant TOF2DBc::_tdcbin[4]={
     0.0244141,                        // LTtime/FTtime/SumHTtime-TDC binning(ns).
@@ -2528,8 +2528,8 @@ void TOF2JobStat::bookhist(){
       }
     }
     
-//    HBOOK1(1095-1098 are used for trigger-hists in trigger102.C  !!!!)
-//    HBOOK1(1099,...    reserved for tofsim02.C internal use !!!!
+//    HBOOK1(1095-1099 are used for trigger-hists in trigger102.C  !!!!)
+//    HBOOK1(1093,...    reserved for tofsim02.C internal use !!!!
 //    HBOOK1(1094,...    reserved for tofsim02.C internal use !!!!
     HBOOK1(1092,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
 
@@ -2670,7 +2670,7 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1066,"SIMU: FTCTrigPat(HT):S2-frequence(L=1,4)",80,0.,80.,0.);
       HBOOK1(1067,"SIMU: BZTrigPat(SHT):S1-frequence(L=1,4)",80,0.,80.,0.);
       HBOOK1(1068,"SIMU: BZTrigPat(SHT):S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1069,"SIMU: TofFtCodes(/0-14/+20/+40/+60->FTC/LEV1/BZ-inp/BZ-accepted)",80,0.,80.,0.);
+      HBOOK1(1069,"SIMU: TofFtCodes(/0-14/+20/+40/+60->FTC/FTClatched/BZ-inp/BZ-accepted)",80,0.,80.,0.);
       HBOOK1(1076,"SIMU: ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
       HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime(when FTC&FTE)",80,-80.,80.,0.);
       HBOOK1(1078,"SIMU: Out-of-width-hit X-excess",50,0.,5.,0.);

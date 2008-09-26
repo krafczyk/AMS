@@ -1338,8 +1338,8 @@ public:
 		    */
   int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch
   int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
-  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4
-  int   TofFlag2;   ///< FTZ(z>=2) LayersPatternCode, <0:noFTZ,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4
+  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):
+  int   TofFlag2;   ///< FTZ(z>=2) LayersPatternCode, <0:noFTZ,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
 
@@ -1350,9 +1350,8 @@ public:
   int   AntiPatt;   ///< Antipatt:(1-8)bits->sectors in coincidence with FastTrigger  
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
-                          M=0/1/2/3->Etot<MipThr / Etot>=MipThr / !=0_LayerMultipl/LayerMultiplOK=>EM  \n
-		               (this is valid for MC only, for RD M=0/1/2/3->FTE:no/yes/in1prj/in2prj) \n
-                          N=3/2/1/0->ShowerAngle=Small(lev1-ok):in2prj/in1prj/in0prj/Unknown                    \n
+		          M=0/1/2/3->FTE(energ=multipl_High):no/no_in1prj@2prj-requir/FTE&in1proj/FTE&in2proj) \n
+                          N=0/1/2/3->LVL1(ShowerAngleSmall):Unknown/in0proj_whenFTEok/in1proj/in2proj       \n
                     */
   unsigned short int EcalPatt[6][3];///< EC DynodesPattern for 6 "trigger"-SupLayers(36dynodes use 36of(3x16)lsbits)
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)

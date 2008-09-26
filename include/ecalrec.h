@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.47 2008/06/26 09:30:00 choumilo Exp $
+//  $Id: ecalrec.h,v 1.48 2008/09/26 10:23:47 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -19,8 +19,9 @@ class AMSEcalRawEvent: public AMSlink{
 private:
   static uinteger StartRun;//first run of the job
   static time_t StartTime;//first run time
-  static uinteger trigfl; // =MN, where M=0/1/2/3->EnerFlag, N=0/1/2->Width(Angle)Flag
-  static uinteger trigconf;//proj. or/and flag for FTEnergy/LVL1Angle(MN, M(N)=2/1=> AND/OR of proj) 
+  static uinteger trigfl;//=MN, M=0/1/2/3->FTE(Ener)Flag=No/1prj@2prj_req/FTE&1Proj/FTE&2proj,
+//                 N=0/1/2/3->LVL1(Angle)Flag=Undef(noFTE)/0prj@FTEfound/OrLVL1/AndLVL1; M&N are masked.
+  static uinteger trigconf;//Proj.OR/AND flag for FTE/LVL1(MN, M(N)=2/1/0=> AND/OR/No of proj) 
   static number trigtm; // ECAL FTE-trig abs. time at JLV1
   static geant trsum;// Trigger sum(dynodes,tempor in gev)
   static geant dynadc[ecalconst::ECSLMX][ecalconst::ECPMSMX];//dynode adc's (ped-subtracted)

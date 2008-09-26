@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.22 2008/07/04 14:06:48 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.23 2008/09/26 10:23:48 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -106,23 +106,23 @@ void AMSLVL1Hist::Book(){
   AddSet("ECAL in LVL1(1)");
   
   _filled.push_back(new TH1F("trigh19","FTE_Flag(if !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh20","Lvl1_Flag(if !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: 0ProjCong(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: undef/0Proj&FTE(1)/1Proj&FTE(1)(2)/2Proj&FTE(1)(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh21","FTE_Flag(GlobFT-OK) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
   _filled[_filled.size()-1]->SetFillColor(6);
   
   _filled.push_back(new TH1F("trigh22","FTE_Flag(if !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   _filled.push_back(new TH1F("trigh23","Lvl1_Flag(if !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: 0ProjConf(1)/1ProjConf(2)/2ProjConf(3)");
+  _filled[_filled.size()-1]->SetXTitle("Flag: undef/0Proj&FTE(1)/1Proj&FTE(1)(2)/2Proj&FTE(1)(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   AddSet("ECAL in LVL1(2)");

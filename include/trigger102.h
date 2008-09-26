@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.24 2008/07/31 14:49:19 choumilo Exp $
+//  $Id: trigger102.h,v 1.25 2008/09/26 10:23:47 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -78,12 +78,12 @@ protected:
    integer _antoamask[ANTI2C::MAXANTI];//=0/1=>And/Or of two LogicSector-sides mask
    integer _antsectmx[2];//two maxlimits on acceptable numb. of fired ANTI-sectors(logical),equat/polar reg.
    integer _ecorand;//Ecal or/and(=1/2)->  of two projections requirements on min. numb. of fired layers
-   integer _ecprjmask;//Ecal proj.mask(lkji: ij=1/0->XYproj active/disabled in FT; kl=same for LVL1(angle)
+   integer _ecprjmask;//Ecal proj. dec-mask(lkji: ij=1/0->XYproj active/disabled in FT; kl=same for LVL1(angle)
 //                      i don't need here ecinmask because already have dynode bad/good status in calib. 
-   integer _globftmask;//global FT sub-triggers mask(i|j|k->FTE|FTZ|FTC)
-   integer _globl1mask;//global LVL1 trigger(phys.branches) mask
-   integer _physbrmemb[8];//Memb.setting for each phys.branche 
-   integer _phbrprescf[8];//Prescaling factors for each phys.branche
+   integer _globftmask;//global FT sub-triggers dec-mask(i|j|k->FTE|FTZ|FTC)
+   integer _globl1mask;//global LVL1 trigger(phys.branches) bit-patt(bitON->BranckIsRequired, oppos.to Lin!)
+   integer _physbrmemb[8];//Requir.Memb. bit-patt. for phys.branches(bitON->MemberIsRequired, oppos.to Lin!) 
+   integer _phbrprescf[8];//Prescaling factors(1,2,...1000) for each phys.branch
   public:
    integer &tofinmask(int il, int ib){return _tofinmask[il][ib];}
    integer &tofinzmask(int il, int ib){return _tofinzmask[il][ib];}
@@ -105,6 +105,7 @@ protected:
    integer &phbrprescf(int br){return _phbrprescf[br];}
    void read();
    void saveRD(int flag);
+   void redefbydc();//MC: redef. some config-pars in memory by DataCards
  };
 //
  class Scalers{//old ones !
@@ -125,13 +126,15 @@ protected:
  integer _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=1(when globFT)
  integer _tofpatt2[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=2(when globFT)
  integer _antipatt; //ANTI: pattern of FT-coincided sectors(logical)
- integer _ecalflag; //ECAL: =<0-> noTrig
+ integer _ecalflag; //ECAL: =MN
+// M=0/1/2/3->FTE(Ener)Flag=No/NoFTE_when_1prj@2prj_req/FTE&1proj(or)/FTE&2proj(and),
+// N=0/1/2/3->LVL1(Angle)Flag=Undef(noFTE)/0prj@FTEfound/OrLVL1/AndLVL1;
  int16u _ectrpatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes) 
  geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev)
  geant _LiveTime;//Live time fraction
  geant _TrigRates[6];//some TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
- uinteger _TrigTime[5];//trig.times:[0]->calibr;[1]->reset's counter;[2]-[3]->40bits(32+8) of 0.64mks counter
-//                                  [4]->DeltaTrigTime(mksec, 2 consecutive events)
+ uinteger _TrigTime[5];//trig.times:[0]->calibr;[1]->reset 24bits counter;[2]-[3]->40bits(32+8)
+//                       of 0.64mks counter; [4]->DeltaTrigTime(mksec, 2 consecutive events)
  static Scalers _scaler;
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LiveTime " << float(_LiveTime)/1000.<<endl;}
@@ -193,8 +196,8 @@ public:
       static int16u getdaqid(int sid){return(nodeids[sid]);}      
       static integer checkdaqid(int16u id);
       static void node2side(int16u nodeid, int16u &sid);
-      static integer calcdaqlength(int i){return 19;}
-      static integer getmaxblocks(){return 2;}
+      static integer calcdaqlength(int i);
+      static integer getmaxblocks();
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
       static void EventBitDump(integer leng, int16u *p, char * message);

@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.32 2008/06/09 12:51:01 choutko Exp $
+//  $Id: antirec02.C,v 1.33 2008/09/26 10:23:27 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -646,8 +646,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //------------
     }//--->endof side loop
 //
-    if(TGL1FFKEY.antisc >= 0)sorand=TGL1FFKEY.antisc;//AntiSidesOrAnd from data-card
-    else sorand=Trigger2LVL1::l1trigconf.antoamask(int(nlogs));//AntiSidesOrAnd for DB
+    sorand=Trigger2LVL1::l1trigconf.antoamask(int(nlogs));//AntiSidesOrAnd from DB/File(already redef by DC)
     if(sorand == 0)
                    trbl[nlogs]=trbs[nlogs][0] & trbs[nlogs][1];// 2-sides AND
     else

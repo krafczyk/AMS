@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.111 2008/09/12 15:58:50 choumilo Exp $
+//  $Id: ecalrec.C,v 1.112 2008/09/26 10:23:27 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -67,15 +67,18 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptrt){
     EcalJobStat::addre(7);
-    ecalftok=ptrt->EcalFasTrigOK();
+    ecalftok=ptrt->EcalFasTrigOK();//JMembPatt's FTE-bit(Lev1-obj; MC:JMembPat EC-bits created by GlobFTpatt&ecprjconf)
     if(ecalftok)EcalJobStat::addre(8);
-    ecalflg=ptrt->getecflag();
-    if(ecalflg>0)EcalJobStat::addre(9);
+    ecalflg=ptrt->getecflag();//ecflag of Lev1-obj(RD:created using JMembPatt, MC:in simu)
+    if(ecalflg>0){
+      EcalJobStat::addre(9);
+      if(ECREFFKEY.reprtf[0]>0)HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+    }
   }
 //
   if(ECREFFKEY.reprtf[0]>0){
    if(ptrt){
-    if(ecalflg>0){
+    if(ecalftok){
       for(int sl=0;sl<6;sl+=2){
         for(int pm=0;pm<36;pm++){
           k=floor(geant(sl)/2);
@@ -88,7 +91,6 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
           if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
         }
       }
-      HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
     }
    }
   }
@@ -546,41 +548,39 @@ void AMSEcalRawEvent::mc_build(int &stat){
     if(dytrc[il+2]>0)npry+=1;
   }
   EcalJobStat::addsr(0);
-  if(dytrsum>ethrmip){
-    trflen=1;//at least MIP(MC only)
-    EcalJobStat::addsr(1);
-  }
-  if(nprx>0 && npry>0){
-    trflen=2;//intermediate state(MC only)
-    EcalJobStat::addsr(2);
+  if(nprx>0 || npry>0){
+    EcalJobStat::addsr(1);//intermediate state
   }
 //
 //---> check FT conditions:
 //
   nlmin=integer(ECALVarp::ecalvpar.rtcuts(4));//min layers/proj (with at least 1 PM>thr in layer)
   integer orand;
-  if(TGL1FFKEY.ecorand>=0)orand=TGL1FFKEY.ecorand;//proj-or/and according to  data-card
-  else orand=Trigger2LVL1::l1trigconf.ecorand();//.............................. DB
+  orand=Trigger2LVL1::l1trigconf.ecorand();//proj-or/and according to DB/File(redef by DC)
   integer prjmsk;
-  if(TGL1FFKEY.ecprjmask>=0)prjmsk=TGL1FFKEY.ecprjmask;//active proj.mask from data-card (mlki)
-  else prjmsk=Trigger2LVL1::l1trigconf.ecprjmask();//.............................DB
+  prjmsk=Trigger2LVL1::l1trigconf.ecprjmask();//active proj.mask(mlki) from DB/File(redef by DC)
   integer ftmsk=prjmsk%100;//(ki->yx)proj.mask for FT-check
-  if(orand==1){//<-OR 
-    if((nprx>=nlmin && ftmsk%10==1) || (npry>=nlmin && ftmsk/10==1)){
-      trflen=2;//ElectroMagneticityFound( =FastTrigger)
-      trigconf=10;
-      EcalJobStat::addsr(3);
+//check proj or/and and set proj-flag for FTE:
+  if((nprx>=nlmin && ftmsk%10==1) && (npry>=nlmin && ftmsk/10==1))trigconf=20;
+  else if((nprx>=nlmin && ftmsk%10==1) || (npry>=nlmin && ftmsk/10==1))trigconf=10;
+  else trigconf=0;
+// check FTE:
+  if(orand==1){//<- reqOR 
+    if((trigconf/10)>=1){
+      trflen=2;//FTE&1proj
+      if((trigconf/10)==2)trflen=3;//FTE&2proj
+      EcalJobStat::addsr(3);//FTE ok
     }
   }
-  else if(orand==2){//<- AND
-    if((nprx>=nlmin && ftmsk%10==1) && (npry>=nlmin && ftmsk/10==1)){
-      trflen=3;//ElectroMagneticityFound( =FastTrigger)
-      trigconf=20;
+  else if(orand==2){//<- reqAND
+    if((trigconf/10)==2){
+      trflen=3;//FTE&2proj
       EcalJobStat::addsr(3);
     }
+    else if((trigconf/10)==1)trflen=1;//no FTE when OR at AND-requirement 
   }
   else{
-    cerr<<"AMSEcalRawEvent::mc_build:Error - Wrong projOR/AND-param. definition!!! "<<orand<<endl;
+    cerr<<"AMSEcalRawEvent::mc_build:Error - Wrong projOR/AND-requirement for FTE!!! "<<orand<<endl;
     exit(1);
   }
   if(ECMCFFKEY.mcprtf>0){
@@ -589,13 +589,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
     if(dytrsum>0)HF1(ECHIST+43,geant(dytrsum),1.);
   }
 //
-//---> check Angle(width) conditions if FT found:
+//---> check LVL1 Angle(width) conditions if FT found:
 //
-  integer l1msk=prjmsk/100;//(ml->yx)proj.mask for Angle-check
+  integer l1msk=prjmsk/100;//(ml->yx)proj.mask for Angle-check(in LVL1)
   number dbx24(-99),dbx46(-99),dbx26(-99),dbxm(-99);
   number dby35(-99),dby57(-99),dby37(-99),dbym(-99);
   int wdxcut,wdycut;//to follow the real electronics logic
-  if(trflen==3){//<-- FT OK
+  if(trflen>=2){//<-- FT OK
     if(dytrc[1]>0 && dytrc[3]>0)dbx24=abs(dycog[1]-dycog[3]);
     if(dytrc[3]>0 && dytrc[5]>0)dbx46=abs(dycog[3]-dycog[5]);
     if(dytrc[1]>0 && dytrc[5]>0)dbx26=abs(dycog[1]-dycog[5])/2;
@@ -624,22 +624,20 @@ void AMSEcalRawEvent::mc_build(int &stat){
       HF1(ECHIST+41,geant(dbym/64),1.);//"64" to view variables in the logic scale
       HF1(ECHIST+42,geant(dbxm/64),1.);
     }
-    if(orand==1){//<-OR
-      if((dbxm<wdxcut && l1msk%10==1) || (dbym<wdycut && l1msk/10==1)){
-        trflwd=2;//EM
-	trigconf+=1;
-        EcalJobStat::addsr(4);
-      }
-      else trflwd=1;//nonEM
+//check proj or/and and set proj-flag for LVL1:
+    if((dbxm<wdxcut && l1msk%10==1) && (dbym<wdycut && l1msk/10==1))trigconf+=2;
+    else if((dbxm<wdxcut && l1msk%10==1) || (dbym<wdycut && l1msk/10==1))trigconf+=1;
+    else trigconf+=0;
+// check LVL1:
+    if((trigconf%10)==2){
+      trflwd=3;//was LVL1-and(=2prj)
+      EcalJobStat::addsr(4);
     }
-    else{//<-AND 
-      if((dbxm<wdxcut && l1msk%10==1) && (dbym<wdycut && l1msk/10==1)){
-        trflwd=3;//EM
-	trigconf+=2;
-        EcalJobStat::addsr(4);
-      }
-      else trflwd=1;//nonEM
+    else if((trigconf%10)==1){
+      trflwd=2;//was LVL1-or(=1prj)
+      EcalJobStat::addsr(4);
     }
+    else trflwd=1;//was FTE, but 0proj
   }//->endof "FT" check
 //
   trigfl=10*trflen+trflwd;//MN, M->EnergyFlag, N->WidthFlag

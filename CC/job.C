@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.591 2008/09/24 14:58:08 mdelgado Exp $
+// $Id: job.C,v 1.592 2008/09/26 10:23:27 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -346,20 +346,20 @@ void AMSJob::_sitrig2data(){
 // --> TOF :
 // 
   TGL1FFKEY.toflc=-99; //(2)required TOF-FastTrigger(Z>=1) LAYERS configuration
-//                     (=0/1/2/3-> accept at least ANY3of4/ALL4/ANYTopBot2of4/LUT1+Top12 layer coincidence)
+//                     (=0/1/2/3-> accept  >=3of4/ALL4/Top&Bot2of4/any2of4 layer coincidence)
 //                      Logically define(if>=0) short set of possible LUT1+LUT2 settings; "-" means
 //                      usage of exactly defined DB settings of LUT1+LUT2
   TGL1FFKEY.tofsc=-99; //(3)required TOF-FT Plane-SIDEs configuration MN
-//                                 (m(n)=0/1-> plane two-sides-AND/OR selection, n->Z>=1, m->Z>=2)
+//                                 (m(n)=0/1-> plane two-sides-AND/OR selection, n->FTC, m->BZ)
   TGL1FFKEY.toflcsz=-99;//(4)required TOF-FTZ(slowZ>=2) LAYERS configuration IJ(J=0/1/2/3-> 
 //                        ->topAND*botAND/topAND*botOR/topOR*botAND/topOR*botOR;
 //                        I=0/1 => "*"=AND/OR. "-" means usage of DB setting 
   TGL1FFKEY.toflcz=-99;//(5)required TOF-BZ(Z>=2 flag for LVL1) LAYERS configuration 
-//                     (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
+//                     (=0/1/2-> accept  >=3of4/ALL4/Top&Bot>=2of4 layer coincidence)
 //                      Logically define(if>=0) short set of possible LUT-BZ settings; "-" means
 //                      usage of exactly defined DB settings of LUT-BZ
-  TGL1FFKEY.tofextwid=-99;//(6) ext.width(ns,top&bot) in SlowZ>=2 logic(if <0 => take indiv.values from DB)
-// 
+  TGL1FFKEY.tofextwid=-99;//(6) ext.width code(top&bot) in FTZ(SlowZ>=2) logic(if <0 => take indiv.values from DB)
+//5_lowsignbits/next5moresignbits=>widthExtentionCodes for TopTOF/BotTOF 
 // --> ANTI :
   TGL1FFKEY.antismx[0]=-99; //(7) max. acceptable fired ANTI-paddles(logical, in equat.region)
   TGL1FFKEY.antismx[1]=-99; //(8) max. acceptable fired ANTI-paddles(logical, in polar.region)
@@ -380,7 +380,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.TheMagCut=0.7;// (14)geom.latitude cut for anti-cut selection(below-#5, above-#6)
 //
 // --> Ecal
-  TGL1FFKEY.ecorand=-99;   //(15) 1/2=>OR/END of 2 proj. requirements on min. layer multiplicity
+  TGL1FFKEY.ecorand=-99;   //(15) 1/2=>OR/END of 2 proj. requirements on min. layer multiplicity(FTE)
   TGL1FFKEY.ecprjmask=-99; //(16) proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
 //
   TGL1FFKEY.Lvl1ConfMCVers=1;//(17)MC def.version number of "Lvl1ConfMC.*" -file

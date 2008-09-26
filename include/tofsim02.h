@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.18 2008/01/07 16:22:25 choumilo Exp $
+//  $Id: tofsim02.h,v 1.19 2008/09/26 10:23:47 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -392,10 +392,10 @@ private:
  static integer _trcodez; //inp. BZ's layer-pattern code(<0-> >=0 -> as trcode, z>=2)
  static integer _trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
  static integer _trpattz[TOF2GC::SCLRS];// Fired bars pattern(z>=2)
- static integer _ftpatt;//general FT components pattern(starting from lsbit:FTC/FTZ/FTE/EXT)
+ static integer _ftpatt;//general FT components bit-pattern(starting from lsbit->FTC/FTZ/FTE/EXT)
  static integer _cpcode;//MN-> FTCP1|FTCP0 flags for lvl1(m(n)=0/1)
  static integer _bzflag;//1/0->BZtrigOK/not
- static number _trtime; //  abs. FTrigger time(ns, input to SFET(A), fix decision-delay included) 
+ static number _trtime; //  abs. FTrigger time(Geant-ns, input to SFET(A), fix decision-delay included) 
  int16u _swid;        // short SW-id(LBBS->Lay|BarBar|Side (as in Tovt MC-obj))
  int _hwidt;// time_hwid: CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
  int _hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), I=1-10) 

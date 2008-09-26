@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.388 2008/09/19 09:14:54 choutko Exp $
+//  $Id: event.C,v 1.389 2008/09/26 10:23:27 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -189,6 +189,7 @@ void AMSEvent::_init(){
   SetTimeCoo(1);
   PosInRun++;
   PosGlobal++;
+  Trigger2LVL1::l1trigconf.redefbydc();//MC: redef some lvl1config-pars by data cards
 }
 
 
@@ -825,7 +826,7 @@ void AMSEvent::_sitofinitevent(){
       }
     }
   }
-//---> set T0's for SFET(A)'s TDCs (desincr. withing its CC(11bits) ovfl-period 2048*25ns=51200ns):
+//---> set T0's for SFET(A)'s TDCs (desincr. withing its CC(11bits) ovfl_period = 2048*25ns=51200ns):
     for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
       for(int sf=0;sf<TOF2GC::SCFETA;sf++){
         TOF2Tovt::TofATdcT0[cr][sf]=2048*number(TOF2DBc::tdcbin(3))*number(RNDM(dummy));//ns
@@ -2199,7 +2200,23 @@ void AMSEvent::_sirichevent(){
 void AMSEvent:: _sitrigevent(){
     Trigger2LVL1::build();//build complete(!) lvl1-obj 
     TriggerLVL302::build();
-
+//below is for LVL1builddaq-test:
+/*
+  int16u tesar[53];
+  tesar[0]=52;
+  int16u * p2wr=&tesar[1];
+  Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr){
+  integer nblocks=Trigger2LVL1::getmaxblocks();
+  cout<<"-----> nblocks="<<nblocks<<endl;
+  integer leng=Trigger2LVL1::calcdaqlength(0);
+  cout<<"       daqleng="<<leng<<endl;
+  Trigger2LVL1::builddaq(0, leng, p2wr);
+  Trigger2LVL1::EventBitDump(leng,tesar,"MC DAQ test-array done:");
+  Trigger2LVL1::buildraw(leng, p2wr);
+  exit(11);
+  }
+*/
 }
 
 //---------------------------------------------------------------

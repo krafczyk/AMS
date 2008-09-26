@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.78 2008/09/12 15:58:50 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.79 2008/09/26 10:23:27 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -597,10 +597,10 @@ void EcalJobStat::printstat(){
   printf(" MC: entries                          : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK    : % 6d\n",mccount[1]);
   printf(" MCTrigBuild: entries                 : % 6d\n",srcount[0]);
-  printf("              Etot>=MIP               : % 6d\n",srcount[1]);
-  printf("              Mult>=Low               : % 6d\n",srcount[2]);
-  printf("              Mult>=EM(FT OK)         : % 6d\n",srcount[3]);
-  printf("              Angle(whenFT) OK        : % 6d\n",srcount[4]);
+  printf("       !=0 TrigHitsMult in any proj   : % 6d\n",srcount[1]);
+  printf("       1proj at 2proj FTE-requir.     : % 6d\n",srcount[2]);
+  printf("       FTE(energy=mult) requir.   OK  : % 6d\n",srcount[3]);
+  printf("       LVL1(Angle) requir.        OK  : % 6d\n",srcount[4]);
   printf(" RECO-entries                         : % 6d\n",recount[0]);
   printf(" GlobFT(FTC|FTZ|FTE|Ext) found at LVL1: % 6d\n",recount[1]);
   printf(" ECAL_FT(FTE) found at LVL1           : % 6d\n",recount[2]);
@@ -682,9 +682,9 @@ void EcalJobStat::bookhist(){
 //      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
 //      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);//not implemented
 //      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
-      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(when ECTrigFlg!=0,valid-stage)",120,1.,121.,0.);
-      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(when ECTrigFlg!=0,valid-stage)",120,1.,121.,0.);
-      HBOOK1(ECHISTR+30,"ECRE: ECTrigger flag(when ECTrigFlg!=0,valid-stage)",40,0.,40.,0.);
+      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(when FTE, valid-stage)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(when FTE, valid-stage)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+30,"ECRE: ECTrigger flag(when ECTrigFlg>0, valid-stage)",40,0.,40.,0.);
       HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,100000.,0.);
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
@@ -932,8 +932,8 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+9,"ECMC: Etot(DynodeTrigSum,mev)",200,0.,100000.,0.);
-      HBOOK1(ECHIST+10,"ECMC: ECTriggerConf(IJ->Energ|Angle Proj-Or(1)/And(2))",30,0.,30.,0.);
-      HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag(IJ->Mult(0-3)|Angle(0-2))",40,0.,40.,0.);
+      HBOOK1(ECHIST+10,"ECMC: ProjConfFlag(IJ->FTE|LVL1 Proj-Or(1)/And(2))",30,0.,30.,0.);
+      HBOOK1(ECHIST+19,"ECMC: TriggerFlag(IJ->FTE|LVL1,0/1(no)/2(1prf)/3(2prj)",40,0.,40.,0.);
       HBOOK1(ECHIST+20,"ECMC: Tot.Anode charge(4subc.sum, pC)",100,0.,20.,0.);
       HBOOK1(ECHIST+21,"ECMC: Max TotAnodeCharge(4subc.sum, pC)",100,0.,1000.,0.);
       HBOOK1(ECHIST+22,"ECMC: Max ADC-H(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
