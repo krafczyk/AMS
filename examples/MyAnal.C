@@ -113,7 +113,7 @@ bool MyAnal::Trigger_Flag() {
         
 // TOF
     int tofok = 0;
-    if (lvl1.TofFlag>=0) tofok = 1; 
+    if (lvl1.TofFlag1>=0) tofok = 1; 
 
 // ECAL
     int ecalok = 0;
