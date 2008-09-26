@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.54 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: trigger102.C,v 1.55 2008/09/26 15:34:19 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2087,7 +2087,7 @@ void Trigger2LVL1::node2side(int16u nodeid, int16u &side){
 }
 integer Trigger2LVL1::calcdaqlength(int i){//imply only compressed format(no evnum in front of block)
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ptr)return 52;
+  if(ptr)return -52;
   else return 0;
 }
 integer Trigger2LVL1::getmaxblocks(){

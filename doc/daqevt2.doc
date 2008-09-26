@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.5 2008/09/16 19:12:04 choutko Exp $
+#  $Id: daqevt2.doc,v 1.6 2008/09/26 15:32:35 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -111,7 +111,8 @@ should have 3 functions
  
  static integer getmaxblocks();      // returns maxblocks
  static integer calcdaqlength(int i);    // i =0 to max blocks-1
-                                     // return data length ==LSubDBl if in JINF mode                                 // return data length== -LSubDBl if in JINJ mode
+                                     // return data length ==LSubDBl if in JINF mode    
+                                    // return data length== -LSubDBl if in JINJ mode
 
  static void builddaq(integer i, integer length, int16u *p);
                                                 

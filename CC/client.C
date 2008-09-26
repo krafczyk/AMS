@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.41 2008/09/17 11:51:08 choutko Exp $
+//  $Id: client.C,v 1.42 2008/09/26 15:34:19 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -41,6 +41,7 @@ else fnam=logdir;
  fnam+=time;
  _fbin.open(fnam,ios::out);
  if(!_fbin){
+    cerr<<"AMSClient::_openLogFile-F-UnableOpenLogFile "<<fnam<<endl;
     AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");
      a+=fnam; 
     FMessage((const char *) a,DPS::Client::CInAbort);
