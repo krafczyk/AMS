@@ -8,13 +8,13 @@
 <p> The suggested way to analyze large samples of AMS data implies using
 two programs: a `steering' program and the analysis program. 
 An example of steering program is 
-<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/run_8daq_8C-source.html">
- run.stlv.C </a>, which will initialize some ROOT stuff, define input and 
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/r_8daqe_8C-source.html">
+ r.daqe.C </a>, which will initialize some ROOT stuff, define input and 
 output files and process (compile+link+execute) the actual 'analysis' program, 
-<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/daq_8C-source.html">
-stlv.C </a>,  containing the "real" stuff.
-Everything works together by doing "root run.stlv.C".  If one wants to run in 
-non-graphic mode and exiting root at the end of processing, do: "root -b -q run.stlv.C".
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/daqe_8C-source.html">
+daqe.C </a>,  containing the "real" stuff.
+Everything works together by doing "root r.daqe.C".  If one wants to run in 
+non-graphic mode and exiting root at the end of processing, do: "root -b -q r.daqe.C".
 
 <p>Another example, including additional AMS utilities, is illustrated by the 
 files <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/run_8MyAnal_8C-source.html">
