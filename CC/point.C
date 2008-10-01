@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.15 2008/08/28 20:33:37 choutko Exp $
+//  $Id: point.C,v 1.16 2008/10/01 09:56:38 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
@@ -188,7 +188,7 @@ void  AMSRotMat::SetRotAngles(double alpha, double beta, double gamma){
 
   nn2[1][0]=0;
   nn2[1][1]=1;
-  nn1[1][2]=0;
+  nn2[1][2]=0;
 
   nn2[2][0]=sin(beta);
   nn2[2][1]=0;
