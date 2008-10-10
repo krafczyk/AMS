@@ -1,4 +1,4 @@
-#  $Id: root02.doc,v 1.8 2008/10/10 07:11:34 choutko Exp $
+#  $Id: root02.doc,v 1.9 2008/10/10 07:18:18 choutko Exp $
 This is AMS02 Root File Description 
 
 
@@ -35,5 +35,9 @@ functions return number of elements of obj xyz should be declared
 int Nxyz() const;
 
 each class should have char * Info(int) function which returns human reaable string of  object content
+ 
+different reconstruction algorithms for the same  functional objects should provide
+their own object names, so the object can be created in parallel with but not limited to debugging purposes.
+ 
  
 
