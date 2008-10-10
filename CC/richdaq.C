@@ -635,10 +635,10 @@ void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
       int16u data=pmt+PMTs*pixel;+PMTs*16*(ptr->gainx5());
       *cdp_p=data;
 	
-      // Encode pixel value
-      data=ptr->getcounts()+ptr->getchannelpedestal();
+      // Encode reduced pixel value
+      data=ptr->getcounts();
       data&=0x0FFF;
-      data|=(ptr->gainx5()?1:0)<<12;
+      data|=(ptr->gainx5()?0:1)<<12;
       *(cdp_p+1)=data;
       cdp_p+=2;      
 
