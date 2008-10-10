@@ -1,4 +1,4 @@
-#  $Id: root02.doc,v 1.7 2003/07/14 07:47:11 choutko Exp $
+#  $Id: root02.doc,v 1.8 2008/10/10 07:11:34 choutko Exp $
 This is AMS02 Root File Description 
 
 
@@ -11,6 +11,29 @@ http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/latex/refman.pdf  (browsable pdf
 
 
 
-root version needed >= 3.05.05
-tested with: 
-/afs/cern.ch/exp/ams/Offline/root/Linux/v3.05.05gcc322
+Guidance for the root classes design:
+
+
+Unless absolutely necessarily:
+No inheritance
+Only 4-byte floats and integer vars
+stl vectors for var arrays
+(multi)dim arrays for fixed arrays
+references via integer indexing
+all aux classes should be defined inside root.h (no external include files )
+
+
+Naming conventions (NO EXCEPTIONS)
+
+root class name must end with R
+reference vector and variable names should start with f. 
+functions which return pointers to objest xyzR should be declared
+xyzR * pxyz(index    ); where index may be null, unsigned int or char as needed 
+---                    indexes    ---------
+int ixyz(index);
+functions return number of elements of obj xyz should be declared
+int Nxyz() const;
+
+each class should have char * Info(int) function which returns human reaable string of  object content
+ 
+

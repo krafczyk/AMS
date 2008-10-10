@@ -382,6 +382,7 @@ FILE_PATTERNS          = root.h \
                          ad.C    \
                          daqe.C  \
                          run.stlv.C \
+                         r.daqe.C \
                          plot.root.doc \
                          plot.root.C \
                          ana.root_cint.C \
