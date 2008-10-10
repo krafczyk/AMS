@@ -354,12 +354,88 @@ DAQCFFKEY.Mode=len%2==0?2:1;
 
 }
 
-void AMSTRDRawHit::builddaq(int n, int16u*p){
-}
+void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
+   int index=0;
+   for(int iudr=0;iudr<trdid::nudr;iudr++){
+     int indexp=0;
+     int len=0;
+     bool first=true;
+     AMSTRDRawHit * ptr=
+     (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",i,2);  
+     int16u amp=0;
+     while(ptr){
+       AMSTRDIdSoft id(ptr->getidsoft());
+       integer ilay=id.getlayer();
+       integer ilad=id.getladder();
+       integer udr=id.getudr();
+        if(udr!=iudr){
+          ptr=ptr->next();
+          continue;
+        }        
+        if(!id.checkstatus(AMSDBc::BAD)){
+         amp+=ptr->getamp();
+        }
+       if(ptr->testlast()){
+        if(amp>0 ){
+         if(first){
+           first=false;
+           indexp=index;
+           index++;
+         }
+          p[index++]=(id.gethaddr())%512;
+          p[index++]=amp;         
+         len+=2;
+        }
+        amp=0;
+       }
+       ptr=ptr->next();
+     }
+     if(len){
+      p[indexp]=len+1;
+      p[index++]=(iudr*4) | 128 ;
+     }
+     if(index>=length){
+      cerr<<"AMSTRDRawHit-E-builddaq-IndexOutOfrange "<<length<<" "<<index<<endl;
+      break; 
+    }
+    }
+    p[index++]=(getdaqid(i)); 
+    if(index!=length){
+      cerr<<"AMSTRDRawHit-E-builddaq-WrongLength "<<length<<" "<<index<<endl;
+    }
+   }
+
 
 integer AMSTRDRawHit::calcdaqlength(integer i){
-
-return 0;
+     integer length=0;
+     integer udra[trdid::nudr]={0,0,0,0,0,0};
+     AMSTRDRawHit * ptr=
+     (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",i,2);  
+     int16u amp=0;
+     while(ptr){
+       AMSTRDIdSoft id(ptr->getidsoft());
+       integer ilay=id.getlayer();
+       integer ilad=id.getladder();
+       integer udr=id.getudr();
+        if(!id.checkstatus(AMSDBc::BAD)){
+         amp+=ptr->getamp();
+        }
+       if(ptr->testlast()){
+        if(amp>0 && udr<trdid::nudr){
+         length+=2;
+         udra[udr]=1;
+        }
+        amp=0;
+       }
+       ptr=ptr->next();
+     }
+     if(length>0){
+       for(int i=0;i<trdid::nudr;i++){
+        if(udra[i])length+=2;
+     }
+     length++;
+    }
+return -length;
 }
 
 void AMSTRDRawHit::_writeEl(){

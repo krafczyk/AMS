@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.13 2008/09/02 14:34:35 choutko Exp $
+//  $Id: trdsim.h,v 1.14 2008/10/10 13:26:27 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -35,6 +35,7 @@ AMSTRDRawHit( const AMSTRDIdSoft & id,integer amp):AMSlink(),_id(id),_Amp(amp){}
 uinteger getid() const {return _id.cmpt();}
 static integer Out(integer status);
 AMSTRDIdSoft & getidsoft()  {return _id;}
+integer  getamp()const {return _Amp;} 
 number  Amp(){return number(_Amp)/TRDMCFFKEY.f2i;} 
 integer operator < (AMSlink & o) const {
   AMSTRDRawHit * p= dynamic_cast<AMSTRDRawHit*>(&o);
@@ -68,7 +69,7 @@ static void sitrdnoise();
  static integer checkdaqidS(int16u id);
  static integer calcdaqlength(integer i);
  
-static void builddaq(int n, int16u* p);
+static void builddaq(int i, int length, int16u* p);
 static void buildraw(int n, int16u*p);
 static void buildrawJ(int n, int16u*p);
 static void updtrdcalib(int n, int16u*p);
