@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.94 2008/08/28 20:33:37 choutko Exp $
+//  $Id: trrawcluster.C,v 1.95 2008/10/12 16:41:57 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -360,30 +360,64 @@ integer AMSTrRawCluster::checkdaqidS(int16u id){
 
 
 void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
+   int index=0;
+   for(int itdr=0;itdr<trid::ntdr;itdr++){
+
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
   getheadC("AMSTrRawCluster",i);
-  integer ltr=0;
-//  *p=getdaqid(i);
-  int16 * p16=(int16*)p;
-  while (ptr){
-   if(!(ptr->TestRawMode()))ltr+=ptr->lvl3format(p16+1+ltr,n-1-ltr,1);
-   ptr=ptr->next();
-  }
-
-
+     int indexp=0;
+     int len=0;
+     bool first=true;
+     while(ptr){
+       AMSTrIdSoft id(ptr->_address);
+       if(id.gettdr()!=itdr){
+         ptr=ptr->next();
+         continue;
+       }
+       if(first){
+         first=false;
+         indexp=index;
+         index++;
+       }
+       p[index++]=ptr->_nelem-1;
+       len+=ptr->_nelem+2;
+       p[index++]=id.getside()?ptr->_strip:ptr->_strip+640;
+       for(int k=0;k<ptr->_nelem;k++)p[index++]=ptr->getamp(k);
+       ptr=ptr->next();
+      }
+      if(!first){
+       p[indexp]=len+1;  
+       p[index++]=128 | (itdr); 
+       if(index>=n){
+        cerr<<"AMSTrRawCluster::builddaq-E-indext too big "<<index<< " "<<n<<endl;       break; 
+       }
+      }
+     }
+      p[index++]=getdaqid(i);
+      if(index!=n){
+        cerr<<"AMSTrRawCluster::builddaq-E-indext wrong length "<<index<< " "<<n<<endl;      
+      }
 }
-
 
 integer AMSTrRawCluster::calcdaqlength(integer i){
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
   getheadC("AMSTrRawCluster",i);
+  int tdra[trid::ntdr]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   integer l=0;
-  if(ptr)l=1;
   while (ptr){
-   if(!(ptr->TestRawMode()) && ptr->_matched())l+=ptr->_nelem+2;
+   AMSTrIdSoft id(ptr->_address);
+     if(id.gettdr()<trid::ntdr){
+        tdra[id.gettdr()]+=ptr->_nelem+2;
+     }
    ptr=ptr->next();
   }
-  return l;
+  for(int k=0;k<trid::ntdr;k++){
+     if(tdra[k]){
+       l+=tdra[k]+2;
+     }
+   }
+   if(l)l++;
+  return -l;
 }
 
 

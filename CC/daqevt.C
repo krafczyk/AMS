@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.134 2008/09/19 09:14:54 choutko Exp $
+//  $Id: daqevt.C,v 1.135 2008/10/12 16:41:57 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -576,7 +576,7 @@ integer DAQEvent::_HeaderOK(){
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
-      if(_Run>=1208965123)TRCALIB.Version=1;
+      if(_Run>=1208965123 || !AMSJob::gethead()->isRealData())TRCALIB.Version=1;
       else TRCALIB.Version=0;
       if(_RunType==Laser && TRCALIB.LaserRun==0){
           TRCALIB.LaserRun=22;
