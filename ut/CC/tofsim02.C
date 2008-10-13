@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.43 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: tofsim02.C,v 1.44 2008/10/13 10:22:48 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -391,8 +391,8 @@ void TOF2Tovt::build()
     bthick=0.5*TOF2DBc::plnstr(6);//half bar-thickness
     cnumo=0;
     TOF2Tovt::inipsh(npshbn,pmplsh); // <---prepare PM sing.electron PulseShape array
-    HBOOK1(1093,"Single electron spectrum,mV",65,0.,13.,0.);
-    HBOOK1(1094,"Spectrum of Sum(Ntest_el) ,mV",80,0.,80.,0.);
+    HBOOK1(1010,"Single electron spectrum,mV",65,0.,13.,0.);
+    HBOOK1(1011,"Spectrum of Sum(Ntest_el) ,mV",80,0.,80.,0.);
     cout<<"====> TOF2Tovt::build: Prepare some SE-spectrum related data..."<<endl;
     bool bprint(0);
     for(int ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//<---prepare SES-params vs Btyp
@@ -412,16 +412,16 @@ void TOF2Tovt::build()
         if(am0<0.)am0=0.;
         am+=am0;
         am2+=am0*am0;
-        if(bprint)HF1(1093,am0,1.);
+        if(bprint)HF1(1010,am0,1.);
       }
-      if(bprint)HPRINT(1093);
+      if(bprint)HPRINT(1010);
       am/=5000.;
       am2/=5000.;
       sesav[ibt]=am;//SE-spectrum average(Ase)
       sesas[ibt]=sqrt(am2-am*am);//SE-spectrum rms(Sse)
       sesrat=sesas[ibt]/sesav[ibt];
       if(bprint)cout<<"      Original SE-specrtum Aver/Sigm="<<sesav[ibt]<<" "<<sesas[ibt]<<" ratio="<<sesrat<<endl;
-      if(bprint)HRESET(1093,hmod);
+      if(bprint)HRESET(1010,hmod);
       if(bprint)cout<<"      Asimpt.spectrum for "<<nsebnd<<" electrons has Aver/Sig="<<
                             (nsebnd*sesav[ibt])<<" "<<(sqrt(geant(nsebnd))*sesas[ibt])<<endl;
       amm=0;
@@ -433,17 +433,17 @@ void TOF2Tovt::build()
           if(am0<0.)am0=0.;
           am+=am0;
         }
-        if(bprint)HF1(1094,am,1.);
+        if(bprint)HF1(1011,am,1.);
         amm+=am;
         amm2+=am*am;
       }
-      if(bprint)HPRINT(1094);
+      if(bprint)HPRINT(1011);
       amm/=2000;
       amm2/=2000;
       amm2=sqrt(amm2-amm*amm);
       if(bprint)cout<<"      True spectrum for "<<nsebnd<<" electrond has Aver/Sig="<<amm<<" "<<amm2<<endl;
       if(bprint){
-        HRESET(1094,hmod);
+        HRESET(1011,hmod);
         cout<<"--------------"<<endl;
       }
     }//--->endof bar-type loop
@@ -730,7 +730,7 @@ void TOF2Tovt::build()
       nhth=TOF2Tovt::SumHTh[ic][sl];
       if(nhth>0){//<-- non-empty slot with SumHTt-hits
 	AMSsortNAGa(TOF2Tovt::SumHTt[ic][sl],nhth);
-	if(TFMCFFKEY.mcprtf[3]>0){
+	if(TFMCFFKEY.mcprtf[3]>1){
           cout<<"     TOF2TovT:SumHT>0:cr/sl_seq="<<ic<<" "<<sl<<" Nhits="<<nhth<<endl;
           for(int ih=0;ih<nhth;ih++)cout<<"       "<<TOF2Tovt::SumHTt[ic][sl][ih]<<endl;
 	}
@@ -738,7 +738,7 @@ void TOF2Tovt::build()
       nhth=TOF2Tovt::SumSHTh[ic][sl];
       if(nhth>0){//<-- non-empty slot with SumSHTt-hits
 	AMSsortNAGa(TOF2Tovt::SumSHTt[ic][sl],nhth);
-	if(TFMCFFKEY.mcprtf[3]>0){
+	if(TFMCFFKEY.mcprtf[3]>1){
           cout<<"     TOF2TovT:SumSHT>0:cr/ssl="<<ic<<" "<<sl<<" Nhits="<<nhth<<endl;
           for(int ih=0;ih<nhth;ih++)cout<<"       "<<TOF2Tovt::SumSHTt[ic][sl][ih]<<endl;
 	}
@@ -1294,7 +1294,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
       if(_nstdc>0){//if counter_side LT-signal exists->create object 
         _sta=0;    
         stat=0;
-	if(TFMCFFKEY.mcprtf[3]>0){
+	if(TFMCFFKEY.mcprtf[3]>1){
           cout<<"  --->TOFTovT-obj created for id="<<idd<<endl;
           cout<<"      nLThits="<<_nstdc<<endl;
           for(int ih=0;ih<_nstdc;ih++)cout<<"      "<<_tstdc[ih]<<endl;;
@@ -1783,7 +1783,7 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
   integer ilay,ibar,j,ntr,idd,id,isd,intrig;
   uinteger sbt,lsbit(1);
   number ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
-  geant cgate,t1,t2,tg1,tg2;
+  geant cgate,t1,t2,tg1,tg2,tgl1,tgl2;
   geant trigb=TOF2DBc::trigtb();
   AMSBitstr trbs;
   AMSBitstr trbi;
@@ -1834,8 +1834,8 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
         crat=tofid.getcrate();//current crate#
         trbs.clatchSPT(crat);//50MHz-clock latch of 1side HT-signal(get long SPTclock-sincronized HT-signal)
         trbs.testbit(i1,i2);
-        t1=i1*trigb;
-        t2=i2*trigb;
+        t1=i1*trigb;//start time of HT lathed pulse
+        t2=i2*trigb;//end....
 	gate.bitclr(1,0);
         ig1=integer(tg1/trigb);
         ig2=integer(tg2/trigb);
@@ -1844,10 +1844,10 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
         gate.bitset(ig1,ig2);//set bits according to FT-time/pulse width(FT-signal)
         gate.clatchSPT(crat);//50MHz-clock latch of Gate-signal(get long SPTclock-sincronized Gate-signal)
         gate.testbit(ig1,ig2);
-        tg1=ig1*trigb;//start-time of sincronized Gate-signal
-        tg2=tg1+TOF2DBc::clkperSPT();//its end-time(only 1 clock-period(20ns) width according to A.Basili !!!)
+        tgl1=ig1*trigb;//start-time of sincronized(latched) Gate-signal
+        tgl2=tgl1+TOF2DBc::clkperSPT();//its end-time(only 1 clock-period(20ns) width according to A.Basili !!!)
 //  (this pulse is a "strobe"(crate-dependent due to clock) made from front-edge of external gate-signal)
-	coinc=(tg2>t1 && tg2<=t2);//check "coincidence" 
+	coinc=(tgl2>t1 && tgl2<=t2);//check "coincidence" of down-edge of Gate-pulse with long HT-pulse
 	if(coinc){//approx.means that gate front-edge is within HT-signal width !!!
           if(isd==0)sbt=lsbit<<ibar;
 	  else sbt=lsbit<<(16+ibar);
@@ -1910,10 +1910,10 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
         gate.bitset(ig1,ig2);//set bits according to FT-time/pulse width(FT-signal)
         gate.clatchSPT(crat);//50MHz-clock latch of Gate-signal(get long SPTclock-sincronized Gate-signal)
         gate.testbit(ig1,ig2);
-        tg1=ig1*trigb;//start-time of sincronized Gate-signal
-        tg2=tg1+TOF2DBc::clkperSPT();//its end-time(only 1 clock-period(20ns) width according to A.Basili !!!)
+        tgl1=ig1*trigb;//start-time of sincronized Gate-signal
+        tgl2=tgl1+TOF2DBc::clkperSPT();//its end-time(only 1 clock-period(20ns) width according to A.Basili !!!)
 //  (this pulse is a "strobe"(crate-dependent due to clock) made from front-edge of external gate-signal)
-	coinc=(tg2>t1 && tg2<=t2);//check "coincidence" 
+	coinc=(tgl2>t1 && tgl2<=t2);//check "coincidence" 
 	if(coinc){
           if(isd==0)sbt=lsbit<<ibar;
 	  else sbt=lsbit<<(16+ibar);
@@ -2368,15 +2368,15 @@ void TOF2RawSide::mc_build(int &status)
 //<---- create TOFRawSide static FTtime-channels array(digitization of FT-time, INCLUDING Anti-slots ):
   number ftcrat,ftslot,ftslots,lev1tms,htim,htims;
   int tdcbin;
-  if(TGL1FFKEY.printfl>1 || TFMCFFKEY.mcprtf[3]>0)cout<<"    Generated FT-signals in crates/slots:"<<endl;
+  if(TGL1FFKEY.printfl>1 || TFMCFFKEY.mcprtf[3]>1)cout<<"    Generated FT-signals in crates/slots:"<<endl;
   for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
     ftcrat=ftrig+rnormx()*TOF2DBc::ftc2cj();//actual FT-time in crate(cr-2-cr jitter)
-    if(TGL1FFKEY.printfl>0 || TFMCFFKEY.mcprtf[3]>0)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
+    if(TGL1FFKEY.printfl>0 || TFMCFFKEY.mcprtf[3]>1)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
     for(int sl=0;sl<TOF2GC::SCFETA;sl++){
       ftslot=ftcrat+rnormx()*TOF2DBc::fts2sj();//actual FT-time in slot(sl-2-sl jitter)
       ftslots=ftslot+TOF2Tovt::TofATdcT0[cr][sl];//add sincronization(CoarseCounter state)
       lev1tms=lev1tm+TOF2Tovt::TofATdcT0[cr][sl];//add sincronization(TrigTimeTagCounter state)
-      if(TGL1FFKEY.printfl>1 || TFMCFFKEY.mcprtf[3]>0){
+      if(TGL1FFKEY.printfl>1 || TFMCFFKEY.mcprtf[3]>1){
         cout<<"---> DigiFT: ssl="<<sl<<" SlotFTtime="<<ftslot<<" sincronized:"<<ftslots<<endl;
         cout<<"     SlotLev1time="<<lev1tm<<" sincronized:"<<lev1tms<<endl;
       }
@@ -2384,7 +2384,7 @@ void TOF2RawSide::mc_build(int &status)
 	                    && TofTdcCorMS::tdccor[cr][sl].truech(5)){//get FTtdc counts in nonlin mode(only TOF)
 	tdcbin=TofTdcCorMS::tdccor[cr][sl].getbin(ftslots,lev1tms,5);
 	if(tdcbin>=0)TOF2RawSide::FTtime[cr][sl][0]=tdcbin;
-	if(TFMCFFKEY.mcprtf[3]>0){
+	if(TFMCFFKEY.mcprtf[3]>1){
           jj=TofTdcCorMS::getbins(ftslots,lev1tms); 
 	  cout<<"      FTtime-bin="<<TOF2RawSide::FTtime[cr][sl][0]<<", nonCor:"<<jj<<endl;
 	}
@@ -2427,8 +2427,8 @@ void TOF2RawSide::mc_build(int &status)
       ntstdc=ptr->getstdc(tstdc);// get number and times of TDC LTtime-hits
       nstdc=0;
       if(TOFBrcalMS::scbrcal[ilay][ibar].SchOK(isd)){//LTtime-ch alive in "MC Seeds" DB
-      if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Check/digitize LT-hits for id="<<idd<<" cr/ssl="<<crat
-                                                             <<" "<<sslot<<" hidt="<<hidt<<endl;
+//      if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Check/digitize LT-hits for id="<<idd<<" cr/ssl="<<crat
+//                                                             <<" "<<sslot<<" hidt="<<hidt<<endl;
 // 0---- young_hits......FT...old_hits ----->time
         for(j=0;j<ntstdc;j++){//       <--- stdc-hits loop ---
           htim=tstdc[j];//LTtime-channel abs.time
@@ -2570,6 +2570,16 @@ void TOF2RawSide::mc_build(int &status)
       if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtraction/suppression)
       fmask[ilay][ibar][isd]=1;//mark fired side
 //
+      if(TFMCFFKEY.mcprtf[3]>0){//<---debug
+	cout<<endl;
+	cout<<"    =====> MC:create TOFRawSide: short swid/hwidt="<<idd<<" "<<hidt<<endl;
+	cout<<"                           hwidq="<<hidq[0]<<" "<<hidq[1]<<" "<<hidq[2]<<" "<<hidq[3]<<endl;
+	cout<<"    nLT-hits="<<nstdc;
+	for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
+	cout<<endl;
+	cout<<"    adca="<<adca<<" nadcd="<<nadcd<<"  dynh="<<adcd[0]<<" "<<adcd[1]<<" "<<adcd[2]<<endl<<endl;
+      }
+//
       AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hidt,hidq,_sta,charge,temT,temC,temP,
 	                           nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));
 //
@@ -2630,7 +2640,81 @@ void TOF2RawSide::mc_build(int &status)
       }//endof non-empty slot check--->
 //
     }//endof sfet-loop--->
-  }//endof crate-loop--->
+//
+    if(TFMCFFKEY.mcprtf[3]>0){//<---FT/sumHT/sumSHT-debug
+      cout<<"<---- TOF2RawSide::mc_build: FT/sumHT/sumSHT report for crate="<<ic+1<<endl;
+      cout<<"    FT-time hits report:"<<endl;
+      for(int isla=0;isla<5;isla++){
+        cout<<"SFETA-slot="<<isla+1<<" hits:"<<endl;
+        cout<<" nhits="<<TOF2RawSide::FThits[ic][isla];
+        for(int ih=0;ih<TOF2RawSide::FThits[ic][isla];ih++)cout<<" "<<TOF2RawSide::FTtime[ic][isla][ih];
+        cout<<endl;
+      }
+      cout<<"    sumHT-time hits report:"<<endl;
+      for(int isla=0;isla<4;isla++){
+        cout<<"SFETA-slot="<<isla+1<<" hits:"<<endl;
+        cout<<" nhits="<<TOF2RawSide::SumHTh[ic][isla];
+        for(int ih=0;ih<TOF2RawSide::SumHTh[ic][isla];ih++)cout<<" "<<TOF2RawSide::SumHTt[ic][isla][ih];
+        cout<<endl;
+      }
+      cout<<"    sumSHT-time hits report:"<<endl;
+      for(int isla=0;isla<4;isla++){
+        cout<<"SFETA-slot="<<isla+1<<" hits:"<<endl;
+        cout<<" nhits="<<TOF2RawSide::SumSHTh[ic][isla];
+        for(int ih=0;ih<TOF2RawSide::SumSHTh[ic][isla];ih++)cout<<" "<<TOF2RawSide::SumSHTt[ic][isla][ih];
+        cout<<endl;
+      }
+    }//endof FT/sumHT/sumSHT-debug --->
+//
+  }//endof crate-loop(ic)--->
+//----------
+  if(TFMCFFKEY.mcprtf[3]>0){//<---trigpatt-debug
+    cout<<"<---- TOF2RawSide::mc_build: TrigPatt report:"<<endl;
+    integer trpat[TOF2GC::SCLRS],trpatz[TOF2GC::SCLRS];
+    TOF2RawSide::getpatt(trpat);
+    cout<<"      TrigPatt report(HT):"<<endl;
+    for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
+      cout<<"   layer="<<il+1<<endl;
+      cout<<"     trpatt="<<hex<<trpat[il]<<dec<<endl;
+      cout<<"      side1-pads:";
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        if((trpat[il]&(1<<ib))>0)cout<<" "<<ib+1;
+      }
+      cout<<endl;
+      if((trpat[il]&(1<<12))>0)cout<<"       other-SPTside CPbit-on";
+      if((trpat[il]&(1<<13))>0)cout<<"       other-SPTside CTbit-on";
+      cout<<endl;
+      cout<<"      side2-pads:";
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        if((trpat[il]&(1<<(16+ib)))>0)cout<<" "<<ib+1;
+      }
+      cout<<endl;
+      if((trpat[il]&(1<<28))>0)cout<<"       other-SPTside CPbit-on";
+      if((trpat[il]&(1<<29))>0)cout<<"       other-SPTside CTbit-on";
+      cout<<endl;
+    }
+//
+    TOF2RawSide::getpattz(trpatz);
+    cout<<"      TrigPatt report(SHT):"<<endl;
+    for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
+      cout<<"   layer="<<il+1<<endl;
+      cout<<"     trpatt="<<hex<<trpatz[il]<<dec<<endl;
+      cout<<"      side1-pads:";
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        if((trpatz[il]&(1<<ib))>0)cout<<" "<<ib+1;
+      }
+      cout<<endl;
+      if((trpat[il]&(1<<12))>0)cout<<"       other-SPTside BZbit-on";
+      cout<<endl;
+      cout<<"      side2-pads:";
+      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        if((trpatz[il]&(1<<(16+ib)))>0)cout<<" "<<ib+1;
+      }
+      cout<<endl;
+      if((trpat[il]&(1<<28))>0)cout<<"       other-SPTside BZbit-on";
+      cout<<endl;
+    }
+  }//endof trigpatt-debug --->
 //
 // ============> fill empty sides with peds (if requested by TFMC 20=1):
 //
@@ -2709,6 +2793,17 @@ void TOF2RawSide::mc_build(int &status)
               nsumsh=0;
 //
               if(TFREFFKEY.relogic[0]==5||TFREFFKEY.relogic[0]==6)_sta=1;//for RD PedCal test (no "ped" subtr/suppr)
+//	      
+              if(TFMCFFKEY.mcprtf[3]>0){//<---debug
+	        cout<<endl;
+	        cout<<"    ==> MC:create Peds:TOFRawSide: short swid/hwidt="<<idd<<" "<<hidt<<endl;
+	        cout<<"                           hwidq="<<hidq[0]<<" "<<hidq[1]<<" "<<hidq[2]<<" "<<hidq[3]<<endl;
+	        cout<<"    nLT-hits="<<nstdc;
+	        for(i=0;i<nstdc;i++)cout<<" "<<stdc[i];
+	        cout<<endl;
+	        cout<<"    adca="<<adca<<" nadcd="<<nadcd<<"  dynh="<<adcd[0]<<" "<<adcd[1]<<" "<<adcd[2]<<endl;
+              }
+//
               AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new TOF2RawSide(idd,hidt,hidq,_sta,charge,
 	                                 temT,temC,temP,
 	                                 nftdc,ftdc,nstdc,stdc,nsumh,sumht,nsumsh,sumsht,adca,nadcd,adcd));

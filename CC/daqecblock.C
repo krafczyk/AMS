@@ -127,6 +127,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   int16 slots;
   integer bufpnt(0),lbbs;
   uinteger val32;
+  geant padc[3];
 // for class/DownScaled ped-cal
   bool PedCal(false);//means PedCal job, using event-by-event in RawFMT or DownScaled 
   bool DownScal(false);
@@ -275,52 +276,6 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     }
     else if(!dataf && !badtyp){//datatypeok, but notData(Peds ???)
       EcalJobStat::daqs3(crat-1,slot,3);
-//      if(pedbl && slot<=5){//<--- true ped-block
-//	if(eleng==(3*ECEDRC+1)){//<-------- PedTable found
-//          ebias=1;
-//	  EcalJobStat::daqs3(crat-1,slot,5);//PedTable entrie with length OK
-//	  if(ECREFFKEY.relogic[1]==6){//PedTable was requested ==> processing...
-//            if(FirstPedBlk==0){
-//              ECPedCalib::BTime()=AMSEvent::gethead()->gettime();
-//              ECPedCalib::BRun()=AMSEvent::gethead()->getrun();
-//              ECPedCalib::resetb();
-//            }
-//            PedBlkOK=true;
-//            while(ebias<eleng){//<---- EDR-words loop (3*243 ADC-values)
-//              word=*(p+jbias+ebias);//ped, ADC-value(multiplied by 16 in DSP)
-//              nword=*(p+jbias+ebias+1);//sig, ADC-value(multiplied by 16 in DSP)
-//              nnword=*(p+jbias+ebias+2);//stat, x16 ???
-//	      rdch=(ebias-1)/3;//0-242
-//	      AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
-//	      swid=ecid.getswid();//long sw_id=LTTPG
-//              ped=geant(word&0xFFFF)/16;//tempor
-//              sig=geant(nword&0xFFFF)/16;//tempor
-//              sts=nnword;//tempor 1/0->bad(empty)/ok
-//	      ECPedCalib::filltb(swid, ped, sig, sts);//tempor
-//	      ebias+=3;
-//	    }//--->endof EDR-words loop(PedTable)
-//            if(PedBlkOK)PedBlkCrat[crat-1][slot]=1;//mark good processed crate
-//            TotPedBlks+=1;//counts tot# of processed PedBlocks
-//            FirstPedBlk=1;
-//               call DB- and pedfile-writing if last :
-//            if(TotPedBlks==(ECRT*ECEDRS)){//<---last(12th) ped-block processed
-//              nblkok=0;
-//              for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(PedBlkCrat[i][j]==1)nblkok+=1;
-//              if(nblkok==(ECRT*ECEDRS)){// all found blocks OK
-//	        ECPedCalib::outptb(ECCAFFKEY.pedoutf);//0/1/2->noactions(only_histos)/write2db+file/write2file
-//	      }
-//              TotPedBlks=0;//be ready for next calib.blocks sequence
-//              FirstPedBlk=0;
-//              for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)PedBlkCrat[i][j]=0;
-//            }//---<endof "last PedBlock processed"
-//	  }//--->endof PedTable processing
-//          goto NextBlock;//next block
-//	}//--->endof length-ok check
-//	else{
-//          EcalJobStat::daqs1(34+crat-1);//<=== count JINF's bad ped-block len
-//	  goto BadExit;//bad ped-block length - fatal
-//	}
-//      }//--->endof true pedblock
       goto NextBlock;//not peds ??? skip block
     }//--->endof datatype-ok, but nonData(peds ???)
 //
@@ -593,7 +548,7 @@ NextBlock:
 //----------------------------> scan swch-buffers and create RawEvent-Objects:
 //
   integer sswid,swidn,sswidn,shwid,subtrped,sta;
-  geant peda,siga,pedd,sigd,athr,dthr,padc[3],adca,adcd;
+  geant peda,siga,pedd,sigd,athr,dthr,adca,adcd;
 //
   athr=ECALVarp::ecalvpar.daqthr(0);//daq-thr. for anode(hi/low)
   dthr=ECALVarp::ecalvpar.daqthr(4);//daq-thr. for dynode
@@ -673,6 +628,7 @@ NextBlock:
       }//-->endof switch
     }//-->endof "!=0 LTTPG found"
 //
+//
     if(sswid!=sswidn){//new/last LTTP found -> create RawEvent for current LTTP(i.e. all gains for given pixel)
 // (after 1st swid>0 sswid is = last filled LTTP, sswidn is = LTTP of next nonempty channel or =9999)
 //General: it is implied that given pixel info(ah/al/d) is always contained within one slot(EDR)
@@ -686,6 +642,7 @@ NextBlock:
 	if(PedSubt[aslt-1])sta=0;//ok(normal RawEvent object with subtracted ped)
 	else sta=1;//NOW it is flag for Validate-stage that Peds was not subtracted !!!
         padc[2]=0;//no valid Dyn-info in RawEvent for the moment(will be added in Validation)
+//
         if(AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",crat-1),
                  new AMSEcalRawEvent(sswid,sta,csid,padc)))crsta=1;
       }
@@ -693,14 +650,17 @@ NextBlock:
         padc[i]=0;
       }
     }//-->endof next/last LTTP check
+//
   }//-->endof scan
+//----------------
 //
   if(ECREFFKEY.reprtf[2]>1){//debug-prints
     cout<<"===> Fired Dynodes map after processing of crate="<<crat<<":"<<endl;
     cout<<"           (reading direction: pm=1--->pm=36)"<<endl<<endl;
     for(slay=0;slay<ECSLMX;slay++){
       for(pmt=0;pmt<ECPMMX;pmt++){
-        cout<<setw(6)<<setprecision(1)<<AMSEcalRawEvent::getadcd(slay,pmt)<<" ";
+        adcd=AMSEcalRawEvent::getadcd(slay,pmt);
+        cout<<adcd<<" ";
         if(pmt==17)cout<<endl;
       }
       cout<<endl<<endl;
@@ -1015,7 +975,221 @@ void DAQECBlock::EventBitDump(integer leng, int16u *p, char * message){
 }//
 //------------------------------------
 integer DAQECBlock::getmaxblocks(){return 2;}//only one JINF per crate is implied(no redundancy)
-integer DAQECBlock::calcblocklength(integer ibl){return 0;}
+//---
+integer DAQECBlock::calcblocklength(integer ibl){
+//calc. JINF-block length from MD-data
+  int i,j,k;
+  integer id,idd;
+  integer nqwords(0),nwords(0);
+  int16u nwslot[ECEDRS];
+  int16u isl,pmt,pix,gain,crate,slot,stat;
+  geant padc[3],adcd;
+  AMSEcalRawEvent * ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                                     getheadC("AMSEcalRawEvent",ibl,0);
+  for(i=0;i<ECEDRS;i++)nwslot[i]=0;
+//count anodes:
+  while(ptr){ // <--- RawEvent-hits loop in crate ibl:
+    isl=ptr->getslay();//suplayer:0,...8 
+    id=ptr->getid();//LTTP
+    idd=id/10;
+    pix=id%10-1;//Pixel(0-3) for anodes
+    pmt=idd%100-1;//pmTube(0-...35)
+    ptr->getpadc(padc);
+    if(padc[0]>0 || padc[1]>0){
+      gain=0;//slot# is the same for gain=0/1 channels
+      AMSECIds ecid(isl,pmt,pix,gain,0);
+      slot=ecid.getslot();//0-5 -> EDRs
+      if(padc[0]>0)nwslot[slot]+=1;//pix hi-gain
+      if(padc[1]>0)nwslot[slot]+=1;//pix low-gain
+    }
+    ptr=ptr->next();  
+  } // ---> end of RawEvent-hits loop in crate
+//count dynodes:
+  for(isl=0;isl<ECSLMX;isl++){//SupLayers loop
+    for(pmt=0;pmt<ECPMMX;pmt++){
+      adcd=AMSEcalRawEvent::getadcd(isl,pmt);//extract Dynode
+      if(adcd>0){
+        gain=0;
+        pix=4;
+        AMSECIds ecid(isl,pmt,pix,gain,0);
+	crate=ecid.getcrate();//0,1
+	slot=ecid.getslot();//0-5 for edrs
+	if(crate==ibl)nwslot[slot]+=1;
+      }
+    }
+  }
+//for(i=0;i<ECEDRS;i++)cout<<nwslot[i]<<" ";
+//cout<<endl;
+//
+  for(isl=0;isl<ECEDRS;isl++){//count EDR's words
+    if(nwslot[isl]>0){
+      nwords+=2*nwslot[isl];//adc-ch# + adc-value words
+      nwords+=2;//nwords word + edr-status
+    }
+  }
+//
+  nwords+=9;//add etrg-block words (7data + leng +status)
+  nwords+=1;//JINF status
+//
+  return -nwords;//JINJ-readout
+}
+//---
 void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
-  int leng=*p;
+//create JINF-block from MC-data
+  int i,j,k;
+  integer sta,id,idd;
+  int16u isl,pmt,pix,gain,crate,slot,chan,stat;
+  geant padc[3];
+  integer swid;
+  geant peda,pedd,adca,adcd;
+  int16u trpatt[6][3];//dyn.trig.patt([6]=>suplayers:2-7; [3]=>3x16bits used for triggered dynodes)
+  AMSEcalRawEvent * ptr;
+  int16u edrbuf[ECEDRS][ECEDRC];
+  int16u nwslot[ECEDRS];
+  ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                       getheadC("AMSEcalRawEvent",ibl,0);
+  for(i=0;i<ECEDRS;i++){
+    nwslot[i]=0;
+    for(j=0;j<ECEDRC;j++){
+      edrbuf[i][j]=0;
+    }
+  }
+//--->extract anodes:
+
+  while(ptr){ // <--- RawEvent-hits loop in crate:
+    isl=ptr->getslay();//suplayer:0,...8
+    id=ptr->getid();//LTTP
+    idd=id/10;
+    pix=id%10-1;//Pixel(0-3)
+    pmt=idd%100-1;//pmTube(0-...35)
+    ptr->getpadc(padc);
+    sta=ptr->getstatus();
+    if(padc[0]>0){//pix hi-gain
+      gain=0;
+      AMSECIds ecid(isl,pmt,pix,gain,0);
+      chan=ecid.getrdch();//0-242
+      slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
+      crate=ecid.getcrate();
+      peda=ECPMPeds::pmpeds[isl][pmt].ped(pix,gain);//current Aped
+      edrbuf[slot][chan]=int16u(floor((padc[0]+peda-0.5)*16));
+      nwslot[slot]+=1;
+    }
+    if(padc[1]>0){//pix low-gain
+      gain=1;
+      AMSECIds ecid(isl,pmt,pix,gain,0);
+      chan=ecid.getrdch();//0-242
+      slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
+      crate=ecid.getcrate();
+      peda=ECPMPeds::pmpeds[isl][pmt].ped(pix,gain);//current Aped
+      edrbuf[slot][chan]=int16u(floor((padc[1]+peda-0.5)*16));
+      nwslot[slot]+=1;
+    }
+    ptr=ptr->next();  
+  } // ---> end of RawEvent-hits loop in crate
+//--->extract dynodes:
+  for(isl=0;isl<ECSLMX;isl++){//SupLayer loop
+    for(pmt=0;pmt<ECPMMX;pmt++){
+      adcd=AMSEcalRawEvent::getadcd(isl,pmt);//extract Dynode
+      if(adcd>0){
+        gain=0;
+        pix=4;
+        AMSECIds ecid(isl,pmt,pix,gain,0);
+        chan=ecid.getrdch();//0-242
+        slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
+        crate=ecid.getcrate();//0,1
+        if(crate==ibl){
+          nwslot[slot]+=1;
+          pedd=ECPMPeds::pmpeds[isl][pmt].pedd();//current Dped
+          edrbuf[slot][chan]=int16u(floor((adcd+pedd-0.5)*16));
+        }
+      }
+    }
+  }
+//cout<<"----> BuilBlock: found Anode&Dynode Hits/slot"<<endl;
+//for(i=0;i<ECEDRS;i++)cout<<nwslot[i]<<" ";
+//cout<<endl;
+//--->extract ETRG info:
+  int16u val16,ibit,slay,slid,trppmt;
+  int16u trpbuf[7];
+//
+  crate=ibl+1;//1-2
+  for(int16u iwd=0;iwd<7;iwd++){// 7 ETRG-words loop
+    val16=0;//
+    for(int16u ibt=0;ibt<16;ibt++){
+      ibit=16*iwd+ibt;//0-111(really used 0-107(3sl*36pm),108(XA),109(XF))
+      slay=ibit/36;//0-2
+      if(crate==1)slay=2*slay;//trig.layers counting: 0,2,4(X-proj,Face B(D))
+      if(crate==2)slay=2*slay+1;//trig.layers counting: 1,3,5(Y-proj,Face A(C))
+      pmt=ibit%36;//0-35
+      if(AMSEcalRawEvent::gettrpbit(slay,pmt)==1)val16|=(1<<ibt);//set bit
+      if(ibit==107)break;
+    }
+    if(iwd==6){//this last word contains Fast/Lev1(angle) decision bits, let's add them
+//add FTE bits:
+      if(crate==1)trppmt=38;//X-pr
+      if(crate==2)trppmt=39;//Y-pr
+      if(AMSEcalRawEvent::gettrpbit(5,trppmt)==1)val16|=(0x8000);//add XF(YF) bit    
+//add LVL1 bits:
+      if(crate==1)trppmt=36;//X-pr
+      if(crate==2)trppmt=37;//Y-pr
+      if(AMSEcalRawEvent::gettrpbit(5,trppmt)==1)val16|=(0x4000);//add XA(YA) bit    
+    } 
+    trpbuf[iwd]=val16;
+  }//--->endof ETRG-words loop
+//
+//--->start to move buffers to outp:
+//->EDRs:
+  integer nwrite(0);
+  for(slot=0;slot<ECEDRS;slot++){//EDR(slot) loop (0-5)
+    if(nwslot[slot]>0){
+      *(p+nwrite)=2*nwslot[slot]+1;//+1 for EDR status word
+      nwrite+=1;
+      for(chan=0;chan<ECEDRC;chan++){
+        if(edrbuf[slot][chan]>0){
+	  *(p+nwrite)=chan;
+          nwrite+=1;
+	  *(p+nwrite)=edrbuf[slot][chan];
+          nwrite+=1;
+	}
+      }
+      slid=AMSECIds::sl2crdid(0,slot);//0=side, slid=-1 if wrong slot(not the case here)
+      stat=(0x8000);//data bit
+      stat|=(0x20);//no further fragmentation
+      stat|=(0x80);//compr.fmt
+      stat|=(slid&(0x1F));//add EDR id
+      *(p+nwrite)=stat;//status word
+      nwrite+=1;
+    }
+  }
+//cout<<"    wrote EDRs 16bwords:"<<nwrite<<endl;
+//->ETRG:
+  *(p+nwrite)=7+1;//block length (+1 for status)
+  nwrite+=1;
+  for(int16u iwd=0;iwd<7;iwd++){// 7 ETRG-words loop
+    *(p+nwrite)=trpbuf[iwd];
+    nwrite+=1;
+  }
+  slot=6;//etrg seq.slot#
+  slid=AMSECIds::sl2crdid(0,slot);//0=side
+  stat=(0x8000);//data bit
+  stat|=(0x20);//no further fragmentation
+  stat|=(0x80);//compr.fmt
+  stat|=(slid&(0x1F));//add ETRG id (22)
+  *(p+nwrite)=stat;//status word
+  nwrite+=1;
+//cout<<"    wrote EDRs+ETRG 16bwords:"<<nwrite<<endl;
+//->JINF stat.word
+  integer portid=DAQECBlock::getportid(int16u(ibl));//12,13
+  slid=int16u(portid&(0x001FL));
+  stat=(0x8000);//data bit
+  stat|=(0x80);//compr.fmt
+  stat|=slid;//add JINF port id
+  *(p+nwrite)=stat;//status word
+  nwrite+=1;
+//
+  if(nwrite!=len){
+    cout<<"<--- DAQECBlock::buildblock:length mismatch, call/intern length="<<len<<" "<<nwrite<<endl;
+    exit(10);
+  }
+//
 }

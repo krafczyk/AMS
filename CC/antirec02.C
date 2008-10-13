@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.33 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: antirec02.C,v 1.34 2008/10/13 10:22:47 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -109,12 +109,16 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     otyp=0;
     AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
     crat=antid.getcrate();
-    slot=antid.getslot();//sequential slot#(0,1,...11)(4 last are fictitious for d-adcs)
-    tsens=antid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
+    slot=antid.getslot();//sequential slot#(0,1,...10)(4 last are fictitious for d-adcs)
+    tsens=antid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!; =link#)
     temp=TOF2JobStat::gettemp(crat,tsens-1);//fast(SFEA) temper. from static array(may be undef for MC or some RD)
     if(AMSJob::gethead()->isRealData())ptr->settemp(temp);
 //   (some value may be still set to undefined in RawSide-obj) 
-    else temp=TOF2Varp::tofvpar.Tdtemp();//set true(DataCard/TDV) def.value for MC
+    else{
+     temp=TOF2Varp::tofvpar.Tdtemp();//get true(DataCard/TDV) def.value for MC
+     ptr->settemp(temp);//set true(DataCard/TDV) def.value for MC
+     TOF2JobStat::puttemp(crat,tsens-1,temp);//just for compatibility
+    }
     chnum=sector*2+isid;//channels numbering
     stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(if PedSubtracted))
     if(stat>0 && ATREFFKEY.relogic==0){
@@ -725,6 +729,12 @@ void Anti2RawEvent::mc_build(int &stat){
           temp=999;//undefined (real/default value will be set at valid-stage)
 	  nftdc=0;//really filled later during validation stage
 	  ftdc[0]=0;
+	  if(ATMCFFKEY.mcprtf<0){
+	    cout<<"=====> Create Anti2RawEvent: swid="<<id<<" adca="<<adca<<endl;
+	    cout<<"       nLThits="<<nhtdc<<"  LThits:";
+	    for(i=0;i<nhtdc;i++)cout<<htdc[i]<<" ";
+	    cout<<endl;
+	  }
           AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,temp,adca,nftdc,ftdc,nhtdc,htdc));//write object
 	}

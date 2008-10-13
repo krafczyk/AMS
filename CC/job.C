@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.595 2008/10/12 16:41:57 choutko Exp $
+// $Id: job.C,v 1.596 2008/10/13 10:22:48 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1230,7 +1230,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[4]=70.;//(22) aver(fixed) globFT decision_time+delay(JLV1-> S-crate, ns) at S-crate
   TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
-  TFREFFKEY.cuts[7]=2.;// (25) T-type def.temperature (see card #29)
+  TFREFFKEY.cuts[7]=10.;// (25) T-type def.temperature (see card #29)
   TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
   TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
 //
@@ -3736,7 +3736,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 //ecal
      
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
-//    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
+    DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
 // rich
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqidnode,&DAQRichBlock::buildrawnode);
@@ -3791,7 +3791,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 //tof + anti 
 
     DAQEvent::addsubdetector(&DAQS2Block::checkblockid,&DAQS2Block::buildraw);
-//    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
+    DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
 
 
 //tracker

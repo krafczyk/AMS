@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.389 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: event.C,v 1.390 2008/10/13 10:22:48 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -776,7 +776,7 @@ void AMSEvent::_siecalinitevent(){
     ptr = AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
-  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
+//  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
 }
 
 void AMSEvent::_sirichinitevent(){
@@ -921,6 +921,8 @@ void AMSEvent::_reecalinitevent(){
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
   }
+//
+  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
 //
   for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalHit
     ptr=AMSEvent::gethead()->add (
@@ -1336,10 +1338,10 @@ void AMSEvent::_reamsevent(){
 
 
 
-  if(AMSJob::gethead()->isReconstruction() )_retrigevent();//add missing parts to existing(!) lvl1-obj
-//                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage
+  if(AMSJob::gethead()->isReconstruction() )_retrigevent();//attach needed subdets parts to existing lvl1-obj
+// copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
 //
-//----> below is a tempor.solution to speadup ped-type calibrations for tof/acc/ecal:
+//----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
 bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);
 bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==5);
 bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
@@ -2200,7 +2202,7 @@ void AMSEvent::_sirichevent(){
 void AMSEvent:: _sitrigevent(){
     Trigger2LVL1::build();//build complete(!) lvl1-obj 
     TriggerLVL302::build();
-//below is for LVL1builddaq-test:
+//below is for LVL1 builddaq-test:
 /*
   int16u tesar[53];
   tesar[0]=52;
@@ -2214,6 +2216,64 @@ void AMSEvent:: _sitrigevent(){
   Trigger2LVL1::builddaq(0, leng, p2wr);
   Trigger2LVL1::EventBitDump(leng,tesar,"MC DAQ test-array done:");
   Trigger2LVL1::buildraw(leng, p2wr);
+  exit(11);
+  }
+*/
+//below is for Tof/Acc builddaq-test:
+/*
+  int16u tesar[1001];
+  integer nblocks,leng;
+  int16u * p2wr=&tesar[1];
+  Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr){
+  nblocks=DAQS2Block::getmaxblocks();
+  cout<<"-----> Total nblocks="<<nblocks<<endl;
+  for(int ibl=0;ibl<nblocks;ibl++){
+    leng=DAQS2Block::calcblocklength(ibl);//<0 due to VC
+    leng=-leng;
+    tesar[0]=int16(leng);
+    cout<<"<----- CalcBlockLeng for crate="<<ibl+1<<" gives blockleng="<<leng<<endl<<endl;
+    if(leng>1000){
+      cout<<"<----- Length too big !!!"<<endl;
+      exit(10);
+    }
+    DAQS2Block::buildblock(ibl,leng,p2wr);
+    DAQS2Block::EventBitDump(leng,tesar,"MC TofAcc-Daq test-array done:");
+    DAQS2Block::buildraw(leng, p2wr);
+  }
+  exit(11);
+  }
+*/
+//below is for ECAL builddaq-test:
+/*
+  integer id,icr;
+  geant padc[3];
+  AMSEcalRawEvent * ptr;
+//
+  int16u tesar[2001];
+  integer nblocks,leng(0);
+  int16u * p2wr=&tesar[1];
+  Trigger2LVL1 *ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptrt){
+  nblocks=DAQECBlock::getmaxblocks();
+  cout<<"-----> Total nblocks="<<nblocks<<endl;
+//----
+  for(int ibl=0;ibl<nblocks;ibl++){
+    leng=DAQECBlock::calcblocklength(ibl);//<0 due to VC
+//
+//
+    leng=-leng;
+    tesar[0]=int16(leng);
+    cout<<"<----- CalculBlockLeng for crate="<<ibl+1<<" gives blockleng="<<leng<<endl<<endl;
+    if(leng>2000){
+      cout<<"<----- Length too big !!!"<<endl;
+      exit(10);
+    }
+    DAQECBlock::buildblock(ibl,leng,p2wr);
+//    DAQECBlock::EventBitDump(leng,tesar,"MC Ecal-Daq test-array done:");
+    DAQECBlock::buildraw(leng, p2wr);
+//
+  }
   exit(11);
   }
 */
@@ -2232,36 +2292,6 @@ void AMSEvent:: _retrigevent(){
 void AMSEvent:: _sitof2event(int &cftr){
   AMSContainer *p;
   int stat,i;
-//
-/*
-   int16u tesarr[250];
-   char fname[80];
-//   strcpy(fname,"/f2users/choumilo/ams02wrk/tof_rfmt_tes1.dat");
-//   strcpy(fname,"/f2users/choumilo/ams02wrk/tof_cfmt_tes1.dat");
-   strcpy(fname,"/f2users/choumilo/ams02wrk/tof_mfmt_tes1.dat");
-   cout<<"Opening DAQ-Format test file: "<<fname<<'\n';
-   ifstream stfile(fname,ios::in|ios::binary); // open file for reading
-   if(!stfile){
-     cout <<"retof2initevent(): missing TOF DAQ-Format test-file "<<fname<<endl;
-     exit(1);
-   }
-   stfile >>hex>> tesarr[0];
-   integer leng=tesarr[0];
-   cout<<"retof2initevent(): test-file has length="<<dec<<leng+1<<endl;
-   if(tesarr[0]>0 && tesarr[0]<250){
-     for(i=1;i<=tesarr[0];i++){
-       stfile >>hex>> tesarr[i];
-     }
-     cout<<dec<<endl;
-     DAQS2Block::buildraw(leng, tesarr);
-     cout<<"retof2initevent(): test-file processed !"<<endl;
-//     exit(10);
-   }
-   else{
-     cout <<"retof2initevent(): 0 or too big test-file "<<fname<<endl;
-     exit(1);
-   }
-*/
 //
   AMSgObj::BookTimer.start("SITOFDIGI");
    AMSgObj::BookTimer.start("TOF:Ghit->Tovt");

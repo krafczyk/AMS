@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.35 2008/06/05 13:28:24 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.36 2008/10/13 10:22:57 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -72,7 +72,7 @@ const integer SCMTYP=5;// number of measurement types(max)(t,q,FTt,SumHTt,SumSHT
 const integer SCAMTS=2;// number of Anode measurements types(actualy t,q) per normal bar/side
 const integer SCHPMTS=3;// number of half-plane measurement types(actually FT,SumHT,sumSHT) per side
 const integer SCDMTS=1;// number of Dynode measurement types(actualy q)
-const integer SCFETA=5;// number of FFET+SFEA card per crate(having temp-sensors)(actual)
+const integer SCFETA=5;// number of SFET+SFEA card per crate(having temp-sensors)(actual)
 //
 const integer DAQSFMX=3;// number of non-empty format types(raw,compressed,mixed)
 //RECO
@@ -84,6 +84,7 @@ const integer SCJSTA=50;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
 const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)
+const integer SCTHMX=max(SCTHMX2,SCTHMX3);
 //
 //      Calibration:
 // TDIF

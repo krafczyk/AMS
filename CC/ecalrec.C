@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.112 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: ecalrec.C,v 1.113 2008/10/13 10:22:48 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -429,6 +429,11 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  nraw+=1;
 	  sta=0;
 	  if(ECREFFKEY.relogic[1]==4)sta=1;//<-Just test for RD class.PedCal (no "ped" subtraction/suppression)
+	  if(ECREFFKEY.reprtf[2]>0){
+	    cout<<"<----- Create MC EcalRawEvent: LTTP="<<id<<" ADCh/l="<<adc[0]<<" "<<adc[1]<<" sta="<<sta<<endl;
+	    cout<<"       crate/slot(edr)/ch="<<ids.getcrate()<<" "<<ids.getslot()<<" chan="<<ids.getrdch()<<endl;
+	    cout<<"       used pedh/l="<<pedh[k]<<" "<<pedl[k]<<endl;
+	  }
           AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ids.getcrate()),
                 new AMSEcalRawEvent(id,sta,0,adc));//side=0(a) for MC
 	}
@@ -465,7 +470,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
       if(ECPMPeds::pmpeds[il][i].DCHisBad() || ECcalib::ecpmcal[il][i].DCHisBad())radc=0;
       if(radc>0){
 	nrawd+=1;
-	id=100*(il+1)+(i+1);// SSPP
+	id=1000*(il+1)+10*(i+1)+5;// LTTP(sLayer|Tube|Pixel=5)
+        AMSECIds ids(id);
+	if(ECREFFKEY.reprtf[2]>0){
+	    cout<<"<----- Add Dyn:LTTP/adc="<<id<<" "<<radc<<" to crate/slot(edr)="<<
+	                                                     ids.getcrate()<<" "<<ids.getslot()
+							     <<" ped="<<pedd<<endl;
+	}
 	dynadc[il][i]=radc;//store in static array of AMSEcalRawEvent class
       }
 //
@@ -486,6 +497,19 @@ void AMSEcalRawEvent::mc_build(int &stat){
     }//-------> end of PM-loop in superlayer
 //
   } // ------------> end of super-layer loop
+//---
+  if(ECREFFKEY.reprtf[2]>1){
+    cout<<endl;
+    cout<<"-----> DynodesMap: "<<endl<<endl;
+    for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
+      for(pm=0;pm<npmmx;pm++){
+        if(dynadc[il][pm]>0)cout<<1<<" ";
+	else cout<<0<<" ";
+      }
+      cout<<endl;
+    }
+    cout<<endl;    
+  }
   if(ECMCFFKEY.mcprtf>0){
     HF1(ECHIST+1,geant(nhits),1.);
     HF1(ECHIST+2,geant(edept),1.);
@@ -560,9 +584,14 @@ void AMSEcalRawEvent::mc_build(int &stat){
   integer prjmsk;
   prjmsk=Trigger2LVL1::l1trigconf.ecprjmask();//active proj.mask(mlki) from DB/File(redef by DC)
   integer ftmsk=prjmsk%100;//(ki->yx)proj.mask for FT-check
+//
+  bool ftex=(nprx>=nlmin && ftmsk%10==1);
+  bool ftey=(npry>=nlmin && ftmsk/10==1);
+  if(ftex)AMSEcalRawEvent::settrpbit(5,38);//set related bits in trig.patt
+  if(ftey)AMSEcalRawEvent::settrpbit(5,39);
 //check proj or/and and set proj-flag for FTE:
-  if((nprx>=nlmin && ftmsk%10==1) && (npry>=nlmin && ftmsk/10==1))trigconf=20;
-  else if((nprx>=nlmin && ftmsk%10==1) || (npry>=nlmin && ftmsk/10==1))trigconf=10;
+  if(ftex && ftey)trigconf=20;
+  else if(ftex || ftey)trigconf=10;
   else trigconf=0;
 // check FTE:
   if(orand==1){//<- reqOR 
@@ -624,9 +653,14 @@ void AMSEcalRawEvent::mc_build(int &stat){
       HF1(ECHIST+41,geant(dbym/64),1.);//"64" to view variables in the logic scale
       HF1(ECHIST+42,geant(dbxm/64),1.);
     }
+//
+    bool angx=(dbxm<wdxcut && l1msk%10==1);
+    bool angy=(dbym<wdycut && l1msk/10==1);
+    if(angx)AMSEcalRawEvent::settrpbit(5,36);//det related bits in trig.patt
+    if(angy)AMSEcalRawEvent::settrpbit(5,37);
 //check proj or/and and set proj-flag for LVL1:
-    if((dbxm<wdxcut && l1msk%10==1) && (dbym<wdycut && l1msk/10==1))trigconf+=2;
-    else if((dbxm<wdxcut && l1msk%10==1) || (dbym<wdycut && l1msk/10==1))trigconf+=1;
+    if(angx && angy)trigconf+=2;
+    else if(angx || angy)trigconf+=1;
     else trigconf+=0;
 // check LVL1:
     if((trigconf%10)==2){
@@ -641,6 +675,23 @@ void AMSEcalRawEvent::mc_build(int &stat){
   }//->endof "FT" check
 //
   trigfl=10*trflen+trflwd;//MN, M->EnergyFlag, N->WidthFlag
+//
+//--->print trigpatt:
+  if(ECREFFKEY.reprtf[2]>1){
+    cout<<"      TrigPattern(slayer=1-6, pmt=1-36):"<<endl<<endl;
+    for(il=0;il<ECSLMX-3;il++){
+      for(pm=0;pm<ECPMMX;pm++){
+        if(AMSEcalRawEvent::gettrpbit(il,pm)>0)cout<<1<<"|";
+        else cout<<0<<"|";
+      }
+      cout<<endl;
+    }
+    cout<<endl;
+    cout<<"FastTrigBits(XF/YF)="<<AMSEcalRawEvent::gettrpbit(5,38)<<" "<<AMSEcalRawEvent::gettrpbit(5,39)<<endl;
+    cout<<"Lvl1TrigBits(XA/YA)="<<AMSEcalRawEvent::gettrpbit(5,36)<<" "<<AMSEcalRawEvent::gettrpbit(5,37)<<endl;
+  }
+  if(ECREFFKEY.reprtf[2]>0)
+                    cout<<"<----- TrigConf/TrigFlg MN(FTE/LV1)="<<trigconf<<" "<<trigfl<<endl<<endl;;    
 //
 //-------> create ECAL fast trigger(FT)-time:
 //

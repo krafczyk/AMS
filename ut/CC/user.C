@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.17 2008/06/05 13:28:16 choumilo Exp $
+//  $Id: user.C,v 1.18 2008/10/13 10:22:48 choumilo Exp $
 #include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
@@ -26,7 +26,7 @@ void AMSUser::InitEvent(){
 }
 
 void AMSUser::Event(){
-  bool glft(0),tofft(0);
+  bool glft(false),tofft(false);
 //------
   if(!AMSJob::gethead()->isCalibration()){
       Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);

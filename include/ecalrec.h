@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.48 2008/09/26 10:23:47 choumilo Exp $
+//  $Id: ecalrec.h,v 1.49 2008/10/13 10:22:57 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -29,7 +29,7 @@ private:
   AMSECIds _id;  // AMSECIds-type id
   integer _aside; // H/W active side#(1-2) 
   integer _idsoft; //short swid=LTTP (L->supLayer(1-9),TT->pmTube(1-36), P->Pixel#(1-4) in pmTube)
-  geant _padc[3];//pulse hights(ADC-counts, ped-subtracted if not PedCal job)[HighGain,LowGain, Dynode]
+  geant _padc[3];//pulse heights(ADC-counts, ped-subtracted if not PedCal job)[HighGain,LowGain, Dynode]
 public:
 
   AMSEcalRawEvent(integer idsoft, integer status, integer side,  
@@ -81,16 +81,19 @@ public:
   static void gettrpatt(int16u patt[6][3]){
     for(int i=0;i<6;i++)for(int j=0;j<3;j++)patt[i][j]=trpatt[i][j];
   }
+  static void cleartrpatt(){
+    for(int i=0;i<6;i++)for(int j=0;j<3;j++)trpatt[i][j]=0;
+  }
   static void settrpbit(int16u sl, int16u pm){
 //                          0-5       0-35
-//"bits" sl=5, pm=36/37/38/39 --> XA/YA/XF/YF-bits in ETRG-map presented by Stefano Di Falco
+//"bits" sl=5, pm=36/37/38/39 --> XA/YA/XF/YF-bits in ETRG-map according to Stefano Di Falco
     int16u word=pm/16;//0-2
     int16u bit=pm%16;//0-15
     trpatt[sl][word]|=(1<<bit);
   }
   static int gettrpbit(int16u sl, int16u pm){
 //                          0-5       0-35
-//"bits" sl=5, pm=36/37/38/39 --> XA/YA/XF/YF-bits in ETRG-map presented by Stefano Di Falco
+//"bits" sl=5, pm=36/37/38/39 --> XA/YA/XF/YF-bits in ETRG-map according to Stefano Di Falco
     int16u word=pm/16;//0-2
     int16u bit=pm%16;//0-15
     if((trpatt[sl][word]&(1<<bit))>0)return(1);

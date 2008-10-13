@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.35 2008/08/28 20:33:37 choutko Exp $
+//  $Id: trigger302.C,v 1.36 2008/10/13 10:22:48 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -1083,7 +1083,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
     if(ttop>0 && tbot>0){
       _flowc[3]+=1;
       dt=ttop-tbot;
-      if(TFREFFKEY.reprtf[2]!=0)HF1(1092,ttop-tbot,1.);
+      if(TFREFFKEY.reprtf[2]!=0)HF1(1020,ttop-tbot,1.);
       if(dt>=1.5)plvl3->settofdir(1);
       else if(dt<-1.5)plvl3->settofdir(-1);
       else plvl3->settofdir(0);

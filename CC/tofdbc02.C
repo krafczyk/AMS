@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.59 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.60 2008/10/13 10:22:48 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2528,11 +2528,11 @@ void TOF2JobStat::bookhist(){
       }
     }
     
-//    HBOOK1(1095-1099 are used for trigger-hists in trigger102.C  !!!!)
-//    HBOOK1(1093,...    reserved for tofsim02.C internal use !!!!
-//    HBOOK1(1094,...    reserved for tofsim02.C internal use !!!!
-    HBOOK1(1092,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
-
+//    HBOOK1(1092-1099 are used for trigger-hists in trigger102.C  !!!!)
+//    HBOOK1(1010,...    reserved for tofsim02.C internal use !!!!
+//    HBOOK1(1011,...    reserved for tofsim02.C internal use !!!!
+    HBOOK1(1020,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
+//   1020-1029 Lev3 hists
     if(TFREFFKEY.reprtf[2]>1){//detaied mode
       HBOOK1(1526,"L=1,Ed_anode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
       HBOOK1(1527,"L=3,Ed_anode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
@@ -2652,6 +2652,9 @@ void TOF2JobStat::bookhist(){
 //-----------------------------
 void TOF2JobStat::bookhistmc(){
     if(TFMCFFKEY.mcprtf[2]!=0){ // Book mc-hist
+//    HBOOK1(1010,...    reserved for tofsim02.C internal use !!!!
+//    HBOOK1(1011,...    reserved for tofsim02.C internal use !!!!
+//    HBOOK1(1020-29,...    reserved for Lev3 !!!!
       HBOOK1(1050,"SIMU: GHits in layer-1",50,0.,50.,0.);
       HBOOK1(1051,"SIMU: GHits in layer-2",50,0.,50.,0.);
       HBOOK1(1052,"SIMU: GHits in layer-3",50,0.,50.,0.);
@@ -2759,11 +2762,7 @@ void TOF2JobStat::outp(){
     HPRINT(1101);
     HPRINT(1102);
 //
-//         HPRINT(1095);
-//         HPRINT(1096);
-//         HPRINT(1097);
-//         HPRINT(1098);
-    HPRINT(1092);
+    HPRINT(1020);
     if(TFREFFKEY.reprtf[2]>1){
       HPRINT(1526);
       HPRINT(1527);

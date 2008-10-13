@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.19 2008/09/26 10:23:47 choumilo Exp $
+//  $Id: tofsim02.h,v 1.20 2008/10/13 10:22:58 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -398,7 +398,7 @@ private:
  static number _trtime; //  abs. FTrigger time(Geant-ns, input to SFET(A), fix decision-delay included) 
  int16u _swid;        // short SW-id(LBBS->Lay|BarBar|Side (as in Tovt MC-obj))
  int _hwidt;// time_hwid: CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
- int _hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), I=1-10) 
+ int _hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), II=1-10) 
  int16u _status;        // channel status (usable/not/ ... --> 0/1/...)
  
  integer _nftdc;//number of FastTrig(FT)-TDC hits, =1 in MC(filled at validation stage !!)
@@ -459,7 +459,6 @@ public:
  void settempT(geant tmp){_tempT=tmp;}
  void settempC(geant tmp){_tempC=tmp;}
  void settempP(geant tmp){_tempP=tmp;}
- integer gettoth(){return integer(_nftdc+_nstdc+_nsumh+_nsumsh+1+_nadcd);}
 
 
  integer getnztdc();
@@ -472,8 +471,10 @@ public:
  integer getnstdc(){return _nstdc;}
  void putstdc(integer nelem, integer arr[]);
  
+ integer getnsumh(){return _nsumh;}
  integer getsumh(integer arr[]);
  void putsumh(integer nelem, integer arr[]);
+ integer getnsumsh(){return _nsumsh;}
  integer getsumsh(integer arr[]);
  void putsumsh(integer nelem, integer arr[]);
   
@@ -483,6 +484,7 @@ public:
  integer getnadcd(){return _nadcd;}
  void putadcd(integer nelem, geant arr[]);
  integer lvl3format(int16 * ptr, integer rest);
+ integer getnqhits(){return _nadcd+1;}
 
 
 

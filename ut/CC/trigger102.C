@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.55 2008/09/26 15:34:19 choutko Exp $
+//  $Id: trigger102.C,v 1.56 2008/10/13 10:22:48 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -63,8 +63,8 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
   TGL1JobStat::addev(0);
 //-----------------------------------------------------------------------------------------
-//=====> RealData:
-  if(AMSJob::gethead()->isRealData()){// <===== add some info to existing DAQ-created lvl1-obj
+//=====> Reconstruction(MCdaq or RDdaq):
+  if(AMSJob::gethead()->isReconstruction()){// <===== add some info to existing DAQ-created lvl1-obj
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
       TGL1JobStat::addev(15);
@@ -130,7 +130,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     return;
   }
 //----------------------------------------------------------------------------------------
-//=====> MC:
+//=====> Simulation:
   else{//<===== create lvl1-obj using subdet.simulated RawEvent objects
 //
     strcpy(mnames[0],"FTC");
@@ -300,12 +300,12 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     integer brand[8];//ANDs of current and preset patterns of phys.branches
     integer brreq[8]; 
     for(i=0;i<8;i++){
-      brreq[i]=Trigger2LVL1::l1trigconf.physbrmemb(i);
+      brreq[i]=Trigger2LVL1::l1trigconf.physbrmemb(i);//16bits patt
       brand[i]=((JMembPatt>>1) & brreq[i]);//">>1" due to extra FTC-bit0 in JMembPatt wrt Request 
     }
 //
 //===> It is implied that globFT is always present, so below requirements are complementary !!!
-//
+// BranchOK[i](i=0,7) means that fired 16bits patt matched with ref.one for given phys.branch "i"
     BranchOK[0]=(brreq[0]>0 && brreq[0]==brand[0]);//unb_tof(ftc)                                
     BranchOK[1]=(brreq[1]>0 && brreq[1]==brand[1]);//Z>=1(ftc, anti)  
     BranchOK[2]=(brreq[2]>0 && brreq[2]==brand[2]);//Z>=2(ftc, bz)                              
@@ -341,7 +341,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     HF1(1098,0.,1.);
     for(i=0;i<8;i++){
       if(BranchOK[i]){
-        HF1(1098,geant(i+1),1.);
+        HF1(1098,geant(i+1),1.);//fired
       }
       if(trtype & 1<<i)nbreq+=1;//count requested branches
     }
@@ -353,11 +353,12 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
     for(i=0;i<16;i++){
       if((JMembPatt&(1<<i))>0){
-        HF1(1095,geant(i+1),1.);
+        HF1(1095,geant(i+1),1.);//fired(unmasked)
       }
     }
 //
-//                         <---- check OR of requested branches(trigger type):
+//
+//                         <---- check OR of requested phys-branches(trigger type):
     int nbchk(0);
     if(trtype ==128){
       comtrok=1;
@@ -378,21 +379,36 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       TGL1JobStat::addev(9);
       if((ratemx<TGL1FFKEY.MaxScalersRate && livetime>TGL1FFKEY.MinLifeTime) || (auxtrpat > 0))
       {
+//---> lvl1-decision taken:
         TGL1JobStat::addev(10);
+//
+        HF1(1093,0.,1.);
+        for(i=0;i<8;i++){
+          if((PhysBPatt&(1<<i))>0)HF1(1093,geant(i+1),1.);//accepted
+        }
+        for(i=0;i<16;i++){
+          if((JMembPatt&(1<<i))>0){
+            HF1(1092,geant(i+1),1.);//accepted
+          }
+        }
+//
         AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
           new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,toftrcode1,toftrcode2,tofpatt1,tofpatt2,
 	                         antipatt,ectrigfl,ectrpatt,ectrsum,livetime,rates,trtime));//create lvl1trig-object
       }
+//<---
       else AMSEvent::gethead()->seterror();
     }
   }//--->endof "MC-data"
 }
 //--------------------
 void Trigger2LVL1::init(){
-  HBOOK1(1095,"LVL1:16-membPatt:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
+  HBOOK1(1095,"LVL1:TrPatt_fired:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
+  HBOOK1(1092,"LVL1:TrPatt_accep:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
   HBOOK1(1096,"LVL1:EC ProjConfig(when FTE&TOF_FT, masked)",30,0.,30.,0.);
   HBOOK1(1097,"LVL1:EC ProjConfig(when FTE, masked, val: M|N=FTE|ANG, M(N)=1/2->or/end_proj)",30,0.,30.,0.);
-  HBOOK1(1098,"LVL1:fired-branches(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+  HBOOK1(1098,"LVL1:PhysBranchPatt_fired(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+  HBOOK1(1093,"LVL1:PhysBranchPatt_accep(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   TGL1JobStat::resetstat();
 }
@@ -1044,7 +1060,9 @@ void TGL1JobStat::printstat(){
   HPRINT(1097);
   HPRINT(1096);
   HPRINT(1095);
+  HPRINT(1092);
   HPRINT(1098);
+  HPRINT(1093);
   printf("\n");
   printf("    ============ LVL1-RDdecoding statistics =============\n");
   printf("\n");
@@ -1083,9 +1101,9 @@ void TGL1JobStat::printstat(){
   printf("    ============ LVL1-RECO statistics =============\n");
   printf("\n");
   printf(" entries(MC/RD)                      : % 6d\n",countev[0]);
-  if(AMSJob::gethead()->isRealData()){
-    printf(" RD: DAQ-created lvl1-obj found      : % 6d\n",countev[15]);
-    printf(" RD: missing patterns added          : % 6d\n",countev[16]);
+  if(AMSJob::gethead()->isReconstruction()){
+    printf(" RD/MC: DAQ-created lvl1-obj found   : % 6d\n",countev[15]);
+    printf("        missing patterns added       : % 6d\n",countev[16]);
   }
   else{
     printf(" MC: globFTriger(incl ext) OK      : % 6d\n",countev[1]);
@@ -1154,7 +1172,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
   uinteger ltim(0);
   geant tgate(1);//default gate 1sec for live time measur.
   int16u rrr,rrr1;
-  int16u setupbs(15),livetbs(47);
+  int16u setupbs(13),livetbs(45);
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
 // 
   if(ptr){
@@ -1193,10 +1211,9 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
     nwords+=3;
 //time-calib reg:
     *(p+11) = int16u(ptr->_TrigTime[0]&0xFFFFL);//16lsb time calibration
-    *(p+12) = int16u((ptr->_TrigTime[0]&0xFFFF0000L)>>16);//16msb ...........  
-    *(p+13) = 0;//dummy  
-    *(p+14) = 0;//dummy, now 15 words in total for ev-by-ev info
-    nwords+=4;
+    *(p+12) = int16u((ptr->_TrigTime[0]&0xFFFF0000L)>>16);//16msb ...........
+    nwords+=2;
+//now 13 words in total for ev-by-ev info      
 //
 //=================================> TrigSetup:
 //
@@ -1316,7 +1333,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
 //======================> Add status word:
     rrr=getdaqid(0);//board side-A node(slave)id (14)
     rrr|=(1<<5);//cdpnode(end of fragmentation)
-    rrr|=(1<<7);//compr.fmt
+    rrr|=(1<<6);//raw.fmt
     rrr|=(1<<15);//data-fragment
     *(p+livetbs+4) = rrr;
     nwords+=1;
@@ -1356,6 +1373,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   uinteger trtime[5]={0,0,0,0,0};
   uinteger busypat[2]={0,0};//1st word->bits 0-31, 2nd word-> bits 32-39 of 40-bits busy patt.word
   bool busyerr(0);
+  bool PreAssRD=(AMSJob::gethead()->isRealData()
+                 && (AMSEvent::gethead()->getrun() < 1213470000)) ;//flag to identify RD of preassembly period
 //
   integer tofpat1[4]={0,0,0,0};//will be added to ready lev1-object later(after decoding of TOF-data)
   integer tofpat2[4]={0,0,0,0};//..................................................
@@ -1449,16 +1468,24 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   if(noerr)TGL1JobStat::daqs1(4);//<=== count no_ass_errors JLV1-fragments for given DATA-type     
   else goto BadExit;
 //
-  if(jleng==52 && datyp==2){//compr.data
+  if(PreAssRD && jleng==52 && datyp==2){//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 extra-words)
     sbpatt+=1;//1st 15w of ev-by-ev block
     sbpatt+=10;//4w of live-time block
     sbpatt+=100;//32w of trig-setup block
     pattbias=0;//bias to patt. sub-block
     trgsbias=16;//bias to trig-setup sub-block
     ltimbias=48;//bias to time sub-block
-  } 
-  else if(jleng==53 && datyp==1){//raw.data(incl.evnum on top)
-    sbpatt+=1;//1st 15w of ev-by-ev block
+  }
+  else if(!AMSJob::gethead()->isRealData() && jleng==50 && datyp==1){//MC (in RawFmt with datyp=1; no 2 extra-words) 
+    sbpatt+=1;//1st 13w of ev-by-ev block
+    sbpatt+=10;//4w of live-time block
+    sbpatt+=100;//32w of trig-setup block
+    pattbias=0;//bias to patt. sub-block
+    trgsbias=14;//bias to trig-setup sub-block
+    ltimbias=46;//bias to time sub-block
+  }
+  else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
+    sbpatt+=1;//1st 13w of ev-by-ev block
     sbpatt+=10;//4w of live-time block
     sbpatt+=100;//32w of trig-setup block
     pattbias=1;//bias to patt. sub-block
@@ -1481,7 +1508,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     auxtrpat=((word&0x1F00)>>8);//aux.trig.patt(LA-0,LA-1,DSP,intTR)
     word=*(p+3+pattbias);//AntiPatt
     AntiPatt=integer(word&0x00FF);
-    word=*(p+4+pattbias);//Tof CP,CT,BZ layers pattern
+    word=*(p+4+pattbias);//Tof CP,CT,BZ layers input pattern
     if((word&0x000F)==0x000F)TofFlag1=0;//all4
     else if((word&0x000F)==0x000E)TofFlag1=1;//2,3,4(miss1)
     else if((word&0x000F)==0x000D)TofFlag1=2;//1,3,4(miss2)
@@ -1531,8 +1558,18 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     else if((JMembPatt&(1<<13))>0)EcalFlag+=2;//Lvl1(Small angle at least in one proj(AngleOr))
     else{//no LVL1-Abits
       if(FTEok)EcalFlag+=1;//No ECLev1(Big angle in both proj, but FTE ok)
-    } 
-// 
+    }
+//-----> trig.patt histos: 
+    for(i=0;i<16;i++){
+      if((JMembPatt&(1<<i))>0){
+        HF1(1092,geant(i+1),1.);
+      }
+    }
+    HF1(1093,0.,1.);
+    for(i=0;i<8;i++){
+      if((PhysBPatt&(1<<i))>0)HF1(1093,geant(i+1),1.);
+    }
+//-----> time info: 
     time[0]=0;
     time[1]=0;
     word=*(p+5+pattbias);//1st 16bits of time
@@ -1569,13 +1606,14 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       busypat[0]|=(lword<<24);
       busypat[1]|=(lword>>8);
     }
-//---> attention: for the moment i suppose that 0x0C and 0x0E words exist but empty(skip them) !!! tempor
+//---> event time-calib counter (when TRST asserted)
     timcal=0;
     word=*(p+12+pattbias);//1st 16bits of time-calib word
     timcal|=uinteger(word);
     lword=uinteger(*(p+13+pattbias));//last 16bits of time-calib word
     timcal|=(lword<<16);
     trtime[0]=timcal;
+//---> attention: for the PreAssRD i suppose that 0x0D and 0x0E words exist but empty; for MC they are missing
 //---> print info:
     if(TGL1FFKEY.printfl>1){
       cout<<"=======> Event-by-event(instant) LVL1-info (patterns,time-counters,...):"<<endl;
@@ -2085,9 +2123,9 @@ void Trigger2LVL1::node2side(int16u nodeid, int16u &side){
   side=0;
   for(int i=0;i<2;i++)if(nodeid == nodeids[i])side=i+1;
 }
-integer Trigger2LVL1::calcdaqlength(int i){//imply only compressed format(no evnum in front of block)
+integer Trigger2LVL1::calcdaqlength(int i){//imply only raw format(but no evnum in front of block)
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ptr)return -52;
+  if(ptr)return -50;
   else return 0;
 }
 integer Trigger2LVL1::getmaxblocks(){

@@ -117,7 +117,7 @@ bool MyAnal::Trigger_Flag() {
 
 // ECAL
     int ecalok = 0;
-    if (lvl1.EcalFlag>0) ecalok = 1; 
+    if (lvl1.EcalFlag>1) ecalok = 1; 
 
 // Anticounters
     const int ANTICUT = 1;
