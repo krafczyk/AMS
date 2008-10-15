@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.120 2008/09/18 16:07:37 choutko Exp $
+//  $Id: producer.C,v 1.121 2008/10/15 15:03:03 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1181,7 +1181,12 @@ else{
 }
 else _cinfo.Status=DPS::Producer::Finished;
 
-
+// check event numbers
+    if(abs(_cinfo.LastEventProcessed-_reinfo->LastEvent)>1){
+       _cinfo.Status=DPS::Producer::Failed;
+        cerr<<"AMSProducer::sendRunEnd-S-NotAllEvetnsProcessed "<<_cinfo.LastEventProcessed<<" "<<_reinfo->LastEvent<<" "<<endl;
+      FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
+    }
     struct timeb  ft;
     ftime(&ft);
     double st=ft.time+ft.millitm/1000.;

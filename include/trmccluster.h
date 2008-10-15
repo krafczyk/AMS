@@ -22,7 +22,6 @@ protected:
   AMSPoint _xgl;
   number   _sum;
 
-
   void _shower();
   void _printEl(ostream & stream);
   void _writeEl();
@@ -45,8 +44,8 @@ public:
 
   // Constructor for daq
   AMSTrMCCluster
-  (AMSPoint xgl, integer itra):
-    _idsoft(0),_xca(0,0,0),_xcb(0,0,0),_xgl(xgl),_sum(0),_itra(itra)
+  (AMSPoint xgl, integer itra,geant sum=0):
+    _idsoft(0),_xca(0,0,0),_xcb(0,0,0),_xgl(xgl),_sum(sum),_itra(itra)
   {_next=0;
     for(int i=0;i<2;i++){
       _left[i]=0;
@@ -57,6 +56,7 @@ public:
   }
   AMSTrMCCluster(){_next=0;};
   ~AMSTrMCCluster(){};
+  number getsum()const {return _sum;}
   AMSTrIdGeom getid();
   integer IsNoise(){return _itra==_NoiseMarker;}
   AMSPoint getHit(){return _xgl;}

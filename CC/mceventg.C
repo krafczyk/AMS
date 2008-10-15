@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.141 2008/09/16 19:12:04 choutko Exp $
+//  $Id: mceventg.C,v 1.142 2008/10/15 15:03:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1262,8 +1262,10 @@ void AMSmceventg::builddaq(integer i, integer length, int16u *p){
   AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->
   getheadC("AMSmceventg",0);
  p--;
+ bool sec=false;
 while(ptr){ 
-if(ptr->Primary()){
+if(ptr->Primary() || !sec){
+  if(!ptr->Primary())sec=true;
  const uinteger c=65535;
  *(p+1)=ptr->_ipart;
  uinteger momentum=uinteger(ptr->_mom*1000);
@@ -1315,9 +1317,14 @@ void AMSmceventg::buildraw(integer n, int16u *p){
 integer AMSmceventg::calcdaqlength(integer i){
  AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg");
    integer l=1;
+   bool sec=false;
     for(AMSmceventg* pm=
       (AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);pm;pm=pm->next()){
        if(pm->Primary())l+=12;
+       else if(!sec){
+        l+=12;
+        sec=true;
+       }
       }
  return -l;   //in jinj mode
 }

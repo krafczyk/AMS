@@ -303,6 +303,7 @@ void AMSTrMCCluster::sitkhits(
 #endif
  
     if(p->getsenstrip(pa) && p->getsenstrip(pb)){
+//      cout <<" edep "<<edep<<endl;
       AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0),
 				   new AMSTrMCCluster(idsoft,pa,pb,pgl,edep,itra));
     }
@@ -420,10 +421,12 @@ void AMSTrMCCluster::builddaq(integer i, integer length, int16u *p){
   AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
     getheadC("AMSTrMCCluster",0);
   p--;
+  geant sum=0;
   while(ptr){ 
     const uinteger c=65535;
     *(p+1)=ptr->_itra;
     integer big=10000;
+    if(ptr->getsum()==0)goto metka;
     for(int k=0;k<3;k++){
       if(ptr->_xgl[k]+big<=0){
 	goto metka;
@@ -432,7 +435,11 @@ void AMSTrMCCluster::builddaq(integer i, integer length, int16u *p){
       *(p+3+2*k)=int16u(cd&c);
       *(p+2+2*k)=int16u((cd>>16)&c);
     }
-    p+=7;
+    sum=ptr->getsum()*1000000;
+    if(sum>c)sum=c;
+    *(p+8)=int16u(sum);
+//    cout <<" sum "<<ptr->getsum()<<" "<<sum<<endl;
+    p+=8;
   metka:
     ptr=ptr->next();
   }
@@ -444,15 +451,16 @@ void AMSTrMCCluster::buildraw(integer n, int16u *p){
   integer ip;
   geant mom;
   int len=n&65535;
-  for(int16u *ptr=p;ptr<p+len-1;ptr+=7){ 
+  for(int16u *ptr=p;ptr<p+len-1;ptr+=8){ 
     ip=*(ptr);
     uinteger cdx=  (*(ptr+2)) | (*(ptr+1))<<16;  
     uinteger cdy=  (*(ptr+4)) | (*(ptr+3))<<16;  
     uinteger cdz=  (*(ptr+6)) | (*(ptr+5))<<16;  
+    geant sum=geant(*(ptr+7))/1000000;
     AMSPoint coo(cdx/10000.-10000.,cdy/10000.-10000.,cdz/10000.-10000.);
-    //  cout <<ip<<" "<<coo<<endl;
+//      cout <<ip<<" "<<coo<<" "<<sum<<endl;
     AMSTrMCCluster *ptrhit=(AMSTrMCCluster*)AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0), new
-									 AMSTrMCCluster(coo,ip));
+									 AMSTrMCCluster(coo,ip,sum));
     if(ptrhit->IsNoise())ptrhit->setstatus(AMSDBc::AwayTOF);
 
   }
@@ -467,7 +475,7 @@ integer AMSTrMCCluster::calcdaqlength(integer i){
       getheadC("AMSTrMCCluster",0);
     while(ptr){ 
       const integer big=10000;
-      if(ptr->_xgl[0]+big>0 && ptr->_xgl[1]+big>0 && ptr->_xgl[2]+big>0)len+=7; 
+      if(ptr->_sum!=0 && ptr->_xgl[0]+big>0 && ptr->_xgl[1]+big>0 && ptr->_xgl[2]+big>0)len+=8; 
       ptr=ptr->next();
     }
   }
