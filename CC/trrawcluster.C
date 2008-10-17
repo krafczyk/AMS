@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.95 2008/10/12 16:41:57 choutko Exp $
+//  $Id: trrawcluster.C,v 1.96 2008/10/17 13:26:02 pzuccon Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -358,45 +358,52 @@ integer AMSTrRawCluster::checkdaqidS(int16u id){
 
 
 
-
+#include <map>
+#include <vector>
 void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
-   int index=0;
-   for(int itdr=0;itdr<trid::ntdr;itdr++){
+  int index=0;
+  int crate2JinJnum[8]={3,9,0,1,16,17,22,23};
 
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSTrRawCluster",i);
-     int indexp=0;
-     int len=0;
-     bool first=true;
-     while(ptr){
-       AMSTrIdSoft id(ptr->_address);
-       if(id.gettdr()!=itdr){
-         ptr=ptr->next();
-         continue;
-       }
-       if(first){
-         first=false;
-         indexp=index;
-         index++;
-       }
-       p[index++]=ptr->_nelem-1;
-       len+=ptr->_nelem+2;
-       p[index++]=id.getside()?ptr->_strip:ptr->_strip+640;
-       for(int k=0;k<ptr->_nelem;k++)p[index++]=ptr->getamp(k);
-       ptr=ptr->next();
+    getheadC("AMSTrRawCluster",i);
+
+
+  map<int,vector<AMSTrRawCluster*> > mymap;
+  for(int tdr=0;tdr<trid::ntdr;tdr++) mymap[tdr].push_back(0); 
+  while (ptr){
+    AMSTrIdSoft id(ptr->_address);
+    int tdrnum=id.gettdr();
+    mymap[tdrnum].push_back(ptr);
+    ptr=ptr->next();
+  }
+
+  int pindex=0;
+  for(int tdr=0;tdr<trid::ntdr;tdr++){
+    int ncl=mymap[tdr].size();
+    if(ncl>1){
+     //  printf("Crate %d JINJ#: %02d TDR: %02d numclus: %3d\n",
+// 	     i,crate2JinJnum[i],tdr,ncl);
+      int tdr_length_index=pindex++;
+      for(int icl=1;icl<ncl;icl++){
+	ptr=mymap[tdr].at(icl);
+	AMSTrIdSoft id(ptr->_address);
+	p[pindex++] = ptr->_nelem-1;
+	p[pindex++] = id.getside()?ptr->_strip:ptr->_strip+640;
+	for(int ii=0;ii<ptr->_nelem;ii++)
+	  p[pindex++]=ptr->getamp(ii)*8.;
       }
-      if(!first){
-       p[indexp]=len+1;  
-       p[index++]=128 | (itdr); 
-       if(index>=n){
-        cerr<<"AMSTrRawCluster::builddaq-E-indext too big "<<index<< " "<<n<<endl;       break; 
-       }
-      }
-     }
-      p[index++]=getdaqid(i);
-      if(index!=n){
-        cerr<<"AMSTrRawCluster::builddaq-E-indext wrong length "<<index<< " "<<n<<endl;      
-      }
+      p[pindex++]=1<<7|1<<15|1<<5|tdr;
+      p[tdr_length_index]=pindex-tdr_length_index;
+    }
+    if(pindex>=n){
+      cerr<<"AMSTrRawCluster::builddaq-E-indext too big "<<index<< " "<<n<<endl;       break; 
+    }
+  }
+  p[pindex++]=1<<5| 1<<15| crate2JinJnum[i];
+  if(pindex!=n){
+    cerr<<"AMSTrRawCluster::builddaq-E-indext wrong length "<<pindex<< " "<<n<<endl;
+  }  
+  
 }
 
 integer AMSTrRawCluster::calcdaqlength(integer i){
@@ -423,48 +430,48 @@ integer AMSTrRawCluster::calcdaqlength(integer i){
 
 
 void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
-//  have to split integer n; add crate number on the upper part...
+  //  have to split integer n; add crate number on the upper part...
   unsigned int leng=n&65535;
   uinteger ic=(n>>16);
-    int cmn=0;
-   if(TRCALIB.Version==0)cmn=16;
-   else cmn=0;
+  int cmn=0;
+  if(TRCALIB.Version==0)cmn=16;
+  else cmn=0;
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
-//  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
-for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
- //cout <<" length "<<leng<<" "<<*p<<" "<<((*(p+*p))&31)<<endl;
- //if(ic==2)ic=1;
- //if(ic==3)ic=0;
- int16u tdr=(*(p+*p))&31;
-if(tdr>=trid::ntdr){
-static int nerr=0;
-if(nerr++<100)cerr<<" AMSTrRawCluster::buildraw-E-tdrOutOfRange "<<tdr<<endl;
-continue;
-}
- if(DAQEvent::isRawMode(*(p+*p))){
-  #ifdef __AMSDEBUG__
-   cerr<<" AMSTrRawCluster::buildraw-E-RawModeNotSupportedYet "<<endl;
-  #endif
-   return;
- }
- if(DAQEvent::isError(*(p+*p))){
-  cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
-  break;
- }
- for(int16u* paux=p+DAQCFFKEY.Mode;paux<p+*p-1-cmn;paux+=*paux+2+1){
-  int16u haddr=*(paux+1);
-  if(haddr>1023 ){
+  //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
+  for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
+    //cout <<" length "<<leng<<" "<<*p<<" "<<((*(p+*p))&31)<<endl;
+    //if(ic==2)ic=1;
+    //if(ic==3)ic=0;
+    int16u tdr=(*(p+*p))&31;
+    if(tdr>=trid::ntdr){
+      static int nerr=0;
+      if(nerr++<100)cerr<<" AMSTrRawCluster::buildraw-E-tdrOutOfRange "<<tdr<<endl;
+      continue;
+    }
+    if(DAQEvent::isRawMode(*(p+*p))){
 #ifdef __AMSDEBUG__
-    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrOutOfRange  "<<haddr<<" "<<*paux<<endl;
+      cerr<<" AMSTrRawCluster::buildraw-E-RawModeNotSupportedYet "<<endl;
 #endif
-    continue;
-  }
-//#ifdef __AMSDEBUG__
- else if(haddr+*(paux)>=1024){
-    static int nerr=0;
-    if(nerr++<100)cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
-    continue;
- }
+      return;
+    }
+    if(DAQEvent::isError(*(p+*p))){
+      cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
+      break;
+    }
+    for(int16u* paux=p+DAQCFFKEY.Mode;paux<p+*p-1-cmn;paux+=*paux+2+1){
+      int16u haddr=*(paux+1);
+      if(haddr>1023 ){
+#ifdef __AMSDEBUG__
+	cerr<<"  AMSTrRawCluster::buildraw-E-HaddrOutOfRange  "<<haddr<<" "<<*paux<<endl;
+#endif
+	continue;
+      }
+      //#ifdef __AMSDEBUG__
+      else if(haddr+*(paux)>=1024){
+	static int nerr=0;
+	if(nerr++<100)cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
+	continue;
+      }
 //#endif
 // get common noise also instead of s2n which not exists for ams02
   int va=haddr/64;
