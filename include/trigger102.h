@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.25 2008/09/26 10:23:47 choumilo Exp $
+//  $Id: trigger102.h,v 1.26 2008/10/17 14:57:10 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -201,6 +201,7 @@ public:
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
       static void EventBitDump(integer leng, int16u *p, char * message);
+      static int16u lutbswap(int16u lut);//RD L3<->L4 problem correction for LUTs
 #ifdef __WRITEROOT__
       friend class Level1R;
 #endif
