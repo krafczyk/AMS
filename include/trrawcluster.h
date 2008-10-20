@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.36 2008/08/28 20:33:39 choutko Exp $
+//  $Id: trrawcluster.h,v 1.37 2008/10/20 17:56:19 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -67,6 +67,7 @@ static void sitkdigi();
  static integer calcdaqlength(integer i);
  static integer getmaxblocks(){return AMSTrIdSoft::ncrates();}
  static integer getmaxblocksRaw(){return AMSTrIdSoft::ncrates();}
+ static void builddaq_new(integer i, integer n, int16u *p);
  static void builddaq(integer i, integer n, int16u *p);
  static void buildraw(integer n, int16u *p);
  static void matchKS();

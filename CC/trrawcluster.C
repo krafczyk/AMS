@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.97 2008/10/20 10:09:51 choutko Exp $
+//  $Id: trrawcluster.C,v 1.98 2008/10/20 17:56:18 pzuccon Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -10,6 +10,8 @@
 #include "trid.h"
 #include "ntuple.h"
 #include "event.h"
+#include <map>
+#include <vector>
 class TrCalib_def{
 public:
 integer Layer;
@@ -356,6 +358,52 @@ integer AMSTrRawCluster::checkdaqidS(int16u id){
 
 
 
+
+void AMSTrRawCluster::builddaq_new(integer i, integer n, int16u *p){
+  int index=0;
+  int crate2JinJnum[8]={3,9,0,1,16,17,22,23};
+
+  AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
+    getheadC("AMSTrRawCluster",i);
+
+
+  map<int,vector<AMSTrRawCluster*> > mymap;
+  for(int tdr=0;tdr<trid::ntdr;tdr++) mymap[tdr].push_back(0); 
+  while (ptr){
+    AMSTrIdSoft id(ptr->_address);
+    int tdrnum=id.gettdr();
+    mymap[tdrnum].push_back(ptr);
+    ptr=ptr->next();
+  }
+
+  int pindex=0;
+  for(int tdr=0;tdr<trid::ntdr;tdr++){
+    int ncl=mymap[tdr].size();
+    if(ncl>1){
+     //  printf("Crate %d JINJ#: %02d TDR: %02d numclus: %3d\n",
+// 	     i,crate2JinJnum[i],tdr,ncl);
+      int tdr_length_index=pindex++;
+      for(int icl=1;icl<ncl;icl++){
+	ptr=mymap[tdr].at(icl);
+	AMSTrIdSoft id(ptr->_address);
+	p[pindex++] = ptr->_nelem-1;
+	p[pindex++] = id.getside()?ptr->_strip:ptr->_strip+640;
+	for(int ii=0;ii<ptr->_nelem;ii++)
+	  p[pindex++]=ptr->getamp(ii)*8.;
+      }
+      p[pindex++]=1<<7|1<<15|1<<5|tdr;
+      p[tdr_length_index]=pindex-tdr_length_index-1;
+    }
+    if(pindex>=n){
+      cerr<<"AMSTrRawCluster::builddaq-E-indext too big "<<index<< " "<<n<<endl;       break; 
+    }
+  }
+  p[pindex++]=1<<5| 1<<15| crate2JinJnum[i];
+  if(pindex!=n){
+    cerr<<"AMSTrRawCluster::builddaq-E-indext wrong length "<<pindex<< " "<<n<<endl;
+  }  
+  
+}
 
 
 
