@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.597 2008/10/20 17:56:18 pzuccon Exp $
+// $Id: job.C,v 1.598 2008/10/21 08:30:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3797,8 +3797,8 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 //tracker
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
-//    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq_new);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+//    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq_new);
 
 
 //trd
