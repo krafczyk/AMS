@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.98 2008/10/20 17:56:18 pzuccon Exp $
+//  $Id: trrawcluster.C,v 1.99 2008/10/21 09:01:15 pzuccon Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -389,7 +389,8 @@ void AMSTrRawCluster::builddaq_new(integer i, integer n, int16u *p){
 	p[pindex++] = ptr->_nelem-1;
 	p[pindex++] = id.getside()?ptr->_strip:ptr->_strip+640;
 	for(int ii=0;ii<ptr->_nelem;ii++)
-	  p[pindex++]=ptr->getamp(ii)*8.;
+	  p[pindex++]=ptr->getamp(ii);	  
+	//	p[pindex++]=ptr->getamp(ii)*8.;
       }
       p[pindex++]=1<<7|1<<15|1<<5|tdr;
       p[tdr_length_index]=pindex-tdr_length_index-1;
