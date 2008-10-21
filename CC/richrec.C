@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.95 2008/09/16 11:41:39 barao Exp $
+//  $Id: richrec.C,v 1.96 2008/10/21 10:39:42 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -812,7 +812,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    beta_used,
 										    mirrored_used,
 										    beta_track,
-										    chi2/geant(beta_used),
+										    chi2/geant(beta_used-1),
 										    wbeta,
 										    recs,hitp,actual,bit,
 										    current_ring_status,  //Status word
