@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.96 2008/10/21 10:39:42 mdelgado Exp $
+//  $Id: richrec.C,v 1.97 2008/10/28 10:17:21 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -568,11 +568,11 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   if(ARRAYSIZE==0) return 0;
 
   // Fast but not safe
-  geant recs[RICmaxpmts*RICnwindows/2][3];
-  geant mean[RICmaxpmts*RICnwindows/2][3];
-  geant probs[RICmaxpmts*RICnwindows/2][3];
-  integer size[RICmaxpmts*RICnwindows/2][3];
-  integer mirrored[RICmaxpmts*RICnwindows/2][3];
+  geant recs[RICmaxpmts*RICnwindows][3];
+  geant mean[RICmaxpmts*RICnwindows][3];
+  geant probs[RICmaxpmts*RICnwindows][3];
+  integer size[RICmaxpmts*RICnwindows][3];
+  integer mirrored[RICmaxpmts*RICnwindows][3];
 
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
 
@@ -663,14 +663,14 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
   if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHHITS"); //DEBUG
   integer actual=0,counter=0;
-  AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2];
+  AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows];
   
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
     if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
 
     // Checks bounds
-    if(actual>=RICmaxpmts*RICnwindows/2) {
+    if(actual>=RICmaxpmts*RICnwindows) {
       cerr << "AMSRichRing::build : Event too long."<<endl;
       break;
     }
@@ -934,11 +934,11 @@ trig=(trig+1)%freq;
 
 
   static geant dfphi[NSTP],dfphih[NSTP];
-  static geant hitd[RICmaxpmts*RICnwindows/2],hitp[RICmaxpmts*RICnwindows/2];
-  static AMSRichRawEvent *used_hits[RICmaxpmts*RICnwindows/2];
+  static geant hitd[RICmaxpmts*RICnwindows],hitp[RICmaxpmts*RICnwindows];
+  static AMSRichRawEvent *used_hits[RICmaxpmts*RICnwindows];
 
-  static geant unused_hitd[RICmaxpmts*RICnwindows/2];
-  static AMSRichRawEvent *unused_hits[RICmaxpmts*RICnwindows/2];
+  static geant unused_hitd[RICmaxpmts*RICnwindows];
+  static AMSRichRawEvent *unused_hits[RICmaxpmts*RICnwindows];
 
 
   for(int i=0;i<NSTP;i++)
@@ -1847,7 +1847,7 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
 
 
 AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
-			 geant recs[RICmaxpmts*RICnwindows/2][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],uinteger size,int ring,
+			 geant recs[RICmaxpmts*RICnwindows][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows],uinteger size,int ring,
 			 uinteger status,integer build_charge):
   AMSlink(status),_ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta)
 {
