@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.135 2008/10/12 16:41:57 choutko Exp $
+//  $Id: daqevt.C,v 1.136 2008/10/31 10:29:09 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1204,7 +1204,7 @@ void DAQEvent::CloseO(integer run,integer eventno,time_t tt){
     if(DAQEvent::fbout.is_open()){
       DAQEvent::fbout.close();
 #ifdef __CORBA__
-      AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RawFile,_NeventsO,eventno,tt);
+      AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RawFile,_NeventsO,eventno,tt,true);
 #endif
 
 
