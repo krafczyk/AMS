@@ -1,4 +1,4 @@
-//  $Id: astring.h,v 1.6 2008/08/28 20:33:38 choutko Exp $
+//  $Id: astring.h,v 1.7 2008/11/03 15:02:17 pzuccon Exp $
 #ifndef __ASTRING___
 #define __ASTRING___
 
@@ -87,18 +87,18 @@ public:
     friend AString 		operator+(const char *, const AString &);
     AString			&operator+=(const AString &);
     AString			&operator+=(const char *);
-    AString			operator()(int , int );
-    AString			operator()(int  , int ) const;
+    //AString			operator()(int , int );
+    //AString			operator()(int  , int ) const;
     AString			operator()(int  );
-    AString			operator()(int   ) const;
+    //AString			operator()(int   ) const;
     inline char			operator[](int) const;
     inline char			&operator[](int);
 
     // Additional member functions
     inline unsigned int	length() const;
-    AString		upper() const;
-    AString		lower() const;
-    int			index(const AString &) const;
+    //AString		upper() const;
+    //AString		lower() const;
+    //int			index(const AString &) const;
 
 
 };
