@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.56 2008/09/29 16:48:55 pzuccon Exp $
+#  $Id: Makefile,v 1.57 2008/11/03 14:10:41 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -131,7 +131,7 @@ INCS= $(wildcard ../include/*.h)
 COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
 		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
 		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
-		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C
+		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)amscommonsi.C
 
 
 #Geant Interface
@@ -342,14 +342,14 @@ endif
 ../include/root_methods.h:      ../perl/root.perl
 	perl ../perl/root.perl
 
-$(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h
+$(BIN)rootdict.C:   ../include/point.h   ../include/root_RV.h ../include/root.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h ../include/root_methods.h
+$(BIN)rootdict_s.C: ../include/point.h   ../include/root_RVS.h ../include/root.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $^ 
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C

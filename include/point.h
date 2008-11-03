@@ -1,9 +1,10 @@
-//  $Id: point.h,v 1.20 2008/08/28 20:33:38 choutko Exp $
+//  $Id: point.h,v 1.21 2008/11/03 14:10:40 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
 #define __AMSPOINT__
 #include "typedefs.h"
+#include "TObject.h"
 #include <iostream>
 #include <cmath>
 class AMSRotMat;
@@ -11,7 +12,7 @@ using namespace std;
 
 
 //! A General AMS class for defining a point in space
-class AMSPoint {
+class AMSPoint  {
 protected:
   //! Internal representation in cartesian coo X
   number _x;
@@ -48,6 +49,8 @@ public:
   AMSPoint mm3(number [][3]);
   //! it does the matrix product (left) with a matrix represented by the input array
   AMSPoint mm3i(number [][3]);
+  //! it does the matrix product (left) with a matrix represented by the input array
+  AMSPoint mm3i(AMSRotMat);
   //! Equivalence  operator it reuire that the two point are the same 
   integer operator ==(const AMSPoint & o) const{return _x==o._x && _y==o._y &&_z==o._z;}
   //! less than operator it requires that all the threee coo are smaller than those of o
@@ -93,29 +96,11 @@ public:
 	(_y-o._y)*(_y-o._y)+
 	(_z-o._z)*(_z-o._z));}
   //! it allows the use of the array notation for an AMSPoint
-  number &  operator[](uinteger i){
-      switch (i){
-        case 0:
-         return _x;
-        case 1:
-         return _y;
-        default:
-         return _z;
-     }
-    } 
-     // if(i<=0)return _x;else if(i==1)return _y; else return _z;}
+  number &  operator[](integer i){
+      if(i<=0)return _x;else if(i==1)return _y; else return _z;}
   //! it allow the use of the array notation for an AMSPoint
-  number   operator[](uinteger i) const{
-     switch (i){
-        case 0:
-         return _x;
-        case 1:
-         return _y;
-        default:
-         return _z;
-     }
-     }
-     // if(i<=0)return _x;else if(i==1)return _y; else return _z;}
+  number   operator[](integer i) const{
+      if(i<=0)return _x;else if(i==1)return _y; else return _z;}
 
   //! print out to a stream the values of the AMSPoint
   friend ostream &operator << (ostream &o, const  AMSPoint &b )
@@ -132,6 +117,7 @@ public:
 #ifdef __WRITEROOT__
     friend class AMSPointRoot;
 #endif
+    ClassDef(AMSPoint,1);
 };
 
 //! A General AMS class to define a direction in space. It is an AMSPoint with  module equal to one.
@@ -162,6 +148,7 @@ class AMSDir :public AMSPoint{
   void setd(number x[]){_copy(x[0],x[1],x[2]);}
   //! it does the vector cross product of two AMSDir
   AMSDir cross(const AMSDir & o);
+  ClassDef(AMSDir,1);
 };
 
 
@@ -200,8 +187,11 @@ public:
   //! Get the angles corresponding to te current rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
   void GetRotAngles(double& alpha, double& beta, double& gamma);
 
+  //! Invert matrix
+  AMSRotMat &Invert(void);
+
   //! it returns the matrix element with the requested row,column
-  number GetEl(int row,int col){return _nrm[row][col];}
+  number GetEl(int row,int col) const {return _nrm[row][col];}
   //!it resets the matrix to a no rotation one {{1,0,0},{0,1,0},{0,0,1}} 
   void Reset();
   //! it streams out the contents of an AMSRotMat
