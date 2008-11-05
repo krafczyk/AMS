@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.58 2008/11/05 09:09:12 choumilo Exp $
+//  $Id: trigger102.C,v 1.59 2008/11/05 09:44:57 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -160,6 +160,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     CPmx[0]=max(CPmx[0],CPmx[1]);
     CPmx[2]=max(CPmx[2],CPmx[3]);
     rates[14]=max(CPmx[0],CPmx[2]);//CPmax-rate
+    ratemx=rates[5];//tempor LVL1-rate
 //
 //-->TOF:
     toftrcode1=TOF2RawSide::gettrcode();//<0 ->noFTC(z>=1), >=0 ->OK, masked
