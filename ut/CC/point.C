@@ -1,10 +1,9 @@
-//  $Id: point.C,v 1.17 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: point.C,v 1.18 2008/11/05 10:02:37 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
 #include "point.h"
 #include <cmath>
-ClassImp(AMSPoint);
 
 AMSPoint  AMSPoint::mm3(number m1[][3]){
    number x,y,z;
@@ -28,7 +27,6 @@ AMSPoint  AMSPoint::mm3i(AMSRotMat m1){
    return AMSPoint(x,y,z);
   }
 
-ClassImp(AMSDir);
 
 void AMSDir::_copy(number u, number v, number w){
   if(u==0 && v==0 && w==0){
