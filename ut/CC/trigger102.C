@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.57 2008/10/17 14:57:03 choumilo Exp $
+//  $Id: trigger102.C,v 1.58 2008/11/05 09:09:12 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -41,7 +41,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
   integer ntof=0;
   integer tofpatt1[TOF2GC::SCLRS]={0,0,0,0};//all sides,FTC(z>=1)
   integer tofpatt2[TOF2GC::SCLRS]={0,0,0,0};//all sides,BZ(z>=2)
-  geant rates[6];//TrigCompRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
+  geant rates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//TrigCompRates(Hz)
   integer tflg(-1);
   integer toftrcode(-1),tofcpcode(0),tofbzflag(0);
   integer toftrcode1(-1),toftrcode2(-1);//0->4planes,(1-4)->3plns,(5-8)->2plns, <0->none
@@ -152,14 +152,14 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
     antismx[0]=Trigger2LVL1::l1trigconf.antsectmx(0);//from DB/File(already redeined by DC if was requested)
     antismx[1]=Trigger2LVL1::l1trigconf.antsectmx(1);//..........................
-//
-    rates[0]=scalmon.FTrate();
-    rates[1]=scalmon.FTCrate();
-    rates[2]=scalmon.LVL1rate();
-    rates[3]=scalmon.TOFrateMX();
-    rates[4]=scalmon.ECftrateMX();
-    rates[5]=scalmon.AntirateMX();
-    ratemx=max(rates[3],rates[4]);
+//set some dummy rates(just for debug):
+    for(i=0;i<5;i++)rates[i]=geant(scalmon.FTtrig(i));
+    for(i=0;i<9;i++)rates[5+i]=geant(scalmon.LVL1trig(i));
+    number CPmx[4];
+    for(i=0;i<4;i++)CPmx[i]=max(scalmon.CPside1(i),scalmon.CPside2(i));
+    CPmx[0]=max(CPmx[0],CPmx[1]);
+    CPmx[2]=max(CPmx[2],CPmx[3]);
+    rates[14]=max(CPmx[0],CPmx[2]);//CPmax-rate
 //
 //-->TOF:
     toftrcode1=TOF2RawSide::gettrcode();//<0 ->noFTC(z>=1), >=0 ->OK, masked
@@ -1367,9 +1367,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   integer gftmsk(0),ftzlmsk(0);
   int16u ftzwdcode(0);
   static geant LiveTime[2]={0,0};
-  static geant TrigRates[6]={0,0,0,0,0,0};
+  static geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   number tgrates[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  number dtrates[4]={0,0,0,0};
+  number dtrates[5]={0,0,0,0};
   static uinteger tcalib(0);
   static geant tgprev[2]={-1,-1};
   static number evtprev(-1);
@@ -1773,7 +1773,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	if(ib==12)nw3+=2;
 	if(ib==13)nw3+=4;
 	if(ib==14)nw3+=14;
-	if(ib==15)nw3+=4;
+	if(ib==15)nw3+=5;
       }
     }
     lencalc+=nw3;//add Scalers-blocks length in CompFmt 
@@ -2062,7 +2062,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   }//---> endof "PrintSetupInfo"
 // Don't save here to file/DB - tofinmask,tofinzmask may be not yet decoded, so save later in Trigger2LVL1::build
 //====================================================================
-//============> Scalers Block decoding(CompFmt only, inncl.LiveTime)
+//============> Scalers Block decoding(CompFmt only, incl.LiveTime)
   integer tgid;
   number scrate;
   if(formt==2){//<--- scalers "from-time-to-time" block
@@ -2153,8 +2153,6 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //        scalmon.FTtrig(i)=number(word)/tgatetr;//set FTs rates
       }
       nw3+=5;
-      TrigRates[0]=tgrates[0];//FT-rate attach to LVL1-obj for monitoring/selection offline-needs
-      TrigRates[1]=tgrates[1];//FTC-rate .........................................................
 //-
       for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
         word=*(p+scalbias+1+nw3+j);
@@ -2163,20 +2161,19 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //        scalmon.LVL1trig(j)=number(word)/tgatetr;
       }
       nw3+=9;
-      TrigRates[2]=tgrates[5];//LVL1-rate attach to LVL1-obj for monitoring/selection offline-needs
+//select rates to keep in LVL1-obj:
+      for(j=0;j<14;j++)TrigRates[j]=tgrates[j];//update static trig.rates-array
     }
 //---
     bit=(1<<15);
     if((rstatw3*bit)>0){//<--- Detector-rates(SideMax for Tof/Acc/ECf/ECa)
-      for(j=0;j<4;j++){
+      for(j=0;j<5;j++){
         word=*(p+scalbias+1+nw3+j);
 	scrate=number(word)/tgatesc;
 	dtrates[j]=scrate;
       }
-      nw3+=4;
-      TrigRates[3]=dtrates[0];//TofSide MX-rate attach to LVL1-obj for monitoring/selection offline-needs
-      TrigRates[4]=dtrates[2];//EcFteProj MX-rate attach to LVL1-obj for monitoring/selection offline-needs
-      TrigRates[5]=dtrates[1];//AccSide MX-rate attach to LVL1-obj for monitoring/selection offline-needs
+      nw3+=5;
+      for(j=0;j<5;j++)TrigRates[14+j]=dtrates[j];//update static det.rates-array
     }
   }//--->endof Scalers Block decoding
 //===================================================================
@@ -2268,7 +2265,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   if(((JMembPatt&1)>0 || (JMembPatt&(1<<5))>0) && (JMembPatt&(1<<6))>0)TGL1JobStat::daqs1(38);
 //
 //
-  if(TrigRates[3]<TGL1FFKEY.MaxScalersRate && LiveTime[0]>=TGL1FFKEY.MinLifeTime)TGL1JobStat::daqs1(37);
+  if(TrigRates[5]<TGL1FFKEY.MaxScalersRate && LiveTime[0]>=TGL1FFKEY.MinLifeTime)TGL1JobStat::daqs1(37);
 //     
   if(
        (auxtrpat > 0)                                                               //aux.tr

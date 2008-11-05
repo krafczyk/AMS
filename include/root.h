@@ -1338,7 +1338,7 @@ public:
 		    */
   int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch
   int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
-  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):
+  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):1,..4
   int   TofFlag2;   ///< FTZ(z>=2) LayersPatternCode, <0:noFTZ,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
@@ -1356,7 +1356,7 @@ public:
   unsigned short int EcalPatt[6][3];///< EC DynodesPattern for 6 "trigger"-SupLayers(36dynodes use 36of(3x16)lsbits)
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
   float LiveTime;  ///< Fraction of "nonBusy" time
-  float TrigRates[6]; ///< TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
+  float TrigRates[19]; ///< TrigCompRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,L1M1-M8,CPmx,BZmx,ACmx,EFTmx,EANmx
   unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec                    
 
   Level1R(){};
@@ -1393,7 +1393,7 @@ public:
   return _Info;
   }
   virtual ~Level1R(){};
-ClassDef(Level1R,6)       //Level1R
+ClassDef(Level1R,7)       //Level1R
 };
 
 

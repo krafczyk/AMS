@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.26 2008/10/17 14:57:10 choumilo Exp $
+//  $Id: trigger102.h,v 1.27 2008/11/05 09:09:21 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -132,7 +132,7 @@ protected:
  int16u _ectrpatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes) 
  geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev)
  geant _LiveTime;//Live time fraction
- geant _TrigRates[6];//some TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx
+ geant _TrigRates[19];//TrigComponentsRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,LVL1m1-m8,CPmx,BZmx,ACmx,EFTmx,EANmx
  uinteger _TrigTime[5];//trig.times:[0]->calibr;[1]->reset 24bits counter;[2]-[3]->40bits(32+8)
 //                       of 0.64mks counter; [4]->DeltaTrigTime(mksec, 2 consecutive events)
  static Scalers _scaler;
@@ -155,7 +155,7 @@ public:
    for(i=0;i<TOF2GC::SCLRS;i++)_tofpatt1[i]=tofpatt1[i];
    for( i=0;i<TOF2GC::SCLRS;i++)_tofpatt2[i]=tofpatt2[i];
    for(i=0;i<6;i++)for(j=0;j<3;j++)_ectrpatt[i][j]=ectrpatt[i][j];
-   for(i=0;i<6;i++)_TrigRates[i]=rates[i];
+   for(i=0;i<19;i++)_TrigRates[i]=rates[i];
    for(i=0;i<5;i++)_TrigTime[i]=trt[i];
  }
  bool IsECHighEnergy()const {return _ecalflag/10>=2;}
