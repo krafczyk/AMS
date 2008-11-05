@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.391 2008/11/05 09:51:11 choutko Exp $
+//  $Id: event.C,v 1.392 2008/11/05 15:04:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1321,7 +1321,11 @@ void AMSEvent::_reamsevent(){
         return;
       }
    }
+#ifdef __AMSDEBUG__
+  _redaqevent();//create subdetectors RawEvent-Objects
+#else
   if(AMSJob::gethead()->isReconstruction() )_redaqevent();//create subdetectors RawEvent-Objects
+#endif
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
@@ -2292,7 +2296,7 @@ void AMSEvent:: _retrigevent(){
 //Add missing info to HW-created(in redaqevent) lvl1-obj; can "simulate" trigger 1 & 3 for rec data
   
    Trigger2LVL1::build();
-//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL302::build();
+   if(LVL3FFKEY.RebuildLVL3)TriggerLVL302::build();
 }
 
 
@@ -2841,6 +2845,11 @@ void AMSEvent::_redaqevent(){
   int i;
   for(i=0;;i++){
     AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+  }
+  for(i=0;;i++){
+    AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTRDRawHit",i);
       if(pctr)pctr->eraseC();
       else break ;
   }

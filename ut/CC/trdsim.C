@@ -83,10 +83,13 @@ void AMSTRDRawHit::sitrddigi(){
            number amp=(edep*idsoft.getgain()+idsoft.getped()+idsoft.getsig()*rnormx());
            if (amp>idsoft.overflow())amp=idsoft.overflow();
 
-           if(amp-idsoft.getped()>TRDMCFFKEY.Thr1R*idsoft.getsig())
+           if(amp-idsoft.getped()>fabs(TRDMCFFKEY.Thr1R*idsoft.getsig())){
         AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),
         new AMSTRDRawHit(idsoft,(amp-idsoft.getped())*TRDMCFFKEY.f2i));
+//         cout <<"  raw cluster-0 "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<(amp-idsoft.getped())*TRDMCFFKEY.f2i<<endl;
+        
         edep=0;       
+        }
      }
 
      ptr=ptr->next();
@@ -116,6 +119,7 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
               while(ph){
                 if(ph<p){
                   AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
+         //cout <<"  raw cluster0 "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<amp*idsoft.getsig()*TRDMCFFKEY.f2i<<endl;
                   break;
                 }
                 else if(!(p<ph)){
@@ -340,6 +344,7 @@ DAQCFFKEY.Mode=len%2==0?2:1;
 #ifdef __AMSDEBUG__
             if(amp<0)cerr<<"AMSTRDRawHit::buildraw-W-AmpProblem "<<amp<<endl;
 #endif
+         //cout <<"  raw cluster2 "<<ic<<" "<<id.getlayer() <<" "<<id.getladder()<<" "<<udr<<" "<<" "<<id.gettube()<<" "<<amp<<endl;
          AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",ic), new
          AMSTRDRawHit(id,amp));
        }
@@ -372,10 +377,11 @@ void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
           ptr=ptr->next();
           continue;
         }        
-        if(!id.checkstatus(AMSDBc::BAD)){
+ //       if(!id.checkstatus(AMSDBc::BAD)){
          amp+=ptr->getamp();
-        }
-       if(ptr->testlast()){
+         //cout <<"  raw cluster "<<i<<" "<<ilay <<" "<<ilad<<" "<<udr<<" "<<" "<<id.gettube()<<" "<<ptr->getamp()<<endl;
+//        }
+       if(1 || ptr->testlast()){
         if(amp>0 ){
          if(first){
            first=false;
@@ -384,6 +390,7 @@ void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
          }
           p[index++]=(id.gethaddr())%512;
           p[index++]=amp;         
+         //cout <<"  written "<<i<<" "<<ilay <<" "<<ilad<<" "<<udr<<" "<<" "<<id.gettube()<<" "<<amp<<endl;
          len+=2;
         }
         amp=0;
@@ -417,10 +424,10 @@ integer AMSTRDRawHit::calcdaqlength(integer i){
        integer ilay=id.getlayer();
        integer ilad=id.getladder();
        integer udr=id.getudr();
-        if(!id.checkstatus(AMSDBc::BAD)){
+//        if(!id.checkstatus(AMSDBc::BAD)){
          amp+=ptr->getamp();
-        }
-       if(ptr->testlast()){
+//        }
+       if(1 || ptr->testlast()){
         if(amp>0 && udr<trdid::nudr){
          length+=2;
          udra[udr]=1;

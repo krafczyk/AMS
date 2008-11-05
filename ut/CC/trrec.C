@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.200 2008/11/05 09:51:11 choutko Exp $
+//  $Id: trrec.C,v 1.201 2008/11/05 15:04:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1369,7 +1369,7 @@ integer AMSTrTrack::build(integer refit){
 //      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
       if(!ptr302 || ptr302->skip()){ //tempor
        AMSEvent::gethead()->seterror();
-       return 0;
+        return 0;
       }
     }
   }
@@ -2563,13 +2563,13 @@ AMSTrRecHit* AMSTrTrack::SimpleFit(AMSPoint ehit, const AMSTrTrack& ptr, AMSTrRe
   number Covariance[5][5];
   number Param[5];
   number xl,yl;
-#ifdef __AMSP__
- omp_set_num_threads(NHits/2>omp_get_num_procs()?omp_get_num_procs():NHits/2);
- kmp_set_blocktime(1);
-#endif
-#pragma omp parallel   default(none) shared(std::cout,sigma,chi2best,ibest,Hit,nhit,magsffkey_,NHits,ib,ie) private(xl,yl,Param,ix,iy,ifail,ia,Covariance,d,dx,ihit,i,j,k,l,u,bave,idim,idim_eff,len,Chi2WithoutMS,PathIntegral_x,PathIntegral_u),firstprivate(b,hits)
+//#ifdef __AMSP__
+// omp_set_num_threads(NHits/2>omp_get_num_procs()?omp_get_num_procs():NHits/2);
+// kmp_set_blocktime(1);
+//#endif
+//#pragma omp parallel   default(none) shared(std::cout,sigma,chi2best,ibest,Hit,nhit,magsffkey_,NHits,ib,ie) private(xl,yl,Param,ix,iy,ifail,ia,Covariance,d,dx,ihit,i,j,k,l,u,bave,idim,idim_eff,len,Chi2WithoutMS,PathIntegral_x,PathIntegral_u),firstprivate(b,hits)
 {
-#pragma omp  for  nowait
+//#pragma omp  for  nowait
   for( ihit=0;ihit<nhit;ihit++){
     b[0] = Hit[ihit]->getBfield();
     hits[0]=Hit[ihit]->getHit();
@@ -2728,7 +2728,7 @@ AMSTrRecHit* AMSTrTrack::SimpleFit(AMSPoint ehit, const AMSTrTrack& ptr, AMSTrRe
       continue;
   }
 //cout << "   chi2 "<<Chi2WithoutMS<<endl;
-#pragma omp critical
+//#pragma omp critical
   if(Chi2WithoutMS<chi2best){
    chi2best=Chi2WithoutMS;
    ibest=ihit;
@@ -3405,7 +3405,6 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       return 1;
     }
     if ( plvl3->skip() ) return 1;
-
     AMSTOFCluster *phit[4], *ploop;
 
 // There should be one and only one AMSTOFCluster on planes 1, 4
@@ -3554,8 +3553,8 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
       if(!ptr302 || ptr302->skip()){
-       AMSEvent::gethead()->seterror();
-       return 0;
+//       AMSEvent::gethead()->seterror();
+//       return 0;
       }
     }
   }
