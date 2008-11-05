@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.546 2008/09/26 15:34:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.547 2008/11/05 09:51:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9287,16 +9287,20 @@ sub checkJobsTimeout {
                 next;
                  $jobsaved++;              
             }
-          my $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent),sum(nevents),sum(neventserr) from ntuples where run=$jtokill->[0]";
+          my $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent),sum(nevents),sum(neventserr),sum(datamc) from ntuples where jid=$jtokill->[0]";
           my $q=$self->{sqlserver}->Query($sql);
           if(defined $q->[0][0] and $q->[0][0]>0){
-              $sql="select status from runs where jid=$jtokill->[0]";
+              my $rname="dataruns";
+                  if($q->[0][4]==0){
+                      $rname="runs";
+                  }
+              $sql="select status from $rname where jid=$jtokill->[0]";
               my $q1=$self->{sqlserver}->Query($sql);
-              if(defined $q1->[0][0]){
-                $sql="update runs set fevent=$q->[0][1], levent=$q->[0][1]+$q->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
+              if(defined $q1->[0][0] && $q->[0][4]==0){
+                $sql="update $rname set fevent=$q->[0][1], levent=$q->[0][1]+$q->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
               }
-              else{
-                  $sql="insert into runs values($jtokill->[0],$jtokill->[0],$q->[0][1],$q->[0][1]+$q->[0][0]-1,$jtokill->[2],$jtokill->[2],$jtokill->[2],'Completed')";
+              elsif($q->[0][4]==0){
+                  $sql="insert into $rname values($jtokill->[0],$jtokill->[0],$q->[0][1],$q->[0][1]+$q->[0][0]-1,$jtokill->[2],$jtokill->[2],$jtokill->[2],'Completed')";
               }
             if ($update == 1){
               $self->{sqlserver}->Update($sql);  
@@ -9323,6 +9327,19 @@ sub checkJobsTimeout {
                  next;
                 $jobsaved++;              
             }
+              else{
+
+              $sql="select status from dataruns where jid=$jtokill->[0]";
+              my $q1=$self->{sqlserver}->Query($sql);
+              if(defined $q1->[0][0] and $q1->[0][0]=~/'Processing'/){
+                $sql="update jobs set timekill=0 where jid=$jtokill->[0]";
+                if ($update == 1){
+                 $self->{sqlserver}->Update($sql);
+                }              
+                 next;
+                $jobsaved++;              
+            }
+          }
 
 #
 # Last Hope - journal file ready?
@@ -9412,12 +9429,43 @@ sub checkJobsTimeout {
 #
 
 
+
+#
+#  Here restore jobs mistkenly deleted ...
+#
+#
+
+            $sql="select jobs_deleted.jid from jobs_deleted,dataruns where jobs_deleted.jid=dataruns.jid ";
+                my $und=$self->{sqlserver}->Query($sql);
+                if(defined $und->[0][0] ){
+                    foreach my $jid (@{$und}){
+                      $sql="select path from ntuples where jid=$jid->[0]"; 
+                      my $nt=$self->{sqlserver}->Query($sql);
+                      if(defined $nt->[0][0]){
+                          $sql="insert into jobs select * from jobs_deleted where jobs_deleted.jid=$jid->[0]";
+            if ($update == 2){
+                $self->{sqlserver}->Update($sql);
+                $sql="delete from jobs_deleted where jid=$jid->[0]";
+                $self->{sqlserver}->Update($sql);
+            }
+                      }
+                  }
+                }
+
+
 #
 #  Change timeout for the failed runs
 #
 
-             $sql="select run from runs where status='Failed'";
+             $sql="select jid from runs where status='Failed'";
               my $q1=$self->{sqlserver}->Query($sql);
+              foreach my $runf  (@{$q1}){
+              $sql="update jobs set timeout=$timenow-jobs.time-1 where jid=$runf->[0]"; 
+                $self->{sqlserver}->Update($sql);
+              }
+                       
+             $sql="select jid from dataruns where status='Failed'";
+              $q1=$self->{sqlserver}->Query($sql);
               foreach my $runf  (@{$q1}){
               $sql="update jobs set timeout=$timenow-jobs.time-1 where jid=$runf->[0]"; 
                 $self->{sqlserver}->Update($sql);
@@ -9448,19 +9496,37 @@ sub checkJobsTimeout {
               WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked' OR runs.status='Foreign' or runs.status='ToBeRerun')  AND runs.jid=$jid";
        my $r4=$self->{sqlserver}->Query($sql);
        if (defined $r4->[0][0]) {
-        $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
+        $sql= "UPDATE runs SET status='TimeOut' WHERE jid=$jid";
         if ($update == 1) {$self->{sqlserver}->Update($sql); }
         $tmoutflag = 1;
         $jobstatus = $r4->[0][1];
        }
         else{
+       $sql="SELECT dataruns.run, dataruns.status
+              FROM dataruns
+              WHERE (dataruns.status = 'Failed' OR dataruns.status = 'Unchecked' OR dataruns.status='Foreign' or dataruns.status='ToBeRerun')  AND dataruns.jid=$jid";
+       my $r4=$self->{sqlserver}->Query($sql);
+       if (defined $r4->[0][0]) {
+        $sql= "UPDATE dataruns SET status='TimeOut' WHERE jid=$jid";
+        if ($update == 1) {$self->{sqlserver}->Update($sql); }
+        $tmoutflag = 1;
+        $jobstatus = $r4->[0][1];
+       }
+       else{ 
         $sql="SELECT runs.status,jobs.timekill from runs,jobs where runs.jid=jobs.jid and runs.jid=$jid";
         my $r5=$self->{sqlserver}->Query($sql);
         if(not defined $r5->[0][0] or ($r5->[0][0] eq 'TimeOut' and $r5->[0][1] <=0)){
+
+        $sql="SELECT dataruns.status,jobs.timekill from dataruns,jobs where dataruns.jid=jobs.jid and dataruns.jid=$jid";
+        $r5=$self->{sqlserver}->Query($sql);
+        if(not defined $r5->[0][0] or ($r5->[0][0] eq 'TimeOut' and $r5->[0][1] <=0)){
+
         $tmoutflag = 1;
         $jobstatus = 'Timeout';
        }
-      }
+    }
+    }
+   }
        if ($tmoutflag == 1) {
            $jobstimeout++;
          my $timestamp    = $job->[1];
@@ -9506,7 +9572,7 @@ sub checkJobsTimeout {
          $self->amsprint($jobstatus,666);
          $self->amsprint($owner,0);
          if ($webmode == 1) {print "</tr>\n";}
-     }
+       }
    }
  }
     if($verbose){
@@ -12677,7 +12743,11 @@ foreach my $block (@blocks) {
     $sql = "UPDATE $dataruns SET LEVENT=$runfinished[4] WHERE jid=$lastjobid";
     if($startingrun[21]==0){
        $self->{sqlserver}->Update($sql);
-    } 
+   }
+    if($startingrun[21]==1){
+    $sql = "UPDATE jobs SET realtriggers=$runfinished[3] WHERE jid=$lastjobid";   
+    $self->{sqlserver}->Update($sql);
+}
    print FILE "$sql \n";
 
     my $cputime = sprintf("%.0f",$runfinished[6]);
@@ -13506,6 +13576,7 @@ sub insertNtuple {
 #
   my @junk    = split "/",$path;
   my $filename = trimblanks($junk[$#junk]);
+  my $dsn=trimblanks($junk[$#junk-1]);
               my @sp1=split 'build',$version;
               my @sp2=split '\/',$sp1[1];
               my $buildno=$sp2[0];
@@ -13535,6 +13606,16 @@ sub insertNtuple {
 }
   }
   else{
+#
+# check duplicated ntuple  
+#
+  $sql = "SELECT run, path FROM ntuples
+          WHERE run=$run AND path like '%$dsn/$filename'";
+  $ret = $self->{sqlserver}->Query($sql);
+  if (defined $ret->[0][0]) {
+      print "Duplicated ntuple found $path $run \n";
+  }
+  
   $sql = "SELECT run, path FROM ntuples
           WHERE jid=$jid AND path like '%$filename'";
   $ret = $self->{sqlserver}->Query($sql);
@@ -13542,7 +13623,10 @@ sub insertNtuple {
     $sql = "DELETE ntuples WHERE jid=$jid AND path like '%$filename'";
     print "------------- $sql \n";
     print "------------- $ret->[0][1] \n";
+    my $cmd="rm     $ret->[0][1]";
+    system($cmd);
    $self->{sqlserver}->Update($sql);
+    
   }
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',

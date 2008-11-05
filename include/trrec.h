@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.97 2008/08/28 20:33:39 choutko Exp $
+//  $Id: trrec.h,v 1.98 2008/11/05 09:51:11 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -327,6 +327,7 @@ AMSPoint _PIP0;
 number _PIChi2;
 
 void SimpleFit(AMSPoint err);
+static AMSTrRecHit* SimpleFit(AMSPoint err,const AMSTrTrack& ptr, AMSTrRecHit* a[], int nhit);
 void VerySimpleFit(AMSPoint err);
 static void _Start(){TIMEX(_Time);time(&__Time);}
 static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}

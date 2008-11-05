@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.85 2008/10/31 10:29:09 choutko Exp $
+//  $Id: gbatch.C,v 1.86 2008/11/05 09:51:11 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -11,9 +11,6 @@
 #include "producer.h"
 const int NWGEAN=13000000;
 const int NWPAW=1200000;
-#ifdef __AMSP__
-#include <omp.h>
-#endif
 struct PAWC_DEF{
 float q[NWPAW];
 };
@@ -37,9 +34,6 @@ void (handler)(int);
   integer cpul=1;
  }
 int main(int argc, char * argv[] ){
-#ifdef __AMSP__
- omp_set_num_threads(omp_get_num_procs()/8);
-#endif
 std::set_unexpected (my_unexpected);
 //for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
 //  pchar++;

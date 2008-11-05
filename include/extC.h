@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.20 2008/07/28 13:40:02 choutko Exp $
+//  $Id: extC.h,v 1.21 2008/11/05 09:51:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -34,7 +34,7 @@ extern "C" void fit_(geant arr[][8],integer fixpar[][8],geant &chi2m,integer &al
 extern "C" void fite_(geant arr[][20],integer fixpar[][20],geant &chi2m,integer &alg,integer &what, geant xf[],geant chi2[][2],geant &rigmin, integer &itermin);
 #define FITE fite_
 extern "C" void dinv_(int &ndim, double matrix[], int &ndim2, 
-		          double ridaux[], int &ifail);
+		          int ridaux[], int &ifail);
 #define DINV dinv_
 
 extern "C" void invertmatrix_(double matrix[], int & dim0, int & dim1, int &ifail);

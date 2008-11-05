@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.199 2008/05/30 10:01:03 choutko Exp $
+//  $Id: trrec.C,v 1.200 2008/11/05 09:51:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1559,16 +1559,15 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                               ptest._Pthit[i] = ptest._Pthit[i-1];
                           }
                           AMSTrRecHit* pbest = NULL;
-                          double chi2tmp = TRFITFFKEY.Chi2WithoutMS;
+                          int nhit=0;
+                          AMSTrRecHit* Hit[200];
                           for (phitl=AMSTrRecHit::firstgood(pat,j);
                                    phitl; phitl=phitl->nextgood_path(par)){
-                              ptest._Pthit[0] = phitl;
-                              ptest.SimpleFit(hit_err);
-	                        if (ptest._Chi2WithoutMS<chi2tmp) {
-                                    chi2tmp = ptest._Chi2WithoutMS;
-                                    pbest = phitl;
-                              }
+                            if(nhit<199){
+                              Hit[nhit++]=phitl;
+                            }  
                           }
+                          if(nhit)pbest = SimpleFit(hit_err,ptest,Hit,nhit);
 
                         if ( _NoMoreTime(true)) {     
                               remove_track(ptrack);
@@ -2348,7 +2347,7 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   for (int i=0;i<_NHits;i++){
     hits[i] = _Pthit[i]->getHit();
     b[i] = _Pthit[i]->getBfield();
-    sigma[i] = ehit*1.e4;
+    sigma[i] = ehit;
 #ifdef __AMSDEBUG__
 //    cout << " i, hits, sigma: " << i << ",";
 //    for (int j=0;j<3;j++){ cout << " " << hits[i][j];}
@@ -2478,7 +2477,9 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
         
 // (F*S_x*F + G*S_y*G)**{-1}
   int ifail;
-  INVERTMATRIX((double*)Covariance, idim, idim, ifail);
+  int ia[10];
+  DINV(idim,(double*)Covariance,idim,ia,ifail);
+//  INVERTMATRIX( idim, idim, ifail);
   if (ifail) {
     _Chi2WithoutMS = FLT_MAX;
     _Chi2StrLine = FLT_MAX;
@@ -2500,11 +2501,11 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   _Chi2WithoutMS = 0.;
   _Chi2StrLine = 0.;
   for (int l=0;l<_NHits;l++) {
-    number xl = hits[l][0]*1.e4;
-    number yl = hits[l][1]*1.e4;
+    number xl = hits[l][0];
+    number yl = hits[l][1];
     for (int k=0;k<idim_eff;k++) {
-      xl -= d[l][k]*Param[k]*1.e4;
-      yl -= d[l+_NHits][k]*Param[k]*1.e4;
+      xl -= d[l][k]*Param[k];
+      yl -= d[l+_NHits][k]*Param[k];
     }
     _Chi2WithoutMS += xl/sigma[l][0]/sigma[l][0]*xl + yl/sigma[l][1]/sigma[l][1]*yl;
     _Chi2StrLine += xl/sigma[l][0]/sigma[l][0]*xl;
@@ -2530,6 +2531,214 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   }
 
 }
+
+#ifdef __AMSP__
+#include <omp.h>
+#endif
+AMSTrRecHit* AMSTrTrack::SimpleFit(AMSPoint ehit, const AMSTrTrack& ptr, AMSTrRecHit* Hit[],int nhit){
+  float Chi2WithoutMS=0;
+  float chi2best=TRFITFFKEY.Chi2WithoutMS;
+  int ibest=-1;
+  AMSPoint hits[trconst::maxlay];
+  AMSPoint b[trconst::maxlay];
+  AMSPoint sigma[trconst::maxlay];
+  for (int i=0;i<ptr._NHits;i++){
+    hits[i] = ptr._Pthit[i]->getHit();
+    b[i] = ptr._Pthit[i]->getBfield();
+    sigma[i] = ehit;
+  }
+  float len[trconst::maxlay];
+  number PathIntegral_x[trconst::maxlay][3];
+  number PathIntegral_u[trconst::maxlay][3];
+      number u[3], bave[3];
+  int ib=0;
+  int ie=ptr._NHits;
+  int NHits=ptr._NHits;
+  int ihit,i,j;
+  number dx[5];
+  number d[2*trconst::maxlay][5];
+  int ifail,ix,iy;
+  int ia[10];
+  int  idim,idim_eff,k,l;
+  number Covariance[5][5];
+  number Param[5];
+  number xl,yl;
+#ifdef __AMSP__
+ omp_set_num_threads(NHits/2>omp_get_num_procs()?omp_get_num_procs():NHits/2);
+ kmp_set_blocktime(1);
+#endif
+#pragma omp parallel   default(none) shared(std::cout,sigma,chi2best,ibest,Hit,nhit,magsffkey_,NHits,ib,ie) private(xl,yl,Param,ix,iy,ifail,ia,Covariance,d,dx,ihit,i,j,k,l,u,bave,idim,idim_eff,len,Chi2WithoutMS,PathIntegral_x,PathIntegral_u),firstprivate(b,hits)
+{
+#pragma omp  for  nowait
+  for( ihit=0;ihit<nhit;ihit++){
+    b[0] = Hit[ihit]->getBfield();
+    hits[0]=Hit[ihit]->getHit();
+//    if(ihit>0){
+//      ib=1;
+//      ie=3;
+//    }
+// Lenghts
+  for (i=ib;i<ie;i++){
+    if (i==0){
+      len[i] = 0.;
+    }
+    else {
+      len[i] = sqrt( (hits[i][0]-hits[i-1][0])*(hits[i][0]-hits[i-1][0])
+                    +(hits[i][1]-hits[i-1][1])*(hits[i][1]-hits[i-1][1])
+                    +(hits[i][2]-hits[i-1][2])*(hits[i][2]-hits[i-1][2]) );
+    }
+  }
+
+// Calculate path integrals
+
+
+  for ( i=ib;i<ie;i++){
+    if(i==0){
+  for ( j=0;j<3;j++){
+        PathIntegral_x[0][j] = 0.;
+        PathIntegral_u[0][j] = 0.;
+  }
+    }
+    else{
+    if (MAGSFFKEY.magstat>0) {
+   
+      for ( j=0;j<3;j++){
+          u[j] = (hits[i][j]-hits[i-1][j])/len[i];
+          bave[j] = (b[i-1][j]+b[i][j])/2;
+      }
+
+      PathIntegral_x[i][0] = (u[1]*b[i-1][2]-u[2]*b[i-1][1])/2;
+      PathIntegral_x[i][1] = (u[2]*b[i-1][0]-u[0]*b[i-1][2])/2;
+      PathIntegral_x[i][2] = (u[0]*b[i-1][1]-u[1]*b[i-1][0])/2;
+      PathIntegral_u[i][0] = u[1]*bave[2]-u[2]*bave[1];
+      PathIntegral_u[i][1] = u[2]*bave[0]-u[0]*bave[2];
+      PathIntegral_u[i][2] = u[0]*bave[1]-u[1]*bave[0];
+
+    } else {
+      for ( j=0;j<3;j++){
+        PathIntegral_x[i][j] = 0.;
+        PathIntegral_u[i][j] = 0.;
+      }
+
+     }
+    }
+  }
+
+// F and G matrices
+  for (i=0;i<NHits;i++) {
+     ix = i;
+     iy = i+NHits;
+    for ( j=0;j<5;j++) { d[ix][j] = 0; d[iy][j] = 0;}
+    d[ix][0] = 1.;
+    d[iy][1] = 1.;
+    for ( k=0;k<=i;k++) {
+	d[ix][2] += len[k];
+	d[iy][3] += len[k];
+      if (MAGSFFKEY.magstat>0) {
+         for ( l=0;l<=k;l++) {
+            if (l==k) {
+                  d[ix][4] += len[k]*len[k]*PathIntegral_x[k][0];
+                  d[iy][4] += len[k]*len[k]*PathIntegral_x[k][1];
+            } else {
+                  d[ix][4] += len[k]*len[l]*PathIntegral_u[l][0];
+                  d[iy][4] += len[k]*len[l]*PathIntegral_u[l][1];
+            }
+	   }
+      }
+    }
+  }
+
+// F*S_x*x + G*S_y*y
+  for ( j=0;j<5;j++) {
+    dx[j] = 0.;
+    for ( l=0;l<NHits;l++) {
+      dx[j] += d[l][j]/sigma[l][0]/sigma[l][0]*hits[l][0];
+      dx[j] += d[l+NHits][j]/sigma[l][1]/sigma[l][1]*hits[l][1];
+    }
+  }
+
+// (F*S_x*F + G*S_y*G)
+  
+   idim = 5;
+  if (MAGSFFKEY.magstat>0) {
+      idim_eff = 5;
+  } else {
+      idim_eff = 4;
+  }
+  for ( j=0;j<5;j++) {
+    for ( k=0;k<5;k++) {
+      if (MAGSFFKEY.magstat>0) {
+            Covariance[j][k] = 0.;
+      } else if (k==4 && j==4) {
+            Covariance[j][k] = 1.;
+            continue;
+      } else if (k==4 || j==4) {
+            Covariance[j][k] = 0.;
+            continue;
+      } else {
+            Covariance[j][k] = 0.;
+      }
+      for ( l=0;l<NHits;l++) {
+        Covariance[j][k] += d[l][j]/sigma[l][0]/sigma[l][0]*d[l][k];
+        Covariance[j][k] += d[l+NHits][j]/sigma[l][1]/sigma[l][1]*d[l+NHits][k];
+        //cout <<" l "<<l<<" "<<sigma[l][0]<<" "<<sigma[l][1]<<" "<<d[l][j]<<" "<< d[l+NHits][j]<<endl;
+      } 
+    }
+  }
+        
+// (F*S_x*F + G*S_y*G)**{-1}
+//for( i=0;i<5;i++){
+//  for(j=0;j<5;j++)cout <<i<<" "<<j<<"  " <<Covariance[i][j]<<" "<<endl;
+//}
+  DINV(idim,(double*)Covariance,idim,ia,ifail);
+//  INVERTMATRIX( idim, idim, ifail);
+  if (ifail) {
+    Chi2WithoutMS = FLT_MAX;
+ //   cout <<"  ifail "<<ifail<<endl;
+    continue;
+  }
+
+// Solution
+ for ( k=0;k<idim_eff;k++) {
+      Param[k] = 0.;
+      for ( i=0;i<idim_eff;i++) {
+            Param[k] += Covariance[k][i]*dx[i];
+      }
+  }
+  
+// Chi2 (xl and yl in microns, since sigmas are in microns too)
+  Chi2WithoutMS = 0.;
+  for ( l=0;l<NHits;l++) {
+     xl = hits[l][0];
+     yl = hits[l][1];
+    for ( k=0;k<idim_eff;k++) {
+      xl -= d[l][k]*Param[k];
+      yl -= d[l+NHits][k]*Param[k];
+    }
+    Chi2WithoutMS += xl/sigma[l][0]/sigma[l][0]*xl + yl/sigma[l][1]/sigma[l][1]*yl;
+  }
+
+// Return Chi2/Ndof
+  if (MAGSFFKEY.magstat <= 0) {
+      Chi2WithoutMS /= (2.*NHits-4.);
+  } else if (Param[4]!=0.0) {
+      Chi2WithoutMS /= (2.*NHits-5.);
+  } else {
+      Chi2WithoutMS = FLT_MAX;
+      continue;
+  }
+//cout << "   chi2 "<<Chi2WithoutMS<<endl;
+#pragma omp critical
+  if(Chi2WithoutMS<chi2best){
+   chi2best=Chi2WithoutMS;
+   ibest=ihit;
+  }
+}
+}
+//   cout <<"aout "<<ibest<<" "<<chi2best<<" "<<Chi2WithoutMS<<endl;;
+  return ibest>=0?Hit[ibest]:NULL;
+}
+
 
 
 void AMSTrTrack::VerySimpleFit(AMSPoint ehit){

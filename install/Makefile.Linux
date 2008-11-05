@@ -68,6 +68,10 @@ ifdef AMSPARALLEL
 else
   PARALLEL=
 endif
+ifdef AMSP
+ PARALLEL=-D__AMSP__ -openmp
+endif
+
   FF=$(INTELDIR)/fc/10.1.012/bin/ifort -W0 -m32 -axPT  -vec-report0 $(PARALLEL)
   CXX=$(INTELDIR)/cc/10.1.012/bin/icc  -m32 -axPT -vec-report0  $(PARALLEL)
   CC=$(INTELDIR)/cc/10.1.012/bin/icc -m32 -axPT 
