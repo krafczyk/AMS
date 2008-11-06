@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.57 2008/11/03 14:10:41 pzuccon Exp $
+#  $Id: Makefile,v 1.58 2008/11/06 09:56:35 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -131,7 +131,7 @@ INCS= $(wildcard ../include/*.h)
 COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
 		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
 		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
-		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)amscommonsi.C
+		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)commonsi.C
 
 
 #Geant Interface
@@ -323,11 +323,11 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 #   Libraries to read the ROOT output
 
 
-shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
-	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
+shared :     $(BIN)point.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
+	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
 
-static :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
-	$(AR) rv $(LIB)/libntuple.a $(BIN)/root_rs.o $(BIN)/rootdict_s.o
+static :	$(BIN)point.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
+	$(AR) rv $(LIB)/libntuple.a $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o
 
 
 #-------------------------------------------------------------------------------

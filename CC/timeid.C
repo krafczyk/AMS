@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.93 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: timeid.C,v 1.94 2008/11/06 09:56:34 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <strstream>
 #ifndef __CORBASERVER__
-#include "amscommonsi.h"
+#include "commonsi.h"
 #endif
 #ifdef __CORBA__
 #include "producer.h"

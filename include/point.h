@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.22 2008/11/05 10:02:37 choutko Exp $
+//  $Id: point.h,v 1.23 2008/11/06 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -6,6 +6,8 @@
 #include "typedefs.h"
 #include <iostream>
 #include <cmath>
+#include "TObject.h"
+
 class AMSRotMat;
 using namespace std;
 
@@ -113,9 +115,12 @@ public:
 
   //! it returns an AMSPoint which is the vector cross product
   AMSPoint crossp(const AMSPoint & o);
+
 #ifdef __WRITEROOT__
     friend class AMSPointRoot;
 #endif
+
+    ClassDef(AMSPoint,1);
 };
 
 //! A General AMS class to define a direction in space. It is an AMSPoint with  module equal to one.
@@ -146,6 +151,7 @@ class AMSDir :public AMSPoint{
   void setd(number x[]){_copy(x[0],x[1],x[2]);}
   //! it does the vector cross product of two AMSDir
   AMSDir cross(const AMSDir & o);
+    ClassDef(AMSDir,1);
 };
 
 

@@ -1,9 +1,12 @@
-//  $Id: point.C,v 1.18 2008/11/05 10:02:37 choutko Exp $
+//  $Id: point.C,v 1.19 2008/11/06 09:56:34 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
 #include "point.h"
 #include <cmath>
+
+ClassImp(AMSPoint);
+ClassImp(AMSDir);
 
 AMSPoint  AMSPoint::mm3(number m1[][3]){
    number x,y,z;

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.250 2008/09/22 10:00:11 mdelgado Exp $
+//  $Id: commons.h,v 1.251 2008/11/06 09:56:35 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -16,7 +16,7 @@
 #endif
 #include "cfortran.h"
 
-
+#include "commonsi.h"
 
 class TRMFFKEY_DEF{
 public:
@@ -851,16 +851,6 @@ geant  rqz[lrq][2];
 #define TKFIELDADDON COMMON_BLOCK(TKFIELDADDON,tkfieldaddon)
 COMMON_BLOCK_DEF(TKFIELDADDON_DEF,TKFIELDADDON);
 */
-class AMSDATADIR_DEF{
-public:
-integer amsdlength;
-integer amsdblength;
-char amsdatadir[128];
-char amsdatabase[128];
-char fname[200];
-};
-#define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
-COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 
 const integer nalg=4;
 class TRCALIB_DEF{
@@ -1241,34 +1231,6 @@ geant liprprob;
 COMMON_BLOCK_DEF(LIPVAR_DEF,LIPVAR);
 
 // ENDofLIP
-
-
-class AMSCommonsI{
-private:
- static integer _Count;
- static char _version[6];
- static uinteger _build;
- static uinteger _os;
- static char _osname[255];
- static char _osversion[255];
- static float _mips;
- static pid_t _pid;
- static bool _remote;
-public:
- AMSCommonsI();
- void init();
- static const char * getversion(){return _version;}
- static integer getbuildno()  {return _build;}
- static integer getmips()  {return integer(_mips);}
- static integer getpid()  {return integer(_pid);}
- static void setremote(bool remote){_remote=remote;}
- static bool remote(){return _remote;}
- static integer getosno()  {return _os;}
- static char* getosname()  {return _osname;}
- static char* getosversion(){return _version;}
-};
-static AMSCommonsI cmnI;
-
 
 
 

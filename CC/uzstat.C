@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.19 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: uzstat.C,v 1.20 2008/11/06 09:56:34 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "uzstat.h"
@@ -9,7 +9,7 @@
 #include <sys/time.h>
 #include <fstream>
 #include <sys/resource.h>
-#include "amscommonsi.h"
+#include "commonsi.h"
 #ifdef __LVL3ONLY__
 ofstream fbin("/f2users/choutko/AMS/examples/lvl3.txt",ios::out);
 #endif
