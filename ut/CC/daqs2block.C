@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.31 2008/10/13 10:22:48 choumilo Exp $
+//  $Id: daqs2block.C,v 1.32 2008/11/07 08:56:35 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -503,21 +503,21 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	}
 //set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
 	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpb(irl1-1,15,irs1-1);//set as fictitious paddle-15
-	osbit=(nword&(0x0800));//other card-side CT-bit of 1st layer(side)(CT0)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,14,irs1-1);//set as fictitious paddle-14
-	osbit=(nword&(0x1000));//other card-side CP-bit of 1st layer(side)(CP0)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpb(irl1-1,14,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x0800));//other card-side CP-bit(11) of 1st layer(side)(ICP0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-14
+	osbit=(nword&(0x1000));//other card-side CT-bit(12) of 1st layer(side)(ICT0)(OR of CP0-bits if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl1-1,11,irs1-1);//if masked, set as fictitious paddle-12
 	
 //set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
 	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpb(irl2-1,15,irs2-1);//set as fictitious paddle-15
-	osbit=(word&(0x0800));//other card-side CT-bit of 2nd layer(side)(CT1)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,14,irs2-1);//set as fictitious paddle-14
-	osbit=(word&(0x1000));//other card-side CP-bit of 2nd layer(side)(CP1)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpb(irl2-1,14,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x0800));//other card-side CP-bit of 2nd layer(side)(ICP1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-14
+	osbit=(word&(0x1000));//other card-side CT-bit of 2nd layer(side)(ICT1)(OR of CP1-bits if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl2-1,11,irs2-1);//if masked, set as fictitious paddle-12
 //decode 2nd pair of trpatt-words(SHT):
         word=*(pr+bias+2);
         nword=*(pr+bias+3);
@@ -543,17 +543,21 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	}
 //set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
 	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpzb(irl1-1,15,irs1-1);//set as fictitious paddle-15
-	osbit=(nword&(0x1000));//other card-side BZ-bit of 1st layer(side)(BZ0)
-	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,13,irs1-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpzb(irl1-1,14,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x0800));//other card-side BZ-bit(11) of 1st layer(side)(IBZ0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-14
+	osbit=(nword&(0x1000));//THIS card-side BZ-bits OR of 1st layer(side)(BZ0, if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl1-1,11,irs1-1);//if masked, set as fictitious paddle-12
 	
 //set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
 	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpzb(irl2-1,15,irs2-1);//set as fictitious paddle-15
-	osbit=(word&(0x1000));//other card-side BZ-bit of 2nd layer(side)(BZ1)
-	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,13,irs2-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpzb(irl2-1,14,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x0800));//other card-side BZ-bit of 2nd layer(side)(IBZ1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-14
+	osbit=(word&(0x1000));//THIS card-side BZ-bits OR of 2nd layer(side)(BZ1, if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl2-1,11,irs2-1);//if masked, set as fictitious paddle-12
 //
 SkipTPpr:
         bias+=4;
@@ -815,21 +819,21 @@ cout<<" CompAloneFMT:lencom="<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<e
 	}
 //set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
 	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpb(irl1-1,15,irs1-1);//set as fictitious paddle-15
-	osbit=(nword&(0x0800));//other card-side CT-bit of 1st layer(side)(CT0)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,14,irs1-1);//set as fictitious paddle-14
-	osbit=(nword&(0x1000));//other card-side CP-bit of 1st layer(side)(CP0)
-	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpb(irl1-1,14,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x0800));//other card-side CP-bit of 1st layer(side)(ICP0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-14
+	osbit=(nword&(0x1000));//other card-side CT-bit of 1st layer(side)(ICT0)(OR of CP0-bits if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,12,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl1-1,11,irs1-1);//if masked, set as fictitious paddle-12
 	
 //set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
 	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpb(irl2-1,15,irs2-1);//set as fictitious paddle-15
-	osbit=(word&(0x0800));//other card-side CT-bit of 2nd layer(side)(CT1)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,14,irs2-1);//set as fictitious paddle-14
-	osbit=(word&(0x1000));//other card-side CP-bit of 2nd layer(side)(CP1)
-	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpb(irl2-1,14,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x0800));//other card-side CP-bit of 2nd layer(side)(ICP1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-14
+	osbit=(word&(0x1000));//other card-side CT-bit of 2nd layer(side)(ICT1)(OR of CP1-bits if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,12,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpb(irl2-1,11,irs2-1);//if masked, set as fictitious paddle-12
 //decode 2nd pair of trpatt-words(SHT):
         word=*(pss+bias+2);
         nword=*(pss+bias+3);
@@ -855,17 +859,21 @@ cout<<" CompAloneFMT:lencom="<<lencom<<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<e
 	}
 //set s1/s2 32-bits of TP[ilay] for "1st" layer(side), i.e. the one extracted from "nword"=>lsbits:
 	sptgen=((nword&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpzb(irl1-1,15,irs1-1);//set as fictitious paddle-15
-	osbit=(nword&(0x1000));//other card-side BZ-bit of 1st layer(side)(BZ0)
-	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,13,irs1-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpzb(irl1-1,14,irs1-1);//set as fictitious paddle-15
+	osbit=(nword&(0x0800));//other card-side BZ-bit(11) of 1st layer(side)(IBZ0)
+	if(osbit>0)TOF2RawSide::addtpb(irl1-1,13,irs1-1);//set as fictitious paddle-14
+	osbit=(nword&(0x1000));//THIS card-side BZ-bits OR of 1st layer(side)(BZ0, if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpzb(irl1-1,12,irs1-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl1-1,11,irs1-1);//if masked, set as fictitious paddle-12
 	
 //set s1/s2 32-bits of TP[ilay] for "2nd" layer(side), i.e. the one extracted from "word"=>msbits:	
 	sptgen=((word&(0x0400))!=0);//true, if generator bit was set
-	if(sptgen)TOF2RawSide::addtpzb(irl2-1,15,irs2-1);//set as fictitious paddle-15
-	osbit=(word&(0x1000));//other card-side BZ-bit of 2nd layer(side)(BZ1)
-	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,13,irs2-1);//set as fictitious paddle-13
-        if(sptcmdt>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//if masked, set as fictitious paddle-12
+	if(sptgen)TOF2RawSide::addtpzb(irl2-1,14,irs2-1);//set as fictitious paddle-15
+	osbit=(word&(0x0800));//other card-side BZ-bit of 2nd layer(side)(IBZ1)
+	if(osbit>0)TOF2RawSide::addtpb(irl2-1,13,irs2-1);//set as fictitious paddle-14
+	osbit=(word&(0x1000));//THIS card-side BZ-bits OR of 2nd layer(side)(BZ1, if masked fmt)
+	if(osbit>0)TOF2RawSide::addtpzb(irl2-1,12,irs2-1);//set as fictitious paddle-13
+        if(sptcmdt>0)TOF2RawSide::addtpzb(irl2-1,11,irs2-1);//if masked, set as fictitious paddle-12
 //
 SkipTPpr1:
 // decode status part:
@@ -1834,6 +1842,7 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
   integer hwidt;//CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
   integer hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), II=1-10)
   int16u sptpat[4]={0,0,0,0};
+  int16u sptpator[4]={0,0,0,0};
   geant adca,adcd[TOF2GC::PMTSMX];
   integer nhts,nqhits(0),nthits(0);
   geant qdata[9][10];//9 links(slots, SFET(A,C)), 10 inp.channels
@@ -1952,16 +1961,30 @@ NextTFObj:
     if(bit<10){//fill 2nd/4th patt.words
       if((trpat[il]&(1<<(ib+16*is)))>0){
         sptpat[1]|=(1<<bit);
+	sptpator[1]=1;
       }
-      if((trpatz[il]&(1<<(ib+16*is)))>0)sptpat[3]|=(1<<bit);
+      if((trpatz[il]&(1<<(ib+16*is)))>0){
+        sptpat[3]|=(1<<bit);
+	sptpator[3]=1;
+      }
     }
     else{//fill 1st/3rd patt.word
       if((trpat[il]&(1<<(ib+16*is)))>0){
         sptpat[0]|=(1<<(bit-10));
+	sptpator[0]=1;
       }
-      if((trpatz[il]&(1<<(ib+16*is)))>0)sptpat[2]|=(1<<(bit-10));
+      if((trpatz[il]&(1<<(ib+16*is)))>0){
+        sptpat[2]|=(1<<(bit-10));
+	sptpator[2]=1;
+      }
     }
   }
+  if(TFMCFFKEY.trlogic[0]==1){
+    for(i=0;i<4;i++){
+      sptpat[i]|=(1<<14);//add masking(format) bit
+      if(sptpator[i]==1)sptpat[i]|=(1<<12);//add "this card-side" CP(BZ)-bits OR 
+    }
+  } 
 //cout<<"   SPT2pat="<<hex<<sptpat[0]<<" "<<sptpat[1]<<" "<<sptpat[2]<<" "<<sptpat[3]<<dec<<endl;
 //-----------------------
 //------>collect ATC-info:

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.79 2008/09/26 10:23:27 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.80 2008/11/07 08:56:35 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -66,7 +66,7 @@ integer ECALDBc::_nfibpl[2]={
 };
 //
 int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion.
-geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1-decision delay
+geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1 FTE-decision delay
 //
 //  member functions :
 //

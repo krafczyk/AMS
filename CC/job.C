@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.599 2008/11/05 09:51:11 choutko Exp $
+// $Id: job.C,v 1.600 2008/11/07 08:56:36 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1227,7 +1227,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
   TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
-  TFREFFKEY.cuts[4]=70.;//(22) aver(fixed) globFT decision_time+delay(JLV1-> S-crate, ns) at S-crate
+  TFREFFKEY.cuts[4]=70.;//(22) JLV1 globFT decision_time + delay(JLV1-> S-crate, ns), i.e. glFT-time at S-crate
   TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=10.;// (25) T-type def.temperature (see card #29)
