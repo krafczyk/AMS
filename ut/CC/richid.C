@@ -642,21 +642,21 @@ int RichPMTsManager::FindPMT(geant x,geant y){
 
   // Grid positioning is according to next drawing
   //
-  //          8| 1 |2                           2| 5 |8
+  //          8| 1 |2                           4| 5 |6
   //          -+---+-
   //          7|   |3  -> DUE TO SWAPPING ->    3|   |7  
   //          -+---+-
-  //          6| 5 |4                           4| 1 |6
+  //          6| 5 |4                           2| 1 |8
 
   integer grid=-1;
 
   if(x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
-    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=8;//grid=2;
-    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=6;//grid=4;
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=6;//grid=2;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=8;//grid=4;
     else grid=7;//grid=3;
   } else if(-x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
-    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=2;//grid=8;
-    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=4;//grid=6;
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=4;//grid=8;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) grid=2;//grid=6;
     else grid=3;//grid=7;
   }else{
     if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) grid=5;//grid=1;
@@ -666,24 +666,25 @@ int RichPMTsManager::FindPMT(geant x,geant y){
 
 
   assert(grid>0);
-
+  
   grid--;
   int *index=_grid_pmts[grid];
   int n=_grid_nb_of_pmts[grid];
   
   int pmt=-1;
-
   for(int i=0;i<n;i++){
     double pmt_x=_pmts[index[i]]._global_position[0];
     double pmt_y=_pmts[index[i]]._global_position[1];
-
+    
     if(fabs(x-pmt_x)<RICHDB::lg_length/2. && 
        fabs(y-pmt_y)<RICHDB::lg_length/2.){
       pmt=index[i];
       break;
     }
   }
-
+  
+  if(pmt==-1) return -1;
+  
   double pmt_x=_pmts[pmt]._global_position[0];
   double pmt_y=_pmts[pmt]._global_position[1];
 
