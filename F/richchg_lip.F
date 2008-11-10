@@ -98,9 +98,11 @@
 
 * ... count nb photoelectrons close to pattern
       do i=1,nbhits
+*         print*,'(richchgrec) Hit ',i,' has flag ',iflghit(i)
          if ( iflghit(i).ne.1 .and.                !hits not associated to particle
      +        sqrt(chi2hit(ipthetac,i)).lt.chgwin  !in the window
      +      ) then
+*            print*,' >>> hit ',i,' included in charge'
             chg_nphe = chg_nphe + hitsnpe(i) ! ADC npe
             if (ireflechit(1,i).eq.1)
      +         chg_nphe_ref = chg_nphe_ref + hitsnpe(i) ! ADC npe reflected

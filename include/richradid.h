@@ -115,6 +115,7 @@ class RichRadiatorTileManager{
   static integer get_tile_kind(integer tile){if(tile>=0 && tile<_number_of_rad_tiles) return _tiles[tile]->kind; else return empty_kind;}
   static number get_tile_boundingbox(int tile,int dim){return fabs(_tiles[tile]->bounding_box[dim][0]);}
   static geant get_refractive_index(geant x,geant y,geant wavelength);      // This is used for simulation purposes. It returns the local refractive index
+  integer getcurrenttile(){if(_current_tile<0) return -1;return _current_tile;};
 
 
 

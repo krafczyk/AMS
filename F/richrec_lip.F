@@ -1126,6 +1126,7 @@
 
       integer amsrk
       double precision amsri
+      integer amsrt
 
       integer idummy
       data idummy /0/
@@ -1160,7 +1161,8 @@ c$$$            rad_kind = 0        !AGL
 c$$$         endif
 
 * ...... New method using data from global simulation
-         call lipgetrad(pdum(1),pdum(2),pdum(3),pthe,pphi,amsrk,amsri)
+         call lipgetrad(pdum(1),pdum(2),pdum(3),pthe,pphi,
+     +   amsrk,amsri,amsrt)
 *         print*,'(A) amsrk = ',amsrk
 
          if(amsrk.eq.0) then  ! no radiator
@@ -1202,12 +1204,14 @@ c$$$         endif
          chradid  = 'AGL'
 *         ZPHEMI   = 0.55239
 *         ZPHEMI   = 0.59065
-         ZPHEMI   = 0.60
+*         ZPHEMI   = 0.60
+         call lipfzphemi(amsrt,ZPHEMI)
          ZTRIAL   = ZTARG+HRAD*ZPHEMI
       elseif (rad_kind.eq.1) then !particle inciding on NaF
          refindex = radix(2)
          chradid  = 'NAF'
-         ZPHEMI   = 0.5
+*         ZPHEMI   = 0.5
+         call lipfzphemi(amsrt,ZPHEMI)
          ZTRIAL   = ZTARG+(HRAD-HRNAF)+HRNAF*ZPHEMI
       else
 *         print*,'(richinitrec) rad_kind = ',rad_kind     

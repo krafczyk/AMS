@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.97 2008/10/28 10:17:21 mdelgado Exp $
+//  $Id: richrec.C,v 1.98 2008/11/10 17:45:54 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////
 
 
-extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, int *radkind, double *radindex){
+extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, int *radkind, double *radindex, int *radtile){
   
   float xams,yams,zams;
   float thetaams,phiams;
@@ -34,6 +34,12 @@ extern "C" void lipgetrad_(float *x,float *y,float *z,float *theta,float *phi, i
   // Save output to corresponding variables
   *radkind = crossed_tile.getkind();
   *radindex = crossed_tile.getindex();
+  *radtile = crossed_tile.getcurrenttile();
+}
+ 
+ 
+extern "C" void lipfzphemi_(int *radtile, float *zphemiloc){
+  *zphemiloc = AMSRichRingNewSet::getzphemiloc(*radtile);
 }
 
 
@@ -2227,6 +2233,24 @@ void AMSRichRingNew::_copyEl(){
 //////////////////////////////////////////////////////////// LIP Ring set
 
 
+// depth of vertex by tile
+
+const double AMSRichRingNewSet::zphemiloc[] = {
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //   0-9
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  10-19
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  20-29
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  30-39   AEROGEL
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  40-49    TILES
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  50-59
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  60-69
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  70-79
+  0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,  //  80-89
+  0.6,0.6,                                  //  90-91
+  //--------------------------------------- // ---------------
+  0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,          //  92-99     NaF
+  0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};         // 100-107   TILES
+
+
 AMSRichRingNewSet::AMSRichRingNewSet () {ringset.clear();}
 
 AMSRichRingNewSet::~AMSRichRingNewSet () {
@@ -2381,15 +2405,15 @@ void richiniteventlip() {
   LIPC2F.ztoprad_ams_c2f = RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height;
   LIPC2F.rcgeom_c2f[0] = 0;                           
   LIPC2F.rcgeom_c2f[1] = 0;
-  LIPC2F.levgeom_c2f = 4; //4;
-  LIPC2F.levgrad_c2f = 2;	           
-  LIPC2F.levacc_c2f = 1;	           
+  LIPC2F.levgeom_c2f = 4;
+  LIPC2F.levgrad_c2f = 2;
+  LIPC2F.levacc_c2f = 1;
   LIPC2F.ztarg_c2f = 0.;
   LIPC2F.nradts_c2f = 1;
   LIPC2F.hrad_c2f = RICHDB::rad_agl_height;
   LIPC2F.hrnaf_c2f = RICHDB::naf_height;
-  LIPC2F.radtile_pitch_c2f = 11.4; // FIND WHERE THIS IS IN FULL SIM CODE
-  LIPC2F.radtile_supthk_c2f = 0.1; // FIND WHERE THIS IS IN FULL SIM CODE
+  LIPC2F.radtile_pitch_c2f = RICHDB::rad_length;
+  LIPC2F.radtile_supthk_c2f = RICaethk;
   LIPC2F.radix_c2f[0] = RICHDB::rad_index;
   LIPC2F.radix_c2f[1] = RICHDB::naf_index;
   LIPC2F.radclarity_c2f = RICHDB::rad_clarity;
@@ -2542,17 +2566,24 @@ void richinittracklip(AMSPoint entrance_p, AMSDir entrance_d) {
   LIPC2F.pimp_sim[2] = 0.; // SHOULD BE FILLED IF SIMULATION
 
   // main track parameters (errors assumed to be zero for the moment)
-  angleams2lip(entrance_d.gettheta(),entrance_d.getphi(),LIPC2F.pthe_main,LIPC2F.pphi_main);
+  anglerich2lip(entrance_d.gettheta(),entrance_d.getphi(),LIPC2F.pthe_main,LIPC2F.pphi_main);
   LIPC2F.epthe_main = 0.;
   LIPC2F.epphi_main = 0.;
 
-  AMSPoint ptmp = RichAlignment::AMSToRich(entrance_p);
-  float plocal0 = ptmp[0]+tan(LIPC2F.pthe_main)*cos(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
-  float plocal1 = ptmp[1]+tan(LIPC2F.pthe_main)*sin(LIPC2F.pphi_main)*(RICHDB::rad_height-RICHDB::rad_agl_height);
-  float plocal2 = ptmp[2]+RICHDB::rad_agl_height-RICHDB::rad_height;
-  AMSPoint ptmpnew(plocal0,plocal1,plocal2);
-  ptmpnew = RichAlignment::RichToAMS(ptmpnew);
-  coordams2lip(ptmpnew.x(),ptmpnew.y(),ptmpnew.z(),LIPC2F.pimp_main[0],LIPC2F.pimp_main[1],LIPC2F.pimp_main[2]);
+  AMSPoint ptmp = entrance_p;
+  //cout << "INTERMEDIATE: ptmp = " << ptmp[0] << "," << ptmp[1] << "," << ptmp[2] << endl;
+
+  float plocal0 = ptmp[0]+tan(LIPC2F.pthe_main)*cos(LIPC2F.pphi_main)*(ptmp[2]-(RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height));
+  float plocal1 = ptmp[1]+tan(LIPC2F.pthe_main)*sin(LIPC2F.pphi_main)*(ptmp[2]-(RICHDB::RICradpos()+RICHDB::rad_agl_height-RICHDB::rad_height));
+  float plocal2 = 0.;
+  //cout << "INTERMEDIATE: plocal = " << plocal0 << "," << plocal1 << "," << plocal2 << endl;
+
+  LIPC2F.pimp_main[0] = plocal0;
+  LIPC2F.pimp_main[1] = plocal1;
+  LIPC2F.pimp_main[2] = plocal2;
+
+  //cout << "RESULT: pimp = " << LIPC2F.pimp_main[0] << "," << LIPC2F.pimp_main[1] << "," << LIPC2F.pimp_main[2] << endl; 
+
   LIPC2F.epimp_main[0] = 0.;
   LIPC2F.epimp_main[1] = 0.;
   LIPC2F.epimp_main[2] = 0.;
@@ -2560,7 +2591,6 @@ void richinittracklip(AMSPoint entrance_p, AMSDir entrance_d) {
   LIPC2F.pmom_main = 0.; // SHOULD BE FILLED (currently not used in LIP rec)
   LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
 }
-
 
 
 // conversion between AMS and LIP coordinate systems

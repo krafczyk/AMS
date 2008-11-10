@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.50 2008/09/24 14:58:08 mdelgado Exp $
+//  $Id: richrec.h,v 1.51 2008/11/10 17:46:09 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -396,7 +396,7 @@ class AMSRichRingNewSet {
   AMSRichRingNew* getring(int);
   void AddRing(AMSRichRingNew*);
   int NumberOfRings();
-
+  static double getzphemiloc(int tileno) {if (tileno<0 || tileno>107) return -999.; return zphemiloc[tileno];}
  private:
 
   vector<AMSRichRingNew*> ringset;
@@ -406,6 +406,7 @@ class AMSRichRingNewSet {
   static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
   static geant _Time;
 
+  static const double zphemiloc[108];
 };
 
 

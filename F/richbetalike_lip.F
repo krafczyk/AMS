@@ -482,6 +482,7 @@ cc            fact_weight=nint(hitsnpe(i))
 * ...... tag hits associated to ring
 *         print*,'chi2hit_fit(',i,') = ',chi2hit_fit(i)
          if (chi2hit_fit(i).lt.CHI2HTCUT ) then
+*            print*,'Hit ',i,' counted for ring'
             nbushits_fit               = nbushits_fit + 1 
             ipushits_fit(nbushits_fit) = i
             chi2rec_fit                = chi2rec_fit + chi2hit_fit(i)   

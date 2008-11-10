@@ -321,7 +321,8 @@
       real ztest,xrad_in,yrad_in,refind_in
 
       integer amsrk
-      real amsri
+      double precision amsri
+      integer amsrt
 
 * --- set reconstruction options
 cc    RECBET(1)  = 11   ! unused
@@ -366,7 +367,8 @@ c$$$
 c$$$      thetac_in = acos(1./refind_in)
 
 * ... New method using data from global simulation
-      call lipgetrad(xrad_in,yrad_in,ZTEST,0.,0.,amsrk,amsri)
+      call lipgetrad(xrad_in,yrad_in,ZTEST,0.,0.,
+     +               amsrk,amsri,amsrt)
 *      print*,'(B) amsrk = ',amsrk
 
       if(amsrk.eq.0) then ! no radiator
@@ -375,7 +377,8 @@ c$$$      thetac_in = acos(1./refind_in)
       endif
 
       if(amsrk.eq.1) then ! aerogel
-         refind_in = radix(1)
+*         refind_in = radix(1)
+         refind_in = 1.05  ! temporary fix to have same thc hint in all events
          thetac_in = acos(1./refind_in)
       endif
 
@@ -413,7 +416,12 @@ c$$$      thetac_in = acos(1./refind_in)
 
       if(ierr5p.eq.0) then ! successful 5-parameter reconstruction
          iflag_out = 1
-         beta_out = 1./(refindex*cos(thetac_out))
+
+* ...... Get local ref index from global simulation
+         call lipgetrad(x0v_out,y0v_out,0.,0.,0.,
+     +                  amsrk,amsri,amsrt)
+
+         beta_out = 1./(amsri*cos(thetac_out))
          x0_out = x0m_out-
      +            ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)*(x0m_out-x0v_out)
          y0_out = y0m_out-
@@ -629,7 +637,8 @@ cc    RECBET(1)  = 11   ! unused
       real ztest,xrad_cand,yrad_cand,refind_cand
 
       integer amsrk
-      real amsri
+      double precision amsri
+      integer amsrt
 
       integer auxcand(ncandmax)
       integer ibestcand
@@ -745,7 +754,7 @@ c$$$     +                       +(1.-fracminthc)*(iz-1.)/(ngridthc-1.))
 
 * ..................... New method using data from global simulation
                         call lipgetrad(xrad_cand,yrad_cand,ZTEST,0.,0.,
-     +                                 amsrk,amsri)
+     +                                 amsrk,amsri,amsrt)
 *                        print*,'(C) amsrk = ',amsrk
 
                         if(amsrk.eq.0) then ! no radiator
@@ -942,7 +951,12 @@ c$$$         nuhits_best = -999
      +              x0v_out,y0v_out,errhint,vlike,ierr5p)
 
                if(ierr5p.eq.0) then ! successful 5-parameter reconstruction
-                  beta_out = 1./(refindex*cos(thetac_out))
+
+* ............... Get local ref index from global simulation
+                  call lipgetrad(x0v_out,y0v_out,0.,0.,0.,
+     +                           amsrk,amsri,amsrt)
+
+                  beta_out = 1./(amsri*cos(thetac_out))
                   x0_out = x0m_out-ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)
      +                 *(x0m_out-x0v_out)
                   y0_out = y0m_out-ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)
@@ -1082,7 +1096,11 @@ c$$$         nuhits_best = -999
             call richlikemin5parxypart(thetac_best,x0m_best,y0m_best,
      +           x0v_best,y0v_best,errhint,vlike_best,ierr5p)
 
-            beta_best = 1./(refindex*cos(thetac_best))
+* ......... Get local ref index from global simulation
+            call lipgetrad(x0v_best,y0v_best,0.,0.,0.,
+     +                     amsrk,amsri,amsrt)
+
+            beta_best = 1./(amsri*cos(thetac_best))
             x0_best = x0m_best-ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)
      +           *(x0m_best-x0v_best)
             y0_best = y0m_best-ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)
