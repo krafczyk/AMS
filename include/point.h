@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.23 2008/11/06 09:56:35 pzuccon Exp $
+//  $Id: point.h,v 1.24 2008/11/11 11:29:56 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -16,11 +16,11 @@ using namespace std;
 class AMSPoint  {
 protected:
   //! Internal representation in cartesian coo X
-  number _x;
+  Double32_t _x;
   //! Internal representation in cartesian coo Y
-  number _y;
+  Double32_t _y;
   //! Internal representation in cartesian coo Z
-  number _z;
+  Double32_t _z;
 public:
   //! Default constructor it sets the point to (0,0,0)
   AMSPoint():_x(0),_y(0),_z(0){};
