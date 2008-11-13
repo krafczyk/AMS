@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.100 2008/11/13 11:48:54 mdelgado Exp $
+//  $Id: richrec.C,v 1.101 2008/11/13 16:09:49 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1371,6 +1371,24 @@ int AMSRichRing::tile(AMSPoint r){ // Check if a track hits the radator support 
 
 
 
+// Several static arrays within generated moved to static members of AMSRichRing
+float AMSRichRing::_l[RICmaxentries][radiator_kinds]; 
+float AMSRichRing::_r[RICmaxentries][radiator_kinds]; 
+float AMSRichRing::_a[RICmaxentries][radiator_kinds]; 
+float AMSRichRing::_b[RICmaxentries][radiator_kinds]; 
+float AMSRichRing::_g[RICmaxentries][radiator_kinds]; 
+float AMSRichRing::_t[RICmaxentries][radiator_kinds];
+float AMSRichRing::_effg[_NRAD_][radiator_kinds]; 
+float AMSRichRing::_ring[_NRAD_][radiator_kinds];
+float AMSRichRing::_effr[_NRAD_][_NFOIL_][radiator_kinds]; 
+float AMSRichRing::_rinr[_NRAD_][_NFOIL_][radiator_kinds];
+float AMSRichRing::_effb[_NRAD_][_NFOIL_][radiator_kinds]; 
+float AMSRichRing::_rinb[_NRAD_][_NFOIL_][radiator_kinds];
+float AMSRichRing::_effd[_NRAD_][_NFOIL_][_NGUIDE_][radiator_kinds]; 
+float AMSRichRing::_rind[_NRAD_][_NFOIL_][_NGUIDE_][radiator_kinds];
+int AMSRichRing::_generated_initialization=1;
+int AMSRichRing::_first_radiator_call[radiator_kinds];
+
 float AMSRichRing::generated(geant length,
 			   geant lfoil,
 			   geant lguide,
@@ -1378,9 +1396,9 @@ float AMSRichRing::generated(geant length,
 			   geant *fr,
 			   geant *fb){
 
-  const int NRAD=400;
-  const int NFOIL=10;
-  const int NGUIDE=14;
+  const int NRAD=_NRAD_;
+  const int NFOIL=_NFOIL_;
+  const int NGUIDE=_NGUIDE_;
   const float ALPHA=0.0072973530764; 
   const float k=2*PI*ALPHA;
   const float tl=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
@@ -1388,22 +1406,25 @@ float AMSRichRing::generated(geant length,
   const float factor=1.;
   const int ENTRIES=RICmaxentries;
 
+
+  /*************** MOVED to static members of AMSRichRing
   static int veryfirst=1;
   static int first[radiator_kinds];
-  static float l[ENTRIES][radiator_kinds],
-    r[ENTRIES][radiator_kinds],
-    a[ENTRIES][radiator_kinds],
-    b[ENTRIES][radiator_kinds],
-    g[ENTRIES][radiator_kinds],
-    t[ENTRIES][radiator_kinds];
-  static float effg[NRAD][radiator_kinds],
-    ring[NRAD][radiator_kinds];
-  static float effr[NRAD][NFOIL][radiator_kinds],
-    rinr[NRAD][NFOIL][radiator_kinds];
-  static float effb[NRAD][NFOIL][radiator_kinds],
-    rinb[NRAD][NFOIL][radiator_kinds];
-  static float effd[NRAD][NFOIL][NGUIDE][radiator_kinds],
-    rind[NRAD][NFOIL][NGUIDE][radiator_kinds];
+  static float _l[ENTRIES][radiator_kinds],
+    _r[ENTRIES][radiator_kinds],
+    _a[ENTRIES][radiator_kinds],
+    _b[ENTRIES][radiator_kinds],
+    _g[ENTRIES][radiator_kinds],
+    _t[ENTRIES][radiator_kinds];
+  static float _effg[NRAD][radiator_kinds],
+    _ring[NRAD][radiator_kinds];
+  static float _effr[NRAD][NFOIL][radiator_kinds],
+    _rinr[NRAD][NFOIL][radiator_kinds];
+  static float _effb[NRAD][NFOIL][radiator_kinds],
+    _rinb[NRAD][NFOIL][radiator_kinds];
+  static float _effd[NRAD][NFOIL][NGUIDE][radiator_kinds],
+    _rind[NRAD][NFOIL][NGUIDE][radiator_kinds];
+  */
   float rmn=0,rmx=2.0*_height;
   float fmn=RICHDB::foil_height,fmx=1.5*RICHDB::foil_height;
   float gmn=RICHDB::lg_height,gmx=1.7*RICHDB::lg_height;
@@ -1412,18 +1433,15 @@ float AMSRichRing::generated(geant length,
   float f=0.;
 
 
-  if(veryfirst){for(int i=0;i<radiator_kinds;i++) first[i]=1;veryfirst=0;}
-
+  if(_generated_initialization){for(int i=0;i<radiator_kinds;i++) _first_radiator_call[i]=1;_generated_initialization=0;}
 
   if(_kind_of_tile==naf_kind){
     rmx=6.0*_height;
     fmx=3.0*RICHDB::foil_height;}
-  
 
 
-
-  if(first[_kind_of_tile-1]){
-    first[_kind_of_tile-1]=0;
+  if(_first_radiator_call[_kind_of_tile-1]){
+    _first_radiator_call[_kind_of_tile-1]=0;
 #ifdef __AMSDEBUG__
     printf("\nLight Guide Absorption Parameter\n"
              "--------------------------------\n"
@@ -1433,13 +1451,13 @@ float AMSRichRing::generated(geant length,
     for(i=0;i<ENTRIES-1;i++){
       float dl=1.e-3*(RICHDB::wave_length[i]-RICHDB::wave_length[i+1]);
       float q=1.e-2*(RICHDB::eff[i]+RICHDB::eff[i+1])/2;
-      l[i][_kind_of_tile-1]=1.e-3*(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2;
-      r[i][_kind_of_tile-1]=(_index_tbl[i]+_index_tbl[i+1])/2;
-      a[i][_kind_of_tile-1]=(_abs_len[i]+_abs_len[i+1])/2;
-      b[i][_kind_of_tile-1]=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2;
-      g[i][_kind_of_tile-1]=q*dl/SQR(l[i][_kind_of_tile-1]);
-      t[i][_kind_of_tile-1]=4*r[i][_kind_of_tile-1]/SQR(1+r[i][_kind_of_tile-1]);
-      if(RICHDB::foil_height>0) t[i][_kind_of_tile-1]*=RICHDB::foil_index*(1+r[i][_kind_of_tile-1])/(r[i][_kind_of_tile-1]+SQR(RICHDB::foil_index));
+      _l[i][_kind_of_tile-1]=1.e-3*(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2;
+      _r[i][_kind_of_tile-1]=(_index_tbl[i]+_index_tbl[i+1])/2;
+      _a[i][_kind_of_tile-1]=(_abs_len[i]+_abs_len[i+1])/2;
+      _b[i][_kind_of_tile-1]=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2;
+      _g[i][_kind_of_tile-1]=q*dl/SQR(_l[i][_kind_of_tile-1]);
+      _t[i][_kind_of_tile-1]=4*_r[i][_kind_of_tile-1]/SQR(1+_r[i][_kind_of_tile-1]);
+      if(RICHDB::foil_height>0) _t[i][_kind_of_tile-1]*=RICHDB::foil_index*(1+_r[i][_kind_of_tile-1])/(_r[i][_kind_of_tile-1]+SQR(RICHDB::foil_index));
     }
     nf=RICHDB::foil_height>0?NFOIL:1;
 #ifdef __AMSDEBUG__
@@ -1453,40 +1471,40 @@ float AMSRichRing::generated(geant length,
 
     for(lr=0;lr<NRAD;lr++){
      float rl=rmn+lr*(rmx-rmn)/NRAD;
-     effg[lr][_kind_of_tile-1]=0;
-     ring[lr][_kind_of_tile-1]=0;
+     _effg[lr][_kind_of_tile-1]=0;
+     _ring[lr][_kind_of_tile-1]=0;
      for(lf=0;lf<nf;lf++){
       float fl=fmn+lf*(fmx-fmn)/nf;
-      effr[lr][lf][_kind_of_tile-1]=0;
-      rinr[lr][lf][_kind_of_tile-1]=0;
-      effb[lr][lf][_kind_of_tile-1]=0;
-      rinb[lr][lf][_kind_of_tile-1]=0;
+      _effr[lr][lf][_kind_of_tile-1]=0;
+      _rinr[lr][lf][_kind_of_tile-1]=0;
+      _effb[lr][lf][_kind_of_tile-1]=0;
+      _rinb[lr][lf][_kind_of_tile-1]=0;
       for(lg=0;lg<NGUIDE;lg++){
        float gl=gmn+lg*(gmx-gmn)/NGUIDE;
-       effd[lr][lf][lg][_kind_of_tile-1]=0;
-       rind[lr][lf][lg][_kind_of_tile-1]=0;
+       _effd[lr][lf][lg][_kind_of_tile-1]=0;
+       _rind[lr][lf][lg][_kind_of_tile-1]=0;
        for(i=0;i<ENTRIES-1;i++){
-         float cr=1./exp(rl*_clarity/SQR(SQR(l[i][_kind_of_tile-1])));
-         float ar=1./exp(rl/a[i][_kind_of_tile-1]);
-         float af=1./exp(fl/b[i][_kind_of_tile-1]);
-         float al=1./exp(gl*(1./b[i][_kind_of_tile-1]-1./abslref));
-         effd[lr][lf][lg][_kind_of_tile-1]+=g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*al;
-         rind[lr][lf][lg][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*al;
+         float cr=1./exp(rl*_clarity/SQR(SQR(_l[i][_kind_of_tile-1])));
+         float ar=1./exp(rl/_a[i][_kind_of_tile-1]);
+         float af=1./exp(fl/_b[i][_kind_of_tile-1]);
+         float al=1./exp(gl*(1./_b[i][_kind_of_tile-1]-1./abslref));
+         _effd[lr][lf][lg][_kind_of_tile-1]+=_g[i][_kind_of_tile-1]*_t[i][_kind_of_tile-1]*cr*ar*af*al;
+         _rind[lr][lf][lg][_kind_of_tile-1]+=_r[i][_kind_of_tile-1]*_g[i][_kind_of_tile-1]*_t[i][_kind_of_tile-1]*cr*ar*af*al;
          if(!lg){
           if(!lf){
-           effg[lr][_kind_of_tile-1]+=g[i][_kind_of_tile-1];
-           ring[lr][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1];}
-          effr[lr][lf][_kind_of_tile-1]+=g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af;
-          rinr[lr][lf][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af;
-          effb[lr][lf][_kind_of_tile-1]+=g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*tl;
-          rinb[lr][lf][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*tl;}
+           _effg[lr][_kind_of_tile-1]+=_g[i][_kind_of_tile-1];
+           _ring[lr][_kind_of_tile-1]+=_r[i][_kind_of_tile-1]*_g[i][_kind_of_tile-1];}
+          _effr[lr][lf][_kind_of_tile-1]+=_g[i][_kind_of_tile-1]*_t[i][_kind_of_tile-1]*cr*ar*af;
+          _rinr[lr][lf][_kind_of_tile-1]+=_r[i][_kind_of_tile-1]*_g[i][_kind_of_tile-1]*_t[i][_kind_of_tile-1]*cr*ar*af;
+          _effb[lr][lf][_kind_of_tile-1]+=_g[i][_kind_of_tile-1]*_t[i][_kind_of_tile-1]*cr*ar*af*tl;
+          _rinb[lr][lf][_kind_of_tile-1]+=_r[i][_kind_of_tile-1]*_g[i][_kind_of_tile-1]*_t[i][_kind_of_tile-1]*cr*ar*af*tl;}
        }
-       rind[lr][lf][lg][_kind_of_tile-1]/=effd[lr][lf][lg][_kind_of_tile-1];
+       _rind[lr][lf][lg][_kind_of_tile-1]/=_effd[lr][lf][lg][_kind_of_tile-1];
       }
-      rinr[lr][lf][_kind_of_tile-1]/=effr[lr][lf][_kind_of_tile-1];
-      rinb[lr][lf][_kind_of_tile-1]/=effb[lr][lf][_kind_of_tile-1];
+      _rinr[lr][lf][_kind_of_tile-1]/=_effr[lr][lf][_kind_of_tile-1];
+      _rinb[lr][lf][_kind_of_tile-1]/=_effb[lr][lf][_kind_of_tile-1];
      }
-     ring[lr][_kind_of_tile-1]/=effg[lr][_kind_of_tile-1];
+     _ring[lr][_kind_of_tile-1]/=_effg[lr][_kind_of_tile-1];
     }
 #ifdef __AMSDEBUG__
     printf("....End of Tables!\n\n");
@@ -1496,40 +1514,46 @@ float AMSRichRing::generated(geant length,
   lr=int((floor)(NRAD*(length-rmn)/(rmx-rmn)+.5));
 
   if(lr>NRAD-1){
+#ifdef __AMSDEBUG__
     static char guard=0;
     if(!guard){
       printf("AMSRichRing::generated WARNING: length too big %f\nMore warning messages suppressed\n",length);
       guard=1;
     }
+#endif
     lr=NRAD-1;}
   else if(lr<0)lr=0;
 
   lf=RICHDB::foil_height>0?int((floor)(NFOIL*(lfoil-fmn)/(fmx-fmn)+.5)):0;
 
   if(lf>NFOIL-1){
+#ifdef __AMSDEBUG__
     static char guard=0;
     if(!guard){
       printf("AMSRichRing::generated WARNING: lfoil  too big %f\nMore warning messages suppressed\n",lfoil);
       guard=1;
     }
+#endif
     lf=NFOIL-1;}
   else if(lf<0)lf=0;
   lg=int((floor)(NGUIDE*(lguide-gmn)/(gmx-gmn)+.5));
 
 
   if(lg>NGUIDE-1){
+#ifdef __AMSDEBUG__
     static char guard=0;
     if(!guard){
       printf("AMSRichRing::generated WARNING: lguide too big %f\nMore warning messages suppressed\n",lguide);
       guard=1;
     }
+#endif
     lg=NGUIDE-1;}
   else if(lg<0)lg=0;
 
-  f=1.e4*k*(1.-1./SQR(_beta*rind[lr][lf][lg][_kind_of_tile-1]))*factor*effd[lr][lf][lg][_kind_of_tile-1];
-  *fg=1.e4*k*(1.-1./SQR(_beta*ring[lr][_kind_of_tile-1]))*effg[lr][_kind_of_tile-1];
-  *fr=1.e4*k*(1.-1./SQR(_beta*rinr[lr][lf][_kind_of_tile-1]))*effr[lr][lf][_kind_of_tile-1];
-  *fb=1.e4*k*(1.-1./SQR(_beta*rinb[lr][lf][_kind_of_tile-1]))*effb[lr][lf][_kind_of_tile-1];
+  f=1.e4*k*(1.-1./SQR(_beta*_rind[lr][lf][lg][_kind_of_tile-1]))*factor*_effd[lr][lf][lg][_kind_of_tile-1];
+  *fg=1.e4*k*(1.-1./SQR(_beta*_ring[lr][_kind_of_tile-1]))*_effg[lr][_kind_of_tile-1];
+  *fr=1.e4*k*(1.-1./SQR(_beta*_rinr[lr][lf][_kind_of_tile-1]))*_effr[lr][lf][_kind_of_tile-1];
+  *fb=1.e4*k*(1.-1./SQR(_beta*_rinb[lr][lf][_kind_of_tile-1]))*_effb[lr][lf][_kind_of_tile-1];
   return f;
 
 }
