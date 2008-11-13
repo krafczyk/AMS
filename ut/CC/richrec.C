@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.98 2008/11/10 17:45:54 barao Exp $
+//  $Id: richrec.C,v 1.99 2008/11/13 09:36:55 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1346,12 +1346,19 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     *xb=r3[0];
     *yb=r3[1];
     
-    //    //    if (fabs(r3[0])<bx && fabs(r3[1])<by){
-    //    //      *tflag=1;
-    //    //      return 0;
-    //    //    }
-    
-    *beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
+    int channel_number=RichPMTsManager::FindChannel(r3[0],r3[1]);
+    if(channel_number<0){
+      *beff=0;
+    }else{
+      int pmt,channel;
+      RichPMTsManager::UnpackGeom(channel_number,pmt,channel);
+      int status=RichPMTsManager::Status(pmt,channel);
+      if((status%10)!=Status_good_channel){
+	*beff=0;
+      }else{
+	*beff=RichPMTsManager::Eff(pmt,channel)*mir_eff;
+      }
+    }
     *tflag=*beff?4:5;
     return *beff*lgeff(r3,u2,lguide);
     
