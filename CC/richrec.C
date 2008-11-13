@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.99 2008/11/13 09:36:55 mdelgado Exp $
+//  $Id: richrec.C,v 1.100 2008/11/13 11:48:54 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -303,8 +303,8 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  int kind_of_tile=agl_kind){
 
   // Reconstruct the beta values for this hit. Assumes direction as unitary
-  static const geant z=RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height-
-                       RICradmirgap-RIClgdmirgap-RICHDB::rich_height;
+  const geant z=RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height-
+    RICradmirgap-RIClgdmirgap-RICHDB::rich_height;
   RichPMTChannel channel(_channel);
   geant x=channel.x();
   geant y=channel.y();
@@ -939,12 +939,12 @@ trig=(trig+1)%freq;
   const geant dphi=2*PI/NSTP;
 
 
-  static geant dfphi[NSTP],dfphih[NSTP];
-  static geant hitd[RICmaxpmts*RICnwindows],hitp[RICmaxpmts*RICnwindows];
-  static AMSRichRawEvent *used_hits[RICmaxpmts*RICnwindows];
+  geant dfphi[NSTP],dfphih[NSTP];
+  geant hitd[RICmaxpmts*RICnwindows],hitp[RICmaxpmts*RICnwindows];
+  AMSRichRawEvent *used_hits[RICmaxpmts*RICnwindows];
 
-  static geant unused_hitd[RICmaxpmts*RICnwindows];
-  static AMSRichRawEvent *unused_hits[RICmaxpmts*RICnwindows];
+  geant unused_hitd[RICmaxpmts*RICnwindows];
+  AMSRichRawEvent *unused_hits[RICmaxpmts*RICnwindows];
 
 
   for(int i=0;i<NSTP;i++)
@@ -1142,13 +1142,16 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 			 geant *reff, geant *beff, 
 			 integer *tflag,float beta_gen)
 {
-  static geant bx,by;
-  static geant kc,ac;
   geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],r3[3],n[3];
   geant cc,sc,cp,sp,cn,sn,f,l,a,b,c,d,maxxy,rbase;
-  static int first=1;
-  static geant mir_eff,exp_len; 
   int i,ed;
+  const geant exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap; 
+  const geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
+  const geant ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
+  const geant bx=RICHDB::hole_radius[0];
+  const geant by=RICHDB::hole_radius[1];
+  const geant mir_eff=RICmireff;
+
 
   *xb=0;
   *yb=0;
@@ -1159,18 +1162,6 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
   *reff=0;
   *beff=0;
   *tflag=-1;
-
-
-  if(first){
-    first=0;
-    exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap; /* expansion length */
-    kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
-    ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
-    bx=RICHDB::hole_radius[0];
-    by=RICHDB::hole_radius[1];
-    mir_eff=RICmireff;
-  }
-
 
   cc=1./_beta/_index;
   sc=sqrt(1-SQR(cc));
@@ -1391,12 +1382,14 @@ float AMSRichRing::generated(geant length,
   const int NFOIL=10;
   const int NGUIDE=14;
   const float ALPHA=0.0072973530764; 
+  const float k=2*PI*ALPHA;
+  const float tl=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
+  const float abslref=(RICHDB::lg_abs[0]+RICHDB::lg_abs[1])/2;
+  const float factor=1.;
+  const int ENTRIES=RICmaxentries;
 
-  static float factor=1.;
   static int veryfirst=1;
   static int first[radiator_kinds];
-  static float k,abslref,tl;
-  const int ENTRIES=RICmaxentries;
   static float l[ENTRIES][radiator_kinds],
     r[ENTRIES][radiator_kinds],
     a[ENTRIES][radiator_kinds],
@@ -1431,9 +1424,6 @@ float AMSRichRing::generated(geant length,
 
   if(first[_kind_of_tile-1]){
     first[_kind_of_tile-1]=0;
-    k=2*PI*ALPHA;
-    tl=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
-    abslref=(RICHDB::lg_abs[0]+RICHDB::lg_abs[1])/2;
 #ifdef __AMSDEBUG__
     printf("\nLight Guide Absorption Parameter\n"
              "--------------------------------\n"
@@ -1554,14 +1544,13 @@ geant AMSRichRing::lgeff(AMSPoint r,
   int wnd,iw;
   int i,j,k;
 
-  static float LG_Tran,Eff_Area;
-  static float bwd=0.04;
+  const float LG_Tran=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
+  const float Eff_Area=SQR(RICHDB::lg_length/pitch);
+  const float bwd=0.04;
   static int first=1;
 
   if(first){
     first=0;
-    LG_Tran=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index); /*=0.96*/          
-    Eff_Area=SQR(RICHDB::lg_length/pitch);
 #ifdef __AMSDEBUG__
     printf("\nLight Guide Parameters\n"
              "---------------------------\n"
@@ -1634,7 +1623,7 @@ void AMSRichRing::refract(geant r1,
 {
   int i;
   float f,cn,s2n;
-  static float n[3] = { 0., 0., 1. };
+  const float n[3] = { 0., 0., 1. };
   float rr=r1/r2;
   cn=ESC(u,n);
 
@@ -1649,12 +1638,12 @@ int AMSRichRing::locsmpl(int id,
 			 geant *u, 
 			 geant *v)
 {
-  static int a[16][2][2] = {
+  const int a[16][2][2] = {
    -1, 0, 0,-1,   0,-1,-1, 0,   0,-1, 1, 0,   0,-1, 1, 0,
    -1, 0, 0,-1,  -1, 0, 0,-1,   0,-1, 1, 0,   1, 0, 0,-1,
    -1, 0, 0, 1,   0, 1,-1, 0,   1, 0, 0, 1,   1, 0, 0, 1,
     0, 1,-1, 0,   0, 1,-1, 0,   0, 1, 1, 0,   1, 0, 0, 1};
-  static int wnd[16] = { 
+  const int wnd[16] = { 
     2, 1, 1, 2,   1, 0, 0, 1,   1, 0, 0, 1,   2, 1, 1, 2};
   int i,j;
   int ok=0;
