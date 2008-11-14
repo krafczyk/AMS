@@ -1,4 +1,4 @@
-*  $Id: gtckov.F,v 1.5 2008/09/17 09:20:41 mdelgado Exp $
+*  $Id: gtckov.F,v 1.6 2008/11/14 15:25:18 mdelgado Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
@@ -179,6 +179,9 @@ C.    ------------------------------------------------------------------
 * --- If current material is aerogel, introduce additional
 *     process = Rayleigh dispersion (Labs ~ lambda**4) 
       IF (chname(1:3).EQ.'RAD'.AND.IRAYL.GT.0) THEN      
+
+* Get the optical parameters from table
+         call filltable(VECT(1),VECT(2)) ! Fill the optical parameters table
          ctaer=1/usrcla
          WLN = CVPWL / VECT(7)                               
          STEPRC = CTAER * WLN**4                             

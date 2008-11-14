@@ -550,6 +550,11 @@ void RichRadiatorTileManager::UpdateDB(AMSID my_id){
 // Here we define a function to get the refractive index with a fortran call giving the position
 //
 
+// IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// We assume that in the MC we are not aligment 
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ 
 extern "C" geant rrtmindex_(geant *x,geant *y,geant *wvl){
   return  RichRadiatorTileManager::get_refractive_index(*x,*y,*wvl);
 }
@@ -698,10 +703,12 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
   }
 
   // Code to read all the stuff
-  float x,y,index;
+  float x,y,index,thickness,clarity;
   while(!data.eof()){
     data>> x >> y >> index;
-    
+    //    data>>x>>y>>index>>thickness>>clarity;
+
+
     // Get the tile at the position x,y and 
     int tile_number=get_tile_number(x,y);
 
@@ -722,6 +729,9 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
 #endif
 
     _tiles[tile_number]->index=index;
+    //    _tiles[tile_number]->bounding_box[2][0]=-thickness/2;
+    //    _tiles[tile_number]->bounding_box[2][1]=thickness/2;
+    //    _tiles[tile_number]->clarity=clarity;
 
   }
 
@@ -814,4 +824,22 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
   }
 #endif
 
+}
+
+
+
+
+extern "C" void filltable_(geant *x,geant *y){
+  RichRadiatorTileManager::UpdateOpticalParametersTable(*x,*y);  
+}
+
+
+void RichRadiatorTileManager::UpdateOpticalParametersTable(float x,float y){
+  int tile_number=get_tile_number(x,y);
+  if(tile_number<0){
+    // Fill the default values
+    RICGTKOV.usrcla=RICHDB::rad_clarity;
+  }else{  
+    RICGTKOV.usrcla=_tiles[tile_number]->clarity;
+  }
 }
