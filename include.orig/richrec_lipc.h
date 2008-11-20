@@ -32,7 +32,8 @@
      +     errtime_tof,coo_tof,errcoo_tof
 
       integer jobc_cp_c2f,
-     +        rcgeom_c2f,levgeom_c2f,levgrad_c2f,levacc_c2f,nradts_c2f,
+     +        rcgeom_c2f,levgeom_c2f,levgrad_c2f,levacc_c2f,levghit_c2f,
+     +        nradts_c2f,
      +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, 
      +        prad_main,iflag_tof,prad_tof,ntofclu,istatus_tof,ilayer_tof,
      +        ibar_tof,irecnumb,itrknumb
@@ -48,6 +49,7 @@
      +                  levgeom_c2f, 	           ! detector matrix geometry level
      +                  levgrad_c2f,	           ! radiator geometry level (0=no walls, =1,2 walls)
      +                  levacc_c2f,	           ! acceptance calculation 0/1 = ring line/ring width
+     +                  levghit_c2f,	           ! exclusion of ring near track zone 0/1 = off/on
      +                  ztarg_c2f,                 ! Z top coordinate of the radiator in the RICH frame
      +                  nradts_c2f,                ! nb of radiators
      +                  hrad_c2f,	           ! main radiator height (aerogel on flight)

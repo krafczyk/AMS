@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.251 2008/11/06 09:56:35 pzuccon Exp $
+//  $Id: commons.h,v 1.252 2008/11/20 18:14:19 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1074,6 +1074,7 @@ class LIPC2F_DEF{
   int levgeom_c2f;
   int levgrad_c2f;	           
   int levacc_c2f;	           
+  int levghit_c2f;
   geant ztarg_c2f;                 
   int nradts_c2f;                
   geant hrad_c2f;	           

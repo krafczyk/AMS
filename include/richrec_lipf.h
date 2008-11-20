@@ -160,10 +160,11 @@
         REAL XPC,XBC,XBD,YEF  
         COMMON /PMTPOS/XPC,XBC,XBD,YEF  
 
-        INTEGER LEVGEOM, LEVGRAD, LEVACC 
+        INTEGER LEVGEOM, LEVGRAD, LEVACC, LEVGHIT
         COMMON /CLEVEL/ LEVGEOM,         !detector matrix geometry level 
      +                  LEVGRAD,         !radiator geometry level (0=no walls, =1,2 walls)
-     +                  LEVACC		 !acceptance calculation 0/1 = ring line/ring width
+     +                  LEVACC,		 !acceptance calculation 0/1 = ring line/ring width
+     +                  LEVGHIT 	 !exclusion of ring near track zone 0/1 = off/on
        
         real XCRAD,YCRAD,XDRAD,YDRAD,XCPMM,YCPMM,
      &       DIMXPROT,DIMYPROT,XLIMPROT,YLIMPROT,

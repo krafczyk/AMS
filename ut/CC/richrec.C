@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.101 2008/11/13 16:09:49 mdelgado Exp $
+//  $Id: richrec.C,v 1.102 2008/11/20 18:14:19 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2428,6 +2428,7 @@ void richiniteventlip() {
   LIPC2F.levgeom_c2f = 4;
   LIPC2F.levgrad_c2f = 2;
   LIPC2F.levacc_c2f = 1;
+  LIPC2F.levghit_c2f = 1;
   LIPC2F.ztarg_c2f = 0.;
   LIPC2F.nradts_c2f = 1;
   LIPC2F.hrad_c2f = RICHDB::rad_agl_height;

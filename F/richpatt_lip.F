@@ -4,7 +4,6 @@
 *      subroutine patmatr
 *      subroutine patrace(phig,thc,vdet,vdir,nmiref,nerr,verr)
 *      subroutine patrace_full(phig,thc,xdet,ydet,nmiref,nerr,verr)
-*      subroutine patrace2(phig,thc,vdet,vdir,nmiref,nerr,verr)          
 *      subroutine patrace_gcheck(phpto, ierr)
 *      subroutine patracen(phig,thc,pthetemp,pphitemp,pvertex,vdet,vdir,
 *                          nmiref,nerr,verr)
@@ -189,7 +188,6 @@ C      print*,'*****************************'
 * - subroutine patrace                                               20/9         10/02/07
 *              (*phig,*thc,vdet*,vdir*,nmiref*,nerr*,verr*)
 * - subroutine patrace_full(phig,thc,xdet,ydet,nmiref,nerr,verr)  25/07/02     15/08/03      
-* - subroutine patrace2(phig,thc,vdet,vdir,nmiref,nerr,verr)      20/9         15/08/03
 * - subroutine patrace_gcheck(phpto, ierr)                           15/08/03 
 *
 * - subroutine patphot(phig,thc,coneg)                            20/9
@@ -447,9 +445,18 @@ C
 *              16  - total reflection pgl-air
 *              17  - total reflection rad-air
 *              18  - 
-*              19  - ends in non-active detection region                   
+*              19  - photon ends in non-active detection region
 *
+*              25  - photon ends in matrix region but near particle track
+*
+* Note: the patrace_full routine checks if the traced photon ends in
+*       a visible or invisible region;
+*       the radiator walls and Lguide gaps are not considered on this scheme
+*       because their impact on the ring acceptance was made independent
+*       of the analytical phi roots scheme. 
 ******************************************************************         
+
+#include "../include/richrec_lipf.h"
 
       integer nphmax
       parameter(nphmax=10)
@@ -462,10 +469,19 @@ C
 
 * ... check if photon is falling in DETECTION MATRIX HOLES 
       call patrace_gcheck(vdet,ierr)
-      if (ierr.ne.0 .and. ierr.ne.199) then
-         nerr = nerr + 1                                             
-         verr(nerr) = 19
-      endif                                             
+      if (ierr.ne.0) then
+         nerr = nerr + 1
+         verr(nerr) = ierr
+      endif
+
+* ... check particle track near ring
+      if (ierr.eq.0 .and. LEVGHIT.eq.1) then
+         if ( (vdet(1)-pcoopmt(1))**2+(vdet(2)-pcoopmt(2))**2.lt.
+     +                                            trhitass2) then
+            nerr = nerr + 1
+            verr(nerr) = 25
+         endif 
+      endif
 
 * ... output coordinates                                                   
       xdet = vdet(1)                                                      
@@ -531,7 +547,7 @@ C
 
       INTEGER ierr
       REAL phpto(3)
-      LOGICAL LEVG0,LEVG1,LEVG2,LEVG3,LEVG4
+      LOGICAL LEVG0,LEVG1,LEVG2,LEVG3
 
 * ... init
       IERR = 0
@@ -561,7 +577,6 @@ C
          LEVG1 = .FALSE.
          LEVG2 = .FALSE.
          LEVG3 = .FALSE.
-         LEVG4 = .FALSE.
 *
 * =====> LEVEL/0
 *
@@ -616,23 +631,6 @@ C
      +      ) then
             ierr = 19  
          endif
-
-         if ( ierr.eq.0 .and. levgeom.eq.4 )then
-            call gridcoo(phpto(1),phpto(2),igrid,x0,y0)
-            xred = (phpto(1)-x0)*100
-            yred = (phpto(2)-y0)*100
-            xred = mod(int(xred)+7400,370)
-            yred = mod(int(yred)+7400,370)
-            if ( xred .gt. 340. .or. yred .gt. 340. )then
-              LEVG4= .TRUE.  
-cc              print*,'photon in the gap',phpto(1),phpto(2),igrid,x0,y0
-            endif
-         endif
-*
-
-         IF( levgeom.eq.4 .and. LEVG4 )then
-            ierr = 199
-         ENDIF
 
 *     ---------------------------------------
       else  ! ===> PROTOTYPE
@@ -740,8 +738,8 @@ cc              print*,'photon in the gap',phpto(1),phpto(2),igrid,x0,y0
       end
 
 * ================================================================         
-      subroutine patrace_fulln
-     ,     (phig,thc,pthe,pphi,pvertex,xdet,ydet,nmiref,nerr,verr)
+      subroutine patrace_fulln(phig,thc,ptheloc,pphiloc,pvertex,
+     +                         xdet,ydet,nmiref,nerr,verr)
 * ================================================================         
 ******************************************************************         
 *       AIMS: Steering routine for pattern cerenkov drawing                
@@ -767,7 +765,7 @@ cc              print*,'photon in the gap',phpto(1),phpto(2),igrid,x0,y0
 *-----------------------------------------------------------------      
 * 10/09/03
 *          The only difference between patrace_fulln and the old 
-*          patrace_full, is the passing arguments (pthe,pphi,pvertex).
+*          patrace_full, is the passing arguments (ptheloc,pphiloc,pvertex).
 *          This way it is possible to trace photons from a different
 *          emission point (than the one of richrec.inc - pcervtx) 
 *          and associated to a different track than the one described 
@@ -775,23 +773,40 @@ cc              print*,'photon in the gap',phpto(1),phpto(2),igrid,x0,y0
 *          
 ******************************************************************         
 
+#include "../include/richrec_lipf.h"
+
       integer nphmax
       parameter(nphmax=10)
       integer nerr,verr(nphmax)
-      real phig, thc, pthe,pphi,pvertex(3), vdet(3), vdir(3)
+      real phig, thc, ptheloc,pphiloc,pvertex(3), vdet(3), vdir(3)
+      real pmatrix(3)
 
 * ... get photon impact impact point and direction on detection matrix
-      call patracen(phig,thc,pthe,pphi,pvertex,vdet,vdir,nmiref,
-     +              nerr,verr)
+      call patracen(phig,thc,ptheloc,pphiloc,pvertex,
+     +     vdet,vdir,nmiref,nerr,verr)
 
       if (nerr.ne.0) return
 
 * ... check if photon is falling in DETECTION MATRIX HOLES 
       call patrace_gcheck(vdet,ierr)
       if (ierr.ne.0) then
-         nerr = nerr + 1                                             
-         verr(nerr) = 19
-      endif                                             
+         nerr = nerr + 1
+         verr(nerr) = ierr
+      endif
+
+* ... check particle track near ring
+      if (ierr.eq.0 .and. LEVGHIT.eq.1) then
+         pmatrix(1) = pvertex(1)
+     +        +(zpmtdet-pvertex(3))*tan(ptheloc)*cos(pphiloc)
+         pmatrix(2) = pvertex(2)
+     +        +(zpmtdet-pvertex(3))*tan(ptheloc)*sin(pphiloc)
+         pmatrix(3) = zpmtdet
+        if ( (vdet(1)-pmatrix(1))**2+(vdet(2)-pmatrix(2))**2.lt.
+     +                                            trhitass2) then
+            nerr = nerr + 1
+            verr(nerr) = 25
+         endif 
+      endif
 
 * ... output coordinates                                                   
       xdet = vdet(1)                                                      
@@ -1222,6 +1237,7 @@ c     &        ,vefflgref,efflgdir)
      +     dphiinv(nphmax),
      +     dphigup(nphmax),
      +     dphigdw(nphmax),
+     +     dphitrk(nphmax),
      +     phimin(nphmax),
      +     phimax(nphmax)  
       integer fphitot(nphmax),
@@ -1233,7 +1249,8 @@ c     &        ,vefflgref,efflgdir)
       integer nroot_rad,
      +        nroot_reft,  
      +        nroot_mirr,
-     +        nroot_hole 
+     +        nroot_hole,
+     +        nroot_trk
       external fphotdist
       
       integer nphidir, nphihol, nphimir0, nphimir1, nphiinv,
@@ -1249,6 +1266,7 @@ c     &        ,vefflgref,efflgdir)
       call vfill(dphiinv,nphmax,0.)  
       call vfill(dphigup,nphmax,0.)
       call vfill(dphigdw,nphmax,0.)
+      call vfill(dphitrk,nphmax,0.)
 *                                                                            
       nphidir  = 1 !nb of path lengths                                        
       nphihol  = 1 
@@ -1257,6 +1275,7 @@ c     &        ,vefflgref,efflgdir)
       nphiinv  = 1 !ver adiante que este 1 e subtraido
       nphigup  = 1
       nphigdw  = 1
+      nphitrk  = 1
       npvis    = 0 !nb of visible path lengths                  
 
       /*
@@ -1265,6 +1284,7 @@ c     &        ,vefflgref,efflgdir)
       nroot_reft = 0
       nroot_mirr = 0
       nroot_hole = 0       
+      nroot_trk  = 0       
       do i=1,nphitot
          if (fphitot(i).eq.1 .or. int(fphitot(i)/10).eq.1) 
      +                         nroot_rad  = nroot_rad  + 1
@@ -1274,6 +1294,8 @@ c     &        ,vefflgref,efflgdir)
      +                         nroot_mirr = nroot_mirr + 1
          if (fphitot(i).eq.4 .or. int(fphitot(i)/10).eq.4) 
      +                         nroot_hole = nroot_hole + 1
+         if (int(fphitot(i)/10).eq.6) 
+     +                         nroot_trk  = nroot_trk  + 1
       enddo
       if (nroot_rad.ne.0 .and. mod(nroot_rad,2).ne.0) 
      +     print*,'(dphipath) Odd source: Radiator ',nroot_rad
@@ -1283,6 +1305,8 @@ c     &        ,vefflgref,efflgdir)
      +     print*,'(dphipath) Odd source: Mirror ',nroot_mirr
       if (nroot_hole.ne.0 .and. mod(nroot_hole,2).ne.0) 
      +     print*,'(dphipath) Odd source: Hole ',nroot_hole
+      if (nroot_trk.ne.0 .and. mod(nroot_trk,2).ne.0) 
+     +     print*,'(dphipath) Odd source: Track zone ',nroot_hole
       */
 
 * --- zero roots case          
@@ -1404,6 +1428,11 @@ c     &        ,vefflgref,efflgdir)
               dphigdw(nphigdw) = vphitot(ipn)-vphitot(ipc)
               if (dphigdw(nphigdw).lt.0.)dphigdw(nphigdw) = twopi
      &             -abs(dphigdw(nphigdw))   
+           elseif(verr(1).eq.25)then
+              nphitrk = nphitrk + 1             
+              dphitrk(nphitrk) = vphitot(ipn)-vphitot(ipc)
+              if (dphitrk(nphitrk).lt.0.)dphitrk(nphitrk) = twopi
+     &             -abs(dphitrk(nphitrk))   
            endif
         endif
 
@@ -1485,11 +1514,14 @@ c     &        ,vefflgref,efflgdir)
 *                       33 - mirror prototype
 *                       40 - out of flight matrix without reflection 
 *                       41 - out of flight matrix with    reflection
-*                       45  -out of prototype matrix or dead PMT 
-*                       51  -sideways upper mirror gap exit
-*                       52  -sideways lower mirror gap exit
+*                       45 - out of prototype matrix or dead PMT 
+*                       51 - sideways upper mirror gap exit
+*                       52 - sideways lower mirror gap exit
+*                       60 - particle track zone without reflection
+*                       61 - particle track zone with    reflection
 *
 * Revised : 28/May/2004 (F.Barao)
+*           17/Nov/2008 (R.Pereira - track zone)
 *        
 ********************************************************************
 
@@ -1516,7 +1548,8 @@ c     &        ,vefflgref,efflgdir)
      +        vphihol(nphmax),
      +        vphiprot(nphmax),
      +        vphiwall(nphmax),
-     +        vphilev(nphmax)        
+     +        vphilev(nphmax),
+     +        vphitrk(nphmax)
 
       integer fphilev(nphmax)
 
@@ -1713,7 +1746,7 @@ c     &        ,vefflgref,efflgdir)
 
          do ng=1,levgeom+1 !take into account different geometry levels
             if(ng.gt.4)goto 55
-            call find_phiroots(chgeom(ng),thetac,vphihol,ndum3)                 
+            call find_phiroots(chgeom(ng),thetac,vphihol,ndum3)
 
             do i=1,int(vphihol(1))                                            
                ipointer = ipointer + 1                                         
@@ -1780,6 +1813,38 @@ c     &        ,vefflgref,efflgdir)
 
       endif         
 
+
+* --- compute particle track region phi roots    
+
+      if (LEVGHIT.eq.1) then
+
+         if (rcgeom(1).ne.9) then !flight configuration
+
+            call find_phiroots('TRKZ',thetac,vphitrk,ndum3)
+
+            if (int(vphitrk(1)).ne.0) then
+               ntemptot = nphitot+int(vphitrk(1))
+               if (ntemptot.le.nphmax ) then
+                  do i=1,int(vphitrk(1))
+                     nphitot = nphitot+1
+                     vphitot(nphitot) = abs(vphitrk(i+1))
+                     if (vphitrk(i+1).lt.0.) then
+                        fphitot(nphitot) = 61
+                     else
+                        fphitot(nphitot) = 60
+                     endif
+                  enddo
+               else
+                  print*,'(set_phiroots) nb phi roots to stock '//
+     +                 'greater than ',nphmax,' option TRKZ'
+               endif       
+            endif
+
+         endif
+
+      endif
+
+
 * --- sorting phi roots                                                  
       if (nphitot.gt.nphmax) 
      +   print*, '(set_phiroots) MAXIMUM NUMBER OF PHI ROOTS EXCEEDED'//
@@ -1813,7 +1878,8 @@ c     &        ,vefflgref,efflgdir)
 *                'HGAP'  - PMT module gaps
 *                'HPMT'  - PMT outer contours
 *                'PMTL'  - PMT prototype outer boundary
-  
+*                'TRKZ'  - Particle track impact zone
+
 *      thetac  = cerenkov angle
 *
 * OUT: vphival = (1)    : nb of phi root values
@@ -1823,6 +1889,7 @@ c     &        ,vefflgref,efflgdir)
 *                         
 * last update : 17/09/2002                                       
 *               25/05/2004 (L.Arruda,F.Barao)
+*               13/11/2008 (R.Pereira - TRKZ)
 *
 ***************************************************************
 
@@ -1852,6 +1919,7 @@ c     &        ,vefflgref,efflgdir)
      +     philholl(nphmax),
      +     philgapup(nphmax),
      +     philgapdw(nphmax),
+     +     philcir(nphmax),
      +     vphival(nphmax)   ! final phi values to be passed out
 
       real phpto(3),phdir(3)
@@ -1861,6 +1929,9 @@ c     &        ,vefflgref,efflgdir)
 *
       integer nholt,nrefhol(nphmax),icounter !used to access the hole roots (change in future...)
       common /holevar/ nholt,philhol,nrefhol
+*
+      integer ncirt,nrefcir(nphmax)
+      common /circvar/ ncirt,philcir,nrefcir
 *
       real EPS
       integer MAXF
@@ -2532,6 +2603,36 @@ C TEMP the previous 4 sets can be put into a subroutine
             nmireft=nmireft+nrefhol(i) 
 *            write(*,*)nmireft,nrefhol(i)
          enddo 
+
+
+*     ------------------------------------
+      elseif (chopt.eq.'TRKZ') then
+*     ------------------------------------
+
+         ncirt = 0                                     
+*               
+         /* find limit phi angles of track impact zone*/
+
+         xc = pcoopmt(1)
+         yc = pcoopmt(2)
+         crad = trhitass2**0.5
+
+         par(5) = xc
+         par(6) = yc
+         par(7) = crad
+
+         CALL HLIMCIRC(xc,yc,crad)
+
+* --- output
+         vphival(1) = real(ncirt)
+         call ucopy(philcir,vphival(2),ncirt)
+         do i=1,ncirt
+            ip = i + 1
+            if (nrefcir(i).ne.0) vphival(ip) = -vphival(ip) 
+            nmireft=nmireft+nrefcir(i) 
+*            write(*,*)nmireft,nrefcir(i)
+         enddo 
+
 
 *     ------------------------------------
       elseif (chopt.eq.'PMTL') then
@@ -3406,6 +3507,120 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
  99   return                                                                 
       end                                                                    
 
+
+* ==========================================================
+      real function fphicirc(phig)
+* ==========================================================
+*************************************************************
+*                                                           *
+* variable : phig (parameter of geratrix Cherenkov cone )   * 
+*                                                           *
+*                                                           *
+* PARAMETERS :                                              *
+*         IN : cerang (via common)                          *
+*         OUT:                                              *
+*                                                           *
+* The zeros of this function give the geratrix Cone         *
+* intersection phig with a circumference at PMT zlevel.     *
+* The function takes an init value=1E8 when not defined     *
+* because of photons not reaching this z level              *
+* function signal meaning:                                  *
+*            >0 when photons reach outside area under study *
+*                              (track impact zone)          *
+*            <0 when photons reach inside area under study  *
+*                                                           *
+* in FLIGHT:  used for exclusion of ring portion            *
+*             close to charged particle signal              *
+*                                                           *
+* in PROTOT:                                                *
+*                                                           *
+*     13/11/2008                                            *
+*                                                           *
+*************************************************************   
+
+#include "../include/richrec_lipf.h"
+
+      common /parfunc/ par(10)
+      character chin*3,chout*3
+      real phpto(3),phdir(3)
+      save fphildummy      
+      data fphildummy/1.E8/
+      real cshift
+
+* --- init
+      nmiref = 0
+      fphicirc = fphildummy
+
+* --- parameter           
+      cerang = par(2)
+      xc = par(5)
+      yc = par(6)
+      crad = par(7)
+
+* --- rotation matrix between detector frame and particle frame             
+      if (irotflg.eq.0) then                                                
+         call patmatr                                                       
+         irotflg = 1                                                        
+      endif                                                                    
+* --- photon emission point                                    
+      call ucopy(pcervtx,phpto,3)                                     
+* --- generate photon on detector frame
+      call patphot(phig,cerang,phdir) 
+* --- test photon direction: backward?                                     
+      if (phdir(3).lt.0.) return                                
+* --- refraction at radiator exit                                  
+      if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then !photons radiated in AGL or NAF
+        call patints(phpto,phdir,'RADB',ierr)                        
+        if (ierr.ne.0) return     
+        chin = chradid
+        if (HPGL.ne.0.0) then
+          call patrefr(chin,'PGL',phdir,ierr) !refraction 
+          if (ierr.ne.0) return
+          call patints(phpto,phdir,'PGLB',ierr)
+          if (ierr.ne.0) return
+          call patrefr('PGL','AIR',phdir,ierr) !refraction              
+          if (ierr.ne.0) return
+        else
+          call patrefr(chin,'AIR',phdir,ierr) !refraction
+          if (ierr.ne.0) return              
+        endif
+      elseif (chradid.eq.'PGL') then
+        if (HPGL.eq.0.0) then
+          print*,' >>> fphilhole: photons starting in PGL when HPGL=0!'
+          return 
+        endif   
+        call patints(phpto,phdir,'PGLB',ierr) !intersection            
+        if (ierr.ne.0) return
+        call patrefr('PGL','AIR',phdir,ierr) !refraction              
+        if (ierr.ne.0) return
+      endif
+      
+* --- intersect photon with PMT plane
+      call patints(phpto,phdir,'PMTD',ierr)                             
+* --- mirror reflection                    
+      if (rcgeom(1).ne.9.or.(rcgeom(1).eq.9.and.rcgeom(2).eq.1)) then  !flight configuration   
+        rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)                         
+        do while (rpoint.gt.RBMIR)
+          nmiref = nmiref + 1
+          if (nmiref.gt.10) return  
+          call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror 
+          if (ierr.ne.0) return                                       
+          call patrefl(phpto,phdir,ierr) !reflection with mirror           
+          call patints(phpto,phdir,'PMTD',ierr)                       
+          rpoint = sqrt(phpto(1)**2+phpto(2)**2)
+        enddo                                                          
+      endif
+
+*-----parametrization of the function                                       
+      gfun1      = phpto(1) + phdir(1)/phdir(3)*(ZPMTDET-phpto(3))
+      gfun2      = phpto(2) + phdir(2)/phdir(3)*(ZPMTDET-phpto(3))
+
+      fphicirc = sqrt((gfun1-xc)**2.+(gfun2-yc)**2.)-crad
+
+* --- end
+      return
+      END                                                                     
+
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -3665,6 +3880,61 @@ CC      print*,'------> Yup'
       end                                                                    
 
 
+* =======================================================================    
+       subroutine HLIMCIRC(xc,yc,crad)
+* =======================================================================    
+*************************************************************************
+* PARAMETERS
+*       IN  : xc,yc - centre of circle
+*             crad - radius of circle
+*       OUT :
+*
+*      13/11/2008
+************************************************************************* 
+
+#include "../include/richrec_lipf.h"
+
+      integer itmod,nphmax,nermax  
+      parameter(nphmax=50)
+      parameter(nermax=10)
+      integer verr(nermax)        
+
+      integer ncirt
+      parameter (nrootmax=200)
+      integer nrefcir(nphmax)
+      real philcir(nphmax)
+      real xb1(nrootmax),xb2(nrootmax), yb1(nrootmax),yb2(nrootmax)
+
+
+      data EPS,MAXF /1.E-4,1000/
+      external fphicirc
+
+      common /parfunc/par(10) 
+      common/circvar/ncirt,philcir,nrefcir
+
+         thetac=par(2)
+         nrcir=nrootmax
+
+         call zbrak(fphicirc,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrcir)
+         do i=1,nrcir
+           dfphicirc=yb1(i)-yb2(i)
+           if (abs(dfphicirc).lt.1.E6) then              
+             call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphicirc)
+             if (root.ne.0.) then    
+             call patrace_full(root,thetac,xdet,ydet,nmiref,nerr,verr)
+*               nmireft = nmireft + nmiref                          
+                ncirt   = ncirt + 1        
+                philcir(ncirt) = root       
+                nrefcir(ncirt) = nmiref
+             endif                          
+           endif                                                    
+         enddo                                                       
+
+* --- end                                                                    
+ 99   return                                                                 
+      end                                                                    
+
+
 * =====================================================================================
 * UTILITY ROUTINES
 * =====================================================================================
@@ -3885,12 +4155,14 @@ c      data idummy /0/
 #include "../include/richrec_lipf.h"
 
 * ... patrace variables
-       real vdet(3),vdir(3)
-       integer nphotmax
-       parameter(nphotmax=10)
-       integer nerr,verr(nphotmax)
+      real vdet(3),vdir(3)
+      integer nphotmax
+      parameter(nphotmax=10)
+      integer nerr,verr(nphotmax)
 
-       real weight, weightotal
+      real weight, weightotal
+      integer xred, yred
+      real x0, y0
 
 * ... thetac resolution
       zch=1.
@@ -3919,13 +4191,29 @@ c      data idummy /0/
 
          if(ipthetac.eq.0)return   !!
          thetac=cangrec(ipthetac) !!
-         
+
+         ierr = 0
+
 * ...... thetac
          allthetac=thetac+sigmathetac*(float(k)-3.) !  rings at -2,-1,0,+1,+2 sigma
 * ...... ring sampling
          do phig=0.,twopi,1.E-2
-            call patrace2(phig,allthetac,vdet,vdir,nmiref,nerr,verr) 
-            if(nerr.eq.0)then
+            call patrace_full(phig,allthetac,vdet,vdir,nmiref,nerr,verr) 
+            if (nerr.eq.0) then
+               !get pmt coordinates(x0,y0)
+               call gridcoo(vdet(1),vdet(2),igrid,x0,y0)
+               xred = int((vdet(1)-x0)*100)
+               yred = int((vdet(2)-y0)*100)
+               xred = mod(xred+7400,370)
+               yred = mod(yred+7400,370)
+               if ( xred .gt. 340 .or. yred .gt. 340 ) then
+                  nerr = nerr+1
+                  verr(nerr) = 199
+               endif
+            endif
+
+* ......... counting photons 
+            if (nerr.eq.0) then
                ngammadet = ngammadet+1
                if(nmiref.eq.0)then
                   ngammadetdir = ngammadetdir+1

@@ -187,6 +187,7 @@
       print*,'levgeom_c2f        = ',levgeom_c2f       
       print*,'levgrad_c2f        = ',levgrad_c2f       
       print*,'levacc_c2f         = ',levacc_c2f        
+      print*,'levghit_c2f        = ',levghit_c2f       
       print*,'ztarg_c2f          = ',ztarg_c2f         
       print*,'nradts_c2f         = ',nradts_c2f        
       print*,'hrad_c2f           = ',hrad_c2f          
@@ -271,10 +272,12 @@
       levgeom = levgeom_c2f
       levgrad = levgrad_c2f
       levacc = levacc_c2f
+      levghit = levghit_c2f
 
 *      print*,'levgeom = ',levgeom
 *      print*,'levgrad = ',levgrad
 *      print*,'levacc = ',levacc
+*      print*,'levghit = ',levghit
 
 * --- store detector and geometry data
       ztarg          = ztarg_c2f
