@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.52 2008/11/13 16:09:49 mdelgado Exp $
+//  $Id: richrec.h,v 1.53 2008/12/03 16:45:04 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -180,6 +180,7 @@ static geant _Time;
   static geant *_abs_len;
   static geant *_index_tbl;
   static int _kind_of_tile;
+  static int _tile_index;
 
 
   // Tables for light guide response
@@ -187,22 +188,23 @@ static geant _Time;
 #define _NRAD_ 400
 #define _NFOIL_ 10
 #define _NGUIDE_ 14
+#define _TILES_ 108
   static int _generated_initialization;
-  static int _first_radiator_call[radiator_kinds];
-  static float _l[RICmaxentries][radiator_kinds]; 
-  static float _r[RICmaxentries][radiator_kinds]; 
-  static float _a[RICmaxentries][radiator_kinds]; 
-  static float _b[RICmaxentries][radiator_kinds]; 
-  static float _g[RICmaxentries][radiator_kinds]; 
-  static float _t[RICmaxentries][radiator_kinds];
-  static float _effg[_NRAD_][radiator_kinds]; 
-  static float _ring[_NRAD_][radiator_kinds];
-  static float _effr[_NRAD_][_NFOIL_][radiator_kinds]; 
-  static float _rinr[_NRAD_][_NFOIL_][radiator_kinds];
-  static float _effb[_NRAD_][_NFOIL_][radiator_kinds]; 
-  static float _rinb[_NRAD_][_NFOIL_][radiator_kinds];
-  static float _effd[_NRAD_][_NFOIL_][_NGUIDE_][radiator_kinds]; 
-  static float _rind[_NRAD_][_NFOIL_][_NGUIDE_][radiator_kinds];
+  static int _first_radiator_call[_TILES_];
+  static float _l[RICmaxentries][_TILES_]; 
+  static float _r[RICmaxentries][_TILES_]; 
+  static float _a[RICmaxentries][_TILES_]; 
+  static float _b[RICmaxentries][_TILES_]; 
+  static float _g[RICmaxentries][_TILES_]; 
+  static float _t[RICmaxentries][_TILES_];
+  static float _effg[_NRAD_][_TILES_]; 
+  static float _ring[_NRAD_][_TILES_];
+  static float _effr[_NRAD_][_NFOIL_][_TILES_]; 
+  static float _rinr[_NRAD_][_NFOIL_][_TILES_];
+  static float _effb[_NRAD_][_NFOIL_][_TILES_]; 
+  static float _rinb[_NRAD_][_NFOIL_][_TILES_];
+  static float _effd[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_]; 
+  static float _rind[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_];
 
 
   // All the routines from Elisa
