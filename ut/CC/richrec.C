@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.102 2008/11/20 18:14:19 barao Exp $
+//  $Id: richrec.C,v 1.103 2008/12/03 15:01:27 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2433,7 +2433,7 @@ void richiniteventlip() {
   LIPC2F.nradts_c2f = 1;
   LIPC2F.hrad_c2f = RICHDB::rad_agl_height;
   LIPC2F.hrnaf_c2f = RICHDB::naf_height;
-  LIPC2F.radtile_pitch_c2f = RICHDB::rad_length;
+  LIPC2F.radtile_pitch_c2f = RICHDB::rad_length+RICaethk;
   LIPC2F.radtile_supthk_c2f = RICaethk;
   LIPC2F.radix_c2f[0] = RICHDB::rad_index;
   LIPC2F.radix_c2f[1] = RICHDB::naf_index;

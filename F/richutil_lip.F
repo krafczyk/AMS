@@ -149,6 +149,7 @@
 *  Tiles nb: -5...0...5
 *
 * last update: 25/05/2004 (F.Barao)
+* corrected  : 27/11/2008 (R.Pereira)
 *
 *****************************************************************************
 
@@ -182,13 +183,15 @@ C ----------------------------------------
       if (abs(x).lt.half_tile) then
          nx = int(x/half_tile)
       else
-         xx = x+sign(1.,x)*half_tile+sign(1.,x)*radtile_supthk
+*         xx = x+sign(1.,x)*half_tile+sign(1.,x)*radtile_supthk
+         xx = x+sign(1.,x)*half_tile+sign(1.,x)*radtile_supthk/2.
          nx = int( xx/(radtile_pitch))
       endif
       if (abs(y).lt.half_tile) then
          ny = int( y/half_tile)
       else
-         yy = y+sign(1.,y)*half_tile+sign(1.,y)*radtile_supthk
+*         yy = y+sign(1.,y)*half_tile+sign(1.,y)*radtile_supthk
+         yy = y+sign(1.,y)*half_tile+sign(1.,y)*radtile_supthk/2.
          ny = int( yy/(radtile_pitch))
       endif
       

@@ -1162,21 +1162,6 @@ c     &        ,vefflgref,efflgdir)
          richeffa(8) = efftot(4)
       endif  
 
-* --- Take into account radiator walls loose
-      if (LEVGRAD.eq.2) then
-         call richaccradwall(accradwalldir, accradwallref)
-*         print*,'accradwalldir = ',accradwalldir
-*         print*,'accradwallref = ',accradwallref
-         richeffa(5) = richeffa(5)-richeffa(6)*accradwalldir
-     +                            -richeffa(7)*accradwallref
-         richeffa(6) = richeffa(6)*(1.-accradwalldir)
-         richeffa(7) = richeffa(7)*(1.-accradwallref) 
-         richacca(1) = richacca(1)+richacca(2)*accradwalldir
-     +                            +richacca(3)*accradwallref
-         richacca(2) = richacca(2)*(1.-accradwalldir)
-         richacca(3) = richacca(3)*(1.-accradwallref)
-      endif
-
 * --- debugging print
       if (ldebug.ge.2) then
          print*,' ******** RADIATOR EFFICIENCY ******** '
@@ -4150,13 +4135,15 @@ c      data idummy /0/
 *     OUT: accgap    --- detection efficiency due to gaps (geometrical)
 *          accgapdir --- direct detection efficiency due to gaps
 *          accgapref --- reflected detection efficiency due to gaps
+*
+* Updated: 28-Nov-2008 by R. Pereira
+*
 *********************************************************************
 
 #include "../include/richrec_lipf.h"
 
 * ... patrace variables
       real vdet(3),vdir(3)
-      integer nphotmax
       parameter(nphotmax=10)
       integer nerr,verr(nphotmax)
 
@@ -4164,10 +4151,26 @@ c      data idummy /0/
       integer xred, yred
       real x0, y0
 
+      integer ngamma0,ngammadet,ngammagap
+      integer ngamma0dir,ngammadetdir,ngammagapdir
+      integer ngamma0ref,ngammadetref,ngammagapref
+
+      real spgamma0,spgammadet,spgammagap
+      real spgamma0dir,spgammadetdir,spgammagapdir
+      real spgamma0ref,spgammadetref,spgammagapref
+
+      real phdir(3)
+
+      if(ipthetac.eq.0)return
+      thetac=cangrec(ipthetac)
+
 * ... thetac resolution
       zch=1.
       sigmabetarel = 1E-2*sqrt( (a_beta/zch)**2 + b_beta**2 )
-      sigmathetac  = sigmabetarel/tan(thc)  
+      sigmathetac  = sigmabetarel/tan(thetac)  
+
+*      print*,'sigmabetarel = ',sigmabetarel
+*      print*,'sigmathetac = ',sigmathetac
 
 * ... init efficiencies
       avaccgap    = 0.
@@ -4182,50 +4185,103 @@ c      data idummy /0/
          accgap       =-999.
          accgapdir    =-999.
          accgapref    =-999.
+
+         ngamma0      = 0
          ngammadet    = 0
          ngammagap    = 0
+         ngamma0dir   = 0
          ngammadetdir = 0
          ngammagapdir = 0
+         ngamma0ref   = 0
          ngammadetref = 0
          ngammagapref = 0
 
-         if(ipthetac.eq.0)return   !!
-         thetac=cangrec(ipthetac) !!
-
-         ierr = 0
-
+         spgamma0      = 0.
+         spgammadet    = 0.
+         spgammagap    = 0.
+         spgamma0dir   = 0.
+         spgammadetdir = 0.
+         spgammagapdir = 0.
+         spgamma0ref   = 0.
+         spgammadetref = 0.
+         spgammagapref = 0.
+         
 * ...... thetac
          allthetac=thetac+sigmathetac*(float(k)-3.) !  rings at -2,-1,0,+1,+2 sigma
 * ...... ring sampling
+         ierr = 0
          do phig=0.,twopi,1.E-2
-            call patrace_full(phig,allthetac,vdet,vdir,nmiref,nerr,verr) 
+
+* ......... trace photon to matrix and check if photon is LG gap
+            call patrace_full(phig,allthetac,xdet,ydet,nmiref,nerr,verr) 
+            vdet(1) = xdet
+            vdet(2) = ydet
+            vdet(3) = ZPMTDET
             if (nerr.eq.0) then
                !get pmt coordinates(x0,y0)
                call gridcoo(vdet(1),vdet(2),igrid,x0,y0)
+*               print*,'vdet(1,2) = ',vdet(1),vdet(2)
+*               print*,'x0,y0 = ',x0,y0
                xred = int((vdet(1)-x0)*100)
                yred = int((vdet(2)-y0)*100)
+*               print*,'xred,yred (a) = ',xred,yred
                xred = mod(xred+7400,370)
                yred = mod(yred+7400,370)
+*               print*,'xred,yred (b) = ',xred,yred
                if ( xred .gt. 340 .or. yred .gt. 340 ) then
                   nerr = nerr+1
                   verr(nerr) = 199
                endif
             endif
 
+* ......... Scattering probability (R. Pereira 27-Nov-2008)
+* ......... Calculation of interaction length was copied from RICHCHGREC
+            if (chradid.eq.'AGL') then
+               /* clari   = usrcla ! clarity : radint = lambda^4(micm)/clarity */
+               alambda = 377.E-3 ! mean wavelength (micm) no foil (higher with foil)
+               if (RADCLARITY.gt.0) then
+                  alambda = (0.0327*RADCLARITY**(1.-0.867))**0.25
+                  radint  = (alambda)**4/RADCLARITY   
+               else
+                  radint = 3.
+               endif
+            elseif(chradid.eq.'NAF')then
+               radint = 1.E2
+            endif
+
+* ......... photon in detector frame
+            call patphot(phig,allthetac,phdir)
+
+            dist = (HRAD-pcervtx(3))/phdir(3) ! works for both radiators
+*            print*,'dist = ',dist
+*            print*,'phdir(3) = ',phdir(3)
+
+            photprob = exp(-dist/radint)
+            if(nmiref.ne.0)then
+               photprob = photprob*0.85
+            endif
+*            print*,'photprob = ',photprob
+
 * ......... counting photons 
             if (nerr.eq.0) then
                ngammadet = ngammadet+1
+               spgammadet = spgammadet+photprob
                if(nmiref.eq.0)then
                   ngammadetdir = ngammadetdir+1
+                  spgammadetdir = spgammadetdir+photprob
                else
                   ngammadetref = ngammadetref+1
+                  spgammadetref = spgammadetref+photprob
                endif
-            elseif(verr(nerr).eq.199)then
+            elseif (verr(nerr).eq.199)then
                ngammagap = ngammagap+1
-               if(nmiref.eq.0)then
+               spgammagap = spgammagap+photprob
+               if (nmiref.eq.0)then
                   ngammagapdir = ngammagapdir+1
+                  spgammagapdir = spgammagapdir+photprob
                else
                   ngammagapref = ngammagapref+1
+                  spgammagapref = spgammagapref+photprob
                endif
             endif
          enddo
@@ -4233,25 +4289,48 @@ c      data idummy /0/
 * ...... gap acceptance
 * -----> overall
          ngamma0 = ngammadet + ngammagap
+         spgamma0 = spgammadet + spgammagap
          if (ngamma0.ne.0) then
-            accgap = float(ngammadet)/float(ngamma0)
+*            accgap = float(ngammadet)/float(ngamma0)
+            accgap = spgammadet/spgamma0
          else
             accgap = -999.
          endif
 * -----> direct         
          ngamma0dir = ngammadetdir + ngammagapdir
+         spgamma0dir = spgammadetdir + spgammagapdir
          if (ngamma0dir.ne.0) then
-            accgapdir = float(ngammadetdir)/float(ngamma0dir)
+*            accgapdir = float(ngammadetdir)/float(ngamma0dir)
+            accgapdir = spgammadetdir/spgamma0dir
          else
             accgapdir = -999.
          endif
 * -----> reflected         
          ngamma0ref = ngammadetref + ngammagapref
+         spgamma0ref = spgammadetref + spgammagapref
          if (ngamma0ref.ne.0) then
-            accgapref = float(ngammadetref)/float(ngamma0ref)
+*            accgapref = float(ngammadetref)/float(ngamma0ref)
+            accgapref = spgammadetref/spgamma0ref
          else
             accgapref = -999.
          endif
+
+*         print*,'CHRADID = ',chradid
+*         print*,'K = ',k
+*         print*,'ALLTHETAC = ',allthetac
+*         print*,'N TOT: ',ngammadet,ngamma0,
+*     +        float(ngammadet)/float(ngamma0)
+*         print*,'N DIR: ',ngammadetdir,ngamma0dir,
+*     +        float(ngammadetdir)/float(ngamma0dir)
+*         print*,'N REF: ',ngammadetref,ngamma0ref,
+*     +        float(ngammadetref)/float(ngamma0ref)
+*         print*,'SP TOT: ',spgammadet,spgamma0,
+*     +        spgammadet/spgamma0
+*         print*,'SP DIR: ',spgammadetdir,spgamma0dir,
+*     +        spgammadetdir/spgamma0dir
+*         print*,'SP REF: ',spgammadetref,spgamma0ref,
+*     +        spgammadetref/spgamma0ref
+
          weight=exp(-0.5*(float(k)-3.)**2.)
          avaccgap    = avaccgap    + accgap*weight
          avaccgapdir = avaccgapdir + accgapdir*weight
@@ -5519,20 +5598,39 @@ C      print*,'thi=',acos(costhi)
 *** CODE FROM richaccradwall.F ***
 **********************************
 
-      subroutine richaccradwall(accradwalldir, accradwallref)
+      subroutine richaccradwall(thetac,accradwalldir,accradwallref)
 **********************************************************************
 * Returns the fraction of detected photons (visible) crossing the radiator poron walls
 *
 *     OUT: 
+*        thetac       :  Cherenkov angle
 *        accradwalldir:  acceptance due to radiator poron walls (direct)
 *        accradwallref:  acceptance due to radiator poron walls (reflected)
+*
+*     26-Nov-2008: changed by R. Pereira to take into account
+*     different scattering probabilities for each photon,
+*     and to have thetac as argument to comply with multi-ring
+*     acceptance calculation
+*
+*     28-Nov-2008: reflection coefficient (0.85) incorporated into
+*                  probability, although it is currently irrelevant
+*                  because results for direct and reflected branches
+*                  are given separately
 *
 *********************************************************************
 
 #include "../include/richrec_lipf.h"
 
+
       real accradwall, ztrial, gamvtx(3), phdir(3), pint(3)
-      integer nfotall, nfotwalldir, nfotwallref
+
+      integer nfotall
+      integer nfotalldir, nfotallref
+      integer nfotwalldir, nfotwallref
+
+      real spfotall
+      real spfotalldir, spfotallref
+      real spfotwalldir, spfotwallref
 
       integer nphmax
       parameter(nphmax=10)
@@ -5540,14 +5638,25 @@ C      print*,'thi=',acos(costhi)
 
       real pcervtx_backup(3)
 
+      real txv,tyv
+      real txi,tyi
+      integer itflagv,itflagi
+
 * ... init
       accradwalldir = 0.
       accradwallref = 0.
+
       nfotall     = 0
       nfotalldir  = 0
       nfotallref  = 0
       nfotwalldir = 0
       nfotwallref = 0
+
+      spfotall     = 0.
+      spfotalldir  = 0.
+      spfotallref  = 0.
+      spfotwalldir = 0.
+      spfotwallref = 0.
 
 * ... safe cut
       if (ipthetac.eq.0) return !no beta reconstructed
@@ -5556,17 +5665,27 @@ C      print*,'thi=',acos(costhi)
 * ... backup pcervtx
       call ucopy(pcervtx,pcervtx_backup,3)
 
-* ... set  cerenkov angle
-      thetac = cangrec(ipthetac)
+*      print*,'thetac in richaccradwall = ',thetac
 
 * ... loop on radiator depth
-      do ZFRAC=0,1.,0.1 ! radiator fraction
+*      do ZFRAC=0,1.,0.1 ! radiator fraction
+      do ZFRAC=0.05,1.,0.1 ! radiator fraction
          ZTRIAL = ZTARG+HRAD*ZFRAC
 * ...... set photon vertex                                         
          gamvtx(3) = ZTRIAL                                         
          gamvtx(2) = pimp(2) + tan(pthe)*sin(pphi)*(ZTRIAL-pimp(3)) 
          gamvtx(1) = pimp(1) + tan(pthe)*cos(pphi)*(ZTRIAL-pimp(3))
          call uradtile(gamvtx(1),gamvtx(2),nxv,nyv) !tile indices at emission point
+* ...... vertex point coords in tile
+         txv = gamvtx(1)-nxv*radtile_pitch
+         tyv = gamvtx(2)-nyv*radtile_pitch
+         if((abs(txv).gt.(radtile_pitch-radtile_supthk)/2.)
+     +        .or.(abs(tyv).gt.(radtile_pitch-radtile_supthk)/2.)) then
+            itflagv = 0
+         else
+            itflagv = 1
+         endif
+*         print*,'txv,tyv,itflagv = ',txv,tyv,itflagv
 * ...... copy vertex to common (backup made at init)
          call ucopy(gamvtx,pcervtx,3)
 * ...... debug
@@ -5592,11 +5711,50 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
             pint(1) = gamvtx(1) + dist*phdir(1)        
             pint(2) = gamvtx(2) + dist*phdir(2)        
             call uradtile(pint(1),pint(2),nxi,nyi) !tile indices at radiator bottom
-            if (nxi.ne.nxv.or.nyi.ne.nyv) then ! wall crossed
+* ......... bottom point coords in tile
+            txi = pint(1)-nxi*radtile_pitch
+            tyi = pint(2)-nyi*radtile_pitch
+            if((abs(txi).gt.(radtile_pitch-radtile_supthk)/2.).or.
+     +           (abs(tyi).gt.(radtile_pitch-radtile_supthk)/2.)) then
+               itflagi = 0
+            else
+               itflagi = 1
+            endif
+*            print*,'... txi,tyi,itflagi = ',txi,tyi,itflagi
+
+* ......... Scattering probability (R. Pereira 26-Nov-2008)
+* ......... Calculation of interaction length was copied from RICHCHGREC
+
+            /* clari   = usrcla ! clarity : radint = lambda^4(micm)/clarity */
+            alambda = 377.E-3   ! mean wavelength (micm) no foil (higher with foil)
+            if (RADCLARITY.gt.0) then
+               alambda = (0.0327*RADCLARITY**(1.-0.867))**0.25
+               radint  = (alambda)**4/RADCLARITY   
+            else
+               radint = 3.
+            endif
+
+            photprob = exp(-dist/radint)
+            if(nmiref.ne.0)then
+               photprob = photprob*0.85
+            endif
+
+* ......... probability sum counter
+            spfotall = spfotall + photprob
+            if (nmiref.eq.0) then             
+               spfotalldir = spfotalldir + photprob
+            else
+               spfotallref = spfotallref + photprob
+            endif
+
+            if ((nxi.ne.nxv).or.(nyi.ne.nyv)
+     +              .or.(itflagv.eq.0).or.(itflagi.eq.0)) then ! wall crossed or vertex out of tile
                if (nmiref.eq.0) then
                   nfotwalldir = nfotwalldir + 1 
+                  spfotwalldir = spfotwalldir + photprob
                else
                   nfotwallref = nfotwallref + 1 
+                  spfotwallref = spfotwallref + photprob 
                endif
             endif
  1       continue
@@ -5605,14 +5763,28 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
 * ... lost photons fraction
       accradwalldir = 0.
       accradwallref = 0.
+
+*      if (nfotalldir.ne.0) 
+*     + accradwalldir = float(nfotwalldir)/float(nfotalldir)
+*      if (nfotallref.ne.0) 
+*     + accradwallref = float(nfotwallref)/float(nfotallref)
+
       if (nfotalldir.ne.0) 
-     + accradwalldir = float(nfotwalldir)/float(nfotalldir)
+     + accradwalldir = spfotwalldir/spfotalldir
       if (nfotallref.ne.0) 
-     + accradwallref = float(nfotwallref)/float(nfotallref)
+     + accradwallref = spfotwallref/spfotallref
+
+*      print*,'N DIR: ',nfotwalldir,nfotalldir,
+*     +     float(nfotwalldir)/float(nfotalldir)
+*      print*,'N REF: ',nfotwallref,nfotallref,
+*     +     float(nfotwallref)/float(nfotallref)
+*      print*,'SP DIR: ',spfotwalldir,spfotalldir,
+*     +     spfotwalldir/spfotalldir
+*      print*,'SP REF: ',spfotwallref,spfotallref,
+*     +     spfotwallref/spfotallref
 
 * ... recover original pcervtx
       call ucopy(pcervtx_backup,pcervtx,3)
 
       return
       end
-

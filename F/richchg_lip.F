@@ -130,8 +130,18 @@
          call richaccsmear(thetac,1,richacca,richeffa) !charge=1 applied
       endif
 
-* ... compute radiator walls acceptance 
-CC      call richaccradwall(accradwalldir, accradwallref)
+* --- Take into account photon loss in radiator walls
+      if (LEVGRAD.eq.2) then
+         call richaccradwall(thetac,accradwalldir,accradwallref)
+         richeffa(5) = richeffa(5)-richeffa(6)*accradwalldir
+     +                            -richeffa(7)*accradwallref
+         richeffa(6) = richeffa(6)*(1.-accradwalldir)
+         richeffa(7) = richeffa(7)*(1.-accradwallref) 
+         richacca(1) = richacca(1)+richacca(2)*accradwalldir
+     +                            +richacca(3)*accradwallref
+         richacca(2) = richacca(2)*(1.-accradwalldir)
+         richacca(3) = richacca(3)*(1.-accradwallref)
+      endif
 
 
       richacc_inv  = richacca(1)   ! invisible acceptance
