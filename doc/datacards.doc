@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.279 2008/09/22 10:00:11 mdelgado Exp $
+#  $Id: datacards.doc,v 1.280 2008/12/04 13:17:39 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -134,7 +134,7 @@ R 11  lipznorm[2]                   // LIP charge overall factors (aerogel, NaF)
 
 
 RICSET 
-I 1  setup(1)                    // 0 do not use coarse radiator tables.
+I 1  setup(1)                    // 0 use coarse radiator tables.
 	                         // 1 use fine radiator tables
 
 
