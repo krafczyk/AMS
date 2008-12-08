@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.105 2008/12/08 15:15:18 choutko Exp $
+//  $Id: richrec.C,v 1.106 2008/12/08 23:03:43 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1424,7 +1424,7 @@ float AMSRichRing::generated(geant length,
     rmx=6.0*_height;
     fmx=3.0*RICHDB::foil_height;}
 
-
+   _tile_index=_kind_of_tile-1;
   if(_first_radiator_call[_tile_index]){
     _first_radiator_call[_tile_index]=0;
 #ifdef __AMSDEBUG__

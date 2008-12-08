@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.54 2008/12/08 15:15:19 choutko Exp $
+//  $Id: richrec.h,v 1.55 2008/12/08 23:03:43 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -190,7 +190,7 @@ static geant _Time;
 #define _NRAD_ 400
 #define _NFOIL_ 10
 #define _NGUIDE_ 14
-#define _TILES_ 108
+#define _TILES_ 2
   static int _generated_initialization;
   static int _first_radiator_call[_TILES_];
   static float _l[RICmaxentries][_TILES_]; 
