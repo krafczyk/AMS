@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.58 2008/11/06 09:56:35 pzuccon Exp $
+#  $Id: Makefile,v 1.59 2008/12/08 15:15:04 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -131,7 +131,7 @@ INCS= $(wildcard ../include/*.h)
 COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
 		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
 		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
-		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)commonsi.C
+		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)commonsi.C  $(SCC)timelx.c
 
 
 #Geant Interface
@@ -207,7 +207,8 @@ FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)daqevt.C $(SCC)gean
 		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C $(SCC)ntuple.C $(SFF)TrackFit_utils.F
 
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
-MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 OBJECTS+= $(BIN)mtx.o
@@ -339,6 +340,8 @@ ifeq  "$(shell uname)"  "Linux"
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
+$(BIN)timelx.o: $(SCC)timelx.c
+	$(CC) -c $(CFLAGS) $< -o$@
 ../include/root_methods.h:      ../perl/root.perl
 	perl ../perl/root.perl
 
