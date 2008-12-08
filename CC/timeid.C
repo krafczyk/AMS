@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.95 2008/12/08 15:15:18 choutko Exp $
+//  $Id: timeid.C,v 1.96 2008/12/08 17:56:04 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -282,7 +282,6 @@ cout <<" AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
 if( omp_get_thread_num()==0) {
 //#pragma omp critical 
   ok= read(dir,id,asktime,index)?1:0;
-  cout <<"  blia read "<<endl;
 }
 else ok=1;
 #else

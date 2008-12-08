@@ -1389,7 +1389,7 @@ public:
     else strcpy(toftypz,"unkn");
 //
     double xtime=TrigTime[4]/1000.;
-    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %s, EcalSum %5.1f GeV TimeD [ms]%6.2f",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",IsEcalLev1OK()?"Yes":"No",EcalTrSum,xtime);
+    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %s, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",IsEcalLev1OK()?"Yes":"No",EcalTrSum,xtime,LiveTime);
   return _Info;
   }
   virtual ~Level1R(){};

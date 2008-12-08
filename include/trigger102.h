@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.27 2008/11/05 09:09:21 choumilo Exp $
+//  $Id: trigger102.h,v 1.28 2008/12/08 17:56:04 choutko Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -200,6 +200,7 @@ public:
       static integer getmaxblocks();
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
+      static int buildrawearly(integer n, int16u *p);
       static void EventBitDump(integer leng, int16u *p, char * message);
       static int16u lutbswap(int16u lut);//RD L3<->L4 problem correction for LUTs
 #ifdef __WRITEROOT__

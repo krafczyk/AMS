@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.54 2008/12/08 15:15:19 choutko Exp $
+//  $Id: daqevt.h,v 1.55 2008/12/08 17:56:04 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -56,6 +56,8 @@ friend class DAQEvent;
 const integer nbtps=24;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
+static integer _TrigTime;
+#pragma omp threadprivate(_TrigTime)
 integer _BufferOwner;
 integer _Checked;
 uinteger _Length;
@@ -143,12 +145,14 @@ static bool isError(int16u id){return (id&512)>0;}
 static const char *  getnodename(int16u idn){return _NodeNames[idn];}
 static const char *  getportname(int16u idn){return _PortNamesJ[idn];}
 uinteger & eventno(){return _Event;}
+static integer trigtime()  {return _TrigTime;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}
 uinteger & runtype(){return _RunType;}
 uinteger & usec(){return _usec;}
 void buildDAQ(uinteger btype=0);
 void buildRawStructures();
+void buildRawStructuresEarly();
 void write();
 integer read();
 uint64 getoffset();

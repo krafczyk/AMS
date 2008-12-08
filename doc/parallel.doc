@@ -7,7 +7,7 @@ Goal:
 Parallelization of gbatch.exe on the event level with dynamic thread number 
 using  openmp protocol
 
-Parallelization of the root code enabling reading root chains parallel on the fuile level (not yet started)
+Parallelization of the root code enabling reading root chains parallel on the file level (not yet started)
 
 see eg  https://computing.llnl.gov/tutorials/openMP/
 
@@ -16,7 +16,7 @@ see eg  https://computing.llnl.gov/tutorials/openMP/
 Compiler:
 ------------
 
-intel icc/ifc version 11 (openmp 3.0)
+intel icc/ifc version 11 (openmp 3.0 support)
 
 http://www.intel.com/software/products/compilers/docs/clin/main_cls/index.htm
 

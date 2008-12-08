@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.136 2008/10/31 10:29:09 choutko Exp $
+//  $Id: daqevt.C,v 1.137 2008/12/08 17:56:03 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -46,7 +46,7 @@ extern "C" int scandir64(		const char *, struct dirent64 ***,
 
 
 
-
+integer DAQEvent::_TrigTime=0;
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
@@ -796,7 +796,7 @@ void DAQEvent::buildRawStructures(){
      }
     }
     }
-    else if(_isjlvl1(id)){
+    else if(_isjlvl1(id) ){
      if(fpl->_pgetid(id)){
       int16u *pdown=_pcur+_cll(_pcur)+2;
       int16u *psafe=pdown;
@@ -858,6 +858,35 @@ void DAQEvent::buildRawStructures(){
   }
 #endif
 }
+
+
+
+
+
+
+
+
+void DAQEvent::buildRawStructuresEarly(){
+  if((_Checked ||(_EventOK()==1 && _HeaderOK()))  ){
+   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur=_pcur+_cl(_pcur)){
+    int16u id=*(_pcur+_cll(_pcur));
+    if(_isjinj(id)){
+     for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
+      if(_getportj(*(pdown+*pdown))==14 || _getportj(*(pdown+*pdown))==15){
+      int16u *psafe=pdown+1;
+      int ic=15- _getportj(*(pdown+*pdown));
+      integer n=(ic<<16) | (*pdown);
+      _TrigTime=Trigger2LVL1::buildrawearly(n,psafe);
+      break;
+     }
+    }
+    }
+}
+}
+}
+
+
+
 
 
 void DAQEvent::write(){
@@ -975,6 +1004,11 @@ unexpected:
      break;
    }
   }while(_Length==0 || _EventOK()==0 || (_HeaderOK()==0 ));
+//
+// here we must put triggerlvl1 buildraw
+//   
+  
+   buildRawStructuresEarly();
    return fbin.good() && !fbin.eof();
 }
 
