@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.104 2008/12/03 16:45:05 mdelgado Exp $
+//  $Id: richrec.C,v 1.105 2008/12/08 15:15:18 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -243,7 +243,8 @@ double AMSRichRawEvent::RichRandom(){
   static unsigned long int x=1234567;
   static unsigned long int p1=16807;
   static unsigned long int N=2147483647;
-  
+#pragma omp threadprivate(x,p1,N)  
+
   x=(p1*x)%N;
   return ((double)x)/((double)(N+1));
 }
@@ -270,7 +271,6 @@ void AMSRichRawEvent::Select(int howmany,int size,int lista[]){
 
 
 void AMSRichRawEvent::_writeEl(){
-  
   RichPMTChannel channel(_channel);
 
 #ifdef __WRITEROOT__
@@ -280,18 +280,6 @@ void AMSRichRawEvent::_writeEl(){
 
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,x,y,z);
 #endif
-  RICEventNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richevent();
-  
-  if(cluster->Nhits>=MAXRICHITS) return;
-
-  cluster->channel[cluster->Nhits]=_channel;
-  cluster->adc[cluster->Nhits]=_counts;
-
-  cluster->npe[cluster->Nhits]=getnpe();
-  cluster->x[cluster->Nhits]=channel.x();
-  cluster->y[cluster->Nhits]=channel.y();
-  cluster->status[cluster->Nhits]=_status;
-  cluster->Nhits++;
 }
 
 
@@ -564,9 +552,18 @@ void AMSRichRing::build(){
 
 }
 
+// DEFINE THIS AS 1 FOR DEBUG OUTPUT
+#define __DEBUGP__ 0  
 
 AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
-
+#ifdef _OPENMP
+  if(__DEBUGP__){
+    cerr<<" *** "<<omp_get_thread_num()<<" CALLING BUILD TRACK "<<endl;
+    AMSPoint p=track->getP0();
+    cerr<<" *** "<<omp_get_thread_num()<<"       TRACK    P0  "<<p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
+    cerr<<" *** "<<omp_get_thread_num()<<"             NHITS  "<<(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem()<<endl;
+  }
+#endif
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
   // using, for example, a structure (~completely public class)
@@ -613,6 +610,16 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   _index_tbl=crossed_tile.getindextable();
   _kind_of_tile=crossed_tile.getkind();
   _tile_index=crossed_tile.getcurrenttile();
+
+  
+#ifdef _OPENMP
+  if(__DEBUGP__){
+    cerr<<" *** "<<omp_get_thread_num()<<"      INDEX CROSSED "<<_index<<endl;
+    cerr<<" *** "<<omp_get_thread_num()<<"             height "<<_height<<endl;
+    cerr<<" *** "<<omp_get_thread_num()<<"       ENTRANCE P   "<<_entrance_p[0]<<" "<<_entrance_p[1]<<" "<<_entrance_p[2]<<endl;
+    cerr<<" *** "<<omp_get_thread_num()<<"       ENTRANCE D   "<<_entrance_d[0]<<" "<<_entrance_d[1]<<" "<<_entrance_d[2]<<endl;
+  }
+#endif
 
   //============================================================
   // PARAMETRISATION OF THE HIT ERROR
@@ -827,6 +834,13 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    (RICRECFFKEY.recon[1]%10)
 										    ));
 
+
+#ifdef _OPENMP
+      if(__DEBUGP__){
+	cerr<<" *** "<<omp_get_thread_num()<<"             BETA   "<<beta_track<<endl;
+	cerr<<" *** "<<omp_get_thread_num()<<"             USED   "<<beta_used<<endl;
+      }
+#endif
       if(!first_done) first_done=done;
       bit++;  
     } else {
@@ -834,14 +848,20 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     }
   }while(current_ring_status&dirty_ring);   // Do it again if we want to clean it up once
 
+
+  if(__DEBUGP__){
+    cerr<<endl;
+  }
   return first_done;
 }
 
 AMSRichRing* AMSRichRing::rebuild(AMSTrTrack *ptrack){
 
   AMSRichRing *ring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
-  if(ring && ring->_ptrack->getpattern()>=0)return 0;
-  return build(ptrack);
+  if(ring && ring->_ptrack && ring->_ptrack->getpattern()>=0)return 0;
+#pragma omp critical
+  ring=build(ptrack);
+  return ring;
 
 
 }
@@ -853,25 +873,6 @@ void AMSRichRing::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
-  RICRing* cluster=AMSJob::gethead()->getntuple()->Get_ring();
-  
-  if(cluster->NRings>=MAXRICHRIN) return;
-
-  if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRings]=-1;
-  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRings]=-1;
-  else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRings]=-1;
-  else cluster->track[cluster->NRings]=_ptrack->getpos();
-  cluster->used[cluster->NRings]=_used;
-  cluster->mused[cluster->NRings]=_mused;
-  cluster->beta[cluster->NRings]=_beta;
-  cluster->errorbeta[cluster->NRings]=_errorbeta;
-  cluster->quality[cluster->NRings]=_quality;
-  cluster->status[cluster->NRings]=_status;
-  // All the stuff related to the new routines
-  cluster->npexp[cluster->NRings]=_npexp;
-  cluster->collected_npe[cluster->NRings]=_collected_npe;
-  cluster->probkl[cluster->NRings]=_probkl;
-  cluster->NRings++;
 }
 void AMSRichRing::_copyEl(){
 #ifdef __WRITEROOT__
@@ -926,6 +927,7 @@ geant AMSRichRing::_Time=0;
 void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigmas used 
 const integer freq=10;
 static integer trig=0;
+#pragma omp threadprivate(trig)
 trig=(trig+1)%freq;
            if(trig==0 && _NoMoreTime()){
             throw amsglobalerror(" AMSRichRing::ReconRingNpexp-E-Cpulimit Exceeded ");
@@ -1416,15 +1418,7 @@ float AMSRichRing::generated(geant length,
   float beta;
   float f=0.;
 
-
-  //DEBUG
-  if(_tile_index<0 || _tile_index>=_TILES_){
-    cout<<"AMSRichRing::generated -- tile number error "<<_tile_index<<endl;
-    exit(1);
-  }
-
-
-  if(_generated_initialization){for(int i=0;i<_TILES_;i++) _first_radiator_call[i]=1;_generated_initialization=0;}
+  if(_generated_initialization){for(int i=0;i<radiator_kinds;i++) _first_radiator_call[i]=1;_generated_initialization=0;}
 
   if(_kind_of_tile==naf_kind){
     rmx=6.0*_height;
@@ -1562,11 +1556,13 @@ geant AMSRichRing::lgeff(AMSPoint r,
   const float LG_Tran=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
   const float Eff_Area=SQR(RICHDB::lg_length/pitch);
   const float bwd=0.04;
+
+#ifdef __AMSDEBUG__
   static int first=1;
 
   if(first){
     first=0;
-#ifdef __AMSDEBUG__
+
     printf("\nLight Guide Parameters\n"
              "---------------------------\n"
              "LG_Tran   (Transmittance): %f\n"
@@ -1583,10 +1579,9 @@ geant AMSRichRing::lgeff(AMSPoint r,
 	      RICHDB::lg_eff_tbl[i][j][k]<<endl;
 
 	}
-#endif	  
-
 
   }
+#endif	  
 
   wnd=RichPMTsManager::FindWindow(r[0],r[1]);
   if(wnd==-1){
@@ -1869,6 +1864,13 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
   AMSlink(status),_ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta)
 {
 
+#ifdef _OPENMP
+  if(__DEBUGP__){
+    cerr<<" *** "<<omp_get_thread_num()<<" STORING RING WITH BETA "<<_beta<<endl;
+  }
+#endif
+
+
   CalcBetaError();
   
 #ifdef __AMSDEBUG__
@@ -1944,6 +1946,13 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
     _pmtpos[1]=0;
     _pmtpos[2]=0;
   }
+
+
+#ifdef _OPENMP
+  if(__DEBUGP__){
+    cerr<<" *** "<<omp_get_thread_num()<<" STORING RING WITH BETA "<<_beta<<" FINISHED"<<endl;
+  }
+#endif
 }
 
 //////////////////////////////////////////////////////////// LIP
@@ -2162,67 +2171,6 @@ void AMSRichRingNew::_writeEl(){
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
-  RICRingNew* cluster=AMSJob::gethead()->getntuple()->Get_ringnew();
-  
-  if(cluster->NRingNews>=MAXRICHRINLIP) return;
-
-  // LINK TO USED TRACK... TO BE DONE
-  //if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRingNews]=-1;
-  //else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRingNews]=-1;
-  //else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRingNews]=-1;
-  //else cluster->track[cluster->NRingNews]=_ptrack->getpos();
-
-  cluster->Status[cluster->NRingNews]=_Status;
-  cluster->Beta[cluster->NRingNews]=_Beta;
-  cluster->AngleRec[cluster->NRingNews]=_AngleRec;
-  cluster->Chi2[cluster->NRingNews]=_Chi2;
-  cluster->Likelihood[cluster->NRingNews]=_Likelihood;
-  cluster->Used[cluster->NRingNews]=_Used;
-  cluster->ProbKolm[cluster->NRingNews]=_ProbKolm;
-  for(int i=0;i<2;i++){
-    cluster->Flatness[cluster->NRingNews][i]=_Flatness[i];
-  }
-  cluster->ChargeRec[cluster->NRingNews]=_ChargeRec;
-  for(int i=0;i<3;i++){
-    cluster->ChargeProb[cluster->NRingNews][i]=_ChargeProb[i];
-  }
-  cluster->ChargeRecDir[cluster->NRingNews]=_ChargeRecDir;
-  cluster->ChargeRecMir[cluster->NRingNews]=_ChargeRecMir;
-  cluster->NpeRing[cluster->NRingNews]=_NpeRing;
-  cluster->NpeRingDir[cluster->NRingNews]=_NpeRingDir;
-  cluster->NpeRingRef[cluster->NRingNews]=_NpeRingRef;
-  for(int i=0;i<3;i++){
-    cluster->RingAcc[cluster->NRingNews][i]=_RingAcc[i];
-  }
-  for(int i=0;i<6;i++){
-    cluster->RingEff[cluster->NRingNews][i]=_RingEff[i];
-  }
-  for(int i=0;i<LIP_NHITMAX;i++){
-    if(i<_HitsResiduals.size()) {
-      cluster->HitsResiduals[cluster->NRingNews][i]=_HitsResiduals[i];
-    }
-    else {
-      cluster->HitsResiduals[cluster->NRingNews][i]=-999.;
-    }
-  }
-  for(int i=0;i<LIP_NHITMAX;i++){
-    if(i<_HitsStatus.size()) {
-      cluster->HitsStatus[cluster->NRingNews][i]=_HitsStatus[i];
-    }
-    else {
-      cluster->HitsStatus[cluster->NRingNews][i]=-999;
-    }
-  }
-  for(int i=0;i<10;i++){
-    if(i<_TrackRec.size()) {
-      cluster->TrackRec[cluster->NRingNews][i]=_TrackRec[i];
-    }
-    else {
-      cluster->TrackRec[cluster->NRingNews][i]=-999;
-    }
-  }
-
-  cluster->NRingNews++;
 }
 
 

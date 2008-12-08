@@ -1,4 +1,4 @@
-//  $Id: snode.h,v 1.7 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: snode.h,v 1.8 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSNODEMAP__
@@ -25,8 +25,10 @@ class AMSNodeMap
 
   //! Recoursevly go into the tree hanging from ptr to count the elements
   void _count(AMSNode *const ptr);
+  void _countR(AMSNode *const ptr);
   //! Recoursevely go into the tree hanging from ptr to build the array (_hash) of pointers to AMSNode(s)
   void _rehash(AMSNode *const ptr);
+  void _rehashR(AMSNode *const ptr);
 
 
  public:

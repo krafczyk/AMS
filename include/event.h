@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.77 2008/09/16 19:12:04 choutko Exp $
+//  $Id: event.h,v 1.78 2008/12/08 15:15:19 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -20,6 +20,10 @@
 #include "cont.h"
 #include "daqevt.h"
 #include "astro.h" // ISN 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+const int maxthread=32;
 class AMSEvent: public AMSNode{
 private:
   class ShuttlePar{
@@ -102,14 +106,17 @@ uinteger _usec;
 static integer SRun;
 static integer PosInRun;
 static integer PosGlobal;
-static AMSEvent * _Head;
-static AMSNodeMap EventMap;
+static AMSEvent * _Head[maxthread];
+static uint64 _RunEv[maxthread];
+static AMSNodeMap  EventMap[maxthread];
 static ShuttlePar Array[60];
 static BeamPar ArrayB[60];
 static EventId * _SelectedEvents;
+//#pragma omp threadprivate(PosInRun,SRun,PosGlobal,EventMap,Array,ArrayB,_Head)
+#pragma omp threadprivate(PosInRun,SRun,PosGlobal)
 void _copyEl();
 void _writeEl();
-void _init();
+//void _init();
 void _siamsinitrun();
 void _signinitrun();
 void _sitkinitrun();
@@ -196,39 +203,49 @@ integer _setheadC( AMSID id, AMSlink * p);
 void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
+virtual void _init();
+static uinteger get_thread_num(){
+#ifdef _OPENMP
+return omp_get_thread_num();
+#else
+return 0;
+#endif
+}
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),
-  _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head=this;_status[0]=0;_status[1]=0;} //ISN
+  _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
    _runtype(runtype), _time(time), _usec(usec),_Error(0){
-   _Head=this;
+   _Head[get_thread_num()]=this;
+    _RunEv[get_thread_num()]=getrunev();
    _status[0]=0;
    _status[1]=0;
 }
-~AMSEvent(){_Head=0;}
+~AMSEvent(){_RunEv[get_thread_num()]=0;_Head[get_thread_num()]=0;}
 void _printEl(ostream & stream);
 void loc2gl();
+static uint64 & runev(uinteger k){return k<sizeof(_RunEv)/sizeof(_RunEv[0])?_RunEv[k]:_RunEv[0];}
 void getmag(float & thetam, float & phim);
-static void setfile(char file[]);
+static void setfile(const char file[]);
 static integer IsTest();
 static void SetShuttlePar();
-static AMSEvent * gethead()  {return _Head;}
+static AMSEvent * gethead()  {return _Head[get_thread_num()];}
 static integer debug;
-AMSlink * getheadC(char name[], integer id, integer sorted=0)
+AMSlink * getheadC(const char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
-integer buildC(char name[], integer par=0);
-integer rebuildC(char name[], integer par=0);
+integer buildC(const char name[], integer par=0);
+integer rebuildC(const char name[], integer par=0);
 static integer getSRun() {return SRun;}
- integer setbuilderC(char name[], pBuilder pb);
-AMSlink * getlastC(char name[], integer id)
+ integer setbuilderC(const char name[], pBuilder pb);
+AMSlink * getlastC(const char name[], integer id)
 {return _getlastC(AMSID(name,id));}
 AMSlink * getheadC( AMSID id, integer sorted=0){return _getheadC(id,sorted);}
-integer setheadC(char name[], integer id, AMSlink *p)
+integer setheadC(const char name[], integer id, AMSlink *p)
 {return _setheadC(AMSID(name,id),p);}
 integer setheadC( AMSID id, AMSlink *p){return _setheadC(id,p);}
-AMSContainer * getC(char name[], integer id){return _getC(AMSID(name,id));}
+AMSContainer * getC(const char name[], integer id){return _getC(AMSID(name,id));}
 AMSContainer * getC( AMSID id){return _getC(id);}
-integer getnC (char name[]);
+integer getnC (const char name[]);
 void SetTimeCoo(integer rec=0);
 void GetGeographicCoo(number & pole, number & theta, number &phi){
 pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
@@ -237,8 +254,9 @@ void GetISSCoo(number & ra, number & dec){
   ra=_StationEqAsc;dec=_StationEqDec;} // ISN 
 void GetAMSCoo(number & ra, number & dec){
   ra=_AMSEqAsc;dec=_AMSEqDec;} // ISN 
-static void  sethead(AMSEvent* head) 
-{ _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
+static void  sethead(AMSEvent* head) {int thr=0;
+ _Head[get_thread_num()]=head;if(_Head[get_thread_num()])AMSEvent::EventMap[get_thread_num()].map(*(_Head[get_thread_num()]));}
+static void  sethead2(AMSEvent* head){ _Head[get_thread_num()]=head;}
 integer removeC();
 void Recovery();
 void write(int trig);
@@ -258,6 +276,7 @@ integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
 uinteger  * getstatus() {return _status;}
 uint64   getstatus64() {uint64 st=_status[1];return (_status[0] | (st<<32));}
+uint64 getrunev() const;
 void setstatus(uinteger   * status){_status[0]=status[0];_status[1]=status[1];}
 geant getpitch() const{return _Pitch;}
 geant getveltheta() const{return _VelTheta;}
@@ -277,10 +296,10 @@ void operator delete(void *p)
   {if(p){((AMSEvent*)p)->~AMSEvent();p=0;UPool.udelete(p);}}
 
 inline AMSNode * getp(const AMSID & id, char hint=0) const{
-  return AMSEvent::EventMap.getp(id,hint);
+  return AMSEvent::EventMap[get_thread_num()].getp(id,hint);
 }
 inline void printH(){
-  AMSEvent::EventMap.print();
+  AMSEvent::EventMap[get_thread_num()].print();
 }
 static AMSID getTDVStatus();
 // Interface with DAQ

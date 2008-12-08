@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.86 2008/11/05 09:51:11 choutko Exp $
+//  $Id: gbatch.C,v 1.87 2008/12/08 15:15:17 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -9,6 +9,9 @@
 #include "commons.h"
 #include "geantnamespace.h"
 #include "producer.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 const int NWGEAN=13000000;
 const int NWPAW=1200000;
 struct PAWC_DEF{
@@ -52,6 +55,7 @@ std::set_unexpected (my_unexpected);
      *signal(SIGUSR1, handler); 
      *signal(SIGUSR2, handler); 
      *signal(SIGHUP, handler); 
+     *signal(SIGCHLD, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
@@ -105,6 +109,7 @@ using namespace glconst;
    cerr <<" FPE intercepted"<<endl;
    break;
   case SIGXCPU:
+   #pragma omp master 
     if(cpul){
        cerr <<" Job Cpu limit exceeded"<<endl;
        cpul=0;
@@ -115,10 +120,13 @@ using namespace glconst;
     break;
   case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
+#pragma omp master
+{
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
     //AMSStatus::setmode(0);
     AMSFFKEY.CpuLimit=30;
+}
     break;
   case SIGQUIT:
     cerr <<" Process suspended"<<endl;
@@ -145,6 +153,14 @@ cout << " sighup sended "<<endl;
       cerr<< "New Ntuple Forced"<<endl;
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       break;
-  }
+  case SIGCHLD:
+    int nthr=0;
+#ifdef _OPENMP
+    nthr=omp_get_num_threads();
+    if(nthr>0)nthr--;
+    omp_set_num_threads(nthr);
+    cerr<<"  new threads "<<nthr<<endl;
+#endif
+  break;
 }
-
+}

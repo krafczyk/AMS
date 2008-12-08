@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.392 2008/11/05 15:04:25 choutko Exp $
+//  $Id: event.C,v 1.393 2008/12/08 15:15:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -9,7 +9,6 @@
 //
 // Last Edit : Jan 07, 1999. ak.
 //
-
 #include "trrawcluster.h"
 #include "typedefs.h" 
 #include "tofdbc02.h" 
@@ -75,8 +74,9 @@ extern LMS* lms;
 //
 //
 integer AMSEvent::debug=0;
-AMSEvent* AMSEvent::_Head=0;
-AMSNodeMap AMSEvent::EventMap;
+uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+AMSEvent* AMSEvent::_Head[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+AMSNodeMap AMSEvent::EventMap[maxthread];
 integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;
 integer AMSEvent::PosGlobal=0;
@@ -136,14 +136,18 @@ void AMSEvent::_init(){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
      //raise(SIGTERM);
    }
+#pragma omp master
+{
    DAQEvent::initO(_run,getid(),gettime());
-   
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
+   cout <<"  critical "<<endl;
+}
   }
 
   // Initialize containers & aob
   if(AMSJob::gethead()->isSimulation())_siamsinitevent();
+#pragma omp critical
   _reamsinitevent();
   if(AMSJob::gethead()->isCalibration())_caamsinitevent();
 
@@ -853,9 +857,11 @@ void AMSEvent::_reantiinitevent(){
 
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",1),0));
-
-      AMSEvent::gethead()->add(
+{
+      AMSNode *p =AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
+//      cout <<" anti "<<p<<" "<<AMSEvent::gethead()<<" "<<get_thread_num()<<endl;
+}
 //
 }
 //=====================================================================
@@ -1062,10 +1068,9 @@ void  AMSEvent::write(int trig){
 // Sort before by "Used" variable : 
 // AMSTrTrack & AMSTrCluster
 
-  AMSEvent::gethead()->getheadC("AMSTrCluster",0,2); 
+  getheadC("AMSTrCluster",0,2); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
   AMSEvent::gethead()->getheadC("AMSmceventg",0,2); 
- 
 for(int il=0;il<TKDBc::nlay();il++){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
 }
@@ -1092,17 +1097,18 @@ for(int il=0;il<2;il++){
   AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2); 
   AMSEvent::gethead()->getheadC("EcalShower",0,2); 
 
-
+//cout <<"  vont ok "<<PosInRun<<" "<<trig<<endl;
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
       DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
       if(pdaq)pdaq->write();
     }   
-  if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
+if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
+      //cout <<"  pntuple write "<<endl;
     AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
     _writeEl();
     AMSNode * cur;
     for (int i=0;;){
-      cur=AMSEvent::EventMap.getid(i++);   // get one by one
+      cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
       if(cur){
         if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->writeC();
       }
@@ -1114,22 +1120,31 @@ for(int il=0;il<2;il++){
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
     // oh nono check for errors first
-     if(HasNoErrors() || (IOPA.WriteAll/100)*100){
+     if(HasNoErrors() || (IOPA.WriteAll/100)*100)
+//#pragma omp critical
+{
             AMSJob::gethead()->getntuple()->write(1);
+#pragma omp critical
             AMSJob::gethead()->getntuple()->writeR();
      }
-     else{
+     else
+//#pragma omp critical
+{
       AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
+#pragma omp critical
       AMSJob::gethead()->getntuple()->writeR();
      }
     }
     else {
 // if event was not selected check if at least header should be written
 // in the ntuples
-      if((IOPA.WriteAll/10)%10){
+      if((IOPA.WriteAll/10)%10)
+//#pragma omp critical
+{
       AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
+#pragma omp critical
       AMSJob::gethead()->getntuple()->writeR();
     }
    }
@@ -1141,17 +1156,25 @@ for(int il=0;il<2;il++){
 #ifdef __CORBA__
        if(AMSProducer::gethead()->FreeSpace()>=0 && AMSProducer::gethead()->FreeSpace()<IOPA.MaxFileSize/2/1024){
           NoMoreSpace=true;
+          if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
        }
 #endif
        if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
-      || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace){
-        if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
+      || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
+{
+#pragma omp barrier
+#pragma omp master
+{
+
         AMSJob::gethead()->uhend();
         AMSJob::gethead()->uhinit(_run,getid()+1,gettime());
+}
+#pragma omp barrier
+      if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
+
       }
     }        
   }
-
 
     AMSgObj::BookTimer.stop("WriteEvent");
 
@@ -1162,7 +1185,7 @@ _printEl(cout);
 if(debugl==0)return;
 AMSNode * cur;
 for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
+  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0 && strcmp(cur->getname(),"MC")!=0)
    ((AMSContainer*)cur)->printC(cout);
@@ -1175,7 +1198,7 @@ else{
 _printEl(cerr);
 AMSNode * cur;
 for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
+  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
    printC(cerr);
@@ -1190,7 +1213,7 @@ void AMSEvent::copy(){
 _copyEl();
 AMSNode * cur;
 for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
+  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
    copyC();
@@ -1324,7 +1347,9 @@ void AMSEvent::_reamsevent(){
 #ifdef __AMSDEBUG__
   _redaqevent();//create subdetectors RawEvent-Objects
 #else
-  if(AMSJob::gethead()->isReconstruction() )_redaqevent();//create subdetectors RawEvent-Objects
+  if(AMSJob::gethead()->isReconstruction() ){
+_redaqevent();//create subdetectors RawEvent-Objects
+}
 #endif
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
@@ -1335,8 +1360,7 @@ void AMSEvent::_reamsevent(){
       else break ;
   }
 
-
-     AMSgObj::BookTimer.stop("REAMSEVENT");  
+      AMSgObj::BookTimer.stop("REAMSEVENT");  
      return;    
   }
 
@@ -1358,15 +1382,16 @@ bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.
   calluser=!(ecpedcal || tftdccal || tfpedcal);
 //
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
-    _retof2event();
+      _retof2event();
     _reanti2event();
     if(calltrd)_retrdevent();
+    
     if(calltrk)_retkevent(); 
     if(callrich)_rerichevent();
     if(callecal)_reecalevent();
   }
   if(callax)_reaxevent();
-  if(calluser)AMSUser::Event();
+//  if(calluser)AMSUser::Event();
   AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
@@ -1507,7 +1532,6 @@ void AMSEvent::_caaxevent(){
 //============================================================================
 void AMSEvent::_retkevent(integer refit){
 
-
 // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
  
     AMSlink *ptr=getheadC("TriggerLVL3",0);
@@ -1529,7 +1553,6 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSTrRecHit::print();
 #endif
-  
   AMSgObj::BookTimer.start("TrTrack");
   
 
@@ -1554,8 +1577,6 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
   }
   integer itrk=1;
 
-
-//   if(TRFITFFKEY.OldTracking && !veto){
    if(TRFITFFKEY.OldTracking ){
      //  Old Stuff
 //     cout <<" old stuff "<<TRFITFFKEY.OldTracking<<endl; 
@@ -1638,7 +1659,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
     if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
 #endif
   }
-
+  
  }
   
   AMSgObj::BookTimer.stop("TrTrack");
@@ -1650,6 +1671,8 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
 }
  else throw AMSLVL3Error("LVL3NotCreated");  
 }
+
+
 //----------------------------------------
 void AMSEvent::_reanti2event(){
   int stat;
@@ -1701,6 +1724,7 @@ void AMSEvent::_reanti2event(){
 void AMSEvent::_retof2event(){
 int stat;
 static int firstev(0);
+#pragma omp threadprivate(firstev)
 uinteger runtyp=AMSEvent::getruntype();
 bool tofftok(false),ecalftok(false),extrigok(false);
 //
@@ -1827,7 +1851,6 @@ void AMSEvent::_reecalevent(){
 //========================================================================
 void AMSEvent::_retrdevent(){
 //
-
   AMSgObj::BookTimer.start("RETRDEVENT");
   buildC("AMSTRDCluster");
 #ifdef __AMSDEBUG__
@@ -1883,12 +1906,12 @@ void AMSEvent::_rerichevent(){
   // LIP reconstruction
   if((RICRECFFKEY.recon[0]/10)%10) {
     AMSgObj::BookTimer.start("RERICHLIP");
-    AMSRichRingNewSet NewRings;
-    NewRings.init();
-    NewRings.build();
+    //AMSRichRingNewSet NewRings;
+    //NewRings.init();
+    //NewRings.build();
     //cout << "------------------------------ LIP results " << endl;
     //cout << "Number of LIP Rings = " << NewRings.NumberOfRings() << endl;
-    NewRings.reset();
+    //NewRings.reset();
     AMSgObj::BookTimer.stop("RERICHLIP");
   }
 
@@ -1898,12 +1921,11 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("REAXEVENT");
 
-
-  buildC("AMSBeta");
+AMSBeta::build();
+//  buildC("AMSBeta");
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSBeta::print();
 #endif
-
   buildC("AMSCharge");
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSCharge::print();
@@ -1916,8 +1938,6 @@ void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("Vtx");
   buildC("AMSVtx");
   AMSgObj::BookTimer.stop("Vtx");
-
-
   buildC("AMSParticle");
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSParticle::print();
@@ -1991,7 +2011,7 @@ void AMSEvent::_retkinitrun(){
   }
   for (int half=0;half<2;half++){
     for(int side=0;side<2;side++){
-      cout <<"AMSEvent::_retkevent-I-"<<AMSTrIdCalib::CalcBadCh(half,side)<<
+      cout <<"AMSEvent::_retkinitrrun-I-"<<AMSTrIdCalib::CalcBadCh(half,side)<<
       " bad channels found for half "<<half<<" and side "<<side<<endl;
     }
   }
@@ -2294,9 +2314,10 @@ void AMSEvent:: _sitrigevent(){
 //---------------------------------------------------------------
 void AMSEvent:: _retrigevent(){
 //Add missing info to HW-created(in redaqevent) lvl1-obj; can "simulate" trigger 1 & 3 for rec data
-  
    Trigger2LVL1::build();
-   if(LVL3FFKEY.RebuildLVL3)TriggerLVL302::build();
+   if( LVL3FFKEY.RebuildLVL3){
+         TriggerLVL302::build();
+    }
 }
 
 
@@ -2340,28 +2361,16 @@ void AMSEvent:: _sitof2event(int &cftr){
 void AMSEvent::_findC(AMSID & id){
 
   static char names[1024]="AMSContainer:";
-  static char * name=names;
-#ifdef __AMSDEBUG__
-  int nc=0; 
-  if(13+strlen(id.getname())+1  > 1024){
-   name=new char[13+strlen(id.getname())+1];
-   nc=1;
-   name[0]='\0';
-   strcat(name,"AMSContainer:");
-  }
-#endif
-  name[13]='\0';
-  if(id.getname())strcat(name,id.getname());
-  id.setname(name); 
-#ifdef __AMSDEBUG__
-  if(nc)delete[] name;
-#endif
+  #pragma omp threadprivate (names)
+  names[13]='\0';
+  if(id.getname())strcat(names,id.getname());
+  id.setname(names); 
 
 
 }
 
 
-integer AMSEvent::setbuilderC(char name[], pBuilder pb){
+integer AMSEvent::setbuilderC(const char name[], pBuilder pb){
   AMSID id(name,0);
   _findC(id);
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
@@ -2373,7 +2382,7 @@ integer AMSEvent::setbuilderC(char name[], pBuilder pb){
 
 }
 
-integer AMSEvent::buildC(char name[], integer par){
+integer AMSEvent::buildC(const char name[], integer par){
    AMSID id(name,0);
    _findC(id);
    AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
@@ -2385,7 +2394,7 @@ integer AMSEvent::buildC(char name[], integer par){
   
 }
 
-integer AMSEvent::rebuildC(char name[], integer par){
+integer AMSEvent::rebuildC(const char name[], integer par){
    AMSID id(name,0);
    _findC(id);
   for(int i=0;;i++){
@@ -2444,7 +2453,7 @@ _findC(id);
   return p;
 }
 
-integer AMSEvent::getnC(char n[]){
+integer AMSEvent::getnC(const char n[]){
   AMSID id;
   _findC(id);
   AMSContainer *p;
@@ -2788,7 +2797,7 @@ integer AMSEvent::removeC(){
 AMSNode * cur;
 int i,n=0;
 for (i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
+  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0){
    n++;
@@ -2894,17 +2903,17 @@ pdaq->buildDAQ();
 void AMSEvent::builddaq(integer i, integer length, int16u *p){
 
 *p=getdaqid() | (1<<15);
-*(p+4)=int16u(_Head->_run&65535);
-*(p+3)=int16u((_Head->_run>>16)&65535);
-*(p+2)=int16u(_Head->_runtype&65535);
-*(p+1)=int16u(_Head->_runtype>>16&65535);
-uinteger _event=uinteger(_Head->_id);
+*(p+4)=int16u(_Head[get_thread_num()]->_run&65535);
+*(p+3)=int16u((_Head[get_thread_num()]->_run>>16)&65535);
+*(p+2)=int16u(_Head[get_thread_num()]->_runtype&65535);
+*(p+1)=int16u(_Head[get_thread_num()]->_runtype>>16&65535);
+uinteger _event=uinteger(_Head[get_thread_num()]->_id);
 *(p+6)=int16u(_event&65535);
 *(p+5)=int16u((_event>>16)&65535);
-*(p+8)=int16u(_Head->_time&65535);
-*(p+7)=int16u((_Head->_time>>16)&65535);
-*(p+10)=int16u(_Head->_usec&65535);
-*(p+9)=int16u((_Head->_usec>>16)&65535);
+*(p+8)=int16u(_Head[get_thread_num()]->_time&65535);
+*(p+7)=int16u((_Head[get_thread_num()]->_time>>16)&65535);
+*(p+10)=int16u(_Head[get_thread_num()]->_usec&65535);
+*(p+9)=int16u((_Head[get_thread_num()]->_usec>>16)&65535);
 *(p+11)=0;
 }
 
@@ -2916,38 +2925,38 @@ void AMSEvent::builddaqSh(integer i, integer length, int16u *p){
 
 p--;
 uinteger tmp;
-memcpy(&tmp,&_Head->_StationRad,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_StationRad,sizeof(tmp));
 *(p+2)=int16u(tmp&65535);
 *(p+1)=int16u((tmp>>16)&65535);
 
-memcpy(&tmp,&_Head->_StationTheta,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_StationTheta,sizeof(tmp));
 *(p+4)=int16u(tmp&65535);
 *(p+3)=int16u((tmp>>16)&65535);
 
-memcpy(&tmp,&_Head->_StationPhi,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_StationPhi,sizeof(tmp));
 *(p+6)=int16u(tmp&65535);
 *(p+5)=int16u((tmp>>16)&65535);
-memcpy(&tmp,&_Head->_Yaw,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_Yaw,sizeof(tmp));
 *(p+8)=int16u(tmp&65535);
 *(p+7)=int16u((tmp>>16)&65535);
-memcpy(&tmp,&_Head->_Pitch,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_Pitch,sizeof(tmp));
 *(p+10)=int16u(tmp&65535);
 *(p+9)=int16u((tmp>>16)&65535);
-memcpy(&tmp,&_Head->_Roll,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_Roll,sizeof(tmp));
 *(p+12)=int16u(tmp&65535);
 *(p+11)=int16u((tmp>>16)&65535);
-memcpy(&tmp,&_Head->_StationSpeed,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_StationSpeed,sizeof(tmp));
 *(p+14)=int16u(tmp&65535);
 *(p+13)=int16u((tmp>>16)&65535);
-memcpy(&tmp,&_Head->_VelTheta,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_VelTheta,sizeof(tmp));
 *(p+16)=int16u(tmp&65535);
 *(p+15)=int16u((tmp>>16)&65535);
 
-memcpy(&tmp,&_Head->_VelPhi,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_VelPhi,sizeof(tmp));
 *(p+18)=int16u(tmp&65535);
 *(p+17)=int16u((tmp>>16)&65535);
 
-memcpy(&tmp,&_Head->_NorthPolePhi,sizeof(tmp));
+memcpy(&tmp,&_Head[get_thread_num()]->_NorthPolePhi,sizeof(tmp));
 *(p+20)=int16u(tmp&65535);
 *(p+19)=int16u((tmp>>16)&65535);
 *(p+21)=getdaqidSh() ;
@@ -2979,25 +2988,25 @@ void AMSEvent::buildraw(
 void AMSEvent::buildrawSh(integer length, int16u *p){
     p--;
     uinteger tmp=(*(p+2)) |  (*(p+1))<<16;
-    memcpy(&_Head->_StationRad,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_StationRad,&tmp,sizeof(tmp));
      tmp=(*(p+4)) |  (*(p+3))<<16;
-    memcpy(&_Head->_StationTheta,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_StationTheta,&tmp,sizeof(tmp));
      tmp=(*(p+6)) |  (*(p+5))<<16;
-    memcpy(&_Head->_StationPhi,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_StationPhi,&tmp,sizeof(tmp));
      tmp=(*(p+8)) |  (*(p+7))<<16;
-    memcpy(&_Head->_Yaw,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_Yaw,&tmp,sizeof(tmp));
      tmp=(*(p+10)) |  (*(p+9))<<16;
-    memcpy(&_Head->_Pitch,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_Pitch,&tmp,sizeof(tmp));
      tmp=(*(p+12)) |  (*(p+11))<<16;
-    memcpy(&_Head->_Roll,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_Roll,&tmp,sizeof(tmp));
      tmp=(*(p+14)) |  (*(p+13))<<16;
-    memcpy(&_Head->_StationSpeed,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_StationSpeed,&tmp,sizeof(tmp));
      tmp=(*(p+16)) |  (*(p+15))<<16;
-    memcpy(&_Head->_VelTheta,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_VelTheta,&tmp,sizeof(tmp));
      tmp=(*(p+18)) |  (*(p+17))<<16;
-    memcpy(&_Head->_VelPhi,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_VelPhi,&tmp,sizeof(tmp));
      tmp=(*(p+20)) |  (*(p+19))<<16;
-    memcpy(&_Head->_NorthPolePhi,&tmp,sizeof(tmp));
+    memcpy(&_Head[get_thread_num()]->_NorthPolePhi,&tmp,sizeof(tmp));
 
 
 }
@@ -3264,7 +3273,7 @@ integer AMSEvent::IsTest(){
 
 AMSEvent::EventId * AMSEvent::_SelectedEvents=0;
 
-void AMSEvent::setfile(char file[]){
+void AMSEvent::setfile(const char file[]){
   if(strlen(file)){
     ifstream ifile;
     ifile.open(file);
@@ -3380,3 +3389,7 @@ integer AMSEvent::getselrun(integer i){
  else return -1;
 }
 
+uint64 AMSEvent::getrunev()const {
+    uint64 runev=_run; 
+   return ((getid()) | runev<<32);
+}

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.20 2008/10/13 10:22:58 choumilo Exp $
+//  $Id: tofsim02.h,v 1.21 2008/12/08 15:15:19 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -396,6 +396,7 @@ private:
  static integer _cpcode;//MN-> FTCP1|FTCP0 flags for lvl1(m(n)=0/1)
  static integer _bzflag;//1/0->BZtrigOK/not
  static number _trtime; //  abs. FTrigger time(Geant-ns, input to SFET(A), fix decision-delay included) 
+#pragma omp threadprivate(_trcode,_trcodez,_trpatt, _trpattz,_ftpatt,_cpcode,_bzflag,_trtime)
  int16u _swid;        // short SW-id(LBBS->Lay|BarBar|Side (as in Tovt MC-obj))
  int _hwidt;// time_hwid: CSIIII->Cr(1-4)|SeqSlot(1-5)|Inpch(1-5)LT||Inpch(6)FT|Inpch(7)SumHT|Inpch(8)SumSHT
  int _hwidq[4];//Q_hwid(A,D1,D2,D3 each coded as CSII(C=1-4, S=1-9(SFET(A,C)seq.slot#), II=1-10) 
@@ -427,7 +428,8 @@ public:
  static integer SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumHT-channel time-hits 
  static integer SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TOF SumSHT-channel time-hits
  static integer SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumSHT-channel time-hits
- static integer Out(integer);
+#pragma omp threadprivate(FTtime,FThits, FTSchan,SumHTt, SumHTh, SumSHTt,SumSHTh) 
+static integer Out(integer);
 // 
  TOF2RawSide(int16u swid, int hwidt, int hwidq[], int16u sta, geant charge,
    geant tempT, geant tempC, geant tempP,

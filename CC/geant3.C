@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.105 2008/08/07 18:38:51 choutko Exp $
+//  $Id: geant3.C,v 1.106 2008/12/08 15:15:17 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -32,6 +32,7 @@
 #include "geantnamespace.h"         
 #include "status.h"
 #include "ntuple.h"
+#include "root.h"
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 
@@ -808,14 +809,7 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-/*
-AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("OMIR",1));
-   for(int k=0;k<3;k++)cout<<p->getcooA(k)<<" ";
-   cout <<endl;
-   for(int k=0;k<5;k++)cout<<p->getpar(k)<<"  ";
-   cout <<endl;
-    abort();
-*/
+      AMSgObj::BookTimer.start("GUOUT");
 if(    AMSEvent::gethead()->HasNoCriticalErrors()){
   RICHDB::Nph()=0;
    try{
@@ -854,6 +848,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
 
    }
    catch (AMSuPoolError e){
+      AMSgObj::BookTimer.stop("GUOUT");
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
@@ -863,6 +858,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
       return;
    }
    catch (AMSaPoolError e){
+      AMSgObj::BookTimer.stop("GUOUT");
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
@@ -873,7 +869,6 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
    }
    catch (AMSTrTrackError e){
      cerr << e.getmessage()<<endl;
-     cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
      AMSEvent::gethead()->seterror(2);
 /*
@@ -881,14 +876,16 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      AMSProducer::gethead()->AddEvent();
 #endif
      UPool.Release(0);
+#pragma omp critical
      AMSEvent::gethead()->remove();
-     UPool.Release(1);
+     UPool.Release(7);
      AMSEvent::sethead(0);
       UPool.erase(512000);
       return;
 */
    }
    catch (amsglobalerror e){
+      AMSgObj::BookTimer.stop("GUOUT");
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
@@ -900,6 +897,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      AMSProducer::gethead()->AddEvent();
 #endif
      UPool.Release(0);
+#pragma omp critical
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
@@ -910,7 +908,6 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
-      AMSgObj::BookTimer.start("GUOUT");
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT>=GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
@@ -947,6 +944,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      AMSEvent::gethead()->write(trig);
 }
      UPool.Release(0);
+#pragma omp critical
    AMSEvent::gethead()->remove();
      UPool.Release(1);
    AMSEvent::sethead(0);
@@ -985,8 +983,8 @@ try{
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
     AMSgObj::BookTimer.start("GEANTTRACKING");
-   if(IOPA.mode%10 !=1 ){
-    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+	   if(IOPA.mode%10 !=1 ){
+	    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
      GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
@@ -1033,115 +1031,113 @@ try{
     // read daq    
     //
     DAQEvent * pdaq=0;
+   for(;;){
     DAQEvent::InitResult res=DAQEvent::init();
-    for(;;){
      if(res==DAQEvent::OK){ 
-        AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
+#ifdef __AMSP__
+ #ifdef _OPENMP
+if(MISCFFKEY.NumThreads>0)
+omp_set_num_threads(MISCFFKEY.NumThreads);
+else
+omp_set_num_threads(omp_get_num_procs());
+kmp_set_blocktime(10);
+//kmp_set_stacksize_s(32000000);
+#endif
+#endif
+#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_), private(pdaq)
+{
+//    int kevt=0;
+ //   #pragma intel omp  parallel taskq   default(none),shared(kevt,std::cout,amsffkey_,selectffkey_,gcflag_), private(pdaq) , num_threads(8)
+ 
+{
+#pragma omp for schedule(dynamic)
+    for(int  kevt=0;kevt<GCFLAG.NEVENT;kevt++){
+//      while(kevt++<GCFLAG.NEVENT) {
+//#pragma intel omp task (captureprivate(kevt)
+{
+       static time_t tt=0;
+#pragma omp threadprivate(tt)
+      static time_t oldtime;
+      static int count=0;
+#pragma omp threadprivate(oldtime,count)
+      if(GCFLAG.IEOTRI){
+        if(!count++)oldtime=tt;
+      }
+
+      if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
+      continue;
+      }
+
+
+        //cout <<" beforebefore "<<kevt<<" "<<omp_get_thread_num()<<" "<<endl;
+       //AMSTimeID*  he=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
+
        pdaq = new DAQEvent();
        uinteger run;
        uinteger event;
-        time_t tt;
-       if(pdaq->read()){
+        bool ok;
+#pragma omp critical       
+{
+       ok=pdaq->read();
+}
+//cout << "  a "<<kevt<<endl;
+       if(ok){
+         
          run=pdaq->runno();
          event=pdaq->eventno();
          tt=pdaq->time();   
-        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-        new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
-        pdaq->runtype(),pdaq->time(),pdaq->usec())));
+        AMSEvent *pn=new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
+        pdaq->runtype(),pdaq->time(),pdaq->usec());
+        pn->_init();
+//#pragma omp critical
+         //cout << " hhzz "<<endl;
+          AMSEvent::sethead(pn);
+//#pragma omp critical
+//AMSJob::gethead()->add(pn,false);
+//        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(pn,false));
+//        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(pn));
+#ifdef __AMSP__
+        //cout <<" 1kevt "<<kevt<<" "<<omp_get_thread_num()<<" "<<AMSEvent::gethead()<<" "<<&UPool<<" "<<pdaq->eventno()<<endl;
+#endif
         AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
+
         if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>=SELECTFFKEY.EventE){
          pdaq->SetEOFIn();    
         } 
         if(GCFLAG.IEORUN==2){
-      // if production 
-      // try to update the badrun list
-         if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
-           char fname[256];
-           char * logdir = getenv("ProductionLogDirLocal");
-           if(logdir){
-            strcpy(fname,logdir);
-           }
-           else {
-             cerr<<"gukine-E-NoProductionLogDirLocalFound"<<endl;
-             strcpy(fname,"/Offline/local/logs");
-           }
-           strcat(fname,"/BadRunsList");
-           ofstream ftxt;
-           ftxt.open(fname,ios::app);
-           if(ftxt){
-            ftxt <<pdaq->runno()<<" "<<pdaq->eventno()<<endl;
-            ftxt.close();
-           }
-           else{
-            cerr<<"gukine-S-CouldNotOPenFile "<<fname<<endl;
-            exit(1);
-           }
-           
-         }
         pdaq->SetEOFIn();    
         GCFLAG.IEORUN=-2;
       }
       else if (GCFLAG.IEORUN==-2){
         GCFLAG.IEORUN=0;
-      //  AMSJob::gethead()->uhinit(pdaq->runno(),pdaq->eventno());
       }
+     //delete pdaq;
+/*
+     UPool.Release(0);
+#pragma omp critical
+   AMSEvent::gethead()->remove();
+     UPool.Release(1);
+   AMSEvent::sethead(0);
+   UPool.erase(2000000);
+
+#pragma omp critical
+      GCFLAG.IEVENT++;
+      if(GCFLAG.IEVENT%10000==1)cout <<" events "<<GCFLAG.IEVENT<<endl;
+      continue;
+*/
       guout_();
-      
-      static time_t oldtime;
-      static int count=0;
-      if(GCFLAG.IEOTRI){
-        if(!count++)oldtime=tt;
-      }
-      if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
-#ifdef __CORBA__
-    try{
-     AMSJob::gethead()->uhend(run,event,tt);
-     AMSID tdvs=AMSEvent::getTDVStatus();
-      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
-  if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
-     AMSID tdvs=AMSEvent::getTDVStatus();
-      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
-      ptdv->UpdateMe()=1;
-      ptdv->UpdCRC();
-      time_t begino,endo,inserto;
-      ptdv->gettime(inserto,begino,endo);
-      time_t begin,end,insert;
-      begin=AMSJob::gethead()->getstatustable()->getbegin();
-      end=AMSJob::gethead()->getstatustable()->getend();
-      time(&insert);
-      ptdv->SetTime(insert,begin,end);
-      cout <<" Event Status info  geant3 has been updated for "<<*ptdv;
-      ptdv->gettime(insert,begin,end);
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
-      cout << " Starting to update "<<*ptdv; 
-      bool fail=false;
-      if(  !ptdv->write(AMSDATADIR.amsdatabase)){
-         cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
-          fail=true;
-      }
-      AMSStatus *p=AMSJob::gethead()->getstatustable();
-      uinteger first,last;
-      p->getFL(first,last);
-      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
-      ptdv->SetTime(inserto,begino,endo);
-      AMSJob::gethead()->getstatustable()->reset();      
-  }
-
-     AMSProducer::gethead()->sendRunEnd(DAQEvent::Interrupt);
-    }
-    catch (AMSClientError a){
-     cerr<<a.getMessage()<<endl;
-     break;
-    }
-#endif
-         break;
-
-      }
+#pragma omp critical
       GCFLAG.IEVENT++;
     }
     else{
+     GCFLAG.IEOTRI=1;
+     cout << "  file end "<<endl;
+    continue;
+    }
+   }
+}
+}
+}
 #ifdef __CORBA__
     try{
      AMSJob::gethead()->uhend(run,event,tt);
@@ -1190,8 +1186,9 @@ try{
      if(AMSJob::gethead() && AMSJob::gethead() -> isMonitoring())continue;
      else break;
 #endif
-    }
-   }
+
+
+}
    else if (res==DAQEvent::Interrupt){
 #ifdef __CORBA__
   AMSClientError ab("Process Interrupted",DPS::Client::CInAbort);
@@ -1219,7 +1216,8 @@ try{
      break;
 #endif
    }
-   }
+}
+
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
       AMSgObj::BookTimer.stop("GUKINE");

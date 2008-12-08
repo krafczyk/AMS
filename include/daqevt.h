@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.53 2008/09/19 09:14:54 choutko Exp $
+//  $Id: daqevt.h,v 1.54 2008/12/08 15:15:19 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -74,6 +74,7 @@ static const char *_PortNamesJ[32];
  unsigned int _SubCount[7];   //  tracker trd tof rich ecal lvl1 lvl3
 static DAQSubDet * _pSD[nbtps];
 static DAQBlockType * _pBT[nbtps];
+//#pragma omp threadprivate(_pSD,_pBT)
 static const integer _OffsetL;
 integer _DDGSBOK();
 integer _EventOK();
@@ -88,10 +89,10 @@ static integer _getnode(int16u id){
 static const char *  _getnodename(int16u id){
    return _NodeNames[((id>>5)&((1<<9)-1))];
 }
-static integer _getportj(int16u id){
+static  integer _getportj(int16u id) {
    return (id&0x1F);
 }
-static const char *  _getportnamej(int16u id){
+static const char *  _getportnamej(int16u id) {
    return _PortNamesJ[(id&0x1F)];
 }
 bool    _isddg(int16u id);       //  identify the detector data group sub block
@@ -114,6 +115,7 @@ void _writeEl();
 void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
+#pragma omp threadprivate(_Buffer,_BufferLock)
 #if !defined( __ALPHA__) && !defined(sun)
 void _setcalibdata(int mask){
 for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;

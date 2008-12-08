@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.14 2008/01/23 15:34:33 choutko Exp $
+//  $Id: trdid.C,v 1.15 2008/12/08 15:15:18 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -21,7 +21,7 @@ uinteger AMSTRDIdGeom::cmpt() const{
 return maxtube*maxlad*maxlay*_octagon+maxtube*maxlad*_layer+maxtube*_ladder+_tube+1;
 }
 AMSID AMSTRDIdGeom::crgid() const{
-         static char name[5]="TRDT";
+         const char name[5]="TRDT";
          return AMSID(name,cmpt());
 }
 void AMSTRDIdGeom::_check(){

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.600 2008/11/07 08:56:36 choumilo Exp $
+// $Id: job.C,v 1.601 2008/12/08 15:15:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -66,6 +66,9 @@
 #include "daqecblock.h"
 #include "tofid.h"
 #include "charge.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
@@ -214,7 +217,7 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=10000000;
-IOPA.MaxFileSize=4000000;
+IOPA.MaxFileSize=40000000;
 IOPA.MaxFileTime=86400*3;
 IOPA.BuildMin=-1;
 IOPA.WriteRoot=0;
@@ -230,6 +233,7 @@ MISCFFKEY.G3On=1;
 MISCFFKEY.G4On=0;
 MISCFFKEY.dbwrbeg=0;//DBwriter UTC-time begin 
 MISCFFKEY.dbwrend=0;//DBwriter UTC-time end
+MISCFFKEY.NumThreads=1;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -1745,7 +1749,7 @@ _timeinitjob();
 map(1);
 if(isCalibration())_caamsinitjob();
 _dbinitjob();
-cout << *this;
+cout << *this << " "<<this;
 }
 void AMSJob::_siamsinitjob(){
 AMSgObj::BookTimer.book("SIAMSEVENT");
@@ -3307,7 +3311,8 @@ AMSNode * AMSJob::getaligstructure(){
 AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      AMSNode *p=JobMap.getp(id);
      if(!p){
-       cerr << "AMSJob::gettimestructure-F-no time structure found "<<id<<endl;
+       cerr << "AMSJob::gettimestructure-F-no time structure found "<<id<<" "<<&JobMap<<endl;
+       JobMap.print();
       exit(1);
       return 0;
      }

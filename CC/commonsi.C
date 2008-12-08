@@ -8,7 +8,7 @@
 
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=301;
+uinteger AMSCommonsI::_build=302;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];

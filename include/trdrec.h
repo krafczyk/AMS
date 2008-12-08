@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.16 2008/08/28 20:33:39 choutko Exp $
+//  $Id: trdrec.h,v 1.17 2008/12/08 15:15:19 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -23,6 +23,7 @@ void _printEl(ostream &o);
 void _copyEl();
 void _writeEl();
 static AMSTRDCluster* _Head[trdconst::maxlay];
+#pragma omp threadprivate (_Head)
 public:
 AMSTRDCluster(uinteger status, uinteger layer,AMSPoint coo, number hsr, number hdz,AMSDir dir, float edep,int multip, int hmultip, AMSTRDRawHit* pmaxhit):AMSlink(status,0),_Coo(coo),_ClSizeR(hsr),_ClSizeZ(hdz),_CooDir(dir),_Edep(edep),_Multiplicity(multip),_HighMultiplicity(hmultip),_pmaxhit(pmaxhit),_layer(layer){};
 static integer build(int rerun=0);
@@ -69,6 +70,7 @@ if(i>=0 && i <TRDDBc::nlay())_Head[i]=(AMSTRDCluster*)head;
 class AMSTRDSegment: public AMSlink{
 protected:
 static integer _case;
+#pragma omp threadprivate (_case)
 integer _Orientation;
 number _FitPar[2];
 number _Chi2;
@@ -81,8 +83,11 @@ void _printEl(ostream &o);
 void _copyEl();
 void _writeEl();
 static integer pat;
+#pragma omp threadprivate (pat)
 static number par[2];
+#pragma omp threadprivate (par)
 static AMSTRDCluster * phit[trdconst::maxhits];
+#pragma omp threadprivate (phit)
 static integer _TrSearcher(int icall,uinteger iseg);
 static integer _addnext(integer pat, integer nhit, uinteger iseg,AMSTRDCluster* pthit[]);
 void _addnextR(uinteger iseg);
@@ -204,14 +209,17 @@ TrackPar _Real;
 TrackBase _Base;
 TrackBaseS _BaseS;
 static integer _case;
+#pragma omp threadprivate (_case)
 bool _update;
 void _init(){};
 void _printEl(ostream &o);
 void _copyEl();
 void _writeEl();
 static integer pat;
+#pragma omp threadprivate (pat)
 static number Distance3D(AMSPoint p, AMSDir d, AMSTRDCluster *ptr);
 static AMSTRDSegment * phit[trdconst::maxseg];
+#pragma omp threadprivate (phit)
 static integer _TrSearcher(int icall);
 static integer _addnext(integer pat, integer nhit, AMSTRDSegment* pthit[]);
 void _addnextR();
@@ -244,7 +252,9 @@ static void _Start(){TIMEX(_Time);}
 static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
 static bool _NoMoreTime();
 static geant _Time;
+#pragma omp threadprivate (_Time)
 static geant _TimeLimit;
+#pragma omp threadprivate (_TimeLimit)
 
 number getphi(){return _StrLine._Phi;}
 number gettheta(){return _StrLine._Theta;}

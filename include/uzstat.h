@@ -1,4 +1,4 @@
-//  $Id: uzstat.h,v 1.14 2008/11/03 14:10:41 pzuccon Exp $
+//  $Id: uzstat.h,v 1.15 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSUZSTAT__
 #define __AMSUZSTAT__
@@ -41,12 +41,16 @@ private:
   number _time;
   number _entry;
   number _sum;
+  number _sum2;   //  thread diff
+  number _nsum2;   //  thread diff
   number _max;
   number _min;
   integer _freq;
 public:
-  AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
-  AMSStatNode(char * name, int freq):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
+  AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_sum2(0),_nsum2(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
+  AMSStatNode(char * name, int freq):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq),_nsum2(0),_sum2(0){};
+ AMSStatNode(char * name, int freq,int thr=0):AMSNode(AMSID(name,thr)),_startstop(0),_entry(0),_sum(0),_nsum2(0),_sum2(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
+
   void _init(){};
   ostream & print(ostream & stream ) const;
 };
@@ -58,7 +62,8 @@ private:
 public: 
   AMSStat();
   ~AMSStat();
-  void book(char * name, int freq=1);
+  void book(char * name, int freq=1,int thr=20);
+  void accu();
   void start(char * name);
   number check(char *name);
   number stop(char * name, integer force=0);

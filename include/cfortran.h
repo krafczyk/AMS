@@ -1,4 +1,4 @@
-//  $Id: cfortran.h,v 1.5 2008/08/28 20:33:38 choutko Exp $
+//  $Id: cfortran.h,v 1.6 2008/12/08 15:15:19 choutko Exp $
 /* cfortran.h  4.3 */
 /* www-zeus.desy.de/~burow   OR   anonymous ftp@zebra.desy.de */
 /* Burkhard Burow  burow@desy.de                 1990 - 1998. */
@@ -1491,7 +1491,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #else
 /* 'cc: SC3.0.1 13 Jul 1994' barfs on char A0[0x4FE+1]; 
  * char A0[0x4FE +1]; char A0[1+0x4FE]; are both OK.     */
-#define STRING_cfE static char A0[1+MAX_LEN_FORTRAN_FUNCTION_STRING];          \
+#define STRING_cfE static char A0[1+MAX_LEN_FORTRAN_FUNCTION_STRING];           \
                        memset(A0, CFORTRAN_NON_CHAR,                           \
                               MAX_LEN_FORTRAN_FUNCTION_STRING);                \
                        *(A0+MAX_LEN_FORTRAN_FUNCTION_STRING)='\0';

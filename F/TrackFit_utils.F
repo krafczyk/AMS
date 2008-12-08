@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.23 2008/07/28 13:40:01 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.24 2008/12/08 15:15:18 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.24  2008/12/08 15:15:18  choutko
+* *** empty log message ***
+*
 * Revision 1.23  2008/07/28 13:40:01  choutko
 * *** empty log message ***
 *
@@ -158,7 +161,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.23 2008/07/28 13:40:01 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.24 2008/12/08 15:15:18 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4080,7 +4083,10 @@ CDECK  ID>, TKFINI.
               common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
+              save ini
            data ini /0/
+         
+       !$OMP THREADPRIVATE (/tkgdefC/,ini)
            pii=3.1415927
            cfld=3333.*pii/180./(fieldmm+1.e-10)*tmaxf
            bound(1,1)=-100. ! x
@@ -4116,8 +4122,10 @@ CDECK  ID>, TKFINI.
            cfld=3333.*pii/180./(fieldmm+1.e-10)*tmaxf
            cconv=5.e-4
            xtol=1.e-2
+!$OMP MASTER
            call ffkey('TKFIT',tmaxf,20,'MIXED')
            call ffkey('HISE',ihvse,2,'MIXED' )
+!$OMP END MASTER
 999          end
 CDECK  ID>, TKFITG. 
          subroutine tkgetres(out,nplan)
@@ -4135,6 +4143,7 @@ CDECK  ID>, TKFITG.
 *
 *          
 *
+       !$OMP THREADPRIVATE (/tkfrunC/)
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
@@ -4150,6 +4159,7 @@ CDECK  ID>, TKFITG.
 *
 *          
 *
+       !$OMP THREADPRIVATE (/tkfrunC/)
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
@@ -4315,7 +4325,9 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               out(9)=erig
               goto 999
              else if(ialg.eq.5)then
+!$OMP CRITICAL
               call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
+!$OMP END CRITICAL
               call tksetres(xhits,npt)
               call tksetresd(ysigma,npt)
               out(8)=0
@@ -4979,6 +4991,7 @@ c          call dmm55(beg(1,1),m55,dum)
 
 CDECK  ID>, TKFITPARCYL.   
          subroutine tkfitparcyl(init,chrg,point,out,m55,stept)
+       !$OMP THREADPRIVATE (/tkgdefC/,/tftimeC/,/tkcorrC/)
 
 *
 * Input init(7) x0,y0,z0,nx,ny,nz,p
@@ -6824,8 +6837,8 @@ c       call omp_set_num_threads(1)
      +itermin,rmax,algo,xchi2) 
      +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
      + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,rigr,averx)
-#endif
       !$OMP DO   
+#endif
       do i=1,ncases
 c        do m=1,nplan
 c           if(array(m,4,i).ne.0)then
@@ -6986,7 +6999,9 @@ c          write(*,*)'chi2 ',i,iter,chi2
             xchi2(2,i)=ch(1)+ch(2)
         endif
         if((chi2.lt.chi2max.and.rig.gt.rigmin).or.iter.lt.itermin)then
+#ifdef __AMSPARALLEL
        !$OMP  CRITICAL
+#endif
          do j=1,nplan
           if(mod(algo,2).eq.0)then
              a=outa(3+l,ilayer(j))/outa(6,ilayer(j))
@@ -7046,7 +7061,9 @@ c          write(*,*)'chi2 ',i,iter,chi2
          ntot=ntot+1
          chi2a=chi2a+chi2
          rigr=rigr+abs(mcrig(i)/rig) 
+#ifdef __AMSPARALLEL__
        !$OMP END CRITICAL
+#endif
          endif
          endif
 c         if(mod(ntot,100).eq.1)then
@@ -7054,8 +7071,10 @@ c           write(*,*)'l ',l,chi2,chi2a,chi2a/ntot,ntot
 c         endif
       enddo 
       enddo
+#ifdef __AMSPARALLEL__
       !$OMP END DO 
       !$OMP END PARALLEL
+#endif
       chi2a=chi2a/ntot
       rigr=rigr/ntot
       write(*,*)'iter ',iter,chi2a,rigr,ntot,nmin
@@ -7412,8 +7431,8 @@ c       call omp_set_num_threads(1)
      +itermin,rmax,algo,xchi2) 
      +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
      + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,rigr,averx)
-#endif
       !$OMP DO   
+#endif
       do i=1,ncases
 
               rmax=10
@@ -7516,8 +7535,10 @@ c          write(*,*)'chi2 ',i,iter,chi2
             xchi2(2,i)=ch(1)+ch(2)
         endif
         if((chi2.lt.chi2max.and.rig.gt.rigmin).or.iter.lt.itermin)then
+#ifdef __AMSPARALLEL__
        !$OMP  CRITICAL
-         do j=1,npl
+#endif  
+       do j=1,npl
              a=array(j,10+l,i)
           if(array(j,4,i).ne.0.and.abs(res(l,j)).lt.rmax.and.
      +    sigma(j,l).gt.0)then
@@ -7578,15 +7599,19 @@ c         if(ntot.lt.100)then
 c           write(*,*)ntot,chi2
 c         endif
          rigr=rigr+abs(mcrig(i)/rig) 
+#ifdef __AMSPARALLEL__
        !$OMP END CRITICAL
+#endif
          endif
          if(mod(ntot,100).eq.1)then
 c           write(*,*)'l ',l,chi2,chi2a,chi2a/ntot,ntot
          endif
       enddo 
       enddo
+#ifdef __AMSPARALLEL__
       !$OMP END DO 
       !$OMP END PARALLEL
+#endif
       chi2a=chi2a/ntot
       rigr=rigr/ntot
       write(*,*)'iter ',iter,chi2a,rigr,ntot,nmin
@@ -7766,9 +7791,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.23 2008/07/28 13:40:01 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.24 2008/12/08 15:15:18 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.24  2008/12/08 15:15:18  choutko
+* *** empty log message ***
+*
 * Revision 1.23  2008/07/28 13:40:01  choutko
 * *** empty log message ***
 *

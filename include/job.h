@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.60 2008/02/13 20:07:51 choutko Exp $
+//  $Id: job.h,v 1.61 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -223,17 +223,17 @@ const static uinteger MAxAMS;
 const static uinteger MAll;
 const static uinteger Monitoring;
 const static uinteger Production;
-uinteger isReconstruction(){return _jobtype & Reconstruction;}
-uinteger isSimulation(){return !isReconstruction();}
-uinteger isCalibration(){return _jobtype & Calibration;}
-uinteger isMonitoring(){return _jobtype & Monitoring;}
-uinteger isRealData(){return _jobtype & RealData;}
-uinteger isMCData(){ return !isRealData();}
-uinteger isProduction(){ return _jobtype & Production;}
-uinteger jobtype() {return _jobtype;}
+uinteger isReconstruction()const {return _jobtype & Reconstruction;}
+uinteger isSimulation()const {return !isReconstruction();}
+uinteger isCalibration()const {return _jobtype & Calibration;}
+uinteger isMonitoring()const {return _jobtype & Monitoring;}
+uinteger isRealData()const {return _jobtype & RealData;}
+uinteger isMCData()const { return !isRealData();}
+uinteger isProduction()const { return _jobtype & Production;}
+uinteger jobtype() const {return _jobtype;}
 void setjobtype(uinteger checker){_jobtype= _jobtype | checker;}   
 
-uinteger eventRtype()     { return _eventRtype;}
+uinteger eventRtype()  const   { return _eventRtype;}
 void     seteventRtype(integer eventR) {_eventRtype = eventR;}
 
 #ifdef __DB__
@@ -247,7 +247,7 @@ AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
 AMSG4Physics * & getg4physics();
 AMSG4GeneratorInterface * & getg4generator();
-AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}
+AMSgvolume * getgeomvolume(AMSID id)const {return   (AMSgvolume*)JobMap.getp(id);}
 AMSStatus * getstatustable();
 AMSgmat * getmat(AMSID id=0);
 AMSgtmed * getmed(AMSID id=0);
@@ -264,6 +264,6 @@ AMSNode * getaligstructure();
 AMSTimeID * gettimestructure(const AMSID & id);
 void printJ(ostream & stream);
 static integer debug;
-static void map(integer remap=0){remap==0?JobMap.map(*_Head):JobMap.remap();}
+static void map(integer remap=0){cout <<"  jobmap "<<&JobMap<<endl;remap==0?JobMap.map(*_Head):JobMap.remap();}
 };
 #endif

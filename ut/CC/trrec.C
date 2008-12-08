@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.201 2008/11/05 15:04:26 choutko Exp $
+//  $Id: trrec.C,v 1.202 2008/12/08 15:15:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -841,13 +841,14 @@ number AMSTrCluster::_etacalc(integer nelemL, integer nelemR, number val[]) {
 }
 
 number AMSTrCluster::_etacor(integer side, number eta) {
-  static number etagk=.93078, etack[5]={1.5450,-5.3571,15.318,-20.002,10.048};
+  const  number etagk=.93078, etack[5]={1.5450,-5.3571,15.318,-20.002,10.048};
   number cor=1.;
   integer i;
 
 // no eta correction for simulation
   if (!AMSJob::gethead()->isRealData()){
     static integer first=1;
+#pragma omp threadprivate(first)
     if(first){
       first=0;
       cout<<"AMSTrCluster::_etacor - No eta corrections on MC"<<endl;
@@ -1497,6 +1498,7 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
   static AMSTrRecHit * phit1;
   static AMSTrRecHit * phit0;
   static AMSTrRecHit * phitl;
+#pragma omp threadprivate(phit0,phit1,phit2,phitl)
   number gers=0.03;
   AMSPoint hit_err = AMSPoint(gers,gers,gers);
 
@@ -1571,10 +1573,8 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
 
                         if ( _NoMoreTime(true)) {     
                               remove_track(ptrack);
-                              if (AMSEvent::debug){
-                                cout << " buildPathIntegral Cpulimit Exceeded!!!! " << endl;
-                              }
-                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                                cerr << " buildPathIntegral Cpulimit Exceeded " << endl;
+                              throw AMSTrTrackError(" buildpath Cpulimit Exceeded ");
                               return NTrackFound;
                             }
 
@@ -1605,7 +1605,8 @@ next_pattern:
             // Check next pattern only if no tracks has been found
             if (ptrack) break;
                          if (_NoMoreTime(true)) {
-                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                                cerr << " buildPathIntegral Cpulimit Exceeded " << endl;
+                              throw AMSTrTrackError(" 1Cpulimit Exceeded ");
                               return NTrackFound;
                             }
 
@@ -1758,6 +1759,7 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
   static AMSTrRecHit * phit1;
   static AMSTrRecHit * phit0;
   static AMSTrRecHit * phitl;
+#pragma omp threadprivate(phit0,phit1,phit2,phitl)
   number gers=0.03;
   AMSPoint hit_err = AMSPoint(gers,gers,gers);
       
@@ -1834,7 +1836,7 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
                               if (AMSEvent::debug){
                                 cout << " buildWEAKPathIntegral Cpulimit Exceeded!!!! " << endl;
                               }
-                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              throw AMSTrTrackError(" 2Cpulimit Exceeded ");
                               return NTrackFound;
                             }
 
@@ -1865,7 +1867,7 @@ next_pattern:
             // Check next pattern only if no tracks has been found
             if (ptrack) break;
                          if (_NoMoreTime(true)) {
-                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              throw AMSTrTrackError(" 3Cpulimit Exceeded ");
                               return NTrackFound;
                             }
 
@@ -1993,9 +1995,10 @@ return NTrackFound;
 integer AMSTrTrack::Distance(number par[2][3], AMSTrRecHit *ptr){
 const integer freq=10;
 static integer trig=0;
+#pragma omp threadprivate(trig)
 trig=(trig+1)%freq;
            if(trig==0 && _NoMoreTime()){
-            throw AMSTrTrackError(" Cpulimit Exceeded ");
+            throw AMSTrTrackError(" 4Cpulimit Exceeded ");
            }
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
@@ -2805,10 +2808,10 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   integer npt=_NHits;
   const integer maxhits=10;
   assert(npt < maxhits);
-  static geant hits[maxhits][3];
-  static geant sigma[maxhits][3];
-  static geant normal[maxhits][3];
-  static integer layer[maxhits];
+   geant hits[maxhits][3];
+   geant sigma[maxhits][3];
+   geant normal[maxhits][3];
+   integer layer[maxhits];
   integer ialgo=TRFITFFKEY.MainAlg%10;
   geant out[9];
   integer i;
@@ -3174,7 +3177,7 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
   // and calculates the track parameters(P1,theta,phi) and total track length
 
   geant out[7];
-  static number m55[5][5];
+   number m55[5][5];
   geant init[7];
   geant point[6];
   geant charge=1;
@@ -3234,7 +3237,7 @@ bool AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
   // and calculates the track parameters(P1,theta,phi) and total track length
 
   geant out[7];
-  static number m55[5][5];
+  number m55[5][5];
   geant init[7];
   geant point[7];
   geant charge=1;
@@ -3332,6 +3335,8 @@ AMSTrTrackError::AMSTrTrackError(char * name){
   AMSgObj::BookTimer.stop("RETKEVENT",1);
   AMSgObj::BookTimer.stop("REAMSEVENT",1);
   AMSEvent::gethead()->seterror(2);
+//  ptr=AMSEvent::gethead();
+//  cout <<" amsevent "<<AMSEvent::gethead()<<" "<<" "<<omp_get_thread_num()<<endl;
 }
 char * AMSTrTrackError::getmessage(){return msg;}
 
@@ -3650,9 +3655,10 @@ integer AMSTrTrack::DistanceTOF(number par[2][3], AMSTrRecHit *ptr){
 /*
 const integer freq=10;
 static integer trig=0;
+#pragma omp threadprivate(trig)
 trig=(trig+1)%freq;
            if(trig==0 && _NoMoreTime()){
-            throw AMSTrTrackError(" Cpulimit Exceeded ");
+            throw AMSTrTrackError(" 5Cpulimit Exceeded ");
            }
 */
    geant searchregtof;
@@ -3830,6 +3836,8 @@ uintl * AMSTrTrack::getchild(uintl address, uinteger & nchild){
 
     const int maxchld=21;
     static uintl achld[maxchld];
+#pragma omp threadprivate(achld)
+
     integer lad[2][trconst::maxlay];    
     integer lad1[2][trconst::maxlay];    
     integer npt=0;
@@ -3918,7 +3926,7 @@ _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
 
 integer AMSTrTrack::_TrSearcher(int icall){
            if( _NoMoreTime()){
-            throw AMSTrTrackError(" Cpulimit Exceeded ");
+            throw AMSTrTrackError(" 6Cpulimit Exceeded ");
            }
             const int freq=1000 ;
             int trig=0;
@@ -3928,7 +3936,7 @@ integer AMSTrTrack::_TrSearcher(int icall){
              if(phit[icall]->Good() && !Distance(par,phit[icall])){
               if(++trig%freq ==0){
                            if( _NoMoreTime()){
-                           throw AMSTrTrackError(" Cpulimit Exceeded ");
+                           throw AMSTrTrackError(" 7Cpulimit Exceeded ");
            }
               }
               if(TKDBc::patpoints(pat) >icall+2){         
@@ -3949,7 +3957,7 @@ integer AMSTrTrack::_TrSearcher(int icall){
 }
 integer AMSTrTrack::_TrSearcherFalseTOFX(int icall){
            if( _NoMoreTime()){
-            throw AMSTrTrackError(" Cpulimit Exceeded ");
+            throw AMSTrTrackError(" 8Cpulimit Exceeded ");
            }
            phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
            while(phit[icall]){
@@ -3987,7 +3995,7 @@ number AMSTrTrack::par[2][3];
 
 integer AMSTrTrack::_TrSearcherFalseX(int icall){
            if( _NoMoreTime()){
-            throw AMSTrTrackError(" Cpulimit Exceeded ");
+            throw AMSTrTrackError(" 9Cpulimit Exceeded ");
            }
            const int freq=1000;
            int trig=0;
@@ -3997,7 +4005,7 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
              if(phit[icall]->Good() &&   phit[icall]->checkstatus(AMSDBc::FalseX)==0 && !Distance(par,phit[icall]) ){
                             if(++trig%freq ==0){
                            if( _NoMoreTime()){
-                           throw AMSTrTrackError(" Cpulimit Exceeded ");
+                           throw AMSTrTrackError(" aCpulimit Exceeded ");
            }
               }
               if(TKDBc::patpoints(pat) >icall+2){         
@@ -4021,8 +4029,14 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
 
 bool AMSTrTrack::_NoMoreTime(bool force){
 static unsigned int count=0;
+#pragma omp threadprivate(count)
 if( (count++)%512==0 || force){
- return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
+ geant g=_CheckTime();
+ bool nmt= _TimeLimit>0? g>_TimeLimit: g>AMSFFKEY.CpuLimit;
+ if(nmt){
+//   cout <<"**** "<< _TimeLimit<<" "<<_Time<<" "<<__Time<<" "<<" "<<g<<" "<<_CheckTime()<<" "<<AMSFFKEY.CpuLimit<<" "<<_Time<<endl;
+}
+return nmt;
 }
 else return false;
 }
@@ -4057,7 +4071,8 @@ for(int i=0;i<_NHits;i++)_Pthit[i]=pht[i];
 AMSTrTrack* AMSTrTrack::CloneIt(){
 
   static AMSTrTrack* ptrout = NULL;
-  if (this) {
+  #pragma omp threadprivate(ptrout)
+if (this) {
           ptrout = new AMSTrTrack(_Pattern, _NHits, _Pthit);
           ptrout->_Chi2WithoutMS = _Chi2WithoutMS;
           ptrout->_Chi2StrLine = _Chi2StrLine;

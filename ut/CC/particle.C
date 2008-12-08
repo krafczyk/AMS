@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.165 2008/08/18 13:38:04 mdelgado Exp $
+//  $Id: particle.C,v 1.166 2008/12/08 15:15:17 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -77,6 +77,7 @@ integer AMSParticle::build(integer refit){
        //  change here if other particles after vtx particles should be allowed
        //
       if(!partfound){      
+int evt=AMSEvent::gethead()->getid();
       while(pcharge) {
         {
           AMSBeta * pbeta=pcharge->getpbeta();
@@ -109,7 +110,6 @@ integer AMSParticle::build(integer refit){
            partfound++;
           }
         }
-out:
        pcharge=pcharge->next();
       }
 
@@ -126,6 +126,7 @@ out:
            ptrack->setstatus(AMSDBc::ECALTRACK); 
           ppart=new AMSParticle(0, 0, ptrack,
           pecal->getDirection(),1,0,100000,pecal->getEnergy()*i*pecal->getDirection(),pecal->getEnergyErr(),1,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
+//          cout <<" ecal particle done "<<AMSEvent::gethead()->getid()<<endl;
           AMSgObj::BookTimer.start("ReAxPid");
           ppart->pid();
           AMSgObj::BookTimer.stop("ReAxPid");
@@ -137,7 +138,6 @@ out:
        
 
       }
-
           AMSgObj::BookTimer.start("ReAxRefit");
            for (int id=0;id<2;id++){
            AMSParticle *ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",id);
@@ -145,7 +145,7 @@ out:
             AMSgObj::BookTimer.start("ReRICHRefit"); 
             ppart->richfit();
              AMSgObj::BookTimer.stop("ReRICHRefit"); 
-           ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
+             ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
@@ -153,7 +153,7 @@ out:
            AMSgObj::BookTimer.start("ReECRefit"); 
             ppart->ecalfit();
              AMSgObj::BookTimer.stop("ReECRefit"); 
-             AMSgObj::BookTimer.start("ReTRDRefit"); 
+ AMSgObj::BookTimer.start("ReTRDRefit"); 
             ppart->trdfit();
             ppart->trd_likelihood();
             AMSgObj::BookTimer.stop("ReTRDRefit"); 
@@ -161,7 +161,6 @@ out:
          }
         }   
        AMSgObj::BookTimer.stop("ReAxRefit");
-
 
 
       return 1;
@@ -242,12 +241,12 @@ _AntiCoo[0]=AMSPoint(0,0,10000);
 _AntiCoo[1]=AMSPoint(0,0,10000);
 for(int kk=0;kk<2;kk++){
    AMSAntiCluster d(0,1);
-   AMSgvolume *p=AMSJob::gethead()->getgeomvolume(d.crgid());
+AMSgvolume *p=AMSJob::gethead()->getgeomvolume(d.crgid());
    if(p){
       AMSPoint coo(p->getcooA(0),p->getcooA(1),p->getcooA(2));
       number rad=(p->getpar(0)+p->getpar(1))/2.;
       AMSDir dir(p->getnrmA(2,0),p->getnrmA(2,1),p->getnrmA(2,2));
-     if(!_ptrack->interpolateCyl(coo,dir,rad,2*kk-1,_AntiCoo[kk],theta,phi,sleng)){
+     if( !_ptrack->interpolateCyl(coo,dir,rad,2*kk-1,_AntiCoo[kk],theta,phi,sleng)){
      _AntiCoo[kk]=AMSPoint(0,0,10000);
      break;
    }
@@ -487,14 +486,11 @@ void AMSParticle::richfit(){
 
    return;  // Do not try to assign a ring to the current particle
  }
- 
- 
-
+{
 //  Add more
   //AMSRichRing::rebuild(real_track);
-  AMSRichRing* ptr=AMSRichRing::rebuild(real_track);
-
   _prich=0;
+  AMSRichRing* ptr=AMSRichRing::rebuild(real_track);
   if(!ptr && real_track==_ptrack)
     ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   
@@ -523,23 +519,13 @@ void AMSParticle::richfit(){
     _RichLength=length;
     _prich->setstatus(AMSDBc::USED);
   }
-
+}
 }
 
 
 
 void AMSParticle::_writeEl(){
-#ifdef __AMSDEV__
-// get used status bit if some funny thingy present
-for (Test * ploop = (Test*)AMSEvent::gethead()->getheadC("Test",0); ploop ; ploop=ploop->next() ){
-if(ploop->getpid()==GCKINE.ikine){
- setstatus(AMSDBc::USED);
- _Coo=ploop->getcoo();
-break;
-}
-}
-#endif
-
+int evt=AMSEvent::gethead()->getid();
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
 #ifdef __WRITEROOT__
 // Fill Root class
@@ -548,97 +534,6 @@ break;
 
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, phi, phigl);
 #endif
-/*
-  ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
-  if (PN->Npart>=MAXPART02) return;
-// Fill the ntuple 
-  PN->Status[PN->Npart]=_status;
-  if(_pcharge)PN->ChargeP[PN->Npart]=_pcharge->getpos();
-  else PN->ChargeP[PN->Npart]=-1;
-  if(_ptrd)PN->TRDP[PN->Npart]=_ptrd->getpos();
-  else PN->TRDP[PN->Npart]=-1;
-  if(_pvert)PN->VertexP[PN->Npart]=_pvert->getpos();
-  else PN->VertexP[PN->Npart]=-1;
-
-  if(_prich)PN->RICHP[PN->Npart]=_prich->getpos();
-  else PN->RICHP[PN->Npart]=-1;
-  if(_pShower)PN->EcalP[PN->Npart]=_pShower->getpos();
-  else PN->EcalP[PN->Npart]=-1;
-  PN->Beta[PN->Npart]=_Beta;
-  PN->ErrBeta[PN->Npart]=_ErrBeta;
-
-  if(_pbeta){
-      PN->BetaP[PN->Npart]=_pbeta->getpos();
-      integer pat=_pbeta->getpattern();
-      for(int i=0;i<pat;i++){
-      AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
-      #ifdef __AMSDEBUG__
-        assert(pc != NULL);
-      #endif
-      PN->BetaP[PN->Npart]+=pc->getnelem();
-       }
-  }
-   else PN->BetaP[PN->Npart]=-1;
- 
-  int pat=_ptrack->getpattern();
-  if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
-  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))PN->TrackP[PN->Npart]=-1;
-  else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))PN->TrackP[PN->Npart]=-1;
-  else PN->TrackP[PN->Npart]=_ptrack->getpos();
-  PN->Particle[PN->Npart]=_gpart[0];
-  PN->ParticleVice[PN->Npart]=_gpart[1];
-  PN->TRDLikelihood[PN->Npart]=_TRDLikelihood;
-  PN->FitMom[PN->Npart]=_fittedmom[0];
-  for(int i=0;i<2;i++){
-   PN->Prob[PN->Npart][i]=_prob[i];
-  }
-  PN->Mass[PN->Npart]=_Mass;
-  PN->ErrMass[PN->Npart]=_ErrMass;
-  PN->Momentum[PN->Npart]=_Momentum;
-  PN->ErrMomentum[PN->Npart]=_ErrMomentum;
-  PN->Charge[PN->Npart]=_Charge;
-  PN->Theta[PN->Npart]=_Theta;
-  PN->Phi[PN->Npart]=fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
-  PN->ThetaGl[PN->Npart]=_ThetaGl;
-  PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
-  for(int i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
-  for(int i=0;i<4;i++){
-    for(int j=0;j<3;j++){
-      PN->TOFCoo[PN->Npart][i][j]=_TOFCoo[i][j];
-    }
-  }
-  for(int i=0;i<2;i++){
-    for(int j=0;j<3;j++){
-      PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
-//      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
-    }
-  }
-  for(int i=0;i<3;i++){ // ECAL-crossings
-    for(int j=0;j<3;j++){
-      PN->EcalCoo[PN->Npart][i][j]=_EcalSCoo[i][j];
-    }
-  }
-  for(int i=0;i<TKDBc::nlay();i++){
-    for(int j=0;j<3;j++){
-      PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
-    }
-      PN->Local[PN->Npart][2]=_Local[i];
-  }
-
-  for(int i=0;i<2;i++){
-    for(int j=0;j<3;j++){
-      PN->RichCoo[PN->Npart][i][j]=_RichCoo[i][j];
-    }
-    PN->RichPath[PN->Npart][i]=_RichPath[i];
-    PN->RichPathBeta[PN->Npart][i]=_RichPathBeta[i];
-  }
-  PN->RichLength[PN->Npart]=_RichLength;
-
-
-  PN->Cutoff[PN->Npart]=_CutoffMomentum;
-  for(int i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[0][i];
-  PN->Npart++;
-*/
 }
 
 
@@ -853,7 +748,6 @@ AMSgObj::BookTimer.start("ReTKRefit");
       return;
     }
 
-      geant dummy;
       integer dorefit=TRFITFFKEY.ForceAdvancedFit==1 ||
       (TRFITFFKEY.ForceAdvancedFit==2  &&
       !TRFITFFKEY.FastTracking);
@@ -861,7 +755,7 @@ AMSgObj::BookTimer.start("ReTKRefit");
         if(!_ptrack->AdvancedFitDone()){
           _ptrack->AdvancedFit();
         }
-     if(_GPart!=14)_ptrack->Fit(0,_GPart);
+     //if(_GPart!=14)_ptrack->Fit(0,_GPart);
     AMSgObj::BookTimer.stop("ReTKRefit");    
 // Changed - never use geanerigidity to build mom
      if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On){

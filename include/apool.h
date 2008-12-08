@@ -1,4 +1,4 @@
-//  $Id: apool.h,v 1.12 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: apool.h,v 1.13 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__
@@ -74,6 +74,7 @@ private:
 public:
   AMSNodePool():AMSNode(),_address(0){}
   AMSNodePool(integer id, void *p):AMSNode(id),_address(p){}
+ // AMSNodePool(AMSNodePool&o);
   void setaddress(void *p){_address=p;}
   void*  getaddress(){return _address;}
 };
@@ -127,10 +128,10 @@ private:
 
   static integer _Mask;  // for some protection 
   static integer _Release;
-  AMSNodePool poolNode;
   AMSNodeMapPool poolMap;
 public:
-  AMSaPool(integer blsize);
+  AMSaPool(const AMSaPool &o);
+  AMSaPool(integer blsize=0);
   ~AMSaPool(){erase(0);};
   void erase(integer);
   void ReleaseLastResort();
@@ -146,6 +147,7 @@ public:
 
 #ifndef __UPOOL__
 extern AMSaPool UPool;
+#pragma omp threadprivate(UPool)
 #endif
 extern AMSaPool APool;
 

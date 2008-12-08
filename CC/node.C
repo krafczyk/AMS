@@ -1,9 +1,12 @@
-//  $Id: node.C,v 1.7 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: node.C,v 1.8 2008/12/08 15:15:17 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
 #include "node.h"
-AMSNode * AMSNode::add(  AMSNode *ptr){
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+AMSNode * AMSNode::add(  AMSNode *ptr, bool init){
   //
   // Add new node
   //
@@ -19,7 +22,7 @@ AMSNode * AMSNode::add(  AMSNode *ptr){
     ptr->_prev=0;
   }
   ptr->_up=this;
-  ptr->_init();
+  if(init)ptr->_init();
   return ptr;
 } 
 AMSNode * AMSNode::addup(  AMSNode *ptr){
@@ -62,6 +65,46 @@ void  AMSNode::remove(){
   }
 }
 
+/*
+void  AMSNode::remove(){
+  //
+  // Remove itself + all daughters
+  // if not at the top
+  //
+bool bproc=true;
+AMSNode *cur=this;
+while (cur && cur->down()!=this){
+ if(bproc && cur->down()){
+  cur=cur->down();  
+ }
+ else if(cur->next()){
+  bproc=true;
+  cur=cur->next();  
+ }
+ else{
+  bproc=false; 
+   AMSNode *d=cur;
+   cur=cur->up();
+  if(d->_down==0 && d->_up){ 
+    if(d->_prev){
+      d->_prev->_next=d->_next;
+      if(d->_next)d->_next->_prev=d->_prev;
+    }
+    else {
+      d->_up->_down=_next;
+      if(d->_next)d->_next->_prev=0;
+    }
+    delete d;
+  }
+ }
+}
+
+
+
+}
+
+*/
+
 void AMSNode::printN(ostream & stream, int i){
   stream<<*this;
   if(down())down()->printN(stream,1);
@@ -71,7 +114,7 @@ void AMSNode::printN(ostream & stream, int i){
 
 void AMSNode::setMessage(const char * message){
   if(message){
-    if(_message)delete[] _message;
+     if(_message)delete[] _message;
     _message=new char[strlen(message)+1];
     strcpy(_message,message);
   }

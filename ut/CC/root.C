@@ -1903,7 +1903,7 @@ void AMSEventR::AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z)
 
 void AMSEventR::AddAMSObject(AMSRichRing *ptr)
 {
-  fRichRing.push_back(RichRingR(ptr));
+  fRichRing.push_back(RichRingR(ptr,(fRichHit.size())));
   ptr->SetClonePointer(fRichRing.size()-1);
 }
 
@@ -2829,7 +2829,7 @@ void RichRingR::FillRichHits(int ring){
   if(Used!=fRichHit.size())cerr<<" problem hits for ring "<<ring<<" "<<Used<<" "<<fRichHit.size()<<endl;
 }
 
-RichRingR::RichRingR(AMSRichRing *ptr) {
+RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
 #ifndef __ROOTSHAREDLIBRARY__
   fTrTrack = -1;
   if (ptr) {
@@ -2865,7 +2865,7 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
 
     fBetaHit.clear();
 
-    for(int i=0;i<AMSEventR::Head()->NRichHit();i++){
+    for(int i=0;i<nhits;i++){
       float value=0;
       for(int j=0;j<hits;j++){
 	if((ptr->_hit_pointer)[j]==i){
@@ -3417,3 +3417,6 @@ void AMSEventR::GetAllContents() {
 
 
 #endif
+AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fCharge(o.fCharge),fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),fTofMCCluster(o.fTofMCCluster),fTrdMCCluster(o.fTrdMCCluster),fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux){
+_Count++;
+}

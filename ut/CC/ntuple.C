@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.172 2008/09/04 14:52:32 choutko Exp $
+//  $Id: ntuple.C,v 1.173 2008/12/08 15:15:17 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -29,7 +29,8 @@
 #include "TBranch.h"
 #include "TH1.h"
 
-
+AMSEventR AMSNtuple::_evroot02;
+EventNtuple02 AMSNtuple::_event02;
 TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
@@ -44,6 +45,7 @@ const int MEMUPD = 100; // update Memory Monitor Histograms each
 
 AMSNtuple::~AMSNtuple(){
 #ifdef __WRITEROOT__
+  //for(int k=0;k<sizeof(_evroot02)/sizeof(_evroot02[0]);k++)if(_evroot02[k])delete _evroot02[k];
  if(_rfile){
    _rfile->Write();
    _rfile->Close();
@@ -54,11 +56,15 @@ AMSNtuple::~AMSNtuple(){
 
 AMSNtuple::AMSNtuple(char* name) : AMSNode(AMSID(name,0)) {
   _lun=0;
+  evmap.clear();
+  //for(int k=0;k<sizeof(_evroot02)/sizeof(_evroot02[0]);k++)_evroot02[k]=new AMSEventR();
 //  initR(name);
 }
 
 AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
   _lun = lun;
+  evmap.clear();
+  //for(int k=0;k<sizeof(_evroot02)/sizeof(_evroot02[0]);k++)_evroot02[k]=new AMSEventR();
   init();
 }
 
@@ -190,9 +196,10 @@ HBNAME(_lun,"AntiRawSd",&_antirs.Nantirs,"naccraws[0,16],accrsswid(naccraws):I,a
 }
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__
-   _evroot02.clear();
-   _evroot02.SetCont();
+   Get_evroot02()->clear();
+   Get_evroot02()->SetCont();
 #endif
+if(_lun){
    _beta02.Nbeta= 0;
    _charge02.Ncharge = 0;
    _part02.Npart = 0;
@@ -225,6 +232,7 @@ void AMSNtuple::reset(int full){
    _richevent.Nhits=0;
    _ring.NRings=0;
    _vtx02.Nvtx=0;
+}
 }
 
 void AMSNtuple::write(integer addentry){
@@ -298,12 +306,12 @@ ostrstream ost(name,size);
    _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
     cout<<"AMSNtuple::initR -I- create branches"<<endl;
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
-     _evroot02.CreateBranch(_tree,branchSplit);
-//    static void *pev1=(void*)&_evroot02;
+     Get_evroot02()->CreateBranch(_tree,branchSplit);
+//    static void *pev1=(void*)_evroot02;
 //   TBranch *b1=_tree->Branch(AMSEventR::BranchName(),"AMSEventR",&pev1,64000,branchSplit);
 //    AString  bhead=AMSEventR::_Name;
 //    bhead+="Header";
-//     static void *pev2=(void*)&_evroot02.fHeader;
+//     static void *pev2=(void*)_evroot02.fHeader;
 //   TBranch *b2=_tree->Branch((const char*)bhead,"AMSEventHeaderR",&pev2,64000,1); 
 #endif
 #ifndef __WRITEROOT__
@@ -318,11 +326,81 @@ exit(1);
 }
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
-    _evroot02.SetCont();
+    Get_evroot02()->SetCont();
+    static int _Size=0;
+//
+//   check container
+//
+int nthr=1;
+#ifdef _OPENMP
+nthr=omp_get_num_threads();
+#endif
+    bool go=true;
+    uint64 runv=AMSEvent::gethead()->getrunev();
+    for(int k=0;k<nthr;k++){
+     if(AMSEvent::runev(k) && AMSEvent::runev(k)<runv){
+        go=false;
+        break;
+     }
+    } 
+    if(!go){
+//    add event to the map
+       AMSEventR * evn=new AMSEventR(_evroot02);
+       evmap.insert(make_pair(runv,evn));
+     }
+     else{         
     if(_tree){
     if(!_lun )_Nentries++;
+    AMSEventR::Head()=Get_evroot02();
      _tree->Fill();
+     
+//cout <<" ** writing ** "<<Get_evroot02()->Event()<<" "<<Get_evroot02()->nParticle()<<endl;
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+     AMSEvent::runev(thread)=0;     
+//cout << " thread "<<omp_get_thread_num()<<" "<<Get_evroot02()<<" "<<_Nentries<<" "<<AMSEventR::Head()->Event()<<AMSEvent::gethead()->getid()<<endl;
     }
+}
+//  2nd pass for the map
+      
+//    evmapi idel=evmap.begin();
+//    idel--;
+    for(evmapi i=evmap.begin();i!=evmap.end();i++){
+     go=true;
+//     cout <<"  go "<<i->second->Event()<<endl;
+     for(int k=0;k<nthr;k++){
+     if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
+       go=false;
+       break;
+     }
+    }
+     if(!go)break;
+    if(_tree){
+    if(!_lun )_Nentries++;
+//    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
+    AMSEventR::Head()=(i->second);
+     _tree->Fill();
+     for(int k=0;k<nthr;k++){
+     if(AMSEvent::runev(k)==(i->first)){
+       AMSEvent::runev(k)=0;
+       break;
+     }
+    }
+      delete i->second;
+      evmap.erase(i->first);
+//      idel=i;
+
+    }
+   }
+   if(evmap.size()>_Size){
+     _Size=evmap.size();
+     if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
+   }
+  // evmap.erase(evmap.begin(),idel);
+   
+
 #endif
 #ifdef __MEMMONITOR__
     int NEVENTS = GCFLAG.NEVENT;

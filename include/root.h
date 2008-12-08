@@ -1051,7 +1051,7 @@ public:
   float BetaHit(unsigned int i){return (i<fBetaHit.size())?fBetaHit[i]:0;}
 
   RichRingR(){};
-  RichRingR(AMSRichRing *ptr);
+  RichRingR(AMSRichRing *ptr, int nhits);
   friend class AMSRichRing;
   friend class AMSEventR;
   /// \param number index in container
@@ -3838,14 +3838,15 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 AMSEventR();
+AMSEventR(const AMSEventR &o);
 
-virtual ~AMSEventR(){
-cout <<"AMSEventR::dtor-I-Destroying "<<_Count<<endl;;
-if(!--_Count){
- cout<<"AMSEventR::dtor-I-ResettingHead "<<_Head<<endl;
- _Head=0;
-}
-}
+//virtual ~AMSEventR(){
+////cout <<"AMSEventR::dtor-I-Destroying "<<_Count<<endl;;
+//if(!--_Count){
+ //cout<<"AMSEventR::dtor-I-ResettingHead "<<_Head<<endl;
+//// _Head=0;
+//}
+//}
 
 
 

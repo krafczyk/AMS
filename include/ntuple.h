@@ -1,8 +1,9 @@
-//  $Id: ntuple.h,v 1.111 2008/08/13 13:34:16 barao Exp $
+//  $Id: ntuple.h,v 1.112 2008/12/08 15:15:19 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
-
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 const int NBRANCHES = 1;    // number of branches
 
@@ -832,9 +833,13 @@ friend class AMSNtuple;
 
 class AMSNtuple : public AMSNode{
 protected:
+typedef map<uint64,AMSEventR*> evmap_d;
+typedef map<uint64,AMSEventR*>::iterator evmapi;
+  evmap_d evmap; 
   integer _lun;
   integer _Nentries;
-  EventNtuple02 _event02;
+  static EventNtuple02 _event02;
+#pragma omp threadprivate (_event02)
   BetaNtuple02 _beta02;
   ChargeNtuple02 _charge02;
   ParticleNtuple02 _part02;
@@ -869,7 +874,8 @@ protected:
   RICRing _ring;
   RICRingNew _ringnew;
 #ifdef __WRITEROOT__
-  AMSEventR   _evroot02;
+  static AMSEventR   _evroot02;
+#pragma omp threadprivate(_evroot02)
   static TTree* _tree;  
   static TFile* _rfile;
   static TObjString _dc; 
@@ -879,7 +885,9 @@ protected:
   virtual void _init(){};
 
 public:
-  AMSNtuple():AMSNode(AMSID()),_lun(0){}
+  AMSNtuple():AMSNode(AMSID()),_lun(0){
+  //for(int k=0;k<sizeof(_evroot02)/sizeof(_evroot02[0]);k++)_evroot02[k]=0;
+}
   AMSNtuple(char* name);
   ~AMSNtuple();
   AMSNtuple(integer lun, char* name);
@@ -892,7 +900,7 @@ public:
   void endR();
   void initR(char* name);
   integer getentries(){return _Nentries;}
-  EventNtuple02* Get_event02() {return &_event02;}
+  static EventNtuple02* Get_event02() {return &_event02;}
   BetaNtuple02* Get_beta02() { return &_beta02;}
   ChargeNtuple02* Get_charge02() { return &_charge02;}
   ParticleNtuple02* Get_part02() {return &_part02;}
@@ -930,7 +938,7 @@ public:
   void MemMonitor(const int n, int N);
 
 #ifdef __WRITEROOT__
-  AMSEventR* Get_evroot02() {return &_evroot02;}
+   AMSEventR* Get_evroot02() {return &_evroot02;}
 #endif
 
 };

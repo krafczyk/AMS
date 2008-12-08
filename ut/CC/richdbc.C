@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.56 2008/08/28 20:33:37 choutko Exp $
+//  $Id: richdbc.C,v 1.57 2008/12/08 15:15:17 choutko Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
@@ -191,7 +191,11 @@ void RICHDB::mat_init(){
 // Scaled from fused SiO2
   static int called=0;
 
+
   if(!called){
+#pragma omp barrier
+#pragma omp single
+    {
 #ifdef __AMSDEBUG__
     //    if(RICHDB::rad_index!=1.14) 
     //      cout <<"Energia     Indice"<<endl
@@ -202,11 +206,11 @@ void RICHDB::mat_init(){
       for(integer i=0;i<RICmaxentries;i++){
 	if(RICHDB::index[i]<1.) continue;
 	RICHDB::index[i]=1.+(RICHDB::index[i]-1.)*(RICHDB::rad_index-1.)/0.14;
-	
       }
     called=1;
+    }
+#pragma omp barrier
   }
-
 }
 
 
@@ -326,11 +330,6 @@ geant RICHDB::max_step(){
   AMSmceventg dummy(GCKINE.ikine,0.,AMSPoint(),AMSDir());
   number charge=dummy.getcharge();
 
-#ifdef __AMSDEBUG__
-  //  cout<< "Particle Id "<<GCKINE.ikine << endl
-  //      << "Charge "<< charge <<endl;
-#endif
-
   if(charge==0) return 1000.;
   geant dndl=370*(1-1/RICHDB::rad_index/RICHDB::rad_index)*
         197.327*6.28*(1/RICHDB::wave_length[RICmaxentries-1]
@@ -346,9 +345,7 @@ geant RICHDB::mean_height(){
   // The credits go to .... Elisa Lanciotti
 
   static geant value=0.0;
-#ifdef __AMSDEBUG__
-  //  cout<<"Present mean height value:"<<value<<endl;
-#endif
+#pragma omp threadprivate(value)
 
   if(value) return value;
 
@@ -390,13 +387,6 @@ geant RICHDB::mean_height(){
     value=rad_height-sum/densum;
 
     RICHDB::rad_index=sum_index/densum;
-
-#ifdef __AMSDEBUG__
-    /*    cout<<"Called at richdbc"<<endl;
-    cout <<"Sum and densum "<<sum<<" "<<densum<<endl;
-    cout <<"Effective index "<<RICHDB::rad_index<<endl;
-    cout <<"height "<<value<<endl;*/
-#endif
 
     return value;
   }
@@ -670,21 +660,21 @@ void RichAlignment::LoadFile(char *filename){
 }
 
 void RichAlignment::Init(){
-  // Reset everything
-  //  _a2rRot.Reset();
-  //  _r2aRot.Reset();
-
-  //  _a2rShift.setp(0,0,0);
-  //  _r2aShift.setp(0,0,0);
-
-
   // If this is cosmics and real data, load the cosmics alignment.
   // This should be moved to database in some moment 
   char name[801];
 
+
+  // Ensure that the initialization is done only once and is visible by all the threads 
+  // Has the single an implicit barrier? Just in case we add them
+  // TODO: check that this is PreAss
+#pragma omp barrier
+#pragma omp single
   if(AMSJob::gethead()->isRealData()  &&     // It is real data
      MISCFFKEY.BeamTest==1){                 // It is a cosmic run
     sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.2.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
     LoadFile(name);
   }
+#pragma omp barrier
+
 }

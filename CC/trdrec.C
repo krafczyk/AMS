@@ -231,6 +231,7 @@ o<<_layer<<" "<<"Multiplicity "<<_Multiplicity<<" Ampl "<<_Edep<<" Dir&Coo "<<_C
 integer AMSTRDCluster::Out(integer status){
 static integer init=0;
 static integer WriteAll=0;
+//#pragma omp threadprivate(init,WriteAll)
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();
@@ -467,6 +468,7 @@ o <<_Pattern<<" Nhits "<<_NHits<<endl;
 integer AMSTRDSegment::Out(integer status){
 static integer init=0;
 static integer WriteAll=1;
+//#pragma omp threadprivate(init,WriteAll)
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();
@@ -717,6 +719,7 @@ number AMSTRDTrack::Distance3D(AMSPoint p, AMSDir d, AMSTRDCluster *ptr){
 integer AMSTRDTrack::Out(integer status){
 static integer init=0;
 static integer WriteAll=1;
+//#pragma omp threadprivate(init,WriteAll)
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();

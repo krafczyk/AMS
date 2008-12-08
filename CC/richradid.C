@@ -32,50 +32,54 @@ RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
 
 void RichRadiatorTileManager::Init(){  // Default initialization
   if(_number_of_rad_tiles!=0) return; // Not necessary
-  //  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
-  Init_Default();
-
-  // Read in database entries if needed
-  char filename[1000];
-  UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
-  
-  
-  for(int i=200;i>=0;i--){
-    if(filename[i]!=' '){
-      filename[i+1]=0;
-      break;
-    }
-  } 
-  
-  if(filename[0]!='\0') ReadFromFile(filename);
-  else{
-    char name[801];
-    sprintf(name,"%s/%s/RichDefaultAGLTables.02.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-    ReadFromFile(name);
-  }
-
-  // Read fine mesh data 
-  UHTOC(RICRADSETUPFFKEY.finemesh_in,50,filename,200);
-  
-  for(int i=200;i>=0;i--){
-    if(filename[i]!=' '){
-      filename[i+1]=0;
-      break;
-    }
-  } 
-  if((RICRADSETUPFFKEY.setup%10)==1){
-    if(filename[0]!='\0') ReadFineMeshFromFile(filename);
+#pragma omp barrier
+#pragma omp single
+  {
+    //  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
+    Init_Default();
+    
+    // Read in database entries if needed
+    char filename[1000];
+    UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
+    
+    
+    for(int i=200;i>=0;i--){
+      if(filename[i]!=' '){
+	filename[i+1]=0;
+	break;
+      }
+    } 
+    
+    if(filename[0]!='\0') ReadFromFile(filename);
     else{
       char name[801];
-      sprintf(name,"%s/%s/RichDefaultAGLFineMeshTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-      ReadFineMeshFromFile(name);
+      sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      ReadFromFile(name);
     }
+    
+    // Read fine mesh data 
+    UHTOC(RICRADSETUPFFKEY.finemesh_in,50,filename,200);
+    
+    for(int i=200;i>=0;i--){
+      if(filename[i]!=' '){
+	filename[i+1]=0;
+	break;
+      }
+    } 
+    if((RICRADSETUPFFKEY.setup%10)==1){
+      if(filename[0]!='\0') ReadFineMeshFromFile(filename);
+      else{
+	char name[801];
+	sprintf(name,"%s/%s/RichDefaultAGLFineMeshTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+	ReadFineMeshFromFile(name);
+      }
+    }
+    
+    
+    // Compute tables
+    _compute_tables();  
   }
-
-
-  // Compute tables
-  _compute_tables();  
-
+#pragma omp barrier
 }
 
 
@@ -261,11 +265,15 @@ void RichRadiatorTileManager::_compute_tables(){
 
 
 void RichRadiatorTileManager::Finish(){
-  //
-  // Decide how to finish as a function of the kind of job
-  //
-  Finish_Default();
-  //  DumpToTDV();
+#pragma omp barrier
+#pragma omp single
+  {
+    //
+    // Decide how to finish as a function of the kind of job
+    //
+    Finish_Default();
+    //  DumpToTDV();
+  }
 }
 
 
@@ -541,9 +549,9 @@ void RichRadiatorTileManager::UpdateDB(AMSID my_id){
 
 
 
-////////////////////////////////////////////////////////////////
-// FORTRAN INTERFACE FOR USING NON UNIFORM REFRACTIVE INDEXES //
-////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+// FORTRAN INTERFACE FOR USING NON UNIFORM REFRACTIVE INDEXES IN MC SIMULATION //
+/////////////////////////////////////////////////////////////////////////////////
 
 
 //
@@ -689,6 +697,9 @@ extern "C" geant getmomentum_(geant *index){
 }
 
 
+//////////////////// END OF MC INTERFACE
+
+
 //////// Read Radiator tile constants from file
 
 void RichRadiatorTileManager::ReadFromFile(const char *filename){
@@ -705,8 +716,8 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
   // Code to read all the stuff
   float x,y,index,thickness,clarity;
   while(!data.eof()){
-    //    data>> x >> y >> index;
-    data>>x>>y>>index>>thickness>>clarity;
+    data>> x >> y >> index;
+    //    data>>x>>y>>index>>thickness>>clarity;
 
 
     // Get the tile at the position x,y and 
@@ -731,7 +742,7 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
     _tiles[tile_number]->index=index;
     //    _tiles[tile_number]->bounding_box[2][0]=-thickness/2;
     //    _tiles[tile_number]->bounding_box[2][1]=thickness/2;
-    _tiles[tile_number]->clarity=clarity;
+    //    _tiles[tile_number]->clarity=clarity;
 
   }
 

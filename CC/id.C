@@ -1,4 +1,4 @@
-//  $Id: id.C,v 1.23 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: id.C,v 1.24 2008/12/08 15:15:17 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "id.h"
@@ -26,7 +26,7 @@ AMSID &AMSID::operator= (const AMSID &o){
   return *this;
 }
 AMSID::~AMSID(){
-  delete[] _name;
+  if(_name)delete[] _name;
   _name=0;
 }
 

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.57 2008/09/12 15:58:50 choumilo Exp $
+//  $Id: tofrec02.C,v 1.58 2008/12/08 15:15:18 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1420,9 +1420,9 @@ void AMSTOFCluster::build2(int &stat){
 //
   TOF2RawCluster *ptr; 
   TOF2RawCluster *ptrn; 
-  static TOF2RawCluster * xptr[TOF2GC::SCMXBR];
-  static number eplane[TOF2GC::SCMXBR],edplane[TOF2GC::SCMXBR];
-  static AMSlink * membp[2];
+   TOF2RawCluster * xptr[TOF2GC::SCMXBR];
+   number eplane[TOF2GC::SCMXBR],edplane[TOF2GC::SCMXBR];
+   AMSlink * membp[2];
   int nclust,cllay[TOF2GC::SCLRS],nmemb;
   AMSPoint coo,ecoo;
   int i,j,il,ib,bmax;

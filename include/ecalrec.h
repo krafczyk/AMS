@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.49 2008/10/13 10:22:57 choumilo Exp $
+//  $Id: ecalrec.h,v 1.50 2008/12/08 15:15:19 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -26,6 +26,7 @@ private:
   static geant trsum;// Trigger sum(dynodes,tempor in gev)
   static geant dynadc[ecalconst::ECSLMX][ecalconst::ECPMSMX];//dynode adc's (ped-subtracted)
   static int16u trpatt[6][3];//dyn.trig.patt([6]=>suplayers:2-7; [3]=>3x16bits used for triggered dynodes)
+#pragma omp threadprivate(trigfl,trigconf,trigtm,trsum,dynadc,trpatt)
   AMSECIds _id;  // AMSECIds-type id
   integer _aside; // H/W active side#(1-2) 
   integer _idsoft; //short swid=LTTP (L->supLayer(1-9),TT->pmTube(1-36), P->Pixel#(1-4) in pmTube)

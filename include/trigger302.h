@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.18 2008/03/06 22:56:23 pzuccon Exp $
+//  $Id: trigger302.h,v 1.19 2008/12/08 15:15:19 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include "link.h"
@@ -58,6 +58,7 @@ class TriggerLVL302: public AMSlink{
 
 protected:
  static integer _flowc[15];// prog.flow counters
+#pragma omp threadprivate (_flowc)
 //
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
@@ -155,6 +156,7 @@ protected:
  static integer _TrackerAux[trigger302const::NTRHDRP][trid::ncrt];
  static integer _TOFAux[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  static integer _NTOF[TOF2GC::SCLRS];
+#pragma omp threadprivate(_TrackerAux,_NTOF,_TOFAux)
  static geant _TOFCoo[TOF2GC::SCLRS][TOF2GC::SCMXBR][3];
  static geant _TrackerCoo[trigger302const::NTRHDRP][trid::ncrt][3];
  static geant _TrackerDir[trigger302const::NTRHDRP][trid::ncrt];

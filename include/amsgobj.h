@@ -1,4 +1,4 @@
-//  $Id: amsgobj.h,v 1.8 2008/08/28 20:33:38 choutko Exp $
+//  $Id: amsgobj.h,v 1.9 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSGOBJ__
@@ -13,5 +13,6 @@ static AMSNodeMap GTrMatMap; // Tracking med map
 //static AMSNodeMap GVolMap; // gvolume map
 static AMSStat BookTimer;
 static AMSStatErr Messages;
+//#pragma omp threadprivate(BookTimer,Messages)
 };
 #endif

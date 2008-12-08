@@ -1,4 +1,4 @@
-//  $Id: amsstl.h,v 1.17 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: amsstl.h,v 1.18 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 11.07.96 modified by E.Choumilov.(AMSbins added) 
 #ifndef __AMSSTL__
@@ -6,7 +6,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include "typedefs.h"  
-#include "upool.h"
 #include <algorithm>
 //template <class T> int    cmp( const T* keyval,  const T* datum){
 //// for bsearch; isnot really a template;
@@ -153,6 +152,7 @@ template <class T> T*  AMSbs(T *a[], const T& obj, integer i, char hint){
   integer ir=1;
   integer ib=i-1;
   static integer k=0;
+#pragma omp threadprivate (k)
   while(ia<ib-1 || il*ir){
     if(hint=='+') {k<ib?k++:ib;hint='\0';}
     else if (hint=='-'){k>ia?k--:ia;hint='\0';}
@@ -188,6 +188,7 @@ template <class T> integer  AMSbsi(T *a[], const T& obj, integer i, char hint){
   integer ir=1;
   integer ib=i-1;
   static integer k=0;
+#pragma omp threadprivate (k)
   while(ia<ib-1 || il*ir){
     if(hint=='+') {k<ib?k++:ib;hint='\0';}
     else if (hint=='-'){k>ia?k--:ia;hint='\0';}
@@ -280,13 +281,17 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
 
   /* Local variables */
   static double rand;
-  static integer leng, ierr, istk, ilow[100];
+#pragma omp threadprivate (rand)
+  integer leng, ierr, istk, ilow[100];
+//#pragma omp threadprivate (leng,ierr,istk,ilow)
   T *a;
-  static integer i, j, k;
+   integer i, j, k;
+//#pragma omp threadprivate (i,j,k)
   T *x;
-  static integer ihigh[100];
-  static char order[1];
-  static integer i1, i2, j1, j2, m1;
+   integer ihigh[100];
+   char order[1];
+   integer i1, i2, j1, j2, m1;
+//#pragma omp threadprivate (ihigh,order,i1,i2,j1,j2,m1)
 
 
   ierr = 0;
@@ -494,13 +499,17 @@ template <class T> void AMSsortNAGa(T rv[], integer m2){
 
   /* Local variables */
   static double rand;
+#pragma omp threadprivate (rand)
   static integer leng, ierr, istk, ilow[100];
+#pragma omp threadprivate (leng,ierr,istk,ilow)
   T a;
   static integer i, j, k;
+#pragma omp threadprivate (i,j,k)
   T x;
   static integer ihigh[100];
   static char order[1];
   static integer i1, i2, j1, j2, m1;
+#pragma omp threadprivate (ihigh,order,i1,i2,j1,j2,m1)
 
 
   ierr = 0;

@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.34 2008/10/13 10:22:47 choumilo Exp $
+//  $Id: antirec02.C,v 1.35 2008/12/08 15:15:17 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -1284,3 +1284,9 @@ void Anti2RawEvent::buildraw(int16u blid, integer &len, int16u *p){
   }
 #endif
 }
+
+AMSID AMSAntiCluster::crgid(int i){
+const char ants[5]="ANTS";
+   return AMSID(ants,_sector);
+ }
+

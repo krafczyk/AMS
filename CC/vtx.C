@@ -266,7 +266,7 @@ void AMSVtx::_writeEl(){
 #ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
-
+/*
    VtxNtuple* ntp = AMSJob::gethead()->getntuple()->Get_vtx02();
 
    int nvtx = ntp->Nvtx;
@@ -290,7 +290,7 @@ void AMSVtx::_writeEl(){
    }
    
    ntp->Nvtx++;
-     
+*/     
 }
  
 ///////////////////////////////////////////////////////////

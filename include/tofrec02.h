@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.18 2007/05/15 11:39:24 choumilo Exp $
+//  $Id: tofrec02.h,v 1.19 2008/12/08 15:15:19 choutko Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -22,7 +22,8 @@ protected:
  static uinteger trpatt[TOF2GC::SCLRS]; // triggered bars pattern(z>=1)
  static uinteger trpatt1[TOF2GC::SCLRS]; // triggered bars pattern(z>=2)
  static geant fttime[TOF2GC::SCCRAT];//FTtime
- integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
+#pragma omp threadprivate(trflag,trpatt,trpatt1,fttime) 
+integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
  number _adca[2]; // Anode ADC for 2 sides (ADC-chan in float)
@@ -107,7 +108,8 @@ public:
 class AMSTOFCluster: public AMSlink{
 protected:
  static AMSTOFCluster *_Head[4];
- integer _ntof;  // TOF plane number where cluster was found(1->) 
+#pragma omp threadprivate (_Head) 
+integer _ntof;  // TOF plane number where cluster was found(1->) 
  integer _plane; // bar number of the "peak" bar in cluster(1->)  
  number _edep;   // clust. Etot/nmemb (MeV) (A/D/h/l-combined)
  number _edepd;  // clust. Etot/nmemb (MeV) (D h/l-combined)
@@ -119,7 +121,6 @@ protected:
  AMSlink * _mptr[3]; // list of pointers to members(raw clust)
  static integer _planes; // real number of planes
  static integer _padspl[TOF2GC::SCLRS]; // real number of paddles/plane
- 
  void _copyEl();
  void _printEl(ostream & stream);
  void _writeEl();

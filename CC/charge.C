@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.75 2007/05/15 11:38:31 choumilo Exp $
+//  $Id: charge.C,v 1.76 2008/12/08 15:15:17 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -292,6 +292,7 @@ void AMSCharge::addnext(AMSBeta *pbeta, AMSRichRing *pring, integer nhitTOF, int
 
 integer AMSCharge::FitTOF(int refit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOF2GC::SCLRS]){
   static number ETOF[TOF2GC::SCLRS];
+#pragma omp threadprivate(ETOF)
   int typetof[TOF2GC::SCLRS], nhittoftyp;
   int nhtt[2]={0,0};
   number TOFresmax, etofh[TOF2GC::SCLRS], x[TOF2GC::SCLRS];
@@ -355,6 +356,7 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
                                 AMSTrCluster *pTrackerc[TrkTypes-1][TrackerMaxHits], 
                                            number etrk[TrkTypes-1][TrackerMaxHits]){
   static number ETRK[TrkTypes-1][TrackerMaxHits];
+#pragma omp threadprivate(ETRK)
   int typetrk[TrackerMaxHits], nhittrktyp[TrkTypes];
   number Trackerresmax[TrkTypes-1], etrkh[TrackerMaxHits], x[TrackerMaxHits];
   int Trackerhitmax[TrkTypes-1];
@@ -698,6 +700,7 @@ void AMSCharge::_writeEl(){
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,
      probtof, chintof, probtr, chintr, probrc, chinrc, proballtr);
 #endif
+/*
   ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
 
   if (CN->Ncharge>=MAXCHARGE02) return;
@@ -729,6 +732,7 @@ void AMSCharge::_writeEl(){
   CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;//for the moment(just to keep old format)
   CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
   CN->Ncharge++;
+*/
 }
 
 

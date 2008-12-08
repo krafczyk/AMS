@@ -1,0 +1,73 @@
+parallelizing of AMS code
+
+ 
+Goal:
+-----------
+
+Parallelization of gbatch.exe on the event level with dynamic thread number 
+using  openmp protocol
+
+Parallelization of the root code enabling reading root chains parallel on the fuile level (not yet started)
+
+see eg  https://computing.llnl.gov/tutorials/openMP/
+
+
+
+Compiler:
+------------
+
+intel icc/ifc version 11 (openmp 3.0)
+
+http://www.intel.com/software/products/compilers/docs/clin/main_cls/index.htm
+
+NB openmp 3.0 ext are not using for the moment
+
+
+Compiling:
+-----------
+define AMSP 1
+gmake -j
+
+
+Current Status
+--------------
+
+a. 
+
+gbatch.exe seems(!) to be run without problem and has ~ 90% thread efficieincy 
+
+(means 720% on 8 core machine) w/r to the non threaded one.
+
+Static thread number  for the moment
+
+ changeable with MISC 8=thread_number (default 1) 
+
+
+
+
+
+
+b. Issues to be resolved:
+
+part of rich code runs in seq (mainly #pragma omp critical mode)
+otherwise openomp abort.
+
+
+c. To be done:
+
+
+Correct TrigTime[4]  (by EC,VC)
+
+Fix the EventStatusTable writing
+
+Fix all histos call by adding #pragma omp critical
+
+Fix all calibration issues
+
+Check gbatch  in monitoring mode
+
+Check gbatch  in producer mode
+
+Introduce dynamic thread number w/r host load
+
+...  

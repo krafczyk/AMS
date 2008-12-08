@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.14 2008/11/03 14:10:39 pzuccon Exp $
+//  $Id: apool.C,v 1.15 2008/12/08 15:15:17 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -29,7 +29,8 @@ void AMSNodeMapPool::put( integer * p ){
   //  check there is no double delete
   for(int j=0;j<_numo;j++){
     if(_hash[j]== (AMSNode*)p){
-      cerr<< " AMSNodeMapPool::get-S-DoubleDelete-?-HashProblem "<<p<<endl;           return;
+      cerr<< " AMSNodeMapPool::get-S-DoubleDelete-?-HashProblem "<<p<<endl;           
+      return;
     }
   }
 
@@ -282,4 +283,25 @@ void AMSaPool::dlink::_erase(integer &nbl ){
   while(_next)_next->_erase(nbl);
   if(_prev)_prev->_next=0;
   delete this;
+}
+
+AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
+ SetLastResort(10000);
+  cout <<"  run "<<endl;
+  dlink * curo=o._head;
+  dlink *cur=_head;
+  dlink *curp=0;
+  while(curo){
+  cur=new dlink();
+  cur->_length=curo->_length;
+  cur->_address=new char[cur->_length];
+  cout <<" new dlink "<<cur->_length<<endl;
+  curo=curo->_next;
+  if(curp){
+    cur->_prev=curp;
+    curp->_next=cur;
+  }
+  curp=cur;
+ }
+ if(cur)_free=(void*)cur->_address;
 }

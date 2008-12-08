@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.36 2008/10/13 10:22:48 choumilo Exp $
+//  $Id: trigger302.C,v 1.37 2008/12/08 15:15:18 choutko Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -977,7 +977,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 
 //-----------------------------------------------------------
   void TriggerLVL302::build(){
-
+   
     if(LVL3FFKEY.RebuildLVL3==1){
       AMSEvent::gethead()->getC("TriggerLVL3",0)->eraseC();
     }
@@ -1000,12 +1000,10 @@ int TriggerLVL302::eccrosscheck(geant ect){
 
 //     fill trd  
 
-
        TriggerAuxLVL302 auxtrd[trdid::ncrt];
        for(int icrt=0;icrt<AMSTRDIdSoft::ncrates();icrt++){
         auxtrd[icrt].filltrd(icrt);
        }
-
 //
 //---> fill tof:  
 //
@@ -1608,7 +1606,7 @@ void TriggerLVL302::printfc(){
 void TriggerLVL302::_writeEl(){
   LVL3Ntuple02* lvl3N = AMSJob::gethead()->getntuple()->Get_lvl302();
 
-  if (lvl3N->Nlvl3>=MAXLVL3) return;
+//  if (lvl3N->Nlvl3>=MAXLVL3) return;
 
 // Fill the ntuple
 #ifdef __WRITEROOT__
@@ -1616,6 +1614,7 @@ void TriggerLVL302::_writeEl(){
     int hmult   = TRDAux._HMult;
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   lvl3N->TOFTr[lvl3N->Nlvl3]=_TOFTrigger;
   lvl3N->TRDTr[lvl3N->Nlvl3]=_TRDTrigger;
   lvl3N->TrackerTr[lvl3N->Nlvl3]=_TrackerTrigger;
@@ -1636,6 +1635,7 @@ void TriggerLVL302::_writeEl(){
   lvl3N->ECmatc[lvl3N->Nlvl3]=_ECmatc;
   for(int i=0;i<4;i++)lvl3N->ECTOFcr[lvl3N->Nlvl3][i]=_ECtofcr[i];
   lvl3N->Nlvl3++;
+*/
 }
 
 integer TriggerLVL302::TRDAux_DEF::addnewhit(uinteger crate,uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp){

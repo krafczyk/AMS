@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.53 2008/12/03 16:45:04 mdelgado Exp $
+//  $Id: richrec.h,v 1.54 2008/12/08 15:15:19 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -93,6 +93,7 @@ public:
   } 
   
   static int _npart;
+#pragma omp threadprivate(_npart)
   static int Npart();
   static double RichRandom();
   static void Select(int howmany,int size,int lista[]);
@@ -132,6 +133,7 @@ static void _Start(){TIMEX(_Time);}
 static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
 static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
 static geant _Time;
+#pragma omp threadprivate(_Time)
 
   AMSTrTrack* _ptrack;
   integer _used;        // number of hits used
@@ -181,7 +183,7 @@ static geant _Time;
   static geant *_index_tbl;
   static int _kind_of_tile;
   static int _tile_index;
-
+#pragma omp threadprivate(_index,_height,_entrance_p,_entrance_d,_emission_p,_emission_d,_clarity,_abs_len,_index_tbl,_kind_of_tile,_tile_index)
 
   // Tables for light guide response
 // Some variables used in AMSRichRing::generated
@@ -205,6 +207,7 @@ static geant _Time;
   static float _rinb[_NRAD_][_NFOIL_][_TILES_];
   static float _effd[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_]; 
   static float _rind[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_];
+#pragma omp threadprivate(_generated_initialization,_first_radiator_call,_l,_r,_a,_b,_g,_t,_effg,_ring,_effr,_rinr,_effb,_rinb,_effd,_rind)
 
 
   // All the routines from Elisa
@@ -301,6 +304,7 @@ class AMSRichRingNew: public AMSlink{
   static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
   static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
   static geant _Time;
+#pragma omp threadprivate(_Time)
 
   AMSTrTrack* _ptrack;
 
@@ -357,6 +361,7 @@ class AMSRichRingNew: public AMSlink{
   static geant *_abs_len;
   static geant *_index_tbl;
   static int _kind_of_tile;
+#pragma omp threadprivate(_index,_height,_entrance_p,_entrance_d,_emission_p,_emission_d,_clarity,_abs_len,_index_tbl,_kind_of_tile)
 
  public:
 
@@ -434,6 +439,7 @@ class AMSRichRingNewSet {
   static geant _Time;
 
   static const double zphemiloc[108];
+#pragma omp threadprivate(_Time)
 };
 
 

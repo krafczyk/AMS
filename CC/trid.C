@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.48 2008/08/28 20:33:37 choutko Exp $
+//  $Id: trid.C,v 1.49 2008/12/08 15:15:18 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -20,10 +20,13 @@ int AMSTrIdGeom::cmptr() const{
 }
 AMSID AMSTrIdGeom::crgid() const{
          static char name[5];
-         static ostrstream ost(name,sizeof(name));
-         ost.clear();
-         ost.seekp(0);
-         ost<<"S"<<getlayer()<<2*getladder()+gethalf()<<ends;
+#pragma omp threadprivate (name)
+//         static ostrstream ost(name,sizeof(name));
+//#pragma omp threadprivate (ost)
+         //ost.clear();
+         //ost.seekp(0);
+         sprintf(name,"S%d%d",getlayer(),2*getladder()+gethalf());
+         //ost<<"S"<<getlayer()<<2*getladder()+gethalf()<<ends;
          return AMSID(name,cmpt());
 }
 void AMSTrIdGeom::_check(){
@@ -371,7 +374,8 @@ void AMSTrIdGeom::R2G(const AMSTrIdSoft &id){
 
 
 AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
-  static AMSTrIdGeom spid[20];
+   static AMSTrIdGeom spid[20];
+#pragma omp threadprivate(spid)
     integer strip=_strip;
     integer stripx;
     namb=0; 

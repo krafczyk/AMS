@@ -1,4 +1,4 @@
-//  $Id: daqs2block.h,v 1.7 2008/06/26 09:30:00 choumilo Exp $
+//  $Id: daqs2block.h,v 1.8 2008/12/08 15:15:19 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__
@@ -19,6 +19,7 @@ private:
 //  static int16u nodeidsP[4*TOF2GC::SCCRAT];// valid node_id's (incl. a/b-sides,prim,sec) for OnBoard-Peds
   static int16u format;// currently processing DATA-format: 0-raw, 1-compressed, 2-mixed, 3-pedcal
   static integer totbll;//total length of all(MAX 4) scint. blocks
+#pragma omp threadprivate(format,totbll)
 public:
   static void clrtbll(){totbll=0;};
   static integer gettbll(){return totbll;};

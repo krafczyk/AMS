@@ -1,21 +1,73 @@
-//  $Id: snode.C,v 1.16 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: snode.C,v 1.17 2008/12/08 15:15:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #include <typeinfo> 
 #include "node.h"
 #include "snode.h"
 #include "amsstl.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 integer AMSNodeMap::debug=1;
 const integer AMSNodeMap::_tols=10000;
 
+void AMSNodeMap::_countR(AMSNode *const  ptr){
+int numo=1;
+bool bproc=true;
+AMSNode *cur=ptr;
+while (cur && cur->down()!=ptr){
+ if(bproc && cur->down()){
+  numo++;
+  cur=cur->down();  
+ }
+ else if(cur->next()){
+  numo++;
+  bproc=true;
+  cur=cur->next();  
+ }
+ else{
+  bproc=false; 
+   cur=cur->up();
+ }
+}
+//if(numo !=_numo ){
+// cerr <<"  numo "<<numo<<" "<<_numo<<endl;
+//}
+_numo=numo;
+}
+
+void AMSNodeMap::_rehashR(AMSNode *const  ptr){
+_numo=0;
+bool bproc=true;
+AMSNode *cur=ptr;
+ if(cur) _hash[_numo++]=cur;
+while (cur && cur->down()!=ptr){
+ if(bproc && cur->down()){
+  cur=cur->down();  
+  _hash[_numo++]=cur;
+ }
+ else if(cur->next()){
+  bproc=true;
+  cur=cur->next();  
+  _hash[_numo++]=cur;
+ }
+ else{
+  bproc=false; 
+   cur=cur->up();
+ }
+}
+}
+
+
 void AMSNodeMap::_count(AMSNode *const  ptr){
-  AMSNode *cur;
+ AMSNode *cur;
   cur=ptr;
   while(cur){    
     _numo++;
     _count(cur->down());
     cur=cur->next();
   }
+
 } 
 
 void AMSNodeMap::_rehash(AMSNode *const ptr){
@@ -41,8 +93,10 @@ void AMSNodeMap::unmap(){
 }
 
 void AMSNodeMap::remap(){
+{
   _numo=0;
-  _count(_mother);
+//  _count(_mother);
+  _countR(_mother);
   if(_numo>0){
     if(_numo>_hsize){
       if(_hash)delete[] _hash;
@@ -61,19 +115,21 @@ void AMSNodeMap::remap(){
    
     _hsize=_numo;
     _numo=0;
-    _rehash(_mother);
+    _rehashR(_mother);
+     if(_hsize!=_numo){
+       cerr <<"  hsize "<<_hsize<<" "<<_numo<<endl;
+     }    
     AMSsortNAG(_hash,_numo); 
     //    AMSsort(_hash,_numo); 
     //        Check for duplicalte elements
     int nel;
     for(nel=1;nel<_numo;nel++){
       if((typeid(*(_hash[nel]))==typeid(*(_hash[nel-1]))) && *(_hash[nel])==*(_hash[nel-1])){
-	cerr <<"AMSNodeMap::remap-E-duplicate element found "<<*(_hash[nel])
-	     <<endl;
+	cerr <<"AMSNodeMap::remap-E-duplicate element found "<<*(_hash[nel])<<" "<<(_hash[nel-1])<<" "<<(_hash[nel])<<" "<<this <<" "<<endl;
       } 
     }
   }
-   
+}   
 } 
 
 integer AMSNodeMap::add(AMSNode & o){
@@ -129,7 +185,7 @@ AMSNode * AMSNodeMap::getp  (  const AMSID& id, char hint ) const {
   integer i= AMSbsi((AMSID**)_hash,id,_numo, hint);
 
   if(i<0){
-    //       cerr <<"AMSNodeMap::getp-S-PointerNotFound "<<id<<endl;
+//           cerr <<"AMSNodeMap::getp-S-PointerNotFound "<<id<<" "<<" "<<_numo<<endl;
     return 0;
   }
   else return _hash[i];

@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.8 2008/04/04 08:49:38 choutko Exp $
+*  $Id: rkms.F,v 1.9 2008/12/08 15:15:18 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -26,6 +26,7 @@
 *     -------------------
 #include "rkms.h"
 *     -------------------
+!$OMP threadprivate(/rktrk/)
       double precision charge,sigcha ! for GRKUTA
       common/rktrk/    charge,sigcha
 *-------------------------
@@ -124,6 +125,7 @@ c#include "geant321/iounit.inc"
 c there is no type definition (integer ...) in  iounit.inc
 *-------------------------
       double precision charge,sigcha ! for GRKUTA
+!$OMP threadprivate(/rktrk/)
       common/rktrk/    charge,sigcha
 
       real z1
@@ -372,6 +374,7 @@ c#include "../RKMSFIT/debug5.h"
 *------------------------
 #include "rkms.h"
       double precision charge,sigcha ! for GRKUTA
+!$OMP threadprivate(/rktrk/)
       common/rktrk/    charge,sigcha
 *==================================
 *#include "../RKMSFIT/instedgeant.h"
@@ -444,6 +447,7 @@ c          write(6,'(   5x,a3,8f10.5)')         ' y0',y0 ! debug ###
 *------------------------
 #include "rkms.h"
 c#include "w8test.h"
+!$OMP threadprivate(/rktrk/)
       double precision charge,sigcha ! for GRKUTA
       common/rktrk/    charge,sigcha
 *-------------------------------
@@ -1060,8 +1064,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.8 2008/04/04 08:49:38 choutko Exp $
+* $Id: rkms.F,v 1.9 2008/12/08 15:15:18 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.9  2008/12/08 15:15:18  choutko
+* *** empty log message ***
+*
 * Revision 1.8  2008/04/04 08:49:38  choutko
 * *** empty log message ***
 *
@@ -1227,8 +1234,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.8 2008/04/04 08:49:38 choutko Exp $
+* $Id: rkms.F,v 1.9 2008/12/08 15:15:18 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.9  2008/12/08 15:15:18  choutko
+* *** empty log message ***
+*
 * Revision 1.8  2008/04/04 08:49:38  choutko
 * *** empty log message ***
 *

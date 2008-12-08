@@ -1,6 +1,8 @@
-//  $Id: uzstat.C,v 1.20 2008/11/06 09:56:34 pzuccon Exp $
+//  $Id: uzstat.C,v 1.21 2008/12/08 15:15:18 choutko Exp $
 // Author V. Choutko 24-may-1996
- 
+#ifdef _OPENMP
+#include <omp.h> 
+#endif
 #include "uzstat.h"
 #include <iostream>
 #include <iomanip>
@@ -45,7 +47,7 @@ AMSStat::~AMSStat(){
   print();
   Timer.remove();
 }
-void AMSStat::book(char *name, int freq){
+void AMSStat::book(char *name, int freq,int mthr){
 #ifdef __LVL3ONLY__
   if(!strstr(name,"LVL3")){
     return;
@@ -54,12 +56,17 @@ void AMSStat::book(char *name, int freq){
   }
 #endif
 
-
-  if( add(*(Timer.add(new AMSStatNode(name,freq))))==-1)
+ for(int k=0;k<mthr;k++){ 
+  if( add(*(Timer.add(new AMSStatNode(name,freq,k))))==-1)
     cerr<<" AMSStat-Book-E-Name "<<name<<" already exists"<<endl;
 }
+}
 void AMSStat::start(char *name){
-  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
     p->_time=HighResTime();
     p->_startstop=1;
@@ -70,7 +77,11 @@ void AMSStat::start(char *name){
 #endif
 }
 number AMSStat::check(char * name){
-  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
     return HighResTime()-p->_time;
   }
@@ -78,14 +89,22 @@ number AMSStat::check(char * name){
 }
 
 void AMSStat::print(char *name){
-  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   if(p){
     printf("           Name      Entries          Min      Average          Max          Sum\n");
   p->print(cout);
   }
 }
 number AMSStat::stop(char *name, integer force){
-  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
   number time=0;
   if(p){
     if(p->_startstop==1){
@@ -94,6 +113,7 @@ number AMSStat::stop(char *name, integer force){
       time=tt-p->_time;
       p->_time=tt;
       p->_sum=p->_sum+time;
+      p->_sum2=p->_sum*p->_sum;
       if(time > p->_max)p->_max=time;
       if(time < p->_min)p->_min=time;
       p->_startstop=0;
@@ -111,12 +131,38 @@ number AMSStat::stop(char *name, integer force){
 }
 
 void AMSStat::print(){
+  accu();
   cout <<"           Name      Entries          Min      Average          Max"
        <<"          Sum"<<endl;
   AMSNodeMap::print(1);
 }
 
+void AMSStat::accu(){
+  AMSStatNode * cur;
+  for (int i=0;;){
+    cur=(AMSStatNode*)getid(i++);   // get one by one
+    if(cur){
+     if(cur->getid()!=0 && cur->_entry>0){
+        AMSStatNode *p=(AMSStatNode*)getp(AMSID(cur->getname(),0));
+        if(p){
+          p->_entry+=cur->_entry;
+          p->_sum+=cur->_sum;
+          p->_sum2+=cur->_sum2;
+          p->_nsum2++;
+          cur->_entry=0;
+          if(cur->_min<p->_min)p->_min=cur->_min;
+          if(cur->_max>p->_max)p->_max=cur->_max;
+        }
+     }
+    }
+    else break;
+  }
+
+
+}
+
 ostream & AMSStatNode::print(ostream &stream) const{
+  number sum2;
   static char *name=0;
   if(!name || strlen(name)<strlen(getname())){
     delete name;
@@ -124,17 +170,24 @@ ostream & AMSStatNode::print(ostream &stream) const{
   }
   strcpy(name,getname());
   if(name && strlen(name)>15)name[14]='\0';
-
-  return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<setw(12)<<_min
-			    <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum*_freq<<endl:stream;
+  if(_nsum2>0 && _sum>0){
+    sum2=_sum2/(_nsum2+1)-_sum*_sum/(_nsum2+1)/(_nsum2+1);
+    sum2=sqrt(fabs(sum2))*(_nsum2+1)/_sum*100;
+  return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<setw(12)<<_min<<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum*_freq<<" +-% "<<sum2*_freq<<endl:stream;
+}
+else{
+  return _entry>0  ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<setw(12)<<_min<<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum*_freq<<endl:stream;
+}
 }
 
 #include <sys/time.h>
 extern "C" number HighResTime(){
 
-  static float ar[2];
+   float ar[2];
+
   static unsigned int count=0;
-  static double ltime=0;
+  double ltime=0;
+#pragma omp threadprivate (count)
 #ifdef __LVL3ONLY__
   static number ETimeLast;
   static timeval  TPSLast;
@@ -182,7 +235,7 @@ extern "C" number HighResTime(){
     ltime=ETIMEU(ar);
   }
 
-  if((count)%2048==0){
+  if(0 && (count)%2048==0 ){
     ifstream fbin;
     fbin.open("/proc/self/where");
     if(fbin){
@@ -223,7 +276,11 @@ void AMSStatErr::book(char *name, char severity){
 }
 
 void AMSStatErr::print(char *name, char *message, uinteger maxprint){
-  AMSStatErrNode *p=(AMSStatErrNode*)getp(AMSID(name,0));
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+  AMSStatErrNode *p=(AMSStatErrNode*)getp(AMSID(name,thread));
   if(p){
     p->_entry=p->_entry+1;
     if(p->_entry<=maxprint){
@@ -254,6 +311,7 @@ void AMSStatErr::print(){
 
 ostream & AMSStatErrNode::print(ostream &stream) const{
   static char *name=0;
+#pragma omp threadprivate(name)
   if(!name || strlen(name)<strlen(getname())){
     delete name;
     name=new char[strlen(getname())+1];

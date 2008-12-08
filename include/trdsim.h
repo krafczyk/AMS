@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.14 2008/10/10 13:26:27 choutko Exp $
+//  $Id: trdsim.h,v 1.15 2008/12/08 15:15:19 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -22,7 +22,7 @@ void _copyEl();
 void _printEl(ostream & stream);
 void _writeEl();
 static bool _HardWareCompatibilityMode;
-
+#pragma omp threadprivate(_HardWareCompatibilityMode)
 public:
 
  static number delay_sf_table[numvawf];

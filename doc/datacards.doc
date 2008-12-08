@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.280 2008/12/04 13:17:39 mdelgado Exp $
+#  $Id: datacards.doc,v 1.281 2008/12/08 15:15:19 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -558,7 +558,7 @@ I 4 G3On(1)                 // 0 off 1 on geant3
 I 5 G4On(0)                 // 0 off 1 on geant4
 I 6 dbwrbeg(0)              // used by TofAccPedDBWriter, don't use/modify ! 
 I 7 dbwrend(0)              // ---//---//---//---//---//---//---//---//---
-
+I 8 NumThreads(nump_proc)    //  number of threads if compiled with openmp 
 
 G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 

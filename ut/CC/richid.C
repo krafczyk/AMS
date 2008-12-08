@@ -110,144 +110,147 @@ short int RichPMTsManager::_rdr_pmt_count[RICH_JINFs*RICH_CDPperJINF];
 
 
 void RichPMTsManager::Init(){
-  Init_Default();
-
-  //
-  // Here we should load tables or wahtever
-  // 
-  if(RICFFKEY.ReadFile%10){
-    char name[801];
-
-    UHTOC(RICFFKEY.fname_in,200,name,800);
-
-    for(int i=800;i>=0;i--){
-      if(name[i]!=' '){
-	name[i+1]=0;
-	break;
-      }
-    }
-
-    if(name[0]==' ') name[0]=0;
+#pragma omp barrier
+#pragma omp single
+  {
+    Init_Default();
     
-    if(strlen(name)==0){
-      strcpy(name,"richcal");
+    //
+    // Here we should load tables or wahtever
+    // 
+    if(RICFFKEY.ReadFile%10){
+      char name[801];
       
-      if(AMSJob::gethead()->isMCData()){ // McData 
-	strcat(name,"mc");
-      }else{  // Real data
-	strcat(name,"dt");
+      UHTOC(RICFFKEY.fname_in,200,name,800);
+      
+      for(int i=800;i>=0;i--){
+	if(name[i]!=' '){
+	  name[i+1]=0;
+	  break;
+	}
       }
       
+      if(name[0]==' ') name[0]=0;
       
-      strcat(name,".002");  // Version
+      if(strlen(name)==0){
+	strcpy(name,"richcal");
+	
+	if(AMSJob::gethead()->isMCData()){ // McData 
+	  strcat(name,"mc");
+	}else{  // Real data
+	  strcat(name,"dt");
+	}
+	
+	
+	strcat(name,".002");  // Version
+      }
+      ReadFromFile(name);
+    }else{
+      // Read the default 
+      char name[801];
+      sprintf(name,"%s/%s/RichDefaultCalibration.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      ReadFromFile(name);
     }
-    ReadFromFile(name);
-  }else{
-    // Read the default 
-    char name[801];
-    sprintf(name,"%s/%s/RichDefaultCalibration.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-    ReadFromFile(name);
-  }
-
-
-  //
-  // Initialize probability tables if is simulation
-  // 
-  if(AMSJob::gethead()->isSimulation()){
-    cout<<"RichPMTsManager::Init -- Initializing PMT simulation tables."<<endl; 
-
-    // Check if there is a file containing the information. If not compute the table 
-    // and save the file 
-    char filename[201];
-    UHTOC(RICCONTROLFFKEY.pmttables,50,filename,200);
-
     
-    for(int i=200;i>=0;i--){
-      if(filename[i]!=' '){
-	filename[i+1]=0;
-	break;
-      }
-    } 
-
-    if(filename[0]=='\0'){
-      // Try a default file, which is not necessarilly the best one
-      sprintf(filename,"%s/%s/RichDefaultPMTTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-     } 
-    bool done=false;
-    geant table_gain[RICmaxpmts*RICnwindows*2];
-    geant table_sigma_gain[RICmaxpmts*RICnwindows*2];
-
-    if(strlen(filename)!=0){
-      //Load table from file
-      cout<<"RichPMTsManager::Init -- Loading from "<<filename<<endl; 
-      fstream stream;
-      stream.open(filename,fstream::in);
-      if(stream.is_open() && !stream.fail()){
-	stream.read((char*)table_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
-	stream.read((char*)table_sigma_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
-
-	if(!stream.eof()){
-	  // First, check the gains of all the PMTs
-	  int index=0;
+    
+    //
+    // Initialize probability tables if is simulation
+    // 
+    if(AMSJob::gethead()->isSimulation()){
+      cout<<"RichPMTsManager::Init -- Initializing PMT simulation tables."<<endl; 
+      
+      // Check if there is a file containing the information. If not compute the table 
+      // and save the file 
+      char filename[201];
+      UHTOC(RICCONTROLFFKEY.pmttables,50,filename,200);
+      
+      
+      for(int i=200;i>=0;i--){
+	if(filename[i]!=' '){
+	  filename[i+1]=0;
+	  break;
+	}
+      } 
+      
+      if(filename[0]=='\0'){
+	// Try a default file, which is not necessarilly the best one
+	sprintf(filename,"%s/%s/RichDefaultPMTTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      } 
+      bool done=false;
+      geant table_gain[RICmaxpmts*RICnwindows*2];
+      geant table_sigma_gain[RICmaxpmts*RICnwindows*2];
+      
+      if(strlen(filename)!=0){
+	//Load table from file
+	cout<<"RichPMTsManager::Init -- Loading from "<<filename<<endl; 
+	fstream stream;
+	stream.open(filename,fstream::in);
+	if(stream.is_open() && !stream.fail()){
+	  stream.read((char*)table_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	  stream.read((char*)table_sigma_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	  
+	  if(!stream.eof()){
+	    // First, check the gains of all the PMTs
+	    int index=0;
+	    for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	      for(int channel=0;channel<RICnwindows;channel++)
+		for(int mode=0;mode<2;mode++){
+		  geant my_gain=RichPMTsManager::Gain(_pmts[pmt]._geom_id,channel,mode);
+		  geant my_sigma_gain=RichPMTsManager::GainSigma(_pmts[pmt]._geom_id,channel,mode);
+		  
+		  if(my_gain!=table_gain[index] || my_sigma_gain!=table_sigma_gain[index]){
+		    cout<<"RichPMTsManager::Init -- File "<<filename<<" content incompatible with calibration... computing new ones"<<endl; 
+		    goto check_finished;
+		  } 
+		  
+		  index++;
+		}
+	  }
+	  
+	  // Tables seem to be OK, start reading their contents 
 	  for(int pmt=0;pmt<RICmaxpmts;pmt++)
 	    for(int channel=0;channel<RICnwindows;channel++)
 	      for(int mode=0;mode<2;mode++){
-		geant my_gain=RichPMTsManager::Gain(_pmts[pmt]._geom_id,channel,mode);
-		geant my_sigma_gain=RichPMTsManager::GainSigma(_pmts[pmt]._geom_id,channel,mode);
+		stream.read((char*)(&_pmts[pmt]._step[channel][mode]),sizeof(_pmts[0]._step[0][0]));
+		stream.read((char*)(_pmts[pmt]._cumulative_prob[channel][mode]),sizeof(_pmts[0]._cumulative_prob[0][0][0])*RIC_prob_bins);
 		
-		if(my_gain!=table_gain[index] || my_sigma_gain!=table_sigma_gain[index]){
-  		  cout<<"RichPMTsManager::Init -- File "<<filename<<" content incompatible with calibration... computing new ones"<<endl; 
+		if(stream.eof() || stream.fail()){
+		  cout<<"RichPMTsManager::Init -- Fail while reading file "<<filename<<" tables... computing new ones"<<endl; 
 		  goto check_finished;
-		} 
+		}
 		
-		index++;
-	      }
+		
+	      }	  
+	  
+	  done=true;	
 	}
-
-	// Tables seem to be OK, start reading their contents 
-	for(int pmt=0;pmt<RICmaxpmts;pmt++)
-	  for(int channel=0;channel<RICnwindows;channel++)
-	    for(int mode=0;mode<2;mode++){
-	      stream.read((char*)(&_pmts[pmt]._step[channel][mode]),sizeof(_pmts[0]._step[0][0]));
-	      stream.read((char*)(_pmts[pmt]._cumulative_prob[channel][mode]),sizeof(_pmts[0]._cumulative_prob[0][0][0])*RIC_prob_bins);
-	      
-	      if(stream.eof() || stream.fail()){
-		cout<<"RichPMTsManager::Init -- Fail while reading file "<<filename<<" tables... computing new ones"<<endl; 
-		goto check_finished;
-	      }
-	      
-	      
-	    }	  
-
-	done=true;	
+	
       }
-
-    }
-    
-  check_finished:
-
-    if(!done){
-      cout<<"RichPMTsManager::Init -- Explicitly computing tables..."<<endl;
-      for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
-    }
-    
-    UHTOC(RICCONTROLFFKEY.pmttables_out,50,filename,200);
-    
-    for(int i=200;i>=0;i--){
-      if(filename[i]!=' '){
-	filename[i+1]=0;
-	break;
+      
+    check_finished:
+      
+      if(!done){
+	cout<<"RichPMTsManager::Init -- Explicitly computing tables..."<<endl;
+	for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
       }
-    }
-
-    if(strlen(filename)!=0){
-      // Save current table in file
-      fstream stream;
-      stream.open(filename,fstream::out);
-      cout<<"RichPMTsManager::Init -- Saving the tables in "<<filename<<endl;
-      if(stream.is_open()){
-	// Fill the gain and sigma gain tables and write them
-	int index=0;
+      
+      UHTOC(RICCONTROLFFKEY.pmttables_out,50,filename,200);
+      
+      for(int i=200;i>=0;i--){
+	if(filename[i]!=' '){
+	  filename[i+1]=0;
+	  break;
+	}
+      }
+      
+      if(strlen(filename)!=0){
+	// Save current table in file
+	fstream stream;
+	stream.open(filename,fstream::out);
+	cout<<"RichPMTsManager::Init -- Saving the tables in "<<filename<<endl;
+	if(stream.is_open()){
+	  // Fill the gain and sigma gain tables and write them
+	  int index=0;
 	  for(int pmt=0;pmt<RICmaxpmts;pmt++)
 	    for(int channel=0;channel<RICnwindows;channel++)
 	      for(int mode=0;mode<2;mode++){
@@ -255,43 +258,44 @@ void RichPMTsManager::Init(){
 		table_sigma_gain[index]=RichPMTsManager::GainSigma(_pmts[pmt]._geom_id,channel,mode);
 		index++;	
 	      }
-	stream.write((char*)table_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
-	stream.write((char*)table_sigma_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
-	// Now start writing the tables
-	for(int pmt=0;pmt<RICmaxpmts;pmt++)
-	  for(int channel=0;channel<RICnwindows;channel++)
-	    for(int mode=0;mode<2;mode++){
-	    stream.write((char*)(&_pmts[pmt]._step[channel][mode]),sizeof(_pmts[0]._step[0][0]));
-	      stream.write((char*)(_pmts[pmt]._cumulative_prob[channel][mode]),sizeof(_pmts[0]._cumulative_prob[0][0][0])*RIC_prob_bins);
-	    }
-
-	stream.close();
-      }else{
-	cout<<"RichPMTsManager::Init -- Failed when writing to file "<<filename<<"   Ignoring"<<endl;
+	  stream.write((char*)table_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	  stream.write((char*)table_sigma_gain,RICmaxpmts*RICnwindows*2*sizeof(geant));
+	  // Now start writing the tables
+	  for(int pmt=0;pmt<RICmaxpmts;pmt++)
+	    for(int channel=0;channel<RICnwindows;channel++)
+	      for(int mode=0;mode<2;mode++){
+		stream.write((char*)(&_pmts[pmt]._step[channel][mode]),sizeof(_pmts[0]._step[0][0]));
+		stream.write((char*)(_pmts[pmt]._cumulative_prob[channel][mode]),sizeof(_pmts[0]._cumulative_prob[0][0][0])*RIC_prob_bins);
+	      }
+	  
+	  stream.close();
+	}else{
+	  cout<<"RichPMTsManager::Init -- Failed when writing to file "<<filename<<"   Ignoring"<<endl;
+	}
+	
       }
-      
+    }
+    
+    //
+    // Compute efficiency quantities
+    //
+    get_eff_quantities();
+    
+    //
+    // Build look up tables to search for pmts within a grid
+    //
+    int current[8];
+    for(int i=0;i<8;i++){_grid_nb_of_pmts[i]=0;current[i]=0;}
+    for(int i=0;i<RICmaxpmts;i++){
+      _grid_nb_of_pmts[_pmts[i].grid()-1]++;
+    }
+    for(int i=0;i<8;i++) _grid_pmts[i]=new int[_grid_nb_of_pmts[i]];
+    for(int i=0;i<RICmaxpmts;i++){
+      int g=_pmts[i].grid()-1;
+      _grid_pmts[g][current[g]++]=i;
     }
   }
-
-  //
-  // Compute efficiency quantities
-  //
-  get_eff_quantities();
-
-  //
-  // Build look up tables to search for pmts within a grid
-  //
-  int current[8];
-  for(int i=0;i<8;i++){_grid_nb_of_pmts[i]=0;current[i]=0;}
-  for(int i=0;i<RICmaxpmts;i++){
-    _grid_nb_of_pmts[_pmts[i].grid()-1]++;
-  }
-  for(int i=0;i<8;i++) _grid_pmts[i]=new int[_grid_nb_of_pmts[i]];
-  for(int i=0;i<RICmaxpmts;i++){
-    int g=_pmts[i].grid()-1;
-    _grid_pmts[g][current[g]++]=i;
-  }
-
+#pragma omp barrier
 }
 
 
@@ -374,21 +378,23 @@ void RichPMTsManager::ReadFromFile(const char *filename){
 
 
 void RichPMTsManager::SaveToFile(const char *filename){
-  cout<<"RichPMTsManager::SaveToFile: writing calibration file"<<endl;
-  fstream calib(filename,ios::out); // open  file for writing
-
-  if(calib){
-    cout<<"RichPMTsManager::SaveToFile: Local "<<filename<<" Opened"<<endl;
-  }else{
-    cerr <<"RichPMTsManager::SaveToFile: missing "<<filename<<endl;
-    exit(1);
-  }
-
-  for(int geom_id=0;geom_id<RICmaxpmts;geom_id++){
+#pragma omp single
+  {
+    cout<<"RichPMTsManager::SaveToFile: writing calibration file"<<endl;
+    fstream calib(filename,ios::out); // open  file for writing
+    
+    if(calib){
+      cout<<"RichPMTsManager::SaveToFile: Local "<<filename<<" Opened"<<endl;
+    }else{
+      cerr <<"RichPMTsManager::SaveToFile: missing "<<filename<<endl;
+      exit(1);
+    }
+    
+    for(int geom_id=0;geom_id<RICmaxpmts;geom_id++){
       // Save the identification information
-    //      calib << _pmts[geom_id]._pos << " " << _pmts[geom_id]._pmtaddh << " " << _pmts[geom_id]._pmtaddc << " " << _pmts[geom_id]._pmtnumb<<endl;
-    calib << _pmts[geom_id]._pos<<endl;
-
+      //      calib << _pmts[geom_id]._pos << " " << _pmts[geom_id]._pmtaddh << " " << _pmts[geom_id]._pmtaddc << " " << _pmts[geom_id]._pmtnumb<<endl;
+      calib << _pmts[geom_id]._pos<<endl;
+      
       for(int window=0;window<RICnwindows;window++){
 	// Save the status pedestals sigmas, thresholds gains
 	int cat=_pmts[geom_id]._channel_id2geom_id[window];	
@@ -401,14 +407,14 @@ void RichPMTsManager::SaveToFile(const char *filename){
 	      << " " << _GainSigma(pmt,cat,0) << " " << _GainSigma(pmt,cat,1)
 	      << " " << _GainThreshold(pmt,cat)
 	      << " " << _Eff(pmt,cat) <<endl;
-
-      
+	
+	
       }
+    }
+    
+    calib.close();
   }
-
-  calib.close();
 }
-
 
 void RichPMTsManager::get_eff_quantities(){
   _max_eff=0;
@@ -423,67 +429,72 @@ void RichPMTsManager::get_eff_quantities(){
 }
 
 void RichPMTsManager::Finish(){
-  Finish_Default();
-
-  if(RICFFKEY.ReadFile/10){
-    char name[801];
+#pragma omp barrier
+#pragma omp single
+  {
+    Finish_Default();
     
-    UHTOC(RICFFKEY.fname_out,200,name,800);
-    
-    for(int i=800;i>=0;i--){
-      if(name[i]!=' '){
-	name[i+1]=0;
-	break;
-      }
-    }
-    
-    /*
-    if(strlen(name)==0){
-      strcpy(name,"richcal");
+    if(RICFFKEY.ReadFile/10){
+      char name[801];
       
-      if(AMSJob::gethead()->isMCData()){ // McData 
-	strcat(name,"mc");
-      }else{  // Real data
-	strcat(name,"dt");
+      UHTOC(RICFFKEY.fname_out,200,name,800);
+      
+      for(int i=800;i>=0;i--){
+	if(name[i]!=' '){
+	  name[i+1]=0;
+	  break;
+	}
       }
       
-      
-      strcat(name,".002");  // Version
-    }
-    */
-
-    SaveToFile(name);
-  }
-
-  if(AMSFFKEY.Update && AMSRichCal::isCalibration()){  // If update and calibration, update database
-    AMSTimeID *ptdv;
-    char *tdvs[]={"RichPMTChannelStatus",
-		  "RichPMTChannelGain",
-		  "RichPMTChannelGainSigma",
-		  ""};
-    for(int i=0;strlen(tdvs[i])>0;i++){
-      ptdv = AMSJob::gethead()->gettimestructure(AMSID(tdvs[i],0));
-      assert(ptdv);
       /*
-      ptdv->UpdateMe()=1;
-      ptdv->UpdCRC();
-
-      // To be defined but probably coming from the calibration parameters:
-      // my proposal is insert=now, begin when run begins end=when run ends, or parameters in the datacard
-      time_t insert,begin,end;
-      time(&insert);
-      ptdv->SetTime(insert,begin,end);
-      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
-      ptdv->gettime(insert,begin,end);
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
+	if(strlen(name)==0){
+	strcpy(name,"richcal");
+	
+	if(AMSJob::gethead()->isMCData()){ // McData 
+	strcat(name,"mc");
+	}else{  // Real data
+	strcat(name,"dt");
+	}
+	
+	
+	strcat(name,".002");  // Version
+	}
       */
+      
+      SaveToFile(name);
     }
+    
+    if(AMSFFKEY.Update && AMSRichCal::isCalibration()){  // If update and calibration, update database
+      AMSTimeID *ptdv;
+      char *tdvs[]={"RichPMTChannelStatus",
+		    "RichPMTChannelGain",
+		    "RichPMTChannelGainSigma",
+		    ""};
+      for(int i=0;strlen(tdvs[i])>0;i++){
+	ptdv = AMSJob::gethead()->gettimestructure(AMSID(tdvs[i],0));
+	assert(ptdv);
+	/*
+	  ptdv->UpdateMe()=1;
+	  ptdv->UpdCRC();
+	  
+	  // To be defined but probably coming from the calibration parameters:
+	  // my proposal is insert=now, begin when run begins end=when run ends, or parameters in the datacard
+	  time_t insert,begin,end;
+	  time(&insert);
+	  ptdv->SetTime(insert,begin,end);
+	  cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+	  ptdv->gettime(insert,begin,end);
+	  cout <<" Time Insert "<<ctime(&insert);
+	  cout <<" Time Begin "<<ctime(&begin);
+	  cout <<" Time End "<<ctime(&end);
+	*/
+      }
+    }
+    
+    //  if(0) AMSRichCal::finish(); // If calibration cleanup memory
+    
   }
-
-  //  if(0) AMSRichCal::finish(); // If calibration cleanup memory
-
+#pragma omp barrier
 }
 
 void RichPMTsManager::Init_Default(){

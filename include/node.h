@@ -1,4 +1,4 @@
-//  $Id: node.h,v 1.10 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: node.h,v 1.11 2008/12/08 15:15:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // September 03, 1996. ak. add set pointers functions
@@ -46,7 +46,7 @@ public:
   //! Add a node at the end of the list hanging at the _down link, 
   //!if this list it is not present create it whit the Node pointed by ptr
   //! IMPORTANT this method call internaly ptr->_init()
-  AMSNode *  add(  AMSNode * ptr);
+  AMSNode *  add(  AMSNode * ptr,bool init=true);
 
   //! Add a node at the end of the list hanging at the _down link, 
   //!if this list it is not present create it whit the Node pointed by ptr

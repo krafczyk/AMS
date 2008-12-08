@@ -1,7 +1,10 @@
-//  $Id: timeid.C,v 1.94 2008/11/06 09:56:34 pzuccon Exp $
+//  $Id: timeid.C,v 1.95 2008/12/08 15:15:18 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "timeid.h"
 #include "astring.h"
 #include <fstream>
@@ -133,7 +136,7 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
 
   if (Time >= _Begin && Time <= _End){
     if(ok==-1 || _CRC == _CalcCRC()){
-      if(_trigfun) this->_trigfun();
+      if(_trigfun)_trigfun();
       return 1;
     }
     else {
@@ -272,7 +275,21 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
     id=0;
   }
   else return -1;
+int ok;
+#ifdef __AMSP__
+cout <<" AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
+#pragma omp barrier
+if( omp_get_thread_num()==0) {
+//#pragma omp critical 
+  ok= read(dir,id,asktime,index)?1:0;
+  cout <<"  blia read "<<endl;
+}
+else ok=1;
+#else
   return read(dir,id,asktime,index)?1:0;
+#endif
+#pragma omp barrier
+return ok;
    
 }
 
@@ -330,6 +347,7 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 	fbin.read((char*)pdata,ns*sizeof(pdata[0]));
 	if(fbin.good()){
 	  _convert(pdata,ns);
+    {
 	  CopyIn(pdata);
 	  _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
 	  _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
@@ -340,6 +358,7 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 	    _Begin=1;
 	    _End=INT_MAX-1;
 	  }
+      }
 	  cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
 #ifdef __AMSDEBUG__
 	  cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;

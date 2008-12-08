@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.46 2008/08/11 15:24:40 mdelgado Exp $
+//  $Id: richdbc.h,v 1.47 2008/12/08 15:15:19 choutko Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -11,8 +11,6 @@
 
 #include"job.h"
 #include"commons.h" 
-//PZ #include"trrec.h"
-//PZ
 #include "mceventg.h"
 
 class RichAlignment;
@@ -225,6 +223,7 @@ public: // To be migrated in the future
   static integer numrefm; // Nb. of reflections in the mirror
   static integer numrayl; // Nb. of rayleigh scatterings
   static geant _RICradpos;
+#pragma omp threadprivate(_RICradpos)
 public:
   static inline geant x(integer);
   static inline geant y(integer);
@@ -246,6 +245,7 @@ public:
   static geant max_step();
   static geant mean_height();
   static integer _Nph;
+#pragma omp threadprivate(_Nph)
   static geant & RICradpos(){return _RICradpos;}
   static integer & Nph(){return _Nph;}  
   static integer get_wavelength_bin(geant wavelength);

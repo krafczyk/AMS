@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.32 2008/11/07 08:56:35 choumilo Exp $
+//  $Id: daqs2block.C,v 1.33 2008/12/08 15:15:17 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -199,7 +199,8 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   static integer FirstPedBlk(0);
   static integer TotPedBlks(0);
   static integer PedBlkCrat[SCCRAT]={0,0,0,0};
-  bool PedBlkOK(false);
+#pragma omp threadprivate(FirstPedBlk,TotPedBlks,PedBlkCrat)  
+bool PedBlkOK(false);
   static integer firstevs(0);
 // for classic ped-run events or for DownScaled events
   bool TofPedCal(false);//Separate TofPedCal-job(ev-by-ev) using RawFMT(class/DownScaled mode)  
@@ -210,6 +211,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 // some static vars for debug:
   static integer fsterr1[SCFETA]={0,0,0,0,0};
   static bool accswap(false);
+  #pragma omp threadprivate (accswap,fsterr1)
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -1517,7 +1519,8 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   integer static FirstPedBlk(0);
   integer static TotPedBlks(0);
   integer static PedBlkCrat[SCCRAT]={0,0,0,0};
-  bool PedBlkOK(false);
+  #pragma omp threadprivate (FirstPedBlk,TotPedBlks,PedBlkCrat)
+bool PedBlkOK(false);
   static integer firstevs(0);
 //
   int16u *pr;

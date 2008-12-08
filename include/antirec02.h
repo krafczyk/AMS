@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.16 2008/06/09 12:51:12 choutko Exp $
+//  $Id: antirec02.h,v 1.17 2008/12/08 15:15:19 choutko Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -16,7 +16,8 @@ class Anti2RawEvent: public AMSlink{
 private:
   static integer nscoinc;//# of logic sectors in coinc.with FT
   static uinteger trpatt; //bits 1-8 => log.sect# in coinc.with FT
-  int16u _idsoft; // BBS (Bar/Side)
+  #pragma omp threadprivate (nscoinc,trpatt)
+int16u _idsoft; // BBS (Bar/Side)
   int16u _status; // status (0/1/... -> alive/dead/...)
   geant _temp;//fast temperature (SFEA-sensor reading)
   geant _adca;// anode pulse-charge hit(ADC-counts, ped-subtracted if not PedCalibJob)
@@ -131,9 +132,7 @@ protected:
 public:
 
  static integer Out(integer);
- AMSID crgid(int kk=0){
-   return AMSID("ANTS",_sector);
- }
+ AMSID crgid(int kk=0);
 //
  AMSAntiCluster(integer status, integer sector, integer ntimes,
                 integer npairs, number times[ANTI2C::ANTHMX*2], 

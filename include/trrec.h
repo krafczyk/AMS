@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.98 2008/11/05 09:51:11 choutko Exp $
+//  $Id: trrec.h,v 1.99 2008/12/08 15:15:19 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -157,6 +157,7 @@ number       _cofgy;
 AMSPoint     _Bfield;
 
 static AMSTrRecHit* _Head[trconst::maxlay];
+#pragma omp threadprivate(_Head)
 static void _addnext(AMSgSen * p, AMSTrIdGeom* id, integer ,number, number, AMSTrCluster *, 
             AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
   void _copyEl();
@@ -275,9 +276,11 @@ void          setSensorP(AMSgSen* p) { _pSen = p;}
 class AMSTrTrackError{
 private:
  char msg[256];
+ AMSEvent * ptr;  //  ptr to ams event (for openmp)
 public:
  AMSTrTrackError(char * name);
  char * getmessage();
+ AMSEvent * gethead() const{return ptr;}
 };
 
 
@@ -337,6 +340,7 @@ static bool _NoMoreTime(bool force=false);
 static geant _Time;
 static time_t __Time;
 static geant _TimeLimit;
+#pragma omp threadprivate(_Time,__Time,_TimeLimit)
   void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (no MS)" << 
   _RigidityWithoutMS <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
   _Chi2FastFit << " ThetaFast "<<_Theta<<" PhiFast "<<_Phi<<endl;}
@@ -348,6 +352,7 @@ static integer _TrSearcherFalseTOFX(int icall);
 static integer pat;
 static AMSTrRecHit * phit[trconst::maxlay];
 static number par[2][3];
+#pragma omp threadprivate (pat,par,phit)
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
@@ -359,6 +364,7 @@ static integer Distance(number par[2][3], AMSTrRecHit *ptr){
 }
 static integer DistanceTOF(number par[2][3], AMSTrRecHit *ptr);
 static integer _RefitIsNeeded;
+#pragma omp threadprivate (_RefitIsNeeded)
 void _crHit(bool nodb);
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
@@ -431,6 +437,7 @@ static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static integer _MarginPatternsNeeded;
 static integer _max_ambigous_hits;
+#pragma omp threadprivate(_MarginPatternsNeeded,_max_ambigous_hits)
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
