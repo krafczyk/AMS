@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.21 2008/08/05 14:47:38 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.22 2008/12/08 15:27:23 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -76,7 +76,7 @@ char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pLevel1(fRef)
 class DaqV: public   TPaveLabel, public AMSDrawI{
 public:
 DaqV():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"DAQ","TR"){};
-DaqV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.99,0.98,-0.91,"DAQ","TR"){};
+DaqV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.69,0.98,-0.61,"DAQ","TR"){};
 char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pDaqEvent(fRef)->Info(fRef):0;}
 
 

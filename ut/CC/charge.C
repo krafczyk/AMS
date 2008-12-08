@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.76 2008/12/08 15:15:17 choutko Exp $
+//  $Id: charge.C,v 1.77 2008/12/08 15:27:19 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -702,7 +702,6 @@ void AMSCharge::_writeEl(){
 #endif
 /*
   ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
-
   if (CN->Ncharge>=MAXCHARGE02) return;
 // Fill the ntuple
   CN->Status[CN->Ncharge]=_status;

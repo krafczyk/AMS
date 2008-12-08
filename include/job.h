@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.61 2008/12/08 15:15:19 choutko Exp $
+//  $Id: job.h,v 1.62 2008/12/08 15:27:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -264,6 +264,6 @@ AMSNode * getaligstructure();
 AMSTimeID * gettimestructure(const AMSID & id);
 void printJ(ostream & stream);
 static integer debug;
-static void map(integer remap=0){cout <<"  jobmap "<<&JobMap<<endl;remap==0?JobMap.map(*_Head):JobMap.remap();}
+static void map(integer remap=0){remap==0?JobMap.map(*_Head):JobMap.remap();}
 };
 #endif

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.393 2008/12/08 15:15:17 choutko Exp $
+//  $Id: event.C,v 1.394 2008/12/08 15:27:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -141,7 +141,6 @@ void AMSEvent::_init(){
    DAQEvent::initO(_run,getid(),gettime());
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
-   cout <<"  critical "<<endl;
 }
   }
 

@@ -141,7 +141,7 @@ void AMSCommonsI::init(){
         fbin.open(fname);
         if(fbin){
           fbin.ignore(255,':');
-          fbin.getline(syscom,254,'\n');
+          fbin.getline(syscom,254);
           fbin.close();
           float _cor=1.1;
           cout <<"AMSCommonsI-I-SystemIdentified as "<<syscom<<endl;

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.547 2008/11/05 09:51:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.548 2008/12/08 15:27:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6767,7 +6767,7 @@ print qq`
 #        if(($#sta<0 or time()-$sta[9] >86400*180  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
 
          my $dte=stat_adv ("$self->{AMSDataDir}/DataBase",0,0,1);
-#        For the moment Never Update beacuse of timeout 
+#        For the moment Never Update beacuse of timeout ; user ~/AMS/perl/makeaddon instead
         if((($#sta<0 or time()-$sta[9] >86400*180  or $dte > $sta[9] ) and $self->{dwldaddon}==1) and 0){
 
            $self->{sendaddon}=2;
@@ -6987,7 +6987,12 @@ print qq`
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
+          if($run<1000000000){
+         $buf=~ s/RUN=/RUN=0$run/;
+          }
+          else{
          $buf=~ s/RUN=/RUN=$run/;
+         }
          $buf=~ s/JOB=/JOB=$job/;
          my $cputf=sprintf("%.3f",$cput);
 
