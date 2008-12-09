@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.55 2008/12/08 23:03:43 choutko Exp $
+//  $Id: richrec.h,v 1.56 2008/12/09 16:06:37 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -190,7 +190,7 @@ static geant _Time;
 #define _NRAD_ 400
 #define _NFOIL_ 10
 #define _NGUIDE_ 14
-#define _TILES_ 2
+#define _TILES_ 108 
   static int _generated_initialization;
   static int _first_radiator_call[_TILES_];
   static float _l[RICmaxentries][_TILES_]; 
@@ -207,7 +207,7 @@ static geant _Time;
   static float _rinb[_NRAD_][_NFOIL_][_TILES_];
   static float _effd[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_]; 
   static float _rind[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_];
-#pragma omp threadprivate(_generated_initialization,_first_radiator_call,_l,_r,_a,_b,_g,_t,_effg,_ring,_effr,_rinr,_effb,_rinb,_effd,_rind)
+//#pragma omp threadprivate(_generated_initialization,_first_radiator_call,_l,_r,_a,_b,_g,_t,_effg,_ring,_effr,_rinr,_effb,_rinb,_effd,_rind)
 
 
   // All the routines from Elisa

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.106 2008/12/08 23:03:43 choutko Exp $
+//  $Id: richrec.C,v 1.107 2008/12/09 16:06:36 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -859,7 +859,6 @@ AMSRichRing* AMSRichRing::rebuild(AMSTrTrack *ptrack){
 
   AMSRichRing *ring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   if(ring && ring->_ptrack && ring->_ptrack->getpattern()>=0)return 0;
-#pragma omp critical
   ring=build(ptrack);
   return ring;
 
@@ -997,6 +996,7 @@ trig=(trig+1)%freq;
       efftr=trace(r,local_dir,phi,&xb,&yb,&lentr,
 		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag);
 	
+#pragma omp critical
       if(geftr){
 	float cnt=generated(lentr,lfoil,lguide,
 			    &ggen,&rgen,&bgen)*dL/NSTP;
@@ -1424,7 +1424,6 @@ float AMSRichRing::generated(geant length,
     rmx=6.0*_height;
     fmx=3.0*RICHDB::foil_height;}
 
-   _tile_index=_kind_of_tile-1;
   if(_first_radiator_call[_tile_index]){
     _first_radiator_call[_tile_index]=0;
 #ifdef __AMSDEBUG__

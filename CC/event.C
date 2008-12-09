@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.394 2008/12/08 15:27:19 choutko Exp $
+//  $Id: event.C,v 1.395 2008/12/09 16:06:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1390,7 +1390,7 @@ bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.
     if(callecal)_reecalevent();
   }
   if(callax)_reaxevent();
-//  if(calluser)AMSUser::Event();
+  if(calluser)AMSUser::Event();
   AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
