@@ -56,7 +56,7 @@ otherwise openomp abort.
 c. To be done:
 
 
-Correct TrigTime[4]  (by EC,VC)
+Check  Level1 Trigger 
 
 Fix the EventStatusTable writing
 

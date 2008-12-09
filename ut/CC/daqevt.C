@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.137 2008/12/08 17:56:03 choutko Exp $
+//  $Id: daqevt.C,v 1.138 2008/12/09 17:36:58 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1008,7 +1008,7 @@ unexpected:
 // here we must put triggerlvl1 buildraw
 //   
   
-   buildRawStructuresEarly();
+   if(fbin.good() && !fbin.eof())buildRawStructuresEarly();
    return fbin.good() && !fbin.eof();
 }
 
