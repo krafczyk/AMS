@@ -39,7 +39,7 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     Init_Default();
     
     // Read in database entries if needed
-    char filename[1000];
+    char filename[201];
     UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
     
     
