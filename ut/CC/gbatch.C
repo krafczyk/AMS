@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.87 2008/12/08 15:15:17 choutko Exp $
+//  $Id: gbatch.C,v 1.88 2008/12/10 17:50:25 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -56,6 +56,7 @@ std::set_unexpected (my_unexpected);
      *signal(SIGUSR2, handler); 
      *signal(SIGHUP, handler); 
      *signal(SIGCHLD, handler); 
+     *signal(SIGTTIN, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
@@ -104,6 +105,7 @@ return 0;
 }
 void (handler)(int sig){
 using namespace glconst;
+  int nthr=0;
   switch(sig){
   case SIGFPE:
    cerr <<" FPE intercepted"<<endl;
@@ -154,12 +156,25 @@ cout << " sighup sended "<<endl;
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       break;
   case SIGCHLD:
-    int nthr=0;
+   nthr=0;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
-    if(nthr>0)nthr--;
-    omp_set_num_threads(nthr);
-    cerr<<"  new threads "<<nthr<<endl;
+    if(nthr>1)nthr--;
+    else MISCFFKEY.DynThreads=0;
+    if(MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=nthr;
+    else if(MISCFFKEY.NumThreads>1)MISCFFKEY.NumThreads--;
+    cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
+#endif
+  break;
+  case SIGTTIN:
+    nthr=0;
+#ifdef _OPENMP
+    nthr=omp_get_num_threads();
+    if(nthr<omp_get_num_procs())nthr++;
+    else MISCFFKEY.DynThreads=1;
+    if(MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=nthr;
+    else if(MISCFFKEY.NumThreads<omp_get_num_procs())MISCFFKEY.NumThreads++;
+    cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
   break;
 }

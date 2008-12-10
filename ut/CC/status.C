@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.29 2008/08/28 20:33:37 choutko Exp $
+//  $Id: status.C,v 1.30 2008/12/10 17:50:25 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -32,7 +32,6 @@ else{
 integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
-  oldtime=time;
   if(run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
    _Errors++;
@@ -42,23 +41,60 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
         cerr <<"AMSSTatus::isFull-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
         " some of the events will be lost"<<endl;
         _Errors++;
+
         return 1;
 }
-  return ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
+  bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
+    if(ret){
+
+       return 1;
+    }
+    else{
+      oldtime=time;
+      return 0;
+   }
 }
 
+void AMSStatus::Sort(){
+//  sort statuses before db writing in case of multiple threads
+if(_Nelem<=1)return;
+uinteger *tmp =new uinteger[_Nelem];
+uinteger **padd=new uinteger*[_Nelem];
+for(int i=0;i<_Nelem;i++){
+ tmp[i]=_Status[0][i];
+ padd[i]=tmp+i;
+}
+AMSsortNAG(padd,_Nelem);
+for(int i=0;i<4;i++){
+ for(int k=0;k<_Nelem;k++)tmp[k]=_Status[i][k];
+ for(int k=0;k<_Nelem;k++)_Status[i][k]=*(padd[k]);
+}
+delete[] padd;
+delete[] tmp;
+}
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   if(_Nelem==0  || isFull(run,evt,time)){
-    _Nelem=0;
+#pragma omp barrier
+{
+#pragma omp master
+{ 
+   _Nelem=0;
     _Run=run;
     _Begin=time;
+    _End=time;
     _Offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
     if(_Begin==0){
       cerr <<"AMSStatus::adds-E-BeginTimeIsZeroForRun"<<" "<<_Run<<endl;
       _Errors++;
     }
   }
-  _End=time;
+}
+#pragma omp barrier
+}
+
+#pragma omp critical
+{
+  if(_End<time)_End=time;
   _Status[0][_Nelem]=evt;
   _Status[1][_Nelem]=status[0];
    uinteger offset=uinteger(((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset);
@@ -66,9 +102,10 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   _Status[3][_Nelem]=status[1];
   _Nelem++;
 }
+}
 
 void AMSStatus::updates(uinteger run, uinteger evt, uinteger* status, time_t time){
-  int out= AMSbins(_Status[0],evt,_Nelem);
+ int out= AMSbins(_Status[0],evt,_Nelem);
   if(out>0){
     _Status[1][out-1]=status[0];
     _Status[3][out-1]=status[1];

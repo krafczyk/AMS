@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.395 2008/12/09 16:06:36 choutko Exp $
+//  $Id: event.C,v 1.396 2008/12/10 17:50:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -85,8 +85,13 @@ void AMSEvent::_init(){
   // Status stuff
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
+#pragma omp barrier
+#pragma omp master
+{
+      AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       ptdv->UpdateMe()=1;
+      
       ptdv->UpdCRC();
       time_t begino,endo,inserto;
       ptdv->gettime(inserto,begino,endo);
@@ -116,53 +121,36 @@ void AMSEvent::_init(){
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
     }
+#pragma omp barrier
+}
 #ifdef __CORBA__
     else if(AMSJob::gethead()->getstatustable()->getnelem()==1){
+#pragma omp single
+{
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
       cout <<" sending eventtag begin "<<endl;
      AMSProducer::gethead()->sendEventTagBegin(ptdv->getname(),p->getrun(),first);       
+}
     }
 #endif
   }
+
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
-   cout <<" AMS-I-New Run "<<_run<<endl;
+#pragma omp barrier
+#pragma omp master
+{
    // get rid of crazy runs
    if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
-     //raise(SIGTERM);
    }
-#pragma omp master
-{
    DAQEvent::initO(_run,getid(),gettime());
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
-}
-  }
-
-  // Initialize containers & aob
-  if(AMSJob::gethead()->isSimulation())_siamsinitevent();
-#pragma omp critical
-  _reamsinitevent();
-  if(AMSJob::gethead()->isCalibration())_caamsinitevent();
-
-#ifdef __DB__
-  if (_checkUpdate() == 1 || _run != SRun) {
-   cout <<"AMSEvent:: -I- UpdateMe is set. Update database and tables. "<<endl;
-   int rstatus = lms -> AddAllTDV();
-   int n       = AMSJob::gethead()->FillTDVTable();
-   lms -> FillTDV(n);
-  } else {
-    // cout <<"AMSEvent:: -I- UpdateMe != 1. NO UPDATE"<<endl;
-  }
-  //_validateDB();
-  _validate();
-#endif
-
 
 
   if(_run != SRun){
@@ -185,14 +173,28 @@ void AMSEvent::_init(){
     }
     SRun=_run;
     PosInRun=0;
-#ifndef __DB__
    _validate(1);
-#endif
   }
+
+
+
+}
+#pragma omp barrier
+   cout <<" AMS-I-New Run "<<_run<<endl;
+}
+  // Initialize containers & aob
+#pragma omp critical
+{
+  if(AMSJob::gethead()->isSimulation())_siamsinitevent();
+  _reamsinitevent();
+  if(AMSJob::gethead()->isCalibration())_caamsinitevent();
+
+
   SetTimeCoo(1);
   PosInRun++;
   PosGlobal++;
   Trigger2LVL1::l1trigconf.redefbydc();//MC: redef some lvl1config-pars by data cards
+}
 }
 
 
@@ -2523,7 +2525,8 @@ void AMSEvent::_writeEl(){
   EN->AMSEqDec=_AMSEqDec*(360/AMSDBc::twopi); // ISN 
   EN->AMSGalLat=_AMSGalLat*(360/AMSDBc::twopi); //ISN 
   EN->AMSGalLong=_AMSGalLong*(360/AMSDBc::twopi);//ISN     
-  integer  i,nc;
+ /*
+ integer  i,nc;
   AMSContainer *p;
 //  EN->Particles=0;
   EN->Tracks=0;
@@ -2546,8 +2549,9 @@ void AMSEvent::_writeEl(){
   EN->EcalHits=0;
   EN->RICMCClusters=0;//CJM
   EN->RICHits=0;//CJM
+*/
   getmag(EN->ThetaM,EN->PhiM);
-
+/*
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrTrack",i);
    if(p) EN->Tracks+=p->getnelem();
@@ -2656,6 +2660,7 @@ void AMSEvent::_writeEl(){
    if(p) EN->RICHits+=p->getnelem();
    else break;
   }
+*/
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->fHeader.Set(EN);
   AMSJob::gethead()->getntuple()->Get_evroot02()->fStatus=getstatus64();

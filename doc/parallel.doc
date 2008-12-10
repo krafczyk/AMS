@@ -49,8 +49,6 @@ Static thread number  for the moment
 
 b. Issues to be resolved:
 
-part of rich code runs in seq (mainly #pragma omp critical mode)
-otherwise openomp abort.
 
 
 c. To be done:

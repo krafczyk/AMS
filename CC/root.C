@@ -2206,8 +2206,6 @@ void HeaderR::Set(EventNtuple02* ptr){
     Run=       ptr->Run;
     RunType=   ptr->RunType;
     Event=     ptr->Eventno;
-//    Status[0]= ptr->EventStatus[0];
-//    Status[1]= ptr->EventStatus[1];
     Raw=       ptr->RawWords%(1<<18);
     Version=   (ptr->RawWords)>>18;
     Time[0]=   ptr->Time[0];

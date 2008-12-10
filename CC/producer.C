@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.121 2008/10/15 15:03:03 choutko Exp $
+//  $Id: producer.C,v 1.122 2008/12/10 17:50:25 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -35,7 +35,7 @@ else{
      _debug=atoi(++pchar);
      break;
     case 'M':   //debug
-     _MT=true;
+     __MT=true;
      break;
     case 'U':   //uid
      uid=atol(++pchar);
@@ -1108,7 +1108,7 @@ if(!CORBA::is_nil(*li)){
      if(length==0){
       FMessage("getARS-S-UnableToGetARS ",DPS::Client::CInAbort);
      }   
-     if(_MT){
+     if(__MT){
      for(int i=0;i<length;i++){
         CORBA::Object_var obj=_orb->string_to_object((ars.operator[](i)).IOR);
         if(!CORBA::is_nil(obj)){

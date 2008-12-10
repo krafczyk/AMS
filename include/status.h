@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.16 2008/08/07 18:38:52 choutko Exp $
+//  $Id: status.h,v 1.17 2008/12/10 17:50:44 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -53,6 +53,8 @@ public:
   void * getptr(){return &_Run;}
   void updates(uinteger run, uinteger evt, uinteger* status, time_t time=0);
   void adds(uinteger run, uinteger evt, uinteger * status, time_t time=0);
+  void Sort();
+
   integer statusok(uinteger evt,uinteger run);
   integer   getnextok();
   static void UpdateStatusTableDB();

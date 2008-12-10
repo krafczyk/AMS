@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.173 2008/12/08 15:15:17 choutko Exp $
+//  $Id: ntuple.C,v 1.174 2008/12/10 17:50:25 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -365,9 +365,7 @@ thread=omp_get_thread_num();
 }
 //  2nd pass for the map
       
-//    evmapi idel=evmap.begin();
-//    idel--;
-    for(evmapi i=evmap.begin();i!=evmap.end();i++){
+    for(evmapi i=evmap.begin();i!=evmap.end();){
      go=true;
 //     cout <<"  go "<<i->second->Event()<<endl;
      for(int k=0;k<nthr;k++){
@@ -389,8 +387,8 @@ thread=omp_get_thread_num();
      }
     }
       delete i->second;
-      evmap.erase(i->first);
-//      idel=i;
+      evmapi idel=i++;
+      evmap.erase(idel);
 
     }
    }
@@ -398,7 +396,6 @@ thread=omp_get_thread_num();
      _Size=evmap.size();
      if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
    }
-  // evmap.erase(evmap.begin(),idel);
    
 
 #endif

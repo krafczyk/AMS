@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.601 2008/12/08 15:15:17 choutko Exp $
+// $Id: job.C,v 1.602 2008/12/10 17:50:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -234,6 +234,7 @@ MISCFFKEY.G4On=0;
 MISCFFKEY.dbwrbeg=0;//DBwriter UTC-time begin 
 MISCFFKEY.dbwrend=0;//DBwriter UTC-time end
 MISCFFKEY.NumThreads=1;
+MISCFFKEY.DynThreads=0;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 

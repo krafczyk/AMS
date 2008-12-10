@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.59 2008/12/08 15:15:04 choutko Exp $
+#  $Id: Makefile,v 1.60 2008/12/10 17:50:44 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -219,7 +219,8 @@ OBJECTS+= $(BIN)mtx.o
 FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)TrackFit_utils.F $(SCC)daqevt.C
 
 MYOBJS1:=$(FILESI:$(SFF)%.F=$(BIN)%.o) 
-MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSI:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 OBJECTSI+=       $(BIN)geanti.o 	$(BIN)geant3i.o  
@@ -231,7 +232,8 @@ FILESC= $(COMMON_FILES)     $(SCC)producer.C $(SCC)client.C \
 		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F 
 
 MYOBJS1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
-MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 

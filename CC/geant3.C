@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.106 2008/12/08 15:15:17 choutko Exp $
+//  $Id: geant3.C,v 1.107 2008/12/10 17:50:25 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -852,6 +852,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
+#pragma omp critical
      AMSProducer::gethead()->AddEvent();
 #endif
      AMSEvent::gethead()->Recovery();
@@ -862,6 +863,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
+#pragma omp critical
      AMSProducer::gethead()->AddEvent();
 #endif
      AMSEvent::gethead()->Recovery();
@@ -873,6 +875,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      AMSEvent::gethead()->seterror(2);
 /*
 #ifdef __CORBA__
+#pragma omp critical
      AMSProducer::gethead()->AddEvent();
 #endif
      UPool.Release(0);
@@ -894,6 +897,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      
 /*
 #ifdef __CORBA__
+#pragma omp critical
      AMSProducer::gethead()->AddEvent();
 #endif
      UPool.Release(0);
@@ -906,6 +910,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
 */
    }
 #ifdef __CORBA__
+#pragma omp critical
      AMSProducer::gethead()->AddEvent();
 #endif
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
@@ -1031,39 +1036,37 @@ try{
     // read daq    
     //
     DAQEvent * pdaq=0;
+    const int evchunk=512;
    for(;;){
     DAQEvent::InitResult res=DAQEvent::init();
      if(res==DAQEvent::OK){ 
-#ifdef __AMSP__
- #ifdef _OPENMP
+       uinteger run;
+       uinteger event=0;
+       time_t tt=0;
+       time_t oldtime=0;
+       int count=0;
+       
+    while((GCFLAG.IEVENT<GCFLAG.NEVENT && !GCFLAG.IEOTRI) || (AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
+#ifdef _OPENMP
 if(MISCFFKEY.NumThreads>0)
 omp_set_num_threads(MISCFFKEY.NumThreads);
 else
 omp_set_num_threads(omp_get_num_procs());
-kmp_set_blocktime(10);
+kmp_set_blocktime(200);
+omp_set_dynamic(MISCFFKEY.DynThreads);
 //kmp_set_stacksize_s(32000000);
 #endif
-#endif
-#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_), private(pdaq)
-{
-//    int kevt=0;
- //   #pragma intel omp  parallel taskq   default(none),shared(kevt,std::cout,amsffkey_,selectffkey_,gcflag_), private(pdaq) , num_threads(8)
- 
-{
-#pragma omp for schedule(dynamic)
-    for(int  kevt=0;kevt<GCFLAG.NEVENT;kevt++){
-//      while(kevt++<GCFLAG.NEVENT) {
-//#pragma intel omp task (captureprivate(kevt)
-{
-       static time_t tt=0;
-#pragma omp threadprivate(tt)
-      static time_t oldtime;
-      static int count=0;
-#pragma omp threadprivate(oldtime,count)
-      if(GCFLAG.IEOTRI){
-        if(!count++)oldtime=tt;
-      }
 
+        
+#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count), private(pdaq)
+{
+#pragma omp for schedule(dynamic) nowait
+    for(int  kevt=0;kevt<AMSEvent::get_num_threads()*evchunk;kevt++){
+
+#pragma omp critical
+      if(GCFLAG.IEOTRI){
+        if(count++)oldtime=tt;
+      }
       if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
       continue;
       }
@@ -1073,8 +1076,6 @@ kmp_set_blocktime(10);
        //AMSTimeID*  he=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
 
        pdaq = new DAQEvent();
-       uinteger run;
-       uinteger event;
         bool ok;
 #pragma omp critical       
 {
@@ -1083,9 +1084,12 @@ kmp_set_blocktime(10);
 //cout << "  a "<<kevt<<endl;
        if(ok){
          
+#pragma omp critical       
+{
          run=pdaq->runno();
-         event=pdaq->eventno();
-         tt=pdaq->time();   
+         if(pdaq->eventno()>event)event=pdaq->eventno();
+         if(pdaq->time()>tt)tt=pdaq->time();   
+}
         AMSEvent *pn=new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
         pdaq->runtype(),pdaq->time(),pdaq->usec());
         pn->_init();
@@ -1100,7 +1104,8 @@ kmp_set_blocktime(10);
         //cout <<" 1kevt "<<kevt<<" "<<omp_get_thread_num()<<" "<<AMSEvent::gethead()<<" "<<&UPool<<" "<<pdaq->eventno()<<endl;
 #endif
         AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
-
+#pragma omp critical
+{
         if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>=SELECTFFKEY.EventE){
          pdaq->SetEOFIn();    
         } 
@@ -1111,6 +1116,7 @@ kmp_set_blocktime(10);
       else if (GCFLAG.IEORUN==-2){
         GCFLAG.IEORUN=0;
       }
+}
      //delete pdaq;
 /*
      UPool.Release(0);
@@ -1135,7 +1141,6 @@ kmp_set_blocktime(10);
     continue;
     }
    }
-}
 }
 }
 #ifdef __CORBA__
@@ -1187,9 +1192,8 @@ kmp_set_blocktime(10);
      else break;
 #endif
 
-
 }
-   else if (res==DAQEvent::Interrupt){
+else if (res==DAQEvent::Interrupt){
 #ifdef __CORBA__
   AMSClientError ab("Process Interrupted",DPS::Client::CInAbort);
   cerr<<" CORBA-ProcessInterruped"<<endl;

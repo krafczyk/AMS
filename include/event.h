@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.78 2008/12/08 15:15:19 choutko Exp $
+//  $Id: event.h,v 1.79 2008/12/10 17:50:44 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -113,7 +113,7 @@ static ShuttlePar Array[60];
 static BeamPar ArrayB[60];
 static EventId * _SelectedEvents;
 //#pragma omp threadprivate(PosInRun,SRun,PosGlobal,EventMap,Array,ArrayB,_Head)
-#pragma omp threadprivate(PosInRun,SRun,PosGlobal)
+//#pragma omp threadprivate(PosInRun,SRun,PosGlobal)
 void _copyEl();
 void _writeEl();
 //void _init();
@@ -209,6 +209,13 @@ static uinteger get_thread_num(){
 return omp_get_thread_num();
 #else
 return 0;
+#endif
+}
+static uinteger get_num_threads(){
+#ifdef _OPENMP
+return omp_get_num_threads();
+#else
+return 1;
 #endif
 }
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
