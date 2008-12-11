@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.79 2008/12/10 17:50:44 choutko Exp $
+//  $Id: event.h,v 1.80 2008/12/11 10:51:34 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -295,6 +295,8 @@ uinteger& setrun() {return _run;}
 uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}
 time_t gettime(){return _time;}
+time_t getmtime()const;
+uinteger getmid()const;
 time_t getusec()const {return _usec;}
 time_t& settime(){return _time;}
 //void * operator new(size_t t, void *p) {return p;}

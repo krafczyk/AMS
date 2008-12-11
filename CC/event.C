@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.396 2008/12/10 17:50:24 choutko Exp $
+//  $Id: event.C,v 1.397 2008/12/11 10:51:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1168,7 +1168,7 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
 {
 
         AMSJob::gethead()->uhend();
-        AMSJob::gethead()->uhinit(_run,getid()+1,gettime());
+        AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
 }
 #pragma omp barrier
       if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
@@ -3396,4 +3396,28 @@ integer AMSEvent::getselrun(integer i){
 uint64 AMSEvent::getrunev()const {
     uint64 runev=_run; 
    return ((getid()) | runev<<32);
+}
+
+uinteger AMSEvent::getmid()const{
+#ifdef _OPENMP
+uinteger evt=0;
+for(int i=0;i<get_num_threads();i++){
+ if(_Head[i] && _Head[i]->getid()>evt)evt=_Head[i]->getid();
+}
+return evt;
+#else
+return getid();
+#endif
+}
+
+time_t AMSEvent::getmtime()const{
+#ifdef _OPENMP
+time_t evt=0;
+for(int i=0;i<get_num_threads();i++){
+ if(_Head[i] && _Head[i]->gettime()>evt)evt=_Head[i]->gettime();
+}
+return evt;
+#else
+return gettime();
+#endif
 }

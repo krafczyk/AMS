@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.603 2008/12/11 09:38:59 choutko Exp $
+// $Id: job.C,v 1.604 2008/12/11 10:51:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3406,7 +3406,7 @@ if(IOPA.hlun && _NtupleActive){
   HREND ("output");
   CLOSEF(IOPA.hlun);
 #ifdef __CORBA__
-  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::Ntuple,ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
+  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::Ntuple,ntuple_entries,AMSEvent::gethead()->getmid(),AMSEvent::gethead()->getmtime(),true);
 else AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::Ntuple,ntuple_entries,e,t,true);
 #endif
 }
@@ -3416,7 +3416,7 @@ if(_pntuple)_pntuple->endR();
 #ifdef __CORBA__
 if(_pntuple){
 int root_entries=_pntuple->getentries();
-  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
+  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,AMSEvent::gethead()->getmid(),AMSEvent::gethead()->getmtime(),true);
 else AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,e,t,true);
 }
 #endif
