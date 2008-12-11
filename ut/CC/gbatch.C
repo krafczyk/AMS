@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.88 2008/12/10 17:50:25 choutko Exp $
+//  $Id: gbatch.C,v 1.89 2008/12/11 09:38:58 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -57,6 +57,7 @@ std::set_unexpected (my_unexpected);
      *signal(SIGHUP, handler); 
      *signal(SIGCHLD, handler); 
      *signal(SIGTTIN, handler); 
+     *signal(SIGTTOU, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
@@ -174,6 +175,12 @@ cout << " sighup sended "<<endl;
     else MISCFFKEY.DynThreads=1;
     if(MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=nthr;
     else if(MISCFFKEY.NumThreads<omp_get_num_procs())MISCFFKEY.NumThreads++;
+    cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
+#endif
+  break;
+  case SIGTTOU:
+#ifdef _OPENMP
+    MISCFFKEY.NumThreads=-1;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
   break;

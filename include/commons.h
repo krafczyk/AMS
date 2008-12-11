@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.254 2008/12/10 17:50:44 choutko Exp $
+//  $Id: commons.h,v 1.255 2008/12/11 09:39:21 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -37,6 +37,7 @@ integer dbwrbeg;
 integer dbwrend;
 integer NumThreads;
 integer DynThreads;
+integer ChunkThreads;
 };
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);
 

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.107 2008/12/10 17:50:25 choutko Exp $
+//  $Id: geant3.C,v 1.108 2008/12/11 09:38:59 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1036,7 +1036,6 @@ try{
     // read daq    
     //
     DAQEvent * pdaq=0;
-    const int evchunk=512;
    for(;;){
     DAQEvent::InitResult res=DAQEvent::init();
      if(res==DAQEvent::OK){ 
@@ -1057,11 +1056,11 @@ omp_set_dynamic(MISCFFKEY.DynThreads);
 //kmp_set_stacksize_s(32000000);
 #endif
 
-        
-#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count), private(pdaq)
+int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;        
+#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk), private(pdaq)
 {
 #pragma omp for schedule(dynamic) nowait
-    for(int  kevt=0;kevt<AMSEvent::get_num_threads()*evchunk;kevt++){
+    for(int  kevt=0;kevt<nchunk;kevt++){
 
 #pragma omp critical
       if(GCFLAG.IEOTRI){
