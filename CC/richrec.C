@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.108 2008/12/10 17:50:25 choutko Exp $
+//  $Id: richrec.C,v 1.109 2008/12/11 21:28:50 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1057,7 +1057,6 @@ trig=(trig+1)%freq;
     sum2+=(hitp[k]-hitp[0])*(hitp[k]-hitp[0]);
   if(nh>0) _phi_spread=sum2/nh; else _phi_spread=0;
 
-
   // Compute the mean of the distribution of 1/distance**2 for not used hits
   sum2=0;
   for(k=0;k<nh_unused;k++)
@@ -1417,8 +1416,8 @@ float AMSRichRing::generated(geant length,
   int i,lr,lf,lg,nf;
   float beta;
   float f=0.;
-  _tile_index=_kind_of_tile;    
-  if(_generated_initialization){for(int i=0;i<radiator_kinds;i++) _first_radiator_call[i]=1;_generated_initialization=0;}
+
+  if(_generated_initialization){for(int i=0;i<_TILES_;i++) _first_radiator_call[i]=1;_generated_initialization=0;}
 
   if(_kind_of_tile==naf_kind){
     rmx=6.0*_height;

@@ -42,7 +42,6 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     char filename[201];
     UHTOC(RICRADSETUPFFKEY.tables_in,50,filename,200);
     
-    
     for(int i=200;i>=0;i--){
       if(filename[i]!=' '){
 	filename[i+1]=0;
@@ -53,7 +52,8 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     if(filename[0]!='\0') ReadFromFile(filename);
     else{
       char name[801];
-      sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      //      sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      sprintf(name,"%s/%s/RichDefaultAGLTables.02.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
       ReadFromFile(name);
     }
     
@@ -716,8 +716,8 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
   // Code to read all the stuff
   float x,y,index,thickness,clarity;
   while(!data.eof()){
-    data>> x >> y >> index;
-    //    data>>x>>y>>index>>thickness>>clarity;
+    //    data>> x >> y >> index;
+    data>>x>>y>>index>>thickness>>clarity;
 
 
     // Get the tile at the position x,y and 
@@ -742,7 +742,7 @@ void RichRadiatorTileManager::ReadFromFile(const char *filename){
     _tiles[tile_number]->index=index;
     //    _tiles[tile_number]->bounding_box[2][0]=-thickness/2;
     //    _tiles[tile_number]->bounding_box[2][1]=thickness/2;
-    //    _tiles[tile_number]->clarity=clarity;
+    _tiles[tile_number]->clarity=clarity;
 
   }
 
