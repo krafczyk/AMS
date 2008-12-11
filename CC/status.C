@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.31 2008/12/11 15:33:12 choutko Exp $
+//  $Id: status.C,v 1.32 2008/12/11 15:47:24 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -82,7 +82,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
 
 
 #pragma omp barrier
-_Offset=9223372036854775807L;
+_Offset=9223372036854775807LL;
 #pragma omp critical
 {
     uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();

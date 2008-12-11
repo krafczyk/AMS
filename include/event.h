@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.81 2008/12/11 15:33:12 choutko Exp $
+//  $Id: event.h,v 1.82 2008/12/11 15:47:25 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -294,7 +294,7 @@ geant getangvel() const {return _StationSpeed;}
 uinteger& setrun() {return _run;}
 uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}
-time_t gettime(){return _time;}
+time_t gettime()const {return _time;}
 time_t getmtime()const;
 uinteger getmid()const;
 time_t getusec()const {return _usec;}
