@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.55 2008/12/08 17:56:04 choutko Exp $
+//  $Id: daqevt.h,v 1.56 2008/12/11 15:33:12 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -64,12 +64,14 @@ uinteger _Length;
 uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
+uint64 _Offset;
  uinteger _CalibData[32];
 int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
 uinteger _usec;
 int16u *  _pcur;
 int16u * _pData;
+
 static const char *_NodeNames[512];
 static const char *_PortNamesJ[32];
  unsigned int _SubLength[7];   //  tracker trd tof rich ecal lvl1 lvl3
@@ -133,7 +135,7 @@ public:
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
-_Time(0),_RunType(0),_usec(0),_BufferOwner(0){
+_Time(0),_RunType(0),_usec(0),_BufferOwner(0),_Offset(0){
 for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
 for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
 _setcalibdata(0);
@@ -155,7 +157,7 @@ void buildRawStructures();
 void buildRawStructuresEarly();
 void write();
 integer read();
-uint64 getoffset();
+uint64 getoffset()const {return _Offset;}
 void setoffset(uint64 offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}

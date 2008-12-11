@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.108 2008/12/11 09:38:59 choutko Exp $
+//  $Id: geant3.C,v 1.109 2008/12/11 15:33:12 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1064,7 +1064,7 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 
 #pragma omp critical
       if(GCFLAG.IEOTRI){
-        if(count++)oldtime=tt;
+        if(!count++)oldtime=tt;
       }
       if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
       continue;
@@ -1091,10 +1091,11 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 }
         AMSEvent *pn=new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
         pdaq->runtype(),pdaq->time(),pdaq->usec());
-        pn->_init();
+         pn->_init();
+          AMSEvent::sethead(pn);
+          pn->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq); 
 //#pragma omp critical
          //cout << " hhzz "<<endl;
-          AMSEvent::sethead(pn);
 //#pragma omp critical
 //AMSJob::gethead()->add(pn,false);
 //        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(pn,false));
@@ -1102,7 +1103,6 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 #ifdef __AMSP__
         //cout <<" 1kevt "<<kevt<<" "<<omp_get_thread_num()<<" "<<AMSEvent::gethead()<<" "<<&UPool<<" "<<pdaq->eventno()<<endl;
 #endif
-        AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
 #pragma omp critical
 {
         if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>=SELECTFFKEY.EventE){

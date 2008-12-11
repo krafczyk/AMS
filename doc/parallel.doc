@@ -40,7 +40,7 @@ gbatch.exe/gbatch_orbit.exe seems to be run without problem and has ~ 90% thread
 
 
 number of threads changeable with MISC 8=thread_number (default 1) 9=dynamic_update (default 0) 10=chunk_number (default 4096)  
-changeable dynamically via openmp w/r host load or manually with signals CHLD (-1) or TTIN (+1) or TTOU (num_of_proc)
+changeable dynamically via openmp w/r host load or manually with signals TTOU (-1) or TTIN (+1) or TSTP (num_of_proc)
 
 
 
@@ -48,18 +48,16 @@ changeable dynamically via openmp w/r host load or manually with signals CHLD (-
 
 b. Issues to be resolved:
 
-
+None
 
 c. To be done:
 
 
 Check  Level1 Trigger 
 
-Fix the EventStatusTable writing
+Fix all histos call by adding #pragma omp critical /up to developpers/
 
-Fix all histos call by adding #pragma omp critical
-
-Fix all calibration issues
+Fix all calibration issues  /up to developpers/
 
 Check gbatch  in monitoring mode
 

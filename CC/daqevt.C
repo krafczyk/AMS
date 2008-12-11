@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.138 2008/12/09 17:36:58 choutko Exp $
+//  $Id: daqevt.C,v 1.139 2008/12/11 15:33:11 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -901,13 +901,6 @@ void DAQEvent::write(){
 
 }
 
-uint64 DAQEvent::getoffset(){
-   if(fbin)return uint64(fbin.tellg())-getlength();
-   else {
-    cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
-    return 0;
-   }
-}
 
 void DAQEvent::setoffset(uint64 offset){
       if(fbin)fbin.seekg(offset);
@@ -1008,8 +1001,16 @@ unexpected:
 // here we must put triggerlvl1 buildraw
 //   
   
+    if(fbin){
+        _Offset=fbin.tellg();
+     _Offset-=getlength();
+    }
+    else {
+    cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
+    _Offset=0;
+   }
    if(fbin.good() && !fbin.eof())buildRawStructuresEarly();
-   return fbin.good() && !fbin.eof();
+  return fbin.good() && !fbin.eof();
 }
 
 

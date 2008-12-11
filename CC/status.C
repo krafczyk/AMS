@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.30 2008/12/10 17:50:25 choutko Exp $
+//  $Id: status.C,v 1.31 2008/12/11 15:33:12 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -32,28 +32,32 @@ else{
 integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
-  if(run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
+  if(AMSEvent::get_num_threads()==1 && run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
+#pragma omp critical
    _Errors++;
-   return 1;
+   return 2;
   }
   if(_Nelem>=MAXDAQRATE+STATUSSIZE){
         cerr <<"AMSSTatus::isFull-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
         " some of the events will be lost"<<endl;
+#pragma omp critical
         _Errors++;
 
-        return 1;
+        return 2;
 }
   bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
     if(ret){
-
+       cout <<  "  StatusTableFull "<<_Offset<<" "<<_Nelem<<endl;
        return 1;
     }
     else{
+#pragma omp critical
       oldtime=time;
       return 0;
    }
 }
+
 
 void AMSStatus::Sort(){
 //  sort statuses before db writing in case of multiple threads
@@ -71,24 +75,30 @@ for(int i=0;i<4;i++){
 }
 delete[] padd;
 delete[] tmp;
+// for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
 }
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
-  if(_Nelem==0  || isFull(run,evt,time)){
+  if(_Nelem==0  || isFull(run,evt,time)>1){
+
+
 #pragma omp barrier
+_Offset=9223372036854775807L;
+#pragma omp critical
 {
-#pragma omp master
-{ 
-   _Nelem=0;
+    uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
+     
+    if(offset<_Offset)_Offset=offset;
+    if(AMSEvent::get_thread_num()==0){
+    _Nelem=0;
     _Run=run;
     _Begin=time;
     _End=time;
-    _Offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
     if(_Begin==0){
       cerr <<"AMSStatus::adds-E-BeginTimeIsZeroForRun"<<" "<<_Run<<endl;
       _Errors++;
     }
-  }
-}
+   }
+ }
 #pragma omp barrier
 }
 
@@ -100,7 +110,11 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
    uinteger offset=uinteger(((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset);
   _Status[2][_Nelem]=offset;
   _Status[3][_Nelem]=status[1];
-  _Nelem++;
+  if(_Nelem<=MAXDAQRATE+STATUSSIZE-1)_Nelem++;
+  else {
+        cerr <<"AMSSTatus::adds-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
+        " some of the events will be lost"<<endl;
+}
 }
 }
 
@@ -193,14 +207,16 @@ void AMSStatus::init(){
     AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
     for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
       if( strcmp(AMSJob::gethead()->gettdvc(i),ptdv->getname())==0 ){
+       AMSJob::gethead()->getstatustable()->_init();
        if(!STATUSFFKEY.status[32]){   
          _Mode=2;
+         
          cout <<"AMSStatus::init-I-WriteStatusDBRequested"<<endl;
          // set begin,end to max
            time_t begin,insert,end;
            ptdv->gettime(insert,begin,end);
-           begin=begin-3e7;
-           end=end+3e7;
+           begin=begin-3e8;
+           end=end+3e8;
            ptdv->SetTime(insert,begin,end);
           
        }

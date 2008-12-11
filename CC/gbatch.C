@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.89 2008/12/11 09:38:58 choutko Exp $
+//  $Id: gbatch.C,v 1.90 2008/12/11 15:33:12 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -55,7 +55,7 @@ std::set_unexpected (my_unexpected);
      *signal(SIGUSR1, handler); 
      *signal(SIGUSR2, handler); 
      *signal(SIGHUP, handler); 
-     *signal(SIGCHLD, handler); 
+     *signal(SIGTSTP, handler); 
      *signal(SIGTTIN, handler); 
      *signal(SIGTTOU, handler); 
     GZEBRA(NWGEAN);
@@ -156,7 +156,7 @@ cout << " sighup sended "<<endl;
       cerr<< "New Ntuple Forced"<<endl;
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       break;
-  case SIGCHLD:
+  case SIGTTOU:
    nthr=0;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
@@ -178,7 +178,7 @@ cout << " sighup sended "<<endl;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
   break;
-  case SIGTTOU:
+  case SIGTSTP:
 #ifdef _OPENMP
     MISCFFKEY.NumThreads=-1;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;

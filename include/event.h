@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.80 2008/12/11 10:51:34 choutko Exp $
+//  $Id: event.h,v 1.81 2008/12/11 15:33:12 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function

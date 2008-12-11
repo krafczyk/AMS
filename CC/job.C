@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.604 2008/12/11 10:51:26 choutko Exp $
+// $Id: job.C,v 1.605 2008/12/11 15:33:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3692,6 +3692,7 @@ cout<<"<---- In dbendjob, UpdateFlag="<<AMSFFKEY.Update<<endl;
   //Status Stuff
 #ifndef __CORBA__
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
+      AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
