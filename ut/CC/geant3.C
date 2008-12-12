@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.109 2008/12/11 15:33:12 choutko Exp $
+//  $Id: geant3.C,v 1.110 2008/12/12 09:18:32 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1136,6 +1136,7 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
     }
     else{
      GCFLAG.IEOTRI=1;
+     count++;
      cout << "  file end "<<endl;
     continue;
     }

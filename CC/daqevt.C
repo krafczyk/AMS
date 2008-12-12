@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.139 2008/12/11 15:33:11 choutko Exp $
+//  $Id: daqevt.C,v 1.140 2008/12/12 09:18:32 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1006,7 +1006,7 @@ unexpected:
      _Offset-=getlength();
     }
     else {
-    cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
+    //cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
     _Offset=0;
    }
    if(fbin.good() && !fbin.eof())buildRawStructuresEarly();

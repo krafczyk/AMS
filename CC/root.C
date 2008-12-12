@@ -535,6 +535,7 @@ void AMSEventR::hf1(int idd, float a, float w){
    AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
+#pragma omp critical
   i1->second->Fill(a,w);
  }
 }
@@ -543,6 +544,7 @@ void AMSEventR::hfp(int idd, float a, float w=1){
    AMSID id(idd,Service::Dir);
    Service::hbpi i1=Service::hbp.find(id);
  if(i1 != Service::hbp.end()){
+#pragma omp critical
   i1->second->Fill(a,w);
  }
 }
@@ -552,6 +554,7 @@ void AMSEventR::hf2(int idd, float a, float b, float w=1){
    AMSID id(idd,Service::Dir);
    Service::hb2i i1=Service::hb2.find(id);
  if(i1 != Service::hb2.end()){
+#pragma omp critical
   i1->second->Fill(a,b,w);
  }
 }
