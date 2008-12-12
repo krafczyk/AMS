@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.122 2008/12/10 17:50:25 choutko Exp $
+//  $Id: producer.C,v 1.123 2008/12/12 09:52:00 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -519,7 +519,10 @@ if(success){
 else ntend->Status=DPS::Producer::Failure;
 //ntend->Status=success?(DPS::Producer::Success):(DPS::Producer::Failure);
 ntend->EventNumber=entries;
-if(last)ntend->LastEvent=last;
+if(last){
+  ntend->LastEvent=last;
+_cinfo.LastEventProcessed=last;
+}
 else ntend->LastEvent =_cinfo.LastEventProcessed;
 ntend->End=end;
 ntend->Type=type;
@@ -1269,7 +1272,7 @@ else FMessage("AMSProducer::sendRunEndMC-F-UnableToSendRunEndInfo ",DPS::Client:
 void AMSProducer::AddEvent(){
 if(_cinfo.Run == AMSEvent::gethead()->getrun()){
  _cinfo.EventsProcessed++;
- _cinfo.LastEventProcessed=AMSEvent::gethead()->getid();
+ _cinfo.LastEventProcessed=AMSEvent::gethead()->getmid();
   if(!AMSEvent::gethead()->HasNoErrors())_cinfo.ErrorsFound++;
   if(!AMSEvent::gethead()->HasNoCriticalErrors())_cinfo.CriticalErrorsFound++;
 }
