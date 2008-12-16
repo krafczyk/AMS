@@ -232,6 +232,7 @@ ifeq ($(ARCH),linuxicc)
   EXE=$(AMSWD)/exe/linux/icc2/
   LIB=$(AMSWD)/lib/linux/
   SHLD=$(LIB)/ntuple_slc4_icc.so
+  NTLD=$(LIB)/libntuple_slc4_icc.a
 endif
 
 #----------------------------------------------------

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.60 2008/12/10 17:50:44 choutko Exp $
+#  $Id: Makefile,v 1.61 2008/12/16 11:45:18 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -328,9 +328,10 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 
 shared :     $(BIN)point.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
 	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
+	$(AR) rv   $(NTLD) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o 
 
 static :	$(BIN)point.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
-	$(AR) rv $(LIB)/libntuple.a $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o
+	$(AR) rv $(LIB)/libntuple.a $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o 
 
 
 #-------------------------------------------------------------------------------

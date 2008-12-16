@@ -2,6 +2,7 @@
 
 #include "root.h"
 #include "ntuple.h"
+#include "TChainElement.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
 #include "beta.h"
@@ -3417,7 +3418,69 @@ void AMSEventR::GetAllContents() {
       }
 
 
-#endif
 AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fCharge(o.fCharge),fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),fTofMCCluster(o.fTofMCCluster),fTrdMCCluster(o.fTrdMCCluster),fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux){
 _Count++;
 }
+
+Long64_t AMSChain::process(AMSEventR*pev,Option_t*option, int nthreads,Long64_t nentries, Long64_t firstentry){
+#ifndef __ROOTSHAREDLIBRARY__
+return 0;
+#else
+for (int i=0;i<fNtrees;i++){
+TChainElement* element=(TChainElement*) fFiles->At(i);
+//cout <<element->GetTitle()<<endl;
+}
+long long nentr=0;
+#ifdef _OPENMP
+omp_set_num_threads(nthreads);
+#endif
+// AMSEventR::_NFiles=-fNtrees;
+        cout <<"  bfiles "<<fNtrees<<endl;
+        
+	#pragma omp parallel  default(none), shared(std::cout,option,nentries,firstentry,nentr,pev)
+	{
+	#pragma omp for schedule (dynamic)
+	for(int i=0;i<fNtrees;i++){
+	TChainElement* element;
+        TFile* file;
+        TTree *tree;
+        int thr=0;
+//#pragma omp critical
+{
+#ifdef _OPENMP
+        thr=omp_get_thread_num();
+#endif
+	element=(TChainElement*) fFiles->At(i);
+	file=new TFile(element->GetTitle(),"READ");
+	tree=(TTree*)file->Get(_NAME);
+        cout <<"i "<<i<<endl;
+        pev[thr].Init(tree);
+        cout <<"i "<<i<<endl;
+        pev[thr].Notify();
+        pev[thr].SetOption(option);
+        if(i==0)pev[thr].Begin(tree);
+        cout <<element->GetTitle()<<" tree "<<tree->GetEntries()<<" "<<&tree<<" "<<" "<<thr<<endl;
+       }
+      long ne=0;  
+       continue;
+        for(int n=0;n<tree->GetEntries();n++){
+        if(pev[thr].ReadHeader(n)){
+        pev[thr].ProcessFill(n);
+        }
+       }
+#pragma omp critical
+{
+	file->Close("R");
+        delete file;
+        cout <<" finished "<<i<<endl;
+}
+	if(ne>=0)nentr+=ne;
+	}
+	}
+        pev[0].Terminate();
+	return nentr;
+#endif
+	}
+
+
+#endif

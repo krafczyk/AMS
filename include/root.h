@@ -2181,6 +2181,10 @@ static TBranch*  bMCTrack;
 static TBranch*  bMCEventg;
 static TBranch*  bDaqEvent;
 static TBranch*  bAux;
+#ifdef __ROOTSHAREDLIBRARY__
+
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#endif
 
 
 static void*  vStatus;
@@ -2228,6 +2232,9 @@ static AMSEventR * _Head;
 static int         _Count;
 static int         _Entry;
 static char      * _Name;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate(_Tree,_ClonedTree,_Entry,_Head)
+#endif
 public:
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
@@ -3892,6 +3899,7 @@ void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
 ClassDef(AMSEventR,10)       //AMSEventR
+friend class AMSChain;
 };
 
 //!  AMSChain class
@@ -3925,8 +3933,9 @@ public:
       Int_t Entry(); ///<Get the current entry number
       AMSEventR* pEvent(); ///<Get the current event pointer
       const char* ChainName(); ///<Get the name of the tree
+Long64_t  process(AMSEventR *pev, Option_t *option="", int nthr=1,Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
 
-      ClassDef(AMSChain,5)       //AMSChain
+      ClassDef(AMSChain,6)       //AMSChain
 };
 
 //!  AMSEventList class

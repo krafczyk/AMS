@@ -7,7 +7,7 @@ Goal:
 Parallelization of gbatch.exe on the event level with dynamic thread number 
 using  openmp protocol
 
-Parallelization of the root code enabling reading root chains parallel on the file level (not yet started)
+Parallelization of the root code enabling reading root chains parallel on the file level (not yet implemented)
 
 see eg  https://computing.llnl.gov/tutorials/openMP/
 
@@ -39,7 +39,7 @@ gbatch.exe/gbatch_orbit.exe seems to be run without problem and has ~ 90% thread
 (means 680-720% on 8 core machine) w/r to the non threaded one.
 
 
-number of threads changeable with MISC 8=thread_number (default 1) 9=dynamic_update (default 0) 10=chunk_number (default 4096)  
+number of threads changeable with MISC 8=thread_number (default 1) 9=dynamic_update (!sometimes gives omp_abort , should be not switched on) (default 0) 10=chunk_number (default 4096)  
 changeable dynamically via openmp w/r host load or manually with signals TTOU (-1) or TTIN (+1) or TSTP (num_of_proc)
 
 
@@ -62,4 +62,4 @@ Fix all calibration issues  /up to developpers/
 Check gbatch  in monitoring mode
 
 
-...  
+  

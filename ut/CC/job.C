@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.605 2008/12/11 15:33:12 choutko Exp $
+// $Id: job.C,v 1.606 2008/12/16 11:45:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2085,6 +2085,9 @@ void AMSJob::_sisrdinitjob(){
 
 void AMSJob::_reamsinitjob(){
  AMSgObj::BookTimer.book("WriteEvent");
+ AMSgObj::BookTimer.book("WriteEventC");
+ AMSgObj::BookTimer.book("WriteEventR");
+ AMSgObj::BookTimer.book("WriteEventF");
  AMSgObj::BookTimer.book("REAMSEVENT"); 
  AMSgObj::BookTimer.book("Vtx");
 
@@ -3373,7 +3376,7 @@ _axendjob();
 #ifdef __CORBA__
 if(isSimulation())AMSProducer::gethead()->sendRunEndMC();
 #endif
-delete _pntuple;
+//delete _pntuple;
   cout <<"pntuple deleted"<<endl;
 #ifdef __CORBA__
 delete AMSProducer::gethead();
