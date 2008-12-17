@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.143 2008/08/11 07:39:20 choutko Exp $
+//  $Id: server.C,v 1.144 2008/12/17 12:24:12 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -128,7 +128,7 @@ AMSServer::AMSServer(int argc, char* argv[]){
      _MC=true;
      break;
     case 'M':    // Multithread
-     _MT=true;
+     __MT=true;
      break;
     case 'o':    // OraclePerl
      _Oraperl=true;
@@ -197,7 +197,7 @@ AMSServer::AMSServer(int argc, char* argv[]){
      break;
   }
  }
-if(!_MT){
+if(!__MT){
 // check there is no other 
 
   AString fout="/tmp/";
@@ -271,7 +271,7 @@ if(niface){
 
 
 
-   if(_MT){
+   if(__MT){
       e._orb=CORBA::ORB_init(argc,argv,"orbit-local-mt-orb");
    }
    else{

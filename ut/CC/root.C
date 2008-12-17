@@ -2,7 +2,10 @@
 
 #include "root.h"
 #include "ntuple.h"
-#include "TChainElement.h"
+#include <TChainElement.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
 #include "beta.h"
@@ -534,11 +537,13 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 
 void AMSEventR::hf1(int idd, float a, float w){
    AMSID id(idd,Service::Dir);
+{
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
 #pragma omp critical
   i1->second->Fill(a,w);
  }
+}
 }
 
 void AMSEventR::hfp(int idd, float a, float w=1){
@@ -553,11 +558,13 @@ void AMSEventR::hfp(int idd, float a, float w=1){
 
 void AMSEventR::hf2(int idd, float a, float b, float w=1){
    AMSID id(idd,Service::Dir);
+{
    Service::hb2i i1=Service::hb2.find(id);
  if(i1 != Service::hb2.end()){
 #pragma omp critical
   i1->second->Fill(a,b,w);
  }
+}
 }
 
 TBranch* AMSEventR::bStatus;
@@ -659,514 +666,12 @@ char HeaderR::_Info[255];
 TTree*     AMSEventR::_Tree=0;
 TTree*     AMSEventR::_ClonedTree=0;
 AMSEventR* AMSEventR::_Head=0;
+AMSEventR::Service*    AMSEventR::pService=0;
 int AMSEventR::_Count=0;
+int AMSEventR::_NFiles=-1;
 int AMSEventR::_Entry=-1;
 char* AMSEventR::_Name="ev.";   
 
-void AMSEventR::SetBranchA(TTree *fChain){
-     _Head=this;
-     char tmp[255];
-     
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fHeader");
-     vHeader=&fHeader;
-     fChain->SetBranchAddress(tmp,&fHeader);
-    }
-
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fStatus");
-     vStatus=&fStatus;
-     fChain->SetBranchAddress(tmp,&fStatus);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcalHit");
-     vEcalHit=&fEcalHit;
-     fChain->SetBranchAddress(tmp,&fEcalHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcalCluster");
-     vEcalCluster=&fEcalCluster;
-     fChain->SetBranchAddress(tmp,&fEcalCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcal2DCluster");
-     vEcal2DCluster=&fEcal2DCluster;
-     fChain->SetBranchAddress(tmp,&fEcal2DCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcalShower");
-     vEcalShower=&fEcalShower;
-     fChain->SetBranchAddress(tmp,&fEcalShower);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichHit");
-     vRichHit=&fRichHit;
-     fChain->SetBranchAddress(tmp,&fRichHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichRing");
-     vRichRing=&fRichRing;
-     fChain->SetBranchAddress(tmp,&fRichRing);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichRingB");
-     vRichRingB=&fRichRingB;
-     fChain->SetBranchAddress(tmp,&fRichRingB);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofRawCluster");
-     vTofRawCluster=&fTofRawCluster;
-     fChain->SetBranchAddress(tmp,&fTofRawCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofRawSide");
-     vTofRawSide=&fTofRawSide;
-     fChain->SetBranchAddress(tmp,&fTofRawSide);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofCluster");
-     vTofCluster=&fTofCluster;
-     fChain->SetBranchAddress(tmp,&fTofCluster);
-    }
-    
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAntiRawSide");
-     vAntiRawSide=&fAntiRawSide;
-     fChain->SetBranchAddress(tmp,&fAntiRawSide);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAntiCluster");
-     vAntiCluster=&fAntiCluster;
-     fChain->SetBranchAddress(tmp,&fAntiCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrRawCluster");
-     vTrRawCluster=&fTrRawCluster;
-     fChain->SetBranchAddress(tmp,&fTrRawCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrCluster");
-     vTrCluster=&fTrCluster;
-     fChain->SetBranchAddress(tmp,&fTrCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrRecHit");
-     vTrRecHit=&fTrRecHit;
-     fChain->SetBranchAddress(tmp,&fTrRecHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrTrack");
-     vTrTrack=&fTrTrack;
-     fChain->SetBranchAddress(tmp,&fTrTrack);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdRawHit");
-     vTrdRawHit=&fTrdRawHit;
-     fChain->SetBranchAddress(tmp,&fTrdRawHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdCluster");
-     vTrdCluster=&fTrdCluster;
-     fChain->SetBranchAddress(tmp,&fTrdCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdSegment");
-     vTrdSegment=&fTrdSegment;
-     fChain->SetBranchAddress(tmp,&fTrdSegment);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdTrack");
-     vTrdTrack=&fTrdTrack;
-     fChain->SetBranchAddress(tmp,&fTrdTrack);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fLevel1");
-     vLevel1=&fLevel1;
-     fChain->SetBranchAddress(tmp,&fLevel1);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fLevel3");
-     vLevel3=&fLevel3;
-     fChain->SetBranchAddress(tmp,&fLevel3);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fBeta");
-     vBeta=&fBeta;
-     fChain->SetBranchAddress(tmp,&fBeta);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fCharge");
-     vCharge=&fCharge;
-     fChain->SetBranchAddress(tmp,&fCharge);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fVertex");
-     vVertex=&fVertex;
-     fChain->SetBranchAddress(tmp,&fVertex);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fParticle");
-     vParticle=&fParticle;
-     fChain->SetBranchAddress(tmp,&fParticle);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAntiMCCluster");
-     vAntiMCCluster=&fAntiMCCluster;
-     fChain->SetBranchAddress(tmp,&fAntiMCCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrMCCluster");
-     vTrMCCluster=&fTrMCCluster;
-     fChain->SetBranchAddress(tmp,&fTrMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofMCCluster");
-     vTofMCCluster=&fTofMCCluster;
-     fChain->SetBranchAddress(tmp,&fTofMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdMCCluster");
-     vTrdMCCluster=&fTrdMCCluster;
-     fChain->SetBranchAddress(tmp,&fTrdMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichMCCluster");
-     vRichMCCluster=&fRichMCCluster;
-     fChain->SetBranchAddress(tmp,&fRichMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fMCTrack");
-     vMCTrack=&fMCTrack;
-     fChain->SetBranchAddress(tmp,&fMCTrack);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fMCEventg");
-     vMCEventg=&fMCEventg;
-     fChain->SetBranchAddress(tmp,&fMCEventg);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fDaqEvent");
-     vDaqEvent=&fDaqEvent;
-     fChain->SetBranchAddress(tmp,&fDaqEvent);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAux");
-     vAux=&fAux;
-     fChain->SetBranchAddress(tmp,&fAux);
-    }
-
-}
-
-
-
-void AMSEventR::ReSetBranchA(TTree *fChain){
-     char tmp[255];
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fHeader");
-     fChain->SetBranchAddress(tmp,vHeader);
-    }
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fStatus");
-     fChain->SetBranchAddress(tmp,vStatus);
-    }
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcalHit");
-     fChain->SetBranchAddress(tmp,vEcalHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcalCluster");
-     fChain->SetBranchAddress(tmp,vEcalCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcal2DCluster");
-     fChain->SetBranchAddress(tmp,vEcal2DCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fEcalShower");
-     fChain->SetBranchAddress(tmp,vEcalShower);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichHit");
-     fChain->SetBranchAddress(tmp,vRichHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichRing");
-     fChain->SetBranchAddress(tmp,vRichRing);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichRingB");
-     fChain->SetBranchAddress(tmp,vRichRingB);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofRawCluster");
-     fChain->SetBranchAddress(tmp,vTofRawCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofRawSide");
-     fChain->SetBranchAddress(tmp,vTofRawSide);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofCluster");
-     fChain->SetBranchAddress(tmp,vTofCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAntiRawSide");
-     fChain->SetBranchAddress(tmp,vAntiRawSide);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAntiCluster");
-     fChain->SetBranchAddress(tmp,vAntiCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrRawCluster");
-     fChain->SetBranchAddress(tmp,vTrRawCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrCluster");
-     fChain->SetBranchAddress(tmp,vTrCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrRecHit");
-     fChain->SetBranchAddress(tmp,vTrRecHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrTrack");
-     fChain->SetBranchAddress(tmp,vTrTrack);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdRawHit");
-     fChain->SetBranchAddress(tmp,vTrdRawHit);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdCluster");
-     fChain->SetBranchAddress(tmp,vTrdCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdSegment");
-     fChain->SetBranchAddress(tmp,vTrdSegment);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdTrack");
-     fChain->SetBranchAddress(tmp,vTrdTrack);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fLevel1");
-     fChain->SetBranchAddress(tmp,vLevel1);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fLevel3");
-     fChain->SetBranchAddress(tmp,vLevel3);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fBeta");
-     fChain->SetBranchAddress(tmp,vBeta);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fCharge");
-     fChain->SetBranchAddress(tmp,vCharge);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fVertex");
-     fChain->SetBranchAddress(tmp,vVertex);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fParticle");
-     fChain->SetBranchAddress(tmp,vParticle);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAntiMCCluster");
-     fChain->SetBranchAddress(tmp,vAntiMCCluster);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrMCCluster");
-     fChain->SetBranchAddress(tmp,vTrMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTofMCCluster");
-     fChain->SetBranchAddress(tmp,vTofMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fTrdMCCluster");
-     fChain->SetBranchAddress(tmp,vTrdMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fRichMCCluster");
-     fChain->SetBranchAddress(tmp,vRichMCCluster);
-    }
-
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fMCTrack");
-     fChain->SetBranchAddress(tmp,vMCTrack);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fMCEventg");
-     fChain->SetBranchAddress(tmp,vMCEventg);
-    }
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fDaqEvent");
-     fChain->SetBranchAddress(tmp,vDaqEvent);
-    }
-
-   {
-     strcpy(tmp,_Name);
-     strcat(tmp,"fAux");
-     fChain->SetBranchAddress(tmp,vAux);
-    }
-}
 
 
 void AMSEventR::GetBranch(TTree *fChain){
@@ -1667,13 +1172,19 @@ bool AMSEventR::ReadHeader(int entry){
     static double dif;
     static double difm;
     static double dif2;
+#pragma omp threadprivate(runo,evento,dif,difm,dif2)
     fStatus=0;
     if(bStatus){
-    int j=bStatus->GetEntry(entry);
+    int j;
+//#pragma omp critical
+{
+     j=bStatus->GetEntry(entry);
+}
     if(j>0){
        _Entry=entry;
        if(_Entry!=0 && !UProcessStatus(fStatus)){
-         fService.TotalTrig++;
+#pragma omp critical
+         (*pService).TotalTrig++;
          return false;
        }
     }
@@ -1684,15 +1195,19 @@ bool AMSEventR::ReadHeader(int entry){
        cerr<<"AMSEvent::ReadHeader-E-OldVersionUprocessStatusNotProcessed "<<endl;
       }
     }
-    if(this!=_Head){
-       cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
-      _Entry=entry;
-       clear();
-       return false;
-     }
+//    if(this!=_Head){
+//       cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
+//      _Entry=entry;
+//       clear();
+//       return false;
+//     }
    _Entry=entry;
     memset((char*)(&fHeader)+sizeof(void*),0,sizeof(fHeader)-sizeof(void*));
-    int i=bHeader->GetEntry(entry);
+    int i;
+//#pragma omp critical
+{
+    i=bHeader->GetEntry(entry);
+}
     clear();
    if(i>0){
     if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<endl;
@@ -1708,7 +1223,8 @@ bool AMSEventR::ReadHeader(int entry){
      cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
      runo=fHeader.Run;
      if(evento>0){
-      fService.TotalTrig+=(int)dif/2; 
+  #pragma omp critical
+      (*pService).TotalTrig+=(int)dif/2; 
      }
      dif=0;
      difm=0;
@@ -1716,35 +1232,43 @@ bool AMSEventR::ReadHeader(int entry){
     }
     else if(_Entry<probe){
      if(difm==0){
-      fService.TotalTrig+=Event()-evento;
+  #pragma omp critical
+      (*pService).TotalTrig+=Event()-evento;
      }
      if(Event()-evento>difm)difm=Event()-evento;
      dif+=Event()-evento;
      dif2+=(Event()-evento)*(Event()-evento);
-     fService.TotalTrig+=Event()-evento;
+  #pragma omp critical
+     (*pService).TotalTrig+=Event()-evento;
     }
     else if(_Entry==probe){
      dif/=probe-1;
      dif2/=probe-1;
      dif2=sqrt(dif2-dif*dif);
      dif2=difm+20*dif2+1;
-     fService.TotalTrig+=Event()-evento;
+  #pragma omp critical
+     (*pService).TotalTrig+=Event()-evento;
     }
     else{
      if(Event()-evento<dif2 || dif2!=dif2){
-      fService.TotalTrig+=Event()-evento;
+      (*pService).TotalTrig+=Event()-evento;
      }
      else{
       static int ntotm=0;
       if(Event()-evento>2 && ntotm++<50)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
-      fService.TotalTrig++;
+  #pragma omp critical
+      (*pService).TotalTrig++;
      }
     }
      if(_Entry==0 && bStatus &&  !UProcessStatus(fStatus))return false;
     evento=Event();
    }
-   else fService.BadEv++;    
-    fService.TotalEv++;
+   else{
+  #pragma omp critical
+   (*pService).BadEv++;    
+}
+  #pragma omp critical
+    (*pService).TotalEv++;
   
     return i>0;
 }
@@ -1757,6 +1281,9 @@ bool AMSEventR::ReadHeader(int entry){
 AMSEventR::AMSEventR():TSelector(){
  if(_Count++)cerr<<"AMSEventR::ctor-W-OnlyOneSingletonAllowed "<<this<<" "<<_Count<<endl;
  else{ cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
+#ifdef _OPENMP
+cout <<"  thread "<<omp_get_thread_num()<<endl;
+#endif
 #ifdef __root__new
 TStreamerInfo::fgInfoFactory=new TStreamerInfo(); 
 #endif
@@ -3132,16 +2659,23 @@ void AMSEventR::Begin(TTree *tree){
    // Initialize the tree branches.
    Init(tree);
    TString option = GetOption();
-
    // open file if...
-   
+  #pragma omp critical
+if(_NFiles<0){
+  pService=&fService;
+ (*pService)._w.Start();
    if(option.Length()>1){
-    fService._pOut=new TFile(option,"RECREATE");
+    (*pService)._pOut=new TFile(option,"RECREATE");
     cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
    }
 
-   fService._w.Start(); 
-   UBegin();     
+   UBegin();  
+   _NFiles=-_NFiles; 
+}
+while(_NFiles<0){
+int k=0;
+}
+
 }
 
 
@@ -3172,18 +2706,21 @@ try{
 
 void AMSEventR::Terminate()
 {
+#pragma omp critical
+{
+if(--_NFiles==0){
    // Function called at the end of the event loop.
    //_Tree->SetMakeClass(0);
    UTerminate();
    _ClonedTree=0; 
-   fService._w.Stop();
-   cout <<"AMSEventR::Terminate-I-CputimeSpent "<<fService._w.CpuTime()<<" sec"<<endl;
-   cout <<"AMSEventR::Terminate-I-Total/Bad "<<fService.TotalEv<<"/"<<fService.BadEv<<" events processed "<<endl;
-   cout <<"AMSEventR::Terminate-I-ApproxTotal of "<<fService.TotalTrig<<" triggers processed "<<endl;
-   if(fService._pOut){
-     fService._pOut->Write();
-     fService._pOut->Close();
-     fService._pOut=0;
+   (*pService)._w.Stop();
+   cout <<"AMSEventR::Terminate-I-CputimeSpent "<<(*pService)._w.CpuTime()<<" sec"<<endl;
+   cout <<"AMSEventR::Terminate-I-Total/Bad "<<(*pService).TotalEv<<"/"<<(*pService).BadEv<<" events processed "<<endl;
+   cout <<"AMSEventR::Terminate-I-ApproxTotal of "<<(*pService).TotalTrig<<" triggers processed "<<endl;
+   if((*pService)._pOut){
+     (*pService)._pOut->Write();
+     (*pService)._pOut->Close();
+     (*pService)._pOut=0;
            
 //for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
 //delete i->second;
@@ -3200,13 +2737,19 @@ Service::hbp.clear();
 
    cout <<"AMSEventR::Terminate-I-WriteFileClosed "<<GetOption()<<endl;
    }
-  
+}
+}  
 }
 
 Int_t AMSEventR::Fill()
 {
         if (_ClonedTree==NULL) _ClonedTree = _Tree->GetTree()->CloneTree(0);
-        return _ClonedTree->Fill();
+        int i;
+#pragma omp critical
+{
+i= _ClonedTree->Fill();
+}
+return i;
 }
 
 void AMSEventR::UBegin(){
@@ -3262,225 +2805,241 @@ Int_t AMSChain::Entry() {return _ENTRY;};
 AMSEventR* AMSChain::pEvent() {return _EVENT;};
 const char* AMSChain::ChainName() {return _NAME;};
 
-AMSEventList::AMSEventList(){
-            _RUNs.reserve(10000);
-            _EVENTs.reserve(10000);
-};
-
-AMSEventList::AMSEventList(const char* filename){
-            _RUNs.reserve(10000);
-            _EVENTs.reserve(10000);
-            Read(filename);
-};
-void AMSEventList::Add(int run, int event){
-        _RUNs.push_back(run);
-        _EVENTs.push_back(event);
-};
-
-void AMSEventList::Add(AMSEventR* pev){
-        Add(pev->Run(),pev->Event());
-};
-
-void AMSEventList::Remove(int run, int event){
-        for (int j=0; j<_RUNs.size(); j++) {
-            if (run==_RUNs[j] && event==_EVENTs[j]) {
-                  vector<int>::iterator jiter = _RUNs.begin() + j;
-                  _RUNs.erase(jiter);
-                  jiter = _EVENTs.begin() + j;
-                  _EVENTs.erase(jiter);
-                  j--;
-            }
-        }
-};
-
-void AMSEventList::Remove(AMSEventR* pev){
-        Remove(pev->Run(),pev->Event());
-};
-
-bool AMSEventList::Contains(int run, int event){
-        for (int j=0; j<_RUNs.size(); j++) {
-            if (run==_RUNs[j] && event==_EVENTs[j]) {
-                  return true;
-            }
-        }
-        return false;
-};
-
-bool AMSEventList::Contains(AMSEventR* pev){
-        return Contains(pev->Run(),pev->Event());
-};
-
-void AMSEventList::Reset(){
-        _RUNs.clear();
-        _EVENTs.clear();
-};
-
-void AMSEventList::Read(const char* filename){
-        FILE* listfile = fopen(filename,"r");
-        if (listfile) {
-            int run, event;
-            while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
-            fclose(listfile);
-        } else {
-            cout << "AMSEventlist: Error opening file '" << filename << "';";
-            cout << " assuming an empty list" << endl;
-        }
-};
-
-void AMSEventList::Write(){
-        cout << "AMSEventList::Dumping a list with ";
-        cout << this->GetEntries(); 
-        cout << " selected events..." << endl;
-        for (int j=0; j<_RUNs.size(); j++) {
-            cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
-        }
-};
-
-void AMSEventList::Write(const char* filename){
-        cout << "AMSEventList::Writing ASCII file \"";
-        cout << filename << "\" with " << this->GetEntries(); 
-        cout << " selected events" << endl;
-        FILE* listfile = fopen(filename,"w");
-        for (int j=0; j<_RUNs.size(); j++) {
-            fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
-        }
-        fclose(listfile);
-};
 
 
-void AMSEventList::Write(AMSChain* chain, TFile* file){
-        TTree *amsnew = chain->CloneTree(0);
-        chain->Rewind();
-        AMSEventR* ev = NULL;
-        while ((ev=chain->GetEvent())) {
-                bool found = false;
-                for (int j=0; j<_RUNs.size(); j++) {
-                  if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
-                        found=true;
-                        break;
-                  }
-                }
-                if (!found) continue;
-                printf("AMSEventList::Writing event ............ %12d %12d\n"
-                                    , ev->Run(), ev->Event());
-                ev->GetAllContents();
-                amsnew->Fill();
-        }
-        cout << "AMSEventList::Writing AMS ROOT file \"";
-        cout << file->GetName() << "\" with " << this->GetEntries(); 
-        cout << " selected events" << endl;
-        file->Write();
-};
 
-int AMSEventList::GetEntries(){return _RUNs.size();};
-int AMSEventList::GetRun(int i){return _RUNs[i];};
-int AMSEventList::GetEvent(int i){return _EVENTs[i];};
-
-
-void AMSEventR::GetAllContents() {
-            clear();
-            bStatus->GetEntry(_Entry);
-            bHeader->GetEntry(_Entry);
-            bEcalHit->GetEntry(_Entry);
-            bEcalCluster->GetEntry(_Entry);
-            bEcal2DCluster->GetEntry(_Entry);
-            bEcalShower->GetEntry(_Entry);
-            bRichHit->GetEntry(_Entry);
-            bRichRing->GetEntry(_Entry);
-            if(bRichRingB)bRichRingB->GetEntry(_Entry);
-            bTofRawCluster->GetEntry(_Entry);
-            NTofRawSide();
-            bTofCluster->GetEntry(_Entry);
-            NAntiRawSide();
-            bAntiCluster->GetEntry(_Entry);
-            bTrRawCluster->GetEntry(_Entry);
-            bTrCluster->GetEntry(_Entry);
-            bTrRecHit->GetEntry(_Entry);
-            bTrTrack->GetEntry(_Entry);
-            bTrdRawHit->GetEntry(_Entry);
-            bTrdCluster->GetEntry(_Entry);
-            bTrdSegment->GetEntry(_Entry);
-            bTrdTrack->GetEntry(_Entry);
-            bLevel1->GetEntry(_Entry);
-            bLevel3->GetEntry(_Entry);
-            bBeta->GetEntry(_Entry);
-            bVertex->GetEntry(_Entry);
-            bCharge->GetEntry(_Entry);
-            bParticle->GetEntry(_Entry);
-            bAntiMCCluster->GetEntry(_Entry);
-            bTrMCCluster->GetEntry(_Entry);
-            bTofMCCluster->GetEntry(_Entry);
-            bTrdMCCluster->GetEntry(_Entry);
-            bRichMCCluster->GetEntry(_Entry);
-            bMCTrack->GetEntry(_Entry);
-            bMCEventg->GetEntry(_Entry);
-            bDaqEvent->GetEntry(_Entry);
-      }
-
-
-AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fCharge(o.fCharge),fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),fTofMCCluster(o.fTofMCCluster),fTrdMCCluster(o.fTrdMCCluster),fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux){
-_Count++;
-}
-
-Long64_t AMSChain::process(AMSEventR*pev,Option_t*option, int nthreads,Long64_t nentries, Long64_t firstentry){
+Long64_t AMSChain::Process(AMSEventR*pev,Option_t*option, int nthreads,Long64_t nentries, Long64_t firstentry){
 #ifndef __ROOTSHAREDLIBRARY__
 return 0;
 #else
-for (int i=0;i<fNtrees;i++){
-TChainElement* element=(TChainElement*) fFiles->At(i);
-//cout <<element->GetTitle()<<endl;
-}
+TStreamerInfo**ts =new TStreamerInfo*[nthreads];
+for(int i=0;i<nthreads;i++)ts[i]=0;
 long long nentr=0;
 #ifdef _OPENMP
 omp_set_num_threads(nthreads);
 #endif
-// AMSEventR::_NFiles=-fNtrees;
+
+ AMSEventR::_NFiles=-fNtrees;
         cout <<"  bfiles "<<fNtrees<<endl;
         
-	#pragma omp parallel  default(none), shared(std::cout,option,nentries,firstentry,nentr,pev)
+//	#pragma omp parallel  default(none), shared(std::cout,option,nentries,firstentry,nentr,pev)
+        int ntree=fNtrees;
+        if(nentries<0){
+          ntree=-nentries;
+          nentries=10000000000;
+        }
+        cout <<"  Files to be processed "<<ntree<<endl;
+
+	#pragma omp parallel
 	{
 	#pragma omp for schedule (dynamic)
-	for(int i=0;i<fNtrees;i++){
+	for(int i=0;i<ntree;i++){
+        if(nentr>nentries){
+         continue;
+        }
 	TChainElement* element;
         TFile* file;
         TTree *tree;
         int thr=0;
-//#pragma omp critical
-{
 #ifdef _OPENMP
         thr=omp_get_thread_num();
 #endif
+#pragma omp critical
+{
+        if(ts[thr]==0){
+TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
+}
 	element=(TChainElement*) fFiles->At(i);
 	file=new TFile(element->GetTitle(),"READ");
 	tree=(TTree*)file->Get(_NAME);
         cout <<"i "<<i<<endl;
-        pev[thr].Init(tree);
-        cout <<"i "<<i<<endl;
-        pev[thr].Notify();
         pev[thr].SetOption(option);
-        if(i==0)pev[thr].Begin(tree);
-        cout <<element->GetTitle()<<" tree "<<tree->GetEntries()<<" "<<&tree<<" "<<" "<<thr<<endl;
+        pev[thr].Init(tree);
+        pev[thr].Notify();
+        cout <<element->GetTitle()<<" tree "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
        }
-      long ne=0;  
-       continue;
-        for(int n=0;n<tree->GetEntries();n++){
+        pev[thr].Begin(tree);
+        for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
         if(pev[thr].ReadHeader(n)){
         pev[thr].ProcessFill(n);
+        
         }
        }
 #pragma omp critical
 {
+	 nentr+=AMSEventR::_Tree->GetEntries();
 	file->Close("R");
         delete file;
         cout <<" finished "<<i<<endl;
-}
-	if(ne>=0)nentr+=ne;
+   }
 	}
 	}
+        AMSEventR::_NFiles=1;
         pev[0].Terminate();
 	return nentr;
 #endif
 	}
 
 
-#endif
+
+	AMSEventList::AMSEventList(){
+		    _RUNs.reserve(10000);
+		    _EVENTs.reserve(10000);
+	};
+
+	AMSEventList::AMSEventList(const char* filename){
+		    _RUNs.reserve(10000);
+		    _EVENTs.reserve(10000);
+		    Read(filename);
+	};
+	void AMSEventList::Add(int run, int event){
+		_RUNs.push_back(run);
+		_EVENTs.push_back(event);
+	};
+
+	void AMSEventList::Add(AMSEventR* pev){
+		Add(pev->Run(),pev->Event());
+	};
+
+	void AMSEventList::Remove(int run, int event){
+		for (int j=0; j<_RUNs.size(); j++) {
+		    if (run==_RUNs[j] && event==_EVENTs[j]) {
+			  vector<int>::iterator jiter = _RUNs.begin() + j;
+			  _RUNs.erase(jiter);
+			  jiter = _EVENTs.begin() + j;
+			  _EVENTs.erase(jiter);
+			  j--;
+		    }
+		}
+	};
+
+	void AMSEventList::Remove(AMSEventR* pev){
+		Remove(pev->Run(),pev->Event());
+	};
+
+	bool AMSEventList::Contains(int run, int event){
+		for (int j=0; j<_RUNs.size(); j++) {
+		    if (run==_RUNs[j] && event==_EVENTs[j]) {
+			  return true;
+		    }
+		}
+		return false;
+	};
+
+	bool AMSEventList::Contains(AMSEventR* pev){
+		return Contains(pev->Run(),pev->Event());
+	};
+
+	void AMSEventList::Reset(){
+		_RUNs.clear();
+		_EVENTs.clear();
+	};
+
+	void AMSEventList::Read(const char* filename){
+		FILE* listfile = fopen(filename,"r");
+		if (listfile) {
+		    int run, event;
+		    while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
+		    fclose(listfile);
+		} else {
+		    cout << "AMSEventlist: Error opening file '" << filename << "';";
+		    cout << " assuming an empty list" << endl;
+		}
+	};
+
+	void AMSEventList::Write(){
+		cout << "AMSEventList::Dumping a list with ";
+		cout << this->GetEntries(); 
+		cout << " selected events..." << endl;
+		for (int j=0; j<_RUNs.size(); j++) {
+		    cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
+		}
+	};
+
+	void AMSEventList::Write(const char* filename){
+		cout << "AMSEventList::Writing ASCII file \"";
+		cout << filename << "\" with " << this->GetEntries(); 
+		cout << " selected events" << endl;
+		FILE* listfile = fopen(filename,"w");
+		for (int j=0; j<_RUNs.size(); j++) {
+		    fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
+		}
+		fclose(listfile);
+	};
+
+
+	void AMSEventList::Write(AMSChain* chain, TFile* file){
+		TTree *amsnew = chain->CloneTree(0);
+		chain->Rewind();
+		AMSEventR* ev = NULL;
+		while ((ev=chain->GetEvent())) {
+			bool found = false;
+			for (int j=0; j<_RUNs.size(); j++) {
+			  if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
+				found=true;
+				break;
+			  }
+			}
+			if (!found) continue;
+			printf("AMSEventList::Writing event ............ %12d %12d\n"
+					    , ev->Run(), ev->Event());
+			ev->GetAllContents();
+			amsnew->Fill();
+		}
+		cout << "AMSEventList::Writing AMS ROOT file \"";
+		cout << file->GetName() << "\" with " << this->GetEntries(); 
+		cout << " selected events" << endl;
+		file->Write();
+	};
+
+	int AMSEventList::GetEntries(){return _RUNs.size();};
+	int AMSEventList::GetRun(int i){return _RUNs[i];};
+	int AMSEventList::GetEvent(int i){return _EVENTs[i];};
+
+
+	void AMSEventR::GetAllContents() {
+		    clear();
+		    bStatus->GetEntry(_Entry);
+		    bHeader->GetEntry(_Entry);
+		    bEcalHit->GetEntry(_Entry);
+		    bEcalCluster->GetEntry(_Entry);
+		    bEcal2DCluster->GetEntry(_Entry);
+		    bEcalShower->GetEntry(_Entry);
+		    bRichHit->GetEntry(_Entry);
+		    bRichRing->GetEntry(_Entry);
+		    if(bRichRingB)bRichRingB->GetEntry(_Entry);
+		    bTofRawCluster->GetEntry(_Entry);
+		    NTofRawSide();
+		    bTofCluster->GetEntry(_Entry);
+		    NAntiRawSide();
+		    bAntiCluster->GetEntry(_Entry);
+		    bTrRawCluster->GetEntry(_Entry);
+		    bTrCluster->GetEntry(_Entry);
+		    bTrRecHit->GetEntry(_Entry);
+		    bTrTrack->GetEntry(_Entry);
+		    bTrdRawHit->GetEntry(_Entry);
+		    bTrdCluster->GetEntry(_Entry);
+		    bTrdSegment->GetEntry(_Entry);
+		    bTrdTrack->GetEntry(_Entry);
+		    bLevel1->GetEntry(_Entry);
+		    bLevel3->GetEntry(_Entry);
+		    bBeta->GetEntry(_Entry);
+		    bVertex->GetEntry(_Entry);
+		    bCharge->GetEntry(_Entry);
+		    bParticle->GetEntry(_Entry);
+		    bAntiMCCluster->GetEntry(_Entry);
+		    bTrMCCluster->GetEntry(_Entry);
+		    bTofMCCluster->GetEntry(_Entry);
+		    bTrdMCCluster->GetEntry(_Entry);
+		    bRichMCCluster->GetEntry(_Entry);
+		    bMCTrack->GetEntry(_Entry);
+		    bMCEventg->GetEntry(_Entry);
+		    bDaqEvent->GetEntry(_Entry);
+	      }
+
+
+	AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fCharge(o.fCharge),fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),fTofMCCluster(o.fTofMCCluster),fTrdMCCluster(o.fTrdMCCluster),fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux){
+	_Count++;
+	}
+	#endif
+

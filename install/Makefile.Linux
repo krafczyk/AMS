@@ -77,7 +77,7 @@ endif
   CC=$(INTELDIR)/Compiler/11.0/069/bin/ia32/icc  -m32  -axssse3 $(PARALLEL)
   LD=$(INTELDIR)/Compiler/11.0/069/bin/ia32/icpc -m32  -axssse3  $(PARALLEL) 
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0
-FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/fc/10.1.012/lib     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/Compiler/11.0/069/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 else
 FORTRAN2_LIBS= 
 endif
@@ -223,6 +223,7 @@ ifdef AMSICC
   SHLD=$(LIB)/ntuple.so
 ifdef SLC4system
   SHLD=$(LIB)/ntuple_slc4.so
+  NTLD=$(LIB)/libntuple_slc4.a
 endif
 endif
 

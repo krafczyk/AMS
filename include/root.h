@@ -240,6 +240,7 @@ public:
 
   virtual ~HeaderR(){};
   ClassDef(HeaderR,9)       //HeaderR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -270,6 +271,7 @@ public:
   return _Info;
   } 
 ClassDef(DaqEventR,1)       //DaqEventR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -304,6 +306,7 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
   EcalHitR(){};
   virtual ~EcalHitR(){};
 ClassDef(EcalHitR,1)       //EcalHitR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// EcalCluster structure
@@ -361,6 +364,7 @@ public:
   } 
   virtual ~EcalClusterR(){};
 ClassDef(EcalClusterR,1)       //EcalClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -399,6 +403,7 @@ public:
   Ecal2DClusterR(AMSEcal2DCluster *ptr);
   virtual ~Ecal2DClusterR(){};
 ClassDef(Ecal2DClusterR,1)       //Ecal2DClusterR
+#pragma omp threadprivate(fgIsA)
 friend class AMSEcal2DCluster;
 friend class AMSEventR;
 };
@@ -472,6 +477,7 @@ friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
 ClassDef(EcalShowerR,2)       //EcalShowerR
+#pragma omp threadprivate(fgIsA)
 
 };
 
@@ -513,6 +519,7 @@ public:
 
   virtual ~TofRawClusterR(){};
   ClassDef(TofRawClusterR ,4)       //TofRawClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// TofRawSideR structure
@@ -550,6 +557,7 @@ public:
   virtual ~TofRawSideR(){};
   
   ClassDef(TofRawSideR ,5)       //TofRawSideR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -580,6 +588,7 @@ public:
   virtual ~AntiRawSideR(){};
   
   ClassDef(AntiRawSideR ,1)       //AntiRawSideR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -636,6 +645,7 @@ public:
   friend class AMSEventR;
   virtual ~TofClusterR(){};
 ClassDef(TofClusterR,1)       //TofClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -668,6 +678,7 @@ public:
   } 
   virtual ~AntiClusterR(){};
 ClassDef(AntiClusterR,1)       //AntiClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -687,6 +698,7 @@ public:
   TrRawClusterR(AMSTrRawCluster *ptr);
   virtual ~TrRawClusterR(){};
 ClassDef(TrRawClusterR,2)       //TrRawClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -749,6 +761,7 @@ public:
   TrClusterR(AMSTrCluster *ptr);
   virtual ~TrClusterR(){};
 ClassDef(TrClusterR,2)       //TrClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -841,6 +854,7 @@ public:
   friend class AMSEventR;
   virtual ~TrRecHitR(){};
 ClassDef(TrRecHitR,3)       //TrRecHitR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -913,6 +927,7 @@ public:
   } 
   virtual ~TrTrackR(){};
 ClassDef(TrTrackR,9)       //TrTrackR
+#pragma omp threadprivate(fgIsA)
 friend class AMSTrTrack;
 friend class AMSEventR;
 };
@@ -976,6 +991,7 @@ public:
 
   virtual ~RichHitR(){};
 ClassDef(RichHitR,2)       // RichHitR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1062,6 +1078,7 @@ public:
   } 
   virtual ~RichRingR(){};
   ClassDef(RichRingR,12)           // RichRingR
+#pragma omp threadprivate(fgIsA)
 }; 
 
 
@@ -1162,6 +1179,7 @@ static char _Info[255];
   } 
   virtual ~RichRingBR(){};
   ClassDef(RichRingBR,1)           // RichRingBR
+#pragma omp threadprivate(fgIsA)
 }; 
 
 
@@ -1184,6 +1202,7 @@ public:
 
   virtual ~TrdRawHitR(){};
 ClassDef(TrdRawHitR,2)       //TrdRawHitR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// TRDClusterR structure
@@ -1225,6 +1244,7 @@ public:
   }
   virtual ~TrdClusterR(){};
 ClassDef(TrdClusterR,2)       //TrdClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// TRDSegmentR structure
@@ -1262,6 +1282,7 @@ public:
   TrdSegmentR(AMSTRDSegment *ptr);
   virtual ~TrdSegmentR(){};
 ClassDef(TrdSegmentR,1)       //TrdSegmentR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1310,6 +1331,7 @@ public:
   friend class AMSEventR;
   virtual ~TrdTrackR(){};
 ClassDef(TrdTrackR,1)       //TrdTrackR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1394,6 +1416,7 @@ public:
   }
   virtual ~Level1R(){};
 ClassDef(Level1R,7)       //Level1R
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1546,6 +1569,7 @@ public:
   }
   virtual ~Level3R(){};
 ClassDef(Level3R,1)       //Level3R
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1597,6 +1621,7 @@ public:
    friend class AMSEventR;
    virtual ~BetaR(){};
    ClassDef(BetaR,1)         //BetaR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1652,6 +1677,7 @@ public:
                float probrc[], int chinrc[], float proballtr);
   virtual ~ChargeR(){};
 ClassDef(ChargeR,1)       //ChargeR
+#pragma omp threadprivate(fgIsA)
 
 };
 
@@ -1694,6 +1720,7 @@ public:
   friend class AMSEventR;
   virtual ~VertexR(){};
   ClassDef(VertexR,3)         //VertexR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1868,6 +1895,7 @@ public:
   friend class AMSEventR;
   virtual ~ParticleR(){};
   ClassDef(ParticleR,3)       //ParticleR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// AntiMCCluster structure
@@ -1886,6 +1914,7 @@ public:
   AntiMCClusterR(AMSAntiMCCluster *ptr);
   virtual ~AntiMCClusterR(){};
 ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// TrMCCluster structure
@@ -1922,6 +1951,7 @@ public:
   } 
   virtual ~TrMCClusterR(){};
 ClassDef(TrMCClusterR,1)       //TrMCClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1940,6 +1970,7 @@ public:
   TofMCClusterR(AMSTOFMCCluster *ptr);
   virtual ~TofMCClusterR(){};
 ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -1963,6 +1994,7 @@ public:
   TrdMCClusterR(AMSTRDMCCluster *ptr);
   virtual ~TrdMCClusterR(){};
 ClassDef(TrdMCClusterR,1)       //TrdMCClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -2020,6 +2052,7 @@ NOTE: The information of the mother is only available if RICCONT=1 in
   RichMCClusterR(AMSRichMCHit *ptr, int _numgen);
   virtual ~RichMCClusterR(){};
   ClassDef(RichMCClusterR,2)       // RichMCClusterR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -2043,6 +2076,7 @@ char  VolName[5];  ///< Volume name
  MCTrackR(AMSmctrack *ptr);
   virtual ~MCTrackR(){};
 ClassDef(MCTrackR,1)       //MCTrackR
+#pragma omp threadprivate(fgIsA)
 };
 
 /// MC particle structure
@@ -2077,6 +2111,7 @@ public:
   } 
   virtual ~MCEventgR(){};
 ClassDef(MCEventgR,1)       //MCEventgR
+#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -2144,6 +2179,7 @@ Service():_pOut(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 };
 protected:
 Service  fService;
+static Service*  pService;
 static TBranch*  bStatus;
 static TBranch*  bHeader;
 static TBranch*  bEcalHit;
@@ -2185,7 +2221,6 @@ static TBranch*  bAux;
 
 #pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
 #endif
-
 
 static void*  vStatus;
 static void*  vHeader;
@@ -2229,16 +2264,17 @@ static TTree     * _Tree;
 static TTree     * _ClonedTree;
 
 static AMSEventR * _Head;
-static int         _Count;
+static int _Count;
+static int _NFiles;
 static int         _Entry;
 static char      * _Name;
 #ifdef __ROOTSHAREDLIBRARY__
-#pragma omp threadprivate(_Tree,_ClonedTree,_Entry,_Head)
+#pragma omp threadprivate(_Tree,_Entry,_Head)
 #endif
 public:
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
- void SetBranchA(TTree *tree);   // don;t use it anymore use Init
+// void SetBranchA(TTree *tree);   // don;t use it anymore use Init
 
 
 
@@ -2311,7 +2347,6 @@ static  void hf2(int id,float a, float b,float w);
 
  void    Init(TTree *tree);   ///< InitTree
  void CreateBranch(TTree *tree, int brs);
- void ReSetBranchA(TTree *tree);
  void GetBranch(TTree *tree);
  void GetBranchA(TTree *tree);
  void SetCont(); 
@@ -2319,7 +2354,7 @@ static  void hf2(int id,float a, float b,float w);
  static TTree* & Tree()  {return _Tree;}
  static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
- TFile* & OutputFile(){return fService._pOut;};
+ TFile* & OutputFile(){return (*pService)._pOut;};
 #ifdef  __CINT__ 
 public:
 #elif  defined WIN32
@@ -2670,12 +2705,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of EcalHitR
       ///
       unsigned int   NEcalHit()  {
+
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
         return fEcalHit.size();
       }
       ///  \return reference of EcalHitR Collection
       ///
       vector<EcalHitR> & EcalHit()  {
+
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
          return  fEcalHit;
        }
@@ -2685,6 +2722,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding EcalHitR element
       ///
        EcalHitR &   EcalHit(unsigned int l) {
+
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
          return fEcalHit.at(l);
       }
@@ -2696,6 +2734,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding EcalHitR element
       ///
       EcalHitR *   pEcalHit(unsigned int l) {
+
         if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
         return l<fEcalHit.size()?&(fEcalHit[l]):0;
       }
@@ -2704,6 +2743,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of EcalClusterR
       ///
       unsigned int   NEcalCluster()  {
+
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
         return fEcalCluster.size();
       }
@@ -2711,6 +2751,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference of EcalClusterR Collection
       ///
       vector<EcalClusterR> & EcalCluster()  {
+
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
          return  fEcalCluster;
        }
@@ -2720,6 +2761,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding EcalClusterR element
       ///
        EcalClusterR &   EcalCluster(unsigned int l) {
+
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
          return fEcalCluster.at(l);
       }
@@ -2729,6 +2771,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding EcalClusterR element
       ///
       EcalClusterR *   pEcalCluster(unsigned int l) {
+
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
         return l<fEcalCluster.size()?&(fEcalCluster[l]):0;
       }
@@ -2739,6 +2782,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of Ecal2DClusterR
       ///
       unsigned int   NEcal2DCluster()  {
+
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
         return fEcal2DCluster.size();
       }
@@ -2746,6 +2790,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference of Ecal2DClusterR Collection
       ///
       vector<Ecal2DClusterR> & Ecal2DCluster()  {
+
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
          return  fEcal2DCluster;
        }
@@ -2754,6 +2799,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
      ///  \return reference to corresponding Ecal2DClusterR element
       ///
        Ecal2DClusterR &   Ecal2DCluster(unsigned int l) {
+
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
          return fEcal2DCluster.at(l);
       }
@@ -2762,6 +2808,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
    ///  \return pointer to corresponding Ecal2DClusterR element
       ///
       Ecal2DClusterR *   pEcal2DCluster(unsigned int l) {
+
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
         return l<fEcal2DCluster.size()?&(fEcal2DCluster[l]):0;
       }
@@ -2770,12 +2817,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of EcalShowerR
       ///
       unsigned int   NEcalShower()  {
+
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
         return fEcalShower.size();
       }
        ///  \return reference of EcalShowerR Collection
       ///
       vector<EcalShowerR> & EcalShower()  {
+
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
          return  fEcalShower;
        }
@@ -2784,6 +2833,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   ///  \return reference to corresponding EcalShowerR element
       ///
        EcalShowerR &   EcalShower(unsigned int l) {
+
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
          return fEcalShower.at(l);
       }
@@ -2792,6 +2842,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
  ///  \return pointer to corresponding EcalShowerR element
       ///
       EcalShowerR *   pEcalShower(unsigned int l) {
+
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
         return l<fEcalShower.size()?&(fEcalShower[l]):0;
       }
@@ -2801,12 +2852,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of RichHitR
       ///
       unsigned int   NRichHit()  {
+
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
         return fRichHit.size();
       }
       ///  \return reference of RichHitR Collection
       ///
       vector<RichHitR> & RichHit()  {
+
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
          return  fRichHit;
        }
@@ -2816,6 +2869,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding RichHitR element
       ///
        RichHitR &   RichHit(unsigned int l) {
+
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
          return fRichHit.at(l);
       }
@@ -2825,6 +2879,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding RichHitR element
       ///
       RichHitR *   pRichHit(unsigned int l) {
+
         if(fHeader.RichHits && fRichHit.size()==0)bRichHit->GetEntry(_Entry);
         return l<fRichHit.size()?&(fRichHit[l]):0;
       }
@@ -2838,6 +2893,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
       unsigned int   NRichRing()  {
         if(fHeader.RichRings && fRichRing.size()==0){
+
            bRichRing->GetEntry(_Entry);
         }
         return fRichRing.size();
@@ -2845,6 +2901,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference of RichRingR Collection
       ///
       vector<RichRingR> & RichRing()  {
+
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
          return  fRichRing;
        }
@@ -2854,6 +2911,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding RichRingR element
       ///
        RichRingR &   RichRing(unsigned int l) {
+
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
          return fRichRing.at(l);
       }
@@ -2863,6 +2921,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding RichRingR element
       ///
       RichRingR *   pRichRing(unsigned int l) {
+
         if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
         return l<fRichRing.size()?&(fRichRing[l]):0;
       }
@@ -2876,6 +2935,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
       unsigned int   NRichRingB()  {
         if(fHeader.RichRingBs && fRichRingB.size()==0){
+
            bRichRingB->GetEntry(_Entry);
         }
         return fRichRingB.size();
@@ -2883,6 +2943,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference of RichRingBR Collection
       ///
       vector<RichRingBR> & RichRingB()  {
+
         if(fHeader.RichRingBs && fRichRingB.size()==0)bRichRingB->GetEntry(_Entry);
          return  fRichRingB;
        }
@@ -2892,6 +2953,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding RichRingBR element
       ///
        RichRingBR &   RichRingB(unsigned int l) {
+
         if(fHeader.RichRingBs && fRichRingB.size()==0)bRichRingB->GetEntry(_Entry);
          return fRichRingB.at(l);
       }
@@ -2901,6 +2963,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding RichRingBR element
       ///
       RichRingBR *   pRichRingB(unsigned int l) {
+
         if(fHeader.RichRingBs && fRichRingB.size()==0)bRichRingB->GetEntry(_Entry);
         return l<fRichRingB.size()?&(fRichRingB[l]):0;
       }
@@ -2913,12 +2976,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TofRawClusterR
       ///
       unsigned int   NTofRawCluster()  {
+
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
         return fTofRawCluster.size();
       }
       ///  \return reference of TofRawClusterR Collection
       ///
       vector<TofRawClusterR> & TofRawCluster()  {
+
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
          return  fTofRawCluster;
        }
@@ -2928,6 +2993,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TofRawClusterR element
       ///
        TofRawClusterR &   TofRawCluster(unsigned int l) {
+
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
          return fTofRawCluster.at(l);
       }
@@ -2937,6 +3003,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TofRawClusterR element
       ///
       TofRawClusterR *   pTofRawCluster(unsigned int l) {
+
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
         return l<fTofRawCluster.size()?&(fTofRawCluster[l]):0;
       }
@@ -2950,6 +3017,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
       unsigned int   NTofRawSide()  {
         if(fHeader.TofRawSides  && fTofRawSide.size()==0){
+
           if(bTofRawSide)bTofRawSide->GetEntry(_Entry);
         }
           return fTofRawSide.size();
@@ -2957,6 +3025,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference of TofRawSideR Collection
       ///
       vector<TofRawSideR> & TofRawSide()  {
+
         if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
          return  fTofRawSide;
        }
@@ -2966,6 +3035,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TofRawSideR element
       ///
        TofRawSideR &   TofRawSide(unsigned int l) {
+
         if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
          return fTofRawSide.at(l);
       }
@@ -2975,6 +3045,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TofRawSideR element
       ///
       TofRawSideR *   pTofRawSide(unsigned int l) {
+
         if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
         return l<fTofRawSide.size()?&(fTofRawSide[l]):0;
       }
@@ -2985,12 +3056,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TofClusterR
       ///
       unsigned int   NTofCluster()  {
+
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
         return fTofCluster.size();
       }
       ///  \return reference of TofClusterR Collection
       ///
       vector<TofClusterR> & TofCluster()  {
+
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
          return  fTofCluster;
        }
@@ -3000,6 +3073,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TofClusterR element
       ///
        TofClusterR &   TofCluster(unsigned int l) {
+
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
          return fTofCluster.at(l);
       }
@@ -3009,6 +3083,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TofClusterR element
       ///
       TofClusterR *   pTofCluster(unsigned int l) {
+
         if(fHeader.TofClusters && fTofCluster.size()==0)bTofCluster->GetEntry(_Entry);
         return l<fTofCluster.size()?&(fTofCluster[l]):0;
       }
@@ -3020,6 +3095,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
       unsigned int   NAntiRawSide()  {
         if(fHeader.AntiRawSides  && fAntiRawSide.size()==0){
+
           if(bAntiRawSide)bAntiRawSide->GetEntry(_Entry);
         }
           return fAntiRawSide.size();
@@ -3027,6 +3103,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference of AntiRawSideR Collection
       ///
       vector<AntiRawSideR> & AntiRawSide()  {
+
         if(fHeader.AntiRawSides && fAntiRawSide.size()==0)bAntiRawSide->GetEntry(_Entry);
          return  fAntiRawSide;
        }
@@ -3036,6 +3113,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding AntiRawSideR element
       ///
        AntiRawSideR &   AntiRawSide(unsigned int l) {
+
         if(fHeader.AntiRawSides && fAntiRawSide.size()==0)bAntiRawSide->GetEntry(_Entry);
          return fAntiRawSide.at(l);
       }
@@ -3045,6 +3123,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding AntiRawSideR element
       ///
       AntiRawSideR *   pAntiRawSide(unsigned int l) {
+
         if(fHeader.AntiRawSides && fAntiRawSide.size()==0)bAntiRawSide->GetEntry(_Entry);
         return l<fAntiRawSide.size()?&(fAntiRawSide[l]):0;
       }
@@ -3055,12 +3134,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of AntiClusterR
       ///
       unsigned int   NAntiCluster()  {
+
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
         return fAntiCluster.size();
       }
       ///  \return reference of AntiClusterR Collection
       ///
       vector<AntiClusterR> & AntiCluster()  {
+
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
          return  fAntiCluster;
        }
@@ -3070,6 +3151,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding AntiClusterR element
       ///
        AntiClusterR &   AntiCluster(unsigned int l) {
+
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
          return fAntiCluster.at(l);
       }
@@ -3079,6 +3161,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding AntiClusterR element
       ///
       AntiClusterR *   pAntiCluster(unsigned int l) {
+
         if(fHeader.AntiClusters && fAntiCluster.size()==0)bAntiCluster->GetEntry(_Entry);
         return l<fAntiCluster.size()?&(fAntiCluster[l]):0;
       }
@@ -3087,12 +3170,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrRawClusterR
       ///
       unsigned int   NTrRawCluster()  {
+
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
         return fTrRawCluster.size();
       }
       ///  \return reference of TrRawClusterR Collection
       ///
       vector<TrRawClusterR> & TrRawCluster()  {
+
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
          return  fTrRawCluster;
        }
@@ -3102,6 +3187,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrRawClusterR element
       ///
        TrRawClusterR &   TrRawCluster(unsigned int l) {
+
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
          return fTrRawCluster.at(l);
       }
@@ -3111,6 +3197,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrRawClusterR element
       ///
       TrRawClusterR *   pTrRawCluster(unsigned int l) {
+
         if(fHeader.TrRawClusters && fTrRawCluster.size()==0)bTrRawCluster->GetEntry(_Entry);
         return l<fTrRawCluster.size()?&(fTrRawCluster[l]):0;
       }
@@ -3121,12 +3208,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrClusterR
       ///
       unsigned int   NTrCluster()  {
+
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
         return fTrCluster.size();
       }
       ///  \return reference of TrClusterR Collection
       ///
       vector<TrClusterR> & TrCluster()  {
+
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
          return  fTrCluster;
        }
@@ -3136,6 +3225,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrClusterR element
       ///
        TrClusterR &   TrCluster(unsigned int l) {
+
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
          return fTrCluster.at(l);
       }
@@ -3145,6 +3235,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrClusterR element
       ///
       TrClusterR *   pTrCluster(unsigned int l) {
+
         if(fHeader.TrClusters && fTrCluster.size()==0)bTrCluster->GetEntry(_Entry);
         return l<fTrCluster.size()?&(fTrCluster[l]):0;
       }
@@ -3156,12 +3247,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrRecHitR
       ///
       unsigned int   NTrRecHit()  {
+
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
         return fTrRecHit.size();
       }
       ///  \return reference of TrRecHitR Collection
       ///
       vector<TrRecHitR> & TrRecHit()  {
+
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
          return  fTrRecHit;
        }
@@ -3171,6 +3264,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrRecHitR element
       ///
        TrRecHitR &   TrRecHit(unsigned int l) {
+
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
          return fTrRecHit.at(l);
       }
@@ -3180,6 +3274,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrRecHitR element
       ///
       TrRecHitR *   pTrRecHit(unsigned int l) {
+
         if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
         return l<fTrRecHit.size()?&(fTrRecHit[l]):0;
       }
@@ -3189,12 +3284,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrTrackR
       ///
       unsigned int   NTrTrack()  {
+
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
         return fTrTrack.size();
       }
       ///  \return reference of TrTrackR Collection
       ///
       vector<TrTrackR> & TrTrack()  {
+
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
          return  fTrTrack;
        }
@@ -3204,6 +3301,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrTrackR element
       ///
        TrTrackR &   TrTrack(unsigned int l) {
+
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
          return fTrTrack.at(l);
       }
@@ -3213,6 +3311,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrTrackR element
       ///
       TrTrackR *   pTrTrack(unsigned int l) {
+
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
         return l<fTrTrack.size()?&(fTrTrack[l]):0;
       }
@@ -3224,12 +3323,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrdRawHitR
       ///
       unsigned int   NTrdRawHit()  {
+
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
         return fTrdRawHit.size();
       }
       ///  \return reference of TrdRawHitR Collection
       ///
       vector<TrdRawHitR> & TrdRawHit()  {
+
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
          return  fTrdRawHit;
        }
@@ -3239,6 +3340,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrdRawHitR element
       ///
        TrdRawHitR &   TrdRawHit(unsigned int l) {
+
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
          return fTrdRawHit.at(l);
       }
@@ -3248,6 +3350,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrdRawHitR element
       ///
       TrdRawHitR *   pTrdRawHit(unsigned int l) {
+
         if(fHeader.TrdRawHits && fTrdRawHit.size()==0)bTrdRawHit->GetEntry(_Entry);
         return l<fTrdRawHit.size()?&(fTrdRawHit[l]):0;
       }
@@ -3257,12 +3360,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrdClusterR
       ///
       unsigned int   NTrdCluster()  {
+
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
         return fTrdCluster.size();
       }
       ///  \return reference of TrdClusterR Collection
       ///
       vector<TrdClusterR> & TrdCluster()  {
+
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
          return  fTrdCluster;
        }
@@ -3272,6 +3377,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrdClusterR element
       ///
        TrdClusterR &   TrdCluster(unsigned int l) {
+
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
          return fTrdCluster.at(l);
       }
@@ -3281,6 +3387,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrdClusterR element
       ///
       TrdClusterR *   pTrdCluster(unsigned int l) {
+
         if(fHeader.TrdClusters && fTrdCluster.size()==0)bTrdCluster->GetEntry(_Entry);
         return l<fTrdCluster.size()?&(fTrdCluster[l]):0;
       }
@@ -3290,12 +3397,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrdSegmentR
       ///
       unsigned int   NTrdSegment()  {
+
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
         return fTrdSegment.size();
       }
       ///  \return reference of TrdSegmentR Collection
       ///
       vector<TrdSegmentR> & TrdSegment()  {
+
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
          return  fTrdSegment;
        }
@@ -3305,6 +3414,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrdSegmentR element
       ///
        TrdSegmentR &   TrdSegment(unsigned int l) {
+
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
          return fTrdSegment.at(l);
       }
@@ -3314,6 +3424,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrdSegmentR element
       ///
       TrdSegmentR *   pTrdSegment(unsigned int l) {
+
         if(fHeader.TrdSegments && fTrdSegment.size()==0)bTrdSegment->GetEntry(_Entry);
         return l<fTrdSegment.size()?&(fTrdSegment[l]):0;
       }
@@ -3324,12 +3435,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrdTrackR
       ///
       unsigned int   NTrdTrack()  {
+
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
         return fTrdTrack.size();
       }
       ///  \return reference of TrdTrackR Collection
       ///
       vector<TrdTrackR> & TrdTrack()  {
+
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
          return  fTrdTrack;
        }
@@ -3339,6 +3452,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrdTrackR element
       ///
        TrdTrackR &   TrdTrack(unsigned int l) {
+
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
          return fTrdTrack.at(l);
       }
@@ -3348,6 +3462,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrdTrackR element
       ///
       TrdTrackR *   pTrdTrack(unsigned int l) {
+
         if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
         return l<fTrdTrack.size()?&(fTrdTrack[l]):0;
       }
@@ -3359,12 +3474,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of Level1R
       ///
       unsigned int   NLevel1()  {
+
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
         return fLevel1.size();
       }
       ///  \return reference of Level1R Collection
       ///
       vector<Level1R> & Level1()  {
+
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
          return  fLevel1;
        }
@@ -3374,6 +3491,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding Level1R element
       ///
        Level1R &   Level1(unsigned int l) {
+
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
          return fLevel1.at(l);
       }
@@ -3383,6 +3501,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding Level1R element
       ///
       Level1R *   pLevel1(unsigned int l=0) {
+
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
         return l<fLevel1.size()?&(fLevel1[l]):0;
       }
@@ -3396,12 +3515,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of Level3R
       ///
       unsigned int   NLevel3()  {
+
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
         return fLevel3.size();
       }
       ///  \return reference of Level3R Collection
       ///
       vector<Level3R> & Level3()  {
+
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
          return  fLevel3;
        }
@@ -3411,6 +3532,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding Level3R element
       ///
        Level3R &   Level3(unsigned int l) {
+
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
          return fLevel3.at(l);
       }
@@ -3420,6 +3542,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding Level3R element
       ///
       Level3R *   pLevel3(unsigned int l) {
+
         if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
         return l<fLevel3.size()?&(fLevel3[l]):0;
       }
@@ -3437,12 +3560,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of BetaR
       ///
       unsigned int   NBeta()  {
+
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
         return fBeta.size();
       }
       ///  \return reference of BetaR Collection
       ///
       vector<BetaR> & Beta()  {
+
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
          return  fBeta;
        }
@@ -3452,6 +3577,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding BetaR element
       ///
        BetaR &   Beta(unsigned int l) {
+
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
          return fBeta.at(l);
       }
@@ -3461,6 +3587,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding BetaR element
       ///
       BetaR *   pBeta(unsigned int l) {
+
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
         return l<fBeta.size()?&(fBeta[l]):0;
       }
@@ -3478,12 +3605,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of ChargeR
       ///
       unsigned int   NCharge()  {
+
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
         return fCharge.size();
       }
       ///  \return reference of ChargeR Collection
       ///
       vector<ChargeR> & Charge()  {
+
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
          return  fCharge;
        }
@@ -3493,6 +3622,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding ChargeR element
       ///
        ChargeR &   Charge(unsigned int l) {
+
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
          return fCharge.at(l);
       }
@@ -3502,6 +3632,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding ChargeR element
       ///
       ChargeR *   pCharge(unsigned int l) {
+
         if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
         return l<fCharge.size()?&(fCharge[l]):0;
       }
@@ -3511,12 +3642,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of VertexR
       ///
       unsigned int   NVertex()  {
+
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
         return fVertex.size();
       }
       ///  \return reference of VertexR Collection
       ///
       vector<VertexR> & Vertex()  {
+
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
          return  fVertex;
        }
@@ -3526,6 +3659,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding VertexR element
       ///
        VertexR &   Vertex(unsigned int l) {
+
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
          return fVertex.at(l);
       }
@@ -3535,6 +3669,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding VertexR element
       ///
       VertexR *   pVertex(unsigned int l) {
+
         if(fHeader.Vertexs && fVertex.size()==0)bVertex->GetEntry(_Entry);
         return l<fVertex.size()?&(fVertex[l]):0;
       }
@@ -3543,12 +3678,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of ParticleR
       ///
       unsigned int   NParticle()  {
+
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
         return fParticle.size();
       }
       ///  \return reference of ParticleR Collection
       ///
       vector<ParticleR> & Particle()  {
+
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
          return  fParticle;
        }
@@ -3558,6 +3695,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding ParticleR element
       ///
        ParticleR &   Particle(unsigned int l) {
+
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
          return fParticle.at(l);
       }
@@ -3567,6 +3705,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding ParticleR element
       ///
       ParticleR *   pParticle(unsigned int l) {
+
         if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
         return l<fParticle.size()?&(fParticle[l]):0;
       }
@@ -3578,12 +3717,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of AntiMCClusterR
       ///
       unsigned int   NAntiMCCluster()  {
+
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
         return fAntiMCCluster.size();
       }
       ///  \return reference of AntiMCClusterR Collection
       ///
       vector<AntiMCClusterR> & AntiMCCluster()  {
+
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
          return  fAntiMCCluster;
        }
@@ -3593,6 +3734,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding AntiMCClusterR element
       ///
        AntiMCClusterR &   AntiMCCluster(unsigned int l) {
+
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
          return fAntiMCCluster.at(l);
       }
@@ -3602,6 +3744,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding AntiMCClusterR element
       ///
       AntiMCClusterR *   pAntiMCCluster(unsigned int l) {
+
         if(fHeader.AntiMCClusters && fAntiMCCluster.size()==0)bAntiMCCluster->GetEntry(_Entry);
         return l<fAntiMCCluster.size()?&(fAntiMCCluster[l]):0;
       }
@@ -3614,12 +3757,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TofMCClusterR
       ///
       unsigned int   NTofMCCluster()  {
+
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
         return fTofMCCluster.size();
       }
       ///  \return reference of TofMCClusterR Collection
       ///
       vector<TofMCClusterR> & TofMCCluster()  {
+
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
          return  fTofMCCluster;
        }
@@ -3629,6 +3774,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TofMCClusterR element
       ///
        TofMCClusterR &   TofMCCluster(unsigned int l) {
+
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
          return fTofMCCluster.at(l);
       }
@@ -3638,6 +3784,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TofMCClusterR element
       ///
       TofMCClusterR *   pTofMCCluster(unsigned int l) {
+
         if(fHeader.TofMCClusters && fTofMCCluster.size()==0)bTofMCCluster->GetEntry(_Entry);
         return l<fTofMCCluster.size()?&(fTofMCCluster[l]):0;
       }
@@ -3649,12 +3796,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrMCClusterR
       ///
       unsigned int   NTrMCCluster()  {
+
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
         return fTrMCCluster.size();
       }
       ///  \return reference of TrMCClusterR Collection
       ///
       vector<TrMCClusterR> & TrMCCluster()  {
+
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
          return  fTrMCCluster;
        }
@@ -3664,6 +3813,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrMCClusterR element
       ///
        TrMCClusterR &   TrMCCluster(unsigned int l) {
+
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
          return fTrMCCluster.at(l);
       }
@@ -3673,6 +3823,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrMCClusterR element
       ///
       TrMCClusterR *   pTrMCCluster(unsigned int l) {
+
         if(fHeader.TrMCClusters && fTrMCCluster.size()==0)bTrMCCluster->GetEntry(_Entry);
         return l<fTrMCCluster.size()?&(fTrMCCluster[l]):0;
       }
@@ -3685,12 +3836,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of TrdMCClusterR
       ///
       unsigned int   NTrdMCCluster()  {
+
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
         return fTrdMCCluster.size();
       }
       ///  \return reference of TrdMCClusterR Collection
       ///
       vector<TrdMCClusterR> & TrdMCCluster()  {
+
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
          return  fTrdMCCluster;
        }
@@ -3700,6 +3853,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding TrdMCClusterR element
       ///
        TrdMCClusterR &   TrdMCCluster(unsigned int l) {
+
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
          return fTrdMCCluster.at(l);
       }
@@ -3709,6 +3863,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding TrdMCClusterR element
       ///
       TrdMCClusterR *   pTrdMCCluster(unsigned int l) {
+
         if(fHeader.TrdMCClusters && fTrdMCCluster.size()==0)bTrdMCCluster->GetEntry(_Entry);
         return l<fTrdMCCluster.size()?&(fTrdMCCluster[l]):0;
       }
@@ -3721,12 +3876,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of RichMCClusterR
       ///
       unsigned int   NRichMCCluster()  {
+
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
         return fRichMCCluster.size();
       }
       ///  \return reference of RichMCClusterR Collection
       ///
       vector<RichMCClusterR> & RichMCCluster()  {
+
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
          return  fRichMCCluster;
        }
@@ -3736,6 +3893,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding RichMCClusterR element
       ///
        RichMCClusterR &   RichMCCluster(unsigned int l) {
+
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
          return fRichMCCluster.at(l);
       }
@@ -3745,6 +3903,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding RichMCClusterR element
       ///
       RichMCClusterR *   pRichMCCluster(unsigned int l) {
+
         if(fHeader.RichMCClusters && fRichMCCluster.size()==0)bRichMCCluster->GetEntry(_Entry);
         return l<fRichMCCluster.size()?&(fRichMCCluster[l]):0;
       }
@@ -3757,12 +3916,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of MCTrackR
       ///
       unsigned int   NMCTrack()  {
+
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
         return fMCTrack.size();
       }
       ///  \return reference of MCTrackR Collection
       ///
       vector<MCTrackR> & MCTrack()  {
+
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
          return  fMCTrack;
        }
@@ -3772,6 +3933,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding MCTrackR element
       ///
        MCTrackR &   MCTrack(unsigned int l) {
+
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
          return fMCTrack.at(l);
       }
@@ -3781,6 +3943,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding MCTrackR element
       ///
       MCTrackR *   pMCTrack(unsigned int l) {
+
         if(fHeader.MCTracks && fMCTrack.size()==0)bMCTrack->GetEntry(_Entry);
         return l<fMCTrack.size()?&(fMCTrack[l]):0;
       }
@@ -3792,6 +3955,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of DaqEventR
       ///
       unsigned int   NDaqEvent()  {
+
         if(fHeader.DaqEvents && fDaqEvent.size()==0)bDaqEvent->GetEntry(_Entry);
         return fDaqEvent.size();
       }
@@ -3802,6 +3966,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding DaqEventR element
       ///
       DaqEventR *   pDaqEvent(unsigned int l) {
+
         if(fHeader.DaqEvents && fDaqEvent.size()==0)bDaqEvent->GetEntry(_Entry);
         return l<fDaqEvent.size()?&(fDaqEvent[l]):0;
       }
@@ -3811,12 +3976,14 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return number of MCEventgR
       ///
       unsigned int   NMCEventg()  {
+
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
         return fMCEventg.size();
       }
       ///  \return reference of MCEventgR Collection
       ///
       vector<MCEventgR> & MCEventg()  {
+
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
          return  fMCEventg;
        }
@@ -3826,6 +3993,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return reference to corresponding MCEventgR element
       ///
        MCEventgR &   MCEventg(unsigned int l) {
+
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
          return fMCEventg.at(l);
       }
@@ -3835,6 +4003,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  \return pointer to corresponding MCEventgR element
       ///
       MCEventgR *   pMCEventg(unsigned int l) {
+
         if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
         return l<fMCEventg.size()?&(fMCEventg[l]):0;
       }
@@ -3847,14 +4016,17 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 AMSEventR();
 AMSEventR(const AMSEventR &o);
 
-//virtual ~AMSEventR(){
+virtual ~AMSEventR(){
+#ifdef __ROOTSHAREDLIBRARY__
+--_Count;
+#endif
 ////cout <<"AMSEventR::dtor-I-Destroying "<<_Count<<endl;;
 //if(!--_Count){
  //cout<<"AMSEventR::dtor-I-ResettingHead "<<_Head<<endl;
 //// _Head=0;
 //}
 //}
-
+}
 
 
 void clear();
@@ -3897,9 +4069,9 @@ void         AddAMSObject(TOF2RawSide *ptr);
 void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
-
-ClassDef(AMSEventR,10)       //AMSEventR
 friend class AMSChain;
+ClassDef(AMSEventR,10)       //AMSEventR
+#pragma omp threadprivate(fgIsA)
 };
 
 //!  AMSChain class
@@ -3933,9 +4105,9 @@ public:
       Int_t Entry(); ///<Get the current entry number
       AMSEventR* pEvent(); ///<Get the current event pointer
       const char* ChainName(); ///<Get the name of the tree
-Long64_t  process(AMSEventR *pev, Option_t *option="", int nthr=1,Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
-
-      ClassDef(AMSChain,6)       //AMSChain
+Long64_t  Process(AMSEventR *pev, Option_t *option="", int nthr=1,Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
+      ClassDef(AMSChain,5)       //AMSChain
+#pragma omp threadprivate(fgIsA)
 };
 
 //!  AMSEventList class
@@ -3977,6 +4149,7 @@ public:
       int GetEvent(int i); ///<Retrieve event number for entry i
 
       ClassDef(AMSEventList,2)       //AMSEventList
+#pragma omp threadprivate(fgIsA)
 };
 
 typedef AMSEventR  ams;

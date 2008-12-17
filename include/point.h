@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.24 2008/11/11 11:29:56 pzuccon Exp $
+//  $Id: point.h,v 1.25 2008/12/17 12:24:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -6,8 +6,7 @@
 #include "typedefs.h"
 #include <iostream>
 #include <cmath>
-#include "TObject.h"
-
+#include "Rtypes.h"
 class AMSRotMat;
 using namespace std;
 
