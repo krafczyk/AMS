@@ -5,11 +5,13 @@
 #else
 #define mipsFortran
 #endif
-#include "cfortran.h"
-#ifdef __ROOTSHAREDLIBRARY__ && _PGTRACK_
 
+#include "cfortran.h"
+
+#ifdef __ROOTSHAREDLIBRARY__ && _PGTRACK_
 #define RNDM(A) ROOTRndm(A)
 #else
+
 #ifdef __G4AMS__
 
 #include "CLHEP/Random/RandFlat.h"

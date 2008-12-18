@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.14 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: beta.h,v 1.15 2008/12/18 15:53:15 pzuccon Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -29,7 +29,11 @@ protected:
  number betacorr(number zint,number z0, number part);
  static integer patpoints[npatb];
  static integer patconf[npatb][4];
-
+#ifdef _PGTRACK_
+  static int  BuildBetaFromTrTrack(integer refit);
+  static int BuildBetaWOTrack(int refit);
+  static int BuildBetaFromTRDTrack(int refit);
+#endif
 public:
  ~AMSBeta();
  AMSBeta(): AMSlink(),_ptrack(0){for(int i=0;i<4;i++)_pcluster[i]=0;}

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.62 2008/12/18 11:13:40 pzuccon Exp $
+#  $Id: Makefile,v 1.63 2008/12/18 15:53:15 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -131,7 +131,7 @@ $(BIN)%.o : $(SFF)%.f
 $(BIN)%.o : $(SCC)%.C
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(CXX) -c $(CFLAGS) $< -o $@
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 $(BIN)%.o : $(SCC)%.c
 	@echo Compiling  $< ...
@@ -164,11 +164,12 @@ COMMON_FILES +=	$(SCC)commons.C    $(SCC)gvolume.C $(SCC)amsgeom.C $(SFF)Geant3_
 
 #Utils
 COMMON_FILES += $(SCC)cern.C       $(SFF)sgif.F    $(SCC)rnormx.C  $(SFF)geocoor.F     \
-		$(SFF)grfile.F   $(SCC)status.C $(SCC)user.C    $(SCC)timelx.c
-		
+		$(SFF)grfile.F   $(SCC)status.C $(SCC)user.C    $(SCC)timelx.c $(SFF)e04ccf.f
+
 ifndef PGTRACK
-COMMON_FILES +=		$(SFF)mtx2.F    $(SFF)e04ccf.f  \
-		$(SFF)fint_my.F 
+
+COMMON_FILES +=		$(SFF)mtx2.F     $(SFF)fint_my.F 
+
 endif
 
 

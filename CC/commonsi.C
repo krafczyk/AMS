@@ -5,7 +5,9 @@
 #include "amsdbc.h"
 #include <fstream>
 
-
+#ifdef _PGTRACK_
+AMSDATADIR_DEF AMSDATADIR;
+#endif
 
 char AMSCommonsI::_version[]="v4.00";
 uinteger AMSCommonsI::_build=303;

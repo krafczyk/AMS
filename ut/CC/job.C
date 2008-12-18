@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.608 2008/12/18 11:30:51 choutko Exp $
+// $Id: job.C,v 1.609 2008/12/18 15:53:14 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4013,5 +4013,5 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // Ped-calib
 }
 
 #ifdef _PGTRACK_
-#include "Tracker/job_tk.C"
+#include "job_tk.C"
 #endif

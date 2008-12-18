@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.7 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: rnormx.C,v 1.8 2008/12/18 15:53:14 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -15,7 +15,13 @@
 
 #include <math.h>
 #include "random.h"
+#include "TRandom1.h"
 
+#include "typedefs.h" 
+static TRandom1 rr; 
+double ROOTRndm(int dummy){
+  return rr.Rndm();
+}
 
 #include "typedefs.h" 
 extern "C" number rnormx(){

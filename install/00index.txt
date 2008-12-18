@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.37 2008/12/18 11:13:40 pzuccon Exp $
+#  $Id: 00index.txt,v 1.38 2008/12/18 15:53:15 pzuccon Exp $
 
 Makefile //  General Makefile
 Makefile.Linux // OS dep
@@ -24,6 +24,12 @@ The choice of the compiler suite (gcc/g77  or icc/ifort) is automaticaly done
 as a consquence of the root-config --arch command.
 It then depends on the compiler type has been used for  your ROOT version. 
 
+The new Perugia Tracker Software can be enabled at compile time with:
+setenv PGTRACK 1
+before compiling do a make clean.
+
+WARNING!!: Perugia Tracker Software is under developpement, is tested only on gcc
+         and it is not yet full featured.
 
 gmake gbatch(default) // builds g3 gbatch with root
 gmake gxint           // builds g3 gxint !undefine AMSICC first

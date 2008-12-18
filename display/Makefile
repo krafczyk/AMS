@@ -1,8 +1,8 @@
-#  $Id: Makefile,v 1.35 2008/09/01 08:59:59 choutko Exp $
+#  $Id: Makefile,v 1.36 2008/12/18 15:53:15 pzuccon Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/display/
+PREFIX        = ../display/
 RH9add=
 RH9adda=
 ifdef RH9
@@ -41,7 +41,7 @@ LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl 
 else
 CXX           =  g++ -m32 -Wno-deprecated
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CXXFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g

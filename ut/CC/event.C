@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.399 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: event.C,v 1.400 2008/12/18 15:53:14 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3485,6 +3485,6 @@ return gettime();
 #endif
 }
 #ifdef _PGTRACK_
-#include "Tracker/event_tk.C"
+#include "event_tk.C"
 #endif
 

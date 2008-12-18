@@ -1203,112 +1203,114 @@ void AMSEventR::SetCont(){
  fHeader.MCEventgs=fMCEventg.size();
  fHeader.DaqEvents=fDaqEvent.size();
 }
+
 bool AMSEventR::ReadHeader(int entry){
-    static unsigned int runo=0;
-    static unsigned int evento=0;
-    static const int probe=100;
-    static double dif;
-    static double difm;
-    static double dif2;
+  static unsigned int runo=0;
+  static unsigned int evento=0;
+  static const int probe=100;
+  static double dif;
+  static double difm;
+  static double dif2;
 #pragma omp threadprivate(runo,evento,dif,difm,dif2)
-    fStatus=0;
-    if(bStatus){
+  fStatus=0;
+  if(bStatus){
     int j;
-//#pragma omp critical
-{
-     j=bStatus->GetEntry(entry);
-}
+    //#pragma omp critical
+    {
+      j=bStatus->GetEntry(entry);
+    }
     if(j>0){
-       _Entry=entry;
-       if(_Entry!=0 && !UProcessStatus(fStatus)){
+      _Entry=entry;
+      if(_Entry!=0 && !UProcessStatus(fStatus)){
 #pragma omp critical
-         (*pService).TotalTrig++;
-         return false;
-       }
-    }
-    }
-    else{
-     static int nold=0;
-      if(!nold++){
-       cerr<<"AMSEvent::ReadHeader-E-OldVersionUprocessStatusNotProcessed "<<endl;
+	(*pService).TotalTrig++;
+	return false;
       }
     }
-//    if(this!=_Head){
-//       cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
-//      _Entry=entry;
-//       clear();
-//       return false;
-//     }
-   _Entry=entry;
-    memset((char*)(&fHeader)+sizeof(void*),0,sizeof(fHeader)-sizeof(void*));
-    int i;
-//#pragma omp critical
-{
+  }
+  else{
+    static int nold=0;
+    if(!nold++){
+      cerr<<"AMSEvent::ReadHeader-E-OldVersionUprocessStatusNotProcessed "<<endl;
+    }
+  }
+  //    if(this!=_Head){
+  //       cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
+  //      _Entry=entry;
+  //       clear();
+  //       return false;
+  //     }
+  _Entry=entry;
+  memset((char*)(&fHeader)+sizeof(void*),0,sizeof(fHeader)-sizeof(void*));
+  int i;
+  //#pragma omp critical
+  {
     i=bHeader->GetEntry(entry);
-}
-    clear();
-   if(i>0){
+  }
+  clear();
+  if(i>0){
     if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<endl;
-     if(Version()<160){
-// Fix rich rings
+    if(Version()<160){
+      // Fix rich rings
       NRichHit();
       for(int i=0;i<NRichRing();i++){
-        RichRingR *ring=pRichRing(i);
-        ring->FillRichHits(i);
+	RichRingR *ring=pRichRing(i);
+	ring->FillRichHits(i);
       }
-     }
+    }
     if(fHeader.Run!=runo){
-     cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
-     runo=fHeader.Run;
-     if(evento>0){
-  #pragma omp critical
-      (*pService).TotalTrig+=(int)dif/2; 
-     }
-     dif=0;
-     difm=0;
-     dif2=0;
+      cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
+      runo=fHeader.Run;
+      if(evento>0){
+#pragma omp critical
+	if(pService)(*pService).TotalTrig+=(int)dif/2; 
+      }
+      dif=0;
+      difm=0;
+      dif2=0;
     }
     else if(_Entry<probe){
-     if(difm==0){
-  #pragma omp critical
-      (*pService).TotalTrig+=Event()-evento;
-     }
-     if(Event()-evento>difm)difm=Event()-evento;
-     dif+=Event()-evento;
-     dif2+=(Event()-evento)*(Event()-evento);
-  #pragma omp critical
-     (*pService).TotalTrig+=Event()-evento;
+      if(difm==0){
+#pragma omp critical
+	if(pService)(*pService).TotalTrig+=Event()-evento;
+      }
+      if(Event()-evento>difm)difm=Event()-evento;
+      dif+=Event()-evento;
+      dif2+=(Event()-evento)*(Event()-evento);
+#pragma omp critical
+      if(pService)(*pService).TotalTrig+=Event()-evento;
     }
     else if(_Entry==probe){
-     dif/=probe-1;
-     dif2/=probe-1;
-     dif2=sqrt(dif2-dif*dif);
-     dif2=difm+20*dif2+1;
-  #pragma omp critical
-     (*pService).TotalTrig+=Event()-evento;
+      dif/=probe-1;
+      dif2/=probe-1;
+      dif2=sqrt(dif2-dif*dif);
+      dif2=difm+20*dif2+1;
+#pragma omp critical
+      if(pService)(*pService).TotalTrig+=Event()-evento;
     }
     else{
-     if(Event()-evento<dif2 || dif2!=dif2){
-      (*pService).TotalTrig+=Event()-evento;
-     }
-     else{
-      static int ntotm=0;
-      if(Event()-evento>2 && ntotm++<50)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
-  #pragma omp critical
-      (*pService).TotalTrig++;
-     }
+      if(Event()-evento<dif2 || dif2!=dif2){
+	 if(pService)(*pService).TotalTrig+=Event()-evento;
+      }
+      else{
+	static int ntotm=0;
+	if(Event()-evento>2 && ntotm++<50)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
+#pragma omp critical
+	 if(pService)(*pService).TotalTrig++;
+      }
     }
-     if(_Entry==0 && bStatus &&  !UProcessStatus(fStatus))return false;
+    if(_Entry==0 && bStatus &&  !UProcessStatus(fStatus))return false;
     evento=Event();
-   }
-   else{
-  #pragma omp critical
-   (*pService).BadEv++;    
-}
-  #pragma omp critical
+  }
+  else{
+#pragma omp critical
+     if(pService)(*pService).BadEv++;    
+  }
+#pragma omp critical
+  if(pService){
     (*pService).TotalEv++;
-  
-    return i>0;
+  }
+  return i>0;
 }
 
 #ifdef __root__new
@@ -2887,8 +2889,8 @@ AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
       Rewind();//Go to start of chain
       // Get events in turn
       while  (GetEvent() &&
-         !(_EVENT->Run()==run && _EVENT->Event()==ev) ) ;
-                                                                                
+	      !(_EVENT->Run()==run && _EVENT->Event()==ev) ) ;
+         
       return _EVENT; 
 };
 
