@@ -2836,14 +2836,14 @@ AMSChain::AMSChain(AMSEventR* event,const char* name)
 }
 
 void AMSChain::Init(AMSEventR* event){
-      if (_EVENT==NULL) {
+  if (_EVENT==NULL) {
     if (event) 
       _EVENT = event;
     else
-            _EVENT = new AMSEventR;
-            this->SetBranchAddress("ev.",&_EVENT);
-            _EVENT->Head() = _EVENT;
-            _EVENT->Tree() = NULL;
+      _EVENT = new AMSEventR;
+    this->SetBranchAddress("ev.",&_EVENT);
+    _EVENT->Head() = _EVENT;
+    _EVENT->Tree() = NULL;
 #ifdef _PGTRACK_
     TkDBc::CreateTkDBc();
     TkDBc::Head->init();
@@ -2852,12 +2852,12 @@ void AMSChain::Init(AMSEventR* event){
     // TrRecon::TRCon= new VCon_root();
 #endif
     
-      }
+  }
 }
 
 AMSEventR* AMSChain::GetEvent(Int_t entry){
       Init();
-      if(entry>GetEntries()) return _EVENT;
+      if(entry>=GetEntries()) return _EVENT;
       _ENTRY = entry;
       Int_t tree_entry = LoadTree(_ENTRY);
 #ifdef _PGTRACK_

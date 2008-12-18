@@ -1,7 +1,6 @@
-//  $Id: main.cxx,v 1.32 2008/09/01 08:59:59 choutko Exp $
+//  $Id: main.cxx,v 1.33 2008/12/18 21:57:40 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
-#include <TChain.h>
 #include <TRootApplication.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -28,97 +27,101 @@
 #include <getopt.h>
 TString * Selector;
 extern void * gAMSUserFunction;
-void OpenChain(TChain & chain, char * filename);
+void OpenChain(AMSChain & chain, char * filename);
+
 #ifndef WIN32
-static int Selectsdir(
-#ifndef __APPLE__
-const dirent *entry
+#ifdef __APPLE__
+static int Selectsdir(dirent *entry=0);
 #else
-dirent *entry
+static int Selectsdir(const dirent *entry=0);
 #endif
-=0);
 #endif
+
+
 void Myapp::HandleIdleTimer(){
   
   if(fDisplay){
-   StopIdleing();
-   fDisplay->ShowNextEvent(1);
-   StartIdleing();
+    StopIdleing();
+    fDisplay->ShowNextEvent(1);
+    StartIdleing();
   }
-//  SetReturnFromRun(1);
-//Terminate();
+  //  SetReturnFromRun(1);
+  //Terminate();
   //cout <<"exiting handler"<<endl;
 }
 
 void (handler)(int);
+
+
 int main(int argc, char *argv[]){
 
-// First create application environment. If you replace TApplication
-// by TRint (which inherits from TApplication) you will be able
-// to execute CINT commands once in the eventloop (via Run()).
+  // First create application environment. If you replace TApplication
+  // by TRint (which inherits from TApplication) you will be able
+  // to execute CINT commands once in the eventloop (via Run()).
 #ifndef WIN32
      *signal(SIGFPE, handler);
-     *signal(SIGCONT, handler);
-     *signal(SIGTERM, handler);
-     *signal(SIGINT, handler);
-     *signal(SIGQUIT, handler);
+  *signal(SIGCONT, handler);
+  *signal(SIGTERM, handler);
+  *signal(SIGINT, handler);
+  *signal(SIGQUIT, handler);
 #endif
   char * filename = 0;		// default file name
 
- int c;
- int sec=10;
- char title[256];
-    strcpy(title,"AMS Event Display");
-    int option_index = 0;
-    static struct option long_options[] = {
-        {"title", 1, 0, 't'},
-        {"help",    0, 0, 'h'},
-        {"scan",  1, 0, 's'},
-        {0, 0, 0, 0}
-    };
+  int c;
+  int sec=10;
+  char title[256];
+  strcpy(title,"AMS Event Display");
+  int option_index = 0;
+  static struct option long_options[] = {
+    {"title", 1, 0, 't'},
+    {"help",    0, 0, 'h'},
+    {"scan",  1, 0, 's'},
+    {0, 0, 0, 0}
+  };
 
   if ( argc > 1 ) {		// now take the file name
     filename = argv[1];
   }   
-    while (1) {
-        c = getopt_long (argc, argv, "t:hHs:?", long_options, &option_index);
-        if (c == -1) break;
+  while (1) {
+    c = getopt_long (argc, argv, "t:hHs:?", long_options, &option_index);
+    if (c == -1) break;
 
-        switch (c) {
-            case 's':             /* display */
-             sec=atoi(optarg);
-             break;
-            case 't':             
-                strcpy(title, optarg);
-                break;
-            case 'h':
-            case 'H':
-            case '?':
-            default:            /* help */
-                cout<<"$amsed(c) file -scan[s] -title[t]"<<endl;
-                return 0;
-                break;
-        }
+    switch (c) {
+    case 's':             /* display */
+      sec=atoi(optarg);
+      break;
+    case 't':             
+      strcpy(title, optarg);
+      break;
+    case 'h':
+    case 'H':
+    case '?':
+    default:            /* help */
+      cout<<"$amsed(c) file -scan[s] -title[t]"<<endl;
+      return 0;
+      break;
     }
-  AMSNtupleV *pntuple=0;
-  TChain chain("AMSRoot");
+  }
+  AMSNtupleV *pntuple= new AMSNtupleV();
+  AMSChain chain(pntuple,"AMSRoot");
   if(filename){
-   OpenChain(chain,filename); 
-   pntuple= new AMSNtupleV(&chain);
+    OpenChain(chain,filename); 
   }  
   printf("opening file %s...\n", filename);
   int err=0;
   int argcc=1;
 #if defined(WIN32) || defined(__APPLE__)
-    Myapp *theApp = new Myapp("App", &argcc, argv);
+  Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
+
   gVirtualX=new TGX11("X11","Root Interface to X11");
   //gGuiFactory=new TRootGuiFactory();
-TASImage a;
+  TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
+
   theApp->SetStatic();
 #endif
-//  gDebug=6; 
+  //  gDebug=6; 
 
 
 
@@ -146,14 +149,14 @@ TASImage a;
   }
 
 
-  AMSDisplay * amd= new AMSDisplay(title,geo,pntuple,sec);
+  AMSDisplay * amd= new AMSDisplay(title,geo,&chain,sec);
   amd->SetApplication(theApp);
   amd->Init();
-   theApp->SetDisplay(amd);  
-    theApp->RemoveIdleTimer();
-    amd->DrawEvent();
-    theApp->Run();
-      return 0;
+  theApp->SetDisplay(amd);  
+  theApp->RemoveIdleTimer();
+  amd->DrawEvent();
+  theApp->Run();
+  return 0;
   
 
 
@@ -167,92 +170,92 @@ void (handler)(int sig){
 #ifndef WIN32
   switch(sig){
   case  SIGFPE:
-   cerr <<" FPE intercepted"<<endl;
-   break;
+    cerr <<" FPE intercepted"<<endl;
+    break;
   case  SIGTERM:
-   cerr <<" SIGTERM intercepted"<<endl;
-   exit(1);
-   break;
+    cerr <<" SIGTERM intercepted"<<endl;
+    exit(1);
+    break;
   case  SIGINT:
-   cerr <<" SIGTERM intercepted"<<endl;
-   exit(1);
-   break;
+    cerr <<" SIGTERM intercepted"<<endl;
+    exit(1);
+    break;
   case  SIGQUIT:
-   cerr <<" Process suspended"<<endl;
-   pause();
-   break;
+    cerr <<" Process suspended"<<endl;
+    pause();
+    break;
   case  SIGCONT:
-   cerr <<" Process resumed"<<endl;
-   break;
+    cerr <<" Process resumed"<<endl;
+    break;
   }
 #endif
 }
 
 
-void OpenChain(TChain & chain, char * filenam){
-//  
-//  root can;t cope with multiple wild card so we must do it ourselves
-//
-   char filename[255];
-   if(strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
-       cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
-       return;
-   }
-   TString a(filenam);
-   TRegexp b("^castor:",false);
-   TRegexp c("^http:",false);
-   TRegexp d("^root:",false);
-   TRegexp e("^rfio:",false);
-   TRegexp f("^/castor",false);
-   bool wildsubdir=false;
-   if(a.Contains(b)){
+void OpenChain(AMSChain & chain, char * filenam){
+  //  
+  //  root can;t cope with multiple wild card so we must do it ourselves
+  //
+  char filename[255];
+  if(strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
+    cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
+    return;
+  }
+  TString a(filenam);
+  TRegexp b("^castor:",false);
+  TRegexp c("^http:",false);
+  TRegexp d("^root:",false);
+  TRegexp e("^rfio:",false);
+  TRegexp f("^/castor",false);
+  bool wildsubdir=false;
+  if(a.Contains(b)){
 #if !defined(WIN32) && !defined(__APPLE__)
     TRFIOFile f("");
     TXNetFile g("");
 #endif
     strcpy(filename,filenam);
-   }
-   else if(a.Contains(c)){
+  }
+  else if(a.Contains(c)){
     strcpy(filename,filenam);
-   }
-   else if(a.Contains(d)){
+  }
+  else if(a.Contains(d)){
     strcpy(filename,filenam);
-   }
-   else if(a.Contains(e)){
+  }
+  else if(a.Contains(e)){
     strcpy(filename,filenam);
-   }
-   else if(a.Contains(f)){
+  }
+  else if(a.Contains(f)){
     strcpy(filename,"rfio:");
     strcat(filename,filenam);
-   }
-   else{ 
+  }
+  else{ 
 #ifndef WIN32
     if(filenam[0]!='/'){
-     strcpy(filename,"./");
-     strcat(filename,filenam);
+      strcpy(filename,"./");
+      strcat(filename,filenam);
     }
-   else strcpy(filename,filenam); 
+    else strcpy(filename,filenam); 
 #else
-   strcpy(filename,filenam); 
+    strcpy(filename,filenam); 
 #endif
-   bool go=false;
-   for(int i=strlen(filename)-1;i>=0;i--){
-     if(filename[i]=='/')go=true;
-     if(go && filename[i]=='*'){
-       wildsubdir=true;
-       break;
-     }
-   }
-   }
+    bool go=false;
+    for(int i=strlen(filename)-1;i>=0;i--){
+      if(filename[i]=='/')go=true;
+      if(go && filename[i]=='*'){
+	wildsubdir=true;
+	break;
+      }
+    }
+  }
 #ifndef WIN32
-   if(wildsubdir){
+  if(wildsubdir){
     for(int i=0;i<strlen(filename);i++){
-     if (filename[i]=='*'){
+      if (filename[i]=='*'){
         for(int k=i-1;k>=0;k--){
-           if(filename[k]=='/'){
-              TString ts(filename,k+1);
-              for(int l=i+1;l<strlen(filename);l++){
-               if(filename[l]=='/'){
+	  if(filename[k]=='/'){
+	    TString ts(filename,k+1);
+	    for(int l=i+1;l<strlen(filename);l++){
+	      if(filename[l]=='/'){
                 
                 if(l-k-1>0)Selector= new TString(filename+k+1,l-k-1);
                 else Selector=0;
@@ -268,15 +271,15 @@ void OpenChain(TChain & chain, char * filenam){
                   OpenChain(chain,fsdir);
                 } 
                 return;               
-               }
-               }
-              }
-             }                  
-           }
-        }
+	      }
+	    }
+	  }
+	}                  
       }
+    }
+  }
 #endif
-    chain.Add(filename);
+  chain.Add(filename);
 }
 
 
@@ -284,15 +287,15 @@ void OpenChain(TChain & chain, char * filenam){
 #ifndef WIN32
 int Selectsdir(
 #ifndef __APPLE__
-const dirent *entry){
+	       const dirent *entry){
 #else
-dirent *entry){
+  dirent *entry){
 #endif
-if(Selector){
- TString a(entry->d_name);
- TRegexp b(Selector->Data(),true);
- return a.Contains(b) && entry->d_name[0]!='.';
-}
-else return entry->d_name[0]!='.';
+  if(Selector){
+    TString a(entry->d_name);
+    TRegexp b(Selector->Data(),true);
+    return a.Contains(b) && entry->d_name[0]!='.';
+  }
+  else return entry->d_name[0]!='.';
 }
 #endif

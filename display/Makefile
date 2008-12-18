@@ -1,5 +1,4 @@
-#  $Id: Makefile,v 1.36 2008/12/18 15:53:15 pzuccon Exp $
-
+#  $Id: Makefile,v 1.37 2008/12/18 21:57:40 pzuccon Exp $
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
 PREFIX        = ../display/
@@ -42,6 +41,9 @@ LIBSA          =  $(ROOTLIBSA) -lm -ldl
 else
 CXX           =  g++ -m32 -Wno-deprecated
 CXXFLAGS      =  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+ifdef PGTRACK
+CXXFLAGS      += -g -D_PGTRACK_ 
+endif
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g
@@ -52,6 +54,8 @@ ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat 
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
+
+
 endif
 ifeq ($(ARCH),macosx)
 CXX           =  g++  -Wno-deprecated
@@ -98,29 +102,26 @@ GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d
 
 ##### MACROS #####
 
-ROOTH         = TTree.h TFile.h TH1.h
 
 SRCS          = TGRunEventDialog.cxx \
                 ControlFrame.cxx \
                 AMSNtupleV.cxx \
                 Help.cxx
 
-SRCSN          = AMSR_GeometrySetter.cxx \
-                 AMSDisplay$(NEW).cxx \
+SRCSN         = AMSR_GeometrySetter.cxx \
+                AMSDisplay$(NEW).cxx \
                 TMarker3DCl$(NEW).cxx \
                 AMSR_Axis.cxx 
 
-HDRS          =  ../include/root_RVS.h\
-                ../include/root.h\
-		ControlFrame.h \
+HDRS          = ControlFrame.h \
 		AMSDisplay.h \
 		AMSNtupleV.h \
                 AMSR_GeometrySetter.h \
                 AMSR_Axis.h \
                 TGRunEventDialog.h \
                 TMarker3DCl.h \
-                ../include/id.h \
                 LinkDef.h
+
 DICT          = AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
@@ -134,9 +135,9 @@ MAINC          = mainc.cxx
 MAINOC         = $(MAINC:.cxx=.o)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
-OBJSR          = $(PREFIX)root.o $(PREFIX)id.o
-OBJSN          = $(SRCSN:%.cxx=$(PREFIX)%.o) 
-OBJSC         =   $(PREFIX)AMSNtuple.o
+OBJSR         = 
+OBJSN         = $(SRCSN:%.cxx=$(PREFIX)%.o) 
+OBJSC         = 
 
 ALLDICT       = $(DICT) $(DICTH) 
 ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
@@ -153,6 +154,7 @@ ifneq "$(wildcard /etc/redhat-release)" ""
  SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
 endif
 endif
+
 ifdef SLC4system
 AMSPRG       = $(PREFIX)amsed
 AMSPRGC       = $(PREFIX)amsedc
@@ -173,7 +175,7 @@ LDS =  @echo "  Static Linking not supported in macosx!!! Use 'make osdepend' in
 LDD	= 	$(LD) -dynamic
 endif
 
-
+ROOTH= -I../include/  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -D_PGTRACK_
 
 ##### TARGETS #####
 standalone:  $(AMSPRG)
@@ -183,11 +185,11 @@ osdepend:  $(AMSPRGC)
 
 
 $(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSN)  $(OBJSC)  
-		$(LDS)    $(LDFLAGS) $(ALLOBJS) $(OBJSR) $(OBJSN)  $(OBJSC)  $(DICTO)  $(LIBSA)  -o $(@) 
+		$(LDS)    -static $(LDFLAGS) $(ALLOBJS) $(OBJSR) $(OBJSN)  $(OBJSC)  $(DICTO) -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)  
-		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)     $(LIBS) -o $(@)  
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)  -L$(AMSWD)/lib/linux/ -lntuple_slc4   $(LIBS) -o $(@)  
 
 
 $(DICT):        $(HDRS)
@@ -216,7 +218,7 @@ dist:
 		gzip $(AMSPRG).tar
 
 clean:
-		@rm -f $(ALLOBJS) $(ALLDICT)
+		@rm -f *.o $(ALLOBJS) $(ALLDICT)
 
 
 ##### RULES #####
