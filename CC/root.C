@@ -2826,7 +2826,7 @@ omp_set_num_threads(nthreads);
         int ntree=fNtrees;
         if(nentries<0){
           ntree=-nentries;
-          nentries=10000000000;
+          nentries=10000000000LL;
         }
         cout <<"  Files to be processed "<<ntree<<endl;
 

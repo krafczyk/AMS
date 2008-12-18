@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.61 2008/12/16 11:45:18 choutko Exp $
+#  $Id: Makefile,v 1.62 2008/12/18 11:13:40 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -73,6 +73,16 @@ ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot
 
 CPPFLAGS=      -D__AMS02DAQ__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
 INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
+
+ROOTDICT_CPPFLAGS= $(INCPATHS) 
+
+ifdef PGTRACK
+CPPFLAGS+= -D_PGTRACK_ 
+ROOTDICT_CPPFLAGS+= -D_PGTRACK_ 
+endif
+
+
+
 CPPFLAGS+= $(INCPATHS)
 
 IDLFLAGS=-D__CORBA__ -I$(BIN)
@@ -84,6 +94,7 @@ IDLFLAGS=-D__CORBA__ -I$(BIN)
 #  this file has os dependent defs
 
 MY_OS := $(shell uname)
+
 ifeq ($(origin local_makefile), undefined)
         local_makefile = Makefile.$(MY_OS)
 endif
@@ -93,7 +104,6 @@ include $(shell echo ${local_makefile})
 
 CFLAGSB+= $(CPPFLAGS) 
 CFLAGSB+= -D__BATCH__
-
 #FFLAGS+= $(INCPATHS)
 
 
@@ -109,16 +119,24 @@ CFLAGSB+= -D__BATCH__
 #                  $@  =  the target (the object file)
 
 $(BIN)%.o : $(SFF)%.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	@echo Compiling  $< ...
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 $(BIN)%.o : $(SFF)%.f
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	@echo Compiling  $< ...
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 $(BIN)%.o : $(SCC)%.C
-	$(CXX) -c $(CFLAGS) $< -o $@
+	@echo Compiling  $< ...
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+	@$(CXX) -c $(CFLAGS) $< -o $@
 
 $(BIN)%.o : $(SCC)%.c
-	$(CXX) -c $(CFLAGS) $< -o $@
+	@echo Compiling  $< ...
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+	@$(CXX) -c $(CFLAGS) $< -o $@
 
 #------------------------------------------------------------------------------
 # gbatch source files
@@ -128,36 +146,64 @@ INCS= $(wildcard ../include/*.h)
 
 
 # Base AMS Classes
-COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
-		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
-		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
-		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C  $(SCC)commonsi.C  $(SCC)timelx.c
+AMS_BASE= 	$(SCC)apool.C 	$(SCC)amsdbc.C   $(SCC)amsgobj.C  \
+		$(SCC)astring.C $(SCC)commonsi.C $(SCC)cont.C    $(SCC)id.C \
+		$(SCC)link.C    $(SCC)node.C     $(SCC)point.C   $(SCC)snode.C \
+	     	$(SCC)upool.C $(SCC)uzstat.C
 
+AMS_BASEO=$(AMS_BASE:$(SCC)%.C=$(BIN)%.o)
+COMMON_FILES+= $(AMS_BASE)
 
 #Geant Interface
 COMMON_FILES +=	$(SCC)commons.C    $(SCC)gvolume.C $(SCC)amsgeom.C $(SFF)Geant3_utils.F  \
 		$(SCC)gmat.C       $(SCC)mceventg.C                $(SCC)mccluster.C     \
-		$(SFF)mfield.F     $(SFF)egzav.F    \
+		$(SFF)egzav.F    \
 		$(SFF)hadevv.F        
 
 
 
 #Utils
 COMMON_FILES += $(SCC)cern.C       $(SFF)sgif.F    $(SCC)rnormx.C  $(SFF)geocoor.F     \
-		$(SFF)grfile.F     $(SCC)bcorr.C   $(SFF)mtx2.F    $(SFF)e04ccf.f  \
-		$(SFF)fint_my.F
-
+		$(SFF)grfile.F   $(SCC)status.C $(SCC)user.C    $(SCC)timelx.c
+		
+ifndef PGTRACK
+COMMON_FILES +=		$(SFF)mtx2.F    $(SFF)e04ccf.f  \
+		$(SFF)fint_my.F 
+endif
 
 
 #Tracker
-COMMON_FILES += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trdcalib.C $(SCC)trcalib.C $(SCC)tralig.C  \
+ifdef PGTRACK
+TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
+        $(SCC)tkdcards.C $(SCC)TkLadder.C $(SCC)TkObject.C \
+	$(SCC)TkPlane.C $(SCC)TkSens.C \
+	$(SCC)TrCalDB.C $(SCC)TrCluster.C \
+	$(SCC)TrLadCal.C  $(SCC)TrMCCluster.C \
+	$(SCC)TrRawCluster.C $(SCC)patt.C \
+	 $(SCC)TrLadPar.C \
+	$(SCC)VCon.C  \
+	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)TrFit.C $(SCC)MagField.C
+
+TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
+	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C
+
+else
+
+#Tracker
+TRACK_BASE += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trcalib.C $(SCC)tralig.C  \
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C     \
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C 
+TRACK_ADD= $(SFF)mfield.F $(SCC)bcorr.C
+endif
+COMMON_FILES +=$(TRACK_ADD)
+COMMON_FILES +=$(TRACK_BASE)
+TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
+
 
 #TRD 
-COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C 
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
 
 
 #TOF + ACC
@@ -182,7 +228,7 @@ COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C 
 
 # High level reconstruction
 COMMON_FILES += $(SCC)vtx.C        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \
-		$(SCC)astro.C    
+		$(SCC)astro.C    $(SCC)io.C 
 
 #Trigger
 COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C  
@@ -197,14 +243,32 @@ COMMON_FILES +=  $(SCC)daqs2block.C $(SCC)daqecblock.C
 #Root Interface
 COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C   
 
-
+ifdef PGTRACK
+ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
+		../include/TrCalDB.h    ../include/TrRawCluster.h \
+		../include/patt.h       ../include/TkCoo.h  \
+	        ../include/TrRecon.h 	../include/TkDBc.h      \
+		../include/TrLadCal.h   ../include/VCon.h  \
+		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  \
+		../include/trrec.h ../include/point.h  ../include/root_RV.h ../include/root.h ../include/linkdef.h
+else
+ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/linkdef.h
+endif
 
 #------------------------------------------------------------------------------
 # File list for standard gbatch compilation
+#------------------------------------------------------------------------------
 
-FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)daqevt.C $(SCC)geant3.C      \
-		$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F  $(SFF)gskpho.F  \
-		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C $(SCC)ntuple.C $(SFF)TrackFit_utils.F
+
+
+FILES= 	$(COMMON_FILES) \
+	$(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)daqevt.C $(SCC)geant3.C      \
+	$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F $(SFF)gskpho.F  \
+	$(SFF)flinit.F  $(SFF)gbirk.F   $(SFF)rndm.F   $(SCC)timeid.C $(SCC)ntuple.C 
+
+ifndef PGTRACK
+FILES +=$(SFF)TrackFit_utils.F
+endif
 
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
@@ -223,7 +287,7 @@ MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSI:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
-OBJECTSI+=       $(BIN)geanti.o 	$(BIN)geant3i.o  
+OBJECTSI+=  $(BIN)mtx.o     $(BIN)geanti.o 	$(BIN)geant3i.o  
 
 #------------------------------------------------------------------------------
 # File list for client(production) gbatch compilation
@@ -296,6 +360,7 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 gbatch: $(EXE)gbatch.exe 
 
 $(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
          $(TIMEL) $(LDFLAGSSTATIC)
 
@@ -313,6 +378,7 @@ gxint :	$(EXE)gxint.exe
 
 
 $(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) -v -o $(EXE)/gxint.exe  $(OBJECTSI) $(LDFLAGSI)
 
 
@@ -325,15 +391,26 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 #------------------------------------------------------------------------------
 #   Libraries to read the ROOT output
 
+lib: shared static 
+ifdef PGTRACK
+shared :     $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+	$(LD) -O  $(SOFLAGS) $^  $(SHLDFLAGS) -o  $(SHLD)
+
+static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."	
+	$(AR) rv $(NTLD) $^
+else
 
 shared :     $(BIN)point.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
-	$(AR) rv   $(NTLD) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o 
 
-static :	$(BIN)point.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
-	$(AR) rv $(LIB)/libntuple.a $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o 
+static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o 
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+	$(AR) rv   $(NTLD) $^ 
 
-
+endif
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
@@ -348,6 +425,17 @@ $(BIN)timelx.o: $(SCC)timelx.c
 ../include/root_methods.h:      ../perl/root.perl
 	perl ../perl/root.perl
 
+ifdef PGTRACK
+$(BIN)rootdict.C:  $(ROOTDICTFILES)
+	@echo "Generating dictionary"
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $(ROOTDICT_CPPFLAGS)$^ 
+	@echo "OK"
+
+$(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h  $(ROOTDICTFILES)
+	@echo "Generating dictionary"
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $(ROOTDICT_CPPFLAGS) $^ 
+	@echo "OK"
+else
 $(BIN)rootdict.C:   ../include/point.h   ../include/root_RV.h ../include/root.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
@@ -357,6 +445,9 @@ $(BIN)rootdict_s.C: ../include/point.h   ../include/root_RVS.h ../include/root.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $^ 
 	@echo "OK"
+
+endif
+
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
@@ -370,8 +461,18 @@ $(BIN)daqevt_c.o:         $(SCC)daqevt.C
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
 
+$(BIN)rnormx_s.o:         $(SCC)rnormx.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
+
+$(BIN)TrTrack_s.o:         $(SCC)TrTrack.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
+
+
+$(BIN)TrRecHit_s.o:         $(SCC)TrRecHit.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
+
 $(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods.h
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 
@@ -473,6 +574,7 @@ SERVER=$(EXE)amsprodserver.exe
 server:	$(SERVER)
 
 $(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
 
@@ -486,6 +588,7 @@ producer:	$(CLIENT)
 
 
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 #---------------------------------------------------------------------------------
@@ -554,6 +657,7 @@ touch_depend:
 		touch $(BIN)Make-depend
 
 $(BIN)Make-depend:    $(INCS)
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
 		touch $(BIN)Make-depend
 endif
@@ -566,9 +670,10 @@ clean :
 	rm -f $(BIN)*.o 
 	rm -f $(BIN)Make-depend 
 	rm -f $(BIN)*.C
+	rm -f $(BIN)*.c
+	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
-	rm -f $(EXE)gbatch_r.exe
-	rm -f $(EXE)gbatch.exe
+	rm -f $(EXE)*.exe
 
 cleanlibs:
 	rm -f $(BIN)/root*.o

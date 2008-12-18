@@ -1,10 +1,15 @@
-#  $Id: 00index.txt,v 1.36 2004/12/08 12:51:09 choutko Exp $
+#  $Id: 00index.txt,v 1.37 2008/12/18 11:13:40 pzuccon Exp $
 
 Makefile //  General Makefile
 Makefile.Linux // OS dep
-Makefile.OSf1 //  OS dep
-          // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
-          // setenv AMSPROFILE 1  adds gprof
+Makefile.OSf1 //  OS dep ( to be updated)
+          // setenv  DEBUGFLAG 1  sets the -g option in compiling; 
+	  // unsetenv DEBUGFLAG   turn on  optimizatio in compiling;
+          // setenv AMSPROFILE 1  adds gprof;
+	  // setenv AMSDEBUG enable the debug code into the GBATCH source
+	  // setenv AMSP 1 enable the parallel processing (Intel compilers only)
+
+	  
 Moptg4    // makefile to gmake g4 batch ! Only RH7.3 is supported !!!
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv O4 1   super-opt option (alpha only)
@@ -15,11 +20,18 @@ Moptg4i    // makefile to gmake geant interactive  g4
 
 Overall:
 
-gmake gbatch     // builds g3 gbatch with root
-gmake gxint      // builds g3 gxint !undefine AMSICC first
-gmake shared     // builds root shared library
-gmake producer  // builds gbatch-orbit (Linux rh9 orbit2 only)
-gmake server    // builds server (Linux rh9 orbit2 only)
+The choice of the compiler suite (gcc/g77  or icc/ifort) is automaticaly done
+as a consquence of the root-config --arch command.
+It then depends on the compiler type has been used for  your ROOT version. 
+
+
+gmake gbatch(default) // builds g3 gbatch with root
+gmake gxint           // builds g3 gxint !undefine AMSICC first
+gmake lib             // builds root shared & static library
+gmake shared          // builds root shared library
+gmake static          // builds root static library
+gmake producer        // builds gbatch-orbit (add -i flag for Intel Compilers mode)
+gmake server          // builds server       (add -i flag for Intel Compilers mode)
 
 gmake -f Moptg4   //builds g4 batch (not supported at the moment)
 gmake -f Moptg4i  //builds g4 interactive (not supported at the moment)
