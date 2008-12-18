@@ -541,33 +541,63 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
+   static Service::hb1i ic=Service::hb1.end();
    AMSID id(idd,Service::Dir);
 {
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
+  while(ic==i1){
+  }
 #pragma omp critical
+{
+  ic=i1;
+}
   i1->second->Fill(a,w);
+#pragma omp critical
+{
+  ic=Service::hb1.end();
+}
  }
 }
 }
 
 void AMSEventR::hfp(int idd, float a, float w=1){
+   static Service::hbpi ic=Service::hbp.end();
    AMSID id(idd,Service::Dir);
    Service::hbpi i1=Service::hbp.find(id);
  if(i1 != Service::hbp.end()){
+  while(ic==i1){
+  }
 #pragma omp critical
+{
+  ic=i1;
+}
   i1->second->Fill(a,w);
+#pragma omp critical
+{
+  ic=Service::hbp.end();
+}
  }
 }
 
 
 void AMSEventR::hf2(int idd, float a, float b, float w=1){
+   static Service::hb2i ic=Service::hb2.end();
    AMSID id(idd,Service::Dir);
 {
    Service::hb2i i1=Service::hb2.find(id);
  if(i1 != Service::hb2.end()){
+  while(ic==i1){
+  }
 #pragma omp critical
+{
+  ic=i1;
+}
   i1->second->Fill(a,b,w);
+#pragma omp critical
+{
+  ic=Service::hb2.end();
+}
  }
 }
 }
@@ -2917,6 +2947,7 @@ TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
         pev[thr].SetOption(option);
         pev[thr].Init(tree);
         pev[thr].Notify();
+        AMSEventR::_ClonedTree = tree->CloneTree(0);
         cout <<element->GetTitle()<<" tree "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
        }
         pev[thr].Begin(tree);
