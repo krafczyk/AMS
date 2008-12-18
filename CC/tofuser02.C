@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.27 2008/06/26 09:29:51 choumilo Exp $
+//  $Id: tofuser02.C,v 1.28 2008/12/18 11:19:33 pzuccon Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -390,8 +390,14 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
           trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){//trk-track ok
             GoodTrkTrack=true;
+#ifdef _PGTRACK_
+	    //PZ FIXME UNUSED 	    traddr=ptrack->getaddress();//TRK-track ladders combination id
+	    trhits=ptrack->GetNhits();
+#else
+
 	    traddr=ptrack->getaddress();//TRK-track ladders combination id
 	    trhits=ptrack->getnhits();
+#endif
             ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
             status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle

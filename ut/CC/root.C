@@ -11,7 +11,13 @@
 #include "beta.h"
 #include "ecalrec.h"
 #include "mceventg.h"
+#ifdef _PGTRACK_
+#include "TrMCCluster.h"
+#include "TrRawCluster.h"
+#else
 #include "trmccluster.h"
+#include "trrawcluster.h"
+#endif
 #include "mccluster.h"
 #include "particle.h"
 #include "richrec.h"
@@ -22,7 +28,6 @@
 #include "trdrec.h"
 #include "trigger102.h"
 #include "trigger302.h"
-#include "trrawcluster.h"
 #include "trrec.h"
 #include "astro.h"
 #include "amsdbc.h"
@@ -647,8 +652,12 @@ char   DaqEventR::_Info[255];
 char  AntiClusterR::_Info[255];
 char  TofClusterR::_Info[255];
 char  ParticleR::_Info[255];
+#ifndef _PGTRACK_
+//PZ FIXME
 char TrRecHitR::_Info[255];
 char TrTrackR::_Info[255];
+char TrMCClusterR::_Info[255];
+#endif
 char TrdTrackR::_Info[255];
 char TrdClusterR::_Info[255];
 char EcalClusterR::_Info[255];
@@ -656,7 +665,6 @@ char EcalShowerR::_Info[255];
 char RichHitR::_Info[255];
 char RichRingR::_Info[255];
 char RichRingBR::_Info[255];
-char TrMCClusterR::_Info[255];
 char MCEventgR::_Info[255];
 char Level1R::_Info[255];
 char Level3R::_Info[512];
@@ -1505,8 +1513,12 @@ void AMSEventR::AddAMSObject(AMSAntiCluster *ptr)
 void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
 {
   if (ptr) {
+#ifdef _PGTRACK_
+  fTrRawCluster.push_back(*ptr);
+#else
   fTrRawCluster.push_back(TrRawClusterR(ptr));
   ptr->SetClonePointer( fTrRawCluster.size()-1);
+#endif
   }  else {
    cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
   }
@@ -1515,8 +1527,12 @@ void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
 
 void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
   if (ptr) {
+#ifdef _PGTRACK_
+  fTrCluster.push_back(*ptr);
+#else
   fTrCluster.push_back(TrClusterR(ptr));
   ptr->SetClonePointer(fTrCluster.size()-1);
+#endif
   }  else {
    cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
   }
@@ -1526,8 +1542,12 @@ void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
     if(fTrRecHit.size()>root::MAXTRRH02*2 && !ptr->checkstatus(AMSDBc::USED))return;
+#ifdef _PGTRACK_
+    fTrRecHit.push_back(*ptr);
+#else
   fTrRecHit.push_back(TrRecHitR(ptr));
   ptr->SetClonePointer(fTrRecHit.size()-1);
+#endif
   }  else {
    cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
   }
@@ -1537,8 +1557,12 @@ void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 void AMSEventR::AddAMSObject(AMSTrTrack *ptr)
 {
   if (ptr) {
+#ifdef _PGTRACK_
+  fTrTrack.push_back(*ptr);
+#else
   fTrTrack.push_back(TrTrackR(ptr));
   ptr->SetClonePointer( fTrTrack.size()-1);
+#endif
   }  else {
    cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
   }
@@ -1684,8 +1708,12 @@ void AMSEventR::AddAMSObject(AMSTrMCCluster *ptr)
 {
   if (ptr) {
    if( fTrMCCluster.size() > root::MAXTRCLMC * 2)return;
+#ifdef _PGTRACK_
+  fTrMCCluster.push_back(*ptr);
+#else
   fTrMCCluster.push_back(TrMCClusterR(ptr));
   ptr->SetClonePointer( fTrMCCluster.size()-1);
+#endif
   }  else {
    cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
   }
@@ -2199,6 +2227,7 @@ TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
 #endif
 }
 
+#ifndef _PGTRACK_
 TrClusterR::TrClusterR(AMSTrCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr-> _Id.cmpt();
@@ -2316,7 +2345,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   PiRigidity      = ptr->_PIRigidity;
 #endif
 }
-
+#endif
 
 RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
 #ifndef __ROOTSHAREDLIBRARY__
@@ -2570,7 +2599,7 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
      return (AMSEventR::Head() && i<fTofRawCluster.size())?AMSEventR::Head()->pTofRawCluster(fTofRawCluster[i]):0;
    }
 
-
+#ifndef _PGTRACK_
    TrClusterR* TrRecHitR::pTrCluster(char xy){
      return (AMSEventR::Head() )?AMSEventR::Head()->pTrCluster(xy=='x'?fTrClusterX:fTrClusterY):0;
    }
@@ -2579,6 +2608,7 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
    TrRecHitR* TrTrackR::pTrRecHit(unsigned int i){
      return (AMSEventR::Head() && i<fTrRecHit.size())?AMSEventR::Head()->pTrRecHit(fTrRecHit[i]):0;
    }
+#endif
 
    TrdRawHitR* TrdClusterR::pTrdRawHit(){
      return (AMSEventR::Head() )?AMSEventR::Head()->pTrdRawHit(fTrdRawHit):0;
@@ -2669,7 +2699,7 @@ if(_NFiles<0){
     cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
    }
 
-   UBegin();  
+   UBegin();     
    _NFiles=-_NFiles; 
 }
 while(_NFiles<0){
@@ -2759,22 +2789,53 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1){
+AMSChain::AMSChain(const char* name)
+  :TChain(name),
+   _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
+{
 }
 
-void AMSChain::Init(){
+
+AMSChain::AMSChain(AMSEventR* event,const char* name)
+  :TChain(name),
+   _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
+{
+  Init(event);
+}
+
+void AMSChain::Init(AMSEventR* event){
       if (_EVENT==NULL) {
+    if (event) 
+      _EVENT = event;
+    else
             _EVENT = new AMSEventR;
             this->SetBranchAddress("ev.",&_EVENT);
             _EVENT->Head() = _EVENT;
             _EVENT->Tree() = NULL;
+#ifdef _PGTRACK_
+    TkDBc::CreateTkDBc();
+    TkDBc::Head->init();
+    // 	     TrRecon::Create();
+    // TrRecon::gethead()->SetParFromDataCards();
+    // TrRecon::TRCon= new VCon_root();
+#endif
+    
       }
 }
 
 AMSEventR* AMSChain::GetEvent(Int_t entry){
       Init();
+      if(entry>GetEntries()) return _EVENT;
       _ENTRY = entry;
       Int_t tree_entry = LoadTree(_ENTRY);
+#ifdef _PGTRACK_
+      if (GetFile() && GetFile()!=_FILE){
+	_FILE=GetFile();
+	TrCalDB::Head= (TrCalDB*)_FILE->Get("TrCalDB");
+	TrClusterR::UsingTrCalDB(TrCalDB::Head);
+	TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
+      }
+#endif
       if (GetTreeNumber()!=_TREENUMBER) {
             _TREENUMBER = GetTreeNumber();
             _EVENT->Tree() = GetTree();
@@ -2882,164 +2943,164 @@ TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
 
 
 
-	AMSEventList::AMSEventList(){
-		    _RUNs.reserve(10000);
-		    _EVENTs.reserve(10000);
-	};
+AMSEventList::AMSEventList(){
+            _RUNs.reserve(10000);
+            _EVENTs.reserve(10000);
+};
 
-	AMSEventList::AMSEventList(const char* filename){
-		    _RUNs.reserve(10000);
-		    _EVENTs.reserve(10000);
-		    Read(filename);
-	};
-	void AMSEventList::Add(int run, int event){
-		_RUNs.push_back(run);
-		_EVENTs.push_back(event);
-	};
+AMSEventList::AMSEventList(const char* filename){
+            _RUNs.reserve(10000);
+            _EVENTs.reserve(10000);
+            Read(filename);
+};
+void AMSEventList::Add(int run, int event){
+        _RUNs.push_back(run);
+        _EVENTs.push_back(event);
+};
 
-	void AMSEventList::Add(AMSEventR* pev){
-		Add(pev->Run(),pev->Event());
-	};
+void AMSEventList::Add(AMSEventR* pev){
+        Add(pev->Run(),pev->Event());
+};
 
-	void AMSEventList::Remove(int run, int event){
-		for (int j=0; j<_RUNs.size(); j++) {
-		    if (run==_RUNs[j] && event==_EVENTs[j]) {
-			  vector<int>::iterator jiter = _RUNs.begin() + j;
-			  _RUNs.erase(jiter);
-			  jiter = _EVENTs.begin() + j;
-			  _EVENTs.erase(jiter);
-			  j--;
-		    }
-		}
-	};
+void AMSEventList::Remove(int run, int event){
+        for (int j=0; j<_RUNs.size(); j++) {
+            if (run==_RUNs[j] && event==_EVENTs[j]) {
+                  vector<int>::iterator jiter = _RUNs.begin() + j;
+                  _RUNs.erase(jiter);
+                  jiter = _EVENTs.begin() + j;
+                  _EVENTs.erase(jiter);
+                  j--;
+            }
+        }
+};
 
-	void AMSEventList::Remove(AMSEventR* pev){
-		Remove(pev->Run(),pev->Event());
-	};
+void AMSEventList::Remove(AMSEventR* pev){
+        Remove(pev->Run(),pev->Event());
+};
 
-	bool AMSEventList::Contains(int run, int event){
-		for (int j=0; j<_RUNs.size(); j++) {
-		    if (run==_RUNs[j] && event==_EVENTs[j]) {
-			  return true;
-		    }
-		}
-		return false;
-	};
+bool AMSEventList::Contains(int run, int event){
+        for (int j=0; j<_RUNs.size(); j++) {
+            if (run==_RUNs[j] && event==_EVENTs[j]) {
+                  return true;
+            }
+        }
+        return false;
+};
 
-	bool AMSEventList::Contains(AMSEventR* pev){
-		return Contains(pev->Run(),pev->Event());
-	};
+bool AMSEventList::Contains(AMSEventR* pev){
+        return Contains(pev->Run(),pev->Event());
+};
 
-	void AMSEventList::Reset(){
-		_RUNs.clear();
-		_EVENTs.clear();
-	};
+void AMSEventList::Reset(){
+        _RUNs.clear();
+        _EVENTs.clear();
+};
 
-	void AMSEventList::Read(const char* filename){
-		FILE* listfile = fopen(filename,"r");
-		if (listfile) {
-		    int run, event;
-		    while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
-		    fclose(listfile);
-		} else {
-		    cout << "AMSEventlist: Error opening file '" << filename << "';";
-		    cout << " assuming an empty list" << endl;
-		}
-	};
+void AMSEventList::Read(const char* filename){
+        FILE* listfile = fopen(filename,"r");
+        if (listfile) {
+            int run, event;
+            while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
+            fclose(listfile);
+        } else {
+            cout << "AMSEventlist: Error opening file '" << filename << "';";
+            cout << " assuming an empty list" << endl;
+        }
+};
 
-	void AMSEventList::Write(){
-		cout << "AMSEventList::Dumping a list with ";
-		cout << this->GetEntries(); 
-		cout << " selected events..." << endl;
-		for (int j=0; j<_RUNs.size(); j++) {
-		    cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
-		}
-	};
+void AMSEventList::Write(){
+        cout << "AMSEventList::Dumping a list with ";
+        cout << this->GetEntries(); 
+        cout << " selected events..." << endl;
+        for (int j=0; j<_RUNs.size(); j++) {
+            cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
+        }
+};
 
-	void AMSEventList::Write(const char* filename){
-		cout << "AMSEventList::Writing ASCII file \"";
-		cout << filename << "\" with " << this->GetEntries(); 
-		cout << " selected events" << endl;
-		FILE* listfile = fopen(filename,"w");
-		for (int j=0; j<_RUNs.size(); j++) {
-		    fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
-		}
-		fclose(listfile);
-	};
-
-
-	void AMSEventList::Write(AMSChain* chain, TFile* file){
-		TTree *amsnew = chain->CloneTree(0);
-		chain->Rewind();
-		AMSEventR* ev = NULL;
-		while ((ev=chain->GetEvent())) {
-			bool found = false;
-			for (int j=0; j<_RUNs.size(); j++) {
-			  if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
-				found=true;
-				break;
-			  }
-			}
-			if (!found) continue;
-			printf("AMSEventList::Writing event ............ %12d %12d\n"
-					    , ev->Run(), ev->Event());
-			ev->GetAllContents();
-			amsnew->Fill();
-		}
-		cout << "AMSEventList::Writing AMS ROOT file \"";
-		cout << file->GetName() << "\" with " << this->GetEntries(); 
-		cout << " selected events" << endl;
-		file->Write();
-	};
-
-	int AMSEventList::GetEntries(){return _RUNs.size();};
-	int AMSEventList::GetRun(int i){return _RUNs[i];};
-	int AMSEventList::GetEvent(int i){return _EVENTs[i];};
+void AMSEventList::Write(const char* filename){
+        cout << "AMSEventList::Writing ASCII file \"";
+        cout << filename << "\" with " << this->GetEntries(); 
+        cout << " selected events" << endl;
+        FILE* listfile = fopen(filename,"w");
+        for (int j=0; j<_RUNs.size(); j++) {
+            fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
+        }
+        fclose(listfile);
+};
 
 
-	void AMSEventR::GetAllContents() {
-		    clear();
-		    bStatus->GetEntry(_Entry);
-		    bHeader->GetEntry(_Entry);
-		    bEcalHit->GetEntry(_Entry);
-		    bEcalCluster->GetEntry(_Entry);
-		    bEcal2DCluster->GetEntry(_Entry);
-		    bEcalShower->GetEntry(_Entry);
-		    bRichHit->GetEntry(_Entry);
-		    bRichRing->GetEntry(_Entry);
-		    if(bRichRingB)bRichRingB->GetEntry(_Entry);
-		    bTofRawCluster->GetEntry(_Entry);
-		    NTofRawSide();
-		    bTofCluster->GetEntry(_Entry);
-		    NAntiRawSide();
-		    bAntiCluster->GetEntry(_Entry);
-		    bTrRawCluster->GetEntry(_Entry);
-		    bTrCluster->GetEntry(_Entry);
-		    bTrRecHit->GetEntry(_Entry);
-		    bTrTrack->GetEntry(_Entry);
-		    bTrdRawHit->GetEntry(_Entry);
-		    bTrdCluster->GetEntry(_Entry);
-		    bTrdSegment->GetEntry(_Entry);
-		    bTrdTrack->GetEntry(_Entry);
-		    bLevel1->GetEntry(_Entry);
-		    bLevel3->GetEntry(_Entry);
-		    bBeta->GetEntry(_Entry);
-		    bVertex->GetEntry(_Entry);
-		    bCharge->GetEntry(_Entry);
-		    bParticle->GetEntry(_Entry);
-		    bAntiMCCluster->GetEntry(_Entry);
-		    bTrMCCluster->GetEntry(_Entry);
-		    bTofMCCluster->GetEntry(_Entry);
-		    bTrdMCCluster->GetEntry(_Entry);
-		    bRichMCCluster->GetEntry(_Entry);
-		    bMCTrack->GetEntry(_Entry);
-		    bMCEventg->GetEntry(_Entry);
-		    bDaqEvent->GetEntry(_Entry);
-	      }
+void AMSEventList::Write(AMSChain* chain, TFile* file){
+        TTree *amsnew = chain->CloneTree(0);
+        chain->Rewind();
+        AMSEventR* ev = NULL;
+        while ((ev=chain->GetEvent())) {
+                bool found = false;
+                for (int j=0; j<_RUNs.size(); j++) {
+                  if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
+                        found=true;
+                        break;
+                  }
+                }
+                if (!found) continue;
+                printf("AMSEventList::Writing event ............ %12d %12d\n"
+                                    , ev->Run(), ev->Event());
+                ev->GetAllContents();
+                amsnew->Fill();
+        }
+        cout << "AMSEventList::Writing AMS ROOT file \"";
+        cout << file->GetName() << "\" with " << this->GetEntries(); 
+        cout << " selected events" << endl;
+        file->Write();
+};
+
+int AMSEventList::GetEntries(){return _RUNs.size();};
+int AMSEventList::GetRun(int i){return _RUNs[i];};
+int AMSEventList::GetEvent(int i){return _EVENTs[i];};
 
 
-	AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fCharge(o.fCharge),fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),fTofMCCluster(o.fTofMCCluster),fTrdMCCluster(o.fTrdMCCluster),fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux){
-	_Count++;
-	}
-	#endif
+void AMSEventR::GetAllContents() {
+            clear();
+            bStatus->GetEntry(_Entry);
+            bHeader->GetEntry(_Entry);
+            bEcalHit->GetEntry(_Entry);
+            bEcalCluster->GetEntry(_Entry);
+            bEcal2DCluster->GetEntry(_Entry);
+            bEcalShower->GetEntry(_Entry);
+            bRichHit->GetEntry(_Entry);
+            bRichRing->GetEntry(_Entry);
+            if(bRichRingB)bRichRingB->GetEntry(_Entry);
+            bTofRawCluster->GetEntry(_Entry);
+            NTofRawSide();
+            bTofCluster->GetEntry(_Entry);
+            NAntiRawSide();
+            bAntiCluster->GetEntry(_Entry);
+            bTrRawCluster->GetEntry(_Entry);
+            bTrCluster->GetEntry(_Entry);
+            bTrRecHit->GetEntry(_Entry);
+            bTrTrack->GetEntry(_Entry);
+            bTrdRawHit->GetEntry(_Entry);
+            bTrdCluster->GetEntry(_Entry);
+            bTrdSegment->GetEntry(_Entry);
+            bTrdTrack->GetEntry(_Entry);
+            bLevel1->GetEntry(_Entry);
+            bLevel3->GetEntry(_Entry);
+            bBeta->GetEntry(_Entry);
+            bVertex->GetEntry(_Entry);
+            bCharge->GetEntry(_Entry);
+            bParticle->GetEntry(_Entry);
+            bAntiMCCluster->GetEntry(_Entry);
+            bTrMCCluster->GetEntry(_Entry);
+            bTofMCCluster->GetEntry(_Entry);
+            bTrdMCCluster->GetEntry(_Entry);
+            bRichMCCluster->GetEntry(_Entry);
+            bMCTrack->GetEntry(_Entry);
+            bMCEventg->GetEntry(_Entry);
+            bDaqEvent->GetEntry(_Entry);
+      }
+
+
+AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fCharge(o.fCharge),fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),fTofMCCluster(o.fTofMCCluster),fTrdMCCluster(o.fTrdMCCluster),fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux){
+_Count++;
+}
+#endif
 

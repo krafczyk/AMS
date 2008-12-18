@@ -7,8 +7,11 @@
 #include "event.h"
 #include "trrec.h"
 #include "ntuple.h"
+#ifdef _PGTRACK_
+#include "tkdcards.h"
+#else
 #include "tkdbc.h"
-
+#endif
 #include "extC.h"
 #include "mceventg.h"
 
@@ -67,6 +70,24 @@ integer AMSVtx::build(integer refit){
                   }
             }
 exit_betaprint:
+#ifdef _PGTRACK_
+	    //PZ FIXME TRACK
+            cout << ", beta " << track_has_beta;
+//
+            cout << ", PI Chi2 " << ptr->getpichi2();
+            cout << ", PI Rigidity " << ptr->GetRigidity();
+            cout << ", WEAK bit " << ptr->checkstatus(AMSDBc::WEAK);
+            cout << ", FalseX bit " << ptr->checkstatus(AMSDBc::FalseX);
+            cout << ", FalseTOFX bit " << ptr->checkstatus(AMSDBc::FalseTOFX);
+            cout << endl;
+            ptr->_printEl(cout);
+            for (int i=0;i<ptr->GetNhits();i++){
+                  cout << "        " << ptr->GetHit(i)->GetCoord()[0];
+                  cout << ", " << ptr->GetHit(i)->GetCoord()[1];
+                  cout << ", " << ptr->GetHit(i)->GetCoord()[2];
+                  cout << endl;
+            }
+#else
             cout << ", beta " << track_has_beta;
 //
             cout << ", PI Chi2 " << ptr->getpichi2();
@@ -82,6 +103,7 @@ exit_betaprint:
                   cout << ", " << ptr->getphit(i)->getHit()[2];
                   cout << endl;
             }
+#endif
          }
        }
      }
@@ -153,6 +175,24 @@ integer AMSVtx::set_all(){
 
      // Most of the information
      number u[3];
+#ifdef _PGTRACK_
+     for (int i=0; i<_Ntracks; i++) { 
+       _Ptrack[i]->setstatus(AMSDBc::USED);
+	 number rig =  _Ptrack[i]->GetRigidity();
+	 number en =  fabs(rig);
+	 number erig =  _Ptrack[i]->GetErrRinv()*en*en;
+	 _Momentum += en;
+	 _Charge += (rig>=0.0)? 1:-1;
+	 _ErrMomentum += erig*erig;
+	 _Chi2 += _Ptrack[i]->getpichi2(); 
+	 _Ndof += 2*_Ptrack[i]->GetNhits() - 5; 
+       AMSDir dir = AMSDir(_Ptrack[i]->GetTheta(),_Ptrack[i]->GetPhi());
+       dir.getp(u);
+	 mom[0] += en*u[0]; 
+       mom[1] += en*u[1]; 
+       mom[2] += en*u[2];
+     }
+#else
      for (int i=0; i<_Ntracks; i++) { 
        _Ptrack[i]->setstatus(AMSDBc::USED);
 	 number rig =  _Ptrack[i]->getpirid();
@@ -169,6 +209,7 @@ integer AMSVtx::set_all(){
        mom[1] += en*u[1]; 
        mom[2] += en*u[2];
      }
+#endif
      _ErrMomentum = sqrt(_ErrMomentum)/_Momentum/_Momentum;
      _Mass = _Momentum*_Momentum - mom[0]*mom[0] - mom[1]*mom[1] - mom[2]*mom[2];
      if (_Mass>0.0) _Mass = sqrt(_Mass); else _Mass = 0.0; 
@@ -200,6 +241,41 @@ void AMSVtx::set_vertex(){
    for (int i1=i0+1; i1<_Ntracks; i1++){ 
 
     AMSDir dir[2];
+
+#ifdef _PGTRACK_
+    // PZ FIXME
+    dir[0] = AMSDir(_Ptrack[i0]->GetTheta(),_Ptrack[i0]->GetPhi());
+    dir[1] = AMSDir(_Ptrack[i1]->GetTheta(),_Ptrack[i1]->GetPhi());
+
+    number dirprod = dir[0].prod(dir[1]);
+    AMSPoint deltax =  _Ptrack[i0]->GetP0() - _Ptrack[i1]->GetP0();
+
+    number lambda[2];
+    if (fabs(dirprod)<1.) {
+       AMSPoint aux = dir[0] - dir[1]*dirprod;
+       lambda[0] = - deltax.prod(aux) / (1.-dirprod*dirprod);
+       aux = dir[1] - dir[0]*dirprod;
+       lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
+       AMSPoint poi[2];
+       poi[0] = AMSPoint(_Ptrack[i0]->GetP0()+dir[0]*lambda[0]);
+       poi[1] = AMSPoint(_Ptrack[i1]->GetP0()+dir[1]*lambda[1]);
+       number mom=fabs(_Ptrack[i0]->GetRigidity())+fabs(_Ptrack[i1]->GetRigidity());
+//       cout <<" poi0 "<<poi[0]<<endl;
+//       cout <<" poi1 "<<poi[1]<<endl;
+       if(fabs(poi[0][2])<maxz && fabs(poi[1][2])<maxz){
+         number_of_pairs++;
+        for (int j=0; j<3; j++) {
+          _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->GetRigidity())/mom;
+          _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->GetRigidity())/mom;
+        }
+       }
+       else{
+         static int nerr=0;
+         if(nerr++<100)cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
+         setstatus(AMSDBc::BAD);
+       }
+    }
+#else
     dir[0] = AMSDir(_Ptrack[i0]->gettheta(2),_Ptrack[i0]->getphi(2));
     dir[1] = AMSDir(_Ptrack[i1]->gettheta(2),_Ptrack[i1]->getphi(2));
 
@@ -231,6 +307,7 @@ void AMSVtx::set_vertex(){
          setstatus(AMSDBc::BAD);
        }
     }
+#endif
    
   }
   }

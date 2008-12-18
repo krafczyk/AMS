@@ -6,8 +6,10 @@
 
 #include "upool.h"
 #include "apool.h"
+#ifndef _PGTRACK_
 #include "gsen.h"
 #include "trid.h"
+#endif
 #include "link.h"
 #include "commons.h"
 #include "cont.h"

@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.21 2008/12/08 15:15:18 choutko Exp $
+//  $Id: uzstat.C,v 1.22 2008/12/18 11:19:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -18,7 +18,7 @@ ofstream fbin("/f2users/choutko/AMS/examples/lvl3.txt",ios::out);
 
 
 
-#ifdef __PZSTUFF
+#ifdef _PGTRACK_
 
 float etime(float ar[]){
 

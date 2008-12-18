@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.25 2008/12/17 12:24:12 choutko Exp $
+//  $Id: point.h,v 1.26 2008/12/18 11:19:25 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -138,6 +138,25 @@ class AMSDir :public AMSPoint{
   number gettheta() const{return acos(_z);}
   //! it returns the azimutal angle
   number getphi() const{return atan2(_y,_x);}
+  //! sets the zenith angle
+  void SetTheta(number th) {
+    number phi=getphi();
+    _z=cos(th);
+    _x=sin(th)*cos(phi);
+    _y=sin(th)*sin(phi);
+    number mod=sqrt(_z*_z+_y*_y+_x*_x);
+    if(mod!=0){_x/=mod;    _y/=mod;    _z/=mod;}
+  }
+  //! sets  the azimutal angle
+  void SetPhi(number phi) {
+    number th=gettheta();
+    _x=sin(th)*cos(phi);
+    _y=sin(th)*sin(phi);
+    number mod=sqrt(_z*_z+_y*_y+_x*_x);
+    if(mod!=0){_x/=mod;    _y/=mod;    _z/=mod;}
+  }
+
+
   //! copy constructor
   AMSDir(const AMSDir& o):AMSPoint(){_copy(o._x,o._y,o._z);}
   //! explicit constructor from coo

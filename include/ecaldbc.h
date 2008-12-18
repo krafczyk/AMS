@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.40 2008/06/26 09:30:00 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.41 2008/12/18 11:19:24 pzuccon Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -8,6 +8,7 @@
 #include "extC.h"
 #include <math.h>
 #include "amsdbc.h"
+#include "commons.h"
 //
 // ECAL global constants definition
 //

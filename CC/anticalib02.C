@@ -220,6 +220,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     while(ppart){
       ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
       if(ptrack){//check track-type
+	//PZ FIXME STATUS WHAT TO DO?????
         trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
         ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
         nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
@@ -227,7 +228,16 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
         if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
           trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){
+#ifdef _PGTRACK_
+	    chi2=ptrack->GetChisq(AMSTrTrack::kChoutko);
+	    rid=ptrack->GetRigidity(AMSTrTrack::kChoutko);
+	    err=ptrack->GetErrRinv(AMSTrTrack::kChoutko);
+	    the=ptrack->GetTheta(AMSTrTrack::kChoutko);
+	    phi=ptrack->GetPhi(AMSTrTrack::kChoutko);
+	    C0=ptrack->GetP0(AMSTrTrack::kChoutko);
+#else
             ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+#endif
             status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
 //          pbeta=pcharge->getpbeta();

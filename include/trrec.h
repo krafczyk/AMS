@@ -1,4 +1,10 @@
-//  $Id: trrec.h,v 1.99 2008/12/08 15:15:19 choutko Exp $
+#ifdef _PGTRACK_
+
+#include "TrCluster.h"
+#include "TrRecHit.h"
+#include "TrTrack.h"
+#else
+//  $Id: trrec.h,v 1.100 2008/12/18 11:19:25 pzuccon Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -30,24 +36,6 @@
 #include <vector>
 
 using namespace std;
-
-
-class Test: public AMSlink{
-protected:
- integer _pid;
- AMSPoint _coo;
- void _copyEl(){}
- void _printEl(ostream & stream){}
- void _writeEl(){}
-public:
- Test(integer pid=0):_pid(pid){}
- Test(integer pid, AMSPoint coo):_pid(pid),_coo(coo){}
-  integer getpid()const {return _pid;}
-  AMSPoint getcoo()const {return _coo;}
-  Test *  next(){return (Test*)_next;}
-
-};
-
 
 
 
@@ -493,5 +481,7 @@ friend class AMSTrCalibFit;
  friend class TrTrackR;
 #endif
 };
+
+#endif
 
 #endif

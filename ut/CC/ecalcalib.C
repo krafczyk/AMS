@@ -27,6 +27,10 @@
 #include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
+#ifdef _PGTRACK_
+#include "MagField.h"
+#endif
+
 using namespace ecalconst;
 //
 //
@@ -2015,8 +2019,10 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   AMSTrCluster *pycl;
   AMSTrCluster *x;
   AMSTrCluster *y;
+#ifndef _PGTRACK_
   AMSTrIdSoft idx;
   AMSTrIdSoft idy;
+#endif
   integer ilay,hitla,nxcl[trconst::maxlay],nycl[trconst::maxlay];
   number axtcl[trconst::maxlay],aytcl[trconst::maxlay];
   number axbcl[trconst::maxlay],aybcl[trconst::maxlay];
@@ -2113,6 +2119,51 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
           beta=0.;
           if(pbeta)beta=pbeta->getbeta();
 //
+#ifdef _PGTRACK_
+          ntrh=ptrack->GetNhits();
+          for(i=0;i<ntrh;i++){//<---track hits(2Dclust) loop
+            phit=ptrack->GetHit(i);
+            hitla=phit->GetLayer();
+//
+            pxcl=phit->GetXCluster();
+            if(pxcl){
+              axtcl[hitla-1]+=pxcl->GetTotSignal();
+              x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
+              while (x){//<--- x-clust loop
+                ilay=x->GetLayer();
+                if(hitla==ilay){//the same layer
+                  if(x->checkstatus(AMSDBc::BAD)==0){
+                    if(pxcl==x){
+                    }
+                    else{//count background
+                      axbcl[ilay-1]+=x->GetTotSignal();
+                      nxcl[ilay-1]+=1;
+                    }
+                  }
+                }
+                x=x->next();
+              }//---> end of x-clust loop
+            }//-->pxcl  
+//
+            pycl=phit->GetYCluster();
+            if(pycl){
+              aytcl[hitla-1]+=pycl->GetTotSignal();
+              y=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);
+              while (y){//<--- y-clust loop
+                ilay=y->GetLayer();
+                if(hitla==ilay){//the same layer
+                  if(y->checkstatus(AMSDBc::BAD)==0){
+                    if(pycl==y){
+                    }
+                    else{//count background
+                      aybcl[ilay-1]+=y->GetTotSignal();
+                      nycl[ilay-1]+=1;
+                    }
+                  }
+                }
+                y=y->next();
+
+#else
           ntrh=ptrack->getnhits();
           for(i=0;i<ntrh;i++){//<---track hits(2Dclust) loop
             phit=ptrack->getphit(i);
@@ -2154,9 +2205,10 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 	              aybcl[ilay-1]+=y->getVal();
 	              nycl[ilay-1]+=1;
 	            }
-	          }
-	        }
+                  }
+                }
                 y=y->next();
+#endif
               }//---> end of y-clust loop
             }//-->pycl  
 //

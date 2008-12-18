@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.17 2008/12/08 15:15:19 choutko Exp $
+//  $Id: trdrec.h,v 1.18 2008/12/18 11:19:25 pzuccon Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -44,7 +44,12 @@ uinteger getlayer()const {return _layer;}
 const AMSDir & getCooDir()const {return _CooDir;}
  AMSPoint & getCoo() {return _Coo;}
 inline integer Good(int bit,int exist=false) {
+#ifdef _PGTRACK_ 
+   //PZ FIXME TRFITFFKEY
+   bool cond=(( checkstatus(AMSDBc::USED)==0)&& checkstatus(AMSDBc::GOOD));
+#else
   bool cond=((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0)&& checkstatus(AMSDBc::GOOD));
+#endif
   if(exist){
   return bit<0?cond:cond && (checkstatus(bit)!=0);
   }
@@ -123,7 +128,12 @@ static integer Out(integer status);
 static bool Distance1D(number par[2], AMSTRDCluster *ptr);
 
 inline integer Good(int bit,int exist=false) {
+#ifdef _PGTRACK_
+//PZ FIXME   TRFITFFKEY
+  bool cond=( checkstatus(AMSDBc::USED)==0);
+#else
   bool cond=(TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0);
+#endif
   if(exist){
   return bit<0?cond:cond && (checkstatus(bit)!=0);
   }

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.32 2008/08/28 20:33:37 choutko Exp $
+//  $Id: tofcalib02.C,v 1.33 2008/12/18 11:19:33 pzuccon Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -984,8 +984,13 @@ void TofTmAmCalib::select(){  // calibr. event selection
           trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){//trk-track ok
             GoodTrkTrack=true;
+#ifdef _PGTRACK_
+	    //PZ FIXME UNUSED traddr=ptrack->getaddress();//TRK-track ladders combination id
+	    trhits=ptrack->GetNhits();
+#else
 	    traddr=ptrack->getaddress();//TRK-track ladders combination id
 	    trhits=ptrack->getnhits();
+#endif
             ptrack->getParFastFit(chi2,rigid,err,the,phi,C0);
             status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle

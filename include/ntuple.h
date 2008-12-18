@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.112 2008/12/08 15:15:19 choutko Exp $
+//  $Id: ntuple.h,v 1.113 2008/12/18 11:19:25 pzuccon Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -47,7 +47,11 @@ using namespace root;
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "node.h"
+#ifdef _PGTRACK_
+#include "TkDBc.h"
+#else
 #include "tkdbc.h"
+#endif
 #include "trddbc.h"
 #include "ecaldbc.h"
 #include "antidbc02.h"
@@ -318,6 +322,7 @@ friend class AMSTOFMCCluster;
 friend class AMSNtuple;
 };
 
+#ifndef _PGTRACK_
 //--------------------------
 class TrClusterNtuple {
 public:
@@ -354,6 +359,64 @@ public:
 friend class AMSTrMCCluster;
 friend class AMSNtuple;
 };
+
+
+
+class TrTrackNtuple02 {
+public:
+  int Ntrtr;
+  int Status[MAXTRTR02];
+  int Pattern[MAXTRTR02];
+  int Address[MAXTRTR02];
+  int NHits[MAXTRTR02];
+  int pHits[MAXTRTR02][trconst::maxlay];
+  float LocDBAver[MAXTRTR02];
+  int GeaneFitDone[MAXTRTR02];
+  int AdvancedFitDone[MAXTRTR02];
+  float Chi2StrLine[MAXTRTR02];
+  float Chi2WithoutMS[MAXTRTR02];
+  float RigidityWithoutMS[MAXTRTR02];
+  float Chi2FastFit[MAXTRTR02];
+  float Ridgidity[MAXTRTR02];
+  float ErrRidgidity[MAXTRTR02];
+  float Theta[MAXTRTR02];
+  float Phi[MAXTRTR02];
+  float P0[MAXTRTR02][3];
+  float GChi2[MAXTRTR02];
+  float GRidgidity[MAXTRTR02];
+  float GErrRidgidity[MAXTRTR02];
+//  float GTheta[MAXTRTR02];
+//  float GPhi[MAXTRTR02];
+//  float GP0[MAXTRTR02][3];
+  float HChi2[MAXTRTR02][2];
+  float HRidgidity[MAXTRTR02][2];
+  float HErrRidgidity[MAXTRTR02][2];
+  float HTheta[MAXTRTR02][2];
+  float HPhi[MAXTRTR02][2];
+  float HP0[MAXTRTR02][2][3];
+  float FChi2MS[MAXTRTR02];
+  float PiErrRig[MAXTRTR02];
+  float RidgidityMS[MAXTRTR02];
+  float PiRigidity[MAXTRTR02];
+
+friend class AMSTrTrack;
+friend class AMSNtuple;
+};
+
+
+class TrRawClusterNtuple {
+public:
+  int Ntrraw;
+  int address[MAXTRRAW];
+  int nelem[MAXTRRAW];
+  float s2n[MAXTRRAW];
+friend class AMSTrRawCluster;
+friend class AMSNtuple;
+};
+
+
+#endif
+
 
 class TRDMCClusterNtuple {
 public:
@@ -469,47 +532,6 @@ public:
   float Vertex[MAXVTX02][3];
 
 friend class AMSVtx;
-friend class AMSTrTrack;
-friend class AMSNtuple;
-};
-
-class TrTrackNtuple02 {
-public:
-  int Ntrtr;
-  int Status[MAXTRTR02];
-  int Pattern[MAXTRTR02];
-  int Address[MAXTRTR02];
-  int NHits[MAXTRTR02];
-  int pHits[MAXTRTR02][trconst::maxlay];
-  float LocDBAver[MAXTRTR02];
-  int GeaneFitDone[MAXTRTR02];
-  int AdvancedFitDone[MAXTRTR02];
-  float Chi2StrLine[MAXTRTR02];
-  float Chi2WithoutMS[MAXTRTR02];
-  float RigidityWithoutMS[MAXTRTR02];
-  float Chi2FastFit[MAXTRTR02];
-  float Ridgidity[MAXTRTR02];
-  float ErrRidgidity[MAXTRTR02];
-  float Theta[MAXTRTR02];
-  float Phi[MAXTRTR02];
-  float P0[MAXTRTR02][3];
-  float GChi2[MAXTRTR02];
-  float GRidgidity[MAXTRTR02];
-  float GErrRidgidity[MAXTRTR02];
-//  float GTheta[MAXTRTR02];
-//  float GPhi[MAXTRTR02];
-//  float GP0[MAXTRTR02][3];
-  float HChi2[MAXTRTR02][2];
-  float HRidgidity[MAXTRTR02][2];
-  float HErrRidgidity[MAXTRTR02][2];
-  float HTheta[MAXTRTR02][2];
-  float HPhi[MAXTRTR02][2];
-  float HP0[MAXTRTR02][2][3];
-  float FChi2MS[MAXTRTR02];
-  float PiErrRig[MAXTRTR02];
-  float RidgidityMS[MAXTRTR02];
-  float PiRigidity[MAXTRTR02];
-
 friend class AMSTrTrack;
 friend class AMSNtuple;
 };
@@ -632,16 +654,6 @@ public:
   unsigned int TrigTime[MAXLVL1][4];
 
 friend class Trigger2LVL1;
-friend class AMSNtuple;
-};
-
-class TrRawClusterNtuple {
-public:
-  int Ntrraw;
-  int address[MAXTRRAW];
-  int nelem[MAXTRRAW];
-  float s2n[MAXTRRAW];
-friend class AMSTrRawCluster;
 friend class AMSNtuple;
 };
 
@@ -845,16 +857,21 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   ParticleNtuple02 _part02;
   TOFClusterNtuple _tof;
   TOFMCClusterNtuple _tofmc;
+#ifndef _PGTRACK_
   TrClusterNtuple _trcl;
   TrMCClusterNtuple _trclmc;
+  TrRecHitNtuple02 _trrh02;
+  TrTrackNtuple02 _trtr02;
+  TrRawClusterNtuple _trraw;
+#endif
+
+  TRDTrackNtuple _trdtrk;
   TRDMCClusterNtuple _trdclmc;
   TRDClusterNtuple _trdcl;
   TRDSegmentNtuple _trdseg;
-  TRDTrackNtuple _trdtrk;
   TRDRawHitNtuple _trdht;
-  TrRecHitNtuple02 _trrh02;
+
   VtxNtuple _vtx02;
-  TrTrackNtuple02 _trtr02;
   MCTrackNtuple _mct;// tempor 02??
   MCEventGNtuple02 _mcg02;
   AntiRawSideNtuple _antirs;
@@ -862,7 +879,6 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   ANTIMCClusterNtuple _antimc;
   LVL3Ntuple02 _lvl302;
   LVL1Ntuple02 _lvl102;
-  TrRawClusterNtuple _trraw;
   TOFRawClusterNtuple _tofraw;
   TofRawSideNtuple _tofraws;
   EcalClusterNtuple _ecclust;
@@ -906,16 +922,19 @@ public:
   ParticleNtuple02* Get_part02() {return &_part02;}
   TOFClusterNtuple* Get_tof() {return &_tof;}
   TOFMCClusterNtuple* Get_tofmc() {return &_tofmc;}
+#ifndef _PGTRACK_
   TrClusterNtuple* Get_trcl() {return &_trcl;}
   TrMCClusterNtuple* Get_trclmc() {return &_trclmc;}
+  TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
+  TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
+  TrRawClusterNtuple* Get_trraw() {return &_trraw;}
+#endif
   TRDMCClusterNtuple* Get_trdclmc() {return &_trdclmc;}
+  TRDTrackNtuple* Get_trdtrk() {return &_trdtrk;}
   TRDClusterNtuple* Get_trdcl() {return &_trdcl;}
   TRDSegmentNtuple* Get_trdseg() {return &_trdseg;}
-  TRDTrackNtuple* Get_trdtrk() {return &_trdtrk;}
   TRDRawHitNtuple* Get_trdht() {return &_trdht;}
-  TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
   VtxNtuple* Get_vtx02() {return &_vtx02;}
-  TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
   MCTrackNtuple* Get_mct() {return &_mct;}
   MCEventGNtuple02* Get_mcg02() {return &_mcg02;}
   AntiClusterNtuple* Get_anti() {return &_anti;}
@@ -923,7 +942,6 @@ public:
   ANTIMCClusterNtuple* Get_antimc() {return &_antimc;}
   LVL3Ntuple02* Get_lvl302() {return &_lvl302;}
   LVL1Ntuple02* Get_lvl102() {return &_lvl102;}
-  TrRawClusterNtuple* Get_trraw() {return &_trraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
   TofRawSideNtuple* Get_tofraws() {return &_tofraws;}
   EcalClusterNtuple* Get_ecclust() {return &_ecclust;}

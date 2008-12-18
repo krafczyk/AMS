@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.62 2008/12/08 15:15:17 choutko Exp $
+//  $Id: beta.C,v 1.63 2008/12/18 11:19:32 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -15,6 +15,10 @@
 #include "trigger302.h"
 #include "event.h"
 #include "trdrec.h"
+#ifdef _PGTRACK_
+#include "patt.h"
+#endif
+
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
 integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0
@@ -43,7 +47,7 @@ integer AMSBeta::build(integer refit){
 // Sonly = 2 => tracks without K hits (FalseTOFX && !TOFFORGAMMA)
 
  int bfound=0;
- for( int Sonly=0; Sonly<3; Sonly++){
+  for( int Sonly=0; Sonly<3; Sonly++){
 
 
 // Loop on TOF patterns
@@ -84,7 +88,7 @@ integer AMSBeta::build(integer refit){
          }
          AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
          ptrack,sleng[0],td);
-         
+
          if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
          chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 
@@ -118,15 +122,15 @@ integer AMSBeta::build(integer refit){
              AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
              getecoo(),ptrack,sleng[2],td);
              if(!(dst<=SearchReg*phit[2]->getnmemb())) continue;
-             chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+               chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 3-point combination found
              if(AMSBeta::patpoints[patb]==3){
                if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,td,chi2space)){
                 bfound++;
                  goto nexttrack;
-               }
+     }
                continue;
-             }
+  }
 
 // Loop on fourth TOF plane
              phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
@@ -134,7 +138,7 @@ integer AMSBeta::build(integer refit){
                if(phit[3]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
                if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))){
                  if (phit[3]->checkstatus(AMSDBc::USED)) continue;
-               }
+ }
                AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
                getecoo(),ptrack,sleng[3],td);
                if(!(dst<=SearchReg*phit[3]->getnmemb())) continue;
@@ -165,7 +169,7 @@ if( !bfound ){
  for ( int patb=0; patb<npatb; patb++){
    if(!BETAFITFFKEY.pattern[patb]) continue;
    number td;
-
+               
 
 // Loop on track patterns
 
@@ -188,7 +192,7 @@ if( !bfound ){
          if(phit[0]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
          if (!BETAFITFFKEY.FullReco ) {
            if (phit[0]->checkstatus(AMSDBc::USED)) continue;
-         }
+   }
          AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
          ptrack,sleng[0],td);
          if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
@@ -200,7 +204,7 @@ if( !bfound ){
            if(phit[1]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
            if (!BETAFITFFKEY.FullReco) {
              if (phit[1]->checkstatus(AMSDBc::USED)) continue;
-           }
+ }
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td);
            if (!(dst<=SearchReg*phit[1]->getnmemb())) continue;
@@ -210,11 +214,11 @@ if( !bfound ){
              if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,chi2space)){
                ptrackT->setstatus(AMSDBc::USED);
                ptrack->setstatus(AMSDBc::USED);
-               
+  
                goto nexttrack2;
              }
              continue;
-           }
+}
 
 // Loop on third TOF plane
            phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);

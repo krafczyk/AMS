@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.174 2008/12/10 17:50:25 choutko Exp $
+//  $Id: ntuple.C,v 1.175 2008/12/18 11:19:33 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -9,11 +9,16 @@
 #include "ntuple.h"
 #include "job.h"
 #include "ecaldbc.h"
+#include "event.h"
+#ifndef _PGTRACK_
 #include "tralig.h"
+#endif
 
 #include <iostream>
 #include <iomanip>
+#ifndef __DARWIN__
 #include <malloc.h>
+#endif
 #include <time.h>
 #include <strstream>
 #include <fstream>
@@ -128,18 +133,26 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,100],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
+
+#ifndef _PGTRACK_
   HBNAME(_lun,"TrCluste",&_trcl.Ntrcl, 
   "Ntrcl[0,200],Idsoft(ntrcl):I,Statust(ntrcl):I,NelemL(ntrcl)[-100,100]:I,NelemR(ntrcl)[0,100]:I,Sumt(ntrcl),Sigmat(ntrcl),Meant(ntrcl):R,RMSt(ntrcl),ErrorMeant(ntrcl),Amplitude(5,ntrcl):R");
   HBNAME(_lun,"TrMCClus",&_trclmc.Ntrclmc,
   "ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),Left(2,ntrclmc):I,Center(2,ntrclmc):I,Right(2,ntrclmc):I,ss(5,2,ntrclmc),xca(3,ntrclmc),xcb(3,ntrclmc),xgl(3,ntrclmc),summc(ntrclmc)");
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
   "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[1,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh),Bfield(3,ntrrh)");
+  HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
+  "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[-1,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2WithoutMS(ntrtr),RigidityWithoutMS(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");
+
+
+  HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
+  "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
+
+#endif
 
   HBNAME(_lun,"Vertex",&_vtx02.Nvtx,
   "nvtx[0,3],vtxMomentum(nvtx):R,vtxErrMomentum(nvtx):R,vtxTheta(nvtx):R,vtxPhi(nvtx):R,vtxMass(nvtx):R,vtxCharge(nvtx)[-7,7]:I,vtxStatus(nvtx):I,vtxChi2(nvtx):R,vtxNdof(nvtx):I,vtxNtracks(nvtx)[0,7]:I,vtxPtrTrack(3,nvtx):I,vtxVertex(3,nvtx):R");
 
-  HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
-  "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[-1,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2WithoutMS(ntrtr),RigidityWithoutMS(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");
 
   HBNAME(_lun,"MCEventG",&_mcg02.Nmcg,
   "nmcg[0,100],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
@@ -159,9 +172,6 @@ void AMSNtuple::init(){
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
 
 "nlvl1[0,2],LVL1PhysBPatt(nlvl1),LVL1JMembPatt(nlvl1),LVL1Flag1(nlvl1)[-10,20],LVL1Flag2(nlvl1)[-10,20],LVL1TOFPatt1(4,nlvl1),LVL1TOFPatt2(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECALpatt(3,6,nlvl1),LVL1ECtrsum(nlvl1):R,LVL1LiveTime(nlvl1):R,LVL1TrigRates(6,nlvl1):R,LVL1TrigTime(4,nlvl1)");
-
-  HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
-  "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,"ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofradca(2,ntofraw),tofradcd(2,ntofraw),tofradcdr(3,2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
@@ -209,15 +219,18 @@ if(_lun){
    _ecshow.Necsh = 0;
    _ecalhit.Necht = 0;
    _tofmc.Ntofmc = 0;
+#ifndef _PGTRACK_
    _trcl.Ntrcl = 0;
+    VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc))/sizeof(integer));
+   _trrh02.Ntrrh = 0;
+   _trtr02.Ntrtr = 0;
+   _trraw.Ntrraw = 0;
+#endif
    _trdclmc.Ntrdclmc=0;
    _trdcl.Ntrdcl=0;
    _trdht.Ntrdht=0;
    _trdtrk.Ntrdtrk=0;
    _trdseg.Ntrdseg=0;
-    VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc))/sizeof(integer));
-   _trrh02.Ntrrh = 0;
-   _trtr02.Ntrtr = 0;
    _mcg02.Nmcg = 0;
    _mct.Nmct = 0;   
    _anti.Nanti = 0;
@@ -225,7 +238,6 @@ if(_lun){
    _antimc.Nantimc = 0;
    _lvl302.Nlvl3 = 0;
    _lvl102.Nlvl1 = 0;
-   _trraw.Ntrraw = 0;
    _tofraw.Ntofraw = 0;
    _tofraws.Ntofraws = 0;
    _richmc.NMC=0;
@@ -247,9 +259,11 @@ void AMSNtuple::endR(){
 // write tracker alignment structure
 
    if(_rfile){
+#ifndef _PGTRACK_
      _ta.SetString(AMSTrAligFit::GetAligString());
      //cout <<AMSTrAligFit::GetAligString()<<endl;
      _ta.Write("TrackerAlignment");
+#endif
      _rfile->Write();
      _rfile->Close();
      delete _rfile;
@@ -264,150 +278,158 @@ void AMSNtuple::initR(char* fname){
 #ifdef __WRITEROOT__
   TTree::SetMaxTreeSize(0xFFFFFFFFFFLL);
   static TROOT _troot("S","S");
-   cout << "Initializing tree...\n"<<endl;
+  cout << "Initializing tree...\n"<<endl;
   _Nentries=0;
-   if(_rfile){
-     _rfile->Write();
-     _rfile->Close();
-     delete _rfile;
-     _rfile=0;
-   }
-              struct stat64 f_stat;
-              bool open=!(AMSJob::gethead()->isMonitoring()) ||   stat64(fname,&f_stat);
-              if( open){
-              if(!(AMSJob::gethead()->isMonitoring()))_rfile= new TFile(fname,"RECREATE");
-              else _rfile=new TFile(fname,"CREATE");
-              } 
+  if(_rfile){
+    _rfile->Write();
+    _rfile->Close();
+    delete _rfile;
+    _rfile=0;
+  }
+  struct stat64 f_stat;
+  bool open=!(AMSJob::gethead()->isMonitoring()) ||   stat64(fname,&f_stat);
+  if( open){
+    if(!(AMSJob::gethead()->isMonitoring()))_rfile= new TFile(fname,"RECREATE");
+    else _rfile=new TFile(fname,"CREATE");
+  } 
 #ifdef __CORBA__
-     _dc.SetString(AMSProducer::GetDataCards());
-//   cout <<_dc.GetString()<<endl;
+  _dc.SetString(AMSProducer::GetDataCards());
+  //   cout <<_dc.GetString()<<endl;
 #endif
-   if(!_rfile || _rfile->IsZombie()){
-       if(_rfile){
-         delete _rfile;
-         _rfile=0;
-       }
-       throw amsglobalerror("UnableToOpenRootFile",3);
-   }
-   _dc.Write("DataCards");
-const int size=5000000;
-char * name=new char[size];
-if(name){
-ostrstream ost(name,size);
-     AMSJob::gethead()->getgeom()->printN(ost);
-     _ag.SetString(name);
-//     cout <<_ag.GetString();
-     delete [] name;
-}
-   _ag.Write("AMS02Geometry");
-   cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
-   cout<<"Set Split Level ..."<<branchSplit<<endl;
+  if(!_rfile || _rfile->IsZombie()){
+    if(_rfile){
+      delete _rfile;
+      _rfile=0;
+    }
+    throw amsglobalerror("UnableToOpenRootFile",3);
+  }
+  _dc.Write("DataCards");
+#ifdef _PGTRACK_
+  TrCalDB::Head->Write();
+  // if(TrCalDB::Head) TrCalDB::Head->Write();
+#endif   
 
-   _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
-    cout<<"AMSNtuple::initR -I- create branches"<<endl;
-   _tree= new TTree("AMSRoot","AMS Ntuple Root");
-     Get_evroot02()->CreateBranch(_tree,branchSplit);
-//    static void *pev1=(void*)_evroot02;
-//   TBranch *b1=_tree->Branch(AMSEventR::BranchName(),"AMSEventR",&pev1,64000,branchSplit);
-//    AString  bhead=AMSEventR::_Name;
-//    bhead+="Header";
-//     static void *pev2=(void*)_evroot02.fHeader;
-//   TBranch *b2=_tree->Branch((const char*)bhead,"AMSEventHeaderR",&pev2,64000,1); 
+  const int size=5000000;
+  char * name=new char[size];
+  if(name){
+    ostrstream ost(name,size);
+    AMSJob::gethead()->getgeom()->printN(ost);
+    _ag.SetString(name);
+    //     cout <<_ag.GetString();
+    delete [] name;
+  }
+  _ag.Write("AMS02Geometry");
+  cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
+  cout<<"Set Split Level ..."<<branchSplit<<endl;
+
+  _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
+  cout<<"AMSNtuple::initR -I- create branches"<<endl;
+  _tree= new TTree("AMSRoot","AMS Ntuple Root");
+  Get_evroot02()->CreateBranch(_tree,branchSplit);
+  //    static void *pev1=(void*)_evroot02;
+  //   TBranch *b1=_tree->Branch(AMSEventR::BranchName(),"AMSEventR",&pev1,64000,branchSplit);
+  //    AString  bhead=AMSEventR::_Name;
+  //    bhead+="Header";
+  //     static void *pev2=(void*)_evroot02.fHeader;
+  //   TBranch *b2=_tree->Branch((const char*)bhead,"AMSEventHeaderR",&pev2,64000,1); 
 #endif
 #ifndef __WRITEROOT__
-cerr <<" RootFileOutput is Not supported in this version "<<endl;
-exit(1);
+  cerr <<" RootFileOutput is Not supported in this version "<<endl;
+  exit(1);
 #endif
 
 #ifdef __MEMMONITOR__
-   int NEVENTS = GCFLAG.NEVENT;
-   MemMonitor(MEMUPD, NEVENTS);
+  int NEVENTS = GCFLAG.NEVENT;
+  MemMonitor(MEMUPD, NEVENTS);
 #endif
 }
+
+
+
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
-    Get_evroot02()->SetCont();
-    static int _Size=0;
-//
-//   check container
-//
-int nthr=1;
+  Get_evroot02()->SetCont();
+  static int _Size=0;
+  //
+  //   check container
+  //
+  int nthr=1;
 #ifdef _OPENMP
-nthr=omp_get_num_threads();
+  nthr=omp_get_num_threads();
 #endif
-    bool go=true;
-    uint64 runv=AMSEvent::gethead()->getrunev();
-    for(int k=0;k<nthr;k++){
-     if(AMSEvent::runev(k) && AMSEvent::runev(k)<runv){
-        go=false;
-        break;
-     }
-    } 
-    if(!go){
-//    add event to the map
-       AMSEventR * evn=new AMSEventR(_evroot02);
-       evmap.insert(make_pair(runv,evn));
-     }
-     else{         
+  bool go=true;
+  uint64 runv=AMSEvent::gethead()->getrunev();
+  for(int k=0;k<nthr;k++){
+    if(AMSEvent::runev(k) && AMSEvent::runev(k)<runv){
+      go=false;
+      break;
+    }
+  } 
+  if(!go){
+    //    add event to the map
+    AMSEventR * evn=new AMSEventR(_evroot02);
+    evmap.insert(make_pair(runv,evn));
+  }
+  else{         
     if(_tree){
-    if(!_lun )_Nentries++;
-    AMSEventR::Head()=Get_evroot02();
-     _tree->Fill();
+      if(!_lun )_Nentries++;
+      AMSEventR::Head()=Get_evroot02();
+      _tree->Fill();
      
-//cout <<" ** writing ** "<<Get_evroot02()->Event()<<" "<<Get_evroot02()->nParticle()<<endl;
-int thread=0;
+      //cout <<" ** writing ** "<<Get_evroot02()->Event()<<" "<<Get_evroot02()->nParticle()<<endl;
+      int thread=0;
 #ifdef _OPENMP
-thread=omp_get_thread_num();
+      thread=omp_get_thread_num();
 #endif
-     AMSEvent::runev(thread)=0;     
-//cout << " thread "<<omp_get_thread_num()<<" "<<Get_evroot02()<<" "<<_Nentries<<" "<<AMSEventR::Head()->Event()<<AMSEvent::gethead()->getid()<<endl;
+      AMSEvent::runev(thread)=0;     
+      //cout << " thread "<<omp_get_thread_num()<<" "<<Get_evroot02()<<" "<<_Nentries<<" "<<AMSEventR::Head()->Event()<<AMSEvent::gethead()->getid()<<endl;
     }
-}
-//  2nd pass for the map
+  }
+  //  2nd pass for the map
       
-    for(evmapi i=evmap.begin();i!=evmap.end();){
-     go=true;
-//     cout <<"  go "<<i->second->Event()<<endl;
-     for(int k=0;k<nthr;k++){
-     if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
-       go=false;
-       break;
-     }
+  for(evmapi i=evmap.begin();i!=evmap.end();){
+    go=true;
+    //     cout <<"  go "<<i->second->Event()<<endl;
+    for(int k=0;k<nthr;k++){
+      if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
+	go=false;
+	break;
+      }
     }
-     if(!go)break;
+    if(!go)break;
     if(_tree){
-    if(!_lun )_Nentries++;
-//    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
-    AMSEventR::Head()=(i->second);
-     _tree->Fill();
-     for(int k=0;k<nthr;k++){
-     if(AMSEvent::runev(k)==(i->first)){
-       AMSEvent::runev(k)=0;
-       break;
-     }
-    }
+      if(!_lun )_Nentries++;
+      //    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
+      AMSEventR::Head()=(i->second);
+      _tree->Fill();
+      for(int k=0;k<nthr;k++){
+	if(AMSEvent::runev(k)==(i->first)){
+	  AMSEvent::runev(k)=0;
+	  break;
+	}
+      }
       delete i->second;
       evmapi idel=i++;
       evmap.erase(idel);
 
     }
-   }
-   if(evmap.size()>_Size){
-     _Size=evmap.size();
-     if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
-   }
+  }
+  if(evmap.size()>_Size){
+    _Size=evmap.size();
+    if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
+  }
    
 
 #endif
 #ifdef __MEMMONITOR__
-    int NEVENTS = GCFLAG.NEVENT;
-    MemMonitor(MEMUPD,NEVENTS);
+  int NEVENTS = GCFLAG.NEVENT;
+  MemMonitor(MEMUPD,NEVENTS);
 #endif
 }
 
 
 uinteger AMSNtuple::getrun(){
-    return _event02.Run;
+  return _event02.Run;
 }
 
 // Author S.Gerassimov TUM/COMPASS (sergei.gerassimov@cern.ch)
@@ -471,7 +493,7 @@ void AMSNtuple::MemMonitor(const int n, int N = 0)
     HCDIR (cdir, " ");
 
 #endif
-}
+  }
   if(++nevt >= nmaximum) return; // out of histogramm limit
 
   if(nevt%nperiod == 0) {     // filling

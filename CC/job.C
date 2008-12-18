@@ -1,4 +1,5 @@
-// $Id: job.C,v 1.606 2008/12/16 11:45:17 choutko Exp $
+
+// $Id: job.C,v 1.607 2008/12/18 11:19:32 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -24,16 +25,33 @@
 #include "commons.h"
 #include <iostream.h>
 #include <fstream.h>
-//#include "trid.h"
 #include "extC.h"
+
+#ifdef _PGTRACK_
+
+#include "TrRecon.h"
+#include "VCon_gbatch.h"
+#include "TrMCCluster.h"
+#include "tkdcards.h"
+#include "trdaq.h"
+#include "MagField.h"
+
+#else
+
 #include "trmccluster.h"
+#include "trcalib.h"
+#include "trid.h"
+#include "trrawcluster.h"
+#include "tralig.h"
+
+#endif
+
 #include "mccluster.h"
 #include "job.h"
 #include "event.h"
 #include "charge.h"
 #include "timeid.h"
 #include "mceventg.h"
-#include "trcalib.h"
 #include "trdcalib.h"
 #include "antidbc02.h"
 #include "tofsim02.h"
@@ -43,15 +61,13 @@
 #include "trigger102.h"
 //#include <trigger3.h>
 #include "trigger302.h"
-#include "bcorr.h"
-#include "trid.h"
-#include "trrawcluster.h"
+//#include "bcorr.h"
+
 #include "ecalrec.h"
 #include "daqevt.h"
 #include "daqs2block.h"
 #include "ntuple.h"
 #include "user.h"
-#include "tralig.h"
 #include "status.h"
 #include "richdbc.h"
 #include "richid.h"
@@ -451,6 +467,7 @@ void AMSJob::_sitrig2data(){
 //
 //===============================================================================
 //
+#ifndef _PGTRACK_
 void AMSJob::_sitkdata(){
 TKGEOMFFKEY.ReadGeomFromFile=1;
 TKGEOMFFKEY.WriteGeomToFile=0;
@@ -659,7 +676,7 @@ for( i=0;i<8;i++){
 
 
 }
-
+#endif
 void AMSJob::_signdata(){
 CCFFKEY.coo[0]=-1.e10;
 CCFFKEY.coo[1]=-1.e10;
@@ -745,9 +762,13 @@ FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_simag2data(){
+#ifdef _PGTRACK_
+  MAGSFFKEY.init();
+#else
   MAGSFFKEY.magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
   MAGSFFKEY.fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
   MAGSFFKEY.ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
+#endif
 FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1067,6 +1088,9 @@ _redaqdata();
 }
 
 void AMSJob::_remfdata(){
+#ifdef _PGTRACK_
+  TKFIELD.init();
+#else
 TKFIELD.iniok=1;
 VBLANK(TKFIELD.mfile,40);
 TKFIELD.isec[0]=0;
@@ -1079,10 +1103,11 @@ TKFIELD.imon[0]=0;
 TKFIELD.imon[1]=0;
 TKFIELD.iyear[0]=0;
 TKFIELD.iyear[1]=0;
+#endif
 FFKEY("BMAP",(float*)&TKFIELD,60,"MIXED");
 
 }
-
+#ifndef _PGTRACK_
 void AMSJob::_retkdata(){
 
 //number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
@@ -1204,6 +1229,7 @@ TRFITFFKEY.OldTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
+#endif
 //=================================================================================
 //
 void AMSJob::_retof2data(){
@@ -1570,7 +1596,9 @@ else{
 }
 
   AMSDBc::init(CCFFKEY.Angle);  
+#ifndef _PGTRACK_
   TKDBc::init(0);
+#endif
   TRDDBc::init();
 {
 int len=cl-1;
@@ -1659,6 +1687,48 @@ if(AMSFFKEY.Update){
  }
  }
 }
+#ifdef _PGTRACK_
+
+  TkDBc::CreateTkDBc();
+
+  TrRecon::TRCon=new VCon_gb();
+
+  if(strstr(getsetup(),"AMS02") ){    
+    if(TKGEOMFFKEY.ReadGeomFromFile==1){
+      char fname[1601];
+      UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
+      //PZ FIXME metti a posto il path 
+      TkDBc::Head->init(fname);
+    }
+    else
+      TkDBc::Head->init();
+    AMSTRDIdSoft::init();
+    RichPMTsManager::Init();
+    RichRadiatorTileManager::Init();    
+    AMSTRDIdSoft::inittable();
+    AMSECIds::inittable();
+  }
+  else {
+    cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
+      getsetup()<< "yet "<<endl;
+    exit(1);
+  }
+ 
+  // SetUp the Tracker reconstruction infrastructure
+
+  TrCalDB* cc=new TrCalDB();
+  cc->init();
+  cc->CreateLinear();
+  TrClusterR::UsingTrCalDB(TrCalDB::Head);
+  TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
+
+
+  TrRecon::TRCon=new VCon_gb();
+  TrRecon::Create();
+  TrRecon::gethead()->SetParFromDataCards();
+  TrRecon::UsingTrCalDB(TrCalDB::Head);
+
+#else
     AMSTrIdGeom::init();
     if(strstr(getsetup(),"AMS02") ){    
        AMSTrIdSoft::inittable(2);
@@ -1684,8 +1754,9 @@ if(AMSFFKEY.Update){
        TRALIG.MinEventsPerFit=999; 
       cout <<"Parameters Changed "<<TRALIG.MaxEventsPerFit<<" "<<TRALIG.MinEventsPerFit<<endl;
      }
+#endif
 
-
+  //MAGFIELD
 UHTOC(TKFIELD.mfile,160/sizeof(integer),AMSDATADIR.fname,160);
 
 for(i=159;i>=0;i--){
@@ -1696,6 +1767,15 @@ for(i=159;i>=0;i--){
   if(strlen(AMSDATADIR.fname)<=1)strcpy(AMSDATADIR.fname,"fld97int.txt");
 }
 
+#ifdef _PGTRACK_
+  MagField* mmpp=MagField::GetPtr();
+  MAGSFFKEY.BTempCorrection=MISCFFKEY.BTempCorrection;
+  MAGSFFKEY.BZCorr=MISCFFKEY.BZCorr;
+  if(mmpp) {
+    mmpp->SetMfile(AMSDATADIR.fname);
+    mmpp->SetInitOk(TKFIELD.iniok);
+  }
+#endif
 
 if(TRDMCFFKEY.mode==-1){
  if(!strstr(getsetup(),"AMSSHUTTLE")){
@@ -1706,6 +1786,8 @@ if(TRFITFFKEY.FastTracking==-1){
  TRFITFFKEY.FastTracking=1;
 }
 
+#ifndef _PGTRACK_
+  //PZ FIXME
 // check delta etc
 if(TRMCFFKEY.gammaA[0]<0){
  TRMCFFKEY.gammaA[0]=0.2;
@@ -1720,7 +1802,7 @@ if(TRMCFFKEY.thr1R[0]<0){
 if(TRCLFFKEY.Thr1R[0]<0){
  TRCLFFKEY.Thr1R[0]=3;
 }
-
+#endif
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     _hextname=hfile;
@@ -1808,6 +1890,7 @@ void AMSJob::_sitrig2initjob(){
   TriggerLVL302::init();  
 }
 //-------------------------------------------------------------------------------------------
+#ifndef _PGTRACK_
 void AMSJob::_sitkinitjob(){
   if(TRMCFFKEY.GenerateConst){
     AString fnam(AMSDATADIR.amsdatadir);
@@ -1929,7 +2012,7 @@ else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
      AMSgObj::BookTimer.book("SITKDIGIc");
      AMSgObj::BookTimer.book("TrMCCluster");
 }
-
+#endif
 void AMSJob::_signinitjob(){
      AMSgObj::BookTimer.book("SetTimeCoo");
 
@@ -2117,6 +2200,9 @@ if(isCalibration() & CAMS)_caaxinitjob();
 //if(isCalibration() & CCerenkov)_cactcinitjob();
 }
 //-----------------------------------------------------
+
+#ifndef _PGTRACK_
+
 void AMSJob::_catkinitjob(){
 cout <<" AMSJob::_catkinitjob()-i_Initialized for Proc no  "<<TRCALIB.CalibProcedureNo<<endl;
 AMSgObj::BookTimer.book("CalTrFill");
@@ -2139,6 +2225,7 @@ for(i=0;i<nalg;i++){
 }
 }
 }
+#endif
 //============================================================================
 void AMSJob::_catof2initjob(){
  integer cmode=TFREFFKEY.relogic[0];
@@ -2200,13 +2287,27 @@ void AMSJob::_caaxinitjob(){
 }
 
 void AMSJob::_remfinitjob(){
+
+#ifndef _PGTRACK_
 READMFIELD();
 if(MISCFFKEY.BTempCorrection){
 cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections will be used"<<endl<<endl; 
 }
+#else
+  if(TKFIELD.iniok==0 || TKFIELD.iniok==-2) {
+    char name[150];
+    sprintf(name,"%s/v4.00/%s",AMSDATADIR.amsdatadir,AMSDATADIR.fname);
+    MagField::GetPtr()->Read(name);
+    //    MagField::GetPtr()->Read(AMSDATADIR.fname,AMSDATADIR.amsdatadir);
 }
 
+  if(MAGSFFKEY.BTempCorrection){
+   cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections are MEANING LESS for AMS02"<<endl<<endl; 
+ }
+#endif
+}
 
+#ifndef _PGTRACK_
 void AMSJob::_retkinitjob(){
 AMSgObj::BookTimer.book("RETKEVENT");
 AMSgObj::BookTimer.book("TrCluster");
@@ -2225,6 +2326,7 @@ AMSgObj::BookTimer.book("TrFalseX");
     TrkElosPDF::build();//create TrkElosPDF-objects from TRK raw ChargeCalibFile
   }
 }
+#endif
 //===================================================================================
 //
 void AMSJob::_retof2initjob(){
@@ -2511,9 +2613,7 @@ AMSgObj::BookTimer.book("TDVdb");
 #endif
 static AMSTimeID TID(AMSID("TDV:",0));
 gethead()->addup( &TID);
-//
-// Magnetic Field Map
-//
+
 AMSTimeID::CType server=AMSTimeID::Standalone;
 #ifdef __CORBA__
 if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
@@ -2540,6 +2640,10 @@ if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
 
 
 {
+
+//
+// Magnetic Field Map
+//
 tm begin;
 tm end;
 begin.tm_isdst=0;
@@ -2556,16 +2660,31 @@ end.tm_hour=TKFIELD.ihour[1];
 end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
-    if(strstr(getsetup(),"AMS02D") ){    
 
-TID.add (new AMSTimeID(AMSID("MagneticFieldMapD",isRealData()),
-   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok,server,1));
 
+
+
+ char FieldMapName[100];    
+ if(strstr(getsetup(),"AMS02D") ){    
+   sprintf(FieldMapName,"MagneticFieldMapD");
     }
     else{
-TID.add (new AMSTimeID(AMSID("MagneticFieldMap07",isRealData()),
-   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok),(void*)TKFIELD.isec,server,1));
+   sprintf(FieldMapName,"MagneticFieldMap07");
     }
+ 
+#ifdef _PGTRACK_
+ MagField*  pp= MagField::GetPtr();
+ TID.add(new 
+	 AMSTimeID(AMSID(FieldMapName,isRealData()),
+		   begin,end,pp->GetSizeForDB(),        
+		   (void*)pp->GetPointerForDB(),
+		   server,1));
+#else
+ TID.add (new AMSTimeID(AMSID(FieldMapName,isRealData()),
+			begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok),
+			(void*)TKFIELD.isec,server,1));
+
+#endif
 //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
 //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));
 }
@@ -2575,6 +2694,36 @@ bool NeededByDefault=isSimulation();
 // Pedestals, Gains,  Sigmas & commons noise for tracker
 //      
 
+#ifdef _PGTRACK_
+
+  {
+    tm begin;
+    tm end;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;    
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+   
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+   
+   
+    int need=1;
+    if(isMonitoring())need=0;
+    TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
+                           TrCalDB::GetLinearSize(),TrCalDB::linear,
+                           server,need,SLin2CalDB));
+  }
+
+#else
 {
 tm begin;
 tm end;
@@ -2646,7 +2795,7 @@ if(isMonitoring())need=0;
 //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
 //   (void*)AMSTrIdSoft::indnoise,server,NeededByDefault));
 }
-
+#endif
 
 
 
@@ -3121,6 +3270,8 @@ if(ECMCFFKEY.ReadConstFiles%10==0 &&
 //
 // Data to fit particle charge magnitude(now for tracker only)
 //
+#ifndef _PGTRACK_
+  //PZ FIXME CHARGE
 {
 tm begin;
 tm end;
@@ -3156,6 +3307,7 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
 
 }
+#endif
 //---------------------------
 {
   // TOF Slow Temperature  data (some PMTs inside of TOF-envelops + SFEC)
@@ -3168,18 +3320,18 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
   }  
 }
 //-----------------------------
-{
-  // Magnet Temperature data
+// { PZ FIXME OBSOLETE
+//   // Magnet Temperature data
 
-   tm begin=AMSmceventg::Orbit.End;
-   tm end=AMSmceventg::Orbit.Begin;
-    if(strstr(getsetup(),"AMSSHUTTLE") ){    
-   TID.add (new AMSTimeID(AMSID("MagnetTemperature",isRealData()),
-                         begin,end,
-                         MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp(),server));
-    }
+//    tm begin=AMSmceventg::Orbit.End;
+//    tm end=AMSmceventg::Orbit.Begin;
+//     if(strstr(getsetup(),"AMSSHUTTLE") ){    
+//    TID.add (new AMSTimeID(AMSID("MagnetTemperature",isRealData()),
+//                          begin,end,
+//                          MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp(),server));
+//     }
    
-}
+// }
 //-----------------------------
 {
   // Scaler Data
@@ -3246,6 +3398,8 @@ if(MISCFFKEY.BeamTest>1){
 
 */
 
+#ifndef _PGTRACK_
+  //PZ FIXME ALIGN
 {
   tm begin;
   tm end;
@@ -3285,7 +3439,7 @@ if(!isRealData()){
                           AMSTrAligFit::gettraliggladbp(),server));
 }
 
-
+#endif
 
 
 }
@@ -3303,6 +3457,9 @@ AMSTimeID * AMSJob::gettimestructure(){
      else return  dynamic_cast<AMSTimeID*>(p);
 }
 AMSNode * AMSJob::getaligstructure(){
+#ifdef _PGTRACK_
+  return 0;
+#else
       AMSTrAligFit a;
      AMSNode *p=JobMap.getp(AMSID(a.getname(),a.getid()));
      if(!p){
@@ -3311,6 +3468,7 @@ AMSNode * AMSJob::getaligstructure(){
       return 0;
      }
      else return  p;
+#endif     
 }
 
 AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
@@ -3538,6 +3696,7 @@ throw (amsglobalerror){
    HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
 }
 
+#ifndef _PGTRACK_
 void AMSJob::_tkendjob(){
   if(isCalibration() & CTracker){
     if(TRALIG.UpdateDB){
@@ -3581,7 +3740,7 @@ for(i=0;i<nalg;i++){
 
 
 }
-
+#endif
 void AMSJob::_signendjob(){
 AMSmceventg::endjob();
 }
@@ -3765,10 +3924,12 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
     &AMSmceventg::builddaq);
 
+#ifndef _PGTRACK_
+        //PZ FIXME DAQ
     DAQEvent::addsubdetector(&AMSTrMCCluster::checkdaqid,&AMSTrMCCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
     &AMSTrMCCluster::builddaq);
-
+#endif
 
 
     DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
@@ -3810,11 +3971,15 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 
 
 //tracker
+#ifdef _PGTRACK_
+    DAQEvent::addsubdetector(&TrDAQ::checkdaqid,&TrDAQ::buildraw);
+    DAQEvent::addblocktype(&TrDAQ::getmaxblocks,&TrDAQ::calcdaqlength,&TrDAQ::builddaq);
 
+#else
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 //    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq_new);
-
+#endif
 
 //trd
 
@@ -3830,9 +3995,10 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // Ped-calib
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib,6);
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::updtrdcalibJ,6);
 
-
+#ifndef _PGTRACK_
+    //PZ FIXME CALIB
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
-    
+#endif    
     DAQEvent::addsubdetector(&DAQS2Block::checkblockidP,&DAQS2Block::buildonbP,6);
     
     DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP,6);
@@ -3846,3 +4012,6 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // Ped-calib
 
 }
 
+#ifdef _PGTRACK_
+#include "Tracker/job_tk.C"
+#endif

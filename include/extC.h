@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.21 2008/11/05 09:51:11 choutko Exp $
+//  $Id: extC.h,v 1.22 2008/12/18 11:19:24 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -17,6 +17,9 @@ extern "C" void uginit_();
 extern "C" void gustep_();
 extern "C" void guout_();
 extern "C" void gukine_();
+
+
+#ifndef _PGTRACK_
 extern "C" void trafit_(integer & ifit, geant x[],  geant y[], geant wxy[],
                        geant z[],  geant ssz[], integer & npt,
                        geant resxy[], geant ressz[], integer & iflag,
@@ -29,6 +32,19 @@ extern "C" void tkgetres_(geant res[][7], integer &nplan);
 extern "C" void tkfitg_(integer &npt,geant hits[][3], geant sigma[][3],
 geant normal[][3], integer &ipart,  integer &ialgo, integer &ims, integer layer[], geant out[]);
 #define TKFITG tkfitg_
+extern "C" void tkfini_();
+#define TKFINI tkfini_
+
+extern "C" void tkfitpar_(geant init[7], geant & chrg, geant point[6],
+                geant out[7], number m55[5][5], geant & step);
+#define TKFITPAR tkfitpar_
+
+extern "C" void tkfitparcyl_(geant init[7], geant & chrg, geant point[7],
+                geant out[7], number m55[5][5], geant & step);
+#define TKFITPARCYL tkfitparcyl_
+#endif
+
+
 extern "C" void fit_(geant arr[][8],integer fixpar[][8],geant &chi2m,integer &alg,integer &what, geant xf[],geant chi2[][2],geant &rigmin, integer &itermin);
 #define FIT fit_
 extern "C" void fite_(geant arr[][20],integer fixpar[][20],geant &chi2m,integer &alg,integer &what, geant xf[],geant chi2[][2],geant &rigmin, integer &itermin);
@@ -40,16 +56,6 @@ extern "C" void dinv_(int &ndim, double matrix[], int &ndim2,
 extern "C" void invertmatrix_(double matrix[], int & dim0, int & dim1, int &ifail);
 #define INVERTMATRIX invertmatrix_
 
-extern "C" void tkfini_();
-#define TKFINI tkfini_
-
-extern "C" void tkfitpar_(geant init[7], geant & chrg, geant point[6],
-                geant out[7], number m55[5][5], geant & step);
-#define TKFITPAR tkfitpar_
-
-extern "C" void tkfitparcyl_(geant init[7], geant & chrg, geant point[7],
-                geant out[7], number m55[5][5], geant & step);
-#define TKFITPARCYL tkfitparcyl_
 
 extern "C" void initDB();
 extern "C" void readDB();

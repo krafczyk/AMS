@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.140 2008/12/12 09:18:32 choutko Exp $
+//  $Id: daqevt.C,v 1.141 2008/12/18 11:19:32 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -16,6 +16,11 @@
 #include "astring.h"
 #include <fstream.h>
 #include <unistd.h>
+
+#ifdef _PGTRACK_
+#include "tkdcards.h"
+#endif
+
 #ifndef __ALPHA__
 using std::ostrstream;
 using std::istrstream;

@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.25 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: charge.h,v 1.26 2008/12/18 11:19:24 pzuccon Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -11,7 +11,9 @@
 #define __AMSCHARGE__
 #include "link.h"
 #include "tofdbc02.h"
+#ifndef _PGTRACK_
 #include "tkdbc.h"
+#endif
 #include "trrec.h"
 #include "beta.h"
 #include "richrec.h"

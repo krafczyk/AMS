@@ -3,6 +3,11 @@
 #include "ntuple.h"
 #include "extC.h"
 #include"trigger302.h"
+
+#ifdef _PGTRACK_
+#include "TrFit.h"
+#endif
+
 AMSTRDCluster * AMSTRDCluster::_Head[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 integer AMSTRDCluster::build(int rerun){
 for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
@@ -927,7 +932,30 @@ integer ims=0;
      }
     }
 int ipart=14;
+#ifdef _PGTRACK_
+  //PZ FIXME 
+  TrFit fitg;
+  for (int ii=0;ii<npt;ii++)
+    fitg.Add(hits[ii][0],hits[ii][1],hits[ii][2],
+	      sigma[ii][0],sigma[ii][1],sigma[ii][2]);
+  out[7]=fitg.SimpleFit();
+  
+
+  _Real._FitDone=true;
+  _Real._Chi2=fitg.GetChisq();
+
+  _Real._InvRigidity=fitg.GetRigidity();
+  _Real._ErrInvRigidity=fitg.GetErrRinv();
+  _Real._Theta=fitg.GetTheta();
+  _Real._Phi=fitg.GetPhi();
+  _Real._Coo=AMSPoint(fitg.GetP0x(),
+		      fitg.GetP0y(),
+		      fitg.GetP0z());
+
+  
+#else
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
+
 _Real._FitDone=true;
 _Real._Chi2=out[6];
 if(out[7] != 0)_Real._Chi2=FLT_MAX;
@@ -940,7 +968,7 @@ _Real._ErrInvRigidity=out[8];
 _Real._Theta=out[3];
 _Real._Phi=out[4];
 _Real._Coo=AMSPoint(out[0],out[1],out[2]);
-
+#endif
 
 }
 

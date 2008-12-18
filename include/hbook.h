@@ -1,4 +1,4 @@
-//  $Id: hbook.h,v 1.3 2001/01/22 17:32:44 choutko Exp $
+//  $Id: hbook.h,v 1.4 2008/12/18 11:19:25 pzuccon Exp $
 
 
 /*
@@ -17,6 +17,14 @@
               version for this file.
 ---------------------------------------
 */
+
+#ifdef __ALPHA__
+#define DECFortran
+#else
+#define mipsFortran
+#endif
+#include "cfortran.h"
+
 
 PROTOCCALLSFSUB3(HARRAY,harray,INT,INT,PINT)
 #define HARRAY(A1,A2,A3)  CCALLSFSUB3(HARRAY,harray,INT,INT,PINT,A1,A2,A3)

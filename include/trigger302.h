@@ -1,9 +1,13 @@
-//  $Id: trigger302.h,v 1.19 2008/12/08 15:15:19 choutko Exp $
+//  $Id: trigger302.h,v 1.20 2008/12/18 11:19:25 pzuccon Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include "link.h"
 #include "tofdbc02.h"
+#ifdef _PGTRACK_
+#include "TkDBc.h"
+#else
 #include "tkdbc.h"
+#endif
 #include "trddbc.h"
 #include "ecaldbc.h"
 #include "amsdbc.h"
@@ -13,8 +17,13 @@
 #include "commons.h"
 //
 namespace trigger302const{
+#ifdef _PGTRACK_
+const integer NTRHDRP=trconst::ntdr;
+const integer NTRHDRP2=trconst::ntdr*trconst::ncrt;
+#else
 const integer NTRHDRP=trid::ntdr;
 const integer NTRHDRP2=trid::ntdr*trid::ncrt;
+#endif
 const integer maxtr=10000;
 const integer maxtof=1000;
 const integer maxtrpl=10;
@@ -153,17 +162,22 @@ protected:
  static integer _TOFPattern[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
  static integer _TOFOr[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  static integer _TrackerStatus[trigger302const::NTRHDRP2];
- static integer _TrackerAux[trigger302const::NTRHDRP][trid::ncrt];
  static integer _TOFAux[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  static integer _NTOF[TOF2GC::SCLRS];
-#pragma omp threadprivate(_TrackerAux,_NTOF,_TOFAux)
  static geant _TOFCoo[TOF2GC::SCLRS][TOF2GC::SCMXBR][3];
+
+#ifdef _PGTRACK_
+ static integer _TrackerAux[trigger302const::NTRHDRP][trconst::ncrt];
+ static integer _TrackerOtherTDR[trigger302const::NTRHDRP][trconst::ncrt];
+#else
+ static integer _TrackerAux[trigger302const::NTRHDRP][trid::ncrt];
  static geant _TrackerCoo[trigger302const::NTRHDRP][trid::ncrt][3];
  static geant _TrackerDir[trigger302const::NTRHDRP][trid::ncrt];
  static geant _TrackerCooZ[trconst::maxlay];
  static integer _TrackerDRP2Layer[trigger302const::NTRHDRP][trid::ncrt];
- static number _stripsize;
  static integer _TrackerOtherTDR[trigger302const::NTRHDRP][trid::ncrt];
+#endif
+ static number _stripsize;
 
  integer _UpdateOK(geant s, geant res[], geant amp[],integer pat);
  integer _Level3Searcher(int call, int pat);

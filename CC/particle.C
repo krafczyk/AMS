@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.166 2008/12/08 15:15:17 choutko Exp $
+//  $Id: particle.C,v 1.167 2008/12/18 11:19:33 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -23,6 +23,10 @@
 #include "mceventg.h"
 #include "ecalrec.h"
 #include "vtx.h" 
+#ifdef _PGTRACK_
+#include "patt.h"
+#include "tkdcards.h"
+#endif
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -675,7 +679,15 @@ void AMSParticle::pid(){
     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
       getheadC("AMSTrTrack",patt);
     while(ptrack ){   
-      if(ptrack->getrid() <0 || ptrack->getgrid()<0){
+	if(
+#ifdef _PGTRACK_
+	   // PZ FIXME Track format
+	   //	   ptrack->GetRigidity(AMTrTrack::kChoutko) <0 || ptrack->GetRigidity(AMTrTrack::kGeane)<0
+	   ptrack->GetRigidity(AMSTrTrack::kChoutko) <0 || ptrack->GetRigidity(AMSTrTrack::kChoutko)<0
+#else
+	   ptrack->getrid() <0 || ptrack->getgrid()<0
+#endif
+	   ){
         antimatter=1;
         break;
       }
@@ -711,11 +723,22 @@ else{
 void AMSParticle::refit(int fast){
 AMSgObj::BookTimer.start("ReTKRefit");  
       number beta=_pbeta?_pbeta->getbeta():_Beta;
+#ifdef _PGTRACK_
+  for(int layer=0;layer<TkDBc::Head->nlay();layer++){
+#else
     for(int layer=0;layer<TKDBc::nlay();layer++){
+#endif
        number theta,phi;
        bool bad=false;
+#ifdef  _PGTRACK_
+      //PZ FIXME REFIT
+      //        if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::Head->nlay()-1){
+      //          bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       
+      //        }
+#else
        if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::nlay()-1){
          bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
+#endif
       if(bad)setstatus(AMSDBc::BADINTERPOL);
 // Change theta,phi,coo 
       if(beta>=0 && layer==0){
@@ -728,11 +751,20 @@ AMSgObj::BookTimer.start("ReTKRefit");
            _Phi+=AMSDBc::pi;
           }
      }       
-      else if(beta<0 && layer==TKDBc::nlay()-1){
+#ifdef _PGTRACK_
+      else if(beta<0 && layer==TkDBc::Head->nlay()-1)
+#else
+      else if(beta<0 && layer==TKDBc::nlay()-1)
+#endif
+	{
           _Theta=theta;    
          // change theta according to beta
           _Phi=phi;
+#ifdef _PGTRACK_
+          _Coo=_TrCoo[TkDBc::Head->nlay()-1];
+#else
           _Coo=_TrCoo[TKDBc::nlay()-1];
+#endif
           if(_Theta>AMSDBc::pi/2){
             _Theta=AMSDBc::pi-_Theta;
             _Phi+=AMSDBc::pi;
@@ -753,16 +785,29 @@ AMSgObj::BookTimer.start("ReTKRefit");
       !TRFITFFKEY.FastTracking);
   if(_GPart !=14 || dorefit){
         if(!_ptrack->AdvancedFitDone()){
+#ifdef _PGTRACK_
+	_ptrack->DoAdvancedFit();//PZ FIXME
+      if(_GPart!=14)_ptrack->FitP(AMSTrTrack::kChoutko,_GPart);
+#else
           _ptrack->AdvancedFit();
+#endif
         }
      //if(_GPart!=14)_ptrack->Fit(0,_GPart);
     AMSgObj::BookTimer.stop("ReTKRefit");    
 // Changed - never use geanerigidity to build mom
+
+#ifndef _PGTRACK_
+      // PZ FIXME what is the purpose ?????
      if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On){
         AMSgObj::BookTimer.start("ReGeaneRefit");
             _ptrack->Fit(beta>0?3:-3,_GPart);
         AMSgObj::BookTimer.stop("ReGeaneRefit"); 
      }
+#endif	
+#ifdef _PGTRACK_
+	_build(_ptrack->GetRigidity(),_ptrack->GetErrRinv(),_Charge,
+	       _Beta,_ErrBeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
+#else
      if(0 && _ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2 ){
       _build(beta>0?_ptrack->getgrid():-_ptrack->getgrid(),
        _ptrack->getegrid(),_Charge,_Beta,_ErrBeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
@@ -771,6 +816,7 @@ AMSgObj::BookTimer.start("ReTKRefit");
       _build(_ptrack->getrid(),_ptrack->geterid(),_Charge,
        _Beta,_ErrBeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
      }
+#endif
       integer oldpart=_GPart;
       pid();
 #ifdef __AMSDEBUG__
@@ -926,7 +972,12 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
   for(i=0;i<2;i++)_RichPath[i]=0.;
   for(i=0;i<2;i++)_RichPathBeta[i]=0.;
   _RichLength=0.;
-  for(i=0;i<TKDBc::nlay();i++){
+#ifdef _PGTRACK_
+    for(i=0;i<TkDBc::Head->nlay();i++)
+#else
+      for(i=0;i<TKDBc::nlay();i++)
+#endif
+	{
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
   }

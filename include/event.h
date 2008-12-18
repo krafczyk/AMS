@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.82 2008/12/11 15:47:25 choutko Exp $
+//  $Id: event.h,v 1.83 2008/12/18 11:19:24 pzuccon Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -333,5 +333,20 @@ friend class AMSEventHeaderRoot;
 friend class AMSShuttleParRoot;
 friend class EventRoot02;
 #endif
+};
+class Test: public AMSlink{
+  protected:
+    integer _pid;
+    AMSPoint _coo;
+    void _copyEl(){}
+    void _printEl(ostream & stream){}
+    void _writeEl(){}
+  public:
+    Test(integer pid=0):_pid(pid){}
+    Test(integer pid, AMSPoint coo):_pid(pid),_coo(coo){}
+    integer getpid()const {return _pid;}
+    AMSPoint getcoo()const {return _coo;}
+    Test *  next(){return (Test*)_next;}
+
 };
 #endif

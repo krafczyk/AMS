@@ -6,7 +6,10 @@
 #define mipsFortran
 #endif
 #include "cfortran.h"
+#ifdef __ROOTSHAREDLIBRARY__ && _PGTRACK_
 
+#define RNDM(A) ROOTRndm(A)
+#else
 #ifdef __G4AMS__
 
 #include "CLHEP/Random/RandFlat.h"
@@ -24,4 +27,5 @@ extern "C" void poissn_(float &, int &, int&);
 PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDM(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
 
+#endif
 #endif

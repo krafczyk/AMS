@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.398 2008/12/11 15:33:11 choutko Exp $
+//  $Id: event.C,v 1.399 2008/12/18 11:19:32 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -9,17 +9,26 @@
 //
 // Last Edit : Jan 07, 1999. ak.
 //
-#include "trrawcluster.h"
+
 #include "typedefs.h" 
+
+#ifndef _PGTRACK_
+#include "trrawcluster.h"
+#include "trmccluster.h"
+#include "trcalib.h"
+#include "tralig.h"
+#else
+#include "MagField.h"
+#endif
+
+#include "trrec.h"
 #include "tofdbc02.h" 
 #include "daqecblock.h"
 #include "event.h"
 #include "cont.h"
 #include "commons.h"
 #include "amsgobj.h"
-#include "trrec.h"
 #include "tofrec02.h"
-#include "trmccluster.h"
 #include "mccluster.h"
 #include "beta.h"
 #include "charge.h"
@@ -33,12 +42,10 @@
 #include "daqs2block.h"
 #include "ntuple.h"
 #include "timeid.h"
-#include "trcalib.h"
 #include "trdcalib.h"
-#include "tralig.h"
 #include "trigger102.h"
 #include "trigger302.h"
-#include "bcorr.h"
+//#include "bcorr.h"
 #include "antirec02.h"
 #include "user.h"
 #include <signal.h>
@@ -164,6 +171,8 @@ void AMSEvent::_init(){
       offspring=(AMSTimeID*)offspring->next();
      }
     }
+#ifndef _PGTRACK_
+    //PZ FIXME CALIB
     if(SRun  && TRCALIB.CalibProcedureNo == 3)AMSTrIdCalib::ntuple(SRun);
     if(SRun  && TRCALIB.CalibProcedureNo == 4){
       if(gettime()>TRCALIB.MultiRun){
@@ -171,6 +180,7 @@ void AMSEvent::_init(){
       }
       AMSTrIdCalib::addonemorecalib();
     }
+#endif
     SRun=_run;
     PosInRun=0;
    _validate(1);
@@ -748,7 +758,7 @@ void AMSEvent::_regnevent(){
 
 }
 
-
+#ifndef _PGTRACK_
 void AMSEvent::_sitkinitevent(){
 
 
@@ -757,7 +767,7 @@ void AMSEvent::_sitkinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
-
+#endif
 
 void AMSEvent::_retriginitevent(){
 
@@ -1013,7 +1023,7 @@ void AMSEvent::_reaxinitevent(){
 
 
 }
-
+#ifndef _PGTRACK_
 void AMSEvent::_retkinitevent(){
 
 
@@ -1062,19 +1072,23 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSVtx",0),&AMSVtx::build,0));
 
 }
-
+#endif
 void  AMSEvent::write(int trig){
-    AMSgObj::BookTimer.start("WriteEvent");
+  AMSgObj::BookTimer.start("WriteEvent");
   
-// Sort before by "Used" variable : 
-// AMSTrTrack & AMSTrCluster
-
+  // Sort before by "Used" variable : 
+  // AMSTrTrack & AMSTrCluster
+#ifndef _PGTRACK_
+  //PZ FIXME OBSOLETE
   getheadC("AMSTrCluster",0,2); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
+
+ 
+  for(int il=0;il<TKDBc::nlay();il++){
+    AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
+  }
+#endif
   AMSEvent::gethead()->getheadC("AMSmceventg",0,2); 
-for(int il=0;il<TKDBc::nlay();il++){
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
-}
 for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
   AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
 }
@@ -1115,6 +1129,31 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
       }
       else break;
     }
+
+#ifdef _PGTRACK_
+    //Fortracker only
+    for (AMSTrRawCluster* pptr=(AMSTrRawCluster*)getheadC("AMSTrRawCluster",0);	 pptr!=0;pptr=pptr->next()){
+      //      printf("Adding TrRawCluster to tree\n");
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+    }
+    for (AMSTrCluster* pptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);pptr!=0;pptr=pptr->next()){
+      //      printf("Adding TrCluster to tree\n");
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+    }
+    for (AMSTrRecHit* pptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",0);pptr!=0;pptr=pptr->next()){
+      //     printf("Adding TrRecHit to tree\n");
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+    }
+    for (AMSTrTrack* pptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);pptr!=0;pptr=pptr->next()){
+      //    printf("Adding TrTrack to tree\n");
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+    }
+    if(!AMSJob::gethead()->isRealData())
+      for (AMSTrMCCluster* pptr=(AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);pptr!=0;pptr=pptr->next()){
+	//	printf("Adding TrMCCluster to tree\n");
+	AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+      }
+#endif
 // second pass Root Only
    if (IOPA.WriteRoot) copy();
 //
@@ -1329,7 +1368,7 @@ void AMSEvent::event(){
     _sidaqevent(); //DAQ-simulation 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
   }
-  
+//------------------------------------------------------------------------------------------------------------------------
 void AMSEvent::_reamsevent(){
   AMSgObj::BookTimer.start("REAMSEVENT");  
 
@@ -1396,6 +1435,10 @@ bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.
   AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
+//------------------------------------------------------------------------------------------------------------------------
+
+
+
 void AMSEvent::_caamsinitevent(){
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
@@ -1407,7 +1450,7 @@ void AMSEvent::_caamsinitevent(){
 
 void AMSEvent::_catrdinitevent(){
 }
-
+#ifndef _PGTRACK_
 void AMSEvent::_catkinitevent(){
 
   if(TRCALIB.CalibProcedureNo == 2){
@@ -1415,7 +1458,7 @@ void AMSEvent::_catkinitevent(){
    new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
   }
 }
-
+#endif
 void AMSEvent::_catofinitevent(){
 }
 
@@ -1441,7 +1484,7 @@ void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CRICH)_carichevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
 }
-
+#ifndef _PGTRACK_
 void AMSEvent::_catkevent(){
   AMSgObj::BookTimer.start("CalTrFill");
     if(TRALIG.UpdateDB){
@@ -1471,6 +1514,8 @@ for(i=0;i<nalg;i++){
   AMSgObj::BookTimer.stop("CalTrFill");
 
 }
+#endif
+
 void AMSEvent::_catrdevent(){
   AMSgObj::BookTimer.start("CalTRDFill");
   if(TRDCALIB.CalibProcedureNo == 1){
@@ -1531,6 +1576,7 @@ void AMSEvent::_carichevent(){
 void AMSEvent::_caaxevent(){
 }
 //============================================================================
+#ifndef _PGTRACK_
 void AMSEvent::_retkevent(integer refit){
 
 // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
@@ -1673,6 +1719,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
  else throw AMSLVL3Error("LVL3NotCreated");  
 }
 
+#endif 
 
 //----------------------------------------
 void AMSEvent::_reanti2event(){
@@ -1933,13 +1980,21 @@ AMSBeta::build();
 #endif
 
   // Flag golden tracks here
+#ifndef _PGTRACK_
+  //PZ FIXME FOR VERTEX
   AMSTrTrack::flag_golden_tracks();
+#endif
 
   // Vertexing
   AMSgObj::BookTimer.start("Vtx");
   buildC("AMSVtx");
   AMSgObj::BookTimer.stop("Vtx");
+#ifdef _PGTRACK_
+  //PZ FIXME DEBUG buildC("AMSParticle");
+#else  
   buildC("AMSParticle");
+#endif
+
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSParticle::print();
 #endif
@@ -1948,7 +2003,7 @@ AMSBeta::build();
   AMSgObj::BookTimer.stop("REAXEVENT");
 }
 
-
+#ifndef _PGTRACK_
 void AMSEvent::_sitkinitrun(){
      int l;
      for(l=0;l<2;l++){
@@ -1986,7 +2041,7 @@ void AMSEvent::_sitkinitrun(){
      }
 }
 
-
+#endif
 
 
 void AMSEvent::_sitofinitrun(){
@@ -2003,7 +2058,7 @@ void AMSEvent::_sitrdinitrun(){
 void AMSEvent::_sirichinitrun(){
 }
 
-
+#ifndef _PGTRACK_
 void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
   if(TRFITFFKEY.FastTracking){
@@ -2017,7 +2072,7 @@ void AMSEvent::_retkinitrun(){
     }
   }
 }
-
+#endif
 
 void AMSEvent::_retofinitrun(){
 }
@@ -2090,6 +2145,9 @@ void AMSEvent::_rerichinitrun(){
 void AMSEvent::_reaxinitrun(){
 }
 
+
+#ifndef _PGTRACK_
+
 void AMSEvent:: _sitkevent(){
 bool fastrigger= TOF2RawSide::GlobFasTrigOK();
   if(TRMCFFKEY.NoiseOn && fastrigger )AMSTrMCCluster::sitknoise();
@@ -2107,7 +2165,7 @@ bool fastrigger= TOF2RawSide::GlobFasTrigOK();
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
 }
-
+#endif
 //----------------------------------------------------------------
 void AMSEvent:: _sianti2event(){
   int stat;
@@ -2480,7 +2538,7 @@ void AMSEvent::_printEl(ostream & stream){
     stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime();
 //   stream <<" Average Scaler Rate & LifeTime "<<Trigger2LVL1::getscalersp()->getsum(gettime())<<"  "<<Trigger2LVL1::getscalersp()->getlifetime(gettime())<<endl;
   }
-  stream <<" AverMagnetTemper:"<<MagnetVarp::getmeanmagnetmtemp()<<endl;
+  //PZ FIXME OBSOLETE stream <<" AverMagnetTemper:"<<MagnetVarp::getmeanmagnetmtemp()<<endl;
 }
 //=====================================================================
 void AMSEvent::_writeEl(){
@@ -3030,9 +3088,14 @@ integer AMSEvent::checkdaqidSh(int16u id){
 }
 
 integer AMSEvent::calcTrackerHKl(integer i){
+#ifdef _PGTRACK_
+  // FIXME Tracker House keeping
+  return 0;
+#else
 static integer init =0;
 if(!TRMCFFKEY.WriteHK || abs(++init-TRMCFFKEY.WriteHK-1) >1)return 0;
 return 1+2+2+2+4;
+#endif
 }
 
 integer AMSEvent::_checkUpdate(){
@@ -3421,5 +3484,7 @@ return evt;
 return gettime();
 #endif
 }
-
+#ifdef _PGTRACK_
+#include "Tracker/event_tk.C"
+#endif
 

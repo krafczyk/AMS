@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.200 2008/09/12 15:58:49 choumilo Exp $
+//  $Id: amsgeom.C,v 1.201 2008/12/18 11:19:32 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -25,11 +25,10 @@
 #include "amsgobj.h"
 #include "job.h"
 #include "commons.h"
-#include "tkdbc.h"
-extern "C" void mtx_(geant nrm[][3],geant vect[]);
-extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
-#define MTX mtx_
-#define MTX2 mtx2_
+#ifdef _PGTRACK_
+#include "MagField.h"
+#endif
+
 namespace amsgeom{
 extern void tkgeom02(AMSgvolume &);
 extern void tkgeom02d(AMSgvolume &);

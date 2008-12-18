@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.77 2008/12/08 15:27:19 choutko Exp $
+//  $Id: charge.C,v 1.78 2008/12/18 11:19:32 pzuccon Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -20,7 +20,12 @@
 #include "amsstl.h"
 #include "ntuple.h"
 #include "cern.h"
+#ifdef _PGTRACK_
+#include "TrRawCluster.h"
+#include "tkdcards.h"
+#else
 #include "trrawcluster.h"
+#endif
 #include "job.h"
 
 using namespace std;
@@ -102,7 +107,11 @@ integer AMSCharge::build(integer refit){
   AMSTrCluster  *pTrackerc[TrkTypes-1][TrackerMaxHits];
   integer TypeTOF[TOF2GC::SCLRS];
   integer TypeTracker[TrackerMaxHits];
+#ifdef _PGTRACK_
+  const number fac=TRMCFFKEY.ADC2KeV();
+#else
   const number fac=AMSTrRawCluster::ADC2KeV();
+#endif
 
 // Temporary fix for simulation
   if (!AMSJob::gethead()->isRealData()){
@@ -137,7 +146,13 @@ integer AMSCharge::build(integer refit){
       integer nallTOF=0, nallTracker=0;
       number expRich=0, useRich=0;
       AMSTrTrack *ptrack=pbeta->getptrack();
+
+#ifdef _PGTRACK_
+      number rid=ptrack->GetRigidity();
+#else
       number rid=ptrack->getrid();
+#endif
+
       number beta=pbeta->getbeta();
       number theta, phi, sleng;
       AMSPoint P1;
@@ -184,6 +199,8 @@ integer AMSCharge::build(integer refit){
 
 //====> Select Tracker hits:
 
+#ifndef _PGTRACK_
+      //PZ FIXME Charge
       weak=0;
       while(1 ){
         nhitTracker=0;
@@ -233,7 +250,7 @@ integer AMSCharge::build(integer refit){
           }
         }else break;
       }
-
+#endif
 //====> Select RICH Ring:
 
       AMSRichRing *pring=NULL;
@@ -355,6 +372,10 @@ integer AMSCharge::FitTOF(int refit, number beta, int bstatus, int nhitTOF, AMST
 integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, 
                                 AMSTrCluster *pTrackerc[TrkTypes-1][TrackerMaxHits], 
                                            number etrk[TrkTypes-1][TrackerMaxHits]){
+#ifdef _PGTRACK_
+  //PZ FIXME CHARGE
+  return -1;
+#else
   static number ETRK[TrkTypes-1][TrackerMaxHits];
 #pragma omp threadprivate(ETRK)
   int typetrk[TrackerMaxHits], nhittrktyp[TrkTypes];
@@ -458,6 +479,7 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
   }
 
   return !failtrk;
+#endif
 }
 
 integer AMSCharge::FitRich(int ricfit, number expRich, number useRich){
@@ -490,7 +512,10 @@ void AMSCharge::lkhcalc(int mode, number beta, int nhit, number ehit[], int type
   for(int i=0; i<MaxZTypes; i++){
     lkh[i]=0;
     if(mode==0)lkh[i]+=TofElosPDF::TofEPDFs[i].getlkhd(nhit,typeh,ehit,beta);//TOF
+#ifndef _PGTRACK_
+    //PZ FIXME CHARGE
     else if(mode==1)lkh[i]+=TrkElosPDF::TrkEPDFs[i].getlkhd(nhit,typeh,ehit,beta);//TRK
+#endif
   }
 }
 

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.93 2008/09/15 14:16:06 mdelgado Exp $
+//  $Id: gmat.C,v 1.94 2008/12/18 11:19:32 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -13,6 +13,11 @@
 #include "G4UnitsTable.hh"
 #include <strstream>
 #endif
+
+#ifdef _PGTRACK_
+#include "MagField.h"
+#endif
+
 integer AMSgmat::debug=0;
 void AMSgmat::_init(){
 #ifdef __AMSDEBUG__

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.202 2008/12/08 15:15:18 choutko Exp $
+//  $Id: trrec.C,v 1.203 2008/12/18 11:19:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -25,6 +25,9 @@
 #include "trmccluster.h"
 #include "trdrec.h"
 #include "vtx.h"
+#ifdef _PGTRACK_
+#include "MagField.h"
+#endif
 //
 
 using namespace std;

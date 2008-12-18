@@ -1,8 +1,12 @@
-//  $Id: amsgeom.h,v 1.10 2007/03/23 12:22:22 choumilo Exp $
+//  $Id: amsgeom.h,v 1.11 2008/12/18 11:19:24 pzuccon Exp $
+
+#ifndef _PGTRACK_ 
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
 #define MTX2 mtx2_
+#endif
+
 namespace amsgeom{
 extern void tkgeom02(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);

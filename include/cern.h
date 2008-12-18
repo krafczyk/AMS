@@ -1,4 +1,4 @@
-//  $Id: cern.h,v 1.15 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: cern.h,v 1.16 2008/12/18 11:19:24 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __CERN__
@@ -6,7 +6,7 @@
 #include "typedefs.h"
 //
 // GEANT part
-#include "commons.h"
+//#include "commons.h"
 #include "hbook.h"
 #include "geant321.h"
 #include "geant321g.h"

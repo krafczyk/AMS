@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.113 2008/04/21 15:14:41 choutko Exp $
+//  $Id: geant.C,v 1.114 2008/12/18 11:19:32 pzuccon Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -41,7 +41,9 @@
 #include "amsgobj.h"
 #include "commons.h"
 #include <math.h>
+#ifndef _PGTRACK_
 #include "trid.h"
+#endif
 #include <new.h>
 #include <limits.h>
 #include "extC.h"

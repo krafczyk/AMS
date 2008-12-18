@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.110 2008/12/12 09:18:32 choutko Exp $
+//  $Id: geant3.C,v 1.111 2008/12/18 11:19:32 pzuccon Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -6,7 +6,13 @@
 #include "amsgobj.h"
 #include "commons.h"
 #include <math.h>
+#ifdef _PGTRACK_
+#include "TrMCCluster.h"
+#include "TrRecon.h"
+#else
+#include "trmccluster.h"
 #include "trid.h"
+#endif
 //#include <new.h>
 #include <limits.h>
 #include "extC.h"
@@ -20,7 +26,7 @@
 #include "gvolume.h"
 #include "gmat.h"
 #include "event.h"
-#include "trmccluster.h"
+
 #include "mccluster.h"
 #include "cont.h"
 #include "trrec.h"
@@ -32,7 +38,9 @@
 #include "geantnamespace.h"         
 #include "status.h"
 #include "ntuple.h"
-#include "root.h"
+#ifdef _PGTRACK_
+#include "MagField.h"
+#endif
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 
@@ -180,8 +188,14 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   GCVOLU.names[2][0]== 'S' &&     GCVOLU.names[2][1]=='T' && 
   GCVOLU.names[2][2]=='K'){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+#ifdef _PGTRACK_
+     TrRecon::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
+     GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+#else
      AMSTrMCCluster::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+#endif
+
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 
 #ifdef __AMSDEBUG__
@@ -818,7 +832,11 @@ if(    AMSEvent::gethead()->HasNoCriticalErrors()){
       if(GCFLAG.IEOTRI)AMSJob::gethead()->uhend(AMSEvent::gethead()->getrun(),
 AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
+#ifdef _PGTRACK_
+      AMSTrTrack::SetTimeLimit(AMSFFKEY.CpuLimit-tt);
+#else
       AMSTrTrack::TimeLimit()=AMSFFKEY.CpuLimit-tt;
+#endif
 //        cout <<  "  tt   " <<tt<<endl;
 #ifdef __AMSDEBUG__
       globalbadthinghappened=0;

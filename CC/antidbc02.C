@@ -1,9 +1,9 @@
-//  $Id: antidbc02.C,v 1.30 2008/08/28 20:33:36 choutko Exp $
+//  $Id: antidbc02.C,v 1.31 2008/12/18 11:19:32 pzuccon Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
 #include "typedefs.h"
-#include "commons.h"
+#include "commonsi.h"
 #include "job.h"
 #include "amsdbc.h"
 #include <stdio.h>

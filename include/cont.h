@@ -1,4 +1,4 @@
-//  $Id: cont.h,v 1.18 2008/12/08 15:15:19 choutko Exp $
+//  $Id: cont.h,v 1.19 2008/12/18 11:19:24 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSCONTAINER__
@@ -6,6 +6,7 @@
 #include "typedefs.h"
 #include "link.h"
 #include "node.h"
+#include "upool.h"
 
 //! type for object builder function
 typedef integer  (*pBuilder)(integer refit);

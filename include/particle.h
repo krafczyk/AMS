@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.52 2008/08/01 15:50:44 choutko Exp $
+//  $Id: particle.h,v 1.53 2008/12/18 11:19:25 pzuccon Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -118,7 +118,11 @@ friend class AMSEvent;
     for(i=0;i<2;i++)_RichPath[i]=0.;
     for(i=0;i<2;i++)_RichPathBeta[i]=0.;
     _RichLength=0.;
+#ifdef _PGTRACK_
+    for(i=0;i<trconst::nlays;i++){
+#else
     for(i=0;i<TKDBc::nlay();i++){
+#endif
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
     }    
@@ -142,7 +146,11 @@ friend class AMSEvent;
     for(i=0;i<2;i++)_RichPath[i]=0.;
     for(i=0;i<2;i++)_RichPathBeta[i]=0.;
     _RichLength=0.;
+#ifdef _PGTRACK_
+    for(i=0;i<trconst::nlays;i++){
+#else
     for(i=0;i<TKDBc::nlay();i++){
+#endif
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
     }
