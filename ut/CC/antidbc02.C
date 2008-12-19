@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.31 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: antidbc02.C,v 1.32 2008/12/19 15:01:55 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -46,6 +46,15 @@ ANTIPedsMS ANTIPedsMS::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPa
   geant ANTI2DBc::_tdcdtm=20.;//dead time of TDC-inputs, the same for LT-/FT-inputs[ns]
   geant ANTI2DBc::_daccur=0.02;//generic discr. internal accuracy[ns]
   geant ANTI2DBc::_pbgate=240.;//JLV1-output glFT-gate width to latch "pattern" pulses
+  geant ANTI2DBc::_mev2pe=18.;//Average(over pads/sides) mev->pe conv.factor[pe/mev]
+//    This is side_Npes/0.5mip(most prob, mev) at center(now 1.33/2 mev/side/pad -> 12pe)
+//    One can tune this value to adjust Npe, but pe2adc values in calib.file should be coherently adjusted
+//    to keep the same position of signal(in ADC-channels).
+//
+  geant ANTI2DBc::_perrms=0.5;//PMT relative RMS of 1pe signal
+  geant ANTI2DBc::_pc2adc=1.;// ADC-chip pC->adc_ch convertion factor [adc/pC].
+  geant ANTI2DBc::_t2qgainr=12.;//average empirical factor to keep amplitude(mV) in T-channel at ~160mv
+//                                                                                          (norm.inc mip) 
 //
 //  ANTI2DBc class member functions :
 //
@@ -70,6 +79,10 @@ ANTIPedsMS ANTIPedsMS::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPa
   geant ANTI2DBc::tdcdtm(){return _tdcdtm;}
   geant ANTI2DBc::daccur(){return _daccur;}
   geant ANTI2DBc::pbgate(){return _pbgate;}
+  geant ANTI2DBc::mev2pe(){return _mev2pe;}
+  geant ANTI2DBc::perrms(){return _perrms;}
+  geant ANTI2DBc::pc2adc(){return _pc2adc;}
+  geant ANTI2DBc::t2qgainr(){return _t2qgainr;}
 //----
   void ANTI2DBc::setgeom(){ //get parameters from data cards (for now)
     geant ZShift(0);
@@ -101,7 +114,7 @@ ANTIPedsMS ANTIPedsMS::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPa
 //----
 // function below creates PMT pulse shape array arr[] with binning flash-adc :
 //  peak value = 1.(e.g. 1mV@50ohm, or 1pe if everything is in pe's)
-void ANTI2DBc::inipulsh(integer & nbn, geant arr[])
+geant ANTI2DBc::inipulsh(integer & nbn, geant arr[])
 {
 //  integer tbins=20;
 //  geant pmpsh[20]={0.,.08,.37,.74,.99, 1., .94,.84, .54, .34, .25,
@@ -169,10 +182,10 @@ void ANTI2DBc::inipulsh(integer & nbn, geant arr[])
       }
     }
     if(lastiob){//<-- last iobin test
+      tota=tota*ANTI2DBc::fadcbw()/50.;
+//	tota*=51;//set peak value as on Aahen-picture(51mV)just to compare integral
       if(ATMCFFKEY.mcprtf >1){
-        tota=tota*ANTI2DBc::fadcbw()/50.;
-	tota*=51;//set peak value as on Aahen-picture(51mV)just to compare integral
-        printf("ANTI-PM pulse shape:nbins=% 3d, Integral(pC) = %4.2e\n",nbn,tota);
+        printf("ANTI-PM pulse shape:nbins=% 3d, Integral(pC) = %5.3e\n",nbn,tota);
         for(i=1;i<=nbn;i++){
           if(i%10 != 0)
                        printf("% 4.2e",arr[i-1]);
@@ -181,7 +194,7 @@ void ANTI2DBc::inipulsh(integer & nbn, geant arr[])
         }
         if(nbn%10 !=0)printf("\n");
       }
-      return;
+      return tota;
     }//--->endof last iobin test
   }//--->endof ib loop
 //
@@ -313,7 +326,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
   geant hthr,hdthr[ANTI2C::MAXANTI]; // hist-discr threshold(p.e.)
   geant dqthr,daqthr[ANTI2C::MAXANTI];//daq-readout thresh(adc-ch)
   geant ftdl[2],ftdel[ANTI2C::MAXANTI][2];
-  geant t0[2],tzer[ANTI2C::MAXANTI][2],a2p,adc2pe[ANTI2C::MAXANTI];
+  geant t0[2],tzer[ANTI2C::MAXANTI][2],m2p[4],m2pe[ANTI2C::MAXANTI][4];
   char fname[80];
   char name[80];
   int ctyp,ntypes;
@@ -404,7 +417,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
  }
 //
  for(i=0;i<ANTI2C::MAXANTI;i++){
-   asfile >> adc2pe[i];// read adc->pe factor for ReadoutPaddle(p.e/adc_ch)(side independ)
+   for(j=0;j<4;j++)asfile >> m2pe[i][j];// read mev->pe correction factors for ReadoutPaddle(C1S1,C2S1,C1S2,C2S2)
    asfile >> daqthr[i];// read DAQ-thresh for ReadoutPaddle(adc-ch)(side independ)
    asfile >> hdthr[i];// read history-discr thresh for ReadoutPaddle(p.e)(side independ)
    asfile >> tzer[i][0];// read PhysPaddle-1 time delay(ns, mainly due to clear fiber length)
@@ -427,7 +440,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
 // create ANTI2SPcal objects:
 //
     for(i=0;i<ANTI2C::MAXANTI;i++){
-      a2p=adc2pe[i];//adc->pe conv.factor 
+      for(j=0;j<4;j++)m2p[j]=m2pe[i][j];//mev->pe conv.factor corrections
       dqthr=daqthr[i];//DAQ-readout-threshold (adc-ch)
       hthr=hdthr[i]; // History-discr threshold (pe)
       t0[0]=tzer[i][0];//ClfFiber-delay for PhysPaddle-1
@@ -435,7 +448,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
       ftdl[0]=ftdel[i][0];//S1 true hist-hit delay wrt FT (not used now)
       ftdl[1]=ftdel[i][1];//S2
 //
-      antispcal[i]=ANTI2SPcal(i,a2p,dqthr,hthr,t0,ftdl);// create ANTI2SPcal object
+      antispcal[i]=ANTI2SPcal(i,m2p,dqthr,hthr,t0,ftdl);// create ANTI2SPcal object
     }
 //
   cout<<"<---- ANTI2SPcal::build: succsessfully done !"<<endl<<endl;
@@ -446,14 +459,15 @@ void ANTI2SPcal::build(){ // fill array of objects with data
 //
 void ANTI2VPcal::build(){ // fill array of objects with data
   integer i,j,k,ip,cnum,ibr,isd,endflab;
-  integer sta1[2]={0,0}; // all  are alive as default
-  integer sta2[2]={0,0}; // all  are alive as default
-  integer status1[ANTI2C::MAXANTI][2],status2[ANTI2C::MAXANTI][2];
-  geant m2p1[2],m2p2[2],mev2pe1[ANTI2C::MAXANTI][2],mev2pe2[ANTI2C::MAXANTI][2];
-  geant attlen[ANTI2C::MAXANTI][2],atl[2];
+  integer status[ANTI2C::MAXANTI][2][2],sta[2][2];
+  geant p2a[2][2],pe2adc[ANTI2C::MAXANTI][2][2];//[physs][side]
+  geant attlen[ANTI2C::MAXANTI][2][2],atl[2][2];
+  geant powp[ANTI2C::MAXANTI][2][2],pow[2][2];
+  geant snorp[ANTI2C::MAXANTI][2][2],snor[2][2];
   char fname[80];
   char name[80];
   int ctyp,ntypes;
+  int phs,sd;
 //
   char datt[3];
   char ext[80];
@@ -540,16 +554,27 @@ void ANTI2VPcal::build(){ // fill array of objects with data
  }
 //
  for(i=0;i<ANTI2C::MAXANTI;i++){
-   avfile >> status1[i][0];// read Side-1 stat for PhysPaddle-1
-   avfile >> mev2pe1[i][0];// read Side-1 PhysPaddle-1  mev2pe
-   avfile >> status2[i][0];// read Side-1 stat for PhysPaddle-2
-   avfile >> mev2pe2[i][0];// read Side-1 PhysPaddle-2  mev2pe
-   avfile >> status1[i][1];// read Side-2 stat for PhysPaddle-1
-   avfile >> mev2pe1[i][1];// read Side-2 PhysPaddle-1  mev2pe
-   avfile >> status2[i][1];// read Side-2 stat for PhysPaddle-2
-   avfile >> mev2pe2[i][1];// read Side-2 PhysPaddle-2  mev2pe
-   avfile >> attlen[i][0];// read PhysPaddle-1 att.length 
-   avfile >> attlen[i][1];// read PhysPaddle-2 att.length 
+  for(sd=0;sd<2;sd++){
+   for(phs=0;phs<2;phs++){
+    avfile >> status[i][phs][sd]; 
+    avfile >> pe2adc[i][phs][sd];
+   }
+  }
+  for(sd=0;sd<2;sd++){
+   for(phs=0;phs<2;phs++){
+    avfile >> attlen[i][phs][sd];
+   }
+  } 
+  for(sd=0;sd<2;sd++){
+   for(phs=0;phs<2;phs++){
+    avfile >> powp[i][phs][sd];
+   }
+  } 
+  for(sd=0;sd<2;sd++){
+   for(phs=0;phs<2;phs++){
+    avfile >> snorp[i][phs][sd];
+   }
+  } 
  }
  avfile >> endflab;//read endfile-label
 //
@@ -566,42 +591,58 @@ void ANTI2VPcal::build(){ // fill array of objects with data
 // create ANTI2VPcal objects:
 //
     for(i=0;i<ANTI2C::MAXANTI;i++){
-      sta1[0]=status1[i][0];// alive status from CalibOutput-file
-      sta1[1]=status1[i][1];
-      sta2[0]=status2[i][0];// alive status from CalibOutput-file
-      sta2[1]=status2[i][1];
-      m2p1[0]=mev2pe1[i][0];// S1 mev->pe conv.factor(incl.clfib.atten.,PM-gain),PhysPaddle-1
-      m2p1[1]=mev2pe1[i][1];// S2 ......
-      m2p2[0]=mev2pe2[i][0];// S1 mev->pe conv.factor(incl.clfib.atten.,PM-gain),PhysPaddle-2
-      m2p2[1]=mev2pe2[i][1];// S2 ......
-      atl[0]=attlen[i][0];//att.length for PhysPaddle-1
-      atl[1]=attlen[i][1];//att.length for PhysPaddle-2
+     for(phs=0;phs<2;phs++){
+      for(sd=0;sd<2;sd++){
+       sta[phs][sd]=status[i][phs][sd]; // alive status from CalibOutput-file
+       p2a[phs][sd]=pe2adc[i][phs][sd];//pe->adc conv.factor(incl.clfib.atten.,PM-gain)
+       atl[phs][sd]=attlen[i][phs][sd];//att.length
+       pow[phs][sd]=powp[i][phs][sd];//power param
+       snor[phs][sd]=snorp[i][phs][sd];//sidenorm param
+      }
+     }
 //
-      antivpcal[i]=ANTI2VPcal(i,sta1,sta2,m2p1,m2p2,atl);// create ANTI2VPcal object
+      antivpcal[i]=ANTI2VPcal(i,sta,p2a,atl,pow,snor);// create ANTI2VPcal object
     }
 //
   cout<<"<---- ANTI2VPcal::build: succsessfully done !"<<endl<<endl;
 }
 //
-  geant ANTI2VPcal::getmev2pec(int is){
-    if(status1[is]==0 && status2[is]==0)return 0.5*(mev2pe1[is]+mev2pe2[is]);
-    else if(status1[is]==0)return mev2pe1[is];
-    else if(status2[is]==0)return mev2pe2[is];
-    else return(-1);
+  geant ANTI2VPcal::getatlenc(int is){
+    if(status[0][is]==0 && status[1][is]==0)return 0.5*(attlen[0][is]+attlen[1][is]);
+    else if(status[0][is]==0)return attlen[0][is];
+    else if(status[1][is]==0)return attlen[1][is];
+    else return(1000);//def -> low attenuation
   }
-  geant ANTI2VPcal::getatlenc(){
-    if((status1[0]==0 || status1[1]==0)
-        && (status2[0]==0 || status2[1]==0))return 0.5*(attlen[0]+attlen[1]);
-    else if(status1[0]==0 || status1[1]==0)return attlen[0];
-    else if(status2[0]==0 || status2[1]==0)return attlen[1];
-    else return(-1);
-  }
+//
   int ANTI2VPcal::NPhysSecOK(){//return 2 if BOTH phys.sectors OK, alive phys.sect#(0,1) if not
-    if((status1[0]==0 || status1[1]==0) && (status2[0]==0 || status2[1]==0))return(2);
-    else if(status1[0]==0 || status1[1]==0)return(0);
-    else if(status2[0]==0 || status2[1]==0)return(1);
+    if((status[0][0]==0 || status[0][1]==0) && (status[1][0]==0 || status[1][1]==0))return(2);
+    else if(status[0][0]==0 || status[0][1]==0)return(0);
+    else if(status[1][0]==0 || status[1][1]==0)return(1);
     else return(-1);
   }
+//
+  geant ANTI2VPcal::SignalAtt(integer phs, integer is, geant z){
+    geant att;
+    geant hlen=ATGEFFKEY.scleng/2;
+    geant zlim=25;//lim on fabs(z) where responce is pure exponential(neglect by edge effect)
+    att=exp(z/attlen[phs][is]);
+    if(fabs(z)>zlim)att-=snorp[phs][is]*pow((fabs(z)-zlim)/(hlen-zlim),powp[phs][is]);//add edge corr
+    return att;
+  }
+//
+  geant ANTI2VPcal::SignalAttc(integer is, geant z){
+    geant hlen=ATGEFFKEY.scleng/2;
+    geant zlim=25;//lim on fabs(z) where responce is pure exponential(neglect by edge effect)
+    geant att[2];
+    for(int phs=0;phs<2;phs++){
+      att[phs]=exp(z/attlen[phs][is]);
+      if(fabs(z)>zlim)att[phs]-=snorp[phs][is]*pow((fabs(z)-zlim)/(hlen-zlim),powp[phs][is]);//add edge corr
+    }
+    if(status[0][is]==0 && status[1][is]==0)return 0.5*(att[0]+att[1]);
+    else if(status[0][is]==0)return att[0];
+    else if(status[1][is]==0)return att[1];
+  }
+//
 //
 //==========================================================================
 //
@@ -827,14 +868,15 @@ void ANTI2JobStat::printstat(){
   printf("    ============ JOB ANTI2-statistics =============\n");
   printf("\n");
   printf(" MC: entries                           : % 6d\n",mccount[0]);
-  printf(" MC: Have FastTrig to digitize anti    : % 6d\n",mccount[7]);
+  printf(" MC: Have FastTrig to digitize ACC     : % 6d\n",mccount[7]);
+  printf(" MC: Have MC-hits in ACC               : % 6d\n",mccount[9]);
   printf(" MC: RawEvent created(err.report below): % 6d\n",mccount[6]);
-  printf(" MC:     Flash-ADC buff.ovfl           : % 6d\n",mccount[1]);
+  printf(" MC:     Flash-ADC time-range ovfl     : % 6d\n",mccount[1]);
   printf(" MC:     TimeHist-TDC stack ovfl       : % 6d\n",mccount[2]);
   printf(" MC:     TrigTime-TDC stack ovfl       : % 6d\n",mccount[8]);
   printf(" MC:     ADC range ovfl                : % 6d\n",mccount[3]);
   printf(" MC:     Hist-hits out of search window: % 6d\n",mccount[4]);
-  printf(" MC: FT/Anti coincidence               : % 6d\n",mccount[5]);
+  printf(" MC: FT/ACC coincidence                : % 6d\n",mccount[5]);
   printf("--------\n");
   printf(" RECO-entries                   : % 6d\n",recount[0]);
   printf(" GlobFT(FTC|FTZ|FTE|Ext) OK     : % 6d\n",recount[1]);
@@ -845,15 +887,24 @@ void ANTI2JobStat::printstat(){
   printf("--------\n");
   printf(" AmplCalib entries       : % 6d\n",recount[11]);
   printf(" Nsectors OK             : % 6d\n",recount[12]);
-  printf(" TRK-track found         : % 6d\n",recount[13]);
-  printf(" One TRK-Sector crossing : % 6d\n",recount[14]);
-  printf(" TOF/TRK Z=1             : % 6d\n",recount[15]);
+  printf(" Particle found          : % 6d\n",recount[19]);
+  printf(" Any track particle      : % 6d\n",recount[20]);
+  printf(" TrueTrack(trd|trk) part.: % 6d\n",recount[21]);
+  printf(" TrkTrack particle       : % 6d\n",recount[22]);
+  printf(" Good TrkTrack particle  : % 6d\n",recount[23]);
+  printf(" TrdTrack particle       : % 6d\n",recount[24]);
+  printf(" Good TrdTrack particle  : % 6d\n",recount[25]);
+  printf(" GoogTrackPart selected  : % 6d\n",recount[26]);
+  printf(" Finally TRD-track used  : % 6d\n",recount[27]);
+  printf(" Finally TRK-track used  : % 6d\n",recount[28]);
+  printf(" One Track-Sector cross  : % 6d\n",recount[14]);
+  printf(" Track Z=1               : % 6d\n",recount[15]);
   printf(" Good matching/impact    : % 6d\n",recount[16]);
   printf(" P/m in MIP range        : % 6d\n",recount[17]);
   printf(" Cross.Length OK         : % 6d\n",recount[18]);
   printf("--------\n");
-  printf(" PedCalib entries      : % 6d\n",recount[19]);
-  printf(" PedCalib-events found : % 6d\n",recount[20]);
+  printf(" PedCalib entries      : % 6d\n",recount[30]);
+  printf(" PedCalib-events found : % 6d\n",recount[31]);
   printf("\n\n");
 //
   if(ATREFFKEY.reprtf[0]==0)return;
@@ -1053,14 +1104,17 @@ void ANTI2JobStat::bookmch(){
 //
   HBOOK1(2630,"ANTI-MC: Counters Etot (geant,Mev)",60,0.,30.,0.); 
   HBOOK1(2631,"ANTI-MC(lvl1): GlobFTtime-SideTrigPattSignalTime(ns, at JLV1)",80,-160.,160.,0.); 
-  HBOOK1(2632,"ANTI-MC: DownSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
-  HBOOK1(2633,"ANTI-MC: UpSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
+  HBOOK1(2632,"ANTI-MC: DownSideEdep (pe,FillRawEvent)",80,0.,160.,0.); 
+  HBOOK1(2633,"ANTI-MC: UpSideEdep (pe,FillRawEvent)",80,0.,160.,0.); 
   HBOOK1(2634,"ANTI-MC: DownSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
   HBOOK1(2635,"ANTI-MC: UpSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
   HBOOK1(2636,"ANTI-MC: TimeHistory hits per side ",16,0.,16.,0.); 
-  HBOOK1(2637,"ANTI-MC: NumbOfGeant-hits per event ",80,0.,320.,0.);
-  HBOOK1(2639,"ANTI-MC: LogSector(1+8) GeantEloss(mev)",100,0.,10.,0.);
+  HBOOK1(2637,"ANTI-MC: NumbOfGeant-hits per event ",80,0.,80.,0.);
+  HBOOK1(2639,"ANTI-MC: LogSector GeantEloss(mev)",100,0.,20.,0.);
   HBOOK1(2640,"ANTI-MC: FTchannel PulseWidth",90,0.,450.,0.);
+  HBOOK1(2641,"ANTI-MC: T-channel pulse heights spectrum[mV]",80,0.,1600.,0.);
+  HBOOK1(2642,"ANTI-MC: T-channel pulse charge (pC)",80,0.,320.,0.);
+  HBOOK1(2643,"ANTI-MC: Final FTtime-TrigPattSideSignalTime",80,-160.,160.,0.);
   
 //  HBOOK1(2638,... reserved for PM-pulse  
 }
@@ -1070,7 +1124,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2515,"ANTI-VAL:HitsNumber(adc/tdc(+10)/ft(+20), allchann)",30,0.,30.,0.);
     HBOOK1(2516,"ANTI-VAL:FTtime-HistTime(all chann)",80,0.,240.,0.);
 //
-    HBOOK1(2500,"ANTI-REC: EtotSectors(Mev,Esect>thr)",80,0.,40.,0.);
+    HBOOK1(2500,"ANTI-REC: EtotSectors(Mev,Esect>thr)",80,0.,20.,0.);
     HBOOK1(2501,"ANTI-REC: NumbOfSectors(Esect>thr)",16,0.,16.,0.);
     HBOOK1(2512,"ANTI-REC: NumbOfSectors(Esect>thr, + FT-coinc)",16,0.,16.,0.);
     HBOOK1(2502,"ANTI-REC: Total Time-hits per sector",16,0.,16.,0.);
@@ -1079,7 +1133,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2505,"ANTI-REC: Sector Z-coo(cm, 2sided but pairs!=1)",60,-60.,60.,0.);
     HBOOK1(2506,"ANTI-REC: Sector appearance frequency(Esect>Thr)",16,1.,17.,0.);
     HBOOK1(2507,"ANTI-REC: NumbOfPairedSectors(Esect>thr)",16,0.,16.,0.);
-    HBOOK1(2508,"ANTI-REC: Edep per sector(mev, Eside*2 if one-sided)",80,0.,20.,0.);
+    HBOOK1(2508,"ANTI-REC: Edep per sector(mev, Eside*2 if one-sided)",80,0.,16.,0.);
     HBOOK1(2509,"ANTI-REC: FTtime-SectorSideTime(+T0compens)",80,0.,240.,0.);
     HBOOK1(2510,"ANTI-REC: Total FTCoincSectors(fromTrigPatt)",10,0.,10.,0.);
     HBOOK1(2511,"ANTI-REC: FTCoincSector frequency(0 when TrPatt=0)",10,0.,10.,0.);
@@ -1094,22 +1148,22 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2527,"ANTI-REC: SideTimesDiff(1-2), Sector-8",50,-50.,50.,0.);
   }
   if(ATREFFKEY.reprtf[0]>1){//low prior.hist
-    HBOOK1(2570,"ANTI-VAL:ADC Sect-1, Side-1",80,0.,1600.,0.);
-    HBOOK1(2571,"ANTI-VAL:ADC Sect-2, Side-1",80,0.,1600.,0.);
-    HBOOK1(2572,"ANTI-VAL:ADC Sect-3, Side-1",80,0.,1600.,0.);
-    HBOOK1(2573,"ANTI-VAL:ADC Sect-4, Side-1",80,0.,1600.,0.);
-    HBOOK1(2574,"ANTI-VAL:ADC Sect-5, Side-1",80,0.,1600.,0.);
-    HBOOK1(2575,"ANTI-VAL:ADC Sect-6, Side-1",80,0.,1600.,0.);
-    HBOOK1(2576,"ANTI-VAL:ADC Sect-7, Side-1",80,0.,1600.,0.);
-    HBOOK1(2577,"ANTI-VAL:ADC Sect-8, Side-1",80,0.,1600.,0.);
-    HBOOK1(2578,"ANTI-VAL:ADC Sect-1, Side-2",80,0.,1600.,0.);
-    HBOOK1(2579,"ANTI-VAL:ADC Sect-2, Side-2",80,0.,1600.,0.);
-    HBOOK1(2580,"ANTI-VAL:ADC Sect-3, Side-2",80,0.,1600.,0.);
-    HBOOK1(2581,"ANTI-VAL:ADC Sect-4, Side-2",80,0.,1600.,0.);
-    HBOOK1(2582,"ANTI-VAL:ADC Sect-5, Side-2",80,0.,1600.,0.);
-    HBOOK1(2583,"ANTI-VAL:ADC Sect-6, Side-2",80,0.,1600.,0.);
-    HBOOK1(2584,"ANTI-VAL:ADC Sect-7, Side-2",80,0.,1600.,0.);
-    HBOOK1(2585,"ANTI-VAL:ADC Sect-8, Side-2",80,0.,1600.,0.);
+    HBOOK1(2570,"ANTI-VAL:ADC Sect-1, Side-1",80,0.,4000.,0.);
+    HBOOK1(2571,"ANTI-VAL:ADC Sect-2, Side-1",80,0.,4000.,0.);
+    HBOOK1(2572,"ANTI-VAL:ADC Sect-3, Side-1",80,0.,4000.,0.);
+    HBOOK1(2573,"ANTI-VAL:ADC Sect-4, Side-1",80,0.,4000.,0.);
+    HBOOK1(2574,"ANTI-VAL:ADC Sect-5, Side-1",80,0.,4000.,0.);
+    HBOOK1(2575,"ANTI-VAL:ADC Sect-6, Side-1",80,0.,4000.,0.);
+    HBOOK1(2576,"ANTI-VAL:ADC Sect-7, Side-1",80,0.,4000.,0.);
+    HBOOK1(2577,"ANTI-VAL:ADC Sect-8, Side-1",80,0.,4000.,0.);
+    HBOOK1(2578,"ANTI-VAL:ADC Sect-1, Side-2",80,0.,4000.,0.);
+    HBOOK1(2579,"ANTI-VAL:ADC Sect-2, Side-2",80,0.,4000.,0.);
+    HBOOK1(2580,"ANTI-VAL:ADC Sect-3, Side-2",80,0.,4000.,0.);
+    HBOOK1(2581,"ANTI-VAL:ADC Sect-4, Side-2",80,0.,4000.,0.);
+    HBOOK1(2582,"ANTI-VAL:ADC Sect-5, Side-2",80,0.,4000.,0.);
+    HBOOK1(2583,"ANTI-VAL:ADC Sect-6, Side-2",80,0.,4000.,0.);
+    HBOOK1(2584,"ANTI-VAL:ADC Sect-7, Side-2",80,0.,4000.,0.);
+    HBOOK1(2585,"ANTI-VAL:ADC Sect-8, Side-2",80,0.,4000.,0.);
     
     HBOOK1(2586,"ANTI-VAL:Found(ADC+Time) for Sect+(Side-1)*8",16,1.,17.,0.);
     HBOOK1(2587,"ANTI-VAL:Found(Time) for Sect+(Side-1)*8",16,1.,17.,0.);
@@ -1124,14 +1178,19 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2536,"AntiCalib:PartMass(gev)",80,0.,8.,0.);
     HBOOK1(2537,"AntiCalib:Part mom/mass",80,0.,20.,0.);
     HBOOK1(2538,"AntiCalib:PartPassLength in scint",80,0.,20.,0.);
-    HBOOK2(2625,"AntiCalib:Ampl1(trlen/beta-norm) vs bet",60,0.6,1.2,50,10.,210.,0.);
+//    HBOOK2(2625,"AntiCalib:AmplS1([adc],trlen/beta-norm) vs bet",60,0.6,1.2,50,10.,1000.,0.);
     HBOOK1(2539,"AntiCalib:Matched Physical sector number",16,1.,17.,0.);
     HBOOK1(2540,"AntiCalib:TRK-track CrossPointPhi(Zcr OK)",91,0.,364.,0.);
     HBOOK1(2541,"AntiCalib:TRK-track ImpactPhi(Zcr OK)",91,0.,364.,0.);
     
-    HBOOK1(2542,"AntiCalib:PhysSectorAttLength",80,0.,320.,0.);
-    HBOOK1(2543,"AntiCalib:PhysSectE2PE(s1)",80,0.,40.,0.);
-    HBOOK1(2544,"AntiCalib:PhysSectE2PE(s2)",80,0.,40.,0.);
+    HBOOK1(2542,"AntiCalib:PhysSectorAttLength(side1)",100,0.,1000.,0.);
+    HBOOK1(2543,"AntiCalib:PhysSectorAttLength(side2)",100,0.,1000.,0.);
+    HBOOK1(2544,"AntiCalib:PhysSectPE2ADC(s1/2,[adc/pe])",80,0.,160.,0.);
+    HBOOK1(2593,"AntiCalib:Fit Chi2/dof",80,0.,40.,0.);
+    HBOOK1(2594,"AntiCalib:RawAmpl,LinCorrected(S1 sect4)",100,0.,5000.,0.);
+    HBOOK1(2595,"AntiCalib:RawAmpl,LinCorrected(S2 sect4)",100,0.,5000.,0.);
+    HBOOK1(2596,"AntiCalib:RawAmpl(S1 sect4)",100,0.,5000.,0.);
+    HBOOK1(2597,"AntiCalib:RawAmpl(S2 sect4)",100,0.,5000.,0.);
     
     HBOOK1(2545,"AntiCalib:Cyl-track Zcross(sector-1)",84,-42.,42.,0.);
     HBOOK1(2546,"AntiCalib:Cyl-track Zcross(sector-2)",84,-42.,42.,0.);
@@ -1153,14 +1212,18 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2627,"FiredLogSectNumb(zcrOK,dir=1)",8,0.,8.,0.);
     HBOOK1(2628,"FiredLogSectNumb(zcrOK,phi-mat,dir=-1)",8,0.,8.,0.);
     HBOOK1(2629,"FiredLogSectNumb(zcrOK,phi-mat,dir=1)",8,0.,8.,0.);
+//hist 2561-2592,2624, 2596-2623 free
   }
 //   Hist.2570-2599 reserved for PedCalib needs in ANTPedCalib::init()
 }
 void ANTI2JobStat::outpmc(){
 //
   HPRINT(2639);
+  HPRINT(2641);
+  HPRINT(2642);
   HPRINT(2630);
   HPRINT(2631);
+  HPRINT(2643);
   HPRINT(2632);
   HPRINT(2633);
   HPRINT(2634);
@@ -1247,6 +1310,14 @@ void ANTI2JobStat::outp(){
     HPRINT(2560);
 //
     AntiCalib::fit();
+    HPRINT(2542);
+    HPRINT(2543);
+    HPRINT(2544);
+    HPRINT(2593);
+    HPRINT(2596);
+    HPRINT(2597);
+    HPRINT(2594);
+    HPRINT(2595);
   }
 }
 //======================================================================

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.45 2008/11/07 08:56:36 choumilo Exp $
+//  $Id: tofsim02.C,v 1.46 2008/12/19 15:01:56 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -2355,7 +2355,7 @@ void TOF2RawSide::mc_build(int &status)
 //-----
   else{//<==== external trigger
     ftpatt|=(1<<3);
-    ttrig=0.;//tempor (true ExtTrigSignal-time)
+    ttrig=75.;//tempor (just to have correct FT-HT times (~130ns)) when used for ACC "side impact" test
     ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time at S-crate(fixed delay added)
     TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (in S-crate) 
     TOF2RawSide::setftpatt(ftpatt);//set  globFT members pattern

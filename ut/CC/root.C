@@ -2089,8 +2089,9 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
     }
   }
   for (int i=0; i<2; i++) {
-    for (int j=0; j<3; j++) {
-      AntiCoo[i][j] = ptr->_AntiCoo[i][j];
+    for (int j=0; j<5; j++) {
+      if(j<3)AntiCoo[i][j] = ptr->_AntiCoo[i][j];
+      else AntiCoo[i][j] = ptr->_AntiCrAngle[i][j-3];
     }
   }
   for (int i=0; i<3; i++) {

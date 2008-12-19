@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.61 2008/12/08 17:56:04 choutko Exp $
+//  $Id: trigger102.C,v 1.62 2008/12/19 15:01:56 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -678,20 +678,21 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
   if(TGL1FFKEY.toflc>=0){//redef FTC LUTs settings by request from data card
     toflc=TGL1FFKEY.toflc;
     if(toflc==0){//>=3of4
-      lut1=(1<<7)+(1<<11)+(1<<13)+(1<<14);//3 layers combinations
+      lut1=(1<<7)+(1<<11)+(1<<13)+(1<<14)+(1<<15);//>=3 layers combinations
       lut2=(1<<15);//4 layers combination
     }
     else if(toflc==1){//4of4
       lut1=(1<<15);//4 layers combination
       lut2=0;//none
     }
-    else if(toflc==2){//2of4 top&bot
-      lut1=(1<<5)+(1<<6);// 13+23 comb.
-      lut2=(1<<9)+(1<<10);// 14+24 comb
+    else if(toflc==2){//>=2of4, but top&bot
+      lut1=(1<<5)+(1<<6)+(1<<9)+(1<<10)+(1<<7)+(1<<11)+(1<<13)+(1<<14)+(1<<15);//(13+23+14+24)+(>=3of4) comb.
+      lut2=0;//
     }
-    else if(toflc==3){//any 2of4
-      lut1=(1<<5)+(1<<6)+(1<<9)+(1<<10);// 13+23+14+24 comb.
-      lut2=(1<<3)+(1<<12);// 12+34 comb
+    else if(toflc==3){//any >=2of4
+      lut1=(1<<5)+(1<<6)+(1<<9)+(1<<10)+(1<<3)+(1<<12)//2of4(13+23+14+24+12+34) 
+                 +(1<<7)+(1<<11)+(1<<13)+(1<<14)+(1<<15);// + >=3of4 comb.
+      lut2=0;//
 //these 2 lines is special case: LUT2:0, LUT1:"texas"
 //      lut2=0;//Texas:
 //      lut1=(1<<2)+(1<<6)+(1<<10)+(1<<14);//"no_1" + "yes_2" combinations

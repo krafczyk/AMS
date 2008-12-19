@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.35 2008/12/08 15:15:17 choutko Exp $
+//  $Id: antirec02.C,v 1.36 2008/12/19 15:01:55 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -75,7 +75,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
                            && AMSJob::gethead()->isCalibration()
 			                                          ){//PedCalJob
   int pedobj(0);
-    ANTI2JobStat::addre(19);
+    ANTI2JobStat::addre(30);
     ANTPedCalib::hiamreset();
     while(ptr){//<--RawEvent-objects loop
       id=ptr->getid();// BBarSide
@@ -90,7 +90,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
       ptr=ptr->next();// take next RawEvent hit
     }//  ---- end of RawEvent hits loop ------->
-    if(pedobj>0)ANTI2JobStat::addre(20);
+    if(pedobj>0)ANTI2JobStat::addre(31);
     return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
   }
 //---------------------------------------                             
@@ -203,16 +203,37 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   if(bad==0)status=0;//good anti-event(were at least 1 RawEvent-obj with Time and Ampl measurements)
 }
 //----------------------------------------------------
+geant Anti2RawEvent::accsatur(geant aout){
+  geant norm(17);//tempor. scaling coeff to have about the same most prob of aout and ain
+//  static Int_t bmx=12;
+//  static Float_t ainref[12]={0,74,148,370,740,1480,2960,3256,4096,5400,21620,90700};//kunin
+//  static Float_t aouref[12]={0,74,120,220,340, 500, 740, 770, 840,1000, 2000, 4096};
+  static integer bmx=22;
+  static geant ainref[22]={0, 0.2, 0.67, 1.3, 2.6, 5, 10, 15, 20, 30, 40, 50, 70, 100,
+                             150, 200, 300, 400, 500, 740, 1000, 4600};
+  static geant aouref[22]={0, 11,35,68,120,190,300,400,480,630,790,930,1200,1400,
+                             1750,1900,2200,2400,2550,2850,3000,4000};
+  if(aout<=0)return(0);
+  for(int ib=0;ib<bmx-1;ib++){
+    if(aout>aouref[ib] && aout<=aouref[ib+1]){
+      return (norm*(ainref[ib]+(ainref[ib+1]-ainref[ib])/(aouref[ib+1]-aouref[ib])*(aout-aouref[ib])));
+    }
+  }
+  return norm*ainref[bmx-1];
+//
+}
+//----------------------------------------------------
 void Anti2RawEvent::mc_build(int &stat){
   geant up(0),down(0),slope[2],athr[2],tau,q2pe,temp;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
-  int i,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,it,sta[2];
+  int i,ii,nup,ndown,sector,sectorN,ierr,it,sta[2];
+  number npest[2][2];
   uinteger j,ibmn[2],ibmx[2],nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
   int16u phbit,maxv,id,chsta;
-  geant adca,daqthr,adc2pe;
+  geant adca,daqthr,pe2adc,peaka,speaka;
   integer nftdc,ftdc[ANTI2C::ANTHMX], nhtdc,htdc[ANTI2C::ANTHMX],itt;
   number edep,ede,edept(0),time,z,tlev1,ftrig,lev1tm,lev1tms,htims,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
@@ -226,7 +247,7 @@ void Anti2RawEvent::mc_build(int &stat){
   number edepts(0);
   integer nhtup,nptr;
   integer ssta,nphys,nlogs,nlogsN,nmchts(0);
-  geant domn,dimn,didt,tgpw,tgdt,tdcd,dacc,pgate,tg1,tg2,mv2p,clfdel,attlen;
+  geant domn,dimn,didt,tgpw,tgdt,tdcd,dacc,pgate,tg1,tg2,mev2p,clfdel,attlen,attf;
   AMSAntiMCCluster * ptr;
   AMSAntiMCCluster * ptrN;
   geant * parr;
@@ -244,13 +265,15 @@ void Anti2RawEvent::mc_build(int &stat){
   static integer first=0;
   static integer nshap;//real length of (PMT)-pulse array(in bins=ANTI2DBc::fadcbw())
   static integer ndisp;//real length of pe-arrival time dispersion array(in bins=ANTI2DBc::fadcbw())
-  static geant pshape[ANTI2C::ANFADC+1];//store PM single ph.el. pulse shape(now unfortunately just real "all pe's" pulse)
+  static geant pshape[ANTI2C::ANFADC+1];//store PM single ph.el. pulse shape
   static geant pedisp[ANTI2C::ANFADC+1];//store ph.el. arrival time dispersion(due to light collection)
+  static geant mv2pc;
   geant peavr;
-  int pevstm[ANTI2C::ANFADC+1],petru;
+  int petru;
+  geant pevstm[2][ANTI2C::ANFADC+1];
 //
   if(first++==0){
-    ANTI2DBc::inipulsh(nshap,pshape); // prep.PM-pulse shape arr.(in ANTI2DBc::fadcbw() bins)
+    mv2pc=ANTI2DBc::inipulsh(nshap,pshape);//prep.PM-pulse shape arr.(in fadcbw() bins) and 1mv->pC conv.fact
     ANTI2DBc::inipedisp(ndisp,pedisp); // prep. ph.el. arrival time dispersion arr(in ANTI2DBc::fadcbw() bins)
   }
 //
@@ -277,8 +300,18 @@ void Anti2RawEvent::mc_build(int &stat){
   lev1tm=ftrig+TOF2DBc::lev1del();// "Lev1"-signal abs.time at S-crate
   ftpatt=TOF2RawSide::getftpatt();//get globFT members pattern (after masking)
   if(ftpatt==0)return;//<=== no globFT and ExtTrig
+//
   ANTI2JobStat::addmc(7);//count FT existance
-//-----------
+//---
+  AMSContainer *cptr;
+  cptr=AMSEvent::gethead()->getC("AMSAntiMCCluster",0);//MC container-pointer
+  ii=0;
+  if(cptr)ii+=cptr->getnelem();
+  if(ATMCFFKEY.mcprtf)HF1(2637,geant(ii),1.);
+  if(ii==0)return;//empty ACC
+//---
+  ANTI2JobStat::addmc(9);//count ACC non-empty
+//---
   geant padl=0.5*ANTI2DBc::scleng();
   ptr=(AMSAntiMCCluster*)AMSEvent::gethead()->
                getheadC("AMSAntiMCCluster",0,1); // last 1  to test sorted container
@@ -288,9 +321,13 @@ void Anti2RawEvent::mc_build(int &stat){
   for(i=0;i<=ANTI2C::ANFADC;i++){//reset MC Flash-ADC buffer
     fadcb[0][i]=0.;
     fadcb[1][i]=0.;
+    pevstm[0][i]=0;
+    pevstm[1][i]=0;
   }
-  nupt=0;
-  ndownt=0;
+  npest[0][0]=0;
+  npest[1][0]=0;
+  npest[0][1]=0;
+  npest[1][1]=0;
   ibmn[0]=ANTI2C::ANFADC;
   ibmn[1]=ANTI2C::ANFADC;
   ibmx[0]=0;
@@ -299,13 +336,9 @@ void Anti2RawEvent::mc_build(int &stat){
     trbs[i][0].bitclr(1,0);
     trbs[i][1].bitclr(1,0);
     trbl[i].bitclr(1,0);
+    esignal[0][i]=0;
+    esignal[1][i]=0;
   }
-//-------------
-  AMSContainer *cptr;
-  cptr=AMSEvent::gethead()->getC("AMSAntiMCCluster",0);//MC container-pointer
-  ii=0;
-  if(cptr)ii+=cptr->getnelem();
-  if(ATMCFFKEY.mcprtf)HF1(2637,geant(ii),1.);
 //----
   while(ptr){ // <--- geant-hits loop:
     sector=ptr->getid();//physical sector number(1-16)
@@ -319,76 +352,54 @@ void Anti2RawEvent::mc_build(int &stat){
     time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
 //
     clfdel=ANTI2SPcal::antispcal[nlogs].gettzer(nphys);
-    attlen=ANTI2VPcal::antivpcal[nlogs].getatlen(nphys);
-//simulate side-2(up) responce:    
-    if(nphys==0){
-      mv2p=ANTI2VPcal::antivpcal[nlogs].getmev2pe1(1);
-      ssta=ANTI2VPcal::antivpcal[nlogs].getstat1(1);
-    }
-    else{
-      mv2p=ANTI2VPcal::antivpcal[nlogs].getmev2pe2(1);
-      ssta=ANTI2VPcal::antivpcal[nlogs].getstat2(1);
-    }
+//cout<<"  PHsect/Logsect="<<sector<<" "<<nlogs<<" Edep="<<edep<<" time="<<time<<endl;
+//
+//--->simulate side-2(up) responce caused by given geant-hit:    
 //    
-    eup=0.5*edep*exp(z/attlen)*mv2p;// aver. up-side(+z) signal(pe,S2)
-//                                  mv2p is implied to be measured at the center 
-    
+    attlen=ANTI2VPcal::antivpcal[nlogs].getatlen(nphys,1);
+    mev2p=ANTI2DBc::mev2pe()*ANTI2SPcal::antispcal[nlogs].getmev2pe(nphys,1);//aver*indiv.corrections
+    if(nphys==0)ssta=ANTI2VPcal::antivpcal[nlogs].getstat1(1);
+    else ssta=ANTI2VPcal::antivpcal[nlogs].getstat2(1);
+    attf=ANTI2VPcal::antivpcal[nlogs].SignalAtt(nphys,1,z);
+    eup=0.5*edep*attf*mev2p;// aver. up-side(+z) signal(pe,S2)
+//                                  ref. mev2p is implied to be measured at the center 
     if(eup>0 && ssta==0){ 
-      tup=(time+(padl-z)/ATMCFFKEY.LSpeed)+clfdel;//arrival time at PM
-      for(i=0;i<ndisp;i++){
-        peavr=eup*pedisp[i];//aver.pe's per time-bin
-	POISSN(peavr,petru,ierr);//real number of  p.e's
-	pevstm[i]=petru;
-	nupt+=petru;
-      }
-      j=uinteger(floor(tup/ANTI2DBc::fadcbw()));//start time-bin 
+      tup=(time+(padl-z)/ATMCFFKEY.LSpeed)+clfdel;//hit arrival time at PM
+      j=uinteger(floor(tup/ANTI2DBc::fadcbw()));//start abs time-bin 
       if(j<ibmn[1])ibmn[1]=j;//min.bin
-      for(int ids=0;ids<ndisp;ids++){//dispers.bins loop
-        nup=pevstm[ids];
-	if(nup>0){
-          for(i=0;i<nshap;i++){//pulse-shape bins loop
-            ii=j+ids+i;
-            if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//ovfl-bin
-            fadcb[1][ii]+=nup*pshape[i];
-          }
-          if(ii>ibmx[1])ibmx[1]=ii;//max.bin
-	}
+      for(i=0;i<ndisp;i++){//apply PEs time dispersion
+        ii=j+i;
+        if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+        pevstm[1][ii]+=eup*pedisp[i];//accumulate aver.PEs per time-bin 
+        if(ii>ibmx[1])ibmx[1]=ii;//max.bin
       }
+      npest[1][nphys]+=eup;//store S2 PEs for phys-sector
+//cout<<" add to S2:pes="<<eup<<" tside="<<tup<<" ibmn/mx="<<ibmn[1]<<" "<<ibmx[1]<<endl;
     }
-//simulate side-1(down) responce:
-    if(nphys==0){
-      mv2p=ANTI2VPcal::antivpcal[nlogs].getmev2pe1(0);
-      ssta=ANTI2VPcal::antivpcal[nlogs].getstat1(0);
-    }
-    else{
-      mv2p=ANTI2VPcal::antivpcal[nlogs].getmev2pe2(0);
-      ssta=ANTI2VPcal::antivpcal[nlogs].getstat2(0);
-    }
-//    
-    edown=0.5*edep*exp(-z/attlen)*mv2p;//aver. down-side(-z) signal(pe,S1)
-//                                  mv2p is implied to be measured at the center 
+//
+//--->simulate side-1(down) responce caused by given geant-hit:
+//
+    attlen=ANTI2VPcal::antivpcal[nlogs].getatlen(nphys,0);
+    mev2p=ANTI2DBc::mev2pe()*ANTI2SPcal::antispcal[nlogs].getmev2pe(nphys,0);//aver*indiv.corrections
+    if(nphys==0)ssta=ANTI2VPcal::antivpcal[nlogs].getstat1(0);
+    else ssta=ANTI2VPcal::antivpcal[nlogs].getstat2(0);
+    attf=ANTI2VPcal::antivpcal[nlogs].SignalAtt(nphys,0,z);
+    edown=0.5*edep*attf*mev2p;//aver. down-side(-z) signal(pe,S1)
+//                                  mev2p is implied to be measured at the center 
     if(edown>0 && ssta==0){ 
       tdown=(time+(padl+z)/ATMCFFKEY.LSpeed)+clfdel;//arrival time at PM
-      for(i=0;i<ndisp;i++){
-        peavr=edown*pedisp[i];//aver.pe's per time-bin
-	POISSN(peavr,petru,ierr);//real number of  p.e's
-	pevstm[i]=petru;
-	ndownt+=petru;
-      }
-      j=uinteger(floor(tdown/ANTI2DBc::fadcbw()));//start time-bin
+      j=uinteger(floor(tdown/ANTI2DBc::fadcbw()));//start abs time-bin 
       if(j<ibmn[0])ibmn[0]=j;//min.bin
-      for(int ids=0;ids<ndisp;ids++){//dispers.bins loop
-        ndown=pevstm[ids];
-	if(ndown>0){
-          for(i=0;i<nshap;i++){//pulse-shape bins loop
-            ii=j+ids+i;
-            if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//ovfl-bin
-            fadcb[0][ii]+=ndown*pshape[i];
-          }
-          if(ii>ibmx[0])ibmx[0]=ii;//max.bin
-	}
+      for(i=0;i<ndisp;i++){//apply pe's time dispersion
+        ii=j+i;
+        if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+        pevstm[0][ii]+=edown*pedisp[i];//accumulate aver.pe's per time-bin per side;
+        if(ii>ibmx[0])ibmx[0]=ii;//max.bin
       }
+      npest[0][nphys]+=edown;//store S1 PEs for phys-sector
+//cout<<" add to S1:pes="<<edown<<" tside="<<tdown<<" ibmn/mx="<<ibmn[0]<<" "<<ibmx[0]<<endl;
     }
+//cout<<"LogSec="<<nlogs<<" nup/ndown="<<eup<<" "<<edown<<" edep="<<edep<<" mev2p="<<mev2p<<" atl="<<attlen<<endl;
 //--------------
     ptrN=ptr->next();     
     sectorN=-1;
@@ -400,20 +411,51 @@ void Anti2RawEvent::mc_build(int &stat){
 #ifdef __AMSDEBUG__
       assert(nlogs >=0 && nlogs < ANTI2C::MAXANTI);
 #endif
-    hdthr=ANTI2SPcal::antispcal[nlogs].gethdthr();//hist-discr thresh(pe's)
-    esignal[1][nlogs]=nupt; // save tot.number of p.e.'s in buffer
-    esignal[0][nlogs]=ndownt;
-    if(ATMCFFKEY.mcprtf && (nlogs==0 || nlogs==7))HF1(2639,edepts,1.);
+    hdthr=ANTI2SPcal::antispcal[nlogs].gethdthr();//history-discr thresh(adc-ch units)
+    if(ATMCFFKEY.mcprtf>0 && (nlogs>=0 && nlogs<=7))HF1(2639,edepts,1.);
 //
-//--->upply threshold to flash-adc signal to get times
+//--->for nlogs-paddle create 2sides flash-adc arrays and upply threshold to get time-measurements
 //
-    for(j=0;j<2;j++){//<---------------- side loop(down->up)
+    for(j=0;j<2;j++){//<-------------------------- side loop(down->up) for current paddle nlogs
+//cout<<"  --->Doing real signals for side="<<j+1<<endl;
+//
+      pe2adc=(npest[j][0]*ANTI2VPcal::antivpcal[nlogs].getpe2adc1(j)+
+              npest[j][1]*ANTI2VPcal::antivpcal[nlogs].getpe2adc2(j))
+                                 /(npest[j][0]+npest[j][1]);//physsect-weighted pe2adc for Q-channel
+//--->create flash-adc array:
+      int ibm=ibmx[j];
+      geant pe2mv=pe2adc/ANTI2DBc::t2qgainr()     //this is scaling to T-channel electronics gain
+                        /ANTI2DBc::pc2adc()       //this is to get pe2pc[pc/pe]
+                        /mv2pc;                   //finally this is pe2mv[mv/pe] in T-channel including real PM-gain
+//                                                       extracted from Q-channel adcs
+//cout<<"    pe2mv="<<pe2mv<<" pe2adc="<<pe2adc<<" pc2adc="<<ANTI2DBc::pc2adc()<<" mv2pc="<<mv2pc<<endl;  
+      for(i=ibmn[j];i<=ibm;i++){//<--- "average pes/bin" T-buffer(flash-adc) loop
+        peavr=pevstm[j][i];      
+	POISSN(peavr,petru,ierr);//get petru - real number of  PEs in time-bin
+	speaka=0;
+	for(int pe=0;pe<petru;pe++){//calc. real time-bin ampl(pe-units) caused by real PEs
+	  peaka=1.+ANTI2DBc::perrms()*rnormx();//apply SE-ampl variations 
+	  if(peaka<0)peaka=0; 
+	  speaka+=peaka;
+	}
+//        esignal[j][nlogs]+=speaka*pe2adc; //tot.adc in Q-channel(no pulse-shape applied - "sample-and-hold")  
+	if(speaka>0){//apply pulse shape for time-measurement
+          for(int ish=0;ish<nshap;ish++){//pulse-shape bins loop
+            ii=ish+i;
+            if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+            fadcb[j][ii]+=(speaka*pshape[ish]*pe2mv);//pe->mV to get flash-adc ampl[mV] in T-channel
+          }
+          if(ii>ibmx[j])ibmx[j]=ii;//new max.bin(expanding of time-range is going only to higher values)
+	}
+      }//--->endof "average pes/bin" T-buffer loop
+//cout<<"    new ibmn/mx="<<ibmn[j]<<" "<<ibmx[j]<<endl;
+//---
       ncoinc=0;
       nptr=0;
       nhtup=0;
       id=(nlogs+1)*10+j+1;//BBS (BB=ReadoutPaddle, S=side(1->down,2->up))
       parr=&fadcb[j][0];
-      if(ATMCFFKEY.mcprtf>1)ANTI2DBc::displ_a("AntiC PM-pulse:id(PPS)=",id,2,parr);//print pulse
+      if(ATMCFFKEY.mcprtf>2)ANTI2DBc::displ_a("AntiC PM-pulse:id(PPS)=",id,2,parr);//print pulse
 //
 //--->loop over flash-adc buffer,upply threshold to signal to get times
 //
@@ -450,16 +492,20 @@ void Anti2RawEvent::mc_build(int &stat){
       if(ibmx[j]==ANTI2C::ANFADC){
         ANTI2JobStat::addmc(1);
 #ifdef __AMSDEBUG__
-        cout<<"AntiRawEvent::mc_build-W: Flash-TDC buffer ovfl,id/PElast="
+        cout<<"AntiRawEvent::mc_build-W: Flash-TDC buffer ovfl,id/mV_last="
 	                                <<id<<" "<<fadcb[j][ibmx[j]]<<endl;
 #endif
 	ibmx[j]=ANTI2C::ANFADC-1;//don't use overflow-bin
       }
 //====>
+      geant maxamp=0;
+      geant qtotal=0;
       for(i=ibmn[j];i<=ibmx[j];i++){//<====== flash-adc buffer loop
         tm+=fladcb;//high edge of the current bin
-        am=fadcb[j][i];//instant ampl. from flash-adc buffer
-//        am=am+0.25*rnormx();//tempor high freq. noise(0.25pe rms)
+        am=fadcb[j][i];//instant ampl.(adc-ch) from flash-adc buffer
+//        am=am+5.*rnormx();//tempor high freq. noise(5mv rms)
+        if(am>maxamp)maxamp=am;
+	if(am>0)qtotal+=am;
 //----------
 // generic discr-1 up/down setting(used by TimeHistory and TrigPatt branches):
         if(am>=hdthr){// <=== Am>LTthr
@@ -528,7 +574,7 @@ void Anti2RawEvent::mc_build(int &stat){
 // "TrigPatt"-branch(#2) of Discr1(imply fixed outp.pulse width made by ACTEL)
         if(upd12==1){// branch is up - try reset it(depend.of discr-1 state)
 	  maxtu=max(tmd12u,tmd1u);//latest from br12-up and d1-up
-          if((tm-maxtu)>tgpw || i==ibmx[j]){//self-reset in "tgpw" after the latest event: d1-up or br12-up
+          if((tm-maxtu)>tgpw || i==ibmx[j]){//self-reset in "tgpw" after latest event: d1-up|br12-up|timeout
             upd12=0;
 	    tmd12d=tm;//store down-time to use in next i-loop set-up stage
             if(nptr<ANTI2C::ANTHMX){//store upto ANTHMX up-edges
@@ -549,7 +595,13 @@ void Anti2RawEvent::mc_build(int &stat){
 //--------
       }//======> endof flash-adc buffer loop
 //-------------
+      qtotal*=(ANTI2DBc::fadcbw()/50.);//tot charge from T-channel flash-adc [pC]
       if(ATMCFFKEY.mcprtf>1 && nptr>1)ANTI2DBc::displ_a("AntiC_MultiFT, PM-pulse:id(PPS)=",id,20,parr);
+      if(ATMCFFKEY.mcprtf>0){
+        HF1(2641,maxamp,1.);
+        HF1(2642,qtotal,1.);
+      }
+      esignal[j][nlogs]=qtotal*ANTI2DBc::pc2adc()*ANTI2DBc::t2qgainr(); //tot.adc in Q-channel  
 // get current crate/sslot:
       AMSSCIds antid(nlogs,j,0,0);//otyp=0(anode),mtyp=0(LT-time)
       crat=antid.getcrate();
@@ -557,12 +609,12 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 //---> Create charge raw-hits:
 //
-      adc2pe=ANTI2SPcal::antispcal[nlogs].getadc2pe();
       daqthr=ANTI2SPcal::antispcal[nlogs].getdqthr();//DAQ-readout thresh(pedsig-units, "onboard")    
       ped=ANTIPedsMS::anscped[nlogs].apeda(j);// in adc-chan. units(float, MC-Seeds)
       sig=ANTIPedsMS::anscped[nlogs].asiga(j);
-      if(ATMCFFKEY.mcprtf)HF1(2632+j,geant(esignal[j][nlogs]),1.);
-      amp=esignal[j][nlogs]/adc2pe;//pe -> ADC-ch
+      if(ATMCFFKEY.mcprtf>0)
+                     HF1(2632+j,geant(esignal[j][nlogs]/ANTI2VPcal::antivpcal[nlogs].getpe2adcc(j)),1.);
+      amp=esignal[j][nlogs];//ADC-ch
       if(amp>TOF2GC::SCPUXMX)amp=TOF2GC::SCPUXMX;//PUX-chip saturation
       amp=amp+ped+sig*rnormx();// adc+ped(no "integerization")
       iamp=integer(floor(amp));//go to real ADC-channels("integerization")
@@ -607,7 +659,7 @@ void Anti2RawEvent::mc_build(int &stat){
 #endif
         }
       }//--- end of htdc-hits loop --->
-      if(ATMCFFKEY.mcprtf)HF1(2636,geant(nhtdc),1.);
+      if(ATMCFFKEY.mcprtf>0)HF1(2636,geant(nhtdc),1.);
 //
 //----> create RawEvent-object and store trig-patt:
 //
@@ -622,6 +674,7 @@ void Anti2RawEvent::mc_build(int &stat){
         temp=999;//means undefined value(real/default one will be set at valid-stage from common with TOF static store)
 	nftdc=0;//dummy(real will be set at validation stage using TOF(+Anti) static store for slot's FT-times)
 	ftdc[0]=0;
+//cout<<"   writeRawEvent: id="<<id<<" adc="<<adca<<endl;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,temp,adca,nftdc,ftdc,nhtdc,htdc));//write object
 //--->check GlobFT/SideTrigPattSignal correlation(physically done in JLV1-crate)
@@ -647,8 +700,8 @@ void Anti2RawEvent::mc_build(int &stat){
 	}//--->endof "InTrig" check
 //	if(ncoinc)atrpat[j]|=1<<nlogs;//set single-side coincidence bit(not used now)
       }
-//------------
-    }//--->endof side loop
+//----
+    }//------------------------------------>endof sides loop for paddle nlogs
 //
     sorand=Trigger2LVL1::l1trigconf.antoamask(int(nlogs));//AntiSidesOrAnd from DB/File(already redef by DC)
     if(sorand == 0)
@@ -658,8 +711,10 @@ void Anti2RawEvent::mc_build(int &stat){
     trbl[nlogs].clatchJLV();//25MHz-clock latch of 2-sides OR(AND) signal "trbl"
 //
     edepts=0;
-    nupt=0;
-    ndownt=0;
+    npest[0][0]=0;
+    npest[1][0]=0;
+    npest[0][1]=0;
+    npest[1][1]=0;
     ibmn[0]=ANTI2C::ANFADC;
     ibmn[1]=ANTI2C::ANFADC;
     ibmx[0]=0;
@@ -667,6 +722,8 @@ void Anti2RawEvent::mc_build(int &stat){
     for(i=0;i<=ANTI2C::ANFADC;i++){//reset MC Flash-ADC buffer
       fadcb[0][i]=0.;
       fadcb[1][i]=0.;
+      pevstm[0][i]=0;
+      pevstm[1][i]=0;
     }
     nmchts=0;
     }//------------------> endof next(last) ReadOutSector check 
@@ -674,7 +731,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //  
   } // ---> end of geant-hits loop
 //
-  if(ATMCFFKEY.mcprtf)HF1(2630,edept,1.);
+  if(ATMCFFKEY.mcprtf>0)HF1(2630,edept,1.);
 //--------------------------------------
 //------> create Anti-trigger pattern, count sectors:
 //(bits 1-8->sectors in coinc.with FT)
@@ -688,7 +745,8 @@ void Anti2RawEvent::mc_build(int &stat){
     if(i2>=i1){
       t1=i1*trigb;
       t2=i2*trigb;
-      if(tg1>=t1 && tg1<=t2){//tempor: gate fr.edge is within "pattern"-pulse
+      if(ATMCFFKEY.mcprtf>0)HF1(2643,geant(tg1-t1),1.);
+      if(tg1>=t1 && tg1<=t2){//tempor: gate fr.edge is within "pattern" side-pulse
         ncoinct+=1;//overlap -> incr. counter
 	trpatt|=1<<i;//mark sector
       }
@@ -707,7 +765,6 @@ void Anti2RawEvent::mc_build(int &stat){
         ped=ANTIPedsMS::anscped[lsec].apeda(side);// in adc-chan. units(float, MC-Seeds)
         sig=ANTIPedsMS::anscped[lsec].asiga(side);
         daqthr=ANTI2SPcal::antispcal[lsec].getdqthr();//DAQ-readout thresh(pedsig-units)    
-        adc2pe=ANTI2SPcal::antispcal[lsec].getadc2pe();
         amp=ped+sig*rnormx();//fill with ped
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         adca=0;
@@ -806,10 +863,12 @@ void AMSAntiCluster::build2(int &statt){
   number zcoo[2*ANTI2C::ANTHMX],times[2*ANTI2C::ANTHMX],etimes[2*ANTI2C::ANTHMX];
   number edept,t1,t2,t1mn,t2mn,dt,z1,z2;
   integer ntimes,npairs,nclust(0),nclustc(0),nclustp(0),status(0);
-  geant padlen,padrad,padfi,paddfi,zcer1,zcer2,ped,sig,dtmin,attlen,tzer;
+  geant padlen,padrad,padfi,paddfi,zcer1,zcer2,ped,sig,dtmin,tzer;
+  geant attlen[2],pe2adc[2],pes[2];
   int16u mtyp(0),otyp(0),crat(0),slot(0);
   geant fttim,ftsum,ftnum;
   geant ftdel,ftwin;
+  geant mev2pe,mev2pea;
   geant rdthr;
   geant tempT[2]={0,0};
   geant stdifmx(15.);//tempor max(+/-) side-times diff for pairing(ns), later use calib for better accur
@@ -818,6 +877,9 @@ void AMSAntiCluster::build2(int &statt){
   uinteger lspatt(0);
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
+  mev2pea=ANTI2DBc::mev2pe();//aver mev2pe per paddle/side
+//
+//cout<<"--->In AntiCluster::build..."<<endl;
 //
   ptr=(Anti2RawEvent*)AMSEvent::gethead()
                   ->getheadC("Anti2RawEvent",0);// already sorted after validation
@@ -863,7 +925,7 @@ void AMSAntiCluster::build2(int &statt){
     fttim=0;
     anchok=(sta%10==0                       //<--- validation status(FTtime is absolutely required)
                 && ANTIPeds::anscped[sector].PedStOK(isid)
-//                && ANTI2VPcal::antivpcal[sector].CalStOK(isid)
+                && ANTI2VPcal::antivpcal[sector].CalStOK(isid)
 		                                             );//DBstat OK
     if(anchok){// <--- channel alive according validation and DB
 //channel statistics :
@@ -871,27 +933,33 @@ void AMSAntiCluster::build2(int &statt){
       adca=ptr->getadca();
       if(adca>0)ANTI2JobStat::addch(chnum,1);
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      adcf=number(adca);
 //---
       rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)
       rdthr*=1;//tempor: can apply slightly higher threshold than in DAQ
-      if(adcf>rdthr*sig){//----> Above additional thr.
+      adcf=number(adca);
+      if(adcf>rdthr*sig){//----> Above additional thr.AMSJob::gethead()->isRealData()
         ANTI2JobStat::addch(chnum,2);
+        if(ATREFFKEY.nlcorr==1
+	 && AMSJob::gethead()->isRealData())adcf=number(Anti2RawEvent::accsatur(adca));//nonlin-corr
         ntdct=ptr->gettdct(tdct);
         if(ntdct>0)ANTI2JobStat::addch(chnum,3);
         if(ntdct==1)ANTI2JobStat::addch(chnum,4);//1hit
 	nftdc=ptr->getftdc(ftdc);//should be >=1 due above stat-selection
         if(nftdc>0)fttim=ftdc[0]*ANTI2DBc::htdcbw();// tempor use 1st FTtime-hit (ch->ns)
         isdn[nsds]=isid+1;
+        nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();//alive PhysSectNumb(0/1, 2 if both OK)
+	if(nphsok==2)mev2pe=mev2pea*ANTI2SPcal::antispcal[sector].getmev2pec(isid);//aver of 2 PhysSectors
+	else mev2pe=mev2pea*ANTI2SPcal::antispcal[sector].getmev2pe(nphsok,isid);//individual
 //DAQ-ch-->edep(mev):
         edep[nsds]=adcf
-                  *ANTI2SPcal::antispcal[sector].getadc2pe() //ADC-ch-->p.e.
-                  /ANTI2VPcal::antivpcal[sector].getmev2pec(isid); //p.e.-->Edep(Mev)
+                  /ANTI2VPcal::antivpcal[sector].getpe2adcc(isid) //ADC-ch-->p.e.(aver of 2 PhysSectors)
+                  /mev2pe; //p.e.-->Edep(Mev, aver of 2 PhysSectors), Light-atten.still present !!!
+//cout<<" LSect="<<sector+1<<" rdthr/sigp="<<rdthr<<" "<<sig<<" adc/m2pe/pe2adc="<<adcf<<" "<<mev2pe<<
+//           " "<<ANTI2VPcal::antivpcal[sector].getpe2adcc(isid)<<" is/edep="<<isdn[nsds]<<" "<<edep[nsds]<<endl;
 //TDC-ch-->time(ns):
         nuptm[nsds]=0;
-        nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();//alive PhysSectNumb(0/1, 2 if both OK)
-        if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();//take aver. of 2 PhysSectors tzer
-        else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);//         individual
+        if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();//aver. of 2 PhysSectors tzer
+        else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);//individual
         ftc=0;
         for(i=0;i<ntdct;i++){//<-- history-hits loop
 	  t1=tdct[i]*ANTI2DBc::htdcbw()
@@ -919,17 +987,20 @@ void AMSAntiCluster::build2(int &statt){
     if(ptrN)idN=(ptrN->getid())/10; //next hit short_id (BBS)
 //
     if(idN != id/10){//next hit is new sector: create 2-sides signal for current sect
-      attlen=ANTI2VPcal::antivpcal[sector].getatlenc();
       padfi=paddfi*(0.5+sector);//current paddle phi
       erfi=paddfi/sqrt(12.);
       err=ANTI2DBc::scinth()/sqrt(12.);
+      attlen[0]=ANTI2VPcal::antivpcal[sector].getatlenc(0);
+      attlen[1]=ANTI2VPcal::antivpcal[sector].getatlenc(1);
+      pe2adc[0]=ANTI2VPcal::antivpcal[sector].getpe2adcc(0);//proportional to (electronics+pm) gain
+      pe2adc[1]=ANTI2VPcal::antivpcal[sector].getpe2adcc(1);
       status=0;//sector ok
       ntimes=0;
       npairs=0;
       edep2=0;
       if(edep[0]>0 || edep[1]>0)ANTI2JobStat::addbr(sector,0);
 //                                                   <-------- case1=2sides:
-      if(nsds==2){
+      if(nsds==2){//both Edep>0
 //                        <-- search for true SideTime-pairs(giving best zcoo):
 	n1=nuptm[0];//FT-coincided
 	n2=nuptm[1];
@@ -960,9 +1031,8 @@ void AMSAntiCluster::build2(int &statt){
 //
           if(fabs(t1-t2)<stdifmx){
 	    zc=-0.5*(t1-t2)*ATMCFFKEY.LSpeed;//abs.Z(neglect by possible ANTI Z-shift)
-//	  if(fabs(zc)<(0.5*padlen+3*zcer1)){//match found(Zc is within paddle size)
-//	    if(zc>0.5*padlen)zc=0.5*padlen;
-//	    if(zc<-0.5*padlen)zc=-0.5*padlen;
+	    if(zc>0.5*padlen)zc=0.5*padlen;
+	    if(zc<-0.5*padlen)zc=-0.5*padlen;
 	    zcoo[npairs]=zc;
 	    times[npairs]=0.5*(t1+t2);
 	    etimes[npairs]=zcer1/ATMCFFKEY.LSpeed;
@@ -978,27 +1048,18 @@ void AMSAntiCluster::build2(int &statt){
 //
         if(npairs==1){//imply, that single existing Edep correlates with this single pair
 	  zc=zcoo[0];
-	  edep2=(edep[0]+edep[1])
-               *2/(exp(zc/attlen)+exp(-zc/attlen));
+	  edep2=edep[0]/ANTI2VPcal::antivpcal[sector].SignalAttc(0,zc)+
+	        edep[1]/ANTI2VPcal::antivpcal[sector].SignalAttc(1,zc);//corr.for attenuation
 	  erz=zcer1;
 	}
 	else{//npair=0,>1; not possible to associate single Edep and time
-//        (to have something, let us calc.zc using Edep(is) assimetry)
-          ass=(edep[1]-edep[0])/(edep[1]+edep[0]);
-          zc=attlen/2*log((1.+ass)/(1.-ass));
-          edep2=(edep[0]+edep[1])
-          *2/(exp(zc/attlen)+exp(-zc/attlen));
-          number ddelta=1/sqrt(edep[1]+edep[0]);
-          number z1,z2;
-          number d1=ass+ddelta;
-          if(d1 >=1)z1=0.5*padlen;      
-          else if(d1 <=-1)z1=-0.5*padlen;      
-          else z1=attlen/2*log((1.+d1)/(1.-d1));
-          number d2=ass-ddelta;
-          if(d2 <=-1)z2=-0.5*padlen;      
-          else if(d2 >=1)z2=0.5*padlen;      
-          else z2=attlen/2*log((1.+d2)/(1.-d2));
-          erz=fabs(z1-z2)/2;
+//        (to have something, let us calc.zc using Edep(is) assimetry and neglecting edge eff)
+	  zc=log(edep[0]/edep[1])/(1/attlen[0]-1/attlen[1]);
+	  if(zc>0.5*padlen)zc=0.5*padlen;
+	  if(zc<-0.5*padlen)zc=-0.5*padlen;
+	  edep2=edep[0]/ANTI2VPcal::antivpcal[sector].SignalAttc(0,zc)+
+	        edep[1]/ANTI2VPcal::antivpcal[sector].SignalAttc(1,zc);//corr.for attenuation
+	  erz=2*zcer1;
 	}
 	ntimes+=npairs;
 //

@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.17 2008/12/08 15:15:19 choutko Exp $
+//  $Id: antirec02.h,v 1.18 2008/12/19 15:02:09 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -82,6 +82,8 @@ public:
 //
  geant gettemp(){return _temp;}
  void settemp(geant tmp){_temp=tmp;}
+//
+ static geant accsatur(geant aout);
 //
   static void setpatt(uinteger patt){
     trpatt=patt;

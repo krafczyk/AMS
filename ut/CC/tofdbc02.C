@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.60 2008/10/13 10:22:48 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.61 2008/12/19 15:01:56 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -152,7 +152,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     char name[80]="TofGeom";
     char vers0[10]="MC";//not used now
     char vers1[10]="PreAss";//pre-assembly in clean room
-    char vers2[10]="Space";//in space (incl.
+    char vers2[10]="Space";//in space
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.256 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: commons.h,v 1.257 2008/12/19 15:02:09 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -629,7 +629,7 @@ public:
   integer relogic;// reco logic
   geant Edthr; // threshold (mev) to create Cluster-object
   geant zcerr1;// long.coo error(when 2-sides times are known) 
-  geant daqthr; //DAQ-readout threshold(SigmaPed units) 
+  integer nlcorr; //apply non-lin corrections to raw amplitudes 
   geant ftdel; // FT-delay wrt hist-TDC hit 
   geant ftwin; // t-window(ns) for Hist-TDC hit coinc.with FT 
 //
@@ -648,12 +648,13 @@ COMMON_BLOCK_DEF(ATREFFKEY_DEF,ATREFFKEY);
 //================================================================
 class ATCAFFKEY_DEF {
   public:
-  integer cfvers; // spare
+  integer trackmode; // use trk/trk+trd-track 
   integer cafdir; // use official/private directory for calib.file
   geant pedcpr[2]; //PedCalibJob: Class/DownScaled: portion of highest adcs to remove for ped-calc
   integer pedoutf;//              PedOutputFlag
   geant pedlim[2];// Ped-limits for PedCalibJobs
   geant siglim[2];// PedSig-limits .............
+  geant mev2mv;//mev->mV conv.factor(side ampl[mV]/1MIP(mev) Edep at center)
 };
 #define ATCAFFKEY COMMON_BLOCK(ATCAFFKEY,atcaffkey)
 COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);

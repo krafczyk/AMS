@@ -1809,7 +1809,7 @@ endif
   float Coo[3];        ///< coo (1st[last] tracker plane) cm
   float Cutoff;       ///<  geomag cutoff in GeV/c, dipole model
   float TOFCoo[4][3]; ///< track extrapol in tof planes
-  float AntiCoo[2][3]; ///< track extrapol in anti
+  float AntiCoo[2][5]; ///< track extrapol in anti [dir][x/y/z/theta/phi]
   float EcalCoo[3][3]; ///< track extrapol in ecal (enter, cofg, exit)
   float TrCoo[8][3];  ///< track extrapol in tracker planes
   float TRDCoo[2][3];    ///< track extrapol in trd (center,top)
@@ -1905,7 +1905,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,3)       //ParticleR
+  ClassDef(ParticleR,4)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 

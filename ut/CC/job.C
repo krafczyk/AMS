@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.609 2008/12/18 15:53:14 pzuccon Exp $
+// $Id: job.C,v 1.610 2008/12/19 15:01:55 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -242,13 +242,13 @@ FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
 TRMFFKEY.TIME=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
-MISCFFKEY.BTempCorrection=0;
-MISCFFKEY.BeamTest=0;
-MISCFFKEY.BZCorr=1;
-MISCFFKEY.G3On=1;
-MISCFFKEY.G4On=0;
-MISCFFKEY.dbwrbeg=0;//DBwriter UTC-time begin 
-MISCFFKEY.dbwrend=0;//DBwriter UTC-time end
+MISCFFKEY.BTempCorrection=0;//(1)
+MISCFFKEY.BeamTest=0;//(2)
+MISCFFKEY.BZCorr=1;//(3)
+MISCFFKEY.G3On=1;//(4)
+MISCFFKEY.G4On=0;//(5)
+MISCFFKEY.dbwrbeg=0;//(6)DBwriter UTC-time begin 
+MISCFFKEY.dbwrend=0;//(7)DBwriter UTC-time end
 MISCFFKEY.NumThreads=1;
 MISCFFKEY.DynThreads=0;
 MISCFFKEY.ChunkThreads=4096;
@@ -1351,11 +1351,11 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.relogic=0;  //(3) =0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/PedCal_OnBoardTable
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
-  ATREFFKEY.daqthr=3.;  //(6) spare (now sector-individual,taken from AccStparRD(MC).-file or DB
+  ATREFFKEY.nlcorr=0;   //(6) =1/0--> apply/not nonlin.corr to raw amplitudes at cluster-build stage
   ATREFFKEY.ftdel=120.;  //(7) FT-delay wrt correlated Anti history-pulse
   ATREFFKEY.ftwin=70.;  //(8) window for Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //
-  ATREFFKEY.ReadConstFiles=11;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
+  ATREFFKEY.ReadConstFiles=0;//(9)PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
 //  
   ATREFFKEY.calutc=1167606001;//(10)(20070101 0000001)AccCflistRD-file(acccal_files vers. list) begin UTC-time
 //
@@ -1373,7 +1373,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.year[1]=112;//(22)
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  ATCAFFKEY.cfvers=4; //(1) not used now (spare)
+  ATCAFFKEY.trackmode=0;// (1) 0/1-> use TRK/TRK+TRD for calib
   ATCAFFKEY.cafdir=0;// (2)  0/1-> use official/private directory for calibr.files
   ATCAFFKEY.pedcpr[0]=0.005; // (3) PedCalibJobRandom(classic): portion of highest adcs to remove
   ATCAFFKEY.pedcpr[1]=0.035;// (4) PedCalibJobDownScaled(in trig): portion of highest adcs to remove
@@ -1382,6 +1382,7 @@ void AMSJob::_reanti2data(){
   ATCAFFKEY.pedlim[1]=400.; // (7)      hi-lim ...............
   ATCAFFKEY.siglim[0]=0.4;  // (8) PedSig low-lim ............
   ATCAFFKEY.siglim[1]=15.; //  (9)         hi-lim ............
+  ATCAFFKEY.mev2mv=150.;   // (10) spare, not used now
 //
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -3073,7 +3074,7 @@ if((isCalibration() && CAnti) && AMSFFKEY.Update>0){
 //atre->PVS, atmc->SeedPed|RealPed
 if(ATREFFKEY.ReadConstFiles%10==0)end.tm_year=ATREFFKEY.year[0]-1;//StableParams from DB
 //
-  TID.add (new AMSTimeID(AMSID("Antispcal2",isRealData()),
+  TID.add (new AMSTimeID(AMSID("Antispcal",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2SPcal::antispcal[0]),
                          (void*)&ANTI2SPcal::antispcal[0],server,needval));
 //
@@ -3081,7 +3082,7 @@ if(ATREFFKEY.ReadConstFiles%10==0)end.tm_year=ATREFFKEY.year[0]-1;//StableParams
 //---------
 if((ATREFFKEY.ReadConstFiles/10)%10==0)end.tm_year=ATREFFKEY.year[0]-1;//VariableParams from DB
 //
-  TID.add (new AMSTimeID(AMSID("Antivpcal2",isRealData()),
+  TID.add (new AMSTimeID(AMSID("Antivpcal",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2VPcal::antivpcal[0]),
                          (void*)&ANTI2VPcal::antivpcal[0],server,needval));
 //

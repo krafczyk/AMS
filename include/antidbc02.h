@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.14 2007/05/15 11:39:23 choumilo Exp $
+//  $Id: antidbc02.h,v 1.15 2008/12/19 15:02:09 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -16,7 +16,7 @@ namespace ANTI2C{
  const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
  const integer ANTHMX=16; // max. number of LTtime-hits per channel
  const integer ANFADC=2000;//Flash-ADC working channels(ovfl not included)
- const integer ANJSTA=25;// size of Job-statistics array 
+ const integer ANJSTA=35;// size of Job-statistics array 
  const integer ANCSTA=10;// size of Channel-statistics array
  const integer ANCRAT=4; // number of crates with SFEA cards
  const integer ANSFEA=1; // number of SFEA cards per crate
@@ -24,10 +24,15 @@ namespace ANTI2C{
  const integer ANCHCH=4;// real number of Anti-channels per TDC-chip (impl. 2chip/SFEA)
  const integer ANSLOT=5; // SFEA card position in crate (sequential slot number(1-6))
 // calibr.const:
-const integer ANACMX=2000;// max. number of accum. events per channel(or bin)
-const integer ANPRBM=11;//max.bins for Ampl-profile along the counter
-const integer ANELFT=4;     // max. number of param. for Eloss-shape(landau) fit
-const integer ANPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
+//---> gain/attlen calib:
+ const integer LongBins=20;//max longit.bins
+ const integer BinEvsMX=2000;//max event/bin
+ const integer CalChans=2*ANTI2C::ANTISRS;//max calib.channels, id=2*(2*logs+phys)+side
+ 
+  const integer ANACMX=2000;// max. number of accum. events per channel(or bin)
+  const integer ANPRBM=11;//max.bins for Ampl-profile along the counter
+  const integer ANELFT=4;     // max. number of param. for Eloss-shape(landau) fit
+  const integer ANPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
 //
 }
 //
@@ -57,7 +62,11 @@ private:
  //                        (i neglect by fall-time of generic discr, so DT=(11+5)ns for output signals !!!)
   static geant _tdcdtm;   //  dead time of TDC-inputs, the same for LT-/FT-inputs[ns]
   static geant _daccur;   //  generic discr. internal accuracy[ns]
-  static geant _pbgate;   //  TgBox FT-gate width to latch "pattern" pulses 
+  static geant _pbgate;   //  TgBox FT-gate width to latch "pattern" pulses
+  static geant _mev2pe;   // Average (per/pad/side) mev->pe conv.factor[pe/mev], mev->0.5Mip/side 
+  static geant _perrms;   // Average relative(wrt m.p) 1pe-signal rms 
+  static geant _pc2adc;   // ADC-chip pC->adc_ch conv.factor[adc/pC]
+  static geant _t2qgainr; //empirical factor to normalize amplitude(mV) in T-channel 
 public:  
 //
 //  Member functions :
@@ -85,7 +94,11 @@ public:
   static geant tdcdtm();
   static geant daccur();   
   static geant pbgate(); 
-  static void inipulsh(int & nbn, geant arr[]);
+  static geant mev2pe(); 
+  static geant pc2adc(); 
+  static geant perrms();
+  static geant t2qgainr(); 
+  static geant inipulsh(int & nbn, geant arr[]);
   static void inipedisp(int & nbn, geant arr[]);
   static void displ_a(char comm[], int id, int f, const geant arr[]);
 #ifdef __DB__
@@ -99,29 +112,31 @@ class ANTI2SPcal{
 //
 private:
   integer softid;   // readout paddle number (LogicSector:1-8)
-  geant hdthr;      // Hist-channel discriminator threshold (p.e)
+  geant hdthr;      // Hist-channel discriminator threshold (adc-ch units)
   geant dqthr;      // DAQ-readout threshold(ADC-ch sigmas)
-  geant adc2pe;     // Signal(adc-ch)->Signal(pe's) conv.factor (pe/ADCch)
+  geant mev2pe[4];  //Lab.measured mev2pe conv.factors (pe/mev)[2*iside+physsn]
   geant tzero[2];   // 2 PhysSector-signal delays(ns, side independ) due to fib.connection
   geant ftdel[2];   // spare
   
 public:
   static ANTI2SPcal antispcal[ANTI2C::MAXANTI];
   ANTI2SPcal(){};
-  ANTI2SPcal(integer sid, geant ad2e, geant dthr, geant hthr, 
+  ANTI2SPcal(integer sid, geant m2p[4], geant dthr, geant hthr, 
                                  geant tzer[2], geant ftd[2]):
-                                          softid(sid),adc2pe(ad2e),
+                                          softid(sid),
                                           dqthr(dthr),hdthr(hthr){
     tzero[0]=tzer[0];
     tzero[1]=tzer[1];
     ftdel[0]=ftd[0];
     ftdel[1]=ftd[1];
+    for(int i=0;i<4;i++)mev2pe[i]=m2p[i];
   }
   integer getid(){return softid;}
-  geant getadc2pe(){return adc2pe;}
   geant getdqthr(){return dqthr;}
   geant gettzer(int iphc){return tzero[iphc];}
   geant gettzerc(){return 0.5*(tzero[0]+tzero[1]);}
+  geant getmev2pe(int phs,int sd){ return mev2pe[2*sd+phs];}//phsect=0/1; sd=0/1
+  geant getmev2pec(int sd){ return 0.5*(mev2pe[2*sd]+mev2pe[2*sd+1]);}
 //
   geant gethdthr(){
     return(hdthr);
@@ -138,45 +153,50 @@ class ANTI2VPcal{
 //
 private:
   integer softid;   // readout paddle number (LogicSector:1-8)
-  integer status1[2];// 1st PhysSector sides-status (PM+AMPL, 1/0->dead/alive)
-  integer status2[2];// 2nd PhysSector sides-status (PM+AMPL, 1/0->dead/alive)
-  geant attlen[2];  // 2 PhysSectors atten.length(cm)
-  geant mev2pe1[2]; // 1st PhysSector Edep->pe conv.factor(1SideSignal(pe)/0.5MIP(mev))
-//                     (incl.indiv. abs. PM-amplification and clear-fiber atten)
-  geant mev2pe2[2]; // 2nd PhysSector Edep->pe conv.factor(1SideSignal(pe)/0.5MIP(mev))
-//                     (incl.indiv. abs. PM-amplification and clear-fiber atten)
+  integer status[2][2];// PhysSectors status [physs][side] (PM+AMPL, 1/0->dead/alive)
+  geant attlen[2][2];  // PhysSectors atten.length(cm)
+  geant pe2adc[2][2];  // PhysSectors pe->adc conv.factor(adc/pe)
+//    (incl.indiv. abs. PM-amplification and all deviations from LabMeasured Mev2pe's)
+  geant powp[2][2];          // PhysSectors power parameter for edge-effect
+  geant snorp[2][2];         // PhysSectors normaliz.param for edge-effect
     
 public:
   static ANTI2VPcal antivpcal[ANTI2C::MAXANTI];
   ANTI2VPcal(){};
-  ANTI2VPcal(integer sid, integer sta1[2], integer sta2[2], 
-             geant m2pe1[2],geant m2pe2[2], geant atl[2]):softid(sid){
+  ANTI2VPcal(integer sid, integer sta[2][2], geant pe2a[2][2], geant atl[2][2], 
+             geant pow[2][2], geant snor[2][2]):softid(sid){
                                           
-    status1[0]=sta1[0];
-    status1[1]=sta1[1];
-    status2[0]=sta2[0];
-    status2[1]=sta2[1];
-    attlen[0]=atl[0];
-    attlen[1]=atl[1];
-    mev2pe1[0]=m2pe1[0];
-    mev2pe1[1]=m2pe1[1];
-    mev2pe2[0]=m2pe2[0];
-    mev2pe2[1]=m2pe2[1];
+    for(int i=0;i<2;i++){
+    for(int j=0;j<2;j++){
+      status[i][j]=sta[i][j];
+      attlen[i][j]=atl[i][j];
+      pe2adc[i][j]=pe2a[i][j];
+      powp[i][j]=pow[i][j];
+      snorp[i][j]=snor[i][j];
+    }
+    }
   }
   integer getid(){return softid;}
-  geant getmev2pe1(int is){return mev2pe1[is];}
-  geant getmev2pe2(int is){return mev2pe2[is];}
-  geant getmev2pec(int is);
-  geant getatlen(int iphc){return attlen[iphc];}
-  geant getatlenc();
+  geant getpe2adc1(int is){return pe2adc[0][is];}
+  geant getpe2adc2(int is){return pe2adc[1][is];}
+  geant getpe2adcc(int is){
+    if(status[0][is]==0 && status[1][is]==0)return 0.5*(pe2adc[0][is]+pe2adc[1][is]);
+    else if(status[0][is]==0)return pe2adc[0][is];
+    else if(status[1][is]==0)return pe2adc[1][is];
+    else return -1;
+  }
+  geant getatlen(int iphc, int isd){return attlen[iphc][isd];}
+  geant getatlenc(int isd);
+  geant SignalAtt(int iphs, int isd, geant z);
+  geant SignalAttc(int isd, geant z);
 //
-  bool CalStOK(int isd){return (status1[isd]==0 || status2[isd]==0);}
+  bool CalStOK(int isd){return (status[0][isd]==0 || status[1][isd]==0);}
   integer getstat1(int isd){
-    return status1[isd];
+    return status[0][isd];
   }
   int NPhysSecOK();
   integer getstat2(int isd){
-    return status2[isd];
+    return status[1][isd];
   }
   static void build();
 };

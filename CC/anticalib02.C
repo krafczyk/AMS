@@ -21,84 +21,51 @@
 #include <time.h>
 #include "timeid.h"
 using namespace std;
+using namespace ANTI2C;
 //
 //
 //=============================================================================
 //
-  number AntiCalib::ambinl[2*ANTI2C::ANTISRS][ANTI2C::ANACMX];//chan.adcs in low_bin(event-by-event)
-  integer AntiCalib::nevbl[2*ANTI2C::ANTISRS];//total events, accum. in low_bin
-  number AntiCalib::xcol[2*ANTI2C::ANTISRS][ANTI2C::ANACMX];//chan.xcoords in low_bin(event-by-event)
-  number AntiCalib::ambinh[2*ANTI2C::ANTISRS][ANTI2C::ANACMX];//chan.adcs in high_bin(event-by-event)
-  integer AntiCalib::nevbh[2*ANTI2C::ANTISRS];//total events, accum. in high_bin
-  number AntiCalib::xcoh[2*ANTI2C::ANTISRS][ANTI2C::ANACMX];//chan.xcoords in high_bin(event-by-event)
+  integer AntiCalib::evs2bin[ANTI2C::CalChans][ANTI2C::LongBins];
+  number AntiCalib::adccount[ANTI2C::CalChans][ANTI2C::LongBins][ANTI2C::BinEvsMX];
+  number AntiCalib::fitpars[5];//working arrays for profile-fit
+  integer AntiCalib::fitbins;
+  number AntiCalib::values[ANTI2C::LongBins]; 
+  number AntiCalib::errors[ANTI2C::LongBins]; 
+  number AntiCalib::coords[ANTI2C::LongBins];
 //
 //--------------------------
 void AntiCalib::init(){ // ----> initialization for AMPL-calibration 
-  integer i,j,il,ib,ii,jj,id,nadd,nbnr,chan,is;
+  integer i,j,il,ib,ii,jj,id,nadd,nbnr,chan,is,ic,ie,logs,phys;
   geant blen,dd,bw,bl,bh,hll,hhl;
-  char htit1[60];
-  char htit2[60];
-  char htit3[7];
-  char inum[11];
-  char in[2]="0";
-  strcpy(inum,"0123456789");
+  char title[127];
+  char hname[127];
+  geant padlen=ANTI2DBc::scleng();//z-size
 //
-  for(i=0;i<2*ANTI2C::ANTISRS;i++){
-    nevbl[i]=0;
-    nevbh[i]=0;
-    for(j=0;j<ANTI2C::ANACMX;j++){
-      ambinl[i][j]=0.;
-      ambinh[i][j]=0.;
-      xcol[i][j]=0.;
-      xcoh[i][j]=0.;
+  for(ic=0;ic<CalChans;ic++){
+    for(ib=0;ib<LongBins;ib++){
+      evs2bin[ic][ib]=0;
+      for(ie=0;ie<BinEvsMX;ie++){
+        adccount[ic][ib][ie]=0;
+      }
     }
   }
 //
 //  ---> book hist. for side-signals:
 //
-  chan=0;
-  for(int ilh=0;ilh<2;ilh++){//low/high bin loop
-    if(ilh==0)strcpy(htit1,"LowBin signals for chan(BBS) ");
-    if(ilh==1)strcpy(htit1,"HighBin signals for chan(BBS) ");
-    for(i=0;i<2;i++){//side loop
-      if(i==0){//s=1
-        if(ilh==0){//close
-          hll=0.;
-          hhl=320.;
-	}
-	else{//farther
-          hll=0.;
-          hhl=160.;
-	}
-      }
-      else{//s=2
-        if(ilh==0){//farther
-          hll=0.;
-          hhl=160.;
-	}
-	else{//close
-          hll=0.;
-          hhl=320.;
-	}
-      }
-      for(ib=0;ib<ANTI2C::ANTISRS;ib++){//phys.sect.loop
-	strcpy(htit2,htit1);
-        ii=(ib+1)/10;
-        jj=(ib+1)%10;
-        in[0]=inum[ii];
-        strcat(htit2,in);
-        in[0]=inum[jj];
-        strcat(htit2,in);
-        in[0]=inum[i+1];
-        strcat(htit2,in);
-        id=2561+chan;
-//	cout<<"              chan/id="<<chan<<" "<<id<<endl;
-//	cout<<htit2<<endl;
-        HBOOK1(id,htit2,80,hll,hhl,0.);
-        chan+=1;
+  hll=10;
+  hhl=4000;
+  for(logs=0;logs<MAXANTI;logs++){//log.sect.loop
+    for(phys=0;phys<2;phys++){//phys.sect.index
+      for(is=0;is<2;is++){//side loop
+        id=2*(2*logs+phys)+is;
+        sprintf(hname,"MidBinAmpl(AllCorr), LogS-%01d, PhysS-%01d, Side-%01d",logs+1,phys+1,is+1);
+        HBOOK1(2561+id,hname,100,hll,hhl,0.);
       }
     }
   }
+//---
+  HBOOK1(2624,"Long.responce profile",LongBins,-padlen/2,padlen/2,0.);//buff.histogr
 //
 }
 //--------------------------------------
@@ -143,12 +110,11 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     adca=ptr->getadca();
     ntdct=ptr->gettdct(tdct);
     nftdc=ptr->getftdc(ftdc);
-    if(ntdct>0 && ntdct<=2 && nftdc==1){//select only 1 Hist/FT-hit events
-//DAQ-ch-->p.e's:
+    if(ntdct>0 && ntdct<=5 && nftdc==1){//select only low mult. Hist/FT-hit events
+//
       ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      ampe[nsds]=number(adca)/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
-              *ANTI2SPcal::antispcal[sector].getadc2pe(); //ADC-ch-->p.e.
+      ampe[nsds]=number(adca);
 //cout<<"    decoded signal="<<ampe[nsds]<<endl; 
 //TDC-ch-->time(ns):
       nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
@@ -158,7 +124,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //cout<<"    decoded Up-time="<<uptm[nsds]<<endl;
 //
       nsds+=1;
-    }//--->endof 1-hit check
+    }//--->endof low mult. check
 //--------
     ptrN=ptr->next();
     idN=0;
@@ -166,10 +132,10 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //
     if(idN != id/10){//next hit is new sector: create 2-sides signal for current sect
 //
-      if(nsds==2 && (ampe[0]>0.5 && ampe[1]>0.5) && (uptm[0]>0 && uptm[1]>0)){//good sector ?
+      if(nsds==2 && ampe[0]>30. && ampe[1]>30.){//good sector ?
          ANTI2JobStat::addbr(sector,2);//count good sect
-	 frsecn[frsect]=sector;//store fired sect.number
-	 am1[frsect]=ampe[0];//store signals(pe's)
+	 frsecn[frsect]=sector;//store fired log.sect.number
+	 am1[frsect]=ampe[0];//store signals(adc)
 	 am2[frsect]=ampe[1];
 	 frsect+=1;//counts fired good sectors
       }//--->endof good sector check
@@ -186,7 +152,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
   }//------>endof RawEvent hits loop
 //
   HF1(2530,geant(frsect),1.);
-  if(frsect!=1)return;//remove empty/mult sector events
+  if(frsect!=1)return;//remove empty/multiple sector events
   ANTI2JobStat::addre(12);
 //
   padfi=paddfi*(0.5+frsecn[0]);//fired logical-paddle phi
@@ -195,9 +161,10 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //------> get parameters from tracker:
 //
     number pmas;
-    number pmom,mom,bet,chi2,betm,pcut[2];
-    number the,phi,trl,rid(2),err,ctran;
-    integer chargeTOF,chargeTracker,trpatt;
+    number pmom,mom,bet(0.97),chi2,betm,pcut[2];
+    number the,phi,trl,rigid(2),err,ctran;
+    integer chargeTOF,chargeTracker,charge,trpatt,betpatt;
+    number chi2t,chi2s;
     AMSPoint C0(0,0,0);
     AMSPoint cooCyl(0,0,0);
     AMSPoint crcCyl;
@@ -206,60 +173,100 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     AMSParticle *ppart;
     AMSTrTrack *ptrack;
     AMSCharge  *pcharge;
+    AMSTRDTrack *ptrd;
     AMSBeta *pbeta;
-    int npart,ipatt,bad;
+    int npart(0),ipatt,bad(1),envindx(0);
     bool trktr,trdtr,ecaltr,nottr,badint;
-    npart=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);//pointer to envelop "0" with true(trk)-track part
-    if(cptr)
-           npart+=cptr->getnelem();
-    if(npart<1)return;// require events with 1 true(trk)-track particle at least
+//
+    for(i=0;i<2;i++){//i=0->keeps parts.with true(Trk/Trd)-track, i=1->...false(nonTrk/Trd)-track
+      cptr=AMSEvent::gethead()->getC("AMSParticle",i);// get pointer to part-envelop "i"
+      if(cptr){
+        if(cptr->getnelem()!=0){
+          npart+=cptr->getnelem();
+	  envindx=i;
+          break;//use 1st non-empty envelop
+        }
+      }
+    }
+    if(npart!=1)return;// require events with 1 particle
+    ANTI2JobStat::addre(19);
+//
     ppart=(AMSParticle*)AMSEvent::gethead()->
-                                      getheadC("AMSParticle",0);
-    bad=1;
+                                      getheadC("AMSParticle",envindx);
+    bool TrkTrPart=false;
+    bool AnyTrPart=false;
+    bool GoodTrPart=false;
+    bool GoodTrkTrack=false;
+//			      
     while(ppart){
-      ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
-      if(ptrack){//check track-type
-	//PZ FIXME STATUS WHAT TO DO?????
+      ptrack=ppart->getptrack();//get pointer of the Track used in given particle
+      if(ptrack){
+        AnyTrPart=true;
+        ANTI2JobStat::addre(20);
+        ptrd=ppart->getptrd();//get pointer of the TRD-track, used in given particle
         trdtr=(ptrack->checkstatus(AMSDBc::TRDTRACK)!=0);
         ecaltr=(ptrack->checkstatus(AMSDBc::ECALTRACK)!=0);
         nottr=(ptrack->checkstatus(AMSDBc::NOTRACK)!=0);
         badint=(ptrack->checkstatus(AMSDBc::BADINTERPOL)!=0);
-        if(!(nottr || ecaltr || badint || trdtr)){//use only TRK-track particle
+	if(nottr || ecaltr || badint)goto Nextp;//looking only for TRK/TRD-track particle
+	GoodTrPart=true;
+        ANTI2JobStat::addre(21);//good track part(TRK || TRD)
+	if(!trdtr){//tracker-track based part
+	  TrkTrPart=true;
+	  ANTI2JobStat::addre(22);
           trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){
 #ifdef _PGTRACK_
 	    chi2=ptrack->GetChisq(AMSTrTrack::kChoutko);
-	    rid=ptrack->GetRigidity(AMSTrTrack::kChoutko);
+	    rigid=ptrack->GetRigidity(AMSTrTrack::kChoutko);
 	    err=ptrack->GetErrRinv(AMSTrTrack::kChoutko);
 	    the=ptrack->GetTheta(AMSTrTrack::kChoutko);
 	    phi=ptrack->GetPhi(AMSTrTrack::kChoutko);
 	    C0=ptrack->GetP0(AMSTrTrack::kChoutko);
 #else
-            ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+            ptrack->getParFastFit(chi2,rigid,err,the,phi,C0);
 #endif
             status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
-//          pbeta=pcharge->getpbeta();
             pbeta=ppart->getpbeta();
-//            betpatt=pbeta->getpattern();
-            bet=pbeta->getbeta();
-//            chi2t=pbeta->getchi2();
-//            chi2s=pbeta->getchi2S();
-            chargeTracker=pcharge->getchargeTracker();
-            chargeTOF=pcharge->getchargeTOF();
+	    if(pbeta){
+              betpatt=pbeta->getpattern();
+              bet=pbeta->getbeta();
+              chi2t=pbeta->getchi2();
+              chi2s=pbeta->getchi2S();
+	    }
             pmas=ppart->getmass();
+            chargeTracker=pcharge->getchargeTracker();
+	    charge=chargeTracker;
+//                                    <--- put here good TRK-track selection(chi2,...)
 	    bad=0;
-	    break;//1st good trk-track
-	  }
+	    ANTI2JobStat::addre(23);
+            GoodTrkTrack=true;
+          }
+	}//--->endof "trk-track particle" check
+	else{//trd-track based particle
+	  ANTI2JobStat::addre(24);
+//                                    <--- put here good TRD-track selection(chi2,...)
+	  bad=0;
+	  charge=1;
+	  ANTI2JobStat::addre(25);
 	}
-      }
+      }//--->endof "any track particle" check
+      if(GoodTrPart)break;//accept 1st particle with any good(not ecal-based) track
+//      if(GoodTrkTrack)break;//accept 1st particle with good Trk-track
+Nextp:
       ppart=ppart->next();
     } 
 //
-    if(bad)return;//require part. with TRK-track
-    ANTI2JobStat::addre(13);
-    pmom=fabs(rid);
+    if(bad)return;//require good track part.
+    ANTI2JobStat::addre(26);
+    if(ATCAFFKEY.trackmode==0 && !TrkTrPart)return;//trd-track part when trk requested
+    if(TrkTrPart){
+      ANTI2JobStat::addre(28);
+    }
+    else{
+      ANTI2JobStat::addre(27);
+    }
 //
 // ----->  find track crossing points/angles with sectors:
 //
@@ -268,9 +275,9 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     phil=padfi-0.5*paddfi;//boundaries of fired sector
     phih=padfi+0.5*paddfi;
     zcut=padlen/2;
-    for(i=0;i<2;i++){
+    for(i=0;i<2;i++){//<---dir loop
       dir=2*i-1;
-      ptrack->interpolateCyl(cooCyl,dirCyl,padrad,dir,crcCyl,the,phi,trl);
+      ptrack->interpolateCyl(cooCyl,dirCyl,padrad,dir,crcCyl,the,phi,trl);//phi/the in rads !!!
 // cout<<"i/dir="<<i<<" "<<dir<<" cr="<<padrad<<" th/ph/tr="<<the<<" "<<phi<<" "<<trl<<endl;
 // cout<<"cooCyl="<<cooCyl[0]<<" "<<cooCyl[1]<<" "<<cooCyl[2]<<endl; 
 // cout<<"dirCyl="<<dirCyl[0]<<" "<<dirCyl[1]<<" "<<dirCyl[2]<<endl; 
@@ -291,14 +298,14 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 	if(dphi1>180)dphi1=360-dphi1;
 	if(dphi1<-180)dphi1=-(360+dphi1);
         HF1(2532,geant(dphi1),1.);//PHIsect-PHIcrp
-        if(cphi<(phih-1) && cphi>(phil+1)){//match in phi (-1degr for safety)
+        if(cphi<(phih-0.5) && cphi>(phil+0.5)){//match in phi (-0.5 degr for safety)
           if(i==0)HF1(2628,geant(frsecn[0]),1.);
 	  else HF1(2629,geant(frsecn[0]),1.);
-	  if(cphi<padfi)isphys=2*frsecn[0];//physical sector number
+	  if(cphi<padfi)isphys=2*frsecn[0];//physical sector number(0-15)
 	  else isphys=2*frsecn[0]+1;
 	  zscr=crcCyl[2];
-	  thes=the;
-	  phis=phi;
+	  thes=the;//rads !!!
+	  phis=phi;//degrees
           nseccr+=1;
 	  dphi2=cphi-phi;//PHIcrp-PHIimpp
 	  if(dphi2>180)dphi2=360-dphi2;
@@ -313,43 +320,56 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     HF1(2539,geant(isphys+1),1.);//phys.sector number
     ANTI2JobStat::addre(14);
 //
-    if(abs(chargeTOF)!=1 || abs(chargeTracker)!=1)return;//requir. Z=1
+    if(abs(charge)!=1)return;//requir. Z=1
     ANTI2JobStat::addre(15);
 //
-    if(fabs(dphi1)>26)return;//out of logic.sector
-    if(fabs(dphi2)>50)return;//too high impact phi
+    if(fabs(dphi2)>=60)return;//too high impact phi
     ANTI2JobStat::addre(16);
 //    
-    HF1(2534,geant(pmom),1.);
-    HF1(2535,bet,1.);
-    HF1(2536,pmas,1.);
     number betg(4);
-//    betg=pmom/pmas;//use particle-defined betg
+    if(MAGSFFKEY.magstat==1 && TrkTrPart){
+      pmom=fabs(rigid);
+      HF1(2534,geant(pmom),1.);
+      HF1(2535,bet,1.);
+      HF1(2536,pmas,1.);
+      betg=pmom/pmas;//use trk-defined betg when possible
+    }
     HF1(2537,betg,1.);
     if(betg>6)return;//non MIP area
     ANTI2JobStat::addre(17);
 //
-// ------> normalize Edep(p.e) to normal 1cm incidence :
+// ------> normalize Edep(adc-ch) to normal  incidence :
 //
-    geant ama[2],cinp,crlen,betnor;
+    geant ama[2],cinp,crlen,betnor,pathcorr;
     dphi2/=AMSDBc::raddeg;//degr->rad
-    crlen=padth/(sin(thes)*fabs(cos(dphi2)));//pass-length in scint(ignore local curvature)
+    pathcorr=sqrt(pow(cos(dphi2),2)*pow(sin(thes),2)/
+                  (pow(sin(thes),2)+pow(cos(thes),2)*pow(cos(dphi2),2)));
+    crlen=padth/pathcorr;//pass-length in scint(ignore local curvature)
     HF1(2538,crlen,1.);
-    if(crlen>3.5)return;//too high cr.length: suspicious
+    if(frsecn[0]==3){
+      HF1(2596,geant(am1[0]),1.);
+      HF1(2597,geant(am2[0]),1.);
+    }
+    if(crlen>4)return;//too high cr.length: suspicious
     ANTI2JobStat::addre(18);
     ama[0]=am1[0];//imply single sector event
     ama[1]=am2[0];
-    ama[0]*=(sin(thes)*fabs(cos(dphi2))/padth);//normalize to 1cm norm.inc(ignore loc.curv.)
-    ama[1]*=(sin(thes)*fabs(cos(dphi2))/padth);//...                   
+    ama[0]=Anti2RawEvent::accsatur(am1[0]);//<--apply nonlin.corrections(because we use raw amplitudes)
+    ama[1]=Anti2RawEvent::accsatur(am2[0]);
+    if(frsecn[0]==3){
+      HF1(2594,ama[0],1.);
+      HF1(2595,ama[1],1.);
+    }
+    ama[0]*=pathcorr;//normalize to norm.inc(ignore loc.curv.)
+    ama[1]*=pathcorr;//...                   
     cinp=zscr;
 //
-// ------> normalize Edep(p.e) to mip :
+// ------> normalize Edep(adc-ch) to mip :
 //
     if(fabs(bet)<0.97)betnor=pow(fabs(bet),5./3)/pow(0.97,5./3);//norm. to MIP
     else betnor=1;
     ama[0]*=betnor;
     ama[1]*=betnor;
-    if(isphys==6 || isphys==9)HF2(2625,geant(bet),geant(ama[0]),1.);//sect-7
 //
 // ------> fill working arrays and histograms :
 //
@@ -359,42 +379,25 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //--------------------------------------
 //   ---> program to accumulate data for relat.gains/prof/abs.nor-calibration:
 void AntiCalib::fill(integer isec, geant am[2], geant coo){
-//
-  integer i,j,chan,iblh(-1),idh,nev,isd;
-  geant ramt,r,padlen;
-  geant bl,bh;
-  geant cll,chl;//bin limits
-//
-  cll=25;
-  chl=41.5;//- (4-5)cm for real data to avoid edge-effects 
+//am is in adc-ch units, isec is abs.phys.sect number 0-15
+  integer id,isd,bin,logs,phys;
+  geant ampc,padlen;
 //
   padlen=ANTI2DBc::scleng();//z-size
   HF1(2545+isec,coo,1.);//phys.sect longit.imp.point distribution
+  if(fabs(coo)>=padlen/2)return;
+  bin=floor(LongBins*(coo+padlen/2)/padlen);
 //
-  if(fabs(coo)>=cll && fabs(coo)<=chl){
-    if(coo<0)iblh=0;//low(-z)/high(+z)-bin flag
-    else iblh=1;
-  }
-  else return;//out of needed range
-//
+  logs=isec/2;
+  phys=isec%2;
   for(isd=0;isd<2;isd++){
-    idh=2*ANTI2C::ANTISRS*iblh+ANTI2C::ANTISRS*isd+isec;
-    chan=ANTI2C::ANTISRS*isd+isec;
-    if(iblh==0){
-      if(nevbl[chan]<ANTI2C::ANACMX){
-        ambinl[chan][nevbl[chan]]=am[isd];
-	xcol[chan][nevbl[chan]]=coo;
-	nevbl[chan]+=1;
-      }  
-    }
-    if(iblh==1){
-      if(nevbh[chan]<ANTI2C::ANACMX){
-        ambinh[chan][nevbh[chan]]=am[isd];
-	xcoh[chan][nevbh[chan]]=coo;
-	nevbh[chan]+=1;
-      }  
-    }
-    HF1(2561+idh,geant(am[isd]),1.);
+    ampc=am[isd];
+    id=2*(2*logs+phys)+isd;
+    if(evs2bin[id][bin]<BinEvsMX && ampc>20 && ampc<=3500){
+      adccount[id][bin][evs2bin[id][bin]]=ampc;
+      evs2bin[id][bin]+=1;
+    }  
+    if(bin==9 || bin==10)HF1(2561+id,ampc,1.);
   }
 //
 }
@@ -402,145 +405,199 @@ void AntiCalib::fill(integer isec, geant am[2], geant coo){
 //            ---> fit-program to get final Anti-calibration consts:
 void AntiCalib::fit(){
 //
-  integer i,j,k,chan,isd,idh,iblh,isec,nev,nmin,nmax,lsec;
-  int ndef(0);
-//  geant elos(1.4/2);//m.p. eloss/cm, norm.inc., per side
-  geant elos(0.98/2);//m.p. eloss, norm.inc., per side
-  geant avxl(0),avxh(0);
-  geant e2pel[2],e2peh[2],aval[2],avah[2],atl[2],aver,att,e2pe[2],adc2pe;
-  geant ed2pe[ANTI2C::ANTISRS][2],atlen[ANTI2C::ANTISRS],atldef(0);
-  number *pntr[ANTI2C::ANACMX];
-  geant padl=ANTI2DBc::scleng();//sector length
-//------
-  for(isec=0;isec<ANTI2C::ANTISRS;isec++){//clear outp.arrays
-    atlen[isec]=0;
-    for(isd=0;isd<2;isd++){
-      ed2pe[isec][isd]=0;   
+  integer i,j,k,chan,isd,nev,nmin,nmax,lsec;
+  integer phys,logs,bin,id,nbins(0);
+  int ndef[2]={0,0};
+  geant elos(1.6/2);//m.p. eloss/pad, norm.inc., per side
+  geant atl[2],att,adc2pe,mev2pe;
+  geant profl[ANTI2C::LongBins],profle[ANTI2C::LongBins];
+  number *pntr[ANTI2C::BinEvsMX];
+  geant paddl=ANTI2DBc::scleng();//sector length
+  geant binw=paddl/LongBins;//bin width
+  geant coo;
+  number aver,avere,aver2;
+  number slope,norm,chi2;
+  geant lowcut(0.03),higcut(0.95);// portion of ampls to cut on low/high ends of spectrum
+//  
+  geant pe2ad[ANTI2C::MAXANTI][2][2],pe2add(35);//[logs][physs][side]
+  integer stat[ANTI2C::MAXANTI][2][2];//
+  geant atlen[ANTI2C::MAXANTI][2][2],atlend(210);//
+  geant power[ANTI2C::MAXANTI][2][2],powerd(2.6);//
+  geant snor[ANTI2C::MAXANTI][2][2],snord(0.32);//
+//
+  int ifit[4];
+  char pnam[4][6],pnm[6];
+  number argl[10];
+  int iargl[10],ier;
+  number start[4],pstep[4],plow[4],phigh[4];
+  number defslop=0.004;//250cm
+  strcpy(pnam[0],"slope");
+  strcpy(pnam[1],"mnorm");
+  strcpy(pnam[2],"power");
+  strcpy(pnam[3],"snorm");
+  start[0]=0.004;//slope
+  start[1]=500.;//mnorm
+  start[2]=2.6;//power
+  start[3]=0.3;//snorm
+  pstep[0]=0.001;
+  pstep[1]=25.;
+  pstep[2]=0.2;
+  pstep[3]=0.05;
+  plow[0]=-0.01;
+  plow[1]=50;
+  plow[2]=0.1;
+  plow[3]=0;
+  phigh[0]=0.01;
+  phigh[1]=2000;
+  phigh[2]=6.;
+  phigh[3]=1;
+  for(i=0;i<4;i++)ifit[i]=1;//release all par's by default
+//  ifit[3]=0;//fix snorm
+  cout<<"-----> Start Gain/AttLen-calibr, init. parameters..."<<endl;
+// ------------> initialize parameters for Minuit:
+  MNINIT(5,6,6);
+  MNSETI("ACC Longit.Resp.Uniformity-calibration");
+  argl[0]=number(-1);
+  MNEXCM(mfun,"SET PRINT",argl,1,ier,0);
+  for(i=0;i<4;i++){
+    strcpy(pnm,pnam[i]);
+    ier=0;
+    MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
+    if(ier!=0){
+      cout<<"  <--- Param-init problem for par-id="<<pnam[i]<<'\n';
+      exit(10);
+    }
+    argl[0]=number(i+1);
+    if(ifit[i]==0){
+      ier=0;
+      MNEXCM(mfun,"FIX",argl,1,ier,0);
+      if(ier!=0){
+        cout<<"  <--- Param-fix problem for par-id="<<pnam[i]<<'\n';
+        exit(10);
+      }
     }
   }
-//
-  for(isec=0;isec<ANTI2C::ANTISRS;isec++){//<--- PhysSector loop
-    cout<<"===> AntiCalibFit:PhysSector="<<isec+1<<endl;
-    lsec=integer(floor(number(isec)/2.));
-    adc2pe=ANTI2SPcal::antispcal[lsec].getadc2pe();
-    for(isd=0;isd<2;isd++){
-      cout<<"    ===> side="<<isd+1<<endl;
-      atl[isd]=0;
-      e2pe[isd]=0;
-      for(iblh=0;iblh<2;iblh++){
-        idh=2561+2*ANTI2C::ANTISRS*iblh+ANTI2C::ANTISRS*isd+isec;
-        chan=ANTI2C::ANTISRS*isd+isec;
-	cout<<"       ===>bin="<<iblh<<endl;
-        HPRINT(idh);
-	if(iblh==0){
-	  nev=nevbl[chan];
-	  aval[isd]=0;
-	  avxl=0;
-	  if(nev>=3){
-	    for(i=0;i<nev;i++){
-	      avxl+=xcol[chan][i];
-//	      aval[isd]+=ambinl[chan][i];
-	    }
-	    avxl/=geant(nev);
-//	    aval[isd]/=geant(nev);
-            for(k=0;k<nev;k++)pntr[k]=&ambinl[chan][k];//pointers to event-signals of chan=i 
+  cout<<"       init done, start fit ..."<<endl;
+//---
+  for(logs=0;logs<MAXANTI;logs++){//log.sect.loop
+    for(phys=0;phys<2;phys++){//phys.sect.index
+      for(isd=0;isd<2;isd++){//side loop
+        mev2pe=ANTI2DBc::mev2pe()*ANTI2SPcal::antispcal[logs].getmev2pe(phys,isd);//mev2pe
+        stat[logs][phys][isd]=1;//bad
+        atlen[logs][phys][isd]=atlend;
+        pe2ad[logs][phys][isd]=pe2add;
+        power[logs][phys][isd]=powerd;
+        snor[logs][phys][isd]=snord;
+        i=0;//redef.slope with correct sign vs isd
+	if(isd==0)start[i]=-defslop;
+	else start[i]=defslop;
+        strcpy(pnm,pnam[i]);
+        ier=0;
+        argl[0]=number(0);
+        MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
+        if(ier!=0){
+          cout<<"  <--  Param-ReInit problem for param="<<pnam[i]<<'\n';
+          exit(10);
+        }
+        id=2*(2*logs+phys)+isd;
+	HPRINT(2561+id);
+	fitbins=0;
+	for(bin=0;bin<LongBins;bin++){//<--bin-loop
+	  profl[bin]=0;
+	  profle[bin]=0;
+	  nev=evs2bin[id][bin];
+	  coo=-paddl/2+bin*binw+0.5*binw;
+	  profl[bin]=0;
+	  if(nev>100){
+            for(k=0;k<nev;k++)pntr[k]=&adccount[id][bin][k];//pointers to event-signals of chan=id 
             AMSsortNAG(pntr,nev);//sort in increasing order
-            nmax=integer(floor(nev*0.98));// to keep 98% of lowest amplitudes
-            nmin=integer(floor(nev*0.02));// to remove 2 % of lowest amplitudes
-//            if(nmin==0)nmin=1; 
+            nmax=integer(floor(nev*higcut));// to keep % of lowest amplitudes
+            nmin=integer(floor(nev*lowcut));// to remove % of lowest amplitudes
 	    aver=0;
-            for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);//lowest event is not used
-            if((nmax-nmin)>0)aval[isd]=geant(aver/(nmax-nmin));
+	    avere=0;
+	    aver2=0;
+            for(j=nmin;j<nmax;j++){
+	      aver+=(*pntr[j]);
+	      aver2+=(*pntr[j])*(*pntr[j]);
+	    }
+            if((nmax-nmin)>0){
+	      aver=aver/(nmax-nmin);
+	      aver2=aver2/(nmax-nmin);
+	      avere=aver2-aver*aver;
+	      if(avere>0){
+	        avere=sqrt(avere);//rms
+		avere/=sqrt(nmax-nmin);//Sig
+		values[fitbins]=aver;
+		errors[fitbins]=avere;
+		coords[fitbins]=coo;
+		fitbins+=1;
+	      }
+	    }
+	    profl[bin]=aver;
+	    profle[bin]=avere;
 	  }
-	  cout<<"         evnts="<<nev<<" averx="<<avxl<<" averal="<<aval[isd]<<endl;
+	}//--->endof bin-loop
+	cout<<" <--- start fit for Logs/Phys/Side"<<logs+1<<" "<<phys+1<<" "<<isd+1<<endl<<endl;
+	HPAK(2624,profl);
+        HPAKE(2624,profle);
+        HPRINT(2624);
+//
+	if(fitbins>=10){
+          argl[0]=0.;
+          ier=0;
+          MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
+          if(ier!=0){
+            cout<<"       MINIMIZE problem !"<<'\n';
+            continue;
+          }  
+          MNEXCM(mfun,"MINOS",argl,0,ier,0);
+          if(ier!=0){
+            cout<<"       MINOS problem !"<<'\n';
+            continue;
+          }
+          argl[0]=number(3);
+          ier=0;
+          MNEXCM(mfun,"CALL FCN",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"      ECREUN-calib: final CALL_FCN problem !"<<'\n';
+            continue;
+          }
+          cout<<"       -->>> fit done <<<--"<<endl<<endl;
 	}
 	else{
-	  nev=nevbh[chan];
-	  avah[isd]=0;
-	  avxh=0;
-	  if(nev>=3){
-	    for(i=0;i<nev;i++){
-	      avxh+=xcoh[chan][i];
-//	      avah[isd]+=ambinh[chan][i];
-	    }
-	    avxh/=geant(nev);
-//	    avah[isd]/=geant(nev);
-            for(k=0;k<nev;k++)pntr[k]=&ambinh[chan][k];//pointers to event-signals of chan=i 
-            AMSsortNAG(pntr,nev);//sort in increasing order
-            nmax=integer(floor(nev*0.97));// to keep 90% of lowest amplitudes
-            nmin=integer(floor(nev*0.02));// to remove 2 % of lowest amplitudes
-            if(nmin==0)nmin=1; 
-	    aver=0;
-            for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);//lowest event is not used
-            if((nmax-nmin)>0)avah[isd]=geant(aver/(nmax-nmin));
-	  }
-	  cout<<"         evnts="<<nev<<" averx="<<avxh<<" averah="<<avah[isd]<<endl;
+	  cout<<endl;
+	  cout<<"  <-- Logs/Phys/Side"<<logs+1<<" "<<phys+1<<" "<<isd+1<<" Too Low nbins="<<fitbins<<endl;
+	  continue; 
 	}
-      }//--->endof iblh-loop
-      if(aval[isd]>0 && avah[isd]>0){
-        if(isd==0)att=aval[isd]/avah[isd];
-	else att=avah[isd]/aval[isd];
-	atl[isd]=(avxh-avxl)/log(att);
 //
-      }
-//
-    }//--->endof isd-loop
-    att=0;
-    if(atl[0]>0 && atl[1]>0)att=(atl[0]+atl[1])/2;//use average, if possible
-    else if(atl[0]>0)att=atl[0];
-    else if(atl[1]>0)att=atl[1];
-    else att=0;
-    if(att>0){  
-      atlen[isec]=att;
-      atldef+=att;
-      ndef+=1;
-      cout<<"   atl(s1/s2)="<<atl[0]<<" "<<atl[1]<<" aver="<<att<<endl;
-      HF1(2542,att,1.);
-      if(atl[0]>0){//s1
-        e2pel[0]=aval[0]*adc2pe/elos/exp(-avxl/att);
-        e2peh[0]=avah[0]*adc2pe/elos/exp(-avxh/att);
-        e2pe[0]=(e2pel[0]+e2peh[0])/2;
-        ed2pe[isec][0]=e2pe[0];
-        cout<<"   S1:e2pel/h="<<e2pel[0]<<" "<<e2peh[0]<<" aver="<<e2pe[0]<<endl;
-        HF1(2543,e2pe[0],1.);
-      }	
-      if(atl[1]>0){//s2
-        e2pel[1]=aval[1]*adc2pe/elos/exp(avxl/att);
-        e2peh[1]=avah[1]*adc2pe/elos/exp(avxh/att);
-        e2pe[1]=(e2pel[1]+e2peh[1])/2;
-        ed2pe[isec][1]=e2pe[1];
-        cout<<"   S2:e2pel/h="<<e2pel[1]<<" "<<e2peh[1]<<" aver="<<e2pe[1]<<endl;
-        HF1(2544,e2pe[1],1.);
-      }	
-    }  
-//
-  }//--->endof PhysSector-loop
-//
-  atldef/=geant(ndef);
-  cout<<" Aver.AttLen="<<atldef<<endl;  
-  HPRINT(2542);
-  HPRINT(2543);
-  HPRINT(2544);
-//  
-// ----------------> create/write ReadoutSectors arrays:
-//
-  integer phsec,status1[ANTI2C::MAXANTI][2],status2[ANTI2C::MAXANTI][2];
-  geant mev2pe1[ANTI2C::MAXANTI][2],mev2pe2[ANTI2C::MAXANTI][2];
-  geant attlen[ANTI2C::MAXANTI][2],attlendef;
-  bool p1s1ok,p2s1ok,p1s2ok,p2s2ok;
-//
+        chi2=fitpars[4];
+	HF1(2593,geant(chi2),1.);
+	slope=fitpars[0];
+	if(chi2<30 && fabs(slope)>0.001 && fabs(slope)<0.04){
+	  atlen[logs][phys][isd]=geant(1/slope);
+	  norm=fitpars[1];
+	  pe2ad[logs][phys][isd]=geant(norm/mev2pe/elos);
+	  power[logs][phys][isd]=geant(fitpars[2]);
+	  snor[logs][phys][isd]=geant(fitpars[3]);
+          stat[logs][phys][isd]=0;//ok
+          HF1(2542+isd,fabs(atlen[logs][phys][isd]),1.);
+          HF1(2544,pe2ad[logs][phys][isd],1.);
+	}
+	else{
+	  cout<<"  <-- Logs/Phys/Side"<<logs+1<<" "<<phys+1<<" "<<isd+1<<" Bad chi2="<<chi2<<endl;
+	  continue;   
+	}
+      }//--->endof side-loop
+    }//--->endof phys.sect.index-loop
+  }//--->endof Log.sect-loop
+//------------------>save parameters:
   char fname[80];
   char frdate[30];
-  char in[2]="0";
-  char inum[11];
   char vers1[3]="MC";
   char vers2[3]="RD";
   char fext[20];
-  integer cfvn;
   uinteger StartRun;
   time_t StartTime;
-  int dig;
-  strcpy(inum,"0123456789");
 //
 //--> get run/time of the first event
 //
@@ -553,7 +610,7 @@ void AntiCalib::fit(){
   strcpy(fname,"AccVrpar");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
-    sprintf(fext,"%d",ATMCFFKEY.calvern);//MC-versn
+    sprintf(fext,"%d",ATMCFFKEY.calvern+1);//MC-versn
   }
   else{
     strcat(fname,vers2);
@@ -562,121 +619,96 @@ void AntiCalib::fit(){
   strcat(fname,".");
   strcat(fname,fext);
 //
-  ofstream tcfile(fname,ios::out|ios::trunc);
-  if(!tcfile){
+  ofstream acfile(fname,ios::out|ios::trunc);
+  if(!acfile){
     cout<<"====> AccVarParsCalib:error opening file for output  "<<fname<<'\n';
     exit(8);
   }
   cout<<"      AccVarParsCalib: Open file for output, fname:  "<<fname<<'\n';
 //
-//  
-  for(isec=0;isec<ANTI2C::MAXANTI;isec++){//<--- ReadoutSector loop    
-    status1[isec][0]=1;//dead
-    status1[isec][1]=1;//dead
-    status2[isec][0]=1;//dead
-    status2[isec][1]=1;//dead
-    attlen[isec][0]=0;//physpad1
-    attlen[isec][1]=0;//physpad2
-    mev2pe1[isec][0]=0;//physpad1
-    mev2pe1[isec][1]=0;
-    mev2pe2[isec][0]=0;//physpad2
-    mev2pe2[isec][1]=0;
-    phsec=2*isec;
-    p1s1ok=(ed2pe[phsec][0]>0 && atlen[phsec]>0);
-    p1s2ok=(ed2pe[phsec][1]>0 && atlen[phsec]>0);
-    p2s1ok=(ed2pe[phsec+1][0]>0 && atlen[phsec+1]>0);
-    p2s2ok=(ed2pe[phsec+1][1]>0 && atlen[phsec+1]>0);
-    if(p1s1ok && p2s1ok){// <--- side-1
-      status1[isec][0]=0;//p1s1 ok
-      status2[isec][0]=0;//p2s1 ok
-      mev2pe1[isec][0]=ed2pe[phsec][0];//p1s1
-      attlen[isec][0]=atlen[phsec];
-      mev2pe2[isec][0]=ed2pe[phsec+1][0];//p2s1
-      attlen[isec][1]=atlen[phsec+1];
-    }
-    else if(p1s1ok){
-      status1[isec][0]=0;//p1s1 ok
-      status2[isec][0]=1;//p2s1 bad
-      mev2pe1[isec][0]=ed2pe[phsec][0];//p1s1
-      attlen[isec][0]=atlen[phsec];
-    }
-    else if(p2s1ok){
-      status1[isec][0]=1;//p1s1 bad
-      status2[isec][0]=0;//p2s1 ok
-      mev2pe1[isec][0]=ed2pe[phsec+1][0];//p2s1
-      attlen[isec][1]=atlen[phsec+1];
-    }
-//    
-    if(p1s2ok && p2s2ok){// <--- side-2
-      status1[isec][1]=0;//p1s2 ok
-      status2[isec][1]=0;//p2s2 ok
-      mev2pe1[isec][1]=ed2pe[phsec][1];//p1s2
-      attlen[isec][0]=atlen[phsec];
-      mev2pe2[isec][1]=ed2pe[phsec+1][1];//p2s2
-      attlen[isec][1]=atlen[phsec+1];
-    }
-    else if(p1s2ok){
-      status1[isec][1]=0;//p1s2 ok
-      status2[isec][1]=1;//p2s2 bad
-      mev2pe1[isec][1]=ed2pe[phsec][1];//p1s2
-      attlen[isec][0]=atlen[phsec];
-    }
-    else if(p2s2ok){
-      status1[isec][1]=1;//p1s2 bad
-      status2[isec][1]=0;//p2s2 ok
-      mev2pe1[isec][1]=ed2pe[phsec+1][1];//p2s2
-      attlen[isec][1]=atlen[phsec+1];
-    }
+  for(logs=0;logs<MAXANTI;logs++){//<---readout(logical) sect. loop
 // ----> write to file :   
-    tcfile.setf(ios::fixed);
-    tcfile << endl;
-// s1    
-    tcfile.width(1);
-    tcfile.precision(1);// precision stat
-    tcfile << status1[isec][0] <<" ";
-    tcfile.width(6);
-    tcfile.precision(2);// precision  mev2pe
-    tcfile << mev2pe1[isec][0] <<" ";
-    tcfile.width(1);
-    tcfile.precision(1);// precision  stat
-    tcfile << status2[isec][0] <<" ";
-    tcfile.width(6);
-    tcfile.precision(2);// precision  mev2pe
-    tcfile << mev2pe2[isec][0] <<endl;
-// s2    
-    tcfile.width(1);
-    tcfile.precision(1);// precision stat
-    tcfile << status1[isec][1] <<" ";
-    tcfile.width(6);
-    tcfile.precision(2);// precision mev2pe
-    tcfile << mev2pe1[isec][1] <<" ";
-    tcfile.width(1);
-    tcfile.precision(1);// precision stat
-    tcfile << status2[isec][1] <<" ";
-    tcfile.width(6);
-    tcfile.precision(2);// precision mev2pe
-    tcfile << mev2pe2[isec][1] <<endl;
-// p1
-    tcfile.width(6);
-    tcfile.precision(1);// precision for attlen
-    tcfile << attlen[isec][0] <<" ";     
-// p2
-    tcfile << attlen[isec][1] <<endl;     
-    tcfile << endl;
+    acfile.setf(ios::fixed);
+//stat
+    for(isd=0;isd<2;isd++){//sides loop
+      acfile.width(1);
+      acfile.precision(1);
+      acfile << stat[logs][0][isd] <<" ";
+      acfile.width(5);
+      acfile.precision(1);
+      acfile << pe2ad[logs][0][isd] <<" ";
+//	   
+      acfile.width(1);
+      acfile.precision(1);
+      acfile << stat[logs][1][isd] <<" ";
+      acfile.width(5);
+      acfile.precision(1);
+      acfile << pe2ad[logs][1][isd] <<endl;
+    }
+//attlen
+    for(isd=0;isd<2;isd++){//sides loop
+      acfile.width(7);
+      acfile.precision(1);
+      acfile << atlen[logs][0][isd] <<" ";	   
+      acfile << atlen[logs][1][isd] <<endl;
+    }	   
+//pow
+    for(isd=0;isd<2;isd++){//sides loop
+      acfile.width(5);
+      acfile.precision(2);
+      acfile << power[logs][0][isd] <<" ";	   
+      acfile << power[logs][1][isd] <<endl;
+    }	   
+//snor
+    for(isd=0;isd<2;isd++){//sides loop
+      acfile.width(6);
+      acfile.precision(3);
+      acfile << snor[logs][0][isd] <<" ";	   
+      acfile << snor[logs][1][isd] <<endl;	   
+    }
+//
+    acfile << endl;	   
 //
   }// -----> endof ReadoutSector loop
 //  
-    tcfile << 12345 << endl;//endoffile label
-    tcfile << endl;
-    tcfile << endl<<"======================================================"<<endl;
-    tcfile << endl<<"      First run used for calibration is "<<StartRun<<endl;
-    tcfile << endl<<"      Date of the first event : "<<frdate<<endl;
-    tcfile.close();
+    acfile << 12345 << endl;//endoffile label
+    acfile << endl;
+    acfile << endl<<"======================================================"<<endl;
+    acfile << endl<<"      First run used for calibration is "<<StartRun<<endl;
+    acfile << endl<<"      Date of the first event : "<<frdate<<endl;
+    acfile.close();
     cout<<"      First run used for calibration is "<<StartRun<<endl;
     cout<<"      Date of the first event : "<<frdate<<endl;
     cout<<"<---- AntiVariableParamsCalib output file closed !"<<endl;
-//  
 }
+//--------
+void AntiCalib::mfun(int &np, number grad[], number &f, number x[]
+                                                        , int &flg, int &dum){
+  int i,j;
+  number ff,fitval;
+  f=0.;
+//
+  geant padl=ANTI2DBc::scleng()/2;//half z-size
+  geant bndr=25;
+//
+  for(i=0;i<fitbins;i++){
+    fitval=x[1]*exp(coords[i]*x[0]);
+    if(fabs(coords[i])>bndr)fitval-=(x[1]*x[3]*pow((fabs(coords[i])-bndr)/(padl-bndr),x[2]));
+    ff=(values[i]-fitval)/errors[i];
+    f+=(ff*ff);
+  }
+  if(flg==3){
+    f=f/number(fitbins-4);
+    cout<<" <-- longit.fit done:"<<endl;
+    cout<<"     chi2="<<f<<endl;
+    for(i=0;i<4;i++){
+      cout<<"     par-"<<i<<" ---> "<<x[i]<<endl;
+      fitpars[i]=x[i];
+    }
+    fitpars[4]=f;
+  }
+}
+//
 //=============================================================================
 //===============================> ANTPedCalib:
 //

@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.53 2008/12/18 11:19:25 pzuccon Exp $
+//  $Id: particle.h,v 1.54 2008/12/19 15:02:09 choumilo Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -57,7 +57,8 @@ protected:
   number  _CutoffMomentum;
   AMSPoint _Coo;
   AMSPoint _TOFCoo[4];  
-  AMSPoint _AntiCoo[2];  
+  AMSPoint _AntiCoo[2];
+  number   _AntiCrAngle[2][2];//[dir][theta/phi]  
   AMSPoint _EcalCoo[2*ecalconst::ECSLMX];  
   AMSPoint _EcalSCoo[3];
   AMSPoint _TrCoo[trconst::maxlay];  
@@ -111,7 +112,11 @@ friend class AMSEvent;
  {
     int i;
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++){
+      _AntiCoo[i]=AMSPoint(0,0,0);
+      _AntiCrAngle[i][0]=AMSDBc::pi/2;//the
+      _AntiCrAngle[i][1]=0;//phi
+    }
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
@@ -139,7 +144,11 @@ friend class AMSEvent;
  {
     int i;
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++){
+      _AntiCoo[i]=AMSPoint(0,0,0);
+      _AntiCrAngle[i][0]=AMSDBc::pi/2;//the
+      _AntiCrAngle[i][1]=0;//phi
+    }
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
