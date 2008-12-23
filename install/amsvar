@@ -23,6 +23,7 @@ setenv amsedc           $Offline/vdev/display/amsedc
 setenv offmon        $Offline/vdev/online/offmon      
 setenv offmonc        $Offline/vdev/online/offmonc      
 setenv AMSICC 1
+setenv AMSP 1
 limit core 0
 limit data 700000
 limit stack 32000

@@ -1,5 +1,5 @@
 #include <root.h>
-///   \example stlv.C
+///   \example daqe_mt.C
 ///
 #define stlv_cxx
 #include "../include/root_RVS.h"
@@ -748,9 +748,9 @@ int main(int argc, char *argv[]){
 
 
       AMSChain chain("AMSRoot");
-//chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
-//chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
-chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/12076*.root");
+chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
+chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
+//chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/1207*.root");
 AMSEventR *pev=new daqe[thread];
 chain.Process(pev,fout,thread,events);
 return 0;

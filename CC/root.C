@@ -245,17 +245,17 @@ void AMSEventR::hfill(int idd, float a, float b=0, float w=1){
 AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
-  i1->second->Fill(a,w);
+    hf1(idd,a,w);
  }
  else{
   Service::hb2i i2=Service::hb2.find(id);
   if(i2 != Service::hb2.end()){
-    i2->second->Fill(a,b,w);
+    hf2(idd,a,b,w);
   }
   else{
    Service::hbpi ip=Service::hbp.find(id);
     if(ip != Service::hbp.end()){
-     ip->second->Fill(a,w);
+    hfp(idd,a,w);
    }
  }
  }
@@ -2716,7 +2716,6 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 }
 
 
-
 void AMSEventR::Begin(TTree *tree){
    // Function called before starting the event loop.
    // Initialize the tree branches.
@@ -2725,10 +2724,12 @@ void AMSEventR::Begin(TTree *tree){
    // open file if...
   #pragma omp critical
 if(_NFiles<0){
-  pService=&fService;
+ pService=&fService;
  (*pService)._w.Start();
    if(option.Length()>1){
     (*pService)._pOut=new TFile(option,"RECREATE");
+     (*pService)._pDir=gDirectory;
+    cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
     cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
    }
 
@@ -2781,6 +2782,7 @@ if(--_NFiles==0){
    cout <<"AMSEventR::Terminate-I-Total/Bad "<<(*pService).TotalEv<<"/"<<(*pService).BadEv<<" events processed "<<endl;
    cout <<"AMSEventR::Terminate-I-ApproxTotal of "<<(*pService).TotalTrig<<" triggers processed "<<endl;
    if((*pService)._pOut){
+     (*pService)._pDir->cd(); 
      (*pService)._pOut->Write();
      (*pService)._pOut->Close();
      (*pService)._pOut=0;
@@ -2806,11 +2808,20 @@ Service::hbp.clear();
 
 Int_t AMSEventR::Fill()
 {
-        if (_ClonedTree==NULL) _ClonedTree = _Tree->GetTree()->CloneTree(0);
-        int i;
+int i;
 #pragma omp critical
 {
+        if (_ClonedTree==NULL) {
+          _ClonedTree = _Tree->GetTree()->CloneTree(0);
+          AMSEventR::_ClonedTree->SetDirectory(AMSEventR::OFD());
+        }
+//cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
+//cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
+{
+_ClonedTree->SetBranchAddress(_Name,&Head());
 i= _ClonedTree->Fill();
+//cout <<"  i "<<i<<endl;
+}
 }
 return i;
 }
@@ -2906,56 +2917,82 @@ Long64_t AMSChain::Process(AMSEventR*pev,Option_t*option, int nthreads,Long64_t 
 #ifndef __ROOTSHAREDLIBRARY__
 return 0;
 #else
-TStreamerInfo**ts =new TStreamerInfo*[nthreads];
-for(int i=0;i<nthreads;i++)ts[i]=0;
+//TStreamerInfo**ts =new TStreamerInfo*[nthreads];
+//for(int i=0;i<nthreads;i++)ts[i]=0;
 long long nentr=0;
-#ifdef _OPENMP
-omp_set_num_threads(nthreads);
-#endif
 
  AMSEventR::_NFiles=-fNtrees;
-        cout <<"  bfiles "<<fNtrees<<endl;
         
 //	#pragma omp parallel  default(none), shared(std::cout,option,nentries,firstentry,nentr,pev)
         int ntree=fNtrees;
         if(nentries<0){
           ntree=-nentries;
+          if(ntree>fNtrees)ntree=fNtrees;
           nentries=10000000000LL;
         }
-        cout <<"  Files to be processed "<<ntree<<endl;
-
-	#pragma omp parallel
+typedef multimap<uint,TString> fmap_d;
+typedef multimap<uint,TString>::iterator fmapi;
+        fmap_d fmap;
+	for(int i=0;i<fNtrees;i++){
+           TString t1("/");
+           TString t2(".");
+           TString name(((TNamed*)fFiles->At(i))->GetTitle());
+           TObjArray *arr=name.Tokenize(t1);
+           TObjString *s=(TObjString*)arr->At(arr->GetEntries()-1); 
+           TObjArray *ar1=s->GetString().Tokenize(t2);
+           unsigned int k=atoi(((TObjString* )ar1->At(0))->GetString().Data());
+           fmap.insert(make_pair(k,name) );
+           delete arr;
+           delete ar1;
+          }
+          fmapi it=fmap.begin();
+          if(ntree>fmap.size())ntree=fmap.size();
+        cout <<"  AMSChain::Process-I-Files to be processed "<<ntree<<" out of "<<fNtrees<<endl;
+         if(nthreads>ntree)nthreads=ntree;
+        int*ia= new int[nthreads];
+        for(int i=0;i<nthreads;i++)ia[i]=0;
+#ifdef _OPENMP
+omp_set_num_threads(nthreads);
+#endif
+#pragma omp parallel 
 	{
-	#pragma omp for schedule (dynamic)
+        int thr=0;
+#ifdef _OPENMP
+        thr=omp_get_thread_num();
+#endif
+	#pragma omp  for schedule (dynamic)  nowait
 	for(int i=0;i<ntree;i++){
-        if(nentr>nentries){
+        if(nentr>nentries || it==fmap.end()){
          continue;
         }
 	TChainElement* element;
         TFile* file;
         TTree *tree;
-        int thr=0;
-#ifdef _OPENMP
-        thr=omp_get_thread_num();
-#endif
 #pragma omp critical
 {
-        if(ts[thr]==0){
-TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
-}
-	element=(TChainElement*) fFiles->At(i);
-	file=new TFile(element->GetTitle(),"READ");
+      //  if(ts[thr]==0){
+          //TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
+      // }
+	//cout <<"thr "<<thr<<endl;
+        // element=(TChainElement*) fFiles->At(i);
+	//file=new TFile(element->GetTitle(),"READ");
+        file=new TFile(it->second.Data(),"READ");
 	tree=(TTree*)file->Get(_NAME);
-        cout <<"i "<<i<<endl;
+        if(!tree){
+          cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
+        file->Close("R");
+        delete file;
+}
+        //cout <<"i "<<i<<endl;
         pev[thr].SetOption(option);
         pev[thr].Init(tree);
         pev[thr].Notify();
-        AMSEventR::_ClonedTree = tree->CloneTree(0);
-        cout <<element->GetTitle()<<" tree "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
-       }
+        cout <<"  "<<i<<" "<<it->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
+        it++;
+}
         pev[thr].Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
-        if(pev[thr].ReadHeader(n)){
+        if(pev[thr].ProcessCut(n)){
         pev[thr].ProcessFill(n);
         
         }
@@ -2965,9 +3002,25 @@ TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
 	 nentr+=AMSEventR::_Tree->GetEntries();
 	file->Close("R");
         delete file;
-        cout <<" finished "<<i<<endl;
+//        cout <<" finished "<<i<<" "<<endl;
    }
 	}
+#ifdef _OPENMP        
+//  this clause is because intel throutput mode deoesn;t work
+//   so simulating it
+           ia[thr]=1;
+           for(;;){
+           bool work=false;
+           for(int j=0;j<nthreads;j++){
+              if(!ia[j]){
+                 work=true;
+                 break;
+              }
+            }
+            if(work)usleep(kmp_get_blocktime());  
+            else break;
+          }
+#endif
 	}
         AMSEventR::_NFiles=1;
         pev[0].Terminate();

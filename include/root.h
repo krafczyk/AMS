@@ -249,7 +249,7 @@ public:
 
   virtual ~HeaderR(){};
   ClassDef(HeaderR,9)       //HeaderR
-#pragma omp threadprivate(fgIsA)
+//#pragma omp threadprivate(fgIsA)
 };
 
 
@@ -2171,6 +2171,7 @@ protected:
 class Service{
 public:
  TFile *            _pOut;
+TDirectory *_pDir;
 typedef map<AMSID,TH1F*> hb1_d;
 typedef map<AMSID,TH1F*>::iterator hb1i;
 typedef map<AMSID,TH2F*> hb2_d;
@@ -2180,12 +2181,13 @@ typedef map<AMSID,TProfile*>::iterator hbpi;
 static  hb1_d hb1;
 static  hb2_d hb2;
 static  hbp_d hbp;
+//#pragma omp threadprivate(hb1,hb2,hbp)
 static  char Dir[1024];
  TStopwatch         _w;
  unsigned int       TotalEv;
  unsigned int       BadEv;
  unsigned int       TotalTrig;
-Service():_pOut(0),TotalEv(0),BadEv(0),TotalTrig(0){}
+Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 ~Service(){
 }
 };
@@ -2368,6 +2370,7 @@ static  void hf2(int id,float a, float b,float w);
  static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
  TFile* & OutputFile(){return (*pService)._pOut;};
+ static TDirectory *OFD(){ return pService?(*pService)._pDir:0;}
 #ifdef  __CINT__ 
 public:
 #elif  defined WIN32

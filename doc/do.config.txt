@@ -400,6 +400,9 @@ FILE_PATTERNS          = root.h \
                          ana.root_ruby.doc \
                          ana.root.rb \
                          ana.root_static.doc \
+                         ana.root_staticp.doc \
+                         daqe_mt.C  \
+                         link_mt.sh      \
                          ana.root_static.C \
                          ams_run.sh \
                          select_entries.doc \
