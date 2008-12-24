@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.64 2008/12/18 21:57:40 pzuccon Exp $
+#  $Id: Makefile,v 1.65 2008/12/24 10:41:37 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -405,6 +405,7 @@ else
 
 shared :     $(BIN)point.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+	$(AR) rv   $(NTLD) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o
 	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
 
 static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o 
