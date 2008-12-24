@@ -2195,6 +2195,7 @@ protected:
 Service  fService;
 static Service*  pService;
 static TBranch*  bStatus;
+static TBranch*  bAll;
 static TBranch*  bHeader;
 static TBranch*  bEcalHit;
 static TBranch*  bEcalCluster;
