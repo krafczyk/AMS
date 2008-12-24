@@ -13,6 +13,9 @@
 
 #ifndef __AMSROOT__
 #define __AMSROOT__
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <list>
 #include <vector>
 #include <iostream>
@@ -2182,7 +2185,6 @@ static  hb1_d hb1;
 static  hb2_d hb2;
 static  hbp_d hbp;
 //#pragma omp threadprivate(hb1,hb2,hbp)
-static  char Dir[1024];
  TStopwatch         _w;
  unsigned int       TotalEv;
  unsigned int       BadEv;
@@ -2191,7 +2193,14 @@ Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 ~Service(){
 }
 };
+public:
+static bool fgThickMemory;
+static int fgThreads;
 protected:
+static TString Dir;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate(Dir)
+#endif
 Service  fService;
 static Service*  pService;
 static TBranch*  bStatus;
@@ -2300,6 +2309,7 @@ static void hbook1(int id,const char title[], int ncha, float  a, float b);
    ///  few identical 1d histos booking in one call \n parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs hiistos
 static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int howmany=6,int shift=100000);
    ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
+static void hjoin();
 static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
 static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
@@ -2331,9 +2341,16 @@ static void chdir(const char dir[]="");
 /// list current dir
 static void hcdir(const char dir[]="");
 /// list current dir
-static void ldir(){cout<<" Current Dir: "<<Service::Dir<<endl;}
+static int g_t(){
+#ifdef _OPENMP
+return omp_get_thread_num( );
+#else
+return 0;
+#endif
+}
+static void ldir(){cout<<" Current Dir: "<<Dir<<endl;}
 /// fetch histos from TFile (to the dir dir)
-static  void hfetch(TFile & f,const char dir[]="");
+static  void hfetch(TFile & f, const char dir[]="");
 /// fetch histos from TFile file (to the dir file)
 static  void hfetch(const char file[]);
 /// delete histogram by  id or all if id==0
@@ -3970,6 +3987,7 @@ ClassDef(AMSEventR,10)       //AMSEventR
 
 class AMSChain : public TChain {
 private:
+      unsigned int fThreads;
       AMSEventR* _EVENT;
       Int_t _ENTRY;
       const char* _NAME;
@@ -3977,8 +3995,8 @@ private:
   TFile* _FILE;
 
 public:
-      AMSChain(const char* name="AMSRoot"); ///< Default constructor
-  AMSChain(AMSEventR* event ,const char* name="AMSRoot"); ///< alternative constructor
+      AMSChain(const char* name="AMSRoot",unsigned int thr=1); ///< Default constructor
+  AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1); ///< alternative constructor
   virtual ~AMSChain(){ _FILE=0;if (_EVENT) delete _EVENT; };
 
   void Init(AMSEventR* event=0); ///<Set event branch and links; called after reading of all trees; called automatically in GetEvent
@@ -3990,7 +4008,7 @@ public:
       Int_t Entry(); ///<Get the current entry number
       AMSEventR* pEvent(); ///<Get the current event pointer
       const char* ChainName(); ///<Get the name of the tree
-Long64_t  Process(AMSEventR *pev, Option_t *option="", int nthr=1,Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
+ Long64_t  Process(AMSEventR*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
       ClassDef(AMSChain,5)       //AMSChain
 #pragma omp threadprivate(fgIsA)
 };

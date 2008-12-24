@@ -715,15 +715,21 @@ int main(int argc, char *argv[]){
         {"events", 1, 0, 'e'},
         {"help",    0, 0, 'h'},
         {"thread",  1, 0, 't'},
+     {"file",  1, 0, 'f'},
+    {"thickmemory",  1, 0, 'm'},
         {0, 0, 0, 0}
     };
      int events=1000000000;
      int thread=omp_get_num_procs();
+      int mem=0;
     while (1) {
-        int c = getopt_long (argc, argv, "e:t:hH?f:", long_options, &option_index);
+        int c = getopt_long (argc, argv, "e:t:hH?f:m", long_options, &option_index);
         if (c == -1) break;
 
         switch (c) {
+            case 'm':
+              mem=1;
+              break;
             case 'e':             /* display */
              events=atoi(optarg);
              break;
@@ -738,7 +744,7 @@ int main(int argc, char *argv[]){
             case 'H':
             case '?':
             default:            /* help */
-                cout<<"$daqe  -events[e] -thread[t] -fileoutput[f]"<<endl;
+                cout<<"daqe_mt  -events[e] -thread[t] --file[f] --thickmemory[m]"<<endl;
                 return 0;
                 break;
         }
@@ -746,13 +752,13 @@ int main(int argc, char *argv[]){
 
 
 
-
-      AMSChain chain("AMSRoot");
+      AMSEventR::fgThickMemory=mem;
+      AMSChain chain("AMSRoot",thread);
 chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
 chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
 //chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/1207*.root");
 AMSEventR *pev=new daqe[thread];
-chain.Process(pev,fout,thread,events);
+chain.Process(pev,fout,events);
 return 0;
 }
 
