@@ -70,10 +70,12 @@ class daqe : public AMSEventR {
    /// Called for all entries.
    /// Fills histograms.
    virtual void    UProcessFill();
-   virtual AMSEventR* init(unsigned int thr){return new daqe();}
    /// Called at the end of a loop on the tree,
    /// a convenient place to draw/fit your histograms. \n
    virtual void    UTerminate();
+
+   //virtual AMSEventR* init(unsigned int thr){return new daqe();}
+
 };
 
 
@@ -753,12 +755,11 @@ int main(int argc, char *argv[]){
 
 
       AMSEventR::fgThickMemory=mem;
-      AMSChain chain("AMSRoot",thread);
+      AMSChain chain("AMSRoot",thread,sizeof(daqe));
 chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
 chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
 //chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/1207*.root");
-AMSEventR *pev=new daqe[thread];
-chain.Process(pev,fout,events);
+chain.Process(new daqe[thread],fout,events);
 return 0;
 }
 

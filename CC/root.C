@@ -2897,15 +2897,11 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name, unsigned int thr)
-  :TChain(name),fThreads(thr),
-   _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
-{
-}
+AMSChain::AMSChain(const char* name, unsigned int thr,unsigned int size):TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
 
 
-AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr)
-  :TChain(name),fThreads(thr),
+AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned int size)
+  :TChain(name),fThreads(thr),fSize(size),
    _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
 {
   Init(event);
@@ -2977,7 +2973,7 @@ const char* AMSChain::ChainName() {return _NAME;};
 
 
 
-Long64_t AMSChain::Process(AMSEventR*pev,Option_t*option, Long64_t nentries, Long64_t firstentry){
+Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Long64_t firstentry){
 #ifndef __ROOTSHAREDLIBRARY__
 return 0;
 #else
@@ -3034,6 +3030,7 @@ AMSEventR::fgThreads=nthreads;
 	TChainElement* element;
         TFile* file;
         TTree *tree;
+        TSelector *curp=(TSelector*)((char*)pev+thr*fSize);
 #pragma omp critical
 {
       //  if(ts[thr]==0){
@@ -3048,18 +3045,18 @@ AMSEventR::fgThreads=nthreads;
           cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
        }
        else{
-        pev[thr].SetOption(option);
-        pev[thr].Init(tree);
-        pev[thr].Notify();
+        curp->SetOption(option);
+        curp->Init(tree);
+        curp->Notify();
         cout <<"  "<<i<<" "<<it->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
         }
        it++;
 }
          if(tree){
-        pev[thr].Begin(tree);
+        curp->Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
-        if(pev[thr].ProcessCut(n)){
-        pev[thr].ProcessFill(n);
+        if(curp->ProcessCut(n)){
+        curp->ProcessFill(n);
         
         }
        }
@@ -3090,7 +3087,7 @@ AMSEventR::fgThreads=nthreads;
 #endif
 	}
         AMSEventR::_NFiles=1;
-        pev[0].Terminate();
+        pev->Terminate();
 	return nentr;
 #endif
 	}

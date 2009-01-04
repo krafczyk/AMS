@@ -3988,6 +3988,7 @@ ClassDef(AMSEventR,10)       //AMSEventR
 class AMSChain : public TChain {
 private:
       unsigned int fThreads;
+      unsigned int fSize;
       AMSEventR* _EVENT;
       Int_t _ENTRY;
       const char* _NAME;
@@ -3995,8 +3996,8 @@ private:
   TFile* _FILE;
 
 public:
-      AMSChain(const char* name="AMSRoot",unsigned int thr=1); ///< Default constructor
-  AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1); ///< alternative constructor
+      AMSChain(const char* name="AMSRoot",unsigned int thr=1,unsigned int fSize=sizeof(AMSEventR)); ///< Default constructor
+  AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1, unsigned int fSize=sizeof(AMSEventR)); ///< alternative constructor
   virtual ~AMSChain(){ _FILE=0;if (_EVENT) delete _EVENT; };
 
   void Init(AMSEventR* event=0); ///<Set event branch and links; called after reading of all trees; called automatically in GetEvent
@@ -4008,7 +4009,7 @@ public:
       Int_t Entry(); ///<Get the current entry number
       AMSEventR* pEvent(); ///<Get the current event pointer
       const char* ChainName(); ///<Get the name of the tree
- Long64_t  Process(AMSEventR*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
+  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
       ClassDef(AMSChain,5)       //AMSChain
 #pragma omp threadprivate(fgIsA)
 };
