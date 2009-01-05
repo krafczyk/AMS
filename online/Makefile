@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.32 2008/09/02 14:34:47 choutko Exp $
+#  $Id: Makefile,v 1.33 2009/01/05 10:59:01 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -25,15 +25,15 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=   -pthread
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/cc/10.1.012/bin/icc
-CXXFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axT   
+CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc
+CXXFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axssse3  -openmp  
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC         = -g
-LD            =  /opt/intel/cc/10.1.012/bin/icpc
-LDFLAGS       =  -axT 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot   -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+LD            =  /opt/intel/Compiler/11.0/069/bin/ia32/icpc
+LDFLAGS       =  -axssse3  -openmp
+ROOTLIBS      =   -L$(ROOTSYS)/lib  -lRootC   -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl

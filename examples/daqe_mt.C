@@ -756,9 +756,9 @@ int main(int argc, char *argv[]){
 
       AMSEventR::fgThickMemory=mem;
       AMSChain chain("AMSRoot",thread,sizeof(daqe));
-chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
-chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
-//chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/1207*.root");
+//chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
+//chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
+chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/1207*.root");
 chain.Process(new daqe[thread],fout,events);
 return 0;
 }

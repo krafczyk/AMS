@@ -2350,9 +2350,9 @@ return 0;
 }
 static void ldir(){cout<<" Current Dir: "<<Dir<<endl;}
 /// fetch histos from TFile (to the dir dir)
-static  void hfetch(TFile & f, const char dir[]="");
+static  void hfetch(TFile & f, const char dir[]="",int id=0);
 /// fetch histos from TFile file (to the dir file)
-static  void hfetch(const char file[]);
+static  void hfetch(const char file[],int id=0);
 /// delete histogram by  id or all if id==0
 static  void hdelete(int id);
 /// copy hist id1 to id2
@@ -2404,6 +2404,7 @@ protected:
    /// Optionally opens the output file via chain.Process("xyz.C+","outputfilename");
    /// calls user UBegin()  function
    void    Begin(TTree *tree);
+   virtual void    SlaveBegin(TTree *tree);
 
    /// System function called when loading a new file.
    /// Get branch pointers.
@@ -2418,6 +2419,7 @@ protected:
    ///  optionally stores histos in a file \sa Begin 
    /// Calls UTerminate();
    void    Terminate();
+   virtual void    SlaveTerminate();
 
    /// Analysis kernel function.
    /// Entry is the entry number in the current tree.

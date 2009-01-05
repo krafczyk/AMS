@@ -237,7 +237,7 @@ bool daqe::UProcessCut(){
         strcpy(f,fname); 
      }
 */
-     if (nParticle()==0  || NTrTrack()==0  || NTrdTrack()==0 || NEcalShower()==0) return false;
+     if (nParticle()==0  || NTrTrack()==0  || NTrdTrack()==0 ) return false;
      return true;
 }
 
@@ -252,7 +252,7 @@ void daqe::UProcessFill()
    // User Function called for all entries .
    // Entry is the entry number in the current tree.
    // Fills histograms.
-     ftxt<<Run()<<" "<<Event()<<endl; 
+     //ftxt<<Run()<<" "<<Event()<<endl; 
      static int runo=0;
      if(Run()!=runo){
         cout <<"  tracks found run "<<Run()<<endl;
@@ -545,12 +545,12 @@ void daqe::UProcessFill()
       int ntrrh=tr.NTrRecHit();
       for(int i=0;i<20;i++){
          for(int j=0;j<3;j++){
-          ftxt1.write((char *)&(clcoo[i][j]),sizeof(clcoo[0][0]));
+          //ftxt1.write((char *)&(clcoo[i][j]),sizeof(clcoo[0][0]));
        }
        }
       for(int i=0;i<4;i++){
          for(int j=0;j<6;j++){
-          ftxt1.write((char *)&(tofcoo[i][j]),sizeof(tofcoo[0][0]));
+          //ftxt1.write((char *)&(tofcoo[i][j]),sizeof(tofcoo[0][0]));
        }
        }
        float az=nx1/nz1;
@@ -591,9 +591,9 @@ void daqe::UProcessFill()
          hf1(115001+i,az,1);
       }
      }
-          ftxt1.write((char *)&(az),sizeof(az));
-          ftxt1.write((char *)&(bz),sizeof(az));
-//      ftxt1<<tr.NTrRecHit()<<" "<<tr.Chi2FastFit<<" "<<tr.Pattern<<" "<<tr.Address<<" "<<tr.AddressA<<" "<<tr.Rigidity<<" "<<mcmom<<endl;
+          //ftxt1.write((char *)&(az),sizeof(az));
+          //ftxt1.write((char *)&(bz),sizeof(az));
+//      //ftxt1<<tr.NTrRecHit()<<" "<<tr.Chi2FastFit<<" "<<tr.Pattern<<" "<<tr.Address<<" "<<tr.AddressA<<" "<<tr.Rigidity<<" "<<mcmom<<endl;
     for(int i=0;i<tr.NTrRecHit();i++){
      TrRecHitR rh=TrRecHit(tr.iTrRecHit(i));
        number dxt=rh.CofgX+1.6e-3-part.TrCoo[rh.lay()-1][0];
@@ -657,21 +657,21 @@ void daqe::UProcessFill()
       int ihalf=rh.half();
       int isen=rh.sen();
      
-//     ftxt1 <<" "<<rh.Hit[0]<<" "<<rh.Hit[1]<<" "<<rh.Hit[2]<<" "<<rh.EHit[0]<<" "<<rh.EHit[1]<<" "<<rh.EHit[2]<<" "<<rh.lay()<<" "<<rh.lad()<<" "<<rh.half()<<" "<<rh.sen()<<endl;
+//     //ftxt1 <<" "<<rh.Hit[0]<<" "<<rh.Hit[1]<<" "<<rh.Hit[2]<<" "<<rh.EHit[0]<<" "<<rh.EHit[1]<<" "<<rh.EHit[2]<<" "<<rh.lay()<<" "<<rh.lad()<<" "<<rh.half()<<" "<<rh.sen()<<endl;
     }
       for(int i=0;i<2;i++){
          for(int j=0;j<3;j++){
-          ftxt1.write((char*)&(part.TRDCoo[i][j]),sizeof(part.TRDCoo[0][0]));
+          //ftxt1.write((char*)&(part.TRDCoo[i][j]),sizeof(part.TRDCoo[0][0]));
          }
       }
       for(int i=0;i<4;i++){
          for(int j=0;j<3;j++){
-          ftxt1.write((char*)&(part.TOFCoo[i][j]),sizeof(part.TOFCoo[0][0]));
+          //ftxt1.write((char*)&(part.TOFCoo[i][j]),sizeof(part.TOFCoo[0][0]));
          }
       }
       for(int i=0;i<3;i++){
          for(int j=0;j<3;j++){
-          ftxt1.write((char*)&(part.EcalCoo[i][j]),sizeof(part.EcalCoo[0][0]));
+          //ftxt1.write((char*)&(part.EcalCoo[i][j]),sizeof(part.EcalCoo[0][0]));
          }
       }
      
