@@ -597,17 +597,22 @@ for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
     TH1F *h1p = i->second;
   if(h1p){
   h1p->Sumw2();
-   for(Service::hb1i j=Service::hb1.begin();j!=Service::hb1.end();j++){
+   
+   for(Service::hb1i j=i;j!=Service::hb1.end();j++){
      if(i!=j && id==j->first.getid()){
       TH1F* h2p=  j->second;
-   if(h2p)h2p->Sumw2();
-    if(h2p)h1p->Add(h2p,1);
-    if(h2p)delete h2p;
-Service::hb1.erase(j);
+   if(h2p){
+        h2p->Sumw2();
+        h1p->Add(h2p,1);
+        j->second=0;
+     }
      joined++;
       }
 }
 }
+}
+for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
+ if(!i->second)Service::hb1.erase(i);
 } 
 
 cout <<"AMSEventR::hjoin-"<<joined<<" 1d Histograms had been joined "<<endl;
@@ -617,19 +622,27 @@ joined=0;
 for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
   int id=i->first.getid();
        TH2F *h1p = i->second;
-  h1p->Sumw2();
-   for(Service::hb2i j=Service::hb2.begin();j!=Service::hb2.end();j++){
+  if(h1p){
+//   h1p->Sumw2();
+   for(Service::hb2i j=i;j!=Service::hb2.end();j++){
      if(i!=j && id==j->first.getid()){
       TH2F* h2p=  j->second;
-   if(h2p)h2p->Sumw2();
-    if(h2p)h1p->Add(h2p,1);
-    if(h2p)delete h2p;
-    joined++;
-Service::hb2.erase(j);
+   if(h2p){
+ //       h2p->Sumw2();
+        h1p->Add(h2p,1);
+//        delete h2p;
+        joined++;
+         j->second=0;
+    }
+   }
+  }
+}
+}
 
-      }
-}
-}
+for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
+ if(!i->second)Service::hb2.erase(i);
+} 
+
 
 cout <<"AMSEventR::hjoin-"<<joined<<" 2d Histograms had been joined "<<endl;
 joined=0;
@@ -643,8 +656,6 @@ for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
       TProfile* h2p=  j->second;
    if(h2p)h2p->Sumw2();
     if(h2p)h1p->Add(h2p,1);
-    if(h2p)delete h2p;
-    h2p=0;
       joined++;
 Service::hbp.erase(j);
 
