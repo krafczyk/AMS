@@ -1,6 +1,6 @@
 /*! \example ana.root_staticp.doc
  *  The program below (daqe_mt.C) illustrates a way to analyze AMS Root 
- *  files in a prallel way. The parallelization is done on the level of root files, and not events. 
+ *  files in a parallel way. The parallelization is done on the level of root files, and not events. 
  *    - To compile and link it  you can use  script 
  *                -  link_mt.sh daqe_mt  
  *    

@@ -1,0 +1,8 @@
+/*! \example ana.root_compiled_prooflite.doc
+ *  \htmlinclude ana.root_compiled_prooflite.html
+ *
+ *  daqe EXAMPLE:
+ *  \include r.pl.daqe.C
+ *  \include daqe.C
+ *
+ */ 
