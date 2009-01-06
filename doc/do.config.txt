@@ -383,6 +383,7 @@ FILE_PATTERNS          = root.h \
                          daqe.C  \
                          run.stlv.C \
                          r.daqe.C \
+                         r.pl.daqe.C \
                          plot.root.doc \
                          plot.root.C \
                          ana.root_cint.C \
@@ -394,6 +395,7 @@ FILE_PATTERNS          = root.h \
                          ana.root.py \
                          ana.root.rb \
                          ana.root_compiled.doc \
+                         ana.root_compiled_prooflite.doc \
                          ana.root_cint.doc \
                          ana.root_python.doc \
                          ana.root.py \

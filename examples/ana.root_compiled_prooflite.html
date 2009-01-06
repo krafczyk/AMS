@@ -5,19 +5,19 @@
 <H1> <font color=red> `Compiled' ProofLite Analysis </font> </H1>
 <hr>
 </CENTER>
-<p> The suggested way to analyze very large samples of AMS data implies using
+<p> The suggested way to analyze very large samples of AMS data implies 
 two programs: a `steering' program and the analysis program.
  
 An example of a steering program is 
 <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/r_8pl_8daqe_8C-source.html">
  r.pl.daqe.C </a>, which will initialize some ROOT stuff, define input and 
-output files and process (compile+link+execute) the actual 'analysis' program, 
+output files and process (compile+link+execute in a parallel way) the actual 'analysis' program, 
 <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/daqe_8C-source.html">
 daqe.C </a>,  containing the "real" stuff.
 Everything works together by doing "root r.pl.daqe.C".  If one wants to run in 
 non-graphic mode and exiting root at the end of processing, do: "root -b -q r.pl.daqe.C". 
 
-<p> NB.  No histogram merging are done. the output files from different workers can be found somewhere in ~/.proof/XYZ/last-lite-session/ in the form of original_file_name.x  where x is the worker number (typically 0-7)
+<p> NB.  No histogram merging is done. The output files from different workers can be found somewhere in ~/.proof/XYZ/last-lite-session/ in the form of original_file_name.x  where x is the worker number (typically 0-7)
 
 
 <p>The advantages of this approach are:
@@ -25,8 +25,7 @@ non-graphic mode and exiting root at the end of processing, do: "root -b -q r.pl
 <ul><li> This approach uses the "Process" method and the 
          <a href="http://root.cern.ch/root/html/TSelector.html#TSelector:description"> 
          "TSelector" </a> class. This  allows  to 
-         run your program in parallel on several cores of one single computer (Parallel ROOt 
-         Facility Lite - PROOFLite), with the consequent reduction in time.
+         run your program in parallel on several cores of one single computer , with the consequent reduction in time (often around 400% on 8 cores machines).
          More details about the TSelector logic are given in the 
          following.
 </ul>

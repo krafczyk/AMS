@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.111 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: geant3.C,v 1.112 2009/01/06 10:07:30 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -870,7 +870,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
-#pragma omp critical
+#pragma omp critical (g1)
      AMSProducer::gethead()->AddEvent();
 #endif
      AMSEvent::gethead()->Recovery();
@@ -881,7 +881,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
-#pragma omp critical
+#pragma omp critical (g1)
      AMSProducer::gethead()->AddEvent();
 #endif
      AMSEvent::gethead()->Recovery();
@@ -893,11 +893,11 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      AMSEvent::gethead()->seterror(2);
 /*
 #ifdef __CORBA__
-#pragma omp critical
+#pragma omp critical (g1)
      AMSProducer::gethead()->AddEvent();
 #endif
      UPool.Release(0);
-#pragma omp critical
+#pragma omp critical (g2)
      AMSEvent::gethead()->remove();
      UPool.Release(7);
      AMSEvent::sethead(0);
@@ -915,11 +915,11 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      
 /*
 #ifdef __CORBA__
-#pragma omp critical
+#pragma omp critical (g1)
      AMSProducer::gethead()->AddEvent();
 #endif
      UPool.Release(0);
-#pragma omp critical
+#pragma omp critical (g2)
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
@@ -928,7 +928,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
 */
    }
 #ifdef __CORBA__
-#pragma omp critical
+#pragma omp critical (g1)
      AMSProducer::gethead()->AddEvent();
 #endif
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
@@ -967,7 +967,7 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
      AMSEvent::gethead()->write(trig);
 }
      UPool.Release(0);
-#pragma omp critical
+#pragma omp critical (g2)
    AMSEvent::gethead()->remove();
      UPool.Release(1);
    AMSEvent::sethead(0);
@@ -1080,7 +1080,7 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){
 
-#pragma omp critical
+#pragma omp critical (g3)
       if(GCFLAG.IEOTRI){
         if(!count++)oldtime=tt;
       }
@@ -1094,14 +1094,14 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 
        pdaq = new DAQEvent();
         bool ok;
-#pragma omp critical       
+#pragma omp critical (g4)      
 {
        ok=pdaq->read();
 }
 //cout << "  a "<<kevt<<endl;
        if(ok){
          
-#pragma omp critical       
+#pragma omp critical (g3)      
 {
          run=pdaq->runno();
          if(pdaq->eventno()>event)event=pdaq->eventno();
@@ -1121,7 +1121,7 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 #ifdef __AMSP__
         //cout <<" 1kevt "<<kevt<<" "<<omp_get_thread_num()<<" "<<AMSEvent::gethead()<<" "<<&UPool<<" "<<pdaq->eventno()<<endl;
 #endif
-#pragma omp critical
+#pragma omp critical (g3)
 {
         if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>=SELECTFFKEY.EventE){
          pdaq->SetEOFIn();    
@@ -1137,19 +1137,19 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
      //delete pdaq;
 /*
      UPool.Release(0);
-#pragma omp critical
+#pragma omp critical (g2)
    AMSEvent::gethead()->remove();
      UPool.Release(1);
    AMSEvent::sethead(0);
    UPool.erase(2000000);
 
-#pragma omp critical
+#pragma omp critical (g3)
       GCFLAG.IEVENT++;
       if(GCFLAG.IEVENT%10000==1)cout <<" events "<<GCFLAG.IEVENT<<endl;
       continue;
 */
       guout_();
-#pragma omp critical
+#pragma omp critical (g3)
       GCFLAG.IEVENT++;
     }
     else{

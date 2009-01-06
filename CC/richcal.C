@@ -142,7 +142,7 @@ void AMSRichCal::process_event(){
   ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(!ptr2 || !ptr2->GlobFasTrigOK()) return;
 
-#pragma omp critical
+#pragma omp critical (richcal)
   {
     reason=0;
 #ifdef __AMSDEBUG__

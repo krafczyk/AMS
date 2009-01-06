@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.109 2008/12/11 21:28:50 mdelgado Exp $
+//  $Id: richrec.C,v 1.110 2009/01/06 10:07:30 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -996,7 +996,7 @@ trig=(trig+1)%freq;
       efftr=trace(r,local_dir,phi,&xb,&yb,&lentr,
 		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag);
 	
-#pragma omp critical
+#pragma omp critical (richrec1)
       if(geftr){
 	float cnt=generated(lentr,lfoil,lguide,
 			    &ggen,&rgen,&bgen)*dL/NSTP;

@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.24 2008/12/08 15:15:18 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.25 2009/01/06 10:07:39 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.25  2009/01/06 10:07:39  choutko
+* name critical pragmas
+*
 * Revision 1.24  2008/12/08 15:15:18  choutko
 * *** empty log message ***
 *
@@ -161,7 +164,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.24 2008/12/08 15:15:18 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.25 2009/01/06 10:07:39 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4325,9 +4328,9 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               out(9)=erig
               goto 999
              else if(ialg.eq.5)then
-!$OMP CRITICAL
+!$OMP CRITICAL (RKMS)
               call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
-!$OMP END CRITICAL
+!$OMP END CRITICAL (RKMS)
               call tksetres(xhits,npt)
               call tksetresd(ysigma,npt)
               out(8)=0
@@ -7791,9 +7794,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.24 2008/12/08 15:15:18 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.25 2009/01/06 10:07:39 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.25  2009/01/06 10:07:39  choutko
+* name critical pragmas
+*
 * Revision 1.24  2008/12/08 15:15:18  choutko
 * *** empty log message ***
 *

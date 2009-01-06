@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.32 2008/12/11 15:47:24 choutko Exp $
+//  $Id: status.C,v 1.33 2009/01/06 10:07:30 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -34,14 +34,14 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
   integer timechanged= time!=oldtime?1:0;
   if(AMSEvent::get_num_threads()==1 && run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
-#pragma omp critical
+#pragma omp critical (st1)
    _Errors++;
    return 2;
   }
   if(_Nelem>=MAXDAQRATE+STATUSSIZE){
         cerr <<"AMSSTatus::isFull-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
         " some of the events will be lost"<<endl;
-#pragma omp critical
+#pragma omp critical (st1)
         _Errors++;
 
         return 2;
@@ -52,7 +52,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
        return 1;
     }
     else{
-#pragma omp critical
+#pragma omp critical (st1)
       oldtime=time;
       return 0;
    }
@@ -83,7 +83,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
 
 #pragma omp barrier
 _Offset=9223372036854775807LL;
-#pragma omp critical
+#pragma omp critical (st1)
 {
     uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
      
@@ -102,7 +102,7 @@ _Offset=9223372036854775807LL;
 #pragma omp barrier
 }
 
-#pragma omp critical
+#pragma omp critical (st1)
 {
   if(_End<time)_End=time;
   _Status[0][_Nelem]=evt;

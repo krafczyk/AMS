@@ -13,7 +13,7 @@
 *
 * The golden number of threads is therefore often close to number_of_different_filesystems_used +1 . 
 *
-*The elapsed time performance gain may be as high as 300% for 4-6 thread version w/r single threaded one.              
+*The elapsed time performance gain may be as high as 300-400% for 4-8 threads on 8 core machines w/r single thread one.              
  *
 *  -    Note that this mode is primarily designed for the massive data analysis with number of root files at least O(100) 
 *

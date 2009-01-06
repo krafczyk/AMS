@@ -237,7 +237,7 @@ bool daqe::UProcessCut(){
         strcpy(f,fname); 
      }
 */
-     if (nParticle()==0  || NTrTrack()==0  || NTrdTrack()==0 ) return false;
+     if (nParticle()==0  || nTrTrack()==0  || nTrdTrack()==0 ) return false;
      return true;
 }
 
@@ -565,7 +565,7 @@ void daqe::UProcessFill()
           hf1(3001+i,tofcoo[i][1]-part.TOFCoo[i][1],1);
          }
      }
-         if(fabs(az)>0.8){
+         if(fabs(az)>0.88){
             cout<<"Run "<<Run()<<" "<<Event()<<endl;
               GetAllContents();
               Fill();

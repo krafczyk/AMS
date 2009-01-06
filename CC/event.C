@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.400 2008/12/18 15:53:14 pzuccon Exp $
+//  $Id: event.C,v 1.401 2009/01/06 10:07:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -193,7 +193,7 @@ void AMSEvent::_init(){
    cout <<" AMS-I-New Run "<<_run<<endl;
 }
   // Initialize containers & aob
-#pragma omp critical
+#pragma omp critical (initco)
 {
   if(AMSJob::gethead()->isSimulation())_siamsinitevent();
   _reamsinitevent();
@@ -1161,10 +1161,9 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
 // if event has been selected write it straight away
     // oh nono check for errors first
      if(HasNoErrors() || (IOPA.WriteAll/100)*100)
-//#pragma omp critical
 {
             AMSJob::gethead()->getntuple()->write(1);
-#pragma omp critical
+#pragma omp critical (writer)
             AMSJob::gethead()->getntuple()->writeR();
      }
      else
@@ -1172,7 +1171,7 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
 {
       AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
-#pragma omp critical
+#pragma omp critical (writer)
       AMSJob::gethead()->getntuple()->writeR();
      }
     }
@@ -1180,11 +1179,10 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
 // if event was not selected check if at least header should be written
 // in the ntuples
       if((IOPA.WriteAll/10)%10)
-//#pragma omp critical
 {
       AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
-#pragma omp critical
+#pragma omp critical (writer)
       AMSJob::gethead()->getntuple()->writeR();
     }
    }

@@ -1,4 +1,5 @@
-//
+//  $Id: root.C,v 1.169 2009/01/06 10:07:30 choutko Exp $
+
 
 #include "root.h"
 #include "ntuple.h"
@@ -413,7 +414,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
            }
         }
        }
-       else cerr<<"TH1F "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
+       else if(t!=TString(""))cerr<<"TH1F "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
       }
       else{
        TH2F * f1 = dynamic_cast<TH2F*>(to);
@@ -440,7 +441,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
            }
         }
        }
-       else cerr<<"TH2F "<<t<<" NotCreatedByHBOOK2Skipped"<<endl;
+       else if(t!=TString(""))cerr<<"TH2F "<<t<<" NotCreatedByHBOOK2Skipped"<<endl;
       }
       else{
        TProfile * f1 = dynamic_cast<TProfile*>(to);
@@ -467,7 +468,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
            }
         }
        }
-       else cerr<<"TProfile "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
+       else  if(t!=TString(""))cerr<<"TProfile "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
       }
 
 
@@ -553,13 +554,41 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
+   static int sem[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+   
    AMSID id(idd,Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
 if(fgThickMemory)i1->second->Fill(a,w);
 else{
-#pragma omp critical
+
+/*
+
+// complex method
+
+int thr=0;
+int nthr=1;
+#ifdef _OPENMP
+thr=omp_get_thread_num();
+nthr=omp_get_num_threads();
+#endif
+#pragma omp critical (hf1)
+{
+for(int i=0;i<nthr;i++){
+ while(sem[i]==idd){}
+}
+sem[thr]=idd;
+}
   i1->second->Fill(a,w);
+sem[thr]=0;
+
+*/
+
+// simple method
+
+#pragma omp critical (hf1)
+  i1->second->Fill(a,w);
+
 }
  }
 else cout << "id not found "<<id<<endl;
@@ -571,7 +600,7 @@ void AMSEventR::hfp(int idd, float a, float w=1){
  if(i1 != Service::hbp.end()){
 if(fgThickMemory)i1->second->Fill(a,w);
 else{
-#pragma omp critical
+#pragma omp critical (hf2)
   i1->second->Fill(a,w);
  }
 }
@@ -584,7 +613,7 @@ void AMSEventR::hf2(int idd, float a, float b, float w=1){
  if(i1 != Service::hb2.end()){
 if(fgThickMemory)i1->second->Fill(a,b,w);
 else{
-#pragma omp critical
+#pragma omp critical (hf3)
   i1->second->Fill(a,b,w);
 }
 }
@@ -597,12 +626,10 @@ for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
     TH1F *h1p = i->second;
   if(h1p){
   h1p->Sumw2();
-   
    for(Service::hb1i j=i;j!=Service::hb1.end();j++){
      if(i!=j && id==j->first.getid()){
       TH1F* h2p=  j->second;
    if(h2p){
-        h2p->Sumw2();
         h1p->Add(h2p,1);
         j->second=0;
      }
@@ -611,9 +638,6 @@ for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
 }
 }
 }
-for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
- if(!i->second)Service::hb1.erase(i);
-} 
 
 cout <<"AMSEventR::hjoin-"<<joined<<" 1d Histograms had been joined "<<endl;
 joined=0;
@@ -628,9 +652,7 @@ for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
      if(i!=j && id==j->first.getid()){
       TH2F* h2p=  j->second;
    if(h2p){
- //       h2p->Sumw2();
         h1p->Add(h2p,1);
-//        delete h2p;
         joined++;
          j->second=0;
     }
@@ -639,9 +661,6 @@ for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
 }
 }
 
-for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
- if(!i->second)Service::hb2.erase(i);
-} 
 
 
 cout <<"AMSEventR::hjoin-"<<joined<<" 2d Histograms had been joined "<<endl;
@@ -656,6 +675,7 @@ for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
       TProfile* h2p=  j->second;
    if(h2p)h2p->Sumw2();
     if(h2p)h1p->Add(h2p,1);
+      delete h2p;
       joined++;
 Service::hbp.erase(j);
 
@@ -1283,14 +1303,13 @@ bool AMSEventR::ReadHeader(int entry){
   fStatus=0;
   if(bStatus){
     int j;
-    //#pragma omp critical
     {
       j=bStatus->GetEntry(entry);
     }
     if(j>0){
       _Entry=entry;
       if(_Entry!=0 && !UProcessStatus(fStatus)){
-#pragma omp critical
+#pragma omp critical (rd) 
 	(*pService).TotalTrig++;
 	return false;
       }
@@ -1311,7 +1330,6 @@ bool AMSEventR::ReadHeader(int entry){
   _Entry=entry;
   memset((char*)(&fHeader)+sizeof(void*),0,sizeof(fHeader)-sizeof(void*));
   int i;
-  //#pragma omp critical
   {
     i=bHeader->GetEntry(entry);
   }
@@ -1330,7 +1348,7 @@ bool AMSEventR::ReadHeader(int entry){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
       runo=fHeader.Run;
       if(evento>0){
-#pragma omp critical
+#pragma omp critical (rd) 
 	if(pService)(*pService).TotalTrig+=(int)dif/2; 
       }
       dif=0;
@@ -1339,13 +1357,13 @@ bool AMSEventR::ReadHeader(int entry){
     }
     else if(_Entry<probe){
       if(difm==0){
-#pragma omp critical
+#pragma omp critical (rd) 
 	if(pService)(*pService).TotalTrig+=Event()-evento;
       }
       if(Event()-evento>difm)difm=Event()-evento;
       dif+=Event()-evento;
       dif2+=(Event()-evento)*(Event()-evento);
-#pragma omp critical
+#pragma omp critical (rd)
       if(pService)(*pService).TotalTrig+=Event()-evento;
     }
     else if(_Entry==probe){
@@ -1353,7 +1371,7 @@ bool AMSEventR::ReadHeader(int entry){
       dif2/=probe-1;
       dif2=sqrt(dif2-dif*dif);
       dif2=difm+20*dif2+1;
-#pragma omp critical
+#pragma omp critical (rd) 
       if(pService)(*pService).TotalTrig+=Event()-evento;
     }
     else{
@@ -1363,7 +1381,7 @@ bool AMSEventR::ReadHeader(int entry){
       else{
 	static int ntotm=0;
 	if(Event()-evento>2 && ntotm++<50)cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
-#pragma omp critical
+#pragma omp critical (rd) 
 	 if(pService)(*pService).TotalTrig++;
       }
     }
@@ -1371,11 +1389,11 @@ bool AMSEventR::ReadHeader(int entry){
     evento=Event();
   }
   else{
-#pragma omp critical
+#pragma omp critical (rdb) 
      if(pService)(*pService).BadEv++;    
   }
-#pragma omp critical
   if(pService){
+#pragma omp critical (rde) 
     (*pService).TotalEv++;
   }
   return i>0;
@@ -2807,6 +2825,14 @@ if(!pService){
    }
    _NFiles=-_NFiles;
    for(int thr=fgThickMemory?fgThreads-1:0;thr>=0;thr--){
+   if(thr==0){
+   if(option.Length()>1){
+    (fService)._pOut=new TFile(option,"RECREATE");
+     (fService)._pDir=gDirectory;
+//    cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
+    cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
+   }
+   }
   char dir[1024];
   sprintf(dir,"thread_%d",thr);
    if(fgThickMemory)Dir=dir;
@@ -2855,7 +2881,7 @@ try{
 
 void AMSEventR::Terminate()
 {
-#pragma omp critical
+#pragma omp critical (trm)
 {
 if(--_NFiles==0 && pService){
    // Function called at the end of the event loop.
@@ -2870,7 +2896,9 @@ if(--_NFiles==0 && pService){
    if((*pService)._pOut){
      (*pService)._pDir->cd(); 
      (*pService)._pOut->Write();
-     (*pService)._pOut->Close();
+   cout <<"AMSEventR::Terminate-I-WritedFile "<<GetOption()<<endl;
+//     (*pService)._pOut->Close();
+   cout <<"AMSEventR::Terminate-I-ClosedFile "<<GetOption()<<endl;
      if(!(*pService).TotalEv   &&   !(*pService).TotalTrig){
          unlink(  (*pService)._pOut->GetName());
      }    
@@ -2913,7 +2941,7 @@ Service::hbp.clear();
 Int_t AMSEventR::Fill()
 {
 int i;
-#pragma omp critical
+#pragma omp critical 
 {
         if (_ClonedTree==NULL) {
           _ClonedTree = _Tree->GetTree()->CloneTree(0);
@@ -3071,7 +3099,7 @@ AMSEventR::fgThreads=nthreads;
         TFile* file;
         TTree *tree;
         TSelector *curp=(TSelector*)((char*)pev+thr*fSize);
-#pragma omp critical
+#pragma omp critical 
 {
       //  if(ts[thr]==0){
           //TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
@@ -3101,7 +3129,7 @@ AMSEventR::fgThreads=nthreads;
         }
        }
         }
-#pragma omp critical
+#pragma omp critical (cls)  
 {
 	 if(AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
 	file->Close("R");
