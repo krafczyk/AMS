@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.47 2008/12/18 21:57:40 pzuccon Exp $
+//  $Id: AMSDisplay.cxx,v 1.48 2009/01/07 12:42:33 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -956,7 +956,7 @@ static const char *gOpenTypes[] = { "Root files", "*.root*",
   }
   if(m_ntuple)delete m_ntuple;
   if(m_chain)delete m_chain;
-  m_chain=new AMSChain("AMSRoot");
+  m_chain=new TChain("AMSRoot");
   m_chain->Add(filename);
   m_ntuple=new AMSNtupleV(m_chain);
   if(m_idle)m_theapp->StartIdleing();

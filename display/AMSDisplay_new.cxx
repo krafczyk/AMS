@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.2 2008/12/18 21:57:40 pzuccon Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.3 2009/01/07 12:42:33 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -38,8 +38,7 @@
 #include "Help.h"
 AMSDisplay *gAMSDisplay;
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec):
-  m_chain(chain), m_sec(sec),m_nodate(false),TObject(){
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, int sec):m_ntuple(ntuple), m_sec(sec),m_nodate(false),TObject(){
      m_sec=abs(sec);
      m_nodate=sec<0;
      fCooDef[0][0]=-115.;
@@ -57,7 +56,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
      m_Geometry     = 0;
      m_selected=0;
      m_scale=1;   
-     m_ntuple=(AMSNtupleV*)chain->pEvent(); 
+     m_chain=0; 
      m_trclpr=true;
      m_drawrichringfromplex=false;
       m_drawsolid=true;
@@ -141,8 +140,8 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
 
 
 
-   if(!m_chain->GetFile())OpenFileCB();
-  if(!m_chain->GetFile()){
+  if(!m_ntuple)OpenFileCB();
+  if(!m_ntuple){
    cerr <<"No file opened, exiting "<<endl;
    exit(1);
   } 
@@ -274,23 +273,19 @@ void AMSDisplay::DrawFrontAndSideViews(){
 
 //_____________________________________________________________________________
 void AMSDisplay::DrawTitle(Option_t *option){
-  m_TitlePad->SetEditable(true);
-  
-  static char  atext[255];
-  
-  
-  if(!m_nodate){
-    sprintf(atext,"%s         Run %d/ %d %s",
-	    m_Pad->GetTitle(),
-	    m_ntuple->Run(), 
-	    m_ntuple->Event(),
-	    m_ntuple->Time());
-    
-  }
-  else{
-    sprintf(atext,"%s         Run %d/ %d ",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event());
-  }
-  
+   m_TitlePad->SetEditable(true);
+
+   static char  atext[255];
+
+   
+if(!m_nodate){
+   sprintf(atext,"%s         Run %d/ %d %s",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
+
+}
+else{
+   sprintf(atext,"%s         Run %d/ %d ",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event());
+}
+
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
@@ -621,7 +616,7 @@ Bool_t AMSDisplay::GotoRunEvent(){
    }
    if (run==0) run = m_ntuple->Run();
    bool retn=false;
-   if (m_chain->GetEvent(run, event)) {
+   if (m_ntuple->GetEvent(run, event)) {
       m_Pad->cd();
       Draw();
       retn=true;
@@ -632,21 +627,21 @@ Bool_t AMSDisplay::GotoRunEvent(){
 
 
 void AMSDisplay::ShowNextEvent(Int_t delta){
-  //  Display (current event_number+delta)
-  //    delta =  1  shown next event
-  //    delta = -1 show previous event
+//  Display (current event_number+delta)
+//    delta =  1  shown next event
+//    delta = -1 show previous event
 
 
-  //     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
+//     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
 
-  int entry=m_chain->Entry()+delta;      
-  while(m_chain->GetEvent(entry)==0){
-    entry+=delta;
-  }
-  if(entry>=0){
-    DrawEvent();
-  }
-}
+      int entry=m_ntuple->CurrentEntry()+delta;      
+      while(m_ntuple->ReadOneEvent(entry)==0){
+         entry+=delta;
+      }
+      if(entry>=0){
+        DrawEvent();
+      }
+   }
 
 
 
@@ -969,8 +964,11 @@ static const char *gOpenTypes[] = { "Root files", "*.root*",
     if(m_idle)m_theapp->StartIdleing();
     return;
   }
-
+  if(m_ntuple)delete m_ntuple;
+  if(m_chain)delete m_chain;
+  m_chain=new TChain("AMSRoot");
   m_chain->Add(filename);
+  m_ntuple=new AMSNtupleV(m_chain);
   if(m_idle)m_theapp->StartIdleing();
 
 }
