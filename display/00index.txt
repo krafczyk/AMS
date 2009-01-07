@@ -1,8 +1,5 @@
-#  $Id: 00index.txt,v 1.22 2009/01/07 12:42:33 choutko Exp $
+#  $Id: 00index.txt,v 1.23 2009/01/07 14:02:08 choutko Exp $
 
-NB
-
-for the moment source /Offline/vdev/install/amsvar.slc4icc should be done for the icc build
 
 =========================================================================
 
