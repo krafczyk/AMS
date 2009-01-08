@@ -1,9 +1,10 @@
-//  $Id: root.C,v 1.169 2009/01/06 10:07:30 choutko Exp $
+//  $Id: root.C,v 1.170 2009/01/08 16:19:09 choutko Exp $
 
-
+#include "TRegexp.h"
 #include "root.h"
 #include "ntuple.h"
 #include "TSystem.h"
+#include "TXNetFile.h"
 #include <TChainElement.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -563,7 +564,6 @@ if(fgThickMemory)i1->second->Fill(a,w);
 else{
 
 /*
-
 // complex method
 
 int thr=0;
@@ -575,20 +575,21 @@ nthr=omp_get_num_threads();
 #pragma omp critical (hf1)
 {
 for(int i=0;i<nthr;i++){
- while(sem[i]==idd){}
+ while(idd && sem[i]==idd){}
 }
 sem[thr]=idd;
 }
   i1->second->Fill(a,w);
 sem[thr]=0;
 
-*/
 
+*/
+///*
 // simple method
 
 #pragma omp critical (hf1)
   i1->second->Fill(a,w);
-
+//*/
 }
  }
 else cout << "id not found "<<id<<endl;
@@ -600,7 +601,7 @@ void AMSEventR::hfp(int idd, float a, float w=1){
  if(i1 != Service::hbp.end()){
 if(fgThickMemory)i1->second->Fill(a,w);
 else{
-#pragma omp critical (hf2)
+#pragma omp critical (hfp)
   i1->second->Fill(a,w);
  }
 }
@@ -608,13 +609,40 @@ else{
 
 
 void AMSEventR::hf2(int idd, float a, float b, float w=1){
+   static int sem[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
    AMSID id(idd,Dir);
    Service::hb2i i1=Service::hb2.find(id);
  if(i1 != Service::hb2.end()){
 if(fgThickMemory)i1->second->Fill(a,b,w);
 else{
-#pragma omp critical (hf3)
+/*
+// complex method
+
+int thr=0;
+int nthr=1;
+#ifdef _OPENMP
+thr=omp_get_thread_num();
+nthr=omp_get_num_threads();
+#endif
+#pragma omp critical (hf2)
+{
+for(int i=0;i<nthr;i++){
+ while(idd && sem[i]==idd){}
+}
+sem[thr]=idd;
+}
   i1->second->Fill(a,b,w);
+sem[thr]=0;
+
+*/
+
+///*
+// simple method
+#pragma omp critical (hf2)
+  i1->second->Fill(a,b,w);
+
+//*/
+
 }
 }
 }
@@ -1389,11 +1417,11 @@ bool AMSEventR::ReadHeader(int entry){
     evento=Event();
   }
   else{
-#pragma omp critical (rdb) 
+#pragma omp critical (rd) 
      if(pService)(*pService).BadEv++;    
   }
   if(pService){
-#pragma omp critical (rde) 
+#pragma omp critical (rd) 
     (*pService).TotalEv++;
   }
   return i>0;
@@ -2881,7 +2909,7 @@ try{
 
 void AMSEventR::Terminate()
 {
-#pragma omp critical (trm)
+#pragma omp critical (cls)
 {
 if(--_NFiles==0 && pService){
    // Function called at the end of the event loop.
@@ -3106,8 +3134,9 @@ AMSEventR::fgThreads=nthreads;
       // }
 	//cout <<"thr "<<thr<<endl;
         // element=(TChainElement*) fFiles->At(i);
-	//file=new TFile(element->GetTitle(),"READ");
-        file=new TFile(it->second.Data(),"READ");
+        TRegexp d("^root:",false);
+        if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
+        else file=new TFile(it->second.Data(),"READ");
 	tree=(TTree*)file->Get(_NAME);
         if(!tree){
           cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
@@ -3117,15 +3146,23 @@ AMSEventR::fgThreads=nthreads;
         curp->Init(tree);
         curp->Notify();
         cout <<"  "<<i<<" "<<it->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
+        //cout <<"  "<<i<<" "<<element->GetTitle()<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
         }
        it++;
 }
          if(tree){
         curp->Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
-        if(curp->ProcessCut(n)){
-        curp->ProcessFill(n);
-        
+        try{
+          curp->Process(n);
+        }
+        catch (...){
+#pragma omp critical(rd)
+     if(AMSEventR::pService){
+          (*AMSEventR::pService).BadEv++;    
+          (*AMSEventR::pService).TotalEv++;
+	  (*AMSEventR::pService).TotalTrig++;
+     }    
         }
        }
         }

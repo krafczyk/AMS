@@ -1,4 +1,4 @@
-//  $Id: updtdv.C,v 1.4 2007/10/15 08:35:15 choutko Exp $
+//  $Id: updtdv.C,v 1.5 2009/01/08 16:19:09 choutko Exp $
 #include <iostream.h>
 #include <fstream.h>
 #include <stdlib.h>
@@ -13,6 +13,9 @@
 #include "commons.h"
 #include <stdio.h>
 #include <iomanip.h>
+
+AMSDATADIR_DEF AMSDATADIR;
+
 void _InitTable();
 uinteger * _Table=0;
 uinteger _CalcCRC(uinteger *arr, uinteger size);

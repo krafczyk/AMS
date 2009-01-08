@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.611 2009/01/06 10:07:30 choutko Exp $
+// $Id: job.C,v 1.612 2009/01/08 16:19:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -703,7 +703,7 @@ CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
 CCFFKEY.begindate=1012008;
-CCFFKEY.enddate=  1062012;
+CCFFKEY.enddate=  1012010;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
 CCFFKEY.oldformat=0;

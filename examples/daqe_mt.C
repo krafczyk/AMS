@@ -242,7 +242,7 @@ bool daqe::UProcessCut(){
         strcpy(f,fname); 
      }
 */
-     if (nParticle()==0  || NTrTrack()==0  || NTrdTrack()==0 ) return false;
+     if (nParticle()==0  || nTrTrack()==0  || nTrdTrack()==0 ) return false;
      return true;
 }
 
@@ -747,6 +747,8 @@ int main(int argc, char *argv[]){
                 cout<<"daqe_mt  -events[e] -thread[t] --file[f] --thickmemory[m]"<<endl;
                 return 0;
                 break;
+
+
         }
     }
 
@@ -756,7 +758,7 @@ int main(int argc, char *argv[]){
       AMSChain chain("AMSRoot",thread,sizeof(daqe));
 chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
 chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
-//chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/1207*.root");
+//chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/120791*.root");
 chain.Process(new daqe[thread],fout,events);
 return 0;
 }

@@ -1,6 +1,6 @@
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
-#setenv ROOTSYS    /f2users/choutko/root.v521p
+#setenv ROOTSYS    /f2users/choutko/root.p
 set path=($ROOTSYS/bin /opt/intel/Compiler/11.0/069/bin/ia32/ $path . /usr/sbin  )
 setenv LD_LIBRARY_PATH .:/opt/intel/Compiler/11.0/069/idb/lib/ia32/:/opt/intel/Compiler/11.0/069/lib/ia32/:$ROOTSYS/lib:/opt/intel/compiler80/lib
 setenv CVSROOT $Offline/CVS

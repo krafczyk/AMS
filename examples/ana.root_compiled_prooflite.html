@@ -25,7 +25,7 @@ non-graphic mode and exiting root at the end of processing, do: "root -b -q r.pl
 <ul><li> This approach uses the "Process" method and the 
          <a href="http://root.cern.ch/root/html/TSelector.html#TSelector:description"> 
          "TSelector" </a> class. This  allows  to 
-         run your program in parallel on several cores of one single computer , with the consequent reduction in time (often around 400% on 8 cores machines).
+         run your program in parallel on several cores of one single computer , with the consequent reduction in time <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/rootp.html">(often up to 400%  on 8 cores machines).</a>
          More details about the TSelector logic are given in the 
          following.
 </ul>
@@ -89,7 +89,7 @@ The relevant features of the AMS implementation are:<br>
 <br>
         (note that the "int entry" and "TTree *tree" arguments have been dropped).  
         The intention is to have users calling UBegin(), 
-        UProcessCut(), UProcessFill() and UTerminate() 
+        UProcessStatus(), UProcessCut(), UProcessFill() and UTerminate() 
         in their analysis (and not Begin(tree), ProcessCut(entry),...).
         <br>
 </ul>
@@ -100,6 +100,12 @@ The relevant features of the AMS implementation are:<br>
         The idea is that, since all information is "directly" accessed by 
         pointers, we are only spending time when we actually "pick up" the 
         contents inside UProcessFill().<br>
+</ul>
+<ul>
+   <li> Using UProcessStatus() is also optional.  
+        There is potential  gain in time by calling it, 
+        as  the AMS implementation will not read a header
+        if UProcessStatus returns zero.<br>
 </ul>
 <ul>
    <li> All the necessary definitions are in the AMS Root header file, 
@@ -131,34 +137,33 @@ The relevant features of the AMS implementation are:<br>
 </ul>
 
 <p> Let us go to back to practice. The `steering' program 
-<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/run_8stlv_8C-source.html">
- run.stlv.C </a> will invoque "TTree::Process", whereas the
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/r_8pl_8daqe_8C-source.html">
+ r.pl.daqe.C </a> will invoque "TPRoofLite::Process", whereas the
 actual 'analysis' program, 
-<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/stlv_8C-source.html">
-stlv.C </a>, contains the calls to
-Ubegin(), UProcessCut(), UProcessFill() and UTerminate(), 
-As stated above, everything works together just by doing "root run.stlv.C" 
-or "root -b -q run.stlv.C" (``batch'' and ``quit'' mode).
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/daqe_8C-source.html">
+daqe.C </a>, contains the calls to
+Ubegin(), UProcessStatus(), UProcessCut(), UProcessFill() and UTerminate(), 
+As stated above, everything works together just by doing "root r.pl.daqe.C" 
+or "root -b -q r.pl.daqe.C" (``batch'' and ``quit'' mode).
 
    Some final comments:
 
 <ul>
-   <li> Note that the "stlv" name is not mandatory. Everything will work equally well if 
-        you change all "stlv" by "anything". For instance, you may want to write 
-        "my_anal.C", "class my_anal" and "chain.Process("my_anal.C+")" where appropriate.
+   <li> Note that the "daqe" name is not mandatory. Everything will work equally well if 
+        you change all "daqe" by "anything". 
 </ul>
 <ul>
-   <li> It is recommended to include in "stlv.C" a "root.h" file which 
-        matches the "ntuple.so" library loaded in "run.stlv.C". In case
-        of doubts, you may want to create your own "$AMSDir/lib/linux/ntuple.so" library with 
+   <li> It is recommended to include in "daqe.C" a "root.h" file which 
+        matches the "ntuple_slc4_icc.so" library loaded in "r.pl.daqe.C". In case
+        of doubts, you may want to create your own "$AMSDir/lib/linux/ntuple_slc4_icc.so" library with 
         "cd $AMSDir/install; gmake shared" and include "$AMSDir/include/root.h".
 </ul>
 <ul>
    <li> If you are combining several Root files created with different versions of the 
-        AMS code, try to use the latest versions for "ntuple.so" and "root.h" and, of 
+        AMS code, try to use the latest versions for "ntuple_slc4_icc.so" and "root.h" and, of 
         course, do not extract a given variable if it does not exist for some of the Root files. 
         ROOT is able to work consistently in the presence of different versions, 
-        although it may give problems whenever "ntuple.so" and 
+        although it may give problems whenever "ntuple_slc4_icc.so" and 
         "root.h" are older than the newest of the structure versions in your files.
 </ul>
 
