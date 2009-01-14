@@ -1,8 +1,9 @@
-//  $Id: uzstat.C,v 1.23 2009/01/14 12:34:42 choutko Exp $
+//  $Id: uzstat.C,v 1.24 2009/01/14 14:58:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
 #endif
+#include "cern.h"
 #include "uzstat.h"
 #include <iostream>
 #include <iomanip>
@@ -111,14 +112,9 @@ thread=omp_get_thread_num();
       number tt=HighResTime();
       time=tt-p->_time;
       if(time<-0.001){
-        cerr<<" AMSStat-W-BadTime "<<name<<" "<<thread<<" "<<" "<<time<<" "<<tt<<" "<<p->_time<<endl;
-      number tt=HighResTime();
-      time=tt-p->_time;
-      if(time<-0.001){
         cerr<<" AMSStat-E-BadTime "<<name<<" "<<thread<<" "<<" "<<time<<" "<<tt<<" "<<p->_time<<endl;
       p->_startstop=0;
-        return;
-      }
+        return 0;
       }
       p->_entry=p->_entry+1;
       p->_time=tt;
@@ -196,7 +192,7 @@ extern "C" number HighResTime(){
    float ar[2];
 
   static unsigned int count=0;
-  double ltime=0;
+  float ltime=0;
 #pragma omp threadprivate (count)
 #ifdef __LVL3ONLY__
   static number ETimeLast;
@@ -235,15 +231,20 @@ extern "C" number HighResTime(){
   hrtime_t nsec=gethrtime();
   return double(nsec)*1e-9;
 #else
-  if(!AMSCommonsI::remote()){
+#ifdef _PGTRACK_
     ltime=ETIMEU(ar);
-    count++;
-  }
-  else if((count++)%128==0){
-    // clock_t clicks = clock();
-    //  ltime=( (float) clicks / CLOCKS_PER_SEC );
-    ltime=ETIMEU(ar);
-  }
+#else
+    TIMEX(ltime);
+#endif    
+//  if(!AMSCommonsI::remote()){
+//    ltime=ETIMEU(ar);
+//    count++;
+//  }
+//  else if((count++)%128==0){
+//    // clock_t clicks = clock();
+//    //  ltime=( (float) clicks / CLOCKS_PER_SEC );
+//    ltime=ETIMEU(ar);
+// }
 
   if(0 && (count)%2048==0 ){
     ifstream fbin;
