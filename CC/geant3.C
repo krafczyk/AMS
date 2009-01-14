@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.113 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: geant3.C,v 1.114 2009/01/14 17:00:25 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1100,6 +1100,10 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 #pragma omp critical (g4)      
 {
        ok=pdaq->read();
+// set runev here
+    uint64 runev=pdaq->runno(); 
+   runev=pdaq->eventno() | runev<<32;
+   AMSEvent::runev(AMSEvent::get_thread_num())=runev;
 }
 //cout << "  a "<<kevt<<endl;
        if(ok){

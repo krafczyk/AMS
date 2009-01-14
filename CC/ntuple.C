@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.175 2008/12/18 11:19:33 pzuccon Exp $
+//  $Id: ntuple.C,v 1.176 2009/01/14 17:00:25 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -350,45 +350,18 @@ void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
   Get_evroot02()->SetCont();
   static int _Size=0;
-  //
-  //   check container
-  //
   int nthr=1;
 #ifdef _OPENMP
   nthr=omp_get_num_threads();
 #endif
-  bool go=true;
   uint64 runv=AMSEvent::gethead()->getrunev();
-  for(int k=0;k<nthr;k++){
-    if(AMSEvent::runev(k) && AMSEvent::runev(k)<runv){
-      go=false;
-      break;
-    }
-  } 
-  if(!go){
-    //    add event to the map
-    AMSEventR * evn=new AMSEventR(_evroot02);
-    evmap.insert(make_pair(runv,evn));
-  }
-  else{         
-    if(_tree){
-      if(!_lun )_Nentries++;
-      AMSEventR::Head()=Get_evroot02();
-      _tree->Fill();
-     
-      //cout <<" ** writing ** "<<Get_evroot02()->Event()<<" "<<Get_evroot02()->nParticle()<<endl;
-      int thread=0;
-#ifdef _OPENMP
-      thread=omp_get_thread_num();
-#endif
-      AMSEvent::runev(thread)=0;     
-      //cout << " thread "<<omp_get_thread_num()<<" "<<Get_evroot02()<<" "<<_Nentries<<" "<<AMSEventR::Head()->Event()<<AMSEvent::gethead()->getid()<<endl;
-    }
-  }
-  //  2nd pass for the map
-      
+  AMSEventR * evn=new AMSEventR(_evroot02);
+  vector<AMSEventR*> del;
+#pragma omp critical (wr1)
+{
+  evmap.insert(make_pair(runv,evn));
   for(evmapi i=evmap.begin();i!=evmap.end();){
-    go=true;
+    bool go=true;
     //     cout <<"  go "<<i->second->Event()<<endl;
     for(int k=0;k<nthr;k++){
       if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
@@ -397,28 +370,34 @@ void AMSNtuple::writeR(){
       }
     }
     if(!go)break;
-    if(_tree){
-      if(!_lun )_Nentries++;
-      //    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
-      AMSEventR::Head()=(i->second);
-      _tree->Fill();
+    else {
       for(int k=0;k<nthr;k++){
 	if(AMSEvent::runev(k)==(i->first)){
 	  AMSEvent::runev(k)=0;
 	  break;
 	}
-      }
-      delete i->second;
+       }
+      del.push_back(i->second); 
       evmapi idel=i++;
       evmap.erase(idel);
-
     }
+  }
+}
+for(int k=0;k<del.size();k++){
+#pragma omp critical (wr2)
+   if(_tree){
+      if(!_lun )_Nentries++;
+      //    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
+      AMSEventR::Head()=del[k];
+      _tree->Fill();
+    }
+      delete del[k];
   }
   if(evmap.size()>_Size){
     _Size=evmap.size();
     if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
   }
-   
+  
 
 #endif
 #ifdef __MEMMONITOR__

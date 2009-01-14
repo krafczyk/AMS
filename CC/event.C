@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.402 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: event.C,v 1.403 2009/01/14 17:00:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1163,15 +1163,14 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
      if(HasNoErrors() || (IOPA.WriteAll/100)*100)
 {
             AMSJob::gethead()->getntuple()->write(1);
-#pragma omp critical (writer)
+//#pragma omp critical (writer)
             AMSJob::gethead()->getntuple()->writeR();
      }
      else
-//#pragma omp critical
 {
       AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
-#pragma omp critical (writer)
+//#pragma omp critical (writer)
       AMSJob::gethead()->getntuple()->writeR();
      }
     }
@@ -1182,7 +1181,7 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
 {
       AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
-#pragma omp critical (writer)
+//#pragma omp critical (writer)
       AMSJob::gethead()->getntuple()->writeR();
     }
    }
