@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.61 2008/12/19 15:01:56 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.62 2009/01/14 13:48:04 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -370,7 +370,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
         assert(ib>=0 && ib < _bperpl[il]);
       }
 #endif
-  static geant dxi,dxo;
+  geant dxi,dxo;
   geant x,co[2],dxti,dxto;
   dxi=_plnstr[4];//sc.paddle width(inner="normal" counters)
   dxo=_outcp[il][0];//sc.paddle width(outer="trapezoidal" counters)
@@ -1542,25 +1542,68 @@ integer TOF2JobStat::rdcp2[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 integer TOF2JobStat::rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 integer TOF2JobStat::rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 geant TOF2JobStat::tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];
-//
+//---
+  void TOF2JobStat::puttemp(int16u crt, int16u sen, geant t){
+    assert(crt<TOF2GC::SCCRAT);
+    assert(sen<TOF2GC::SCFETA);
+    tofantemp[crt][sen]=t;
+  }
+  geant TOF2JobStat::gettemp(int16u crt, int16u sen){
+    assert(crt<TOF2GC::SCCRAT);
+    assert(sen<TOF2GC::SCFETA);
+    return tofantemp[crt][sen];
+  }
+//---
+  void TOF2JobStat::addmc(int i){
+    assert(i>=0 && i< TOF2GC::SCJSTA);
+#pragma omp critical (addmc) 
+    mccount[i]+=1;
+  }
+  void TOF2JobStat::addre(int i){
+    assert(i>=0 && i< TOF2GC::SCJSTA);
+#pragma omp critical (addre) 
+    recount[i]+=1;
+  }
+  void TOF2JobStat::addch(int chnum, int i){
+    assert(chnum>=0 && i>=0);
+    assert(chnum < TOF2GC::SCCHMX && i < TOF2GC::SCCSTA);
+#pragma omp critical (addch) 
+    chcount[chnum][i]+=1;
+  }
+  void TOF2JobStat::addbr(int brnum, int i){
+    assert(brnum>=0 && i>=0);
+    assert(brnum < TOF2GC::SCBLMX && i < TOF2GC::SCCSTA);
+#pragma omp critical (addbr) 
+    brcount[brnum][i]+=1;
+  }
+//---
 void TOF2JobStat::daqsfr(int16u ie){
   assert(ie<100);
+#pragma omp critical (daqsfr) 
   daqsf[ie]+=1;
 }
 void TOF2JobStat::daqscr(int16u df, int16u crat, int16u ie){
   assert(crat<TOF2GC::SCCRAT && ie<20);
+#pragma omp critical (daqscr)
+{ 
   if(df==0)cratr[crat][ie]+=1;//raw
   else if(df==1)cratp[crat][ie]+=1;//processed
   else if(df==2)cratc[crat][ie]+=1;//pedcal
   else cratm[crat][ie]+=1;//mixed: raw/comp comparison
 }
+}
 void TOF2JobStat::daqssl(int16u df, int16u crat, int16u slot, int16u ie){
   assert(crat<TOF2GC::SCCRAT && slot<TOF2GC::SCSLTM && ie<20);
+#pragma omp critical (daqssl)
+{ 
   if(df==0)sltr[crat][slot][ie]+=1;
   else sltp[crat][slot][ie]+=1;
 }
+}
 void TOF2JobStat::daqsch(int16u df, int16u crat, int16u slot, int16u rdch, int16u ie){
   assert(crat<TOF2GC::SCCRAT && slot<TOF2GC::SCSLTM && rdch<TOF2GC::SCRCHM && ie<20);
+#pragma omp critical (daqsch)
+{ 
   if(df==0)
   {
     if(crat==0)rdcr1[slot][rdch][ie]+=1;
@@ -1575,6 +1618,7 @@ void TOF2JobStat::daqsch(int16u df, int16u crat, int16u slot, int16u rdch, int16
     if(crat==2)rdcp3[slot][rdch][ie]+=1;
     if(crat==3)rdcp4[slot][rdch][ie]+=1;
   }
+}
 }
 
 //
@@ -2470,6 +2514,11 @@ void TOF2JobStat::bookhist(){
 //
   strcpy(inum,"0123456789");
 //
+  if(LVL3FFKEY.histprf>0){
+    HBOOK1(1020,"LVL1: TOF  Ttop-Tbot",50,-12.5,12.5,0.);
+//   1020-1029 Lev3 hists
+  }
+//
   if(TFREFFKEY.reprtf[2]!=0){// Reconstruction histograms
 // Book reco-hist
     HBOOK1(1100,"TofRawClBuild: LT-SumHT time (1-hit case, all channels)",80,-6.,14.,0.);
@@ -2531,8 +2580,6 @@ void TOF2JobStat::bookhist(){
 //    HBOOK1(1092-1099 are used for trigger-hists in trigger102.C  !!!!)
 //    HBOOK1(1010,...    reserved for tofsim02.C internal use !!!!
 //    HBOOK1(1011,...    reserved for tofsim02.C internal use !!!!
-    HBOOK1(1020,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
-//   1020-1029 Lev3 hists
     if(TFREFFKEY.reprtf[2]>1){//detaied mode
       HBOOK1(1526,"L=1,Ed_anode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
       HBOOK1(1527,"L=3,Ed_anode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
@@ -2713,7 +2760,11 @@ void TOF2JobStat::outp(){
   char chfun[6]="g";
   char chopt1[5]="LOGY";
   geant par[3],step[3],pmin[3],pmax[3],sigp[3],chi2;
-//
+//---
+  if(LVL3FFKEY.histprf>0){
+    HPRINT(1020);
+  }
+//---
   if(TFREFFKEY.reprtf[2]!=0){ // print RECO-hists
     HPRINT(1535);
     HPRINT(1536);
@@ -2762,7 +2813,6 @@ void TOF2JobStat::outp(){
     HPRINT(1101);
     HPRINT(1102);
 //
-    HPRINT(1020);
     if(TFREFFKEY.reprtf[2]>1){
       HPRINT(1526);
       HPRINT(1527);

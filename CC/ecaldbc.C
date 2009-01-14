@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.80 2008/11/07 08:56:35 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.81 2009/01/14 13:48:04 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -468,6 +468,65 @@ void EcalJobStat::clear(){
   for(i=0;i<ECSLMX;i++)zprofac[i]=0.;
   for(i=0;i<ECSLMX;i++)nprofac[i]=0;
 }
+//---
+  void EcalJobStat::daqs1(integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info<ecalconst::ECJSTA );
+#endif
+#pragma omp critical (ec_daqs1) 
+    daqc1[info]+=1;
+  }
+//
+  void EcalJobStat::daqs2(int16u crat, integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info< ecalconst::ECJSTA);
+      assert(crat< ecalconst::ECRT);
+#endif
+#pragma omp critical (ec_daqs2) 
+    daqc2[crat][info]+=1;
+  }
+//
+  void EcalJobStat::daqs3(int16u crat, int16u slot, integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info< ecalconst::ECJSTA);
+      assert(crat< ecalconst::ECRT);
+      assert(slot< ecalconst::ECSLOTS);
+#endif
+#pragma omp critical (ec_daqs3) 
+    daqc3[crat][slot][info]+=1;
+  }
+//---
+  void EcalJobStat::addmc(int i){
+#ifdef __AMSDEBUG__
+      assert(i>=0 && i< ecalconst::ECJSTA);
+#endif
+#pragma omp critical (ec_addmc) 
+    mccount[i]+=1;
+  }
+//
+  void EcalJobStat::addre(int i){
+#ifdef __AMSDEBUG__
+      assert(i>=0 && i< ecalconst::ECJSTA);
+#endif
+#pragma omp critical (ec_addre) 
+    recount[i]+=1;
+  }
+//
+  void EcalJobStat::addca(int i){
+#ifdef __AMSDEBUG__
+      assert(i>=0 && i<  ecalconst::ECJSTA);
+#endif
+#pragma omp critical (ec_addca) 
+    cacount[i]+=1;
+  }
+//
+  void EcalJobStat::addsr(int i){
+#ifdef __AMSDEBUG__
+      assert(i>=0 && i< 20);
+#endif
+#pragma omp critical (ec_addsr) 
+    srcount[i]+=1;
+  }
 //------------------------------------------
 // function to print Job-statistics at the end of JOB(RUN):
 void EcalJobStat::printstat(){
@@ -662,29 +721,7 @@ void EcalJobStat::bookhist(){
   maxcl=2*ECPMSMX;//MAX SubCells per plane
   maxsl=ECSLMX;
   strcpy(inum,"0123456789");
-    if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
-      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,240.,0.);
-      HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
-      HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,500.,0.);
-      HBOOK1(ECHISTR+13,"ECRE::HitBuild: EcalHit-hits tot.number",80,0.,160.,0.);
-      HBOOK1(ECHISTR+14,"ECRE::HitBuild: RawEvent-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
-      HBOOK1(ECHISTR+9,"ECRE::HitBuild: EcalHit-hit Energy(Mev)",100,0.,100.,0.);
-      HBOOK1(ECHISTR+15,"ECRE::HitBuild: DyCorrectionEn(tot,Mev)",100,0.,1000,0.);
-      HBOOK1(ECHISTR+16,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",200,0.,4000.,0.);
-      HBOOK1(ECHISTR+17,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",100,0.,200.,0.);
-//      HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
-      if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
-        HBOOK1(ECHISTR+19,"ECRE: T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
-        HBOOK1(ECHISTR+20,"ECRE: T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
-        HBOOK1(ECHISTR+21,"ECRE: Z-profile",maxpl,1.,geant(maxpl+1),0.);
-      }
-//      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000,0.);//now not my responsib.
-//      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
-//      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);//not implemented
-//      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
-      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(when FTE, valid-stage)",120,1.,121.,0.);
-      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(when FTE, valid-stage)",120,1.,121.,0.);
-      HBOOK1(ECHISTR+30,"ECRE: ECTrigger flag(when ECTrigFlg>0, valid-stage)",40,0.,40.,0.);
+    if(LVL3FFKEY.histprf>0){// EC-lvl3 histograms
       HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,100000.,0.);
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
@@ -711,6 +748,31 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+54,"ECLVL3: Yhigh-Ylow",50,0.,50.,0.);
       HBOOK1(ECHISTR+55,"ECLVL3: Xec-Xtr",80,-80.,80.,0.);
       HBOOK1(ECHISTR+56,"ECLVL3: Yec-Ytr",80,-80.,80.,0.);
+    }
+//---
+    if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
+      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,240.,0.);
+      HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
+      HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,500.,0.);
+      HBOOK1(ECHISTR+13,"ECRE::HitBuild: EcalHit-hits tot.number",80,0.,160.,0.);
+      HBOOK1(ECHISTR+14,"ECRE::HitBuild: RawEvent-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
+      HBOOK1(ECHISTR+9,"ECRE::HitBuild: EcalHit-hit Energy(Mev)",100,0.,100.,0.);
+      HBOOK1(ECHISTR+15,"ECRE::HitBuild: DyCorrectionEn(tot,Mev)",100,0.,1000,0.);
+      HBOOK1(ECHISTR+16,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",200,0.,4000.,0.);
+      HBOOK1(ECHISTR+17,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",100,0.,200.,0.);
+//      HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
+      if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
+        HBOOK1(ECHISTR+19,"ECRE: T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
+        HBOOK1(ECHISTR+20,"ECRE: T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
+        HBOOK1(ECHISTR+21,"ECRE: Z-profile",maxpl,1.,geant(maxpl+1),0.);
+      }
+//      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000,0.);//now not my responsib.
+//      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
+//      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);//not implemented
+//      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
+      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(when FTE, valid-stage)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(when FTE, valid-stage)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+30,"ECRE: ECTrigger flag(when ECTrigFlg>0, valid-stage)",40,0.,40.,0.);
       HBOOK1(ECHISTR+60,"DAQ: swid(LPP)=218, A1_hig(adcch)",80,-10.,790.,0.);
       HBOOK1(ECHISTR+61,"DAQ: swid(LPP)=218, A2_hig(adcch)",80,-10.,790.,0.);
       HBOOK1(ECHISTR+62,"DAQ: swid(LPP)=218, A3_hig(adcch)",80,-10.,790.,0.);
@@ -958,31 +1020,7 @@ void EcalJobStat::bookhistmc(){
 //----------------------------
 void EcalJobStat::outp(){
   geant rzprofa[2*ecalconst::ECSLMX],rzprofapm[ecalconst::ECSLMX],rzprofac[ecalconst::ECSLMX];
-    if(ECREFFKEY.reprtf[0]!=0){ // print RECO-hists
-      HPRINT(ECHISTR+10);
-      HPRINT(ECHISTR+11);
-      HPRINT(ECHISTR+12);
-      HPRINT(ECHISTR+13);
-      HPRINT(ECHISTR+14);
-      HPRINT(ECHISTR+9);
-      HPRINT(ECHISTR+15);
-      HPRINT(ECHISTR+16);
-      HPRINT(ECHISTR+17);
-//      HPRINT(ECHISTR+18);
-//      HPRINT(ECHISTR+22);
-//      HPRINT(ECHISTR+23);
-      if(recount[2]>0){
-//        for(int i=0;i<2*ECSLMX;i++)rzprofa[i]=geant(zprofa[i]/recount[2]);
-//        for(int i=0;i<ECSLMX;i++)rzprofapm[i]=geant(zprofapm[i]/recount[2]);
-//        HPAK(ECHISTR+24,rzprofa);
-//        HPAK(ECHISTR+25,rzprofapm);
-//        HPRINT(ECHISTR+24);
-//        HPRINT(ECHISTR+25);
-      }
-      HPRINT(ECHISTR+28);
-      HPRINT(ECHISTR+29);
-      HPRINT(ECHISTR+30);
-      HPRINT(ECHISTR+43);
+    if(LVL3FFKEY.histprf>0){// EC-lvl3 histograms
       HPRINT(ECHISTR+31);
       HPRINT(ECHISTR+32);
       HPRINT(ECHISTR+33);
@@ -1009,6 +1047,33 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+54);
       HPRINT(ECHISTR+55);
       HPRINT(ECHISTR+56);
+    }
+//
+    if(ECREFFKEY.reprtf[0]!=0){ // print RECO-hists
+      HPRINT(ECHISTR+10);
+      HPRINT(ECHISTR+11);
+      HPRINT(ECHISTR+12);
+      HPRINT(ECHISTR+13);
+      HPRINT(ECHISTR+14);
+      HPRINT(ECHISTR+9);
+      HPRINT(ECHISTR+15);
+      HPRINT(ECHISTR+16);
+      HPRINT(ECHISTR+17);
+//      HPRINT(ECHISTR+18);
+//      HPRINT(ECHISTR+22);
+//      HPRINT(ECHISTR+23);
+      if(recount[2]>0){
+//        for(int i=0;i<2*ECSLMX;i++)rzprofa[i]=geant(zprofa[i]/recount[2]);
+//        for(int i=0;i<ECSLMX;i++)rzprofapm[i]=geant(zprofapm[i]/recount[2]);
+//        HPAK(ECHISTR+24,rzprofa);
+//        HPAK(ECHISTR+25,rzprofapm);
+//        HPRINT(ECHISTR+24);
+//        HPRINT(ECHISTR+25);
+      }
+      HPRINT(ECHISTR+28);
+      HPRINT(ECHISTR+29);
+      HPRINT(ECHISTR+30);
+      HPRINT(ECHISTR+43);
       
       HPRINT(ECHISTR+60);
       HPRINT(ECHISTR+61);

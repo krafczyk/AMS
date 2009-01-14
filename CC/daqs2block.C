@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.33 2008/12/08 15:15:17 choutko Exp $
+//  $Id: daqs2block.C,v 1.34 2009/01/14 13:48:04 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -189,29 +189,19 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   int16u wcount(0);//sequencer Word-counter(raw)
   int16u mwcount(0);//sequencer Word-counter(mix)
   int16u svermsk(0);//stat.verification mask in TrPatt/Stat-block of ComprFMT 
-// for onboard ped-cal tables:
-  bool ONBpedblk(false);//tempor:ped-calib_data flag(shoulld be passed here from header !!!)
   geant ped,sig,pedc,sigc;
   int16u sta,stac,nblkok;
   AMSTimeID *ptdv;
   time_t begin,end,insert,BeginTime,CurTime;
-// for PedCalTable(onboard calib)
-  static integer FirstPedBlk(0);
-  static integer TotPedBlks(0);
-  static integer PedBlkCrat[SCCRAT]={0,0,0,0};
-#pragma omp threadprivate(FirstPedBlk,TotPedBlks,PedBlkCrat)  
-bool PedBlkOK(false);
   static integer firstevs(0);
 // for classic ped-run events or for DownScaled events
   bool TofPedCal(false);//Separate TofPedCal-job(ev-by-ev) using RawFMT(class/DownScaled mode)  
   bool AccPedCal(false);//Separate AccPedCal-job(ev-by-ev) using RawFMT(only fmt for AccQ)(class/DownScaled mode)  
   bool subtpedTof(false),subtpedAcc(false);
   bool DownScal(false);//tempor:  how to recognize it ???
-  static int FirstDScalBlk(0);
 // some static vars for debug:
   static integer fsterr1[SCFETA]={0,0,0,0,0};
-  static bool accswap(false);
-  #pragma omp threadprivate (accswap,fsterr1)
+  #pragma omp threadprivate (fsterr1)
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -283,10 +273,8 @@ bool PedBlkOK(false);
   if(datyp==1)setrawf();
   else if(datyp==2)setcomf();
   else if(datyp==3)setmixf();
-  if(ONBpedblk)setpedf();//tempor: ONBpedblk flag is known only from header and should be already known here
   formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
   TOF2JobStat::daqsfr(34+datyp);//<=== entries/datatype(illeg,raw,com,mix) 
-  if(ONBpedblk)TOF2JobStat::daqsfr(38);//<=== glob count of OnBoardPedBlocks 
 //cout<<"    format="<<formt<<" crate="<<crat<<endl;
 //
   if(datyp==0 || len==1){
@@ -308,12 +296,6 @@ bool PedBlkOK(false);
   }
   else{
     TOF2JobStat::daqsfr(21+crat);//count nonData
-  }
-//---------     
-  if(ONBpedblk){
-    TOF2JobStat::daqsfr(13+crat);
-//process here
-    return;
   }
 //---------
   noerr=(dataf 
@@ -666,12 +648,12 @@ SkipTPpr:
         if(wterr==6)TOF2JobStat::daqssl(0,crat-1,slot-1,10);//case4: Err
 	if(fsterr1[slot-1]==0){
 	  fsterr1[slot-1]=1;
-	  cout<<"  ---> TofDecoding:BadTimStruct in Run/evnt="<<AMSEvent::gethead()->getrun()
+	  cout<<"  ---> TofDecoding:BadTimeBlockStructure/timeout in Run/evnt="<<AMSEvent::gethead()->getrun()
 	                                                 <<" "<<AMSEvent::gethead()->getid()<<endl;
 	  cout<<"       cr/sl:"<<crat<<" "<<sslot<<" wttem/wthed/wterr(8/2/6)="<<wttem
 	                           <<" "<<wthed<<" "<<wterr<<" wds/trwds="<<nwtdcb<<" "<<wds2tdc<<endl;
 	  cout<<"---------------------------------------------------------"<<endl;
-	  if(TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"BadTimeBlockStructure !!!");
+	  if(TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"BadTimeBlockStructure/timeout !!!");
 	}
 	continue;//skip link(TDC) with broken structure (or time-out)
       }
@@ -1324,15 +1306,9 @@ SkipTPpr1:
 	    cout<<"    adca="<<adca<<endl;
 	    cout<<endl;
           }
-//ACC-swapping if needed:
+//ACC de-swapping if needed:
 	  if(AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()<1211886677
 	                                     && !AccPedCal){//de-swapping
-	    if(!accswap){
-	      cout<<"======================================================"<<endl;
-	      cout<<"========> DAQS2Block::buildraw: ACC-swapping is ON !!!"<<endl;
-	      cout<<"======================================================"<<endl;
-	    }
-	    accswap=true;
 // my
 	    if(sswid==22)sswid=12;
 	    else if(sswid==42)sswid=22;

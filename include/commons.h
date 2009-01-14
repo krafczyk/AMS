@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.257 2008/12/19 15:02:09 choumilo Exp $
+//  $Id: commons.h,v 1.258 2009/01/14 13:48:19 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -114,6 +114,7 @@ integer SeedThr;
 integer TRDHMulThr;
 geant  TRDHMulPart;
 integer Stat;
+integer histprf;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);

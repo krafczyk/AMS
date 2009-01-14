@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.28 2008/12/18 11:19:33 pzuccon Exp $
+//  $Id: tofuser02.C,v 1.29 2009/01/14 13:48:04 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -47,7 +47,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   int16u crat,slot,tsens;
   integer swid,hwid,shwid;
   number temper,stimes[4],strr,offs,tinp,tout;
-  static number tinpp,toutp,first(0);
+  number tinpp,toutp,first(0);
   TOF2RawSide *ptrt;
   TOF2RawCluster *ptr;
   AMSTOFCluster *ptrc;
@@ -86,11 +86,6 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     clstok[i]=0;//bad
   }
 //
-  if(first==0){//clear 1st tinp/tout-measurements
-    tinpp=-9999;
-    toutp=-9999;
-    first+=1;
-  }
 //
 //==================================> look at TOF2RawSide-hits(test for temper.study):
 //
@@ -301,28 +296,42 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       eacl=ptra->getedep();
       eanti=eanti+(ptra->getedep());
       if(eacl>eacut)nanti+=1;
-      if(TFREFFKEY.reprtf[2]>0)HF1(1503,geant(eacl),1.);
+      if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+        HF1(1503,geant(eacl),1.);
+      }
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
   if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
     HF1(1505,geant(nanti),1.);
     if(TofClMultOK)HF1(1514,geant(nanti),1.);
+}
   }
   nantit=Anti2RawEvent::getncoinc();//same from trigger
-  if(TFREFFKEY.reprtf[2]>0)HF1(1517,geant(nantit),1.);
+  if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+    HF1(1517,geant(nantit),1.);
+  }
 //====================================
 //  if(nanti>4)return;// remove events with >1 sector(e>ecut) in Anti
   TOF2JobStat::addre(22);
 //====================================
 //
-  for(i=0;i<TOF2GC::SCLRS;i++){
-    if(brnl[i]>=0)HF1(5040+i,geant(brnl[i]+1),1.);
+  if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
+    for(i=0;i<TOF2GC::SCLRS;i++){
+      if(brnl[i]>=0)HF1(5040+i,geant(brnl[i]+1),1.);
+    }
+}
   }
 //
 //===================================> get parameters from tracker:
 //
-    static number pmas(0.938),mumas(0.1057),imass;
+    number pmas(0.938),mumas(0.1057),imass;
     number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
     number momentum;
     number the,phi,trl,rid,err,ctran,charge,partq;
@@ -458,15 +467,21 @@ Nextp:
       pcut[1]=TFCAFFKEY.plhec[1];
     }
     if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
       HF1(1500,geant(pmom),1.);
       HF1(1516,geant(pmom),1.);
+}
     }
 //
     if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
       HF1(1501,beta,1.);
       HF1(1511,chi2t,1.);
       HF1(1512,chi2s,1.);
       HF1(1513,chi2,1.);
+}
     }
     bad=0;
 //    if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
@@ -477,7 +492,10 @@ Nextp:
 //
 //======================================> find/study track crossings with ACC:
 //
-    if(TFREFFKEY.reprtf[2]>0)HF1(1515,geant(nanti),1.);
+    if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+      HF1(1515,geant(nanti),1.);
+    }
 //
     number dirt,cpsn,cpcs,cphi,dphi1,dphi2,phil,phih,zcut,zscr,thes,phis;
     integer nseccr(0),isphys(-1);
@@ -496,9 +514,14 @@ Nextp:
       if(cphi<0)cphi=360+cphi;//0-360
       phi=phi*AMSDBc::raddeg;//inpact phi(degr,+-180)
       if(phi<0)phi=360+phi;//0-360
-      HF1(1241,geant(crcCyl[2]),1.);
-      HF1(1242,geant(cphi),1.);
-      HF1(1243,geant(phi),1.);
+      if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
+        HF1(1241,geant(crcCyl[2]),1.);
+        HF1(1242,geant(cphi),1.);
+        HF1(1243,geant(phi),1.);
+}
+      }
 //
       for(int is=0;is<8;is++){//<-- loop over all ACC-sectors
         nscrs=0;
@@ -526,21 +549,46 @@ Nextp:
 	if(dphi2>180)dphi2=360-dphi2;
 	if(dphi2<-180)dphi2=-(360+dphi2);
 //
-        if(phicross && frsecn[is]>0)HF1(1244,geant(crcCyl[2]),1.);
-	if(zcross && frsecn[is]>0)HF1(1245,geant(cphi),1.);
-	if(zcross && frsecn[is]>0)HF1(1270+is,geant(dphi1),1.);//PHIsect-PHIcrp
+        if(phicross && frsecn[is]>0){
+          if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+	    HF1(1244,geant(crcCyl[2]),1.);
+	  }
+	}
+	if(zcross && frsecn[is]>0){
+          if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
+	    HF1(1245,geant(cphi),1.);
+	    HF1(1270+is,geant(dphi1),1.);//PHIsect-PHIcrp
+}
+	  }
+	}
         if(zcross && phicross && frsecn[is]>0){
-          HF1(1246,geant(phi),1.);//inpact phi(degr,+-180)
-          HF1(1248,geant(dphi2),1.);//PHIcrp-PHIimpp
+          if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
+            HF1(1246,geant(phi),1.);//inpact phi(degr,+-180)
+            HF1(1248,geant(dphi2),1.);//PHIcrp-PHIimpp
+            HF1(1240,geant(is+1+20),1.);//fired+crossed patt
+	    if(ama1[is]>0)HF1(1250+is,geant(ama1[is]),1.);
+	    if(ama2[is]>0)HF1(1250+8+is,geant(ama2[is]),1.);
+}
+	  }
 	}
 	
-        if(zcross && phicross)HF1(1240,geant(is+1),1.);//TRK-crossed patt
-        if(frsecn[is]>0)HF1(1240,geant(is+1+10),1.);//fired patt
-        if(zcross && phicross && frsecn[is]>0){
-          HF1(1240,geant(is+1+20),1.);//fired+crossed patt
-	  if(ama1[is]>0)HF1(1250+is,geant(ama1[is]),1.);
-	  if(ama2[is]>0)HF1(1250+8+is,geant(ama2[is]),1.);
-        }
+        if(zcross && phicross){
+          if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+	    HF1(1240,geant(is+1),1.);//TRK-crossed patt
+	  }
+	}
+        if(frsecn[is]>0){
+          if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+	    HF1(1240,geant(is+1+10),1.);//fired patt
+	  }
+	}
 //      
       }//--->endof ACC-sectors loop
 //
@@ -591,16 +639,25 @@ Nextp:
       }
       dy=coot[il]-cllc[il];//Long.coo_track-Long.coo_TofClust
       if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
         if(clmem[il]==1)HF1(1200+il,geant(dy),1.);
         if(clmem[il]==2)HF1(1204+il,geant(dy),1.);
-        if(nbrl[il]==1 && fabs(dx)<dtcut)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
+}
+        if(nbrl[il]==1 && fabs(dx)<dtcut){
+#pragma omp critical (hf2)
+	  HF2(1231+il,geant(cllc[il]),geant(dy),1.);
+	}
       }
       dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
       tgx=sin(the)*cos(phi)/cos(the);
       tgy=sin(the)*sin(phi)/cos(the);
       if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
         if(clmem[il]==1)HF1(1210+il,geant(dx),1.);
         if(clmem[il]==2)HF1(1214+il,geant(dx),1.);
+}
       }
       if(fabs(dx)>dtcut || fabs(dy)>dlcut)TofTrackMatch=false;//too big dist. of tof-track
 //
@@ -658,9 +715,14 @@ Nextp:
     for(il=0;il<TOF2GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
-    if(TFREFFKEY.reprtf[2]>0)HF1(1502,betof,1.);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1208,chsq,1.);
-    if(TFREFFKEY.reprtf[2]>0)HF1(1209,tzer,1.);
+    if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
+      HF1(1502,betof,1.);
+      HF1(1208,chsq,1.);
+      HF1(1209,tzer,1.);
+}
+    }
 //
     if(chsq>10. || betof<0.3)return;//<==== cut on chi2/beta
 //
@@ -675,7 +737,10 @@ Nextp:
     trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
     td13=tdif[2]*trlnor/trle[2];// normalized to fix(~127cm) distance
     td24=(cltim[1]-cltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~127cm) distance
-    if(TFREFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
+    if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+      HF1(1504,(td13-td24),1.);
+    }
 //  }//endof "Clust with 1memb/layer" check
 //--------------------------------------------
     if(TFREFFKEY.reprtf[2]>0){
@@ -688,9 +753,13 @@ Nextp:
 	if(il==2 && (brnl[il]==0 || brnl[il]==9))bad+=1;
       }
       if(bad<2){
+#pragma omp critical (hf1)
+{
         HF1(1507,geant(chargeTOF),1.);//accept max one trapez.counter
         HF1(1508,geant(chargeTracker),1.);
         HF1(1506,geant(charge),1.);
+}
+#pragma omp critical (hf2)
         HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
       }
     }
@@ -711,11 +780,14 @@ Nextp:
       avera[2]/=3.;
       avera[3]/=4.;
       if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
         for(il=0;il<TOF2GC::SCLRS;il++)HF1(5001+il,avera[il],1.);
         HF1(5010,sqrt(avera[0]/1.8),1.);// eff.Z
         HF1(5011,sqrt(avera[1]/1.8),1.);
         HF1(5012,sqrt(avera[2]/1.8),1.);
         HF1(5013,sqrt(avera[3]/1.8),1.);
+}
       }
     }
 //
@@ -728,7 +800,10 @@ Nextp:
       nbrs=nbrl[il];
       if(nbrl[il]==1 && fabs(coot[il])<10){//select counter center crossing
         ibtyp=TOF2DBc::brtype(il,ib)-1;
-	HF1(1220+ibtyp,geant(adca1[il]),1.);
+        if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+	  HF1(1220+ibtyp,geant(adca1[il]),1.);
+	}
       }
     } 
 //
@@ -744,6 +819,7 @@ Nextp:
         noise=sigm*rnormx(); 
 	amp2=adca2[0]+noise;
         varr=(amp1-amp2)/(amp1+amp2);
+#pragma omp critical (hf1)
         HF1(1519,geant(varr),1.);
       }
     }

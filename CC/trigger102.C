@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.62 2008/12/19 15:01:56 choumilo Exp $
+//  $Id: trigger102.C,v 1.63 2009/01/14 13:48:04 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -27,9 +27,10 @@ using namespace ecalconst;
  Trigger2LVL1::Lvl1TrigConfig Trigger2LVL1::l1trigconf;
  Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
  integer TGL1JobStat::countev[20];
- integer TGL1JobStat::daqc1[40];
+ integer TGL1JobStat::daqc1[70];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
  bool Trigger2LVL1::SetupIsChanged(false);
+ bool Trigger2LVL1::ScalerIsChanged(false);
 //
 void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //build lvl1-obj for MC; Complete(+rebuild) lvl1 for RealData.
@@ -81,11 +82,74 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       Anti2RawEvent::setpatt(uinteger(antipatt));//copy antipatt/nanti into AntiRawEvent-obj
       Anti2RawEvent::setncoinc(nanti);
       TGL1JobStat::addev(16);
-      if(TGL1FFKEY.Lvl1ConfSave>0 && SetupIsChanged){
-        l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup
-      } 
-      SetupIsChanged=false;//reset flag in any case
-    }
+//---
+      if(SetupIsChanged){
+#pragma omp critical (print_longsetup)
+{ 
+        TGL1JobStat::addev(17);
+        cout<<"============================================================================"<<endl;
+        cout<<"|      TrigConditions changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
+                                                                AMSEvent::gethead()->getid()<<endl;
+        cout<<"                New settings are :"<<endl;
+        cout<<"      Anabled ATC-sectors/sides:";
+        for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antinmask(i)<<" ";
+        cout<<endl;
+        cout<<"              ATC-sectors side_OR(1)/AND(0) flags:";
+        for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antoamask(i)<<" ";
+        cout<<endl;
+      
+        cout<<"      Anabled ECAL [FTE(x|y)|ANG(x|y)]:"<<l1trigconf.ecprjmask()<<endl;
+        cout<<"              ECAL-proj OR/AND(->1/2):"<<l1trigconf.ecorand()<<endl;
+      
+        cout<<"      TOF-Layers Sides_OR(1)/AND(0) flags(CP/BZ):"<<" ";
+        for(i=0;i<TOF2GC::SCLRS;i++)cout<<l1trigconf.tofoamask(i)<<" ";
+        cout<<" "; 
+        for(i=0;i<TOF2GC::SCLRS;i++)cout<<l1trigconf.tofoazmask(i)<<" ";
+        cout<<endl; 
+      
+        cout<<"      Anabled globFT-members pattern(FTE|FTZ|FTC<-):"<<l1trigconf.globftmask()<<endl;
+        bool ftztbor=(l1trigconf.toflcsz()/10==1);
+        bool ftz12or=((l1trigconf.toflcsz()%10)==2 || (l1trigconf.toflcsz()%10)==3); 
+        bool ftz34or=((l1trigconf.toflcsz()%10)==1 || (l1trigconf.toflcsz()%10)==3); 
+        cout<<"      FTZ-setting(OR/AND->1/0): Top/Bot:"<<ftztbor<<" L12:"<<ftz12or<<" L34:"<<ftz34or<<endl;
+      
+        cout<<"      TOF LUT1/LUT2/LUTBZ-settings:"<<l1trigconf.toflut1()<<"/"<<l1trigconf.toflut2()
+                                                                              <<"/"<<l1trigconf.toflutbz()<<endl;
+									    
+        geant pwextt=geant(20*(1+(l1trigconf.tofextwid()&31)));//ext.width for top-coinc. signal
+        geant pwextb=geant(20*(1+((l1trigconf.tofextwid()&(31<<5))>>5)));//ext.width for bot-coins. signal
+        cout<<"      TOF-FTZ top/bot pulse ext.width(ns):"<<pwextt<<" "<<pwextb<<endl<<endl;
+      
+        cout<<"      All 8 Lev1MembersPatterns :"<<endl; 
+        cout<<"|FTP0|FTP1|FTT0|FTT1| FTZ| FTE|ACC0|ACC1|  BZ|ECFA|ECFO|ECAA|ECAO|EXG0|EXG1|"<<endl;
+        for(i=0;i<8;i++){
+          for(int j=0;j<15;j++){
+	    if((l1trigconf.physbrmemb(i)&1<<j)>0)cout<<"  X  ";
+            else cout<<"  0  ";
+          }
+          cout<<endl;
+        }
+      
+        cout<<"      Anabled Lev1PhysBranchesPatterns :"<<endl;
+        cout<<"|  FTC| Z>=1| Z>=2|Z>=2s|Elect|Gamma|  FTE|Extrn|"<<endl;  
+        for(i=0;i<8;i++){
+          if((l1trigconf.globl1mask()&1<<i)>0)cout<<"   X  ";
+          else cout<<"   0  ";
+        }
+        cout<<endl;
+        cout<<"      with Prescale-factors :"<<endl;
+        for(i=0;i<8;i++)if((l1trigconf.globl1mask()&1<<i)>0)cout<<l1trigconf.phbrprescf(i)<<" ";
+        cout<<endl;
+      
+        cout<<"|     ACC NsectThresholds(accept Ns<=thr):"<<l1trigconf.antsectmx(0)<<"(equ) "
+                                                       <<l1trigconf.antsectmx(1)<<"(pol)"<<endl; 
+        cout<<"============================================================================"<<endl;
+//---
+        if(TGL1FFKEY.Lvl1ConfSave>0)l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup
+        SetupIsChanged=false;//reset flag
+}//---> endof pragma critical 
+      }//--->endof "setup changed" check
+    }//--->endof "trig.obj exist ?" check
 //-------------------------------------------
 /*
     if(TGL1FFKEY.RebuildLVL1==1){//<=== special RD: (Re)build lvl1 from subdet-reco objects only
@@ -155,12 +219,9 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //set some dummy rates(just for debug):
     for(i=0;i<5;i++)rates[i]=geant(scalmon.FTtrig(i));
     for(i=0;i<9;i++)rates[5+i]=geant(scalmon.LVL1trig(i));
-    number CPmx[4];
-    for(i=0;i<4;i++)CPmx[i]=max(scalmon.CPside1(i),scalmon.CPside2(i));
-    CPmx[0]=max(CPmx[0],CPmx[1]);
-    CPmx[2]=max(CPmx[2],CPmx[3]);
-    rates[14]=max(CPmx[0],CPmx[2]);//CPmax-rate
+    for(i=0;i<5;i++)rates[14+i]=geant(scalmon.DetMaxRate(i));
     ratemx=rates[5];//tempor LVL1-rate
+
 //
 //-->TOF:
     toftrcode1=TOF2RawSide::gettrcode();//<0 ->noFTC(z>=1), >=0 ->OK, masked
@@ -171,8 +232,11 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     TOF2RawSide::getpatt(tofpatt1);
     TOF2RawSide::getpattz(tofpatt2);
     if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+{
       HF1(1280,geant(toftrcode1),1.);
       HF1(1281,geant(toftrcode2),1.);
+}
     }
     if(TGL1FFKEY.printfl>10){
       cout<<endl;
@@ -232,8 +296,11 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if((ftpatt&(1<<2))>0){//was FTE-member
       TGL1JobStat::addev(6);
       if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+{
         HF1(1097,geant(ectrconf),1.);
         if((ftpatt&3)==1)HF1(1096,geant(ectrconf),1.);
+}
       }
     }
     if((ftpatt&(1<<2))>0 && (ftpatt&3)==0)TGL1JobStat::addev(7);//was FTE-member fhen TOF-FT missed
@@ -345,10 +412,16 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     trtype=Trigger2LVL1::l1trigconf.globl1mask();//from DB/File(already corrected by DC if was requested)
     if(TGL1FFKEY.printfl>10)cout<<"     Requested Lvl1PhysBranchesPatt(hex)="<<hex<<trtype<<dec<<endl;
 //
-    if(TGL1FFKEY.printfl>0)HF1(1098,0.,1.);
+    if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+      HF1(1098,0.,1.);
+    }
     for(i=0;i<8;i++){
       if(BranchOK[i]){
-        if(TGL1FFKEY.printfl>0)HF1(1098,geant(i+1),1.);//fired
+        if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+	  HF1(1098,geant(i+1),1.);//fired
+	}
       }
       if(trtype & 1<<i)nbreq+=1;//count requested branches
     }
@@ -359,11 +432,14 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     }
 //
     if(TGL1FFKEY.printfl>0){
-    for(i=0;i<16;i++){
-      if((JMembPatt&(1<<i))>0){
-        HF1(1095,geant(i+1),1.);//fired(unmasked)
+#pragma omp critical (hf1)
+{
+      for(i=0;i<16;i++){
+        if((JMembPatt&(1<<i))>0){
+          HF1(1095,geant(i+1),1.);//fired(unmasked)
+        }
       }
-    }
+}
     }
 //
 //
@@ -392,6 +468,8 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
         TGL1JobStat::addev(10);
 //
       if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+{
 	HF1(1093,0.,1.);
         for(i=0;i<8;i++){
           if((PhysBPatt&(1<<i))>0)HF1(1093,geant(i+1),1.);//accepted
@@ -401,6 +479,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
             HF1(1092,geant(i+1),1.);//accepted
           }
         }
+}
       }
 //
         AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
@@ -414,6 +493,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 }
 //--------------------
 void Trigger2LVL1::init(){
+//always called in _sitrig2initjob()/siamsinitjob()/AMSJob::init()
 if(TGL1FFKEY.printfl>0){
   HBOOK1(1280,"LVL1_Simu:TofFlg1",20,-1.,19.,0.);
   HBOOK1(1281,"LVL1_Simu:TofFlg2",20,-1.,19.,0.);
@@ -426,8 +506,11 @@ if(TGL1FFKEY.printfl>0){
   HBOOK1(1098,"LVL1:PhysBranchPatt_fired(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
   HBOOK1(1093,"LVL1:PhysBranchPatt_accep(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
+  HBOOK1(1094,"LiveTime(portion)",100,0.1,1.1,0.);
 }
   TGL1JobStat::resetstat();
+  SetupIsChanged=false;//reset new_setup flag
+  ScalerIsChanged=false;//reset new_scalers flag
 }
 //--------------------
 void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from def.file
@@ -1020,6 +1103,15 @@ void Trigger2LVL1::ScalerMon::setdefs(){
     _LVL1trig[6]=1;
     _LVL1trig[7]=1;
     _LVL1trig[8]=0;
+    _LiveTime[0]=1;
+    _LiveTime[1]=1;
+    _DetMaxRate[0]=1;
+    _DetMaxRate[1]=1;
+    _DetMaxRate[2]=1;
+    _DetMaxRate[3]=1;
+    _DetMaxRate[4]=1;
+    _TimeCalib=0;
+/*
     for(int i=0;i<5;i++)_SPtrig[i]=0;
     for(int i=0;i<4;i++){
       _CPside1[i]=100;
@@ -1039,14 +1131,16 @@ void Trigger2LVL1::ScalerMon::setdefs(){
     _ECl1Proj[1]=30;
     _TrigTimeT=9999;
     _ScalTimeT=7777;
-    _LiveTime[0]=6666;
-    _LiveTime[1]=5555;
     _TrigFPGAid=11;
     _ScalFPGAid=9;
+*/
   }
   else if(AMSJob::gethead()->isRealData()){//set "-1" as "undefined"
     for(int i=0;i<5;i++)_FTtrig[i]=-1;
     for(int i=0;i<9;i++)_LVL1trig[i]=-1;
+    for(int i=0;i<5;i++)_DetMaxRate[i]=-1;
+    _TimeCalib=0;
+/*
     for(int i=0;i<5;i++)_SPtrig[i]=-1;
     for(int i=0;i<4;i++){
       _CPside1[i]=-1;
@@ -1070,9 +1164,29 @@ void Trigger2LVL1::ScalerMon::setdefs(){
     _LiveTime[1]=0;
     _TrigFPGAid=0;
     _ScalFPGAid=0;
+*/
   }
 }  
 //---------
+  void TGL1JobStat::resetstat(){
+    for(int i=0;i<20;i++)countev[i]=0;
+    for(int i=0;i<70;i++)daqc1[i]=0;
+  }
+//
+  void TGL1JobStat::addev(int i){
+    assert(i>=0 && i< 20);
+#pragma omp critical (l1_addev) 
+    countev[i]+=1;
+  }
+//
+  void TGL1JobStat::daqs1(integer info){
+#ifdef __AMSDEBUG__
+      assert(info>=0 && info<70 );
+#endif
+#pragma omp critical (l1_daqs1) 
+    daqc1[info]+=1;
+  }
+//
 void TGL1JobStat::printstat(){
 if(TGL1FFKEY.printfl>0){
   HPRINT(1280);
@@ -1086,12 +1200,40 @@ if(TGL1FFKEY.printfl>0){
   HPRINT(1092);
   HPRINT(1098);
   HPRINT(1093);
+  HPRINT(1094);
 }
   printf("\n");
-  printf("    ============ LVL1-RDdecoding statistics =============\n");
+  printf("    ============ LVL1-PreDecoding statistics =============\n");
+  printf("\n");
+  printf(" LVL1-segment entries                : % 8d\n",daqc1[40]);
+  if(daqc1[0]>0){
+    printf(" LVL1-segments non empty             : % 8d\n",daqc1[41]);
+    printf(" ............. from A-side           : % 8d\n",daqc1[42]);
+    printf(" ............. from B-side           : % 8d\n",daqc1[43]);
+    printf(" ... with format(unkn/raw/comp/mix   : %8d %8d %8d %8d\n",daqc1[44],daqc1[45],daqc1[46],daqc1[47]);
+    printf(" NoAssemblyErrors                    : % 8d\n",daqc1[48]);
+    printf(" RawFmt time-calib found             : % 8d\n",daqc1[51]);
+    printf(" RawFmt LiveTime info found          : % 8d\n",daqc1[52]);
+    printf(" RawFMT LiveTime-1 > 1               : % 8d\n",daqc1[53]);
+    printf(" RawFMT LiveTime-2 > 1               : % 8d\n",daqc1[54]);
+    printf(" Bad LVL1-blocks length              : % 8d\n",daqc1[55]);
+    printf(" TrigSetup block found               : % 8d\n",daqc1[56]);
+    printf(" TrigSetup block updates             : % 8d\n",daqc1[57]);
+    printf(" Scalers block found                 : % 8d\n",daqc1[58]);
+    printf(" CompFmt time-calib info updates     : % 8d\n",daqc1[59]);
+    printf(" CompFmt LiveTime info updates       : % 8d\n",daqc1[60]);
+    printf(" CompFmt LiveTime-1 > 1              : % 8d\n",daqc1[61]);
+    printf(" CompFMT LiveTime-2 > 1              : % 8d\n",daqc1[62]);
+    printf(" CompFMT FT/LVL1-rates info updates  : % 8d\n",daqc1[63]);
+    printf(" CompFMT SubDet-rates info updates   : % 8d\n",daqc1[64]);
+    printf(" Total bad structure LVL1-segments   : % 8d\n",daqc1[50]);
+  }
+//
+  printf("\n");
+  printf("    ============ LVL1-Decoding statistics =============\n");
   printf("\n");
   printf(" LVL1-segment entries                : % 8d\n",daqc1[0]);
-  if(daqc1[0]>0){
+  if(daqc1[40]>0){
     printf(" LVL1-segments non empty             : % 8d\n",daqc1[1]);
     printf(" ............. from A-side           : % 8d\n",daqc1[2]);
     printf(" ............. from B-side           : % 8d\n",daqc1[3]);
@@ -1107,6 +1249,7 @@ if(TGL1FFKEY.printfl>0){
     printf("            W:LTime1>1               : % 8d\n",daqc1[6]);
     printf("            W:LTime2>1               : % 8d\n",daqc1[8]);
     printf(" TrigSetupBlock entries              : % 8d\n",daqc1[9]);
+    printf(" TrigSetupBlock Changes              : % 8d\n",daqc1[16]);
     printf(" ScalersBlock entries                : % 8d\n",daqc1[11]);
 //    printf(" ............ length OK              : % 8d\n",daqc1[12]);
     printf(" Total bad structure LVL1-segments   : % 8d\n",daqc1[13]);
@@ -1128,6 +1271,7 @@ if(TGL1FFKEY.printfl>0){
   if(AMSJob::gethead()->isReconstruction()){
     printf(" RD/MC: DAQ-created lvl1-obj found   : % 6d\n",countev[15]);
     printf("        missing patterns added       : % 6d\n",countev[16]);
+    printf("        Setup changes                : % 6d\n",countev[17]);
   }
   else{
     printf(" MC: globFTriger(incl ext) OK      : % 6d\n",countev[1]);
@@ -1141,7 +1285,7 @@ if(TGL1FFKEY.printfl>0){
     printf(" MC: LVL1 conditions satisfied     : % 6d\n",countev[9]);
     printf(" MC:   + ScalerRate/LiveTime OK    : % 6d\n",countev[10]);
   }
-  printf("--------\n");
+  printf("   ================================================\n");
 }
 //------
 integer Trigger2LVL1::checktofpattor(integer tof, integer paddle){
@@ -1241,7 +1385,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
     *(p+13) = 0;//2 reserved words
     *(p+14) = 0;
     nwords+=2;
-//now 15 words in total for ev-by-ev info      
+//now have 15 words in total for ev-by-ev info      
 //
 //=================================> TrigSetup:
 //
@@ -1373,7 +1517,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
   }   
 }
 
-
+//----------------------------------------------------------------------------------
 void Trigger2LVL1::buildraw(integer len, int16u *p){
 //
 // on input: len=tot_block_length as given at the beginning of block
@@ -1390,15 +1534,12 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   integer JMembPatt(0),PhysBPatt(0),TofFlag1(-1),TofFlag2(-1),AntiPatt(0),EcalFlag(0);
   integer TofPatt1[TOF2GC::SCLRS],TofPatt2[TOF2GC::SCLRS];
   int16u EcTrPatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes)
-  integer gftmsk(0),ftzlmsk(0);
   int16u ftzwdcode(0);
-  static geant LiveTime[2]={0,0};
-  static geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-#pragma omp threadprivate(LiveTime,TrigRates)
+  geant LiveTime[2]={0,0};
+  geant livetm[2];
+  geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   number tgrates[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  number dtrates[5]={0,0,0,0};
-  static uinteger tcalib(0);
-  static geant tgprev[2]={-1,-1};
+  number dtrates[5]={0,0,0,0,0};
   static number evtprev(-1);
   number evtcurr(0),delevt;
   uinteger ltimec[2];
@@ -1432,6 +1573,19 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   integer auxtrpat(0);
   int16u cpinmask[TOF2GC::SCLRS],bzinmask[TOF2GC::SCLRS];//my reordered masks
   uinteger febusymsk[2]={0,0};//to store 24+16 bits of FEbusy-mask
+  integer antinmask[ANTI2C::MAXANTI]={1,1,1,1,1,1,1,1};//s1&s2 in
+  integer antoamask[ANTI2C::MAXANTI]={0,0,0,0,0,0,0,0};//and
+  integer ecprjmask(1111),ecorand(1);
+  integer tofoamask[TOF2GC::SCLRS]={1,1,1,1};//or
+  integer tofoazmask[TOF2GC::SCLRS]={1,1,1,1};//or
+  integer gftmsk(0),ftzlmsk(0),toflcsz(0);
+  integer toflut1(0),toflut2(0),toflutbz(0);
+  integer tofextwid(0);
+  integer globftmask(0);
+  integer globl1mask(0);
+  integer antsectmx[2]={0,0};
+  integer physbrmemb[8]={0,0,0,0,0,0,0,0};
+  integer phbrprescf[8]={1,1,1,1,1,1,1,1};
 //
   int16u rstatw1(0),rstatw2(0),rstatw3(0);
   int16u nrdow1(0),nrdow2(0),nrdow3(0);
@@ -1458,9 +1612,6 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
-  static integer lut1o(0),lut2o(0),lut3o(0),phbmsko(0);
-  static integer phbmemo[8]={0,0,0,0,0,0,0,0};
-  bool phbmchange(false);
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
@@ -1603,8 +1754,11 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 #endif
     }
     if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+{
       HF1(1282,geant(TofFlag1),1.);
       HF1(1283,geant(TofFlag2),1.);
+}
     }
 //cout<<"Lev1Reco:Event="<<(AMSEvent::gethead()->getid())<<" TofFlag1/2="<<TofFlag1<<" "<<TofFlag2<<endl;
 //-----> create EcalFlag (FTE/LVL1 decisions):
@@ -1620,15 +1774,18 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     }
 //-----> trig.patt histos: 
     if(TGL1FFKEY.printfl>0){
-    for(i=0;i<16;i++){
-      if((JMembPatt&(1<<i))>0){
-        HF1(1092,geant(i+1),1.);
+#pragma omp critical (hf1)
+{
+      for(i=0;i<16;i++){
+        if((JMembPatt&(1<<i))>0){
+          HF1(1092,geant(i+1),1.);
+        }
       }
-    }
-    HF1(1093,0.,1.);
-    for(i=0;i<8;i++){
-      if((PhysBPatt&(1<<i))>0)HF1(1093,geant(i+1),1.);
-    }
+      HF1(1093,0.,1.);
+      for(i=0;i<8;i++){
+        if((PhysBPatt&(1<<i))>0)HF1(1093,geant(i+1),1.);
+      }
+}
     }
 //-----> event(trigger) time info: 
     time[0]=0;
@@ -1653,16 +1810,19 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       evtprev=evtcurr;
       if(delevt>(0xFFFF))trtime[4]=uinteger(0xFFFF);
       else trtime[4]=uinteger(floor(delevt));
-//      HF1(1099,geant(trtime[4]),1.);
     }
     else evtprev=evtcurr;
 #ifdef _OPENMP
  trtime[4]=DAQEvent::trigtime();
 #else
  if (trtime[4]!=DAQEvent::trigtime()){
-  cerr<<"TriggerLVL1-E-TrigtimeNotMatch "<<trtime[4]<<" "<<DAQEvent::trigtime()<<endl;
+  cerr<<"TriggerLVL1-E-TrigTimeDiff NotMatch "<<trtime[4]<<" "<<DAQEvent::trigtime()<<endl;
  }
 #endif
+    if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+      HF1(1099,geant(trtime[4]),1.);
+    }
     
 //
     word=*(p+9+pattbias);//busy-patt,err
@@ -1684,11 +1844,12 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       timcal|=uinteger(word);
       lword=uinteger(*(p+13+pattbias));//last 16bits of time-calib word
       timcal|=(lword<<16);
-      tcalib=timcal;
       lencalc+=4;//add time-calib and 2 empty words for RawFmt
     }
 //---> print event-by-event (patterns) info:
     if(TGL1FFKEY.printfl>11){
+#pragma omp critical (evpatterns)
+{ 
       cout<<"  -------> Event-by-event(instant) LVL1-info (patterns,time-counters,...):"<<endl<<endl;
       cout<<"      Triggered by (hex_patt="<<auxtrpat<<") :";
       if((auxtrpat&1)>0)cout<<"LA-0"<<endl;
@@ -1740,10 +1901,11 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       if(!busyerr)cout<<"      BusyPattern(msb|lsb)(hex):"<<hex<<busypat[1]<<"|"<<busypat[0]<<dec<<endl;
       else cout<<"      BusyError found !!!"<<endl;
       cout<<"      TimeCalibrationCounter:"<<timcal<<endl<<endl;
-    }
+}//--->endof pragma
+    }//--->endof "need print ?" check
   }//------>endof "TrigPatt"(ev-by-ev) block
 //======================================================================
-  if(formt==1){// <------- LiveTimeBlock info (raw fmt case)
+  if(formt==1){// <------- LiveTime info (present in every event for raw fmt case)
 // warning: 1st and 2nd words are interchanged in each livetime pair
     TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
     for(j=0;j<2;j++){// lt1/lt2
@@ -1758,41 +1920,32 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       else tgate=1;
       ltimec[j]=ltim;
       ltimeg[j]=tgate;
-      LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
-      if(LiveTime[j]>1){
+      livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
+      if(livetm[j]>1){
       if(TGL1FFKEY.printfl>10)cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
-	                        tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<LiveTime[j]<<endl;
+	                        tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<livetm[j]<<endl;
 //        LiveTime[j]=1; 
         TGL1JobStat::daqs1(6+2*j);//counts  LTime>1
       }
 //
-      if(TGL1FFKEY.printfl>10){
-        if(ltimeg[j]!=tgprev[j]){
-//        EventBitDump(jleng,p,"Dump on Change of LiveTimeGates:");//debug
-          cout<<endl<<" <---- LiveTimeGate changed: Event/Time= "<<AMSEvent::gethead()->getid()<<" "
-	                                                        <<AMSEvent::gethead()->gettime()<<endl;
-          cout<<"      Tgates:"<<ltimeg[j]<<" type="<<j+1<<endl<<endl;
-	  if(ltimeg[0]!=tgprev[j])tgprev[j]=ltimeg[j];
-        }
-      }
     }//--->endof lt1/2 loop
     lencalc+=4;//add LiveTime-block leng in RawFmt 
   }//------->endof "LiveTime" block(RawFmt only)
-//==================================================================
-//=======> TrigSetup block decoding:
-// This section updates TrigConfig parameters of current Lvl1TrigConfig-object in memory
-//  CP/CT/BZinp-masks are not srored in Lvl1TrigConfig-object for the moment, so the related 
-//       decoded info is not used now !!!!!!
-//
-//cout<<"<---SetupBlock:format="<<formt<<" trgsbias="<<trgsbias<<endl;
+//================================================================================================
+//========> check the presence/length of TrigSetup/Scaler blocks:
   if(formt==1){//raw fmt
     rstatw1=(0xFFFF);//all bits set(complete set of 1-16 setup words)
     rstatw2=(0xFFFF);//all bits set(complete set of 17-32 setup words)
+    rstatw3=0;//all scalers info missing in raw fmt
     nrdow1=16;
     nrdow2=16;
+    nrdow3=0;
     lencalc+=(nrdow1+nrdow2);//add Setup-block leng. in RawFmt
   }
   else{//ComprFormat
+    nrdow1=0;
+    nrdow2=0;
+    nrdow3=0;
     rstatw1=*(p+trgsbias);//1st readout-status word
     for(ib=0;ib<16;ib++){
       bit=(1<<ib);
@@ -1807,18 +1960,17 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //calc.scalers-block length
     scalbias=trgsbias+nrdow1+nrdow2+2;
     rstatw3=*(p+scalbias);//section's readout-members bit-pattern
-    nw3=1;//rdostat.w
     for(ib=0;ib<16;ib++){
       bit=(1<<ib);
       if((rstatw3*bit)>0){
-        if(ib<=2)nw3+=1;
-	if(ib==12)nw3+=2;
-	if(ib==13)nw3+=4;
-	if(ib==14)nw3+=14;
-	if(ib==15)nw3+=5;
+        if(ib<=2)nrdow3+=1;
+	if(ib==12)nrdow3+=2;
+	if(ib==13)nrdow3+=4;
+	if(ib==14)nrdow3+=14;
+	if(ib==15)nrdow3+=5;
       }
     }
-    lencalc+=nw3;//add Scalers-blocks length in CompFmt 
+    lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+2 for 2 readoutstat-words) 
   }
 //========>
   if((lencalc+1)!=len){
@@ -1827,9 +1979,14 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
                                               <<jleng<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
     goto BadExit;
   }
-//========>
-  if(nrdow1>0 || nrdow2>0)TGL1JobStat::daqs1(9);//"TrigSetupBlock" non-empty entries
+//================================> TrigSetup block decoding(RawFmt-everyevent,ConpFmt-beg.of.run):
+//  CP/CT/BZinp-masks are not srored in Lvl1TrigConfig-object for the moment, so the related 
+//       decoded info is not used now !!!!!!
 //
+  if(nrdow1>0 || nrdow2>0){
+  TGL1JobStat::daqs1(9);//"TrigSetupBlock" non-empty entries
+//
+/*
   nw1=0;
   if(nrdow1>0){//<---check readout-bits word1
 //
@@ -1841,10 +1998,10 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //--
       if(ib==0){//<---Anti-mask
         for(i=0;i<ANTI2C::MAXANTI;i++){//update antinmask
-          if((word&1<<(8+i))==0 && (word&1<<i)==0)l1trigconf.antinmask(i)=1;//s1&s2 "in"
-          else if((word&1<<(8+i))==0)l1trigconf.antinmask(i)=2;//s1(n) "in"
-          else if((word&1<<i)==0)l1trigconf.antinmask(i)=3;//s2(p) "in"
-          else l1trigconf.antinmask(i)=0;
+          if((word&1<<(8+i))==0 && (word&1<<i)==0)antinmask[i]=1;//s1&s2 "in"
+          else if((word&1<<(8+i))==0)antinmask[i]=2;//s1(n) "in"
+          else if((word&1<<i)==0)antinmask[i]=3;//s2(p) "in"
+          else antinmask[i]=0;
         }
       }
 //--
@@ -1869,7 +2026,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       }
 //--
       if(ib==2){//<---BZ/ECAL masks
-//CP-mask is not really used - i have pad-individual masks tofinzmask(il,ib))
+//BZ-mask is not really used - i have pad-individual masks tofinzmask(il,ib))
         bzmask=(word&0x00FF);//bz-mask(original, not convinient bits order)
         for(i=0;i<TOF2GC::SCLRS;i++){
           if((bzmask&1<<(4+i))==0 && (bzmask&1<<i)==0)bzinmask[i]=1;//s1&s2 "in"
@@ -1891,7 +2048,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
         if((word&1<<9)==0)wvar+=10;//ECft y-proj active
         if((word&1<<10)==0)wvar+=100;//ECangl x-proj active
         if((word&1<<11)==0)wvar+=1000;//ECangl y-proj active
-        l1trigconf.ecprjmask()=wvar;//update ecprjmask
+        ecprjmask=wvar;//update ecprjmask
       }
 //--
       if(ib==3){//<---   TRST/FEbusy-masks are not used for the moment(just stored)
@@ -1904,6 +2061,604 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       }
       if(ib==5){
         febusymsk[1]=uinteger(word);//last 16 FEbusy bits(24-39) are stored as lsbits of febusymsk[1]
+      }
+//--
+      if(ib==6){//<--- Tof CP/CT/BZ sides OR/AND setting
+        for(i=0;i<TOF2GC::SCLRS;i++){//update tofoamask and tofoazmask
+          if((word&(1<<i))>0)tofoamask[i]=1;//or for CP-sides(FTC)
+          else tofoamask[i]=0;//and
+          if((word&(1<<(i+8)))>0)tofoazmask[i]=1;//or for BZ-sides
+          else tofoazmask[i]=0;//and
+        }
+        if(AMSJob::gethead()->isRealData()){//RD L3<->L3 problem treatment
+	  rrr=tofoamask[2];
+	  tofoamask[2]=tofoamask[3];
+	  tofoamask[3]=rrr;
+	  rrr=tofoazmask[2];
+	  tofoazmask[2]=tofoazmask[3];
+	  tofoazmask[3]=rrr;
+        }
+      }
+//--
+      if(ib==7){//<--- ACC sides OR/AND setting
+        for(i=0;i<ANTI2C::MAXANTI;i++){//update antioamask
+          if((word&(1<<i))>0)antoamask[i]=1;//or
+          else antoamask[i]=0;//and
+        }
+      }
+//--
+      if(ib==8){//<--- Settings for internal trigger
+//ignore for the moment
+      }
+//      
+      if(ib==9){//<--- Settings for external/LA trigger
+//ignore for the moment
+      }
+//--
+      if(ib==10){//<--- settings for FT
+        if((word&1)==0)gftmsk+=1;
+        if((word&2)==0)gftmsk+=10;
+        if((word&4)==0)gftmsk+=100;
+        globftmask=gftmsk;//update globFTmask(FTE|FTZ|FTC)
+        if((word&(1<<7))>0)ftzlmsk+=10;//OR of top/bot in FTZ-trig
+        if((word&(1<<5))>0 & (word&(1<<6))>0)ftzlmsk+=3;//(1|2)+(3|4)
+        else if((word&(1<<5))>0 & (word&(1<<6))==0)ftzlmsk+=2;//(1|2)+(3&4)
+        else if((word&(1<<5))==0 & (word&(1<<6))>0)ftzlmsk+=1;//(1&2)+(3|4)
+        toflcsz=ftzlmsk;//update FTZ layers or/and mask
+        if((word&(1<<8))>0)ecorand=1;//update FTE-proj or/and(1/2->or/and) requir.
+        else ecorand=2;
+      }
+//--
+      if(ib>=11 && ib<=13){ 
+        luti=(word&0xFFFE);
+	if(AMSJob::gethead()->isRealData())lutf=lutbswap(luti);//RD L3<->L3 problem treatment for LUTs
+	else lutf=luti;
+      }
+      if(ib==11){
+        toflut1=integer(lutf);//<--- LUT-FT0 setting
+      }
+//        
+      if(ib==12){
+        toflut2=integer(lutf);//<--- LUT-FT1 setting
+      }
+//        
+      if(ib==13){
+        toflutbz=integer(lutf);//<--- LUT-BZ setting
+      }
+//--
+      if(ib==14){//<--- settings for FTZ top/bot-signal's extention width        
+        ftzwdcode=(word&0x1F);//topTOF p.width extention code
+        ftzwdcode|=((word&0x1F00)>>3);//botTOF p.width extention code
+        tofextwid=integer(ftzwdcode);
+      }
+//
+      if(ib==15){//<--- settings for Lev1-phys.branches mask and Acc0/1-thresholds
+        globl1mask=integer((~(word&0xFF))&0xFF);//update Lev1-phys.branches mask
+        antsectmx[0]=integer((word&0xF00)>>8);//Max. Anti-sectors(equat. region)=1 
+        antsectmx[1]=integer((word&0xF000)>>12);//Max. Anti-sectors(polar region)=0
+      } 
+//
+    }//--->endof bit-set check
+//
+    }//--->endof bits loop
+//      
+  }//--->endof readout-bits word1 check
+  if(formt==2)nrdow1+=1;//for compr.fmt count readout-bits word1 itself
+//------------------------------------------- 
+  if(nrdow2>0){//<---check readout-bits word2
+//
+    nw2=0;
+    for(ib=0;ib<16;ib++){//<--- bit loop
+    bit=(1<<ib);
+    if((rstatw2*bit)>0){
+      nw2+=1;
+      word=*(p+trgsbias+nrdow1+nw2);
+//
+      if(ib>=0 && ib<8){//<--- LVL1-memb.settings for 8 physical branches
+        physbrmemb[ib]=integer((~(word&0x7FFF))&0x7FFF);//Lin(disable)->Me(anable),except bit15 !
+      }
+//
+      if(ib>=8 && ib<16){//<--- Presc.factors settings for 8 physical branches
+        psfcode=(word&0x3FF);//presc.factor code
+        for(j=0;j<8;j++){
+          if(psfcode==prescfcode[j])break;
+        }
+        if(j<8)phbrprescf[ib-8]=prescfvals[j];//update presc.factor's values for PhysBranches
+        else{
+          phbrprescf[ib-8]=1;//set presc.fact.=1 for unknown codes
+          if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::buildraw:Unkn prescFactor code(hex)="
+	                             <<hex<<psfcode<<dec<<" PhBr="<<ib-8<<endl;
+        }
+      }
+//
+    }//--->endof bit-set check
+//
+    }//--->endof bits loop
+//      
+  }//--->endof readout-bits word2 check
+  if(formt==2)nrdow2+=1;//for compr.fmt count readout-bits word2 itself
+*/
+  }//---> endof SetupBlock decoding
+//--------------------------------------------------------------------------------------------------------
+  if(SetupIsChanged){
+    TGL1JobStat::daqs1(16);//"TrigSetupBlock" changes
+    if(TGL1FFKEY.printfl>0){//print brief setup info (on change and request):
+#pragma omp critical (print_shortsetup)
+{ 
+    cout<<"===================================================="<<endl;
+    cout<<"|      TrigSetup changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
+                                                                AMSEvent::gethead()->getid()<<endl;
+    cout<<"|        New SetupWordsPatterns: "<<hex<<rstatw1<<" "<<rstatw2<<dec<<endl;
+    cout<<"===================================================="<<endl;
+}//--->endof pragma
+    }//---> endof "PrintSetupInfo"
+  }
+// Don't save here to file/DB - tofinmask,tofinzmask may be not yet decoded, so save later in Trigger2LVL1::build
+//---------------------------------------------------------------------------------------------------
+  integer tgid;
+  number scrate;
+#ifdef _OPENMP
+// tempor debugging: decode scalers here and compare with latest ones in static arr(done in Early(Pre)Decoding): 
+//
+//==============================> Scalers Block decoding(CompFmt only, incl.LiveTime)
+//
+  if(formt==2 && nrdow3>0){//<--- scalers ("from-time-to-time") block found
+    TGL1JobStat::daqs1(11);//"ScalersBlock" entries
+    scalbias=trgsbias+nrdow1+nrdow2;
+    rstatw3=*(p+scalbias);//section's readout-members bit-pattern
+    nw3=0;
+//---
+    bit=1;
+    if((rstatw3*bit)>0){//<---time-gate for LiveTime
+      word=*(p+scalbias+1+nw3);
+      tgid=integer(word);//2bits of time_gate.id
+      if(tgid==3)tgatelt=2;//time-gate(sec)
+      else if(tgid==0)tgatelt=0.25;
+      else if(tgid==1)tgatelt=0.5;
+      else tgatelt=1;
+      nw3+=1;
+    }
+//---
+    bit=(1<<1);
+    if((rstatw3*bit)>0){//<--- time-gate for scalers in trigger FPGA
+      word=*(p+scalbias+1+nw3);
+      tgid=integer(word);//time-gate for trigger-scalers
+      if(tgid==3)tgatetr=2;//time-gate(sec)
+      else if(tgid==0)tgatetr=0.25;
+      else if(tgid==1)tgatetr=0.5;
+      else tgatetr=1;
+      nw3+=1;
+    }
+//---
+    bit=(1<<2);
+    if((rstatw3*bit)>0){//<--- time-gate for scalers in scalers FPGA
+      word=*(p+scalbias+1+nw3);
+      tgid=integer(word);//time-gate for scaler-scalers
+      if(tgid==3)tgatesc=2;//time-gate(sec)
+      else if(tgid==0)tgatesc=0.25;
+      else if(tgid==1)tgatesc=0.5;
+      else tgatesc=1;
+      nw3+=1;
+    }
+//---
+    bit=(1<<12);
+    if((rstatw3*bit)>0){//<--- time-calibration
+      word=*(p+scalbias+1+nw3);
+      nword=*(p+scalbias+1+nw3+1);
+      timcal=0;
+      timcal|=uinteger(word);
+      lword=uinteger(nword);//last 16bits of time-calib word
+      timcal|=(lword<<16);
+      nw3+=2;
+    }
+//---
+    bit=(1<<13);
+    if((rstatw3*bit)>0){//<--- LiveTime1/2
+      TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
+      for(j=0;j<2;j++){// lt1/lt2
+        word=*(p+scalbias+1+nw3);//last 11bits + time-gate.id
+        nword=*(p+scalbias+1+nw3+1);//first 16bits
+        ltim=uinteger(nword);
+        lword=uinteger(word);//last 11bits of live_time + time_gate.id
+        ltim|=((lword&0x07FFL)<<16);
+        timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
+        if(timgid==3)tgate=2;//time-gate(sec)
+        else if(timgid==0)tgate=0.25;
+        else if(timgid==1)tgate=0.5;
+        else tgate=1;
+        ltimec[j]=ltim;
+        ltimeg[j]=tgate;
+        livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
+        if(livetm[j]>1){
+          if(TGL1FFKEY.printfl>10){
+	    cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
+	                tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<livetm[j]<<endl;
+          }
+//           LiveTime[j]=1; 
+          TGL1JobStat::daqs1(6+2*j);//counts  LTime>1
+        } 
+        nw3+=2;
+      }
+    }
+//---
+    bit=(1<<14);
+    if((rstatw3*bit)>0){//<--- FT/LVL1-rates
+      for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys) 
+        word=*(p+scalbias+1+nw3+j);
+	scrate=number(word)/tgatetr;
+	tgrates[j]=scrate;
+      }
+      nw3+=5;
+//-
+      for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
+        word=*(p+scalbias+1+nw3+j);
+	scrate=number(word)/tgatetr;
+	tgrates[5+j]=scrate;
+      }
+      nw3+=9;
+    }
+//---
+    bit=(1<<15);
+    if((rstatw3*bit)>0){//<--- Detector-rates(SideMax for Tof/Acc/ECf/ECa)
+      for(j=0;j<5;j++){
+        word=*(p+scalbias+1+nw3+j);
+	scrate=number(word)/tgatesc;
+	dtrates[j]=scrate;
+      }
+      nw3+=5;
+    }
+//-------
+    if(livetm[0]!=scalmon.LiveTime(0) || livetm[1]!=scalmon.LiveTime(1)){
+      cerr<<"TriggerLVL1-E-LiveTimes NotMatch "<<livetm[0]<<" "<<scalmon.LiveTime(0)<<" "
+          <<livetm[1]<<" "<<scalmon.LiveTime(1)<<endl;
+    }
+  }//--->endof Scalers Block decoding
+#endif
+//---------------
+  if(TGL1FFKEY.printfl>12 || ScalerIsChanged){//print brief scalers info (on change or request):
+#pragma omp critical (print_scaler)
+{ 
+    cout<<"===================================================="<<endl;
+    cout<<"|      Some Scalers changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
+                                                                AMSEvent::gethead()->getid()<<endl;
+    cout<<"|        New ScalerWordsPatterns: "<<hex<<rstatw3<<dec<<endl;
+    cout<<"===================================================="<<endl;
+}//--->endof pragma
+  }//---> endof "PrintSetupInfo"
+//-------------------------------------------------------------------------------------------
+//
+//===================================> create Lev1-object:
+//
+//---> take latest updates on some non "event-by-event" variables (important Scalers-block data):
+//
+  if(formt==2){//CompFmt: take TimeCalib/LiveTime from static arrs (done in Early(Pre)Decoding)
+    LiveTime[0]=scalmon.LiveTime(0); 
+    LiveTime[1]=scalmon.LiveTime(1);
+    trtime[0]=scalmon.TimeCalib();
+  }
+  else if(formt==1){//RawFmt: above info exists in every events 
+    LiveTime[0]=livetm[0]; 
+    LiveTime[1]=livetm[1];
+    trtime[0]=timcal;
+  }
+  if(TGL1FFKEY.printfl>0){
+#pragma omp critical (hf1)
+{
+    HF1(1094,geant(LiveTime[0]),1.);
+}
+  } 
+// 
+  for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys)
+    TrigRates[j]=scalmon.FTtrig(j);
+  } 
+  for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
+    TrigRates[j+5]=scalmon.LVL1trig(j);
+  }
+  for(j=0;j<5;j++){//SubDet rates
+    TrigRates[j+14]=scalmon.DetMaxRate(j);
+  }
+//--- some rec0-statistics:
+  if(TofFlag1>=0 || TofFlag2>=0 || (EcalFlag/10)>=2)TGL1JobStat::daqs1(35);//FT in LVL1 ok
+  if(JMembPatt>0 && PhysBPatt>0)TGL1JobStat::daqs1(36);//
+  if(JMembPatt==0)TGL1JobStat::daqs1(32);//count empty TrigPatt entries
+  if(PhysBPatt==0)TGL1JobStat::daqs1(33);//count empty TrigPatt entries
+  if(auxtrpat>0)TGL1JobStat::daqs1(34);//count non-empty AuxTrPatt
+  if(((JMembPatt&1)>0 || (JMembPatt&(1<<5))>0) && (JMembPatt&(1<<6))>0)TGL1JobStat::daqs1(38);
+//
+//
+  if(TrigRates[5]<TGL1FFKEY.MaxScalersRate && LiveTime[0]>=TGL1FFKEY.MinLifeTime)TGL1JobStat::daqs1(37);
+//     
+  if(
+       (auxtrpat > 0)                                                               //aux.tr
+                     || (JMembPatt>0 && PhysBPatt>0)
+                                                    ){
+    AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
+    new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,TofFlag1,TofFlag2,tofpat1,tofpat2,
+                                AntiPatt,EcalFlag,ecpat,ectrs,LiveTime[0],TrigRates,trtime));
+    TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    
+  }
+  else{
+    TGL1JobStat::daqs1(15);//count errored entries    
+    AMSEvent::gethead()->seterror();
+  }
+  return;
+//
+BadExit:
+  TGL1JobStat::daqs1(13);//count rejected LVL1-entries(segments)
+}
+
+
+
+
+//------------------------------------------------------------------------
+integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
+//
+// on input: len=tot_block_length as given at the beginning of block
+//           *p=pointer_to_beggining_of_block_data (next to the length word)
+//
+//
+  integer lenoncall,lencalc(0);
+  static geant tgprev[2]={-1,-1};
+  static number evtprev(-1);
+  static int16u parbitpatt[3]={0,0,0};
+  number evtcurr(0),delevt;
+  uinteger ntrst(0),timcal(0);
+  uinteger time[2]={0,0};
+  uinteger trtime[5]={0,0,0,0,0};
+//
+  bool PreAssRD=(AMSJob::gethead()->isRealData()
+                 && 1) ;//flag to identify RD of preassembly period
+//
+  integer i,j,iw,il,ib,is,ic,lent,dlen,wvar;
+  int16u bit,rrr;
+  int16u blid,btyp,naddr,word,wordi,wordf,nword,luti,lutf;
+  uinteger lword;
+  uinteger ltim(0);
+  geant tgate(0),tgatelt(0),tgatetr(0),tgatesc(0);
+  uinteger ltimec[2];
+  geant ltimeg[2];
+  uinteger timgid;
+  integer gftmsk(0),ftzlmsk(0);
+  int16u ftzwdcode(0);
+  geant LiveTime[2]={0,0};
+  geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+//  
+  int16u datyp(0),formt(0),evnum;
+  int16u jbias,jblid,jleng,jaddr,csid,psfcode;
+  int16u prescfcode[8]={0x3FF,0x3FE,0x3FD,0x3FC,0x3FB,0x3FA,0x3F9,0x3F8};//prescale factors codes
+  int16u prescfvals[8]={1,2,5,10,20,50,100,1000};//presc.factors(N->N:1)
+//
+  int16u rstatw1(0),rstatw2(0),rstatw3(0);
+  int16u nrdow1(0),nrdow2(0),nrdow3(0);
+  int16u nw1,nw2,nw3;
+//
+  int ltimbias;//tempor bias to live-time data(in "trig"-block)
+  int trgsbias;//bias to trig.setup/status block
+  int pattbias;//bias to trig.patt sub-block
+  int scalbias;//bias to scalers sub-block
+//
+  lenoncall=(len&(0xFFFFL));
+  TGL1JobStat::daqs1(40);//count entries
+   p=p-1;//to follow VC-convention(here points to length-word)
+//  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
+  jleng=int16u(len&(0xFFFFL));
+  jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
+//
+  bool dataf=((jblid&(0x8000))>0);//data-fragment
+  bool crcer=((jblid&(0x4000))>0);//CRC-error
+  bool asser=((jblid&(0x2000))>0);//assembly-error
+  asser=false;
+  bool amswer=((jblid&(0x1000))>0);//amsw-error   
+  bool timoer=((jblid&(0x0800))>0);//timeout-error   
+  bool fpower=((jblid&(0x0400))>0);//FEpower-error   
+  bool seqer=((jblid&(0x0400))>0);//sequencer-error
+  bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
+  bool noerr;
+//vars to check setup-change:
+//  static integer lut1o(0),lut2o(0),lut3o(0),phbmsko(0);
+//  static integer phbmemo[8]={0,0,0,0,0,0,0,0};
+//  bool phbmchange(false);
+//
+  jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
+  datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
+//printfl=10/11/12/13=> noPrint/OnlyWarningPrint/+EventPatterns/+Setup&BitDump
+    
+  if(jleng>1){
+    TGL1JobStat::daqs1(41);//<=== count non-empty fragments
+  }
+  else goto BadExit;
+//
+  node2side(jaddr,csid);//card_side(1/2<->a/b)
+  if(csid>0 && csid<3){
+    TGL1JobStat::daqs1(42+csid-1);//sides sharing
+  }
+  else goto BadExit;
+//
+  TGL1JobStat::daqs1(44+datyp);//<=== count lvl1's format-types
+  if(datyp==0){
+//    goto BadExit;//unknown format
+  }
+//
+  if(!dataf){
+    goto BadExit;//tempor
+  }
+//
+//
+  noerr=(!crcer 
+//               && !asser
+	                && !amswer 
+			          && !timoer 
+				            && !fpower 
+					              && !seqer
+						               && cdpnod);
+  if(noerr){
+    TGL1JobStat::daqs1(48);//<=== count no-errors fragments
+  }
+  else goto BadExit;
+//
+  if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
+    || (jleng==52 && datyp==1))//MC/newRD(in RawFmt with datyp=1)
+  {
+    pattbias=0;//bias to patt. sub-block
+    trgsbias=15;//bias to trig-setup sub-block(points to PREVIOUS to the 1st sub-block word)
+    ltimbias=48;//bias to time sub-block
+    formt=1;//means real raw fmt
+  }
+  else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
+    pattbias=0;//bias to patterns sub-block
+    trgsbias=12;//bias to trig-setup sub-block(points to 1st readout-status word)
+    formt=2;//means real compr fmt
+  } 
+  else {
+      goto BadExit;
+  }
+//
+  TGL1JobStat::daqs1(49);//<=== entries to decoding
+//
+//----------------> fill(update) here Lev1 static objects l1trigconf and scalmon :
+//
+//--->extract TimCal info for RawFmt(always present, but may be not h/w-updated):
+//
+  lencalc=3+4+4;//add always present but not decoded here 3 busy-patt words, 4 trigpatt words 
+//                                                          and decoded at the end 4 TrigTime words
+  if(formt==1){//RD PreAssPeriod OR RawFmt
+    TGL1JobStat::daqs1(51);// count RawFmt TimeCalib updates
+// attention:  i suppose that 0x0D(p+14) and 0x0E(p+15) words exist but empty
+    timcal=0;
+    word=*(p+12+pattbias);//1st 16bits of time-calib word
+    timcal|=uinteger(word);
+    lword=uinteger(*(p+13+pattbias));//last 16bits of time-calib word
+    timcal|=(lword<<16);
+    lencalc+=4;//add time-calib and 2 empty words for RawFmt
+    scalmon.TimeCalib()=timcal;
+  }
+//
+//----> extract LiveTime info for RawFmt(always present, but may be not h/w-updated):
+//
+  if(formt==1){
+    TGL1JobStat::daqs1(52);// count RawFmt LiveTime updates
+// warning: 1st and 2nd words are interchanged in each livetime pair
+    for(j=0;j<2;j++){// lt1/lt2
+      word=*(p+ltimbias+1+2*j);//1st 16bits of live-time
+      ltim=uinteger(word);
+      lword=uinteger(*(p+ltimbias+2*j));//last 11bits of live_time + time_gate.id
+      ltim|=((lword&0x07FFL)<<16);
+      timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
+      if(timgid==3)tgate=2;//time-gate(sec)
+      else if(timgid==0)tgate=0.25;
+      else if(timgid==1)tgate=0.5;
+      else tgate=1;
+      ltimec[j]=ltim;
+      ltimeg[j]=tgate;
+      LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
+      if(LiveTime[j]>1){
+//        LiveTime[j]=1; 
+        TGL1JobStat::daqs1(53+j);//counts  LTime>1
+      }
+//
+      scalmon.LiveTime(j)=LiveTime[j]; 
+    }//--->endof lt1/2 loop
+    lencalc+=4;//add LiveTime-block leng in RawFmt
+  }//------->endof "LiveTime" block(RawFmt only)
+//
+//========> check the presence/length of TrigSetup/Scaler blocks:
+//
+  if(formt==1){//raw fmt
+    rstatw1=(0xFFFF);//all bits set(complete set of 1-16 setup words)
+    rstatw2=(0xFFFF);//all bits set(complete set of 17-32 setup words)
+    rstatw3=0;//scalers info always missing
+    nrdow1=16;
+    nrdow2=16;
+    nrdow3=0;
+    lencalc+=(nrdow1+nrdow2);//add Setup-block leng. in RawFmt
+  }
+  else{//ComprFormat
+    nrdow1=0;
+    nrdow2=0;
+    nrdow3=0;
+    rstatw1=*(p+trgsbias);//1st readout-status word
+    for(ib=0;ib<16;ib++){
+      bit=(1<<ib);
+      if((rstatw1*bit)>0)nrdow1+=1;
+    }
+    rstatw2=*(p+trgsbias+nrdow1+1);//2nd readout-status word
+    for(ib=0;ib<16;ib++){
+      bit=(1<<ib);
+      if((rstatw2*bit)>0)nrdow2+=1;
+    }
+    lencalc+=nrdow1+nrdow2+2;//add Setup-block leng. in CompFmt(+2 for 2 readoutstat-words)
+//calc.scalers-block length
+    scalbias=trgsbias+nrdow1+nrdow2+2;
+    rstatw3=*(p+scalbias);//section's readout-members bit-pattern
+    for(ib=0;ib<16;ib++){
+      bit=(1<<ib);
+      if((rstatw3*bit)>0){
+        if(ib<=2)nrdow3+=1;
+	if(ib==12)nrdow3+=2;
+	if(ib==13)nrdow3+=4;
+	if(ib==14)nrdow3+=14;
+	if(ib==15)nrdow3+=5;
+      }
+    }
+    lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+2 for 2 readoutstat-words) 
+  }
+//========>
+  if((lencalc+1)!=lenoncall){
+    TGL1JobStat::daqs1(55);//wrong segment length
+    if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::BuildRawEarly: length error, LengInCall="
+                                          <<lenoncall<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
+    goto BadExit;
+  }
+//=============================> TrigSetup block decoding:
+// This section updates TrigConfig parameters of current Lvl1TrigConfig-object(static l1trigconf) in memory
+//  CP/CT/BZinp-masks are not srored in Lvl1TrigConfig-object for the moment, so the related 
+//       decoded info is not used now !!!!!!
+//
+  if(nrdow1>0 || nrdow2>0){
+  TGL1JobStat::daqs1(56);//"TrigSetupBlock" non-empty entries
+//
+  nw1=0;
+  if(nrdow1>0){//<---check readout-bits word1
+//
+    for(ib=0;ib<16;ib++){//<--- bit loop
+    bit=(1<<ib);
+    if((rstatw1*bit)>0){
+      nw1+=1;
+      word=*(p+trgsbias+nw1);
+//--
+      if(ib==0){//<---Anti-mask
+        for(i=0;i<ANTI2C::MAXANTI;i++){//update antinmask
+          if((word&1<<(8+i))==0 && (word&1<<i)==0)l1trigconf.antinmask(i)=1;//s1&s2 "in"
+          else if((word&1<<(8+i))==0)l1trigconf.antinmask(i)=2;//s1(n) "in"
+          else if((word&1<<i)==0)l1trigconf.antinmask(i)=3;//s2(p) "in"
+          else l1trigconf.antinmask(i)=0;
+        }
+      }
+//--
+      if(ib==1){//<---CP/CT mask
+//CP/CT-mask are ignored - i have pad-individual masks tofinmask(il,ib))
+      }
+//--
+      if(ib==2){//<---BZ/ECAL masks
+//BZ-mask is ignored - i have pad-individual masks tofinzmask(il,ib))
+//
+        wvar=0;
+        if((word&1<<8)==0)wvar+=1;//ECft x-proj active(ababled)
+        if((word&1<<9)==0)wvar+=10;//ECft y-proj active
+        if((word&1<<10)==0)wvar+=100;//ECangl x-proj active
+        if((word&1<<11)==0)wvar+=1000;//ECangl y-proj active
+        l1trigconf.ecprjmask()=wvar;//update ecprjmask
+      }
+//--
+      if(ib==3){//<---   TRST/FEbusy-masks 
+// ignored
+      }
+//--
+      if(ib==4){
+// ignored
+      }
+      if(ib==5){
+// ignored
       }
 //--
       if(ib==6){//<--- Tof CP/CT/BZ sides OR/AND setting
@@ -2014,101 +2769,22 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //      
   }//--->endof readout-bits word2 check
   if(formt==2)nrdow2+=1;//for compr.fmt count readout-bits word2 itself
-//-----------------------------
-//cout<<"<---SetupBlock:format="<<formt<<" nrdow1/2="<<nrdow1<<" "<<nrdow2<<" nw1/2="<<nw1<<" "<<nw2<<endl;
-//---some TrigSetup-info message if changed wrt prev.event :
-  for(i=0;i<8;i++)if(l1trigconf.physbrmemb(i)!=phbmemo[i])phbmchange=true;
-  if(l1trigconf.toflut1()!=lut1o || l1trigconf.toflut2()!=lut2o
-                                 || l1trigconf.toflutbz()!=lut3o
-		                 || l1trigconf.globl1mask()!=phbmsko
-				 || phbmchange
-				                                                 ){
-    SetupIsChanged=true;
+  }//------> endof SetupBlock decoding
+//----
+//----------> check change of TrigSetup
 //
-    lut1o=l1trigconf.toflut1();
-    lut2o=l1trigconf.toflut2();
-    lut3o=l1trigconf.toflutbz();
-    phbmsko=l1trigconf.globl1mask();
-    for(i=0;i<8;i++)phbmemo[i]=l1trigconf.physbrmemb(i);
+  if((rstatw1!=0 && rstatw1!=parbitpatt[0]) || (rstatw2!=0 && rstatw1!=parbitpatt[1])){
+    TGL1JobStat::daqs1(57);//TrigSetup changes
+    parbitpatt[0]=rstatw1;
+    parbitpatt[1]=rstatw2;
+    SetupIsChanged=true;
   }
-//---
-  if(TGL1FFKEY.printfl>12 || SetupIsChanged){//print setup info (if requested or changed during the job-running):
-    if(SetupIsChanged){
-      cout<<"===================================================="<<endl;
-      cout<<"=====> TrigConditions changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
-                                                              AMSEvent::gethead()->getid()<<" <====="<<endl;
-      cout<<"                New settings are :"<<endl;
-    }
-    else cout<<"==========> LVL1-Trigger Setup&Status :"<<endl;
-    cout<<"      Anabled ATC-sectors/sides:";
-    for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antinmask(i)<<" ";
-    cout<<endl;
-    cout<<"              ATC-sectors side_OR(1)/AND(0) flags:";
-    for(i=0;i<ANTI2C::MAXANTI;i++)cout<<l1trigconf.antoamask(i)<<" ";
-    cout<<endl;
-      
-    cout<<"      Anabled TOF CP-planes/sides:";
-    for(i=0;i<TOF2GC::SCLRS;i++)cout<<cpinmask[i]<<" ";
-    cout<<endl;
-    cout<<"      Anabled     BZ-planes/sides:";
-    for(i=0;i<TOF2GC::SCLRS;i++)cout<<bzinmask[i]<<" ";
-    cout<<endl;
-      
-    cout<<"      Anabled ECAL [FTE(x|y)|ANG(x|y)]:"<<wvar<<endl;
-    cout<<"              ECAL-proj OR/AND(->1/2):"<<l1trigconf.ecorand()<<endl;
-      
-    cout<<"      TOF-Layers Sides_OR(1)/AND(0) flags(CP/BZ):"<<" ";
-    for(i=0;i<TOF2GC::SCLRS;i++)cout<<l1trigconf.tofoamask(i)<<" ";
-    cout<<" "; 
-    for(i=0;i<TOF2GC::SCLRS;i++)cout<<l1trigconf.tofoazmask(i)<<" ";
-    cout<<endl; 
-      
-    cout<<"      Anabled globFT-members pattern(FTE|FTZ|FTC<-):"<<gftmsk<<endl;
-      
-    bool ftztbor=(ftzlmsk/10==1);
-    bool ftz12or=((ftzlmsk%10)==2 || (ftzlmsk%10)==3); 
-    bool ftz34or=((ftzlmsk%10)==1 || (ftzlmsk%10)==3); 
-    cout<<"      FTZ-setting(OR/AND->1/0): Top/Bot:"<<ftztbor<<" L12:"<<ftz12or<<" L34:"<<ftz34or<<endl;
-      
-    cout<<"      TOF LUT1/LUT2/LUTBZ-settings:"<<l1trigconf.toflut1()<<"/"<<l1trigconf.toflut2()
-                                                                            <<"/"<<l1trigconf.toflutbz()<<endl;
-									    
-    geant pwextt=geant(20*(1+(l1trigconf.tofextwid()&31)));//ext.width for top-coinc. signal
-    geant pwextb=geant(20*(1+((l1trigconf.tofextwid()&(31<<5))>>5)));//ext.width for bot-coins. signal
-    cout<<"      TOF-FTZ top/bot pulse ext.width(ns):"<<pwextt<<" "<<pwextb<<endl<<endl;
-      
-    cout<<"      All 8 Lev1MembersPatterns :"<<endl; 
-    cout<<"|FTP0|FTP1|FTT0|FTT1| FTZ| FTE|ACC0|ACC1|  BZ|ECFA|ECFO|ECAA|ECAO|EXG0|EXG1|"<<endl;
-    for(i=0;i<8;i++){
-      for(j=0;j<15;j++){
-	if((l1trigconf.physbrmemb(i)&1<<j)>0)cout<<"  X  ";
-        else cout<<"  0  ";
-      }
-      cout<<endl;
-    }
-      
-    cout<<"      Anabled Lev1PhysBranchesPatterns :"<<endl;
-    cout<<"|  FTC| Z>=1| Z>=2|Z>=2s|Elect|Gamma|  FTE|Extrn|"<<endl;  
-    for(i=0;i<8;i++){
-      if((l1trigconf.globl1mask()&1<<i)>0)cout<<"   X  ";
-      else cout<<"   0  ";
-    }
-    cout<<endl;
-    cout<<"      with Prescale-factors :"<<endl;
-    for(i=0;i<8;i++)if((l1trigconf.globl1mask()&1<<i)>0)cout<<l1trigconf.phbrprescf(i)<<" ";
-    cout<<endl;
-      
-    cout<<"      ACC NsectThresholds(accept Ns<=thr):"<<l1trigconf.antsectmx(0)<<"(equ) "
-                                                       <<l1trigconf.antsectmx(1)<<"(pol)"<<endl; 
-    cout<<"===================================================="<<endl;
-  }//---> endof "PrintSetupInfo"
-// Don't save here to file/DB - tofinmask,tofinzmask may be not yet decoded, so save later in Trigger2LVL1::build
-//====================================================================
-//============> Scalers Block decoding(CompFmt only, incl.LiveTime)
+//--------------------------------------------------------------------------------------------------------
+//=========================> Scalers Block decoding(CompFmt only, incl.LiveTime)
   integer tgid;
   number scrate;
-  if(formt==2){//<--- scalers "from-time-to-time" block
-    TGL1JobStat::daqs1(11);//"ScalersBlock" entries
+  if(formt==2 && nrdow3>0){//<--- scalers "from-time-to-time" block
+    TGL1JobStat::daqs1(58);//"ScalersBlock" entries
     scalbias=trgsbias+nrdow1+nrdow2;
     rstatw3=*(p+scalbias);//section's readout-members bit-pattern
     nw3=0;
@@ -2148,19 +2824,20 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //---
     bit=(1<<12);
     if((rstatw3*bit)>0){//<--- time-calibration
+      TGL1JobStat::daqs1(59);//"time-calib" entries
       word=*(p+scalbias+1+nw3);
       nword=*(p+scalbias+1+nw3+1);
       timcal=0;
       timcal|=uinteger(word);
       lword=uinteger(nword);//last 16bits of time-calib word
       timcal|=(lword<<16);
-      tcalib=timcal;
+      scalmon.TimeCalib()=timcal;
       nw3+=2;
     }
 //---
     bit=(1<<13);
     if((rstatw3*bit)>0){//<--- LiveTime1/2
-      TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
+      TGL1JobStat::daqs1(60);//"LiveTimeBlock" entries
       for(j=0;j<2;j++){// lt1/lt2
         word=*(p+scalbias+1+nw3);//last 11bits + time-gate.id
         nword=*(p+scalbias+1+nw3+1);//first 16bits
@@ -2176,382 +2853,55 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
         ltimeg[j]=tgate;
         LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
         if(LiveTime[j]>1){
-          if(TGL1FFKEY.printfl>10)cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
+          if(TGL1FFKEY.printfl>10)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - LiveTime1>1!, tg/lt="<<
 	  tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<LiveTime[j]<<endl;
 //           LiveTime[j]=1; 
-          TGL1JobStat::daqs1(6+2*j);//counts  LTime>1
+          TGL1JobStat::daqs1(61+j);//counts  LTime>1
         } 
-//        scalmon.LiveTime(j)=LiveTime[j];//copy to scalmon
+        scalmon.LiveTime(j)=LiveTime[j];//copy to scalmon
         nw3+=2;
       }
     }
 //---
     bit=(1<<14);
     if((rstatw3*bit)>0){//<--- FT/LVL1-rates
+      TGL1JobStat::daqs1(63);//"FT/LVL1-rates" entries
       for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys) 
         word=*(p+scalbias+1+nw3+j);
 	scrate=number(word)/tgatetr;
-	tgrates[j]=scrate;
-//        scalmon.FTtrig(i)=number(word)/tgatetr;//set FTs rates
+        scalmon.FTtrig(j)=scrate;//set FTs rates
       }
       nw3+=5;
 //-
       for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
         word=*(p+scalbias+1+nw3+j);
 	scrate=number(word)/tgatetr;
-	tgrates[5+j]=scrate;
-//        scalmon.LVL1trig(j)=number(word)/tgatetr;
+        scalmon.LVL1trig(j)=scrate;
       }
       nw3+=9;
-//select rates to keep in LVL1-obj:
-      for(j=0;j<14;j++)TrigRates[j]=tgrates[j];//update static trig.rates-array
     }
 //---
     bit=(1<<15);
     if((rstatw3*bit)>0){//<--- Detector-rates(SideMax for Tof/Acc/ECf/ECa)
+      TGL1JobStat::daqs1(64);//"SubDet-rates" entries
       for(j=0;j<5;j++){
         word=*(p+scalbias+1+nw3+j);
 	scrate=number(word)/tgatesc;
-	dtrates[j]=scrate;
+        scalmon.DetMaxRate(j)=scrate;
       }
       nw3+=5;
-      for(j=0;j<5;j++)TrigRates[14+j]=dtrates[j];//update static det.rates-array
     }
   }//--->endof Scalers Block decoding
-//===================================================================
-/*    
-    for(i=0;i<5;i++){
-      word=*(p+scalbias+14+i);
-      scalmon.SPtrig(i)=number(word)/tgate;//LA0/1,Ext,DSP,Int rates
-    }
-    
-    word=*(p+scalbias+23);
-    scalmon.CPside1(0)=number(word)/tgate;//CP L1S1 rate
-    word=*(p+scalbias+28);
-    scalmon.CPside1(1)=number(word)/tgate;//CP L2S1 rate
-    word=*(p+scalbias+29);
-    scalmon.CPside1(2)=number(word)/tgate;//CP L3S1 rate
-    word=*(p+scalbias+30);
-    scalmon.CPside1(3)=number(word)/tgate;//CP L4S1 rate
-    word=*(p+scalbias+27);
-    scalmon.CPside2(0)=number(word)/tgate;//CP L1S2 rate
-    word=*(p+scalbias+24);
-    scalmon.CPside2(1)=number(word)/tgate;//CP L2S2 rate
-    word=*(p+scalbias+25);
-    scalmon.CPside2(2)=number(word)/tgate;//CP L3S2 rate
-    word=*(p+scalbias+26);
-    scalmon.CPside2(3)=number(word)/tgate;//CP L4S2 rate
-    
-    word=*(p+scalbias+31);
-    scalmon.CTside1(0)=number(word)/tgate;//CT L1S1 rate
-    word=*(p+scalbias+36);
-    scalmon.CTside1(1)=number(word)/tgate;//CT L2S1 rate
-    word=*(p+scalbias+37);
-    scalmon.CTside1(2)=number(word)/tgate;//CT L3S1 rate
-    word=*(p+scalbias+38);
-    scalmon.CTside1(3)=number(word)/tgate;//CT L4S1 rate
-    word=*(p+scalbias+35);
-    scalmon.CTside2(0)=number(word)/tgate;//CT L1S2 rate
-    word=*(p+scalbias+32);
-    scalmon.CTside2(1)=number(word)/tgate;//CT L2S2 rate
-    word=*(p+scalbias+33);
-    scalmon.CTside2(2)=number(word)/tgate;//CT L3S2 rate
-    word=*(p+scalbias+34);
-    scalmon.CTside2(3)=number(word)/tgate;//CT L4S2 rate
-    
-    word=*(p+scalbias+39);
-    scalmon.BZside1(0)=number(word)/tgate;//BZ L1S1 rate
-    word=*(p+scalbias+44);
-    scalmon.BZside1(1)=number(word)/tgate;//BZ L2S1 rate
-    word=*(p+scalbias+45);
-    scalmon.BZside1(2)=number(word)/tgate;//BZ L3S1 rate
-    word=*(p+scalbias+46);
-    scalmon.BZside1(3)=number(word)/tgate;//BZ L4S1 rate
-    word=*(p+scalbias+43);
-    scalmon.BZside2(0)=number(word)/tgate;//BZ L1S2 rate
-    word=*(p+scalbias+40);
-    scalmon.BZside2(1)=number(word)/tgate;//BZ L2S2 rate
-    word=*(p+scalbias+41);
-    scalmon.BZside2(2)=number(word)/tgate;//BZ L3S2 rate
-    word=*(p+scalbias+42);
-    scalmon.BZside2(3)=number(word)/tgate;//BZ L4S2 rate
-    for(i=0;i<8;i++){
-      word=*(p+scalbias+47+i);
-      scalmon.AntiTop(i)=number(word)/tgate;//Anti TopSectors rates
-      word=*(p+scalbias+55+i);
-      scalmon.AntiBot(i)=number(word)/tgate;//Anti BotSectors rates
-    }
-    
-    for(i=0;i<2;i++){
-      word=*(p+scalbias+63+i);
-      scalmon.ECftProj(i)=number(word)/tgate;//Ecal FTproj rates
-      word=*(p+scalbias+65+i);
-      scalmon.ECl1Proj(i)=number(word)/tgate;//Ecal Lev1(angle)proj rates
-    }
-    scalmon.LiveTime(0)=LiveTime1;//set already known(from "trig"-block) livetimes
-    scalmon.LiveTime(1)=LiveTime2;//............
-*/
-//==========================================================================
-//===============> create Lev1-object:
-// 
-//cout<<"TOFrateMX="<<scalmon.TOFrateMX()<<"  HiLim="<<TGL1FFKEY.MaxScalersRate<<endl;
-//cout<<"LiveTime1="<<LiveTime1<<"  LowLim="<<TGL1FFKEY.MinLifeTime<<endl;
-  if(LiveTime[0]==0 && LiveTime[1]>0)LiveTime[0]=LiveTime[1];//tempor fix     
-  if(LiveTime[1]==0 && LiveTime[0]>0)LiveTime[1]=LiveTime[0];
+//----
+//----------> check change of any scaler-block parameter
 //
-  if(TofFlag1>=0 || TofFlag2>=0 || (EcalFlag/10)>=2)TGL1JobStat::daqs1(35);//FT in LVL1 ok
-  if(JMembPatt>0 && PhysBPatt>0)TGL1JobStat::daqs1(36);//
-  if(JMembPatt==0)TGL1JobStat::daqs1(32);//count empty TrigPatt entries
-  if(PhysBPatt==0)TGL1JobStat::daqs1(33);//count empty TrigPatt entries
-  if(auxtrpat>0)TGL1JobStat::daqs1(34);//count non-empty AuxTrPatt
-  if(((JMembPatt&1)>0 || (JMembPatt&(1<<5))>0) && (JMembPatt&(1<<6))>0)TGL1JobStat::daqs1(38);
-//
-//
-  if(TrigRates[5]<TGL1FFKEY.MaxScalersRate && LiveTime[0]>=TGL1FFKEY.MinLifeTime)TGL1JobStat::daqs1(37);
-//     
-  if(
-       (auxtrpat > 0)                                                               //aux.tr
-                     || (JMembPatt>0 && PhysBPatt>0)
-  ){
-    trtime[0]=tcalib;//take from static arr, because in CompFmt timecalib is read not every event
-    AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-    new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,TofFlag1,TofFlag2,tofpat1,tofpat2,
-                                AntiPatt,EcalFlag,ecpat,ectrs,LiveTime[0],TrigRates,trtime));
-    TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    
+  if(rstatw3!=0 && rstatw3!=parbitpatt[2]){
+    parbitpatt[2]=rstatw3;
+    ScalerIsChanged=true;
   }
-  else{
-    TGL1JobStat::daqs1(15);//count errored entries    
-    AMSEvent::gethead()->seterror();
-  }
-  return;
-//
-BadExit:
-  TGL1JobStat::daqs1(13);//count rejected LVL1-entries(segments)    
-}
-
-
-
-
-
-integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
-//
-// on input: len=tot_block_length as given at the beginning of block
-//           *p=pointer_to_beggining_of_block_data (next to the length word)
-//
-//
-  integer lencalc(0);
-  integer JMembPatt(0),PhysBPatt(0),TofFlag1(-1),TofFlag2(-1),AntiPatt(0),EcalFlag(0);
-  integer TofPatt1[TOF2GC::SCLRS],TofPatt2[TOF2GC::SCLRS];
-  int16u EcTrPatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes)
-  integer gftmsk(0),ftzlmsk(0);
-  int16u ftzwdcode(0);
-  static geant LiveTime[2]={0,0};
-  static geant TrigRates[19]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  number tgrates[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  number dtrates[5]={0,0,0,0};
-  static uinteger tcalib(0);
-  static geant tgprev[2]={-1,-1};
-  static number evtprev(-1);
-  number evtcurr(0),delevt;
-  uinteger ltimec[2];
-  geant ltimeg[2];
-  uinteger ntrst(0),timcal(0);
-  uinteger time[2]={0,0};
-  uinteger trtime[5]={0,0,0,0,0};
-  uinteger busypat[2]={0,0};//1st word->bits 0-31, 2nd word-> bits 32-39 of 40-bits busy patt.word
-  bool busyerr(0);
-
-// to be changed 
-//
-
-  bool PreAssRD=(AMSJob::gethead()->isRealData()
-                 && 1) ;//flag to identify RD of preassembly period
-//
-  integer tofpat1[4]={0,0,0,0};//will be added to ready lev1-object later(after decoding of TOF-data)
-  integer tofpat2[4]={0,0,0,0};//..................................................
-  int16u ecpat[6][3]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//.....(after decoding of EC-data)
-  geant ectrs=0;//........................................................................
-//
-  integer i,j,iw,il,ib,is,ic,lent,dlen,wvar;
-  int16u bit,rrr;
-  int16u blid,btyp,naddr,word,wordi,wordf,nword,luti,lutf;
-  uinteger lword;
-  uinteger ltim(0);
-  geant tgate(0),tgatelt(0),tgatetr(0),tgatesc(0);
-  uinteger timgid;
-//  
-  int16u datyp(0),formt(0),evnum;
-  int16u jbias,jblid,jleng,jaddr,csid,psfcode;
-  int16u prescfcode[8]={0x3FF,0x3FE,0x3FD,0x3FC,0x3FB,0x3FA,0x3F9,0x3F8};//prescale factors codes
-  int16u prescfvals[8]={1,2,5,10,20,50,100,1000};//presc.factors(N->N:1)
-  int16u cpmask(0),ctmask(0),bzmask(0),trstmsk(0);
-  integer auxtrpat(0);
-  int16u cpinmask[TOF2GC::SCLRS],bzinmask[TOF2GC::SCLRS];//my reordered masks
-  uinteger febusymsk[2]={0,0};//to store 24+16 bits of FEbusy-mask
-//
-  int16u rstatw1(0),rstatw2(0),rstatw3(0);
-  int16u nrdow1(0),nrdow2(0),nrdow3(0);
-  int16u nw1,nw2,nw3;
-//
-  int ltimbias;//tempor bias to live-time data(in "trig"-block)
-  int trgsbias;//bias to trig.setup/status block
-  int pattbias;//bias to trig.patt sub-block
-  int scalbias;//bias to scalers sub-block
-//
-   p=p-1;//to follow VC-convention(here points to length-word)
-//  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
-  jleng=int16u(len&(0xFFFFL));
-  jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
-//
-  bool dataf=((jblid&(0x8000))>0);//data-fragment
-  bool crcer=((jblid&(0x4000))>0);//CRC-error
-  bool asser=((jblid&(0x2000))>0);//assembly-error
-  asser=false;
-  bool amswer=((jblid&(0x1000))>0);//amsw-error   
-  bool timoer=((jblid&(0x0800))>0);//timeout-error   
-  bool fpower=((jblid&(0x0400))>0);//FEpower-error   
-  bool seqer=((jblid&(0x0400))>0);//sequencer-error
-  bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
-  bool noerr;
-  static integer lut1o(0),lut2o(0),lut3o(0),phbmsko(0);
-  static integer phbmemo[8]={0,0,0,0,0,0,0,0};
-  bool phbmchange(false);
-//
-  jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
-  datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
-//printfl=10/11/12/13=> noPrint/OnlyWarningPrint/+EventPatterns/+Setup&BitDump
-    
-  if(jleng>1){
-  }
-  else goto BadExit;
-//
-  node2side(jaddr,csid);//card_side(1/2<->a/b)
-  if(csid>0 && csid<3){
-  }
-  else goto BadExit;
-//
-  if(datyp==0){
-//    goto BadExit;//unknown format
-  }
-//
-  if(!dataf){
-    goto BadExit;//tempor
-  }
-//
-//
-  noerr=(!crcer 
-//               && !asser
-	                && !amswer 
-			          && !timoer 
-				            && !fpower 
-					              && !seqer
-						               && cdpnod);
-  if(noerr){
-  }
-  else goto BadExit;
-//
-  if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
-    || (jleng==52 && datyp==1))//MC/newRD(in RawFmt with datyp=1)
-  {
-    pattbias=0;//bias to patt. sub-block
-    trgsbias=15;//bias to trig-setup sub-block(points to PREVIOUS to the 1st sub-block word)
-    ltimbias=48;//bias to time sub-block
-    formt=1;//means real raw fmt
-  }
-  else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
-    pattbias=0;//bias to patterns sub-block
-    trgsbias=12;//bias to trig-setup sub-block(points to 1st readout-status word)
-    formt=2;//means real compr fmt
-  } 
-  else {
-      goto BadExit;
-  }
-
-
+//========================> TrigTime info decoding (to calc. delta time):
   if(formt==1 || formt==2){
-    word=*(p+1+pattbias);
-    JMembPatt=integer(word);
-    word=*(p+2+pattbias);
-    PhysBPatt=integer(word&0x00FF);
-    auxtrpat=((word&0x1F00)>>8);
-    word=*(p+3+pattbias);
-    AntiPatt=integer(word&0x00FF);
-    word=*(p+4+pattbias); //Tof CP,CT,BZ layers input pattern
-//---> RD Tof hw-problem(L3<->L4) treatment for CP inp.patt:
-    wordi=(word&0x000F);
-    if(AMSJob::gethead()->isRealData()){
-      wordf=(wordi&0x0003);
-      if((wordi&(1<<2))>0)wordf|=(1<<3);
-      if((wordi&(1<<3))>0)wordf|=(1<<2);
-    }
-    else{
-      wordf=wordi;
-    }
-//
-    if(wordf==0x000F)TofFlag1=0;//all4
-    else if(wordf==0x000E)TofFlag1=1;//2,3,4(miss1)
-    else if(wordf==0x000D)TofFlag1=2;//1,3,4(miss2)
-    else if(wordf==0x000B)TofFlag1=3;//1,2,4(miss3)
-    else if(wordf==0x0007)TofFlag1=4;//1,2,3(miss4)
-    else if(wordf==0x0005)TofFlag1=5;//1,3
-    else if(wordf==0x0009)TofFlag1=6;//1,4
-    else if(wordf==0x0006)TofFlag1=7;//2,3
-    else if(wordf==0x000A)TofFlag1=8;//2,4
-    else if(wordf==0x0003)TofFlag1=9;//1,2(miss3,4)
-    else if(wordf==0x000C)TofFlag1=10;//3,4(miss1,2)
-    else if(wordf==0x0001)TofFlag1=11;//1
-    else if(wordf==0x0002)TofFlag1=12;//2
-    else if(wordf==0x0004)TofFlag1=13;//3
-    else if(wordf==0x0008)TofFlag1=14;//4
-    else{
-      TofFlag1=-1;
-    }
-
-//
-//RD Tof hw-problem treatment for BZ inp.patt:
-    wordi=(word&0x0F00);//select BZ(ignore CT for the moment)
-    wordi=(wordi>>8);
-    if(AMSJob::gethead()->isRealData()){
-      wordf=(wordi&0x0003);
-      if((wordi&(1<<2))>0)wordf|=(1<<3);
-      if((wordi&(1<<3))>0)wordf|=(1<<2);
-    }
-    else wordf=wordi;
-//
-
-    if(wordf==0x000F)TofFlag2=0;//all4
-    else if(wordf==0x000E)TofFlag2=1;//2,3,4(miss1)
-    else if(wordf==0x000D)TofFlag2=2;//1,3,4(miss2)
-    else if(wordf==0x000B)TofFlag2=3;//1,2,4(miss3)
-    else if(wordf==0x0007)TofFlag2=4;//1,2,3(miss4)
-    else if(wordf==0x0005)TofFlag2=5;//1,3
-    else if(wordf==0x0009)TofFlag2=6;//1,4
-    else if(wordf==0x0006)TofFlag2=7;//2,3
-    else if(wordf==0x000A)TofFlag2=8;//2,4
-    else if(wordf==0x0003)TofFlag2=9;//1,2(miss3,4)
-    else if(wordf==0x000C)TofFlag2=10;//3,4(miss1,2)
-    else if(wordf==0x0001)TofFlag2=11;//1
-    else if(wordf==0x0002)TofFlag2=12;//2
-    else if(wordf==0x0004)TofFlag2=13;//3
-    else if(wordf==0x0008)TofFlag2=14;//4
-    else {
-      TofFlag2=-1;
-    }
-
-//cout<<"Lev1Reco:Event="<<(AMSEvent::gethead()->getid())<<" TofFlag1/2="<<TofFlag1<<" "<<TofFlag2<<endl;
-//-----> create EcalFlag (FTE/LVL1 decisions):
-    EcalFlag=0;
-    bool FTEok=((JMembPatt&(1<<6))>0);
-    if(FTEok && (JMembPatt&(1<<10))>0)EcalFlag=30;//FTE + ProjAnd(2prj)
-    else if(FTEok && (JMembPatt&(1<<11))>0)EcalFlag=20;//FTE + ProjOR(1prj)
-    else if(!FTEok && (JMembPatt&(1<<11))>0)EcalFlag=10;//noFTE when OR(1proj) at AND(2proj-requir)
-    if((JMembPatt&(1<<12))>0)EcalFlag+=3;//Lvl1(Small angle in both proj(AngleAnd)) 
-    else if((JMembPatt&(1<<13))>0)EcalFlag+=2;//Lvl1(Small angle at least in one proj(AngleOr))
-    else{//no LVL1-Abits
-      if(FTEok)EcalFlag+=1;//No ECLev1(Big angle in both proj, but FTE ok)
-    }
-//-----> trig.patt histos: 
-//-----> event(trigger) time info: 
+//-----> event(trigger) time info(always sitting at fixed bias 5->) : 
     time[0]=0;
     time[1]=0;
     word=*(p+5+pattbias);//1st 16bits of time
@@ -2576,10 +2926,11 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
       else trtime[4]=uinteger(floor(delevt));
     }
     else evtprev=evtcurr;
-  return trtime[4];
-}
+    return trtime[4];
+  }//----> endof TigTime decoding
 //
 BadExit:
+  TGL1JobStat::daqs1(50);//<=== bad exits
   return -1;
 }
 

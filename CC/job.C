@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.613 2009/01/14 12:34:42 choutko Exp $
+// $Id: job.C,v 1.614 2009/01/14 13:48:04 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -461,6 +461,7 @@ void AMSJob::_sitrig2data(){
   LVL3FFKEY.TrHeavyIonThr=200;
   LVL3FFKEY.SeedThr=-32;
   LVL3FFKEY.Stat=0;
+  LVL3FFKEY.histprf=0;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 }

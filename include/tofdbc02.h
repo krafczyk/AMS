@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.36 2008/10/13 10:22:57 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.37 2009/01/14 13:48:19 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -397,39 +397,17 @@ private:
 //
 public:
   static void clear();
-  inline static void puttemp(int16u crt, int16u sen, geant t){
-    assert(crt<TOF2GC::SCCRAT);
-    assert(sen<TOF2GC::SCFETA);
-    tofantemp[crt][sen]=t;
-  }
-  inline static geant gettemp(int16u crt, int16u sen){
-    assert(crt<TOF2GC::SCCRAT);
-    assert(sen<TOF2GC::SCFETA);
-    return tofantemp[crt][sen];
-  }
-  inline static void addmc(int i){
-    assert(i>=0 && i< TOF2GC::SCJSTA);
-    mccount[i]+=1;
-  }
-  inline static void addre(int i){
-    assert(i>=0 && i< TOF2GC::SCJSTA);
-    recount[i]+=1;
-  }
-  inline static void addch(int chnum, int i){
-    assert(chnum>=0 && i>=0);
-    assert(chnum < TOF2GC::SCCHMX && i < TOF2GC::SCCSTA);
-    chcount[chnum][i]+=1;
-  }
+  static void puttemp(int16u crt, int16u sen, geant t);
+  static geant gettemp(int16u crt, int16u sen);
+  static void addmc(int i);
+  static void addre(int i);
+  static void addch(int chnum, int i);
   inline static int getch(int chnum, int i){
     assert(chnum>=0 && i>=0);
     assert(chnum < TOF2GC::SCCHMX && i < TOF2GC::SCCSTA);
     return chcount[chnum][i];
   }
-  inline static void addbr(int brnum, int i){
-    assert(brnum>=0 && i>=0);
-    assert(brnum < TOF2GC::SCBLMX && i < TOF2GC::SCCSTA);
-    brcount[brnum][i]+=1;
-  }
+  static void addbr(int brnum, int i);
   static void daqsfr(int16u ie);
   static void daqscr(int16u df, int16u crat, int16u ie);
   static void daqssl(int16u df, int16u crat, int16u slot, int16u ie);

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.401 2009/01/06 10:07:30 choutko Exp $
+//  $Id: event.C,v 1.402 2009/01/14 13:48:04 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1857,7 +1857,6 @@ void AMSEvent::_reecalevent(){
   if(ecalftok)EcalJobStat::addre(2);
   if(tofftok && ecalftok)EcalJobStat::addre(3);
 //
-  stat=0;
   AMSEcalRawEvent::validate(stat);// EcalRawEvent->EcalRawEvent
   if(stat!=0){
     AMSgObj::BookTimer.stop("REECALEVENT");
@@ -1865,7 +1864,6 @@ void AMSEvent::_reecalevent(){
   }
   EcalJobStat::addre(4);
 //
-  stat=0;
   AMSEcalHit::build(stat);// EcalRawEvent->EcalHit
   if(stat!=0){
     AMSgObj::BookTimer.stop("REECALEVENT");
@@ -2076,6 +2074,23 @@ void AMSEvent::_retofinitrun(){
 }
 
 void AMSEvent::_reantiinitrun(){
+  static bool accswap(false);
+  if(AMSEvent::gethead()->getrun()<1211886677){
+    if(!accswap){
+      cout<<"======================================================"<<endl;
+      cout<<"========> ACC de-swapping is ON starting from run "<<AMSEvent::gethead()->getrun()<<endl;
+      cout<<"======================================================"<<endl;
+    }
+    accswap=true;
+  }
+  else{
+    if(accswap){
+      cout<<"======================================================"<<endl;
+      cout<<"========> ACC de-swapping is OFF starting from run "<<AMSEvent::gethead()->getrun()<<endl;
+      cout<<"======================================================"<<endl;
+    }
+    accswap=false;
+  }
 }
 
 
@@ -2525,7 +2540,7 @@ void AMSEvent::_copyEl(){
 }
 
 void AMSEvent::_printEl(ostream & stream){
-  stream << "======>>> Run:"<<_run<<" "<<getname()<<" "<< getid()<<" Time: " 
+  stream <<endl<< "======>>> Run:"<<_run<<" "<<getname()<<" "<< getid()<<" Time: " 
    <<ctime(&_time)<<"."<<_usec<<" Station R:"<<_StationRad<<" Theta:"<<_StationTheta*AMSDBc::raddeg
    <<" Phi:"<<_StationPhi*AMSDBc::raddeg<<" Speed:"<<_StationSpeed
    <<" Pole:"<<_NorthPolePhi*AMSDBc::raddeg<<endl;
@@ -2533,8 +2548,7 @@ void AMSEvent::_printEl(ostream & stream){
                                           <<","<<TOF2JobStat::gettemp(2,0)<<","<<TOF2JobStat::gettemp(3,0);
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr){
-    stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime();
-//   stream <<" Average Scaler Rate & LifeTime "<<Trigger2LVL1::getscalersp()->getsum(gettime())<<"  "<<Trigger2LVL1::getscalersp()->getlifetime(gettime())<<endl;
+    stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime()<<endl;
   }
   //PZ FIXME OBSOLETE stream <<" AverMagnetTemper:"<<MagnetVarp::getmeanmagnetmtemp()<<endl;
 }

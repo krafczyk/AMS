@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.20 2008/12/18 11:19:25 pzuccon Exp $
+//  $Id: trigger302.h,v 1.21 2009/01/14 13:48:19 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include "link.h"
@@ -67,7 +67,6 @@ class TriggerLVL302: public AMSlink{
 
 protected:
  static integer _flowc[15];// prog.flow counters
-#pragma omp threadprivate (_flowc)
 //
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
@@ -329,7 +328,7 @@ public:
  friend class Level3R;
 #endif
 };
-
+//---------------------------------------------
 
 class TriggerExpertLVL3{
 protected:

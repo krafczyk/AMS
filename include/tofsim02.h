@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.21 2008/12/08 15:15:19 choutko Exp $
+//  $Id: tofsim02.h,v 1.22 2009/01/14 13:48:19 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -326,6 +326,7 @@ class AMSBitstr{
 private:
   static geant clkfasJLV;//JLVtrig.(JLV1-crat)electronics clock phase(0-1 random, the same for whole event)
   static geant clkfasSPT[4];//SPTpreTrig(S-crates)......................................................
+#pragma omp threadprivate(clkfasJLV,clkfasSPT)
   unsigned short int bitstr[TOFGC::SCWORM]; // max. length in 16-bit words
   int bslen; // real length in 16-bits words (<=def=TOFGC::SCWORM)
 //
@@ -531,12 +532,7 @@ static integer Out(integer);
  static void validate(int &);// RawEvent->RawEvent
 //
 // interface with DAQ :
-// static integer calcdaqlength(int16u blid);
-// static void builddaq(int16u blid, integer &len, int16u *p);
-// static void buildraw(int16u blid, integer &len, int16u *p);
-// static int16u hw2swid(int16u a1, int16u a2, int16u a3);
-// static int16u sw2hwid(int16u a1, int16u a2, int16u a3); 
-//
+// done in daqs2block.C
 protected:
  void _printEl(ostream &stream){
   int i;

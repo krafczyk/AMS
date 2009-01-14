@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.112 2009/01/06 10:07:30 choutko Exp $
+//  $Id: geant3.C,v 1.113 2009/01/14 13:48:04 choumilo Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -984,8 +984,8 @@ if(TKFIELD.iniok==3)TKFIELD.iniok=2;
    }
 }
 }
-
 extern "C" void abinelclear_();
+//--------------------------- begin gukine ----------------------------------------
 extern "C" void gukine_(){
 AMSgObj::BookTimer.start("GUKINE");
 
@@ -1049,6 +1049,9 @@ try{
    }
 
   }
+// ---> endof simulation section
+//
+// <--- reconstruction section
   else {
     //
     // read daq    
@@ -1152,15 +1155,19 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 #pragma omp critical (g3)
       GCFLAG.IEVENT++;
     }
+// ---> endof "readDaq=ok" check
     else{
      GCFLAG.IEOTRI=1;
      count++;
      cout << "  file end "<<endl;
-    continue;
+     continue;
     }
    }
+// ---> endof "kevt<nchunk" for-loop
 }
+//<------- endof omp parallel
 }
+// ---> endof "while(Neventcollected<NeventRequested ||...)" loop
 #ifdef __CORBA__
     try{
      AMSJob::gethead()->uhend(run,event,tt);
@@ -1211,6 +1218,7 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
 #endif
 
 }
+// ---> endof "res=DaqEvent::OK"
 else if (res==DAQEvent::Interrupt){
 #ifdef __CORBA__
   AMSClientError ab("Process Interrupted",DPS::Client::CInAbort);
@@ -1239,12 +1247,13 @@ else if (res==DAQEvent::Interrupt){
 #endif
    }
 }
-
+// ---> endof for(;;)-loop
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
       AMSgObj::BookTimer.stop("GUKINE");
      return; 
   }
+// ---> endof reco-section
 }
 catch (amsglobalerror & a){
  cerr<<a.getmessage()<< endl;
@@ -1263,5 +1272,5 @@ catch (amsglobalerror & a){
     AMSgObj::BookTimer.stop("GUKINE");
 
 }
-
+//-------------------- endof gukine -------------------------------------------
 

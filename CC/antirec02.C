@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.36 2008/12/19 15:01:55 choumilo Exp $
+//  $Id: antirec02.C,v 1.37 2009/01/14 13:48:04 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -62,7 +62,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
 //-----
-  if(first==0){//store run/time for the first event
+  if(ATREFFKEY.relogic>0 && first==0){//store run/time for the first event (calibration)
     first=1;
     ANTPedCalib::BRun()=AMSEvent::gethead()->getrun();
     ANTPedCalib::BTime()=AMSEvent::gethead()->gettime();//for possible classic/"DownScaledEvent" PedCalib
@@ -137,11 +137,14 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       ntdct=ptr->gettdct(tdct);
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
       if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
         HF1(2515,geant(nadca),1.);
 	if(ntdct<10)nhit=ntdct;
 	else nhit=9;
         HF1(2515,geant(nhit+10),1.);
         HF1(2515,geant(nftdc+20),1.);
+}
       }
       tmfound=0;
       complm=0;
@@ -162,10 +165,13 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
       if(ntdct>0){
         if(nftdc>0 && adca>10 && ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
           for(i=0;i<ntdct;i++){
 	    dt=(ftdc[0]-tdct[i])*ANTI2DBc::htdcbw();//ns
             HF1(2516,geant(dt),1.);//look at LTtime/FTtime correl
 	  }
+}
 	}
       }
       else{
@@ -175,21 +181,30 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
       if(nftdc>0 && ntdct>0)tmfound=1;//found object with LTtime & FTtime
 // 
-      if(tmfound==1 && ATREFFKEY.reprtf[0]>1)HF1(2587,geant(chn+1),1.);
+      if(tmfound==1 && ATREFFKEY.reprtf[0]>1){
+#pragma omp critical (hf1)
+        HF1(2587,geant(chn+1),1.);
+      }
 //
 //
 //---> check Charge-ADC :
 //
       if(adca>0){//---->ped-subtr. and DAQ-readout thr. was already done during decoding or mcbuild stage
         if(tmfound==1)complm=1;//found object with complete t+amp measurement
-	if(ATREFFKEY.reprtf[0]>1)HF1(2570+chn,geant(adca),1.);
+	if(ATREFFKEY.reprtf[0]>1){
+#pragma omp critical (hf1)
+	  HF1(2570+chn,geant(adca),1.);
+	}
       }
       else{
         ANTI2JobStat::addch(chnum,9);
 	stat+=100;//mark missing Ampl.info
       }
 //
-      if(complm==1 && ATREFFKEY.reprtf[0]>1)HF1(2586,geant(chn+1),1.);
+      if(complm==1 && ATREFFKEY.reprtf[0]>1){
+#pragma omp critical (hf1)
+        HF1(2586,geant(chn+1),1.);
+      }
 //---
 //
       ptr->updstat(stat);//set RawEvent-obj status to filter at reco-stage(befor it was =0(ok))
@@ -205,14 +220,15 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //----------------------------------------------------
 geant Anti2RawEvent::accsatur(geant aout){
   geant norm(17);//tempor. scaling coeff to have about the same most prob of aout and ain
-//  static Int_t bmx=12;
-//  static Float_t ainref[12]={0,74,148,370,740,1480,2960,3256,4096,5400,21620,90700};//kunin
-//  static Float_t aouref[12]={0,74,120,220,340, 500, 740, 770, 840,1000, 2000, 4096};
-  static integer bmx=22;
-  static geant ainref[22]={0, 0.2, 0.67, 1.3, 2.6, 5, 10, 15, 20, 30, 40, 50, 70, 100,
+//  integer bmx=12;
+//  geant ainref[12]={0,74,148,370,740,1480,2960,3256,4096,5400,21620,90700};//kunin
+//  geant aouref[12]={0,74,120,220,340, 500, 740, 770, 840,1000, 2000, 4096};
+  integer bmx=22;
+  geant ainref[22]={0, 0.2, 0.67, 1.3, 2.6, 5, 10, 15, 20, 30, 40, 50, 70, 100,
                              150, 200, 300, 400, 500, 740, 1000, 4600};
-  static geant aouref[22]={0, 11,35,68,120,190,300,400,480,630,790,930,1200,1400,
+  geant aouref[22]={0, 11,35,68,120,190,300,400,480,630,790,930,1200,1400,
                              1750,1900,2200,2400,2550,2850,3000,4000};
+//
   if(aout<=0)return(0);
   for(int ib=0;ib<bmx-1;ib++){
     if(aout>aouref[ib] && aout<=aouref[ib+1]){
@@ -888,9 +904,12 @@ void AMSAntiCluster::build2(int &statt){
   ftcoinc=Anti2RawEvent::getncoinc();//total log.sectors in coinc.with FT
   lspatt=Anti2RawEvent::getpatt();//Coinc.sect.pattern
   if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
     HF1(2510,geant(ftcoinc),1.);
     if(lspatt<=0)HF1(2511,0.,1.);
     for(i=0;i<ANTI2C::MAXANTI;i++)if(lspatt & 1<<i)HF1(2511,geant(i+1),1.);
+}
   }
   padlen=ANTI2DBc::scleng();
   padrad=ANTI2DBc::scradi()+0.5*ANTI2DBc::scinth();
@@ -966,7 +985,10 @@ void AMSAntiCluster::build2(int &statt){
 	                                  - tzer;//TDC-ch-->ns + "compens.tzero=fib.delay"(side-independent)
 	  if(fttim>0){//check coinc.with FT
 	    dt=fttim-t1;//Rel.time wrt FT("+" means "befor" FTtime)
-            if(ATREFFKEY.reprtf[0]>0)HF1(2509,geant(dt),1.);
+            if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+	      HF1(2509,geant(dt),1.);
+	    }
             if(fabs(dt-ftdel)<ftwin){//found coincidence(ftdel is exp.measured aver. FT-delay wrt Anti-hit)
 	      ftc+=1;//count coinc.
               uptm[nsds][nuptm[nsds]]=dt;//keep all FTcoincided hit times (wrt FT)   
@@ -1007,7 +1029,10 @@ void AMSAntiCluster::build2(int &statt){
 	if(n1==1 && n2==1){
 	  t1=uptm[0][0];
 	  t2=uptm[1][0];
-	  if(ATREFFKEY.reprtf[0]>0)HF1(2520+sector,geant(t1-t2),1.);
+	  if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+	    HF1(2520+sector,geant(t1-t2),1.);
+	  }
 	}
 	while(n1>0 && n2>0){//<-- try next pair ?
 	  dtmin=9999.;
@@ -1073,7 +1098,10 @@ void AMSAntiCluster::build2(int &statt){
         status|=TOFGC::SCBADB2;// set bit for one-side paddles
         if(isid==2)status|=TOFGC::SCBADB4;// set missing-side bit(s=2 if set)
       }//--->endof 1s-case
-      if(ATREFFKEY.reprtf[0]>0)HF1(2508,geant(edep2),1.);
+      if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+        HF1(2508,geant(edep2),1.);
+      }
 //---
       if(nsds>0 && edep2>ATREFFKEY.Edthr){//non-empty paddle -> create object
         for(i=0;i<nsds;i++){// add all unpaired times
@@ -1104,11 +1132,14 @@ void AMSAntiCluster::build2(int &statt){
 	if(npairs>0)nclustp+=1;
         edept+=edep2;
         if(ATREFFKEY.reprtf[0]){
+#pragma omp critical (hf1)
+{
           HF1(2502,geant(ntimes),1.);
           HF1(2503,geant(npairs),1.);
           if(npairs==1)HF1(2504,geant(zc),1.);
 	  if(nsds==2 && npairs!=1)HF1(2505,geant(zc),1.);
           HF1(2506,geant(sector+1),1.);
+}
         }
       }//--->endof non-empty paddle check
       
@@ -1126,10 +1157,13 @@ void AMSAntiCluster::build2(int &statt){
   }//------>endof RawEvent hits loop
 //
   if(ATREFFKEY.reprtf[0]){
+#pragma omp critical (hf1)
+{
     HF1(2500,geant(edept),1.);
     HF1(2501,geant(nclust),1.);
     HF1(2512,geant(nclustc),1.);
     HF1(2507,geant(nclustp),1.);
+}
   }
   if(edept>0)statt=0;//ok
 //
@@ -1196,158 +1230,9 @@ integer Anti2RawEvent::Out(integer status){
 }
 
 //===================================================================================
-//  DAQ-interface functions :
-//
-// function returns number of Anti_data-words ( incl. FT-hits)
-// for given block/format (one(max) SFEA card/crate is implied !!!)
-//
-integer Anti2RawEvent::calcdaqlength(int16u blid){
-  Anti2RawEvent *ptr;
-  int16u id,ibar,isid;
-  int16u crate,rcrat,antic,hwid,fmt;
-  integer len(0),nhits(0),nzchn(0),cntw;
-  ptr=(Anti2RawEvent*)AMSEvent::gethead()
-                        ->getheadC("Anti2RawEvent",0);
-//
-  rcrat=(blid>>6)&7;// requested crate #
-  fmt=1-(blid&63);// 0-raw, 1-reduced
-//
-  while(ptr){
-    id=ptr->getid();// BBS
-    ibar=id/10-1;
-    isid=id%10-1;
-//    hwid=Anti2RawEvent::sw2hwid(ibar,isid);// CAA, always >0 here
-    hwid=101;//tempor
-    antic=hwid%100-1;
-    crate=hwid/100-1;
-    if(crate==rcrat){
-//      nhits+=ptr->getnadca();// counts hits (edges) of TDCA
-      nzchn+=ptr->getnzchn();// counts nonzero TDC-channels (only TDCA)
-    } 
-//
-    ptr=ptr->next();
-  }
-//
-  if(fmt==1){ // =====> Reduced format :
-    len+=1; // hit_bitmask
-    if(nhits>0){// nonempty SFEA
-      nzchn+=2;// add 2 TDCT(=FT) channels
-      nhits+=(2*1);// add 2x1 TDCT-hits(for MC each FT-channel contains 1 hit(edge))
-      cntw=nzchn/4;
-      if(nzchn%4 > 0)cntw+=1;// hit-counter words
-      len+=(cntw+nhits);
-    } 
-  }
-//
-  else{ // =====> Raw format :
-    if(nhits>0){
-      nhits+=(2*1);// add 2x1 TDCT-hits(for MC each FT-channel contains 1 hit(edge))
-      len=2*nhits;// each hit(edge) require 2 words (header+TDCvalue)
-    }
-  }// end of format check
-//
-//
-  return len;
-//
-}
-//-------------------------------------------------------------------------
-void Anti2RawEvent::builddaq(int16u blid, integer &len, int16u *p){
-//
-// on input: *p=pointer_to_beginning_of_ANTI_data
-// on output: len=ANTI_data_length; 
-//
-  integer i,j,stat,ic,icc,ichm,ichc,nzch,nanti;
-  int16u ibar,isid,id;
-  int16u phbit,maxv,ntdc,tdc[ANTI2C::ANAHMX*2],ntdct,tdct[ANTI2C::ANAHMX*2];
-  int16u mtyp,hwid,hwch,swid,swch,htmsk,mskb,fmt,shft,hitc;
-  int16u slad,tdcw,adrw,adr,chipc,chc;
-  int16u phbtp;  
-  int16u crate,rcrat,tdcc,chip,tdccm;
-  Anti2RawEvent *ptr;
-  Anti2RawEvent *ptlist[ANTI2C::ANCHSF];
-//
-  phbit=TOF2GC::SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
-  maxv=phbit-1;// max TDC value
-  phbtp=TOF2GC::SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
-//
-  rcrat=(blid>>6)&7;// requested crate #
-  fmt=1-(blid&63);// 0-raw, 1-reduced
-  len=0;
-//
-#ifdef __AMSDEBUG__
-  if(ATREFFKEY.reprtf[1]==2)cout<<"Anti::encoding: crate/format="<<rcrat<<" "<<fmt<<endl;
-#endif
-//
-// ---> prepare ptlist[tdc_channel] - list of AntiRawEvent pointers :
-//
-  ptr=(Anti2RawEvent*)AMSEvent::gethead()
-                        ->getheadC("Anti2RawEvent",0);
-  for(tdcc=0;tdcc<ANTI2C::ANCHSF;tdcc++)ptlist[tdcc]=0;// clear pointer array
-  nanti=0;
-  ic=0;
-  len=ic;
-//
-#ifdef __AMSDEBUG__
-  if(ATREFFKEY.reprtf[1]==2){
-//    cout<<"Anti2DAQBuild::encoding: WRITTEN "<<len<<" words, hex dump follows:"<<endl;
-//    for(i=0;i<len;i++)cout<<hex<<(*(p+i))<<endl;
-//    cout<<dec<<endl<<endl;
-  }
-#endif
-}
-//------------------------------------------------------------------------------
-// function to build Raw: 
-//  
-void Anti2RawEvent::buildraw(int16u blid, integer &len, int16u *p){
-//
-// on input:  *p=pointer_to_beginning_of_block (to block-id word)
-//            len=bias_to_first_Anti_data_word
-// on output: len=Anti_data_length.
-//
-  integer i,j,jj,ic,ibar,isid,lentot,bias;
-  integer val,warnfl;
-  int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hwch,hmsk,slad,chip,chipc,chc;
-  int16u swid[ANTI2C::ANCHCH],mtyp,hcnt,shft,nhit,nzch,nzcch,sbit;
-  int16u phbit,maxv,phbt,phbtp; 
-  int16u ids,stat,chan;
-  int16u ntdca[ANTI2C::ANCHCH],tdca[ANTI2C::ANCHCH][ANTI2C::ANAHMX*2],ntdct,tdct[ANTI2C::ANAHMX*2],dummy;
-//
-  phbit=TOF2GC::SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
-  maxv=phbit-1;// max TDC value
-  phbtp=TOF2GC::SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
-  lentot=*(p-1);// total length of the block(incl. block_id)
-  bias=len;
-//
-// decoding of block-id :
-  ic=0;
-      len=ic-len;//return pure Anti_data_length
-//
-//---------------
-//
-//
-#ifdef __AMSDEBUG__
-  if(ATREFFKEY.reprtf[1]>=1){
-//    cout<<"Anti2RawEventBuild::decoding: FOUND "<<len<<" good words, hex/bit dump follows:"<<endl;
-//    int16u tstw,tstb;
-//    if(dtyp==1){ // only for red.data
-//      for(i=0;i<len;i++){
-//        tstw=*(p+i+bias);
-//        cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
-//        for(j=0;j<16;j++){
-//          tstb=(1<<(15-j));
-//          if((tstw&tstb)!=0)cout<<"x"<<"|";
-//          else cout<<" "<<"|";
-//        }
-//        cout<<endl;
-//      }
-//      cout<<dec<<endl<<endl;
-//    }
-  }
-#endif
-}
 
 AMSID AMSAntiCluster::crgid(int i){
 const char ants[5]="ANTS";
    return AMSID(ants,_sector);
- }
-
+}
+//

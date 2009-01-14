@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.114 2008/11/07 08:56:35 choumilo Exp $
+//  $Id: ecalrec.C,v 1.115 2009/01/14 13:48:04 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -55,7 +55,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //
   stat=1;//bad
 //
-  if(first==0){//store run/time for the first ECAL event
+  if(ECREFFKEY.relogic[1]>0 && first==0){//store run/time for the first ECAL event (calib)
     first=1;
     StartRun=AMSEvent::gethead()->getrun();//store start time/run of 1st EC-event 
     StartTime=AMSEvent::gethead()->gettime();
@@ -72,7 +72,10 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     ecalflg=ptrt->getecflag();//ecflag of Lev1-obj(RD:created using JMembPatt, MC:in simu)
     if(ecalflg>0){
       EcalJobStat::addre(9);
-      if(ECREFFKEY.reprtf[0]>0)HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+      if(ECREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+        HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+      }
     }
   }
 //
@@ -82,13 +85,19 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
       for(int sl=0;sl<6;sl+=2){
         for(int pm=0;pm<36;pm++){
           k=floor(geant(sl)/2);
-          if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
+          if(ptrt->EcalDynON(sl,pm)){
+#pragma omp critical (hf1)
+	    HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
+	  }
         }
       }
       for(int sl=1;sl<6;sl+=2){
         for(int pm=0;pm<36;pm++){
           k=floor(geant(sl)/2);
-          if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
+          if(ptrt->EcalDynON(sl,pm)){
+#pragma omp critical (hf1)
+	    HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
+	  }
         }
       }
     }
@@ -858,8 +867,11 @@ void AMSEcalHit::build(int &stat){
       edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);// adc gain corr(really 1/pmrg/pmscg
 //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
       if(ECREFFKEY.reprtf[0]>0 && edep>2){
+#pragma omp critical (hf1)
+{
         HF1(ECHISTR+16,geant(edep),1.);//adc
         HF1(ECHISTR+17,geant(edep),1.);
+}
       }
       adct+=edep;//tot.adc
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
@@ -940,7 +952,10 @@ void AMSEcalHit::build(int &stat){
 	  padc[1]=bpadc[i][1];
           ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);//SubCell info
 	  icont=plane;//container number for storing of EcalHits(= plane number)
-	  if(ECREFFKEY.reprtf[0]>0)HF1(ECHISTR+9,geant(edep),1.);
+	  if(ECREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+	    HF1(ECHISTR+9,geant(edep),1.);
+	  }
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,edepc,coot,cool,cooz));
 //       (object is created even if was Anode ovfl, but sta is set properly)
@@ -956,12 +971,15 @@ void AMSEcalHit::build(int &stat){
   }// ---> end of crate loop
 //
   if(ECREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
     HF1(ECHISTR+10,geant(nraw),1.);
     HF1(ECHISTR+11,geant(adct),1.);
     HF1(ECHISTR+12,geant(adct),1.);
     HF1(ECHISTR+13,geant(nhits),1.);
     HF1(ECHISTR+14,geant(emeast),1.);
     HF1(ECHISTR+15,geant(edcort),1.);
+}
   }
   if(nhits>0)stat=0;
 }

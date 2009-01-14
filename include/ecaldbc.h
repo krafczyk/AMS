@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.41 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: ecaldbc.h,v 1.42 2009/01/14 13:48:19 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -153,29 +153,11 @@ public:
   static number zprofac[ecalconst::ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
   static geant nprofac[ecalconst::ECSLMX];// SuperLayers profile for calib.events(punch-through)
   
-  static void daqs1(integer info){
-#ifdef __AMSDEBUG__
-      assert(info>=0 && info<ecalconst::ECJSTA );
-#endif
-    daqc1[info]+=1;
-  }
-  static void daqs2(int16u crat, integer info){
-#ifdef __AMSDEBUG__
-      assert(info>=0 && info< ecalconst::ECJSTA);
-      assert(crat< ecalconst::ECRT);
-#endif
-    daqc2[crat][info]+=1;
-  }
-  static void daqs3(int16u crat, int16u slot, integer info){
-#ifdef __AMSDEBUG__
-      assert(info>=0 && info< ecalconst::ECJSTA);
-      assert(crat< ecalconst::ECRT);
-      assert(slot< ecalconst::ECSLOTS);
-#endif
-    daqc3[crat][slot][info]+=1;
-  }
-  
+  static void daqs1(integer info);
+  static void daqs2(int16u crat, integer info);
+  static void daqs3(int16u crat, int16u slot, integer info);
   static void clear();
+//
   static void addzprmc1(int i, number ed){
     zprmc1[i]+=ed;
   }
@@ -185,30 +167,11 @@ public:
   static void addzprmc2(int i, number ed){
     zprmc2[i]+=ed;
   }
-  static void addmc(int i){
-#ifdef __AMSDEBUG__
-      assert(i>=0 && i< ecalconst::ECJSTA);
-#endif
-    mccount[i]+=1;
-  }
-  static void addre(int i){
-#ifdef __AMSDEBUG__
-      assert(i>=0 && i< ecalconst::ECJSTA);
-#endif
-    recount[i]+=1;
-  }
-  static void addca(int i){
-#ifdef __AMSDEBUG__
-      assert(i>=0 && i<  ecalconst::ECJSTA);
-#endif
-    cacount[i]+=1;
-  }
-  static void addsr(int i){
-#ifdef __AMSDEBUG__
-      assert(i>=0 && i< 20);
-#endif
-    srcount[i]+=1;
-  }
+//
+  static void addmc(int i);
+  static void addre(int i);
+  static void addca(int i);
+  static void addsr(int i);
   static integer getca(int i){
 #ifdef __AMSDEBUG__
       assert(i>=0 && i<  ecalconst::ECJSTA);

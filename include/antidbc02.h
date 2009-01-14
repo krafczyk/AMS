@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.15 2008/12/19 15:02:09 choumilo Exp $
+//  $Id: antidbc02.h,v 1.16 2009/01/14 13:48:19 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -326,35 +326,11 @@ private:
 //                               [1] -> "multipl-OK"
 //                               [2] -> "Good for calibr"
 public:
-  inline static void clear(){
-    int i,j;
-    for(i=0;i<ANTI2C::ANJSTA;i++)mccount[i]=0;
-    for(i=0;i<ANTI2C::ANJSTA;i++)recount[i]=0;
-    for (i=0;i<ANTI2C::ANCHMX;i++)
-                  for(j=0;j<ANTI2C::ANCSTA;j++)
-                                       chcount[i][j]=0;
-    for (i=0;i<ANTI2C::MAXANTI;i++)
-                  for(j=0;j<ANTI2C::ANCSTA;j++)
-                                       brcount[i][j]=0;
-  }
-  inline static void addmc(int i){
-    assert(i>=0 && i< ANTI2C::ANJSTA);
-    mccount[i]+=1;
-  }
-  inline static void addre(int i){
-    assert(i>=0 && i< ANTI2C::ANJSTA);
-    recount[i]+=1;
-  }
-  inline static void addch(int chnum, int i){
-    assert(chnum>=0 && i>=0);
-    assert(chnum < ANTI2C::ANCHMX && i < ANTI2C::ANCSTA);
-    chcount[chnum][i]+=1;
-  }
-  inline static void addbr(int brnum, int i){
-    assert(brnum>=0 && i>=0);
-    assert(brnum < ANTI2C::MAXANTI && i < ANTI2C::ANCSTA);
-    brcount[brnum][i]+=1;
-  }
+  static void clear();
+  static void addmc(int i);
+  static void addre(int i);
+  static void addch(int chnum, int i);
+  static void addbr(int brnum, int i);
   static void bookh();
   static void bookmch();
   static void printstat();

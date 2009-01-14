@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.28 2008/12/08 17:56:04 choutko Exp $
+//  $Id: trigger102.h,v 1.29 2009/01/14 13:48:19 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -12,6 +12,10 @@ protected:
   protected:
     number _FTtrig[5];//Glob,FTC,FTZ,FTE,NonPhys
     number _LVL1trig[9];//LVL1, sub1:sub8
+    number _DetMaxRate[5];//CPmx,BZmx,ACmx,ECFTmx,ECL1(angle)mx
+    number _LiveTime[2];
+    uinteger _TimeCalib;
+/*
     number _SPtrig[5];//LA0,LA1,Ext,DSP,Internal
     number _TrigTimeT;// trigger time tap
     number _CPside1[4];//4 tof-layers
@@ -28,9 +32,17 @@ protected:
     number _LiveTime[2];
     uinteger _TrigFPGAid;
     uinteger _ScalFPGAid;
+*/
   public:
     number &FTtrig(int i){return _FTtrig[i];}
     number &LVL1trig(int i){return _LVL1trig[i];}
+    number &LiveTime(int i){return _LiveTime[i];}
+    number &DetMaxRate(int i){return _DetMaxRate[i];}
+    uinteger &TimeCalib(){return _TimeCalib;}
+    geant FTrate(){return geant(_FTtrig[0]);}
+    geant FTCrate(){return geant(_FTtrig[1]);}
+    geant LVL1rate(){return geant(_LVL1trig[0]);}
+/*
     number &SPtrig(int i){return _SPtrig[i];}
     number &TrigTimeT(){return _TrigTimeT;}
     number &CPside1(int i){return _CPside1[i];}
@@ -47,9 +59,6 @@ protected:
     number &LiveTime(int i){return _LiveTime[i];}
     uinteger &TrigFPGAid(){return _TrigFPGAid;}
     uinteger &ScalFPGAid(){return _ScalFPGAid;}
-    geant FTrate(){return geant(_FTtrig[0]);}
-    geant FTCrate(){return geant(_FTtrig[1]);}
-    geant LVL1rate(){return geant(_LVL1trig[0]);}
     geant TOFrateMX(){return _CPside1[2]>_CPside2[2]?geant(_CPside1[2]):geant(_CPside2[2]);}//imply layer3 has max rate due to its biggest size
     geant ECftrateMX(){return _ECftProj[0]>_ECftProj[1]?geant(_ECftProj[0]):geant(_ECftProj[1]);}
     geant AntirateMX(){
@@ -60,6 +69,7 @@ protected:
       }
       return geant(mx);
     }
+*/
     void setdefs();
  };
 //
@@ -142,8 +152,10 @@ protected:
 public:
  static Lvl1TrigConfig l1trigconf;//current TrigSystemConfiguration
  static ScalerMon scalmon;//current scalers values
- static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  static bool SetupIsChanged;
+ static bool ScalerIsChanged;
+#pragma omp threadprivate(l1trigconf,scalmon,SetupIsChanged,ScalerIsChanged)
+ static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  
  Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer auxtrpat, integer toffl1,integer toffl2, 
               integer tofpatt1[],integer tofpatt2[], integer antipatt, integer ecflg,
@@ -222,7 +234,7 @@ private:
 //          i=7 =>
 //         i=15 => HW-created LVL1 found
 // 
-  static integer daqc1[40];//daq-decoding counters
+  static integer daqc1[70];//daq-decoding counters
 //            i=0 -> LVL1-segment entries
 //             =1 -> ............ non empty
 //             =2 -> ............ with a-side 
@@ -246,20 +258,9 @@ private:
 //             =34-> non-empty AuxTrigPatt
 //             =35-39
 public:
-  inline static void resetstat(){
-    for(int i=0;i<20;i++)countev[i]=0;
-    for(int i=0;i<40;i++)daqc1[i]=0;
-  }
-  inline static void addev(int i){
-    assert(i>=0 && i< 20);
-    countev[i]+=1;
-  }
-  static void daqs1(integer info){
-#ifdef __AMSDEBUG__
-      assert(info>=0 && info<40 );
-#endif
-    daqc1[info]+=1;
-  }
+  static void resetstat();
+  static void addev(int i);
+  static void daqs1(integer info);
   static void printstat();
 };
 //---------------------

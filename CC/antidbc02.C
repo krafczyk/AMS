@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.32 2008/12/19 15:01:55 choumilo Exp $
+//  $Id: antidbc02.C,v 1.33 2009/01/14 13:48:04 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -855,6 +855,45 @@ integer ANTI2JobStat::mccount[ANTI2C::ANJSTA];
 integer ANTI2JobStat::recount[ANTI2C::ANJSTA];
 integer ANTI2JobStat::chcount[ANTI2C::ANCHMX][ANTI2C::ANCSTA];
 integer ANTI2JobStat::brcount[ANTI2C::MAXANTI][ANTI2C::ANCSTA];
+//---
+  void ANTI2JobStat::clear(){
+    int i,j;
+    for(i=0;i<ANTI2C::ANJSTA;i++)mccount[i]=0;
+    for(i=0;i<ANTI2C::ANJSTA;i++)recount[i]=0;
+    for (i=0;i<ANTI2C::ANCHMX;i++)
+                  for(j=0;j<ANTI2C::ANCSTA;j++)
+                                       chcount[i][j]=0;
+    for (i=0;i<ANTI2C::MAXANTI;i++)
+                  for(j=0;j<ANTI2C::ANCSTA;j++)
+                                       brcount[i][j]=0;
+  }
+//
+  void ANTI2JobStat::addmc(int i){
+    assert(i>=0 && i< ANTI2C::ANJSTA);
+#pragma omp critical (ac_addmc) 
+    mccount[i]+=1;
+  }
+//
+  void ANTI2JobStat::addre(int i){
+    assert(i>=0 && i< ANTI2C::ANJSTA);
+#pragma omp critical (ac_addre) 
+    recount[i]+=1;
+  }
+//
+  void ANTI2JobStat::addch(int chnum, int i){
+    assert(chnum>=0 && i>=0);
+    assert(chnum < ANTI2C::ANCHMX && i < ANTI2C::ANCSTA);
+#pragma omp critical (ac_addch) 
+    chcount[chnum][i]+=1;
+  }
+//
+  void ANTI2JobStat::addbr(int brnum, int i){
+    assert(brnum>=0 && i>=0);
+    assert(brnum < ANTI2C::MAXANTI && i < ANTI2C::ANCSTA);
+#pragma omp critical (ac_addbr) 
+    brcount[brnum][i]+=1;
+  }
+//---
 //
 // function to print Job-statistics at the end of JOB(RUN):
 //

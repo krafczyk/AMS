@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.18 2008/12/19 15:02:09 choumilo Exp $
+//  $Id: antirec02.h,v 1.19 2009/01/14 13:48:19 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -97,9 +97,7 @@ public:
   static void validate(int &stat);
 //
 // interface with DAQ :
-  static integer calcdaqlength(int16u blid);
-  static void builddaq(int16u blid, integer &len, int16u *p);
-  static void buildraw(int16u blid, integer &len, int16u *p);
+// no private for ACC - it has common with TOF interface (see dads2block.C)
   static integer Out(integer status);
 //
 protected:
