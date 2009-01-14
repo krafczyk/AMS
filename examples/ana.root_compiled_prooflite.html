@@ -17,7 +17,7 @@ daqe.C </a>,  containing the "real" stuff.
 Everything works together by doing "root r.pl.daqe.C".  If one wants to run in 
 non-graphic mode and exiting root at the end of processing, do: "root -b -q r.pl.daqe.C". 
 
-<p> NB.  No histogram merging is done. The output files from different workers can be found somewhere in ~/.proof/XYZ/last-lite-session/ in the form of original_file_name.x  where x is the worker number (typically 0-7)
+<p> NB.  No histogram merging is done. The output files from different workers can be found somewhere in ~/.proof/XYZ/last-lite-session/ in the form of original_file_name.x , where x is the worker number (typically 0-7).  To merge the histograms into a single file you might want to use hadd utility available with ROOT package.
 
 
 <p>The advantages of this approach are:
@@ -102,14 +102,14 @@ The relevant features of the AMS implementation are:<br>
         contents inside UProcessFill().<br>
 </ul>
 <ul>
-   <li> Using UProcessStatus() is also optional.  
+   <li> Using UProcessStatus(<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/classAMSEventR.html#o0">status</a>) is also optional.  
         There is potential  gain in time by calling it, 
         as  the AMS implementation will not read a header
-        if UProcessStatus returns zero.<br>
+        if UProcessStatus returns false.<br>
 </ul>
 <ul>
    <li> All the necessary definitions are in the AMS Root header file, 
-        either "/offline/vdev/include/root.h" or "$AMSDir/include/root.h". 
+        either <a "href=file:/afs/cern.ch/exp/ams/Offline/vdev/include/root.h>"/Offline/vdev/include/root.h"</a> or "$AMSDir/include/root.h". 
         This header file must be always included in your analysis program.
 </ul>
 <ul>

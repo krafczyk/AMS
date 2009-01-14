@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.22 2008/12/18 11:19:33 pzuccon Exp $
+//  $Id: uzstat.C,v 1.23 2009/01/14 12:34:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -108,9 +108,19 @@ thread=omp_get_thread_num();
   number time=0;
   if(p){
     if(p->_startstop==1){
-      p->_entry=p->_entry+1;
       number tt=HighResTime();
       time=tt-p->_time;
+      if(time<-0.001){
+        cerr<<" AMSStat-W-BadTime "<<name<<" "<<thread<<" "<<" "<<time<<" "<<tt<<" "<<p->_time<<endl;
+      number tt=HighResTime();
+      time=tt-p->_time;
+      if(time<-0.001){
+        cerr<<" AMSStat-E-BadTime "<<name<<" "<<thread<<" "<<" "<<time<<" "<<tt<<" "<<p->_time<<endl;
+      p->_startstop=0;
+        return;
+      }
+      }
+      p->_entry=p->_entry+1;
       p->_time=tt;
       p->_sum=p->_sum+time;
       p->_sum2=p->_sum*p->_sum;

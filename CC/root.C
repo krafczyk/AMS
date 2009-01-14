@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.170 2009/01/08 16:19:09 choutko Exp $
+//  $Id: root.C,v 1.171 2009/01/14 12:34:42 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3154,8 +3154,8 @@ AMSEventR::fgThreads=nthreads;
         curp->Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
         try{
-          curp->Process(n);
-        }
+           curp->Process(n);
+         }
         catch (...){
 #pragma omp critical(rd)
      if(AMSEventR::pService){

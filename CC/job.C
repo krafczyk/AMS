@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.612 2009/01/08 16:19:08 choutko Exp $
+// $Id: job.C,v 1.613 2009/01/14 12:34:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -140,7 +140,7 @@ const uinteger AMSJob::CSRD=32;       // Same as cerenkov
 const uinteger AMSJob::CAMS=512;
 const uinteger AMSJob::CEcal=1024;
 const uinteger AMSJob::MTracker=2048;
-const uinteger AMSJob::MTOF=4096;
+const uinteger AMSJob::MTOF=8096;
 const uinteger AMSJob::MAnti=4096*2;
 const uinteger AMSJob::MCerenkov=4096*4;
 const uinteger AMSJob::MLVL1=4096*8;
@@ -251,7 +251,7 @@ MISCFFKEY.dbwrbeg=0;//(6)DBwriter UTC-time begin
 MISCFFKEY.dbwrend=0;//(7)DBwriter UTC-time end
 MISCFFKEY.NumThreads=1;
 MISCFFKEY.DynThreads=0;
-MISCFFKEY.ChunkThreads=4096;
+MISCFFKEY.ChunkThreads=8192;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 

@@ -2309,7 +2309,6 @@ static void hbook1(int id,const char title[], int ncha, float  a, float b);
    ///  few identical 1d histos booking in one call \n parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs hiistos
 static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int howmany=6,int shift=100000);
    ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
-static void hjoin();
 static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
 static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
@@ -2341,6 +2340,8 @@ static void chdir(const char dir[]="");
 /// list current dir
 static void hcdir(const char dir[]="");
 /// list current dir
+static void hjoin();
+/// joins histos with the same id
 static int g_t(){
 #ifdef _OPENMP
 return omp_get_thread_num( );
@@ -2429,7 +2430,17 @@ protected:
    void ProcessFill(Long64_t entry){ProcessFill((int)entry);};
    void ProcessFill(int entry);
    bool Process(Long64_t entry){return Process((int)entry);};
-   bool Process(int entry){if(ProcessCut(entry))ProcessFill(entry);return true;}
+   bool Process(int entry){
+   try{
+     if(ProcessCut(entry))ProcessFill(entry);
+     return true;
+   }
+    catch (...)
+    {
+     cout <<"  exception catched "<<endl;
+    return false;
+    }
+ }
 public:
 
 
@@ -2479,83 +2490,47 @@ public:
  
 //!  Status Word
 /*!
-    Contains:
+    Contains bits:
 
-0
 
- 0   
- 1   npart
+ 0-1  nParticle()
 
-1-6
+ 2   ParticleR::iTrdTrack() !=-1
 
- 2   trd in part
- 3   tof in part
- 4   tr in part
- 5   rich in part
- 6   ecal in part
- 7   vtx in part
+ 3   ParticleR::iBeta() !=-1
 
-7
+ 4   ParticleR::iTrTrack() !=-1
 
- 8  
- 9 ntrd
+ 5  ParticleR::iRichRing() !=-1  	 
 
-8
+ 6  ParticleR::iEcalShower() !=-1
 
- 10  
- 11
- 12 ntof
+ 7  ParticleR::iVertex() !=-1
 
-9
+ 8-9 nTrdTrack()
 
- 13  
- 14 ntr
+ 10-12 nTofCluster()
 
-10
+ 13-14  nTrTrack()
 
- 15  
- 16 nrich
+ 15-16  nRichRing()  
 
-11
+ 17-18  nEcalShower()  
 
- 17  
- 18 necal
+ 19-20  nVertex() 
 
-12
+ 21-22 nAntiCluster() 
 
- 19 
- 20 nvtx
+ 23-25    ParticleR::Charge
 
-13
+ 26-27 z=1 lvl1 number_of_tof_planes-1 
 
- 21 
- 22 nanti
-
-14
-
- 23    
- 24
- 25 charge
-
-15
-
- 26 
- 27 z=1 lvl1 x-1 of 4
-
-16
-
- 28 
- 29 z>1 lvl1 x-1 of 4
-
-17
+ 28-29  z>1 lvl1 number_of_tof_planes-1 
 
  30   event has errors
 
-18
-
  31   status not found
 
-19
 
  32 and up to 63 are not yet defined
 

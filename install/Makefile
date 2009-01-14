@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.65 2008/12/24 10:41:37 choutko Exp $
+#  $Id: Makefile,v 1.66 2009/01/14 12:34:42 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -131,7 +131,7 @@ $(BIN)%.o : $(SFF)%.f
 $(BIN)%.o : $(SCC)%.C
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(CXX) -c $(CFLAGS) $< -o $@
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 $(BIN)%.o : $(SCC)%.c
 	@echo Compiling  $< ...
