@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.114 2009/01/14 17:00:25 choutko Exp $
+//  $Id: geant3.C,v 1.115 2009/01/15 18:00:31 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1072,14 +1072,23 @@ if(MISCFFKEY.NumThreads>0)
 omp_set_num_threads(MISCFFKEY.NumThreads);
 else
 omp_set_num_threads(omp_get_num_procs());
-kmp_set_blocktime(200);
 omp_set_dynamic(MISCFFKEY.DynThreads);
+//kmp_set_blocktime(200);
 //kmp_set_stacksize_s(32000000);
 #endif
 
-int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;        
-#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk), private(pdaq)
+const int maxt=32;
+int ia[maxt];
+#ifdef _OPENMP
+int nchunk=(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs())*MISCFFKEY.ChunkThreads;        
+#else
+int nchunk=MISCFFKEY.NumThreads;
+#endif
+for(int ik=0;ik<sizeof(ia)/sizeof(ia[0]);ik++)ia[ik]=0; 
+//cout <<"  new chunk "<<nchunk<<endl;
+#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia), private(pdaq)
 {
+ 
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){
 
@@ -1168,6 +1177,26 @@ int nchunk=AMSEvent::get_num_threads()*MISCFFKEY.ChunkThreads;
     }
    }
 // ---> endof "kevt<nchunk" for-loop
+#ifdef _OPENMP        
+//  this clause is because intel throutput mode doesn;t work
+//   so simulating it
+           ia[omp_get_thread_num()]=1;
+           for(;;){
+           bool work=false;
+           for(int j=0;j<omp_get_num_threads();j++){
+              if(!ia[j]){
+                 work=true;
+                 break;
+              }
+            }
+            if(work)usleep(1000);  
+            else break;
+          }
+#endif
+ 
+
+
+
 }
 //<------- endof omp parallel
 }

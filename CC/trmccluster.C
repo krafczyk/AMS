@@ -219,6 +219,7 @@ void AMSTrMCCluster::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
     TrMCClusterNtuple* TrMCClusterN = AMSJob::gethead()->getntuple()->Get_trclmc();
   
     if (TrMCClusterN->Ntrclmc>=MAXTRCLMC) return;
@@ -238,24 +239,8 @@ void AMSTrMCCluster::_writeEl(){
     for(i=0;i<3;i++)TrMCClusterN->Xcb[TrMCClusterN->Ntrclmc][i]=_xcb[i];
     for(i=0;i<3;i++)TrMCClusterN->Xgl[TrMCClusterN->Ntrclmc][i]=_xgl[i];
     TrMCClusterN->Sum[TrMCClusterN->Ntrclmc]=_sum;
-    /*
-      cout <<" *** start *** "<<getpos()<<endl;
-      cout <<TrMCClusterN->Idsoft[TrMCClusterN->Ntrclmc]<<" " <<_idsoft<<endl;
-      cout <<TrMCClusterN->TrackNo[TrMCClusterN->Ntrclmc]<<" " <<_itra<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->Left[TrMCClusterN->Ntrclmc][i]<<" " <<_left[i]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->Center[TrMCClusterN->Ntrclmc][i]<<" " <<_center[i]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->Right[TrMCClusterN->Ntrclmc][i]<<" " <<_right[i]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][0]<<" " <<_ss[i][0]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][1]<<" " <<_ss[i][1]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][2]<<" " <<_ss[i][2]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][3]<<" " <<_ss[i][3]<<endl;
-      for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][4]<<" " <<_ss[i][4]<<endl;
-      for(i=0;i<3;i++)cout <<TrMCClusterN->Xca[TrMCClusterN->Ntrclmc][i]<<" " <<_xca[i]<<endl;
-      for(i=0;i<3;i++)cout <<TrMCClusterN->Xcb[TrMCClusterN->Ntrclmc][i]<<" " <<_xcb[i]<<endl;
-      for(i=0;i<3;i++)cout <<TrMCClusterN->Xgl[TrMCClusterN->Ntrclmc][i]<<" " <<_xgl[i]<<endl;
-      cout <<TrMCClusterN->Sum[TrMCClusterN->Ntrclmc]<<" " <<_sum<<endl;
-    */
     TrMCClusterN->Ntrclmc++;
+*/
   }
 
 }

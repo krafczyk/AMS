@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.142 2008/10/15 15:03:02 choutko Exp $
+//  $Id: mceventg.C,v 1.143 2009/01/15 18:00:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1234,6 +1234,7 @@ if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   MCEventGNtuple02* GN = AMSJob::gethead()->getntuple()->Get_mcg02();
 
   if (GN->Nmcg>=MAXMCG02) return;
@@ -1249,6 +1250,7 @@ if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
   GN->Mass[GN->Nmcg]=_mass;
   GN->Charge[GN->Nmcg]=_charge;
   GN->Nmcg++;
+*/
 }
 }
 
@@ -1656,6 +1658,7 @@ void AMSmctrack::_writeEl(){
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // Fill the ntuple
+/*
   MCTrackNtuple* GN = AMSJob::gethead()->getntuple()->Get_mct();
 
   if (GN->Nmct>=MAXMCVOL) return;
@@ -1664,6 +1667,7 @@ void AMSmctrack::_writeEl(){
   for(int i=0;i<3;i++)GN->pos[GN->Nmct][i]=_pos[i];
   for(int i=0;i<4;i++)GN->vname[GN->Nmct][i]=_vname[i];
   GN->Nmct++;
+*/
 }
 
 

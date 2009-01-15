@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.37 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: antirec02.C,v 1.38 2009/01/15 18:00:31 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -830,6 +830,7 @@ void AMSAntiCluster::_writeEl(){
 #ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
 // fill the ntuple
     AntiClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_anti();
     if (TN->Nanti>=MAXANTICL) return;
@@ -843,6 +844,7 @@ void AMSAntiCluster::_writeEl(){
     for(i=0;i<3;i++)TN->Coo[TN->Nanti][i]=_coo[i];
     for(i=0;i<3;i++)TN->ErrorCoo[TN->Nanti][i]=_ecoo[i];
     TN->Nanti++;
+*/
   }
 }
 //---

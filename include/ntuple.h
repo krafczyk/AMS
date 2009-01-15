@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.113 2008/12/18 11:19:25 pzuccon Exp $
+//  $Id: ntuple.h,v 1.114 2009/01/15 18:00:32 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -852,6 +852,7 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   integer _Nentries;
   static EventNtuple02 _event02;
 #pragma omp threadprivate (_event02)
+/*
   BetaNtuple02 _beta02;
   ChargeNtuple02 _charge02;
   ParticleNtuple02 _part02;
@@ -889,6 +890,7 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   RICEventNtuple _richevent;
   RICRing _ring;
   RICRingNew _ringnew;
+*/
 #ifdef __WRITEROOT__
   static AMSEventR   _evroot02;
 #pragma omp threadprivate(_evroot02)
@@ -917,6 +919,7 @@ public:
   void initR(char* name);
   integer getentries(){return _Nentries;}
   static EventNtuple02* Get_event02() {return &_event02;}
+/*
   BetaNtuple02* Get_beta02() { return &_beta02;}
   ChargeNtuple02* Get_charge02() { return &_charge02;}
   ParticleNtuple02* Get_part02() {return &_part02;}
@@ -952,7 +955,7 @@ public:
   RICEventNtuple* Get_richevent() {return &_richevent;}
   RICRing* Get_ring(){return &_ring;}
   RICRingNew* Get_ringnew(){return &_ringnew;}
-
+*/
   void MemMonitor(const int n, int N);
 
 #ifdef __WRITEROOT__

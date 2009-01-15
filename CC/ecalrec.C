@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.115 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: ecalrec.C,v 1.116 2009/01/15 18:00:31 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1055,7 +1055,7 @@ return (WriteAll || status);
 //---------------------------------------------------
 void AMSEcalHit::_writeEl(){
 
-  EcalHitNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecalhit();
+//  EcalHitNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecalhit();
 
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
 #ifdef __WRITEROOT__

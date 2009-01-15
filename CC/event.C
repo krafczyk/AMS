@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.403 2009/01/14 17:00:25 choutko Exp $
+//  $Id: event.C,v 1.404 2009/01/15 18:00:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -187,10 +187,10 @@ void AMSEvent::_init(){
   }
 
 
+   cout <<" AMS-I-New Run "<<_run<<endl;
 
 }
 #pragma omp barrier
-   cout <<" AMS-I-New Run "<<_run<<endl;
 }
   // Initialize containers & aob
 #pragma omp critical (initco)

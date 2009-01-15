@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.176 2009/01/14 17:00:25 choutko Exp $
+//  $Id: ntuple.C,v 1.177 2009/01/15 18:00:32 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -81,6 +81,7 @@ void AMSNtuple::init(){
   delete []a;
 // -----> Station :
 //
+/*
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
         
@@ -202,13 +203,14 @@ HBNAME(_lun,"AntiRawSd",&_antirs.Nantirs,"naccraws[0,16],accrsswid(naccraws):I,a
          "rcriliphu(nrings):I,rcrilipthc(nrings):R,rcrilipbeta(nrings):R,"
          "rcrilipebeta(nrings):R,"
          "rcriliplikep(nrings):R,rcrilipchi2(nrings):R,rcriliprprob(nrings):R");
-  
+*/  
 }
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__
    Get_evroot02()->clear();
    Get_evroot02()->SetCont();
 #endif
+/*
 if(_lun){
    _beta02.Nbeta= 0;
    _charge02.Ncharge = 0;
@@ -245,6 +247,7 @@ if(_lun){
    _ring.NRings=0;
    _vtx02.Nvtx=0;
 }
+*/
 }
 
 void AMSNtuple::write(integer addentry){
@@ -255,6 +258,22 @@ void AMSNtuple::write(integer addentry){
 }
 
 void AMSNtuple::endR(){
+
+
+if(_rfile && evmap.size()){
+cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
+  for(evmapi i=evmap.begin();i!=evmap.end();i++){
+
+   if(_tree){
+      if(!_lun )_Nentries++;
+      AMSEventR::Head()=i->second;
+      _tree->Fill();
+    }
+      delete i->second;
+  }
+  evmap.erase(evmap.begin(),evmap.end());
+ cout<<"AMSNtupe::endR-I-MapErased "<<evmap.size()<<endl;
+}
 #ifdef __WRITEROOT__
 // write tracker alignment structure
 
@@ -345,7 +364,6 @@ void AMSNtuple::initR(char* fname){
 }
 
 
-
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
   Get_evroot02()->SetCont();
@@ -361,6 +379,7 @@ void AMSNtuple::writeR(){
 {
   evmap.insert(make_pair(runv,evn));
   for(evmapi i=evmap.begin();i!=evmap.end();){
+//  if(AMSEvent::get_thread_num()==0)for(evmapi i=evmap.begin();i!=evmap.end();){
     bool go=true;
     //     cout <<"  go "<<i->second->Event()<<endl;
     for(int k=0;k<nthr;k++){
@@ -383,6 +402,8 @@ void AMSNtuple::writeR(){
     }
   }
 }
+//#pragma omp critical (wr2)
+//if(AMSEvent::get_thread_num()==0)for(int k=0;k<del.size();k++){
 for(int k=0;k<del.size();k++){
 #pragma omp critical (wr2)
    if(_tree){

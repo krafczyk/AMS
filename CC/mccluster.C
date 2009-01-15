@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.74 2008/03/06 16:01:33 pzuccon Exp $
+//  $Id: mccluster.C,v 1.75 2009/01/15 18:00:31 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -45,6 +45,7 @@ void AMSTRDMCCluster::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   TRDMCClusterNtuple* TRDMCClusterN = AMSJob::gethead()->getntuple()->Get_trdclmc();
   
   if (TRDMCClusterN->Ntrdclmc>=MAXTRDCLMC) return;
@@ -59,6 +60,7 @@ void AMSTRDMCCluster::_writeEl(){
     for(int i=0;i<3;i++)TRDMCClusterN->Xgl[TRDMCClusterN->Ntrdclmc][i]=_xgl[i];
     TRDMCClusterN->Step[TRDMCClusterN->Ntrdclmc]=_step;
     TRDMCClusterN->Ntrdclmc++;
+*/
   }   
 }
 
@@ -304,17 +306,18 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
 
 void AMSRichMCHit::_writeEl(){
 
-  RICMCNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richmc();
-
-  if(cluster->NMC>=MAXRICMC) return; 
+//  RICMCNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richmc();
+//  if(cluster->NMC>=MAXRICMC) return; 
 
   if(_status==Status_Fake) return; // Fake hit
 // Here we need a flag with the IOPA to write it or not
 #ifdef __WRITEROOT__
      int numgen = 0;
-     if(cluster->NMC==0) numgen = RICHDB::nphgen;
+//     if(cluster->NMC==0) numgen = RICHDB::nphgen;
+     numgen = RICHDB::nphgen;
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,numgen);
 #endif
+/*
   if(cluster->NMC==0)
     cluster->numgen=RICHDB::nphgen;
   cluster->id[cluster->NMC]=_id;
@@ -329,7 +332,7 @@ void AMSRichMCHit::_writeEl(){
 
   cluster->NMC++;
 
-
+*/
 
 }
 
@@ -342,6 +345,7 @@ void AMSTOFMCCluster::_writeEl(){
 #ifdef __WRITEROOT__
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+/*
   TOFMCClusterNtuple* TOFMCClusterN = AMSJob::gethead()->getntuple()->Get_tofmc();
 
   if (TOFMCClusterN->Ntofmc>=MAXTOFMC) return;
@@ -352,8 +356,8 @@ void AMSTOFMCCluster::_writeEl(){
     TOFMCClusterN->TOF[TOFMCClusterN->Ntofmc]=tof;
     TOFMCClusterN->Edep[TOFMCClusterN->Ntofmc]=edep;
     TOFMCClusterN->Ntofmc++;
+*/
   }
-
 }
 
 void AMSAntiMCCluster::_writeEl(){
@@ -364,6 +368,7 @@ void AMSAntiMCCluster::_writeEl(){
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // fill the ntuple
+/*
   ANTIMCClusterNtuple* AntiMCClusterN = AMSJob::gethead()->getntuple()->Get_antimc();
     if (AntiMCClusterN->Nantimc>=MAXANTIMC) return;
     AntiMCClusterN->Idsoft[AntiMCClusterN->Nantimc]=_idsoft;
@@ -371,6 +376,7 @@ void AMSAntiMCCluster::_writeEl(){
     AntiMCClusterN->TOF[AntiMCClusterN->Nantimc]=_tof;
     AntiMCClusterN->Edep[AntiMCClusterN->Nantimc]=_edep;
     AntiMCClusterN->Nantimc++;
+*/
   }
 }
 

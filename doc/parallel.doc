@@ -34,9 +34,9 @@ Current Status
 
 a. 
 
-gbatch.exe/gbatch_orbit.exe seems to be run without problem and has ~ 1.5% per thread inefficiency with chunk_number 1000k , ~ 2.6% with chunk_number 8k events  
-
-(means up to 720% on 8 core machine) w/r to the non threaded one.
+gbatch.exe/gbatch_orbit.exe seems to be run without problem and has ~ 1.6% per thread cpu inefficiency. This translates to     
+performance up to 760% on 8 core machine w/r to the non threaded one.
+In case dynamic thread allocation with chunk_number=4096  elapsed performance is degraded by ~ 5%    
 
 
 number of threads changeable with MISC 8=thread_number (default 1) 9=dynamic_update (!sometimes gives omp_abort , should be not switched on) (default 0) 10=chunk_number (default 8192)  
