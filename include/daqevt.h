@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.56 2008/12/11 15:33:12 choutko Exp $
+//  $Id: daqevt.h,v 1.57 2009/01/16 13:48:45 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -56,8 +56,9 @@ friend class DAQEvent;
 const integer nbtps=24;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
-static integer _TrigTime;
-#pragma omp threadprivate(_TrigTime)
+static DAQEvent* _DAQEvent;
+#pragma omp threadprivate(_DAQEvent)
+integer _TrigTime;
 integer _BufferOwner;
 integer _Checked;
 uinteger _Length;
@@ -132,13 +133,14 @@ static int _sort(dirent64 ** e1,  dirent64 ** e2){return strcmp((*e1)->d_name,(*
 #endif
 public:
 
+static DAQEvent* gethead(){return _DAQEvent;}
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
 _Time(0),_RunType(0),_usec(0),_BufferOwner(0),_Offset(0){
 for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
 for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
-_setcalibdata(0);
+_setcalibdata(0);_DAQEvent=this;
 }
 static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(_getnode(id)>127 && strstr(_getnodename(id),sstr));}
 static bool isRawMode(int16u id){return (id&64)>0;}
@@ -147,7 +149,7 @@ static bool isError(int16u id){return (id&512)>0;}
 static const char *  getnodename(int16u idn){return _NodeNames[idn];}
 static const char *  getportname(int16u idn){return _PortNamesJ[idn];}
 uinteger & eventno(){return _Event;}
-static integer trigtime()  {return _TrigTime;}
+ integer trigtime()  {return _TrigTime;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}
 uinteger & runtype(){return _RunType;}

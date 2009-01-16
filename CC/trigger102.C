@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.63 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: trigger102.C,v 1.64 2009/01/16 13:48:44 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1813,9 +1813,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     }
     else evtprev=evtcurr;
 #ifdef _OPENMP
- trtime[4]=DAQEvent::trigtime();
+ trtime[4]=DAQEvent::gethead()->trigtime();
 #else
- if (trtime[4]!=DAQEvent::trigtime()){
+ if (trtime[4]!=DAQEvent::gethead()->trigtime()){
   cerr<<"TriggerLVL1-E-TrigTimeDiff NotMatch "<<trtime[4]<<" "<<DAQEvent::trigtime()<<endl;
  }
 #endif

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.141 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: daqevt.C,v 1.142 2009/01/16 13:48:44 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -51,7 +51,7 @@ extern "C" int scandir64(		const char *, struct dirent64 ***,
 
 
 
-integer DAQEvent::_TrigTime=0;
+DAQEvent* DAQEvent::_DAQEvent=0;
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
@@ -59,6 +59,7 @@ uinteger      Time_1;
 
 DAQEvent::~DAQEvent(){
 shrink();
+_DAQEvent=0;
 }
 
 int16u DAQEvent::calculate_CRC16(int16u *dat, int16u len) {
