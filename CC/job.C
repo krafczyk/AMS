@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.617 2009/01/27 08:09:13 choumilo Exp $
+// $Id: job.C,v 1.618 2009/01/27 08:35:40 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -815,7 +815,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/info_messages/more_details)
 //
   ECREFFKEY.relogic[0]=1;  // (4) 1/0->write/not EcalHits into Ntuple
-  ECREFFKEY.relogic[1]=0;  // (5) 0/1/2/3/4/5/6->norm/RLGA/RLGA+FIAT/ANOR/PedClassic/PedDowdScaled/OnBoardPedTable_calib
+  ECREFFKEY.relogic[1]=0;  // (5) 0/1/2/3/4/5->norm/RLGA/RLGA+FIAT/ANOR/PedClassic/PedDowdScaled
   ECREFFKEY.relogic[2]=0;  // (6) 0/1/2->multipl/Ebackgr/Both_type cuts in ANOR_calib logic
   ECREFFKEY.relogic[3]=0;  // (7) 
   ECREFFKEY.relogic[4]=0;  // (8) spare
@@ -1353,7 +1353,7 @@ void AMSJob::_retof2data(){
 void AMSJob::_reanti2data(){
   ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
   ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
-  ATREFFKEY.relogic=0;  //(3) =0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/PedCal_OnBoardTable
+  ATREFFKEY.relogic=0;  //(3) =0/1/2/3->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.nlcorr=0;   //(6) =1/0--> apply/not nonlin.corr to raw amplitudes at cluster-build stage
@@ -2241,7 +2241,7 @@ void AMSJob::_catof2initjob(){
  if(cmode==2 || cmode==3 || cmode==4 || cmode==23 || cmode==234 || cmode==34){
    TofTmAmCalib::initjob();// TOF Tdelv/Tzslw/Ampl-calibr.
  }
- if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6 || TFREFFKEY.relogic[0]==7){
+ if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6){
    TOFPedCalib::init();// TOF Ped-calibr.
  }
 //
@@ -2276,8 +2276,6 @@ void AMSJob::_caecinitjob(){
  }
  
  
-// AMSECIdCalib::init();
-// AMSECIdCalib::clear();
 
 
 }
@@ -3767,9 +3765,9 @@ void AMSJob::_tof2endjob(){
     TOFPedCalib::outp(TFCAFFKEY.pedoutf);// 0/1/2->HistOnly/Wr2DB+File/Wr2File 
   }
 //
-  if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==7){
-    TOFPedCalib::ntuple_close();// close OnBoardPedsTable ntuple 
-  }
+//  if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==7){
+//    TOFPedCalib::ntuple_close();// close OnBoardPedsTable ntuple 
+//  }
 //
   if((isCalibration() & CTOF) && TFREFFKEY.relogic[0]==1){
     TOFTdcCalib::outp(TFCAFFKEY.tdccum);
@@ -3799,9 +3797,9 @@ void AMSJob::_anti2endjob(){
 void AMSJob::_ecalendjob(){
 //
 bool noTFAskip=(!(isCalibration() & CTOF));
-  if((isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==6 ){
+//  if((isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==6 ){
 //    ECPedCalib::ntuple_close();
-  }
+//  }
   if((isCalibration() & AMSJob::CEcal) && (ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5) ){
     ECPedCalib::outp(ECCAFFKEY.pedoutf);// 0/1/2->HistOnly/Writ2DB+File/Write2File 
   }

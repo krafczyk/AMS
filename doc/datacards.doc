@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.285 2009/01/27 08:09:22 choumilo Exp $
+#  $Id: datacards.doc,v 1.286 2009/01/27 08:35:49 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -750,7 +750,7 @@ I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
 I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
 I 8   RECO logic-flag(0)  // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_
-//                               /OBPT_calibr run(if=0/1/2/3/4/5/6/7),where OBPT=OnBoardPedTable
+//                               calibr run(if=0/1/2/3/4/5/6)
 I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
 I 10  RECO logic-flag(0)  // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
 I 11  RECO logic-flag(0)  // do/not recovering of missing side 
@@ -878,8 +878,8 @@ I 2    reprtf[1](0)        // =1 to print profiles for first 5 events
 I 3    reprtf[2](0)        // =1 spare
 
 I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
-I 5    relogic[1](0)       // 0/1/2/3/4/5/6 -> normal/RLGA_/RLGA+FIAT_/ANOR_/PedClassic_/PedDownScaled_
-//                                                                         /OnBoardPedTable_calib  run
+I 5    relogic[1](0)       // 0/1/2/3/4/5 -> normal/RLGA_/RLGA+FIAT_/ANOR_/PedClassic_/PedDownScaled_calib
+//                                                                                           run
 I 6    relogic[2](0)       // 0/1/2->Nholes/Ebackgr/Both_type cuts in ANOR_calib logic
 I 7,8................        //    spares
 
@@ -1044,8 +1044,8 @@ I 4   ReadConstFiles(0);   // P(PedsMC), P=0/1-> read Peds from DB/RawFiles
 ATRE
 I 1 reprtf[0] (0)         // RECO-hist print flag
 I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
-I 3 relogic   (0)         // 0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)
-//                                                                           /PedCal_OnBoardTable
+I 3 relogic   (0)         // 0/1/2/3->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)
+//                                                                           
 R 4 Edthr(0.1)            // Threshold(mev) for Cluster(Sector) creation
 R 5 zcerr1(10.)           // ZCoordError(cm) for "paired" sector
 R 6 daqthr(3)             // DAQ-readout theshold(in PedSigmas)
@@ -1091,7 +1091,8 @@ R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev)
 CALIB
 I 1 InsertTimeProc (1)   //DB-insert time setting: 1/0-> job_time/daq_time 
 I 2 Ntuple         (0)   //
-I 3 SubDetInCalib (11111) //(ijklm) 5 digits pattern to select SubDets for calib-job 
+I 3 SubDetInCalib (11111) //(ijklm) 5 digits pattern to select SubDets for 
+//                        OnBoardPedestals(or other calib) processing job 
 //                          (msb->lsb => trd|tof+acc|trk|rich|ec), 
 //                        i(j,k,l,m)=0/1/2/3==>no_SubD_processing/proc+DBwriting/
 //                        proc+histogr_only/
