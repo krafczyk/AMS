@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.64 2009/01/16 13:48:44 choutko Exp $
+//  $Id: trigger102.C,v 1.65 2009/01/27 08:09:14 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1816,7 +1816,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
  trtime[4]=DAQEvent::gethead()->trigtime();
 #else
  if (trtime[4]!=DAQEvent::gethead()->trigtime()){
-  cerr<<"TriggerLVL1-E-TrigTimeDiff NotMatch "<<trtime[4]<<" "<<DAQEvent::trigtime()<<endl;
+  cerr<<"TriggerLVL1-E-TrigTimeDiff NotMatch "<<trtime[4]<<" "<<DAQEvent::gethead()->trigtime()<<endl;
  }
 #endif
     if(TGL1FFKEY.printfl>0){
@@ -2454,10 +2454,12 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
-//vars to check setup-change:
-//  static integer lut1o(0),lut2o(0),lut3o(0),phbmsko(0);
-//  static integer phbmemo[8]={0,0,0,0,0,0,0,0};
-//  bool phbmchange(false);
+//
+  uinteger runn=DAQEvent::gethead()->runno();
+  time_t run_utct=time_t(runn);
+  uinteger evn=DAQEvent::gethead()->eventno();
+  time_t evtime=DAQEvent::gethead()->time();
+  cout<<"In Early: run/event="<<runn<<" "<<evn<<" evtime="<<ctime(&evtime)<<" rundate: "<<ctime(&run_utct)<<endl;
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)

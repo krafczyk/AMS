@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.616 2009/01/15 18:00:31 choutko Exp $
+// $Id: job.C,v 1.617 2009/01/27 08:09:13 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1072,6 +1072,7 @@ void AMSJob::_sisrddata(){
 void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=1;  // Insert Time by now
   CALIB.Ntuple=0;
+  CALIB.SubDetInCalib=11111;//SubDets selection for proc. of OnBoard-calib data(msb->lsb =>trd|tof+acc|trk|rich|ec)
  FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 
@@ -1342,6 +1343,9 @@ void AMSJob::_retof2data(){
 //TOFTdcCalib:
   TFCAFFKEY.minstat=100;//(38) min.acceptable statistics per channel
   TFCAFFKEY.tdccum=10;//(39)tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
+//also for OnBoardPeds
+  TFCAFFKEY.onbpedspat=63;//ijklmn(bit-patt for peds|dinpeds|pretrs|statws|theshs|widths sections in table),
+//                           i(j,..)-bitset => section present
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -2267,7 +2271,7 @@ void AMSJob::_caecinitjob(){
    cout<<"<----- ECREUNcalib-init done !!!"<<'\n';
    cout<<endl;
  }
- if(ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5 || ECREFFKEY.relogic[1]==6){
+ if(ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5){
    ECPedCalib::init();
  }
  
@@ -2380,6 +2384,8 @@ void AMSJob::_retof2initjob(){
   }
 //
 //-----------
+  if(((CALIB.SubDetInCalib/1000)%10)>0)TOFPedCalib::initb();//OnBoardPeds-calib, runs in normal(not calib) mode
+//-----------
   AMSTOFCluster::init();
   AMSSCIds::inittable();
   AMSSCIds::selftest();
@@ -2404,6 +2410,8 @@ void AMSJob::_reanti2initjob(){
   if((ATREFFKEY.ReadConstFiles/10)%10>0){//(PVS) VariableCalibParams(MC/RD) from ext.files
      ANTI2VPcal::build();//create antivpcal-objects for each sector
   }
+//-----------
+  if(((CALIB.SubDetInCalib/1000)%10)>0)ANTPedCalib::initb();//OnBoardPeds-calib, runs in normal(not calib) mode
 }
 //============================================================================================
 void AMSJob::_reecalinitjob(){
@@ -2465,6 +2473,8 @@ if(ECREFFKEY.SimpleRearLeak[0]<0){
   if(ECREFFKEY.ReadConstFiles%10>0 && isRealData()){//P  ECPMPeds-Objects will be created from def. calib-file
     ECPMPeds::build();
   }
+//-----------
+  if((CALIB.SubDetInCalib%10)>0)ECPedCalib::initb();//OnBoardPeds-calib, runs in normal(not calib) mode
 //-----------
 cout<<"<---- AMSJob::reecalinitjob: is successfully done !"<<endl<<endl;
 }
@@ -3992,21 +4002,28 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 
 
 }
-if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // Ped-calib 
-  
+if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
+//TRD 
+  if((CALIB.SubDetInCalib/10000)>0){
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib,6);
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::updtrdcalibJ,6);
-
+  }
+//TOF+ACC
+  if((CALIB.SubDetInCalib/1000)%10>0)
+    DAQEvent::addsubdetector(&DAQS2Block::checkblockidP,&DAQS2Block::buildonbP,6);
+//TRK    
 #ifndef _PGTRACK_
     //PZ FIXME CALIB
+  if((CALIB.SubDetInCalib/100)%10>0)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
 #endif    
-    DAQEvent::addsubdetector(&DAQS2Block::checkblockidP,&DAQS2Block::buildonbP,6);
-    
+// RICH
+  if((CALIB.SubDetInCalib/10)%10>0)
+    DAQEvent::addsubdetector(&DAQRichBlock::checkcalid,&DAQRichBlock::buildcal,6);
+//ECAL    
+  if(CALIB.SubDetInCalib%10>0)
     DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP,6);
 
-// RICH CALIBRATION TABLES
-    DAQEvent::addsubdetector(&DAQRichBlock::checkcalid,&DAQRichBlock::buildcal,6);
 }
 
 

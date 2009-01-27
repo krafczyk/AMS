@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.18 2008/10/13 10:22:48 choumilo Exp $
+//  $Id: user.C,v 1.19 2009/01/27 08:09:14 choumilo Exp $
 #include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
@@ -13,6 +13,10 @@
 #include "trigger102.h"
 #include "daqevt.h"
 #include "particle.h"
+//
+//AMSCalib::JobFirstRunN=0;
+//AMSCalib::NewRunStart=false;
+//
 void AMSUser::InitJob(){
   if(!AMSJob::gethead()->isCalibration()){
     TOF2User::InitJob();

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.142 2009/01/16 13:48:44 choutko Exp $
+//  $Id: daqevt.C,v 1.143 2009/01/27 08:09:13 choumilo Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -601,9 +601,21 @@ integer DAQEvent::_HeaderOK(){
           shift=5;
       }
       int mask= ((*(_pcur+12)>>6) & 15);
-      _setcalibdata(mask);
+      _setcalibdata(mask);//reset(to 0, if mask>0)/preset(to FFFFFFFF) _CalibData[i]-array
       if(mask){
-       for(int16u* pmask=_pcur+shift+12+3;pmask<_pcur+_cl(_pcur);pmask+=2){
+//exrtact JINJ slaves mask:
+       int16u w1=*(_pcur+12+shift+1);//JINJ slave mask label+msb
+       int16u w2=*(_pcur+12+shift+2);//................lsb
+       uinteger _JinjSlaveMask(0);
+       if(((w1>>8)&255)==0)_JinjSlaveMask=(((w1&255)<<16) | w2);//include SDRs as ports !!!
+//fill _CalibData[portj] for SDRs only(has no slaves):
+       for(int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++){
+         if((_JinjSlaveMask&(1<<i))>0){
+	   if(strstr(_PortNamesJ[i],"SDR-")!=0)_CalibData[i]=1;
+	 }
+       }
+//fill the rest(slaves of JINJ-slaves):
+       for(int16u* pmask=_pcur+shift+12+3;pmask<_pcur+_cl(_pcur);pmask+=2){//SDRs are not set here!!!
         int16u portj=_getportj(*pmask>>8);
         _CalibData[portj]=(((*pmask)&255)<<16) | *(pmask+1);        
        }

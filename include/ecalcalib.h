@@ -123,6 +123,7 @@ class ECPedCalib {
   public:
     static void init();
     static void resetb();
+    static void initb();
     static void hiamreset(){for(int i=0;i<ecalconst::ECSLMX;i++)
                                           for(int j=0;j<ecalconst::ECPMSMX;j++)hiamap[i][j]=0;
                            }

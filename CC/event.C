@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.404 2009/01/15 18:00:31 choutko Exp $
+//  $Id: event.C,v 1.405 2009/01/27 08:09:13 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2068,10 +2068,15 @@ void AMSEvent::_retkinitrun(){
   }
 }
 #endif
-
+//----
 void AMSEvent::_retofinitrun(){
+//  uinteger run=AMSEvent::gethead()->getrun();
+//  uinteger srun=AMSEvent::gethead()->getSRun();
+//  if(srun==0){
+//    TofTmAmCalib::getJobFirstRunN()=run;
+//  }
 }
-
+//----
 void AMSEvent::_reantiinitrun(){
   static bool accswap(false);
   if(AMSEvent::gethead()->getrun()<1211886677){

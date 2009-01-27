@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.258 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: commons.h,v 1.259 2009/01/27 08:09:22 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -718,6 +718,8 @@ geant siglim[2];// PedSig-limits .............
 // TOFTdcCalib (LINC)
 integer minstat;//min.stat/ch
 integer tdccum;//tdc-calib usage mode
+//
+integer onbpedspat;//bit-pattern for onboard ped-table sections
 };
 #define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
 COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);
@@ -936,7 +938,8 @@ COMMON_BLOCK_DEF(TKFIELDADDON_DEF,TKFIELDADDON);
 class CALIB_DEF{
 public:
 integer InsertTimeProc;             // 0 (default) by current time ; 1 by run time
-integer Ntuple; 
+integer Ntuple;
+integer SubDetInCalib;//subDetectors selection for processing of OnBoard-calib data
 };
 #define CALIB COMMON_BLOCK(CALIB,calib)
 COMMON_BLOCK_DEF(CALIB_DEF,CALIB);

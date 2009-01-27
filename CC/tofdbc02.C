@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.62 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.63 2009/01/27 08:09:14 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1959,7 +1959,9 @@ void TOF2JobStat::printstat(){
   printf("     Crate:                  1       2       3       4\n");
   printf("TofAnt PedCal blocks :    %7d %7d %7d %7d\n",cratc[0][0],cratc[1][0],cratc[2][0],cratc[3][0]);
   printf("       wrong length  :    %7d %7d %7d %7d\n",cratc[0][1],cratc[1][1],cratc[2][1],cratc[3][1]);
-  printf("       invalid slot# :    %7d %7d %7d %7d\n",cratc[0][2],cratc[1][2],cratc[2][2],cratc[3][2]);
+  printf("      not in request :    %7d %7d %7d %7d\n",cratc[0][2],cratc[1][2],cratc[2][2],cratc[3][2]);
+  printf("    with int. errors :    %7d %7d %7d %7d\n",cratc[0][3],cratc[1][3],cratc[2][3],cratc[3][3]);
+  printf("         good blocks :    %7d %7d %7d %7d\n",cratc[0][4],cratc[1][4],cratc[2][4],cratc[3][4]);
   printf("\n");
   }
 //---
@@ -2645,32 +2647,12 @@ void TOF2JobStat::bookhist(){
     if(TFREFFKEY.relogic[0]==1){// <==================== TofTdc-calibr.(TDCL) runs
 //   hist. 1600-> 1800 are booked in init.function
     }
-    if(TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3){// <======== TDIF/TZSL-calibr. runs
+    if(TFREFFKEY.relogic[0]==2 || TFREFFKEY.relogic[0]==3
+                               || TFREFFKEY.relogic[0]==4
+                                                        ){// <======== TDIF/TZSL/AMPL-calibr. runs
 //   hist 1600-1644 are booked at init-stage  for TDIF
 //   hist 1515-1518 are booked at init-stage  for TZSL
 //   hist 1500-1511, 1200-1219 are booked at init-stage as common
-    }
-    if(TFREFFKEY.relogic[0]==4){ // <==================== AMPL-calibration
-      HBOOK1(1504,"Particle multipl. in calib.events",10,0.,10.,0.);
-      HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-      HBOOK1(1501,"Particle beta(Using Mom/mass)",80,0.5,1.,0.);
-      HBOOK1(1502,"Particle beta(using my tof-fit)",80,0.7,1.2,0.);
-      HBOOK1(1503,"ANTI-cluster energy(4Lx1bar events)(mev)",80,0.,40.,0.);
-      HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
-      HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
-      HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
-      HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
-      HBOOK1(1204,"Mass**2",80,-1.,19.,0.);
-      HBOOK1(1207,"Mass**2 for beta<0.92",80,-1.,19.,0.);
-      HBOOK1(1208,"Ptr/impl.mass",80,0.,24.,0.);
-      HBOOK1(1205,"BetaChisq (using my tof-fit)",50,0.,10.,0.);
-      HBOOK1(1206,"BetaTzer (using my tof-fit)",50,-2.5,2.5,0.);
-      HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
-      HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
-      HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
-      HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
-      HBOOK1(1215,"Cos_track",50,-1.,1.,0.);
-//      HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
     }
 //
     if(TFREFFKEY.reprtf[3]!=0){//<======================Validation-stage multiplicity histograms

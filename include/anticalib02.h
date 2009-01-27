@@ -38,6 +38,8 @@ private:
   static number port2r[ANTI2C::MAXANTI][2];//portion of hi-ampl to remove
   static integer nevt[ANTI2C::MAXANTI][2];// events in sum
   static geant peds[ANTI2C::MAXANTI][2];
+  static geant dpeds[ANTI2C::MAXANTI][2];
+  static geant thrs[ANTI2C::MAXANTI][2];
   static geant sigs[ANTI2C::MAXANTI][2];
   static uinteger stas[ANTI2C::MAXANTI][2];
   static integer nstacksz;//really needed stack size (ev2rem*ANPCEVMX)
@@ -57,9 +59,10 @@ private:
 //
 public:
   static void init();
+  static void initb();
   static void resetb();
   static void fill(int ls, int is, geant adc);//ls->logical sector(1of8),is->side(bot/top)
-  static void filltb(int ls, int is, geant ped, geant sig, int sta);//to use OnBoardTable
+  static void filltb(int ls,int is,geant pd,geant dpd,geant thr,geant sg);//to use OnBoardTable
   static void outp(int flg);
   static void outptb(int flg);
   static void hiamreset(){

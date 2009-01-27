@@ -1,13 +1,16 @@
-//  $Id: tofcalib02.h,v 1.15 2008/06/05 13:28:24 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.16 2009/01/27 08:09:22 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
-//  latest update 12.05.2008
+//     latest update 12.05.2008 by E.Choumilov
+//     latest update 15.01.2009 by E.Choumilov
 //-------------------------------
 //  Joined class for TofTimeAmpl-params calibration:
 class TofTmAmCalib {
 private:
-//Tzslw-part:
+//common-part:
+//  static uinteger JobFirstRunN;
+  //Tzslw-part:
   static geant slope;
   static geant tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   static number s1;
@@ -76,6 +79,7 @@ private:
 public:
   static void initjob();
   static void endjob();
+//  static uinteger & getJobFirstRunN(){return JobFirstRunN;}
 //
   static void inittz();
   static void filltz(int ib[4],number tdi[3],number dum[3]);
@@ -129,6 +133,8 @@ private:
   static number port2r[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];//portion of hi-ampl to remove
   static integer nevt[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];// events in sum
   static geant peds[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
+  static geant dpeds[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
+  static geant thrs[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
   static geant sigs[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
   static uinteger stas[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
   static integer nstacksz;//really needed stack size (ev2rem*TFPCEVMX)
@@ -152,9 +158,10 @@ private:
 //
 public:
   static void init();
+  static void initb();
   static void resetb();
   static void fill(int il, int ib, int is, int pmt, geant adc);//pmt=0/1,2,3=>anode/dynode1,2,3
-  static void filltb(int il,int ib,int is,int pmt,geant pd,geant sg,int st);//to store OnBoardPedTable elems
+  static void filltb(int il,int ib,int is,int pmt,geant pd,geant dpd,geant thr,geant sg);//to store OnBoardPedTable elems
   static void outp(int flg);
   static void outptb(int flg);//to manipulation with final OnBoardPedTable
   static void hiamreset(){

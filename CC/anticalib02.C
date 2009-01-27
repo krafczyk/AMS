@@ -13,6 +13,7 @@
 #include "antidbc02.h"
 #include "trrec.h"
 #include "antirec02.h"
+#include "daqs2block.h"
 #include "anticalib02.h"
 #include "particle.h"
 #include <iostream.h>
@@ -718,6 +719,8 @@ void AntiCalib::mfun(int &np, number grad[], number &f, number x[]
   number ANTPedCalib::port2r[ANTI2C::MAXANTI][2];//portion of hi-ampl to remove
   integer ANTPedCalib::nevt[ANTI2C::MAXANTI][2];// events in sum
   geant ANTPedCalib::peds[ANTI2C::MAXANTI][2];
+  geant ANTPedCalib::dpeds[ANTI2C::MAXANTI][2];
+  geant ANTPedCalib::thrs[ANTI2C::MAXANTI][2];
   geant ANTPedCalib::sigs[ANTI2C::MAXANTI][2];
   uinteger ANTPedCalib::stas[ANTI2C::MAXANTI][2];
   integer ANTPedCalib::nstacksz;//really needed stack size
@@ -725,7 +728,261 @@ void AntiCalib::mfun(int &np, number grad[], number &f, number x[]
   time_t ANTPedCalib::BeginTime;
   uinteger ANTPedCalib::BeginRun;
   ANTPedCalib::ANTPedCal_ntpl ANTPedCalib::ANTPedCalNT;
+//---------------------------------------------------------------------------
+void ANTPedCalib::initb(){//called in retof2initjob() if TOF+AC is requested for OnBoard-calib data proc 
+// histograms booking / reset vars
+  integer i,j;
+  char hmod[2]=" ";
 //
+  if(TFREFFKEY.reprtf[4]>0)cout<<endl;
+//
+//  ---> book hist.  :
+//
+  if((CALIB.SubDetInCalib/1000)%10>1){
+    HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
+    HMINIM(2670,75.);
+    HMAXIM(2670,275.);
+    HBOOK1(2671,"Ped-rms vs paddle for bot/top sides",20,1.,21.,0.);
+    HMINIM(2671,0.);
+    HMAXIM(2671,8.);
+    HBOOK1(2672,"Ped-stat(1=bad) vs paddle for bot/top sides",20,1.,21.,0.);
+    HMINIM(2672,0.);
+    HMAXIM(2672,1.);
+    HBOOK1(2673,"Ped-diff(old-new) vs paddle for bot/top sides",20,1.,21.,0.);
+    HMINIM(2673,-5.);
+    HMAXIM(2673,5.);
+  }
+//
+// ---> clear arrays:
+//
+  for(i=0;i<ANTI2C::MAXANTI;i++){
+    for(j=0;j<2;j++){
+      peds[i][j]=0;
+      dpeds[i][j]=0;
+      thrs[i][j]=0;
+      sigs[i][j]=0;
+      stas[i][j]=1;//bad
+    }
+  }
+//
+  if(TFREFFKEY.reprtf[4]>0)cout<<"<---- ACC OnBoardPedCalib: init done..."<<endl<<endl;;
+}
+//----
+void ANTPedCalib::resetb(){ // run-by-run reset for OnBoardPedTable processing 
+//called in buildonbP
+  integer i,j;
+  char hmod[2]=" ";
+  static int first(0);
+//
+  cout<<endl;
+//
+  if((CALIB.SubDetInCalib/1000)%10>1){//reset hist
+    for(i=0;i<4;i++)HRESET(2670+i,hmod);
+  }
+//
+// ---> clear arrays:
+//
+  for(i=0;i<ANTI2C::MAXANTI;i++){
+    for(j=0;j<2;j++){
+      peds[i][j]=0;
+      dpeds[i][j]=0;
+      thrs[i][j]=0;
+      sigs[i][j]=0;
+      stas[i][j]=1;//bad
+    }
+  }
+  cout<<"====> ANTPedCalib::OnBoardPedTable: Reset done..."<<endl<<endl;;
+}
+//----
+void ANTPedCalib::filltb(int sr, int sd, geant ped, geant dped, geant thr, geant sig){
+// for usage with OnBoardPedTables
+  peds[sr][sd]=ped;
+  dpeds[sr][sd]=dped;
+  thrs[sr][sd]=thr;
+  sigs[sr][sd]=sig;
+}
+//-----
+void ANTPedCalib::outptb(int flg){//called in buildonbP
+// flg=1/2/3=>/write2DB/NoAction(hist only)/(write2file+hist)
+   int i,sr,sd;
+   int totch(0),goodtbch(0),goodch(0);
+   geant pedo,sigo,pdiff;
+   geant pedmn,pedmx,sigmn,sigmx;
+   int stao;
+   uinteger runn=BRun();//run# 
+   time_t begin=time_t(runn);//begin time = run-time(=runn) 
+   time_t end,insert;
+   char DataDate[30],WrtDate[30];
+   geant goodchp(0);
+   strcpy(DataDate,asctime(localtime(&begin)));
+   time(&insert);
+   strcpy(WrtDate,asctime(localtime(&insert)));
+//
+   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
+   bool dpedin=((spatt&16)==1);//dyn.peds-section present(90 words)
+   bool thrsin=((spatt&2)==1);//thresholds ..............(90...)
+   integer rthrs,rdped;
+//
+   if(TFREFFKEY.reprtf[4]>0)cout<<endl<<"=====> ANTPedCalib:OnBoardTable-Report:"<<endl<<endl;
+//---- fill ntuple:
+//   ANTPedCalNT.Run=BRun();
+//   for(sr=0;sr<ANTI2C::MAXANTI;sr++){
+//     ANTPedCalNT.Sector=sr+1;
+//     for(sd=0;sd<2;sd++){
+//       ANTPedCalNT.PedA[sd]=peds[sr][sd];
+//       ANTPedCalNT.SigA[sd]=sigs[sr][sd];
+//       ANTPedCalNT.StaA[sd]=stas[sr][sd];
+//     }
+//     HFNT(IOPA.ntuple);
+//   }
+//----
+   pedmn=ATCAFFKEY.pedlim[0];
+   pedmx=ATCAFFKEY.pedlim[1];
+   sigmn=ATCAFFKEY.siglim[0];
+   sigmx=ATCAFFKEY.siglim[1];
+//
+   for(sr=0;sr<ANTI2C::MAXANTI;sr++){
+     for(sd=0;sd<2;sd++){
+       totch+=1;
+       pedo=ANTIPeds::anscped[sr].apeda(sd);//extract prev.calib ped/sig/sta for comparison
+       sigo=ANTIPeds::anscped[sr].asiga(sd);
+       stao=ANTIPeds::anscped[sr].astaa(sd);
+       pdiff=peds[sr][sd]-pedo;
+       if(DAQS2Block::CalFirstSeq() || stao==1)pdiff=0;//to exclude pdiff-check for 1st run or bad prev.channel
+//
+       if(thrsin)rthrs=thrs[sr][sd];
+       else rthrs=5;
+       if(dpedin)rdped=dpeds[sr][sd];
+       else rdped=50;
+//
+       if(peds[sr][sd]>0 && rthrs>1 && rdped>0){//channel OK in table ? 
+	 goodtbch+=1;
+	 if(sigs[sr][sd]>sigmn && sigs[sr][sd]<=sigmx &&
+                   peds[sr][sd]>pedmn && peds[sr][sd]<=pedmx && fabs(pdiff)<30){//MyCriteria:chan.OK 
+	   stas[sr][sd]=0;//ch ok
+	   goodch+=1;
+//update ped-object in memory(PedCal-Obj):
+	   ANTIPeds::anscped[sr].apeda(sd)=peds[sr][sd];
+	   ANTIPeds::anscped[sr].asiga(sd)=sigs[sr][sd];
+	   ANTIPeds::anscped[sr].astaa(sd)=stas[sr][sd];
+	   if(flg>1){
+             HF1(2670,geant(sd*10+sr+1),ANTIPeds::anscped[sr].apeda(sd));
+	     HF1(2671,geant(sd*10+sr+1),ANTIPeds::anscped[sr].asiga(sd));
+	     HF1(2672,geant(sd*10+sr+1),geant(stas[sr][sd]));
+	     HF1(2673,geant(sd*10+sr+1),pdiff);
+	   }
+	 }
+	 else{//MyCriteria: bad chan
+	   if(TFREFFKEY.reprtf[4]>0){
+	     cout<<"       MyCriteriaBadCh: Sector/Side="<<sr<<" "<<sd<<endl;
+	     cout<<"                      ped/sig="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<endl;    
+	     cout<<"                      PedDiff="<<pdiff<<endl;
+	   }    
+	 }
+       }//--->endof "channel OK in table ?" check
+       else{
+	 if(TFREFFKEY.reprtf[4]>0){
+	   cout<<"       BadTableChan:Sector/Side="<<sr<<" "<<sd<<endl;    
+	   cout<<"       ped/sig/sta="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<endl;
+	 }    
+       }
+     }//--->endof side-loop
+   }//--->endof sector-loop
+// 
+    goodchp=geant(goodch)/totch;
+//
+   if(TFREFFKEY.reprtf[4]>0)
+     cout<<"       GoodChan(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<" GoodChsPort="<<goodchp<<endl;  
+//   
+// ---> prepare update of DB :
+   if(goodchp>=0.5 && AMSFFKEY.Update>0 && flg==1){//Update DB "on flight"
+     AMSTimeID *ptdv;
+     ptdv = AMSJob::gethead()->gettimestructure(AMSID("Antipeds",AMSJob::gethead()->isRealData()));
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
+     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*30);
+     cout <<"      <--- AccOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
+     ptdv->gettime(insert,begin,end);
+     cout<<"           Time ins/beg/end: "<<endl;
+     cout<<"           "<<ctime(&insert);
+     cout<<"           "<<ctime(&begin);
+     cout<<"           "<<ctime(&end);
+//
+//     if(AMSFFKEY.Update==2 ){
+//       AMSTimeID * offspring = 
+//         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
+//       while(offspring){
+//         if(offspring->UpdateMe())cout << "       Start update ANT-peds DB "<<*offspring; 
+//         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+//         cerr <<"       Problem To Update ANT-peds in DB"<<*offspring;
+//         offspring=(AMSTimeID*)offspring->next();//get one-by-one
+//       }
+//     }
+   }
+   else{
+     if(AMSFFKEY.Update>0 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
+   }
+//
+// ---> write OnBoardPedTable to ped-file:
+//
+   if(flg==3 && AMSFFKEY.Update==0){
+     integer endflab(12345);
+     char fname[80];
+     char name[80];
+     char buf[20];
+//
+     strcpy(name,"antp_tb_rl.");//from OnBoardTable
+     sprintf(buf,"%d",runn);
+     strcat(name,buf);
+     if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+     if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+     strcat(fname,name);
+     cout<<"       Open file : "<<fname<<'\n';
+     cout<<"       Date of the first used event : "<<DataDate<<endl;
+     ofstream icfile(fname,ios::out|ios::trunc); // open pedestals-file for writing
+     if(!icfile){
+       cerr <<"<---- Problems to write new ONBT-Peds file !!? "<<fname<<endl;
+       exit(1);
+     }
+     icfile.setf(ios::fixed);
+//
+// ---> write peds/sigmas/stat:
+//
+     for(sr=0;sr<ANTI2C::MAXANTI;sr++){   // <-------- loop over layers
+       icfile.width(2);
+       icfile.precision(1);
+       for(sd=0;sd<2;sd++)icfile << stas[sr][sd]<<" ";//stat
+       icfile << " ";
+       icfile.width(6);
+       icfile.precision(1);
+       for(sd=0;sd<2;sd++)icfile << peds[sr][sd]<<" ";//ped
+       icfile << " ";
+       icfile.width(5);
+       icfile.precision(1);
+       for(sd=0;sd<2;sd++)icfile << sigs[sr][sd]<<" ";//sig
+       icfile << endl;
+     } // --- end of layer loop --->
+     icfile << endl;
+//
+//
+     icfile << endl<<"======================================================"<<endl;
+     icfile << endl<<" Date of the 1st used event : "<<DataDate<<endl;
+     icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
+     icfile.close();
+//
+   }//--->endof file writing 
+//
+   if(flg>1 && AMSFFKEY.Update==0){
+     for(i=0;i<4;i++)HPRINT(2670+i);
+   }
+   cout<<endl;
+   cout<<"<========= AccOnbPedCalib: run "<<runn<<" is processed, goodpeds%="<<goodchp<<endl;
+   cout<<endl;
+//
+}
+//--------------------------------------------------------------------
 void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration 
   integer i,j,k,il,ib,id,ii,jj,chan;
   char htit1[60],htit2[60];
@@ -815,46 +1072,6 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
     }
   }
   cout<<"ANTPedCalib::init done..."<<endl<<endl;;
-}
-//-------------------------------------------
-void ANTPedCalib::resetb(){ // ----> to work with OnBoardPedTables 
-  integer i,j;
-  char hmod[2]=" ";
-  static int first(0);
-//
-  cout<<endl;
-//
-//  ---> book hist.  :
-//
-  if(first==0){
-    HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
-    HMINIM(2670,75.);
-    HMAXIM(2670,275.);
-    HBOOK1(2671,"Ped-rms vs paddle for bot/top sides",20,1.,21.,0.);
-    HMINIM(2671,0.);
-    HMAXIM(2671,8.);
-    HBOOK1(2672,"Ped-stat(1=bad) vs paddle for bot/top sides",20,1.,21.,0.);
-    HMINIM(2672,0.);
-    HMAXIM(2672,1.);
-    HBOOK1(2673,"Ped-diff(old-new) vs paddle for bot/top sides",20,1.,21.,0.);
-    HMINIM(2673,-5.);
-    HMAXIM(2673,5.);
-    first=1;
-  }
-  else{
-    for(i=0;i<4;i++)HRESET(2670+i,hmod);
-  }
-//
-// ---> clear arrays:
-//
-  for(i=0;i<ANTI2C::MAXANTI;i++){
-    for(j=0;j<2;j++){
-      peds[i][j]=0;
-      sigs[i][j]=0;
-      stas[i][j]=1;//bad
-    }
-  }
-  cout<<"====> ANTPedCalib::OnBoardPedTable/Histos Reset done..."<<endl<<endl;;
 }
 //-------------------------------------------
 void ANTPedCalib::fill(int sr, int sd, geant val){//
@@ -978,13 +1195,6 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
    id=2674+sr*2+sd;
    if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(id,val,1.); 
    HF1(id+16,val,1.);
-}
-//-------------------------------------------
-void ANTPedCalib::filltb(int sr, int sd, geant ped, geant sig, int sta){
-// for usage with OnBoardPedTables
-  peds[sr][sd]=ped;
-  sigs[sr][sd]=sig;
-  stas[sr][sd]=sta;
 }
 //-------------------------------------------
 void ANTPedCalib::outp(int flg){// very preliminary
@@ -1139,151 +1349,6 @@ void ANTPedCalib::outp(int flg){// very preliminary
 //
 }
 //-------------------------------------------
-void ANTPedCalib::outptb(int flg){// very preliminary
-// flg=0/1/2=>No/write2DB+file/write2file
-   int i,sr,sd;
-   int totch(0),goodtbch(0),goodch(0);
-   geant pedo,sigo,pdiff;
-   geant pedmn,pedmx,sigmn,sigmx;
-   int stao;
-   time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
-   uinteger runn=BRun();//1st event run# 
-   time_t end,insert;
-   char DataDate[30],WrtDate[30];
-   strcpy(DataDate,asctime(localtime(&begin)));
-   time(&insert);
-   strcpy(WrtDate,asctime(localtime(&insert)));
-//
-   cout<<endl;
-   cout<<"=====> ANTPedCalib:OnBoardTable-Report:"<<endl<<endl;
-//---- fill ntuple:
-   ANTPedCalNT.Run=BRun();
-   for(sr=0;sr<ANTI2C::MAXANTI;sr++){
-     ANTPedCalNT.Sector=sr+1;
-     for(sd=0;sd<2;sd++){
-       ANTPedCalNT.PedA[sd]=peds[sr][sd];
-       ANTPedCalNT.SigA[sd]=sigs[sr][sd];
-       ANTPedCalNT.StaA[sd]=stas[sr][sd];
-     }
-     HFNT(IOPA.ntuple);
-   }
-//----
-   pedmn=ATCAFFKEY.pedlim[0];
-   pedmx=ATCAFFKEY.pedlim[1];
-   sigmn=ATCAFFKEY.siglim[0];
-   sigmx=ATCAFFKEY.siglim[1];
-//
-   for(sr=0;sr<ANTI2C::MAXANTI;sr++){
-     for(sd=0;sd<2;sd++){
-       totch+=1;
-       pedo=ANTIPeds::anscped[sr].apeda(sd);
-       sigo=ANTIPeds::anscped[sr].asiga(sd);
-       stao=ANTIPeds::anscped[sr].astaa(sd);
-       pdiff=peds[sr][sd]-pedo;
-//
-       if(peds[sr][sd]>0 && stas[sr][sd]==0){//channel OK in table ? tempor: stas-definition from Kunin ?
-	 goodtbch+=1;
-	 if(sigs[sr][sd]>sigmn && sigs[sr][sd]<=sigmx &&
-            peds[sr][sd]>pedmn && peds[sr][sd]<=pedmx && fabs(pdiff)<10){//MyCriteria:chan.OK 
-	   goodch+=1;
-//update ped-object in memory:
-	   ANTIPeds::anscped[sr].apeda(sd)=peds[sr][sd];
-	   ANTIPeds::anscped[sr].asiga(sd)=sigs[sr][sd];
-	   ANTIPeds::anscped[sr].astaa(sd)=stas[sr][sd];
-           HF1(2670,geant(sd*10+sr+1),ANTIPeds::anscped[sr].apeda(sd));
-	   HF1(2671,geant(sd*10+sr+1),ANTIPeds::anscped[sr].asiga(sd));
-	   HF1(2672,geant(sd*10+sr+1),geant(stas[sr][sd]));
-	   HF1(2673,geant(sd*10+sr+1),pdiff);
-	 }
-	 else{//MyCriteria: bad chan
-	   cout<<"       MyCriteriaBadCh: Sector/Side="<<sr<<" "<<sd<<endl;
-	   cout<<"                      ped/sig="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<endl;    
-	   cout<<"                      PedDiff="<<pdiff<<endl;    
-	 }
-       }//--->endof "channel OK in table ?" check
-       else{
-	 cout<<"       BadTableChan:Sector/Side="<<sr<<" "<<sd<<endl;    
-	 cout<<"       ped/sig/sta="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<" "<<stas[sr][sd]<<endl;    
-       }
-     }//--->endof side-loop
-   }//--->endof sector-loop
-   cout<<"       BadChannels(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<endl;  
-//   
-// ---> prepare update of DB :
-   if(goodch==goodtbch && flg==1){//Update DB "on flight"
-     AMSTimeID *ptdv;
-     ptdv = AMSJob::gethead()->gettimestructure(AMSID("Antipeds",AMSJob::gethead()->isRealData()));
-     ptdv->UpdateMe()=1;
-     ptdv->UpdCRC();
-     time(&insert);
-     end=begin+86400*30;
-     ptdv->SetTime(insert,begin,end);
-//
-     if(AMSFFKEY.Update==2 ){
-       AMSTimeID * offspring = 
-         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
-       while(offspring){
-         if(offspring->UpdateMe())cout << "       Start update ANT-peds DB "<<*offspring; 
-         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
-         cerr <<"       Problem To Update ANT-peds in DB"<<*offspring;
-         offspring=(AMSTimeID*)offspring->next();//get one-by-one
-       }
-     }
-   }
-// ---> write OnBoardPedTable to ped-file:
-   if(flg==1 || flg==2){
-     integer endflab(12345);
-     char fname[80];
-     char name[80];
-     char buf[20];
-//
-     strcpy(name,"antp_tb_rl.");//from OnBoardTable
-     sprintf(buf,"%d",runn);
-     strcat(name,buf);
-     if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-     if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
-     strcat(fname,name);
-     cout<<"       Open file : "<<fname<<'\n';
-     cout<<"       Date of the first used event : "<<DataDate<<endl;
-     ofstream icfile(fname,ios::out|ios::trunc); // open pedestals-file for writing
-     if(!icfile){
-       cerr <<"<---- Problems to write new ONBT-Peds file !!? "<<fname<<endl;
-       exit(1);
-     }
-     icfile.setf(ios::fixed);
-//
-// ---> write peds/sigmas/stat:
-//
-     for(sr=0;sr<ANTI2C::MAXANTI;sr++){   // <-------- loop over layers
-       icfile.width(2);
-       icfile.precision(1);
-       for(sd=0;sd<2;sd++)icfile << stas[sr][sd]<<" ";//stat
-       icfile << " ";
-       icfile.width(6);
-       icfile.precision(1);
-       for(sd=0;sd<2;sd++)icfile << peds[sr][sd]<<" ";//ped
-       icfile << " ";
-       icfile.width(5);
-       icfile.precision(1);
-       for(sd=0;sd<2;sd++)icfile << sigs[sr][sd]<<" ";//sig
-       icfile << endl;
-     } // --- end of layer loop --->
-     icfile << endl;
-//
-//
-     icfile << endl<<"======================================================"<<endl;
-     icfile << endl<<" Date of the 1st used event : "<<DataDate<<endl;
-     icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
-     icfile.close();
-//
-   }//--->endof file writing 
-//
-   for(i=0;i<4;i++)HPRINT(2670+i);
-   cout<<endl;
-   cout<<"=================== ANTPedCalib:OnBoardTable job is completed ! ====================="<<endl;
-   cout<<endl;
-//
-}
 //--------------
 void ANTPedCalib::ntuple_close(){
 //

@@ -19,6 +19,7 @@
 #include "ecaldbc.h"
 #include "ecalrec.h"
 #include "ecalcalib.h"
+#include "daqecblock.h"
 #include "trigger102.h"
 #include "trigger302.h"
 #include "particle.h"
@@ -2862,7 +2863,413 @@ void ECREUNcalib::mfite(){
  uinteger ECPedCalib::rstas[ECPMSL][5][2];
  integer ECPedCalib::nstacksz;//needed stack size (ev2rem*ECPCEVMX)
  ECPedCalib::ECPedCalib_ntpl  ECPedCalib::ECPedCalNT;
+//
+   
 //-----
+ void ECPedCalib::initb(){//called in reecalinitjob() in EC is requested for OnBoard-calib data proc
+// histograms booking / reset vars
+   int16u i,sl,pm,pix,gn,gnm;
+   int hnm,ch;
+   char buf[6];
+   char htit[80];
+   static int first(0);
+   char hmod[2]=" ";
+//
+//
+ if((CALIB.SubDetInCalib%10)>1){//histograms are requested
+   for(sl=0;sl<2*ECSLMX;sl++){
+     sprintf(buf,"%2d",sl);
+     for(gn=0;gn<2;gn++){
+       strcpy(htit,"Anode Peds vs Cell for Plane/Gain=");
+       strcat(htit,buf);
+       if(gn==0)strcat(htit,"H");
+       else strcat(htit,"L");
+       hnm=2*sl+gn;
+       HBOOK1(ECHISTC+100+hnm,htit,72,1.,73.,0.);
+       HMINIM(ECHISTC+100+hnm,20.);
+       HMAXIM(ECHISTC+100+hnm,800.);
+     }
+   }
+   for(sl=0;sl<2*ECSLMX;sl++){
+     sprintf(buf,"%2d",sl);
+     for(gn=0;gn<2;gn++){
+       strcpy(htit,"Anode Sigs vs Cell for Plane/Gain=");
+       strcat(htit,buf);
+       if(gn==0)strcat(htit,"H");
+       else strcat(htit,"L");
+       hnm=2*sl+gn;
+       HBOOK1(ECHISTC+136+hnm,htit,72,1.,73.,0.);
+       HMINIM(ECHISTC+136+hnm,0.);
+       HMAXIM(ECHISTC+136+hnm,5.);
+     }
+   }
+   for(sl=0;sl<ECSLMX;sl++){
+     strcpy(htit,"Dynode Peds vs Pmt for SuperLayer=");
+     sprintf(buf,"%2d",sl);
+     strcat(htit,buf);
+     HBOOK1(ECHISTC+172+sl,htit,36,1.,37.,0.);
+     HMINIM(ECHISTC+172+sl,20.);
+     HMAXIM(ECHISTC+172+sl,800.);
+   }
+   for(sl=0;sl<ECSLMX;sl++){
+     strcpy(htit,"Dynode Sigs vs Pmt for SuperLayer=");
+     sprintf(buf,"%2d",sl);
+     strcat(htit,buf);
+     HBOOK1(ECHISTC+181+sl,htit,36,1.,37.,0.);
+     HMINIM(ECHISTC+181+sl,0.);
+     HMAXIM(ECHISTC+181+sl,5.);
+   }
+   HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
+   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-5.,5.,0.);
+   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-5.,5.,0.);
+   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-5.,5.,0.);
+ }
+//
+   DAQECBlock::PrevRunNum()=0;
+   DAQECBlock::NReqEdrs()=0;
+   DAQECBlock::GoodPedBlks()=0;
+   DAQECBlock::FoundPedBlks()=0;
+   DAQECBlock::FirstPedBlk()=true;
+   DAQECBlock::CalFirstSeq()=true;
+//
+   for(int cr=0;cr<ECRT;cr++){
+     for(int edr=0;edr<ECEDRS;edr++)DAQECBlock::PedBlkCrat(cr,edr)=-1;
+   }
+//
+ } 
+//-----
+ void ECPedCalib::resetb(){//run-by-run reset for OnBoardPedTable processing,
+//called in buildonbP
+   int16u sl,pm,pix,gn,gnm;
+   char hmod[2]=" ";
+   int16u i,j,ch;
+//
+ if((CALIB.SubDetInCalib%10)>1){//reset hist
+   for(i=0;i<100;i++){
+     if(i==90 || i==91 || i==92 || i==99)continue;
+     HRESET(ECHISTC+100+i,hmod);
+   }
+ }
+//
+   for(sl=0;sl<ECSLMX;sl++){
+     for(pm=0;pm<ECPMSMX;pm++){
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){
+	   peds[ch][pix][gn]=0;
+	   sigs[ch][pix][gn]=0;
+	   stas[ch][pix][gn]=1;//bad
+	 }
+       }
+     }
+   }
+//
+   DAQECBlock::GoodPedBlks()=0;//start new calib.sequence
+   DAQECBlock::FoundPedBlks()=0;
+   DAQECBlock::NReqEdrs()=0;
+//
+    for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)DAQECBlock::PedBlkCrat(i,j)=-1;
+//
+   if(ECREFFKEY.reprtf[2]>0){
+     cout<<endl;
+     cout<<"   <--- EcOnbPedCalib: Reset done..."<<endl<<endl;
+   }
+//
+ }
+//-----
+ void ECPedCalib::filltb(integer swid, geant ped, geant sig, int16u sta){
+//
+   int16u i,sl,pm,pix,gn,ch,is;
+// sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
+// swid=>LTTPG(SupLayer/PMTube/Pixel/Gain)
+//
+   sl=swid/10000;
+   sl=sl-1;//0-8
+   pm=(swid%10000)/100-1;//0-35
+   ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+   pix=(swid%100)/10;
+   pix=pix-1;//0-4 (4->dynode)
+   gn=(swid%10)-1;//0/1->high/low
+   if(pix==4)gn=0;
+   peds[ch][pix][gn]=ped;
+   sigs[ch][pix][gn]=sig;
+   stas[ch][pix][gn]=uinteger(sta);
+ }
+//----------
+ void ECPedCalib::outptb(int flg){//called in buildonbP
+// flg=1/2/3=>/write2DB/NoAction(hist only)/(write2file+hist)
+   int i,j;
+   int totchs(0),goodtbch(0),goodchs(0);
+   geant goodchp(0);
+   geant pedo,sigo;
+   geant pedmin,pedmax,sigmin,sigmax;
+   int stao;
+   geant pdiff;
+   int16u sl,pm,pix,gn,gnm,pln,cll,ch;
+   uinteger runn=BRun();//run# 
+   time_t begin=time_t(runn);//begin time = run-time(=runn) 
+   time_t end,insert;
+   char DataDate[30],WrtDate[30];
+//   strcpy(DataDate,asctime(localtime(&begin)));
+   strcpy(DataDate,asctime(localtime(&begin)));
+   time(&insert);
+   strcpy(WrtDate,asctime(localtime(&insert)));
+//
+   pedmin=ECCAFFKEY.pedlim[0];
+   pedmax=ECCAFFKEY.pedlim[1];
+   sigmin=ECCAFFKEY.siglim[0];
+   sigmax=ECCAFFKEY.siglim[1];
+//
+//
+   if(ECREFFKEY.reprtf[2]>0)cout<<endl<<"       EcOnbPedCalib::EndOfRun:OnBoardTable-Report:"<<endl<<endl;
+//----
+   for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
+     for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){//<--- pixel loop
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){//<--- gain loop
+	   totchs+=1;
+	   if(pix<4){//anodes, extract prev.calib ped/sig/sta for comparison
+	     pedo=ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
+	     sigo=ECPMPeds::pmpeds[sl][pm].sig(pix,gn);
+	     stao=ECPMPeds::pmpeds[sl][pm].sta(pix,gn);
+	   }
+	   else{//dynodes, extract prev.calib ped/sig/sta for comparison
+	     pedo=ECPMPeds::pmpeds[sl][pm].pedd();
+	     sigo=ECPMPeds::pmpeds[sl][pm].sigd();
+	     stao=ECPMPeds::pmpeds[sl][pm].stad();
+	   }
+	   pdiff=peds[ch][pix][gn]-pedo;
+	   if(DAQECBlock::CalFirstSeq() || stao==1)pdiff=0;//to exclude pdiff-check for 1st run or bad prev.channel
+//	   cout<<" PrevRunNum="<<DAQECBlock::PrevRunNum()<<" stao="<<stao<<" peddif="<<pdiff<<endl;
+//
+	   if(peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && stas[ch][pix][gn]==0){// channel OK in table ? 
+	     goodtbch+=1;
+	     if(sigs[ch][pix][gn]>sigmin && sigs[ch][pix][gn]<=sigmax
+		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<50){//MyCriteria:chan.OK
+	       goodchs+=1;
+	       if(pix<4){//anodes
+	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];//save current values in PedCal-obj
+	         ECPMPeds::pmpeds[sl][pm].sig(pix,gn)=sigs[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].sta(pix,gn)=stas[ch][pix][gn];
+		 pln=sl*2+(pix/2);//0-17
+		 cll=pm*2+(pix%2);//0-71
+		 if(flg>1){
+		   HF1(ECHISTC+100+2*pln+gn,geant(cll+1),peds[ch][pix][gn]);
+		   HF1(ECHISTC+136+2*pln+gn,geant(cll+1),sigs[ch][pix][gn]);
+		   if(gn==0)HF1(ECHISTC+193,sigs[ch][pix][gn],1.);
+		   else HF1(ECHISTC+194,sigs[ch][pix][gn],1.);
+		   if(gn==0)HF1(ECHISTC+196,pdiff,1.);
+		   else HF1(ECHISTC+197,pdiff,1.);
+		 }
+	       }
+	       else{//dynodes
+	         ECPMPeds::pmpeds[sl][pm].pedd()=peds[ch][pix][gn];//save current values in PedCal-obj
+	         ECPMPeds::pmpeds[sl][pm].sigd()=sigs[ch][pix][gn];
+	         ECPMPeds::pmpeds[sl][pm].stad()=stas[ch][pix][gn];
+		 if(flg>1){
+		   HF1(ECHISTC+172+sl,geant(pm+1),peds[ch][pix][gn]);
+		   HF1(ECHISTC+181+sl,geant(pm+1),sigs[ch][pix][gn]);
+		   HF1(ECHISTC+195,sigs[ch][pix][gn],1.);
+		   HF1(ECHISTC+198,pdiff,1.);
+		 }
+	       }
+	     }
+	     else{//MyCriteria: bad chan
+	       if(ECREFFKEY.reprtf[2]>0){
+	         cout<<"       MyCriteriaBadCh: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	         cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
+	         cout<<"                        PedDiff="<<pdiff<<endl;
+	       }    
+	     }
+	   }//--->endof "channel OK in table ?" check
+	   else{
+	     if(ECREFFKEY.reprtf[2]>0){
+	       cout<<"       BadTableChan: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	       cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;
+	     }    
+	   } 
+	 }//--->endof gain-loop
+       }//--->endof pixel-loop
+     }//--->endof pmt-loop
+   }//--->endof Slayer-loop
+   goodchp=geant(goodchs)/totchs;
+   
+//
+   if(ECREFFKEY.reprtf[2]>0)
+    cout<<"     GoodChan(table/My):"<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
+//   
+// ---> prepare update of DB if requested :
+   if(goodchp>=0.5 && AMSFFKEY.Update>0 && flg==1){// "on flight" DB-update
+// 
+     AMSTimeID *ptdv;
+     ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
+     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*30);
+     cout <<"      <--- EcalOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
+     ptdv->gettime(insert,begin,end);
+     cout<<"           Time ins/beg/end: "<<endl;
+     cout<<"           "<<ctime(&insert);
+     cout<<"           "<<ctime(&begin);
+     cout<<"           "<<ctime(&end);
+//
+//
+//     if(AMSFFKEY.Update==2 ){
+//       AMSTimeID * offspring = 
+//         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
+//       while(offspring){
+//         if(offspring->UpdateMe())cout << "         Start update Ecal-peds DB "<<*offspring; 
+//         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+//         cerr <<"         Problem To Update Ecal-peds in DB"<<*offspring;
+//         offspring=(AMSTimeID*)offspring->next();//get one-by-one
+//       }
+//     }
+   }
+   else{
+     if(AMSFFKEY.Update>0 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
+   }
+// ---> write OnBoardPedTable to ped-file:
+   if(flg==3 && AMSFFKEY.Update==0){
+     integer endflab(12345);
+     char fname[80];
+     char name[80];
+     char buf[20];
+//
+     strcpy(name,"eclp_tb_rl.");//from OnBoardTable
+     sprintf(buf,"%d",runn);
+     strcat(name,buf);
+     strcpy(fname,"");
+     strcat(fname,name);
+     cout<<"       Open file : "<<fname<<'\n';
+     cout<<"       Date of the first used event : "<<DataDate<<endl;
+     ofstream icfile(fname,ios::out|ios::trunc); // open pedestals-file for writing
+     if(!icfile){
+       cerr <<"<---- ECPedCalib: Problems to write new ONBT-Peds file !!? "<<fname<<endl;
+       exit(1);
+     }
+     icfile.setf(ios::fixed);
+//
+// ---> write HighGain peds/sigmas/stat:
+//
+     icfile.width(6);
+     icfile.precision(1);// precision
+     for(sl=0;sl<ECSLMX;sl++){   
+       for(pix=0;pix<4;pix++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][pix][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][pix][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][pix][0];
+         }
+         icfile << endl;
+       }
+       icfile << endl;
+     } 
+//
+// ---> write LowGain peds/sigmas/stats:
+//
+     for(sl=0;sl<ECSLMX;sl++){   
+       for(pix=0;pix<4;pix++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][pix][1];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][pix][1];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][pix][1];
+         }
+         icfile << endl;
+       }
+       icfile << endl;
+     } 
+//
+// ---> write Dynode peds/sigmas/stats:
+//
+     for(sl=0;sl<ECSLMX;sl++){   
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << peds[ch][4][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << sigs[ch][4][0];
+         }
+         icfile << endl;
+         for(pm=0;pm<ECPMSMX;pm++){  
+           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+           icfile.width(6);
+           icfile.precision(1);// precision
+           icfile << stas[ch][4][0];
+         }
+         icfile << endl;
+     } 
+     icfile << endl;
+//
+// ---> write EndFileLabel :
+//
+     icfile << endflab;
+//
+     icfile << endl<<"======================================================"<<endl;
+     icfile << endl<<" Date of the processed data : "<<DataDate<<endl;
+     icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
+     icfile.close();
+//
+   }//--->endof file writing 
+//
+   if(flg>1 && AMSFFKEY.Update==0){
+       for(i=0;i<36;i++)HPRINT(ECHISTC+100+i);
+       for(i=0;i<8;i++)HPRINT(ECHISTC+172+i);
+       for(i=0;i<6;i++)HPRINT(ECHISTC+193+i);
+   }
+//
+   DAQECBlock::CalFirstSeq()=false;
+//
+   cout<<endl;
+   cout<<"<========= EcOnbPedCalib: run "<<runn<<" is processed, goodpeds%="<<goodchp<<endl;
+   cout<<endl;
+//
+ }
+//---------------------------------------------------
  void ECPedCalib::init(){//called in caecinitjob() 
    int16u i,sl,pm,pix,gn,gnm;
    int hnm,ch;
@@ -2972,117 +3379,6 @@ void ECREUNcalib::mfite(){
    HBOOK1(ECHISTC+200,"Sl/Pm/Pix=5/18/2 AnodeL(inlim)",100,50.,550.,0.);
    HBOOK1(ECHISTC+201,"Sl/Pm=5/18 Dynode(inlim)",100,50.,550.,0.);
    cout<<"====> ECPedCalib::init done..."<<endl<<endl;;
- }
-//-----
- void ECPedCalib::resetb(){//init for OnBoardPedTable processing,
-//called in buildraw() when 1st pedtable sub-block was found
-   int16u i,sl,pm,pix,gn,gnm;
-   int hnm,ch;
-   char buf[6];
-   char htit[80];
-   static int first(0);
-   char hmod[2]=" ";
-//
-//
-  if(first==0){
-   for(sl=0;sl<2*ECSLMX;sl++){
-     sprintf(buf,"%2d",sl);
-     for(gn=0;gn<2;gn++){
-       strcpy(htit,"Anode Peds vs Cell for Plane/Gain=");
-       strcat(htit,buf);
-       if(gn==0)strcat(htit,"H");
-       else strcat(htit,"L");
-       hnm=2*sl+gn;
-       HBOOK1(ECHISTC+100+hnm,htit,72,1.,73.,0.);
-       HMINIM(ECHISTC+100+hnm,20.);
-       HMAXIM(ECHISTC+100+hnm,800.);
-     }
-   }
-   for(sl=0;sl<2*ECSLMX;sl++){
-     sprintf(buf,"%2d",sl);
-     for(gn=0;gn<2;gn++){
-       strcpy(htit,"Anode Sigs vs Cell for Plane/Gain=");
-       strcat(htit,buf);
-       if(gn==0)strcat(htit,"H");
-       else strcat(htit,"L");
-       hnm=2*sl+gn;
-       HBOOK1(ECHISTC+136+hnm,htit,72,1.,73.,0.);
-       HMINIM(ECHISTC+136+hnm,0.);
-       HMAXIM(ECHISTC+136+hnm,5.);
-     }
-   }
-   for(sl=0;sl<ECSLMX;sl++){
-     strcpy(htit,"Dynode Peds vs Pmt for SuperLayer=");
-     sprintf(buf,"%2d",sl);
-     strcat(htit,buf);
-     HBOOK1(ECHISTC+172+sl,htit,36,1.,37.,0.);
-     HMINIM(ECHISTC+172+sl,20.);
-     HMAXIM(ECHISTC+172+sl,800.);
-   }
-   for(sl=0;sl<ECSLMX;sl++){
-     strcpy(htit,"Dynode Sigs vs Pmt for SuperLayer=");
-     sprintf(buf,"%2d",sl);
-     strcat(htit,buf);
-     HBOOK1(ECHISTC+181+sl,htit,36,1.,37.,0.);
-     HMINIM(ECHISTC+181+sl,0.);
-     HMAXIM(ECHISTC+181+sl,5.);
-   }
-   HBOOK1(ECHISTC+193,"AllChannels Anode(HiGain) PedRms",50,0.,2.5,0.);
-   HBOOK1(ECHISTC+194,"AllChannels Anode(LoGain) PedRms",50,0.,2.5,0.);
-   HBOOK1(ECHISTC+195,"AllChannels Dynode PedRms",50,0.,2.5,0.);
-   HBOOK1(ECHISTC+196,"AllChannels Anode(HiGain) PedDiff",50,-5.,5.,0.);
-   HBOOK1(ECHISTC+197,"AllChannels Anode(LoGain) PedDiff",50,-5.,5.,0.);
-   HBOOK1(ECHISTC+198,"AllChannels Dynode PedDiff",50,-5.,5.,0.);
-//-->save ref ped/sig/sta:
-   for(sl=0;sl<ECSLMX;sl++){
-     for(pm=0;pm<ECPMSMX;pm++){
-       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-       for(pix=0;pix<5;pix++){
-         gnm=2;
-	 if(pix==4)gnm=1;//only hi-gain for dynodes
-         for(gn=0;gn<gnm;gn++){
-	   if(pix<4){//anode
-	     rpeds[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].ped(pix,gn);
-	     rsigs[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].sig(pix,gn);
-	     rstas[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].sta(pix,gn);
-	   }
-	   else{//dyn
-	     rpeds[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].pedd();
-	     rsigs[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].sigd();
-	     rstas[ch][pix][gn]=ECPMPeds::pmpeds[sl][pm].stad();
-	   }
-	 }
-       }
-     }
-   }
-   first=1;
-  }
-  else{
-    for(i=0;i<100;i++){
-      if(i==90 || i==91 || i==92 || i==99)continue;
-      HRESET(ECHISTC+100+i,hmod);
-    }
-  }
-//
-   for(sl=0;sl<ECSLMX;sl++){
-     for(pm=0;pm<ECPMSMX;pm++){
-       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-       for(pix=0;pix<5;pix++){
-         gnm=2;
-	 if(pix==4)gnm=1;//only hi-gain for dynodes
-         for(gn=0;gn<gnm;gn++){
-	   peds[ch][pix][gn]=0;
-	   sigs[ch][pix][gn]=0;
-	   stas[ch][pix][gn]=1;//bad
-	 }
-       }
-     }
-   }
-//
-   if(ECREFFKEY.reprtf[2]>0){
-     cout<<endl;
-     cout<<"====> ECPedCalib::OnBoardPedTable/Histos Reset done..."<<endl<<endl;
-   }
  }
 //-----
  void ECPedCalib::fill(integer swid, geant val){//called at validate-stage
@@ -3233,25 +3529,6 @@ void ECREUNcalib::mfite(){
        if(pix==4 && gn==0)HF1(ECHISTC+201,val,1.);
      }
    } 
- }
-//-----
- void ECPedCalib::filltb(integer swid, geant ped, geant sig, int16u sta){
-//
-   int16u i,sl,pm,pix,gn,ch,is;
-// sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
-// swid=>LTTPG(SupLayer/PMTube/Pixel/Gain)
-//
-   sl=swid/10000;
-   sl=sl-1;//0-8
-   pm=(swid%10000)/100-1;//0-35
-   ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-   pix=(swid%100)/10;
-   pix=pix-1;//0-4 (4->dynode)
-   gn=(swid%10)-1;//0/1->high/low
-   if(pix==4)gn=0;
-   peds[ch][pix][gn]=ped;
-   sigs[ch][pix][gn]=sig;
-   stas[ch][pix][gn]=uinteger(sta);
  }
 //-----
  void ECPedCalib::outp(int flg){//called in ecalendjob
@@ -3514,286 +3791,6 @@ void ECREUNcalib::mfite(){
    cout<<endl;
    cout<<"====================== ECPedCalib: job is completed ! ======================"<<endl;
    cout<<endl;
-//
- }
-//----------
- void ECPedCalib::outptb(int flg){
-// flg=0/1/2=>No/write2DB+file/write2file
-   int i,j;
-   int totchs(0),goodtbch(0),goodchs(0);
-   geant goodchp(0);
-   geant pedo,sigo;
-   geant pedmin,pedmax,sigmin,sigmax;
-   int stao;
-   geant pdiff;
-   int16u sl,pm,pix,gn,gnm,pln,cll,ch;
-   time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival) 
-   uinteger runn=BRun();//1st event run# 
-   time_t end,insert;
-   char DataDate[30],WrtDate[30];
-//   strcpy(DataDate,asctime(localtime(&begin)));
-   strcpy(DataDate,asctime(localtime(&begin)));
-   time(&insert);
-   strcpy(WrtDate,asctime(localtime(&insert)));
-//
-   pedmin=ECCAFFKEY.pedlim[0];
-   pedmax=ECCAFFKEY.pedlim[1];
-   sigmin=ECCAFFKEY.siglim[0];
-   sigmax=ECCAFFKEY.siglim[1];
-//
-   cout<<endl;
-   if(ECREFFKEY.reprtf[2]>0)cout<<"=====> ECPedCalib:OnBoardTable-Report:"<<endl<<endl;
-//---> fill ntuple:
-/*
-   ECPedCalNT.Run=BRun();
-   for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
-     ECPedCalNT.SLayer=sl+1;
-     for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop
-       ECPedCalNT.PmtNo=pm+1;
-       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-       for(pix=0;pix<5;pix++){//<--- pixel loop
-         gnm=2;
-	 if(pix==4)gnm=1;//only hi-gain for dynodes
-         for(gn=0;gn<gnm;gn++){//<--- gain loop
-           if(gn==0){
-             ECPedCalNT.Pedh[pix]=peds[ch][pix][gn];
-             ECPedCalNT.Sigh[pix]=sigs[ch][pix][gn];
-             ECPedCalNT.Stah[pix]=uinteger(stas[ch][pix][gn]);
-           }
-           else{
-             ECPedCalNT.Pedh[pix]=peds[ch][pix][gn];
-             ECPedCalNT.Sigh[pix]=sigs[ch][pix][gn];
-             ECPedCalNT.Stah[pix]=uinteger(stas[ch][pix][gn]);
-           }
-	 }
-       }
-       HFNT(IOPA.ntuple);
-     }
-   }
-   cout<<"      <-- Ntuple filled..."<<endl<<endl;
-*/
-//----
-   for(sl=0;sl<ECSLMX;sl++){//<---sup/layer loop
-     for(pm=0;pm<ECPMSMX;pm++){//<--- pmt loop
-       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-       for(pix=0;pix<5;pix++){//<--- pixel loop
-         gnm=2;
-	 if(pix==4)gnm=1;//only hi-gain for dynodes
-         for(gn=0;gn<gnm;gn++){//<--- gain loop
-	   totchs+=1;
-	   pedo=rpeds[ch][pix][gn];
-	   sigo=rsigs[ch][pix][gn];
-	   stao=rstas[ch][pix][gn];
-	   pdiff=peds[ch][pix][gn]-pedo;
-//
-	   if(peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && stas[ch][pix][gn]==0){// channel OK in table ? 
-	     goodtbch+=1;
-	     if(sigs[ch][pix][gn]>sigmin && sigs[ch][pix][gn]<=sigmax
-		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<50){//MyCriteria:chan.OK
-	       goodchs+=1;
-	       if(pix<4){//anodes
-	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];
-	         ECPMPeds::pmpeds[sl][pm].sig(pix,gn)=sigs[ch][pix][gn];
-	         ECPMPeds::pmpeds[sl][pm].sta(pix,gn)=stas[ch][pix][gn];
-		 pln=sl*2+(pix/2);//0-17
-		 cll=pm*2+(pix%2);//0-71
-		 HF1(ECHISTC+100+2*pln+gn,geant(cll+1),ECPMPeds::pmpeds[sl][pm].ped(pix,gn));
-		 HF1(ECHISTC+136+2*pln+gn,geant(cll+1),ECPMPeds::pmpeds[sl][pm].sig(pix,gn));
-		 if(gn==0)HF1(ECHISTC+193,sigs[ch][pix][gn],1.);
-		 else HF1(ECHISTC+194,sigs[ch][pix][gn],1.);
-		 if(gn==0)HF1(ECHISTC+196,pdiff,1.);
-		 else HF1(ECHISTC+197,pdiff,1.);
-	       }
-	       else{//dynodes
-	         ECPMPeds::pmpeds[sl][pm].pedd()=peds[ch][pix][gn];
-	         ECPMPeds::pmpeds[sl][pm].sigd()=sigs[ch][pix][gn];
-	         ECPMPeds::pmpeds[sl][pm].stad()=stas[ch][pix][gn];
-		 HF1(ECHISTC+172+sl,geant(pm+1),ECPMPeds::pmpeds[sl][pm].pedd());
-		 HF1(ECHISTC+181+sl,geant(pm+1),ECPMPeds::pmpeds[sl][pm].sigd());
-		 HF1(ECHISTC+195,sigs[ch][pix][gn],1.);
-		 HF1(ECHISTC+198,pdiff,1.);
-	       }
-	     }
-	     else{//MyCriteria: bad chan
-	       if(ECREFFKEY.reprtf[2]>0){
-	         cout<<"       MyCriteriaBadCh: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
-	         cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
-	         cout<<"                        PedDiff="<<pdiff<<endl;
-	       }    
-	     }
-	   }//--->endof "channel OK in table ?" check
-	   else{
-	     if(ECREFFKEY.reprtf[2]>0){
-	       cout<<"       BadTableChan: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
-	       cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;
-	     }    
-	   } 
-	 }//--->endof gain-loop
-       }//--->endof pixel-loop
-     }//--->endof pmt-loop
-   }//--->endof Slayer-loop
-   goodchp=geant(goodchs)/totchs;
-//
-   if(ECREFFKEY.reprtf[2]>0)
-    cout<<"     BadChannels(Criteria table/My):"<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
-//   
-// ---> prepare update of DB if requested :
-   if(goodchp>=0.5 && AMSFFKEY.Update>0){//set params for DB-update 
-     AMSTimeID *ptdv;
-     ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
-     ptdv->UpdateMe()=1;
-     ptdv->UpdCRC();
-     time(&insert);
-     if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
-     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*30);
-     cout <<"      <--- EcalOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
-     ptdv->gettime(insert,begin,end);
-     cout<<"           Time ins/beg/end: "<<endl;
-     cout<<"           "<<ctime(&insert);
-     cout<<"           "<<ctime(&begin);
-     cout<<"           "<<ctime(&end);
-//
-//     if(AMSFFKEY.Update==2 ){
-//       AMSTimeID * offspring = 
-//         (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());//get 1st timeid instance
-//       while(offspring){
-//         if(offspring->UpdateMe())cout << "         Start update Ecal-peds DB "<<*offspring; 
-//         if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
-//         cerr <<"         Problem To Update Ecal-peds in DB"<<*offspring;
-//         offspring=(AMSTimeID*)offspring->next();//get one-by-one
-//       }
-//     }
-   }
-   else{
-     if(AMSFFKEY.Update>0 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
-   }
-// ---> write OnBoardPedTable to ped-file:
-   if(flg==2 && AMSFFKEY.Update==0){
-     integer endflab(12345);
-     char fname[80];
-     char name[80];
-     char buf[20];
-//
-     strcpy(name,"eclp_tb_rl.");//from OnBoardTable
-     sprintf(buf,"%d",runn);
-     strcat(name,buf);
-     strcpy(fname,"");
-     strcat(fname,name);
-     cout<<"       Open file : "<<fname<<'\n';
-     cout<<"       Date of the first used event : "<<DataDate<<endl;
-     ofstream icfile(fname,ios::out|ios::trunc); // open pedestals-file for writing
-     if(!icfile){
-       cerr <<"<---- ECPedCalib: Problems to write new ONBT-Peds file !!? "<<fname<<endl;
-       exit(1);
-     }
-     icfile.setf(ios::fixed);
-//
-// ---> write HighGain peds/sigmas/stat:
-//
-     icfile.width(6);
-     icfile.precision(1);// precision
-     for(sl=0;sl<ECSLMX;sl++){   
-       for(pix=0;pix<4;pix++){   
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << peds[ch][pix][0];
-         }
-         icfile << endl;
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << sigs[ch][pix][0];
-         }
-         icfile << endl;
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << stas[ch][pix][0];
-         }
-         icfile << endl;
-       }
-       icfile << endl;
-     } 
-//
-// ---> write LowGain peds/sigmas/stats:
-//
-     for(sl=0;sl<ECSLMX;sl++){   
-       for(pix=0;pix<4;pix++){   
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << peds[ch][pix][1];
-         }
-         icfile << endl;
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << sigs[ch][pix][1];
-         }
-         icfile << endl;
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << stas[ch][pix][1];
-         }
-         icfile << endl;
-       }
-       icfile << endl;
-     } 
-//
-// ---> write Dynode peds/sigmas/stats:
-//
-     for(sl=0;sl<ECSLMX;sl++){   
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << peds[ch][4][0];
-         }
-         icfile << endl;
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << sigs[ch][4][0];
-         }
-         icfile << endl;
-         for(pm=0;pm<ECPMSMX;pm++){  
-           ch=ECPMSMX*sl+pm;//seq.# of sl*pm
-           icfile.width(6);
-           icfile.precision(1);// precision
-           icfile << stas[ch][4][0];
-         }
-         icfile << endl;
-     } 
-     icfile << endl;
-//
-// ---> write EndFileLabel :
-//
-     icfile << endflab;
-//
-     icfile << endl<<"======================================================"<<endl;
-     icfile << endl<<" Date of the 1st used event : "<<DataDate<<endl;
-     icfile << endl<<" Date of the file writing   : "<<WrtDate<<endl;
-     icfile.close();
-//
-   }//--->endof file writing 
-//
-   if((flg==2 || flg==0) && AMSFFKEY.Update==0){
-     for(i=0;i<36;i++)HPRINT(ECHISTC+100+i);
-     for(i=0;i<8;i++)HPRINT(ECHISTC+172+i);
-     for(i=0;i<6;i++)HPRINT(ECHISTC+193+i);
-     cout<<endl;
-     cout<<"====================== ECPedCalib:OnBoardTable job is completed ! ======================"<<endl;
-     cout<<endl;
-   }
 //
  }
 //--------------

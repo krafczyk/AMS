@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.284 2009/01/14 13:48:19 choumilo Exp $
+#  $Id: datacards.doc,v 1.285 2009/01/27 08:09:22 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1084,6 +1084,22 @@ MAGS
 I 1 magstat (1)     // -1/0/1->warm/cold_OFF/cold_ON (not really implemented yet)
 R 2 fscale  (1.)    // rescale factor (wrt nominal field) (if any) - not implemented yet
 R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev) 
+//------------------------------------------------------------------------------
+
+ SubDetector's calibration common flags:
+ 
+CALIB
+I 1 InsertTimeProc (1)   //DB-insert time setting: 1/0-> job_time/daq_time 
+I 2 Ntuple         (0)   //
+I 3 SubDetInCalib (11111) //(ijklm) 5 digits pattern to select SubDets for calib-job 
+//                          (msb->lsb => trd|tof+acc|trk|rich|ec), 
+//                        i(j,k,l,m)=0/1/2/3==>no_SubD_processing/proc+DBwriting/
+//                        proc+histogr_only/
+//                        proc+histogr+RawCalibFile(if any)writing;
+//                          i(j,k,l,m)>1 logic is prowided by SubDetectors, but general
+//                        request: i(j,k,l,m)=1 have to be quiet mode (minimal printout)
+//                        i(j,k,l,m)=0 automatically means no_processing(no call from VC
+//                        for related SubDets)
 //------------------------------------------------------------------------------
 
 	   

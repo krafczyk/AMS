@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.38 2009/01/15 18:00:31 choutko Exp $
+//  $Id: antirec02.C,v 1.39 2009/01/27 08:09:13 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -232,10 +232,10 @@ geant Anti2RawEvent::accsatur(geant aout){
   if(aout<=0)return(0);
   for(int ib=0;ib<bmx-1;ib++){
     if(aout>aouref[ib] && aout<=aouref[ib+1]){
-      return (norm*(ainref[ib]+(ainref[ib+1]-ainref[ib])/(aouref[ib+1]-aouref[ib])*(aout-aouref[ib])));
+      return(norm*(ainref[ib]+(ainref[ib+1]-ainref[ib])/(aouref[ib+1]-aouref[ib])*(aout-aouref[ib])));
     }
   }
-  return norm*ainref[bmx-1];
+  return(norm*ainref[bmx-1]);
 //
 }
 //----------------------------------------------------
