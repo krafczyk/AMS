@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.405 2009/01/27 08:09:13 choumilo Exp $
+//  $Id: event.C,v 1.406 2009/01/27 16:10:33 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2070,6 +2070,10 @@ void AMSEvent::_retkinitrun(){
 #endif
 //----
 void AMSEvent::_retofinitrun(){
+// Warning : may be 1st time called by not 1st event tread (in MP mode)
+//fortunately other treads will wait untill the one who called initrun 1st
+// finish his job, so one can memorize here job first run number for example
+// and this info can be used by all other events 
 //  uinteger run=AMSEvent::gethead()->getrun();
 //  uinteger srun=AMSEvent::gethead()->getSRun();
 //  if(srun==0){

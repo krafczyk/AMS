@@ -16,7 +16,7 @@ private:
   static int16u nodeids[ecalconst::ECRT];// valid JINF-node_id's (1x2crates)
   static int16u format;// currently processing DATA-format: 0-raw, 1-compressed, 2-mixed
   static integer totbll;//total length of all(MAX 4) blocks
-//specific for calib-jobs:
+//specific for pedcalib-jobs:
   static uinteger _PrevRunNum;
   static bool _FirstPedBlk;
   static integer _NReqEdrs;
