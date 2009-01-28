@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.83 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: event.h,v 1.84 2009/01/28 12:50:17 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -108,12 +108,11 @@ static integer PosInRun;
 static integer PosGlobal;
 static AMSEvent * _Head[maxthread];
 static uint64 _RunEv[maxthread];
-static AMSNodeMap  EventMap[maxthread];
+static AMSNodeMap  EventMap;
+#pragma omp threadprivate(EventMap)
 static ShuttlePar Array[60];
 static BeamPar ArrayB[60];
 static EventId * _SelectedEvents;
-//#pragma omp threadprivate(PosInRun,SRun,PosGlobal,EventMap,Array,ArrayB,_Head)
-//#pragma omp threadprivate(PosInRun,SRun,PosGlobal)
 void _copyEl();
 void _writeEl();
 //void _init();
@@ -262,7 +261,7 @@ void GetISSCoo(number & ra, number & dec){
 void GetAMSCoo(number & ra, number & dec){
   ra=_AMSEqAsc;dec=_AMSEqDec;} // ISN 
 static void  sethead(AMSEvent* head) {int thr=0;
- _Head[get_thread_num()]=head;if(_Head[get_thread_num()])AMSEvent::EventMap[get_thread_num()].map(*(_Head[get_thread_num()]));}
+ _Head[get_thread_num()]=head;if(_Head[get_thread_num()])AMSEvent::EventMap.map(*(_Head[get_thread_num()]));}
 static void  sethead2(AMSEvent* head){ _Head[get_thread_num()]=head;}
 integer removeC();
 void Recovery();
@@ -305,10 +304,10 @@ void operator delete(void *p)
   {if(p){((AMSEvent*)p)->~AMSEvent();p=0;UPool.udelete(p);}}
 
 inline AMSNode * getp(const AMSID & id, char hint=0) const{
-  return AMSEvent::EventMap[get_thread_num()].getp(id,hint);
+  return AMSEvent::EventMap.getp(id,hint);
 }
 inline void printH(){
-  AMSEvent::EventMap[get_thread_num()].print();
+  AMSEvent::EventMap.print();
 }
 static AMSID getTDVStatus();
 // Interface with DAQ

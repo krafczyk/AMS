@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.171 2009/01/14 12:34:42 choutko Exp $
+//  $Id: root.C,v 1.172 2009/01/28 12:50:16 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2894,15 +2894,8 @@ void AMSEventR::Init(TTree *tree){
 }
 
 void AMSEventR::ProcessFill(int entry){ 
-try{
    if (!UProcessCut()) return; 
    UProcessFill();
-}
-
- catch (bad_alloc a){
-         cerr <<"E-Can not allocate " <<endl;
-         return;
-  }
 }
  
 

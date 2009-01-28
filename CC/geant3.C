@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.115 2009/01/15 18:00:31 choutko Exp $
+//  $Id: geant3.C,v 1.116 2009/01/28 12:50:16 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1078,13 +1078,13 @@ omp_set_dynamic(MISCFFKEY.DynThreads);
 #endif
 
 const int maxt=32;
-int ia[maxt];
+long long ia[maxt*16];
 #ifdef _OPENMP
 int nchunk=(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs())*MISCFFKEY.ChunkThreads;        
 #else
 int nchunk=MISCFFKEY.NumThreads;
 #endif
-for(int ik=0;ik<sizeof(ia)/sizeof(ia[0]);ik++)ia[ik]=0; 
+for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
 #pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia), private(pdaq)
 {
@@ -1180,11 +1180,11 @@ for(int ik=0;ik<sizeof(ia)/sizeof(ia[0]);ik++)ia[ik]=0;
 #ifdef _OPENMP        
 //  this clause is because intel throutput mode doesn;t work
 //   so simulating it
-           ia[omp_get_thread_num()]=1;
+           ia[omp_get_thread_num()*16]=1;
            for(;;){
            bool work=false;
            for(int j=0;j<omp_get_num_threads();j++){
-              if(!ia[j]){
+              if(!ia[j*16]){
                  work=true;
                  break;
               }

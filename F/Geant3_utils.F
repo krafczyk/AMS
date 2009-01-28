@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.6 2007/01/16 15:08:25 choutko Exp $
+* $Id: Geant3_utils.F,v 1.7 2009/01/28 12:50:17 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.7  2009/01/28 12:50:17  choutko
+* *** empty log message ***
+*
 * Revision 1.6  2007/01/16 15:08:25  choutko
 * *** empty log message ***
 *
@@ -107,7 +110,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.6 2007/01/16 15:08:25 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.7 2009/01/28 12:50:17 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -1919,7 +1922,7 @@ c      ITCKOV=1
       CALL GSPART( 63,'BE7  ',itrt,   6.53622,  4., 1000., UBUF,0)
       CALL GSPART( 64,'BE9  ',itrt,   8.39479,  4., 1000., UBUF,0)
       CALL GSPART( 114,'BE10  ',itrt,   9.33,    4., 1000., UBUF,0)
-      CALL GSPART( 65,'B10  ',itrt,   9.32699,  4., 1000., UBUF,0)
+      CALL GSPART( 65,'B10  ',itrt,   9.32699,  5., 1000., UBUF,0)
       CALL GSPART( 66,'B11  ',itrt,  10.25510,  5., 1000., UBUF,0)
       CALL GSPART( 67,'C12  ',itrt,  11.17793,  6., 1000., UBUF,0)
       CALL GSPART( 68,'N14  ',itrt,  13.04378,  7., 1000., UBUF,0)

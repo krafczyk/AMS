@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.406 2009/01/27 16:10:33 choumilo Exp $
+//  $Id: event.C,v 1.407 2009/01/28 12:50:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -83,7 +83,7 @@ extern LMS* lms;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 AMSEvent* AMSEvent::_Head[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-AMSNodeMap AMSEvent::EventMap[maxthread];
+AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;
 integer AMSEvent::PosGlobal=0;
@@ -1123,7 +1123,7 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
     _writeEl();
     AMSNode * cur;
     for (int i=0;;){
-      cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
+      cur=AMSEvent::EventMap.getid(i++);   // get one by one
       if(cur){
         if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->writeC();
       }
@@ -1222,7 +1222,7 @@ _printEl(cout);
 if(debugl==0)return;
 AMSNode * cur;
 for (int i=0;;){
-  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
+  cur=AMSEvent::EventMap.getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0 && strcmp(cur->getname(),"MC")!=0)
    ((AMSContainer*)cur)->printC(cout);
@@ -1235,7 +1235,7 @@ else{
 _printEl(cerr);
 AMSNode * cur;
 for (int i=0;;){
-  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
+  cur=AMSEvent::EventMap.getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
    printC(cerr);
@@ -1250,7 +1250,7 @@ void AMSEvent::copy(){
 _copyEl();
 AMSNode * cur;
 for (int i=0;;){
-  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
+  cur=AMSEvent::EventMap.getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
    copyC();
@@ -2879,7 +2879,7 @@ integer AMSEvent::removeC(){
 AMSNode * cur;
 int i,n=0;
 for (i=0;;){
-  cur=AMSEvent::EventMap[get_thread_num()].getid(i++);   // get one by one
+  cur=AMSEvent::EventMap.getid(i++);   // get one by one
  if(cur){
    if(strncmp(cur->getname(),"AMSContainer:",13)==0){
    n++;
