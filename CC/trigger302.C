@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.40 2009/01/15 18:00:32 choutko Exp $
+//  $Id: trigger302.C,v 1.41 2009/02/01 15:58:34 pzuccon Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -3739,42 +3739,6 @@ void TriggerLVL302::printfc(){
 
 
 
-
-void TriggerLVL302::_writeEl(){
-//  LVL3Ntuple02* lvl3N = AMSJob::gethead()->getntuple()->Get_lvl302();
-
-//  if (lvl3N->Nlvl3>=MAXLVL3) return;
-
-// Fill the ntuple
-#ifdef __WRITEROOT__
-    int trdhits = TRDAux._NHits[0]+TRDAux._NHits[1];
-    int hmult   = TRDAux._HMult;
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
-/*
-  lvl3N->TOFTr[lvl3N->Nlvl3]=_TOFTrigger;
-  lvl3N->TRDTr[lvl3N->Nlvl3]=_TRDTrigger;
-  lvl3N->TrackerTr[lvl3N->Nlvl3]=_TrackerTrigger;
-  lvl3N->MainTr[lvl3N->Nlvl3]=_MainTrigger;
-  lvl3N->Direction[lvl3N->Nlvl3]=_TOFDirection;
-  lvl3N->NTrHits[lvl3N->Nlvl3]=_NTrHits;
-  lvl3N->NPatFound[lvl3N->Nlvl3]=_NPatFound;
-  lvl3N->Residual[lvl3N->Nlvl3][0]=_Residual[0];
-  lvl3N->Residual[lvl3N->Nlvl3][1]=_Residual[1];
-  lvl3N->Pattern[lvl3N->Nlvl3][0]=_Pattern[0];
-  lvl3N->Pattern[lvl3N->Nlvl3][1]=_Pattern[1];
-  lvl3N->Time[lvl3N->Nlvl3]=_Time;
-  lvl3N->ELoss[lvl3N->Nlvl3]=_TrEnergyLoss;
-  lvl3N->TRDHits[lvl3N->Nlvl3]=TRDAux._NHits[0]+TRDAux._NHits[1];
-  lvl3N->HMult[lvl3N->Nlvl3]=TRDAux._HMult;
-  for(int i=0;i<2;i++)lvl3N->TRDPar[lvl3N->Nlvl3][i]=TRDAux._Par[i][0];
-  lvl3N->ECemag[lvl3N->Nlvl3]=_ECemag;
-  lvl3N->ECmatc[lvl3N->Nlvl3]=_ECmatc;
-  for(int i=0;i<4;i++)lvl3N->ECTOFcr[lvl3N->Nlvl3][i]=_ECtofcr[i];
-  lvl3N->Nlvl3++;
-*/
-}
-
 integer TriggerLVL302::TRDAux_DEF::addnewhit(uinteger crate,uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp){
   //
   // strongly assumin ufe are following each other!!!!!
@@ -4188,3 +4152,41 @@ void TriggerLVL302::TRDAux_DEF::build(){
 
 }
 #endif
+
+
+
+void TriggerLVL302::_writeEl(){
+//  LVL3Ntuple02* lvl3N = AMSJob::gethead()->getntuple()->Get_lvl302();
+
+//  if (lvl3N->Nlvl3>=MAXLVL3) return;
+
+// Fill the ntuple
+#ifdef __WRITEROOT__
+    int trdhits = TRDAux._NHits[0]+TRDAux._NHits[1];
+    int hmult   = TRDAux._HMult;
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+/*
+  lvl3N->TOFTr[lvl3N->Nlvl3]=_TOFTrigger;
+  lvl3N->TRDTr[lvl3N->Nlvl3]=_TRDTrigger;
+  lvl3N->TrackerTr[lvl3N->Nlvl3]=_TrackerTrigger;
+  lvl3N->MainTr[lvl3N->Nlvl3]=_MainTrigger;
+  lvl3N->Direction[lvl3N->Nlvl3]=_TOFDirection;
+  lvl3N->NTrHits[lvl3N->Nlvl3]=_NTrHits;
+  lvl3N->NPatFound[lvl3N->Nlvl3]=_NPatFound;
+  lvl3N->Residual[lvl3N->Nlvl3][0]=_Residual[0];
+  lvl3N->Residual[lvl3N->Nlvl3][1]=_Residual[1];
+  lvl3N->Pattern[lvl3N->Nlvl3][0]=_Pattern[0];
+  lvl3N->Pattern[lvl3N->Nlvl3][1]=_Pattern[1];
+  lvl3N->Time[lvl3N->Nlvl3]=_Time;
+  lvl3N->ELoss[lvl3N->Nlvl3]=_TrEnergyLoss;
+  lvl3N->TRDHits[lvl3N->Nlvl3]=TRDAux._NHits[0]+TRDAux._NHits[1];
+  lvl3N->HMult[lvl3N->Nlvl3]=TRDAux._HMult;
+  for(int i=0;i<2;i++)lvl3N->TRDPar[lvl3N->Nlvl3][i]=TRDAux._Par[i][0];
+  lvl3N->ECemag[lvl3N->Nlvl3]=_ECemag;
+  lvl3N->ECmatc[lvl3N->Nlvl3]=_ECmatc;
+  for(int i=0;i<4;i++)lvl3N->ECTOFcr[lvl3N->Nlvl3][i]=_ECtofcr[i];
+  lvl3N->Nlvl3++;
+*/
+}
+

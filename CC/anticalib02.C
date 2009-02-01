@@ -21,6 +21,9 @@
 #include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
+#ifdef _PGTRACK_
+#include "MagField.h"
+#endif
 using namespace std;
 using namespace ANTI2C;
 //

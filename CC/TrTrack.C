@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.1 2008/12/18 11:19:32 pzuccon Exp $
+// $Id: TrTrack.C,v 1.2 2009/02/01 15:58:33 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2008/12/18 11:19:32 $
+///$Date: 2009/02/01 15:58:33 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -161,10 +161,8 @@ AMSTrTrack::AMSTrTrack( const AMSTrTrack & orig):AMSlink(orig){
   for(;aa!=orig._TrackPar.end();aa++)
     _TrackPar[aa->first]=aa->second;
   
-  if(_TrFit&&orig._TrFit)
-    *(_TrFit)=*(orig._TrFit);
-  else if(!_TrFit&& orig._TrFit)
-    _TrFit= new TrFit(*orig._TrFit);
+  if(orig._TrFit)
+    _TrFit= new TrFit(*(orig._TrFit));
   else
     _TrFit=0;
 
@@ -202,8 +200,11 @@ AMSTrTrack& AMSTrTrack::operator=( const AMSTrTrack & orig){
 
   }
 
-  if(_TrFit&&orig._TrFit)
-    *(_TrFit)=*(orig._TrFit);
+  if(_TrFit&&orig._TrFit){
+    delete _TrFit;
+    _TrFit=new TrFit(*(orig._TrFit));
+  }else if(!_TrFit&&orig._TrFit)
+    _TrFit=new TrFit(*(orig._TrFit));
   else _TrFit=0;
 
   _Status=orig._Status;
@@ -317,7 +318,7 @@ double AMSTrTrack::Fit(int id, int layer, const double *err,
 
   int update = 0;
   if (!_TrFit) {
-    _TrFit = new TrFit;
+    _TrFit = new TrFit();
     update = 1;
   }
 

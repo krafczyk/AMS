@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.116 2009/01/28 12:50:16 choutko Exp $
+//  $Id: geant3.C,v 1.117 2009/02/01 15:58:33 pzuccon Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -823,166 +823,166 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-      AMSgObj::BookTimer.start("GUOUT");
-if(    AMSEvent::gethead()->HasNoCriticalErrors()){
-  RICHDB::Nph()=0;
-   try{
-     CCFFKEY.curtime=AMSEvent::gethead()->gettime();
-   if(AMSJob::gethead()->isSimulation()){
-      if(GCFLAG.IEOTRI)AMSJob::gethead()->uhend(AMSEvent::gethead()->getrun(),
-AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
-      number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
+  AMSgObj::BookTimer.start("GUOUT");
+  if(    AMSEvent::gethead()->HasNoCriticalErrors()){
+    RICHDB::Nph()=0;
+    try{
+      CCFFKEY.curtime=AMSEvent::gethead()->gettime();
+      if(AMSJob::gethead()->isSimulation()){
+	if(GCFLAG.IEOTRI)AMSJob::gethead()->uhend(AMSEvent::gethead()->getrun(),
+						  AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
+	number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
 #ifdef _PGTRACK_
-      AMSTrTrack::SetTimeLimit(AMSFFKEY.CpuLimit-tt);
+	AMSTrTrack::SetTimeLimit(AMSFFKEY.CpuLimit-tt);
 #else
-      AMSTrTrack::TimeLimit()=AMSFFKEY.CpuLimit-tt;
+	AMSTrTrack::TimeLimit()=AMSFFKEY.CpuLimit-tt;
 #endif
-//        cout <<  "  tt   " <<tt<<endl;
+	//        cout <<  "  tt   " <<tt<<endl;
 #ifdef __AMSDEBUG__
-      globalbadthinghappened=0;
+	globalbadthinghappened=0;
 #endif
-      if(tt > AMSFFKEY.CpuLimit){
-       int nsec=(AMSEvent::gethead()->getC("AMSmceventg",0))->getnelem();
-        cerr<<" GEANTTRACKING Time Spent"<<tt<<" "<<nsec<<" Secondaries Generated"<<endl;
-        if(nsec==1 && tt>AMSFFKEY.CpuLimit*1.2 ){
-// bad thing
-          (AMSEvent::gethead()->getC("AMSmceventg",0))->printC(cerr);
+	if(tt > AMSFFKEY.CpuLimit){
+	  int nsec=(AMSEvent::gethead()->getC("AMSmceventg",0))->getnelem();
+	  cerr<<" GEANTTRACKING Time Spent"<<tt<<" "<<nsec<<" Secondaries Generated"<<endl;
+	  if(nsec==1 && tt>AMSFFKEY.CpuLimit*1.2 ){
+	    // bad thing
+	    (AMSEvent::gethead()->getC("AMSmceventg",0))->printC(cerr);
 #ifdef __AMSDEBUG__
-      globalbadthinghappened=1;
+	    globalbadthinghappened=1;
 #endif
-        }
-       throw AMSTrTrackError("SimCPULimit exceeded");
+	  }
+	  throw AMSTrTrackError("SimCPULimit exceeded");
+	}
       }
-   }
-// special trick to simulate/reconstruct with different mag field
+      // special trick to simulate/reconstruct with different mag field
 
-// special trick to simulate/reconstruct with different mag field
-if(TKFIELD.iniok==2)TKFIELD.iniok=3;
-//          cout <<"  iniok "<<TKFIELD.iniok<<endl;
-          if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
-if(TKFIELD.iniok==3)TKFIELD.iniok=2;
-//          cout <<"  iniok "<<TKFIELD.iniok<<endl;
+      // special trick to simulate/reconstruct with different mag field
+      if(TKFIELD.iniok==2)TKFIELD.iniok=3;
+      //          cout <<"  iniok "<<TKFIELD.iniok<<endl;
+      if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
+      if(TKFIELD.iniok==3)TKFIELD.iniok=2;
+      //          cout <<"  iniok "<<TKFIELD.iniok<<endl;
 
 
-   }
-   catch (AMSuPoolError e){
+    }
+    catch (AMSuPoolError e){
       AMSgObj::BookTimer.stop("GUOUT");
-     cerr << e.getmessage()<<endl;
-     AMSEvent::gethead()->seterror(2);
+      cerr << e.getmessage()<<endl;
+      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
 #pragma omp critical (g1)
-     AMSProducer::gethead()->AddEvent();
+      AMSProducer::gethead()->AddEvent();
 #endif
-     AMSEvent::gethead()->Recovery();
+      AMSEvent::gethead()->Recovery();
       return;
-   }
-   catch (AMSaPoolError e){
+    }
+    catch (AMSaPoolError e){
       AMSgObj::BookTimer.stop("GUOUT");
-     cerr << e.getmessage()<<endl;
-     AMSEvent::gethead()->seterror(2);
+      cerr << e.getmessage()<<endl;
+      AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
 #pragma omp critical (g1)
-     AMSProducer::gethead()->AddEvent();
+      AMSProducer::gethead()->AddEvent();
 #endif
-     AMSEvent::gethead()->Recovery();
+      AMSEvent::gethead()->Recovery();
       return;
-   }
-   catch (AMSTrTrackError e){
-     cerr << e.getmessage()<<endl;
-     AMSEvent::gethead()->_printEl(cerr);
-     AMSEvent::gethead()->seterror(2);
-/*
-#ifdef __CORBA__
-#pragma omp critical (g1)
-     AMSProducer::gethead()->AddEvent();
-#endif
-     UPool.Release(0);
-#pragma omp critical (g2)
-     AMSEvent::gethead()->remove();
-     UPool.Release(7);
-     AMSEvent::sethead(0);
-      UPool.erase(512000);
-      return;
-*/
-   }
-   catch (amsglobalerror e){
+    }
+    catch (AMSTrTrackError e){
+      cerr << e.getmessage()<<endl;
+      AMSEvent::gethead()->_printEl(cerr);
+      AMSEvent::gethead()->seterror(2);
+      /*
+	#ifdef __CORBA__
+	#pragma omp critical (g1)
+	AMSProducer::gethead()->AddEvent();
+	#endif
+	UPool.Release(0);
+	#pragma omp critical (g2)
+	AMSEvent::gethead()->remove();
+	UPool.Release(7);
+	AMSEvent::sethead(0);
+	UPool.erase(512000);
+	return;
+      */
+    }
+    catch (amsglobalerror e){
       AMSgObj::BookTimer.stop("GUOUT");
-     cerr << e.getmessage()<<endl;
-     cerr <<"Event dump follows"<<endl;
-     AMSEvent::gethead()->_printEl(cerr);
-     AMSEvent::gethead()->seterror(e.getlevel());
-     if(e.getlevel()>2)throw e; 
+      cerr << e.getmessage()<<endl;
+      cerr <<"Event dump follows"<<endl;
+      AMSEvent::gethead()->_printEl(cerr);
+      AMSEvent::gethead()->seterror(e.getlevel());
+      if(e.getlevel()>2)throw e; 
      
-/*
+      /*
+	#ifdef __CORBA__
+	#pragma omp critical (g1)
+	AMSProducer::gethead()->AddEvent();
+	#endif
+	UPool.Release(0);
+	#pragma omp critical (g2)
+	AMSEvent::gethead()->remove();
+	UPool.Release(1);
+	AMSEvent::sethead(0);
+	UPool.erase(512000);
+	return;
+      */
+    }
 #ifdef __CORBA__
 #pragma omp critical (g1)
-     AMSProducer::gethead()->AddEvent();
+    AMSProducer::gethead()->AddEvent();
 #endif
-     UPool.Release(0);
-#pragma omp critical (g2)
-     AMSEvent::gethead()->remove();
-     UPool.Release(1);
-     AMSEvent::sethead(0);
-      UPool.erase(512000);
-      return;
-*/
-   }
-#ifdef __CORBA__
-#pragma omp critical (g1)
-     AMSProducer::gethead()->AddEvent();
-#endif
-      if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
-         GCFLAG.IEVENT>=GCFLAG.NEVENT)
+    if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
+       GCFLAG.IEVENT>=GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
-     integer trig;
-     if(AMSJob::gethead()->gettriggerOr()){
+    integer trig;
+    if(AMSJob::gethead()->gettriggerOr()){
       trig=0;
-     integer ntrig=AMSJob::gethead()->gettriggerN();
-       for(int n=0;n<ntrig;n++){
+      integer ntrig=AMSJob::gethead()->gettriggerN();
+      for(int n=0;n<ntrig;n++){
         for(int i=0; ;i++){
-         AMSContainer *p=AMSEvent::gethead()->
-         getC(AMSJob::gethead()->gettriggerC(n),i);
-         if(p)trig+=p->getnelem();
-         else break;
+	  AMSContainer *p=AMSEvent::gethead()->
+	    getC(AMSJob::gethead()->gettriggerC(n),i);
+	  if(p)trig+=p->getnelem();
+	  else break;
         }
-       }
-     }
-     else{
+      }
+    }
+    else{
       trig=1;
-     integer ntrig=AMSJob::gethead()->gettriggerN();
-       for(int n=0;n<ntrig;n++){
+      integer ntrig=AMSJob::gethead()->gettriggerN();
+      for(int n=0;n<ntrig;n++){
         integer trigl=0;
         for(int i=0; ;i++){
-         AMSContainer *p=AMSEvent::gethead()->
-         getC(AMSJob::gethead()->gettriggerC(n),i);
-         if(p)trigl+=p->getnelem();
-         else break;
+	  AMSContainer *p=AMSEvent::gethead()->
+	    getC(AMSJob::gethead()->gettriggerC(n),i);
+	  if(p)trigl+=p->getnelem();
+	  else break;
         }
         if(trigl==0)trig=0;
-       }
-     }
-//   if(trig ){ 
-//     AMSEvent::gethead()->copy();
-//   }
-     AMSEvent::gethead()->write(trig);
-}
-     UPool.Release(0);
+      }
+    }
+    //   if(trig ){ 
+    //     AMSEvent::gethead()->copy();
+    //   }
+    AMSEvent::gethead()->write(trig);
+  }
+  UPool.Release(0);
 #pragma omp critical (g2)
-   AMSEvent::gethead()->remove();
-     UPool.Release(1);
-   AMSEvent::sethead(0);
-   UPool.erase(2000000);
-   AMSgObj::BookTimer.stop("GUOUT");
+  AMSEvent::gethead()->remove();
+  UPool.Release(1);
+  AMSEvent::sethead(0);
+  UPool.erase(2000000);
+  AMSgObj::BookTimer.stop("GUOUT");
 
-// allow termination via time via datacard
-{  
-   float xx,yy;
-   TIMEX(xx);   
-   TIMEL(yy);   
-   if(GCTIME.TIMEND < xx || (yy>0 && yy<AMSFFKEY.CpuLimit) ){
-    GCTIME.ITIME=1;
-   }
-}
+  // allow termination via time via datacard
+  {  
+    float xx,yy;
+    TIMEX(xx);   
+    TIMEL(yy);   
+    if(GCTIME.TIMEND < xx || (yy>0 && yy<AMSFFKEY.CpuLimit) ){
+      GCTIME.ITIME=1;
+    }
+  }
 }
 extern "C" void abinelclear_();
 //--------------------------- begin gukine ----------------------------------------

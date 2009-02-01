@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.407 2009/01/28 12:50:16 choutko Exp $
+//  $Id: event.C,v 1.408 2009/02/01 15:58:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1073,6 +1073,10 @@ void AMSEvent::_retkinitevent(){
 
 }
 #endif
+
+
+//=====================================================================================================================
+//=====================================================================================================================
 void  AMSEvent::write(int trig){
   AMSgObj::BookTimer.start("WriteEvent");
   
@@ -1089,36 +1093,36 @@ void  AMSEvent::write(int trig){
   }
 #endif
   AMSEvent::gethead()->getheadC("AMSmceventg",0,2); 
-for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
-  AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
-}
-for(int il=0;il<trdconst::maxlay;il++){
-  AMSEvent::gethead()->getheadC("AMSTRDCluster",il,2); 
-}
+  for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
+    AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
+  }
+  for(int il=0;il<trdconst::maxlay;il++){
+    AMSEvent::gethead()->getheadC("AMSTRDCluster",il,2); 
+  }
 
-for(int il=0;il<trdconst::maxseg;il++){
-  AMSEvent::gethead()->getheadC("AMSTRDSegment",il,2); 
-}
+  for(int il=0;il<trdconst::maxseg;il++){
+    AMSEvent::gethead()->getheadC("AMSTRDSegment",il,2); 
+  }
 
 
-for(int il=0;il<2*ECALDBc::slstruc(3);il++){
-  AMSEvent::gethead()->getheadC("AMSEcalHit",il,2); 
-}
+  for(int il=0;il<2*ECALDBc::slstruc(3);il++){
+    AMSEvent::gethead()->getheadC("AMSEcalHit",il,2); 
+  }
 
-for(int il=0;il<2;il++){
-  AMSEvent::gethead()->getheadC("Ecal1DCluster",il,2); 
-}
+  for(int il=0;il<2;il++){
+    AMSEvent::gethead()->getheadC("Ecal1DCluster",il,2); 
+  }
 
   AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2); 
   AMSEvent::gethead()->getheadC("EcalShower",0,2); 
 
-//cout <<"  vont ok "<<PosInRun<<" "<<trig<<endl;
-    if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
-      DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
-      if(pdaq)pdaq->write();
-    }   
-if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
-      //cout <<"  pntuple write "<<endl;
+  //cout <<"  vont ok "<<PosInRun<<" "<<trig<<endl;
+  if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
+    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
+    if(pdaq)pdaq->write();
+  }   
+  if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
+    //cout <<"  pntuple write "<<endl;
     AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
     _writeEl();
     AMSNode * cur;
@@ -1154,109 +1158,111 @@ if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
 	AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
       }
 #endif
-// second pass Root Only
-   if (IOPA.WriteRoot) copy();
-//
+    // second pass Root Only
+    if (IOPA.WriteRoot) copy();
+    //
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
-// if event has been selected write it straight away
-    // oh nono check for errors first
-     if(HasNoErrors() || (IOPA.WriteAll/100)*100)
-{
-            AMSJob::gethead()->getntuple()->write(1);
-//#pragma omp critical (writer)
-            AMSJob::gethead()->getntuple()->writeR();
-     }
-     else
-{
-      AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
-      AMSJob::gethead()->getntuple()->write();
-//#pragma omp critical (writer)
-      AMSJob::gethead()->getntuple()->writeR();
-     }
+      // if event has been selected write it straight away
+      // oh nono check for errors first
+      if(HasNoErrors() || (IOPA.WriteAll/100)*100)
+	{
+	  AMSJob::gethead()->getntuple()->write(1);
+	  //#pragma omp critical (writer)
+	  AMSJob::gethead()->getntuple()->writeR();
+	}
+      else
+	{
+	  AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
+	  AMSJob::gethead()->getntuple()->write();
+	  //#pragma omp critical (writer)
+	  AMSJob::gethead()->getntuple()->writeR();
+	}
     }
     else {
-// if event was not selected check if at least header should be written
-// in the ntuples
+      // if event was not selected check if at least header should be written
+      // in the ntuples
       if((IOPA.WriteAll/10)%10)
-{
-      AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
-      AMSJob::gethead()->getntuple()->write();
-//#pragma omp critical (writer)
-      AMSJob::gethead()->getntuple()->writeR();
+	{
+	  AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
+	  AMSJob::gethead()->getntuple()->write();
+	  //#pragma omp critical (writer)
+	  AMSJob::gethead()->getntuple()->writeR();
+	}
     }
-   }
     // check if one want to close ntuple 
     if( IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
-//       cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
-       bool NoMoreSpace=false;
+      //       cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
+      bool NoMoreSpace=false;
 #ifdef __CORBA__
-       if(AMSProducer::gethead()->FreeSpace()>=0 && AMSProducer::gethead()->FreeSpace()<IOPA.MaxFileSize/2/1024){
-          NoMoreSpace=true;
-          if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
-       }
+      if(AMSProducer::gethead()->FreeSpace()>=0 && AMSProducer::gethead()->FreeSpace()<IOPA.MaxFileSize/2/1024){
+	NoMoreSpace=true;
+	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+      }
 #endif
-       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
-      || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
-{
+      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
+	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
+	{
 #pragma omp barrier
 #pragma omp master
-{
+	  {
 
-        AMSJob::gethead()->uhend();
-        AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
-}
+	    AMSJob::gethead()->uhend();
+	    AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
+	  }
 #pragma omp barrier
-      if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
+	  if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
 
-      }
+	}
     }        
   }
 
-    AMSgObj::BookTimer.stop("WriteEvent");
+  AMSgObj::BookTimer.stop("WriteEvent");
 
 }
+
+//================================================================================================================================
 void  AMSEvent::printA(integer debugl){
-if(debugl < 2){
-_printEl(cout);
-if(debugl==0)return;
-AMSNode * cur;
-for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
- if(cur){
-   if(strncmp(cur->getname(),"AMSContainer:",13)==0 && strcmp(cur->getname(),"MC")!=0)
-   ((AMSContainer*)cur)->printC(cout);
+  if(debugl < 2){
+    _printEl(cout);
+    if(debugl==0)return;
+    AMSNode * cur;
+    for (int i=0;;){
+      cur=AMSEvent::EventMap.getid(i++);   // get one by one
+      if(cur){
+	if(strncmp(cur->getname(),"AMSContainer:",13)==0 && strcmp(cur->getname(),"MC")!=0)
+	  ((AMSContainer*)cur)->printC(cout);
 
- }
- else break;
-}
-}
-else{
-_printEl(cerr);
-AMSNode * cur;
-for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
- if(cur){
-   if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
-   printC(cerr);
- }
- else break;
-}
-}
+      }
+      else break;
+    }
+  }
+  else{
+    _printEl(cerr);
+    AMSNode * cur;
+    for (int i=0;;){
+      cur=AMSEvent::EventMap.getid(i++);   // get one by one
+      if(cur){
+	if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
+	  printC(cerr);
+      }
+      else break;
+    }
+  }
 
 }
 
 void AMSEvent::copy(){
-_copyEl();
-AMSNode * cur;
-for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
- if(cur){
-   if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
-   copyC();
- }
- else break;
-}
+  _copyEl();
+  AMSNode * cur;
+  for (int i=0;;){
+    cur=AMSEvent::EventMap.getid(i++);   // get one by one
+    if(cur){
+      if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
+	copyC();
+    }
+    else break;
+  }
 
 
 
