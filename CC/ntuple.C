@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.178 2009/02/04 12:18:54 choutko Exp $
+//  $Id: ntuple.C,v 1.179 2009/02/04 12:22:02 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -259,10 +259,6 @@ void AMSNtuple::write(integer addentry){
 
 void AMSNtuple::endR(){
 
-while(evmap.size()){
-cout<<"AMSNtuple::endR-W-Cachefound "<<evmap.size()<<" entries "<<endl;
-sleep(1);
-}
 if(_rfile && evmap.size()){
 cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
   for(evmapi i=evmap.begin();i!=evmap.end();i++){
