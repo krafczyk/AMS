@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.143 2009/01/27 08:09:13 choumilo Exp $
+//  $Id: daqevt.C,v 1.144 2009/02/04 12:18:53 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -50,7 +50,7 @@ extern "C" int scandir64(		const char *, struct dirent64 ***,
 
 
 
-
+char * DAQEvent::_RootDir=0;
 DAQEvent* DAQEvent::_DAQEvent=0;
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
@@ -1654,8 +1654,14 @@ again:
                 goto again;   
               } 
               try{
-              cout << "trying "<<rootdir<<endl;
-              AMSJob::gethead()->urinit(rootdir);
+               char cmd[1024];
+               strcpy(cmd,"touch ");
+               strcat(cmd,rootfile);
+               if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
+               setRootDir(rootdir);
+                cout << " trying "<<RootDir()<<endl; 
+                 AMSEvent::getSRun()=0;  
+              //AMSJob::gethead()->urinit(rootdir);
               }
               catch (amsglobalerror e){
                 cerr << "Catached "<<e.getmessage()<<endl;
@@ -1669,5 +1675,16 @@ else{
  else return 0;
 }
 
+}
+
+void DAQEvent::setRootDir(char * rootdir){
+ if(_RootDir){
+   delete[]_RootDir;
+   _RootDir=0;
+ }
+if(rootdir && strlen(rootdir)>0){
+_RootDir=new char[strlen(rootdir)+1];
+strcpy(_RootDir,rootdir);
+}
 }
 

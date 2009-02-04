@@ -62,7 +62,6 @@ Fix all histos call by adding #pragma omp critical /up to developpers/
 
 Fix all calibration issues  /up to developpers/
 
-Check gbatch  in monitoring mode
 
 
   

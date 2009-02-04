@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.618 2009/01/27 08:35:40 choumilo Exp $
+// $Id: job.C,v 1.619 2009/02/04 12:18:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -140,7 +140,7 @@ const uinteger AMSJob::CSRD=32;       // Same as cerenkov
 const uinteger AMSJob::CAMS=512;
 const uinteger AMSJob::CEcal=1024;
 const uinteger AMSJob::MTracker=2048;
-const uinteger AMSJob::MTOF=8096;
+const uinteger AMSJob::MTOF=4096;
 const uinteger AMSJob::MAnti=4096*2;
 const uinteger AMSJob::MCerenkov=4096*4;
 const uinteger AMSJob::MLVL1=4096*8;

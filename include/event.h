@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.84 2009/01/28 12:50:17 choutko Exp $
+//  $Id: event.h,v 1.85 2009/02/04 12:18:57 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -241,7 +241,7 @@ AMSlink * getheadC(const char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
 integer buildC(const char name[], integer par=0);
 integer rebuildC(const char name[], integer par=0);
-static integer getSRun() {return SRun;}
+static integer & getSRun() {return SRun;}
  integer setbuilderC(const char name[], pBuilder pb);
 AMSlink * getlastC(const char name[], integer id)
 {return _getlastC(AMSID(name,id));}
@@ -295,7 +295,8 @@ uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}
 time_t gettime()const {return _time;}
 time_t getmtime()const;
-uinteger getmid()const;
+ uinteger getmid()const;
+static  uinteger getsmid();
 time_t getusec()const {return _usec;}
 time_t& settime(){return _time;}
 //void * operator new(size_t t, void *p) {return p;}

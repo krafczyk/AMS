@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.177 2009/01/15 18:00:32 choutko Exp $
+//  $Id: ntuple.C,v 1.178 2009/02/04 12:18:54 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -259,7 +259,10 @@ void AMSNtuple::write(integer addentry){
 
 void AMSNtuple::endR(){
 
-
+while(evmap.size()){
+cout<<"AMSNtuple::endR-W-Cachefound "<<evmap.size()<<" entries "<<endl;
+sleep(1);
+}
 if(_rfile && evmap.size()){
 cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
   for(evmapi i=evmap.begin();i!=evmap.end();i++){
@@ -306,11 +309,10 @@ void AMSNtuple::initR(char* fname){
     _rfile=0;
   }
   struct stat64 f_stat;
-  bool open=!(AMSJob::gethead()->isMonitoring()) ||   stat64(fname,&f_stat);
-  if( open){
-    if(!(AMSJob::gethead()->isMonitoring()))_rfile= new TFile(fname,"RECREATE");
-    else _rfile=new TFile(fname,"CREATE");
-  } 
+//    char cmd[1024]="rm -f ";
+//    strcat(cmd,fname);
+//    system(cmd);
+    _rfile=new TFile(fname,"RECREATE");
 #ifdef __CORBA__
   _dc.SetString(AMSProducer::GetDataCards());
   //   cout <<_dc.GetString()<<endl;
@@ -419,7 +421,6 @@ for(int k=0;k<del.size();k++){
     if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
   }
   
-
 #endif
 #ifdef __MEMMONITOR__
   int NEVENTS = GCFLAG.NEVENT;

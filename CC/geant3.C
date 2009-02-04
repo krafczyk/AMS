@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.117 2009/02/01 15:58:33 pzuccon Exp $
+//  $Id: geant3.C,v 1.118 2009/02/04 12:18:53 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1106,7 +1106,8 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
 
        pdaq = new DAQEvent();
         bool ok;
-#pragma omp critical (g4)      
+again:
+ #pragma omp critical (g4)      
 {
        ok=pdaq->read();
 // set runev here
@@ -1167,6 +1168,10 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
       guout_();
 #pragma omp critical (g3)
       GCFLAG.IEVENT++;
+    }
+    else if(AMSJob::gethead() && AMSJob::gethead()->isMonitoring()){
+      sleep(1);
+      goto again;
     }
 // ---> endof "readDaq=ok" check
     else{

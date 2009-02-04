@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.114 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: geant.C,v 1.115 2009/02/04 12:18:53 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -179,7 +179,7 @@ void gams::UGINIT(int argc,  char * argv[]){
     int nb=down->GetNbytes();
    AMSProducer::gethead()->getRunEventInfo();
 #endif
-  if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();
+  if(!AMSJob::gethead()->isProduction() && !AMSJob::gethead()->isMonitoring())AMSJob::gethead()->uhinit();
 //  AMSJob::gethead()->urinit();
 #ifndef __BATCH__
 #ifdef __G4AMS__

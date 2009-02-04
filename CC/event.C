@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.408 2009/02/01 15:58:33 pzuccon Exp $
+//  $Id: event.C,v 1.409 2009/02/04 12:18:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -408,10 +408,17 @@ if(AMSJob::gethead()->isProduction() ){
  else{
 //#ifdef __CORBA__
   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
+}
 //#endif
- }
 
 }
+else if(AMSJob::gethead()->isMonitoring()){
+if(DAQEvent::RootDir()){
+  AMSJob::gethead()->urinit(DAQEvent::RootDir());
+  DAQEvent::setRootDir();
+}
+}
+
 if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
  if(!SRun){
  }
@@ -3498,6 +3505,18 @@ return evt;
 return getid();
 #endif
 }
+
+
+uinteger AMSEvent::getsmid(){
+uinteger evt=0;
+for(int i=0;i<get_num_threads();i++){
+ if(_Head[i] && _Head[i]->getid()>evt)evt=_Head[i]->getid();
+}
+return evt;
+}
+
+
+
 
 time_t AMSEvent::getmtime()const{
 #ifdef _OPENMP
