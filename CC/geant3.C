@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.118 2009/02/04 12:18:53 choutko Exp $
+//  $Id: geant3.C,v 1.119 2009/02/04 14:41:35 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1057,6 +1057,7 @@ try{
     // read daq    
     //
     DAQEvent * pdaq=0;
+        static bool Waiting=false; 
    for(;;){
     DAQEvent::InitResult res=DAQEvent::init();
      if(res==DAQEvent::OK){ 
@@ -1086,7 +1087,7 @@ int nchunk=MISCFFKEY.NumThreads;
 #endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
-#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia), private(pdaq)
+#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
 {
  
 #pragma omp for schedule(dynamic) nowait
@@ -1107,9 +1108,18 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
        pdaq = new DAQEvent();
         bool ok;
 again:
+// intel cooperative mode bug workaround
+//
+if(AMSJob::gethead()->isMonitoring()){
+ while(Waiting){
+  usleep(1000);
+}
+}
  #pragma omp critical (g4)      
 {
+       Waiting=true;
        ok=pdaq->read();
+       Waiting=false;
 // set runev here
     uint64 runev=pdaq->runno(); 
    runev=pdaq->eventno() | runev<<32;

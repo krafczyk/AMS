@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.144 2009/02/04 12:18:53 choutko Exp $
+//  $Id: daqevt.C,v 1.145 2009/02/04 14:41:34 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -51,6 +51,7 @@ extern "C" int scandir64(		const char *, struct dirent64 ***,
 
 
 char * DAQEvent::_RootDir=0;
+bool DAQEvent::_Waiting=false;
 DAQEvent* DAQEvent::_DAQEvent=0;
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
@@ -1546,6 +1547,7 @@ event=0;
 }
 
 if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
+_Waiting=true;
 again:
  while(KIFiles>=InputFiles){
 // Check if up directory isdigital, exists, and has files
@@ -1668,6 +1670,7 @@ again:
                 KIFiles++;
                 goto again;   
               }
+              _Waiting=false;
               return ifnam[KIFiles++];
         }
 else{

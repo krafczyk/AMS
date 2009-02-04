@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.59 2009/02/04 12:18:57 choutko Exp $
+//  $Id: daqevt.h,v 1.60 2009/02/04 14:41:35 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -57,6 +57,7 @@ const integer nbtps=24;    // blocks num
 class DAQEvent : public AMSlink{
 protected:
 static DAQEvent* _DAQEvent;
+static bool _Waiting;
 static char * _RootDir;
 #pragma omp threadprivate(_DAQEvent)
 integer _TrigTime;
@@ -135,6 +136,7 @@ static int _sort(dirent64 ** e1,  dirent64 ** e2){return strcmp((*e1)->d_name,(*
 #endif
 public:
 static void setRootDir(char *rootdir=0);
+static bool Waiting(){return _Waiting;}
 static char* RootDir(){return _RootDir;}
 static DAQEvent* gethead(){return _DAQEvent;}
 uinteger GetBlType(){return _GetBlType();}
