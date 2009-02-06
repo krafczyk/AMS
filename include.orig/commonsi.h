@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.1 2008/11/06 09:56:35 pzuccon Exp $
+//  $Id: commonsi.h,v 1.2 2009/02/06 17:14:52 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -15,6 +15,7 @@
 #define mipsFortran
 #endif
 #include "cfortran.h"
+#include <setjmp.h>
 
 
 class AMSDATADIR_DEF{
@@ -41,6 +42,9 @@ private:
  static pid_t _pid;
  static bool _remote;
 public:
+static jmp_buf  AB_buf;
+static int  AB_catch;
+#pragma omp threadprivate (AB_buf,AB_catch)
  AMSCommonsI();
  void init();
  static const char * getversion(){return _version;}

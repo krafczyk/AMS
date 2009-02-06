@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.119 2009/02/04 14:41:35 choutko Exp $
+//  $Id: geant3.C,v 1.120 2009/02/06 17:14:46 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -900,6 +900,7 @@ extern "C" void guout_(){
 	#pragma omp critical (g2)
 	AMSEvent::gethead()->remove();
 	UPool.Release(7);
+	delete AMSEvent::gethead();
 	AMSEvent::sethead(0);
 	UPool.erase(512000);
 	return;
@@ -922,6 +923,7 @@ extern "C" void guout_(){
 	#pragma omp critical (g2)
 	AMSEvent::gethead()->remove();
 	UPool.Release(1);
+	delete AMSEvent::gethead();
 	AMSEvent::sethead(0);
 	UPool.erase(512000);
 	return;
@@ -931,6 +933,7 @@ extern "C" void guout_(){
 #pragma omp critical (g1)
     AMSProducer::gethead()->AddEvent();
 #endif
+#pragma omp critical (g3)
     if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
        GCFLAG.IEVENT>=GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
@@ -970,6 +973,7 @@ extern "C" void guout_(){
 #pragma omp critical (g2)
   AMSEvent::gethead()->remove();
   UPool.Release(1);
+	delete AMSEvent::gethead();
   AMSEvent::sethead(0);
   UPool.erase(2000000);
   AMSgObj::BookTimer.stop("GUOUT");
@@ -1058,6 +1062,7 @@ try{
     //
     DAQEvent * pdaq=0;
         static bool Waiting=false; 
+        double cpulimit=AMSFFKEY.CpuLimit;
    for(;;){
     DAQEvent::InitResult res=DAQEvent::init();
      if(res==DAQEvent::OK){ 
@@ -1082,8 +1087,9 @@ const int maxt=32;
 long long ia[maxt*16];
 #ifdef _OPENMP
 int nchunk=(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs())*MISCFFKEY.ChunkThreads;        
+if(MISCFFKEY.DivideBy)AMSFFKEY.CpuLimit=cpulimit*(MISCFFKEY.NumThreads>0?MISCFFKEY.NumThreads:omp_get_num_procs());
 #else
-int nchunk=MISCFFKEY.NumThreads;
+int nchunk=MISCFFKEY.ChunkThreads;
 #endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
@@ -1167,6 +1173,7 @@ if(AMSJob::gethead()->isMonitoring()){
 #pragma omp critical (g2)
    AMSEvent::gethead()->remove();
      UPool.Release(1);
+	delete AMSEvent::gethead();
    AMSEvent::sethead(0);
    UPool.erase(2000000);
 

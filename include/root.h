@@ -3893,10 +3893,9 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 AMSEventR();
 AMSEventR(const AMSEventR &o);
 
-virtual ~AMSEventR(){
 #ifdef __ROOTSHAREDLIBRARY__
+virtual ~AMSEventR(){
 --_Count;
-#endif
 ////cout <<"AMSEventR::dtor-I-Destroying "<<_Count<<endl;;
 //if(!--_Count){
  //cout<<"AMSEventR::dtor-I-ResettingHead "<<_Head<<endl;
@@ -3904,6 +3903,7 @@ virtual ~AMSEventR(){
 //}
 //}
 }
+#endif
 
 
 void clear();

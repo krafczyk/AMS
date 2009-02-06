@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.179 2009/02/04 12:22:02 choutko Exp $
+//  $Id: ntuple.C,v 1.180 2009/02/06 17:14:46 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -364,6 +364,9 @@ void AMSNtuple::initR(char* fname){
 
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
+  vector<AMSEventR*> del;
+#pragma omp critical (wr1)
+{
   Get_evroot02()->SetCont();
   static int _Size=0;
   int nthr=1;
@@ -372,12 +375,8 @@ void AMSNtuple::writeR(){
 #endif
   uint64 runv=AMSEvent::gethead()->getrunev();
   AMSEventR * evn=new AMSEventR(_evroot02);
-  vector<AMSEventR*> del;
-#pragma omp critical (wr1)
-{
   evmap.insert(make_pair(runv,evn));
   for(evmapi i=evmap.begin();i!=evmap.end();){
-//  if(AMSEvent::get_thread_num()==0)for(evmapi i=evmap.begin();i!=evmap.end();){
     bool go=true;
     //     cout <<"  go "<<i->second->Event()<<endl;
     for(int k=0;k<nthr;k++){
@@ -399,28 +398,29 @@ void AMSNtuple::writeR(){
       evmap.erase(idel);
     }
   }
+  if(evmap.size()>_Size){
+    _Size=evmap.size();
+    if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
+  }
 }
-//#pragma omp critical (wr2)
-//if(AMSEvent::get_thread_num()==0)for(int k=0;k<del.size();k++){
-for(int k=0;k<del.size();k++){
+if(del.size()){
 #pragma omp critical (wr2)
+for(int k=0;k<del.size();k++){
    if(_tree){
       if(!_lun )_Nentries++;
       //    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
       AMSEventR::Head()=del[k];
       _tree->Fill();
     }
-      delete del[k];
   }
-  if(evmap.size()>_Size){
-    _Size=evmap.size();
-    if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<endl;
-  }
+#pragma omp critical (wr1)
+for(int k=0;k<del.size();k++)delete del[k];
+}
   
 #endif
 #ifdef __MEMMONITOR__
-  int NEVENTS = GCFLAG.NEVENT;
-  MemMonitor(MEMUPD,NEVENTS);
+//  int NEVENTS = GCFLAG.NEVENT;
+//  MemMonitor(MEMUPD,NEVENTS);
 #endif
 }
 

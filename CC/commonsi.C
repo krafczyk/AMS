@@ -8,9 +8,11 @@
 #ifdef _PGTRACK_
 AMSDATADIR_DEF AMSDATADIR;
 #endif
+jmp_buf  AMSCommonsI::AB_buf;
+int  AMSCommonsI::AB_catch=-1;
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=304;
+uinteger AMSCommonsI::_build=305;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];

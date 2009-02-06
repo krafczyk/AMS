@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.90 2008/12/11 15:33:12 choutko Exp $
+//  $Id: gbatch.C,v 1.91 2009/02/06 17:14:46 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -9,6 +9,7 @@
 #include "commons.h"
 #include "geantnamespace.h"
 #include "producer.h"
+#include <malloc.h>a
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -46,6 +47,7 @@ std::set_unexpected (my_unexpected);
 //  } 
 //}
       using namespace gams;
+     //*signal(SIGABRT,handler);
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
@@ -108,6 +110,21 @@ void (handler)(int sig){
 using namespace glconst;
   int nthr=0;
   switch(sig){
+  case SIGABRT:
+cerr <<" ABORT Detected "<<endl;
+/*
+       GCFLAG.IEORUN=1;
+       GCFLAG.IEOTRI=1;
+        mallopt(M_CHECK_ACTION,1);
+
+if(AMSCommonsI::AB_catch>=0){
+ AMSCommonsI::AB_catch=1;
+ siglongjmp(AMSCommonsI::AB_buf,0);
+
+}
+*/
+   exit(1);
+   break;
   case SIGFPE:
    cerr <<" FPE intercepted"<<endl;
    break;

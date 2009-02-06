@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.60 2009/02/04 14:41:35 choutko Exp $
+//  $Id: daqevt.h,v 1.61 2009/02/06 17:14:52 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -124,10 +124,10 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 #pragma omp threadprivate(_Buffer,_BufferLock)
-#if !defined( __ALPHA__) && !defined(sun)
 void _setcalibdata(int mask){
 for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
 }
+#if !defined( __ALPHA__) && !defined(sun)
 static integer _select(const dirent64 * entry=0);
 static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #else
