@@ -8,6 +8,8 @@ ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
+VERGCC       := $(shell gcc --version | grep 4.1)
+
 ifdef VER
 NEW = 
 else
@@ -70,7 +72,10 @@ else
   FFOLD=$(FF)
   LD  = g++ -m32
   FORTRAN2_LIBS=
-  FORTRAN_LIBS=-lg2c
+  FORTRAN_LIBS=-lg2c 
+ifdef VERGCC
+  FORTRAN_LIBS+= -lgfortran 
+endif
 endif
 
 ORBIT2DIR=/opt/Orbit2
@@ -98,6 +103,9 @@ ifeq ($(ARCH),linuxicc)
 else
   CERNDIR = /cern/$(CERN_LEVEL)
   AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
+ifdef VERGCC
+  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
+endif
   NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
   #AMSLIB =  /amssw/AMSlib/linux
   #NAGDIR = /amssw/AMSlib/linux
