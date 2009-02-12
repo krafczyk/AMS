@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.287 2009/02/06 17:14:52 choutko Exp $
+#  $Id: datacards.doc,v 1.288 2009/02/12 11:12:17 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -74,7 +74,7 @@ I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 I127  WriteRoot(0)               // write (!0) or not write(0) root file
                                  // the value is used to set Root Compression Level-1
 I128  rfile(160*' ')             // root file name
-I168 MaxFileSize(4000000)      // max ntuplefilesize (kbytes)
+I168 MaxFileSize(10000000)      // max ntuplefilesize (kbytes)
 I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
 I170 BuildMin(-1)                  // min build version (production only)
 
@@ -561,7 +561,7 @@ I 4 G3On(1)                 // 0 off 1 on geant3
 I 5 G4On(0)                 // 0 off 1 on geant4
 I 6 dbwrbeg(0)              // used by TofAccPedDBWriter, don't use/modify ! 
 I 7 dbwrend(0)              // ---//---//---//---//---//---//---//---//---
-I 8 NumThreads(1)    //  number of threads if compiled with openmp 
+I 8 NumThreads(1)    //  number of threads if compiled with openmp (-1  == number_of_cores)
 I 9 DynThreads(0)    //   dyn adjustment of thread number w/r proc loading
 I10 ChunkThreads(4096) // number of events per thread in one parallel  clause
 I11 DivideBy(0)        // divide or not cpu spent by number of threads (link dependent)
