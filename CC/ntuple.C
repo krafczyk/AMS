@@ -1,10 +1,10 @@
-//  $Id: ntuple.C,v 1.180 2009/02/06 17:14:46 choutko Exp $
+//  $Id: ntuple.C,v 1.181 2009/02/13 11:47:36 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
 //  
 
-#include "commons.h"
+#include "commonsi.h"
 #include "node.h"
 #include "ntuple.h"
 #include "job.h"
@@ -13,7 +13,7 @@
 #ifndef _PGTRACK_
 #include "tralig.h"
 #endif
-
+#include <signal.h>
 #include <iostream>
 #include <iomanip>
 #ifndef __DARWIN__
@@ -270,7 +270,7 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
     }
       delete i->second;
   }
-  evmap.erase(evmap.begin(),evmap.end());
+  evmap.clear();
  cout<<"AMSNtupe::endR-I-MapErased "<<evmap.size()<<endl;
 }
 #ifdef __WRITEROOT__
@@ -408,13 +408,24 @@ if(del.size()){
 for(int k=0;k<del.size();k++){
    if(_tree){
       if(!_lun )_Nentries++;
-      //    cout <<" ** writing ** "<<(i->second)->Event()<<" "<<(i->second)->nParticle()<<endl;
       AMSEventR::Head()=del[k];
       _tree->Fill();
     }
   }
 #pragma omp critical (wr1)
+{
+if(AMSCommonsI::AB_catch<0){
+   AMSCommonsI::AB_catch=0;
+   sigsetjmp(AMSCommonsI::AB_buf,0);
+   cout <<"  AMSNtuple:writeR-I-sigsetjmp set "<<AMSEvent::get_thread_num()<<endl;
+}
+if(AMSCommonsI::AB_catch!=1){
 for(int k=0;k<del.size();k++)delete del[k];
+}
+else{
+ cout<<"  AMSNtuple::writeR-I-AbortCatched "<<endl;
+}
+}
 }
   
 #endif

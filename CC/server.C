@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.144 2008/12/17 12:24:12 choutko Exp $
+//  $Id: server.C,v 1.145 2009/02/13 11:47:37 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -810,7 +810,7 @@ void AMSServerI::_UpdateHosts(){
             int runcl=0;
            for (ACLI j=_acl.begin();j!=_acl.end();++j){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(((*j)->id).HostName))){
-              runcl++;
+              runcl+=((*j)->id).threads;
             }
            }
            if(runcl!=(*i)->ClientsRunning){
@@ -1455,7 +1455,7 @@ return 0;
        
          hostfound=true;
          cout << " host found for deleteing "<<endl;
-        ((*i)->ClientsRunning)--;
+        ((*i)->ClientsRunning)-=ac.id.threads-ac.id.threads_change;
         if((*i)->ClientsRunning<0){
           _parent->EMessage("Server_impl::sendAC-F-NegativeNumberClientRunning ");
          (*i)->ClientsRunning=0;
@@ -1515,7 +1515,7 @@ return 0;
          for(AHLI i=pcur->getahl().begin();i!=pcur->getahl().end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(vac->id).HostName)){
 //          cout << " host found for creating "<<endl;
-        ((*i)->ClientsRunning)++;
+        ((*i)->ClientsRunning)+=ac.id.threads;
         break;
 }
          }
@@ -3109,6 +3109,31 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
   DPS::Producer::DSTInfo_var dv =new DPS::Producer::DSTInfo();
   dv->DieHard=0;
   DPS::Producer::RunEvInfo_var rv=new DPS::Producer::RunEvInfo(); 
+//
+//  here EventsProcessed ugly used as threads number to transfer back to client
+//  should be changed by smth meaningful w/r host capacity
+//
+
+  (rv->cinfo).EventsProcessed = cid.threads; 
+
+        for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
+          if(curp->getType()==cid.Type){
+             for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(cid).HostName)){
+
+            if((*i)->ClientsAllowed<(*i)->ClientsRunning){
+              (rv->cinfo).EventsProcessed+=(*i)->ClientsAllowed-(*i)->ClientsRunning;
+               if((rv->cinfo).EventsProcessed<=0)(rv->cinfo).EventsProcessed=1;
+            }
+               break;
+        }
+         }
+       }
+      }
+      cout << "  Threads allowed "<<(rv->cinfo).EventsProcessed<<endl;
+      _parent->IMessage(AMSClient::print(cid,"  cid info "));
+
+
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
      if((*j)->id.uid==cid.uid){
        if((*j)->StatusType == DPS::Client::OneRunOnly){
@@ -4920,7 +4945,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
                cout<<(const char *)(*i)->HostName<<endl;
                if(!strcmp((const char *)(*i)->HostName, (const char *)((ac.id).HostName))){
                DPS::Client::ActiveHost_var ahlv= *i;
-               (ahlv->ClientsRunning)--;
+               (ahlv->ClientsRunning)-=ac.id.threads-ac.id.threads_change;
         if(ahlv->ClientsRunning<0){
           _parent->EMessage("Server_impl::propagateacdb-F-NegativeNumberClientRunning ");
          ahlv->ClientsRunning=0;
@@ -4960,7 +4985,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
              for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
             DPS::Client::ActiveHost_var ahlv= *i;
-            ((ahlv)->ClientsRunning)++;
+            ((ahlv)->ClientsRunning)+=ac.id.threads;
             time_t tt;
             time(&tt);
             (ahlv)->LastUpdate=tt;     
@@ -4972,6 +4997,26 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
          }
        }
       }
+      }
+       else if(rc == DPS::Client::Update && ac.id.threads_change){
+        for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
+          if(curp->getType()==ac.id.Type){
+             for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
+            DPS::Client::ActiveHost_var ahlv= *i;
+            ((ahlv)->ClientsRunning)+=ac.id.threads_change;
+            time_t tt;
+            time(&tt);
+            (ahlv)->LastUpdate=tt;     
+            (ahlv)->Status=DPS::Client::OK;
+             cout <<" sending sendah"<<endl;
+             dvar->sendAH(acid,ahlv,DPS::Client::Update);
+            break;
+        }
+         }
+       }
+      }
+
       }
       return 1;
 

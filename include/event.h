@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.85 2009/02/04 12:18:57 choutko Exp $
+//  $Id: event.h,v 1.86 2009/02/13 11:47:37 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -210,6 +210,25 @@ return omp_get_thread_num();
 return 0;
 #endif
 }
+static uinteger  get_num_threads_pot(){
+#ifdef _OPENMP
+if(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<omp_get_num_procs())
+return (MISCFFKEY.NumThreads);
+else return omp_get_num_procs();
+#else
+return 1;
+#endif
+}
+
+static void  set_num_threads(int nthreads){
+#ifdef _OPENMP
+if(nthreads>0 && nthreads<=omp_get_num_procs())
+MISCFFKEY.NumThreads=nthreads;
+#else
+MISCFFKEY.NumThreads=1;
+#endif
+}
+
 static uinteger get_num_threads(){
 #ifdef _OPENMP
 return omp_get_num_threads();

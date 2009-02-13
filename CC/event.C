@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.409 2009/02/04 12:18:53 choutko Exp $
+//  $Id: event.C,v 1.410 2009/02/13 11:47:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -93,8 +93,8 @@ void AMSEvent::_init(){
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
 #pragma omp barrier
-#pragma omp master
-{
+//#pragma omp master
+if(AMSEvent::get_thread_num()==0){
       AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       ptdv->UpdateMe()=1;
@@ -149,7 +149,8 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
 #pragma omp barrier
-#pragma omp master
+//#pragma omp master
+if(AMSEvent::get_thread_num()==0)
 {
    // get rid of crazy runs
    if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
@@ -1211,7 +1212,7 @@ void  AMSEvent::write(int trig){
 	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
 	{
 #pragma omp barrier
-#pragma omp master
+if(AMSEvent::get_thread_num()==0)
 	  {
 
 	    AMSJob::gethead()->uhend();

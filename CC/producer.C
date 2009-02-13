@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.123 2008/12/12 09:52:00 choutko Exp $
+//  $Id: producer.C,v 1.124 2009/02/13 11:47:36 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -111,7 +111,9 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 
 void AMSProducer::sendid(){
     _pid.Mips=AMSCommonsI::getmips();
-    cout <<"  Mips:  "<<_pid.Mips<<endl;
+    _pid.threads=AMSEvent::get_num_threads_pot();
+    _pid.threads_change=0;
+    cout <<"  Mips:  "<<_pid.Mips<<" Threads "<<_pid.threads<<endl;
     bool ok=SetDataCards();
      _pid.StatusType=DPS::Producer::OneRunOnly;
 if (_Solo){
@@ -250,6 +252,8 @@ if (_Solo){
 
 UpdateARS();
 bool mtry=false; 
+_pid.threads=AMSEvent::get_num_threads_pot();
+_pid.threads_change=0;
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
@@ -269,10 +273,13 @@ again:
     _FreshMan=false;
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
+    AMSEvent::set_num_threads((_reinfo->cinfo).EventsProcessed);
+    cout <<"  ***-*** setting thtreads to "<< (_reinfo->cinfo).EventsProcessed << " "<<MISCFFKEY.NumThreads<<endl;
     SELECTFFKEY.Run=_reinfo->Run;
     SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    _pid.threads=AMSEvent::get_num_threads_pot();
     _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=(_reinfo->cinfo).EventsProcessed;
     _cinfo.ErrorsFound=(_reinfo->cinfo).ErrorsFound;
@@ -472,6 +479,8 @@ else{
 
 void AMSProducer::sendCurrentRunInfo(bool force){
 if (_Solo)return;
+_pid.threads_change=AMSEvent::get_num_threads()-_pid.threads_change;
+_pid.threads=AMSEvent::get_num_threads();
 if(_OnAir){
   EMessage("AMSProducer::sendCurrentrunInfo-W-AlreadyOnAir ");
  return;

@@ -161,6 +161,8 @@ class CID:
     uid=0
     pid=0
     ppid=0
+    threads=1
+    threads_change=0
     Mips=1000
     Type="Monitor"
     Status="NOP"

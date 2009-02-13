@@ -1,4 +1,4 @@
-//  $Id: id.h,v 1.12 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: id.h,v 1.13 2009/02/13 11:47:37 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSID__
@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <string>
-
+#include <string.h>
 //! Base AMS class implementing a Named object
 class AMSID {
 protected:

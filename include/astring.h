@@ -1,4 +1,4 @@
-//  $Id: astring.h,v 1.7 2008/11/03 15:02:17 pzuccon Exp $
+//  $Id: astring.h,v 1.8 2009/02/13 11:47:37 choutko Exp $
 #ifndef __ASTRING___
 #define __ASTRING___
 
@@ -6,9 +6,9 @@
 
 //  AMS AString (AString)
 
-#include <iostream.h>
 
-
+#include <iostream>
+using namespace std;
 extern "C" {
 #include <string.h>
 }

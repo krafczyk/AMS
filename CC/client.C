@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.42 2008/09/26 15:34:19 choutko Exp $
+//  $Id: client.C,v 1.43 2009/02/13 11:47:36 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <netdb.h>
+#
 char AMSClient::_streambuffer[1024];
 std::ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
 
@@ -90,7 +91,8 @@ bool AMSClient::_getpidhost(uinteger uid, const char * iface){
  _pid.uid=uid;
  _pid.pid=getpid();
  _pid.ppid=getppid();
- char name[256];
+ _pid.threads=1;
+char name[256];
  int len=255;
  if(gethostname(name,len))return false;
 else{

@@ -20,6 +20,8 @@ module DPS{
     unsigned long uid;
     unsigned long pid;
     unsigned long ppid;
+    unsigned long threads;
+    long threads_change;
     ClientType   Type;
     ClientStatusType StatusType;
     ClientExiting Status;

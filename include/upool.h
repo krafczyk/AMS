@@ -1,4 +1,4 @@
-//  $Id: upool.h,v 1.10 2008/11/03 14:10:41 pzuccon Exp $
+//  $Id: upool.h,v 1.11 2009/02/13 11:47:37 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSUPOOL__
@@ -8,7 +8,7 @@
 #include <iostream>
 #include <new>
 #include <string>
-
+#include <string.h>
 /*! \class AMSuPool
  \brief Universal  linear memory pool for any/all class(es).
  Do NOT requires redefinition of new/delete operators.

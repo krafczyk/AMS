@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.120 2009/02/06 17:14:46 choutko Exp $
+//  $Id: geant3.C,v 1.121 2009/02/13 11:47:36 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1074,7 +1074,7 @@ try{
        
     while((GCFLAG.IEVENT<GCFLAG.NEVENT && !GCFLAG.IEOTRI) || (AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
 #ifdef _OPENMP
-if(MISCFFKEY.NumThreads>0)
+if(MISCFFKEY.NumThreads>0 && MISCFFKEY.NumThreads<omp_get_num_procs())
 omp_set_num_threads(MISCFFKEY.NumThreads);
 else
 omp_set_num_threads(omp_get_num_procs());
