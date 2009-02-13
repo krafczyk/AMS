@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.63 2009/01/27 08:09:14 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.64 2009/02/13 16:30:41 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2513,80 +2513,87 @@ void TOF2JobStat::bookhist(){
   char idname[80];
   char inum[11];
   char in[2]="0";
+  int thprtf=TFREFFKEY.reprtf[2];
 //
   strcpy(inum,"0123456789");
+// hist 1290-1299 are used in trigger102.C
 //
   if(LVL3FFKEY.histprf>0){
     HBOOK1(1020,"LVL1: TOF  Ttop-Tbot",50,-12.5,12.5,0.);
 //   1020-1029 Lev3 hists
   }
 //
-  if(TFREFFKEY.reprtf[2]!=0){// Reconstruction histograms
+  if(thprtf>0){// Reconstruction histograms
 // Book reco-hist
-    HBOOK1(1100,"TofRawClBuild: LT-SumHT time (1-hit case, all channels)",80,-6.,14.,0.);
-    HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,1.,1001.,0.);
+    HBOOK1(1100,"RawCluster: LT-SumHT time (1-hit case, all channels)",80,-6.,14.,0.);
+    HBOOK1(1107,"TofValid: TOF+ACC data length (16-bit words)",100,1.,1001.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,2400.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,400.,0.);
 //      HBOOK1(1116,"FTtime-diff,slot-by-slot",80,-10.,10.,0.);
-    HBOOK1(1104,"Anode-adc signals(id=104,s1)",100,0.,1000.,0.);
-    HBOOK1(1105,"Dynode(pm)-adc signals(id=104,s1)",100,0.,200.,0.);
-    HBOOK1(1108,"SumHTtime-channel hits multiplicity(all chan)",20,0.,20.,0.);
+    HBOOK1(1104,"RawCluster:Anode signals(adc,id=104,s1)",100,0.,1000.,0.);
+    HBOOK1(1105,"RawCluster:Dynode(pm) signals(adc,id=104,s1)",100,0.,200.,0.);
+    HBOOK1(1108,"RawCluster:SumHTtime hits multiplicity(all chan)",20,0.,20.,0.);
     HBOOK1(1110,"RawCluster:Total fired layers per event",5,0.,5.,0.);
     HBOOK1(1111,"RawCluster:Layer appearence frequency",4,0.5,4.5,0.);
     HBOOK1(1112,"RawCluster:Layer-Config(-1/0/1.../5--> <2/2/missLay#/All4)",10,-1.,9.,0.);
     HBOOK1(1113,"RawCluster:OneBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
     HBOOK1(1114,"RawCluster:One2SidedBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
-    HBOOK1(1115,"TofRawClBuild: BestMatch LT-SumHT time(all FTmatched LT-hits, ovfl=noSumHTmatch)",80,-6.,14.,0.);
+    HBOOK1(1115,"RawCluster: BestMatch LT-SumHT time(all FTmatched LT-hits, ovfl=noSumHTmatch)",80,-6.,14.,0.);
 //
-    HBOOK1(1120,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S1",80,-6.,14.,0.);
-    HBOOK1(1121,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S2",80,-6.,14.,0.);
-    HBOOK1(1122,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L2S1",80,-6.,14.,0.);
-    HBOOK1(1123,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L2S2",80,-6.,14.,0.);
-    HBOOK1(1124,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L3S1",80,-6.,14.,0.);
-    HBOOK1(1125,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L3S2",80,-6.,14.,0.);
-    HBOOK1(1126,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L4S1",80,-6.,14.,0.);
-    HBOOK1(1127,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L4S2",80,-6.,14.,0.);
+    if(thprtf>1){
+      HBOOK1(1120,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S1",80,-6.,14.,0.);
+      HBOOK1(1121,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S2",80,-6.,14.,0.);
+      HBOOK1(1122,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L2S1",80,-6.,14.,0.);
+      HBOOK1(1123,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L2S2",80,-6.,14.,0.);
+      HBOOK1(1124,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L3S1",80,-6.,14.,0.);
+      HBOOK1(1125,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L3S2",80,-6.,14.,0.);
+      HBOOK1(1126,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L4S1",80,-6.,14.,0.);
+      HBOOK1(1127,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L4S2",80,-6.,14.,0.);
+    }
 //
-    HBOOK1(1128,"TofValid:FTtime-LTime(1-Hits case), L1S1",80,-60.,740.,0.);
-    HBOOK1(1129,"TofValid:FTtime-LTime(1-Hits case), L1S2",80,-60.,740.,0.);
-    HBOOK1(1130,"TofValid:FTtime-LTime(1-Hits case), L2S1",80,-60.,740.,0.);
-    HBOOK1(1131,"TofValid:FTtime-LTime(1-Hits case), L2S2",80,-60.,740.,0.);
-    HBOOK1(1132,"TofValid:FTtime-LTime(1-Hits case), L3S1",80,-60.,740.,0.);
-    HBOOK1(1133,"TofValid:FTtime-LTime(1-Hits case), L3S2",80,-60.,740.,0.);
-    HBOOK1(1134,"TofValid:FTtime-LTime(1-Hits case), L4S1",80,-60.,740.,0.);
-    HBOOK1(1135,"TofValid:FTtime-LTime(1-Hits case), L4S2",80,-60.,740.,0.);
-    
-    HBOOK1(1136,"TofRawClBuild:FTtime-LTime(all LT-hits)",80,-60.,740.,0.);
-    HBOOK1(1106,"TofRawClBuild: FTtime-LTime(final LT-hit)",80,-60.,740.,0.);
-    HBOOK1(1103,"TofRawClBuild: LTime-SumHTtime(final LT-hit(SingleFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
-    HBOOK1(1109,"TofRawClBuild: LTime-SumHTtime(final LT-hit(best from MultFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
+    if(thprtf>1){
+      HBOOK1(1128,"TofValid:FTtime-LTime(1-Hits case), L1S1",80,-60.,740.,0.);
+      HBOOK1(1129,"TofValid:FTtime-LTime(1-Hits case), L1S2",80,-60.,740.,0.);
+      HBOOK1(1130,"TofValid:FTtime-LTime(1-Hits case), L2S1",80,-60.,740.,0.);
+      HBOOK1(1131,"TofValid:FTtime-LTime(1-Hits case), L2S2",80,-60.,740.,0.);
+      HBOOK1(1132,"TofValid:FTtime-LTime(1-Hits case), L3S1",80,-60.,740.,0.);
+      HBOOK1(1133,"TofValid:FTtime-LTime(1-Hits case), L3S2",80,-60.,740.,0.);
+      HBOOK1(1134,"TofValid:FTtime-LTime(1-Hits case), L4S1",80,-60.,740.,0.);
+      HBOOK1(1135,"TofValid:FTtime-LTime(1-Hits case), L4S2",80,-60.,740.,0.);
+      HBOOK1(1137,"TofValid:FTime-LTtime for LBBS=1042(all its LT-hits)",70,-60.,640.,0.);
+      HBOOK1(1138,"TofValid:LTtime for LBBS=1042",100,5000.,20000.,0.);
+      HBOOK1(1139,"TofValid:FTtime for LBBS=1042",100,5000.,20000.,0.);
+    }
+    HBOOK1(1136,"RawCluster: FTtime-LTime(all LT-hits)",80,-60.,740.,0.);
+    HBOOK1(1106,"RawCluster: FTtime-LTime(final LT-hit)",80,-60.,740.,0.);
+    HBOOK1(1103,"RawCluster: LTime-SumHTtime(final LT-hit(SingleFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
+    HBOOK1(1109,"RawCluster: LTime-SumHTtime(final LT-hit(best from MultFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
 //---    
-    HBOOK1(1137,"TofValid:FTime-LTtime for LBBS=1042(all its LT-hits)",70,-60.,640.,0.);
-    HBOOK1(1138,"TofValid:LTtime for LBBS=1042",100,5000.,20000.,0.);
-    HBOOK1(1139,"TofValid:FTtime for LBBS=1042",100,5000.,20000.,0.);
 //(hist 1140-1161)
-    for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
-      for(is=0;is<2;is++){
-        id=TofTmAmCalib::btyp2id(btyp);
-	id=id*10+is+1;
-        strcpy(htit1,"TofValid: Raw Amplitude for RefBarTyp:");
-        sprintf(idname,"%d",btyp);
-        strcat(htit1,idname);
-        strcat(htit1,",LBBS=");
-        sprintf(idname,"%d",id);
-        strcat(htit1,idname);
-        HBOOK1(1140+btyp-1+TOF2GC::SCBTPN*is,htit1,80,0.,320.,0.);
+    if(thprtf>1){
+      for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
+        for(is=0;is<2;is++){
+          id=TofTmAmCalib::btyp2id(btyp);
+	  id=id*10+is+1;
+          strcpy(htit1,"TofValid: Raw Amplitude for RefBarTyp:");
+          sprintf(idname,"%d",btyp);
+          strcat(htit1,idname);
+          strcat(htit1,",LBBS=");
+          sprintf(idname,"%d",id);
+          strcat(htit1,idname);
+          HBOOK1(1140+btyp-1+TOF2GC::SCBTPN*is,htit1,80,0.,320.,0.);
+        }
       }
     }
     
 //    HBOOK1(1092-1099 are used for trigger-hists in trigger102.C  !!!!)
 //    HBOOK1(1010,...    reserved for tofsim02.C internal use !!!!
 //    HBOOK1(1011,...    reserved for tofsim02.C internal use !!!!
-    if(TFREFFKEY.reprtf[2]>1){//detaied mode
-      HBOOK1(1526,"L=1,Ed_anode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
-      HBOOK1(1527,"L=3,Ed_anode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
-      HBOOK1(1528,"L=1,Ed_dynode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
-      HBOOK1(1529,"L=3,Ed_dynode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
+    if(thprtf>1){//detailed mode
+      HBOOK1(1526,"RawCluster:L=1,Eanode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1527,"RawCluster:L=3,Eanode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1528,"RawCluster:L=1,Edynode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1529,"RawCluster:L=3,Edynode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
 // spare     HBOOK1(1530,"L=1,Ed_dynodeL(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
 // spare     HBOOK1(1531,"L=3,Ed_dynodeL(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
 //(hist 1165-1198)
@@ -2594,7 +2601,7 @@ void TOF2JobStat::bookhist(){
       for(il=0;il<TOF2DBc::getnplns();il++){
         for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
           id=100*(il+1)+ib+1;
-          strcpy(htit1,"dE/dX (norm.inc) for bar(LBB):");
+          strcpy(htit1,"RawCluster:Anode Edep (poscorrected,norm.inc) for bar(LBB):");
           sprintf(idname,"%d",id);
           strcat(htit1,idname);
           HBOOK1(1165+ich+ib,htit1,50,0.,15.,0.);
@@ -2612,13 +2619,13 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1538,"L=3,TOFClus Edep(10Xscaled,mev)",80,0.,240.,0.);
     HBOOK1(1539,"L=2,TOFClus Edep(mev)",80,0.,24.,0.);
     HBOOK1(1540,"L=4,TOFClus Edep(mev)",80,0.,24.,0.);
-    HBOOK1(1541,"TOFClus,L1XCoo(long)",100,-50.,50.,0.);
-    HBOOK1(1542,"TOFClus,L1YCoo(tran)",100,-50.,50.,0.);
+    HBOOK1(1541,"TOFClus: L1XCoo(long)",100,-50.,50.,0.);
+    HBOOK1(1542,"TOFClus: L1YCoo(tran)",100,-50.,50.,0.);
     HBOOK1(1545,"L=1,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
     HBOOK1(1546,"L=3,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
-    HBOOK1(1548,"TOFClus 2 bars E-ass(dt,dc ok)",44,-1.1,1.1,0.);
-    HBOOK1(1549,"TOFClus cand. LongMatch(cm, Tmatch ok)",80,-40.,40.,0.);
-    HBOOK1(1550,"TOFClus cand. T-match(ns)",80,-10.,10.,0.);
+    HBOOK1(1548,"TOFClus: 2bars-cand, E-ass(dt,dc ok)",44,-1.1,1.1,0.);
+    HBOOK1(1549,"TOFClus: 2bars-cand. LongMatch(cm, Tmatch ok)",80,-40.,40.,0.);
+    HBOOK1(1550,"TOFClus: 2bars-cand. T-match(ns)",80,-10.,10.,0.);
 //
     if(TFREFFKEY.reprtf[4]==1){ // <==================== TOF-debug
       for(il=0;il<TOF2GC::SCLRS;il++){// RawADC histogr
@@ -2747,7 +2754,8 @@ void TOF2JobStat::outp(){
     HPRINT(1020);
   }
 //---
-  if(TFREFFKEY.reprtf[2]!=0){ // print RECO-hists
+  if(TFREFFKEY.reprtf[2]>0){ // print RECO-hists
+    HPRINT(1107);
     HPRINT(1535);
     HPRINT(1536);
     HPRINT(1537);
@@ -2772,21 +2780,26 @@ void TOF2JobStat::outp(){
     HPRINT(1113);
     HPRINT(1114);
     
-    for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
-      for(is=0;is<2;is++){
-        HPRINT(1140+btyp-1+TOF2GC::SCBTPN*is);
+    if(TFREFFKEY.reprtf[2]>1){
+      for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
+        for(is=0;is<2;is++){
+          HPRINT(1140+btyp-1+TOF2GC::SCBTPN*is);
+        }
       }
     }
     
-    
-    for(i=0;i<8;i++)HPRINT(1128+i);//LT-FT times(Layer/Side)
-    HPRINT(1137);// ... id=1041
-    HPRINT(1138);
-    HPRINT(1139);
+    if(TFREFFKEY.reprtf[2]>1){
+      for(i=0;i<8;i++)HPRINT(1128+i);//LT-FT times(Layer/Side)
+      HPRINT(1137);// ... id=1041
+      HPRINT(1138);
+      HPRINT(1139);
+    }
 //
     HPRINT(1136);//ft-lt in RawClustBuild
     HPRINT(1100);
-    for(i=0;i<8;i++)HPRINT(1120+i);//LT-SumHT times(Layer/Side)
+    if(TFREFFKEY.reprtf[2]>1){
+      for(i=0;i<8;i++)HPRINT(1120+i);//LT-SumHT times(Layer/Side)
+    }
     HPRINT(1115);
 	 
     HPRINT(1106);// final FT-LT for rawClust
@@ -3070,6 +3083,12 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
       }
     }
 //formal init of SFET(A)-sensors by undefined value
+    for(i=0;i<TOF2GC::SCCRAT;i++)
+      for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j]=999;//(TempT,degrees)
+  }
+//---
+  void TOF2JobStat::resettemp(){//for event-by-event option
+    int i,j;
     for(i=0;i<TOF2GC::SCCRAT;i++)
       for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j]=999;//(TempT,degrees)
   }

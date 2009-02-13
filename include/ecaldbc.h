@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.42 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.43 2009/02/13 16:30:49 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -148,7 +148,7 @@ private:
 //            i=2 -> ETRG ...
 //            i=3 -> OnBoardPedTable ...
 public:
-  static number zprofa[2*ecalconst::ECSLMX];//  SubCellPlanes  profile
+  static number zprofa[2*ecalconst::ECSLMX];//  PixPlanes  profile
   static number zprofapm[ecalconst::ECSLMX];// SL profile
   static number zprofac[ecalconst::ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
   static geant nprofac[ecalconst::ECSLMX];// SuperLayers profile for calib.events(punch-through)

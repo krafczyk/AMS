@@ -16,6 +16,7 @@
 #include "daqs2block.h"
 #include "anticalib02.h"
 #include "particle.h"
+#include "user.h"
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
@@ -57,19 +58,21 @@ void AntiCalib::init(){ // ----> initialization for AMPL-calibration
 //
 //  ---> book hist. for side-signals:
 //
-  hll=10;
-  hhl=4000;
-  for(logs=0;logs<MAXANTI;logs++){//log.sect.loop
-    for(phys=0;phys<2;phys++){//phys.sect.index
-      for(is=0;is<2;is++){//side loop
-        id=2*(2*logs+phys)+is;
-        sprintf(hname,"MidBinAmpl(AllCorr), LogS-%01d, PhysS-%01d, Side-%01d",logs+1,phys+1,is+1);
-        HBOOK1(2561+id,hname,100,hll,hhl,0.);
+  if(ATREFFKEY.reprtf[0]>0){
+    hll=10;
+    hhl=4000;
+    for(logs=0;logs<MAXANTI;logs++){//log.sect.loop
+      for(phys=0;phys<2;phys++){//phys.sect.index
+        for(is=0;is<2;is++){//side loop
+          id=2*(2*logs+phys)+is;
+          sprintf(hname,"MidBinAmpl(AllCorr), LogS-%01d, PhysS-%01d, Side-%01d",logs+1,phys+1,is+1);
+          HBOOK1(2561+id,hname,100,hll,hhl,0.);
+        }
       }
     }
   }
 //---
-  HBOOK1(2624,"Long.responce profile",LongBins,-padlen/2,padlen/2,0.);//buff.histogr
+  HBOOK1(2624,"Long.responce profile",LongBins,-padlen/2,padlen/2,0.);//buffer histogr
 //
 }
 //--------------------------------------
@@ -155,7 +158,12 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     ptr=ptr->next();// take next RawEvent hit
   }//------>endof RawEvent hits loop
 //
-  HF1(2530,geant(frsect),1.);
+  if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+    HF1(2530,geant(frsect),1.);
+}
+  }
   if(frsect!=1)return;//remove empty/multiple sector events
   ANTI2JobStat::addre(12);
 //
@@ -292,19 +300,32 @@ Nextp:
       if(cphi<0)cphi=360+cphi;//0-360
       phi=phi*AMSDBc::raddeg;//inpact phi(degr,+-180)
       if(phi<0)phi=360+phi;//0-360
-      HF1(2531,geant(crcCyl[2]),1.);
+      if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+        HF1(2531,geant(crcCyl[2]),1.);
+}
+      }
       if(fabs(crcCyl[2])<zcut){//match in Z 
-        if(i==0)HF1(2626,geant(frsecn[0]),1.);
-	else HF1(2627,geant(frsecn[0]),1.);
-        HF1(2540,geant(cphi),1.);
-        HF1(2541,geant(phi),1.);
+        if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+          if(i==0)HF1(2626,geant(frsecn[0]),1.);
+	  else HF1(2627,geant(frsecn[0]),1.);
+          HF1(2540,geant(cphi),1.);
+          HF1(2541,geant(phi),1.);
+}
+	}
         dphi1=padfi-cphi;//PHIsect-PHIcrp
 	if(dphi1>180)dphi1=360-dphi1;
 	if(dphi1<-180)dphi1=-(360+dphi1);
-        HF1(2532,geant(dphi1),1.);//PHIsect-PHIcrp
+        if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+          HF1(2532,geant(dphi1),1.);//PHIsect-PHIcrp
+}
+	}
         if(cphi<(phih-0.5) && cphi>(phil+0.5)){//match in phi (-0.5 degr for safety)
-          if(i==0)HF1(2628,geant(frsecn[0]),1.);
-	  else HF1(2629,geant(frsecn[0]),1.);
 	  if(cphi<padfi)isphys=2*frsecn[0];//physical sector number(0-15)
 	  else isphys=2*frsecn[0]+1;
 	  zscr=crcCyl[2];
@@ -314,14 +335,31 @@ Nextp:
 	  dphi2=cphi-phi;//PHIcrp-PHIimpp
 	  if(dphi2>180)dphi2=360-dphi2;
 	  if(dphi2<-180)dphi2=-(360+dphi2);
-          HF1(2533,geant(dphi2),1.);//PHIcrp-PHIimpp
+          if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+            if(i==0)HF1(2628,geant(frsecn[0]),1.);
+	    else HF1(2629,geant(frsecn[0]),1.);
+            HF1(2533,geant(dphi2),1.);//PHIcrp-PHIimpp
+}
+	  }
         }//phi-match ok?
       }//z-match ok?
     }//endof dir loop
 //
-    HF1(2530,geant(nseccr+10),1.);
+    if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+      HF1(2530,geant(nseccr+10),1.);
+}
+    }
     if(nseccr!=1)return;//requir. 1-sect. crossing
-    HF1(2539,geant(isphys+1),1.);//phys.sector number
+    if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+      HF1(2539,geant(isphys+1),1.);//phys.sector number
+}
+    }
     ANTI2JobStat::addre(14);
 //
     if(abs(charge)!=1)return;//requir. Z=1
@@ -333,12 +371,22 @@ Nextp:
     number betg(4);
     if(MAGSFFKEY.magstat==1 && TrkTrPart){
       pmom=fabs(rigid);
-      HF1(2534,geant(pmom),1.);
-      HF1(2535,bet,1.);
-      HF1(2536,pmas,1.);
+      if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+        HF1(2534,geant(pmom),1.);
+        HF1(2535,bet,1.);
+        HF1(2536,pmas,1.);
+}
+      }
       betg=pmom/pmas;//use trk-defined betg when possible
     }
-    HF1(2537,betg,1.);
+    if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+      HF1(2537,betg,1.);
+}
+    }
     if(betg>6)return;//non MIP area
     ANTI2JobStat::addre(17);
 //
@@ -349,20 +397,31 @@ Nextp:
     pathcorr=sqrt(pow(cos(dphi2),2)*pow(sin(thes),2)/
                   (pow(sin(thes),2)+pow(cos(thes),2)*pow(cos(dphi2),2)));
     crlen=padth/pathcorr;//pass-length in scint(ignore local curvature)
-    HF1(2538,crlen,1.);
-    if(frsecn[0]==3){
-      HF1(2596,geant(am1[0]),1.);
-      HF1(2597,geant(am2[0]),1.);
+    if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+      HF1(2538,crlen,1.);
+      if(frsecn[0]==3){
+        HF1(2596,geant(am1[0]),1.);
+        HF1(2597,geant(am2[0]),1.);
+      }
+}
     }
     if(crlen>4)return;//too high cr.length: suspicious
+//
     ANTI2JobStat::addre(18);
     ama[0]=am1[0];//imply single sector event
     ama[1]=am2[0];
     ama[0]=Anti2RawEvent::accsatur(am1[0]);//<--apply nonlin.corrections(because we use raw amplitudes)
     ama[1]=Anti2RawEvent::accsatur(am2[0]);
-    if(frsecn[0]==3){
-      HF1(2594,ama[0],1.);
-      HF1(2595,ama[1],1.);
+    if(ATREFFKEY.reprtf[0]>0){
+#pragma omp critical (hf1)
+{
+      if(frsecn[0]==3){
+        HF1(2594,ama[0],1.);
+        HF1(2595,ama[1],1.);
+      }
+}
     }
     ama[0]*=pathcorr;//normalize to norm.inc(ignore loc.curv.)
     ama[1]*=pathcorr;//...                   
@@ -378,7 +437,10 @@ Nextp:
 // ------> fill working arrays and histograms :
 //
 //   cout<<"Fill:sect/ama/x="<<isphys<<" "<<ama[0]<<" "<<ama[1]<<" "<<cinp<<endl;
-    AntiCalib::fill(isphys,ama,cinp);//for relat.gains,profile,abs.norm. 
+#pragma omp critical (acccal_fill)
+{
+    AntiCalib::fill(isphys,ama,cinp);//for relat.gains,profile,abs.norm.
+} 
 }
 //--------------------------------------
 //   ---> program to accumulate data for relat.gains/prof/abs.nor-calibration:
@@ -388,7 +450,9 @@ void AntiCalib::fill(integer isec, geant am[2], geant coo){
   geant ampc,padlen;
 //
   padlen=ANTI2DBc::scleng();//z-size
-  HF1(2545+isec,coo,1.);//phys.sect longit.imp.point distribution
+  if(ATREFFKEY.reprtf[0]>0){
+    HF1(2545+isec,coo,1.);//phys.sect longit.imp.point distribution
+  }
   if(fabs(coo)>=padlen/2)return;
   bin=floor(LongBins*(coo+padlen/2)/padlen);
 //
@@ -401,7 +465,9 @@ void AntiCalib::fill(integer isec, geant am[2], geant coo){
       adccount[id][bin][evs2bin[id][bin]]=ampc;
       evs2bin[id][bin]+=1;
     }  
-    if(bin==9 || bin==10)HF1(2561+id,ampc,1.);
+    if(ATREFFKEY.reprtf[0]>0){
+      if(bin==9 || bin==10)HF1(2561+id,ampc,1.);
+    }
   }
 //
 }
@@ -504,7 +570,8 @@ void AntiCalib::fit(){
           exit(10);
         }
         id=2*(2*logs+phys)+isd;
-	HPRINT(2561+id);
+        if(ATREFFKEY.reprtf[0]>0)
+	                         HPRINT(2561+id);
 	fitbins=0;
 	for(bin=0;bin<LongBins;bin++){//<--bin-loop
 	  profl[bin]=0;
@@ -575,7 +642,8 @@ void AntiCalib::fit(){
 	}
 //
         chi2=fitpars[4];
-	HF1(2593,geant(chi2),1.);
+        if(ATREFFKEY.reprtf[0]>0)
+	                         HF1(2593,geant(chi2),1.);
 	slope=fitpars[0];
 	if(chi2<30 && fabs(slope)>0.001 && fabs(slope)<0.04){
 	  atlen[logs][phys][isd]=geant(1/slope);
@@ -584,8 +652,10 @@ void AntiCalib::fit(){
 	  power[logs][phys][isd]=geant(fitpars[2]);
 	  snor[logs][phys][isd]=geant(fitpars[3]);
           stat[logs][phys][isd]=0;//ok
-          HF1(2542+isd,fabs(atlen[logs][phys][isd]),1.);
-          HF1(2544,pe2ad[logs][phys][isd],1.);
+          if(ATREFFKEY.reprtf[0]>0){
+            HF1(2542+isd,fabs(atlen[logs][phys][isd]),1.);
+            HF1(2544,pe2ad[logs][phys][isd],1.);
+	  }
 	}
 	else{
 	  cout<<"  <-- Logs/Phys/Side"<<logs+1<<" "<<phys+1<<" "<<isd+1<<" Bad chi2="<<chi2<<endl;
@@ -600,14 +670,10 @@ void AntiCalib::fit(){
   char vers1[3]="MC";
   char vers2[3]="RD";
   char fext[20];
-  uinteger StartRun;
-  time_t StartTime;
+  uinteger StartRun=AMSUser::JobFirstRunN();
+  time_t StartTime=time_t(StartRun);
 //
-//--> get run/time of the first event
-//
-  StartRun=TOF2RawSide::getsrun();
-  StartTime=TOF2RawSide::getstime();
-  strcpy(frdate,asctime(localtime(&StartTime)));
+  strcpy(frdate,asctime(localtime(&StartTime)));//data date
 //
 //--> create name for output file
 // 
@@ -986,7 +1052,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 //
 }
 //--------------------------------------------------------------------
-void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration 
+void ANTPedCalib::init(){ // ----> initialization for AccPed-calibration(Class/DS) 
   integer i,j,k,il,ib,id,ii,jj,chan;
   char htit1[60],htit2[60];
   char inum[11];
@@ -996,7 +1062,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
   strcpy(inum,"0123456789");
 //
   cout<<endl;
-//
+/*
    if(ATREFFKEY.relogic==4){//open Ntuple file (for OnBoardTable only for the moment)
      char hfile[161];
      UHTOC(IOPA.hfile,40,hfile,160);  
@@ -1016,7 +1082,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
      HBNAME(IOPA.ntuple,"ANTPedSig",(int*)(&ANTPedCalNT),"Run:I,Sector:I,PedA(2):R,SigA(2):R,StaA(2):I");
      return;
    }
-//
+*/
   if(ATREFFKEY.relogic==2)por2rem=ATCAFFKEY.pedcpr[0];//ClassPed(random)
   else if(ATREFFKEY.relogic==3)por2rem=ATCAFFKEY.pedcpr[1];//DownScaled(in trigger)
 //  nstacksz=integer(floor(por2rem*ATPCEVMX+0.5));
@@ -1031,6 +1097,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
 //
 //  ---> book hist.  :
 //
+if(ATREFFKEY.reprtf[0]>0){
   HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
   HMINIM(2670,75.);
   HMAXIM(2670,275.);
@@ -1059,6 +1126,7 @@ void ANTPedCalib::init(){ // ----> initialization for TofPed-calibration
       HBOOK1(id+16,htit2,80,80.,240.,0.);
     }
   }
+}
   //
 // ---> clear arrays:
 //
@@ -1195,9 +1263,11 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
      }
    }//-->endof "in limits" check
 //
-   id=2674+sr*2+sd;
-   if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(id,val,1.); 
-   HF1(id+16,val,1.);
+   if(ATREFFKEY.reprtf[0]>0){
+     id=2674+sr*2+sd;
+     if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(id,val,1.); 
+     HF1(id+16,val,1.);
+   }
 }
 //-------------------------------------------
 void ANTPedCalib::outp(int flg){// very preliminary
@@ -1205,8 +1275,8 @@ void ANTPedCalib::outp(int flg){// very preliminary
    int i,sr,sd,statmin(9999);
    geant pdiff,por2rem,p2r;
    geant pedmn,pedmx,sigmn,sigmx;
-   time_t begin=BTime();//begin time = 1st_event_time(filled at 1st "ped-block" arrival)
-   uinteger runn=BRun();//1st event run# 
+   uinteger runn=AMSUser::JobFirstRunN();//job 1st run# 
+   time_t begin=time_t(runn);//begin time => runn
    time_t end,insert;
    char DataDate[30],WrtDate[30];
    int totchs(0),goodchs(0);
@@ -1252,10 +1322,12 @@ void ANTPedCalib::outp(int flg){// very preliminary
 	   ANTIPeds::anscped[sr].apeda(sd)=peds[sr][sd];
 	   ANTIPeds::anscped[sr].asiga(sd)=sigs[sr][sd];
 	   ANTIPeds::anscped[sr].astaa(sd)=stas[sr][sd];
-           HF1(2670,geant(sd*10+sr+1),ANTIPeds::anscped[sr].apeda(sd));
-	   HF1(2671,geant(sd*10+sr+1),ANTIPeds::anscped[sr].asiga(sd));
-	   HF1(2672,geant(sd*10+sr+1),geant(stas[sr][sd]));
-	   HF1(2673,geant(sd*10+sr+1),pdiff);
+           if(ATREFFKEY.reprtf[0]>0){
+             HF1(2670,geant(sd*10+sr+1),ANTIPeds::anscped[sr].apeda(sd));
+	     HF1(2671,geant(sd*10+sr+1),ANTIPeds::anscped[sr].asiga(sd));
+	     HF1(2672,geant(sd*10+sr+1),geant(stas[sr][sd]));
+	     HF1(2673,geant(sd*10+sr+1),pdiff);
+	   }
 	   if(statmin>nevt[sr][sd])statmin=nevt[sr][sd];
 	 }
 	 else{//bad chan
@@ -1345,7 +1417,9 @@ void ANTPedCalib::outp(int flg){// very preliminary
 //
    }//--->endof file writing 
 //
-   for(i=0;i<36;i++)HPRINT(2670+i);
+   if(ATREFFKEY.reprtf[0]>0){
+     for(i=0;i<36;i++)HPRINT(2670+i);
+   }
    cout<<endl;
    cout<<"====================== ANTPedCalib: job is completed ! ======================"<<endl;
    cout<<endl;

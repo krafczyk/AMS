@@ -43,7 +43,8 @@ private:
   static geant sigs[ANTI2C::MAXANTI][2];
   static uinteger stas[ANTI2C::MAXANTI][2];
   static integer nstacksz;//really needed stack size (ev2rem*ANPCEVMX)
-  static integer hiamap[ANTI2C::MAXANTI];//high signal Paddles map (1 event) 
+  static integer hiamap[ANTI2C::MAXANTI];//high signal Paddles map (1 event)
+#pragma omp threadprivate (hiamap) 
   static time_t BeginTime;
   static uinteger BeginRun;
 //

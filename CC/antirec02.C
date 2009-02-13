@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.39 2009/01/27 08:09:13 choumilo Exp $
+//  $Id: antirec02.C,v 1.40 2009/02/13 16:30:40 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -48,7 +48,6 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   geant ped,sig,temp;
   number adcf,rdthr,dt;
   int bad;
-  static int first(0);
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
 //
@@ -62,19 +61,12 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
 //-----
-  if(ATREFFKEY.relogic>0 && first==0){//store run/time for the first event (calibration)
-    first=1;
-    ANTPedCalib::BRun()=AMSEvent::gethead()->getrun();
-    ANTPedCalib::BTime()=AMSEvent::gethead()->gettime();//for possible classic/"DownScaledEvent" PedCalib
-//(if 1st "DownScalEvent" come later than 1st normal event, BTime() will be owerwritten at its decoding stage)  
-  }
-//---------
-// ====> check for PedCalib data if PedCalJob :
+// ====> check for PedCalib data if PedCalJob(class/ds) :
 //
   if((ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)
                            && AMSJob::gethead()->isCalibration()
 			                                          ){//PedCalJob
-  int pedobj(0);
+    int pedobj(0);
     ANTI2JobStat::addre(30);
     ANTPedCalib::hiamreset();
     while(ptr){//<--RawEvent-objects loop
@@ -85,7 +77,12 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       adca=ptr->getadca();
       if(stat==1){//not PedSubtractedData, fill PedCal arrays
         pedobj+=1;
-	if(adca>0)ANTPedCalib::fill(sector,isid,adca);
+	if(adca>0){
+#pragma omp critical (accval_pedc)
+{
+	  ANTPedCalib::fill(sector,isid,adca);
+}
+	}
       }
 //
       ptr=ptr->next();// take next RawEvent hit
@@ -183,7 +180,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 // 
       if(tmfound==1 && ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
+{
         HF1(2587,geant(chn+1),1.);
+}
       }
 //
 //
@@ -193,7 +192,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         if(tmfound==1)complm=1;//found object with complete t+amp measurement
 	if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
+{
 	  HF1(2570+chn,geant(adca),1.);
+}
 	}
       }
       else{
@@ -203,7 +204,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
       if(complm==1 && ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
+{
         HF1(2586,geant(chn+1),1.);
+}
       }
 //---
 //
@@ -989,7 +992,9 @@ void AMSAntiCluster::build2(int &statt){
 	    dt=fttim-t1;//Rel.time wrt FT("+" means "befor" FTtime)
             if(ATREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
+{
 	      HF1(2509,geant(dt),1.);
+}
 	    }
             if(fabs(dt-ftdel)<ftwin){//found coincidence(ftdel is exp.measured aver. FT-delay wrt Anti-hit)
 	      ftc+=1;//count coinc.
@@ -1033,7 +1038,9 @@ void AMSAntiCluster::build2(int &statt){
 	  t2=uptm[1][0];
 	  if(ATREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
+{
 	    HF1(2520+sector,geant(t1-t2),1.);
+}
 	  }
 	}
 	while(n1>0 && n2>0){//<-- try next pair ?
@@ -1102,7 +1109,9 @@ void AMSAntiCluster::build2(int &statt){
       }//--->endof 1s-case
       if(ATREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
+{
         HF1(2508,geant(edep2),1.);
+}
       }
 //---
       if(nsds>0 && edep2>ATREFFKEY.Edthr){//non-empty paddle -> create object
@@ -1133,7 +1142,7 @@ void AMSAntiCluster::build2(int &statt){
 	nclust+=1;
 	if(npairs>0)nclustp+=1;
         edept+=edep2;
-        if(ATREFFKEY.reprtf[0]){
+        if(ATREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
 {
           HF1(2502,geant(ntimes),1.);
@@ -1158,7 +1167,7 @@ void AMSAntiCluster::build2(int &statt){
     ptr=ptr->next();// take next RawEvent hit
   }//------>endof RawEvent hits loop
 //
-  if(ATREFFKEY.reprtf[0]){
+  if(ATREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
 {
     HF1(2500,geant(edept),1.);

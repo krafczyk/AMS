@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.41 2009/02/01 15:58:34 pzuccon Exp $
+//  $Id: trigger302.C,v 1.42 2009/02/13 16:30:41 choumilo Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -962,7 +962,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
   dx=_ECtofcr[0]-x0;//for "mid-of-window distance" methode
   dy=_ECtofcr[1]-y0;
   if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
     //    HF1(ECHISTR+45,dx,1.);
     //    HF1(ECHISTR+48,dy,1.);
@@ -1098,8 +1098,10 @@ void TriggerLVL302::build(){
 	  _flowc[3]+=1;
 	  dt=ttop-tbot;
 	  if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	    HF1(1020,ttop-tbot,1.);
+}
 	  }
 	  if(dt>=1.5)plvl3->settofdir(1);
 	  else if(dt<-1.5)plvl3->settofdir(-1);
@@ -1187,15 +1189,19 @@ void TriggerLVL302::build(){
 	int wycut(14);
 	geant p2brat,p2frat;
 	if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	  HF1(ECHISTR+31,geant(ectot),1.);
+}
 	}
 	if(ectot>=etcut){// >= Mip
 #pragma omp critical (lvl3c)
 	  _flowc[5]+=1;
 	  if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	    HF1(ECHISTR+32,geant(efrnt),1.);
+}
 	  }
 	  if(efrnt<efrcut){
 	    plvl3->setecemag(-1);//nonEM
@@ -1206,7 +1212,7 @@ void TriggerLVL302::build(){
 	  if(p2brat>39.5)p2brat=39.5;
 	  if(ectot<esep1){
             if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	      HF1(ECHISTR+33,p2brat,1.);
 	    //  HF1(ECHISTR+34,p2frat,1.);
@@ -1228,7 +1234,7 @@ void TriggerLVL302::build(){
 	      for(sl=1;sl<ECSLMX-1;sl+=2)ecolx+=ECemap[sl][pm];
 	      if(ecolx>ewthr)ncolx+=1;
 	      if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 		if(ecolx>0)HF1(ECHISTR+37,ecolx,1.);
 		if(ecoly>0)HF1(ECHISTR+38,ecoly,1.);
@@ -1236,7 +1242,7 @@ void TriggerLVL302::build(){
 	      }
 	    }//--->endof width calc.
 	    if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	      HF1(ECHISTR+35,geant(ncolx),1.);
 	      HF1(ECHISTR+36,geant(ncoly),1.);
@@ -1253,8 +1259,10 @@ void TriggerLVL302::build(){
 	}//---> endof >=Mip check
       ecfin1:
 	if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	  HF1(ECHISTR+39,geant(plvl3->getecemag()),1.);
+}
 	}
 	//
 	// ---> calc. sl-COG's :
@@ -1333,7 +1341,7 @@ void TriggerLVL302::build(){
 		if(sl%2==0)elsy+=etl[sl];
 		else elsx+=etl[sl];
 		if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 		  if(sl==0)HF1(ECHISTR+41,geant(ecogt[sl]),1.);
 		  if(sl==1)HF1(ECHISTR+42,geant(ecogt[sl]),1.);
@@ -1350,8 +1358,10 @@ void TriggerLVL302::build(){
 	      ecogl/=(elsx+elsy);
 	      ecogl=_ECpmz-_ECpmdz*(ecogl-0.5);//z-cog in cm
 	      if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	        HF1(ECHISTR+40,geant(ecogl),1.);
+}
 	      }
 	    }
 	    //
@@ -1398,7 +1408,7 @@ void TriggerLVL302::build(){
 	      ectfcr[1]=ecty*_ECcrz4+ecy0;//Y-cross with last trk-layer(was TOF4)
 	      ecrtg[1]=ecty;
 	      if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 		HF1(ECHISTR+43,ech2y,1.);
 		HF1(ECHISTR+44,ecty,1.);
@@ -1445,7 +1455,7 @@ void TriggerLVL302::build(){
 	      ectfcr[0]=ectx*_ECcrz3+ecx0;//X-crossing with last trk-layer(was TOF3)
 	      ecrtg[0]=ectx;
 	      if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 		HF1(ECHISTR+46,ech2x,1.);
 		HF1(ECHISTR+47,ectx,1.);
@@ -1626,8 +1636,10 @@ void TriggerLVL302::build(){
     if(plvl3->MainTrigger()>=LVL3FFKEY.Accept){ 
       plvl3->settime(tt2-tt1);
       if(LVL3FFKEY.Stat){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	HF1(-400001,float(plvl3->_Time),1.);
+}
       }
       AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
 #pragma omp critical (lvl3c)
@@ -3040,7 +3052,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
   dx=_ECtofcr[0]-x0;//for "mid-of-window distance" methode
   dy=_ECtofcr[1]-y0;
   if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 //    HF1(ECHISTR+45,dx,1.);
 //    HF1(ECHISTR+48,dy,1.);
@@ -3174,8 +3186,10 @@ int TriggerLVL302::eccrosscheck(geant ect){
       _flowc[3]+=1;
       dt=ttop-tbot;
       if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
         HF1(1020,ttop-tbot,1.);
+}
       }
       if(dt>=1.5)plvl3->settofdir(1);
       else if(dt<-1.5)plvl3->settofdir(-1);
@@ -3263,15 +3277,19 @@ int TriggerLVL302::eccrosscheck(geant ect){
       int wycut(14);
       geant p2brat,p2frat;
       if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
         HF1(ECHISTR+31,geant(ectot),1.);
+}
       }
       if(ectot>=etcut){// >= Mip
 #pragma omp critical (lvl3c)
         _flowc[5]+=1;
         if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	  HF1(ECHISTR+32,geant(efrnt),1.);
+}
 	}
 	if(efrnt<efrcut){
 	  plvl3->setecemag(-1);//nonEM
@@ -3282,7 +3300,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
         if(p2brat>39.5)p2brat=39.5;
 	if(ectot<esep1){
             if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	      HF1(ECHISTR+33,p2brat,1.);
 //               HF1(ECHISTR+34,p2frat,1.);
@@ -3304,7 +3322,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
             for(sl=1;sl<ECSLMX-1;sl+=2)ecolx+=ECemap[sl][pm];
             if(ecolx>ewthr)ncolx+=1;
             if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
               if(ecolx>0)HF1(ECHISTR+37,ecolx,1.);
               if(ecoly>0)HF1(ECHISTR+38,ecoly,1.);
@@ -3312,7 +3330,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
             }
           }//--->endof width calc.
           if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	    HF1(ECHISTR+35,geant(ncolx),1.);
             HF1(ECHISTR+36,geant(ncoly),1.);
@@ -3329,8 +3347,10 @@ int TriggerLVL302::eccrosscheck(geant ect){
       }//---> endof >=Mip check
  ecfin1:
       if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
         HF1(ECHISTR+39,geant(plvl3->getecemag()),1.);
+}
       }
 //
 // ---> calc. sl-COG's :
@@ -3409,7 +3429,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	  if(sl%2==0)elsy+=etl[sl];
 	  else elsx+=etl[sl];
 	  if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	    if(sl==0)HF1(ECHISTR+41,geant(ecogt[sl]),1.);
 	    if(sl==1)HF1(ECHISTR+42,geant(ecogt[sl]),1.);
@@ -3426,8 +3446,10 @@ int TriggerLVL302::eccrosscheck(geant ect){
         ecogl/=(elsx+elsy);
 	ecogl=_ECpmz-_ECpmdz*(ecogl-0.5);//z-cog in cm
 	if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
 	  HF1(ECHISTR+40,geant(ecogl),1.);
+}
 	}
       }
 //
@@ -3474,7 +3496,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	ectfcr[1]=ecty*_ECcrz4+ecy0;//Y-cross with last trk-layer(was TOF4)
 	ecrtg[1]=ecty;
         if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	  HF1(ECHISTR+43,ech2y,1.);
 	  HF1(ECHISTR+44,ecty,1.);
@@ -3521,7 +3543,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	ectfcr[0]=ectx*_ECcrz3+ecx0;//X-crossing with last trk-layer(was TOF3)
 	ecrtg[0]=ectx;
         if(LVL3FFKEY.histprf>0){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
 {
 	  HF1(ECHISTR+46,ech2x,1.);
 	  HF1(ECHISTR+47,ectx,1.);
@@ -3699,8 +3721,10 @@ int TriggerLVL302::eccrosscheck(geant ect){
        if(plvl3->MainTrigger()>=LVL3FFKEY.Accept){ 
          plvl3->settime(tt2-tt1);
          if(LVL3FFKEY.Stat){
-#pragma omp critical (lvl3h)
+#pragma omp critical (hf1)
+{
            HF1(-400001,float(plvl3->_Time),1.);
+}
          }
          AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
 #pragma omp critical (lvl3c)

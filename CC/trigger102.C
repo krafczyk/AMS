@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.66 2009/01/27 16:10:33 choumilo Exp $
+//  $Id: trigger102.C,v 1.67 2009/02/13 16:30:41 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -235,8 +235,8 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if(TGL1FFKEY.printfl>0){
 #pragma omp critical (hf1)
 {
-      HF1(1280,geant(toftrcode1),1.);
-      HF1(1281,geant(toftrcode2),1.);
+      HF1(1290,geant(toftrcode1),1.);
+      HF1(1291,geant(toftrcode2),1.);
 }
     }
     if(TGL1FFKEY.printfl>10){
@@ -415,13 +415,17 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
     if(TGL1FFKEY.printfl>0){
 #pragma omp critical (hf1)
+{
       HF1(1098,0.,1.);
+}
     }
     for(i=0;i<8;i++){
       if(BranchOK[i]){
         if(TGL1FFKEY.printfl>0){
 #pragma omp critical (hf1)
+{
 	  HF1(1098,geant(i+1),1.);//fired
+}
 	}
       }
       if(trtype & 1<<i)nbreq+=1;//count requested branches
@@ -496,16 +500,20 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 void Trigger2LVL1::init(){
 //always called in _sitrig2initjob()/siamsinitjob()/AMSJob::init()
 if(TGL1FFKEY.printfl>0){
-  HBOOK1(1280,"LVL1_Simu:TofFlg1",20,-1.,19.,0.);
-  HBOOK1(1281,"LVL1_Simu:TofFlg2",20,-1.,19.,0.);
-  HBOOK1(1282,"LVL1_Reco:TofFlg1",20,-1.,19.,0.);
-  HBOOK1(1283,"LVL1_Reco:TofFlg2",20,-1.,19.,0.);
-  HBOOK1(1095,"LVL1:TrPatt_fired:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
+  if(AMSJob::gethead()->isSimulation()){
+    HBOOK1(1290,"LVL1_Simu:TofFlg1",20,-1.,19.,0.);
+    HBOOK1(1291,"LVL1_Simu:TofFlg2",20,-1.,19.,0.);
+  }
   HBOOK1(1092,"LVL1:TrPatt_accep:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
-  HBOOK1(1096,"LVL1:EC ProjConfig(when FTE&TOF_FT, masked)",30,0.,30.,0.);
-  HBOOK1(1097,"LVL1:EC ProjConfig(when FTE, masked, val: M|N=FTE|ANG, M(N)=1/2->or/end_proj)",30,0.,30.,0.);
-  HBOOK1(1098,"LVL1:PhysBranchPatt_fired(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
   HBOOK1(1093,"LVL1:PhysBranchPatt_accep(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+  HBOOK1(1292,"LVL1_Reco:TofFlg1",20,-1.,19.,0.);
+  HBOOK1(1293,"LVL1_Reco:TofFlg2",20,-1.,19.,0.);
+  if(AMSJob::gethead()->isSimulation()){
+   HBOOK1(1095,"LVL1:TrPatt_fired:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
+   HBOOK1(1098,"LVL1:PhysBranchPatt_fired(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+   HBOOK1(1096,"LVL1:EC ProjConfig(when FTE&TOF_FT, masked)",30,0.,30.,0.);
+   HBOOK1(1097,"LVL1:EC ProjConfig(when FTE, masked, val: M|N=FTE|ANG, M(N)=1/2->or/end_proj)",30,0.,30.,0.);
+  }
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   HBOOK1(1094,"LiveTime(portion)",100,0.1,1.1,0.);
 }
@@ -1190,16 +1198,18 @@ void Trigger2LVL1::ScalerMon::setdefs(){
 //
 void TGL1JobStat::printstat(){
 if(TGL1FFKEY.printfl>0){
-  HPRINT(1280);
-  HPRINT(1281);
-  HPRINT(1282);
-  HPRINT(1283);
+  if(AMSJob::gethead()->isSimulation()){
+    HPRINT(1290);
+    HPRINT(1291);
+    HPRINT(1097);
+    HPRINT(1096);
+    HPRINT(1098);
+    HPRINT(1095);
+  }
+  HPRINT(1292);
+  HPRINT(1293);
   HPRINT(1099);
-  HPRINT(1097);
-  HPRINT(1096);
-  HPRINT(1095);
   HPRINT(1092);
-  HPRINT(1098);
   HPRINT(1093);
   HPRINT(1094);
 }
@@ -1757,8 +1767,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     if(TGL1FFKEY.printfl>0){
 #pragma omp critical (hf1)
 {
-      HF1(1282,geant(TofFlag1),1.);
-      HF1(1283,geant(TofFlag2),1.);
+      HF1(1292,geant(TofFlag1),1.);
+      HF1(1293,geant(TofFlag2),1.);
 }
     }
 //cout<<"Lev1Reco:Event="<<(AMSEvent::gethead()->getid())<<" TofFlag1/2="<<TofFlag1<<" "<<TofFlag2<<endl;
@@ -1822,7 +1832,9 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 #endif
     if(TGL1FFKEY.printfl>0){
 #pragma omp critical (hf1)
+{
       HF1(1099,geant(trtime[4]),1.);
+}
     }
     
 //
@@ -2468,9 +2480,9 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   if(AMSUser::PreviousRunN()!=runn){
     if(AMSUser::PreviousRunN()==0){
       AMSUser::JobFirstRunN()=runn;
-      AMSUser::PreviousRunN()!=runn;
+      AMSUser::PreviousRunN()=runn;
     }
-    AMSUser::NewRunStart()=true;
+    AMSUser::RunFirstEventT()=evtime;
   }
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))

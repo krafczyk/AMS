@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.110 2009/01/06 10:07:30 choutko Exp $
+//  $Id: richrec.C,v 1.111 2009/02/13 16:30:41 choumilo Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1611,8 +1611,11 @@ geant AMSRichRing::lgeff(AMSPoint r,
 #ifdef __AMSDEBUG__
 
   if(locsmpl(wnd,&iw,v,w)){
-   HF1(1231001,f,1.);
-HF1(1231002,*lguide,1.);
+#pragma omp critical (hf1)
+{
+    HF1(1231001,f,1.);
+    HF1(1231002,*lguide,1.);
+}
   }
   *lguide=RICHDB::lg_height;
   return 1;

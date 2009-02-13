@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.50 2008/12/08 15:15:19 choutko Exp $
+//  $Id: ecalrec.h,v 1.51 2009/02/13 16:30:49 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -113,11 +113,10 @@ public:
 //
 // interface with DAQ :
 //
- static integer checkdaqid(int16u id);
-// static void buildraw(integer n, int16u *p);
- static void buildrawRaw(integer n, int16u *p);
- static integer getmaxblocks(){return AMSECIds::ncrates();}
- static int16u getdaqid(int i);
+// static integer checkdaqid(int16u id);
+// static void buildrawRaw(integer n, int16u *p);
+// static integer getmaxblocks(){return AMSECIds::ncrates();}
+// static int16u getdaqid(int i);
  static void setTDV();
 
 //  TDV

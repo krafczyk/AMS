@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.19 2008/12/08 15:15:19 choutko Exp $
+//  $Id: tofrec02.h,v 1.20 2009/02/13 16:30:49 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -98,7 +98,8 @@ public:
  }
  static void settrfl(integer trfl){trflag=trfl;}
  static integer gettrfl(){return trflag;}
- static geant getfttime(int icr){return fttime[icr];} 
+ static geant getfttime(int icr){return fttime[icr];}
+ static void resetfttime(){for(int i=0;i<TOF2GC::SCCRAT;i++)fttime[i]=0;} 
  static void build(int &);   // RawEvent->RawCluster
 #ifdef __WRITEROOT__
  friend class TofRawClusterR;

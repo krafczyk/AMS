@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.29 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: tofuser02.C,v 1.30 2009/02/13 16:30:41 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -106,9 +106,12 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //	if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
 //	  strr=(tout-toutp)/(tinp-tinpp);
 //	  offs=tout-strr*tinp;
+//#pragma omp critical (hf2)
+//{
 //          HF2(1120,geant(tinp),geant(tout),1.);
 //          HF2(1121,geant(temper),geant(strr),1.);
 //          HF2(1122,geant(temper),geant(offs),1.);
+//}
 //	}
 //	tinpp=tinp;
 //	toutp=tout;
@@ -298,7 +301,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       if(eacl>eacut)nanti+=1;
       if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
         HF1(1503,geant(eacl),1.);
+}
       }
     }
     ptra=ptra->next();
@@ -313,7 +318,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   nantit=Anti2RawEvent::getncoinc();//same from trigger
   if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
     HF1(1517,geant(nantit),1.);
+}
   }
 //====================================
 //  if(nanti>4)return;// remove events with >1 sector(e>ecut) in Anti
@@ -450,7 +457,12 @@ Nextp:
       mcmom=mcptr->getmom();
       mcmas=mcptr->getmass();
       mcbeta=mcmom/sqrt(mcmom*mcmom+mcmas*mcmas);
-      HF1(1518,mcbeta,1.);
+      if(TFREFFKEY.reprtf[2]>0){
+#pragma omp critical (hf1)
+{
+        HF1(1518,mcbeta,1.);
+}
+      }
     }
 // more track-cuts:
     pmom=fabs(rid);
@@ -494,7 +506,9 @@ Nextp:
 //
     if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
       HF1(1515,geant(nanti),1.);
+}
     }
 //
     number dirt,cpsn,cpcs,cphi,dphi1,dphi2,phil,phih,zcut,zscr,thes,phis;
@@ -514,7 +528,7 @@ Nextp:
       if(cphi<0)cphi=360+cphi;//0-360
       phi=phi*AMSDBc::raddeg;//inpact phi(degr,+-180)
       if(phi<0)phi=360+phi;//0-360
-      if(TFREFFKEY.reprtf[2]>0){
+      if(TFREFFKEY.reprtf[2]>2){
 #pragma omp critical (hf1)
 {
         HF1(1241,geant(crcCyl[2]),1.);
@@ -534,7 +548,14 @@ Nextp:
         if(fabs(crcCyl[2])<zcut)zcross=true;//match in Z 
 	if(zcross)nscrs=floor(cphi/45.)+1;
 	if(frsecn[is]>0)nsfir=is+1;
-	if(nscrs>0 && nsfir>0)HF2(1235,geant(nscrs),geant(nsfir),1.);
+	if(nscrs>0 && nsfir>0){
+          if(TFREFFKEY.reprtf[2]>2){
+#pragma omp critical (hf2)
+{
+	    HF2(1235,geant(nscrs),geant(nsfir),1.);
+}
+	  }
+	}
         dphi1=padfi-cphi;//PHIsect-PHIcrp
 	if(dphi1>180)dphi1=360-dphi1;
 	if(dphi1<-180)dphi1=-(360+dphi1);
@@ -550,13 +571,15 @@ Nextp:
 	if(dphi2<-180)dphi2=-(360+dphi2);
 //
         if(phicross && frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>0){
+          if(TFREFFKEY.reprtf[2]>2){
 #pragma omp critical (hf1)
+{
 	    HF1(1244,geant(crcCyl[2]),1.);
+}
 	  }
 	}
 	if(zcross && frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>0){
+          if(TFREFFKEY.reprtf[2]>2){
 #pragma omp critical (hf1)
 {
 	    HF1(1245,geant(cphi),1.);
@@ -565,7 +588,7 @@ Nextp:
 	  }
 	}
         if(zcross && phicross && frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>0){
+          if(TFREFFKEY.reprtf[2]>2){
 #pragma omp critical (hf1)
 {
             HF1(1246,geant(phi),1.);//inpact phi(degr,+-180)
@@ -578,15 +601,19 @@ Nextp:
 	}
 	
         if(zcross && phicross){
-          if(TFREFFKEY.reprtf[2]>0){
+          if(TFREFFKEY.reprtf[2]>2){
 #pragma omp critical (hf1)
+{
 	    HF1(1240,geant(is+1),1.);//TRK-crossed patt
+}
 	  }
 	}
         if(frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>0){
+          if(TFREFFKEY.reprtf[2]>2){
 #pragma omp critical (hf1)
+{
 	    HF1(1240,geant(is+1+10),1.);//fired patt
+}
 	  }
 	}
 //      
@@ -646,7 +673,9 @@ Nextp:
 }
         if(nbrl[il]==1 && fabs(dx)<dtcut){
 #pragma omp critical (hf2)
-	  HF2(1231+il,geant(cllc[il]),geant(dy),1.);
+{
+	  if(TFREFFKEY.reprtf[2]>1)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
+}
 	}
       }
       dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
@@ -739,7 +768,9 @@ Nextp:
     td24=(cltim[1]-cltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~127cm) distance
     if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
       HF1(1504,(td13-td24),1.);
+}
     }
 //  }//endof "Clust with 1memb/layer" check
 //--------------------------------------------
@@ -760,7 +791,9 @@ Nextp:
         HF1(1506,geant(charge),1.);
 }
 #pragma omp critical (hf2)
+{
         HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
+}
       }
     }
 //
@@ -783,10 +816,12 @@ Nextp:
 #pragma omp critical (hf1)
 {
         for(il=0;il<TOF2GC::SCLRS;il++)HF1(5001+il,avera[il],1.);
-        HF1(5010,sqrt(avera[0]/1.8),1.);// eff.Z
-        HF1(5011,sqrt(avera[1]/1.8),1.);
-        HF1(5012,sqrt(avera[2]/1.8),1.);
-        HF1(5013,sqrt(avera[3]/1.8),1.);
+        if(TFREFFKEY.reprtf[2]>1){
+          HF1(5010,sqrt(avera[0]/1.8),1.);// eff.Z
+          HF1(5011,sqrt(avera[1]/1.8),1.);
+          HF1(5012,sqrt(avera[2]/1.8),1.);
+          HF1(5013,sqrt(avera[3]/1.8),1.);
+	}
 }
       }
     }
@@ -800,9 +835,11 @@ Nextp:
       nbrs=nbrl[il];
       if(nbrl[il]==1 && fabs(coot[il])<10){//select counter center crossing
         ibtyp=TOF2DBc::brtype(il,ib)-1;
-        if(TFREFFKEY.reprtf[2]>0){
+        if(TFREFFKEY.reprtf[2]>1){
 #pragma omp critical (hf1)
+{
 	  HF1(1220+ibtyp,geant(adca1[il]),1.);
+}
 	}
       }
     } 
@@ -820,7 +857,9 @@ Nextp:
 	amp2=adca2[0]+noise;
         varr=(amp1-amp2)/(amp1+amp2);
 #pragma omp critical (hf1)
+{
         HF1(1519,geant(varr),1.);
+}
       }
     }
 //
@@ -838,19 +877,19 @@ void TOF2User::InitJob(){
     HBOOK1(1511,"TofUser:Particle BetaChi2",80,0.,16.,0.);
     HBOOK1(1512,"TofUser:Particle BetaChi2S",80,0.,16.,0.);
     HBOOK1(1513,"TofUser:Particle TrackChi2",80,0.,240.,0.);
-    HBOOK1(1514,"TofUser:Number of Sectors(FTCoinc,E>Thr,TOFmultOK)",20,0.,20.,0.);
-    HBOOK1(1515,"TofUser:Number of Sectors(FTCoinc,E>Thr,TOF/ANTImultOK,TrkOK)",20,0.,20.,0.);
+    HBOOK1(1514,"TofUser:Number of AccSectors(FTCoinc,E>Thr,TOFmultOK)",20,0.,20.,0.);
+    HBOOK1(1515,"TofUser:Number of AccSectors(FTCoinc,E>Thr,TOF/ANTImultOK,TrkOK)",20,0.,20.,0.);
     HBOOK1(1502,"TofUser:MyBeta(private beta-fit using TofClust)",80,0.6,1.4,0.);
     HBOOK1(1504,"TofUser:TofClust T13-T24(ns, TRK-track matched)",80,-4.,4.,0.);
-    HBOOK1(1503,"TofUser:Sector energy(mev,FTCoinc)",80,0.,20.,0.);
-    HBOOK1(1505,"TofUser:Number of Sectors(FTCoinc,E>Thr)",20,0.,20.,0.);
+    HBOOK1(1503,"TofUser:AccSector energy(mev,FTCoinc)",80,0.,20.,0.);
+    HBOOK1(1505,"TofUser:Number of AccSectors(FTCoinc,E>Thr)",20,0.,20.,0.);
     HBOOK1(1506,"TofUser:Part.charge(trapez.c <=1)",20,0.,20.,0.);
     HBOOK1(1507,"TofUser:TOF-charge(trapez.c <=1)",20,0.,20.,0.);
     HBOOK1(1508,"TofUser:Tracker-charge(trapez.c <=1)",20,0.,20.,0.);
     HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch(trapez.c <=1)",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
     HBOOK1(1516,"TofUser:Part.rigidity(gv)",100,0.,1500.,0.);
-    HBOOK1(1517,"TofUser:Number of Sectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
+    HBOOK1(1517,"TofUser:Number of AccSectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
     HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
     
 //    HBOOK1(1520,"L1/L2 raw time diff(cos-corrected),B4/B3",60,0.,6.,0.);
@@ -879,6 +918,7 @@ void TOF2User::InitJob(){
     HBOOK1(1216,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=2",50,-2.5,2.5,0.);
     HBOOK1(1217,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=2",50,-2.5,2.5,0.);
     
+  if(TFREFFKEY.reprtf[2]>1){
     HBOOK1(1220,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-1)",80,0.,160.,0.);
     HBOOK1(1221,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-2)",80,0.,160.,0.);
     HBOOK1(1222,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-3)",80,0.,160.,0.);
@@ -890,15 +930,17 @@ void TOF2User::InitJob(){
     HBOOK1(1228,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-9)",80,0.,160.,0.);
     HBOOK1(1229,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-10)",80,0.,160.,0.);
     HBOOK1(1230,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-11)",80,0.,160.,0.);
-
-  HBOOK2(1231,"TofUser:TofClusLcoo-TrkCrosCoo,L1,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
-  HBOOK2(1232,"TofUser:TofClusLcoo-TrkCrosCoo,L2,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
-  HBOOK2(1233,"TofUser:TofClusLcoo-TrkCrosCoo,L3,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
-  HBOOK2(1234,"TofUser:TofClusLcoo-TrkCrosCoo,L4,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
-  
-  HBOOK2(1235,"TofUser:ACC NSfired vs NScrossed",10,0,10.,10,0.,10.,0.);
-
+  }
     
+  if(TFREFFKEY.reprtf[2]>1){
+    HBOOK2(1231,"TofUser:TofClusLcoo-TrkCrosCoo,L1,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+    HBOOK2(1232,"TofUser:TofClusLcoo-TrkCrosCoo,L2,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+    HBOOK2(1233,"TofUser:TofClusLcoo-TrkCrosCoo,L3,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+    HBOOK2(1234,"TofUser:TofClusLcoo-TrkCrosCoo,L4,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
+  }
+
+  if(TFREFFKEY.reprtf[2]>2){    
+    HBOOK2(1235,"TofUser:ACC NSfired vs NScrossed",10,0,10.,10,0.,10.,0.);
     HBOOK1(1240,"TofUser:AccRaw: Crossed/Fired(+10)/(fired+crossed)(+20) sectors pattern",30,1.,31.,0.);
     HBOOK1(1241,"TofUser:AccRaw: Cyl-track Zcross(noCuts)",75,-75.,75.,0.);
     HBOOK1(1242,"TofUser:AccRaw: TRK-track CrossPointPhi(noCuts)",91,0.,364.,0.);
@@ -934,16 +976,19 @@ void TOF2User::InitJob(){
     HBOOK1(1263,"TofUser: AccRaw when crossed,Sect-6,side-2",80,0.,3200.,0.);
     HBOOK1(1264,"TofUser: AccRaw when crossed,Sect-7,side-2",80,0.,3200.,0.);
     HBOOK1(1265,"TofUser: AccRaw when crossed,Sect-8,side-2",80,0.,3200.,0.);
+  }
     
     HBOOK1(5001,"TofUser:TofCl EdepNormInc(mev),AverTrunc1of4",80,0.,32.,0.);
     HBOOK1(5002,"TofUser:TofCl EdepNormInc(mev),AverTrunc2of4",80,0.,32.,0.);
     HBOOK1(5003,"TofUser:TofCl EdepNormInc(mev),AverTrunc3of4",80,0.,32.,0.);
     HBOOK1(5004,"TofUser:TofCl EdepNormInc(mev),AverTrunc4of4",80,0.,32.,0.);
     
-    HBOOK1(5010,"TofUser:TofCl Sqrt(AverTrunc1of4/MIP)",80,0.,32.,0.);
-    HBOOK1(5011,"TofUser:TofCl Sqrt(AverTrunc2of4/MIP)",80,0.,32.,0.);
-    HBOOK1(5012,"TofUser:TofCl Sqrt(AverTrunc3of4/MIP)",80,0.,32.,0.);
-    HBOOK1(5013,"TofUser:TofCl Sqrt(AverTrunc4of4/MIP)",80,0.,32.,0.);
+    if(TFREFFKEY.reprtf[2]>1){    
+      HBOOK1(5010,"TofUser:TofCl Sqrt(AverTrunc1of4/MIP)",80,0.,32.,0.);
+      HBOOK1(5011,"TofUser:TofCl Sqrt(AverTrunc2of4/MIP)",80,0.,32.,0.);
+      HBOOK1(5012,"TofUser:TofCl Sqrt(AverTrunc3of4/MIP)",80,0.,32.,0.);
+      HBOOK1(5013,"TofUser:TofCl Sqrt(AverTrunc4of4/MIP)",80,0.,32.,0.);
+    }
     
     HBOOK1(5040,"TofUser:L=1,Fired RawCl bar number",14,1.,15.,0.);
     HBOOK1(5041,"TofUser:L=2,Fired RawCl bar number",14,1.,15.,0.);
@@ -997,7 +1042,7 @@ void TOF2User::EndJob(){
 //
   HPRINT(1208);
   HPRINT(1209);
-//
+//-----
   HPRINT(1518);
   HPRINT(1500);
   HPRINT(1516);
@@ -1104,41 +1149,46 @@ void TOF2User::EndJob(){
   HPRINT(1217);
   HPRINT(1510);
   
-  HPRINT(1220);
-  HPRINT(1221);
-  HPRINT(1222);
-  HPRINT(1223);
-  HPRINT(1224);
-  HPRINT(1225);
-  HPRINT(1226);
-  HPRINT(1227);
-  HPRINT(1228);
-  HPRINT(1229);
-  HPRINT(1230);
+  if(TFREFFKEY.reprtf[2]>1){//raw ampl  
+    HPRINT(1220);
+    HPRINT(1221);
+    HPRINT(1222);
+    HPRINT(1223);
+    HPRINT(1224);
+    HPRINT(1225);
+    HPRINT(1226);
+    HPRINT(1227);
+    HPRINT(1228);
+    HPRINT(1229);
+    HPRINT(1230);
+  }
 
-  HPRINT(1231);
-  HPRINT(1232);
-  HPRINT(1233);
-  HPRINT(1234);
-  
-  HPRINT(1235);
-  
-  HPRINT(1240);
-  HPRINT(1241);
-  HPRINT(1242);
-  HPRINT(1243);
-  HPRINT(1244);
-  HPRINT(1245);
-  HPRINT(1246);
-//  HPRINT(1247);
-  HPRINT(1248);
-  for(i=0;i<2*ANTI2C::MAXANTI;i++)HPRINT(1250+i);
-  for(i=0;i<ANTI2C::MAXANTI;i++)HPRINT(1270+i);
-  
+  if(TFREFFKEY.reprtf[2]>1){//dy vs cr-coo  
+    HPRINT(1231);
+    HPRINT(1232);
+    HPRINT(1233);
+    HPRINT(1234);
+  }
+  if(TFREFFKEY.reprtf[2]>2){//ACC 
+    HPRINT(1235);  
+    HPRINT(1240);
+    HPRINT(1241);
+    HPRINT(1242);
+    HPRINT(1243);
+    HPRINT(1244);
+    HPRINT(1245);
+    HPRINT(1246);
+//   HPRINT(1247);
+    HPRINT(1248);
+    for(i=0;i<2*ANTI2C::MAXANTI;i++)HPRINT(1250+i);
+    for(i=0;i<ANTI2C::MAXANTI;i++)HPRINT(1270+i);
+  }
   
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5040+i);
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5001+i);
-  for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5010+i);
+  if(TFREFFKEY.reprtf[2]>1){//sqrt(truncaver)  
+    for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5010+i);
+  }
 //  HIDOPT(5020,chopt1);
 //  HPRINT(5020);
   return;

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.37 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.38 2009/02/13 16:30:49 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -393,10 +393,12 @@ private:
   static integer rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
   static integer rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 //
-  static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//temperatures(TempT) from SFET(A)-cards reading 
+  static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//temperatures(TempT) from SFET(A)-cards reading
+#pragma omp threadprivate(tofantemp) 
 //
 public:
   static void clear();
+  static void resettemp();
   static void puttemp(int16u crt, int16u sen, geant t);
   static geant gettemp(int16u crt, int16u sen);
   static void addmc(int i);

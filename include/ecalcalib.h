@@ -97,7 +97,8 @@ class ECPedCalib {
     static number adcm[ecalconst::ECPMSL][5][2][ECPCSTMX];//max's  stack
     static number port2r[ecalconst::ECPMSL][5][2];//portion of hi-ampl to remove
     static integer nevt[ecalconst::ECPMSL][5][2];
-    static integer hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event) 
+    static integer hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event)
+#pragma omp threadprivate (hiamap) 
     static geant peds[ecalconst::ECPMSL][5][2];
     static geant sigs[ecalconst::ECPMSL][5][2];
     static uinteger stas[ecalconst::ECPMSL][5][2];
@@ -136,10 +137,8 @@ class ECPedCalib {
     static void ntuple_close();
 };
 //-----------------------------------------------------------------
- 
-//----------------------------------------------------------------- 
 
-
+/*
 
 #include "ecid.h"
 
@@ -195,6 +194,6 @@ uinteger getcount(uinteger gain) const{return gain<3?_Count[_pmt][_slay][_pixel]
 
 
 };
-
+*/
 
 #endif

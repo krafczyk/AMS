@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.116 2009/01/15 18:00:31 choutko Exp $
+//  $Id: ecalrec.C,v 1.117 2009/02/13 16:30:41 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -46,7 +46,6 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   AMSEcalRawEvent * ptr;
   integer ecalflg(0);
   integer tofflg;
-  static int first(0);
   Trigger2LVL1 *ptrt;
   bool ecalftok(false);
   number asum4[ECPMSL],pixrg;
@@ -54,15 +53,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   integer nslmx=ECALDBc::slstruc(3);//numb.of Slayers(9)
 //
   stat=1;//bad
-//
-  if(ECREFFKEY.relogic[1]>0 && first==0){//store run/time for the first ECAL event (calib)
-    first=1;
-    StartRun=AMSEvent::gethead()->getrun();//store start time/run of 1st EC-event 
-    StartTime=AMSEvent::gethead()->gettime();
-    ECPedCalib::BRun()=AMSEvent::gethead()->getrun();//for possible classic/"DownScaledEvent" PedCalib
-    ECPedCalib::BTime()=AMSEvent::gethead()->gettime();//for possible classic/"DownScaledEvent" PedCalib
-//(if 1st "DownScalEvent" come later than 1st normal event BTime() will be owerwritten at its decoding stage)  
-  }
+  bool nopedsubt(false);
 //
   ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptrt){
@@ -74,7 +65,9 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
       EcalJobStat::addre(9);
       if(ECREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
+{
         HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+}
       }
     }
   }
@@ -87,7 +80,9 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
           k=floor(geant(sl)/2);
           if(ptrt->EcalDynON(sl,pm)){
 #pragma omp critical (hf1)
+{
 	    HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
+}
 	  }
         }
       }
@@ -96,7 +91,9 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
           k=floor(geant(sl)/2);
           if(ptrt->EcalDynON(sl,pm)){
 #pragma omp critical (hf1)
+{
 	    HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
+}
 	  }
         }
       }
@@ -104,7 +101,9 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
    }
   }
 //
-  if((ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5))ECPedCalib::hiamreset();  
+  if((ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5)){
+    ECPedCalib::hiamreset();//hiamap[][] is threadprivate
+  }  
 //
   for(int nc=0;nc<AMSECIds::ncrates();nc++){ // <-------------- crate(container) loop
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
@@ -120,14 +119,16 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
       ptr->setadcd(padc[2]);//add Dyn-info(common for 4 pixels) in pixel-object
       sta=ptr->getstatus();
       if(sta){//in given ah/al/d peds were not subtracted, it means either classic pedcal-run or DownScaled
-	pedrun=1;
+	nopedsubt=true;
 	for(i=0;i<2;i++){//hi/low
 	  swid=id*10+(i+1);//long swid=LTTPG for anodes (P=1-4,G=1/2->hi/low)
-	  ECPedCalib::fill(swid,padc[i]);//call fill-routine of PedCalib for anodes(pix=1-4)
+#pragma omp critical (ecval_pedc)
+	  ECPedCalib::fill(swid,padc[i]);//call fill-routine of PedCalib(DS) for anodes(pix=1-4)
 	}
-	if(subc==0){//call fill for Dynode only once per 4 pixels(here when subc=0)
+	if(subc==0){//call fill for Dynode only once per 4 pixels(here when subc=0) because all subc "on")
 	  swid=idd*100+5*10+1;//long swid=LTTPG for Dynode (P=5,G=1)
-	  ECPedCalib::fill(swid,padc[2]);//call fill-routine of PedCalib for dynode
+#pragma omp critical (ecval_pedc)
+	  ECPedCalib::fill(swid,padc[2]);//call fill-routine of PedCalib(DS) for dynode
 	}
       }//--->endof PedCal check
       ptr=ptr->next();  
@@ -135,11 +136,11 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //
   } // ---> end of crate-loop
 //
-  if(pedrun && (ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5)){
+  if(nopedsubt && (ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5)){
     EcalJobStat::addre(20);//count pedcal-events
     return;//PedCal exit with stat=1(bad) to bypass next reco-stages !!!
   }
-  else if(pedrun){
+  else if(nopedsubt){
     cerr<<"AMSEcalRawEvent::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
     exit(2);
   }
@@ -186,8 +187,10 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         ovfl[1]=0;
         if(radc[0]>0)if((ECADCMX[0]-(radc[0]+ph))<=1)ovfl[0]=1;// mark as ADC-Overflow
         if(radc[1]>0)if((ECADCMX[1]-(radc[1]+pl))<=1)ovfl[1]=1;// mark as ADC-Overflow
-        if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0 
-	              && radc[1]>1.5*ECCAFFKEY.adcmin)ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--fill
+        if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0 && radc[1]>1.5*ECCAFFKEY.adcmin){
+#pragma omp critical (ecval_fill2)
+          ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--fill
+        }
 	if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0)asum4[pmsl]+=(radc[0]*pixrg);//sum4-Gcorrected(for a2d ratio) 
         ptr=ptr->next();  
       } // ---> end of RawEvent-hits loop in crate
@@ -198,8 +201,10 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
       for(pmt=0;pmt<npmx;pmt++){
         pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
         padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//Dynode
-	if(padc[2]>3*ECCAFFKEY.adcmin
-	   && asum4[pmsl]>60*ECCAFFKEY.adcmin)ECREUNcalib::fill_3(pmsl,padc[2],asum4[pmsl]);
+	if(padc[2]>3*ECCAFFKEY.adcmin && asum4[pmsl]>60*ECCAFFKEY.adcmin){
+#pragma omp critical (ecval_fill3)
+	   ECREUNcalib::fill_3(pmsl,padc[2],asum4[pmsl]);
+	}
       }
     }
   } // ---> endif of REUN-calib
@@ -801,6 +806,7 @@ void AMSEcalHit::build(int &stat){
     nsubc=0;//clear buff.arr.
     qmeas=0.;
     for(i=0;i<4;i++)bsubc[i]=0;
+    for(i=0;i<4;i++)bedep[i]=0;
     while(ptr){ // <--- RawEvent-hits loop in superlayer:
       isl=ptr->getslay();//0,1,...
       nraw+=1;
@@ -843,15 +849,15 @@ void AMSEcalHit::build(int &stat){
       fadc=0.;
       if(radc[0]>0 && ovfl[0]==0 && !ids.HCHisBad()){//<-use h-chan
         fadc=radc[0];
-        if(AMSJob::gethead()->isRealData()
-           && MISCFFKEY.BeamTest)AMSEcalRawEvent::BeamTestLinCorr(1,id,radc,peds,fadc);
+//        if(AMSJob::gethead()->isRealData()
+//           && MISCFFKEY.BeamTest)AMSEcalRawEvent::BeamTestLinCorr(1,id,radc,peds,fadc);
       }
 //
       else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
-        if(AMSJob::gethead()->isRealData()
-           && MISCFFKEY.BeamTest)AMSEcalRawEvent::BeamTestLinCorr(2,id,radc,peds,fadc);
+//        if(AMSJob::gethead()->isRealData()
+//           && MISCFFKEY.BeamTest)AMSEcalRawEvent::BeamTestLinCorr(2,id,radc,peds,fadc);
       }
 //
       else if(ovfl[1]==1 && !ids.LCHisBad()){//<-use even overflowed l-chan
@@ -954,7 +960,9 @@ void AMSEcalHit::build(int &stat){
 	  icont=plane;//container number for storing of EcalHits(= plane number)
 	  if(ECREFFKEY.reprtf[0]>0){
 #pragma omp critical (hf1)
+{
 	    HF1(ECHISTR+9,geant(edep),1.);
+}
 	  }
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,edepc,coot,cool,cooz));
@@ -964,9 +972,10 @@ void AMSEcalHit::build(int &stat){
 	nsubc=0;//clear buffer arrays
 	qmeas=0;
         for(i=0;i<4;i++)bsubc[i]=0;
+        for(i=0;i<4;i++)bedep[i]=0;
       }
       ptr=ptr->next();  
-    } // ---> end of RawEvent-hits loop 
+    } // ---> end of RawEvent-hits loop
 //
   }// ---> end of crate loop
 //
@@ -1221,9 +1230,14 @@ integer Ecal1DCluster::build(int rerun){
                                getheadC("AMSEcalHit",ipl,1);
     integer proj=0;
     if(ptr){
-      VZERO(adc,sizeof(adc)/sizeof(integer));
-      VZERO(statusa,sizeof(statusa)/sizeof(integer));
-      VZERO(ptrh,sizeof(ptrh)/sizeof(integer));
+      for(int ii=0;ii<Maxcell+3;ii++){
+        adc[ii]=0;
+	statusa[ii]=0;
+	ptrh[ii]=0;
+      }
+//      VZERO(adc,sizeof(adc)/sizeof(number));
+//      VZERO(statusa,sizeof(statusa)/sizeof(integer));
+//      VZERO(ptrh,sizeof(ptrh)/sizeof(integer));
       proj=ptr->getproj();
     }
     number emax=-1;
@@ -2807,17 +2821,17 @@ number AMSEcalShower::getEnergyXY(int proj) const{
 // int with DAQ
 
 
-int16u AMSEcalRawEvent::getdaqid(int i){
-  if (i<getmaxblocks())return ( (2+i) | 14 <<9);
-  else return 0x0;
-}
+//int16u AMSEcalRawEvent::getdaqid(int i){
+//  if (i<getmaxblocks())return ( (2+i) | 14 <<9);
+//  else return 0x0;
+//}
 
-integer AMSEcalRawEvent::checkdaqid(int16u id){
- for(int i=0;i<getmaxblocks();i++){
-  if(id==getdaqid(i))return i+1;
- }
- return 0;
-}
+//integer AMSEcalRawEvent::checkdaqid(int16u id){
+// for(int i=0;i<getmaxblocks();i++){
+//  if(id==getdaqid(i))return i+1;
+// }
+// return 0;
+//}
 
 void AMSEcalRawEvent::setTDV(){
   AMSTimeID * ptdv = AMSJob::gethead()->gettimestructure(getTDVped());
@@ -2829,9 +2843,9 @@ void AMSEcalRawEvent::setTDV(){
 }
 
 
-
+/*
 void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
-/*  integer ic=checkdaqid(*p)-1;
+  integer ic=checkdaqid(*p)-1;
   geant tmp[2][ECSLMX*2][ECPMSMX*2];
   VZERO(tmp,sizeof(tmp)/sizeof(integer));
   int leng=0;
@@ -2908,9 +2922,8 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
           new Trigger2LVL1(1,1<<6,0,0,tofpatt,0,0,ecalflag,ecpatt,sum_dynode/1000,1,rates));
 
       }
-*/
 }
-
+*/
 
 
 /*

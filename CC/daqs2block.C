@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.35 2009/01/27 08:09:13 choumilo Exp $
+//  $Id: daqs2block.C,v 1.36 2009/02/13 16:30:40 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
@@ -209,7 +209,6 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool DownScal(false);//tempor:  how to recognize it ???
 // some static vars for debug:
   static integer fsterr1[SCFETA]={0,0,0,0,0};
-  #pragma omp threadprivate (fsterr1)
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -324,8 +323,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 //---------
   if(TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)TofPedCal=true;//TofPedCal-job(Class/DownScaled) requested
   if(ATREFFKEY.relogic==2 || ATREFFKEY.relogic==3)AccPedCal=true;//AccPedCal-job(Class/DownSc) requested 
-//  if((TofPedCal && (formt>0 || !DownScal)) || (AccPedCal && formt==3)){
-  if((TofPedCal && formt>0) || (AccPedCal && formt>1)){//tempor
+  if((TofPedCal && formt>0) || (AccPedCal && formt>0)){//tempor
     if(firstevs==0)cout<<"<====== DAQS2Block::buildraw: Unproper format when class/ondata PedCal-job is requested !!!"<<endl;
     firstevs=1;
     return;
@@ -338,6 +336,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
     TOF2JobStat::daqscr(1,crat-1,0);//count crate-entries with compr. format
   }
   else TOF2JobStat::daqscr(2,crat-1,0);//=3 -> count crate-entries with pedcal_table format
+#pragma omp critical (tofbll)
   totbll+=len;//summing to have event(scint) data length
 //
 //-----
@@ -654,6 +653,8 @@ SkipTPpr:
 	if(wthed!=2)TOF2JobStat::daqssl(0,crat-1,slot-1,8);//case2:no Head
 	if(tmout)TOF2JobStat::daqssl(0,crat-1,slot-1,9);//case3:TimeOut
         if(wterr==6)TOF2JobStat::daqssl(0,crat-1,slot-1,10);//case4: Err
+#pragma omp critical (daqs2block)
+{
 	if(fsterr1[slot-1]==0){
 	  fsterr1[slot-1]=1;
 	  cout<<"  ---> TofDecoding:BadTimeBlockStructure/timeout in Run/evnt="<<AMSEvent::gethead()->getrun()
@@ -663,6 +664,7 @@ SkipTPpr:
 	  cout<<"---------------------------------------------------------"<<endl;
 	  if(TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"BadTimeBlockStructure/timeout !!!");
 	}
+}
 	continue;//skip link(TDC) with broken structure (or time-out)
       }
       TOF2JobStat::daqssl(0,crat-1,slot-1,11);//count good links
@@ -1686,6 +1688,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
     TOF2JobStat::daqscr(1,crat-1,0);//count crate-entries with compr. format
   }
   else TOF2JobStat::daqscr(2,crat-1,0);//=3 -> count crate-entries with OnBoard_table format
+#pragma omp critical (tofbll)
   totbll+=len;//summing to have event(scint) data length
 //
   if(TFREFFKEY.reprtf[4]>2)EventBitDump(leng,p,"Event-by-event:");//debug

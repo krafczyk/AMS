@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.20 2009/01/27 16:10:33 choumilo Exp $
+//  $Id: user.C,v 1.21 2009/02/13 16:30:41 choumilo Exp $
 #include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
@@ -16,14 +16,14 @@
 //
 uinteger AMSUser::_JobFirstRunN=0;
 uinteger AMSUser::_PreviousRunN=0;
-bool AMSUser::_NewRunStart=true;
+time_t AMSUser::_RunFirstEventT=0;
 //
 void AMSUser::InitJob(){//called after all other initjob's
   _JobFirstRunN=0;
   _PreviousRunN=0;
-  _NewRunStart=true;
+  _RunFirstEventT=0;
 //
-  if(!AMSJob::gethead()->isCalibration()){
+  if(TFREFFKEY.relogic[0]==0 && !(AMSJob::gethead()->isCalibration())){//if reco(noncalib) job
     TOF2User::InitJob();
   }
 }
@@ -37,7 +37,7 @@ void AMSUser::InitEvent(){
 void AMSUser::Event(){
   bool glft(false),tofft(false);
 //------
-  if(!AMSJob::gethead()->isCalibration()){
+  if(TFREFFKEY.relogic[0]==0 && !(AMSJob::gethead()->isCalibration())){
       Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
       if(ptr)glft=ptr->GlobFasTrigOK();
       if(ptr)tofft=ptr->TofFasTrigOK();
@@ -49,7 +49,7 @@ void AMSUser::Event(){
 
 
 void AMSUser::EndJob(){
-  if(!AMSJob::gethead()->isCalibration()){
+  if(TFREFFKEY.relogic[0]==0 && !(AMSJob::gethead()->isCalibration())){
     TOF2User::EndJob();
   }
 }

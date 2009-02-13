@@ -1,4 +1,4 @@
-//  $Id: daqs2block.h,v 1.9 2009/01/27 08:09:22 choumilo Exp $
+//  $Id: daqs2block.h,v 1.10 2009/02/13 16:30:49 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__
@@ -18,7 +18,8 @@ private:
 //  static int16u nodeids[2*TOF2GC::SCCRAT];// valid node_id's (incl. a/b-sides) for Data
 //  static int16u nodeidsP[4*TOF2GC::SCCRAT];// valid node_id's (incl. a/b-sides,prim,sec) for OnBoard-Peds
   static int16u format;// currently processing DATA-format: 0-raw, 1-compressed, 2-mixed, 3-pedcal
-  static integer totbll;//total length of all(MAX 4) scint. blocks
+  static integer totbll;//total length of all(MAX 4) scint. blocks in event
+#pragma omp threadprivate (totbll)
 //specific for calib-jobs:
   static uinteger _PrevRunNum;
   static bool _FirstPedBlk;

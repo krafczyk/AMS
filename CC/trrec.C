@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.203 2008/12/18 11:19:33 pzuccon Exp $
+//  $Id: trrec.C,v 1.204 2009/02/13 16:30:41 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -209,7 +209,10 @@ integer AMSTrCluster::build(integer refit){
 //            if(adc[j]*id.getgain()+addon>=30000){
 //             cout <<"jopa "<<id.getgain()<<" "<<sum/8<<" "<<adc[j]*id.getgain()+addon<<" " <<addon<<endl;
 //            }
-            HF1(200107,adc[j]*id.getgain()+addon,1.);
+//#pragma omp critical (hf1)
+//{
+//            HF1(200107,adc[j]*id.getgain()+addon,1.);
+//}
             if(adc[j]*id.getgain()+addon>=TRMCFFKEY.adcoverflow){
              pclnew->setstatus(AMSDBc::AOVERFLOW);
             }

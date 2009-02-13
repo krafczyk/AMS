@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.22 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: tofsim02.h,v 1.23 2009/02/13 16:30:49 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -387,8 +387,6 @@ public:
 class TOF2RawSide: public AMSlink{
 //
 private:
- static uinteger StartRun;//first run of the job
- static time_t StartTime;//first run time
  static integer _trcode; //inp. CP's layer-pattern code(<0 ->noFTC, >=0 -> as trcode, z>=1)
  static integer _trcodez; //inp. BZ's layer-pattern code(<0-> >=0 -> as trcode, z>=2)
  static integer _trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
@@ -525,8 +523,8 @@ static integer Out(integer);
  static bool GlobFasTrigOK(){return _ftpatt>0;}
  static number gettrtime(){return _trtime;}
  static void settrtime(number trt){_trtime=trt;}
- static uinteger getsrun(){return StartRun;}
- static time_t getstime(){return StartTime;}
+// static uinteger getsrun(){return StartRun;}
+// static time_t getstime(){return StartTime;}
 //
  static void mc_build(int &);// Tovt-->raw_event  
  static void validate(int &);// RawEvent->RawEvent

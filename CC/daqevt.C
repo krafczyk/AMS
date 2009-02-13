@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.145 2009/02/04 14:41:34 choutko Exp $
+//  $Id: daqevt.C,v 1.146 2009/02/13 16:30:40 choumilo Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -515,23 +515,37 @@ integer DAQEvent::_EventOK(){
         int tofid = bid & 0x1400;
         if (tofid == 0x1400) aid = aid &~60;
         int hid    = 300000 + aid; 
-        if (aid == 0x200 ||  aid == 0x0440) HF1(hid,l,1.);
+        if (aid == 0x200 ||  aid == 0x0440){
+#pragma omp critical (hf1)
+{
+	  HF1(hid,l,1.);
+}
+	}
         if (aid >= tofidL && aid<=tofidR) {
+#pragma omp critical (hf1)
+{
          HF1(hid,l,1.);
+}
          tofL = tofL + l;
         }
         if (aid == 0x1680 || aid == 0x1740 ||
             aid == 0x1681 || aid == 0x1741 ||
             aid == 0x168C || aid == 0x174C) {
               trkL = trkL + l;
+#pragma omp critical (hf1)
+{
               HF1(hid,l,1.);
+}
          }
       }
      }
     if (AMSJob::gethead() && AMSJob::gethead()->isMonitoring()) {
+#pragma omp critical (hf1)
+{
      HF1(300000,_Length,1.);
      if (tofL) HF1(300001,tofL,1.);
      if (trkL) HF1(300002,trkL,1.);
+}
     }
     if(ntot != _Length-2){
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<

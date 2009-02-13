@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.33 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: antidbc02.C,v 1.34 2009/02/13 16:30:40 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -641,6 +641,7 @@ void ANTI2VPcal::build(){ // fill array of objects with data
     if(status[0][is]==0 && status[1][is]==0)return 0.5*(att[0]+att[1]);
     else if(status[0][is]==0)return att[0];
     else if(status[1][is]==0)return att[1];
+    else return 999;//means no att.(def)
   }
 //
 //
@@ -1207,7 +1208,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2586,"ANTI-VAL:Found(ADC+Time) for Sect+(Side-1)*8",16,1.,17.,0.);
     HBOOK1(2587,"ANTI-VAL:Found(Time) for Sect+(Side-1)*8",16,1.,17.,0.);
   }
-  if(ATREFFKEY.relogic==1){//book calib.hist
+  if(ATREFFKEY.relogic==1  && ATREFFKEY.reprtf[0]>0){//book calib.hist
     HBOOK1(2530,"AntiCalib:Nfired/Nmatched sectors",20,0.,20.,0.);//spare
     HBOOK1(2531,"AntiCalib:Cyl-track Zcross(noCuts,both dirs)",75,-75.,75.,0.);
     HBOOK1(2532,"AntiCalib:PHIsect-PHIcros(Zcross OK)",91,-182.,182.,0.);
@@ -1313,7 +1314,7 @@ void ANTI2JobStat::outp(){
     HPRINT(2586);
     HPRINT(2587);
   }
-  if(ATREFFKEY.relogic==1){
+  if(ATREFFKEY.relogic==1 && ATREFFKEY.reprtf[0]>0){
     HPRINT(2626);
     HPRINT(2627);
     HPRINT(2628);
@@ -1347,8 +1348,10 @@ void ANTI2JobStat::outp(){
     HPRINT(2558);
     HPRINT(2559);
     HPRINT(2560);
+  }
 //
-    AntiCalib::fit();
+  if(ATREFFKEY.relogic==1)AntiCalib::fit();
+  if(ATREFFKEY.relogic==1 && ATREFFKEY.reprtf[0]>0){
     HPRINT(2542);
     HPRINT(2543);
     HPRINT(2544);

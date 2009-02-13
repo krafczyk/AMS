@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.59 2009/01/14 13:48:04 choumilo Exp $
+//  $Id: tofrec02.C,v 1.60 2009/02/13 16:30:41 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -35,8 +35,6 @@ uinteger TOF2RawCluster::trpatt1[TOF2GC::SCLRS]={0,0,0,0};//just init. of static
 integer TOF2RawCluster::trflag=0;
 //
 geant TOF2RawCluster::fttime[TOF2GC::SCCRAT]={0.,0.,0.,0.};
-uinteger TOF2RawSide::StartRun(0);
-time_t TOF2RawSide::StartTime(0);
 
 integer TOF2RawSide::SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC SumHT(SHT)-channel mem.reserv.
 integer TOF2RawSide::SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1]; 
@@ -68,7 +66,6 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
   integer hwidt(0);
   integer hwidq[4]={0,0,0,0};
   int bad(1);
-  static int first(0);
   geant charge,temp,temT,temC,temP;
   TOF2RawSide *ptr;
   integer trpat[TOF2GC::SCLRS],trpatz[TOF2GC::SCLRS];
@@ -88,26 +85,22 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
     cout<<endl<<"========> TOF::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 //#endif
 //
-  if(AMSJob::gethead()->isCalibration() && first==0){//store run/time for the first event for calib-purpose
-    first=1;
-    StartRun=AMSEvent::gethead()->getrun();
-    StartTime=AMSEvent::gethead()->gettime();
-    TOFPedCalib::BRun()=AMSEvent::gethead()->getrun();
-    TOFPedCalib::BTime()=AMSEvent::gethead()->gettime();//for possible classic/"DownScaledEvent" PedCalib
-//(if 1st "DownScalEvent" come later than 1st normal event, BTime() will be owerwritten at its decoding stage)  
-  }
-//---- Scint.data length monitoring:
-  if(TFREFFKEY.reprtf[4]>1){
+  if(TFREFFKEY.reprtf[2]>0){
     im=DAQS2Block::gettbll();//total blocks length for current format
-#pragma omp critical (hf1) 
+#pragma omp critical (hf1)
+{ 
     HF1(1107,geant(im),1.);
+}
   }
 //---------------------------------------------------------------
 // ====> check for PedCalib data if PedCalJob :
 //
   int chan,il,ib,is;
-  if(AMSJob::gethead()->isCalibration() && (TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)){//PedCalJob
+  if(AMSJob::gethead()->isCalibration() && (TFREFFKEY.relogic[0]==5 || TFREFFKEY.relogic[0]==6)){
+//PedCalJob(Class/DS)
     TOF2JobStat::addre(45);
+#pragma omp critical (tofval_pedc)
+{
     TOFPedCalib::hiamreset();
     while(ptr){//<--RawSide-objects loop
       idd=ptr->getsid();//LBBS
@@ -127,6 +120,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //
       ptr=ptr->next();// take next RawEvent hit
     }//  ---- end of RawSide hits loop ------->
+}
     return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
   }
 //---------------------------------------------------------------
@@ -198,16 +192,20 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       ptr->updhwidt(FTSchan[crat][tsens-1]);//add to hwidt missing info on FT/sHT/sSHT inp.ch.numb
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
       if(TFREFFKEY.reprtf[3]>0){
-#pragma omp critical (hf1) 
+#pragma omp critical (hf1)
+{ 
         HF1(1300+chnum,geant(nftdc),1.);
+}
       }
       if(nftdc>0){
         for(i=0;i<nftdc;i++)ftdc[i]=TOF2RawSide::FTtime[crat][tsens-1][i];
 	ptr->putftdc(nftdc,ftdc);//attach FTtime info to given RawSide-object
         if(nftdc>1)TOF2JobStat::addch(chnum,14);//count multy FT cases
-        if(idd==1042 && TFREFFKEY.reprtf[2]>0){
-#pragma omp critical (hf1) 
+        if(idd==1042 && TFREFFKEY.reprtf[2]>1){
+#pragma omp critical (hf1)
+{ 
 	  HF1(1139,geant(ftdc[0]*TOF2DBc::tdcbin(1)),1.);//FT-time
+}
 	}
       }
       else{
@@ -217,14 +215,18 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //
 //---> check LTtime info :
       if(TFREFFKEY.reprtf[3]>0){
-#pragma omp critical (hf1) 
+#pragma omp critical (hf1)
+{ 
         HF1(1300+chnum,geant(nstdc+10),1.);
+}
       }
       if(nstdc>0){
-        if(nftdc==1 && TFREFFKEY.reprtf[2]>0){
+        if(nftdc==1 && TFREFFKEY.reprtf[2]>1){
 	  if(nstdc==1){
-#pragma omp critical (hf1) 
+#pragma omp critical (hf1)
+{ 
 	    HF1(1128+2*ilay+isid,geant((ftdc[0]-stdc[0])*TOF2DBc::tdcbin(1)),1.);
+}
 	  }
 	  if(idd==1042){ 
             for(i=0;i<nstdc;i++){
@@ -252,16 +254,20 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       }
       if(TFREFFKEY.reprtf[3]>0){
 #pragma omp critical (hf1)
+{
         HF1(1300+chnum,geant(im+30),1.);
+}
       }
 //
-      if(TFREFFKEY.reprtf[2]>0){//<--look at Raw Anodes for reference(in Ampl-calib)-bares      
+      if(TFREFFKEY.reprtf[2]>1){//<--look at Raw Anodes for reference(in Ampl-calib)-bares      
         for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
           idr=TofTmAmCalib::btyp2id(btyp);
 	  if(id==idr){//LBB=refLBB
 	    hisid=1140+btyp-1+TOF2GC::SCBTPN*isid;
 #pragma omp critical (hf1)
+{
             HF1(hisid,adca,1.);
+}
 	  }
         }
       }
@@ -270,7 +276,9 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       im=nadcd;
       if(TFREFFKEY.reprtf[3]>0){
 #pragma omp critical (hf1)
+{
         HF1(1300+chnum,geant(im+40),1.);
+}
       }
       if(adca==0 && nadcd==0)stat+=100;//mark missing Ampl.info
       ptr->updstat(stat);//set RawSide-obj status to filter at reco-stage(befor it was =0(ok))
@@ -291,7 +299,9 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       ptr->putsumh(nsumh,sumht);//fill object with SumHTtime-hits
       if(TFREFFKEY.reprtf[3]>0){
 #pragma omp critical (hf1)
+{
         HF1(1300+chnum,geant(nsumh+50),1.);
+}
       }
       if(nsumh==0)TOF2JobStat::addch(chnum,18);//miss sumHT info
 //
@@ -301,15 +311,16 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       ptr->putsumsh(nsumsh,sumsht);//fill object with SumSHTtime-hits
       if(TFREFFKEY.reprtf[3]>0){
 #pragma omp critical (hf1)
+{
         HF1(1300+chnum,geant(nsumsh+70),1.);
+}
       }
 //
 //-----
       if(TFREFFKEY.reprtf[4]>=1){ // <==================== TOF-debug
-#pragma omp critical (tof_debug)
+#pragma omp critical (hf1)
 {
         chnum=2*TOF2DBc::barseqn(ilay,ibar)+isid;//0-67
-//        if(adca>50 && nadcd==2)HF2(1400+chnum,adca,adcd[0]+adcd[1],1.);
         if(adca>0)HF1(1400+chnum,adca,1.);
 //        if(nadcd==2)HF1(1400+chnum,adcd[0]+adcd[1],1.);
 	if(adca>25){
@@ -336,7 +347,6 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       }      
 //
 //---------------
-NextObj:
     ptr=ptr->next();// take next RawEvent hit
   }//  ---- end of RawSide hits loop ------->
   if(bad==0)status=0;// good TOF-event(at least one t+amp measurement )
@@ -367,16 +377,36 @@ NextObj:
       if(nftdc>0 && nstdc>0){
 //   cout<<"      --->fill LT-ch:"<<ichlt-1<<endl;
         for(i=0;i<nstdc;i++){
-	  if(TFCAFFKEY.tdccum%10>0)TOFTdcCalib::ifill(crat-1,sslot-1,ichlt-1,stdc[i],temp);//interm.store mode
-	  else TOFTdcCalib::fill(crat-1,sslot-1,ichlt-1,stdc[i],temp);//normal/economy mode
+	  if(TFCAFFKEY.tdccum%10>0){
+#pragma omp critical (tofval_ifill)
+{
+	    TOFTdcCalib::ifill(crat-1,sslot-1,ichlt-1,stdc[i],temp);//interm.store mode
+}
+	  }
+	  else{
+#pragma omp critical (tofval_fill)
+{
+	    TOFTdcCalib::fill(crat-1,sslot-1,ichlt-1,stdc[i],temp);//normal/economy mode
+}
+	  }
 	}
 	if((crat!=oldcr) || (sslot!=oldsl)){
 //	 cout<<"cr/sl="<<crat<<" "<<sslot<<" chlt/chft="<<ichlt<<" "<<ichft<<" nftdc="<<nftdc<<endl;
 //	 cout<<" old cr/sl="<<oldcr<<" "<<oldsl<<endl;
 //   cout<<"      --->fill FT-ch:"<<ichft-1<<endl;
 	  for(i=0;i<nftdc;i++){
-	    if(TFCAFFKEY.tdccum%10>0)TOFTdcCalib::ifill(crat-1,sslot-1,ichft-1,ftdc[i],999);//interm.store mode
-	    else TOFTdcCalib::fill(crat-1,sslot-1,ichft-1,ftdc[i],999);//normal/economy mode
+	    if(TFCAFFKEY.tdccum%10>0){
+#pragma omp critical (tofval_ifill)
+{
+	      TOFTdcCalib::ifill(crat-1,sslot-1,ichft-1,ftdc[i],999);//interm.store mode
+}
+	    }
+	    else{
+#pragma omp critical (tofval_fill)
+{
+	      TOFTdcCalib::fill(crat-1,sslot-1,ichft-1,ftdc[i],999);//normal/economy mode
+}
+	    }
 	  }
 	  if(crat!=oldcr)oldcr=crat;
 	  if(sslot!=oldsl)oldsl=sslot;
@@ -522,6 +552,8 @@ void TOF2RawCluster::build(int &ostatus){
       for(int ih=0;ih<nwssht;ih++)fwssht[ih]=number(wssht[ih]);
 //-----> Apply TDC linearity corrections(if requested):
      if(TFREFFKEY.relogic[2]>0 && !(!AMSJob::gethead()->isRealData() && TFMCFFKEY.tdclin==0)){
+//#pragma omp critical (tofr_tdcc)
+//{
 //  cout<<"<============== LinCor is ON"<<endl;
       hwidt=ptr->gethidt();//CSIIII
       crat=hwidt/100000;//1-4
@@ -555,6 +587,7 @@ void TOF2RawCluster::build(int &ostatus){
 	  fwssht[j]-=tdcor;//sumSHT
 	}
       }
+//}
      }//--->endof LinCor check
 //---
       for(i=0;i<nwftt;i++)ftdc[isid][i]=fwftt[i]*TOF2DBc::tdcbin(1);//FTtime TDCch->ns
@@ -582,7 +615,9 @@ void TOF2RawCluster::build(int &ostatus){
         t1=stdc[isid][i];//FT IS subtracted already, so t1=0 means =FTtime
 	if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
 	  HF1(1136,geant(t1),1.);
+}
 	}
 	if(t1>TOF2DBc::ltagew(0) && t1<TOF2DBc::ltagew(1)){//notTooYoung(>40ns befFT), notTooOld(<640 befFT)
 	  ttdc[isid][nttdc[isid]]=t1;
@@ -671,14 +706,16 @@ void TOF2RawCluster::build(int &ostatus){
               HF1(1100,geant(dt),1.);//histogr. the same hit LT/SumHT-TDC difference
             }
 //	  
-	    for(isd=0;isd<2;isd++){//side loop
-              if(smty[isd]>0){//side has complete measurement
-	        if(nhtdc[isd]==1 && nstdc[isd]==1){
-	          dt=stdc[isd][0]-htdc[isd][0];
-		  HF1(1120+2*ilay+isd,geant(dt),1.);
+            if(TFREFFKEY.reprtf[2]>1){//low priority hist
+	      for(isd=0;isd<2;isd++){//side loop
+                if(smty[isd]>0){//side has complete measurement
+	          if(nhtdc[isd]==1 && nstdc[isd]==1){
+	            dt=stdc[isd][0]-htdc[isd][0];
+		    HF1(1120+2*ilay+isd,geant(dt),1.);
+	          }
 	        }
-	      }
-            }
+              }
+	    }
 }
 	  }                          
 //
@@ -703,7 +740,9 @@ void TOF2RawCluster::build(int &ostatus){
 		}//--->endof SumHT-hits loop
                 if(itftcor[isd][i]==1 && TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
 		  HF1(1115,geant(sdtmin[isd][i]),1.);//for FT-correlated LT-hits only
+}
 		}
               }//--->endof LTtime-hits loop
             }
@@ -736,7 +775,9 @@ void TOF2RawCluster::build(int &ostatus){
 		  }
 		  if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
 		    HF1(1103,geant(sdtbest[isd]),1.);
+}
 		  }
 		}
               }
@@ -754,7 +795,9 @@ void TOF2RawCluster::build(int &ostatus){
 		  }
 		  if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
 		    HF1(1109,geant(sdtbest[isd]),1.);
+}
 		  }
 	        }
 	        else{//noMatch-info - use 1st(youngest) hit
@@ -767,7 +810,9 @@ void TOF2RawCluster::build(int &ostatus){
 //
               if(itmbest[isd]>=0 && TFREFFKEY.reprtf[2]>0){//FINAL time was found - see some histogr
 #pragma omp critical (hf1)
+{
                 HF1(1106,geant(tmbest[isd]),1.);
+}
 	      }
 //              
 	    }//--->endof smty[isd]>0 check
@@ -804,7 +849,9 @@ void TOF2RawCluster::build(int &ostatus){
 		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscutb()){
                     if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
 		      HF1(1101,geant(dt),1.);
+}
 		    }
 		    rej2=1;
 		    break;
@@ -819,7 +866,9 @@ void TOF2RawCluster::build(int &ostatus){
 		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscuta()){
                     if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
 		      HF1(1102,geant(dt),1.);
+}
 		    }
 		    rej3=1;
 		    break;
@@ -854,7 +903,9 @@ void TOF2RawCluster::build(int &ostatus){
                 ama[0]=number(adca[0]);//ADC-counts(float)(anode s1)
                 if(TFREFFKEY.reprtf[2]>0 && id==104){
 #pragma omp critical (hf1)
+{
 		  HF1(1104,geant(ama[0]),1.);
+}
 		}
 		if((ama[0]+3*sigs[0])>=number(TOF2GC::SCPUXMX)){//check PUX-ovfl
 		  ama[0]=0;//mark ovfl
@@ -913,7 +964,9 @@ void TOF2RawCluster::build(int &ostatus){
 		    amd[0]+=(aaa/gnd);//Dyn(equilised)
                     if(TFREFFKEY.reprtf[2]>0 && id==104){
 #pragma omp critical (hf1)
+{
 		      HF1(1105,geant(aaa),1.);
+}
 		    }
 		  }
 		}//-->endof pm-loop
@@ -1066,14 +1119,18 @@ void TOF2RawCluster::build(int &ostatus){
   for(i=0;i<TOF2GC::SCLRS;i++)isum+=nbrch[i];
   if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
     HF1(1110,geant(isum),1.);// tot.number of layers
+}
   }
   if(TFREFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
 
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]>0){
 #pragma omp critical (hf1)
+{
       HF1(1111,geant(i+1),1.);// layer appear. freq.
+}
     }
   }
   if(isum>=2)conf=0;
@@ -1081,10 +1138,11 @@ void TOF2RawCluster::build(int &ostatus){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TFREFFKEY.reprtf[2]>0 || 
-     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
+  if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
     HF1(1112,geant(conf),1.);
+}
   }
 //
   if(((nbrch[0]+nbrch[1]) + (nbrch[2]+nbrch[3])) >= 1)ostatus=0; // good event
@@ -1103,10 +1161,11 @@ void TOF2RawCluster::build(int &ostatus){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;//all 4layers with 1bar/layer
-  if(TFREFFKEY.reprtf[2]>0 || 
-     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
+  if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
     HF1(1113,geant(conf),1.);
+}
   }
 //
   if(ostatus!=0)return;//remove bad(no rawclusters) events
@@ -1192,10 +1251,11 @@ void TOF2RawCluster::build(int &ostatus){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TFREFFKEY.reprtf[2]>0 || 
-     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
+  if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
+{
     HF1(1114,geant(conf),1.);
+}
   }
 //
 // -> make hist. only for 4layer x 1bar(2-sided) events:
@@ -1216,8 +1276,7 @@ void TOF2RawCluster::build(int &ostatus){
         (TOF2DBc::plnstr(2)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l2-middl
   trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
 //
-  if(TFREFFKEY.reprtf[2]>0 || 
-     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
+  if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 {
       HF1(1532,td13*trlnor/trlen13,1.);//ToF for L0->L2, normalized to trlnor
@@ -1506,9 +1565,11 @@ void AMSTOFCluster::build2(int &stat){
   for(il=0;il<TOF2GC::SCLRS;il++){// <-------- TOF layers loop -----
     ptr=(TOF2RawCluster*)AMSEvent::gethead()->
                                      getheadC("TOF2RawCluster",0);
-    VZERO(eplane,(TOF2GC::SCMXBR)*sizeof(number)/4);
-    VZERO(edplane,(TOF2GC::SCMXBR)*sizeof(number)/4);
-    VZERO(xptr,(TOF2GC::SCMXBR)*sizeof(TOF2RawCluster*)/4);
+    for(i=0;i<TOF2GC::SCMXBR;i++){//clear plane working arrs
+      eplane[i]=0;
+      edplane[i]=0;
+      xptr[i]=0;
+    }
 //
     while (ptr){// scan to put all fired bars of layer "il" in buffer
       if(ptr->getntof()==il+1){
@@ -1647,7 +1708,9 @@ void AMSTOFCluster::build2(int &stat){
 	ematch=(fabs(edass)<TOF2Varp::tofvpar.eclass()); 
 	if(tmatch && cmatch && (TFREFFKEY.reprtf[2]>0)){
 #pragma omp critical (hf1)
+{
 	  HF1(1548,edass,1.);
+}
 	}
 //--------> decision to glue:
 	bool glue=((ematch && tmatch) || (ematch && cmatch));//relaxed conditions

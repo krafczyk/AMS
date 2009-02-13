@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.410 2009/02/13 11:47:36 choutko Exp $
+//  $Id: event.C,v 1.411 2009/02/13 16:30:41 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -881,6 +881,9 @@ void AMSEvent::_reantiinitevent(){
       new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
 //      cout <<" anti "<<p<<" "<<AMSEvent::gethead()<<" "<<get_thread_num()<<endl;
 }
+// reset static ev-by-ev vars:
+      Anti2RawEvent::setpatt(0);
+      Anti2RawEvent::setncoinc(0);
 //
 }
 //=====================================================================
@@ -914,15 +917,25 @@ void AMSEvent::_retof2initevent(){
       }
     }
   }
-//
+//<--- reset static array for SFET(A) temperatures(event-by-event option):
+  TOF2JobStat::resettemp();
+//..... for TOF2RawSide::
   TOF2RawSide::settrcode(-1);// reset  TOF-trigger flag
   TOF2RawSide::settrcodez(-1);// reset  TOF-trigger flag
   TOF2RawSide::setcpcode(0);// reset  TOF-trigger flag
   TOF2RawSide::setbzflag(-1);// reset  TOF-trigger flag
   TOF2RawSide::setftpatt(0);// reset glob.FT-trigger pattern
-  int trpatt[TOF2GC::SCLRS]={0,0,0,0};
+  integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
   TOF2RawSide::setpatt(trpatt);// reset TOF-trigger pattern
   TOF2RawSide::setpattz(trpatt);// reset TOF-trigger pattern
+//.... for TOF2RawCluster::
+  uinteger trpat[TOF2GC::SCLRS]={0,0,0,0};
+  TOF2RawCluster::setpatt(trpat);
+  TOF2RawCluster::setpatt1(trpat);
+  TOF2RawCluster::settrfl(-1);
+  TOF2RawCluster::resetfttime();
+//
+  DAQS2Block::clrtbll();//reset TOF+ACC daq-event length(16bit words)
 //---
 //  container for RawCluster hits :
 //
@@ -1426,14 +1439,14 @@ bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY
 bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
 bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==6);
 //
-  calltrk=!(ecpedcal || tftdccal || tfpedcal);
-  calltrd=!(ecpedcal || tftdccal || tfpedcal);
-  callrich=!(ecpedcal || tftdccal || tfpedcal);
-  callax=!(ecpedcal || tftdccal || tfpedcal);
-  calluser=!(ecpedcal || tftdccal || tfpedcal);
+  calltrk  = (!(ecpedcal || tftdccal || tfpedcal));
+  calltrd  = (!(ecpedcal || tftdccal || tfpedcal));
+  callrich = (!(ecpedcal || tftdccal || tfpedcal));
+  callax   = (!(ecpedcal || tftdccal || tfpedcal));
+  calluser = (!(ecpedcal || tftdccal || tfpedcal));
 //
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
-      _retof2event();
+    _retof2event();
     _reanti2event();
     if(calltrd)_retrdevent();
     
@@ -1573,9 +1586,12 @@ void AMSEvent::_caecevent(){
     }
     if(!globft)return;// use only H/W-triggered event
     if(ECREFFKEY.relogic[1]>0){
+#pragma omp critical (eccal_anor)
+{
       if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
 // PedCal mode has no special select-routine( select/fill is done at validate stages)
+}
     }
 }
 
@@ -2084,15 +2100,6 @@ void AMSEvent::_retkinitrun(){
 #endif
 //----
 void AMSEvent::_retofinitrun(){
-// Warning : may be 1st time called by not 1st event tread (in MP mode)
-//fortunately other treads will wait untill the one who called initrun 1st
-// finish his job, so one can memorize here job first run number for example
-// and this info can be used by all other events 
-//  uinteger run=AMSEvent::gethead()->getrun();
-//  uinteger srun=AMSEvent::gethead()->getSRun();
-//  if(srun==0){
-//    TofTmAmCalib::getJobFirstRunN()=run;
-//  }
 }
 //----
 void AMSEvent::_reantiinitrun(){
@@ -2115,13 +2122,9 @@ void AMSEvent::_reantiinitrun(){
   }
 }
 
-
+//----
 void AMSEvent::_reecalinitrun(){
-
-
-
-
-
+/*
   if((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0){
     if(AMSECIdCalib::Run()!=0){
      AMSECIdCalib::getaverage();
@@ -2135,7 +2138,6 @@ void AMSEvent::_reecalinitrun(){
 
 
 
-/*
   if(AMSJob::gethead()->isRealData()){
 geant gains[18][14];
 ifstream fbin;
@@ -2165,14 +2167,14 @@ cout <<endl;
 
 }
 */
-
-
 }
+//----
 void AMSEvent::_retrdinitrun(){
    for (int i=0;i<AMSTRDIdSoft::ncrates();i++){
       cout <<"AMSEvent::_retrdevent-I-"<<AMSTRDIdSoft::CalcBadCh(i)<<
       " bad channels found for crate "<<i<<endl;
 }
+//
 }
 void AMSEvent::_rerichinitrun(){
 }

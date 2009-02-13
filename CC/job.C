@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.621 2009/02/13 11:47:36 choutko Exp $
+// $Id: job.C,v 1.622 2009/02/13 16:30:41 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -891,7 +891,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
 // RLGA/FIAT part:
-  ECCAFFKEY.cfvers=4;     // (1) spare, not used now
+  ECCAFFKEY.hprintf=2;    // (1) calib-related hist.print-flag(0/1/2/->no/hi_import/+mid/+low_import hist)
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
   ECCAFFKEY.prtuse=-1;    // (3) 1/0/-1 -> use He4/proton/mu tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
@@ -1329,7 +1329,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.tofbetac=0.5;// (27) if nonzero->low beta cut (own TOF measurements !!!)
-  TFCAFFKEY.cfvers=2; // (28) not used (spare)
+  TFCAFFKEY.hprintf=1; // (28) calib.histogr. print-flag, =0/>=1 => noprint/print(prior=1,2(low))
 //
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
 //TOFPedsCalib:
@@ -3507,7 +3507,7 @@ cout <<"   AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::
 
 AMSJob::~AMSJob(){
   cout << "   ~AMSJob called "<<endl;
-  HPRINT(9797+1);
+//  HPRINT(9797+1);
   _signendjob();
   _tkendjob();
   cout <<"   tkendjob finished"<<endl;
@@ -3528,7 +3528,7 @@ _dbendjob();
   cout <<"   dbendjob finished"<<endl;
 _axendjob();
   cout <<"   axendjob finished"<<endl;
-
+//HPRINT(0);
   if(isSimulation()){
       uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
       DAQEvent::CloseO(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
@@ -3704,7 +3704,7 @@ throw (amsglobalerror){
    HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
    HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
    HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
-   HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
+//   HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
 }
 
 #ifndef _PGTRACK_

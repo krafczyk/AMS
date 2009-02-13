@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.260 2009/02/06 17:14:52 choutko Exp $
+//  $Id: commons.h,v 1.261 2009/02/13 16:30:49 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -335,7 +335,7 @@ COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
 //---
 class ECCAFFKEY_DEF {
 public:
-  integer cfvers;// not used now
+  integer hprintf;// ECcalib-related hist.print flag
   integer cafdir;// 0/1-> use officical/private directory for calib.files
   integer prtuse; // 1/0/-1 -> use He/pr/mu for calib
   integer refpid;// ref.pm id
@@ -709,7 +709,7 @@ geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
 geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
 //                to use when previous calibration suppose to be good enought
-integer cfvers;// spare
+integer hprintf;// hist.print flag
 integer cafdir;// 0/1->use officical/private directory for calib.files
 integer mcainc;// spare
 geant pedcpr[2];//PedCalJob: portion of highest adcs to remove for ped-calc(Class/DScal)

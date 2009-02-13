@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.288 2009/02/12 11:12:17 choutko Exp $
+#  $Id: datacards.doc,v 1.289 2009/02/13 16:30:48 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -825,13 +825,22 @@ R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
 I 26 tofcoo    (0)  // 0/1-> use transv/longit coord. from TOF 
 I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
   General :
-I 28 cfvers    (8)  // 001-999 vers.number NN for tofverlist(mc/rl)NN.dat file
+I 28 hprintf   (1)  // Calib-hist print-flag (0(no)/1(hi_importance)/2(+low_importance)
 I 29 cafdir    (0)  // use official/private directory for calibr.files
 I 30 mcainc    (0)  // spare
-R 31 tofbetac (0.5) // if nonzero->low beta cut (own TOF measurements !!!)
-R 32 pedcpr[0](0.01)// PedCalibJobClassic: portion of highest ADCs to remove for aver/rms-calculation
-R 33 pedcpr[1](0.1) // PedCalibJobDownScalEvnts: portion of highest ADCs to remove for ..............
-I 34 pedoutf   (2)  // PedCalibJob-output type:0/1/2->HistosOnly/PedWrite2DB+File/PedWrite2File
+R 31 pedcpr[0](0.01)// PedCalibJobClassic: portion of highest ADCs to remove for aver/rms-calculation
+R 32 pedcpr[1](0.1) // PedCalibJobDownScalEvnts: portion of highest ADCs to remove for ..............
+I 33 pedoutf   (2)  // PedCalibJob-output type:0/1/2->HistosOnly/PedWrite2DB+File/PedWrite2File
+R 34 pedlim[0] (10) // Ped low-lim in PedCalibJobs
+R 35 pedlim[1](700) //      hi-lim ...............
+R 36 siglim[0] (0.4)// PedSig low-lim ............
+R 37 siglim[1] (10.)//         hi-lim ............
+//TOFTdcCalib:
+R 38 minstat (100)// min.acceptable statistics per channel
+R 39 tdccum (10)  // tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
+//for OnBoardPeds
+R 40 onbpedspat (63)//ijklmn(bit-patt for peds|dinpeds|pretrs|statws|theshs|widths sections in table),
+//                           i(j,..)-bitset => section present
 
 //---------------------------------------------------------------------------------
     ECAL simulation:
@@ -874,7 +883,7 @@ I 29   calvern(1) //EcalCflistMC-file vers.number(list of RlgaMC(SD),FiatMC(SD),
     ECAL reconstruction:
 
 ECRE
-I 1    reprtf[0](0)        // =1 to print Reco-histograms    
+I 1    reprtf[0](0)        // =1/2/.. to print Reco-histograms    
 I 2    reprtf[1](0)        // =1 to print profiles for first 5 events    
 I 3    reprtf[2](0)        // =1 spare
 
@@ -948,7 +957,7 @@ ECCA
 (REUN-Calibration  parameters)
 //
 (RLGA/FIAT part:)
-I  1  cfvers(4)          // spare, not used now
+I  1  hprintf (2)        // =0/1/2/3=> no/hi/+mid/+low importance calib-histograms printing
 I  2  cafdir(0)          // 0/1-> use official/private directory for calibr.files
 I  3  truse(1)           // 1/0-> use He4/prot tracks for calibration
 I  4  refpid(118)        // ref.PM ID (SPP-> S=SupLayer, PP=PM number) 
