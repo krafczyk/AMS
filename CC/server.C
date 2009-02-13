@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.145 2009/02/13 11:47:37 choutko Exp $
+//  $Id: server.C,v 1.146 2009/02/13 14:11:00 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -224,8 +224,11 @@ if(!__MT){
     fbin.close();
     unlink((const char*)fout);
     if(count>1){
+#ifdef __AMSDEBUG__
+#else
       cerr <<"AMSProdserver-F-FoundInstanceWhileNotInMT  "<<endl;
       abort();
+#endif
     }
    }
    else{
@@ -539,6 +542,8 @@ void AMSServerI::_UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientSta
        (*j)->LastUpdate=tt;
        (*j)->Status=st;
        DPS::Client::ActiveClient_var acv=*j;
+       acv->id.threads=cid.threads;
+       acv->id.threads_change=cid.threads_change;
        PropagateAC(acv,DPS::Client::Update);
        return;
      }   
@@ -943,9 +948,13 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      ac.id.Type=getType();
      ac.id.pid=0;
      ac.id.ppid=0;
+     ac.id.threads=1;
+     ac.id.threads_change=0;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
      ac.id.StatusType=DPS::Client::Permanent;
+     ac.id.threads=1;
+     ac.id.threads_change=0;
      ac.StatusType=DPS::Client::Permanent;
      ac.TimeOut=_KillTimeOut;
      time_t tt;
@@ -1158,6 +1167,8 @@ if(cid.Type==DPS::Client::Server){
       if(((*j)->id).uid==cid.uid){
        ((*j)->id).pid=cid.pid;
        ((*j)->id).ppid=cid.ppid;
+       ((*j)->id).threads=cid.threads;
+       ((*j)->id).threads_change=cid.threads_change;
        cid.Interface=CORBA::string_dup(((*j)->id).Interface);
        cid.Type=((*j)->id).Type;
        (*j)->Status=DPS::Client::Registered;
@@ -1454,7 +1465,7 @@ return 0;
             if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
        
          hostfound=true;
-         cout << " host found for deleteing "<<endl;
+         cout << " host found for deleteing "<<ac.id.threads<<" "<<ac.id.threads_change<<endl;
         ((*i)->ClientsRunning)-=ac.id.threads-ac.id.threads_change;
         if((*i)->ClientsRunning<0){
           _parent->EMessage("Server_impl::sendAC-F-NegativeNumberClientRunning ");
@@ -2294,6 +2305,8 @@ if(pcur->InactiveClientExists(getType()))return;
      (ac.id).uid=0;
      ac.id.pid=0;
      ac.id.ppid=0;
+     ac.id.threads=1;
+     ac.id.threads_change=0;
      ac.id.Type=getType();
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
@@ -2612,6 +2625,8 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, float Mips, uintege
        ((*j)->id).pid=cid.pid;
        ((*j)->id).ppid=cid.ppid;
         ((*j)->id).Mips=Mips;
+       ((*j)->id).threads=cid.threads;
+       ((*j)->id).threads_change=cid.threads_change;
        cid.Interface=CORBA::string_dup(((*j)->id).Interface);
        cid.StatusType=((*j)->id).StatusType;
        cid.Type=((*j)->id).Type;
@@ -2645,6 +2660,8 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, float Mips, uintege
      cid.Type=DPS::Client::Producer;
      ac.id.Type=cid.Type;
      ac.id.Status=cid.Status;
+     ac.id.threads=cid.threads;
+     ac.id.threads_change=cid.threads_change;
      cid.StatusType=DPS::Client::OneRunOnly;
      ac.id.StatusType=cid.StatusType;
      ac.Status=DPS::Client::Registered;
@@ -3114,24 +3131,26 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
 //  should be changed by smth meaningful w/r host capacity
 //
 
-  (rv->cinfo).EventsProcessed = cid.threads; 
+  long threads=cid.threads;
+  cout << " Threads requested "<< threads<<endl;
+  if(threads<0 || threads>=32)threads=1;
 
         for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
           if(curp->getType()==cid.Type){
              for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(cid).HostName)){
 
-            if((*i)->ClientsAllowed<(*i)->ClientsRunning){
-              (rv->cinfo).EventsProcessed+=(*i)->ClientsAllowed-(*i)->ClientsRunning;
-               if((rv->cinfo).EventsProcessed<=0)(rv->cinfo).EventsProcessed=1;
+          cout << "  Threads found "<<(*i)->ClientsAllowed<<" "<<(*i)->ClientsRunning<<endl;
+            if((*i)->ClientsAllowed<(*i)->ClientsRunning+threads-1){
+              threads=(*i)->ClientsAllowed-(*i)->ClientsRunning+1;
+               if(threads<=0)threads=1;
             }
                break;
         }
          }
        }
       }
-      cout << "  Threads allowed "<<(rv->cinfo).EventsProcessed<<endl;
-      _parent->IMessage(AMSClient::print(cid,"  cid info "));
+      cout << "  Threads allowed "<<threads<<endl;
 
 
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
@@ -3235,6 +3254,7 @@ if(dv->DieHard ==0){
   }
  }
 }
+rv->cinfo.CriticalErrorsFound=rv->cinfo.CriticalErrorsFound | (threads<<21);
 ro=rv._retn();
 dso=dv._retn();
 

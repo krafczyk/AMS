@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.54 2008/06/16 07:33:56 choutko Exp $
+//  $Id: server.h,v 1.55 2009/02/13 14:11:00 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -189,6 +189,7 @@ CORBA::ORB_ptr  getdefaultorb()const {return ((*_orbmap.begin()).second)._orb;}
    cout <<"  AMSServerI::setSleepTime-I-SleepTimeSetTo "<<_SleepTime<<endl;
    }
    else{
+   _SleepTime=20000;
    cout <<"  AMSServerI::setSleepTime-I-SleepTimeSetToDefault "<<_SleepTime<<endl;
    }
   }

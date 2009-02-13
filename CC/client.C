@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.43 2009/02/13 11:47:36 choutko Exp $
+//  $Id: client.C,v 1.44 2009/02/13 14:11:00 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -185,7 +185,7 @@ _ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" AC ";
 print(a.id,_ost);
-_ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<ends;
+_ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<" Threads "<<a.id.threads<<ends;
 return _streambuffer;
 }
 
@@ -236,7 +236,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Client::CID & a, ostream & o){
-return o<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType)<<" , Mips "<<a.Mips;
+return o<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType)<<" , Mips "<<a.Mips<<" , Threads "<<a.threads;
 }
 
 

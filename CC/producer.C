@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.124 2009/02/13 11:47:36 choutko Exp $
+//  $Id: producer.C,v 1.125 2009/02/13 14:11:00 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -273,8 +273,8 @@ again:
     _FreshMan=false;
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
-    AMSEvent::set_num_threads((_reinfo->cinfo).EventsProcessed);
-    cout <<"  ***-*** setting thtreads to "<< (_reinfo->cinfo).EventsProcessed << " "<<MISCFFKEY.NumThreads<<endl;
+    AMSEvent::set_num_threads((_reinfo->cinfo).CriticalErrorsFound/2097152);
+    cout <<"  ***-*** setting thtreads to "<< (_reinfo->cinfo).CriticalErrorsFound/2097152 << " "<<MISCFFKEY.NumThreads<<endl;
     SELECTFFKEY.Run=_reinfo->Run;
     SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
@@ -283,7 +283,7 @@ again:
     _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=(_reinfo->cinfo).EventsProcessed;
     _cinfo.ErrorsFound=(_reinfo->cinfo).ErrorsFound;
-    _cinfo.CriticalErrorsFound=(_reinfo->cinfo).CriticalErrorsFound;
+    _cinfo.CriticalErrorsFound=((_reinfo->cinfo).CriticalErrorsFound%2097152);
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
     _cinfo.CPUMipsTimeSpent=(_reinfo->cinfo).CPUMipsTimeSpent;
