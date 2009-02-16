@@ -546,7 +546,7 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,datamc=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,datamc=0):
         self.failedcp=0
         self.thrusted=0
         self.copied=0
@@ -575,6 +575,9 @@ class RemoteClient:
         if(d==1):
             self.delete=1
         else: self.delete=0
+        if(u>=1):
+            self.deleteuncnt=1
+        else: self.deleteuncnt=0
         if(b>=1):
             self.deletebad=1
         else: self.deletebad=0 
@@ -733,6 +736,28 @@ class RemoteClient:
                         self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
 
                     self.sqlserver.Commit()
+
+
+        if(self.deleteuncnt):
+              for run in self.dbclient.rtb:
+                if(run2p!=0 and run2p!=run.Run):
+                    continue
+                status=self.dbclient.cr(run.Status)
+                if(status=='Finished' and datamc==1):
+                    ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
+                    rstatus=ro[0][1]
+                    uid=run.uid;
+                    if(rstatus == 'Unchecked'): 
+                        print " updating ",run.Run
+                        run.Status=self.dbclient.iorp.ToBeRerun
+                        for ntuple in self.dbclient.dsts:
+                            if(self.dbclient.ct(ntuple.Type)!="RootFile"):
+                                continue
+                            if(ntuple.Run==run.Run):
+                                self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                print " deleting ",ntuple.Name
+                        run.cinfo.Status=self.dbclient.iorp.ToBeRerun
+                        self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Update)
 
     
                 
@@ -1285,8 +1310,10 @@ class RemoteClient:
                              sql="delete ntuples where jid=%d" %(run.uid)
                              self.sqlserver.Update(sql)
                              
-                        else:
+                        elif(len(cpntuples)>0):
                             status="Completed"
+                        else:
+                            status="Unchecked"
                         if(status == "Completed"):
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
