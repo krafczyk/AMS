@@ -1277,7 +1277,7 @@ class RemoteClient:
                              status="Unchecked"
                              for ntuple in mvntuples:
                                  cmd="rm "+ntuple
-                                 os.system(cmd)
+                                 #os.system(cmd)
                                  print "Validation failed "+cmd
                                  output.write("Validation failed "+cmd)
                                  self.failedcp=self.failedcp+1
