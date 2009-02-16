@@ -2196,6 +2196,7 @@ Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 public:
 static bool fgThickMemory;
 static int fgThreads;
+long long Size();
 protected:
 static TString Dir;
 #ifdef __ROOTSHAREDLIBRARY__

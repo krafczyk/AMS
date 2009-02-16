@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.121 2009/02/13 11:47:36 choutko Exp $
+//  $Id: geant3.C,v 1.122 2009/02/16 14:37:00 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -969,11 +969,11 @@ extern "C" void guout_(){
     //   }
     AMSEvent::gethead()->write(trig);
   }
-  UPool.Release(0);
 #pragma omp critical (g2)
+  UPool.Release(0);
   AMSEvent::gethead()->remove();
+  delete AMSEvent::gethead();
   UPool.Release(1);
-	delete AMSEvent::gethead();
   AMSEvent::sethead(0);
   UPool.erase(2000000);
   AMSgObj::BookTimer.stop("GUOUT");
@@ -1064,7 +1064,13 @@ try{
         static bool Waiting=false; 
         double cpulimit=AMSFFKEY.CpuLimit;
    for(;;){
+#ifdef __CORBA__
+    AMSProducer::gethead()->Transfer()=true;
+#endif
     DAQEvent::InitResult res=DAQEvent::init();
+#ifdef __CORBA__
+    AMSProducer::gethead()->Transfer()=false;
+#endif
      if(res==DAQEvent::OK){ 
        uinteger run;
        uinteger event=0;
@@ -1192,9 +1198,13 @@ if(AMSJob::gethead()->isMonitoring()){
     }
 // ---> endof "readDaq=ok" check
     else{
+#pragma omp critical (g3)
+{
      GCFLAG.IEOTRI=1;
+     GCFLAG.IEORUN=1;
      count++;
      cout << "  file end "<<endl;
+}
      continue;
     }
    }

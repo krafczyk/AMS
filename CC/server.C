@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.146 2009/02/13 14:11:00 choutko Exp $
+//  $Id: server.C,v 1.147 2009/02/16 14:37:00 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3253,6 +3253,11 @@ if(dv->DieHard ==0){
    }
   }
  }
+}
+if(rv->CounterFail>2 && rv->History==DPS::Producer::Failed){
+threads=1;
+cerr<<"  Too Many Fails Run "<<rv->Run<<" "<<rv->CounterFail<<endl; 
+cout << "  Threads allowed "<<threads<<endl;
 }
 rv->cinfo.CriticalErrorsFound=rv->cinfo.CriticalErrorsFound | (threads<<21);
 ro=rv._retn();

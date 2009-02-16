@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.23 2008/09/17 11:51:13 choutko Exp $
+//  $Id: producer.h,v 1.24 2009/02/16 14:37:00 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -31,7 +31,7 @@ float _T0;
 int   _FreeSpace;
 void _init(){};
 public:
-
+bool & Transfer(){return _Transfer;}
 AMSProducer(int argc,  char * argv[], int debug) throw (AMSClientError);
 ~AMSProducer();
 static AMSProducer* gethead(){return _Head;}

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.66 2009/01/14 12:34:42 choutko Exp $
+#  $Id: Makefile,v 1.67 2009/02/16 14:37:00 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -121,7 +121,7 @@ CFLAGSB+= -D__BATCH__
 $(BIN)%.o : $(SFF)%.F
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...

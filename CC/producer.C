@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.125 2009/02/13 14:11:00 choutko Exp $
+//  $Id: producer.C,v 1.126 2009/02/16 14:37:00 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -479,7 +479,7 @@ else{
 
 void AMSProducer::sendCurrentRunInfo(bool force){
 if (_Solo)return;
-_pid.threads_change=AMSEvent::get_num_threads()-_pid.threads_change;
+_pid.threads_change=AMSEvent::get_num_threads()-_pid.threads;
 _pid.threads=AMSEvent::get_num_threads();
 if(_OnAir){
   EMessage("AMSProducer::sendCurrentrunInfo-W-AlreadyOnAir ");

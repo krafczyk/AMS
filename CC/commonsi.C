@@ -52,7 +52,9 @@ void AMSCommonsI::init(){
       cerr<<"AMSCommonsI-E-CouldNotMap "<<u.sysname<<" "<<u.machine<<endl;
       cerr<<"Production Job Will Be Aborted"<<endl;
      }
-   char dt[128]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
+   char dt[128];
+   strcpy(dt,"/afs/cern.ch/exp/ams/Offline/AMSDataDir");
+   //char dt[128]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
     AMSDATADIR.amsdlength=strlen(gtv)+strlen(getversion())+2;
@@ -166,7 +168,12 @@ void AMSCommonsI::init(){
           _mips*=_cor;
         }
        }
-       cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<getmips()<<endl;  
+       cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<getmips()<<endl; 
+#ifdef __TEST26__
+       if(strstr(syscom,"Athlon")){
+        _remote=true;
+      } 
+#endif 
 }
 
 

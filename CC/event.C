@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.411 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: event.C,v 1.412 2009/02/16 14:37:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1330,9 +1330,13 @@ void AMSEvent::event(){
   if(STATUSFFKEY.status[32]){
     integer ok=AMSJob::gethead()->getstatustable()->statusok(getid(),getrun());
     if(!ok){
-      int skipped=AMSJob::gethead()->getstatustable()->getnextok();
+      int skipped;
+#pragma omp critical (g4)
+{
+      AMSJob::gethead()->getstatustable()->getnextok();
       GCFLAG.IEVENT+=skipped;
       PosInRun+=skipped;
+}
       AMSgObj::BookTimer.stop("EventStatus");
       return;
     }

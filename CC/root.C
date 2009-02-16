@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.174 2009/02/06 17:14:46 choutko Exp $
+//  $Id: root.C,v 1.175 2009/02/16 14:37:00 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3352,3 +3352,35 @@ AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(
 }
 #endif
 
+long long AMSEventR::Size(){
+  long long size=sizeof(fHeader)+sizeof(fStatus)+sizeof(TSelector);
+  size+=sizeof(EcalHitR)*fEcalHit.size();
+  size+=sizeof(EcalClusterR)*fEcalCluster.size();
+  size+=sizeof(Ecal2DClusterR)*fEcal2DCluster.size();
+  size+=sizeof(EcalShowerR)*fEcalHit.size();
+  size+=sizeof(EcalShowerR)*fEcalHit.size();
+  size+=sizeof(RichHitR)*fRichHit.size();
+  size+=sizeof(RichRingR)*fRichRing.size();
+  size+=sizeof(RichRingBR)*fRichRingB.size();
+  size+=sizeof(TofRawClusterR)*fTofRawCluster.size();
+  size+=sizeof(TofRawSideR)*fTofRawSide.size();
+  size+=sizeof(TofClusterR)*fTofCluster.size();
+  size+=sizeof(AntiRawSideR)*fAntiRawSide.size();
+  size+=sizeof(AntiClusterR)*fAntiCluster.size();
+  size+=sizeof(TrRawClusterR)*fTrRawCluster.size();
+  size+=sizeof(TrClusterR)*fTrCluster.size();
+  size+=sizeof(TrRecHitR)*fTrRecHit.size();
+  size+=sizeof(TrTrackR)*fTrTrack.size();
+  size+=sizeof(TrdRawHitR)*fTrdRawHit.size();
+  size+=sizeof(TrdClusterR)*fTrdCluster.size();
+  size+=sizeof(TrdSegmentR)*fTrdSegment.size();
+  size+=sizeof(TrdTrackR)*fTrdTrack.size();
+  size+=sizeof(Level1R)*fLevel1.size();
+  size+=sizeof(Level3R)*fLevel3.size();
+  size+=sizeof(BetaR)*fBeta.size();
+  size+=sizeof(ChargeR)*fCharge.size();
+  size+=sizeof(VertexR)*fVertex.size();
+  size+=sizeof(ParticleR)*fParticle.size();
+  size+=sizeof(DaqEventR)*fDaqEvent.size();
+  return size;
+}
