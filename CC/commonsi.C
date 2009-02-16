@@ -12,7 +12,7 @@ jmp_buf  AMSCommonsI::AB_buf;
 int  AMSCommonsI::AB_catch=-1;
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=306;
+uinteger AMSCommonsI::_build=307;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];

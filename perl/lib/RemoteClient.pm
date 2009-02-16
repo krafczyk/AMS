@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.550 2009/02/16 14:37:00 choutko Exp $
+# $Id: RemoteClient.pm,v 1.551 2009/02/16 18:12:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1724,12 +1724,17 @@ my $fevt=-1;
 #                   warn "Host Bizarre $host \n";
                  }
                }
-                if($hostok){
+                if($hostok ){
                     my @dir=split $run->{Run},$fpath;
                     my $cmd="mkdir -p $dir[0]";
                     my $i=system($cmd);
                     $cmd="scp -2 $host:$fpath $fpath ";
-                    $i=system($cmd);
+                    if($dir[0]=~/^\/dat0/){
+                        $i=1;
+                    }
+                    else{
+                     $i=system($cmd);
+                    }
                     if($i){              
                        warn "$cmd failed \n";
                        $rcp=0;
