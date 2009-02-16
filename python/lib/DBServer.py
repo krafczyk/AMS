@@ -39,7 +39,7 @@ class DBServer:
         self.dummyrun.Priority=priority
         self.dummyrun.DataMC=datamc
         self.dummyrun.filepath=path
-        self.iorp.sendrunevinfo(self.dummyrun,self.tm.Crate)
+        self.iorp.sendRunEvInfo(self.dummyrun,self.tm.Create)
         return 1
 #        except: CORBA.SYSTEM_EXCEPTION, e:
 #            print "Unable to create run ",e
