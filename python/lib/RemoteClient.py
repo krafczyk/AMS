@@ -905,11 +905,15 @@ class RemoteClient:
                                                cmd="mkdir -p "+dir[0]
                                                i=os.system(cmd)
                                                cmd="scp -2 %s:%s %s " %(host,fpath,fpath)
-                                               mutex.release()
-                                               i=os.system(cmd)
-                                               mutex.acquire()
+                                               if(dir[0].find('/dat0/')>=0):
+                                                   mutex.release()
+                                                   i=os.system(cmd)
+                                                   mutex.acquire()
+                                               else:
+                                                   i=1
+                                                   print "scp not executed for ",dir[0]
                                                if(i):
-                                                   print cmd," failed"
+                                                   print cmd," failed nax"
                                                    rcp=0
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
@@ -996,7 +1000,7 @@ class RemoteClient:
                              status="Unchecked"
                              for ntuple in mvntuples:
                                  cmd="rm "+ntuple
-                                 os.system(cmd)
+                                 #os.system(cmd)
                                  print "Validation failed "+cmd
                                  output.write("Validation failed "+cmd)
                                  self.failedcp=self.failedcp+1
@@ -1178,11 +1182,15 @@ class RemoteClient:
                                                cmd="mkdir -p "+dir[0]
                                                i=os.system(cmd)
                                                cmd="scp -2 %s:%s %s " %(host,fpath,fpath)
-                                               mutex.release()
-                                               i=os.system(cmd)
-                                               mutex.acquire()
+                                               if(dir[0].find('/dat0/')>=0):
+                                                   mutex.release()
+                                                   i=os.system(cmd)
+                                                   mutex.acquire()
+                                               else:
+                                                   i=1
+                                                   print "scp not executed for ",dir[0]
                                                if(i):
-                                                   print cmd," failed"
+                                                   print cmd," failed naxx"
                                                    rcp=0
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
