@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.33 2009/01/06 10:07:30 choutko Exp $
+//  $Id: status.C,v 1.34 2009/02/17 16:26:06 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -142,7 +142,7 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
   }
   // try hint +
   int out;
-  if(_Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
+  if(1 || _Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
   else out=_Hint+1;
   static int repeat=0;
  if (out>0){
@@ -180,12 +180,14 @@ bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
  if (out>0){
    _Hint=out;
    //event found;
+#pragma omp critical (g4)
  ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][out-1]);
   return true;   
  }
  else {
    // No Match Found
    if(evt>_Status[0][_Nelem-1] && curevent<_Status[0][_Nelem-1]){
+#pragma omp critical (g4)
       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
    }
    else if(curevent>_Status[0][_Nelem-1]){ 
@@ -194,6 +196,7 @@ bool  AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
    }
    else if(evt<_Status[0][_Nelem-1]){ 
     cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
+#pragma omp critical (g4)
       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][-out]);
    }
    return false;
@@ -303,9 +306,15 @@ integer AMSStatus::getnextok(){
  int skipped=0;
  for(int i=_Hint;i<_Nelem;i++){
    if(_statusok(statusI(_Status[1][i],_Status[3][i]))){
-     ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][i]);
+//  protection in mthreaded mode
+//
+  uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
+     if(offset<_Offset+_Status[2][i]){
+         ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][i]);
      _Hint=i;
      return skipped;
+     }
+     else return 0;
    }
    skipped++;
  }

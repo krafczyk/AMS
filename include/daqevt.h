@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.61 2009/02/06 17:14:52 choutko Exp $
+//  $Id: daqevt.h,v 1.62 2009/02/17 16:26:06 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -165,6 +165,7 @@ void buildRawStructuresEarly();
 void write();
 integer read();
 uint64 getoffset()const {return _Offset;}
+uint64 getsoffset();
 void setoffset(uint64 offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}

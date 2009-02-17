@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.146 2009/02/13 16:30:40 choumilo Exp $
+//  $Id: daqevt.C,v 1.147 2009/02/17 16:26:06 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -937,6 +937,11 @@ void DAQEvent::write(){
 
 void DAQEvent::setoffset(uint64 offset){
       if(fbin)fbin.seekg(offset);
+}
+
+uint64 DAQEvent::getsoffset(){
+      if(fbin)return fbin.tellg();
+       else return 0;
 }
 
 integer DAQEvent::read(){
