@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.34 2009/02/17 16:26:06 choutko Exp $
+//  $Id: status.C,v 1.35 2009/02/17 16:30:54 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -142,7 +142,7 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
   }
   // try hint +
   int out;
-  if(1 || _Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
+  if( _Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
   else out=_Hint+1;
   static int repeat=0;
  if (out>0){
