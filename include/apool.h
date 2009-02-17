@@ -1,4 +1,4 @@
-//  $Id: apool.h,v 1.13 2008/12/08 15:15:19 choutko Exp $
+//  $Id: apool.h,v 1.14 2009/02/17 14:26:06 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__
@@ -114,7 +114,7 @@ private:
   void *_free;
   integer _lc;  // current length
   integer * _LRS;
-  integer _size;  // size in bytes
+  uinteger _size;  // size in bytes
   integer _Count;
   integer _Nblocks;
   integer _Minbl;
@@ -128,10 +128,11 @@ private:
 
   static integer _Mask;  // for some protection 
   static integer _Release;
+#pragma omp threadprivate (_Release)
   AMSNodeMapPool poolMap;
 public:
   AMSaPool(const AMSaPool &o);
-  AMSaPool(integer blsize=0);
+  AMSaPool(integer blsize=524288);
   ~AMSaPool(){erase(0);};
   void erase(integer);
   void ReleaseLastResort();
@@ -140,6 +141,7 @@ public:
   void * insert(size_t); 
   void udelete(void *p);
   static void StHandler();
+   uinteger size()const {return _size*(_Nblocks);}
 };
 
 
@@ -150,6 +152,7 @@ extern AMSaPool UPool;
 #pragma omp threadprivate(UPool)
 #endif
 extern AMSaPool APool;
+#pragma omp threadprivate(APool)
 
 
 

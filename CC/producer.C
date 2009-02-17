@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.126 2009/02/16 14:37:00 choutko Exp $
+//  $Id: producer.C,v 1.127 2009/02/17 14:26:02 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1697,6 +1697,7 @@ bool AMSProducer::Progressing(){
 static integer total=-1;
 static float xt=0;
 static double xte=0;
+#pragma omp threadprivate (total,xt,xte)
 float lt;
     struct timeb  ft;
     ftime(&ft);

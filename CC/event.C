@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.413 2009/02/17 09:31:52 choutko Exp $
+//  $Id: event.C,v 1.414 2009/02/17 14:26:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -83,6 +83,8 @@ extern LMS* lms;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 AMSEvent* AMSEvent::_Head[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int AMSEvent::_Wait[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uinteger AMSEvent::_Size[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;

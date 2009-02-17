@@ -11,6 +11,7 @@ AMSDATADIR_DEF AMSDATADIR;
 jmp_buf  AMSCommonsI::AB_buf;
 int  AMSCommonsI::AB_catch=-1;
 
+uinteger AMSCommonsI::_MaxMem=1400000000;
 char AMSCommonsI::_version[]="v4.00";
 uinteger AMSCommonsI::_build=307;
 float AMSCommonsI::_mips=1000;
@@ -113,8 +114,16 @@ void AMSCommonsI::init(){
          cout <<"AMSTrIdSoftI-I-Identified as BigEndian";
          AMSDBc::BigEndian=1;
        }
-       if(b64)cout <<" 64 bit machine."<<endl;
-       else cout <<" 32 bit machine."<<endl;
+       if(b64){
+         _MaxMem=4294967295;
+         cout <<" 64 bit machine."<<_MaxMem<<endl;
+       }
+       else {
+        if(strstr(u.machine,"_64"))_MaxMem=3000000000;
+        else if(strstr(u.release,"hugemem"))_MaxMem=2300000000;
+        cout <<" 32 bit machine. "<<_MaxMem<<endl;
+       }
+        
        AMSDBc dummy;
        AMSDBc::amsdatabase=new char[strlen(AMSDATADIR.amsdatabase)+1];
        strcpy(AMSDBc::amsdatabase,AMSDATADIR.amsdatabase);

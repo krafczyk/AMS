@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.15 2008/12/08 15:15:17 choutko Exp $
+//  $Id: apool.C,v 1.16 2009/02/17 14:26:01 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -6,9 +6,9 @@
 #include <new>
 
 
-AMSaPool APool(512000);
+AMSaPool APool(524288);
 #ifndef __UPOOL__
-AMSaPool UPool(512000);
+AMSaPool UPool(524288);
 #endif
 
 
@@ -133,6 +133,7 @@ void AMSaPool::_grow(size_t st){
     _Nblocks++;
     _head->_length=_size > st ? st*(_size/st): st; 
     _head->_address = new char[_head->_length];
+        
     _free=(void*)(_head->_address);
     _lc=0;
     //cout <<" grow 0 "<<_head->_length<<endl;

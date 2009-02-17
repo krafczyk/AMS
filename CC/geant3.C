@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.122 2009/02/16 14:37:00 choutko Exp $
+//  $Id: geant3.C,v 1.123 2009/02/17 14:26:02 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -970,12 +970,18 @@ extern "C" void guout_(){
     AMSEvent::gethead()->write(trig);
   }
 #pragma omp critical (g2)
+  AMSEvent::ThreadSize()=UPool.size();
   UPool.Release(0);
   AMSEvent::gethead()->remove();
   delete AMSEvent::gethead();
   UPool.Release(1);
   AMSEvent::sethead(0);
   UPool.erase(2000000);
+  if( AMSEvent::Waitable() && AMSEvent::TotalSize()>AMSEvent::MaxMem()){
+    cerr<<"  AMSaPool-W-MemoryTooBig "<<AMSEvent::TotalSize()<<" Thread "<<AMSEvent::get_thread_num()<<" will be idled "<<endl;
+    AMSEvent::ThreadWait()=1;
+    AMSEvent::ThreadSize()=UPool.size();
+  }
   AMSgObj::BookTimer.stop("GUOUT");
 
   // allow termination via time via datacard
@@ -1099,9 +1105,9 @@ int nchunk=MISCFFKEY.ChunkThreads;
 #endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
-#pragma omp parallel  default(none),shared(std::cout,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
+#pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
 {
- 
+   AMSEvent::ResetThreadWait(1);
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){
 
@@ -1116,7 +1122,15 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
 
         //cout <<" beforebefore "<<kevt<<" "<<omp_get_thread_num()<<" "<<endl;
        //AMSTimeID*  he=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
-
+   int isleep=cpulimit+0.501;
+   while(AMSEvent::ThreadWait()){
+    sleep(isleep);
+    if(AMSEvent::TotalSize()<AMSEvent::MaxMem()/2){
+   cout<<"  AMSaPool-I-Thread "<<AMSEvent::get_thread_num()<<" will be resumed "<<AMSEvent::TotalSize()<<endl;
+    AMSEvent::ThreadSize()=AMSEvent::AvMem();
+    AMSEvent::ThreadWait()=0;
+    }
+   }
        pdaq = new DAQEvent();
         bool ok;
 again:
@@ -1209,6 +1223,13 @@ if(AMSJob::gethead()->isMonitoring()){
     }
    }
 // ---> endof "kevt<nchunk" for-loop
+#pragma omp critical (g2)
+{
+
+   AMSEvent::ThreadSize()=UPool.size();
+   AMSEvent::ThreadWait()=-1;
+   AMSEvent::ResetThreadWait(0);
+}
 #ifdef _OPENMP        
 //  this clause is because intel throutput mode doesn;t work
 //   so simulating it

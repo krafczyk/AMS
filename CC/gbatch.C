@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.92 2009/02/13 11:47:36 choutko Exp $
+//  $Id: gbatch.C,v 1.93 2009/02/17 14:26:02 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -144,7 +144,7 @@ cout <<"  JUMP attempted "<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
     //AMSStatus::setmode(0);
-    AMSFFKEY.CpuLimit=30;
+    AMSFFKEY.CpuLimit=10;
 }
     break;
   case SIGQUIT:

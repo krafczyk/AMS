@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.2 2009/02/06 17:14:52 choutko Exp $
+//  $Id: commonsi.h,v 1.3 2009/02/17 14:26:06 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -38,6 +38,7 @@ private:
  static uinteger _os;
  static char _osname[255];
  static char _osversion[255];
+ static uinteger _MaxMem;
  static float _mips;
  static pid_t _pid;
  static bool _remote;
@@ -51,6 +52,7 @@ static int  AB_catch;
  static integer getbuildno()  {return _build;}
  static integer getmips()  {return integer(_mips);}
  static integer getpid()  {return integer(_pid);}
+ static uinteger MaxMem(){return _MaxMem;}
  static void setremote(bool remote){_remote=remote;}
  static bool remote(){return _remote;}
  static integer getosno()  {return _os;}

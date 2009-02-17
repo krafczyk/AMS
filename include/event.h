@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.86 2009/02/13 11:47:37 choutko Exp $
+//  $Id: event.h,v 1.87 2009/02/17 14:26:06 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -107,6 +107,8 @@ static integer SRun;
 static integer PosInRun;
 static integer PosGlobal;
 static AMSEvent * _Head[maxthread];
+static int  _Wait[maxthread];
+static uinteger _Size[maxthread];
 static uint64 _RunEv[maxthread];
 static AMSNodeMap  EventMap;
 #pragma omp threadprivate(EventMap)
@@ -255,6 +257,25 @@ static void setfile(const char file[]);
 static integer IsTest();
 static void SetShuttlePar();
 static AMSEvent * gethead()  {return _Head[get_thread_num()];}
+static int & ThreadWait()  {return _Wait[get_thread_num()];}
+static uinteger & ThreadSize()  {return _Size[get_thread_num()];}
+static bool Waitable(){
+int zero=0;
+for (int k=0;k<AMSEvent::get_num_threads();k++){
+ if(k!=AMSEvent::get_thread_num() && _Wait[k]==0)zero++;
+}
+return zero!=0;
+}
+static void ResetThreadWait(int f=0){
+if(f)for(int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)_Wait[k]=0;
+else{
+for(int k=0;k<sizeof(_Wait)/sizeof(_Wait[0]);k++)if(_Wait[k]>0 && !Waitable())_Wait[k]=0;
+}
+}
+
+static uinteger TotalSize(){integer s=0;for(int k=0;k<get_num_threads();k++)s+=_Size[k];return s;}
+static uinteger MaxMem(){return AMSCommonsI::MaxMem();}
+static uinteger AvMem(){int nact=0;for(int k=0;k<get_num_threads();k++)if(_Wait[k]==0)nact++;return nact>0?TotalSize()/nact:MaxMem()/maxthread;}
 static integer debug;
 AMSlink * getheadC(const char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
