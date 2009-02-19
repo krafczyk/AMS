@@ -42,9 +42,9 @@ select * from productionset where name like '&&year';
 
 -- You may want to check the table again before executing the next line
 
-rollback; -- for test purposes only
+--rollback; -- for test purposes only
 
---COMMIT;
+COMMIT;
 
 --
 -- Create snapshots
