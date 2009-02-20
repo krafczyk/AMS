@@ -13,7 +13,7 @@ int  AMSCommonsI::AB_catch=-1;
 
 uinteger AMSCommonsI::_MaxMem=1400000000;
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=307;
+uinteger AMSCommonsI::_build=309;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -173,6 +173,7 @@ void AMSCommonsI::init(){
           else if(strstr(syscom,"Athlon"))_cor=1.15;
           else if(strstr(syscom,"Core(TM)2 Duo"))_cor=1.35;
           else if(strstr(syscom,"Phenom"))_cor=1.3;
+          else if(strstr(syscom,"i7"))_cor=1.6;
           else cerr<<"AMSCommonsI-E-UnableToMatchName "<<syscom<<endl;
           _mips*=_cor;
         }

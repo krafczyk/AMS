@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.93 2009/02/17 14:26:02 choutko Exp $
+//  $Id: gbatch.C,v 1.94 2009/02/20 13:10:11 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -10,6 +10,7 @@
 #include "geantnamespace.h"
 #include "producer.h"
 #include <malloc.h>
+#include <event.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -49,7 +50,7 @@ std::set_unexpected (my_unexpected);
       using namespace gams;
 //     *signal(SIGABRT,handler);
      *signal(SIGFPE, handler);
-     *signal(SIGCONT, handler);
+     //*signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);
      *signal(SIGINT, handler);
@@ -156,7 +157,7 @@ cout <<"  JUMP attempted "<<endl;
       break;
   case SIGHUP:
 #ifdef __CORBA__
-   cout <<"got sighup "<<endl;
+   cout <<"got sighup "<<AMSEvent::get_thread_num()<<endl;
 if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing()){
    cout <<" sending ... "<<endl;
    AMSProducer::gethead()->sendCurrentRunInfo(true);

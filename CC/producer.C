@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.127 2009/02/17 14:26:02 choutko Exp $
+//  $Id: producer.C,v 1.128 2009/02/20 13:10:11 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -109,7 +109,8 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 
 }
 
-void AMSProducer::sendid(){
+void AMSProducer::sendid(int cpuf){
+if(!cpuf){
     _pid.Mips=AMSCommonsI::getmips();
     _pid.threads=AMSEvent::get_num_threads_pot();
     _pid.threads_change=0;
@@ -134,16 +135,16 @@ else if(!ok){
         pc+=(const char*)_pid.Interface;
         FMessage((const char*)pc,DPS::Client::CInAbort);
 }
-
+}
 
 again:
 
      list<DPS::Producer_var>::iterator li = _plist.begin();
-     time_t cput=5*AMSFFKEY.CpuLimit;
+     time_t cput=6*AMSFFKEY.CpuLimit;
      time_t cpug=12*3600;
      if(!IsLocal() && cput<cpug)cput=cpug; 
-     cout <<"   TimeOut sending "<<cput<<endl;
-     cout <<"  Mips:  "<<_pid.Mips<<endl;
+    if(cpuf)cput=cpuf; 
+    cout <<"   TimeOut sending "<<cput<<endl;
   try{
      if(!((*li)->sendId(_pid,_pid.Mips,cput))){
        if(_pid.uid)sleep(10);
@@ -593,12 +594,15 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
  fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
+ if(!_Solo)sendid(1800);
  int ntry=5;
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
+  if(!_Solo)sendCurrentRunInfo();
   cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
   if(!system((const char*)fcopy)){
    cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
+  if(!_Solo)sendCurrentRunInfo();
    if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
      !(means && means[0]=='r' && means[1]=='f')){
     AString rm="rm -rf ";
@@ -643,6 +647,7 @@ ntend->Insert=statbuf.st_ctime;
 ntend->size=statbuf.st_size/1024./1024.+0.5;
 ntend->ErrorNumber=0;
 
+  if(!_Solo)sendCurrentRunInfo();
 //add crc
    if(!AMSTimeID::_Table){
      AMSTimeID::_InitTable;
@@ -680,6 +685,7 @@ ntend->ErrorNumber=0;
          fbin.close();
          ntend->crc=~crc;
    }
+  if(!_Solo)sendCurrentRunInfo();
 // add validation
 if(type!=DPS::Producer::RawFile){
 const char *exedir=getenv("ExeDir");
@@ -735,6 +741,7 @@ else{
 LMessage(AMSClient::print(*ntend,"CloseDST"));
 
 cout << " nt end " <<ntend->Insert<<" "<<ntend->Begin<<" "<<ntend->End<<endl;
+ if(!_Solo)sendid(int(6*AMSFFKEY.CpuLimit));
  _Transfer=false;
 if(_Solo){
   return;
@@ -1748,7 +1755,7 @@ char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);
 const char *nvr=AMSCommonsI::getosversion(); 
-int maxtries=6;
+int maxtries=7;
 int delay=1;
 if(exedir && nve && AMSCommonsI::getosname()){
  char t1[1024];
@@ -1757,7 +1764,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
  setenv("TNS_ADMIN",t1,1);
  for (int tries=0;tries<maxtries;tries++){
   sleep(delay);
-  delay+=3600*(tries+1);
+  delay*=8;
   AString systemc(exedir);
   systemc+="/";
   systemc+=AMSCommonsI::getosname();

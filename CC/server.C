@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.148 2009/02/16 18:12:50 choutko Exp $
+//  $Id: server.C,v 1.149 2009/02/20 13:10:11 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2644,6 +2644,17 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, float Mips, uintege
 //       cout <<" exiting Producer_impl::sendId 1"<<endl;
        return true;
       }
+      else if(((*j)->id).uid==cid.uid && (*j)->Status ==DPS::Client::Active){
+       time_t tt;
+       time(&tt);
+       (*j)->LastUpdate=tt;
+         if(timeout>_KillTimeOut)(*j)->TimeOut=timeout;
+         else (*j)->TimeOut=_KillTimeOut;
+          cout <<"  timeout was  "<<(*j)->TimeOut<<" now "<<timeout<<endl;
+       DPS::Client::ActiveClient_var acv=*j;
+       PropagateAC(acv, DPS::Client::Update);
+       return true;
+      }
      }
      if(_parent->IsMC() && cid.uid!=0){
       // Check if it is a foreign guy
@@ -2694,7 +2705,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, float Mips, uintege
          //  run not found, aborting client
         _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFoundAndForeignClientTestFailed "));
          cid.uid=0;
-         if(dstinfo->DieHard==1)cid.Interface=(const char*)"RunNotFoundOrAnotherInstanceOfMCProducerActiveWaitForTimeOutIfCrashed";
+         if(dstinfo->DieHard==1)cid.Interface=(const char*)"RunNotFoundOrAnotherInstanceOfProducerActiveWaitForTimeOutIfCrashed";
          else cid.Interface=(const char*)"DBProblemFound";
          return false;
         }
@@ -3142,7 +3153,7 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
 
           cout << "  Threads found "<<(*i)->ClientsAllowed<<" "<<(*i)->ClientsRunning<<endl;
             if((*i)->ClientsAllowed<(*i)->ClientsRunning+threads-1){
-              threads=(*i)->ClientsAllowed-(*i)->ClientsRunning+1;
+              threads=(*i)->ClientsAllowed-(*i)->ClientsRunning+1+1;
                if(threads<=0)threads=1;
             }
                break;
