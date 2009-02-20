@@ -8,7 +8,7 @@ ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version | grep 4.1)
+VERGCC       := $(shell gcc --version | grep \ 4.)
 
 ifdef VER
 NEW = 
@@ -74,7 +74,7 @@ else
   FORTRAN2_LIBS=
   FORTRAN_LIBS=-lg2c 
 ifdef VERGCC
-  FORTRAN_LIBS+= -lgfortran 
+  FORTRAN_LIBS= -lgfortran 
 endif
 endif
 
