@@ -58,10 +58,15 @@ c. To be done:
 
 
 
-Fix all histos call by adding #pragma omp critical /up to developpers/
 
 Fix all calibration issues  /up to developpers/
 
 
 
-  
+d. Linking
+
+under SLC4 /obsolete/ creates exec with many procecesses 
+under fedora 8,9, SLC5 creates exec with one mthreaded process  /recommended/
+
+
+   
