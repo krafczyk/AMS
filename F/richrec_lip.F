@@ -46,6 +46,7 @@
 * ... histogram booking
 
       data idummy/0/
+      data idumdisp/0/
 
       if(idummy.eq.0)then
 
@@ -345,19 +346,26 @@
       itevt = ievt
 
 * --- store hit data
-      nbhits = nbhits_ev
-*      print*,'nbhits = ',nbhits
-*      print*,'nbhitsmax_ntup_ev = ',nbhitsmax_ntup_ev
-      do i=1,nbhits                                
-         hitscoo(1,i)   = hitscoo_ev(1,i)
-         hitscoo(2,i)   = hitscoo_ev(2,i)
-         hitscoo(3,i)   = hitscoo_ev(3,i)
-         hitsnpe(i)     = hitsnpe_ev(i)
-         hitspmt(i)     = hitspmt_ev(i)   ! pmt number : int(int(hitspmt(i)/10)/16) 
-                                          ! pixel      : mod(int(hitspmt(i)/10),16) 
-                                          ! gain       : mod(hitspmt(i),10) 
-         hitsnpe_sim(i) = hitsnpe_sim_ev(i)
+
+      nbhits = 0
+      i = 0
+
+      do while(i.lt.nbhits_ev)
+         i = i+1
+         if(hitsnpe_ev(i).ge.0.) then ! exclude bad hits
+            nbhits = nbhits+1
+            hitscoo(1,nbhits)   = hitscoo_ev(1,i)
+            hitscoo(2,nbhits)   = hitscoo_ev(2,i)
+            hitscoo(3,nbhits)   = hitscoo_ev(3,i)
+            hitsnpe(nbhits)     = hitsnpe_ev(i)
+            hitspmt(nbhits)     = hitspmt_ev(i) ! pmt number : int(int(hitspmt(i)/10)/16) 
+                                                ! pixel      : mod(int(bevent_hid(i)/10),16) 
+                                                ! gain       : mod(bevent_hid(i),10) 
+            hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
+            hitstat(nbhits)     = 0 ! good hit
+         endif
       enddo        
+
       nbhitsmax_ntup = nbhitsmax_ntup_ev !max nb hits in ntuple
 
 * --- initialize simulated beta
@@ -967,6 +975,20 @@
             rprob = 0.
          endif
       enddo
+
+*===============
+* EVENT DISPLAY
+*===============
+
+* --- Event display
+      if(idispflag.eq.1) then
+         if(idumdisp.eq.0) then
+            print*,'initializing display...'
+            call richdsp(-1,' ')
+            idumdisp=1
+         endif
+         call lipdisplay
+      endif
 
 *====================
 * CONTROL HISTOGRAMS

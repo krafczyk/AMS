@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.111 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: richrec.C,v 1.112 2009/02/20 19:30:28 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2357,6 +2357,9 @@ int goodLIPREC() {
 }
 
 void richiniteventlip() {
+
+  // display flag
+  LIPC2F.idispflag = RICRECFFKEY.lipdisp;
 
   // job data
   LIPC2F.jobc_cp_c2f = 0; // means this is simulation - should come from code

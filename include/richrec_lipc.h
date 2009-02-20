@@ -36,7 +36,7 @@
      +        nradts_c2f,
      +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, 
      +        prad_main,iflag_tof,prad_tof,ntofclu,istatus_tof,ilayer_tof,
-     +        ibar_tof,irecnumb,itrknumb
+     +        ibar_tof,irecnumb,itrknumb,idispflag
 
       common /lipc2f/ 
                       ! [ JOB DATA ]
@@ -126,7 +126,9 @@
      +                  errcoo_tof(3,nmaxtofclu),  ! TOF cluster coordinate errors (cm)
                       ! [ TRACK AND RECONSTRUCTION COUNTERS ]
      +                  irecnumb,                  ! Number of LIP recs performed so far (minus one)
-     +                  itrknumb                   ! Number of tracks used by LIP so far (minus one)
+     +                  itrknumb,                  ! Number of tracks used by LIP so far (minus one)
+                      ! [ FLAGS FOR LIP CODE ]
+     +                  idispflag                  ! LIP display flag: 0=off, 1=on
 
 * ===============================================================================================
 

@@ -201,7 +201,7 @@
 *****************************
 
         integer nbhits, hitsadc, hitsnpe_sim, 
-     +          hitspmt, nbhitsmax_ntup
+     +          hitspmt, hitstat, nbhitsmax_ntup
         real hitscoo, hitsnpe
 *
 	common /richdatc/ 
@@ -211,7 +211,10 @@
      +         hitsnpe_sim(nbhitsmax),! simul signal (npe)
      +         hitspmt(nbhitsmax),    ! (pmtnumber+16*pixelnumber)*10 + gain  
      +         hitscoo(3,nbhitsmax),  ! coordinates
-     +         hitsnpe(nbhitsmax)     ! nb photo electrons from adc   
+     +         hitsnpe(nbhitsmax),    ! nb photo electrons from adc   
+     +         hitstat(nbhitsmax)     ! hit status flag:
+                                      !    0 = good
+                                      !    1 = TB2002 bad 
 
 *****************************
 *** CODE FROM richtrk.inc ***

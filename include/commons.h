@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.261 2009/02/13 16:30:49 choumilo Exp $
+//  $Id: commons.h,v 1.262 2009/02/20 19:30:29 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1028,6 +1028,7 @@ integer liprflag[2];  // LIP reconstruction flags
 float   lipsigma[4];  // LIP residuals sigmas
 float   lipdcut[2];   // LIP distance cut in sigmas
 float   lipznorm[2];  // LIP charge overall factors
+integer lipdisp;      // LIP display flag
 };
 #define RICRECFFKEY COMMON_BLOCK(RICRECFFKEY,ricrecffkey)
 COMMON_BLOCK_DEF(RICRECFFKEY_DEF,RICRECFFKEY);
@@ -1181,6 +1182,9 @@ class LIPC2F_DEF{
   // track and reconstruction counters
   int irecnumb;
   int itrknumb;
+
+  // flags for lip code
+  int idispflag;
 };
 #define LIPC2F COMMON_BLOCK(LIPC2F,lipc2f)
 COMMON_BLOCK_DEF(LIPC2F_DEF,LIPC2F);

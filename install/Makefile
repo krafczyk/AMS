@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.67 2009/02/16 14:37:00 choutko Exp $
+#  $Id: Makefile,v 1.68 2009/02/20 19:30:29 barao Exp $
 
 #P.Zuccon june 2005
 
@@ -265,7 +265,8 @@ endif
 FILES= 	$(COMMON_FILES) \
 	$(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)daqevt.C $(SCC)geant3.C      \
 	$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F $(SFF)gskpho.F  \
-	$(SFF)flinit.F  $(SFF)gbirk.F   $(SFF)rndm.F   $(SCC)timeid.C $(SCC)ntuple.C 
+	$(SFF)flinit.F  $(SFF)gbirk.F   $(SFF)rndm.F   $(SCC)timeid.C $(SCC)ntuple.C \
+	$(SFF)richnodisp_lip.F
 
 ifndef PGTRACK
 FILES +=$(SFF)TrackFit_utils.F
@@ -281,7 +282,8 @@ OBJECTS+= $(BIN)mtx.o
 #------------------------------------------------------------------------------
 # File list for interactive gbatch compilation
 
-FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)TrackFit_utils.F $(SCC)daqevt.C
+FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)TrackFit_utils.F $(SCC)daqevt.C \
+	$(SFF)richdisp_lip.F
 
 MYOBJS1:=$(FILESI:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 

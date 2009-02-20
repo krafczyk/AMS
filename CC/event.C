@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.417 2009/02/20 14:12:17 choutko Exp $
+//  $Id: event.C,v 1.418 2009/02/20 19:30:28 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1983,12 +1983,12 @@ void AMSEvent::_rerichevent(){
   // LIP reconstruction
   if((RICRECFFKEY.recon[0]/10)%10) {
     AMSgObj::BookTimer.start("RERICHLIP");
-    //AMSRichRingNewSet NewRings;
-    //NewRings.init();
-    //NewRings.build();
+    AMSRichRingNewSet NewRings;
+    NewRings.init();
+    NewRings.build();
     //cout << "------------------------------ LIP results " << endl;
     //cout << "Number of LIP Rings = " << NewRings.NumberOfRings() << endl;
-    //NewRings.reset();
+    NewRings.reset();
     AMSgObj::BookTimer.stop("RERICHLIP");
   }
 
