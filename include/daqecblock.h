@@ -3,9 +3,7 @@
 #ifndef __AMSDAQECBLOCK__
 #define __AMSDAQECBLOCK__
 #include "typedefs.h"
-#include <iostream.h>
 #include "link.h"
-#include <fstream.h>
 #include "ecaldbc.h"
 // 
 //

@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.87 2009/02/17 14:26:06 choutko Exp $
+//  $Id: event.h,v 1.88 2009/02/20 14:12:20 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -10,7 +10,7 @@
 
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
-#include <fstream.h>
+#include <fstream>
 #include "job.h"
 #include "typedefs.h"
 #include "upool.h"

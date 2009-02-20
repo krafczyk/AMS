@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.78 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: charge.C,v 1.79 2009/02/20 14:12:16 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -14,8 +14,6 @@
 #include "extC.h"
 #include "upool.h"
 #include "charge.h"
-#include <iostream.h>
-#include <fstream.h>
 #include <stdlib.h>
 #include "amsstl.h"
 #include "ntuple.h"

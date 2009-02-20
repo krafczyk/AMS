@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.34 2009/02/13 16:30:40 choumilo Exp $
+//  $Id: antidbc02.C,v 1.35 2009/02/20 14:12:16 choutko Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -8,8 +8,6 @@
 #include "amsdbc.h"
 #include <stdio.h>
 #include <time.h>
-#include <iostream.h>
-#include <fstream.h>
 #include "tofdbc02.h"
 #include "antidbc02.h"
 #include "antirec02.h"

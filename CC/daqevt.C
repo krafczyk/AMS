@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.147 2009/02/17 16:26:06 choutko Exp $
+//  $Id: daqevt.C,v 1.148 2009/02/20 14:12:16 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -14,7 +14,7 @@
 #include <sys/file.h>
 #include <ctype.h>
 #include "astring.h"
-#include <fstream.h>
+#include <fstream>
 #include <unistd.h>
 
 #ifdef _PGTRACK_

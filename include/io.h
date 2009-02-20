@@ -1,4 +1,4 @@
-//  $Id: io.h,v 1.14 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: io.h,v 1.15 2009/02/20 14:12:20 choutko Exp $
 // Author V. Choutko 2-feb-1997
 //
 // Feb  10, 1997.  ak.  implement friend class
@@ -11,8 +11,8 @@
 #include "point.h"
 #include "cern.h"
 #include "link.h"
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <time.h>

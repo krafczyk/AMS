@@ -1,10 +1,8 @@
-//  $Id: trddbc.h,v 1.23 2007/03/23 10:35:39 choutko Exp $
+//  $Id: trddbc.h,v 1.24 2009/02/20 14:12:20 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include "typedefs.h"
 
-#include <iostream.h>
-#include <fstream.h>
 
 namespace trdconst{
 // counting always from 0 and from top to bottom

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.123 2009/02/17 14:26:02 choutko Exp $
+//  $Id: geant3.C,v 1.124 2009/02/20 14:12:17 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -31,7 +31,6 @@
 #include "cont.h"
 #include "trrec.h"
 #include "daqevt.h"
-#include <iostream.h>
 #include "richdbc.h"
 #include "richid.h"
 #include "producer.h"

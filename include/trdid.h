@@ -1,9 +1,8 @@
-//  $Id: trdid.h,v 1.11 2008/04/15 15:35:17 choutko Exp $
+//  $Id: trdid.h,v 1.12 2009/02/20 14:12:20 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
 #include "amsdbc.h"
-#include <iostream.h>
 #include "amsstl.h"
 #include "commons.h"
 #include "link.h"

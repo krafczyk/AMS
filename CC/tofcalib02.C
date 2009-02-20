@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.35 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.36 2009/02/20 14:12:17 choutko Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -19,9 +19,6 @@
 #include "tofcalib02.h"
 #include "particle.h"
 #include "user.h"
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
 //

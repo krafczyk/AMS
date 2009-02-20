@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.35 2008/05/09 09:37:08 choutko Exp $
+//  $Id: trid.h,v 1.36 2009/02/20 14:12:20 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -7,7 +7,6 @@
 #define __AMSTRID__
 #include "typedefs.h"
 #include "amsdbc.h"
-#include <iostream.h>
 #include "amsstl.h"
 #include "commons.h"
 #include "link.h"

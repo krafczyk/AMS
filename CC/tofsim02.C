@@ -1,10 +1,9 @@
-//  $Id: tofsim02.C,v 1.46 2008/12/19 15:01:56 choumilo Exp $
+//  $Id: tofsim02.C,v 1.47 2009/02/20 14:12:17 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
 //  !!!!! 15.03.06   E.Choumilov - complete rebuild caused by new readout(new TDC)
 #include "tofdbc02.h"
-#include <iostream.h>
 #include <stdio.h>
 #include "typedefs.h"
 #include "cern.h"

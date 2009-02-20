@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.67 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: trigger102.C,v 1.68 2009/02/20 14:12:17 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -16,9 +16,6 @@
 #include "antirec02.h"
 #include "ecalrec.h"
 #include "ntuple.h"
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
 using namespace std;

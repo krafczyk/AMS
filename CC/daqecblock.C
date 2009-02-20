@@ -1,8 +1,6 @@
 // AMS02 version 16.11.06 by E.Choumilov
 #include "typedefs.h"
-#include <iostream.h>
 #include "link.h"
-#include <fstream.h>
 #include "cern.h"
 #include "commons.h"
 #include "event.h"

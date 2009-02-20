@@ -17,9 +17,6 @@
 #include "anticalib02.h"
 #include "particle.h"
 #include "user.h"
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
 #ifdef _PGTRACK_

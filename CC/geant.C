@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.115 2009/02/04 12:18:53 choutko Exp $
+//  $Id: geant.C,v 1.116 2009/02/20 14:12:17 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -44,7 +44,6 @@
 #ifndef _PGTRACK_
 #include "trid.h"
 #endif
-#include <new.h>
 #include <limits.h>
 #include "extC.h"
 //#include <trigger3.h>
@@ -61,7 +60,6 @@
 #include "cont.h"
 #include "trrec.h"
 #include "daqevt.h"
-#include <iostream.h>
 #include "status.h"
 #include "geantnamespace.h"
 #include "timeid.h"

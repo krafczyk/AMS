@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.82 2009/02/13 16:30:40 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.83 2009/02/20 14:12:17 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -8,9 +8,8 @@
 #include "job.h"
 #include "ecaldbc.h"
 #include <stdio.h>
-#include <iostream.h>
-#include <fstream.h>
 #include "ecalcalib.h"
+#include <fstream>
 //
 using namespace ecalconst;
 ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.

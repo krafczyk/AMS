@@ -1,8 +1,7 @@
-//  $Id: ecalrec.C,v 1.117 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: ecalrec.C,v 1.118 2009/02/20 14:12:17 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
-#include <iostream.h>
 #include <stdio.h>
 #include "typedefs.h"
 #include "cern.h"

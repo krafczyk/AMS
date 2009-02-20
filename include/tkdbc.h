@@ -1,11 +1,9 @@
-//  $Id: tkdbc.h,v 1.18 2008/05/09 09:37:08 choutko Exp $
+//  $Id: tkdbc.h,v 1.19 2009/02/20 14:12:20 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
 #include "typedefs.h"
 
-#include <iostream.h>
-#include <fstream.h>
 #include "amsdbc.h"
 
 namespace trid{

@@ -1,6 +1,5 @@
 // v1.0 8.12.2000 by E.Choumilov
 //
-#include <iostream.h>
 #include <stdio.h>
 #include "typedefs.h"
 #include "cern.h"
@@ -24,9 +23,6 @@
 #include "trigger102.h"
 #include "trigger302.h"
 #include "particle.h"
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
 #include <time.h>
 #include "timeid.h"
 #ifdef _PGTRACK_

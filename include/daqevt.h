@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.62 2009/02/17 16:26:06 choutko Exp $
+//  $Id: daqevt.h,v 1.63 2009/02/20 14:12:20 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -11,9 +11,8 @@
 #define __AMSDAQEVT__
 #include "id.h"
 #include "typedefs.h"
-#include <iostream.h>
 #include "link.h"
-#include <fstream.h>
+#include <fstream>
 #include <time.h>
 #include <dirent.h>
 typedef integer (*pid)(int16u id);

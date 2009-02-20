@@ -1,10 +1,8 @@
-//  $Id: daqs2block.C,v 1.36 2009/02/13 16:30:40 choumilo Exp $
+//  $Id: daqs2block.C,v 1.37 2009/02/20 14:12:16 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 #include "typedefs.h"
-#include <iostream.h>
 #include "link.h"
-#include <fstream.h>
 #include "cern.h"
 #include "commons.h"
 #include "event.h"

@@ -1,9 +1,8 @@
-//  $Id: ecid.h,v 1.16 2008/06/26 09:30:00 choumilo Exp $
+//  $Id: ecid.h,v 1.17 2009/02/20 14:12:20 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include "typedefs.h"
 #include "amsdbc.h"
-#include <iostream.h>
 #include "amsstl.h"
 #include "commons.h"
 #include "link.h"

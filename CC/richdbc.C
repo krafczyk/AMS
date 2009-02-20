@@ -1,7 +1,6 @@
-//  $Id: richdbc.C,v 1.57 2008/12/08 15:15:17 choutko Exp $
+//  $Id: richdbc.C,v 1.58 2009/02/20 14:12:17 choutko Exp $
 #include"richdbc.h"
 #include<math.h>
-#include<iostream.h>
 #include"richid.h"
 
 geant RICHDB::_RICradpos=RICradposs;

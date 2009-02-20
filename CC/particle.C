@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.169 2009/02/13 11:47:36 choutko Exp $
+//  $Id: particle.C,v 1.170 2009/02/20 14:12:17 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -9,8 +9,6 @@
 #include "extC.h"
 #include "upool.h"
 #include "charge.h"
-#include <iostream.h>
-#include <fstream.h>
 #include <stdlib.h>
 #include "particle.h"
 #include "mccluster.h"

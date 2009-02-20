@@ -7,8 +7,6 @@
 #include <string.h>
 #include "typedefs.h"
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
 #include "tofdbc02.h"
 #include "antidbc02.h"
 #include "job.h"

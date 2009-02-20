@@ -1,11 +1,10 @@
-//  $Id: status.C,v 1.35 2009/02/17 16:30:54 choutko Exp $
+//  $Id: status.C,v 1.36 2009/02/20 14:12:17 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
 #include "amsgobj.h"
 #include "job.h"
 #include "amsstl.h"
-#include <iostream.h>
 #include "event.h"
 #include "timeid.h"
 integer AMSStatus::_Mode=0;

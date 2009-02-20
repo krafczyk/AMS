@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.38 2009/02/13 16:30:49 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.39 2009/02/20 14:12:20 choutko Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -15,8 +15,6 @@
 #include "extC.h"
 #include <string.h>
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
 #include "job.h"
 // #include <daqblock.h>
 //

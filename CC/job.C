@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.622 2009/02/13 16:30:41 choumilo Exp $
+// $Id: job.C,v 1.623 2009/02/20 14:12:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -23,8 +23,6 @@
 #include <math.h>
 #include "amsdbc.h"
 #include "commons.h"
-#include <iostream.h>
-#include <fstream.h>
 #include "extC.h"
 
 #ifdef _PGTRACK_

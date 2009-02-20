@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.64 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.65 2009/02/20 14:12:17 choutko Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -6,8 +6,6 @@
 #include "job.h"
 #include "tofdbc02.h"
 #include <stdio.h>
-#include <iostream.h>
-#include <fstream.h>
 #include "tofid.h"
 #include "tofsim02.h"
 #include "tofrec02.h"

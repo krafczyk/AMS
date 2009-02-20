@@ -1,8 +1,6 @@
-//  $Id: user.C,v 1.21 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: user.C,v 1.22 2009/02/20 14:12:17 choutko Exp $
 #include "typedefs.h"
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
 #include "cern.h"
 #include <stdio.h>
 #include "user.h"

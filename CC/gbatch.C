@@ -1,8 +1,7 @@
-//  $Id: gbatch.C,v 1.94 2009/02/20 13:10:11 choutko Exp $
-#include <iostream.h>
+//  $Id: gbatch.C,v 1.95 2009/02/20 14:12:17 choutko Exp $
+#include <iostream>
 #include <signal.h>
 #include <unistd.h> 
-#include <new.h>
 #include "upool.h"
 #include "apool.h"
 #include "status.h"
