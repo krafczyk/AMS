@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.54 2008/08/08 08:13:22 ams Exp $
+#  $Id: monitorUI.pm,v 1.55 2009/02/23 16:10:46 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -544,6 +544,7 @@ sub notebook_create_pages {
             if($i==0){
                 	@titles = (
 	    "HostName",
+            "Clients",
 	    "Running Pr",
 	    "Allowed Pr",
 	    "Failed Pr",

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.134 2008/09/17 11:51:13 choutko Exp $
+# $Id: Monitor.pm,v 1.135 2009/02/23 16:10:46 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -682,11 +682,20 @@ sub getactivehosts{
      my $totproc=0;
     my $i;
     for $i (0 ... $#{$Monitor::Singleton->{ahlp}}){
-     $#text=-1;
-     my $hash=$Monitor::Singleton->{ahlp}[$i];
-  
+      $#text=-1;
+      my $hash=$Monitor::Singleton->{ahlp}[$i];
      my $string=$hash->{HostName};
+        my $xmax=$#{$Monitor::Singleton->{acl}};
+    my $clients=0;
+    for my $j (0 ... $xmax){
+     my $hashp=$Monitor::Singleton->{acl}[$j];
+     if($hashp->{id}->{HostName} eq $string){
+       $clients=$clients+1;
+     } 
+    }
+
     push @text, $string;
+    push @text,int $clients;
     push @text, int $hash->{ClientsRunning};           
     push @text, int $hash->{ClientsAllowed};           
     push @text, int $hash->{ClientsFailed};           
@@ -782,20 +791,20 @@ sub getactivehosts{
      if($i==0){
          @final_text=@text;
          $final_text[0]="Total";
-         $final_text[11]="  ";
-         $final_text[12]=0;
+         $final_text[12]="  ";
+         $final_text[13]=0;
      }
      else{
-        for my $i (1 ...9){ 
+        for my $i (1 ...10){ 
          $final_text[$i]+=$text[$i];
         }
      }
     push @output, [@text];
  }
-    my $total_pr=$final_text[2]==0?1:$final_text[2];
+    my $total_pr=$final_text[3]==0?1:$final_text[3];
    my $cpuper=int ($total_cpu*10000/($total_ev+1)/$total_pr);
-   $final_text[10]= $cpuper/10000.;
-   $final_text[11]= int($total_cpu/($totcpu+0.001)*$totproc/($total_time+0.001)*100)/100.;
+   $final_text[11]= $cpuper/10000.;
+   $final_text[12]= int($total_cpu/($totcpu+0.001)*$totproc/($total_time+0.001)*100)/100.;
     
     push @output, [@final_text];
 
@@ -2060,7 +2069,7 @@ sub RestoreRuns1{
  my $ref=shift;
  my $dir;
  my $maxrun=0;
-
+ warn " restoriung runs ... ";
 # get amsdatadir
      for my $i (0 ... $#{$Monitor::Singleton->{env}}){
          my $hash=$Monitor::Singleton->{env}[$i];

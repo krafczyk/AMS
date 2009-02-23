@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.17 2008/09/24 12:53:33 ams Exp $
+# $Id: NetMonitor.pm,v 1.18 2009/02/23 16:10:46 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -14,7 +14,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcamsap','pcamsvc'], 
+  excluded=>['pcamsap','pcamsvc','pcamsf9','pcamsf11'], 
   hostsstat=>[],
   bad=>[],
   badsave=>[],
@@ -229,8 +229,8 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
         unlink "/tmp/xspace";
          #print "$command.$host. \n";
-         my $i=system($command.$host." df -x nfs > /tmp/xspace ");
-        if(not $i){
+         my $i=system($command.$host." df -x nfs -x gfs > /tmp/xspace ");
+        if(1 or not $i){
             if(not open(FILE,"<"."/tmp/xspace")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
                 next;
