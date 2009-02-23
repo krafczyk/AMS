@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.418 2009/02/20 19:30:28 barao Exp $
+//  $Id: event.C,v 1.419 2009/02/23 12:51:20 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -92,6 +92,7 @@ void AMSEvent::_init(){
   // Status stuff
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
+   AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
 //#pragma omp master
 if(AMSEvent::get_thread_num()==0){
@@ -148,6 +149,7 @@ if(AMSEvent::get_thread_num()==0){
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
+   AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
 //#pragma omp master
 if(AMSEvent::get_thread_num()==0)
@@ -1224,6 +1226,7 @@ void  AMSEvent::write(int trig){
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
 	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
 	{
+   AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
 if(AMSEvent::get_thread_num()==0)
 	  {

@@ -1,10 +1,11 @@
-//  $Id: timeid.C,v 1.98 2009/02/13 11:47:37 choutko Exp $
+//  $Id: timeid.C,v 1.99 2009/02/23 12:51:20 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include  "event.h"
 #include "timeid.h"
 #include "astring.h"
 #include <fstream>
@@ -279,6 +280,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 int ok;
 #ifdef _OPENMP
 cout <<" AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
+ AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
 if( omp_get_thread_num()==0) {
   ok= read(dir,id,asktime,index)?1:0;

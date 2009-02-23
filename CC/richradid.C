@@ -33,7 +33,7 @@ RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
 void RichRadiatorTileManager::Init(){  // Default initialization
   if(_number_of_rad_tiles!=0) return; // Not necessary
 #pragma omp barrier
-#pragma omp single
+#pragma omp master
   {
     //  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
     Init_Default();
@@ -266,7 +266,7 @@ void RichRadiatorTileManager::_compute_tables(){
 
 void RichRadiatorTileManager::Finish(){
 #pragma omp barrier
-#pragma omp single
+#pragma omp master
   {
     //
     // Decide how to finish as a function of the kind of job

@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.36 2009/02/20 14:12:17 choutko Exp $
+//  $Id: status.C,v 1.37 2009/02/23 12:51:20 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -80,6 +80,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   if(_Nelem==0  || isFull(run,evt,time)>1){
 
 
+AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
 _Offset=9223372036854775807LL;
 #pragma omp critical (st1)

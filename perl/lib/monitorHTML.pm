@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.28 2008/08/08 08:14:19 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.29 2009/02/23 12:51:21 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -159,6 +159,7 @@ sub Update{
     $#titles=-1;
             @titles = (
 	    "HostName",
+	    "Clients",
 	    "Running Pr",
 	    "Allowed Pr",
 	    "Failed Pr",

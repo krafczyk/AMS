@@ -328,7 +328,7 @@ for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
 //wild guess about data format
 DAQCFFKEY.Mode=len%2==0?2:1;
   for (int j=DAQCFFKEY.Mode+rawl;j<len;j+=2){
-        uint16 adr=*(p+j);
+        uint16 adr=(*(p+j))%512;
         int ufe=adr/64;
         int cha=adr%64;
         int roch=cha%16;

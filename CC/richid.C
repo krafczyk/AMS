@@ -110,7 +110,7 @@ short int RichPMTsManager::_rdr_pmt_count[RICH_JINFs*RICH_CDPperJINF];
 
 void RichPMTsManager::Init(){
 #pragma omp barrier
-#pragma omp single
+#pragma omp master
   {
     Init_Default();
     
@@ -429,7 +429,7 @@ void RichPMTsManager::get_eff_quantities(){
 
 void RichPMTsManager::Finish(){
 #pragma omp barrier
-#pragma omp single
+#pragma omp master
   {
     Finish_Default();
     
