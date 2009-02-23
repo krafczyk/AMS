@@ -980,8 +980,6 @@
 * EVENT DISPLAY
 *===============
 
-#ifdef __LIPDISPLAY__
-
 * --- Event display
       if(idispflag.eq.1) then
          if(idumdisp.eq.0) then
@@ -991,7 +989,6 @@
          endif
          call lipdisplay
       endif
-#endif
 
 *====================
 * CONTROL HISTOGRAMS

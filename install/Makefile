@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.68 2009/02/20 19:30:29 barao Exp $
+#  $Id: Makefile,v 1.69 2009/02/23 15:54:19 barao Exp $
 
 #P.Zuccon june 2005
 
@@ -296,7 +296,7 @@ OBJECTSI+=  $(BIN)mtx.o     $(BIN)geanti.o 	$(BIN)geant3i.o
 # File list for client(production) gbatch compilation
 
 FILESC= $(COMMON_FILES)     $(SCC)producer.C $(SCC)client.C \
-		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F 
+		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SFF)richnodisp_lip.F
 
 MYOBJS1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
