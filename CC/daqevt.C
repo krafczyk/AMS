@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.148 2009/02/20 14:12:16 choutko Exp $
+//  $Id: daqevt.C,v 1.149 2009/02/25 10:00:28 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -53,6 +53,8 @@ extern "C" int scandir64(		const char *, struct dirent64 ***,
 char * DAQEvent::_RootDir=0;
 bool DAQEvent::_Waiting=false;
 DAQEvent* DAQEvent::_DAQEvent=0;
+uinteger DAQEvent::_PRun=0;
+uinteger DAQEvent::_PEvent=0;
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
@@ -660,6 +662,17 @@ integer DAQEvent::_HeaderOK(){
  
       // fix against event 0
       if(_Event==0 && _GetBlType()==0)return 0;
+
+      //  fix against broken sequence
+      if(_PRun==_Run && _PEvent && _Event<_PEvent){
+         cerr<<"DAQEvent::Headerok-E-EventSeqBroken for Run "<<_PRun<<" "<<_PEvent<<" "<<_Event<<endl;
+         _PRun=_Run;
+         _PEvent=_Event;
+         return 0;
+       }
+         _PRun=_Run;
+         _PEvent=_Event;
+
             
       return 1;
     }

@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.63 2009/02/20 14:12:20 choutko Exp $
+//  $Id: daqevt.h,v 1.64 2009/02/25 10:00:29 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -58,6 +58,7 @@ protected:
 static DAQEvent* _DAQEvent;
 static bool _Waiting;
 static char * _RootDir;
+static uinteger _PRun,_PEvent;
 #pragma omp threadprivate(_DAQEvent)
 integer _TrigTime;
 integer _BufferOwner;

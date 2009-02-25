@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.149 2009/02/20 13:10:11 choutko Exp $
+//  $Id: server.C,v 1.150 2009/02/25 10:00:28 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3153,7 +3153,8 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
 
           cout << "  Threads found "<<(*i)->ClientsAllowed<<" "<<(*i)->ClientsRunning<<endl;
             if((*i)->ClientsAllowed<(*i)->ClientsRunning+threads-1){
-              threads=(*i)->ClientsAllowed-(*i)->ClientsRunning+1+1;
+              threads=(*i)->ClientsAllowed-(*i)->ClientsRunning+1+1+1;
+               if(threads>cid.threads)threads=cid.threads;
                if(threads<=0)threads=1;
             }
                break;

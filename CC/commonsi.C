@@ -13,7 +13,7 @@ int  AMSCommonsI::AB_catch=-1;
 
 uinteger AMSCommonsI::_MaxMem=1400000000;
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=310;
+uinteger AMSCommonsI::_build=311;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
