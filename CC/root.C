@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.175 2009/02/16 14:37:00 choutko Exp $
+//  $Id: root.C,v 1.176 2009/02/26 12:55:31 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2844,13 +2844,8 @@ void AMSEventR::Begin(TTree *tree){
   // open file if...
 #pragma omp master
   if(!pService){
+    pService=&fService;
     (fService)._w.Start();
-    if(option.Length()>1){
-      (fService)._pOut=new TFile(option,"RECREATE");
-      (fService)._pDir=gDirectory;
-      //    cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
-      cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
-    }
     _NFiles=-_NFiles;
     for(int thr=fgThickMemory?fgThreads-1:0;thr>=0;thr--){
       if(thr==0){
@@ -2866,7 +2861,6 @@ void AMSEventR::Begin(TTree *tree){
       if(fgThickMemory)Dir=dir;
       UBegin();
     }
-    pService=&fService;
   }
   while(!pService){
     usleep(1);
@@ -2964,16 +2958,19 @@ Int_t AMSEventR::Fill()
   int i;
 #pragma omp critical 
   {
+//    cout <<"  cloned treee "<<_ClonedTree<<endl;
     if (_ClonedTree==NULL) {
+//    cout <<"  cloned treees "<<_ClonedTree<<_Tree<<" "<<_Tree->GetTree()<<endl;
       _ClonedTree = _Tree->GetTree()->CloneTree(0);
+//    cout <<"  cloned treeess "<<_ClonedTree<<endl;
       AMSEventR::_ClonedTree->SetDirectory(AMSEventR::OFD());
     }
-    //cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
-    //cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
+//    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
+//    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
     {
       _ClonedTree->SetBranchAddress(_Name,&Head());
       i= _ClonedTree->Fill();
-      //cout <<"  i "<<i<<endl;
+//      cout <<"  i "<<i<<endl;
     }
   }
   return i;
