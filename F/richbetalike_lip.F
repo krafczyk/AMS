@@ -172,11 +172,16 @@ CC      nbushits_buf = 0
          endif
          if (IPHIHINTKIND.ne.0) IPHIHINTFLAG = 1 !phi hint just done once
       enddo   
+
 * --> minimum 
-      nthetachint = 1
-      thetachint(nthetachint) = thetac_buf(ipmin)
-      nbushits_thetachint(nthetachint) = nbushits_buf(ipmin)
-      func_thetachint(nthetachint) = fliketot_buf(ipmin)
+      if (ipmin.eq.0) then
+         nthetachint = 0
+      else
+         nthetachint = 1
+         thetachint(nthetachint) = thetac_buf(ipmin)
+         nbushits_thetachint(nthetachint) = nbushits_buf(ipmin)
+         func_thetachint(nthetachint) = fliketot_buf(ipmin)
+      endif
 
 /* commented 22/Feb/2007 (FB) 
 * --> find minima
@@ -1042,7 +1047,10 @@ C=============================================================================
           endif
         endif
 11    continue
-      pause 'brent exceed maximum iterations'
+      print*,'brent exceed maximum iterations'
+#ifdef __AMSDEBUG__
+      pause ' '
+#endif
 3     xmin=x
       brent1=fx
       return
@@ -1128,7 +1136,10 @@ C=============================================================================
           endif
         endif
 11    continue
-      pause 'brent exceed maximum iterations'
+      print*,'brent exceed maximum iterations'
+#ifdef __AMSDEBUG__
+      pause ' '
+#endif
 3     xmin=x
       brent2=fx
       return
@@ -1311,7 +1322,12 @@ C=============================================================================
 CU    USES func
       INTEGER i,j
       REAL errt,fac,hh,a(NTAB,NTAB)
-      if(h.eq.0.) pause 'h must be nonzero in dfridr'
+      if(h.eq.0.) then
+         print*,'h must be nonzero in dfridr'
+#ifdef __AMSDEBUG__
+         pause ' '
+#endif
+      endif
       hh=h
       a(1,1)=(func(x+hh)-func(x-hh))/(2.0*hh)
       err=BIG
@@ -1422,7 +1438,10 @@ CU    USES func
           endif
         endif
 11    continue
-      pause 'brentmod1 exceed maximum iterations'
+      print*,'brentmod1 exceed maximum iterations'
+#ifdef __AMSDEBUG__
+      pause ' '
+#endif
 3     xmin=x
       brentmod1=fx
       return
@@ -1508,7 +1527,10 @@ CU    USES func
           endif
         endif
 11    continue
-      pause 'brentmod2 exceed maximum iterations'
+      print*,'brentmod2 exceed maximum iterations'
+#ifdef __AMSDEBUG__
+      pause ' '
+#endif
 3     xmin=x
       brentmod2=fx
       return
