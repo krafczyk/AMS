@@ -4,10 +4,10 @@
       gROOT->Reset();
 
       gInterpreter->AddIncludePath(gSystem->ExpandPathName("$AMSDir/include"));
-      gSystem->Load("$AMSDir/lib/linux/ntuple.so");
+      gSystem->Load("$AMSDir/lib/linux/ntuple_slc4_icc.so");
 
       TChain chain("AMSRoot");
-      chain.Add("/f2users/choutko/g3v1g3.root");
+      chain.Add("/f2users/fgiovacc/NewNewCommit/AMS/MCprod/muons/101/*.root");
 
       // Either define the output ROOT file ("select.root") here:
       chain.Process("MyAnal.C+","select.root");
