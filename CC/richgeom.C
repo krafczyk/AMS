@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.35 2008/08/11 15:24:40 mdelgado Exp $
+//  $Id: richgeom.C,v 1.36 2009/03/11 16:52:56 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -288,6 +288,68 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 
   coo[0]=0;
   coo[1]=0;
+  coo[2]=-RICHDB::lg_pos()+RICHDB::lg_height/2.+RICpmtfoil/2;
+
+  par[0]=RICHDB::lg_length/2.;
+  par[1]=RICHDB::lg_length/2.;
+  par[2]=RICpmtfoil/2;
+				   
+  solid_lg=(AMSgvolume*)lig->add(new AMSgvolume("HESAGLASS",
+				   0,
+				   "PMTV",
+				   "BOX",
+				   par,
+                                   3,
+				   coo,
+				   nrm,
+				   "ONLY",
+				   0,
+				   copia,
+				   rel));
+
+#ifdef __G4AMS__
+  solid_lg->Smartless()=-2;
+#endif
+
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=-RICHDB::lg_pos();
+
+  par[0]=45.;
+  par[1]=360.;
+  par[2]=4.;
+  par[3]=2.;
+  par[4]=-RICHDB::lg_height/2.;   // OK 3.0/2
+  par[5]=0.;
+  par[6]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;  // OK  1.77/2+0.07
+  par[7]=RICHDB::lg_height/2.;
+  par[8]=0.;
+  par[9]=RICHDB::lg_length/2.;
+
+
+  solid_lg=(AMSgvolume*)lig->add(new AMSgvolume("RICH SOLG",
+				   0,
+				   "SLGC",
+				   "PGON",
+				   par,
+				   10,
+				   coo,
+				   nrm,
+				   "ONLY",
+				   0,
+				   copia,
+				   rel));
+
+#ifdef __G4AMS__
+  solid_lg->Smartless()=-2;
+#endif
+  /*
+
+  // This is a single block LG, however the real one has a upper foil of 
+  // hesaglass which is defined above as PMTV
+
+  coo[0]=0;
+  coo[1]=0;
   coo[2]=-RICHDB::lg_pos();
 
   par[0]=45.;
@@ -300,8 +362,6 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[7]=RICHDB::lg_height/2.;
   par[8]=0.;
   par[9]=RICHDB::lg_length/2.;
-
-
 
   par[10]=RICHDB::lg_height/2.+RICpmtfoil;
   par[11]=0;
@@ -324,7 +384,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 #ifdef __G4AMS__
   solid_lg->Smartless()=-2;
 #endif
-
+  */
 
   par[0]=RICHDB::lg_height/2.;
   par[1]=RICHDB::lg_mirror_angle(1);
@@ -333,7 +393,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
   par[5]=par[4];
   par[6]=0;
-  par[7]=RICepsln/2.;  // This is a patch for G4
+  par[7]=RICepsln/2.;  // This is a patch for G4 -- originally it was 0
   par[8]=RICHDB::lg_length/2.;
   par[9]=par[8];
   par[10]=0;
@@ -427,8 +487,6 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
-  
-
   par[0]=RICHDB::lg_height/2.;
   par[1]=RICHDB::lg_mirror_angle(2);
   par[2]=90;                         
@@ -710,7 +768,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   // AVOID OPTICAL CONTACT OF THE RADIATOR WITH THE SUPPORT FOIL
   par[2]-=RICepsln/2;
 
-  rich->add(new AMSgvolume("RICH SOLG",
+  rich->add(new AMSgvolume("HESAGLASS",
                            0,
                            "FOIL",
                            "TUBE",

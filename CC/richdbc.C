@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.59 2009/02/23 12:51:20 choutko Exp $
+//  $Id: richdbc.C,v 1.60 2009/03/11 16:52:55 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -85,6 +85,7 @@ geant RICHDB::pmtw_index=1.458;
 
 
 // Measured abs. length for Bicron-BC800 plastic.
+/*
 geant RICHDB::lg_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
@@ -94,8 +95,16 @@ geant RICHDB::lg_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
 				     7.0524, 5.3358, 5.2303, 5.0741, 2.8348,
 				     0.7004, 0.2304, 0.0554, 0.0554, 0.0554,
 				     0.0554, 0.0554, 0.0554, 0.0554};
-
-
+*/
+geant RICHDB::lg_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,77.3558,
+				     45.6987,28.8274,20.7165,10.7713, 6.4616,
+				     3.9870, 2.7432, 2.1056, 1.5412, 1.1739,
+				     0.9601, 0.7881, 0.7336, 0.6433};
 
 geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
 				       1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
@@ -105,6 +114,22 @@ geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1
 				       
 
 
+geant RICHDB::support_foil_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
+					       100.000,100.000,100.000,100.000,100.000,
+					       100.000,100.000,100.000,100.000,100.000,
+					       100.000,100.000,100.000,100.000,100.000,
+					       100.000,100.000,100.000,100.000,100.000,
+					       100.000,100.000,100.000,24.2986,20.6782,
+					       11.0866, 7.2738, 5.5707, 4.4291, 3.5494,
+					       2.1707, 0.9189, 0.4978, 0.2674, 0.1544,
+					       0.1088, 0.0871, 0.0726, 0.0598};
+
+
+geant RICHDB::support_foil_index[RICmaxentries]={1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,
+						 1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,
+						 1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,
+						 1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,1.46,
+						 1.46,1.46,1.46,1.46};
 
 integer RICHDB::entries=RICmaxentries;
 //geant RICHDB::top_radius=60.0;                 // Top mirror radius
@@ -135,7 +160,8 @@ geant RICHDB::lg_length=3.4;                   // Side length of light guide top
 geant RICHDB::lg_bottom_length=1.77;           // Side length on the bottom
 geant RICHDB::inner_pixel=0.38;                // Inner pixel size
 geant RICHDB::foil_height=0.1;                 // Foil thickness
-geant RICHDB::foil_index=1.49;                 // Foil refractive index
+//geant RICHDB::foil_index=1.49;                 // Foil refractive index
+geant RICHDB::foil_index=1.46;                 // Foil refractive index
 
 
 integer RICHDB::total=0;
@@ -287,7 +313,8 @@ geant RICHDB::lg_mirror_angle(integer i)
 {
 
   if(i==1)
-    return atan2(geant(lg_length/2.-RICepsln/2-
+    return atan2(geant(lg_length/2.-
+		       RICepsln/2-                // Patch for G4
        (lg_bottom_length/2.+RIClgthk_bot/2.)),
 		 lg_height)*180./3.14159265358979323846;
 

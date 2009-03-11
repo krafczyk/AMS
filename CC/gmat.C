@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.94 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: gmat.C,v 1.95 2009/03/11 16:52:56 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -287,6 +287,8 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
   mat.add(new AMSgmat("RICH_WALLS",a,z,w,3,1.16));
 
   mat.add(new AMSgmat("RICH_SOLG",a,z,w,3,1.16));
+
+  mat.add(new AMSgmat("HESA_GLASS",a,z,w,3,1.16));  // Other plastic
 
   // Carbon fiber for the aerogel support structure
 
@@ -708,6 +710,18 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
       index[iw]=RICHDB::lg_index[iw];
     }
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
+
+  // Hesaglass for support foil and upper LG foil
+  pgtmed= (AMSgtmed*) tmed.add (new AMSgtmed("HESAGLASS",
+					     "HESA_GLASS",0));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    {
+      abs_l[iw]=RICHDB::support_foil_abs[iw];
+      index[iw]=RICHDB::support_foil_index[iw];
+    }
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
 
 
 //  geant xustep=200.;

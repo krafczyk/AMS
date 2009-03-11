@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.47 2008/12/08 15:15:19 choutko Exp $
+//  $Id: richdbc.h,v 1.48 2009/03/11 16:52:56 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -177,6 +177,8 @@ public: // To be migrated in the future
   static geant inner_pixel;             // Inner pixel size
   static geant lg_abs[RICmaxentries];   // abs. length for solid LG
   static geant lg_index[RICmaxentries]; // refractive index for solid_LG
+  static geant support_foil_abs[RICmaxentries];  // Hesaglass absorption length
+  static geant support_foil_index[RICmaxentries]; // Hesaglass refractice index (the suppor foi index)
 
   static float lg_dist_tbl[RIC_NWND][RIC_NPHI][RIC_NTH];  // distance in LG table
   static float lg_eff_tbl[RIC_NWND][RIC_NPHI][RIC_NTH]; // efficiency
