@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.290 2009/02/20 19:30:29 barao Exp $
+#  $Id: datacards.doc,v 1.291 2009/03/18 11:05:43 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -136,7 +136,7 @@ R 13  lipdisp(0)                    // LIP event display (interactive mode only)
                                     // 0=off, 1=on
 
 RICSET 
-I 1  setup(1)                    // 0 use coarse radiator tables.
+I 1  setup(0)                    // 0 use coarse radiator tables.
 	                         // 1 use fine radiator tables
 
 
