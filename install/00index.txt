@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.39 2009/04/02 12:28:07 choutko Exp $
+#  $Id: 00index.txt,v 1.40 2009/04/02 12:42:47 choutko Exp $
 
 Makefile //  General Makefile
 Makefile.Linux // OS dep
@@ -54,4 +54,5 @@ therefore for 2.4 and/or mc related jobs :
 
 source /Offline/vdev/install/amsvar.slc4.icc
 cp Makefile.Linux.24 Makefile.Linux
+unsetenv AMSP
 gmake -j 2
