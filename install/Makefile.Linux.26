@@ -95,9 +95,9 @@ CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 ifeq ($(ARCH),linuxicc)
-#  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
   CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
-#  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
+  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
   AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
   NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
   #AMSLIB =  /amssw/AMSlib/linux/icc
@@ -229,7 +229,7 @@ LDFLAGS=      $(FORTRAN2_LIBS) \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
-$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+$(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
