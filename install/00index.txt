@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.38 2008/12/18 15:53:15 pzuccon Exp $
+#  $Id: 00index.txt,v 1.39 2009/04/02 12:28:07 choutko Exp $
 
 Makefile //  General Makefile
 Makefile.Linux // OS dep
@@ -43,3 +43,15 @@ gmake -f Moptg4   //builds g4 batch (not supported at the moment)
 gmake -f Moptg4i  //builds g4 interactive (not supported at the moment)
 
 
+
+
+NB icc compiler 11 
+
+doesn't work well with 2.4 kernels and/or  2002/2003 geant3 libraries compiled with icc7.
+
+therefore for 2.4 and/or mc related jobs :
+
+
+source /Offline/vdev/install/amsvar.slc4.icc
+cp Makefile.Linux.24 Makefile.Linux
+gmake -j 2
