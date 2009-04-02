@@ -66,7 +66,7 @@ ifeq ($(ARCH),linuxicc)
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -tpp6 -xi
 
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/lib/     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 else
   CC  = gcc -m32 
   CXX = g++ -m32
