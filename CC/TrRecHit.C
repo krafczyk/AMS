@@ -27,13 +27,15 @@ VCon* AMSTrRecHit::vcon= new VCon_root();
 VCon* AMSTrRecHit::vcon= new VCon_gb();
 #endif
 
+
+char AMSTrRecHit::INFO[500]={};
+
 AMSTrRecHit::AMSTrRecHit(void) {
   Clear();
 }
 
 
-
-AMSTrRecHit::AMSTrRecHit(const AMSTrRecHit& orig) {
+AMSTrRecHit::AMSTrRecHit(const AMSTrRecHit& orig):AMSlink(orig) {
   _tkid     = orig._tkid;     
   _clusterX = orig._clusterX;   
   _clusterY = orig._clusterY;  
@@ -42,40 +44,38 @@ AMSTrRecHit::AMSTrRecHit(const AMSTrRecHit& orig) {
   _iclusterY = orig._iclusterY;  
   _corr     = orig._corr;
   _prob     = orig._prob;     
-  _status   = orig._status;
+  _Status   = orig._Status;
   _mult     = orig._mult;
   _imult    = orig._imult;
   _coord    = orig._coord;
-  _residual = orig._residual;
+  _dummyX   = orig._dummyX;
 }
 
 
-AMSTrRecHit::AMSTrRecHit(int tkid, AMSTrCluster* clX, AMSTrCluster* clY, float corr, float prob, int status, int imult) {
+AMSTrRecHit::AMSTrRecHit(int tkid, AMSTrCluster* clX, AMSTrCluster* clY, float corr, float prob, int imult) {
   _tkid     = tkid;     
   _clusterX = clX;   
   _clusterY = clY;   
   VCon* cont2=vcon->GetCont("AMSTrCluster");
-  _iclusterX = cont2->getindex(_clusterX);
-  _iclusterY = cont2->getindex(_clusterY);
+  _iclusterX = (_clusterX) ? cont2->getindex(_clusterX) : -1;
+  _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;
   delete cont2;
 
-  _status   = status;
-  if (!clX) _status |= YONLY;
-  if (!clY) _status |= XONLY;
+  _Status   = 0;
+  if (!clX) _Status |= YONLY;
+  if (!clY) _Status |= XONLY;
 
   _corr     = corr;
   _prob     = prob;     
+  _dummyX   = 0;
+
   // coordinate construction
-  _mult     = (clX!=0) ? clX->GetMultiplicity() : 1;
+  BuildCoordinates();
   _imult    = imult; 
-  for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
-  _residual[0] = 0.;
-  _residual[1] = 0.;
-  _residual[2] = 0.;
 }
 
 AMSTrCluster* AMSTrRecHit::GetXCluster() { 
-  if(_clusterX==NULL&& !(_status&YONLY)){
+  if(_clusterX==NULL&& !(_Status&YONLY)){
     VCon* cont2=vcon->GetCont("AMSTrCluster");
     _clusterX = (AMSTrCluster*)cont2->getelem(_iclusterX);
     delete cont2;
@@ -85,7 +85,7 @@ AMSTrCluster* AMSTrRecHit::GetXCluster() {
 
 
 AMSTrCluster* AMSTrRecHit::GetYCluster() { 
-  if(_clusterY==NULL&& !(_status&XONLY)){
+  if(_clusterY==NULL&& !(_Status&XONLY)){
     VCon* cont2=vcon->GetCont("AMSTrCluster");
     _clusterY = (AMSTrCluster*)cont2->getelem(_iclusterY);
     delete cont2;
@@ -98,9 +98,15 @@ AMSTrCluster* AMSTrRecHit::GetYCluster() {
 void AMSTrRecHit::BuildCoordinates() {
   // coordinate construction
   AMSTrCluster* clX= GetXCluster();
-  _mult     = (clX!=0) ? clX->GetMultiplicity() : 1;
+  int xaddr =  640;
+  if(clX!=0)
+    xaddr =  clX->GetAddress();
+
+  _mult     = TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
   _coord.clear();
   for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
+  if(_dummyX!=0)
+    for (int imult=0; imult<_mult; imult++) _coord.at(imult)[0]=_dummyX;
 }
 
 AMSTrRecHit::~AMSTrRecHit() {
@@ -118,13 +124,11 @@ void AMSTrRecHit::Clear() {
   _iclusterX = -1;
   _iclusterY = -1;
   _prob     = 0;
-  _status   = 0;
+  _Status   = 0;
   _mult     = 0;
   _imult    = -1; 
+  _dummyX   = 0;
   _coord.clear();
-  _residual[0] = 0.;
-  _residual[1] = 0.;
-  _residual[2] = 0.;
 }
 
 
@@ -132,13 +136,12 @@ void AMSTrRecHit::Print() {
   Info();
   cerr <<sout;
 }
-void AMSTrRecHit::Info() { 
-  char msg[1000];
+char* AMSTrRecHit::Info() { 
   sout.clear();
-  sprintf(msg,"tkid: %+03d (x,y,z)=(%10.4f,%10.4f,%10.4f)  corr: %8.4f  prob: %7.5f  stat: %2d\n",
-	  _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),GetCorrelation(),GetProb(),GetStatus());
-  sout.append(msg);
-  cout <<sout;
+  sprintf(INFO,"tkid: %+03d (x,y,z)=(%10.4f,%10.4f,%10.4f)  corr: %8.4f  prob: %7.5f  stat: %2d\n",
+	  _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus());
+  sout.append(INFO);
+  return INFO;
 }
 
 std::ostream &AMSTrRecHit::putout(std::ostream &ostr) const {
@@ -163,13 +166,13 @@ AMSPoint AMSTrRecHit::GetGlobalCoordinate(int imult, char* options) {
   
   AMSPoint glo;
   if (!ApplyAlignement) {
-    if (_status & YONLY){ glo = TkCoo::GetGlobalN(_tkid,0.,loc[1]); glo[0] = -1000.; return glo; }
-    if (_status & XONLY){ glo = TkCoo::GetGlobalN(_tkid,loc[0],0.); glo[1] = -1000.; return glo; }
+    if (_Status & YONLY){ glo = TkCoo::GetGlobalN(_tkid,0.,loc[1]); glo[0] = -1000.; return glo; }
+    if (_Status & XONLY){ glo = TkCoo::GetGlobalN(_tkid,loc[0],0.); glo[1] = -1000.; return glo; }
     glo = TkCoo::GetGlobalN(GetTkId(),loc);
   }
   else {
-    if (_status & YONLY){ glo = TkCoo::GetGlobalA(_tkid,0.,loc[1]); glo[0] = -1000.; return glo; }
-    if (_status & XONLY){ glo = TkCoo::GetGlobalA(_tkid,loc[0],0.); glo[1] = -1000.; return glo; }
+    if (_Status & YONLY){ glo = TkCoo::GetGlobalA(_tkid,0.,loc[1]); glo[0] = -1000.; return glo; }
+    if (_Status & XONLY){ glo = TkCoo::GetGlobalA(_tkid,loc[0],0.); glo[1] = -1000.; return glo; }
     glo = TkCoo::GetGlobalA(GetTkId(),loc);
   }
   return glo;

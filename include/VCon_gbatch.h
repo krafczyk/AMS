@@ -17,7 +17,7 @@ public:
   int      getindex(AMSlink* aa);
   AMSlink* getelem(int ii);
   void     addnext(AMSlink* aa);
-
+void      removeEl(AMSlink* prev, integer restore=1);
 
 };
 

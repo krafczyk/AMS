@@ -3,8 +3,6 @@
 #include <float.h>
 
 
-
-
 //==============================
 //  TRACKER SIMULATION
 //==============================
@@ -223,7 +221,9 @@ void TRCLFFKEY_DEF::init(){
   GGpars[4]  = 0.0109;
   GGpars[5]  = 0.0972;
   GGintegral = 91765.;
-  ThrProb    = 0.00001;
+  ThrProb    = 0;//0.00001;
+  recflag=111;
+
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;
@@ -242,7 +242,7 @@ void TRFITFFKEY_DEF::init(){
   MaxChisq[1] =  2000;
 
  {
-    for( int k=0;k<sizeof(patternp)/sizeof(patternp[0]);k++)patternp[k]=0;
+    for( int k=0;k<(int)(sizeof(patternp)/sizeof(patternp[0]));k++)patternp[k]=0;
   }
   UseTRD=1;
   UseTOF=2;
@@ -272,7 +272,7 @@ void TRFITFFKEY_DEF::init(){
   OnlyGammaVtx=0;
   UseGeaneFitting=0;
   OldTracking=0;
-  for( int k=0;k<sizeof(patternp02)/sizeof(patternp02[0]);k++)patternp02[k]=0;
+  for( int k=0;k<(int)(sizeof(patternp02)/sizeof(patternp02[0]));k++)patternp02[k]=0;
 }
 
 TRFITFFKEY_DEF TRFITFFKEY;

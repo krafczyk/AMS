@@ -21,9 +21,9 @@
 
 //! structure used internally to store the Calib data
 typedef struct CaloutDSP{
-  short int ped[1024];
-  short int rsig[1024];
-  short int sig[1024];
+  unsigned short int ped[1024];
+  unsigned short int rsig[1024];
+  unsigned short int sig[1024];
   short int status[1024];
   short int dspver;
   float lowthres;

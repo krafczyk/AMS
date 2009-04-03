@@ -275,7 +275,7 @@ int  TrLadCal::Lin2Cal(float* offset){
 
   if(!offset) return -1;
 
-  HwId        = offset[0];
+  HwId        = (int)offset[0];
   dspver      = (int)offset[1];
   lowthres    = offset[2];
   highthres   = offset[3];

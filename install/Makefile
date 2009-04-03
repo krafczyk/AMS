@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.69 2009/02/23 15:54:19 barao Exp $
+#  $Id: Makefile,v 1.70 2009/04/03 08:42:45 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -181,7 +181,7 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrCalDB.C $(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C  $(SCC)TrMCCluster.C \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
-	 $(SCC)TrLadPar.C \
+	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
 	$(SCC)VCon.C  \
 	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)TrFit.C $(SCC)MagField.C
 
@@ -396,11 +396,11 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 
 lib: shared static 
 ifdef PGTRACK
-shared :     $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
+shared :     $(AMS_BASEO) $(TRACK_BASEO) $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O  $(SOFLAGS) $^  $(SHLDFLAGS) -o  $(SHLD)
 
-static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
+static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."	
 	$(AR) rv $(NTLD) $^
 else
@@ -468,9 +468,11 @@ $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 $(BIN)rnormx_s.o:         $(SCC)rnormx.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
-$(BIN)TrTrack_s.o:         $(SCC)TrTrack.C
+$(BIN)vtx_s.o:         $(SCC)vtx.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
+$(BIN)TrTrack_s.o:         $(SCC)TrTrack.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
 $(BIN)TrRecHit_s.o:         $(SCC)TrRecHit.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@

@@ -1,4 +1,4 @@
-//  $Id: cont.C,v 1.13 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: cont.C,v 1.14 2009/04/03 08:39:16 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "cont.h"
@@ -86,18 +86,30 @@ void AMSContainer::exchangeEl(AMSlink *pr1, AMSlink *pr2){
 void AMSContainer::removeEl( AMSlink *prev, integer restore){
   // remove next element !!!
 
-  AMSlink * pel=prev != 0?prev->_next:_Head;
+  if(prev==0) {
+    printf(" AMSContainer::removeEl  error the pointer to the element previous the one to be deleted is NULL!\n");
+    return;
+  }
+
+  AMSlink *      pel=prev->_next;
+  if(pel==0)     pel=_Head;
 #ifdef __AMSDEBUG__
   assert(pel != NULL);
 #endif
-  if(pel == _Last){
+  //There are three possibilities
+  //1.  prev is the fist element
+  //1a. prev is the first the last and only element
+  //2.  prev is a member in the middle
+  //3.  prev is the last
+  if(pel==_Head){
+    _Head=pel->_next;
+  }else if(pel == _Last){
     if(prev)prev->_next=0;
     else _Head=0;
     _Last=prev;
   }
   else{
-    if(prev)prev->_next=pel->_next;
-    else _Head=pel->_next;
+    prev->_next=pel->_next;
     if(restore){
       AMSlink * ptmp=pel->_next;
       while(ptmp){
@@ -107,7 +119,7 @@ void AMSContainer::removeEl( AMSlink *prev, integer restore){
     }
   }
   _nelem--;
-  delete pel;
+  if(pel)delete pel;
 }
 
 

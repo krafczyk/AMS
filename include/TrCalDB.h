@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/04/03 08:39:24 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +49,7 @@ public:
   TrCalDB(){}
   TrCalDB(char * filename);
   ~TrCalDB();
+  /// Init the Database
   void init();
   static void Load(char * filename);
   static TrCalDB* Head;

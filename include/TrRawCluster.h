@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $ 
+// $Id: TrRawCluster.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
 #ifndef __TrRawCluster__
 #define __TrRawCluster__
 
@@ -15,9 +15,9 @@
 ///\date  2008/02/16 AO  Renaming and new methods
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2008/12/18 11:19:24 $
+/// $Date: 2009/04/03 08:39:24 $
 ///
-/// $Revision: 1.1 $
+/// $Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "TObject.h"
@@ -44,7 +44,7 @@ class AMSTrRawCluster : public AMSlink {
    
   /// ADC data array
   std::vector<float> _signal;
-  
+  int _Status;
  protected:
   /// Pointer to the calibration database
   static TrCalDB* _trcaldb;
@@ -58,7 +58,7 @@ class AMSTrRawCluster : public AMSlink {
   AMSTrRawCluster(int tkid, int add, int nelem, short int *adc);
   AMSTrRawCluster(int tkid, int add, int nelem, float *adc);
   /// Destructor
-  ~AMSTrRawCluster();
+  ~AMSTrRawCluster(){Clear();}
   /// Clear
   void Clear();
 
@@ -82,15 +82,15 @@ class AMSTrRawCluster : public AMSlink {
   /// Get the slotidentifier 
   int GetSlot()      const { return (abs(_tkid)-GetLayer()*100)*GetLayerSide(); }
   /// Get cluster side (0 -> p, 1 -> n)
-  int GetSide()      const { return(_address>639) ? 0 : 1; }
+  int GetSide()      const { return(GetAddress()>639) ? 0 : 1; }
   /// Get the cluster first strip number  
   int GetAddress()   const { return _address; }
   /// Get i-th strip address
   int GetAddress(int ii)   { return GetAddress() + ii; } 
   /// Get the cluster strip multiplicity
   int GetNelem()     const { return _nelem; }
- //  /// Get the gain
-//   double GetGain()   const { return _gain; }
+  //  /// Get the gain
+  //   double GetGain()   const { return _gain; }
   /// Get i-th strip signal
   float GetSignal(int ii) const { return _signal.at(ii); }
   /// Same as GetNoise() 
@@ -111,7 +111,7 @@ class AMSTrRawCluster : public AMSlink {
     bit 4 set to 1: non gaussian channel 
   */
   /// Check if the cluster contains strip for the side
-  int CheckSide(int side) const { return (side == 0) ? (640 <= _address+_nelem) : (_address < 640); }
+  int CheckSide(int side) const { return (side == 0) ? (640 <= GetAddress()+GetNelem()) : (GetAddress() < 640); }
 
   /// Print information
   std::ostream& putout(std::ostream &ostr = std::cout) const;
@@ -121,8 +121,8 @@ class AMSTrRawCluster : public AMSlink {
     return cls.putout(ostr);
   }
   /// Print raw cluster strip variables 
-  void Print();
-  void Info();
+  void Print(int full=0);
+  void Info(int full=0);
 
   /// Get the seed index in the cluster with re-clustering (<0 if wrong)
   int   GetSeedIndex(float thseed = 3.);
@@ -150,7 +150,7 @@ class AMSTrRawCluster : public AMSlink {
   /// Get cluster address with eta
   float GetEtaAddress(float thseed = 3., float thneig = 1.);
   /// For compatibility with trigger lvl3
-  integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,int lvl3dcard_par=1  ,integer matchedonly=0);
+  integer lvl3format(int16 * adc, integer nmax,int lvl3dcard_par=1  ,integer matchedonly=0);
 
   static std::string sout;
 
@@ -162,7 +162,15 @@ class AMSTrRawCluster : public AMSlink {
     va=strip/64;
     side=va>9 ? 0 : 1;
   }
-
+  
+ /// chek some bits into cluster status
+  uinteger checkstatus(integer checker) const{return _Status & checker;}
+  /// Get cluster status
+  uinteger getstatus() const{return _Status;}
+  /// Set cluster status
+  void     setstatus(uinteger status){_Status=_Status | status;}
+  /// Clear cluster status
+  void     clearstatus(uinteger status){_Status=_Status & ~status;}
 
   AMSTrRawCluster* next(){ return (AMSTrRawCluster*) _next;}
   void _copyEl(){}

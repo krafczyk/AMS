@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.1 2008/12/18 11:19:32 pzuccon Exp $ 
+/// $Id: TrRawCluster.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2008/12/18 11:19:32 $
+/// $Date: 2009/04/03 08:39:15 $
 ///
-/// $Revision: 1.1 $
+/// $Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -25,170 +25,87 @@ ClassImp(AMSTrRawCluster);
 TrCalDB* AMSTrRawCluster::_trcaldb = NULL;
 string AMSTrRawCluster::sout;
 
-//--------------------------------------------------
 AMSTrRawCluster::AMSTrRawCluster(void) {
   Clear();
 }
 
-//--------------------------------------------------
-AMSTrRawCluster::~AMSTrRawCluster(){
- 
-}
-
-//--------------------------------------------------
 void AMSTrRawCluster::Clear() {
-  // TrBase::Clear();
+  AMSlink::Clear();
   _tkid    =  0;
   _address = -1;
   _nelem   =  0;
-  //  _gain    =  8; 
+  _Status  =  0;
   _signal.clear();
-  //_sigma.clear();
-  //_status.clear();
 }
 
-
-//--------------------------------------------------
 AMSTrRawCluster::AMSTrRawCluster(const AMSTrRawCluster &orig) : AMSlink(orig) {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
-  //  _gain    = orig._gain; 
-  for (int i = 0; i < _nelem; i++){
-    _signal.push_back(orig._signal.at(i));
-    //_sigma .push_back(orig._sigma .at(i));
-    //_status.push_back(orig._status.at(i));
-  }
+  _Status  = orig._Status;
+ for (int i = 0; i < GetNelem(); i++) _signal.push_back(orig._signal.at(i));
 }
 
-//--------------------------------------------------
 AMSTrRawCluster::AMSTrRawCluster(int tkid, int add, int nelem, short* adc) {
   _tkid    =  tkid;
   _address =  add;
   _nelem   =  nelem;
-  _signal.reserve(_nelem);
-  //  _gain    =  8;
-  if(adc) for (int i = 0; i < _nelem; i++) _signal.push_back(adc[i]/8.);
+  _Status  =  0;
+  _signal.reserve(GetNelem());
+  if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]/8.);
 }
 
-//--------------------------------------------------
 AMSTrRawCluster::AMSTrRawCluster(int tkid, int add, int nelem, float *adc) {
   _tkid    =  tkid;
   _address =  add;
   _nelem   =  nelem;
-  _signal.reserve(_nelem);
-  //  _gain    =  8;
-  if(adc) for (int i = 0; i < _nelem; i++) _signal.push_back(adc[i]);
+  _Status  =  0;
+  _signal.reserve(GetNelem());
+  if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]);
 }
 
-
-/*
-//--------------------------------------------------
-AMSTrRawCluster::AMSTrRawCluster(int tkid, int add, int nelem, short* adc,float* sigma, short* status) : TrBase() {
-  _tkid    =  tkid;
-  _address =  add;
-  _nelem   =  nelem;
-  _signal.reserve(_nelem);
-  //_sigma.reserve(_nelem);
-  //_status.reserve(_nelem);
-  _gain    =  8;
-  if(adc) for (int i = 0; i < _nelem; i++) _signal.push_back(adc[i]/8.);
-  // if(sigma) for (int i = 0; i < _nelem; i++) _sigma.push_back(sigma[i]);
-  // if(status) for (int i = 0; i < _nelem; i++) _status.push_back(status[i]);
-}
-
-//--------------------------------------------------
-AMSTrRawCluster::AMSTrRawCluster(int tkid, int add, int nelem, short* adc,float* sigma, int * status):TrBase() {
-  _tkid    =  tkid;
-  _address =  add;
-  _nelem   =  nelem;
-  _signal.reserve(_nelem);
-  // _sigma.reserve(_nelem);
-  // _status.reserve(_nelem);
-  _gain    =  8;
-  if(adc) for (int i = 0; i < _nelem; i++) _signal.push_back(adc[i]/8.);
-  // if(sigma) for (int i = 0; i < _nelem; i++) _sigma.push_back(sigma[i]);
-  // if(status) for (int i = 0; i < _nelem; i++) _status.push_back(status[i]);
-}
-
-//--------------------------------------------------
-AMSTrRawCluster::AMSTrRawCluster(int tkid, int add, int nelem, int *adc,float* sigma, int* status):TrBase() {
-  _tkid    =  tkid;
-  _address =  add;
-  _nelem   =  nelem;
-  _signal.reserve(_nelem);
-  //_sigma.reserve(_nelem);
-  //_status.reserve(_nelem);
-  _gain    =  8;
-  if(adc) for (int i = 0; i < _nelem; i++) _signal.push_back(adc[i]/8.);
-  // if(sigma) for (int i = 0; i < _nelem; i++) _sigma.push_back(sigma[i]);
-  // if(status) for (int i = 0; i < _nelem; i++) _status.push_back(status[i]);
-}
-
-//--------------------------------------------------
-AMSTrRawCluster::AMSTrRawCluster(int tkid, int add, int nelem, float *adc,float* sigma, int* status):TrBase() {
-  _tkid    =  tkid;
-  _address =  add;
-  _nelem   =  nelem;
-  _signal.reserve(_nelem);
-  // _sigma.reserve(_nelem);
-  // _status.reserve(_nelem);
-  _gain    =  8;
-  if(adc) for (int i = 0; i < _nelem; i++) _signal.push_back(adc[i]);
-  // if(sigma) for (int i = 0; i < _nelem; i++) _sigma.push_back(sigma[i]);
-  // if(status) for (int i = 0; i < _nelem; i++) _status.push_back(status[i]);
-}
-*/
-
-//--------------------------------------------------
 float AMSTrRawCluster::GetNoise(int ii) {
   if (_trcaldb==0) {
     printf("TrRawClusters::GetStatus Error, no _trcaldb specified.\n");
     return -9999.; 
   }
-  int tkid = GetTkId();
-  TrLadCal* ladcal = GetTrCalDB()->FindCal_TkId(tkid);
-  if (!ladcal) {printf ("AMSTrRawCluster::GetNoise, WARNING calibration not found!!\n"); return -9999;} 
-  int address = _address+ii;
+  int hwid = GetHwId();
+  TrLadCal* ladcal = GetTrCalDB()->FindCal_HwId(hwid);
+  if (!ladcal) {printf ("AMSTrRawCluster::GetNoise, WARNING calibration not found!! HwID %+03d\n",hwid); return -9999;} 
+  int address = GetAddress()+ii;
   return (float)ladcal->GetSigma(address);
 }
 
-
-//--------------------------------------------------
 short AMSTrRawCluster::GetStatus(int ii) {
   if (_trcaldb==0) {
     printf("TrRawClusters::GetStatus Error, no _trcaldb specified.\n");
     return -1; 
   }
-  int tkid = GetTkId();
-  TrLadCal* ladcal = GetTrCalDB()->FindCal_TkId(tkid);
-  if (!ladcal) {printf ("AMSTrRawCluster::GetNoise, WARNING calibration not found!!\n"); return -9999;} 
-  int address = _address+ii;
+  int hwid = GetHwId();
+  TrLadCal* ladcal = GetTrCalDB()->FindCal_HwId(hwid);
+  if (!ladcal) {printf ("AMSTrRawCluster::GetStatus, WARNING calibration not found!!HwID %+03d\n",hwid); return -9999;} 
+  int address = GetAddress()+ii;
   return (short)ladcal->GetStatus(address);
 }
 
-
-//--------------------------------------------------
 std::ostream &AMSTrRawCluster::putout(std::ostream &ostr) const {
   return ostr << "TkID: " << _tkid << " "
-	      << "Addr: " << _address << " "
-	      << "Nelm: " << _nelem << std::endl;
+              << "Addr: " << GetAddress() << " "
+              << "Nelm: " << GetNelem() << std::endl;
 }
 
-
-//--------------------------------------------------
-void AMSTrRawCluster::Print() { 
-  Info();
+void AMSTrRawCluster::Print(int full) { 
+  Info(full);
   cout<<sout;
-
 }
 
-void AMSTrRawCluster::Info() { 
+void AMSTrRawCluster::Info(int full) { 
   char msg[1000];
   sout.clear();
-  sprintf(msg,"TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d\n",
-	 GetTkId(),GetSide(),GetAddress(),GetNelem());
+  sprintf(msg,"TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %6.3f\n ",
+	  GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal());
   sout.append(msg);
+  if(!full) return;
   for (int ii=0; ii<GetNelem(); ii++) {
     sprintf(msg,"Address: %4d  Signal: %10.5f  Sigma: %10.5f  Status: %3d\n",
 	   ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetStatus(ii));
@@ -196,8 +113,6 @@ void AMSTrRawCluster::Info() {
   }
 }
 
-
-//--------------------------------------------------
 int AMSTrRawCluster::GetSeedIndex(float thseed){
   float maxadc  = -1000.;
   int   seedadd = -1;
@@ -209,7 +124,6 @@ int AMSTrRawCluster::GetSeedIndex(float thseed){
       break;
     }
   }	 
-
   if(seedadd>=0) {
     if(GetSN(seedadd)>thseed) return seedadd;
     else return seedadd*-1.;
@@ -226,14 +140,12 @@ int AMSTrRawCluster::GetSeedIndex(float thseed){
 #endif
 }
 
-//--------------------------------------------------
 int AMSTrRawCluster::GetSeedAddress(float thseed){
   Int_t cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1;
   return cstrip + GetAddress();
 }
 
-//--------------------------------------------------
 int AMSTrRawCluster::GetStatusnStrips(int nstrips, float thseed, float thneig){
   Int_t cstrip = GetSeedIndex(thseed);
   Int_t nleft  = GetLeftLength(thseed,thneig);
@@ -275,15 +187,11 @@ int AMSTrRawCluster::GetStatusnStrips(int nstrips, float thseed, float thneig){
   return sum;
 }
 
-
-//--------------------------------------------------
 int AMSTrRawCluster::GetLength(float thseed,float thneig) {
   if ( (GetLeftLength(thseed,thneig)<0)||(GetRightLength(thseed,thneig)<0) ) return -1;
   return GetLeftLength(thseed,thneig) + GetRightLength(thseed,thneig) + 1;
 }
 
-
-//--------------------------------------------------
 int AMSTrRawCluster::GetLeftLength(float thseed,float thneig) {
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1;
@@ -295,8 +203,6 @@ int AMSTrRawCluster::GetLeftLength(float thseed,float thneig) {
   return length;
 }
 
-
-//--------------------------------------------------
 int AMSTrRawCluster::GetRightLength(float thseed,float thneig) {
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1;
@@ -308,8 +214,6 @@ int AMSTrRawCluster::GetRightLength(float thseed,float thneig) {
   return length;
 }
 
-
-//--------------------------------------------------
 float AMSTrRawCluster::GetTotSignal(float thseed,float thneig) {
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1.;
@@ -325,7 +229,6 @@ float AMSTrRawCluster::GetTotSignal(float thseed,float thneig) {
   return sum;
 }
 
-//--------------------------------------------------
 float AMSTrRawCluster::GetTotSignal2(float thseed,float thneig) {
   int cstrip = abs(GetSeedIndex(thseed));
   float sum = GetSignal(cstrip);
@@ -346,32 +249,24 @@ float AMSTrRawCluster::GetTotSignal2(float thseed,float thneig) {
   return sum;
 }
 
-
-
-//--------------------------------------------------
 float AMSTrRawCluster::GetSeedSignal(float thseed){
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1.;
   return GetSignal(cstrip);
 }
 
-
-//--------------------------------------------------
 float AMSTrRawCluster::GetSeedNoise(float thseed){
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1.;
   return GetNoise(cstrip);
 }
 
-
-//--------------------------------------------------
 float AMSTrRawCluster::GetSeedSN(float thseed){
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1.;
   return GetSN(cstrip);
 }
 
-//--------------------------------------------------
 float AMSTrRawCluster::GetEta(float thseed,float thneig){
   /*
     eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
@@ -401,7 +296,6 @@ float AMSTrRawCluster::GetEta(float thseed,float thneig){
   return -1.;
 }
 
-//--------------------------------------------------
 float AMSTrRawCluster::GetEtaAddress(float thseed, float thneig) {
   int cstrip = GetSeedIndex(thseed);
   if (cstrip<0) return -1.;
@@ -421,36 +315,28 @@ float AMSTrRawCluster::GetEtaAddress(float thseed, float thneig) {
   return -1.;
 }
 
-
-
-
-
-
 integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,int lvl3dcard_par  ,integer matchedonly){
-
   //
   // convert my stupid format to lvl3 one for shuttle flight (mb also stupid)(vc)
   //
-
   int16 pos =0;
-
   if (
-      nmax-pos < 2+_nelem || _nelem > 63 || _nelem==0 
+      nmax-pos < 2+GetNelem() || GetNelem() > 63 || GetNelem()==0 
       ||
       //PZ FIXME      (GetSide()==0 && matchedonly && !checkstatus(MATCHED))
       (GetSide()==0 && matchedonly )
       ) return pos;
-
-  adc[pos+1]=1000*_address+GetHwId();
+  
+  adc[pos+1]=1000*GetAddress()+GetHwId();
   //if(id.getside())cout <<" haddr "<<id.gethaddr()<<" "<<id.gettdr()<<" "<<id.getcrate()<<" "<<id.getdrp()<<endl;
   integer imax=0;
   geant rmax=-1000000;
   int16 sn;
-  for (int i=0;i<_nelem;i++){
+  for (int i=0;i<GetNelem();i++){
     
     if(GetSigma(i) && GetSN(i) > rmax ){
       rmax=GetSN(i);
-      sn=(rmax+0.5);
+      sn=(int16)(rmax+0.5);
       if(sn>63)sn=63;
       if(sn<0)sn=0;
       imax=i;
@@ -460,15 +346,15 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,int lvl3dcard_par 
   //  if(id.getside()==1)cout <<"sn "<<sn<<endl;
 
   if(lvl3dcard_par>0)
-    adc[pos]=(_nelem-1) | (int16u(GetSeedSN()*8)<<6);
+    adc[pos]=(GetNelem()-1) | (int16u(GetSeedSN()*8)<<6);
   
   else if(lvl3dcard_par<0)
-    adc[pos]=(_nelem-1) | (  int16u(GetSeedSN()) <<6);
+    adc[pos]=(GetNelem()-1) | (  int16u(GetSeedSN()) <<6);
   
   else  
-    adc[pos]=(_nelem-1) | (imax<<6);
+    adc[pos]=(GetNelem()-1) | (imax<<6);
   
-  pos+=2+_nelem;
+  pos+=2+GetNelem();
  return pos;
 }
 

@@ -17,7 +17,8 @@ public:
   virtual AMSlink* getelem(int ii){}
   virtual int      getindex(AMSlink*){}
   virtual void     addnext(AMSlink* aa){}
-
+  // remove next element !!!
+  virtual void     removeEl(AMSlink* prev, integer restore=1) {}
 };
 
 #endif

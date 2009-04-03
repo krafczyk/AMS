@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $
+//  $Id: TrFit.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/04/03 08:39:15 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,13 +27,12 @@
 #include <iostream>     // for min and max
 
 
-int TrFit::_ims = 0;
+int TrFit::_mscat = 0;
+int TrFit::_eloss = 0;
 
-TrFit::TrFit(void):TrProp()
+TrFit::TrFit(void) : TrProp()
 {
-
   Clear();
-
 }
 
 TrFit::~TrFit()
@@ -54,7 +53,7 @@ void TrFit::Clear()
 }
 
 int TrFit::Add(double x,  double y,  double z,
-               double ex, double ey, double ez, int at)
+	       double ex, double ey, double ez, int at)
 {
   float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
   if (MAGSFFKEY.magstat) MagField::GetPtr()->GuFld(pos, bf);
@@ -85,10 +84,11 @@ double TrFit::Fit(int method)
   // Check number of hits
   if (_nhit < 3) return -1;
 
-  if (method == LINEAR) return LinearFit();
-  if (method == CIRCLE) return CircleFit();
-  if (method == SIMPLE) return SimpleFit();
-  if (method == NORMAL) return NormalFit();
+  if (method ==  LINEAR) return  LinearFit();
+  if (method ==  CIRCLE) return  CircleFit();
+  if (method ==  SIMPLE) return  SimpleFit();
+  if (method == ALCARAZ) return AlcarazFit();
+  if (method == CHOUTKO) return ChoutkoFit();
 
   return 0;
 }
@@ -137,10 +137,9 @@ double TrFit::CircleFit(void)
   float bf[3];
   MagField::GetPtr()->GuFld(p0, bf);
 
-  double cosd    = -1/std::sqrt(1+_param[1]*_param[1]);
-  double c_light = 2.99792458e+08;
-  _rigidity =             1e-12*c_light*0.5/kappa*bf[0]/cosd;
-  _errrinv  = std::abs(1/(1e-12*c_light*0.5/kappe*bf[0]/cosd));
+  double cosd = -1/std::sqrt(1+_param[1]*_param[1]);
+  _rigidity =             1e-12*Clight*0.5/kappa*bf[0]/cosd;
+  _errrinv  = std::abs(1/(1e-12*Clight*0.5/kappe*bf[0]/cosd));
 
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
   return _chisq;
@@ -375,10 +374,10 @@ double TrFit::PolynomialFit(int side, int ndim)
     for (int j = 0; j < npar; j++) {
       double m = m0;
       for (int k = j; k < npar; k++) {
-        mtx[j*npar+k] += m;
-        if (j != k) mtx[k*npar+j] += m;
-        if (j == 0) vec[k] += m*x[i];
-        m *= y[i];
+	mtx[j*npar+k] += m;
+	if (j != k) mtx[k*npar+j] += m;
+	if (j == 0) vec[k] += m*x[i];
+	m *= y[i];
       }
       m0 *= y[i]*y[i];
     }
@@ -549,7 +548,7 @@ double TrFit::SimpleFit(void)
     for (int k = 0; k < NDIM; k++) {
       cov[j][k] = 0.;
       for (int i = 0; i < _nhit; i++) {
-        int ix = i, iy = i+_nhit;
+	int ix = i, iy = i+_nhit;
         if (_xs[i] > 0) cov[j][k] += d[ix][j]/_xs[i]/_xs[i]*d[ix][k]*1e-8;
         if (_ys[i] > 0) cov[j][k] += d[iy][j]/_ys[i]/_ys[i]*d[iy][k]*1e-8;
       } 
@@ -589,16 +588,338 @@ double TrFit::SimpleFit(void)
   _ndofy -= 3;
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
 
-  _p0x = _param[0]; _dxdz = -_param[2];
-  _p0y = _param[1]; _dydz = -_param[3];
+  double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
+  _p0x = _param[0]; _dxdz = -_param[2]/dz;
+  _p0y = _param[1]; _dydz = -_param[3]/dz;
   _p0z = _zh[0];
 
-  _rigidity = (_param[4] != 0) ? 2.997E-4/_param[4] : 0;
+  _rigidity = (_param[4] != 0) ? Clight*1e-12/_param[4] : 0;
 
   return _chisq;
 }
 
-double TrFit::NormalFit(void)
+// ***********************************************************************
+//
+//     Fitting NPOINTS (consecutive) (maximum 8 points)
+//
+// ***********************************************************************
+//
+//     Things to play with (lengths are in cm):
+//        WLEN = number of radiation lengths traversed for each plane
+//
+//     The multiple scattering uses the formula:
+//        (Deviation_rms_x)^2 = (Deviation_rms_y)^2 =
+//          (0.0118/(rigidity(GV)//beta))^2 * (WLAD/RLEN)/cos(theta)
+//
+// ***********************************************************************
+//
+//     Written for AMS-01, J. Alcaraz (1999)
+//     Updated and improved for AMS-02, J. Alcaraz (February 2003)
+//
+//     Ref: J.Alcaraz NIMA 533 (2005) 613
+//
+// ***********************************************************************
+//
+// Inported from Fortran (tkfit.F) by SH
+//
+double TrFit::AlcarazFit(void)
+{
+  // Check number of hits
+  if (_nhit < 5) return -1;
+
+  double fmtx[LMAX*3],    gmtx[LMAX*3];     // Transportation matrices
+  double vmtx[LMAX*LMAX], wmtx[LMAX*LMAX];  // Inv. of covariance matrices
+  double len [LMAX];
+  double cosz[LMAX];
+  int    ilay[LMAX];
+
+  // Estimate layer number (Temporary)
+  double zlay[LMAX] = { 53.060,  29.228,  25.212,   1.698,  
+                        -2.318, -25.212, -29.228, -53.060 };
+  for (int i = 0; i < _nhit; i++) {
+    ilay[i] = 0;
+    double dzmin = 2.5;
+    for (int j = 0; j < LMAX; j++) 
+      if (std::abs(_zh[i]-zlay[j]) < dzmin) {
+        dzmin = std::abs(_zh[i]-zlay[j]);
+        ilay[i] = j;
+      }
+  }
+
+  // Get initial paramters
+  if (SimpleFit() < 0) return -1;
+
+  // Fill transportation matrices
+  if (JAFillFGmtx(fmtx, gmtx, len, cosz, 20) < 0) return -1;
+
+  // Fill inv. of covariance matrices
+  if (JAFillVWmtx(vmtx, wmtx, len, cosz, ilay) < 0) return -1;
+
+  // Obtain minimized parameters for Y and rigidity
+  if (JAMinParams(gmtx, wmtx, 1, 0) < 0) return -1;
+
+  // Obtain minimized parameters for X (rigidity fixed)
+  if (JAMinParams(fmtx, vmtx, 0, 1) < 0) return -1;
+
+  // Get residuals
+  for (int i = 0; i < _nhit; i++) {
+    _xr[i] = _xh[i]-fmtx[i*3+2]*_param[4];
+    _yr[i] = _yh[i]-gmtx[i*3+2]*_param[4];
+    for (int j = 0; j < 2; j++) {
+      _xr[i] -= fmtx[i*3+j]*_param[j*2];
+      _yr[i] -= gmtx[i*3+j]*_param[j*2+1];
+    }
+  }
+
+  // Estimate chisquares
+  _chisqx = _chisqy = 0;
+  for (int i = 0; i < _nhit; i++)
+    for (int j = 0; j < _nhit; j++) {
+      _chisqx += _xr[i]*vmtx[i*LMAX+j]*_xr[j];
+      _chisqy += _yr[i]*wmtx[i*LMAX+j]*_yr[j];
+    }
+  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
+
+  // Fill parameters
+  double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
+  _p0x = _param[0]; _dxdz = -_param[2]/dz;
+  _p0y = _param[1]; _dydz = -_param[3]/dz;
+  _p0z = _zh[0];
+
+  _rigidity = (_param[4] != 0) ? 1e-12*Clight/_param[4] : 0;
+
+  return _chisq;
+}
+
+int TrFit::JAFillFGmtx(double *fmtx, double *gmtx, 
+                       double *len,  double *cosz, int ndiv)
+{
+  if (_nhit < 3) return -1;
+
+  // Initialize F and G matrices
+  for (int i = 0; i < LMAX; i++)
+    for (int j = 0; j < 3; j++)
+      fmtx[i*3+j] = gmtx[i*3+j] = (j == 0) ? 1 : 0;
+
+  double u0 = _dxdz, v0 = _dydz, uv = u0*u0+v0*v0;
+  double w0 = (uv < 1) ? -std::sqrt(1-uv) : -1e-9;
+
+  double mem[6] = { 1, 1, 0, 0, 0, 0 }, mel[4];
+  double dir[3] = { u0, v0, w0 };
+
+  double mom0 = (_param[4] != 0) ? std::abs(_chrg*1e-12*Clight/_param[4]) : 0;
+  double mom  = mom0;
+
+  len [0] = 0;
+  cosz[0] = std::abs(w0);
+
+  // Fill F and G matrices
+  for (int i = 1; i < _nhit; i++) {
+
+    // Energy loss correction
+    if (_eloss && _mass > 0 && mom > 0) {
+      double etot = std::sqrt(_mass*_mass+mom*mom);
+      double fact = 1;//(mode == PCOR) ? fPlos[3] : fPlos[4];
+      if (mom > 0 && cosz[i] > 0)
+        ;//etot -= fPlos[2]*(1+fact*_mass*_mass/mom/mom)/cosz[i];
+
+      if (etot < _mass) {
+        mom *= 0.5;
+        _param[4] *= 2;
+      } else {
+        mom = std::sqrt(etot*etot-_mass*_mass);
+        _param[4] = ((_param[4] > 0) ? 1 : -1)*1e-12*Clight*_chrg/mom;
+      }
+    }
+
+    double pos[3], dif[3];
+    pos[0] = _xh[i-1]; dif[0] = _xh[i]-_xh[i-1];
+    pos[1] = _yh[i-1]; dif[1] = _yh[i]-_yh[i-1];
+    pos[2] = _zh[i-1]; dif[2] = _zh[i]-_zh[i-1];
+
+    // Estimate path integral
+    JAStepPin(pos, dif, dir, mel, mem, _param[4], ndiv);
+
+    len [i] = std::sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+    cosz[i] = std::abs(dir[2]);
+
+    if (mom > 0) {
+      mel[2] *= mom0/mom;
+      mel[3] *= mom0/mom;
+    }
+
+    for (int j = i; j < _nhit; j++) {
+      fmtx[j*3+1] += mel[0];
+      gmtx[j*3+1] += mel[1];
+      fmtx[j*3+2] += mel[2];
+      gmtx[j*3+2] += mel[3];
+    }
+  }
+
+  return 0;
+}
+
+int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
+                       double *len,  double *cosz, int *ilay)
+{
+  // Initialize V and W matrices
+  for (int i = 0; i < LMAX*LMAX; i++) vmtx[i] = wmtx[i] = 0;
+
+  // Calculate pbi2 = (pbeta)^(-2)
+  double pbi2 = 0;
+  if (_mscat && _mass > 0 && _chrg != 0) {
+    double r = _param[4]/(1e-12*Clight)/_chrg;
+    pbi2 = r*r*(1+_mass*_mass*r*r);
+  }
+  if (pbi2 <= 0) _mscat = 0;
+
+// Ladiation length data (copied from tkfit.F but TO_BE_CHECKED)
+// AMS02:
+//        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
+//        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
+//        Support:   10mm Al Honeycomb: 1.67e-3 X0
+  double WLEN[LMAX] = { 0, 7.29e-3, 12.91e-3, 0,
+                        12.91e-3, 0, 12.91e-3, 7.29e-3 };
+
+  int nel = _nhit-2;
+  double mtx[(LMAX-2)*(LMAX-2)], mty[(LMAX-2)*(LMAX-2)];
+
+  // Fill V and W matrices
+  for (int i = 0; i < _nhit; i++) {
+    for (int j = 0; j <= i; j++) {
+      if (i == j) {
+        vmtx[i*LMAX+j] += (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
+        wmtx[i*LMAX+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
+      }
+
+      if (_mscat) {
+        for (int k = 1; k < i && k < j; k++) {
+          if (cosz[k] <= 0) continue;
+          double li = 0, lj = 0, wl = 0;
+          for (int l = k+1; l <= i; l++) li += len[l];
+          for (int l = k+1; l <= j; l++) lj += len[l];
+          for (int l = ilay[k-1]+1; l <= ilay[k]; l++) wl += WLEN[l];
+
+          double dmsc = li*lj*0.0118*0.0118*pbi2*wl/cosz[k];
+          vmtx[i*LMAX+j] += dmsc;
+          wmtx[i*LMAX+j] += dmsc;
+        }
+      }
+
+      if (i >= 2 && j >= 2) {
+        mtx[(i-2)*nel+j-2] = mtx[(j-2)*nel+i-2] = vmtx[i*LMAX+j]*1e+3;
+        mty[(i-2)*nel+j-2] = mty[(j-2)*nel+i-2] = wmtx[i*LMAX+j]*1e+3;
+      }
+    }
+  }
+
+  // Avoid divergence in inverting matrices
+  for (int i = 0; i < _nhit-2; i++) {
+    if (_xs[i+2] <= 0) {
+      for (int j = 0; j < _nhit-2; j++) mtx[i*nel+j] = mtx[j*nel+i] = 0;
+      mtx[i*nel+i] = 1;
+    }
+    if (_ys[i+2] <= 0) {
+      for (int j = 0; j < _nhit-2; j++) mty[i*nel+j] = mty[j*nel+i] = 0;
+      mty[i*nel+i] = 1;
+    }
+  }
+
+  // Invert V and W matrices
+  if (_mscat) {
+    int ret = -1;
+    if (nel == 3) ret = Inv33((double(*)[3])mtx);
+    if (nel == 4) ret = Inv44((double(*)[4])mtx);
+    if (nel == 5) ret = Inv55((double(*)[5])mtx);
+    if (nel == 6) ret = Inv66((double(*)[6])mtx);
+    if (ret < 0) return -1;
+
+    if (nel == 3) ret = Inv33((double(*)[3])mty);
+    if (nel == 4) ret = Inv44((double(*)[4])mty);
+    if (nel == 5) ret = Inv55((double(*)[5])mty);
+    if (nel == 6) ret = Inv66((double(*)[6])mty);
+    if (ret < 0) return -1;
+  }
+  for (int i = 0; i < _nhit; i++)
+    for (int j = 0; j < _nhit; j++) {
+      if (i >= 2 && j >= 2 && _mscat) {
+        vmtx[i*LMAX+j] = (_xs[i] > 0 && _xs[j] > 0) 
+                         ? mtx[(i-2)*nel+j-2]*1e+3 : 0;
+        wmtx[i*LMAX+j] = (_ys[i] > 0 && _ys[j] > 0) 
+                         ? mty[(i-2)*nel+j-2]*1e+3 : 0;
+      } else {
+        if (vmtx[i*LMAX+j] != 0) vmtx[i*LMAX+j] = 1/vmtx[i*LMAX+j];
+        if (wmtx[i*LMAX+j] != 0) wmtx[i*LMAX+j] = 1/wmtx[i*LMAX+j];
+      }
+    }
+
+  return 0;
+}
+
+int TrFit::JAMinParams(double *F, double *V, int side, int fix)
+{
+  double M[3][3];
+  double vec[3];
+  for (int i = 0; i < 3; i++) {
+    vec[i] = 0;
+    for (int j = 0; j < 3; j++) M[i][j] = 0;
+  }
+
+  double *x = (side == 0) ? _xh : _yh;
+  double *e = (side == 0) ? _xs : _ys;
+
+  // Fill vector and matrix
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+      for (int k = 0; k < _nhit; k++)
+        for (int l = 0; l < _nhit; l++) {
+          if (j == 0)
+           vec[i] += F[k*3+i]*V[k*LMAX+l]*x[l];
+          M[i][j] += F[k*3+i]*V[k*LMAX+l]*F[l*3+j];
+        }
+
+   // For no magnetic field
+   if (!fix && vec[2] == 0 && M[2][2] == 0) {
+      fix = 1;
+      _param[4] = 0;
+   }
+
+   // Fix par[4]
+   if (fix) {
+      vec[0] -= M[0][2]*_param[4]; M[0][2] = M[2][0] = 0;
+      vec[1] -= M[1][2]*_param[4]; M[1][2] = M[2][1] = 0;
+      vec[2]  =         _param[4]; M[2][2] = 1;
+   }
+
+   // Invert matrix
+   if (Inv33(M) < 0) return -1;
+
+   // Minimized parameters
+   double p1 = M[0][0]*vec[0]+M[0][1]*vec[1]+M[0][2]*vec[2];
+   double p2 = M[1][0]*vec[0]+M[1][1]*vec[1]+M[1][2]*vec[2];
+
+   // Number of digrees of freedom
+   int ndof = (fix) ? -(3-1) : -3;
+   for (int i = 0; i < _nhit; i++) if (e[i] > 0) ndof++;
+   if (ndof < 0) ndof = 0;
+
+   // Minimized parameters
+   if (side == 0) {
+      _param[0] = p1;
+      _param[2] = p2;
+      _ndofx    = ndof;
+   } else {
+      _param[1] = p1;
+      _param[3] = p2;
+      _param[4] = M[2][0]*vec[0]+M[2][1]*vec[1]+M[2][2]*vec[2];
+      _ndofy    = ndof;
+   }
+   if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2]);
+
+   return 0;
+}
+
+double TrFit::ChoutkoFit(void)
 {
   if(_nhit > LMAX || 2*_nhit <= 5 || _chrg == 0) return -1;
 
@@ -655,16 +976,18 @@ double TrFit::NormalFit(void)
       double point[6] = { 0, 0, _zh[i], 0, 0, -1 };
 
       // Transportation
-      if (i > 0) VCFitPar(init, out, point, mm, (i <= 1) ? 0 : 1);
+      if (i > 0) {
+        if (VCFitPar(init, out, point, mm, (i <= 1) ? 0 : 1) < 0) return -1;
+      }
       else for (int j = 0; j < 7; j++) out[j] = init[j];
 
       // Multiple scattering factor
       double dnm = init[5];
       double mmt = init[6];
-      if (_ims == 0 || i <= 1) fact[i] = 0;
+      if (_mscat == 0 || i <= 1) fact[i] = 0;
       else {
-	double beta = std::max(fabs(mmt/sqrt(mmt*mmt+_xmass*_xmass)), 0.1);
-	fact[i] = (sms*_chrg/mmt/beta)*(sms*_chrg/mmt/beta)/fabs(dnm);
+        double beta = std::max(fabs(mmt/sqrt(mmt*mmt+_mass*_mass)), 0.1);
+        fact[i] = (sms*_chrg/mmt/beta)*(sms*_chrg/mmt/beta)/fabs(dnm);
       }
 
       // Multiple scattering matrix
@@ -696,7 +1019,7 @@ double TrFit::NormalFit(void)
 
       // Covariance matrix
       for (int j = 0; j < NDIM; j++) {
-        g[j] += 2*(mm[j][0]*(aa[0]*aa[3]+aa[1]*aa[4])+
+	g[j] += 2*(mm[j][0]*(aa[0]*aa[3]+aa[1]*aa[4])+
 		   mm[j][2]*(aa[2]*aa[4]+aa[1]*aa[3]));
 
 	for (int k = 0; k < NDIM; k++)
@@ -715,8 +1038,8 @@ double TrFit::NormalFit(void)
       _chisqy += std::abs(fcky[i]);
       _chisq  += std::abs(fckx[i])+std::abs(fcky[i]);
       for (int k = i+1; k < _nhit; k++) {
-        _chisqx += std::sqrt(fabs( fckx[i]*fckx[k]) )*xmsr[k][i];
-        _chisqy += std::sqrt(fabs( fcky[i]*fcky[k]) )*xmsr[k][i];
+	_chisqx += std::sqrt(fabs( fckx[i]*fckx[k]) )*xmsr[k][i];
+	_chisqy += std::sqrt(fabs( fcky[i]*fcky[k]) )*xmsr[k][i];
 	_chisq  += std::sqrt(fabs((fckx[i]+fcky[i])
 				 *(fckx[k]+fcky[k])))*xmsr[k][i];
 
@@ -755,7 +1078,7 @@ double TrFit::NormalFit(void)
   // A small tuning
   if (std::abs(resmy) < 0.01) _param[2] -= resmy;
   for (int i = 0; i < _nhit; i++) {
-    if (_ys[i] > 0) {
+    if (!_mscat && _ys[i] > 0) {
       _chisq  -= (_yr[i]*_yr[i]-(_yr[i]-resmy)*(_yr[i]-resmy))/_ys[i]/_ys[i];
       _chisqy -= (_yr[i]*_yr[i]-(_yr[i]-resmy)*(_yr[i]-resmy))/_ys[i]/_ys[i];
     }
@@ -786,7 +1109,7 @@ void TrFit::VCErrMtx(int ih, double xms, double *out, double *aa,
   mtmp[2] = _ys[ih]*_ys[ih]+out[4]*out[4]*_zs[ih]*_zs[ih]/out[5]/out[5];
   mtmp[1] = 0;
 
-  if (_ims != 0) {
+  if (_mscat != 0) {
     double vv = xms/out[5]/out[5]/out[5]/out[5];
     mtmp[0] += vv*(1-out[4]*out[4]);
     mtmp[2] += vv*(1-out[3]*out[3]);
@@ -1135,15 +1458,462 @@ int TrFit::Inv55(double M[5][5])
   return 0;
 }
 
+int TrFit::Inv66(double M[6][6])
+{
+  // Find all NECESSARY 2x2 dets:  (45 of them)
+  double d2_34_01 = M[3][0]*M[4][1] - M[3][1]*M[4][0];
+  double d2_34_02 = M[3][0]*M[4][2] - M[3][2]*M[4][0];
+  double d2_34_03 = M[3][0]*M[4][3] - M[3][3]*M[4][0];
+  double d2_34_04 = M[3][0]*M[4][4] - M[3][4]*M[4][0];
+  double d2_34_05 = M[3][0]*M[4][5] - M[3][5]*M[4][0];
+  double d2_34_12 = M[3][1]*M[4][2] - M[3][2]*M[4][1];
+  double d2_34_13 = M[3][1]*M[4][3] - M[3][3]*M[4][1];
+  double d2_34_14 = M[3][1]*M[4][4] - M[3][4]*M[4][1];
+  double d2_34_15 = M[3][1]*M[4][5] - M[3][5]*M[4][1];
+  double d2_34_23 = M[3][2]*M[4][3] - M[3][3]*M[4][2];
+  double d2_34_24 = M[3][2]*M[4][4] - M[3][4]*M[4][2];
+  double d2_34_25 = M[3][2]*M[4][5] - M[3][5]*M[4][2];
+  double d2_34_34 = M[3][3]*M[4][4] - M[3][4]*M[4][3];
+  double d2_34_35 = M[3][3]*M[4][5] - M[3][5]*M[4][3];
+  double d2_34_45 = M[3][4]*M[4][5] - M[3][5]*M[4][4];
+  double d2_35_01 = M[3][0]*M[5][1] - M[3][1]*M[5][0];
+  double d2_35_02 = M[3][0]*M[5][2] - M[3][2]*M[5][0];
+  double d2_35_03 = M[3][0]*M[5][3] - M[3][3]*M[5][0];
+  double d2_35_04 = M[3][0]*M[5][4] - M[3][4]*M[5][0];
+  double d2_35_05 = M[3][0]*M[5][5] - M[3][5]*M[5][0];
+  double d2_35_12 = M[3][1]*M[5][2] - M[3][2]*M[5][1];
+  double d2_35_13 = M[3][1]*M[5][3] - M[3][3]*M[5][1];
+  double d2_35_14 = M[3][1]*M[5][4] - M[3][4]*M[5][1];
+  double d2_35_15 = M[3][1]*M[5][5] - M[3][5]*M[5][1];
+  double d2_35_23 = M[3][2]*M[5][3] - M[3][3]*M[5][2];
+  double d2_35_24 = M[3][2]*M[5][4] - M[3][4]*M[5][2];
+  double d2_35_25 = M[3][2]*M[5][5] - M[3][5]*M[5][2];
+  double d2_35_34 = M[3][3]*M[5][4] - M[3][4]*M[5][3];
+  double d2_35_35 = M[3][3]*M[5][5] - M[3][5]*M[5][3];
+  double d2_35_45 = M[3][4]*M[5][5] - M[3][5]*M[5][4];
+  double d2_45_01 = M[4][0]*M[5][1] - M[4][1]*M[5][0];
+  double d2_45_02 = M[4][0]*M[5][2] - M[4][2]*M[5][0];
+  double d2_45_03 = M[4][0]*M[5][3] - M[4][3]*M[5][0];
+  double d2_45_04 = M[4][0]*M[5][4] - M[4][4]*M[5][0];
+  double d2_45_05 = M[4][0]*M[5][5] - M[4][5]*M[5][0];
+  double d2_45_12 = M[4][1]*M[5][2] - M[4][2]*M[5][1];
+  double d2_45_13 = M[4][1]*M[5][3] - M[4][3]*M[5][1];
+  double d2_45_14 = M[4][1]*M[5][4] - M[4][4]*M[5][1];
+  double d2_45_15 = M[4][1]*M[5][5] - M[4][5]*M[5][1];
+  double d2_45_23 = M[4][2]*M[5][3] - M[4][3]*M[5][2];
+  double d2_45_24 = M[4][2]*M[5][4] - M[4][4]*M[5][2];
+  double d2_45_25 = M[4][2]*M[5][5] - M[4][5]*M[5][2];
+  double d2_45_34 = M[4][3]*M[5][4] - M[4][4]*M[5][3];
+  double d2_45_35 = M[4][3]*M[5][5] - M[4][5]*M[5][3];
+  double d2_45_45 = M[4][4]*M[5][5] - M[4][5]*M[5][4];
 
-double TrProp::Mproton = 0.938272297;
+  // Find all NECESSARY 3x3 dets:  (80 of them)
+  double d3_234_012 = M[2][0]*d2_34_12 - M[2][1]*d2_34_02 + M[2][2]*d2_34_01;
+  double d3_234_013 = M[2][0]*d2_34_13 - M[2][1]*d2_34_03 + M[2][3]*d2_34_01;
+  double d3_234_014 = M[2][0]*d2_34_14 - M[2][1]*d2_34_04 + M[2][4]*d2_34_01;
+  double d3_234_015 = M[2][0]*d2_34_15 - M[2][1]*d2_34_05 + M[2][5]*d2_34_01;
+  double d3_234_023 = M[2][0]*d2_34_23 - M[2][2]*d2_34_03 + M[2][3]*d2_34_02;
+  double d3_234_024 = M[2][0]*d2_34_24 - M[2][2]*d2_34_04 + M[2][4]*d2_34_02;
+  double d3_234_025 = M[2][0]*d2_34_25 - M[2][2]*d2_34_05 + M[2][5]*d2_34_02;
+  double d3_234_034 = M[2][0]*d2_34_34 - M[2][3]*d2_34_04 + M[2][4]*d2_34_03;
+  double d3_234_035 = M[2][0]*d2_34_35 - M[2][3]*d2_34_05 + M[2][5]*d2_34_03;
+  double d3_234_045 = M[2][0]*d2_34_45 - M[2][4]*d2_34_05 + M[2][5]*d2_34_04;
+  double d3_234_123 = M[2][1]*d2_34_23 - M[2][2]*d2_34_13 + M[2][3]*d2_34_12;
+  double d3_234_124 = M[2][1]*d2_34_24 - M[2][2]*d2_34_14 + M[2][4]*d2_34_12;
+  double d3_234_125 = M[2][1]*d2_34_25 - M[2][2]*d2_34_15 + M[2][5]*d2_34_12;
+  double d3_234_134 = M[2][1]*d2_34_34 - M[2][3]*d2_34_14 + M[2][4]*d2_34_13;
+  double d3_234_135 = M[2][1]*d2_34_35 - M[2][3]*d2_34_15 + M[2][5]*d2_34_13;
+  double d3_234_145 = M[2][1]*d2_34_45 - M[2][4]*d2_34_15 + M[2][5]*d2_34_14;
+  double d3_234_234 = M[2][2]*d2_34_34 - M[2][3]*d2_34_24 + M[2][4]*d2_34_23;
+  double d3_234_235 = M[2][2]*d2_34_35 - M[2][3]*d2_34_25 + M[2][5]*d2_34_23;
+  double d3_234_245 = M[2][2]*d2_34_45 - M[2][4]*d2_34_25 + M[2][5]*d2_34_24;
+  double d3_234_345 = M[2][3]*d2_34_45 - M[2][4]*d2_34_35 + M[2][5]*d2_34_34;
+  double d3_235_012 = M[2][0]*d2_35_12 - M[2][1]*d2_35_02 + M[2][2]*d2_35_01;
+  double d3_235_013 = M[2][0]*d2_35_13 - M[2][1]*d2_35_03 + M[2][3]*d2_35_01;
+  double d3_235_014 = M[2][0]*d2_35_14 - M[2][1]*d2_35_04 + M[2][4]*d2_35_01;
+  double d3_235_015 = M[2][0]*d2_35_15 - M[2][1]*d2_35_05 + M[2][5]*d2_35_01;
+  double d3_235_023 = M[2][0]*d2_35_23 - M[2][2]*d2_35_03 + M[2][3]*d2_35_02;
+  double d3_235_024 = M[2][0]*d2_35_24 - M[2][2]*d2_35_04 + M[2][4]*d2_35_02;
+  double d3_235_025 = M[2][0]*d2_35_25 - M[2][2]*d2_35_05 + M[2][5]*d2_35_02;
+  double d3_235_034 = M[2][0]*d2_35_34 - M[2][3]*d2_35_04 + M[2][4]*d2_35_03;
+  double d3_235_035 = M[2][0]*d2_35_35 - M[2][3]*d2_35_05 + M[2][5]*d2_35_03;
+  double d3_235_045 = M[2][0]*d2_35_45 - M[2][4]*d2_35_05 + M[2][5]*d2_35_04;
+  double d3_235_123 = M[2][1]*d2_35_23 - M[2][2]*d2_35_13 + M[2][3]*d2_35_12;
+  double d3_235_124 = M[2][1]*d2_35_24 - M[2][2]*d2_35_14 + M[2][4]*d2_35_12;
+  double d3_235_125 = M[2][1]*d2_35_25 - M[2][2]*d2_35_15 + M[2][5]*d2_35_12;
+  double d3_235_134 = M[2][1]*d2_35_34 - M[2][3]*d2_35_14 + M[2][4]*d2_35_13;
+  double d3_235_135 = M[2][1]*d2_35_35 - M[2][3]*d2_35_15 + M[2][5]*d2_35_13;
+  double d3_235_145 = M[2][1]*d2_35_45 - M[2][4]*d2_35_15 + M[2][5]*d2_35_14;
+  double d3_235_234 = M[2][2]*d2_35_34 - M[2][3]*d2_35_24 + M[2][4]*d2_35_23;
+  double d3_235_235 = M[2][2]*d2_35_35 - M[2][3]*d2_35_25 + M[2][5]*d2_35_23;
+  double d3_235_245 = M[2][2]*d2_35_45 - M[2][4]*d2_35_25 + M[2][5]*d2_35_24;
+  double d3_235_345 = M[2][3]*d2_35_45 - M[2][4]*d2_35_35 + M[2][5]*d2_35_34;
+  double d3_245_012 = M[2][0]*d2_45_12 - M[2][1]*d2_45_02 + M[2][2]*d2_45_01;
+  double d3_245_013 = M[2][0]*d2_45_13 - M[2][1]*d2_45_03 + M[2][3]*d2_45_01;
+  double d3_245_014 = M[2][0]*d2_45_14 - M[2][1]*d2_45_04 + M[2][4]*d2_45_01;
+  double d3_245_015 = M[2][0]*d2_45_15 - M[2][1]*d2_45_05 + M[2][5]*d2_45_01;
+  double d3_245_023 = M[2][0]*d2_45_23 - M[2][2]*d2_45_03 + M[2][3]*d2_45_02;
+  double d3_245_024 = M[2][0]*d2_45_24 - M[2][2]*d2_45_04 + M[2][4]*d2_45_02;
+  double d3_245_025 = M[2][0]*d2_45_25 - M[2][2]*d2_45_05 + M[2][5]*d2_45_02;
+  double d3_245_034 = M[2][0]*d2_45_34 - M[2][3]*d2_45_04 + M[2][4]*d2_45_03;
+  double d3_245_035 = M[2][0]*d2_45_35 - M[2][3]*d2_45_05 + M[2][5]*d2_45_03;
+  double d3_245_045 = M[2][0]*d2_45_45 - M[2][4]*d2_45_05 + M[2][5]*d2_45_04;
+  double d3_245_123 = M[2][1]*d2_45_23 - M[2][2]*d2_45_13 + M[2][3]*d2_45_12;
+  double d3_245_124 = M[2][1]*d2_45_24 - M[2][2]*d2_45_14 + M[2][4]*d2_45_12;
+  double d3_245_125 = M[2][1]*d2_45_25 - M[2][2]*d2_45_15 + M[2][5]*d2_45_12;
+  double d3_245_134 = M[2][1]*d2_45_34 - M[2][3]*d2_45_14 + M[2][4]*d2_45_13;
+  double d3_245_135 = M[2][1]*d2_45_35 - M[2][3]*d2_45_15 + M[2][5]*d2_45_13;
+  double d3_245_145 = M[2][1]*d2_45_45 - M[2][4]*d2_45_15 + M[2][5]*d2_45_14;
+  double d3_245_234 = M[2][2]*d2_45_34 - M[2][3]*d2_45_24 + M[2][4]*d2_45_23;
+  double d3_245_235 = M[2][2]*d2_45_35 - M[2][3]*d2_45_25 + M[2][5]*d2_45_23;
+  double d3_245_245 = M[2][2]*d2_45_45 - M[2][4]*d2_45_25 + M[2][5]*d2_45_24;
+  double d3_245_345 = M[2][3]*d2_45_45 - M[2][4]*d2_45_35 + M[2][5]*d2_45_34;
+  double d3_345_012 = M[3][0]*d2_45_12 - M[3][1]*d2_45_02 + M[3][2]*d2_45_01;
+  double d3_345_013 = M[3][0]*d2_45_13 - M[3][1]*d2_45_03 + M[3][3]*d2_45_01;
+  double d3_345_014 = M[3][0]*d2_45_14 - M[3][1]*d2_45_04 + M[3][4]*d2_45_01;
+  double d3_345_015 = M[3][0]*d2_45_15 - M[3][1]*d2_45_05 + M[3][5]*d2_45_01;
+  double d3_345_023 = M[3][0]*d2_45_23 - M[3][2]*d2_45_03 + M[3][3]*d2_45_02;
+  double d3_345_024 = M[3][0]*d2_45_24 - M[3][2]*d2_45_04 + M[3][4]*d2_45_02;
+  double d3_345_025 = M[3][0]*d2_45_25 - M[3][2]*d2_45_05 + M[3][5]*d2_45_02;
+  double d3_345_034 = M[3][0]*d2_45_34 - M[3][3]*d2_45_04 + M[3][4]*d2_45_03;
+  double d3_345_035 = M[3][0]*d2_45_35 - M[3][3]*d2_45_05 + M[3][5]*d2_45_03;
+  double d3_345_045 = M[3][0]*d2_45_45 - M[3][4]*d2_45_05 + M[3][5]*d2_45_04;
+  double d3_345_123 = M[3][1]*d2_45_23 - M[3][2]*d2_45_13 + M[3][3]*d2_45_12;
+  double d3_345_124 = M[3][1]*d2_45_24 - M[3][2]*d2_45_14 + M[3][4]*d2_45_12;
+  double d3_345_125 = M[3][1]*d2_45_25 - M[3][2]*d2_45_15 + M[3][5]*d2_45_12;
+  double d3_345_134 = M[3][1]*d2_45_34 - M[3][3]*d2_45_14 + M[3][4]*d2_45_13;
+  double d3_345_135 = M[3][1]*d2_45_35 - M[3][3]*d2_45_15 + M[3][5]*d2_45_13;
+  double d3_345_145 = M[3][1]*d2_45_45 - M[3][4]*d2_45_15 + M[3][5]*d2_45_14;
+  double d3_345_234 = M[3][2]*d2_45_34 - M[3][3]*d2_45_24 + M[3][4]*d2_45_23;
+  double d3_345_235 = M[3][2]*d2_45_35 - M[3][3]*d2_45_25 + M[3][5]*d2_45_23;
+  double d3_345_245 = M[3][2]*d2_45_45 - M[3][4]*d2_45_25 + M[3][5]*d2_45_24;
+  double d3_345_345 = M[3][3]*d2_45_45 - M[3][4]*d2_45_35 + M[3][5]*d2_45_34;
+ 
+  // Find all NECESSARY 4x4 ds:  (75 of them)
+  double d4_1234_0123 = M[1][0]*d3_234_123 - M[1][1]*d3_234_023 
+                      + M[1][2]*d3_234_013 - M[1][3]*d3_234_012;
+  double d4_1234_0124 = M[1][0]*d3_234_124 - M[1][1]*d3_234_024 
+                      + M[1][2]*d3_234_014 - M[1][4]*d3_234_012;
+  double d4_1234_0125 = M[1][0]*d3_234_125 - M[1][1]*d3_234_025 
+                      + M[1][2]*d3_234_015 - M[1][5]*d3_234_012;
+  double d4_1234_0134 = M[1][0]*d3_234_134 - M[1][1]*d3_234_034 
+                      + M[1][3]*d3_234_014 - M[1][4]*d3_234_013;
+  double d4_1234_0135 = M[1][0]*d3_234_135 - M[1][1]*d3_234_035
+                      + M[1][3]*d3_234_015 - M[1][5]*d3_234_013;
+  double d4_1234_0145 = M[1][0]*d3_234_145 - M[1][1]*d3_234_045
+                      + M[1][4]*d3_234_015 - M[1][5]*d3_234_014;
+  double d4_1234_0234 = M[1][0]*d3_234_234 - M[1][2]*d3_234_034 
+                      + M[1][3]*d3_234_024 - M[1][4]*d3_234_023;
+  double d4_1234_0235 = M[1][0]*d3_234_235 - M[1][2]*d3_234_035 
+                      + M[1][3]*d3_234_025 - M[1][5]*d3_234_023;
+  double d4_1234_0245 = M[1][0]*d3_234_245 - M[1][2]*d3_234_045 
+                      + M[1][4]*d3_234_025 - M[1][5]*d3_234_024;
+  double d4_1234_0345 = M[1][0]*d3_234_345 - M[1][3]*d3_234_045 
+                      + M[1][4]*d3_234_035 - M[1][5]*d3_234_034;
+  double d4_1234_1234 = M[1][1]*d3_234_234 - M[1][2]*d3_234_134 
+                      + M[1][3]*d3_234_124 - M[1][4]*d3_234_123;
+  double d4_1234_1235 = M[1][1]*d3_234_235 - M[1][2]*d3_234_135 
+                      + M[1][3]*d3_234_125 - M[1][5]*d3_234_123;
+  double d4_1234_1245 = M[1][1]*d3_234_245 - M[1][2]*d3_234_145 
+                      + M[1][4]*d3_234_125 - M[1][5]*d3_234_124;
+  double d4_1234_1345 = M[1][1]*d3_234_345 - M[1][3]*d3_234_145 
+                      + M[1][4]*d3_234_135 - M[1][5]*d3_234_134;
+  double d4_1234_2345 = M[1][2]*d3_234_345 - M[1][3]*d3_234_245 
+                      + M[1][4]*d3_234_235 - M[1][5]*d3_234_234;
+  double d4_1235_0123 = M[1][0]*d3_235_123 - M[1][1]*d3_235_023 
+                      + M[1][2]*d3_235_013 - M[1][3]*d3_235_012;
+  double d4_1235_0124 = M[1][0]*d3_235_124 - M[1][1]*d3_235_024 
+                      + M[1][2]*d3_235_014 - M[1][4]*d3_235_012;
+  double d4_1235_0125 = M[1][0]*d3_235_125 - M[1][1]*d3_235_025 
+                      + M[1][2]*d3_235_015 - M[1][5]*d3_235_012;
+  double d4_1235_0134 = M[1][0]*d3_235_134 - M[1][1]*d3_235_034 
+                      + M[1][3]*d3_235_014 - M[1][4]*d3_235_013;
+  double d4_1235_0135 = M[1][0]*d3_235_135 - M[1][1]*d3_235_035 
+                      + M[1][3]*d3_235_015 - M[1][5]*d3_235_013;
+  double d4_1235_0145 = M[1][0]*d3_235_145 - M[1][1]*d3_235_045 
+                      + M[1][4]*d3_235_015 - M[1][5]*d3_235_014;
+  double d4_1235_0234 = M[1][0]*d3_235_234 - M[1][2]*d3_235_034 
+                      + M[1][3]*d3_235_024 - M[1][4]*d3_235_023;
+  double d4_1235_0235 = M[1][0]*d3_235_235 - M[1][2]*d3_235_035 
+                      + M[1][3]*d3_235_025 - M[1][5]*d3_235_023;
+  double d4_1235_0245 = M[1][0]*d3_235_245 - M[1][2]*d3_235_045 
+                      + M[1][4]*d3_235_025 - M[1][5]*d3_235_024;
+  double d4_1235_0345 = M[1][0]*d3_235_345 - M[1][3]*d3_235_045 
+                      + M[1][4]*d3_235_035 - M[1][5]*d3_235_034;
+  double d4_1235_1234 = M[1][1]*d3_235_234 - M[1][2]*d3_235_134 
+                      + M[1][3]*d3_235_124 - M[1][4]*d3_235_123;
+  double d4_1235_1235 = M[1][1]*d3_235_235 - M[1][2]*d3_235_135 
+                      + M[1][3]*d3_235_125 - M[1][5]*d3_235_123;
+  double d4_1235_1245 = M[1][1]*d3_235_245 - M[1][2]*d3_235_145 
+                      + M[1][4]*d3_235_125 - M[1][5]*d3_235_124;
+  double d4_1235_1345 = M[1][1]*d3_235_345 - M[1][3]*d3_235_145 
+                      + M[1][4]*d3_235_135 - M[1][5]*d3_235_134;
+  double d4_1235_2345 = M[1][2]*d3_235_345 - M[1][3]*d3_235_245 
+                      + M[1][4]*d3_235_235 - M[1][5]*d3_235_234;
+  double d4_1245_0123 = M[1][0]*d3_245_123 - M[1][1]*d3_245_023 
+                      + M[1][2]*d3_245_013 - M[1][3]*d3_245_012;
+  double d4_1245_0124 = M[1][0]*d3_245_124 - M[1][1]*d3_245_024 
+                      + M[1][2]*d3_245_014 - M[1][4]*d3_245_012;
+  double d4_1245_0125 = M[1][0]*d3_245_125 - M[1][1]*d3_245_025 
+                      + M[1][2]*d3_245_015 - M[1][5]*d3_245_012;
+  double d4_1245_0134 = M[1][0]*d3_245_134 - M[1][1]*d3_245_034 
+                      + M[1][3]*d3_245_014 - M[1][4]*d3_245_013;
+  double d4_1245_0135 = M[1][0]*d3_245_135 - M[1][1]*d3_245_035 
+                      + M[1][3]*d3_245_015 - M[1][5]*d3_245_013;
+  double d4_1245_0145 = M[1][0]*d3_245_145 - M[1][1]*d3_245_045 
+                      + M[1][4]*d3_245_015 - M[1][5]*d3_245_014;
+  double d4_1245_0234 = M[1][0]*d3_245_234 - M[1][2]*d3_245_034 
+                      + M[1][3]*d3_245_024 - M[1][4]*d3_245_023;
+  double d4_1245_0235 = M[1][0]*d3_245_235 - M[1][2]*d3_245_035 
+                      + M[1][3]*d3_245_025 - M[1][5]*d3_245_023;
+  double d4_1245_0245 = M[1][0]*d3_245_245 - M[1][2]*d3_245_045 
+                      + M[1][4]*d3_245_025 - M[1][5]*d3_245_024;
+  double d4_1245_0345 = M[1][0]*d3_245_345 - M[1][3]*d3_245_045 
+                      + M[1][4]*d3_245_035 - M[1][5]*d3_245_034;
+  double d4_1245_1234 = M[1][1]*d3_245_234 - M[1][2]*d3_245_134 
+                      + M[1][3]*d3_245_124 - M[1][4]*d3_245_123;
+  double d4_1245_1235 = M[1][1]*d3_245_235 - M[1][2]*d3_245_135 
+                      + M[1][3]*d3_245_125 - M[1][5]*d3_245_123;
+  double d4_1245_1245 = M[1][1]*d3_245_245 - M[1][2]*d3_245_145 
+                      + M[1][4]*d3_245_125 - M[1][5]*d3_245_124;
+  double d4_1245_1345 = M[1][1]*d3_245_345 - M[1][3]*d3_245_145 
+                      + M[1][4]*d3_245_135 - M[1][5]*d3_245_134;
+  double d4_1245_2345 = M[1][2]*d3_245_345 - M[1][3]*d3_245_245 
+                      + M[1][4]*d3_245_235 - M[1][5]*d3_245_234;
+  double d4_1345_0123 = M[1][0]*d3_345_123 - M[1][1]*d3_345_023 
+                      + M[1][2]*d3_345_013 - M[1][3]*d3_345_012;
+  double d4_1345_0124 = M[1][0]*d3_345_124 - M[1][1]*d3_345_024 
+                      + M[1][2]*d3_345_014 - M[1][4]*d3_345_012;
+  double d4_1345_0125 = M[1][0]*d3_345_125 - M[1][1]*d3_345_025 
+                      + M[1][2]*d3_345_015 - M[1][5]*d3_345_012;
+  double d4_1345_0134 = M[1][0]*d3_345_134 - M[1][1]*d3_345_034 
+                      + M[1][3]*d3_345_014 - M[1][4]*d3_345_013;
+  double d4_1345_0135 = M[1][0]*d3_345_135 - M[1][1]*d3_345_035 
+                      + M[1][3]*d3_345_015 - M[1][5]*d3_345_013;
+  double d4_1345_0145 = M[1][0]*d3_345_145 - M[1][1]*d3_345_045 
+                      + M[1][4]*d3_345_015 - M[1][5]*d3_345_014;
+  double d4_1345_0234 = M[1][0]*d3_345_234 - M[1][2]*d3_345_034 
+                      + M[1][3]*d3_345_024 - M[1][4]*d3_345_023;
+  double d4_1345_0235 = M[1][0]*d3_345_235 - M[1][2]*d3_345_035 
+                      + M[1][3]*d3_345_025 - M[1][5]*d3_345_023;
+  double d4_1345_0245 = M[1][0]*d3_345_245 - M[1][2]*d3_345_045 
+                      + M[1][4]*d3_345_025 - M[1][5]*d3_345_024;
+  double d4_1345_0345 = M[1][0]*d3_345_345 - M[1][3]*d3_345_045 
+                      + M[1][4]*d3_345_035 - M[1][5]*d3_345_034;
+  double d4_1345_1234 = M[1][1]*d3_345_234 - M[1][2]*d3_345_134 
+                      + M[1][3]*d3_345_124 - M[1][4]*d3_345_123;
+  double d4_1345_1235 = M[1][1]*d3_345_235 - M[1][2]*d3_345_135 
+                      + M[1][3]*d3_345_125 - M[1][5]*d3_345_123;
+  double d4_1345_1245 = M[1][1]*d3_345_245 - M[1][2]*d3_345_145 
+                      + M[1][4]*d3_345_125 - M[1][5]*d3_345_124;
+  double d4_1345_1345 = M[1][1]*d3_345_345 - M[1][3]*d3_345_145 
+                      + M[1][4]*d3_345_135 - M[1][5]*d3_345_134;
+  double d4_1345_2345 = M[1][2]*d3_345_345 - M[1][3]*d3_345_245 
+                      + M[1][4]*d3_345_235 - M[1][5]*d3_345_234;
+  double d4_2345_0123 = M[2][0]*d3_345_123 - M[2][1]*d3_345_023 
+                      + M[2][2]*d3_345_013 - M[2][3]*d3_345_012;
+  double d4_2345_0124 = M[2][0]*d3_345_124 - M[2][1]*d3_345_024 
+                      + M[2][2]*d3_345_014 - M[2][4]*d3_345_012;
+  double d4_2345_0125 = M[2][0]*d3_345_125 - M[2][1]*d3_345_025 
+                      + M[2][2]*d3_345_015 - M[2][5]*d3_345_012;
+  double d4_2345_0134 = M[2][0]*d3_345_134 - M[2][1]*d3_345_034 
+                      + M[2][3]*d3_345_014 - M[2][4]*d3_345_013;
+  double d4_2345_0135 = M[2][0]*d3_345_135 - M[2][1]*d3_345_035 
+                      + M[2][3]*d3_345_015 - M[2][5]*d3_345_013;
+  double d4_2345_0145 = M[2][0]*d3_345_145 - M[2][1]*d3_345_045 
+                      + M[2][4]*d3_345_015 - M[2][5]*d3_345_014;
+  double d4_2345_0234 = M[2][0]*d3_345_234 - M[2][2]*d3_345_034 
+                      + M[2][3]*d3_345_024 - M[2][4]*d3_345_023;
+  double d4_2345_0235 = M[2][0]*d3_345_235 - M[2][2]*d3_345_035 
+                      + M[2][3]*d3_345_025 - M[2][5]*d3_345_023;
+  double d4_2345_0245 = M[2][0]*d3_345_245 - M[2][2]*d3_345_045 
+                      + M[2][4]*d3_345_025 - M[2][5]*d3_345_024;
+  double d4_2345_0345 = M[2][0]*d3_345_345 - M[2][3]*d3_345_045 
+                      + M[2][4]*d3_345_035 - M[2][5]*d3_345_034;
+  double d4_2345_1234 = M[2][1]*d3_345_234 - M[2][2]*d3_345_134 
+                      + M[2][3]*d3_345_124 - M[2][4]*d3_345_123;
+  double d4_2345_1235 = M[2][1]*d3_345_235 - M[2][2]*d3_345_135 
+                      + M[2][3]*d3_345_125 - M[2][5]*d3_345_123;
+  double d4_2345_1245 = M[2][1]*d3_345_245 - M[2][2]*d3_345_145 
+                      + M[2][4]*d3_345_125 - M[2][5]*d3_345_124;
+  double d4_2345_1345 = M[2][1]*d3_345_345 - M[2][3]*d3_345_145 
+                      + M[2][4]*d3_345_135 - M[2][5]*d3_345_134;
+  double d4_2345_2345 = M[2][2]*d3_345_345 - M[2][3]*d3_345_245 
+                      + M[2][4]*d3_345_235 - M[2][5]*d3_345_234;
+
+  // Find all NECESSARY 5x5 ds:  (36 of them)
+  double d5_01234_01234 = M[0][0]*d4_1234_1234 - M[0][1]*d4_1234_0234 
+                        + M[0][2]*d4_1234_0134 - M[0][3]*d4_1234_0124
+                        + M[0][4]*d4_1234_0123;
+  double d5_01234_01235 = M[0][0]*d4_1234_1235 - M[0][1]*d4_1234_0235
+                        + M[0][2]*d4_1234_0135 - M[0][3]*d4_1234_0125
+                        + M[0][5]*d4_1234_0123;
+  double d5_01234_01245 = M[0][0]*d4_1234_1245 - M[0][1]*d4_1234_0245
+                        + M[0][2]*d4_1234_0145 - M[0][4]*d4_1234_0125
+                        + M[0][5]*d4_1234_0124;
+  double d5_01234_01345 = M[0][0]*d4_1234_1345 - M[0][1]*d4_1234_0345
+                        + M[0][3]*d4_1234_0145 - M[0][4]*d4_1234_0135
+                        + M[0][5]*d4_1234_0134;
+  double d5_01234_02345 = M[0][0]*d4_1234_2345 - M[0][2]*d4_1234_0345
+                        + M[0][3]*d4_1234_0245 - M[0][4]*d4_1234_0235
+                        + M[0][5]*d4_1234_0234;
+  double d5_01234_12345 = M[0][1]*d4_1234_2345 - M[0][2]*d4_1234_1345
+                        + M[0][3]*d4_1234_1245 - M[0][4]*d4_1234_1235
+                        + M[0][5]*d4_1234_1234;
+  double d5_01235_01234 = M[0][0]*d4_1235_1234 - M[0][1]*d4_1235_0234
+                        + M[0][2]*d4_1235_0134 - M[0][3]*d4_1235_0124
+                        + M[0][4]*d4_1235_0123;
+  double d5_01235_01235 = M[0][0]*d4_1235_1235 - M[0][1]*d4_1235_0235
+                        + M[0][2]*d4_1235_0135 - M[0][3]*d4_1235_0125
+                        + M[0][5]*d4_1235_0123;
+  double d5_01235_01245 = M[0][0]*d4_1235_1245 - M[0][1]*d4_1235_0245
+                        + M[0][2]*d4_1235_0145 - M[0][4]*d4_1235_0125
+                        + M[0][5]*d4_1235_0124;
+  double d5_01235_01345 = M[0][0]*d4_1235_1345 - M[0][1]*d4_1235_0345
+                        + M[0][3]*d4_1235_0145 - M[0][4]*d4_1235_0135
+                        + M[0][5]*d4_1235_0134;
+  double d5_01235_02345 = M[0][0]*d4_1235_2345 - M[0][2]*d4_1235_0345
+                        + M[0][3]*d4_1235_0245 - M[0][4]*d4_1235_0235
+                        + M[0][5]*d4_1235_0234;
+  double d5_01235_12345 = M[0][1]*d4_1235_2345 - M[0][2]*d4_1235_1345
+                        + M[0][3]*d4_1235_1245 - M[0][4]*d4_1235_1235
+                        + M[0][5]*d4_1235_1234;
+  double d5_01245_01234 = M[0][0]*d4_1245_1234 - M[0][1]*d4_1245_0234
+                        + M[0][2]*d4_1245_0134 - M[0][3]*d4_1245_0124
+                        + M[0][4]*d4_1245_0123;
+  double d5_01245_01235 = M[0][0]*d4_1245_1235 - M[0][1]*d4_1245_0235
+                        + M[0][2]*d4_1245_0135 - M[0][3]*d4_1245_0125
+                        + M[0][5]*d4_1245_0123;
+  double d5_01245_01245 = M[0][0]*d4_1245_1245 - M[0][1]*d4_1245_0245
+                        + M[0][2]*d4_1245_0145 - M[0][4]*d4_1245_0125
+                        + M[0][5]*d4_1245_0124;
+  double d5_01245_01345 = M[0][0]*d4_1245_1345 - M[0][1]*d4_1245_0345
+                        + M[0][3]*d4_1245_0145 - M[0][4]*d4_1245_0135
+                        + M[0][5]*d4_1245_0134;
+  double d5_01245_02345 = M[0][0]*d4_1245_2345 - M[0][2]*d4_1245_0345
+                        + M[0][3]*d4_1245_0245 - M[0][4]*d4_1245_0235
+                        + M[0][5]*d4_1245_0234;
+  double d5_01245_12345 = M[0][1]*d4_1245_2345 - M[0][2]*d4_1245_1345
+                        + M[0][3]*d4_1245_1245 - M[0][4]*d4_1245_1235
+                        + M[0][5]*d4_1245_1234;
+  double d5_01345_01234 = M[0][0]*d4_1345_1234 - M[0][1]*d4_1345_0234
+                        + M[0][2]*d4_1345_0134 - M[0][3]*d4_1345_0124
+                        + M[0][4]*d4_1345_0123;
+  double d5_01345_01235 = M[0][0]*d4_1345_1235 - M[0][1]*d4_1345_0235
+                        + M[0][2]*d4_1345_0135 - M[0][3]*d4_1345_0125
+                        + M[0][5]*d4_1345_0123;
+  double d5_01345_01245 = M[0][0]*d4_1345_1245 - M[0][1]*d4_1345_0245
+                        + M[0][2]*d4_1345_0145 - M[0][4]*d4_1345_0125
+                        + M[0][5]*d4_1345_0124;
+  double d5_01345_01345 = M[0][0]*d4_1345_1345 - M[0][1]*d4_1345_0345
+                        + M[0][3]*d4_1345_0145 - M[0][4]*d4_1345_0135
+                        + M[0][5]*d4_1345_0134;
+  double d5_01345_02345 = M[0][0]*d4_1345_2345 - M[0][2]*d4_1345_0345
+                        + M[0][3]*d4_1345_0245 - M[0][4]*d4_1345_0235
+                        + M[0][5]*d4_1345_0234;
+  double d5_01345_12345 = M[0][1]*d4_1345_2345 - M[0][2]*d4_1345_1345
+                        + M[0][3]*d4_1345_1245 - M[0][4]*d4_1345_1235
+                        + M[0][5]*d4_1345_1234;
+  double d5_02345_01234 = M[0][0]*d4_2345_1234 - M[0][1]*d4_2345_0234
+                        + M[0][2]*d4_2345_0134 - M[0][3]*d4_2345_0124
+                        + M[0][4]*d4_2345_0123;
+  double d5_02345_01235 = M[0][0]*d4_2345_1235 - M[0][1]*d4_2345_0235
+                        + M[0][2]*d4_2345_0135 - M[0][3]*d4_2345_0125
+                        + M[0][5]*d4_2345_0123;
+  double d5_02345_01245 = M[0][0]*d4_2345_1245 - M[0][1]*d4_2345_0245
+                        + M[0][2]*d4_2345_0145 - M[0][4]*d4_2345_0125
+                        + M[0][5]*d4_2345_0124;
+  double d5_02345_01345 = M[0][0]*d4_2345_1345 - M[0][1]*d4_2345_0345
+                        + M[0][3]*d4_2345_0145 - M[0][4]*d4_2345_0135
+                        + M[0][5]*d4_2345_0134;
+  double d5_02345_02345 = M[0][0]*d4_2345_2345 - M[0][2]*d4_2345_0345
+                        + M[0][3]*d4_2345_0245 - M[0][4]*d4_2345_0235
+                        + M[0][5]*d4_2345_0234;
+  double d5_02345_12345 = M[0][1]*d4_2345_2345 - M[0][2]*d4_2345_1345
+                        + M[0][3]*d4_2345_1245 - M[0][4]*d4_2345_1235
+                        + M[0][5]*d4_2345_1234;
+  double d5_12345_01234 = M[1][0]*d4_2345_1234 - M[1][1]*d4_2345_0234
+                        + M[1][2]*d4_2345_0134 - M[1][3]*d4_2345_0124
+                        + M[1][4]*d4_2345_0123;
+  double d5_12345_01235 = M[1][0]*d4_2345_1235 - M[1][1]*d4_2345_0235
+                        + M[1][2]*d4_2345_0135 - M[1][3]*d4_2345_0125
+                        + M[1][5]*d4_2345_0123;
+  double d5_12345_01245 = M[1][0]*d4_2345_1245 - M[1][1]*d4_2345_0245
+                        + M[1][2]*d4_2345_0145 - M[1][4]*d4_2345_0125
+                        + M[1][5]*d4_2345_0124;
+  double d5_12345_01345 = M[1][0]*d4_2345_1345 - M[1][1]*d4_2345_0345
+                        + M[1][3]*d4_2345_0145 - M[1][4]*d4_2345_0135
+                        + M[1][5]*d4_2345_0134;
+  double d5_12345_02345 = M[1][0]*d4_2345_2345 - M[1][2]*d4_2345_0345
+                        + M[1][3]*d4_2345_0245 - M[1][4]*d4_2345_0235
+                        + M[1][5]*d4_2345_0234;
+  double d5_12345_12345 = M[1][1]*d4_2345_2345 - M[1][2]*d4_2345_1345
+                        + M[1][3]*d4_2345_1245 - M[1][4]*d4_2345_1235
+                        + M[1][5]*d4_2345_1234;
+
+  // Find the derminant 
+  double det = M[0][0]*d5_12345_12345 - M[0][1]*d5_12345_02345 
+             + M[0][2]*d5_12345_01345 - M[0][3]*d5_12345_01245 
+             + M[0][4]*d5_12345_01235 - M[0][5]*d5_12345_01234;
+  if (det == 0) return -1;
+
+  double oneOverDet = 1.0/det;
+  double mn1OverDet = - oneOverDet;
+  M[0][0] =  d5_12345_12345*oneOverDet;
+  M[0][1] =  d5_02345_12345*mn1OverDet;
+  M[0][2] =  d5_01345_12345*oneOverDet;
+  M[0][3] =  d5_01245_12345*mn1OverDet;
+  M[0][4] =  d5_01235_12345*oneOverDet;
+  M[0][5] =  d5_01234_12345*mn1OverDet;
+
+  M[1][0] =  d5_12345_02345*mn1OverDet;
+  M[1][1] =  d5_02345_02345*oneOverDet;
+  M[1][2] =  d5_01345_02345*mn1OverDet;
+  M[1][3] =  d5_01245_02345*oneOverDet;
+  M[1][4] =  d5_01235_02345*mn1OverDet;
+  M[1][5] =  d5_01234_02345*oneOverDet;
+
+  M[2][0] =  d5_12345_01345*oneOverDet;
+  M[2][1] =  d5_02345_01345*mn1OverDet;
+  M[2][2] =  d5_01345_01345*oneOverDet;
+  M[2][3] =  d5_01245_01345*mn1OverDet;
+  M[2][4] =  d5_01235_01345*oneOverDet;
+  M[2][5] =  d5_01234_01345*mn1OverDet;
+
+  M[3][0] =  d5_12345_01245*mn1OverDet;
+  M[3][1] =  d5_02345_01245*oneOverDet;
+  M[3][2] =  d5_01345_01245*mn1OverDet;
+  M[3][3] =  d5_01245_01245*oneOverDet;
+  M[3][4] =  d5_01235_01245*mn1OverDet;
+  M[3][5] =  d5_01234_01245*oneOverDet;
+
+  M[4][0] =  d5_12345_01235*oneOverDet;
+  M[4][1] =  d5_02345_01235*mn1OverDet;
+  M[4][2] =  d5_01345_01235*oneOverDet;
+  M[4][3] =  d5_01245_01235*mn1OverDet;
+  M[4][4] =  d5_01235_01235*oneOverDet;
+  M[4][5] =  d5_01234_01235*mn1OverDet;
+
+  M[5][0] =  d5_12345_01234*mn1OverDet;
+  M[5][1] =  d5_02345_01234*oneOverDet;
+  M[5][2] =  d5_01345_01234*mn1OverDet;
+  M[5][3] =  d5_01245_01234*oneOverDet;
+  M[5][4] =  d5_01235_01234*mn1OverDet;
+  M[5][5] =  d5_01234_01234*oneOverDet;
+
+  return 0;
+}
+
+
+double TrProp::Mproton = 0.938272297;     // Proton mass in GeV/c^2
+double TrProp::Clight  = 2.99792458e+08;  // Speed of light in m/s
 
 TrProp::TrProp(double p0x,   double p0y, double p0z, 
-	       double theta, double phi, double rigidity)
+               double theta, double phi, double rigidity)
   : _p0x(p0x), _p0y(p0y), _p0z(p0z), _rigidity(rigidity)
 {
-  _xmass = Mproton;
-  _chrg  = 1;
+  _mass = Mproton;
+  _chrg = 1;
 
   AMSDir dir(theta, phi);
   _dxdz = dir.x();
@@ -1153,8 +1923,8 @@ TrProp::TrProp(double p0x,   double p0y, double p0z,
 TrProp::TrProp(AMSPoint p0, AMSDir dir, double rigidity)
   : _p0x(p0.x()), _p0y(p0.y()), _p0z(p0.z()), _rigidity(rigidity)
 {
-  _xmass = Mproton;
-  _chrg  = 1;
+  _mass = Mproton;
+  _chrg = 1;
 
   _dxdz = (dir.z() != 0) ? dir.x()/dir.z() : 0;
   _dydz = (dir.z() != 0) ? dir.y()/dir.z() : 0;
@@ -1164,6 +1934,39 @@ void TrProp::Clear()
 {
   _rigidity = 0;
   _p0x = _p0y = _p0z = _dxdz = _dydz = 0;
+}
+
+double TrProp::Propagate(double zpl)
+{
+  AMSPoint pnt(0, 0, zpl);
+  AMSDir   dir(0, 0,   1);
+
+  double len = Interpolate(pnt, dir);
+  _p0x  = pnt[0];
+  _p0y  = pnt[1];
+  _p0z  = pnt[2];
+  _dxdz = dir[0]/dir[2];
+  _dydz = dir[1]/dir[2];
+
+  return len;
+}
+
+void TrProp::Interpolate(int nz, double *zpl,
+                         AMSPoint *plist, AMSDir *dlist, double *llist)
+{
+  AMSPoint psave(_p0x, _p0y, _p0z);
+  AMSDir   dsave(_dxdz, _dydz,  1);
+
+  for (int i = 0; i < nz; i++) {
+    double len   = Propagate(zpl[i]);
+    double dnorm = std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
+    if (plist) plist[i].setp(_p0x, _p0y, _p0z);
+    if (dlist) dlist[i].setp(_dxdz/dnorm, _dydz/dnorm, 1/dnorm);
+    if (llist) llist[i] = len;
+  }
+
+  _p0x  = psave[0]; _p0y  = psave[1]; _p0z  = psave[2];
+  _dxdz = dsave[0]/dsave[2]; _dydz = dsave[1]/dsave[2];
 }
 
 double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
@@ -1176,27 +1979,30 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
     double z = (dir[0]*(pnt[0]-_p0x)+dir[1]*(pnt[1]-_p0y)+dir[2]*(pnt[2]-_p0z))
               /(dir[0]*_dxdz        +dir[1]*_dydz        +dir[2]);
     AMSPoint pnt0 = pnt;
-    pnt.setp(_p0x+_dxdz*z, _p0y+_dydz*z, _p0z+z);
-    dir.setp(     _dxdz,        _dydz,        1);
-    return pnt.dist(pnt0);
+    double dnorm = std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
+    pnt.setp(_dxdz*z+_p0x, _dydz*z+_p0y, _p0z+z);
+    dir.setp(_dxdz/dnorm,  _dydz/dnorm, 1/dnorm);
+    return pnt.dist(AMSPoint(_p0x, _p0y, _p0z));
   }
 
   // Curved track case
-  double d0 = -1/std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
+  AMSPoint ptrk(_p0x, _p0y, _p0z);
+  double sign = ((pnt-ptrk).prod(dir) > 0) ? -1 : 1;
+  double d0   = -sign/std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
   double init[7] 
-    = { _p0x, _p0y, _p0z, _dxdz*d0, _dydz*d0, d0, _chrg*_rigidity };
+    = { _p0x, _p0y, _p0z, _dxdz*d0, _dydz*d0, d0, _chrg*_rigidity*sign };
   double point[6]
     = { pnt.x(), pnt.y(), pnt.z(), dir.x(), dir.y(), dir.z() };
 
   double out[7];
   double len = VCFitPar(init, out, point, 0, 1);
-  pnt[0] = out[0]; pnt[1] = out[1]; pnt[2] = out[2];
-  dir[0] = out[3]; dir[1] = out[4]; dir[2] = out[5];
+  pnt.setp(out[0], out[1], out[2]);
+  dir.setp(out[3], out[4], out[5]);
   return len;
 }
 
 double TrProp::InterpolateCyl(AMSPoint &pnt, AMSDir &dir, 
-                              double radius, int idir)
+			      double radius, int idir)
 {
   // Check on dir
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
@@ -1236,7 +2042,7 @@ double TrProp::InterpolateCyl(AMSPoint &pnt, AMSDir &dir,
   // Interpolate to inside the cylinder
   if (sdist < 0) {
     double t = -((pnt0[0]-pnt[0])*dir0[0]+
-                 (pnt0[1]-pnt[1])*dir0[1])/(dir0[0]*dir0[0]+dir0[1]*dir0[1]);
+		 (pnt0[1]-pnt[1])*dir0[1])/(dir0[0]*dir0[0]+dir0[1]*dir0[1]);
     pnt0 = pnt0+dir0*t;
     Interpolate(pnt0, dir0);
     s1      = (pnt-pnt0).prod(pnt-pnt0);
@@ -1363,6 +2169,7 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
       for (int i = 0; i < 3; i++) out[3+i] = vin[3+i];
     }
   }
+  if (imat == 0) return -1;
 
   if (ich%2 != 0) for (int k = 3; k < 6; k++) out[k] =- out[k];
 
@@ -1408,7 +2215,7 @@ double TrProp::VCFitParCyl(double *init, double *out, double *point)
 
     if (nit == 1 && sdist < 0) {
       std::cerr << "tkfitparcyl-E-outside of cyl " 
-                << sdist << " " << point[6] << std::endl;
+		<< sdist << " " << point[6] << std::endl;
       return -1;
     }
 
@@ -1518,6 +2325,45 @@ C *** ---------------------------------------------
   }
 
   for (int i = 0; i < 25; i++) CC[i/5][i%5] = C[i];
+}
+
+int TrProp::JAStepPin(double *x, double *l, double *u,
+                      double *mel, double *mem, double par, int ndiv)
+{
+   for (int i = 0; i < 4; i++) mel[i] = 0;
+
+   double dl = std::sqrt(l[0]*l[0]+l[1]*l[1]+l[2]*l[2]);
+   if (dl == 0) return -1;
+
+   double pint[4];
+   for (int i = 0; i < 4; i++) pint[i] = 0;
+
+   if (ndiv < 4) ndiv = 4;
+   for (int j = 0; j <= ndiv; j++) {
+      double e = (double) j/ndiv, w = 2;
+      if (j == 0 || j == ndiv) w = 1;
+      else if (j%2 == 1) w = 4;
+
+      float p[3] = { x[0]+e*l[0], x[1]+e*l[1], x[2]+e*l[2] };
+      float b[3];
+      MagField::GetPtr()->GuFld(p, b);
+
+      pint[0] += w*(l[1]*b[2]-l[2]*b[1])/dl*(1-e);
+      pint[1] += w*(l[1]*b[2]-l[2]*b[1])/dl;
+      pint[2] += w*(l[2]*b[0]-l[0]*b[2])/dl*(1-e);
+      pint[3] += w*(l[2]*b[0]-l[0]*b[2])/dl;
+   }
+   for (int i = 0; i < 4; i++) pint[i] /= 3*ndiv;
+
+   u[0] += par*pint[1];
+   u[1] += par*pint[3];
+   double uu = u[0]*u[0]+u[1]*u[1];
+   u[2] = (uu < 1) ? -std::sqrt(1-uu) : -1e-9;
+
+   mel[0] = dl; mel[2] = dl*dl*pint[0]+dl*mem[2]; mem[2] += dl*pint[1];
+   mel[1] = dl; mel[3] = dl*dl*pint[2]+dl*mem[3]; mem[3] += dl*pint[3];
+
+   return 0;
 }
 
 void TrProp::Rkuta(double charge, double step, double *vect, double *vout)
@@ -1640,10 +2486,10 @@ C.
       EST = std::fabs(DXT)+std::fabs(DYT)+std::fabs(DZT);
 
       if (EST <= 2.*std::fabs(H)) {
-        MagField::GetPtr()->GuFld(XYZT, F);
+	MagField::GetPtr()->GuFld(XYZT, F);
 
-        Z += (C+(SECZS[0]+SECZS[1]+SECZS[2])/3)*H;
-        Y += (B+(SECYS[0]+SECYS[1]+SECYS[2])/3)*H;
+	Z += (C+(SECZS[0]+SECZS[1]+SECZS[2])/3)*H;
+	Y += (B+(SECYS[0]+SECYS[1]+SECYS[2])/3)*H;
 	X += (A+(SECXS[0]+SECXS[1]+SECXS[2])/3)*H;
 
 	SECXS[3] = (BT*F[2]-CT*F[1])* PH2;

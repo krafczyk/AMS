@@ -6,6 +6,13 @@ VCon_gb::VCon_gb(AMSContainer * cc):VCon(){
   con=cc;
 }
 
+
+void  VCon_gb::removeEl(AMSlink* prev, integer restore){
+  if (!con)return;
+  con->removeEl(prev,restore);
+
+};
+
 VCon* VCon_gb::GetCont(char * name){
   AMSContainer *cc=AMSEvent::gethead()->getC(AMSID(name));
   if (cc)

@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.625 2009/03/18 11:05:43 mdelgado Exp $
+// $Id: job.C,v 1.626 2009/04/03 08:39:16 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1721,14 +1721,18 @@ if(AMSFFKEY.Update){
     exit(1);
   }
  
-  // SetUp the Tracker reconstruction infrastructure
-
+// SetUp the Tracker reconstruction infrastructure
+//PZ FIXME must be simplified
   TrCalDB* cc=new TrCalDB();
   cc->init();
   cc->CreateLinear();
   TrClusterR::UsingTrCalDB(TrCalDB::Head);
   TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
 
+  TrParDB* cc2=new TrParDB();
+  cc2->init();
+  cc2->CreateLinear();
+  TrClusterR::UsingTrParDB(TrParDB::Head);
 
   TrRecon::TRCon=new VCon_gb();
   TrRecon::Create();

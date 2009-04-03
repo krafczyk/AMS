@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/04/03 08:39:15 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -106,9 +106,7 @@ void TkDBc::init(const char *inputfilename, int pri){
 //----------------------------------------------------------------------------------
 
   
-// Estimated from alignment calibration (SH)
-    const number  xposl[nplanes]={-0.05,0,0,0,-0.02};
-//  const number  xposl[nplanes]={0,0,0,0,0};
+    const number  xposl[nplanes]={0,0,0,0,0};
     memcpy(_xpos,xposl,nplanes*sizeof(xposl[0]));
 
 
@@ -229,15 +227,47 @@ void TkDBc::init(const char *inputfilename, int pri){
        {     0,    0,  105,  117,  123, -119, -107,    0,  301, -305,  317,  323,  319,  307,    0, },
        {     0,    0,  109,  121,  118, -115, -103,    0,  304, -309,  321,  318,  315,    0,    0, },
        {     0,    0,  503,  515,  516, -521, -509,    0,  706, -703,  715,  716,  721,    0,    0, },
-       {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  705,    0, },
+       {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  701,    0, }, //WARNING 705 AND 701 EXCHANGED
        {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  709,  708, },
-       {   511,  506,  510,  523,  518, -522, -501,  504,  500, -722,  718,  723,  700,  704,  701, },
+       {   511,  506,  510,  523,  518, -522, -501,  504,  500, -722,  718,  723,  700,  704,  705, },
       },
     };
 
     memcpy(_octid,octid,2*nlays*maxlad*sizeof(octid[0][0][0]));
 
 
+
+
+    const float LadDeltaX[2][nlays][maxlad]={{
+	//1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
+	{ -0.39,   20.31, -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39},
+	{144.88,  289.55, -0.25, 20.45,	-20.95,	-0.25,	-0.25,	0.,	-0.25,	-0.25,	-20.95,	20.45,	-0.25,	0,	0},
+	{  0.  ,  289.41, -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
+	{  0.  ,    0.,	  -0.25, 20.31,	-20.95,	-0.25,	-0.25,	0.,	-0.32,	-0.25,	-21.09,	20.38,	-0.32,	0,	0},
+	{  0.  ,    0.,	  -0.39, 20.31,	-21.09,	-0.39,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
+	{  0.  , 289.55,  -0.39, 20.31,	-21.09,	-0.32,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
+	{144.88, 289.41,  -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
+	{ -0.39,  20.31,  -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39}
+      },{
+	
+														
+	//1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
+	{0.39,	21.09,	0.39,	0.39,	-20.31,	0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
+	{0.,	0,	0.25,	20.95,	-20.45,	0.25,	0.25,	0,	0.25,	0.25,	-20.45,	20.95,	0.25,	-289.55, -144.88},
+	{0.,	0,	0.25,	20.95,	-20.31,	0.39,	0.39,	0,	0.39,	0.39,	-20.31,	21.09,	0.25,	-289.41,    0.  },
+	{0.,	0,	0.32,	20.95,	-20.45,	0.25,	0.25,	0,	0.25,	0.25,	-20.45,	20.95,	0.32,	   0.  ,    0.  },
+	{0.,	0,	0.35,	21.09,	-20.31,	0.25,	0.39,	0,	0.39,	0.39,	-20.45,	21.09,	0.39,	   0.  ,    0.  },
+	{0.,	0,	0.39,	21.09,	-20.31,	0.39,	0.32,	0,	0.39,	0.39,	-20.31,	21.02,	0.39,	-289.41,    0.  },
+	{0.,	0,	0.39,	21.09,	-20.31,	0.25,	0.32,	0,	0.25,	0.32,	-20.31,	21.02,	0.39,	-289.41, -144.74},
+	{0.39,	21.09,	0.39,	0.39,	-20.31,	0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
+      }};
+
+    // memcpy(_LadDeltaX,LadDeltaX,2*nlays*maxlad*sizeof(LadDeltaX[0][0][0]));
+    for (int s=0;s<2;s++)
+      for (int la=0;la<nlays;la++)
+	for (int sl=0;sl<maxlad;sl++)
+	  _LadDeltaX[s][la][sl]=LadDeltaX[s][la][sl];
+    
     const char LadName[2][nlays][maxlad][9]={
       {{  "L10AO151", "L12SO181", "L13AO073", "L14AO123", "L14AO125", "L15SO180", "L15AN101", "L15AO173", "L15AN100", "L15AO093", "L14AO159", "L14AO160", "L13AO114", "L12AO107", "L10AO145", },
        {  "L07PI002", "L14AI031", "L09GI003", "L11GI004", "L11GI008", "L12AH024", "L12AI004", "        ", "L12AH029", "L12AI005", "L11GI009", "L11GI016", "L09GI010", "        ", "        ", },
@@ -427,7 +457,13 @@ number TkDBc::GetSlotX(int layer, int slot,int side){
   // (N-1)*sensor pitch  X+ sensor_size -  the distance between the first readout channelX and the sensor edge
   number lenght=(sensors-1)*(_ssize_inactive[0]+0.004)+_ssize_inactive[0]- (_ssize_inactive[0] - _ssize_active[0])/2.;
   if(side==0) lenght*=-1;
+  int otherside=1;
+  if(side==1) otherside=0;
 
+  // PZ Add the DIVIC infos on plane assembly
+  return lenght+(_LadDeltaX[side][layer-1][slot-1]/10.);
+
+  /*
   if(layer>1&& layer<8){
     // Estimated from alignment calibration (SH)
     number xtmp = (layer==2 || layer==3) ? -0.02 : 0;
@@ -447,7 +483,7 @@ number TkDBc::GetSlotX(int layer, int slot,int side){
     return lenght + _ladder_offsetX_outer[slot-1]+side*_ladder_Xseparation*1.1;
   }
   else  return -9999;
-  
+  */
 }
 
 #include <fstream>
@@ -648,7 +684,6 @@ void TkDBc::GetLayerRot(int lay, number nrm[][3]){
 
 
 int TkDBc::readAlignment(const char* filename, int pri){
-  TkLadder *aa;
   ifstream  fileout(filename);
   if (!fileout) {
     printf("Error: tkdbc alignemnt file not found: %s\n", filename);

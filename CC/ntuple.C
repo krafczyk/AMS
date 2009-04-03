@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.182 2009/02/16 14:37:00 choutko Exp $
+//  $Id: ntuple.C,v 1.183 2009/04/03 08:39:16 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -366,71 +366,71 @@ void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
   vector<AMSEventR*> del;
 #pragma omp critical (wr1)
-{
-  Get_evroot02()->SetCont();
-  static int _Size=0;
-  int nthr=1;
+  {
+    Get_evroot02()->SetCont();
+    static int _Size=0;
+    int nthr=1;
 #ifdef _OPENMP
-  nthr=omp_get_num_threads();
+    nthr=omp_get_num_threads();
 #endif
-  uint64 runv=AMSEvent::gethead()->getrunev();
-  AMSEventR * evn=new AMSEventR(_evroot02);
-  evmap.insert(make_pair(runv,evn));
-  for(evmapi i=evmap.begin();i!=evmap.end();){
-    bool go=true;
-    //     cout <<"  go "<<i->second->Event()<<endl;
-    for(int k=0;k<nthr;k++){
-      if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
-	go=false;
-	break;
-      }
-    }
-    if(!go)break;
-    else {
+    uint64 runv=AMSEvent::gethead()->getrunev();
+    AMSEventR * evn=new AMSEventR(_evroot02);
+    evmap.insert(make_pair(runv,evn));
+    for(evmapi i=evmap.begin();i!=evmap.end();){
+      bool go=true;
+      //     cout <<"  go "<<i->second->Event()<<endl;
       for(int k=0;k<nthr;k++){
-	if(AMSEvent::runev(k)==(i->first)){
-	  AMSEvent::runev(k)=0;
+	if(AMSEvent::runev(k) && AMSEvent::runev(k)<(i->first)){
+	  go=false;
 	  break;
 	}
-       }
-      del.push_back(i->second); 
-      evmapi idel=i++;
-      evmap.erase(idel);
+      }
+      if(!go)break;
+      else {
+	for(int k=0;k<nthr;k++){
+	  if(AMSEvent::runev(k)==(i->first)){
+	    AMSEvent::runev(k)=0;
+	    break;
+	  }
+	}
+	del.push_back(i->second); 
+	evmapi idel=i++;
+	evmap.erase(idel);
+      }
+    }
+    if(evmap.size()>_Size){
+      long long ssize=0;
+      for(evmapi i=evmap.begin();i!=evmap.end();i++){
+	ssize+=i->second->Size();
+      }  
+      _Size=evmap.size();
+      if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
     }
   }
-  if(evmap.size()>_Size){
-  long long ssize=0;
-  for(evmapi i=evmap.begin();i!=evmap.end();i++){
-   ssize+=i->second->Size();
-  }  
-    _Size=evmap.size();
-    if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
-  }
-}
-if(del.size()){
+  if(del.size()){
 #pragma omp critical (wr2)
-for(int k=0;k<del.size();k++){
-   if(_tree){
-      if(!_lun )_Nentries++;
-      AMSEventR::Head()=del[k];
-      _tree->Fill();
+    for(int k=0;k<del.size();k++){
+      if(_tree){
+	if(!_lun )_Nentries++;
+	AMSEventR::Head()=del[k];
+	_tree->Fill();
+      }
+    }
+#pragma omp critical (wr1)
+    {
+      if(AMSCommonsI::AB_catch<0){
+	AMSCommonsI::AB_catch=0;
+	sigsetjmp(AMSCommonsI::AB_buf,0);
+	cout <<"  AMSNtuple:writeR-I-sigsetjmp set "<<AMSEvent::get_thread_num()<<endl;
+      }
+      if(AMSCommonsI::AB_catch!=1){
+	for(int k=0;k<del.size();k++)delete del[k];
+      }
+      else{
+	cout<<"  AMSNtuple::writeR-I-AbortCatched "<<endl;
+      }
     }
   }
-#pragma omp critical (wr1)
-{
-if(AMSCommonsI::AB_catch<0){
-   AMSCommonsI::AB_catch=0;
-   sigsetjmp(AMSCommonsI::AB_buf,0);
-   cout <<"  AMSNtuple:writeR-I-sigsetjmp set "<<AMSEvent::get_thread_num()<<endl;
-}
-if(AMSCommonsI::AB_catch!=1){
-for(int k=0;k<del.size();k++)delete del[k];
-}
-else{
- cout<<"  AMSNtuple::writeR-I-AbortCatched "<<endl;
-}
-}
-}
   
 #endif
 #ifdef __MEMMONITOR__

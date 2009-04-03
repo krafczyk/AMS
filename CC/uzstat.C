@@ -1,9 +1,12 @@
-//  $Id: uzstat.C,v 1.24 2009/01/14 14:58:21 choutko Exp $
+//  $Id: uzstat.C,v 1.25 2009/04/03 08:39:16 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
 #endif
+
+#ifndef _PGTRACK_
 #include "cern.h"
+#endif
 #include "uzstat.h"
 #include <iostream>
 #include <iomanip>

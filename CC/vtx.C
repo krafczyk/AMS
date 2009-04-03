@@ -1,17 +1,15 @@
 // Author J. Alcaraz June-July 2003
+// Modified P. Zuccon January 2009 for new tk sw
 //
-//
+
+#ifndef _PGTRACK_
 
 #include "vtx.h"
 #include "point.h"
 #include "event.h"
 #include "trrec.h"
 #include "ntuple.h"
-#ifdef _PGTRACK_
-#include "tkdcards.h"
-#else
 #include "tkdbc.h"
-#endif
 #include "extC.h"
 #include "mceventg.h"
 
@@ -70,24 +68,6 @@ integer AMSVtx::build(integer refit){
                   }
             }
 exit_betaprint:
-#ifdef _PGTRACK_
-	    //PZ FIXME TRACK
-            cout << ", beta " << track_has_beta;
-//
-            cout << ", PI Chi2 " << ptr->getpichi2();
-            cout << ", PI Rigidity " << ptr->GetRigidity();
-            cout << ", WEAK bit " << ptr->checkstatus(AMSDBc::WEAK);
-            cout << ", FalseX bit " << ptr->checkstatus(AMSDBc::FalseX);
-            cout << ", FalseTOFX bit " << ptr->checkstatus(AMSDBc::FalseTOFX);
-            cout << endl;
-            ptr->_printEl(cout);
-            for (int i=0;i<ptr->GetNhits();i++){
-                  cout << "        " << ptr->GetHit(i)->GetCoord()[0];
-                  cout << ", " << ptr->GetHit(i)->GetCoord()[1];
-                  cout << ", " << ptr->GetHit(i)->GetCoord()[2];
-                  cout << endl;
-            }
-#else
             cout << ", beta " << track_has_beta;
 //
             cout << ", PI Chi2 " << ptr->getpichi2();
@@ -103,7 +83,6 @@ exit_betaprint:
                   cout << ", " << ptr->getphit(i)->getHit()[2];
                   cout << endl;
             }
-#endif
          }
        }
      }
@@ -175,24 +154,6 @@ integer AMSVtx::set_all(){
 
      // Most of the information
      number u[3];
-#ifdef _PGTRACK_
-     for (int i=0; i<_Ntracks; i++) { 
-       _Ptrack[i]->setstatus(AMSDBc::USED);
-	 number rig =  _Ptrack[i]->GetRigidity();
-	 number en =  fabs(rig);
-	 number erig =  _Ptrack[i]->GetErrRinv()*en*en;
-	 _Momentum += en;
-	 _Charge += (rig>=0.0)? 1:-1;
-	 _ErrMomentum += erig*erig;
-	 _Chi2 += _Ptrack[i]->getpichi2(); 
-	 _Ndof += 2*_Ptrack[i]->GetNhits() - 5; 
-       AMSDir dir = AMSDir(_Ptrack[i]->GetTheta(),_Ptrack[i]->GetPhi());
-       dir.getp(u);
-	 mom[0] += en*u[0]; 
-       mom[1] += en*u[1]; 
-       mom[2] += en*u[2];
-     }
-#else
      for (int i=0; i<_Ntracks; i++) { 
        _Ptrack[i]->setstatus(AMSDBc::USED);
 	 number rig =  _Ptrack[i]->getpirid();
@@ -209,7 +170,6 @@ integer AMSVtx::set_all(){
        mom[1] += en*u[1]; 
        mom[2] += en*u[2];
      }
-#endif
      _ErrMomentum = sqrt(_ErrMomentum)/_Momentum/_Momentum;
      _Mass = _Momentum*_Momentum - mom[0]*mom[0] - mom[1]*mom[1] - mom[2]*mom[2];
      if (_Mass>0.0) _Mass = sqrt(_Mass); else _Mass = 0.0; 
@@ -223,7 +183,7 @@ integer AMSVtx::set_all(){
 
 }
 
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 void AMSVtx::set_vertex(){
 
    _Vertex = AMSPoint(0.0, 0.0, 0.0);
@@ -242,40 +202,6 @@ void AMSVtx::set_vertex(){
 
     AMSDir dir[2];
 
-#ifdef _PGTRACK_
-    // PZ FIXME
-    dir[0] = AMSDir(_Ptrack[i0]->GetTheta(),_Ptrack[i0]->GetPhi());
-    dir[1] = AMSDir(_Ptrack[i1]->GetTheta(),_Ptrack[i1]->GetPhi());
-
-    number dirprod = dir[0].prod(dir[1]);
-    AMSPoint deltax =  _Ptrack[i0]->GetP0() - _Ptrack[i1]->GetP0();
-
-    number lambda[2];
-    if (fabs(dirprod)<1.) {
-       AMSPoint aux = dir[0] - dir[1]*dirprod;
-       lambda[0] = - deltax.prod(aux) / (1.-dirprod*dirprod);
-       aux = dir[1] - dir[0]*dirprod;
-       lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
-       AMSPoint poi[2];
-       poi[0] = AMSPoint(_Ptrack[i0]->GetP0()+dir[0]*lambda[0]);
-       poi[1] = AMSPoint(_Ptrack[i1]->GetP0()+dir[1]*lambda[1]);
-       number mom=fabs(_Ptrack[i0]->GetRigidity())+fabs(_Ptrack[i1]->GetRigidity());
-//       cout <<" poi0 "<<poi[0]<<endl;
-//       cout <<" poi1 "<<poi[1]<<endl;
-       if(fabs(poi[0][2])<maxz && fabs(poi[1][2])<maxz){
-         number_of_pairs++;
-        for (int j=0; j<3; j++) {
-          _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->GetRigidity())/mom;
-          _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->GetRigidity())/mom;
-        }
-       }
-       else{
-         static int nerr=0;
-         if(nerr++<100)cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
-         setstatus(AMSDBc::BAD);
-       }
-    }
-#else
     dir[0] = AMSDir(_Ptrack[i0]->gettheta(2),_Ptrack[i0]->getphi(2));
     dir[1] = AMSDir(_Ptrack[i1]->gettheta(2),_Ptrack[i1]->getphi(2));
 
@@ -307,7 +233,7 @@ void AMSVtx::set_vertex(){
          setstatus(AMSDBc::BAD);
        }
     }
-#endif
+
    
   }
   }
@@ -386,4 +312,198 @@ integer AMSVtx::Out(integer status){
   }
   return (WriteAll || status);
 }
- 
+#else
+/////////////////////////////////////////////
+/////////   PGTRACK VERSION     /////////////
+/////////////////////////////////////////////
+
+// Author J. Alcaraz June-July 2003
+// Modified P. Zuccon January 2009 for new tk sw
+//
+
+#include "vtx.h"
+#include "tkdcards.h"
+#include "amsdbc.h"
+
+#ifdef __ROOTSHAREDLIBRARY__
+#include "VCon_root.h"
+  VCon* AMSVtx::vcon = new VCon_root();
+#else  
+#include "VCon_gbatch.h"
+VCon* AMSVtx::vcon = new VCon_gb();
+#endif
+
+
+
+
+void AMSVtx::Clear(){
+  _Momentum=0;
+  _ErrMomentum=0;
+  _Theta=0;
+  _Phi=0;
+  _Mass=0;
+  _Charge=0;
+  _Chi2=0;
+  _Ndof=0;
+  _fTrTrack.clear();
+  _Ptrack.clear();
+  _Vertex.setp(0,0,0);
+  _filled=0;
+}
+
+//
+///////////////////////////////////////////////////////////
+
+void AMSVtx::_printEl(ostream & stream){ 
+  //                    stream <<
+  //                      " Vtx >>> Run " << AMSEvent::gethead()->getrun() <<
+  //                      " Event " << AMSEvent::gethead()->getEvent() << endl; 
+                     
+  stream << 
+    " Vtx >>> #tracks " << NTrTrack() << 
+    " Momentum " << _Momentum << 
+    " ErrMomentum " << _ErrMomentum << 
+    " Charge " << _Charge << 
+    " Theta " << _Theta <<
+    " Phi " << _Phi <<
+    " Chi2 " << _Chi2 <<
+    " Ndof " << _Ndof << endl;
+
+  stream << 
+    " Vtx >>> Vextex Point: " << _Vertex[0] <<
+    "        " << _Vertex[1] <<
+    "        " << _Vertex[2] << endl; 
+
+}
+
+
+AMSVtx::AMSVtx(int ntracks, AMSTrTrack *ptrack[]): AMSlink() {
+  
+  //Reset to initial values
+  Clear();
+  //Set the track number
+
+  for (int i=0; i<ntracks; i++) { _Ptrack.push_back(ptrack[i]); }
+  BuildTracksIndex();
+  number mom[3] = {0.0, 0.0, 0.0};
+     
+  if (NTrTrack() <= 0) return ;
+  
+  // Most of the information
+  number u[3];
+  for (int i=0; i<NTrTrack(); i++) { 
+    _Ptrack[i]->setstatus(AMSDBc::USED);
+    number rig =  _Ptrack[i]->GetRigidity();
+    number en =  fabs(rig);
+    number erig =  _Ptrack[i]->GetErrRinv()*en*en;
+    _Momentum += en;
+    _Charge += (rig>=0.0)? 1:-1;
+    _ErrMomentum += erig*erig;
+    _Chi2 += _Ptrack[i]->GetChi2(); 
+    _Ndof += 2*_Ptrack[i]->GetNhits() - 5; 
+    AMSDir dir = AMSDir(_Ptrack[i]->GetTheta(),_Ptrack[i]->GetPhi());
+    dir.getp(u);
+    mom[0] += en*u[0]; 
+    mom[1] += en*u[1]; 
+    mom[2] += en*u[2];
+  }
+
+  _ErrMomentum = sqrt(_ErrMomentum)/_Momentum/_Momentum;
+  _Mass = _Momentum*_Momentum - mom[0]*mom[0] - mom[1]*mom[1] - mom[2]*mom[2];
+  if (_Mass>0.0) _Mass = sqrt(_Mass); else _Mass = 0.0; 
+  AMSDir U = AMSDir(mom);
+  _Theta = U.gettheta();
+  _Phi = U.getphi();
+
+
+  _Vertex = AMSPoint(0.0, 0.0, 0.0);
+  if (NTrTrack()<2) return;
+
+  // Find minimum distance in the case of 2 tracks
+  //  if (_Ntracks==2) {
+
+  //  VC 12-18-2003
+  //  Correct vertex coordinates
+  //
+  int number_of_pairs = 0;
+  float maxz=200;
+  for (int i0=0; i0<NTrTrack()-1; i0++){ 
+    for (int i1=i0+1; i1<NTrTrack(); i1++){ 
+
+      AMSDir dir[2];
+
+
+      // PZ FIXME
+      dir[0] = AMSDir(_Ptrack[i0]->GetTheta(),_Ptrack[i0]->GetPhi());
+      dir[1] = AMSDir(_Ptrack[i1]->GetTheta(),_Ptrack[i1]->GetPhi());
+
+      number dirprod = dir[0].prod(dir[1]);
+      AMSPoint deltax =  _Ptrack[i0]->GetP0() - _Ptrack[i1]->GetP0();
+
+      number lambda[2];
+      if (fabs(dirprod)<1.) {
+	AMSPoint aux = dir[0] - dir[1]*dirprod;
+	lambda[0] = - deltax.prod(aux) / (1.-dirprod*dirprod);
+	aux = dir[1] - dir[0]*dirprod;
+	lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
+	AMSPoint poi[2];
+	poi[0] = AMSPoint(_Ptrack[i0]->GetP0()+dir[0]*lambda[0]);
+	poi[1] = AMSPoint(_Ptrack[i1]->GetP0()+dir[1]*lambda[1]);
+	number mom=fabs(_Ptrack[i0]->GetRigidity())+fabs(_Ptrack[i1]->GetRigidity());
+	//       cout <<" poi0 "<<poi[0]<<endl;
+	//       cout <<" poi1 "<<poi[1]<<endl;
+	if(fabs(poi[0][2])<maxz && fabs(poi[1][2])<maxz){
+	  number_of_pairs++;
+	  for (int j=0; j<3; j++) {
+	    _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->GetRigidity())/mom;
+	    _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->GetRigidity())/mom;
+	  }
+	}
+	else{
+	  static int nerr=0;
+	  if(nerr++<100)cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
+	  setstatus(AMSDBc::BAD);
+	}
+      }
+
+   
+    }
+  }
+  for (int j=0; j<3; j++) {
+    if(number_of_pairs)_Vertex[j] = _Vertex[j]/(number_of_pairs);
+  }
+
+  _filled=1;
+#ifdef __AMSDEBUG__
+  if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
+#endif  
+
+}
+
+void AMSVtx::BuildTracksIndex()
+{
+  VCon *cont2 = vcon->GetCont("AMSTrTrack");
+  if (!cont2) return;
+  _fTrTrack.clear();
+  for (int i = 0; i < NTrTrack(); i++) {
+    _fTrTrack.push_back(cont2->getindex(_Ptrack[i]));
+  }
+  delete cont2;
+}
+
+
+
+AMSTrTrack *AMSVtx::pTrTrack(unsigned int i) 
+{
+
+  if(i>=_fTrTrack.size()) return 0;
+  if (_Ptrack[i] == 0 && _fTrTrack[i] >= 0) {
+    VCon* cont2 = vcon->GetCont("AMSTrTrack");
+    _Ptrack[i] = (AMSTrTrack*)cont2->getelem(_fTrTrack[i]);
+    delete cont2;
+  }
+
+  return _Ptrack[i];
+}
+
+#endif

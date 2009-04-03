@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.177 2009/02/26 15:04:37 choutko Exp $
+//  $Id: root.C,v 1.178 2009/04/03 08:39:16 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1600,8 +1600,16 @@ void AMSEventR::AddAMSObject(AMSRichRingNew *ptr)
 
 
 void AMSEventR::AddAMSObject(AMSVtx *ptr){
-  fVertex.push_back(VertexR(ptr));
-  ptr->SetClonePointer(fVertex.size()-1);
+  if(ptr){
+#ifdef _PGTRACK_
+    fVertex.push_back(*ptr);
+#else
+    fVertex.push_back(VertexR(ptr));
+    ptr->SetClonePointer(fVertex.size()-1);
+#endif
+  }else {
+    cout<<"AddAMSObject -E- AMSVtx ptr is NULL"<<endl;
+  }
 }
 
 void AMSEventR::AddAMSObject(AMSTOFCluster *ptr){
@@ -1663,8 +1671,8 @@ void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
     fTrRawCluster.push_back(*ptr);
 #else
     fTrRawCluster.push_back(TrRawClusterR(ptr));
-    ptr->SetClonePointer( fTrRawCluster.size()-1);
 #endif
+    ptr->SetClonePointer( fTrRawCluster.size()-1);
   }  else {
     cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
   }
@@ -1677,8 +1685,8 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
     fTrCluster.push_back(*ptr);
 #else
     fTrCluster.push_back(TrClusterR(ptr));
-    ptr->SetClonePointer(fTrCluster.size()-1);
 #endif
+    ptr->SetClonePointer(fTrCluster.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
   }
@@ -1692,8 +1700,8 @@ void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
     fTrRecHit.push_back(*ptr);
 #else
     fTrRecHit.push_back(TrRecHitR(ptr));
-    ptr->SetClonePointer(fTrRecHit.size()-1);
 #endif
+    ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
   }
@@ -1707,8 +1715,8 @@ void AMSEventR::AddAMSObject(AMSTrTrack *ptr)
     fTrTrack.push_back(*ptr);
 #else
     fTrTrack.push_back(TrTrackR(ptr));
-    ptr->SetClonePointer( fTrTrack.size()-1);
 #endif
+    ptr->SetClonePointer( fTrTrack.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
   }
@@ -2154,6 +2162,7 @@ MCTrackR::MCTrackR(AMSmctrack *ptr){
 #endif
 }
 
+#ifndef _PGTRACK_
 VertexR::VertexR(AMSVtx *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Momentum=ptr->getmom();
@@ -2168,7 +2177,7 @@ VertexR::VertexR(AMSVtx *ptr){
   for(int i=0;i<3;i++)Vertex[i]=ptr->getvert()[i];
 #endif
 }
-
+#endif
 
 ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 {
@@ -2799,9 +2808,11 @@ ChargeR* ParticleR::pCharge(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pCharge(fCharge):0;
 }
 
+#ifndef _PGTRACK_
 TrTrackR* VertexR::pTrTrack(unsigned int i){
   return (AMSEventR::Head() && i<fTrTrack.size())?AMSEventR::Head()->pTrTrack(fTrTrack[i]):0;
 }
+#endif
 
 TrTrackR* ParticleR::pTrTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
@@ -3022,6 +3033,10 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
   if (GetFile() && GetFile()!=_FILE){
     _FILE=GetFile();
     TrCalDB::Head= (TrCalDB*)_FILE->Get("TrCalDB");
+    //PZ FIXME
+    TrParDB *cc= new TrParDB();
+    cc->init();
+    TrClusterR::UsingTrParDB(cc);
     TrClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
   }

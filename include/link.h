@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.21 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: link.h,v 1.22 2009/04/03 08:39:24 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -44,6 +44,7 @@ public:
   //! destructor
   virtual ~AMSlink(){};
 
+  void Clear(){ _pos=0; _status=0;_vpos=-1;_next=0;}
   uinteger checkstatus(integer checker) const{return _status & checker;}
   uinteger getstatus() const{return _status;}
   void     setstatus(uinteger status){_status=_status | status;}

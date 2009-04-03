@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
 #ifndef __AMSTrTrack__
 #define __AMSTrTrack__
 
@@ -27,21 +27,21 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/04/03 08:39:24 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "link.h"
 #include "point.h"
 #include "VCon.h"
+#include "TrFit.h"
 #include "TObject.h"
 
 #include <cmath>
 
 class AMSTrRecHit;
-class TrFit;
 
 class AMSTrTrackPar {
 public:
@@ -82,6 +82,9 @@ public:
    * Note: Theta and Phi can be obtained through AMSDir */
   AMSDir Dir;
 
+  /// Fitting residual at each layer
+  AMSPoint Residual[trconst::maxlay];
+
   /// Default constructor to fill default values
   AMSTrTrackPar()
     : FitDone(false), HitBits(0), ChisqX(0), ChisqY(0), 
@@ -90,22 +93,27 @@ public:
   ~AMSTrTrackPar(){}
   void Print(){
     printf("Fit Done: %d, HitBits: %06d, ChisqX: %f, ChisqY: %f, Chisq: %f, NdofX: %d NdofY: %d \n",
-	   FitDone,HitBits,ChisqX,ChisqY,Chisq,NdofX,NdofY);
+           FitDone,HitBits,ChisqX,ChisqY,Chisq,NdofX,NdofY);
     printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
-	   Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
+           Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
   }
 ClassDef(AMSTrTrackPar,1);
 } ; 
 
 
+//==============================================================================================================================
+//==============================================================================================================================
+//==============================================================================================================================
+
 class AMSTrTrack : public AMSlink {
 
 private:
   static geant _TimeLimit; //!
+  int _Status;
 public:
   /// Default fit method ID to retrive parameters
   static int DefaultFitID;
-
+  int trdefaultfit;
   /// enum of fitting methods; trying to keep compatible with TKFITG
   enum EFitMethods { 
     /// Track without hits (for RICH Compatibility)
@@ -116,8 +124,8 @@ public:
     kGEANE         = 2, 
     /// GEANE Kalman filter      : To be implemented
     kGEANE_Kalman  = 3, 
-    /// Juan algo                : Partially implemented, to be completed
-    kJuan          = 4,
+    /// Juan algo
+    kAlcaraz       = 4,
     /// A. Chikanian algo        : Will NOT be implemented without request
     kChikanian     = 5,
     
@@ -147,12 +155,9 @@ protected:
   map<int, AMSTrTrackPar> _TrackPar;
 
   /// The last successful TrFit object (not stored in ROOT Tree)
-  TrFit *_TrFit;  //!
-  uinteger _Status;
+  TrFit _TrFit;  //!
 
 public:
-
-
   /// Virtual container
   static VCon* vcon;
 
@@ -196,27 +201,29 @@ public:
   AMSTrTrack();
   /// Constructor with hits
   AMSTrTrack(int pattern, 
-	     int nhits = 0, AMSTrRecHit *phit[] = 0, int *imult = 0);
+	     int nhits = 0, AMSTrRecHit *phit[] = 0, int *imult = 0,int fithmethod=0);
   /// Dummy track for RICH compatibility (filled at [kDummy])
-  AMSTrTrack(number theta, number phi, AMSPoint pref);
+  AMSTrTrack(number theta, number phi, AMSPoint pref,int fithmethod=kDummy);
   /// Dummy track for RICH compatibility (filled at [kDummy])
-  AMSTrTrack(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7);
+  AMSTrTrack(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7,int fithmethod=kDummy);
 
   /// Destructor
   ~AMSTrTrack();
-  AMSTrTrack( const AMSTrTrack & orig);
 
-  AMSTrTrack& operator=( const AMSTrTrack & orig);
-    
   /// Add a hit with multiplicity index (if specified)
   void AddHit(AMSTrRecHit *hit, int imult = -1);
+
+  /// Set hit patterns
+  void SetPatterns(int patx, int paty, int patxy) {
+    _PatternX = patx; _PatternY = paty; _PatternXY = patxy;
+  }
 
   /// For Gbatch compatibility
   uinteger checkstatus(integer checker) const{return _Status & checker;}
   uinteger getstatus() const{return _Status;}
   void     setstatus(uinteger status){_Status=_Status | status;}
   void     clearstatus(uinteger status){_Status=_Status & ~status;} 
-    int IsGood   () { return 1; }
+
   AMSTrTrack *next(){ return (AMSTrTrack*)_next; }
 
   /// Build index vector (_iHits) from hits vector (_Hits)
@@ -238,43 +245,46 @@ public:
   bool ParExists(int id) { return (_TrackPar.find(id) != _TrackPar.end()); }
 
   /// Get TrTrackPar with id
-  AMSTrTrackPar &GetPar(int id = DefaultFitID) {
-    if (ParExists(id)) return _TrackPar[id];
+  AMSTrTrackPar &GetPar(int id = 0) {
+    int id2= (id==0)? trdefaultfit: id;
+    if (ParExists(id2)) return _TrackPar[id2];
     cerr << "Warning in AMSTrTrack::GetPar, Parameter not exists " 
-	 << id << endl;
-    int aa=10/0; //for debug
+         << id << endl;
+    //    int aa=10/0; //for debug
     static AMSTrTrackPar parerr;
     return parerr;
   }
 
   // Get fitting parameter with a key as Fitting method ID
-  bool   FitDone    (int id = DefaultFitID) { return GetPar(id).FitDone;  }
-  int    GetHitBits (int id = DefaultFitID) { return GetPar(id).HitBits;  }
-  double GetChisqX  (int id = DefaultFitID) { return GetPar(id).ChisqX;   }
-  double GetChisqY  (int id = DefaultFitID) { return GetPar(id).ChisqY;   }
-  double GetChisq   (int id = DefaultFitID) { return GetPar(id).Chisq;    }
-  int    GetNdofX   (int id = DefaultFitID) { return GetPar(id).NdofX;    }
-  int    GetNdofY   (int id = DefaultFitID) { return GetPar(id).NdofY;    }
-  double GetRigidity(int id = DefaultFitID) { return GetPar(id).Rigidity; }
-  double GetErrRinv (int id = DefaultFitID) { return GetPar(id).ErrRinv;  }
-  AMSPoint GetP0    (int id = DefaultFitID) { return GetPar(id).P0;       }
-  AMSDir   GetDir   (int id = DefaultFitID) { return GetPar(id).Dir;      }
-  // PZ FIXME 
-  bool getres(int layer,AMSPoint &pnt,int fitid=DefaultFitID );
+  bool     FitDone     (int id= 0) { return GetPar(id).FitDone;  }
+  int      GetHitBits  (int id= 0) { return GetPar(id).HitBits;  }
+  double   GetChisqX   (int id= 0) { return GetPar(id).ChisqX;   }
+  double   GetChisqY   (int id= 0) { return GetPar(id).ChisqY;   }
+  double   GetChisq    (int id= 0) { return GetPar(id).Chisq;    }
+  int      GetNdofX    (int id= 0) { return GetPar(id).NdofX;    }
+  int      GetNdofY    (int id= 0) { return GetPar(id).NdofY;    }
+  double   GetRigidity (int id= 0) { return GetPar(id).Rigidity; }
+  double   GetErrRinv  (int id= 0) { return GetPar(id).ErrRinv;  }
+  AMSPoint GetP0       (int id= 0) { return GetPar(id).P0;       }
+  AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
+  AMSPoint GetResidual (int i, int id= 0) { 
+    return (ParExists(id) && 0 <= i && i < trconst::maxlay) ? 
+      GetPar(id).Residual[i] : AMSPoint(0, 0, 0);
+  }
 
   // Aliases
-  double GetP0x  (int id = DefaultFitID) { return GetP0(id).x(); }
-  double GetP0y  (int id = DefaultFitID) { return GetP0(id).y(); }
-  double GetP0z  (int id = DefaultFitID) { return GetP0(id).z(); }
-  double GetChi2 (int id = DefaultFitID) { return GetChisq(id);  }
-  double GetTheta(int id = DefaultFitID) { return GetDir(id).gettheta(); }
-  double GetPhi  (int id = DefaultFitID) { return GetDir(id).getphi();   }
+  double   GetP0x      (int id= 0) { return GetP0(id).x(); }
+  double   GetP0y      (int id= 0) { return GetP0(id).y(); }
+  double   GetP0z      (int id= 0) { return GetP0(id).z(); }
+  double   GetChi2     (int id= 0) { return GetChisq(id);  }
+  double   GetTheta    (int id= 0) { return GetDir(id).gettheta();}
+  double   GetPhi      (int id= 0) { return GetDir(id).getphi();  }
 
   /// Get track entry point (first layer of the fitting)
-  AMSPoint GetPentry(int id = DefaultFitID);
+  AMSPoint GetPentry(int id = 0);
 
   /// Test HitBits
-  bool TestHitBits(int layer, int id = DefaultFitID) { 
+  bool TestHitBits(int layer, int id = 0) { 
     return (GetHitBits(id) & (1 << (trconst::maxlay-layer)));
   }
 
@@ -282,15 +292,18 @@ public:
   AMSTrRecHit *GetHit(int i);
 
   /// Get tan(theta) on XZ projection
-  double GetThetaXZ(int id = DefaultFitID) { 
+  double GetThetaXZ(int id = 0) { 
     AMSDir dir = GetDir(id);
     return (dir.z() != 0) ? dir.x()/dir.z() : 0;
   }
   /// Get tan(theta) on YZ projection
-  double GetThetaYZ(int id = DefaultFitID) { 
+  double GetThetaYZ(int id = 0) { 
     AMSDir dir = GetDir(id);
     return (dir.z() != 0) ? dir.y()/dir.z() : 0;
   }
+
+  /// Get TrFit object of the last fit
+  TrFit *GetTrFit() { return &_TrFit; }
 
   /// Perform 3D fitting with the method specified by ID
   /*!
@@ -302,8 +315,7 @@ public:
 
     \param[in] layer Layer to be excluded in the fitting (if specified) 
 
-    \param[in] trfit TrFit object to which fitting parameters are kept. 
-                     If it is not specified, map[ID] is overwritten. 
+    \param[in] update Track parameters are overwritten if update=true
 
     \param[in] err   Fitting errors (0:x,1:y,2:z) to be used. 
 		     If they are not specified, default values 
@@ -317,58 +329,65 @@ public:
     
     \return          Chisq(X+Y)/Ndof if succeeded, or -1 if failed
    */
-  
-  double FitP(int id = kChoutko,int part=14){
-    int charge=1;
-    double mass=0.938272297;
-    if(part==14||part==15)   {charge=1;mass=0.938272297;}
-    else if(part==2||part==3){charge=1;mass=0.000510998;}
-    else if(part==5||part==6){charge=1;mass=0.105658357;}
-    else if(part==47)        {charge=2;mass=3.727417;}
-    else return -1;
-    return  Fit(id ,-1,  0,mass,  1);
-  }    
-  double Fit(int id = kChoutko,
-	     int layer = -1, const double *err = 0, 
-	     double mass = 0.938272297, double chrg = 1);
-
-  /// Fill residual with TrFit if specified, if not with the last fit 
-  void FillResidual();
+  float Fit(int id = 0,
+	    int layer = -1, bool update = true, const float *err = 0, 
+	    float mass = 0.938272297, float chrg = 1);
 
   /// Perform simple fitting with a constant position error of 0.03 cm
-  double SimpleFit(void) {
-    static const double err[3] = { 0.03, 0.03, 0.03 };
-    return Fit(kSimple, -1,  err);
+  float SimpleFit(void) {
+    static const float err[3] = { 0.03, 0.03, 0.03 };
+    return Fit(kSimple, -1, 0, err);
   }
   /// Perform simple fitting with a constant position error
-  double SimpleFit(double *err) {
-    return Fit(kSimple, -1,  err);
+  float SimpleFit(float *err) {
+    return Fit(kSimple, -1, 0, err);
   }
   
-  bool interpolateToZ(double Zint,AMSPoint &pnt,int id= DefaultFitID);
-  /// Interpolation
+  /// Interpolation onto Z=const. plane
+  /*!
+   * \param[in]  zpl  Plane position (Z=zpl)
+   * \param[out] pnt  Track position  at Z=zpl
+   * \param[out] dif  Track direction at Z=zpl
+   * \param[in]  id   Fitting method ID
+   * \return          Path length between Z=P0z(usually 0) and Z=zpl
+   */
+  double Interpolate(double zpl, AMSPoint &pnt, AMSDir &dir, 
+		     Int_t id = 0);
+
+  /// Build interpolation vectors onto Z=zpl[i] (0<=i<nz) planes
+  /*!
+   * \param[in]  nz   Number of planes
+   * \param[in]  zpl  Plane Z positions vector
+   * \param[out] pvec Track positions   vector
+   * \param[out] dvec Track directions  vector, not filled if 0
+   * \param[out] lvec Path lengths      vector, not filled if 0
+   * \param[in]  id   Fitting method ID
+   * lvec[0] is length between Z=P0z and Z=zpl[0],
+   * lvec[i] is length between Z=zpl[i] and Z=zpl[i-1] for i>0
+   */
+  void Interpolate(int nz, double *zpl, 
+		   AMSPoint *pvec, AMSDir *dvec = 0, double *lvec = 0,
+		   Int_t id = 0);
+
+  /// General interpolation (for the compatibility with Gbatch)
   void interpolate(AMSPoint pnt, AMSDir dir,  AMSPoint &P1, 
 		   number &theta, number &phi, number &length, 
-		   int id = DefaultFitID);
-  
-  /// Interpolation to cylinder surface: TO_BE_IMPLEMENTED
-  bool interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
-		      AMSPoint & P1, number & theta, number & phi, 
-		      number & length){
-    P1[0]=P1[1]=P1[2]=theta=phi=length=0;
-    return true;
-  }
+		   int id = 0);
 
+  /// Interpolation to cylindrical surface
+  bool interpolateCyl(AMSPoint pnt, AMSDir dir, number rad, number idir, 
+		      AMSPoint &P1, number &theta, number &phi,
+		      number &length, int id = 0);
 
   /// Print tracks
   static void print();
   void myprint();
 
   /// For compatibility with vtx.C
-  double getpichi2() { return 1.; }
+  // double getpichi2() { return 1.; }
 
   /// For compatibility with ecalcalib.C
-  int GeaneFitDone   () { return FitDone(kGEANE); }
+  //int GeaneFitDone() { return FitDone(kGEANE); }
 
   /// For compatibility with ecalcalib.C
   /*! "Advanced fit" is assumed to perform all the fitting: 
@@ -376,23 +395,12 @@ public:
    *   5: Juan with ims=1 */
   int AdvancedFitDone() { 
     return FitDone(kChoutko|kUpperHalf) & FitDone(kChoutko|kLowerHalf) & 
-           FitDone(kChoutko) & FitDone(kJuan);
+           FitDone(kChoutko) & FitDone(kAlcaraz);
   }
   /// For compatibility with ecalcalib.C
   int DoAdvancedFit();
   
-  /// For compatibility with Gbatch : TO_BE_IMPLEMENTED
-  void getParAdvancedFit(number& GChi2,  number& GRid, number&   GErr,
-			 number& GTheta, number& GPhi, AMSPoint& GP0,
-			 number HChi2 [2], number HRid[2], number  HErr[2], 
-			 number HTheta[2], number HPhi[2], AMSPoint HP0[2]) {
-    GChi2 = GRid = GErr = GTheta = GPhi = 0;
-    GP0 = AMSPoint();
-    for (int i = 0; i < 2;i++) {
-      HChi2[i] = HRid[i] = HErr[i] = HTheta[i] = HPhi[i] = 0;
-      HP0[i] = AMSPoint();
-    }
-  }
+ 
 
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 

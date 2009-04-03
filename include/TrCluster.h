@@ -1,4 +1,4 @@
-// $Id: TrCluster.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $ 
+// $Id: TrCluster.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
 #ifndef __AMSTrCluster__
 #define __AMSTrCluster__
 
@@ -6,17 +6,20 @@
 #include "TkDBc.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
+#include "TrParDB.h"
+#include "TrLadPar.h"
 #include "TkCoo.h"
 #include "link.h"
 #include <cmath>
 #include <vector>
 #include <string>
+
 /*!
 \class AMSTrCluster
 \brief A class to manage reconstructed cluster in AMS Tracker
 \ingroup tkrec
 
- AMSTrCluster is the a core of the Tracker reconstruction. 
+ AMSTrCluster is the core of the Tracker reconstruction. 
  New ladder geometry (TKDBc) and calibration databases (TrCalDB) 
  and strip database (TkStrip) are used instead of 
  the original TKDBc, TrIdSoft, and TrIdGeom. 
@@ -33,62 +36,83 @@
 \date  2008/03/31 AO  Eta and CofG methods changing
 \date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
+\date  2008/12/11 AO  Some method update
 
- $Date: 2008/12/18 11:19:24 $
+ $Date: 2009/04/03 08:39:24 $
 
- $Revision: 1.1 $
+ $Revision: 1.2 $
 
 */
 
 //class AMSTrCluster : public TObject, public AMSlink {
-class AMSTrCluster : public AMSlink{
+class AMSTrCluster : public AMSlink {
 
-private:
-  /// Local coordinate by multiplicity index (for now is XCofG(3))
-  vector<float> _coord; //!
+ public:
+  
+  enum CorrectionOptions {
+    /// No Correction Applied
+    kNoCorr       = 0x00,       
+    /// Signal Corr.: Cluster Asymmetry Correction (left/right)
+    kAsym         = 0x01, 
+    /// Total Signal Corr.: Energy Loss Normalization at 300 um [cos(Theta)^-1]
+    kAngle        = 0x02,
+    /// Total Signal Corr.: Gain Correction
+    kGain         = 0x04, 
+    /// Total Signal Corr.: VA Gain Correction (appliable only with gain correction)
+    kVAGain       = (0x08 & 0x04), 
+    /// Total Signal Corr.: Charge Loss Correction 
+    kLoss         = 0x10,
+    /// Total Signal Corr.: P/N Normalization Correction     
+    kPN           = 0x20
+  };
+  static int DefaultCorrOpt;
+  static int DefaultUsedStrips;
+
+ private:
+
+  /// Multiplicity 
+  short int     _mult;   
+  /// Local coordinate by multiplicity index 
+  vector<float> _coord;  
   /// Global coordinate by multiplicity index
-  vector<float> _gcoord; //!
+  vector<float> _gcoord; 
  
  public:
+  
   /// TkLadder ID (layer *100 + slot)*side 
   short int    _tkid;
   /// First strip address (0-639 for p-side, 640-1023 for n-side)
   short int    _address;
   /// Number of strips
   short int    _nelem;
-  /// Seed index in the cluster (0<=_seedind<_nelem)
+  /// Seed index in the cluster (without correction, 0<=_seedind<_nelem)
   short int    _seedind;
   /// ADC data array
   std::vector<float> _signal;
-  /// Cluster status
-  unsigned int       _clstatus;
-  /// Multiplicity;
-  short int _mult;
-
+  /// Cluster status 
+  unsigned int _Status;
+  /// tan(ThetaXZ)
+  float        _dxdz;
+  /// tan(ThetaYZ)
+  float        _dydz;
+  
  protected:
-
-  /// This part has to be putted in the TrParDB
-  /// Asimmetry correction parameters 
-  static float AsimmetryCorr[2];
-  /// Gain correction parameters (VA by VA!!!)
-  static float GainCorr[2];
-  /// Charge loss corrections for protons (in 3 eta regions) 
-  static float ChargeLossCorr[2][3];
- 
+  
   /// Pointer to the calibration database
   static TrCalDB* _trcaldb;
+  /// Pointer to the parameters database
+  static TrParDB* _trpardb;
  
  public:
+  
   /// Default constructor
   AMSTrCluster(void);
   /// Constructor with data
-  AMSTrCluster(int tkid, int side, int add, int nelem, int seedind, float* adc, unsigned int clstatus);
+  AMSTrCluster(int tkid, int side, int add, int nelem, int seedind, float* adc, unsigned int status);
   /// Constructor divided is several instructions 
-  AMSTrCluster(int tkid, int side, int add, int seedind, unsigned int clstatus);
+  AMSTrCluster(int tkid, int side, int add, int seedind, unsigned int status);
   /// Insert a strip in the cluster
   void push_back(float adc);
-  /// Build the coordinates (with multiplicity)
-  void BuildCoordinates();
   /// Copy constructor
   AMSTrCluster(const AMSTrCluster& orig);
   /// Destructor
@@ -96,10 +120,25 @@ private:
   /// Clear
   void Clear();
 
-  /// Using this calibration file
+  /// Using this calibration database
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
   /// Get the current calibration database
   TrCalDB*    GetTrCalDB() { return _trcaldb; }
+  /// Using this parameter database
+  static void UsingTrParDB(TrParDB* trpardb) { _trpardb = trpardb; }
+  /// Get the current parameter database
+  TrParDB*    GetTrParDB() { return _trpardb; }
+
+  /// Set track interpolation angle tan(ThetaXZ)
+  inline void  SetDxDz(float dxdz) { _dxdz = dxdz; }
+  /// Set track interpolation angle tan(ThetaYZ)
+  inline void  SetDyDz(float dydz) { _dydz = dydz; }
+  /// Get track interpolation angle tan(ThetaXZ)
+  inline float GetDxDz()  { return _dxdz; }
+  /// Get track interpolation angle tan(ThetaYZ)
+  inline float GetDyDz()  { return _dydz; }
+  /// Get track interpolation angle theta
+  inline float GetTheta() { return acos(1./(1.+_dxdz*_dxdz+_dydz*_dydz)); }
 
   /// Get ladder TkId identifier 
   int   GetTkId()          const { return _tkid; }
@@ -108,115 +147,119 @@ private:
   /// Get ladder slot
   int   GetSlot()          const { return abs(_tkid%100); }
   /// Get cluster side (0: n-side, 1: p-side)
-  int   GetSide()          const { return (_address<640)?1:0; }
-  /// Get the cluster first strip number (0-640 for p-side, 0-384 for n-side)  
+  int   GetSide()          const { return (_address<640)? 1 : 0; }
+  /// Get the cluster first strip number (0, ..., 639 for p-side, 0, ..., 383 for n-side)  
   int   GetAddress()       const { return _address; }
   /// Get i-th strip address
   int   GetAddress(int ii);
+  /// Get the local coordinate for i-th strip
+  float GetX(int ii, int imult = 0) { return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); }
   /// Get the cluster strip multiplicity
   int   GetNelem()         const { return _nelem; }
-  /// Get i-th strip signal (A: apply asimmetry correction, G: apply gain correction)
-  float GetSignal(int ii, const char* options = "AG");
-  /// Get i-th strip sigma (from calibration)
+  int   GetLength()              { return GetNelem(); }
+
+
+  /// chek some bits into cluster status
+  uinteger checkstatus(integer checker) const{return _Status & checker;}
+  /// Get cluster status
+  uinteger getstatus() const{return _Status;}
+  /// Set cluster status
+  void     setstatus(uinteger status){_Status=_Status | status;}
+  /// Clear cluster status
+  void     clearstatus(uinteger status){_Status=_Status & ~status;}
+
+  /// Get i-th strip signal
+  float GetSignal(int ii, int opt = DefaultCorrOpt);
+  /// Get i-th strip noise (from calibration)
   float GetSigma(int ii) { return GetNoise(ii);  }
-  /// Get i-th strip sigma (from calibration)
-  // float GetNoise(int ii)   const { return _sigma.at(ii);  }
   float GetNoise(int ii);   
   /// Get i-th signal to noise ratio 
-  float GetSN(int ii, const char* options = "AG") { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,options)/GetNoise(ii); }
-  /// Get i-th strip status (the same of TrRawCluster)
-  // short GetStatus(int ii)  const { return _status.at(ii); }
+  float GetSN(int ii, int opt = DefaultCorrOpt) { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); }
+  /// Get i-th strip status (from calibration)
   short GetStatus(int ii);
-//   /// Get gain 
-//   float GetGain()          const { return _gain; }
-  /// Get cluster status
-  int   GetClusterStatus() const { return _clstatus; } 
-  /// Get multiplicity (1 for p-side, >1 for n-side)
-  int   GetMultiplicity()   const { return _mult; }
-  //int GetMultiplicity() { return TkCoo::GetMaxMult(GetTkId(),GetAddress())+1; }
-  /// Get local coordinate by multiplicity index
+
+  /// Build the coordinates (with multiplicity)
+  void  BuildCoordinates();
+  /// Get multiplicity
+  int   GetMultiplicity();
+  /// Get global coordinate by multiplicity index
   float GetCoord(int imult); 
   /// Get global coordinate by multiplicity index
   float GetGCoord(int imult);
+
   /// Get the seed index 
-  int   GetSeedIndex()   { return _seedind; }
+  int   GetSeedIndex(int opt = DefaultCorrOpt);
   /// Get the seed address 
-  int   GetSeedAddress() { return GetAddress(GetSeedIndex()); }
+  int   GetSeedAddress(int opt = DefaultCorrOpt) { return GetAddress(GetSeedIndex(opt)); }
   /// Get seed signal 
-  float GetSeedSignal(const char* options = "AG")  { return GetSignal(GetSeedIndex(),options); }
+  float GetSeedSignal(int opt = DefaultCorrOpt)  { return GetSignal(GetSeedIndex(opt),opt); }
   /// Get seed noise 
-  float GetSeedNoise()   { return GetNoise(GetSeedIndex()); }
+  float GetSeedNoise(int opt = DefaultCorrOpt)   { return GetNoise(GetSeedIndex(opt)); }
   /// Get seed signal to noise ratio 
-  float GetSeedSN()      { return GetSN(GetSeedIndex()); }
+  float GetSeedSN(int opt = DefaultCorrOpt)      { return GetSN(GetSeedIndex(opt)); }
   /// Get the numeber of strips on the left of the seed strip
-  int   GetLeftLength()  { return GetSeedIndex(); }
+  int   GetLeftLength(int opt = DefaultCorrOpt)  { return GetSeedIndex(opt); }
   /// Get the number of strips on the right of the seed strip
-  int   GetRightLength() { return GetNelem() - GetSeedIndex() - 1; } 
-  /// Get cluster length
-  int   GetLength()      { return GetNelem(); }
+  int   GetRightLength(int opt = DefaultCorrOpt) { return GetNelem() - GetSeedIndex(opt) - 1; } 
+
   /// Get cluster amplitude
-  /*
-    options:
-    A: apply asimmetry correction (signal)
-    I: apply inclination correction (???)
-    L: apply charge loss correction
-    G: apply gain correction 
-    N: apply the p/n normalization
-  */
-  float GetTotSignal(const char* options = "ALG");
-  /// Get cluster eta (center of gravity with the two higher strips) 
-  /// (A: apply asimmetry correction, G: apply gain correction)
-  float GetEta(const char* options = "AG");
-  /// Get cluster eta index (0: readout, 1: middle, 2: central) 
-  /// (A: apply asimmetry correction, G: apply gain correction)
-  int   GetEtaIndex(const char* options = "AG");
-  /// Get the cluster amplitude Center of Gravity with the n higher consecutive strips
-  float GetCofG(int nstrips=2, const char* options = "AG");
+  float GetTotSignal(int opt = DefaultCorrOpt);
 
-  /// Get the local coordinate for i-th strip (0-1024)
-  float GetX(int ii, int imult = 0) { return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); }
-  /// Get the local coordinate for the given interstrip position (0.-1.)
-  float GetX(float interpos, int imult = 0);
-  /// Get local coordinate with eta 
-  float GetXEta(int imult = 0, const char* options = "AG");
+  /// Get cluster bounds for a given number of strips (gerarchic order...)  
+  /*           _        
+   *          | |_      
+   *       _ _| | |     
+   *     _| | | | |_    
+   *  __|_|_|_|_|_|_|__                   
+   *     5 3 2 0 1 4                       
+   *  Seed is used as reference (position 0) */
+  void  GetBounds(int &leftindex, int &rightindex, int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
+  /// Get the Center of Gravity with the n highest consecutive strips
+  float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips
-  float GetXCofG(int nstrips, int imult = 0, const char* options = "AG");
-
-  /// Also global coordinate (with only translations)
-
-
-  // - useful for eta analysis - //
-  /// Get the second strip index (<0 if not)
-  int   GetSecondIndex();
-  /// Get the second strip address 
-  int   GetSecondAddress() { return (GetSecondIndex()==0) ? GetAddress()+GetSecondIndex() : -1; }
-  /// Get the second strip signal 
-  float GetSecondSignal(const char* options = "AG")  { return (GetSecondIndex()==0) ? GetSignal(GetSecondIndex(),options) : 0.; }
-  /// Get the second strip noise signal 
-  float GetSecondNoise()   { return (GetSecondIndex()==0) ? GetNoise(GetSecondIndex()) : -1.; }
-  /// Get the second trip signal to noise ratio 
-  float GetSecondSN()      { return GetSecondSignal()/GetSecondNoise(); } 
+  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); }
+  /// Get Eta (center of gravity with the two higher strips)
+  /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
+   *      _                                    _ 
+   *    l|c|r          c*0 + r*1    r        l|c|r            l*0 + c*1    c
+   *     | |_    eta = --------- = ---       _| |       eta = --------- = ---
+   *    _| | |           c + r     c+r      | | |_              l + c     l+c
+   * __|_|_|_|__                          __|_|_|_|__
+   *      0 1                                0 1
+   *  Eta is 1 for particle near to the right strip,
+   *  while is approx 0 when is near to the left strip (old definition) */
+  float GetEta(int opt=DefaultCorrOpt) { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
+  /// Digital Head-Tail method
+  float GetDHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
+  /// Get local coordinate with center of gravity on nstrips
+  float GetXDHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetDHT(nstrips,opt),imult); }
+  /// Analog Head-Tail method
+  float GetAHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
+  float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); } 
 
 
   /// Print cluster basic information
   std::ostream& putout(std::ostream &ostr = std::cout) const;
   friend std::ostream &operator << (std::ostream &ostr, const AMSTrCluster &cls) { return cls.putout(ostr); }
   /// Print cluster strip variables (A: apply asimmetry correction, G: apply gain correction)
-  void Print(const char* options = "AG");
-  void Info(const char* options = "AG");
+  void Print(int opt = DefaultCorrOpt);
+  void Info(int opt = DefaultCorrOpt);
 
   static string sout;
 
   void _copyEl(){}
-  void _printEl(std::ostream& ostr){  putout(ostr); }
+  void _printEl(std::ostream& ostr) { putout(ostr); }
   void _writeEl(){}
 
-   void * operator new(size_t t) {return TObject::operator new(t); }
-   void operator delete(void *p)   {TObject::operator delete(p);p=0;}
+  void* operator new(size_t t)   { return TObject::operator new(t);  }
+  void  operator delete(void *p) { TObject::operator delete(p); p=0; }
+  
+  AMSTrCluster* next() { return (AMSTrCluster*) _next;}
 
-  AMSTrCluster* next(){ return (AMSTrCluster*) _next;}
   /// ROOT definition
   ClassDef(AMSTrCluster, 1)
 };
+
 typedef AMSTrCluster TrClusterR;
+
 #endif

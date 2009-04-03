@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 ///
 ///\file  TrLadPar.C
-///\brief Source file of TrLadCal class
+///\brief Source file of TrLadPar class
 ///
 ///\date  2008/06/19 AO  First version
 ///
@@ -20,50 +20,63 @@ using namespace std;
 
 ClassImp(TrLadPar);
 
-
-//--------------------------------------------------
 TrLadPar::TrLadPar(short int hwid) {
   _hwid = hwid;
   Clear();
 }
 
-
-//--------------------------------------------------
 TrLadPar::TrLadPar(const TrLadPar& orig):TObject(orig){
   _hwid = orig._hwid;
-  _gain = orig._gain;
-  for (int ii=0; ii<16; ii++) _VAgain[ii] = orig._VAgain[ii];
-  for (int ii=0; ii<4;  ii++) _langaupar_muons[ii] = orig._langaupar_muons[ii];
+  _filled=orig._filled;
+  for (int ii=0; ii< 2; ii++) _gain[ii]   = orig._gain[ii];
+  for (int ii=0; ii<16; ii++) _vagain[ii] = orig._vagain[ii];
 }
 
-
-//--------------------------------------------------
 void TrLadPar::Clear(){
   _filled=0;
-
-  // defaults
-  _gain = 1.;
-  for (int ii=0; ii<16; ii++) _VAgain[ii] = 1.;
-  for (int ii=0; ii<4;  ii++) _langaupar_muons[ii] = 1.;
+  for (int ii=0; ii< 2; ii++) _gain[ii]   = 1.;
+  for (int ii=0; ii<16; ii++) _vagain[ii] = 1.;
 }
 
-
-//--------------------------------------------------
-void TrLadPar::PrintInfo(int long_format){
+void TrLadPar::PrintInfo(){
   TkLadder* lad = TkDBc::Head->FindHwId(_hwid);
   if(!lad) {
     printf("TrLadPar::PrintInfo() - Error - Can't find the ladder with HwId %4d\n",_hwid);
     return;
   }
-  printf("Ladder Name: %s  Filled: %d\n",lad->name,_filled);
-  printf("Layer: %d Slot: %2d  Side: %d \n", 
-	 lad->GetLayer(),lad->GetSlot(),lad->GetSide()); 
-  printf("Octant: %d %s Crate: %d TDR:  %2d  PwGroup: %d PwgrupPos: %d\n",
-	 lad->GetOctant(),TkDBc::Head->GetOctName(lad->GetOctant()),
-	 lad->GetCrate(),lad->GetTdr(),
-	 lad->GetPwGroup(),lad->GetPwgroupPos());
-  if(long_format){
-  }
+  printf("%03d %+3d ",_hwid,lad->GetTkId());
+  for (int ii=0; ii< 2; ii++) printf("%5.3f ",_gain[ii]);
+  for (int ii=0; ii<16; ii++) printf("%5.3f ",_vagain[ii]);
+  printf("\n");
 }
 
 
+int  TrLadPar::Par2Lin(float* offset){
+
+  if(!offset) return -1;
+
+  offset[0]= (float)GetHwId();
+  offset[1]= _gain[0];
+  offset[2]= _gain[1];
+  float* off2=&(offset[3]);
+  for (int ii=0;ii<16;ii++)
+    off2[ii]          = _vagain[ii];
+  return 0;
+}
+
+
+
+int  TrLadPar::Lin2Par(float* offset){
+
+  if(!offset) return -1;
+
+  _hwid        = (int)offset[0];
+  _gain[0]     = offset[1];
+  _gain[1]     = offset[2];
+
+  float* off2=&(offset[3]);
+  for (int ii=0;ii<16;ii++)
+     _vagain[ii] =       off2[ii];
+  return 0;
+
+}

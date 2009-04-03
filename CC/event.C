@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.419 2009/02/23 12:51:20 choutko Exp $
+//  $Id: event.C,v 1.420 2009/04/03 08:39:16 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -19,6 +19,7 @@
 #include "tralig.h"
 #else
 #include "MagField.h"
+#include "TrRecon.h"
 #endif
 
 #include "trrec.h"
@@ -2001,8 +2002,8 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("REAXEVENT");
 
-AMSBeta::build();
-//  buildC("AMSBeta");
+  //PZ FIXMEAMSBeta::build();
+  buildC("AMSBeta");
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSBeta::print();
 #endif
@@ -2017,13 +2018,18 @@ AMSBeta::build();
   AMSTrTrack::flag_golden_tracks();
 #endif
 
+#ifdef _PGTRACK_
+  // Vertexing
+  AMSgObj::BookTimer.start("Vtx");
+  //   TrRecon::gethead()->BuildVertex();
+  AMSgObj::BookTimer.stop("Vtx");
+  //PZ FIXME DEBUG 
+  buildC("AMSParticle");
+#else  
   // Vertexing
   AMSgObj::BookTimer.start("Vtx");
   buildC("AMSVtx");
   AMSgObj::BookTimer.stop("Vtx");
-#ifdef _PGTRACK_
-  //PZ FIXME DEBUG buildC("AMSParticle");
-#else  
   buildC("AMSParticle");
 #endif
 

@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/04/03 08:39:15 $
 ///
-/// $Revision: 1.1 $
+/// $Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -45,7 +45,7 @@ AMSPoint TkCoo::GetGlobalN(int tkid, AMSPoint& loc){
   }
   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
   if(!ll){
-    printf("GetMaxMult: ERROR cant find ladder %d into the database\n",tkid);
+    printf("GetGlobalN: ERROR cant find ladder %d into the database\n",tkid);
     return AMSPoint();
   }
   AMSPoint loc2(loc);
@@ -72,7 +72,7 @@ AMSPoint TkCoo::GetGlobalA(int tkid,float X, float Y){
   //   return AMSPoint();
   // }
   if(Y<0 || Y>TkDBc::Head->_ssize_active[1]){
-    printf("TkCoo::GetGlobalN Error Y is outside the ladder size %f\n",Y);
+    printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",Y);
     return AMSPoint();
   }
   AMSPoint loc(X,Y,0.);
@@ -87,12 +87,12 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   //   return AMSPoint();
   // }
   if(loc[1]<0 || loc[1]>TkDBc::Head->_ssize_active[1]){
-    printf("TkCoo::GetGlobalN Error Y is outside the ladder size %f\n",loc[1]);
+    printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",loc[1]);
     return AMSPoint();
   }
   TkLadder* ll=TkDBc::Head->FindTkId(tkid);
   if(!ll){
-    printf("GetMaxMult: ERROR cant find ladder %d into the database\n",tkid);
+    printf("GetGlobalA: ERROR cant find ladder %d into the database\n",tkid);
     return AMSPoint();
   }
   AMSPoint loc2(loc);
@@ -307,15 +307,15 @@ double TkCoo::GetLadderCenterY(int tkid) {
 AMSPoint TkCoo::GetGlobalNC(int tkid,float readchanK, float readchanS,int mult){
   int layer=abs(tkid)/100;
   if(layer==1||layer==8)
-    return GetGlobalN(tkid,GetLocalCooK7(readchanK, mult),  GetLocalCooS(readchanS));
+    return GetGlobalN(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 
-    return GetGlobalN(tkid,GetLocalCooK5(readchanK, mult),  GetLocalCooS(readchanS));
+    return GetGlobalN(tkid,GetLocalCooK5((int)readchanK, mult),  GetLocalCooS((int)readchanS));
 }
 
 AMSPoint TkCoo::GetGlobalAC(int tkid,float readchanK, float readchanS,int mult){
   int layer=abs(tkid)/100;
   if(layer==1||layer==8)
-    return GetGlobalA(tkid,GetLocalCooK7(readchanK, mult),  GetLocalCooS(readchanS));
+    return GetGlobalA(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 
-    return GetGlobalA(tkid,GetLocalCooK5(readchanK, mult),  GetLocalCooS(readchanS));
+    return GetGlobalA(tkid,GetLocalCooK5((int)readchanK, mult),  GetLocalCooS((int)readchanS));
 }

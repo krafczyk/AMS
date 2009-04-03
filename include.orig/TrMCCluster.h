@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
 #ifndef __AMSTrMCCluster__
 #define __AMSTrMCCluster__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/04/03 08:39:24 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -71,6 +71,8 @@ public:
   int GetTkId();
   //! Returns the Totale energy released in silicon (GeV)
   double Sum(){return _sum;}
+  //! returns the sensor number for the hit
+  int GetSensor() {return _idsoft/10000-1;}
 
   AMSTrMCCluster(){}
   //! Constructor for float track

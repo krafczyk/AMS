@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+// $Id: TkLadder.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,12 +19,12 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/04/03 08:39:24 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
-
+#include <cstdlib>
 #include "TkObject.h"
 
 class TkPlane;
@@ -113,7 +113,7 @@ public:
   void SetLaserFlag(){ _laser_align=1;}
 
 
-
+  void Print(){ cout << putout(cout);}
   //! stream out the content of a the class
   friend ostream &operator << (ostream &o,  TkLadder& b)
   {return b.putout(o);}

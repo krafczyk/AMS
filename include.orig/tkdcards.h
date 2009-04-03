@@ -8,7 +8,6 @@
 #else
 #define mipsFortran
 #endif
-
 #include "cfortran.h"
 
 
@@ -159,8 +158,8 @@ public:
   //! Threshold on the S/K Correlation probability
   geant ThrProb    ;//! 0.00001;
   
-  
-  
+  //! Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
+  integer recflag;
   void init();
 
 };
@@ -216,6 +215,7 @@ public:
   integer MaxTrRecHitsPerLayer;
   integer UseTRD;     //! Use(>=1)/Not use(0) 
   integer LowMargin;
+  /// If !=0 limit the vertex creation to two tracks
   integer OnlyGammaVtx;
   integer UseGeaneFitting; //! Use Geane(1) or Yale (0) fitting method
   integer OldTracking;  //!Use Old (VC) or new (JA) pattern recognition

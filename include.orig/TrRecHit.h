@@ -22,6 +22,7 @@
 ///\date  2008/02/26 AO  Local and global coordinate (TkCoo.h)
 ///\data  2008/03/06 AO  Changing some data members and methods
 ///\data  2008/04/12 AO  From XEta to XCofG(3) (better for inclination)
+///\data  2008/11/29 SH  _dummyX added, _residual moved to TrTrack
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <string>
@@ -40,13 +41,14 @@
 
 //class AMSTrRecHit : public AMSlink, public TObject {
 class AMSTrRecHit : public AMSlink {
+
+  static char INFO[500];
+
 private:
   /// Pointer to the X (n-side) AMSTrCluster in the fAMSTrCluster collection
   AMSTrCluster*  _clusterX; //!
   /// Pointer to the Y (p-side) AMSTrCluster in the fAMSTrCluster collection
   AMSTrCluster*  _clusterY; //!
-  /// Hit global coordinate (multiplicity vector) 
-  vector<AMSPoint> _coord; //!
   
 public:
   /// TkLadder ID
@@ -56,15 +58,19 @@ public:
   /// Probability of correlation between the X and Y clusters 
   float _prob;
   /// Hit status (...)
-  int   _status;
+  int   _Status;
   /// Hit multiplicity 
   short int   _mult;
   /// Multiplicity index (-1 means not yet resolved, >-1 resolved by tracking algorithm)
   short int _imult;
-  /// Fitting residual (cm) (tracking algorithm result)
-  AMSPoint _residual;
+  /// Dummy X-strip position for YONLY hit
+  float _dummyX;
+  /// Hit global coordinate (multiplicity vector) 
+  vector<AMSPoint> _coord;
 
+  /// X Cluster index
   int _iclusterX;
+  /// Y Cluster index
   int _iclusterY;
 
   static string sout;
@@ -76,7 +82,7 @@ public:
   /// Copy constructor
   AMSTrRecHit(const AMSTrRecHit& orig);
   /// Constructor with clusters
-  AMSTrRecHit(int tkid, AMSTrCluster* clX, AMSTrCluster* clY, float corr, float prob, int status, int imult = -1);
+  AMSTrRecHit(int tkid, AMSTrCluster* clX, AMSTrCluster* clY, float corr, float prob, int imult = -1);
   /// Destructor
   ~AMSTrRecHit();
   /// Clear data members
@@ -95,13 +101,24 @@ public:
   float GetCorrelation() const { return _corr;   }
   /// Get probability of correlation between the X and Y clusters 
   float GetProb()        const { return _prob;   }
-  /// Get hit status
-  int   GetStatus()      const { return _status; }
+/// chek some bits into cluster status
+  uinteger checkstatus(integer checker) const{return _Status & checker;}
+  /// Get cluster status
+  uinteger getstatus() const{return _Status;}
+  /// Set cluster status
+  void     setstatus(uinteger status){_Status=_Status | status;}
+  /// Clear cluster status
+  void     clearstatus(uinteger status){_Status=_Status & ~status;}
   /// Get the pointer to X cluster
   AMSTrCluster* GetXCluster();
 
   /// Get the pointer to Y cluster
   AMSTrCluster* GetYCluster();
+
+  /// Get the index of X cluster
+  int GetXClusterIndex() const { return _iclusterX; }
+  /// Get the index of Y cluster
+  int GetYClusterIndex() const { return _iclusterY; }
 
   /// Get the hit multiplicity 
   int   GetMultiplicity()      { return _mult; }
@@ -109,19 +126,22 @@ public:
   AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates(); return _coord[imult]; }
   /// Get the resolved multiplicity index (-1 if not resolved)
   int   GetResolvedMultiplicity() { return _imult; }
+  /// Set the resolved multiplicity index (-1 if not resolved)
+  void  SetResolvedMultiplicity(int im) { _imult = im; }
   /// Returns the computed global coordinate (if resolved)
   AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) ? _coord[_imult] : AMSPoint(0, 0, 0); }
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
 
-  /// Get the fitting residual (if determined)
-  AMSPoint GetResidual() const { return _residual; }
-  /// Set fitting residual
-  void SetResidual(AMSPoint r) { _residual = r; }
+  /// Get dummy strip position
+  float GetDummyX() { return _dummyX; }
+  /// Set dummy strip position
+  void SetDummyX(float dumx) { _dummyX = dumx; }
 
-  float Sum(){return GetXCluster()->GetTotSignal();}
+  float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
   /// Get X local coordinate (ladder reference frame)
-  float GetXloc(int imult = 0) { return (!GetXCluster())?-1000.:GetXCluster()->GetXCofG(3,imult); }
+  float GetXloc(int imult = 0) { return (!GetXCluster())?TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult)
+                                                        :GetXCluster()->GetXCofG(3,imult); }
   /// Get Y local coordinate (ladder reference frame)
   float GetYloc()              { return (!GetYCluster())?-1000.:GetYCluster()->GetXCofG(3);      }    
   /// Get local coordinate (ladder reference frame, Z is zero by definition)
@@ -130,12 +150,16 @@ public:
   /// default: nominal position, A: with alignement correction
   AMSPoint GetGlobalCoordinate(int imult = 0, char* options = "A");
 
+
+  bool OnlyX() {return checkstatus(XONLY);}
+  bool OnlyY(){ return checkstatus(YONLY);}
+
   /// Print cluster basic information
   std::ostream& putout(std::ostream &ostr = std::cout) const;
   friend std::ostream &operator << (std::ostream &ostr, const AMSTrRecHit &hit) { return hit.putout(ostr); } 
   /// Print hit  
   void  Print();
-  void Info();
+  char *Info();
 
   AMSTrRecHit* next() {return (AMSTrRecHit*) _next;}
 

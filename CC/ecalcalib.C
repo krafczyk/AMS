@@ -2131,8 +2131,16 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 	if(trpatt>=0){//trk-track ok
           ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
           AdvFit=ptrack->AdvancedFitDone();
+#ifdef _PGTRACK_
+          if(AdvFit){
+	    hrid[0]=ptrack->GetRigidity(AMSTrTrack::kChoutko|AMSTrTrack::kUpperHalf);
+	    hrid[1]=ptrack->GetRigidity(AMSTrTrack::kChoutko|AMSTrTrack::kLowerHalf);
+	  }
+#else
           if(AdvFit)ptrack->
              getParAdvancedFit(gchi2,grid,gerr,gthe,gphi,gC0,hchi2,hrid,herr,hthe,hphi,Cout);
+#endif
+
           pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
           chargeTracker=pcharge->getchargeTracker();
           pbeta=pcharge->getpbeta();

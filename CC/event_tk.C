@@ -26,7 +26,7 @@ void AMSEvent::_retkinitevent(){
 			      new AMSContainer(AMSID("AMSContainer:AMSTrTrack",0),0));
 
     AMSEvent::gethead()->add (
- 			      new AMSContainer(AMSID("AMSContainer:AMSVtx",0),&AMSVtx::build,0));
+ 			      new AMSContainer(AMSID("AMSContainer:AMSVtx",0),0));
 
 }
  
@@ -83,7 +83,7 @@ void AMSEvent::_retkevent(integer refit){
 
   TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
      
-  if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))){//tempor
+  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))){//tempor
     AMSgObj::BookTimer.start("RETKEVENT");
     AMSgObj::BookTimer.start("TrCluster");
     int retr=TrRecon::gethead()->BuildTrClusters();
@@ -93,26 +93,18 @@ void AMSEvent::_retkevent(integer refit){
     printf("\nReconstructed %d cluster time\n",AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()  );
     AMSgObj::BookTimer.print("TrCluster");
 
-    AMSgObj::BookTimer.start("TrTrack");
   
-    if(AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()<100 ){
-	int retr3=TrRecon::gethead()->BuildTrTracks();
-	AMSgObj::BookTimer.stop("TrTrack");
-	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );
-	AMSgObj::BookTimer.print("TrTrack");
-    }
-    
-    AMSgObj::BookTimer.start("TrRecHit");
-    if(retr>=0){
+    if(TRCLFFKEY.recflag>10 && retr>=0){
+      AMSgObj::BookTimer.start("TrRecHit");
       int retr2=TrRecon::gethead()->BuildTrRecHits();
       AMSgObj::BookTimer.stop("TrRecHit");
       printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
       AMSgObj::BookTimer.print("TrRecHit");
       
       
-      AMSgObj::BookTimer.start("TrTrack");
       
-      if(retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<100 ){
+      if(TRCLFFKEY.recflag>110 && retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<100 ){
+	AMSgObj::BookTimer.start("TrTrack");
 	int retr3=TrRecon::gethead()->BuildTrTracks();
 	AMSgObj::BookTimer.stop("TrTrack");
 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );

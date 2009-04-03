@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $ 
+/// $Id: TkSens.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/04/03 08:39:24 $
 ///
-/// $Revision: 1.1 $
+/// $Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +33,8 @@ private:
   int lad_tkid;
   //! sensor on the ladder
   int sens;
+  //! Multiplicity number
+  int mult;
   //! local coo on the sensor
   AMSPoint SensCoo;
   /// Local coordinate in the ladder frame
@@ -89,6 +91,8 @@ public:
   int      GetLadTkID()   { return lad_tkid;}
   //! Returns the sensor number
   int      GetSensor()    { return sens;}
+  //! Returns the multiplicity index
+  int      GetMultIndex() { return mult; }
   //! Returns the Global Coo
   AMSPoint GetGlobalCoo() { return GlobalCoo;}
   //! Returns the Local Coo on the sensor

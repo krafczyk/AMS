@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/04/03 08:39:15 $
 ///
-/// $Revision: 1.1 $
+/// $Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +49,7 @@ void TkSens::Clear(){
 
   lad_tkid =0;
   sens     =-1;
+  mult     =-1;
   SensCoo[0]=-1000;SensCoo[1]=-1000;SensCoo[2]=-1000;
   LaddCoo=SensCoo;
   ReadChanX =-1;
@@ -89,7 +90,7 @@ void TkSens::Recalc(){
     cooY2=TkCoo::GetLocalCooS(ReadChanY-1);
   ImpactPointY=(LaddCoo[1]-cooY1)/abs(cooY1-cooY2);
   
-  int mult = -1;
+  mult = -1;
   int layer=abs(lad_tkid)/100;
   number cooX1,cooX2;  
   if(layer==1||layer==8){

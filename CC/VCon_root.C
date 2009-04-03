@@ -21,6 +21,49 @@ VCon* VCon_root::GetCont(char * name){
 
 }
 
+void VCon_root::removeEl(AMSlink* aa, integer res)
+{
+  // remove next element !!!
+  if(!ev)  return ;
+  if( strstr(contname,"TrMCCluster")){
+    int index=getindex(aa);
+    vector<AMSTrMCCluster>::iterator it=ev->TrMCCluster().begin();
+    for(int ii=0;ii<index;ii) it++;
+    ev->TrMCCluster().erase(it);
+  }
+  if( strstr(contname,"TrCluster")){
+    int index=getindex(aa);
+    vector<AMSTrCluster>::iterator it=ev->TrCluster().begin();
+    for(int ii=0;ii<index;ii) it++;
+    ev->TrCluster().erase(it);
+  }
+   
+  if( strstr(contname,"TrRawCluster")){
+    int index=getindex(aa);
+    vector<AMSTrRawCluster>::iterator it=ev->TrRawCluster().begin();
+    for(int ii=0;ii<index;ii) it++;
+    ev->TrRawCluster().erase(it);
+  }
+
+  
+  if( strstr(contname,"TrRecHit")){
+    int index=getindex(aa);
+    vector<AMSTrRecHit>::iterator it=ev->TrRecHit().begin();
+    for(int ii=0;ii<index;ii) it++;
+    ev->TrRecHit().erase(it);
+  }
+   
+  if( strstr(contname,"TrTrack")){
+    int index=getindex(aa);
+    vector<AMSTrTrack>::iterator it=ev->TrTrack().begin();
+    for(int ii=0;ii<index;ii) it++;
+    ev->TrTrack().erase(it);
+  }
+   
+  
+}
+
+
 int VCon_root::getnelem(){
   if(!ev)  return -1;
   if( strstr(contname,"TrMCCluster"))

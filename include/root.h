@@ -36,6 +36,7 @@
 #include "id.h"
 #ifdef _PGTRACK_
 #include "trrec.h"
+#include "vtx.h"
 #include "TrMCCluster.h"
 #endif
 
@@ -111,8 +112,8 @@ class AMSTrMCCluster{};
 class AMSTrRecHit{};
 class AMSTrRawCluster{};
 class AMSTrTrack{};
-#endif
 class AMSVtx{};
+#endif
 class Ecal1DCluster{};
 class AMSEcal2DCluster{};
 class AMSEcalShower{};
@@ -1695,6 +1696,7 @@ ClassDef(ChargeR,1)       //ChargeR
 
 };
 
+#ifndef _PGTRACK_
 /*!
   \class VertexR
   \brief Vertex class
@@ -1736,7 +1738,7 @@ public:
   ClassDef(VertexR,3)         //VertexR
 #pragma omp threadprivate(fgIsA)
 };
-
+#endif
 
 
 
@@ -1879,7 +1881,7 @@ public:
   int iVertex()const {return fVertex;}
   /// access function to VertexR object used
   /// \return pointer to VertexR object or 0
-      VertexR * pVertex();
+  VertexR * pVertex();
 
   char * pType(){
    static char type[63];

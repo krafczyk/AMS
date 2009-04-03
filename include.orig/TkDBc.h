@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+// $Id: TkDBc.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -125,7 +125,10 @@ public:
   //! Ladder X separation
   number _ladder_Xseparation;
 
-  //! number of sensors for [side] [layer] [slot]
+  //! map of the ladder edge distance (mm) from Y axis
+  number _LadDeltaX[2][nlays][maxlad];
+
+  //! Map of the ladder lenght in unit of Silicon sensors
   short int _nsen[2][nlays][maxlad];
 
   //! Map of the ladder power supply in the crate is pwgp*100+pwpos
