@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.36 2009/03/11 16:52:56 mdelgado Exp $
+//  $Id: richgeom.C,v 1.37 2009/04/15 15:25:13 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -758,7 +758,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
 
   // Foil below radiator
-
+  /*
   par[0]=0.;
   par[1]=RICHDB::top_radius;
   par[2]=RICHDB::foil_height/2;
@@ -773,7 +773,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
                            "FOIL",
                            "TUBE",
                            par,3,coo,nrm,"ONLY",0,1,rel));
-
+  */
 
 
   //// Radiator
@@ -808,7 +808,8 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[1]=360;
   par[2]=RICradiator_box_sides;
   par[3]=2;
-  par[4]=-RICHDB::rad_height/2;
+  //  par[4]=-RICHDB::rad_height/2;
+  par[4]=-RICHDB::rad_height/2-RICHDB::foil_height/2-RICepsln/2;  // Radiator and foil are inside this box
   par[5]=0;
   par[6]=RICradiator_box_radius;
   par[7]=RICHDB::rad_height/2;
@@ -849,6 +850,37 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 									0,
 									1,
 									rel));
+
+
+  // FOIL
+  par[0]=180.0/RICradiator_box_sides;
+  par[1]=360;
+  par[2]=RICradiator_box_sides;
+  par[3]=2;
+  par[4]=-RICHDB::foil_height/2;
+  par[5]=0;
+  par[6]=RICradiator_box_radius;
+  par[7]=RICHDB::foil_height/2;
+  par[8]=0;
+  par[9]=RICradiator_box_radius;
+
+  coo[0]=0;coo[1]=0;
+  coo[2]=-RICHDB::rad_height/2-RICepsln/2;
+
+  radiator_box->add(new AMSgvolume("HESAGLASS",
+				       0,
+				       "FOIL",
+				       "PGON",
+				       par,
+				       10,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       0,
+				       1,
+				       rel));
+  
+
 
 
   // This puts the AGL radiator
