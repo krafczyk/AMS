@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.60 2009/03/11 16:52:55 mdelgado Exp $
+//  $Id: richdbc.C,v 1.61 2009/04/15 08:20:33 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -693,11 +693,11 @@ void RichAlignment::Init(){
 
   // Ensure that the initialization is done only once and is visible by all the threads 
   // Has the single an implicit barrier? Just in case we add them
-  // TODO: check that this is PreAss
 #pragma omp barrier
 #pragma omp master
-  if(AMSJob::gethead()->isRealData()  &&     // It is real data
-     MISCFFKEY.BeamTest==1){                 // It is a cosmic run
+  if(AMSJob::gethead()->isRealData()  &&              // It is real data
+     //     MISCFFKEY.BeamTest==1 &&                         // It is a cosmic run
+     strstr(AMSJob::gethead()->getsetup(),"PreAss")){  // It is the preassembly one
     sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.2.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
     LoadFile(name);
   }
