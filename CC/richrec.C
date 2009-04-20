@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.112 2009/02/20 19:30:28 barao Exp $
+//  $Id: richrec.C,v 1.113 2009/04/20 12:58:16 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1440,7 +1440,8 @@ float AMSRichRing::generated(geant length,
       _b[i][_tile_index]=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2;
       _g[i][_tile_index]=q*dl/SQR(_l[i][_tile_index]);
       _t[i][_tile_index]=4*_r[i][_tile_index]/SQR(1+_r[i][_tile_index]);
-      if(RICHDB::foil_height>0) _t[i][_tile_index]*=RICHDB::foil_index*(1+_r[i][_tile_index])/(_r[i][_tile_index]+SQR(RICHDB::foil_index));
+      //      if(RICHDB::foil_height>0) _t[i][_tile_index]*=RICHDB::foil_index*(1+_r[i][_tile_index])/(_r[i][_tile_index]+SQR(RICHDB::foil_index));
+      if(RICHDB::foil_height>0) _t[i][_tile_index]*=SQR(4*RICHDB::foil_index/SQR(1+RICHDB::foil_index)); // There are two refractions: entering and exiting
     }
     nf=RICHDB::foil_height>0?NFOIL:1;
 #ifdef __AMSDEBUG__
@@ -1451,6 +1452,8 @@ float AMSRichRing::generated(geant length,
              "      %4d bins in LGuide   Thickness\n",
             NRAD,nf,NGUIDE);
 #endif
+
+#define F(x) (1.0/SQR((x)))
 
     for(lr=0;lr<NRAD;lr++){
      float rl=rmn+lr*(rmx-rmn)/NRAD;
@@ -1470,17 +1473,18 @@ float AMSRichRing::generated(geant length,
          float cr=1./exp(rl*_clarity/SQR(SQR(_l[i][_tile_index])));     // Here enters the clarity
          float ar=1./exp(rl/_a[i][_tile_index]);
          float af=1./exp(fl/_b[i][_tile_index]);
-         float al=1./exp(gl*(1./_b[i][_tile_index]-1./abslref));
+	 //         float al=1./exp(gl*(1./_b[i][_tile_index]-1./abslref));
+         float al=1./exp(gl*(1./_b[i][_tile_index]));
          _effd[lr][lf][lg][_tile_index]+=_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*al;
-         _rind[lr][lf][lg][_tile_index]+=_r[i][_tile_index]*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*al;
+         _rind[lr][lf][lg][_tile_index]+=F(_r[i][_tile_index])*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*al;
          if(!lg){
           if(!lf){
            _effg[lr][_tile_index]+=_g[i][_tile_index];
-           _ring[lr][_tile_index]+=_r[i][_tile_index]*_g[i][_tile_index];}
+           _ring[lr][_tile_index]+=F(_r[i][_tile_index])*_g[i][_tile_index];}
           _effr[lr][lf][_tile_index]+=_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af;
-          _rinr[lr][lf][_tile_index]+=_r[i][_tile_index]*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af;
+          _rinr[lr][lf][_tile_index]+=F(_r[i][_tile_index])*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af;
           _effb[lr][lf][_tile_index]+=_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*tl;
-          _rinb[lr][lf][_tile_index]+=_r[i][_tile_index]*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*tl;}
+          _rinb[lr][lf][_tile_index]+=F(_r[i][_tile_index])*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*tl;}
        }
        _rind[lr][lf][lg][_tile_index]/=_effd[lr][lf][lg][_tile_index];
       }
@@ -1533,10 +1537,10 @@ float AMSRichRing::generated(geant length,
     lg=NGUIDE-1;}
   else if(lg<0)lg=0;
 
-  f=1.e4*k*(1.-1./SQR(_beta*_rind[lr][lf][lg][_tile_index]))*factor*_effd[lr][lf][lg][_tile_index];
-  *fg=1.e4*k*(1.-1./SQR(_beta*_ring[lr][_tile_index]))*_effg[lr][_tile_index];
-  *fr=1.e4*k*(1.-1./SQR(_beta*_rinr[lr][lf][_tile_index]))*_effr[lr][lf][_tile_index];
-  *fb=1.e4*k*(1.-1./SQR(_beta*_rinb[lr][lf][_tile_index]))*_effb[lr][lf][_tile_index];
+  f=1.e4*k*(1.-1./SQR(_beta)*_rind[lr][lf][lg][_tile_index])*factor*_effd[lr][lf][lg][_tile_index];
+  *fg=1.e4*k*(1.-1./SQR(_beta)*_ring[lr][_tile_index])*_effg[lr][_tile_index];
+  *fr=1.e4*k*(1.-1./SQR(_beta)*_rinr[lr][lf][_tile_index])*_effr[lr][lf][_tile_index];
+  *fb=1.e4*k*(1.-1./SQR(_beta)*_rinb[lr][lf][_tile_index])*_effb[lr][lf][_tile_index];
   return f;
 
 }
