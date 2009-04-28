@@ -893,6 +893,12 @@ void RichPMT::compute_tables(){
       geant lambda,scale;
       GETRLRS(gain,gain_sigma,lambda,scale);
 
+      // In some case the function does not return meaningfull values. Since this
+      // is only used int MC simulation, we correct it by allowing a smales sigma_gain
+      if(lambda<=0 || scale<=0){
+	GETRLRS(gain,gain*0.5,lambda,scale);
+      }
+
       geant upper_limit=gain*10;                          // 10 photoelectrons
       _step[channel][mode]=upper_limit/RIC_prob_bins;
       
@@ -908,9 +914,13 @@ void RichPMT::compute_tables(){
 	_cumulative_prob[channel][mode][i]=_cumulative_prob[channel][mode][i-1]+value;
       }
       
-      for(int i=0;i<RIC_prob_bins;i++)
-	_cumulative_prob[channel][mode][i]/=
-	  _cumulative_prob[channel][mode][RIC_prob_bins-1];
+      for(int i=0;i<RIC_prob_bins;i++){
+	if(_cumulative_prob[channel][mode][RIC_prob_bins-1]>0)
+	  _cumulative_prob[channel][mode][i]/=
+	    _cumulative_prob[channel][mode][RIC_prob_bins-1];
+	else
+	  _cumulative_prob[channel][mode][i]=(i==0?1:0);
+      }
     }
 }
 
