@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.113 2009/04/20 12:58:16 mdelgado Exp $
+//  $Id: richrec.C,v 1.114 2009/04/29 15:51:42 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1916,8 +1916,20 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
   
   if(build_charge){
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
-    ReconRingNpexp(3.,!checkstatus(dirty_ring));
+    const float window_sigmas=3;
+    ReconRingNpexp(window_sigmas,!checkstatus(dirty_ring));
+
+    if((RICHDB::scatprob)>0.){
+#define SQR(x) ((x)*(x))
+      float SigAng=_errorbeta*sqrt(geant(_used))/_beta/sqrt(SQR(_beta*_index)-1)/sqrt(SQR(_beta)-(SQR(_beta*_index)-1));
+      float xmax=window_sigmas*SigAng/(RICHDB::scatang);
+      float FscattCorr=1.-(RICHDB::scatprob*(1.-erf(xmax)));//gauss integral
+      _npexp*=FscattCorr;
+#undef SQR
+    }
+
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
+
   }
   
   AMSPoint pnt,point(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.);
