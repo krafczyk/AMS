@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.262 2009/02/20 19:30:29 barao Exp $
+//  $Id: commons.h,v 1.263 2009/04/30 14:38:52 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -192,6 +192,11 @@ public:
 integer magstat; // status: 0/1-> off/on
 geant fscale;    // nom.field reduction
 geant ecutge;    // e/g energy cut for tracking in magnet materials
+geant r0[3];     // shift & rotation of mag field map w/r nom
+geant pitch;
+geant yaw;
+geant roll;
+integer rphi;    // use xyz (0) or rphiz (1) grid
 };
 #define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
 COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);

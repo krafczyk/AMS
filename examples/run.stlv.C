@@ -13,7 +13,7 @@
 
 // Load AMS shared library
 // For Linux load
-      gSystem->Load("$AMSWD/lib/linux/ntuple.so");
+      gSystem->Load("$AMSWD/lib/linux/ntuple_slc4_icc.so");
 // For Digital Unix, i.e. ams.cern.ch load 
       //gSystem->Load("$AMSWD/lib/osf1/ntuple.so");
 

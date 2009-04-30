@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.626 2009/04/03 08:39:16 pzuccon Exp $
+// $Id: job.C,v 1.627 2009/04/30 14:38:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -770,6 +770,13 @@ void AMSJob::_simag2data(){
   MAGSFFKEY.magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
   MAGSFFKEY.fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
   MAGSFFKEY.ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
+  MAGSFFKEY.r0[0]=0;
+  MAGSFFKEY.r0[1]=0;
+  MAGSFFKEY.r0[2]=0;
+  MAGSFFKEY.roll=0;
+  MAGSFFKEY.yaw=0;
+  MAGSFFKEY.pitch=0;
+  MAGSFFKEY.rphi=0;
 #endif
 FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 }
