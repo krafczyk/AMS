@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.21 2009/04/30 14:38:51 choutko Exp $
+*  $Id: mfield.F,v 1.22 2009/05/01 10:27:23 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3),b1(3)
@@ -143,7 +143,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
              b1(1)=b1(1)/10*fscale
              b1(2)=b1(2)/10*fscale
              b1(3)=b1(3)/10*fscale
-              sigmab=0.2e-4
+              sigmab=0.2e-3
               do l=1,3
               call rannor(r1,r2)
               b1(l)=b1(l)+sigmab*r2
@@ -165,7 +165,9 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
            
          call mninit(5,6,6)
          call mnseti('Fitting mf')
-         call mnparm(1,'scale',1.d0,0.05d0,0.2d0,1.1d0,ierflg)
+         stval=1.
+ 10      continue
+         call mnparm(1,'scale',stval,0.05d0,0.2d0,1.1d0,ierflg)
          call mnparm(2,'x',0.d0,0.01d0,-1d0,1d0,ierflg)
          call mnparm(3,'y',0.d0,0.01d0,-1d0,1.d0,ierflg)
          call mnparm(4,'z',0.d0,0.01d0,-1d0,1d0,ierflg)
@@ -176,7 +178,10 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          arglis(1)=0
          call mnexcm(fcn,'MINIMIZE 100000',arglis,0,ierflg,0)
          endif 
-
+         if(stval.eq.1)then
+            stval=fscale
+            goto 10
+         endif
           iniok=2
       else
           iniok=1
@@ -711,9 +716,12 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                   x1(3)=z(k)
                   call gufld(x1,b1)
                   call gufldrc(x1,b1c)
+                   r=sqrt(x1(1)**2+x1(2)**2)
+                    if(r.le.40.and.abs(x1(3)).le.40)then
                   do l=1,3
                     f=f+(b1(l)-b1c(l)*fscale)**2
                   enddo
+                  endif
                  enddo
                enddo
               enddo
