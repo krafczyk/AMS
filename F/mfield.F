@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.22 2009/05/01 10:27:23 choutko Exp $
+*  $Id: mfield.F,v 1.23 2009/05/05 09:30:12 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3),b1(3)
@@ -462,8 +462,6 @@ c        endif
 *
       data jj/0/
       data init/0/ 
-      data hint/0,0,0/
-      data hintc/0,0,0/
       DIMENSION B(3),VV(3),AVV(3)
 *
 *     transform the coordinates      
@@ -512,8 +510,6 @@ c        endif
 *
       data jj/0/
       data init/0/ 
-      data hint/0,0,0/
-      data hintc/0,0,0/
       DIMENSION B(3),VV(3),AVV(3)
 *
 *     transform the coordinates      
@@ -717,7 +713,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                   call gufld(x1,b1)
                   call gufldrc(x1,b1c)
                    r=sqrt(x1(1)**2+x1(2)**2)
-                    if(r.le.40.and.abs(x1(3)).le.40)then
+                    if(r.le.41.5.and.abs(x1(3)).le.50)then
                   do l=1,3
                     f=f+(b1(l)-b1c(l)*fscale)**2
                   enddo
