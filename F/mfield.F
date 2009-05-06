@@ -1,9 +1,209 @@
-*  $Id: mfield.F,v 1.23 2009/05/05 09:30:12 choutko Exp $
+*  $Id: mfield.F,v 1.24 2009/05/06 14:34:10 choutko Exp $
+
+
+      subroutine readmfield_rphi
+c    
+c     should be called if rphi!=0
+c
+#      include "mfield.h"
+       real hxy(3,3),x1(3),b1(3)
+       real *8 stval,step,bnd1,bnd2,val,error,fmin,fedm,arglis(10)
+       external fcn
+       pi=acos(0.)*2
+      if(iniok.eq.0.or.iniok.eq.-2)then
+*       
+          write(*,*)'Opening field file...'
+c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
+          OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
+     +     STATUS='OLD',form='formatted')
+          fac=1.
+          do i=1,nrad
+           do j=1,nphi
+            do k=1,nzr
+             read(21,*)rad(i),phi(j),zr(k),
+     +       bxr(i,j,k),byr(i,j,k),bzr(i,j,k)
+             rad(i)=rad(i)/10.
+             phi(j)=phi(j)*pi/180.
+             zr(k)=zr(k)/10.
+             bxr(i,j,k)=bxr(i,j,k)*10 *fac
+             byr(i,j,k)=byr(i,j,k)*10. *fac
+             bzr(i,j,k)=bzr(i,j,k)*10. *fac
+            enddo
+           enddo
+          enddo
+          na(1)=nrad
+          na(2)=nphi
+          na(3)=nzr
+          call ucopy(rad(1),xyzr(1),nrad)
+          call ucopy(phi(1),xyzr(1+nrad),nphi)
+          call ucopy(zr(1),xyzr(1+nrad+nphi),nzr)
+*         read(21,*)isec
+*         read(21,*)imin
+*         read(21,*)ihour
+*         read(21,*)iday
+*         read(21,*)imon
+*         read(21,*)iyear
+          close(21)
+          write(*,*)'Closing field file...'
+*
+* Now calculate field derivatives
+*
+          imagst=magstat
+          magstat=1
+          call timex(st0)
+          write(*,*)'Calculating field derivatives...'
+          do i=1,nrad
+           do j=1,nphi
+             do k=1,nzr
+              x1(1)=rad(i)*cos(phi(j))
+              x1(2)=rad(i)*sin(phi(j))
+              x1(3)=z(k)
+              call tkfldc(x1,hxy)
+              bdxr(i,j,k,1)=hxy(1,1)
+              bdyr(i,j,k,1)=hxy(2,1)
+              bdzr(i,j,k,1)=hxy(3,1)
+              bdxr(i,j,k,2)=hxy(1,2)
+              bdyr(i,j,k,2)=hxy(2,2)
+              bdzr(i,j,k,2)=hxy(3,2)
+              brx=bxr(i,j,k)*hxy(1,1)+byr(i,j,k)*hxy(1,2)+
+     +        bzr(i,j,k)*hxy(1,3)
+              bry=bxr(i,j,k)*hxy(2,1)+byr(i,j,k)*hxy(2,2)+
+     +        bzr(i,j,k)*hxy(2,3)
+              brz=bxr(i,j,k)*hxy(3,1)+byr(i,j,k)*hxy(3,2)+
+     +        bzr(i,j,k)*hxy(3,3)
+              brxm=hxy(1,1)**2+hxy(1,2)**2+hxy(1,3)**2
+              brym=hxy(2,1)**2+hxy(2,2)**2+hxy(2,3)**2
+              brzm=hxy(3,1)**2+hxy(3,2)**2+hxy(3,3)**2
+              bb=sqrt(bxr(i,j,k)**2+byr(i,j,k)**2+bzr(i,j,k)**2)
+              brm=sqrt(brxm+brym+brzm)
+              if(bb.gt.0)then
+                br=sqrt(brx**2+bry**2+brz**2)/bb
+              else
+                br=0
+              endif
+*
+*              rotor
+*
+               rx=hxy(2,3)-hxy(3,2)
+               ry=hxy(3,1)-hxy(1,3)
+               rz=hxy(1,2)-hxy(2,1)
+
+              write(32,*)x1,bxr(i,j,k),byr(i,j,k),bzr(i,j,k),br,brm,
+     +        rx,ry,rz
+             enddo
+           enddo
+          enddo
+          call timex(st1)
+          write(*,*)'Finished in ',st1-st0, ' sec'
+          magstat=imagst
+        if(iniok.eq.-2)then
+*
+*       here do the initialization of b...c  values
+*
+*       
+        if(magstat.ge.0)then
+          write(*,*)'Opening design field file...'
+          OPEN(22,FILE=amsdatadir(1:amsdlength)//'design.'//fname,
+     +     STATUS='OLD',form='formatted')
+          fac=1.
+          do i=1,nrad
+           do j=1,nphi
+            do k=1,nzr
+             read(22,*)rad(i),phi(j),zr(k),bxrc(i,j,k),byrc(i,j,k),
+     +       bzrc(i,j,k)
+             rad(i)=rad(i)/10.
+             phi(j)=phi(j)*pi/180.
+             zr(k)=zr(k)/10.
+             bxrc(i,j,k)=bxrc(i,j,k)*10 *fac
+             byrc(i,j,k)=byrc(i,j,k)*10. *fac
+             bzrc(i,j,k)=bzrc(i,j,k)*10. *fac
+            enddo
+           enddo
+          enddo
+          close(22)
+          write(*,*)'Closing design field file...'
+        else 
+          write(*,*)'Creating distorted field file...'
+          OPEN(22,FILE=amsdatadir(1:amsdlength)//'distorted.'//fname,
+     +     STATUS='NEW',form='formatted')
+          do i=1,nrad
+           do j=1,nphi
+            do k=1,nzr
+              x1(1)=rad(i)*cos(phi(j))
+              x1(2)=rad(i)*sin(phi(j))
+              x1(3)=zr(k)
+             sigmax=0.03
+              do l=1,3
+              call rannor(r1,r2)
+               x1(l)=x1(l)+sigmax*r1
+              enddo
+              call gufldr(x1,b1)             
+              x1(1)=rad(i)
+              x1(2)=phi(j)
+              x1(3)=zr(k)
+             x1(1)=x1(1)*10.
+             x1(2)=x1(2)*180/pi
+             x1(3)=x1(3)*10.
+             b1(1)=b1(1)/10*fscale
+             b1(2)=b1(2)/10*fscale
+             b1(3)=b1(3)/10*fscale
+              sigmab=0.2e-3
+              do l=1,3
+              call rannor(r1,r2)
+              b1(l)=b1(l)+sigmab*r2
+              enddo
+             write(22,*)x1,b1
+            enddo
+           enddo
+          enddo
+           
+           close(22)
+        endif
+
+         if(magstat.eq.0)then
+*
+*        Do the fitting normal field->design field as B (R)= A*B'*R'
+*          R'=R0+R*T
+*
+*
+           
+         call mninit(5,6,6)
+         call mnseti('Fitting mf')
+         stval=1.
+ 10      continue
+         call mnparm(1,'scale',stval,0.05d0,0.2d0,1.1d0,ierflg)
+         call mnparm(2,'x',0.d0,0.01d0,-1d0,1d0,ierflg)
+         call mnparm(3,'y',0.d0,0.01d0,-1d0,1.d0,ierflg)
+         call mnparm(4,'z',0.d0,0.01d0,-1d0,1d0,ierflg)
+         call mnparm(5,'pitch',0.d0,0.02d0,-2.d0,2.d0,ierflg)
+         call mnparm(6,'yaw',0.d0,0.02d0,-2.d0,2.d0,ierflg)
+         call mnparm(7,'roll',0.d0,0.02d0,-2.d0,2.d0,ierflg)
+         ierflg=0
+         arglis(1)=0
+         call mnexcm(fcn,'MINIMIZE 100000',arglis,0,ierflg,0)
+         endif 
+         if(stval.eq.1)then
+            stval=fscale
+            goto 10
+         endif
+          iniok=2
+      else
+          iniok=1
+      endif      
+      endif      
+      end
+
+
+
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3),b1(3)
        real *8 stval,step,bnd1,bnd2,val,error,fmin,fedm,arglis(10)
        external fcn
+       if(rphi.ne.0)then
+         call readmfield_rphi()
+         return
+       endif
       if(iniok.eq.0.or.iniok.eq.-2)then
 *       
           write(*,*)'Opening field file...'
@@ -51,10 +251,6 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
               x1(1)=x(i)
               x1(2)=y(j)
               x1(3)=z(k)
-              if(rphi.eq.1)then
-               x1(1)=x(i)*cos(y(j))
-               x1(2)=x(i)*sin(y(j))
-              endif
               call tkfldc(x1,hxy)
               bdx(i,j,k,1)=hxy(1,1)
               bdy(i,j,k,1)=hxy(2,1)
@@ -403,10 +599,6 @@ c      end
         do i=1,2
           avv(i)=vv(i)
         enddo
-        else
-          avv(1)=sqrt(vv(1)**2+vv(2)**2)
-          avv(2)=atan2(vv(2),vv(1))
-        endif
         if(abs(avv(1)).gt.x(nx).or.abs(avv(2)).gt.y(ny).or.
      +    abs(vv(3)).gt.z(nz).or.magstat.le.-1)then
             call vzero(b(1),3)
@@ -446,6 +638,24 @@ c         b(1)=0
 c         b(2)=0
 c         b(3)=0
 c        endif
+        else
+          avv(1)=sqrt(vv(1)**2+vv(2)**2)
+          avv(2)=atan2(vv(2),vv(1))
+
+        if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
+     +    abs(vv(3)).gt.zr(nzr).or.magstat.le.-1)then
+            call vzero(b(1),3)
+            goto 999
+        ENDIF
+         if(iniok.eq.2)then
+          call fint_my(3,avv(1),NA(1),xyzr(1),
+     +    Bxrc(1,1,1),Byrc(1,1,1),Bzrc(1,1,1),b(1),hintc(1))
+         else
+          call fint_my(3,avv(1),NA(1),xyzr(1),
+     +    Bxr(1,1,1),Byr(1,1,1),Bzr(1,1,1),b(1),hint(1))
+         endif
+
+        endif
 
         
 
@@ -481,12 +691,6 @@ c        endif
          enddo
         enddo
         if(rphi.eq.0)then
-        else
-          t1=sqrt(avv(1)**2+avv(2)**2)
-          t2=atan2(avv(2),avv(1))
-          avv(1)=t1
-          avv(2)=t2
-        endif
         if(abs(avv(1)).gt.x(nx).or.abs(avv(2)).gt.y(ny).or.
      +    abs(avv(3)).gt.z(nz))then
             call vzero(b(1),3)
@@ -494,7 +698,20 @@ c        endif
         ENDIF
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
+        else
+          t1=sqrt(avv(1)**2+avv(2)**2)
+          t2=atan2(avv(2),avv(1))
+          avv(1)=t1
+          avv(2)=t2
+        if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
+     +    abs(avv(3)).gt.zr(nzr))then
+            call vzero(b(1),3)
+            goto 999
+        ENDIF
+          call fint_my(3,avv(1),NA(1),xyzr(1),
+     +    Bxr(1,1,1),Byr(1,1,1),Bzr(1,1,1),b(1),hint(1))
 
+        endif
  999    END
 
 
@@ -524,12 +741,6 @@ c        endif
          enddo
         enddo
         if(rphi.eq.0)then
-        else
-          t1=sqrt(avv(1)**2+avv(2)**2)
-          t2=atan2(avv(2),avv(1))
-          avv(1)=t1
-          avv(2)=t2
-        endif
         if(abs(avv(1)).gt.x(nx).or.abs(avv(2)).gt.y(ny).or.
      +    abs(avv(3)).gt.z(nz))then
             call vzero(b(1),3)
@@ -537,7 +748,20 @@ c        endif
         ENDIF
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bxc(1,1,1),Byc(1,1,1),Bzc(1,1,1),b(1),hintc(1))
+        else
+          t1=sqrt(avv(1)**2+avv(2)**2)
+          t2=atan2(avv(2),avv(1))
+          avv(1)=t1
+          avv(2)=t2
+        if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
+     +    abs(avv(3)).gt.zr(nzr))then
+            call vzero(b(1),3)
+            goto 999
+        ENDIF
+          call fint_my(3,avv(1),NA(1),xyzr(1),
+     +    Bxrc(1,1,1),Byrc(1,1,1),Bzrc(1,1,1),b(1),hintc(1))
 
+        endif
  999    END
 
 
