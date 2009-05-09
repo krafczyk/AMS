@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.171 2009/04/03 08:39:16 pzuccon Exp $
+//  $Id: particle.C,v 1.172 2009/05/09 09:15:37 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -72,7 +72,7 @@ integer AMSParticle::build(integer refit){
     pcand->setstatus(AMSDBc::USED);
     ppart->pid();
     AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-    cerr <<"  Added a VERTEX Particle cont number "<<ppart->contnumber()<<endl;
+    //cerr <<"  Added a VERTEX Particle cont number "<<ppart->contnumber()<<endl;
     partfound++;
   }
   //
@@ -109,7 +109,7 @@ integer AMSParticle::build(integer refit){
           AMSgObj::BookTimer.stop("ReAxPid");
            
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-    cerr <<"  Added a Particle cont number "<<ppart->contnumber()<<endl;
+   // cerr <<"  Added a Particle cont number "<<ppart->contnumber()<<endl;
 	  partfound++;
 	}
       }
