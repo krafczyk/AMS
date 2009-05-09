@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.172 2009/05/09 09:15:37 choutko Exp $
+//  $Id: particle.C,v 1.173 2009/05/09 09:16:26 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -135,7 +135,7 @@ integer AMSParticle::build(integer refit){
 	AMSgObj::BookTimer.stop("ReAxPid");
            
 	AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-	cerr <<"  Added a ECAL Particle cont number "<<ppart->contnumber()<<endl;
+	//cerr <<"  Added a ECAL Particle cont number "<<ppart->contnumber()<<endl;
       }
     }
 
