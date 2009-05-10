@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.204 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: trrec.C,v 1.205 2009/05/10 09:28:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1628,7 +1628,7 @@ next_pattern:
                   phit[i] = ptrack->getphit(i);
           }
           // Fit track; add it to the container list
-          ptrack->Fit(0);
+          //ptrack->Fit(0);
           if (_addnext(pat, nhits, phit)) {
             NTrackFound++;
             if(AMSEvent::debug){
@@ -1649,7 +1649,7 @@ next_pattern:
           } else {
             // Get out if we awere not succesful (but why?)
             remove_track(ptrack); 
-            return NTrackFound;
+            //return NTrackFound;
           }
       } else {
 
@@ -1890,7 +1890,7 @@ next_pattern:
                   phit[i] = ptrack->getphit(i);
           }
           // Fit track; add it to the container list
-          ptrack->Fit(0);
+          //ptrack->Fit(0);
           if (_addnext(pat, nhits, phit)) {
             NTrackFound++;
             if(AMSEvent::debug){
@@ -1911,7 +1911,7 @@ next_pattern:
           } else {
             // Get out if we awere not succesful (but why?)
             remove_track(ptrack); 
-            return NTrackFound;
+            //return NTrackFound;
           }
       } else {
 
