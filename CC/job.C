@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.628 2009/05/10 09:28:37 choutko Exp $
+// $Id: job.C,v 1.629 2009/05/12 11:22:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3992,6 +3992,15 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addblocktype(&DAQS2Block::getmaxblocks,&DAQS2Block::calcblocklength,&DAQS2Block::buildblock);
 
 
+//trd
+
+    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
+    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::buildrawJ);
+    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq);
+
+
+
+
 //tracker
 #ifdef _PGTRACK_
     DAQEvent::addsubdetector(&TrDAQ::checkdaqid,&TrDAQ::buildraw);
@@ -4002,13 +4011,6 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 //    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,&AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq_new);
 #endif
-
-//trd
-
-    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqid,&AMSTRDRawHit::buildraw);
-    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::buildrawJ);
-    DAQEvent::addblocktype(&AMSTRDRawHit::getmaxblocks,&AMSTRDRawHit::calcdaqlength,&AMSTRDRawHit::builddaq);
-
 
 
 }
