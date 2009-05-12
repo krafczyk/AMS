@@ -4,7 +4,8 @@
 #include "TrRecHit.h"
 #include "TrTrack.h"
 #else
-//  $Id: trrec.h,v 1.100 2008/12/18 11:19:25 pzuccon Exp $
+class AMSTRDTrack;
+//  $Id: trrec.h,v 1.101 2009/05/12 15:38:45 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -316,7 +317,7 @@ number _PITheta;
 number _PIPhi;
 AMSPoint _PIP0;
 number _PIChi2;
-
+bool NotMatch(int nhit);
 void SimpleFit(AMSPoint err);
 static AMSTrRecHit* SimpleFit(AMSPoint err,const AMSTrTrack& ptr, AMSTrRecHit* a[], int nhit);
 void VerySimpleFit(AMSPoint err);
@@ -365,6 +366,8 @@ static uint128  encodeaddressS(integer lad[3][trconst::maxlay]);
 static uintl * getchild(uintl address, uinteger &nchild);
 public:
   static geant & TimeLimit(){return _TimeLimit;}
+static void cleanup();
+bool TRDMatch(AMSTRDTrack *ptrd);
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local, integer icase=0);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 bool GenuineTrack(){return _Pattern>=0;}

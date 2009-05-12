@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.173 2009/05/09 09:16:26 choutko Exp $
+//  $Id: particle.C,v 1.174 2009/05/12 15:38:45 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -410,7 +410,8 @@ void AMSParticle::trdfit(){
       d3=5*sqrt(error.prod(error)+tofe.prod(tofe)); 
     }
     else d3=5*error.norm();
-    if(d2<d3){
+//    if(d2<d3){
+    if(_ptrack->TRDMatch(ptr)){
       if(d2<dist){
 	dist=d2;
 	_TRDCoo[0]=tmp;

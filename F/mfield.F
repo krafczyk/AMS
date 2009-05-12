@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.24 2009/05/06 14:34:10 choutko Exp $
+*  $Id: mfield.F,v 1.25 2009/05/12 15:38:45 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -12,7 +12,7 @@ c
        pi=acos(0.)*2
       if(iniok.eq.0.or.iniok.eq.-2)then
 *       
-          write(*,*)'Opening field file...'
+          write(*,*)'Opening field rphi file...'
 c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
      +     STATUS='OLD',form='formatted')
@@ -44,7 +44,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *         read(21,*)imon
 *         read(21,*)iyear
           close(21)
-          write(*,*)'Closing field file...'
+          write(*,*)'Closing field rphi file...'
 *
 * Now calculate field derivatives
 *
@@ -102,7 +102,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *
 *       
         if(magstat.ge.0)then
-          write(*,*)'Opening design field file...'
+          write(*,*)'Opening design rphi field file...'
           OPEN(22,FILE=amsdatadir(1:amsdlength)//'design.'//fname,
      +     STATUS='OLD',form='formatted')
           fac=1.
@@ -121,19 +121,20 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
            enddo
           enddo
           close(22)
-          write(*,*)'Closing design field file...'
+          write(*,*)'Closing design rphi field file...'
         else 
-          write(*,*)'Creating distorted field file...'
+          write(*,*)'Creating distorted rphi field file...'
           OPEN(22,FILE=amsdatadir(1:amsdlength)//'distorted.'//fname,
      +     STATUS='NEW',form='formatted')
           do i=1,nrad
            do j=1,nphi
             do k=1,nzr
+ 17          continue
               x1(1)=rad(i)*cos(phi(j))
               x1(2)=rad(i)*sin(phi(j))
               x1(3)=zr(k)
              sigmax=0.03
-              do l=1,3
+             do l=1,3
               call rannor(r1,r2)
                x1(l)=x1(l)+sigmax*r1
               enddo
@@ -169,7 +170,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
            
          call mninit(5,6,6)
          call mnseti('Fitting mf')
-         stval=1.
+         stval=1
  10      continue
          call mnparm(1,'scale',stval,0.05d0,0.2d0,1.1d0,ierflg)
          call mnparm(2,'x',0.d0,0.01d0,-1d0,1d0,ierflg)
@@ -641,9 +642,9 @@ c        endif
         else
           avv(1)=sqrt(vv(1)**2+vv(2)**2)
           avv(2)=atan2(vv(2),vv(1))
-
+          avv(3)=vv(3)
         if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
-     +    abs(vv(3)).gt.zr(nzr).or.magstat.le.-1)then
+     +    abs(avv(3)).gt.zr(nzr).or.magstat.le.-1)then
             call vzero(b(1),3)
             goto 999
         ENDIF
@@ -703,6 +704,9 @@ c        endif
           t2=atan2(avv(2),avv(1))
           avv(1)=t1
           avv(2)=t2
+          if(avv(1).gt.rad(nrad))avv(1)=rad(nrad)
+          if(avv(3).gt.zr(nzr))avv(3)=zr(nzr)
+          if(avv(3).lt.zr(1))avv(3)=zr(1)
         if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
      +    abs(avv(3)).gt.zr(nzr))then
             call vzero(b(1),3)
@@ -927,7 +931,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                   yaw=xc(6)
                   roll=xc(7)
                   fscale=xc(1)
-                  
+             if(rphi.eq.0)then     
              do i=1,nx
                do j=1,ny
                  do k=1,nz
@@ -937,7 +941,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                   call gufld(x1,b1)
                   call gufldrc(x1,b1c)
                    r=sqrt(x1(1)**2+x1(2)**2)
-                    if(r.le.41.5.and.abs(x1(3)).le.50)then
+                    if(r.le.41..and.abs(x1(3)).le.45)then
                   do l=1,3
                     f=f+(b1(l)-b1c(l)*fscale)**2
                   enddo
@@ -945,6 +949,26 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                  enddo
                enddo
               enddo
+              else
+            do i=1,nrad
+               do j=1,nphi
+                 do k=1,nzr
+                  x1(1)=rad(i)*cos(phi(j))
+                  x1(2)=rad(i)*sin(phi(j))
+                  x1(3)=zr(k)
+                  call gufld(x1,b1)
+                  call gufldrc(x1,b1c)
+                   r=sqrt(x1(1)**2+x1(2)**2)
+                    if(r.le.41..and.abs(x1(3)).le.45)then
+                  do l=1,3
+                    f=f+(b1(l)-b1c(l)*fscale)**2
+                  enddo
+                  endif
+                 enddo
+               enddo
+              enddo
+
+              endif
              if(iflag.eq.3)then
 *
 * final call

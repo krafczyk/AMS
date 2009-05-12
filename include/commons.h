@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.263 2009/04/30 14:38:52 choutko Exp $
+//  $Id: commons.h,v 1.264 2009/05/12 15:38:45 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -766,7 +766,7 @@ COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);
 
 
 //
-const integer npatb=10;
+const integer npatb=11;
 class BETAFITFFKEY_DEF {
 public:
   integer pattern[npatb];  //patterns  to fit; Priority decreases with number
@@ -781,6 +781,7 @@ public:
   //    7                   23                2           on
   //    8                   24                2           on
   //    9                   12                2           off
+  //   10                   34                2           off
   geant Chi2;  //  Max acceptable chi2 for betafit
   geant SearchReg[3]; // Max distance between track & tof hit
   geant LowBetaThr;   // Threshold below refit should be done if possible 

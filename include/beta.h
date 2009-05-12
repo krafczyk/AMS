@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.15 2008/12/18 15:53:15 pzuccon Exp $
+//  $Id: beta.h,v 1.16 2009/05/12 15:38:45 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -29,6 +29,7 @@ protected:
  number betacorr(number zint,number z0, number part);
  static integer patpoints[npatb];
  static integer patconf[npatb][4];
+ static bool BadBetaAlreadyExists(int npatb);
 #ifdef _PGTRACK_
   static int  BuildBetaFromTrTrack(integer refit);
   static int BuildBetaWOTrack(int refit);

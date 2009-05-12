@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.65 2009/04/03 08:39:16 pzuccon Exp $
+//  $Id: beta.C,v 1.66 2009/05/12 15:38:29 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -30,8 +30,9 @@ integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0
                                       1,4,0,0,        // 14    6
                                       2,3,0,0,        // 23    7
                                       2,4,0,0,        // 24    8
-                                      1,2,0,0};       // 12    9
-integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2,2};
+                                      1,2,0,0,       // 12    9
+                                      3,4,0,0};      //34    10    
+integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2,2,2};
 
 
 #ifdef _PGTRACK_
@@ -455,7 +456,7 @@ integer AMSBeta::build(integer refit){
        phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
        for ( ; phit[0]; phit[0]=phit[0]->next()) {
          number chi2space=0;
-         if(phit[0]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+         if(phit[0]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
          if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))) {
            if (phit[0]->checkstatus(AMSDBc::USED)) continue;
          }
@@ -468,7 +469,7 @@ integer AMSBeta::build(integer refit){
 // Loop on second TOF plane
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
          for ( ; phit[1]; phit[1]=phit[1]->next()) {
-           if(phit[1]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+           if(phit[1]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
            if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))) {
              if (phit[1]->checkstatus(AMSDBc::USED)) continue;
            }
@@ -488,7 +489,7 @@ integer AMSBeta::build(integer refit){
 // Loop on third TOF plane
            phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
            for ( ; phit[2]; phit[2]=phit[2]->next()) {
-             if(phit[2]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+             if(phit[2]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
              if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))) {
              if (phit[2]->checkstatus(AMSDBc::USED)) continue;
                }
@@ -508,7 +509,7 @@ integer AMSBeta::build(integer refit){
 // Loop on fourth TOF plane
              phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
              for ( ; phit[3]; phit[3]=phit[3]->next()) {
-               if(phit[3]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+               if(phit[3]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
                if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))){
                  if (phit[3]->checkstatus(AMSDBc::USED)) continue;
  }
@@ -562,7 +563,7 @@ if( !bfound ){
        phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
        for ( ; phit[0]; phit[0]=phit[0]->next()) {
          number chi2space=0;
-         if(phit[0]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+         if(phit[0]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
          if (!BETAFITFFKEY.FullReco ) {
            if (phit[0]->checkstatus(AMSDBc::USED)) continue;
    }
@@ -574,7 +575,7 @@ if( !bfound ){
 // Loop on second TOF plane
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
          for ( ; phit[1]; phit[1]=phit[1]->next()) {
-           if(phit[1]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+           if(phit[1]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
            if (!BETAFITFFKEY.FullReco) {
              if (phit[1]->checkstatus(AMSDBc::USED)) continue;
  }
@@ -596,7 +597,7 @@ if( !bfound ){
 // Loop on third TOF plane
            phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
            for ( ; phit[2]; phit[2]=phit[2]->next()) {
-             if(phit[2]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+             if(phit[2]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
              if (!BETAFITFFKEY.FullReco ) {
              if (phit[2]->checkstatus(AMSDBc::USED)) continue;
                }
@@ -617,7 +618,7 @@ if( !bfound ){
 // Loop on fourth TOF plane
              phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
              for ( ; phit[3]; phit[3]=phit[3]->next()) {
-               if(phit[3]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+               if(phit[3]->checkstatus(AMSDBc::BAD)&& BadBetaAlreadyExists(patb)) continue;
                if (!BETAFITFFKEY.FullReco ){
                  if (phit[3]->checkstatus(AMSDBc::USED)) continue;
                }
@@ -1101,4 +1102,15 @@ number AMSBeta::betacorr(number zint,number z0,number part){
 }
 
 AMSBeta::~AMSBeta(){
+}
+
+
+bool AMSBeta::BadBetaAlreadyExists(int patb){
+  if(patb<npatb-2)return true;
+  else{
+    if(patb==npatb-1)patb--;
+    else patb++;
+    return AMSEvent::gethead()->getheadC("AMSBeta",patb)!=0;
+    
+ }
 }

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.205 2009/05/10 09:28:37 choutko Exp $
+//  $Id: trrec.C,v 1.206 2009/05/12 15:38:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1592,12 +1592,12 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
 	                    if (j==0){
                               ptest.SimpleFit(hit_err);
                               if (ptest._Chi2WithoutMS<minchi2
-                                  && ptest.Fit(0)<TRFITFFKEY.Chi2FastFit &&
+                                   && ptest.Fit(0)<(TRFITFFKEY.Chi2FastFit>1e5?TRFITFFKEY.Chi2FastFit:1e5) &&
                                   ptest.TOFOK()) {
                                     minchi2 = ptest._Chi2WithoutMS;
                                     if (ptrack) delete ptrack;
                                     ptrack = ptest.CloneIt();
-                              }
+                             }
 	                    }  
 	                  }  
 next_3:
@@ -1854,7 +1854,7 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
 	                    if (j==0){
                               ptest.SimpleFit(hit_err);
                               if (ptest._Chi2WithoutMS<minchi2
-                                  && ptest.Fit(0)<TRFITFFKEY.Chi2FastFit &&
+                                   && ptest.Fit(0)<(TRFITFFKEY.Chi2FastFit>1e5?TRFITFFKEY.Chi2FastFit:1e5) &&
                                   ptest.TOFOK()) {
                                     minchi2 = ptest._Chi2WithoutMS;
                                     if (ptrack) delete ptrack;
@@ -2031,7 +2031,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
       fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
            //cout<<ptrack->_NHits<<" "<<ptrack->_Chi2StrLine<<" "<<ptrack->_Chi2WithoutMS<<" "<<ptrack->Fit(0)<<endl;
        if( (  (ptrack->Fit(0) < 
-            TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK() ){
+            (TRFITFFKEY.Chi2FastFit>1e5?TRFITFFKEY.Chi2FastFit:1e5))) && ptrack->TOFOK() ){
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
@@ -4455,4 +4455,53 @@ void AMSTrRecHit::sethit(){
       _EHitA[j]=(par[_Id.getlayer()-1].getmtx(j)).prod(_EHit);
       }
      }
+}
+
+
+bool AMSTrTrack::NotMatch(int nhit){
+     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
+     for ( ; ptrack ; ptrack=ptrack->next()) {
+        int ncommon=0;
+        if(ptrack->checkstatus(AMSDBc::USED) && ptrack!=this){
+        for (int k=0;k<ptrack->_NHits;k++){
+         for(int j=0;j<_NHits;j++){
+          if(_Pthit[j]->_Ycl==ptrack->_Pthit[k]->_Ycl)ncommon++;
+         }
+        }
+     }
+     if(ncommon>nhit)return true;
+     }
+     return false;
+    }
+
+    void AMSTrTrack::cleanup(){
+     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
+     for ( ; ptrack ; ptrack=ptrack->next()) {
+      if(!ptrack->checkstatus(AMSDBc::USED) && ptrack->_Chi2FastFit>=TRFITFFKEY.Chi2FastFit && ptrack->NotMatch(2))ptrack->setstatus(AMSDBc::DELETED);
+     }
+     ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
+     AMSContainer *pcont=AMSEvent::gethead()->getC("AMSTrTrack",0);     
+     while(ptrack){
+     AMSTrTrack *pnext=ptrack->next();          
+      if(pnext  && pnext->checkstatus(AMSDBc::DELETED))pcont->removeEl(ptrack);
+      else ptrack=ptrack->next();
+      }
+     ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
+     if(ptrack && ptrack->checkstatus(AMSDBc::DELETED))pcont->removeEl(0);
+}
+
+
+bool AMSTrTrack::TRDMatch(AMSTRDTrack *ptrd){
+       number SearchReg(4);
+       number MaxCos(0.1);
+       number theta,phi,sleng;
+       AMSDir s(ptrd->gettheta(),ptrd->getphi());
+       AMSDir s1(gettheta(),getphi());
+       number c=s1.prod(s);
+       if(s[2]!=0){
+         number x=ptrd->getCooStr()[0]+s[0]/s[2]*(_P0[2]-ptrd->getCooStr()[2]);
+         if(fabs(x-_P0[0])<SearchReg && acos(c)<MaxCos)return true;       
+       }
+
+       return false;
 }
