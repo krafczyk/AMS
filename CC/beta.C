@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.66 2009/05/12 15:38:29 choutko Exp $
+//  $Id: beta.C,v 1.67 2009/05/12 16:48:54 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -1106,11 +1106,25 @@ AMSBeta::~AMSBeta(){
 
 
 bool AMSBeta::BadBetaAlreadyExists(int patb){
-  if(patb<npatb-2)return true;
+  //
+  // check number of good tof clusters available
+  //
+  int ngood=0;
+  for(int k=0;k<4;k++){
+       int ngh=0;
+       AMSTOFCluster *phit=AMSTOFCluster::gethead(k);
+       for ( ; phit; phit=phit->next()) {
+         if(!phit->checkstatus(AMSDBc::BAD))ngh++;
+       
+       if(ngh)ngood++;
+  }
+
+  if(ngood>=2)return true;
   else{
-    if(patb==npatb-1)patb--;
-    else patb++;
-    return AMSEvent::gethead()->getheadC("AMSBeta",patb)!=0;
-    
+    for(int k=0;k<npatb;k++){
+    if(AMSEvent::gethead()->getheadC("AMSBeta",k))return true;
+    }
+    return false;
+   }
  }
 }

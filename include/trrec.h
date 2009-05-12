@@ -5,7 +5,7 @@
 #include "TrTrack.h"
 #else
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.101 2009/05/12 15:38:45 choutko Exp $
+//  $Id: trrec.h,v 1.102 2009/05/12 16:48:54 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -385,6 +385,11 @@ integer operator < (AMSlink & o) const {
   bool falsetofx_other= (bool)(p->checkstatus(AMSDBc::FalseTOFX));
   if (falsetofx && (!falsetofx_other)) return 0;
   if ((!falsetofx) && falsetofx_other) return 1;
+
+// Check if some has Chi2FastFit <TRFITFFKEY.Chi2FastFit and other not
+   
+   if((_Chi2FastFit>TRFITFFKEY.Chi2FastFit &&  p->getchi2()<= TRFITFFKEY.Chi2FastFit) || (_Chi2FastFit<=TRFITFFKEY.Chi2FastFit &&  p->getchi2()> TRFITFFKEY.Chi2FastFit))return (_Chi2FastFit < p->getchi2());
+
 
 // Check if one of them has more hits than the other
    if (_Pattern != p->_Pattern) return (_Pattern<p->_Pattern);
