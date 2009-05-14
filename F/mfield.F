@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.25 2009/05/12 15:38:45 choutko Exp $
+*  $Id: mfield.F,v 1.26 2009/05/14 14:39:12 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -642,6 +642,9 @@ c        endif
         else
           avv(1)=sqrt(vv(1)**2+vv(2)**2)
           avv(2)=atan2(vv(2),vv(1))
+          if(avv(2).lt.0)then
+            avv(2)=avv(2)+4*acos(0.)
+          endif
           avv(3)=vv(3)
         if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
      +    abs(avv(3)).gt.zr(nzr).or.magstat.le.-1)then
@@ -704,6 +707,9 @@ c        endif
           t2=atan2(avv(2),avv(1))
           avv(1)=t1
           avv(2)=t2
+          if(avv(2).lt.0)then
+            avv(2)=avv(2)+4*acos(0.)
+          endif
           if(avv(1).gt.rad(nrad))avv(1)=rad(nrad)
           if(avv(3).gt.zr(nzr))avv(3)=zr(nzr)
           if(avv(3).lt.zr(1))avv(3)=zr(1)
@@ -757,6 +763,9 @@ c        endif
           t2=atan2(avv(2),avv(1))
           avv(1)=t1
           avv(2)=t2
+          if(avv(2).lt.0)then
+            avv(2)=avv(2)+4*acos(0.)
+          endif
         if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
      +    abs(avv(3)).gt.zr(nzr))then
             call vzero(b(1),3)
