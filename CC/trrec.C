@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.206 2009/05/12 15:38:45 choutko Exp $
+//  $Id: trrec.C,v 1.207 2009/05/26 13:55:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2259,7 +2259,7 @@ integer AMSTrTrack::TOFOK(){
     if(pc){
       AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
       number SearchReg(4);
-      number MaxCos(0.1);
+      number MaxCos(0.05);
       integer trdf=0;
       while(ptrd){
        trdf++;

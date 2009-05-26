@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.174 2009/05/12 15:38:45 choutko Exp $
+//  $Id: particle.C,v 1.175 2009/05/26 13:55:42 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -90,7 +90,7 @@ integer AMSParticle::build(integer refit){
 	if(!ptrack || !pbeta || !pcharge){
 	  cerr<<" AMSParticle-F-problem "<<endl;
 	}         
-	if(pbeta->checkstatus(AMSDBc::AMBIG)==0 ||BETAFITFFKEY.FullReco ){
+	if(1 || pbeta->checkstatus(AMSDBc::AMBIG)==0 ||BETAFITFFKEY.FullReco ){
           number chi2(0),rid(0),err(0);
           ptrack->getParFastFit( chi2, rid, err, theta,  phi,  coo);
           // Add new element
@@ -411,7 +411,7 @@ void AMSParticle::trdfit(){
     }
     else d3=5*error.norm();
 //    if(d2<d3){
-    if(_ptrack->TRDMatch(ptr)){
+    if(_ptrack->TRDMatch(ptr) && d2<d3){
       if(d2<dist){
 	dist=d2;
 	_TRDCoo[0]=tmp;
