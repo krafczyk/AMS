@@ -54,7 +54,8 @@ void RichRadiatorTileManager::Init(){  // Default initialization
       char name[801];
       //      sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
       //      sprintf(name,"%s/%s/RichDefaultAGLTables.02.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-      sprintf(name,"%s/%s/RichDefaultAGLTables.03.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());  // New very careful calibration
+      //      sprintf(name,"%s/%s/RichDefaultAGLTables.03.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());  // New very careful calibration
+      sprintf(name,"%s/%s/RichDefaultAGLTables.04.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());  // Refined calibration
       ReadFromFile(name);
     }
     
