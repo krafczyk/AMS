@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.421 2009/05/12 15:38:45 choutko Exp $
+//  $Id: event.C,v 1.422 2009/05/26 14:26:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -61,6 +61,7 @@
 #include "status.h"
 #include "trdsim.h"
 #include "trdrec.h"
+#include "trdhrec.h"
 #include "vtx.h"
 #ifdef __G4AMS__
 #include "g4util.h"
@@ -987,6 +988,7 @@ void AMSEvent::_retrdinitevent(){
   for(int i=0;i<2*AMSTRDIdSoft::ncrates();i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDRawHit",i),0));
 
+  if(TRDFITFFKEY.FitMethod!=1){
   for(int i=0;i<trdconst::maxlay;i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDCluster",i),&AMSTRDCluster::build,0));
 
@@ -995,9 +997,15 @@ void AMSEvent::_retrdinitevent(){
 
   for(int i=0;i<1;i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDTrack",i),&AMSTRDTrack::build,0));
+  }
 
+  if(TRDFITFFKEY.FitMethod!=0){
+    for(int i=0;i<6;i++) AMSEvent::gethead()->add (
+						   new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",i),&AMSTRDHSegment::build,0));
 
-
+    for(int i=0;i<2;i++) AMSEvent::gethead()->add (
+						   new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",i),&AMSTRDHTrack::build,0));
+  }
 
 }
 void AMSEvent::_rerichinitevent(){
@@ -1120,6 +1128,7 @@ void  AMSEvent::write(int trig){
   for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
     AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
   }
+  if(TRDFITFFKEY.FitMethod!=1){
   for(int il=0;il<trdconst::maxlay;il++){
     AMSEvent::gethead()->getheadC("AMSTRDCluster",il,2); 
   }
@@ -1127,7 +1136,16 @@ void  AMSEvent::write(int trig){
   for(int il=0;il<trdconst::maxseg;il++){
     AMSEvent::gethead()->getheadC("AMSTRDSegment",il,2); 
   }
+  }
+  if(TRDFITFFKEY.FitMethod!=0){
+    for(int il=0;il<6;il++){
+      AMSEvent::gethead()->getheadC("AMSTRDHSegment",il,2);
+    }
 
+    for(int il=0;il<2;il++){
+      AMSEvent::gethead()->getheadC("AMSTRDHTrack",il,2);
+    }
+  }
 
   for(int il=0;il<2*ECALDBc::slstruc(3);il++){
     AMSEvent::gethead()->getheadC("AMSEcalHit",il,2); 
@@ -1958,6 +1976,23 @@ void AMSEvent::_retrdevent(){
   }
 #endif
 
+  if(TRDFITFFKEY.FitMethod!=0){
+    buildC("AMSTRDHSegment");
+#ifdef __AMSDEBUG__
+    for(int i=0;i<nhseg;i++){
+      AMSContainer *p =getC("AMSTRDHSegment",i);
+      if(p && AMSEvent::debug)p->printC(cout);
+    }
+#endif
+
+    int nhtr=buildC("AMSTRDHTrack");
+#ifdef __AMSDEBUG__
+    for(int i=0;i<2;i++){
+      AMSContainer *p =getC("AMSTRDHTrack",i);
+      if(p && AMSEvent::debug)p->printC(cout);
+    }
+#endif
+  }
 //
 //
   AMSgObj::BookTimer.stop("RETRDEVENT");

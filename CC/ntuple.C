@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.183 2009/04/03 08:39:16 pzuccon Exp $
+//  $Id: ntuple.C,v 1.184 2009/05/26 14:26:38 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -34,14 +34,33 @@
 #include "TBranch.h"
 #include "TH1.h"
 
+#include "TPaletteAxis.h"
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TBox.h"
+#include "TPad.h"
+#include "TF1.h"
+#include "TH2F.h"
+#include "TFitter.h"
+
 AMSEventR AMSNtuple::_evroot02;
 EventNtuple02 AMSNtuple::_event02;
+TRDInfoNtuple02 AMSNtuple::_trdinfo02;
 TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
 TObjString AMSNtuple::_ta("");
 TObjString AMSNtuple::_ag("");
 const int branchSplit=1;
+
+TCanvas* _can=0;
+TH2F* tfr=0;
+TBox *nubox=0;
+TPaletteAxis* palette=0;
+
+TF1* landau=new TF1("landau","landau(0)");
+static float mpv_arr[20][18][16];
+static float empv_arr[20][18][16];
 
 #endif
 
@@ -282,6 +301,33 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
      //cout <<AMSTrAligFit::GetAligString()<<endl;
      _ta.Write("TrackerAlignment");
 #endif
+     
+     TRDPlotInit();
+
+     _can=TRDPlot(1);
+     _can->Write("c_occ");
+     //    if(_can)delete _can;
+
+     TRDFitMOP();
+     _can=TRDPlot(2);
+     _can->Write("c_mop");
+
+     _can=TRDPlot(3);
+     _can->Write("c_emop");
+
+
+     if(TRDFITFFKEY.SaveHistos==0){
+       printf("trying to delete\n");
+       for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
+	 int hid=41000+i*290+j*16+k;
+	 // get hit amplitude histogram
+	 TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
+	 if(h)AMSJob::gethead()->getntuple()->Get_evroot02()->hdelete(hid);
+       }
+     }
+
+     if(tfr)delete tfr;
+
      _rfile->Write();
      _rfile->Close();
      delete _rfile;
@@ -538,9 +584,165 @@ void AMSNtuple::MemMonitor(const int n, int N = 0)
   return;
 }
 
+void AMSNtuple::TRDFitMOP(){
+  // get pointer to TRDInfoNtuple02
+  TRDInfoNtuple02 *info=AMSJob::gethead()->getntuple()->Get_trdinfo02();
+  if(!info)return;
+
+  TH1F* h=NULL;
+  TF1* myfit=NULL;
+
+  // loop over tubes (i=layer j=ladder k=tube)
+  for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
+    // reset arrays
+    mpv_arr[i][j][k]=0.;
+    empv_arr[i][j][k]=0.;
+
+    // skip tubes with less than 100 hits
+    int hits=info->hit_arr[i][j][k];
+    if(hits<100)continue;
+    int hid=41000+i*290+j*16+k;
+
+    // generate and fill hit amplitude histogram
+    h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
+
+    // do fit and get pointer to fit function
+    TFitter* fitter=new TFitter();
+    fitter->SetObjectFit(h);
+
+    landau->SetParameters(sqrt(hits),h->GetMean(),h->GetRMS());
+    h->Fit("landau","LLVEIM");
+    myfit=h->GetFunction("landau");
+
+    // fill array with mpv and error on mpv for resp. tube
+    mpv_arr[i][j][k]=(float)myfit->GetParameter(1);
+    empv_arr[i][j][k]=(float)myfit->GetParError(1);
+
+    h->Reset();
 
 
+  }
+  if(h)delete h;
+}
+
+void AMSNtuple::TRDPlotInit(){
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+}
+// generate TRD plots (1-occupancy 2-MPV 3-ErrorOnMPV
+TCanvas* AMSNtuple::TRDPlot(int mode){
+  if(mode==0)return NULL;
+
+#ifdef __WRITEROOT__
+  TRDInfoNtuple02 *info=AMSJob::gethead()->getntuple()->Get_trdinfo02();
+  if(!info)return NULL;
+
+  if(!tfr){
+    tfr=new TH2F("tfr",";ladder;layer",20,-10,10,20,0,20);
+    tfr->GetXaxis()->SetLabelSize(0.05);
+    tfr->GetYaxis()->SetLabelSize(0.05);
+    int lad=-9;
+    for(int i=2;i!=21;i++){
+      char tit[4];
+      if(lad==0)lad++;
+      sprintf(tit,"%i",lad);
+      tfr->GetXaxis()->SetBinLabel(i,tit);
+      lad++;
+    }
+    tfr->GetXaxis()->SetBinLabel(1,"");
+    tfr->GetXaxis()->SetBinLabel(20,"");
+
+    lad=0;
+    for(int i=1;i!=21;i++){
+      char tit[4];
+      sprintf(tit,"%i",lad);
+      tfr->GetYaxis()->SetBinLabel(i,tit);
+      lad++;
+    }
+
+    tfr->SetMinimum(0.);
+    tfr->SetContour(50);
+  }
+
+  _rfile->cd();
+  TCanvas* cnew=new TCanvas();
+  cnew->SetFillColor(0);
+  cnew->cd();
+
+  float max=0.;
+  for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
+    if(mode==1  &&  info->hit_arr[i][j][k]>max)max=info->hit_arr[i][j][k];
+    if(mode==2 &&  mpv_arr[i][j][k]>max)max=mpv_arr[i][j][k];
+    if(mode==3 &&  empv_arr[i][j][k]>max)max=empv_arr[i][j][k];
+  }
+
+  tfr->SetMaximum(max);
+
+  TPad* pad=(TPad*)gPad;
+  pad->SetRightMargin(0.16);
+
+  int i=0;
+  tfr->Draw("col*z");
+
+  if(!palette)palette= new TPaletteAxis(11.1,-1.,12.1,20,tfr);
+  if(mode==2){
+    if(max>200.)max=200.;
+    palette->GetAxis()->SetTitle("mop [ADC]");
+  }
+
+  if(mode==1) palette->GetAxis()->SetTitle("occupancy [hits]");
+
+  if(mode==3) palette->GetAxis()->SetTitle("MOP rel error");
+  tfr->GetListOfFunctions()->Add(palette,"br");
+
+  gPad->Update();
+
+  for(int lay=0;lay!=20;lay++){
+    for(int j=0;j!=18;j++){
+      for(int tub=0;tub!=16;tub++){
+        if(mode==1&&info->hit_arr[lay][j][tub]<=0.)continue;
+        if(mode==2&&mpv_arr[lay][j][tub]<=0.)continue;
+        if(mode==3&&empv_arr[lay][j][tub]<=0.)continue;
+
+        float y1=lay-0.3;
+
+        int lad=j-9;
+        if(lay<4){
+          if(j>13)continue;
+          lad++;}
+        if(lay<12){
+          if(j>15)continue;
+          lad++;}
+        if(lad>-1)lad++;
+
+        float x1=lad+0.4;
+        if(lad>0)x1-=1;
+        y1+=0.5;
 
 
+        x1+=((tub%8)*0.6/7-0.3);
+        y1+=(tub>7)*0.3;
 
+        float x2=x1+0.6 / 7;
+        float y2=y1+0.3;
+
+
+        int color=0;
+        if(mode==1)color=(int)((float)info->hit_arr[lay][j][tub]/(float)max*49.);
+        if(mode==2)color=(int)((float)mpv_arr[lay][j][tub]/(float)max*49.);
+        if(mode==3)color=(int)((float)empv_arr[lay][j][tub]/(float)max*49.);
+
+
+        nubox=new TBox(x1,y1,x2,y2);
+        nubox->SetFillColor(gStyle->GetColorPalette(color));
+        nubox->Draw("lsamelogz");
+
+      }
+    }
+  }
+
+  return (TCanvas*)cnew;
+
+#endif
+}
 
