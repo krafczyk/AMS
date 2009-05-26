@@ -66,6 +66,8 @@ class AMSTRDMCCluster;
 class AMSTRDRawHit;
 class AMSTRDSegment;
 class AMSTRDTrack;
+class AMSTRDHSegment;
+class AMSTRDHTrack;
 #ifndef _PGTRACK_
 class AMSTrCluster;
 class AMSTrMCCluster;
@@ -106,6 +108,8 @@ class AMSTRDMCCluster{};
 class AMSTRDRawHit{};
 class AMSTRDSegment{};
 class AMSTRDTrack{};
+class AMSTRDHSegment{};
+class AMSTRDHTrack{};
 #ifndef _PGTRACK_
 class AMSTrCluster{};
 class AMSTrMCCluster{};
@@ -209,6 +213,8 @@ int   TrdRawHits;
 int   TrdClusters;
 int   TrdSegments;
 int   TrdTracks;
+int   TrdHSegments;
+int   TrdHTracks;
 int   Level1s;
 int   Level3s;
 int   Betas; 
@@ -252,7 +258,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,9)       //HeaderR
+  ClassDef(HeaderR,10)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -1300,6 +1306,26 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 #pragma omp threadprivate(fgIsA)
 };
 
+class TrdHSegmentR {
+ public:
+  int   d;
+  int Nhits;
+  float Chi2;
+  float m,r,w;
+
+  vector<int> fTrdRawHit;
+  int NTrdRawHit()const {return fTrdRawHit.size();}
+  int iTrdRawHit(unsigned int i){return i<fTrdRawHit.size()?fTrdRawHit[i]:-1;}
+  TrdRawHitR * pTrdRawHit(unsigned int i);
+  friend class AMSTRDHSegment;
+  friend class AMSEventR;
+  TrdHSegmentR(){};
+  TrdHSegmentR(AMSTRDHSegment *ptr);
+  virtual ~TrdHSegmentR(){};
+  ClassDef(TrdHSegmentR,1)       //TrdSegmentR
+#pragma omp threadprivate(fgIsA)
+    };
+
 
 /// TRDTrackR structure
 /*!
@@ -1348,6 +1374,34 @@ public:
 ClassDef(TrdTrackR,1)       //TrdTrackR
 #pragma omp threadprivate(fgIsA)
 };
+
+class TrdHTrackR {
+  //static char _Info[255];
+ protected:
+  vector<int> fTrdHSegment;
+ public:
+  float Coo[3];
+  float Dir[3];
+  float Phi;     ///<  phi (rads)
+  float Theta;   ///< Theta
+  float Chi2;   ///<  Chi2
+  int   Nhits;
+
+  int NTrdHSegment()const {return fTrdHSegment.size();}
+  int iTrdHSegment(unsigned int i){return i<fTrdHSegment.size()?fTrdHSegment[i]:\
+				     -1;}
+  TrdHSegmentR * pTrdHSegment(unsigned int i);
+  TrdHTrackR(AMSTRDHTrack *ptr);
+  TrdHTrackR(){};
+  char * Info(int number=-1){
+    return " ";
+  }
+  friend class AMSTRDHTrack;
+  friend class AMSEventR;
+  virtual ~TrdHTrackR(){};
+  ClassDef(TrdHTrackR,1)       //TrdTrackR
+#pragma omp threadprivate(fgIsA)
+    };
 
 
 /// Level1 trigger structure 
@@ -2229,6 +2283,8 @@ static TBranch*  bTrdRawHit;
 static TBranch*  bTrdCluster;
 static TBranch*  bTrdSegment;
 static TBranch*  bTrdTrack;
+static TBranch*  bTrdHSegment;
+static TBranch*  bTrdHTrack;
 static TBranch*  bLevel1;
 static TBranch*  bLevel3;
 static TBranch*  bBeta;
@@ -2246,7 +2302,7 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 #ifdef __ROOTSHAREDLIBRARY__
 
-#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
 #endif
 
 
@@ -2272,6 +2328,8 @@ static void*  vTrdRawHit;
 static void*  vTrdCluster;
 static void*  vTrdSegment;
 static void*  vTrdTrack;
+static void*  vTrdHSegment;
+static void*  vTrdHTrack;
 static void*  vLevel1;
 static void*  vLevel3;
 static void*  vBeta;
@@ -2602,6 +2660,10 @@ int   nTrdCluster()const { return fHeader.TrdClusters;} ///< \return number of T
 int   nTrdSegment()const { return fHeader.TrdSegments;} ///< \return number of TrdSegmentR elements (fast)
 ///
 int   nTrdTrack()const { return fHeader.TrdTracks;} ///< \return number of TrdTrackR elements (fast)
+ int   nTrdHSegment()const { return fHeader.TrdHSegments;} ///< \return number of TrdSegmentR elements (fast)
+///
+   int   nTrdHTrack()const { return fHeader.TrdHTracks;} ///< \return number of TrdTrackR elements (fast)
+///
 ///
 int   nLevel1()const { return fHeader.Level1s;} ///< \return number of Level1R elements (fast)
 ///
@@ -2675,6 +2737,8 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<TrdClusterR> fTrdCluster;
   vector<TrdSegmentR> fTrdSegment;
   vector<TrdTrackR> fTrdTrack;
+  vector<TrdHSegmentR> fTrdHSegment;
+  vector<TrdHTrackR> fTrdHTrack;
 
 
   //Triggers
@@ -3402,6 +3466,77 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       }
 
 
+      ///  TrdHSegmentR accessor
+      ///  \return number of TrdHSegmentR
+      ///
+      unsigned int   NTrdHSegment() {
+        if(fHeader.TrdHSegments && fTrdHSegment.size()==0)
+	  bTrdHSegment->GetEntry(_Entry);
+        return fTrdHSegment.size();
+      }
+      ///  \return reference of TrdHSegmentR Collection
+      ///
+      vector<TrdHSegmentR> & TrdHSegment() {
+        if(fHeader.TrdHSegments && fTrdHSegment.size()==0)
+	  bTrdHSegment->GetEntry(_Entry);
+        return  fTrdHSegment;
+      }
+      ///  TrdHSegmentR accessor
+      /// \param l index of TrdHSegmentR Collection
+      ///  \return reference to corresponding TrdHSegmentR element
+      ///
+      TrdHSegmentR &   TrdHSegment(unsigned int l) {
+        if(fHeader.TrdHSegments && fTrdHSegment.size()==0)bTrdHSegment->GetEntry\
+							    (_Entry);
+        return fTrdHSegment.at(l);
+      }
+
+      ///  TrdHSegmentR accessor
+      /// \param l index of TrdHSegmentR Collection
+      ///  \return pointer to corresponding TrdHSegmentR element
+      ///
+      TrdHSegmentR *   pTrdHSegment(unsigned int l) {
+        if(fHeader.TrdHSegments && fTrdHSegment.size()==0
+	   )bTrdHSegment->GetEntry(_Entry);
+        return l<fTrdHSegment.size()?&(fTrdHSegment[l]):0;
+      }
+
+      ///  TrdHTrackR accessor
+      ///  \return number of TrdHTrackR
+      ///
+      unsigned int   NTrdHTrack() {
+        if(fHeader.TrdHTracks && fTrdHTrack.size()==0)
+	  bTrdHTrack->GetEntry(_Entry);
+        return fTrdHTrack.size();
+      }
+      ///  \return reference of TrdHTrackR Collection
+      ///
+      vector<TrdHTrackR> & TrdHTrack() {
+        if(fHeader.TrdHTracks && fTrdHTrack.size()==0)
+	  bTrdHTrack->GetEntry(_Entry);
+	return  fTrdHTrack;
+      }
+
+      ///  TrdHTrackR accessor
+      /// \param l index of TrdHTrackR Collection
+      ///  \return reference to corresponding TrdHTrackR element
+      ///
+      TrdHTrackR &   TrdHTrack(unsigned int l) {
+        if(fHeader.TrdHTracks && fTrdHTrack.size()==0)
+	  bTrdHTrack->GetEntry(_Entry);
+	return fTrdHTrack.at(l);
+      }
+
+      ///  TrdHTrackR accessor
+      /// \param l index of TrdHTrackR Collection
+      ///  \return pointer to corresponding TrdHTrackR element
+      ///
+      TrdHTrackR *   pTrdHTrack(unsigned int l) {
+        if(fHeader.TrdHTracks && fTrdHTrack.size()==0)
+	  bTrdHTrack->GetEntry(_Entry);
+        return l<fTrdHTrack.size()?&(fTrdHTrack[l]):0;
+      }
+
 
 
        ///  Level1R accessor
@@ -3937,6 +4072,8 @@ void         AddAMSObject(AMSTRDMCCluster *ptr);
 void         AddAMSObject(AMSTRDRawHit *ptr);
 void         AddAMSObject(AMSTRDSegment *ptr);
 void         AddAMSObject(AMSTRDTrack *ptr);
+void         AddAMSObject(AMSTRDHTrack *ptr);
+void         AddAMSObject(AMSTRDHSegment *ptr);
 void         AddAMSObject(AMSTrCluster *ptr);
 void         AddAMSObject(AMSTrMCCluster *ptr);
 void         AddAMSObject(AMSTrRawCluster *ptr);
@@ -3950,7 +4087,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,10)       //AMSEventR
+ClassDef(AMSEventR,11)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

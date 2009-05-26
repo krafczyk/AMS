@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.114 2009/01/15 18:00:32 choutko Exp $
+//  $Id: ntuple.h,v 1.115 2009/05/26 14:26:45 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -214,7 +214,7 @@ public:
   float Coo[MAXTOF][3];
   float ErrorCoo[MAXTOF][3];
 
-friend class AMSTOFCluster;
+friend class AMSTFCluster;
 friend class AMSNtuple;
 };
 
@@ -492,6 +492,15 @@ public:
   int   Pattern[MAXTRDTRK];
   int   pSeg[MAXTRDTRK][trdconst::maxseg];
  
+friend class AMSTRDTrack;
+friend class AMSNtuple;
+};
+
+class TRDInfoNtuple02{
+ public:
+  int hit_arr[20][18][16];
+  //  float amp_arr[20][18][16][10000];
+
 friend class AMSTRDTrack;
 friend class AMSNtuple;
 };
@@ -852,6 +861,10 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   integer _Nentries;
   static EventNtuple02 _event02;
 #pragma omp threadprivate (_event02)
+
+  static TRDInfoNtuple02 _trdinfo02;
+#pragma omp threadprivate (_trdinfo02)
+
 /*
   BetaNtuple02 _beta02;
   ChargeNtuple02 _charge02;
@@ -919,6 +932,12 @@ public:
   void initR(char* name);
   integer getentries(){return _Nentries;}
   static EventNtuple02* Get_event02() {return &_event02;}
+
+  TCanvas* TRDPlot(int mode=0);
+  void TRDPlotInit();
+  void TRDFitMOP();
+  static TRDInfoNtuple02* Get_trdinfo02(){return &_trdinfo02;}
+
 /*
   BetaNtuple02* Get_beta02() { return &_beta02;}
   ChargeNtuple02* Get_charge02() { return &_charge02;}

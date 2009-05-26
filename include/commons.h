@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.264 2009/05/12 15:38:45 choutko Exp $
+//  $Id: commons.h,v 1.265 2009/05/26 14:26:45 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -244,6 +244,9 @@ public:
   int MinFitPoints;
   float TwoSegMatch;
   float MaxSegAllowed; 
+
+  int FitMethod;
+  int SaveHistos;
 };
 #define TRDFITFFKEY COMMON_BLOCK(TRDFITFFKEY,trdfitffkey)
 COMMON_BLOCK_DEF(TRDFITFFKEY_DEF,TRDFITFFKEY);

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.70 2009/04/03 08:42:45 pzuccon Exp $
+#  $Id: Makefile,v 1.71 2009/05/26 14:26:53 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -204,7 +204,7 @@ TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
 
 
 #TRD 
-COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
 
 
 #TOF + ACC
