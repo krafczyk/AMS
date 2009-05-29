@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.180 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: root.C,v 1.181 2009/05/29 09:47:32 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -340,7 +340,7 @@ void AMSEventR::hdelete(int idd){
   }
   else{
     AMSID id(idd,Dir);
-    Service::hb1i i1=Service::hb1.find(idd);
+    Service::hb1i i1=Service::hb1.find(id);
     if(i1 != Service::hb1.end()){
       delete i1->second;
       Service::hb1.erase(i1);
