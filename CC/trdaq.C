@@ -4,7 +4,7 @@
 #include "event.h"
 #include "TkDBc.h"
 #include "tkdcards.h"
-
+#include "event.h"
 //============  DAQ INTERFACE =======================
 
 
@@ -146,12 +146,26 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
 
 int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   //FIXME this value should be 1 for some run
+
+
+
   int   TDROff=1;
 
+  int run=  AMSEvent::gethead()->getrun();
+  if(run>=1210067687) TDROff=2;
+    if(run>=1210237802) TDROff=1;
+    if(run==1210262957) TDROff=2;
+    if(run>=1210668275 &&
+       run< 1210678767) TDROff=2; 
+
+
+  
   int clcount=0;
   int CNWords=0;
   if(TRCALIB.Version==0)CNWords=16;
   else CNWords=0;
+  if(run>=1208965124) CNWords=0;
+
   int rwords=1+CNWords;
   
   char ttname[20];

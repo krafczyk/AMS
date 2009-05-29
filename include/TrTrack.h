@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.3 2009/05/29 09:23:12 pzuccon Exp $
 #ifndef __AMSTrTrack__
 #define __AMSTrTrack__
 
@@ -27,9 +27,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2009/05/29 09:23:12 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,6 +42,9 @@
 #include <cmath>
 
 class AMSTrRecHit;
+
+
+
 
 class AMSTrTrackPar {
 public:
@@ -245,15 +248,7 @@ public:
   bool ParExists(int id) { return (_TrackPar.find(id) != _TrackPar.end()); }
 
   /// Get TrTrackPar with id
-  AMSTrTrackPar &GetPar(int id = 0) {
-    int id2= (id==0)? trdefaultfit: id;
-    if (ParExists(id2)) return _TrackPar[id2];
-    cerr << "Warning in AMSTrTrack::GetPar, Parameter not exists " 
-         << id << endl;
-    //    int aa=10/0; //for debug
-    static AMSTrTrackPar parerr;
-    return parerr;
-  }
+  AMSTrTrackPar &GetPar(int id = 0);
 
   // Get fitting parameter with a key as Fitting method ID
   bool     FitDone     (int id= 0) { return GetPar(id).FitDone;  }
@@ -393,23 +388,19 @@ public:
   /*! "Advanced fit" is assumed to perform all the fitting: 
    *   1: 1st harf, 2: 2nd harf, 6: with nodb, 4: "Fast fit" ims=0 and 
    *   5: Juan with ims=1 */
-  int AdvancedFitDone() { 
-    return FitDone(kChoutko|kUpperHalf) & FitDone(kChoutko|kLowerHalf) & 
-           FitDone(kChoutko) & FitDone(kAlcaraz);
-  }
+  int AdvancedFitDone();
+
   /// For compatibility with ecalcalib.C
   int DoAdvancedFit();
+
+
+
   
  
 
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
-		     number& Theta, number& Phi, AMSPoint& X0) {
-    /// FastFit is assumed as normal (Choutko) fit without MS
-    int id = kChoutko;
-    Chi2 = GetChisq(id); Rig = GetRigidity(id); Err = GetErrRinv(id); 
-    Theta = GetTheta(id); Phi = GetPhi(id); X0 = GetP0(id);
-  }
+		     number& Theta, number& Phi, AMSPoint& X0);
 
   void *operator new   (size_t t) { return TObject::operator new(t); }
   void  operator delete(void  *p) { TObject::operator delete(p); p = 0; }

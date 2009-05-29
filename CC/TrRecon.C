@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.3 2009/05/29 09:23:05 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/04/03 08:39:15 $
+/// $Date: 2009/05/29 09:23:05 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -779,7 +779,7 @@ if (TrDEBUG >= 1) {\
   }\
   cout << endl;\
   int id;\
-  if (MAGSFFKEY.magstat) {\
+  if (MAGSFFKEY.magstat>0) {\
     id = AMSTrTrack::kSimple;\
     track->Fit(id);\
     cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
@@ -1140,7 +1140,7 @@ bool TrRecon::PreScan(int nlay, TrHitIter &it) const
   if (nlay == 0) return true;
 
   // Obtain linear interpolation parameters
-  if (MAGSFFKEY.magstat == 0 || it.side == 0) {
+  if (MAGSFFKEY.magstat <= 0 || it.side == 0) {
     if (nlay == 1) { 
       AMSPoint pos0 = it.coo[it.ilay[0]];
       AMSPoint pos1 = it.coo[it.ilay[1]];
@@ -1213,7 +1213,7 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
                          it.ilay[nlay-1] = swp;
 
   // swap 3rd and middle layer for the bending side
-  if (it.side == 1 && MAGSFFKEY.magstat) {
+  if (it.side == 1 && MAGSFFKEY.magstat>0) {
     swp = it.ilay[2]; 
           it.ilay[2] = it.ilay[nlay/2]; 
                        it.ilay[nlay/2] = swp;
@@ -1560,10 +1560,18 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 {
   if (itcand.nlayer == 0) return 0;
 
+  //PZDEBUG
+  cout<<" Bulding a track with points\n";
+  for (int jj=0;jj<itcand.nlayer;jj++){
+    cout<<"tkid "<<itcand.tkid[jj]<<" mult "<<
+      itcand.imult[jj]<<" point "<<itcand.coo[jj]<<endl;
+  }
+
+
   VCon* cont = TRCon->GetCont("AMSTrTrack");
   if (!cont) return 0;
   int fit_method=AMSTrTrack::DefaultFitID;
-  if (!MAGSFFKEY.magstat)
+  if (MAGSFFKEY.magstat<=0)
     fit_method = AMSTrTrack::kLinear;
 
   // Create a new track
@@ -1594,14 +1602,18 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     hit->SetResolvedMultiplicity(itcand.imult[i]);
     track->AddHit(hit, itcand.imult[i]);
   }
-
+  cout<< " PZDEBUG track info\n";
+  for(int jj=0;jj<track->_Nhits;jj++){
+    cout<<" Track hit num "<<jj<<endl;
+    track->_Hits[jj]->Print();
+  }
   // Fill patterns
   track->SetPatterns(TrRecon::GetHitPatternIndex(maskc), itcand.pattern,
                      TrRecon::GetHitPatternIndex(maskc));
 
   track->Fit(fit_method);
   
- if (!MAGSFFKEY.magstat)
+ if (MAGSFFKEY.magstat<=0)
     track->trdefaultfit=AMSTrTrack::kLinear;
 
   if(track->DoAdvancedFit())
@@ -1662,14 +1674,14 @@ void TrRecon::InitFFKEYs(int magstat)
 
   MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (!magstat) AMSTrTrack::DefaultFitID = AMSTrTrack::kLinear;
+  if (magstat<=0) AMSTrTrack::DefaultFitID = AMSTrTrack::kLinear;
 }
 
 int TrRecon::ReadMagField(const char *fname, int magstat)
 {
   MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (!magstat) AMSTrTrack::DefaultFitID = AMSTrTrack::kLinear;
+  if (magstat<=0) AMSTrTrack::DefaultFitID = AMSTrTrack::kLinear;
   return MagField::GetPtr()->Read(fname);
 }
 

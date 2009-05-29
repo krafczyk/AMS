@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.3 2009/05/29 09:23:04 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/04/03 08:39:15 $
+///$Date: 2009/05/29 09:23:04 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +22,8 @@
 #include <cstring>
 
 TkDBc* TkDBc::Head=0;
+float* TkDBc::linear=0;
+
 
 TkDBc::TkDBc(){
  for (int ii=0;ii<nplanes;ii++)
@@ -682,6 +684,32 @@ void TkDBc::GetLayerRot(int lay, number nrm[][3]){
 
 
 
+int TkDBc::readAlignmentAngles(const char* filename, int pri){
+  FILE * ff= fopen(filename,"r");
+
+  if(!ff) {
+    fprintf(stderr,"TkDBc::readAlignmentAngles: WARNING Cannot open the alignemt file %s!!!\n",filename);
+    return -1;
+  }
+
+  int tkid;
+  float dx,dy,dz,theta,phi,xsi;
+  while (!feof(ff)){
+    fscanf(ff," %d %f %f %f %f %f %f",&tkid,&dx,&dy,&dz,&theta,&phi,&xsi);
+    TkLadder* ll= FindTkId(tkid);
+    if(pri) printf(" %+03d %f %f %f %f %f %f \n" ,tkid,dx,dy,dz,theta,phi,xsi);
+    if(!ll) {
+      fprintf(stderr,"TkDBc::readAlignmentAngles: WARNING Cannot find the ladder with tkid %+03d!!!\n",tkid);
+      continue;
+    }
+    if(pri) printf("updating .... \n");
+    ll->SetRotAnglesA(theta/600.,phi/600.,xsi/600.);
+    ll->setposA(dx/10.,dy/10.,dz/10.);
+  }
+  
+  return 0;
+}
+
 
 int TkDBc::readAlignment(const char* filename, int pri){
   ifstream  fileout(filename);
@@ -723,4 +751,62 @@ int TkDBc::writeAlignment(const char* filename){
   fileout.close();
   return 0;
 
+}
+
+void TkDBc::Align2Lin(){
+
+  if(! linear) {
+    printf("TkDBc::Alingn2Lin()-INFO the linear space is created NOW\n");
+    linear= new float[GetLinearSize()/4];
+    memset(linear,0,GetLinearSize());
+  }
+  int off=0;
+  for (int pla=1;pla<6;pla++){
+    linear[off]=(float)pla;
+    TkPlane* pl=GetPlane(pla);
+    pl->Align2Lin(&linear[off+1]);
+    off+=7;
+  }
+
+  for (tkidIT aa=tkidmap.begin(); aa!=tkidmap.end();aa++){
+    linear[off]=(float)(aa->first);
+    aa->second->Align2Lin(&(linear[off+1]));
+    off+=7;
+  }
+
+}
+
+
+void TkDBc::Lin2Align(){
+
+  if(! linear) {
+    fprintf(stderr,"TkDBc::Lin2Align()-ERROR the linear does not exist\n");
+    return;
+  }
+  int off=0;
+  for (int pla=1;pla<6;pla++){
+    int pll=(int)linear[off];
+    TkPlane* pl=GetPlane(pll);
+    pl->Lin2Align(&linear[off+1]);
+    off+=7;
+  }
+
+  for (int lad=0;lad<192;lad++){
+    int tkid= (int)linear[off];
+    TkLadder* ll =FindTkId(tkid);
+    if(!ll) {
+      fprintf(stderr,"TkDBc::Lin2Align()-ERROR tkid %+03d not found!!!!\n",tkid);
+      continue;
+    }
+    ll->Lin2Align(&(linear[off+1]));
+    off+=7;
+  }
+
+}
+
+
+void SLin2Align(){
+  if(TkDBc::Head)
+    TkDBc::Head->Lin2Align();
+  return;
 }

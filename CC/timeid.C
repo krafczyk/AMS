@@ -1,11 +1,11 @@
-//  $Id: timeid.C,v 1.99 2009/02/23 12:51:20 choutko Exp $
+//  $Id: timeid.C,v 1.100 2009/05/29 09:23:05 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include  "event.h"
+//#include  "event.h"
 #include "timeid.h"
 #include "astring.h"
 #include <fstream>
@@ -138,7 +138,7 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
 
   if (Time >= _Begin && Time <= _End){
     if(ok==-1 || _CRC == _CalcCRC()){
-      if(_trigfun)_trigfun();
+
       return 1;
     }
     else {
@@ -277,20 +277,31 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
     id=0;
   }
   else return -1;
-int ok;
+  int ok;
+
+
 #ifdef _OPENMP
-cout <<" AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
- AMSEvent::ResetThreadWait(1);
+  cout <<" AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
+  AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
-if( omp_get_thread_num()==0) {
-  ok= read(dir,id,asktime,index)?1:0;
-}
-else ok=1;
+  if( omp_get_thread_num()==0) {
+    ok= read(dir,id,asktime,index)?1:0;
+    if(ok && _trigfun)_trigfun();
+  }
+  else ok=1;
 #else
-  return read(dir,id,asktime,index)?1:0;
+
+  if( read(dir,id,asktime,index)){
+    if(_trigfun)_trigfun();
+    return 1;
+  }
+  else 
+    return 0;
+  
+
 #endif
 #pragma omp barrier
-return ok;
+  return ok;
    
 }
 

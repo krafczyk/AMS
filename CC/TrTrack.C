@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.3 2009/04/03 08:39:16 pzuccon Exp $
+// $Id: TrTrack.C,v 1.4 2009/05/29 09:23:05 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/04/03 08:39:16 $
+///$Date: 2009/05/29 09:23:05 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,6 +89,7 @@ AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point,int fitmethod)
 {
   trdefaultfit=fitmethod;
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
+  if(MAGSFFKEY.magstat<=0) trdefaultfit=kLinear;
   AMSTrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone = true;
   par.P0      = point;
@@ -111,6 +112,7 @@ AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig,int 
 {
   trdefaultfit=fitmethod;
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
+  if(MAGSFFKEY.magstat<=0) trdefaultfit=kLinear;
   AMSTrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone  = true;
   par.Rigidity = rig;
@@ -132,6 +134,28 @@ AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig,int 
 AMSTrTrack::~AMSTrTrack()
 {
 }
+
+
+AMSTrTrackPar &AMSTrTrack::GetPar(int id) {
+    int id2= (id==0)? trdefaultfit: id;
+    if(MAGSFFKEY.magstat<=0) id2=(id2&0xfff0)+kLinear;
+    if (ParExists(id2)) return _TrackPar[id2];
+    cerr << "Warning in AMSTrTrack::GetPar, Parameter not exists " 
+         << id << endl;
+    //    int aa=10/0; //for debug
+    static AMSTrTrackPar parerr;
+    return parerr;
+  }
+
+
+
+
+
+
+
+
+
+
 
 void AMSTrTrack::AddHit(AMSTrRecHit *hit, int imult)
 {
@@ -210,7 +234,7 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   }
 
   // Force to use Linear fit if magnet is off
-  if (MAGSFFKEY.magstat == 0) id = (id&0xfff0)+kLinear;
+  if (MAGSFFKEY.magstat <= 0) id = (id&0xfff0)+kLinear;
   idf = id&0xf;
 
   // Select fitting method
@@ -336,7 +360,7 @@ void AMSTrTrack::_printEl(std::ostream& ost )
 int AMSTrTrack::DoAdvancedFit()
 {
   /*! "Advanced fit" is assumed to perform all the fitting: 
-   *   1: 1st harf, 2: 2nd harf, 6: with nodb, 4: "Fast fit" ims=0 and 
+   *   1: 1st half, 2: 2nd half, 6: with nodb, 4: "Fast fit" ims=0 and 
    *   5: Juan with ims=1 */
 
   Fit(kChoutko | kUpperHalf);
@@ -419,6 +443,28 @@ void AMSTrTrack::_printEl(std::string& sout)
   sout.append(cc);
 }
 
+
+
+
+void AMSTrTrack::getParFastFit(number& Chi2,  number& Rig, number& Err, 
+		   number& Theta, number& Phi, AMSPoint& X0) {
+    /// FastFit is assumed as normal (Choutko) fit without MS
+  int id = kChoutko;
+  if(MAGSFFKEY.magstat<=0) id=kLinear;
+  Chi2 = GetChisq(id); Rig = GetRigidity(id); Err = GetErrRinv(id); 
+  Theta = GetTheta(id); Phi = GetPhi(id); X0 = GetP0(id);
+}
+
+int AMSTrTrack::AdvancedFitDone() { 
+  int out= FitDone(kChoutko|kUpperHalf) & FitDone(kChoutko|kLowerHalf) & 
+    FitDone(kChoutko) & FitDone(kAlcaraz);
+  if(MAGSFFKEY.magstat<=0) return FitDone(kLinear);
+  else return out;
+}
+
+
+
+
 #include "amsgobj.h"
 
 AMSTrTrackError::AMSTrTrackError(char * name){
@@ -433,4 +479,3 @@ AMSTrTrackError::AMSTrTrackError(char * name){
   //  AMSEvent::gethead()->seterror(2);
 }
 char * AMSTrTrackError::getmessage(){return msg;}
-

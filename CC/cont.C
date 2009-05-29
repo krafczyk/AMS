@@ -1,4 +1,4 @@
-//  $Id: cont.C,v 1.15 2009/05/12 15:38:45 choutko Exp $
+//  $Id: cont.C,v 1.16 2009/05/29 09:23:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include "cont.h"
@@ -93,6 +93,9 @@ if(pel == _Last){
   if(prev)prev->_next=0;
    else _Head=0;
    _Last=prev;
+}
+ else if (pel==NULL){
+   printf("AMSContainer::removeEl-W-The element to be removed does not exists!!!!\n");
 }
 else{
    if(prev)prev->_next=pel->_next;

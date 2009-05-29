@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.422 2009/05/26 14:26:38 choutko Exp $
+//  $Id: event.C,v 1.423 2009/05/29 09:23:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1482,7 +1482,10 @@ bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.
   }
   if(callax)_reaxevent();
   if(calluser)AMSUser::Event();
+#ifndef _PGTRACK_
   if(calltrk)AMSTrTrack::cleanup(); 
+#endif
+
   AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
@@ -2038,7 +2041,8 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("REAXEVENT");
 
-  //PZ FIXMEAMSBeta::build();
+
+
   buildC("AMSBeta");
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSBeta::print();
@@ -2060,13 +2064,18 @@ void AMSEvent::_reaxevent(){
   //   TrRecon::gethead()->BuildVertex();
   AMSgObj::BookTimer.stop("Vtx");
   //PZ FIXME DEBUG 
+  AMSgObj::BookTimer.start("REAXPART");
   buildC("AMSParticle");
+  AMSgObj::BookTimer.stop("REAXPART");
 #else  
   // Vertexing
   AMSgObj::BookTimer.start("Vtx");
   buildC("AMSVtx");
   AMSgObj::BookTimer.stop("Vtx");
+  AMSgObj::BookTimer.start("REAXPART");
   buildC("AMSParticle");
+  AMSgObj::BookTimer.stop("REAXPART");
+
 #endif
 
 #ifdef __AMSDEBUG__

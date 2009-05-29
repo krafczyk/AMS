@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $
+//  $Id: TrFit.C,v 1.3 2009/05/29 09:23:05 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/04/03 08:39:15 $
+///$Date: 2009/05/29 09:23:05 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -56,7 +56,7 @@ int TrFit::Add(double x,  double y,  double z,
 	       double ex, double ey, double ez, int at)
 {
   float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
-  if (MAGSFFKEY.magstat) MagField::GetPtr()->GuFld(pos, bf);
+  if (MAGSFFKEY.magstat>0) MagField::GetPtr()->GuFld(pos, bf);
   return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
 }
 
@@ -104,7 +104,8 @@ double TrFit::LinearFit(void)
   _p0y = _param[2]; _dydz = _param[3];
   _p0z = 0;
 
-  _rigidity = _errrinv = 0;
+  _rigidity = 100000; 
+  _errrinv = 0;
 
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
   return _chisq;
@@ -114,7 +115,7 @@ double TrFit::CircleFit(void)
 {
   /// Circlar fitting in Y-Z plane and liear fitting in S-Z plane
 
-  if (MAGSFFKEY.magstat == 0) return LinearFit();
+  if (MAGSFFKEY.magstat <= 0) return LinearFit();
 
   if (CircleFit(2) < 0) return -1;
   if (LinearFit(3) < 0) return -1;
@@ -1975,7 +1976,7 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  if (MAGSFFKEY.magstat == 0 || _chrg*_rigidity == 0) {
+  if (MAGSFFKEY.magstat <= 0 || _chrg*_rigidity == 0) {
     double z = (dir[0]*(pnt[0]-_p0x)+dir[1]*(pnt[1]-_p0y)+dir[2]*(pnt[2]-_p0z))
               /(dir[0]*_dxdz        +dir[1]*_dydz        +dir[2]);
     AMSPoint pnt0 = pnt;
@@ -2008,7 +2009,7 @@ double TrProp::InterpolateCyl(AMSPoint &pnt, AMSDir &dir,
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  if (MAGSFFKEY.magstat == 0 || _chrg*_rigidity == 0) {
+  if (MAGSFFKEY.magstat <= 0 || _chrg*_rigidity == 0) {
     double dx = dir[0], dy = dir[1], dz = dir[2], z0 = _p0z-pnt[2];
     double p0 = _p0x-pnt[0], p1 = _dxdz, p2 = _p0y-pnt[1], p3 = _dydz;
     double aa = (1-dx*dx)*p1*p1     +(1-dy*dy)*p3*p3  +(1-dz*dz)

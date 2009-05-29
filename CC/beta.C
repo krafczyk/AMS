@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.67 2009/05/12 16:48:54 choutko Exp $
+//  $Id: beta.C,v 1.68 2009/05/29 09:23:05 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -51,9 +51,10 @@ integer AMSBeta::build(integer refit){
 
   // if no beta found with TrTracks try with (extrapolated) TRD tracks
   int nTRDtracks=AMSEvent::gethead()->getC(AMSID("AMSTRDTrack",0))->getnelem();
-  if(!bfound&&nTRDtracks>0)
+  if(!bfound&&nTRDtracks>0){
     bfound=BuildBetaFromTRDTrack(refit);
-
+    printf("Reconstructed %d Beta from TRD track!\n",bfound);
+}
   // Try build beat w/o a track if LVL3 is OK
   bfound+=BuildBetaWOTrack(refit);
 
@@ -104,7 +105,7 @@ int AMSBeta::BuildBetaFromTrTrack(integer refit){
 	// Loop on N TOF plane
 	phit[TOFlay]=AMSTOFCluster::gethead(TOFlay);
 	for ( ; phit[TOFlay]; phit[TOFlay]=phit[TOFlay]->next()) {
-	  if(phit[TOFlay]->checkstatus(AMSDBc::BAD)) continue;
+	  //FIXME PZ	  if(phit[TOFlay]->checkstatus(AMSDBc::BAD)) continue;
 	  if (!BETAFITFFKEY.FullReco)
 	    if (phit[TOFlay]->checkstatus(AMSDBc::USED)) continue;
 	  
@@ -112,14 +113,14 @@ int AMSBeta::BuildBetaFromTrTrack(integer refit){
 	  AMSPoint dst=AMSBeta::Distance(phit[TOFlay]->getcoo(),phit[TOFlay]->getecoo(),
 					 ptrack,sleng[TOFlay],td);
 	  
-	  //	  cerr<< " plane"<< TOFlay  <<" coo: "<<(phit[TOFlay]->getcoo()) <<" err "<<phit[TOFlay]->getecoo()<<endl;
-	  //      cerr<<"Dist  "<<dst<<endl<<endl;;
+	  	  cerr<< " plane"<< TOFlay  <<" coo: "<<(phit[TOFlay]->getcoo()) <<" err "<<phit[TOFlay]->getecoo()<<endl;
+	        cerr<<"Dist  "<<dst<<endl<<endl;;
 	  if (dst<=SearchReg*phit[TOFlay]->getnmemb()){
 	    chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	    break;
 	  }
 	}
-	//	cerr<<" chi2 "<<chi2space<<endl;
+	cerr<<"TOFLAY "<<TOFlay<<" chi2 "<<chi2space<<endl;
 	if(phit[TOFlay]) tofpatt|=1<<(TOFlay+1);
       }
       int indx=0;
@@ -309,24 +310,31 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
       phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
       for ( ; phit[0]; phit[0]=phit[0]->next()) {
 	number chi2space=0;
-	if(phit[0]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+	//if(phit[0]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
 	if (!BETAFITFFKEY.FullReco ) {
 	  if (phit[0]->checkstatus(AMSDBc::USED)) continue;
 	}
 	AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
 				       ptrack,sleng[0],td);
+
+	cerr<< " plane 0 coo: "<<(phit[0]->getcoo()) <<" err "<<phit[0]->getecoo()<<endl;
+	cerr<<"Dist  "<<dst<<endl<<endl;;
+
 	if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
 	chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 
 	// Loop on second TOF plane
 	phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
 	for ( ; phit[1]; phit[1]=phit[1]->next()) {
-	  if(phit[1]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+	  ////	  if(phit[1]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+
 	  if (!BETAFITFFKEY.FullReco) {
 	    if (phit[1]->checkstatus(AMSDBc::USED)) continue;
 	  }
 	  AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
 					 ptrack,sleng[1],td);
+	cerr<< " plane 1 coo: "<<(phit[1]->getcoo()) <<" err "<<phit[1]->getecoo()<<endl;
+	cerr<<"Dist  "<<dst<<endl<<endl;;
 	  if (!(dst<=SearchReg*phit[1]->getnmemb())) continue;
 	  chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	  // 2-point combination found
@@ -343,12 +351,16 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
 	  // Loop on third TOF plane
 	  phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
 	  for ( ; phit[2]; phit[2]=phit[2]->next()) {
-	    if(phit[2]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+	    // if(phit[2]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+	    
 	    if (!BETAFITFFKEY.FullReco ) {
 	      if (phit[2]->checkstatus(AMSDBc::USED)) continue;
 	    }
 	    AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
 					   getecoo(),ptrack,sleng[2],td);
+	cerr<< " plane  2  coo: "<<(phit[2]->getcoo()) <<" err "<<phit[2]->getecoo()<<endl;
+	cerr<<"Dist  "<<dst<<endl<<endl;;
+
 	    if(!(dst<=SearchReg*phit[2]->getnmemb())) continue;
 	    chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	    // 3-point combination found
@@ -365,12 +377,14 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
 	    // Loop on fourth TOF plane
 	    phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
 	    for ( ; phit[3]; phit[3]=phit[3]->next()) {
-	      if(phit[3]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
+	      //   if(phit[3]->checkstatus(AMSDBc::BAD)&& patb!=npatb-1) continue;
 	      if (!BETAFITFFKEY.FullReco ){
 		if (phit[3]->checkstatus(AMSDBc::USED)) continue;
 	      }
 	      AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
 					     getecoo(),ptrack,sleng[3],td);
+	cerr<< " plane  3  coo: "<<(phit[3]->getcoo()) <<" err "<<phit[3]->getecoo()<<endl;
+	cerr<<"Dist  "<<dst<<endl<<endl;;
 	      if(!(dst<=SearchReg*phit[3]->getnmemb())) continue;
 	      chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	      // 4-point combination found

@@ -141,6 +141,9 @@ char* AMSTrRecHit::Info() {
   sprintf(INFO,"tkid: %+03d (x,y,z)=(%10.4f,%10.4f,%10.4f)  corr: %8.4f  prob: %7.5f  stat: %2d\n",
 	  _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus());
   sout.append(INFO);
+  sprintf(INFO,"mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
+	  _imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z());
+  sout.append(INFO);
   return INFO;
 }
 

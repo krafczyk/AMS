@@ -910,37 +910,39 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
 }
 
 void AMSTRDTrack::RealFit(){
-_Real._FitDone=false;
-integer fit=0;
-integer ims=0;
+  _Real._FitDone=false;
+  integer fit=0;
+  integer ims=0;
   integer npt=_Base._NHits;
   const integer maxhits=trdconst::maxlay;
-   geant hits[maxhits][3];
+  geant hits[maxhits][3];
   geant sigma[maxhits][3];
-   geant normal[maxhits][3];
-   integer layer[maxhits];
+  geant normal[maxhits][3];
+  integer layer[maxhits];
   integer ialgo=1;
   geant out[9];
-    for(int i=0;i<npt;i++){
-     normal[i][0]=0;
-     normal[i][1]=0;
-     normal[i][2]=-1;
-     layer[npt-1-i]=_Base._PCluster[i]->getlayer();
-     for(int j=0;j<3;j++){
+  for(int i=0;i<npt;i++){
+    normal[i][0]=0;
+    normal[i][1]=0;
+    normal[i][2]=-1;
+    layer[npt-1-i]=_Base._PCluster[i]->getlayer();
+    for(int j=0;j<3;j++){
       hits[npt-1-i][j]=_Base._Hit[i][j];
       sigma[npt-1-i][j]=_Base._EHit[i][j];
-     }
     }
-int ipart=14;
+  }
+  int ipart=14;
 #ifdef _PGTRACK_
   //PZ FIXME 
   TrFit fitg;
   for (int ii=0;ii<npt;ii++)
     fitg.Add(hits[ii][0],hits[ii][1],hits[ii][2],
-	      sigma[ii][0],sigma[ii][1],sigma[ii][2]);
-  out[7]=fitg.SimpleFit();
+	     sigma[ii][0],sigma[ii][1],sigma[ii][2]);
+   
   
-
+  out[7]=fitg.LinearFit();
+ 
+ 
   _Real._FitDone=true;
   _Real._Chi2=fitg.GetChisq();
 
@@ -951,23 +953,23 @@ int ipart=14;
   _Real._Coo=AMSPoint(fitg.GetP0x(),
 		      fitg.GetP0y(),
 		      fitg.GetP0z());
-
-  
+ 
+ 
 #else
-TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
-
-_Real._FitDone=true;
-_Real._Chi2=out[6];
-if(out[7] != 0)_Real._Chi2=FLT_MAX;
-else{
-_Real._FitDone=true;
-_Real._Chi2=out[6];
-}
-_Real._InvRigidity=1/out[5];
-_Real._ErrInvRigidity=out[8];
-_Real._Theta=out[3];
-_Real._Phi=out[4];
-_Real._Coo=AMSPoint(out[0],out[1],out[2]);
+  TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
+  
+  _Real._FitDone=true;
+  _Real._Chi2=out[6];
+  if(out[7] != 0)_Real._Chi2=FLT_MAX;
+  else{
+    _Real._FitDone=true;
+    _Real._Chi2=out[6];
+  }
+  _Real._InvRigidity=1/out[5];
+  _Real._ErrInvRigidity=out[8];
+  _Real._Theta=out[3];
+  _Real._Phi=out[4];
+  _Real._Coo=AMSPoint(out[0],out[1],out[2]);
 #endif
 
 }

@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+// $Id: TkObject.h,v 1.2 2009/05/29 09:23:12 pzuccon Exp $
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,9 +22,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/05/29 09:23:12 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +58,6 @@ public:
   AMSPoint   posA;
   //! Alignement Correction to  the orientation in space of the TkObject
   AMSRotMat  rotA;
-
 
 public:
   //! explicit constructor
@@ -125,6 +124,10 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
 
   void ReadA(istream &o){putinA(o);}
   void WriteA(ostream &o){putoutA(o);}
+
+  void Align2Lin(float * off);
+  void Lin2Align(float * off);
+  static int GetSize(){return 6;}
 
 };
 

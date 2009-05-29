@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.631 2009/05/26 14:26:38 choutko Exp $
+// $Id: job.C,v 1.632 2009/05/29 09:23:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1730,12 +1730,13 @@ if(AMSFFKEY.Update){
       getsetup()<< "yet "<<endl;
     exit(1);
   }
- 
+
 // SetUp the Tracker reconstruction infrastructure
 //PZ FIXME must be simplified
   TrCalDB* cc=new TrCalDB();
   cc->init();
   cc->CreateLinear();
+//  cc->Load("prima.root");
   TrClusterR::UsingTrCalDB(TrCalDB::Head);
   TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
 
@@ -2495,6 +2496,7 @@ cout<<"<---- AMSJob::reecalinitjob: is successfully done !"<<endl<<endl;
 
 void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("REAXEVENT");
+  AMSgObj::BookTimer.book("REAXPART");
   AMSgObj::BookTimer.book("ReAxRefit");
 AMSgObj::BookTimer.book("ReTRDRefit"); 
 AMSgObj::BookTimer.book("ReTKRefit"); 
@@ -2722,8 +2724,8 @@ bool NeededByDefault=isSimulation();
 #ifdef _PGTRACK_
 
   {
-    tm begin;
-    tm end;
+     tm begin;
+     tm end;
     begin.tm_isdst=0;
     end.tm_isdst=0;    
     begin.tm_sec  =0;
@@ -2746,7 +2748,28 @@ bool NeededByDefault=isSimulation();
     TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
-  }
+    begin.tm_isdst=0;
+     end.tm_isdst=0;    
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+   
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+  TkDBc::CreateLinear();
+
+    if(isRealData())
+      TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
+			     TkDBc::GetLinearSize(),TkDBc::linear,
+ 			     server,need,SLin2Align));
+   }
 
 #else
 {

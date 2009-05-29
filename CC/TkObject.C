@@ -1,4 +1,4 @@
-//  $Id: TkObject.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $
+//  $Id: TkObject.C,v 1.2 2009/05/29 09:23:05 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/05/29 09:23:05 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -122,4 +122,26 @@ void TkObject::RotToMat(number nrm[][3]){
     for (int col=0;col<3;col++)
       nrm[row][col]=rot.GetEl(row,col);
   return;
+}
+void TkObject::Align2Lin(float * off){
+    off[0]=posA[0];
+    off[1]=posA[1];
+    off[2]=posA[2];
+    double a,b,c;
+    GetRotAnglesA(a,b,c);
+    off[3]=a;
+    off[4]=b;
+    off[5]=c;
+    return;
+  }
+
+
+void TkObject::Lin2Align(float * off){
+    posA[0]=off[0];
+    posA[1]=off[1];
+    posA[2]=off[2];
+
+    SetRotAnglesA(off[3],off[4],off[5]);
+
+    return;
 }

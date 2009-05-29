@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
+// $Id: TkDBc.h,v 1.3 2009/05/29 09:23:12 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -61,6 +61,7 @@ namespace trconst{
 using namespace trconst;
 
 class TkDBc{
+  
 
 public:
 
@@ -282,6 +283,9 @@ public:
   //!  Read the alignement data from a file
   int readAlignment(const char* filename, int pri=0);
 
+  //!  Read the alignement data from a file with a format "tkid dx dy dz alpha beta gamma"
+  int readAlignmentAngles(const char* filename, int pri=0);
+
   //!  Write the alignement data to a file
   int writeAlignment(const char* filename);
 
@@ -336,12 +340,28 @@ public:
   int NStripsDrp(int type){  return (type==0)?_NReadoutChanK: _NReadoutChanS;}
 
 
+
+  //!interface to GBTACH TDV database
+  static float* linear;
+  //!interface to GBTACH TDV database
+  static int  GetLinearSize(){return ((192+5)*(1+TkObject::GetSize())*sizeof(float));}
+
+  //!interface to GBTACH TDV database
+  void Align2Lin();
+  //!interface to GBTACH TDV database
+  void Lin2Align();
+
+  //! Setup the linear space for the DB
+  static void CreateLinear(){
+    linear= new float[GetLinearSize()/4];}
+
+
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
 typedef map<string,TkLadder*>::const_iterator lnameIT;
 
-
+void SLin2Align();
 
 #endif
 

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.179 2009/05/26 14:26:38 choutko Exp $
+//  $Id: root.C,v 1.180 2009/05/29 09:23:05 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1470,7 +1470,7 @@ AMSEventR::AMSEventR():TSelector(){
     cout <<"  thread "<<omp_get_thread_num()<<endl;
 #endif
 #ifdef __root__new
-    TStreamerInfo::fgInfoFactory=new TStreamerInfo(); 
+    TStreamerInfo::SetFactory(new TStreamerInfo()); 
 #endif
   }
   fEcalHit.reserve(MAXECHITS);
