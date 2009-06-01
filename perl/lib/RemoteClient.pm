@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.551 2009/02/16 18:12:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.552 2009/06/01 10:52:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1184,7 +1184,7 @@ foreach my $file (@allfiles){
   }
 }
 
-    if(defined $ior ){
+    if(defined $ior and $updlast==0){
       if ($webmode ==0) {print "Init -I- IOR got it \n";}
       chomp $ior;
       if($self->{IOR} ne $ior){
