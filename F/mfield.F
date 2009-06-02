@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.27 2009/06/02 14:04:35 choutko Exp $
+*  $Id: mfield.F,v 1.28 2009/06/02 17:32:53 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -182,10 +182,17 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          ierflg=0
          arglis(1)=0
          call mnexcm(fcn,'MINIMIZE 100000',arglis,0,ierflg,0)
+         ierflg=0
+         call mnexcm(fcn,'MINOS',arglis,0,ierflg,0)
          endif 
          if(stval.eq.1)then
             stval=fscale
             goto 10
+         else
+          ierflg=0
+          arglis(1)=3
+         call mnexcm(fcn,'CALL FCN',arglis,1,ierflg,0)
+
          endif
           iniok=2
       else
@@ -365,7 +372,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          call mnseti('Fitting mf')
          stval=1.
  10      continue
-         call mnparm(1,'scale',stval,0.05d0,0.1d0,1.1d0,ierflg)
+         call mnparm(1,'scale',stval,0.05d0,0.05d0,1.1d0,ierflg)
          call mnparm(2,'x',0.d0,0.01d0,-1d0,1d0,ierflg)
          call mnparm(3,'y',0.d0,0.01d0,-1d0,1.d0,ierflg)
          call mnparm(4,'z',0.d0,0.01d0,-1d0,1d0,ierflg)
@@ -375,10 +382,16 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          ierflg=0
          arglis(1)=0
          call mnexcm(fcn2,'MINIMIZE 100000',arglis,0,ierflg,0)
+         ierflg=0
+         call mnexcm(fcn2,'MINOS',arglis,0,ierflg,0)
          endif 
          if(stval.eq.1)then
             stval=fscale
             goto 10
+         else
+         ierflg=0
+         arglis(1)=3
+         call mnexcm(fcn2,'CALL',arglis,1,ierflg,0)
          endif
           iniok=2
       else
@@ -1005,7 +1018,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
 *
 * final call
 *
-              write(*,*)'finally',(x(k),k=1,np),f
+              write(*,*)'finally',(xc(k),k=1,np),f
              else
              endif
              end
@@ -1017,14 +1030,17 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
        common/MAGSFFKEY/magstat,fscale,ecutge,r0(3),pitch,yaw,roll,rphi
        integer magstat,rphi
        real fscale,ecutge,r0,pitch,yaw,roll
-
              real *8 grad(1),f,xc(1)
              real *4 x1(3),b1(3),b1c(3)
              data init /0/
              if(init.eq.0)then
                 init=1
                 call readfieldmeasured
-             endif              
+             endif     
+             if(iflag.eq.3)then
+              open(35,file='/f2users/choutko/mf_diff2.txt',
+     +                status='new',form='formatted')         
+             endif
              f=0
                   r0(1)=xc(2)
                   r0(2)=xc(3)
@@ -1033,9 +1049,9 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                   yaw=xc(6)
                   roll=xc(7)
                   fscale=xc(1)
-                  pitch=0
+c                  pitch=0
 c                  yaw=0
-                  roll=0
+c                  roll=0
                   r0(1)=0
                   r0(2)=0
              ntot=0
@@ -1047,7 +1063,7 @@ c                  yaw=0
                    x1(l)=brcoo(l,i,j,k)
                   enddo
                   if(.not.(x1(1).eq.0.and.x1(2).eq.0.and.x1(3).eq.0
-     +      ))then
+     +      ).and.abs(rad(i)).lt.40)then
                      ntot=ntot+1
                   else
                      goto 21
@@ -1068,6 +1084,11 @@ c                  yaw=0
                   call gufldrc(x1,b1)
                   xbz=b1(3)
                   f=f+(bz(i,j,k)-xbz*fscale)**2
+                  if(iflag.eq.3)then
+                   write(35,*)br(i,j,k),bphi(i,j,k),bz(i,j,k),
+     +             xbr*fscale,xbp*fscale,xbz*fscale,
+     +             rad(i),phi(j),zr(k)
+                   endif
  21               continue
                  enddo
                enddo
@@ -1077,7 +1098,8 @@ c                  yaw=0
 *
 * final call
 *
-              write(*,*)'finally',(x(k),k=1,np),f,ntot
+              write(*,*)'finally',(xc(k),k=1,np),f,ntot
+              close(35)
              else
              endif
              end
