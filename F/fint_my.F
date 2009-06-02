@@ -1,6 +1,9 @@
-* $Id: fint_my.F,v 1.1 2002/01/11 16:09:42 choutko Exp $
+* $Id: fint_my.F,v 1.2 2009/06/02 14:04:41 choutko Exp $
 *
 * $Log: fint_my.F,v $
+* Revision 1.2  2009/06/02 14:04:41  choutko
+* *** empty log message ***
+*
 * Revision 1.1  2002/01/11 16:09:42  choutko
 * lift after gprof
 *
@@ -200,3 +203,23 @@ C
 1000      FORMAT( 7X, 24HFUNCTION FINT ... NARG =,I6,
      +              17H NOT WITHIN RANGE)
           END
+
+
+
+
+      FUNCTION FUNCT(X)
+C-----FUNCT CALCULATES THEORETICAL FUNCTION Y AT EACH DATA POINT
+      COMMON/A/A(100)/ENDFLG/ENDFLG,NA,INDFLG(5)
+      COMPLEX B,C
+      EQUIVALENCE (B,A(1)),(C,A(3))
+      IF(INDFLG(3)) 2,1,2
+C-----FUNCT FOR FUMILI
+    1 FUNCT=(A(1)/(SQRT(6.2832)*A(2)))*EXP(-((X-A(3))**2)/
+     1(2.*(A(2)**2)))
+      RETURN
+C-----FUNCT FOR LIKELM
+    2 FUNCT=(EXP(A(1)*X)+AIMAG(CEXP(B*X+C)))/
+     1   ((EXP(A(1))-1.)/A(1)+AIMAG((CEXP(B+C)-CEXP(C))/B))
+      RETURN
+      END
+

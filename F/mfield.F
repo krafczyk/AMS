@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.26 2009/05/14 14:39:12 choutko Exp $
+*  $Id: mfield.F,v 1.27 2009/06/02 14:04:35 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -201,6 +201,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
        real hxy(3,3),x1(3),b1(3)
        real *8 stval,step,bnd1,bnd2,val,error,fmin,fedm,arglis(10)
        external fcn
+       external fcn2
        if(rphi.ne.0)then
          call readmfield_rphi()
          return
@@ -364,7 +365,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          call mnseti('Fitting mf')
          stval=1.
  10      continue
-         call mnparm(1,'scale',stval,0.05d0,0.2d0,1.1d0,ierflg)
+         call mnparm(1,'scale',stval,0.05d0,0.1d0,1.1d0,ierflg)
          call mnparm(2,'x',0.d0,0.01d0,-1d0,1d0,ierflg)
          call mnparm(3,'y',0.d0,0.01d0,-1d0,1.d0,ierflg)
          call mnparm(4,'z',0.d0,0.01d0,-1d0,1d0,ierflg)
@@ -373,7 +374,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          call mnparm(7,'roll',0.d0,0.02d0,-2.d0,2.d0,ierflg)
          ierflg=0
          arglis(1)=0
-         call mnexcm(fcn,'MINIMIZE 100000',arglis,0,ierflg,0)
+         call mnexcm(fcn2,'MINIMIZE 100000',arglis,0,ierflg,0)
          endif 
          if(stval.eq.1)then
             stval=fscale
@@ -676,7 +677,7 @@ c        endif
 *
       data jj/0/
       data init/0/ 
-      DIMENSION B(3),VV(3),AVV(3)
+      DIMENSION B(3),VV(3),AVV(3),ab(3)
 *
 *     transform the coordinates      
 *
@@ -701,7 +702,7 @@ c        endif
             goto 999
         ENDIF
           call fint_my(3,avv(1),NA(1),xyz(1),
-     +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
+     +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),ab(1),hint(1))
         else
           t1=sqrt(avv(1)**2+avv(2)**2)
           t2=atan2(avv(2),avv(1))
@@ -719,9 +720,20 @@ c        endif
             goto 999
         ENDIF
           call fint_my(3,avv(1),NA(1),xyzr(1),
-     +    Bxr(1,1,1),Byr(1,1,1),Bzr(1,1,1),b(1),hint(1))
+     +    Bxr(1,1,1),Byr(1,1,1),Bzr(1,1,1),ab(1),hint(1))
 
         endif
+*
+* transform the field itself
+*
+        do i=1,3
+          b(i)=0
+         do j=1,3
+          b(i)=b(i)+ab(j)*rot(j,i)
+         enddo
+        enddo
+          
+
  999    END
 
 
@@ -737,7 +749,7 @@ c        endif
 *
       data jj/0/
       data init/0/ 
-      DIMENSION B(3),VV(3),AVV(3)
+      DIMENSION B(3),VV(3),AVV(3),ab(3)
 *
 *     transform the coordinates      
 *
@@ -757,7 +769,7 @@ c        endif
             goto 999
         ENDIF
           call fint_my(3,avv(1),NA(1),xyz(1),
-     +    Bxc(1,1,1),Byc(1,1,1),Bzc(1,1,1),b(1),hintc(1))
+     +    Bxc(1,1,1),Byc(1,1,1),Bzc(1,1,1),ab(1),hintc(1))
         else
           t1=sqrt(avv(1)**2+avv(2)**2)
           t2=atan2(avv(2),avv(1))
@@ -772,9 +784,20 @@ c        endif
             goto 999
         ENDIF
           call fint_my(3,avv(1),NA(1),xyzr(1),
-     +    Bxrc(1,1,1),Byrc(1,1,1),Bzrc(1,1,1),b(1),hintc(1))
+     +    Bxrc(1,1,1),Byrc(1,1,1),Bzrc(1,1,1),ab(1),hintc(1))
 
         endif
+*
+* transform the field itself
+*
+        do i=1,3
+          b(i)=0
+         do j=1,3
+          b(i)=b(i)+ab(j)*rot(j,i)
+         enddo
+        enddo
+          
+
  999    END
 
 
@@ -986,3 +1009,142 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
              else
              endif
              end
+
+
+             subroutine fcn2(np,grad,f,xc,iflag,idum)
+#include "readmf.h"
+
+       common/MAGSFFKEY/magstat,fscale,ecutge,r0(3),pitch,yaw,roll,rphi
+       integer magstat,rphi
+       real fscale,ecutge,r0,pitch,yaw,roll
+
+             real *8 grad(1),f,xc(1)
+             real *4 x1(3),b1(3),b1c(3)
+             data init /0/
+             if(init.eq.0)then
+                init=1
+                call readfieldmeasured
+             endif              
+             f=0
+                  r0(1)=xc(2)
+                  r0(2)=xc(3)
+                  r0(3)=xc(4)
+                  pitch=xc(5)
+                  yaw=xc(6)
+                  roll=xc(7)
+                  fscale=xc(1)
+                  pitch=0
+c                  yaw=0
+                  roll=0
+                  r0(1)=0
+                  r0(2)=0
+             ntot=0
+             do i=1,nrad
+               do j=1,nphi
+                 do k=1,nzr
+                  call vzero(x1(1),3)
+                  do l=1,3
+                   x1(l)=brcoo(l,i,j,k)
+                  enddo
+                  if(.not.(x1(1).eq.0.and.x1(2).eq.0.and.x1(3).eq.0
+     +      ))then
+                     ntot=ntot+1
+                  else
+                     goto 21
+                  endif  
+                  call gufldrc(x1,b1)
+                  xphi=(phi(j)-0.42)/180.*2*acos(0.)
+                  xbr=b1(1)*cos(xphi)+b1(2)*sin(xphi)
+                  f=f+(br(i,j,k)-xbr*fscale)**2 
+                  do l=1,3
+                   x1(l)=bphicoo(l,i,j,k)
+                  enddo
+                  call gufldrc(x1,b1)
+                  xbp=-b1(1)*sin(xphi)+b1(2)*cos(xphi)
+                  f=f+(bphi(i,j,k)-xbp*fscale)**2 
+                  do l=1,3
+                   x1(l)=bzcoo(l,i,j,k)
+                  enddo
+                  call gufldrc(x1,b1)
+                  xbz=b1(3)
+                  f=f+(bz(i,j,k)-xbz*fscale)**2
+ 21               continue
+                 enddo
+               enddo
+              enddo
+             f=f/9e-6/ntot/3
+             if(iflag.eq.3)then
+*
+* final call
+*
+              write(*,*)'finally',(x(k),k=1,np),f,ntot
+             else
+             endif
+             end
+
+             subroutine readfieldmeasured
+             implicit none
+#include "readmf.h"
+                         
+              character *256 fnam
+              real xzz(nzr+1)
+              real xrad,xphi,xz,xbr,xr_x,xr_y,xr_z,
+     +        xbp,xp_x,xp_y,xp_z,xbz,xz_x,xz_y,xz_z
+              integer i,j,k,l,m,iphi1,ir1,iz1,ntot
+              data xzz/-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,
+     +        -20,-15,-10,-8,-6,-4,-2,0,2,4,6,8,10,15,20,25,30,35,40,
+     +        45,50,55,60,65,70,75,80/
+              open(21,file='/f2users/choutko/mfield_090522.txt',
+     +        STATUS='OLD',form='formatted')
+              call vzero(rad(1),nrad+nphi+nzr+nrad*nphi*nzr*12)
+              ntot=0
+ 10           continue
+              read(21,*,err=11,end=11)xrad,xphi,xz,xbr,xr_x,xr_y,xr_z,
+     +        xbp,xp_x,xp_y,xp_z,xbz,xz_x,xz_y,xz_z
+              ntot=ntot+1
+              ir1=(xrad+5.9/2+41.3)/5.9+1
+              iphi1=(xphi+5./2)/5.+1
+              iz1=0
+              do k=1,nzr
+                  if(xz+1.gt.xzz(k).and.xz+1.le.xzz(k+1))then
+                    iz1=k
+                  endif
+              enddo
+             if(ir1.lt.1)stop' ir1 0'
+             if(iphi1.lt.1)stop' iphi1 0'
+             if(iz1.lt.1)stop' iz1 0'
+             if(ir1.gt.nrad)then
+               write(*,*)xrad,ir1
+               stop 'r1 too big'
+             endif
+             if(iphi1.gt.nphi)then
+               write(*,*)xphi,iphi1
+               stop 'phi1 too big'
+             endif
+             if(iz1.gt.nzr)then
+               write(*,*)xz,iz1
+               stop 'z1 too big'
+             endif
+             rad(ir1)=xrad
+             phi(iphi1)=xphi
+             zr(iz1)=xz
+             br(ir1,iphi1,iz1)=xbr
+             bphi(ir1,iphi1,iz1)=xbp
+             bz(ir1,iphi1,iz1)=xbz
+             brcoo(1,ir1,iphi1,iz1)=xr_x
+             brcoo(2,ir1,iphi1,iz1)=xr_y
+             brcoo(3,ir1,iphi1,iz1)=xr_z
+             bphicoo(1,ir1,iphi1,iz1)=xp_x
+             bphicoo(2,ir1,iphi1,iz1)=xp_y
+             bphicoo(3,ir1,iphi1,iz1)=xp_z
+             bzcoo(1,ir1,iphi1,iz1)=xz_x
+             bzcoo(2,ir1,iphi1,iz1)=xz_y
+             bzcoo(3,ir1,iphi1,iz1)=xz_z
+             goto 10
+ 11          continue
+             close(21)
+             write(*,*)' readfieldmeasured ntot=',ntot
+             end
+
+
+
