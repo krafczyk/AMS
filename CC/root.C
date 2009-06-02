@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.181 2009/05/29 09:47:32 choutko Exp $
+//  $Id: root.C,v 1.182 2009/06/02 15:09:48 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2667,7 +2667,7 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
 #endif	  
 	  if((ptr->_hit_used)[j]==0)
 	    value=(ptr->_beta_direct)[j];
-	  else
+	  if((ptr->_hit_used)[j]==1)
 	    value=-(ptr->_beta_reflected)[j];
 	  break;
 	}
