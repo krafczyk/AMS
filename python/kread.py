@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: kread.py,v 1.1 2009/06/02 16:57:00 choutko Exp $
+#  $Id: kread.py,v 1.2 2009/06/02 17:00:21 choutko Exp $
 
 import sys, os, commands
 sys.path.insert(0,'/var/www/cgi-bin/mon/lib')
@@ -15,5 +15,5 @@ if(len(sp1)>1):
     fileon='/tmp/_krb5'+sp2[0]
     file='cp '+fileo+' '+fileon
     os.system(file)
-    
+    os.system("klist -f >/tmp/acrontabklist.log")    
 
