@@ -1,11 +1,10 @@
-//  $Id: timeid.C,v 1.100 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: timeid.C,v 1.101 2009/06/02 17:51:24 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-//#include  "event.h"
 #include "timeid.h"
 #include "astring.h"
 #include <fstream>
