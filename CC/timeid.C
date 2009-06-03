@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.101 2009/06/02 17:51:24 choutko Exp $
+//  $Id: timeid.C,v 1.102 2009/06/03 09:09:58 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -20,6 +20,7 @@
 #include <limits.h>
 #ifndef __CORBASERVER__
 #include "commonsi.h"
+#include "event.h"
 #endif
 #ifdef __CORBA__
 #include "producer.h"
