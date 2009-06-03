@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.184 2009/05/26 14:26:38 choutko Exp $
+//  $Id: ntuple.C,v 1.185 2009/06/03 14:49:22 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -301,7 +301,7 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
      //cout <<AMSTrAligFit::GetAligString()<<endl;
      _ta.Write("TrackerAlignment");
 #endif
-     
+if(TRDFITFFKEY.FitMethod==1){     
      TRDPlotInit();
 
      _can=TRDPlot(1);
@@ -327,7 +327,7 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
      }
 
      if(tfr)delete tfr;
-
+}
      _rfile->Write();
      _rfile->Close();
      delete _rfile;

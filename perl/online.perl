@@ -1,4 +1,4 @@
-# $Id: online.perl,v 1.5 2004/02/22 15:42:56 choutko Exp $
+# $Id: online.perl,v 1.6 2009/06/03 14:49:27 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -125,6 +125,7 @@ while (my $line=<FILEI>){
      @junk=split /\_/,$fun;
      if($funo ne $junk[0]){
          $funo=$junk[0];
+#         print "$tag | $#junk4 | @junk4 | $junk4[1] | blia |  $junk3[1]| $junk[0]| $junk[1] \n";
          print FILEO "_filled[i]->Fill(ntuple->".$junk4[1].'(),1.);'."\ni++;\n";
      }
      if($junk3[0]=~/\,/){

@@ -1,3 +1,4 @@
+//  $Id: root.h,v 1.244 2009/06/03 14:49:26 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1375,33 +1376,46 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 #pragma omp threadprivate(fgIsA)
 };
 
+/// TrdHTrackR structure
+/*!
+ \author xyz
+
+*/
+
 class TrdHTrackR {
-  //static char _Info[255];
- protected:
-  vector<int> fTrdHSegment;
+static char _Info[255];
  public:
-  float Coo[3];
-  float Dir[3];
+  int   Nhits;  ///<  Number of Hits
   float Phi;     ///<  phi (rads)
   float Theta;   ///< Theta
   float Chi2;   ///<  Chi2
-  int   Nhits;
-
+  float Coo[3];   ///< Coo (cm)
+  float Dir[3];   ///< Dir
+ protected:
+  vector<int> fTrdHSegment;
+public:
+  /// access function to TrdSegmentR objects used
+  /// \return number of TrdSegmentR used
   int NTrdHSegment()const {return fTrdHSegment.size();}
-  int iTrdHSegment(unsigned int i){return i<fTrdHSegment.size()?fTrdHSegment[i]:\
-				     -1;}
+  /// access function to TrdSegmentR objects used
+  /// \param i index of fTrdSegment vector
+  /// \return index of TrdSegmentR object in collection or -1
+  int iTrdHSegment(unsigned int i){return i<fTrdHSegment.size()?fTrdHSegment[i]:-1;}
+  /// access function to TrdSegmentR collection   
+  /// \param i index of fTrdSegment vector
+  /// \return pointer to TrdSegmentR object or 0
   TrdHSegmentR * pTrdHSegment(unsigned int i);
   TrdHTrackR(AMSTRDHTrack *ptr);
   TrdHTrackR(){};
-  char * Info(int number=-1){
-    return " ";
-  }
+  /// \param number index in container
+  /// \return human readable info about TrdTrackR
+  char * Info(int number=-1){return _Info;}
   friend class AMSTRDHTrack;
   friend class AMSEventR;
   virtual ~TrdHTrackR(){};
-  ClassDef(TrdHTrackR,1)       //TrdTrackR
+  ClassDef(TrdHTrackR,1)       //TrdHTrackR
 #pragma omp threadprivate(fgIsA)
-    };
+};
 
 
 /// Level1 trigger structure 
@@ -3504,9 +3518,8 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///  TrdHTrackR accessor
       ///  \return number of TrdHTrackR
       ///
-      unsigned int   NTrdHTrack() {
-        if(fHeader.TrdHTracks && fTrdHTrack.size()==0)
-	  bTrdHTrack->GetEntry(_Entry);
+      unsigned int   NTrdHTrack()  {
+        if(fHeader.TrdHTracks && fTrdHTrack.size()==0)bTrdHTrack->GetEntry(_Entry);
         return fTrdHTrack.size();
       }
       ///  \return reference of TrdHTrackR Collection

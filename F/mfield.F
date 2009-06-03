@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.28 2009/06/02 17:32:53 choutko Exp $
+*  $Id: mfield.F,v 1.29 2009/06/03 14:49:23 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -9,6 +9,7 @@ c
        real hxy(3,3),x1(3),b1(3)
        real *8 stval,step,bnd1,bnd2,val,error,fmin,fedm,arglis(10)
        external fcn
+       external fcn2
        pi=acos(0.)*2
       if(iniok.eq.0.or.iniok.eq.-2)then
 *       
@@ -181,9 +182,9 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          call mnparm(7,'roll',0.d0,0.02d0,-2.d0,2.d0,ierflg)
          ierflg=0
          arglis(1)=0
-         call mnexcm(fcn,'MINIMIZE 100000',arglis,0,ierflg,0)
+         call mnexcm(fcn2,'MINIMIZE 100000',arglis,0,ierflg,0)
          ierflg=0
-         call mnexcm(fcn,'MINOS',arglis,0,ierflg,0)
+         call mnexcm(fcn2,'MINOS',arglis,0,ierflg,0)
          endif 
          if(stval.eq.1)then
             stval=fscale
@@ -191,7 +192,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          else
           ierflg=0
           arglis(1)=3
-         call mnexcm(fcn,'CALL FCN',arglis,1,ierflg,0)
+         call mnexcm(fcn2,'CALL FCN',arglis,1,ierflg,0)
 
          endif
           iniok=2
@@ -379,6 +380,8 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          call mnparm(5,'pitch',0.d0,0.02d0,-2.d0,2.d0,ierflg)
          call mnparm(6,'yaw',0.d0,0.02d0,-2.d0,2.d0,ierflg)
          call mnparm(7,'roll',0.d0,0.02d0,-2.d0,2.d0,ierflg)
+         call mnparm(8,'rscale',1.d0,0.02d0,.9d0,1.1d0,ierflg)
+
          ierflg=0
          arglis(1)=0
          call mnexcm(fcn2,'MINIMIZE 100000',arglis,0,ierflg,0)
@@ -1038,7 +1041,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                 call readfieldmeasured
              endif     
              if(iflag.eq.3)then
-              open(35,file='/f2users/choutko/mf_diff2.txt',
+              open(35,file='/f2users/choutko/mfd_090602_5pnrphi.txt',
      +                status='new',form='formatted')         
              endif
              f=0
@@ -1054,6 +1057,7 @@ c                  yaw=0
 c                  roll=0
                   r0(1)=0
                   r0(2)=0
+c                  r0(3)=0
              ntot=0
              do i=1,nrad
                do j=1,nphi
@@ -1063,11 +1067,14 @@ c                  roll=0
                    x1(l)=brcoo(l,i,j,k)
                   enddo
                   if(.not.(x1(1).eq.0.and.x1(2).eq.0.and.x1(3).eq.0
-     +      ).and.abs(rad(i)).lt.40)then
+     +      ).and.abs(rad(i)).lt.40.and.abs(zr(k)).lt.50)then
                      ntot=ntot+1
                   else
                      goto 21
-                  endif  
+                  endif 
+c                  x1(1)=x1(1)*xc(8) 
+c                  x1(2)=x1(2)*xc(8)
+c                   x1(3)=x1(3)*xc(8)
                   call gufldrc(x1,b1)
                   xphi=(phi(j)-0.42)/180.*2*acos(0.)
                   xbr=b1(1)*cos(xphi)+b1(2)*sin(xphi)
@@ -1075,12 +1082,19 @@ c                  roll=0
                   do l=1,3
                    x1(l)=bphicoo(l,i,j,k)
                   enddo
+c                  x1(1)=x1(1)*xc(8)
+c                   x1(2)=x1(2)*xc(8)
+c                   x1(3)=x1(3)*xc(8)
+
                   call gufldrc(x1,b1)
                   xbp=-b1(1)*sin(xphi)+b1(2)*cos(xphi)
                   f=f+(bphi(i,j,k)-xbp*fscale)**2 
                   do l=1,3
                    x1(l)=bzcoo(l,i,j,k)
                   enddo
+c                  x1(1)=x1(1)*xc(8)
+c                  x1(2)=x1(2)*xc(8)
+c                   x1(3)=x1(3)*xc(8)
                   call gufldrc(x1,b1)
                   xbz=b1(3)
                   f=f+(bz(i,j,k)-xbz*fscale)**2
@@ -1116,7 +1130,7 @@ c                  roll=0
               data xzz/-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,
      +        -20,-15,-10,-8,-6,-4,-2,0,2,4,6,8,10,15,20,25,30,35,40,
      +        45,50,55,60,65,70,75,80/
-              open(21,file='/f2users/choutko/mfield_090522.txt',
+              open(21,file='/f2users/choutko/mfield_090602.txt',
      +        STATUS='OLD',form='formatted')
               call vzero(rad(1),nrad+nphi+nzr+nrad*nphi*nzr*12)
               ntot=0

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.182 2009/06/02 15:09:48 mdelgado Exp $
+//  $Id: root.C,v 1.183 2009/06/03 14:49:22 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -61,7 +61,9 @@ using namespace root;
   ClassImp(TrdRawHitR)
   ClassImp(TrdClusterR)
   ClassImp(TrdSegmentR)
+  ClassImp(TrdHSegmentR)
   ClassImp(TrdTrackR)
+  ClassImp(TrdHTrackR)
   ClassImp(Level1R)
   ClassImp(Level3R)
   ClassImp(BetaR)
@@ -809,6 +811,7 @@ char TrRecHitR::_Info[255];
 char TrTrackR::_Info[255];
 char TrMCClusterR::_Info[255];
 #endif
+char TrdHTrackR::_Info[255];
 char TrdTrackR::_Info[255];
 char TrdClusterR::_Info[255];
 char EcalClusterR::_Info[255];

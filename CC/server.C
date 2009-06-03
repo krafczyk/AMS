@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.150 2009/02/25 10:00:28 choutko Exp $
+//  $Id: server.C,v 1.151 2009/06/03 14:49:22 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -494,7 +494,15 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
   static int kinit=0;
   if((kinit++)%128==0){
        system("kinit -R");
-       system("klist -f");
+       char * perldir=getenv("AMSProdPerl");
+     if(!perldir){
+      cerr<<"AMSProdPerl not defined"<<endl;
+     }
+     else{
+               AString submit(perldir);
+               submit+="/klist.py";
+               system((const char*)submit);
+    }
   }
 
 }

@@ -331,7 +331,7 @@ class TH2V{  // 2-dim histo with internal vector<BIN>
     printf("nbx %i nby %i ix %i iy %i\n",nbx,nby,ix,iy);
     printf("Xlo %f Xup %f Ylo %f Yup %f Fx %f Fy %f\n",Xlo,Xup,Ylo,Yup,Fx,Fy);
     for(int i=0;i!=histo.size();i++){
-      printf("bin %i x %i y %i c %i\n",i,histo[i].x,histo[i].y,histo[i].c);
+      //printf("bin %i x %i y %i c %i\n",i,histo[i].x,histo[i].y,histo[i].c);
     }
   }
 
