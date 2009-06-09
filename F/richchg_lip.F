@@ -20,6 +20,11 @@
 *             PMT_Gap =0,1 (pmt gap taken or not into account)
 *             Ring_Width =0,1 (Ring width)
 *
+* 03/Feb/2009 (R. Pereira) - Code now gives chgrec=-1.
+*                            if reconstruction failed
+*
+* 14/May/2009 (R. Pereira) - mirror sectors included
+*
 ****************************************************************
 
 * reconstruction:
@@ -36,6 +41,11 @@
 
        real richacca(5),richeffa(8) 
  
+       real richaccmseca(nmaxmirsec,2),richeffmseca(nmaxmirsec,8) 
+
+       real accradwalldir,accradwallref
+       real accradwallmsec(nmaxmirsec)
+
        integer idummy
        data idummy /0/
 
@@ -47,6 +57,7 @@
 * **********>
 
        real accgap, accgapdir, accgapref
+       real accgapmsec(nmaxmirsec)
 
 * ... INIT **************************************
 
@@ -55,13 +66,13 @@
       call vzero(richacca,5) 
       call vzero(richeffa,8) 
 
+      call vzero(richaccmseca,nmaxmirsec*2) 
+      call vzero(richeffmseca,nmaxmirsec*8) 
+
       richeff_pni  = -1.
       richeff_avz  = -1.
 
 
-* --> init common variables
-      call richinitrechg
-   
 * ... AEROGEL RADIATOR **************************************
       if (chradid.eq.'AGL') then
 * ------> interaction length
@@ -124,25 +135,146 @@
 * ... CLASSICAL ACCEPTANCE CALCULATION
 * ... compute acceptances and efficiencies
       if(LEVACC.eq.0)then
-         call richacc(thetac,richacca,richeffa)
+         call richacc(thetac,richacca,richeffa,
+     +        richaccmseca,richeffmseca)
       elseif(LEVACC.eq.1)then
 * ...... compute acceptance taking into account ring width
-         call richaccsmear(thetac,1,richacca,richeffa) !charge=1 applied
+         call richaccsmear(thetac,1,richacca,richeffa,
+     +        richaccmseca,richeffmseca)  !charge=1 applied
       endif
+
+*      print*,'In RICHCHGREC - pre-correction values:'
+*      print*,'- richacca = ',(richacca(i),i=1,5)
+*      print*,'- richeffa = ',(richeffa(i),i=1,8)
+*      print*,'- richaccmseca = ',
+*     +     ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
+*      print*,'- richeffmseca = ...'
+*      do j=1,nmirsec
+*         print*,(richeffmseca(j,i),i=1,8)
+*      enddo
+
+      valma1 = richacca(3)*reflec
+      valma1a = richacca(3)*reflec+richacca(4)*reflec**2.
+      valma2 = 0.
+      do j=1,nmirsec
+         valma2 = valma2+richaccmseca(j,1)*reflec
+     +        +richaccmseca(j,2)*reflec**2.
+      enddo
+
+      valme1 = richeffa(7)
+      valme1a = richeffa(7)+richeffa(8)
+      valme2 = 0.
+      valme2a = 0.
+      do j=1,nmirsec
+         valme2 = valme2+richeffmseca(j,7)
+         valme2a = valme2a+richeffmseca(j,7)+richeffmseca(j,8)
+      enddo
+      
+*      print*,'MIRROR COMPONENT - pre-correction:'
+*      print*,'accep mir1, mir1+2 (global):',valma1,valma1a
+*      print*,'accep mir1         (msecs) :',valma2
+*      print*,'eff   mir1, mir1+2 (global):',valme1,valme1a
+*      print*,'eff   mir1, mir1+2 (msecs) :',valme2,valme2a
 
 * --- Take into account photon loss in radiator walls
       if (LEVGRAD.eq.2) then
-         call richaccradwall(thetac,accradwalldir,accradwallref)
-         richeffa(5) = richeffa(5)-richeffa(6)*accradwalldir
-     +                            -richeffa(7)*accradwallref
+         call richaccradwall(thetac,accradwalldir,accradwallref,
+     +        accradwallmsec)
+
+*         print*,'In RICHCHGREC - pre-correction values:'
+*         print*,'- richacca = ',(richacca(i),i=1,5)
+*         print*,'- richeffa = ',(richeffa(i),i=1,8)
+*         print*,'- richaccmseca = ',
+*     +        ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
+*         print*,'- richeffmseca = ...'
+*         do j=1,nmirsec
+*            print*,(richeffmseca(j,i),i=1,8)
+*         enddo
+
          richeffa(6) = richeffa(6)*(1.-accradwalldir)
-         richeffa(7) = richeffa(7)*(1.-accradwallref) 
-         richacca(1) = richacca(1)+richacca(2)*accradwalldir
-     +                            +richacca(3)*accradwallref
+         richeffa(7) = 0.
+         richeffa(8) = 0.
          richacca(2) = richacca(2)*(1.-accradwalldir)
-         richacca(3) = richacca(3)*(1.-accradwallref)
+         richacca(3) = 0.
+         richacca(4) = 0.
+         richacca(1) = 1.-richacca(2)
+         do i=1,nmirsec
+* ......... correct efficiencies using sector's reflectivity (REFMIRS)
+*           since richacc always uses global value (REFLEC)
+*           (minor issue: double reflections use value from same sector twice)
+            richeffmseca(i,6) = 0.
+            richeffmseca(i,7) = richeffmseca(i,7)*refmirs(i)/reflec
+            richeffmseca(i,8) = richeffmseca(i,8)
+     +           *(refmirs(i)/reflec)**2.
+            richeffmseca(i,5) = richeffmseca(i,7)+richeffmseca(i,8)
+* ......... conventional corrections, similar to global eff
+            richeffmseca(i,5) = richeffmseca(i,5)
+     +           -(richeffmseca(i,7)+richeffmseca(i,8))
+     +           *accradwallmsec(i)
+            richeffmseca(i,7) = richeffmseca(i,7)*(1.-accradwallmsec(i))
+            richeffmseca(i,8) = richeffmseca(i,8)*(1.-accradwallmsec(i))
+            richaccmseca(i,1) = richaccmseca(i,1)*(1.-accradwallmsec(i))
+            richaccmseca(i,2) = richaccmseca(i,2)*(1.-accradwallmsec(i))
+* ......... add values to global mirror acceptances and efficiencies
+            richeffa(7) = richeffa(7)+richeffmseca(i,7)
+     +           *reflec/refmirs(i)
+            richeffa(8) = richeffa(8)+richeffmseca(i,8)
+     +           *(reflec/refmirs(i))**2.
+            richacca(3) = richacca(3)+richaccmseca(i,1)
+            richacca(4) = richacca(4)+richaccmseca(i,2)
+            richacca(1) = richacca(1)
+     +           -richaccmseca(i,1)-richaccmseca(i,2)
+         enddo
+         richeffa(5) = richeffa(6)+richeffa(7)+richeffa(8)
+
       endif
 
+*      print*,'In RICHCHGREC - post-correction values:'
+*      print*,'- richacca = ',(richacca(i),i=1,5)
+*      print*,'- richeffa = ',(richeffa(i),i=1,8)
+*      print*,'- richaccmseca = ',
+*     +     ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
+*      print*,'- richeffmseca = ...'
+*      do j=1,nmirsec
+*         print*,(richeffmseca(j,i),i=1,8)
+*      enddo
+
+      valma1 = richacca(3)*reflec
+      valma1a = richacca(3)*reflec+richacca(4)*reflec**2.
+      valma2 = 0.
+      do j=1,nmirsec
+         valma2 = valma2+richaccmseca(j,1)*reflec
+     +        +richaccmseca(j,2)*reflec**2.
+      enddo
+
+      valme1 = richeffa(7)
+      valme1a = richeffa(7)+richeffa(8)
+      valme2 = 0.
+      valme2a = 0.
+      do j=1,nmirsec
+         valme2 = valme2+richeffmseca(j,7)
+         valme2a = valme2a+richeffmseca(j,7)+richeffmseca(j,8)
+      enddo
+      
+*      print*,'MIRROR COMPONENT - post-correction:'
+*      print*,'accep mir1, mir1+2 (global):',valma1,valma1a
+*      print*,'accep mir1         (msecs) :',valma2
+*      print*,'eff   mir1, mir1+2 (global):',valme1,valme1a
+*      print*,'eff   mir1, mir1+2 (msecs) :',valme2,valme2a
+
+      do i=1,8
+         if(richeffa(i).lt.-0.00001) then
+            print*,'STRANGE richeffa(',i,') = ',richeffa(i)
+         endif
+      enddo
+      do j=1,nmirsec
+         do i=1,8
+            if(richeffmseca(j,i).lt.-0.00001) then
+               print*,'STRANGE richeffmseca(',j,',',i,') = ',
+     +              richeffmseca(j,i)
+            endif
+         enddo
+      enddo
 
       richacc_inv  = richacca(1)   ! invisible acceptance
       richacc_dir  = richacca(2)   ! direct acceptance
@@ -156,6 +288,11 @@
 *
       richacc_ref = reflec*richacc_mir0 + reflec**2*richacc_mir1
 
+      do i=1,nmaxmirsec
+         richacc_msec0(i) = richaccmseca(i,1)  ! mirror sector acceptances
+         richacc_msec1(i) = richaccmseca(i,2)  ! (1st, 2nd reflection)
+      enddo
+
       richeff_pni = richeffa(1)       ! radiator eff
       richeff_rad = richeffa(2)       ! radiator eff * geom acceptance
       richeff_lg  = richeffa(3)       ! light guide efficiency
@@ -165,12 +302,16 @@
       richeff_1rf = richeffa(7)       ! total efficiency 1 reflection
       richeff_2rf = richeffa(8)       ! total efficiency 2 reflections
 
-*      print*,'... richacca = ',richacca
-*      print*,'... richeffa = ',richeffa
-
+      do i=1,nmaxmirsec
+         richeff_msec0(i) = richeffmseca(i,7)  ! mirror sector efficiency
+         richeff_msec1(i) = richeffmseca(i,8)  ! (1st, 2nd reflection)
+      enddo
 
 * ... is a tiny acceptance event? if so no charge is reconstructed...
-      if(richacc_vis.lt.0.01)  return 
+      if(richacc_vis.lt.0.01) then
+         chgrec = -1.
+         return
+      endif
 
       iflagchg = 1
       iflagacc = 1
@@ -183,12 +324,18 @@
 * ... FLIGHT GEOMETRY
 *------------------------
       if (rcgeom(1).eq.0) then  
-         call richaccpmtgap(accgap,accgapdir,accgapref)
+         call richaccpmtgap(accgap,accgapdir,accgapref,accgapmsec)
          richacc_gap    = accgap
          richacc_gapdir = accgapdir
          richacc_gapref = accgapref
+         do i=1,nmaxmirsec
+            richacc_gapmsec(i) = accgapmsec(i)
+         enddo
       endif
       
+*      print*,'pathrad     = ',pathrad
+*      print*,'richeff_tot = ',richeff_tot
+*      print*,'sin2thc_rec = ',sin2thc_rec
 
 * ... compute reconstructed charge
       if ( ipartpat.eq.0 ) then         !is particle near the pattern?
@@ -316,6 +463,15 @@
       richeff_tot_gap  = -1.
       richeff_dir_gap  = -1.
       richeff_ref_gap  = -1.
+
+      do i=1,nmaxmirsecc
+         richacc_msec0(i) = -1.
+         richacc_msec1(i) = -1.
+         richacc_gapmsec(i) = -1.
+         richeff_msec0(i) = -1.
+         richeff_msec1(i) = -1.
+         richeff_msec_gap(i) = -1.
+      enddo
 
       a_beta = 0.126 !1E-2
       b_beta = 0.02  !1E-2

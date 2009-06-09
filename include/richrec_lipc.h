@@ -13,11 +13,15 @@
       integer NMAXLIPREC
       PARAMETER(NMAXLIPREC=10)
 
+      integer NMAXMIRSECCC
+      PARAMETER(NMAXMIRSECCC=10)
+
       real ztoprad_ams_c2f,
      +     ztarg_c2f,hrad_c2f,hrnaf_c2f,radtile_pitch_c2f,
      +     radtile_supthk_c2f,radix_c2f,radclarity_c2f,hpgl_c2f,
      +     ztmirgap_c2f,zbmirgap_c2f,reflec_c2f,
      +     zlgsignal_c2f,rtmir_c2f,rbmir_c2f,hmir_c2f,
+     +     phimirs_c2f,refmirs_c2f,
      +     pmtwx_c2f,pmtwy_c2f,shieldw_c2f,
      +     pglix_c2f,emcxlim_c2f,emcylim_c2f,lg_top_width_c2f,
      +     lg_bot_width_c2f,lg_pitch_c2f,xbc_c2f,xbd_c2f,yef_c2f,
@@ -34,6 +38,7 @@
       integer jobc_cp_c2f,
      +        rcgeom_c2f,levgeom_c2f,levgrad_c2f,levacc_c2f,levghit_c2f,
      +        nradts_c2f,
+     +        nmirsec_c2f,idmirs_c2f,
      +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, 
      +        prad_main,iflag_tof,prad_tof,ntofclu,istatus_tof,ilayer_tof,
      +        ibar_tof,irecnumb,itrknumb,idispflag
@@ -67,6 +72,10 @@
      +                  rtmir_c2f,	           ! top mirror radius
      +                  rbmir_c2f,	           ! bottom mirror radius
      +                  hmir_c2f,	           ! mirror height
+     +                  nmirsec_c2f,               ! number of mirror sectors
+     +                  idmirs_c2f(nmaxmirseccc),  ! mirror sector IDs
+     +                  phimirs_c2f(nmaxmirseccc), ! mirror sector starting phis
+     +                  refmirs_c2f(nmaxmirseccc), ! mirror sector reflectivities
      +                  pmtwx_c2f,                 ! PMT (LG in fact) X dimension
      +                  pmtwy_c2f,	           ! PMT (LG in fact) Y dimension
      +                  shieldw_c2f,	           ! dead space between light guides
@@ -138,7 +147,8 @@
      +     resb_hres,resb_invchi2,resb_flatsin,resb_flatcos,
      +     resb_probkl,
      +     resc_cnpe,resc_cnpedir,resc_cnperef,resc_chg,resc_chgdir,
-     +     resc_chgmir,resc_accgeom,resc_eff,resc_chgprob,
+     +     resc_chgmir,resc_accgeom,resc_eff,
+     +     resc_accmsec,resc_effmsec,resc_chgprob,
      +     resb_pimp,resb_epimp,resb_pthe,resb_epthe,resb_pphi,resb_epphi
 
       integer rstd_crecuhits
@@ -175,6 +185,8 @@
      +                 resc_chgmir(nmaxliprec),         ! rec charge (ref branch)
      +                 resc_accgeom(3,nmaxliprec),      ! geom acceptance
      +                 resc_eff(6,nmaxliprec),          ! efficiency
+     +                 resc_accmsec(nmaxmirseccc,2,nmaxliprec), ! geom acceptance by mirror sector (1st,2nd ref)
+     +                 resc_effmsec(nmaxmirseccc,2,nmaxliprec), ! efficiency by mirror sector (1st,2nd ref)
      +                 resc_chgprob(3,nmaxliprec),      ! charge probabilities (Z-1,Z,Z+1)
                      ! [ TRACK PARAMETERS ]
      +                 resb_pimp(3,nmaxliprec),         ! impact point at radiator top

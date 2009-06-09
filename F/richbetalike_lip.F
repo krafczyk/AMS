@@ -257,6 +257,7 @@ CC            prob_evt = fliketotall(cangrecmin)
                   nbminshit(ipthetac,nn)  = nbminshit_fit(nn)
                   phihit(ipthetac,nn)     = phihit_fit(nn)
                   ireflechit(ipthetac,nn) = ireflechit_fit(nn)
+                  imsechit(ipthetac,nn)   = imsechit_fit(nn)
                enddo
 * -----------> store beta reconstruction
                betarec = 1./refindex/cos(cangrec(ipthetac))
@@ -334,7 +335,7 @@ CC            prob_evt = fliketotall(cangrecmin)
       save phihintsbuf, nphihintsbuf
 
       real chi2_hit, chi2hit_min, phihit_min
-      integer nmirefhit_min
+      integer nmirefhit_min, msechit_min
 
       real gcte, fgaussct, gcte1, gcte2, fact_weight
 
@@ -448,6 +449,7 @@ CC            prob_evt = fliketotall(cangrecmin)
                chi2hit_min   = chi2_hit
                phihit_min    = phphimin 
                nmirefhit_min = nmirefhit !from richrec.inc common
+               msechit_min   = msechit !from richrec.inc common
             endif
  3       continue
 *         print*,'Hit at ',curhit(1),curhit(2),', chi2 = ',chi2hit_min
@@ -456,6 +458,7 @@ CC            prob_evt = fliketotall(cangrecmin)
          phihit_fit(i)     = phihit_min
          chi2hit_fit(i)    = chi2hit_min
          ireflechit_fit(i) = nmirefhit_min
+         imsechit_fit(i) = msechit_min
 *         print*,'Current pimp:',pimp
 *         print*,'Current pthe,pphi (deg):',pthe*RADDEG,pphi*RADDEG
 *         print*,'Current pcoopmt:',pcoopmt
@@ -736,11 +739,35 @@ C -----------------------------------------------------
       parameter(nermax=10)
       integer verr(nermax)
       real vdet(3),vdir(3)
+      real vdetcopy(3),vdirinv(3)
+      real phimir
+      integer ierr
+      integer imsec
 *
       fchi2hit = 0.
       cangrecx = hypthc
       CALL PATRACE(phphi,cangrecx,vdet,vdir,nmiref,nerr,verr) 
       nmirefhit = nmiref
+
+* ... mirror phi
+      if(nmiref.eq.0) then
+         phimir = -999.
+         imsec = 0
+      else
+         vdetcopy(1) = vdet(1)
+         vdetcopy(2) = vdet(2)
+         vdetcopy(3) = vdet(3)
+         vdirinv(1) = -vdir(1)
+         vdirinv(2) = -vdir(2)
+         vdirinv(3) = -vdir(3)
+         call patints(vdetcopy,vdirinv,'MIRI',ierr)
+         phimir = atan2(vdetcopy(2)-vtmir(2),vdetcopy(1)-vtmir(1))
+         if(phimir.lt.0.) phimir = phimir+TWOPI
+         call getmirsec(phimir,imsec)
+*         print*,'[fchi2hit] phimir = ',phimir,', imsec = ',imsec
+      endif
+      msechit = imsec
+
 *      if (nerr.ne.0 .and. verr(1).ne.19) then
       if (nerr.ne.0) then
          fchi2hit = 1.E8

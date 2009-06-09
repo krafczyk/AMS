@@ -420,7 +420,6 @@ C
       end                                                                     
 
 
-
 * ================================================================         
       subroutine patrace_full(phig,thc,xdet,ydet,nmiref,nerr,verr)
 * ================================================================         
@@ -490,48 +489,79 @@ C
 * --- end                                                                  
       return                                                               
       end                                                                             
- 
+
+
 * ================================================================         
-      subroutine patrace2(phig,thc,vdet,vdir,nmiref,nerr,verr)          
+      subroutine patrace_full_phimir
+     +     (phig,thc,xdet,ydet,nmiref,nerr,verr,phimir)
 * ================================================================         
 ******************************************************************         
-*       AIMS: Steering routine for pattern cerenkov drawing                
-*                                                                          
-* PARAMETERS: IN - phig   = photon phi angle                               
-*                  thc    = cerenkov angle                                 
-*            OUT - vdet   = x,y,z-coord of the photon at the PMT plane         
-*                  vdir   = direction of the photon at the PMT plane         
-*                  nmiref = number of reflections on mirror                
-*                  ierr   = error flag                                     
-*                                                                          
+*
+*     Similar to patrace_full, but returns mirror phi
+*     for reflected photons
+*
+*     R.Pereira - 07/May/2009
+*
 ******************************************************************         
+
+#include "../include/richrec_lipf.h"
 
       integer nphmax
       parameter(nphmax=10)
       integer nerr,verr(nphmax)
-      real phig, thc, vdet(3),vdir(3)
+      real vdet(3),vdir(3)
+      real phimir
 
+      real vdetcopy(3)
+      real vdirinv(3)
 
 * ... get photon impact impact point and direction on detection matrix
       call patrace(phig,thc,vdet,vdir,nmiref,nerr,verr)
-      if (nerr.ne.0) return ! added F.Barao 7-jun-2004
+      if (nerr.ne.0) return
 
-* ... check if photn is falling in DETECTION MATRIX HOLES 
+* ... check if photon is falling in DETECTION MATRIX HOLES 
       call patrace_gcheck(vdet,ierr)
-      if (ierr.eq.19) then
-         nerr = nerr + 1                                             
-         verr(nerr) = 19
-      elseif(ierr.eq.199) then
-         nerr = nerr + 1                                             
-         verr(nerr) = 199
-      endif                                             
+      if (ierr.ne.0) then
+         nerr = nerr + 1
+         verr(nerr) = ierr
+      endif
+
+* ... check particle track near ring
+      if (ierr.eq.0 .and. LEVGHIT.eq.1) then
+         if ( (vdet(1)-pcoopmt(1))**2+(vdet(2)-pcoopmt(2))**2.lt.
+     +                                            trhitass2) then
+            nerr = nerr + 1
+            verr(nerr) = 25
+         endif 
+      endif
+
+* ... output coordinates                                                   
+      xdet = vdet(1)                                                      
+      ydet = vdet(2)                   
+
+* ... mirror phi
+      if(nmiref.eq.0) then
+         phimir = -999.
+      else
+         vdetcopy(1) = vdet(1)
+         vdetcopy(2) = vdet(2)
+         vdetcopy(3) = vdet(3)
+         vdirinv(1) = -vdir(1)
+         vdirinv(2) = -vdir(2)
+         vdirinv(3) = -vdir(3)
+         call patints(vdetcopy,vdirinv,'MIRI',ierr)
+         phimir = atan2(vdetcopy(2)-vtmir(2),vdetcopy(1)-vtmir(1))
+         if(phimir.lt.0.) phimir = phimir+TWOPI
+      endif
+*      print*,'phimir = ',phimir
 
 * --- end                                                                  
       return                                                               
-      end                                                                  
+      end
+ 
 
 * ------------------------------------------------------------------
-      subroutine patrace_gcheck(phpto, ierr)
+      subroutine patrace_gcheck(phpto,ierr)
 * ------------------------------------------------------------------
 *********************************************************************
 * Check if photon falls in a dead area of the detection matrix plane
@@ -907,7 +937,8 @@ C
 * LIST OF SUBROUTINES AND FUNCTIONS INSIDE                                *
 * ----------------------------------------                                *
 *                                                                         *
-* - subroutine richacc(thetac,richacca,richeffa)                          *
+* - subroutine richacc(thetac,richacca,richeffa,                          *
+*     +                richaccmseca,richeffmseca)                         *
 * - subroutine dphipath(thetac,nphitot,vphitot,fphitot,                   *
 *     +              dphidir,dphihol,dphimir0,dphirmir1,dphiinv,          *
 *     +              npvis,phimin,phimax,fphipat)                         *
@@ -916,9 +947,9 @@ C
 *                                                                         *
 * - real Function fphilmir(phig)                                          *
 * - real function fphilhole(phig)                                         *
-* - real function fphilrefl(phig)                                         
+* - real function fphilrefl(phig)                                         *
 * - real Function fphilrad(phig)                                          *
-* - real Function fphilgap(phig)                                          *                
+* - real Function fphilgap(phig)                                          *
 * - real Function HLIMSYM(xl,xh,yl,yh)                                    *
 * - real Function HLIMASYM(xl,xh,yl,yh)                                   *
 *   FUNCTION : to find the roots of the intersection                      *
@@ -929,7 +960,7 @@ C
 *
 * ====== UTIL ROUTINES ===================================================
 *
-* - subroutine getphivis(thetac,npvis,phimin,phimax) 
+* - subroutine getphivis(thetac,npvis,phimin,phimax)
 *   get photon phi's from visible paths (acording to the geometry
 *                                        level chosen)
 *
@@ -940,14 +971,15 @@ C
 * levgeo = 0 | Flight -> radiator boundaries (cilinder)
 *                     -> + conical mirror
 *                     -> + Ecal hole (square+corners)
-*            | prototype  
+*            | prototype 
 *
 * levgeo = 1 | Flight -> + mechanical gaps
-* levgeo = 2 | Flight -> + PMT external contour  
+* levgeo = 2 | Flight -> + PMT external contour 
 *                                                                         *
 ***************************************************************************
 * ======================================================================
-      subroutine richacc(thetac,richacca,richeffa)                      
+      subroutine richacc(thetac,richacca,richeffa,
+     +                   richaccmseca,richeffmseca)
 * ======================================================================
 ****************************************************************************
 *                                                                          *
@@ -976,28 +1008,37 @@ C
 *               (6)= TOTAL EFF - direct                                    *
 *               (7)= TOTAL EFF - 1 reflection                              *
 *               (8)= TOTAL EFF - 2 reflection                              *
-*
-* Note: the HOLE acceptance is the fraction of photons falling into the
-*       matrix non-active region; doesn't include the photons lost on their 
-*       way to the matrix
-*
+*                                                                          *
+*             richaccmseca & ... acceptance and efficiency                 *
+*             richeffmseca       by mirror sector                          *
+*                                                                          *
+* Note: the HOLE acceptance is the fraction of photons falling into the    *
+*       matrix non-active region; doesn't include the photons lost on      *
+*       their way to the matrix                                            *
+*                                                                          *
+* Changed: 06/May/2009 -  R.Pereira (mirror sectors)                       *
+*                                                                          *
 ****************************************************************************
 
 #include "../include/richrec_lipf.h"
 
       common/event/ievent
-      integer nphmax,nermax,nbranchmax 
-      parameter(nphmax=50)
+      integer nphmax,nermax,nbranchmax
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
       parameter(nbranchmax=20)
       integer nphitot,
-     +        fphitot(50),
+     +        fphitot(nphmax),
      +        fphipat(nphmax),
+     +        msecpat(nphmax),
      +        verr(nermax),
      +        npvis,ievent
 
-      real richacca(5), richeffa(8),
-     +     vphitot(nphmax),
+      real richacca(5), richeffa(8)
+
+      real richaccmseca(nmaxmirsec,2),richeffmseca(nmaxmirsec,8)
+
+      real vphitot(nphmax),
      +     dphidir(nphmax),
      +     dphihol(nphmax),
      +     dphimir0(nphmax),
@@ -1013,9 +1054,17 @@ C
      +     vfidminmir(nphmax*nbranchmax),
      +     vfidmaxmir(nphmax*nbranchmax)
 
+      integer nphimsec0(nphmax),
+     +        nphimsec1(nphmax)
+      real dphimsec0(nmaxmirsec,nphmax),
+     +     dphimsec1(nmaxmirsec,nphmax)
+      real dphimsec0_tot(nmaxmirsec),
+     +     dphimsec1_tot(nmaxmirsec)
+
       DOUBLE PRECISION  pardou(4),
      +                  fidmin(nphmax),
      +                  fidmax(nphmax)
+      integer fphipatmsec(nphmax)
 
 CC      REAL EPS
 CC      DATA EPS /1.E-2/
@@ -1029,7 +1078,13 @@ CC      DATA EPS /1.E-2/
       real radacc, miracc, pmtacc, holacc, wallacc, distphtot,
      +     thetac, xdet, ydet, dphidir_tot, dphihol_tot,
      +     dphimir0_tot, dphimir1_tot, dphiinv_tot, dphitot,
-     +     pnint, efflg, zoutmean  
+     +     pnint, efflg, zoutmean 
+
+      integer npvismsec
+      double precision fidminmsec(nphmax),fidmaxmsec(nphmax)
+      real pnint_ms,effrad_ms,efflg_ms,efftot_ms(4),zoutmean_ms
+
+*      print*,'thetac in richacc = ',thetac
 
 * --- message
       if (idummy.eq.0) then
@@ -1049,14 +1104,14 @@ CC      DATA EPS /1.E-2/
 
 * --- compute photon phi root values for diferent functions
 
-      call set_phiroots(thetac,nphitot,vphitot,fphitot) 
+      call set_phiroots(thetac,nphitot,vphitot,fphitot)
 *
       if (ldebug.ge.2) then
          print*,' '
-         print'(A)','******** PHI ROOTS *************'     
+         print'(A)','******** PHI ROOTS *************'    
          do i=1,nphitot
            xdet = -999.
-           ydet = -999.                
+           ydet = -999.               
            call patrace_full(vphitot(i),thetac,xdet,ydet,
      +                       nmiref,nerr,verr)
            print'(A,2x,I2,2x,A,2x,F6.1,2x,A,2x,I3,2x,A,2X,2(F6.1,1x))',
@@ -1065,17 +1120,18 @@ CC      DATA EPS /1.E-2/
          enddo
       endif
 
-* --- compute path lengths 
+* --- compute path lengths
       call dphipath(thetac,nphitot,vphitot,fphitot,
      +              dphidir,dphihol,dphimir0,dphimir1,dphiinv,
-     +              npvis,phimin,phimax,fphipat)
+     +              npvis,phimin,phimax,fphipat,msecpat,
+     +              dphimsec0,dphimsec1)
 
-      if (ldebug.ge.2) then      
-         print'(A)','******** ACCEPTANCE ********'    
-         print*,'DPHIDIR =',(RADDEG*DPHIDIR(I),I=2,INT(DPHIDIR(1))+1) 
+      if (ldebug.ge.2) then     
+         print'(A)','******** ACCEPTANCE ********'   
+         print*,'DPHIDIR =',(RADDEG*DPHIDIR(I),I=2,INT(DPHIDIR(1))+1)
          print*,'DPHIMIR0=',(RADDEG*DPHIMIR0(I),I=2,INT(DPHIMIR0(1))+1)
          print*,'DPHIMIR1=',(RADDEG*DPHIMIR1(I),I=2,INT(DPHIMIR1(1))+1)
-         print*,'DPHIHOL =',(RADDEG*DPHIHOL(I),I=2,INT(DPHIHOL(1))+1)  
+         print*,'DPHIHOL =',(RADDEG*DPHIHOL(I),I=2,INT(DPHIHOL(1))+1) 
          print*,'DPHIINV =',(RADDEG*DPHIINV(I),I=2,INT(DPHIINV(1))+1)
       endif
 
@@ -1085,45 +1141,68 @@ CC      DATA EPS /1.E-2/
       DPHIMIR0_tot = 0.0
       DPHIMIR1_tot = 0.0
       DPHIINV_tot  = 0.0
+
+      do i=1,nmaxmirsec
+         dphimsec0_tot(i) = 0.0
+         dphimsec1_tot(i) = 0.0
+      enddo
 *
       nphiinv  = int(dphiinv(1))
       nphimir0 = int(dphimir0(1))
       nphimir1 = int(dphimir1(1))
       nphihol  = int(dphihol(1))
       nphidir  = int(dphidir(1))
+
+      do i=1,nmaxmirsec
+         nphimsec0(i) = int(dphimsec0(i,1))
+         nphimsec1(i) = int(dphimsec1(i,1))
+      enddo
 *
       do i=1,nphiinv
+         ii = i + 1                            
+         dphiinv_tot = dphiinv_tot + dphiinv(ii) 
+      enddo
+      do i=1,nphimir0                           
          ii = i + 1                             
-         dphiinv_tot = dphiinv_tot + dphiinv(ii)  
-      enddo 
-      do i=1,nphimir0                            
-         ii = i + 1                              
-         dphimir0_tot = dphimir0_tot + dphimir0(ii)  
-      enddo                                                               
-      do i=1,nphimir1                            
-         ii = i + 1                              
-         dphimir1_tot = dphimir1_tot + dphimir1(ii)  
-      enddo                                    
-      do i=1,nphihol                            
-         ii = i + 1                              
-         dphihol_tot = dphihol_tot + dphihol(ii)  
-      enddo                                 
-      do i=1,nphidir                            
-         ii = i + 1                              
-         dphidir_tot = dphidir_tot + dphidir(ii)         
-      enddo                   
+         dphimir0_tot = dphimir0_tot + dphimir0(ii) 
+      enddo                                                              
+      do i=1,nphimir1                           
+         ii = i + 1                             
+         dphimir1_tot = dphimir1_tot + dphimir1(ii) 
+      enddo                                   
+      do i=1,nphihol                           
+         ii = i + 1                             
+         dphihol_tot = dphihol_tot + dphihol(ii) 
+      enddo                                
+      do i=1,nphidir                           
+         ii = i + 1                             
+         dphidir_tot = dphidir_tot + dphidir(ii)        
+      enddo                  
+
+      do i=1,nmaxmirsec
+*         print*,'Sector ',i,' - ',
+*     +        nphimsec0(i),'+',nphimsec1(i),' segments'
+         do j=1,nphimsec0(i)
+            jj = j+1
+            dphimsec0_tot(i) = dphimsec0_tot(i)+dphimsec0(i,jj)
+         enddo
+         do j=1,nphimsec1(i)
+            jj = j+1
+            dphimsec1_tot(i) = dphimsec1_tot(i)+dphimsec1(i,jj)
+         enddo
+      enddo
 
 * --- control
       dphitot = dphiinv_tot +
      +          dphimir0_tot+
      +         dphimir1_tot+
-     +          dphidir_tot 
-      
+     +          dphidir_tot
+     
       if (ldebug.ge.2) then
          print*,'(richacc) Acceptance / TOTAL :',
      & (DPHITOT-dphiinv_tot)/twopi,' /',DPHITOT/twopi
       endif
-             
+            
 * --- compute acceptances
       richacca(1) = dphiinv_tot/twopi
       richacca(2) = dphidir_tot/twopi
@@ -1131,13 +1210,28 @@ CC      DATA EPS /1.E-2/
       richacca(4) = dphimir1_tot/twopi
       richacca(5) = dphihol_tot/twopi
 
+      do i=1,nmaxmirsec
+         richaccmseca(i,1) = dphimsec0_tot(i)/twopi
+         richaccmseca(i,2) = dphimsec1_tot(i)/twopi
+      enddo
+
+*      print*,'ACCEPTANCE RESULTS:'
+*      do i=1,5
+*         print*,'richacca(',i,') = ',richacca(i)
+*      enddo
+*      do i=1,nmirsec
+*         do j=1,2
+*            print*,'richaccmseca(',i,',',j,') = ',richaccmseca(i,j)
+*         enddo
+*      enddo
+
 * --- compute efficiencies
       pardou(1) = dble(HRAD)
       pardou(2) = dble(pthe)
       pardou(3) = dble(thetac)
-      pardou(4) = dble(radint) 
+      pardou(4) = dble(radint)
 
-      do i=1,npvis      
+      do i=1,npvis     
          fidmin(i) = dble(phimin(i))
          fidmax(i) = dble(phimax(i))
       enddo
@@ -1147,20 +1241,81 @@ CC      DATA EPS /1.E-2/
          call rcradeff(pardou,npvis,fidmin,fidmax,fphipat,effrad)
          call rcpmteff(thetac,npvis,fidmin,fidmax,efflg)
          call rctoteff(pardou,npvis,fidmin,fidmax,fphipat,efftot)
-         call zradmean(pardou,npvis,fidmin,fidmax,fphipat,zoutmean)  
+         call zradmean(pardou,npvis,fidmin,fidmax,fphipat,zoutmean) 
 *         nbranch=5
 c         call rclgeff(thetac,nbranch,nbmir,vfidminmir,vfidmaxmir
 c     &        ,vefflgref,efflgdir)
-         
+        
          richeffa(1) = pnint
          richeffa(2) = effrad
          richeffa(3) = efflg
-         richeffa(4) = zoutmean   
+         richeffa(4) = zoutmean  
          richeffa(5) = efftot(1)
-         richeffa(6) = efftot(2) 
+         richeffa(6) = efftot(2)
          richeffa(7) = efftot(3)
          richeffa(8) = efftot(4)
-      endif  
+
+*         print*,'richeffa = ',(richeffa(k),k=1,8)
+
+* ...... efficiency for each mirror sector
+
+*         do j=1,npvis
+*            print*,'msecpat(',j,') = ',msecpat(j)
+*         enddo
+
+         do i=1,nmirsec
+
+            npvismsec = 0
+            call vzero(fidminmsec,nphmax)
+            call vzero(fidmaxmsec,nphmax)
+            call vzero(fphipatmsec,nphmax)
+
+            do j=1,npvis
+               if(msecpat(j).eq.i) then
+                  npvismsec = npvismsec+1
+                  fidminmsec(npvismsec) = dble(phimin(j))
+                  fidmaxmsec(npvismsec) = dble(phimax(j))
+                  fphipatmsec(npvismsec) = fphipat(j)
+               endif
+            enddo
+
+*            print*,'Sector ',i,': ',(fphipatmsec(j),j=1,npvismsec)
+
+            if(npvismsec.gt.0) then
+
+               call rcradnint(pardou,npvismsec,fidminmsec,fidmaxmsec,
+     +              fphipatmsec,pnint_ms)
+               call rcradeff(pardou,npvismsec,fidminmsec,fidmaxmsec,
+     +              fphipatmsec,effrad_ms)
+               call rcpmteff(thetac,npvismsec,fidminmsec,fidmaxmsec,
+     +              efflg_ms)
+               call rctoteff(pardou,npvismsec,fidminmsec,fidmaxmsec,
+     +              fphipatmsec,efftot_ms)
+               call zradmean(pardou,npvismsec,fidminmsec,fidmaxmsec,
+     +              fphipatmsec,zoutmean_ms)
+
+               richeffmseca(i,1) = pnint_ms
+               richeffmseca(i,2) = effrad_ms
+               richeffmseca(i,3) = efflg_ms
+               richeffmseca(i,4) = zoutmean_ms  
+               richeffmseca(i,5) = efftot_ms(1)
+               richeffmseca(i,6) = efftot_ms(2)
+               richeffmseca(i,7) = efftot_ms(3)
+               richeffmseca(i,8) = efftot_ms(4)
+
+            else
+
+               do j=1,8
+                  richeffmseca(i,j) = 0.
+               enddo
+
+            endif
+
+*            print*,'- richeffmseca(',i,') = ',(richeffmseca(i,k),k=1,8)
+
+         enddo
+
+      endif 
 
 * --- debugging print
       if (ldebug.ge.2) then
@@ -1178,16 +1333,17 @@ c     &        ,vefflgref,efflgdir)
 
 * --- return
       return
-      end      
+      end     
 
 *=================================================================
       subroutine dphipath(thetac,nphitot,vphitot,fphitot,
      +                    dphidir,dphihol,dphimir0,dphimir1,dphiinv,
-     +                    npvis,phimin,phimax,fphipat)
+     +                    npvis,phimin,phimax,fphipat,msecpat,
+     +                    dphimsec0,dphimsec1)
 *=================================================================
 ******************************************************************
 *     It computes phi differences
-*   
+*  
 *     PARAMETERS:
 *             IN: thetac  - cerenkov angle
 *                 nphitot - nb of phi roots
@@ -1199,20 +1355,25 @@ c     &        ,vefflgref,efflgdir)
 *                 dphiinv  - dphi of invisible paths (all kind)
 *                 dphihol  - dphi of matrix hole incident paths
 *                 npvis    - nb of visible paths
-*                 phimin   - phi lower limit of visible path 
-*                 phimax   - phi upper limit of visible path 
+*                 phimin   - phi lower limit of visible path
+*                 phimax   - phi upper limit of visible path
 *                 fphipat  - flag =0 non-reflected path
 *                                 =1 reflected path (1st order)
 *                                 =2 reflected path (2nd order)
+*                 msecpat  - mirror sector (1...N) for reflected paths
+*                            (0 if not reflected)
+*                 dphimsec0 - dphi of reflected paths by mirror sector (1st order)
+*                 dphimsec1 - dphi of reflected paths by mirror sector (2nd order)
 *
 *  Revised: 28/May/2004
+*           06/May/2009 - R. Pereira (mirror sectors)
 *
 ******************************************************************
 
 #include "../include/richrec_lipf.h"
-      
-      integer nphmax,nermax  
-      parameter(nphmax=50)
+
+      integer nphmax,nermax 
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
       real vphitot(nphmax),
      +     dphidir(nphmax),
@@ -1224,79 +1385,100 @@ c     &        ,vefflgref,efflgdir)
      +     dphigdw(nphmax),
      +     dphitrk(nphmax),
      +     phimin(nphmax),
-     +     phimax(nphmax)  
+     +     phimax(nphmax)
+      real dphimsec0(nmaxmirsec,nphmax),
+     +     dphimsec1(nmaxmirsec,nphmax),
+     +     phiminmsec0(nmaxmirsec,nphmax),
+     +     phiminmsec1(nmaxmirsec,nphmax),
+     +     phimaxmsec0(nmaxmirsec,nphmax),
+     +     phimaxmsec1(nmaxmirsec,nphmax)
       integer fphitot(nphmax),
      +        fphipat(nphmax),
+     +        msecpat(nphmax),
      +        verr(nermax),
      +        npvis, nphitot
       real EPS
       DATA EPS /1.E-2/
       integer nroot_rad,
-     +        nroot_reft,  
+     +        nroot_reft, 
      +        nroot_mirr,
      +        nroot_hole,
      +        nroot_trk
       external fphotdist
-      
+     
       integer nphidir, nphihol, nphimir0, nphimir1, nphiinv,
      +        ndum, nerr, i, ipc, ipn, ioffset
       real thetac, xdet, ydet, phimean
 
+      integer nphimsec0(nmaxmirsec),
+     +        nphimsec1(nmaxmirsec)
+
+      real phimir
+      integer imsec
 
 * --- init
-      call vfill(dphidir,nphmax,0.)                                                 
-      call vfill(dphihol,nphmax,0.)                                                 
-      call vfill(dphimir0,nphmax,0.)                     
-      call vfill(dphimir1,nphmax,0.)                     
-      call vfill(dphiinv,nphmax,0.)  
+      call vfill(dphidir,nphmax,0.)
+      call vfill(dphihol,nphmax,0.)
+      call vfill(dphimir0,nphmax,0.)
+      call vfill(dphimir1,nphmax,0.)
+      call vfill(dphiinv,nphmax,0.)
       call vfill(dphigup,nphmax,0.)
       call vfill(dphigdw,nphmax,0.)
       call vfill(dphitrk,nphmax,0.)
-*                                                                            
-      nphidir  = 1 !nb of path lengths                                        
-      nphihol  = 1 
+      call vfill(dphimsec0,nmaxmirsec*nphmax,0.)
+      call vfill(dphimsec1,nmaxmirsec*nphmax,0.)
+*
+      nphidir  = 1 !nb of path lengths
+      nphihol  = 1
       nphimir0 = 1
-      nphimir1 = 1                     
+      nphimir1 = 1
       nphiinv  = 1 !ver adiante que este 1 e subtraido
       nphigup  = 1
       nphigdw  = 1
       nphitrk  = 1
-      npvis    = 0 !nb of visible path lengths                  
+      npvis    = 0 !nb of visible path lengths
+
+      do i=1,nmaxmirsec
+         nphimsec0(i) = 1
+         nphimsec1(i) = 1
+      enddo
 
       /*
 * --- error case (odd number of roots)
       nroot_rad  = 0
       nroot_reft = 0
       nroot_mirr = 0
-      nroot_hole = 0       
-      nroot_trk  = 0       
+      nroot_hole = 0      
+      nroot_trk  = 0      
       do i=1,nphitot
-         if (fphitot(i).eq.1 .or. int(fphitot(i)/10).eq.1) 
+         if (fphitot(i).eq.1 .or. int(fphitot(i)/10).eq.1)
      +                         nroot_rad  = nroot_rad  + 1
-         if (fphitot(i).eq.2 .or. int(fphitot(i)/10).eq.2) 
+         if (fphitot(i).eq.2 .or. int(fphitot(i)/10).eq.2)
      +                         nroot_reft = nroot_reft + 1
-         if (fphitot(i).eq.3 .or. int(fphitot(i)/10).eq.3) 
+         if (fphitot(i).eq.3 .or. int(fphitot(i)/10).eq.3)
      +                         nroot_mirr = nroot_mirr + 1
-         if (fphitot(i).eq.4 .or. int(fphitot(i)/10).eq.4) 
+         if (fphitot(i).eq.4 .or. int(fphitot(i)/10).eq.4)
      +                         nroot_hole = nroot_hole + 1
-         if (int(fphitot(i)/10).eq.6) 
+         if (int(fphitot(i)/10).eq.6)
      +                         nroot_trk  = nroot_trk  + 1
       enddo
-      if (nroot_rad.ne.0 .and. mod(nroot_rad,2).ne.0) 
+      if (nroot_rad.ne.0 .and. mod(nroot_rad,2).ne.0)
      +     print*,'(dphipath) Odd source: Radiator ',nroot_rad
-      if (nroot_reft.ne.0 .and. mod(nroot_reft,2).ne.0) 
+      if (nroot_reft.ne.0 .and. mod(nroot_reft,2).ne.0)
      +     print*,'(dphipath) Odd source: Total Reflection ',nroot_reft
-      if (nroot_mirr.ne.0 .and. mod(nroot_mirr,2).ne.0) 
+      if (nroot_mirr.ne.0 .and. mod(nroot_mirr,2).ne.0)
      +     print*,'(dphipath) Odd source: Mirror ',nroot_mirr
-      if (nroot_hole.ne.0 .and. mod(nroot_hole,2).ne.0) 
+      if (nroot_hole.ne.0 .and. mod(nroot_hole,2).ne.0)
      +     print*,'(dphipath) Odd source: Hole ',nroot_hole
-      if (nroot_trk.ne.0 .and. mod(nroot_trk,2).ne.0) 
+      if (nroot_trk.ne.0 .and. mod(nroot_trk,2).ne.0)
      +     print*,'(dphipath) Odd source: Track zone ',nroot_hole
       */
 
-* --- zero roots case          
-      if (nphitot.eq.0) then   
-        call patrace_full(0.,thetac,xdet,ydet,ndum,nerr,verr)
+* --- zero roots case         
+      if (nphitot.eq.0) then  
+        call patrace_full_phimir
+     +        (0.,thetac,xdet,ydet,ndum,nerr,verr,phimir)
+        call getmirsec(phimir,imsec)
         if (nerr.ne.0) then
            nphiinv = nphiinv + 1
            dphiinv(nphiinv)= twopi
@@ -1304,7 +1486,7 @@ c     &        ,vefflgref,efflgdir)
               nphihol = nphihol +1
               dphihol(nphihol)= twopi
            endif
-        else                                             
+        else                                            
            if (ndum.eq.0) then
               nphidir = nphidir + 1
               dphidir(nphidir) = twopi
@@ -1312,81 +1494,130 @@ c     &        ,vefflgref,efflgdir)
               phimin(npvis) = 0.
               phimax(npvis) = twopi
               fphipat(npvis) = 0
+              msecpat(npvis) = 0
            elseif (ndum.eq.1) then
+              if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                 print*,'(dphipath) Wrong mirror sector number! - ',
+     +                imsec
+              endif
               nphimir0 = nphimir0 + 1
               dphimir0(nphimir0) = twopi
               npvis = npvis + 1
               phimin(npvis) = 0.
               phimax(npvis) = twopi
               fphipat(npvis) = 1
+              msecpat(npvis) = imsec
+              nphimsec0(imsec) = nphimsec0(imsec)+1
+              dphimsec0(imsec,nphimsec0(imsec)) = twopi
+              phiminmsec0(imsec,nphimsec0(imsec)) = 0.
+              phimaxmsec0(imsec,nphimsec0(imsec)) = twopi
            elseif (ndum.eq.2) then
+              if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                 print*,'(dphipath) Wrong mirror sector number! - ',
+     +                imsec
+              endif
               nphimir1 = nphimir1 + 1
               dphimir1(nphimir1) = twopi
               npvis = npvis + 1
               phimin(npvis) = 0.
               phimax(npvis) = twopi
               fphipat(npvis) = 1
+              msecpat(npvis) = imsec
+              nphimsec1(imsec) = nphimsec1(imsec)+1
+              dphimsec1(imsec,nphimsec1(imsec)) = twopi
+              phiminmsec1(imsec,nphimsec1(imsec)) = 0.
+              phimaxmsec1(imsec,nphimsec1(imsec)) = twopi
            endif
         endif
       endif
 
 * --- loop on phi roots
-      do i=1,nphitot                                                         
-* >>>>>> POINTERS                                                         
-         ipc = i                ! current hit 
+      do i=1,nphitot                                                        
+* >>>>>> POINTERS                                                        
+         ipc = i                ! current hit
          if (i.lt.nphitot) then ! next hit
-            ipn = i+1     
+            ipn = i+1    
             phimean = 0.5*(vphitot(ipn)+vphitot(ipc))
-         else                                                                
-            ipn = 1                                                          
+         else                                                               
+            ipn = 1                                                         
             phimean = 0.5*((vphitot(ipn)+twopi)+vphitot(ipc))
-         endif      
+         endif     
 *         print*,'IPC,IPN ----->',vphitot(ipc)*raddeg,vphitot(ipn)*raddeg
 *     +           ,phimean*raddeg
-* >>>>>> TEST portion                                                        
-         call patrace_full(phimean,thetac,xdet,ydet,ndum,nerr,verr)
+* >>>>>> TEST portion                                                       
+         call patrace_full_phimir
+     +        (phimean,thetac,xdet,ydet,ndum,nerr,verr,phimir)
+*         print*,'nerr,ndum,phimir = ',nerr,ndum,phimir
+         call getmirsec(phimir,imsec)
 *>>>>>>> visible
          if(nerr.eq.0)then
             if(ndum.eq.0)then  !direct
                nphidir=nphidir+1
-               dphidir(nphidir)= vphitot(ipn)-vphitot(ipc)     
-               if (dphidir(nphidir).lt.0.)                               
+               dphidir(nphidir)= vphitot(ipn)-vphitot(ipc)    
+               if (dphidir(nphidir).lt.0.)                              
      +              dphidir(nphidir) = twopi-abs(dphidir(nphidir))
-               npvis = npvis + 1                            
-               phimin(npvis) = vphitot(ipc)                 
-               phimax(npvis) = vphitot(ipn)                 
-               fphipat(npvis) = 0      
+               npvis = npvis + 1                           
+               phimin(npvis) = vphitot(ipc)                
+               phimax(npvis) = vphitot(ipn)                
+               fphipat(npvis) = 0     
+               msecpat(npvis) = 0
             elseif(ndum.eq.1)then  !with one mirror reflection
+               if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                  print*,'(dphipath) Wrong mirror sector number! - ',
+     +                 imsec,' for angle ',phimir
+               endif
                nphimir0=nphimir0+1
                dphimir0(nphimir0)= vphitot(ipn)-vphitot(ipc)
-               if (dphimir0(nphimir0).lt.0.)                               
+               if (dphimir0(nphimir0).lt.0.)                              
      +            dphimir0(nphimir0) = twopi-abs(dphimir0(nphimir0))
-               npvis = npvis + 1                            
-               phimin(npvis) = vphitot(ipc)                 
-               phimax(npvis) = vphitot(ipn)                 
-               fphipat(npvis) = 1      
+               npvis = npvis + 1                           
+               phimin(npvis) = vphitot(ipc)                
+               phimax(npvis) = vphitot(ipn)                
+               fphipat(npvis) = 1     
+               msecpat(npvis) = imsec
+               nphimsec0(imsec) = nphimsec0(imsec)+1
+               dphimsec0(imsec,nphimsec0(imsec))
+     +              = vphitot(ipn)-vphitot(ipc)
+               if (dphimsec0(imsec,nphimsec0(imsec)).lt.0.)
+     +              dphimsec0(imsec,nphimsec0(imsec))
+     +              = twopi-abs(dphimsec0(imsec,nphimsec0(imsec)))
+               phiminmsec0(imsec,nphimsec0(imsec)) = vphitot(ipc)
+               phimaxmsec0(imsec,nphimsec0(imsec)) = vphitot(ipn)
             elseif(ndum.eq.2)then  !with two mirror reflections
+               if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                  print*,'(dphipath) Wrong mirror sector number! - ',
+     +                 imsec
+               endif
                nphimir1=nphimir1+1
-               dphimir1(nphimir1)= vphitot(ipn)-vphitot(ipc)     
-               if (dphimir1(nphimir1).lt.0.)                               
+               dphimir1(nphimir1)= vphitot(ipn)-vphitot(ipc)    
+               if (dphimir1(nphimir1).lt.0.)                              
      +              dphimir1(nphimir1) = twopi-abs(dphimir1(nphimir1))
-               npvis = npvis + 1                            
-               phimin(npvis) = vphitot(ipc)                 
-               phimax(npvis) = vphitot(ipn)                 
-               fphipat(npvis) = 2      
+               npvis = npvis + 1                           
+               phimin(npvis) = vphitot(ipc)                
+               phimax(npvis) = vphitot(ipn)                
+               fphipat(npvis) = 2     
+               msecpat(npvis) = imsec
+               nphimsec1(imsec) = nphimsec1(imsec)+1
+               dphimsec1(imsec,nphimsec1(imsec))
+     +              = vphitot(ipn)-vphitot(ipc)
+               if (dphimsec1(imsec,nphimsec1(imsec)).lt.0.)
+     +              dphimsec1(imsec,nphimsec1(imsec))
+     +              = twopi-abs(dphimsec1(imsec,nphimsec1(imsec)))
+               phiminmsec1(imsec,nphimsec1(imsec)) = vphitot(ipc)
+               phimaxmsec1(imsec,nphimsec1(imsec)) = vphitot(ipn)
             endif
 *>>>>>>> invisible
          else
-           nphiinv = nphiinv + 1                                        
-           dphiinv(nphiinv)=vphitot(ipn)-vphitot(ipc)             
-           if (dphiinv(nphiinv).lt.0.)                                  
-     +     dphiinv(nphiinv) = twopi-abs(dphiinv(nphiinv)) 
+           nphiinv = nphiinv + 1                                       
+           dphiinv(nphiinv)=vphitot(ipn)-vphitot(ipc)            
+           if (dphiinv(nphiinv).lt.0.)                                 
+     +     dphiinv(nphiinv) = twopi-abs(dphiinv(nphiinv))
 *           if(verr(1).eq.19.and.rcgeom(1).ne.9)then
            if(verr(1).eq.19)then
 
 /*              if(LEVGRAD.eq.1)then
                  if(fphitot(ipc).ne.11.and.fphitot(ipn).ne.11)then
-                    nphihol = nphihol + 1                                        
+                    nphihol = nphihol + 1                                       
                     dphihol(nphihol) = vphitot(ipn)-vphitot(ipc)
                  elseif(fphitot(ipc).eq.11.and.fphitot(ipn).eq.11
      +                  .and.nphitot.eq.2)then
@@ -1395,29 +1626,29 @@ c     &        ,vefflgref,efflgdir)
                  endif
 *                 print*,'----->dphihol',dphihol
               else
-                 nphihol = nphihol + 1                                        
+                 nphihol = nphihol + 1                                       
                  dphihol(nphihol) = vphitot(ipn)-vphitot(ipc)
               endif
 */
-             nphihol = nphihol + 1                                        
+             nphihol = nphihol + 1                                       
              dphihol(nphihol) = vphitot(ipn)-vphitot(ipc)
-              if (dphihol(nphihol).lt.0.)                                  
-     +             dphihol(nphihol) = twopi-abs(dphihol(nphihol)) 
+              if (dphihol(nphihol).lt.0.)                                 
+     +             dphihol(nphihol) = twopi-abs(dphihol(nphihol))
            elseif(verr(1).eq.20)then
-              nphigup = nphigup + 1 
+              nphigup = nphigup + 1
               dphigup(nphigup) = vphitot(ipn)-vphitot(ipc)
               if (dphigup(nphigup).lt.0.)dphigup(nphigup) = twopi
-     &             -abs(dphigup(nphigup))   
+     &             -abs(dphigup(nphigup))  
            elseif(verr(1).eq.21)then
-              nphigdw = nphigdw + 1             
+              nphigdw = nphigdw + 1            
               dphigdw(nphigdw) = vphitot(ipn)-vphitot(ipc)
               if (dphigdw(nphigdw).lt.0.)dphigdw(nphigdw) = twopi
-     &             -abs(dphigdw(nphigdw))   
+     &             -abs(dphigdw(nphigdw))  
            elseif(verr(1).eq.25)then
-              nphitrk = nphitrk + 1             
+              nphitrk = nphitrk + 1            
               dphitrk(nphitrk) = vphitot(ipn)-vphitot(ipc)
               if (dphitrk(nphitrk).lt.0.)dphitrk(nphitrk) = twopi
-     &             -abs(dphitrk(nphitrk))   
+     &             -abs(dphitrk(nphitrk))  
            endif
         endif
 
@@ -1431,35 +1662,65 @@ c     &        ,vefflgref,efflgdir)
             phimin(npvis+ioffset) = 0.
             phimax(npvis+ioffset) = phimax(i)
             fphipat(npvis+ioffset) = fphipat(i)
+            msecpat(npvis+ioffset) = msecpat(i)
             phimax(i) = twopi
          endif
       enddo
-      npvis = npvis + ioffset 
-      if (ioffset.gt.1) 
+      npvis = npvis + ioffset
+      if (ioffset.gt.1)
      +print*,'(dphipath) phi intervals splitted >1!!!!!!!!!'
 
-* --- combine information        
-      nphidir  = nphidir-1        
-      nphihol  = nphihol-1        
-      nphimir0 = nphimir0-1        
-      nphimir1 = nphimir1-1        
-      nphiinv  = nphiinv-1        
-      dphidir(1)  = real(nphidir) 
-      dphimir0(1) = real(nphimir0) 
-      dphimir1(1) = real(nphimir1) 
-      dphiinv(1)  = real(nphiinv) 
-      dphihol(1)  = real(nphihol) 
+      do i=1,nmirsec
+         ioffset = 0
+         do j=2,nphimsec0(i)
+            if(phimaxmsec0(i,j).lt.phiminmsec0(i,j)) then
+               ioffset = ioffset + 1
+               phiminmsec0(i,nphimsec0(i)+ioffset) = 0.
+               phimaxmsec0(i,nphimsec0(i)+ioffset) = phimaxmsec0(i,j)
+               phimaxmsec0(i,j) = twopi
+            endif
+         enddo
+         nphimsec0(i) = nphimsec0(i)+ioffset
+         if (ioffset.gt.1)
+     +        print*,'(dphipath - msec0 ',i,
+     +        ') phi ints splitted >1 !!!!!!!!!'
+      enddo
 
-*      print*,'-- dphidir = ',dphidir
-*      print*,'-- dphimir0 = ',dphimir0
-*      print*,'-- dphimir1 = ',dphimir1
-*      print*,'-- dphiinv = ',dphiinv
-*      print*,'-- dphihol = ',dphihol
-*      print*,'-- npvis = ',npvis
-*      print*,'-- phimin = ',phimin
-*      print*,'-- phimax = ',phimax
-*      print*,'-- fphipat = ',fphipat
+      do i=1,nmirsec
+         ioffset = 0
+         do j=2,nphimsec1(i)
+            if(phimaxmsec1(i,j).lt.phiminmsec1(i,j)) then
+               ioffset = ioffset + 1
+               phiminmsec1(i,nphimsec1(i)+ioffset) = 0.
+               phimaxmsec1(i,nphimsec1(i)+ioffset) = phimaxmsec1(i,j)
+               phimaxmsec1(i,j) = twopi
+            endif
+         enddo
+         nphimsec1(i) = nphimsec1(i)+ioffset
+         if (ioffset.gt.1)
+     +        print*,'(dphipath - msec1 ',i,
+     +        ') phi ints splitted >1 !!!!!!!!!'
+      enddo
 
+* --- combine information
+      nphidir  = nphidir-1       
+      nphihol  = nphihol-1       
+      nphimir0 = nphimir0-1       
+      nphimir1 = nphimir1-1       
+      nphiinv  = nphiinv-1       
+      dphidir(1)  = real(nphidir)
+      dphimir0(1) = real(nphimir0)
+      dphimir1(1) = real(nphimir1)
+      dphiinv(1)  = real(nphiinv)
+      dphihol(1)  = real(nphihol)
+
+      do i=1,nmaxmirsec
+         nphimsec0(i) = nphimsec0(i)-1
+         nphimsec1(i) = nphimsec1(i)-1
+         dphimsec0(i,1) = real(nphimsec0(i))
+         dphimsec1(i,1) = real(nphimsec1(i))
+      enddo
+*
       return
       end
 
@@ -1475,15 +1736,15 @@ c     &        ,vefflgref,efflgdir)
 *      - deltaphi where total reflection inside radiator/PGL layer occurs
 *      - deltaphi where photons are reflected  by conical mirror (1 or 2 times)
 *      - deltaphi where photons reach EMC hole
-*      - deltaphi  .....   ...    ... dead pmts  
+*      - deltaphi  .....   ...    ... dead pmts 
 *
-*   For that purpose several functions have been constructed for which 
+*   For that purpose several functions have been constructed for which
 *   roots give these limits:
-*                            fphilmir(phi)   
-*                            fphilhole(phi)  
-*                            fphilrefl(phi)  
-*                            fphilrad(phi)   
-*      
+*                            fphilmir(phi)  
+*                            fphilhole(phi) 
+*                            fphilrefl(phi) 
+*                            fphilrad(phi)  
+*     
 * --------------------------------------------------------------------
 *
 * PARAMETERS:
@@ -1492,28 +1753,30 @@ c     &        ,vefflgref,efflgdir)
 *             vphitot - phi values
 *             fphitot - phi flags :
 *                       1  - sideways radiator exit
-*                       11 - radiator inner walls 
-*                       2  - total reflection  
+*                       11 - radiator inner walls
+*                       2  - total reflection 
 *                       31 - mirror (1st order)
 *                       32 - mirror (2nd order)
 *                       33 - mirror prototype
-*                       40 - out of flight matrix without reflection 
+*                       40 - out of flight matrix without reflection
 *                       41 - out of flight matrix with    reflection
-*                       45 - out of prototype matrix or dead PMT 
+*                       45 - out of prototype matrix or dead PMT
 *                       51 - sideways upper mirror gap exit
 *                       52 - sideways lower mirror gap exit
 *                       60 - particle track zone without reflection
 *                       61 - particle track zone with    reflection
+*                       70 - (TBD?: 71...80) - mirror sector limits 1...10
 *
 * Revised : 28/May/2004 (F.Barao)
 *           17/Nov/2008 (R.Pereira - track zone)
-*        
+*           06/May/2009 (R.Pereira - mirror sectors)
+*       
 ********************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer nphmax,nermax  
-      parameter(nphmax=50)
+      integer nphmax,nermax 
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
 
       integer nphitot,                   !total nb roots
@@ -1522,9 +1785,9 @@ c     &        ,vefflgref,efflgdir)
      +        fphitotbuf(nphmax)
 
       real    vphitot(nphmax),           !root values
-     +        vphitotbuf(nphmax), 
+     +        vphitotbuf(nphmax),
      +        vphiprotbuf(nphmax),
-     +        vphiprotint(nphmax), 
+     +        vphiprotint(nphmax),
      +        vphirad(nphmax),
      +        vphigapup(nphmax),
      +        vphimir(nphmax),
@@ -1534,7 +1797,8 @@ c     &        ,vefflgref,efflgdir)
      +        vphiprot(nphmax),
      +        vphiwall(nphmax),
      +        vphilev(nphmax),
-     +        vphitrk(nphmax)
+     +        vphitrk(nphmax),
+     +        vphimsec(nphmax)
 
       integer fphilev(nphmax)
 
@@ -1551,174 +1815,182 @@ c     &        ,vefflgref,efflgdir)
       real thetac
       integer npointer, ipointer, ng, i, nrprot, nprot
 
-      integer nph  
+      integer nph 
       parameter(nph=10)
-      integer nerr,verro(nph)                                                
+      integer nerr,verro(nph)                                               
       real par, phdir(3), phpto(3),phdirn(3), vdet(3),vdir(3)
-      common /parfunc/ par(10)                                              
+      common /parfunc/ par(10)                                             
 
+*      print*,'set_phiroots called'
 * --- init
-      nphitot = 0 
+      nphitot = 0
       call vfill(vphitot,nphmax,0.)
       call vfill(vphitotbuf,nphmax,0.)
 
-* --- compute radiator sideways phi roots                    
+* --- compute radiator sideways phi roots                   
 
-      call find_phiroots('RADT',thetac,vphirad,ndum0)                          
+      call find_phiroots('RADT',thetac,vphirad,ndum0)                         
+*      print*,'roots(RADT) = ',int(vphirad(1))
 
       if ( int(vphirad(1)).ne.0) then
-         ntemptot = nphitot+int(vphirad(1)) 
-         if (ntemptot.le.nphmax ) then              
-            call ucopy(vphirad(2),vphitot(nphitot+1),int(vphirad(1)))       
-            call vfill(fphitot(nphitot+1),int(vphirad(1)),1)                
-            nphitot = nphitot + int(vphirad(1))                             
+         ntemptot = nphitot+int(vphirad(1))
+         if (ntemptot.le.nphmax ) then             
+            call ucopy(vphirad(2),vphitot(nphitot+1),int(vphirad(1)))      
+            call vfill(fphitot(nphitot+1),int(vphirad(1)),1)               
+            nphitot = nphitot + int(vphirad(1))                            
          else
-            print*,'(set_phiroots) nb phi roots to stock greater than',
-     +             nphmax,' option RADT'
+            print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +           ') greater than ',nphmax,' option RADT'
          endif
-      endif                                                              
+      endif                                                             
 
 * --- compute radiator inner walls roots
-   
+  
       if (LEVGRAD.eq.1) then
 
-         call find_phiroots('RADW',thetac,vphirad,ndum0)                    
-*         print*,'vphirad RADW ------->',vphirad
-         if (int(vphirad(1)).ne.0) then     
-            ntemptot = nphitot+int(vphirad(1))                            
-            if (ntemptot.le.nphmax ) then                   
-               call ucopy(vphirad(2),vphitot(nphitot+1),int(vphirad(1)))       
-               call vfill(fphitot(nphitot+1),int(vphirad(1)),11)                
-               nphitot = nphitot + int(vphirad(1))                             
+         call find_phiroots('RADW',thetac,vphirad,ndum0)                   
+*         print*,'roots(RADW) = ',int(vphirad(1))
+
+         if (int(vphirad(1)).ne.0) then    
+            ntemptot = nphitot+int(vphirad(1))                           
+            if (ntemptot.le.nphmax ) then                  
+               call ucopy(vphirad(2),vphitot(nphitot+1),int(vphirad(1)))
+               call vfill(fphitot(nphitot+1),int(vphirad(1)),11)               
+               nphitot = nphitot + int(vphirad(1))                            
             else
-               print*,'(set_phiroots) nb phi roots to stock greater '//
-     +                 'than ',nphmax,' option RADW'
-            endif   
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option RADW'
+            endif  
          endif
 
-      endif                                                                            
-                                       
-* --- compute total reflection phi roots                                      
+      endif                                                                           
+                                      
+* --- compute total reflection phi roots                                     
 
-      call find_phiroots('REFL',thetac,vphiref,ndum1)                          
+      call find_phiroots('REFL',thetac,vphiref,ndum1)                         
+*      print*,'roots(REFL) = ',int(vphiref(1))
 
-      if (int(vphiref(1)).ne.0) then                                     
-         ntemptot = nphitot+int(vphiref(1))                            
-         if (ntemptot.le.nphmax ) then                   
-            call ucopy(vphiref(2),vphitot(nphitot+1),int(vphiref(1)))       
-            call vfill(fphitot(nphitot+1),int(vphiref(1)),2)                
-            nphitot = nphitot + int(vphiref(1))                           
+      if (int(vphiref(1)).ne.0) then                                    
+         ntemptot = nphitot+int(vphiref(1))                           
+         if (ntemptot.le.nphmax ) then                  
+            call ucopy(vphiref(2),vphitot(nphitot+1),int(vphiref(1)))      
+            call vfill(fphitot(nphitot+1),int(vphiref(1)),2)               
+            nphitot = nphitot + int(vphiref(1))                          
          else
-            print*,'(set_phiroots) nb phi roots to stock greater '//
-     +             'than ',nphmax,' option REFL'
-         endif   
-      endif                                                              
+            print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +           ') greater than ',nphmax,' option REFL'
+         endif  
+      endif                                                             
 
-* --- compute upper mirror gap sideways phi roots                    
-      if ( rcgeom(1).eq.0 ) then                      !flight configuration 
-         call find_phiroots('GAPU',thetac,vphigapup,ndum0)     
+* --- compute upper mirror gap sideways phi roots                   
+      if ( rcgeom(1).eq.0 ) then                      !flight configuration
+         call find_phiroots('GAPU',thetac,vphigapup,ndum0)    
+*         print*,'roots(GAPU) = ',int(vphigapup(1))
 
          if ( int(vphigapup(1)).ne.0) then
-            ntemptot = nphitot+int(vphigapup(1)) 
-            if (ntemptot.le.nphmax ) then              
+            ntemptot = nphitot+int(vphigapup(1))
+            if (ntemptot.le.nphmax ) then             
                call ucopy(vphigapup(2),vphitot(nphitot+1)
-     &              ,int(vphigapup(1)))       
+     &              ,int(vphigapup(1)))      
                call vfill(fphitot(nphitot+1),int(vphigapup(1)),51)
                nphitot = nphitot + int(vphigapup(1))
             else
-               print*
-     &              ,'(set_phiroots) nb phi roots to stock greater than'
-     &              ,nphmax,' option RADT'
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option RADT'
             endif
          endif
-      endif       
-        
-* --- compute mirror phi roots    
+      endif      
+       
+* --- compute mirror phi roots   
 
-      if ( rcgeom(1).eq.0 ) then                      !flight configuration 
+      if ( rcgeom(1).eq.0 ) then                      !flight configuration
 
 
          call find_phiroots('MIR0',thetac,vphimir,ndum2) !1st reflection
- 
-         if (int(vphimir(1)).ne.0) then                  
-            ntemptot = nphitot+int(vphimir(1))                            
-            if (ntemptot.le.nphmax ) then                                      
-               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))       
-               call vfill(fphitot(nphitot+1),int(vphimir(1)),31)                
-               nphitot = nphitot + int(vphimir(1))                             
+*         print*,'roots(MIR0) = ',int(vphimir(1))
+
+         if (int(vphimir(1)).ne.0) then                 
+            ntemptot = nphitot+int(vphimir(1))                           
+            if (ntemptot.le.nphmax ) then                                     
+               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))      
+               call vfill(fphitot(nphitot+1),int(vphimir(1)),31)               
+               nphitot = nphitot + int(vphimir(1))                            
             else
-               print*,'(set_phiroots) nb phi roots to stock greater '//
-     +                'than ',nphmax,' option MIR0'
-            endif   
-         endif                                              
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option MIR0'
+            endif  
+         endif                                             
 *         print*,'vphimir',vphimir
          call find_phiroots('MIR1',thetac,vphimir,ndum2) !2nd reflection
-            
-         if (int(vphimir(1)).ne.0) then                                     
-            ntemptot = nphitot+int(vphimir(1))                            
-            if (ntemptot.le.nphmax ) then                                      
-               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))       
-               call vfill(fphitot(nphitot+1),int(vphimir(1)),32)                
+*         print*,'roots(MIR1) = ',int(vphimir(1))
+
+         if (int(vphimir(1)).ne.0) then                                    
+            ntemptot = nphitot+int(vphimir(1))                           
+            if (ntemptot.le.nphmax ) then                                     
+               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))      
+               call vfill(fphitot(nphitot+1),int(vphimir(1)),32)               
                nphitot = nphitot + int(vphimir(1))
             else
-               print*,'(set_phiroots) nb phi roots to stock greater '//
-     +                'than ',nphmax,' option MIR1'                             
-            endif       
-         endif                 
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option MIR1'                            
+            endif      
+         endif                
 *         print*,'vphimir',vphimir
 
       elseif (rcgeom(1).eq.9.and.rcgeom(2).eq.1) then !prototype with mirror
 
          call find_phiroots('MIR0',thetac,vphimir,ndum2) !1st reflection
-         if (int(vphimir(1)).ne.0) then                  
-            ntemptot = nphitot+int(vphimir(1))                            
-            if (ntemptot.le.nphmax ) then                                      
-               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))       
-               call vfill(fphitot(nphitot+1),int(vphimir(1)),31)                
-               nphitot = nphitot + int(vphimir(1))                             
+*         print*,'roots(MIR0) = ',int(vphimir(1))
+
+         if (int(vphimir(1)).ne.0) then                 
+            ntemptot = nphitot+int(vphimir(1))                           
+            if (ntemptot.le.nphmax ) then                                     
+               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))      
+               call vfill(fphitot(nphitot+1),int(vphimir(1)),31)               
+               nphitot = nphitot + int(vphimir(1))                            
             else
-               print*,'(set_phiroots) nb phi roots to stock greater '//
-     +                'than ',nphmax,' option MIR0'
-            endif   
-         endif                             
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option MIR0'
+            endif  
+         endif                            
 
          call find_phiroots('MPRT',thetac,vphimir,ndum2) !calculate the intersection with the mirror limits
+*         print*,'roots(MPRT) = ',int(vphimir(1))
 
          if (int(vphimir(1)).ne.0) then
-            ntemptot = nphitot+int(vphimir(1))                            
-            if (ntemptot.le.nphmax ) then                                      
-               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))       
-               call vfill(fphitot(nphitot+1),int(vphimir(1)),33) 
-               nphitot = nphitot + int(vphimir(1))  
+            ntemptot = nphitot+int(vphimir(1))                           
+            if (ntemptot.le.nphmax ) then                                     
+               call ucopy(vphimir(2),vphitot(nphitot+1),int(vphimir(1)))      
+               call vfill(fphitot(nphitot+1),int(vphimir(1)),33)
+               nphitot = nphitot + int(vphimir(1)) 
             else
-               print*,'(set_phiroots) nb phi roots to stock greater '//
-     +                'than ',nphmax,' option MPRT'                             
-            endif       
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option MPRT'                            
+            endif      
          endif
-
 
       endif
 
-* --- compute lower mirror gap sideways phi roots                    
-      if ( rcgeom(1).eq.0 ) then                      !flight configuration 
-         call find_phiroots('GAPD',thetac,vphigapdw,ndum0)     
+* --- compute lower mirror gap sideways phi roots                   
+      if ( rcgeom(1).eq.0 ) then                      !flight configuration
+         call find_phiroots('GAPD',thetac,vphigapdw,ndum0)    
+*         print*,'roots(GAPD) = ',int(vphigapdw(1))
 
          if ( int(vphigapdw(1)).ne.0) then
-            ntemptot = nphitot+int(vphigapdw(1)) 
-            if (ntemptot.le.nphmax ) then              
+            ntemptot = nphitot+int(vphigapdw(1))
+            if (ntemptot.le.nphmax ) then             
                call ucopy(vphigapdw(2),vphitot(nphitot+1)
-     &              ,int(vphigapdw(1)))       
+     &              ,int(vphigapdw(1)))      
                call vfill(fphitot(nphitot+1),int(vphigapdw(1)),52)
                nphitot = nphitot + int(vphigapdw(1))
             else
-               print*
-     &              ,'(set_phiroots) nb phi roots to stock greater than'
-     &              ,nphmax,' option RADT'
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option RADT'
             endif
          endif
-      endif       
-       
-* --- PMT Matrix roots  
+      endif      
+      
+* --- PMT Matrix roots 
       if (rcgeom(1).ne.9) then  !flight configuration
 
          chgeom(1) = 'HEMC'
@@ -1727,37 +1999,38 @@ c     &        ,vefflgref,efflgdir)
          chgeom(4) = 'HPMT'
 
          npointer = 0
-         ipointer = 0                                              
+         ipointer = 0                                             
 
          do ng=1,levgeom+1 !take into account different geometry levels
             if(ng.gt.4)goto 55
             call find_phiroots(chgeom(ng),thetac,vphihol,ndum3)
+*            print*,'roots(',chgeom(ng),') = ',int(vphihol(1))
 
-            do i=1,int(vphihol(1))                                            
-               ipointer = ipointer + 1                                         
-               vphilev(ipointer) = abs(vphihol(i+1))                           
-               if (vphihol(i+1).lt.0.) then                                    
-                  fphilev(ipointer) = 41                                      
-               else                                                            
-                  fphilev(ipointer) = 40                                      
-               endif                                                           
-            enddo                                                              
-            npointer =  npointer + int(vphihol(1))  
+            do i=1,int(vphihol(1))                                           
+               ipointer = ipointer + 1                                        
+               vphilev(ipointer) = abs(vphihol(i+1))                          
+               if (vphihol(i+1).lt.0.) then                                   
+                  fphilev(ipointer) = 41                                     
+               else                                                           
+                  fphilev(ipointer) = 40                                     
+               endif                                                          
+            enddo                                                             
+            npointer =  npointer + int(vphihol(1)) 
 
          enddo
  55      continue
 *
          ntemptot = nphitot+npointer
-         if (ntemptot.le.nphmax ) then                                      
-            call ucopy(vphilev(1),vphitot(nphitot+1),npointer)       
-            call ucopy(fphilev(1),fphitot(nphitot+1),npointer)                
-            nphitot = nphitot + npointer                             
+         if (ntemptot.le.nphmax ) then                                     
+            call ucopy(vphilev(1),vphitot(nphitot+1),npointer)      
+            call ucopy(fphilev(1),fphitot(nphitot+1),npointer)               
+            nphitot = nphitot + npointer                            
          else
             print*,'(set_phiroots) phi roots from HOLE LEVEL '//
      +             ' over!'
-         endif                             
+         endif                            
 *
-         if (ldebug.ge.2) then 
+         if (ldebug.ge.2) then
             write(*,*) '(set_phiroots) nphitot before/after hole',
      &                  nphitot,nphitot+int(vphihol(1))
          endif
@@ -1765,17 +2038,18 @@ c     &        ,vefflgref,efflgdir)
 
       else ! prototype configuration
 
-         call find_phiroots('PMTL',thetac,vphiprot,ndum) 
+         call find_phiroots('PMTL',thetac,vphiprot,ndum)
+*         print*,'roots(PMTL) = ',int(vphiprot(1))
 
          if (int(vphiprot(1)).ne.0) then
             nrprot=int(vphiprot(1))
 *
             call ucopy(vphiprot(2),vphiprotint(1),nrprot)
-            call sortzv(vphiprotint,index,nrprot,1,0,0) 
+            call sortzv(vphiprotint,index,nrprot,1,0,0)
 
-            do i=1,nrprot                                    
-               vphiprot(i) = vphiprotint(index(i)) 
-            enddo    
+            do i=1,nrprot                                   
+               vphiprot(i) = vphiprotint(index(i))
+            enddo   
 
             nprot=0
             do i=1,nrprot
@@ -1788,24 +2062,25 @@ c     &        ,vefflgref,efflgdir)
  111           continue
             enddo
 
-            call ucopy(vphiprotbuf(1),vphitot(nphitot+1),nprot)       
+            call ucopy(vphiprotbuf(1),vphitot(nphitot+1),nprot)      
 
-            call vfill(fphitot(nphitot+1),nprot,45)                
+            call vfill(fphitot(nphitot+1),nprot,45)               
 
-            nphitot = nphitot + nprot                  
+            nphitot = nphitot + nprot                 
 
          endif
 
-      endif         
+      endif        
 
 
-* --- compute particle track region phi roots    
+* --- compute particle track region phi roots   
 
       if (LEVGHIT.eq.1) then
 
          if (rcgeom(1).ne.9) then !flight configuration
 
             call find_phiroots('TRKZ',thetac,vphitrk,ndum3)
+*            print*,'roots(TRKZ) = ',int(vphitrk(1))
 
             if (int(vphitrk(1)).ne.0) then
                ntemptot = nphitot+int(vphitrk(1))
@@ -1820,9 +2095,9 @@ c     &        ,vefflgref,efflgdir)
                      endif
                   enddo
                else
-                  print*,'(set_phiroots) nb phi roots to stock '//
-     +                 'greater than ',nphmax,' option TRKZ'
-               endif       
+                  print*,'(set_phiroots) nb phi roots to store (',
+     +                 ntemptot,') greater than ',nphmax,' option TRKZ'
+               endif      
             endif
 
          endif
@@ -1830,18 +2105,43 @@ c     &        ,vefflgref,efflgdir)
       endif
 
 
-* --- sorting phi roots                                                  
-      if (nphitot.gt.nphmax) 
+* --- compute mirror sector limit phi roots
+
+      if (rcgeom(1).ne.9) then  !flight configuration
+
+         call find_phiroots('MSEC',thetac,vphimsec,ndum3)
+*         print*,'roots(MSEC) = ',int(vphimsec(1))
+
+         if (int(vphimsec(1)).ne.0) then
+            ntemptot = nphitot+int(vphimsec(1))
+            if (ntemptot.le.nphmax ) then
+               do i=1,int(vphimsec(1))
+                  nphitot = nphitot+1
+                  vphitot(nphitot) = abs(vphimsec(i+1))
+                  fphitot(nphitot) = 70 ! TBD?: 70+sector
+               enddo
+            else
+               print*,'(set_phiroots) nb phi roots to store (',ntemptot,
+     +              ') greater than ',nphmax,' option MSEC'
+            endif      
+         endif
+
+      endif
+
+
+* --- sorting phi roots                                                 
+      if (nphitot.gt.nphmax)
      +   print*, '(set_phiroots) MAXIMUM NUMBER OF PHI ROOTS EXCEEDED'//
-     +           ' nphitot=',nphitot 
-      call sortzv(vphitot,index,nphitot,1,0,0)                           
-      do i=1,nphitot                                                     
-         vphitotbuf(i) = vphitot(index(i))                               
-         fphitotbuf(i) = fphitot(index(i))                               
-      enddo                                                              
+     +           ' nphitot=',nphitot
+      call sortzv(vphitot,index,nphitot,1,0,0)                          
+*      print*,'nphitot = ',nphitot
+      do i=1,nphitot
+         vphitotbuf(i) = vphitot(index(i))                              
+         fphitotbuf(i) = fphitot(index(i))                              
+*         print*,i,vphitotbuf(i),fphitotbuf(i)
+      enddo
       call ucopy(vphitotbuf,vphitot,nphitot)
       call ucopy(fphitotbuf,fphitot,nphitot)
-*      print*,'vphitot',vphitot,fphitot
 * --- end
       return
       end
@@ -1857,46 +2157,48 @@ c     &        ,vefflgref,efflgdir)
 *                'REFL'  - total reflection
 *                'MIR0'  - mirror 1st reflection
 *                'MIR1'  - mirror 2nd reflection
-*                'MPRT'  - mirror prototype 
+*                'MPRT'  - mirror prototype
 *                'HEMC'  - EMC hole (square)
 *                'HCOR'  - EMC hole corners
 *                'HGAP'  - PMT module gaps
 *                'HPMT'  - PMT outer contours
 *                'PMTL'  - PMT prototype outer boundary
 *                'TRKZ'  - Particle track impact zone
+*                'MSEC'  - Mirror sector limits
 
 *      thetac  = cerenkov angle
 *
 * OUT: vphival = (1)    : nb of phi root values
-*                (2,...): phi's 
+*                (2,...): phi's
 *      nmireft = number of reflections for the phi roots
 *
-*                         
-* last update : 17/09/2002                                       
+*                        
+* last update : 17/09/2002                                      
 *               25/05/2004 (L.Arruda,F.Barao)
 *               13/11/2008 (R.Pereira - TRKZ)
+*               06/05/2009 (R.Pereira - MSEC)
 *
 ***************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      real par                   ! temporary array for passing values to functions 
+      real par                   ! temporary array for passing values to functions
       common /parfunc/ par(10)   ! par(1) coord of vert/hor line
                                  ! par(2) Cherenkov angle
                                  ! par(3) limits of the mirror
                                  ! par(9) = 1 , x is fixed (vert  line)
                                  !        = 2 , y is fixed (horiz line)
 
-      character chopt*4          
+      character chopt*4         
 
       integer nrootmax
       parameter (nrootmax=200)
       real xb1(nrootmax),xb2(nrootmax), yb1(nrootmax),yb2(nrootmax)
 *
-      integer nphmax,nermax  
+      integer nphmax,nermax 
       parameter(nermax=10)
       integer verr(nermax)
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       real philmir(nphmax),  ! temp phi values
      +     philhol(nphmax),
      +     philrad(nphmax),
@@ -1905,6 +2207,7 @@ c     &        ,vefflgref,efflgdir)
      +     philgapup(nphmax),
      +     philgapdw(nphmax),
      +     philcir(nphmax),
+     +     philmsl(nphmax),
      +     vphival(nphmax)   ! final phi values to be passed out
 
       real phpto(3),phdir(3)
@@ -1918,12 +2221,15 @@ c     &        ,vefflgref,efflgdir)
       integer ncirt,nrefcir(nphmax)
       common /circvar/ ncirt,philcir,nrefcir
 *
+      integer nmslt,nrefmsl(nphmax)
+      common /mslvar/ nmslt,philmsl,nrefmsl
+*
       real EPS
       integer MAXF
       data EPS,MAXF /1.E-4,1000/
 *
-      external fphilmir0,fphilmir1,  
-     +         fphilhole, 
+      external fphilmir0,fphilmir1, 
+     +         fphilhole,
      +         fphilrad,
      +         fphilrefl,
      +         fphilmir_prot,
@@ -1932,10 +2238,10 @@ c     &        ,vefflgref,efflgdir)
       integer iallmir, nmireft, nprot, nradt, i, nrrad, ierr,
      +     nrrefl, nreflr, nmirt, nrmir, ip, ifl, ix, iy, ngapup, ngapdw
       real pitchx, pitchy, xlimv, xlimh, ylimh, ylimv, thetac,
-     +     x1, x2, root, r, xradlimu, xradlimd, yradlimu, 
+     +     x1, x2, root, r, xradlimu, xradlimd, yradlimu,
      +     y1, y2, yradlimd, phi_min, phi_max, discont, xphi,
      +     f, fphilmir_prot, fbuf, ylow, yhig, xlow, xhig,
-     +     xl, xr, yu, yd, xc, yc, xlim, ylim 
+     +     xl, xr, yu, yd, xc, yc, xlim, ylim
 
 
 * --- init
@@ -1962,32 +2268,32 @@ c     &        ,vefflgref,efflgdir)
       PITCHY=PMTWY+SHIELDW
 *
       XLIMV=(17*PITCHX + JUMP)/2.
-      XLIMH=XLIMV + DMECX 
+      XLIMH=XLIMV + DMECX
       YLIMH=(17*PITCHY)/2.
-      YLIMV= YLIMH + DMECY 
+      YLIMV= YLIMH + DMECY
 
 * ==> PASS CERENKOV ANGLE TO FUNCTIONS
       par(2) = thetac
 
-*     ------------------------------------ 
-      if (chopt.eq.'RADT') then            
-*     ------------------------------------ 
+*     ------------------------------------
+      if (chopt.eq.'RADT') then           
+*     ------------------------------------
 
       if (rcgeom(1).ne.9) then           /* rich flight configuration */
 
-        /* get interval limits for roots search */ 
+        /* get interval limits for roots search */
 
         nradt=nrootmax
         call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nradt)
 
-        /* get roots */                                          
+        /* get roots */                                         
 
-        do i=1,nradt                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad)      
-           philrad(i) = root                              
-        enddo                      
+        do i=1,nradt                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad)     
+           philrad(i) = root                             
+        enddo                     
 
       else /* rich prototype configuration */
 
@@ -2006,51 +2312,51 @@ c     &        ,vefflgref,efflgdir)
         par(9) = 1.
 
         nrrad=nrootmax
-        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad) 
+        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)
 
-        /* get roots */                                          
-        do i=1,nrrad                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad) 
-* ........ photon emission point         
+        /* get roots */                                         
+        do i=1,nrrad                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad)
+* ........ photon emission point        
            call ucopy(pcervtx,phpto,3)
-* ........ generate photon on detector frame                   
-           call patphot(root,thetac,phdir)                                   
-* ........ test photon direction: backward?                                    
-           if (phdir(3).lt.0.) return   
-* ........ get yint(phpto(2)) in Rad 
+* ........ generate photon on detector frame                  
+           call patphot(root,thetac,phdir)                                  
+* ........ test photon direction: backward?                                   
+           if (phdir(3).lt.0.) return  
+* ........ get yint(phpto(2)) in Rad
            call patints(phpto,phdir,'RADB',ierr)
            IF (abs(phpto(2)-YCRAD).lt.YDRAD/2.) then
               nradt = nradt+1
-              philrad(nradt) = root                              
+              philrad(nradt) = root                             
            endif
-        enddo                      
+        enddo                     
 *
         par(1)=xradlimd
         par(9) = 1.
 
         nrrad=nrootmax
-        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)       
+        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)      
 
-        /* get roots */                                          
-        do i=1,nrrad                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad) 
-* ........ photon emission point         
-           call ucopy(pcervtx,phpto,3)                                 
-* ........ generate photon on detector frame                   
-           call patphot(root,thetac,phdir)                                   
-* ........ test photon direction: backward?                                    
-           if (phdir(3).lt.0.) return   
-* ........ get yint(phpto(2)) in Rad 
+        /* get roots */                                         
+        do i=1,nrrad                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad)
+* ........ photon emission point        
+           call ucopy(pcervtx,phpto,3)                                
+* ........ generate photon on detector frame                  
+           call patphot(root,thetac,phdir)                                  
+* ........ test photon direction: backward?                                   
+           if (phdir(3).lt.0.) return  
+* ........ get yint(phpto(2)) in Rad
            call patints(phpto,phdir,'RADB',ierr)
            IF(abs(phpto(2)-YCRAD).lt.YDRAD/2.)then
               nradt = nradt+1
-              philrad(nradt) = root                              
+              philrad(nradt) = root                             
            endif
-        enddo                      
+        enddo                     
 
 
 
@@ -2058,57 +2364,57 @@ c     &        ,vefflgref,efflgdir)
         par(9) = 2.
 
         nrrad  = nrootmax
-        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)       
-        /* get roots */                                          
-        do i=1,nrrad                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad) 
-* ........ photon emission point         
-           call ucopy(pcervtx,phpto,3)                                 
-* ........ generate photon on detector frame                   
-           call patphot(root,thetac,phdir)                                   
-* ........ test photon direction: backward?                                    
-           if (phdir(3).lt.0.) return   
-* ........ get yint(phpto(2)) in Rad 
+        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)      
+        /* get roots */                                         
+        do i=1,nrrad                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad)
+* ........ photon emission point        
+           call ucopy(pcervtx,phpto,3)                                
+* ........ generate photon on detector frame                  
+           call patphot(root,thetac,phdir)                                  
+* ........ test photon direction: backward?                                   
+           if (phdir(3).lt.0.) return  
+* ........ get yint(phpto(2)) in Rad
            call patints(phpto,phdir,'RADB',ierr)
            IF(abs(phpto(1)-XCRAD).lt.XDRAD/2.)then
               nradt = nradt+1
-              philrad(nradt) = root                              
+              philrad(nradt) = root                             
            endif
-        enddo                      
+        enddo                     
 
         nrrad  = nrootmax
         par(1) = yradlimd
         par(9) = 2.
 
-        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)       
-        /* get roots */                                          
-        do i=1,nrrad                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad) 
-* ........ photon emission point         
-           call ucopy(pcervtx,phpto,3)                                 
-* ........ generate photon on detector frame                   
-           call patphot(root,thetac,phdir)                                   
-* ........ test photon direction: backward?                                    
-           if (phdir(3).lt.0.) return   
-* ........ get yint(phpto(2)) in Rad 
+        call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrad)      
+        /* get roots */                                         
+        do i=1,nrrad                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilrad)
+* ........ photon emission point        
+           call ucopy(pcervtx,phpto,3)                                
+* ........ generate photon on detector frame                  
+           call patphot(root,thetac,phdir)                                  
+* ........ test photon direction: backward?                                   
+           if (phdir(3).lt.0.) return  
+* ........ get yint(phpto(2)) in Rad
            call patints(phpto,phdir,'RADB',ierr)
            IF(abs(phpto(1)-XCRAD).lt.XDRAD/2.)then
               nradt = nradt+1
-              philrad(nradt) = root                              
+              philrad(nradt) = root                             
            endif
-        enddo                      
+        enddo                     
 
       endif
 
 C TEMP the previous 4 sets can be put into a subroutine
 
-* --- output                              
+* --- output                             
 
-      vphival(1) = real(nradt)            
+      vphival(1) = real(nradt)           
       call ucopy(philrad,vphival(2),nradt)
 
 *     ------------------------------------
@@ -2125,65 +2431,65 @@ C TEMP the previous 4 sets can be put into a subroutine
 * ........ tile phi roots
            call tileroots(x1,x2,y1,y2,ig,vphival)
 
-*     ------------------------------------ 
-      elseif (chopt.eq.'REFL') then        
-*     ------------------------------------ 
+*     ------------------------------------
+      elseif (chopt.eq.'REFL') then       
+*     ------------------------------------
 
-* --- get interval limits for roots: for total reflected dphi  
-      nrrefl=nrootmax  
-      call zbrak(fphilrefl,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrefl)  
-* --- get roots                             :for refl                      
+* --- get interval limits for roots: for total reflected dphi 
+      nrrefl=nrootmax 
+      call zbrak(fphilrefl,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrrefl) 
+* --- get roots                             :for refl                     
 
 *    17/09
       nreflr=0
-      do i=1,nrrefl                                         
+      do i=1,nrrefl                                        
        if(abs(yb1(i)-yb2(i)).lt.1.E6)then
-         call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphilrefl)      
+         call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphilrefl)     
          nreflr=nreflr+1
-         philrefl(nreflr) = root                              
+         philrefl(nreflr) = root                             
        endif
-      enddo                                                
+      enddo                                               
 
-* --- output                              
+* --- output                             
 
-      vphival(1) = real(nreflr)            
+      vphival(1) = real(nreflr)           
 
       call ucopy(philrefl,vphival(2),nreflr)
 
-*     ------------------------------------ 
-      elseif (chopt.eq.'GAPU') then            
-*     ------------------------------------ 
+*     ------------------------------------
+      elseif (chopt.eq.'GAPU') then           
+*     ------------------------------------
 
       if (rcgeom(1).ne.9) then           /* rich flight configuration */
 
-        /* get interval limits for roots search */ 
+        /* get interval limits for roots search */
         par(4)=HRAD + HPGL + ZTMIRGAP
         ngapup=nrootmax
         call zbrak(fphilgap,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,ngapup)
 
-        /* get roots */                                          
+        /* get roots */                                         
 
-        do i=1,ngapup                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilgap)      
-           philgapup(i) = root                              
+        do i=1,ngapup                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilgap)     
+           philgapup(i) = root                             
         enddo
-                      
+                     
       endif
 C TEMP the previous 4 sets can be put into a subroutine
 
-* --- output                              
+* --- output                             
 
-      vphival(1) = real(ngapup)            
+      vphival(1) = real(ngapup)           
       call ucopy(philgapup,vphival(2),ngapup)
 
-*     ------------------------------------ 
-      elseif (chopt.eq.'MIR0') then            
-*     ------------------------------------ 
+*     ------------------------------------
+      elseif (chopt.eq.'MIR0') then           
+*     ------------------------------------
 
 * --- find limit phi angles of mirror intersection
-     
+    
       nmirt = 0
 * ==> search for 1st order roots (0 refls ---> >=1 refls)
       nrmir = nrootmax
@@ -2195,19 +2501,19 @@ C TEMP the previous 4 sets can be put into a subroutine
             call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphilmir0)
             nmirt=nmirt+1
             philmir(nmirt) = root
-         endif                        
-      enddo                              
+         endif                       
+      enddo                             
 *      print*,'philmir',philmir
-* --- output                                                  
+* --- output                                                 
       vphival(1) = real(nmirt)
       call ucopy(philmir,vphival(2),nmirt)
 
-*     ------------------------------------ 
-      elseif (chopt.eq.'MIR1') then            
-*     ------------------------------------ 
+*     ------------------------------------
+      elseif (chopt.eq.'MIR1') then           
+*     ------------------------------------
 
       nmirt = 0
-* ==> search for 2nd order roots (1 refls ---> 2 refls)                        
+* ==> search for 2nd order roots (1 refls ---> 2 refls)                       
 
       nrmir = nrootmax
       call zbrak(fphilmir1,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrmir)
@@ -2217,10 +2523,10 @@ C TEMP the previous 4 sets can be put into a subroutine
             call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphilmir1)
             nmirt=nmirt+1
             philmir(nmirt) = root
-         endif                        
+         endif                       
       enddo
 
-* --- output                                                  
+* --- output                                                 
       vphival(1) = real(nmirt)
       call ucopy(philmir,vphival(2),nmirt)
 
@@ -2230,79 +2536,79 @@ C TEMP the previous 4 sets can be put into a subroutine
       phi_min=min(mirphild(1),mirphild(2))
       phi_max=max(mirphild(1),mirphild(2))
 
-      par(3)=phi_min  
+      par(3)=phi_min 
       nmirt = 0
 * ==> search for reflection roots on the prototype written on the mirror
 *     frame
       discont=0.8*twopi*degrad
       i=0
       do xphi=0.,twopi+twopi/real(2*nrootmax),twopi/real(2*nrootmax)
-         f=fphilmir_prot(xphi)         
+         f=fphilmir_prot(xphi)        
          i=i+1
          if(i.ge.2)then
             if(abs(f-fbuf).lt.1.E6)then
                if((f*fbuf.lt.0.0.and.abs(f-fbuf).lt.discont)
      ,                           .OR.
-     ,            (f*fbuf.gt.0.0.and.abs(f-fbuf).gt.discont)  
+     ,            (f*fbuf.gt.0.0.and.abs(f-fbuf).gt.discont) 
      ,              )then
                   nmirt=nmirt+1
                   philmir(nmirt) = xphi
-               endif                     
+               endif                    
             endif
          endif
          fbuf=f
       enddo
 
-      par(3)=phi_max  
+      par(3)=phi_max 
 * ==> search for reflection roots on the prototype written on the mirror
 *     frame
       i=0
       do xphi=0.,twopi+twopi/real(2*nrootmax),twopi/real(2*nrootmax)
-         f=fphilmir_prot(xphi)         
+         f=fphilmir_prot(xphi)        
          i=i+1
          if(i.ge.2)then
             if(abs(f-fbuf).lt.1.E6)then
                if((f*fbuf.lt.0.0.and.abs(f-fbuf).lt.discont)
      ,                           .OR.
-     ,            (f*fbuf.gt.0.0.and.abs(f-fbuf).gt.discont)  
+     ,            (f*fbuf.gt.0.0.and.abs(f-fbuf).gt.discont) 
      ,              )then
                   nmirt=nmirt+1
                   philmir(nmirt) = xphi
-               endif                     
+               endif                    
             endif
          endif
          fbuf=f
       enddo
-* --- output                                                  
+* --- output                                                 
       vphival(1) = real(nmirt)
       call ucopy(philmir,vphival(2),nmirt)
 
-*     ------------------------------------ 
-      elseif (chopt.eq.'GAPD') then            
-*     ------------------------------------ 
+*     ------------------------------------
+      elseif (chopt.eq.'GAPD') then           
+*     ------------------------------------
 
       if (rcgeom(1).ne.9) then           /* rich flight configuration */
 
-        /* get interval limits for roots search */ 
+        /* get interval limits for roots search */
         par(4)=HRAD + HPGL + ZTMIRGAP + HMIR + ZBMIRGAP
         ngapdw=nrootmax
         call zbrak(fphilgap,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,ngapdw)
 
-        /* get roots */                                          
+        /* get roots */                                         
 
-        do i=1,ngapdw                                          
-           x1 = xb1(i)                                     
-           x2 = xb2(i)                                     
-           call rzero(x1,x2,root,r,EPS,MAXF,fphilgap)      
-           philgapdw(i) = root                              
+        do i=1,ngapdw                                         
+           x1 = xb1(i)                                    
+           x2 = xb2(i)                                    
+           call rzero(x1,x2,root,r,EPS,MAXF,fphilgap)     
+           philgapdw(i) = root                             
         enddo
-                      
+                     
       endif
 C TEMP the previous 4 sets can be put into a subroutine
 
-* --- output                              
+* --- output                             
 
-      vphival(1) = real(ngapdw)            
+      vphival(1) = real(ngapdw)           
       call ucopy(philgapdw,vphival(2),ngapdw)
 
 
@@ -2310,31 +2616,31 @@ C TEMP the previous 4 sets can be put into a subroutine
       elseif (chopt.eq.'HEMC') then
 *     ------------------------------------
 
-         nholt = 0                                     
-*               
+         nholt = 0                                    
+*              
          /* find limit phi angles of hole intersection*/
 
           par(1) = XLIMH        !xlimit  for hole (right)
           par(9) = 1.
           par(10)= 2.
-          YLOW   = 0. 
-          YHIG   = YLIMV 
+          YLOW   = 0.
+          YHIG   = YLIMV
           XLOW   = 0.
           XHIG   = 999.
           CALL HLIMSYM(xlow,xhig,ylow,yhig)
-          par(1) = -XLIMH       !xlimit (left)             
+          par(1) = -XLIMH       !xlimit (left)            
           par(10)= 1.
           CALL HLIMSYM(xlow,xhig,ylow,yhig)
 *
           par(1) = YLIMV        !ylimit  for hole (top)
           par(9) = 2.
           par(10)= 2.
-          YLOW   =  0 
+          YLOW   =  0
           YHIG   = 999.
           XLOW   = 0.
           XHIG   = XLIMH
           CALL HLIMSYM(xlow,xhig,ylow,yhig)
-          par(1) = -YLIMV       !ylimit (bottom)            
+          par(1) = -YLIMV       !ylimit (bottom)           
           par(10)= 1.
           CALL HLIMSYM(xlow,xhig,ylow,yhig)
 * --- output
@@ -2342,39 +2648,39 @@ C TEMP the previous 4 sets can be put into a subroutine
          call ucopy(philhol,vphival(2),nholt)
          do i=1,nholt
             ip = i + 1
-            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip) 
-            nmireft=nmireft+nrefhol(i) 
+            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip)
+            nmireft=nmireft+nrefhol(i)
 *            write(*,*)nmireft,nrefhol(i)
-         enddo 
+         enddo
 
 *     ------------------------------------
       elseif (chopt.eq.'HCOR') then
 *     ------------------------------------
 
-         NHOLT = 0                                     
+         NHOLT = 0                                    
 
         /* FIND ECAL CORNERS */
-          
+         
          /* RIGHT */
          par(1) = XLIMH + PITCHX
          par(9) = 1.
          par(10)= 2.
-         YLOW   = YLIMH-PITCHY 
-         YHIG   = YLIMV+PITCHY 
+         YLOW   = YLIMH-PITCHY
+         YHIG   = YLIMV+PITCHY
          XLOW   = 0.
          XHIG   = 999.
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
-         par(1) = XLIMV - PITCHX 
+         par(1) = XLIMV - PITCHX
          par(10)= 1.
          YLOW   = YLIMV
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 *
          /* DOWN */
-         par(1) = -YLIMV - PITCHY 
+         par(1) = -YLIMV - PITCHY
          par(9) = 2.
          par(10)= 1.
          XLOW   = XLIMV-PITCHX
-         XHIG   = XLIMH+PITCHX 
+         XHIG   = XLIMH+PITCHX
          YLOW   = 0.
          YHIG   = 999.
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
@@ -2384,29 +2690,29 @@ C TEMP the previous 4 sets can be put into a subroutine
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 *
          /*  LEFT */
-         par(1) = -XLIMH - PITCHX 
+         par(1) = -XLIMH - PITCHX
          par(9) = 1.
          par(10)= 1.
-         YLOW   = YLIMH -PITCHY 
-         YHIG   = YLIMV +PITCHY 
+         YLOW   = YLIMH -PITCHY
+         YHIG   = YLIMV +PITCHY
          XLOW   = 0.
          XHIG   = 999.
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
-         par(1) = -XLIMV + PITCHX 
+         par(1) = -XLIMV + PITCHX
          par(10)= 2.
          YLOW   =  YLIMV
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 *
          /* UP */
-         par(1) = YLIMV + PITCHY 
+         par(1) = YLIMV + PITCHY
          par(9) = 2.
          par(10)= 2.
-         XLOW   = XLIMV-PITCHX 
+         XLOW   = XLIMV-PITCHX
          XHIG   = XLIMH+PITCHX
          YLOW   = 0.
          YHIG   = 999.
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
-         par(1) = YLIMH - PITCHY 
+         par(1) = YLIMH - PITCHY
          par(10)= 1.
          XLOW   = XLIMH
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
@@ -2416,38 +2722,38 @@ C TEMP the previous 4 sets can be put into a subroutine
          call ucopy(philhol,vphival(2),nholt)
          do i=1,nholt
             ip = i + 1
-            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip) 
-            nmireft=nmireft+nrefhol(i) 
+            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip)
+            nmireft=nmireft+nrefhol(i)
 *            write(*,*)nmireft,nrefhol(i)
-         enddo 
+         enddo
 
 *     ------------------------------------
       elseif (chopt.eq.'HGAP') then
 *     ------------------------------------
 *        FIND GAPS BETWEEN MODULES
 
-         NHOLT = 0                                     
+         NHOLT = 0                                    
 *
-         par(1) = XLIMH        !xlimit   |_|<-          
+         par(1) = XLIMH        !xlimit   |_|<-         
          par(9) = 1.
-         YLOW =  YLIMH +   PITCHY   
-         YHIG =  YLIMV + 7*PITCHY 
+         YLOW =  YLIMH +   PITCHY  
+         YHIG =  YLIMV + 7*PITCHY
          XLOW   = 0.
          XHIG   = 999.
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
-         par(1) = XLIMV       !xlimit             
+         par(1) = XLIMV       !xlimit            
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 *                                        _
          par(1) = -XLIMH      !xlimit ->|_|
-         par(9) = 1.                          
+         par(9) = 1.                         
          par(10)= 1.
-         YLOW =  YLIMV +   PITCHY   
-         YHIG =  YLIMV + 7*PITCHY 
+         YLOW =  YLIMV +   PITCHY  
+         YHIG =  YLIMV + 7*PITCHY
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
-         par(1) = -XLIMV       !xlimit             
+         par(1) = -XLIMV       !xlimit            
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 
-         par(1) = YLIMV       !ylimit (top)    |_|            
+         par(1) = YLIMV       !ylimit (top)    |_|           
          par(9) = 2.
          par(10)= 2.
          XLOW   = XLIMH +   PITCHX
@@ -2455,11 +2761,11 @@ C TEMP the previous 4 sets can be put into a subroutine
          YLOW   = 0.
          YHIG   = 999.
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
-         par(1) = YLIMH                                
+         par(1) = YLIMH                               
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 *                                                       _
          par(1) = -YLIMV
-         par(9) = 2.             
+         par(9) = 2.            
          XLOW   = XLIMH +   PITCHX
          XHIG   = XLIMH + 7*PITCHX
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
@@ -2474,7 +2780,7 @@ C TEMP the previous 4 sets can be put into a subroutine
          par(9) = 1.
          par(10)= 2.
          YLOW =  YLIMV
-         YHIG =  YLIMV+9*PITCHY 
+         YHIG =  YLIMV+9*PITCHY
          XLOW   = -999.
          XHIG   =  999.
          CALL HLIMASYM(xlow,xhig,ylow,yhig)
@@ -2498,10 +2804,10 @@ C TEMP the previous 4 sets can be put into a subroutine
          call ucopy(philhol,vphival(2),nholt)
          do i=1,nholt
             ip = i + 1
-            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip) 
-            nmireft=nmireft+nrefhol(i) 
+            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip)
+            nmireft=nmireft+nrefhol(i)
 *            write(*,*)nmireft,nrefhol(i)
-         enddo 
+         enddo
 
 
 *     ------------------------------------
@@ -2509,12 +2815,12 @@ C TEMP the previous 4 sets can be put into a subroutine
 *     ------------------------------------
          /* PMT CONTOUR */
 
-         NHOLT = 0                                     
+         NHOLT = 0                                    
 
          /* now find EXTERNAL BOUNDS */
 
          /*RIGHT*/
-         par(1) = XLIMH + 9*PITCHX 
+         par(1) = XLIMH + 9*PITCHX
          par(9) = 1.
          par(10)= 1.
          YLOW   = -YLIMH
@@ -2524,7 +2830,7 @@ C TEMP the previous 4 sets can be put into a subroutine
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 
          /*TOP*/
-         par(1) = YLIMV + 9*PITCHY 
+         par(1) = YLIMV + 9*PITCHY
          par(9) = 2.
          par(10)= 1.
          YLOW   = 0.
@@ -2550,21 +2856,21 @@ C TEMP the previous 4 sets can be put into a subroutine
          YLOW   = 0.
          YHIG   = 999.
          XLOW   = -XLIMV
-         XHIG   =  XLIMV 
+         XHIG   =  XLIMV
          CALL HLIMSYM(xlow,xhig,ylow,yhig)
 
          /* find EXTERNAL BOXES */
 
-         DO I=0,755           
+         DO I=0,755          
            CALL PMTPOS_FLIGHT(I,XL,XR,YU,YD,XC,YC,IFL)
            IF(IFL.eq.1) THEN
             IF(XC.LT.0.)THEN
              par(1) = XR
-             par(10)= 2.    
+             par(10)= 2.   
             ELSE
              par(1) = XL
-             par(10)= 1.    
-            ENDIF  
+             par(10)= 1.   
+            ENDIF 
              par(9) = 1.
             CALL HLIMSYM(0.,999.,YD,YU)
             IF(YC.LT.0.)THEN
@@ -2575,7 +2881,7 @@ C TEMP the previous 4 sets can be put into a subroutine
              par(10)= 1.
             ENDIF
             PAR(9) = 2.
-            CALL HLIMSYM(XL,XR,0.,999.)             
+            CALL HLIMSYM(XL,XR,0.,999.)            
            ENDIF
           ENDDO
 
@@ -2584,18 +2890,18 @@ C TEMP the previous 4 sets can be put into a subroutine
          call ucopy(philhol,vphival(2),nholt)
          do i=1,nholt
             ip = i + 1
-            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip) 
-            nmireft=nmireft+nrefhol(i) 
+            if (nrefhol(i).ne.0) vphival(ip) = -vphival(ip)
+            nmireft=nmireft+nrefhol(i)
 *            write(*,*)nmireft,nrefhol(i)
-         enddo 
+         enddo
 
 
 *     ------------------------------------
       elseif (chopt.eq.'TRKZ') then
 *     ------------------------------------
 
-         ncirt = 0                                     
-*               
+         ncirt = 0                                    
+*              
          /* find limit phi angles of track impact zone*/
 
          xc = pcoopmt(1)
@@ -2613,10 +2919,31 @@ C TEMP the previous 4 sets can be put into a subroutine
          call ucopy(philcir,vphival(2),ncirt)
          do i=1,ncirt
             ip = i + 1
-            if (nrefcir(i).ne.0) vphival(ip) = -vphival(ip) 
-            nmireft=nmireft+nrefcir(i) 
+            if (nrefcir(i).ne.0) vphival(ip) = -vphival(ip)
+            nmireft=nmireft+nrefcir(i)
 *            write(*,*)nmireft,nrefcir(i)
-         enddo 
+         enddo
+
+
+*     ------------------------------------
+      elseif (chopt.eq.'MSEC') then
+*     ------------------------------------
+
+         nmslt = 0                          
+*              
+         /* find phi angles where mirror sector changes */
+
+         CALL HLIMMSEC
+
+* --- output
+         vphival(1) = real(nmslt)
+         call ucopy(philmsl,vphival(2),nmslt)
+         do i=1,nmslt
+            ip = i + 1
+            if (nrefmsl(i).ne.0) vphival(ip) = -vphival(ip)
+            nmireft=nmireft+nrefmsl(i)
+*            write(*,*)nmireft,nrefmsl(i)
+         enddo
 
 
 *     ------------------------------------
@@ -2628,26 +2955,26 @@ C TEMP the previous 4 sets can be put into a subroutine
 
 *************************************************************************
 * ORDER OF FILLING (geom_id)
-*                                      
-*            +-+-+--------+-+     FRAME  CHOSEN     
-*            |A|9|87654321|0|                       
-*            | | |        |B|     |X        
-*            | | |        | |     |                 
-*            | | |        | |     |                 
-*            | | |        | |     |                 
-*            | | |        | |     +------> Y        
+*                                     
+*            +-+-+--------+-+     FRAME  CHOSEN    
+*            |A|9|87654321|0|                      
+*            | | |        |B|     |X       
+*            | | |        | |     |                
+*            | | |        | |     |                
+*            | | |        | |     |                
+*            | | |        | |     +------> Y       
 *            +-+ |        | |
 *              | |        | |
 *              | |        | |
 *              | |        | |
 *              +-+        +-+
 *                |   XXXXX|  -> some boxes are empty
-*                +--------+                
+*                +--------+               
 
 *           ix=01,iy=11  .....         ix=01,iy=01
-*           .                          .          
-*           .                          .          
-*           .                          .          
+*           .                          .         
+*           .                          .         
+*           .                          .         
 *           ix=09,iy=11                ix=09,iy=01
 *           ix=10,iy=11  ....          ix=10,iy=01
 *     limits :
@@ -2672,7 +2999,7 @@ C TEMP the previous 4 sets can be put into a subroutine
 
 *     <<<<  VERTICAL SEGMENTS >>>>
 
-         if (ldebug.ge.4) then        
+         if (ldebug.ge.4) then       
            print*,' '
            print*,'>>>>>>>>>>>>  GENERAL MATRIX CONTOUR ROOTS <<<<<<<<'
            print*,' '
@@ -2682,7 +3009,7 @@ C TEMP the previous 4 sets can be put into a subroutine
          xlim = xlimprot
          ylim = ylimprot
 
-         nholt = 0                                                     
+         nholt = 0                                                    
 
 *  --- init number roots
          /* find limit phi angles of plane intersection*/
@@ -2690,7 +3017,7 @@ C TEMP the previous 4 sets can be put into a subroutine
           par(10)= 1.
           par(1) = XLIM
           par(9) = 1.
-          XLOW   = 0. 
+          XLOW   = 0.
           XHIG   = 999.
           YLOW   = 0.
           YHIG   = YLIM
@@ -2706,7 +3033,7 @@ C TEMP the previous 4 sets can be put into a subroutine
           par(10)= 1.
           par(1) = YLIM
           par(9) = 2.
-          YLOW   = 0. 
+          YLOW   = 0.
           YHIG   = 999.
           XLOW   = 0.
           XHIG   = XLIM
@@ -2716,30 +3043,30 @@ C TEMP the previous 4 sets can be put into a subroutine
           par(1) = -YLIM
           XHIG   = XLIM
           CALL HLIMSYM(xlow,xhig,ylow,yhig)
- 
-          nprot   = nholt 
+
+          nprot   = nholt
 
    /* find EXTERNAL BOXES */
 *
          DO I=0,nbpmtx*nbpmty-1
           CALL PMTPOS_PROTN(I,IX,IY,XL,XR,YU,YD,XC,YC)
-          IFL = IFLPMT(IX,IY) 
+          IFL = IFLPMT(IX,IY)
 C -------------------------------------------
-C  Virtual PMTS (mechanical contour) 
-c  Only internal sides need to be considered 
+C  Virtual PMTS (mechanical contour)
+c  Only internal sides need to be considered
 
            IF(IFL.EQ.1) THEN
 C -------------------------------------------
-               IF(XR.lt.0) THEN               
+               IF(XR.lt.0) THEN              
                  par(1) = XR
-                 par(10)= 2.    
-               ELSE  
+                 par(10)= 2.   
+               ELSE 
                  par(1) = XL
-                 par(10)= 1.    
-               ENDIF 
+                 par(10)= 1.   
+               ENDIF
                 par(9) = 1.
                CALL HLIMASYM(-999.,999.,YD,YU)
-               IF(YD.LT.0) THEN 
+               IF(YD.LT.0) THEN
                 PAR(1) = YU
                 PAR(9) = 2.
                 par(10)= 2.
@@ -2750,37 +3077,37 @@ C -------------------------------------------
                ENDIF
                CALL HLIMASYM(XL,XR,-999.,999.)
 C -----------------------------------------------------
-C      Bad or non-existing PMTs can be inside the matrix 
-C           all sides need to be considered 
+C      Bad or non-existing PMTs can be inside the matrix
+C           all sides need to be considered
 
             ELSEIF(IFL.EQ.2)THEN
 C -----------------------------------------------------
-              par(9) = 1.   
-             
+              par(9) = 1.  
+            
               par(1) = XR
-              par(10)= 2. 
+              par(10)= 2.
               CALL HLIMASYM(-999.,999.,YD,YU)
               par(1) = XL
               par(10)= 1.
               CALL HLIMASYM(-999.,999.,YD,YU)
-              
-              PAR(9) = 2.   
-              
+             
+              PAR(9) = 2.  
+             
               PAR(1) = YU
               par(10)= 2.
               CALL HLIMASYM(XL,XR,-999.,999.)
               PAR(1) = YD
               par(10)= 1.
               CALL HLIMASYM(XL,XR,-999.,999.)
-           ENDIF  
+           ENDIF 
           ENDDO
-          nprot   = nholt 
+          nprot   = nholt
 
 * --- output
           vphival(1) = real(nprot)
           call ucopy(philhol,vphival(2),nprot)
 *     ------------------------------------
-      endif                               
+      endif                              
 *     ------------------------------------
 * --- end
       return
@@ -2790,14 +3117,14 @@ C -----------------------------------------------------
 *  =========================== FUNCTIONS ======================================
 *******************************************************************************
 
-* =======================================================================   
-      real Function fphilmir0(phig)                                          
-* =======================================================================   
+* =======================================================================  
+      real Function fphilmir0(phig)                                         
+* =======================================================================  
 *************************************************************************
-*                                                                           
-* Function: given by radius(phig) - RBMIR 
+*                                                                          
+* Function: given by radius(phig) - RBMIR
 *           (where radius is computed without refection)
-*           Its roots give "intersection" of cerenkov cone (geratrix) 
+*           Its roots give "intersection" of cerenkov cone (geratrix)
 *           with the mirror cone at the detector plane.
 *           Takes value =1E8 when not defined because of photons do not
 *           reach mirror
@@ -2806,60 +3133,60 @@ C -----------------------------------------------------
 *                         >0 when photons are reflected by miror
 *                         <0 when photons reach PMTplane directly
 *
-*                                                                           
-* VARIABLE : 
+*                                                                          
+* VARIABLE :
 *            phig = parametric phi of geratrix of Cherenkov cone
 *
-* PARAMETERS : 
-*        IN  : thc (via common)
-*        OUT : 
-*                                                                           
+* PARAMETERS :
+*        IN  : cerang (via common)
+*        OUT :
+*                                                                          
 *************************************************************************
 
 #include "../include/richrec_lipf.h"
 
       Character chin*3
-      common /parfunc/ par(10)                                              
-      real phi, phorig(3)                                                   
-                                                                            
-      real paxisx(3),paxisy(3),paxisz(3)                                    
-      real axisx(3),axisy(3),axisz(3)                                       
-                                                                            
-      real phpto(3),phdir(3),vgerp(3),vger(3)                               
-      real phpto_buf(3)                                                     
+      common /parfunc/ par(10)                                             
+      real phi, phorig(3)                                                  
+                                                                           
+      real paxisx(3),paxisy(3),paxisz(3)                                   
+      real axisx(3),axisy(3),axisz(3)                                      
+                                                                           
+      real phpto(3),phdir(3),vgerp(3),vger(3)                              
+      real phpto_buf(3)                                                    
       SAVE FPHILMIR_BUF
-      DATA FPHILMIR_BUF/1.E8/                                               
-                                                                            
-                                                                            
+      DATA FPHILMIR_BUF/1.E8/                                              
+                                                                           
+                                                                           
 * --- init parameters
-      thc   = par(2)
+      cerang   = par(2)
       fphilmir0 = fphilmir_buf
-                                                                            
-* --- particle impact parameter                                             
-      call ucopy(pcervtx,phpto,3)                                           
-                                                                            
+                                                                           
+* --- particle impact parameter                                            
+      call ucopy(pcervtx,phpto,3)                                          
+                                                                           
 * --- rotation matrix between detector frame and particle frame
-      if (irotflg.eq.0) then                                                
-         call patmatr                                                       
-         irotflg = 1                                                        
-      endif                                                                  
-                                                                            
+      if (irotflg.eq.0) then                                               
+         call patmatr                                                      
+         irotflg = 1                                                       
+      endif                                                                 
+                                                                           
 * --- generate photon on detector frame
-      call patphot(phig,thc,phdir) 
-* --- test photon direction: backward?                                  
-      if (phdir(3).lt.0.) return                                              
-* --- refraction at radiator exit       
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?                                 
+      if (phdir(3).lt.0.) return                                             
+* --- refraction at radiator exit      
       call patints(phpto,phdir,'RADB',ierr)
 *      print*,'IERR',ierr
-      if (ierr.ne.0) return                                      
-*      if (ierr.eq.1) return                                      
+      if (ierr.ne.0) return                                     
+*      if (ierr.eq.1) return                                     
       chin = chradid
       if (HPGL.ne.0.0) then
-        call patrefr(chin,'PGL',phdir,ierr) !refraction 
+        call patrefr(chin,'PGL',phdir,ierr) !refraction
         if (ierr.ne.0) return
-        call patints(phpto,phdir,'PGLB',ierr)                          
+        call patints(phpto,phdir,'PGLB',ierr)                         
         if (ierr.ne.0) return
-        call patrefr('PGL','AIR',phdir,ierr) !refraction              
+        call patrefr('PGL','AIR',phdir,ierr) !refraction             
         if (ierr.ne.0) return
       else
         call patrefr(chin,'AIR',phdir,ierr) !refraction
@@ -2870,30 +3197,30 @@ C -----------------------------------------------------
 *      elseif (chradid.eq.'PGL') then
 *         if (HPGL.eq.0.0) then
 *           print*,' >>> fphilhole: photons starting in PGL when HPGL=0 !!!'
-*           return 
-*         endif   
-*         call patints(phpto,phdir,'PGLB',ierr) !intersection            
+*           return
+*         endif  
+*         call patints(phpto,phdir,'PGLB',ierr) !intersection           
 *         if (ierr.ne.0) return
-*         call patrefr('PGL','AIR',phdir,ierr)  !refraction              
+*         call patrefr('PGL','AIR',phdir,ierr)  !refraction             
 *         if (ierr.ne.0) return
 *      endif
 
 * --- intersect photon with PMT plane
-      call patints(phpto,phdir,'PMTD',ierr)                             
+      call patints(phpto,phdir,'PMTD',ierr)                            
 
       rpoint2 = (phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2
       fphilmir0 = rpoint2 - RBMIR**2
-* --- end                                                                   
-      return                                                                
-      end                                                                   
-* =======================================================================   
-      real Function fphilmir1(phig)                                          
-* =======================================================================   
+* --- end                                                                  
+      return                                                               
+      end                                                                  
+* =======================================================================  
+      real Function fphilmir1(phig)                                         
+* =======================================================================  
 *************************************************************************
-*                                                                           
-* Function: given by radius(phig) - RBMIR 
+*                                                                          
+* Function: given by radius(phig) - RBMIR
 *           (where radius is computed without refection)
-*           Its roots give "intersection" of cerenkov cone (geratrix) 
+*           Its roots give "intersection" of cerenkov cone (geratrix)
 *           with the mirror cone at the detector plane.
 *           Takes value =1E8 when not defined because of photons do not
 *           reach mirror
@@ -2902,61 +3229,61 @@ C -----------------------------------------------------
 *                         >0 when photons are reflected by miror
 *                         <0 when photons reach PMTplane directly
 *
-*                                                                           
-* VARIABLE : 
+*                                                                          
+* VARIABLE :
 *            phig = parametric phi of geratrix of Cherenkov cone
 *
-* PARAMETERS : 
-*        IN  : thc (via common)
-*        OUT : 
-*                                                                           
+* PARAMETERS :
+*        IN  : cerang (via common)
+*        OUT :
+*                                                                          
 *************************************************************************
 
 #include "../include/richrec_lipf.h"
 
       Character chin*3
-      common /parfunc/ par(10)                                              
-      real phi, phorig(3)                                                   
-                                                                            
-      real paxisx(3),paxisy(3),paxisz(3)                                    
-      real axisx(3),axisy(3),axisz(3)                                       
-                                                                            
-      real phpto(3),phdir(3),vgerp(3),vger(3)                               
-      real phpto_buf(3)                                                     
+      common /parfunc/ par(10)                                             
+      real phi, phorig(3)                                                  
+                                                                           
+      real paxisx(3),paxisy(3),paxisz(3)                                   
+      real axisx(3),axisy(3),axisz(3)                                      
+                                                                           
+      real phpto(3),phdir(3),vgerp(3),vger(3)                              
+      real phpto_buf(3)                                                    
       SAVE FPHILMIR_BUF
-      DATA FPHILMIR_BUF/1.E8/                                               
-                                                                            
-                                                                            
+      DATA FPHILMIR_BUF/1.E8/                                              
+                                                                           
+                                                                           
 * --- init parameters
-      thc   = par(2)
+      cerang   = par(2)
       fphilmir1 = fphilmir_buf
-                                                                            
-* --- particle impact parameter                                             
-      call ucopy(pcervtx,phpto,3)                                           
-                                                                            
-* --- rotation matrix between detector frame and particle frame             
-      if (irotflg.eq.0) then                                                
-         call patmatr                                                       
-         irotflg = 1                                                        
-      endif                                                                  
-                                                                            
+                                                                           
+* --- particle impact parameter                                            
+      call ucopy(pcervtx,phpto,3)                                          
+                                                                           
+* --- rotation matrix between detector frame and particle frame            
+      if (irotflg.eq.0) then                                               
+         call patmatr                                                      
+         irotflg = 1                                                       
+      endif                                                                 
+                                                                           
 * --- generate photon on detector frame
-      call patphot(phig,thc,phdir) 
-* --- test photon direction: backward?                                  
-      if (phdir(3).lt.0.) return                                              
-* --- refraction at radiator exit                                  
-      call patints(phpto,phdir,'RADB',ierr)                       
-*      if (ierr.ne.0) return                                      
-      if (ierr.eq.1) return                                      
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?                                 
+      if (phdir(3).lt.0.) return                                             
+* --- refraction at radiator exit                                 
+      call patints(phpto,phdir,'RADB',ierr)                      
+*      if (ierr.ne.0) return                                     
+      if (ierr.eq.1) return                                     
       chin = chradid
       if (HPGL.ne.0.0) then
-        call patrefr(chin,'PGL',phdir,ierr) !refraction 
+        call patrefr(chin,'PGL',phdir,ierr) !refraction
         if (ierr.ne.0) return
-        call patints(phpto,phdir,'PGLB',ierr)                          
+        call patints(phpto,phdir,'PGLB',ierr)                         
         if (ierr.ne.0) return
         rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)
         if(rpoint.ge.RTMIR)return
-        call patrefr('PGL','AIR',phdir,ierr) !refraction              
+        call patrefr('PGL','AIR',phdir,ierr) !refraction             
         if (ierr.ne.0) return
       else
         call patrefr(chin,'AIR',phdir,ierr) !refraction
@@ -2967,20 +3294,20 @@ C -----------------------------------------------------
 *      elseif (chradid.eq.'PGL') then
 *         if (HPGL.eq.0.0) then
 *           print*,' >>> fphilhole: photons starting in PGL when HPGL=0 !!!'
-*           return 
-*         endif   
-*         call patints(phpto,phdir,'PGLB',ierr) !intersection            
+*           return
+*         endif  
+*         call patints(phpto,phdir,'PGLB',ierr) !intersection           
 *         if (ierr.ne.0) return
-*         call patrefr('PGL','AIR',phdir,ierr)  !refraction              
+*         call patrefr('PGL','AIR',phdir,ierr)  !refraction             
 *         if (ierr.ne.0) return
 *      endif
-      
+     
       call patints(phpto,phdir,'PMTD',ierr)
       rpoint2 = phpto(1)**2+phpto(2)**2
       if(rpoint2.gt.RBMIR**2)then
          call patints(phpto,phdir,'MIRR',ierr) !intersection with mirror
-         if (ierr.ne.0) return                                      
-         call patrefl(phpto,phdir,ierr) !reflection with mirror          
+         if (ierr.ne.0) return                                     
+         call patrefl(phpto,phdir,ierr) !reflection with mirror         
          call patints(phpto,phdir,'PMTD',ierr)
          rpoint2 = (phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2
          fphilmir1 = rpoint2 - RBMIR**2
@@ -2988,60 +3315,60 @@ C -----------------------------------------------------
          fphilmir1= FPHILMIR_BUF
       endif
 
-* --- end                                                                   
-      return                                                                
-      end                                                                   
+* --- end                                                                  
+      return                                                               
+      end                                                                  
 
-* ================================================================         
-      real Function fphilmir_prot(phig) 
+* ================================================================        
+      real Function fphilmir_prot(phig)
 * ================================================================
-******************************************************************         
-*       AIMS: It gives the intersection points of the photons with 
+******************************************************************        
+*       AIMS: It gives the intersection points of the photons with
 *             the limits of the mirror used in the prototype
 *
-******************************************************************    
+******************************************************************   
 
 #include "../include/richrec_lipf.h"
 
       common /parfunc/ par(10)
       Character chin*3
-      real phi, phorig(3)                                                   
-      real paxisx(3),paxisy(3),paxisz(3)                                    
-      real axisx(3),axisy(3),axisz(3)           
+      real phi, phorig(3)                                                  
+      real paxisx(3),paxisy(3),paxisz(3)                                   
+      real axisx(3),axisy(3),axisz(3)          
       integer lim(2) !lim(1)=mirphild(1) lim(2)=mirphild(2)
-      real phpto(3),phdir(3),vgerp(3),vger(3)                               
-      real phpto_buf(3)                                                     
+      real phpto(3),phdir(3),vgerp(3),vger(3)                              
+      real phpto_buf(3)                                                    
       SAVE FPHILMIR_BUF
-      DATA FPHILMIR_BUF/1.E8/                                               
-                                                                            
+      DATA FPHILMIR_BUF/1.E8/                                              
+                                                                           
 
 * --- init parameters
-      thc   = par(2)
+      cerang   = par(2)
       fphilmir_prot = fphilmir_buf
-                                                                            
-* --- particle impact parameter                                             
-      call ucopy(pcervtx,phpto,3)                                           
-                                                                            
-* --- rotation matrix between detector frame and particle frame             
-      if (irotflg.eq.0) then                                                
-         call patmatr                                                       
-         irotflg = 1                                                        
-      endif                                                                  
-                                                                            
+                                                                           
+* --- particle impact parameter                                            
+      call ucopy(pcervtx,phpto,3)                                          
+                                                                           
+* --- rotation matrix between detector frame and particle frame            
+      if (irotflg.eq.0) then                                               
+         call patmatr                                                      
+         irotflg = 1                                                       
+      endif                                                                 
+                                                                           
 * --- generate photon on detector frame
-      call patphot(phig,thc,phdir) 
-* --- test photon direction: backward?                                  
-      if (phdir(3).lt.0.) return                                              
-* --- refraction at radiator exit                                  
-      call patints(phpto,phdir,'RADB',ierr) 
-      if (ierr.ne.0) return                                      
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?                                 
+      if (phdir(3).lt.0.) return                                             
+* --- refraction at radiator exit                                 
+      call patints(phpto,phdir,'RADB',ierr)
+      if (ierr.ne.0) return                                     
       chin = chradid
       if (HPGL.ne.0.0) then
-        call patrefr(chin,'PGL',phdir,ierr) !refraction 
+        call patrefr(chin,'PGL',phdir,ierr) !refraction
         if (ierr.ne.0) return
-        call patints(phpto,phdir,'PGLB',ierr)                          
+        call patints(phpto,phdir,'PGLB',ierr)                         
         if (ierr.ne.0) return
-        call patrefr('PGL','AIR',phdir,ierr) !refraction              
+        call patrefr('PGL','AIR',phdir,ierr) !refraction             
         if (ierr.ne.0) return
       else
         call patrefr(chin,'AIR',phdir,ierr) !refraction
@@ -3052,40 +3379,40 @@ C -----------------------------------------------------
       phpto(3) = ZMIR
       phpto(1) = phpto(1) + phdir(1)/phdir(3)*(ZMIR-phdir(3))
       phpto(2) = phpto(2) + phdir(2)/phdir(3)*(ZMIR-phdir(3))
-     
+    
       rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)
       if(rpoint.ge.RTMIR)return
 
 * ... intersect photon with PMT plane
-      call patints(phpto,phdir,'PMTD',ierr) 
+      call patints(phpto,phdir,'PMTD',ierr)
       rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)
-      if (rpoint.gt.RBMIR) then  
+      if (rpoint.gt.RBMIR) then 
 * --- intersect photon with PMT plane
-         call patints(phpto,phdir,'MIRR',ierr)       
+         call patints(phpto,phdir,'MIRR',ierr)      
          if(ierr.ne.0)return
-         phi_int=atan2(phpto(2)-vtmir(2),phpto(1)-vtmir(1))         
-         if (phi_int.lt.0.) phi_int = phi_int + twopi 
+         phi_int=atan2(phpto(2)-vtmir(2),phpto(1)-vtmir(1))        
+         if (phi_int.lt.0.) phi_int = phi_int + twopi
          fphilmir_prot=phi_int-par(3)
 c         print'(A,f5.1,A,f5.1,A,f5.1,A,f7.1)',' phicher='
 c     ,        ,phig*raddeg,', lim=',par(3)*raddeg,', phipoint=',phi_int
 c     ,        *raddeg,', funct=',fphilmir_prot*RADDEG
       endif
-      
+     
 
-* --- end                                                                  
-      return                                                               
-      end                                                                     
+* --- end                                                                 
+      return                                                              
+      end                                                                    
 
 * ==========================================================
       real function fphilhole(phig)
 * ==========================================================
 *************************************************************
 *                                                           *
-* variable : phig (parameter of geratrix Cherenkov cone )   * 
+* variable : phig (parameter of geratrix Cherenkov cone )   *
 *                                                           *
 *                                                           *
 * PARAMETERS :                                              *
-*         IN : thc (via common)                             *
+*         IN : cerang (via common)                          *
 *         OUT:                                              *
 *                                                           *
 * The zeros of this function give the geratrix Cone         *
@@ -3106,14 +3433,14 @@ c     ,        *raddeg,', funct=',fphilmir_prot*RADDEG
 *                                                           *
 *     Rev: 26/02/2002                                       *
 *                                                           *
-*************************************************************   
-      common /parfunc/ par(10)
+*************************************************************  
 
 #include "../include/richrec_lipf.h"
 
+      common /parfunc/ par(10)
       character chin*3,chout*3
       real phpto(3),phdir(3)
-      save fphildummy      
+      save fphildummy     
       data fphildummy/1.E8/
       real cshift
 
@@ -3121,65 +3448,65 @@ c     ,        *raddeg,', funct=',fphilmir_prot*RADDEG
       nmiref = 0
       fphilhole = fphildummy
 
-* --- parameter           
-      thc = par(2)
-      iflagloc = int(par(9)) /* 1=X line, 2=Y line */       
+* --- parameter          
+      cerang = par(2)
+      iflagloc = int(par(9)) /* 1=X line, 2=Y line */      
 
-* --- rotation matrix between detector frame and particle frame             
-      if (irotflg.eq.0) then                                                
-         call patmatr                                                       
-         irotflg = 1                                                        
-      endif                                                                    
-* --- photon emission point                                    
-      call ucopy(pcervtx,phpto,3)                                     
+* --- rotation matrix between detector frame and particle frame            
+      if (irotflg.eq.0) then                                               
+         call patmatr                                                      
+         irotflg = 1                                                       
+      endif                                                                   
+* --- photon emission point                                   
+      call ucopy(pcervtx,phpto,3)                                    
 * --- generate photon on detector frame
-      call patphot(phig,thc,phdir) 
-* --- test photon direction: backward?                                     
-      if (phdir(3).lt.0.) return                                
-* --- refraction at radiator exit                                  
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?                                    
+      if (phdir(3).lt.0.) return                               
+* --- refraction at radiator exit                                 
       if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then !photons radiated in AGL or NAF
-        call patints(phpto,phdir,'RADB',ierr)                        
-        if (ierr.ne.0) return     
+        call patints(phpto,phdir,'RADB',ierr)                       
+        if (ierr.ne.0) return    
         chin = chradid
         if (HPGL.ne.0.0) then
-          call patrefr(chin,'PGL',phdir,ierr) !refraction 
+          call patrefr(chin,'PGL',phdir,ierr) !refraction
           if (ierr.ne.0) return
           call patints(phpto,phdir,'PGLB',ierr)
           if (ierr.ne.0) return
-          call patrefr('PGL','AIR',phdir,ierr) !refraction              
+          call patrefr('PGL','AIR',phdir,ierr) !refraction             
           if (ierr.ne.0) return
         else
           call patrefr(chin,'AIR',phdir,ierr) !refraction
-          if (ierr.ne.0) return              
+          if (ierr.ne.0) return             
         endif
       elseif (chradid.eq.'PGL') then
         if (HPGL.eq.0.0) then
           print*,' >>> fphilhole: photons starting in PGL when HPGL=0!'
-          return 
-        endif   
-        call patints(phpto,phdir,'PGLB',ierr) !intersection            
+          return
+        endif  
+        call patints(phpto,phdir,'PGLB',ierr) !intersection           
         if (ierr.ne.0) return
-        call patrefr('PGL','AIR',phdir,ierr) !refraction              
+        call patrefr('PGL','AIR',phdir,ierr) !refraction             
         if (ierr.ne.0) return
       endif
-      
+     
 * --- intersect photon with PMT plane
-      call patints(phpto,phdir,'PMTD',ierr)                             
-* --- mirror reflection                    
-      if (rcgeom(1).ne.9.or.(rcgeom(1).eq.9.and.rcgeom(2).eq.1)) then  !flight configuration   
-        rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)                         
+      call patints(phpto,phdir,'PMTD',ierr)                            
+* --- mirror reflection                   
+      if (rcgeom(1).ne.9.or.(rcgeom(1).eq.9.and.rcgeom(2).eq.1)) then  !flight configuration  
+        rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)                        
         do while (rpoint.gt.RBMIR)
           nmiref = nmiref + 1
-          if (nmiref.gt.10) return  
-          call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror 
-          if (ierr.ne.0) return                                       
-          call patrefl(phpto,phdir,ierr) !reflection with mirror           
-          call patints(phpto,phdir,'PMTD',ierr)                       
+          if (nmiref.gt.10) return 
+          call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror
+          if (ierr.ne.0) return                                      
+          call patrefl(phpto,phdir,ierr) !reflection with mirror          
+          call patints(phpto,phdir,'PMTD',ierr)                      
           rpoint = sqrt(phpto(1)**2+phpto(2)**2)
-        enddo                                                          
+        enddo                                                         
       endif
 
-*-----parametrization of the function                                       
+*-----parametrization of the function                                      
       If ( iflagloc.eq.1)then    !XLIM Segment
          gfun      = phpto(1) + phdir(1)/phdir(3)*(ZPMTDET-phpto(3))
          CSHIFT    = XCPMM
@@ -3187,32 +3514,32 @@ c     ,        *raddeg,', funct=',fphilmir_prot*RADDEG
         gfun      = phpto(2) + phdir(2)/phdir(3)*(ZPMTDET-phpto(3))
          CSHIFT    = YCPMM
       endif
-      
-*      fphilhole = par(1) - gfun 
+     
+*      fphilhole = par(1) - gfun
       if(int(par(10)).eq.2)then
-        fphilhole = (par(1)+CSHIFT) -  gfun 
+        fphilhole = (par(1)+CSHIFT) -  gfun
       else
-        fphilhole = gfun   - (par(1)+CSHIFT) 
+        fphilhole = gfun   - (par(1)+CSHIFT)
       endif
 
 * --- end
       return
-      END                                                                     
+      END                                                                    
 
-* =======================================================================    
+* =======================================================================   
       real function fphilrefl(phig)
-* =======================================================================    
+* =======================================================================   
 *
-*                                                                            
+*                                                                           
 * Function: Check for total reflection at Radiator end
 *           Radiator can be AGl/NAF or PGL;
 *           its roots give phi limits of this total reflection ! should !
 *
 * function signal meaning:
-*                         >0 when photons suffer total reflection 
+*                         >0 when photons suffer total reflection
 *                         <0 when photons suffer normal refraction
 *
-*          
+*         
 *                         last update : 17/09/2002
 *
 *************************************************************************
@@ -3223,16 +3550,16 @@ c     ,        *raddeg,', funct=',fphilmir_prot*RADDEG
       real vgerp(3),vger(3),vnormal(3)
       real phpto(3),phdir(3)
       character chin*3
-      DATA VNORMAL/0.,0.,-1./!normal to the radiator plane on general frame  
+      DATA VNORMAL/0.,0.,-1./!normal to the radiator plane on general frame 
                              !(radiator inward)
-      save fphilrefldummy      
+      save fphilrefldummy     
       data fphilrefldummy/1.E8/
 
 
-* --- init parameters and function 
-      thc=par(2)
+* --- init parameters and function
+      cerang=par(2)
       fphilrefl=fphilrefldummy
-      
+     
 * --- rotation matrix between detector frame and particle frame
       if (irotflg.eq.0) then
          call patmatr
@@ -3240,21 +3567,21 @@ c     ,        *raddeg,', funct=',fphilmir_prot*RADDEG
       endif
 
 * --- generate photon on detector frame
-      call patphot(phig,thc,phdir) 
-* --- test photon direction: backward?         
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?        
 
-      if (phdir(3).lt.0.) return              
+      if (phdir(3).lt.0.) return             
 
 * --- 1st incident angle (inside 1st medium ; MAIN radiator)
 cc      call ucopy(phdir,vger,3)
-cc      costhi = - vdot(vger,vnormal,3)      
+cc      costhi = - vdot(vger,vnormal,3)     
 cc     sinthi = sqrt(1-costhi**2)
 
 * --- transmission angle to air
       call ucopy(pcervtx,phpto,3)
       call patints(phpto,phdir,'RADB',ierr)
-      if (ierr.ne.0) return 
-      rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)      
+      if (ierr.ne.0) return
+      rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)     
       if(rpoint.ge.RTMIR)return
       IF (HPGL.EQ.0.0) THEN
          costhi = - vdot(phdir,vnormal,3)
@@ -3262,9 +3589,9 @@ cc     sinthi = sqrt(1-costhi**2)
          sintht = refindex*sinthi
       ELSE
          chin = chradid
-         call patrefr(chin,'PGL',phdir,ierr) 
+         call patrefr(chin,'PGL',phdir,ierr)
          call patints(phpto,phdir,'PGLB',ierr)
-         if (ierr.ne.0) return         
+         if (ierr.ne.0) return        
          rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)
          if(rpoint.ge.RTMIR)return
          costhi = - vdot(phdir,vnormal,3)
@@ -3279,12 +3606,12 @@ cc     sinthi = sqrt(1-costhi**2)
 
 
 
-* =======================================================================    
+* =======================================================================   
       real Function fphilrad(phig)
-* =======================================================================    
+* =======================================================================   
 *************************************************************************
-*                                                                            
-* Function: intersection of cherenkov cone (geratrix) with the               
+*                                                                           
+* Function: intersection of cherenkov cone (geratrix) with the              
 *           the outer boundary of the radiator (at the bottom of the rad)
 *           - flight: shape = cylindrical
 *           - protot: shape = box
@@ -3301,17 +3628,17 @@ cc     sinthi = sqrt(1-costhi**2)
 *
 * last update : 26/02/2002
 *               17/09/2002
-*               25/05/2004 (L.Arruda,F.Barao)                      
-*                                                                            
-************************************************************************* 
+*               25/05/2004 (L.Arruda,F.Barao)                     
+*                                                                           
+*************************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      common /parfunc/ par(10) 
+      common /parfunc/ par(10)
       real cshift, gfun
 
 * --- init
-      thc = par(2)
+      cerang = par(2)
       iflagloc= int(par(9))
 
 * --- rotation matrix between detector frame and particle frame
@@ -3321,50 +3648,50 @@ cc     sinthi = sqrt(1-costhi**2)
       endif
 
 
-* --- parametrization of the function                
+* --- parametrization of the function               
 *     (A1,A2,A3) is the direction of photon generated in detctors frame
 
-      A1 = figrotm(1,1)*sin(thc)*cos(phig) +                              
-     +     figrotm(1,2)*sin(thc)*sin(phig)  +                              
-     +     figrotm(1,3)*cos(thc)                                          
-      A2 = figrotm(2,1)*sin(thc)*cos(phig) +                               
-     +     figrotm(2,2)*sin(thc)*sin(phig) +                               
-     +     figrotm(2,3)*cos(thc)                                           
-      A3 = figrotm(3,1)*sin(thc)*cos(phig) +                               
-     +     figrotm(3,2)*sin(thc)*sin(phig) +                               
-     +     figrotm(3,3)*cos(thc)                                          
+      A1 = figrotm(1,1)*sin(cerang)*cos(phig) +                             
+     +     figrotm(1,2)*sin(cerang)*sin(phig)  +                             
+     +     figrotm(1,3)*cos(cerang)                                         
+      A2 = figrotm(2,1)*sin(cerang)*cos(phig) +                              
+     +     figrotm(2,2)*sin(cerang)*sin(phig) +                              
+     +     figrotm(2,3)*cos(cerang)                                          
+      A3 = figrotm(3,1)*sin(cerang)*cos(phig) +                              
+     +     figrotm(3,2)*sin(cerang)*sin(phig) +                              
+     +     figrotm(3,3)*cos(cerang)                                         
 
 
-*     if photon is backward A3<0  
+*     if photon is backward A3<0 
 *     fphilrad remains unchanged so that rzero procedure can have troubles in
 *     leading with
 *
 *                +
 *              +
 *             +
-*__________________________________ >   
+*__________________________________ >  
 *
 *        +++++
-*       +           
-*      +             
+*       +          
+*      +            
 *
       if (A3.lt.0.) goto 99
 
       ZBOTTOM = HRAD + HPGL
 
-* --- Roots function 
+* --- Roots function
 
-      If (RCGEOM(1).ne.9) then !FLIGHT 
+      If (RCGEOM(1).ne.9) then !FLIGHT
 
-         if (int(par(10)).eq.0) then 
+         if (int(par(10)).eq.0) then
 
 * ...... Radiator outer boundary (cylinder)
 
             A  = (ZBOTTOM - pcervtx(3))**2 * ((A1/A3)**2+(A2/A3)**2)
-            B  = 2*(ZBOTTOM-pcervtx(3))*(pcervtx(1)*A1/A3 + 
+            B  = 2*(ZBOTTOM-pcervtx(3))*(pcervtx(1)*A1/A3 +
      +                                   pcervtx(2)*A2/A3)
-            C  =  pcervtx(1)**2 + pcervtx(2)**2 - RTMIR**2 
-            fphilrad = A + B + C 
+            C  =  pcervtx(1)**2 + pcervtx(2)**2 - RTMIR**2
+            fphilrad = A + B + C
 
          else
 
@@ -3379,7 +3706,7 @@ cc     sinthi = sqrt(1-costhi**2)
                CSHIFT    = YCRAD
             endif
 
-            fphilrad = gfun - (par(1)+CSHIFT) 
+            fphilrad = gfun - (par(1)+CSHIFT)
 CC            print*,'(fphilrad) phig,f=',phig,fphilrad
 
          endif
@@ -3395,20 +3722,20 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
             CSHIFT    = YCRAD
          endif
 
-         fphilrad = gfun - (par(1)+CSHIFT) 
+         fphilrad = gfun - (par(1)+CSHIFT)
 
       endif
 
-* --- end                                                                    
- 99   return                                                                 
-      end                                                                    
+* --- end                                                                   
+ 99   return                                                                
+      end                                                                   
 
-* =======================================================================    
+* =======================================================================   
       real Function fphilgap(phig)
-* =======================================================================    
+* =======================================================================   
 *************************************************************************
-*                                                                            
-* Function: intersection of cherenkov cone (geratrix) with the               
+*                                                                           
+* Function: intersection of cherenkov cone (geratrix) with the              
 *           lateral boundary of the gaps (at the top and at the  bottom of the mirror)
 
 *
@@ -3422,17 +3749,17 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
 *          par(9)  = X or Y segment? (1=X, 2=Y)
 *          par(10) = flight: outer boundary or radiator walls? (0=outer, 1=wall)
 *
-*               9/06/2006 (L.Arruda)                      
-*                                                                            
-************************************************************************* 
+*               9/06/2006 (L.Arruda)                     
+*                                                                           
+*************************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      common /parfunc/ par(10) 
+      common /parfunc/ par(10)
       real cshift, gfun
 
 * --- init
-      thc = par(2)
+      cerang = par(2)
       iflagloc= int(par(9))
 
 * --- rotation matrix between detector frame and particle frame
@@ -3442,63 +3769,62 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
       endif
 
 
-* --- parametrization of the function                
+* --- parametrization of the function               
 *     (A1,A2,A3) is the direction of photon generated in detctors frame
 
-      A1 = figrotm(1,1)*sin(thc)*cos(phig) +                              
-     +     figrotm(1,2)*sin(thc)*sin(phig) +                              
-     +     figrotm(1,3)*cos(thc)                                          
-      A2 = figrotm(2,1)*sin(thc)*cos(phig) +                               
-     +     figrotm(2,2)*sin(thc)*sin(phig) +                               
-     +     figrotm(2,3)*cos(thc)                                           
-      A3 = figrotm(3,1)*sin(thc)*cos(phig) +                               
-     +     figrotm(3,2)*sin(thc)*sin(phig) +                               
-     +     figrotm(3,3)*cos(thc)                                          
+      A1 = figrotm(1,1)*sin(cerang)*cos(phig) +                             
+     +     figrotm(1,2)*sin(cerang)*sin(phig)  +                             
+     +     figrotm(1,3)*cos(cerang)                                         
+      A2 = figrotm(2,1)*sin(cerang)*cos(phig) +                              
+     +     figrotm(2,2)*sin(cerang)*sin(phig) +                              
+     +     figrotm(2,3)*cos(cerang)                                          
+      A3 = figrotm(3,1)*sin(cerang)*cos(phig) +                              
+     +     figrotm(3,2)*sin(cerang)*sin(phig) +                              
+     +     figrotm(3,3)*cos(cerang)                                         
 
 
-*     if photon is backward A3<0  
+*     if photon is backward A3<0 
 *     fphilgap remains unchanged so that rzero procedure can have troubles in
 *     leading with
 *
 *                +
 *              +
 *             +
-*__________________________________ >   
+*__________________________________ >  
 *
 *        +++++
-*       +           
-*      +             
+*       +          
+*      +            
 *
       if (A3.lt.0.) goto 99
 
       ZBOTTOM = par(4)
 
-* --- Roots function 
+* --- Roots function
 
-      If (RCGEOM(1).ne.9) then !FLIGHT 
+      If (RCGEOM(1).ne.9) then !FLIGHT
 
 
 * ...... Radiator outer boundary (cylinder)
 
             A  = (ZBOTTOM - pcervtx(3))**2 * ((A1/A3)**2+(A2/A3)**2)
-            B  = 2*(ZBOTTOM-pcervtx(3))*(pcervtx(1)*A1/A3 + 
+            B  = 2*(ZBOTTOM-pcervtx(3))*(pcervtx(1)*A1/A3 +
      +                                   pcervtx(2)*A2/A3)
-            C  =  pcervtx(1)**2 + pcervtx(2)**2 - RTMIR**2 
-            fphilgap = A + B + C 
+            C  =  pcervtx(1)**2 + pcervtx(2)**2 - RTMIR**2
+            fphilgap = A + B + C
 
       endif
 
-* --- end                                                                    
- 99   return                                                                 
-      end                                                                    
-
+* --- end                                                                   
+ 99   return                                                                
+      end                                                                   
 
 * ==========================================================
       real function fphicirc(phig)
 * ==========================================================
 *************************************************************
 *                                                           *
-* variable : phig (parameter of geratrix Cherenkov cone )   * 
+* variable : phig (parameter of geratrix Cherenkov cone )   *
 *                                                           *
 *                                                           *
 * PARAMETERS :                                              *
@@ -3521,14 +3847,14 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
 *                                                           *
 *     13/11/2008                                            *
 *                                                           *
-*************************************************************   
+*************************************************************  
 
 #include "../include/richrec_lipf.h"
 
       common /parfunc/ par(10)
       character chin*3,chout*3
       real phpto(3),phdir(3)
-      save fphildummy      
+      save fphildummy     
       data fphildummy/1.E8/
       real cshift
 
@@ -3536,67 +3862,67 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
       nmiref = 0
       fphicirc = fphildummy
 
-* --- parameter           
+* --- parameter          
       cerang = par(2)
       xc = par(5)
       yc = par(6)
       crad = par(7)
 
-* --- rotation matrix between detector frame and particle frame             
-      if (irotflg.eq.0) then                                                
-         call patmatr                                                       
-         irotflg = 1                                                        
-      endif                                                                    
-* --- photon emission point                                    
-      call ucopy(pcervtx,phpto,3)                                     
+* --- rotation matrix between detector frame and particle frame            
+      if (irotflg.eq.0) then                                               
+         call patmatr                                                      
+         irotflg = 1                                                       
+      endif                                                                   
+* --- photon emission point                                   
+      call ucopy(pcervtx,phpto,3)                                    
 * --- generate photon on detector frame
-      call patphot(phig,cerang,phdir) 
-* --- test photon direction: backward?                                     
-      if (phdir(3).lt.0.) return                                
-* --- refraction at radiator exit                                  
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?                                    
+      if (phdir(3).lt.0.) return                               
+* --- refraction at radiator exit                                 
       if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then !photons radiated in AGL or NAF
-        call patints(phpto,phdir,'RADB',ierr)                        
-        if (ierr.ne.0) return     
+        call patints(phpto,phdir,'RADB',ierr)                       
+        if (ierr.ne.0) return    
         chin = chradid
         if (HPGL.ne.0.0) then
-          call patrefr(chin,'PGL',phdir,ierr) !refraction 
+          call patrefr(chin,'PGL',phdir,ierr) !refraction
           if (ierr.ne.0) return
           call patints(phpto,phdir,'PGLB',ierr)
           if (ierr.ne.0) return
-          call patrefr('PGL','AIR',phdir,ierr) !refraction              
+          call patrefr('PGL','AIR',phdir,ierr) !refraction             
           if (ierr.ne.0) return
         else
           call patrefr(chin,'AIR',phdir,ierr) !refraction
-          if (ierr.ne.0) return              
+          if (ierr.ne.0) return             
         endif
       elseif (chradid.eq.'PGL') then
         if (HPGL.eq.0.0) then
           print*,' >>> fphilhole: photons starting in PGL when HPGL=0!'
-          return 
-        endif   
-        call patints(phpto,phdir,'PGLB',ierr) !intersection            
+          return
+        endif  
+        call patints(phpto,phdir,'PGLB',ierr) !intersection           
         if (ierr.ne.0) return
-        call patrefr('PGL','AIR',phdir,ierr) !refraction              
+        call patrefr('PGL','AIR',phdir,ierr) !refraction             
         if (ierr.ne.0) return
       endif
-      
+     
 * --- intersect photon with PMT plane
-      call patints(phpto,phdir,'PMTD',ierr)                             
-* --- mirror reflection                    
-      if (rcgeom(1).ne.9.or.(rcgeom(1).eq.9.and.rcgeom(2).eq.1)) then  !flight configuration   
-        rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)                         
+      call patints(phpto,phdir,'PMTD',ierr)                            
+* --- mirror reflection                   
+      if (rcgeom(1).ne.9.or.(rcgeom(1).eq.9.and.rcgeom(2).eq.1)) then  !flight configuration  
+        rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)
         do while (rpoint.gt.RBMIR)
           nmiref = nmiref + 1
-          if (nmiref.gt.10) return  
-          call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror 
-          if (ierr.ne.0) return                                       
-          call patrefl(phpto,phdir,ierr) !reflection with mirror           
-          call patints(phpto,phdir,'PMTD',ierr)                       
-          rpoint = sqrt(phpto(1)**2+phpto(2)**2)
-        enddo                                                          
+          if (nmiref.gt.10) return 
+          call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror
+          if (ierr.ne.0) return                                      
+          call patrefl(phpto,phdir,ierr) !reflection with mirror          
+          call patints(phpto,phdir,'PMTD',ierr)                      
+          rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)
+        enddo                                                         
       endif
 
-*-----parametrization of the function                                       
+*-----parametrization of the function                                      
       gfun1      = phpto(1) + phdir(1)/phdir(3)*(ZPMTDET-phpto(3))
       gfun2      = phpto(2) + phdir(2)/phdir(3)*(ZPMTDET-phpto(3))
 
@@ -3604,20 +3930,138 @@ CC            print*,'(fphilrad) phig,f=',phig,fphilrad
 
 * --- end
       return
-      END                                                                     
+      END                                                                    
 
-* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-* =======================================================================    
-      subroutine tileroots(x1,x2,y1,y2,ig,vphival)
-* =======================================================================    
+* ==========================================================
+      real function fphimsec(phig)
+* ==========================================================
+*************************************************************
+*                                                           *
+* variables : phig (parameter of geratrix Cherenkov cone )  *
+*                                                           *
+*                                                           *
+* PARAMETERS :                                              *
+*         IN : cerang (via common)                          *
+*         OUT:                                              *
+*                                                           *
+* The zeros of this function give the points where the      *
+* intersection of the geratrix cone with the mirror crosses *
+* the border between mirror sectors.                        *
+*                                                           *
+* in FLIGHT:  used to split reflected portion of ring into  *
+*             portions reflected by different mirror        *
+*             sectors                                 .     *
+*                                                           *
+* in PROTOT:  (not used)                                    *
+*                                                           *
+*     06/05/2009                                            *
+*                                                           *
+*************************************************************  
 
 #include "../include/richrec_lipf.h"
 
-      integer nrootmax
-      parameter(nrootmax=200)
+      common /parfunc/ par(10)
+      character chin*3,chout*3
+      real phpto(3),phdir(3)
+      save fphildummy     
+      data fphildummy/1.E8/
+      real cshift
+
+* --- init
+      nmiref = 0
+      fphimsec = fphildummy
+
+* --- parameter          
+      cerang = par(2)
+      xc = par(5)
+      yc = par(6)
+      crad = par(7)
+
+* --- rotation matrix between detector frame and particle frame            
+      if (irotflg.eq.0) then                                               
+         call patmatr                                                      
+         irotflg = 1                                                       
+      endif                                                                   
+* --- photon emission point                                   
+      call ucopy(pcervtx,phpto,3)                                    
+* --- generate photon on detector frame
+      call patphot(phig,cerang,phdir)
+* --- test photon direction: backward?                                    
+      if (phdir(3).lt.0.) return                               
+* --- refraction at radiator exit                                 
+      if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then !photons radiated in AGL or NAF
+        call patints(phpto,phdir,'RADB',ierr)                       
+        if (ierr.ne.0) return    
+        chin = chradid
+        if (HPGL.ne.0.0) then
+          call patrefr(chin,'PGL',phdir,ierr) !refraction
+          if (ierr.ne.0) return
+          call patints(phpto,phdir,'PGLB',ierr)
+          if (ierr.ne.0) return
+          call patrefr('PGL','AIR',phdir,ierr) !refraction             
+          if (ierr.ne.0) return
+        else
+          call patrefr(chin,'AIR',phdir,ierr) !refraction
+          if (ierr.ne.0) return             
+        endif
+      elseif (chradid.eq.'PGL') then
+        if (HPGL.eq.0.0) then
+          print*,' >>> fphilhole: photons starting in PGL when HPGL=0!'
+          return
+        endif  
+        call patints(phpto,phdir,'PGLB',ierr) !intersection           
+        if (ierr.ne.0) return
+        call patrefr('PGL','AIR',phdir,ierr) !refraction             
+        if (ierr.ne.0) return
+      endif
+     
+* --- intersect photon with PMT plane
+      call patints(phpto,phdir,'PMTD',ierr)                            
+* --- mirror reflection                   
+      if (rcgeom(1).ne.9.or.(rcgeom(1).eq.9.and.rcgeom(2).eq.1)) then  !flight configuration  
+        rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)                        
+        do while (rpoint.gt.RBMIR)
+          nmiref = nmiref + 1
+          if (nmiref.gt.10) return 
+          call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror
+          if (ierr.ne.0) return                                      
+          call patrefl(phpto,phdir,ierr) !reflection with mirror          
+          call patints(phpto,phdir,'PMTD',ierr)                      
+          rpoint = sqrt((phpto(1)-vtmir(1))**2+(phpto(2)-vtmir(2))**2)                        
+        enddo                                                         
+      endif
+
+* --- calculation of function value
+      if(nmiref.eq.0) then  ! exclude "fake" zeros in non-reflected branches
+         fphimsec = 1.e8
+      else
+         phipoint = atan2(phpto(2)-vtmir(2),phpto(1)-vtmir(1))
+         if(phipoint.lt.0.) phipoint = phipoint+TWOPI
+         fphimsec = 1.e8
+         do i=1,nmirsec
+            fphimsec_test = phipoint-phimirs(i)
+            if(fphimsec_test.lt.-PI) fphimsec_test = fphimsec_test+TWOPI
+            if(abs(fphimsec_test).lt.abs(fphimsec)) then
+               fphimsec = fphimsec_test
+            endif
+         enddo
+      endif
+
+* --- end
+      return
+      END                                                                    
+
+* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* =======================================================================   
+      subroutine tileroots(x1,x2,y1,y2,ig,vphival)
+* =======================================================================   
+
+#include "../include/richrec_lipf.h"
+
+      parameter (nrootmax=200)
 
       real par
       common /parfunc/ par(10)
@@ -3645,16 +4089,16 @@ CC      print*,'(tileroots) limits=',x1,x2,y1,y2
       thc=par(2)
 *      print*,'thc',thc
 * ... intersections with radiator walls
-      
+     
 * ==> radiator walls intersection controlled with par(10)
-      par(10) = 1.      
+      par(10) = 1.     
 
 * ==> X left
       par(1) = x1
       par(9) = 1.
 CC      print*,'------> X left'
       call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nroots)
-      do 1 i=1,nroots       
+      do 1 i=1,nroots      
          call rzero(xb1(i),xb2(i),root,R,EPS,MAXF,fphilrad)
 * ... photon emission point
          call ucopy(pcervtx,phpto,3)
@@ -3664,20 +4108,20 @@ CC      print*,'------> X left'
          if(phdir(3).lt.0.) goto 1
 * ... get y intersection in the radiator bottom
          call patints(phpto,phdir,'RADB',ierr)
-         
+        
          if(phpto(2).gt.y1.and.phpto(2).lt.y2)then
             nradt=nradt+1
             vphival(nradt)=root
          endif
  1    continue
-    
+   
 
 * ==> X right
       par(1) = x2
       par(9) = 1.
 CC      print*,'------> X right'
       call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nroots)
-      do 2 i=1,nroots       
+      do 2 i=1,nroots      
          call rzero(xb1(i),xb2(i),root,R,EPS,MAXF,fphilrad)
 * ... photon emition point
          call ucopy(pcervtx,phpto,3)
@@ -3698,7 +4142,7 @@ CC      print*,'------> X right'
       par(9) = 2.
 CC      print*,'------> Y down'
       call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nroots)
-      do 3 i=1,nroots       
+      do 3 i=1,nroots      
          call rzero(xb1(i),xb2(i),root,R,EPS,MAXF,fphilrad)
 * ... photon emition point
          call ucopy(pcervtx,phpto,3)
@@ -3720,7 +4164,7 @@ CC      print*,'------> Y down'
 CC      print*,'------> Yup'
       call zbrak(fphilrad,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nroots)
 *      print*,'nroots---->',nroots
-      do 4 i=1,nroots       
+      do 4 i=1,nroots      
          call rzero(xb1(i),xb2(i),root,R,EPS,MAXF,fphilrad)
 *         print*,'xb1(i),xb2(i),root',xb1(i)*raddeg,xb2(i)*raddeg,
 *     +        root*raddeg
@@ -3745,36 +4189,36 @@ CC      print*,'------> Yup'
 
       end
 
-* =======================================================================    
+* =======================================================================   
        subroutine HLIMASYM(xlow,xhig,ylow,yhig)
-* =======================================================================    
+* =======================================================================   
 *************************************************************************
 * PARAMETERS
 *       IN  : bounds on x and y
-*             imod=0 - take sign of bounds 
+*             imod=0 - take sign of bounds
 *             imod=1 - take absolute values of bounds
 *       OUT :
 *
 *      Rev: 16/07/2002
-************************************************************************* 
+*************************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer itmod,nphmax,nholt,nermax
-      parameter(nphmax=50)
+      integer itmod,nphmax,nholt  ,nermax
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
-      integer verr(nermax)
-      integer nrootmax
+      integer verr(nermax)       
       parameter (nrootmax=200)
       integer nrefhol(nphmax)
       real philhol(nphmax)
       real xb1(nrootmax),xb2(nrootmax), yb1(nrootmax),yb2(nrootmax)
 
+      integer nrhol
 
       data EPS,MAXF /1.E-4,1000/
       external fphilhole
 
-      common /parfunc/par(10) 
+      common /parfunc/par(10)
       common/holevar/nholt,philhol,nrefhol
 
          thetac=par(2)
@@ -3783,59 +4227,59 @@ CC      print*,'------> Yup'
          call zbrak(fphilhole,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrhol)
          do i=1,nrhol
            dfphilhole=yb1(i)-yb2(i)
-           if (abs(dfphilhole).lt.1.E6) then              
+           if (abs(dfphilhole).lt.1.E6) then             
              call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphilhole)
-             if (root.ne.0.) then    
+             if (root.ne.0.) then   
              call patrace_full(root,thetac,xdet,ydet,nmiref,nerr,verr)
                if (
      &              ydet.le.yhig.and.ydet.ge.ylow.and.
      &              xdet.le.xhig.and.xdet.ge.xlow) then
-*                  nmireft = nmireft + nmiref                          
-                   nholt   = nholt + 1        
-                   philhol(nholt) = root       
+*                  nmireft = nmireft + nmiref                         
+                   nholt   = nholt + 1       
+                   philhol(nholt) = root      
                    nrefhol(nholt) = nmiref
                endif
-             endif                          
-           endif                                                    
-         enddo                                                       
+             endif                         
+           endif                                                   
+         enddo                                                      
 
-* --- end                                                                    
- 99   return                                                                 
-      end                                                                    
+* --- end                                                                   
+ 99   return                                                                
+      end                                                                   
 
 
 
-* =======================================================================    
+* =======================================================================   
        subroutine HLIMSYM(xlow,xhig,ylow,yhig)
-* =======================================================================    
+* =======================================================================   
 *************************************************************************
 * PARAMETERS
 *       IN  : bounds on x and y
-*             imod=0 - take sign of bounds 
+*             imod=0 - take sign of bounds
 *             imod=1 - take absolute values of bounds
 *       OUT :
 *
 *      Rev: 16/07/2002
-************************************************************************* 
+*************************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer itmod,nphmax,nermax  
-      parameter(nphmax=50)
+      integer itmod,nphmax,nermax 
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
-      integer verr(nermax)        
+      integer verr(nermax)       
 
-      integer nrootmax
       parameter (nrootmax=200)
       integer nrefhol(nphmax)
       real philhol(nphmax)
       real xb1(nrootmax),xb2(nrootmax), yb1(nrootmax),yb2(nrootmax)
 
+      integer nrhol
 
       data EPS,MAXF /1.E-4,1000/
       external fphilhole
 
-      common /parfunc/par(10) 
+      common /parfunc/par(10)
       common/holevar/nholt,philhol,nrefhol
 
          thetac=par(2)
@@ -3844,30 +4288,31 @@ CC      print*,'------> Yup'
          call zbrak(fphilhole,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrhol)
          do i=1,nrhol
            dfphilhole=yb1(i)-yb2(i)
-           if (abs(dfphilhole).lt.1.E6) then              
+           if (abs(dfphilhole).lt.1.E6) then             
              call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphilhole)
-             if (root.ne.0.) then    
+             if (root.ne.0.) then   
              call patrace_full(root,thetac,xdet,ydet,nmiref,nerr,verr)
                if (
      &             abs(ydet).le.yhig.and.abs(ydet).ge.ylow.and.
      &             abs(xdet).le.xhig.and.abs(xdet).ge.xlow) then
-*                  nmireft = nmireft + nmiref                          
-                   nholt   = nholt + 1        
-                   philhol(nholt) = root       
+*                  nmireft = nmireft + nmiref                         
+                   nholt   = nholt + 1       
+                   philhol(nholt) = root      
                    nrefhol(nholt) = nmiref
                endif
-             endif                          
-           endif                                                    
-         enddo                                                       
+             endif                         
+           endif                                                   
+         enddo                                                      
 
-* --- end                                                                    
- 99   return                                                                 
-      end                                                                    
+* --- end                                                                   
+ 99   return                                                                
+      end                                                                   
 
 
-* =======================================================================    
+
+* =======================================================================   
        subroutine HLIMCIRC(xc,yc,crad)
-* =======================================================================    
+* =======================================================================   
 *************************************************************************
 * PARAMETERS
 *       IN  : xc,yc - centre of circle
@@ -3875,14 +4320,14 @@ CC      print*,'------> Yup'
 *       OUT :
 *
 *      13/11/2008
-************************************************************************* 
+*************************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer itmod,nphmax,nermax  
-      parameter(nphmax=50)
+      integer itmod,nphmax,nermax 
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
-      integer verr(nermax)        
+      integer verr(nermax)       
 
       integer ncirt
       parameter (nrootmax=200)
@@ -3890,34 +4335,88 @@ CC      print*,'------> Yup'
       real philcir(nphmax)
       real xb1(nrootmax),xb2(nrootmax), yb1(nrootmax),yb2(nrootmax)
 
+      integer nrcir
 
       data EPS,MAXF /1.E-4,1000/
       external fphicirc
 
-      common /parfunc/par(10) 
+      common /parfunc/par(10)
       common/circvar/ncirt,philcir,nrefcir
 
-         thetac=par(2)
-         nrcir=nrootmax
+      thetac=par(2)
+      nrcir=nrootmax
 
-         call zbrak(fphicirc,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrcir)
-         do i=1,nrcir
-           dfphicirc=yb1(i)-yb2(i)
-           if (abs(dfphicirc).lt.1.E6) then              
-             call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphicirc)
-             if (root.ne.0.) then    
-             call patrace_full(root,thetac,xdet,ydet,nmiref,nerr,verr)
-*               nmireft = nmireft + nmiref                          
-                ncirt   = ncirt + 1        
-                philcir(ncirt) = root       
-                nrefcir(ncirt) = nmiref
-             endif                          
-           endif                                                    
-         enddo                                                       
+      call zbrak(fphicirc,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrcir)
+      do i=1,nrcir
+         dfphicirc=yb1(i)-yb2(i)
+         if (abs(dfphicirc).lt.1.E6) then             
+            call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphicirc)
+            if (root.ne.0.) then   
+               call patrace_full(root,thetac,xdet,ydet,nmiref,nerr,verr)
+*               nmireft = nmireft + nmiref                         
+               ncirt   = ncirt + 1       
+               philcir(ncirt) = root      
+               nrefcir(ncirt) = nmiref
+            endif                         
+         endif                                                   
+      enddo                                                      
 
-* --- end                                                                    
- 99   return                                                                 
-      end                                                                    
+* --- end                                                                   
+ 99   return                                                                
+      end                                                                   
+
+
+* =======================================================================   
+       subroutine HLIMMSEC
+* =======================================================================   
+*************************************************************************
+*      06/05/2009
+*************************************************************************
+
+#include "../include/richrec_lipf.h"
+
+      integer itmod,nphmax,nermax 
+      parameter(nphmax=NPHIRMAX)
+      parameter(nermax=10)
+      integer verr(nermax)       
+
+      integer nmslt
+      parameter (nrootmax=200)
+      integer nrefmsl(nphmax)
+      real philmsl(nphmax)
+
+      real xb1(nrootmax),xb2(nrootmax), yb1(nrootmax),yb2(nrootmax)
+
+      integer nrmsl
+
+      data EPS,MAXF /1.E-4,1000/
+      external fphimsec
+
+      common /parfunc/par(10)
+      common/mslvar/nmslt,philmsl,nrefmsl
+
+      thetac=par(2)
+      nrmsl=nrootmax
+
+      call zbrak(fphimsec,0.,twopi,nrootmax,xb1,xb2,yb1,yb2,nrmsl)
+      do i=1,nrmsl
+*         print*,'-> ',i,yb1(i),yb2(i)
+         dfphimsec=yb1(i)-yb2(i)
+         if (abs(dfphimsec).lt.1.E6) then             
+            call rzero(xb1(i),xb2(i),root,r,EPS,MAXF,fphimsec)
+            if (root.ne.0.) then   
+               call patrace_full(root,thetac,xdet,ydet,nmiref,nerr,verr)
+*               nmireft = nmireft + nmiref                         
+               nmslt   = nmslt + 1       
+               philmsl(nmslt) = root      
+               nrefmsl(nmslt) = nmiref
+            endif                         
+         endif                                                   
+      enddo                                                      
+
+* --- end                                                                   
+ 99   return                                                                
+      end                                                                   
 
 
 * =====================================================================================
@@ -3925,15 +4424,15 @@ CC      print*,'------> Yup'
 * =====================================================================================
 
 * ======================================================================
-      subroutine getphivis(thetac,npvis,phimin,phimax)                      
+      subroutine getphivis(thetac,npvis,phimin,phimax)                     
 * ======================================================================
 *
 * GET PHOTON PHI LIMITS FOR VISIBLE PATHS
-*                                                                       
-* PARAMETERS:                                                           
-*         IN: thetac ........ cerenkov angle                            
 *                                                                      
-*        OUT: 
+* PARAMETERS:                                                          
+*         IN: thetac ........ cerenkov angle                           
+*                                                                     
+*        OUT:
 *             npvis ......... Nb of visible pattern branches
 *             phimin,phimax . Corresponding phi limits
 *
@@ -3941,17 +4440,17 @@ CC      print*,'------> Yup'
 
 #include "../include/richrec_lipf.h"
 
-      integer nphmax  
-      parameter(nphmax=50)
-      integer nermax
+      integer nphmax 
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
       integer nphitot,
      +        fphitot(nphmax),
      +        fphipat(nphmax),
+     +        msecpat(nphmax),
      +        verr(nermax),
      +        npvis
 
-      real 
+      real
      +     vphitot(nphmax),
      +     dphidir(nphmax),
      +     dphihol(nphmax),
@@ -3960,6 +4459,9 @@ CC      print*,'------> Yup'
      +     dphiinv(nphmax),
      +     phimin(nphmax),
      +     phimax(nphmax)
+
+      real dphimsec0(nmaxmirsec,nphmax),
+     +     dphimsec1(nmaxmirsec,nphmax)
 
 c      DATA EPS /1.E-2/
 c      external fphotdist
@@ -3971,49 +4473,92 @@ c      data idummy /0/
 
 * --- compute photon phi root values for diferent functions
 
-      call set_phiroots(thetac,nphitot,vphitot,fphitot) 
+*      print*,'Going to call set_phiroots...'
+      call set_phiroots(thetac,nphitot,vphitot,fphitot)
+*      print*,'End call set_phiroots'
 *
       if (ldebug.ge.2) then
          print*,' '
-         print'(A)','******** PHI ROOTS *************'     
+         print'(A)','******** PHI ROOTS *************'    
          print*,' Roots Number',nphitot
          do i=1,nphitot
             xdet = -999.
-            ydet = -999.                            
+            ydet = -999.                           
             call patrace_full
      .           (vphitot(i),thetac,xdet,ydet,nmiref,nerr,verr)
             print'(A,2x,I2,2x,A,2x,F6.1,2x,A,2x,I3,2x,A,2X,2(F6.1,1x))',
      +           'NB=',i,'PHIG=',vphitot(i)*RADDEG,'FLAG=',fphitot(i),
      +           'X,Y=',xdet,ydet
-         enddo         
+         enddo        
       endif
 
-* --- compute path lengths 
+* --- compute path lengths
       call dphipath(thetac,nphitot,vphitot,fphitot,
      +              dphidir,dphihol,dphimir0,dphimir1,dphiinv,
-     +              npvis,phimin,phimax,fphipat)
+     +              npvis,phimin,phimax,fphipat,msecpat,
+     +              dphimsec0,dphimsec1)
 
-      if (ldebug.ge.2) then      
+      if (ldebug.ge.2) then     
          print*,' '
-         print'(A)','******** ACCEPTANCE ********'    
+         print'(A)','******** ACCEPTANCE ********'   
          print'(A,i2)',' Nb Vis branches ',npvis
          print*,'VISIBLE deltaphi ',
      .        (raddeg*(phimax(i)-phimin(i)),i=1,npvis)
          print*,' '
-         print*,'DPHIDIR =',(RADDEG*DPHIDIR(I),I=2,INT(DPHIDIR(1))+1) 
+         print*,'DPHIDIR =',(RADDEG*DPHIDIR(I),I=2,INT(DPHIDIR(1))+1)
       endif
 
 
 * --- return
       return
-      end      
+      end     
+
+
+* ======================================================================
+      subroutine getmirsec(phimir,imsec)                     
+* ======================================================================
+*
+* GET MIRROR SECTOR GIVEN MIRROR ANGLE
+*                                                                      
+* PARAMETERS:                                                          
+*         IN: phimir ........ mirror phi
+*        OUT: imsec ......... mirror sector
+*
+*             22/May/2009 - R.Pereira
+*
+* ======================================================================
+
+#include "../include/richrec_lipf.h"
+
+      real phimir
+      integer imsec
+
+      phitest = phimir
+
+      irawmsec = 1
+      if(phitest.lt.phimirs(1)) then
+         do i=2,nmirsec
+            if(phitest.ge.phimirs(i)) then
+               irawmsec = i
+            endif
+         enddo
+      endif
+
+      imsec = idmirs(irawmsec)
+
+*      print*,'(getmirsec) phimir,imsec = ',phimir,imsec
+
+* --- return
+      return
+      end     
 
 
 ********************************
 *** CODE FROM richaccsmear.F ***
 ********************************
 
-      subroutine richaccsmear(thc,zch,richacca,richeffa )
+      subroutine richaccsmear(thc,zch,richacca,richeffa,
+     +                        richaccmseca,richeffmseca)
 ***************************************************************************
 * Returns the ring acceptance smeared over the ring width
 *
@@ -4023,6 +4568,8 @@ c      data idummy /0/
 *                  
 * OUT: richacca = acceptance
 *      richeffa = efficiencies (see meaning at richacpv11.F/richacc routine)
+*      richaccmseca,
+*      richeffmseca = same by mirror sector (R.Pereira 08/May/2009)
 *  
 ***************************************************************************
 
@@ -4031,14 +4578,22 @@ c      data idummy /0/
       integer zch
       real thc
       real richacca(5),richeffa(8)
+      real richaccmseca(nmaxmirsec,2),richeffmseca(nmaxmirsec,8)
 
 * ... ADDITIONAL LOCAL VARIABLES for smeared acceptance calculation
 * ... R. Pereira 24-Jun-2005
        real avgrichacca(5),avgricheffa(8)
+       real avgrichaccmseca(nmaxmirsec,2),avgricheffmseca(nmaxmirsec,8)
        real radsigma,raddelta,thetacsmear
        integer kas1,kas2
 
       if (zch.eq.0) zch = 1
+
+* ... Reset variables
+      call vzero(avgrichacca,5)
+      call vzero(avgricheffa,8)
+      call vzero(avgrichaccmseca,nmaxmirsec*2)
+      call vzero(avgricheffmseca,nmaxmirsec*8)
       
       IF (ZCH.NE.99) THEN       !-----------------------------------------------------------------
 *     ...... thetac resolution
@@ -4047,11 +4602,12 @@ c      data idummy /0/
 
 *     ...... evaluate acceptances for different thetac
          wttot = 0.
-         call vzero(avgrichacca,5)
-         call vzero(avgricheffa,8)
+
+
          do k=1,5               !  5 rings are taken
             thetacsmear=thc+sigmathetac*(float(k)-3.) !  rings at -2,-1,0,+1,+2 sigma
-            call richacc(thetacsmear,richacca,richeffa)    
+            call richacc(thetacsmear,richacca,richeffa,
+     +           richaccmseca,richeffmseca)
             wt = exp(-(float(k)-3.)**2./2.)
             do j=1,5
                avgrichacca(j) = avgrichacca(j) + richacca(j)*wt   
@@ -4059,24 +4615,38 @@ c      data idummy /0/
             do j=1,8
                avgricheffa(j) = avgricheffa(j) + richeffa(j)*wt   
             enddo
+            do j=1,nmaxmirsec
+               do i=1,2
+                  avgrichaccmseca(j,i) = avgrichaccmseca(j,i)
+     +                 +richaccmseca(j,i)*wt
+               enddo
+               do i=1,8
+                  avgricheffmseca(j,i) = avgricheffmseca(j,i)
+     +                 +richeffmseca(j,i)*wt
+               enddo
+            enddo
             wttot = wttot + wt  
-         enddo          
+         enddo
          do j=1,5
             richacca(j) = avgrichacca(j)/wttot 
          enddo
          do j=1,8
             richeffa(j) = avgricheffa(j)/wttot
          enddo         
+         do j=1,nmaxmirsec
+            do i=1,2
+               richaccmseca(j,i) = avgrichaccmseca(j,i)/wttot
+            enddo
+            do i=1,8
+               richeffmseca(j,i) = avgricheffmseca(j,i)/wttot
+            enddo
+         enddo
       
 
       ELSE                      !-----------------------------------------------------------------
 
 *     ... SMEARED ACCEPTANCE CALCULATION
 *     ... R. Pereira 24-Jun-2005
-
-*     ... Reset variables
-         call vzero(avgrichacca,5)
-         call vzero(avgricheffa,8)
          
 *     ... Estimated ring width (cm)
          radsigma = 0.4         ! Fair estimate for any AGL in test beam
@@ -4089,7 +4659,8 @@ c      data idummy /0/
      +                       (cos(thetac))**3./rich_height)**0.5)
 
 *     ... compute acceptances and efficiencies
-            call richacc(thetacsmear,richacca,richeffa)
+            call richacc(thetacsmear,richacca,richeffa,
+     +         richaccmseca,richeffmseca)
 
 *         print*,'ring',kas1-3,'dir accep = ',richacca(2)
 
@@ -4102,6 +4673,16 @@ c      data idummy /0/
                avgricheffa(kas2) = avgricheffa(kas2)
      +              +richeffa(kas2)*exp(-(kas1-3.)**2./2.) ! exp accounts for gaussian height
             enddo
+            do kas2=1,nmaxmirsec
+               do i=1,2
+                  avgrichaccmseca(kas2,i) = avgrichaccmseca(kas2,i)
+     +                 +richaccmseca(kas2,i)*exp(-(kas1-3.)**2./2.) ! exp accounts for gaussian height
+               enddo
+               do i=1,8
+                  avgricheffmseca(kas2,i) = avgricheffmseca(kas2,i)
+     +                 +richeffmseca(kas2,i)*exp(-(kas1-3.)**2./2.) ! exp accounts for gaussian height
+               enddo
+            enddo
             
          enddo
          
@@ -4111,6 +4692,16 @@ c      data idummy /0/
          enddo
          do kas2=1,8
             richeffa(kas2) = avgricheffa(kas2)/(1+2*exp(-2.)+2*exp(-.5)) ! sum of gaussian heights
+         enddo
+         do kas2=1,nmaxmirsec
+            do i=1,2
+               richaccmseca(kas2,i) = avgrichaccmseca(kas2,i)
+     +              /(1+2*exp(-2.)+2*exp(-.5)) ! sum of gaussian heights
+            enddo
+            do i=1,8
+               richeffmseca(kas2,i) = avgricheffmseca(kas2,i)
+     +              /(1+2*exp(-2.)+2*exp(-.5)) ! sum of gaussian heights
+            enddo
          enddo
          
 *     print*,'FINAL DIR ACCEP = ',richacca(2)
@@ -4129,7 +4720,7 @@ c      data idummy /0/
 *********************************
 
 
-      subroutine richaccpmtgap(accgap,accgapdir,accgapref)
+      subroutine richaccpmtgap(accgap,accgapdir,accgapref,accgapmsec)
 **********************************************************************
 * Returns the geometrical detection efficiencies due to PMT gaps
 *     OUT: accgap    --- detection efficiency due to gaps (geometrical)
@@ -4138,9 +4729,20 @@ c      data idummy /0/
 *
 * Updated: 28-Nov-2008 by R. Pereira
 *
+*     12-May-2009: hard-coded value 0.85 replaced by variable REFLEC,
+*     (R.Pereira)  richcrd.inc added to get this variable
+*
+*     15-May-2009 (R.Pereira): mirror sectors included
+*
 *********************************************************************
 
 #include "../include/richrec_lipf.h"
+
+      real accgap,accgapdir,accgapref
+      real accgapmsec(nmaxmirsec)
+
+      real avaccgap,avaccgapdir,avaccgapref
+      real avaccgapmsec(nmaxmirsec)
 
 * ... patrace variables
       real vdet(3),vdir(3)
@@ -4154,12 +4756,19 @@ c      data idummy /0/
       integer ngamma0,ngammadet,ngammagap
       integer ngamma0dir,ngammadetdir,ngammagapdir
       integer ngamma0ref,ngammadetref,ngammagapref
+      integer ngamma0msec(nmaxmirsec),ngammadetmsec(nmaxmirsec),
+     +     ngammagapmsec(nmaxmirsec)
 
       real spgamma0,spgammadet,spgammagap
       real spgamma0dir,spgammadetdir,spgammagapdir
       real spgamma0ref,spgammadetref,spgammagapref
+      real spgamma0msec(nmaxmirsec),spgammadetmsec(nmaxmirsec),
+     +     spgammagapmsec(nmaxmirsec)
 
       real phdir(3)
+
+      real phimir
+      integer imsec
 
       if(ipthetac.eq.0)return
       thetac=cangrec(ipthetac)
@@ -4176,6 +4785,9 @@ c      data idummy /0/
       avaccgap    = 0.
       avaccgapdir = 0.
       avaccgapref = 0.
+      do i=1,nmaxmirsec
+         avaccgapmsec(i) = 0.
+      enddo
       weightotal  = 0.
 
 * ... calculate geometrical efficiency correction due to gaps
@@ -4185,16 +4797,27 @@ c      data idummy /0/
          accgap       =-999.
          accgapdir    =-999.
          accgapref    =-999.
+         do i=1,nmaxmirsec
+            accgapmsec(i) = -999.
+         enddo
 
          ngamma0      = 0
          ngammadet    = 0
          ngammagap    = 0
+
          ngamma0dir   = 0
          ngammadetdir = 0
          ngammagapdir = 0
+
          ngamma0ref   = 0
          ngammadetref = 0
          ngammagapref = 0
+
+         do i=1,nmaxmirsec
+            ngamma0msec(i)   = 0
+            ngammadetmsec(i) = 0
+            ngammagapmsec(i) = 0
+         enddo
 
          spgamma0      = 0.
          spgammadet    = 0.
@@ -4206,6 +4829,12 @@ c      data idummy /0/
          spgammadetref = 0.
          spgammagapref = 0.
          
+         do i=1,nmaxmirsec
+            spgamma0msec(i)   = 0
+            spgammadetmsec(i) = 0
+            spgammagapmsec(i) = 0
+         enddo
+
 * ...... thetac
          allthetac=thetac+sigmathetac*(float(k)-3.) !  rings at -2,-1,0,+1,+2 sigma
 * ...... ring sampling
@@ -4213,7 +4842,9 @@ c      data idummy /0/
          do phig=0.,twopi,1.E-2
 
 * ......... trace photon to matrix and check if photon is LG gap
-            call patrace_full(phig,allthetac,xdet,ydet,nmiref,nerr,verr) 
+            call patrace_full_phimir(phig,allthetac,xdet,ydet,nmiref,
+     +           nerr,verr,phimir)
+            call getmirsec(phimir,imsec)
             vdet(1) = xdet
             vdet(2) = ydet
             vdet(3) = ZPMTDET
@@ -4258,7 +4889,7 @@ c      data idummy /0/
 
             photprob = exp(-dist/radint)
             if(nmiref.ne.0)then
-               photprob = photprob*0.85
+               photprob = photprob*reflec
             endif
 *            print*,'photprob = ',photprob
 
@@ -4270,8 +4901,14 @@ c      data idummy /0/
                   ngammadetdir = ngammadetdir+1
                   spgammadetdir = spgammadetdir+photprob
                else
+                  if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                     print*,'(richaccpmtgap, 1st case...)'
+                     print*,'Wrong mirror sector no. ! - ',imsec
+                  endif
                   ngammadetref = ngammadetref+1
                   spgammadetref = spgammadetref+photprob
+                  ngammadetmsec(imsec) = ngammadetmsec(imsec)+1
+                  spgammadetmsec(imsec) = spgammadetmsec(imsec)+photprob
                endif
             elseif (verr(nerr).eq.199)then
                ngammagap = ngammagap+1
@@ -4280,8 +4917,15 @@ c      data idummy /0/
                   ngammagapdir = ngammagapdir+1
                   spgammagapdir = spgammagapdir+photprob
                else
+                  if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                     print*,'(richaccpmtgap, 2nd case...)'
+                     print*,'Wrong mirror sector no. ! - ',imsec
+                  endif
                   ngammagapref = ngammagapref+1
                   spgammagapref = spgammagapref+photprob
+
+                  ngammagapmsec(imsec) = ngammagapmsec(imsec)+1
+                  spgammagapmsec(imsec) = spgammagapmsec(imsec)+photprob
                endif
             endif
          enddo
@@ -4315,6 +4959,19 @@ c      data idummy /0/
             accgapref = -999.
          endif
 
+* -----> mirror sectors
+         do i=1,nmaxmirsec
+         ngamma0msec(i) = ngammadetmsec(i) + ngammagapmsec(i)
+         spgamma0msec(i) = spgammadetmsec(i) + spgammagapmsec(i)
+         if (ngamma0msec(i).ne.0) then
+*            accgapmsec(i) =
+*     +           float(ngammadetmsec(i))/float(ngamma0msec(i))
+            accgapmsec(i) = spgammadetmsec(i)/spgamma0msec(i)
+         else
+            accgapmsec(i) = -999.
+         endif
+         enddo
+
 *         print*,'CHRADID = ',chradid
 *         print*,'K = ',k
 *         print*,'ALLTHETAC = ',allthetac
@@ -4324,6 +4981,12 @@ c      data idummy /0/
 *     +        float(ngammadetdir)/float(ngamma0dir)
 *         print*,'N REF: ',ngammadetref,ngamma0ref,
 *     +        float(ngammadetref)/float(ngamma0ref)
+
+*         do i=1,nmirsec
+*            print*,'N MSEC(',i,'): ',ngammadetmsec(i),ngamma0msec(i),
+*     +           float(ngammadetmsec(i))/float(ngamma0msec(i))
+*         enddo
+
 *         print*,'SP TOT: ',spgammadet,spgamma0,
 *     +        spgammadet/spgamma0
 *         print*,'SP DIR: ',spgammadetdir,spgamma0dir,
@@ -4331,10 +4994,20 @@ c      data idummy /0/
 *         print*,'SP REF: ',spgammadetref,spgamma0ref,
 *     +        spgammadetref/spgamma0ref
 
+*         do i=1,nmirsec
+*            print*,'SP MSEC(',i,'): ',spgammadetmsec(i),spgamma0msec(i),
+*     +           spgammadetmsec(i)/spgamma0msec(i)
+*         enddo
+
          weight=exp(-0.5*(float(k)-3.)**2.)
          avaccgap    = avaccgap    + accgap*weight
          avaccgapdir = avaccgapdir + accgapdir*weight
          avaccgapref = avaccgapref + accgapref*weight
+
+         do i=1,nmaxmirsec
+            avaccgapmsec(i) = avaccgapmsec(i) + accgapmsec(i)*weight
+         enddo
+
          weightotal  = weightotal + weight 
 cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       enddo
@@ -4342,11 +5015,17 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       accgap    = avaccgap/weightotal 
       accgapdir = avaccgapdir/weightotal
       accgapref = avaccgapref/weightotal
-cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
+
+      do i=1,nmaxmirsec
+         accgapmsec(i) = avaccgapmsec(i)/weightotal
+      enddo
+
+*      print*,'accgap,accgapdir,accgapref: ',accgap,accgapdir,accgapref
+*      print*,'accgapmsec: ',(accgapmsec(i),i=1,nmirsec)
 
       return
       end
-
+      
 
 ******************************
 *** CODE FROM richeffv10.F ***
@@ -4384,7 +5063,7 @@ cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
 #include "../include/richrec_lipf.h"
 
       integer nphmax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       DOUBLE PRECISION pphimin(nphmax),                                        
      +                 pphimax(nphmax),                                        
      +                 pardou(4),                                          
@@ -4462,7 +5141,7 @@ cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
 #include "../include/richrec_lipf.h"
 
       integer nphmax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       DOUBLE PRECISION pphimin(nphmax),                                        
      +                 pphimax(nphmax),                                        
      +                 pardou(4),                                          
@@ -4562,7 +5241,7 @@ cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
 
       COMMON /PMTLGC/ pareff(10)
       integer nphmax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       DOUBLE PRECISION pphimin(nphmax),pphimax(nphmax)
       DOUBLE PRECISION dgauss,flgeff,DEPS,dx
       REAL efflg,pareff,thc,dphitot
@@ -4668,7 +5347,7 @@ cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
 * --------------------------------------------------------------------
 
       integer nphmax,nermax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
         
       DOUBLE PRECISION dphig,V( 1)
@@ -4748,7 +5427,7 @@ cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
 #include "../include/richrec_lipf.h"
 
       integer nphmax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       DOUBLE PRECISION pphimin(nphmax),                                        
      +                 pphimax(nphmax),                                        
      +                 pardou(4),                                          
@@ -4865,15 +5544,15 @@ cc      print*,'accgap, accgapdir, accgapref',accgap, accgapdir, accgapref
 #include "../include/richrec_lipf.h"
 
       integer nphmax,nermax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
       integer nphitot,
-     +        fphitot(50),
+     +        fphitot(nphmax),
      +        fphipat(nphmax),
      +        verr(nermax),
      +        npvis
       real 
-     +     vphitot(50),
+     +     vphitot(nphmax),
      +     dphidir(nphmax),
      +     dphihol(nphmax),
      +     dphimir0(nphmax),
@@ -4948,7 +5627,7 @@ CC      if (chradid.eq.'NAF') pardou(1) = dble(0.5)
 #include "../include/richrec_lipf.h"
 
       integer nphmax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       DOUBLE PRECISION pphimin(nphmax),                                        
      +                 pphimax(nphmax),                                        
      +                 pardou(4),                                          
@@ -5043,7 +5722,7 @@ CC      if (chradid.eq.'NAF') pardou(1) = dble(0.5)
 
       COMMON /PMTLGC/ pareff(10)
       integer nphmax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       DOUBLE PRECISION pphimin(nphmax),pphimax(nphmax)
       DOUBLE PRECISION dgauss,flgeff,DEPS,dx
       REAL efflg,pareff,thc,dphitot
@@ -5075,7 +5754,7 @@ CC      if (chradid.eq.'NAF') pardou(1) = dble(0.5)
 #include "../include/richrec_lipf.h"
 
       integer nphmax,nermax  
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
       DOUBLE PRECISION dphig
       REAL phig,vdet(3),vdir(3),thc,pareff,thei
@@ -5598,14 +6277,16 @@ C      print*,'thi=',acos(costhi)
 *** CODE FROM richaccradwall.F ***
 **********************************
 
-      subroutine richaccradwall(thetac,accradwalldir,accradwallref)
+      subroutine richaccradwall(thetac,accradwalldir,accradwallref,
+     +                          accradwallmsec)
 **********************************************************************
 * Returns the fraction of detected photons (visible) crossing the radiator poron walls
 *
 *     OUT: 
-*        thetac       :  Cherenkov angle
-*        accradwalldir:  acceptance due to radiator poron walls (direct)
-*        accradwallref:  acceptance due to radiator poron walls (reflected)
+*        thetac        :  Cherenkov angle
+*        accradwalldir :  acceptance due to radiator poron walls (direct)
+*        accradwallref :  acceptance due to radiator poron walls (reflected)
+*        accradwallmsec:  acceptance by mirror sector
 *
 *     26-Nov-2008: changed by R. Pereira to take into account
 *     different scattering probabilities for each photon,
@@ -5613,14 +6294,21 @@ C      print*,'thi=',acos(costhi)
 *     acceptance calculation
 *
 *     28-Nov-2008: reflection coefficient (0.85) incorporated into
-*                  probability, although it is currently irrelevant
+*     (R.Pereira)  probability, although it is currently irrelevant
 *                  because results for direct and reflected branches
 *                  are given separately
+*
+*     12-May-2009: - Hard-coded value 0.85 replaced by variable REFLEC,
+*     (R.Pereira)    richcrd.inc added to get this variable.
+*                  - Support for mirror sectors added
 *
 *********************************************************************
 
 #include "../include/richrec_lipf.h"
 
+      real thetac
+      real accradwalldir,accradwallref
+      real accradwallmsec(nmaxmirsec)
 
       real accradwall, ztrial, gamvtx(3), phdir(3), pint(3)
 
@@ -5628,9 +6316,15 @@ C      print*,'thi=',acos(costhi)
       integer nfotalldir, nfotallref
       integer nfotwalldir, nfotwallref
 
+      integer nfotallmsec(nmaxmirsec),
+     +        nfotwallmsec(nmaxmirsec)
+
       real spfotall
       real spfotalldir, spfotallref
       real spfotwalldir, spfotwallref
+
+      real spfotallmsec(nmaxmirsec),
+     +     spfotwallmsec(nmaxmirsec)
 
       integer nphmax
       parameter(nphmax=10)
@@ -5641,6 +6335,12 @@ C      print*,'thi=',acos(costhi)
       real txv,tyv
       real txi,tyi
       integer itflagv,itflagi
+
+      real phimir
+      integer imsec
+
+      real photprob
+      real photprobmsec
 
 * ... init
       accradwalldir = 0.
@@ -5657,6 +6357,14 @@ C      print*,'thi=',acos(costhi)
       spfotallref  = 0.
       spfotwalldir = 0.
       spfotwallref = 0.
+
+      do i=1,nmaxmirsec
+         accradwallmsec(i) = 0.
+         nfotallmsec(i) = 0
+         nfotwallmsec(i) = 0
+         spfotallmsec(i) = 0.
+         spfotwallmsec(i) = 0.
+      enddo
 
 * ... safe cut
       if (ipthetac.eq.0) return !no beta reconstructed
@@ -5694,14 +6402,22 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
 * ...... loop on the photon azimuthal angle
          do 1 phig=0.,twopi,1.E-2
 * ......... check if photon is detected
-            call patrace_full(phig,thetac,xdet,ydet,nmiref,nerr,verr)
+            call patrace_full_phimir(phig,thetac,xdet,ydet,nmiref,nerr,
+     +           verr,phimir)
+            call getmirsec(phimir,imsec)
             if (nerr.ne.0) goto 1
 * ......... photon counter
             nfotall = nfotall + 1
             if (nmiref.eq.0) then             
                nfotalldir = nfotalldir + 1 
             else
+               if((imsec.lt.1).or.(imsec.gt.nmirsec)) then
+                  print*,'(richaccradwall) Wrong mirror sector no.! - ',
+     +                 imsec
+               endif
+*               print*,'(accradwall) phimir = ',phimir,', imsec = ',imsec
                nfotallref = nfotallref + 1 
+               nfotallmsec(imsec) = nfotallmsec(imsec)+1
             endif
 * ......... photon in detector frame
             call patphot(phig,thetac,phdir)
@@ -5735,8 +6451,10 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
             endif
 
             photprob = exp(-dist/radint)
+            photprobmsec = photprob
             if(nmiref.ne.0)then
-               photprob = photprob*0.85
+               photprob = photprob*reflec
+               photprobmsec = photprobmsec*refmirs(imsec)
             endif
 
 * ......... probability sum counter
@@ -5745,6 +6463,7 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
                spfotalldir = spfotalldir + photprob
             else
                spfotallref = spfotallref + photprob
+               spfotallmsec(imsec) = spfotallmsec(imsec)+photprobmsec
             endif
 
             if ((nxi.ne.nxv).or.(nyi.ne.nyv)
@@ -5755,6 +6474,9 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
                else
                   nfotwallref = nfotwallref + 1 
                   spfotwallref = spfotwallref + photprob 
+                  nfotwallmsec(imsec) = nfotwallmsec(imsec)+1
+                  spfotwallmsec(imsec) =
+     +                 spfotwallmsec(imsec)+photprobmsec
                endif
             endif
  1       continue
@@ -5774,6 +6496,11 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
       if (nfotallref.ne.0) 
      + accradwallref = spfotwallref/spfotallref
 
+      do i=1,nmirsec
+         if (nfotallmsec(i).ne.0) 
+     +        accradwallmsec(i) = spfotwallmsec(i)/spfotallmsec(i)
+      enddo
+
 *      print*,'N DIR: ',nfotwalldir,nfotalldir,
 *     +     float(nfotwalldir)/float(nfotalldir)
 *      print*,'N REF: ',nfotwallref,nfotallref,
@@ -5782,6 +6509,12 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
 *     +     spfotwalldir/spfotalldir
 *      print*,'SP REF: ',spfotwallref,spfotallref,
 *     +     spfotwallref/spfotallref
+
+*      print*,'SP MSEC: '
+*      do i=1,nmirsec
+*         print*,'(Sector ',i,'):',spfotwallmsec(i),spfotallmsec(i),
+*     +        spfotwallmsec(i)/spfotallmsec(i)
+*      enddo
 
 * ... recover original pcervtx
       call ucopy(pcervtx_backup,pcervtx,3)

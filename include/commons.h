@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.265 2009/05/26 14:26:45 choutko Exp $
+//  $Id: commons.h,v 1.266 2009/06/09 10:50:13 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1093,6 +1093,7 @@ COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
 #define LIP_NRMAX 2
 #define LIP_NMAXTOFCLU 100
 #define LIP_NMAXLIPREC 10
+#define LIP_NMAXMIRSECCC 10
 
 // input data (see richrec_lipc.h for details)
 
@@ -1125,6 +1126,10 @@ class LIPC2F_DEF{
   geant rtmir_c2f;
   geant rbmir_c2f;
   geant hmir_c2f;
+  int nmirsec_c2f;
+  int idmirs_c2f[LIP_NMAXMIRSECCC];
+  geant phimirs_c2f[LIP_NMAXMIRSECCC];
+  geant refmirs_c2f[LIP_NMAXMIRSECCC];
   geant pmtwx_c2f;
   geant pmtwy_c2f;
   geant shieldw_c2f;
@@ -1230,6 +1235,8 @@ class LIPF2C_DEF{
   geant resc_chgmir[LIP_NMAXLIPREC];         
   geant resc_accgeom[LIP_NMAXLIPREC][3];
   geant resc_eff[LIP_NMAXLIPREC][6];
+  geant resc_accmsec[LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
+  geant resc_effmsec[LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   geant resc_chgprob[LIP_NMAXLIPREC][3];
 
   //track parameters

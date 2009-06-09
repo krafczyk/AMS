@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.115 2009/05/26 14:26:45 choutko Exp $
+//  $Id: ntuple.h,v 1.116 2009/06/09 10:50:13 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -784,6 +784,8 @@ public:
   float resc_chgmir[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_accgeom[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resc_eff[MAXRICHRIN][LIP_NMAXLIPREC][6];
+  float resc_accmsec[MAXRICHRIN][LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
+  float resc_effmsec[MAXRICHRIN][LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   float resc_chgprob[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_pimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_epimp[MAXRICHRIN][LIP_NMAXLIPREC][3];

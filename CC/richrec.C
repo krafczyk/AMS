@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.114 2009/04/29 15:51:42 mdelgado Exp $
+//  $Id: richrec.C,v 1.115 2009/06/09 10:50:12 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2405,6 +2405,16 @@ void richiniteventlip() {
   LIPC2F.rtmir_c2f = RICHDB::top_radius;
   LIPC2F.rbmir_c2f = RICHDB::bottom_radius;
   LIPC2F.hmir_c2f = RICHDB::rich_height;
+  LIPC2F.nmirsec_c2f = 3;
+  LIPC2F.idmirs_c2f[0] = 3;
+  LIPC2F.idmirs_c2f[1] = 2;
+  LIPC2F.idmirs_c2f[2] = 1;
+  LIPC2F.phimirs_c2f[0] = 328./180.*3.14159265;
+  LIPC2F.phimirs_c2f[1] = 88./180.*3.14159265;
+  LIPC2F.phimirs_c2f[2] = 208./180.*3.14159265;
+  LIPC2F.refmirs_c2f[0] = 0.85;
+  LIPC2F.refmirs_c2f[1] = 0.85;
+  LIPC2F.refmirs_c2f[2] = 0.85;
   LIPC2F.pmtwx_c2f = 3.4; // FIND WHERE THIS IS IN FULL SIM CODE
   LIPC2F.pmtwy_c2f = 3.4; // FIND WHERE THIS IS IN FULL SIM CODE
   LIPC2F.shieldw_c2f = 0.3; // FIND WHERE THIS IS IN FULL SIM CODE

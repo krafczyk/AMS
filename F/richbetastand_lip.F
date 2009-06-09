@@ -1522,6 +1522,7 @@ C -----------------------------------------------------------------
             chi2hit(ipthetac,nn)    = chi2hit_fit(nn)
             phihit(ipthetac,nn)     = phihit_fit(nn)
             ireflechit(ipthetac,nn) = ireflechit_fit(nn)
+            imsechit(ipthetac,nn)   = imsechit_fit(nn)
          enddo
 *         print*,'(rlm5parxypart) Successful, yvector(1) = ',yvector(1)
       else

@@ -1266,7 +1266,7 @@ c NORMALIZED GAUSSIAN
 *      common /probbklc/ probability,nassh
 *
       integer nphmax
-      parameter(nphmax=50)
+      parameter(nphmax=NPHIRMAX)
       real phimin(nphmax),phimax(nphmax)
 *
       integer n_exp_max

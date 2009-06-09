@@ -113,6 +113,13 @@
      +       PGLIX,RADIX,TGMIR,D0MIR,EMCXLIM,EMCYLIM,JUMP,
      +       DMECX,DMECY,DX0,ZTARG
 
+	integer nmaxmirsec
+	PARAMETER(NMAXMIRSEC=10)
+	integer nmirsec
+	integer idmirs(nmaxmirsec)
+	real phimirs(nmaxmirsec)
+	real refmirs(nmaxmirsec)
+
         integer NRADTS
 
 
@@ -144,7 +151,14 @@
      +                    ZBMIRGAP,      !bottom mirror gap
      +                    ZLGSIGNAL,     !z efective distance below pmt lg matrix plane for
                                          !signal optimization 
-     +                    ZTARG          !Z top coordinate of the radiator in the RICH frame
+     +                    ZTARG,         !Z top coordinate of the radiator in the RICH frame
+     +                    NMIRSEC,       !number of mirror sectors
+     +                    IDMIRS,        !id of each mirror sector (number 1-N)
+     +                    PHIMIRS,       !starting phi of each mirror sector
+                                         !(should be in ascending order except for first sector
+                                         ! which includes phi=0, each sector ends on following phi,
+                                         ! last sector ends on first phi)
+     +                    REFMIRS        !reflectivity of each mirror sector
 
 ! detection matrix
 
@@ -266,13 +280,14 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 * --- REC working variables
 * -------------------------------------------------------------------------
 
-        integer ihit,nmirefhit
+        integer ihit,nmirefhit,msechit
         real curhit,hypthc
         common /cerwrkc1/ 
      +         ihit,       ! hit number
      +         curhit(3),  ! coord of current hit
      +         hypthc,     ! cerenkov angle being tested
-     +         nmirefhit   ! nb of mirror reflections of current hit
+     +         nmirefhit,  ! nb of mirror reflections of current hit
+     +         msechit     ! mirror sector of reflected hit
 
         real pcervtx,refindex,clari
         character chradid*3
@@ -310,7 +325,8 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 
 * --- fit variables
       real chi2hit_fit,phihit_fit,chi2rec_fit
-      integer nbushits_fit,ipushits_fit,nbminshit_fit,ireflechit_fit
+      integer nbushits_fit,ipushits_fit,nbminshit_fit,ireflechit_fit,
+     +        imsechit_fit
       common /richfitc/ 
      +                    chi2hit_fit(nhitmax),
      +                    phihit_fit(nhitmax),
@@ -318,12 +334,13 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +                    nbushits_fit,
      +                    ipushits_fit(nhitmax),
      +                    nbminshit_fit(nhitmax),
-     +                    ireflechit_fit(nhitmax)
+     +                    ireflechit_fit(nhitmax),
+     +                    imsechit_fit(nhitmax)
 
 * --- beta reconstruction: final results
  
       integer ipthetac,ntherec,nbushits, 
-     +        ipushits,nbminshit,iflghit,ireflechit
+     +        ipushits,nbminshit,iflghit,ireflechit,imsechit
 
       real betarec, cangrec, chi2rec, likerec
      +     chi2hit, phihit,  cangrecdif, pkolmog, flatevt
@@ -349,6 +366,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
                                                ! =2 used on 1st rec
                                                ! =3 far from thcmax pattern
      +         ireflechit(ntherecmax,nhitmax), ! (=0 nonreflect,=1 reflect)
+     +         imsechit(ntherecmax,nhitmax),   ! mirror sector, =0 if nonreflect
      +         betarec,                        ! beta reconstructed
      +         cangrec(ntherecmax),            ! cerenkov angle reconstr
      +         chi2rec(ntherecmax),            ! reduced chi2 
@@ -373,6 +391,9 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 * --- variables for cerenkov charge reconstruction (per event)
 * -----------------------------------------------------------------------
 
+      integer nmaxmirsecc
+      parameter(NMAXMIRSECC=10)
+
       integer iflagchg
       real chg_nphe, chg_nphe_sim, chg_nphe_dir, chg_nphe_ref,
      +     chgrec,   chgrec_dir,   chgrec_ref,   chgsim,
@@ -393,9 +414,14 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        chgrec_gapref     ! 
 
 
+      integer nphirmax
+      parameter(NPHIRMAX=100)
+
       integer iflagacc
       real richacc_inv, richacc_dir, richacc_mir0, richacc_mir1,     
-     +     richacc_hol, richacc_vis, richacc_gap, richacc_gapdir, richacc_gapref      
+     +     richacc_hol, richacc_vis, richacc_gap, richacc_gapdir,
+     +     richacc_gapref, richacc_msec0, richacc_msec1,
+     +     richacc_gapmsec
 
        common /richaccg/
      +        iflagacc,         ! flag=0/1	
@@ -407,12 +433,15 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richacc_vis,      ! pattern acceptance VISIBLE
      +        richacc_gap,      ! detection efficiency due to gaps (geometrical)
      +        richacc_gapdir,   ! direct detection efficiency due to gaps
-     +        richacc_gapref    ! reflected detection efficiency due to gaps
+     +        richacc_gapref,   ! reflected detection efficiency due to gaps
+     +        richacc_msec0(nmaxmirsecc),  ! pattern acceptance by MIRROR SECTOR (1st ref)
+     +        richacc_msec1(nmaxmirsecc),  ! pattern acceptance by MIRROR SECTOR (2nd ref)
+     +        richacc_gapmsec(nmaxmirsecc)  ! gap efficiency by MIRROR SECTOR
 
        real richeff_rad, richeff_lg, richeff_dir, richeff_1rf,      
      +      richeff_2rf, richeff_tot,richeff_pni, richeff_avz,
-     +      richeff_tot_gap, richeff_dir_gap, richeff_ref_gap
-
+     +      richeff_tot_gap, richeff_dir_gap, richeff_ref_gap,
+     +      richeff_msec0, richeff_msec1, richeff_msec_gap
 
        common /richeffc/
      +        richeff_rad,      ! Eff(nint)*Eff(geom)
@@ -425,7 +454,10 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richeff_avz,      ! average photon distance
      +        richeff_tot_gap,  ! overall efficiency with pmt gap effect included
      +        richeff_dir_gap,  ! 
-     +        richeff_ref_gap   !
+     +        richeff_ref_gap,  !
+     +        richeff_msec0(nmaxmirsecc),  ! efficiency for each mirror sector (1st ref)
+     +        richeff_msec1(nmaxmirsecc),  ! efficiency for each mirror sector (2nd ref)
+     +        richeff_msec_gap(nmaxmirsecc)  ! eff by mir sect with gap effect
 
 	real a_beta, b_beta
 	common /richbetawidthc/

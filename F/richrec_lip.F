@@ -178,6 +178,77 @@
          call hbook1(-200037,'std rec ytop, diff 1-x (same hits)',
      +        200,-50.,50.,0.)
 
+* ...... Plots for Jun-2009 studies
+
+         call hbook1(-300000,'acceptance (all agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-300001,'acc dir (all agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-300002,'acc 1st ref (all agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-300003,'acc 2nd ref (all agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-300011,'acc 1st ref (msec1) (all agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-300012,'acc 1st ref (msec2) (all agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-300013,'acc 1st ref (msec3) (all agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-300021,'acc 2nd ref (msec1) (all agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-300022,'acc 2nd ref (msec2) (all agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-300023,'acc 2nd ref (msec3) (all agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-300030,'rec beta (all agl)',
+     +        1000,0.95,1.05,0.)
+
+         call hbook1(-301000,'acceptance (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-301001,'acc dir (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-301002,'acc 1st ref (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-301003,'acc 2nd ref (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-301011,'acc 1st ref (msec1) (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-301012,'acc 1st ref (msec2) (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-301013,'acc 1st ref (msec3) (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-301021,'acc 2nd ref (msec1) (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-301022,'acc 2nd ref (msec2) (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+         call hbook1(-301023,'acc 2nd ref (msec3) (sel agl)',
+     +        200,-0.0025,1.0025,0.)
+
+         call hbook1(-301030,'rec beta (sel agl)',
+     +        1000,0.95,1.05,0.)
+
+         call hbook1(-301050,'ring hits (sel agl)',
+     +        51,-0.5,50.5,0.)
+         call hbook1(-301051,'ring signal (sel agl)',
+     +        501,-0.05,50.05,0.)
+
+         call hbook2(-302000,'ly vs fref (sel agl)',
+     +        501,-0.1,100.1,21,-0.025,1.025,0.)
+
+         call hbook2(-302001,'ly vs fref (sel msec1 agl)',
+     +        501,-0.1,100.1,21,-0.025,1.025,0.)
+         call hbook2(-302002,'ly vs fref (sel msec2 agl)',
+     +        501,-0.1,100.1,21,-0.025,1.025,0.)
+         call hbook2(-302003,'ly vs fref (sel msec3 agl)',
+     +        501,-0.1,100.1,21,-0.025,1.025,0.)
+
          idummy=1
       endif
 /*
@@ -205,6 +276,13 @@
       print*,'rtmir_c2f          = ',rtmir_c2f         
       print*,'rbmir_c2f          = ',rbmir_c2f         
       print*,'hmir_c2f           = ',hmir_c2f          
+      print*,'nmirsec_c2f        = ',nmirsec_c2f
+      print*,'idmirs_c2f         = ',
+     +     (idmirs_c2f(i),i=1,nmirsec_c2f)
+      print*,'phimirs_c2f        = ',
+     +     (phimirs_c2f(i),i=1,nmirsec_c2f)
+      print*,'refmirs_c2f        = ',
+     +     (refmirs_c2f(i),i=1,nmirsec_c2f)
       print*,'pmtwx_c2f          = ',pmtwx_c2f         
       print*,'pmtwy_c2f          = ',pmtwy_c2f         
       print*,'shieldw_c2f        = ',shieldw_c2f       
@@ -308,6 +386,13 @@
       vtmir(2) = 0.
       vtmir(3) = -d0mir
 
+      nmirsec  = nmirsec_c2f
+      do i=1,nmirsec_c2f
+         idmirs(i) = idmirs_c2f(i)
+         phimirs(i) = phimirs_c2f(i)
+         refmirs(i) = refmirs_c2f(i)
+      enddo
+
       pmtwx    = pmtwx_c2f
       pmtwy    = pmtwy_c2f
       shieldw  = shieldw_c2f
@@ -399,6 +484,9 @@
 * --- set radiator parameters, photon vertex, init hit flags,
 *     transformation matrix (particle frame --> rich frame)
       call richinitrec
+
+* --> init charge variables
+      call richinitrechg
 
       if (jobc_cp.eq.0) then    ! (0=simulation, 1=real data)
          cerang = acos(1./refindex/pbeta)
@@ -594,6 +682,27 @@
                   resc_eff(4,irecnumb+1) = richeff_2rf
                   resc_eff(5,irecnumb+1) = richeff_rad
                   resc_eff(6,irecnumb+1) = richeff_lg
+
+*                  print*,'IRECNUMB = ',irecnumb
+
+                  do i=1,nmaxmirsec
+                     resc_accmsec(i,1,irecnumb+1)
+     +                    = richacc_msec0(i)
+                     resc_accmsec(i,2,irecnumb+1)
+     +                    = richacc_msec1(i)
+                     resc_effmsec(i,1,irecnumb+1)
+     +                    = richeff_msec0(i)
+                     resc_effmsec(i,2,irecnumb+1)
+     +                    = richeff_msec1(i)
+                     if(i.le.nmirsec) then
+*                        print*,'Sector ',i,':',
+*     +                       ' accs = ',
+*     +                       richacc_msec0(i),richacc_msec1(i),
+*     +                       ', effs = ',
+*     +                       richeff_msec0(i),richeff_msec1(i)
+                     endif
+                  enddo
+
                   resc_chgprob(1,irecnumb+1) = chgprob1
                   resc_chgprob(2,irecnumb+1) = chgprob2
                   resc_chgprob(3,irecnumb+1) = chgprob3
@@ -747,6 +856,27 @@
                resc_eff(4,irecnumb+1) = richeff_2rf
                resc_eff(5,irecnumb+1) = richeff_rad
                resc_eff(6,irecnumb+1) = richeff_lg
+
+*               print*,'IRECNUMB = ',irecnumb
+
+               do i=1,nmaxmirsec
+                  resc_accmsec(i,1,irecnumb+1)
+     +                 = richacc_msec0(i)
+                  resc_accmsec(i,2,irecnumb+1)
+     +                 = richacc_msec1(i)
+                  resc_effmsec(i,1,irecnumb+1)
+     +                 = richeff_msec0(i)
+                  resc_effmsec(i,2,irecnumb+1)
+     +                 = richeff_msec1(i)
+                  if(i.le.nmirsec) then
+*                     print*,'Sector ',i,':',
+*     +                    ' accs = ',
+*     +                    richacc_msec0(i),richacc_msec1(i),
+*     +                    ', effs = ',
+*     +                    richeff_msec0(i),richeff_msec1(i)
+                  endif
+               enddo
+
                resc_chgprob(1,irecnumb+1) = chgprob1
                resc_chgprob(2,irecnumb+1) = chgprob2
                resc_chgprob(3,irecnumb+1) = chgprob3
@@ -895,6 +1025,27 @@
                resc_eff(4,irecnumb+1) = richeff_2rf
                resc_eff(5,irecnumb+1) = richeff_rad
                resc_eff(6,irecnumb+1) = richeff_lg
+
+*               print*,'IRECNUMB = ',irecnumb
+
+               do i=1,nmaxmirsec
+                  resc_accmsec(i,1,irecnumb+1)
+     +                 = richacc_msec0(i)
+                  resc_accmsec(i,2,irecnumb+1)
+     +                 = richacc_msec1(i)
+                  resc_effmsec(i,1,irecnumb+1)
+     +                 = richeff_msec0(i)
+                  resc_effmsec(i,2,irecnumb+1)
+     +                 = richeff_msec1(i)
+                  if(i.le.nmirsec) then
+*                     print*,'Sector ',i,':',
+*     +                    ' accs = ',
+*     +                    richacc_msec0(i),richacc_msec1(i),
+*     +                    ', effs = ',
+*     +                    richeff_msec0(i),richeff_msec1(i)
+                  endif
+               enddo
+
                resc_chgprob(1,irecnumb+1) = chgprob1
                resc_chgprob(2,irecnumb+1) = chgprob2
                resc_chgprob(3,irecnumb+1) = chgprob3
@@ -945,6 +1096,8 @@
          print*,'resc_chgmir   = ',resc_chgmir(k)     
          print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
          print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
+         print*,'resc_accmsec  = ',((resc_accgeom(i,j,k),i=1,3),j=1,2)
+         print*,'resc_effmsec  = ',((resc_eff(i,j,k),i=1,3),j=1,2)
          print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
          print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
          print*,'resb_epimp    = ',(resb_epimp(i,k),i=1,3)
@@ -1105,6 +1258,85 @@
 
             if(resb_nhit(k).ge.6) then
                call hf1(-130110,err_beta,1.)
+            endif
+
+* ......... Plots for Jun-09 tests
+
+            if(abs(resb_pimp(1,k)).gt.17.5
+     +           .and.abs(resb_pimp(2,k)).gt.17.5
+     +           .and.resc_accgeom(1,k).gt.0.) then ! exclude non-reconstructed evs and NaF
+
+               call hf1(-300000,resc_accgeom(1,k),1.)
+
+               call hf1(-300001,resc_accgeom(2,k),1.)
+               call hf1(-300002,resc_accgeom(3,k),1.)
+               call hf1(-300003,resc_accmsec(1,2,k)
+     +              +resc_accmsec(2,2,k)+resc_accmsec(3,2,k),1.)
+
+               call hf1(-300011,resc_accmsec(1,1,k),1.)
+               call hf1(-300012,resc_accmsec(2,1,k),1.)
+               call hf1(-300013,resc_accmsec(3,1,k),1.)
+
+               call hf1(-300021,resc_accmsec(1,2,k),1.)
+               call hf1(-300022,resc_accmsec(2,2,k),1.)
+               call hf1(-300023,resc_accmsec(3,2,k),1.)
+
+               call hf1(-300030,resb_beta(k),1.)
+
+               if(resc_accgeom(1,k).gt.0.4
+     +              .and.resb_nhit(k).ge.3
+     +              .and.resb_beta(k).ge.0.99) then ! quality cut
+
+                  call hf1(-301000,resc_accgeom(1,k),1.)
+
+                  call hf1(-301001,resc_accgeom(2,k),1.)
+                  call hf1(-301002,resc_accgeom(3,k),1.)
+                  call hf1(-301003,resc_accmsec(1,2,k)
+     +                 +resc_accmsec(2,2,k)+resc_accmsec(3,2,k),1.)
+
+                  call hf1(-301011,resc_accmsec(1,1,k),1.)
+                  call hf1(-301012,resc_accmsec(2,1,k),1.)
+                  call hf1(-301013,resc_accmsec(3,1,k),1.)
+
+                  call hf1(-301021,resc_accmsec(1,2,k),1.)
+                  call hf1(-301022,resc_accmsec(2,2,k),1.)
+                  call hf1(-301023,resc_accmsec(3,2,k),1.)
+
+                  call hf1(-301030,resb_beta(k),1.)
+
+                  call hf1(-301050,resb_nhit(k)*1.,1.)
+                  call hf1(-301051,resc_cnpe(k),1.)
+
+*                  print*,'DATA FOR HISTO -302000'
+*                  print*,'resb_nhit(k)        = ',resb_nhit(k)
+*                  print*,'resc_eff(1,k)       = ',resc_eff(1,k)
+*                  print*,'resb_beta(k)        = ',resb_beta(k)
+*                  print*,'resb_pthe(k)        = ',resb_pthe(k)
+*                  print*,'resc_accgeom(2,k)   = ',resc_accgeom(2,k)
+*                  print*,'resc_accgeom(3,k)   = ',resc_accgeom(3,k)
+*                  print*,'resc_accmsec(1,1,k) = ',resc_accmsec(1,1,k)
+*                  print*,'resc_accmsec(2,1,k) = ',resc_accmsec(2,1,k)
+*                  print*,'resc_accmsec(3,1,k) = ',resc_accmsec(3,1,k)
+
+                  call hf2(-302000,resb_nhit(k)*1.
+     +                 /(resc_eff(1,k)/cos(resb_pthe(k))),
+     +                 resc_accgeom(3,k)
+     +                 /(resc_accgeom(2,k)+resc_accgeom(3,k)),1.)
+
+                  do j=1,3
+                     if((resc_accmsec(j,1,k).gt.0.0001)
+     +                    .and.((resc_accgeom(3,k)
+     +                    -resc_accmsec(j,1,k)).lt.0.0001)) then
+                        call hf2(-302000-j,resb_nhit(k)*1.
+     +                       /(resc_eff(1,k)/cos(resb_pthe(k))),
+     +                       resc_accgeom(3,k)
+     +                       /(resc_accgeom(2,k)+resc_accgeom(3,k)),1.)
+
+                     endif
+                  enddo
+
+               endif
+
             endif
 
          endif
