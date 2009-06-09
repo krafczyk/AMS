@@ -5549,6 +5549,7 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       integer nphitot,
      +        fphitot(nphmax),
      +        fphipat(nphmax),
+     +        msecpat(nphmax),
      +        verr(nermax),
      +        npvis
       real 
@@ -5561,6 +5562,14 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
      +     phimin(nphmax),
      +     phimax(nphmax),
      +     thetac,zoutmean
+
+      integer nphimsec0(nphmax),
+     +        nphimsec1(nphmax)
+      real dphimsec0(nmaxmirsec,nphmax),
+     +     dphimsec1(nmaxmirsec,nphmax)
+      real dphimsec0_tot(nmaxmirsec),
+     +     dphimsec1_tot(nmaxmirsec)
+
       DOUBLE PRECISION  pardou(4),
      +                  fidmin(nphmax),
      +                  fidmax(nphmax)
@@ -5575,7 +5584,8 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
 * --- compute path lengths
       call dphipath(thetac,nphitot,vphitot,fphitot,
      +              dphidir,dphihol,dphimir0,dphimir1,dphiinv,
-     +              npvis,phimin,phimax,fphipat)
+     +              npvis,phimin,phimax,fphipat,msecpat,
+     +              dphimsec0,dphimsec1)
 *      print*,'dphidir,dphihol,dphimir0,dphimir1,dphiinv,
 *     +     npvis,phimin,phimax,fphipat',dphidir,dphihol,dphimir0,
 *     &     dphimir1,dphiinv,npvis,phimin,phimax,fphipat
