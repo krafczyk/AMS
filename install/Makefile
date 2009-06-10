@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.71 2009/05/26 14:26:53 choutko Exp $
+#  $Id: Makefile,v 1.72 2009/06/10 09:16:51 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -182,7 +182,7 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrLadCal.C  $(SCC)TrMCCluster.C \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
 	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
-	$(SCC)VCon.C  \
+	$(SCC)VCon.C  $(SCC)TrAlignFit.C\
 	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)TrFit.C $(SCC)MagField.C
 
 TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
@@ -250,7 +250,7 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/patt.h       ../include/TkCoo.h  \
 	        ../include/TrRecon.h 	../include/TkDBc.h      \
 		../include/TrLadCal.h   ../include/VCon.h  \
-		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  \
+		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
 		../include/trrec.h ../include/point.h  ../include/root_RV.h ../include/root.h ../include/linkdef.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/linkdef.h
