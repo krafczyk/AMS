@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
+// $Id: TkLadder.h,v 1.3 2009/06/10 08:44:58 shaino Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,15 +19,20 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2009/06/10 08:44:58 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
 #include "TkObject.h"
 
 class TkPlane;
+
+namespace trconst{
+  //! maximal number of sensors in one ladder
+  const integer maxsen=15;
+}
 
 class TkLadder :public TkObject{
 
@@ -46,6 +51,11 @@ protected:
   ostream& putoutA(ostream& s);
   //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
   istream& putinA(istream& s);
+
+  //! function  needed  to guaarantee the virtual inheritance of the operator << ( you can safely ignore)
+  ostream& putoutS(ostream& s);
+  //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
+  istream& putinS(istream& s);
 
 public:
   //! the layer the ladder belongs to [1-8]
@@ -69,6 +79,12 @@ public:
 
   //! Pointer to the plane object the ladder is mounted to
   TkPlane* _plane;
+
+  //! Sensor alignment correction (X in cm)
+  float _sensx[trconst::maxsen];
+
+  //! Sensor alignment correction (Y in cm)
+  float _sensy[trconst::maxsen];
 
   //! Default constructor set all properties to zero
   TkLadder();
@@ -126,6 +142,10 @@ public:
   //! writes out the Alignement pars to file
   void WriteA(ostream &o){putoutA(o);}
 
+  //! reads in the sensor Alignement pars from file
+  void ReadS(istream &o){putinS(o);} 
+  //! writes out the Alignement pars to file
+  void WriteS(ostream &o){putoutS(o);}
 
 };
 #endif

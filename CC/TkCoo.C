@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.3 2009/06/10 08:44:58 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2009/04/03 08:39:15 $
+///$Date: 2009/06/10 08:44:58 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -119,6 +119,14 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
 
   // Covolute with the Plane pos in the space and Get the global Coo
   AMSPoint  oo2   = PRotG*oo + PPosG;
+
+  // Sensor alignment correction
+  double Ax= (TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
+  int sens = (int)(abs(loc[0]+Ax)/TkDBc::Head->_SensorPitchK);
+  if (0 <= sens && sens < trconst::maxsen) {
+    oo2[0] -= ll->_sensx[sens];
+    oo2[1] -= ll->_sensy[sens];
+  }
 
   return oo2;
 }

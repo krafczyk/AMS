@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.2 2009/06/10 08:44:58 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/06/10 08:44:58 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +35,7 @@ TkLadder::TkLadder():TkObject()
   _nsensors=0;
   _plane=NULL;
   _laser_align=0;
+  for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
 TkLadder::TkLadder(TkPlane* plane,char* name,int layer,int slot,int crate,int tdr, int nsensors):TkObject(name)
@@ -46,6 +47,7 @@ TkLadder::TkLadder(TkPlane* plane,char* name,int layer,int slot,int crate,int td
   _nsensors=nsensors;
   _plane=plane;
   _laser_align=0;
+  for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
 TkLadder::TkLadder(TkPlane* plane,char* name,int Trid,int HwId,  int nsensors):TkObject(name){
@@ -56,6 +58,7 @@ TkLadder::TkLadder(TkPlane* plane,char* name,int Trid,int HwId,  int nsensors):T
   _nsensors=nsensors;
   _plane=plane;
   _laser_align=0;
+  for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
 
@@ -174,4 +177,31 @@ ostream& TkLadder::putoutA(ostream& s){
       GetTkId()<<"  "<<
       GetHwId()<<"  "<<_nsensors<<endl;
 
+}
+
+
+
+istream& TkLadder::putinS(istream& s){
+  for (int i = 0; i < trconst::maxsen; i++) s >> _sensx[i];
+  for (int i = 0; i < trconst::maxsen; i++) s >> _sensy[i];
+
+  if(s.eof()) return s;
+  if(!s.good()){
+    cerr<< "Error TkLadder::putinS the channel is not good before"<<endl;
+  }
+  
+  return s;
+
+}
+
+
+ostream& TkLadder::putoutS(ostream& s){
+
+  s<<GetTkId()<<endl<<"  ";
+  for (int i = 0; i < trconst::maxsen; i++) s << _sensx[i]<<" ";
+  s<<endl<<"  ";
+  for (int i = 0; i < trconst::maxsen; i++) s << _sensy[i]<<" ";
+  s<<endl;
+
+  return s;
 }

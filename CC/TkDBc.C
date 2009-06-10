@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.3 2009/05/29 09:23:04 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.4 2009/06/10 08:44:58 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/05/29 09:23:04 $
+///$Date: 2009/06/10 08:44:58 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -382,8 +382,16 @@ void TkDBc::init(const char *inputfilename, int pri){
 	    }
     }
 
+    // Set sensor alignment data
+    for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();++lad){
+      for (int i = 0; i < trconst::maxsen; i++) 
+	lad->second->_sensx[i] = GetSensAlignX(lad->second->GetTkId(), i);
+
+      for (int i = 0; i < trconst::maxsen; i++) 
+	lad->second->_sensy[i] = GetSensAlignY(lad->second->GetTkId(), i);
+    }
     
-  //   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end();++pp){
+//   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end();++pp){
 //       cout<<*(pp->second)<<endl;
 //}
 
@@ -753,6 +761,36 @@ int TkDBc::writeAlignment(const char* filename){
 
 }
 
+int TkDBc::readAlignmentSensor(const char* filename, int pri){
+  ifstream  filein(filename);
+  if (!filein) {
+    printf("Error: sensor alignemnt file not found: %s\n", filename);
+    return -1;
+  }
+
+  int count=0;  
+  while (filein.good()) {
+    int tkid;
+    filein >> tkid;
+    TkLadder* ll= FindTkId(tkid);
+    if (!ll) {
+      cerr << " Error in TkDBc::readAlignmentSensor Ladder not found: " << tkid << endl;
+      return -1;
+    }
+    ll->ReadS(filein);
+    if (filein.eof()) break;
+    if(!filein.good()) cerr <<" Error in TkDBc::readAlignmentSensor the channel is not good"<<endl;
+    count++;
+    if (pri) ll->WriteS(cout);
+  }
+
+  cout << count <<" Sensor ALIGNMENT  have been read from file "<<filename<<endl;
+
+  filein.close();
+  return 0;
+
+}
+
 void TkDBc::Align2Lin(){
 
   if(! linear) {
@@ -810,3 +848,7 @@ void SLin2Align(){
     TkDBc::Head->Lin2Align();
   return;
 }
+
+
+// Hard-coded sensor alignment parameters
+#include "TkDBcSalig.C"

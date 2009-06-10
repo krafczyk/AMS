@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.3 2009/06/10 08:44:58 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2009/04/03 08:39:15 $
+///$Date: 2009/06/10 08:44:58 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -156,14 +156,14 @@ int TkSens::GetSens(){
   //Alignment corrected Plane Rotation matrix
   AMSRotMat PRotG=pp->GetRotMat().Invert()*pp->GetRotMatA().Invert();
 
-  //Convolute with the Plane pos in the space
-  AMSPoint oo= PRotG*(GlobalCoo-PPosG);
+  //Alignment corrected Ladder postion
+  AMSPoint PosG=lad->GetPosA()+lad->GetPos();
 
   //Alignment corrected Ladder Rotation matrix
   AMSRotMat RotG=lad->GetRotMat().Invert()*lad->GetRotMatA().Invert();
 
-  //Alignment corrected Ladder postion
-  AMSPoint PosG=lad->GetPosA()+lad->GetPos();
+  //Convolute with the Plane pos in the space
+  AMSPoint oo= PRotG*(GlobalCoo-PPosG);
 
   //Get the local coo on the Ladder
   SensCoo = RotG*(oo-PosG);
@@ -175,6 +175,19 @@ int TkSens::GetSens(){
 
   //Sensor number
   int nsens = (int)(abs(SensCoo[0]+Ax)/TkDBc::Head->_SensorPitchK);
+
+  AMSPoint gcoo = GlobalCoo;
+
+  //Sensor alignment correction
+  if (0 <= nsens && nsens < trconst::maxsen) {
+    gcoo[0] += lad->_sensx[nsens];
+    gcoo[1] += lad->_sensy[nsens];
+
+    //Get the local coo on the Ladder (again)
+    AMSPoint oo = PRotG*(gcoo-PPosG);
+    SensCoo = RotG*(oo-PosG);
+    LaddCoo = SensCoo;
+  }
 
   //Sensor coordinate
   SensCoo[0] -= nsens*TkDBc::Head->_SensorPitchK;

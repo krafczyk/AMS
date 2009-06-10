@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.3 2009/05/29 09:23:12 pzuccon Exp $
+// $Id: TkDBc.h,v 1.4 2009/06/10 08:44:58 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -150,7 +150,11 @@ public:
   //! returns the number of silicon layers
   integer nlay() const {return nlays;}
   
+  //! It returns the default (hard-coded) sensor alignment parameter 
+  number GetSensAlignX(int tkid, int sens);
 
+  //! It returns the default (hard-coded) sensor alignment parameter 
+  number GetSensAlignY(int tkid, int sens);
 
 
   // -------- CABLING ------------------------------
@@ -288,6 +292,9 @@ public:
 
   //!  Write the alignement data to a file
   int writeAlignment(const char* filename);
+
+  //!  Read the sensor alignement data from a file with a format "tkid sx[0-14] sy[0-14]"
+  int readAlignmentSensor(const char* filename, int pri=0);
 
   //! Return the pointer to the iith (ii [1-5]) TkPlane object 
   TkPlane* GetPlane(int ii) {if (ii>0&&ii<6) return planes[ii-1]; else return 0;}
