@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.3 2009/06/10 08:34:34 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/04/03 08:39:24 $
+/// $Date: 2009/06/10 08:34:34 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -240,6 +240,7 @@ public:
   int Ntrials2;
   /// Debug switch
   static int TrDEBUG;
+  static int PZDEBUG;
 
 //========================================================
 // HitPatterns

@@ -105,8 +105,6 @@ void AMSTrRecHit::BuildCoordinates() {
   _mult     = TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
   _coord.clear();
   for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
-  if(_dummyX!=0)
-    for (int imult=0; imult<_mult; imult++) _coord.at(imult)[0]=_dummyX;
 }
 
 AMSTrRecHit::~AMSTrRecHit() {
@@ -169,13 +167,9 @@ AMSPoint AMSTrRecHit::GetGlobalCoordinate(int imult, char* options) {
   
   AMSPoint glo;
   if (!ApplyAlignement) {
-    if (_Status & YONLY){ glo = TkCoo::GetGlobalN(_tkid,0.,loc[1]); glo[0] = -1000.; return glo; }
-    if (_Status & XONLY){ glo = TkCoo::GetGlobalN(_tkid,loc[0],0.); glo[1] = -1000.; return glo; }
     glo = TkCoo::GetGlobalN(GetTkId(),loc);
   }
   else {
-    if (_Status & YONLY){ glo = TkCoo::GetGlobalA(_tkid,0.,loc[1]); glo[0] = -1000.; return glo; }
-    if (_Status & XONLY){ glo = TkCoo::GetGlobalA(_tkid,loc[0],0.); glo[1] = -1000.; return glo; }
     glo = TkCoo::GetGlobalA(GetTkId(),loc);
   }
   return glo;

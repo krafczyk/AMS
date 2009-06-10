@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.3 2009/05/29 09:23:12 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.4 2009/06/10 08:34:34 shaino Exp $
 #ifndef __AMSTrTrack__
 #define __AMSTrTrack__
 
@@ -27,9 +27,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/05/29 09:23:12 $
+///$Date: 2009/06/10 08:34:34 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -262,9 +262,9 @@ public:
   double   GetErrRinv  (int id= 0) { return GetPar(id).ErrRinv;  }
   AMSPoint GetP0       (int id= 0) { return GetPar(id).P0;       }
   AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
-  AMSPoint GetResidual (int i, int id= 0) { 
-    return (ParExists(id) && 0 <= i && i < trconst::maxlay) ? 
-      GetPar(id).Residual[i] : AMSPoint(0, 0, 0);
+  AMSPoint GetResidual (int ilay, int id= 0) { 
+    return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
+      ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
   }
 
   // Aliases

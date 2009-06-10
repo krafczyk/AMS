@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.3 2009/05/29 09:23:05 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.4 2009/06/10 08:34:34 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/05/29 09:23:05 $
+/// $Date: 2009/06/10 08:34:34 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -843,6 +843,7 @@ double TrRecon::ErrXForScan       = 300e-4;
 double TrRecon::ErrYForScan       = 300e-4;
 
 int TrRecon::TrDEBUG = 0;
+int TrRecon::PZDEBUG = 0;
 
 //========================================================
 // HitPatterns
@@ -1117,7 +1118,10 @@ void TrRecon::PurgeGhostHits()
 	AMSTrCluster* yclus2= hit->GetYCluster();
 	if(yclus2==yclus){
 	  // delete hit;
-	  cont->removeEl(cont->getelem(i-1));
+	  if (i == 0)
+	    cont->removeEl(0);
+	  else
+	    cont->removeEl(cont->getelem(i-1));
 	  nhit--;
 	  i--;
 	}
@@ -1561,12 +1565,13 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   if (itcand.nlayer == 0) return 0;
 
   //PZDEBUG
+ if (PZDEBUG){
   cout<<" Bulding a track with points\n";
   for (int jj=0;jj<itcand.nlayer;jj++){
     cout<<"tkid "<<itcand.tkid[jj]<<" mult "<<
       itcand.imult[jj]<<" point "<<itcand.coo[jj]<<endl;
   }
-
+ }
 
   VCon* cont = TRCon->GetCont("AMSTrTrack");
   if (!cont) return 0;
@@ -1602,25 +1607,29 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     hit->SetResolvedMultiplicity(itcand.imult[i]);
     track->AddHit(hit, itcand.imult[i]);
   }
+ if (PZDEBUG){
   cout<< " PZDEBUG track info\n";
   for(int jj=0;jj<track->_Nhits;jj++){
     cout<<" Track hit num "<<jj<<endl;
     track->_Hits[jj]->Print();
   }
+ }
   // Fill patterns
   track->SetPatterns(TrRecon::GetHitPatternIndex(maskc), itcand.pattern,
                      TrRecon::GetHitPatternIndex(maskc));
 
   track->Fit(fit_method);
   
- if (MAGSFFKEY.magstat<=0)
+  if (MAGSFFKEY.magstat<=0)
     track->trdefaultfit=AMSTrTrack::kLinear;
 
-  if(track->DoAdvancedFit())
-    printf(" Track Advanced Fits Done!\n");
-  else
-    printf(" Problems with Track Advanced Fits!\n");
-  
+  else {  // AdvancedFit should be done only with B field
+    if(track->DoAdvancedFit())
+      printf(" Track Advanced Fits Done!\n");
+    else
+      printf(" Problems with Track Advanced Fits!\n");
+  }  
+
 
   cont->addnext(track);
   TR_DEBUG_CODE_42;
@@ -1751,14 +1760,6 @@ void TrRecon::sitkhits(int idsoft, float vect[],
 
 void TrRecon::sitkdigi()
 {
-// // temporary: make sure to TrCalDB saved
-//   static int savecal = 0;
-//   if (!savecal) {
-//     savecal = 1;
-//     TrCalDB::Head->Write();
-//   }
-// // temporary: make sure to TrCalDB saved
-
   //Get the pointer to the TrMCCluster container
   VCon* cont=TRCon->GetCont("AMSTrMCCluster");
   if(!cont){
