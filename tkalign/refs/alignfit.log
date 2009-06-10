@@ -1,0 +1,33 @@
+AMSCommonsI-I-HardwareIdentifiedAs Linux 2.6.9-78.0.1.EL.cernsmp i686
+AMSTrIdSoftI-I-Identified as LittleEndian 32 bit machine. 1400000000
+AMSCommonsI-I-SystemIdentified as  Intel(R) Xeon(TM) CPU 3.00GHz
+AMSCommonsI-I-ComputerEvaluatedAsMips 2395
+
+Processing macro/alignfit.C+("alignfit/all/alignfit.dat","tkdbc.dat.org.new")...
+====> TkDBc::init: AMS02 setup selected:
+192 Ladders have been read from file tkdbc.dat.org.new
+ fNcases 5206150
+ iter   0    8.357 10407666  256 sec 684.7 MB
+ iter   1    7.453 10407666  263 sec 709.2 MB
+ iter   2    6.875 10407666  262 sec 717.2 MB
+ iter   3    6.808 10407666  259 sec 725.0 MB
+ iter   4    6.791 10407666  269 sec 733.2 MB
+ iter   5    1.296 9010894  237 sec 741.1 MB
+ iter   6    1.295 9011111  237 sec 748.9 MB
+ iter   7    1.294 9011307  235 sec 756.7 MB
+ iter   8    1.294 9011431  235 sec 764.7 MB
+ iter   9    1.293 9011424  236 sec 772.5 MB
+ iter  10    1.293 9011486  234 sec 780.4 MB
+ iter  11    1.293 9011583  238 sec 788.2 MB
+ iter  12    1.293 9011607  235 sec 796.2 MB
+ iter  13    1.293 9011665  237 sec 804.0 MB
+ iter  14    1.293 9011666  236 sec 811.8 MB
+ iter  15    1.293 9011715  238 sec 819.8 MB
+ iter  16    1.293 9011717  236 sec 827.6 MB
+ iter  17    1.293 9011716  234 sec 835.5 MB
+ iter  18    1.293 9011682  235 sec 843.3 MB
+ iter  19    1.293 9011683  233 sec 851.1 MB
+ iter  20    1.293 9011731  350 sec 859.0 MB
+CpuTime 5192.83
+           Name      Type     Entries        
+           Name      Entries          Min      Average          Max          Sum
