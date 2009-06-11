@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.244 2009/06/03 14:49:26 choutko Exp $
+//  $Id: root.h,v 1.245 2009/06/11 13:51:31 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -51,7 +51,6 @@ class AMSAntiMCCluster;
 class AMSBeta;
 class AMSCharge;
 class AMSEvent;
-class AMSEcalHit;
 class AMSmceventg;
 class AMSmctrack;
 class AMSParticle;
@@ -62,6 +61,8 @@ class AMSRichRingNew;
 class AMSNtuple;
 class AMSTOFCluster;
 class AMSTOFMCCluster;
+class AMSEcalHit;
+class AMSEcalMCHit;
 class AMSTRDCluster;
 class AMSTRDMCCluster;
 class AMSTRDRawHit;
@@ -94,6 +95,7 @@ class AMSBeta{};
 class AMSCharge{};
 class AMSEvent{};
 class AMSEcalHit{};
+class AMSEcalMCHit{};
 class AMSmceventg{};
 class AMSmctrack{};
 class AMSParticle{};
@@ -225,6 +227,7 @@ int   Particles;
 int   AntiMCClusters;
 int   TrMCClusters;
 int   TofMCClusters;
+int   EcalMCHits;
 int   TrdMCClusters;
 int   RichMCClusters;
 int   MCTracks;
@@ -2059,6 +2062,26 @@ ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
 };
 
 
+/// EcalMCHit structure
+/*!
+
+   \author e.choumilov@cern.ch
+*/
+class EcalMCHitR {
+public:
+  int   Idsoft;  ///< software id  (SSLLFFF,SS=SupLayer,LL=FiberLayer,FFF=FiberNumber)
+  float Coo[3];  ///< coo cm
+  float TOF;     ///<  time of flight sec
+  float Edep;    ///< energy dep mev
+  EcalMCHitR(){};
+  EcalMCHitR(AMSEcalMCHit *ptr);
+  virtual ~EcalMCHitR(){};
+ClassDef(EcalMCHitR,1)       //EcalMCHitRoot
+#pragma omp threadprivate(fgIsA)
+};
+
+
+
 /// TrdMCCluster structure
 /*!
 
@@ -2308,6 +2331,7 @@ static TBranch*  bParticle;
 static TBranch*  bAntiMCCluster;
 static TBranch*  bTrMCCluster;
 static TBranch*  bTofMCCluster;
+static TBranch*  bEcalMCHit;
 static TBranch*  bTrdMCCluster;
 static TBranch*  bRichMCCluster;
 static TBranch*  bMCTrack;
@@ -2316,7 +2340,8 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 #ifdef __ROOTSHAREDLIBRARY__
 
-#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+
 #endif
 
 
@@ -2353,6 +2378,7 @@ static void*  vParticle;
 static void*  vAntiMCCluster;
 static void*  vTrMCCluster;
 static void*  vTofMCCluster;
+static void*  vEcalMCHit;
 static void*  vTrdMCCluster;
 static void*  vRichMCCluster;
 static void*  vMCTrack;
@@ -2697,6 +2723,8 @@ int   nTrMCCluster()const { return fHeader.TrMCClusters;} ///< \return number of
 ///
 int   nTofMCCluster()const { return fHeader.TofMCClusters;} ///< \return number of TofMCClusterR elements (fast)
 ///
+int   nEcalMCHit()const { return fHeader.EcalMCHits;} ///< \return number of EcalMCHitR elements (fast)              
+///
 int   nTrdMCCluster()const { return fHeader.TrdMCClusters;} ///< \return number of TrdMCClusterR elements (fast)
 ///
 int   nRichMCCluster()const { return fHeader.RichMCClusters;} ///< \return number of RichMCClusterR elements (fast)
@@ -2773,6 +2801,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<AntiMCClusterR> fAntiMCCluster;
   vector<TrMCClusterR>   fTrMCCluster;
   vector<TofMCClusterR>  fTofMCCluster;
+  vector<EcalMCHitR>     fEcalMCHit;
   vector<TrdMCClusterR>  fTrdMCCluster;
   vector<RichMCClusterR> fRichMCCluster;
 
@@ -3842,6 +3871,43 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 
+
+       ///  EcalMCHitR accessor
+      ///  \return number of EcalMCHitR
+      ///
+      unsigned int   NEcalMCHit()  {
+        if(fHeader.EcalMCHits && fEcalMCHit.size()==0)bEcalMCHit->GetEntry(_Entry);
+        return fEcalMCHit.size();
+      }
+      ///  \return reference of EcalMCHitR Collection
+      ///
+      vector<EcalMCHitR> & EcalMCHit()  {
+        if(fHeader.EcalMCHits && fEcalMCHit.size()==0)bEcalMCHit->GetEntry(_Entry);
+         return  fEcalMCHit;
+       }
+
+       ///  EcalMCHitR accessor
+       /// \param l index of EcalMCHitR Collection
+      ///  \return reference to corresponding EcalMCHitR element
+      ///
+       EcalMCHitR &   EcalMCHit(unsigned int l) {
+        if(fHeader.EcalMCHits && fEcalMCHit.size()==0)bEcalMCHit->GetEntry(_Entry);
+         return fEcalMCHit.at(l);
+      }
+
+       ///  EcalMCHitR accessor
+       /// \param l index of EcalMCHitR Collection
+      ///  \return pointer to corresponding EcalMCHitR element
+      ///
+      EcalMCHitR *   pEcalMCHit(unsigned int l) {
+        if(fHeader.EcalMCHits && fEcalMCHit.size()==0)bEcalMCHit->GetEntry(_Entry);
+        return l<fEcalMCHit.size()?&(fEcalMCHit[l]):0;
+      }
+
+
+
+
+
        ///  TrMCClusterR accessor
       ///  \return number of TrMCClusterR
       ///
@@ -4069,6 +4135,7 @@ void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
                           float probtr[], int chintr[], float probrc[], 
                           int chinrc[], float proballtr);
 void         AddAMSObject(AMSEcalHit *ptr);
+void         AddAMSObject(AMSEcalMCHit *ptr);
 void         AddAMSObject(AMSmceventg *ptr);
 void         AddAMSObject(AMSmctrack *ptr);
 void         AddAMSObject(AMSVtx *ptr);

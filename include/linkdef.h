@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.46 2009/06/10 09:16:52 shaino Exp $
+//  $Id: linkdef.h,v 1.47 2009/06/11 13:51:31 choumilo Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -68,6 +68,7 @@
 #pragma link C++ class ParticleR+;
 #pragma link C++ class AntiMCClusterR+;
 #pragma link C++ class TofMCClusterR+;
+#pragma link C++ class EcalMCHitR+;
 #pragma link C++ class TrdMCClusterR+;
 #pragma link C++ class RichMCClusterR+;
 #pragma link C++ class MCTrackR+;

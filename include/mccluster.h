@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.37 2008/03/06 16:57:28 pzuccon Exp $
+//  $Id: mccluster.h,v 1.38 2009/06/11 13:51:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -18,6 +18,7 @@
 #include "commons.h"
 #include <stdlib.h>
 #include "trdid.h"
+#include "ecaldbc.h"
 //========================================================  
 class AMSTOFMCCluster: public AMSlink{
 public:
@@ -106,7 +107,11 @@ public:
  number gettime() const {return _tof;}
  number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
  static number impoint[2];
-// static integer Out(integer);
+ static integer Out(integer);
+ static number leadedep[ecalconst::ECSLMX];
+#ifdef __WRITEROOT__
+   friend class EcalMCHitR;
+#endif
 
 };
 

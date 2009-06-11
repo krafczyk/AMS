@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.116 2009/06/09 10:50:13 barao Exp $
+//  $Id: ntuple.h,v 1.117 2009/06/11 13:51:31 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -29,6 +29,7 @@ const int MAXECSHOW =    5;
 const int MAXECCLUST =    60;
 const int MAXEC2DCLUST =    10;
 const int MAXECHITS  =   450;
+const int MAXECALMC  =   87480;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   250;
@@ -119,6 +120,7 @@ public:
   int AntiRawSides;
   int EcalClusters;
   int EcalHits;
+  int EcalMCHits;
   int RICMCClusters;//CJM
   int RICHits;//CJM
   int TRDRawHits;

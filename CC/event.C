@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.423 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: event.C,v 1.424 2009/06/11 13:51:24 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -804,6 +804,7 @@ void AMSEvent::_siecalinitevent(){
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
 //  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
+  for(int j=0;j<ecalconst::ECSLMX;j++)AMSEcalMCHit::leadedep[j]=0;
 }
 
 void AMSEvent::_sirichinitevent(){
@@ -1358,12 +1359,12 @@ void AMSEvent::event(){
        skipped=AMSJob::gethead()->getstatustable()->getnextok();
        PosInRun+=skipped;
 }
-}
+   }
    AMSgObj::BookTimer.stop("EventStatus");
 #pragma omp critical (g3)
        GCFLAG.IEVENT+=skipped;
    if(!ok)return;
-}
+  }
     AMSUser::InitEvent();
    try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();

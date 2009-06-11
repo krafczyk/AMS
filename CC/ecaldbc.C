@@ -1,5 +1,6 @@
-//  $Id: ecaldbc.C,v 1.83 2009/02/20 14:12:17 choutko Exp $
+//  $Id: ecaldbc.C,v 1.84 2009/06/11 13:51:24 choumilo Exp $
 // Author E.Choumilov 14.07.99.
+// latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
 #include "cern.h"
 #include "extC.h"
@@ -27,14 +28,17 @@ integer ECALDBc::debug=1;
 //
 //---> default structural. data:
 //
-geant ECALDBc::_gendim[10]={// Warning: only alignment params are readout from EcalAlign*.dat file
+geant ECALDBc::_gendim[20]={// Warning: only alignment params are readout from EcalAlign*.dat file
    65.8,65.8,0., // i=1-2  x,y-dimentions of EC-radiator; 3->spare
    8.2,          //  =4    dx(dy) thickn.of (PMT+electronics)-support(frame)
    0.,0.,        //  =5,6    center shift in x,y (real values are read from EcalAlign* files !!!) 
   -142.3,        //  =7      Radiator(incl.glue) front face Z-pozition (........................)
    4.18,         //  =8      top(bot) honeycomb thickness
    1.83,         //  =9      lead thickness of 1 SuperLayer
-   0.01          //  =10     Thickness of glue on top(bot) side of SL 
+   0.01,         //  =10     Thickness of glue on top(bot) side of SL
+   0.032145,-0.0583656,0.0217877, 0.015298,0.0655636,  //=11-19 -> superlayer fibers common shift for each of 9 superlayers
+   0.0075863,0.0402682,0.0672924,-0.0670404,
+   0.             //  =20     spare    
 };
 //
 geant ECALDBc::_fpitch[3]={
@@ -48,8 +52,8 @@ geant ECALDBc::_rdcell[10]={
    0.9,          // i=5    size(dx=dz) of "1/4" of PMT-cathod (pixel)
    0.45,         // i=6    abs(x(z)-position) of "1/4" in PMT coord.syst.
    1.8,          // i=7    X(Y)-pitch of PMT's;
-   0.00857,      // i=8    fiber_cladd+glue thickn(.003+.00557cm) to have hole diam.=0.11114
-   0.,0.         // i=9,10 spare
+   0.01135,      // i=8    fiber_cladd+glue thickn(.003+.00835cm) to have hole diam.=0.1167
+   0.6,0.333     // i=9 -> Pm-pixel eff at the edge, i=10 -> distance where eff. reach 1.(relat. to pix.size at i=5)
 };
 //
 integer ECALDBc::_slstruc[6]={
@@ -61,7 +65,7 @@ integer ECALDBc::_slstruc[6]={
 };
 //
 integer ECALDBc::_nfibpl[2]={
-   486,487       // i=1,2 numb. of fibers per 1st/2nd fiber-layer in S-layer
+   486,485       // i=1,2 numb. of fibers per 1st/2nd fiber-layer in S-layer
 };
 //
 int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion.
@@ -125,7 +129,7 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
   geant ECALDBc::gendim(integer i){
 #ifdef __AMSDEBUG__
       if(ECALDBc::debug){
-        assert(i>0 && i <= 10);
+        assert(i>0 && i <= 20);
       }
 #endif
     return _gendim[i-1];
@@ -170,15 +174,15 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
   }
 //
 //---
-  number ECALDBc::segarea(number r, number ds){//small_segment area fraction (wrt full disk)
+  number ECALDBc::segarea(number r, number ds){//smaller_segment area fraction (wrt full disk)
 //                                    r-radious, ds-horde_distance(from center)
     number sina,cs,sn,a;
-    if(ds>=r)return(0.);
-    cs=ds/r;
+    if(fabs(ds)>=r)return(0.);
+    cs=fabs(ds)/r;
     sn=sqrt(1.-cs*cs);
     sina=2.*cs*sn;
-    a=2.*asin(sn);//sector opening angle:(0->pi) when ds:(r->0)
-    return ((a-sina)/2./AMSDBc::pi);//0.5->0 when ds  0->r
+    a=2.*asin(sn);//sector opening angle:(0->pi) when ds (r->0)
+    return ((a-sina)/2./AMSDBc::pi);//(0.5->0) when ds  (0->r)
   }
 //---
 // fiberID(SSLLFFF) to cellID(SSPPC) conversion
@@ -188,6 +192,11 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     integer fidd,fff,ss,ll,ip,nfl,npm,pm,ctbin,czbin,cell,bran,tbc;
     number cleft,tleft,bdis,ztop,ct,cz,ww;
     geant pit,piz,pmdis,dist,pmpit,pmsiz,pxsiz,fr;
+    geant fshift,effmn,deffmx,slope,peff;
+    cid[0]=0;
+    cid[1]=0;
+    cid[2]=0;
+    cid[3]=0;
     nfl=_slstruc[1];// numb.of fiber-layers per super-layer
     npm=_slstruc[3];// numb.of PM's per super-layer
     pit=_fpitch[0];// fiber pitch(transv)
@@ -197,20 +206,28 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     pxsiz=_rdcell[4];// SubCell(pixel) size
     fr=_rdcell[3]/2;//   fiber radious 
     fidd=fid/1000;
-    fff=fid%1000-1;
-    ll=fidd%100-1;
-    ss=fidd/100;
+    fff=fid%1000-1;//fiber number (0-...)
+    ll=fidd%100-1;//fiber layer number (0-9) 
+    ss=fidd/100;//super-layer number (0-8)
+    fshift=_gendim[10+ss];//fibers shift from ideal(simmetric) position
+    effmn=_rdcell[8];//pm eff. at the edge of pixel
+    deffmx=_rdcell[9]*_rdcell[4];//dist.from edge where the efficiency reach 1.
+    slope=(1-effmn)/deffmx;
     ip=ll%2;
     if(ip==0)cleft=-(_nfibpl[0]-1)*pit/2.;//     fiber from 1st layer of s-layer
     else cleft=-(_nfibpl[1]-1)*pit/2.;//         fiber from 2nd layer of s-layer
+    cleft+=fshift;//correction for fibers set shift (all shifted by the same value)
+//("out-of-lead_volume" case is impossible due to lead size and limited max.number of fibers)
     ct=cleft+fff*pit;//       transv.coord. of fiber in ECAL r(eference) s(ystem)
     ztop=(nfl-1)*piz/2.;//       z-pos of 1st(from top) f-layer of s-layer
     cz=ztop-ll*piz;//      z-pos of fiber in Slayer r.s.(z=0->middle of super-layer)
     tleft=-npm*pmsiz/2.;//     low-edge PM-bin transv.position in ECAL r.s.
     dist=ct-tleft;//           fiber-center dist from the 1st PM (its left edge)
-    pm=integer(floor(dist/pmsiz));//   number of fired PM  0-(npm-1)   (IMPLY pmpit=pmsiz !!!)
 //    cout <<fid<<" "<<pm<<endl;
-     if(pm<0 || pm>=npm)return;//    (out of sensitive area - no signal is readout)
+    if(dist<=-fr)return;//out of sensitive area (left side)
+    if((dist-npm*pmsiz)>=fr)return;//out of sensitive area (right side)
+    pm=integer(floor(fabs(dist)/pmsiz));
+    if(pm==npm)pm-=1;//   number of fired PM  0-(npm-1)   (IMPLY pmpit=pmsiz !!!)
 //
     if(cz>fr)tbc=0;// below i imply no sharing in Z (even number of f-layers/s-layer)
     else if(cz<-fr)tbc=2;
@@ -226,51 +243,77 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     switch(bran){
       case 1:  //<-- near the left PM-boundary
         cell=0+tbc;
-        bdis=pmdis;
-	w[0]=1.-segarea(fr,bdis);
+        bdis=pmdis;//><0(<0 possible only for 1st PM special case)
+	ww=segarea(fr,bdis);
+        if(bdis<0){//special case: fiber is outside 1st PM, butslightly(<=fr) overlape with its left side
+	  w[0]=ww;//smaller overlape area 
+	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
+	  w[0]*=effmn;//fixed at pixel edge level (0.6)
+	  return;	    
+	}
+//bdis>0(normal case):
+	w[0]=1.-ww;
 	cid[0]=1000*ss+(pm+1)*10+(cell+1);
+	if(bdis<deffmx)w[0]*=(effmn+slope*bdis);//corr.for pixel eff.uniformity
 	if(pm==0)return;// 1st PM
 	w[1]=1.-w[0];
 	cell=1+tbc;
 	cid[1]=1000*ss+(pm)*10+(cell+1);// left neighbour
+	w[1]*=effmn;//fixed 
         break;
 //        
       case 2:  //<-- near the right PM-boundary
         cell=1+tbc;
-        bdis=pmsiz-pmdis;
-	w[0]=1.-segarea(fr,bdis);
+        bdis=pmsiz-pmdis;//><0(<0 only for last PM special case)
+	ww=segarea(fr,bdis);
+	if(bdis<0){//special case: fiber is outside of last PM, but slightly(<=fr) overlape with its right side
+	  w[0]=ww;//smaller overlape area
+	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
+	  w[0]*=effmn;//fixed
+	  return;
+	}
+//bdis>0(normal case):
+	w[0]=1.-ww;
 	cid[0]=1000*ss+(pm+1)*10+(cell+1);
+	if(bdis<deffmx)w[0]*=(effmn+slope*bdis);//corr.for pixel eff.uniformity
 	if(pm==(npm-1))return;// last PM
 	w[1]=1.-w[0];
 	cell=0+tbc;
 	cid[1]=1000*ss+(pm+2)*10+(cell+1);// right neighbour
+	w[1]*=effmn;//fixed 
         break;
 //        
       case 3:  //<-- completely inside PM
-        bdis=pmdis-pxsiz;// f-center dist fron vertical pixel boundary
+        bdis=pmdis-pxsiz;//<>0, f-center dist from vertical boundary of 1 cells of given PM
         if(bdis<=-fr){// <-- completely in the left half of PM
           cell=0+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	  w[0]=1.;
+	  if(-bdis<deffmx)w[0]*=(effmn-slope*bdis);//corr.for pixel eff.uniformity
         }
-        else if(bdis>=fr){// <-- completely in the right half of PM
+        else if(bdis>=fr){//>0, <-- completely in the right half of PM
           cell=1+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	  w[0]=1.;
+	  if(bdis<deffmx)w[0]*=(effmn+slope*bdis);//corr.for pixel eff.uniformity
         }
-        else{ // <-- lefr-right sharing
-	  ww=segarea(fr,fabs(bdis));
+        else{ // <-- lefr-right sharing (|bdis|<fr)
+	  ww=segarea(fr,bdis);
           cell=0+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
           cell=1+tbc;
 	  cid[1]=1000*ss+(pm+1)*10+(cell+1);
-	  if(bdis<0.){
+	  if(bdis<0.){//bigger area is in left pix
 	    w[0]=1.-ww;	    
-	    w[1]=ww;	    
+            if(-bdis<deffmx)w[0]*=(effmn-slope*bdis);//corr.for pixel eff.uniformity
+	    w[1]=ww;
+	    w[1]*=effmn;//fixed	    
 	  }
-	  else{
+	  else{//bigger area is in right pix
 	    w[0]=ww;	    
+	    w[0]*=effmn;//fixed	    
 	    w[1]=1.-ww;	    
+	    if(bdis<deffmx)w[1]*=(effmn+slope*bdis);//corr.for pixel eff.uniformity
 	  }
         }
 	break;

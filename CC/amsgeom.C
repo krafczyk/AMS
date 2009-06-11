@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.201 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: amsgeom.C,v 1.202 2009/06/11 13:51:24 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2474,6 +2474,7 @@ ECALDBc::readgconf();//
   geant coo[3]={0.,0.,0.};
   geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz,zfl1;
   geant dzrad1,zmrad1,alpth,flen,zposfl,dxe;
+  geant fshift;
   integer nrot,gid(0),nsupl,nflpsl,nfpl[2],nf;
   integer isupl,ifibl,ifib,iproj,ip;
   int i,j,k;
@@ -2569,6 +2570,7 @@ ECALDBc::readgconf();//
     zmrad1=dz/2.-alpth-dzrad1/2.;// zmid of  1st SL radiator(in ECMO r.s)
 //
     for(isupl=0;isupl<nsupl;isupl++){ // <--- super-layers loop
+      fshift=ECALDBc::gendim(11+isupl);//fibers set common shift from ideal(simmetric) position
       ip=isupl%2;
       if(ip==0)iproj=ECALDBc::slstruc(1);// iproj=0 ->X, =1 ->Y
       if(ip==1)iproj=1-ECALDBc::slstruc(1);
@@ -2605,7 +2607,8 @@ ECALDBc::readgconf();//
       for(ifibl=0;ifibl<nflpsl;ifibl++){ // <--- fiber-layers loop in s-layer
         ip=ifibl%2;//even(1)/odd(0) f-layer
 	nf=nfpl[ip];// total fibers in layer
-	cleft=-(nf-1)*fpitx/2.;// tempor imply nfpl[1]=nfpl[0]+-1 sceme !!!
+	cleft=-(nf-1)*fpitx/2.;// imply nfpl[1]=nfpl[0]-1 sceme !!!
+	cleft+=fshift;//no new position check because fibers do not leave lead volume even at max.shift !!!
 	if(iproj==0){ // X
           par[0]=dx1/2.;
           par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8)+0.001;// fiber+glue+safety radious

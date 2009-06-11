@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.43 2009/02/13 16:30:49 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.44 2009/06/11 13:51:31 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -44,7 +44,7 @@ class ECALDBc {
 //
 private:
 // geom. constants:
-  static geant _gendim[10]; // ECAL general dimensions
+  static geant _gendim[20]; // ECAL general dimensions
 //                            1-3-> X,Y,Z-sizes of EC-radiator;
 //                            4-> eff. X(Y)-thickness of PM+electronics volume
 //                            5->X-pos; 6->Y-pos; 7->Z-pos(front face);
@@ -55,8 +55,8 @@ private:
 //                          1-4->fiber att.length,%,diam; 5->size(dx=dz) of "1/4" of PM-cathode;
 //                          6->abs(x(z)-position) of "1/4" in PMT coord.syst.(not used);
 //                          7/8->X(Y)-pitch of PM's; fiber glue thickness(in radious)
-//                          9-> lead thickness of 1 SL
-//                          10-> Al-plate thickness
+//                          9-> pix.eff at the edge 
+//                          10-> rel.pix.dist where pix.eff. reach 1. 
 //
   static integer _scalef;  // MC/Data: scale factor used for digitization in DAQ-system
   static geant _ftedel;    // MC/data: FTE component-signals delay from EC-crate to JLV1-crate

@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.75 2009/01/15 18:00:31 choutko Exp $
+//  $Id: mccluster.C,v 1.76 2009/06/11 13:51:25 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -13,6 +13,7 @@
 #include "ntuple.h"
 #include "richid.h"
 #include "richdbc.h"
+#include "ecaldbc.h"
 #ifdef __G4AMS__
 #include "g4util.h"
 #endif
@@ -20,6 +21,7 @@ using namespace std;
 extern "C" void indetra_();
 
 number AMSEcalMCHit::impoint[2];
+number AMSEcalMCHit::leadedep[ecalconst::ECSLMX];
 
 integer AMSTRDMCCluster::_NoiseMarker(555);
 
@@ -149,6 +151,13 @@ void AMSEcalMCHit::siecalhits(integer idsoft , geant vect[],geant edep,
   //cout <<isl<<" "<<pnt<<endl;
 }
 void AMSEcalMCHit::_writeEl(){
+  integer flag = ((IOPA.WriteAll%10==1) || (ECMCFFKEY.mch2root>0));
+  
+  if(AMSEcalMCHit::Out(flag)){
+#ifdef __WRITEROOT__
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+  }
 }
 
 
@@ -392,6 +401,24 @@ if(init == 0){
  integer ntrig=AMSJob::gethead()->gettriggerN();
  for(int n=0;n<ntrig;n++){
    if(strcmp("AMSTOFMCCluster",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}
+
+
+
+integer AMSEcalMCHit::Out(integer status){
+static integer init=0;
+static integer WriteAll=0;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("AMSEcalMCHit",AMSJob::gethead()->gettriggerC(n))==0){
      WriteAll=1;
      break;
    }

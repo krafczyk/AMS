@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.36 2009/02/20 14:12:17 choutko Exp $
+//  $Id: tofcalib02.C,v 1.37 2009/06/11 13:51:25 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -31,6 +31,7 @@ extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// TOF peds/sigmas/...
 //Txslw:
 geant TofTmAmCalib::slope;
 geant TofTmAmCalib::tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+number TofTmAmCalib::s0;
 number TofTmAmCalib::s1;
 number TofTmAmCalib::s3[TOF2GC::SCLRS][TOF2GC::SCMXBR];
 number TofTmAmCalib::s4;
@@ -44,6 +45,7 @@ number TofTmAmCalib::s15[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
 number TofTmAmCalib::s16[TOF2GC::SCMXBR];
 number TofTmAmCalib::events;
 number TofTmAmCalib::resol;
+number TofTmAmCalib::resol1;
 //Tdelv:
 number TofTmAmCalib::tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
 number TofTmAmCalib::tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];
@@ -217,12 +219,14 @@ if(TFCAFFKEY.hprintf>0){
   char frdate[30];
   uinteger StartRun,overid,verid;
   time_t StartTime;
+  integer npmts;
 //
 //
 //   --->  Create TOF-channels status params using JobStat-data:
 //
    for(int il=0;il<TOF2DBc::getnplns();il++){   // <-------- loop over layers
      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){  // <-------- loop over bar in layer
+       npmts=TOF2Brcal::scbrcal[il][ib].getnpm();
        for(int ip=0;ip<2;ip++){
          stat[il][ib][ip]=0;//ok
          ic=il*TOF2GC::SCMXBR*2+ib*2+ip;//ch-numbering in TofJobStat arrays
@@ -239,7 +243,10 @@ if(TFCAFFKEY.hprintf>0){
 	 if(bpor>bpormx)stat[il][ib][ip]+=1000;//no Anode
 	 nody=TOF2JobStat::getch(ic,17);//noDy
 	 bpor=number(nody)/entr;
-//	 if(bpor>bpormx)stat[il][ib][ip]+=111;//no Dynode
+	 if(bpor>bpormx){
+           if(npmts==2)stat[il][ib][ip]+=11;//no 2-Dynodes
+	   else stat[il][ib][ip]+=111;//no 3-Dynodes
+	 }
        }
      }
    }
@@ -343,13 +350,23 @@ if(TFCAFFKEY.hprintf>0){
     vlfile << endl;
   }
   vlfile.close();
-  cout <<"  <-- New CFlist-file "<<name<<" is created !!!"<<endl;
+  cout <<"  <-- New CFlist-file "<<name<<" is created !!!"<<endl<<endl;
+//---
+  printf("<==========Tof CALIB Results:\n");
+  for(int i=0;i<4;i++){
+    if(i<3)for(int j=0;j<5;j++)printf("% 7.3f",TOF2JobStat::cqual(i,j));//format for TAUC-members
+    else for(int j=0;j<5;j++)printf("% 7.1f",TOF2JobStat::cqual(i,j));// format for TDCL
+    printf("\n");
+  }
+  printf("<==========End of Results\n\n");
+//---
   cout <<"<==== TofTimeAmplCalib::endjob completed ==="<<endl;
 }
 //------------------------------
 void TofTmAmCalib::inittz(){
   int i,j,il,ib;
   slope=0.;
+  s0=0.;
   s1=0.;
   s4=0.;
   s8=0.;
@@ -447,16 +464,17 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
 //
   nparr=0;
   seqnum=0;
+  bool missrefc(false);
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       id=(il+1)*100+ib+1;
-      if(s3[il][ib]>=5.){
-//        if(TFCAFFKEY.idref[1]==0 
-//	     || (TFCAFFKEY.idref[1]==1 && (il==1 || il==2) && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
-//	     || (TFCAFFKEY.idref[1]==2 && (il==1 || il==2) && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
+      if(s3[il][ib]>=50.){
+        if(TFCAFFKEY.idref[1]==0 
+	     || (TFCAFFKEY.idref[1]==1 && (il==1 || il==2) && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
+	     || (TFCAFFKEY.idref[1]==2 && (il==1 || il==2) && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
           ifit[1+seqnum]=1;//bar with high statist.-> release
           nparr+=1;
-//	}
+	}
         if(id == TFCAFFKEY.idref[0]){
           ifit[1+seqnum]=0;//fix, if ref counter
           nparr-=1;
@@ -465,18 +483,22 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
       else{
         if(id == TFCAFFKEY.idref[0]){
           cout<<" <--- Too low statistics in ref.counter "<<id<<" "<<s3[il][ib]<<'\n';
-          return;
+	  missrefc=true;
         }
         ifit[1+seqnum]=0;//bar with low statist.-> fix
       }
       seqnum+=1;
     }
   }
+//
   printf("      Sufficient statistics to fit  %d counters(+1ref) \n",nparr);
-  if(nparr<2){
+//
+  if(nparr<2 || missrefc){
     cout<<"<---- Not enough counters for Minuit-Fit !!!"<<'\n';
     return;// not enough counters for FIT -> return
   }
+  TOF2JobStat::cqual(1,0)=geant(nparr+1)/seqnum;//% counters with good stat (for cal-quality evaluation)
+//
   npar=seqnum+1;//T0's_of_counters + slope_parameter
 // ------------> initialize parameters for Minuit:
   MNINIT(5,6,6);
@@ -523,12 +545,13 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   printf("<==== TofTimeAmplCalib::fittz: Minuit ended with parameters:\n");
   printf("      -----------------------------\n");
   printf("      Resolution(ns) : %6.3e\n",resol);
+  printf("      Resolution1(ns): %6.3e\n",resol1);
   printf("      Slope          : %6.3e\n",slope);
+  TOF2JobStat::cqual(1,1)=geant(resol1);//system resolution (for cal-quality evaluation)
 }
 //-----------------------------------------------------------------------
 // This is standard Minuit FCN for Tzslw-calib:
-void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[]
-                                                        , int &flg, int &dum){
+void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &flg, int &dum){
   int i,j,il,ib,seqnum;
   integer id,ibt,idr,ibtr;
 //  static int first(0);
@@ -657,7 +680,9 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[]
     }
 // write parameters to ext.file:
     resol=-1.;
+    resol1=-1.;
     if(f>=0. && events>0)resol=sqrt(f/events);
+    if(f>=0. && s0>0)resol1=sqrt(f/s0);//to have rms/pair
 //
     cout<<"<---- Open file for Tzslw-calibration output, fname:"<<fname<<'\n';
     ofstream tcfile(fname,ios::out|ios::trunc);
@@ -698,10 +723,10 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[]
 // To fill arrays, used by FCN :
 void TofTmAmCalib::filltz(int ib[TOF2GC::SCLRS],number dtr[TOF2GC::SCLRS-1], 
                                                number du[TOF2GC::SCLRS-1]){
-//  static int first(0);
   int i,j;
 // ---> note: imply missing layer has ib=-1; corresponding diffs=0 
   events+=1.;
+  for(i=0;i<TOF2DBc::getnplns()-1;i++)if(du[i]!=0.)s0+=1;
   for(i=0;i<TOF2DBc::getnplns()-1;i++)s1+=dtr[i]*dtr[i];
   for(i=0;i<TOF2DBc::getnplns();i++)if(ib[i]>=0)s3[i][ib[i]]+=1.;
   for(i=0;i<TOF2DBc::getnplns()-1;i++)s4+=du[i]*du[i];
@@ -1605,6 +1630,8 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   number bin,len,co,t,dis,sig,sli,meansl(0),bintot(0),speedl,avsll[TOF2GC::SCLRS];
   number sl[TOF2GC::SCBLMX],t0[TOF2GC::SCBLMX],sumc,sumc2,sumt,sumt2,sumct,sumid,chi2[TOF2GC::SCBLMX];
   geant td[TOF2GC::SCTDBM];
+  integer gchan,gsbins;
+  geant gsbchan; 
   char fname[80];
   char frdate[30];
   char in[2]="0";
@@ -1653,6 +1680,8 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
     HPRINT(1603);
   }
   chan=0;
+  gchan=0;
+  gsbchan=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
     avsll[il]=0.;
     binsl[il]=0;
@@ -1667,6 +1696,7 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
       sumt2=0;
       sumid=0;
       bins=0;
+      gsbins=0;
       sl[chan]=0;
       t0[chan]=0;
       chi2[chan]=0;
@@ -1676,6 +1706,7 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
         nev=nevnt[chan][nb];
    cout<<" "<<nev;
         if(nev>=10){//min.cut on event number in bin
+	  gsbins+=1;
           t=tdiff[chan][nb]/number(nev);// mean td
           tdiff[chan][nb]=t;
           td[nb]=geant(t);
@@ -1698,6 +1729,7 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
         }
       }// ---> end of bins loop
    cout<<endl;
+      gsbchan+=(geant(gsbins)/nbins[btyp-1]);//% of good statistics bins in given channel
       if(TFCAFFKEY.hprintf>1)HPAK(1620+chan,td);
       if(bins>=4){
         t0[chan]=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
@@ -1712,6 +1744,7 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
           meansl+=sl[chan];
           avsll[il]+=sl[chan];
           binsl[il]+=1;
+	  gchan+=1;
         }
         if(TFCAFFKEY.hprintf>0)HF1(1604,geant(t0[chan]),1.);
         if(TFCAFFKEY.hprintf>0  && fabs(sl[chan])>0.){
@@ -1731,6 +1764,10 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
     else avsll[il]=15.45;//def.value
   }//<------ end of layer loop
 //
+  if(chan>0){//fill cal-quality array
+    TOF2JobStat::cqual(0,0)=geant(gchan)/chan;//% of good chan(Nb>=4,Chi2=ok,slope in range)
+    TOF2JobStat::cqual(0,1)=gsbchan/chan;//% of bins with good statistics
+  }
   if(bintot>0)meansl/=bintot; // mean slope
   if(meansl!=0)speedl=fabs(1./meansl);// mean light speed
 //
@@ -2440,8 +2477,10 @@ void TofTmAmCalib::fitam(){
 //----
   char choice[5]=" ";
   int bnn,jmax;
+  int goodch;
   geant rbnn,bnw,bnl,bnh;
   ic=0;
+  goodch=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(is=0;is<2;is++){
@@ -2531,6 +2570,7 @@ void TofTmAmCalib::fitam(){
             continue;
           }
           gains[ic]=elfitp[1];
+	  goodch+=1;
           HDELET(1599);
 //
         }// ---> endof min.events check
@@ -2540,6 +2580,8 @@ void TofTmAmCalib::fitam(){
       }// ---> endof side loop
     }// ---> endof bar loop
   }// ---> endof layer loop
+//--
+  if(ic>0)TOF2JobStat::cqual(2,0)=geant(goodch)/ic;//for cal-quality 
 //
 // ---> extract most prob. ampl for ref.bar:
 //
@@ -3001,9 +3043,11 @@ void TofTmAmCalib::fitam(){
   }// <----- end of param. init.
 //---
 //----
+  integer btypeok(0),btypes(0);
   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//loop over bar types
     id=rbls[ibt];//ref.bar id
     if(id==0)continue;//skip dummy bar types
+    btypes+=1;
     aabs[ibt]=0.;
     mip2q[ibt]=100.;//default value
     nev=nrefb[ibt];
@@ -3084,11 +3128,13 @@ void TofTmAmCalib::fitam(){
       }
       aabs[ibt]=elfitp[1];
       mip2q[ibt]=aabs[ibt]/elref;//(pC/mev)
+      btypeok+=1;
       HDELET(1599);
 //
-      
     }
   }
+//
+  if(btypes>0)TOF2JobStat::cqual(2,1)=geant(btypeok)/btypes;//for cal-quality
 //-------------------------------------------------------
 //
 // ---> calculate/print Anode/Dynode chan.gain ratios:
@@ -3098,6 +3144,7 @@ void TofTmAmCalib::fitam(){
 // ---> calculate/print Ah2Dh ratios:
 //
 //
+  integer gchan(0);
   chan=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
@@ -3118,6 +3165,7 @@ void TofTmAmCalib::fitam(){
 	    if(rsig<2){//good measurement
 	      a2d[chan]=avr;
 	      a2ds[chan]=a2dsig;
+	      gchan+=1;
 	    }
 	    else{
 	      a2d[chan]=0;
@@ -3129,6 +3177,9 @@ void TofTmAmCalib::fitam(){
       }
     }
   }
+//
+  if(chan>0)TOF2JobStat::cqual(2,2)=geant(gchan)/chan;//for cal-quality
+//
   printf("\n");
   printf(" =================> An/Dyn(pm-sum)  distributions :\n");
   printf("\n");
@@ -4520,6 +4571,9 @@ void TOFTdcCalib::init(){ // ----> initialization for TofTdc-calibration
 void TOFTdcCalib::outp(int flg){
   int crt,ssl,ich,bin,csl,i,j,binmin;
   int sstat[TOF2GC::SCCRAT*(TOF2GC::SCFETA-1)][TOF2GC::SCTDCCH-2];
+  int16u rdch,mtyp;
+  int16 slot;
+  integer chbmap; 
   uinteger BeginRun=AMSUser::JobFirstRunN();//job 1st run# 
   time_t BeginTime=time_t(BeginRun);//begin time = BeginRun
   time_t end,insert;
@@ -4588,7 +4642,7 @@ void TOFTdcCalib::outp(int flg){
     cout<<"<---- TOFTdcCalib:output interm.storage file is closed !"<<endl;
   }
 //-----
-  if(TFCAFFKEY.tdccum%10>2 || TFCAFFKEY.tdccum%10==0){//norm(1stage) or last interm.storage run : 
+  if(TFCAFFKEY.tdccum%10>2 || TFCAFFKEY.tdccum%10==0){//was single-pass or last pass of interm.storage run(any econ/norm mode) : 
     strcpy(fname,"TofTdcor");
     if(AMSJob::gethead()->isMCData()){
       strcat(fname,vers1);
@@ -4605,7 +4659,7 @@ void TOFTdcCalib::outp(int flg){
 //
 //---> prepare standard evpch/diflin arrays:
 //
-    if(TFCAFFKEY.tdccum%10>2){//final interm.store mode: fill standard arrays with data from interm.store
+    if(TFCAFFKEY.tdccum%10>2){//last pass of interm.store run: fill standard arrays with data from interm.store
       for(crt=0;crt<TOF2GC::SCCRAT;crt++){
         for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
           csl=crt*(TOF2GC::SCFETA-1)+ssl;
@@ -4618,8 +4672,10 @@ void TOFTdcCalib::outp(int flg){
 	}
       }
     }
+//---> do nothing special for non_econom(=norm=1slot)-mode: evpch/diflin arrays are already prepared by store-routine !
+//
 //----
-    if(TFCAFFKEY.tdccum/10==1){//economy mode: copy crt/ssl=0 data to other crt/ssl
+    if(TFCAFFKEY.tdccum/10==1){//economy(1slot) mode: copy crt/ssl=0 data to other crt/ssl
       for(crt=0;crt<TOF2GC::SCCRAT;crt++){
         for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
 	  if(crt==0 && ssl==0)continue;//skip crt/ssl=0 because it is already filled by fill-routine
@@ -4641,18 +4697,31 @@ void TOFTdcCalib::outp(int flg){
 //
 //---> prepare D/I linearity corrections from standard arrays :
 //
+    number totchan(0),totgchan(0),avstat(0),avmnstat(0),badbinch(0),gchanperc(0);
     number cref,dnl,inl;
     geant evbinmn,evbinmx;
     cref=0;
     for(crt=0;crt<TOF2GC::SCCRAT;crt++){
       cout<<"--->Crate:"<<crt<<endl;
       for(ssl=0;ssl<TOF2GC::SCFETA-1;ssl++){
+        slot=AMSSCIds::crdid2sl(int16u(crt),int16u(ssl));//SFET(A)seq.slt(link#)=>glob.seq.slot#(0-10)
+        if(slot<0){
+	  cout<<"<--- Illegal glob.seq.Slot !"<<endl;
+	  exit(1);
+        }
         csl=crt*(TOF2GC::SCFETA-1)+ssl;
 	cout<<"    SSlot:"<<ssl<<endl;
-        for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){
+        for(ich=0;ich<TOF2GC::SCTDCCH-2;ich++){//<--- chan-loop (8-2 channels because don't need sumHT,sumSHT)
+	  mtyp=0;//here means any time-type chan (LT,FT,...)
+          rdch=AMSSCIds::ich2rdch(int16u(crt),int16u(slot),int16u(ich),mtyp);//1,...(=0 if ich empty)
+          if(rdch==0)continue;//skip empty(not_connected=not_used) input channel
+	  totchan+=1;//counts connected channels
 	  cout<<"      Chan:"<<ich<<endl;
           sstat[csl][ich]=0;//clear statistics status array(0=ok)
           cref=number(evpch[csl][ich])/1024;
+	  if(cref<TFCAFFKEY.minstat)continue;//skip dead channel(aver stat/bin < min.accepted)
+	  totgchan+=1;//counts good channels (aver.stat/bin > min)
+	  avstat+=cref;
 	  evbinmn=1000000;
 	  evbinmx=0;
 	  for(i=0;i<1024;i++){
@@ -4662,9 +4731,11 @@ void TOFTdcCalib::outp(int flg){
 	    }
 	  }
 	  for(i=0;i<1024;i++)if(diflin[csl][ich][i] > evbinmx)evbinmx=diflin[csl][ich][i];
+	  avmnstat+=evbinmn;
 	  cout<<"      Aver.events/ch/bin="<<cref<<" Evs/bin min/max="<<evbinmn<<" "<<evbinmx<<endl;
 	  if(evbinmn < TFCAFFKEY.minstat){
 	    sstat[csl][ich]=1;
+	    badbinch+=1;
 	    cout<<"   <--Warning:Low-stats chan/bin:"<<ich<<" "<<binmin<<endl;
 	  }
           inl=0;
@@ -4674,10 +4745,26 @@ void TOFTdcCalib::outp(int flg){
 	    inl+=dnl;
 	    intlin[csl][ich][bin]=geant(inl);
 	  }
-        }
-      }
+        }//--->endof chan-loop
+      }//--->endof SFET(slot)-loop
+    }//--->endof crate-loop
+//
+    if(totchan>0){
+      avstat/=totgchan;//aver.stat/bin for good channels(aver. stat/bin(cref) > min)
+      avmnstat/=totgchan;//aver. minstat/bin(..........................)
+      badbinch/=totgchan;//portion of channels having at least 1 bin with low statistics
+      badbinch*=100;//in %
+      gchanperc=100*(totchan-totgchan)/totchan;// % bad channels (connected but having too low aver. stat/bin)
     }
+//-- fill 4th(->TDCL) line in CALIB results block:
+    TOF2JobStat::cqual(3,0)=avstat;
+    TOF2JobStat::cqual(3,1)=avmnstat;
+    TOF2JobStat::cqual(3,2)=badbinch;
+    TOF2JobStat::cqual(3,3)=gchanperc;
+    TOF2JobStat::cqual(3,4)=0;
+//
 //---  histograms of integr.nonlinearity in scale*4 for few channels:
+//
     geant sum4;
     crt=0;
     ssl=3;
@@ -4729,7 +4816,7 @@ void TOFTdcCalib::outp(int flg){
       }
       HPRINT(1700+crt);
     }
-//-------- hist of bin-by-bin seed-calc lin.corr for 2 crt and 2 slt in each channel:
+//-------- hist of bin-by-bin (seed - calc) lin.corr for 2 crt and 2 slt in each channel:
     geant diff;
     if(AMSJob::gethead()->isMCData()){//check 6 channels of cr/sl=2/2,3(where ch4 is present)
       crt=2;
@@ -4760,12 +4847,18 @@ void TOFTdcCalib::outp(int flg){
         HPRINT(1616+ich);
       }
     }
+//--- write TDCL-calibration resume in standard CALIB-block:
+    printf("<==========Tof CALIB Results:\n");
+    for(i=0;i<4;i++){
+      if(i<3)for(j=0;j<5;j++)printf("% 7.3f",TOF2JobStat::cqual(i,j));
+      else for(j=0;j<5;j++)printf("% 7.1f",TOF2JobStat::cqual(i,j));// format for TDCL
+      printf("\n");
+    }
+    printf("<==========End of Results\n\n");
+//---
 //
 // ---> write TDC-corr to file:
 //
-    int16u rdch,mtyp;
-    int16 slot;
-    integer chbmap; 
     ofstream ocfile(fname,ios::out|ios::trunc);
     if(!ocfile){
       cerr<<"<----- Error opening file for output"<<fname<<'\n';
@@ -4778,7 +4871,7 @@ void TOFTdcCalib::outp(int flg){
 //
     ocfile.setf(ios::fixed);
     ocfile.width(6);
-    ocfile.precision(2);// precision for Lspeed and Tdiff's
+    ocfile.precision(2);// precision 
     for(crt=0;crt<TOF2GC::SCCRAT;crt++){//crate loop
       ocfile << (crt+1);
       ocfile << endl;
@@ -4829,7 +4922,7 @@ void TOFTdcCalib::outp(int flg){
 }
 //-------------------------- 
 void TOFTdcCalib::fill(int cr, int sl, int ch, int tdc, geant temp){//for normal/economy mode
-//crate=0-3, slot=0-3, ch=0-5(total 6ch, 4(5)-LTch + 1-FTch)
+//crate=0-3, slot=0-3, ch=0-5(total 6ch, 4(or 5)-LTch + 1-FTch)
   int crt,ssl;
   integer time10=(tdc&(0x3FFL));//10 lsb
   if(!TofTdcCor::tdccor[cr][sl].truech(ch)){//illegal(empty) channel

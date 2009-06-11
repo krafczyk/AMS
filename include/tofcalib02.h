@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.16 2009/01/27 08:09:22 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.17 2009/06/11 13:51:32 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -13,6 +13,7 @@ private:
   //Tzslw-part:
   static geant slope;
   static geant tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+  static number s0;
   static number s1;
   static number s3[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   static number s4;
@@ -26,6 +27,7 @@ private:
   static number s16[TOF2GC::SCMXBR];
   static number events;
   static number resol;
+  static number resol1;
 //Tdelv-part:
   static integer nbins[TOF2GC::SCBTPN];//numb.of coord-bins vs bar-type(<=TOF2GC::SCTDBM)
   static number tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// side-times differences (ns)

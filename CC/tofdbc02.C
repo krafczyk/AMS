@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.65 2009/02/20 14:12:17 choutko Exp $
+//  $Id: tofdbc02.C,v 1.66 2009/06/11 13:51:25 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -151,6 +151,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     char vers0[10]="MC";//not used now
     char vers1[10]="PreAss";//pre-assembly in clean room
     char vers2[10]="Space";//in space
+    char vers3[10]="Ass1";//in clean room final assembly-1
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
@@ -166,9 +167,13 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
         cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers1);//clean room
       }
-      else{
-        cout <<"      Space (default) setup selected..."<<endl;
+      else if(strstr(AMSJob::gethead()->getsetup(),"Space")){
+        cout <<"      Space setup selected..."<<endl;
         strcat(name,vers2);//space
+      }
+      else if(strstr(AMSJob::gethead()->getsetup(),"Ass1")){
+        cout <<"      Assembly_1(CleanRoom) setup selected..."<<endl;
+        strcat(name,vers3);//clean room final assembly-1
       }
     }
     
@@ -1524,6 +1529,7 @@ integer TOF2JobStat::mccount[TOF2GC::SCJSTA];
 integer TOF2JobStat::recount[TOF2GC::SCJSTA];
 integer TOF2JobStat::chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];
 integer TOF2JobStat::brcount[TOF2GC::SCBLMX][TOF2GC::SCCSTA];
+geant TOF2JobStat::cquality[4][5];
 integer TOF2JobStat::daqsf[100];
 integer TOF2JobStat::cratr[TOF2GC::SCCRAT][20];
 integer TOF2JobStat::cratp[TOF2GC::SCCRAT][20];
@@ -3080,6 +3086,9 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
 	}
       }
     }
+//for calib-quality:
+    for(i=0;i<4;i++)
+                   for(j=0;j<5;j++)cquality[i][j]=0;
 //formal init of SFET(A)-sensors by undefined value
     for(i=0;i<TOF2GC::SCCRAT;i++)
       for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j]=999;//(TempT,degrees)

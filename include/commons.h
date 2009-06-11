@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.266 2009/06/09 10:50:13 barao Exp $
+//  $Id: commons.h,v 1.267 2009/06/11 13:51:31 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -302,7 +302,8 @@ geant peddv;//ch-to-ch variation(%)
 geant pedds;//PedSig-DyCh    
 geant peddsv;//ch-to-ch variation(%)
 integer ReadConstFiles;
-integer calvern;     
+integer calvern;
+integer mch2root;
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);

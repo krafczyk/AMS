@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.95 2009/03/11 16:52:56 mdelgado Exp $
+//  $Id: gmat.C,v 1.96 2009/06/11 13:51:24 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -365,7 +365,7 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 //should be glue, but for simplicity/speed reasons i use vacuum, because NOW thickness is small
 //
 //---> Eff.lead for ECAL(to compensate extra weight puzzle):
-  relden=0.938;//relat(to true Pb) density 
+  relden=0.98;//relat(to ideal Pb) density 
   mat.add (new AMSgmat("ECLEAD",207.19,82., 11.35*relden ,0.56/relden,18.5/relden));
 }
 //--------

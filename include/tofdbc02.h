@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.39 2009/02/20 14:12:20 choutko Exp $
+//  $Id: tofdbc02.h,v 1.40 2009/06/11 13:51:32 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -390,6 +390,7 @@ private:
   static integer rdcp2[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
   static integer rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
   static integer rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
+  static geant cquality[4][5];//cal.quality 4 types X 5 params
 //
   static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//temperatures(TempT) from SFET(A)-cards reading
 #pragma omp threadprivate(tofantemp) 
@@ -401,6 +402,8 @@ public:
   static geant gettemp(int16u crt, int16u sen);
   static void addmc(int i);
   static void addre(int i);
+  static integer getre(int i){return recount[i];}
+  static geant &cqual(int i, int j){return cquality[i][j];} 
   static void addch(int chnum, int i);
   inline static int getch(int chnum, int i){
     assert(chnum>=0 && i>=0);
@@ -486,10 +489,10 @@ public:
     return(0);
   }
   bool SideOK(int isd){return(
-                     ((status[isd]/100000)==0 || TFREFFKEY.relogic[1]>=1)
-                   && (status[isd]%100000)/10000==0
-		   && (status[isd]%10000)/1000==0
-		   && (status[isd]%1000)==0
+                     ((status[isd]/100000)==0 || TFREFFKEY.relogic[1]>=1)//sumHT
+                   && (status[isd]%100000)/10000==0 //LT
+		   && (status[isd]%10000)/1000==0   //Anode
+//		   && (status[isd]%1000)==0         //Dynodes        
 		                         );}
 //
   void gtstrat(geant str[2][2]){
@@ -576,13 +579,13 @@ public:
 // status(is)=F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
 //                              
   bool FchOK(int isd){
-    return(status[isd]/100000==0);// means good FastTDC chan(anode)
+    return(status[isd]/100000==0);// means good FastTDC(->SumHT==Hist) chan(anode)
   }
   bool SchOK(int isd){
-    return((status[isd]%100000)/10000==0);// means good SlowTDC chan(anode)
+    return((status[isd]%100000)/10000==0);// means good SlowTDC(->LT) chan(anode)
   }
   bool AchOK(int isd){
-    return((status[isd]%10000)/1000==0);// means good Anode channel
+    return((status[isd]%10000)/1000==0);// means good Anode(ampl) channel
   }
   bool DchOK(int isd, int ipm){//ipm=0-2
     int nml=(status[isd]%1000);

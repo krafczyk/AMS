@@ -771,6 +771,7 @@ void ECREUNcalib::select(){
 //
   if(sta)return;
   EcalJobStat::addca(7);
+//  cout<<endl<<"========> Used for calib.event= "<<(AMSEvent::gethead()->getid())<<endl;
 }
 //-----------------------------------------------------------
 void ECREUNcalib::makeToyRLGAfile(){
@@ -1367,16 +1368,18 @@ void ECREUNcalib::mfit(){
 	    strcat(htit1,ext);
             if(ECCAFFKEY.prtuse<=0){//prot(mu)
 	      llim=0;
-	      hlim=100;
+	      hlim=200;
 	    }
             else{//He
 	      llim=0;
-	      hlim=4*100;
+	      hlim=4*200;
 	    }
-	    HBOOK1(ECHISTC+50,htit1,50,llim,hlim,0.);
-	    for(k=0;k<tevpml[pmsl][lb];k++)HF1(ECHISTC+50,geant(pmlres[pmsl][lb][k]),1.);
-	    HPRINT(ECHISTC+50);
-	    HDELET(ECHISTC+50);
+            if(ECCAFFKEY.hprintf>2){
+	      HBOOK1(ECHISTC+50,htit1,50,llim,hlim,0.);
+	      for(k=0;k<tevpml[pmsl][lb];k++)HF1(ECHISTC+50,geant(pmlres[pmsl][lb][k]),1.);
+	      HPRINT(ECHISTC+50);
+	      HDELET(ECHISTC+50);
+	    }
 	  }
 	  n2remr=floor(p2remr*tevpml[pmsl][lb]+0.5);
 	  n2reml=floor(p2reml*tevpml[pmsl][lb]+0.5);
