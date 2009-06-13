@@ -1,0 +1,70 @@
+QMainWindow, QSpinBox, QWidget#teWidget
+{ background-color: rgb(0, 10, 5); }
+
+QPushButton, QTabBar::tab, QTextEdit, QWidget#QWCHist,
+QWidget#tab1, QWidget#tab2, QWidget#tab3, QWidget#tab4, QWidget#tab5
+{ background-color: qlineargradient(spread:pad,
+                      x1: 0, y1: 0, x2: 0, y2: 1,
+                      stop: 1 rgb( 0,  5,  0), 
+                      stop: 0 rgb( 0, 30, 10)); }
+
+QPushButton:pressed, QTabBar::tab:selected
+{ background-color: qlineargradient(spread:pad,
+                      x1: 0, y1: 0, x2: 0, y2: 1,
+                      stop: 0.7 rgb(0,  20,  20), 
+                      stop: 0.0 rgb(0, 140, 140)); }
+
+QPushButton:disabled, QSpinBox:disenabled
+{ background-color: qlineargradient(spread:pad,
+                      x1: 0, y1: 0, x2: 0, y2: 1,
+                      stop: 1 rgb(20, 40, 20), 
+                      stop: 0 rgb(50, 70, 50)); }
+
+QLabel, QCheckBox
+{ background-color: rgba(0, 0, 0, 0); }
+
+QLabel, QSpinBox, QCheckBox, QPushButton, QRadioButton, 
+QTab, QTabBar, QTabBar::tab, QTabBar::tab:selected,
+QWidget#teWidget, QTextEdit,
+QWidget#tab1, QWidget#tab2, QWidget#tab3, QWidget#tab4, QWidget#tab5
+{ color: rgb(180, 240, 220); }
+
+QPushButton:disabled, QCheckBox:disabled, QRadioButton:disabled, 
+QSpinBox:disenabled, QTabBar::tab:disabled
+{ color: rgb(20, 80, 60); }
+
+QComboBox
+{ color: rgb(0, 10, 5); }
+
+QFrame, QPushButton,
+QTab, QTabBar::tab, QTabBar::tab:selected,
+QWidget#teWidget, QWidget#glDisp, QTextEdit
+{ border: 1px outset rgb(100, 200, 150); }
+
+QFrame#vframe
+{ border: 0px solid rgb(0, 0, 0); }
+
+QLabel
+{ border: 0px solid rgba(0, 0, 0, 0); }
+
+QFrame, QWidget#teWidget, QTextEdit 
+{ border-radius: 4px; }
+
+QPushButton
+{ border-radius:  10px;
+  padding-top:     2px;
+  padding-bottom:  1px;
+  padding-right:  12px;
+  padding-left:   12px;
+  margin-top:      5px;
+  margin-bottom:   5px;
+  margin-right:   10px;
+  margin-left:    10px; }
+
+QTabBar::tab, QTabBar::tab:selected
+{ border-radius:   2px;
+  padding-top:     1px;
+  padding-bottom:  1px;
+  padding-right:  10px;
+  padding-left:   10px; }
+

@@ -1,0 +1,34 @@
+$Id: README,v 1.1 2009/06/13 21:40:46 shaino Exp $
+
+TkDisplay - Tracker event display on Qt4/OpenGL/ROOT
+
+                                    13/06/2009 by SH
+
+* The performance and the looking is optimized for Qt4.5 on Mac OSX Leopard
+
+* It is recommended to run this application on the local machine.
+  Running on a remote machine through X11 forwarding 
+  will make the performance too slow. 
+  You can change the animation at the Box:Animation in Tab:Style.
+
+
+Softwares needed:
+(1) Qt >= 4.3.0 (>= 4.5.1 recommended)
+(2) ROOT        (>= v5.21 recommended)
+(3) Gbatch ntuple library made with "make lib" and "PGTRACK" option
+
+ Qt4 is available at http://www.qtsoftware.com/downloads
+
+
+How to install:
+(1) Set following environment variables
+ ROOTSYS  : directory where root is installed
+ QTDIR    : directory where Qt4 is installed
+ PGTRACK  : needed to refer Gbatch code in PGTRACK mode
+ path     : $ROOTSYS/bin and $QTDIR/bin should be included
+
+(2) Open "tkdisplay.pro" and check if "LIBS" is correctly set
+    especially check if the path to the Gbatch ntuple library 
+    (e.g. libntuple_slc4.a) is correct
+
+(3) Run "qmake" to generate Makefile and then "make"
