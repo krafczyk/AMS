@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="images" >
+    <file>ams02.png</file>
+    <file>ams02s.png</file>
+    <file>ams02t.png</file>
+  </qresource>
+</RCC>
