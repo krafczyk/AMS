@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.115 2009/06/09 10:50:12 barao Exp $
+//  $Id: richrec.C,v 1.116 2009/06/15 16:06:41 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -642,7 +642,8 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     _height/(RICHDB::rich_height+RICHDB::foil_height+
 			RICradmirgap+RIClgdmirgap)*40./2.;
 
-
+  // Fine tunning  
+  A*=1.15;B*=1.15;
 
 
   if(_kind_of_tile==naf_kind) // For NaF they are understimated
