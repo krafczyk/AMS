@@ -18,18 +18,20 @@ echo $UNAME is not supported yet
 fi
 
  
-if [ "$4" = "" ] ; then
+if [ "$5" = "" ] ; then
    echo " Missing  parameter !!!"
    exit
 else
-   echo "Parameter-1: $1"
-   echo "Parameter-2: $2"
-   echo "Parameter-3: $3"
-   echo "Parameter-4: $4"
+   echo "TDVName  : $1"
+   echo "BegUTC   : $2"
+   echo "EndUTC   : $3"
+   echo "DBWrFlg  : $4"
+   echo "SetupName: $5"
    TDVNAME=$1
    DBWRBEG=$2
    DBWREND=$3
    DBWRFLG=$4
+   SETUPN=$5
    if [ "$1" = "Tofpeds" ] ; then
      CALFLG="211"
    elif [ "$1" = "Antipeds" ] ; then
@@ -46,9 +48,11 @@ fi
 
 
 
-cd /f2users/tofaccuser/pedcalib
+cd $TofUserTopDir/headquaters/amsjobwd
 
-dbwgbatch.exe <<!
+umask 000
+
+gbatch.exe <<!
 
 LIST
 TRIG 1
@@ -56,9 +60,9 @@ DEBUG -1 10 1
 c---------------------------------------------------------
 MISC 6=$DBWRBEG 7=$DBWREND
 c---------------------------------------------------------
-TFRE 28=11111
+TFRE 28=10111
 c 28=(LQDPC)
-TFCA 29=0
+TFCA 29=1
 c---------------------------------------------------------
 ATRE 9=111
 c 9=(111)->PVS(PedsReal/Variab/Stab-cal.params)
@@ -72,7 +76,7 @@ c 128-> root file name
 c---------------------------------------------------------
 C      S/R/C     Debug  CpuLim Read Write   Jobname
 AMSJOB 1=$CALFLG  2=0   3=100.  4=0  5=0 6='TofAntPedDBWriter'
-       46='AMS02'
+       46='$SETUPN'
        87=$DBWRFLG 88='$TDVNAME'
 c (1=211/311=>tofcal/atccal)
 C--------------------------------------------------------

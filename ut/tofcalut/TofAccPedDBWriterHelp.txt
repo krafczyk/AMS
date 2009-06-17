@@ -126,7 +126,7 @@
     current session. This archiving is done really during
     "exit" sequence (see below). 
     
-    "Exit-Button:"
+    "QuitSess-Button:"
                      save full-history LogFile screen 
     into "logfile.xxxxxx.txt" file, where xxxxxx is the
     begin UTC time of the first (youngest) ped_table 

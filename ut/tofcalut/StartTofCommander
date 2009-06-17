@@ -1,0 +1,9 @@
+#/bin/tcsh
+
+setenv TofUserTopDir /f2users/tofaccuser
+
+cd $TofUserTopDir/headquaters
+
+umask 000
+
+./TofCommander.pl

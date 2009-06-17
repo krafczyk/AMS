@@ -1,0 +1,136 @@
+
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+
+fi
+ 
+ if [ "${11}" = "" ] ; then
+   echo " Missing  parameter !!!"
+   exit
+ else
+   echo "CalibMode: $1"
+   echo "LQDPC    : $2"
+   echo "RefCflist: $3"
+   echo "Spc/Ear  : $4"
+   echo "AverBeta : $5"
+   echo "TRKusage : $6"
+   echo "MAGNstat : $7"
+   echo "CPUs2Use : $8"
+   echo "Evs2Use  : $9"
+   echo "LinksDir : ${10}"
+   echo "SetupName: ${11}"
+   CALMODE=$1
+   LQDPC=$2
+   REFCFLN=$3
+   AMSPOS=$4
+   AVERBETA=$5
+   TRKUSAGE=$6
+   MAGSTAT=$7
+   NCPUS=$8
+   NEVENTS=$9
+   LINKDIR=${10}
+   SETUPN=${11}
+   
+   echo " TofUserTopDir: $TofUserTopDir"
+   echo " Start program ..."
+ fi
+
+
+cd $TofUserTopDir/headquaters/amsjobwd
+
+umask 000
+
+gbatch.exe <<!
+
+LIST
+KINE 14
+MULS 1
+LOSS 1 
+CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
+HADR 1
+TRIG $NEVENTS
+DEBUG -1 10 10000
+c-----------
+TFRE 3=1 5=0  8=$CALMODE  28=$LQDPC  30=$REFCFLN
+c 3=1/(0)->print/not reco-statistics
+c 5=1/(0)->print/not rec0-histograms
+c 6=(0)/1->print chan. hit-mult hists
+c 8->0/1/2/3/4/5/6/7(norm/spare/TDIF/TZSL/AMPL-calib run);
+c (=6-> "get peds from normal data in raw fmt)
+c 10=(1)/0-> use/not TDClincor at reco-stage
+c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
+c 30=ref.cal_files set number (=run number)
+c----------- 
+TFCA 1=0.3 2=100. 3=$AVERBETA 7=$AVERBETA  9=0
+     11=$AMSPOS 12=$TRKUSAGE  29=1
+c 29=0/1 -> flag selecting cal.files reading from official/user directories
+c Time(Tdelv/Tzslw)-calibration:
+c
+c 1-2 -> low/high mom.cuts; 3->mean beta for space calibr.(prot)
+c 4-> default for T0's of ref.counters; 6->default for slope;
+c 7->mean beta for earth calibr.(mu); 8-> (104)LBB of ref.counter;
+c 9->(0)/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
+c 11->(0)/1 to select space/earth calibr.
+c 12->1/0/-1(use TRK+MomLimits/TRK/TRKorTRD);
+c 28=0/(1)22 -> no/print(hist.priority 1(hi),2(+low)) cal-related histograms
+c--------------  
+ATRE 1=0  
+c 1=1/(0)->Print/Not RE-hist;
+c 3=(0)/1/2/3->norm/AmplCal/PedClass(randTrig)/PedDownScaled(inTrig)Calib
+c 9=(111)->PVS(PedReal/Variab/Stab-calpars),P(V,S)=0/1->Read from DB/RwFiles
+ATCA 2=0 
+c 2=0/(1)->ReadCalFiles from Official/Private Directory
+c 3/4=(0.01/0.02)->Highest adcs to remove for ped-calculation(Class/DScaled)
+c-------------- 
+ECRE 1=0
+c--------------
+MAGS 1=$MAGSTAT
+c--------------
+MISC 2=1 8=$NCPUS
+c (2=0/1/2->not?/cosmics/testbeam)
+c 8=(1)/-1/n -> parall.proc. with Ncpu=1/all/n
+c--------------
+c TGL1  20=0  
+c 17=(1)-> MC def.version number of "Lvl1ConfMC.*" -file
+c 18=(1167606001)->RDdef "Lvl1ConfRD.***"-file UTC-extent(20070101 0000001)
+c 19=(01)-> MN, N=0/1->read Lvl1Config-data from DB/File
+c               M=0/1->read Lvl1Config raw-file from official/private dir
+c 20=(0)-> PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=2 ->max)
+c--------------
+IOPA  43=101 45='TriggerLVL1' 126=10000
+      127=0 128='/f2users/choumilo/ntuples/r1201279137.root'
+c--------------
+AMSJOB 1=211  2=0  4=1  5=0  46='$SETUPN'
+c 2=0/(1)->debug off/on
+c 4=(0)/1/10/100/1000 -> Read (off)/setup/../rec_banks
+c 5=................. -> Write.........................
+c--------------
+DAQC 1=1  
+2='$LINKDIR'
+c 1=klm -> m=1(read daq if reco)
+c--------------
+C Special HP-UX
+
+TIME 3=10000000
+
+TERM 1=1234567890
+
+END
+
+
+!
+

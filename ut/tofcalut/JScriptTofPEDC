@@ -16,7 +16,7 @@ else
 echo $UNAME is not supported yet
 fi
 
- if [ "$9" = "" ] ; then
+ if [ "${10}" = "" ] ; then
    echo " Missing  parameter !!!"
    exit
  else
@@ -29,11 +29,13 @@ fi
    echo "PedMax: $7"
    echo "RmsMin: $8"
    echo "RmsMax: $9"
+   echo "SetupName: ${10}"
    DAQFILE=$1
    DETTYPE=$2
    PEDTYPE=$3
    NEVENTS=$4
    TRUNCUT=$5
+   SETUPN=${10}
    if [ "$2" = "tofp" ] ; then
      CALFLG="211"
      ANTRTYP="0"
@@ -71,9 +73,11 @@ fi
  fi
 
 
-cd /f2users/tofaccuser/pedcalib
+cd $TofUserTopDir/headquaters/amsjobwd
 
-pedgbatch.exe <<!
+umask 000
+
+gbatch.exe <<!
 
 LIST
 KINE 14
@@ -83,20 +87,20 @@ CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 1
 TRIG $NEVENTS
 DEBUG -1 10 100
-
+C--------------
 TFRE 3=0 5=0 7=0  8=$TOFRTYP 
-  28=11101
+  28=10101
 c 3=1/(0)->print/not (full/ reco-statistics
 c 5=1/(0)->print/not reco-histograms
 c 7=(0)/1/>1=>tofdebugprint(no/hist/details)
 c 8=(0)/1/2/...=TofRunType(normal/diff.kind.calib)(=6-> "get peds from normal data in raw fmt)
-c 28=flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
+c 28=LQDPC_flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
 c 
-TFCA 29=0  31=$TRUNCUT 32=$TRUNCUT 33=2 
+TFCA 29=1  31=$TRUNCUT 32=$TRUNCUT 33=2 
      34=$6 35=$7 36=$8 37=$9
 c 29=0/1=> flag selecting calib.files reading from official/user directories
 c 34/35->PedMn/Mx; 36/37->RmsMn/Mx
-c  
+c--------------  
 ATRE 1=0 3=$ANTRTYP
 c 9=111
 c 1=1/(0)->Print/Not RE-hist; 2->printDAQ(0/1/2->no/printDecoding/printEncoding&Decoding);
@@ -109,9 +113,9 @@ ATCA 2=1 3=$TRUNCUT 4=$TRUNCUT 5=2
      6=$6 7=$7 8=$8 9=$9
 c 2=0/(1)->ReadCalFiles from Official/Private Directory
 c 3/4=(0.01/0.02)->Highest adcs to remove for ped-calculation(Class/DScaled)
- 
+C--------------- 
 ECRE 1=0
-c
+c---------------
 TGL1  20=0 21=0 
 c 17=(1)-> MC def.version number of "Lvl1ConfMC.*" -file
 c 18=(1167606001)-> RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
@@ -119,12 +123,12 @@ c 19=(01)-> MN, N=0/1->read Lvl1Config-data from DB/File
 c               M=0/1->read Lvl1Config raw-file from official/private dir
 c 20=(0)-> PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=1 ->max)
 c 21=(0)-> If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
-c
+c---------------
 IOPA 1=0 127=0 128='/f2users/choumilo/ntuples/r1201279137.root'
       43=101 45='TriggerLVL1' 126=10000
-c
-AMSJOB 1=$CALFLG 2=0      3=5.   4=1  5=0 46='AMS02'
-c
+c---------------
+AMSJOB 1=$CALFLG 2=0      3=5. 6='TofAntPedCalculator'  4=1  5=0 46='$SETUPN'
+c---------------
 DAQC 1=1  2='$DAQFILE'
 c
 C Special HP-UX

@@ -97,7 +97,7 @@
     using related yellow entry-windows.  
     
     
-    "Exit-Button:"
+    "QuitSess-Button:"
                    save full-history LogFile screen 
     into "Tof(Acc)PedCalcLogFile.xxxxxx." file, where 
     xxxxxx is the run number of the first(youngest) daq-file 
@@ -106,8 +106,8 @@
     The program also moves ped_table/log files to /pedfiles
     directory (for later usage by TofAccPedDBWriter). Bad
     files are deleted. The list of all processed good files
-    is saved into "Tof(Acc)PrevRuns.Data(Rand/OnBt)"-file to
-    be used in the next session to define default search
+    is saved into "Tof(Acc)DaqfHist_Data(Rand/OnBt).PEDC"-file
+    to be used in the next session to define default search
     window (last procecced run+1 is used as left boundary
     of the search window).
     
