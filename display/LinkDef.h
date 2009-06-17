@@ -1,4 +1,4 @@
-//  $Id: LinkDef.h,v 1.19 2009/06/03 14:49:24 choutko Exp $
+//  $Id: LinkDef.h,v 1.20 2009/06/17 11:25:33 choutko Exp $
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -24,6 +24,7 @@
 #pragma link C++ class TofClusterR+;
 #pragma link C++ class EcalShowerR+;
 #pragma link C++ class EcalClusterR+;
+#pragma link C++ class EcalMCHitR+;
 #pragma link C++ class Ecal2DClusterR+;
 #pragma link C++ class EcalHitR+;
 #pragma link C++ class TofMCClusterR+;

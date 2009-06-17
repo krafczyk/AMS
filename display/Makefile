@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.38 2009/01/07 12:42:33 choutko Exp $
+#  $Id: Makefile,v 1.39 2009/06/17 11:25:33 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
@@ -37,7 +37,7 @@ VER         := $(shell $(ROOTSYS)/bin/root-config --version )
 LDFLAGS       = 
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
-LIBS          =  $(ROOTLIBS) -lm -ldl 
+LIBS          =  -Bstatic $(ROOTLIBS) -lm  -Bdynamic  -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl 
 else
 CXX           =  g++ -m32 -Wno-deprecated

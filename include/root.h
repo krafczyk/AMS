@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.245 2009/06/11 13:51:31 choumilo Exp $
+//  $Id: root.h,v 1.246 2009/06/17 11:26:08 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -262,7 +262,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,10)       //HeaderR
+  ClassDef(HeaderR,11)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -4167,7 +4167,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,11)       //AMSEventR
+ClassDef(AMSEventR,12)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
