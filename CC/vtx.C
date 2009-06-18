@@ -155,12 +155,13 @@ integer AMSVtx::set_all(){
      // Most of the information
      number u[3];
      for (int i=0; i<_Ntracks; i++) { 
+       if(!_Ptrack[i]->AdvancedFitDone())_Ptrack[i]->AdvancedFit();
        _Ptrack[i]->setstatus(AMSDBc::USED);
 	 number rig =  _Ptrack[i]->getpirid();
 	 number en =  fabs(rig);
 	 number erig =  _Ptrack[i]->getepirid()*en*en;
 	 _Momentum += en;
-	 _Charge += (rig>=0.0)? 1:-1;
+	 _Charge += rig==10000000?0:(rig>=0.0? 1:-1);
 	 _ErrMomentum += erig*erig;
 	 _Chi2 += _Ptrack[i]->getpichi2(); 
 	 _Ndof += 2*_Ptrack[i]->getnhits() - 5; 
