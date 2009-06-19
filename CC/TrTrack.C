@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.5 2009/06/19 10:22:41 pzuccon Exp $
+// $Id: TrTrack.C,v 1.6 2009/06/19 13:45:17 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/06/19 10:22:41 $
+///$Date: 2009/06/19 13:45:17 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -176,6 +176,7 @@ void AMSTrTrack::AddHit(AMSTrRecHit *hit, int imult,AMSPoint* bfield)
     _iHits[_Nhits] = cont2->getindex(hit);
     _iMult[_Nhits] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
     _BField[_Nhits] = *bfield;
+    if(_BField[_Nhits].norm()!=0) _MagFieldOn=1;
     _Nhits++;
     if (hit->GetXCluster()) _NhitsX++;
     if (hit->GetYCluster()) _NhitsY++;
@@ -247,7 +248,7 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   }
 
   // Force to use Linear fit if magnet is off
-  if (MAGSFFKEY.magstat <= 0) id = (id&0xfff0)+kLinear;
+  if (_MagFieldOn==0) id = (id&0xfff0)+kLinear;
   idf = id&0xf;
 
   // Select fitting method
@@ -298,7 +299,8 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   }
 
   // Perform fitting
-  if (_TrFit.Fit(method) < 0) return -1;
+  int rsul=_TrFit.Fit(method);
+     if (rsul < 0) return -1;
 
   // Return if fitting values are not to be over written
   if (!update) return _TrFit.GetChisq();
@@ -370,19 +372,7 @@ void AMSTrTrack::_printEl(std::ostream& ost )
       << " PhiFast "   << GetPhi  (id1) << std::endl;
 }
 
-int AMSTrTrack::DoAdvancedFit()
-{
-  /*! "Advanced fit" is assumed to perform all the fitting: 
-   *   1: 1st half, 2: 2nd half, 6: with nodb, 4: "Fast fit" ims=0 and 
-   *   5: Juan with ims=1 */
 
-  Fit(kChoutko | kUpperHalf);
-  Fit(kChoutko | kLowerHalf);
-  Fit(kChoutko);
-  Fit(kAlcaraz);
-
-  return AdvancedFitDone();
-}
 
 double AMSTrTrack::Interpolate(double zpl, AMSPoint &pnt, 
                                AMSDir &dir, Int_t id2)
@@ -463,15 +453,30 @@ void AMSTrTrack::getParFastFit(number& Chi2,  number& Rig, number& Err,
 		   number& Theta, number& Phi, AMSPoint& X0) {
     /// FastFit is assumed as normal (Choutko) fit without MS
   int id = kChoutko;
-  if(MAGSFFKEY.magstat<=0) id=kLinear;
+  if(_MagFieldOn==0) id=kLinear;
+  if(trdefaultfit==kDummy) id=kDummy;
   Chi2 = GetChisq(id); Rig = GetRigidity(id); Err = GetErrRinv(id); 
   Theta = GetTheta(id); Phi = GetPhi(id); X0 = GetP0(id);
+}
+
+int AMSTrTrack::DoAdvancedFit()
+{
+  /*! "Advanced fit" is assumed to perform all the fitting: 
+   *   1: 1st half, 2: 2nd half, 6: with nodb, 4: "Fast fit" ims=0 and 
+   *   5: Juan with ims=1 */
+
+  Fit(kChoutko | kUpperHalf);
+  Fit(kChoutko | kLowerHalf);
+  Fit(kChoutko);
+  Fit(kAlcaraz);
+
+  return AdvancedFitDone();
 }
 
 int AMSTrTrack::AdvancedFitDone() { 
   int out= FitDone(kChoutko|kUpperHalf) & FitDone(kChoutko|kLowerHalf) & 
     FitDone(kChoutko) & FitDone(kAlcaraz);
-  if(MAGSFFKEY.magstat<=0) return FitDone(kLinear);
+  if(_MagFieldOn==0) return FitDone(kLinear);
   else return out;
 }
 
