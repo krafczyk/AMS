@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.4 2009/05/29 09:23:05 pzuccon Exp $
+// $Id: TrTrack.C,v 1.5 2009/06/19 10:22:41 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/05/29 09:23:05 $
+///$Date: 2009/06/19 10:22:41 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -51,22 +51,34 @@ int AMSTrTrack::DefaultFitID = AMSTrTrack::kChoutko;
 
 AMSTrTrack::AMSTrTrack():AMSlink(0,0), _Pattern(-1), _Nhits(0)
 {
-  trdefaultfit=0;
-  _Status=0;
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     _iMult[i] = -1;
+    _BField[i]=AMSPoint(0,0,0);
   }
+  trdefaultfit=0;
+  _MagFieldOn=0;
+  _PatternX=0;
+  _PatternY=0;
+  _PatternXY=0;
+  _NhitsX=0;
+  _NhitsY=0;
+  _NhitsXY=0;
+  DBase[0]=0;
+  DBase[1]=0;
+  _Status=0;
 }
 
-AMSTrTrack::AMSTrTrack(int pattern, int nhits, AMSTrRecHit *phit[], int *imult,int fitmethod)
+AMSTrTrack::AMSTrTrack(int pattern, int nhits, AMSTrRecHit *phit[],AMSPoint bfield[], int *imult,int fitmethod)
   : AMSlink(0,0),_Pattern(pattern), _Nhits(nhits), _NhitsX(0), _NhitsY(0), _NhitsXY(0)
 
 {
+  _MagFieldOn=0;
   for (int i = 0; i < trconst::maxlay; i++) {
-    _Hits [i] = (phit  && i < _Nhits) ? phit [i] :  0;
-    _iMult[i] = (imult && i < _Nhits) ? imult[i] : -1;
-
+    _Hits [i] = (phit   && i < _Nhits) ? phit [i] :  0;
+    _iMult[i] = (imult  && i < _Nhits) ? imult[i] : -1;
+    _BField[i]= (bfield && i < _Nhits) ? bfield[i]: AMSPoint(0,0,0);
+    if(_BField[i].norm()!=0) _MagFieldOn=1;
     if (phit && i < _Nhits) {
       if (phit[i]->GetXCluster()) _NhitsX++;
       if (phit[i]->GetYCluster()) _NhitsY++;
@@ -84,12 +96,10 @@ AMSTrTrack::AMSTrTrack(int pattern, int nhits, AMSTrRecHit *phit[], int *imult,i
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
 }
 
-AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point,int fitmethod)
+AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point)
   : AMSlink(0,0), _Pattern(-1), _Nhits(0)
 {
-  trdefaultfit=fitmethod;
-  if(trdefaultfit==0) trdefaultfit=DefaultFitID;
-  if(MAGSFFKEY.magstat<=0) trdefaultfit=kLinear;
+  trdefaultfit=kDummy;
   AMSTrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone = true;
   par.P0      = point;
@@ -99,20 +109,20 @@ AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point,int fitmethod)
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     _iHits[i] = _iMult[i] = -1;
-    par.Residual[i] = 0;
+    _BField[i]= AMSPoint(0,0,0);
+  par.Residual[i] = 0;
   }
   _Status=0;
   _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
+  _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
  
 }
 
-AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig,int fitmethod)
+AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig)
   : AMSlink(0,0), _Pattern(-1), _Nhits(0)
 {
-  trdefaultfit=fitmethod;
-  if(trdefaultfit==0) trdefaultfit=DefaultFitID;
-  if(MAGSFFKEY.magstat<=0) trdefaultfit=kLinear;
+  trdefaultfit=kDummy;
   AMSTrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone  = true;
   par.Rigidity = rig;
@@ -123,10 +133,12 @@ AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig,int 
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     _iHits[i] = _iMult[i] = -1;
+    _BField[i]= AMSPoint(0,0,0);
     par.Residual[i] = 0;
   }
   _Status=0;
   _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
+  _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
 
 }
@@ -138,7 +150,6 @@ AMSTrTrack::~AMSTrTrack()
 
 AMSTrTrackPar &AMSTrTrack::GetPar(int id) {
     int id2= (id==0)? trdefaultfit: id;
-    if(MAGSFFKEY.magstat<=0) id2=(id2&0xfff0)+kLinear;
     if (ParExists(id2)) return _TrackPar[id2];
     cerr << "Warning in AMSTrTrack::GetPar, Parameter not exists " 
          << id << endl;
@@ -157,13 +168,14 @@ AMSTrTrackPar &AMSTrTrack::GetPar(int id) {
 
 
 
-void AMSTrTrack::AddHit(AMSTrRecHit *hit, int imult)
+void AMSTrTrack::AddHit(AMSTrRecHit *hit, int imult,AMSPoint* bfield)
 {
   VCon* cont2=vcon->GetCont("AMSTrRecHit");
   if (_Nhits < trconst::maxlay) {
     _Hits [_Nhits] = hit;
     _iHits[_Nhits] = cont2->getindex(hit);
     _iMult[_Nhits] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
+    _BField[_Nhits] = *bfield;
     _Nhits++;
     if (hit->GetXCluster()) _NhitsX++;
     if (hit->GetYCluster()) _NhitsY++;
@@ -195,10 +207,11 @@ AMSPoint AMSTrTrack::GetPentry(int id)
     }
   }
 
-  // TO_BE_FIXED, interpolation to z=zent
-  double xent = 0, yent = 0;
 
-  return AMSPoint(xent, yent, zent);
+  AMSPoint pnt(0,0,0);
+  AMSDir dir(0,0,0);
+  Interpolate(zent,  pnt,  dir, id);
+  return pnt;
 }
 
 AMSTrRecHit *AMSTrTrack::GetHit(int i) 

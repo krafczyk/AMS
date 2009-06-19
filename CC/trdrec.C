@@ -935,12 +935,16 @@ void AMSTRDTrack::RealFit(){
 #ifdef _PGTRACK_
   //PZ FIXME 
   TrFit fitg;
-  for (int ii=0;ii<npt;ii++)
+  float zmax=0;
+  for (int ii=0;ii<npt;ii++){
     fitg.Add(hits[ii][0],hits[ii][1],hits[ii][2],
-	     sigma[ii][0],sigma[ii][1],sigma[ii][2]);
+             sigma[ii][0],sigma[ii][1],sigma[ii][2]);
+    if(hits[ii][2]>zmax) hits[ii][2]=zmax;
+  }
    
   
-  out[7]=fitg.LinearFit();
+  fitg.LinearFit();
+  out[7]=fitg.GetChisq();
  
  
   _Real._FitDone=true;
@@ -950,9 +954,11 @@ void AMSTRDTrack::RealFit(){
   _Real._ErrInvRigidity=fitg.GetErrRinv();
   _Real._Theta=fitg.GetTheta();
   _Real._Phi=fitg.GetPhi();
+  
+  fitg.Propagate(zmax);
   _Real._Coo=AMSPoint(fitg.GetP0x(),
-		      fitg.GetP0y(),
-		      fitg.GetP0z());
+                      fitg.GetP0y(),
+                      fitg.GetP0z());
  
  
 #else

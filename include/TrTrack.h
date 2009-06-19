@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.4 2009/06/10 08:34:34 shaino Exp $
+//  $Id: TrTrack.h,v 1.5 2009/06/19 10:22:55 pzuccon Exp $
 #ifndef __AMSTrTrack__
 #define __AMSTrTrack__
 
@@ -27,9 +27,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/06/10 08:34:34 $
+///$Date: 2009/06/19 10:22:55 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,6 +42,7 @@
 #include <cmath>
 
 class AMSTrRecHit;
+
 
 
 
@@ -100,7 +101,7 @@ public:
     printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
            Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
   }
-ClassDef(AMSTrTrackPar,1);
+  ClassDef(AMSTrTrackPar,1);
 } ; 
 
 
@@ -110,13 +111,8 @@ ClassDef(AMSTrTrackPar,1);
 
 class AMSTrTrack : public AMSlink {
 
-private:
-  static geant _TimeLimit; //!
-  int _Status;
+  //==== Fit Methods ===
 public:
-  /// Default fit method ID to retrive parameters
-  static int DefaultFitID;
-  int trdefaultfit;
   /// enum of fitting methods; trying to keep compatible with TKFITG
   enum EFitMethods { 
     /// Track without hits (for RICH Compatibility)
@@ -150,27 +146,40 @@ public:
     kLowerHalf  = 0x40
   };
 
+
+  //==== Static members ===
+
+
+private:
+  static geant _TimeLimit; //!
+
   /// Number of points for half fit (default: 4)
   static int NhitHalf;
 
-protected:
+public:
+  /// Virtual container
+  static VCon* vcon;
+
+
+public:
+  /// Default fit method ID to retrive parameters
+  static int DefaultFitID;
+    
+  // --- data members ---
+private:
   /// maps of track parameters with the key as fitting method ID
   map<int, AMSTrTrackPar> _TrackPar;
 
   /// The last successful TrFit object (not stored in ROOT Tree)
   TrFit _TrFit;  //!
 
-public:
-  /// Virtual container
-  static VCon* vcon;
+  integer _MagFieldOn;
 
-  /// For Gbatch compatibility
-  static void  SetTimeLimit(geant time) { _TimeLimit = time; }
-  /// For Gbatch compatibility
-  static geant GetTimeLimit() { return _TimeLimit; }
-  
+public:  
   /// Vector of hit pointers, to be not stored in ROOT Tree
   AMSTrRecHit* _Hits[trconst::maxlay]; //!
+  /// Vector of hit values of magnetic field at track hits
+  AMSPoint  _BField[trconst::maxlay]; //!
   /// Vector of hit index, to be stored in ROOT Tree instead of _Hits
   short int _iHits[trconst::maxlay];
   /// Vector of multiplicty index (to fix x-coord) 
@@ -198,23 +207,26 @@ public:
   /*!
    * (for compatibility with Gbatch) */
   float DBase[2];
-
+  int _Status;
+  int trdefaultfit;
+  
 public:
   /// Default constructor
   AMSTrTrack();
   /// Constructor with hits
   AMSTrTrack(int pattern, 
-	     int nhits = 0, AMSTrRecHit *phit[] = 0, int *imult = 0,int fithmethod=0);
+	     int nhits = 0, AMSTrRecHit *phit[] = 0,AMSPoint bfield[]=0, int *imult = 0,int fithmethod=0);
+
   /// Dummy track for RICH compatibility (filled at [kDummy])
-  AMSTrTrack(number theta, number phi, AMSPoint pref,int fithmethod=kDummy);
+  AMSTrTrack(number theta, number phi, AMSPoint pref);
   /// Dummy track for RICH compatibility (filled at [kDummy])
-  AMSTrTrack(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7,int fithmethod=kDummy);
+  AMSTrTrack(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7);
 
   /// Destructor
   ~AMSTrTrack();
 
   /// Add a hit with multiplicity index (if specified)
-  void AddHit(AMSTrRecHit *hit, int imult = -1);
+  void AddHit(AMSTrRecHit *hit, int imult ,AMSPoint* bfield);
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy) {
@@ -227,7 +239,6 @@ public:
   void     setstatus(uinteger status){_Status=_Status | status;}
   void     clearstatus(uinteger status){_Status=_Status & ~status;} 
 
-  AMSTrTrack *next(){ return (AMSTrTrack*)_next; }
 
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();
@@ -283,8 +294,16 @@ public:
     return (GetHitBits(id) & (1 << (trconst::maxlay-layer)));
   }
 
-  /// Get a hit at i in the vector
+  /// Get the pointer to the i-th in the track
   AMSTrRecHit *GetHit(int i);
+
+
+  /// Get the pointer to the i-th in the track
+  AMSTrRecHit *pTrRecHit(int i){ return GetHit(i);}
+
+  /// Get the index of the i-th hit in the track within the hit vector
+  int iTrRecHit(int i){return _iHits[i];}
+  
 
   /// Get tan(theta) on XZ projection
   double GetThetaXZ(int id = 0) { 
@@ -303,27 +322,27 @@ public:
   /// Perform 3D fitting with the method specified by ID
   /*!
     \param[in] id    Fitting method, defined as a combination of
-                     one of EFitMethods and any of EFitOptions, 
-		     e.g. ID= 0x31= kChoutko+kMultScat+kUpperHalf. 
-		     Fitting parameters will be overwritten on the map[ID] 
-		     unless trfit is specified. 
+    one of EFitMethods and any of EFitOptions, 
+    e.g. ID= 0x31= kChoutko+kMultScat+kUpperHalf. 
+    Fitting parameters will be overwritten on the map[ID] 
+    unless trfit is specified. 
 
     \param[in] layer Layer to be excluded in the fitting (if specified) 
 
     \param[in] update Track parameters are overwritten if update=true
 
     \param[in] err   Fitting errors (0:x,1:y,2:z) to be used. 
-		     If they are not specified, default values 
-		     are taken from TRFITFFKEY.ErrX, ErrY, and ErrZ
+    If they are not specified, default values 
+    are taken from TRFITFFKEY.ErrX, ErrY, and ErrZ
 
     \param[in] mass  Particle mass assumed for multiple scattering. 
-                     Ignored if kMultScat option is not set.
+    Ignored if kMultScat option is not set.
 
     \param[in] chrg  Particle charge (in unit of e) assumed for multiple 
-                     scattering. Ignored if kMultScat option is not set.
+    scattering. Ignored if kMultScat option is not set.
     
     \return          Chisq(X+Y)/Ndof if succeeded, or -1 if failed
-   */
+  */
   float Fit(int id = 0,
 	    int layer = -1, bool update = true, const float *err = 0, 
 	    float mass = 0.938272297, float chrg = 1);
@@ -402,10 +421,23 @@ public:
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		     number& Theta, number& Phi, AMSPoint& X0);
 
+
+
+
+
+  AMSTrTrack *next(){ return (AMSTrTrack*)_next; }
   void *operator new   (size_t t) { return TObject::operator new(t); }
   void  operator delete(void  *p) { TObject::operator delete(p); p = 0; }
   void _printEl(std::ostream&);
   void _printEl(std::string&);
+
+
+  /// For Gbatch compatibility
+  static void  SetTimeLimit(geant time) { _TimeLimit = time; }
+  /// For Gbatch compatibility
+  static geant GetTimeLimit() { return _TimeLimit; }
+
+
 
 protected:
   void _printEl(void) {};
@@ -413,11 +445,13 @@ protected:
   void _writeEl(){}
 
   /// ROOT definition
-  ClassDef(AMSTrTrack, 1)
+  ClassDef(AMSTrTrack, 1);
 };
 
 typedef AMSTrTrack TrTrackR;
 typedef AMSTrTrackPar TrTrackParR;
+
+
 
 
 /// Class to handle some error messages

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.4 2009/06/10 08:34:34 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.5 2009/06/19 10:22:41 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/06/10 08:34:34 $
+/// $Date: 2009/06/19 10:22:41 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1605,7 +1605,12 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
       track->setstatus(AMSDBc::FalseX);
     }
     hit->SetResolvedMultiplicity(itcand.imult[i]);
-    track->AddHit(hit, itcand.imult[i]);
+    AMSPoint bfield(0,0,0);
+    if (MAGSFFKEY.magstat>0)
+      bfield=MagField::GetPtr()->GuFld(hit->GetCoord(itcand.imult[i]));
+      
+    track->AddHit(hit, itcand.imult[i],&bfield);
+    
   }
  if (PZDEBUG){
   cout<< " PZDEBUG track info\n";
