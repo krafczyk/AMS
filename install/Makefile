@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.72 2009/06/10 09:16:51 shaino Exp $
+#  $Id: Makefile,v 1.73 2009/06/19 10:23:59 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -251,7 +251,8 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 	        ../include/TrRecon.h 	../include/TkDBc.h      \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
-		../include/trrec.h ../include/point.h  ../include/root_RV.h ../include/root.h ../include/linkdef.h
+		../include/TrCluster.h ../include/TrRecHit.h ../include/TrTrack.h \
+		../include/point.h  ../include/root_RV.h ../include/root.h ../include/linkdef.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/linkdef.h
 endif
