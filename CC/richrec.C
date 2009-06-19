@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.116 2009/06/15 16:06:41 mdelgado Exp $
+//  $Id: richrec.C,v 1.117 2009/06/19 11:51:48 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -830,6 +830,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    beta_track,
 										    chi2/geant(beta_used-1),
 										    wbeta,
+										    recs[best_cluster[0]][best_cluster[1]],
 										    recs,hitp,actual,bit,
 										    current_ring_status,  //Status word
 										    (RICRECFFKEY.recon[1]%10)
@@ -1864,7 +1865,13 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
 }
 
 
-AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
+AMSRichRing::AMSRichRing(AMSTrTrack* track,
+			 int used,
+			 int mused,
+			 geant beta,
+			 geant quality,
+			 geant wbeta,
+			 geant seed_beta,
 			 geant recs[RICmaxpmts*RICnwindows][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows],uinteger size,int ring,
 			 uinteger status,integer build_charge):
   AMSlink(status),_ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta)
@@ -1897,10 +1904,9 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant q
   _hit_pointer.clear();
   _hit_used.clear();
   
-
   for(int i=0;i<size;i++){
-    int reflected=fabs(recs[i][1]-beta)<=fabs(recs[i][2]-beta)?1:2;
-    int closest=AMSRichRing::closest(beta,recs[i]);
+    int reflected=fabs(recs[i][1]-seed_beta)<=fabs(recs[i][2]-seed_beta)?1:2;
+    int closest=AMSRichRing::closest(seed_beta,recs[i]);
     _beta_direct.push_back(recs[i][0]);
     _beta_reflected.push_back(recs[i][reflected]);
     int used=(closest==0?0:1);

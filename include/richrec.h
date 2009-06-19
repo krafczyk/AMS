@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.56 2008/12/09 16:06:37 choutko Exp $
+//  $Id: richrec.h,v 1.57 2009/06/19 11:51:48 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -262,8 +262,19 @@ protected:
   void ReconRingNpexp(geant window_size=3.,int cleanup=0);
 
 public:
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,
-	      geant recs[RICmaxpmts*RICnwindows/2][3],AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],uinteger size,int ring,uinteger status=0,integer build_charge=0);
+  AMSRichRing(AMSTrTrack* track,
+	      int used,
+	      int mused,
+	      geant beta,
+	      geant quality,
+	      geant wbeta,
+	      geant seed_beta,
+	      geant recs[RICmaxpmts*RICnwindows/2][3],
+	      AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2],
+	      uinteger size,
+	      int ring,
+	      uinteger status=0,
+	      integer build_charge=0);
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
