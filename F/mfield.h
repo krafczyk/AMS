@@ -1,6 +1,7 @@
-*  $Id: mfield.h,v 1.13 2009/05/06 14:34:10 choutko Exp $
+*  $Id: mfield.h,v 1.14 2009/06/19 14:31:08 choutko Exp $
       integer nx,ny,nz
        PARAMETER (nx=41,ny=41,nz=41)
+c       PARAMETER (nx=90,ny=90,nz=164)
       real X(nx),y(ny),z(nz)
       real Bx(nx,ny,nz), by(nx,ny,nz),
      +          BZ(nx,ny,nz)
@@ -13,7 +14,8 @@
 
 
       integer nrad,nphi,nzr
-      PARAMETER (nrad=8,nphi=73,nzr=23)
+c      PARAMETER (nrad=8,nphi=73,nzr=23)
+      PARAMETER (nrad=9,nphi=73,nzr=37)
       real rad(nrad),phi(nphi),zr(nzr)
       real Bxr(nrad,nphi,nzr), byr(nrad,nphi,nzr),
      +          BZr(nrad,nphi,nzr)
@@ -31,7 +33,7 @@
       common /tkfield/mfile,iniok,isec,imin,ihour,iday,imon,iyear,
      +             na,x,y,z,bx,by,bz,xyz,bdx,bdy,bdz,bxc,byc,bzc
       equivalence (x(1),rad(1))
-      equivalence (x(9),phi(1))
+      equivalence (x(10),phi(1))
       equivalence (z(1),zr(1))
       equivalence (xyz(1),xyzr(1))
       equivalence (bx(1,1,1),bxr(1,1,1))

@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.29 2009/06/03 14:49:23 choutko Exp $
+*  $Id: mfield.F,v 1.30 2009/06/19 14:31:08 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -184,7 +184,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          arglis(1)=0
          call mnexcm(fcn2,'MINIMIZE 100000',arglis,0,ierflg,0)
          ierflg=0
-         call mnexcm(fcn2,'MINOS',arglis,0,ierflg,0)
+c         call mnexcm(fcn2,'MINOS',arglis,0,ierflg,0)
          endif 
          if(stval.eq.1)then
             stval=fscale
@@ -221,6 +221,12 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
      +     STATUS='OLD',form='formatted')
           fac=1.
+*
+*        !!!   new fac
+           if(index(fname,'.table').gt.0)then
+           fac=1.e-3
+           endif
+*
           do i=1,nx
            do j=1,ny
             do k=1,nz
@@ -247,6 +253,8 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *         read(21,*)imon
 *         read(21,*)iyear
           close(21)
+          write(*,*)' field qat 0',x(nx/2),y(nz/2),z(nz/2),
+     +    bx(nx/2,ny/2,nz/2),by(nx/2,ny/2,nz/2),bz(nx/2,ny/2,nz/2)
           write(*,*)'Closing field file...'
 *
 * Now calculate field derivatives
@@ -261,7 +269,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
               x1(1)=x(i)
               x1(2)=y(j)
               x1(3)=z(k)
-              call tkfldc(x1,hxy)
+             call tkfldc(x1,hxy)
               bdx(i,j,k,1)=hxy(1,1)
               bdy(i,j,k,1)=hxy(2,1)
               bdz(i,j,k,1)=hxy(3,1)
@@ -309,6 +317,12 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           OPEN(22,FILE=amsdatadir(1:amsdlength)//'design.'//fname,
      +     STATUS='OLD',form='formatted')
           fac=1.
+*
+*        !!!   new fac
+           if(index(fname,'.table').gt.0)then
+           fac=1.e-3
+            endif
+*
           do i=1,nx
            do j=1,ny
             do k=1,nz
@@ -386,7 +400,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
          arglis(1)=0
          call mnexcm(fcn2,'MINIMIZE 100000',arglis,0,ierflg,0)
          ierflg=0
-         call mnexcm(fcn2,'MINOS',arglis,0,ierflg,0)
+c         call mnexcm(fcn2,'MINOS',arglis,0,ierflg,0)
          endif 
          if(stval.eq.1)then
             stval=fscale
@@ -659,7 +673,7 @@ c        endif
         else
           avv(1)=sqrt(vv(1)**2+vv(2)**2)
           avv(2)=atan2(vv(2),vv(1))
-          if(avv(2).lt.0)then
+          if(avv(2).lt.phi(1))then
             avv(2)=avv(2)+4*acos(0.)
           endif
           avv(3)=vv(3)
@@ -724,7 +738,7 @@ c        endif
           t2=atan2(avv(2),avv(1))
           avv(1)=t1
           avv(2)=t2
-          if(avv(2).lt.0)then
+          if(avv(2).lt.phi(1))then
             avv(2)=avv(2)+4*acos(0.)
           endif
           if(avv(1).gt.rad(nrad))avv(1)=rad(nrad)
@@ -791,12 +805,13 @@ c        endif
           t2=atan2(avv(2),avv(1))
           avv(1)=t1
           avv(2)=t2
-          if(avv(2).lt.0)then
+          if(avv(2).lt.phi(1))then
             avv(2)=avv(2)+4*acos(0.)
           endif
         if(abs(avv(1)).gt.rad(nrad).or.abs(avv(2)).gt.phi(nphi).or.
      +    abs(avv(3)).gt.zr(nzr))then
             call vzero(b(1),3)
+c            write(*,*)' outside!!!'
             goto 999
         ENDIF
           call fint_my(3,avv(1),NA(1),xyzr(1),
@@ -1033,6 +1048,11 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
        common/MAGSFFKEY/magstat,fscale,ecutge,r0(3),pitch,yaw,roll,rphi
        integer magstat,rphi
        real fscale,ecutge,r0,pitch,yaw,roll
+      common /amsdatadir/amsdlength,amsdblength,amsdatadir,
+     +                   amsdatabase,fname
+      integer amsdlength,amsdblength,iniok
+      character *128 amsdatadir,amsdatabase
+      character *200 fname
              real *8 grad(1),f,xc(1)
              real *4 x1(3),b1(3),b1c(3)
              data init /0/
@@ -1041,7 +1061,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                 call readfieldmeasured
              endif     
              if(iflag.eq.3)then
-              open(35,file='/f2users/choutko/mfd_090602_5pnrphi.txt',
+              open(35,file='/f2users/choutko/mfd230_'//fname,
      +                status='new',form='formatted')         
              endif
              f=0
@@ -1053,7 +1073,7 @@ c           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
                   roll=xc(7)
                   fscale=xc(1)
 c                  pitch=0
-c                  yaw=0
+                  yaw=0
 c                  roll=0
                   r0(1)=0
                   r0(2)=0
@@ -1066,17 +1086,23 @@ c                  r0(3)=0
                   do l=1,3
                    x1(l)=brcoo(l,i,j,k)
                   enddo
-                  if(.not.(x1(1).eq.0.and.x1(2).eq.0.and.x1(3).eq.0
-     +      ).and.abs(rad(i)).lt.40.and.abs(zr(k)).lt.50)then
+                  if(.not.(x1(1).eq.0.and.x1(2).eq.0.and.x1(3).eq.0)
+     +            .and.((abs(zr(k)).le.76..and.abs(rad(i)).lt.41.)
+     +            .or.rphi.eq.0))then
+
                      ntot=ntot+1
                   else
                      goto 21
                   endif 
-c                  x1(1)=x1(1)*xc(8) 
+c                 x1(1)=x1(1)*xc(8) 
 c                  x1(2)=x1(2)*xc(8)
 c                   x1(3)=x1(3)*xc(8)
                   call gufldrc(x1,b1)
-                  xphi=(phi(j)-0.42)/180.*2*acos(0.)
+                  if(sqrt(b1(1)**2+b1(2)**2+b1(3)**2).eq.0)then
+                    ntot=ntot-1
+                    goto 21
+                  endif
+                  xphi=(phi(j))/180.*2*acos(0.)
                   xbr=b1(1)*cos(xphi)+b1(2)*sin(xphi)
                   f=f+(br(i,j,k)-xbr*fscale)**2 
                   do l=1,3
@@ -1124,25 +1150,26 @@ c                   x1(3)=x1(3)*xc(8)
                          
               character *256 fnam
               real xzz(nzr+1)
-              real xrad,xphi,xz,xbr,xr_x,xr_y,xr_z,
+              real xrad,xphi,xz,xbr,xr_x,xr_y,xr_z,xphir,
      +        xbp,xp_x,xp_y,xp_z,xbz,xz_x,xz_y,xz_z
               integer i,j,k,l,m,iphi1,ir1,iz1,ntot
               data xzz/-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,
-     +        -20,-15,-10,-8,-6,-4,-2,0,2,4,6,8,10,15,20,25,30,35,40,
-     +        45,50,55,60,65,70,75,80/
-              open(21,file='/f2users/choutko/mfield_090602.txt',
+     +        -20,-15,-10,-5,-4,-2,0,2,4,5,10,15,20,25,30,35,40,
+     +        45,50,55,60,65,70,75,77,80/
+              open(21,file='/f2users/choutko/mfield_230.txt',
      +        STATUS='OLD',form='formatted')
               call vzero(rad(1),nrad+nphi+nzr+nrad*nphi*nzr*12)
               ntot=0
  10           continue
-              read(21,*,err=11,end=11)xrad,xphi,xz,xbr,xr_x,xr_y,xr_z,
+              read(21,*,err=11,end=11)xrad,xphi,xz,xphir,
+     +        xbr,xr_x,xr_y,xr_z,
      +        xbp,xp_x,xp_y,xp_z,xbz,xz_x,xz_y,xz_z
               ntot=ntot+1
               ir1=(xrad+5.9/2+41.3)/5.9+1
               iphi1=(xphi+5./2)/5.+1
               iz1=0
               do k=1,nzr
-                  if(xz+1.gt.xzz(k).and.xz+1.le.xzz(k+1))then
+                  if(xz+0.5.gt.xzz(k).and.xz+0.5.le.xzz(k+1))then
                     iz1=k
                   endif
               enddo
@@ -1162,7 +1189,7 @@ c                   x1(3)=x1(3)*xc(8)
                stop 'z1 too big'
              endif
              rad(ir1)=xrad
-             phi(iphi1)=xphi
+             phi(iphi1)=xphir
              zr(iz1)=xz
              br(ir1,iphi1,iz1)=xbr
              bphi(ir1,iphi1,iz1)=xbp

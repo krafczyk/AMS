@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.37 2009/02/23 12:51:20 choutko Exp $
+//  $Id: status.C,v 1.38 2009/06/19 14:31:08 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -218,8 +218,8 @@ void AMSStatus::init(){
          // set begin,end to max
            time_t begin,insert,end;
            ptdv->gettime(insert,begin,end);
-           begin=begin-3e8;
-           end=end+3e8;
+           begin=0;
+           end=INT_MAX-1;
            ptdv->SetTime(insert,begin,end);
           
        }

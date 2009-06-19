@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.293 2009/06/03 14:49:25 choutko Exp $
+#  $Id: datacards.doc,v 1.294 2009/06/19 14:31:09 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -350,7 +350,7 @@ I12 ims(1)        // 0 -Multiple scattering accounting off; 1 - on
 // AMS Global Reconstruction
 
 BETAFIT
-I 1 Pattern[10](9*1,1*0)
+I 1 Pattern[11](9*1,2*1)
   //    Number              Descr             Points      Default
   //    0                   1234              4           on
   //    1                   123               3           on
@@ -361,16 +361,17 @@ I 1 Pattern[10](9*1,1*0)
   //    6                   14                2           on
   //    7                   23                2           on
   //    8                   24                2           on
-  //    9                   12                2           off
-R11 Chi2(10.)       //  Max acceptable chi2 for betafit
-R12 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
+  //    9                   12                2           on
+  //   10                   34                2           on 
+R12 Chi2(10.)       //  Max acceptable chi2 for betafit
+R13 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16
 
-R15 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
+R16 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
                               if possible 
-I16 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
-R17 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
-I18 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
+I17 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
+R18 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
+I19 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
 
 CHARGEFIT
 I 1 NmembMax(3)          // maximum number of members for TOF clusters

@@ -1,6 +1,6 @@
-*  $Id: readmf.h,v 1.2 2009/06/02 17:32:55 choutko Exp $
+*  $Id: readmf.h,v 1.3 2009/06/19 14:31:08 choutko Exp $
       integer nrad,nphi,nzr
-      PARAMETER (nrad=15,nphi=72,nzr=38)
+      PARAMETER (nrad=15,nphi=72,nzr=37)
       real rad(nrad),phi(nphi),zr(nzr)
       real Br(nrad,nphi,nzr), bphi(nrad,nphi,nzr),
      +          BZ(nrad,nphi,nzr),brcoo(3,nrad,nphi,nzr),

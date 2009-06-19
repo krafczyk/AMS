@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.268 2009/06/19 12:41:09 barao Exp $
+//  $Id: commons.h,v 1.269 2009/06/19 14:31:09 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -784,8 +784,8 @@ public:
   //    6                   14                2           on
   //    7                   23                2           on
   //    8                   24                2           on
-  //    9                   12                2           off
-  //   10                   34                2           off
+  //    9                   12                2           on
+  //   10                   34                2           on
   geant Chi2;  //  Max acceptable chi2 for betafit
   geant SearchReg[3]; // Max distance between track & tof hit
   geant LowBetaThr;   // Threshold below refit should be done if possible 
