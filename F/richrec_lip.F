@@ -685,6 +685,7 @@
 
 *                  print*,'IRECNUMB = ',irecnumb
 
+                  resc_nmirsec(irecnumb+1) = nmirsec
                   do i=1,nmaxmirsec
                      resc_accmsec(i,1,irecnumb+1)
      +                    = richacc_msec0(i)
@@ -859,6 +860,7 @@
 
 *               print*,'IRECNUMB = ',irecnumb
 
+               resc_nmirsec(irecnumb+1) = nmirsec
                do i=1,nmaxmirsec
                   resc_accmsec(i,1,irecnumb+1)
      +                 = richacc_msec0(i)
@@ -1028,6 +1030,7 @@
 
 *               print*,'IRECNUMB = ',irecnumb
 
+               resc_nmirsec(irecnumb+1) = nmirsec
                do i=1,nmaxmirsec
                   resc_accmsec(i,1,irecnumb+1)
      +                 = richacc_msec0(i)
@@ -1096,7 +1099,9 @@
          print*,'resc_chgmir   = ',resc_chgmir(k)     
          print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
          print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
-         print*,'resc_accmsec  = ',((resc_accgeom(i,j,k),i=1,3),j=1,2)
+         print*,'resc_nmirsec  = ',resc_nmirsec
+         print*,'resc_accmsec  = ',
+     +        ((resc_accgeom(i,j,k),i=1,resc_nmirsec),j=1,2)
          print*,'resc_effmsec  = ',((resc_eff(i,j,k),i=1,3),j=1,2)
          print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
          print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.117 2009/06/19 11:51:48 mdelgado Exp $
+//  $Id: richrec.C,v 1.118 2009/06/19 12:39:38 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2095,6 +2095,15 @@ void AMSRichRingNew::fillresult(){
     _RingEff[i] = LIPF2C.resc_eff[nr][i];
   }
 
+  _NMirSec = LIPF2C.resc_nmirsec[nr];
+
+  for(int i=0;i<LIPF2C.resc_nmirsec[nr];i++) {
+    _RingAccMsec1R[i] = LIPF2C.resc_accmsec[nr][0][i];
+    _RingAccMsec2R[i] = LIPF2C.resc_accmsec[nr][1][i];
+    _RingEffMsec1R[i] = LIPF2C.resc_effmsec[nr][0][i];
+    _RingEffMsec2R[i] = LIPF2C.resc_effmsec[nr][1][i];
+  }
+
   for(int i=0;i<LIPC2F.nbhits_ev;i++) {
     _HitsResiduals.push_back(LIPF2C.resb_hres[nr][i]);
     _HitsStatus.push_back(LIPF2C.resb_used[nr][i]);
@@ -2104,7 +2113,7 @@ void AMSRichRingNew::fillresult(){
     _HitsAssoc.push_back(LIPF2C.resb_phit[nr][i]);
   }
 
-  if(LIPF2C.resb_itype[nr]==3 || LIPF2C.resb_itype[nr]==4) {  // store rec track data
+  //if(LIPF2C.resb_itype[nr]==3 || LIPF2C.resb_itype[nr]==4) {  // store rec track data
     for(int i=0;i<3;i++) {
       _TrackRec.push_back(LIPF2C.resb_pimp[nr][i]);
       _TrackRec.push_back(LIPF2C.resb_epimp[nr][i]);
@@ -2113,7 +2122,7 @@ void AMSRichRingNew::fillresult(){
     _TrackRec.push_back(LIPF2C.resb_epthe[nr]);
     _TrackRec.push_back(LIPF2C.resb_pphi[nr]);
     _TrackRec.push_back(LIPF2C.resb_epphi[nr]);
-  }
+    //}
 
   /*
 

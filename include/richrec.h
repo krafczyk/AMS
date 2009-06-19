@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.57 2009/06/19 11:51:48 mdelgado Exp $
+//  $Id: richrec.h,v 1.58 2009/06/19 12:41:09 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -339,8 +339,15 @@ class AMSRichRingNew: public AMSlink{
   float _NpeRingRef;	  // no. photoelectrons in ring (reflected branch)
   float _RingAcc[3];	  // ring geometrical acceptances
   float _RingEff[6];	  // ring efficiencies
+  int _NMirSec;           // no. mirror sectors
 
  protected:
+
+  // acceptance/efficiency data by mirror sector
+  float _RingAccMsec1R[3];    // acceptance, 1st reflection
+  float _RingAccMsec2R[3];    // acceptance, 2nd reflection
+  float _RingEffMsec1R[3];    // efficiency, 1st reflection
+  float _RingEffMsec2R[3];    // efficiency, 2nd reflection
 
   // hit data
   std::vector<float> _HitsResiduals;    // residuals of (ring and non-ring) hits in reconstruction
@@ -402,6 +409,11 @@ class AMSRichRingNew: public AMSlink{
   float getNpeRingRef(){return _NpeRingRef;}
   float getRingAcc(int i){return _RingAcc[i];}
   float getRingEff(int i){return _RingEff[i];}
+  int getNMirSec(){return _NMirSec;}
+  float getRingAccMsec1R(int i){return _RingAccMsec1R[i];}
+  float getRingAccMsec2R(int i){return _RingAccMsec2R[i];}
+  float getRingEffMsec1R(int i){return _RingEffMsec1R[i];}
+  float getRingEffMsec2R(int i){return _RingEffMsec2R[i];}
   std::vector<float> getHitsResiduals(){return _HitsResiduals;}
   std::vector<int> getHitsStatus(){return _HitsStatus;}
   std::vector<int> getHitsAssoc(){return _HitsAssoc;}

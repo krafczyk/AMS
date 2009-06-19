@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.184 2009/06/11 13:51:25 choumilo Exp $
+//  $Id: root.C,v 1.185 2009/06/19 12:39:38 barao Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2771,6 +2771,13 @@ RichRingBR::RichRingBR(AMSRichRingNew *ptr) {
     }
     for(int i=0;i<6;i++){
       RingEff[i] = (ptr->_RingEff)[i];
+    }
+    NMirSec = ptr->_NMirSec;
+    for(int i=0;i<3;i++){
+      RingAccMsec1R[i] = (ptr->_RingAccMsec1R)[i];
+      RingAccMsec2R[i] = (ptr->_RingAccMsec2R)[i];
+      RingEffMsec1R[i] = (ptr->_RingEffMsec1R)[i];
+      RingEffMsec2R[i] = (ptr->_RingEffMsec2R)[i];
     }
     HitsResiduals = ptr->_HitsResiduals;
     HitsStatus = ptr->_HitsStatus;

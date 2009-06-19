@@ -142,7 +142,7 @@
 * ===============================================================================================
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,
-     +        resb_used,resc_iflag
+     +        resb_used,resc_iflag,resc_nmirsec
       real resb_beta,resb_thc,resb_chi2,resb_like,
      +     resb_hres,resb_invchi2,resb_flatsin,resb_flatcos,
      +     resb_probkl,
@@ -185,6 +185,7 @@
      +                 resc_chgmir(nmaxliprec),         ! rec charge (ref branch)
      +                 resc_accgeom(3,nmaxliprec),      ! geom acceptance
      +                 resc_eff(6,nmaxliprec),          ! efficiency
+     +                 resc_nmirsec(nmaxliprec),        ! number of mirror sectors
      +                 resc_accmsec(nmaxmirseccc,2,nmaxliprec), ! geom acceptance by mirror sector (1st,2nd ref)
      +                 resc_effmsec(nmaxmirseccc,2,nmaxliprec), ! efficiency by mirror sector (1st,2nd ref)
      +                 resc_chgprob(3,nmaxliprec),      ! charge probabilities (Z-1,Z,Z+1)

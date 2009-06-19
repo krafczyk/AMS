@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.267 2009/06/11 13:51:31 choumilo Exp $
+//  $Id: commons.h,v 1.268 2009/06/19 12:41:09 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1236,6 +1236,7 @@ class LIPF2C_DEF{
   geant resc_chgmir[LIP_NMAXLIPREC];         
   geant resc_accgeom[LIP_NMAXLIPREC][3];
   geant resc_eff[LIP_NMAXLIPREC][6];
+  int resc_nmirsec[LIP_NMAXLIPREC];
   geant resc_accmsec[LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   geant resc_effmsec[LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   geant resc_chgprob[LIP_NMAXLIPREC][3];

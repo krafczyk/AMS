@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.117 2009/06/11 13:51:31 choumilo Exp $
+//  $Id: ntuple.h,v 1.118 2009/06/19 12:41:09 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -36,6 +36,7 @@ const int MAXRICMC   =   250;
 const int MAXRICHITS =   10880;
 const int MAXRICHRIN =   10;
 const int MAXRICHRINLIP =   10;
+const int MAXRICHMIRSEC =   10;
 const int MAXTRDCLMC   =   200;
 const int MAXTRDRHT   =   200;
 const int MAXTRDCL   =   100;
@@ -786,6 +787,7 @@ public:
   float resc_chgmir[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_accgeom[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resc_eff[MAXRICHRIN][LIP_NMAXLIPREC][6];
+  int resc_nmirsec[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_accmsec[MAXRICHRIN][LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   float resc_effmsec[MAXRICHRIN][LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   float resc_chgprob[MAXRICHRIN][LIP_NMAXLIPREC][3];
@@ -847,6 +849,15 @@ public:
   float NpeRingRef[MAXRICHRINLIP];
   float RingAcc[MAXRICHRINLIP][3];
   float RingEff[MAXRICHRINLIP][6];
+  int NMirSec;
+  //float RingAccMsec1R[MAXRICHRINLIP][MAXRICHMIRSEC];
+  //float RingAccMsec2R[MAXRICHRINLIP][MAXRICHMIRSEC];
+  //float RingEffMsec1R[MAXRICHRINLIP][MAXRICHMIRSEC];
+  //float RingEffMsec2R[MAXRICHRINLIP][MAXRICHMIRSEC];
+  float RingAccMsec1R[MAXRICHRINLIP][3];
+  float RingAccMsec2R[MAXRICHRINLIP][3];
+  float RingEffMsec1R[MAXRICHRINLIP][3];
+  float RingEffMsec2R[MAXRICHRINLIP][3];
   float HitsResiduals[MAXRICHRINLIP][LIP_NHITMAX];
   int HitsStatus[MAXRICHRINLIP][LIP_NHITMAX];
   //  int HitsAssoc[MAXRICHRINLIP][LIP_NHITMAX];

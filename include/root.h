@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.246 2009/06/17 11:26:08 choutko Exp $
+//  $Id: root.h,v 1.247 2009/06/19 12:41:09 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1151,6 +1151,11 @@ static char _Info[255];
                                        ///< [3] = total efficiency, 2 reflection
                                        ///< [4] = radiator efficiency * geometrical acceptance
                                        ///< [5] = light guide efficiency
+  int NMirSec;                         ///< number of mirror sectors
+  float RingAccMsec1R[3];    ///< ring acceptance for mirror sectors, 1 reflection
+  float RingAccMsec2R[3];    ///< ring acceptance for mirror sectors, 2 reflection
+  float RingEffMsec1R[3];    ///< ring efficiency for mirror sectors, 1 reflection
+  float RingEffMsec2R[3];    ///< ring efficiency for mirror sectors, 2 reflection
   std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
   std::vector<int> HitsStatus;         ///< hit status:
                                        ///<         -1 = not associated to ring
@@ -1203,7 +1208,7 @@ static char _Info[255];
     return _Info;
   } 
   virtual ~RichRingBR(){};
-  ClassDef(RichRingBR,1)           // RichRingBR
+  ClassDef(RichRingBR,2)           // RichRingBR
 #pragma omp threadprivate(fgIsA)
 }; 
 
