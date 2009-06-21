@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.424 2009/06/11 13:51:24 choumilo Exp $
+//  $Id: event.C,v 1.425 2009/06/21 17:57:33 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -89,11 +89,15 @@ AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;
 integer AMSEvent::PosGlobal=0;
-void AMSEvent::_init(){
+void AMSEvent::_init(DAQEvent*pdaq){
   SetTimeCoo(IOPA.mode==1);
   // Status stuff
+  #ifdef __CORBA__
+  static bool opendst=false;
+  #endif  
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
-    if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
+    
+    if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime(),pdaq)){
    AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
 //#pragma omp master
@@ -125,8 +129,9 @@ if(AMSEvent::get_thread_num()==0){
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
-      cout <<" sending eventtag begin "<<endl;
+      cout <<" sending eventtag end "<<endl;
       AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+      opendst=true;
 #endif
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
@@ -134,9 +139,10 @@ if(AMSEvent::get_thread_num()==0){
 #pragma omp barrier
 }
 #ifdef __CORBA__
-    else if(AMSJob::gethead()->getstatustable()->getnelem()==1){
-#pragma omp single
+    else if(opendst){
+#pragma omp master
 {
+      opendst=false;
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
@@ -147,6 +153,9 @@ if(AMSEvent::get_thread_num()==0){
     }
 #endif
   }
+  _init();
+}
+void AMSEvent::_init(){
 
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();

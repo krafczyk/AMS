@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.83 2009/06/19 14:37:50 ams Exp $
+# $Id: DBSQLServer.pm,v 1.84 2009/06/21 17:57:34 choutko Exp $
 
 #
 #
@@ -981,8 +981,8 @@ sub Commit{
 sub set_oracle_env {
     $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
 #    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
-# $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
-$ENV{"TNS_ADMIN"}='/etc';
+ $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
+#$ENV{"TNS_ADMIN"}='/opt/oracle/10g/network/admin';
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
     1;
 }

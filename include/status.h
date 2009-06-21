@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.17 2008/12/10 17:50:44 choutko Exp $
+//  $Id: status.h,v 1.18 2009/06/21 17:57:34 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -7,6 +7,7 @@
 #include "cern.h"
 #include "amsdbc.h"
 #include <time.h>
+class DAQEvent;
 const integer STATUSSIZE=250000;
 const integer MAXDAQRATE=5000;
 class AMSStatus : public AMSNode {
@@ -65,7 +66,7 @@ public:
   static void setmode(integer mode){_Mode=mode;}
   static integer isDBWriteR(){return _Mode==2;}
   static integer isDBUpdateR(){return _Mode==3;}
-  integer isFull(uinteger run, uinteger evt, time_t time, bool force=false);
+  integer isFull(uinteger run, uinteger evt, time_t time, DAQEvent*pdaq,bool force=false);
   void reset(){_Nelem=0;}
   time_t getbegin()const{return _Begin;}
   time_t getend()const{return _End;}

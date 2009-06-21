@@ -13,7 +13,7 @@ int  AMSCommonsI::AB_catch=-1;
 
 uinteger AMSCommonsI::_MaxMem=1400000000;
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=319;
+uinteger AMSCommonsI::_build=320;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -168,6 +168,7 @@ void AMSCommonsI::init(){
            else _cor=0.85;
           }
           else if(strstr(syscom,"Pentium(R) M"))_cor=1.07;
+          else if(strstr(syscom,"E55") or strstr(syscom,"X55"))_cor=1.81;
           else if(strstr(syscom,"E5") or strstr(syscom,"X5"))_cor=1.6;
           else if(strstr(syscom,"Xeon"))_cor=0.8;
           else if(strstr(syscom,"Athlon"))_cor=1.15;

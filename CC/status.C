@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.38 2009/06/19 14:31:08 choutko Exp $
+//  $Id: status.C,v 1.39 2009/06/21 17:57:34 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -28,7 +28,7 @@ else{
 
 }
 
-integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
+integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,bool force){
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
   if(AMSEvent::get_num_threads()==1 && run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
@@ -44,8 +44,8 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,bool force){
         _Errors++;
 
         return 2;
-}
-  bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && (AMSEvent::gethead()->getC("DAQEvent",0)) && ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset>INT_MAX);
+} 
+  bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && pdaq && pdaq->getoffset()-_Offset>INT_MAX);
     if(ret){
        cout <<  "  StatusTableFull "<<_Offset<<" "<<_Nelem<<endl;
        return 1;
@@ -77,7 +77,7 @@ delete[] tmp;
 // for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
 }
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
-  if(_Nelem==0  || isFull(run,evt,time)>1){
+  if(_Nelem==0  || isFull(run,evt,time,NULL)>1){
 
 
 AMSEvent::ResetThreadWait(1);

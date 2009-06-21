@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.88 2009/02/20 14:12:20 choutko Exp $
+//  $Id: event.h,v 1.89 2009/06/21 17:57:34 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -205,6 +205,7 @@ void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
 virtual void _init();
+void _init(DAQEvent*pdaq);
 static uinteger get_thread_num(){
 #ifdef _OPENMP
 return omp_get_thread_num();

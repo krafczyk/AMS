@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.95 2009/02/20 14:12:17 choutko Exp $
+//  $Id: gbatch.C,v 1.96 2009/06/21 17:57:33 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -173,6 +173,8 @@ cout << " sighup sended "<<endl;
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       break;
   case SIGTTOU:
+#pragma omp master
+{
    nthr=0;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
@@ -182,8 +184,11 @@ cout << " sighup sended "<<endl;
     else if(MISCFFKEY.NumThreads>1)MISCFFKEY.NumThreads--;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
+}
   break;
   case SIGTTIN:
+#pragma omp master
+{
     nthr=0;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
@@ -193,11 +198,15 @@ cout << " sighup sended "<<endl;
     else if(MISCFFKEY.NumThreads<omp_get_num_procs())MISCFFKEY.NumThreads++;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
+}
   break;
   case SIGTSTP:
 #ifdef _OPENMP
+#pragma omp master
+{
     MISCFFKEY.NumThreads=-1;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
+}
 #endif
   break;
 }

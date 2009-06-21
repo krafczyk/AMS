@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.128 2009/02/20 13:10:11 choutko Exp $
+//  $Id: producer.C,v 1.129 2009/06/21 17:57:34 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -558,7 +558,7 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
      break;
     }
    }
-   int bnt=bstart+strlen(getenv("NtupleDir"));
+   int bnt=bstart+(getenv("NtupleDir")?strlen(getenv("NtupleDir")):0);
    if(a.length()>bnt && a[bnt]=='/')bnt++;
    
 
@@ -567,7 +567,7 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 // Move ntuple to the dest directory
 
 char *destdir=getenv("NtupleDestDir");
-if(destdir && strcmp(destdir,getenv("NtupleDir"))){
+if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
@@ -976,7 +976,7 @@ checkdd:
      break;
     }
    }
-   int bnt=bstart+strlen(getenv("NtupleDir"));
+   int bnt=bstart+(getenv("NtupleDir")?strlen(getenv("NtupleDir")):0);
    if(a.length()>bnt && a[bnt]=='/')bnt++;
    
 
@@ -985,7 +985,7 @@ checkdd:
 // check if dd writeable 
 
 char *destdir=getenv("NtupleDestDir");
-if(destdir && strcmp(destdir,getenv("NtupleDir"))){
+if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
 
    AString a=(const char*)ntend->Name;
    int bstart=0;
@@ -1002,7 +1002,7 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
      break;
     }
    }
-   int bnt=bstart+strlen(getenv("NtupleDir"));
+   int bnt=bstart+getenv("NtupleDir")?strlen(getenv("NtupleDir")):0;
    if(a.length()>bnt && a[bnt]=='/')bnt++;
    
 

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.124 2009/02/20 14:12:17 choutko Exp $
+//  $Id: geant3.C,v 1.125 2009/06/21 17:57:33 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1068,6 +1068,8 @@ try{
     DAQEvent * pdaq=0;
         static bool Waiting=false; 
         double cpulimit=AMSFFKEY.CpuLimit;
+
+    static int forcemaxthread=0;
    for(;;){
 #ifdef __CORBA__
     AMSProducer::gethead()->Transfer()=true;
@@ -1102,6 +1104,11 @@ if(MISCFFKEY.DivideBy)AMSFFKEY.CpuLimit=cpulimit*(MISCFFKEY.NumThreads>0?MISCFFK
 #else
 int nchunk=MISCFFKEY.ChunkThreads;
 #endif
+if(forcemaxthread){
+forcemaxthread=0;
+omp_set_num_threads(omp_get_num_procs());
+nchunk=omp_get_num_procs()*10;
+}
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
 #pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
@@ -1161,7 +1168,7 @@ if(AMSJob::gethead()->isMonitoring()){
 }
         AMSEvent *pn=new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
         pdaq->runtype(),pdaq->time(),pdaq->usec());
-         pn->_init();
+         pn->_init(pdaq);
           AMSEvent::sethead(pn);
           pn->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq); 
 //#pragma omp critical
