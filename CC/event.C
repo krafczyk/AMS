@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.425 2009/06/21 17:57:33 choutko Exp $
+//  $Id: event.C,v 1.426 2009/06/21 22:09:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -96,11 +96,9 @@ void AMSEvent::_init(DAQEvent*pdaq){
   static bool opendst=false;
   #endif  
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
-    
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime(),pdaq)){
-   AMSEvent::ResetThreadWait(1);
+    AMSEvent::ResetThreadWait(1);
 #pragma omp barrier
-//#pragma omp master
 if(AMSEvent::get_thread_num()==0){
       AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
@@ -125,10 +123,11 @@ if(AMSEvent::get_thread_num()==0){
          cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
           fail=true;
       }
-#ifdef __CORBA__
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
+      cout << "  Status First last "<<first<<" "<<last<<endl;
+#ifdef __CORBA__
       cout <<" sending eventtag end "<<endl;
       AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
       opendst=true;
@@ -3578,12 +3577,16 @@ return getid();
 }
 
 
-uinteger AMSEvent::getsmid(){
-uinteger evt=0;
+uinteger AMSEvent::getmiid(){
+#ifdef _OPENMP
+uinteger evt=INT_MAX;
 for(int i=0;i<get_num_threads();i++){
- if(_Head[i] && _Head[i]->getid()>evt)evt=_Head[i]->getid();
+ if(_Head[i] && _Head[i]->getid()<evt && _Head[i]->getid()>0)evt=_Head[i]->getid();
 }
 return evt;
+#else
+return getid();
+#endif
 }
 
 

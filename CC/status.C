@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.39 2009/06/21 17:57:34 choutko Exp $
+//  $Id: status.C,v 1.40 2009/06/21 22:09:05 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -38,8 +38,9 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,
    return 2;
   }
   if(_Nelem>=MAXDAQRATE+STATUSSIZE){
+#pragma omp critical (printlost)
         cerr <<"AMSSTatus::isFull-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
-        " some of the events will be lost"<<endl;
+        " some of the events will be lost "<<AMSEvent::get_thread_num()<<" "<<evt<<" "<<pdaq<<endl;
 #pragma omp critical (st1)
         _Errors++;
 
@@ -47,7 +48,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,
 } 
   bool ret= ((_Nelem>=STATUSSIZE || force) && timechanged ) || (run!=_Run && _Nelem>0) || (_Nelem>0 && pdaq && pdaq->getoffset()-_Offset>INT_MAX);
     if(ret){
-       cout <<  "  StatusTableFull "<<_Offset<<" "<<_Nelem<<endl;
+       cout <<  "  StatusTableFull "<<_Offset<<" "<<_Nelem<<" "<<evt<<endl;
        return 1;
     }
     else{
@@ -77,7 +78,7 @@ delete[] tmp;
 // for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
 }
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
-  if(_Nelem==0  || isFull(run,evt,time,NULL)>1){
+  if(_Nelem==0  || (isFull(run,evt,time,NULL)>1 && !AMSFFKEY.Update )){
 
 
 AMSEvent::ResetThreadWait(1);
