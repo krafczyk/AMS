@@ -410,9 +410,13 @@ class RemoteClient:
                    print stf
                os.system("ls "+fs[0]+" 1>"+stf+" 2>&1 &")
                time.sleep(1)
-               stat =os.stat(stf)
-               os.unlink(stf)
-               if stat[ST_SIZE]==0:
+               stat=[0,0,0,0,0,0,0,0,0,0,0]
+               try:
+                   stat =os.stat(stf)
+                   os.unlink(stf)
+               except:
+                   print stf, " Failed to stat " 
+              if stat[ST_SIZE]==0:
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if(self.v):
                        print stf," Is Offline"
