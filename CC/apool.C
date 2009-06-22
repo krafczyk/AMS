@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.16 2009/02/17 14:26:01 choutko Exp $
+//  $Id: apool.C,v 1.17 2009/06/22 11:25:44 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -109,6 +109,7 @@ void * AMSaPool::insert(size_t st){
         return p+sizeof(ALIGN); }
       else{
         _Count--; 
+#pragma omp critical (g1)
         cerr <<" AMSaPool-F-Memory exhausted: Was "<<(_Nblocks-1)*_size<<
 	  " Requested "<<st<<" bytes"<<endl;
 	throw AMSaPoolError("AMSaPool-F-Memory exhausted");
@@ -117,9 +118,10 @@ void * AMSaPool::insert(size_t st){
     }
     catch (bad_alloc a){  
       _Count--; 
-      cerr <<" AMSaPool-F-Memory exhausted: Was "<<(_Nblocks-1)*_size<<
+#pragma omp critical (g1)
+      cerr <<" AMSaPool-F-Memory exhausted bad_alloc: Was "<<(_Nblocks-1)*_size<<
         " Requested "<<st<<" bytes"<<endl;
-      throw AMSaPoolError("AMSaPool-F-Memory exhausted");
+      throw AMSaPoolError("AMSaPool-F-Memory exhausted bad alloca");
       return 0;
     }
   }
@@ -237,7 +239,7 @@ AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
 #endif
   //   poolNode.setid(0);
   //   poolMap.map(poolNode);
-  SetLastResort(10000);
+  SetLastResort(160000);
 }
 
 
@@ -287,7 +289,7 @@ void AMSaPool::dlink::_erase(integer &nbl ){
 }
 
 AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
- SetLastResort(10000);
+ SetLastResort(160000);
   cout <<"  run "<<endl;
   dlink * curo=o._head;
   dlink *cur=_head;

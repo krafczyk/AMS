@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.126 2009/06/22 11:25:44 choutko Exp $
+//  $Id: geant3.C,v 1.127 2009/06/22 11:28:02 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1108,11 +1108,13 @@ if(MISCFFKEY.DivideBy)AMSFFKEY.CpuLimit=cpulimit*(MISCFFKEY.NumThreads>0?MISCFFK
 #else
 int nchunk=MISCFFKEY.ChunkThreads;
 #endif
+#ifdef _OPENMP
 if(forcemaxthread){
 forcemaxthread=0;
 omp_set_num_threads(omp_get_num_procs());
 nchunk=omp_get_num_procs()*10;
 }
+#endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
 #pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)

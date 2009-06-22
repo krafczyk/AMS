@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.102 2009/06/03 09:09:58 choutko Exp $
+//  $Id: timeid.C,v 1.103 2009/06/22 11:25:44 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -283,7 +283,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #ifdef _OPENMP
   cout <<" AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
   AMSEvent::ResetThreadWait(1);
-#pragma omp barrier
+#pragma omp barrier 
   if( omp_get_thread_num()==0) {
     ok= read(dir,id,asktime,index)?1:0;
     if(ok && _trigfun)_trigfun();
@@ -300,7 +300,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   
 
 #endif
-#pragma omp barrier
+#pragma omp barrier 
   return ok;
    
 }

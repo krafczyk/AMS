@@ -93,7 +93,7 @@ void AMSCommonsI::init(){
       
    }
           if(sizeof(int) <= sizeof(short int)){
-         cerr<<"AMSTrIdSoftI-F-16 bit machine is not supported."<<endl;
+         cerr<<"AMSCommonsI-F-16 bit machine is not supported."<<endl;
          exit(1);
        }
        integer b64=0;
@@ -109,9 +109,9 @@ void AMSCommonsI::init(){
        test2+=pt[2]<<16;
        test2+=pt[3]<<24;
        integer lend = test1==test2;
-       if(lend)cout <<"AMSTrIdSoftI-I-Identified as LittleEndian";
+       if(lend)cout <<"AMSCommonsI-I-Identified as LittleEndian";
        else {
-         cout <<"AMSTrIdSoftI-I-Identified as BigEndian";
+         cout <<"AMSCommonsI-I-Identified as BigEndian";
          AMSDBc::BigEndian=1;
        }
        if(b64){

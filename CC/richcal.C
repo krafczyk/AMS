@@ -26,7 +26,7 @@ int AMSRichCalChannel::low_stat=3;
 
 
 void AMSRichCal::init(int bins,float minx,float maxx){
-#pragma omp barrier
+#pragma omp barrier 
 #pragma omp master
   {
     _calibration=1;
@@ -34,7 +34,7 @@ void AMSRichCal::init(int bins,float minx,float maxx){
       _channel[i]=new AMSRichCalChannel(bins,minx,maxx);
     }
   }
-#pragma omp barrier
+#pragma omp barrier  
 }
 
 

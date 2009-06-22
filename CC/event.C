@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.426 2009/06/21 22:09:05 choutko Exp $
+//  $Id: event.C,v 1.427 2009/06/22 11:25:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -98,7 +98,7 @@ void AMSEvent::_init(DAQEvent*pdaq){
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime(),pdaq)){
     AMSEvent::ResetThreadWait(1);
-#pragma omp barrier
+#pragma omp barrier  
 if(AMSEvent::get_thread_num()==0){
       AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
@@ -135,7 +135,7 @@ if(AMSEvent::get_thread_num()==0){
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
     }
-#pragma omp barrier
+#pragma omp barrier 
 }
 #ifdef __CORBA__
     else if(opendst){
@@ -160,7 +160,7 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    AMSEvent::ResetThreadWait(1);
-#pragma omp barrier
+#pragma omp barrier 
 //#pragma omp master
 if(AMSEvent::get_thread_num()==0)
 {
@@ -203,7 +203,7 @@ if(AMSEvent::get_thread_num()==0)
    cout <<" AMS-I-New Run "<<_run<<endl;
 
 }
-#pragma omp barrier
+#pragma omp barrier 
 }
   // Initialize containers & aob
 #pragma omp critical (initco)
@@ -1255,14 +1255,14 @@ void  AMSEvent::write(int trig){
 	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
 	{
    AMSEvent::ResetThreadWait(1);
-#pragma omp barrier
+#pragma omp barrier 
 if(AMSEvent::get_thread_num()==0)
 	  {
 
 	    AMSJob::gethead()->uhend();
 	    AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
 	  }
-#pragma omp barrier
+#pragma omp barrier 
 	  if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
 
 	}
@@ -2989,7 +2989,9 @@ void AMSEvent::Recovery(){
       //      " containers succesfully nullified"<<endl;
       //#endif
       UPool.Release(0);
+      cerr << "AMSEvent::Recovery-I-Release0"<<endl;
       remove();
+      cerr << "AMSEvent::Recovery-I-remove"<<endl;
       UPool.Release(1);
       cerr <<"AMSEvent::Recovery-I-Event structure removed"<<endl;
       sethead(0);

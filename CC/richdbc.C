@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.63 2009/05/26 09:14:30 mdelgado Exp $
+//  $Id: richdbc.C,v 1.64 2009/06/22 11:25:44 choutko Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -233,7 +233,7 @@ void RICHDB::mat_init(){
       }
     called=1;
     }
-#pragma omp barrier
+#pragma omp barrier 
   }
 }
 
@@ -731,7 +731,7 @@ void RichAlignment::Init(){
 
   // Ensure that the initialization is done only once and is visible by all the threads 
   // Has the single an implicit barrier? Just in case we add them
-#pragma omp barrier
+#pragma omp barrier  
 #pragma omp master
   if(AMSJob::gethead()->isRealData()  &&              // It is real data
      //     MISCFFKEY.BeamTest==1 &&                         // It is a cosmic run
@@ -739,6 +739,6 @@ void RichAlignment::Init(){
     sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.2.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
     LoadFile(name);
   }
-#pragma omp barrier
+#pragma omp barrier 
 
 }

@@ -32,7 +32,7 @@ RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
 
 void RichRadiatorTileManager::Init(){  // Default initialization
   if(_number_of_rad_tiles!=0) return; // Not necessary
-#pragma omp barrier
+#pragma omp barrier 
 #pragma omp master
   {
     //  cout<<"RichRadiatorTileManager::Init-default radiator"<<endl;
@@ -81,7 +81,7 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     // Compute tables
     _compute_tables();  
   }
-#pragma omp barrier
+#pragma omp barrier 
 }
 
 
@@ -267,7 +267,7 @@ void RichRadiatorTileManager::_compute_tables(){
 
 
 void RichRadiatorTileManager::Finish(){
-#pragma omp barrier
+#pragma omp barrier 
 #pragma omp master
   {
     //

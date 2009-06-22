@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.40 2009/06/21 22:09:05 choutko Exp $
+//  $Id: status.C,v 1.41 2009/06/22 11:25:44 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -82,7 +82,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
 
 
 AMSEvent::ResetThreadWait(1);
-#pragma omp barrier
+#pragma omp barrier 
 _Offset=9223372036854775807LL;
 #pragma omp critical (st1)
 {
@@ -100,7 +100,7 @@ _Offset=9223372036854775807LL;
     }
    }
  }
-#pragma omp barrier
+#pragma omp barrier 
 }
 
 #pragma omp critical (st1)
