@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.125 2009/06/21 17:57:33 choutko Exp $
+//  $Id: geant3.C,v 1.126 2009/06/22 11:25:44 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -877,13 +877,17 @@ extern "C" void guout_(){
     }
     catch (AMSaPoolError e){
       AMSgObj::BookTimer.stop("GUOUT");
-      cerr << e.getmessage()<<endl;
+      cerr << "Event "<<AMSEvent::gethead()->getid()<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
       AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
-#pragma omp critical (g1)
-      AMSProducer::gethead()->AddEvent();
+//#pragma omp critical (g1)
+//      AMSProducer::gethead()->AddEvent();
 #endif
+#pragma omp critical (g1)
       AMSEvent::gethead()->Recovery();
+   AMSEvent::ThreadWait()=1;
+    AMSEvent::ThreadSize()=UPool.size();
+
       return;
     }
     catch (AMSTrTrackError e){
