@@ -763,7 +763,7 @@ sub TAUL2DB_Welcome
   if($CalType eq "TAU2DB"){show_messg("\n   <--- Found $nel DBupd-attempts for TAUC-calib in prev.Session ");}
   if($CalType eq "TdcL2DB"){show_messg("\n   <--- Found $nel DBups-attempts for TDCL-calib in prev.Session ");}
   if($nel>0){
-    $title="          CalSetN     UpdStat(1/2=try/ok)\n";
+    $title="          CalSetN     UpdStat(1/2=not/updated)\n";
     $logtext->insert('end',$title,'ItalText');
     $logtext->yview('end');
     for($i=1;$i<=$nel;$i++){

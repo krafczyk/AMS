@@ -1,9 +1,20 @@
-                 This program scan directory which keep created upto now
-           Tof-paddles calibration files (in TAUCal/TdcLin sessions) and
-	   write to DB related records. You also can check the quality
-	   of these files and exclude suspicious ones from writing to DB. 
-           Use TdcL2DB or TAU2DB buttons on TofCommander's primery menu
-	   to start related session.
+         These 2 DB-update sessions (TdcL2DB/TAU2DB) use calibration 
+       files created befor during corresponding calibration sessions 
+       (TdcLin/TAUCal) to combine them and write properly formatted
+       records into related section of DB. The names of these sections
+       (so called TDV-names) are displayed in "GeneralInfo/Settings"
+       section of the window under the name "CalSetName". You can select
+       files in needed RunN/Date limits. You also can check the quality
+       of these files (by clicking "Check"-button) and exclude suspicious
+       ones from writing to DB. You can also scan and see the quality of
+       files in archive-directory (where the processed files are stored).
+       This can be useful to get better understanding of parameters 
+       evolution in time.  
+         After processing the calibration- and log-files should be 
+       archived (the routine processing). Set to 'ON'(orange color)
+       "ArchiveOnExit" switch in advance.  
+         Use TdcL2DB or TAU2DB buttons on TofCommander's primery menu to
+       start related session.
    
        The complete set of Tof-paddles calibration parameters consists
     of 5 sub-sets:
@@ -43,10 +54,9 @@
        a) TDC channel integral nonlinearity over 1 period of 25ns
           (this 25ns(1024bins) structure is repeated over whole TDC
 	  measurement range)  
-       
-          Information from these files is formatted by program and
-       writen to DB under so called TDV's names "TofTdcCor" and
-       "Tofbarcal2".
+      
+         The information from first 4 file types is combined befor 
+     writing to DB, the 5th type of file is processed alone. 
        
        
 		 
