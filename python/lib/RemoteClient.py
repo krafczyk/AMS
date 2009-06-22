@@ -403,7 +403,8 @@ class RemoteClient:
                #
                #          check to see if it is can be readed
                #
-               stf=fs[0]+".o"
+               whoami=os.getuid()
+               stf=fs[0]+"."+str(whoami)+".o"
                stf=re.sub(r'/','',stf)
                stf="/tmp/"+stf
                if(self.v):
