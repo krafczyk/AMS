@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.553 2009/06/19 14:37:50 ams Exp $
+# $Id: RemoteClient.pm,v 1.554 2009/06/22 11:59:24 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10127,28 +10127,33 @@ sub listStat {
        my $datasetVDB       = $ds->{vdb};
        my $datasetName      = $ds->{name};
 # first job timestamp and running (active jobs)
+       my @druns=("Runs","Dataruns");
+       foreach my $run (@druns){
        $td[0] = time();
-       $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
-                FROM Jobs, Runs
-                  WHERE Runs.submit>= $datasetStartTime
-                     AND (Runs.status='Completed' OR Runs.Status='Finished')
+       $sql="SELECT COUNT($run.run),SUM($run.fevent), SUM($run.levent)
+                FROM Jobs, $run
+                  WHERE $run.submit>= $datasetStartTime
+                     AND ($run.status='Completed' OR $run.Status='Finished')
                      AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId
-                      AND Runs.jid=Jobs.jid";
+                      AND $run.jid=Jobs.jid";
        $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
-           $jobsdone  =$ret->[0][0];
+           $jobsdone+= $ret->[0][0];
            if ($jobsdone > 0) {
             #$trigdone    = $ret->[0][2] - $ret->[0][1] + $jobsdone;
-       }
-       $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
-                FROM Jobs, Runs
-                  WHERE Runs.submit>= $datasetStartTime
-                     AND (Runs.status='Failed' OR Runs.Status='Unchecked')
+           }
+
+
+       $sql="SELECT COUNT($run.run),SUM($run.fevent), SUM($run.levent)
+                FROM Jobs, $run
+                  WHERE $run.submit>= $datasetStartTime
+                     AND ($run.status='Failed' OR $run.Status='Unchecked')
                      AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId
-                      AND Runs.jid=Jobs.jid";
+                      AND $run.jid=Jobs.jid";
        $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
-           $jobsfailed  =$ret->[0][0];
+           $jobsfailed+= $ret->[0][0];
+       }
        }
        if ($jobsdone > 0 || $jobsfailed >0 || 1) {
         if ($ds->{name} =~ /2005A/) {
@@ -10197,6 +10202,19 @@ sub listStat {
                   stat_2006B_NTuples,stat_2006B_CastorNTuples";
       }
 
+      elsif  ($ds->{name} =~ /\//) {
+          my @starget=split '/',$ds->{name};
+          
+          $sql="SELECT
+                stat_".$starget[1]."_Jobs.firstjobtime,stat_".$starget[1]."_Jobs.lastjobtime,
+                stat_".$starget[1]."_Jobs.totaljobs,stat_".$starget[1]."_Jobs.totaltriggers,
+                stat_".$starget[1]."_TimeoutRuns.TotalRuns,
+                stat_".$starget[1]."_NTuples.TotalFiles, stat_".$starget[1]."_NTuples.SizeMB,
+                stat_".$starget[1]."_CastorNTuples.TotalFiles, stat_".$starget[1]."_CastorNTuples.SizeMB, stat_".$starget[1]."_Jobs.totaltriggers
+               FROM
+                  stat_".$starget[1]."_Jobs, stat_".$starget[1]."_TimeoutRuns,
+                  stat_".$starget[1]."_NTuples,stat_".$starget[1]."_CastorNTuples";
+      }
         $ret=$self->{sqlserver}->Query($sql);
         if (defined $ret->[0][0]) {
          $timestart = $ret->[0][0];
