@@ -416,7 +416,7 @@ class RemoteClient:
                    os.unlink(stf)
                except:
                    print stf, " Failed to stat " 
-              if stat[ST_SIZE]==0:
+               if stat[ST_SIZE]==0:
                    sql="update filesystems set isonline=0 where disk='"+str(fs[0])+"'"
                    if(self.v):
                        print stf," Is Offline"
