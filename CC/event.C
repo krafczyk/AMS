@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.427 2009/06/22 11:25:44 choutko Exp $
+//  $Id: event.C,v 1.428 2009/06/23 14:50:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -90,7 +90,6 @@ integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;
 integer AMSEvent::PosGlobal=0;
 void AMSEvent::_init(DAQEvent*pdaq){
-  SetTimeCoo(IOPA.mode==1);
   // Status stuff
   #ifdef __CORBA__
   static bool opendst=false;
@@ -155,6 +154,8 @@ if(AMSEvent::get_thread_num()==0){
   _init();
 }
 void AMSEvent::_init(){
+  SetTimeCoo(IOPA.mode==1);
+   
 
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
@@ -2997,7 +2998,27 @@ void AMSEvent::Recovery(){
       sethead(0);
       UPool.erase(0);
       cerr <<"AMSEvent::Recovery-I-Memory pool released"<<endl;
-      UPool.SetLastResort(10000);
+      int mresort=160000;
+      int ntry;
+      const int maxtry=10;
+agains:
+      try{
+       UPool.SetLastResort(mresort);
+      }
+    catch (std::bad_alloc a){  
+      cerr<<"AMSEvent::Recovery-E-UnableToSetLastResortTo "<<mresort<<" try "<<ntry<<endl;
+      ntry++;
+      if(ntry<maxtry){
+      sleep(2);
+      goto agains;
+      }
+      else{
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
+      AMSFFKEY.CpuLimit=10;
+      cerr<<" AMSEvent::Recovery-S-TryingToTerminate "<<endl;
+      }
+    }
       cerr <<"AMSEvent::Recovery-I-Cleanup done"<<endl;
 
 }
