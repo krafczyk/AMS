@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.18 2009/02/23 16:10:46 ams Exp $
+# $Id: NetMonitor.pm,v 1.19 2009/06/23 11:08:26 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -39,6 +39,7 @@ my %sfields=(
 $self->{sqlserver}={%sfields,};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.ch 41764874733@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
+push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
     my $mybless=bless $self,$type;
     if(ref($NetMonitor::Singleton)){
