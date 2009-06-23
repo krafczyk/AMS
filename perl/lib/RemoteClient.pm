@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.554 2009/06/22 11:59:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.555 2009/06/23 11:08:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3679,9 +3679,10 @@ CheckCite:            if (defined $q->param("QCite")) {
                     last;
                   }
                  }
-               }
+             }
                if($found==0 and $sqlmom eq ""){
                 print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";        
+                print " <tr><td> $sqlNT </td></tr><br>";        
  
                }
                }
@@ -4563,6 +4564,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                }
                if($found==0 and $sqlmom eq ""){
                 print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";          
+                print " <tr><td> $sqlNT </td></tr><br>";        
              }
                }
              }                  
@@ -10923,9 +10925,10 @@ sub listNetMonitor {
           my $cat   = $msg->[2];
           my $stime = EpochToDDMMYYHHMMSS($msg->[3]);
           my  $color="black";
-          if($i==0 and $curtime-$msg->[3]>3600*6){
+          if($i==0 and $curtime-$msg->[3]>3600*3){
             $self->sendmailmessage('41764874733@mail2sms.cern.ch',"-S-NetMonitorNotResponded"," ");
       $self->sendmailmessage('Alexandre.Eline@cern.ch',"-S-NetMonitorNotResponded"," ");
+            $self->sendmailmessage('41764871287@mail2sms.cern.ch',"-S-NetMonitorNotResponded"," ");
            } 
           if($cat =~/I/){
               $color="green";

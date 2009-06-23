@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.28 2009/01/05 10:59:01 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.29 2009/06/23 11:07:47 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -7,9 +7,9 @@
 // Utility class to display AMSRoot outline, tracks, clusters...        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+//#ifdef _OPENMP
+//#include <omp.h>
+//#endif
 #include <iostream>
 #include <TROOT.h>
 #include <TButton.h>
@@ -379,10 +379,10 @@ bool AMSOnDisplay::Fill(bool checkonly){
   time(&timett1);
    int cur=0;
    bool filled=false;
-#ifdef _OPENMP
-omp_set_num_threads(2);
-#endif
-#pragma omp parallel for schedule(dynamic)
+//#ifdef _OPENMP
+//omp_set_num_threads(1);
+//#endif
+//#pragma omp parallel for schedule(dynamic)
   for(int i=_Begin;i<_End;i++){
    int ret= m_ntuple->ReadOneEvent(i);
    if(ret<0){
@@ -411,7 +411,7 @@ omp_set_num_threads(2);
 //     }
      if(ret){
       filled=true;
-#pragma omp critical
+//#pragma omp critical
 m_ntuple->GetAllContents();
 
       for(int j=0;j<_subdet.size();j++){
