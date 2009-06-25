@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.41 2009/06/22 11:25:44 choutko Exp $
+//  $Id: status.C,v 1.42 2009/06/25 13:44:09 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -82,7 +82,8 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
 
 
 AMSEvent::ResetThreadWait(1);
-#pragma omp barrier 
+cout <<"  in barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
+#pragma omp barrier
 _Offset=9223372036854775807LL;
 #pragma omp critical (st1)
 {
@@ -100,7 +101,9 @@ _Offset=9223372036854775807LL;
     }
    }
  }
-#pragma omp barrier 
+cout <<"  out barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
+#pragma omp barrier
+
 }
 
 #pragma omp critical (st1)
@@ -319,7 +322,12 @@ integer AMSStatus::getnextok(){
    }
    skipped++;
  }
- if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
+ if(_Hint<_Nelem-1){
+  uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
+     if(offset<_Offset+_Status[2][_Nelem-1]){
+       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
+     } 
+}
  else  if(AMSFFKEY.Update && isDBUpdateR()){
    UpdateStatusTableDB();
  }

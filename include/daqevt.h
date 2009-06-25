@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.64 2009/02/25 10:00:29 choutko Exp $
+//  $Id: daqevt.h,v 1.65 2009/06/25 13:44:14 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -182,6 +182,7 @@ static fstream fbin;
 static char * ofnam;
 static fstream fbout;
 static uinteger _NeventsO;
+static uinteger _NeventsPerRun;
 static void CloseO(integer run,integer event,time_t tt);
 void SetEOFIn();
 enum InitResult{Interrupt,NoInputFile,UnableToOpenFile,UnableToFindRunEvent,OK};

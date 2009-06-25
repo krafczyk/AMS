@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.149 2009/02/25 10:00:28 choutko Exp $
+//  $Id: daqevt.C,v 1.150 2009/06/25 13:44:09 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -216,6 +216,7 @@ char * DAQEvent::ofnam=0;
 fstream DAQEvent::fbin;
 fstream DAQEvent::fbout;
 uinteger DAQEvent::_NeventsO=0;
+uinteger DAQEvent::_NeventsPerRun=0;
 
 void DAQEvent::setfile(const char *ifile){
 if(ifnam[0])delete [] ifnam[0];
@@ -1052,6 +1053,7 @@ unexpected:
 // here we must put triggerlvl1 buildraw
 //   
   
+        _NeventsPerRun++;
     if(fbin){
         _Offset=fbin.tellg();
      _Offset-=getlength();
@@ -1430,6 +1432,10 @@ int DAQEvent::parser(char a[], char **& fname){
        ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
 #endif
       int ngood=0;
+      if(ntot==-1){
+       cerr<<"DAQEvent::parser-F-ProblemToScan "<<fdir<<endl;
+       exit(1);
+      }
       if(ntot>0){
           fname =new char*[ntot];
           char ftemp[1025];
@@ -1706,8 +1712,15 @@ again:
               return ifnam[KIFiles++];
         }
 else{
- if(KIFiles<InputFiles)return ifnam[KIFiles++];
- else return 0;
+ if(!_NeventsPerRun || _NeventsPerRun>AMSEvent::get_num_threads()){
+  _NeventsPerRun=0;
+  if(KIFiles<InputFiles)return ifnam[KIFiles++];
+  else return 0;
+ }
+ else{
+  cerr<<"DAQEvent::_getNextFile-E-FileTooShort "<<_NeventsPerRun<<" "<<ifnam[KIFiles-1]<<endl;
+ }
+ return ifnam[KIFiles-1];
 }
 
 }

@@ -196,6 +196,9 @@ void AMSVtx::set_vertex(){
 //  VC 12-18-2003
 //  Correct vertex coordinates
 //
+
+{
+
   int number_of_pairs = 0;
   float maxz=200;
   for (int i0=0; i0<_Ntracks-1; i0++){ 
@@ -244,6 +247,51 @@ void AMSVtx::set_vertex(){
 #ifdef __AMSDEBUG__
   if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
 #endif  
+}
+if(checkstatus(AMSDBc::BAD)){
+
+
+  int number_of_pairs = 0;
+  float maxz=200;
+  for (int i0=0; i0<_Ntracks-1; i0++){ 
+   for (int i1=i0+1; i1<_Ntracks; i1++){ 
+
+    AMSDir dir[2];
+
+    dir[0] = AMSDir(_Ptrack[i0]->gettheta(2),_Ptrack[i0]->getphi(2));
+    dir[1] = AMSDir(_Ptrack[i1]->gettheta(2),_Ptrack[i1]->getphi(2));
+
+    number dirprod = dir[0].prod(dir[1]);
+    AMSPoint deltax =  _Ptrack[i0]->getpiP0() - _Ptrack[i1]->getpiP0();
+
+    number lambda[2];
+    if (fabs(dirprod)<1.) {
+       AMSPoint aux = dir[0] - dir[1]*dirprod;
+       lambda[0] = - deltax.prod(aux) / (1.-dirprod*dirprod);
+       aux = dir[1] - dir[0]*dirprod;
+       lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
+       AMSPoint poi[2];
+       poi[0] = AMSPoint(_Ptrack[i0]->getpiP0()+dir[0]*lambda[0]);
+       poi[1] = AMSPoint(_Ptrack[i1]->getpiP0()+dir[1]*lambda[1]);
+       number mom=fabs(_Ptrack[i0]->getpirid())+fabs(_Ptrack[i1]->getpirid());
+         number_of_pairs++;
+        for (int j=0; j<3; j++) {
+          _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->getpirid())/mom;
+          _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->getpirid())/mom;
+        }
+    }
+
+   
+  }
+  }
+  for (int j=0; j<3; j++) {
+      if(number_of_pairs)_Vertex[j] = _Vertex[j]/(number_of_pairs);
+  }
+#ifdef __AMSDEBUG__
+  if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
+#endif  
+}
+
 
 }
 

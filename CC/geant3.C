@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.127 2009/06/22 11:28:02 choutko Exp $
+//  $Id: geant3.C,v 1.128 2009/06/25 13:44:09 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -885,9 +885,11 @@ extern "C" void guout_(){
 #endif
 #pragma omp critical (g1)
       AMSEvent::gethead()->Recovery();
+    if(MISCFFKEY.NumThreads>2 || MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=2;
+    else MISCFFKEY.NumThreads=1;
+    cerr<<"  AMSaPool-W-MemoryRecovered "<<AMSEvent::TotalSize()<<" Thread "<<AMSEvent::get_thread_num()<<" will be idled and number of thread will be reduced to "<<MISCFFKEY.NumThreads<<endl;
    AMSEvent::ThreadWait()=1;
     AMSEvent::ThreadSize()=UPool.size();
-
       return;
     }
     catch (AMSTrTrackError e){
@@ -981,7 +983,7 @@ extern "C" void guout_(){
   AMSEvent::sethead(0);
   UPool.erase(2000000);
   if( AMSEvent::Waitable() && AMSEvent::TotalSize()>AMSEvent::MaxMem()){
-    cerr<<"  AMSaPool-W-MemoryTooBig "<<AMSEvent::TotalSize()<<" Thread "<<AMSEvent::get_thread_num()<<" will be idled "<<endl;
+    cerr<<"  AMSaPool-W-MemoryTooBig "<<AMSEvent::TotalSize()<<" Thread "<<AMSEvent::get_thread_num()<<" will be idled "<<UPool.size()<<endl;
     AMSEvent::ThreadWait()=1;
     AMSEvent::ThreadSize()=UPool.size();
   }
@@ -1122,7 +1124,7 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
    AMSEvent::ResetThreadWait(1);
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){
-
+      try{
 #pragma omp critical (g3)
       if(GCFLAG.IEOTRI){
         if(!count++)oldtime=tt;
@@ -1143,7 +1145,14 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
     AMSEvent::ThreadWait()=0;
     }
    }
+try{
        pdaq = new DAQEvent();
+}
+    catch (AMSaPoolError e){
+#pragma omp critical (g1)
+      cerr << "DAQEvent "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
+      continue;
+    }
         bool ok;
 again:
 // intel cooperative mode bug workaround
@@ -1172,9 +1181,17 @@ if(AMSJob::gethead()->isMonitoring()){
          if(pdaq->eventno()>event)event=pdaq->eventno();
          if(pdaq->time()>tt)tt=pdaq->time();   
 }
-        AMSEvent *pn=new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
+         AMSEvent *pn=0;
+try{
+        pn=new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
         pdaq->runtype(),pdaq->time(),pdaq->usec());
          pn->_init(pdaq);
+}
+    catch (AMSaPoolError e){
+#pragma omp critical (g1)
+      cerr << "AMSEvent "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
+      continue;
+    }
           AMSEvent::sethead(pn);
           pn->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq); 
 //#pragma omp critical
@@ -1233,6 +1250,12 @@ if(AMSJob::gethead()->isMonitoring()){
 }
      continue;
     }
+    }
+    catch (AMSaPoolError e){
+#pragma omp critical (g1)
+      cerr << "Oops "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
+      continue;
+    }
    }
 // ---> endof "kevt<nchunk" for-loop
 #pragma omp critical (g2)
@@ -1272,6 +1295,7 @@ if(AMSJob::gethead()->isMonitoring()){
      AMSID tdvs=AMSEvent::getTDVStatus();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
   if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
+      AMSJob::gethead()->getstatustable()->Sort();
      AMSID tdvs=AMSEvent::getTDVStatus();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
       ptdv->UpdateMe()=1;

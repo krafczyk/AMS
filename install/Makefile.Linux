@@ -55,16 +55,18 @@ endif
 ########################################################################
 ifeq ($(ARCH),linuxicc)
   INTELDIR=/opt/intel/
-  INTELVER=Compiler/11.0/069/
-  INTELOPT=-axsse4.1 
-  FF=$(INTELDIR)/$(INTELVER)/bin/ia32/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVER)/bin/ia32/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
-  CC=$(INTELDIR)/$(INTELVER)/bin/ia32/icc  -m32  $(INTELOPT) $(PARALLEL)
-  LD=$(INTELDIR)/$(INTELVER)/bin/ia32/icpc -m32  $(INTELOPT)  $(PARALLEL) 
+  INTELVER=Compiler/11.0/069/bin/ia32
+  INTELOPT=-axT 
+  INTELVERC=cc/10.1.012/bin
+  INTELVERF=fc/10.1.012
+  FF=$(INTELDIR)/$(INTELVERF)/bin/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
+  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
+  CC=$(INTELDIR)/$(INTELVERC)/icc  -m32  $(INTELOPT) $(PARALLEL)
+  LD=$(INTELDIR)/$(INTELVERC)/icpc -m32  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -tpp6 -xi
 
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/lib/     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 else
   CC  = gcc -m32 
   CXX = g++ -m32
@@ -95,10 +97,8 @@ CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 ifeq ($(ARCH),linuxicc)
-#  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
-  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
-#  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
-  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
+  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
   NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
   #AMSLIB =  /amssw/AMSlib/linux/icc
   #NAGDIR = /amssw/AMSlib/linux/icc
@@ -219,17 +219,17 @@ LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
--L$(ROOTSYS)/lib -lRoot -lfreetype\
+-L$(ROOTSYS)/lib -lRoot \
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre   \
- $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+ $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=      $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
-$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+$(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg

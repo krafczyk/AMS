@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.69 2009/06/17 13:34:22 choutko Exp $
+//  $Id: beta.C,v 1.70 2009/06/25 13:44:09 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -1130,7 +1130,7 @@ bool AMSBeta::BadBetaAlreadyExists(int patb){
        AMSTOFCluster *phit=AMSTOFCluster::gethead(k);
        for ( ; phit; phit=phit->next()) {
          if(!phit->checkstatus(AMSDBc::BAD))ngh++;
-       
+       }   
        if(ngh)ngood++;
   }
 
@@ -1142,4 +1142,3 @@ bool AMSBeta::BadBetaAlreadyExists(int patb){
     return false;
    }
  }
-}

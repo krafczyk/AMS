@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.555 2009/06/23 11:08:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.556 2009/06/25 13:44:15 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10157,6 +10157,7 @@ sub listStat {
            $jobsfailed+= $ret->[0][0];
        }
        }
+   }
        if ($jobsdone > 0 || $jobsfailed >0 || 1) {
         if ($ds->{name} =~ /2005A/) {
           $sql="SELECT
@@ -10241,8 +10242,7 @@ sub listStat {
          $jobsreq=$jbs->[0][0];
         }
 
-       }
-    }
+     }
    }
     
 #
