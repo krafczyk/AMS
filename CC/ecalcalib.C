@@ -2908,11 +2908,13 @@ void ECREUNcalib::mfite(){
  integer ECPedCalib::nevt[ECPMSL][5][2];
  integer ECPedCalib::hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event) 
  geant ECPedCalib::peds[ECPMSL][5][2];
+ geant ECPedCalib::dpeds[ECPMSL][5][2];
+ geant ECPedCalib::thrs[ECPMSL][5][2];
  geant ECPedCalib::sigs[ECPMSL][5][2];
  uinteger ECPedCalib::stas[ECPMSL][5][2];
- geant ECPedCalib::rpeds[ECPMSL][5][2];
- geant ECPedCalib::rsigs[ECPMSL][5][2];
- uinteger ECPedCalib::rstas[ECPMSL][5][2];
+// geant ECPedCalib::rpeds[ECPMSL][5][2];
+// geant ECPedCalib::rsigs[ECPMSL][5][2];
+// uinteger ECPedCalib::rstas[ECPMSL][5][2];
  integer ECPedCalib::nstacksz;//needed stack size (ev2rem*ECPCEVMX)
  ECPedCalib::ECPedCalib_ntpl  ECPedCalib::ECPedCalNT;
 //
@@ -2990,6 +2992,23 @@ void ECREUNcalib::mfite(){
      for(int edr=0;edr<ECEDRS;edr++)DAQECBlock::PedBlkCrat(cr,edr)=-1;
    }
 //
+   for(sl=0;sl<ECSLMX;sl++){
+     for(pm=0;pm<ECPMSMX;pm++){
+       ch=ECPMSMX*sl+pm;//seq.# of sl*pm
+       for(pix=0;pix<5;pix++){
+         gnm=2;
+	 if(pix==4)gnm=1;//only hi-gain for dynodes
+         for(gn=0;gn<gnm;gn++){
+	   peds[ch][pix][gn]=0;
+	   dpeds[ch][pix][gn]=-1;//missing
+	   thrs[ch][pix][gn]=-1;
+	   sigs[ch][pix][gn]=0;
+	   stas[ch][pix][gn]=1;//bad
+	 }
+       }
+     }
+   }
+//
  } 
 //-----
  void ECPedCalib::resetb(){//run-by-run reset for OnBoardPedTable processing,
@@ -3013,6 +3032,8 @@ void ECREUNcalib::mfite(){
 	 if(pix==4)gnm=1;//only hi-gain for dynodes
          for(gn=0;gn<gnm;gn++){
 	   peds[ch][pix][gn]=0;
+	   dpeds[ch][pix][gn]=-1;//missing
+	   thrs[ch][pix][gn]=-1;
 	   sigs[ch][pix][gn]=0;
 	   stas[ch][pix][gn]=1;//bad
 	 }
@@ -3033,7 +3054,7 @@ void ECREUNcalib::mfite(){
 //
  }
 //-----
- void ECPedCalib::filltb(integer swid, geant ped, geant sig, int16u sta){
+ void ECPedCalib::filltb(integer swid, geant ped, geant dped, geant thr, geant sig){
 //
    int16u i,sl,pm,pix,gn,ch,is;
 // sl=0->, pm=0->, pix=1-3=>anodes,=4->dynode, gn=0/1->hi/low(for dynodes only hi)
@@ -3048,8 +3069,9 @@ void ECREUNcalib::mfite(){
    gn=(swid%10)-1;//0/1->high/low
    if(pix==4)gn=0;
    peds[ch][pix][gn]=ped;
+   dpeds[ch][pix][gn]=dped;
+   thrs[ch][pix][gn]=thr;
    sigs[ch][pix][gn]=sig;
-   stas[ch][pix][gn]=uinteger(sta);
  }
 //----------
  void ECPedCalib::outptb(int flg){//called in buildonbP
@@ -3076,6 +3098,10 @@ void ECREUNcalib::mfite(){
    sigmin=ECCAFFKEY.siglim[0];
    sigmax=ECCAFFKEY.siglim[1];
 //
+   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
+   bool dpedin=((spatt&4)==1);//dyn.peds-section present(243 words)
+   bool thrsin=((spatt&2)==1);//thresholds ..............(243...)
+   geant rthrs,rdped;
 //
    if(ECREFFKEY.reprtf[2]>0)cout<<endl<<"       EcOnbPedCalib::EndOfRun:OnBoardTable-Report:"<<endl<<endl;
 //----
@@ -3101,10 +3127,16 @@ void ECREUNcalib::mfite(){
 	   if(DAQECBlock::CalFirstSeq() || stao==1)pdiff=0;//to exclude pdiff-check for 1st run or bad prev.channel
 //	   cout<<" PrevRunNum="<<DAQECBlock::PrevRunNum()<<" stao="<<stao<<" peddif="<<pdiff<<endl;
 //
-	   if(peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && stas[ch][pix][gn]==0){// channel OK in table ? 
+           if(thrsin)rthrs=thrs[ch][pix][gn];
+	   else rthrs=5;
+	   if(dpedin)rdped=dpeds[ch][pix][gn];
+	   else rdped=50;
+//
+	   if(peds[ch][pix][gn]>0 && rthrs>1 && rdped>0){// channel OK in table ? 
 	     goodtbch+=1;
 	     if(sigs[ch][pix][gn]>sigmin && sigs[ch][pix][gn]<=sigmax
 		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<50){//MyCriteria:chan.OK
+	       stas[ch][pix][gn]=0;//ch ok
 	       goodchs+=1;
 	       if(pix<4){//anodes
 	         ECPMPeds::pmpeds[sl][pm].ped(pix,gn)=peds[ch][pix][gn];//save current values in PedCal-obj

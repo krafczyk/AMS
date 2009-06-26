@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.37 2009/06/11 13:51:25 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.38 2009/06/26 12:00:36 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -3751,7 +3751,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
    integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
    bool dpedin=((spatt&16)==1);//dyn.peds-section present(90 words)
    bool thrsin=((spatt&2)==1);//thresholds ..............(90...)
-   integer rthrs,rdped;
+   geant rthrs,rdped;
 //
    if(TFREFFKEY.reprtf[4]>0)cout<<endl<<"=====> TofOnbPedCalib::EndOfRun: OnBoardTable-Report:"<<endl<<endl;
 //---- fill ntuple:
@@ -3978,7 +3978,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
      for(i=0;i<22;i++)HPRINT(1790+i);
    }
 //
-//   DAQS2Block::CalFirstSeq()=false;
+   DAQS2Block::CalFirstSeq()=false;
 //
    cout<<endl;
    cout<<"<========= TofOnbPedCalib: run "<<runn<<" is processed, goodpeds%="<<goodchp<<endl;

@@ -131,9 +131,36 @@ $set_fram=$mwnd->Frame(-label=>"Job Parameters :",
                                                       -relief=>'groove', -borderwidth=>5)->place(
                                                       -relwidth=>0.3, -relheight=>$setfrheight,
                                                       -relx=>0, -rely=>$dirfrheight);
+#-------
+$set_fram->Label(-text=>"PedsSource:",-font=>$font2,-relief=>'groove')
+                                               ->place(
+					       -relwidth=>0.3, -relheight=>$drh2,
+                                               -relx=>0, -rely=>$shf2);
+$pedcaltyp="undefined";
+$indat_rbt=$set_fram->Radiobutton(-text=>"RawSciData",-font=>$font2, -indicator=>0, 
+                                                 -borderwidth=>5,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red, 
+						 -activebackground=>yellow, 
+                                                 -background=>green, 
+			                         -cursor=>hand2,
+                                                 -value=>"Data", -variable=>\$pedcaltyp)
+                                               ->place(
+						       -relwidth=>0.35, -relheight=>$drh2,
+						      -relx=>0.3, -rely=>$shf2);
 #---
+$onbrd_rbt=$set_fram->Radiobutton(-text=>"BoardTable",-font=>$font2, -indicator=>0, 
+                                                 -borderwidth=>5,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red, 
+						 -activebackground=>yellow, 
+                                                 -background=>green, 
+			                         -cursor=>hand2,
+                                                 -value=>"OnBrd", -variable=>\$pedcaltyp)
+                                               ->place(
+						       -relwidth=>0.35, -relheight=>$drh2,
+						        -relx=>0.65, -rely=>$shf2);
+#--------
 $tofantsel="useTOF";
-$tof_rbt=$set_fram->Radiobutton(-text=>"TofPedCalc",-font=>$font2, -indicator=>0,
+$tof_rbt=$set_fram->Radiobutton(-text=>"TofPeds",-font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -142,10 +169,10 @@ $tof_rbt=$set_fram->Radiobutton(-text=>"TofPedCalc",-font=>$font2, -indicator=>0
 #						 -foreground=>red,
                                                  -value=>"useTOF", -variable=>\$tofantsel)
                                               ->place(
-						      -relwidth=>0.5, -relheight=>$drh2,
-						      -relx=>0, -rely=>$shf2);
+						      -relwidth=>0.25, -relheight=>$drh2,
+						      -relx=>0, -rely=>($shf2+$drh2));
 #---
-$ant_rbt=$set_fram->Radiobutton(-text=>"AccPedCalc",-font=>$font2, -indicator=>0, 
+$ant_rbt=$set_fram->Radiobutton(-text=>"AccPeds",-font=>$font2, -indicator=>0, 
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red, 
 						 -activebackground=>yellow, 
@@ -154,49 +181,21 @@ $ant_rbt=$set_fram->Radiobutton(-text=>"AccPedCalc",-font=>$font2, -indicator=>0
 #						 -foreground=>red,
                                                  -value=>"useANT", -variable=>\$tofantsel)
                                                ->place(
-						       -relwidth=>0.5, -relheight=>$drh2,
-						        -relx=>0.5, -rely=>$shf2);
+						       -relwidth=>0.25, -relheight=>$drh2,
+						        -relx=>0.25, -rely=>($shf2+$drh2));
+#---
+$setdef_bt=$set_fram->Button(-text=>"SetJobDefPars", -font=>$font2, 
+                                      -activebackground=>"yellow",
+			              -activeforeground=>"red",
+			              -foreground=>"red",
+			              -background=>"green",
+                                      -borderwidth=>5,-relief=>'raised',
+			              -cursor=>hand2,
+                                      -command => \&setRunDefs)
+			              ->place(
+                                      -relwidth=>0.5, -relheight=>$drh2,
+				      -relx=>0.5, -rely=>($shf2+$drh2));
 #-------
-$pedcaltyp="undefined";
-$rand_rbt=$set_fram->Radiobutton(-text=>"RandTrig",-font=>$font2, -indicator=>0,
-                                                 -borderwidth=>5,-relief=>'raised',
-						 -selectcolor=>orange,-activeforeground=>red,
-						 -activebackground=>yellow, 
-                                                 -background=>green,
-			                         -cursor=>hand2,
-#						 -foreground=>red,
-                                                 -command=>\&setRunDefs,
-                                                 -value=>"Rand", -variable=>\$pedcaltyp)
-                                              ->place(
-						      -relwidth=>0.33, -relheight=>$drh2,
-						      -relx=>0, -rely=>($shf2+$drh2));
-#---
-$indat_rbt=$set_fram->Radiobutton(-text=>"DataTrig",-font=>$font2, -indicator=>0, 
-                                                 -borderwidth=>5,-relief=>'raised',
-						 -selectcolor=>orange,-activeforeground=>red, 
-						 -activebackground=>yellow, 
-                                                 -background=>green, 
-			                         -cursor=>hand2,
-#						 -foreground=>red,
-                                                 -command=>\&setRunDefs,
-                                                 -value=>"Data", -variable=>\$pedcaltyp)
-                                               ->place(
-						       -relwidth=>0.33, -relheight=>$drh2,
-						      -relx=>0.33, -rely=>($shf2+$drh2));
-#---
-$onbrd_rbt=$set_fram->Radiobutton(-text=>"BoardTable",-font=>$font2, -indicator=>0, 
-                                                 -borderwidth=>5,-relief=>'raised',
-						 -selectcolor=>orange,-activeforeground=>red, 
-						 -activebackground=>yellow, 
-                                                 -background=>green, 
-			                         -cursor=>hand2,
-#						 -foreground=>red,
-                                                 -command=>\&setRunDefs,
-                                                 -value=>"OnBrd", -variable=>\$pedcaltyp)
-                                               ->place(
-						       -relwidth=>0.33, -relheight=>$drh2,
-						        -relx=>0.66, -rely=>($shf2+$drh2));
-#------
 $set_fram->Label(-text=>"Push if limit changed >>>",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.5, -relheight=>$drh2,
@@ -821,17 +820,7 @@ sub setRunDefs
   $logtext->yview('end');
 #
   $SubDetMsk=8;#bit-patt: (msb T8/U2/S4/R4/E2/L1 lsb)
-  if($pedcaltyp eq "Rand"){
-     if($tofantsel eq "useTOF"){$TruncCut="0.01";}
-     else{$TruncCut="0.005";}
-     $par5_e_state='normal';
-     $stjob_b_state='normal';
-     $Evs2Read=2000;
-     $MinEvsInFile=10000;
-     $RunType="SCI";
-     $FileSize=30;#mb
-  }
-  elsif($pedcaltyp eq "Data"){
+  if($pedcaltyp eq "Data"){
      if($tofantsel eq "useTOF"){$TruncCut="0.15";}
      else{$TruncCut="0.05";}
      $par5_e_state='normal';

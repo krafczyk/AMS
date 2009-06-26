@@ -100,11 +100,13 @@ class ECPedCalib {
     static integer hiamap[ecalconst::ECSLMX][ecalconst::ECPMSMX];//high signal PMTs map (1 event)
 #pragma omp threadprivate (hiamap) 
     static geant peds[ecalconst::ECPMSL][5][2];
+    static geant dpeds[ecalconst::ECPMSL][5][2];
+    static geant thrs[ecalconst::ECPMSL][5][2];
     static geant sigs[ecalconst::ECPMSL][5][2];
     static uinteger stas[ecalconst::ECPMSL][5][2];
-    static geant rpeds[ecalconst::ECPMSL][5][2];
-    static geant rsigs[ecalconst::ECPMSL][5][2];
-    static uinteger rstas[ecalconst::ECPMSL][5][2];
+//    static geant rpeds[ecalconst::ECPMSL][5][2];
+//    static geant rsigs[ecalconst::ECPMSL][5][2];
+//    static uinteger rstas[ecalconst::ECPMSL][5][2];
     static integer nstacksz;//really needed stack size (ev2rem*ECPCEVMX)
 //
     class ECPedCalib_ntpl {//to store PedTable-event(i.e.particular Run,SL,PM) in ntuple
@@ -129,7 +131,7 @@ class ECPedCalib {
                                           for(int j=0;j<ecalconst::ECPMSMX;j++)hiamap[i][j]=0;
                            }
     static void fill(integer swid, geant val);
-    static void filltb(integer swid, geant ped, geant sig, int16u sta);
+    static void filltb(integer swid, geant ped, geant dped, geant thr, geant sig);
     static void outp(int flg);
     static void outptb(int flg);
     static time_t & BTime(){return BeginTime;}

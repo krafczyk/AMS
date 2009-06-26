@@ -887,7 +887,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
    integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
    bool dpedin=((spatt&16)==1);//dyn.peds-section present(90 words)
    bool thrsin=((spatt&2)==1);//thresholds ..............(90...)
-   integer rthrs,rdped;
+   geant rthrs,rdped;
 //
    if(TFREFFKEY.reprtf[4]>0)cout<<endl<<"=====> ANTPedCalib:OnBoardTable-Report:"<<endl<<endl;
 //---- fill ntuple:

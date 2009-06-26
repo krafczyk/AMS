@@ -36,6 +36,7 @@ public:
   static integer getportid(int16u crat);
   static void buildraw(integer len, int16u *p);
   static void buildonbP(integer len, int16u *p);
+  static void buildonbP1(integer len, int16u *p);
   static integer getmaxblocks();
   static integer calcblocklength(integer ibl);
   static void buildblock(integer ibl, integer len, int16u *p);

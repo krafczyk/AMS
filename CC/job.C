@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.633 2009/06/11 13:51:24 choumilo Exp $
+// $Id: job.C,v 1.634 2009/06/26 12:00:36 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -977,6 +977,10 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.trentmax[1]=0.5;   //     cut of distance between track and shower entry y-proj
   ECCAFFKEY.trextmax[0]=1.0;   //     cut of distance between track and shower enit x-proj
   ECCAFFKEY.trextmax[1]=1.0;   // (70) cut of distance between track and shower exit y-proj
+// for OnBoardPeds
+  ECCAFFKEY.onbpedspat=15;//ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
+//                           i(j,..)-bitset => section present
+//
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1356,7 +1360,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.minstat=100;//(38) min.acceptable statistics per channel
   TFCAFFKEY.tdccum=10;//(39)tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
 //also for OnBoardPeds
-  TFCAFFKEY.onbpedspat=63;//ijklmn(bit-patt for peds|dinpeds|pretrs|statws|theshs|widths sections in table),
+  TFCAFFKEY.onbpedspat=63;//(40)ijklmn(bit-patt for peds|dynpeds|pretrs|statws|threshs|widths sections in table),
 //                           i(j,..)-bitset => section present
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1365,7 +1369,7 @@ void AMSJob::_retof2data(){
 void AMSJob::_reanti2data(){
   ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
   ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
-  ATREFFKEY.relogic=0;  //(3) =0/1/2/3->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)
+  ATREFFKEY.relogic=0;  //(3) =0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/OnbPed
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.nlcorr=0;   //(6) =1/0--> apply/not nonlin.corr to raw amplitudes at cluster-build stage
@@ -4061,8 +4065,14 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
   if((CALIB.SubDetInCalib/10)%10>0)
     DAQEvent::addsubdetector(&DAQRichBlock::checkcalid,&DAQRichBlock::buildcal,6);
 //ECAL    
-  if(CALIB.SubDetInCalib%10>0)
-    DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP,6);
+  if(CALIB.SubDetInCalib%10>0){
+    if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+      DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP1,6);//no Dynamic peds
+    }
+    else{
+      DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP,6);//with Dynamic peds
+    }
+  }
 
 }
 

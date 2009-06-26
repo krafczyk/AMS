@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.17 2009/06/11 13:51:32 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.18 2009/06/26 12:00:44 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -141,6 +141,7 @@ private:
   static uinteger stas[TOF2GC::SCCHMX][TOF2GC::PMTSMX+1];
   static integer nstacksz;//really needed stack size (ev2rem*TFPCEVMX)
   static integer hiamap[TOF2GC::SCLRS][TOF2GC::SCMXBR];//high signal Paddles map (1 event) 
+#pragma omp threadprivate (hiamap) 
   static time_t BeginTime;
   static uinteger BeginRun;
 //

@@ -1,9 +1,70 @@
+ E.Choumilov.
+ v1.00 1.02.2001
+ Last update 24.06.2009
 
-   *************** ECAL  RE(sponce)UN(iformity) calibration.   ***************
+                 General structure of ECAL calibration parameters.
+		    
+    There are 3 types of calib.files created by ECAL-calibration procedures:
+ RLGA(channels relative gains), FIAT(fibers attenuation length) and ANOR
+ (absolute normalization). The offline reconstruction program can read these
+ files directly or use calibration information from DataBase (this info have
+ to be put there in advance using special DB-update mode of standard offline
+ reconstruction program).
+    This set of 3 files is referenced using file EcalCflistMC.N or 
+ EcalCflistRD.***** (respectively for MC and RD (real data) data types).
+ Here N is the MC version number, ***** is 1st run number used to extract
+ calibration data. Offline reconstruction program use this ref.file to read
+ related set of RLGA,FIAT and ANOR files. The version number is defined by
+ data card ECMC 29=N for MC-data and by card ECRE 35=***** for RD.
+--- 
+    EcalCflistMC.N file has the following format:
+  3
+    1
+    1
+    1
+    20070101
+    1
 
- 1.02.2001; v.1.00 E.Choumilov.
- 
-    ************ RLGA(relat.gains)/FIAT(fiber attenuation) part **************
+//-------------------------------------------
+LEGEND:
+ N <- total calibration-file types
+   MMM <- ref.to EcalRlgaMC(SD).MMM
+   MMM <- ref.to EcalFiatMC(SD).MMM
+   MMM <- ref.to EcalAnorMC.MMM
+   YYYYMMDD validity Begin date
+   HHMMSS    ............  time
+
+   EcalCflistRD.1167606001 file format is:
+  3
+    1167606001
+    1167606001
+    1167606001
+
+//-------------------------------------------
+LEGEND:
+ N <- total calibration-file types
+   MMM <- begin UTC(*) for EcalRlgaRD.MMM
+   MMM <- ......... for EcalFiatRD.MMM
+   MMM <- ......... for EcalAnorRD.MMM
+   
+  (*) UTC-time of run beginning  is used for Run numbering     
+---
+
+    There are 2 sub-types of MC calib.files (for RLGA and FIAT types):
+  Seed (SD) and MC. SD is used at digitization stage (simulation), MC is
+  used at reconstruction stage of standard offline program. MC files are the
+  output ones of related calibration procedures applied to MC-events generated
+  using corresponding SD files. Parameters in SD-files should be close to
+  real parameters of ECAL, so one can use hands made copy of corresponding RD
+  calibration files as SD-files. The SD and MC files can be the same if you
+  want to neglect by calibration procedures accuracy. The choise of SD/MC-files
+  as "Seed" can be controlled by data card ECMC 5=1/0(sd/mc).
+      
+       
+		    
+        ECAL  RE(sponce)UN(iformity) calibration procedures.
+	----------------------------------------------------
+            (ceate RLGA and FIAT types of calib.files)
 
  Algorithm:
  
@@ -28,7 +89,7 @@
    This is done to improve preselection efficiency(gains variations are 
    already corrected in first approximation).
    
-    The next procedures are applied already to EcalRawEvent hits !!! (any kind of 
+    The next steps are applied already to EcalRawEvent hits !!! (any kind of 
     calibration is not applied !!!)
    
    
@@ -68,18 +129,17 @@
    the straight line fit is performed to extract High-to-Low-gain ratio for 
    each channel (pixel).
    
-      The program creates 2 files: ecalrlgaNNNmc.cof and ecalfiatNNNmc.cof(if 
-   was requested ECRE 5=2) where NNN is calibration(previous) version used
-   for above analysis. The files(if OK) have to copied to official directory
-   /offline/AMSDataDir/v3.00 with NNN=NNN+1 and extention .dat. 
+      The program creates 2 files: EcalRlgaMC(RD).N(runN) and 
+   EcalFiatMC(RD).N(runN)(if was requested by ECRE 5=2).
+     
       
-        ************ ANOR(abs.normalization) part **************
+                     ANOR(abs.normalization) calibration.
+		    --------------------------------------
 
  Algorithm:
  
       The absolute calibration of ECAL is done in separate procedure 
-   using information from above RLGA/FIAT-calibration(its *.cof files was copied 
-   to official directory as *.dat and NNN=NNN+1). This procedure must include
+   using information from above RLGA/FIAT-calibration. This procedure must include
    real clustering algorith (used at the reconstruction stage) to include the
    possible leakage effects (to be done).
       The calibration is done with preselected electrons in momentum range
@@ -108,17 +168,14 @@
    7.   For first 6 planes check that COG is close to track crossing point;
    
    8.   For selected events accumulate Mom/Ecal ratious and fit this distribution
-       by goussian. Calculate new abs.norm.factor using previous(old) one and 
-       deviation most prob. ratio from 1.
+       by gaussian. Calculate new abs.norm.factor using previous(old) one and 
+       deviation of most prob. ratio from 1.
        
-        Sistematic error of sach calibration is about 1% (dependence of ratio on
+        Sistematic error of such calibration is about 1% (dependence of ratio on
      energy in the range 3-15 gev/c). Result of abs. calibration is saved in
-     file ecalanorNNNmc.cof (ecalanorNNNrl.cof for real data). This file in
-     official directory must have extention .dat.
+     file EcalAnorMC(RD).N(runN) as adc2mev conversion factor.
      
-     
-        All *.dat files contain self explaination at the end.
-	Related Data cards (ECCA) are explained in datacards.doc file.
+     	Related Data cards (ECCA) are explained in datacards.doc file.
    
      
    

@@ -1,6 +1,7 @@
-//  $Id: daqs2block.C,v 1.37 2009/02/20 14:12:16 choutko Exp $
+//  $Id: daqs2block.C,v 1.38 2009/06/26 12:00:36 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
+// 
 #include "typedefs.h"
 #include "link.h"
 #include "cern.h"
@@ -27,7 +28,7 @@ using namespace ANTI2C;
  integer DAQS2Block::_GoodPedBlks(0);
  integer DAQS2Block::_FoundPedBlks(0);
  integer DAQS2Block::_PedBlkCrat[TOF2GC::SCCRAT]={-1,-1,-1,-1};
- bool DAQS2Block::_CalFirstSeq(true);//set inside particular calib-job routines
+ bool DAQS2Block::_CalFirstSeq(true);//is set inside particular calib-job routines
 //
 int16u DAQS2Block::format=0; // default format (raw)
 //
@@ -1517,7 +1518,9 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   if(dpedin)reflen+=90;
   if(ptrwin)reflen+=4;
   if(stawin)reflen+=10;
-  if(thrsin)reflen+=90; 
+  if(thrsin)reflen+=90;
+  bool tofout,accout;
+  int outflg; 
 //
   int16u *pr;
   integer bufpnt(0),lbbs;
@@ -1769,8 +1772,11 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
     nblkok=0;
     for(i=0;i<SCCRAT;i++)if(_PedBlkCrat[i]==1)nblkok+=1;
     if(nblkok==_NReqEdrs){// complete set of good blocks - call output
-      TOFPedCalib::outptb((CALIB.SubDetInCalib/1000)%10);//TFCAFFKEY.pedoutf)->1/2/3->write2db/hist_only/write2file+hist
-      ANTPedCalib::outptb((CALIB.SubDetInCalib/1000)%10);//ATCAFFKEY.pedoutf->1/2/3->write2db/hist_only/write2file+hist
+      outflg=((CALIB.SubDetInCalib/1000)%10);//->1/2/3->write2db/hist_only/write2file+hist
+      tofout=((outflg==1) || (outflg>1 && TFREFFKEY.relogic[0]==7));
+      accout=((outflg==1) || (outflg>1 && ATREFFKEY.relogic==4));
+      if(tofout)TOFPedCalib::outptb(outflg);
+      if(accout)ANTPedCalib::outptb(outflg);
       _CalFirstSeq=false;
     }
     if(TFREFFKEY.reprtf[4]>1)

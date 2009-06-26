@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.269 2009/06/19 14:31:09 choutko Exp $
+//  $Id: commons.h,v 1.270 2009/06/26 12:00:44 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -397,6 +397,7 @@ public:
   geant difsummx;      // cut of (E_x-E_y)/(E_x+E_y)
   geant trentmax[2];   // cut of distance between track and shower entry
   geant trextmax[2];   // cut of distance between track and shower exit
+  integer onbpedspat;  // bit-patt of present sections in OnBoardPed block
 };
 #define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
 COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);
