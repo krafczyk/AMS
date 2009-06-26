@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.428 2009/06/23 14:50:50 choutko Exp $
+//  $Id: event.C,v 1.429 2009/06/26 11:42:14 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2034,6 +2034,7 @@ void AMSEvent::_rerichevent(){
     AMSRichRing::build();
   }
   // LIP reconstruction
+#pragma omp critical (lipreconst)
   if((RICRECFFKEY.recon[0]/10)%10) {
     AMSgObj::BookTimer.start("RERICHLIP");
     AMSRichRingNewSet NewRings;
