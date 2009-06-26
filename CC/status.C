@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.42 2009/06/25 13:44:09 choutko Exp $
+//  $Id: status.C,v 1.43 2009/06/26 12:29:03 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -109,6 +109,7 @@ cout <<"  out barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
 #pragma omp critical (st1)
 {
   if(_End<time)_End=time;
+  if(_Begin>time)_Begin=time;
   _Status[0][_Nelem]=evt;
   _Status[1][_Nelem]=status[0];
    uinteger offset=uinteger(((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset);

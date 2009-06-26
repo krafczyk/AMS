@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.429 2009/06/26 11:42:14 barao Exp $
+//  $Id: event.C,v 1.430 2009/06/26 12:29:03 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2034,8 +2034,10 @@ void AMSEvent::_rerichevent(){
     AMSRichRing::build();
   }
   // LIP reconstruction
+  if((RICRECFFKEY.recon[0]/10)%10)
 #pragma omp critical (lipreconst)
-  if((RICRECFFKEY.recon[0]/10)%10) {
+ 
+{
     AMSgObj::BookTimer.start("RERICHLIP");
     AMSRichRingNewSet NewRings;
     NewRings.init();
@@ -2887,8 +2889,10 @@ while(offspring){
       offspring->getCRC()<<endl;                                              
 #endif
    }
-    else {
-      cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;
+    else 
+#pragma omp critical (tdvnotvalidated)
+{
+      cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated. "<<AMSEvent::get_thread_num()<<endl;
       time_t b,e,i;
       offspring->gettime(i,b,e);
       cerr<<" Time: "<<ctime(&_time)<<endl;
