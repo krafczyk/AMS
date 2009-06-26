@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.6 2009/06/19 13:45:17 pzuccon Exp $
+// $Id: TrTrack.C,v 1.7 2009/06/26 17:15:33 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/06/19 13:45:17 $
+///$Date: 2009/06/26 17:15:33 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -300,14 +300,14 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
 
   // Perform fitting
   int rsul=_TrFit.Fit(method);
-     if (rsul < 0) return -1;
+  //    if (rsul < 0) return -1;
 
   // Return if fitting values are not to be over written
   if (!update) return _TrFit.GetChisq();
 
   // Fill fittng parameters
   AMSTrTrackPar &par = _TrackPar[id];
-  par.FitDone  = true;
+  par.FitDone  = (rsul>=0);
   par.HitBits  = hitbits;
   par.ChisqX   = _TrFit.GetChisqX();
   par.ChisqY   = _TrFit.GetChisqY();

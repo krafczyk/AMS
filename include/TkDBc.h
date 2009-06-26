@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.4 2009/06/10 08:44:58 shaino Exp $
+// $Id: TkDBc.h,v 1.5 2009/06/26 17:15:43 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -318,10 +318,10 @@ public:
   TkLadder* FindPgId(int pgid){ return Findmap(pgidmap,pgid); }
    //! Returns the pointer to the ladder object with the required ladder name. In case of failure returns a NULL pointer
   TkLadder* FindLadName(string& name);
-  //! Returns the HwId corresponding to a given HwId
-  int HwId2Tkid(int tkid){
-    TkLadder* ll= FindTkId(tkid);
-    if(ll) return ll->GetHwId();
+  //! Returns the tkId corresponding to a given HwId
+  int HwId2Tkid(int hwid){
+    TkLadder* ll= FindHwId(hwid);
+    if(ll) return ll->GetTkId();
     else return -1;
   }
   //! Get X-coordinate of layer

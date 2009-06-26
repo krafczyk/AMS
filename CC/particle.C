@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.176 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: particle.C,v 1.177 2009/06/26 17:15:33 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -42,15 +42,30 @@ PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 #ifdef _PGTRACK_
 bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   number SearchReg(4);
-  number MaxCos(0.1);
-  number theta,phi,sleng;
-  AMSDir s(ptrd->gettheta(),ptrd->getphi());
-  AMSDir s1(ptrack->GetTheta(),ptrack->GetPhi());
-  number c=s1.prod(s);
-  if(s[2]!=0){
-    number x=ptrd->getCooStr()[0]+s[0]/s[2]*(ptrack->GetP0()[2]-ptrd->getCooStr()[2]);
-    if(fabs(x-ptrack->GetP0()[0])<SearchReg && acos(c)<MaxCos)return true;       
-  }
+  number MaxCos(0.95);
+  double zpl=83.5; //Z low of TRD in cm;
+
+  // TRD point and direction at Z=  zpl
+  AMSPoint trd_pnt0     = ptrd->getCooStr();
+  AMSDir   trd_dir  = ptrd->getCooDirStr();
+
+
+  double X_TRD= (zpl-trd_pnt0[2])*trd_dir[0]/trd_dir[2]+trd_pnt0[0];
+  double Y_TRD= (zpl-trd_pnt0[2])*trd_dir[1]/trd_dir[2]+trd_pnt0[1];
+  AMSPoint trd_pnt(X_TRD,Y_TRD,zpl);
+
+  // Tracker point and direction at Z= zpl
+  AMSPoint tk_pnt;
+  AMSDir   tk_dir;
+  ptrack->Interpolate(zpl, tk_pnt, tk_dir); 
+
+  // angle between the tracks
+  number c=tk_dir.prod(trd_dir);
+  //distance 
+  number d=(tk_pnt-trd_pnt).norm();
+  
+  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
+  if(fabs(c)>MaxCos && fabs(d) <SearchReg) return true;
   
   return false;
 }
@@ -398,6 +413,60 @@ void AMSParticle::trd_likelihood(){
 
 }
 
+
+#ifdef _PGTRACK_
+
+void AMSParticle::trdfit(){
+  _ptrd=0;
+  AMSDir dir(0,0,1.);
+  number theta, phi, sleng;
+  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
+
+  while(ptr){
+    AMSPoint coo=ptr->getCooStr();
+    AMSPoint tmp;
+    bool matched =TkTRDMatch(_ptrack,ptr);
+    if( matched ){
+      _ptrd=ptr;
+      break;
+    }
+    ptr=ptr->next();
+  }
+  if(_ptrd)_ptrd->setstatus(AMSDBc::USED);
+  else{
+    AMSTRDIdGeom ida(0,0,0);
+    AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
+    AMSgvolume *pa=AMSJob::gethead()->getgeomvolume(ida.crgid());
+    AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
+    if(pa && pb){
+      number z=0.5*(pa->loc2gl(AMSPoint(0,0,0))[2]+pb->loc2gl(AMSPoint(0,0,0))[2]);
+      AMSPoint coo(0,0,z);
+      _ptrack->interpolate(coo,dir,_TRDCoo[0],theta,phi,sleng);
+    }
+    else {
+      cerr << " trdfit-S- NoLayerFoundThenExpected " << pa<<" "<<pb<<endl ;
+      _TRDCoo[0]=AMSPoint(0,0,0);
+    }
+
+  }
+
+  //add trdcoo2 on top of trd
+  AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
+  AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
+  if(pb){
+    number z=pb->loc2gl(AMSPoint(0,0,0))[2]+2;
+    AMSPoint coo(0,0,z);
+    _ptrack->interpolate(coo,dir,_TRDCoo[1],theta,phi,sleng);
+  }
+  else {
+    cerr << " trdfit-S- NoLayerFoundThenExpected " <<pb<<endl ;
+    _TRDCoo[1]=AMSPoint(0,0,0);
+  }
+  
+}
+#else
+
+
 void AMSParticle::trdfit(){
   _ptrd=0;
   AMSDir dir(0,0,1.);
@@ -434,11 +503,7 @@ void AMSParticle::trdfit(){
     }
     else d3=5*error.norm();
 //    if(d2<d3){
-#ifdef _PGTRACK_
-    if(TkTRDMatch(_ptrack,ptr)&& d2<d3)
-#else
     if(_ptrack->TRDMatch(ptr) && d2<d3)
-#endif
       {
       if(d2<dist){
 	dist=d2;
@@ -483,6 +548,7 @@ void AMSParticle::trdfit(){
   }
   
 }
+#endif
 
 
 

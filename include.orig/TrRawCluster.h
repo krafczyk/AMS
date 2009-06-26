@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
+// $Id: TrRawCluster.h,v 1.3 2009/06/26 17:15:43 pzuccon Exp $ 
 #ifndef __TrRawCluster__
 #define __TrRawCluster__
 
@@ -15,9 +15,9 @@
 ///\date  2008/02/16 AO  Renaming and new methods
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/04/03 08:39:24 $
+/// $Date: 2009/06/26 17:15:43 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "TObject.h"
@@ -157,10 +157,16 @@ class AMSTrRawCluster : public AMSlink {
   static void lvl3CompatibilityAddress(
       int16u address,
       integer & strip, integer & va, integer & side,  integer &drp){
-    drp=address%100;
-    strip=address/1000;
-    va=strip/64;
+    drp=(address>>10)&31;
+    va=(address>>6)&15;
+    strip=((address)&63)+(va%10)*64; 
+    //     drp=address%100;
+    //     strip=address/1000;
+    //     va=strip/64;
     side=va>9 ? 0 : 1;
+
+  //   printf("----------------->>>>>>   address  %d,  strip %d , va %d ,  side %d,  drp %d\n",
+    //   address,	   strip,va, side,drp);
   }
   
  /// chek some bits into cluster status
