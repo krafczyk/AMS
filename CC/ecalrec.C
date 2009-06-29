@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.118 2009/02/20 14:12:17 choutko Exp $
+//  $Id: ecalrec.C,v 1.119 2009/06/29 13:26:16 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -141,7 +141,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   }
   else if(nopedsubt){
     cerr<<"AMSEcalRawEvent::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
-    exit(2);
+    //exit(2);
   }
 //
 //----> fill arrays for Hi2Low-ratio calc.(in REUN-calibration):

@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.91 2009/06/22 11:25:45 choutko Exp $
+//  $Id: event.h,v 1.92 2009/06/29 13:26:26 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -110,6 +110,7 @@ static AMSEvent * _Head[maxthread];
 static int  _Wait[maxthread];
 static uinteger _Size[maxthread];
 static uint64 _RunEv[maxthread];
+static bool _Barrier;
 static AMSNodeMap  EventMap;
 #pragma omp threadprivate(EventMap)
 static ShuttlePar Array[60];
@@ -204,6 +205,7 @@ integer _setheadC( AMSID id, AMSlink * p);
 void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
+static bool & Barrier(){return _Barrier;}
 virtual void _init();
 void _init(DAQEvent*pdaq);
 static uinteger get_thread_num(){

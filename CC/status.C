@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.43 2009/06/26 12:29:03 choutko Exp $
+//  $Id: status.C,v 1.44 2009/06/29 13:26:16 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -13,7 +13,7 @@ void AMSStatus::_init(){
 }
    
 ostream & AMSStatus::print(ostream & stream)const{
-  return(AMSID::print(stream)  <<  " Status" << endl);
+  return(AMSID::print(stream)  << endl<<" Errors : "<<_Errors<<endl << "Accepted : "<<_Accepted<<endl<< " Rejected : "<<_Rejected<<endl);
 }
 
 AMSStatus* AMSStatus::create(int version){
@@ -82,6 +82,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
 
 
 AMSEvent::ResetThreadWait(1);
+AMSEvent::Barrier()=true;
 cout <<"  in barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
 #pragma omp barrier
 _Offset=9223372036854775807LL;
@@ -91,6 +92,7 @@ _Offset=9223372036854775807LL;
      
     if(offset<_Offset)_Offset=offset;
     if(AMSEvent::get_thread_num()==0){
+     AMSEvent::Barrier()=false;
     _Nelem=0;
     _Run=run;
     _Begin=time;
@@ -131,6 +133,7 @@ void AMSStatus::updates(uinteger run, uinteger evt, uinteger* status, time_t tim
   }
   else {
       cerr<<"AMSStatus::updates-E--NoMatchFoundRun "<<run<<" " <<evt<<endl;
+#pragma omp critical (st1)
       _Errors++;
   }
   if(out==_Nelem && AMSFFKEY.Update && isDBUpdateR()){
@@ -142,6 +145,7 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
   uinteger one=1;
   if(_Run && run != _Run){
    cerr<<"AMSStatus::getstatus-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
+#pragma omp critical (st1)
    _Errors++;
    return statusI((one<<31),0);
   }
@@ -157,12 +161,14 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
  }
  else if(repeat<10  ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
+#pragma omp critical (st1)
    _Errors++;
    repeat++;
    return statusI((one<<31),0);
  }
  else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
+#pragma omp critical (st1)
    _Errors++;
    repeat++;
    return statusI((one<<31),0);
@@ -292,15 +298,18 @@ integer AMSStatus::_statusok(statusI status){
           }
         }
         if(!local){
+#pragma omp critical (statusrej)
           _Rejected++;
           return 0;
         }
       }
     }
     else if(isDBUpdateR()){
+#pragma omp critical (statusrej)
      _Rejected++;
      return 0;
     }   
+#pragma omp critical (statusacc)
     _Accepted++;
     return 1;
 
@@ -327,12 +336,14 @@ integer AMSStatus::getnextok(){
   uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
      if(offset<_Offset+_Status[2][_Nelem-1]){
        ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][_Nelem-1]);
+       _Hint=_Nelem-1;
+       return skipped;
      } 
 }
  else  if(AMSFFKEY.Update && isDBUpdateR()){
    UpdateStatusTableDB();
  }
- return skipped;
+ return 0;
 }
 
 void AMSStatus::UpdateStatusTableDB(){

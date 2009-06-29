@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.430 2009/06/26 12:29:03 choutko Exp $
+//  $Id: event.C,v 1.431 2009/06/29 13:26:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -80,6 +80,7 @@ extern LMS* lms;
 #endif
 //
 //
+bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 AMSEvent* AMSEvent::_Head[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -161,8 +162,10 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    AMSEvent::ResetThreadWait(1);
+Barrier()=true;
 #pragma omp barrier 
 //#pragma omp master
+//cout <<"AMSAEvent::_init in barrier "<<AMSEvent::get_thread_num()<<endl;
 if(AMSEvent::get_thread_num()==0)
 {
    // get rid of crazy runs
@@ -172,6 +175,7 @@ if(AMSEvent::get_thread_num()==0)
    DAQEvent::initO(_run,getid(),gettime());
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
+   Barrier()=false;
 
 
   if(_run != SRun){
@@ -202,7 +206,9 @@ if(AMSEvent::get_thread_num()==0)
 
 
    cout <<" AMS-I-New Run "<<_run<<endl;
-
+  if(STATUSFFKEY.status[32]){
+    cout<<*(AMSJob::gethead()->getstatustable())<<" Triggers "<<GCFLAG.IEVENT<<endl;;
+  }
 }
 #pragma omp barrier 
 }
@@ -1256,12 +1262,16 @@ void  AMSEvent::write(int trig){
 	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
 	{
    AMSEvent::ResetThreadWait(1);
+Barrier()=true;
 #pragma omp barrier 
+cout <<"AMSAEvent::writefile in barrier "<<AMSEvent::get_thread_num()<<endl;
+
 if(AMSEvent::get_thread_num()==0)
 	  {
 
 	    AMSJob::gethead()->uhend();
 	    AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
+            Barrier()=false;
 	  }
 #pragma omp barrier 
 	  if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
@@ -2643,9 +2653,10 @@ void AMSEvent::_printEl(ostream & stream){
                                           <<","<<TOF2JobStat::gettemp(2,0)<<","<<TOF2JobStat::gettemp(3,0);
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr){
-    stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime()<<endl;
+    stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime();
   }
   //PZ FIXME OBSOLETE stream <<" AverMagnetTemper:"<<MagnetVarp::getmeanmagnetmtemp()<<endl;
+ stream <<" Thread "<<AMSEvent::get_thread_num()<<endl;
 }
 //=====================================================================
 void AMSEvent::_writeEl(){

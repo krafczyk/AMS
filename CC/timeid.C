@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.104 2009/06/25 13:44:09 choutko Exp $
+//  $Id: timeid.C,v 1.105 2009/06/29 13:26:16 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -216,6 +216,7 @@ bool AMSTimeID::write(const char * dir, int slp){
 	_convert(pdata,ns);
 	fbin.write((char*)pdata,ns*sizeof(pdata[0]));
 	fbin.close();
+        cout <<"AMSTimeId::write-I-"<<fnam<<" written "<<endl;
 	delete [] pdata;
 	//  touch the directory
 
@@ -283,10 +284,12 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #ifdef _OPENMP
   cout <<" in barrier AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
   AMSEvent::ResetThreadWait(1);
+AMSEvent::Barrier()=true;
 #pragma omp barrier 
   if( omp_get_thread_num()==0) {
     ok= read(dir,id,asktime,index)?1:0;
     if(ok && _trigfun)_trigfun();
+    AMSEvent::Barrier()=false;
   }
   else ok=1;
 #else

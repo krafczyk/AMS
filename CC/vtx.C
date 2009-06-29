@@ -200,7 +200,7 @@ void AMSVtx::set_vertex(){
 {
 
   int number_of_pairs = 0;
-  float maxz=200;
+  float maxz=2000;
   for (int i0=0; i0<_Ntracks-1; i0++){ 
    for (int i1=i0+1; i1<_Ntracks; i1++){ 
 
@@ -252,7 +252,6 @@ if(checkstatus(AMSDBc::BAD)){
 
 
   int number_of_pairs = 0;
-  float maxz=200;
   for (int i0=0; i0<_Ntracks-1; i0++){ 
    for (int i1=i0+1; i1<_Ntracks; i1++){ 
 
@@ -464,68 +463,9 @@ AMSVtx::AMSVtx(int ntracks, AMSTrTrack *ptrack[]): AMSlink() {
   _Theta = U.gettheta();
   _Phi = U.getphi();
 
-
-  _Vertex = AMSPoint(0.0, 0.0, 0.0);
-  if (NTrTrack()<2) return;
-
-  // Find minimum distance in the case of 2 tracks
-  //  if (_Ntracks==2) {
-
-  //  VC 12-18-2003
-  //  Correct vertex coordinates
-  //
-  int number_of_pairs = 0;
-  float maxz=200;
-  for (int i0=0; i0<NTrTrack()-1; i0++){ 
-    for (int i1=i0+1; i1<NTrTrack(); i1++){ 
-
-      AMSDir dir[2];
-
-
-      // PZ FIXME
-      dir[0] = AMSDir(_Ptrack[i0]->GetTheta(),_Ptrack[i0]->GetPhi());
-      dir[1] = AMSDir(_Ptrack[i1]->GetTheta(),_Ptrack[i1]->GetPhi());
-
-      number dirprod = dir[0].prod(dir[1]);
-      AMSPoint deltax =  _Ptrack[i0]->GetP0() - _Ptrack[i1]->GetP0();
-
-      number lambda[2];
-      if (fabs(dirprod)<1.) {
-	AMSPoint aux = dir[0] - dir[1]*dirprod;
-	lambda[0] = - deltax.prod(aux) / (1.-dirprod*dirprod);
-	aux = dir[1] - dir[0]*dirprod;
-	lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
-	AMSPoint poi[2];
-	poi[0] = AMSPoint(_Ptrack[i0]->GetP0()+dir[0]*lambda[0]);
-	poi[1] = AMSPoint(_Ptrack[i1]->GetP0()+dir[1]*lambda[1]);
-	number mom=fabs(_Ptrack[i0]->GetRigidity())+fabs(_Ptrack[i1]->GetRigidity());
-	//       cout <<" poi0 "<<poi[0]<<endl;
-	//       cout <<" poi1 "<<poi[1]<<endl;
-	if(fabs(poi[0][2])<maxz && fabs(poi[1][2])<maxz){
-	  number_of_pairs++;
-	  for (int j=0; j<3; j++) {
-	    _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->GetRigidity())/mom;
-	    _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->GetRigidity())/mom;
-	  }
-	}
-	else{
-	  static int nerr=0;
-	  if(nerr++<100)cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
-	  setstatus(AMSDBc::BAD);
-	}
-      }
-
-   
-    }
-  }
-  for (int j=0; j<3; j++) {
-    if(number_of_pairs)_Vertex[j] = _Vertex[j]/(number_of_pairs);
-  }
+   set_vertex();
 
   _filled=1;
-#ifdef __AMSDEBUG__
-  if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
-#endif  
 
 }
 
