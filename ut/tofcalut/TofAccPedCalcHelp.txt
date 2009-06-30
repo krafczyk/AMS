@@ -1,6 +1,11 @@
-==> Program create TOF|ACC-pedestals tables (ped-files) <==
+
+        Tof/Acc pedestals calibration session.
+	
+     It creates TOF|ACC-pedestals tables (ped-files) using
+     Science Data (if in raw format) or OnBoard-created pedestals
+     tables. 
    
-  It can perform the following actions:
+     The program can perform the following actions:
 
     1) Scan standard AMS Daq-dirs and select all DAQ-files in 
        pre-defined dates(or run-numbers) range (it is implied
@@ -19,7 +24,7 @@
        to calculate ped_tables. As the result you have
        tofp(antp)_ds(tb)_rl.runnumber files and related 
        log-files written to working directory
-       (/f2users/tofaccuser/pedcalib).
+       (/f2users/tofaccuser/headquaters/amsjobwd).
        
     3) If required, can give some info on the content of 
        ped_tables and their behaviour in the time (you need 

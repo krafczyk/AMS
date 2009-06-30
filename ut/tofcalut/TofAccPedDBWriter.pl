@@ -1242,7 +1242,6 @@ sub dlen_tscan
   my($laymx,$barmx,$pmmx);
   if($tofantsel eq "useTOF"){$laymx=4;}
   if($tofantsel eq "useANT"){$laymx=1;}
-print "maxlays:".$laymx,"\n";
   my $seqnum;
   my ($top,$bot,$mid);
 #
@@ -1506,7 +1505,7 @@ sub view_JobLog
   if($fileidvar ne ""){
     my $stat=0;
     my $fname=$pathpeds."/".$fileidvar.".log";
-    $stat=system("nedit $fname");
+    $stat=system("nedit -read $fname");
     if($stat != 0){
       show_warn("   <-- View_JobLog Error: fail to view file !");
       return;
@@ -2487,6 +2486,7 @@ UPDATE:
   $mwnd->update;
 #
 #---> write selected ped-files into DB:
+# (all run-logs will be temporary written in common log-file "dbwlogf.log" in /amsjobwd)
 # 
   open(DBWLOGF,"+> $dblfn") or die show_warn("   <-- Cannot open $dbwlfname  !");# clear file if exists
   for($i=0;$i<$nelem;$i++){#<--- selected files loop 

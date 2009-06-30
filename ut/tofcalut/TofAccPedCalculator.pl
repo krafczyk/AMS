@@ -7,6 +7,7 @@ my $prgfrheight=0.08;
 my $jclfrheight=0.05;
 
 #---> imp.glob.const, vars and arrays:
+$PedFName="";
 $outlogf="out.log";
 $binw_tev=120;#binwidth(sec/pix) for time-evolution graphs(2 min)
 $last_pedscanned_file_num=0;
@@ -137,7 +138,7 @@ $set_fram->Label(-text=>"PedsSource:",-font=>$font2,-relief=>'groove')
 					       -relwidth=>0.3, -relheight=>$drh2,
                                                -relx=>0, -rely=>$shf2);
 $pedcaltyp="undefined";
-$indat_rbt=$set_fram->Radiobutton(-text=>"RawSciData",-font=>$font2, -indicator=>0, 
+$indat_rbt=$set_fram->Radiobutton(-text=>"SciData(RawFmt)",-font=>$font2, -indicator=>0, 
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red, 
 						 -activebackground=>yellow, 
@@ -826,15 +827,15 @@ sub setRunDefs
      $par5_e_state='normal';
      $stjob_b_state='normal';
      $Evs2Read=4000;
-     $MinEvsInFile=10000;
+     $MinEvsInFile=10000;# just to avoid rubbish runs
      $RunType="SCI";
      $FileSize=30;#mb
   }
   else{#OnBoardTable
-     $TruncCut="dummy";
+     $TruncCut="0";
      $par5_e_state='disabled';
      $stjob_b_state='normal';
-     $Evs2Read=1;
+     $Evs2Read=500;
      $MinEvsInFile=1;
      $RunType="CAL";
      $FileSize=0.5;#mb
@@ -1030,7 +1031,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
 #	$path =~ s/$\d+(?=\/)//s;
         $fdat=run2time($starttime);
 	$fdat=substr($fdat,0,16);
-#	print "type=",$type," Dtyp=",$rtype," Conf=",$conf," SubDetPat=",$subdetpat," Rtype=",$rtype,"\n";
+	print "type=",$type," Dtyp=",$rtype," Conf=",$conf," SubDetPat=",$subdetpat," Rtype=",$rtype," fsize=",$sizemb,"\n";
 	if($rtype eq $RunType){#<-- use only requested runtype(LAS,SCI,CAL or UNK)
           $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  Path:".$path."\n";
           $logtext->insert('end',$curline);
@@ -1038,7 +1039,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
           $daqfstat[$ndaqfound]=1;#status=found
 	  if(($sizemb>$FileSize)
 	              && ($nevents>=$MinEvsInFile)
-		      && (($subdetpat & $SubDetMsk) == $SubDetMsk)
+#tempor		      && (($subdetpat & $SubDetMsk) == $SubDetMsk)
 		                                                  ){
             $daqfstat[$ndaqfound]+=10;#status=selected(good)
             $ndaqgood+=1;
@@ -1246,7 +1247,7 @@ sub StartJob
   elsif($pedcaltyp eq "Data"){$pedtyp="ds";}
   else{$pedtyp="tb";}
   $logfn=$detname."_".$pedtyp."_rl.";
-  $pedfname=$logfn;# is common part of all ped-files names (i.e. tofp[antp]_ds[tb,cl]_rl.)
+  $PedFName=$logfn;# is common part of all ped-files names (i.e. tofp[antp]_ds[tb,cl]_rl.)
 #
   $percent=0;
   $perc_done=0;
@@ -1257,7 +1258,7 @@ sub StartJob
 #---> clean amsjobwd-dir from old ped/ped.log-files:
   my $stat=0;
   my $dir=$workdir.$amsjwd;
-  my $fn2clear=$dir."/".$pedfname."*";
+  my $fn2clear=$dir."/".$PedFName."*";
   $stat = system("rm -f $fn2clear");
   if($stat != 0){show_warn("   <-- There are no any old ped-files to clear in amsjobwd-dir !");}
 #
@@ -1271,6 +1272,7 @@ sub StartJob
   push(@daqfstatr,@daqfstat);#save to tempor.array for possible re-StartJob without DAQ-dir rescan.
 #
 #---> Run gbatch for each selected daq-file:
+# (each run will create his own log-file like tofp_tb_rl.nnnn.log in amsjobwd)
 #
   for($i=0;$i<$ndaqfound;$i++){#<--- selected daq-files loop
     if($daqfstat[$i] == 11){#selected
@@ -1697,7 +1699,7 @@ sub dlen_tscan
 #
 #
   for($i=0;$i<$ndaqfound;$i++){#
-    $sfname=$workdir.$amsjwd."/".$pedfname.$daqfrunn[$i];
+    $sfname=$workdir.$amsjwd."/".$PedFName.$daqfrunn[$i];
     $nzlines=0;
     $nwords=0;
     @globpeds=();#store all data of the file
@@ -2002,7 +2004,7 @@ sub ped_tscan
   $plot3_actf+=1;
 #
   for($i=0;$i<$ndaqfound;$i++){#<--- selected files loop
-    $sfname=$workdir.$amsjwd."/".$pedfname.$daqfrunn[$i];
+    $sfname=$workdir.$amsjwd."/".$PedFName.$daqfrunn[$i];
     $nzlines=0;
     $nwords=0;
     @globpeds=();#store all data of the file
@@ -2090,7 +2092,7 @@ sub item_mark
       }
     }
     if($elem_num>=0 && $elem_num<$ndaqfound){
-      $fnam=$pedfname.$daqfrunn[$i];
+      $fnam=$PedFName.$daqfrunn[$i];
       $daqfstat[$i] = 0;# bad
       $message="Select $fnam as bad ($elem_num-th in the FileList) !";
       $mwnd->bell;
@@ -2112,7 +2114,7 @@ sub item_mark
       }
     }
     if($elem_num>=0 && $elem_num<$ndaqfound){
-      $fnam=$pedfname.$daqfrunn[$i];
+      $fnam=$PedFName.$daqfrunn[$i];
       $daqfstat[$i] = 1;# good
       $message="Restore $fnam as good ($elem_num-th in the FileList) !";
     }
@@ -2138,7 +2140,7 @@ sub item_mark1
 #
   if($elem_num>=0 && $elem_num<$plot_pntmem){
     $findx=$plot_fileids[$elem_num];
-    $fnam=$pedfname.$daqfrunn[$findx];
+    $fnam=$PedFName.$daqfrunn[$findx];
     $fileidvar=$fnam;# show name
   }
   else{
@@ -2157,7 +2159,7 @@ sub file_scan
   $last_pedscanned_file_num=0;
   if($fileidvar ne ""){
     for($i=0;$i<$ndaqfound;$i++){#<--- selected files loop
-      if($fileidvar eq ($pedfname.$daqfrunn[$i])){
+      if($fileidvar eq ($PedFName.$daqfrunn[$i])){
         $last_pedscanned_file_num=1+$i;
 	last;
       }
@@ -2521,7 +2523,7 @@ sub sig_tscan
   $plot2_actf+=1;
 #
   for($i=0;$i<$ndaqfound;$i++){#<--- selected files loop
-    $sfname=$workdir.$amsjwd."/".$pedfname.$daqfrunn[$i];
+    $sfname=$workdir.$amsjwd."/".$PedFName.$daqfrunn[$i];
     $nzlines=0;
     $nwords=0;
     @globpeds=();#store all data of the file
@@ -2600,7 +2602,7 @@ sub mark_file
   if($fileidvar ne ""){
     my $flag=0;
     for($i=0;$i<$ndaqfound;$i++){#<--- selected files loop
-      if($fileidvar eq ($pedfname.$daqfrunn[$i])){
+      if($fileidvar eq ($PedFName.$daqfrunn[$i])){
         if($daqfstat[$i]==111){
           $file_remove_btext="^^^ Mark above file as good ^^^";
 	  $fentrw->configure(-foreground=>"red");
@@ -2647,20 +2649,20 @@ sub quitsess
     show_messg("\n   <-- Moving good ped/log-files to $pedsdir storage...");
     for($i=0;$i<$ndaqfound;$i++){#<--- processed daq-files loop
       if($daqfstat[$i] == 111){
-        $curfn=$pedfname.$daqfrunn[$i];
+        $curfn=$PedFName.$daqfrunn[$i];
 	$fnfr=$workdir.$amsjwd."/".$curfn;
 	$fnto=$workdir.$pedsdir."/".$curfn;
         move($fnfr,$fnto) or show_warn("   <-- PedsMove to $pedsdir failed for $curfn, $!");# move files to peddir
-        $curfn=$pedfname.$daqfrunn[$i].".log";
+        $curfn=$PedFName.$daqfrunn[$i].".log";
 	$fnfr=$workdir.$amsjwd."/".$curfn;
 	$fnto=$workdir.$pedsdir."/".$curfn;
         move($fnfr,$fnto) or show_warn("   <-- LogsMove to $pedsdir failed for $curfn, $!");# move files to peddir
       }
       elsif($daqfstat[$i] == 211){#remove bad ped/log-files
-        $curfn=$pedfname.$daqfrunn[$i];
+        $curfn=$PedFName.$daqfrunn[$i];
 	$fnfr=$workdir.$amsjwd."/".$curfn;
         system("rm -f $fnfr");
-        $curfn=$pedfname.$daqfrunn[$i].".log";
+        $curfn=$PedFName.$daqfrunn[$i].".log";
 	$fnfr=$workdir.$amsjwd."/".$curfn;
         system("rm -f $fnfr");
       }
