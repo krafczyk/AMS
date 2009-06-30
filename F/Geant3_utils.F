@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.7 2009/01/28 12:50:17 choutko Exp $
+* $Id: Geant3_utils.F,v 1.8 2009/06/30 14:50:10 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.8  2009/06/30 14:50:10  choutko
+* *** empty log message ***
+*
 * Revision 1.7  2009/01/28 12:50:17  choutko
 * *** empty log message ***
 *
@@ -110,7 +113,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.7 2009/01/28 12:50:17 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.8 2009/06/30 14:50:10 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -1834,11 +1837,12 @@ c         if(pmom_t(4)/pmom_t(5)*xm_proton.gt.ddcutt)then
 *
 *        Secondary!
 *
-c         write(*,*)'ABUFIN- secondary!!!',pmom_t(4),pmom_t(6)
             intt=1
             NGKINE = min(NGKINE + 1,mxgkin)
             IGEPAR = IAFPAR(zmed)
             JPA = LQ(JPART-IGEPAR)
+c         write(*,*)'ABUFIN- secondary!!!',pmom_t(4),pmom_t(6),
+c     +    ngkine,jpart,igepar,jpa,zmed,ipart
             AGEMAS = Q(JPA+7)
             PGEANT = pmom_t(4)
             GKIN(1,NGKINE)=pmom_t(1)*PGEANT
@@ -1865,6 +1869,7 @@ c         write(*,*)'ABUFIN- secondary!!!',pmom_t(4),pmom_t(6)
            real *4 ion(54),uw(1)
            character *50 cht
            integer ipart(54)
+           save ipart,ion
            data ij /0/
            if(ij.eq.0)then
             ipart(1)=14

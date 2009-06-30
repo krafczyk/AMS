@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.634 2009/06/26 12:00:36 choumilo Exp $
+// $Id: job.C,v 1.635 2009/06/30 14:50:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2700,6 +2700,10 @@ end.tm_year=TKFIELD.iyear[1];
  char FieldMapName[100];    
  if(strstr(getsetup(),"AMS02D") ){    
    sprintf(FieldMapName,"MagneticFieldMapD");
+    }
+    else if(strstr(getsetup(),"AMS02PreAss")){
+   sprintf(FieldMapName,"MagneticFieldMap09A");
+    MAGSFFKEY.rphi=1;
     }
     else{
    sprintf(FieldMapName,"MagneticFieldMap07");

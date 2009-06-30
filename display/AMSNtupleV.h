@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.24 2009/01/07 12:42:33 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.25 2009/06/30 14:50:10 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -414,11 +414,11 @@ TrTrackV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),THelix(){
 
  TrTrackR *pcl=ev->pTrTrack(ref);
 if(pcl){
-   Double_t Bfield = -0.8;	// in minus-x direction of AMS
+   Double_t Bfield = -0.4;	// in minus-x direction of AMS
    Double_t P0[3];
    Double_t V0[3];
    Double_t Axis[3]={-1,0,0};
-   Double_t Range[2]={-60,60};
+   Double_t Range[2]={-75,75};
      for(int i=0;i<3;i++)P0[i]=pcl->P0[i];
      
      V0[0]=pcl->Rigidity * sin(pcl->Theta) * cos(pcl->Phi);

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.24 2009/01/07 14:02:08 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.25 2009/06/30 14:50:10 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -772,7 +772,9 @@ for(int i=0;i<ev->nParticle();i++){
     array[k*3+2]=pcl->TrPMTPos[2]+addon;
     rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
     rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
-    while(rp>rc  && ray.Z()<0){
+    const int miter=1000;
+    int iter=0;
+    while(rp>rc  && ray.Z()<0 && iter++<miter){
       zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
       //cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<zl<<endl;
       // take iterations

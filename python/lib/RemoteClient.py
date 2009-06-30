@@ -2493,10 +2493,12 @@ class RemoteClient:
             print "<HR>"
             print "<table border=1>"
         for type in types:
-           sql="select path from datafiles where type like '%s%%'" %(type)
+           sql="select path from datafiles where type like '%s%%' " %(type)
+           sql=sql+" and status not like '%BAD%'"
            files=self.sqlserver.Query(sql)
            for file in files:
-                sysc="ln -sf "+file[0]+" /Offline/RunsDir/"+type+"/"
+#                sysc="ln -sf "+file[0]+" /Offline/RunsDir/"+type+"/"
+                sysc="ln -sf "+file[0]+" /Offline/RunsDirG/"+type+"/"
                 os.system(sysc)
         if(run2p!=0):
             rundd=" and datafiles.run=%d " %(run2p)

@@ -1,11 +1,11 @@
-*  $Id: mfield.F,v 1.30 2009/06/19 14:31:08 choutko Exp $
+*  $Id: mfield.F,v 1.31 2009/06/30 14:50:10 choutko Exp $
 
 
       subroutine readmfield_rphi
-c    
 c     should be called if rphi!=0
 c
 #      include "mfield.h"
+       real radc(nrad),phic(nphi),zrc(nzr)
        real hxy(3,3),x1(3),b1(3)
        real *8 stval,step,bnd1,bnd2,val,error,fmin,fedm,arglis(10)
        external fcn
@@ -23,6 +23,9 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
             do k=1,nzr
              read(21,*)rad(i),phi(j),zr(k),
      +       bxr(i,j,k),byr(i,j,k),bzr(i,j,k)
+             radc(i)=rad(i)
+             phic(j)=phi(j)
+             zrc(k)=zr(k)
              rad(i)=rad(i)/10.
              phi(j)=phi(j)*pi/180.
              zr(k)=zr(k)/10.
@@ -103,6 +106,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *
 *       
         if(magstat.ge.0)then
+
           write(*,*)'Opening design rphi field file...'
           OPEN(22,FILE=amsdatadir(1:amsdlength)//'design.'//fname,
      +     STATUS='OLD',form='formatted')
@@ -122,7 +126,62 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
            enddo
           enddo
           close(22)
+          write(*,*)'Closing design rph field file...'
+
+/*
+          write(*,*)'Opening design xyz field file...'
+          OPEN(22,FILE=amsdatadir(1:amsdlength)//'design.'//fname,
+     +     STATUS='OLD',form='formatted')
+          fac=0.498e-3
+          do i=1,nx
+           do j=1,ny
+            do k=1,nz
+             read(22,*)x(i),y(j),z(k),bxc(i,j,k),byc(i,j,k),bzc(i,j,k)
+             x(i)=x(i)/10.
+             y(j)=y(j)/10.
+             z(k)=z(k)/10.
+             bxc(i,j,k)=bxc(i,j,k)*10 *fac
+             byc(i,j,k)=byc(i,j,k)*10. *fac
+             bzc(i,j,k)=bzc(i,j,k)*10. *fac
+            enddo
+           enddo
+          enddo
+          na(1)=nx
+          na(2)=ny
+          na(3)=nz
+          call ucopy(x(1),xyz(1),nx)
+          call ucopy(y(1),xyz(1+nx),ny)
+          call ucopy(z(1),xyz(1+nx+ny),nz)
+          close(22)
+          write(*,*)'Closing design xyz field file...'
+*
+*  open and write corresponding r-phi file
+*          
+          x1(1)=0
+          x1(2)=0
+          x1(3)=0
+          rphi=0
+          call gufldrc(x1,b1)
+          write(*,*)' b1',b1
+          OPEN(22,FILE=amsdatadir(1:amsdlength)//'design_rphi.'//fname,
+     +     STATUS='new',form='formatted')
+          do i=1,nrad
+           do j=1,nphi
+            do k=1,nzr
+             x1(1)=radc(i)/10.*cos(phic(j)/180.*pi)
+             x1(2)=radc(i)/10.*sin(phic(j)/180.*pi)
+             x1(3)=zrc(k)/10.
+             rphi=0
+             call gufldrc(x1,b1)
+             write(22,*)radc(i),phic(j),zrc(k),
+     +       b1(1)/10,b1(2)/10,b1(3)/10
+            enddo
+           enddo
+          enddo
+          close (22)
           write(*,*)'Closing design rphi field file...'
+          call exit 
+*/
         else 
           write(*,*)'Creating distorted rphi field file...'
           OPEN(22,FILE=amsdatadir(1:amsdlength)//'distorted.'//fname,

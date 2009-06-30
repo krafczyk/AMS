@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.12 2008/04/16 10:19:52 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.13 2009/06/30 14:50:11 choutko Exp $
 #include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -97,7 +97,7 @@ void AMSAxAMSHist::ShowSet(Int_t Set){
    TF1 f1("myg","[0]*exp(-(x-[1])/[2]*(x-[1])/[2]/2)",0,2);
    f1.SetParameter(1,1.);
    f1.SetParameter(2,0.05);
-   _filled[3]->Fit("myg","Q");
+   //_filled[3]->Fit("myg","Q");
 gPad->Clear();
 TVirtualPad * gPadSave = gPad;
 int i;

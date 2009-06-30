@@ -1,4 +1,4 @@
-*  $Id: mfield.h,v 1.14 2009/06/19 14:31:08 choutko Exp $
+*  $Id: mfield.h,v 1.15 2009/06/30 14:50:10 choutko Exp $
       integer nx,ny,nz
        PARAMETER (nx=41,ny=41,nz=41)
 c       PARAMETER (nx=90,ny=90,nz=164)
@@ -14,7 +14,6 @@ c       PARAMETER (nx=90,ny=90,nz=164)
 
 
       integer nrad,nphi,nzr
-c      PARAMETER (nrad=8,nphi=73,nzr=23)
       PARAMETER (nrad=9,nphi=73,nzr=37)
       real rad(nrad),phi(nphi),zr(nzr)
       real Bxr(nrad,nphi,nzr), byr(nrad,nphi,nzr),

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.556 2009/06/25 13:44:15 choutko Exp $
+# $Id: RemoteClient.pm,v 1.557 2009/06/30 14:50:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -548,6 +548,8 @@ my %mv=(
      push @{$self->{FileDB}}, "v3.00mcdb.tar.gz";
      push @{$self->{FileDB}}, "v4.00mcdb.tar.gz";
      push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
+     push @{$self->{FileDB}}, "v5.00mcdb.tar.gz";
+     push @{$self->{FileDB}}, "v5.00rddb.tar.gz";
     }
      $#{$self->{FileAttDB}}=-1;
     $key='FileAttDB';
@@ -562,6 +564,8 @@ my %mv=(
       push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00rddb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v5.00mcdb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v5.00rddb.addon.tar.gz";
     }
 
 #-
@@ -786,7 +790,7 @@ if($#{$self->{DataSetsT}}==-1){
      $#{$dataset->{jobs}}=-1;
      $dataset->{eventstodo} = 0;
      $dataset->{eventstotal} = 0;
-     $dataset->{version}="v5";
+     $dataset->{version}="v4.00";
      $dataset->{datamc}=0;
      my @tmpa;
      $#tmpa=-1;
@@ -5781,7 +5785,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
 
               htmlTextField("Begin Time","text",11,"01062005","QTimeB"," (ddmmyyyy)");
               htmlTextField("End Time","text",11,"01062008","QTimeE"," (ddmmyyyy)");
-              htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
+              htmlTextField("Setup","text",20,"AMS02/v4.00","QSetup"," ");
               htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
 
@@ -6249,7 +6253,7 @@ print qq`
           print $q->textfield(-name=>"QTimeE",-default=>"01062008");
           print "<BR>";
                 print "Setup ";
-          print $q->textfield(-name=>"QSetup",-default=>"AMS02");
+          print $q->textfield(-name=>"QSetup",-default=>"AMS02/v4.00");
                 print "Trigger Type ";
           print $q->textfield(-name=>"QTrType",-default=>"AMSParticle");
           print "<BR>";
@@ -6705,7 +6709,7 @@ print qq`
            unlink "$self->{AMSDataDir}/$dbversion/t\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/T\*";
-       if($dbversion=~/v4/){
+       if($dbversion=~/v4/ or $dbversion=~/v5/){
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/ri\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
@@ -6791,7 +6795,7 @@ print qq`
 #        my $dbversion=$ret->[0][0];
          my $dbversion=$dataset->{version};
           my $rtn=0;
-           if($dbversion =~/v4/){
+           if($dbversion =~/v4/ or $dbversion =~/v5/){
 
            closedir THISDIR;
            my $suc=opendir THISDIR,"$self->{AMSDataDir}/DataBase";
@@ -7731,7 +7735,12 @@ anyagain:
         my $setup=$q->param("QSetup");
         if(defined $setup){
         if($setup =~/AMS02/){
+           if($setup =~/v4.00/){
             $dataset->{version}='v4.00';
+           }
+           else{
+            $dataset->{version}='v5.00';
+           }
         }
         elsif($setup =~/AMSSHUTTLE/){
             $dataset->{version}='v3.00';
@@ -7739,8 +7748,11 @@ anyagain:
     }
         else{
          my $setup=$q->param("QTemp");
-         if($setup =~/mc02/){
+         if($setup =~/v4.00/){
             $dataset->{version}='v4.00';
+         }
+         elsif($setup =~/v5.00/){
+            $dataset->{version}='v5.00';
         }
         elsif($setup =~/mc01/){
             $dataset->{version}='v3.00';
@@ -7826,7 +7838,7 @@ anyagain:
            unlink "$self->{AMSDataDir}/$dbversion/A\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/T\*";
-       if($dbversion=~/v4/){
+       if($dbversion=~/v4/ or $dbversion=~/v5/){
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/ri\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
@@ -7911,7 +7923,7 @@ anyagain:
 #        my $dbversion=$ret->[0][0];
          my $dbversion=$dataset->{version};
           my $rtn=0;
-           if($dbversion =~/v4/){
+           if($dbversion =~/v4/ or $dbversion=~/v5/){
            closedir THISDIR;
            my $suc=opendir THISDIR,"$self->{AMSDataDir}/DataBase";
            if(!$suc){
@@ -11395,10 +11407,14 @@ sub DownloadSA {
     push @{$self->{FileDB}}, "v3.00mcdb.tar.gz";
     push @{$self->{FileDB}}, "v4.00mcdb.tar.gz";
     push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
+    push @{$self->{FileDB}}, "v5.00mcdb.tar.gz";
+    push @{$self->{FileDB}}, "v5.00rddb.tar.gz";
 
     push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v4.00rddb.addon.tar.gz";
+    push @{$self->{FileAttDB}}, "v5.00mcdb.addon.tar.gz";
+    push @{$self->{FileAttDB}}, "v5.00rddb.addon.tar.gz";
 
     $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
     $self->{FileBookKeeping}  ="ams02bookkeeping.tar.gz";

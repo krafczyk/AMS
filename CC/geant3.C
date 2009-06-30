@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.129 2009/06/29 13:26:16 choutko Exp $
+//  $Id: geant3.C,v 1.130 2009/06/30 14:50:10 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1129,7 +1129,7 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
       if(GCFLAG.IEOTRI){
         if(!count++)oldtime=tt;
       }
-      if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime)){
+      if((GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT) &&  !(AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->getstatustable() && tt==oldtime) && !AMSEvent::Barrier()){
       continue;
       }
 
