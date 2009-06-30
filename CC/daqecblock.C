@@ -139,6 +139,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   bool DownScal(false);
   static int FirstDScalBlk(0);
   int16u PedSubt[ECSLOTS]={1,1,1,1,1,1,1};//0/1->no/yes PedSubtr at RawEvent creation
+  int16u SlRawFmt[ECSLOTS]={1,1,1,1,1,1,1};//1/0-> raw/not format in slot
 // for PedCalTable(onboard calib)
   static integer FirstPedBlk(0);
   static integer TotPedBlks(0);
@@ -219,13 +220,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     goto BadExit;
   }
 //-----------
-  if(ECREFFKEY.relogic[1]==4)PedCal=true;//tempor(use later info about presence of ClassPedData from header ?)
-  if(!PedCal && ECREFFKEY.relogic[1]==4){
-    if(ECREFFKEY.reprtf[2]>0){
-      cout<<"DAQECBlock::buildraw-W-Not ClassicPedCalibData when classic PedCal job is requested !!!"<<endl;
-      return;
-    }
-  }
+  if(ECREFFKEY.relogic[1]==4)PedCal=true;
 //
   if(ECREFFKEY.relogic[1]==5)PedCal=true;// DownScaledEvents PedCalib job is requested
 // 
@@ -380,6 +375,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 //	  if(ECREFFKEY.reprtf[0]>0)HF1(ECHISTR+70+6*(crat-1)+slot,geant(eleng),1.);
 	  EcalJobStat::daqs3(crat-1,slot,16+12*formt);//lengthOK
 //cout<<"    ComprFMT,EDR_length OK"<<endl;
+	  SlRawFmt[slot]=0;//not the raw format
           while(ebias<eleng){//<---- EDR-words loop (max 2*243 (rdch# + ADC-valie))
 	    rdch=*(p+jbias+ebias);//rdch(ADC-addr)(0-242)
 	    if(rdch>=0 && rdch<=242){// addr ok
@@ -645,12 +641,23 @@ NextBlock:
 	  cout<<"    Aadc(hi/low)="<<padc[0]<<" "<<padc[1]<<endl;
 	  cout<<endl;
         }
-	if(PedSubt[aslt-1])sta=0;//ok(normal RawEvent object with subtracted ped)
-	else sta=1;//NOW it is flag for Validate-stage that Peds was not subtracted !!!
-        padc[2]=0;//no valid Dyn-info in RawEvent for the moment(will be added in Validation)
+	if(PedCal){
+	  if(SlRawFmt[aslt-1]==1 && PedSubt[aslt-1]==0)sta=1;//here is the signal of calib(not pedsubtr) hit
+	  else sta=-1;//something wrong
+	}
+	else{
+	  sta=0;//ok(normal RawEvent object with subtracted ped)
+	  if(SlRawFmt[aslt-1]==1 && PedSubt[aslt-1]==0)sta=-1;//something wrong
+	}
 //
-        if(AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",crat-1),
+        if(sta>=0){
+          padc[2]=0;//no valid Dyn-info in RawEvent for the moment(will be added in Validation)
+          if(AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",crat-1),
                  new AMSEcalRawEvent(sswid,sta,csid,padc)))crsta=1;
+        }
+	else{
+	  cout<<"<=== DAQECBlock::buildraw:Error in Fmt/SubtPeds flags, no hit created !!!"<<endl;
+	}
       }
       for(i=0;i<3;i++){//reset RawEvent adc-buffer
         padc[i]=0;

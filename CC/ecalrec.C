@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.119 2009/06/29 13:26:16 choutko Exp $
+//  $Id: ecalrec.C,v 1.120 2009/06/30 07:17:14 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -101,7 +101,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   }
 //
   if((ECREFFKEY.relogic[1]==4 || ECREFFKEY.relogic[1]==5)){
-    ECPedCalib::hiamreset();//hiamap[][] is threadprivate
+    ECPedCalib::hiamreset();//hiamap[][] is threadprivate (1-event map)
   }  
 //
   for(int nc=0;nc<AMSECIds::ncrates();nc++){ // <-------------- crate(container) loop
@@ -117,7 +117,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
       padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//extract Dynode
       ptr->setadcd(padc[2]);//add Dyn-info(common for 4 pixels) in pixel-object
       sta=ptr->getstatus();
-      if(sta){//in given ah/al/d peds were not subtracted, it means either classic pedcal-run or DownScaled
+      if(sta){//in given ah/al/d peds were not subtracted, it means presence of raw format for calib
 	nopedsubt=true;
 	for(i=0;i<2;i++){//hi/low
 	  swid=id*10+(i+1);//long swid=LTTPG for anodes (P=1-4,G=1/2->hi/low)
@@ -140,8 +140,8 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     return;//PedCal exit with stat=1(bad) to bypass next reco-stages !!!
   }
   else if(nopedsubt){
-    cerr<<"AMSEcalRawEvent::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
-    //exit(2);
+    cerr<<"<=== AMSEcalRawEvent::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
+    return;
   }
 //
 //----> fill arrays for Hi2Low-ratio calc.(in REUN-calibration):

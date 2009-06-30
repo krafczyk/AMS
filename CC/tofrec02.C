@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.60 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: tofrec02.C,v 1.61 2009/06/30 07:17:14 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -135,8 +135,8 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
     isid=idd%10-1;
     stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(PedSubtracted))
     if(stat>0 && TFREFFKEY.relogic[0]==0){
-      cout<<"TOF2RawSide::validate:-E- Found not PedSubtracted Data while NormalRun-Job  !!"<<endl;
-      exit(2);
+      cout<<"<=== TOF2RawSide::validate:-E- Found not PedSubtracted Data while NormalRun-Job  !!"<<endl;
+      return;//exit with bad event-status
     } 
 #ifdef __AMSDEBUG__
     assert(ilay>=0 && ilay<TOF2DBc::getnplns());
