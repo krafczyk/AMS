@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.7 2009/06/26 17:15:33 pzuccon Exp $
+// $Id: TrTrack.C,v 1.8 2009/07/01 16:45:44 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/06/26 17:15:33 $
+///$Date: 2009/07/01 16:45:44 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -103,20 +103,20 @@ AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point)
   AMSTrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone = true;
   par.P0      = point;
-  par.Dir     = AMSDir(std::tan(theta)*std::cos(phi), 
-                       std::tan(theta)*std::sin(phi), -1);
-
+  par.Dir     = AMSDir(theta,phi); 
+  par.Rigidity=1e6;
+  par.ErrRinv  = 1e7;
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     _iHits[i] = _iMult[i] = -1;
     _BField[i]= AMSPoint(0,0,0);
-  par.Residual[i] = 0;
+    par.Residual[i] = 0;
   }
   _Status=0;
   _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
   _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
- 
+  
 }
 
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig)
@@ -150,6 +150,7 @@ AMSTrTrack::~AMSTrTrack()
 
 AMSTrTrackPar &AMSTrTrack::GetPar(int id) {
     int id2= (id==0)? trdefaultfit: id;
+    if(_MagFieldOn==0&& id2 !=kDummy) id2=kLinear;
     if (ParExists(id2)) return _TrackPar[id2];
     cerr << "Warning in AMSTrTrack::GetPar, Parameter not exists " 
          << id << endl;
@@ -213,6 +214,25 @@ AMSPoint AMSTrTrack::GetPentry(int id)
   AMSDir dir(0,0,0);
   Interpolate(zent,  pnt,  dir, id);
   return pnt;
+}
+
+AMSDir AMSTrTrack::GetPdir(int id)
+{
+  double zent = 0;
+
+  for (int i = 0; i < _Nhits; i++) {
+    AMSTrRecHit *hit = GetHit(i);
+    if (hit && TestHitBits(hit->GetLayer(), id)) {
+      double zh = hit->GetCoord().z();
+      if (zent == 0 || zh > zent) zent = zh;
+    }
+  }
+
+
+  AMSPoint pnt(0,0,0);
+  AMSDir dir(0,0,0);
+  Interpolate(zent,  pnt,  dir, id);
+  return dir;
 }
 
 AMSTrRecHit *AMSTrTrack::GetHit(int i) 

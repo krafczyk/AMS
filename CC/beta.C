@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.70 2009/06/25 13:44:09 choutko Exp $
+//  $Id: beta.C,v 1.71 2009/07/01 16:45:44 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -46,19 +46,19 @@ integer AMSBeta::build(integer refit){
   int bfound=0;
   if(nTrtracks>0){
     bfound= BuildBetaFromTrTrack(refit);
-    printf("Reconstructed %d Beta from tracks!\n",bfound);
+    //PZ DEBUG    printf("Reconstructed %d Beta from tracks!\n",bfound);
   }
 
   // if no beta found with TrTracks try with (extrapolated) TRD tracks
   int nTRDtracks=AMSEvent::gethead()->getC(AMSID("AMSTRDTrack",0))->getnelem();
   if(!bfound&&nTRDtracks>0){
     bfound=BuildBetaFromTRDTrack(refit);
-    printf("Reconstructed %d Beta from TRD track!\n",bfound);
+    //PZDEBUG     printf("Reconstructed %d Beta from TRD track!\n",bfound);
 }
   // Try build beat w/o a track if LVL3 is OK
   bfound+=BuildBetaWOTrack(refit);
 
-  printf("Reconstructed total %d Beta!\n",bfound);
+  //PZDEBUG  printf("Reconstructed total %d Beta!\n",bfound);
 
   return 1;
 }
@@ -113,14 +113,14 @@ int AMSBeta::BuildBetaFromTrTrack(integer refit){
 	  AMSPoint dst=AMSBeta::Distance(phit[TOFlay]->getcoo(),phit[TOFlay]->getecoo(),
 					 ptrack,sleng[TOFlay],td);
 	  
-	  	  cerr<< " plane"<< TOFlay  <<" coo: "<<(phit[TOFlay]->getcoo()) <<" err "<<phit[TOFlay]->getecoo()<<endl;
-	        cerr<<"Dist  "<<dst<<endl<<endl;;
+// 	  	  cerr<< " plane"<< TOFlay  <<" coo: "<<(phit[TOFlay]->getcoo()) <<" err "<<phit[TOFlay]->getecoo()<<endl;
+// 	        cerr<<"Dist  "<<dst<<endl<<endl;;
 	  if (dst<=SearchReg*phit[TOFlay]->getnmemb()){
 	    chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	    break;
 	  }
 	}
-	cerr<<"TOFLAY "<<TOFlay<<" chi2 "<<chi2space<<endl;
+	//PZDEBUG	cerr<<"TOFLAY "<<TOFlay<<" chi2 "<<chi2space<<endl;
 	if(phit[TOFlay]) tofpatt|=1<<(TOFlay+1);
       }
       int indx=0;
@@ -317,8 +317,8 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
 	AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
 				       ptrack,sleng[0],td);
 
-	cerr<< " plane 0 coo: "<<(phit[0]->getcoo()) <<" err "<<phit[0]->getecoo()<<endl;
-	cerr<<"Dist  "<<dst<<endl<<endl;;
+// 	cerr<< " plane 0 coo: "<<(phit[0]->getcoo()) <<" err "<<phit[0]->getecoo()<<endl;
+// 	cerr<<"Dist  "<<dst<<endl<<endl;;
 
 	if (!(dst<=SearchReg*phit[0]->getnmemb())) continue;
 	chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
@@ -333,8 +333,8 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
 	  }
 	  AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
 					 ptrack,sleng[1],td);
-	cerr<< " plane 1 coo: "<<(phit[1]->getcoo()) <<" err "<<phit[1]->getecoo()<<endl;
-	cerr<<"Dist  "<<dst<<endl<<endl;;
+	  //PZDEBUG	cerr<< " plane 1 coo: "<<(phit[1]->getcoo()) <<" err "<<phit[1]->getecoo()<<endl;
+	  //PZ DEBUG cerr<<"Dist  "<<dst<<endl<<endl;;
 	  if (!(dst<=SearchReg*phit[1]->getnmemb())) continue;
 	  chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	  // 2-point combination found
@@ -358,8 +358,8 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
 	    }
 	    AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
 					   getecoo(),ptrack,sleng[2],td);
-	cerr<< " plane  2  coo: "<<(phit[2]->getcoo()) <<" err "<<phit[2]->getecoo()<<endl;
-	cerr<<"Dist  "<<dst<<endl<<endl;;
+// 	cerr<< " plane  2  coo: "<<(phit[2]->getcoo()) <<" err "<<phit[2]->getecoo()<<endl;
+// 	cerr<<"Dist  "<<dst<<endl<<endl;;
 
 	    if(!(dst<=SearchReg*phit[2]->getnmemb())) continue;
 	    chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
@@ -383,8 +383,8 @@ int AMSBeta::BuildBetaFromTRDTrack(int refit)  {
 	      }
 	      AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
 					     getecoo(),ptrack,sleng[3],td);
-	cerr<< " plane  3  coo: "<<(phit[3]->getcoo()) <<" err "<<phit[3]->getecoo()<<endl;
-	cerr<<"Dist  "<<dst<<endl<<endl;;
+// 	cerr<< " plane  3  coo: "<<(phit[3]->getcoo()) <<" err "<<phit[3]->getecoo()<<endl;
+// 	cerr<<"Dist  "<<dst<<endl<<endl;;
 	      if(!(dst<=SearchReg*phit[3]->getnmemb())) continue;
 	      chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 	      // 4-point combination found

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.5 2009/06/19 10:22:55 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.6 2009/07/01 16:45:32 pzuccon Exp $
 #ifndef __AMSTrTrack__
 #define __AMSTrTrack__
 
@@ -27,9 +27,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/06/19 10:22:55 $
+///$Date: 2009/07/01 16:45:32 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +116,7 @@ public:
   /// enum of fitting methods; trying to keep compatible with TKFITG
   enum EFitMethods { 
     /// Track without hits (for RICH Compatibility)
-    kDummy         = 0, 
+    kDummy         = -1, 
     /// V. Choutko  fit (5X5 matrix inv, mscat included) : Default final fit
     kChoutko       = 1,
     /// GEANE banded matrix inv  : To be implemented
@@ -288,6 +288,8 @@ public:
 
   /// Get track entry point (first layer of the fitting)
   AMSPoint GetPentry(int id = 0);
+  /// Get track entry point direction (first layer of the fitting)
+  AMSDir GetPdir(int id = 0);
 
   /// Test HitBits
   bool TestHitBits(int layer, int id = 0) { 

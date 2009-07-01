@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.5 2009/06/19 10:22:41 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.6 2009/07/01 16:45:44 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/06/19 10:22:41 $
+/// $Date: 2009/07/01 16:45:44 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -259,7 +259,7 @@ int TrRecon::BuildTrClusters(int rebuild) {
     printf("TrRecon::BuildTrClusters  AMSTrRawCluster Container is Empty  Reconstruction is Impossible !!!\n");
     return -1;
   }
-  else printf( "TrRecon::BuildTrClusters  AMSTrRawCluster Container has %d elements\n",cont->getnelem());
+  //  else printf( "TrRecon::BuildTrClusters  AMSTrRawCluster Container has %d elements\n",cont->getnelem());
 
 
   VCon* cont2=TRCon->GetCont("AMSTrCluster");
@@ -1774,8 +1774,8 @@ void TrRecon::sitkdigi()
   if(cont->getnelem()==0){
     printf("TrSim::sitkdigi()  AMSTrMCCluster Container is Empty  Digitzation is Impossible !!!\n");
     return ;
-  }else
-    printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
+  }
+  //PZDEBUG else   printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
   //Create the map of TrMCClusters
   TrMap<AMSTrMCCluster> MCClMap;
   

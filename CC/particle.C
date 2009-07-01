@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.177 2009/06/26 17:15:33 pzuccon Exp $
+//  $Id: particle.C,v 1.178 2009/07/01 16:45:44 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -64,7 +64,7 @@ bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   //distance 
   number d=(tk_pnt-trd_pnt).norm();
   
-  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
+  //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
   if(fabs(c)>MaxCos && fabs(d) <SearchReg) return true;
   
   return false;

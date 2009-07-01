@@ -12,7 +12,12 @@ jmp_buf  AMSCommonsI::AB_buf;
 int  AMSCommonsI::AB_catch=-1;
 
 uinteger AMSCommonsI::_MaxMem=1400000000;
+
+#ifdef _PGTRACK_
 char AMSCommonsI::_version[]="v4.00";
+#else
+char AMSCommonsI::_version[]="v5.00";
+#endif
 uinteger AMSCommonsI::_build=323;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;

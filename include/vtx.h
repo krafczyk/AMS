@@ -214,6 +214,8 @@ public:
   /// Print out to stdoutput some class info
   void print(){_printEl(cout);}
 
+  void set_vertex();
+
    /// Virtual container
   static VCon* vcon;
 
