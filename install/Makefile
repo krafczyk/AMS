@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.73 2009/06/19 10:23:59 pzuccon Exp $
+#  $Id: Makefile,v 1.74 2009/07/01 16:45:06 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -311,8 +311,11 @@ MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o $(BIN)TrackFit_utils_c.o $(BIN)daqevt_c.o
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o
 
+ifndef PGTRACK
+OBJECTSC += $(BIN)TrackFit_utils_c.o
+endif
 OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
 		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o
 
