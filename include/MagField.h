@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: MagField.h,v 1.2 2009/07/01 17:01:04 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 
@@ -25,9 +25,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2009/07/01 17:01:04 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -159,7 +159,7 @@ public:
   geant ecutge;    /// e/g energy cut for tracking in magnet materials
   integer BTempCorrection; ///  apply(1),not(0) temperature corrections to mfield
   float   BZCorr; /// Z scale for b field (test only)
-
+  int rphi; //???
   void init();
 };
 

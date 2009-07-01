@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $
+// $Id: MagField.C,v 1.2 2009/07/01 17:00:49 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/07/01 17:00:49 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,7 @@ void MAGSFFKEY_DEF::init(){
 
   BTempCorrection=0;
   BZCorr=1; 
-
+  rphi=0;
   return;  
 
 }
