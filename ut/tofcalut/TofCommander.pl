@@ -79,6 +79,8 @@ $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 $prog2run="";
 $outlogf="out.log";
 $binw_tev=120;#binwidth(sec/pix) for time-evolution graphs(2 min)
+$canscrx1=-40;# Pars time-evolution scroll-area (min/max) , all in pixels
+$canscrx2=10000;#at $binw_tev=120(sec/pix) corresp.full time-scale almost 2weeks
 $RunNum=0;
 $RunType=" ";
 $FileSize=0;
@@ -123,7 +125,7 @@ $font2a="times 12 bold";
 $font2b="times 10 bold";
 $font2c="times 16 bold";
 $font3="Helvetica 12 bold italic";#smaller font for entry-widgets
-$font4="Helvetica 12 bold italic";# for Message and Attention
+$font4="Helvetica 14 bold italic";# for Message and Attention
 $font5="Helvetica 10 bold";#sess.logfile window
 $font5b="Helvetica 12 bold";#sess.logfile window big text
 $font5i="Helvetica 10 bold italic";#logfile window italic
@@ -132,6 +134,7 @@ $font7="times 12 bold";
 $font8="times 8 bold";
 $font9="Helvetica 20 bold italic";# for BigAttention
 $font10="Helvetica 18 bold italic";# for BigMessage
+$font11="Helvetica 14 bold italic";# for NormMessage
 #--------------
 #
 #-----> create log-file screen:
@@ -150,6 +153,7 @@ $logtext=$log_fr->Scrolled("Text",
 $logtext->tagConfigure('Attention',-foreground=> red, -font=>$font4);
 $logtext->tagConfigure('BigAttention',-foreground=> red, -font=>$font9);
 $logtext->tagConfigure('BigMessage',-foreground=> blue, -font=>$font10);
+$logtext->tagConfigure('Message',-foreground=> black, -font=>$font11);
 $logtext->tagConfigure('ItalText',-font=>$font4);
 $logtext->tagConfigure('Text',-font=>$font4);
 $logtext->tagConfigure('Yellow',-foreground=> yellow, -font=>$font4);
@@ -292,7 +296,7 @@ sub show_messg {# 1-line message + 1*beep
   elsif($color eq "B"){$tag='Blue';}
   elsif($color eq "G"){$tag='Green';}
   elsif($color eq "Big"){$tag='BigMessage';}
-  else{$tag="";}
+  else{$tag='Message';}
   $message=$text;
   if($tag eq ""){
     $logtext->insert('end',$text."\n");

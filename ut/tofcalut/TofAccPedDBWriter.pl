@@ -133,7 +133,7 @@ $set_fram=$mwnd->Frame(-label=>"Job Conditions :",
                                                       -relx=>0, -rely=>$dirfrheight);
 #---
 $tofantsel="useTOF";
-$tof_rbt=$set_fram->Radiobutton(-text=>"TofScan",-font=>$font2, -indicator=>0,
+$tof_rbt=$set_fram->Radiobutton(-text=>"TofPeds",-font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -145,7 +145,7 @@ $tof_rbt=$set_fram->Radiobutton(-text=>"TofScan",-font=>$font2, -indicator=>0,
 						      -relwidth=>0.5, -relheight=>$drh2,
 						      -relx=>0, -rely=>$shf2);
 #---
-$ant_rbt=$set_fram->Radiobutton(-text=>"AccScan",-font=>$font2, -indicator=>0, 
+$ant_rbt=$set_fram->Radiobutton(-text=>"AccPeds",-font=>$font2, -indicator=>0, 
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red, 
 						 -activebackground=>yellow, 
@@ -227,7 +227,7 @@ $brd_cbt=$set_fram->Checkbutton(-text=>"OnBoardPeds", -font=>$font2, -indicator=
                                                  -relwidth=>0.5, -relheight=>$drh2,
 						 -relx=>0, -rely=>($shf2+4*$drh2));
 #---
-$ofl_cbt=$set_fram->Checkbutton(-text=>"OfflinePeds", -font=>$font2, -indicator=>0,
+$ofl_cbt=$set_fram->Checkbutton(-text=>"Data(RawFMT)Peds", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
                                                  -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -239,7 +239,7 @@ $ofl_cbt=$set_fram->Checkbutton(-text=>"OfflinePeds", -font=>$font2, -indicator=
 						 -relx=>0.5, -rely=>($shf2+4*$drh2));
 #---
 $arcscval=0;#1/0->scan Archive/Normal_store
-$arcscbt=$set_fram->Checkbutton(-text=>"ScanArchive", -font=>$font2, -indicator=>0,
+$arcscbt=$set_fram->Checkbutton(-text=>"SearchInArchive", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -252,7 +252,7 @@ $arcscbt=$set_fram->Checkbutton(-text=>"ScanArchive", -font=>$font2, -indicator=
 $arcscbt->bind("<Button-3>", \&arcscbt_help);
 #----
 $archval=0;#0/1->not/archive processed ped-files
-$archbt=$set_fram->Checkbutton(-text=>"ArchiveOnExit",  -font=>$font2, -indicator=>0, 
+$archbt=$set_fram->Checkbutton(-text=>"ArchiveOnQuit",  -font=>$font2, -indicator=>0, 
                                           -borderwidth=>5,-relief=>'raised',
                                           -selectcolor=>orange,-activeforeground=>red,
 				          -activebackground=>yellow, 
@@ -342,7 +342,7 @@ $jcl_fram=$mwnd->Frame(-label=>"Ped2DB-Job control :",-background => "red",
                                                        -relwidth=>0.3, -relheight=>$jclfrheight,
                                                        -relx=>0, -rely=>($dirfrheight+$setfrheight+$prgfrheight));
 #---
-$scanbt=$jcl_fram->Button(-text => "Scan", -font=>$font2, 
+$scanbt=$jcl_fram->Button(-text => "Search", -font=>$font2, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 			      -background=>"green",
@@ -352,7 +352,7 @@ $scanbt=$jcl_fram->Button(-text => "Scan", -font=>$font2,
                                          -relwidth=>0.25,-relheight=>1);
 $scanbt->bind("<Button-3>", \&scanbt_help);
 #---
-$checkbt=$jcl_fram->Button(-text => "Check", -font=>$font2, 
+$checkbt=$jcl_fram->Button(-text => "CheckQ", -font=>$font2, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 			      -background=>"green",
@@ -887,7 +887,8 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
     $min=$ptime->min;
     $sec=$ptime->sec;
 #
-    $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
+    $time=$year."/".$month."/".$day." ".$hour.":".$min.":".$sec;
+#    $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
     if($debug==1){
 #      printf("Date: %02d:%02d:%02d-%04d/%02d/%02d\n",$hour,$min,$sec,$year,$month,$day);
       $curline=$detnam[$i]." ".$pedtyp[$i]." ".$runs[$i]." ".$processed[$i]."  PedFile time(local): ".$time."\n\n";
@@ -901,8 +902,7 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
         if($files == $sfilelist[$i]){
           $nselem+=1;
           $processed[$i]=1;
-          $curline="     $sfilelist[$i]\n";
-#          $curline="      $sfilelist[$i] is selected, date(local):".$time."\n";
+          $curline="      file $sfilelist[$i] is selected, date: ".$time."\n";
           $logtext->insert('end',$curline);
           $logtext->yview('end');
 	}
@@ -911,8 +911,10 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
         if(($runs[$i]>=$TIMEL && $runs[$i]<$TIMEH) || ($TIMEL > $TIMEH)){
           $nselem+=1;
           $processed[$i]=1;
-          $curline="     $sfilelist[$i]\n";
-#          $curline="      $sfilelist[$i] is selected, date(local):".$time."\n";
+	  if($nselem==1){
+	    show_messg("\n   <--- List of ped-files in search window:","B");
+	  }
+          $curline="      file $sfilelist[$i] is selected, date: ".$time."\n";
           $logtext->insert('end',$curline);
           $logtext->yview('end');
         }
@@ -921,22 +923,29 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
     }
   }#---> endof files loop
   if($nselem == 0){
-    $message="No files selected for processing ?!\n";
+    show_warn("\n   <--- None of files were selected - change date window and repeat scan !!!");
     return;
   }
   else{
-    $curline="   \n   <--- $nselem files in total\n";
-    $logtext->insert('end',$curline);
-    $logtext->yview('end');
+    show_messg("\n   <--- Found $nselem cal-files in dates window:");
   }
-#--- find min/max run# in the directory:
+#--- find min/max run# in the dates window :
   $runmx=0;
   for($i=0;$i<$nelem;$i++){
+    if($processed[$i] == 1){
       if($runs[$i] > $runmx) {$runmx=$runs[$i];}
+    }
   }
   $runmn=$runmx;
   for($i=0;$i<$nelem;$i++){
-    if($runs[$i] <= $runmn) {$runmn=$runs[$i];}
+    if($processed[$i] == 1){
+      if($runs[$i] <= $runmn) {$runmn=$runs[$i];}
+    }
+  }
+#
+  if(($runmx-$runmn)/$binw_tev >= $canscrx2){
+    show_warn("\n   <--- Dates window is too big (>= 2 weeks), change limits  !!!");
+    return;
   }
 #
 #--> redefine some run-dependent params(here SetupName):
@@ -975,8 +984,8 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
   $hour=$ptime->hour;
   $min=$ptime->min;
   $sec=$ptime->sec;
-  $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
-  $curline="        Date(local) of the earliest run in the dir : ".$time."\n";
+  $time=$year."/".$month."/".$day." ".$hour.":".$min.":".$sec;
+  $curline="        Date(local) of the earliest run in the window : ".$time."\n";
   $logtext->insert('end',$curline);
   $logtext->yview('end');
 #
@@ -987,12 +996,12 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
   $hour=$ptime->hour;
   $min=$ptime->min;
   $sec=$ptime->sec;
-  $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
-  $curline="        Date(local) of the   latest run in the dir : ".$time."\n\n";
+  $time=$year."/".$month."/".$day." ".$hour.":".$min.":".$sec;
+  $curline="        Date(local) of the   latest run in the window : ".$time."\n\n";
   $logtext->insert('end',$curline);
   $logtext->yview('end');
 #
-  $curline="  **** NEED TO MODIFY dates window ?? CAN DO THAT NOW and repeate scan !!! ****\n\n";
+  $curline="  **** If you need to modify dates window - do that now and repeate scan !!! ****\n\n";
   $logtext->insert('end',$curline,'Attention');
   $logtext->yview('end');
   $mwnd->update;
@@ -1047,7 +1056,7 @@ if(! Exists($topl1)){# <-- define size and create 2nd window:
 			                                -activeforeground=>"red",
 			                                -background=>"green",
 			                                -cursor=>hand2,
-                                                        -command=>sub{$topl1->withdraw();})->place(
+                                                        -command=>sub{$topl1->destroy();})->place(
                                                                  -relwidth=>0.25, -relheight=>$bheight,
                                                                            -relx=>0.75, -rely=>0.9);
 #----
@@ -1144,9 +1153,7 @@ $fentrw=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                     -relief=>'groove', -borderwidth=>5)->place(
                                                     -relwidth=>$cnvrsz, -relheight=>1,
                                                     -relx=>(1-$cnvrsz), -rely=>0);
-  $canscrx1=-40;# scroll-area (min/max), all in pixels
   $canscry1=-500;
-  $canscrx2=10000;#at $binw_tev=120sec corresp.full time-scale almost 2weeks
   $canscry2=20;
   $cnv=$cv_fram->Scrolled("Canvas",-background => "yellow",
                                         -scrollregion=>[$canscrx1,$canscry1,
@@ -1166,6 +1173,11 @@ $fentrw=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
   $plot2_actf=0;#plot2 "active" flag
   $plot3_actf=0;#plot3 "active" flag
   $plot4_actf=0;#plot4 "active" flag
+#
+  &access_clear;
+  &points_clear;
+  @plot_fileids=();# clear current plot point-assosiated files ids
+#
   $topl1->bell;
 #  print "\aQUQU\n";
 }

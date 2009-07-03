@@ -269,7 +269,7 @@ $set_fram->Button(-text=>"EditJobScript", -font=>$font2,
                                           -relx=>0, -rely=>($shf2+5*$drh2));
 #---
 $arcscval=0;#1/0->scan Archive/Normal_store
-$arcscbt=$set_fram->Checkbutton(-text=>"ScanArchive", -font=>$font2, -indicator=>0,
+$arcscbt=$set_fram->Checkbutton(-text=>"SearchInArchive", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -376,7 +376,7 @@ $jcl_fram=$mwnd->Frame(-label=>"CalPars2DB-Job control :",-background => "red",
                                                        -relwidth=>0.3, -relheight=>$jclfrheight,
                                                        -relx=>0, -rely=>($dirfrheight+$setfrheight+$prgfrheight));
 #---
-$scanbt=$jcl_fram->Button(-text => "Scan", -font=>$font2, 
+$scanbt=$jcl_fram->Button(-text => "Search", -font=>$font2, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 			      -background=>"green",
@@ -1001,14 +1001,23 @@ sub scand{
   else{
     show_messg("\n   <--- Found $nselem cal-files in dates window:");
   }
-#--- find min/max run# in the directory:
+#--- find min/max run# in the dates window:
   $runmx=0;
   for($i=0;$i<$nelem;$i++){
+    if($processed[$i] == 1){
       if($runs[$i] > $runmx) {$runmx=$runs[$i];}
+    }
   }
   $runmn=$runmx;
   for($i=0;$i<$nelem;$i++){
-    if($runs[$i] <= $runmn) {$runmn=$runs[$i];}
+    if($processed[$i] == 1){
+      if($runs[$i] <= $runmn) {$runmn=$runs[$i];}
+    }
+  }
+#
+  if(($runmx-$runmn)/$binw_tev >= $canscrx2){
+    show_warn("\n   <--- Dates window is too big (>= 2 weeks), change limits  !!!");
+    return;
   }
 #
 #--> redefine some run-dependent params(here SetupNameame) and set other job params:
@@ -1053,7 +1062,7 @@ sub scand{
   $logtext->insert('end',$curline);
   $logtext->yview('end');
 #
-  $curline="  **** NEED TO MODIFY dates window ?? CAN DO THAT NOW and repeate scan !!! ****\n\n";
+  $curline="  **** If you need to modify dates window - do that now and repeate scan !!! ****\n\n";
   $logtext->insert('end',$curline,'Attention');
   $logtext->yview('end');
   $mwnd->update;
@@ -1289,7 +1298,7 @@ $fentrw1=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
 			                                -activeforeground=>"red",
 			                                -background=>"green",
 			                                -cursor=>hand2,
-                                                        -command=>sub{$topl1->withdraw();})->place(
+                                                        -command=>sub{$topl1->destroy();})->place(
                                                         -relwidth=>0.333, -relheight=>$bheight,
                                                         -relx=>0.666, -rely=>$crely);
 #
@@ -1324,6 +1333,11 @@ $fentrw1=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
   $plot5_actf=0;#plot5 "active" flag
   $plot6_actf=0;#plot6 "active" flag
   $plot7_actf=0;#plot7 "active" flag
+#
+  &access_clear;
+  &points_clear;
+  @plot_fileids=();# clear current plot point-assosiated files ids
+#
   $topl1->bell;
 #  print "\aQUQU\n";
 }
@@ -1478,7 +1492,7 @@ $fentrw1=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
 			                                -activeforeground=>"red",
 			                                -background=>"green",
 			                                -cursor=>hand2,
-                                                        -command=>sub{$topl1->withdraw();})->place(
+                                                        -command=>sub{$topl1->destroy();})->place(
                                                         -relwidth=>0.333, -relheight=>$bheight,
                                                         -relx=>0.666, -rely=>$crely);
 #
@@ -1488,9 +1502,7 @@ $fentrw1=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                     -relief=>'groove', -borderwidth=>5)->place(
                                                     -relwidth=>$cnvrsz, -relheight=>1,
                                                     -relx=>(1-$cnvrsz), -rely=>0);
-  $canscrx1=-40;# scroll-area (min/max), all in pixels
   $canscry1=-500;
-  $canscrx2=10000;#at $binw_tev=120(sec/pix) corresp.full time-scale almost 2weeks
   $canscry2=20;
   $cnv=$cv_fram->Scrolled("Canvas",-background => "black",
                                         -scrollregion=>[$canscrx1,$canscry1,
@@ -1518,6 +1530,11 @@ $fentrw1=$cp_fram->Entry(-relief=>'sunken', -background=>yellow,
   $plot11_actf=0;#plot11 "active" flag
   $plot12_actf=0;#plot12 "active" flag
   $plot13_actf=0;#plot13 "active" flag
+#
+  &access_clear;
+  &points_clear;
+  @plot_fileids=();# clear current plot point-assosiated files ids
+#
   $topl1->bell;
 #  print "\aQUQU\n";
 }
@@ -1729,7 +1746,7 @@ sub make_plot1
     $plot_accids[$plot_accmem]=$lid;
     $plot_accmem+=1;
 #-- add title :
-    $ptime=localtime($runmn);#loc.time of earliest run in dir (imply run# to be UTC-seconds as input)
+    $ptime=localtime($runmn);#loc.time of earliest run in runs-window (imply run# to be UTC-seconds as input)
     $year=$ptime->year+1900;
     $month=$ptime->mon+1;
     $day=$ptime->mday;
@@ -2366,7 +2383,7 @@ sub make_plot4
     show_warn("   <-- wrong TOF channel-ID setting: $locvar ?!");
     return;
   }
-  show_messg("\n   <--- Paddle T0 Time-scan for id=$locvar, l/bb=$layx/$barx");
+  show_messg("\n   <--- PaddleSide relat.gain Time-scan for id=$locvar, l/bb/side=$layx/$barx/sidx");
 #--
   my $seqnum;
   my ($xc,$yc)=(0,0);
@@ -2551,7 +2568,7 @@ sub make_plot4
       $gain=$globpeds[$seqnum];
       $gainr=$RefCFileData[$seqnum];
       $val=$gain/$gainr;
-   print "L/b/s=",$layx,"/",$barx,"/",$sidx,"  gain/gainr=",$gain,"/",$gainr,"\n";
+#   print "L/b/s=",$layx,"/",$barx,"/",$sidx,"  gain/gainr=",$gain,"/",$gainr,"\n";
 #
       $xc=($runs[$i]-$runmn)/$binw_tev;#run-position wrt min run# in relat.units(=binwidth)
 #
@@ -3934,9 +3951,10 @@ sub upd_db
   }
 #--- 
   if($nrecmap==0 || $updflg==0){goto UPDATE;}# empty map-file or ReadOnly Job: don't cleanup DB(days dirs)
-  return;
+#  return;
 #
 #---> get list of "day"-directories:
+#
   opendir(DIR,$daysdir);#<--- get day-dirs list
   @daysdlist=grep{/^\d+$/} readdir(DIR);# read only "number"-dirs
   $ndaysd=scalar(@daysdlist);

@@ -1822,10 +1822,12 @@ sub SubmitJob
   my $ext=substr($CalRun1,-5,5);
   my $jobname=$SessName.$ext;
   if($Host2run eq ""){#<-- means any host
-    $comm2run="bsub -q $Queue2run -n $jpar8 -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -n $jpar8 -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
   else{
-    $comm2run="bsub -q $Queue2run -n $jpar8 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -n $jpar8 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
 #
 TryAgain:
@@ -2282,7 +2284,7 @@ sub jcontr_kill
     while(<KJOBS>){
       $line=$_;
       @warr=split(/\s+/,$line);#warr => "Job <11230> is being terminated"
-      print "mess=",$line,"\n";
+#      print "<--- Kill.mess=",$line,"\n";
     }
     close(KJOBS);
     $killedpid=$warr[1];
@@ -2904,7 +2906,7 @@ sub JobOutpControl
       if($nel==$ResultsBlockLen-2){#<-- decoding/checking results block(header/trailler removed)
 	if(($ccode/100)>0){#<--Tdelv-results check
 	  @calqual=split(/\s+/,$lfresult[0]);
-	  if($calqual[0]>0.8 && $calqual[1]>0.7){#<-- Tdelv ok(goodch%(Nbins>=4,chi2-ok,slope-ok) | good statist.bins %)
+	  if($calqual[0]>0.8 && $calqual[1]>0.6){#<-- Tdelv ok(goodch%(Nbins>=4,chi2-ok,slope-ok) | good statist.bins %)
 	    $ccodeok+=100;
 	  }
 	  else{show_messg("\n   <--- Bad Tdelv-results: $lfresult[0]\n");}
