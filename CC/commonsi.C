@@ -13,7 +13,7 @@ int  AMSCommonsI::AB_catch=-1;
 
 uinteger AMSCommonsI::_MaxMem=1400000000;
 
-#ifdef _PGTRACK_
+#ifndef _PGTRACK_
 char AMSCommonsI::_version[]="v4.00";
 #else
 char AMSCommonsI::_version[]="v5.00";

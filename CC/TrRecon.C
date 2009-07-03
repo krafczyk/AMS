@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.6 2009/07/01 16:45:44 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.7 2009/07/03 17:34:23 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/07/01 16:45:44 $
+/// $Date: 2009/07/03 17:34:23 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1772,7 +1772,7 @@ void TrRecon::sitkdigi()
     return ;
   }
   if(cont->getnelem()==0){
-    printf("TrSim::sitkdigi()  AMSTrMCCluster Container is Empty  Digitzation is Impossible !!!\n");
+//    printf("TrSim::sitkdigi()  AMSTrMCCluster Container is Empty  Digitzation is Impossible !!!\n");
     return ;
   }
   //PZDEBUG else   printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
