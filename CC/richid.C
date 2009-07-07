@@ -109,8 +109,8 @@ short int RichPMTsManager::_rdr_pmt_count[RICH_JINFs*RICH_CDPperJINF];
 
 
 void RichPMTsManager::Init(){
-#pragma omp barrier 
-#pragma omp master
+//#pragma omp barrier 
+//#pragma omp master
   {
     Init_Default();
     
@@ -294,7 +294,7 @@ void RichPMTsManager::Init(){
       _grid_pmts[g][current[g]++]=i;
     }
   }
-#pragma omp barrier 
+//#pragma omp barrier 
 }
 
 
@@ -428,8 +428,8 @@ void RichPMTsManager::get_eff_quantities(){
 }
 
 void RichPMTsManager::Finish(){
-#pragma omp barrier 
-#pragma omp master
+//#pragma omp barrier 
+//#pragma omp master
   {
     Finish_Default();
     
@@ -493,7 +493,7 @@ void RichPMTsManager::Finish(){
     //  if(0) AMSRichCal::finish(); // If calibration cleanup memory
     
   }
-#pragma omp barrier 
+//#pragma omp barrier 
 }
 
 void RichPMTsManager::Init_Default(){
