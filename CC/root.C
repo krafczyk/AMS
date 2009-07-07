@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.185 2009/06/19 12:39:38 barao Exp $
+//  $Id: root.C,v 1.186 2009/07/07 14:01:46 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3095,7 +3095,8 @@ void AMSEventR::Terminate()
 	//delete i->second;
 	//}
 	Service::hbp.clear();
-
+        _NFiles=-1;
+        pService=0;
 	cout <<"AMSEventR::Terminate-I-WriteFileClosed "<<GetOption()<<endl;
       }
     }

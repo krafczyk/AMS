@@ -3,15 +3,19 @@ from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
 import cgi
+import datetime
 def sorta(s,o):
     timenow=int(time.time())
     dts=timenow-s[2]
     dto=timenow-o[2]
-    dss=s[1]/1024
-    dso=o[2]/1024
-    qs=math.sqrt(dts*dss)
-    qo=math.sqrt(dto*dso)
-    return (qs>qo)
+    dss=s[1]
+    dso=o[1]
+    qs=float(dts)*float(dss)
+    qo=float(dto)*float(dso)
+    if qs<qo:
+        return 1
+    else:
+        return -1
 class RemoteClient:
     env={}
     dbclient=""
@@ -2621,74 +2625,90 @@ class RemoteClient:
     def CheckQuota(self,dir,wl,hl,i,v):
         self.v=v
         delay=43200
-        sleep=300
+        sleep=3600
         self.filesfound=0
         self.timenotify=0
-        filelist=[]
         turn=0
         problem=0
         while 1:
+            filelist=[]
             turn=turn+1
             notify=1
-            cmd="du -ks "+dir
+            junk=dir.split("/")
+            cmd="df /"+junk[1]
             p=commands.getstatusoutput(cmd)
+            sizet=0 
             if(p[0]==0):
-                problem=0
-                size=int(p[1].split(dir)[0])
-                if(size>wl):
-                    try:
-                        self.GetFiles(dir,filelist)
-                    except:
-                        print " problem to rad files from "+dir
+                junk1=p[1].split("\n")
+                sizet=int(junk1[2].split(" ")[22])
+            alldir=os.listdir("/"+junk[1])
+            for file in alldir:
+                if(file.find(junk[2])<0):
+                    cmd="du -ks /"+junk[1]+"/"+file
+                    p=commands.getstatusoutput(cmd)
+                    if(p[0]==0):
+                        problem=0
+                        sizet=sizet-int(p[1].split("/"+junk[1]+"/"+file)[0])
+                    else:
+                        problem=problem+1
+                        if(problem%100 == 1):
+                            message=" problem to "+cmd
+            
+            if(sizet>wl):
+                try:
+                    self.GetFiles(dir,filelist)
+                except:
+                    print " problem to read files from "+dir
                 timenow=int(time.time())
-                filelist.sort(sorta)
+                size=0
+                for tuple in filelist:
+                    size=size+tuple[1]
                 nd1=0
                 nd2=0
-                if(size>hl):
+                sizet=size
+                if(sizet>wl):
+                    filelist.sort(sorta)
+                now = datetime.datetime.now()
+                if(sizet>hl):
                     i=-1;
                     for tuple in filelist:
                         i=i+1
-                        if(size<hl):
+                        if(sizet<hl*0.9):
                             break
                         else:
                             try:
                                 os.unlink(tuple[0])
-                                size=size-tuple[1]
+                                sizet=sizet-tuple[1]
                                 del filelist[i]
                                 i=i-1 
                                 nd1=nd1+1
                             except:
                                 continue
-                if(size>wl):
+                if(sizet>wl):
                     i=-1;
                     for tuple in filelist:
                         i=i+1
-                        if(size<wl):
+                        if(sizet<wl*0.9):
                             break
                         else:
                             if(timenow-tuple[2]>delay):
+                                sizet=sizet-tuple[1]
+                                del filelist[i]
+                                i=i-1 
+                                nd2=nd2+1
                                 try:
                                     os.unlink(tuple[0])
-                                    size=size-tuple[1]
-                                    del filelist[i]
-                                    i=i-1 
-                                    nd2=nd2+1
                                 except:
                                     continue
-                message ="Size reduced to %d %d+%d files deleted \n"  %(size,nd1,nd2)
+                message ="Size reduced to %d %d+%d files deleted %s \n"  %(sizet,nd1,nd2,now.ctime())
                 if(nd1+nd2>0):
                     print message
                 else:
                     if(turn%100==1):
-                        message="Size keep at %d \n" %(size)
+                        message="Size keep at %d \n" %(sizet)
                         print message
                 time.sleep(sleep)
-                 
-            else:
-                problem=problem+1
-                if(problem%100 == 1):
-                    message=" problem to "+cmd
-                time.sleep(sleep)
+            time.sleep(sleep)
                                        
     def GetFiles(self,dir,filelist):
         for file in os.listdir(dir):
@@ -2696,7 +2716,7 @@ class RemoteClient:
             if(not os.path.islink(pfile) and os.path.isdir(pfile)):
                 self.GetFiles(pfile,filelist)
             else:
-                if(not os.path.islink(pfile)):
+                if(not os.path.islink(pfile) and not os.path.isdir(pfile)):
                     try:
                         o=(pfile,os.stat(pfile)[ST_SIZE]/1024,os.stat(pfile)[ST_MTIME])
                         filelist.append(o)

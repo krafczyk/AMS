@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.557 2009/06/30 14:50:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.558 2009/07/07 14:01:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6630,7 +6630,7 @@ print qq`
         if( not defined $ret->[0][0]){
             $self->ErrorPlus("unable to retreive gbatch name from db");
         }
-        $dataset->{version}='v4.00';
+        #$dataset->{version}='v4.00';
 
         my $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
@@ -9488,13 +9488,13 @@ sub checkJobsTimeout {
                 $self->{sqlserver}->Update($sql);
               }
                        
-             $sql="select jid from dataruns where status='Failed'";
-              $q1=$self->{sqlserver}->Query($sql);
-              foreach my $runf  (@{$q1}){
-              $sql="update jobs set timeout=$timenow-jobs.time-1 where jid=$runf->[0]"; 
-                $self->{sqlserver}->Update($sql);
-              }
-                       
+#             $sql="select jid from dataruns where status='Failed'";
+#              $q1=$self->{sqlserver}->Query($sql);
+#              foreach my $runf  (@{$q1}){
+#              $sql="update jobs set timeout=$timenow-jobs.time-1 where jid=$runf->[0]"; 
+#                $self->{sqlserver}->Update($sql);
+#              }
+#                       
 
 #  convert jobs with ntuples or runs with "Processing" status to good ones
 #  refuse to kill jobs if corr journal file exists
@@ -9524,7 +9524,7 @@ sub checkJobsTimeout {
         if ($update == 1) {$self->{sqlserver}->Update($sql); }
         $tmoutflag = 1;
         $jobstatus = $r4->[0][1];
-       }
+    }
         else{
        $sql="SELECT dataruns.run, dataruns.status
               FROM dataruns
@@ -9535,7 +9535,7 @@ sub checkJobsTimeout {
         if ($update == 1) {$self->{sqlserver}->Update($sql); }
         $tmoutflag = 1;
         $jobstatus = $r4->[0][1];
-       }
+    }
        else{ 
         $sql="SELECT runs.status,jobs.timekill from runs,jobs where runs.jid=jobs.jid and runs.jid=$jid";
         my $r5=$self->{sqlserver}->Query($sql);
@@ -9547,7 +9547,7 @@ sub checkJobsTimeout {
 
         $tmoutflag = 1;
         $jobstatus = 'Timeout';
-       }
+    }
     }
     }
    }
@@ -10762,7 +10762,7 @@ sub listMails {
     my $self = shift;
     if ($webmode == 1) {
      print "<b><h2><A Name = \"mails\"> </a></h2></b> \n";
-     htmlTable("MC02 Authorized Users");
+     htmlTable("Authorized Users");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
     }
      my $sql="SELECT address, Mails.name, rsite, requests, Mails.cid, Cites.cid,
@@ -11191,15 +11191,17 @@ sub listRuns {
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      }
-     my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status
-               FROM   Runs
+    my @rname=("runs","dataruns");
+    foreach my $run (@rname){
+     my $sql="SELECT run, jid, submit, status
+               FROM   $run
                  WHERE
-                  Runs.submit> $time24h
-                    ORDER  BY Runs.submit DESC, Runs.jid";
+                  rownum<50 and submit> $time24h 
+                    ORDER  BY submit DESC, jid";
      my $r3=$self->{sqlserver}->Query($sql);
      if ($webmode == 1) {
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
-              print "<td><b><font color=\"blue\">Run </font></b></td>";
+              print "<td><b><font color=\"blue\">$run </font></b></td>";
               print "<td><b><font color=\"blue\" >Started </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
               print "</tr>\n";
@@ -11218,10 +11220,12 @@ sub listRuns {
                   <td><b><font color=$color> $status    </font></b></td> \n";
            print "</font></tr>\n";
           }
-          $rr++;
-          if ($rr > 50) { last;}
+          #$rr++;
+          #if ($rr > 50) { last;}
       }
   }
+}
+
     if ($webmode == 1) {
        htmlTableEnd();
       htmlTableEnd();
@@ -11252,7 +11256,7 @@ sub listNtuples {
      my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr,
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
-              WHERE  Ntuples.timestamp > $time24h AND Ntuples.path NOT LIKE '/castor/cern.ch%'
+              WHERE  rownum<100 and Ntuples.timestamp > $time24h AND Ntuples.path NOT LIKE '/castor/cern.ch%'
               ORDER  BY Ntuples.timestamp DESC, Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
      if ($webmode == 1) {
@@ -11285,8 +11289,8 @@ sub listNtuples {
                   <td align=middle><b><font color=$color> $status </font></b></td> \n";
            print "</font></tr>\n";
           }
-          $nn++;
-          if ($nn > 100) { last;}
+          #$nn++;
+          #if ($nn > 100) { last;}
       }
   }
     if ($webmode == 1) {
@@ -17352,7 +17356,7 @@ sub CheckFS{
                  if($ava<0){
                    $ava=0;
                  }
-                $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]'";
+                $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]' and path like '$path%' ";
             }
              else{
 offline:
