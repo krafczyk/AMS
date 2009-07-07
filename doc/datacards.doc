@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.295 2009/06/26 12:00:43 choumilo Exp $
+#  $Id: datacards.doc,v 1.296 2009/07/07 15:51:14 mmilling Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -638,7 +638,8 @@ R3 SearchRegStrLine(3);  //  Max distance point/curve to include it the fit err
 I4 MinFitPoints(6);     // min number of hits in str/real fit
 R5 TwoSegMatch(0.05);  // max ang diff allowed while matching segments
 R6 MaxSegAllowed(50)   // max seg allowed
-I7 FitMethod(0)       // old (0) or new (1) method
+I7 FitMethod(0)       // old (0) or new (1) or both (2) method
+I8 SaveHistos(0)      // save single tube amplitude spectra (1) or not (0)
 
 
 TIME (See geant3 manual)
