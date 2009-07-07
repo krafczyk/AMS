@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.247 2009/06/19 12:41:09 barao Exp $
+//  $Id: root.h,v 1.248 2009/07/07 15:54:02 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1386,7 +1386,7 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 
 /// TrdHTrackR structure
 /*!
- \author xyz
+ \author mark.millinger@cern.ch
 
 */
 
@@ -1417,11 +1417,17 @@ public:
   TrdHTrackR(){};
   /// \param number index in container
   /// \return human readable info about TrdTrackR
-  char * Info(int number=-1){return _Info;}
+  char * Info(int number=-1){
+    int np=0;
+    for(int i=0;i<NTrdHSegment();i++)np+=pTrdHSegment(i)->NTrdRawHit();
+
+    sprintf(_Info,"TrdHTrack No %d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits}=%d",number,Coo[0],Coo[1],Coo[2],Theta,Phi,Chi2,Nhits);
+    return _Info;
+  }
   friend class AMSTRDHTrack;
   friend class AMSEventR;
   virtual ~TrdHTrackR(){};
-  ClassDef(TrdHTrackR,1)       //TrdHTrackR
+  ClassDef(TrdHTrackR,2)       //TrdHTrackR
 #pragma omp threadprivate(fgIsA)
 };
 
