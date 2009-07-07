@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.118 2009/06/19 12:39:38 barao Exp $
+//  $Id: richrec.C,v 1.119 2009/07/07 09:21:34 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -938,7 +938,13 @@ trig=(trig+1)%freq;
   AMSDir   local_dir=_entrance_d;
 
   local_pos[2]=RICHDB::rad_height-_height;
-  local_dir[2]*=-1;
+
+  // Protect against unexpected sign in _entrance_d 
+  if(local_dir[2]>0){
+    local_dir[0]*=-1;
+    local_dir[1]*=-1;
+  }else local_dir[2]*=-1;
+  //  local_dir[2]*=-1;
 
   const integer NSTL=15,NSTP=70; // Z=1 optimized
   const geant dphi=2*PI/NSTP;
