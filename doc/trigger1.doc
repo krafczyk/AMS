@@ -1,28 +1,67 @@
-#  $Id: trigger1.doc,v 1.4 2001/01/22 17:00:59 vitali Exp $
-class TriggerLVL1: public AMSlink{
+#  $Id: trigger1.doc,v 1.5 2009/07/08 07:53:37 choumilo Exp $
+
+//  updated 06.07.2009 by E.Choumilov.
+//
+class Trigger2LVL1: public AMSlink{
 protected:
- integer _TriggerMode;
- integer _tofflag;   // =1/2/3 -> "z>=1"/"z>1"/"z>2"(+10 if it was 4-layer trigger) 
- integer _tofpatt[SCLRS];// TOF:  triggered paddles/layer pattern
- integer _antipatt;  // ANTI: triggered sectors pattern(bits 1-16->AND, bits 17-32->OR)
- void _copyEl(){}
- void _printEl(ostream & stream){ stream << " TriggerMode " << _TriggerMode<<endl;}
- void _writeEl();
-public:
- TriggerLVL1(integer TriggerMode, integer tofflag, integer tofpatt[],
-             integer antipatt):_TriggerMode(TriggerMode),_tofflag(tofflag){
-   for(int i=0;i<SCLRS;i++)_tofpatt[i]=tofpatt[i];
-   _antipatt=antipatt;
- }
- integer getmode () const {return _TriggerMode;}
- integer gettoflg() {return _tofflag;}
- integer checktofpatt(integer tofc, integer paddle);
- integer checkantipatt(integer counter){return _antipatt & (1<<counter);}
- static void build();
-};
-//-------------------------------------------------------
- The object of this class is created if :
-   Number of TOF-layers in coincidence >= LVL1FFKEY.ntof;
-   Number of triggered ANTI-sectors <= LVL1FFKEY.nanti;
-     This is mode 1.
-//-------------------------------------------------------
+//
+ class ScalerMon{
+  protected:
+    number _FTtrig[5];//Glob,FTC,FTZ,FTE,NonPhys
+    number _LVL1trig[9];//LVL1, sub1:sub8
+    number _DetMaxRate[5];//CPmx,BZmx,ACmx,ECFTmx,ECL1(angle)mx
+    number _LiveTime[2];
+    uinteger _TimeCalib;
+  public:
+    number &FTtrig(int i){return _FTtrig[i];}
+    number &LVL1trig(int i){return _LVL1trig[i];}
+    number &LiveTime(int i){return _LiveTime[i];}
+    number &DetMaxRate(int i){return _DetMaxRate[i];}
+    uinteger &TimeCalib(){return _TimeCalib;}
+    geant FTrate(){return geant(_FTtrig[0]);}
+    geant FTCrate(){return geant(_FTtrig[1]);}
+    geant LVL1rate(){return geant(_LVL1trig[0]);}
+    void setdefs();
+ };
+//
+ class Lvl1TrigConfig {
+  protected:
+   integer _tofinmask[TOF2GC::SCLRS][TOF2GC::SCMXBR];//=0/1/2/3=>Not_in_trig/both/s1/s2, z>=1 trigger
+   integer _tofinzmask[TOF2GC::SCLRS][TOF2GC::SCMXBR];//=0/1/2/3=>Not_in_trig/both/s1/s2, z>=2 trigger
+   integer _tofoamask[TOF2GC::SCLRS];//=0/1=>And/Or of two Plane-sides, FTC(z>=1)
+   integer _tofoazmask[TOF2GC::SCLRS];//=0/1=>And/Or of two Plane-sides, BZ(z>=2)
+   integer _toflut1;//accepted FT tof-layers config-1 (LookUpTabel,z>=1)
+   integer _toflut2;//accepted FT tof-layers config-2 (2nd LookUpTabel, z>=1)
+   integer _toflutbz;//accepted LVL1 tof-layers config(z>=2 lvl1)
+   integer _toflcsz;//MN, layer-logic for FTZ(slowZ>=2),M=0/1->and/or of top and bot logic, N->top(bot)logic
+   integer _tofextwid;//5_lowsignbits/next5moresignbits=>widthExtentionCodes for TopTOF/BotTOF 
+   integer _antinmask[ANTI2C::MAXANTI];//=0/1/2/3=>Not_in_trig/both/s1(bot)/s2(top), in_trigger mask
+   integer _antoamask[ANTI2C::MAXANTI];//=0/1=>And/Or of two LogicSector-sides mask
+   integer _antsectmx[2];//two maxlimits on acceptable numb. of fired ANTI-sectors(logical),equat/polar reg.
+   integer _ecorand;//Ecal or/and(=1/2)->  of two projections requirements on min. numb. of fired layers
+   integer _ecprjmask;//Ecal proj. dec-mask(lkji: ij=1/0->XYproj active/disabled in FT; kl=same for LVL1(angle)
+//                      i don't need here ecinmask because already have dynode bad/good status in calib. 
+   integer _globftmask;//global FT sub-triggers dec-mask(i|j|k->FTE|FTZ|FTC)
+   integer _globl1mask;//global LVL1 trigger(phys.branches) bit-patt(bitON->BranckIsRequired, oppos.to Lin!)
+   integer _physbrmemb[8];//Requir.Memb. bit-patt. for phys.branches(bitON->MemberIsRequired, oppos.to Lin!) 
+   integer _phbrprescf[8];//Prescaling factors(1,2,...1000) for each phys.branch
+ };
+//------ 
+ integer _PhysBPatt;//LVL1 Phys. Branches Pattern(bits 0-7)(unbiased,p,Ion,SlowIon,e,gamma, etc)
+ integer _JMembPatt;//LVL1 Joined Members Pattern(bits 1-16)(FTC,FTZ,FTE,ACC0,ACC1,BZ,ECAL-F_and,...)
+ integer _AuxTrigPatt;//Aux.Trig. members pattern (LA1/2,DSP,Int)
+ integer _tofflag1;//Tof-layers contrib. in FTC(z>=1) (<0/0/1/2...=>none/all4/miss.layer#)  
+ integer _tofflag2;//Tof-layers contrib. in BZ(z>=2) (<0/0/1/2...=>none/all4/miss.layer#)  
+ integer _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=1(when globFT)
+ integer _tofpatt2[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=2(when globFT)
+ integer _antipatt; //ANTI: pattern of FT-coincided sectors(logical)
+ integer _ecalflag; //ECAL: =MN
+// M=0/1/2/3->FTE(Ener)Flag=No/NoFTE_when_1prj@2prj_req/FTE&1proj(or)/FTE&2proj(and),
+// N=0/1/2/3->LVL1(Angle)Flag=Undef(noFTE)/0prj@FTEfound/OrLVL1/AndLVL1;
+ int16u _ectrpatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes) 
+ geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev)
+ geant _LiveTime;//Live time fraction
+ geant _TrigRates[19];//TrigComponentsRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,LVL1m1-m8,CPmx,BZmx,ACmx,EFTmx,EANmx
+ uinteger _TrigTime[5];//trig.times:[0]->calibr;[1]->reset 24bits counter;[2]-[3]->40bits(32+8)
+//                       of 0.64mks counter; [4]->DeltaTrigTime(mksec, 2 consecutive events)
+};  

@@ -1,249 +1,204 @@
-#  $Id: tofdbc.doc,v 1.3 2001/01/22 17:00:59 vitali Exp $
-// TOF global constants definition
+#  $Id: tofdbc.doc,v 1.4 2009/07/08 07:53:36 choumilo Exp $
+// updated by E.Choumilov 6.07.2009
+//
+//some general(TOF version-independent) constants
+namespace TOFGC{
+  const integer AMSDISL=500;//max length of distributions in AMSDistr class
+  const integer SCWORM=256;// Max.length (in 16-bits words) in bit-stream class
+  const integer SCBITM=SCWORM*16;// same in bits(-> 2.048 mks with 0.5 ns binning)
+  const integer SCBADB1=128; // status bit to mark counter with bad "history"(for ANTI - NoFTCoinc.on 2sides)
+  const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
+  const integer SCBADB3=512; // ... bad for t-meas.based on DB(don't use for tzcalibr/beta-meas)
+  const integer SCBADB4=1024; // missing side number(s1->no_bit,s2->set_bit, IF B2 is set !)
+  const integer SCBADB5=2048; // set if missing side was recovered (when B2 is set)
+  const integer SCBADB6=4096; // set if no "best"_LT-hit/SumHT matching on, at least, one of the alive side
+  const integer SCBADB7=8192; // 
+}
+//-----
+// TOF2(ams02) global constants definition:
+//
+namespace TOF2GC{
 //geometry :
-const integer SCMXBR=14; // max nmb of bars/layer
-const integer SCLRS=4; // nmb of layers in TOF-systems
-const integer SCBRS[SCLRS]={14,14,14,14}; // nmb of bars per layer (top->bot)
+const integer SCMXBR=10; // max nmb of bars/layer
+const integer SCMXBR2=18;//max nmb of bars/top(bot) TOF-subsystem
+const integer SCLRS=4; // max nmb of layers in TOF-systems
 const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
-const integer SCBTPN=5;    //nmb of sc. bar types (different by length now)
-const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels
+const integer SCBTPN=11; //Real nmb of sc. bar types (different by length now)
+const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels(layers*bars*sides)
 const integer SCBLMX=SCLRS*SCMXBR;   //MAX scint. bars*layers
+const integer PMTSMX=3; // MAX number of PMTs per side
 //MC
-const integer AMSDISL=500;//max length of distributions in AMSDistr class
-const integer SCANPNT=11; //scan points in MC/REC t/a-calibration 
-const integer SCTBMX=5000;//length of MC "flash-ADC" buffer
-const integer SCSBMX=1200;//length of MC "shaper" buffer
-//                       (should be above SCTBMX*fadcb/shaptb+6.21*tfall/shaptb) 
-const integer SCWORM=128;// Max.length (in 16-bits words) in bit-stream class
-const integer SCBITM=SCWORM*16;// same in bits
-//DAQ/RECO
+const integer TOFPNMX=1000;// max integral-bins  in TOFTpoints class
+const integer SCANPNT=15; //max scan points in MC/REC t/a-calibration
+const integer SCANTDL=400;//scan time distribution max.length(should be SCANTDL<AMSDISL) 
+const integer SCANWDS=4; //max. width-divisions in the sc.paddle scan
+const integer SCTBMX=10000;//length of MC "flash-ADC" buffer(-> 1mks with 0.1ns binning)
+const integer SESPMX=3;//Max number of PMT single elecr.spectrum parameters
+// 
+//DAQ
 const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15th bit)
 const int16u SCPHBPA=32768;// phase bit position in Raw-format address word (16th bit)
-const integer SCCRAT=8; // number of crates with TOF(+CTC/ANTI)-channels (S-crates)
-const integer SCSFET=4; // SFETs per crate
-const integer SCTOFC=4; // max. TOF-channels (each =4 TDC-channels) per SFET
-const integer SCTDCC=SCTOFC*4; // max. TDC-channels per SFET (4 tdcchan/tofch)
-const integer SCTHMX1=8;//max trigger hits( multpl.factor=2 for tr/ftdc/adc, =4 for stdc)
-const integer SCTHMX2=8;//max fast TDC (history) hits  
-const integer SCTHMX3=4;//max slow TDC (stretcher) hits
-const integer SCTHMX4=8;//max adc TDC (time_over_threshold) hits  
-const integer SCJSTA=25;   //size of Job-statistics array
-const integer SCCSTA=16;   //size of Channel-statistics array
-const integer SCBADB1=128; // status bit to mark counter with bad "history"
-const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
-const integer SCBADB3=512; // ...  with bad t-meas.(don't use for tzcalibr/beta-meas)
-const integer SCIPAR=3;    // number of a(d)-integrator parameters
-//===========================================================================
-// 
-// --------------> Class for "time-stable"  parameters :
-class TOFDBc {  
-//
-private:
-// geom. constants:
-  static integer _brtype[SCBLMX];  // map of bar types (diff. by length)
-  static integer _plrotm[SCLRS]; // TOF planes rotation mask
-  static geant _brlen[SCBTPN]; // bar lengthes for SCBTPN types
-  static geant _supstr[10]; // supp. structure parameters
-  static geant _plnstr[15]; // sc. plane structure param.
-// MC/RECO constants:
-  static geant _edep2ph;     // MC edep(Mev)-to-Photons convertion
-  static geant _seresp;      // PMT single elec.responce (mV on 50 Ohm, MP=MEAN)
-  static geant _seresv;      // ........................ variations (relat to MP) 
-  static geant _fladctb;     // MC flash-ADC time-binning (ns)
-  static geant _shaptb;      // MC shaper pulse time-binning
-  static geant _shrtim;      // MC shaper pulse rise-time (ns)
-  static geant _shftim;      // MC shaper pulse fall-time (ns)
-  static geant _shctim;      // MC shaper pulse cut-time (gate width)(ns)
-  static geant _tdcbin[4];   // pipe-line TDC binning for ftdc/stdc/adca/adcd
-  static geant _trigtb;      // MC time-binning in logic(trig) pulse handling
-  static geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
-  static geant _daqpwd[15];  // MC DAQ-system pulse_widths/dead_times/...
-  static geant _di2anr;      // default(MC-data) dinode-to-anode signal ratio
-  static geant _strrat;      // default(-------) stretcher ratio
-  static geant _strjit1;     // "start" signal jitter at stretcher input(ns) 
-  static geant _strjit2;     // "stop"(FT) signal jitter at stretcher input(ns)
-  static geant _ftdelf;      // FastTrigger (FT) fixed (by h/w) delay (ns)
-  static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
-  static geant _accdel;      // Lev-1 signal delay with respect to FT (ns)
-  static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
-  static geant _fatdcd;      // Same hit(up-edge) rel.delay of A(d)- wrt hist-TDC
-  static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
-//
-//  =====> TOFDBc class variables definition :
-//
-integer TOFDBc::debug=1;
-//
-//
-//======> memory reservation for _brtype :
-// (real values are initialized from ext. geomconfig-file in amsgeom.c) 
-integer TOFDBc::_brtype[SCBLMX]={
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0
-};
-//
-// Initialize TOF geometry (defaults, REAL VALUES are read FROM geomconfig-file)
-//
-//---> bar lengthes (cm) for each of SCBTPN types :
-geant TOFDBc::_brlen[SCBTPN]={
-  72.6,99.6,118.6,130.6,135.4
-};
-//---> plane rotation mask for 4 layers (1/0 -> rotated/not):
-integer TOFDBc::_plrotm[SCLRS]={
-  1,0,0,1
-};
-//---> honeycomb supporting str. data:
-geant TOFDBc::_supstr[10]={
-   59.9,    // i=1    Z-coo of TOP honeycomb (BOT-side)
-  -59.9,    //  =2    Z-coo    BOT           (TOP     )
-   0.,0.,  //  =3,4  X/Y-shifts of TOP honeycomb centre in Mother r.s.
-   0.,0.,  //  =5,6                BOT
-   10.1,82.,//  =7,8  DZ/R-outer of both honeycomb supports
-   0.,0.   //  =9,10 spare
-};
-//---> sc. plane design parameters:
-geant TOFDBc::_plnstr[15]={
-  0.,0.,  // i=1,2  Z-gap between honeycomb and outer/inner scint. planes
-    1.5,  // i=3    Z-shift of even/odd bars in plane (0 -> flat plane)
-     0.88,  // i=4    X(Y)-overlaping(incl. sc_cover) of even/odd bars (0 for flat)
-     11., // i=5    sc. bar width
-      1., // i=6    sc. bar thickness
-    0.07, // i=7    sc_cover thickness on "sc.thickness"(Carb.fiber+mylar?)
- 10.,10.,2.5, // i=8-10 width/length/thickness (x/y/z) of PMT shielding box.
-  5.,         // i=11 dist. in x-y plane from sc. edge to PMT box.
-  0.7,        // i=12 Z-shift of sc.bar/PMT-box centers (depends on par. i=10)
-  0.19,       // i=13 sc_cover thickness on "sc.width"(2xCarb.fiber+mylar?)
-  0.,0.    // i=14-15 spare
-};
-//---> Initialize TOF MC/RECO "time-stable" parameters :
-//
-  geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
-  geant TOFDBc::_seresp=1.45;    // PMT Single elec.responce (MP=Mean,mV)
-  geant TOFDBc::_seresv=0.8;     // PMT Single elec.responce variance(relative to Mean)
-  geant TOFDBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
-  geant TOFDBc::_shaptb=1.;      // MC shaper internal time binning (ns)
-  geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
-  geant TOFDBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
-  geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
-  geant TOFDBc::_strflu=2.;    // Stretcher "end-mark" time fluctuations (ns)
-  geant TOFDBc::_tdcbin[4]={
-    1.,                            // pipe/line TDC binning for fast-tdc meas.
-    1.,                            // pipe/line TDC binning for slow-tdc meas.
-    1.,                            // pipe/line TDC binning for adc-anode meas.
-    1.                             // pipe/line TDC binning for adc-dinode meas.
-  };
-  geant TOFDBc::_daqpwd[15]={
-    50.,    // (0)pulse width of "z>=1(FT)" trig. signal (ns) (anode)
-    50.,    // (1)pulse width of "z>1" trig. signal
-    50.,    // (2)pulse width of "z>2" trig. signal (dinode)
-    10.,    // (3)double pulse resolution of fast(history) TDC (ns)
-    2000.,  // (4)min. double pulse resolution of slow TDC (ns)
-    500.,   // (5)dead time of anode TovT measurements (ns)
-    500.,   // (6)dead time of dinode TovT measurements (ns)
-    2.,     // (7)dead time for making of "z>=1(FT)" trig. signal (ns)
-    2.,     // (8)dead time for making of "z>1" trig. (ns)
-    2.,     // (9)dead time for making of "z>2" trig. signal (ns)
-    0.05,   // (10)fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
-    2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) (for dinode also)
-    18.,    // (12)(as dummy gap in s-TDC pulse)
-    10.36,  // (13)thresh.(pC) in A-integrator(TovT conversion) 
-    10.36   // (14)thresh.(pC) in D-integrator(TovT conversion) 
-  };
-  geant TOFDBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOFDBc::_di2anr=0.2;  // dinode->anode signal ratio (def,mc-data) not used now !
-  geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
-  geant TOFDBc::_strjit1=0.035;  // "start"-pulse jitter at stretcher input
-  geant TOFDBc::_strjit2=0.035;  // "stop"(FT)-pulse jitter at stretcher input
-  geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
-  geant TOFDBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
-  geant TOFDBc::_ftdelm=200.; // FT max delay (allowed by stretcher logic) (ns)
-  geant TOFDBc::_fstdcd=28.;   // Same hit(up-edge) relative delay in fast-slow TDC
-  geant TOFDBc::_fatdcd=5.;   // Same hit(up-edge) relative delay in fast-A(D) TDC
-  integer TOFDBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
-//   
-//===================================================================
-// 
-// --------------> Class for general "time-variable"  parameters :
-class TOFVarp {  
-//
-private:
-// ---> TOF DAQ-system thresholds :
-  geant _daqthr[5];   // DAQ-system thresholds (defaults)
-// ---> Cuts :
-  geant _cuts[10];                    
-          //  (1) fstdw   -> t-window to identify same hit in fast/slow_tdc
-          //  (2) hiscutb -> "befor"-cut in time history (ns)
-          //  (3) hiscuta -> "after"-cut in time history (ns)
-//
-//===================================================================
-//
-class TOFJobStat{
-//
-private:
-  static integer mccount[SCJSTA];// event passed MC-cut "i"
-//          i=0 -> entries
-  static integer recount[SCJSTA];// event passed RECO-cut "i"
-//          i=0 -> entries
-//          i=1 -> DAQ->RawEvent OK
-//          i=2 -> RawEv-validate OK
-//           =3 -> RawEvent->RawCluster OK
-//           =4 -> RawCluster->Cluster OK
-//           =5 -> spare
-//          i=6 -> entries to TZSl-calibration 
-//           =7 -> TZSl:: multiplicity OK
-//           =8 -> TZSl:  beta OK
-//           =9 -> spare
-//
-//          =10 -> entries to AMPL-calibration
-//          =11 -> AMPL:: multiplicity OK
-//          =12 -> AMPL:  matching with track OK
-//         13-19 spare
-//------
-  static integer chcount[SCCHMX][SCCSTA];//channel statistics
-//                              [0] -> h/w-status="ON" frequency 
-//                              [1] -> "FTDC-ON"  (Nftdc>0)
-//                              [2] -> "STDC-ON"  (Nstdc>0)
-//                              [3] -> "ADCA-ON"  (Nadca>0)
-//                              [4] -> "ADCD-ON"  (Nadcd>0)
-//                              [5] -> "FTDC-1hit"  (Nftdc=1)
-//                              [6] -> "STDC-1hit"  (Nstdc=1)
-//                              [7] -> "ADCA-1hit"  (Nadca=1)
-//                              [8] -> "ADCD-1hit"  (Nadcd=1)
-//------
-  static integer brcount[SCBLMX][SCCSTA];// bar statistics
-//                               [0] -> h/w-status="ON" frequency
-//                               [1] -> "multipl-OK"
-//                               [2] -> "history-OK"
+const int16u SCADCMX=4095;// MAX. value in ADC (12bits-1)
+const int16u SCPUXMX=3700;// MAX. value provided by PUX-chip(adc chan)
+const int16u SCTDCCH=8;//input channels per TDC-chip(1 chip per SFET(A))
 
-//===================================================================
-// class to store TOF_bar calibration constants :
-class TOFBrcal{
+const integer SCCRAT=4; // number of crates with TOF(+ANTI)-channels (S-crates)
+const integer SCSLTM=11;// number of slots(all types) per crate(max)
+const integer SCSLTY=5;// slot(card) types(real: sfet,sfea,sfec,sdr,spt) 
+const integer SCRCHM=13;// number of readout channels (outputs) per slot(card)(max)
+const integer SCRCMX=SCCRAT*SCSLTM*SCRCHM;//total hw-readout-channels(max)
+const integer SCCRCMX=SCSLTM*SCRCHM;//readout channel per crate (max)
+const integer SCPMOU=4;//  number pm-outputs per side (max)(anode+3dynodes)
+const integer SCMTYP=5;// number of measurement types(max)(t,q,FTt,SumHTt,SumSHTt)
+const integer SCAMTS=2;// number of Anode measurements types(actualy t,q) per normal bar/side
+const integer SCHPMTS=3;// number of half-plane measurement types(actually FT,SumHT,sumSHT) per side
+const integer SCDMTS=1;// number of Dynode measurement types(actualy q)
+const integer SCFETA=5;// number of SFET+SFEA card per crate(having temp-sensors)(actual)
+//
+const integer DAQSFMX=3;// number of non-empty format types(raw,compressed,mixed)
+//RECO
+const integer SCTHMX1=8;//max TDC FTrigger-channel hits
+const integer SCTHMX2=16;//max TDC SumHT(SHT)-channel (history) hits  
+const integer SCTHMX3=16;//max TDC LTtime-channel hits
+const integer SCTHMX4=1;//max adca(anode) hits  
+const integer SCJSTA=50;   //size of Job-statistics array
+const integer SCCSTA=25;   //size of Channel-statistics array
+const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
+const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)
+const integer SCTHMX=max(SCTHMX2,SCTHMX3);
+//
+//      Calibration:
+// TDIF
+const integer SCTDBM=17; //max. number of coord. bins for TDIF-calibration
+// AMPL 
+const integer SCACMX=2000;// max. number of accum. events per channel(or bin)
+const integer SCPRBM=17;//max.bins for Ampl-profile along the counter
+const integer SCBTBN=SCBTPN*SCPRBM;// max. bar_types(i.e.ref.bars) * max.bins
+const integer SCELFT=4;     // max. number of param. for dE/dX fit
+const integer SCMCIEVM=2000;//max. events for MC A-integrator calibration 
+// AVSD
+const integer SCACHB=500;//max.bins in Qa for "Qd vs Qa" fit
+const number SCACBW=10.;// bin width in Qa binning (adc-channels)
+// STRR
+const integer SCSRCHB=1200;// max. bin for dtout (2000-6000ns)
+const integer SCSRCLB=400;// min. bin for dtout
+const integer SCSRCHBMC=1200;// max. bin for dtout(MC)(2000-6000ns)
+const integer SCSRCLBMC=400;// min. bin for dtout (MC)
+const number SCSRCTB=5.;// time binning for dtout (ns)
+//-----------------------------------------------------
+//                          GEOMETRY:
+//
+// TOF-geometry is defined in file "TofGeomPreAss.dat" (2008 'CleanRoom' data)
+// which is read at init-stage.
+//-----------------------------------------------------
+// class to store TOF2_bar calibration constants :
+class TOF2Brcal{
 //
 private:
-  integer softid;  // LBB
-  integer status[2]; // each side status (1/0->dead/alive)
-  geant gaina[2]; // A-chain gain(PMT mainly)| (side-1/2; relative to some
-  geant gaind[2]; // D-chain gain(PMT mainly)| reference bar of given type)
-  geant qathr;  // A-TovT-discr. threshold (Qin(pC) at shaper entry)
-  geant qdthr;  // D-TovT-discr. threshold (.......................)
-  geant an2dir[2]; // anode-to-dinode signal ratio (in unsatur. region)
+  integer softid;  // LBB(Layer|Bar(=paddle))
+  integer npmts;   // Npmts per side
+  integer status[2]; //2-sides calib.status F|S|A|D -> Anode(sumHT/LTchan)_TDC/
+//                                                  Anode/Dynode_ADC, dec.bit=0/1->OK/Bad
+  geant gaina[2]; // Anode-gain(PMT mainly)(S1/2; relative to some ref. bar of given type)
+  geant gaind[2][TOF2GC::PMTSMX];//Dynode rel.gain(S1/2; for each PMT wrt aver. side-signal)       
+  geant a2dr[2];  // A to D(equilized sum) ratio (in unsatur. region)
   geant asatl;  // anode_chain saturation limit(mev)(incl. PM,Shaper,...)
 //                  (i.e. below use anode data, above  - dinode data)
   geant tthr;   // Time-discr. threshold (mV)
-  geant strat[2];  // Stratcher ratio (side 1/2)
-  geant fstrd;  // same hit time difference between fast/slow TDC (ns)
+  geant strat[2][2];//<===Don't need now ! Stretcher param.[side 1/2][par.1(ratio)/2(offs)]
+  geant fstrd;      // <===Don't need now ! same hit time difference between fast/slow TDC (ns)
   geant tzero;  // T0 (ns)
-  geant slope; // slope for T vs (exp(-Am1/shft)+exp(-Am2/shft))
-  geant td2pos[2];// t-diff->position conv. factor(cm/ns) and error(cm)
+  geant slope; // slope for T vs (1/sqrt(Qa1)+1/sqrt(Qa2))
+  geant slops[2];// indiv.slopes for Ts vs 1/Qs
+  geant yctdif;// two ends time difference at counter center (ns)
+  geant td2pos[2];// t_diff->position conv. factors(=Vlight,cm/ns) and coo-error(cm))
 // for (at least) reference bar (in each bar type group) :
-  geant mip2q;// 2-sides A-signal(pC/Mev) (at Y=0.)
-  geant yscanp[SCANPNT]; // Y-positions of the scan points(bar type depend)
-  geant relout[SCANPNT]; // Relative(to Y=0) 2-Sides(sum) Light output
+  geant mip2q;// 2-sides A-signal(pC/Mev) (at longitudinal(Y) coo=0(center))
+  integer nscanp;// real number of scant points(longitudinal wdiv)
+  geant yscanp[TOF2GC::SCANPNT]; // Y-positions of the scan points(bar type depend)
+  geant relout[TOF2GC::SCANPNT]; // Relative(to Y=0) 2-Sides(sum) Light output
 //(if some PMTs in some bar are dead, curve should be MC-calc. or measured)  
 //
-// standard TovT-chain calibration: Shaper Qin -> Time_over_Thresh (TovT) : 
-  geant logqin[SCACRFP]; // Log(Qin) ref. points (Qin in pC)
-  geant tovta[SCACRFP];  // A-type TovT output (in ns)
-  geant tovtd[SCACRFP];  // D-type TovT output (in ns)
+  geant adc2qf; // Average(tempor) Anode ADCch->Q conv.factor(pC/ch)
+//  (for dynodes this factor is not required because included into a2dr)
 //
+  geant unipar[2*TOF2GC::SCPROFP];// responce uniformity parameters (for ref.bars)
+//
+//-------> Status word in more details:
+//
+// status(is)=F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
+//                              
+  bool FchOK(int isd){
+    return(status[isd]/100000==0);// means good sumHT-chan(anode)
+  }
+  bool SchOK(int isd){
+    return((status[isd]%100000)/10000==0);// means good LTtime-chan(anode)
+  }
+  bool AchOK(int isd){
+    return((status[isd]%10000)/1000==0);// means good Anode-ampl channel
+  }
+  bool DchOK(int isd, int ipm){//ipm=0-2
+    int nml=(status[isd]%1000);
+    if(ipm==0)return(nml%10==0);// means good Dynode-ampl ipm-chan(1)
+    if(ipm==1)return((nml%100)/10==0);// means good Dynode-ampl ipm-chan(2)
+    if(ipm==2)return(nml/1000==0);// means good Dynode-ampl ipm-chan(3)
+    return(0);
+  }
+  bool SideOK(int isd){return(
+                     ((status[isd]/100000)==0 || TFREFFKEY.relogic[1]>=1)//sumHT
+                   && (status[isd]%100000)/10000==0 //LT
+		   && (status[isd]%10000)/1000==0   //Anode
+//		   && (status[isd]%1000)==0         //Dynodes        
+		                         );}
+//-------------------------------------------------------------
+//
+//               Some "time-stable" numeric parameters : 
+//
+  geant TOF2DBc::_edep2ph=10000.;//(was 8k for old scint)edep(Mev)-to-Photons convertion
+  geant TOF2DBc::_adc2q=1.;       // not used (now taken from TFCA #21)
+  geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
+  geant TOF2DBc::_tdcscl=50331.;  // max TDC-scale(ns)((11msb+10lsb)=21bit*24ps)
+  geant TOF2DBc::_strflu=0.36;     //
+  geant TOF2DBc::_tdcbin[4]={
+    0.0244141,                        // LTtime/FTtime/SumHTtime-TDC binning(ns).
+    0.0244141,                         // LTtime/FTtime/SumHTtime-TDC binning(ns).
+    0.5,                           // supl.DAQ binning for charge meas.(in ADC-chan units)
+    25.                            // Tof TDC coarse counter bin (ns, corresp. to 40Mhz clock)
+  };
+  geant TOF2DBc::_daqpwd[15]={
+    250.,   // (0)PW of "z>=1(FTC)"(HT-branch) output signal(ACTEL-outp going to SPT)[ns] 
+    5.,     // (1)minimal inp.pulse width(TovT) to fire the generic discriminator[its rise time, ns]
+    250.,   // (2)PW of "z>=2(FTZ)"(SHT-branch) output signal(ACTEL-outp going to SPT)[ns]
+    7.,     // (3)minimal output pulse width[ns] of generic discriminator [i.e. outPW=7ns if
+//                    5<=inpTovT<=(5+7), and outPW=inpTovT-5 if inpTovT>(5+7)]
+    11.,     // (4)input dead time of generic discr(min dist. of prev_down/next_up edges)[ns]
+//                    (i neglect by fall-time of generic discr, so DT=(11+5)ns for output signals !!!)
+    240.,   // (5)FTgate-width for z>=1 tof-trig-pattern creation(in SPT2)[ns, FT going from JLV1]
+    240.,   // (6)FTgate-width for z>=2 tof-trig-pattern creation(in SPT2)[ns, FT going from JLV1]
+    20.,    // (7)dead time of TDC-inputs, the same for LT-/FT-/SumHT-inputs[ns]
+    10.,    // (8)dead time of "HT/SHT-trig" branch on ACTEL-outp(SPT-inp)[fall-to-rise min.dist, going to SPT, ns]
+//                    (Guido: ACTEL-input is faster than Discr, so no ACTEL-inp dead time check) 
+    20.,    // (9)dead time of "SumHT(SHT)" branch on ACTEL output going to TDC[ns]
+    0.02,   // (10)generic discr. internal accuracy[ns]
+    25.,    // (11)fixed PW of "SumHT(SHT)" branch on ACTEL-output[going to TDC-input, ns] 
+    0.005,  // (12)TDC differential nonlinearity(rms,ns)(0.21bin) 
+    0.017,  // (13)TDC integral nonlinearity(table-corrected,ns)(0.72bin) 
+    10.36   // (14)spare 
+  };
+  geant TOF2DBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
+  geant TOF2DBc::_tdctrdel=6000.; // TDC Trig(Lev1) supplementary delay in SFET(A) 
+  geant TOF2DBc::_tdctrlat=17000.;// TDC trig. latency setting
+  geant TOF2DBc::_tdcmatw=16000.;// TDC matching window
+//  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
+//  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
+  geant TOF2DBc::_ftc2cj=0.; // FT-signal crate-to-crate jitter(ns)
+  geant TOF2DBc::_fts2sj=0.; // FT-signal slot-to-slot jitter(ns)
+  geant TOF2DBc::_lev1del=1000.;// "Lev1" stand.delay (in JLV1) with respect to FT 
+  geant TOF2DBc::_ltagew[2]={40,640};//RECO: LTtime wrt FTtime age-window(ns),(FT-LT)
+//                                         "+" means LT is befor(earlier) FT in abs.time-scale
+//                                Later may be need to set 60/~300 
+  geant TOF2DBc::_ftdelm=250.; //
+  geant TOF2DBc::_clkperJLV=40.;  // JLVTrig.electronics(JLV1-crate) clock period(ns)
+  geant TOF2DBc::_clkperSPT=20.;  // SPTpreTrig.electronics(S-crates) clock period(ns)
+  integer TOF2DBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0)
+  geant TOF2DBc::_tofareftem[3]={0.,0.,0.};//Tof(Acc) ref.temperatures for SFET(A),PMT,SFEC 

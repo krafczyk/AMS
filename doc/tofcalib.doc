@@ -1,4 +1,9 @@
-#  $Id: tofcalib.doc,v 1.7 2001/01/22 17:00:59 vitali Exp $
+#  $Id: tofcalib.doc,v 1.8 2009/07/08 07:53:36 choumilo Exp $
+
+ updated 6.07.2009 by E.Choumilov:  
+ 
+                     This is for AMS01 :
+
      The following "on-data"-calibration procedures are developed upto now:
  
 1) STRR-calibration:
@@ -94,47 +99,52 @@
     line of tofverslistKK.dat file.(For now 01 corresponds to earth configuration,
     02 - Shuttle.).
                                ***********************
+			       
+                             This is for AMS02 :
                                
-       When the situation with AMS hardware is stable one can use semiautomatic
-    calibration procedure ( to create new calibr. update with number NN):
+       The set of Tof-paddles calibration parameters consists
+    of 4 sub-sets:
     
-    1) cd tofcadir (this is some existing directory next to top(user) one)
-    
-    2) cp /Offline/AMSDataDir/v2.15/incalibMMrl.dat incalibNNrl.dat. Modify
-       incalibNNrl.dat file if needed (if any SFET cards was chenged).
-       (MM is latest existing version).
+    1) "Tdelv", for each paddle keep : 
+       a) Offset in 2 sides time difference for
+          particles crossing the middle of the paddle;
+       b) Effective light velocity along the paddle.
        
-    3) cp /Offline/AMSDataDir/v2.15/tofverslistMM.dat tofverslistNN.dat
-       Modify it in accordance with new version number NN.
+    2) "Amplf", for each paddle/side keep : 
+       a) Relative anode channel amplification wrt to some reference 
+          paddle (there are few reference counters, each one 
+          is representative of counters group with the same design);
+       b) Relative dynodes channels amplification;
+       c) Dynodes (averaged) relative amplification wrt common anode
+          channel;
+                for each reference paddle keep :
+       a) Total (2sides sum) anode signal impact point dependence 
+          parameters;
+       b) Absolute normalization (conversion factor from
+          pC to Edep(mev));
        
-    4) Run in nice mode the following script
-       globtofcal_nt FN NN MM 1>fn.log 2>fn.log &
-       ( here "globtofcal_nt" is script to use use for calibration without tracker.
-         To use the tracker - run "globtofcal" script. In this script only TZSL and
-         AMPL steps use tracker info.).
-        The FN is the file(FN1,FN2,... if >1) name to use for calibration; NN,MM always
-         2-digits (like 01,05.10,26,...)
-        
-    5) After the job is finished (few hours for no_tracker version) check the log file
-       (it will contain the outputs from all calibration steps).
+    3) "Tzslw", for each paddle keep :
+       a) Offset to measured time (Time=(t1+t2)/2) to have proper
+          particle velocity measurement;
+                common for all paddles/sides:
+       a) Average slewing correction parameter (to compensate
+          Time vs Ampl dependence due to the threshold);
        
-    6) Modify script file "updatedb" with correct validity time.
-       Run it in nice mode:
-         updatedb FN NN 1>test.log 2>test.log & 
-       (here FN - file name of the FIRST file used for calibration).
-       It will copy necessary files to /Offline/AMSDataDir/v2.15 directory;
-       create 3 global TOF-TDV files Tofbarcal1.1.FN, Tofmsscans.1.FN, 
-       Tofvpar.1.FN; and run short test job (using new set of calibr.output files 
-       from /Offline/AMSDataDir/v2.15 directory). If test.log OK :
+    4) "Cstat", for each paddle/side keep :
+       a) Calibration status for different logic channels,
+          see status word definition of TOF2Brcal-class in tofdbc.doc
+          (0/1=>ok/bad);
        
-    *7) Create links for all files you will need to use with this calibration data:
-    
-       cd /Offline/AMSDataDir/v2.15
-       toflink FN other_fn
        
-       This step 7) is only needed if 3 TOF-TDV files was not put into
-       objectivity DB by A.Klimentov.   
+          Generally calibration procedures create 5 files:
+	  
+       TofCstatRD.NNN, TofTdelvRD.NNN, TofTzslwRD.NNN, TofAmplfRD.NNN
+       and TofCflistRD.MMM. The last one is reference file containing
+       just NNN-references for above 4 calibration file types.
+       Here NNN(MMM) is run number of the first DAQ-file used in
+       cabration procedure. Usually all NNN's are equal to MMM. The
+       MMM have to be provided (through the related data-card) for
+       any reconstruction Jobs if DataBase is not (can't be) used.   
        
-    *) not needed in new Vitali's (non-objectivity !!!) DB
 
      

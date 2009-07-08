@@ -30,7 +30,8 @@
           Time vs Ampl dependence due to the threshold);
        
     4) "Cstat", for each paddle/side keep :
-       a) Calibration status for each above type of calibration
+       a) Calibration status for different logic channels,
+          see status-word definition in TOF2Barcal-class of tofdbc.doc
           (0/1=>ok/bad);
        
        

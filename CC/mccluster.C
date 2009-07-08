@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.76 2009/06/11 13:51:25 choumilo Exp $
+//  $Id: mccluster.C,v 1.77 2009/07/08 07:53:35 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -151,7 +151,8 @@ void AMSEcalMCHit::siecalhits(integer idsoft , geant vect[],geant edep,
   //cout <<isl<<" "<<pnt<<endl;
 }
 void AMSEcalMCHit::_writeEl(){
-  integer flag = ((IOPA.WriteAll%10==1) || (ECMCFFKEY.mch2root>0));
+  integer flag = (((IOPA.WriteAll%10==1) && (ECMCFFKEY.mch2root==1))
+                  || (ECMCFFKEY.mch2root==2));
   
   if(AMSEcalMCHit::Out(flag)){
 #ifdef __WRITEROOT__

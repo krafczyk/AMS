@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.40 2009/06/11 13:51:32 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.41 2009/07/08 07:53:37 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -426,7 +426,7 @@ public:
 class TOF2Brcal{
 //
 private:
-  integer softid;  // LBB
+  integer softid;  // LBB(Layer|Bar(=paddle))
   integer npmts;   // Npmts per side
   integer status[2]; //2-sides calib.status F|S|A|D -> Anode(sumHT/LTchan)_TDC/
 //                                                  Anode/Dynode_ADC, dec.bit=0/1->OK/Bad
@@ -436,16 +436,16 @@ private:
   geant asatl;  // anode_chain saturation limit(mev)(incl. PM,Shaper,...)
 //                  (i.e. below use anode data, above  - dinode data)
   geant tthr;   // Time-discr. threshold (mV)
-  geant strat[2][2];  // Stretcher param.[side 1/2][par.1(ratio)/2(offs)]
-  geant fstrd;  // <===Don't need now ! same hit time difference between fast/slow TDC (ns)
+  geant strat[2][2];//<===Don't need now ! Stretcher param.[side 1/2][par.1(ratio)/2(offs)]
+  geant fstrd;      // <===Don't need now ! same hit time difference between fast/slow TDC (ns)
   geant tzero;  // T0 (ns)
   geant slope; // slope for T vs (1/sqrt(Qa1)+1/sqrt(Qa2))
   geant slops[2];// indiv.slopes for Ts vs 1/Qs
   geant yctdif;// two ends time difference at counter center (ns)
   geant td2pos[2];// t_diff->position conv. factors(=Vlight,cm/ns) and coo-error(cm))
 // for (at least) reference bar (in each bar type group) :
-  geant mip2q;// 2-sides A-signal(pC/Mev) (at long(Y) coo=0(center))
-  integer nscanp;// real number of scant points(long wdiv)
+  geant mip2q;// 2-sides A-signal(pC/Mev) (at longitudinal(Y) coo=0(center))
+  integer nscanp;// real number of scant points(longitudinal wdiv)
   geant yscanp[TOF2GC::SCANPNT]; // Y-positions of the scan points(bar type depend)
   geant relout[TOF2GC::SCANPNT]; // Relative(to Y=0) 2-Sides(sum) Light output
 //(if some PMTs in some bar are dead, curve should be MC-calc. or measured)  

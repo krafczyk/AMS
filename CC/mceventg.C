@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.143 2009/01/15 18:00:32 choutko Exp $
+//  $Id: mceventg.C,v 1.144 2009/07/08 07:53:35 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1559,36 +1559,36 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
        first=0;
        cout<<"AMSmceventg::fastcheck:z/r-anti="<<zanti<<" "<<ranti<<" zcal="<<zcal<<endl;
      }
-     dxy=(zb-zanti)*sin(theta); // cr.with anti-top
+     dxy=(zb-zanti)*tan(theta); // cr.with anti-top
      xcr=xin+dxy*cos(phi);
      ycr=yin+dxy*sin(phi);
      if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
-     dxy=(zb+zanti)*sin(theta); // cr.with anti-bot
+     dxy=(zb+zanti)*tan(theta); // cr.with anti-bot
      xcr=xin+dxy*cos(phi);
      ycr=yin+dxy*sin(phi);
 //     if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
      if(TFMCFFKEY.fast==2){//<-- check ECAL sens.volume if needed
-       dxy=(zb-zcal)*sin(theta); // cr.with calor-top
+       dxy=(zb-zcal)*tan(theta); // cr.with calor-top
        xcr=xin+dxy*cos(phi);
        ycr=yin+dxy*sin(phi);
        if((fabs(xcr)>calhs) || (fabs(ycr)>calhs))return 0;
 
-//       dxy=(zb-ztof1t)*sin(theta); // cr.with tof1top
+//       dxy=(zb-ztof1t)*tan(theta); // cr.with tof1top
 //       xcr=xin+dxy*cos(phi);
 //       ycr=yin+dxy*sin(phi);
 //       if((fabs(xcr)>xtof1) || (fabs(ycr)>ytof1))return 0;
        
-//       dxy=(zb-ztof1b)*sin(theta); // cr.with tof1bot
+//       dxy=(zb-ztof1b)*tan(theta); // cr.with tof1bot
 //       xcr=xin+dxy*cos(phi);
 //       ycr=yin+dxy*sin(phi);
 //       if((fabs(xcr)<xtof1) && (fabs(ycr)<ytof1))return 0;
        
-//       dxy=(zb-ztof2t)*sin(theta); // cr.with tof2top
+//       dxy=(zb-ztof2t)*tan(theta); // cr.with tof2top
 //       xcr=xin+dxy*cos(phi);
 //       ycr=yin+dxy*sin(phi);
 //       if((fabs(xcr)<xtof2) && (fabs(ycr)<ytof2))return 0;
        
-//       dxy=(zb-ztof2b)*sin(theta); // cr.with tof2bot
+//       dxy=(zb-ztof2b)*tan(theta); // cr.with tof2bot
 //       xcr=xin+dxy*cos(phi);
 //       ycr=yin+dxy*sin(phi);
 //       if((fabs(xcr)<xtof2) && (fabs(ycr)<ytof2))return 0;

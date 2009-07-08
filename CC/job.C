@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.635 2009/06/30 14:50:10 choutko Exp $
+// $Id: job.C,v 1.636 2009/07/08 07:53:35 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -746,7 +746,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TFMCFFKEY.trlogic[0]=1; //(11) 1/0->do/not (CP+BZ) trpatt-masking in SPT2(not affect trigger decision) 
   TFMCFFKEY.trlogic[1]=0; //(12) spare 
-  TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC requirement)
+  TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC), Not For precise Accept.calc
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
   TFMCFFKEY.mcseedo=0;    //(16) 1/0->Use RealDataCalib_Copy/MCCalib files as MCSeed
@@ -814,7 +814,7 @@ void AMSJob::_siecaldata(){
 //                                          P=1/0->ReadFromFile/ReadFromDB
   ECMCFFKEY.calvern=1;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 //
-  ECMCFFKEY.mch2root=0;//(30) put to 1 to write ECmc-hits to root file
+  ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
 //
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }

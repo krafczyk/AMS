@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.296 2009/07/07 15:51:14 mmilling Exp $
+#  $Id: datacards.doc,v 1.297 2009/07/08 07:53:36 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -883,7 +883,7 @@ R 27   peddsv(30)                // ch-to-ch variation(%)
 I 28   ReadConstFiles(00)        // CP=MCCalibSeeds|Peds:C=1/0->Read MCCalibSeedsFile/DB
 //                                                       P=1/0->GeneratePeds/ReadFromDB
 I 29   calvern(1) //EcalCflistMC-file vers.number(list of RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
-// 
+R 30   mch2root(0)// =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case 
 
     ECAL reconstruction:
 
