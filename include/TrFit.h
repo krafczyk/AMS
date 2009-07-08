@@ -1,8 +1,19 @@
-//  $Id: TrFit.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
+//  $Id: TrFit.h,v 1.3 2009/07/08 14:31:32 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
 //////////////////////////////////////////////////////////////////////////
+///
+///\class TrProp
+///\brief A class to manage general track propagation
+///\ingroup tkrec
+///
+/// Track propagation routines are extracted from the old TrFit 
+/// (originally in TrackFit_utils by V.Choutko) and collected in TrProp.
+/// So for the purpose of, for example, interpolation, 
+/// only TrProp can be used.
+///
+///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///
 ///
 ///\class TrFit
@@ -36,9 +47,9 @@
 ///\date  2008/12/01 SH  Fits methods debugged and checked
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2009/07/08 14:31:32 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 

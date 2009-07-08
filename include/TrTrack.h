@@ -1,8 +1,17 @@
-//  $Id: TrTrack.h,v 1.6 2009/07/01 16:45:32 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.7 2009/07/08 14:31:32 shaino Exp $
 #ifndef __AMSTrTrack__
 #define __AMSTrTrack__
 
 //////////////////////////////////////////////////////////////////////////
+///
+///\class AMSTrTrackPar
+///\brief A class to manage reconstructed track parameters
+///\ingroup tkrec
+///
+/// AMSTrTrackPar contains a set of track parameters correponding one 
+/// fitting method, which are contained as a vector by AMSTrTrack class
+///
+///\date  2008/11/20 SH  A new structure introduced
 ///
 ///
 ///\class AMSTrTrack
@@ -27,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/07/01 16:45:32 $
+///$Date: 2009/07/08 14:31:32 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
