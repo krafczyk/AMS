@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.636 2009/07/08 07:53:35 choumilo Exp $
+// $Id: job.C,v 1.637 2009/07/09 09:40:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -964,7 +964,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.siglim[0]=0.1;  // (60) PedSig low-lim ............
   ECCAFFKEY.siglim[1]=10.; //  (61)         hi-lim ............
 //g.chen
-  ECCAFFKEY.ecshswit=0;        // (58) 0/1 switch to/(not to) use shower info in ANOR calibration
+  ECCAFFKEY.ecshswit=0;        // (62) 0/1 switch to/(not to) use shower info in ANOR calibration
   ECCAFFKEY.chi2dirmx=10.;     //     max chi2 of shower dir fit
   ECCAFFKEY.prchi2mx=5.;       //     max chi2 of shower profile fit
   ECCAFFKEY.trchi2mx=10.;      //     max chi2 of shower trans. fit
@@ -976,10 +976,10 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.trentmax[0]=0.5;   //     cut of distance between track and shower entry x-proj
   ECCAFFKEY.trentmax[1]=0.5;   //     cut of distance between track and shower entry y-proj
   ECCAFFKEY.trextmax[0]=1.0;   //     cut of distance between track and shower enit x-proj
-  ECCAFFKEY.trextmax[1]=1.0;   // (70) cut of distance between track and shower exit y-proj
-// for OnBoardPeds
-  ECCAFFKEY.onbpedspat=15;//ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
-//                           i(j,..)-bitset => section present
+  ECCAFFKEY.trextmax[1]=1.0;   // (74) cut of distance between track and shower exit y-proj
+// for OnBoardPeds:
+  ECCAFFKEY.onbpedspat=15;     // (75) ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
+//                                i(j,..)-bitset => section present
 //
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -993,7 +993,7 @@ void AMSJob::_sianti2data(){
   ATGEFFKEY.groovr=0.4;   // groove radious (bump_rad = groove_rad-pdlgap)
   ATGEFFKEY.pdlgap=0.1;   // inter paddle gap (cm)(2*wrapth+extra)
   ATGEFFKEY.stradi=54.235; // inner radious of supp. tube
-  ATGEFFKEY.stleng=85.;    // (ams02)length of supp. tube
+  ATGEFFKEY.stleng=85.;    // length of supp. tube
   ATGEFFKEY.stthic=0.12;   // thickness of supp. tube
   
 //---
@@ -1261,7 +1261,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
   TFREFFKEY.reprtf[4]=0; //(7) print flag for Debug needs  
 //
-  TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run. 
+  TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run.
+//                       (when =7 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on ACC !) 
   TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
   TFREFFKEY.relogic[2]=1;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
@@ -1370,6 +1371,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
   ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
   ATREFFKEY.relogic=0;  //(3) =0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/OnbPed
+//                      (when =4 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on TOF !) 
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.nlcorr=0;   //(6) =1/0--> apply/not nonlin.corr to raw amplitudes at cluster-build stage

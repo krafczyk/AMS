@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.297 2009/07/08 07:53:36 choumilo Exp $
+#  $Id: datacards.doc,v 1.298 2009/07/09 09:40:26 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -734,11 +734,11 @@ I 13   fast(0)             //  0/1/2(for fast gener. in mceventg.C),0->off; 1->r
                                (Don't use fast mode for Acceptance calculation !)
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
 I 15   birks(1)            // apply or not birks correction
-I 16   mcseedo(0)          // 1/0->Use RealDataCalib_Copy(*sd.dat)/MCCalib(*mc.dat) files as MCSeed
+I 16   mcseedo(0)          // 1/0->Use RealDataCalib_Copy(*SD.n)/MCCalib(*MC.n) files as MCSeed
 R 17   blshift(0.)         // base line shift at fast discr.input (mv)
 R 18   hfnoise(5.)         // high freq. noise .......   
 //     
-I 19   ReadConstFiles(0000)// LPTS(L=TDCLinCorMC,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->read DB/RawFiles
+I 19   ReadConstFiles(0000)// LPTS(L=TDCLinCorMC,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);L(P,T,S)=0/1->read DB/RawFiles
 I 20   addpeds(0)          // 1/0-> add/not peds into empty(no MC dE/dX) channels
 I 21   calvern(1)          // TofCflistMC-file(barcal_files vers. list) version number
 I 22   tdclin(0)           // 1/0->do/not activate TDC-linearity simulation logic 
@@ -754,29 +754,30 @@ I 3   Print-flag(0)       // 0/1->not/print_ALL_job_statistics_tables
 I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
-I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
-I 8   RECO logic-flag(0)  // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_/OnBoardPed_
-//                               calibr run(if=0/1/2/3/4/5/6/7)
-I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
-I 10  RECO logic-flag(0)  // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
-I 11  RECO logic-flag(0)  // do/not recovering of missing side 
-I 12  RECO logic-flag(1)  // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 
-R 13  DAQ-thresh-1 (40)   // thresh.(mv) for fast t-discriminator (z>=1 trig)
-R 14  DAQ-thresh-2 (100)  // thresh.(mv) for z>1-trig. discr.
-R 15  DAQ-thresh-3 (250)  // thresh.(mv) for z>2-trig. discr.
-R 16  DAQ-thresh-4 (2.5)  // An/Dyn-ADC readout threshold in DAQ(in ped's rms units) 
-R 17  DAQ-thresh-5 (1)    // spare 
+I 7   Print-flag(0)       // print flag for debug-printing
+I 8   relogic[0](0)       // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_/OnBoardPed_
+//                           calibr run(if=0/1/2/3/4/5/6/7)
+//                   (when =7 confirm ped-file writing + hist when glob. OnBoard CALIB-flag >1 to be independent on ACC !)
+I 9   relogic[1](0)       // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
+I 10  relogic[2](0)       // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
+I 11  relogic[3](0)       // do/not recovering of missing side 
+I 12  relogic[4](1)       // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 
+R 13  DAQ-thresh-1 (30)   // discr.thresh.(mv) for LT (low thresh) channel
+R 14  DAQ-thresh-2 (70)   // discr.thresh.(mv) for HT (hi thr, => z>=1-trig) channel
+R 15  DAQ-thresh-3 (940)  // discr.thresh.(mv) for SHT (super hi thr => z>=2-trig)
+R 16  DAQ-thresh-4 (4)    // Anode-ADC readout threshold in DAQ(in ped's rms units) 
+R 17  DAQ-thresh-5 (4)    // Dynode-ADC readout threshold in DAQ(in ped's rms units) 
 //
-R 18  cuts[0] (40)      // time-window(ns) for "the same hit" search in fast/slow_tdc 
-R 19  cuts[1] (15)      // cut on min. distance of "befor"-hit in time-history TDC
-R 20  cuts[2] (400)     // ........................"after"-hit in time-history TDC
+R 18  cuts[0] (6)       // window(+-ns) around (LT-SumHT)-most.prob for pairing of LT-/sumHT-hits in channels 
+R 19  cuts[1] (2000)    // "befor"-cut in time history (ns)(max. integr.time?)
+R 20  cuts[2] (100)     // "after"-cut in time history (ns)
 R 21  cuts[3] (2.8)     // error in longitudinal coordinate (cm, for mip in single TOF-paddle)
-R 22  cuts[4] (40)      // min FT delay (ns)
-R 23  cuts[5] (40)      // spare
+R 22  cuts[4] (70)      // JLV1 globFT decision_time + delay(JLV1-> S-crate, ns), i.e. glFT-time at S-crate
+R 23  cuts[5] (5)       // (LT-SumHT)-most.prob to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
 R 24  cuts[6] (0.6)     // 2-bars assim.cut in TOFCluster energy calculation 
-R 25  cuts[7] (8)       // internal longit.coo matching cut ...Not used (spare) 
-R 26  cuts[8] (26)      // spare
-R 27  cuts[9] (40)      // spare
+R 25  cuts[7] (10)      // T-type def.temperature (see card #29) 
+R 26  cuts[8] (5)       // P-type def.temperature
+R 27  cuts[9] (8)       // C-type def.temperature
 //
 I 28  ReadConstFiles(100)   // LQDPC(L->TDCLinCalib(RD/MC),Q->ChargeCalib,D->ThreshCuts-set,
 //                                                                        P->Peds,C->CalibConst(RD/MC))
@@ -787,7 +788,7 @@ I 28  ReadConstFiles(100)   // LQDPC(L->TDCLinCalib(RD/MC),Q->ChargeCalib,D->Thr
 // C=1/0->Take PaddleCalibrCont from RawFiles/DB
 //
 I 29 TempHandlMode(0)     // CPT(Slow:C->SFEC,P->PMT; Fast:T->SFET)=> Temperature Handling Mode 
-//                               C(P,T)=1/0->do/not corresponding temper-corrections at reco-stage
+//                               C(P,T)=1/0->do/not related temperature-corrections at reco-stage
 I 30 calutc(1167606001)   //(20070101 0000001)TofCflistRD-file(barcal_files vers. list) begin UTC-time
 //
 I 31-32   sec[2](0,0)        // Validity time: beg/end
@@ -805,34 +806,35 @@ R  1 plow(8.);  // track mom. low limit (gev/c)
 R  2 phigh(50.);// track mom. high limit
 R  3 meanbeta(0.996);// mean proton velocity in this range 
 R  4 T0-ref1(6.);   // T0 for ref. counters
-R  5 T0-ref2(6.);   // T0 for ref. counters
-R  6 slope(3.2);    // def. slope
+R  5 T0-ref2(6.);   // spare
+R  6 slope(6.5);    // def. slope for slewing-correction
 R  7 meanbeta(.997); // mean muon velocity (for earth calibr.)
-I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
-I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
-I 10 fix-slope(1); // =0/1 to fix/release slope param.
-I 11 calibr.type(0);// =0/1 space/earth calibration
+I  8 idref(104);    // LBB for ref. counter
+I  9 idref(0);      // 0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
+I 10 ifsl(1);       // =0/1 to fix/release slope param.
+I 11 caltyp(0);     // =0/1 space/earth calibration
 I 12 truse(0);     // =-1/0/1 to no/soft/hard usage of tracker info
 I 26 tofcoo(0)     // =0/1 -> use trancv/longit.coordinates from TOF 
   AMPL-calibration:
-I 12 truse(0);     // =1/-1 to use/not tracker info
-R 13 plhc[0](2)  // low cut on tracker momentum (Gev/c) for space calibr.
+I 12 truse(0);     // -1/0/1->(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
+R 13 plhc[0](2)    // low cut on tracker momentum (Gev/c) for space calibr.
 R 14 plhc[1](100)  // high cut on tracker momentum (Gev/c) ....
-I 15 minev(100)     // min.events needed for measurement in channel or bin
+I 15 minev(100)    // min.events needed for measurement in channel or bin
 R 16 trcut(0.90)   // cut to use for "truncated average" calculation
-I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5
+I 17 spares[0]     // spare (integer)
    ...             // ......................................
-I 21 refbid[4]     // ......................................
+I 20 spares[3]     // ......................................
+R 21 adc2q (1.)    // adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
 R 22 plhec[0] (0.1) // mom. low-cut for earth calibr.
-R 23 plhec[0] (10)   // mom. high-cut for earth calibr.
+R 23 plhec[0] (10)  // mom. high-cut for earth calibr.
 R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
 R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
 I 26 tofcoo    (0)  // 0/1-> use transv/longit coord. from TOF 
-I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
-  General :
+R 27 tofbetac(0.5)  // if nonzero->low beta cut (own TOF measurements !!!)
 I 28 hprintf   (1)  // Calib-hist print-flag (0(no)/1(hi_importance)/2(+low_importance)
 I 29 cafdir    (0)  // use official/private directory for calibr.files
 I 30 mcainc    (0)  // spare
+// PedCalib:
 R 31 pedcpr[0](0.01)// PedCalibJobClassic: portion of highest ADCs to remove for aver/rms-calculation
 R 32 pedcpr[1](0.1) // PedCalibJobDownScalEvnts: portion of highest ADCs to remove for ..............
 I 33 pedoutf   (2)  // PedCalibJob-output type:0/1/2->HistosOnly/PedWrite2DB+File/PedWrite2File
@@ -843,7 +845,7 @@ R 37 siglim[1] (10.)//         hi-lim ............
 //TOFTdcCalib:
 R 38 minstat (100)// min.acceptable statistics per channel
 R 39 tdccum (10)  // tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
-//for OnBoardPeds
+//for OnBoardPeds:
 R 40 onbpedspat (63)//ijklmn(bit-patt for peds|dinpeds|pretrs|statws|theshs|widths sections in table),
 //                           i(j,..)-bitset => section present
 
@@ -890,7 +892,7 @@ R 30   mch2root(0)// =1 to write ECmc-hits to root file when 'All' requested, =2
 ECRE
 I 1    reprtf[0](0)        // =1/2/.. to print Reco-histograms    
 I 2    reprtf[1](0)        // =1 to print profiles for first 5 events    
-I 3    reprtf[2](0)        // =1 spare
+I 3    reprtf[2](0)        // DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/info_messages/more_details)
 
 I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
 I 5    relogic[1](0)       // 0/1/2/3/4/5 -> normal/RLGA_/RLGA+FIAT_/ANOR_/PedClassic_/PedDownScaled_calib
@@ -898,35 +900,37 @@ I 5    relogic[1](0)       // 0/1/2/3/4/5 -> normal/RLGA_/RLGA+FIAT_/ANOR_/PedCl
 I 6    relogic[2](0)       // 0/1/2->Nholes/Ebackgr/Both_type cuts in ANOR_calib logic
 I 7,8................        //    spares
 
-R 9    thresh[0](3)        // HighGain-chan. readout threshold(in PEDsigma units)    
-R 10   thresh[1](120)      // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
+R 9    thresh[0](3)        // Anode(High/low-gain chan) readout threshold(in sigmas)    
+R 10   thresh[1](120)      // Etot "mip"-trig.thresh(mev tempor)     
 R 11   thresh[2](450)      // spare    
 R 12   thresh[3](3000)     // spare     
-R 13   thresh[4](3)        // LowGain-chan. readout thershold(in PEDsigma units)    
-R 14   thresh[5](0.)       // Trig. PMDynThr sl1(y) not used (mev, for Pisa algorithm)
-R 15   thresh[6](80.)      // Trig. PMDynThr sl2(x)
-R 16   thresh[7](180.)     // Trig. PMDynThr sl3(y)
-R 17   thresh[8](140.)     // Trig. PMDynThr sl4(x)
+R 13   thresh[4](3)        // Dynode chan. readout thershold(in sigmas)    
+R 14   thresh[5](1.)       // Trig. PMDynThr sl1(y) not used (mev, for Pisa algorithm from S. Di Falco)
+R 15   thresh[6](70.)      // Trig. PMDynThr sl2(x)
+R 16   thresh[7](100.)     // Trig. PMDynThr sl3(y)
+R 17   thresh[8](80.)      // Trig. PMDynThr sl4(x)
 R 18   thresh[9](60.)      // Trig. PMDynThr sl5(y)
-R 19   thresh[10](100.)    // Trig. PMDynThr sl6(x)
-R 20   thresh[11](100.)    // Trig. PMDynThr sl7(y)
-R 21   thresh[12](0.)      // Trig. PMDynThr sl8(x) not used 
-R 22   thresh[13](0.)      // Trig. PMDynThr sl9(y) not used
+R 19   thresh[10](40.)     // Trig. PMDynThr sl6(x)
+R 20   thresh[11](40.)     // Trig. PMDynThr sl7(y)
+R 21   thresh[12](1.)      // Trig. PMDynThr sl8(x) not used 
+R 22   thresh[13](1.)      // Trig. PMDynThr sl9(y) not used
 R 23   thresh[14](0.)      // spare 
 
-R 24   cuts[0](1.15)       // FT/LVL1-trig cuts: AngleCut-1
-R 25   cuts[1](2.15)       // FT/LVL1-trig cuts: AngleCut-2
-R 26   cuts[2](5)          // FT/LVL1-trig cuts: Xmult-boundary
-R 27   cuts[3](6)          // FT/LVL1-trig cuts: Ymult-boundary
-R 28   cuts[4](2)          // FT/LVL1-trig cuts: Nof3(min.Slayers per proj)
+R 24   cuts[0](1.15)       // FT Pisa algorithm:: AngleCut-1
+R 25   cuts[1](2.15)       // FT Pisa algorithm:: AngleCut-2
+R 26   cuts[2](5)          // FT Pisa algorithm:: Xmult-boundary
+R 27   cuts[3](6)          // FT Pisa algorithm:: Ymult-boundary
+R 28   cuts[4](2)          // min.layers(out of 3 per proj) with at least 1 pm having Adynode > thr
 R 29-32.................   // spares
 R 33   cuts[9](0.65)       // LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 
-I 34   ReadConstFiles(00)  // DC(RecoThresCuts|CalibConst),C=0/1->Take CalibConst(RD/MC) from DB/RawFiles
-                           // D=0/1->Take ThreshCuts-set from DB/DataCards
+I 34   ReadConstFiles(100) // DCP (ThreshCuts-set | Calib.const(MC/RD) / RDpeds)
+//                            D=1/0-> Take from DataCards/DB
+//                            C=1/0-> Take from CalibFiles/DB
+//                            P=1/0-> Take from CalibFiles/DB
 			    
 I 35   calutc(1167606001)//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
-//
+// Vitaly's cluster algorithm parameters:
 R 36   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
 R 37   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
 R 38   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
@@ -964,20 +968,20 @@ ECCA
 (RLGA/FIAT part:)
 I  1  hprintf (2)        // =0/1/2/3=> no/hi/+mid/+low importance calib-histograms printing
 I  2  cafdir(0)          // 0/1-> use official/private directory for calibr.files
-I  3  truse(1)           // 1/0-> use He4/prot tracks for calibration
+I  3  prtuse(-1)         // 1/0/-1 -> use He4/proton/mu tracks for calibration
 I  4  refpid(118)        // ref.PM ID (SPP-> S=SupLayer, PP=PM number) 
 R  5  trmin(4.)          // presel-cut on min. Rigidity of the track 
 R  6  adcmin(3.)         // min ADC cut for indiv. SubCell (to remove noise)
 R  7  adcpmx(1000.)      // max ADC cut for indiv SC to consider Plane as bad(non PunchThrough)
-I  8  ntruncl(1)         // remove this number of scPlanes with highest Edep
+I  8  ntruncl(2)         // remove this number of scPlanes with highest Edep
 R  9  trxac(0.022)        // TRK->EC extrapolation accuracy in X-proj("3sigma",cm)
 R 10  tryac(0.019)        // TRK->EC extrapolation accuracy in Y-proj............
 R 11  mscatp(1.)         // EC multiple scattering fine tuning parameter
 R 12  nortyp(0)          // normaliz.type 0/1-> by crossed/fired counters
-I 13  badplmx(0)         // Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
-R 14  etrunmn(70.)       // Cuts on EC Edep_truncated (min/max) to select (He) or P or ...
-R 15  etrunmx(180.)      // 
-R 16  nsigtrk(1.5)       // Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
+I 13  badplmx(4)         // Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
+R 14  etrunmn(60.)       // Min ECenergy (Etrunc/sl in mev) to select PunchThrough particle(He)
+R 15  etrunmx(520.)      // Max ECenergy (Etrunc/sl in mev) ...................................
+R 16  nsigtrk(1.)        // ImpPoint accur. extention param. for cell-crossing check
 //
 (ANOR part:)
 R 17  pmin (3.)       // presel-cut on min. mom. of the track(gev/c) 
@@ -1025,20 +1029,24 @@ R 58  pedlim[0] (50.) // Low lim on ped to be accepted as good
 R 59  pedlim[1] (500.)// High lim on ped to be accepted as good
 R 60  siglim[0] (0.5) // Low lim on rms to be accepted as good
 R 61  siglim[1] (10.) // High lim on rms to be accepted as good
+62-74 spare (G.Chen)
+// for OnBoardPeds:
+I 75  onbpedspat(15)  //ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
+//                           i(j,..)-bitset => section present
  
 //--------------------------------------------------------------------------------
 
  AMS02 Anti Geometry
  
 ATGE
-R 1 scradi(54.4)   // internal radious of ANTI sc. cylinder (cm)
-R 2 scinth(1.)     // thickness of scintillator (cm)
-R 3 scleng(86.)    //(ams02) scintillator paddle length (glob. Z-dim)
+R 1 scradi(54.55)  // internal radious of ANTI sc. cylinder (cm)
+R 2 scinth(0.8)    // thickness of scintillator (cm)
+R 3 scleng(82.65)  // scintillator paddle length (Z-dim)
 R 4 wrapth(0.04)   // wrapper thickness (cm)
-R 5 groovr(0.45)   // groove radious (bump_rad = groove_rad-pdlgap)
+R 5 groovr(0.4)    // groove radious (bump_rad = groove_rad-pdlgap)
 R 6 pdlgap(0.1)    // inter paddle gap (cm)(2*wrapth+extra)
 R 7 stradi(54.235) // inner radious of supp. tube
-R 8 stleng(86.)    // (ams02)length of supp. tube
+R 8 stleng(85.)    // length of supp. tube
 R 9 stthic(0.12)   // thickness of supp. tube
 
 
@@ -1046,10 +1054,11 @@ R 9 stthic(0.12)   // thickness of supp. tube
  AMS02 Anti Simulation
 
 ATMC
-I 1   mcprtf(0)           // MC-hist print flag
-R 2   LZero(120.)         // light attenuation length in scint.(cm)
-R 3   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
-I 4   ReadConstFiles(0);   // P(PedsMC), P=0/1-> read Peds from DB/RawFiles
+I 1   mcprtf(0)           // MC print flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
+R 2   FTdel(10.)          // FT-delay between JLV1 and S-crate(ns)
+R 3   Lspeed(14.7)        // eff. speed of the light in anti paddle (cm/ns)
+I 4   ReadConstFiles(0);  // Seedp|Realp(S[eed]|R[eal] MCPeds), S,R=0/1-> read from DB/RawFiles
+I 4   calvern(1)          // AccCflistMC-file (acc_cal_files memb. list) version number
 
 
 
@@ -1060,36 +1069,42 @@ ATRE
 I 1 reprtf[0] (0)         // RECO-hist print flag
 I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
 I 3 relogic   (0)         // 0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/OnBoardPeds
-//                                                                           
-R 4 Edthr(0.1)            // Threshold(mev) for Cluster(Sector) creation
+//                  (when =4 confirm ped-file writing + hist when glob. OnBoard CALIB-flag >1 to be independent on TOF !)
+R 4 Edthr(0.1)            // Threshold(mev) for Cluster(Paddle=Sector) creation
 R 5 zcerr1(10.)           // ZCoordError(cm) for "paired" sector
-R 6 daqthr(3)             // DAQ-readout theshold(in PedSigmas)
-R 7 ftdel(50)             // FT-delay wrt history-pulse
+I 6 nlcorr(0)             // =1/0--> apply/not nonlin.corr to raw amplitudes at cluster-build stage
+R 7 ftdel(120)            // FT-delay wrt correlated history-pulse
 R 8 ftwin(70)             // time-window(+-ns) to check hist-pulse coincidence with FT
 //
-I 9 ReadConstFiles(00));  //PC(Peds,CalibConst), P(C)=0/1-> read from DB/RawFiles
+I 9 ReadConstFiles(0)     // PVS(RD_Peds,VariabCalibPar(mc/rd),StabCalibPar(mc/rd)), P(V,S)=0/1-> DB/RawFiles
+I 10 calutc(1167606001)   // (20070101 0000001)AccCflistRD-file(acccal_files vers. list) begin UTC-time
 //  
-I 10 sec[0](0)             // cards below are used as validity time when need to write
-I 11 sec[1](0)             // to DB new calibration/peds parameters
-I 12 min[0](0)             //
-I 13 min[1](0)             //
-I 14 hour[0](0)            //
-I 15 hour[1](0)            //
-I 16 day[0](1)             //
-I 17 day[1](1)             //
-I 18 mon[0](0)             //
-I 19 mon[1](0)             //
-I 20 year[0](101)          //
-I 21 year[1](110)          //
+I 11 sec[0](0)             // cards below are used as validity time when need to write
+I 12 sec[1](0)             // to DB new calibration/peds parameters
+I 13 min[0](0)             //
+I 14 min[1](0)             //
+I 15 hour[0](0)            //
+I 16 hour[1](0)            //
+I 17 day[0](1)             //
+I 18 day[1](1)             //
+I 19 mon[0](0)             //
+I 20 mon[1](0)             //
+I 21 year[0](101)          //
+I 22 year[1](110)          //
 
  AMS02 Anti Calibration
 
 ATCA
-I 1 cfvers(3)             // version number(01-99) for antiverlistNN.dat file
-I 2 cafdir(0)             // 0/1-> use official/private directory for calibr.files reading
-R 3 pedcpr[0] (0.01)      // PedCalibJobClassic(rand.trg): portion of highest ADCs to remove
-R 4 pedcpr[1] (0.035)     // PedCalibJobDownScaled(in trig): portion of highest adcs to remove
-I 5 pedoutf     (2)       // PedCalibJob-output type:0/1/2-> HistosOnly/PedWrite2DB+File/PedWrite2File
+I 1 trackmode(0)            // 0/1-> use TRK/TRK+TRD for calib
+I 2 cafdir(0)               // 0/1-> use official/private directory for calibr.files
+R 3 pedcpr(0.005)           // PedCalibJobRandom(classic): portion of highest adcs to remove
+R 4 pedcpr(0.035)           // PedCalibJobDownScaled(in trig): portion of highest adcs to remove
+I 5 pedoutf(2)              // --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+R 6 pedlim(10)              // Ped low-lim in PedCalibJobs
+R 7 pedlim(400)             //      hi-lim ...............
+R 8 siglim(0.4)             // PedSig low-lim ............
+R 9 siglim(15)              //         hi-lim ............
+R 10 mev2mv(150)            // spare, not used now
 
 //------------------------------------------------------------------------------
 

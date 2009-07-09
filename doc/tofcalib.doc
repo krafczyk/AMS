@@ -1,4 +1,4 @@
-#  $Id: tofcalib.doc,v 1.8 2009/07/08 07:53:36 choumilo Exp $
+#  $Id: tofcalib.doc,v 1.9 2009/07/09 09:40:26 choumilo Exp $
 
  updated 6.07.2009 by E.Choumilov:  
  
@@ -144,7 +144,8 @@
        Here NNN(MMM) is run number of the first DAQ-file used in
        cabration procedure. Usually all NNN's are equal to MMM. The
        MMM have to be provided (through the related data-card) for
-       any reconstruction Jobs if DataBase is not (can't be) used.   
+       any reconstruction Jobs if DataBase is not (can't be) used.
+          
        
 
      
