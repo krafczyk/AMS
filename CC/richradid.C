@@ -323,6 +323,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   track->interpolate(pnt,dir,point,
 		     theta,phi,length);
 
+
   // Transform the point to RICH frame again to get X and Y
   point=RichAlignment::AMSToRich(point);
   
@@ -388,6 +389,12 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
     (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/
     (_tiles[_current_tile]->index-1);
+
+
+  // Force the propagation direction to be downwards
+  if(_d_direct[2]>0) _d_direct=_d_direct*(-1);
+  if(_d_reflected[2]>0) _d_reflected=_d_reflected*(-1);
+
 
 } 
 
