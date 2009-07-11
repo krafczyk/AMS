@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.4 2009/06/13 21:43:13 shaino Exp $ 
+// $Id: TrRecon.h,v 1.5 2009/07/11 07:50:22 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/06/13 21:43:13 $
+/// $Date: 2009/07/11 07:50:22 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -359,7 +359,7 @@ public:
 
   /// Get number of ladders with cluster signals at the layer
   int GetNladder(int layer) const { 
-    return (0 < layer && layer <= MAXLAY) ? _LadderHitMap[layer-1].size() : 1;
+    return (0 < layer && layer <= MAXLAY) ? _LadderHitMap[layer-1].size() : 0;
   }
   /// Get tkid from _LadderHitMap
   int GetLadderHit(int layer, int i) const {

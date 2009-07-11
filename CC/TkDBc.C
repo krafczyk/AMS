@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.4 2009/06/10 08:44:58 shaino Exp $
+//  $Id: TkDBc.C,v 1.5 2009/07/11 07:50:14 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/06/10 08:44:58 $
+///$Date: 2009/07/11 07:50:14 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -699,6 +699,8 @@ int TkDBc::readAlignmentAngles(const char* filename, int pri){
     fprintf(stderr,"TkDBc::readAlignmentAngles: WARNING Cannot open the alignemt file %s!!!\n",filename);
     return -1;
   }
+  printf("TkDBc::readAlignmentAngles: open the alignemt file %s\n",filename);
+
 
   int tkid;
   float dx,dy,dz,theta,phi,xsi;
@@ -711,7 +713,7 @@ int TkDBc::readAlignmentAngles(const char* filename, int pri){
       continue;
     }
     if(pri) printf("updating .... \n");
-    ll->SetRotAnglesA(theta/600.,phi/600.,xsi/600.);
+    ll->SetRotAnglesA(-theta/600.,-phi/600.,-xsi/600.);
     ll->setposA(dx/10.,dy/10.,dz/10.);
   }
   
