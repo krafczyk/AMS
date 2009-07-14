@@ -46,7 +46,7 @@ fi
    echo " Start program ..."
  fi
 
-cd $TofUserTopDir/headquaters/amsjobwd
+cd $TofUserTopDir/headquarters/amsjobwd
 
 umask 000
 

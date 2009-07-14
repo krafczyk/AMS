@@ -4,9 +4,9 @@
  between the user and different TOF calibration procedures which use the
  standard offline reconstruction exec-file gbatch.exe comprising calibration
  related codes. First of all you should ssh to pcamsr0 computer (temporary
- limitation). CD to /f2users/tofaccuser/headquaters working directory.  
+ limitation). CD to /f2users/tofaccuser/headquarters working directory.  
   
-   The source files in  working /f2users/tofaccuser/headquaters directory
+   The source files in  working /f2users/tofaccuser/headquarters directory
  are the copies of files in my /afs/cern.ch/user/c/choumilo/AMS/ut/tofcalut
  directory and can be updated only by me (temporary limitation).
  

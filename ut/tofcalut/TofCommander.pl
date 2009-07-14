@@ -356,7 +356,7 @@ sub StartSess{
   $UnFinishedJobs=0;# set on each "Welcome"-call by analizing the SubmJobsList-file
   if($CalType eq "PedCal"){
     $SessName="PEDC";
-    $workdir=$USERTD."/headquaters";
+    $workdir=$USERTD."/headquarters";
     $JobScriptN="JScriptTofPEDC";
     require 'TofAccPedCalculator.pl';
     PedCalibration();
@@ -366,7 +366,7 @@ sub StartSess{
 #------------------------------
   elsif($CalType eq "Ped2DB"){
     $SessName="PEDCU";
-    $workdir=$USERTD."/headquaters";
+    $workdir=$USERTD."/headquarters";
     $JobScriptN="JScriptTofP2DB";
     require 'TofAccPedDBWriter.pl';
     Ped2DBWriter();
@@ -377,7 +377,7 @@ sub StartSess{
 #------------------------------
   elsif($CalType eq "TdcLin"){
     $SessName="TDCL";
-    $workdir=$USERTD."/headquaters";
+    $workdir=$USERTD."/headquarters";
     $JobScriptN="JScriptTofTDCL";
     $ResultsBlockLen=6;#<-- TDCL(TAUC) log-file results block length (incl.header/trailer)
 #
@@ -427,7 +427,7 @@ sub StartSess{
   elsif($CalType eq "TdcL2DB"){
     $SessName="TDCLU";
     $TDVName="TofTdcCor";
-    $workdir=$USERTD."/headquaters";
+    $workdir=$USERTD."/headquarters";
     $JobScriptN="JScriptTofTAL2DB";
     $CalfDir=$tdcsdir;
 #
@@ -466,7 +466,7 @@ sub StartSess{
 #------------------------------
   elsif($CalType eq "TAUCal"){
     $SessName="TAUC";
-    $workdir=$USERTD."/headquaters";
+    $workdir=$USERTD."/headquarters";
     $JobScriptN="JScriptTofTAUC";
     $ResultsBlockLen=6;#<-- TAUC(TDCL) log-file results block length (incl.header/trailer)
 #
@@ -517,7 +517,7 @@ sub StartSess{
   elsif($CalType eq "TAU2DB"){
     $SessName="TAUCU";
     $TDVName="Tofbarcal2";
-    $workdir=$USERTD."/headquaters";
+    $workdir=$USERTD."/headquarters";
     $JobScriptN="JScriptTofTAL2DB";
     $CalfDir=$tausdir;
 #

@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.40 2009/02/13 16:30:40 choumilo Exp $
+//  $Id: antirec02.C,v 1.41 2009/07/14 07:50:52 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -961,7 +961,7 @@ void AMSAntiCluster::build2(int &statt){
       rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)
       rdthr*=1;//tempor: can apply slightly higher threshold than in DAQ
       adcf=number(adca);
-      if(adcf>rdthr*sig){//----> Above additional thr.AMSJob::gethead()->isRealData()
+      if(adcf>rdthr*sig){//----> Above additional thr.
         ANTI2JobStat::addch(chnum,2);
         if(ATREFFKEY.nlcorr==1
 	 && AMSJob::gethead()->isRealData())adcf=number(Anti2RawEvent::accsatur(adca));//nonlin-corr

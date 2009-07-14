@@ -2,7 +2,7 @@
 
 setenv TofUserTopDir /f2users/tofaccuser
 
-cd $TofUserTopDir/headquaters
+cd $TofUserTopDir/headquarters
 
 umask 000
 

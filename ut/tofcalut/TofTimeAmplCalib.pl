@@ -226,7 +226,7 @@ $set_fram->Label(-text=>"SelCalType :",-font=>$font2,-relief=>'groove')
 					       -relwidth=>0.25, -relheight=>$drh2,
                                                -relx=>0, -rely=>($shf2+$drh2));
 #---
-$sdtmdfcal=0;#off
+$sdtmdfcal=1;#on
 $set_fram->Checkbutton(-text=>"TimeDif", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
@@ -238,7 +238,7 @@ $set_fram->Checkbutton(-text=>"TimeDif", -font=>$font2, -indicator=>0,
                                                  -relwidth=>0.25, -relheight=>$drh2,
 						 -relx=>0.25, -rely=>($shf2+$drh2));
 #---
-$tm0slwcal=0;#off
+$tm0slwcal=1;#on
 $set_fram->Checkbutton(-text=>"Time0Slw", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
@@ -250,7 +250,7 @@ $set_fram->Checkbutton(-text=>"Time0Slw", -font=>$font2, -indicator=>0,
                                                  -relwidth=>0.25, -relheight=>$drh2,
 						 -relx=>0.5, -rely=>($shf2+$drh2));
 #---
-$amnormcal=0;#off
+$amnormcal=1;#on
 $set_fram->Checkbutton(-text=>"AmplNorm", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,

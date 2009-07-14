@@ -1031,7 +1031,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
 #	$path =~ s/$\d+(?=\/)//s;
         $fdat=run2time($starttime);
 	$fdat=substr($fdat,0,16);
-	print "type=",$type," Dtyp=",$rtype," Conf=",$conf," SubDetPat=",$subdetpat," Rtype=",$rtype," fsize=",$sizemb,"\n";
+#	print "type=",$type," Dtyp=",$rtype," Conf=",$conf," SubDetPat=",$subdetpat," Rtype=",$rtype," fsize=",$sizemb,"\n";
 	if($rtype eq $RunType){#<-- use only requested runtype(LAS,SCI,CAL or UNK)
           $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  Path:".$path."\n";
           $logtext->insert('end',$curline);
