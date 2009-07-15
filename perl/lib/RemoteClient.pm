@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.558 2009/07/07 14:01:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.559 2009/07/15 15:08:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13644,13 +13644,14 @@ sub insertNtuple {
     my $paths='/Offline/RunsDir/MC/';
     my $cmd="ln -s $path $paths";
     system($cmd);
-#    my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
-#    my $fetime=0;
-#    my $letime=0;
-#    if(defined($ret->[0][0])){
-#        $fetime=$ret->[0][0];
-#        $letime=$ret->[0][1];
-#    }
+    my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
+    my $fetime=0;
+    my $letime=0;
+    if(defined($ret->[0][0])){
+        $fetime=$ret->[0][0];
+        $letime=$ret->[0][1];
+    }
+    
     $sql="delete from mcfiles where run=$run";
      $self->{sqlserver}->Update($sql);
     $sql=" insert into mcfiles values($run,'$version','$type',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,0,$fetime,$letime,'$paths$run')";
