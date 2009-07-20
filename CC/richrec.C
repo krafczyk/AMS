@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.119 2009/07/07 09:21:34 mdelgado Exp $
+//  $Id: richrec.C,v 1.120 2009/07/20 08:40:51 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -556,14 +556,6 @@ void AMSRichRing::build(){
 #define __DEBUGP__ 0  
 
 AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
-#ifdef _OPENMP
-  if(__DEBUGP__){
-    cerr<<" *** "<<omp_get_thread_num()<<" CALLING BUILD TRACK "<<endl;
-    AMSPoint p=track->getP0();
-    cerr<<" *** "<<omp_get_thread_num()<<"       TRACK    P0  "<<p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
-    cerr<<" *** "<<omp_get_thread_num()<<"             NHITS  "<<(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem()<<endl;
-  }
-#endif
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
   // using, for example, a structure (~completely public class)
