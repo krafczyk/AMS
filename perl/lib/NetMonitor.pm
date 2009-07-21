@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.19 2009/06/23 11:08:26 ams Exp $
+# $Id: NetMonitor.pm,v 1.20 2009/07/21 21:06:31 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -18,7 +18,7 @@ my %fields=(
   hostsstat=>[],
   bad=>[],
   badsave=>[],
-  sleep=>60,
+  sleep=>120,
   hostfile=>"/afs/ams.cern.ch/Offline/AMSDataDir/DataManagement/prod/NominalHost",
   ping=>undef,
   sqlserver=>undef,

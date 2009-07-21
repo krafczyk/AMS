@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-#  $Id: netmon.perl,v 1.5 2007/02/05 09:28:12 ams Exp $
+#  $Id: netmon.perl,v 1.6 2009/07/21 21:06:31 ams Exp $
 
 use Carp;
 use strict;
 $SIG{INT}=sub{exit()};
-
+#$SIG{'TTIN'}='IGNORE';
 
 package main;
 use lib qw(/afs/cern.ch/user/a/ams/vc/perl);
