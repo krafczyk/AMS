@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.559 2009/07/15 15:08:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.560 2009/07/21 20:57:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8187,7 +8187,7 @@ anyagain:
          my $ctime=time();
          $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;
          if($self->{CCT} eq "local"){
-           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;
+           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/g;
          }
          else{
              my @gbc=split "\/", $gbatch;
