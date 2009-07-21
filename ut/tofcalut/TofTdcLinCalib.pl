@@ -943,13 +943,13 @@ sub TDCL_Welcome{
 #--- save curr.sess.utc in file:
   open(CURRST,"> $fn") or show_warn("   <-- Cannot save current session UTC in file $fn $!");
   print CURRST $SessUTC,"\n";
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    show_warn("   <-- Cannot set write-priviledge for file $fn !");
-    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
-    exit;
-  }
- close(CURRST) or show_warn("   <-- Cannot close $fn after writing $!");
+  close(CURRST) or show_warn("   <-- Cannot close $fn after writing $!");
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    show_warn("   <-- Cannot set write-priviledge for file $fn !");
+#    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
+#    exit;
+#  }
 #
   show_messg("   <--- DaqFiles Directory $DaqDataDir","Big");   
 #
@@ -1956,11 +1956,11 @@ TryAgainBjobs:
   }
   close(SJLIST) or die show_warn("\n   <--- Cannot close $fn after writing on 'submit job', $!");
   show_messg("\n   <---  file $fn is updated !");
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    print "Warning: problem with write-priv for SubmJobsList-file, status=",$status,"\n";
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    print "Warning: problem with write-priv for SubmJobsList-file, status=",$status,"\n";
 #      exit;
-  }
+#  }
 #
 #---> update DaqfHist-array add save to file:
 #
@@ -1974,14 +1974,14 @@ TryAgainBjobs:
   for($i=0;$i<$nel;$i++){print INPFN $DaqfHist[$i]."\n";}
   close(INPFN) or show_warn("   <-- Cannot close $fn after writing, $!");
   show_messg("\n   <---  file $fn is updated !");
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    show_warn("\n   <---  problem with write-priv for $fn, stat=$status !");
-    print "Warning: problem with write-priv for DaqfHist-file, status=",$status,"\n";
-  }
-  else{
-    show_messg("\n   <---  write-priv for $fn is ok !");
-  }
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    show_warn("\n   <---  problem with write-priv for $fn, stat=$status !");
+#    print "Warning: problem with write-priv for DaqfHist-file, status=",$status,"\n";
+#  }
+#  else{
+#    show_messg("\n   <---  write-priv for $fn is ok !");
+#  }
 #
   $mwnd->update;
 }
@@ -2443,14 +2443,14 @@ TryAgain_1:
   @SubmJobsList=();
   push(@SubmJobsList,@newlist);
   show_messg("\n   <---  SubmJobsList/file are updated after job killing !");
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    show_warn("\n   <---  problem with write-priv for $fn, stat=$status !");
-    print "Warning: problem with write-priv for SubmJobsList-file, status=",$status,"\n";
-  }
-  else{
-    show_messg("\n   <---  write-priv for $fn is ok !");
-  }
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    show_warn("\n   <---  problem with write-priv for $fn, stat=$status !");
+#    print "Warning: problem with write-priv for SubmJobsList-file, status=",$status,"\n";
+#  }
+#  else{
+#    show_messg("\n   <---  write-priv for $fn is ok !");
+#  }
 #---
   $UnFinishedJobs-=$KilledJobs;
 }

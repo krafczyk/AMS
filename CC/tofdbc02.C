@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.66 2009/06/11 13:51:25 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.67 2009/07/21 09:08:39 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1852,7 +1852,7 @@ void TOF2JobStat::printstat(){
   printf(" Q-block LinkHeaderErr    :    %7d %7d %7d %7d\n",cratp[0][9],cratp[1][9],cratp[2][9],cratp[3][9]);
   printf(" IllegSlotNumb in Q-block :    %7d %7d %7d %7d\n",cratp[0][10],cratp[1][10],cratp[2][10],cratp[3][10]);
   printf("\n");
-  printf(" T-Blk Raw->Comp linkErr  :    %7d %7d %7d %7d\n",cratp[0][11],cratp[1][11],cratp[2][11],cratp[3][11]);
+  printf(" T-Blk Raw->Comp TL-Err   :    %7d %7d %7d %7d\n",cratp[0][11],cratp[1][11],cratp[2][11],cratp[3][11]);
   printf(" Raw->Comp FatalErrLink0  :    %7d %7d %7d %7d\n",cratp[0][12],cratp[1][12],cratp[2][12],cratp[3][12]);
   printf(" Raw->Comp FatalErrLink1  :    %7d %7d %7d %7d\n",cratp[0][13],cratp[1][13],cratp[2][13],cratp[3][13]);
   printf(" Raw->Comp FatalErrLink2  :    %7d %7d %7d %7d\n",cratp[0][14],cratp[1][14],cratp[2][14],cratp[3][14]);

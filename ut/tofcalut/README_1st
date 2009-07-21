@@ -9,6 +9,10 @@
    The source files in  working /f2users/tofaccuser/headquarters directory
  are the copies of files in my /afs/cern.ch/user/c/choumilo/AMS/ut/tofcalut
  directory and can be updated only by me (temporary limitation).
+
+ Do 'source /Offline/vdev/install/amsvar' command befor starting
+ TofCommander (if this command not in your .login(or .tcshrc,...). This
+ will set standard ams environment.
  
    To start session use StartTofCommander script (use 'StartTofCommander' 
  command). This script opens "Tof calibration Commander" window. At the 

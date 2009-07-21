@@ -8,7 +8,7 @@ use Tk::ProgressBar;
 use Time::Local;
 # use Term::ReadKey;
 use File::Copy;
-use lib qw(/f2users/choumilo/AMS/perl);
+use lib qw(/Offline/vdev/perl);
 use lib::DBSQLServer;
 # use lib::RemoteClient;
 #use Audio::Beep;

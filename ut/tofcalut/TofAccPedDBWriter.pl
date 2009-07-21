@@ -215,25 +215,26 @@ $fdat1o=$fdat1;
 $fdat2o=$fdat2;
 #------
 $boardpeds=1;#on
-$offlpeds=0;#off
-$brd_cbt=$set_fram->Checkbutton(-text=>"OnBoardPeds", -font=>$font2, -indicator=>0,
+$brd_cbt=$set_fram->Radiobutton(-text=>"OnBoardPeds", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
 			                         -cursor=>hand2,
                                                  -background=>green,
+						 -value=>1,
                                                  -variable=>\$boardpeds)
 					 ->place(
                                                  -relwidth=>0.5, -relheight=>$drh2,
 						 -relx=>0, -rely=>($shf2+4*$drh2));
 #---
-$ofl_cbt=$set_fram->Checkbutton(-text=>"Data(RawFMT)Peds", -font=>$font2, -indicator=>0,
+$ofl_cbt=$set_fram->Radiobutton(-text=>"Data(RawFMT)Peds", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>5,-relief=>'raised',
                                                  -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
 			                         -cursor=>hand2,
                                                  -background=>green, 
-                                                 -variable=>\$offlpeds)
+						 -value=>0,
+                                                 -variable=>\$boardpeds)
 					 ->place(
                                                  -relwidth=>0.5, -relheight=>$drh2,
 						 -relx=>0.5, -rely=>($shf2+4*$drh2));
@@ -752,13 +753,13 @@ sub PEDC2DB_Welcome
 #--- save curr.sess.utc in file:
   open(CURRST,"> $fn") or show_warn("   <-- Cannot save current session UTC in file $fn $!");
   print CURRST $SessUTC,"\n";
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    show_warn("   <-- Cannot set write-priviledge for file $fn !");
-    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
-    exit;
-  }
   close(CURRST) or show_warn("   <-- Cannot close $fn after writing $!");
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    show_warn("   <-- Cannot set write-priviledge for file $fn !");
+#    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
+#    exit;
+#  }
 #-----
   my $dbd=$AMSDD.$DBDir;
   show_messg("   <--- Current DB-directory is $dbd","Big");
@@ -823,15 +824,11 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
 #--- scan directory to create ped-file's list :
   @filelist=();
   opendir(DIR,$pathpeds);
-  if($boardpeds==1 && $offlpeds==1){
-    $fspatt=$detpat."(tb_ or ds_)";
-    @filelist=grep{/$patt_tb/ || /$patt_ds/ } readdir(DIR);
-  }
-  elsif($boardpeds==1){
+  if($boardpeds==1){
     $fspatt=$detpat."tb_";
     @filelist=grep{/$patt_tb/} readdir(DIR);
   }
-  elsif($offlpeds==1){
+  elsif($boardpeds==0){
     $fspatt=$detpat."ds_";
     @filelist=grep{/$patt_ds/} readdir(DIR);
   }
@@ -2577,10 +2574,10 @@ sub quits_actions
       }
       close(HISTF) or show_warn("   <--- Cannot close $histfn after writing, $!");
       show_messg("\n   <---  History file $histfn is updated !");
-      $status=system("chmod 666 $histfn");
-      if($status != 0){
-        show_warn("\n   <--- Cannot change write privilege for $histfn, $!");
-      }
+#      $status=system("chmod 666 $histfn");
+#      if($status != 0){
+#        show_warn("\n   <--- Cannot change write privilege for $histfn, $!");
+#      }
     }
     else{
       show_warn("\n   <--- Cannot create history file $histfn !!!, $!");

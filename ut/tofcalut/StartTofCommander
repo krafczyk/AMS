@@ -1,4 +1,4 @@
-#/bin/tcsh
+#!/bin/tcsh
 
 setenv TofUserTopDir /f2users/tofaccuser
 
@@ -6,4 +6,16 @@ cd $TofUserTopDir/headquarters
 
 umask 000
 
-./TofCommander.pl
+if (-e .tofcom_lock) then
+
+  echo "===> Sorry, TofCommander is already IN USE, try later..."
+
+else
+
+  touch .tofcom_lock
+  
+  ./TofCommander.pl
+
+  rm -f .tofcom_lock
+  
+endif

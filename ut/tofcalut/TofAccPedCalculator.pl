@@ -801,13 +801,13 @@ sub PEDC_Welcome{
 #--- save curr.sess.utc in file:
   open(CURRST,"> $fn") or show_warn("   <-- Cannot save current session UTC in file $fn $!");
   print CURRST $SessUTC,"\n";
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    show_warn("   <-- Cannot set write-priviledge for file $fn !");
-    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
-    exit;
-  }
- close(CURRST) or show_warn("   <-- Cannot close $fn after writing $!");
+  close(CURRST) or show_warn("   <-- Cannot close $fn after writing $!");
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    show_warn("   <-- Cannot set write-priviledge for file $fn !");
+#    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
+#    exit;
+#  }
 #
   show_messg("   <--- DaqFiles Directory $DaqDataDir","Big");
 }   
@@ -2679,12 +2679,12 @@ sub quitsess
     for($i=0;$i<$ndaqfound;$i++){#<--- all "tried to process" daq-files loop
       print OUTFN $daqfrunn[$i],"\n"; 
     }
+    close(OUTFN) or die show_warn("   <-- Cannot close $PrevRunsFN after writing $!");
     $status=system("chmod 666 $curfn");
     if($status != 0){
       print "Warning: problem with write-priv for $PrevRunsFN, status=",$status,"\n";
 #      exit;
     }
-#    close(OUTFN) or die show_warn("   <-- Cannot close $PrevRunsFN after writing $!");
     show_messg("   <-- new $PrevRunsFN file created !");
   }#--->endof nprocruns check
 #
@@ -2708,6 +2708,7 @@ sub quitsess
     $fnto=$workdir.$pedsdir.$archdir."/".$curfn;
     open(OFN, "> $fnfr") or die show_warn("   <-- Cannot open session-log $curfn for writing !");
     print OFN $logtext->get("1.0","end");
+    close(OFN) or die show_warn("   <-- Cannot close session-log $curfn after writing $!");
     show_messg("\n   <-- SessLogFile $curfn is saved !");
     $status=system("chmod 666 $fnfr");
     if($status != 0){

@@ -721,13 +721,13 @@ sub TAUL2DB_Welcome
 #--- save curr.sess.utc in file:
   open(CURRST,"> $fn") or show_warn("   <-- Cannot save current session UTC in file $fn $!");
   print CURRST $SessUTC,"\n";
-  $status=system("chmod 666 $fn");
-  if($status != 0){
-    show_warn("   <-- Cannot set write-priviledge for file $fn !");
-    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
-    exit;
-  }
   close(CURRST) or show_warn("   <-- Cannot close $fn after writing $!");
+#  $status=system("chmod 666 $fn");
+#  if($status != 0){
+#    show_warn("   <-- Cannot set write-priviledge for file $fn !");
+#    print "Warning: problem with write-priv for file $fn, status=",$status,"\n";
+#    exit;
+#  }
 #-----
   my $dbd=$AMSDD.$DBDir;
   show_messg("   <--- Current DB-directory is $dbd","Big");
@@ -4214,10 +4214,10 @@ sub quits_actions
     }
     close(HISTF) or show_warn("   <--- Cannot close $histfn after writing, $!");
     show_messg("\n   <---  History file $histfn is updated !");
-    $status=system("chmod 666 $histfn");
-    if($status != 0){
-      show_warn("\n   <--- Cannot change write privilege for $histfn, $!");
-    }
+#    $status=system("chmod 666 $histfn");
+#    if($status != 0){
+#      show_warn("\n   <--- Cannot change write privilege for $histfn, $!");
+#    }
   }
   else{
     show_warn("\n   <--- Cannot create history file $histfn !!!, $!");
