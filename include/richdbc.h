@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.48 2009/03/11 16:52:56 mdelgado Exp $
+//  $Id: richdbc.h,v 1.49 2009/07/22 09:07:56 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -8,6 +8,13 @@
 
 // Undefine next one to use solid guides with opaque walls separating each section 
 #undef __HOLLOW__
+
+
+// Next define switches to the lg table taking into account the
+// lg absorption implicitly
+#define __RICH_SINGLE_LG_TABLE__
+
+
 
 #include"job.h"
 #include"commons.h" 

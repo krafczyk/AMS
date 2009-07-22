@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.120 2009/07/20 08:40:51 mdelgado Exp $
+//  $Id: richrec.C,v 1.121 2009/07/22 09:07:56 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1474,7 +1474,11 @@ float AMSRichRing::generated(geant length,
          float ar=1./exp(rl/_a[i][_tile_index]);
          float af=1./exp(fl/_b[i][_tile_index]);
 	 //         float al=1./exp(gl*(1./_b[i][_tile_index]-1./abslref));
+#ifndef __RICH_SINGLE_LG_TABLE__
          float al=1./exp(gl*(1./_b[i][_tile_index]));
+#else
+	 float al=1.0;
+#endif
          _effd[lr][lf][lg][_tile_index]+=_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*al;
          _rind[lr][lf][lg][_tile_index]+=F(_r[i][_tile_index])*_g[i][_tile_index]*_t[i][_tile_index]*cr*ar*af*al;
          if(!lg){
