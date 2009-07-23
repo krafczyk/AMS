@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.561 2009/07/21 21:06:31 ams Exp $
+# $Id: RemoteClient.pm,v 1.562 2009/07/23 11:52:24 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2037,6 +2037,7 @@ if($delete){
               }
               elsif($run->{Status} eq 'Finished'){
                  $run->{Status}='ToBeRerun';
+                  print "  not deleting, updating  $run->{Run} \n";
                  DBServer::sendRunEvInfo($self->{dbserver},$run,"Update");
               }
                    
