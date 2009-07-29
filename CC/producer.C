@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.129 2009/06/21 17:57:34 choutko Exp $
+//  $Id: producer.C,v 1.130 2009/07/29 11:30:45 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1244,7 +1244,7 @@ double error=5./sqrt(double(GCFLAG.IDEVT+1));
 if (error<0.01)error=0.01;
 if(error>0.5)error=0.5;
 if(DAQCFFKEY.mode/10>0)error=1;
-if((GCFLAG.NEVENT*(1-error) > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0) ){
+if(GCFLAG.NEVENT*(1-error) > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0 || GCFLAG.IEVENT<2){
 _cinfo.Status= DPS::Producer::Failed;
 }
 else _cinfo.Status= DPS::Producer::Finished;

@@ -6,12 +6,23 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
 AMSNtupleSelect(){};
 bool IsGolden(AMSEventR *ev){
+static int a=0;
 // 
 // This is a user function to be modified
 //  return true if event has to be drawn false otherwise
-//
-if(ev && ev->nRichRing() && ev->nEcalShower() && ev->nTrTrack())return true;
-else return false;
+//a
+if(ev &&   ev->nTrTrack()){
+ a++;
+ cout <<ev->Event()<<endl;
+ cerr<< " Number "<<a<<endl;
+ return true;
+
+}
+else{
+return false;
+}
+//if(ev && ev->nRichRing() && ev->nEcalShower() && ev->nTrTrack())return true;
+//else return false;
 //if(ev && ev->nTrTrack())return true;
 //else return false;
  if(ev && ev->nParticle()>0){

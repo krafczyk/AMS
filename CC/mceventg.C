@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.144 2009/07/08 07:53:35 choumilo Exp $
+//  $Id: mceventg.C,v 1.145 2009/07/29 11:30:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -273,6 +273,13 @@ again:
     else if(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0){ //<---   Dir From files
      int k=floor(RNDM(d)*(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1));
      _coo=_r_c[k];
+//   add 1cm of normal distribution 
+//   
+      float dummy;
+      double t=2*3.1415926*RNDM(dummy);
+      double r=sqrt(-2*log(RNDM(dummy)));
+      _coo[0]+=r*cos(t);
+      _coo[1]+=r*sin(t);
      _dir=_dir_c[k];
 //     cout <<" k "<<k<<" "<<CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<<endl;
 //     cout <<_coo<<" "<<_dir<<endl;

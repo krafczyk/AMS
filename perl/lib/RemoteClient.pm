@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.562 2009/07/23 11:52:24 ams Exp $
+# $Id: RemoteClient.pm,v 1.563 2009/07/29 11:30:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9511,7 +9511,7 @@ sub checkJobsTimeout {
 #
     $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid
             FROM jobs
-             WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips <=0 OR jobs.events=0 or jobs.realtriggers<=0)";
+             WHERE jobs.time+jobs.timeout <  $timenow and jobs.timekill=0 AND (jobs.mips <=0 OR jobs.events=0 or jobs.realtriggers<=0)";
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
      foreach my $job (@{$r3}){

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.150 2009/06/25 13:44:09 choutko Exp $
+//  $Id: daqevt.C,v 1.151 2009/07/29 11:30:43 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1432,7 +1432,7 @@ int DAQEvent::parser(char a[], char **& fname){
        ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
 #endif
       int ngood=0;
-      if(ntot==-1){
+      if(ntot==-1 && !(DAQCFFKEY.mode/10)){
        cerr<<"DAQEvent::parser-F-ProblemToScan "<<fdir<<endl;
        exit(1);
       }

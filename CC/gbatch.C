@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.96 2009/06/21 17:57:33 choutko Exp $
+//  $Id: gbatch.C,v 1.97 2009/07/29 11:30:45 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -13,8 +13,8 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-const int NWGEAN=13000000;
-const int NWPAW=1200000;
+const int NWGEAN=15000000;
+const int NWPAW=1300000;
 struct PAWC_DEF{
 float q[NWPAW];
 };

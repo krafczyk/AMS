@@ -15,7 +15,7 @@ uinteger AMSCommonsI::_MaxMem=1400000000;
 
 #ifndef _PGTRACK_
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=325;
+uinteger AMSCommonsI::_build=326;
 #else
 char AMSCommonsI::_version[]="v5.00";
 uinteger AMSCommonsI::_build=323;
