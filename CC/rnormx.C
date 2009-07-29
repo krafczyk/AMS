@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.9 2009/07/29 11:30:45 choutko Exp $
+//  $Id: rnormx.C,v 1.10 2009/07/29 20:29:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -20,7 +20,9 @@
 #include "typedefs.h" 
 static TRandom1 rr; 
 double ROOTRndm(int dummy){
-  return rr.Rndm();
+//  VC OMLY ONE RNDM ALLOWED
+return RNDM(dummy);
+ // return rr.Rndm();
 }
 
 #include "typedefs.h"
