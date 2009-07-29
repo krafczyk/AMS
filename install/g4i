@@ -1,10 +1,10 @@
-#  $Id: g4i,v 1.39 2007/10/03 07:38:14 choutko Exp $
+#  $Id: g4i,v 1.40 2009/07/29 14:11:33 choutko Exp $
 setenv GEANT4NEW 1
 if $OS == "Linux"  then
 endif
 setenv G4SYSTEM Linux-g++
 setenv G4USE_STL 1
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/1.9.2.2
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/1.9.4.2
 setenv OGLHOME /usr
 setenv  G4WORKDIR /tmp
 
