@@ -823,6 +823,11 @@ int RichPMTsManager::GetGeomPMTID(int pos){
   return -1;
 }
 
+int RichPMTsManager::GetPMTID(int geom_id){
+  if(geom_id<0 || geom_id>=RICmaxpmts) return -1;
+  return _pmts[geom_id]._pos;
+}
+
 int RichPMTsManager::GetGeomChannelID(int pos,int pixel){
   return _pmts[pos]._channel_id2geom_id[pixel];
 }

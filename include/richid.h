@@ -148,6 +148,7 @@ class RichPMTsManager{
   static geant MaxEff(){return _max_eff;}                                          // Return the max efficiency
   
   static int GetGeomPMTID(int pos);                                                // Given the pos number, return the geometric pmt id
+  static int GetPMTID(int geom_pos);
   static int GetGeomChannelID(int geom_pos,int pixel);                             // Given the pmt geom id and the pixel number return the geometric channel id.
   static int GetChannelID(int geom_pos,int pixel);                                 // Given the pmt geom id and the pixel geom id return the pixel id.
   static void GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix);            // The same for both numbers as references
@@ -185,8 +186,6 @@ class RichPMTsManager{
     return _pmts[geom_id]._channel_position[window][p];
   }
   
-
-
   static int FindPMT(geant x,geant y);
   static int FindChannel(geant x,geant y);
   static int FindWindow(geant x,geant y){int p,w;int c=FindChannel(x,y);if(c<0)return -1;
