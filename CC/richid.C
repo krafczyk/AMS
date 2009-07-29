@@ -178,7 +178,10 @@ void RichPMTsManager::Init(){
       bool done=false;
       geant table_gain[RICmaxpmts*RICnwindows*2];
       geant table_sigma_gain[RICmaxpmts*RICnwindows*2];
-      
+      int compute_table[RICmaxpmts]; 
+      int fails_counter=0;
+      for(int i=0;i<RICmaxpmts;i++) compute_table[i]=0;
+
       if(strlen(filename)!=0){
 	//Load table from file
 	cout<<"RichPMTsManager::Init -- Loading from "<<filename<<endl; 
@@ -198,9 +201,12 @@ void RichPMTsManager::Init(){
 		  geant my_sigma_gain=RichPMTsManager::GainSigma(_pmts[pmt]._geom_id,channel,mode);
 		  
 		  if(my_gain!=table_gain[index] || my_sigma_gain!=table_sigma_gain[index]){
-		    cout<<"RichPMTsManager::Init -- File "<<filename<<" content incompatible with calibration... computing new ones"<<endl; 
-		    goto check_finished;
-		  } 
+		    //		    cout<<"RichPMTsManager::Init -- File "<<filename<<" content incompatible with calibration... computing new ones"<<endl; 
+		    //		    goto check_finished;
+		    // Compute table only for current pmt
+		    compute_table[pmt]=1;
+		    fails_counter++;
+		  }
 		  
 		  index++;
 		}
@@ -231,6 +237,9 @@ void RichPMTsManager::Init(){
       if(!done){
 	cout<<"RichPMTsManager::Init -- Explicitly computing tables..."<<endl;
 	for(int i=0;i<RICmaxpmts;i++) _pmts[i].compute_tables();
+      }else if(fails_counter){
+	cout<<"RichPMTsManager::Init -- Explicitly computing tables for "<<fails_counter<<" inconsistent calibrations"<<endl;
+	for(int i=0;i<RICmaxpmts;i++) if(compute_table[i] )_pmts[i].compute_tables();
       }
       
       UHTOC(RICCONTROLFFKEY.pmttables_out,50,filename,200);
@@ -368,6 +377,13 @@ void RichPMTsManager::ReadFromFile(const char *filename){
 	      >> _GainSigma(pmt,cat,0) >> _GainSigma(pmt,cat,1)
 	      >> _GainThreshold(pmt,cat)
 	      >> _Eff(pmt,cat);
+
+	// Apply some consistent checks and recover them for simulation
+	if(_Status(pmt,cat)){  // It is a good channel accordingly to calibration tables
+	  if(_GainSigma(pmt,cat,0)<=0) _GainSigma(pmt,cat,0)=_Gain(pmt,cat,0)*0.5;
+	  if(_GainSigma(pmt,cat,1)<=0) _GainSigma(pmt,cat,1)=_Gain(pmt,cat,1)*0.5;
+	}
+
 
       }
   }
