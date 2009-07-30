@@ -233,6 +233,24 @@ void RichPMTsManager::Init(){
       }
       
     check_finished:
+
+      // Further test to fix old bug
+      for(int i=0;i<RICmaxpmts;i++){
+	if(compute_table[i]) continue;
+	for(int channel=0;channel<RICnwindows;channel++)
+	  for(int mode=0;mode<2;mode++){
+	    geant gain=RichPMTsManager::Gain(i,channel,mode);
+	    geant gain_sigma=RichPMTsManager::GainSigma(i,channel,mode);
+	    geant lambda,scale;
+	    GETRLRS(gain,gain_sigma,lambda,scale);
+	    if(lambda<=0 || scale<=0){
+	      compute_table[i]=1;
+	      fails_counter++;
+	      goto skip;
+	    }
+	  }
+      skip:	
+      }
       
       if(!done){
 	cout<<"RichPMTsManager::Init -- Explicitly computing tables..."<<endl;
