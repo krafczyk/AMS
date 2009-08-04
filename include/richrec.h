@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.58 2009/06/19 12:41:09 barao Exp $
+//  $Id: richrec.h,v 1.59 2009/08/04 14:16:30 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -34,6 +34,9 @@ private:
   integer _counts;  
   geant   _beta_hit[3];  // Reconstructed betas
 	 
+
+  static integer _PMT_Status[RICmaxpmts];
+
 public:
   AMSRichRawEvent(integer channel,integer counts,uinteger status=0):AMSlink(status),
     _channel(channel),_counts(counts){
@@ -97,7 +100,7 @@ public:
   static int Npart();
   static double RichRandom();
   static void Select(int howmany,int size,int lista[]);
-  
+  static int CrossedPMT(int pmt_id){return _PMT_Status[pmt_id];}
 
 
 // interface with DAQ :
@@ -164,6 +167,10 @@ static geant _Time;
   vector<float> _beta_reflected;
   vector<int> _hit_pointer;
   vector<int> _hit_used;
+
+  integer _collected_hits_window[10];
+  number  _collected_pe_window[10];
+
 
   // All these guys can be obtained asking to the class RichRadiatorTile
 

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.248 2009/07/07 15:54:02 mmilling Exp $
+//  $Id: root.h,v 1.249 2009/08/04 14:16:30 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -989,10 +989,11 @@ public:
           
 */
 
-  int   Channel;    ///<  channel number  
+  int   Channel;    ///<  channel number (16*PMT+pixel) 
   int   Counts;     ///< ADC counts above the pedestal
   float Npe;        ///< ADC counts above the pedestal/gain of the channel 
-  float Coo[3];         ///<  Hit coordinates
+  float Coo[3];     ///<  Hit coordinates
+  int SoftId   ;    ///< Online software identification (PMT*16+pixel)
 
   RichHitR(){};
   RichHitR(AMSRichRawEvent *ptr, float x, float y, float z);
@@ -1015,7 +1016,7 @@ public:
   } 
 
   virtual ~RichHitR(){};
-ClassDef(RichHitR,2)       // RichHitR
+ClassDef(RichHitR,3)       // RichHitR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1079,6 +1080,11 @@ public:
    vector<int> fRichHit; ///< indexes of RichHitR in collection
    vector<float> fBetaHit;  ///<Beta Residues for each event hit. A negative value means it is reflected
    void FillRichHits(int m);
+ public:
+   int   UsedWindow[10];      ///< Hits asociated to the ring for different windows sizes (1,2,3...10)  
+   float NpColWindow[10];       ///< Photoelectrons asociated to the ring for different windows sizes (1,2,3...10)  
+
+
   public:
   /// access function to TrTrackR object used
   /// \return index of TrTrackR object in collection or -1
@@ -1102,7 +1108,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,12)           // RichRingR
+  ClassDef(RichRingR,13)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 

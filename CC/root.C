@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.186 2009/07/07 14:01:46 choutko Exp $
+//  $Id: root.C,v 1.187 2009/08/04 14:16:30 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2639,6 +2639,9 @@ RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y, float z){
     Coo[0]=x;
     Coo[1]=y;
     Coo[2]=z;
+    int pmt,pixel;
+    RichPMTsManager::UnpackGeom(Channel,pmt,pixel);
+    SoftId=RichPMTsManager::GetPMTID(pmt)*16+RichPMTsManager::GetChannelID(pmt,pixel);
   } else {
     cout<<"RICEventR -E- AMSRichRawEvent ptr is NULL"<<endl;
   }
@@ -2692,41 +2695,41 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
 
     fBetaHit.clear();
 
-    for(int i=0;i<nhits;i++){
-      float value=0;
-      for(int j=0;j<hits;j++){
-	if((ptr->_hit_pointer)[j]==i){
-#ifdef __AMSDEBUG__
-	  cout<<"FOUND "<<(ptr->_hit_pointer)[j]<<" HIT NUMBER "<<i<<endl;
-#endif	  
-	  if((ptr->_hit_used)[j]==0)
-	    value=(ptr->_beta_direct)[j];
-	  if((ptr->_hit_used)[j]==1)
-	    value=-(ptr->_beta_reflected)[j];
-	  break;
-	}
-      }
-#ifdef __AMSDEBUG__
-      cout<<"PUSHING "<<value<<endl;
-#endif
-      fBetaHit.push_back(value);
-
-    }
-
-    /*
-      BetaDirectHits=new Float_t[Hits];
-      BetaReflectedHits=new Float_t[Hits];
-      UsedBeta =new Int_t[Hits];
-      HitPointer =new Int_t[Hits];
+    int write_mode=(RICRECFFKEY.recon[0]/1000)%10;
     
-      for(int i=0;i<Hits;i++){
-      BetaDirectHits[i]=(ptr->_beta_direct)[i];
-      BetaReflectedHits[i]=(ptr->_beta_reflected)[i];
-      UsedBeta[i]=(ptr->_hit_used)[i];
-      HitPointer[i]=(ptr->_hit_pointer)[i];
+    if(write_mode==1)
+      for(int i=0;i<nhits;i++){
+	float value=0;
+	for(int j=0;j<hits;j++){
+	  if((ptr->_hit_pointer)[j]==i){
+#ifdef __AMSDEBUG__
+	    cout<<"FOUND "<<(ptr->_hit_pointer)[j]<<" HIT NUMBER "<<i<<endl;
+#endif	  
+	    if((ptr->_hit_used)[j]==0)
+	      value=(ptr->_beta_direct)[j];
+	    if((ptr->_hit_used)[j]==1)
+	      value=-(ptr->_beta_reflected)[j];
+	    break;
+	  }
+	}
+#ifdef __AMSDEBUG__
+	cout<<"PUSHING "<<value<<endl;
+#endif
+	fBetaHit.push_back(value);
       }
 
-    */
+    if(write_mode==2){ 	// Store all the betas for all the hits
+      for(int i=0;i<(ptr->_beta_direct).size();i++)
+	if((ptr->_beta_direct)[i]>0) fBetaHit.push_back((ptr->_beta_direct)[i]);
+      for(int i=0;i<(ptr->_beta_reflected).size();i++)
+	if((ptr->_beta_reflected)[i]>0) fBetaHit.push_back((ptr->_beta_reflected)[i]);
+    }
+  
+    for(int i=0;i<10;i++){
+      UsedWindow[i]=ptr->_collected_hits_window[i];
+      NpColWindow[i]=ptr->_collected_pe_window[i];
+    }
+    
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }

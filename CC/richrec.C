@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.121 2009/07/22 09:07:56 mdelgado Exp $
+//  $Id: richrec.C,v 1.122 2009/08/04 14:16:30 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -149,6 +149,7 @@ void AMSRichRawEvent::mc_build(){
 
 int AMSRichRawEvent::_npart=0;
 int AMSRichRawEvent::Npart(){return _npart;}
+integer AMSRichRawEvent::_PMT_Status[RICmaxpmts];
 
 void AMSRichRawEvent::build(){
   double signal[RICmaxpmts];
@@ -163,6 +164,7 @@ void AMSRichRawEvent::build(){
   
   _npart=0;
   for(int i=0;i<RICmaxpmts;signal[i++]=0);
+  for(int i=0;i<RICmaxpmts;_PMT_Status[i++]=0);
 
   for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);current;current=current->next()){
@@ -233,9 +235,12 @@ void AMSRichRawEvent::build(){
     }
     
     _npart=0;
-    for(int i=0;i<npmt;i++) if(signal[hid[i]]-best_mean>flag_threshold*best_sigma) _npart++;
-    
+    for(int i=0;i<npmt;i++) if(signal[hid[i]]-best_mean>flag_threshold*best_sigma){
+      _npart++;
+      _PMT_Status[i]=1;
+    }
   }
+
 }
 
 
@@ -362,7 +367,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
     betas[0]=1/index/betas[0];
     if(betas[0]<betamin){ // If the beta as direct is below threshold
       betas[0]=-2.;       // it is the primary passing through the LG so
-      return;}            // stop the recontruction.
+      // Let the hot-spot detection algorithm deal with this
+      //      return;}            // stop the recontruction.
+    }
     else if(betas[0]>betamax) betas[0]=-1;
   }else{
     betas[0]=0;    // Wrong theta
@@ -949,6 +956,12 @@ trig=(trig+1)%freq;
   geant unused_hitd[RICmaxpmts*RICnwindows];
   AMSRichRawEvent *unused_hits[RICmaxpmts*RICnwindows];
 
+  for(int i=0;i<10;i++){
+    _collected_hits_window[i]=0;
+    _collected_pe_window[i]=0.0;
+  }
+
+
 
   for(int i=0;i<NSTP;i++)
     dfphi[i]=dfphih[i]=0;
@@ -1130,6 +1143,15 @@ trig=(trig+1)%freq;
     geant betas[3];
     for(int n=0;n<3;n++) betas[n]=hit->getbeta(n);
     geant value=fabs(_beta-betas[closest(_beta,betas)])/sigma;
+
+    for(int ii=0;ii<10;ii++)
+      if(value<ii+1){
+	_collected_hits_window[ii]+=(cleanup && hit->getbit(crossed_pmt_bit))?0:1;
+	_collected_pe_window[ii]+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+      }
+
+
+
     if(value<window_size){
       _collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
     }
@@ -1282,7 +1304,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
       int pmt,channel;
       RichPMTsManager::UnpackGeom(channel_number,pmt,channel);
       int status=RichPMTsManager::Status(pmt,channel);
-      if((status%10)!=Status_good_channel){
+      if((status%10)!=Status_good_channel || AMSRichRawEvent::CrossedPMT(pmt)){
 	*beff=0;
       }else{
 	*beff=RichPMTsManager::Eff(pmt,channel);
@@ -1347,7 +1369,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
       int pmt,channel;
       RichPMTsManager::UnpackGeom(channel_number,pmt,channel);
       int status=RichPMTsManager::Status(pmt,channel);
-      if((status%10)!=Status_good_channel){
+      if((status%10)!=Status_good_channel || AMSRichRawEvent::CrossedPMT(pmt)){
 	*beff=0;
       }else{
 	*beff=RichPMTsManager::Eff(pmt,channel)*mir_eff;
