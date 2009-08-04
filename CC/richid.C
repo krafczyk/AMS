@@ -249,7 +249,8 @@ void RichPMTsManager::Init(){
 	      goto skip;
 	    }
 	  }
-      skip:	
+      skip:
+	;	
       }
       
       if(!done){
