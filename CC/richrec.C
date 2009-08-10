@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.122 2009/08/04 14:16:30 mdelgado Exp $
+//  $Id: richrec.C,v 1.123 2009/08/10 11:57:33 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -366,8 +366,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
       direction[1]*sin(phi)*u-direction[2]*sqrt(1-u*u);
     betas[0]=1/index/betas[0];
     if(betas[0]<betamin){ // If the beta as direct is below threshold
-      betas[0]=-2.;       // it is the primary passing through the LG so
       // Let the hot-spot detection algorithm deal with this
+      betas[0]=0;
+      //      betas[0]=-2.;       // it is the primary passing through the LG so
       //      return;}            // stop the recontruction.
     }
     else if(betas[0]>betamax) betas[0]=-1;
@@ -554,13 +555,19 @@ void AMSRichRing::build(){
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
     if(!track) break;
-    for(;track;track=track->next()) {if(build(track))k++;j++;}
+    if(RICRECFFKEY.recon[0]%10==2)
+      for(;track;track=track->next()) {if(build(track,10))k++;j++;}
+    else
+      for(;track;track=track->next()) {if(build(track))k++;j++;}
   }
 
 }
 
 // DEFINE THIS AS 1 FOR DEBUG OUTPUT
 #define __DEBUGP__ 0  
+
+// New option, if cleanup==10 -> force cleaning and only store cleaned
+// rings
 
 AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // All these arrays are for speed up the reconstruction
@@ -725,7 +732,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     
     for(integer i=0;i<actual;i++){
       if(recs[i][0]==-2.) continue; // Jump if direct is below threshold
-      if(cleanup && current_ring_status&dirty_ring) 
+      if((cleanup && current_ring_status&dirty_ring) || (cleanup/10)%10) 
 	if(hitp[i]->getbit(crossed_pmt_bit)) continue;
 
       for(integer k=0;k<3;k++){
@@ -733,7 +740,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	for(integer j=0;j<actual;j++){
 	  if(recs[j][0]==-2.) continue;
 	  if(i==j) continue;
-	  if(cleanup && current_ring_status&dirty_ring)
+	  if((cleanup && current_ring_status&dirty_ring) || (cleanup/10)%10)  
             if(hitp[j]->getbit(crossed_pmt_bit)) continue;
 
 	  integer better=AMSRichRing::closest(recs[i][k],recs[j]);
@@ -776,7 +783,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	for(integer i=0;i<actual;i++){
 	  hitp[i]->unsetbit(bit);
 	  if(recs[i][0]==-2.) continue;
-	  if(cleanup && cleaning&dirty_ring)
+	  if((cleanup && cleaning&dirty_ring)  || (cleanup/10)%10) 
 	    if(hitp[i]->getbit(crossed_pmt_bit)) continue;
 	  
 	  integer closest=

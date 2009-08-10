@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.299 2009/08/04 14:16:30 mdelgado Exp $
+#  $Id: datacards.doc,v 1.300 2009/08/10 11:57:34 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -109,7 +109,7 @@ I 53  mcoutputtables[50]      // File to svae compute single p.e. simulation tab
 
 RICREC
 I 1  recon[0](1)                    //  RICH BETA reconstruction switch + LIP rec main switch 
-                                 // 0 -off; 1 RICH beta reconstruction ; 
+                                 // 0 -off; 1 RICH beta reconstruction ; 2 RICH beta reconstruction after hot-spot removal 
                                  // 10 LIP reconstruction (detailed switches below);
                                  // 1000 - store beta per hit for used hits
                                  // 2000 - store beta per hit for all hits
