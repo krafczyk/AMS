@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.123 2009/08/10 11:57:33 mdelgado Exp $
+//  $Id: richrec.C,v 1.124 2009/08/14 09:19:44 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -569,6 +569,8 @@ void AMSRichRing::build(){
 // New option, if cleanup==10 -> force cleaning and only store cleaned
 // rings
 
+float AMSRichRing::_window=9.0;
+
 AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
@@ -751,7 +753,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	     recs[j][better])/
 	    AMSRichRing::Sigma(recs[i][k],A,B)/
 	    AMSRichRing::Sigma(recs[i][k],A,B);
-	  if(prob<9){ //aprox. (3 sigmas)**2
+	  if(prob<_window){ //aprox. (3 sigmas)**2
 	    probs[i][k]+=exp(-.5*prob);
 	    mean[i][k]+=recs[j][better];
 	    if(better>0) mirrored[i][k]++;
@@ -807,7 +809,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	  }
 #endif
 
-	  if(prob>=9) continue;
+	  if(prob>=_window) continue;
 	  hitp[i]->setbit(bit);
 	  if(cleanup) current_ring_status|=hitp[i]->getbit(crossed_pmt_bit)?dirty_ring:0; 
 	  chi2+=prob;
@@ -1453,6 +1455,7 @@ float AMSRichRing::generated(geant length,
     fmx=3.0*RICHDB::foil_height;}
 
   if(_first_radiator_call[_tile_index]){
+    
     _first_radiator_call[_tile_index]=0;
 #ifdef __AMSDEBUG__
     printf("\nLight Guide Absorption Parameter\n"
@@ -1954,7 +1957,8 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
   
   if(build_charge){
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
-    const float window_sigmas=3;
+    //    const float window_sigmas=3;
+    const float window_sigmas=sqrt(_window);
     ReconRingNpexp(window_sigmas,!checkstatus(dirty_ring));
 
     if((RICHDB::scatprob)>0.){

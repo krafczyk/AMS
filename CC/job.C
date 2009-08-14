@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.638 2009/07/21 09:08:39 choumilo Exp $
+// $Id: job.C,v 1.639 2009/08/14 09:19:44 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2135,6 +2135,9 @@ void AMSJob::_rerichinitjob(){
   AMSgObj::BookTimer.book("RERICHBETA");
   AMSgObj::BookTimer.book("RERICHHITS");
   RichAlignment::Init();
+  if(RICRECFFKEY.recon[0]/10000){
+    AMSRichRing::SetWindow((RICRECFFKEY.recon[0]/10000)/10.0);
+  }
 }
 
 //-----------------------------------------------------------------------

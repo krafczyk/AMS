@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.300 2009/08/10 11:57:34 mdelgado Exp $
+#  $Id: datacards.doc,v 1.301 2009/08/14 09:19:43 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -113,6 +113,7 @@ I 1  recon[0](1)                    //  RICH BETA reconstruction switch + LIP re
                                  // 10 LIP reconstruction (detailed switches below);
                                  // 1000 - store beta per hit for used hits
                                  // 2000 - store beta per hit for all hits
+				 // x*10000 - x=10*window for beta reconstruction. If x=0 then the default (3) is assumed
 
 I 2  recon[1](1)                    // RICH Z reconstruction switch
                                  // 0 -off; 1 RICH Z reconstruction

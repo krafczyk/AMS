@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.59 2009/08/04 14:16:30 mdelgado Exp $
+//  $Id: richrec.h,v 1.60 2009/08/14 09:19:44 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -216,6 +216,7 @@ static geant _Time;
   static float _rind[_NRAD_][_NFOIL_][_NGUIDE_][_TILES_];
 //#pragma omp threadprivate(_generated_initialization,_first_radiator_call,_l,_r,_a,_b,_g,_t,_effg,_ring,_effr,_rinr,_effb,_rinb,_effd,_rind)
 
+  static float _window;
 
   // All the routines from Elisa
 
@@ -269,6 +270,7 @@ protected:
   void ReconRingNpexp(geant window_size=3.,int cleanup=0);
 
 public:
+
   AMSRichRing(AMSTrTrack* track,
 	      int used,
 	      int mused,
@@ -288,6 +290,7 @@ public:
   static void build();
   static AMSRichRing* build(AMSTrTrack *track,int cleanup=1);
   static AMSRichRing* rebuild(AMSTrTrack *ptrack);
+  static void SetWindow(float x){_window=x*x;cout<<"AMSRichRing::SetWindow -- Setting reconstruction window to "<<x<<endl;}
 
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
