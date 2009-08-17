@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.79 2009/02/20 14:12:16 choutko Exp $
+//  $Id: charge.C,v 1.80 2009/08/17 12:53:54 pzuccon Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -19,7 +19,7 @@
 #include "ntuple.h"
 #include "cern.h"
 #ifdef _PGTRACK_
-#include "TrRawCluster.h"
+#include "trrec.h"
 #include "tkdcards.h"
 #else
 #include "trrawcluster.h"

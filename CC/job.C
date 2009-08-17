@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.639 2009/08/14 09:19:44 mdelgado Exp $
+// $Id: job.C,v 1.640 2009/08/17 12:53:54 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -29,7 +29,7 @@
 
 #include "TrRecon.h"
 #include "VCon_gbatch.h"
-#include "TrMCCluster.h"
+#include "trrec.h"
 #include "tkdcards.h"
 #include "trdaq.h"
 #include "MagField.h"

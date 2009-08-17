@@ -1,6 +1,6 @@
 #ifndef  __VCon__
 #define  __VCon__
-#include "link.h"
+#include "TrElem.h"
 
 class VCon{
 
@@ -14,11 +14,11 @@ public:
 
   virtual int      getnelem(){}
   virtual void     eraseC(){}
-  virtual AMSlink* getelem(int ii){}
-  virtual int      getindex(AMSlink*){}
-  virtual void     addnext(AMSlink* aa){}
+  virtual TrElem* getelem(int ii){}
+  virtual int      getindex(TrElem*){}
+  virtual void     addnext(TrElem* aa){}
   // remove next element !!!
-  virtual void     removeEl(AMSlink* prev, integer restore=1) {}
+  virtual void     removeEl(TrElem* prev, int restore=1) {}
 };
 
 #endif

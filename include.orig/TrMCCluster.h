@@ -1,11 +1,11 @@
-//  $Id: TrMCCluster.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
-#ifndef __AMSTrMCCluster__
-#define __AMSTrMCCluster__
+//  $Id: TrMCCluster.h,v 1.3 2009/08/17 12:53:47 pzuccon Exp $
+#ifndef __TrMCClusterR__
+#define __TrMCClusterR__
 
 //////////////////////////////////////////////////////////////////////////
 ///
 ///
-///\class AMSTrMCCluster
+///\class TrMCClusterR
 ///\brief A class implemnting the Tracker MC Clusters
 ///\ingroup tksim
 ///
@@ -13,20 +13,23 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2009/08/17 12:53:47 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
 #include "point.h"
-#include "link.h"
+#include "TrElem.h"
+
 #include "TObject.h"
 
 
 
-class AMSTrMCCluster:public AMSlink {
-
+class TrMCClusterR: public TrElem {
+protected:
+  //! Status word
+  int Status;
 
 
 public:
@@ -74,20 +77,20 @@ public:
   //! returns the sensor number for the hit
   int GetSensor() {return _idsoft/10000-1;}
 
-  AMSTrMCCluster(){}
+  TrMCClusterR(){}
   //! Constructor for float track
-  AMSTrMCCluster(int idsoft, AMSPoint xca, 
+  TrMCClusterR(int idsoft, AMSPoint xca, 
 		 AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra)
     : _idsoft(idsoft), _itra(itra), _xca(xca), _xcb(xcb), 
       _xgl(xgl), _Momentum(mom), _sum(sum) {
     _shower();
   }
- ~AMSTrMCCluster(){}
+  virtual ~TrMCClusterR(){}
 
-  unsigned int checkstatus(int c) const { return _status&c; }
-  unsigned int getstatus  (void)  const { return _status; }
-  void setstatus  (unsigned int s) { _status |=  s; }
-  void clearstatus(unsigned int s) { _status &= ~s; }
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
   int IsNoise(){ return _itra == _NoiseMarker; }
 
  
@@ -101,20 +104,15 @@ public:
   static double fintl(double, double, double, double);
   static double fdiff(double, int);
 
-  void _copyEl(){}
-  void _printEl(ostream & stream);
-  void _writeEl(){}
-  AMSTrMCCluster* next() {return (AMSTrMCCluster*) _next;}
-  
-//  void * operator new(size_t t) {return TObject::operator new(t); }
-// void operator delete(void *p)   {TObject::operator delete(p);p=0;}
+
+  void print(std::ostream & stream);
 
 
   /// ROOT definition
-  ClassDef(AMSTrMCCluster,1);
+  ClassDef(TrMCClusterR,1);
 
 };
 
 
-typedef AMSTrMCCluster TrMCClusterR;
+
 #endif

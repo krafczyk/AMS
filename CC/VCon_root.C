@@ -21,26 +21,26 @@ VCon* VCon_root::GetCont(char * name){
 
 }
 
-void VCon_root::removeEl(AMSlink* aa, integer res)
+void VCon_root::removeEl(TrElem* aa, integer res)
 {
   // remove next element !!!
   if(!ev)  return ;
   if( strstr(contname,"TrMCCluster")){
     int index=getindex(aa);
-    vector<AMSTrMCCluster>::iterator it=ev->TrMCCluster().begin();
+    vector<TrMCClusterR>::iterator it=ev->TrMCCluster().begin();
     for(int ii=0;ii<index;ii) it++;
     ev->TrMCCluster().erase(it);
   }
   if( strstr(contname,"TrCluster")){
     int index=getindex(aa);
-    vector<AMSTrCluster>::iterator it=ev->TrCluster().begin();
+    vector<TrClusterR>::iterator it=ev->TrCluster().begin();
     for(int ii=0;ii<index;ii) it++;
     ev->TrCluster().erase(it);
   }
    
   if( strstr(contname,"TrRawCluster")){
     int index=getindex(aa);
-    vector<AMSTrRawCluster>::iterator it=ev->TrRawCluster().begin();
+    vector<TrRawClusterR>::iterator it=ev->TrRawCluster().begin();
     for(int ii=0;ii<index;ii) it++;
     ev->TrRawCluster().erase(it);
   }
@@ -48,14 +48,14 @@ void VCon_root::removeEl(AMSlink* aa, integer res)
   
   if( strstr(contname,"TrRecHit")){
     int index=getindex(aa);
-    vector<AMSTrRecHit>::iterator it=ev->TrRecHit().begin();
+    vector<TrRecHitR>::iterator it=ev->TrRecHit().begin();
     for(int ii=0;ii<index;ii) it++;
     ev->TrRecHit().erase(it);
   }
    
   if( strstr(contname,"TrTrack")){
     int index=getindex(aa);
-    vector<AMSTrTrack>::iterator it=ev->TrTrack().begin();
+    vector<TrTrackR>::iterator it=ev->TrTrack().begin();
     for(int ii=0;ii<index;ii) it++;
     ev->TrTrack().erase(it);
   }
@@ -92,21 +92,21 @@ void VCon_root::eraseC(){
     return ev->TrTrack().clear();
 }
 
-AMSlink* VCon_root::getelem(int ii){
+TrElem* VCon_root::getelem(int ii){
  if(!ev)  return 0;
   if( strstr(contname,"TrMCCluster"))
-    return (AMSlink*) ev->pTrMCCluster(ii);
+    return (TrElem*) ev->pTrMCCluster(ii);
   if( strstr(contname,"TrCluster"))
-    return  (AMSlink*) ev->pTrCluster(ii);
+    return  (TrElem*) ev->pTrCluster(ii);
   if( strstr(contname,"TrRawCluster"))
-    return  (AMSlink*) ev->pTrRawCluster(ii);
+    return  (TrElem*) ev->pTrRawCluster(ii);
   if( strstr(contname,"TrRecHit"))
-    return  (AMSlink*) ev->pTrRecHit(ii);
+    return  (TrElem*) ev->pTrRecHit(ii);
   if( strstr(contname,"TrTrack"))
-    return  (AMSlink*) ev->pTrTrack(ii);
+    return  (TrElem*) ev->pTrTrack(ii);
 }
 
-void  VCon_root::addnext(AMSlink* aa){
+void  VCon_root::addnext(TrElem* aa){
    if(!ev)  return ;
   if( strstr(contname,"TrMCCluster"))
     ev->TrMCCluster().push_back(*(TrMCClusterR*)aa);
@@ -121,7 +121,7 @@ void  VCon_root::addnext(AMSlink* aa){
 }
 
 
-int  VCon_root::getindex(AMSlink* aa){
+int  VCon_root::getindex(TrElem* aa){
  if(!ev)  return 0;
  if( strstr(contname,"TrMCCluster"))
    for(int ii=0;ii<ev->NTrMCCluster();ii++)

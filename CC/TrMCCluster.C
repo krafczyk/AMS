@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.1 2008/12/18 11:19:32 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.2 2009/08/17 12:53:54 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2008/12/18 11:19:32 $
+///$Date: 2009/08/17 12:53:54 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -24,14 +24,14 @@
 
 
 
-ClassImp(AMSTrMCCluster);
+ClassImp(TrMCClusterR);
 
-int AMSTrMCCluster::_NoiseMarker(555);
+int TrMCClusterR::_NoiseMarker(555);
 
 
 extern "C" double rnormx();
 
-void AMSTrMCCluster::_shower()
+void TrMCClusterR::_shower()
 {
 
 
@@ -113,7 +113,7 @@ void AMSTrMCCluster::_shower()
 
 
 
-int AMSTrMCCluster::GetTkId(){ 
+int TrMCClusterR::GetTkId(){ 
 //int sensor = abs(_idsoft)/10000;
   int tkid   = abs(_idsoft)%1000;
   int ss     = abs(_idsoft)%10000-tkid;
@@ -122,7 +122,7 @@ int AMSTrMCCluster::GetTkId(){
   return tkid;
 }
 
-void AMSTrMCCluster::_printEl(std::ostream & stream)
+void TrMCClusterR::print(std::ostream & stream)
 {
 //int sensor = abs(_idsoft)/10000;
   int tkid   = abs(_idsoft)%1000;
@@ -132,20 +132,20 @@ void AMSTrMCCluster::_printEl(std::ostream & stream)
   int layer = abs(tkid)/100;
   stream << "Impinging Particle: "<<_itra<<" Px: "<<_Momentum[0]
 	 <<" Py: "<<_Momentum[1]<<" Pz: "<<_Momentum[2]<<endl;
-  stream << "AMSTrMCCluster-Shower x "<<_itra<<" "<<layer<<" "
+  stream << "TrMCClusterR-Shower x "<<_itra<<" "<<layer<<" "
          << _left[0]<< " "<<_center[0]<<" "<<_right[0]<<" "
 	 <<_ss[0][0]<<" "<<_ss[0][1]<<" "<<_ss[0][2]<<" "
 	 <<_ss[0][3]<<" "<<_ss[0][4]<< std::endl;
-  stream << "AMSTrMCCluster-Shower y "<<_itra<<" "<<layer<<" "
+  stream << "TrMCClusterR-Shower y "<<_itra<<" "<<layer<<" "
          << _left[1]<< " "<<_center[1]<<" "<<_right[1]<<" "
 	 <<_ss[1][0]<<" "<<_ss[1][1]<<" "<<_ss[1][2]<<" "
 	 <<_ss[1][3]<<" "<<_ss[1][4]<< std::endl;
-  stream << "AMSTrMCCluster-Coo "<<tkid<<" "<<_idsoft<<" "<<layer<<" "
+  stream << "TrMCClusterR-Coo "<<tkid<<" "<<_idsoft<<" "<<layer<<" "
 	 <<_xca<<" "<<_xcb<<" "<<_xgl<< std::endl;
 }
 
 
-float AMSTrMCCluster::strip2x(int tkid, int side, int strip, int mult)
+float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult)
 {
   int layer = abs(tkid)/100;
   int nch   = (side  == 1) ? TkDBc::Head->_NReadoutChanS
@@ -168,14 +168,14 @@ float AMSTrMCCluster::strip2x(int tkid, int side, int strip, int mult)
   return (ss0+ss1)/2;
 }
 
-double AMSTrMCCluster::fints(double a, double b)
+double TrMCClusterR::fints(double a, double b)
 {
   if      (a >  0 && b >  0) return fdiff(a, 0)-fdiff(b, 0);
   else if (a <= 0 && b <= 0) return fdiff(b, 0)-fdiff(a, 0);
   return 2*fdiff(0, 0)-fdiff(a, 0)-fdiff(b, 0);
 }
 
-double AMSTrMCCluster::fint2(double a, double b, 
+double TrMCClusterR::fint2(double a, double b, 
 			  double av, double dav, double dix)
 {
   if (std::abs(dav)/dix <= 0.01) return fints(a-av, b-av);
@@ -199,25 +199,25 @@ double AMSTrMCCluster::fint2(double a, double b,
         +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
 }
 
-double AMSTrMCCluster::fintc(double a, double b, double c, double d)
+double TrMCClusterR::fintc(double a, double b, double c, double d)
 {
   return 2*fdiff(0,0)-(fdiff(b-d,1)-fdiff(b-c,1))/(d-c)
                      +(fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
 }
 
-double AMSTrMCCluster::fintr(double a, double b, double c, double d)
+double TrMCClusterR::fintr(double a, double b, double c, double d)
 {
   return (-fdiff(b-d,1)+fdiff(b-c,1)
 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
 }
 
-double AMSTrMCCluster::fintl(double a, double b, double c, double d)
+double TrMCClusterR::fintl(double a, double b, double c, double d)
 {
   return (-fdiff(b-d,1)+fdiff(b-c,1)
 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
 }
 
-double AMSTrMCCluster::fdiff(double a, int ialpha)
+double TrMCClusterR::fdiff(double a, int ialpha)
 {
   double xl = std::abs(a)*TRMCFFKEY.alpha;
   if (xl > 70) return 0;

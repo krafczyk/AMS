@@ -1,7 +1,7 @@
 #ifndef  __VCon_gb__
 #define  __VCon_gb__
 #include "VCon.h"
-#include "link.h"
+
 #include "root_RVS.h"
 
 class VCon_root :public VCon{
@@ -16,11 +16,11 @@ public:
   VCon*     GetCont(char * name);
   int       getnelem();
   void      eraseC();
-  AMSlink*  getelem(int ii);
-  int       getindex(AMSlink* aa);
-  void      addnext(AMSlink* aa);
+  TrElem*  getelem(int ii);
+  int       getindex(TrElem* aa);
+  void      addnext(TrElem* aa);
   // remove next element !!!
-  void      removeEl(AMSlink* prev, integer restore=1);
+  void      removeEl(TrElem* prev, integer restore=1);
 };
 
 

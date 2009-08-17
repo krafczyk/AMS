@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.187 2009/08/04 14:16:30 mdelgado Exp $
+//  $Id: root.C,v 1.188 2009/08/17 12:53:54 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -15,8 +15,8 @@
 #include "ecalrec.h"
 #include "mceventg.h"
 #ifdef _PGTRACK_
-#include "TrMCCluster.h"
-#include "TrRawCluster.h"
+// #include "TrMCCluster.h"
+// #include "TrRawCluster.h"
 #else
 #include "trmccluster.h"
 #include "trrawcluster.h"
@@ -81,8 +81,6 @@ using namespace root;
   ClassImp(DaqEventR)
 */
 ClassImp(AMSEventR)
-  ClassImp(AMSChain)
-  ClassImp(AMSEventList)
 
 
 //------------------- constructors -----------------------
@@ -1659,11 +1657,11 @@ void AMSEventR::AddAMSObject(AMSRichRingNew *ptr)
 void AMSEventR::AddAMSObject(AMSVtx *ptr){
   if(ptr){
 #ifdef _PGTRACK_
-    fVertex.push_back(*ptr);
+    fVertex.push_back(VertexR(*ptr));
 #else
     fVertex.push_back(VertexR(ptr));
-    ptr->SetClonePointer(fVertex.size()-1);
 #endif
+    ptr->SetClonePointer(fVertex.size()-1);
   }else {
     cout<<"AddAMSObject -E- AMSVtx ptr is NULL"<<endl;
   }
@@ -1725,7 +1723,8 @@ void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
 {
   if (ptr) {
 #ifdef _PGTRACK_
-    fTrRawCluster.push_back(*ptr);
+    //    fTrRawCluster.push_back(*ptr);
+    fTrRawCluster.push_back(TrRawClusterR(*ptr));
 #else
     fTrRawCluster.push_back(TrRawClusterR(ptr));
 #endif
@@ -1739,7 +1738,7 @@ void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
 void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
   if (ptr) {
 #ifdef _PGTRACK_
-    fTrCluster.push_back(*ptr);
+    fTrCluster.push_back(TrClusterR(*ptr));
 #else
     fTrCluster.push_back(TrClusterR(ptr));
 #endif
@@ -1754,7 +1753,7 @@ void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
   if (ptr) {
     if(fTrRecHit.size()>root::MAXTRRH02*2 && !ptr->checkstatus(AMSDBc::USED))return;
 #ifdef _PGTRACK_
-    fTrRecHit.push_back(*ptr);
+    fTrRecHit.push_back(TrRecHitR(*ptr));
 #else
     fTrRecHit.push_back(TrRecHitR(ptr));
 #endif
@@ -1769,7 +1768,7 @@ void AMSEventR::AddAMSObject(AMSTrTrack *ptr)
 {
   if (ptr) {
 #ifdef _PGTRACK_
-    fTrTrack.push_back(*ptr);
+    fTrTrack.push_back(TrTrackR(*ptr));
 #else
     fTrTrack.push_back(TrTrackR(ptr));
 #endif
@@ -1952,11 +1951,11 @@ void AMSEventR::AddAMSObject(AMSTrMCCluster *ptr)
   if (ptr) {
     if( fTrMCCluster.size() > root::MAXTRCLMC * 2)return;
 #ifdef _PGTRACK_
-    fTrMCCluster.push_back(*ptr);
+    fTrMCCluster.push_back(TrMCClusterR(*ptr));
 #else
     fTrMCCluster.push_back(TrMCClusterR(ptr));
-    ptr->SetClonePointer( fTrMCCluster.size()-1);
 #endif
+    ptr->SetClonePointer( fTrMCCluster.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
   }
@@ -3136,329 +3135,6 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name, unsigned int thr,unsigned int size):TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
-
-
-AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned int size)
-  :TChain(name),fThreads(thr),fSize(size),
-   _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
-{
-  Init(event);
-}
-
-void AMSChain::Init(AMSEventR* event){
-  if (_EVENT==NULL) {
-    if (event) 
-      _EVENT = event;
-    else
-      _EVENT = new AMSEventR;
-    this->SetBranchAddress("ev.",&_EVENT);
-    _EVENT->Head() = _EVENT;
-    _EVENT->Tree() = NULL;
-#ifdef _PGTRACK_
-    TkDBc::CreateTkDBc();
-    TkDBc::Head->init();
-    // 	     TrRecon::Create();
-    // TrRecon::gethead()->SetParFromDataCards();
-    // TrRecon::TRCon= new VCon_root();
-#endif
-    
-  }
-}
-
-AMSEventR* AMSChain::GetEvent(Int_t entry){
-  Init();
-  if(entry>=GetEntries()) return _EVENT;
-  _ENTRY = entry;
-  Int_t tree_entry = LoadTree(_ENTRY);
-#ifdef _PGTRACK_
-  if (GetFile() && GetFile()!=_FILE){
-    _FILE=GetFile();
-    TrCalDB::Head= (TrCalDB*)_FILE->Get("TrCalDB");
-    //PZ FIXME
-    TrParDB *cc= new TrParDB();
-    cc->init();
-    TrClusterR::UsingTrParDB(cc);
-    TrClusterR::UsingTrCalDB(TrCalDB::Head);
-    TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
-  }
-#endif
-  if (GetTreeNumber()!=_TREENUMBER) {
-    _TREENUMBER = GetTreeNumber();
-    _EVENT->Tree() = GetTree();
-    _EVENT->GetBranch(_EVENT->Tree());
-  }
-  if (_EVENT->ReadHeader(tree_entry)==false) {
-    delete _EVENT; _EVENT = NULL;
-    _ENTRY = -1;
-  }
-  return _EVENT;
-};
-
-AMSEventR* AMSChain::GetEvent(){ 
-  GetEvent(_ENTRY+1);
-  return _EVENT;
-};
-
-AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
-  Rewind();//Go to start of chain
-  // Get events in turn
-  while  (GetEvent() &&
-	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ) ;
-         
-  return _EVENT; 
-};
-
-Int_t AMSChain::Entry() {return _ENTRY;};
-AMSEventR* AMSChain::pEvent() {return _EVENT;};
-const char* AMSChain::ChainName() {return _NAME;};
-
-
-
-
-Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Long64_t firstentry){
-#ifndef __ROOTSHAREDLIBRARY__
-  return 0;
-#else
-  int nthreads=fThreads;
-  //TStreamerInfo**ts =new TStreamerInfo*[nthreads];
-  //for(int i=0;i<nthreads;i++)ts[i]=0;
-  long long nentr=0;
-
-  AMSEventR::_NFiles=-fNtrees;
-        
-  //	#pragma omp parallel  default(none), shared(std::cout,option,nentries,firstentry,nentr,pev)
-  int ntree=fNtrees;
-  if(nentries<0){
-    ntree=-nentries;
-    if(ntree>fNtrees)ntree=fNtrees;
-    nentries=10000000000LL;
-  }
-  typedef multimap<uint,TString> fmap_d;
-  typedef multimap<uint,TString>::iterator fmapi;
-  fmap_d fmap;
-  for(int i=0;i<fNtrees;i++){
-    TString t1("/");
-    TString t2(".");
-    TString name(((TNamed*)fFiles->At(i))->GetTitle());
-    TObjArray *arr=name.Tokenize(t1);
-    TObjString *s=(TObjString*)arr->At(arr->GetEntries()-1); 
-    TObjArray *ar1=s->GetString().Tokenize(t2);
-    unsigned int k=atoi(((TObjString* )ar1->At(0))->GetString().Data());
-    fmap.insert(make_pair(k,name) );
-    delete arr;
-    delete ar1;
-  }
-  fmapi it=fmap.begin();
-  if(ntree>fmap.size())ntree=fmap.size();
-  cout <<"  AMSChain::Process-I-Files to be processed "<<ntree<<" out of "<<fNtrees<<endl;
-  if(nthreads>ntree)nthreads=ntree;
-  int*ia= new int[nthreads];
-  for(int i=0;i<nthreads;i++)ia[i]=0;
-#ifdef _OPENMP
-  omp_set_num_threads(nthreads);
-  AMSEventR::fgThreads=nthreads;
-#endif
-#pragma omp parallel 
-  {
-    int thr=0;
-#ifdef _OPENMP
-    thr=omp_get_thread_num();
-#endif
-#pragma omp  for schedule (dynamic)  nowait
-    for(int i=0;i<ntree;i++){
-      if(nentr>nentries || it==fmap.end()){
-	continue;
-      }
-      TChainElement* element;
-      TFile* file;
-      TTree *tree;
-      TSelector *curp=(TSelector*)((char*)pev+thr*fSize);
-#pragma omp critical 
-      {
-	//  if(ts[thr]==0){
-	//TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
-	// }
-	//cout <<"thr "<<thr<<endl;
-        // element=(TChainElement*) fFiles->At(i);
-        TRegexp d("^root:",false);
-        if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
-        else file=new TFile(it->second.Data(),"READ");
-	tree=(TTree*)file->Get(_NAME);
-        if(!tree){
-          cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
-	}
-	else{
-	  curp->SetOption(option);
-	  curp->Init(tree);
-	  curp->Notify();
-	  cout <<"  "<<i<<" "<<it->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
-	  //cout <<"  "<<i<<" "<<element->GetTitle()<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
-        }
-	it++;
-      }
-      if(tree){
-        curp->Begin(tree);
-        for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
-	  try{
-	    curp->Process(n);
-	  }
-	  catch (...){
-#pragma omp critical(rd)
-	    if(AMSEventR::pService){
-	      (*AMSEventR::pService).BadEv++;    
-	      (*AMSEventR::pService).TotalEv++;
-	      (*AMSEventR::pService).TotalTrig++;
-	    }    
-	  }
-	}
-      }
-#pragma omp critical (cls)  
-      {
-	if(AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
-	file->Close("R");
-        delete file;
-	//        cout <<" finished "<<i<<" "<<endl;
-      }
-    }
-#ifdef _OPENMP        
-    //  this clause is because intel throutput mode deoesn;t work
-    //   so simulating it
-    ia[thr]=1;
-    for(;;){
-      bool work=false;
-      for(int j=0;j<nthreads;j++){
-	if(!ia[j]){
-	  work=true;
-	  break;
-	}
-      }
-      if(work)usleep(kmp_get_blocktime());  
-      else break;
-    }
-#endif
-  }
-  AMSEventR::_NFiles=1;
-  pev->Terminate();
-  return nentr;
-#endif
-}
-
-
-
-AMSEventList::AMSEventList(){
-  _RUNs.reserve(10000);
-  _EVENTs.reserve(10000);
-};
-
-AMSEventList::AMSEventList(const char* filename){
-  _RUNs.reserve(10000);
-  _EVENTs.reserve(10000);
-  Read(filename);
-};
-void AMSEventList::Add(int run, int event){
-  _RUNs.push_back(run);
-  _EVENTs.push_back(event);
-};
-
-void AMSEventList::Add(AMSEventR* pev){
-  Add(pev->Run(),pev->Event());
-};
-
-void AMSEventList::Remove(int run, int event){
-  for (int j=0; j<_RUNs.size(); j++) {
-    if (run==_RUNs[j] && event==_EVENTs[j]) {
-      vector<int>::iterator jiter = _RUNs.begin() + j;
-      _RUNs.erase(jiter);
-      jiter = _EVENTs.begin() + j;
-      _EVENTs.erase(jiter);
-      j--;
-    }
-  }
-};
-
-void AMSEventList::Remove(AMSEventR* pev){
-  Remove(pev->Run(),pev->Event());
-};
-
-bool AMSEventList::Contains(int run, int event){
-  for (int j=0; j<_RUNs.size(); j++) {
-    if (run==_RUNs[j] && event==_EVENTs[j]) {
-      return true;
-    }
-  }
-  return false;
-};
-
-bool AMSEventList::Contains(AMSEventR* pev){
-  return Contains(pev->Run(),pev->Event());
-};
-
-void AMSEventList::Reset(){
-  _RUNs.clear();
-  _EVENTs.clear();
-};
-
-void AMSEventList::Read(const char* filename){
-  FILE* listfile = fopen(filename,"r");
-  if (listfile) {
-    int run, event;
-    while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
-    fclose(listfile);
-  } else {
-    cout << "AMSEventlist: Error opening file '" << filename << "';";
-    cout << " assuming an empty list" << endl;
-  }
-};
-
-void AMSEventList::Write(){
-  cout << "AMSEventList::Dumping a list with ";
-  cout << this->GetEntries(); 
-  cout << " selected events..." << endl;
-  for (int j=0; j<_RUNs.size(); j++) {
-    cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
-  }
-};
-
-void AMSEventList::Write(const char* filename){
-  cout << "AMSEventList::Writing ASCII file \"";
-  cout << filename << "\" with " << this->GetEntries(); 
-  cout << " selected events" << endl;
-  FILE* listfile = fopen(filename,"w");
-  for (int j=0; j<_RUNs.size(); j++) {
-    fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
-  }
-  fclose(listfile);
-};
-
-
-void AMSEventList::Write(AMSChain* chain, TFile* file){
-  TTree *amsnew = chain->CloneTree(0);
-  chain->Rewind();
-  AMSEventR* ev = NULL;
-  while ((ev=chain->GetEvent())) {
-    bool found = false;
-    for (int j=0; j<_RUNs.size(); j++) {
-      if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
-	found=true;
-	break;
-      }
-    }
-    if (!found) continue;
-    printf("AMSEventList::Writing event ............ %12d %12d\n"
-	   , ev->Run(), ev->Event());
-    ev->GetAllContents();
-    amsnew->Fill();
-  }
-  cout << "AMSEventList::Writing AMS ROOT file \"";
-  cout << file->GetName() << "\" with " << this->GetEntries(); 
-  cout << " selected events" << endl;
-  file->Write();
-};
-
-int AMSEventList::GetEntries(){return _RUNs.size();};
-int AMSEventList::GetRun(int i){return _RUNs[i];};
-int AMSEventList::GetEvent(int i){return _EVENTs[i];};
 
 
 void AMSEventR::GetAllContents() {

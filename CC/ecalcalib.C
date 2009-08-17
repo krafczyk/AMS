@@ -2153,10 +2153,10 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 #ifdef _PGTRACK_
           ntrh=ptrack->GetNhits();
           for(i=0;i<ntrh;i++){//<---track hits(2Dclust) loop
-            phit=ptrack->GetHit(i);
+            phit=dynamic_cast<AMSTrRecHit*>(ptrack->GetHit(i));
             hitla=phit->GetLayer();
 //
-            pxcl=phit->GetXCluster();
+            pxcl=dynamic_cast<AMSTrCluster*>(phit->GetXCluster());
             if(pxcl){
               axtcl[hitla-1]+=pxcl->GetTotSignal();
               x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
@@ -2176,7 +2176,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
               }//---> end of x-clust loop
             }//-->pxcl  
 //
-            pycl=phit->GetYCluster();
+            pycl=dynamic_cast<AMSTrCluster*>(phit->GetYCluster());
             if(pycl){
               aytcl[hitla-1]+=pycl->GetTotSignal();
               y=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);

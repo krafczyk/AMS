@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.7 2009/07/03 17:34:23 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.8 2009/08/17 12:53:54 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/07/03 17:34:23 $
+/// $Date: 2009/08/17 12:53:54 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -23,13 +23,16 @@
 #include "tkdcards.h"
 #include "MagField.h"
 
-#include "TrTrack.h"
 #include "TrFit.h"
 #include "TkSens.h"
 #include "TkCoo.h"
 #include "TrMCCluster.h"
 #include "vtx.h"
 #include "amsdbc.h"
+
+#ifndef __ROOTSHAREDLIB__
+#include "trrec.h"
+#endif
 
 VCon* TrRecon::TRCon=0;
 
@@ -186,7 +189,7 @@ int TrRecon::Build(int option)
 //   // Hit list
 //   printf("Hit list (without multiplicity on x coordinate): \n");
 //   for (int hh=0; hh<GetEvent()->GetnTrRecHits(); hh++) {
-//     AMSTrRecHit* hit   = GetEvent()->GetTrRecHit(hh);
+//     TrRecHitR* hit   = GetEvent()->GetTrRecHit(hh);
 //     AMSPoint  point = hit->GetGlobalCoordinate();
 //     printf("Hit: %3d  (x,y,z)=(%10.4f,%10.4f,%10.4f)  mult: %1d  corr: %8.4f  prob: %7.5f  stat: %2d\n",
 //            hh,point.x(),point.y(),point.z(),hit->GetMultiplicity(),hit->GetCorrelation(),hit->GetProb(),hit->getstatus());
@@ -220,7 +223,7 @@ void TrRecon::ClearBuffer() {
   _seedaddresses.clear();
 }
 
-int TrRecon::ExpandClusterInBuffer(AMSTrRawCluster* cluster) {
+int TrRecon::ExpandClusterInBuffer(TrRawClusterR* cluster) {
   int entries = 0;
   int nelements = cluster->GetNelem();
   int firststripaddress = cluster->GetAddress();
@@ -272,11 +275,11 @@ int TrRecon::BuildTrClusters(int rebuild) {
 
 
   //Build The Map of TrRawClusters
-  TrMap<AMSTrRawCluster> RawMap;
+  TrMap<TrRawClusterR> RawMap;
 
 
   for (int ii=0;ii< cont->getnelem();ii++){
-    AMSTrRawCluster* clu=(AMSTrRawCluster*)cont->getelem(ii);
+    TrRawClusterR* clu=(TrRawClusterR*)cont->getelem(ii);
     //clu->Print();
     if (clu)  RawMap.Add(clu);
   }
@@ -285,7 +288,7 @@ int TrRecon::BuildTrClusters(int rebuild) {
 
   //  RawMap.info();
   // loop on ladders
-  TrMap<AMSTrRawCluster>::TrMapIT lad=RawMap.LadMap.begin();
+  TrMap<TrRawClusterR>::TrMapIT lad=RawMap.LadMap.begin();
   int ncls = 0;
   while (lad!=RawMap.LadMap.end()){
     ClearBuffer();
@@ -344,9 +347,11 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
       sigg[jj]=_adcbuf[address];
     }
 
-    AMSTrCluster* cluster = new AMSTrCluster(tkid,side,leftaddress,length,seedind,sigg,0);
-//  cluster->BuildCoordinates();
-    if(cont) cont->addnext(cluster);
+#ifndef __ROOTSHAREDLIB__ 
+    if(cont) cont->addnext(new AMSTrCluster(tkid,side,leftaddress,length,seedind,sigg,0));
+#else
+    if(cont) cont->addnext(new TrClusterR(tkid,side,leftaddress,length,seedind,sigg,0));
+#endif
     ntrclusters++;   
   }
   if(cont) delete cont;
@@ -439,7 +444,7 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
 // --- HITS --- //
 //////////////////
 
-float TrRecon::GetCorrelation(AMSTrCluster* cln, AMSTrCluster* clp) { 
+float TrRecon::GetCorrelation(TrClusterR* cln, TrClusterR* clp) { 
   if (!cln) return -1.;
   if (!clp) return  1.;
   float n = cln->GetTotSignal();
@@ -453,7 +458,7 @@ float  TrRecon::GetProbToBeCorrelated(float n, float p) {
 	   GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
 }
 
-float  TrRecon::GetProbToBeCorrelated(AMSTrCluster* cln, AMSTrCluster* clp) {
+float  TrRecon::GetProbToBeCorrelated(TrClusterR* cln, TrClusterR* clp) {
   float correlation = GetCorrelation(cln,clp);
   return ( GGpars[0]*TMath::Gaus(correlation,GGpars[1],GGpars[2],kFALSE) +
 	   GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
@@ -464,7 +469,7 @@ void TrRecon::BuildClusterTkIdMap() {
   // loop on TrClusters
   VCon* cont=TRCon->GetCont("AMSTrCluster");
   for (int ii=0;ii<cont->getnelem();ii++){
-    AMSTrCluster* cluster = (AMSTrCluster*)cont->getelem(ii);
+    TrClusterR* cluster = (TrClusterR*)cont->getelem(ii);
     //    cluster->Print();
     int tkid = cluster->GetTkId();
     int side = cluster->GetSide();
@@ -482,7 +487,7 @@ int  TrRecon::GetnTrClusters(int tkid, int side) {
   return (side==0) ? _ClusterTkIdMap[tkid].first.size() : _ClusterTkIdMap[tkid].second.size(); 
 }
 
-AMSTrCluster* TrRecon::GetTrCluster(int tkid, int side, int iclus) { 
+TrClusterR* TrRecon::GetTrCluster(int tkid, int side, int iclus) { 
   if (iclus < 0 || GetnTrClusters(tkid, side) <= iclus) return 0;
   return (side==0) ? _ClusterTkIdMap[tkid].first.at(iclus) : _ClusterTkIdMap[tkid].second.at(iclus); 
 }
@@ -524,20 +529,26 @@ int TrRecon::BuildTrRecHits(int rebuild)
     // all combinations
     for (int iy=0; iy<ny; iy++) {
       for (int ix=0; ix<nx; ix++) {
-        AMSTrCluster* clX = lad->second.first.at(ix);
-        AMSTrCluster* clY = lad->second.second.at(iy);
+        TrClusterR* clX = lad->second.first.at(ix);
+        TrClusterR* clY = lad->second.second.at(iy);
         float     corr = GetCorrelation(clX,clY);
         float     prob = GetProbToBeCorrelated(clX,clY);
         if (prob<ThrProb) continue;  
-        AMSTrRecHit* hit = new AMSTrRecHit(tkid,clX,clY,corr,prob,0);
-        cont2->addnext(hit);
+#ifndef __ROOTSHAREDLIB__
+        cont2->addnext( new AMSTrRecHit(tkid,clX,clY,corr,prob,0));
+#else
+        cont2->addnext( new TrRecHitR(tkid,clX,clY,corr,prob,0));
+#endif
         ntrrechits++;
       }
 
       // "ghost" hits with only y-cluster
-      AMSTrCluster *clY = GetTrCluster(tkid, 1, iy);
-      AMSTrRecHit  *hit = new AMSTrRecHit(tkid, 0, clY, 1, 0, 0);
-      cont2->addnext(hit);
+      TrClusterR *clY = GetTrCluster(tkid, 1, iy);
+#ifndef __ROOTSHAREDLIB__
+      cont2->addnext( new AMSTrRecHit(tkid, 0, clY, 1, 0, 0));
+#else
+      cont2->addnext( new TrRecHitR(tkid, 0, clY, 1, 0, 0));
+#endif
       ntrrechits++;
     }    
   }
@@ -547,12 +558,12 @@ int TrRecon::BuildTrRecHits(int rebuild)
   return ntrrechits;
 } 
 
-AMSTrRecHit* TrRecon::FindHit(AMSTrCluster* xcls,AMSTrCluster* ycls){
+TrRecHitR* TrRecon::FindHit(TrClusterR* xcls,TrClusterR* ycls){
   VCon* cont1 = TRCon->GetCont("AMSTrRecHit");
-  AMSTrRecHit* goodhit=0;
-  AMSTrRecHit* hit=0;
+  TrRecHitR* goodhit=0;
+  TrRecHitR* hit=0;
   for (int ii = 0; ii < cont1->getnelem(); ii++) {
-    hit=(AMSTrRecHit*)cont1->getelem(ii);
+    hit=(TrRecHitR*)cont1->getelem(ii);
     if(hit->GetXCluster()==xcls && hit->GetYCluster()==ycls){
       goodhit=hit;
       break;
@@ -572,7 +583,7 @@ if (TrDEBUG >= 6) {\
   int nhit = cont->getnelem();\
   int tkid = 0, intv = 0;\
   for (int i = 0; i < nhit; i++) {\
-    AMSTrRecHit *hit = (AMSTrRecHit *)cont->getelem(i);\
+    TrRecHitR *hit = (TrRecHitR *)cont->getelem(i);\
     if (tkid != 0 && hit->GetTkId() != tkid) intv = 0;\
     if ((intv++)%3 == 0) cout << endl;\
     cout << Form("%4d[%02d](%2d,%2d,%5.3f) ", hit->GetTkId(), i,\
@@ -594,7 +605,7 @@ if (TrDEBUG >= 5) {\
     for (int i = 0; i < nclx; i++) {\
       cout << " ";\
       for (int j = 0; j < ncly; j++) {\
-        AMSTrRecHit *hit = GetTrRecHit(tkid, i, j);\
+        TrRecHitR *hit = GetTrRecHit(tkid, i, j);\
         if (!hit) { if (j < ncly-1) cout << "-------------- "; }\
         else cout << Form("%2d[%2d][%2d](%2.0f) ",\
                           cont->getindex(hit), hit->GetXClusterIndex(),\
@@ -636,7 +647,7 @@ if (TrDEBUG >= 1) {\
 }
 
 #define TR_DEBUG_CODE_04 \
-if (TrDEBUG >= 11 || (TrDEBUG >= 10 && abs(pc-intp) < it.psrange)) {\
+if (TrDEBUG >= 11 || (TrDEBUG >= 10 && ddiff < it.psrange)) {\
   cout << "PreScan ";\
   for (int i = 0; i <= nlay; i++) {\
     cout << Form("%4d", it.tkid[it.ilay[i]]);\
@@ -746,7 +757,7 @@ if (TrDEBUG >= 5) {\
   for (int i = 0; i < nclx; i++) {\
     cout << " ";\
     for (int j = 0; j < ncly; j++) {\
-      AMSTrRecHit *hit = GetTrRecHit(tkid, i, j);\
+      TrRecHitR *hit = GetTrRecHit(tkid, i, j);\
       if (!hit) { if (j < ncly-1) cout << "-------------- "; }\
       else cout << Form("%2d[%2d][%2d](%2.0f) ",\
                         cont2->getindex(hit), hit->GetXClusterIndex(),\
@@ -766,10 +777,10 @@ if (TrDEBUG >= 1) {\
                     << track->GetNhitsY() << " "\
                     << track->GetNhitsXY()<< endl;\
   for (int i = 0; i < track->GetNhits(); i++) {\
-    AMSTrRecHit *hit = track->GetHit(i);\
+    TrRecHitR *hit = track->GetHit(i);\
     if (!hit) continue;\
-    AMSTrCluster *xcls = hit->GetXCluster();\
-    AMSTrCluster *ycls = hit->GetYCluster();\
+    TrClusterR *xcls = hit->GetXCluster();\
+    TrClusterR *ycls = hit->GetYCluster();\
     if (!xcls && !ycls) continue;\
     int tkid = hit->GetTkId();\
     char cx = (xcls) ? 'X' : ' ';\
@@ -780,7 +791,7 @@ if (TrDEBUG >= 1) {\
   cout << endl;\
   int id;\
   if (MAGSFFKEY.magstat>0) {\
-    id = AMSTrTrack::kSimple;\
+    id = TrTrackR::kSimple;\
     track->Fit(id);\
     cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
                  id, track->GetChisq(id), \
@@ -789,7 +800,7 @@ if (TrDEBUG >= 1) {\
                  track->GetP0x(id), track->GetP0y(id), track->GetP0z(id), \
                  track->GetDir(id)[0]/track->GetDir(id)[2], \
                  track->GetDir(id)[1]/track->GetDir(id)[2]) << endl;\
-    id = AMSTrTrack::kAlcaraz;\
+    id = TrTrackR::kAlcaraz;\
     track->Fit(id);\
     cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
                  id, track->GetChisq(id), \
@@ -798,11 +809,11 @@ if (TrDEBUG >= 1) {\
                  track->GetP0x(id), track->GetP0y(id), track->GetP0z(id), \
                  track->GetDir(id)[0]/track->GetDir(id)[2], \
                  track->GetDir(id)[1]/track->GetDir(id)[2]) << endl;\
-    id = AMSTrTrack::kChoutko;\
+    id = TrTrackR::kChoutko;\
     track->Fit(id);\
   }\
   else\
-    id = AMSTrTrack::kLinear;\
+    id = TrTrackR::kLinear;\
   cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
                id, track->GetChisq(id),\
                track->GetChisqX(id), track->GetChisqY(id),\
@@ -812,15 +823,15 @@ if (TrDEBUG >= 1) {\
                track->GetDir(id)[1]/track->GetDir(id)[2]) << endl;\
   if (TrDEBUG >= 3) {\
     for (int i = 0; i < track->GetNhits(); i++) {\
-      AMSTrRecHit *hit = track->GetHit(i);\
+      TrRecHitR *hit = track->GetHit(i);\
       int il = std::abs(hit->GetTkId())/100-1;\
       cout << Form("%4d %03X %6.2f %6.2f %6.2f res %8.1f %8.1f %8.1f %8.1f", \
                    hit->GetTkId(), hit->getstatus(), hit->GetCoord()[0],\
                    hit->GetCoord()[1], hit->GetCoord()[2],\
                    1e4*track->GetResidual(il, id)[0],\
-                   1e4*track->GetResidual(il, AMSTrTrack::kChoutko)[0],\
+                   1e4*track->GetResidual(il, TrTrackR::kChoutko)[0],\
                    1e4*track->GetResidual(il, id)[1],\
-                   1e4*track->GetResidual(il, AMSTrTrack::kChoutko)[1])\
+                   1e4*track->GetResidual(il, TrTrackR::kChoutko)[1])\
            << endl;\
     }\
   }\
@@ -843,7 +854,7 @@ double TrRecon::ErrXForScan       = 300e-4;
 double TrRecon::ErrYForScan       = 300e-4;
 
 int TrRecon::TrDEBUG = 0;
-int TrRecon::PZDEBUG = 0;
+int TrRecon::PZDEBUG = 4;
 
 //========================================================
 // HitPatterns
@@ -963,7 +974,7 @@ void TrRecon::BuildHitsTkIdMap()
   // Fill TrRecHits at _HitsTkIdMap[tkid]
   int nhit = cont->getnelem();
   for (int i = 0; i < nhit; i++) {
-    AMSTrRecHit *hit = (AMSTrRecHit*)cont->getelem(i);
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
     _HitsTkIdMap[hit->GetTkId()].push_back(hit);
   }
 
@@ -980,14 +991,14 @@ void TrRecon::BuildHitsTkIdMap()
     arr.clear();
     arr.Ncls[0] = GetnTrClusters(tkid, 0)+1;
     arr.Ncls[1] = GetnTrClusters(tkid, 1);
-    arr.insert(arr.begin(), arr.Ncls[0]*arr.Ncls[1], (AMSTrRecHit*)0);
+    arr.insert(arr.begin(), arr.Ncls[0]*arr.Ncls[1], (TrRecHitR*)0);
 
     // Define cluster index vectors
     vector<int> vidcl[2];
 
     // Loop on the hits
     for (Hits2DArray::iterator ith = ar0.begin(); ith != ar0.end(); ith++) {
-      AMSTrRecHit *hit = *ith;
+      TrRecHitR *hit = *ith;
 
       // Get cluster ID (as index in the container)
       int idcl[2], icls[2];
@@ -1106,16 +1117,16 @@ void TrRecon::PurgeGhostHits()
 
   int ntrack=contT->getnelem();
   for(int itr=0;itr<ntrack;itr++){
-    AMSTrTrack *track = (AMSTrTrack*)contT->getelem(itr);
+    TrTrackR *track = (TrTrackR*)contT->getelem(itr);
     for(int ithit=0;ithit<track->GetNhits();ithit++){
-      AMSTrRecHit *thit=track->GetHit(ithit);
-      AMSTrCluster* yclus= thit->GetYCluster();
+      TrRecHitR *thit=track->GetHit(ithit);
+      TrClusterR* yclus= thit->GetYCluster();
       int nhit = cont->getnelem();
       for (int i = 0; i < nhit; i++) {
-	AMSTrRecHit *hit = (AMSTrRecHit*)cont->getelem(i);
+	TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
 	if (!hit) continue;
 	if(hit==thit) continue;
-	AMSTrCluster* yclus2= hit->GetYCluster();
+	TrClusterR* yclus2= hit->GetYCluster();
 	if(yclus2==yclus){
 	  // delete hit;
 	  if (i == 0)
@@ -1132,7 +1143,7 @@ void TrRecon::PurgeGhostHits()
 
   // create hits indexes
   for (int i = 0; i < ntrack; i++) {
-    AMSTrTrack *track = (AMSTrTrack*)contT->getelem(i);
+    TrTrackR *track = (TrTrackR*)contT->getelem(i);
     track->BuildHitsIndex();
   }
   delete contT;
@@ -1182,9 +1193,11 @@ bool TrRecon::PreScan(int nlay, TrHitIter &it) const
   double pz   = it.coo[it.ilay[nlay]][2];
   double pc   = it.coo[it.ilay[nlay]][it.side];
   double intp = it.param[0]+it.param[1]*pz+it.param[2]*pz*pz;
+  //PZ Bug fix if put on the return line is converted to an integer
+  //and often fail the comparison.
+  double ddiff=fabs(pc-intp);
   TR_DEBUG_CODE_04;
-
-  return (abs(pc-intp) < it.psrange);
+  return ( ddiff< it.psrange);
 }
 
 int TrRecon::SetLayerOrder(TrHitIter &it) const
@@ -1440,7 +1453,7 @@ int TrRecon::HitCoordMgr(int idx, TrHitIter &it, int mode) const
   if (mode == 2) {
     if (it.side == 1) return it.imult[il];
 
-    AMSTrRecHit *hit = GetTrRecHit(tkid, it.iscan[il][0], it.iscan[il][1]);
+    TrRecHitR *hit = GetTrRecHit(tkid, it.iscan[il][0], it.iscan[il][1]);
     if (!hit) return it.imult[il];
 
     if (it.side == 0 && (hit->getstatus() & YONLY)) return -1;
@@ -1451,7 +1464,7 @@ int TrRecon::HitCoordMgr(int idx, TrHitIter &it, int mode) const
   }
 
   // Mode 3: Set coordinates to be evaluated
-  AMSTrRecHit *hit = GetTrRecHit(tkid, it.iscan[il][0], it.iscan[il][1]);
+  TrRecHitR *hit = GetTrRecHit(tkid, it.iscan[il][0], it.iscan[il][1]);
   if (!hit) return -1;
 
   if (hit->getstatus() & YONLY)
@@ -1478,9 +1491,10 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
       fit.LinearFit(1);
   }
   else {
-    if (MAGSFFKEY.magstat == 1)
-      fit.SimpleFit();
-    else
+    // PZ Bugfix -- On X side always linear FIT!!!
+    //  if (MAGSFFKEY.magstat == 1)
+    //       fit.SimpleFit();
+    //     else
       fit.LinearFit(2);
   }
 
@@ -1575,18 +1589,21 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   VCon* cont = TRCon->GetCont("AMSTrTrack");
   if (!cont) return 0;
-  int fit_method=AMSTrTrack::DefaultFitID;
+  int fit_method=TrTrackR::DefaultFitID;
   if (MAGSFFKEY.magstat<=0)
-    fit_method = AMSTrTrack::kLinear;
+    fit_method = TrTrackR::kLinear;
 
   // Create a new track
+#ifndef __ROOTSHAREDLIB__
   AMSTrTrack *track = new AMSTrTrack(itcand.pattern);
-
+#else
+  TrTrackR *track = new TrTrackR(itcand.pattern);
+#endif
   // Loop for each layer
   int maskc = GetHitPatternMask(itcand.pattern);
   for (int i = 0; i < itcand.nlayer; i++) {
     // Get clusters from candidate map
-    AMSTrRecHit *hit = GetTrRecHit(itcand.tkid[i], itcand.iscan[i][0], 
+    TrRecHitR *hit = GetTrRecHit(itcand.tkid[i], itcand.iscan[i][0], 
                                                    itcand.iscan[i][1]);
     if (!hit) continue;
 
@@ -1626,7 +1643,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   track->Fit(fit_method);
   
   if (MAGSFFKEY.magstat<=0)
-    track->trdefaultfit=AMSTrTrack::kLinear;
+    track->trdefaultfit=TrTrackR::kLinear;
 
   else {  // AdvancedFit should be done only with B field
     if(track->DoAdvancedFit())
@@ -1641,7 +1658,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   // fill cluster angles
   for (int i = 0; i<track->GetNhits(); i++) {
-    AMSTrRecHit *hit = track->GetHit(i);
+    TrRecHitR *hit = track->GetHit(i);
     hit->GetCoord().z();
     track->GetTrFit()->Propagate(hit->GetCoord().z());
     if (hit->GetXCluster()!=0) hit->GetXCluster()->SetDxDz(track->GetTrFit()->GetDxDz()); 
@@ -1676,7 +1693,7 @@ void TrRecon::InitFFKEYs(int magstat)
   TRFITFFKEY.ErrX = 300e-4;
   TRFITFFKEY.ErrY = 300e-4;
 
-  TrRecon::TrDEBUG   = 0;
+  //  TrRecon::TrDEBUG   = 0;
   TrRecon::MaxNtrack = 2;            // Default
   TrRecon::MinNhitX  = 4;            // Default
   TrRecon::MinNhitY  = 6;            // Default
@@ -1688,14 +1705,14 @@ void TrRecon::InitFFKEYs(int magstat)
 
   MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (magstat<=0) AMSTrTrack::DefaultFitID = AMSTrTrack::kLinear;
+  if (magstat<=0) TrTrackR::DefaultFitID = TrTrackR::kLinear;
 }
 
 int TrRecon::ReadMagField(const char *fname, int magstat)
 {
   MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (magstat<=0) AMSTrTrack::DefaultFitID = AMSTrTrack::kLinear;
+  if (magstat<=0) TrTrackR::DefaultFitID = TrTrackR::kLinear;
   return MagField::GetPtr()->Read(fname);
 }
 
@@ -1757,7 +1774,11 @@ void TrRecon::sitkhits(int idsoft, float vect[],
   // Create a new object
   VCon* aa=TRCon->GetCont("AMSTrMCCluster");
   if(aa)
+#ifndef __ROOTSHAREDLIB__
     aa->addnext(  new AMSTrMCCluster(idsoft, pa, pb, pgl,pmom,edep , itra));
+#else
+    aa->addnext(  new TrMCClusterR(idsoft, pa, pb, pgl,pmom,edep , itra));
+#endif
   if(aa) delete aa;
 }
 
@@ -1777,10 +1798,10 @@ void TrRecon::sitkdigi()
   }
   //PZDEBUG else   printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
   //Create the map of TrMCClusters
-  TrMap<AMSTrMCCluster> MCClMap;
+  TrMap<TrMCClusterR> MCClMap;
   
   for (int ii=0;ii<cont->getnelem();ii++){
-    AMSTrMCCluster* clu=(AMSTrMCCluster*)cont->getelem(ii);
+    TrMCClusterR* clu=(TrMCClusterR*)cont->getelem(ii);
     if (clu)MCClMap.Add(clu);
     //clu->_printEl(cerr); 
   }
@@ -1811,7 +1832,7 @@ void TrRecon::sitkdigi()
 	//printf("\n");
 
 	for( int icl=0;icl<MCClMap.GetNelem(tkid);icl++){
-	  AMSTrMCCluster* cl=MCClMap.GetElem(tkid,icl);
+	  TrMCClusterR* cl=MCClMap.GetElem(tkid,icl);
 
 	  int addK=cl->GetAdd(0);
 	  //  printf("ClusterK: ");
@@ -1906,7 +1927,11 @@ void TrRecon::DSP_Clusterize(int tkid,float *buf){
     //    printf("Adding Raw Clus: %d\n",tkid);
     for(int ll=0;ll<(right-left+1);ll++)
       general[ll]=buf[left+ll];
+#ifndef __ROOTSHAREDLIB__
     cont->addnext(new AMSTrRawCluster(tkid, left, right-left+1, general));
+#else
+    cont->addnext(new TrRawClusterR(tkid, left, right-left+1, general));
+#endif
   }
 
   for(int ii=640;ii<1024;ii++){
@@ -1938,7 +1963,11 @@ void TrRecon::DSP_Clusterize(int tkid,float *buf){
     //    printf("Adding Raw Clus: %d\n",tkid);
     for(int ll=0;ll<(right-left+1);ll++)
       general[ll]=buf[left+ll];
+#ifndef __ROOTSHAREDLIB__
     cont->addnext(new AMSTrRawCluster(tkid, left, right-left+1, general));
+#else
+    cont->addnext(new TrRawClusterR(tkid, left, right-left+1, general));
+#endif
   }
   if(cont) delete cont;
 
@@ -2195,7 +2224,7 @@ int TrRecon::BuildVertex(integer refit){
  int maxtr=100; 
   // Go ahead...
   int nfound = 0;
-  AMSTrTrack* ptrack[maxtr];
+  TrTrackR* ptrack[maxtr];
 
   // Add up tracks
   int maxtracks=maxtr;
@@ -2203,8 +2232,8 @@ int TrRecon::BuildVertex(integer refit){
   
   // First pass (only tracks with beta)
   VCon* pctr=TRCon->GetCont("AMSTrTrack");
-  AMSTrTrack *ptr = (AMSTrTrack *)pctr->getelem(0);
-  for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
+  for (int ii=0;ii<pctr->getnelem();ii=0) {
+    TrTrackR *ptr = (TrTrackR *)pctr->getelem(ii);
     if (ptr->checkstatus(AMSDBc::GOLDEN)) {
       ptrack[nfound] = ptr;
       nfound++;
@@ -2213,7 +2242,7 @@ int TrRecon::BuildVertex(integer refit){
   int debug=0;
   // Create a vertex
   if (nfound>1) {
-    AMSVtx *p= new AMSVtx(nfound, ptrack);
+    VertexR *p= new VertexR(nfound, ptrack);
     if(p->IsFilled()){
       vtx_ctr->addnext(p); 
  //      if (debug) {
@@ -2221,7 +2250,7 @@ int TrRecon::BuildVertex(integer refit){
 // 	VCon* betac=TRCon->GetCont("AMSBeta");
 // 	if(!betac) goto exit;
 // 	for (int i=0; i<p->getntracks(); i++) {
-// 	  AMSTrTrack* ptr = p->gettrack(i);
+// 	  TrTrackR* ptr = p->gettrack(i);
 // 	  if (!ptr) continue;
 // 	  cout << "AMSVtx: itrack " << i;
 // 	  //Beta check

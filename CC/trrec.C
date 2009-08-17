@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.207 2009/05/26 13:55:42 choutko Exp $
+//  $Id: trrec.C,v 1.208 2009/08/17 12:53:54 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -6,6 +6,9 @@
 // Last Edit : Mar 20, 1997. ak
 // 
 #include "trrec.h"
+
+
+#ifndef _PGTRACK_
 #include "commons.h"
 #include <math.h>
 #include <limits.h>
@@ -4505,3 +4508,5 @@ bool AMSTrTrack::TRDMatch(AMSTRDTrack *ptrd){
 
        return false;
 }
+
+#endif

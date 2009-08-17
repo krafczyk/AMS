@@ -1,11 +1,10 @@
-#ifdef _PGTRACK_
+#ifndef _PGTRACK_
 
-#include "TrCluster.h"
-#include "TrRecHit.h"
-#include "TrTrack.h"
-#else
+   // STANDARD GBATCH
+
+
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.102 2009/05/12 16:48:54 choutko Exp $
+//  $Id: trrec.h,v 1.103 2009/08/17 12:53:47 pzuccon Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -491,5 +490,215 @@ friend class AMSTrCalibFit;
 };
 
 #endif
+
+
+
+
+#else              // PGTRACK  GBATCH
+
+
+
+#ifndef _trrec_h
+#define _trrec_h
+
+#include "link.h"
+#include "TrMCCluster.h"
+#include "TrRawCluster.h"
+#include "TrCluster.h"
+#include "TrRecHit.h"
+#include "TrTrack.h"
+#include "vtx.h"
+
+class AMSTrMCCluster: public TrMCClusterR, public AMSlink {
+
+public:
+
+
+  AMSTrMCCluster():TrMCClusterR(),AMSlink(0,0){}
+  
+  AMSTrMCCluster(int idsoft, AMSPoint xca, 
+		  AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra)
+    :TrMCClusterR(idsoft,xca,xcb,  xgl, mom, sum, itra),AMSlink(0,0){}
+
+
+  ~AMSTrMCCluster(){}
+  
+  AMSTrMCCluster* next(){return (AMSTrMCCluster*) _next;}
+  
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+  //  ClassDef(AMSTrMCCluster,0)
+
+};
+
+
+class AMSTrRawCluster: public TrRawClusterR,public  AMSlink{
+
+public:
+
+  /// Default constructor
+  AMSTrRawCluster(void):TrRawClusterR(),AMSlink(){}
+  /// Copy constructor
+  AMSTrRawCluster(const AMSTrRawCluster& orig)
+    :TrRawClusterR(orig),AMSlink(orig){}
+  /// Constructors with raw data
+  AMSTrRawCluster(int tkid, int add, int nelem, short int *adc)
+  :TrRawClusterR(tkid,add, nelem, adc),AMSlink(){}
+
+  AMSTrRawCluster(int tkid, int add, int nelem, float *adc)
+    :TrRawClusterR( tkid, add, nelem, adc),AMSlink(){}
+  /// Destructor
+  ~AMSTrRawCluster(){}
+
+
+  AMSTrRawCluster* next(){return (AMSTrRawCluster*) _next;}
+  
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+  //  ClassDef(AMSTrRawCluster,0)
+};
+
+
+class AMSTrCluster: public TrClusterR,public  AMSlink{
+
+public:
+
+ /// Default constructor
+  AMSTrCluster():TrClusterR(),AMSlink(){}
+  /// Constructor with data
+  AMSTrCluster(int tkid, int side, int add, int nelem, int seedind, float* adc, unsigned int status)
+    :TrClusterR(tkid,side, add, nelem, seedind, adc, status),AMSlink(){}
+  /// Constructor divided is several instructions 
+  AMSTrCluster(int tkid, int side, int add, int seedind, unsigned int status)
+    :TrClusterR(tkid,side, add, seedind, status),AMSlink(){}
+  
+  /// Copy constructor
+  AMSTrCluster(const AMSTrCluster& orig):TrClusterR(orig),AMSlink(orig){}
+  /// Destructor
+  ~AMSTrCluster(){}
+ 
+
+  AMSTrCluster* next(){return (AMSTrCluster*) _next;}
+  
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+
+  //  ClassDef(AMSTrCluster,0)
+
+};
+
+
+
+
+class AMSTrRecHit: public TrRecHitR,public  AMSlink{
+
+public:
+ /// Default constructor
+  AMSTrRecHit(){}
+  /// Copy constructor
+  AMSTrRecHit(const AMSTrRecHit& orig):TrRecHitR(orig),AMSlink(orig){}
+  /// Constructor with clusters
+  AMSTrRecHit(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1)
+    :TrRecHitR(tkid,clX,  clY,  corr,  prob, imult),AMSlink(){}
+  /// Destructor
+  ~AMSTrRecHit(){}
+ 
+
+  AMSTrRecHit* next(){return (AMSTrRecHit*) _next;}
+  
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+  //  ClassDef(AMSTrRecHit,0)
+
+};
+
+
+
+class AMSTrTrack: public TrTrackR,public  AMSlink{
+
+public:
+
+  /// Default constructor
+  AMSTrTrack():TrTrackR(),AMSlink(){}
+  /// Constructor with hits
+  AMSTrTrack(int pattern,int nhits = 0, TrRecHitR *phit[] = 0,AMSPoint bfield[]=0, int *imult = 0,int fithmethod=0)
+    :TrTrackR(pattern, nhits,phit, bfield, imult, fithmethod),AMSlink(){}
+
+  /// Dummy track for RICH compatibility (filled at [kDummy])
+  AMSTrTrack(number theta, number phi, AMSPoint pref)
+    :TrTrackR(theta, phi,  pref),AMSlink(){}
+  /// Dummy track for RICH compatibility (filled at [kDummy])
+  AMSTrTrack(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7)
+    :TrTrackR( dir,  pref, rig ,  errig),AMSlink(){}
+
+  /// Destructor
+  ~AMSTrTrack(){}
+ 
+
+  AMSTrTrack* next(){return (AMSTrTrack*) _next;}
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+  //  ClassDef(AMSTrTrack,0)
+
+};
+
+class AMSVtx: public VertexR,public  AMSlink{
+public:
+  AMSVtx(){}
+  /// Explicit constructor it builds up a vertex
+  AMSVtx(int ntracks, TrTrackR *ptrack[])
+    :VertexR(ntracks, ptrack),AMSlink(){}
+  ~AMSVtx(){ }
+  
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+  
+  AMSVtx* next(){return (AMSVtx*) _next;}
+
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+  //  ClassDef(AMSVtx,0)
+
+};
+#endif
+
+
+
+
+
+
 
 #endif

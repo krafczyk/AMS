@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.2 2009/04/03 08:39:15 pzuccon Exp $ 
+/// $Id: TrCluster.C,v 1.3 2009/08/17 12:53:54 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,34 +17,34 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/04/03 08:39:15 $
+/// $Date: 2009/08/17 12:53:54 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TkCoo.h"
 #include "TrCluster.h"
 
-ClassImp(AMSTrCluster);
+ClassImp(TrClusterR);
 
-TrCalDB* AMSTrCluster::_trcaldb = NULL;
-TrParDB* AMSTrCluster::_trpardb = NULL;
-string   AMSTrCluster::sout;
-int      AMSTrCluster::DefaultCorrOpt = (AMSTrCluster::kAsym|AMSTrCluster::kAngle);
-int      AMSTrCluster::DefaultUsedStrips = 3;
+TrCalDB* TrClusterR::_trcaldb = NULL;
+TrParDB* TrClusterR::_trpardb = NULL;
+string   TrClusterR::sout;
+int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
+int      TrClusterR::DefaultUsedStrips = 3;
 
-AMSTrCluster::AMSTrCluster(void) {
+TrClusterR::TrClusterR(void) {
   Clear();
 }
 
-AMSTrCluster::AMSTrCluster(const AMSTrCluster &orig) :  AMSlink(orig) {
+TrClusterR::TrClusterR(const TrClusterR &orig) {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
   _seedind = orig._seedind;
   for (int i = 0; i<_nelem; i++) _signal.push_back(orig._signal.at(i));
-  _Status  = orig._Status;
+  Status  = orig.Status;
   _mult    = orig._mult;
   _dxdz    = orig._dxdz;
   _dydz    = orig._dydz;
@@ -52,16 +52,16 @@ AMSTrCluster::AMSTrCluster(const AMSTrCluster &orig) :  AMSlink(orig) {
   _gcoord  = orig._gcoord;
 }
 
-AMSTrCluster::AMSTrCluster(int tkid, int side, int add, int seedind, unsigned int status) : AMSlink() {
+TrClusterR::TrClusterR(int tkid, int side, int add, int seedind, unsigned int status) {
   Clear();
   _tkid    = tkid;
   _address = add;
   _seedind = seedind;
-  _Status  = status;
+  Status  = status;
 }
 
-AMSTrCluster::AMSTrCluster(int tkid, int side, int add, int nelem, int seedind, 
-                           float* adc, unsigned int status) :  AMSlink() {
+TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind, 
+                           float* adc, unsigned int status)  {
   Clear();
   _tkid    =  tkid;
   _address =  add;
@@ -69,62 +69,62 @@ AMSTrCluster::AMSTrCluster(int tkid, int side, int add, int nelem, int seedind,
   _seedind =  seedind;
   _signal.reserve(_nelem);
   for (int i = 0; i<_nelem; i++) _signal.push_back(adc[i]);
-  _Status  = status;
+  Status  = status;
   _mult    = 0;
   // BuilCoordinates();
 }
 
-AMSTrCluster::~AMSTrCluster() {
+TrClusterR::~TrClusterR() {
   Clear();
 }
 
-int AMSTrCluster::GetMultiplicity()  {
+int TrClusterR::GetMultiplicity()  {
   if (_mult==0) _mult = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1;
   return _mult;
 }
 
-float AMSTrCluster::GetCoord(int imult)  {
+float TrClusterR::GetCoord(int imult)  {
   if (_coord.empty()) this->BuildCoordinates();
   return _coord.at(imult);
 }
 
-float AMSTrCluster::GetGCoord(int imult)  {
+float TrClusterR::GetGCoord(int imult)  {
   if (_gcoord.empty()) this->BuildCoordinates();
   return _gcoord.at(imult);
 }
 
-float AMSTrCluster::GetNoise(int ii) {
+float TrClusterR::GetNoise(int ii) {
   if (_trcaldb==0) {
-    printf("AMSTrClusters::GetStatus Error, no _trcaldb specified.\n");
+    printf("TrClusterRs::GetStatus Error, no _trcaldb specified.\n");
     return -9999.; 
   }
   int tkid = GetTkId();
   TrLadCal* ladcal = GetTrCalDB()->FindCal_TkId(tkid);
-  if (!ladcal) { printf ("AMSTrCluster::GetNoise, WARNING calibration not found!!\n"); return -9999; }
+  if (!ladcal) { printf ("TrClusterR::GetNoise, WARNING calibration not found!!\n"); return -9999; }
   int address = _address+ii;
   return (float) ladcal->GetSigma(address);
 }
 
-short AMSTrCluster::GetStatus(int ii) {
+short TrClusterR::GetStatus(int ii) {
   if (_trcaldb==0) {
-    printf("AMSTrClusters::GetStatus Error, no _trcaldb specified.\n");
+    printf("TrClusterRs::GetStatus Error, no _trcaldb specified.\n");
     return -1; 
   }
   int tkid = GetTkId();
   TrLadCal* ladcal = GetTrCalDB()->FindCal_TkId(tkid);
-  if (!ladcal) {printf ("AMSTrCluster::GetNoise, WARNING calibration not found!!\n"); return -9999;}
+  if (!ladcal) {printf ("TrClusterR::GetNoise, WARNING calibration not found!!\n"); return -9999;}
   int address = _address+ii;
   return (short) ladcal->GetStatus(address);
 }
 
-void AMSTrCluster::Clear() {
-  AMSlink::Clear();
+void TrClusterR::Clear() {
+
   _tkid    =   0;
   _address =  -1;
   _nelem   =   0;
   _seedind =   0;
   _signal.clear();
-  _Status  =   0;
+  Status  =   0;
   _mult    =   0;
   _dxdz    = 100;
   _dydz    = 100;
@@ -132,12 +132,12 @@ void AMSTrCluster::Clear() {
   _gcoord.clear();
 }
 
-void AMSTrCluster::push_back(float adc) {
+void TrClusterR::push_back(float adc) {
   _signal.push_back(adc);
   _nelem = (int) _signal.size();
 }
 
-void AMSTrCluster::BuildCoordinates() {
+void TrClusterR::BuildCoordinates() {
   if (_mult > 0 && (int)_coord.size() == _mult && (int)_gcoord.size() == _mult) return;
   // multiplicity calculation
   _mult    = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1;
@@ -149,12 +149,12 @@ void AMSTrCluster::BuildCoordinates() {
   }
 }
 
-void AMSTrCluster::Print(int opt) { 
+void TrClusterR::Print(int opt) { 
   Info(opt);
   cout << sout;
 }
 
-void AMSTrCluster::Info(int opt) { 
+void TrClusterR::Info(int opt) { 
   char msg[1000];
   sout.clear();
   sprintf(msg,"TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %d Signal:  %f\n",
@@ -170,7 +170,7 @@ void AMSTrCluster::Info(int opt) {
   }
 }
 
-std::ostream &AMSTrCluster::putout(std::ostream &ostr) const {
+std::ostream &TrClusterR::putout(std::ostream &ostr) const {
   return ostr << "TkID:   " << GetTkId()    << " "
               << "Side:   " << GetSide()    << " "
               << "Addr:   " << GetAddress() << " "
@@ -178,13 +178,13 @@ std::ostream &AMSTrCluster::putout(std::ostream &ostr) const {
               << "Status: " << getstatus()  << std::endl;
 }
 
-float AMSTrCluster::GetSignal(int ii, int opt) {
+float TrClusterR::GetSignal(int ii, int opt) {
   float signal = _signal.at(ii);
   if ( (kAsym&opt)&&(ii>0) ) signal = signal - _signal.at(ii-1)*GetTrParDB()->GetAsymmetry(GetSide());
   return signal;
 }
 
-int AMSTrCluster::GetAddress(int ii) {
+int TrClusterR::GetAddress(int ii) {
   int address = GetAddress() + ii;
   int side    = GetSide();
   if ( (side==0)&&(address>1023) ) address = address - 384; //  640 + (address - 1024);
@@ -194,7 +194,7 @@ int AMSTrCluster::GetAddress(int ii) {
   return address;
 }
 
-int AMSTrCluster::GetSeedIndex(int opt) {
+int TrClusterR::GetSeedIndex(int opt) {
   if (opt==0x00) return _seedind;  
   float maxadc  = -9999.;
   int   seedind = -1;
@@ -207,7 +207,7 @@ int AMSTrCluster::GetSeedIndex(int opt) {
   return seedind;
 }
 
-float AMSTrCluster::GetTotSignal(int opt) {
+float TrClusterR::GetTotSignal(int opt) {
   float sum = 0.;
   for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt);
   if (kVAGain&opt) for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(int(ii/64));
@@ -217,7 +217,7 @@ float AMSTrCluster::GetTotSignal(int opt) {
   return sum;
 }
 
-void AMSTrCluster::GetBounds(int &leftindex, int &rightindex,int nstrips, int opt) {
+void TrClusterR::GetBounds(int &leftindex, int &rightindex,int nstrips, int opt) {
   // loop on strips (adding strips the greatest near strip)
   int cstrip     = GetSeedIndex(opt);
   int nleft      = GetLeftLength(opt);
@@ -234,7 +234,7 @@ void AMSTrCluster::GetBounds(int &leftindex, int &rightindex,int nstrips, int op
   rightindex = cstrip + nrightused;
 }
 
-float AMSTrCluster::GetCofG(int nstrips, int opt) {
+float TrClusterR::GetCofG(int nstrips, int opt) {
   if (nstrips==1) return 0.;
   int leftindex; 
   int rightindex;
@@ -251,7 +251,7 @@ float AMSTrCluster::GetCofG(int nstrips, int opt) {
   return CofG;
 }
 
-float AMSTrCluster::GetDHT(int nstrips, int opt) {
+float TrClusterR::GetDHT(int nstrips, int opt) {
   if (nstrips==1) return 0.;
   int leftindex; 
   int rightindex;
@@ -260,7 +260,7 @@ float AMSTrCluster::GetDHT(int nstrips, int opt) {
   return (leftindex + rightindex)/2. - cstrip;
 }
 
-float AMSTrCluster::GetAHT(int nstrips, int opt) {
+float TrClusterR::GetAHT(int nstrips, int opt) {
   if (nstrips==1) return 0.;
   if (nstrips==2) return GetDHT(2,opt);
   int leftindex; 

@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.5 2009/07/11 07:50:22 shaino Exp $ 
+// $Id: TrRecon.h,v 1.6 2009/08/17 12:53:47 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,14 +17,14 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/07/11 07:50:22 $
+/// $Date: 2009/08/17 12:53:47 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
 #include "point.h"
-#include "cont.h"
+
 #include "TrRawCluster.h"
 #include "TrCluster.h"
 #include "TrTrack.h"
@@ -50,11 +50,11 @@ public:
   static VCon* TRCon;
 
 protected:
-  /// Map association between TkId and 2 p/n side AMSTrClusters lists 
-  map< int, pair< vector<AMSTrCluster*>, vector<AMSTrCluster*> > > _ClusterTkIdMap;
-  typedef map< int, pair< vector<AMSTrCluster*>, vector<AMSTrCluster*> > >::iterator ITClusterMap;
+  /// Map association between TkId and 2 p/n side TrClusters lists 
+  map< int, pair< vector<TrClusterR*>, vector<TrClusterR*> > > _ClusterTkIdMap;
+  typedef map< int, pair< vector<TrClusterR*>, vector<TrClusterR*> > >::iterator ITClusterMap;
   /// TrRecHits list for a given layer
-  map< int, vector<AMSTrRecHit*> > _RecHitLayerMap;
+  map< int, vector<TrRecHitR*> > _RecHitLayerMap;
    
   /// --- Parameters --- ///
 public:
@@ -142,7 +142,7 @@ public:
   /// Clear buffer
   void ClearBuffer();
   /// Expand the TrRawCluster in the buffer structure
-  int  ExpandClusterInBuffer(AMSTrRawCluster* cluster);
+  int  ExpandClusterInBuffer(TrRawClusterR* cluster);
 
 
   /// Builds all the TrClusters (returns the number of TrCluster built) 
@@ -186,7 +186,7 @@ public:
   int  BuildTrRecHits(int rebuild = 0);
 
   /// Fild a hit with the combination of xcls and ycls
-  AMSTrRecHit* FindHit(AMSTrCluster* xcls,AMSTrCluster* ycls);
+  TrRecHitR* FindHit(TrClusterR* xcls,TrClusterR* ycls);
 
 ////////////////////////////////////////////////////////////////
 // ------------------------- Vertex ------------------------- //
@@ -310,7 +310,7 @@ protected:
   int _NladderXY[MAXLAY];
 
   /// Virtual 2D array to store TrRecHits at [iclx][icly]
-  class Hits2DArray : public vector<AMSTrRecHit*> {
+  class Hits2DArray : public vector<TrRecHitR*> {
   public:
     int Ncls[2];        ///< Number of X and Y clusters
     /// Get index of a hit at [iclx][icly]
@@ -319,9 +319,9 @@ protected:
               0 <= icly && icly < Ncls[1]) ? icly*Ncls[0]+iclx : -1; 
     }
     /// Get a hit at [iclx][icly]
-    AMSTrRecHit *at(int iclx, int icly) const { 
+    TrRecHitR *at(int iclx, int icly) const { 
       int i = index(iclx, icly);
-      return (0 <= i && i < size()) ? vector<AMSTrRecHit*>::at(i) : 0;
+      return (0 <= i && i < size()) ? vector<TrRecHitR*>::at(i) : 0;
     }
   };
 
@@ -342,7 +342,7 @@ protected:
   /// A predicate to sort hits in descending order of prob.
   class CompProb {
   public:
-    bool operator() (const AMSTrRecHit* lhit, const AMSTrRecHit* rhit) const {
+    bool operator() (const TrRecHitR* lhit, const TrRecHitR* rhit) const {
       return lhit->GetProb() > rhit->GetProb();
     }
   };
@@ -377,7 +377,7 @@ public:
     return (hits && (side == 0 || side == 1)) ? hits->Ncls[side] : 0;
   }
   /// Get TrRecHit with tkid, iclx and icly
-  AMSTrRecHit *GetTrRecHit(int tkid, int iclx, int icly) const {
+  TrRecHitR *GetTrRecHit(int tkid, int iclx, int icly) const {
     const Hits2DArray *hits = GetHits2DArray(tkid);
     return (hits) ? hits->at(iclx, icly) : 0;
   }

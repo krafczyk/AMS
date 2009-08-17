@@ -375,16 +375,17 @@ integer AMSVtx::Out(integer status){
 
 #ifdef __ROOTSHAREDLIBRARY__
 #include "VCon_root.h"
-  VCon* AMSVtx::vcon = new VCon_root();
+  VCon* VertexR::vcon = new VCon_root();
 #else  
 #include "VCon_gbatch.h"
-VCon* AMSVtx::vcon = new VCon_gb();
+VCon* VertexR::vcon = new VCon_gb();
 #endif
 
 
 
 
-void AMSVtx::Clear(){
+
+void VertexR::Clear(){
   _Momentum=0;
   _ErrMomentum=0;
   _Theta=0;
@@ -402,7 +403,7 @@ void AMSVtx::Clear(){
 //
 ///////////////////////////////////////////////////////////
 
-void AMSVtx::_printEl(ostream & stream){ 
+void VertexR::_printEl(ostream & stream){ 
   //                    stream <<
   //                      " Vtx >>> Run " << AMSEvent::gethead()->getrun() <<
   //                      " Event " << AMSEvent::gethead()->getEvent() << endl; 
@@ -425,7 +426,7 @@ void AMSVtx::_printEl(ostream & stream){
 }
 
 
-AMSVtx::AMSVtx(int ntracks, AMSTrTrack *ptrack[]): AMSlink() {
+VertexR::VertexR(int ntracks, TrTrackR *ptrack[]) {
   
   //Reset to initial values
   Clear();
@@ -469,7 +470,7 @@ AMSVtx::AMSVtx(int ntracks, AMSTrTrack *ptrack[]): AMSlink() {
 
 }
 
-void AMSVtx::BuildTracksIndex()
+void VertexR::BuildTracksIndex()
 {
   VCon *cont2 = vcon->GetCont("AMSTrTrack");
   if (!cont2) return;
@@ -482,13 +483,13 @@ void AMSVtx::BuildTracksIndex()
 
 
 
-AMSTrTrack *AMSVtx::pTrTrack(unsigned int i) 
+TrTrackR *VertexR::pTrTrack(unsigned int i) 
 {
 
   if(i>=_fTrTrack.size()) return 0;
   if (_Ptrack[i] == 0 && _fTrTrack[i] >= 0) {
     VCon* cont2 = vcon->GetCont("AMSTrTrack");
-    _Ptrack[i] = (AMSTrTrack*)cont2->getelem(_fTrTrack[i]);
+    _Ptrack[i] = (TrTrackR*)cont2->getelem(_fTrTrack[i]);
     delete cont2;
   }
 
@@ -496,7 +497,7 @@ AMSTrTrack *AMSVtx::pTrTrack(unsigned int i)
 }
 
 
-void AMSVtx::set_vertex(){
+void VertexR::set_vertex(){
   
   _Vertex = AMSPoint(0.0, 0.0, 0.0);
   if (NTrTrack()<2) return;

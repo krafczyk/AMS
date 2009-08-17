@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.8 2009/07/01 16:45:44 pzuccon Exp $
+// $Id: TrTrack.C,v 1.9 2009/08/17 12:53:54 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,38 +18,42 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/07/01 16:45:44 $
+///$Date: 2009/08/17 12:53:54 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
-#include "TrRecHit.h"
-#include "TrTrack.h"
+
 #include "MagField.h"
 #include "TkDBc.h"
 #include "point.h"
 #include "tkdcards.h"
 
+#include "TrTrack.h"
+#include "TrRecHit.h"
+
 #include <cmath>
 #include <algorithm>
 
-ClassImp(AMSTrTrack)
+ClassImp(TrTrackR);
+
+
 
 #ifdef __ROOTSHAREDLIBRARY__
 #include "VCon_root.h"
-VCon* AMSTrTrack::vcon = new VCon_root();
+VCon* TrTrackR::vcon= new VCon_root();
 #else  
 #include "VCon_gbatch.h"
-VCon* AMSTrTrack::vcon = new VCon_gb();
+VCon* TrTrackR::vcon = new VCon_gb();
 #endif
 
-geant AMSTrTrack::_TimeLimit = 0;
+geant TrTrackR::_TimeLimit = 0;
 
-int AMSTrTrack::NhitHalf     = 4;
-int AMSTrTrack::DefaultFitID = AMSTrTrack::kChoutko;
+int TrTrackR::NhitHalf     = 4;
+int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 
-AMSTrTrack::AMSTrTrack():AMSlink(0,0), _Pattern(-1), _Nhits(0)
+TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
@@ -66,11 +70,11 @@ AMSTrTrack::AMSTrTrack():AMSlink(0,0), _Pattern(-1), _Nhits(0)
   _NhitsXY=0;
   DBase[0]=0;
   DBase[1]=0;
-  _Status=0;
+  Status=0;
 }
 
-AMSTrTrack::AMSTrTrack(int pattern, int nhits, AMSTrRecHit *phit[],AMSPoint bfield[], int *imult,int fitmethod)
-  : AMSlink(0,0),_Pattern(pattern), _Nhits(nhits), _NhitsX(0), _NhitsY(0), _NhitsXY(0)
+TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], int *imult,int fitmethod)
+  :_Pattern(pattern), _Nhits(nhits), _NhitsX(0), _NhitsY(0), _NhitsXY(0)
 
 {
   _MagFieldOn=0;
@@ -90,17 +94,17 @@ AMSTrTrack::AMSTrTrack(int pattern, int nhits, AMSTrRecHit *phit[],AMSPoint bfie
   _PatternX = _PatternY = _PatternXY = 0;
 
   DBase[0] = DBase[1] = 0;
-  _Status=0;
+  Status=0;
   BuildHitsIndex();
   trdefaultfit=fitmethod;
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
 }
 
-AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point)
-  : AMSlink(0,0), _Pattern(-1), _Nhits(0)
+TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
+  : _Pattern(-1), _Nhits(0)
 {
   trdefaultfit=kDummy;
-  AMSTrTrackPar &par = _TrackPar[trdefaultfit];
+  TrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone = true;
   par.P0      = point;
   par.Dir     = AMSDir(theta,phi); 
@@ -112,18 +116,18 @@ AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point)
     _BField[i]= AMSPoint(0,0,0);
     par.Residual[i] = 0;
   }
-  _Status=0;
+  Status=0;
   _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
   _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
   
 }
 
-AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig)
-  : AMSlink(0,0), _Pattern(-1), _Nhits(0)
+TrTrackR::TrTrackR(AMSDir dir, AMSPoint point, number rig, number errig)
+  : _Pattern(-1), _Nhits(0)
 {
   trdefaultfit=kDummy;
-  AMSTrTrackPar &par = _TrackPar[trdefaultfit];
+  TrTrackPar &par = _TrackPar[trdefaultfit];
   par.FitDone  = true;
   par.Rigidity = rig;
   par.ErrRinv  = errig;
@@ -136,26 +140,26 @@ AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig)
     _BField[i]= AMSPoint(0,0,0);
     par.Residual[i] = 0;
   }
-  _Status=0;
+  Status=0;
   _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
   _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
 
 }
 
-AMSTrTrack::~AMSTrTrack()
+TrTrackR::~TrTrackR()
 {
 }
 
 
-AMSTrTrackPar &AMSTrTrack::GetPar(int id) {
+TrTrackPar &TrTrackR::GetPar(int id) {
     int id2= (id==0)? trdefaultfit: id;
     if(_MagFieldOn==0&& id2 !=kDummy) id2=kLinear;
     if (ParExists(id2)) return _TrackPar[id2];
-    cerr << "Warning in AMSTrTrack::GetPar, Parameter not exists " 
+    cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
          << id << endl;
     //    int aa=10/0; //for debug
-    static AMSTrTrackPar parerr;
+    static TrTrackPar parerr;
     return parerr;
   }
 
@@ -169,7 +173,7 @@ AMSTrTrackPar &AMSTrTrack::GetPar(int id) {
 
 
 
-void AMSTrTrack::AddHit(AMSTrRecHit *hit, int imult,AMSPoint* bfield)
+void TrTrackR::AddHit(TrRecHitR *hit, int imult,AMSPoint* bfield)
 {
   VCon* cont2=vcon->GetCont("AMSTrRecHit");
   if (_Nhits < trconst::maxlay) {
@@ -186,7 +190,7 @@ void AMSTrTrack::AddHit(AMSTrRecHit *hit, int imult,AMSPoint* bfield)
   delete cont2;
 }
 
-void AMSTrTrack::BuildHitsIndex()
+void TrTrackR::BuildHitsIndex()
 {
   VCon *cont2 = vcon->GetCont("AMSTrRecHit");
   if (!cont2) return;
@@ -197,12 +201,12 @@ void AMSTrTrack::BuildHitsIndex()
   delete cont2;
 }
 
-AMSPoint AMSTrTrack::GetPentry(int id)
+AMSPoint TrTrackR::GetPentry(int id)
 {
   double zent = 0;
 
   for (int i = 0; i < _Nhits; i++) {
-    AMSTrRecHit *hit = GetHit(i);
+    TrRecHitR *hit = GetHit(i);
     if (hit && TestHitBits(hit->GetLayer(), id)) {
       double zh = hit->GetCoord().z();
       if (zent == 0 || zh > zent) zent = zh;
@@ -216,12 +220,12 @@ AMSPoint AMSTrTrack::GetPentry(int id)
   return pnt;
 }
 
-AMSDir AMSTrTrack::GetPdir(int id)
+AMSDir TrTrackR::GetPdir(int id)
 {
   double zent = 0;
 
   for (int i = 0; i < _Nhits; i++) {
-    AMSTrRecHit *hit = GetHit(i);
+    TrRecHitR *hit = GetHit(i);
     if (hit && TestHitBits(hit->GetLayer(), id)) {
       double zh = hit->GetCoord().z();
       if (zent == 0 || zh > zent) zent = zh;
@@ -235,19 +239,19 @@ AMSDir AMSTrTrack::GetPdir(int id)
   return dir;
 }
 
-AMSTrRecHit *AMSTrTrack::GetHit(int i) 
+TrRecHitR *TrTrackR::GetHit(int i) 
 {
   if (i < 0 || trconst::maxlay <= i) return 0;
   if (_Hits[i] == 0 && _iHits[i] >= 0) {
     VCon* cont2 = vcon->GetCont("AMSTrRecHit");
-    _Hits[i] = (AMSTrRecHit*)cont2->getelem(_iHits[i]);
+    _Hits[i] = (TrRecHitR*)cont2->getelem(_iHits[i]);
     delete cont2;
   }
 
   return _Hits[i];
 }
 
-float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err, 
+float TrTrackR::Fit(int id2, int layer, bool update, const float *err, 
                       float mass, float chrg)
 {
   int id=id2;
@@ -287,7 +291,7 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   // Sort hits in the ascending order of the layer number
   int idx[trconst::maxlay], nhit = 0;
   for (int i = 0; i < _Nhits; i++) {
-    AMSTrRecHit *hit = GetHit(i);
+    TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
     idx[nhit++] = hit->GetLayer()*10+i;
   }
@@ -309,7 +313,7 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   _TrFit.Clear();
   for (int i = i1; i < i2; i++) {
     int j = idx[i]%10;
-    AMSTrRecHit *hit = GetHit(j);
+    TrRecHitR *hit = GetHit(j);
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
     _TrFit.Add(coo, (hit->getstatus() & YONLY) ? 0 : errx,
@@ -326,7 +330,7 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   if (!update) return _TrFit.GetChisq();
 
   // Fill fittng parameters
-  AMSTrTrackPar &par = _TrackPar[id];
+  TrTrackPar &par = _TrackPar[id];
   par.FitDone  = (rsul>=0);
   par.HitBits  = hitbits;
   par.ChisqX   = _TrFit.GetChisqX();
@@ -355,18 +359,18 @@ float AMSTrTrack::Fit(int id2, int layer, bool update, const float *err,
   return GetChisq(id);
 }
 
-void AMSTrTrack::print(void)
+void TrTrackR::print(void)
 {
- //  std::cout << "AMSContainer:AMSTrTrack 0 Elements: " 
+ //  std::cout << "AMSContainer:TrTrackR 0 Elements: " 
 // 	    << _event->NTrTracks << std::endl;
 //   for (int i = 0; i < _event->NTrTracks; i++)
 //     _event->GetTrTrack(i)->_printEl();
 }
 
-void AMSTrTrack::myprint(void)
+void TrTrackR::myprint(void)
 {
   cout << "Npars= " << _TrackPar.size() << endl;
-  for (map<int, AMSTrTrackPar>::iterator it = _TrackPar.begin();
+  for (map<int, TrTrackPar>::iterator it = _TrackPar.begin();
        it != _TrackPar.end(); it++)
     cout << it->first << " " << it->second.FitDone << endl;
 /*
@@ -376,7 +380,7 @@ void AMSTrTrack::myprint(void)
 */
 }
 
-void AMSTrTrack::_printEl(std::ostream& ost )
+void TrTrackR::printEl(std::ostream& ost )
 {
   /// FastFit is assumed as Choutko fit
   int id1 = kChoutko;
@@ -394,7 +398,7 @@ void AMSTrTrack::_printEl(std::ostream& ost )
 
 
 
-double AMSTrTrack::Interpolate(double zpl, AMSPoint &pnt, 
+double TrTrackR::Interpolate(double zpl, AMSPoint &pnt, 
                                AMSDir &dir, Int_t id2)
 {
   int id=id2;
@@ -408,7 +412,7 @@ double AMSTrTrack::Interpolate(double zpl, AMSPoint &pnt,
   return tprop.Interpolate(pnt, dir);
 }
 
-void AMSTrTrack::Interpolate(int nz, double *zpl, 
+void TrTrackR::Interpolate(int nz, double *zpl, 
                              AMSPoint *pvec, AMSDir *dvec, double *lvec,
                              Int_t id2)
 {
@@ -420,7 +424,7 @@ void AMSTrTrack::Interpolate(int nz, double *zpl,
   tprop.Interpolate(nz, zpl, pvec, dvec, lvec);
 }
 
-void AMSTrTrack::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1, 
+void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1, 
                              number &theta, number &phi, number &length, 
                              int id2)
 {
@@ -435,7 +439,7 @@ void AMSTrTrack::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
   phi    = dir.getphi();
 }
 
-bool AMSTrTrack::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad, 
+bool TrTrackR::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad, 
                                 number idir, AMSPoint &P1, number &theta, 
                                 number &phi, number &length, int id2)
 {
@@ -458,18 +462,18 @@ bool AMSTrTrack::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad,
 
 #include <strstream>
 
-void AMSTrTrack::_printEl(std::string& sout)
+void TrTrackR::printEl(std::string& sout)
 {
   char cc[1024];
   strstream ost(cc, 1024);
-  _printEl(ost);
+  printEl(ost);
   sout.append(cc);
 }
 
 
 
 
-void AMSTrTrack::getParFastFit(number& Chi2,  number& Rig, number& Err, 
+void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		   number& Theta, number& Phi, AMSPoint& X0) {
     /// FastFit is assumed as normal (Choutko) fit without MS
   int id = kChoutko;
@@ -479,7 +483,7 @@ void AMSTrTrack::getParFastFit(number& Chi2,  number& Rig, number& Err,
   Theta = GetTheta(id); Phi = GetPhi(id); X0 = GetP0(id);
 }
 
-int AMSTrTrack::DoAdvancedFit()
+int TrTrackR::DoAdvancedFit()
 {
   /*! "Advanced fit" is assumed to perform all the fitting: 
    *   1: 1st half, 2: 2nd half, 6: with nodb, 4: "Fast fit" ims=0 and 
@@ -489,11 +493,11 @@ int AMSTrTrack::DoAdvancedFit()
   Fit(kChoutko | kLowerHalf);
   Fit(kChoutko);
   Fit(kAlcaraz);
-
+  trdefaultfit=kChoutko;
   return AdvancedFitDone();
 }
 
-int AMSTrTrack::AdvancedFitDone() { 
+int TrTrackR::AdvancedFitDone() { 
   int out= FitDone(kChoutko|kUpperHalf) & FitDone(kChoutko|kLowerHalf) & 
     FitDone(kChoutko) & FitDone(kAlcaraz);
   if(_MagFieldOn==0) return FitDone(kLinear);
@@ -501,8 +505,7 @@ int AMSTrTrack::AdvancedFitDone() {
 }
 
 
-
-
+#ifndef __ROOTSHAREDLIB__
 #include "amsgobj.h"
 
 AMSTrTrackError::AMSTrTrackError(char * name){
@@ -517,3 +520,4 @@ AMSTrTrackError::AMSTrTrackError(char * name){
   //  AMSEvent::gethead()->seterror(2);
 }
 char * AMSTrTrackError::getmessage(){return msg;}
+#endif

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.249 2009/08/04 14:16:30 mdelgado Exp $
+//  $Id: root.h,v 1.250 2009/08/17 12:53:47 pzuccon Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -37,8 +37,6 @@
 #include "id.h"
 #ifdef _PGTRACK_
 #include "trrec.h"
-#include "vtx.h"
-#include "TrMCCluster.h"
 #endif
 
 using namespace std;
@@ -4188,87 +4186,7 @@ ClassDef(AMSEventR,12)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
-//!  AMSChain class
-/*!
-  Utility class, to simplify the interactive analysis on AMS data with 
-  Cint/Python/Ruby interpreters. Example of use with Cint:
 
-  \include ana.root_cint.C
-
-  \author juan.alcaraz@cern.ch
-
-*/
-
-class AMSChain : public TChain {
-private:
-      unsigned int fThreads;
-      unsigned int fSize;
-      AMSEventR* _EVENT;
-      Int_t _ENTRY;
-      const char* _NAME;
-      Int_t _TREENUMBER;
-  TFile* _FILE;
-
-public:
-      AMSChain(const char* name="AMSRoot",unsigned int thr=1,unsigned int fSize=sizeof(AMSEventR)); ///< Default constructor
-  AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1, unsigned int fSize=sizeof(AMSEventR)); ///< alternative constructor
-  virtual ~AMSChain(){ _FILE=0;if (_EVENT) delete _EVENT; };
-
-  void Init(AMSEventR* event=0); ///<Set event branch and links; called after reading of all trees; called automatically in GetEvent
-      AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
-      AMSEventR* GetEvent(Int_t entry); ///<Get AMSEventR in entry number "entry"
-      AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
-      void Rewind() {_ENTRY=-1;_TREENUMBER=-1;}; ///<Rewind the chain (go back before first entry)
-
-      Int_t Entry(); ///<Get the current entry number
-      AMSEventR* pEvent(); ///<Get the current event pointer
-      const char* ChainName(); ///<Get the name of the tree
-  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
-      ClassDef(AMSChain,5)       //AMSChain
-#pragma omp threadprivate(fgIsA)
-};
-
-//!  AMSEventList class
-/*!
-  Utility class, to select a set of events and then having the possibility to write
-  them into a new files, possibly with just a set of selected branches. 
-  Example:
-
-  \include select_entries.C
-
-  \author juan.alcaraz@cern.ch
-
-*/
-
-class AMSEventList {
-private:
-      vector<int> _RUNs;
-      vector<int> _EVENTs;
-
-public:
-      AMSEventList(); ///< Default Constructor
-      AMSEventList(const char* filename); ///< Constructor with an already existing list
-      virtual ~AMSEventList(){};
-
-      void Add(int run, int event); ///<Add a (run,event) number to the list
-      void Add(AMSEventR* pev); ///<Add the (run,event) number of this AMSEventR object to the list
-      void Remove(int run, int event); ///<Remove a (run,event) number from the list
-      void Remove(AMSEventR* pev); ///<Remove the (run,event) number of this AMSEventR object from the list
-      bool Contains(int run, int event); ///<Returns true if the list contains this (run,event)
-      bool Contains(AMSEventR* pev); ///<Returns true if the list contains the (run,event) of this AMSEventR object
-      void Reset(); ///<Reset the array
-      void Read(const char* filename); ///<Read "run event" list from ASCII file
-      void Write(); ///<Write "run event" list to standard output
-      void Write(const char* filename); ///<Write "run event" list to ASCII file
-      void Write(AMSChain* chain, TFile* file); ///<Write/Add selected events from a chain into a ROOT file
-
-      int GetEntries(); ///<Number of events in the list
-      int GetRun(int i); ///<Retrieve run number for entry i
-      int GetEvent(int i); ///<Retrieve event number for entry i
-
-      ClassDef(AMSEventList,2)       //AMSEventList
-#pragma omp threadprivate(fgIsA)
-};
 
 typedef AMSEventR  ams;
 #endif

@@ -120,7 +120,6 @@ public:
 #include <vector>
 #include "TObject.h"
 #include "TkDBc.h"
-#include "link.h"
 #include "point.h"
 #include "TrTrack.h"
 #include "VCon.h"
@@ -128,11 +127,11 @@ public:
 // Begin AMSVtx CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 //! Class that implements a vertex made of two tracks
-class AMSVtx: public AMSlink{
+class VertexR: public TrElem{
 
 protected:
 
-// AMSVtx Protected Data
+// VertexR Protected Data
 
   number _Momentum;     ///< Total Momentum attached to the vertex (GeV)
   number _ErrMomentum;  ///< Error in 1 / Momentum Sum (1/GeV)
@@ -143,14 +142,15 @@ protected:
   number _Chi2;         ///< Chi2
   integer _Ndof;        ///< Number of degrees of freedom
   AMSPoint _Vertex;     ///< reconstructed vertex (cm)
+  int Status;          ///< Status word
 
   /// Vector holding the index to tracks connected to the vertex
   vector <int>          _fTrTrack;
   /// Vector holding the pointer to tracks connected to the vertex
-  vector<AMSTrTrack *> _Ptrack; //!
+  vector<TrTrackR *> _Ptrack; //!
   /// 
   int _filled;
-  // AMSVtx Protected Methods
+  // VertexR Protected Methods
   void _printEl(ostream & stream); 
  
 
@@ -162,12 +162,12 @@ protected:
 
 public:
 
-  // AMSVtx Public Creators, Destructor, Operators
+  // VertexR Public Creators, Destructor, Operators
   ///dummy constructor
-  AMSVtx(): AMSlink(){Clear();}
+  VertexR(){Clear();}
   /// Explicit constructor it builds up a vertex
-  AMSVtx(int ntracks, AMSTrTrack *ptrack[]);
-  ~AMSVtx(){Clear(); }
+  VertexR(int ntracks, TrTrackR *ptrack[]);
+  ~VertexR(){Clear(); }
   /// Clean up the class to "zero" default  
   void Clear();
   
@@ -182,9 +182,9 @@ public:
   /// access function to TrTrackR objects   
   /// \param i index of fTrTrackR vector
   /// \return pointer to TrTrackR object  or 0
-  AMSTrTrack * pTrTrack(unsigned int i) ;
+  TrTrackR * pTrTrack(unsigned int i) ;
 
-  // AMSVtx Get data
+  // VertexR Get data
   /// Return the Total Momentum (GeV)
   number        getmom()     const  {return _Momentum;}
   /// Return the Error in 1 / Momentum Sum (1/GeV)
@@ -206,13 +206,16 @@ public:
   /// Return true if the vertex has been properly built 
   bool           IsFilled()   const  {return _filled!=0;}
 
+ /// For Gbatch compatibility
+  uinteger checkstatus(integer checker) const{return Status & checker;}
+  uinteger getstatus() const{return Status;}
+  void     setstatus(uinteger status){Status=Status | status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;} 
 
-  //OTHER Methos
-  // AMSVtx Public Methods
-  AMSVtx * next(){return (AMSVtx*)_next;}
+
   
   /// Print out to stdoutput some class info
-  void print(){_printEl(cout);}
+  void print(){}
 
   void set_vertex();
 
@@ -222,12 +225,11 @@ public:
 // Friends
   friend class AMSTrTrack;
 
-  ClassDef(AMSVtx,1);
+  ClassDef(VertexR,1);
 
 };
-// End AMSVtx CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// End VertexR CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-typedef AMSVtx VertexR;
 
 #endif
 

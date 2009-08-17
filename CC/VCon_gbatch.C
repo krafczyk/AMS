@@ -7,10 +7,9 @@ VCon_gb::VCon_gb(AMSContainer * cc):VCon(){
 }
 
 
-void  VCon_gb::removeEl(AMSlink* prev, integer restore){
+void  VCon_gb::removeEl(TrElem* prev, integer restore){
   if (!con)return;
-  con->removeEl(prev,restore);
-
+  con->removeEl(dynamic_cast<AMSlink*> (prev),restore);
 };
 
 VCon* VCon_gb::GetCont(char * name){
@@ -31,25 +30,25 @@ void VCon_gb::eraseC(){
   else return con->eraseC();
 }
 
-AMSlink* VCon_gb::getelem(int ii){
+TrElem* VCon_gb::getelem(int ii){
   if(!con) return 0;
   AMSlink* primo=con->gethead();
   for (int jj=0;jj<ii;jj++)
     primo=primo->next();
-  return primo;
+  return dynamic_cast<TrElem*> (primo);
 }
 
-void  VCon_gb::addnext(AMSlink* aa){
+void  VCon_gb::addnext(TrElem* aa){
   
   if(!con) return;
-  con->addnext(aa);
+  con->addnext(dynamic_cast<AMSlink*> (aa));
 }
 
-int  VCon_gb::getindex(AMSlink* aa){
+int  VCon_gb::getindex(TrElem* aa){
   if(!con) return 0;
   AMSlink* primo=con->gethead();
   for (int jj=0;jj<con->getnelem();jj++){
-    if(primo==aa) return jj;
+    if(primo==dynamic_cast<AMSlink*>(aa)) return jj;
     primo=primo->next();
   }
   return -1;

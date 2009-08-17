@@ -1,25 +1,24 @@
-// $Id: TrCluster.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
-#ifndef __AMSTrCluster__
-#define __AMSTrCluster__
-
+#ifndef __TrClusterR__
+#define __TrClusterR__
 #include "TrRawCluster.h"
+#include "TrElem.h"
 #include "TkDBc.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
 #include "TrParDB.h"
 #include "TrLadPar.h"
 #include "TkCoo.h"
-#include "link.h"
+
 #include <cmath>
 #include <vector>
 #include <string>
 
 /*!
-\class AMSTrCluster
+\class TrClusterR
 \brief A class to manage reconstructed cluster in AMS Tracker
 \ingroup tkrec
 
- AMSTrCluster is the core of the Tracker reconstruction. 
+ TrClusterR is the core of the Tracker reconstruction. 
  New ladder geometry (TKDBc) and calibration databases (TrCalDB) 
  and strip database (TkStrip) are used instead of 
  the original TKDBc, TrIdSoft, and TrIdGeom. 
@@ -38,14 +37,14 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2009/04/03 08:39:24 $
+ $Date: 2009/08/17 12:53:47 $
 
- $Revision: 1.2 $
+ $Revision: 1.3 $
 
 */
 
-//class AMSTrCluster : public TObject, public AMSlink {
-class AMSTrCluster : public AMSlink {
+
+class TrClusterR :public TrElem{
 
  public:
   
@@ -68,7 +67,7 @@ class AMSTrCluster : public AMSlink {
   static int DefaultCorrOpt;
   static int DefaultUsedStrips;
 
- private:
+ protected:
 
   /// Multiplicity 
   short int     _mult;   
@@ -76,7 +75,8 @@ class AMSTrCluster : public AMSlink {
   vector<float> _coord;  
   /// Global coordinate by multiplicity index
   vector<float> _gcoord; 
- 
+ /// Cluster status 
+  unsigned int Status;
  public:
   
   /// TkLadder ID (layer *100 + slot)*side 
@@ -89,8 +89,7 @@ class AMSTrCluster : public AMSlink {
   short int    _seedind;
   /// ADC data array
   std::vector<float> _signal;
-  /// Cluster status 
-  unsigned int _Status;
+  
   /// tan(ThetaXZ)
   float        _dxdz;
   /// tan(ThetaYZ)
@@ -106,20 +105,21 @@ class AMSTrCluster : public AMSlink {
  public:
   
   /// Default constructor
-  AMSTrCluster(void);
+  TrClusterR(void);
   /// Constructor with data
-  AMSTrCluster(int tkid, int side, int add, int nelem, int seedind, float* adc, unsigned int status);
+  TrClusterR(int tkid, int side, int add, int nelem, int seedind, float* adc, unsigned int status);
   /// Constructor divided is several instructions 
-  AMSTrCluster(int tkid, int side, int add, int seedind, unsigned int status);
-  /// Insert a strip in the cluster
-  void push_back(float adc);
+  TrClusterR(int tkid, int side, int add, int seedind, unsigned int status);
+  
   /// Copy constructor
-  AMSTrCluster(const AMSTrCluster& orig);
+  TrClusterR(const TrClusterR& orig);
   /// Destructor
-  ~AMSTrCluster();
+  virtual ~TrClusterR();
   /// Clear
   void Clear();
 
+  /// Insert a strip in the cluster
+  void push_back(float adc);
   /// Using this calibration database
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
   /// Get the current calibration database
@@ -160,13 +160,13 @@ class AMSTrCluster : public AMSlink {
 
 
   /// chek some bits into cluster status
-  uinteger checkstatus(integer checker) const{return _Status & checker;}
+  uinteger checkstatus(integer checker) const{return Status & checker;}
   /// Get cluster status
-  uinteger getstatus() const{return _Status;}
+  uinteger getstatus() const{return Status;}
   /// Set cluster status
-  void     setstatus(uinteger status){_Status=_Status | status;}
+  void     setstatus(uinteger status){Status=Status | status;}
   /// Clear cluster status
-  void     clearstatus(uinteger status){_Status=_Status & ~status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;}
 
   /// Get i-th strip signal
   float GetSignal(int ii, int opt = DefaultCorrOpt);
@@ -240,26 +240,19 @@ class AMSTrCluster : public AMSlink {
 
   /// Print cluster basic information
   std::ostream& putout(std::ostream &ostr = std::cout) const;
-  friend std::ostream &operator << (std::ostream &ostr, const AMSTrCluster &cls) { return cls.putout(ostr); }
+  friend std::ostream &operator << (std::ostream &ostr, const TrClusterR &cls) { return cls.putout(ostr); }
   /// Print cluster strip variables (A: apply asimmetry correction, G: apply gain correction)
   void Print(int opt = DefaultCorrOpt);
   void Info(int opt = DefaultCorrOpt);
 
   static string sout;
 
-  void _copyEl(){}
-  void _printEl(std::ostream& ostr) { putout(ostr); }
-  void _writeEl(){}
 
-  void* operator new(size_t t)   { return TObject::operator new(t);  }
-  void  operator delete(void *p) { TObject::operator delete(p); p=0; }
   
-  AMSTrCluster* next() { return (AMSTrCluster*) _next;}
 
   /// ROOT definition
-  ClassDef(AMSTrCluster, 1)
+  ClassDef(TrClusterR, 1)
 };
 
-typedef AMSTrCluster TrClusterR;
 
 #endif

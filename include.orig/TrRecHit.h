@@ -1,14 +1,14 @@
-#ifndef __AMSTrRecHit__
-#define __AMSTrRecHit__
+#ifndef __TrRecHitR__
+#define __TrRecHitR__
 
 //////////////////////////////////////////////////////////////////////////
 ///
 ///
-///\class AMSTrRecHit
+///\class TrRecHitR
 ///\brief A class to manage hit reconstruction in AMS Tracker
 ///\ingroup tkrec
 ///
-/// AMSTrRecHit is a core of the hit reconstruction.
+/// TrRecHitR is a core of the hit reconstruction.
 /// New ladder geometry (TkDBc) and calibration databases (TrCalDB) 
 /// are used instead of the original TKDBc, TrIdSoft, and TrIdGeom. 
 ///
@@ -26,29 +26,28 @@
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <string>
-#include "link.h"
 #include "TrCluster.h"
 #include "point.h"
 #include "TkCoo.h"
 #include "TkDBc.h"
-
-#include "TRef.h"
-#include "TProcessID.h"
+#include "TrElem.h"
 #include "VCon.h"
 
 #define XONLY 0x100
 #define YONLY 0x200
 
-//class AMSTrRecHit : public AMSlink, public TObject {
-class AMSTrRecHit : public AMSlink {
+
+class TrRecHitR : public TrElem {
 
   static char INFO[500];
 
-private:
-  /// Pointer to the X (n-side) AMSTrCluster in the fAMSTrCluster collection
-  AMSTrCluster*  _clusterX; //!
-  /// Pointer to the Y (p-side) AMSTrCluster in the fAMSTrCluster collection
-  AMSTrCluster*  _clusterY; //!
+protected:
+  /// Pointer to the X (n-side) TrClusterR in the fTrClusterR collection
+  TrClusterR*  _clusterX; //!
+  /// Pointer to the Y (p-side) TrClusterR in the fTrClusterR collection
+  TrClusterR*  _clusterY; //!
+  /// Hit status (...)
+  int   Status;
   
 public:
   /// TkLadder ID
@@ -57,8 +56,6 @@ public:
   float _corr;
   /// Probability of correlation between the X and Y clusters 
   float _prob;
-  /// Hit status (...)
-  int   _Status;
   /// Hit multiplicity 
   short int   _mult;
   /// Multiplicity index (-1 means not yet resolved, >-1 resolved by tracking algorithm)
@@ -78,13 +75,13 @@ public:
 
  public:
   /// Default constructor
-  AMSTrRecHit(void);
+  TrRecHitR(void);
   /// Copy constructor
-  AMSTrRecHit(const AMSTrRecHit& orig);
+  TrRecHitR(const TrRecHitR& orig);
   /// Constructor with clusters
-  AMSTrRecHit(int tkid, AMSTrCluster* clX, AMSTrCluster* clY, float corr, float prob, int imult = -1);
+  TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1);
   /// Destructor
-  ~AMSTrRecHit();
+  virtual ~TrRecHitR();
   /// Clear data members
   void Clear();
   
@@ -102,18 +99,18 @@ public:
   /// Get probability of correlation between the X and Y clusters 
   float GetProb()        const { return _prob;   }
 /// chek some bits into cluster status
-  uinteger checkstatus(integer checker) const{return _Status & checker;}
+  uinteger checkstatus(integer checker) const{return Status & checker;}
   /// Get cluster status
-  uinteger getstatus() const{return _Status;}
+  uinteger getstatus() const{return Status;}
   /// Set cluster status
-  void     setstatus(uinteger status){_Status=_Status | status;}
+  void     setstatus(uinteger status){Status=Status | status;}
   /// Clear cluster status
-  void     clearstatus(uinteger status){_Status=_Status & ~status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;}
   /// Get the pointer to X cluster
-  AMSTrCluster* GetXCluster();
+  TrClusterR* GetXCluster();
 
   /// Get the pointer to Y cluster
-  AMSTrCluster* GetYCluster();
+  TrClusterR* GetYCluster();
 
   /// Get the index of X cluster
   int GetXClusterIndex() const { return _iclusterX; }
@@ -156,24 +153,17 @@ public:
 
   /// Print cluster basic information
   std::ostream& putout(std::ostream &ostr = std::cout) const;
-  friend std::ostream &operator << (std::ostream &ostr, const AMSTrRecHit &hit) { return hit.putout(ostr); } 
+  friend std::ostream &operator << (std::ostream &ostr, const TrRecHitR &hit) { return hit.putout(ostr); } 
   /// Print hit  
   void  Print();
   char *Info();
 
-  AMSTrRecHit* next() {return (AMSTrRecHit*) _next;}
-
-  void _copyEl(){}
-  void _printEl(std::ostream& ostr){ putout(ostr);}
-  void _writeEl(){}
-
-   void * operator new(size_t t) {return TObject::operator new(t); }
-   void operator delete(void *p)   {TObject::operator delete(p);p=0;}
+  void printEl(std::ostream& ostr){ putout(ostr);}
 
 
 
   /// ROOT definition
-  ClassDef(AMSTrRecHit,1)
+  ClassDef(TrRecHitR,1)
 };
-typedef AMSTrRecHit TrRecHitR;
+
 #endif

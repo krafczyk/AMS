@@ -1,3 +1,4 @@
+
 #ifndef  __VCon_gb__
 #define  __VCon_gb__
 #include "VCon.h"
@@ -5,19 +6,19 @@
 
 class VCon_gb :public VCon{
 
-public:
-  AMSContainer * con;
-  VCon_gb(AMSContainer * cc=0);
-  ~VCon_gb(){}
+  public:
+    AMSContainer * con;
+    VCon_gb(AMSContainer * cc=0);
+    ~VCon_gb(){}
 
 
-  VCon*     GetCont(char * name);
-  int      getnelem();
-  void      eraseC();
-  int      getindex(AMSlink* aa);
-  AMSlink* getelem(int ii);
-  void     addnext(AMSlink* aa);
-void      removeEl(AMSlink* prev, integer restore=1);
+    VCon*     GetCont(char * name);
+    int      getnelem();
+    void      eraseC();
+    int      getindex(TrElem* aa);
+    TrElem* getelem(int ii);
+    void     addnext(TrElem* aa);
+    void      removeEl(TrElem* prev, integer restore=1);
 
 };
 

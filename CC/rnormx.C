@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.10 2009/07/29 20:29:25 choutko Exp $
+//  $Id: rnormx.C,v 1.11 2009/08/17 12:53:54 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -21,8 +21,11 @@
 static TRandom1 rr; 
 double ROOTRndm(int dummy){
 //  VC OMLY ONE RNDM ALLOWED
-return RNDM(dummy);
- // return rr.Rndm();
+//return RNDM(dummy);
+//PZ this is used only *Outside* gbatch 
+//   into the shared lib to get rid of the 
+//   fortran part (look at random.h)
+  return rr.Rndm();
 }
 
 #include "typedefs.h"

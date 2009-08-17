@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.47 2009/06/11 13:51:31 choumilo Exp $
+//  $Id: linkdef.h,v 1.48 2009/08/17 12:53:47 pzuccon Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -21,20 +21,20 @@
 #pragma link C++ class VCon;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class VCon_root;
-#endif
-#pragma link C++ class AMSTrMCCluster+;
-#pragma link C++ class AMSTrRawCluster+;
-#pragma link C++ class AMSTrCluster+;
-#pragma link C++ class AMSTrRecHit+;
-#pragma link C++ class AMSTrTrack+;
-#pragma link C++ class AMSTrTrackPar+;
 
-#else
+#endif
+#pragma link C++ class TrElem+;
+#pragma link C++ class TrTrackPar+;
+#endif
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;
 #pragma link C++ class TrClusterR+;
 #pragma link C++ class TrRecHitR+;
 #pragma link C++ class TrTrackR+;
+
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma link C++ class AMSChain+;
+#pragma link C++ class AMSEventList+;
 #endif
 
 #pragma link C++ class AMSPoint+;
@@ -77,7 +77,5 @@
 #pragma link C++ class AMSEventR+;
 #pragma link C++ class AMSEventR::Service+;
 
-#pragma link C++ class AMSChain+;
-#pragma link C++ class AMSEventList+;
 
 #endif

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.74 2009/07/01 16:45:06 pzuccon Exp $
+#  $Id: Makefile,v 1.75 2009/08/17 12:54:03 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -71,8 +71,8 @@ SFF = ../F/
 
 ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot 
 
-CPPFLAGS=      -D__AMS02DAQ__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
-INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
+CPPFLAGS=      -D__AMS02DAQ__    -D__WRITEROOT__ -D__ROOTPOINTERS__ 
+INCPATHS= -I../include  -I$(CERNDIR)/include -I$(ROOTSYS)/include
 
 ROOTDICT_CPPFLAGS= $(INCPATHS) 
 
@@ -146,10 +146,11 @@ INCS= $(wildcard ../include/*.h)
 
 
 # Base AMS Classes
-AMS_BASE= 	$(SCC)apool.C 	$(SCC)amsdbc.C   $(SCC)amsgobj.C  \
-		$(SCC)astring.C $(SCC)commonsi.C $(SCC)cont.C    $(SCC)id.C \
-		$(SCC)link.C    $(SCC)node.C     $(SCC)point.C   $(SCC)snode.C \
-	     	$(SCC)upool.C $(SCC)uzstat.C
+AMS_BASE=  $(SCC)apool.C   $(SCC)amsdbc.C   $(SCC)amsgobj.C  \
+                $(SCC)astring.C $(SCC)commonsi.C $(SCC)cont.C    $(SCC)id.C \
+                $(SCC)link.C    $(SCC)node.C     $(SCC)point.C   $(SCC)snode.C \
+                $(SCC)upool.C $(SCC)uzstat.C
+
 
 AMS_BASEO=$(AMS_BASE:$(SCC)%.C=$(BIN)%.o)
 COMMON_FILES+= $(AMS_BASE)
@@ -183,10 +184,10 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
 	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
 	$(SCC)VCon.C  $(SCC)TrAlignFit.C\
-	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)TrFit.C $(SCC)MagField.C
+	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)TrFit.C $(SCC)MagField.C  $(SCC)TrElem.C
 
 TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
-	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C
+	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C $(SCC)vtx.C
 
 else
 
@@ -195,11 +196,12 @@ TRACK_BASE += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trcal
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C     \
-		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C 
+		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C $(SCC)vtx.C
 TRACK_ADD= $(SFF)mfield.F $(SCC)bcorr.C
 endif
 COMMON_FILES +=$(TRACK_ADD)
 COMMON_FILES +=$(TRACK_BASE)
+
 TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
 
 
@@ -228,7 +230,7 @@ COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C 
 		$(SFF)richutil_lip.F
 
 # High level reconstruction
-COMMON_FILES += $(SCC)vtx.C        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \
+COMMON_FILES +=        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \
 		$(SCC)astro.C    $(SCC)io.C 
 
 #Trigger
@@ -243,18 +245,19 @@ COMMON_FILES +=  $(SCC)daqs2block.C $(SCC)daqecblock.C
 
 #Root Interface
 COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C   
+#COMMON_FILES += $(SCC)root.C  
 
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
-		../include/TrCalDB.h    ../include/TrRawCluster.h \
+		../include/TrCalDB.h     \
 		../include/patt.h       ../include/TkCoo.h  \
 	        ../include/TrRecon.h 	../include/TkDBc.h      \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
-		../include/TrCluster.h ../include/TrRecHit.h ../include/TrTrack.h \
-		../include/point.h  ../include/root_RV.h ../include/root.h ../include/linkdef.h
+		../include/trrec.h \
+		../include/point.h  ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 else
-ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/linkdef.h
+ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 endif
 
 #------------------------------------------------------------------------------
@@ -400,21 +403,21 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 
 lib: shared static 
 ifdef PGTRACK
-shared :     $(AMS_BASEO) $(TRACK_BASEO) $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
+shared :     $(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O  $(SOFLAGS) $^  $(SHLDFLAGS) -o  $(SHLD)
 
-static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)rootdict_s.o 
+static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."	
 	$(AR) rv $(NTLD) $^
 else
 
-shared :     $(BIN)point.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
+shared :     $(BIN)point.o $(BIN)amschain_rs.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o
-	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
+	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)amschain_rs.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
 
-static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o 
+static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o  $(BIN)amschain_rs.o  $(BIN)id.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $^ 
 
@@ -444,12 +447,12 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h  $(ROOTDICTFI
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C:   ../include/point.h   ../include/root_RV.h ../include/root.h ../include/linkdef.h
+$(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h   ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C: ../include/point.h   ../include/root_RVS.h ../include/root.h ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h   ../include/root_RVS.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $^ 
 	@echo "OK"
@@ -467,7 +470,7 @@ $(BIN)daqevt_c.o:         $(SCC)daqevt.C
 	$(CXX_ORBIT) -c $(CFLAGSDAQ) $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
-	$(CXX) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
+	$(CXX) -c $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
 
 $(BIN)rnormx_s.o:         $(SCC)rnormx.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
@@ -483,6 +486,9 @@ $(BIN)TrRecHit_s.o:         $(SCC)TrRecHit.C
 
 $(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods.h
 	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+
+$(BIN)amschain_rs.o:    	 $(SCC)amschain.C 
+	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)amschain.C -o $(BIN)amschain_rs.o
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 

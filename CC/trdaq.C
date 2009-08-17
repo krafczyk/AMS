@@ -1,6 +1,6 @@
 #include "trdaq.h"
 #include "daqevt.h"
-#include "TrRawCluster.h"
+#include "trrec.h"
 #include "event.h"
 #include "TkDBc.h"
 #include "tkdcards.h"

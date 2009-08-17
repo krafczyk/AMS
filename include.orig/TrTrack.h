@@ -1,24 +1,24 @@
-//  $Id: TrTrack.h,v 1.7 2009/07/08 14:31:32 shaino Exp $
-#ifndef __AMSTrTrack__
-#define __AMSTrTrack__
+//  $Id: TrTrack.h,v 1.8 2009/08/17 12:53:47 pzuccon Exp $
+#ifndef __TrTrackR__
+#define __TrTrackR__
 
 //////////////////////////////////////////////////////////////////////////
 ///
-///\class AMSTrTrackPar
+///\class TrTrackRPar
 ///\brief A class to manage reconstructed track parameters
 ///\ingroup tkrec
 ///
-/// AMSTrTrackPar contains a set of track parameters correponding one 
-/// fitting method, which are contained as a vector by AMSTrTrack class
+/// TrTrackRPar contains a set of track parameters correponding one 
+/// fitting method, which are contained as a vector by TrTrackR class
 ///
 ///\date  2008/11/20 SH  A new structure introduced
 ///
 ///
-///\class AMSTrTrack
+///\class TrTrackR
 ///\brief A class to manage track reconstruction in AMS Tracker
 ///\ingroup tkrec
 ///
-/// AMSTrTrack consists of some fitting parameter sets and hits vector.
+/// TrTrackR consists of some fitting parameter sets and hits vector.
 /// Each parameter set can be obtained by specifing fitting method ID 
 /// defined as a combination of one of EFitMethods plus any of EFitOptions.
 /// Track finding/Reconstruction parts are implemented in TrRecon.
@@ -36,27 +36,27 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/07/08 14:31:32 $
+///$Date: 2009/08/17 12:53:47 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
-#include "link.h"
 #include "point.h"
 #include "VCon.h"
 #include "TrFit.h"
 #include "TObject.h"
 
+#include "TrElem.h"
 #include <cmath>
 
-class AMSTrRecHit;
+class TrRecHitR;
 
 
 
 
 
-class AMSTrTrackPar {
+class TrTrackPar {
 public:
   /// Fit done flag
   bool FitDone;
@@ -99,18 +99,18 @@ public:
   AMSPoint Residual[trconst::maxlay];
 
   /// Default constructor to fill default values
-  AMSTrTrackPar()
+  TrTrackPar()
     : FitDone(false), HitBits(0), ChisqX(0), ChisqY(0), 
       NdofX(0), NdofY(0), Chisq(0), Rigidity(0), ErrRinv(0), 
       P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {}
-  ~AMSTrTrackPar(){}
+  ~TrTrackPar(){}
   void Print(){
     printf("Fit Done: %d, HitBits: %06d, ChisqX: %f, ChisqY: %f, Chisq: %f, NdofX: %d NdofY: %d \n",
            FitDone,HitBits,ChisqX,ChisqY,Chisq,NdofX,NdofY);
     printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
            Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
   }
-  ClassDef(AMSTrTrackPar,1);
+  ClassDef(TrTrackPar,1);
 } ; 
 
 
@@ -118,7 +118,7 @@ public:
 //==============================================================================================================================
 //==============================================================================================================================
 
-class AMSTrTrack : public AMSlink {
+class TrTrackR : public TrElem {
 
   //==== Fit Methods ===
 public:
@@ -159,11 +159,12 @@ public:
   //==== Static members ===
 
 
-private:
+protected:
   static geant _TimeLimit; //!
 
   /// Number of points for half fit (default: 4)
   static int NhitHalf;
+  int Status;
 
 public:
   /// Virtual container
@@ -177,7 +178,7 @@ public:
   // --- data members ---
 private:
   /// maps of track parameters with the key as fitting method ID
-  map<int, AMSTrTrackPar> _TrackPar;
+  map<int, TrTrackPar> _TrackPar;
 
   /// The last successful TrFit object (not stored in ROOT Tree)
   TrFit _TrFit;  //!
@@ -186,7 +187,7 @@ private:
 
 public:  
   /// Vector of hit pointers, to be not stored in ROOT Tree
-  AMSTrRecHit* _Hits[trconst::maxlay]; //!
+  TrRecHitR* _Hits[trconst::maxlay]; //!
   /// Vector of hit values of magnetic field at track hits
   AMSPoint  _BField[trconst::maxlay]; //!
   /// Vector of hit index, to be stored in ROOT Tree instead of _Hits
@@ -216,26 +217,25 @@ public:
   /*!
    * (for compatibility with Gbatch) */
   float DBase[2];
-  int _Status;
   int trdefaultfit;
   
 public:
   /// Default constructor
-  AMSTrTrack();
+  TrTrackR();
   /// Constructor with hits
-  AMSTrTrack(int pattern, 
-	     int nhits = 0, AMSTrRecHit *phit[] = 0,AMSPoint bfield[]=0, int *imult = 0,int fithmethod=0);
+  TrTrackR(int pattern, 
+	     int nhits = 0, TrRecHitR *phit[] = 0,AMSPoint bfield[]=0, int *imult = 0,int fithmethod=0);
 
   /// Dummy track for RICH compatibility (filled at [kDummy])
-  AMSTrTrack(number theta, number phi, AMSPoint pref);
+  TrTrackR(number theta, number phi, AMSPoint pref);
   /// Dummy track for RICH compatibility (filled at [kDummy])
-  AMSTrTrack(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7);
+  TrTrackR(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7);
 
   /// Destructor
-  ~AMSTrTrack();
+  virtual ~TrTrackR();
 
   /// Add a hit with multiplicity index (if specified)
-  void AddHit(AMSTrRecHit *hit, int imult ,AMSPoint* bfield);
+  void AddHit(TrRecHitR *hit, int imult ,AMSPoint* bfield);
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy) {
@@ -243,10 +243,10 @@ public:
   }
 
   /// For Gbatch compatibility
-  uinteger checkstatus(integer checker) const{return _Status & checker;}
-  uinteger getstatus() const{return _Status;}
-  void     setstatus(uinteger status){_Status=_Status | status;}
-  void     clearstatus(uinteger status){_Status=_Status & ~status;} 
+  uinteger checkstatus(integer checker) const{return Status & checker;}
+  uinteger getstatus() const{return Status;}
+  void     setstatus(uinteger status){Status=Status | status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;} 
 
 
   /// Build index vector (_iHits) from hits vector (_Hits)
@@ -268,7 +268,7 @@ public:
   bool ParExists(int id) { return (_TrackPar.find(id) != _TrackPar.end()); }
 
   /// Get TrTrackPar with id
-  AMSTrTrackPar &GetPar(int id = 0);
+  TrTrackPar &GetPar(int id = 0);
 
   // Get fitting parameter with a key as Fitting method ID
   bool     FitDone     (int id= 0) { return GetPar(id).FitDone;  }
@@ -306,11 +306,11 @@ public:
   }
 
   /// Get the pointer to the i-th in the track
-  AMSTrRecHit *GetHit(int i);
+  TrRecHitR *GetHit(int i);
 
 
   /// Get the pointer to the i-th in the track
-  AMSTrRecHit *pTrRecHit(int i){ return GetHit(i);}
+  TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
 
   /// Get the index of the i-th hit in the track within the hit vector
   int iTrRecHit(int i){return _iHits[i];}
@@ -436,11 +436,10 @@ public:
 
 
 
-  AMSTrTrack *next(){ return (AMSTrTrack*)_next; }
-  void *operator new   (size_t t) { return TObject::operator new(t); }
-  void  operator delete(void  *p) { TObject::operator delete(p); p = 0; }
-  void _printEl(std::ostream&);
-  void _printEl(std::string&);
+
+  void Info(int iref=0);
+  void printEl(std::ostream&);
+  void printEl(std::string&);
 
 
   /// For Gbatch compatibility
@@ -450,17 +449,14 @@ public:
 
 
 
-protected:
-  void _printEl(void) {};
-  void _copyEl (){}
-  void _writeEl(){}
+
+
 
   /// ROOT definition
-  ClassDef(AMSTrTrack, 1);
+  ClassDef(TrTrackR, 1);
 };
 
-typedef AMSTrTrack TrTrackR;
-typedef AMSTrTrackPar TrTrackParR;
+
 
 
 

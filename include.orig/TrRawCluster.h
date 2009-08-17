@@ -1,11 +1,11 @@
-// $Id: TrRawCluster.h,v 1.3 2009/06/26 17:15:43 pzuccon Exp $ 
-#ifndef __TrRawCluster__
-#define __TrRawCluster__
+// $Id: TrRawCluster.h,v 1.4 2009/08/17 12:53:47 pzuccon Exp $ 
+#ifndef __TrRawClusterR__
+#define __TrRawClusterR__
 
 //////////////////////////////////////////////////////////////////////////
 ///
 ///
-///\class AMSTrRawCluster
+///\class TrRawClusterR
 ///\brief A class implemnting the Tracker Raw Clusters
 ///\ingroup tkrec
 ///
@@ -15,13 +15,13 @@
 ///\date  2008/02/16 AO  Renaming and new methods
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/06/26 17:15:43 $
+/// $Date: 2009/08/17 12:53:47 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "TObject.h"
-#include "link.h"
+#include "TrElem.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
 
@@ -32,8 +32,7 @@
 
 
 
-//class AMSTrRawCluster : public AMSlink, public TObject {
-class AMSTrRawCluster : public AMSlink {
+class TrRawClusterR :public TrElem   {
  public:
   /// TkLadder ID (layer *100 + slot)*side
   short int _tkid;
@@ -44,21 +43,21 @@ class AMSTrRawCluster : public AMSlink {
    
   /// ADC data array
   std::vector<float> _signal;
-  int _Status;
  protected:
   /// Pointer to the calibration database
   static TrCalDB* _trcaldb;
+  int Status;
   
  public:
   /// Default constructor
-  AMSTrRawCluster(void);
+  TrRawClusterR(void);
   /// Copy constructor
-  AMSTrRawCluster(const AMSTrRawCluster& orig);
+  TrRawClusterR(const TrRawClusterR& orig);
   /// Constructors with raw data
-  AMSTrRawCluster(int tkid, int add, int nelem, short int *adc);
-  AMSTrRawCluster(int tkid, int add, int nelem, float *adc);
+  TrRawClusterR(int tkid, int add, int nelem, short int *adc);
+  TrRawClusterR(int tkid, int add, int nelem, float *adc);
   /// Destructor
-  ~AMSTrRawCluster(){Clear();}
+  virtual ~TrRawClusterR(){Clear();}
   /// Clear
   void Clear();
 
@@ -117,7 +116,7 @@ class AMSTrRawCluster : public AMSlink {
   std::ostream& putout(std::ostream &ostr = std::cout) const;
   /// ostream operator
   friend std::ostream &operator << 
-    (std::ostream &ostr, const AMSTrRawCluster &cls) { 
+    (std::ostream &ostr, const TrRawClusterR &cls) { 
     return cls.putout(ostr);
   }
   /// Print raw cluster strip variables 
@@ -170,25 +169,22 @@ class AMSTrRawCluster : public AMSlink {
   }
   
  /// chek some bits into cluster status
-  uinteger checkstatus(integer checker) const{return _Status & checker;}
+  uinteger checkstatus(integer checker) const{return Status & checker;}
   /// Get cluster status
-  uinteger getstatus() const{return _Status;}
+  uinteger getstatus() const{return Status;}
   /// Set cluster status
-  void     setstatus(uinteger status){_Status=_Status | status;}
+  void     setstatus(uinteger status){Status=Status | status;}
   /// Clear cluster status
-  void     clearstatus(uinteger status){_Status=_Status & ~status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;}
 
-  AMSTrRawCluster* next(){ return (AMSTrRawCluster*) _next;}
-  void _copyEl(){}
-  void _printEl(std::ostream&){}
-  void _writeEl(){}
-  void * operator new(size_t t) {return TObject::operator new(t); }
-  void operator delete(void *p)   {TObject::operator delete(p);p=0;}
-
-
+ 
   /// ROOT definition
-  ClassDef(AMSTrRawCluster, 1)
+  ClassDef(TrRawClusterR, 1)
 };
-typedef AMSTrRawCluster TrRawClusterR;
+
+
+
+
+
 #endif
 

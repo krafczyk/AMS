@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.178 2009/07/01 16:45:44 pzuccon Exp $
+//  $Id: particle.C,v 1.179 2009/08/17 12:53:54 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -574,7 +574,7 @@ void AMSParticle::richfit(){
     if(_pvert){         // Probably there are new tracks there ... so add them to the rings stuff
 #ifdef _PGTRACK_
       for(int i=0;i<_pvert->NTrTrack();i++){
-        AMSTrTrack *track=_pvert->pTrTrack(i);
+        AMSTrTrack *track=dynamic_cast<AMSTrTrack*>(_pvert->pTrTrack(i));
 #else
       for(int i=0;i<_pvert->getntracks();i++){
 	AMSTrTrack *track=_pvert->gettrack(i);

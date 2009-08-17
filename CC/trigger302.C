@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.42 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: trigger302.C,v 1.43 2009/08/17 12:53:54 pzuccon Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -11,7 +11,7 @@
 #include "event.h"
 #include "mccluster.h"
 #include "amsdbc.h"
-#include "TrRawCluster.h"
+#include "trrec.h"
 #include "tkdcards.h"
 #include "trdsim.h"
 #include "ntuple.h"
