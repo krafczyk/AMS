@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.31 2008/07/04 14:06:48 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.32 2009/08/17 12:59:36 pzuccon Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -629,6 +629,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   }// --- end of hits loop --->
 //<--------
 //
+
   Int_t ntofrcls=ntuple->NTofRawCluster();//total tof-raw_clusters(paddles)
   Int_t ntrkrcls=ntuple->NTrRawCluster();//total trk-raw_clusters
   Int_t ntrkcls=ntuple->NTrCluster();//total trk-clusters
@@ -714,6 +715,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //                                <--- check TRK-track quality:
 //
   Bool_t TRKtrOK(0);
+
+#ifndef _PGTRACK_
+
 //
 //cout<<"  itrktr="<<itrktr<<endl;
   TrTrackR *p2trktr = ntuple->Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
@@ -794,6 +798,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     }//--- endof "trueX" check --->
   }// --- endof "TRKtr in Particle" check --->
 //-------------------------------------------------
+#endif
 //
 //                      <---- Check TOF-TRKtrack matching:
 //

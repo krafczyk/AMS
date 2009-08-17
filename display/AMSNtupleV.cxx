@@ -1,7 +1,11 @@
-//  $Id: AMSNtupleV.cxx,v 1.25 2009/06/30 14:50:10 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.26 2009/08/17 13:00:34 pzuccon Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
+
+ClassImp(AMSNtupleV)       
+void* gAMSUserFunction;
+
 char * AMSNtupleV::GetObjInfo(int px, int py){
 static char* info=0;
 int dist=99999;
@@ -491,14 +495,14 @@ for(int i=0;i<fDaqV.size();i++){
 }
 
 
-bool AMSNtupleV::GetEvent(unsigned int run, unsigned int event){
-int entry=0;
-if(Run()==run && Event() <event)entry=fCurrentEntry;
-while(ReadOneEvent(entry++)!=-1){
- if(Run() == run && Event()>=event)return true;
-}
-return false;
-}
+// bool AMSNtupleV::GetEvent(unsigned int run, unsigned int event){
+// int entry=0;
+// if(Run()==run && Event() <event)entry=fCurrentEntry;
+// while(ReadOneEvent(entry++)!=-1){
+//  if(Run() == run && Event()>=event)return true;
+// }
+// return false;
+// }
 
 
 #include "TRotation.h"

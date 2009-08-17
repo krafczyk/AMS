@@ -1,4 +1,4 @@
-//  $Id: AMSNtuple.h,v 1.7 2003/07/01 06:42:20 choutko Exp $
+//  $Id: AMSNtuple.h,v 1.8 2009/08/17 12:59:36 pzuccon Exp $
 #ifndef __AMSNtuple__
 #define __AMSNtuple__
 #include <TChain.h>
@@ -17,31 +17,32 @@
 #include "AMSGenHist.h"
 #include <time.h>
 #include "../include/root.h"
-#include "AMSNtupleHelper.h"
+
+
 extern void* gAMSUserFunction;
+
 class AMSNtupleR : public AMSEventR {
 protected:
-int fCurrentTree;
-int fEntries;
-int fCurrentEntry;
-//TProcessEventTimer * fTimer;  
-//bool fTimerDone;
+  int fCurrentTree;
+  int fEntries;
+  int fCurrentEntry;
+  //TProcessEventTimer * fTimer;  
+  //bool fTimerDone;
 public:
-AMSNtupleR(TChain * chain);
-Int_t EventNo()const {return fHeader.Event;}
-Int_t GetRun()const {return fHeader.Run;}
-char* GetTime()const {return ctime((time_t*)&fHeader.Time[0]);}
-int CurrentEntry()const {return fCurrentEntry;}
-int ReadOneEvent(int event);
-int & Entries() {return fEntries;} 
-friend class AMSTOFHist;
-friend class AMSAntiHist;
-friend class AMSTrackerHist;
-friend class AMSLVL1Hist;
-friend class AMSLVL3Hist;
-friend class AMSAxAMSHist;
-friend class AMSGenHist;
-friend class AMSNtupleHelper;
-ClassDef(AMSNtupleR,1)           // Ntuple Browser
+  AMSNtupleR():AMSEventR(){}
+  Int_t EventNo()const {return fHeader.Event;}
+  Int_t GetRun()const {return fHeader.Run;}
+  char* GetTime()const {return ctime((time_t*)&fHeader.Time[0]);}
+  int CurrentEntry()const {return fCurrentEntry;}
+  int & Entries() {return fEntries;} 
+  friend class AMSTOFHist;
+  friend class AMSAntiHist;
+  friend class AMSTrackerHist;
+  friend class AMSLVL1Hist;
+  friend class AMSLVL3Hist;
+  friend class AMSAxAMSHist;
+  friend class AMSGenHist;
+  friend class AMSNtupleHelper;
+  ClassDef(AMSNtupleR,1)           // Ntuple Browser
 };
 #endif

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.3 2009/01/07 12:42:33 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.4 2009/08/17 13:00:34 pzuccon Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -36,9 +36,14 @@
 #include "AMSNtupleV.h"
 #include "TAxis3D.h"
 #include "Help.h"
+
+ClassImp(AMSDisplay);
+
 AMSDisplay *gAMSDisplay;
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, int sec):m_ntuple(ntuple), m_sec(sec),m_nodate(false),TObject(){
+
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec):
+  m_chain(chain), m_sec(sec),m_nodate(false),TObject(){
      m_sec=abs(sec);
      m_nodate=sec<0;
      fCooDef[0][0]=-115.;
@@ -56,7 +61,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, 
      m_Geometry     = 0;
      m_selected=0;
      m_scale=1;   
-     m_chain=0; 
+     m_ntuple=(AMSNtupleV*)chain->pEvent(); 
      m_trclpr=true;
      m_drawrichringfromplex=false;
       m_drawsolid=true;
@@ -140,8 +145,8 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple, 
 
 
 
-  if(!m_ntuple)OpenFileCB();
-  if(!m_ntuple){
+   if(!m_chain->GetFile())OpenFileCB();
+  if(!m_chain->GetFile()){
    cerr <<"No file opened, exiting "<<endl;
    exit(1);
   } 
@@ -273,19 +278,23 @@ void AMSDisplay::DrawFrontAndSideViews(){
 
 //_____________________________________________________________________________
 void AMSDisplay::DrawTitle(Option_t *option){
-   m_TitlePad->SetEditable(true);
-
-   static char  atext[255];
-
-   
-if(!m_nodate){
-   sprintf(atext,"%s         Run %d/ %d %s",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
-
-}
-else{
-   sprintf(atext,"%s         Run %d/ %d ",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event());
-}
-
+  m_TitlePad->SetEditable(true);
+  
+  static char  atext[255];
+  
+  
+  if(!m_nodate){
+    sprintf(atext,"%s         Run %d/ %d %s",
+	    m_Pad->GetTitle(),
+	    m_ntuple->Run(), 
+	    m_ntuple->Event(),
+	    m_ntuple->Time());
+    
+  }
+  else{
+    sprintf(atext,"%s         Run %d/ %d ",m_Pad->GetTitle(),m_ntuple->Run(), m_ntuple->Event());
+  }
+  
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
@@ -616,7 +625,7 @@ Bool_t AMSDisplay::GotoRunEvent(){
    }
    if (run==0) run = m_ntuple->Run();
    bool retn=false;
-   if (m_ntuple->GetEvent(run, event)) {
+   if (m_chain->GetEvent(run, event)) {
       m_Pad->cd();
       Draw();
       retn=true;
@@ -627,21 +636,21 @@ Bool_t AMSDisplay::GotoRunEvent(){
 
 
 void AMSDisplay::ShowNextEvent(Int_t delta){
-//  Display (current event_number+delta)
-//    delta =  1  shown next event
-//    delta = -1 show previous event
+  //  Display (current event_number+delta)
+  //    delta =  1  shown next event
+  //    delta = -1 show previous event
 
 
-//     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
+  //     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
 
-      int entry=m_ntuple->CurrentEntry()+delta;      
-      while(m_ntuple->ReadOneEvent(entry)==0){
-         entry+=delta;
-      }
-      if(entry>=0){
-        DrawEvent();
-      }
-   }
+  int entry=m_chain->Entry()+delta;      
+  while(m_chain->ReadOneEvent(entry)==0){
+    entry+=delta;
+  }
+  if(entry>=0){
+    DrawEvent();
+  }
+}
 
 
 
@@ -691,64 +700,8 @@ void AMSDisplay::PrintCB(){
 
 
 int  AMSDisplay::ReLoad(){
-#ifndef WIN32
-        static void *handle=0;
-        char *CC=getenv("CC");
-        if(!CC){
-          setenv("CC","g++",0);
-        }
-        char cmd[]="$CC -m32 -I$ROOTSYS/include -I../include -c AMSNtupleSelect.C";
-        int $i=system(cmd);
-        if(!$i){
-#ifdef __APPLE__
-         char cmd1[]="ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o libuser.so";
-#else
-         char cmd1[]="ld -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
-#endif
-         $i=system(cmd1);
-         if( !$i){  
-           if(handle){
-             dlclose(handle);
-           }
-           if(handle=dlopen("libuser.so",RTLD_NOW)){
-              return 0;
-           }
-           cout <<dlerror()<<endl;
-           return 1;
-            
-        }
-        }
-#else
-       static HINSTANCE handle=0;
-       typedef AMSNtupleHelper * (*MYPROC)(VOID);
-       if(handle){
-         FreeLibrary(handle);
-         handle=0;
-       }
-      int i=system("cl.exe -c AMSNtupleSelect.C -I%ROOTSYS%\\include  /EHsc /TP");
-      if(!i){
-       i=system("cl.exe AMSNtupleSelect.obj -o libuser.so /LD /link -nologo -export:gethelper");
-      if(!i){
-      handle=LoadLibrary(".\\libuser.so");
-       if(!handle){
-          cout <<"  Unable to load lib "<<endl; 
-          return 1;
-       }
-       else {
-        MYPROC pa=(MYPROC)GetProcAddress(handle,"gethelper");
-        if(pa){
-         AMSNtupleHelper::fgHelper= ((pa)()); 
-         cout << " ok "<< ((pa)())<<endl;
-         return 0;
-        }  
-        return 1;
-       }
-       }
-       }
-        
-#endif
-        return -1;
-
+  return m_chain->LoadUF("AMSNtupleSelect.C");
+  
 }
 
 
@@ -964,11 +917,8 @@ static const char *gOpenTypes[] = { "Root files", "*.root*",
     if(m_idle)m_theapp->StartIdleing();
     return;
   }
-  if(m_ntuple)delete m_ntuple;
-  if(m_chain)delete m_chain;
-  m_chain=new TChain("AMSRoot");
+
   m_chain->Add(filename);
-  m_ntuple=new AMSNtupleV(m_chain);
   if(m_idle)m_theapp->StartIdleing();
 
 }

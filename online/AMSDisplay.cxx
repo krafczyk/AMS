@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.29 2009/06/23 11:07:47 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.30 2009/08/17 12:59:36 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -384,7 +384,7 @@ bool AMSOnDisplay::Fill(bool checkonly){
 //#endif
 //#pragma omp parallel for schedule(dynamic)
   for(int i=_Begin;i<_End;i++){
-   int ret= m_ntuple->ReadOneEvent(i);
+   int ret= m_chain->ReadOneEvent(i);
    if(ret<0){
      cout <<"  interrupt received"<<endl;
      _End=0; 
@@ -435,67 +435,9 @@ void AMSOnDisplay::Reset(){
 }
 
 
+
 int  AMSOnDisplay::ReLoad(){
-
-#ifdef WIN32
-        char cmd[]="cl.exe -c AMSNtupleSelect.C -I%ROOTSYS%\\include  /EHsc /TP";
-#else
-        static void *handle=0;
-        char *CC=getenv("CC");
-        if(!CC){
-          setenv("CC","g++",0);
-        }
-        char cmd[]="$CC -m32 -I$ROOTSYS/include  -c AMSNtupleSelect.C";
-#endif
-        int $i=system(cmd);
-        if(!$i){
-#ifdef WIN32
-	char cmd1[]="cl.exe AMSNtupleSelect.obj -o libuser.so /LD /link -nologo -export:gethelper";
-#else
-#ifdef __APPLE__
-         char cmd1[]="ld -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o libuser.so";
-#else
-         char cmd1[]="ld -melf_i386 -init fgSelect -shared AMSNtupleSelect.o -o libuser.so";
-#endif
-#endif
-         $i=system(cmd1);
-         if(!$i){  
-#ifdef WIN32
-       static HINSTANCE handle=0;
-       typedef AMSNtupleHelper * (*MYPROC)(VOID);
-      handle=LoadLibrary(".\\libuser.so");
-       if(!handle){
-          cout <<"  Unable to load lib "<<endl; 
-          return 1;
-       }
-       else {
-        MYPROC pa=(MYPROC)GetProcAddress(handle,"gethelper");
-        if(pa){
-         AMSNtupleHelper::fgHelper= ((pa)()); 
-         return 0;
-        }  
-        return 1;
-       }
-	 
-#else
-           if(handle)dlclose(handle);
-           if(handle=dlopen("libuser.so",RTLD_NOW)){
-              return 0;
-           }
-           cout <<dlerror()<<endl;
-           return 1;
-//            gSystem->Load("libuser.so");  //redundant to 
-//           gSystem->Unload("libuser.so");  
-//           cout <<"result "<<$i<<endl;
-//           if($i==-1)$i=1;
-//           else $i==0;
-//           return $i;
-#endif          
-  
-	 }
-        }
-        return -1;
-
+  return m_chain->LoadUF("AMSNtupleSelect.C");
 }
 void AMSOnDisplay::SaveParticleCB()
 {
@@ -596,11 +538,12 @@ static const char *gOpenTypes[] = { "Root files", "*.root*",
     //if(m_idle)m_theapp->StartIdleing();
     return;
   }
-  if(m_ntuple)delete m_ntuple;
-  if(m_chain)delete m_chain;
-  m_chain=new TChain("AMSRoot");
+
+//   if(m_ntuple)delete m_ntuple;
+//   if(m_chain)delete m_chain;
+//   m_chain=new TChain("AMSRoot");
   m_chain->Add(filename);
-  m_ntuple=new AMSNtupleR(m_chain);
+  //  m_ntuple=new AMSNtupleR(m_chain);
   //if(m_idle)m_theapp->StartIdleing();
 
 }

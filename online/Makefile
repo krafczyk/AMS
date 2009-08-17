@@ -1,134 +1,129 @@
-#  $Id: Makefile,v 1.35 2009/06/23 11:07:48 choutko Exp $
+#  $Id: Makefile,v 1.36 2009/08/17 12:59:36 pzuccon Exp $
+# PZ reviewing the online  Makefile on Aug 2009
+#    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
+#    LINUX arch supported is SLC4 with gcc or  icc
 
-PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
 VER         := $(shell $(ROOTSYS)/bin/root-config --version )
+PREFIX        = $(AMSWD)/online/
+DEPDIR        = $(PREFIX)/dep
+
+# display compiles only with customized ROOT, at the moment v5.21
 NEW             :=_new
-ifneq (,$(findstring 5.14,$(VER)))
-NEW             :=
-endif
-RH9add=
-RH9adda=
-ifdef RH9
- RH9add=-pthread  /usr/lib/ctype.o
- RH9adda=-pthread  /usr/lib/ctype-info.o
-endif
 
-ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
- RH9add=-pthread  /usr/lib/ctype.o
- RH9adda=-pthread  /usr/lib/ctype-info.o
-endif
 
-ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
- RH9adda=  -pthread
- RH9add=   -pthread
-endif
+
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc
-CXXFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -m32 -axssse3  -openmp  
+CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc 
+CPPFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
+		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
+CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
-NOOPTC         = -g
-LD            =  /opt/intel/Compiler/11.0/069/bin/ia32/icpc
-LDFLAGS       =  -axssse3  -openmp
-ROOTLIBS      =   -L$(ROOTSYS)/lib  -lRoot   -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+NOOPTC        = -g
+LD            = /opt/intel/Compiler/11.0/069/bin/ia32/icpc -axssse3 -openmp
+LDFLAGS       = 
+LDS	      =	$(LD) -Bstatic
+LDD	      =	$(LD) -Bdynamic
 
-LIBS          =  -Bstatic $(ROOTLIBS) $(RH9add) -lm -Bdynamic -ldl
-LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF
+ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+
+LIBS          =  -L$(AMSWD)/lib/linux/ -lntuple_slc4_icc $(ROOTLIBS)  -lshift -lm    -ldl
+LIBSA         =  -L$(AMSWD)/lib/linux/ -lntuple_slc4_icc $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
+
 else
-CXX           =  g++ -m32  -Wno-deprecated
-CXXFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+
+CXX           =  g++ -m32 
+CPPFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g
 LD            = g++ -m32
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot  -lXft -lfontconfig -lXrender  -lexpat  -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift -lpcre -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+LDS	      =	$(LD) -static
+LDD	      =	$(LD) -rdynamic
 
-LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
-LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
-endif
-ifeq ($(ARCH),macosx)
-CXX           =  g++ -Wno-deprecated
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
-OPT           = -O2
-OPTC          = -O0
-NOOPT         = -g
-LD            = g++
-LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
+ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF
+ROOTLIBSA     =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
-LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
+
+LIBSA          =  -L$(AMSWD)/lib/linux/ -lntuple_slc4 $(ROOTLIBSA) -lshift -lm -ldl
+LIBS          =   -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(ROOTLIBS) -lshift -lm -ldl
 endif
-ifeq ($(ARCH),win32gcc)
-PREFIX        = $(AMSWD)/online/cygwin/
-CXX           =  g++ -Wno-deprecated
-CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
-OPT           = -O2
-OPTC          = -O0
-NOOPT         = -g
-NOOPTC         = -g
-LD            = g++
-LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
-LIBS          =  $(ROOTLIBS) $(RH9add) -lm 
-LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm
+
+
+#ifeq ($(ARCH),macosx)
+#CXX           =  g++ -Wno-deprecated
+#CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+#OPT           = -O2
+#OPTC          = -O0
+#NOOPT         = -g
+#LD            = g++
+#LDFLAGS       = -g 
+#ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
+
+#LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
+#LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
+#endif
+#ifeq ($(ARCH),win32gcc)
+#PREFIX        = $(AMSWD)/online/cygwin/
+#CXX           =  g++ -Wno-deprecated
+#CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+#OPT           = -O2
+#OPTC          = -O0
+#NOOPT         = -g
+#NOOPTC         = -g
+#LD            = g++
+#LDFLAGS       = -g 
+#ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
+#LIBS          =  $(ROOTLIBS) $(RH9add) -lm 
+#LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm
+#endif
+#ifeq ($(ARCH),win32)
+#PREFIX   = $(AMSWD)/online/wingdk/
+#CXX        =  $(ROOTSYS)/build/win/cxx.sh
+#CXXFLAGS =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -O2 -Z7 -G5 -GR -GX -MD -DWIN32 -DGDK_WIN32  -D_WINDOWS -DWINVER=0x0400 -nologo -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -FIw32pragma.h -D_X86_=1 -D_DLL -DVISUAL_CPLUSPLUS -I../include  -I$(ROOTSYS)/include  /TP
+#OPT           = 
+#OPTC          = 
+#NOOPT         = -g
+#NOOPTC         = -g
+#LD = $(ROOTSYS)/build/win/ld.sh
+#LDFLAGS       =  -nologo    -nodefaultlib:libc.lib -nodefaultlib:dfor.lib 
+#LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib  $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
+#ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
+#endif
+
+
+ifdef PGTRACK
+CPPFLAGS += -D_PGTRACK_
 endif
-ifeq ($(ARCH),win32)
-PREFIX   = $(AMSWD)/online/wingdk/
-CXX        =  $(ROOTSYS)/build/win/cxx.sh
-CXXFLAGS =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -O2 -Z7 -G5 -GR -GX -MD -DWIN32 -DGDK_WIN32  -D_WINDOWS -DWINVER=0x0400 -nologo -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -FIw32pragma.h -D_X86_=1 -D_DLL -DVISUAL_CPLUSPLUS -I../include  -I$(ROOTSYS)/include  /TP
-OPT           = 
-OPTC          = 
-NOOPT         = -g
-NOOPTC         = -g
-LD = $(ROOTSYS)/build/win/ld.sh
-LDFLAGS       =  -nologo    -nodefaultlib:libc.lib -nodefaultlib:dfor.lib 
-LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib  $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
-ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
-endif
-GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d -lGui -lGpad -lGX11  -lTree -lRint -lPostscript -lMatrix -lPhysics  -lHistPainter -lMinuit -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -lXpm -lm -ldl 
 
 ##### MACROS #####
 
-ROOTH         = TTree.h TFile.h TH1.h
 
-SRCS          = AMSDisplay.cxx \
-                AMSHist.cxx \
-                AMSAntiHist.cxx\
-                AMSTrackerHist.cxx\
-                AMSRICHHist.cxx\
-                AMSECALHist.cxx\
-                AMSTRDHist.cxx\
-                AMSTOFHist.cxx\
-                AMSLVL1Hist.cxx\
-                AMSLVL3Hist.cxx\
-                AMSAxAMSHist.cxx\
-                AMSGenHist.cxx\
-                AMSNtuple.cxx \
-                AMSEverything.cxx
 
-HDRS          =   \
-                ../include/root_RVS.h\
-                ../include/root.h\
-		AMSDisplay.h \
-		AMSHist.h \
-		AMSAntiHist.h \
-		AMSTrackerHist.h \
-                AMSRICHHist.h\
-                AMSECALHist.h\
-                AMSTRDHist.h\
-                AMSTOFHist.h\
-                AMSLVL1Hist.h\
-                AMSLVL3Hist.h ControlFrame.h\
-                AMSAxAMSHist.h\
-                AMSGenHist.h\
-                AMSNtuple.h\
-                ../include/id.h \
-                LinkDef.h
+SRCS          = AMSDisplay.cxx     AMSHist.cxx       AMSAntiHist.cxx \
+                AMSTrackerHist.cxx AMSRICHHist.cxx   AMSECALHist.cxx \
+                AMSTRDHist.cxx     AMSTOFHist.cxx    AMSLVL1Hist.cxx \
+                AMSLVL3Hist.cxx    AMSAxAMSHist.cxx  AMSGenHist.cxx \
+                AMSNtuple.cxx      ControlFrame.cxx  AMSEverything.cxx
+
+HDRS          = AMSDisplay.h       AMSHist.h         AMSAntiHist.h \
+		AMSTrackerHist.h   AMSRICHHist.h     AMSECALHist.h \
+                AMSTRDHist.h       AMSTOFHist.h      AMSLVL1Hist.h \
+                AMSLVL3Hist.h      AMSAxAMSHist.h    AMSGenHist.h  \
+                AMSNtuple.h        ControlFrame.h
+
+DEPS=  $(SRCS:%.cxx=$(DEPDIR)/%.d)
+
 DICT          = AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
@@ -137,16 +132,17 @@ DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 MAIN          = main.cxx
 MAINH         = $(MAIN:.cxx=.h)
 MAINO         = $(MAIN:%.cxx=$(PREFIX)%.o)
+DEPS+=  $(MAIN:%.cxx=$(DEPDIR)/%.d)
 
 MAINC          = mainc.cxx
 MAINOC         = $(MAINC:.cxx=.o)
+#DEPS+=  $(MAINC:%.cxx=$(DEPDIR)/%.d)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
-OBJSR          = $(PREFIX)root.o $(PREFIX)id.o
-OBJSC          = $(PREFIX)ControlFrame.o
+
 
 ALLDICT       = $(DICT) $(DICTH) 
-ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
+ALLSRCS       = $(SRCS  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO) 
 
 
@@ -155,35 +151,20 @@ AMSLIB       = libAMS.a
 AMSSHAREDLIB = libAMS.so
 
 
-SLC4system=
-ifneq "$(wildcard /etc/redhat-release)" ""
- SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
-endif
-ifdef SLC4system
-else
-ifneq "$(wildcard /etc/redhat-release)" ""
- SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
-endif
-endif
-ifdef SLC4system
 AMSPRG       = $(PREFIX)offmon
 AMSPRGC       = $(PREFIX)offmonc
 SLC4=y
-else
-AMSPRG       = $(PREFIX)offmon
-AMSPRGC       = $(PREFIX)offmonc
-SLC4=n
-endif
-ifeq ($(ARCH),win32)
-AMSPRG       = $(PREFIX)offmon.exe
-endif
+
+#ifeq ($(ARCH),win32)
+#AMSPRG       = $(PREFIX)offmon.exe
+#endif
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
-ifeq ($(ARCH),macosx)
-AMSPRG       = nothing
-LDS =  @echo "  Static Linking not supported in macosx!!! Use 'make osdepend' instead"
-LDD	= 	$(LD) -dynamic
-endif
+#ifeq ($(ARCH),macosx)
+#AMSPRG       = nothing
+#LDS =  @echo "  Static Linking not supported in macosx!!! Use 'make osdepend' instead"
+#LDD	= 	$(LD) -dynamic
+#endif
 
 
 
@@ -194,34 +175,21 @@ osdepend:  $(AMSPRGC)
 
 
 
-$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSC)
-		$(LDS)    $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBSA)  \
-		-o $(@) 
+$(AMSPRG):       $(OBJS)  $(DICTO) $(MAINO)
+		$(LDS)    $(LDFLAGS) $^   $(LIBSA) -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
 		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
 
 
-$(DICT):        $(HDRS)
+$(DICT):        $(HDRS) LinkDef.h
 		@echo "Generating dictionary ..."
-		$(ROOTSYS)/bin/rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
+		$(ROOTSYS)/bin/rootcint -f $(DICT) -c $(CPPFLAGS) $(ROOTH) $(HDRS) LinkDef.h
 
 
 
 
-depend:		$(PREFIX)Make-depend 
-touch_depend:
-		touch $(PREFIX)Make-depend
-$(PREFIX)Make-depend:	
-ifneq "$(shell du -a  $(PREFIX)Make-depend | grep -c  ake)" "1"
-		touch $(PREFIX)Make-depend
-endif
-	makedepend -f$(PREFIX)Make-depend -- $(CXXFLAGS) -- $(SRCS) $(SRCSG) -p$(PREFIX) \
-		$(MAIN)
-		cat  $(PREFIX)Make-depend | sed -e 'sx/../CC/x/x1' > $(PREFIX)Make-depend.new
-		rm -f $(PREFIX)Make-depend
-		mv $(PREFIX)Make-depend.new $(PREFIX)Make-depend
 
 ../include/root_methods.h:      ../perl/root.perl
 	perl ../perl/root.perl
@@ -235,27 +203,28 @@ dist:
 		gzip $(AMSPRG).tar
 
 clean:
-		@rm -f $(ALLOBJS) $(ALLDICT)
+		@rm -vf $(ALLOBJS) $(ALLDICT) $(DEPS) $(AMSPRG) $(AMSPRGC) AMSEverything.cxx
+
 
 
 ##### RULES #####
 
-$(ALLOBJS): $(PREFIX)%.o : %.cxx ../include/root_methods.h
+
+$(DEPDIR)/%.d : %.cxx
+	@echo "Generating $@ ..."
+	@if ! [ -d $(DEPDIR) ] ; then mkdir -p $(DEPDIR); fi
+	@$(CXX) $(CPPFLAGS) -MM $< -MT $(OBJ)/$*.o -MF $@
+
+
+
+$(PREFIX)%.o : %.cxx 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
-$(OBJSC): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
 
-$(OBJSR): $(PREFIX)%.o : ../CC/%.C 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
-
-$(DICTO): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT)  $(CXXFLAGS)  -c $(<)  -o $(@)
 
 
 ##### DEPENDENCIES #####
 
-ifneq ($(MAKECMDGOALS),touch_depend)
-include $(PREFIX)Make-depend
+ifneq ($(MAKECMDGOALS),clean)
+include $(DEPS)
 endif
-

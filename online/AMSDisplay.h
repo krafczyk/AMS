@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.16 2004/02/24 13:41:33 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.17 2009/08/17 12:59:36 pzuccon Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -12,6 +12,7 @@
 #include <TApplication.h>
 #include "AMSHist.h"
 #include "ControlFrame.h"
+#include "amschain.h"
 class AMSNtupleR;
 class TCanvas;
 class TPad;
@@ -27,7 +28,7 @@ class AMSOnDisplay : public TObject {
 
 protected:
   AMSNtupleR *      m_ntuple;
-  TChain * m_chain;
+  AMSChain *       m_chain;
   Bool_t           m_logx;
   Bool_t           m_logy;
   Bool_t           m_logz;
