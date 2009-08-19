@@ -59,17 +59,18 @@ TrRecHitR::TrRecHitR(const TrRecHitR& orig) {
 
 TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult) {
   _tkid     = tkid;   
-  if(clX->GetTkId()!=_tkid|| clX->GetTkId()!=_tkid){
+  if((clX&&clX->GetTkId()!=_tkid)|| (clY&&clY->GetTkId()!=_tkid)){
     printf("TrRecHitR::TrRecHitR--> BIG problems you are building ans hit on Ladder %d  \n",_tkid);
     printf("                                        with a cluster X from Ladder %d and \n",clX->GetTkId());
     printf("                                        with a cluster Y from Ladder %d     \n",clY->GetTkId());
   }
+  if(clX&&clX->GetSide()!=0)
+    printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as X is on Y!!!!!  \n");
+  if(clY&&clY->GetSide()!=1)
+    printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as Y is on X!!!!!  \n");
+
   _clusterX = clX;   
   _clusterY = clY;   
-  if(_clusterX->GetSide()!=0)
-    printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as X is on Y!!!!!  \n");
-  if(_clusterY->GetSide()!=1)
-    printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as Y is on X!!!!!  \n");
   VCon* cont2=vcon->GetCont("AMSTrCluster");
   _iclusterX = (_clusterX) ? cont2->getindex(_clusterX) : -1;
   _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;

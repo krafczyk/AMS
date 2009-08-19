@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.9 2009/08/19 14:35:47 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.10 2009/08/19 18:29:25 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/19 14:35:47 $
+/// $Date: 2009/08/19 18:29:25 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +30,7 @@
 #include "Vertex.h"
 #include "amsdbc.h"
 
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
 #include "trrec.h"
 #endif
 
@@ -347,7 +347,7 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
       sigg[jj]=_adcbuf[address];
     }
 
-#ifndef __ROOTSHAREDLIB__ 
+#ifndef __ROOTSHAREDLIBRARY__ 
     if(cont) cont->addnext(new AMSTrCluster(tkid,side,leftaddress,length,seedind,sigg,0));
 #else
     if(cont) cont->addnext(new TrClusterR(tkid,side,leftaddress,length,seedind,sigg,0));
@@ -534,7 +534,7 @@ int TrRecon::BuildTrRecHits(int rebuild)
         float     corr = GetCorrelation(clX,clY);
         float     prob = GetProbToBeCorrelated(clX,clY);
         if (prob<ThrProb) continue;  
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
         cont2->addnext( new AMSTrRecHit(tkid,clX,clY,corr,prob,0));
 #else
         cont2->addnext( new TrRecHitR(tkid,clX,clY,corr,prob,0));
@@ -544,7 +544,7 @@ int TrRecon::BuildTrRecHits(int rebuild)
 
       // "ghost" hits with only y-cluster
       TrClusterR *clY = GetTrCluster(tkid, 1, iy);
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
       cont2->addnext( new AMSTrRecHit(tkid, 0, clY, 1, 0, 0));
 #else
       cont2->addnext( new TrRecHitR(tkid, 0, clY, 1, 0, 0));
@@ -1594,7 +1594,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     fit_method = TrTrackR::kLinear;
 
   // Create a new track
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
   AMSTrTrack *track = new AMSTrTrack(itcand.pattern);
 #else
   TrTrackR *track = new TrTrackR(itcand.pattern);
@@ -1774,7 +1774,7 @@ void TrRecon::sitkhits(int idsoft, float vect[],
   // Create a new object
   VCon* aa=TRCon->GetCont("AMSTrMCCluster");
   if(aa)
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
     aa->addnext(  new AMSTrMCCluster(idsoft, pa, pb, pgl,pmom,edep , itra));
 #else
     aa->addnext(  new TrMCClusterR(idsoft, pa, pb, pgl,pmom,edep , itra));
@@ -1927,7 +1927,7 @@ void TrRecon::DSP_Clusterize(int tkid,float *buf){
     //    printf("Adding Raw Clus: %d\n",tkid);
     for(int ll=0;ll<(right-left+1);ll++)
       general[ll]=buf[left+ll];
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
     cont->addnext(new AMSTrRawCluster(tkid, left, right-left+1, general));
 #else
     cont->addnext(new TrRawClusterR(tkid, left, right-left+1, general));
@@ -1963,7 +1963,7 @@ void TrRecon::DSP_Clusterize(int tkid,float *buf){
     //    printf("Adding Raw Clus: %d\n",tkid);
     for(int ll=0;ll<(right-left+1);ll++)
       general[ll]=buf[left+ll];
-#ifndef __ROOTSHAREDLIB__
+#ifndef __ROOTSHAREDLIBRARY__
     cont->addnext(new AMSTrRawCluster(tkid, left, right-left+1, general));
 #else
     cont->addnext(new TrRawClusterR(tkid, left, right-left+1, general));

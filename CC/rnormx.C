@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.11 2009/08/17 12:53:54 pzuccon Exp $
+//  $Id: rnormx.C,v 1.12 2009/08/19 18:29:25 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -29,7 +29,7 @@ double ROOTRndm(int dummy){
 }
 
 #include "typedefs.h"
-#include  "commons.h"
+//#include  "commons.h"
 extern "C" number rnormx(){
   double const pi=3.1415926;
   number qq,qq2;
