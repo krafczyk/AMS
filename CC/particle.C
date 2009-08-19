@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.179 2009/08/17 12:53:54 pzuccon Exp $
+//  $Id: particle.C,v 1.180 2009/08/19 14:35:47 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -20,7 +20,6 @@
 #include "ecalrec.h"
 #include "mceventg.h"
 #include "ecalrec.h"
-#include "vtx.h" 
 #ifdef _PGTRACK_
 #include "patt.h"
 #include "tkdcards.h"

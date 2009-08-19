@@ -1,4 +1,3 @@
-//  $Id: event.C,v 1.431 2009/06/29 13:26:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -62,7 +61,6 @@
 #include "trdsim.h"
 #include "trdrec.h"
 #include "trdhrec.h"
-#include "vtx.h"
 #ifdef __G4AMS__
 #include "g4util.h"
 #endif

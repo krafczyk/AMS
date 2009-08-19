@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.6 2009/08/17 12:53:47 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.7 2009/08/19 14:36:04 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/17 12:53:47 $
+/// $Date: 2009/08/19 14:36:04 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -34,7 +34,7 @@
 #include "TkDBc.h"
 #include "VCon.h"
 #include "TMath.h"
-#include "vtx.h"
+#include "Vertex.h"
 #include "amsdbc.h"
 #include <cmath>
 #include <vector>

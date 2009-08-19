@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.8 2009/08/17 12:53:54 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.9 2009/08/19 14:35:47 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/17 12:53:54 $
+/// $Date: 2009/08/19 14:35:47 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,7 +27,7 @@
 #include "TkSens.h"
 #include "TkCoo.h"
 #include "TrMCCluster.h"
-#include "vtx.h"
+#include "Vertex.h"
 #include "amsdbc.h"
 
 #ifndef __ROOTSHAREDLIB__
@@ -1631,9 +1631,9 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }
  if (PZDEBUG){
   cout<< " PZDEBUG track info\n";
-  for(int jj=0;jj<track->_Nhits;jj++){
+  for(int jj=0;jj<track->GetNhits();jj++){
     cout<<" Track hit num "<<jj<<endl;
-    track->_Hits[jj]->Print();
+    track->GetHit(jj)->Print();
   }
  }
   // Fill patterns
@@ -1643,7 +1643,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   track->Fit(fit_method);
   
   if (MAGSFFKEY.magstat<=0)
-    track->trdefaultfit=TrTrackR::kLinear;
+    track->Settrdefaultfit(TrTrackR::kLinear);
 
   else {  // AdvancedFit should be done only with B field
     if(track->DoAdvancedFit())

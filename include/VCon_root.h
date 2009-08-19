@@ -1,5 +1,5 @@
-#ifndef  __VCon_gb__
-#define  __VCon_gb__
+#ifndef  __VCon_root__
+#define  __VCon_root__
 #include "VCon.h"
 
 #include "root_RVS.h"

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.202 2009/06/11 13:51:24 choumilo Exp $
+//  $Id: amsgeom.C,v 1.203 2009/08/19 14:35:47 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -28,6 +28,7 @@
 #ifdef _PGTRACK_
 #include "MagField.h"
 #endif
+#include <strstream>
 
 namespace amsgeom{
 extern void tkgeom02(AMSgvolume &);

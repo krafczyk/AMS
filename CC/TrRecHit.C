@@ -17,20 +17,23 @@
 
 #include "TrRecHit.h"
 ClassImp(TrRecHitR);
-string TrRecHitR::sout;
+
+
 
 
 
 #ifdef __ROOTSHAREDLIBRARY__
+#ifdef _STANDALONE_
+#include "VCon_root2.h"
+#else
 #include "VCon_root.h"
+#endif
 VCon* TrRecHitR::vcon= new VCon_root();
 #else  
 #include "VCon_gbatch.h"
 VCon* TrRecHitR::vcon = new VCon_gb();
 #endif
 
-
-char TrRecHitR::INFO[500]={};
 
 TrRecHitR::TrRecHitR(void) {
   Clear();
@@ -55,9 +58,18 @@ TrRecHitR::TrRecHitR(const TrRecHitR& orig) {
 
 
 TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult) {
-  _tkid     = tkid;     
+  _tkid     = tkid;   
+  if(clX->GetTkId()!=_tkid|| clX->GetTkId()!=_tkid){
+    printf("TrRecHitR::TrRecHitR--> BIG problems you are building ans hit on Ladder %d  \n",_tkid);
+    printf("                                        with a cluster X from Ladder %d and \n",clX->GetTkId());
+    printf("                                        with a cluster Y from Ladder %d     \n",clY->GetTkId());
+  }
   _clusterX = clX;   
   _clusterY = clY;   
+  if(_clusterX->GetSide()!=0)
+    printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as X is on Y!!!!!  \n");
+  if(_clusterY->GetSide()!=1)
+    printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as Y is on X!!!!!  \n");
   VCon* cont2=vcon->GetCont("AMSTrCluster");
   _iclusterX = (_clusterX) ? cont2->getindex(_clusterX) : -1;
   _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;
@@ -131,24 +143,47 @@ void TrRecHitR::Clear() {
 }
 
 
-void TrRecHitR::Print() { 
-  Info();
-  cerr <<sout;
-}
-char* TrRecHitR::Info() { 
-  sout.clear();
-  sprintf(INFO,"tkid: %+03d (x,y,z)=(%10.4f,%10.4f,%10.4f)  corr: %8.4f  prob: %7.5f  stat: %2d\n",
-	  _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus());
-  sout.append(INFO);
-  sprintf(INFO,"mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
-	  _imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z());
-  sout.append(INFO);
-  return INFO;
+void TrRecHitR::Print(int opt){
+  _PrepareOutput(opt);
+  cout <<sout;
+
 }
 
-std::ostream &TrRecHitR::putout(std::ostream &ostr) const {
-  //AMSPoint aa=this->GetGlobalCoordinate();
-  return ostr << "TkId: " << GetTkId() <<"  Prob: "<<GetProb()<<endl;
+void TrRecHitR::_PrepareOutput(int opt) { 
+
+  sout.clear();
+
+  if(_imult>0) 
+    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f) corr: %8.4f  prob: %7.5f  stat: %2d\n",
+		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
+		     GetCorrelation(),GetProb(),getstatus()));
+  else 
+    sout.append(Form("tkid: %+03d Base Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  corr: %8.4f  prob: %7.5f  stat: %2d\n",
+		     _tkid,GetCoord(0).x(),GetCoord(0).y(),
+		     GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus()));
+  
+  if(!opt) return;
+
+  for(int ii=0;ii<_mult;ii++)
+    sout.append(Form("mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
+		     ii,GetCoord(ii).x(),GetCoord(ii).y(),GetCoord(ii).z()));
+}
+
+char *  TrRecHitR::Info(int iRef){
+  string aa;
+  aa.append(Form("TrRecHit #%d ",iRef));
+  _PrepareOutput(0);
+  aa.append(sout);
+  int len=MAXINFOSIZE;
+  if(aa.size()<len) len=aa.size();
+  strncpy(_Info,aa.c_str(),len);
+  return _Info;
+}
+
+std::ostream &TrRecHitR::putout(std::ostream &ostr)  {
+  _PrepareOutput(1);
+
+  return ostr << sout  << std::endl; 
     
 }
 

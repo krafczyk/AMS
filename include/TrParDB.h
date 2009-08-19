@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.1 2009/04/03 08:39:24 pzuccon Exp $
+// $Id: TrParDB.h,v 1.2 2009/08/19 14:36:04 pzuccon Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2009/08/19 14:36:04 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -115,7 +115,7 @@ class TrParDB :public TObject{
   } 
 
   //! Reset to zero all the param in the lib
-  void Clear();
+  void Clear(const Option_t*aa=0);
 
   ClassDef(TrParDB,2);
 };

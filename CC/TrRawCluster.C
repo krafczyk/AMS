@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.3 2009/08/17 12:53:54 pzuccon Exp $ 
+/// $Id: TrRawCluster.C,v 1.4 2009/08/19 14:35:47 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,20 +10,22 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/08/17 12:53:54 $
+/// $Date: 2009/08/19 14:35:47 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrRawCluster.h"
 #include <iostream>
+#include <string>
 
 using namespace std;
 ClassImp(TrRawClusterR);
 
 TrCalDB* TrRawClusterR::_trcaldb = NULL;
-string TrRawClusterR::sout;
+
+
 
 TrRawClusterR::TrRawClusterR(void) {
   Clear();
@@ -37,7 +39,7 @@ void TrRawClusterR::Clear() {
   _signal.clear();
 }
 
-TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig)  {
+TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
@@ -87,29 +89,35 @@ short TrRawClusterR::GetStatus(int ii) {
   return (short)ladcal->GetStatus(address);
 }
 
-std::ostream &TrRawClusterR::putout(std::ostream &ostr) const {
-  return ostr << "TkID: " << _tkid << " "
-              << "Addr: " << GetAddress() << " "
-              << "Nelm: " << GetNelem() << std::endl;
+std::ostream &TrRawClusterR::putout(std::ostream &ostr){
+  this->_PrepareOutput(1);
+  return ostr << sout << std::endl;
 }
 
 void TrRawClusterR::Print(int full) { 
-  Info(full);
+   _PrepareOutput(full);
   cout<<sout;
 }
 
-void TrRawClusterR::Info(int full) { 
-  char msg[1000];
+void TrRawClusterR::_PrepareOutput(int full) { 
   sout.clear();
-  sprintf(msg,"TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %6.3f\n ",
-	  GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal());
-  sout.append(msg);
+  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %6.3f\n ",
+		   GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal()));
   if(!full) return;
-  for (int ii=0; ii<GetNelem(); ii++) {
-    sprintf(msg,"Address: %4d  Signal: %10.5f  Sigma: %10.5f  Status: %3d\n",
-	   ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetStatus(ii));
-    sout.append(msg);
-  }
+  for (int ii=0; ii<GetNelem(); ii++) 
+    sout.append(Form("Address: %4d  Signal: %10.5f  Sigma: %10.5f  Status: %3d\n",
+	       ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetStatus(ii)));
+}
+
+char* TrRawClusterR::Info(int iRef){
+  string aa;
+  aa.append(Form("TrRawCluster #%d ",iRef));
+  _PrepareOutput(0);
+  aa.append(sout);
+  int len=MAXINFOSIZE;
+  if(aa.size()<len) len=aa.size();
+  strncpy(_Info,aa.c_str(),len);
+  return _Info;
 }
 
 int TrRawClusterR::GetSeedIndex(float thseed){

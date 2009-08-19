@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.3 2009/08/19 14:36:04 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2009/08/19 14:36:04 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -98,7 +98,7 @@ public:
 
 
   //! Reset to zero all the calibration in the lib
-  void Clear();
+  void Clear(const Option_t*aa=0);
 
   ClassDef(TrCalDB,2);
 };

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.9 2009/08/17 12:53:54 pzuccon Exp $
+// $Id: TrTrack.C,v 1.10 2009/08/19 14:35:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/17 12:53:54 $
+///$Date: 2009/08/19 14:35:47 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -36,12 +36,35 @@
 #include <cmath>
 #include <algorithm>
 
+
+ClassImp(TrTrackPar)
+
+void TrTrackPar::Print(int full){
+  printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
+	 Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
+  if(!full)return;
+  printf("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
+	 HitBits,ChisqX,NdofX,ChisqY,NdofY,Chisq);
+}
+void  TrTrackPar::Print_stream(std::string &ostr,int full){
+  ostr.append(Form("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
+		   Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]));
+  if(!full)return;
+  ostr.append(Form("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f/ \n",
+		   HitBits,ChisqX,NdofX,ChisqY,NdofY,Chisq));
+  return ;
+}
+
+
+
+
 ClassImp(TrTrackR);
-
-
-
 #ifdef __ROOTSHAREDLIBRARY__
+#ifdef _STANDALONE_
+#include "VCon_root2.h"
+#else
 #include "VCon_root.h"
+#endif
 VCon* TrTrackR::vcon= new VCon_root();
 #else  
 #include "VCon_gbatch.h"
@@ -359,42 +382,39 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   return GetChisq(id);
 }
 
-void TrTrackR::print(void)
-{
- //  std::cout << "AMSContainer:TrTrackR 0 Elements: " 
-// 	    << _event->NTrTracks << std::endl;
-//   for (int i = 0; i < _event->NTrTracks; i++)
-//     _event->GetTrTrack(i)->_printEl();
+void TrTrackR::Print(int opt){
+  _PrepareOutput(opt);
+  cout <<sout;
+
+}
+char *  TrTrackR::Info(int iRef){
+  string aa;
+  aa.append(Form("TrTrack #%d ",iRef));
+  _PrepareOutput(0);
+  aa.append(sout);
+  int len=MAXINFOSIZE;
+  if(aa.size()<len) len=aa.size();
+  strncpy(_Info,aa.c_str(),len);
+  return _Info;
+}
+std::ostream &TrTrackR::putout(std::ostream &ostr)  {
+  _PrepareOutput(1);
+
+  return ostr << sout  << std::endl; 
+    
 }
 
-void TrTrackR::myprint(void)
+void TrTrackR::_PrepareOutput(int full )
 {
-  cout << "Npars= " << _TrackPar.size() << endl;
-  for (map<int, TrTrackPar>::iterator it = _TrackPar.begin();
-       it != _TrackPar.end(); it++)
-    cout << it->first << " " << it->second.FitDone << endl;
-/*
-  printf("Tracks  \n");
-  for (int ii=0;ii<GetNhits();ii++)
-    printf(" %d pointer %X  index: %d\n ",ii,(unsigned int)_Hits[ii],_iHits[ii]);
-*/
+  sout.clear();
+  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d, MOn: %d DefFit: %s ",
+		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),
+		   _MagFieldOn,trdefaultfit));
+  TrTrackPar &bb=GetPar();
+  bb.Print_stream(sout,full);
+ 
 }
-
-void TrTrackR::printEl(std::ostream& ost )
-{
-  /// FastFit is assumed as Choutko fit
-  int id1 = kChoutko;
-  int id2 = kChoutko+kMultScat;
-  if (!ParExists(id1)) id1 = kLinear;
-  if (!ParExists(id2)) id2 = id1;
-  if (!ParExists(id1)) return;
-  ost << " Pattern " << _Pattern
-      << " Rigidity (no MS)" << GetRigidity(id1)
-      << " Rigidity (Fast) " << GetRigidity(id2)
-      << " Chi2Fast "  << GetChisq(id1)
-      << " ThetaFast " << GetTheta(id1)
-      << " PhiFast "   << GetPhi  (id1) << std::endl;
-}
+  
 
 
 
@@ -460,18 +480,6 @@ bool TrTrackR::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad,
 }
 
 
-#include <strstream>
-
-void TrTrackR::printEl(std::string& sout)
-{
-  char cc[1024];
-  strstream ost(cc, 1024);
-  printEl(ost);
-  sout.append(cc);
-}
-
-
-
 
 void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		   number& Theta, number& Phi, AMSPoint& X0) {
@@ -505,19 +513,3 @@ int TrTrackR::AdvancedFitDone() {
 }
 
 
-#ifndef __ROOTSHAREDLIB__
-#include "amsgobj.h"
-
-AMSTrTrackError::AMSTrTrackError(char * name){
-  if(name){
-    integer n=strlen(name)+1;
-    if(n>255)n=255;
-    strncpy(msg,name,n);
-  }
-  AMSgObj::BookTimer.stop("TrTrack",1);
-  AMSgObj::BookTimer.stop("RETKEVENT",1);
-  AMSgObj::BookTimer.stop("REAMSEVENT",1);
-  //  AMSEvent::gethead()->seterror(2);
-}
-char * AMSTrTrackError::getmessage(){return msg;}
-#endif

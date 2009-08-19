@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.75 2009/08/17 12:54:03 pzuccon Exp $
+#  $Id: Makefile,v 1.76 2009/08/19 14:36:45 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -184,10 +184,10 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
 	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
 	$(SCC)VCon.C  $(SCC)TrAlignFit.C\
-	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)TrFit.C $(SCC)MagField.C  $(SCC)TrElem.C
+	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)trrec.C $(SCC)TrFit.C $(SCC)MagField.C  $(SCC)TrElem.C
 
 TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
-	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C $(SCC)vtx.C
+	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C $(SCC)Vertex.C
 
 else
 
@@ -255,7 +255,7 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
 		../include/trrec.h \
-		../include/point.h  ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
+		../include/point.h  ../include/root_RV.h ../include/root.h  ../include/linkdef.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 endif
@@ -403,11 +403,11 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 
 lib: shared static 
 ifdef PGTRACK
-shared :     $(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
+shared :     $(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)Vertex_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O  $(SOFLAGS) $^  $(SHLDFLAGS) -o  $(SHLD)
 
-static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)vtx_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
+static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)Vertex_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."	
 	$(AR) rv $(NTLD) $^
 else
@@ -442,7 +442,7 @@ $(BIN)rootdict.C:  $(ROOTDICTFILES)
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $(ROOTDICT_CPPFLAGS)$^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h  $(ROOTDICTFILES)
+$(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h ../include/amschain.h $(ROOTDICTFILES)
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
@@ -475,7 +475,7 @@ $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 $(BIN)rnormx_s.o:         $(SCC)rnormx.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
-$(BIN)vtx_s.o:         $(SCC)vtx.C
+$(BIN)Vertex_s.o:         $(SCC)Vertex.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
 $(BIN)TrTrack_s.o:         $(SCC)TrTrack.C

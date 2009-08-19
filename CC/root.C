@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.188 2009/08/17 12:53:54 pzuccon Exp $
+//  $Id: root.C,v 1.189 2009/08/19 14:35:48 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -36,7 +36,6 @@
 #include "trrec.h"
 #include "astro.h"
 #include "amsdbc.h"
-#include "vtx.h"
 #include <values.h>
 #endif
 using namespace root;

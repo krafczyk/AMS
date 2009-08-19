@@ -1,10 +1,10 @@
-//  $Id: TrTrack.h,v 1.8 2009/08/17 12:53:47 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.9 2009/08/19 14:36:04 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
 //////////////////////////////////////////////////////////////////////////
 ///
-///\class TrTrackRPar
+///\class TrTrackPar
 ///\brief A class to manage reconstructed track parameters
 ///\ingroup tkrec
 ///
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/17 12:53:47 $
+///$Date: 2009/08/19 14:36:04 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,18 +52,13 @@
 
 class TrRecHitR;
 
-
-
-
-
+//! Class Used to represent the parameters coming as a result of a Track Fit
 class TrTrackPar {
 public:
   /// Fit done flag
   bool FitDone;
-
   /// Bits of hits used for the fitting e.g. 0x7f: Layer1 missing
   short int HitBits;
-
   /// Chisquare in X (Not normalized)
   Double32_t ChisqX;
   /// Chisquare in Y (Not normalized)
@@ -73,18 +68,15 @@ public:
   short int NdofX;
   /// Ndof in Y
   short int NdofY;
-
   /// Normalized chisquare, Chisq(x+y)/Ndof(x+y)
   /*!
    * Note: In case of kChoutko fitting _Chisq is not exactly the same 
    * as (_ChisqX+_ChisqY)/(_NdofX+_NdofY) because of X-Y correlation */
   Double32_t Chisq;
-
   /// Rigidity in GV
   Double32_t Rigidity;
   /// Fitting error on 1/rigidity in 1/GV
   Double_t ErrRinv;
-
   /// Track positon (normally defined at Z=0 plane)
   /*!
    * Note: Definition of P0 is different from original Gbatch 
@@ -94,7 +86,6 @@ public:
   /*!
    * Note: Theta and Phi can be obtained through AMSDir */
   AMSDir Dir;
-
   /// Fitting residual at each layer
   AMSPoint Residual[trconst::maxlay];
 
@@ -104,18 +95,14 @@ public:
       NdofX(0), NdofY(0), Chisq(0), Rigidity(0), ErrRinv(0), 
       P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {}
   ~TrTrackPar(){}
-  void Print(){
-    printf("Fit Done: %d, HitBits: %06d, ChisqX: %f, ChisqY: %f, Chisq: %f, NdofX: %d NdofY: %d \n",
-           FitDone,HitBits,ChisqX,ChisqY,Chisq,NdofX,NdofY);
-    printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
-           Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
-  }
+  void Print(int full=0);
+  void Print_stream(std::string &ostr,int full=0);
   ClassDef(TrTrackPar,1);
 } ; 
 
 
 //==============================================================================================================================
-//==============================================================================================================================
+//===================  TRACK CLASS =============================================================================
 //==============================================================================================================================
 
 class TrTrackR : public TrElem {
@@ -124,7 +111,7 @@ class TrTrackR : public TrElem {
 public:
   /// enum of fitting methods; trying to keep compatible with TKFITG
   enum EFitMethods { 
-    /// Track without hits (for RICH Compatibility)
+    /// Track witthout hits (for RICH Compatibility)
     kDummy         = -1, 
     /// V. Choutko  fit (5X5 matrix inv, mscat included) : Default final fit
     kChoutko       = 1,
@@ -144,7 +131,7 @@ public:
     /// Simple path integral method : Default fit for scanning
     kSimple        = 12
   };
-
+  
   /// enum of fitting options
   enum EFitOptions { 
     /// Multiple scattering switch
@@ -159,47 +146,21 @@ public:
   //==== Static members ===
 
 
-protected:
-  static geant _TimeLimit; //!
-
-  /// Number of points for half fit (default: 4)
-  static int NhitHalf;
-  int Status;
-
-public:
-  /// Virtual container
-  static VCon* vcon;
-
-
-public:
-  /// Default fit method ID to retrive parameters
-  static int DefaultFitID;
     
   // --- data members ---
-private:
-  /// maps of track parameters with the key as fitting method ID
-  map<int, TrTrackPar> _TrackPar;
-
-  /// The last successful TrFit object (not stored in ROOT Tree)
-  TrFit _TrFit;  //!
-
-  integer _MagFieldOn;
-
-public:  
+protected:
   /// Vector of hit pointers, to be not stored in ROOT Tree
   TrRecHitR* _Hits[trconst::maxlay]; //!
   /// Vector of hit values of magnetic field at track hits
-  AMSPoint  _BField[trconst::maxlay]; //!
+  AMSPoint  _BField[trconst::maxlay]; 
   /// Vector of hit index, to be stored in ROOT Tree instead of _Hits
   short int _iHits[trconst::maxlay];
   /// Vector of multiplicty index (to fix x-coord) 
   short int _iMult[trconst::maxlay];
-  
   /// Track pattern ID
   short int _Pattern;
   /// Number of hits
   short int _Nhits;
-
   /// Track pattern ID for hits with X(n)-cluster
   short int _PatternX;
   /// Track pattern ID for hits with Y(n)-cluster
@@ -212,14 +173,38 @@ public:
   short int _NhitsY;
   /// Number of hits with X- and Y-clusters
   short int _NhitsXY;
-
+  /// The last successful TrFit object (not stored in ROOT Tree)
+  TrFit _TrFit;  //!
+  /// maps of track parameters with the key as fitting method ID
+  map<int, TrTrackPar> _TrackPar;
+  //! Flag if the track was reconstructed with or without Magfield
+  bool _MagFieldOn;
   /// Rigidity & chi2 without alignment
   /*!
    * (for compatibility with Gbatch) */
   float DBase[2];
+  //! the default fit method used for this track
   int trdefaultfit;
-  
+  //! Track Status word
+  int Status;
+
+  static geant _TimeLimit; //!
+  /// Number of points for half fit (default: 4)
+  static int NhitHalf;
+  /// Virtual container
+  static VCon* vcon;
+
+  /// load the std::string sout with the info for a future output
+  void _PrepareOutput(int full=0);
+
+
 public:
+  /// Default fit method ID to retrive parameters
+  static int DefaultFitID;
+
+public:
+
+//############### CONSTRUCTORS & C. ############################
   /// Default constructor
   TrTrackR();
   /// Constructor with hits
@@ -242,15 +227,8 @@ public:
     _PatternX = patx; _PatternY = paty; _PatternXY = patxy;
   }
 
-  /// For Gbatch compatibility
-  uinteger checkstatus(integer checker) const{return Status & checker;}
-  uinteger getstatus() const{return Status;}
-  void     setstatus(uinteger status){Status=Status | status;}
-  void     clearstatus(uinteger status){Status=Status & ~status;} 
 
-
-  /// Build index vector (_iHits) from hits vector (_Hits)
-  void BuildHitsIndex();
+//#####################  ACCESSORS #########################
 
   // Access functions
   int getpattern() const { return _Pattern; }
@@ -264,13 +242,7 @@ public:
   int GetNhitsY   () const { return _NhitsY;    }
   int GetNhitsXY  () const { return _NhitsXY;   }
 
-  /// Check if _TrackPar[id]
-  bool ParExists(int id) { return (_TrackPar.find(id) != _TrackPar.end()); }
-
-  /// Get TrTrackPar with id
-  TrTrackPar &GetPar(int id = 0);
-
-  // Get fitting parameter with a key as Fitting method ID
+  // Get fitting parameter with a key as Fitting method ID 
   bool     FitDone     (int id= 0) { return GetPar(id).FitDone;  }
   int      GetHitBits  (int id= 0) { return GetPar(id).HitBits;  }
   double   GetChisqX   (int id= 0) { return GetPar(id).ChisqX;   }
@@ -280,7 +252,13 @@ public:
   int      GetNdofY    (int id= 0) { return GetPar(id).NdofY;    }
   double   GetRigidity (int id= 0) { return GetPar(id).Rigidity; }
   double   GetErrRinv  (int id= 0) { return GetPar(id).ErrRinv;  }
+  /// Get track entry point (first layer of the fitting)
+  AMSPoint GetPentry(int id = 0);
+  ///Returns the point of passage on the Z=0 XY plane
   AMSPoint GetP0       (int id= 0) { return GetPar(id).P0;       }
+  /// Get track entry point direction (first layer of the fitting)
+  AMSDir GetPdir(int id = 0);
+  ///Returns the direction at the point of passage on the Z=0 XY plane
   AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
   AMSPoint GetResidual (int ilay, int id= 0) { 
     return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
@@ -295,10 +273,11 @@ public:
   double   GetTheta    (int id= 0) { return GetDir(id).gettheta();}
   double   GetPhi      (int id= 0) { return GetDir(id).getphi();  }
 
-  /// Get track entry point (first layer of the fitting)
-  AMSPoint GetPentry(int id = 0);
-  /// Get track entry point direction (first layer of the fitting)
-  AMSDir GetPdir(int id = 0);
+  /// Check if _TrackPar[id]
+  bool ParExists(int id) { return (_TrackPar.find(id) != _TrackPar.end()); }
+
+  /// Get TrTrackPar with id
+  TrTrackPar &GetPar(int id = 0);
 
   /// Test HitBits
   bool TestHitBits(int layer, int id = 0) { 
@@ -307,11 +286,8 @@ public:
 
   /// Get the pointer to the i-th in the track
   TrRecHitR *GetHit(int i);
-
-
   /// Get the pointer to the i-th in the track
   TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
-
   /// Get the index of the i-th hit in the track within the hit vector
   int iTrRecHit(int i){return _iHits[i];}
   
@@ -329,6 +305,13 @@ public:
 
   /// Get TrFit object of the last fit
   TrFit *GetTrFit() { return &_TrFit; }
+  //!Returns the default fit method used for this track
+  int Gettrdefaultfit(){return trdefaultfit;}
+
+  //!Set the default fit method to be used for this track
+  void Settrdefaultfit(int def ){trdefaultfit=def;}
+
+//############## VARIUOS METHODS ###############
 
   /// Perform 3D fitting with the method specified by ID
   /*!
@@ -367,6 +350,18 @@ public:
   float SimpleFit(float *err) {
     return Fit(kSimple, -1, 0, err);
   }
+
+  /// For compatibility with ecalcalib.C
+  /*! "Advanced fit" is assumed to perform all the fitting: 
+   *   1: 1st harf, 2: 2nd harf, 6: with nodb, 4: "Fast fit" ims=0 and 
+   *   5: Juan with ims=1 */
+  int AdvancedFitDone();
+
+  /// For compatibility with ecalcalib.C
+  int DoAdvancedFit();
+
+  /// Build index vector (_iHits) from hits vector (_Hits)
+  void BuildHitsIndex();
   
   /// Interpolation onto Z=const. plane
   /*!
@@ -404,42 +399,30 @@ public:
 		      AMSPoint &P1, number &theta, number &phi,
 		      number &length, int id = 0);
 
-  /// Print tracks
-  static void print();
-  void myprint();
-
-  /// For compatibility with vtx.C
-  // double getpichi2() { return 1.; }
-
-  /// For compatibility with ecalcalib.C
-  //int GeaneFitDone() { return FitDone(kGEANE); }
-
-  /// For compatibility with ecalcalib.C
-  /*! "Advanced fit" is assumed to perform all the fitting: 
-   *   1: 1st harf, 2: 2nd harf, 6: with nodb, 4: "Fast fit" ims=0 and 
-   *   5: Juan with ims=1 */
-  int AdvancedFitDone();
-
-  /// For compatibility with ecalcalib.C
-  int DoAdvancedFit();
-
-
-
-  
- 
 
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		     number& Theta, number& Phi, AMSPoint& X0);
 
+  
+  /// Print Track basic information on a given stream 
+  std::ostream& putout(std::ostream &ostr = std::cout);
+ 
+  /// Print Track info (verbose if opt !=0 )
+  void  Print(int opt=0);
+  /// Return a string with hit infos (used for the event display)
+  char *Info(int iRef=0);
 
+  /// Stream out operator
+  friend std::ostream &operator << (std::ostream &ostr,  TrTrackR &Tr){
+    return Tr.putout(ostr);}
 
+  /// For Gbatch compatibility
+  uinteger checkstatus(integer checker) const{return Status & checker;}
+  uinteger getstatus() const{return Status;}
+  void     setstatus(uinteger status){Status=Status | status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;} 
 
-
-
-  void Info(int iref=0);
-  void printEl(std::ostream&);
-  void printEl(std::string&);
 
 
   /// For Gbatch compatibility
@@ -447,10 +430,7 @@ public:
   /// For Gbatch compatibility
   static geant GetTimeLimit() { return _TimeLimit; }
 
-
-
-
-
+ 
 
   /// ROOT definition
   ClassDef(TrTrackR, 1);
@@ -458,18 +438,5 @@ public:
 
 
 
-
-
-
-/// Class to handle some error messages
-class AMSTrTrackError{
-
-private:
-  char msg[256];
-
-public:
-  AMSTrTrackError(char*);
-  char *getmessage();
-};
 
 #endif

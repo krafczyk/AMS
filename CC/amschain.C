@@ -113,11 +113,9 @@ int  AMSChain::LoadUF(char* fname){
   if(!CC){
     setenv("CC","g++",0);
   }
-#ifdef _ICC
+
   sprintf(cmd,"$CC -m32  -Wno-deprecated -I$ROOTSYS/include -I../include -c %s.C",nameonly.c_str());
-#else
-  sprintf(cmd,"icc   -Wno-deprecated -I$ROOTSYS/include -I../include -c %s.C",nameonly.c_str());
-#ndif
+
   int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__

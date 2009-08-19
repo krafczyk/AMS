@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.1 2008/12/18 11:19:31 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.2 2009/08/19 14:35:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2008/12/18 11:19:31 $
+///$Date: 2009/08/19 14:35:47 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -56,7 +56,8 @@ TrCalDB::~TrCalDB(){
 }
 
 
-void TrCalDB::Clear(){
+void TrCalDB::Clear(const Option_t*aa){
+  TObject::Clear(aa);
   for ( trcalIT pp=trcal_hwidmap.begin();pp!=trcal_hwidmap.end();++pp)
     if(pp->second)  pp->second->Clear();
   if(linear) delete [] linear;

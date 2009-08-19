@@ -1,4 +1,4 @@
-//  $Id: typedefs.h,v 1.14 2008/12/08 15:15:19 choutko Exp $
+//  $Id: typedefs.h,v 1.15 2009/08/19 14:36:04 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __TYPEDEFS__
@@ -18,7 +18,7 @@ typedef unsigned long int ulong;
 typedef unsigned long long uint64;
 #include <assert.h>
 #include <iostream>
-#include <strstream>
+#include <sstream>
 //#pragma omp threadprivate (std::cout,std::cerr,std::cin,std::clog)
 
 using namespace std;

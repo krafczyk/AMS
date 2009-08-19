@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.2 2009/08/17 12:53:54 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.3 2009/08/19 14:35:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2009/08/17 12:53:54 $
+///$Date: 2009/08/19 14:35:47 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -18,10 +18,18 @@
 #include "TkCoo.h"
 #include "TkSens.h"
 #include "tkdcards.h"
-#include <cmath>
-#include "TrMCCluster.h"
-#include <cstdlib>
 
+#include "TrMCCluster.h"
+
+
+#include "TString.h"
+
+
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
+#include <vector>
+#include <string>
 
 
 ClassImp(TrMCClusterR);
@@ -122,7 +130,29 @@ int TrMCClusterR::GetTkId(){
   return tkid;
 }
 
-void TrMCClusterR::print(std::ostream & stream)
+std::ostream& TrMCClusterR::putout(std::ostream &ostr ){
+  _PrepareOutput(1);
+  ostr << sout;
+}
+
+
+void TrMCClusterR::Print(int opt) { 
+  _PrepareOutput(opt);
+  cout << sout;
+}
+
+char* TrMCClusterR::Info(int iRef){
+  string aa;
+  aa.append(Form("TrMCCluster #%d ",iRef));
+  _PrepareOutput(0);
+  aa.append(sout);
+  int len=MAXINFOSIZE;
+  if(aa.size()<len) len=aa.size();
+  strncpy(_Info,aa.c_str(),len);
+  return _Info;
+}
+
+void TrMCClusterR::_PrepareOutput(int full)
 {
 //int sensor = abs(_idsoft)/10000;
   int tkid   = abs(_idsoft)%1000;
@@ -130,18 +160,17 @@ void TrMCClusterR::print(std::ostream & stream)
   if(!ss) tkid*=-1;
 
   int layer = abs(tkid)/100;
-  stream << "Impinging Particle: "<<_itra<<" Px: "<<_Momentum[0]
-	 <<" Py: "<<_Momentum[1]<<" Pz: "<<_Momentum[2]<<endl;
-  stream << "TrMCClusterR-Shower x "<<_itra<<" "<<layer<<" "
-         << _left[0]<< " "<<_center[0]<<" "<<_right[0]<<" "
-	 <<_ss[0][0]<<" "<<_ss[0][1]<<" "<<_ss[0][2]<<" "
-	 <<_ss[0][3]<<" "<<_ss[0][4]<< std::endl;
-  stream << "TrMCClusterR-Shower y "<<_itra<<" "<<layer<<" "
-         << _left[1]<< " "<<_center[1]<<" "<<_right[1]<<" "
-	 <<_ss[1][0]<<" "<<_ss[1][1]<<" "<<_ss[1][2]<<" "
-	 <<_ss[1][3]<<" "<<_ss[1][4]<< std::endl;
-  stream << "TrMCClusterR-Coo "<<tkid<<" "<<_idsoft<<" "<<layer<<" "
-	 <<_xca<<" "<<_xcb<<" "<<_xgl<< std::endl;
+  sout.append(Form("Impinging Particle: %d on tkid: %+03d Sens: %d X:%f Y%f z%f  Px: %f Py: %f Pz: %f\n",
+		   _itra,GetTkId(),GetSensor(),
+		   _xca[0],_xca[1],_xca[2],_Momentum[0],_Momentum[1],_Momentum[2]));
+  
+  if(!full) return;
+  sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
+		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
+  sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
+		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
+ //  sout.append( "TrMCClusterR-Coo  %d  %d %d "<<tkid<<" "<<_idsoft<<" "<<layer<<" "
+// 	       <<_xca<<" "<<_xcb<<" "<<_xgl<< std::endl);
 }
 
 

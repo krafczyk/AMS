@@ -45,7 +45,7 @@ public:
   /// Default destructor
   ~TrLadPar(){}
   /// Clear data members
-  void Clear();
+  void Clear(const Option_t* aa=0);
 
   /// Get the HwId
   short int GetHwId() const   { return _hwid; }

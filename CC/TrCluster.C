@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.3 2009/08/17 12:53:54 pzuccon Exp $ 
+/// $Id: TrCluster.C,v 1.4 2009/08/19 14:35:47 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/08/17 12:53:54 $
+/// $Date: 2009/08/19 14:35:47 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +30,7 @@ ClassImp(TrClusterR);
 
 TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
-string   TrClusterR::sout;
+
 int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
 int      TrClusterR::DefaultUsedStrips = 3;
 
@@ -38,7 +38,7 @@ TrClusterR::TrClusterR(void) {
   Clear();
 }
 
-TrClusterR::TrClusterR(const TrClusterR &orig) {
+TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
@@ -150,32 +150,37 @@ void TrClusterR::BuildCoordinates() {
 }
 
 void TrClusterR::Print(int opt) { 
-  Info(opt);
+  _PrepareOutput(opt);
   cout << sout;
 }
 
-void TrClusterR::Info(int opt) { 
-  char msg[1000];
+void TrClusterR::_PrepareOutput(int opt){
   sout.clear();
-  sprintf(msg,"TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %d Signal:  %f\n",
-          GetTkId(),GetSide(),GetAddress(),GetNelem(),getstatus(),GetTotSignal(opt) );
-  sout.append(msg);
-  char isseed[10];
+  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %d Signal:  %f\n",
+		   GetTkId(),GetSide(),GetAddress(),GetNelem(),getstatus(),GetTotSignal(DefaultCorrOpt)));
+  if(!opt) return;
   for (int ii=0; ii<GetNelem(); ii++) {
-    sprintf(isseed," ");
-    if (ii==GetSeedIndex()) sprintf(isseed,"<<< SEED");
-    sprintf(msg,"Address: %4d  Signal: %10.5f  Sigma: %10.5f  S/N: %10.5f  Status: %3d  %10s\n",
-           GetAddress(ii),GetSignal(ii,opt),GetSigma(ii),GetSN(ii,opt),GetStatus(ii),isseed);
-    sout.append(msg);
+    sout.append(Form("Address: %4d  Signal: %10.5f  Sigma: %10.5f  S/N: %10.5f  Status: %3d  ",
+		      GetAddress(ii),GetSignal(ii,DefaultCorrOpt),GetSigma(ii),GetSN(ii,DefaultCorrOpt),GetStatus(ii)));
+    if (ii==GetSeedIndex()) sout.append("<<< SEED\n");
+    else sout.append(" \n");
   }
 }
 
-std::ostream &TrClusterR::putout(std::ostream &ostr) const {
-  return ostr << "TkID:   " << GetTkId()    << " "
-              << "Side:   " << GetSide()    << " "
-              << "Addr:   " << GetAddress() << " "
-              << "Nelm:   " << GetNelem()   << " " 
-              << "Status: " << getstatus()  << std::endl;
+char* TrClusterR::Info(int iRef){
+  string aa;
+  aa.append(Form("TrCluster #%d ",iRef));
+  _PrepareOutput(0);
+  aa.append(sout);
+  int len=MAXINFOSIZE;
+  if(aa.size()<len) len=aa.size();
+  strncpy(_Info,aa.c_str(),len);
+  return _Info;
+}
+
+std::ostream &TrClusterR::putout(std::ostream &ostr) {
+  _PrepareOutput(1);
+  return ostr << sout  << std::endl;
 }
 
 float TrClusterR::GetSignal(int ii, int opt) {

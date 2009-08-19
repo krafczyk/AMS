@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.103 2009/08/17 12:53:47 pzuccon Exp $
+//  $Id: trrec.h,v 1.104 2009/08/19 14:36:04 pzuccon Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -34,6 +34,7 @@ class AMSTRDTrack;
 #include "cont.h"
 #include "event.h"
 #include <vector>
+#include "vtx.h"
 
 using namespace std;
 
@@ -507,7 +508,7 @@ friend class AMSTrCalibFit;
 #include "TrCluster.h"
 #include "TrRecHit.h"
 #include "TrTrack.h"
-#include "vtx.h"
+#include "Vertex.h"
 
 class AMSTrMCCluster: public TrMCClusterR, public AMSlink {
 
@@ -693,12 +694,21 @@ public:
   //  ClassDef(AMSVtx,0)
 
 };
-#endif
 
 
 
+/// Class to handle some error messages
+class AMSTrTrackError{
+
+private:
+  char msg[256];
+
+public:
+  AMSTrTrackError(char*);
+  char *getmessage();
+};
 
 
-
+#endif //PGTRACK
 
 #endif

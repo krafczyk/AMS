@@ -1,5 +1,6 @@
-#ifdef _PGTRACK_
+#include <strstream>
 
+#ifdef _PGTRACK_
 #include "gvolume.h"  // for AMSgvolume
 
 #include "TkDBc.h"
@@ -7,7 +8,6 @@
 #include "TkPlane.h"
 #include "TkCoo.h"
 
-#include <strstream>
 namespace amsgeom{
 extern void tkgeom02(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);

@@ -1,4 +1,4 @@
-//  $Id: TrParDB.C,v 1.1 2009/04/03 08:39:15 pzuccon Exp $
+//  $Id: TrParDB.C,v 1.2 2009/08/19 14:35:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrParDB class
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2009/04/03 08:39:15 $
+///$Date: 2009/08/19 14:35:47 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -112,7 +112,8 @@ void TrParDB::PrintInfo() {
 }
 
 
-void TrParDB::Clear(){
+void TrParDB::Clear(const Option_t*aa){
+  TObject::Clear(aa);
   for ( trparIT pp=trpar_hwidmap.begin();pp!=trpar_hwidmap.end();++pp)
     if(pp->second)  pp->second->Clear();
   if(linear) delete [] linear;
@@ -166,6 +167,13 @@ void TrParDB::Lin2ParDB(){
 
 
 void SLin2parDB(){
+  if(TrParDB::Head)
+    TrParDB::Head->Lin2ParDB();
+  return;
+}
+
+
+void SLin2ParDB(){
   if(TrParDB::Head)
     TrParDB::Head->Lin2ParDB();
   return;

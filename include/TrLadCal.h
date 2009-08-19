@@ -99,7 +99,7 @@ public:
   /// Default destructor
   ~TrLadCal(){}
   /// Clear data members
-  void Clear();
+  void Clear(const Option_t*aa=0);
   /// Fill the data members by the DSP block 
   void Fill(CaloutDSP* cc);
 

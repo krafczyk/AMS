@@ -32,7 +32,8 @@ TrLadPar::TrLadPar(const TrLadPar& orig):TObject(orig){
   for (int ii=0; ii<16; ii++) _vagain[ii] = orig._vagain[ii];
 }
 
-void TrLadPar::Clear(){
+void TrLadPar::Clear(const Option_t* aa){
+  TObject::Clear(aa);
   _filled=0;
   for (int ii=0; ii< 2; ii++) _gain[ii]   = 1.;
   for (int ii=0; ii<16; ii++) _vagain[ii] = 1.;

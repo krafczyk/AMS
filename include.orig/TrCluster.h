@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2009/08/17 12:53:47 $
+ $Date: 2009/08/19 14:36:04 $
 
- $Revision: 1.3 $
+ $Revision: 1.4 $
 
 */
 
@@ -64,20 +64,9 @@ class TrClusterR :public TrElem{
     /// Total Signal Corr.: P/N Normalization Correction     
     kPN           = 0x20
   };
-  static int DefaultCorrOpt;
-  static int DefaultUsedStrips;
-
+ 
  protected:
 
-  /// Multiplicity 
-  short int     _mult;   
-  /// Local coordinate by multiplicity index 
-  vector<float> _coord;  
-  /// Global coordinate by multiplicity index
-  vector<float> _gcoord; 
- /// Cluster status 
-  unsigned int Status;
- public:
   
   /// TkLadder ID (layer *100 + slot)*side 
   short int    _tkid;
@@ -90,21 +79,37 @@ class TrClusterR :public TrElem{
   /// ADC data array
   std::vector<float> _signal;
   
-  /// tan(ThetaXZ)
+  /// tan(ThetaXZ) of the incoming track (used for optimization of the track fitting)
   float        _dxdz;
-  /// tan(ThetaYZ)
+  /// tan(ThetaYZ) of the incoming track (used for optimization of the track fitting)
   float        _dydz;
-  
+
+  /// Multiplicity (on p side sould be 1 on n side it is ladder dependent)
+  short int     _mult;   
+  /// Local coordinate by multiplicity index 
+  vector<float> _coord;  
+  /// Global coordinate by multiplicity index
+  vector<float> _gcoord; 
+ /// Cluster status 
+  unsigned int Status;
+
  protected:
   
   /// Pointer to the calibration database
   static TrCalDB* _trcaldb;
   /// Pointer to the parameters database
   static TrParDB* _trpardb;
+  static int DefaultCorrOpt;
+  static int DefaultUsedStrips;
+
+  /// load the std::string sout with the info for a future output
+  void _PrepareOutput(int full=0);
+  
  
  public:
   
-  /// Default constructor
+//################    CONSTRUCTORS & C.   ################################
+  /// Default constructor 
   TrClusterR(void);
   /// Constructor with data
   TrClusterR(int tkid, int side, int add, int nelem, int seedind, float* adc, unsigned int status);
@@ -118,28 +123,7 @@ class TrClusterR :public TrElem{
   /// Clear
   void Clear();
 
-  /// Insert a strip in the cluster
-  void push_back(float adc);
-  /// Using this calibration database
-  static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
-  /// Get the current calibration database
-  TrCalDB*    GetTrCalDB() { return _trcaldb; }
-  /// Using this parameter database
-  static void UsingTrParDB(TrParDB* trpardb) { _trpardb = trpardb; }
-  /// Get the current parameter database
-  TrParDB*    GetTrParDB() { return _trpardb; }
-
-  /// Set track interpolation angle tan(ThetaXZ)
-  inline void  SetDxDz(float dxdz) { _dxdz = dxdz; }
-  /// Set track interpolation angle tan(ThetaYZ)
-  inline void  SetDyDz(float dydz) { _dydz = dydz; }
-  /// Get track interpolation angle tan(ThetaXZ)
-  inline float GetDxDz()  { return _dxdz; }
-  /// Get track interpolation angle tan(ThetaYZ)
-  inline float GetDyDz()  { return _dydz; }
-  /// Get track interpolation angle theta
-  inline float GetTheta() { return acos(1./(1.+_dxdz*_dxdz+_dydz*_dydz)); }
-
+//################    ACCESSORS  ########################################
   /// Get ladder TkId identifier 
   int   GetTkId()          const { return _tkid; }
   /// Get ladder layer
@@ -156,36 +140,8 @@ class TrClusterR :public TrElem{
   float GetX(int ii, int imult = 0) { return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); }
   /// Get the cluster strip multiplicity
   int   GetNelem()         const { return _nelem; }
+  /// Get the cluster strip multiplicity
   int   GetLength()              { return GetNelem(); }
-
-
-  /// chek some bits into cluster status
-  uinteger checkstatus(integer checker) const{return Status & checker;}
-  /// Get cluster status
-  uinteger getstatus() const{return Status;}
-  /// Set cluster status
-  void     setstatus(uinteger status){Status=Status | status;}
-  /// Clear cluster status
-  void     clearstatus(uinteger status){Status=Status & ~status;}
-
-  /// Get i-th strip signal
-  float GetSignal(int ii, int opt = DefaultCorrOpt);
-  /// Get i-th strip noise (from calibration)
-  float GetSigma(int ii) { return GetNoise(ii);  }
-  float GetNoise(int ii);   
-  /// Get i-th signal to noise ratio 
-  float GetSN(int ii, int opt = DefaultCorrOpt) { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); }
-  /// Get i-th strip status (from calibration)
-  short GetStatus(int ii);
-
-  /// Build the coordinates (with multiplicity)
-  void  BuildCoordinates();
-  /// Get multiplicity
-  int   GetMultiplicity();
-  /// Get global coordinate by multiplicity index
-  float GetCoord(int imult); 
-  /// Get global coordinate by multiplicity index
-  float GetGCoord(int imult);
 
   /// Get the seed index 
   int   GetSeedIndex(int opt = DefaultCorrOpt);
@@ -204,6 +160,26 @@ class TrClusterR :public TrElem{
 
   /// Get cluster amplitude
   float GetTotSignal(int opt = DefaultCorrOpt);
+
+  /// Get i-th strip signal
+  float GetSignal(int ii, int opt = DefaultCorrOpt);
+  /// Get i-th strip noise (from calibration)
+  float GetSigma(int ii) { return GetNoise(ii);  }
+  /// Get i-th strip noise (from calibration)
+  float GetNoise(int ii);   
+  /// Get i-th signal to noise ratio 
+  float GetSN(int ii, int opt = DefaultCorrOpt) { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); }
+  /// Get i-th strip status (from calibration)
+  short GetStatus(int ii);
+
+
+  /// Get multiplicity
+  int   GetMultiplicity();
+  /// Get global coordinate by multiplicity index
+  float GetCoord(int imult); 
+  /// Get global coordinate by multiplicity index
+  float GetGCoord(int imult);
+
 
   /// Get cluster bounds for a given number of strips (gerarchic order...)  
   /*           _        
@@ -238,17 +214,70 @@ class TrClusterR :public TrElem{
   float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); } 
 
 
+//################  SPECIAL METHODS  ########################################
+
+  /// Build the coordinates (with multiplicity)
+  void  BuildCoordinates();
+
+  /// Insert a strip in the cluster
+  void push_back(float adc);
+
+  /// Set track interpolation angle tan(ThetaXZ)
+  inline void  SetDxDz(float dxdz) { _dxdz = dxdz; }
+  /// Set track interpolation angle tan(ThetaYZ)
+  inline void  SetDyDz(float dydz) { _dydz = dydz; }
+  /// Get track interpolation angle tan(ThetaXZ)
+  inline float GetDxDz()  { return _dxdz; }
+  /// Get track interpolation angle tan(ThetaYZ)
+  inline float GetDyDz()  { return _dydz; }
+  /// Get track interpolation angle theta
+  inline float GetTheta() { return acos(1./(1.+_dxdz*_dxdz+_dydz*_dydz)); }
+
+
+
+  /// chek some bits into cluster status
+  uinteger checkstatus(integer checker) const{return Status & checker;}
+  /// Get cluster status
+  uinteger getstatus() const{return Status;}
+  /// Set cluster status
+  void     setstatus(uinteger status){Status=Status | status;}
+  /// Clear cluster status
+  void     clearstatus(uinteger status){Status=Status & ~status;}
+
+  /// Using this calibration database
+  static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
+  /// Get the current calibration database
+  TrCalDB*    GetTrCalDB() { return _trcaldb; }
+  /// Using this parameter database
+  static void UsingTrParDB(TrParDB* trpardb) { _trpardb = trpardb; }
+  /// Get the current parameter database
+  TrParDB*    GetTrParDB() { return _trpardb; }
+
+  ///  Get DefaultCorrOpt
+  static int GetDefaultCorrOpt() {return DefaultCorrOpt;}
+  /// Get DefaultUsedStrips
+  static int GetDefaultUsedStrips() {return DefaultUsedStrips;}
+  /// Set DefaultCorrOpt
+  static void SetDefaultCorrOpt(int def)    {DefaultCorrOpt=def;}
+  /// Set DefaultUsedStrips
+  static void SetDefaultUsedStrips(int def) {DefaultUsedStrips=def;}
+
+
+//################ PRINTOUT  ########################################
+
   /// Print cluster basic information
-  std::ostream& putout(std::ostream &ostr = std::cout) const;
-  friend std::ostream &operator << (std::ostream &ostr, const TrClusterR &cls) { return cls.putout(ostr); }
-  /// Print cluster strip variables (A: apply asimmetry correction, G: apply gain correction)
-  void Print(int opt = DefaultCorrOpt);
-  void Info(int opt = DefaultCorrOpt);
+  std::ostream& putout(std::ostream &ostr = std::cout);
+  /// ostream operator
+  friend std::ostream &operator << 
+    (std::ostream &ostr,  TrClusterR &cls) { 
+    return cls.putout(ostr); 
+  }
 
-  static string sout;
+  /// Print cluster strip variables (printop >0 --> verbose) 
+  void Print(int printopt =0);
+  /// Return a string with some info (used for event display)
+  char* Info(int iRef);
 
-
-  
 
   /// ROOT definition
   ClassDef(TrClusterR, 1)

@@ -98,7 +98,8 @@ TrLadCal::TrLadCal(const TrLadCal& orig):TObject(orig){
 }
 
 
-void TrLadCal::Clear(){
+void TrLadCal::Clear(const Option_t*aa){
+  TObject::Clear(aa);
   _filled=0;
   memset(_Pedestal,0,sizeof(_Pedestal[0])*1024);
   memset(_SigmaRaw,0,sizeof(_SigmaRaw[0])*1024);

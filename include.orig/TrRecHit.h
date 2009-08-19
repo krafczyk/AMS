@@ -20,9 +20,10 @@
 ///\date  2008/02/19 AO  New data format 
 ///\date  2008/02/22 AO  Temporary clusters reference  
 ///\date  2008/02/26 AO  Local and global coordinate (TkCoo.h)
-///\data  2008/03/06 AO  Changing some data members and methods
-///\data  2008/04/12 AO  From XEta to XCofG(3) (better for inclination)
-///\data  2008/11/29 SH  _dummyX added, _residual moved to TrTrack
+///\date  2008/03/06 AO  Changing some data members and methods
+///\date  2008/04/12 AO  From XEta to XCofG(3) (better for inclination)
+///\date  2008/11/29 SH  _dummyX added, _residual moved to TrTrack
+///\date  2009/08/16 PZ  General revison -- new inheritance scheme - std printout
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <string>
@@ -39,17 +40,13 @@
 
 class TrRecHitR : public TrElem {
 
-  static char INFO[500];
+  
 
 protected:
   /// Pointer to the X (n-side) TrClusterR in the fTrClusterR collection
   TrClusterR*  _clusterX; //!
   /// Pointer to the Y (p-side) TrClusterR in the fTrClusterR collection
   TrClusterR*  _clusterY; //!
-  /// Hit status (...)
-  int   Status;
-  
-public:
   /// TkLadder ID
   short int   _tkid;
   /// Correlation between X and Y
@@ -70,10 +67,17 @@ public:
   /// Y Cluster index
   int _iclusterY;
 
-  static string sout;
+  /// Hit status (...)
+  int   Status;
+  //! pointer for the Virtual Container Acceess feature
   static VCon* vcon;
 
+  /// load the std::string sout with the info for a future output
+  void _PrepareOutput(int full=0);
+
  public:
+
+//################# CONSTRUCTOR & C ########################
   /// Default constructor
   TrRecHitR(void);
   /// Copy constructor
@@ -84,57 +88,48 @@ public:
   virtual ~TrRecHitR();
   /// Clear data members
   void Clear();
-  
   /// Build coordinates
   void BuildCoordinates();
 
+//####################  ACCESSORS ##############################
+  
   /// Get ladder TkId identifier 
   int   GetTkId()        const { return _tkid; }
   /// Get ladder layer
   int   GetLayer()       const { return abs(_tkid/100); }
   /// Get ladder slot
   int   GetSlot()        const { return abs(_tkid%100); }
-  /// Get correlation between the X and Y clusters
-  float GetCorrelation() const { return _corr;   }
-  /// Get probability of correlation between the X and Y clusters 
-  float GetProb()        const { return _prob;   }
-/// chek some bits into cluster status
-  uinteger checkstatus(integer checker) const{return Status & checker;}
-  /// Get cluster status
-  uinteger getstatus() const{return Status;}
-  /// Set cluster status
-  void     setstatus(uinteger status){Status=Status | status;}
-  /// Clear cluster status
-  void     clearstatus(uinteger status){Status=Status & ~status;}
   /// Get the pointer to X cluster
   TrClusterR* GetXCluster();
-
   /// Get the pointer to Y cluster
   TrClusterR* GetYCluster();
-
   /// Get the index of X cluster
   int GetXClusterIndex() const { return _iclusterX; }
   /// Get the index of Y cluster
   int GetYClusterIndex() const { return _iclusterY; }
-
   /// Get the hit multiplicity 
   int   GetMultiplicity()      { return _mult; }
-  /// Get the computed global coordinate ny multiplicity index
+  /// Returns the computed global coordinate (if resolved)
+  AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) ? _coord[_imult] : AMSPoint(0, 0, 0); }
+  /// Get the computed global coordinate by multiplicity index
   AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates(); return _coord[imult]; }
+  /// Returns the errors on the computed global coordinate (if resolved)
+  AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
+  /// Get correlation between the X and Y clusters
+  float GetCorrelation() const { return _corr;   }
+  /// Get probability of correlation between the X and Y clusters 
+  float GetProb()        const { return _prob;   }
   /// Get the resolved multiplicity index (-1 if not resolved)
   int   GetResolvedMultiplicity() { return _imult; }
   /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { _imult = im; }
-  /// Returns the computed global coordinate (if resolved)
-  AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) ? _coord[_imult] : AMSPoint(0, 0, 0); }
-  /// Returns the errors on the computed global coordinate (if resolved)
-  AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
+
 
   /// Get dummy strip position
   float GetDummyX() { return _dummyX; }
   /// Set dummy strip position
   void SetDummyX(float dumx) { _dummyX = dumx; }
-
+  /// Returns the signal of the Y cluster 
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
   /// Get X local coordinate (ladder reference frame)
   float GetXloc(int imult = 0) { return (!GetXCluster())?TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult)
@@ -151,14 +146,26 @@ public:
   bool OnlyX() {return checkstatus(XONLY);}
   bool OnlyY(){ return checkstatus(YONLY);}
 
-  /// Print cluster basic information
-  std::ostream& putout(std::ostream &ostr = std::cout) const;
-  friend std::ostream &operator << (std::ostream &ostr, const TrRecHitR &hit) { return hit.putout(ostr); } 
-  /// Print hit  
-  void  Print();
-  char *Info();
 
-  void printEl(std::ostream& ostr){ putout(ostr);}
+  /// chek some bits into cluster status
+  uinteger checkstatus(integer checker) const{return Status & checker;}
+  /// Get cluster status
+  uinteger getstatus() const{return Status;}
+  /// Set cluster status
+  void     setstatus(uinteger status){Status=Status | status;}
+  /// Clear cluster status
+  void     clearstatus(uinteger status){Status=Status & ~status;}
+
+
+  /// Print clusterRec hit  basic information  on a given stream 
+  std::ostream& putout(std::ostream &ostr = std::cout);
+  friend std::ostream &operator << (std::ostream &ostr,  TrRecHitR &hit){
+    return hit.putout(ostr);}
+  /// Print hit info (verbose if opt !=0 )
+  void  Print(int opt=0);
+  /// Return a string with hit infos (used for the event display)
+  char *Info(int iRef=0);
+
 
 
 
