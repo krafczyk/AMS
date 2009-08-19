@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.76 2009/08/19 14:36:45 pzuccon Exp $
+#  $Id: Makefile,v 1.77 2009/08/19 18:29:50 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -146,14 +146,16 @@ INCS= $(wildcard ../include/*.h)
 
 
 # Base AMS Classes
-AMS_BASE=  $(SCC)apool.C   $(SCC)amsdbc.C   $(SCC)amsgobj.C  \
-                $(SCC)astring.C $(SCC)commonsi.C $(SCC)cont.C    $(SCC)id.C \
-                $(SCC)link.C    $(SCC)node.C     $(SCC)point.C   $(SCC)snode.C \
-                $(SCC)upool.C $(SCC)uzstat.C
-
+AMS_BASE=     $(SCC)amsdbc.C  $(SCC)astring.C     $(SCC)id.C  $(SCC)point.C  
 
 AMS_BASEO=$(AMS_BASE:$(SCC)%.C=$(BIN)%.o)
 COMMON_FILES+= $(AMS_BASE)
+
+# Base GBATCH Classes
+GBATCH_BASE = $(SCC)amsgobj.C $(SCC)link.C $(SCC)commonsi.C   $(SCC)node.C   $(SCC)snode.C \
+	        $(SCC)cont.C  $(SCC)upool.C $(SCC)uzstat.C $(SCC)apool.C
+
+COMMON_FILES+=$(GBATCH_BASE)
 
 #Geant Interface
 COMMON_FILES +=	$(SCC)commons.C    $(SCC)gvolume.C $(SCC)amsgeom.C $(SFF)Geant3_utils.F  \
@@ -184,10 +186,10 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
 	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
 	$(SCC)VCon.C  $(SCC)TrAlignFit.C\
-	$(SCC)TrPatt.C  $(SCC)TrRecon.C $(SCC)trrec.C $(SCC)TrFit.C $(SCC)MagField.C  $(SCC)TrElem.C
+	$(SCC)TrPatt.C    $(SCC)TrFit.C $(SCC)MagField.C  $(SCC)TrElem.C
 
 TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
-	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C $(SCC)Vertex.C
+	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C $(SCC)Vertex.C $(SCC)TrRecon.C $(SCC)trrec.C
 
 else
 
@@ -403,11 +405,17 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 
 lib: shared static 
 ifdef PGTRACK
-shared :     $(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)Vertex_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
+
+PGLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)Vertex_s.o \
+	$(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o \
+	$(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o
+shared :  $(PGLIBO)
+	echo $(PGLIBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O  $(SOFLAGS) $^  $(SHLDFLAGS) -o  $(SHLD)
 
-static : $(AMS_BASEO) $(TRACK_BASEO)  $(BIN)Vertex_s.o $(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o 
+static :  $(PGLIBO)
+	@rm -f $(NTLD)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."	
 	$(AR) rv $(NTLD) $^
 else
@@ -479,6 +487,9 @@ $(BIN)Vertex_s.o:         $(SCC)Vertex.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
 $(BIN)TrTrack_s.o:         $(SCC)TrTrack.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
+
+$(BIN)TrRecon_s.o:         $(SCC)TrRecon.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
 $(BIN)TrRecHit_s.o:         $(SCC)TrRecHit.C
