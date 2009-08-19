@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.25 2009/01/06 10:07:39 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.26 2009/08/19 23:32:54 pzuccon Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.26  2009/08/19 23:32:54  pzuccon
+* Adapt PGTRACK to std Bfield + some bugfix
+*
 * Revision 1.25  2009/01/06 10:07:39  choutko
 * name critical pragmas
 *
@@ -164,7 +167,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.25 2009/01/06 10:07:39 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.26 2009/08/19 23:32:54 pzuccon Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -5204,33 +5207,6 @@ c           clear=1
            derl(i)=(der(i,1)+der(i,2))*2.997e-4*0.5
           enddo
                end
-CDECK  ID>, TKFLDC. 
-          subroutine tkfldc(xx,hxy)
-          common /tkigufldC/i,j,xxy(3)
-          real xx(3),hxy(3,3)
-          real *8 xval,hbase,der(14),erest(14),tkigufld
-          external tkigufld
-          do i=1,3
-            do j=1,3
-          ifail=1
-          nder=1
-          hbase=0.5
-          call ucopy(xx(1),xxy(1),3)
-          xval=xx(i)
-          call d04aaf(XVAL, NDER, HBASE, DER, EREST,
-     +    tkigufld,ifail)
-            hxy(j,i)=der(1)
-            enddo
-          enddo
-          end
-          real *8 function tkigufld(x)
-          common /tkigufldC/i,j,xx(3)
-          real h(3)
-          real *8 x
-          xx(i)=x
-          call gufld(xx,h)
-          tkigufld=h(j)
-          end
            function aycos(y)
             x=y
             if(x.gt.1.)x=1.
@@ -7794,9 +7770,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.25 2009/01/06 10:07:39 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.26 2009/08/19 23:32:54 pzuccon Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.26  2009/08/19 23:32:54  pzuccon
+* Adapt PGTRACK to std Bfield + some bugfix
+*
 * Revision 1.25  2009/01/06 10:07:39  choutko
 * name critical pragmas
 *

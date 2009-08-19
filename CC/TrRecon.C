@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.10 2009/08/19 18:29:25 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.11 2009/08/19 23:32:49 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/19 18:29:25 $
+/// $Date: 2009/08/19 23:32:49 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +33,8 @@
 #ifndef __ROOTSHAREDLIBRARY__
 #include "trrec.h"
 #endif
+
+extern MAGSFFKEY_DEF MAGSFFKEY;
 
 VCon* TrRecon::TRCon=0;
 
@@ -790,7 +792,7 @@ if (TrDEBUG >= 1) {\
   }\
   cout << endl;\
   int id;\
-  if (MAGSFFKEY.magstat>0) {\
+  if (MagFieldOn()) {				\
     id = TrTrackR::kSimple;\
     track->Fit(id);\
     cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
@@ -854,7 +856,7 @@ double TrRecon::ErrXForScan       = 300e-4;
 double TrRecon::ErrYForScan       = 300e-4;
 
 int TrRecon::TrDEBUG = 0;
-int TrRecon::PZDEBUG = 4;
+int TrRecon::PZDEBUG = 0;
 
 //========================================================
 // HitPatterns
@@ -1155,7 +1157,7 @@ bool TrRecon::PreScan(int nlay, TrHitIter &it) const
   if (nlay == 0) return true;
 
   // Obtain linear interpolation parameters
-  if (MAGSFFKEY.magstat <= 0 || it.side == 0) {
+  if (!MagFieldOn() || it.side == 0) {
     if (nlay == 1) { 
       AMSPoint pos0 = it.coo[it.ilay[0]];
       AMSPoint pos1 = it.coo[it.ilay[1]];
@@ -1230,7 +1232,7 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
                          it.ilay[nlay-1] = swp;
 
   // swap 3rd and middle layer for the bending side
-  if (it.side == 1 && MAGSFFKEY.magstat>0) {
+    if (it.side == 1 && MagFieldOn()) {
     swp = it.ilay[2]; 
           it.ilay[2] = it.ilay[nlay/2]; 
                        it.ilay[nlay/2] = swp;
@@ -1353,7 +1355,7 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
   TrFit fit;
   for (int i = 0; i < it.nlayer; i++)
     fit.Add(it.coo[i], 0, LadderScanRange*0.75, 1);
-  if (MAGSFFKEY.magstat == 1)
+  if (MagFieldOn())
     fit.CircleFit(2);
   else
     fit.LinearFit(2);
@@ -1485,14 +1487,14 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
 
   // Select fitting method
   if (it.side == 0) {
-    if (MAGSFFKEY.magstat == 1)
+    if (MagFieldOn())
       fit.PolynomialFit(1, 2);
     else
       fit.LinearFit(1);
   }
   else {
     // PZ Bugfix -- On X side always linear FIT!!!
-    //  if (MAGSFFKEY.magstat == 1)
+    //  if (MagFieldOn())
     //       fit.SimpleFit();
     //     else
       fit.LinearFit(2);
@@ -1508,7 +1510,7 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
   // Fill dummy multiplicity and coordinates for YONLY hits
   if (ittmp.side == 0) {
     int ndim = 1;
-    if (MAGSFFKEY.magstat == 1) {
+    if (MagFieldOn()) {
       if      (fit.GetNhit() >= 4) ndim = 3;
       else if (fit.GetNhit() >= 3) ndim = 2;
       if (ndim > 2) fit.PolynomialFit(1, ndim);
@@ -1590,7 +1592,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   VCon* cont = TRCon->GetCont("AMSTrTrack");
   if (!cont) return 0;
   int fit_method=TrTrackR::DefaultFitID;
-  if (MAGSFFKEY.magstat<=0)
+  if (!MagFieldOn())
     fit_method = TrTrackR::kLinear;
 
   // Create a new track
@@ -1623,9 +1625,15 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     }
     hit->SetResolvedMultiplicity(itcand.imult[i]);
     AMSPoint bfield(0,0,0);
-    if (MAGSFFKEY.magstat>0)
-      bfield=MagField::GetPtr()->GuFld(hit->GetCoord(itcand.imult[i]));
-      
+    if (MagFieldOn()){
+      //PZMAG      bfield=MagField::GetPtr()->GuFld(hit->GetCoord(itcand.imult[i]));
+      float A1[3],A2[3];
+      hit->GetCoord(itcand.imult[i]).getp(A1);
+      GUFLD(A1,A2);
+      bfield.setp(A2);
+    }
+
+
     track->AddHit(hit, itcand.imult[i],&bfield);
     
   }
@@ -1642,7 +1650,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   track->Fit(fit_method);
   
-  if (MAGSFFKEY.magstat<=0)
+  if (!MagFieldOn())
     track->Settrdefaultfit(TrTrackR::kLinear);
 
   else {  // AdvancedFit should be done only with B field
@@ -1703,27 +1711,35 @@ void TrRecon::InitFFKEYs(int magstat)
   TrRecon::ClusterScanRange = 0.5;   // Default
   TrRecon::MaxChisqForLScan = 2.2;   // Default
 
-  MAGSFFKEY.BZCorr  = 1;
+  //PZMAG MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (magstat<=0) TrTrackR::DefaultFitID = TrTrackR::kLinear;
+  if (!MagFieldOn()) TrTrackR::DefaultFitID = TrTrackR::kLinear;
 }
 
 int TrRecon::ReadMagField(const char *fname, int magstat)
 {
-  MAGSFFKEY.BZCorr  = 1;
+  //PZMAG  MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (magstat<=0) TrTrackR::DefaultFitID = TrTrackR::kLinear;
-  return MagField::GetPtr()->Read(fname);
+  if (!MagFieldOn()) TrTrackR::DefaultFitID = TrTrackR::kLinear;
+  //PZMAG  return MagField::GetPtr()->Read(fname);
+  return 0;
 }
 
 void TrRecon::GetMagField(float *pos, float *bf)
 {
-  MagField::GetPtr()->GuFld(pos, bf);
+
+  GUFLD(pos,bf);
+  //PZMAG MagField::GetPtr()->GuFld(pos, bf);
 }
 
-void TrRecon::GetTkFld(float *pos, float *hxy)
+void TrRecon::GetTkFld(float *pos, float **hxy)
 {
-  MagField::GetPtr()->TkFld(pos, (float(*)[3])hxy);
+  float hh[3][3];
+  //PZMAG  MagField::GetPtr()->TkFld(pos, (float(*)[3])hxy);
+  TKFLD(pos,hh);
+  for (int ii=0;ii<3;ii++)
+    for (int jj=0;jj<3;jj++)
+      hxy[ii][jj]=hh[jj][ii];
 }
 
 ///// For debug --------------------------------------

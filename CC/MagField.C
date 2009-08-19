@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.2 2009/07/01 17:00:49 pzuccon Exp $
+// $Id: MagField.C,v 1.3 2009/08/19 23:32:48 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,35 +11,39 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2009/07/01 17:00:49 $
+///$Date: 2009/08/19 23:32:48 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
-
-#include "MagField.h"
-
 #include <iostream>
 #include <fstream>
 #include <cmath>
 
+#include "MagField.h"
 
+
+MAGSFFKEY_DEF MAGSFFKEY;
+bool MagFieldOn(){return MAGSFFKEY.magstat>0;}
+
+
+#ifdef __ROOTSHAREDLIBRARY__
+//PZMAG
 void uctoh (char* MS,int* MT,int npw, int NCHP);
 
 
-void MAGSFFKEY_DEF::init(){
+// void MAGSFFKEY_DEF::init(){
 
-  magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
-  fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
-  ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
+//   magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
+//   fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
+//   ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
 
-  BTempCorrection=0;
-  BZCorr=1; 
-  rphi=0;
-  return;  
+//   BTempCorrection=0;
+//   BZCorr=1; 
+//   rphi=0;
+//   return;  
 
-}
-MAGSFFKEY_DEF MAGSFFKEY;
+// }
 
 
 void TKFIELD_DEF::init(){
@@ -161,7 +165,7 @@ void MagField::GuFld(float *xx, float *b)
   double ax = std::fabs(xx[0]), sx = xx[0]/ax;
   double ay = std::fabs(xx[1]), sy = xx[1]/ay;
   double az = std::fabs(xx[2]), sz = xx[2]/az;
-  az *= MAGSFFKEY.BZCorr;
+  //  az *= MAGSFFKEY.BZCorr;
 
   int idx[8];
   double ww[8];
@@ -176,8 +180,8 @@ void MagField::GuFld(float *xx, float *b)
     b[1] += mby[idx[i]]*ww[i];
     b[2] += mbz[idx[i]]*ww[i];
   }
-//   printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
-// 	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
+  printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
+	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
 
 }
 
@@ -190,7 +194,7 @@ void MagField::TkFld(float *xx, float hxy[][3])
   double ax = std::fabs(xx[0]), sx = xx[0]/ax;
   double ay = std::fabs(xx[1]), sy = xx[1]/ay;
   double az = std::fabs(xx[2]), sz = xx[2]/az;
-  az *= MAGSFFKEY.BZCorr;
+  //  az *= MAGSFFKEY.BZCorr;
 
   int idx[8];
   double ww[8];
@@ -446,3 +450,5 @@ void uctoh (char* MS,int* MT,int npw, int NCHP){
   return;
 }
 
+
+#endif

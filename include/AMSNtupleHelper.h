@@ -1,7 +1,7 @@
 #ifndef __AMSNtupleHelper__
 #define __AMSNtupleHelper__
 
-#include "../include/root_RVS.h"
+#include "root_RVS.h"
 class AMSNtupleHelper{
 public:
  AMSNtupleHelper(){};

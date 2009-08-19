@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.31 2009/06/30 14:50:10 choutko Exp $
+*  $Id: mfield.F,v 1.32 2009/08/19 23:32:55 pzuccon Exp $
 
 
       subroutine readmfield_rphi
@@ -1270,3 +1270,29 @@ c                   x1(3)=x1(3)*xc(8)
 
 
 
+          subroutine tkfldc(xx,hxy)
+          common /tkigufldC/i,j,xxy(3)
+          real xx(3),hxy(3,3)
+          real *8 xval,hbase,der(14),erest(14),tkigufld
+          external tkigufld
+          do i=1,3
+            do j=1,3
+          ifail=1
+          nder=1
+          hbase=0.5
+          call ucopy(xx(1),xxy(1),3)
+          xval=xx(i)
+          call d04aaf(XVAL, NDER, HBASE, DER, EREST,
+     +    tkigufld,ifail)
+            hxy(j,i)=der(1)
+            enddo
+          enddo
+          end
+          real *8 function tkigufld(x)
+          common /tkigufldC/i,j,xx(3)
+          real h(3)
+          real *8 x
+          xx(i)=x
+          call gufld(xx,h)
+          tkigufld=h(j)
+          end

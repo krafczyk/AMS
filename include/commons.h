@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.271 2009/07/09 09:40:26 choumilo Exp $
+//  $Id: commons.h,v 1.272 2009/08/19 23:32:43 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -897,7 +897,7 @@ const integer nx=41;
 const integer ny=41;
 const integer nz=41;
 
-#ifndef _PGTRACK_
+//PZMAG #ifndef _PGTRACK_
 class TKFIELD_DEF{
 public:
 integer mfile[40];
@@ -926,7 +926,7 @@ geant bzc[nz][ny][nx];
 };
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
 COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
-#endif
+//PZMAG #endif
 /*
 const integer mmax=nx*ny*nz;
 const integer lrq=10*mmax+7;

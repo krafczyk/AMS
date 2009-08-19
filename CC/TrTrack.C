@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.10 2009/08/19 14:35:47 pzuccon Exp $
+// $Id: TrTrack.C,v 1.11 2009/08/19 23:32:49 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/19 14:35:47 $
+///$Date: 2009/08/19 23:32:49 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +50,7 @@ void  TrTrackPar::Print_stream(std::string &ostr,int full){
   ostr.append(Form("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
 		   Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]));
   if(!full)return;
-  ostr.append(Form("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f/ \n",
+  ostr.append(Form("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
 		   HitBits,ChisqX,NdofX,ChisqY,NdofY,Chisq));
   return ;
 }
@@ -394,7 +394,7 @@ char *  TrTrackR::Info(int iRef){
   aa.append(sout);
   int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
-  strncpy(_Info,aa.c_str(),len);
+  strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 std::ostream &TrTrackR::putout(std::ostream &ostr)  {
@@ -407,12 +407,17 @@ std::ostream &TrTrackR::putout(std::ostream &ostr)  {
 void TrTrackR::_PrepareOutput(int full )
 {
   sout.clear();
-  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d, MOn: %d DefFit: %s ",
+  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d, MOn: %d DefFit: %d ",
 		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),
 		   _MagFieldOn,trdefaultfit));
   TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
- 
+  if(!full) return;
+  map<int, TrTrackPar>::iterator it=_TrackPar.begin();
+  for(;it!=_TrackPar.end();it++){
+    sout.append(Form("\nFit mode %d ",it->first));
+    it->second.Print_stream(sout,full);
+  }
 }
   
 

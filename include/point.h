@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.26 2008/12/18 11:19:25 pzuccon Exp $
+//  $Id: point.h,v 1.27 2009/08/19 23:32:43 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -33,12 +33,16 @@ public:
   void setp(number x,number y,number z){_x=x;_y=y;_z=z;}
   //! it sets the position
   void setp(number x[]){_x=x[0];_y=x[1];_z=x[2];}
+  //! it sets the position
+  void setp(geant x[]){_x=x[0];_y=x[1];_z=x[2];}
   //! it gets the position to the three args
   void getp(number &x, number &y, number &z)const{x=_x;y=_y;z=_z;}
   //! it gets the position to the three args
   void getp(geant &x, geant &y, geant &z){x=_x;y=_y;z=_z;}
   //! it gets the position to array arg
   void getp(number x[]){x[0]=_x;x[1]=_y;x[2]=_z;}
+  //! it gets the position to array arg
+  void getp(geant x[]){x[0]=_x;x[1]=_y;x[2]=_z;}
   //! get x coordinate
   number x() { return _x; } 
   //! get y coordinate

@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.4 2009/08/19 14:35:47 pzuccon Exp $ 
+/// $Id: TrRawCluster.C,v 1.5 2009/08/19 23:32:49 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/08/19 14:35:47 $
+/// $Date: 2009/08/19 23:32:49 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +116,7 @@ char* TrRawClusterR::Info(int iRef){
   aa.append(sout);
   int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
-  strncpy(_Info,aa.c_str(),len);
+  strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 

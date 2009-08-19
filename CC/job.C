@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.640 2009/08/17 12:53:54 pzuccon Exp $
+// $Id: job.C,v 1.641 2009/08/19 23:32:49 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -764,9 +764,9 @@ FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_simag2data(){
-#ifdef _PGTRACK_
-  MAGSFFKEY.init();
-#else
+  //PZMAG #ifdef _PGTRACK_
+  //MAGSFFKEY.init();
+  //#else
   MAGSFFKEY.magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
   MAGSFFKEY.fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
   MAGSFFKEY.ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
@@ -777,7 +777,7 @@ void AMSJob::_simag2data(){
   MAGSFFKEY.yaw=0;
   MAGSFFKEY.pitch=0;
   MAGSFFKEY.rphi=0;
-#endif
+  //#endif
 FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1106,9 +1106,9 @@ _redaqdata();
 }
 
 void AMSJob::_remfdata(){
-#ifdef _PGTRACK_
-  TKFIELD.init();
-#else
+//PZMAG #ifdef _PGTRACK_
+//   TKFIELD.init();
+// #else
 TKFIELD.iniok=1;
 VBLANK(TKFIELD.mfile,40);
 TKFIELD.isec[0]=0;
@@ -1121,7 +1121,7 @@ TKFIELD.imon[0]=0;
 TKFIELD.imon[1]=0;
 TKFIELD.iyear[0]=0;
 TKFIELD.iyear[1]=0;
-#endif
+//#endif
 FFKEY("BMAP",(float*)&TKFIELD,60,"MIXED");
 
 }
@@ -1797,15 +1797,15 @@ for(i=159;i>=0;i--){
   if(strlen(AMSDATADIR.fname)<=1)strcpy(AMSDATADIR.fname,"fld97int.txt");
 }
 
-#ifdef _PGTRACK_
-  MagField* mmpp=MagField::GetPtr();
-  MAGSFFKEY.BTempCorrection=MISCFFKEY.BTempCorrection;
-  MAGSFFKEY.BZCorr=MISCFFKEY.BZCorr;
-  if(mmpp) {
-    mmpp->SetMfile(AMSDATADIR.fname);
-    mmpp->SetInitOk(TKFIELD.iniok);
-  }
-#endif
+//PZMAG #ifdef _PGTRACK_
+//   MagField* mmpp=MagField::GetPtr();
+//   MAGSFFKEY.BTempCorrection=MISCFFKEY.BTempCorrection;
+//   MAGSFFKEY.BZCorr=MISCFFKEY.BZCorr;
+//   if(mmpp) {
+//     mmpp->SetMfile(AMSDATADIR.fname);
+//     mmpp->SetInitOk(TKFIELD.iniok);
+//   }
+// #endif
 
 if(TRDMCFFKEY.mode==-1){
  if(!strstr(getsetup(),"AMSSHUTTLE")){
@@ -2319,23 +2319,23 @@ void AMSJob::_caaxinitjob(){
 
 void AMSJob::_remfinitjob(){
 
-#ifndef _PGTRACK_
+  //PZMAG#ifndef _PGTRACK_
 READMFIELD();
 if(MISCFFKEY.BTempCorrection){
 cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections will be used"<<endl<<endl; 
 }
-#else
-  if(TKFIELD.iniok==0 || TKFIELD.iniok==-2) {
-    char name[150];
-    sprintf(name,"%s/v4.00/%s",AMSDATADIR.amsdatadir,AMSDATADIR.fname);
-    MagField::GetPtr()->Read(name);
-    //    MagField::GetPtr()->Read(AMSDATADIR.fname,AMSDATADIR.amsdatadir);
-}
+//PZMAG #else
+//   if(TKFIELD.iniok==0 || TKFIELD.iniok==-2) {
+//     char name[150];
+//     //sprintf(name,"%s/v4.00/%s",AMSDATADIR.amsdatadir,AMSDATADIR.fname);
+//     //MagField::GetPtr()->Read(name);
+//         MagField::GetPtr()->Read(AMSDATADIR.fname,AMSDATADIR.amsdatadir);
+// }
 
-  if(MAGSFFKEY.BTempCorrection){
-   cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections are MEANING LESS for AMS02"<<endl<<endl; 
- }
-#endif
+//   if(MAGSFFKEY.BTempCorrection){
+//    cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections are MEANING LESS for AMS02"<<endl<<endl; 
+//  }
+// #endif
 }
 
 #ifndef _PGTRACK_
@@ -2705,28 +2705,29 @@ end.tm_year=TKFIELD.iyear[1];
  char FieldMapName[100];    
  if(strstr(getsetup(),"AMS02D") ){    
    sprintf(FieldMapName,"MagneticFieldMapD");
-    }
-    else if(strstr(getsetup(),"AMS02PreAss")){
+ }
+ else if(strstr(getsetup(),"AMS02PreAss")){
    sprintf(FieldMapName,"MagneticFieldMap09A");
-    MAGSFFKEY.rphi=1;
-    }
-    else{
+   MAGSFFKEY.rphi=1;
+ }
+ else{
    sprintf(FieldMapName,"MagneticFieldMap07");
-    }
+ }
  
-#ifdef _PGTRACK_
- MagField*  pp= MagField::GetPtr();
- TID.add(new 
-	 AMSTimeID(AMSID(FieldMapName,isRealData()),
-		   begin,end,pp->GetSizeForDB(),        
-		   (void*)pp->GetPointerForDB(),
-		   server,1));
-#else
+//PZMAG #ifdef _PGTRACK_
+//  MagField*  pp= MagField::GetPtr();
+//  TID.add(new 
+// 	 AMSTimeID(AMSID(FieldMapName,isRealData()),
+// 		   begin,end,pp->GetSizeForDB(),        
+// 		   (void*)pp->GetPointerForDB(),
+// 		   server,1));
+// #else
  TID.add (new AMSTimeID(AMSID(FieldMapName,isRealData()),
 			begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok),
 			(void*)TKFIELD.isec,server,1));
 
-#endif
+ //PZMAG#endif
+
 //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
 //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));
 }

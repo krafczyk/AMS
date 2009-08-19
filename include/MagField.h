@@ -1,8 +1,25 @@
-//  $Id: MagField.h,v 1.2 2009/07/01 17:01:04 pzuccon Exp $
+//  $Id: MagField.h,v 1.3 2009/08/19 23:32:43 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 
 #include "typedefs.h"
+
+
+class MAGSFFKEY_DEF {
+public:
+integer magstat; // status: 0/1-> off/on
+geant fscale;    // nom.field reduction
+geant ecutge;    // e/g energy cut for tracking in magnet materials
+geant r0[3];     // shift & rotation of mag field map w/r nom
+geant pitch;
+geant yaw;
+geant roll;
+integer rphi;    // use xyz (0) or rphiz (1) grid
+};
+
+#ifndef __ROOTSHAREDLIBRARY__
+
+
 // GEANT part
 #ifdef __ALPHA__
 #define DECFortran
@@ -10,6 +27,23 @@
 #define mipsFortran
 #endif
 #include "cfortran.h"
+
+PROTOCCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV)
+#define GUFLD(A1,A2)  CCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV,A1,A2)
+
+PROTOCCALLSFSUB2(TKFLD,tkfld,FLOATV,FLOATVV)
+#define TKFLD(A1,A2)  CCALLSFSUB2(TKFLD,tkfld,FLOATV,FLOATVV,A1,A2)
+
+#define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
+COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
+
+#else
+
+#define GUFLD(A1,A2)  MagField::GetPtr()->GuFld(A1,A2)
+#define TKFLD(A1,A2)  MagField::GetPtr()->TkFld(A1,A2)
+
+
+
 #include "point.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,9 +59,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2009/07/01 17:01:04 $
+///$Date: 2009/08/19 23:32:43 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -146,25 +180,11 @@ public:
   void init();
 };
 
-#define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
-COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
 
 
 
-class MAGSFFKEY_DEF{
-public:
+#endif
 
-  integer magstat; /// status: 0/1-> off/on
-  geant fscale;    /// nom.field reduction
-  geant ecutge;    /// e/g energy cut for tracking in magnet materials
-  integer BTempCorrection; ///  apply(1),not(0) temperature corrections to mfield
-  float   BZCorr; /// Z scale for b field (test only)
-  int rphi; //???
-  void init();
-};
-
-#define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
-COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
-
+bool MagFieldOn();
 
 #endif

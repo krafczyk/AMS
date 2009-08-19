@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.7 2009/08/19 14:36:04 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.8 2009/08/19 23:32:43 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/19 14:36:04 $
+/// $Date: 2009/08/19 23:32:43 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -479,7 +479,7 @@ public:
   /// TrField::GuFld() called from ROOT CINT
   static void GetMagField(float *pos, float *bf);
   /// TrField::TkFld() called from ROOT CINT
-  static void GetTkFld(float *pos, float *hxy);
+  static void GetTkFld(float *pos, float **hxy);
 
 
 /////////////////////////

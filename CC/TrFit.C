@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.3 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: TrFit.C,v 1.4 2009/08/19 23:32:48 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/05/29 09:23:05 $
+///$Date: 2009/08/19 23:32:48 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -56,7 +56,10 @@ int TrFit::Add(double x,  double y,  double z,
 	       double ex, double ey, double ez, int at)
 {
   float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
-  if (MAGSFFKEY.magstat>0) MagField::GetPtr()->GuFld(pos, bf);
+  if (MagFieldOn()) {
+    //PZMAG MagField::GetPtr()->GuFld(pos, bf);
+    GUFLD(pos, bf);
+  }
   return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
 }
 
@@ -115,7 +118,7 @@ double TrFit::CircleFit(void)
 {
   /// Circlar fitting in Y-Z plane and liear fitting in S-Z plane
 
-  if (MAGSFFKEY.magstat <= 0) return LinearFit();
+  if (!MagFieldOn()) return LinearFit();
 
   if (CircleFit(2) < 0) return -1;
   if (LinearFit(3) < 0) return -1;
@@ -136,7 +139,9 @@ double TrFit::CircleFit(void)
 
   float p0[3] = { _p0x, _p0y, _p0z };
   float bf[3];
-  MagField::GetPtr()->GuFld(p0, bf);
+
+  //PZMAG  MagField::GetPtr()->GuFld(p0, bf);
+  GUFLD(p0, bf);
 
   double cosd = -1/std::sqrt(1+_param[1]*_param[1]);
   _rigidity =             1e-12*Clight*0.5/kappa*bf[0]/cosd;
@@ -1976,7 +1981,7 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  if (MAGSFFKEY.magstat <= 0 || _chrg*_rigidity == 0) {
+  if (!MagFieldOn() || _chrg*_rigidity == 0) {
     double z = (dir[0]*(pnt[0]-_p0x)+dir[1]*(pnt[1]-_p0y)+dir[2]*(pnt[2]-_p0z))
               /(dir[0]*_dxdz        +dir[1]*_dydz        +dir[2]);
     AMSPoint pnt0 = pnt;
@@ -2009,7 +2014,7 @@ double TrProp::InterpolateCyl(AMSPoint &pnt, AMSDir &dir,
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  if (MAGSFFKEY.magstat <= 0 || _chrg*_rigidity == 0) {
+  if (!MagFieldOn() || _chrg*_rigidity == 0) {
     double dx = dir[0], dy = dir[1], dz = dir[2], z0 = _p0z-pnt[2];
     double p0 = _p0x-pnt[0], p1 = _dxdz, p2 = _p0y-pnt[1], p3 = _dydz;
     double aa = (1-dx*dx)*p1*p1     +(1-dy*dy)*p3*p3  +(1-dz*dz)
@@ -2267,9 +2272,14 @@ void TrProp::VCFuncXY(double *in, double *out, double *derl, int clear)
     }
 
     double s = std::sqrt(1+dx*dx+dy*dy);
-    MagField::GetPtr()->GuFld(xx, h);
-    MagField::GetPtr()->TkFld(xx, hxy);
-    
+    //PZMAG    MagField::GetPtr()->GuFld(xx, h);
+    GUFLD(xx,h);
+    //PZMAG    MagField::GetPtr()->TkFld(xx, hxy);
+    float hh[3][3];
+    TKFLD(xx,hh);
+    for (int ii=0;ii<3;ii++)
+      for (int jj=0;jj<3;jj++)
+	hxy[ii][jj]=hh[jj][ii]; 
     der[k][0] = s*(dx*dy*hxy[0][0]-(1+dx*dx)*hxy[0][1]+dy*hxy[0][2]);
     der[k][1] = s*(dx*dy*hxy[1][0]-(1+dx*dx)*hxy[1][1]+dy*hxy[1][2]);
 
@@ -2347,7 +2357,8 @@ int TrProp::JAStepPin(double *x, double *l, double *u,
 
       float p[3] = { x[0]+e*l[0], x[1]+e*l[1], x[2]+e*l[2] };
       float b[3];
-      MagField::GetPtr()->GuFld(p, b);
+      //PZMAG MagField::GetPtr()->GuFld(p, b);
+      GUFLD(p, b);
 
       pint[0] += w*(l[1]*b[2]-l[2]*b[1])/dl*(1-e);
       pint[1] += w*(l[1]*b[2]-l[2]*b[1])/dl;
@@ -2417,7 +2428,8 @@ C.
     vvout[0]=vout[0];
     vvout[1]=vout[1];
     vvout[2]=vout[2];
-    MagField::GetPtr()->GuFld(vvout, F);
+    //PZMAG    MagField::GetPtr()->GuFld(vvout, F);
+    GUFLD(vvout, F);
 //
 //             Start of integration
 //
@@ -2453,7 +2465,8 @@ C.
 //
     double EST = std::fabs(DXT)+std::fabs(DYT)+std::fabs(DZT);
     if (EST <= H) {
-    MagField::GetPtr()->GuFld(XYZT, F);
+      //PZMAG    MagField::GetPtr()->GuFld(XYZT, F);
+      GUFLD(XYZT, F);
 
 
       double AT = A+SECXS[0];
@@ -2487,7 +2500,8 @@ C.
       EST = std::fabs(DXT)+std::fabs(DYT)+std::fabs(DZT);
 
       if (EST <= 2.*std::fabs(H)) {
-	MagField::GetPtr()->GuFld(XYZT, F);
+	//	MagField::GetPtr()->GuFld(XYZT, F);
+	GUFLD(XYZT, F);
 
 	Z += (C+(SECZS[0]+SECZS[1]+SECZS[2])/3)*H;
 	Y += (B+(SECYS[0]+SECYS[1]+SECYS[2])/3)*H;

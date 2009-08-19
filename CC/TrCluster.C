@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.4 2009/08/19 14:35:47 pzuccon Exp $ 
+/// $Id: TrCluster.C,v 1.5 2009/08/19 23:32:48 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/08/19 14:35:47 $
+/// $Date: 2009/08/19 23:32:48 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -174,7 +174,7 @@ char* TrClusterR::Info(int iRef){
   aa.append(sout);
   int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
-  strncpy(_Info,aa.c_str(),len);
+  strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 

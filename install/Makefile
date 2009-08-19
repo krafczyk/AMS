@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.77 2009/08/19 18:29:50 pzuccon Exp $
+#  $Id: Makefile,v 1.78 2009/08/19 23:33:05 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -186,10 +186,15 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
 	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
 	$(SCC)VCon.C  $(SCC)TrAlignFit.C\
-	$(SCC)TrPatt.C    $(SCC)TrFit.C $(SCC)MagField.C  $(SCC)TrElem.C
+	$(SCC)TrPatt.C     $(SCC)TrElem.C   
 
 TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
-	$(SCC)TrRecHit.C $(SCC)TrTrack.C $(SCC)gufld.C $(SCC)Vertex.C $(SCC)TrRecon.C $(SCC)trrec.C
+	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C $(SCC)TrRecon.C $(SCC)trrec.C \
+	$(SFF)mfield.F $(SCC)bcorr.C $(SFF)fint_my.F $(SCC)MagField.C $(SCC)TrFit.C
+	
+#	$(SFF)fint_my.F $(SFF)TrackFit_utils.F $(SFF)trafit.F \
+#	$(SFF)txyfit.F $(SFF)tkfit.F $(SFF)tszfit.F $(SFF)tptcir.F
+#$(SCC)gufld.C
 
 else
 
@@ -407,8 +412,8 @@ lib: shared static
 ifdef PGTRACK
 
 PGLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)Vertex_s.o \
-	$(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o \
-	$(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o
+	$(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o \
+	$(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o $(BIN)MagField_s.o
 shared :  $(PGLIBO)
 	echo $(PGLIBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
@@ -483,6 +488,10 @@ $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 $(BIN)rnormx_s.o:         $(SCC)rnormx.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
+$(BIN)TrFit_s.o:         $(SCC)TrFit.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
+$(BIN)MagField_s.o:         $(SCC)MagField.C
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 $(BIN)Vertex_s.o:         $(SCC)Vertex.C
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 

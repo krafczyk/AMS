@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.180 2009/08/19 14:35:47 pzuccon Exp $
+//  $Id: particle.C,v 1.181 2009/08/19 23:32:49 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -83,8 +83,7 @@ integer AMSParticle::build(integer refit){
   AMSPoint coo;
   AMSParticle * ppart(0);
   AMSAntiMCCluster * pcl(0);
-  AMSCharge *pcharge=(AMSCharge*)AMSEvent::gethead()->
-    getheadC("AMSCharge",0);
+  AMSCharge *pcharge=(AMSCharge*)AMSEvent::gethead()->getheadC("AMSCharge",0);
   int partfound=0;
 
 
@@ -106,7 +105,7 @@ integer AMSParticle::build(integer refit){
     pcand->setstatus(AMSDBc::USED);
     ppart->pid();
     AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-
+    
     //cerr <<"  Added a VERTEX Particle cont number "<<ppart->contnumber()<<endl;
     partfound++;
   }
@@ -150,7 +149,7 @@ integer AMSParticle::build(integer refit){
       }
       pcharge=pcharge->next();
     }
-
+    
   }
 
   if(!partfound){
@@ -159,7 +158,7 @@ integer AMSParticle::build(integer refit){
     if(pecal){
       for (int i=-1;i<2;i+=2){
 	// make false tracks (+-)
-          
+        
 	AMSTrTrack *ptrack=new AMSTrTrack(pecal->getDir(), pecal->getEntryPoint(),pecal->getEnergy()*i,pecal->getEnergyErr());
 	ptrack->setstatus(AMSDBc::ECALTRACK); 
 	ppart=new AMSParticle(0, 0, ptrack,
@@ -168,15 +167,15 @@ integer AMSParticle::build(integer refit){
 	AMSgObj::BookTimer.start("ReAxPid");
 	ppart->pid();
 	AMSgObj::BookTimer.stop("ReAxPid");
-           
+	
 	AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-
+	
 	//cerr <<"  Added a ECAL Particle cont number "<<ppart->contnumber()<<endl;
 
       }
     }
-
-       
+    
+    
 
   }
   AMSgObj::BookTimer.start("ReAxRefit");
@@ -206,6 +205,9 @@ integer AMSParticle::build(integer refit){
 
   return 1;
 }
+
+
+
 void AMSParticle::_calcmass(number momentum,number emomentum, number beta, number ebeta, number &mass, number &emass){
   if(fabs(beta)<=1.e-10 ){
     cerr<< " beta too low " <<beta<<endl;
@@ -834,6 +836,7 @@ void AMSParticle::richfit(){
 	bool bad=false;
 #ifdef  _PGTRACK_
 	//PZ FIXME REFIT
+	_TrCoo[layer]=_ptrack->GetResidual(layer);
 	//        if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::Head->nlay()-1){
 	//          bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       
 	//        }

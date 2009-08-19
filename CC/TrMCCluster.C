@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.3 2009/08/19 14:35:47 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.4 2009/08/19 23:32:48 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2009/08/19 14:35:47 $
+///$Date: 2009/08/19 23:32:48 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -148,19 +148,15 @@ char* TrMCClusterR::Info(int iRef){
   aa.append(sout);
   int len=MAXINFOSIZE;
   if(aa.size()<len) len=aa.size();
-  strncpy(_Info,aa.c_str(),len);
+  strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
 
 void TrMCClusterR::_PrepareOutput(int full)
 {
-//int sensor = abs(_idsoft)/10000;
-  int tkid   = abs(_idsoft)%1000;
-  int ss     = abs(_idsoft)%10000-tkid;
-  if(!ss) tkid*=-1;
 
-  int layer = abs(tkid)/100;
-  sout.append(Form("Impinging Particle: %d on tkid: %+03d Sens: %d X:%f Y%f z%f  Px: %f Py: %f Pz: %f\n",
+  sout.clear();
+  sout.append(Form("Part: %d tkid: %+03d Sens: %d X:%f Y%f z%f  Px: %f Py: %f Pz: %f\n",
 		   _itra,GetTkId(),GetSensor(),
 		   _xca[0],_xca[1],_xca[2],_Momentum[0],_Momentum[1],_Momentum[2]));
   
