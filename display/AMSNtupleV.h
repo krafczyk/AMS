@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.26 2009/08/17 13:00:34 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.27 2009/08/20 11:46:45 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -118,10 +118,52 @@ public:
 
 
 };
+
 class TrRecHitV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
   TrRecHitV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+#ifdef _PGTRACK_
+
+  TrRecHitV(AMSEventR *ev,int ref,int mult=0):AMSDrawI(ev,ref),TMarker3DCl(){
+    TrRecHitR *pcl=ev->pTrRecHit(ref);
+    int size=gAMSDisplay->Focus()==0?2:1;
+    //   cerr<<"--->Preparing TrRecHit "<<pcl->GetGlobalCoordinate(mult)<< endl;
+    if(pcl){
+      float sizex=pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0];
+      float sizey=pcl->GetECoord()[1]*100;
+      float sizez=(sqrt(pcl->Sum())<8)?sqrt(pcl->Sum()):8.;
+      if (sizez<1) sizez=1;
+      //    printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
+      //       SetSize(pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0],
+      // 	      
+      // 	      (sqrt(pcl->Sum()/10.)<8)?sqrt(pcl->Sum()/10.):8.);
+      SetSize(sizex,sizey,sizez);
+      SetPosition(pcl->GetGlobalCoordinate(mult)[0],pcl->GetGlobalCoordinate(mult)[1],pcl->GetGlobalCoordinate(mult)[2]+fDz);
+      SetDirection(0,0);
+      if(gAMSDisplay->ShowTrClProfile()){
+	float x[100];
+	if(pcl->GetYCluster()){
+	  int kmax=pcl->GetYCluster()->GetLength();
+	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+	  for (int k=0;k<kmax;k++)x[k]=pcl->GetYCluster()->GetSignal(k)/50.;
+	  //	    (pcl->Sum()+1.e-20);
+	  SetProfileY(kmax,x);
+	  SetShowProfileY(true);
+	}
+	
+ 	if(pcl->GetXCluster()){
+ 	  int kmax=pcl->GetXCluster()->GetLength();
+ 	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+ 	  for (int k=0;k<kmax;k++)x[k]=pcl->GetXCluster()->GetSignal(k)/50.;
+	  // 	    (pcl->GetXCluster()->GetTotSignal()+1.e-20);
+ 	  SetProfileX(pcl->GetXCluster()->GetLength(),x);
+ 	  SetShowProfileX(true);
+ 	}
+      }
+    }
+
+#else
   TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
     TrRecHitR *pcl=ev->pTrRecHit(ref);
     int size=gAMSDisplay->Focus()==0?2:1;
@@ -148,7 +190,7 @@ public:
 	}
       }
     }
-   
+#endif   
     SetLineWidth(size);
     SetLineColor(4);             // blue
     SetFillColor(4);
@@ -281,8 +323,13 @@ public:
   TrMCClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
     TrMCClusterR *pcl=ev->pTrMCCluster(ref);
     if(pcl){
+#ifdef _PGTRACK_
+      SetPosition(pcl->GetXgl()[0],pcl->GetXgl()[1],pcl->GetXgl()[2]);
+      SetSize(0.2,0.2,sqrt(pcl->Sum()*1000)*6);
+#else
       SetPosition(pcl->Xgl[0],pcl->Xgl[1],pcl->Xgl[2]);
       SetSize(0.2,0.2,sqrt(pcl->Sum*1000)*6);
+#endif
       SetDirection(0,0);
     }
     SetLineWidth(1);
@@ -417,6 +464,23 @@ public:
 
     TrTrackR *pcl=ev->pTrTrack(ref);
     if(pcl){
+#ifdef _PGTRACK_
+      Double_t Bfield = -0.8;	// in minus-x direction of AMS
+      Double_t P0[3];
+      Double_t V0[3];
+      Double_t Axis[3]={-1,0,0};
+      Double_t Range[2]={-60,60};
+      for(int i=0;i<3;i++)P0[i]=pcl->GetP0()[i];
+     
+//       V0[0]=pcl->GetRigidity() * sin(pcl->GetTheta()) * cos(pcl->GetPhi());
+//       V0[1]=pcl->GetRigidity() * sin(pcl->GetTheta()) * sin(pcl->GetPhi());
+//       V0[2]=pcl->GetRigidity() * cos(pcl->GetTheta());
+
+      V0[0]= pcl->GetDir()[0]*pcl->GetRigidity() ;
+      V0[1]= pcl->GetDir()[1]*pcl->GetRigidity() ;
+      V0[2]= pcl->GetDir()[2]*pcl->GetRigidity() ;
+      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
+#else
       Double_t Bfield = -0.4;	// in minus-x direction of AMS
       Double_t P0[3];
       Double_t V0[3];
@@ -427,6 +491,7 @@ public:
       V0[0]=pcl->Rigidity * sin(pcl->Theta) * cos(pcl->Phi);
       V0[1]=pcl->Rigidity * sin(pcl->Theta) * sin(pcl->Phi);
       V0[2]=pcl->Rigidity * cos(pcl->Theta);
+#endif
       THelix::SetHelix(P0,V0,0.3*Bfield/100,Range,kHelixX,Axis);
     }
     SetLineColor(14);

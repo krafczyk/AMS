@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.26 2009/08/17 13:00:34 pzuccon Exp $
+//  $Id: AMSNtupleV.cxx,v 1.27 2009/08/20 11:46:45 pzuccon Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -296,7 +296,15 @@ if(type==kall || type==kusedonly || type==ktrclusters){
  fTrRecHitV.clear();
  if(gAMSDisplay->DrawObject(ktrclusters)){
   for(int i=0;i<NTrRecHit();i++){
+#ifdef _PGTRACK_
+    if(gAMSDisplay->DrawUsedOnly())
+      fTrRecHitV.push_back( TrRecHitV(this,i,pTrRecHit(i)->GetResolvedMultiplicity()));
+    else
+      for (int jj=0;jj<pTrRecHit(i)->GetMultiplicity();jj++)
+	fTrRecHitV.push_back( TrRecHitV(this,i,jj));
+#else
    if(!gAMSDisplay->DrawUsedOnly() || ((pTrRecHit(i)->Status)/32)%2)fTrRecHitV.push_back( TrRecHitV(this,i));
+#endif
   }
  }
 }
@@ -338,16 +346,17 @@ if(type==kall || type==kusedonly || type==ktrtracks){
  fTrTrackV.clear();
  if(gAMSDisplay->DrawObject(ktrtracks)){
   for(int i=0;i<NTrTrack();i++){
-   if(!gAMSDisplay->DrawUsedOnly() || ((pTrTrack(i)->Status)/32)%2){
-     if(pTrTrack(i)->IsGood()){
-       fTrTrackV.push_back( TrTrackV(this,i));
-     }
-   }
-  }
-  for(int i=0;i<NTrTrack();i++){
-   if(!gAMSDisplay->DrawUsedOnly() || ((pTrTrack(i)->Status)/32)%2){
-     if(!pTrTrack(i)->IsGood())fTrTrackV.push_back( TrTrackV(this,i));
-   }
+#ifdef _PGTRACK_
+    if(!gAMSDisplay->DrawUsedOnly() || ((pTrTrack(i)->getstatus())/32)%2){
+      fTrTrackV.push_back( TrTrackV(this,i));
+    }
+#else
+    if(!gAMSDisplay->DrawUsedOnly() || ((pTrTrack(i)->Status)/32)%2){
+      if(pTrTrack(i)->IsGood()){
+	fTrTrackV.push_back( TrTrackV(this,i));
+      }
+    }
+#endif
   }
 
  }

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.78 2009/08/19 23:33:05 pzuccon Exp $
+#  $Id: Makefile,v 1.79 2009/08/20 11:46:45 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -133,6 +133,12 @@ $(BIN)%.o : $(SCC)%.C
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CXX) -c $(CFLAGS) $< -o $@
 
+$(BIN)%_s.o: $(SCC)%.C
+	@echo Compiling  $< ...
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
+
+
 $(BIN)%.o : $(SCC)%.c
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
@@ -190,10 +196,8 @@ TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
 
 TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
 	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C $(SCC)TrRecon.C $(SCC)trrec.C \
-	$(SFF)mfield.F $(SCC)bcorr.C $(SFF)fint_my.F $(SCC)MagField.C $(SCC)TrFit.C
-	
-#	$(SFF)fint_my.F $(SFF)TrackFit_utils.F $(SFF)trafit.F \
-#	$(SFF)txyfit.F $(SFF)tkfit.F $(SFF)tszfit.F $(SFF)tptcir.F
+	$(SFF)fint_my.F $(SCC)MagField.C $(SCC)TrFit.C \
+	$(SFF)mfield.F $(SCC)bcorr.C	
 #$(SCC)gufld.C
 
 else
@@ -411,9 +415,9 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 lib: shared static 
 ifdef PGTRACK
 
-PGLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_rs.o $(BIN)Vertex_s.o \
+PGLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o $(BIN)Vertex_s.o \
 	$(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o \
-	$(BIN)root_rs.o $(BIN)amschain_rs.o $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o $(BIN)MagField_s.o
+	$(BIN)root_rs.o  $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o $(BIN)MagField_s.o
 shared :  $(PGLIBO)
 	echo $(PGLIBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
@@ -425,12 +429,12 @@ static :  $(PGLIBO)
 	$(AR) rv $(NTLD) $^
 else
 
-shared :     $(BIN)point.o $(BIN)amschain_rs.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
+shared :     $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o
-	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)amschain_rs.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
+	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)amschain_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
 
-static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o  $(BIN)amschain_rs.o  $(BIN)id.o 
+static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o  $(BIN)amschain_s.o  $(BIN)id.o 
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $^ 
 
@@ -482,33 +486,15 @@ $(BIN)daqevt.o:         $(SCC)daqevt.C
 $(BIN)daqevt_c.o:         $(SCC)daqevt.C
 	$(CXX_ORBIT) -c $(CFLAGSDAQ) $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
 
+
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 	$(CXX) -c $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
 
-$(BIN)rnormx_s.o:         $(SCC)rnormx.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
-
-$(BIN)TrFit_s.o:         $(SCC)TrFit.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
-$(BIN)MagField_s.o:         $(SCC)MagField.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
-$(BIN)Vertex_s.o:         $(SCC)Vertex.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
-
-$(BIN)TrTrack_s.o:         $(SCC)TrTrack.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
-
-$(BIN)TrRecon_s.o:         $(SCC)TrRecon.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
-
-$(BIN)TrRecHit_s.o:         $(SCC)TrRecHit.C
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $^ -o $@
 
 $(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods.h
 	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
-$(BIN)amschain_rs.o:    	 $(SCC)amschain.C 
-	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)amschain.C -o $(BIN)amschain_rs.o
+
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 

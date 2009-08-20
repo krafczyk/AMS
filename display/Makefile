@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.40 2009/08/17 13:00:34 pzuccon Exp $
+#  $Id: Makefile,v 1.41 2009/08/20 11:46:45 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -61,6 +61,10 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 
 LIBSA         =   -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(ROOTLIBSA)  -lshift -lm -ldl
 LIBS          =   -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(ROOTLIBS) -lshift -lm -ldl
+endif
+
+ifdef PGTRACK
+CPPFLAGS+= -D_PGTRACK_
 endif
 
 AMSPRG        = $(PREFIX)amsed
@@ -219,6 +223,6 @@ $(PREFIX)%.o : %.cxx
 ##### DEPENDENCIES #####
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(DEPS)
+-include $(DEPS)
 endif
 
