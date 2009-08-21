@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.11 2009/08/19 23:32:49 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.12 2009/08/21 13:15:01 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/19 23:32:49 $
+/// $Date: 2009/08/21 13:15:01 $
 ///
-/// $Revision: 1.11 $
+/// $Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2258,7 +2258,11 @@ int TrRecon::BuildVertex(integer refit){
   int debug=0;
   // Create a vertex
   if (nfound>1) {
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSVtx  *p= new AMSVtx(nfound, ptrack);
+#else
     VertexR *p= new VertexR(nfound, ptrack);
+#endif
     if(p->IsFilled()){
       vtx_ctr->addnext(p); 
  //      if (debug) {
@@ -2282,7 +2286,7 @@ int TrRecon::BuildVertex(integer refit){
 	  
 // 	exit_betaprint:
 	  
-// 	  //PZ FIXME TRACK
+// 	 
 // 	  cout << ", beta " << track_has_beta;
 // 	  //
 // 	  cout << ", PI Chi2 " << ptr->getpichi2();

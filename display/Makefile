@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.41 2009/08/20 11:46:45 pzuccon Exp $
+#  $Id: Makefile,v 1.42 2009/08/21 13:15:02 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -138,9 +138,9 @@ DEPS=  $(SRCS:%.cxx=$(DEPDIR)/%.d)
 DEPS+= $(SRCSN:%.cxx=$(DEPDIR)/%.d)
 
 
-DICT          = AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
+DICT          = $(PREFIX)/AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
 DICTH         = $(DICT:.cxx=.h)
-DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
+DICTO         = $(DICT:$(PREFIX)/%.cxx=$(PREFIX)/%.o)
 
 
 
@@ -213,6 +213,8 @@ $(DEPDIR)/%.d : %.cxx
 	@$(CXX) $(CPPFLAGS) -MM $< -MT $(OBJ)/$*.o -MF $@
 
 
+$(PREFIX)%.o : $(PREFIX)%.cxx 
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(PREFIX)%.o : %.cxx 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)

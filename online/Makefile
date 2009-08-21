@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.36 2009/08/17 12:59:36 pzuccon Exp $
+#  $Id: Makefile,v 1.37 2009/08/21 13:15:02 pzuccon Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -226,5 +226,5 @@ $(PREFIX)%.o : %.cxx
 ##### DEPENDENCIES #####
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(DEPS)
+-include $(DEPS)
 endif

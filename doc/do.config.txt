@@ -375,7 +375,8 @@ INPUT                  = ../doc \
 # *.h++ *.idl *.odl *.cs *.php *.php3 *.inc
 
 FILE_PATTERNS          = root.h \
-                         root_methods.h \
+                         amschain.h \
+			 Root_methods.h \
                          root.C \
                          stlv.h \
                          stlv.C \

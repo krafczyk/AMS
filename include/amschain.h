@@ -11,12 +11,14 @@
 
 //!  AMSChain class
 /*!
-  Utility class, to simplify the interactive analysis on AMS data with 
-  Cint/Python/Ruby interpreters. Example of use with Cint:
+  Utility class to uniformly access the AMS ROOT Trees both from 
+  interective and from programs, it simplify the interactive 
+  analysis on AMS data with  Cint/Python/Ruby interpreters. 
+  Example of use with Cint:
 
   \include ana.root_cint.C
-  P. Zuccon - Aug 2009 scorporated from root.C and integrated 
-                       with user selection function feature
+  \date 16/08/2009 P. Zuccon: Scorporated from root.C and integrated 
+    with user selection function feature
 
   \author juan.alcaraz@cern.ch
   
@@ -34,51 +36,51 @@ private:
   TFile* _FILE;
 
 public:
-  ///< Default constructor (it builds automatically the AMSEventR object)
+  /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
     :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
 
 
-  ///< alternative constructor (It requires an AMSEventR object to be passed)
+  /// alternative constructor (It requires an AMSEventR object to be passed)
   AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1, unsigned int fSize=sizeof(AMSEventR)); 
 
-  ///< Destructor
+  /// Destructor
   virtual ~AMSChain(){ _FILE=0;if (_EVENT) delete _EVENT; };
 
-  ///<Set event branch and links; called after reading of all trees; called automatically in GetEvent
+  ///Set event branch and links; called after reading of all trees; called automatically in GetEvent
   void Init(AMSEventR* event=0); 
 
-  ///<Get next AMSEventR object in the chain
+  ///Get next AMSEventR object in the chain
   AMSEventR* GetEvent(); 
 
-  ///<Get AMSEventR in entry number "entry"
+  ///Get AMSEventR in entry number "entry"
   AMSEventR* GetEvent(Int_t entry); 
 
-  ///<Get AMSEventR in entry number "entry" appling the user selection function (if defined)
+  ///Get AMSEventR in entry number "entry" appling the user selection function (if defined)
   /// Return 1 if the entry number "entry satisfies the  user selection function
   /// Return 0 otherwhise 
   Int_t ReadOneEvent(Int_t entry);
 
-  ///<Get AMSEventR with run number "run" and event number "ev"
+  ///Get AMSEventR with run number "run" and event number "ev"
   AMSEventR* GetEvent(Int_t run, Int_t ev); 
 
 
-  ///<Rewind the chain (go back before first entry)
+  ///Rewind the chain (go back before first entry)
   void Rewind() {_ENTRY=-1;_TREENUMBER=-1;}; 
 
-  ///<Get the current entry number
+  ///Get the current entry number
   Int_t Entry(){return _ENTRY;}
 
-  ///<Get the current event pointer
+  ///Get the current event pointer
   AMSEventR* pEvent() {return _EVENT;} 
 
-  ///<Get the name of the tree
+  ///Get the name of the tree
   const char* ChainName(){return _NAME;} 
 
-  ///<Load the user event selection function compiling the selected ile
+  ///Load the user event selection function compiling the selected ile
   int  LoadUF(char* fname="AMSNtupleSelect.C");
 
-  ///< Generate a skeleton to be used as  user event selection function
+  /// Generate a skeleton to be used as  user event selection function
   int GenUFSkel(char* fname="AMSNtupleSelect.C");
 
 
