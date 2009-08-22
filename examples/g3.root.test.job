@@ -1,20 +1,20 @@
-[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
-[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
-[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+[ -z "$ARCH" ]      && ARCH=`($ROOTSYS/bin/root-config --arch)  2>/dev/null`
 
-if [ "$UNAME" = "AIX" ] ; then
-   MACHINE="aix"
-elif [ "$UNAME" = "OSF1" ] ; then
-    MACHINE="osf1"
-elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc2"
+if [ "$ARCH" = "linux" ] ; then
+   MACHINE="linux"
+elif [ "$ARCH" = "linuxicc" ] ; then
+   MACHINE="linuxicc"
 else
 echo $UNAME is not supported yet
-
 fi
 
+if [ -z "$PGTRACK" ] ; then 
+PG=
+else 
+PG=PG
+fi
 
-$AMSWD/exe/linux/icc2/gbatch.exe <<!
+$AMSWD/exe/$(ARCH)/gbatch$(PG).exe <<!
 LIST
 KINE 14 
 LOSS 1

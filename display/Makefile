@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.42 2009/08/21 13:15:02 pzuccon Exp $
+#  $Id: Makefile,v 1.43 2009/08/22 18:54:01 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -7,8 +7,21 @@
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/display/
+PREFIX        = $(AMSWD)/bin/$(ARCH)/display
 DEPDIR        = $(PREFIX)/dep
+
+AMSLIB        = ntuple_slc4
+AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsed
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedc
+SLC4=y
+
+ifdef PGTRACK
+PREFIX        = $(AMSWD)/bin/$(ARCH)/display/PG/
+AMSLIB        = ntuple_slc4_PG
+AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsedPG
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedcPG
+endif
+
 
 
 # display compiles only with customized ROOT, at the moment v5.21
@@ -59,18 +72,14 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
 
-LIBSA         =   -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(ROOTLIBSA)  -lshift -lm -ldl
-LIBS          =   -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(ROOTLIBS) -lshift -lm -ldl
+LIBSA         =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBSA)  -lshift -lm -ldl
+LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBS) -lshift -lm -ldl
 endif
+
 
 ifdef PGTRACK
 CPPFLAGS+= -D_PGTRACK_
 endif
-
-AMSPRG        = $(PREFIX)amsed
-AMSPRGC       = $(PREFIX)amsedc
-SLC4=y
-
 
 
 # Other ARCH are not supported for the moment !!!!!!!!!!
@@ -208,7 +217,7 @@ clean:
 
 
 $(DEPDIR)/%.d : %.cxx
-	@echo "Generating $@ ..."
+	@echo "Generating Dep file $@ ..."
 	@if ! [ -d $(DEPDIR) ] ; then mkdir -p $(DEPDIR); fi
 	@$(CXX) $(CPPFLAGS) -MM $< -MT $(OBJ)/$*.o -MF $@
 

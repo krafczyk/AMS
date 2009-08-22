@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.79 2009/08/20 11:46:45 pzuccon Exp $
+#  $Id: Makefile,v 1.80 2009/08/22 18:54:01 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -60,52 +60,70 @@ CERN_LEVEL = 2001
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR =  /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
 
-
 ifndef AMSWD
 AMSWD := ..
 endif
 #
-SCC=../CC/
-# rl add SFF so it can be used in the default compile rules
+
+
+############## PRE PROCESSOR FLAGS (non ARCH dependent) 
+
+DEFINES  = -D__AMS02DAQ__    -D__WRITEROOT__ -D__ROOTPOINTERS__  
+INCDIRS  = -I../include  -I$(CERNDIR)/include -I$(ROOTSYS)/include
+CPPFLAGS = $(DEFINES)  $(INCDIRS)
+
+ROOTDICT_CPPFLAGS= $(CPPFLAGS) 
+
+
+################  OUTPUT DIRS  
+# C++      sources dir 
+SCC = ../CC/
+# Fortran  sources dir 
 SFF = ../F/
 
-ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot 
-
-CPPFLAGS=      -D__AMS02DAQ__    -D__WRITEROOT__ -D__ROOTPOINTERS__ 
-INCPATHS= -I../include  -I$(CERNDIR)/include -I$(ROOTSYS)/include
-
-ROOTDICT_CPPFLAGS= $(INCPATHS) 
-
 ifdef PGTRACK
-CPPFLAGS+= -D_PGTRACK_ 
+PG:=PG
+DEFINES+= -D_PGTRACK_ 
 ROOTDICT_CPPFLAGS+= -D_PGTRACK_ 
+
+BINMT=$(AMSWD)/bin/$(ARCH)/mt_PG/
+BIN=$(AMSWD)/bin/$(ARCH)/PG/
+EXE=$(AMSWD)/exe/$(ARCH)/
+LIB=$(AMSWD)/lib/$(ARCH)/
+SHLD=$(LIB)/ntuple_slc4_PG.so
+NTLD=$(LIB)/libntuple_slc4_PG.a
+else
+PG=
+BINMT=$(AMSWD)/bin/$(ARCH)/mt/
+BIN=$(AMSWD)/bin/$(ARCH)/
+EXE=$(AMSWD)/exe/$(ARCH)/
+LIB=$(AMSWD)/lib/$(ARCH)/
+SHLD=$(LIB)/ntuple_slc4.so
+NTLD=$(LIB)/libntuple_slc4.a
 endif
-
-
-
-CPPFLAGS+= $(INCPATHS)
 
 IDLFLAGS=-D__CORBA__ -I$(BIN)
 
 #-- CALL OS SPECIFIC FILE-------------------------------------------
 
 # Operating system dependence.
-# include a file called Makefile.$(MY_OS)
-#  this file has os dependent defs
+# include a file called Makefile.$(ARCH)
+# this file has os dependent defs
+# ARCH comes from the ROOT arch 
 
-MY_OS := $(shell uname)
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 
 ifeq ($(origin local_makefile), undefined)
-        local_makefile = Makefile.$(MY_OS)
+        local_makefile = Makefile.$(ARCH)
 endif
+
 include $(shell echo ${local_makefile})
 
-
-
+# combine compiler flags with pre-processor flags
+CPPFLAGSI := $(CPPFLAGS)
+CFLAGSI   := $(CFLAGSB) $(CPPFLAGSI) 
+DEFINES+= -D__BATCH__
 CFLAGSB+= $(CPPFLAGS) 
-CFLAGSB+= -D__BATCH__
-#FFLAGS+= $(INCPATHS)
-
 
 
 #------------------------------------------------------------------------------
@@ -123,15 +141,18 @@ $(BIN)%.o : $(SFF)%.F
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
+
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
+
 $(BIN)%.o : $(SCC)%.C
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CXX) -c $(CFLAGS) $< -o $@
+
 
 $(BIN)%_s.o: $(SCC)%.C
 	@echo Compiling  $< ...
@@ -163,52 +184,51 @@ GBATCH_BASE = $(SCC)amsgobj.C $(SCC)link.C $(SCC)commonsi.C   $(SCC)node.C   $(S
 
 COMMON_FILES+=$(GBATCH_BASE)
 
-#Geant Interface
-COMMON_FILES +=	$(SCC)commons.C    $(SCC)gvolume.C $(SCC)amsgeom.C $(SFF)Geant3_utils.F  \
-		$(SCC)gmat.C       $(SCC)mceventg.C                $(SCC)mccluster.C     \
-		$(SFF)egzav.F    \
-		$(SFF)hadevv.F        
+#Geant3/AMS custom  files
+COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(SFF)hadevv.F $(SFF)grfile.F
 
+#Geant3 Interface
+COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  \
+		$(SCC)gmat.C    $(SCC)mceventg.C  $(SCC)mccluster.C     \
+		$(SFF)egzav.F    
 
 
 #Utils
-COMMON_FILES += $(SCC)cern.C       $(SFF)sgif.F    $(SCC)rnormx.C  $(SFF)geocoor.F     \
-		$(SFF)grfile.F   $(SCC)status.C $(SCC)user.C    $(SCC)timelx.c $(SFF)e04ccf.f
+COMMON_FILES +=  $(SCC)commons.C  $(SCC)cern.C    $(SFF)sgif.F   $(SCC)rnormx.C  $(SFF)geocoor.F     \
+		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c $(SFF)e04ccf.f
 
 ifndef PGTRACK
-
 COMMON_FILES +=		$(SFF)mtx2.F     $(SFF)fint_my.F 
-
 endif
 
 
 #Tracker
 ifdef PGTRACK
-TRACK_BASE= 	$(SCC)TkCoo.C $(SCC)TkDBc.C	\
-        $(SCC)tkdcards.C $(SCC)TkLadder.C $(SCC)TkObject.C \
-	$(SCC)TkPlane.C $(SCC)TkSens.C \
-	$(SCC)TrCalDB.C $(SCC)TrCluster.C \
-	$(SCC)TrLadCal.C  $(SCC)TrMCCluster.C \
+TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
+        $(SCC)tkdcards.C     $(SCC)TkLadder.C $(SCC)TkObject.C \
+	$(SCC)TkPlane.C      $(SCC)TkSens.C \
+	$(SCC)TrCalDB.C      $(SCC)TrCluster.C \
+	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
-	 $(SCC)TrLadPar.C $(SCC)TrParDB.C\
-	$(SCC)VCon.C  $(SCC)TrAlignFit.C\
-	$(SCC)TrPatt.C     $(SCC)TrElem.C   
+        $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
+	$(SCC)VCon.C         $(SCC)TrAlignFit.C\
+	$(SCC)TrPatt.C       $(SCC)TrElem.C   
 
-TRACK_ADD= $(SCC)tkgeom.C  $(SCC)trdaq.C $(SCC)VCon_gbatch.C \
-	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C $(SCC)TrRecon.C $(SCC)trrec.C \
-	$(SFF)fint_my.F $(SCC)MagField.C $(SCC)TrFit.C \
-	$(SFF)mfield.F $(SCC)bcorr.C	
+TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
+	   $(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C $(SCC)TrRecon.C  \
+	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C \
+	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F	
 #$(SCC)gufld.C
 
 else
 
 #Tracker
-TRACK_BASE += $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trcalib.C $(SCC)tralig.C  \
+TRACK_BASE +=   $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trcalib.C $(SCC)tralig.C  \
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
 		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C     \
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C $(SCC)vtx.C
-TRACK_ADD= $(SFF)mfield.F $(SCC)bcorr.C
+TRACK_ADD=      $(SFF)mfield.F     $(SCC)bcorr.C
 endif
 COMMON_FILES +=$(TRACK_ADD)
 COMMON_FILES +=$(TRACK_BASE)
@@ -221,7 +241,7 @@ COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trdhrec
 
 
 #TOF + ACC
-COMMON_FILES += $(SCC)tofrec02.C               $(SCC)tofuser02.C \
+COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
 		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
 		$(SCC)tofid.C      $(SCC)antidbc02.C  $(SCC)antirec02.C \
 		$(SCC)anticalib02.C 
@@ -233,7 +253,7 @@ COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C\
 
 #RICH
 COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C      $(SCC)richgeom.C  \
-		$(SFF)richpatt_lip.F   $(SFF)richrec_lip.F \
+		$(SFF)richpatt_lip.F      $(SFF)richrec_lip.F \
 		$(SFF)richpmtlib.F        $(SFF)gtckov.F         $(SFF)graylc.F      $(SFF)cerenkov.F \
 		$(SCC)richradid.C         $(SFF)ggckov.F         $(SCC)richcal.C     $(SCC)richdaq.C \
 		$(SFF)richbetalike_lip.F \
@@ -241,7 +261,7 @@ COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C 
 		$(SFF)richutil_lip.F
 
 # High level reconstruction
-COMMON_FILES +=        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \
+COMMON_FILES += $(SCC)beta.C     $(SCC)charge.C   $(SCC)particle.C   \
 		$(SCC)astro.C    $(SCC)io.C 
 
 #Trigger
@@ -255,8 +275,7 @@ COMMON_FILES +=  $(SCC)daqs2block.C $(SCC)daqecblock.C
 #COMMON_FILES += $(SCC)ntuple.C
 
 #Root Interface
-COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C   
-#COMMON_FILES += $(SCC)root.C  
+COMMON_FILES += $(SCC)root.C   
 
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
@@ -275,13 +294,10 @@ endif
 # File list for standard gbatch compilation
 #------------------------------------------------------------------------------
 
-
-
 FILES= 	$(COMMON_FILES) \
-	$(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)daqevt.C $(SCC)geant3.C      \
-	$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F $(SFF)gskpho.F  \
-	$(SFF)flinit.F  $(SFF)gbirk.F   $(SFF)rndm.F   $(SCC)timeid.C $(SCC)ntuple.C \
-	$(SFF)richnodisp_lip.F
+	$(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)geant3.C      \
+	$(SCC)job.C     $(SCC)event.C   $(SCC)daqevt.C $(SFF)rndm.F   \
+	$(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)richnodisp_lip.F
 
 ifndef PGTRACK
 FILES +=$(SFF)TrackFit_utils.F
@@ -292,46 +308,62 @@ MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
-OBJECTS+= $(BIN)mtx.o
+OBJECTS+= $(BIN)mtx.o $(BIN)rootdict.o
+
+#------------------------------------------------------------------------------
+# File list for readdaq  gbatch compilation
+
+FILESR= $(COMMON_FILES)     $(SCC)readdaq.C $(SCC)daqevt.C  $(SFF)richnodisp_lip.F
+
+ifndef PGTRACK
+FILESR +=$(SFF)TrackFit_utils.F
+endif
+
+MYOBJS1:=$(FILESR:$(SFF)%.F=$(BIN)%.o) 
+MYOBJS2:=$(MYOBJS1:$(SCC)%.c=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS2:$(SCC)%.C=$(BIN)%.o) 
+OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
+
+OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
+		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o \
+		$(BIN)rootdict.o
 
 #------------------------------------------------------------------------------
 # File list for interactive gbatch compilation
 
-FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)TrackFit_utils.F $(SCC)daqevt.C \
-	$(SFF)richdisp_lip.F
+FILESI= $(COMMON_FILES)  \
+	$(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C  \
+	$(SCC)job.C $(SCC)event.C $(SCC)daqevt.C \
+        $(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)richdisp_lip.F
+
+ifndef PGTRACK
+FILESI +=$(SFF)TrackFit_utils.F
+endif
 
 MYOBJS1:=$(FILESI:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSI:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
-OBJECTSI+=  $(BIN)mtx.o     $(BIN)geanti.o 	$(BIN)geant3i.o  
+OBJECTSI+=  $(BIN)mtx.o  $(BIN)rootdict.o   $(BIN)geanti.o 	$(BIN)geant3i.o  
 
 #------------------------------------------------------------------------------
 # File list for client(production) gbatch compilation
 
 FILESC= $(COMMON_FILES)     $(SCC)producer.C $(SCC)client.C \
-		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SFF)richnodisp_lip.F
+	$(SCC)ins_dummy.C $(SFF)rndm.F $(SFF)richnodisp_lip.F
 
 MYOBJS1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
-
-FILESR= $(COMMON_FILES)     $(SCC)readdaq.C
-MYOBJS1:=$(FILESR:$(SFF)%.F=$(BIN)%.o) 
-MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
-OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
-
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o
 
 ifndef PGTRACK
 OBJECTSC += $(BIN)TrackFit_utils_c.o
 endif
-OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
-		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o
 
 
 #------------------------------------------------------------------------------
@@ -378,67 +410,88 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #------------------------------------------------------------------------------
 #  Gbatch standalone batch processing
 
-gbatch: $(EXE)gbatch.exe 
+STANDALONE:=$(EXE)gbatch$(PG).exe 
 
-$(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o
+gbatch: amswd $(STANDALONE)
+
+$(STANDALONE):	$(OBJECTS) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
-         $(TIMEL) $(LDFLAGSSTATIC)
+	$(LD) $(FLAGSSTATIC)  -o $@  $(OBJECTS) $(TIMEL) $(LDFLAGSSTATIC)
 
-readdaq: $(EXE)readdaq
+readdaq:amswd  $(EXE)readdaq$(PG)
 
-$(EXE)readdaq:  $(OBJECTR) $(BIN)ctype.o
-	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)readdaq $(OBJECTR)\
-         $(TIMEL) $(LDFLAGSSTATIC)
+$(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
+	$(LD) $(FLAGSSTATIC)  -o  $@  $(OBJECTR) $(TIMEL) $(LDFLAGSSTATIC)
 
 
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session
 
-gxint :	$(EXE)gxint.exe 
+INTERACTIVE:=$(EXE)gxint\$(PG).exe 
+gxint :	amswd $(INTERACTIVE)
 
 
-$(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o
+$(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) -v -o $(EXE)/gxint.exe  $(OBJECTSI) $(LDFLAGSI)
+	$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
 
 
 $(BIN)geanti.o:      $(SCC)geant.C
-	$(CXX) -c  $(CPPFLAGS) $(SCC)geant.C -o $(BIN)/geanti.o
+	$(CXX) -c  $(CFLAGSI) $(SCC)geant.C -o $(BIN)/geanti.o
 
 $(BIN)geant3i.o:      $(SCC)geant3.C
-	$(CXX) -c  $(CPPFLAGS) $(SCC)geant3.C -o $(BIN)/geant3i.o
+	$(CXX) -c  $(CFLAGSI) $(SCC)geant3.C -o $(BIN)/geant3i.o
+
+#---------------------------------------------------------------------------------
+# Client TARGET (producer)
+
+CLIENT=$(EXE)gbatch-orbit$(PG).exe
+
+producer: amswd	$(CLIENT)
+
+#                   Orbit-C      Orbit-C++   gbatch
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+
+
+#---------------------------------------------------------------------------------
+#  Server TARGET (server)
+
+SERVER=$(EXE)amsprodserver$(PG).exe
+
+test: $(OBJECTCO)
+	echo $^
+
+server: amswd	$(SERVER)
+#               Orbit-C   Orbit-C++-Ser
+$(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX)   $(LDFLAGSSTATICIDL) 
+
 
 #------------------------------------------------------------------------------
 #   Libraries to read the ROOT output
 
 lib: shared static 
-ifdef PGTRACK
 
-PGLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o $(BIN)Vertex_s.o \
+ifdef PGTRACK
+SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o $(BIN)Vertex_s.o \
 	$(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o \
 	$(BIN)root_rs.o  $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o $(BIN)MagField_s.o
-shared :  $(PGLIBO)
-	echo $(PGLIBO)
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(LD) -O  $(SOFLAGS) $^  $(SHLDFLAGS) -o  $(SHLD)
-
-static :  $(PGLIBO)
-	@rm -f $(NTLD)
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."	
-	$(AR) rv $(NTLD) $^
 else
-
-shared :     $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(AR) rv   $(NTLD) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o
-	$(LD) -O  $(SOFLAGS) $(BIN)point.o $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)amschain_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
-
-static :	$(BIN)point.o $(BIN)root_rs.o $(BIN)rootdict_s.o  $(BIN)amschain_s.o  $(BIN)id.o 
-	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(AR) rv   $(NTLD) $^ 
-
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
 endif
+
+shared : amswd  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+	$(LD) -O  $(SOFLAGS) $(SHLIBO) $(SHLDFLAGS) -o  $(SHLD)
+
+static : amswd	$(SHLIBO)
+	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
+	$(AR) rv   $(NTLD) $(SHLIBO)
+
+
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
@@ -448,8 +501,11 @@ ifeq  "$(shell uname)"  "Linux"
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
+
 $(BIN)timelx.o: $(SCC)timelx.c
 	$(CC) -c $(CFLAGS) $< -o$@
+
+
 ../include/root_methods.h:      ../perl/root.perl
 	perl ../perl/root.perl
 
@@ -588,30 +644,8 @@ $(BIN)gbirk.o:      $(SFF)gbirk.F
 $(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
 	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)richpmtlib.F -o $(BIN)richpmtlib.o
 
-#---------------------------------------------------------------------------------
-#  Server TARGET (server)
-
-SERVER=$(EXE)amsprodserver.exe
-
-server:	$(SERVER)
-
-$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
 
-
-#---------------------------------------------------------------------------------
-# Client TARGET (producer)
-
-CLIENT=$(EXE)gbatch-orbit.exe
-
-producer:	$(CLIENT)
-
-
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
-	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 #---------------------------------------------------------------------------------
 # Additional Rules for client/server 
@@ -671,22 +705,25 @@ $(BIN)server.o: 	 $(SCC)server.C
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
 	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
 
-
+##################### ADDTIONAL (PHONY) TARGETS ##############################################
+#checks if the directory AMSWD exist 
+amswd:
+	@if ! [ -d $(AMSWD) ]; then echo FATAL: the directory pointer by AMSWD = $(AMSWD) is missing !!!; exit 1;fi
 
 depend:         $(BIN)Make-depend
 
 touch_depend:
-		touch $(BIN)Make-depend
+	touch $(BIN)Make-depend
 
 $(BIN)Make-depend:    $(INCS)
-	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+		@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
-		touch $(BIN)Make-depend
+		 touch $(BIN)Make-depend
 endif
 		makedepend -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN)
 		cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
 		rm -f $(BIN)Make-depend
-		mv $(BIN)Make-depend.new $(BIN)Make-depend
+	mv $(BIN)Make-depend.new $(BIN)Make-depend
 
 clean : 
 	rm -f $(BIN)*.o 
@@ -707,7 +744,6 @@ cleanlibs:
 
 ##### DEPENDENCIES #####
 ifneq ($(MAKECMDGOALS),touch_depend)
- include $(BIN)Make-depend
+-include $(BIN)Make-depend
 endif
-
 

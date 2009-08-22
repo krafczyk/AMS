@@ -7,6 +7,7 @@
 #include "TStopwatch.h"
 
 #include "root.h"
+#include "amschain.h"
 
 #include "TkDBc.h"
 #include "TkCoo.h"

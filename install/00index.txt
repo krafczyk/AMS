@@ -1,14 +1,15 @@
-#  $Id: 00index.txt,v 1.41 2009/04/02 13:31:47 choutko Exp $
+#  $Id: 00index.txt,v 1.42 2009/08/22 18:54:01 pzuccon Exp $
 
 Makefile //  General Makefile
-Makefile.Linux // OS dep
-Makefile.OSf1 //  OS dep ( to be updated)
-          // setenv  DEBUGFLAG 1  sets the -g option in compiling; 
-	  // unsetenv DEBUGFLAG   turn on  optimizatio in compiling;
-          // setenv AMSPROFILE 1  adds gprof;
-	  // setenv AMSDEBUG enable the debug code into the GBATCH source
-	  // setenv AMSP 1 enable the parallel processing (Intel compilers only)
-
+Makefile.linux    // OS dep -> Linux-gcc
+Makefile.linuxicc // OS dep -> Linux-icc
+Makefile.OSf1     //  OS dep ( to be updated)
+          // setenv   DEBUGFLAG 1      sets the -g option in compiling; 
+	  // unsetenv DEBUGFLAG        turn on  optimizatio in compiling;
+          // setenv   AMSPROFILE 1     adds gprof;
+	  // setenv   AMSDEBUG         enable the debug code into the GBATCH source
+	  // setenv   AMSP 1           enable the parallel processing (Intel compilers only)
+          // setenv   PGTRACK 1        enable the new tracker SW
 	  
 Moptg4    // makefile to gmake g4 batch ! Only RH7.3 is supported !!!
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
@@ -26,7 +27,6 @@ It then depends on the compiler type has been used for  your ROOT version.
 
 The new Perugia Tracker Software can be enabled at compile time with:
 setenv PGTRACK 1
-before compiling do a make clean.
 
 WARNING!!: Perugia Tracker Software is under developpement, is tested only on gcc
          and it is not yet full featured.

@@ -1,26 +1,42 @@
-#  $Id: Makefile,v 1.37 2009/08/21 13:15:02 pzuccon Exp $
+#  $Id: Makefile,v 1.38 2009/08/22 18:54:01 pzuccon Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
 
+#    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
+#    LINUX arch supported is SLC4 with gcc or  icc
+
+
+
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
-VER         := $(shell $(ROOTSYS)/bin/root-config --version )
-PREFIX        = $(AMSWD)/online/
+PREFIX        = $(AMSWD)/bin/$(ARCH)online/
 DEPDIR        = $(PREFIX)/dep
+
+AMSLIB        = ntuple_slc4
+AMSPRG        = $(AMSWD)/exe/$(ARCH)/offmon
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)/offmonc
+SLC4=y
+
+ifdef PGTRACK
+PREFIX        = $(AMSWD)/bin/$(ARCH)/online/PG/
+AMSLIB        = ntuple_slc4_PG
+AMSPRG        = $(AMSWD)/exe/$(ARCH)/offmonPG
+AMSPRGC       = $(AMSWD)/exe/$(ARCH)/offmoncPG
+endif
+
+
 
 # display compiles only with customized ROOT, at the moment v5.21
 NEW             :=_new
 
+VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
 
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc 
 CPPFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
-CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
-OPT           = -O3
-OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.0/069/bin/ia32/icpc -axssse3 -openmp
@@ -33,13 +49,13 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linux/ -lntuple_slc4_icc $(ROOTLIBS)  -lshift -lm    -ldl
-LIBSA         =  -L$(AMSWD)/lib/linux/ -lntuple_slc4_icc $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
+LIBS          =  -L$(AMSWD)/lib/linuxicc/ -lntuple_slc4 $(ROOTLIBS)  -lshift -lm    -ldl
+LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -lntuple_slc4 $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 else
 
 CXX           =  g++ -m32 
-CPPFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -O2
 OPTC          = -O0
@@ -63,7 +79,6 @@ endif
 #ifeq ($(ARCH),macosx)
 #CXX           =  g++ -Wno-deprecated
 #CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
-#OPT           = -O2
 #OPTC          = -O0
 #NOOPT         = -g
 #LD            = g++
@@ -124,9 +139,9 @@ HDRS          = AMSDisplay.h       AMSHist.h         AMSAntiHist.h \
 
 DEPS=  $(SRCS:%.cxx=$(DEPDIR)/%.d)
 
-DICT          = AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
+DICT          = $(PREFIX)/AMSCint_$(ARCH)_$(SLC4)$(NEW).cxx
 DICTH         = $(DICT:.cxx=.h)
-DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
+DICTO         = $(DICT:$(PREFIX)/%.cxx=$(PREFIX)/%.o)
 
 
 MAIN          = main.cxx
@@ -146,14 +161,8 @@ ALLSRCS       = $(SRCS  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO) 
 
 
-AMSLIB       = libAMS.a
-
-AMSSHAREDLIB = libAMS.so
 
 
-AMSPRG       = $(PREFIX)offmon
-AMSPRGC       = $(PREFIX)offmonc
-SLC4=y
 
 #ifeq ($(ARCH),win32)
 #AMSPRG       = $(PREFIX)offmon.exe
@@ -211,11 +220,13 @@ clean:
 
 
 $(DEPDIR)/%.d : %.cxx
-	@echo "Generating $@ ..."
+	@echo "Generating Dep file $@ ..."
 	@if ! [ -d $(DEPDIR) ] ; then mkdir -p $(DEPDIR); fi
 	@$(CXX) $(CPPFLAGS) -MM $< -MT $(OBJ)/$*.o -MF $@
 
 
+$(PREFIX)%.o : $(PREFIX)%.cxx 
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(PREFIX)%.o : %.cxx 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
