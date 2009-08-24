@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.80 2009/08/22 18:54:01 pzuccon Exp $
+#  $Id: Makefile,v 1.81 2009/08/24 10:27:06 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -111,13 +111,13 @@ IDLFLAGS=-D__CORBA__ -I$(BIN)
 # this file has os dependent defs
 # ARCH comes from the ROOT arch 
 
-ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 
-ifeq ($(origin local_makefile), undefined)
-        local_makefile = Makefile.$(ARCH)
+ifeq ($(origin ARCH), undefined) 
+  ARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
 endif
+local_makefile = Makefile.$(ARCH)
 
-include $(shell echo ${local_makefile})
+include $(local_makefile)
 
 # combine compiler flags with pre-processor flags
 CPPFLAGSI := $(CPPFLAGS)

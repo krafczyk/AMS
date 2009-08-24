@@ -1,10 +1,7 @@
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
-
-#ifeq  "$(shell uname)"  "Linux"
-
-ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
+#   LINUX architecture OLD ICC compiler - more compatible
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
@@ -38,7 +35,6 @@ endif
 
 RH9add=-pthread $(BIN)ctype.o 
 
-ifeq ($(ARCH),linuxicc)
 ifdef AMSPARALLEL
   PARALLEL= -D__AMSPARALLEL__ -openmp 
 else
@@ -47,38 +43,26 @@ endif
 ifdef AMSP
  PARALLEL=-D__AMSP__ -openmp  
 endif
-endif
+
 
 
 ########################################################################
 #Compilers
 ########################################################################
-ifeq ($(ARCH),linuxicc)
+
   INTELDIR=/opt/intel/
-  INTELVER=Compiler/11.0/069/bin/ia32
-  INTELOPT=-axT 
-  INTELVERC=cc/10.1.012/bin
+  INTELVERC=cc/10.1.012
   INTELVERF=fc/10.1.012
+  INTELOPT=-axT 
   FF=$(INTELDIR)/$(INTELVERF)/bin/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
-  CC=$(INTELDIR)/$(INTELVERC)/icc  -m32  $(INTELOPT) $(PARALLEL)
-  LD=$(INTELDIR)/$(INTELVERC)/icpc -m32  $(INTELOPT)  $(PARALLEL) 
+  CXX=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
+  CC=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32  $(INTELOPT) $(PARALLEL)
+  LD=$(INTELDIR)/$(INTELVERC)/bin/icpc -m32  $(INTELOPT)  $(PARALLEL) 
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -tpp6 -xi
 
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/lib/     -lifport -lifcoremt -limf  -lipgo -lirc_s 
-else
-  CC  = gcc -m32 
-  CXX = g++ -m32
-  FF  = g77 -m32 
-  FFOLD=$(FF)
-  LD  = g++ -m32
-  FORTRAN2_LIBS=
-  FORTRAN_LIBS=-lg2c 
-ifdef VERGCC
-  FORTRAN_LIBS+= -lgfortran 
-endif
-endif
+
 
 ORBIT2DIR=/opt/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
@@ -90,28 +74,13 @@ IDLCPP=orbit-idl-2 -l cpp
 ########################################################################
 
 # change defaults if intel compiler 
-
-
 CERN_LEVEL = pro
 CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
-ifeq ($(ARCH),linuxicc)
-  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
-  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
-  NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
-  #AMSLIB =  /amssw/AMSlib/linux/icc
-  #NAGDIR = /amssw/AMSlib/linux/icc
-else
-  CERNDIR = /cern/$(CERN_LEVEL)
-  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
-ifdef VERGCC
-  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
-endif
-  NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
-  #AMSLIB =  /amssw/AMSlib/linux
-  #NAGDIR = /amssw/AMSlib/linux
-endif
+CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
+NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 
 ########################################################################
 # Compilers FLAGS
@@ -119,38 +88,35 @@ endif
 
 
 ifdef AMSDEBUG
-CPPFLAGS+=  -D__AMSDEBUG__
+DEFINES+=  -D__AMSDEBUG__
 endif
 
 ifdef TFADBW
-CPPFLAGS+=  -D__TFADBW__
+DEFINES+=  -D__TFADBW__
 endif
 
 ifdef TFAPEDC
-CPPFLAGS+=  -D__TFAPEDC__
+DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB= -Wno-deprecated  -mcpu=i686 -D__root_$(NEW) -D__LINUXGNU__
+CFLAGSB= -Wno-deprecated  -mcpu=i686 
+DEFINES+= -D__root_$(NEW) -D__LINUXGNU__ -D__ICC__
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
 endif
 
- CFLAGS=       $(CFLAGSB)   
- CFLAGSTOFSIM= $(CFLAGSB) 
- CFLAGSn=      $(CFLAGSB)
- CFLAGSDAQ=    $(CFLAGSB) 
+CFLAGS=       $(CFLAGSB)   
+CFLAGSTOFSIM= $(CFLAGSB) 
+CFLAGSn=      $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB) 
 
-ifeq ($(ARCH),linuxicc)
-    FFLAGS=    -D__ICC__  -mp1  -fp_port   
-    FFLAGSn=   -D__ICC__  -mp1 -fp_port   
-    CFLAGSB+= -D__ICC__
-else 
-    FFLAGS=       -fno-automatic 
-    FFLAGSn=      -fno-automatic 
-    CFLAGSB+= -D__GNU__
-endif
+
+FFLAGS=    -D__ICC__  -mp1  -fp_port   
+FFLAGSn=   -D__ICC__  -mp1 -fp_port   
+
+
 
 ifdef AMSPROFILE 
   FFLAGS+=-pg
@@ -192,23 +158,6 @@ endif
 # Output dirs
 ########################################################################
 
-ifeq ($(ARCH),linuxicc)
-  BINMT=$(AMSWD)/bin/linux/icc2/mt/
-  BIN=$(AMSWD)/bin/linux/icc2/
-  EXE=$(AMSWD)/exe/linux/icc2/
-  LIB=$(AMSWD)/lib/linux/
-  SHLD=$(LIB)/ntuple_slc4_icc.so
-  NTLD=$(LIB)/libntuple_slc4_icc.a
-else
-  BINMT=$(AMSWD)/bin/linux/icc/mt/
-  BIN=$(AMSWD)/bin/linux/
-  EXE=$(AMSWD)/exe/linux/
-  LIB=$(AMSWD)/lib/linux/
-  SHLD=$(LIB)/ntuple_slc4.so
-  NTLD=$(LIB)/libntuple_slc4.a
-endif
-
-
 #----------------------------------------------------
 
 
@@ -238,9 +187,8 @@ endif
 LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
 
 
-ifeq ($(ARCH),linuxicc)
 LDFLAGS+= -lcxa -lcprts
-endif
+
 
 
 
@@ -271,6 +219,6 @@ endif
 
 #endif
 
-# end of Linux case
+# end of Linuxicc.24 case
 
 #########################################################

@@ -77,15 +77,9 @@ CERN_LEVEL = pro
 CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
-
-#  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
-  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
-#  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
-  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
-  NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
-  #AMSLIB =  /amssw/AMSlib/linux/icc
-  #NAGDIR = /amssw/AMSlib/linux/icc
-
+CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
+NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 
 ########################################################################
 # Compilers FLAGS
