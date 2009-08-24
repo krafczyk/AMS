@@ -80,8 +80,8 @@ CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
-NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
-
+#NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 ########################################################################
 # Compilers FLAGS
 ########################################################################
@@ -173,8 +173,8 @@ LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
 -lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN_LIBS) $(RH9add)
 
-LDFLAGS=      $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag   \
+LDFLAGS=       \
+-L$(NAGDIR) -lnag $(FORTRAN2_LIBS)  \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\

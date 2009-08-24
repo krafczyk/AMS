@@ -1,8 +1,9 @@
-#  $Id: 00index.txt,v 1.42 2009/08/22 18:54:01 pzuccon Exp $
+#  $Id: 00index.txt,v 1.43 2009/08/24 12:54:13 pzuccon Exp $
 
 Makefile //  General Makefile
 Makefile.linux    // OS dep -> Linux-gcc
 Makefile.linuxicc // OS dep -> Linux-icc
+Makefile.Linux.24 // OS dep -> Linux-OLD icc --> Special arch enabled maually  by: setenv  ARCH Linux.24 
 Makefile.OSf1     //  OS dep ( to be updated)
           // setenv   DEBUGFLAG 1      sets the -g option in compiling; 
 	  // unsetenv DEBUGFLAG        turn on  optimizatio in compiling;
