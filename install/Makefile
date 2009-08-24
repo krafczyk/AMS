@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.82 2009/08/24 13:33:44 pzuccon Exp $
+#  $Id: Makefile,v 1.83 2009/08/24 16:44:51 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -154,7 +154,7 @@ $(BIN)%.o : $(SCC)%.C
 	$(CXX) -c $(CFLAGS) $< -o $@
 
 
-$(BIN)%_s.o: $(SCC)%.C
+$(BIN)%_s.o: $(SCC)%.C ../include/root_methods.h
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
