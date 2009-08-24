@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.81 2009/08/24 10:27:06 pzuccon Exp $
+#  $Id: Makefile,v 1.82 2009/08/24 13:33:44 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -68,7 +68,7 @@ endif
 
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
 
-DEFINES  = -D__AMS02DAQ__    -D__WRITEROOT__ -D__ROOTPOINTERS__  
+DEFINES  =    -D__WRITEROOT__ 
 INCDIRS  = -I../include  -I$(CERNDIR)/include -I$(ROOTSYS)/include
 CPPFLAGS = $(DEFINES)  $(INCDIRS)
 
@@ -122,7 +122,7 @@ include $(local_makefile)
 # combine compiler flags with pre-processor flags
 CPPFLAGSI := $(CPPFLAGS)
 CFLAGSI   := $(CFLAGSB) $(CPPFLAGSI) 
-DEFINES+= -D__BATCH__
+
 CFLAGSB+= $(CPPFLAGS) 
 
 
@@ -495,6 +495,13 @@ static : amswd	$(SHLIBO)
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
+
+$(BIN)geant.o: 	 $(SCC)geant.C
+	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
+
+$(BIN)geant3.o:	 $(SCC)geant3.C
+	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
+
 $(BIN)ctype.o: $(SCC)ctype.c
 ifeq  "$(shell uname)"  "Linux" 
 	$(CC) -c $< -o$@
@@ -537,10 +544,10 @@ $(BIN)rootdict.o:         $(BIN)rootdict.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
 
 $(BIN)daqevt.o:         $(SCC)daqevt.C
-	$(CXX) -c $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o 
+	$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o 
 
 $(BIN)daqevt_c.o:         $(SCC)daqevt.C
-	$(CXX_ORBIT) -c $(CFLAGSDAQ) $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
+	$(CXX_ORBIT) -c $(CFLAGSDAQ)-D__AMS02DAQ__ $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
@@ -676,13 +683,15 @@ $(BIN)gbatch_c.o:         $(SCC)gbatch.C
 	$(CXX_ORBIT) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
 $(BIN)geant_c.o: 	 $(SCC)geant.C
-	$(CXX_ORBIT) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+	$(CXX_ORBIT) -c $(CFLAGSB) -D__BATCH__ $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+
 
 $(BIN)job_c.o: 	 $(SCC)job.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
-	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+
 
 $(BIN)event_c.o: 	 $(SCC)event.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o

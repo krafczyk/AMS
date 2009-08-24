@@ -96,7 +96,7 @@ endif
 
 
 CFLAGSB= -Wno-deprecated  -mcpu=i686 
-DEFINES+= -D__LINUXGNU__ -D__GNU__ -D__root_$(NEW) 
+DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
