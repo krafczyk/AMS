@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.43 2009/08/24 12:54:13 pzuccon Exp $
+#  $Id: 00index.txt,v 1.44 2009/08/24 13:39:10 pzuccon Exp $
 
 Makefile //  General Makefile
 Makefile.linux    // OS dep -> Linux-gcc
@@ -54,7 +54,10 @@ therefore for 2.4 and/or mc related jobs using cernlib 2002/2003 :
 
 
 source /Offline/vdev/install/amsvar.slc4.icc
-cp Makefile.Linux.24 Makefile.Linux
-rm $AMSWD/bin/linux/icc2/*
+setenv ARCH Linux.24
 unsetenv AMSP
 gmake -j 2
+
+The executable  will be put in $AMSWD/exe/Linux.24/
+
+
