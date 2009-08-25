@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.39 2009/08/25 09:28:29 pzuccon Exp $
+#  $Id: Makefile,v 1.40 2009/08/25 14:01:27 pzuccon Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -52,8 +52,8 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linuxicc/ -lntuple_slc4 $(ROOTLIBS)  -lshift -lm    -ldl
-LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -lntuple_slc4 $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
+LIBS          =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS)  -lshift -lm    -ldl
+LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 else
 
@@ -75,8 +75,8 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
 
-LIBSA          =  -L$(AMSWD)/lib/linux/ -lntuple_slc4 $(ROOTLIBSA) -lshift -lm -ldl
-LIBS          =   -L$(AMSWD)/lib/linux/ -lntuple_slc4  $(ROOTLIBS) -lshift -lm -ldl
+LIBSA          =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm -ldl
+LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBS) -lshift -lm -ldl
 endif
 
 
@@ -181,17 +181,22 @@ LDD	= 	$(LD) -rdynamic
 
 
 ##### TARGETS #####
-standalone:  $(AMSPRG)
+standalone:  amslib $(AMSPRG) 
+osdepend:  amslib $(AMSPRGC)
 
-osdepend:  $(AMSPRGC)
+amslib: $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a
+$(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a:
+	$(MAKE) -C ../install lib
+
+  
 
 
 
-$(AMSPRG):       $(OBJS)  $(DICTO) $(MAINO)
+$(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO)
 		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
+$(AMSPRGC):	  $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
 		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
 
 

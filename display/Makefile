@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.45 2009/08/25 10:00:10 pzuccon Exp $
+#  $Id: Makefile,v 1.46 2009/08/25 14:01:27 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -29,8 +29,8 @@ NEW         :=_new
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
-ifeq ($(ARCH),linuxicc)
 
+ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc 
 CPPFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
@@ -63,6 +63,9 @@ NOOPT         = -g
 LD            = g++ -m32
 LDFLAGS       = -g 
 LDS	= 	$(LD) -static
+LD            = g++ -m32
+LDFLAGS       = -g 
+LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 
@@ -70,9 +73,6 @@ ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -l
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
-
-
-LIBSA         =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBSA)  -lshift -lm -ldl
 LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBS) -lshift -lm -ldl
 endif
 
@@ -177,10 +177,14 @@ ALLOBJS       = $(OBJS) $(OBJSN) $(DICTO)
 
 
 ##### TARGETS #####
+standalone:  amslib $(AMSPRG) 
+osdepend:  amslib $(AMSPRGC)
 
-standalone:  $(AMSPRG)
-osdepend:  $(AMSPRGC)
+amslib: $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a
+$(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a:
+	$(MAKE) -C ../install lib
 
+  
 
 
 
