@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.12 2009/08/21 13:15:01 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.13 2009/08/25 16:51:57 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/21 13:15:01 $
+/// $Date: 2009/08/25 16:51:57 $
 ///
-/// $Revision: 1.12 $
+/// $Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -261,7 +261,7 @@ int TrRecon::BuildTrClusters(int rebuild) {
     return -1;
   }
   if(cont->getnelem()==0){
-    printf("TrRecon::BuildTrClusters  AMSTrRawCluster Container is Empty  Reconstruction is Impossible !!!\n");
+//    printf("TrRecon::BuildTrClusters  AMSTrRawCluster Container is Empty  Reconstruction is Impossible !!!\n");
     return -1;
   }
   //  else printf( "TrRecon::BuildTrClusters  AMSTrRawCluster Container has %d elements\n",cont->getnelem());
