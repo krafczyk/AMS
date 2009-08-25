@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.43 2009/08/22 18:54:01 pzuccon Exp $
+#  $Id: Makefile,v 1.44 2009/08/25 09:28:28 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -7,7 +7,7 @@
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/bin/$(ARCH)/display
+PREFIX        = $(AMSWD)/bin/$(ARCH)/display/
 DEPDIR        = $(PREFIX)/dep
 
 AMSLIB        = ntuple_slc4
@@ -49,8 +49,8 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linux/ -lntuple_slc4_icc $(ROOTLIBS)  -lshift -lm    -ldl
-LIBSA         =  -L$(AMSWD)/lib/linux/ -lntuple_slc4_icc $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
+LIBS          =  -L$(AMSWD)/lib/linuxicc/ -lntuple_slc4 $(ROOTLIBS)  -lshift -lm    -ldl
+LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -lntuple_slc4 $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 
 else

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.38 2009/08/22 18:54:01 pzuccon Exp $
+#  $Id: Makefile,v 1.39 2009/08/25 09:28:29 pzuccon Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -8,9 +8,9 @@
 
 
 
-ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
-PREFIX        = $(AMSWD)/bin/$(ARCH)online/
+PREFIX        = $(AMSWD)/bin/$(ARCH)/online/
 DEPDIR        = $(PREFIX)/dep
 
 AMSLIB        = ntuple_slc4
@@ -28,7 +28,7 @@ endif
 
 
 # display compiles only with customized ROOT, at the moment v5.21
-NEW             :=_new
+NEW         :=_new
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
@@ -37,12 +37,15 @@ ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc 
 CPPFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
+CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
+OPT           = -O3
+OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.0/069/bin/ia32/icpc -axssse3 -openmp
 LDFLAGS       = 
-LDS	      =	$(LD) -Bstatic
-LDD	      =	$(LD) -Bdynamic
+LDS	= 	$(LD) -Bstatic
+LDD	= 	$(LD) -Bdynamic
 
 ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
@@ -62,11 +65,12 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++ -m32
 LDFLAGS       = -g 
-LDS	      =	$(LD) -static
-LDD	      =	$(LD) -rdynamic
+LDS	= 	$(LD) -static
+LDS	= 	$(LD) -static
+LDD	= 	$(LD) -rdynamic
 
 ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF
-ROOTLIBSA     =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
@@ -77,12 +81,11 @@ endif
 
 
 #ifeq ($(ARCH),macosx)
-#CXX           =  g++ -Wno-deprecated
+#CXX           =  g++  -Wno-deprecated
 #CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 #OPTC          = -O0
 #NOOPT         = -g
 #LD            = g++
-#LDFLAGS       = -g 
 #ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
 
 #LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
@@ -112,7 +115,7 @@ endif
 #NOOPTC         = -g
 #LD = $(ROOTSYS)/build/win/ld.sh
 #LDFLAGS       =  -nologo    -nodefaultlib:libc.lib -nodefaultlib:dfor.lib 
-#LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib  $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
+#LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
 #ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
 #endif
 
@@ -185,7 +188,7 @@ osdepend:  $(AMSPRGC)
 
 
 $(AMSPRG):       $(OBJS)  $(DICTO) $(MAINO)
-		$(LDS)    $(LDFLAGS) $^   $(LIBSA) -o $(@) 
+		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
@@ -239,3 +242,4 @@ $(PREFIX)%.o : %.cxx
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
 endif
+
