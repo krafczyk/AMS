@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.44 2009/08/24 13:39:10 pzuccon Exp $
+#  $Id: 00index.txt,v 1.45 2009/08/25 10:00:10 pzuccon Exp $
 
 Makefile //  General Makefile
 Makefile.linux    // OS dep -> Linux-gcc
@@ -53,7 +53,7 @@ doesn't work well with 2.4 kernels and/or  2002/2003 geant3 libraries compiled w
 therefore for 2.4 and/or mc related jobs using cernlib 2002/2003 :
 
 
-source /Offline/vdev/install/amsvar.slc4.icc
+source /Offline/vdev/install/amsvar.slc4icc
 setenv ARCH Linux.24
 unsetenv AMSP
 gmake -j 2
