@@ -114,16 +114,22 @@ integer TrDAQ::calcdaqlength(integer i){
 
 void TrDAQ::buildraw(integer n, int16u *pbeg){
   //  have to split integer n; add crate number on the upper part...
-  unsigned int leng=n&65535;
+  unsigned int leng=n&0xFFFF;
   uinteger ic=(n>>16);
   int cmn=0;
+  int16u st=*(pbeg-1+leng);
+  int num=st&0x1F;
+  char Jname[20];
+  sprintf(Jname,"JINF %d",num);
+  int ret=TestBoardErrors(Jname,st,0);
+if( ret<0) return;
   if(TRCALIB.Version==0)cmn=16;
   else cmn=0;
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
   //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
   for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
     ReadOneTDR(p,*p,ic,0);
-  
+
   }
   
 
@@ -164,6 +170,8 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   int CNWords=0;
   if(TRCALIB.Version==0)CNWords=16;
   else CNWords=0;
+//FIXME PZ DATA FORMAT
+  CNWords=16;
   if(run>=1208965124) CNWords=0;
 
   int rwords=1+CNWords;
@@ -176,7 +184,8 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   //  sprintf(ttname,"=======>JINF %d %s TDR Board: %2d status: %hX offset: %d last word: %d  Size: %d \n",Jinfnum,label[Jinfnum],status&0x1f,status,offset,offset+tsize,tsize); 
  
   sprintf(ttname,"CrateT%d_TDR%02d",cratenum,TDRnum);
-  int ret=TestBoardErrors(ttname,status);
+  int ret=TestBoardErrors(ttname,status,0);
+  if(ret<0) return -1;
 
   int RawOffset=0;
   if (status>>6&1) {
@@ -259,6 +268,7 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
 
   int count;
   if(pri>4){
+         printf("%s \n",name);
     for (count=5;count<16;count++)
       if(status>>count&1)
 	printf("%02d: %s\n",count,errmess[count]);
@@ -267,7 +277,7 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
   if((status>>9&0x3f)>0)    
     // (status>>9&1) ||  (status>>10&1)||  (status>>11&1)||  (status>>12&1)|| (status>>13&1)|| (status>>14&1))      
     {      
-      printf("%s",name);
+     if(pri>0)     printf("%s",name);
       count=5;
       for (count=5;count<16;count++)
 	if(status>>count&1)
