@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.130 2009/07/29 11:30:45 choutko Exp $
+//  $Id: producer.C,v 1.131 2009/08/26 10:38:56 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1579,6 +1579,17 @@ if(fail){
  _evtag.Status=DPS::Producer::Failure;
 }
 else  _evtag.Status=DPS::Producer::Success;
+AString a=(const char*)_pid.HostName;
+a+=":";
+a+=name;
+a+=".";
+char tmp[80];
+sprintf(tmp,"%d",run);
+a+=tmp;
+a+=".";
+sprintf(tmp,"%d",first);
+a+=tmp;
+_evtag.Name=(const char *)a;
 _evtag.EventNumber=nelem;
 _evtag.FirstEvent=first;
 _evtag.LastEvent=last;
@@ -1595,6 +1606,7 @@ LMessage(AMSClient::print(_evtag,"CloseDST"));
 if(_Solo)return;
 
 UpdateARS();
+bool notagain =true;
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
@@ -1607,10 +1619,14 @@ again:
    }
   }
   catch  (CORBA::SystemException & a){
+     cerr<< "Problems with SendEventTsagEndInfo "<< a._orbitcpp_get_repoid()<<endl;
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec") && notagain){
+   notagain=false;
+   goto again;
+ }
 else FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagEndInfo ",DPS::Client::CInAbort);
 
 
