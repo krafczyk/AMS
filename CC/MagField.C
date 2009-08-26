@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.3 2009/08/19 23:32:48 pzuccon Exp $
+// $Id: MagField.C,v 1.4 2009/08/26 20:23:01 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2009/08/19 23:32:48 $
+///$Date: 2009/08/26 20:23:01 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -299,7 +299,7 @@ void uctoh (char* MS,int* MT,int npw, int NCHP){
   */
 
   int     MWDV[3];
-  char*    CHWD= (char*) MWDV[0];
+  char*    CHWD= (char*) &MWDV[0];
 	
 
   int    IBLAN1 = 0x00202020;

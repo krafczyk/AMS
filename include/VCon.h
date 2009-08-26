@@ -7,18 +7,18 @@ class VCon{
 public:
 
 
-  VCon();
+  VCon(){}
   virtual ~VCon(){}
 
-  virtual  VCon*  GetCont(char* name){}
+  virtual  VCon*  GetCont(char* name)=0;
 
-  virtual int      getnelem(){}
-  virtual void     eraseC(){}
-  virtual TrElem* getelem(int ii){}
-  virtual int      getindex(TrElem*){}
-  virtual void     addnext(TrElem* aa){}
+  virtual int      getnelem()=0;
+  virtual void     eraseC()=0;
+  virtual TrElem* getelem(int ii)=0;
+  virtual int      getindex(TrElem*)=0;
+  virtual void     addnext(TrElem* aa)=0;
   // remove next element !!!
-  virtual void     removeEl(TrElem* prev, int restore=1) {}
+  virtual void     removeEl(TrElem* prev, int restore=1)=0;
 };
 
 

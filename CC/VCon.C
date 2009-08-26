@@ -10,11 +10,6 @@
 #include "VCon_gbatch.h"
 #endif
 
-VCon::VCon(){
-
-
-}
-
 
 VCon* GetVCon(){
   

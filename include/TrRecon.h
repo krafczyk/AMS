@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.9 2009/08/26 17:51:01 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.10 2009/08/26 20:23:02 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/26 17:51:01 $
+/// $Date: 2009/08/26 20:23:02 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -75,7 +75,7 @@ public:
   enum { BUFSIZE = 1024 };
   /// clustering - ADC buffer to expand raw clusters
   static float _adcbuf[BUFSIZE];
-#pragma omp threadprivate()
+#pragma omp threadprivate(_adcbuf)
   static float _sigbuf[BUFSIZE];
 #pragma omp threadprivate(_sigbuf)
   /// clustering - status buffer to expand raw clusters
@@ -94,7 +94,7 @@ public:
 
 private:
   //! Private constructor, class is a singleton
-  TrRecon(){Clear();  cal=0;}
+  TrRecon(){Clear();  }
   //! do not want copy constructor
   TrRecon(TrRecon&){}
 
