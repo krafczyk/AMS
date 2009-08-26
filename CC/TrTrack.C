@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.11 2009/08/19 23:32:49 pzuccon Exp $
+// $Id: TrTrack.C,v 1.12 2009/08/26 17:50:58 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/19 23:32:49 $
+///$Date: 2009/08/26 17:50:58 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +29,7 @@
 #include "TkDBc.h"
 #include "point.h"
 #include "tkdcards.h"
+#include "VCon.h"
 
 #include "TrTrack.h"
 #include "TrRecHit.h"
@@ -59,17 +60,7 @@ void  TrTrackPar::Print_stream(std::string &ostr,int full){
 
 
 ClassImp(TrTrackR);
-#ifdef __ROOTSHAREDLIBRARY__
-#ifdef _STANDALONE_
-#include "VCon_root2.h"
-#else
-#include "VCon_root.h"
-#endif
-VCon* TrTrackR::vcon= new VCon_root();
-#else  
-#include "VCon_gbatch.h"
-VCon* TrTrackR::vcon = new VCon_gb();
-#endif
+
 
 geant TrTrackR::_TimeLimit = 0;
 
@@ -198,7 +189,7 @@ TrTrackPar &TrTrackR::GetPar(int id) {
 
 void TrTrackR::AddHit(TrRecHitR *hit, int imult,AMSPoint* bfield)
 {
-  VCon* cont2=vcon->GetCont("AMSTrRecHit");
+  VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   if (_Nhits < trconst::maxlay) {
     _Hits [_Nhits] = hit;
     _iHits[_Nhits] = cont2->getindex(hit);
@@ -215,7 +206,7 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult,AMSPoint* bfield)
 
 void TrTrackR::BuildHitsIndex()
 {
-  VCon *cont2 = vcon->GetCont("AMSTrRecHit");
+  VCon *cont2 = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont2) return;
 
   for (int i = 0; i < _Nhits; i++)
@@ -266,7 +257,7 @@ TrRecHitR *TrTrackR::GetHit(int i)
 {
   if (i < 0 || trconst::maxlay <= i) return 0;
   if (_Hits[i] == 0 && _iHits[i] >= 0) {
-    VCon* cont2 = vcon->GetCont("AMSTrRecHit");
+    VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");
     _Hits[i] = (TrRecHitR*)cont2->getelem(_iHits[i]);
     delete cont2;
   }

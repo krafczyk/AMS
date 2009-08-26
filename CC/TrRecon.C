@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.13 2009/08/25 16:51:57 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.14 2009/08/26 17:50:57 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/25 16:51:57 $
+/// $Date: 2009/08/26 17:50:57 $
 ///
-/// $Revision: 1.13 $
+/// $Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +29,7 @@
 #include "TrMCCluster.h"
 #include "Vertex.h"
 #include "amsdbc.h"
+#include "VCon.h"
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "trrec.h"
@@ -36,7 +37,6 @@
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
 
-VCon* TrRecon::TRCon=0;
 
 
 TrRecon* TrRecon::Head=0;
@@ -127,7 +127,7 @@ int TrRecon::MaxNtrHit  =  50;
 // option is temporary, 0:No_reco 1:Up_to_TrCluster 2:Full
 int TrRecon::Build(int option)
 {
-  VCon* cont = TRCon->GetCont("AMSTrRawCluster");
+  VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont) {
     cerr << "TrRecon::Build  Cant Find AMSTrRawCluster" << endl;
     return -1;
@@ -229,7 +229,7 @@ int TrRecon::ExpandClusterInBuffer(TrRawClusterR* cluster) {
   int entries = 0;
   int nelements = cluster->GetNelem();
   int firststripaddress = cluster->GetAddress();
-  cal = GetTrCalDB()->FindCal_TkId(cluster->GetTkId());
+  TrLadCal* cal = GetTrCalDB()->FindCal_TkId(cluster->GetTkId());
   for (int jj=0; jj<nelements; jj++) {
     int address = firststripaddress + jj;
     if ( (address<0)||(address>=1024) ) continue;
@@ -255,7 +255,7 @@ int TrRecon::GetAddressInSubBuffer(int address, int first, int last, int ciclici
 int TrRecon::BuildTrClusters(int rebuild) { 
   //Get the pointer to the TrRawCluster container
   //  AMSContainer* cont=GetCont(AMSID("AMSTrRawCluster"));
-  VCon* cont=TRCon->GetCont("AMSTrRawCluster");
+  VCon* cont=GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont){
     printf("TrRecon::BuildTrClusters  Cant Find AMSTrRawCluster Container Reconstruction is Impossible !!!\n");
     return -1;
@@ -267,7 +267,7 @@ int TrRecon::BuildTrClusters(int rebuild) {
   //  else printf( "TrRecon::BuildTrClusters  AMSTrRawCluster Container has %d elements\n",cont->getnelem());
 
 
-  VCon* cont2=TRCon->GetCont("AMSTrCluster");
+  VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
   if(!cont2){
     printf("TrRecon::BuildTrClusters  Cant Find AMSTrCluster Container Reconstruction is Impossible !!!\n");
     return -1;
@@ -326,14 +326,14 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
     printf("TrRecon::BuildTrClustersInSubBuffer Error, no _trcaldb specified.\n");
     return -9999; 
   }
-  cal = GetTrCalDB()->FindCal_TkId(tkid);
+  TrLadCal* cal = GetTrCalDB()->FindCal_TkId(tkid);
   if (!cal) {printf ("TrRecon::BuildTrClustersInSubBuffer, WARNING calibration not found!!\n"); return -9999;}
   // create a list of seeds 
   int nseeds = BuildSeedListInSubBuffer(first, last, cyclicity);
 //   printf("Found %d seeds\n",nseeds);
 //   for (int jj=0;jj<nseeds;jj++) printf("seed %d  %d\n",jj,_seedaddresses.at(jj));
 
-  VCon* cont=TRCon->GetCont("AMSTrCluster");
+  VCon* cont=GetVCon()->GetCont("AMSTrCluster");
 
   // loop on seeds
   for (int ss=0; ss<nseeds; ss++) {
@@ -469,7 +469,7 @@ float  TrRecon::GetProbToBeCorrelated(TrClusterR* cln, TrClusterR* clp) {
 void TrRecon::BuildClusterTkIdMap() {
   _ClusterTkIdMap.clear();
   // loop on TrClusters
-  VCon* cont=TRCon->GetCont("AMSTrCluster");
+  VCon* cont=GetVCon()->GetCont("AMSTrCluster");
   for (int ii=0;ii<cont->getnelem();ii++){
     TrClusterR* cluster = (TrClusterR*)cont->getelem(ii);
     //    cluster->Print();
@@ -497,7 +497,7 @@ TrClusterR* TrRecon::GetTrCluster(int tkid, int side, int iclus) {
 int TrRecon::BuildTrRecHits(int rebuild) 
 {
   //Get the pointer to the TrCluster container
-  VCon* cont=TRCon->GetCont("AMSTrCluster");
+  VCon* cont=GetVCon()->GetCont("AMSTrCluster");
   if (!cont) {
     printf("TrRecon::BuildTrRecHit  Cant Find AMSTrCluster Container "
            "Reconstruction is Impossible !!!\n");
@@ -508,7 +508,7 @@ int TrRecon::BuildTrRecHits(int rebuild)
     return 0;
   }
 
-  VCon* cont2=TRCon->GetCont("AMSTrRecHit");
+  VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   if (!cont2){
     printf("TrRecon::BuildTrRecHit  Cant Find AMSTrRecHit Container "
            "Reconstruction is Impossible !!!\n");
@@ -561,7 +561,7 @@ int TrRecon::BuildTrRecHits(int rebuild)
 } 
 
 TrRecHitR* TrRecon::FindHit(TrClusterR* xcls,TrClusterR* ycls){
-  VCon* cont1 = TRCon->GetCont("AMSTrRecHit");
+  VCon* cont1 = GetVCon()->GetCont("AMSTrRecHit");
   TrRecHitR* goodhit=0;
   TrRecHitR* hit=0;
   for (int ii = 0; ii < cont1->getnelem(); ii++) {
@@ -749,7 +749,7 @@ if (TrDEBUG >= 6) {\
 
 #define TR_DEBUG_CODE_41 \
 if (TrDEBUG >= 5) {\
-  VCon* cont2 = TRCon->GetCont("AMSTrRecHit");\
+  VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");\
   int ihit = cont2->getindex(hit);\
   cout << "Removed hit " << itcand.tkid[i] << " " << ihit << endl;\
   int tkid = itcand.tkid[i];\
@@ -870,7 +870,7 @@ int *TrRecon::HitPatternFirst  = 0;
 void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 {
   static int PatternID = 0;
-
+#pragma omp threadprivate(PatternID)
 //====================================
 // General managing = starting point
 //====================================
@@ -932,6 +932,8 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 const char *TrRecon::GetHitPatternStr(int pat, char con, char coff)
 {
   static char sbuf[MAXLAY+1];
+#pragma omp threadprivate(sbuf)
+
   for (int ly = 1; ly <= MAXLAY; ly++)
     sbuf[ly-1] = (TestHitPatternMask(pat, ly)) ? con : coff;
   sbuf[MAXLAY] = '\0';
@@ -965,7 +967,7 @@ void TrRecon::BuildHitsTkIdMap()
 {
   _HitsTkIdMap.clear();
 
-  VCon* cont = TRCon->GetCont("AMSTrRecHit");
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if(!cont) {
     cerr << "TrRecon::BuildRecHitLayerMap:  "
             "Cant Find AMSTrRecHit Container" << endl;
@@ -1110,11 +1112,11 @@ int TrRecon::BuildTrTracks(int)
 
 void TrRecon::PurgeGhostHits()
 {
-  VCon* contT = TRCon->GetCont("AMSTrTrack");
+  VCon* contT = GetVCon()->GetCont("AMSTrTrack");
   if(!contT) return;
 
 
-  VCon* cont = TRCon->GetCont("AMSTrRecHit");
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if(!cont) return;
 
   int ntrack=contT->getnelem();
@@ -1589,7 +1591,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }
  }
 
-  VCon* cont = TRCon->GetCont("AMSTrTrack");
+  VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (!cont) return 0;
   int fit_method=TrTrackR::DefaultFitID;
   if (!MagFieldOn())
@@ -1788,7 +1790,7 @@ void TrRecon::sitkhits(int idsoft, float vect[],
   }
   
   // Create a new object
-  VCon* aa=TRCon->GetCont("AMSTrMCCluster");
+  VCon* aa=GetVCon()->GetCont("AMSTrMCCluster");
   if(aa)
 #ifndef __ROOTSHAREDLIBRARY__
     aa->addnext(  new AMSTrMCCluster(idsoft, pa, pb, pgl,pmom,edep , itra));
@@ -1803,7 +1805,7 @@ void TrRecon::sitkhits(int idsoft, float vect[],
 void TrRecon::sitkdigi()
 {
   //Get the pointer to the TrMCCluster container
-  VCon* cont=TRCon->GetCont("AMSTrMCCluster");
+  VCon* cont=GetVCon()->GetCont("AMSTrMCCluster");
   if(!cont){
     printf("TrSim::sitkdigi()  Cant Find AMSMCCluster Container Digitization is Impossible !!!\n");
     return ;
@@ -1885,7 +1887,7 @@ void TrRecon::DSP_Clusterize(int tkid,float *buf){
   float general[1024];
 
   //Get the pointer to the TrMCCluster container
-  VCon* cont=TRCon->GetCont("AMSTrRawCluster");
+  VCon* cont=GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont){
     printf("TrRecon::DSP_Clusterize  Cant Find AMSTrRawCluster Container Digitization is Impossible !!!\n");
     return ;
@@ -2228,7 +2230,7 @@ PatID Nhits   Pattern  Sw Attrib
 
 int TrRecon::BuildVertex(integer refit){
    
-  VCon* vtx_ctr=TRCon->GetCont("AMSVtx");
+  VCon* vtx_ctr=GetVCon()->GetCont("AMSVtx");
   if(!vtx_ctr){
     printf("TrRecon::BuildVertex  Cant Find AMSVtx Container Reconstruction is Impossible !!!\n");
     return -1;
@@ -2247,7 +2249,7 @@ int TrRecon::BuildVertex(integer refit){
   if (TRFITFFKEY.OnlyGammaVtx) maxtracks=2;
   
   // First pass (only tracks with beta)
-  VCon* pctr=TRCon->GetCont("AMSTrTrack");
+  VCon* pctr=GetVCon()->GetCont("AMSTrTrack");
   for (int ii=0;ii<pctr->getnelem();ii=0) {
     TrTrackR *ptr = (TrTrackR *)pctr->getelem(ii);
     if (ptr->checkstatus(AMSDBc::GOLDEN)) {
@@ -2267,7 +2269,7 @@ int TrRecon::BuildVertex(integer refit){
       vtx_ctr->addnext(p); 
  //      if (debug) {
 // 	p->print();
-// 	VCon* betac=TRCon->GetCont("AMSBeta");
+// 	VCon* betac=GetVCon()->GetCont("AMSBeta");
 // 	if(!betac) goto exit;
 // 	for (int i=0; i<p->getntracks(); i++) {
 // 	  TrTrackR* ptr = p->gettrack(i);

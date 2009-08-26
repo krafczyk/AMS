@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.5 2009/07/11 07:50:14 shaino Exp $
+//  $Id: TkDBc.C,v 1.6 2009/08/26 17:50:56 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/07/11 07:50:14 $
+///$Date: 2009/08/26 17:50:56 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -666,6 +666,7 @@ char * TkDBc::GetCratePos(int crate){
 }
 char * TkDBc::GetOctName(int oct){
   static char name[10];
+#pragma omp threadprivate(name)
   if(oct==1) sprintf(name,"WAKE++");
   if(oct==2) sprintf(name,"WAKE-+");
   if(oct==3) sprintf(name,"RAM ++");

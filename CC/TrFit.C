@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.4 2009/08/19 23:32:48 pzuccon Exp $
+//  $Id: TrFit.C,v 1.5 2009/08/26 17:50:57 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/08/19 23:32:48 $
+///$Date: 2009/08/26 17:50:57 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2252,7 +2252,7 @@ double TrProp::VCFitParCyl(double *init, double *out, double *point)
 void TrProp::VCFuncXY(double *in, double *out, double *derl, int clear)
 {
   static double der[2][10];
-
+#pragma omp threadprivate(der)
   if (clear == 1) {
     for (int i = 0; i < 10; i++) der[0][i] = der[1][i];
   }

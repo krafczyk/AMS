@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.641 2009/08/19 23:32:49 pzuccon Exp $
+// $Id: job.C,v 1.642 2009/08/26 17:50:58 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -28,7 +28,7 @@
 #ifdef _PGTRACK_
 
 #include "TrRecon.h"
-#include "VCon_gbatch.h"
+
 #include "trrec.h"
 #include "tkdcards.h"
 #include "trdaq.h"
@@ -1716,7 +1716,6 @@ if(AMSFFKEY.Update){
 
   TkDBc::CreateTkDBc();
 
-  TrRecon::TRCon=new VCon_gb();
 
   if(strstr(getsetup(),"AMS02") ){    
     if(TKGEOMFFKEY.ReadGeomFromFile==1){
@@ -1753,7 +1752,7 @@ if(AMSFFKEY.Update){
   cc2->CreateLinear();
   TrClusterR::UsingTrParDB(TrParDB::Head);
 
-  TrRecon::TRCon=new VCon_gb();
+
   TrRecon::Create();
   TrRecon::gethead()->SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);

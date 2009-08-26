@@ -11,8 +11,10 @@ class TrElem{
 protected:
   //! std::string used to form an Info string the can be sent to vasrius outputs
   static std::string sout;
+#pragma omp threadprivate (sout)
   //! C string of fixed sizer used for the event display interface
   static char _Info[MAXINFOSIZE];
+#pragma omp threadprivate (_Info)
   //! Constructor (should no be used)
   TrElem(){}
   //! Destructor

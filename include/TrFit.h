@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.3 2009/07/08 14:31:32 shaino Exp $
+//  $Id: TrFit.h,v 1.4 2009/08/26 17:51:01 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -47,9 +47,9 @@
 ///\date  2008/12/01 SH  Fits methods debugged and checked
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///
-///$Date: 2009/07/08 14:31:32 $
+///$Date: 2009/08/26 17:51:01 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -163,10 +163,10 @@ public:
 
   /// Multiple scattering switch
   static int _mscat;
-
+#pragma omp threadprivate(_mscat)
   /// Energy loss correction switch
   static int _eloss;
-
+#pragma omp threadprivate(_eloss)
 protected:
   int    _nhit;          ///< Number of hits
   int    _nhitx;         ///< Number of hits in X

@@ -10,7 +10,6 @@
 #include "TkDBc.h"
 #include "point.h"
 #include "TrTrack.h"
-#include "VCon.h"
 
 
 //! Class that implements a vertex made of two tracks
@@ -38,8 +37,6 @@ protected:
   /// 
   int _filled;
   
-  /// Virtual container
-  static VCon* vcon;
 
   /// Build index vector (_fTrTrack) from hits vector (_PTrack)
   void BuildTracksIndex();

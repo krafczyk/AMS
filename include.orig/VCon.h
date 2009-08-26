@@ -21,6 +21,12 @@ public:
   virtual void     removeEl(TrElem* prev, int restore=1) {}
 };
 
+
+
+
+VCon* GetVCon();
+
+
 #endif
 
 

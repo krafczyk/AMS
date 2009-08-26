@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.83 2009/08/24 16:44:51 pzuccon Exp $
+#  $Id: Makefile,v 1.84 2009/08/26 17:51:01 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -209,14 +209,14 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TkPlane.C      $(SCC)TkSens.C \
 	$(SCC)TrCalDB.C      $(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
+	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C   \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
-	$(SCC)VCon.C         $(SCC)TrAlignFit.C\
-	$(SCC)TrPatt.C       $(SCC)TrElem.C   
+	        $(SCC)TrAlignFit.C\
+	      $(SCC)TrElem.C   
 
-TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
-	   $(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C $(SCC)TrRecon.C  \
-	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C \
+TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
+	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
 	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F	
 #$(SCC)gufld.C
 
@@ -476,9 +476,9 @@ $(SERVER):    $(OBJECTCO) $(OBJECTSE)   $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctyp
 lib: shared static 
 
 ifdef PGTRACK
-SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o $(BIN)Vertex_s.o \
-	$(BIN)TrRecHit_s.o $(BIN)TrTrack_s.o $(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o \
-	$(BIN)root_rs.o  $(BIN)rootdict_s.o  $(BIN)TrRecon_s.o $(BIN)MagField_s.o
+SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
+	$(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  \
+	$(BIN)root_rs.o  $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
 else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
 endif

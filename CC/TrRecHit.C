@@ -19,20 +19,9 @@
 ClassImp(TrRecHitR);
 
 
+#include "VCon.h"
 
 
-
-#ifdef __ROOTSHAREDLIBRARY__
-#ifdef _STANDALONE_
-#include "VCon_root2.h"
-#else
-#include "VCon_root.h"
-#endif
-VCon* TrRecHitR::vcon= new VCon_root();
-#else  
-#include "VCon_gbatch.h"
-VCon* TrRecHitR::vcon = new VCon_gb();
-#endif
 
 
 TrRecHitR::TrRecHitR(void) {
@@ -71,7 +60,7 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, flo
 
   _clusterX = clX;   
   _clusterY = clY;   
-  VCon* cont2=vcon->GetCont("AMSTrCluster");
+  VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
   _iclusterX = (_clusterX) ? cont2->getindex(_clusterX) : -1;
   _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;
   delete cont2;
@@ -90,7 +79,7 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, flo
 
 TrClusterR* TrRecHitR::GetXCluster() { 
   if(_clusterX==NULL&& !(Status&YONLY)){
-    VCon* cont2=vcon->GetCont("AMSTrCluster");
+    VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
     _clusterX = (TrClusterR*)cont2->getelem(_iclusterX);
     delete cont2;
   }
@@ -100,7 +89,7 @@ TrClusterR* TrRecHitR::GetXCluster() {
 
 TrClusterR* TrRecHitR::GetYCluster() { 
   if(_clusterY==NULL&& !(Status&XONLY)){
-    VCon* cont2=vcon->GetCont("AMSTrCluster");
+    VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
     _clusterY = (TrClusterR*)cont2->getelem(_iclusterY);
     delete cont2;
   }

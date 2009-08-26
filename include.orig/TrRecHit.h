@@ -32,7 +32,6 @@
 #include "TkCoo.h"
 #include "TkDBc.h"
 #include "TrElem.h"
-#include "VCon.h"
 
 #define XONLY 0x100
 #define YONLY 0x200
@@ -69,8 +68,7 @@ protected:
 
   /// Hit status (...)
   int   Status;
-  //! pointer for the Virtual Container Acceess feature
-  static VCon* vcon;
+
 
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);

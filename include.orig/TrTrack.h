@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.9 2009/08/19 14:36:04 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.10 2009/08/26 17:51:01 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,14 +36,13 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/19 14:36:04 $
+///$Date: 2009/08/26 17:51:01 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "point.h"
-#include "VCon.h"
 #include "TrFit.h"
 #include "TObject.h"
 
@@ -189,10 +188,9 @@ protected:
   int Status;
 
   static geant _TimeLimit; //!
+#pragma omp threadprivate(_TimeLimit)
   /// Number of points for half fit (default: 4)
   static int NhitHalf;
-  /// Virtual container
-  static VCon* vcon;
 
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
@@ -201,7 +199,7 @@ protected:
 public:
   /// Default fit method ID to retrive parameters
   static int DefaultFitID;
-
+#pragma omp threadprivate(DefaultFitID)
 public:
 
 //############### CONSTRUCTORS & C. ############################

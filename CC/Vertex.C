@@ -10,18 +10,7 @@
 #include "tkdcards.h"
 #include "amsdbc.h"
 #include "TString.h"
-
-#ifdef __ROOTSHAREDLIBRARY__
-#ifdef _STANDALONE_
-#include "VCon_root2.h"
-#else
-#include "VCon_root.h"
-#endif
-VCon* VertexR::vcon = new VCon_root();
-#else  
-#include "VCon_gbatch.h"
-VCon* VertexR::vcon = new VCon_gb();
-#endif
+#include "VCon.h"
 
 
 
@@ -136,7 +125,7 @@ std::ostream &VertexR::putout(std::ostream &ostr) {
 
 void VertexR::BuildTracksIndex()
 {
-  VCon *cont2 = vcon->GetCont("AMSTrTrack");
+  VCon *cont2 = GetVCon()->GetCont("AMSTrTrack");
   if (!cont2) return;
   _fTrTrack.clear();
   for (int i = 0; i < NTrTrack(); i++) {
@@ -152,7 +141,7 @@ TrTrackR *VertexR::pTrTrack(unsigned int i)
 
   if(i>=_fTrTrack.size()) return 0;
   if (_Ptrack[i] == 0 && _fTrTrack[i] >= 0) {
-    VCon* cont2 = vcon->GetCont("AMSTrTrack");
+    VCon* cont2 = GetVCon()->GetCont("AMSTrTrack");
     _Ptrack[i] = (TrTrackR*)cont2->getelem(_fTrTrack[i]);
     delete cont2;
   }

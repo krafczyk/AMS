@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.8 2009/08/19 23:32:43 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.9 2009/08/26 17:51:01 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/19 23:32:43 $
+/// $Date: 2009/08/26 17:51:01 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -32,7 +32,6 @@
 #include "TkDBc.h"
 #include "TrFit.h"
 #include "TkDBc.h"
-#include "VCon.h"
 #include "TMath.h"
 #include "Vertex.h"
 #include "amsdbc.h"
@@ -42,12 +41,8 @@
 #include <algorithm>
 
 
-
 class TrRecon {
 
-public:
-  /// Static parameter containing VCon
-  static VCon* TRCon;
 
 protected:
   /// Map association between TkId and 2 p/n side TrClusters lists 
@@ -80,15 +75,23 @@ public:
   enum { BUFSIZE = 1024 };
   /// clustering - ADC buffer to expand raw clusters
   static float _adcbuf[BUFSIZE];
+#pragma omp threadprivate()
   static float _sigbuf[BUFSIZE];
+#pragma omp threadprivate(_sigbuf)
   /// clustering - status buffer to expand raw clusters
   static int   _stabuf[BUFSIZE];
+#pragma omp threadprivate(_stabuf)
   /// clustering - list of the seeds in the subbuffer
   static vector<int> _seedaddresses;   
-
+#pragma omp threadprivate(_seedaddresses)
   static float _adcbuf2[BUFSIZE];
+#pragma omp threadprivate(_adcbuf2)
   static float _sigbuf2[BUFSIZE];
+#pragma omp threadprivate(_sigbuf2)
   static int   _stabuf2[BUFSIZE];
+#pragma omp threadprivate(_stabuf2)
+
+
 private:
   //! Private constructor, class is a singleton
   TrRecon(){Clear();  cal=0;}
@@ -96,7 +99,7 @@ private:
   TrRecon(TrRecon&){}
 
   static TrCalDB* _trcaldb;
-  TrLadCal* cal;
+
 public:
   //! static pointer to the single instance
   static TrRecon*  Head;
