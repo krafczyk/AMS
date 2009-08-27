@@ -666,7 +666,8 @@ class RemoteClient:
                     for key in exitmutexes.keys():
                         if(not exitmutexes[key].locked()):
                             it=it+1
-                    time.sleep(5)
+                    if(it>maxt):
+                        time.sleep(5)
                 try:
                     if(datamc==0 and run.DataMC==datamc):
                         thread.start_new(self.validaterun,(run,))
