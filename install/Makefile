@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.85 2009/08/27 09:47:22 pzuccon Exp $
+#  $Id: Makefile,v 1.86 2009/08/27 14:12:53 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -427,7 +427,7 @@ $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session
 
-INTERACTIVE:=$(EXE)gxint\$(PG).exe 
+INTERACTIVE:=$(EXE)gxint$(PG).exe 
 gxint :	amswd $(INTERACTIVE)
 
 
@@ -743,7 +743,7 @@ clean :
 	rm -f $(BIN)*.c
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
-	rm -f $(STANDALONE) $(INTEACTIVE) $(CLIENT) $(SERVER)
+	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 
 cleanlibs:
 	rm -f $(BIN)/root*.o
