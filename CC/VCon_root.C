@@ -78,6 +78,7 @@ int VCon_root::getnelem(){
     return ev->NTrRecHit();
   if( strstr(contname,"TrTrack"))
     return ev->NTrTrack();
+  return 0;
 }
 
 void VCon_root::eraseC(){

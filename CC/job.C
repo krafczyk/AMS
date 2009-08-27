@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.642 2009/08/26 17:50:58 pzuccon Exp $
+// $Id: job.C,v 1.643 2009/08/27 10:58:03 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1753,8 +1753,8 @@ if(AMSFFKEY.Update){
   TrClusterR::UsingTrParDB(TrParDB::Head);
 
 
-  TrRecon::Create();
-  TrRecon::gethead()->SetParFromDataCards();
+  TrRecon::Init();
+  TrRecon::SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);
 
 #else

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.15 2009/08/27 09:47:22 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.16 2009/08/27 10:58:03 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/27 09:47:22 $
+/// $Date: 2009/08/27 10:58:03 $
 ///
-/// $Revision: 1.15 $
+/// $Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -39,39 +39,42 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 
 
 
-TrRecon* TrRecon::Head=0;
+//TrRecon* TrRecon::Head=0;
 TrCalDB* TrRecon::_trcaldb=0;
 
-TrRecon* TrRecon::Create(int recreate){
-  if (Head && !recreate){
-    printf("TrRecon::Create Warning a Trecon instance already exist!\n");
-    return Head;
-  }
-  if( (Head && recreate)||(!Head))
-    Head= new TrRecon();
+// TrRecon* TrRecon::Create(int recreate){
+//   if (Head && !recreate){
+//     printf("TrRecon::Create Warning a Trecon instance already exist!\n");
+//     return Head;
+//   }
+//   if( (Head && recreate)||(!Head))
+//     Head= new TrRecon();
+
+void TrRecon::InitBuffer(){
   for (int i = 0; i < BUFSIZE; i++) {
     _adcbuf2[i] =  0;
     _sigbuf2[i] =  -1;
     _stabuf2[i] =  -1;
   } 
-
-  return Head;
 }
+
+//   return Head;
+// }
 
 // clustering - parameters
 float       TrRecon::ThrSeed[2]  = {3.50,3.50};
 float       TrRecon::ThrNeig[2]  = {0.10,0.10};
 int         TrRecon::SeedDist[2] = {   3,   3};
 
-// clustering - analysis structure
-float       TrRecon::_adcbuf[TrRecon::BUFSIZE];
-float       TrRecon::_sigbuf[TrRecon::BUFSIZE];
-int         TrRecon::_stabuf[TrRecon::BUFSIZE];
+// // clustering - analysis structure
+// float       TrRecon::_adcbuf[TrRecon::BUFSIZE];
+// float       TrRecon::_sigbuf[TrRecon::BUFSIZE];
+// int         TrRecon::_stabuf[TrRecon::BUFSIZE];
 
 float       TrRecon::_adcbuf2[TrRecon::BUFSIZE];
 float       TrRecon::_sigbuf2[TrRecon::BUFSIZE];
 int         TrRecon::_stabuf2[TrRecon::BUFSIZE];
-vector<int> TrRecon::_seedaddresses;
+// vector<int> TrRecon::_seedaddresses;
 
 // hit signal correlation (only muons/protons)
 float  TrRecon::GGpars[6]  = {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
@@ -115,6 +118,7 @@ void TrRecon::Clear(Option_t *option) {
   GGintegral=0;
   ThrProb=0;
   */
+
   _ClusterTkIdMap.clear();
   _RecHitLayerMap.clear();
   // _Patterns.clear();
@@ -209,7 +213,11 @@ int TrRecon::Build(int option)
 // }
 
 
-
+void TrRecon::Init(){
+  BuildHitPatterns();
+  InitBuffer();
+}
+    
 //////////////////////
 // --- CLUSTERS --- //
 //////////////////////
@@ -845,7 +853,7 @@ if (TrDEBUG >= 1) {\
 //========================================================
 int    TrRecon::MaxNtrack = 2;
 int    TrRecon::MinNhitX  = 4;
-int    TrRecon::MinNhitY  = 6;
+int    TrRecon::MinNhitY  = 5;
 int    TrRecon::MinNhitXY = 4;
 int    TrRecon::PatAllowOption = 0;
 double TrRecon::MaxChisqAllowed   = 300;
@@ -1243,32 +1251,60 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
   return 1;
 }
 
-int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand, 
-                           int (*Coord)(int, TrHitIter&, int), 
-                           int (*Eval)(TrHitIter&, TrHitIter&)) const
+int TrRecon::ScanRecursiveL(int idx, TrHitIter &it, TrHitIter &itcand) const
 {
   // Evaluate current candidates if idx has reached to the end
-  if (idx == it.nlayer) return Eval(it, itcand);
+  if (idx == it.nlayer) return LadderScanEval(it, itcand);
 
   // Skip if current layer is disabled
   int il = it.ilay[idx];
-  if (il < 0) return ScanRecursive(idx+1, it, itcand, Coord, Eval);
+  if (il < 0) return ScanRecursiveL(idx+1, it, itcand);
 
   // Loop on hit candidates in the current layer
-  int nscan = Coord(idx, it, 1);
+  int nscan = LadderCoordMgr(idx, it, 1);
   for (it.Iscan(il) = 0; it.Iscan(il) < nscan; it.Iscan(il)++) {
 
     // Loop on multiplicities
-    int mlast = Coord(idx, it, 2);
+    int mlast = LadderCoordMgr(idx, it, 2);
     for (; it.imult[il] <= mlast; it.imult[il]++) {
       // Set coordinates
-      if (Coord(idx, it, 3) < 0) continue;
+      if (LadderCoordMgr(idx, it, 3) < 0) continue;
 
       // Pre selection
       if (!PreScan(idx, it)) continue;
 
       // Go to the next layer
-      ScanRecursive(idx+1, it, itcand, Coord, Eval);
+      ScanRecursiveL(idx+1, it, itcand);
+    }
+    if (it.imult[il] > 0) it.imult[il]--;
+  }
+  return 0;
+}
+
+int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
+{
+  // Evaluate current candidates if idx has reached to the end
+  if (idx == it.nlayer) return HitScanEval(it, itcand);
+
+  // Skip if current layer is disabled
+  int il = it.ilay[idx];
+  if (il < 0) return ScanRecursive(idx+1, it, itcand);
+
+  // Loop on hit candidates in the current layer
+  int nscan = HitCoordMgr(idx, it, 1);
+  for (it.Iscan(il) = 0; it.Iscan(il) < nscan; it.Iscan(il)++) {
+
+    // Loop on multiplicities
+    int mlast = HitCoordMgr(idx, it, 2);
+    for (; it.imult[il] <= mlast; it.imult[il]++) {
+      // Set coordinates
+      if (HitCoordMgr(idx, it, 3) < 0) continue;
+
+      // Pre selection
+      if (!PreScan(idx, it)) continue;
+
+      // Go to the next layer
+      ScanRecursive(idx+1, it, itcand);
     }
     if (it.imult[il] > 0) it.imult[il]--;
   }
@@ -1276,11 +1312,6 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand,
 }
 
 
-static int LadderCoordMgr(int idx, TrRecon::TrHitIter &it, int mode)
-{ return TrRecon::Head->LadderCoordMgr(idx, it, mode); }
-
-static int LadderScanEval(TrRecon::TrHitIter &it, TrRecon::TrHitIter &cand)
-{ return TrRecon::Head->LadderScanEval(it, cand); }
 
 int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
 {
@@ -1308,7 +1339,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   SetLayerOrder(it);
 
   // Scan ladder combination recursively
-  ScanRecursive(0, it, itcand, ::LadderCoordMgr, ::LadderScanEval);
+  ScanRecursiveL(0, it, itcand);
 
   // Return 1 if track has been found
   return (itcand.nlayer > 0);
@@ -1386,11 +1417,7 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 }
 
 
-static int HitScanEval(TrRecon::TrHitIter &it, TrRecon::TrHitIter &cand)
-{ return TrRecon::Head->HitScanEval(it, cand); }
 
-static int HitCoordMgr(int idx, TrRecon::TrHitIter &it, int mode)
-{ return TrRecon::Head->HitCoordMgr(idx, it, mode); }
 
 int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 {
@@ -1424,7 +1451,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 
       // Hit scan
       TR_DEBUG_CODE_30;
-      ScanRecursive(0, it, itcand, ::HitCoordMgr, ::HitScanEval);
+      ScanRecursive(0, it, itcand);
 
       // Check chisquare
       if (found = (itcand.chisq[it.side] < MaxChisqAllowed)) break;

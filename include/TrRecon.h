@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.11 2009/08/27 09:47:22 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.12 2009/08/27 10:58:03 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/27 09:47:22 $
+/// $Date: 2009/08/27 10:58:03 $
 ///
-/// $Revision: 1.11 $
+/// $Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -74,52 +74,54 @@ public:
   /// clustering - size of ADC/signal/status temporary buffers
   enum { BUFSIZE = 1024 };
   /// clustering - ADC buffer to expand raw clusters
-  static float _adcbuf[BUFSIZE];
-#pragma omp threadprivate(_adcbuf)
-  static float _sigbuf[BUFSIZE];
-#pragma omp threadprivate(_sigbuf)
+  float _adcbuf[BUFSIZE];
+  
+  float _sigbuf[BUFSIZE];
+  
   /// clustering - status buffer to expand raw clusters
-  static int   _stabuf[BUFSIZE];
-#pragma omp threadprivate(_stabuf)
-  /// clustering - list of the seeds in the subbuffer
-  static vector<int> _seedaddresses;   
-#pragma omp threadprivate(_seedaddresses)
-  static float _adcbuf2[BUFSIZE];
-#pragma omp threadprivate(_adcbuf2)
-  static float _sigbuf2[BUFSIZE];
-#pragma omp threadprivate(_sigbuf2)
-  static int   _stabuf2[BUFSIZE];
-#pragma omp threadprivate(_stabuf2)
+  int   _stabuf[BUFSIZE];
 
+  /// clustering - list of the seeds in the subbuffer
+  vector<int> _seedaddresses;   
+  
+  static float _adcbuf2[BUFSIZE];
+  
+  static float _sigbuf2[BUFSIZE];
+  
+  static int   _stabuf2[BUFSIZE];
+  
+  
 
 private:
-  //! Private constructor, class is a singleton
-  TrRecon(){Clear();  }
+  
   //! do not want copy constructor
   TrRecon(TrRecon&){}
 
   static TrCalDB* _trcaldb;
 
 public:
-  //! static pointer to the single instance
-  static TrRecon*  Head;
-  //! reurnrs the static pointer to the single instance
-  static TrRecon*  gethead() {return Head;}
-  //! create the single instance
-  static TrRecon*  Create(int recreate=0);
+  //!  constructor
+  TrRecon(){Clear();  }
+  static void Init();
+//   //! static pointer to the single instance
+//   static TrRecon*  Head;
+//   //! reurnrs the static pointer to the single instance
+//   static TrRecon*  gethead() {return Head;}
+//   //! create the single instance
+//   static TrRecon*  Create(int recreate=0);
   //! std destructor
   ~TrRecon();
   /// Clear data members
   void   Clear(Option_t *option = "");
   /// It sets the Reconstruction Paramenters from the data card
-  void SetParFromDataCards();
+  static void SetParFromDataCards();
 
 
 
  /// Using this calibration file
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
   /// Get the current calibration database
-  TrCalDB*    GetTrCalDB() { return _trcaldb; }
+  static TrCalDB*    GetTrCalDB() { return _trcaldb; }
 
 
   /// Parameters for the full reconstruction
@@ -136,12 +138,13 @@ public:
   
   // --- Clustering Methods --- // 
   /// Set the seed S/N threshold
-  void   SetThrSeed(int side, float thr) { ThrSeed[side] = thr; }
+  static void   SetThrSeed(int side, float thr) { ThrSeed[side] = thr; }
   /// Set the neigtboring strips S/N threshold
-  void   SetThrNeig(int side, float thr) { ThrNeig[side] = thr; }
+  static void   SetThrNeig(int side, float thr) { ThrNeig[side] = thr; }
   /// Set the mimnimum strip distance between two seeds
-  void   SetSeedDist(int side, int dist) { SeedDist[side] = dist; }
+  static void   SetSeedDist(int side, int dist) { SeedDist[side] = dist; }
 
+  static void InitBuffer();
   /// Clear buffer
   void ClearBuffer();
   /// Expand the TrRawCluster in the buffer structure
@@ -445,9 +448,8 @@ public:
    * This function should be reentrant as far as 
    *  Coord and Eval are also reentrant.
    */
-  int ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand, 
-                    int (*Coord)(int idx, TrHitIter &it, int mode), 
-                    int (*Eval) (TrHitIter &it, TrHitIter &itcand)) const;
+  int ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const;
+  int ScanRecursiveL(int idx, TrHitIter &it, TrHitIter &itcand) const;
 
   /// Pre-selection (interpolation check) on the current scan
   bool PreScan(int nlay, TrHitIter &iter) const;

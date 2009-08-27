@@ -33,8 +33,8 @@ void AMSChain::Init(AMSEventR* event){
 #ifdef _PGTRACK_
     TkDBc::CreateTkDBc();
     TkDBc::Head->init();
-    // 	     TrRecon::Create();
-    // TrRecon::gethead()->SetParFromDataCards();
+    // 	     TrRecon::Init();
+    // TrRecon::SetParFromDataCards();
     // TrRecon::TRCon= new VCon_root();
 #endif
     
@@ -67,6 +67,7 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
     TrClusterR::UsingTrParDB(cc);
     TrClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
+    //TrRecon::UsingTrCalDB(TrCalDB::Head);
   }
 #endif
   if (GetTreeNumber()!=_TREENUMBER) {
