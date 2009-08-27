@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.84 2009/08/26 17:51:01 pzuccon Exp $
+#  $Id: Makefile,v 1.85 2009/08/27 09:47:22 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -483,11 +483,13 @@ else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
 endif
 
-shared : amswd  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
+shared : amswd $(SHLD)
+$(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(LD) -O  $(SOFLAGS) $(SHLIBO) $(SHLDFLAGS) -o  $(SHLD)
 
-static : amswd	$(SHLIBO)
+static : amswd $(NTLD)
+$(NTLD): $(SHLIBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
 	$(AR) rv   $(NTLD) $(SHLIBO)
 
@@ -741,12 +743,11 @@ clean :
 	rm -f $(BIN)*.c
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
-	rm -f $(EXE)*.exe
+	rm -f $(STANDALONE) $(INTEACTIVE) $(CLIENT) $(SERVER)
 
 cleanlibs:
 	rm -f $(BIN)/root*.o
-	rm -f $(LIB)/*.so
-	rm -f $(LIB)/*.a
+	rm -f $(NTLD) $(SHLD)
 	cd ../ruby; gmake clean
 	cd ../python; gmake clean
 	cd ../install

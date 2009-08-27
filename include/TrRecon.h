@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.10 2009/08/26 20:23:02 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.11 2009/08/27 09:47:22 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/26 20:23:02 $
+/// $Date: 2009/08/27 09:47:22 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -484,11 +484,11 @@ public:
   /// TrField::TkFld() called from ROOT CINT
   static void GetTkFld(float *pos, float **hxy);
 
-
+};
 /////////////////////////
 // --- MC clusters --- //
 /////////////////////////
-
+class TrSim{
 private:
  static void DSP_Clusterize(int tkid,float *buf);
 

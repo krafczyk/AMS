@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.14 2009/08/26 17:50:57 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.15 2009/08/27 09:47:22 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/26 17:50:57 $
+/// $Date: 2009/08/27 09:47:22 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1743,6 +1743,98 @@ void TrRecon::GetTkFld(float *pos, float **hxy)
     for (int jj=0;jj<3;jj++)
       hxy[ii][jj]=hh[jj][ii];
 }
+///////////////////////////////////////////////////////////
+//                  VERTEX                     ////////////
+///////////////////////////////////////////////////////////
+
+
+int TrRecon::BuildVertex(integer refit){
+   
+  VCon* vtx_ctr=GetVCon()->GetCont("AMSVtx");
+  if(!vtx_ctr){
+    printf("TrRecon::BuildVertex  Cant Find AMSVtx Container Reconstruction is Impossible !!!\n");
+    return -1;
+  }   
+  if (refit&& vtx_ctr) {
+    printf("TrRecon::BuildVertex Cleaning up AMSVtx container, as reuested!\n");
+    vtx_ctr->eraseC();
+  }
+ int maxtr=100; 
+  // Go ahead...
+  int nfound = 0;
+  TrTrackR* ptrack[maxtr];
+
+  // Add up tracks
+  int maxtracks=maxtr;
+  if (TRFITFFKEY.OnlyGammaVtx) maxtracks=2;
+  
+  // First pass (only tracks with beta)
+  VCon* pctr=GetVCon()->GetCont("AMSTrTrack");
+  for (int ii=0;ii<pctr->getnelem();ii=0) {
+    TrTrackR *ptr = (TrTrackR *)pctr->getelem(ii);
+    if (ptr->checkstatus(AMSDBc::GOLDEN)) {
+      ptrack[nfound] = ptr;
+      nfound++;
+    }
+  }
+  int debug=0;
+  // Create a vertex
+  if (nfound>1) {
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSVtx  *p= new AMSVtx(nfound, ptrack);
+#else
+    VertexR *p= new VertexR(nfound, ptrack);
+#endif
+    if(p->IsFilled()){
+      vtx_ctr->addnext(p); 
+ //      if (debug) {
+// 	p->print();
+// 	VCon* betac=GetVCon()->GetCont("AMSBeta");
+// 	if(!betac) goto exit;
+// 	for (int i=0; i<p->getntracks(); i++) {
+// 	  TrTrackR* ptr = p->gettrack(i);
+// 	  if (!ptr) continue;
+// 	  cout << "AMSVtx: itrack " << i;
+// 	  //Beta check
+// 	  bool track_has_beta = false;
+	  
+// 	  for(int patb=0; patb<betac->getnelem(); patb++){
+// 	    AMSBeta *pbeta = betac->getelem(i);
+// 	    if (pbeta->getptrack()==ptr) {
+// 	      track_has_beta = true;
+// 	      goto exit_betaprint;
+// 	    }
+// 	  }
+	  
+// 	exit_betaprint:
+	  
+// 	 
+// 	  cout << ", beta " << track_has_beta;
+// 	  //
+// 	  cout << ", PI Chi2 " << ptr->getpichi2();
+// 	  cout << ", PI Rigidity " << ptr->GetRigidity();
+// 	  cout << ", WEAK bit " << ptr->checkstatus(AMSDBc::WEAK);
+// 	  cout << ", FalseX bit " << ptr->checkstatus(AMSDBc::FalseX);
+// 	  cout << ", FalseTOFX bit " << ptr->checkstatus(AMSDBc::FalseTOFX);
+// 	  cout << endl;
+// 	  ptr->_printEl(cout);
+// 	  for (int i=0;i<ptr->GetNhits();i++){
+// 	    cout << "        " << ptr->GetHit(i)->GetCoord()[0];
+// 	    cout << ", " << ptr->GetHit(i)->GetCoord()[1];
+// 	    cout << ", " << ptr->GetHit(i)->GetCoord()[2];
+// 	    cout << endl;
+// 	  }
+	  
+// 	}
+//       }
+    }
+  }
+ exit:  
+  if(vtx_ctr) delete vtx_ctr;
+  if(pctr) delete pctr;
+  return nfound;
+  
+}
 
 ///// For debug --------------------------------------
 
@@ -1755,7 +1847,7 @@ void TrRecon::GetTkFld(float *pos, float **hxy)
 extern "C" double rnormx();
 
 
-void TrRecon::sitkhits(int idsoft, float vect[],
+void TrSim::sitkhits(int idsoft, float vect[],
                            float edep, float step, int itra)
 {
   if (edep <= 0) edep = 1e-4;
@@ -1802,7 +1894,7 @@ void TrRecon::sitkhits(int idsoft, float vect[],
 
 
 
-void TrRecon::sitkdigi()
+void TrSim::sitkdigi()
 {
   //Get the pointer to the TrMCCluster container
   VCon* cont=GetVCon()->GetCont("AMSTrMCCluster");
@@ -1883,7 +1975,7 @@ void TrRecon::sitkdigi()
 }
 
 
-void TrRecon::DSP_Clusterize(int tkid,float *buf){
+void TrSim::DSP_Clusterize(int tkid,float *buf){
   float general[1024];
 
   //Get the pointer to the TrMCCluster container
@@ -2223,95 +2315,3 @@ PatID Nhits   Pattern  Sw Attrib
 */
 
 
-///////////////////////////////////////////////////////////
-//                  VERTEX                     ////////////
-///////////////////////////////////////////////////////////
-
-
-int TrRecon::BuildVertex(integer refit){
-   
-  VCon* vtx_ctr=GetVCon()->GetCont("AMSVtx");
-  if(!vtx_ctr){
-    printf("TrRecon::BuildVertex  Cant Find AMSVtx Container Reconstruction is Impossible !!!\n");
-    return -1;
-  }   
-  if (refit&& vtx_ctr) {
-    printf("TrRecon::BuildVertex Cleaning up AMSVtx container, as reuested!\n");
-    vtx_ctr->eraseC();
-  }
- int maxtr=100; 
-  // Go ahead...
-  int nfound = 0;
-  TrTrackR* ptrack[maxtr];
-
-  // Add up tracks
-  int maxtracks=maxtr;
-  if (TRFITFFKEY.OnlyGammaVtx) maxtracks=2;
-  
-  // First pass (only tracks with beta)
-  VCon* pctr=GetVCon()->GetCont("AMSTrTrack");
-  for (int ii=0;ii<pctr->getnelem();ii=0) {
-    TrTrackR *ptr = (TrTrackR *)pctr->getelem(ii);
-    if (ptr->checkstatus(AMSDBc::GOLDEN)) {
-      ptrack[nfound] = ptr;
-      nfound++;
-    }
-  }
-  int debug=0;
-  // Create a vertex
-  if (nfound>1) {
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSVtx  *p= new AMSVtx(nfound, ptrack);
-#else
-    VertexR *p= new VertexR(nfound, ptrack);
-#endif
-    if(p->IsFilled()){
-      vtx_ctr->addnext(p); 
- //      if (debug) {
-// 	p->print();
-// 	VCon* betac=GetVCon()->GetCont("AMSBeta");
-// 	if(!betac) goto exit;
-// 	for (int i=0; i<p->getntracks(); i++) {
-// 	  TrTrackR* ptr = p->gettrack(i);
-// 	  if (!ptr) continue;
-// 	  cout << "AMSVtx: itrack " << i;
-// 	  //Beta check
-// 	  bool track_has_beta = false;
-	  
-// 	  for(int patb=0; patb<betac->getnelem(); patb++){
-// 	    AMSBeta *pbeta = betac->getelem(i);
-// 	    if (pbeta->getptrack()==ptr) {
-// 	      track_has_beta = true;
-// 	      goto exit_betaprint;
-// 	    }
-// 	  }
-	  
-// 	exit_betaprint:
-	  
-// 	 
-// 	  cout << ", beta " << track_has_beta;
-// 	  //
-// 	  cout << ", PI Chi2 " << ptr->getpichi2();
-// 	  cout << ", PI Rigidity " << ptr->GetRigidity();
-// 	  cout << ", WEAK bit " << ptr->checkstatus(AMSDBc::WEAK);
-// 	  cout << ", FalseX bit " << ptr->checkstatus(AMSDBc::FalseX);
-// 	  cout << ", FalseTOFX bit " << ptr->checkstatus(AMSDBc::FalseTOFX);
-// 	  cout << endl;
-// 	  ptr->_printEl(cout);
-// 	  for (int i=0;i<ptr->GetNhits();i++){
-// 	    cout << "        " << ptr->GetHit(i)->GetCoord()[0];
-// 	    cout << ", " << ptr->GetHit(i)->GetCoord()[1];
-// 	    cout << ", " << ptr->GetHit(i)->GetCoord()[2];
-// 	    cout << endl;
-// 	  }
-	  
-// 	}
-//       }
-    }
-  }
- exit:  
-  if(vtx_ctr) delete vtx_ctr;
-  if(pctr) delete pctr;
-  return nfound;
-  
-}

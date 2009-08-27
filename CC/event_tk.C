@@ -181,6 +181,6 @@ void AMSEvent:: _sitkevent(){
   //if(TRMCFFKEY.NoiseOn && fastrigger )AMSTrMCCluster::sitknoise();
   //AMSTrMCCluster::sitkcrosstalk();
 
-  TrRecon::sitkdigi();
+  TrSim::sitkdigi();
 
 }
