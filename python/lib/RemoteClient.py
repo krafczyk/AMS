@@ -555,7 +555,7 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,u,datamc=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0):
         self.failedcp=0
         self.thrusted=0
         self.copied=0
@@ -584,6 +584,9 @@ class RemoteClient:
         if(d==1):
             self.delete=1
         else: self.delete=0
+        if(mt==1):
+            self.mt=1
+        else: self.mt=0
         if(u>=1):
             self.deleteuncnt=1
         else: self.deleteuncnt=0
@@ -654,7 +657,7 @@ class RemoteClient:
             if((run2p!=0 and run.Run != run2p) ):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
-            if(datamc==0 and run.DataMC==0 ):
+            if((datamc==0 and run.DataMC==0) or mt==1 ):
                 exitmutexes[run.Run]=thread.allocate_lock()
                 try:
                     thread.start_new(self.validaterun,(run,))
