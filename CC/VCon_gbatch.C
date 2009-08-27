@@ -14,8 +14,10 @@ void  VCon_gb::removeEl(TrElem* prev, integer restore){
 
 VCon* VCon_gb::GetCont(char * name){
   AMSContainer *cc=AMSEvent::gethead()->getC(AMSID(name));
-  if (cc)
-    return (VCon*)(new VCon_gb(cc));
+  if (cc){
+    con=cc;
+    return (VCon*)(this);
+  }
   else return 0;
 
 }

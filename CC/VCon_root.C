@@ -15,8 +15,10 @@ VCon* VCon_root::GetCont(char * name){
      strstr(name,"TrRawCluster")||
      strstr(name,"TrRecHit")||
      strstr(name,"TrTrack")
-     )
-    return (VCon*)(new VCon_root(name));
+     ){
+    sprintf(contname,"%s",name);
+    return       (VCon*)(this);
+    }
   else return 0;
 
 }
