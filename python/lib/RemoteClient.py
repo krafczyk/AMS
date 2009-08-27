@@ -653,12 +653,20 @@ class RemoteClient:
         mutex=thread.allocate_lock()
         global fsmutexes
         fsmutexes = {}
+        maxt=10
         for run in self.dbclient.rtb:
             if((run2p!=0 and run.Run != run2p) ):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
             if((datamc==0 and run.DataMC==datamc) or mt==1 ):
                 exitmutexes[run.Run]=thread.allocate_lock()
+                it=1000
+                while(it>maxt):
+                    it=0
+                    for key in exitmutexes.keys():
+                        if(not exitmutexes[key].locked()):
+                            it=it+1
+                    time.sleep(5)
                 try:
                     if(datamc==0 and run.DataMC==datamc):
                         thread.start_new(self.validaterun,(run,))
@@ -677,8 +685,11 @@ class RemoteClient:
                         for key in exitmutexes.keys():
                             if(not exitmutexes[key].locked()):
                                 cr=cr+1
-                        time.sleep(2)
-                        thread.start_new(self.validaterun,(run,))
+                        time.sleep(5)
+                        if(datamc==0 and run.DataMC==datamc):
+                            thread.start_new(self.validaterun,(run,))
+                        else:
+                            thread.start_new(self.validatedatarun,(run,))
             elif(datamc==run.DataMC and datamc==1):
                 self.validatedatarun(run)
         for key in exitmutexes.keys():
@@ -1562,7 +1573,7 @@ class RemoteClient:
         #
         # select disk to be used to store ntuples
         #
-        self.CheckFS(1,60,path)
+        self.CheckFS(1,360,path)
         tme=int(time.time())
         if(tme%2 ==0):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
