@@ -653,26 +653,19 @@ class RemoteClient:
         mutex=thread.allocate_lock()
         global fsmutexes
         fsmutexes = {}
-        maxt=10
+        maxt=5
         for run in self.dbclient.rtb:
             if((run2p!=0 and run.Run != run2p) ):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
             if((datamc==0 and run.DataMC==datamc) or mt==1 ):
                 exitmutexes[run.Run]=thread.allocate_lock()
-                it=1000
-                while(it>maxt):
-                    it=0
-                    for key in exitmutexes.keys():
-                        if(not exitmutexes[key].locked()):
-                            it=it+1
-                    if(it>maxt):
-                        time.sleep(5)
                 try:
                     if(datamc==0 and run.DataMC==datamc):
                         thread.start_new(self.validaterun,(run,))
                     else:
                         thread.start_new(self.validatedatarun,(run,))
+                        print "thread started ",run.Run
                     #self.validaterun(run)
                 except:
                     i=0
@@ -686,11 +679,19 @@ class RemoteClient:
                         for key in exitmutexes.keys():
                             if(not exitmutexes[key].locked()):
                                 cr=cr+1
-                        time.sleep(5)
+                        time.sleep(1)
                         if(datamc==0 and run.DataMC==datamc):
                             thread.start_new(self.validaterun,(run,))
                         else:
                             thread.start_new(self.validatedatarun,(run,))
+                it=1000
+                while(it>=maxt):
+                    it=0
+                    for key in exitmutexes.keys():
+                        if(not exitmutexes[key].locked()):
+                            it=it+1
+                    if(it>=maxt):
+                        time.sleep(0.1)
             elif(datamc==run.DataMC and datamc==1):
                 self.validatedatarun(run)
         for key in exitmutexes.keys():
@@ -1395,6 +1396,7 @@ class RemoteClient:
         print "run finished ",run.Run,run.uid
 	self.sqlserver.Commit()
         mutex.release()
+        exitmutexes[run.Run].acquire()
 
     def setprocessingflag(self,flag,timenow):
         sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
