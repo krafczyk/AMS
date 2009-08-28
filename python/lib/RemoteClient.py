@@ -1396,7 +1396,8 @@ class RemoteClient:
         print "run finished ",run.Run,run.uid
 	self.sqlserver.Commit()
         mutex.release()
-        exitmutexes[run.Run].acquire()
+        if(self.mt):
+              exitmutexes[run.Run].acquire()
 
     def setprocessingflag(self,flag,timenow):
         sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
