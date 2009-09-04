@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.97 2009/07/29 11:30:45 choutko Exp $
+//  $Id: gbatch.C,v 1.98 2009/09/04 13:01:58 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -159,7 +159,7 @@ cout <<"  JUMP attempted "<<endl;
    cout <<"got sighup "<<AMSEvent::get_thread_num()<<endl;
 if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing()){
    cout <<" sending ... "<<endl;
-   AMSProducer::gethead()->sendCurrentRunInfo(true);
+   AMSProducer::gethead()->sendCurrentRunInfo(false);
 }
 cout << " sighup sended "<<endl;
 #endif

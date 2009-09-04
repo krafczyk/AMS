@@ -173,7 +173,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 //FIXME PZ DATA FORMAT
   CNWords=16;
   if(run>=1208965124) CNWords=0;
-
+  if(DAQCFFKEY.DAQVersion==1)CNWords=2;
   int rwords=1+CNWords;
   
   char ttname[20];

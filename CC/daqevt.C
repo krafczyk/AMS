@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.152 2009/08/19 14:35:47 pzuccon Exp $
+//  $Id: daqevt.C,v 1.153 2009/09/04 13:01:58 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -600,8 +600,10 @@ integer DAQEvent::_HeaderOK(){
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
-      if(_Run>=1208965123 || !AMSJob::gethead()->isRealData())TRCALIB.Version=1;
+       if(_Run>=1208965123 || !AMSJob::gethead()->isRealData())TRCALIB.Version=1;
       else TRCALIB.Version=0;
+        DAQCFFKEY.DAQVersion=0;
+       if(_Run>=1240000000 && AMSJob::gethead()->isRealData())DAQCFFKEY.DAQVersion=1;  
       if(_RunType==Laser && TRCALIB.LaserRun==0){
           TRCALIB.LaserRun=22;
           cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
@@ -793,8 +795,10 @@ integer DAQEvent::_DDGSBOK(){
          int16u status=(*(_pcur+_cl(_pcur))-1)>>5;
          cout <<"  JINF Port "<<_getnodename(*(_pcur+_cll(_pcur))) <<" "<<"  Length "<<_cl(_pcur)<<" Status "<<status<<endl;
 #endif
-      int ntot=0;
-      for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2;p+=*p+1){
+      int add2=0;
+      if(DAQCFFKEY.DAQVersion==1)add2=2;
+      int ntot=add2;
+      for(int16u *p=_pcur+_cll(_pcur)+2;p<_pcur+_cl(_pcur)-2-add2;p+=*p+1){
         ntot+=*p+1;
         int16u port=_getportj(*(p+*p));
 #ifdef __AMSDEBUG__

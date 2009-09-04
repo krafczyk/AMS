@@ -281,7 +281,9 @@ void AMSTRDRawHit::buildrawJ(int n, int16u* pbeg){
 void AMSTRDRawHit::buildraw(int n, int16u* pbeg){
 unsigned int length=n&65535;
 unsigned int ic=(n>>16);
-for (int16u* p=pbeg;p<pbeg+length-1;p+=*p+1){
+int add2=0;
+if(DAQCFFKEY.DAQVersion==1)add2=2;
+for (int16u* p=pbeg;p<pbeg+length-1-add2;p+=*p+1){
  bool raw=DAQEvent::isRawMode(*(p+*p));
  bool compressed=DAQEvent::isCompMode(*(p+*p));
  int udr=((*(p+*p))&31)/4;

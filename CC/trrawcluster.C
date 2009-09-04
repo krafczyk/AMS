@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.100 2009/01/15 18:00:32 choutko Exp $
+//  $Id: trrawcluster.C,v 1.101 2009/09/04 13:01:58 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -479,6 +479,7 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
     int cmn=0;
    if(TRCALIB.Version==0)cmn=16;
    else cmn=0;
+   if(DAQCFFKEY.DAQVersion==1)cmn=2;
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
 //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
 for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){

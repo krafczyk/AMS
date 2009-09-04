@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.131 2009/08/26 10:38:56 choutko Exp $
+//  $Id: producer.C,v 1.132 2009/09/04 13:01:58 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -561,7 +561,60 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
    int bnt=bstart+(getenv("NtupleDir")?strlen(getenv("NtupleDir")):0);
    if(a.length()>bnt && a[bnt]=='/')bnt++;
    
+ if(!_Solo)sendCurrentRunInfo();
 
+
+// add crc to a local file (to save bandwitdh)
+
+{
+
+
+   struct stat64 statbuf;
+    stat64((const char*)a(bstart), &statbuf);
+ 
+
+   if(!AMSTimeID::_Table){
+     AMSTimeID::_InitTable;
+   }
+   ifstream fbin;
+   fbin.open((const char*)a(bstart));
+   uinteger crc=0;
+   if(fbin){
+         cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
+          unsigned int chunk[65536]; 
+         int i=0;
+          long long fsize=statbuf.st_size;
+         for(;;){
+           if(!fsize) break;
+           unsigned int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
+           fbin.read((char*)chunk,myread);
+           fsize-=myread;
+           if(fbin.good() && !fbin.eof()){
+           int beg;
+           if(i==0){
+            crc=~chunk[0];
+            beg=1;
+           }
+           else{
+            beg=0;
+           }
+           if(i%8192==0){
+               cout <<"SendNtupleEnd-I-AddingCRC "<<fsize/1024/1024<< " MB left"<<endl;
+               if(!_Solo)sendCurrentRunInfo();
+           }
+           for(int m=beg;m<myread/sizeof(chunk[0]);m++){
+            for(int j=0;j<3;j++)crc=AMSTimeID::_Table[crc>>24]^(crc<<8);
+            crc=crc^chunk[m];  
+           }
+           i++;
+          }
+          else break;
+         }
+         fbin.close();
+         ntend->crc=~crc;
+   }
+  if(!_Solo)sendCurrentRunInfo();
+}
 
 
 // Move ntuple to the dest directory
@@ -634,6 +687,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  }
 }
 
+  if(!_Solo)sendCurrentRunInfo();
 
 
 
@@ -648,6 +702,8 @@ ntend->size=statbuf.st_size/1024./1024.+0.5;
 ntend->ErrorNumber=0;
 
   if(!_Solo)sendCurrentRunInfo();
+
+/*
 //add crc
    if(!AMSTimeID::_Table){
      AMSTimeID::_InitTable;
@@ -657,12 +713,13 @@ ntend->ErrorNumber=0;
    fbin.open((const char*)a(bstart));
    uinteger crc=0;
    if(fbin){
-          unsigned int chunk[32000]; 
+         cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
+          unsigned int chunk[65536]; 
          int i=0;
           long long fsize=statbuf.st_size;
          for(;;){
            if(!fsize) break;
-           int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
+           unsigned int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
            fbin.read((char*)chunk,myread);
            fsize-=myread;
            if(fbin.good() && !fbin.eof()){
@@ -673,6 +730,10 @@ ntend->ErrorNumber=0;
            }
            else{
             beg=0;
+           }
+           if(i%4096==0){
+               cout <<"SendNtupleEnd-I-AddingCRC "<<fsize/1024/1024<< " MB left"<<endl;
+               if(!_Solo)sendCurrentRunInfo();
            }
            for(int m=beg;m<myread/sizeof(chunk[0]);m++){
             for(int j=0;j<3;j++)crc=AMSTimeID::_Table[crc>>24]^(crc<<8);
@@ -686,6 +747,10 @@ ntend->ErrorNumber=0;
          ntend->crc=~crc;
    }
   if(!_Solo)sendCurrentRunInfo();
+
+*/
+
+
 // add validation
 if(type!=DPS::Producer::RawFile){
 const char *exedir=getenv("ExeDir");
