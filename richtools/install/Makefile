@@ -1,5 +1,6 @@
-FFLAGS = -m32 -fPIC
-CFLAGS = -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH__ -D__ROOTSHAREDLIBRARY__ -Wno-deprecated -I../include -I`root-config --incdir`
+FFLAGS = -m32 -fPIC -c
+CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH__ -D__ROOTSHAREDLIBRARY__  -Wno-deprecated -I../include -I`root-config --incdir` -c 
+LDFLAGS =  -m32 -shared -lg2c `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
 
 FPATH = ../F/
 CPATH = ../CC/
@@ -13,8 +14,8 @@ AMSFPATH = ../../F/
 AMSCPATH = ../../CC/
 
 FF = g77
-#CC = g++
-CC = icc
+CC = g++
+LD = g++ 
 
 ####################### AMS SOURCE FILES ####################
 
@@ -34,9 +35,8 @@ SOURCE = $(CPATH)richdbc.C  $(CPATH)richid.C  $(CPATH)richradid.C  $(CPATH)richr
 
 # Main target
 
-lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.C=$(BINPATH)%.o) $(LIBPATH)
-	$(CC) -shared -lg2c `cernlib mathlib` -L`root-config --libdir` -lRIO -lTree -lSQL  -lNet -lNetx -lHist \
--lHistPainter -lGraf -lMatrix -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o) $(LIBPATH)
+	$(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
 
 clean: $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F) $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C)
 	rm $^
@@ -64,12 +64,11 @@ $(LIBPATH)/:
 
 $(BINPATH)%.o: $(CPATH)%.C
 	@echo Compiling $< ...
-	$(CC) $< $(CFLAGS) -c  -o $@
+	$(CC) $< $(CFLAGS) -o $@
 
 $(BINPATH)%.o: $(FPATH)%.F
 	@echo Compiling $< ...
-	$(FF) $< $(FFLAGS) -c  -o $@
-
+	$(FF) $< $(FFLAGS)  -o $@
 
 $(IPATH)%.h: $(AMSIPATH)%.h
 	cp $< $@
@@ -93,7 +92,7 @@ $(CPATH)richrec.C:
 $(CPATH)trrec.C:
 
 $(BINPATH)rootcint.o: $(TMPPATH) $(TMPPATH)/rootcint.C $(BINPATH)
-	$(CC) $(TMPPATH)rootcint.C $(CFLAGS) -I$(TMPPATH) -c -o $(BINPATH)rootcint.o 
+	$(CC) $(TMPPATH)rootcint.C $(CFLAGS) -I$(TMPPATH) -o $(BINPATH)rootcint.o 
 
 $(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) 
 	rootcint -f $(TMPPATH)rootcint.C -c $(IPATH)point.h $(IPATH)root_RVS.h $(IPATH)root.h $(IPATH)amschain.h $(IPATH)linkdef.h
