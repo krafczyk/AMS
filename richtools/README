@@ -1,0 +1,8 @@
+Set of tools to analyse RICH data. 
+----------------------------------
+
+The main directory contains a standalone reconstruction, which works
+directly on AMSRoot trees.
+
+The directory contrib should contain utilities using this library.
+
