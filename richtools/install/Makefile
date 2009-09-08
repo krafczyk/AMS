@@ -13,8 +13,8 @@ AMSFPATH = ../../F/
 AMSCPATH = ../../CC/
 
 FF = g77
-CC = g++
-
+#CC = g++
+CC = icc
 
 ####################### AMS SOURCE FILES ####################
 
@@ -26,31 +26,29 @@ C_HEADERS = $(AMSIPATH)id.h $(AMSIPATH)linkdef.h $(AMSIPATH)ntuple.h $(AMSIPATH)
 
 C_FORTRAN = $(AMSFPATH)cerenkov.F $(AMSFPATH)richpmtlib.F
 
-C_C       = $(AMSCPATH)id.C   $(AMSCPATH)point.C  $(AMSCPATH)root.C 
+C_C       = $(AMSCPATH)id.C   $(AMSCPATH)point.C  $(AMSCPATH)root.C $(AMSCPATH)amschain.C
+
+SOURCE = $(CPATH)richdbc.C  $(CPATH)richid.C  $(CPATH)richradid.C  $(CPATH)richrec.C  $(CPATH)trrec.C \
+	 $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F)
+
+
+# Main target
+
+lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.C=$(BINPATH)%.o) $(LIBPATH)
+	$(CC) -shared -lg2c `cernlib mathlib` -L`root-config --libdir` -lRIO -lTree -lSQL  -lNet -lNetx -lHist \
+-lHistPainter -lGraf -lMatrix -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+
+clean: $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F) $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C)
+	rm $^
+	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH)
+
+
+
+# Dependencies
 
 $(AMSIPATH)root_methods.h: ../../perl/root.perl
 	cd ..;	perl ../perl/root.perl
 
-copy_headers: $(C_HEADERS)
-	cp --target-directory=$(IPATH) $^
-copy_fortran:  $(C_FORTRAN)
-	cp --target-directory=$(FPATH) $^
-
-copy_c:  $(C_C)
-	cp --target-directory=$(CPATH) $^
-
-delete_headers: $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h)
-	rm $^
-
-delete_fortran: $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F)
-	rm $^
-
-delete_c: $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C)
-	rm $^
-
-
-clean: delete_headers delete_fortran delete_c
-	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH)
 
 #Directories
 $(BINPATH):
@@ -73,20 +71,35 @@ $(BINPATH)%.o: $(FPATH)%.F
 	$(FF) $< $(FFLAGS) -c  -o $@
 
 
+$(IPATH)%.h: $(AMSIPATH)%.h
+	cp $< $@
 
-###################### Source files #####################
+$(CPATH)%.C: $(AMSCPATH)%.C
+	cp $< $@
 
-SOURCE = $(CPATH)richdbc.C  $(CPATH)richid.C  $(CPATH)richradid.C  $(CPATH)richrec.C  $(CPATH)trrec.C
+$(FPATH)%.F: $(AMSFPATH)%.F
+	cp $< $@
 
 
-$(CPATH)%.C : $(IPATH)%.h
+# No dependencies 
+$(CPATH)richdbc.C:
 
+$(CPATH)richid.C:  
 
-dictionary: $(TMPPATH) $(BINPATH) copy_headers copy_c 
-	rootcint -f $(TMPPATH)rootcint.C -c $(IPATH)point.h $(IPATH)root_RVS.h $(IPATH)root.h $(IPATH)amschain.h $(IPATH)linkdef.h
+$(CPATH)richradid.C:
+
+$(CPATH)richrec.C:
+
+$(CPATH)trrec.C:
+
+$(BINPATH)rootcint.o: $(TMPPATH) $(TMPPATH)/rootcint.C $(BINPATH)
 	$(CC) $(TMPPATH)rootcint.C $(CFLAGS) -I$(TMPPATH) -c -o $(BINPATH)rootcint.o 
 
-lib: $(LIBPATH) $(BINPATH) dictionary copy_headers copy_fortran copy_c $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o)  
-	echo $(CC) -shared -lg2c `cernlib mathlib` -I`root-config --incdir` -lRIO -lTree -lSQL  -lNet -lNetx -lHist \
--lHistPainter -lGraf -lMatrix -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+$(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) 
+	rootcint -f $(TMPPATH)rootcint.C -c $(IPATH)point.h $(IPATH)root_RVS.h $(IPATH)root.h $(IPATH)amschain.h $(IPATH)linkdef.h
+
+
+
+
+
 
