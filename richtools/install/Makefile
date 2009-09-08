@@ -8,6 +8,7 @@ IPATH = ../include/
 BINPATH= ../bin/
 LIBPATH= ../lib/
 TMPPATH= ../tmp/
+EXEPATH = ../exe/
 
 AMSIPATH = ../../include/
 AMSFPATH = ../../F/
@@ -40,7 +41,7 @@ lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%
 
 clean: $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F) $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C)
 	rm $^
-	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH)
+	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH) $(EXEPATH)
 
 
 
@@ -53,6 +54,9 @@ $(AMSIPATH)root_methods.h: ../../perl/root.perl
 #Directories
 $(BINPATH):
 	mkdir $(BINPATH)
+
+$(EXEPATH):
+	mkdir $(EXEPATH)
 
 $(TMPPATH):
 	mkdir $(TMPPATH)
@@ -98,7 +102,14 @@ $(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h)
 	rootcint -f $(TMPPATH)rootcint.C -c $(IPATH)point.h $(IPATH)root_RVS.h $(IPATH)root.h $(IPATH)amschain.h $(IPATH)linkdef.h
 
 
+# Contributions
 
+CONTRIB = ../contrib/
+
+contrib: test
+
+test: lib $(EXEPATH) $(CONTRIB)test/test.C
+	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)test/test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
 
 
 
