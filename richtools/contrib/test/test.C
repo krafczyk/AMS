@@ -46,7 +46,13 @@ void Analysis::Loop(){
 }
 
 
-int main(){
+int main(int argc,char **argv){
+  if(argc<2){
+    cout<<"First argument should be the filename"<<endl;
+    return 0;
+  }
+
+
   // Initalize the helper classes
   RichPMTsManager::Init();
   RichRadiatorTileManager::Init();
@@ -58,14 +64,23 @@ int main(){
   // Set the window size
   RichRing::SetWindow(5);
 
-  // Start the MC analysis
-  Analysis analysis("/f2users/mdelgado/production/mc/97674199702889435885.root");
-  analysis.Loop();
+  // Check if the tree is MC data
+  AMSChain chain;
+  chain.Add(argv[1]);
+  bool isMC=false;
+  for(int i=0;i<10;i++)
+    if(chain.GetEvent()->nMCEventg())
+      {
+	isMC=true;
+	break;
+      }
 
-  // Start the data analysis
-  RichAlignment::Init(true);
-  Analysis analysisD("/f2users/mdelgado/production/data/1210846309.*");
-  analysisD.Loop();
+  // If not MC 
+  if(!isMC) RichAlignment::Init(true);
+
+  // Start the Analysis
+  Analysis analysis(argv[1]);
+  analysis.Loop();
 
   return 0;
 }
