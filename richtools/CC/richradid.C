@@ -1,8 +1,6 @@
 #include "richradid.h"
 #include <fstream>
 
-#define __AMSDEBUG__
-
 /////////////////////////////////////////////////
 
 geant RichRadiatorTile::LocalIndex(geant dx,geant dy){
