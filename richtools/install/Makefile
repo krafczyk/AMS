@@ -34,6 +34,12 @@ SOURCE = $(CPATH)richdbc.C  $(CPATH)richid.C  $(CPATH)richradid.C  $(CPATH)richr
 	 $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F)
 
 
+main:
+	@echo Available targets:
+	@echo "lib           - Build the shared library"
+	@echo "contrib       - Build all the utilities in the contrib directory"
+	@echo "    test      - Build the contrib/test utility"
+	@echo "clean         - Clean up everything"
 # Main target
 
 lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o) $(LIBPATH)
