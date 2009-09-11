@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.1 2009/09/08 11:19:04 mdelgado Exp $
+//  $Id: richrec.C,v 1.2 2009/09/11 08:52:39 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -39,7 +39,7 @@ void RichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   cout<<"   CHANNEL "<<getchannel()<<endl;
   cout<<"   COUNTS  "<<getcounts()<<endl;
   cout<<"   NPE     "<<getnpe()<<endl;
-  cout<<"   POS     "<<getpos(0)<<" "<<getpos(1)<<endl;
+  //  cout<<"   POS     "<<getpos(0)<<" "<<getpos(1)<<endl;
 
   RichPMTChannel channel_test(getchannel());
   cout<<" POISITION ACCORDING TO RichPMTChannel "<<channel_test.position[0]<<" "<<channel_test.position[1]<<endl;

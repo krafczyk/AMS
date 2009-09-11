@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.1 2009/09/08 11:31:08 mdelgado Exp $
+//  $Id: richrec.h,v 1.2 2009/09/11 08:52:39 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -25,6 +25,7 @@ PROTOCCALLSFSUB0(RICHTOFTRACKINIT,richtoftrackinit)
 
 #include<string.h>
 
+// Override private members (we wnat full inspection capabilities)
 #define private public
 
 
@@ -51,7 +52,7 @@ public:
   RichHitR *getpointer(){return _event->pRichHit(_current);}
   integer getchannel() const {return _event->pRichHit(_current)->Channel;}
   integer gainx5() const {return (_event->pRichHit(_current)->Status&gain_mode)?1:0;}
-  inline geant getpos(integer i){return _event->pRichHit(_current)->Coo[i];}
+  //  inline geant getpos(integer i){return _event->pRichHit(_current)->Coo[i];}
 
   integer getcounts() {return _event->pRichHit(_current)->Counts;}
   geant getnpe(){ return _event->pRichHit(_current)->Npe;}
@@ -274,7 +275,7 @@ public:
 };
 
 
-
+#undef private
 
 
 #endif
