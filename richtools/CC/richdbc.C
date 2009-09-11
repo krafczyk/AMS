@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.1 2009/09/08 11:19:04 mdelgado Exp $
+//  $Id: richdbc.C,v 1.2 2009/09/11 08:43:49 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<fstream>
@@ -732,4 +732,19 @@ void RichAlignment::Init(bool realdata){
   }
 //#pragma omp barrier 
 
+}
+
+void RichAlignment::Set(double sx,double sy,double sz,double alpha,double beta,double gamma){
+  // Fill the a2r shift and matrix
+  _a2rShift.setp(sx,sy,sz);
+  _a2rRot.SetRotAngles(alpha,beta,gamma);
+  
+  // Fill the r2a shift and matrix
+  AMSRotMat t;
+  _r2aRot.SetRotAngles(0,0,-gamma);
+  t.SetRotAngles(0,-beta,0);
+  _r2aRot=t*_r2aRot;
+  t.SetRotAngles(-alpha,0,0);
+  _r2aRot=t*_r2aRot;
+  _r2aShift=(_r2aRot*_a2rShift)*-1.0;
 }
