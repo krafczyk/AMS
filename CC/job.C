@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.645 2009/09/11 13:51:09 choutko Exp $
+// $Id: job.C,v 1.646 2009/09/11 16:26:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3985,6 +3985,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 
   {  // mc
     if( !isRealData()){
+#ifndef __LVL3ONLY__
     DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
     DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
     &AMSmceventg::builddaq);
@@ -3995,7 +3996,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
     &AMSTrMCCluster::builddaq);
 #endif
-
+#endif
     DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
     DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
     &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);

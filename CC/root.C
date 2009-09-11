@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.189 2009/08/19 14:35:48 pzuccon Exp $
+//  $Id: root.C,v 1.190 2009/09/11 16:26:19 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2974,6 +2974,9 @@ void AMSEventR::CreateBranch(TTree *tree, int branchSplit){
   if(tree){
     _Head=this;
     tree->Branch(BranchName(),"AMSEventR",&_Head,64000,branchSplit);
+    TBranch * branch=tree->GetBranch(BranchName());
+    branch->SetCompressionLevel(6);
+    cout <<" CompressionLevel "<<branch->GetCompressionLevel()<<" "<<branch->GetSplitLevel()<<endl;
     tree->SetBranchStatus("ev.TSelector",false);
     //     tree->SetBranchStatus("ev.fService",false);
   }

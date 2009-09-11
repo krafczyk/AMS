@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.154 2009/09/11 13:51:09 choutko Exp $
+//  $Id: daqevt.C,v 1.155 2009/09/11 16:26:19 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -19,6 +19,9 @@
 #include <strstream>
 #ifdef _PGTRACK_
 #include "tkdcards.h"
+#endif
+#ifdef __LVL3ONLY__
+ofstream fbin1("/f2users/choutko/AMS/examples/zip.txt",ios::out);
 #endif
 
 
@@ -381,7 +384,7 @@ if (DAQCFFKEY.mode/100){
 //    err = deflateInit(&stream, cxlevel);
     int method=Z_DEFLATED;
 //    cout <<" event "<<AMSEvent::gethead()->getid()<<" "<<_Length*2<<endl;
-    err = deflateInit2(&stream, cxlevel,method,15,8,Z_FILTERED);
+    err = deflateInit2(&stream, cxlevel,method,12,8,Z_FILTERED);
     if (err != Z_OK) {
        printf("error %d in deflateInit (zlib)\n",err);
         AMSgObj::BookTimer.stop("SIZIP");
@@ -437,7 +440,9 @@ if (DAQCFFKEY.mode/100){
 //
 // Change length
 //  
-    
+#ifdef __LVL3ONLY__
+   uint lold=_Length;
+#endif    
    uint len=lc+sizeof(_pData[0])*(5+_cll(_pbeg)-_OffsetL);
    if(offset == 5){    // short length format
      _pData[0]=len;
@@ -453,6 +458,9 @@ if (DAQCFFKEY.mode/100){
    _Length=(len+1)/2+_OffsetL+1;
    } 
         AMSgObj::BookTimer.stop("SIZIP");
+#ifdef __LVL3ONLY__
+   fbin1<<AMSEvent::gethead()->getid()<<" "<<lold*2<<" "<<_Length*2<<endl;   
+#endif    
 }
 
 }

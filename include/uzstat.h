@@ -1,4 +1,4 @@
-//  $Id: uzstat.h,v 1.15 2008/12/08 15:15:19 choutko Exp $
+//  $Id: uzstat.h,v 1.16 2009/09/11 16:26:20 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSUZSTAT__
 #define __AMSUZSTAT__
@@ -9,7 +9,7 @@
 #include "node.h"
 #include "snode.h"
 #include <float.h>
-
+//#define __LVL3ONLY__
 
  
 /*! \class AMSStat 
