@@ -1,9 +1,9 @@
-//  $Id: uzstat.C,v 1.25 2009/04/03 08:39:16 pzuccon Exp $
+//  $Id: uzstat.C,v 1.26 2009/09/11 13:51:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
 #endif
-
+//#define __LVL3ONLY__
 #ifndef _PGTRACK_
 #include "cern.h"
 #endif
@@ -53,7 +53,8 @@ AMSStat::~AMSStat(){
 }
 void AMSStat::book(char *name, int freq,int mthr){
 #ifdef __LVL3ONLY__
-  if(!strstr(name,"LVL3")){
+//  if(!strstr(name,"LVL3")){
+  if(!strstr(name,"SIZIP")){
     return;
   }
   else{

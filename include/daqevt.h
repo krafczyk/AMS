@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.65 2009/06/25 13:44:14 choutko Exp $
+//  $Id: daqevt.h,v 1.66 2009/09/11 13:51:15 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -88,6 +88,7 @@ integer _DDGSBOK();
 integer _EventOK();
 integer getpreset(int16u *pdata);
 uinteger _cl(int16u *pdata);
+uinteger _clb(int16u *pdata);
 uinteger _clll(int16u *pdata);
 integer _cll(int16u *pdata);  // calculate length of length !!!
 integer _cltype(int16u *pdata);  // calculate length of length !!!

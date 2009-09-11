@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.153 2009/09/04 13:01:58 choutko Exp $
+//  $Id: daqevt.C,v 1.154 2009/09/11 13:51:09 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -20,6 +20,8 @@
 #ifdef _PGTRACK_
 #include "tkdcards.h"
 #endif
+
+
 
 #ifndef __ALPHA__
 using std::ostrstream;
@@ -253,6 +255,7 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
   }
 }
 
+#include "zlib.h"
 
 void DAQEvent::buildDAQ(uinteger btype){
 DAQBlockType *fpl=_pBT[btype];
@@ -295,6 +298,10 @@ int btype5=btype;
 if(btype==0)btype5=5;
 else if(btype==5)btype5=0;
 if(_create(btype5) ){
+
+int16u * _pbeg=_pcur;
+
+
  fpl=_pBT[btype];
  while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
@@ -335,6 +342,119 @@ if(ntotm){
  }
 }
 
+// add zip compression
+// adopted from root package bits.h
+//
+// format as ams block
+// add bit 13 in FBI/STATUS in AMSB 2ndary Header (status ==10)
+//
+// add compressed block length
+//  if length%2 !=0 add 0 to the last byte. compute crc16 including the last byte 
+//  do not change length 
+//
+
+
+    const int HDRMAX=4;
+if (DAQCFFKEY.mode/100){
+    AMSgObj::BookTimer.start("SIZIP");
+  static int ziperr=0;
+  int16u offset=_pbeg-_pData; 
+  uint l2c=(_Length-offset)*sizeof(_pData[0]);
+  if(l2c>0xfffff ){
+     if(ziperr++<10)cerr<<"DAQEvent::builddaq-W-LengthTooBigWillNotBe Compressed "<<l2c<<endl;
+   return;
+  }
+  int err=0;
+  z_stream stream;
+      
+      stream.next_in   = (Bytef*)(_pbeg);
+    stream.avail_in  = l2c;
+     int outl=l2c+HDRMAX;
+    char tgt[outl];
+    stream.next_out  = (Bytef*)(tgt);
+    stream.avail_out = sizeof(tgt);
+
+    stream.zalloc    = (alloc_func)0;
+    stream.zfree     = (free_func)0;
+    stream.opaque    = (voidpf)0;
+    int cxlevel=DAQCFFKEY.mode/100;
+//    err = deflateInit(&stream, cxlevel);
+    int method=Z_DEFLATED;
+//    cout <<" event "<<AMSEvent::gethead()->getid()<<" "<<_Length*2<<endl;
+    err = deflateInit2(&stream, cxlevel,method,15,8,Z_FILTERED);
+    if (err != Z_OK) {
+       printf("error %d in deflateInit (zlib)\n",err);
+        AMSgObj::BookTimer.stop("SIZIP");
+       return;
+    }
+
+    err = deflate(&stream, Z_FINISH);
+    if (err != Z_STREAM_END) {
+       deflateEnd(&stream);
+//          the buffer cannot be compressed or compressed buffer would be larger than original buffer
+          printf("error %d in deflate (zlib) is not = %d\n",err,Z_STREAM_END);
+        AMSgObj::BookTimer.stop("SIZIP");
+       return;
+    }
+
+    err = deflateEnd(&stream);
+    if(stream.total_out+HDRMAX>=l2c){
+      if(ziperr++<10)cerr<<"DAQEvent::builddaq-E-CanNotCompress "<<l2c<<" "<<stream.total_out<<endl;
+        AMSgObj::BookTimer.stop("SIZIP");
+    return;
+    }
+    int lc=stream.total_out;
+    char *src=(char*)_pbeg;
+    int hdrsize=lc<=32767?sizeof(_pData[0]):2*sizeof(_pData[0]);
+    memcpy(src+hdrsize,tgt,lc);
+    if(lc%2){
+     src[hdrsize+lc]=0;
+    }
+//  
+//  add compressed bit
+//
+    *(_pbeg-3)= (*(_pbeg-3)) | (1<<13);
+
+//
+//  add subblock length
+//
+   if(lc<=32767){
+    *_pbeg=lc;
+   }
+   else{
+    *_pbeg=(lc>>16)&32767;
+    *(_pbeg+1)=(lc)&65535;
+    *_pbeg=(*_pbeg) | (1<<15);
+   }
+
+/*
+// 
+// calculate crc
+//
+    *(_pbeg+(suboffset+lc+1)/sizeof(_pbeg[0]))=calculate_CRC16(_pbeg+suboffset/sizeof(_pbeg[0]),(lc+1)/sizeof(_pbeg[0]));  
+*/
+
+//
+// Change length
+//  
+    
+   uint len=lc+sizeof(_pData[0])*(5+_cll(_pbeg)-_OffsetL);
+   if(offset == 5){    // short length format
+     _pData[0]=len;
+     if(len>32767){
+      cerr<<"DAQEvent::builddaq-S-LogicErrorLengthTooBig "<<len<<" "<<_Length<<endl;
+     }
+     _Length=(len+1)/2+_OffsetL;
+   }
+   else{
+    _pData[0]=(len>>16)&32767;
+    _pData[1]=(len)&65535;
+    _pData[0]=_pData[0] | (1<<15);
+   _Length=(len+1)/2+_OffsetL+1;
+   } 
+        AMSgObj::BookTimer.stop("SIZIP");
+}
+
 }
 }
 
@@ -344,6 +464,13 @@ const int16u hmask=lmask-1;
 uinteger len=(*pdata)&lmask?(*(pdata+1)|(((*pdata)&hmask)<<16))+sizeof(pdata[0]): *(pdata);
 len=(len+sizeof(pdata[0])/2)/sizeof(pdata[0]);
  return len+_OffsetL;
+}
+
+uinteger DAQEvent::_clb(int16u *pdata){
+const  int16u lmask=0x8000; 
+const int16u hmask=lmask-1;
+uinteger len=(*pdata)&lmask?(*(pdata+1)|(((*pdata)&hmask)<<16)): *(pdata);
+ return len;
 }
 
 
@@ -490,7 +617,70 @@ integer DAQEvent::_EventOK(){
       }
        return 0;
       }
-     else return 1;    
+     else{
+        if( (*(_pData+preset-3)) & (1<<13)){
+//
+//       zip bit found
+//
+
+
+
+// Guess event length;
+         uint l2u=_clb(_pData+preset);
+         uint l2c=2*l2u;
+again:
+         l2c+=l2u;
+         if(l2c>0xfffff){
+           static int ziperr=0;
+           if(ziperr++<10)cerr<<"DAQEvent::EventOK-W-LengthTooBigWillNotBeUnCompressed "<<l2c<<" "<<_Length<<endl;
+           return 0;
+         }
+         char tgt[l2c+preset*sizeof(_pData[0])];
+         memcpy(tgt,(char*)_pData,preset*sizeof(_pData[0])); 
+   z_stream stream; /* decompression stream */
+    int err = 0;
+
+    stream.next_in   = (Bytef*)((char*)(_pData+preset+_cll(_pData+preset)));
+    stream.avail_in  = l2u;
+    stream.next_out  = (Bytef*)(tgt+preset*sizeof(_pData[0]));
+    stream.avail_out = sizeof(tgt)-preset*sizeof(_pData[0]);
+    stream.zalloc    = (alloc_func)0;
+    stream.zfree     = (free_func)0;
+    stream.opaque    = (voidpf)0;
+
+    err = inflateInit(&stream);
+    if (err != Z_OK) {
+      fprintf(stderr,"R__unzip: error %d in inflateInit (zlib)\n",err);
+      return 0;
+    }
+
+    err = inflate(&stream, Z_FINISH);
+    if (err != Z_STREAM_END) {
+      inflateEnd(&stream);
+      fprintf(stderr,"R__unzip: error %d in inflate (zlib)\n",err);
+      goto again;
+    }
+
+    inflateEnd(&stream);
+
+    l2c = stream.total_out;
+     uint lhc=_cll(_pData+preset);
+     _Length+=(l2c-l2u)/sizeof(_pData[0])-lhc;
+     _create(_GetBlType());
+     memcpy((char*)(_pData),tgt,l2c+preset*sizeof(_pData[0]));
+     if(_cll(_pData)>1){
+      _pData[0]=(((_Length-_OffsetL)*sizeof(_pData[0]))>>16)&32767;
+      _pData[0]|=(1<<15);
+      _pData[1]=((_Length-_OffsetL)*sizeof(_pData[0]))&65535;
+     }
+     else{
+      _pData[0]=(_Length-_OffsetL)*sizeof(_pData[0]);
+     }  
+    *(_pData+preset-3)= (*(_pData+preset-3)) & (~(1<<13));
+     if(_EventOK())return 1;
+    }
+        return 1;    
+     }
    }
    return 0;
 
@@ -1321,7 +1511,9 @@ _BufferLock=1;
 if(_pData && AMSJob::gethead()->isSimulation()){
 //   This is for daq creation only
 //   
-if(_Length-_OffsetL<=32767){
+
+
+if((_Length-_OffsetL)*2<=32767){
  _pData[0]=(_Length-_OffsetL)*2;
  _pData[1]=(btype)  ;
  _pData[2]=0;
@@ -1333,6 +1525,7 @@ _pcur=_pData+5;
 else{
  _pData[0]=(((_Length-_OffsetL)*2)>>16)&32767;
  _pData[1]=(((_Length-_OffsetL)*2))&65535;
+ _pData[0]=_pData[0] | (1<<15);
  _pData[2]=(btype)  ;
  _pData[3]=0;
 time_t timeu=AMSEvent::gethead()->gettime();
@@ -1340,8 +1533,14 @@ _pData[5]=timeu&65535;
 _pData[4]=(timeu>>16)&65535;
 _pcur=_pData+6;
 }
+
 }
+
+
+
 return _pData != NULL ;
+
+
 }
 
 

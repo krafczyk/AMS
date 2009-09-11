@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.644 2009/09/04 13:01:58 choutko Exp $
+// $Id: job.C,v 1.645 2009/09/11 13:51:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3965,6 +3965,7 @@ cout<<"<---- In dbendjob, UpdateFlag="<<AMSFFKEY.Update<<endl;
 
   void AMSJob::_redaq2initjob(){
      AMSgObj::BookTimer.book("SIDAQ");
+     AMSgObj::BookTimer.book("SIZIP");
      AMSgObj::BookTimer.book("REDAQ");
      if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaq2initjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
     // Add subdetectors to daq
@@ -3983,7 +3984,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 
 
   {  // mc
-    if(!isRealData()){
+    if( !isRealData()){
     DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
     DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
     &AMSmceventg::builddaq);
@@ -3994,7 +3995,6 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
     &AMSTrMCCluster::builddaq);
 #endif
-
 
     DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
     DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,

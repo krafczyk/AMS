@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.302 2009/09/04 13:01:58 choutko Exp $
+#  $Id: datacards.doc,v 1.303 2009/09/11 13:51:13 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -517,7 +517,7 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode%10 = 1 read daq if isReconstruction()
                                     // (mode/10)%10 = 1 write daq (noreplace)
                                     // (mode/10)%10 = 2 write daq (append)
-                                    // mode/100 = 1  compress tracker on fly
+                                    // mode/100 = 1  compress output format on fly
 I 2 ifile[40]("")                   // input file(s) name(s) 
                                     // format: path/r1-r2,r3,r4,r5-r6  etc.
                                     // where path is path to the files directory
