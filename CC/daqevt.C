@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.155 2009/09/11 16:26:19 choutko Exp $
+//  $Id: daqevt.C,v 1.156 2009/09/11 16:40:05 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -345,14 +345,14 @@ if(ntotm){
  }
 }
 
-// add zip compression
+// add zlib compression
 // adopted from root package bits.h
 //
 // format as ams block
 // add bit 13 in FBI/STATUS in AMSB 2ndary Header (status ==10)
 //
 // add compressed block length
-//  if length%2 !=0 add 0 to the last byte. compute crc16 including the last byte 
+//  if length%2 !=0 add 0 to the last byte.  
 //  do not change length 
 //
 
@@ -686,6 +686,7 @@ again:
      }  
     *(_pData+preset-3)= (*(_pData+preset-3)) & (~(1<<13));
      if(_EventOK())return 1;
+     else return 0;
     }
         return 1;    
      }
