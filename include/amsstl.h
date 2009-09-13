@@ -1,4 +1,4 @@
-//  $Id: amsstl.h,v 1.18 2008/12/08 15:15:19 choutko Exp $
+//  $Id: amsstl.h,v 1.19 2009/09/13 12:37:24 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 11.07.96 modified by E.Choumilov.(AMSbins added) 
 #ifndef __AMSSTL__
@@ -22,7 +22,8 @@ template <class T> int    cmpT( const T& keyval,  const T& datum){
   else if(datum < keyval)return 1;
   else return 0;
 }
-template <class T> integer AMSbi(T *a[], const T& obj, integer i){
+
+template <class T> integer AMSbi(T *a[], const T& obj, integer N){
   //
   // binary search 
   // input T *a[]   // adresses pf array to search
@@ -35,7 +36,7 @@ template <class T> integer AMSbi(T *a[], const T& obj, integer i){
   integer ia=0;
   integer il=1;
   integer ir=1;
-  integer ib=i-1;
+  integer ib=N-1;
   int j=0;
   while(ia<ib-1 || il*ir){
     integer k=(ia+ib)/2;
@@ -63,7 +64,9 @@ template <class T> integer AMSbi(T *a[], const T& obj, integer i){
   }
   return ib;
 }
-template <class T> integer AMSbiel(const T a[],  T obj, integer i){
+
+
+template <class T> integer AMSbiel(const T a[],  T obj, integer N){
   //
   // binary search 
   // input T a[]   //  array to search
@@ -72,11 +75,11 @@ template <class T> integer AMSbiel(const T a[],  T obj, integer i){
   // output :
   //       min {a[]} obj<=a[output]
   //
-  if(i<=0)return -1;
+  if(N<=0)return -1;
   integer ia=0;
   integer il=1;
   integer ir=1;
-  integer ib=i-1;
+  integer ib=N-1;
   int j=0;
   while(ia<ib-1 || il*ir){
     integer k=(ia+ib)/2;
@@ -100,7 +103,7 @@ template <class T> integer AMSbiel(const T a[],  T obj, integer i){
   }
   return ib;
 }
-template <class T> integer AMSbia(T *a[],  const T & obj, integer i){
+template <class T> integer AMSbia(T *a[],  const T & obj, integer N){
   //
   // binary search 
   // input T * a[]   // adresses of  array to search
@@ -112,7 +115,7 @@ template <class T> integer AMSbia(T *a[],  const T & obj, integer i){
   integer ia=0;
   integer il=1;
   integer ir=1;
-  integer ib=i-1;
+  integer ib=N-1;
   int j=0;
   while(ia<ib-1 || il*ir){
     integer k=(ia+ib)/2;
@@ -136,7 +139,7 @@ template <class T> integer AMSbia(T *a[],  const T & obj, integer i){
   }
   return ib;
 }
-template <class T> T*  AMSbs(T *a[], const T& obj, integer i, char hint){
+template <class T> T*  AMSbs(T *a[], const T& obj, integer N, char hint){
   //
   // binary search 
   // input T *a[]   // adresses of array to search
@@ -150,7 +153,7 @@ template <class T> T*  AMSbs(T *a[], const T& obj, integer i, char hint){
   integer ia=0;
   integer il=1;
   integer ir=1;
-  integer ib=i-1;
+  integer ib=N-1;
   static integer k=0;
 #pragma omp threadprivate (k)
   while(ia<ib-1 || il*ir){
@@ -173,7 +176,7 @@ template <class T> T*  AMSbs(T *a[], const T& obj, integer i, char hint){
   }
   return 0;
 }
-template <class T> integer  AMSbsi(T *a[], const T& obj, integer i, char hint){
+template <class T> integer  AMSbsi(T *a[], const T& obj, integer N, char hint){
   //
   // binary search 
   // input T *a[]   // adresses pf array to search
@@ -186,7 +189,7 @@ template <class T> integer  AMSbsi(T *a[], const T& obj, integer i, char hint){
   integer ia=0;
   integer il=1;
   integer ir=1;
-  integer ib=i-1;
+  integer ib=N-1;
   static integer k=0;
 #pragma omp threadprivate (k)
   while(ia<ib-1 || il*ir){

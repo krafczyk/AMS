@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.2 2009/08/19 14:36:04 pzuccon Exp $
+// $Id: TrParDB.h,v 1.3 2009/09/13 12:37:24 pzuccon Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2009/08/19 14:36:04 $
+///$Date: 2009/09/13 12:37:24 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +62,7 @@ class TrParDB :public TObject{
   void init();
   /// Load a root file 
   static void Load(char* filename);
-  static void Read(char* filename) { Load(filename); } 
+  static void ReadDB(char* filename) { Load(filename); } 
   /// TrLadPar singleton pointer
   static TrParDB* Head;
 

@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.3 2009/06/10 08:44:58 shaino Exp $ 
+/// $Id: TkSens.C,v 1.4 2009/09/13 12:33:52 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2009/06/10 08:44:58 $
+///$Date: 2009/09/13 12:33:52 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -184,8 +184,8 @@ int TkSens::GetSens(){
     gcoo[1] += lad->_sensy[nsens];
 
     //Get the local coo on the Ladder (again)
-    AMSPoint oo = PRotG*(gcoo-PPosG);
-    SensCoo = RotG*(oo-PosG);
+    AMSPoint oo2 = PRotG*(gcoo-PPosG);
+    SensCoo = RotG*(oo2-PosG);
     LaddCoo = SensCoo;
   }
 
@@ -305,13 +305,13 @@ int TkSens::GetStripFromLocalCooS(number Y){
 }
 
 //--------------------------------------------------
-int TkSens::GetStripFromLocalCooK5(number X,int sens){
+int TkSens::GetStripFromLocalCooK5(number X,int Sens){
 
   if( X<0 ||X > TkDBc::Head->_ssize_active[0])
     return -1;
   
   int chan=(int)round(X/TkDBc::Head->_PitchK5);
-  if(sens%2==1)
+  if(Sens%2==1)
     chan+=192;
   return chan;
 }
@@ -320,7 +320,7 @@ int TkSens::GetStripFromLocalCooK5(number X,int sens){
 
 
 //--------------------------------------------------
-int TkSens::GetStripFromLocalCooK7(number X,int sens){
+int TkSens::GetStripFromLocalCooK7(number X,int Sens){
 
 
   if( X<0 ||X > TkDBc::Head->_ssize_active[0])
@@ -353,6 +353,6 @@ int TkSens::GetStripFromLocalCooK7(number X,int sens){
   }
 
   if(gstrip<0) return -1;
-  return (sens*224+gstrip)%384;
+  return (Sens*224+gstrip)%384;
 }
 

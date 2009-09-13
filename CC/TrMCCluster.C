@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.4 2009/08/19 23:32:48 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.5 2009/09/13 12:33:52 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2009/08/19 23:32:48 $
+///$Date: 2009/09/13 12:33:52 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -132,7 +132,7 @@ int TrMCClusterR::GetTkId(){
 
 std::ostream& TrMCClusterR::putout(std::ostream &ostr ){
   _PrepareOutput(1);
-  ostr << sout;
+  return ostr << sout  << std::endl;
 }
 
 

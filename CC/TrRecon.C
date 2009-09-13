@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.16 2009/08/27 10:58:03 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.17 2009/09/13 12:33:52 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/08/27 10:58:03 $
+/// $Date: 2009/09/13 12:33:52 $
 ///
-/// $Revision: 1.16 $
+/// $Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -764,14 +764,14 @@ if (TrDEBUG >= 5) {\
   int nclx = GetnTrRecHits(tkid, 0);\
   int ncly = GetnTrRecHits(tkid, 1);\
   cout << Form("TkId %4d Nclx= %2d Ncly= %2d", tkid, nclx, ncly) << endl;\
-  for (int i = 0; i < nclx; i++) {\
+  for (int ii = 0; ii < nclx; ii++) {\
     cout << " ";\
     for (int j = 0; j < ncly; j++) {\
-      TrRecHitR *hit = GetTrRecHit(tkid, i, j);\
-      if (!hit) { if (j < ncly-1) cout << "-------------- "; }\
+      TrRecHitR *hit2 = GetTrRecHit(tkid, ii, j);\
+      if (!hit2) { if (j < ncly-1) cout << "-------------- "; }\
       else cout << Form("%2d[%2d][%2d](%2.0f) ",\
-                        cont2->getindex(hit), hit->GetXClusterIndex(),\
-                        hit->GetYClusterIndex(), hit->GetProb()*100);\
+                        cont2->getindex(hit2), hit2->GetXClusterIndex(),\
+                        hit2->GetYClusterIndex(), hit2->GetProb()*100);\
     }\
     cout << endl;\
   }\
@@ -962,10 +962,10 @@ void TrRecon::RemoveHits(int tkid, int icls, int side)
 
   int ncls = GetnTrRecHits(tkid, 1-side);
   for (int i = 0; i < ncls; i++) {
-    Hits2DArray::iterator it = ar.begin();
-    it += (side == 0) ? ar.index(icls, i)-i
+    Hits2DArray::iterator it2 = ar.begin();
+    it2 += (side == 0) ? ar.index(icls, i)-i
                       : ar.index(i, icls)-i;
-    ar.erase(it);
+    ar.erase(it2);
   }
 
   if (--ar.Ncls[side] == 0) ar.Ncls[1-side] = 0;
@@ -1020,9 +1020,9 @@ void TrRecon::BuildHitsTkIdMap()
       // Loop on X and Y, find cluster ID, push back it if not found
       for (int ss = 0; ss <= 1; ss++) {
         vector<int>::iterator 
-          it = std::find(vidcl[ss].begin(), vidcl[ss].end(), idcl[ss]);
-        icls[ss] = it-vidcl[ss].begin();
-        if (it == vidcl[ss].end()) vidcl[ss].push_back(idcl[ss]);
+          it2 = std::find(vidcl[ss].begin(), vidcl[ss].end(), idcl[ss]);
+        icls[ss] = it2-vidcl[ss].begin();
+        if (it2 == vidcl[ss].end()) vidcl[ss].push_back(idcl[ss]);
       }
 
       // Add the hit at [icls[0]][icls[1]]
