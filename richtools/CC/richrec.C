@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.2 2009/09/11 08:52:39 mdelgado Exp $
+//  $Id: richrec.C,v 1.3 2009/09/16 13:06:30 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -302,6 +302,8 @@ geant   RichRing::_clarity=0.0113;
 geant   *RichRing::_abs_len=0;
 geant   *RichRing::_index_tbl=0;
 bool    RichRing::ComputeNpExp=true;
+bool    RichRing::UseDirect=true;
+bool    RichRing::UseReflected=true;
 
 int     RichRing::_kind_of_tile=0;
 int     RichRing::_tile_index=0;
@@ -461,6 +463,10 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
 
     hit->unsetbit(bit);
     
+    if(!UseDirect) recs[actual][0]=0;
+    if(!UseReflected) recs[actual][1]=recs[actual][2]=0;
+
+
     if(recs[actual][0]>0 || recs[actual][1]>0 || recs[actual][2]>0){	
       hitp[actual]=hit->getpointer();
       actual++;

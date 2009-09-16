@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.2 2009/09/11 08:52:39 mdelgado Exp $
+//  $Id: richrec.h,v 1.3 2009/09/16 13:06:28 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -107,7 +107,10 @@ public:
 
 class RichRing{
 public:
+  // Flags for further control not implemented in gbatch
   static bool ComputeNpExp;
+  static bool UseDirect;
+  static bool UseReflected;
 
 private:
   static AMSEventR *_event;
