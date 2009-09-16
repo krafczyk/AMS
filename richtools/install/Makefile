@@ -14,9 +14,9 @@ AMSIPATH = ../../include/
 AMSFPATH = ../../F/
 AMSCPATH = ../../CC/
 
-FF = g77
-CC = g++
-LD = g++ 
+FF = g77 -O3
+CC = g++ -O3
+LD = g++ -O3
 
 ####################### AMS SOURCE FILES ####################
 
@@ -115,7 +115,8 @@ CONTRIB = ../contrib/
 contrib: test
 
 test: lib $(EXEPATH) $(CONTRIB)test/test.C
-	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)test/test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
+	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
 
-
+alignment: lib $(EXEPATH) $(CONTRIB)alignment/align.C
+	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit -L../lib  `cernlib mathlib` -I$(CONTRIB)alignment $(CONTRIB)alignment/*.C -o $(EXEPATH)alignment.exe
 
