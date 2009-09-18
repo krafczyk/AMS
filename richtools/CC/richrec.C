@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.3 2009/09/16 13:06:30 mdelgado Exp $
+//  $Id: richrec.C,v 1.4 2009/09/18 14:14:05 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -462,7 +462,7 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
 		     betamin,betamax,recs[actual],_index,_kind_of_tile);
 
     hit->unsetbit(bit);
-    
+
     if(!UseDirect) recs[actual][0]=0;
     if(!UseReflected) recs[actual][1]=recs[actual][2]=0;
 
@@ -472,6 +472,9 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
       actual++;
     }
   }
+
+
+
   // Look for clusters
   uinteger current_ring_status=_kind_of_tile==naf_kind?naf_ring:0;
 
@@ -558,7 +561,7 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
 
 
 	  if(prob>=_window) continue;
-	  hitp[i]->Status&=(1<<bit);
+	  hitp[i]->Status|=(1<<bit);
 	  if(cleanup) current_ring_status|=(hitp[i]->Status&(1<<crossed_pmt_bit))?dirty_ring:0; 
 	  chi2+=prob;
 	  wsum+=hitp[i]->Npe;
@@ -589,10 +592,11 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
 			     current_ring_status,  //Status word
 			     ComputeNpExp                     // force charge reconstruction
 			     );
-      
+
+
       if(!first_done) first_done=done;
     }  
-    //    bit++;  
+    bit++;  
   }while(current_ring_status&dirty_ring);   // Do it again if we want to clean it up once
 
   return first_done;
