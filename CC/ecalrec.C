@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.120 2009/06/30 07:17:14 choumilo Exp $
+//  $Id: ecalrec.C,v 1.121 2009/09/18 10:07:08 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -62,7 +62,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     ecalflg=ptrt->getecflag();//ecflag of Lev1-obj(RD:created using JMembPatt, MC:in simu)
     if(ecalflg>0){
       EcalJobStat::addre(9);
-      if(ECREFFKEY.reprtf[0]>0){
+      if(ECREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
         HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
@@ -71,7 +71,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     }
   }
 //
-  if(ECREFFKEY.reprtf[0]>0){
+  if(ECREFFKEY.reprtf[0]>1){
    if(ptrt){
     if(ecalftok){
       for(int sl=0;sl<6;sl+=2){
@@ -333,7 +333,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 10th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
       pmrgn=ECcalibMS::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
-      ECPMPeds::pmpeds[il][i].getpedh(pedh);
+      ECPMPeds::pmpeds[il][i].getpedh(pedh);//No PedSeeds used due to very small real ped sigmas !!!
       ECPMPeds::pmpeds[il][i].getsigh(sigh);
       ECPMPeds::pmpeds[il][i].getpedl(pedl);
       ECPMPeds::pmpeds[il][i].getsigl(sigl);
@@ -871,7 +871,7 @@ void AMSEcalHit::build(int &stat){
 //
       edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);// adc gain corr(really 1/pmrg/pmscg
 //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
-      if(ECREFFKEY.reprtf[0]>0 && edep>2){
+      if(ECREFFKEY.reprtf[0]>1 && edep>2){
 #pragma omp critical (hf1)
 {
         HF1(ECHISTR+16,geant(edep),1.);//adc
@@ -957,7 +957,7 @@ void AMSEcalHit::build(int &stat){
 	  padc[1]=bpadc[i][1];
           ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);//SubCell info
 	  icont=plane;//container number for storing of EcalHits(= plane number)
-	  if(ECREFFKEY.reprtf[0]>0){
+	  if(ECREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
 	    HF1(ECHISTR+9,geant(edep),1.);
@@ -978,7 +978,7 @@ void AMSEcalHit::build(int &stat){
 //
   }// ---> end of crate loop
 //
-  if(ECREFFKEY.reprtf[0]>0){
+  if(ECREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
     HF1(ECHISTR+10,geant(nraw),1.);

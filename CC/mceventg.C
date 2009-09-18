@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.145 2009/07/29 11:30:45 choutko Exp $
+//  $Id: mceventg.C,v 1.146 2009/09/18 10:07:08 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -183,7 +183,7 @@ again:
       if(_fixedpoint){
         _coo=_coorange[0];
       }
-      else {
+      else {//<---fixeddir+rand.point
         number x0=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
         number y0=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
         number z0=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
@@ -261,15 +261,15 @@ again:
             else _dir=AMSDir(xbg,ybg,zbg);
           }
         } // ISN
-        else if(_fixedplane==1){
+        else if(_fixedplane==1){// to VC: what about 2(bot.plane) ???
 //          cout << "fixed plane" << endl;
           _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz);
         }
         else{
           _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz*RNDM(d));
         }
-      }
-    }//--->endof fixdir>0
+      }//--->endof fixeddir+rand.point
+    }//--->endof fixeddir+no_dirs_from_file
     else if(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0){ //<---   Dir From files
      int k=floor(RNDM(d)*(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1));
      _coo=_r_c[k];
@@ -283,11 +283,11 @@ again:
      _dir=_dir_c[k];
 //     cout <<" k "<<k<<" "<<CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<<endl;
 //     cout <<_coo<<" "<<_dir<<endl;
-    }
+    }//--->endof dirs_from_file
     else {   // <--- random dir
       geant d(-1);
       phi=2*AMSDBc::pi*RNDM(d);
-      theta=sqrt((double)RNDM(d));
+      theta=sqrt((double)RNDM(d));//uniform cos**2
       theta=acos(theta);
       if(_fixedpoint){
         _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
@@ -373,7 +373,7 @@ again:
 //
 // add cmuouns (low==2)
 //
-    if(CCFFKEY.low==2){
+    if(CCFFKEY.low==2){//sea-level muons
      if(_dir[2]>0)goto again;
      geant dummy;
      number u=RNDM(dummy);

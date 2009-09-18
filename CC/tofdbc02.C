@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.67 2009/07/21 09:08:39 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.68 2009/09/18 10:07:09 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -507,7 +507,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  geant ef1[TOF2GC::SCANPNT],ef2[TOF2GC::SCANPNT];
  integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2],npm;
  geant r,eff1,eff2;
- integer sid,brt,endflab;
+ integer sid,brt,endflab(0);
  geant gna[2],qath,qdth,a2dr[2],tth,strat[2][2],ah2l[2];
  geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
@@ -646,6 +646,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
 //   --->  Read SideTimeDifferences/LightSpeed calibration file :
 //
+ endflab=0;
  if(AMSJob::gethead()->isMCData())ctyp=3;
  else ctyp=2;
  verid=verids[ctyp-1];//MC-versn or RD-utc
@@ -674,7 +675,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  else tdcfile >> speedl;// read average Lspeed
 //
  cnum=0;
- for(ila=0;ila<TOF2DBc::getnplns();ila++){   
+ for(ila=0;ila<TOF2DBc::getnplns();ila++){
    for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  
      tdcfile >> tdiff[cnum];
      cnum+=1; // sequential counters numbering(0-...)
@@ -695,6 +696,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
 //   --->  Read Tzeros/SlewingCorrections calibration file :
 //
+ endflab=0;
  if(AMSJob::gethead()->isMCData())ctyp=4;
  else ctyp=3;
  verid=verids[ctyp-1];//MC-versn or RD-utc
@@ -736,7 +738,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //   ---> Read anodes/dynode relat.gains, anode/dynode ratios,
 //       mip2q and A-profile param. calib.file :
 //
-   if(AMSJob::gethead()->isMCData())ctyp=5;
+  endflab=0;
+  if(AMSJob::gethead()->isMCData())ctyp=5;
    else ctyp=4;
    verid=verids[ctyp-1];//MC-versn or RD-utc
    strcpy(name,"TofAmplf");//generic name
@@ -1076,6 +1079,7 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
   time_t utct;
 //
   strcpy(inum,"0123456789");
+  endflab=0;
 //
 // ---> read file with the list of version numbers for all needed MC-seed barcal.files :
 //
@@ -1143,6 +1147,7 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //------------------------------
 //   --->  Read MCSeed TOF-channels status values:
 //
+  endflab=0;
    cnum=0;
    for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
    for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
@@ -1169,7 +1174,8 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //   ---> Read MCSeed anodes/dynodes relat.gains, anode/dynode ratios,
 //       mip2q's, A-profile param.  calib.file :
 //
-   ctyp=5;
+   endflab=0;
+  ctyp=5;
    strcpy(name,"TofAmplf");
    mcvn=mcvern[ctyp-1];
    if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
@@ -2089,7 +2095,7 @@ void TOF2JobStat::printstat(){
   }
   printf("\n\n");
 //
-  if(TFREFFKEY.reprtf[0]<=1)return;
+  if(TFREFFKEY.reprtf[4]==0)return;
 //
 //----------------------------------------------------------
 //
@@ -2517,7 +2523,7 @@ void TOF2JobStat::bookhist(){
   char idname[80];
   char inum[11];
   char in[2]="0";
-  int thprtf=TFREFFKEY.reprtf[2];
+  int thprtf=TFREFFKEY.reprtf[1];
 //
   strcpy(inum,"0123456789");
 // hist 1290-1299 are used in trigger102.C
@@ -2544,7 +2550,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1114,"RawCluster:One2SidedBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
     HBOOK1(1115,"RawCluster: BestMatch LT-SumHT time(all FTmatched LT-hits, ovfl=noSumHTmatch)",80,-6.,14.,0.);
 //
-    if(thprtf>1){
+    if(TFREFFKEY.reprtf[4]>0){//more histograms
       HBOOK1(1120,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S1",80,-6.,14.,0.);
       HBOOK1(1121,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S2",80,-6.,14.,0.);
       HBOOK1(1122,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L2S1",80,-6.,14.,0.);
@@ -2555,7 +2561,7 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1127,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L4S2",80,-6.,14.,0.);
     }
 //
-    if(thprtf>1){
+    if(TFREFFKEY.reprtf[4]>0){
       HBOOK1(1128,"TofValid:FTtime-LTime(1-Hits case), L1S1",80,-60.,740.,0.);
       HBOOK1(1129,"TofValid:FTtime-LTime(1-Hits case), L1S2",80,-60.,740.,0.);
       HBOOK1(1130,"TofValid:FTtime-LTime(1-Hits case), L2S1",80,-60.,740.,0.);
@@ -2574,7 +2580,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1109,"RawCluster: LTime-SumHTtime(final LT-hit(best from MultFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
 //---    
 //(hist 1140-1161)
-    if(thprtf>1){
+    if(TFREFFKEY.reprtf[4]>0){
       for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
         for(is=0;is<2;is++){
           id=TofTmAmCalib::btyp2id(btyp);
@@ -2593,7 +2599,7 @@ void TOF2JobStat::bookhist(){
 //    HBOOK1(1092-1099 are used for trigger-hists in trigger102.C  !!!!)
 //    HBOOK1(1010,...    reserved for tofsim02.C internal use !!!!
 //    HBOOK1(1011,...    reserved for tofsim02.C internal use !!!!
-    if(thprtf>1){//detailed mode
+    if(TFREFFKEY.reprtf[4]>0){
       HBOOK1(1526,"RawCluster:L=1,Eanode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
       HBOOK1(1527,"RawCluster:L=3,Eanode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
       HBOOK1(1528,"RawCluster:L=1,Edynode(mev),poscorrected,1b/lay evnt",80,0.,24.,0.);
@@ -2631,7 +2637,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1549,"TOFClus: 2bars-cand. LongMatch(cm, Tmatch ok)",80,-40.,40.,0.);
     HBOOK1(1550,"TOFClus: 2bars-cand. T-match(ns)",80,-10.,10.,0.);
 //
-    if(TFREFFKEY.reprtf[4]==1){ // <==================== TOF-debug
+    if(TFREFFKEY.reprtf[4]>0){ // <==================== TOF-debug
       for(il=0;il<TOF2GC::SCLRS;il++){// RawADC histogr
         for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
           for(is=0;is<2;is++){
@@ -2645,13 +2651,15 @@ void TOF2JobStat::bookhist(){
 	  }
         }
       }
-      HBOOK1(1470,"A>Athr Paddles/Side/Layer visibility when TrPattBit On",80,1.,81.,0.);
-      HBOOK1(1471,"A>Athr Paddles/Side/Layer visibility when TrPattBit Off",80,1.,81.,0.);
-      HBOOK1(1472,"A>Athr,TimeHits>0 Paddles/Side/Layer visibility when TrPattBit Off",80,1.,81.,0.);
-      HBOOK1(1473,"A>Athr Paddles/Side/Layer visibility when BZTrPattBit On",80,1.,81.,0.);
-      HBOOK1(1474,"A>Athr Paddles/Side/Layer visibility when BZPattBit Off",80,1.,81.,0.);
-      HBOOK1(1475,"A>Athr,TimeHits>0 Paddles/Side/Layer visibility when BZPattBit Off",80,1.,81.,0.);
     }
+//
+    HBOOK1(1470,"A>Athr Paddles/Side/Layer visibility when TrPattBit On",80,1.,81.,0.);
+    HBOOK1(1471,"A>Athr Paddles/Side/Layer visibility when TrPattBit Off",80,1.,81.,0.);
+    HBOOK1(1472,"A>Athr,TimeHits>0 Paddles/Side/Layer visibility when TrPattBit Off",80,1.,81.,0.);
+    HBOOK1(1473,"A>Athr Paddles/Side/Layer visibility when BZTrPattBit On",80,1.,81.,0.);
+    HBOOK1(1474,"A>Athr Paddles/Side/Layer visibility when BZPattBit Off",80,1.,81.,0.);
+    HBOOK1(1475,"A>Athr,TimeHits>0 Paddles/Side/Layer visibility when BZPattBit Off",80,1.,81.,0.);
+//
     if(TFREFFKEY.relogic[0]>=5){// <==================== TofPed-calibr. runs
 //   hist. 1790-1999 are booked in init.function
     }
@@ -2666,24 +2674,24 @@ void TOF2JobStat::bookhist(){
 //   hist 1500-1511, 1200-1219 are booked at init-stage as common
     }
 //
-    if(TFREFFKEY.reprtf[3]!=0){//<======================Validation-stage multiplicity histograms
-      for(il=0;il<TOF2GC::SCLRS;il++){
-	for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-	  for(i=0;i<2;i++){
-	    strcpy(htit1,"Validation::FTtdc/LTtdc/Aadc/Dadc/SumHT/SumSHT multipl. for chan(LBBS) ");
-	    in[0]=inum[il+1];
-	    strcat(htit1,in);
-	    ii=(ib+1)/10;
-	    jj=(ib+1)%10;
-	    in[0]=inum[ii];
-	    strcat(htit1,in);
-	    in[0]=inum[jj];
-	    strcat(htit1,in);
-	    in[0]=inum[i+1];
-	    strcat(htit1,in);
-	    ich=2*TOF2GC::SCMXBR*il+2*ib+i;
-	    HBOOK1(1300+ich,htit1,100,0.,100.,0.);
-	  }
+  }
+  if(TFREFFKEY.reprtf[2]>0){//<======================Indep.Validation-stage multiplicity histograms
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+	for(i=0;i<2;i++){
+	  strcpy(htit1,"Validation::FTtdc/LTtdc/Aadc/Dadc/SumHT/SumSHT multipl. for chan(LBBS) ");
+	  in[0]=inum[il+1];
+	  strcat(htit1,in);
+	  ii=(ib+1)/10;
+	  jj=(ib+1)%10;
+	  in[0]=inum[ii];
+	  strcat(htit1,in);
+	  in[0]=inum[jj];
+	  strcat(htit1,in);
+	  in[0]=inum[i+1];
+	  strcat(htit1,in);
+	  ich=2*TOF2GC::SCMXBR*il+2*ib+i;
+	  HBOOK1(1300+ich,htit1,100,0.,100.,0.);
 	}
       }
     }
@@ -2758,7 +2766,7 @@ void TOF2JobStat::outp(){
     HPRINT(1020);
   }
 //---
-  if(TFREFFKEY.reprtf[2]>0){ // print RECO-hists
+  if(TFREFFKEY.reprtf[1]>0){ // print RECO-hists
     HPRINT(1107);
     HPRINT(1535);
     HPRINT(1536);
@@ -2784,7 +2792,7 @@ void TOF2JobStat::outp(){
     HPRINT(1113);
     HPRINT(1114);
     
-    if(TFREFFKEY.reprtf[2]>1){
+    if(TFREFFKEY.reprtf[4]>0){
       for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
         for(is=0;is<2;is++){
           HPRINT(1140+btyp-1+TOF2GC::SCBTPN*is);
@@ -2792,7 +2800,7 @@ void TOF2JobStat::outp(){
       }
     }
     
-    if(TFREFFKEY.reprtf[2]>1){
+    if(TFREFFKEY.reprtf[4]>0){
       for(i=0;i<8;i++)HPRINT(1128+i);//LT-FT times(Layer/Side)
       HPRINT(1137);// ... id=1041
       HPRINT(1138);
@@ -2801,7 +2809,7 @@ void TOF2JobStat::outp(){
 //
     HPRINT(1136);//ft-lt in RawClustBuild
     HPRINT(1100);
-    if(TFREFFKEY.reprtf[2]>1){
+    if(TFREFFKEY.reprtf[4]>0){
       for(i=0;i<8;i++)HPRINT(1120+i);//LT-SumHT times(Layer/Side)
     }
     HPRINT(1115);
@@ -2812,7 +2820,7 @@ void TOF2JobStat::outp(){
     HPRINT(1101);
     HPRINT(1102);
 //
-    if(TFREFFKEY.reprtf[2]>1){
+    if(TFREFFKEY.reprtf[4]>0){
       HPRINT(1526);
       HPRINT(1527);
       HPRINT(1528);
@@ -2848,19 +2856,8 @@ void TOF2JobStat::outp(){
      HPRINT(1544);
      
      HPRINT(1534);
-//
-     if(TFREFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
-       for(i=0;i<TOF2GC::SCLRS;i++){
-         for(j=0;j<TOF2GC::SCMXBR;j++){
-           for(k=0;k<2;k++){
-             ich=2*TOF2GC::SCMXBR*i+2*j+k;
-             HPRINT(1300+ich);
-           }
-         }
-       }
-     }
 //---
-     if(TFREFFKEY.reprtf[4]==1){ // <==================== TOF-debug
+     if(TFREFFKEY.reprtf[4]>0){
        for(il=0;il<TOF2GC::SCLRS;il++){// RawADC histogr
          for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
            for(is=0;is<2;is++){
@@ -2869,15 +2866,27 @@ void TOF2JobStat::outp(){
 	   }
          }
        }
-       HPRINT(1470);
-       HPRINT(1471);
-       HPRINT(1472);
-       HPRINT(1473);
-       HPRINT(1474);
-       HPRINT(1475);
      }
+//
+     HPRINT(1470);
+     HPRINT(1471);
+     HPRINT(1472);
+     HPRINT(1473);
+     HPRINT(1474);
+     HPRINT(1475);
 //--- 
    }//--->endof RECO-hist print check
+//
+   if(TFREFFKEY.reprtf[2]>0){//independent TDC-hit multiplicity histograms
+     for(i=0;i<TOF2GC::SCLRS;i++){
+       for(j=0;j<TOF2GC::SCMXBR;j++){
+         for(k=0;k<2;k++){
+           ich=2*TOF2GC::SCMXBR*i+2*j+k;
+           HPRINT(1300+ich);
+         }
+       }
+     }
+   }
 //---------------------------------------------------
 // ---> calibration specific :
 //

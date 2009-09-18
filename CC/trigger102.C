@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.68 2009/02/20 14:12:17 choutko Exp $
+//  $Id: trigger102.C,v 1.69 2009/09/18 10:07:09 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -24,6 +24,7 @@ using namespace ecalconst;
  Trigger2LVL1::Scalers Trigger2LVL1::_scaler;
  Trigger2LVL1::Lvl1TrigConfig Trigger2LVL1::l1trigconf;
  Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
+ integer Trigger2LVL1::PhysBranchCount[8]={0,0,0,0,0,0,0,0};
  integer TGL1JobStat::countev[20];
  integer TGL1JobStat::daqc1[70];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
@@ -219,7 +220,6 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     for(i=0;i<9;i++)rates[5+i]=geant(scalmon.LVL1trig(i));
     for(i=0;i<5;i++)rates[14+i]=geant(scalmon.DetMaxRate(i));
     ratemx=rates[5];//tempor LVL1-rate
-
 //
 //-->TOF:
     toftrcode1=TOF2RawSide::gettrcode();//<0 ->noFTC(z>=1), >=0 ->OK, masked
@@ -229,14 +229,14 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     tofbzflag=TOF2RawSide::getbzflag();//Logically:No BZ-flag if FTC missing
     TOF2RawSide::getpatt(tofpatt1);
     TOF2RawSide::getpattz(tofpatt2);
-    if(TGL1FFKEY.printfl>0){
+    if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
       HF1(1290,geant(toftrcode1),1.);
       HF1(1291,geant(toftrcode2),1.);
 }
     }
-    if(TGL1FFKEY.printfl>10){
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<endl;
       cout<<"===> In TrigLev1Build: FTpatt="<<ftpatt<<" toftrcode/toftrcodez="<<toftrcode1<<" "<<toftrcode2<<endl;
       cout<<"     tofcpcode="<<tofcpcode<<" bzflag="<<tofbzflag<<endl;
@@ -262,7 +262,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //
     AMSEvent::gethead()->getmag(gmaglat,gmagphi);//(latt(thet,shirota),long(phi,dolgota))
 //
-    if(TGL1FFKEY.printfl>10){
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     EC TrigDecisionFlag(M(fte)|N(lv1):"<<ectrigfl<<endl;
       cout<<"       M=0/1/2/3->FTE(Energy)Flag=No/NoFTE_when1prj@2prj_req/FTE&1prj(or)/FTE&2prj(and)"<<endl;
       cout<<"       N=0/1/2/3->LVL1(Angle)Flag=Undef(noFTE)/0prj@FTEfound/OrLVL1/AndLVL1"<<endl<<endl;
@@ -293,7 +293,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if((ftpatt&(1<<1))>0 && (ftpatt&1)==0)TGL1JobStat::addev(5);//was FTZ-member when FTC missed
     if((ftpatt&(1<<2))>0){//was FTE-member
       TGL1JobStat::addev(6);
-      if(TGL1FFKEY.printfl>0){
+      if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
         HF1(1097,geant(ectrconf),1.);
@@ -348,7 +348,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     if(ectrconf%10==1)JMembPatt|=(1<<13);//ECAL=A_or
     if((ftpatt&(1<<3)) > 0)JMembPatt|=(1<<14);//Ext0
 //
-    if(TGL1FFKEY.printfl>10){
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     JMembPatt(lsb->):"<<endl;
       for(i=0;i<16;i++){
         if((JMembPatt&(1<<i))>0)cout<<mnames[i]<<"|";
@@ -388,15 +388,15 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     BranchOK[7]=(brreq[7]>0 && brreq[7]==brand[7]);//ext0
 //
     char subln[8][7];
-    if(TGL1FFKEY.printfl>10){
-      strcpy(subln[0],"unbTOF");
-      strcpy(subln[1],"Z>=1  ");
-      strcpy(subln[2],"Z>=2  ");
-      strcpy(subln[3],"slZ>=2");
-      strcpy(subln[4],"electr");
-      strcpy(subln[5],"gamma ");
-      strcpy(subln[6],"unbEC ");
-      strcpy(subln[7],"ext0  ");
+    strcpy(subln[0],"unbTOF");
+    strcpy(subln[1],"Z>=1  ");
+    strcpy(subln[2],"Z>=2  ");
+    strcpy(subln[3],"slZ>=2");
+    strcpy(subln[4],"electr");
+    strcpy(subln[5],"gamma ");
+    strcpy(subln[6],"unbEC ");
+    strcpy(subln[7],"ext0  ");
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     Fired Lvl1-PhysBranchesPatt(lsb->):"<<endl;
       for(int ibr=0;ibr<8;ibr++){
         if(BranchOK[ibr])cout<<subln[ibr]<<"|";
@@ -408,9 +408,9 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     int nbreq(0);
     integer trtype(0);
     trtype=Trigger2LVL1::l1trigconf.globl1mask();//from DB/File(already corrected by DC if was requested)
-    if(TGL1FFKEY.printfl>10)cout<<"     Requested Lvl1PhysBranchesPatt(hex)="<<hex<<trtype<<dec<<endl;
+    if((TGL1FFKEY.printfl/10)>=3)cout<<"     Requested Lvl1PhysBranchesPatt(hex)="<<hex<<trtype<<dec<<endl;
 //
-    if(TGL1FFKEY.printfl>0){
+    if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
       HF1(1098,0.,1.);
@@ -418,7 +418,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     }
     for(i=0;i<8;i++){
       if(BranchOK[i]){
-        if(TGL1FFKEY.printfl>0){
+        if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
 	  HF1(1098,geant(i+1),1.);//fired
@@ -433,7 +433,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       exit(10);
     }
 //
-    if(TGL1FFKEY.printfl>0){
+    if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
       for(i=0;i<16;i++){
@@ -444,8 +444,24 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 }
     }
 //
+//==========================> apply presc.factors:
+    integer prescf;
+#pragma omp critical (prescf)
+{
+    for(i=0;i<8;i++)if(BranchOK[i])PhysBranchCount[i]+=1;//count fired phys.branches
+    if(!(trtype==1 || trtype==64 || trtype==65
+                   || trtype==128 || TGL1FFKEY.NoPrescalingInMC==1)){//disable prescaling if unbiased/ext trig. requested
+      for(i=0;i<8;i++){
+        if(BranchOK[i]){
+ 	  prescf=Trigger2LVL1::l1trigconf.phbrprescf(i);
+	  if((PhysBranchCount[i]%prescf)!=0)BranchOK[i]=false;//fired but ignored
+        }
+      }
+    }
+}
+//------------------------------------------------
 //
-//                         <---- check OR of requested phys-branches(trigger type):
+//                         <---- count (requested & fired) phys-branches(request=>trigger_type):
     int nbchk(0);
     if(trtype ==128){
       comtrok=1;
@@ -469,7 +485,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //---> lvl1-decision taken:
         TGL1JobStat::addev(10);
 //
-      if(TGL1FFKEY.printfl>0){
+      if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
 	HF1(1093,0.,1.);
@@ -496,18 +512,18 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
 //--------------------
 void Trigger2LVL1::init(){
 //always called in _sitrig2initjob()/siamsinitjob()/AMSJob::init()
-if(TGL1FFKEY.printfl>0){
+if((TGL1FFKEY.printfl%10)>0){
   if(AMSJob::gethead()->isSimulation()){
     HBOOK1(1290,"LVL1_Simu:TofFlg1",20,-1.,19.,0.);
     HBOOK1(1291,"LVL1_Simu:TofFlg2",20,-1.,19.,0.);
   }
   HBOOK1(1092,"LVL1:TrPatt_accep:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
-  HBOOK1(1093,"LVL1:PhysBranchPatt_accep(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+  HBOOK1(1093,"LVL1:PhysBranchPatt_Accepted(F&R)(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
   HBOOK1(1292,"LVL1_Reco:TofFlg1",20,-1.,19.,0.);
   HBOOK1(1293,"LVL1_Reco:TofFlg2",20,-1.,19.,0.);
   if(AMSJob::gethead()->isSimulation()){
    HBOOK1(1095,"LVL1:TrPatt_fired:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ext",20,0.,20.,0.);
-   HBOOK1(1098,"LVL1:PhysBranchPatt_fired(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
+   HBOOK1(1098,"LVL1:PhysBranchPatt_Fired(globFT,unbTOF,Z>=1,Z>=2,SlowZ>=2,elec,phot,unbEC,ext",10,0.,10.,0.);
    HBOOK1(1096,"LVL1:EC ProjConfig(when FTE&TOF_FT, masked)",30,0.,30.,0.);
    HBOOK1(1097,"LVL1:EC ProjConfig(when FTE, masked, val: M|N=FTE|ANG, M(N)=1/2->or/end_proj)",30,0.,30.,0.);
   }
@@ -1194,7 +1210,7 @@ void Trigger2LVL1::ScalerMon::setdefs(){
   }
 //
 void TGL1JobStat::printstat(){
-if(TGL1FFKEY.printfl>0){
+if((TGL1FFKEY.printfl%10)>0){
   if(AMSJob::gethead()->isSimulation()){
     HPRINT(1290);
     HPRINT(1291);
@@ -1342,9 +1358,8 @@ void Trigger2LVL1::_writeEl(){
 void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
 // on input p points to 1st word of the block (after length)
   int i,j,nwords(0);
+  integer val;
   int16u inpat[15]={15,14,13,11,7,5,9,6,10,3,12,1,2,4,8};//CPpatt vs tofflag(0-14)
-  int16u prescfcode[8]={0x3FF,0x3FE,0x3FD,0x3FC,0x3FB,0x3FA,0x3F9,0x3F8};//prescale factors codes
-  int16u prescfvals[8]={1,2,5,10,20,50,100,1000};//presc.factors
   uinteger ltim(0);
   geant tgate(1);//default gate 1sec for live time measur.
   int16u rrr,rrr1,rrr2;
@@ -1352,7 +1367,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
 // 
   if(ptr){
-    if(TGL1FFKEY.printfl>10)cout<<"====> In Trigger2LVL1::builddaq:blk#/len="<<ibl<<" "<<n<<endl;
+    if((TGL1FFKEY.printfl/10)>=3)cout<<"====> In Trigger2LVL1::builddaq:blk#/len="<<ibl<<" "<<n<<endl;
 //==================>TrigPatterns:
     *p = int16u(ptr->_JMembPatt);//LVL1-members
     rrr=int16u(ptr->_PhysBPatt);//Phys.branches
@@ -1487,14 +1502,10 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
     }
 //PrescaleFact for phys.branches:
     for(i=0;i<8;i++){//branch#
-      rrr1=int16u(l1trigconf.phbrprescf(i));//presc.factor value
-      rrr=(0x3FF);//def.code(->1) when requested presc.factor not found in prescfvals 
-      for(j=0;j<8;j++){//presc.f list loop
-        if(rrr1==prescfvals[j]){
-	  rrr=prescfcode[j];
-	  break;
-	}
-      }
+      rrr=(0x3FF);//def.code(->1)
+      val=l1trigconf.phbrprescf(i);//presc.factor value
+      rrr1=prescfval2code(val);
+      if(rrr1!=0)rrr=rrr1;
       *(p+setupbs+16+8+i)=rrr;
       nwords+=1;
     }
@@ -1517,7 +1528,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
     rrr|=(1<<15);//data-fragment
     *(p+livetbs+4) = rrr;
     nwords+=1;
-    if(TGL1FFKEY.printfl>10)cout<<"<==== Block was build for DAQ portid="<<rrr<<endl<<endl;
+    if((TGL1FFKEY.printfl/10)>=3)cout<<"<==== Block was build for DAQ portid="<<rrr<<endl<<endl;
   }
   if(nwords!=n){
     cout<<"<==== Trigger2LVL1::builddaq:Error - wrong length, call="<<n<<" assembled="<<nwords<<endl;
@@ -1575,8 +1586,6 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //  
   int16u datyp(0),formt(0),evnum;
   int16u jbias,jblid,jleng,jaddr,csid,psfcode;
-  int16u prescfcode[8]={0x3FF,0x3FE,0x3FD,0x3FC,0x3FB,0x3FA,0x3F9,0x3F8};//prescale factors codes
-  int16u prescfvals[8]={1,2,5,10,20,50,100,1000};//presc.factors(N->N:1)
   int16u cpmask(0),ctmask(0),bzmask(0),trstmsk(0);
   integer auxtrpat(0);
   int16u cpinmask[TOF2GC::SCLRS],bzinmask[TOF2GC::SCLRS];//my reordered masks
@@ -1623,12 +1632,11 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
-//printfl=10/11/12/13=> noPrint/OnlyWarningPrint/+EventPatterns/+Setup&BitDump
-  if(TGL1FFKEY.printfl>11){
+  if((TGL1FFKEY.printfl/10)>=3){
     cout<<endl;
     cout<<"======> In Trigger2LVL1::buildraw: JLV1_length(in call)="<<*p<<"("<<jleng<<"), slave_id="<<jaddr
                                                                        <<" data-type="<<datyp<<endl<<endl;
-    if(TGL1FFKEY.printfl>12)EventBitDump(jleng,p,"Dump Event-by-Event:");//debug
+    if((TGL1FFKEY.printfl/10)>=4)EventBitDump(jleng,p,"Dump Event-by-Event:");//debug
     
   }
   if(jleng>1)TGL1JobStat::daqs1(1);//<=== count non-empty fragments
@@ -1681,7 +1689,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   } 
   else {
       TGL1JobStat::daqs1(10);//wrong segment length or format
-      if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::buildraw: length/fmt error, len="
+      if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::buildraw: length/fmt error, len="
                                                    <<jleng<<" addr="<<jaddr<<" datyp="<<datyp<<endl;
       goto BadExit;
   }
@@ -1761,7 +1769,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       cerr<<"   <-- Trigger2LVL1::buildraw:Wrong BZinpPatt word="<<hex<<word<<dec<<endl;
 #endif
     }
-    if(TGL1FFKEY.printfl>0){
+    if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
       HF1(1292,geant(TofFlag1),1.);
@@ -1781,7 +1789,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       if(FTEok)EcalFlag+=1;//No ECLev1(Big angle in both proj, but FTE ok)
     }
 //-----> trig.patt histos: 
-    if(TGL1FFKEY.printfl>0){
+    if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
       for(i=0;i<16;i++){
@@ -1827,7 +1835,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   cerr<<"TriggerLVL1-E-TrigTimeDiff NotMatch "<<trtime[4]<<" "<<DAQEvent::gethead()->trigtime()<<endl;
  }
 #endif
-    if(TGL1FFKEY.printfl>0){
+    if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
       HF1(1099,geant(trtime[4]),1.);
@@ -1857,7 +1865,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       lencalc+=4;//add time-calib and 2 empty words for RawFmt
     }
 //---> print event-by-event (patterns) info:
-    if(TGL1FFKEY.printfl>11){
+    if((TGL1FFKEY.printfl/10)>=2){
 #pragma omp critical (evpatterns)
 { 
       cout<<"  -------> Event-by-event(instant) LVL1-info (patterns,time-counters,...):"<<endl<<endl;
@@ -1932,7 +1940,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
       ltimeg[j]=tgate;
       livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
       if(livetm[j]>1){
-      if(TGL1FFKEY.printfl>10)cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
+      if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
 	                        tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<livetm[j]<<endl;
 //        LiveTime[j]=1; 
         TGL1JobStat::daqs1(6+2*j);//counts  LTime>1
@@ -1985,7 +1993,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //========>
   if((lencalc+1)!=len){
     TGL1JobStat::daqs1(10);//wrong segment length
-    if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::buildraw: length error, LengInCall="
+    if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::buildraw: length error, LengInCall="
                                               <<jleng<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
     goto BadExit;
   }
@@ -2170,15 +2178,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //
       if(ib>=8 && ib<16){//<--- Presc.factors settings for 8 physical branches
         psfcode=(word&0x3FF);//presc.factor code
-        for(j=0;j<8;j++){
-          if(psfcode==prescfcode[j])break;
-        }
-        if(j<8)phbrprescf[ib-8]=prescfvals[j];//update presc.factor's values for PhysBranches
-        else{
-          phbrprescf[ib-8]=1;//set presc.fact.=1 for unknown codes
-          if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::buildraw:Unkn prescFactor code(hex)="
-	                             <<hex<<psfcode<<dec<<" PhBr="<<ib-8<<endl;
-        }
+	l1trigconf.phbrprescf(ib-8)=prescfcode2val(psfcode);//presc.factor value
       }
 //
     }//--->endof bit-set check
@@ -2192,7 +2192,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //--------------------------------------------------------------------------------------------------------
   if(SetupIsChanged){
     TGL1JobStat::daqs1(16);//"TrigSetupBlock" changes
-    if(TGL1FFKEY.printfl>0){//print brief setup info (on change and request):
+    if((TGL1FFKEY.printfl%10)>=2){//print brief setup info (on change and request):
 #pragma omp critical (print_shortsetup)
 { 
     cout<<"===================================================="<<endl;
@@ -2280,7 +2280,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
         ltimeg[j]=tgate;
         livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
         if(livetm[j]>1){
-          if(TGL1FFKEY.printfl>10){
+          if((TGL1FFKEY.printfl/10)>=1){
 	    cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
 	                tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<livetm[j]<<endl;
           }
@@ -2325,7 +2325,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   }//--->endof Scalers Block decoding
 #endif
 //---------------
-  if(TGL1FFKEY.printfl>12 || ScalerIsChanged){//print brief scalers info (on change or request):
+  if((TGL1FFKEY.printfl%10)>=2 && ScalerIsChanged){//print brief scalers info (on change and request):
 #pragma omp critical (print_scaler)
 { 
     cout<<"===================================================="<<endl;
@@ -2351,7 +2351,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     LiveTime[1]=livetm[1];
     trtime[0]=timcal;
   }
-  if(TGL1FFKEY.printfl>0){
+  if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
     HF1(1094,geant(LiveTime[0]),1.);
@@ -2439,8 +2439,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //  
   int16u datyp(0),formt(0),evnum;
   int16u jbias,jblid,jleng,jaddr,csid,psfcode;
-  int16u prescfcode[8]={0x3FF,0x3FE,0x3FD,0x3FC,0x3FB,0x3FA,0x3F9,0x3F8};//prescale factors codes
-  int16u prescfvals[8]={1,2,5,10,20,50,100,1000};//presc.factors(N->N:1)
 //
   int16u rstatw1(0),rstatw2(0),rstatw3(0);
   int16u nrdow1(0),nrdow2(0),nrdow3(0);
@@ -2484,7 +2482,6 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
-//printfl=10/11/12/13=> noPrint/OnlyWarningPrint/+EventPatterns/+Setup&BitDump
     
   if(jleng>1){
     TGL1JobStat::daqs1(41);//<=== count non-empty fragments
@@ -2628,7 +2625,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //========>
   if((lencalc+1)!=lenoncall){
     TGL1JobStat::daqs1(55);//wrong segment length
-    if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::BuildRawEarly: length error, LengInCall="
+    if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::BuildRawEarly: length error, LengInCall="
                                           <<lenoncall<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
     goto BadExit;
   }
@@ -2775,15 +2772,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
       if(ib>=8 && ib<16){//<--- Presc.factors settings for 8 physical branches
         psfcode=(word&0x3FF);//presc.factor code
-        for(j=0;j<8;j++){
-          if(psfcode==prescfcode[j])break;
-        }
-        if(j<8)l1trigconf.phbrprescf(ib-8)=prescfvals[j];//update presc.factor's values for PhysBranches
-        else{
-          l1trigconf.phbrprescf(ib-8)=1;//set presc.fact.=1 for unknown codes
-          if(TGL1FFKEY.printfl>10)cout<<"<---- Trigger2LVL1::buildraw:Unkn prescFactor code(hex)="
-	                             <<hex<<psfcode<<dec<<" PhBr="<<ib-8<<endl;
-        }
+	l1trigconf.phbrprescf(ib-8)=prescfcode2val(psfcode);//presc.factor value
       }
 //
     }//--->endof bit-set check
@@ -2876,7 +2865,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         ltimeg[j]=tgate;
         LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
         if(LiveTime[j]>1){
-          if(TGL1FFKEY.printfl>10)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - LiveTime1>1!, tg/lt="<<
+          if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - LiveTime1>1!, tg/lt="<<
 	  tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<LiveTime[j]<<endl;
 //           LiveTime[j]=1; 
           TGL1JobStat::daqs1(61+j);//counts  LTime>1

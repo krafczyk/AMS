@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.84 2009/06/11 13:51:24 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.85 2009/09/18 10:07:08 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -794,7 +794,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+56,"ECLVL3: Yec-Ytr",80,-80.,80.,0.);
     }
 //---
-    if(ECREFFKEY.reprtf[0]>0){ // Book reco-hist
+    if(ECREFFKEY.reprtf[0]>1){ // Book reco-hist
       HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,240.,0.);
       HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
       HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,500.,0.);
@@ -1102,7 +1102,7 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+56);
     }
 //
-    if(ECREFFKEY.reprtf[0]>0){ // print RECO-hists
+    if(ECREFFKEY.reprtf[0]>1){ // print RECO-hists
       HPRINT(ECHISTR+10);
       HPRINT(ECHISTR+11);
       HPRINT(ECHISTR+12);

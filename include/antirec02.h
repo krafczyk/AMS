@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.19 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: antirec02.h,v 1.20 2009/09/18 10:07:19 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -103,11 +103,11 @@ public:
 protected:
   void _printEl(ostream &stream){
    int i;
-   stream <<"Anti2RawEvent: id="<<dec<<_idsoft<<endl;
-   stream <<dec<<_adca<<endl;
-   stream <<"ntdct="<<dec<<_ntdct<<endl;
+   stream <<"Anti2RawEvent: id(BBS)="<<dec<<_idsoft<<endl;
+   stream <<"adc="<<dec<<_adca<<endl;
+   stream <<"ntdct(time)="<<dec<<_ntdct<<endl;
    for(i=0;i<_ntdct;i++)stream <<dec<<_tdct[i]<<endl;
-   stream <<"_nftdc="<<dec<<_nftdc<<endl;
+   stream <<"nftdc(FT)="<<dec<<_nftdc<<endl;
    for(i=0;i<_nftdc;i++)stream <<dec<<_ftdc[i]<<endl;
    stream <<dec<<endl<<endl;
  }

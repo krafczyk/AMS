@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.38 2009/06/26 12:00:36 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.39 2009/09/18 10:07:08 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -1870,6 +1870,10 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
     }
     tcfile << endl;
   }
+  tcfile << endl;
+//
+  tcfile << 12345 << endl;//endoffile label
+  tcfile << endl;
   tcfile << endl<<"======================================================"<<endl;
   tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
   tcfile << endl<<" Date of the first event : "<<frdate<<endl;

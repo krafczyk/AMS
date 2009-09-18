@@ -405,6 +405,7 @@ void AMSEvent::_endofrun() {
 }
 
 void AMSEvent::_siamsinitrun(){
+for(int i=0;i<8;i++)Trigger2LVL1::PhysBranchCount[i]=0;//reset fired PhysBranches counters
 _sitkinitrun();
 _sitofinitrun();
 _siantiinitrun();

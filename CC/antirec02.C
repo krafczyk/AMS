@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.41 2009/07/14 07:50:52 choumilo Exp $
+//  $Id: antirec02.C,v 1.42 2009/09/18 10:07:08 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -56,10 +56,8 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
                         ->getheadC("Anti2RawEvent",0,1);//last "1" to sort
   isds=0;
 //
-#ifdef __AMSDEBUG__
-  if(ATREFFKEY.reprtf[1]>=1)
+  if(ATREFFKEY.reprtf[1]>0)
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
-#endif
 //-----
 // ====> check for PedCalib data if PedCalJob(class/ds) :
 //
@@ -96,9 +94,6 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
   bad=1;// means NO both Charge and History measurements
   while(ptr){//<---- loop over ANTI RawEvent hits
-#ifdef __AMSDEBUG__
-    if(ATREFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
-#endif
     id=ptr->getid();// BBarSide
     sector=id/10-1;//bar 0-7
     isid=id%10-1;//0-1 (bot/top)
@@ -120,7 +115,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(if PedSubtracted))
     if(stat>0 && ATREFFKEY.relogic==0){
       cout<<"AntiRawEvent::validate:-E- Found not PedSubtracted Data while NormalRun-Job  !!"<<endl;
-      exit(2);
+      return;
     } 
 //
 //--->  fill working arrays for given side:
@@ -133,7 +128,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       if(adca>0)nadca=1;
       ntdct=ptr->gettdct(tdct);
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
-      if(ATREFFKEY.reprtf[0]>0){
+      if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
         HF1(2515,geant(nadca),1.);
@@ -161,7 +156,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //---> check LTtime info :
 //
       if(ntdct>0){
-        if(nftdc>0 && adca>10 && ATREFFKEY.reprtf[0]>0){
+        if(nftdc>0 && adca>10 && ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
           for(i=0;i<ntdct;i++){
@@ -178,7 +173,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
       if(nftdc>0 && ntdct>0)tmfound=1;//found object with LTtime & FTtime
 // 
-      if(tmfound==1 && ATREFFKEY.reprtf[0]>1){
+      if(tmfound==1 && ATREFFKEY.reprtf[0]>2){
 #pragma omp critical (hf1)
 {
         HF1(2587,geant(chn+1),1.);
@@ -190,7 +185,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
       if(adca>0){//---->ped-subtr. and DAQ-readout thr. was already done during decoding or mcbuild stage
         if(tmfound==1)complm=1;//found object with complete t+amp measurement
-	if(ATREFFKEY.reprtf[0]>1){
+	if(ATREFFKEY.reprtf[0]>2){
 #pragma omp critical (hf1)
 {
 	  HF1(2570+chn,geant(adca),1.);
@@ -202,7 +197,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 	stat+=100;//mark missing Ampl.info
       }
 //
-      if(complm==1 && ATREFFKEY.reprtf[0]>1){
+      if(complm==1 && ATREFFKEY.reprtf[0]>2){
 #pragma omp critical (hf1)
 {
         HF1(2586,geant(chn+1),1.);
@@ -213,6 +208,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       ptr->updstat(stat);//set RawEvent-obj status to filter at reco-stage(befor it was =0(ok))
       if(complm==1)bad=0;//found at least one channel with t+amp measurement per event - accept event
 //      if(nadca>0)bad=0;//tempor: found at least one channel with amp measurement per event - accept event
+    if(ATREFFKEY.reprtf[1]>0)ptr->_printEl(cout);
 //---------------
     ptr=ptr->next();// to take next RawEvent hit
   }//----> endof RawEvent hits loop
@@ -908,7 +904,7 @@ void AMSAntiCluster::build2(int &statt){
   statt=1;//bad
   ftcoinc=Anti2RawEvent::getncoinc();//total log.sectors in coinc.with FT
   lspatt=Anti2RawEvent::getpatt();//Coinc.sect.pattern
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
     HF1(2510,geant(ftcoinc),1.);
@@ -990,7 +986,7 @@ void AMSAntiCluster::build2(int &statt){
 	                                  - tzer;//TDC-ch-->ns + "compens.tzero=fib.delay"(side-independent)
 	  if(fttim>0){//check coinc.with FT
 	    dt=fttim-t1;//Rel.time wrt FT("+" means "befor" FTtime)
-            if(ATREFFKEY.reprtf[0]>0){
+            if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
 	      HF1(2509,geant(dt),1.);
@@ -1036,7 +1032,7 @@ void AMSAntiCluster::build2(int &statt){
 	if(n1==1 && n2==1){
 	  t1=uptm[0][0];
 	  t2=uptm[1][0];
-	  if(ATREFFKEY.reprtf[0]>0){
+	  if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
 	    HF1(2520+sector,geant(t1-t2),1.);
@@ -1107,7 +1103,7 @@ void AMSAntiCluster::build2(int &statt){
         status|=TOFGC::SCBADB2;// set bit for one-side paddles
         if(isid==2)status|=TOFGC::SCBADB4;// set missing-side bit(s=2 if set)
       }//--->endof 1s-case
-      if(ATREFFKEY.reprtf[0]>0){
+      if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
         HF1(2508,geant(edep2),1.);
@@ -1142,7 +1138,7 @@ void AMSAntiCluster::build2(int &statt){
 	nclust+=1;
 	if(npairs>0)nclustp+=1;
         edept+=edep2;
-        if(ATREFFKEY.reprtf[0]>0){
+        if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
           HF1(2502,geant(ntimes),1.);
@@ -1167,7 +1163,7 @@ void AMSAntiCluster::build2(int &statt){
     ptr=ptr->next();// take next RawEvent hit
   }//------>endof RawEvent hits loop
 //
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
     HF1(2500,geant(edept),1.);

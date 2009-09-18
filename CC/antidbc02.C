@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.35 2009/02/20 14:12:16 choutko Exp $
+//  $Id: antidbc02.C,v 1.36 2009/09/18 10:07:07 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -901,7 +901,7 @@ void ANTI2JobStat::printstat(){
   geant rc;
   printf("\n");
 //
-  if(MISCFFKEY.dbwrbeg>0)return;//dbwriter job, don't need statistics
+  if(MISCFFKEY.dbwrbeg>0 || ATREFFKEY.reprtf[0]==0)return;//dbwriter job, don't need statistics
 //
   printf("    ============ JOB ANTI2-statistics =============\n");
   printf("\n");
@@ -945,7 +945,6 @@ void ANTI2JobStat::printstat(){
   printf(" PedCalib-events found : % 6d\n",recount[31]);
   printf("\n\n");
 //
-  if(ATREFFKEY.reprtf[0]==0)return;
   printf("==========> Bars reconstruction report :\n\n");
 //
   printf("Have signal on any side :\n\n");
@@ -1158,7 +1157,7 @@ void ANTI2JobStat::bookmch(){
 }
 void ANTI2JobStat::bookh(){
 //
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
     HBOOK1(2515,"ANTI-VAL:HitsNumber(adc/tdc(+10)/ft(+20), allchann)",30,0.,30.,0.);
     HBOOK1(2516,"ANTI-VAL:FTtime-HistTime(all chann)",80,0.,240.,0.);
 //
@@ -1185,7 +1184,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2526,"ANTI-REC: SideTimesDiff(1-2), Sector-7",50,-50.,50.,0.);
     HBOOK1(2527,"ANTI-REC: SideTimesDiff(1-2), Sector-8",50,-50.,50.,0.);
   }
-  if(ATREFFKEY.reprtf[0]>1){//low prior.hist
+  if(ATREFFKEY.reprtf[0]>2){//low prior.hist
     HBOOK1(2570,"ANTI-VAL:ADC Sect-1, Side-1",80,0.,4000.,0.);
     HBOOK1(2571,"ANTI-VAL:ADC Sect-2, Side-1",80,0.,4000.,0.);
     HBOOK1(2572,"ANTI-VAL:ADC Sect-3, Side-1",80,0.,4000.,0.);
@@ -1206,7 +1205,7 @@ void ANTI2JobStat::bookh(){
     HBOOK1(2586,"ANTI-VAL:Found(ADC+Time) for Sect+(Side-1)*8",16,1.,17.,0.);
     HBOOK1(2587,"ANTI-VAL:Found(Time) for Sect+(Side-1)*8",16,1.,17.,0.);
   }
-  if(ATREFFKEY.relogic==1  && ATREFFKEY.reprtf[0]>0){//book calib.hist
+  if(ATREFFKEY.relogic==1  && ATREFFKEY.reprtf[0]>1){//book calib.hist
     HBOOK1(2530,"AntiCalib:Nfired/Nmatched sectors",20,0.,20.,0.);//spare
     HBOOK1(2531,"AntiCalib:Cyl-track Zcross(noCuts,both dirs)",75,-75.,75.,0.);
     HBOOK1(2532,"AntiCalib:PHIsect-PHIcros(Zcross OK)",91,-182.,182.,0.);
@@ -1273,7 +1272,7 @@ void ANTI2JobStat::outpmc(){
 //
 void ANTI2JobStat::outp(){
 //
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
     HPRINT(2515);
     HPRINT(2516);
     HPRINT(2500);
@@ -1292,7 +1291,7 @@ void ANTI2JobStat::outp(){
     
     for(int i=0;i<8;i++)HPRINT(2520+i);
   }
-  if(ATREFFKEY.reprtf[0]>1){//low prior.hist
+  if(ATREFFKEY.reprtf[0]>2){//low prior.hist
     HPRINT(2570);
     HPRINT(2571);
     HPRINT(2572);
@@ -1312,7 +1311,7 @@ void ANTI2JobStat::outp(){
     HPRINT(2586);
     HPRINT(2587);
   }
-  if(ATREFFKEY.relogic==1 && ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.relogic==1 && ATREFFKEY.reprtf[0]>1){
     HPRINT(2626);
     HPRINT(2627);
     HPRINT(2628);
@@ -1349,7 +1348,7 @@ void ANTI2JobStat::outp(){
   }
 //
   if(ATREFFKEY.relogic==1)AntiCalib::fit();
-  if(ATREFFKEY.relogic==1 && ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.relogic==1 && ATREFFKEY.reprtf[0]>1){
     HPRINT(2542);
     HPRINT(2543);
     HPRINT(2544);

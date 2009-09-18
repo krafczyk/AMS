@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.116 2009/02/20 14:12:17 choutko Exp $
+//  $Id: geant.C,v 1.117 2009/09/18 10:07:08 choumilo Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -131,8 +131,8 @@ void gams::UGINIT(int argc,  char * argv[]){
   GCTLIT.ITCKOV=1;
   GCPHYS.IRAYL=1;
   integer mone=-1;
-  GFFGO();
-   AMSJob::gethead()->udata();
+ GFFGO();
+  AMSJob::gethead()->udata();
  
 #ifdef __CORBA__
   AMSJob::gethead()->add( new AMSProducer(argc,argv,PRODFFKEY.Debug));

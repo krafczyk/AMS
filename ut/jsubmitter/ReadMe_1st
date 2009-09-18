@@ -1,0 +1,126 @@
+             ***** Short introduction *****
+		     
+   The offline program (gbatch) has many data cards to modify default behaviour. 
+ In some situations (subdetector codes development, debugging, private root files creation,...)
+ you need to do a lot of manipulations with data cards, frequently inquire for files like 
+ datacards.doc,job.C,... As a consequence you have big probability to make a mistake. 
+ Proposed graphics interface simplify this task, helps to create reproducible results and 
+ simplify management of output data and jobs submisions. Clearly it is not any kind of 
+ replacement to Vitali's Production Remote client system. 
+   The construction of this interface is not finished, particularly specific data cards
+ of TRK,TRD and RICH are not implemented, but i already used this interface on pcamsr0 and 
+ pcamsn0 machines for practical purposes working with TOF,ACC,EC specfic cards and general
+ ones (it means usage of default settings in TRK,TRD and RICH cards). To continue the 
+ development more effectively and implement more data cards i need some feedback, first 
+ of all from TOF,ACC and EC peoples. This is the aim of current pre-release.
+ 
+            ***** How to install *****
+      
+    You should "setenv" for some working directories :
+      MyCVSTopDir  as, for example, /afs/cern.ch/user/c/'person'/AMS 
+                                              (your top directory for EXISTING AMS CVS tree)
+      MyJobSubmDir as /f2users/'person'/jobsubmwd
+                                              (top directory to work with JobSubmitter)
+      MyRootfDir  as  /f2users/'person'/rootfiles
+                                              (top directory to store your private root files)
+      MyMCDaqfDir as  /f2users/'person'/mcdaqfiles
+                                              (top directory to store your mc-daq files)
+  (of course it may be not /f2users/... but /scratch or something else). I put these definitions
+  in my .login file for convenience.  Other sub-directories (like amsjobwd, rd(mc)logfiles,...)
+  will be created automatically during installation procedure.
+   
+    So steps are:
+    
+     'cd' to your MyCVSTopDir/ut/jsubmitter
+     
+     run 'JobSubmitInstaller' script
+     
+     Make selections in opened window:
+      a) select 'v4.00' (for the moment) as official storage of calibration and configuration
+         subdetectors files;
+      b) push "Accept creation..." button if you want to copy subsystem specific calib/config
+         files into your local (.../amsjobwd) directory. This gives you more flexibility
+	 in calib.files manipulation (checking quality, comparison,...), you can later
+	 (in JobSubmitter-session) select which calib.files('Offic'/Private' or from DB) to use
+	 for given job;
+      c) If above "Accept.." button is pressed you can select subsystems whose calib.files you
+         want to copy (TRK,TRD and RICH buttons are not activated for the moment);
+      d) select SessionType ("Install" is already selected as default);  
+     
+      e) push "Start" when ready (require few seconds to finish the job)
+     
+      f) push "Exit" to leave installation(InstallLog.date_stamp file will be created) in
+         your MyJobSubmDir;
+     
+            ***** How to use *****
+     
+     'cd' to your  MyJobSubmDir
+     run 'StartJobSubmitter' script
+     
+     In opened main window select Session-type (bottom/right of window, one of 3) and "Start".
+  At the left part of window you will get set of buttons and small entry(or pulldown menu) 
+  yellow windows. On the top you can check your main environment settings inside of  
+  "GeneralInfo/Settings" frame. On the right part of the main window you see big sub-window
+  to display the program messages.
+  
+    At the middle/left you have "Setup new job" frame + empty grey area. You should select
+  one of 12 data cards (DCs) groups (TOF,ACC,...,MCgen (if simulation session was selected)). 
+  The pushed button stay pressed and orange. Available DC variables settings are displayed
+  instead of previously mentioned gray area. You can change the displayed settings 
+  (if nesessary). Some DCs may have 2nd page when available settings are not fit into single
+  page(click "Page1(2)" button and again selected DC-group button to see another page). 
+  Currently only "MCgn" has 2nd page. If you are in "MCDataSimu"(lation) mode you have 2 global
+  pages selected by "RECO/SIMU" button (to the left from "Page" button.). By default 
+  "SIMU"-page is displayed first. To set reconstruction related settings - click "SIMU"-button
+  and click again selected DCs group (it is orange). If after some changes on given page you
+  decide to go back to the default settings - push "Reset2DefPar". Here default settings
+  mean the ones defined in file 'DCDefPars.txt' sitting in your MyJobSubmDir (copy of the
+  file sitting in your MyCVSTopDir/ut/jsubmitter and created durung installation). Later 
+  (or now) you can replace copied 'DCDefPars.txt' file with new one containing your current 
+  settings by pushing "MakeNewDCDefF" button (orange color). To go back to original version
+  (in MyCVSTopDir/ut/jsubmitter) you need to copy it (for the moment) by hands to MyJobSubmDir. 
+  
+    Below 'settings' area you have line of buttons. Push "ConfirmPars" wnen you finished changes,
+  push "CreateJScript"  and "EditJScript" if you want to see/edit created 'UnivJScript' file
+  created in your working directory(MyJobSubmDir). This is the normal AMS script to run gbatch.
+  Next "Batch(Inter)Job" button select 'batch' or 'interactive' mode ov running. Use the last 
+  one if you want just check your script and selected DCs parameters on small statistics.
+  
+    Next (if you initially selected 'RealDataReco' mode) select run numbers (dates) range of
+  desired DAQ-files in area below. You do not need type in both run# and related Date value. 
+  Only single value - convertion will be done automatically at the next step. Now push 
+  "Confirm Run/Date" and then push "ScanDaqDir" to search for files in desired range over 
+  official AMS DAQ-files storage area. See message window for information on search results. 
+  You can repeat daq-files selection again. You can sort found files by pushing 
+  "EditRunList(AftScan)" button (new dialog window will be opened).
+    
+    After you are satisfied with DAQ-files selection, change parameters displayed below
+  ('Event/job', 'queue' name, 'host'(if you want some particular one), 'Ncpus' and 'SetupName'
+  ( now only 'AMS02PreAss' is available). Finally confirm selection by pushing "SetupJob" and 
+  submit the job by "SubmitJob" button. As usually check message area for information.
+   
+    To see the status of all submitted jobs - push "CheckJobsStat" button in "SessionControl"
+  frame and inspect the list in opened window. Here you can also delete submitted or running
+  job(s) by clicking on the related line in the list and pushing "Kill job" button.
+  
+    To see the list of finished jobs(their log-files) - push "JobOutpControl" button. In the
+  opened window you can analyse log-files and delete bad ones (you have status in the last 
+  column as some indication, 3=good means that you just processed more than 1 event, that is
+  your job does not crashed just after the it started). Click "Finish" button when you finished
+  inspection and cleanup. This action will really delete marked as bad files and move good 
+  ones to your standard store MyJobSubmDir/rdlogfiles(or mclogfiles). Push "QuitSession" to 
+  leave session of initially selected SessType(session log-file will be created and copied to
+  one of two '/*logfiles' directories).
+  
+    Push "Exit" button (at the very right/bottom) to go away or select new Session Type and 
+  repeat all described steps. Unfinished jobs will continue to run and you can inspect them
+  next time you run StartJobSubmitter.
+  
+    If root files creation have to be requested for particular job, you can (if you wish)
+  specify subdir of MyRootfDir/RD(MC)-directory in related yellow window of 
+  "General Info/Settings" frame at the main window top/left. This subdir will be created 
+  automatically when you submit such job. 
+                                            Good luck, wait for comments,
+					                                  E.Choumilov
+       
+    

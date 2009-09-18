@@ -134,6 +134,8 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   integer bufpnt(0),lbbs;
   uinteger val32;
   geant padc[3];
+  int16u cdpmsk1(0),cdpmsk2(0);
+  bool newdataf(false);
 // for class/DownScaled ped-cal
   bool PedCal(false);//means PedCal job, using event-by-event in RawFMT or DownScaled 
   bool DownScal(false);
@@ -164,9 +166,21 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   }
 //
   EcalJobStat::daqs1(0);//count entries
+//
+//  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+//    if(strstr(AMSJob::gethead()->getsetup(),"PreAss"))newdataf=false;
+//    else newdataf=true;
+//  }
+  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
+  else newdataf=false;
+//
   p=p-1;//to follow VC-convention
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
+  if(newdataf){//will not be implemented ???
+    cdpmsk2=*(p+jleng-1);
+    cdpmsk1=*(p+jleng-2);
+  }
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error
@@ -184,12 +198,17 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 //
   if(ECREFFKEY.reprtf[2]>1){//debug (ECRE 3=)
     cout<<"====> In DAQECBlock::buildraw: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
+    if(newdataf)cout<<"      New(Ass1=final) JINF data format..."<<endl;
+    else cout<<"      Old(PreAss) JINF data format..."<<endl;
     if(ECREFFKEY.reprtf[2]>2)EventBitDump(jleng,p,"Complete JINF-block:");
   }
 //
   node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
   csid=1;//here is dummy(no redundancy for JINFs), later it is defined from card_id(EDR(a,b),ETRG(a,b))
 //  cout<<"      crate="<<crat<<endl;
+//modify jleng(to skip 2 msk-words) if new dataformat:
+  if(newdataf)jleng=jleng-2;
+//
   if(jleng>1 && crat>0)EcalJobStat::daqs1(1);//<=== count non-empty, valid JINF-fragments
   else{
     if(crat==0)EcalJobStat::daqs1(30);//badExit caused by JINF badID
@@ -656,7 +675,8 @@ NextBlock:
                  new AMSEcalRawEvent(sswid,sta,csid,padc)))crsta=1;
         }
 	else{
-	  cout<<"<=== DAQECBlock::buildraw:Error in Fmt/SubtPeds flags, no hit created !!!"<<endl;
+	  if(ECREFFKEY.reprtf[2]>0)
+	    cout<<"<=== DAQECBlock::buildraw:Error in Fmt/SubtPeds flags, no hit created !!!"<<endl;
 	}
       }
       for(i=0;i<3;i++){//reset RawEvent adc-buffer
@@ -995,6 +1015,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   bool newrun;
   geant ped,sig,dped,thr;
   int16u sts,nblkok;
+  int16u calstat(0);
   bool bad;
 //<-- check ped-block sections: 
   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
@@ -1002,7 +1023,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   bool thrsin=((spatt&2)==1);//thresholds ..............(243...)
   integer reflen=ECEDRC+ECEDRC;//ped&width-sections always pres.
   if(dpedin)reflen+=ECEDRC;
-  if(thrsin)reflen+=ECEDRC; 
+  if(thrsin)reflen+=ECEDRC;//1 EDR-data  reflen does not count calstat words 
 //
   bool pcreq(false);
   bool sidedoubled(false);
@@ -1202,20 +1223,21 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
       bad=false;
       _FoundPedBlks+=1;
       PedBlkOK=false;
-      if(eleng==(reflen+1)){//<-------- PedTable length OK
+      calstat=*(p+jbias+1);
+      if(eleng==(reflen+1+1)){//<-------- PedTable length OK(extra +1 due to calstat word)
 	EcalJobStat::daqs3(crat-1,slot,5);//PedTable entrie with length OK
         PedBlkOK=(_PedBlkCrat[crat-1][slot]==0);//true if requested and leng-ok 
         while(ebias<(ECEDRC+1)){//<---- EDR-words loop (243 ADC-values)
-          word=*(p+jbias+ebias);//ped, ADC-value(multiplied by 16 in DSP)
-          if(dpedin)nword=*(p+jbias+ebias+ECEDRC);//dped
+          word=*(p+jbias+1+ebias);//ped, ADC-value(multiplied by 16 in DSP)(+1 to bypass calstat word)
+          if(dpedin)nword=*(p+jbias+1+ebias+ECEDRC);//dped
           else nword=0;
           bias1=0;//add.bias to thresh-section
           if(dpedin)bias1+=ECEDRC;
-          if(thrsin)nnword=*(p+jbias+ebias+ECEDRC+bias1);//thrs
+          if(thrsin)nnword=*(p+jbias+1+ebias+ECEDRC+bias1);//thrs
           else nnword=0;
           bias2=bias1;//add.bias to sig-section
           if(thrsin)bias2+=ECEDRC; 
-          nnnword=*(p+jbias+ebias+ECEDRC+bias2);//sig
+          nnnword=*(p+jbias+1+ebias+ECEDRC+bias2);//sig
 	  rdch=(ebias-1);//0-242
 	  AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
 	  swid=ecid.getswid();//long sw_id=LTTPG

@@ -1,0 +1,9 @@
+#/bin/tcsh
+
+echo $MyCVSTopDir
+echo $MyJobSubmDir
+
+
+ cd $MyJobSubmDir
+
+ $MyCVSTopDir/ut/jsubmitter/./EasyJobSubm.pl

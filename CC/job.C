@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.646 2009/09/11 16:26:19 choutko Exp $
+// $Id: job.C,v 1.647 2009/09/18 10:07:08 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -202,13 +202,13 @@ void AMSJob::data(){
   AMSFFKEY.Simulation=0; // Simulation
   AMSFFKEY.Reconstruction=1; // Reconstruction
   AMSFFKEY.Jobtype=0; // Default
-  AMSFFKEY.Debug=1;
-  AMSFFKEY.CpuLimit=15;
-  AMSFFKEY.Read=0;
-  AMSFFKEY.Write=1;
+  AMSFFKEY.Debug=1;//2
+  AMSFFKEY.CpuLimit=15;//3
+  AMSFFKEY.Read=0;//4
+  AMSFFKEY.Write=1;//5
   AMSFFKEY.Update=0;
-  VBLANK(AMSFFKEY.Jobname,40);
-  VBLANK(AMSFFKEY.Setupname,40);
+  VBLANK(AMSFFKEY.Jobname,40);//6
+  VBLANK(AMSFFKEY.Setupname,40);//46
   char amsetup[16]="AMS02";
   UCTOH(amsetup,AMSFFKEY.Setupname,4,16);
   AMSFFKEY.ZeroSetupOk=0;
@@ -219,23 +219,23 @@ _reamsdata();
 }
 
 void AMSJob::_siamsdata(){
-IOPA.hlun=0;
-VBLANK(IOPA.hfile,40);
-IOPA.ntuple=1;
-IOPA.Portion=.2;
-IOPA.WriteAll=102;
+IOPA.hlun=0;//1
+VBLANK(IOPA.hfile,40);//2
+IOPA.ntuple=1;//42
+IOPA.WriteAll=102;//43
+IOPA.Portion=.2;//44
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
 char amsp[12]="AMSParticle";
-UCTOH(amsp,IOPA.TriggerC,4,12);
-IOPA.mode=0;
-VBLANK(IOPA.ffile,40);
-IOPA.MaxNtupleEntries=1000000000;
+UCTOH(amsp,IOPA.TriggerC,4,12);//45
+IOPA.mode=0;//85
+VBLANK(IOPA.ffile,40);//86
+IOPA.MaxNtupleEntries=1000000000;//126
 IOPA.MaxFileSize=100000000;
 IOPA.MaxFileTime=86400*3;
 IOPA.BuildMin=-1;
-IOPA.WriteRoot=0;
-VBLANK(IOPA.rfile,40);
+IOPA.WriteRoot=0;//127
+VBLANK(IOPA.rfile,40);//128
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
 TRMFFKEY.TIME=0;
@@ -400,21 +400,24 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.MinLifeTime=0.;//(13)
 //
 // --> orbit:
-  TGL1FFKEY.TheMagCut=0.7;// (14)geom.latitude cut for anti-cut selection(below-#5, above-#6)
+  TGL1FFKEY.TheMagCut=0.7;// (14)geom.latitude cut for anti-cut selection(below-#7, above-#8)
 //
 // --> Ecal
   TGL1FFKEY.ecorand=-99;   //(15) 1/2=>OR/END of 2 proj. requirements on min. layer multiplicity(FTE)
   TGL1FFKEY.ecprjmask=-99; //(16) proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
 //
-  TGL1FFKEY.Lvl1ConfMCVers=1;//(17)MC def.version number of "Lvl1ConfMC.*" -file
+  TGL1FFKEY.Lvl1ConfMCVers=2;//(17)MC def.version number of "Lvl1ConfMC.*" -file
   TGL1FFKEY.Lvl1ConfRDVers=1167606001;//(18)RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
   TGL1FFKEY.Lvl1ConfRead=1;  //(19) MN, N=0/1->read Lvl1Config-data from DB/raw_file
 //                                      M=0/1->read Lvl1Config raw-file from official/private dir
-  TGL1FFKEY.printfl=0;      // (20) PrintControl=0/n>0 -> noPrint/PrintWithPriority(more n -> more details)
+  TGL1FFKEY.printfl=0;      // (20) PrintFlg=MN,N=0/1/2->no/stat+hist/+SetupInf(whenChanged)
+//                                         M=0/1/2/3/4->no/ErrWarn/+TrigPatt(ev-by-ev)/+MoreDebug/+BlockBitDump
 //
   TGL1FFKEY.Lvl1ConfSave=0; // (21) If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
 //
-  TGL1FFKEY.sec[0]=0;//(22) 
+  TGL1FFKEY.NoPrescalingInMC=0;// (22) disable prescaling in MC if set to 1
+//
+  TGL1FFKEY.sec[0]=0;//(23) 
   TGL1FFKEY.sec[1]=0;
   TGL1FFKEY.min[0]=0;
   TGL1FFKEY.min[1]=0;
@@ -425,7 +428,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.mon[0]=0;
   TGL1FFKEY.mon[1]=0;
   TGL1FFKEY.year[0]=101;
-  TGL1FFKEY.year[1]=112;//(33)
+  TGL1FFKEY.year[1]=115;//(34)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -792,7 +795,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
-  ECMCFFKEY.adc2q=0.045;    //(11)Anode(H,L) ADCch->Q(pC) conv.factor(pC/adc)
+  ECMCFFKEY.adc2q=0.045;    //(11)Anode(H,L) ADCch->Q(pC) conv.factor(pC/adc)(used for satur.eff)
   ECMCFFKEY.fendrf=0.3;     //(12) fiber end-cut reflection factor
   ECMCFFKEY.physa2d=6.;     //(13) physical(for trigger) an/dyn ratio(mv/mv) 
   ECMCFFKEY.hi2low=36.;     //(14) not used now 
@@ -810,7 +813,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.pedds=0.55;     //(26)PedSig-DyCh    
   ECMCFFKEY.peddsv=30;      //(27)ch-to-ch variation(%)
 //     
-  ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|Peds:C=1/0->Read MSCalibFile/DB
+  ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|MCPeds:C=1/0->Read MSCalibFile/DB
 //                                          P=1/0->ReadFromFile/ReadFromDB
   ECMCFFKEY.calvern=1;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 //
@@ -820,9 +823,9 @@ FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
 void AMSJob::_reecaldata(){
-  ECREFFKEY.reprtf[0]=0;   // (1) print_hist flag (0/1/2->no/yes/more)
+  ECREFFKEY.reprtf[0]=0;   // (1) print flag (0/1/2->no/summ/+hist)
   ECREFFKEY.reprtf[1]=0;   // (2) print_profile flag (0/1->no/yes)
-  ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/info_messages/more_details)
+  ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/fulldebug)
 //
   ECREFFKEY.relogic[0]=1;  // (4) 1/0->write/not EcalHits into Ntuple
   ECREFFKEY.relogic[1]=0;  // (5) 0/1/2/3/4/5->norm/RLGA/RLGA+FIAT/ANOR/PedClassic/PedDowdScaled
@@ -858,7 +861,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[8]=0.;     // (32)
   ECREFFKEY.cuts[9]=0.65;   // (33) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 //
-  ECREFFKEY.ReadConstFiles=100;//(34)DCP (ThreshCuts-set | Calib.const(MC/RD) / RDpeds)
+  ECREFFKEY.ReadConstFiles=100;//(34)DCP (ThreshCuts-set | Calib.const(MC/RD) | RDpeds)
 //                            D=1/0-> Take from DataCards/DB
 //                            C=1/0-> Take from CalibFiles/DB
 //                            P=1/0-> Take from CalibFiles/DB
@@ -978,7 +981,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.trextmax[0]=1.0;   //     cut of distance between track and shower enit x-proj
   ECCAFFKEY.trextmax[1]=1.0;   // (74) cut of distance between track and shower exit y-proj
 // for OnBoardPeds:
-  ECCAFFKEY.onbpedspat=15;     // (75) ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
+  ECCAFFKEY.onbpedspat=11;     // (75) ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
 //                                i(j,..)-bitset => section present
 //
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1000,7 +1003,7 @@ void AMSJob::_sianti2data(){
   ATMCFFKEY.mcprtf=0;//(1)print-flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
   ATMCFFKEY.FTdel=10.;// (2)aver FT-delay between JLV1 and S-crate(ns)
   ATMCFFKEY.LSpeed=14.7;// (3)Eff. light speed in anti-paddle (cm/ns)
-  ATMCFFKEY.ReadConstFiles=0;//(4)Seedp|Realp(Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
+  ATMCFFKEY.ReadConstFiles=0;//(4)Seedp|Realp (Seed|Real MCPeds), S,R=0/1-> read from DB/RawFiles
   ATMCFFKEY.calvern=1;//(5)AccCflistMC-file(acccal_files vers. list) version number
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
@@ -1256,10 +1259,10 @@ void AMSJob::_retof2data(){
   TFREFFKEY.ThrS=0.2; //(2) Threshold (mev) on total cluster energy(Not used now!)
 //
   TFREFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics(2/1/0->big/small/no print) 
-  TFREFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
-  TFREFFKEY.reprtf[2]=0; //(5) print flag for histograms
-  TFREFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TFREFFKEY.reprtf[4]=0; //(7) print flag for Debug needs(=1->Block-bit_dump on fatal-err,=2->always)  
+  TFREFFKEY.reprtf[1]=0; //(4) print flag for histograms
+  TFREFFKEY.reprtf[2]=0; //(5) print flag for TDC-hit multiplicity histograms 
+  TFREFFKEY.reprtf[3]=0; //(6) print flag for Debug needs(mostly when error found, for ev-ev debug add #7)  
+  TFREFFKEY.reprtf[4]=0; //(7) print flag for More debug info(0/1->normal/more)
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run.
 //                       (when =7 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on ACC !) 
@@ -1361,15 +1364,15 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.minstat=100;//(38) min.acceptable statistics per channel
   TFCAFFKEY.tdccum=10;//(39)tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
 //also for OnBoardPeds
-  TFCAFFKEY.onbpedspat=63;//(40)ijklmn(bit-patt for peds|dynpeds|pretrs|statws|threshs|widths sections in table),
+  TFCAFFKEY.onbpedspat=47;//(40)ijklmn(bit-patt for peds|dynpeds|pretrs|statws|threshs|widths sections in table),
 //                           i(j,..)-bitset => section present
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
 void AMSJob::_reanti2data(){
-  ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
-  ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
+  ATREFFKEY.reprtf[0]=0;//(1) Reco print flag (0/1/2->no/statistics/+hist)
+  ATREFFKEY.reprtf[1]=0;//(2) Debug-print (0/1->no/print)
   ATREFFKEY.relogic=0;  //(3) =0/1/2/3/4->Normal/AbsCal/PedCal_Clas(randTrg)/PedCal_DwnScal(onData)/OnbPed
 //                      (when =4 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on TOF !) 
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
@@ -2419,7 +2422,7 @@ void AMSJob::_retof2initjob(){
 void AMSJob::_reanti2initjob(){
 //
     AMSgObj::BookTimer.book("REANTIEVENT");
-    if(ATREFFKEY.reprtf[0]>0)ANTI2JobStat::bookh();
+    if(ATREFFKEY.reprtf[0]>1)ANTI2JobStat::bookh();
 //
     ANTI2JobStat::clear();
 //-----------
@@ -3700,10 +3703,10 @@ throw (amsglobalerror){
 }
 
 
-void AMSJob::uhinit(integer run, integer eventno, time_t tt) 
+void AMSJob::uhinit(integer run, integer eventno, time_t tt)
 throw (amsglobalerror){
   if(_NtupleActive)uhend();
-  if(IOPA.hlun ){
+  if(IOPA.hlun){
    strcpy(_ntuplefilename,(const char *)_hextname);
    AString mdir("mkdir -p ");
    mdir+=_ntuplefilename;
@@ -3859,7 +3862,7 @@ bool noTFAskip=(!(isCalibration() & CTOF));
   }
 //
   if(noTFAskip){//bypass when TOF/ACC-calib(to keep log-file small)
-    EcalJobStat::printstat(); // Print JOB-Ecal statistics
+    if(ECREFFKEY.reprtf[0]>0)EcalJobStat::printstat(); // Print JOB-Ecal statistics
     if(isSimulation())EcalJobStat::outpmc();
     EcalJobStat::outp();
   }

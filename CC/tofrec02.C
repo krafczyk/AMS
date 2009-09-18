@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.61 2009/06/30 07:17:14 choumilo Exp $
+//  $Id: tofrec02.C,v 1.62 2009/09/18 10:07:09 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -81,11 +81,11 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
                         ->getheadC("TOF2RawSide",0,1);//last 1 to sort
 //
 //#ifdef __AMSDEBUG__
-  if(TFREFFKEY.reprtf[4]>1)
+  if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)
     cout<<endl<<"========> TOF::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 //#endif
 //
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
     im=DAQS2Block::gettbll();//total blocks length for current format
 #pragma omp critical (hf1)
 { 
@@ -142,7 +142,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
     assert(ilay>=0 && ilay<TOF2DBc::getnplns());
     assert(ibar>=0 && ibar<TOF2DBc::getbppl(ilay));
     assert(isid>=0 && isid<2);
-    if(TFREFFKEY.reprtf[4]>1)ptr->_printEl(cout);
+    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)ptr->_printEl(cout);
 #endif
 //---> set 3 temper.(SFET/PM/SFEC-sensors based) in RawSide-obj (def.values if don't exist for this event)
     if(AMSJob::gethead()->isRealData()){
@@ -191,7 +191,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //---> check FTtime info in related crat/slot :
       ptr->updhwidt(FTSchan[crat][tsens-1]);//add to hwidt missing info on FT/sHT/sSHT inp.ch.numb
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
-      if(TFREFFKEY.reprtf[3]>0){
+      if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 { 
         HF1(1300+chnum,geant(nftdc),1.);
@@ -201,7 +201,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
         for(i=0;i<nftdc;i++)ftdc[i]=TOF2RawSide::FTtime[crat][tsens-1][i];
 	ptr->putftdc(nftdc,ftdc);//attach FTtime info to given RawSide-object
         if(nftdc>1)TOF2JobStat::addch(chnum,14);//count multy FT cases
-        if(idd==1042 && TFREFFKEY.reprtf[2]>1){
+        if(idd==1042 && TFREFFKEY.reprtf[1]>0 && TFREFFKEY.reprtf[4]>0){
 #pragma omp critical (hf1)
 { 
 	  HF1(1139,geant(ftdc[0]*TOF2DBc::tdcbin(1)),1.);//FT-time
@@ -214,14 +214,14 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       }
 //
 //---> check LTtime info :
-      if(TFREFFKEY.reprtf[3]>0){
+      if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 { 
         HF1(1300+chnum,geant(nstdc+10),1.);
 }
       }
       if(nstdc>0){
-        if(nftdc==1 && TFREFFKEY.reprtf[2]>1){
+        if(nftdc==1 && TFREFFKEY.reprtf[1]>0 && TFREFFKEY.reprtf[4]>0){
 	  if(nstdc==1){
 #pragma omp critical (hf1)
 { 
@@ -252,14 +252,14 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
         im=0;
         TOF2JobStat::addch(chnum,16);//miss Anode
       }
-      if(TFREFFKEY.reprtf[3]>0){
+      if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 {
         HF1(1300+chnum,geant(im+30),1.);
 }
       }
 //
-      if(TFREFFKEY.reprtf[2]>1){//<--look at Raw Anodes for reference(in Ampl-calib)-bares      
+      if(TFREFFKEY.reprtf[1]>0 && TFREFFKEY.reprtf[4]>0){//<--look at Raw Anodes for reference(in Ampl-calib)-bares      
         for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
           idr=TofTmAmCalib::btyp2id(btyp);
 	  if(id==idr){//LBB=refLBB
@@ -274,7 +274,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 //
 //---> check Dynode-adc :
       im=nadcd;
-      if(TFREFFKEY.reprtf[3]>0){
+      if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 {
         HF1(1300+chnum,geant(im+40),1.);
@@ -297,7 +297,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       nsumh=TOF2RawSide::SumHTh[crat][tsens-1];
       for(i=0;i<nsumh;i++)sumht[i]=sumHTd+TOF2RawSide::SumHTt[crat][tsens-1][i];
       ptr->putsumh(nsumh,sumht);//fill object with SumHTtime-hits
-      if(TFREFFKEY.reprtf[3]>0){
+      if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 {
         HF1(1300+chnum,geant(nsumh+50),1.);
@@ -309,7 +309,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       nsumsh=TOF2RawSide::SumSHTh[crat][tsens-1];
       for(i=0;i<nsumsh;i++)sumsht[i]=sumHTd+TOF2RawSide::SumSHTt[crat][tsens-1][i];
       ptr->putsumsh(nsumsh,sumsht);//fill object with SumSHTtime-hits
-      if(TFREFFKEY.reprtf[3]>0){
+      if(TFREFFKEY.reprtf[2]>0){
 #pragma omp critical (hf1)
 {
         HF1(1300+chnum,geant(nsumsh+70),1.);
@@ -317,12 +317,11 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       }
 //
 //-----
-      if(TFREFFKEY.reprtf[4]>=1){ // <==================== TOF-debug
+      if(TFREFFKEY.reprtf[1]>0){ 
 #pragma omp critical (hf1)
 {
         chnum=2*TOF2DBc::barseqn(ilay,ibar)+isid;//0-67
-        if(adca>0)HF1(1400+chnum,adca,1.);
-//        if(nadcd==2)HF1(1400+chnum,adcd[0]+adcd[1],1.);
+        if(adca>0 && TFREFFKEY.reprtf[4]>0)HF1(1400+chnum,adca,1.);
 	if(adca>25){
           if((trpat[ilay]&(1<<(16*isid+ibar)))>0)HF1(1470,geant(1+ibar+10*isid+20*ilay),1.);
 	  else {
@@ -339,7 +338,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 	}
 }
       }
-      if(TFREFFKEY.reprtf[4]>1){
+      if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         hwidt=ptr->gethidt();
 	for(i=0;i<4;i++)hwidq[i]=ptr->gethidq(i);
 	cout<<" RawSide-Obj:LBBS="<<idd<<" hwidt="<<hwidt<<" hwidq:"<<hwidq[0]<<" "<<hwidq[1]
@@ -485,7 +484,7 @@ void TOF2RawCluster::build(int &ostatus){
   integer hwidt,hwidq[4],tdcch[4];
   number tdcor;
 //
-  if(TFREFFKEY.reprtf[4]>1)cout<<"======> Enter TOF2RawCluster::build..."<<endl;
+  if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"======> Enter TOF2RawCluster::build..."<<endl;
   ptr=(TOF2RawSide*)AMSEvent::gethead()
                                     ->getheadC("TOF2RawSide",0);
   Runum=AMSEvent::gethead()->getrun();// current run number
@@ -518,7 +517,7 @@ void TOF2RawCluster::build(int &ostatus){
     chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channel numbering for job-stat counters
     brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering ...
     stat[isid]=ptr->getstat();
-    if(TFREFFKEY.reprtf[4]>1){
+    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         cout<<endl;
         cout<<" --->look id="<<idd<<" cr/sl="<<crat<<" "<<slot
                                  <<" tempT="<<tempT[isid]<<" stat="<<stat[isid]<<endl;
@@ -539,7 +538,7 @@ void TOF2RawCluster::build(int &ostatus){
       nwltt=ptr->getstdc(wltt);//LT
       nwsht=ptr->getsumh(wsht);//SumHT
       nwssht=ptr->getsumsh(wssht);//SumSHT
-      if(TFREFFKEY.reprtf[4]>1){
+      if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         cout<<"     DAQ:nft/nlt/nsht/nssht="<<nwftt<<" "<<nwltt<<" "<<nwsht<<" "<<nwssht<<endl;
         for(int ih=0;ih<nwftt;ih++)cout<<"     FT:"<<wftt[ih]<<endl;
         for(int ih=0;ih<nwltt;ih++)cout<<"     LT:"<<wltt[ih]<<endl;
@@ -593,7 +592,7 @@ void TOF2RawCluster::build(int &ostatus){
       for(i=0;i<nwftt;i++)ftdc[isid][i]=fwftt[i]*TOF2DBc::tdcbin(1);//FTtime TDCch->ns
       nftdc[isid]=nwftt;
       fttm=ftdc[isid][0];// tempor use 1st FTtime-hit
-      if(TFREFFKEY.reprtf[4]>1)cout<<"     FTtime(ns)="<<fttm<<endl;
+      if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"     FTtime(ns)="<<fttm<<endl;
 //
       for(i=0;i<nwltt;i++)stdc[isid][i]=fttm-fwltt[i]*TOF2DBc::tdcbin(1);//Rel.LTtime(+ means befor FTtime)(+TDCch->ns)
       nstdc[isid]=nwltt;
@@ -601,7 +600,7 @@ void TOF2RawCluster::build(int &ostatus){
       nhtdc[isid]=nwsht;
       for(i=0;i<nwssht;i++)shtdc[isid][i]=fttm-fwssht[i]*TOF2DBc::tdcbin(1);//Rel.SumSHTtime +TDCch->ns
       nshtdc[isid]=nwssht;
-      if(TFREFFKEY.reprtf[4]>1){
+      if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         cout<<"     rel.times:"<<endl;
         for(int ih=0;ih<nstdc[isid];ih++)cout<<"     LT:"<<stdc[isid][ih]<<endl;
         for(int ih=0;ih<nhtdc[isid];ih++)cout<<"     sHT:"<<htdc[isid][ih]<<endl;
@@ -613,7 +612,7 @@ void TOF2RawCluster::build(int &ostatus){
       for(i=0;i<nstdc[isid];i++){
         itftcor[isid][i]=0;
         t1=stdc[isid][i];//FT IS subtracted already, so t1=0 means =FTtime
-	if(TFREFFKEY.reprtf[2]>0){
+	if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 	  HF1(1136,geant(t1),1.);
@@ -626,7 +625,7 @@ void TOF2RawCluster::build(int &ostatus){
 	  itftcor[isid][i]=1;//mark FT-correlated LTtime-hits in stdc-array
 	}
       }
-      if(TFREFFKEY.reprtf[4]>1){
+      if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         cout<<"     ttdc-array of FT-matched LT(stdc)-hits:"<<endl;
         for(int ih=0;ih<nttdc[isid];ih++)cout<<"       ttdc:"<<ttdc[isid][ih]<<endl;
       }
@@ -691,7 +690,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
 // -----> histogr. for events with single SumHT/LT-TDC(FT-correlated) hit :
 //
-          if(TFREFFKEY.reprtf[2]>0){
+          if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 	    if(smty[0]>0)HF1(1108,geant(nhtdc[0]),1.);
@@ -706,7 +705,7 @@ void TOF2RawCluster::build(int &ostatus){
               HF1(1100,geant(dt),1.);//histogr. the same hit LT/SumHT-TDC difference
             }
 //	  
-            if(TFREFFKEY.reprtf[2]>1){//low priority hist
+            if(TFREFFKEY.reprtf[1]>0 && TFREFFKEY.reprtf[4]>0){//low priority hist
 	      for(isd=0;isd<2;isd++){//side loop
                 if(smty[isd]>0){//side has complete measurement
 	          if(nhtdc[isd]==1 && nstdc[isd]==1){
@@ -738,7 +737,7 @@ void TOF2RawCluster::build(int &ostatus){
 		    }
 		  }
 		}//--->endof SumHT-hits loop
-                if(itftcor[isd][i]==1 && TFREFFKEY.reprtf[2]>0){
+                if(itftcor[isd][i]==1 && TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 		  HF1(1115,geant(sdtmin[isd][i]),1.);//for FT-correlated LT-hits only
@@ -746,7 +745,7 @@ void TOF2RawCluster::build(int &ostatus){
 		}
               }//--->endof LTtime-hits loop
             }
-	    if(TFREFFKEY.reprtf[4]>1){
+	    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 	      cout<<"    LTtime(stdc) best SumHT-matched hit-indexes for side="<<isd<<":";
 	      for(i=0;i<nstdc[isd];i++)if(itmatch[isd][i]>=0)cout<<" "<<i<<"("<<itmatch[isd][i]<<")"<<endl;  
 	    }
@@ -773,7 +772,7 @@ void TOF2RawCluster::build(int &ostatus){
 		    itmbest[isd]=ittdc[isd][0];//its index in stdc-array
 		    sdtbest[isd]=dt;
 		  }
-		  if(TFREFFKEY.reprtf[2]>0){
+		  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 		    HF1(1103,geant(sdtbest[isd]),1.);
@@ -793,7 +792,7 @@ void TOF2RawCluster::build(int &ostatus){
 		      sdtbest[isd]=sdtmin[isd][ittdc[isd][i]];//signed dt
 		    }
 		  }
-		  if(TFREFFKEY.reprtf[2]>0){
+		  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 		    HF1(1109,geant(sdtbest[isd]),1.);
@@ -808,7 +807,7 @@ void TOF2RawCluster::build(int &ostatus){
                 }
 	      }//--->endof "many FT-corr. LT-hits" case
 //
-              if(itmbest[isd]>=0 && TFREFFKEY.reprtf[2]>0){//FINAL time was found - see some histogr
+              if(itmbest[isd]>=0 && TFREFFKEY.reprtf[1]>0){//FINAL time was found - see some histogr
 #pragma omp critical (hf1)
 {
                 HF1(1106,geant(tmbest[isd]),1.);
@@ -816,8 +815,7 @@ void TOF2RawCluster::build(int &ostatus){
 	      }
 //              
 	    }//--->endof smty[isd]>0 check
-//if(TFREFFKEY.reprtf[4]>1
-	    if(TFREFFKEY.reprtf[4]>1){
+	    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 	      cout<<"    Side:"<<isd<<endl;
 	      cout<<"     TRUE FT-corr LT-hit time="<<tmbest[isd]<<" ,its stdc-index="<<itmbest[isd]<<endl;
 	      if(itmbest[isd]>=0)
@@ -829,7 +827,7 @@ void TOF2RawCluster::build(int &ostatus){
           if(SumHTuse==1){//require matching of TRUE LT-hit
             if((itmatch[0][itmbest[0]]<0 && smty[0]==1) ||
               (itmatch[1][itmbest[1]]<0 && smty[1]==1))rej1=1;//found NO_MATCHING on any of complete(3-meas) sides
-	      if(TFREFFKEY.reprtf[4]>1 && rej1==1)
+	      if(TFREFFKEY.reprtf[3]>0 && rej1==1)
 	                          cout<<"    No TrueLThit matching on any of complete sides"<<endl;
           }
 //---
@@ -847,7 +845,7 @@ void TOF2RawCluster::build(int &ostatus){
 		  tbef=stdc[isd][ibef];
 		  dt=tbef-tmbest[isd];//dist befor the "best"
 		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscutb()){
-                    if(TFREFFKEY.reprtf[2]>0){
+                    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 		      HF1(1101,geant(dt),1.);
@@ -864,7 +862,7 @@ void TOF2RawCluster::build(int &ostatus){
 		  taft=stdc[isd][iaft];
 		  dt=tmbest[isd]-taft;//dist after the "best"
 		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscuta()){
-                    if(TFREFFKEY.reprtf[2]>0){
+                    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 		      HF1(1102,geant(dt),1.);
@@ -885,7 +883,7 @@ void TOF2RawCluster::build(int &ostatus){
             if(rej2==0 && rej3==0)TOF2JobStat::addbr(brnum,2);//"good time-history" on each of complete sides
             if(rej1==0)TOF2JobStat::addbr(brnum,3);//"True LT-hit" matching OK(when requested) on each of complete sides
             if(rej1==0&&rej2==0&&rej3==0 && isds==2)TOF2JobStat::addbr(brnum,4);//all is OK on both sides
-	    if(TFREFFKEY.reprtf[4]>1 && (rej2==1 || rej3==1))
+	    if(TFREFFKEY.reprtf[3]>0 && (rej2==1 || rej3==1))
 	                                   cout<<"    Bad time-history on any of complete sides !"<<endl;
 //
 //===========>>> calculate times/Edeps of sc.bar :
@@ -901,7 +899,7 @@ void TOF2RawCluster::build(int &ostatus){
               tmf[0]=tm[0];
 	      if(nadca[0]>0){//Anode,s1
                 ama[0]=number(adca[0]);//ADC-counts(float)(anode s1)
-                if(TFREFFKEY.reprtf[2]>0 && id==104){
+                if(TFREFFKEY.reprtf[1]>0 && id==104){
 #pragma omp critical (hf1)
 {
 		  HF1(1104,geant(ama[0]),1.);
@@ -962,7 +960,7 @@ void TOF2RawCluster::build(int &ostatus){
 		    aaa=number(adcd[0][ip]);//ADC-counts(float, vs pmt)
 		    if((aaa+3*sigs[0])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s1-overflow
 		    amd[0]+=(aaa/gnd);//Dyn(equilised)
-                    if(TFREFFKEY.reprtf[2]>0 && id==104){
+                    if(TFREFFKEY.reprtf[1]>0 && id==104){
 #pragma omp critical (hf1)
 {
 		      HF1(1105,geant(aaa),1.);
@@ -1072,7 +1070,7 @@ void TOF2RawCluster::build(int &ostatus){
               if(AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)
                         ,new TOF2RawCluster(sta,ilay+1,ibar+1,zc,ama,amd,adcdr,
                               aedep,dedep,tm,time,coo,ecoo)))st=1;;//store value
-              if(TFREFFKEY.reprtf[4]>1){//debug	      
+              if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug	      
 	        cout<<"StoreNewRawCl(il/ib)="<<ilay+1<<" "<<ibar+1<<" time="<<time<<endl;
 	        cout<<"      sta/Aedep/coo="<<sta<<" "<<aedep<<" "<<coo<<endl;
 	      }
@@ -1117,13 +1115,13 @@ void TOF2RawCluster::build(int &ostatus){
     if(nbrl[i]>0)nbrch[i]=1;
   }
   for(i=0;i<TOF2GC::SCLRS;i++)isum+=nbrch[i];
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     HF1(1110,geant(isum),1.);// tot.number of layers
 }
   }
-  if(TFREFFKEY.reprtf[2]>0 || 
+  if(TFREFFKEY.reprtf[1]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
 
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]>0){
@@ -1138,7 +1136,7 @@ void TOF2RawCluster::build(int &ostatus){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     HF1(1112,geant(conf),1.);
@@ -1161,7 +1159,7 @@ void TOF2RawCluster::build(int &ostatus){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;//all 4layers with 1bar/layer
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     HF1(1113,geant(conf),1.);
@@ -1251,7 +1249,7 @@ void TOF2RawCluster::build(int &ostatus){
     for(i=0;i<TOF2GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     HF1(1114,geant(conf),1.);
@@ -1276,7 +1274,7 @@ void TOF2RawCluster::build(int &ostatus){
         (TOF2DBc::plnstr(2)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l2-middl
   trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
 //
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
       HF1(1532,td13*trlnor/trlen13,1.);//ToF for L0->L2, normalized to trlnor
@@ -1284,7 +1282,7 @@ void TOF2RawCluster::build(int &ostatus){
       gdt=(td13/trlen13-td24/trlen24)*trlnor;// normalized to fix(~127cm) dist. for AMS02
 //                                                           (130cm for AMS01)
       HF1(1544,gdt,1.);
-      if(TFREFFKEY.reprtf[2]>1){ 
+      if(TFREFFKEY.reprtf[4]>0){ 
         for(il=0;il<TOF2GC::SCLRS;il++){// fill de/dx hist. for each bar
           ib=brnl[il];
           brnum=TOF2DBc::barseqn(il,ib);//sequential bar numbering
@@ -1694,7 +1692,7 @@ void AMSTOFCluster::build2(int &stat){
 	if(timeokb){
 	  tmatch=(fabs(time-timen)<3*tterr);
 	  cmatch=(fabs(cl-cln)<3*tcerr);
-	  if(TFREFFKEY.reprtf[2]>0){
+	  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
 	    if(tmatch)HF1(1549,cl-cln,1.);
@@ -1706,7 +1704,7 @@ void AMSTOFCluster::build2(int &stat){
 	bool ematch(false);
 	edass=(edep-edepn)/(edep+edepn);//here edep,edepn>thresh>0
 	ematch=(fabs(edass)<TOF2Varp::tofvpar.eclass()); 
-	if(tmatch && cmatch && (TFREFFKEY.reprtf[2]>0)){
+	if(tmatch && cmatch && (TFREFFKEY.reprtf[1]>0)){
 #pragma omp critical (hf1)
 {
 	  HF1(1548,edass,1.);
@@ -1791,7 +1789,7 @@ void AMSTOFCluster::build2(int &stat){
         ecoo[1]=cte;
       }
 //
-      if(TFREFFKEY.reprtf[2]>0){// some histograms for clusters(1/2 members):
+      if(TFREFFKEY.reprtf[1]>0){// some histograms for clusters(1/2 members):
 #pragma omp critical (hf1)
 {
         if(il==0){

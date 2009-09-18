@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.29 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: trigger102.h,v 1.30 2009/09/18 10:07:19 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -154,6 +154,7 @@ public:
  static ScalerMon scalmon;//current scalers values
  static bool SetupIsChanged;
  static bool ScalerIsChanged;
+ static integer PhysBranchCount[8];
 #pragma omp threadprivate(l1trigconf,scalmon,SetupIsChanged,ScalerIsChanged)
  static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  
@@ -203,6 +204,11 @@ public:
  integer getantipatt(){return _antipatt;}
  static void build();
  static void init();
+ static integer prescfcode2val(int16u code){return (1024-(code&0x3FF));}
+ static int16u  prescfval2code(integer val){
+          if(val<1024 && val>0)return int16u(1024-val);
+          else return 0;
+        }
 
  // Interface with DAQ
       static int16u getdaqid(int sid){return(nodeids[sid]);}      

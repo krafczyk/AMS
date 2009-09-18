@@ -1,5 +1,6 @@
 #!/usr/local/bin/perl
 use Tk;
+# use Tk::StyledButton;
 use Tk::Event;
 use Time::gmtime;
 use Time::localtime;
@@ -8,28 +9,50 @@ use Tk::ProgressBar;
 use Time::Local;
 # use Term::ReadKey;
 use File::Copy;
-use lib qw(/Offline/vdev/perl);
+use lib "$ENV{MyCVSTopDir}/perl";
 use lib::DBSQLServer;
 # use lib::RemoteClient;
 #use Audio::Beep;
 #use Audio::Data;
 #use Audio::Play;
-require '.pwdc.pl';
 #
 #-----> imp.glob.const, vars and arrays:
 #
+$ConstPi=3.14159265358979;
+$Deg2Rad=$ConstPi/180.;
+$AMSCubeHSize=195.;
+@DataTypes=qw(SCI CAL LAS);
+$TrigPhysMembs=8;
+@TrigPhysmNams=qw(TOF Pr+I Ion sIon Elec Gamm EC Ext);
 $WarnFlg=0;
+$JobTypes=3;
 $SessName="";
 $workdir="";
 $amsjwd="/amsjobwd";
 $daqflnk="/daqflinks";
 $archdir="/archive";
-$pedsdir="/pedfiles";
-$tausdir="/taucfiles";
-$tdcsdir="/tdclfiles";
+#
+$RootfDir=$ENV{MyRootfDir};#full path to /rootfiles;
+$RootfSubD="";
+$MCDaqfDir=$ENV{MyMCDaqfDir};#full path to /rootfiles;
+$MCDaqfSubD="";
+#
+$logfdir="";
 $AMSDD=$ENV{AMSDataDir};# current AMSDataDir path
+$AMSCVS=$ENV{MyCVSTopDir};#full path to .../AMS;
+#
+$offldir=$ENV{Offline};# /Offline
+$cmd="ls -all ".$offldir." |";
+@array=();
+@string=();
+open(OFFLD,$cmd) or show_warn("   <-- Cannot find Offline ref.  $!");
+while(<OFFLD>){push(@array,$_);}
+close(FLIST);
+@string=split(/\s+/,$array[scalar(@array)-1]);
+$OFFLDIR=$string[scalar(@string)-1];
+#
 $DaqDataDir=$ENV{RunsDir};# current AMS SCI-data dir (/Offline/RunsDir)
-$USERTD=$ENV{TofUserTopDir};#full path to /tofassuser
+$USERTD=$ENV{MyJobSubmDir};#full path to /jobsubmwd
 $TofUserN="";
 $TofPassW="";
 $UNinAtt=0;  
@@ -46,7 +69,7 @@ $JobDaqfHistFN="";
 $DaqfHistLen=();
 @SubmJobsList=();
 @LigFileList=();
-$AutoSessFlg="";
+$AutoSubmFlg="";
 $JobScriptN="";
 $KilledJobs=0;
 @KilledJobsPids=();
@@ -56,6 +79,7 @@ $CalRun2=0;#last run in calibr.files set ............................
 $jobtype="undefined";
 $SubDetMsk=0;
 $message="";
+@DCdefpars=();
 #
 $TDVName="";
 $CalfDir="";
@@ -63,20 +87,23 @@ $SetupName="";
 $RefCFileData=();
 #
 #---> formats:
-$SubmJobsFmt="A8 A9 A5 A12 A12 A12 A7 A11 A7 A3";#for pack/unpack subm.jobs.info line in hist.file
+$SubmJobsFmt="A8 A9 A5 A12 A12 A11 A7 A3";#for pack/unpack subm.jobs.info line in hist.file
 #
-$LogfListFmt="A6 A4 A11 A9 A9 A4";#for pack/unpack of log-files list(sjpid ccode 1strunn dd.hh:mm utcmin status)
-$LogfLboxFmt="A6 A4 A11 A9 A4";#for log-file listbox(sjpid ccode 1strunn dd.hh:mm status)
+$LogfListFmt="A6 A11 A11 A9 A4";#for pack/unpack of log-files list(sjpid name 1strunn dd.hh:mm status)
+$LogfLboxFmt="A6 A11 A11 A9 A4";#for log-file listbox(sjpid name 1strunn dd.hh:mm status)
 #
 $CalfListFmt="A11 A9 A9 A3";#for cal-files listbox-description(1strunn dd.hh:mm utcmin status)
 $CalfLboxFmt="A11 A9 A3";#for cal-files listbox-description(1strunn dd.hh:mm status)
 #
 $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 #
-
-
-@cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD); 
+#-----
+@AMSSetupsList=qw(AMS02PreAss AMS02Ass1 AMS02Space);
 #
+@cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD);
+#
+@IllumTypes=qw(TopHSphera BotHSphera FxDir&Point AMSCubeTop); 
+#-----
 $prog2run="";
 $outlogf="out.log";
 $binw_tev=120;#binwidth(sec/pix) for time-evolution graphs(2 min)
@@ -107,7 +134,7 @@ close(DISPLS);
 #
 $displx=$dsets[1];
 $disply=$dsets[3];
-$mnwdszx=0.9;#X-size of main window (portion of display x-size)
+$mnwdszx=0.94;#X-size of main window (portion of display x-size)
 $mnwdszy=0.6;#Y-size of main window (portion of display y-size)
 $mwposx="+0";
 $mwposy="+0";
@@ -116,7 +143,7 @@ my $szy=int($mnwdszy*$disply);
 $mwndgeom=$szx."x".$szy.$mwposx.$mwposy;
 print "Mwindow geom=",$mwndgeom,"\n";
 $mwnd->geometry($mwndgeom);
-$mwnd->title("TOF Calibration Commander");
+$mwnd->title("Universal AMS Offline-jobs Submitter (author E.Choumilov)");
 $mwnd->bell;
 #--------------
 #---> fonts:
@@ -140,9 +167,10 @@ $font11="Helvetica 14 bold italic";# for NormMessage
 #
 #-----> create log-file screen:
 #
+$LogfXsize=0.55;
 $log_fr=$mwnd->Frame(-label=>"LogFileFrame", -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.7, -relheight=>0.95,
-                                                      -relx=>0.3, -rely=>0);
+                                                      -relwidth=>$LogfXsize, -relheight=>0.95,
+                                                      -relx=>(1-$LogfXsize), -rely=>0);
 $logtext=$log_fr->Scrolled("Text",
 #                                    -scrollbars=>'osoe',
                                      -width=>120, -height=>200,
@@ -152,7 +180,7 @@ $logtext=$log_fr->Scrolled("Text",
                                      ->pack(-fill=>'both', -expand=>1);
 #
 $logtext->tagConfigure('Attention',-foreground=> red, -font=>$font4);
-$logtext->tagConfigure('BigAttention',-foreground=> red, -font=>$font9);
+$logtext->tagConfigure('BigAttention',-foreground=> red, -font=>$font10);
 $logtext->tagConfigure('BigMessage',-foreground=> blue, -font=>$font10);
 $logtext->tagConfigure('Message',-foreground=> black, -font=>$font11);
 $logtext->tagConfigure('ItalText',-font=>$font4);
@@ -162,39 +190,39 @@ $logtext->tagConfigure('Orange',-foreground=> orange, -font=>$font4);
 $logtext->tagConfigure('Blue',-foreground=> blue, -font=>$font4);
 $logtext->tagConfigure('Green',-foreground=> green, -font=>$font4);
 #-------------
-my $nbutt=9;
+my $nbutt=$JobTypes+3;
 my $bspac=0.002;
 my $width=(1-($nbutt-1)*$bspac)/$nbutt;
 my $bpos=0;
 #
-#-----> create calib-types control panel:
+#-----> create job-types control panel:
 #
 $ctpanel_fr=$mwnd->Frame(-relief=>'groove', -borderwidth=>2,
                                             -background=>red
                                                           )
 					       ->place(
-                                                      -relwidth=>0.7, -relheight=>0.05,
-                                                      -relx=>0.3, -rely=>0.95);
+                                                      -relwidth=>$LogfXsize, -relheight=>0.05,
+                                                      -relx=>(1-$LogfXsize), -rely=>0.95);
 #---> label:
-$ctpanel_fr->Label(-text=>"SessType:",-font=>$font2,-relief=>'groove',
+$ctpanel_fr->Label(-text=>"SelectSessType :",-font=>$font2,-relief=>'groove',
                                                    -background=>yellow,
                                                    -foreground=>red
 						   )
                                             ->place(-relwidth=>$width, -relheight=>0.95,
                                                     -relx=>0, -rely=>0);
 $bpos+=$width+$bspac;
-#---> create 6 radio-buttons for each cal-type:
-@CalTypeButt=();
-$CalType="";
+#---> create 1 radio-button for each job-type:
+@JobTypButt=();
+$JobType="";
 my $loop=0;
-foreach (qw(PedCal Ped2DB TdcLin TdcL2DB TAUCal TAU2DB)){
-  $CalTypButt[$loop]=$ctpanel_fr->Radiobutton(-text => $_, -value => $_,
+foreach (qw(RealDataReco McDataSimu McDataReco)){
+  $JobTypButt[$loop]=$ctpanel_fr->Radiobutton(-text => $_, -value => $_,
                                  -font=>$font2, -indicator=>0,
                                  -borderwidth=>3,-relief=>'raised',
 			         -selectcolor=>orange,-activeforeground=>red,
 			         -activebackground=>yellow, 
                                  -background=>green,-cursor=>hand2,
-			         -variable => \$CalType)
+			         -variable => \$JobType)
 			         ->place(
 	                            -relwidth=>$width, -relheight=>0.95,
 				    -relx=>$bpos, -rely=>0);
@@ -206,7 +234,7 @@ foreach (qw(PedCal Ped2DB TdcLin TdcL2DB TAUCal TAU2DB)){
 $StartButt=$ctpanel_fr->Button(-text=>"Start", -font=>$font2, 
                                    -activebackground=>"orange",
 			           -activeforeground=>"red",
-			           -foreground=>"black",
+			           -foreground=>"red",
 			           -background=>"green",
                                    -borderwidth=>3,-relief=>'raised',
 			           -cursor=>hand2,
@@ -220,7 +248,7 @@ $bpos+=$width+$bspac;
 $exsess_bt=$ctpanel_fr->Button(-text=>"Exit", -font=>$font2, 
                                    -activebackground=>"orange",
 			           -activeforeground=>"red",
-			           -foreground=>"black",
+			           -foreground=>"red",
 			           -background=>"green",
                                    -borderwidth=>3,-relief=>'raised',
 			           -cursor=>hand2,
@@ -257,8 +285,12 @@ sub time2run{# imply "yyyy.mm.dd hh:mm:ss" as input
 #---------------------------------------------------------------------
 sub show_warn {# 1-line message + 3*beep
   my $text=$_[0];
+  my $color=$_[1];
+  my $tag;
+  if($color eq "Big"){$tag='BigAttention';}
+  else{$tag='Attention';}
   $message=$text;
-  $logtext->insert('end',$text."\n",'Attention');
+  $logtext->insert('end',$text."\n",$tag);
   $logtext->yview('end');
   $count=2;
   if($soundtext eq "Sound-ON"){
@@ -350,220 +382,273 @@ sub ExitSess{
 }
 #----------------------------------------------------------------------
 sub StartSess{
-  $JobDaqfHistFN="TofDaqfHist";#generic, each sess.add uniqe extention
+  $JobDaqfHistFN="JobDaqfHist";#generic, each sess.add uniqe extention
   $SubmJobCount=0;# reset on session start, incr. on each job-submitting
   $FiniJobCount=0;# reset on each "JobOutpControl"-click, incr. when finished jobs found(st=20 after 'bjobs')
   $FinishedJobs=0;# reset on session start, incr. in each "JobOutpControl"-click when finished jobs found 
   $JobConfLogFiles=0;#reset on "JOC"-click, incr. when log-file found and job-confirmed(in "JobOutpControl") 
   $UnFinishedJobs=0;# set on each "Welcome"-call by analizing the SubmJobsList-file
-  if($CalType eq "PedCal"){
-    $SessName="PEDC";
-    $workdir=$USERTD."/headquarters";
-    $JobScriptN="JScriptTofPEDC";
-    require 'TofAccPedCalculator.pl';
-    PedCalibration();
+  @DetInDaq=();
+  $WrRootFlg=0;
+# trig:
+  @P2PhysMem=();
+  $JobScriptN="UnivJScript";
+  $workdir=$USERTD;
+#---
+  if($JobType eq "McDataSimu"){
+    $SessName="MCS";
+    $logfdir="/mclogfiles";
 #
-    PEDC_Welcome();
+    $IllumType=$IllumTypes[0];#TopHemiSphera(default,correspnds to what is in DCdef-file)
+    $ImpAngThe="180.";
+    $ImpAngPhi="0.";
+    $IPointX="0.";
+    $IPointY="0.";
+    $IPointZ="0.";
+    $HAreaX="0.";#half-size of the area
+    $HAreaY="0.";
+    $HAreaZ="0.";
+#
+    $PartName="Prot";#corresponds to DCdef-file
+    $EnSpectr="Cosmic";
+    $GamSource="None";
+    $FocusOn="NoFocus";
+    $AccRDPrintDispl="Summary";
   }
-#------------------------------
-  elsif($CalType eq "Ped2DB"){
-    $SessName="PEDCU";
-    $workdir=$USERTD."/headquarters";
-    $JobScriptN="JScriptTofP2DB";
-    require 'TofAccPedDBWriter.pl';
-    Ped2DBWriter();
-    $LoginDone=0;
-#
-    PEDC2DB_Welcome();
+#---
+  elsif($JobType eq "RealDataReco"){
+    $SessName="RDR";
+    $logfdir="/rdlogfiles";
   }
-#------------------------------
-  elsif($CalType eq "TdcLin"){
-    $SessName="TDCL";
-    $workdir=$USERTD."/headquarters";
-    $JobScriptN="JScriptTofTDCL";
-    $ResultsBlockLen=6;#<-- TDCL(TAUC) log-file results block length (incl.header/trailer)
-#
-    @RefCflistList=();
-    @RefCStatList=();
-    @RefTdelvList=();
-    @RefTzslwList=();
-    @RefAmplfList=();
-    @RefElospList=();
-    @RefTdcorList=();
-#
-    @CflistList=();
-    @CStatList=();
-    @TdelvList=();
-    @TzslwList=();
-    @AmplfList=();
-    @ElospList=();
-    @TdcorList=();
-#
-    $MatchCFSets=0;
-    @MatCflistInd=();
-    @MatCStatInd=();
-    @MatTdelvInd=();
-    @MatTzslwInd=();
-    @MatAmplfInd=();
-    @MatElospInd=();
-    @MatTdcorInd=(); 
-# 
-    @CflistLbox=();
-    @CStatLbox=();
-    @TdelvLbox=();
-    @TzslwLbox=();
-    @AmplfLbox=();
-    @ElospLbox=();
-    @TdcorLbox=();
-#
-    @LogJobMatchIndex=();
-#
-    require 'TofTdcLinCalib.pl';
-    $AutoSessFlg="ManualSess";
-    TdcLinCalibration();
-    $JOCReady=0;
-#
-    TDCL_Welcome();
-  }
-#-----------------------------
-  elsif($CalType eq "TdcL2DB"){
-    $SessName="TDCLU";
-    $TDVName="TofTdcCor";
-    $workdir=$USERTD."/headquarters";
-    $JobScriptN="JScriptTofTAL2DB";
-    $CalfDir=$tdcsdir;
-#
-    @RefCflistList=();
-    @RefCStatList=();
-    @RefTdelvList=();
-    @RefTzslwList=();
-    @RefAmplfList=();
-    @RefElospList=();
-    @RefTdcorList=();
-#
-    @CflistList=();
-    @CStatList=();
-    @TdelvList=();
-    @TzslwList=();
-    @AmplfList=();
-    @ElospList=();
-    @TdcorList=();
-#
-    @CflistLbox=();
-    @CStatLbox=();
-    @TdelvLbox=();
-    @TzslwLbox=();
-    @AmplfLbox=();
-    @ElospLbox=();
-    @TdcorLbox=();
-#
-    require 'TofTAULDBWriter.pl';
-#
-    $AutoSessFlg="ManualSess";
-    TAUL2DBWriter();
-    $LoginDone=0;
-#
-    TAUL2DB_Welcome();
-  }
-#------------------------------
-  elsif($CalType eq "TAUCal"){
-    $SessName="TAUC";
-    $workdir=$USERTD."/headquarters";
-    $JobScriptN="JScriptTofTAUC";
-    $ResultsBlockLen=6;#<-- TAUC(TDCL) log-file results block length (incl.header/trailer)
-#
-    @RefCflistList=();
-    @RefCStatList=();
-    @RefTdelvList=();
-    @RefTzslwList=();
-    @RefAmplfList=();
-    @RefElospList=();
-    @RefTdcorList=();
-#
-    @CflistList=();
-    @CStatList=();
-    @TdelvList=();
-    @TzslwList=();
-    @AmplfList=();
-    @ElospList=();
-    @TdcorList=();
-#
-    $MatchCFSets=0;
-    @MatCflistInd=();
-    @MatCStatInd=();
-    @MatTdelvInd=();
-    @MatTzslwInd=();
-    @MatAmplfInd=();
-    @MatElospInd=();
-    @MatTdcorInd=(); 
-# 
-    @CflistLbox=();
-    @CStatLbox=();
-    @TdelvLbox=();
-    @TzslwLbox=();
-    @AmplfLbox=();
-    @ElospLbox=();
-    @TdcorLbox=();
-#
-    @LogJobMatchIndex=();
-#
-    require 'TofTimeAmplCalib.pl';
-#
-    $AutoSessFlg="ManualSess";
-    TmAmCalibration();
-    $JOCReady=0;
-#
-    TAUC_Welcome();
-  }
-#-----------------------------
-  elsif($CalType eq "TAU2DB"){
-    $SessName="TAUCU";
-    $TDVName="Tofbarcal2";
-    $workdir=$USERTD."/headquarters";
-    $JobScriptN="JScriptTofTAL2DB";
-    $CalfDir=$tausdir;
-#
-    @RefCflistList=();
-    @RefCStatList=();
-    @RefTdelvList=();
-    @RefTzslwList=();
-    @RefAmplfList=();
-    @RefElospList=();
-    @RefTdcorList=();
-#
-    @CflistList=();
-    @CStatList=();
-    @TdelvList=();
-    @TzslwList=();
-    @AmplfList=();
-    @ElospList=();
-    @TdcorList=();
-#
-    @CflistLbox=();
-    @CStatLbox=();
-    @TdelvLbox=();
-    @TzslwLbox=();
-    @AmplfLbox=();
-    @ElospLbox=();
-    @TdcorLbox=();
-#
-    require 'TofTAULDBWriter.pl';
-#
-    $AutoSessFlg="ManualSess";
-    TAUL2DBWriter();
-    $LoginDone=0;
-#
-    TAUL2DB_Welcome();
+  elsif($JobType eq "McDataReco"){
+    $SessName="MCR";
+    $logfdir="/mclogfiles";
   }
 #-----------------------------
   else{
-    show_warn("\n   <--- Calibration Type not defined, do selection first !!!");
+    show_warn("\n   <--- Job Type not defined, do selection first !!!");
+    return;
   }
-#--> disable CalType/Start-buttons:
+#
+  @TofRefCflistListRD=();
+  @AccRefCflistListRD=();
+  @EmcRefCflistListRD=();
+  @TofRefCflistListMC=();
+  @AccRefCflistListMC=();
+  @EmcRefCflistListMC=();
+#
+  require "$ENV{MyCVSTopDir}/ut/jsubmitter/UniJob.pl";
+#
+  $AutoSubmFlg="ManualSubm";
+#
+  UniJob();
+  $JOCReady=0;
+#
+  Welcome();
+#
+#--> disable JobType/Start-buttons:
   my $state="disabled";
-  for($i=0;$i<6;$i++){
-    $CalTypButt[$i]->configure(-state=>$state);
+  for($i=0;$i<$JobTypes;$i++){
+    $JobTypButt[$i]->configure(-state=>$state);
   }
   $StartButt->configure(-state=>$state);
 }
 #----------------------------------------------------------------------
+sub ReadDCDefFile{
+#
+#--- read/process DC def.params file :
+#
+  my $fn="DCDefPars.txt";
+#  my $fnf=$AMSCVS."/ut/jsubmitter/".$fn;
+  my $fnf=$fn;
+  my $line,$nel;
+  @DCdefpars=();
+  @MemsNames=();
+  $WarnFlg=0;
+  open(DCDEF,"< $fnf") or show_warn("\n   <--- Cannot open $fn for reading, $!");
+  while(defined ($line = <DCDEF>)){
+    chomp $line;
+    if($line =~/^\s*$/){next;}# skip empty or all " "'s lines
+    $line =~s/^\s+//s;# remove " "'s at the beg.of line
+    push(@DCdefpars,$line);
+  }
+  close(DCDEF) or show_warn("\n   <--- Cannot close $fn after reading !");
+  $nel=scalar(@DCdefpars);
+  if($WarnFlg==1 || $nel<4){
+    show_warn("\n   <--- Reading problem with DC-defaults file, correct it first !!!");
+    return;
+  }
+  show_messg("\n   <--- Data Cards def.values file is read !");
+#---
+  my $gr,$gm,$gmm,$cm,$cmm,$pos,$cnam,$cmid,$val;
+  my @arr=();
+  $pos=0;
+  $Ngroups=$DCdefpars[0];
+  show_messg("   <--- Found $Ngroups datacards groups...");
+  $pos+=1;
+  for($gr=0;$gr<$Ngroups;$gr++){#<-- groups loop
+    $grid=$DCdefpars[$pos];
+    $pos+=1;
+    $gmm=$DCdefpars[$pos];
+    $pos+=1;
+    $GroupMemsN[$grid-1]=$gmm;
+#    print "---> groupID:",$grid," members:",$gmm,"\n";
+    for($gm=0;$gm<$gmm;$gm++){#<-- Gr-member(dc-cards types) loop
+      $line=$DCdefpars[$pos];
+      $pos+=1;
+      @arr=split(/\s+/,$line);
+      $cmm=$arr[0];
+      $cnam=$arr[1];
+      push(@MemsNames,$cnam);
+#      print "    cardnam=",$cnam," cardmems=",$cmm,"\n"; 
+      for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+        $line=$DCdefpars[$pos];
+	@arr=split(/\s+/,$line);
+	$cmid=$arr[0];
+	$val=$arr[1];
+#1(MCgn)
+	if($cnam eq "KINE"){
+	  $KINEcmid[$cm]=$cmid;
+	  $KINEcmdf[$cm]=$val;
+	  if($cm==0){$KINEparsN=$cmm;}
+	  $KINEcmval[$cm]=$val;
+	}
+	elsif($cnam eq "RNDM"){
+	  $RNDMcmid[$cm]=$cmid;
+	  $RNDMcmdf[$cm]=$val;
+	  if($cm==0){$RNDMparsN=$cmm;}
+	  $RNDMcmval[$cm]=$val;
+	}
+	elsif($cnam eq "DEBUG"){
+	  $DEBUGcmid[$cm]=$cmid;
+	  $DEBUGcmdf[$cm]=$val;
+	  if($cm==0){$DEBUGparsN=$cmm;}
+	  $DEBUGcmval[$cm]=$val;
+	}
+	elsif($cnam eq "CUTS"){
+	  $CUTScmid[$cm]=$cmid;
+	  $CUTScmdf[$cm]=$val;
+	  if($cm==0){$CUTSparsN=$cmm;}
+	  $CUTScmval[$cm]=$val;
+	}
+	elsif($cnam eq "MCGEN"){
+	  $MCGENcmid[$cm]=$cmid;
+	  $MCGENcmdf[$cm]=$val;
+	  if($cm==0){$MCGENparsN=$cmm;}
+	  $MCGENcmval[$cm]=$val;
+	}
+	elsif($cnam eq "GMSRC"){
+	  $GMSRCcmid[$cm]=$cmid;
+	  $GMSRCcmdf[$cm]=$val;
+	  if($cm==0){$GMSRCparsN=$cmm;}
+	  $GMSRCcmval[$cm]=$val;
+	}
+#2(TOF)
+	if($cnam eq "TFRE"){
+	  $TFREcmid[$cm]=$cmid;
+	  $TFREcmdf[$cm]=$val;
+	  if($cm==0){$TFREparsN=$cmm;}
+	  $TFREcmval[$cm]=$val;
+#	  print $TFREparsN," cmem/id/val=",$cm,",",$TFREcmid[$cm],",",$TFREcmval[$cm],"\n"; 
+	}
+	elsif($cnam eq "TFCA"){
+	  $TFCAcmid[$cm]=$cmid;
+	  $TFCAcmdf[$cm]=$val;
+	  if($cm==0){$TFCAparsN=$cmm;}
+	  $TFCAcmval[$cm]=$val;
+	}
+	elsif($cnam eq "TFMC"){
+	  $TFMCcmid[$cm]=$cmid;
+	  $TFMCcmdf[$cm]=$val;
+	  if($cm==0){$TFMCparsN=$cmm;}
+	  $TFMCcmval[$cm]=$val;
+	}
+#3(ACC)
+	if($cnam eq "ATRE"){
+	  $ATREcmid[$cm]=$cmid;
+	  $ATREcmdf[$cm]=$val;
+	  if($cm==0){$ATREparsN=$cmm;}
+	  $ATREcmval[$cm]=$val;
+	}
+	elsif($cnam eq "ATCA"){
+	  $ATCAcmid[$cm]=$cmid;
+	  $ATCAcmdf[$cm]=$val;
+	  if($cm==0){$ATCAparsN=$cmm;}
+	  $ATCAcmval[$cm]=$val;
+	}
+	elsif($cnam eq "ATMC"){
+	  $ATMCcmid[$cm]=$cmid;
+	  $ATMCcmdf[$cm]=$val;
+	  if($cm==0){$ATMCparsN=$cmm;}
+	  $ATMCcmval[$cm]=$val;
+	}
+#4(EMC)
+	if($cnam eq "ECRE"){
+	  $ECREcmid[$cm]=$cmid;
+	  $ECREcmdf[$cm]=$val;
+	  if($cm==0){$ECREparsN=$cmm;}
+	  $ECREcmval[$cm]=$val;
+	}
+	elsif($cnam eq "ECCA"){
+	  $ECCAcmid[$cm]=$cmid;
+	  $ECCAcmdf[$cm]=$val;
+	  if($cm==0){$ECCAparsN=$cmm;}
+	  $ECCAcmval[$cm]=$val;
+	}
+	elsif($cnam eq "ECMC"){
+	  $ECMCcmid[$cm]=$cmid;
+	  $ECMCcmdf[$cm]=$val;
+	  if($cm==0){$ECMCparsN=$cmm;}
+	  $ECMCcmval[$cm]=$val;
+	}
+#5(AMS)
+	if($cnam eq "MAGS"){
+	  $MAGScmid[$cm]=$cmid;
+	  $MAGScmdf[$cm]=$val;
+	  if($cm==0){$MAGSparsN=$cmm;}
+	  $MAGScmval[$cm]=$val;
+	}
+	elsif($cnam eq "MISC"){
+	  $MISCcmid[$cm]=$cmid;
+	  $MISCcmdf[$cm]=$val;
+	  if($cm==0){$MISCparsN=$cmm;}
+	  $MISCcmval[$cm]=$val;
+	}
+	elsif($cnam eq "AMSJOB"){
+	  $AMSJOBcmid[$cm]=$cmid;
+	  $AMSJOBcmdf[$cm]=$val;
+	  if($cm==0){$AMSJOBparsN=$cmm;}
+	  $AMSJOBcmval[$cm]=$val;
+	}
+#6(IO)
+	if($cnam eq "IOPA"){
+	  $IOPAcmid[$cm]=$cmid;
+	  $IOPAcmdf[$cm]=$val;
+	  if($cm==0){$IOPAparsN=$cmm;}
+	  $IOPAcmval[$cm]=$val;
+	}
+	elsif($cnam eq "DAQC"){
+	  $DAQCcmid[$cm]=$cmid;
+	  $DAQCcmdf[$cm]=$val;
+	  if($cm==0){$DAQCparsN=$cmm;}
+	  $DAQCcmval[$cm]=$val;
+	}
+#7(LVL1)
+	if($cnam eq "TGL1"){
+	  $TGL1cmid[$cm]=$cmid;
+	  $TGL1cmdf[$cm]=$val;
+	  if($cm==0){$TGL1parsN=$cmm;}
+	  $TGL1cmval[$cm]=$val;
+	}
+#
+        $pos+=1;
+      }#--> card-mems loop
+    }#-->endof Gr-members(dc-cards types) loop
+  }#-->endof groups loop
+#---
+  if($SessName eq "MCS"){
+    $DAQCcmdf[0]=0;#redefine def.for MC (not write DaqFile)
+    $DAQCcmval[0]=$DAQCcmdf[0];
+  }
+}
+#------------------------------------------------------

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.303 2009/09/11 13:51:13 choutko Exp $
+#  $Id: datacards.doc,v 1.304 2009/09/18 10:07:18 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -653,16 +653,18 @@ R1 time        // max time allowd for prog execution
 
 TGL1    // FT/LVL1 Trigger (see remarks about some parameters(*))
  
-I 1 trtype(1)*         //8 lsbits->LVL1-branches(pattern) requested in global OR 
+I 1 trtype(127)*       //8 lsbits->LVL1-phys.branches(bit-pattern) requested for Lvl1 OR 
                        //bit(=1)->unbiased TOFtrigger ((TOF "FTC" only)
-		       //bit(=2)->Z>=1("FTC",anti_in)
-		       //bit(=4)->Z>=2("FTC",anti_out)
-		       //bit(=8)->SlowZ>=2("FTZ", anti_out)
-		       //bit(=16)->electrons("FTC","FTE", anti_out, "ecFand")
-		       //bit(=32)->gammas("FTE", anti_out, "ecFand", "ecAand")
+		       //bit(=2)->Z>=1("FTC",AntiCuts_in)
+		       //bit(=4)->Z>=2("FTC",AntiCuts_out)
+		       //bit(=8)->SlowZ>=2("FTZ", AntiCuts_out)
+		       //bit(=16)->electrons("FTC","FTE", AntiCuts_out, "ecFand")
+		       //bit(=32)->gammas("FTE", AntiCuts_out, "ecFand", "ecAand")
 		       //bit(=64)->ecalFT(just "FTE")
 		       //bit(=128->External (Replace FT(TOF/EC)-signal, under construction...)
-		       // !!! ***** Real Lvl1-trig is OR of above bits ***** !!! 
+		       // !!! ***** Lvl1-trig "accept" is set when any of the requested(in trtype bit-pattern) 
+		       //     phys.branches are fired("fired" means that the conditions shown in the brackets
+		       //     are fulfiled  ***** !!! 
 			    
 I 2 toflc(0)*              // required TOF-FTCtrig(Z>=1) LAYER configuration
                               (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
@@ -698,7 +700,13 @@ I 20 printfl(0);           // =0/n>0 -> noPrint/Print(higher n - more details) e
 
 I 21 Lvl1ConfSave(0)       // If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
 
-I 22->                     // Begin/End dates for trigger TDVs
+I 22 NoPrescalingInMC(0)   // disable prescaling in MC if set to 1 (in any case presc. is disabled for 
+                           // "Unbiased TOF" and "Unbiased EC" branches of LVL1 trigger when ONLY
+			   // any combination of THESE two branches is requested in trtype (#1) !!!)
+			   // For normal physical trigger(127) presc.factors are set for these two branches
+			   // 50:1 and 20:1 respectively.
+
+I 23->                     // Begin/End dates for trigger TDVs
 
  *** <--- For these parameters the default values are recomendations in case of manual control.
      By default all these params. are set to -99 to use more detailed and up-to-date DB-settings :  

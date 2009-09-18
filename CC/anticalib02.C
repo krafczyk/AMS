@@ -55,7 +55,7 @@ void AntiCalib::init(){ // ----> initialization for AMPL-calibration
 //
 //  ---> book hist. for side-signals:
 //
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
     hll=10;
     hhl=4000;
     for(logs=0;logs<MAXANTI;logs++){//log.sect.loop
@@ -155,7 +155,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     ptr=ptr->next();// take next RawEvent hit
   }//------>endof RawEvent hits loop
 //
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
     HF1(2530,geant(frsect),1.);
@@ -297,14 +297,14 @@ Nextp:
       if(cphi<0)cphi=360+cphi;//0-360
       phi=phi*AMSDBc::raddeg;//inpact phi(degr,+-180)
       if(phi<0)phi=360+phi;//0-360
-      if(ATREFFKEY.reprtf[0]>0){
+      if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
         HF1(2531,geant(crcCyl[2]),1.);
 }
       }
       if(fabs(crcCyl[2])<zcut){//match in Z 
-        if(ATREFFKEY.reprtf[0]>0){
+        if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
           if(i==0)HF1(2626,geant(frsecn[0]),1.);
@@ -316,7 +316,7 @@ Nextp:
         dphi1=padfi-cphi;//PHIsect-PHIcrp
 	if(dphi1>180)dphi1=360-dphi1;
 	if(dphi1<-180)dphi1=-(360+dphi1);
-        if(ATREFFKEY.reprtf[0]>0){
+        if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
           HF1(2532,geant(dphi1),1.);//PHIsect-PHIcrp
@@ -332,7 +332,7 @@ Nextp:
 	  dphi2=cphi-phi;//PHIcrp-PHIimpp
 	  if(dphi2>180)dphi2=360-dphi2;
 	  if(dphi2<-180)dphi2=-(360+dphi2);
-          if(ATREFFKEY.reprtf[0]>0){
+          if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
             if(i==0)HF1(2628,geant(frsecn[0]),1.);
@@ -344,14 +344,14 @@ Nextp:
       }//z-match ok?
     }//endof dir loop
 //
-    if(ATREFFKEY.reprtf[0]>0){
+    if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
       HF1(2530,geant(nseccr+10),1.);
 }
     }
     if(nseccr!=1)return;//requir. 1-sect. crossing
-    if(ATREFFKEY.reprtf[0]>0){
+    if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
       HF1(2539,geant(isphys+1),1.);//phys.sector number
@@ -368,7 +368,7 @@ Nextp:
     number betg(4);
     if(MAGSFFKEY.magstat==1 && TrkTrPart){
       pmom=fabs(rigid);
-      if(ATREFFKEY.reprtf[0]>0){
+      if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
         HF1(2534,geant(pmom),1.);
@@ -378,7 +378,7 @@ Nextp:
       }
       betg=pmom/pmas;//use trk-defined betg when possible
     }
-    if(ATREFFKEY.reprtf[0]>0){
+    if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
       HF1(2537,betg,1.);
@@ -394,7 +394,7 @@ Nextp:
     pathcorr=sqrt(pow(cos(dphi2),2)*pow(sin(thes),2)/
                   (pow(sin(thes),2)+pow(cos(thes),2)*pow(cos(dphi2),2)));
     crlen=padth/pathcorr;//pass-length in scint(ignore local curvature)
-    if(ATREFFKEY.reprtf[0]>0){
+    if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
       HF1(2538,crlen,1.);
@@ -411,7 +411,7 @@ Nextp:
     ama[1]=am2[0];
     ama[0]=Anti2RawEvent::accsatur(am1[0]);//<--apply nonlin.corrections(because we use raw amplitudes)
     ama[1]=Anti2RawEvent::accsatur(am2[0]);
-    if(ATREFFKEY.reprtf[0]>0){
+    if(ATREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
       if(frsecn[0]==3){
@@ -447,7 +447,7 @@ void AntiCalib::fill(integer isec, geant am[2], geant coo){
   geant ampc,padlen;
 //
   padlen=ANTI2DBc::scleng();//z-size
-  if(ATREFFKEY.reprtf[0]>0){
+  if(ATREFFKEY.reprtf[0]>1){
     HF1(2545+isec,coo,1.);//phys.sect longit.imp.point distribution
   }
   if(fabs(coo)>=padlen/2)return;
@@ -462,7 +462,7 @@ void AntiCalib::fill(integer isec, geant am[2], geant coo){
       adccount[id][bin][evs2bin[id][bin]]=ampc;
       evs2bin[id][bin]+=1;
     }  
-    if(ATREFFKEY.reprtf[0]>0){
+    if(ATREFFKEY.reprtf[0]>1){
       if(bin==9 || bin==10)HF1(2561+id,ampc,1.);
     }
   }
@@ -567,7 +567,7 @@ void AntiCalib::fit(){
           exit(10);
         }
         id=2*(2*logs+phys)+isd;
-        if(ATREFFKEY.reprtf[0]>0)
+        if(ATREFFKEY.reprtf[0]>1)
 	                         HPRINT(2561+id);
 	fitbins=0;
 	for(bin=0;bin<LongBins;bin++){//<--bin-loop
@@ -639,7 +639,7 @@ void AntiCalib::fit(){
 	}
 //
         chi2=fitpars[4];
-        if(ATREFFKEY.reprtf[0]>0)
+        if(ATREFFKEY.reprtf[0]>1)
 	                         HF1(2593,geant(chi2),1.);
 	slope=fitpars[0];
 	if(chi2<30 && fabs(slope)>0.001 && fabs(slope)<0.04){
@@ -649,7 +649,7 @@ void AntiCalib::fit(){
 	  power[logs][phys][isd]=geant(fitpars[2]);
 	  snor[logs][phys][isd]=geant(fitpars[3]);
           stat[logs][phys][isd]=0;//ok
-          if(ATREFFKEY.reprtf[0]>0){
+          if(ATREFFKEY.reprtf[0]>1){
             HF1(2542+isd,fabs(atlen[logs][phys][isd]),1.);
             HF1(2544,pe2ad[logs][phys][isd],1.);
 	  }
@@ -1094,7 +1094,7 @@ void ANTPedCalib::init(){ // ----> initialization for AccPed-calibration(Class/D
 //
 //  ---> book hist.  :
 //
-if(ATREFFKEY.reprtf[0]>0){
+if(ATREFFKEY.reprtf[0]>1){
   HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
   HMINIM(2670,75.);
   HMAXIM(2670,275.);
@@ -1260,7 +1260,7 @@ void ANTPedCalib::fill(int sr, int sd, geant val){//
      }
    }//-->endof "in limits" check
 //
-   if(ATREFFKEY.reprtf[0]>0){
+   if(ATREFFKEY.reprtf[0]>1){
      id=2674+sr*2+sd;
      if(ped>0 && val>lohil[0] && val<lohil[1] && accept)HF1(id,val,1.); 
      HF1(id+16,val,1.);
@@ -1319,7 +1319,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 	   ANTIPeds::anscped[sr].apeda(sd)=peds[sr][sd];
 	   ANTIPeds::anscped[sr].asiga(sd)=sigs[sr][sd];
 	   ANTIPeds::anscped[sr].astaa(sd)=stas[sr][sd];
-           if(ATREFFKEY.reprtf[0]>0){
+           if(ATREFFKEY.reprtf[0]>1){
              HF1(2670,geant(sd*10+sr+1),ANTIPeds::anscped[sr].apeda(sd));
 	     HF1(2671,geant(sd*10+sr+1),ANTIPeds::anscped[sr].asiga(sd));
 	     HF1(2672,geant(sd*10+sr+1),geant(stas[sr][sd]));
@@ -1414,7 +1414,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 //
    }//--->endof file writing 
 //
-   if(ATREFFKEY.reprtf[0]>0){
+   if(ATREFFKEY.reprtf[0]>1){
      for(i=0;i<36;i++)HPRINT(2670+i);
    }
    cout<<endl;

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.47 2009/02/20 14:12:17 choutko Exp $
+//  $Id: tofsim02.C,v 1.48 2009/09/18 10:07:09 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -1344,7 +1344,7 @@ number TOF2Tovt::ftctime(number fttime, int &trcode, int &cpcode){
 //
   geant trigb=TOF2DBc::trigtb();//0.5ns now
   geant cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation(z>=1)(i.e. FTC-pulse width)
-  if(TGL1FFKEY.printfl>10)cout<<"  --> TOF2Tovt::ftctime called: mode="<<fttime<<endl;
+  if((TGL1FFKEY.printfl/10)>=3)cout<<"  --> TOF2Tovt::ftctime called: mode="<<fttime<<endl;
   trcode=-1;
   cpcode=0;
   lut1=Trigger2LVL1::l1trigconf.toflut1();//lut from DB(file) already redef. by DC if requested
@@ -2244,7 +2244,7 @@ void TOF2RawSide::mc_build(int &status)
   if((cftmask%100)/10>0)ftpatreq|=(1<<1);
   if(cftmask/100>0)ftpatreq|=(1<<2);
 //
-  if(TGL1FFKEY.printfl>10){
+  if((TGL1FFKEY.printfl/10)>=3){
     cout<<endl;
     cout<<"===> In TOFRawSide::MCbuild:globFTmask="<<cftmask<<endl;
   }
@@ -2259,7 +2259,7 @@ void TOF2RawSide::mc_build(int &status)
       TOF2JobStat::addmc(16);
       ftpatt|=1;
       if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode),1.);
-      if(TGL1FFKEY.printfl>10){
+      if((TGL1FFKEY.printfl/10)>=3){
         cout<<"     foundFTC: trcode(LayPatCode)/cpcode(LutPat:LU2|LU1,1->satisf)="
 	                                          <<trcode<<" "<<cpcode<<" ftctime="<<ftctime<<endl;
       }
@@ -2271,7 +2271,7 @@ void TOF2RawSide::mc_build(int &status)
       TOF2JobStat::addmc(18);
       ftpatt|=(1<<1);
       if((ftpatt&1)==0)TOF2JobStat::addmc(23);
-      if(TGL1FFKEY.printfl>10)cout<<"     foundFTZ:ftzcode/ftztime="<<ftzcode<<" "<<ftztime<<endl;
+      if((TGL1FFKEY.printfl/10)>=3)cout<<"     foundFTZ:ftzcode/ftztime="<<ftzcode<<" "<<ftztime<<endl;
     }
 // FTE:
     ectrfl=AMSEcalRawEvent::gettrfl();//masked MN->FTE(Energy)/LVL1(Angle) Flags:
@@ -2284,10 +2284,10 @@ void TOF2RawSide::mc_build(int &status)
       if(ftpatt&1==1)if(TFMCFFKEY.mcprtf[2]!=0)HF1(1077,geant(ftctime-ftetime),1.);//when FTC ok
       if(ftpatt==0)TOF2JobStat::addmc(20);// <--- count "no FT from TOF" when EC ok
       ftpatt|=(1<<2);
-      if(TGL1FFKEY.printfl>10)cout<<"     foundFTE:ectrfl/ftetime="<<ectrfl<<" "<<ftetime<<endl;
+      if((TGL1FFKEY.printfl/10)>=3)cout<<"     foundFTE:ectrfl/ftetime="<<ectrfl<<" "<<ftetime<<endl;
     }
 //----
-    if(TGL1FFKEY.printfl>10)cout<<"     FinalFTpatt:"<<ftpatt<<" masked:"<<(ftpatt & ftpatreq)<<endl;
+    if((TGL1FFKEY.printfl/10)>=3)cout<<"     FinalFTpatt:"<<ftpatt<<" masked:"<<(ftpatt & ftpatreq)<<endl;
     if((ftpatt & ftpatreq)==0)return;//===> No globFT or masked
 
     TOF2JobStat::addmc(21);//<=== found non-masked globFT
@@ -2301,13 +2301,13 @@ void TOF2RawSide::mc_build(int &status)
 //
 //<==== globFT time is found:
     ttrig=ftmin;//globFT abs.time(Geant) in JLV1-crate(fastest in glFT-OR, for TOF-Lpatts/ACC-patt.creation in JLV1)
-    if(TGL1FFKEY.printfl>10){
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     Final globFT-abs.time(at JLV1)="<<ttrig<<endl;
     }
 //
 //--> make TOF L-patt/cpcode for LEV1:
     dummy=TOF2Tovt::ftctime(ttrig,trcode,cpcode);//get L-patt/cpcode for LVL1
-    if(TGL1FFKEY.printfl>10){
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     For LVL1: trcode/cpcode="<<trcode<<" "<<cpcode<<endl;
     }
     if(cpcode>0){
@@ -2326,7 +2326,7 @@ void TOF2RawSide::mc_build(int &status)
       if(trcodez>=0)HF1(1069,geant(trcodez)+40,1.);
       if(bztr && trcodez>=0)HF1(1069,geant(trcodez)+60,1.);
     }
-    if(TGL1FFKEY.printfl>10){
+    if((TGL1FFKEY.printfl/10)>=3){
       cout<<"     BZflag(was/notBZ)/trcode(LayPatt)="<<bztr<<" "<<trcodez<<endl;
     }
 //
@@ -2364,7 +2364,7 @@ void TOF2RawSide::mc_build(int &status)
 //
   status=0;//<============ OK because globFT conditions was found above
 //
-  if(TGL1FFKEY.printfl>10 || TFMCFFKEY.mcprtf[3]>0){
+  if((TGL1FFKEY.printfl/10)>=3 || TFMCFFKEY.mcprtf[3]>0){
     cout<<"     MCbuild:FTAbsTime(at JLV1)="<<ttrig<<"(at S-crate:"<<ftrig<<")"<<endl;
     cout<<"     MCbuild:Lev1-time at S-crate:"<<lev1tm<<endl;
   }
@@ -2372,15 +2372,15 @@ void TOF2RawSide::mc_build(int &status)
 //<---- create TOFRawSide static FTtime-channels array(digitization of FT-time, INCLUDING Anti-slots ):
   number ftcrat,ftslot,ftslots,lev1tms,htim,htims;
   int tdcbin;
-  if(TGL1FFKEY.printfl>11 || TFMCFFKEY.mcprtf[3]>1)cout<<"    Generated FT-signals in crates/slots:"<<endl;
+  if((TGL1FFKEY.printfl/10)>=3 || TFMCFFKEY.mcprtf[3]>1)cout<<"    Generated FT-signals in crates/slots:"<<endl;
   for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
     ftcrat=ftrig+rnormx()*TOF2DBc::ftc2cj();//actual FT-time in crate(cr-2-cr jitter)
-    if(TGL1FFKEY.printfl>10 || TFMCFFKEY.mcprtf[3]>1)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
+    if((TGL1FFKEY.printfl/10)>=3 || TFMCFFKEY.mcprtf[3]>1)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
     for(int sl=0;sl<TOF2GC::SCFETA;sl++){
       ftslot=ftcrat+rnormx()*TOF2DBc::fts2sj();//actual FT-time in slot(sl-2-sl jitter)
       ftslots=ftslot+TOF2Tovt::TofATdcT0[cr][sl];//add sincronization(CoarseCounter state)
       lev1tms=lev1tm+TOF2Tovt::TofATdcT0[cr][sl];//add sincronization(TrigTimeTagCounter state)
-      if(TGL1FFKEY.printfl>11 || TFMCFFKEY.mcprtf[3]>1){
+      if((TGL1FFKEY.printfl/10)>=3 || TFMCFFKEY.mcprtf[3]>1){
         cout<<"---> DigiFT: ssl="<<sl<<" SlotFTtime="<<ftslot<<" sincronized:"<<ftslots<<endl;
         cout<<"     SlotLev1time="<<lev1tm<<" sincronized:"<<lev1tms<<endl;
       }
