@@ -9,6 +9,7 @@ my $jclfrheight=0.08;
 #dir_frame:
 my $shf1=0.1;#down shift for dir-widgets
 my $drh1=(1-$shf1)/5;#height of dir-widgets
+my ($bwid,$bheig,$xpos,$ypos,$lbwid);
 #---
 $dir_fram=$mwnd->Frame(-label => "General Info/Settings :",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)
@@ -80,21 +81,25 @@ $amsg_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
                                               -relwidth=>0.83, -relheight=>$drh1,  
                                               -relx=>0.17, -rely=>($shf1+3*$drh1));
 #-------------
+$bwid=0.16;
+$xpos=0;
 $soundtext="Sound-ON";
 $dir_fram->Button(-text=>"Sound-ON", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
 			             -foreground=>"red",
-			             -background=>"green",
+			             -background=>"yellow",
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$soundtext,
                                      -command => sub{if($soundtext eq "Sound-ON"){$soundtext="Sound-OFF";}
 			                             else {$soundtext="Sound-ON";}})
 			             ->place(
-                                     -relwidth=>0.333, -relheight=>$drh1,
-				     -relx=>0, -rely=>($shf1+4*$drh1));
+                                     -relwidth=>$bwid, -relheight=>$drh1,
+				     -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$bwid;
 #---
+$bwid=0.18;
 $lookar_bt=$dir_fram->Button(-text=>"LookAround", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
@@ -104,8 +109,9 @@ $lookar_bt=$dir_fram->Button(-text=>"LookAround", -font=>$font2,
 			                 -cursor=>hand2,
                                          -command => \&LookAround)
 			                 ->place(
-                                         -relwidth=>0.333, -relheight=>$drh1,  
-                                         -relx=>0.333, -rely=>($shf1+4*$drh1));
+                                         -relwidth=>$bwid, -relheight=>$drh1,  
+                                         -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$bwid;
 #---
 $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2, 
                                          -activebackground=>"yellow",
@@ -116,8 +122,43 @@ $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2,
 			                 -cursor=>hand2,
                                          -command => \&ResetHistory)
 			                 ->place(
-                                         -relwidth=>0.333, -relheight=>$drh1,  
-                                         -relx=>0.666, -rely=>($shf1+4*$drh1));
+                                         -relwidth=>$bwid, -relheight=>$drh1,  
+                                         -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$bwid;
+#---
+$lbwid=0.24;
+$dir_fram->Label(-text=>"DCDefFileControl:",-font=>$font2,-relief=>'groove')
+                                                    ->place(
+						    -relwidth=>$lbwid, -relheight=>$drh1,
+                                                    -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$lbwid;
+#---
+$bwid=0.12;
+$lookar_bt=$dir_fram->Button(-text=>"Restore", -font=>$font2, 
+                                         -activebackground=>"yellow",
+			                 -activeforeground=>"red",
+			                 -foreground=>"red",
+			                 -background=>"green",
+                                         -borderwidth=>3,-relief=>'raised',
+			                 -cursor=>hand2,
+                                         -command => \&RestoreDC)
+			                 ->place(
+                                         -relwidth=>$bwid, -relheight=>$drh1,  
+                                         -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$bwid;
+#---
+$lookar_bt=$dir_fram->Button(-text=>"Commit", -font=>$font2, 
+                                         -activebackground=>"yellow",
+			                 -activeforeground=>"red",
+			                 -foreground=>"red",
+			                 -background=>"green",
+                                         -borderwidth=>3,-relief=>'raised',
+			                 -cursor=>hand2,
+                                         -command => \&CommitDC)
+			                 ->place(
+                                         -relwidth=>$bwid, -relheight=>$drh1,  
+                                         -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$bwid;
 #--------------------------------------------------------------------------
 #run-conditions_set_frame:
 my $shf2=0.06;#down shift for runcond-widgets
@@ -372,7 +413,7 @@ $Evs2Read="10000000";#number of events to read
 $batchj_bt=$set_fram->Button(-text=>"BatchJob", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
-			             -background=>"green",
+			             -background=>"yellow",
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$BatchFlg,
@@ -394,7 +435,7 @@ $MultiSubmFlg="SingleSubm";
 $manauto_bt=$set_fram->Button(-text=>"SingleSubm", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
-			             -background=>"green",
+			             -background=>"yellow",
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$MultiSubmFlg,
@@ -650,6 +691,32 @@ $quitbt->bind("<ButtonRelease-3>", \&quitbt_help);
 #
 }  
 #--------------------------------------------------------------
+sub RestoreDC
+{
+  my ($rwsta,$fn,$fr,$to);
+  $fn="DCDefPars.txt";
+  $to=$workdir."/".$fn;
+  $fr=$AMSCVS."/ut/jsubmitter/".$fn;
+  $rwsta = system("cp $fr $to");
+  if($rwsta != 0){show_warn("\n   <-- Can't copy DCDefPars-file from local CVS to workdir !");}
+  else{show_warn("\n   <--- Workdir DCDefPars-file was restored(copied from local CVS-store !");}
+#
+#--- Read again DataCards def.settings file for local workdir:
+#
+  ReadDCDefFile();
+}
+#---
+sub CommitDC
+{
+  my ($rwsta,$fn,$fr,$to);
+  $fn="DCDefPars.txt";
+  $fr=$workdir."/".$fn;
+  $to=$AMSCVS."/ut/jsubmitter/".$fn;
+  $rwsta = system("cp $fr $to");
+  if($rwsta != 0){show_warn("\n   <-- Can't copy DCDefPars-file from workdir to local CVS !");}
+  else{show_warn("\n   <--- DCDefPars-file was commited(copied to local CVS-store !");}
+}
+#-------
 sub ResetHistory
 {
   my $fn,$dir,$cmd,$cmdstat;
@@ -3071,9 +3138,11 @@ sub SetTofPars{
 #------
 if($RecoSimuP eq "RECO"){
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-#  $DCGroupEntryReco[$i]=1;
 #
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params for selected above group:",-relief=>'groove',
+#--------> RD page-1 :
+if($PageNumb eq "Page1"){
+#
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected above group:",-relief=>'groove',
                                                   -borderwidth=>5,-foreground => "red",
                                                   -background => "gray")
 						  ->place(
@@ -3250,8 +3319,117 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+}#<-------- endof RD page-1 :
+else{#-------->  RD page-2 :
+#
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-2 RECO-Params for selected above group:",-relief=>'groove',
+                                                  -borderwidth=>5,-foreground => "red",
+                                                  -background => "gray")
+						  ->place(
+                                                  -relwidth=>1, -relheight=>$sdframhig,
+                                                  -relx=>0, -rely=>$sdframpos);
+#---
+  $shf=0.17;
+  $nl=4;
+  $drh=(1.-$shf)/$nl;
+#---
+  my @TofLayPatt=qw(1+3 1+4 2+3 2+4 1+2 3+4);
+  @TofLayPattBut=();
+  $labw=0.34;
+  $butw=0.11;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"AcceptVelocityLaysPatt:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+  for($i=0;$i<6;$i++){
+    $sdset_fram->Checkbutton(-text=>$TofLayPatt[$i], -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$BETAFITcmval[$i])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+0*$drh));
+    $xpos+=$butw;
+  }
+#---
+  $labw=0.3;
+  $entw=0.1;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"MaxChi2(time/space-fit):",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$BETAFITcmval[6])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$BETAFITcmval[7])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+#---
+  $labw=0.4;
+  $entw=0.05;
+  $sdset_fram->Label(-text=>"SearchRegAroundTrk(Sigm,x/y):",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$BETAFITcmval[8])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$BETAFITcmval[9])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+#---
+  $butw=0.3;
+  $xpos=0;
+  $sdset_fram->Checkbutton(-text=>"AllowTofClustSharing", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$BETAFITcmval[10])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$butw;
+#---
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+                                          -activebackground=>"yellow",
+			                  -activeforeground=>"red",
+			                  -foreground=>"red",
+			                  -background=>"green",
+                                          -borderwidth=>3,-relief=>'raised',
+			                  -cursor=>hand2,
+                                          -command => \&ResetDC2Defs)
+			                  ->place(
+                                          -relwidth=>0.25, -relheight=>$drh,  
+                                          -relx=>0.75, -rely=>($shf+3*$drh));
+}#<-------- endof RD page-2 :
 }
-#------ MC:
+#------------ MC:
 elsif($RecoSimuP eq "SIMU"){
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
@@ -4824,6 +5002,19 @@ elsif($RecoSimuP eq "SIMU"){
                                -relwidth=>$menw, -relheight=>$drh,  
                                -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$menw;
+#---
+  $butw=0.2;
+  $sdset_fram->Checkbutton(-text=>"PrescalingOFF", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TGL1cmval[20])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$butw;
 #------
   $labw=0.3;
   $entw=0.06;
@@ -5463,14 +5654,19 @@ sub ResetDC2Defs{
 #--->gr-2
   if($DataGroup eq "TOF"){
     if($RecoSimuP eq "RECO"){
-      for($i=0;$i<$TFREparsN;$i++){$TFREcmval[$i]=$TFREcmdf[$i];}
-      for($i=0;$i<$TFCAparsN;$i++){$TFCAcmval[$i]=$TFCAcmdf[$i];}
-      $TofRefCalSetRD=$TFREcmdf[12];
+      if($PageNumb eq "Page1"){
+        for($i=0;$i<$TFREparsN;$i++){$TFREcmval[$i]=$TFREcmdf[$i];}
+        for($i=0;$i<$TFCAparsN;$i++){$TFCAcmval[$i]=$TFCAcmdf[$i];}
+        $TofRefCalSetRD=$TFREcmdf[12];
 #
-      $j=1;
-      for($i=0;$i<5;$i++){
-        $TofDBUsePatt[$i]=1-(($TFREcmval[11]/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use)
-        $j=10*$j;
+        $j=1;
+        for($i=0;$i<5;$i++){
+          $TofDBUsePatt[$i]=1-(($TFREcmval[11]/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use)
+          $j=10*$j;
+        }
+      }#--->endof page-1
+      else{
+        for($i=0;$i<$BETAFITparsN;$i++){$BETAFITcmval[$i]=$BETAFITcmdf[$i];}
       }
     }
     else{
@@ -5877,6 +6073,25 @@ sub CreateJobScript{
 	  $cmid=$TFMCcmid[$cm];
 	  $def=$TFMCcmdf[$cm];
 	  $val=$TFMCcmval[$cm];
+	  $sline=" ".$cmid."=".$val;
+	  $slinem=length($sline);
+	  if($slinem < (72-$linem)){$line=$line.$sline;}
+	  else{
+            push(@jobscript,$line);
+	    $line=$sline;
+	  }
+        }#<-- card-mems loop
+	$linem=length($line);
+	if($linem > 0){push(@jobscript,$line);}#uncompleted line
+      }
+      elsif($cnam eq "BETAFIT"){
+        $line="BETAFIT";
+	$cmm=$BETAFITparsN;
+	for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $linem=length($line);
+	  $cmid=$BETAFITcmid[$cm];
+	  $def=$BETAFITcmdf[$cm];
+	  $val=$BETAFITcmval[$cm];
 	  $sline=" ".$cmid."=".$val;
 	  $slinem=length($sline);
 	  if($slinem < (72-$linem)){$line=$line.$sline;}

@@ -458,7 +458,7 @@ sub ReadDCDefFile{
 #
 #--- read/process DC def.params file :
 #
-  my $fn="DCDefPars.txt";
+  my $fn="DCDefPars.txt";# in local workdir
 #  my $fnf=$AMSCVS."/ut/jsubmitter/".$fn;
   my $fnf=$fn;
   my $line,$nel;
@@ -562,6 +562,12 @@ sub ReadDCDefFile{
 	  $TFMCcmdf[$cm]=$val;
 	  if($cm==0){$TFMCparsN=$cmm;}
 	  $TFMCcmval[$cm]=$val;
+	}
+	elsif($cnam eq "BETAFIT"){
+	  $BETAFITcmid[$cm]=$cmid;
+	  $BETAFITcmdf[$cm]=$val;
+	  if($cm==0){$BETAFITparsN=$cmm;}
+	  $BETAFITcmval[$cm]=$val;
 	}
 #3(ACC)
 	if($cnam eq "ATRE"){
