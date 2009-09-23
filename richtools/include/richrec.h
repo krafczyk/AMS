@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.3 2009/09/16 13:06:28 mdelgado Exp $
+//  $Id: richrec.h,v 1.4 2009/09/23 14:10:01 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -151,6 +151,9 @@ private:
 
   number _npexplg[16];
   number _usedlg[16];
+
+  int _emitted_rays;    // number of rays emitted for npexp computation
+  int _reflected_rays;  // number of rays emitted and reflected
 
 
   // All these guys can be obtained asking to the class RichRadiatorTile

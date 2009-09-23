@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.4 2009/09/18 14:14:05 mdelgado Exp $
+//  $Id: richrec.C,v 1.5 2009/09/23 14:10:01 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -637,6 +637,8 @@ void RichRing::CalcBetaError(){
 
 void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigmas used 
  for(int i=0;i<16;i++) _npexplg[i]=_usedlg[i]=0;
+ _emitted_rays=0;
+ _reflected_rays=0;
 
 
   AMSPoint local_pos=_entrance_p;
@@ -712,6 +714,7 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
 
     for(phi=0,i=0;phi<2*PI;phi+=dphi,i++){
       int channel=-1,pmt=-1;
+      _emitted_rays++;
       efftr=trace(r,local_dir,phi,&xb,&yb,&lentr,
 		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag,channel,pmt);
 
@@ -1034,6 +1037,7 @@ geant RichRing::trace(AMSPoint r, AMSDir u,
     return (*beff)*lgeff(r2,u1,lguide); 
   }
   else{   // It intersects the mirror
+    _reflected_rays++;
     a=1-(SQR(kc)+1)*SQR(u1[2]);
     b=2*(r1[0]*u1[0]+r1[1]*u1[1]-SQR(kc)*(r1[2]-ac)*u1[2]);
     c=SQR(r1[0])+SQR(r1[1])-SQR(kc*(r1[2]-ac));
