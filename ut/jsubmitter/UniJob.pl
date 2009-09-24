@@ -81,10 +81,10 @@ $amsg_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
                                               -relwidth=>0.83, -relheight=>$drh1,  
                                               -relx=>0.17, -rely=>($shf1+3*$drh1));
 #-------------
-$bwid=0.16;
+$bwid=0.15;
 $xpos=0;
-$soundtext="Sound-ON";
-$dir_fram->Button(-text=>"Sound-ON", -font=>$font2, 
+$soundtext="SoundON";
+$dir_fram->Button(-text=>"SoundON", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
 			             -foreground=>"red",
@@ -92,14 +92,14 @@ $dir_fram->Button(-text=>"Sound-ON", -font=>$font2,
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$soundtext,
-                                     -command => sub{if($soundtext eq "Sound-ON"){$soundtext="Sound-OFF";}
-			                             else {$soundtext="Sound-ON";}})
+                                     -command => sub{if($soundtext eq "SoundON"){$soundtext="SoundOFF";}
+			                             else {$soundtext="SoundON";}})
 			             ->place(
                                      -relwidth=>$bwid, -relheight=>$drh1,
 				     -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$bwid;
 #---
-$bwid=0.18;
+$bwid=0.17;
 $lookar_bt=$dir_fram->Button(-text=>"LookAround", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
@@ -126,14 +126,14 @@ $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2,
                                          -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$bwid;
 #---
-$lbwid=0.24;
-$dir_fram->Label(-text=>"DCDefFileControl:",-font=>$font2,-relief=>'groove')
+$lbwid=0.15;
+$dir_fram->Label(-text=>"DCDefFile:",-font=>$font2,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>$lbwid, -relheight=>$drh1,
                                                     -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$lbwid;
 #---
-$bwid=0.12;
+$bwid=0.11;
 $lookar_bt=$dir_fram->Button(-text=>"Restore", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
@@ -159,6 +159,21 @@ $lookar_bt=$dir_fram->Button(-text=>"Commit", -font=>$font2,
                                          -relwidth=>$bwid, -relheight=>$drh1,  
                                          -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$bwid;
+#---
+$bwid=0.14;
+$newdcf_bt=$dir_fram->Button(-text=>"MakeNew", -font=>$font2, 
+                                         -activebackground=>"yellow",
+			                 -activeforeground=>"red",
+			                 -foreground=>"red",
+			                 -background=>"orange",
+                                         -borderwidth=>3,-relief=>'raised',
+			                 -cursor=>hand2,
+                                         -command => \&CreateNewDCFile)
+			                 ->place(
+                                         -relwidth=>$bwid, -relheight=>$drh1,  
+                                         -relx=>$xpos, -rely=>($shf1+4*$drh1));
+$xpos+=$bwid;
+$newdcf_bt->bind("<ButtonRelease-3>", \&joutcontr_help);
 #--------------------------------------------------------------------------
 #run-conditions_set_frame:
 my $shf2=0.06;#down shift for runcond-widgets
@@ -647,7 +662,7 @@ $jstatbt=$jcl_fram->Button(-text => "CheckJobsStat", -font=>$font2,
                                                   -command => \&CheckJobsStat)
 						  ->place(
                                                   -relx=>0,-rely=>0.35,
-                                                  -relwidth=>0.25,-relheight=>0.65);
+                                                  -relwidth=>0.333,-relheight=>0.65);
 $jstatbt->bind("<Button-3>", \&jobstat_help);
 #---
 $joboc_bt=$jcl_fram->Button(-text => "JobOutpControl", -font=>$font2,
@@ -659,22 +674,9 @@ $joboc_bt=$jcl_fram->Button(-text => "JobOutpControl", -font=>$font2,
 			                         -cursor=>hand2,
                                                  -command => \&JobOutpControl)
 						 ->place(
-                                                 -relx=>0.25,-rely=>0.35,
-                                                 -relwidth=>0.25,-relheight=>0.65);
+                                                 -relx=>0.333,-rely=>0.35,
+                                                 -relwidth=>0.333,-relheight=>0.65);
 $joboc_bt->bind("<ButtonRelease-3>", \&joutcontr_help);
-#---
-$newdcf_bt=$jcl_fram->Button(-text => "MakeNewDCDefF", -font=>$font2,
-                                                 -activebackground=>"yellow",
-			                         -activeforeground=>"red",
-			                         -background=>"orange",
-			                         -foreground=>"red",
-                                                 -borderwidth=>3,-relief=>'raised',
-			                         -cursor=>hand2,
-                                                 -command => \&CreateNewDCFile)
-						 ->place(
-                                                 -relx=>0.5,-rely=>0.35,
-                                                 -relwidth=>0.25,-relheight=>0.65);
-$newdcf_bt->bind("<ButtonRelease-3>", \&joutcontr_help);
 #---
 $quitbt=$jcl_fram->Button(-text => "QuitSession", -font=>$font2,
                                                  -activebackground=>"yellow",
@@ -685,8 +687,8 @@ $quitbt=$jcl_fram->Button(-text => "QuitSession", -font=>$font2,
 			                         -cursor=>hand2,
                                                  -command => \&QuitSession)
 						 ->place(
-                                                 -relx=>0.75,-rely=>0.35,
-                                                 -relwidth=>0.25,-relheight=>0.65);
+                                                 -relx=>0.666,-rely=>0.35,
+                                                 -relwidth=>0.333,-relheight=>0.65);
 $quitbt->bind("<ButtonRelease-3>", \&quitbt_help);
 #
 }  
@@ -897,6 +899,9 @@ sub Welcome{
   $ATMCcmval[3]=$AccRefCflistListMC[0];
   $ECREcmval[5]=$EmcRefCflistListRD[0];
   $ECMCcmval[7]=$EmcRefCflistListMC[0];
+#---
+  @NPartNames=qw(Any 1 2 3 >0 >1);
+  $NPartName=$NPartNames[0];
 #---
   @DetInDaq=(1,1,1,1,1,1);#def: full set of subdets, pattern:(Lvl Emc Ric T+A Trd Trk)
 #---
@@ -3114,7 +3119,7 @@ sub QuitSession
   }
 #------
   $mwnd->update;
-  if($soundtext eq "Sound-ON"){$mwnd->bell;}
+  if($soundtext eq "SoundON"){$mwnd->bell;}
   $mwnd->after(6000);
   $dir_fram->destroy() if Exists($dir_fram);
   $set_fram->destroy() if Exists($set_fram);
@@ -5053,6 +5058,340 @@ elsif($RecoSimuP eq "SIMU"){
 }
 }
 #----------------------------------------------
+sub SetEvSelPars{
+  my $i,$j;
+  my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos,$butw,$menw;
+  my $ar;
+  my $optmenu1;
+#------
+  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Parameters on $PageNumb for selected group:",-relief=>'groove',
+                                                  -borderwidth=>5,
+                                                  -background => "gray")
+						  ->place(
+                                                  -relwidth=>1, -relheight=>$sdframhig,
+                                                  -relx=>0, -rely=>$sdframpos);
+if($PageNumb eq "Page1"){
+#---
+  $shf=0.17;
+  $nl=4;
+  $drh=(1.-$shf)/$nl;
+#---
+  $labw=0.15;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"Nparticles:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#--
+  $menw=0.1;
+  $sdset_fram->Optionmenu(-textvariable => \$NPartName, -variable => \$ESTAcmval[0],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [[$NPartNames[0],0],[$NPartNames[1],10],[$NPartNames[2],100],
+			               [$NPartNames[3],1000],[$NPartNames[4],1110],[$NPartNames[5],1100]],
+			       -command => sub{print "text/var=",$NPartName," ",$ESTAcmval[0],"\n";}
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$menw;
+#---
+  my @SelObjNames=qw(TrdTr TofCl TrkTr RichR EcShw Vertx);
+  $SelObjMembs=scalar(@SelObjNames);
+  $labw=0.14;
+  $butw=(1.-$labw-$xpos)/$SelObjMembs;
+  $sdset_fram->Label(-text=>"PartMemb:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#
+  for($i=0;$i<$SelObjMembs;$i++){
+    $sdset_fram->Checkbutton(-text=>$SelObjNames[$i], -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+						 -onvalue=>10,
+                                                 -variable=>\$ESTAcmval[1+$i],
+						 )
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+0*$drh));
+    $xpos+=$butw;
+  }
+#------
+  $labw=0.15;
+  $menw=0.1;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"NTrdTr:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NTrdTrName, -variable => \$ESTAcmval[7],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$menw;
+#---
+  $sdset_fram->Label(-text=>"NTofCl:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NTofClName, -variable => \$ESTAcmval[8],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",11111110],[">1",11111100],[">2",11111000]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$menw;
+#---
+  $sdset_fram->Label(-text=>"NTrkTr:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NTrkTrName, -variable => \$ESTAcmval[9],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$menw;
+#---
+  $sdset_fram->Label(-text=>"NRichR:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NRichRName, -variable => \$ESTAcmval[10],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$menw;
+#------
+  $xpos=0;
+  $sdset_fram->Label(-text=>"NEcSh:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NEcShwName, -variable => \$ESTAcmval[11],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$menw;
+#---
+  $sdset_fram->Label(-text=>"NVertx:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NVertxName, -variable => \$ESTAcmval[12],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$menw;
+#---
+  $sdset_fram->Label(-text=>"NAccS:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NAccSrName, -variable => \$ESTAcmval[13],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],[">1",1100],[">2",1000]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$menw;
+#---
+  $sdset_fram->Label(-text=>"NCharge:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+#--
+  $sdset_fram->Optionmenu(-textvariable => \$NChargeName, -variable => \$ESTAcmval[14],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$menw;
+#------
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+                                          -activebackground=>"yellow",
+			                  -activeforeground=>"red",
+			                  -foreground=>"red",
+			                  -background=>"green",
+                                          -borderwidth=>3,-relief=>'raised',
+			                  -cursor=>hand2,
+                                          -command => \&ResetDC2Defs)
+			                  ->place(
+                                          -relwidth=>0.25, -relheight=>$drh,  
+                                          -relx=>0.75, -rely=>($shf+($nl-1)*$drh));
+}
+else{#<--- Page-2
+  $shf=0.17;
+  $nl=4;
+  $drh=(1.-$shf)/$nl;
+#---
+  $labw=0.28;
+  $entw=0.22;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"RunNumberToFind:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$SELEcmval[0])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$entw;
+#---
+  $labw=0.28;
+  $entw=0.22;
+  $sdset_fram->Label(-text=>"EventNumberToFind:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$SELEcmval[1])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$entw;
+#------
+  $labw=0.4;
+  $entw=0.4;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"OR Use EventsList from FileName:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$SELEcmval[2])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+#------
+  $labw=0.2;
+  $entw=0.2;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"LastRunNumb:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$SELEcmval[3])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$entw;
+#---
+  $labw=0.2;
+  $entw=0.2;
+  $sdset_fram->Label(-text=>"LastEventNumb:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$SELEcmval[4])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$entw;
+#------
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+                                          -activebackground=>"yellow",
+			                  -activeforeground=>"red",
+			                  -foreground=>"red",
+			                  -background=>"green",
+                                          -borderwidth=>3,-relief=>'raised',
+			                  -cursor=>hand2,
+                                          -command => \&ResetDC2Defs)
+			                  ->place(
+                                          -relwidth=>0.25, -relheight=>$drh,  
+                                          -relx=>0.75, -rely=>($shf+($nl-1)*$drh));
+}
+}
+#----------------------------------------------
 sub SetTrkPars{
   my $i,$j;
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos,$butw,$menw;
@@ -5168,44 +5507,6 @@ elsif($RecoSimuP eq "SIMU"){
 }
 #----------------------------------------------
 sub SetLvl3Pars{
-  my $i,$j;
-  my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos,$butw,$menw;
-  my $ar;
-  my $optmenu1;
-#------
-if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
-                                                  -borderwidth=>5,
-                                                  -background => "gray")
-						  ->place(
-                                                  -relwidth=>1, -relheight=>$sdframhig,
-                                                  -relx=>0, -rely=>$sdframpos);
-#---
-  $shf=0.17;
-  $nl=4;
-  $drh=(1.-$shf)/$nl;
-#---
-}
-#------ MC:
-elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params on $PageNumb for selected group:",-relief=>'groove',
-                                                  -borderwidth=>5,
-                                                  -background => "gray")
-						  ->place(
-                                                  -relwidth=>1, -relheight=>$sdframhig,
-                                                  -relx=>0, -rely=>$sdframpos);
-#---
-  $shf=0.17;
-  $nlmc=3;
-  $drh=(1.-$shf)/$nlmc;
-#---
-}
-#
-}
-#----------------------------------------------
-sub SetEvSelPars{
   my $i,$j;
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos,$butw,$menw;
   my $ar;
@@ -5815,6 +6116,24 @@ sub ResetDC2Defs{
       $FocusOn="NoFocus";
     }
   }
+#--->gr-8
+  elsif($DataGroup eq "SelEv"){
+    if($PageNumb eq "Page1"){#<--- for "ESTA" card
+      for($i=0;$i<$ESTAparsN;$i++){$ESTAcmval[$i]=$ESTAcmdf[$i];}
+      $NPartName=$NPartNames[0];
+      $NTrdTrName="Any";
+      $NTofClName="Any";
+      $NTrkTrName="Any";
+      $NRichRName="Any";
+      $NEcShwName="Any";
+      $NVertxName="Any";
+      $NAccSrName="Any";
+      $NChargeName="Any";
+    }
+    else{#<--- for "SELECT" card
+      for($i=0;$i<$SELEparsN;$i++){$SELEcmval[$i]=$SELEcmdf[$i];}
+    }
+  }
 #
   $mwnd->update;
 #  
@@ -5940,6 +6259,7 @@ sub ConfirmPars{
       $MCGENcmval[11]=$MCGENcmval[8];#to have fixed dir
     }
   }
+#  
 #    
 #---> Logf-name=jobname:
   $RLogName=$AMSJOBcmval[1];#jobname
@@ -6485,6 +6805,51 @@ sub CreateJobScript{
 	$linem=length($line);
 	if($linem > 0){push(@jobscript,$line);}#uncompleted line
       }
+#(SelEv)
+      if($cnam eq "ESTA"){
+        $line="ESTA";
+	$cmm=$ESTAparsN;
+	for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $linem=length($line);
+	  $cmid=$ESTAcmid[$cm];
+	  $def=$ESTAcmdf[$cm];
+	  $val=$ESTAcmval[$cm];
+	  if($val==0){next;}#<-- skip def.settings(they are definitely equal to ones in job.C)
+	  $sline=" ".$cmid."=".$val;
+	  $slinem=length($sline);
+	  if($slinem < (72-$linem)){$line=$line.$sline;}
+	  else{
+            push(@jobscript,$line);
+	    $line=$sline;
+	  }
+        }#<-- card-mems loop
+	$linem=length($line);
+	if($linem > 0 && $line ne "ESTA"){push(@jobscript,$line);}#uncompleted line non-empty
+      }
+      elsif($cnam eq "SELE"){
+        $line="SELE";
+	$cmm=$SELEparsN;
+	for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $linem=length($line);
+	  $cmid=$SELEcmid[$cm];
+	  $def=$SELEcmdf[$cm];
+	  $val=$SELEcmval[$cm];
+	  if($cm!=2 && $val==0){next;}#<-- skip def.settings(they are definitely equal to ones in job.C)
+	  if($cm==2){
+	    if($val eq "None"){next;}#<-- skip def.settings(they are definitely equal to ones in job.C)
+	    else{$val="'".$workdir.$amsjwd."/".$SELEcmval[2]."'";}
+	  }
+	  $sline=" ".$cmid."=".$val;
+	  $slinem=length($sline);
+	  if($slinem < (72-$linem)){$line=$line.$sline;}
+	  else{
+            push(@jobscript,$line);
+	    $line=$sline;
+	  }
+        }#<-- card-mems loop
+	$linem=length($line);
+	if($linem > 0 && $line ne "SELE"){push(@jobscript,$line);}#uncompleted line non-empty
+      }
 #---
       $pos+=1;
     }#-->endof Gr-members(dc-cards types) loop
@@ -6797,6 +7162,31 @@ sub CreateNewDCFile{
 	  $cmid=$TGL1cmid[$cm];
 	  if($TGL1cmdf[$cm] eq $TGL1cmval[$cm]){$val=$TGL1cmdf[$cm];}
 	  else{$val=$TGL1cmval[$cm];}
+	  $line="      ".$cmid." ".$val."\n";
+          push(@DCbuffer,$line);
+	}
+      }
+#
+      if($cnam eq "ESTA"){
+        $cmm=$ESTAparsN;
+	$line="  ".$cmm."  ".$cnam."\n";
+        push(@DCbuffer,$line);
+        for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $cmid=$ESTAcmid[$cm];
+	  if($ESTAcmdf[$cm] eq $ESTAcmval[$cm]){$val=$ESTAcmdf[$cm];}
+	  else{$val=$ESTAcmval[$cm];}
+	  $line="      ".$cmid." ".$val."\n";
+          push(@DCbuffer,$line);
+	}
+      }
+      if($cnam eq "SELE"){
+        $cmm=$SELEparsN;
+	$line="  ".$cmm."  ".$cnam."\n";
+        push(@DCbuffer,$line);
+        for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $cmid=$SELEcmid[$cm];
+	  if($SELEcmdf[$cm] eq $SELEcmval[$cm]){$val=$SELEcmdf[$cm];}
+	  else{$val=$SELEcmval[$cm];}
 	  $line="      ".$cmid." ".$val."\n";
           push(@DCbuffer,$line);
 	}

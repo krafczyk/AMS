@@ -57,7 +57,7 @@ $TofUserN="";
 $TofPassW="";
 $UNinAtt=0;  
 $PWinAtt=0;  
-$soundtext="Sound-ON";
+$soundtext="SoundON";
 $ResetHistFlg=0;
 $PrevSessUTC=0;
 $PrevSessTime=0;
@@ -293,7 +293,7 @@ sub show_warn {# 1-line message + 3*beep
   $logtext->insert('end',$text."\n",$tag);
   $logtext->yview('end');
   $count=2;
-  if($soundtext eq "Sound-ON"){
+  if($soundtext eq "SoundON"){
     while($count-- >0){
       $mwnd->bell;
       $mwnd->after(100);
@@ -313,7 +313,7 @@ sub show_warn_setfstat {# 1-line message + 3*beep + set file-status to 211(bad)
   $logtext->yview('end');
   $daqfstat[$indx]=211;
   $count=2;
-  if($soundtext eq "Sound-ON"){
+  if($soundtext eq "SoundON"){
     while($count-- >0){
       $mwnd->bell;
       $mwnd->after(150);
@@ -340,7 +340,7 @@ sub show_messg {# 1-line message + 1*beep
     $logtext->insert('end',$text."\n",$tag);
     $logtext->yview('end');
   }
-  if($soundtext eq "Sound-ON"){$mwnd->bell;}
+  if($soundtext eq "SoundON"){$mwnd->bell;}
 }
 #--------------
 sub play_swav {
@@ -366,7 +366,7 @@ sub play_swav {
 sub mybeep { 
   my ($button,$count,$var) = @_;
   print $button,$count,$var,"\n";
-  if($soundtext eq "Sound-ON"){ 
+  if($soundtext eq "SoundON"){ 
     while ($count-- > 0) { 	
       $mwnd->bell;                # ring the bell
       $mwnd->after(150);
@@ -645,6 +645,20 @@ sub ReadDCDefFile{
 	  $TGL1cmdf[$cm]=$val;
 	  if($cm==0){$TGL1parsN=$cmm;}
 	  $TGL1cmval[$cm]=$val;
+	}
+#
+#8(EvSel)
+	if($cnam eq "ESTA"){
+	  $ESTAcmid[$cm]=$cmid;
+	  $ESTAcmdf[$cm]=$val;
+	  if($cm==0){$ESTAparsN=$cmm;}
+	  $ESTAcmval[$cm]=$val;
+	}
+	elsif($cnam eq "SELE"){
+	  $SELEcmid[$cm]=$cmid;
+	  $SELEcmdf[$cm]=$val;
+	  if($cm==0){$SELEparsN=$cmm;}
+	  $SELEcmval[$cm]=$val;
 	}
 #
         $pos+=1;
