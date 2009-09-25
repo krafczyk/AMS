@@ -75,6 +75,7 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
     _EVENT->Tree() = GetTree();
     _EVENT->GetBranch(_EVENT->Tree());
   }
+  
   if (_EVENT->ReadHeader(tree_entry)==false) {
     delete _EVENT; _EVENT = NULL;
     _ENTRY = -1;
@@ -402,7 +403,18 @@ void AMSEventList::Write(AMSChain* chain, TFile* file){
   TTree *amsnew = chain->CloneTree(0);
   chain->Rewind();
   AMSEventR* ev = NULL;
+  
+  // Required to solve a bug (or feature) in GetEvent: it never returns NULL 
+  int current_run=-1;
+  int current_event=-1; 
+  
   while ((ev=chain->GetEvent())) {
+
+    // Patch
+    if(ev->Run()==current_run && ev->Event()==current_event) break;
+    current_run=ev->Run();
+    current_event=ev->Event();
+
     bool found = false;
     for (int j=0; j<_RUNs.size(); j++) {
       if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
