@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.4 2008/08/25 10:34:36 choutko Exp $
+#  $Id: status02.doc,v 1.5 2009/09/30 07:29:34 choumilo Exp $
 status word definition
 
 0
@@ -44,10 +44,10 @@ status word definition
  24
  25
 15
- 26 z=1 lvl1 x-1 of 4
+ 26 "z>=1" flag(Lvl1-info): [NtofLayers(max=4)-1] with signal above the low(z>=1) discr.threshold  
  27
 16
- 28 z>1
+ 28 "z>=2"  .............. : .................... ..................the high(z>=2) discr.threshold **)
  29
 17
  30   event has errors
@@ -70,3 +70,5 @@ N.B.
 Due to lack of bits there is no "undefined state" bits,
 so to ensure proper functionality one has to require 
 particle (datacards: ESTA 1=1110) for most other status bits
+
+**) "z>=2" threshold is chosen to share He4 signal between 2 branches("z>=1" and "z>=2") !!! 
