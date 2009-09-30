@@ -60,8 +60,12 @@
      In opened main window select Session-type (bottom/right of window, one of 3) and "Start".
   At the left part of window you will get set of buttons and small entry(or pulldown menu) 
   yellow windows. On the top you can check your main environment settings inside of  
-  "GeneralInfo/Settings" frame. On the right part of the main window you see big sub-window
-  to display the program messages.
+  "GeneralInfo/Settings" frame. This frame includes also default DataCards file manipulation
+  buttons(if you created new file(in workdir by "MakeNew") you can "Restore" it using default 
+  one in your CVS-dir, or copy ("Commit") this new file to your CVS-dir; now your private s/w
+  is ready for standard ams-commit procedure);
+   
+     On the right part of the main window you see big sub-window to display the program messages.
   
     At the middle/left you have "Setup new job" frame + empty grey area. You should select
   one of 12 data cards (DCs) groups (TOF,ACC,...,MCgen (if simulation session was selected)). 
@@ -122,7 +126,7 @@
   automatically when you submit such job.
   
     Be careful typing the numbers and names in yellow entry windows instead of proposed
-  (default) values - follow the presence (or absence) of . and '' signs of punctuation !!!
+  (default) values - follow the presence (or absence) of "." and "'" signs of punctuation !!!
       
                                             Good luck, wait for comments,
 					                                  E.Choumilov

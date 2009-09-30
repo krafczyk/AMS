@@ -660,6 +660,13 @@ sub ReadDCDefFile{
 	  if($cm==0){$SELEparsN=$cmm;}
 	  $SELEcmval[$cm]=$val;
 	}
+#8(EvSel)
+	if($cnam eq "CHAR"){
+	  $CHARcmid[$cm]=$cmid;
+	  $CHARcmdf[$cm]=$val;
+	  if($cm==0){$CHARparsN=$cmm;}
+	  $CHARcmval[$cm]=$val;
+	}
 #
         $pos+=1;
       }#--> card-mems loop
