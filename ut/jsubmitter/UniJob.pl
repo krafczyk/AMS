@@ -11,7 +11,7 @@ my $shf1=0.1;#down shift for dir-widgets
 my $drh1=(1-$shf1)/5;#height of dir-widgets
 my ($bwid,$bheig,$xpos,$ypos,$lbwid);
 #---
-$dir_fram=$mwnd->Frame(-label => "General Info/Settings :",-background => "Grey",
+$dir_fram=$mwnd->Frame(-label => "General Info/Settings/Actions :",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)
 						      ->place(
                                                       -relwidth=>(1-$LogfXsize), -relheight=>$dirfrheight,
@@ -186,7 +186,8 @@ my $shf3=$sdframpos+$sdframhig;
 @P2DCGroupBut=();
 @DCGroupEntry=();
 #---
-$set_fram=$mwnd->Frame(-label=>"Setup New Job :",-relief=>'groove', -borderwidth=>5,
+$set_fram=$mwnd->Frame(-label=>"Change Data Cards and Setup New Job :",-relief=>'groove', 
+                                                  -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
                                                   -relwidth=>(1-$LogfXsize), -relheight=>$setfrheight,
@@ -7125,7 +7126,7 @@ sub CreateJobScript{
 	  $cmid=$IOPAcmid[$cm];
 	  $def=$IOPAcmdf[$cm];
 	  $val=$IOPAcmval[$cm];
-	  if($cm==3 && $WrRootFlg==1){#<---make root-file path
+	  if($cm==3){#<---make complete root-file path
 	    if($RootfSubD eq ""){$rssdir=$RootfSubD."/";}
 	    else{$rssdir="/".$RootfSubD."/";}
 	    $path="'".$RootfDir.$rsdir.$rssdir.$val.".root"."'";
