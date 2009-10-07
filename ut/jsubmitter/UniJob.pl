@@ -185,6 +185,7 @@ $sdframhig=4*$drh2;
 my $shf3=$sdframpos+$sdframhig;
 @P2DCGroupBut=();
 @DCGroupEntry=();
+@DCGrNames=qw(AMS TOF ACC EMC LVL1 TRK TRD RICH ZFit LVL3 IO SelEv MCgn);
 #---
 $set_fram=$mwnd->Frame(-label=>"Change Data Cards and Setup New Job :",-relief=>'groove', 
                                                   -borderwidth=>5,
@@ -205,8 +206,9 @@ $set_fram->Button(-text=>$RecoSimuP, -font=>$font2,
                               -borderwidth=>3,-relief=>'raised',
 			      -cursor=>hand2,
 			      -textvariable=>\$RecoSimuP,
-                              -command => sub{if($RecoSimuP eq "RECO" && $SessName eq "MCS"){$RecoSimuP="SIMU";}
-			                      else {$RecoSimuP="RECO";}})
+			      -command =>\&ChangeRecSim)
+#                              -command => sub{if($RecoSimuP eq "RECO" && $SessName eq "MCS"){$RecoSimuP="SIMU";}
+#			                      else {$RecoSimuP="RECO";}})
 			         ->place(
                                  -relwidth=>0.12, -relheight=>$drh2,
                                  -relx=>0, -rely=>$shf2);
@@ -219,8 +221,9 @@ $set_fram->Button(-text=>$PageNumb, -font=>$font2,
                               -borderwidth=>3,-relief=>'raised',
 			      -cursor=>hand2,
 			      -textvariable=>\$PageNumb,
-                              -command => sub{if($PageNumb eq "Page1"){$PageNumb="Page2";}
-			                      else {$PageNumb="Page1";}})
+			      -command =>\&ChangePage)
+#                              -command => sub{if($PageNumb eq "Page1"){$PageNumb="Page2";}
+#			                      else {$PageNumb="Page1";}})
 			         ->place(
                                  -relwidth=>0.1, -relheight=>$drh2,
                                  -relx=>0.12, -rely=>$shf2);
@@ -230,7 +233,7 @@ $set_fram->Label(-text=>"for:",-font=>$font2,-relief=>'groove')
 						  -relwidth=>0.08, -relheight=>$drh2,
                                                   -relx=>0.22, -rely=>$shf2);
 #---
-$P2DCGroupBut[0]=$set_fram->Radiobutton(-text=>"AMS",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[0]=$set_fram->Radiobutton(-text=>$DCGrNames[0],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -238,12 +241,12 @@ $P2DCGroupBut[0]=$set_fram->Radiobutton(-text=>"AMS",-font=>$font2, -indicator=>
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetAMSPars,
-                                                 -value=>"AMS", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[0], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.3, -rely=>$shf2);
 #---
-$P2DCGroupBut[1]=$set_fram->Radiobutton(-text=>"TOF",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[1]=$set_fram->Radiobutton(-text=>$DCGrNames[1],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -251,12 +254,12 @@ $P2DCGroupBut[1]=$set_fram->Radiobutton(-text=>"TOF",-font=>$font2, -indicator=>
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetTofPars,
-                                                 -value=>"TOF", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[1], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.44, -rely=>$shf2);
 #---
-$P2DCGroupBut[2]=$set_fram->Radiobutton(-text=>"ACC",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[2]=$set_fram->Radiobutton(-text=>$DCGrNames[2],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -264,12 +267,12 @@ $P2DCGroupBut[2]=$set_fram->Radiobutton(-text=>"ACC",-font=>$font2, -indicator=>
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetAccPars,
-                                                 -value=>"ACC", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[2], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.58, -rely=>$shf2);
 #---
-$P2DCGroupBut[3]=$set_fram->Radiobutton(-text=>"EMC",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[3]=$set_fram->Radiobutton(-text=>$DCGrNames[3],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -277,12 +280,12 @@ $P2DCGroupBut[3]=$set_fram->Radiobutton(-text=>"EMC",-font=>$font2, -indicator=>
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetEmcPars,
-                                                 -value=>"EMC", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[3], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.72, -rely=>$shf2);
 #---
-$P2DCGroupBut[4]=$set_fram->Radiobutton(-text=>"LVL1",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[4]=$set_fram->Radiobutton(-text=>$DCGrNames[4],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -290,13 +293,13 @@ $P2DCGroupBut[4]=$set_fram->Radiobutton(-text=>"LVL1",-font=>$font2, -indicator=
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetLvl1Pars,
-                                                 -value=>"LVL1", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[4], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.86, -rely=>$shf2);
 #------
 my $wid2=1/8;
-$P2DCGroupBut[5]=$set_fram->Radiobutton(-text=>"TRK",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[5]=$set_fram->Radiobutton(-text=>$DCGrNames[5],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -304,12 +307,12 @@ $P2DCGroupBut[5]=$set_fram->Radiobutton(-text=>"TRK",-font=>$font2, -indicator=>
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetTrkPars,
-                                                 -value=>"TRK", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[5], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>0, -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[6]=$set_fram->Radiobutton(-text=>"TRD",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[6]=$set_fram->Radiobutton(-text=>$DCGrNames[6],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -317,12 +320,12 @@ $P2DCGroupBut[6]=$set_fram->Radiobutton(-text=>"TRD",-font=>$font2, -indicator=>
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetTrdPars,
-                                                 -value=>"TRD", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[6], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>$wid2, -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[7]=$set_fram->Radiobutton(-text=>"RICH",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[7]=$set_fram->Radiobutton(-text=>$DCGrNames[7],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -330,12 +333,12 @@ $P2DCGroupBut[7]=$set_fram->Radiobutton(-text=>"RICH",-font=>$font2, -indicator=
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetRichPars,
-                                                 -value=>"RICH", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[7], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(2*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[8]=$set_fram->Radiobutton(-text=>"ZFit",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[8]=$set_fram->Radiobutton(-text=>$DCGrNames[8],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -343,12 +346,12 @@ $P2DCGroupBut[8]=$set_fram->Radiobutton(-text=>"ZFit",-font=>$font2, -indicator=
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetZFitPars,
-                                                 -value=>"ZFit", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[8], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(3*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[9]=$set_fram->Radiobutton(-text=>"LVL3",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[9]=$set_fram->Radiobutton(-text=>$DCGrNames[9],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -356,12 +359,12 @@ $P2DCGroupBut[9]=$set_fram->Radiobutton(-text=>"LVL3",-font=>$font2, -indicator=
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetLvl3Pars,
-                                                 -value=>"LVL3", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[9], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(4*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[10]=$set_fram->Radiobutton(-text=>" IO ",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[10]=$set_fram->Radiobutton(-text=>$DCGrNames[10],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -369,12 +372,12 @@ $P2DCGroupBut[10]=$set_fram->Radiobutton(-text=>" IO ",-font=>$font2, -indicator
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetIOPars,
-                                                 -value=>"IO", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[10], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(5*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[11]=$set_fram->Radiobutton(-text=>"SelEv",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[11]=$set_fram->Radiobutton(-text=>$DCGrNames[11],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -382,12 +385,12 @@ $P2DCGroupBut[11]=$set_fram->Radiobutton(-text=>"SelEv",-font=>$font2, -indicato
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetEvSelPars,
-                                                 -value=>"SelEv", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[11], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(6*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[12]=$set_fram->Radiobutton(-text=>"MCgn",-font=>$font2, -indicator=>0,
+$P2DCGroupBut[12]=$set_fram->Radiobutton(-text=>$DCGrNames[12],-font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -395,7 +398,7 @@ $P2DCGroupBut[12]=$set_fram->Radiobutton(-text=>"MCgn",-font=>$font2, -indicator
 			                         -cursor=>hand2,
 #						 -foreground=>red,
                                                  -command=>\&SetMCGenPars,
-                                                 -value=>"MCGEN", -variable=>\$DataGroup)
+                                                 -value=>$DCGrNames[12], -variable=>\$DataGroup)
                                               ->place(
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(7*$wid2), -rely=>($shf2+$drh2));
@@ -707,6 +710,30 @@ $quitbt->bind("<ButtonRelease-3>", \&quitbt_help);
 #
 }  
 #--------------------------------------------------------------
+sub ChangePage{
+  my ($i,$state);
+  if($PageNumb eq "Page1"){$PageNumb="Page2";}
+  else{$PageNumb="Page1";}
+  for($i=0;$i<13;$i++){
+    if($DataGroup eq $DCGrNames[$i]){
+      $P2DCGroupBut[$i]->invoke();
+      last;
+    }
+  }
+}
+#------
+sub ChangeRecSim{
+  my ($i,$state);
+  if($RecoSimuP eq "RECO" && $SessName eq "MCS"){$RecoSimuP="SIMU";}
+  else{$RecoSimuP="RECO";}
+  for($i=0;$i<13;$i++){
+    if($DataGroup eq $DCGrNames[$i]){
+      $P2DCGroupBut[$i]->invoke();
+      last;
+    }
+  }
+}
+#---------------------
 sub RestoreDC
 {
   my ($rwsta,$fn,$fr,$to);
@@ -5592,9 +5619,9 @@ sub SetZFitPars{
   my $ar;
   my $optmenu1;
 #------
+  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
 if($RecoSimuP eq "RECO"){
  if($PageNumb eq "Page1"){#<--- page-1
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify $PageNumb RECO-Params for Particle Z-fit :",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -5936,7 +5963,6 @@ if($RecoSimuP eq "RECO"){
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for Particle Z-fit:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -6025,7 +6051,7 @@ sub SetMCGenPars{
   my $optmenu1;
 #------
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  if($RecoSimuP ne "SIMU"){return;}
+  if($RecoSimuP eq "SIMU"){
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-Pars on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -6397,6 +6423,8 @@ elsif($PageNumb eq "Page2"){
                                           -relx=>0.75, -rely=>($shf+($nlmc2-1)*$drh));
 }
 #
+}
+#
   $mwnd->update;
 }
 #---------------------
@@ -6575,7 +6603,7 @@ sub ResetDC2Defs{
     }
   }
 #--->gr-1
-  elsif($DataGroup eq "MCGEN"){
+  elsif($DataGroup eq "MCgn"){
     if($RecoSimuP eq "SIMU"){
       for($i=0;$i<$KINEparsN;$i++){$KINEcmval[$i]=$KINEcmdf[$i];}
       for($i=0;$i<$RNDMparsN;$i++){$RNDMcmval[$i]=$RNDMcmdf[$i];}
@@ -6732,7 +6760,7 @@ sub ConfirmPars{
   $fvar=sprintf("%.2f",$TGL1cmval[15]);#min.live time: prot.against missing "." in stupid FFREAD
   $TGL1cmval[15]=$fvar;
 #
-#--->"MCGEN"
+#--->"MCgn"
   if($SessName eq "MCS"){
     if($IllumType eq $IllumTypes[2]){# Fixed Dir&(Point||Area)
       $MCGENcmval[0]=sprintf("%.2f",($IPointX-$HAreaX));

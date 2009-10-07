@@ -72,11 +72,11 @@
   The pushed button stay pressed and orange. Available DC variables settings are displayed
   instead of previously mentioned gray area. You can change the displayed settings 
   (if nesessary). Some DCs may have 2nd page when available settings are not fit into single
-  page(click "Page1(2)" button and again selected DC-group button to see another page). 
-  Currently only "MCgn" has 2nd page. If you are in "MCDataSimu"(lation) mode you have 2 global
+  page(click "Page1(2)" button to see another page). 
+  Currently only few DCs have 2nd page. If you are in "MCDataSimu" session you have 2 global
   pages selected by "RECO/SIMU" button (to the left from "Page" button.). By default 
-  "SIMU"-page is displayed first. To set reconstruction related settings - click "SIMU"-button
-  and click again selected DCs group (it is orange). If after some changes on given page you
+  "SIMU"-page is displayed first. To set reconstruction related settings - click "SIMU"-button.
+  It will change the name to "RECO" and change page. If after some changes on given page you
   decide to go back to the default settings - push "Reset2DefPar". Here default settings
   mean the ones defined in file 'DCDefPars.txt' sitting in your MyJobSubmDir (copy of the
   file sitting in your MyCVSTopDir/ut/jsubmitter and created durung installation). Later 
