@@ -16,6 +16,7 @@
 #include "trmccluster.h"
 #include "trcalib.h"
 #include "tralig.h"
+#include "vtx.h"
 #else
 #include "MagField.h"
 #include "TrRecon.h"

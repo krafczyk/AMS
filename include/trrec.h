@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.104 2009/08/19 14:36:04 pzuccon Exp $
+//  $Id: trrec.h,v 1.105 2009/10/16 13:15:04 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -34,7 +34,6 @@ class AMSTRDTrack;
 #include "cont.h"
 #include "event.h"
 #include <vector>
-#include "vtx.h"
 
 using namespace std;
 

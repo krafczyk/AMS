@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.250 2009/08/17 12:53:47 pzuccon Exp $
+//  $Id: root.h,v 1.251 2009/10/16 13:15:04 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -44,6 +44,14 @@ using namespace std;
 char* operator+( std::streampos&, char* );
 #endif
 #ifndef __ROOTSHAREDLIBRARY__
+#ifndef _PGTRACK_
+class AMSTrCluster;
+class AMSTrMCCluster;
+class AMSTrRawCluster;
+class AMSTrTrack;
+class AMSTrRecHit;
+#endif
+
 class AMSAntiCluster;
 class AMSAntiMCCluster;
 class AMSBeta;
@@ -68,13 +76,6 @@ class AMSTRDSegment;
 class AMSTRDTrack;
 class AMSTRDHSegment;
 class AMSTRDHTrack;
-#ifndef _PGTRACK_
-class AMSTrCluster;
-class AMSTrMCCluster;
-class AMSTrRawCluster;
-class AMSTrTrack;
-class AMSTrRecHit;
-#endif
 class AMSVtx;
 class Ecal1DCluster;
 class AMSEcal2DCluster;

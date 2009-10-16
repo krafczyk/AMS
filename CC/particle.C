@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.181 2009/08/19 23:32:49 pzuccon Exp $
+//  $Id: particle.C,v 1.182 2009/10/16 13:13:33 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -23,6 +23,8 @@
 #ifdef _PGTRACK_
 #include "patt.h"
 #include "tkdcards.h"
+#else
+#include "vtx.h"
 #endif
 
 // Normalized TRD probabilities (preliminary)

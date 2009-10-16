@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.190 2009/09/11 16:26:19 choutko Exp $
+//  $Id: root.C,v 1.191 2009/10/16 13:13:33 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -34,6 +34,9 @@
 #include "trigger102.h"
 #include "trigger302.h"
 #include "trrec.h"
+#ifndef _PGTRACK_
+#include "vtx.h"
+#endif
 #include "astro.h"
 #include "amsdbc.h"
 #include <values.h>

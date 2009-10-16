@@ -34,7 +34,7 @@ private:
   /// The Actual TDR decoding routine
   static int ReadOneTDR(int16u* pp,int tsize,int cratenum,int pri);
   /// Checks the status word for errors
-  static int TrDAQ::TestBoardErrors(char *name,int16u status,int pri=1);
+  static int TestBoardErrors(char *name,int16u status,int pri=1);
 
   
 
