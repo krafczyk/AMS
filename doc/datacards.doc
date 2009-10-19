@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.304 2009/09/18 10:07:18 choumilo Exp $
+#  $Id: datacards.doc,v 1.305 2009/10/19 15:29:45 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -74,7 +74,7 @@ I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 I127  WriteRoot(0)               // write (!0) or not write(0) root file
                                  // the value is used to set Root Compression Level-1
 I128  rfile(160*' ')             // root file name
-I168 MaxFileSize(10000000)      // max ntuplefilesize (kbytes)
+I168 MaxFileSize(100000000)      // max ntuplefilesize (kbytes)
 I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
 I170 BuildMin(-1)                  // min build version (production only)
 
@@ -517,7 +517,7 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode%10 = 1 read daq if isReconstruction()
                                     // (mode/10)%10 = 1 write daq (noreplace)
                                     // (mode/10)%10 = 2 write daq (append)
-                                    // mode/100 = 1  compress output format on fly
+                                    // mode/100 = >0  compress output format on fly (1to8: zlib Z_FILTER, Z_LEVEL ; 9: simple zero bytes suppress)
 I 2 ifile[40]("")                   // input file(s) name(s) 
                                     // format: path/r1-r2,r3,r4,r5-r6  etc.
                                     // where path is path to the files directory

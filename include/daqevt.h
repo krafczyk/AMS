@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.66 2009/09/11 13:51:15 choutko Exp $
+//  $Id: daqevt.h,v 1.67 2009/10/19 15:29:45 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -15,6 +15,7 @@
 #include <fstream>
 #include <time.h>
 #include <dirent.h>
+#include "zlib.h"
 typedef integer (*pid)(int16u id);
 typedef void  (*pputdata)(integer n, int16u* data);
 
@@ -92,6 +93,10 @@ uinteger _clb(int16u *pdata);
 uinteger _clll(int16u *pdata);
 integer _cll(int16u *pdata);  // calculate length of length !!!
 integer _cltype(int16u *pdata);  // calculate length of length !!!
+size_t _compressable(Bytef* istream,size_t length);
+size_t _decompressable(Bytef* istream,size_t length);
+bool _compress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
+bool _decompress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
 static integer _getnode(int16u id){
    return ((id>>5)&((1<<9)-1));
 }

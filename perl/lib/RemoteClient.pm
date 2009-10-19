@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.563 2009/07/29 11:30:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.564 2009/10/19 15:29:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5230,19 +5230,19 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "</TABLE>\n";
           }
          }
-            print "<tr><td>\n";
-            print "<b><font color=\"red\" size=\"3\">Template</font></b>\n";
-            print "</td><TD>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"</b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Basic\" >Basic<BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Advanced\" >Advanced<BR>\n";
-            print "</b></font></td></tr>\n";
-            print "</TABLE>\n";
+  #          print "<tr><td>\n";
+  #          print "<b><font color=\"red\" size=\"3\">Template</font></b>\n";
+  #          print "</td><TD>\n";
+  #          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+  #          print "<tr><td><font size=\"-1\"</b>\n";
+  #          print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Basic\" >Basic<BR>\n";
+   #         print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Advanced\" >Advanced<BR>\n";
+   #         print "</b></font></td></tr>\n";
+   #         print "</TABLE>\n";
             print "</TABLE>\n";
 
-            print "<TR><TD><font color=\"green\" size=\"3\"> ";
-            print "Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
+    #        print "<TR><TD><font color=\"green\" size=\"3\"> ";
+    #        print "Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
             print "<TR><TD><font color=\"tomato\" size=\"3\">";
             print "Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed";
@@ -9102,7 +9102,7 @@ sub htmlAMSHeader {
 
 sub htmlMCWelcome {
    print "<font size=\"3\"><TR><TD><b>\n";
-   print " This is an interface to the AMS MC02 Remote/Client Database. </TD></TR> \n";
+   print " This is an interface to the AMS Production Remote/Client Database. </TD></TR> \n";
    print "<BR>";
    print "All comments (to <font color=\"green\">  vitali.choutko\@cern.ch </font>) appreciated. 
 </TD></TR>\n";
@@ -9164,7 +9164,7 @@ sub htmlText {
 
 sub htmlReturnToMain {
             print "<p><tr><td><i>\n";
-            print "Return to <a href=$rchtml> MC02 Remote Client Request</a>\n";
+            print "Return to <a href=$rchtml> AMS Production Remote Client Request</a>\n";
             print "</i></td></tr>\n";
         }
 
@@ -9970,7 +9970,7 @@ sub queryDB {
   print "<p>\n";
   print "<ul>\n";
   print "<font size=\"3\"><TR><TD><b>\n";
-  print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
+  print " This is an interface to the AMS Production Remote/Client Database </TD></TR> \n";
   print "<TR><TD> \n";
   print "All comments (to <font color=\"green\">  vitali.choutko\@cern.ch </font>) appreciated. </TD></TR>\n";
   print "</ul>\n";

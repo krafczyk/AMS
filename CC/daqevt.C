@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.156 2009/09/11 16:40:05 choutko Exp $
+//  $Id: daqevt.C,v 1.157 2009/10/19 15:29:35 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -258,7 +258,6 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
   }
 }
 
-#include "zlib.h"
 
 void DAQEvent::buildDAQ(uinteger btype){
 DAQBlockType *fpl=_pBT[btype];
@@ -356,15 +355,93 @@ if(ntotm){
 //  do not change length 
 //
 
+//
+// special daqcdffkey.mode/100=9;
+// hopme mad compressin
 
     const int HDRMAX=4;
-if (DAQCFFKEY.mode/100){
+if(DAQCFFKEY.mode/100==9){
     AMSgObj::BookTimer.start("SIZIP");
   static int ziperr=0;
   int16u offset=_pbeg-_pData; 
   uint l2c=(_Length-offset)*sizeof(_pData[0]);
   if(l2c>0xfffff ){
      if(ziperr++<10)cerr<<"DAQEvent::builddaq-W-LengthTooBigWillNotBe Compressed "<<l2c<<endl;
+        AMSgObj::BookTimer.stop("SIZIP");
+   return;
+}
+size_t outl=_compressable((Bytef*)(_pbeg),l2c);
+//cout <<"  outl "<<outl<<" "<<l2c<<endl;
+if(outl){
+ Bytef* ostream=(Bytef*)calloc(outl,sizeof(Bytef));
+//  Bytef ostream[outl];
+  if(_compress((Bytef*)(_pbeg),l2c,ostream,outl)){ 
+    char *src=(char*)_pbeg;
+    int hdrsize=outl<=32767?sizeof(_pData[0]):2*sizeof(_pData[0]);
+    memcpy(src+hdrsize,ostream,outl);
+    if(outl%2){
+     src[hdrsize+outl]=0;
+    }
+    //printf("byte %d %d %d %d \n",src[hdrsize],ostream[0],ostream[1],ostream[outl-1]);
+//  
+//  add compressed bit
+//
+    *(_pbeg-3)= (*(_pbeg-3)) | (1<<14);
+
+//
+//  add subblock length
+//
+   if(outl<=32767){
+    *_pbeg=outl;
+   }
+   else{
+    *_pbeg=(outl>>16)&32767;
+    *(_pbeg+1)=(outl)&65535;
+    *_pbeg=(*_pbeg) | (1<<15);
+   }
+
+/*
+// 
+// calculate crc
+//
+    *(_pbeg+(suboffset+lc+1)/sizeof(_pbeg[0]))=calculate_CRC16(_pbeg+suboffset/sizeof(_pbeg[0]),(lc+1)/sizeof(_pbeg[0]));  
+*/
+
+//
+// Change length
+//  
+#ifdef __LVL3ONLY__
+   uint lold=_Length;
+#endif    
+   uint len=outl+sizeof(_pData[0])*(5+_cll(_pbeg)-_OffsetL);
+   if(offset == 5){    // short length format
+     _pData[0]=len;
+     if(len>32767){
+      cerr<<"DAQEvent::builddaq-S-LogicErrorLengthTooBig "<<len<<" "<<_Length<<endl;
+     }
+     _Length=(len+1)/2+_OffsetL;
+   }
+   else{
+    _pData[0]=(len>>16)&32767;
+    _pData[1]=(len)&65535;
+    _pData[0]=_pData[0] | (1<<15);
+   _Length=(len+1)/2+_OffsetL+1;
+   } 
+
+
+}
+ free(ostream);
+}
+        AMSgObj::BookTimer.stop("SIZIP");
+}
+else if (DAQCFFKEY.mode/100){
+    AMSgObj::BookTimer.start("SIZIP");
+  static int ziperr=0;
+  int16u offset=_pbeg-_pData; 
+  uint l2c=(_Length-offset)*sizeof(_pData[0]);
+  if(l2c>0xfffff ){
+     if(ziperr++<10)cerr<<"DAQEvent::builddaq-W-LengthTooBigWillNotBe Compressed "<<l2c<<endl;
+        AMSgObj::BookTimer.stop("SIZIP");
    return;
   }
   int err=0;
@@ -626,7 +703,38 @@ integer DAQEvent::_EventOK(){
        return 0;
       }
      else{
-        if( (*(_pData+preset-3)) & (1<<13)){
+      if( (*(_pData+preset-3)) & (1<<14)){
+         uint l2u=_clb(_pData+preset);
+         uint l2c=_decompressable((Bytef*)(_pData+preset+_cll(_pData+preset)),l2u);
+          //cout<<"  decompress "<<l2u<<" "<<l2c<<endl;
+         if(l2c){
+          Bytef ostream[l2c+preset*sizeof(_pData[0])];
+          memcpy(ostream,(char*)_pData,preset*sizeof(_pData[0])); 
+          if(_decompress((Bytef*)(_pData+preset+_cll(_pData+preset)),l2u,ostream+preset*sizeof(_pData[0]),l2c)){
+       //cout <<"  decompressed!!! "<<endl;
+     uint lhc=_cll(_pData+preset);
+     _Length+=(l2c-l2u)/sizeof(_pData[0])-lhc;
+     _create(_GetBlType());
+     memcpy((char*)(_pData),ostream,l2c+preset*sizeof(_pData[0]));
+     if(_cll(_pData)>1){
+      _pData[0]=(((_Length-_OffsetL)*sizeof(_pData[0]))>>16)&32767;
+      _pData[0]|=(1<<15);
+      _pData[1]=((_Length-_OffsetL)*sizeof(_pData[0]))&65535;
+     }
+     else{
+      _pData[0]=(_Length-_OffsetL)*sizeof(_pData[0]);
+     }  
+    *(_pData+preset-3)= (*(_pData+preset-3)) & (~(1<<14));
+     if(_EventOK()){
+         return 1;
+     }
+     else {
+       return 0;
+     }             
+          }
+         }
+      }
+      else  if( (*(_pData+preset-3)) & (1<<13)){
 //
 //       zip bit found
 //
@@ -1947,4 +2055,151 @@ _RootDir=new char[strlen(rootdir)+1];
 strcpy(_RootDir,rootdir);
 }
 }
+
+
+
+size_t DAQEvent::_compressable(Bytef * istream, size_t inputl){
+// 
+//estimate compressability
+//
+//input:   istream, inputl(Bytef)
+//
+//returns outputl(Bytef) if success ; 0 otherwise
+//
+
+
+size_t outputlb=0;
+for(int i=0;i<inputl;i++){
+ if(istream[i]==0)outputlb++;
+ else outputlb+=CHAR_BIT+1;
+}
+
+size_t outputl=(outputlb+CHAR_BIT-1)/CHAR_BIT;
+const int HDR=3;
+return (outputl+HDR<inputl?outputl:0);
+
+}
+
+
+size_t DAQEvent::_decompressable(Bytef * istream, size_t inputl){
+//
+//input:   istream, inputl(Bytef)
+//
+//returns outputl(Bytef) if success ; 0 otherwise
+//
+
+
+size_t pos=0;
+size_t outl=0;
+while(1){
+     if(pos>=inputl*CHAR_BIT)break;
+     size_t id=pos/CHAR_BIT;
+     size_t off=pos%CHAR_BIT;
+     if(istream[id]& (1<<off)){
+      pos+=CHAR_BIT+1;
+      if(pos>inputl*CHAR_BIT)break;
+     }
+     else pos++;
+     outl++;
+
+}
+return outl;
+}
+
+
+
+bool DAQEvent::_decompress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
+
+
+size_t pos=0;
+size_t outl=0;
+while(1){
+     if(pos>=inputl*CHAR_BIT)break;
+     size_t id=pos/CHAR_BIT;
+     size_t off=pos%CHAR_BIT;
+     if(istream[id]& (1<<off)){
+      if(pos+CHAR_BIT>inputl*CHAR_BIT)break;
+     if(outl>outputl){
+       cerr<<"  _decompress error !!! "<<outl<<" "<<pos<<" "<<inputl<<" "<<outputl<<endl;
+       return false;
+     }
+      pos++;
+      for(int k=0;k<CHAR_BIT;k++){
+       id=pos/CHAR_BIT;
+       off=pos%CHAR_BIT;
+       if(istream[id]& (1<<off))ostream[outl]|=(1<<k);
+       else  ostream[outl]&=~(1<<k); 
+       pos++;
+      }
+      outl++;
+      if(pos>=inputl*CHAR_BIT)break;
+     }
+     else {
+      pos++;
+      ostream[outl++]=0;
+     }
+}
+     return true;
+}
+
+
+
+
+bool DAQEvent::_compress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
+//
+// do zero suppression 
+//
+//
+//input:   istream, inputl,outputl
+//
+//output   ostream
+//
+//  
+
+// returns true if success
+ size_t id=0;
+ size_t off=0;
+for(int i=0;i<inputl;i++){
+ if(id>=outputl){
+   return false;
+ }
+ if(istream[i]==0){
+   ostream[id]&=~(1<<off);
+   off=(++off)%CHAR_BIT;
+   if(!off)id++;
+ }
+ else{
+   ostream[id]|=(1<<off);
+   off=(++off)%CHAR_BIT;
+   if(!off)id++;
+     if(off){
+      if(id+1>=outputl)return false;
+        ostream[id]|=(istream[i]<<off);
+        ostream[id+1]|=(istream[i]>>(CHAR_BIT-off));     
+     }
+     else{
+      if(id>=outputl)return false;
+       ostream[id]=istream[i];       
+     }
+     id++;
+ }
+}
+//
+//  set the rest of last byte
+//
+ if(off){
+  for (int k=off;k<CHAR_BIT;k++)ostream[id]|=(1<<k);
+ } 
+/*
+size_t out2=_decompressable(ostream,outputl);
+if(out2!=inputl){
+  cerr<<" !! decompress problem "<<out2<<" "<<inputl<<" "<<off<<" "<<id<<endl;
+  abort();
+}
+*/
+return ++id == outputl;
+}
+
+
+
 
