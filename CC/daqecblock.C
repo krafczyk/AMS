@@ -1323,7 +1323,7 @@ void DAQECBlock::EventBitDump(integer leng, int16u *p, char * message){
 integer DAQECBlock::getmaxblocks(){return 2;}//only one JINF per crate is implied(no redundancy)
 //---
 integer DAQECBlock::calcblocklength(integer ibl){
-//calc. JINF-block length from MD-data
+//calc. JINF-block length from MC-data
   int i,j,k;
   integer id,idd;
   integer nqwords(0),nwords(0);
@@ -1333,6 +1333,10 @@ integer DAQECBlock::calcblocklength(integer ibl){
   AMSEcalRawEvent * ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                                      getheadC("AMSEcalRawEvent",ibl,0);
   for(i=0;i<ECEDRS;i++)nwslot[i]=0;
+//
+  bool newdataf(false);
+  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
+  else newdataf=false;
 //count anodes:
   while(ptr){ // <--- RawEvent-hits loop in crate ibl:
     isl=ptr->getslay();//suplayer:0,...8 
@@ -1376,6 +1380,7 @@ integer DAQECBlock::calcblocklength(integer ibl){
 //
   nwords+=9;//add etrg-block words (7data + leng +status)
   nwords+=1;//JINF status
+  if(newdataf)nwords+=2;//add new format 2 cdpmsk words (in front of JINF status)
 //
   return -nwords;//JINJ-readout
 }
@@ -1392,6 +1397,11 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   AMSEcalRawEvent * ptr;
   int16u edrbuf[ECEDRS][ECEDRC];
   int16u nwslot[ECEDRS];
+//
+  bool newdataf(false);
+  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
+  else newdataf=false;
+//
   ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",ibl,0);
   for(i=0;i<ECEDRS;i++){
@@ -1524,6 +1534,13 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   *(p+nwrite)=stat;//status word
   nwrite+=1;
 //cout<<"    wrote EDRs+ETRG 16bwords:"<<nwrite<<endl;
+// add 2 new cdpmsk words in front of JINF status word
+  if(newdataf){
+    *(p+nwrite)=0;//all cdp's ok
+    nwrite+=1;
+    *(p+nwrite)=0;//all cdp's ok
+    nwrite+=1;
+  } 
 //->JINF stat.word
   integer portid=DAQECBlock::getportid(int16u(ibl));//12,13
   slid=int16u(portid&(0x001FL));

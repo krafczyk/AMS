@@ -660,12 +660,19 @@ sub ReadDCDefFile{
 	  if($cm==0){$SELEparsN=$cmm;}
 	  $SELEcmval[$cm]=$val;
 	}
-#8(EvSel)
+#9(EvSel)
 	if($cnam eq "CHAR"){
 	  $CHARcmid[$cm]=$cmid;
 	  $CHARcmdf[$cm]=$val;
 	  if($cm==0){$CHARparsN=$cmm;}
 	  $CHARcmval[$cm]=$val;
+	}
+#10(TRK)
+	if($cnam eq "TRFI"){
+	  $TRFIcmid[$cm]=$cmid;
+	  $TRFIcmdf[$cm]=$val;
+	  if($cm==0){$TRFIparsN=$cmm;}
+	  $TRFIcmval[$cm]=$val;
 	}
 #
         $pos+=1;
@@ -673,9 +680,5 @@ sub ReadDCDefFile{
     }#-->endof Gr-members(dc-cards types) loop
   }#-->endof groups loop
 #---
-  if($SessName eq "MCS"){
-    $DAQCcmdf[0]=0;#redefine def.for MC (not write DaqFile)
-    $DAQCcmval[0]=$DAQCcmdf[0];
-  }
 }
 #------------------------------------------------------

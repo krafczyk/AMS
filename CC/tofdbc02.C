@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.68 2009/09/18 10:07:09 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.69 2009/10/20 09:54:32 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2095,7 +2095,7 @@ void TOF2JobStat::printstat(){
   }
   printf("\n\n");
 //
-  if(TFREFFKEY.reprtf[4]==0)return;
+  if(TFREFFKEY.reprtf[4]==0)return;//"More prints" flag is off
 //
 //----------------------------------------------------------
 //
@@ -2231,7 +2231,7 @@ void TOF2JobStat::printstat(){
 //
 //
 //----------------------------------------------------------
-  if(TFREFFKEY.relogic[0]==1)return;// no reco for strr-calibr
+  if(TFREFFKEY.relogic[0]==1)return;// no reco for tdclinearity-calibr
 //
   printf("==========> Bars reconstruction report :\n\n");
 //

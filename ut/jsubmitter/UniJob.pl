@@ -996,7 +996,6 @@ sub Welcome{
   }
 #-
   $Lv1OffPrivFlg=int($TGL1cmval[17]/10);# 0/1=>offic/priv
-  print "Lv1OffPrivFlg=",$Lv1OffPrivFlg,"\n";
 #--- redef. def-setting for DAQ-r/w param:
   if($SessName eq "RDR" || $SessName eq "MCR"){
     $DAQCcmdf[0]=1;#read daq-files by default
@@ -1005,7 +1004,7 @@ sub Welcome{
   $DAQCcmval[0]=$DAQCcmdf[0];
   $ReadDaqFlg=($DAQCcmval[0]%10);
   $WriteDaqFlg=(int($DAQCcmval[0]/10)%10);
-  $ComprTrkFlg=int($DAQCcmval[0]/100);
+  $ComprDaqFlg=int($DAQCcmval[0]/100);
 #
 #---
   @TrigPhysmVals=();
@@ -1044,9 +1043,18 @@ sub Welcome{
 #
   @EnSpectra=qw(Cosmic undCutof SeaLevMu MevElect UnifMom UnifLogM);
   $EnSpectr=$EnSpectra[$MCGENcmval[17]];
-#
+#---
   @TrkPrjNames=qw(y x+y,y x+y,y,x);
   $TrkPrjName=$TrkPrjNames[$CHARcmval[0]];
+#
+  @TrkFitMethods=qw(Yale Geane);
+  $TrkFitMethod=$TrkFitMethods[$TRFIcmval[18]];
+#
+  @TrkPattRecMethods=qw(JAlcaraz VChoutko);
+  $TrkPattRecMethod=$TrkPattRecMethods[$TRFIcmval[19]];
+#---
+  @FastTrkModes=qw(PresEvsOnly PresEvs+Ion AllEvs-Lvl3=3 AllEvs+Lvl3=3 +HiQualTrk);
+  $FastTrkMode=$FastTrkModes[4-$TRFIcmval[6]];
 #---
   $FileSize=50;# mb (for daq-files search)
   $MinEvsInFile=50000;
@@ -4282,7 +4290,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
                                               -font=>$font3,
-                                              -textvariable=>\$IOPAcmval[2])
+                                              -textvariable=>\$IOPAcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>$shf);
@@ -4351,7 +4359,7 @@ if($RecoSimuP eq "RECO"){
                                               -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$entw;
 #------
-  $labw=0.25;
+  $labw=0.18;
   $entw=0.15;
   $xpos=0;
   $sdset_fram->Label(-text=>"RootFName:",-font=>$font2,-relief=>'groove')
@@ -4361,30 +4369,57 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
                                               -font=>$font3,
-                                              -textvariable=>\$IOPAcmval[3])
+                                              -textvariable=>\$IOPAcmval[4])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
 #---
-  $labw=0.25;
-  $entw=0.05;
-  $xpos=0;
-#
-  if($SessName eq "RDR" || $SessName eq "MCR"){
-  $sdset_fram->Label(-text=>"ReadDAQf:",-font=>$font2,-relief=>'groove')
+  $labw=0.18;
+  $entw=0.14;
+  $sdset_fram->Label(-text=>"MaxEvs/File:",-font=>$font2,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
-                                                -relx=>$xpos, -rely=>($shf+3*$drh));
-						
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
                                               -font=>$font3,
-                                              -textvariable=>\$ReadDaqFlg)
+                                              -textvariable=>\$IOPAcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
-                                              -relx=>$xpos, -rely=>($shf+3*$drh));
+                                              -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
+#---
+  $labw=0.22;
+  $entw=0.13;
+  $sdset_fram->Label(-text=>"MaxFileSize(kb):",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$IOPAcmval[5])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$entw;
+#------
+  $butw=0.2;
+  $xpos=0;
+#
+  if($SessName eq "RDR" || $SessName eq "MCR"){
+    $sdset_fram->Checkbutton(-text=>"ReadDaqF", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$ReadDaqFlg)
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+3*$drh));
+    $xpos+=$butw;
   }
 #------
   $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
@@ -4413,24 +4448,50 @@ elsif($RecoSimuP eq "SIMU"){
   $nlmc=3;
   $drh=(1.-$shf)/$nlmc;
 #---
-  $labw=0.25;
-  $entw=0.05;
+  $butw=0.21;
   $xpos=0;
-  $sdset_fram->Label(-text=>"WriteDAQf:",-font=>$font2,-relief=>'groove')
-                                                ->place(
-						-relwidth=>$labw, -relheight=>$drh,
-                                                -relx=>$xpos, -rely=>($shf+0*$drh));
-  $xpos+=$labw;
-  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
-                                              -textvariable=>\$WriteDaqFlg)
-					      ->place(
-                                              -relwidth=>$entw, -relheight=>$drh,  
-                                              -relx=>$xpos, -rely=>($shf+0*$drh));
-  $xpos+=$entw;
+#
+  $sdset_fram->Radiobutton(-text=>"NotWriteDaqF",-font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+                                                 -background=>green,
+			                         -cursor=>hand2,
+#						 -foreground=>red,
+                                                 -value=>0, -variable=>\$WriteDaqFlg)
+                                                 ->place(
+						      -relwidth=>$butw, -relheight=>$drh,
+						      -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$butw;
+#-
+  $sdset_fram->Radiobutton(-text=>"WriteF(norepl)",-font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+                                                 -background=>green,
+			                         -cursor=>hand2,
+#						 -foreground=>red,
+                                                 -value=>1, -variable=>\$WriteDaqFlg)
+                                                 ->place(
+						      -relwidth=>$butw, -relheight=>$drh,
+						      -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$butw;
+#-
+  $sdset_fram->Radiobutton(-text=>"WriteF(append)",-font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+                                                 -background=>green,
+			                         -cursor=>hand2,
+#						 -foreground=>red,
+                                                 -value=>2, -variable=>\$WriteDaqFlg)
+                                                 ->place(
+						      -relwidth=>$butw, -relheight=>$drh,
+						      -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$butw;
 #---
-  $labw=0.25;
-  $entw=0.45;
+  $labw=0.19;
+  $entw=0.18;
   $sdset_fram->Label(-text=>"DAQfileName:",-font=>$font2,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
@@ -5505,8 +5566,9 @@ sub SetTrkPars{
   my $ar;
   my $optmenu1;
 #------
-if($RecoSimuP eq "RECO"){
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
+if($RecoSimuP eq "RECO"){
+ if($PageNumb eq "Page1"){#<--- page-1
   $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -5518,10 +5580,377 @@ if($RecoSimuP eq "RECO"){
   $nl=4;
   $drh=(1.-$shf)/$nl;
 #---
+  $labw=0.18;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"TofCls2Match:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.03;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[0])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$entw;
+#---
+  $labw=0.18;
+  $sdset_fram->Label(-text=>"MxChi2FastF:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.08;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[1])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$entw;
+#-
+  $labw=0.2;
+  $sdset_fram->Label(-text=>"MxChi2StLineF:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.07;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[2])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$entw;
+#---
+  $labw=0.18;
+  $sdset_fram->Label(-text=>"MxChi2noMS:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.08;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[3])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$entw;
+#------
+  $labw=0.18;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"MinRigid(Gv):",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.07;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[4])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+#---
+  $butw=0.16;
+  $sdset_fram->Checkbutton(-text=>"UseUsedCls", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[5])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$butw;
+#---
+  $labw=0.23;
+  $sdset_fram->Label(-text=>"FastTrackingMode:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#--
+  $menw=0.19;
+  $sdset_fram->Optionmenu(-textvariable => \$FastTrkMode, -variable => \$TRFIcmval[6],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [[$FastTrkModes[0],4],[$FastTrkModes[1],3],
+			               [$FastTrkModes[2],2],[$FastTrkModes[3],1],[$FastTrkModes[4],0]],
+			       -command => sub{print "text/var=",$FastTrkMode," ",$TRFIcmval[6],"\n";}
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$menw;
+#---
+  $butw=0.17;
+  $sdset_fram->Checkbutton(-text=>"UseWeekCls", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[7])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$butw;
+#------
+  $xpos=0;
+  $butw=0.16;
+  $sdset_fram->Checkbutton(-text=>"accept 4y+3x", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[8])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$butw;
+#---
+  $labw=0.24;
+  $sdset_fram->Label(-text=>"3PntsCase_MxChi2:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.06;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[9])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$entw;
+#---
+  $butw=0.18;
+  $sdset_fram->Checkbutton(-text=>"AddFalseTofX", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[10])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$butw;
+#---
+  $butw=0.17;
+  $sdset_fram->Checkbutton(-text=>"Use 4y+TofX", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[11])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$butw;
+#---
+  $butw=0.19;
+  $sdset_fram->Checkbutton(-text=>"NoTofInconHit", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[12])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+2*$drh));
+  $xpos+=$butw;
+#-------
+  $butw=0.15;
+  $xpos=0;
+  $sdset_fram->Checkbutton(-text=>"UseAdvFit", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[13])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+3*$drh));
+  $xpos+=$butw;
+#---
+  $labw=0.2;
+  $sdset_fram->Label(-text=>"Max Hits/Layer:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+3*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.06;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[14])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+3*$drh));
+  $xpos+=$entw;
+#---
+  $butw=0.12;
+  $sdset_fram->Checkbutton(-text=>"UseTRD", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[15])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+3*$drh));
+  $xpos+=$butw;
+#---
+  $butw=0.27;
+  $sdset_fram->Checkbutton(-text=>"Accept >=5plns Tracks", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[16])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+3*$drh));
+  $xpos+=$butw;
+#------
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+                                          -activebackground=>"yellow",
+			                  -activeforeground=>"red",
+			                  -foreground=>"red",
+			                  -background=>"green",
+                                          -borderwidth=>3,-relief=>'raised',
+			                  -cursor=>hand2,
+                                          -command => \&ResetDC2Defs)
+			                  ->place(
+                                          -relwidth=>0.2, -relheight=>$drh,  
+                                          -relx=>0.8, -rely=>($shf+($nl-1)*$drh));
+ }
+#----------
+ else{#<--- page-2
+  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
+                                                  -borderwidth=>5,
+                                                  -background => "gray")
+						  ->place(
+                                                  -relwidth=>1, -relheight=>$sdframhig,
+                                                  -relx=>0, -rely=>$sdframpos);
+#---
+  $shf=0.17;
+  $nl=4;
+  $drh=(1.-$shf)/$nl;
+#---
+  $butw=0.22;
+  $xpos=0;
+  $sdset_fram->Checkbutton(-text=>"2TrksVertexOnly", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TRFIcmval[17])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh,
+						 -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$butw;
+#---
+  $labw=0.2;
+  $sdset_fram->Label(-text=>"TrkFitMethod:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#-
+  $menw=0.13;
+  $sdset_fram->Optionmenu(-textvariable => \$TrkFitMethod, -variable => \$TRFIcmval[18],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [[$TrkFitMethods[0],0],[$TrkFitMethods[1],1]],
+#			       -command => sub{print "text/var=",$TrkFitMethod," ",$TRFIcmval[18],"\n";}
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$menw;
+#---
+  $labw=0.28;
+  $sdset_fram->Label(-text=>"TrkPattRecognMethod:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$labw;
+#-
+  $menw=0.17;
+  $sdset_fram->Optionmenu(-textvariable => \$TrkPattRecMethod, -variable => \$TRFIcmval[19],
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [[$TrkPattRecMethods[0],0],[$TrkPattRecMethods[1],1]],
+#			       -command => sub{print "text/var=",$TrkPattRecMethod," ",$TRFIcmval[19],"\n";}
+	                       )
+                               ->place(
+                               -relwidth=>$menw, -relheight=>$drh,  
+                               -relx=>$xpos, -rely=>($shf+0*$drh));
+  $xpos+=$menw;
+#------
+  $labw=0.15;
+  $xpos=0;
+  $sdset_fram->Label(-text=>"MainAlg:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh,
+                                                -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$labw;
+#-
+  $entw=0.08;
+  $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
+                                              -font=>$font3,
+                                              -textvariable=>\$TRFIcmval[20])
+					      ->place(
+                                              -relwidth=>$entw, -relheight=>$drh,  
+                                              -relx=>$xpos, -rely=>($shf+1*$drh));
+  $xpos+=$entw;
+#------
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+                                          -activebackground=>"yellow",
+			                  -activeforeground=>"red",
+			                  -foreground=>"red",
+			                  -background=>"green",
+                                          -borderwidth=>3,-relief=>'raised',
+			                  -cursor=>hand2,
+                                          -command => \&ResetDC2Defs)
+			                  ->place(
+                                          -relwidth=>0.2, -relheight=>$drh,  
+                                          -relx=>0.8, -rely=>($shf+($nl-1)*$drh));
+ }
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -5543,8 +5972,8 @@ sub SetTrdPars{
   my $ar;
   my $optmenu1;
 #------
-if($RecoSimuP eq "RECO"){
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
+if($RecoSimuP eq "RECO"){
   $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -5559,7 +5988,6 @@ if($RecoSimuP eq "RECO"){
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -5581,8 +6009,8 @@ sub SetRichPars{
   my $ar;
   my $optmenu1;
 #------
-if($RecoSimuP eq "RECO"){
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
+if($RecoSimuP eq "RECO"){
   $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -5597,7 +6025,6 @@ if($RecoSimuP eq "RECO"){
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -6564,7 +6991,7 @@ sub ResetDC2Defs{
     }
     $ReadDaqFlg=($DAQCcmval[0]%10);
     $WriteDaqFlg=(int($DAQCcmval[0]/10)%10);
-    $ComprTrkFlg=int($DAQCcmval[0]/100)
+    $ComprDaqFlg=int($DAQCcmval[0]/100)
   }
 #------>gr-7
   elsif($DataGroup eq "LVL1"){
@@ -6639,6 +7066,20 @@ sub ResetDC2Defs{
       for($i=0;$i<$SELEparsN;$i++){$SELEcmval[$i]=$SELEcmdf[$i];}
     }
   }
+#--->gr-10
+  elsif($DataGroup eq "TRK"){
+    if($RecoSimuP eq "RECO"){
+      if($PageNumb eq "Page1"){#<--- for part of "TRFI" card
+        for($i=0;$i<17;$i++){$TRFIcmval[$i]=$TRFIcmdf[$i];}
+        $FastTrkMode=$FastTrkModes[4-$TRFIcmval[6]];
+      }
+      else{#page-2
+        for($i=17;$i<$TRFIparsN;$i++){$TRFIcmval[$i]=$TRFIcmdf[$i];}
+        $TrkFitMethod=$TrkFitMethods[$TRFIcmval[18]];
+        $TrkPattRecMethod=$TrkPattRecMethods[$TRFIcmval[19]];
+      }
+    }
+  }
 #--->gr-9
   elsif($DataGroup eq "ZFit"){
     if($RecoSimuP eq "RECO"){
@@ -6711,9 +7152,9 @@ sub ConfirmPars{
     $j=10*$j;
   }
 #--->"IO"
-  $DAQCcmval[0]=$ReadDaqFlg+10*$WriteDaqFlg+100*$ComprTrkFlg;# create  DAQ-read/write param 
+  $DAQCcmval[0]=$ReadDaqFlg+10*$WriteDaqFlg+100*$ComprDaqFlg;# create  DAQ-read/write param 
 #
-  if($IOPAcmval[2]>0){$WrRootFlg=1;}
+  if($IOPAcmval[3]>0){$WrRootFlg=1;}
   else{$WrRootFlg=0;}
 #
   $IOPAcmval[0]=$ObjWriteVal+10*$Wr2RootfCond1+100*$Wr2RootfCond2;# set obj to write
@@ -7154,7 +7595,7 @@ sub CreateJobScript{
 	  $cmid=$IOPAcmid[$cm];
 	  $def=$IOPAcmdf[$cm];
 	  $val=$IOPAcmval[$cm];
-	  if($cm==3){#<---make complete root-file path
+	  if($cm==4){#<---make complete root-file path
 	    if($RootfSubD eq ""){$rssdir=$RootfSubD."/";}
 	    else{$rssdir="/".$RootfSubD."/";}
 	    $path="'".$RootfDir.$rsdir.$rssdir.$val.".root"."'";
@@ -7393,6 +7834,26 @@ sub CreateJobScript{
         }#<-- card-mems loop
 	$linem=length($line);
 	if($linem > 0 && $line ne "CHAR"){push(@jobscript,$line);}#uncompleted line
+      }
+#(TRFIT)
+      if($cnam eq "TRFI"){
+        $line="TRFI";
+	$cmm=$TRFIparsN;
+	for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $linem=length($line);
+	  $cmid=$TRFIcmid[$cm];
+	  $def=$TRFIcmdf[$cm];
+	  $val=$TRFIcmval[$cm];
+	  $sline=" ".$cmid."=".$val;
+	  $slinem=length($sline);
+	  if($slinem < (72-$linem)){$line=$line.$sline;}
+	  else{
+            push(@jobscript,$line);
+	    $line=$sline;
+	  }
+        }#<-- card-mems loop
+	$linem=length($line);
+	if($linem > 0 && $line ne "TRFI"){push(@jobscript,$line);}#uncompleted line
       }
 #---
       $pos+=1;
@@ -7744,6 +8205,19 @@ sub CreateNewDCFile{
 	  $cmid=$CHARcmid[$cm];
 	  if($CHARcmdf[$cm] eq $CHARcmval[$cm]){$val=$CHARcmdf[$cm];}
 	  else{$val=$CHARcmval[$cm];}
+	  $line="      ".$cmid." ".$val."\n";
+          push(@DCbuffer,$line);
+	}
+      }
+#
+      if($cnam eq "TRFI"){
+        $cmm=$TRFIparsN;
+	$line="  ".$cmm."  ".$cnam."\n";
+        push(@DCbuffer,$line);
+        for($cm=0;$cm<$cmm;$cm++){#<-- card-mems loop
+	  $cmid=$TRFIcmid[$cm];
+	  if($TRFIcmdf[$cm] eq $TRFIcmval[$cm]){$val=$TRFIcmdf[$cm];}
+	  else{$val=$TRFIcmval[$cm];}
 	  $line="      ".$cmid." ".$val."\n";
           push(@DCbuffer,$line);
 	}

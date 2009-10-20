@@ -43,7 +43,7 @@ using namespace ANTI2C;
 			   4011,4031,4051,4071,   0,4021,4041,4061,4081,   0, //cr-4
 			   3011,3031,3051,3071,3091,3021,3041,3061,3081,3101
 			   };
-//TOF-plane envelops temper.sensors IDs (vs Layer/Chain/Sens#):
+//TOF-plane envelops temper.sensors s/w IDs (vs Layer/Chain/Sens#):
 //SFEC-type id=>CSS(C=1-4;SS=8-11) Paddle-type id=>LBBSP
   int AMSSCIds::envsensid[TOF2GC::SCLRS][2][8]={  108,10611,10411,10211,10822,10622,10422,  208, //L-1,Chain-A
                                                   109,10611,10411,10211,10822,10622,10422,  209, //         -B

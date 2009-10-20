@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.85 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.86 2009/10/20 09:54:31 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -80,14 +80,15 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     int i;
     char fname[80];
     char name[80]="EcalAlign";
-    char vers1[10]="MC";
-    char vers2[10]="PreAss";//=clean room
-    char vers3[10]="Space";//final
+    char vers1[10]="MC";//not used now
+    char vers2[10]="PreAss";//= first clean room assembly(jan 2008)
+    char vers3[10]="Ass1";//= final clean room assembly (oct 2009)
+    char vers4[10]="Space";//final
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
       cout <<"<------ ECALGeom-I- AMS02D configuration is used..."<<endl;
-      strcat(name,vers3);//as space
+      strcat(name,vers4);//as space
       ZShift=-AMSDBc::amsdext;
       cout<<"        ZShift="<<ZShift<<endl;
     }
@@ -98,9 +99,13 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
         cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers2);//clean room
       }
+      else if(strstr(AMSJob::gethead()->getsetup(),"Ass1")){
+        cout <<"      FinalAssembly(CleanRoom) setup selected..."<<endl;
+        strcat(name,vers3);//clean room
+      }
       else{
         cout <<"      Space (default) setup selected..."<<endl;
-        strcat(name,vers3);//space
+        strcat(name,vers4);//space
       }
     }
 //

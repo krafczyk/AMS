@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.62 2009/09/18 10:07:09 choumilo Exp $
+//  $Id: tofrec02.C,v 1.63 2009/10/20 09:54:32 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -122,7 +122,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
     }//  ---- end of RawSide hits loop ------->
 }
     return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
-  }
+  }//<=== endof PedCalJob(Class/DS) processing
 //---------------------------------------------------------------
 //
 // =============> check/combine adc/tdc/Ft data :

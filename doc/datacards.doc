@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.305 2009/10/19 15:29:45 choutko Exp $
+#  $Id: datacards.doc,v 1.306 2009/10/20 09:54:49 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -700,11 +700,11 @@ I 20 printfl(0);           // =0/n>0 -> noPrint/Print(higher n - more details) e
 
 I 21 Lvl1ConfSave(0)       // If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
 
-I 22 NoPrescalingInMC(0)   // disable prescaling in MC if set to 1 (in any case presc. is disabled for 
+I 22 NoPrescalingInMC(0)   // disable prescaling in MC if set to 1 (in any case prescaling is disabled for 
                            // "Unbiased TOF" and "Unbiased EC" branches of LVL1 trigger when ONLY
 			   // any combination of THESE two branches is requested in trtype (#1) !!!)
 			   // For normal physical trigger(127) presc.factors are set for these two branches
-			   // 50:1 and 20:1 respectively.
+			   // as 50:1 and 20:1 respectively.
 
 I 23->                     // Begin/End dates for trigger TDVs
 

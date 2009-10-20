@@ -134,11 +134,13 @@
 	6  Test
 6
   2
-     4 IOPA
+     6 IOPA
        43  1
        45  'TriggerLVL1'
+      126 100000
       127  0
       128  rootfile
+      168  1000000
      2 DAQC
         1  1
        42  mcdaqout
