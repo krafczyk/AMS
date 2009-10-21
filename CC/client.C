@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.44 2009/02/13 14:11:00 choutko Exp $
+//  $Id: client.C,v 1.45 2009/10/21 10:35:27 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -7,7 +7,12 @@
 #include <sys/time.h>
 #include <time.h>
 #include <netdb.h>
-#
+extern "C" void g_assert_warning         (const char *log_domain,
+			       const char *file,
+			       const int   line,
+		               const char *pretty_function,
+		               const char *expression){
+}
 char AMSClient::_streambuffer[1024];
 std::ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
 

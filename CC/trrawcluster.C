@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.101 2009/09/04 13:01:58 choutko Exp $
+//  $Id: trrawcluster.C,v 1.102 2009/10/21 10:35:28 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -467,7 +467,7 @@ integer AMSTrRawCluster::calcdaqlength(integer i){
      }
    }
    if(l)l++;
-  return -l;
+  return (l<32768?-l:0);
 }
 
 

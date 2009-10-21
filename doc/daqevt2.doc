@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.6 2008/09/26 15:32:35 choutko Exp $
+#  $Id: daqevt2.doc,v 1.7 2009/10/21 10:35:34 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -20,9 +20,9 @@ All 16 bit unsigned integers.
 Legend:
 
 EL      - low 15bits of total event length (in bytes!)-2 if 16th bit is not set
-        - upper 15bits of total event length -2 if 16th bit is set
+        - upper 15bits of total event length -4 if 16th bit is set
 EL2     - does not exist if 16th bit is not set
-EL2      - low 16bits of total event length -2 if 16th bit is set
+EL2      - low 16bits of total event length -4 if 16th bit is set
 EID      -  low 5 bits:  type then 9 bits node
 EID2     -  does not exist if type != 0x1F
 STA      -  0  ?
@@ -111,8 +111,9 @@ should have 3 functions
  
  static integer getmaxblocks();      // returns maxblocks
  static integer calcdaqlength(int i);    // i =0 to max blocks-1
-                                     // return data length ==LSubDBl if in JINF mode    
-                                    // return data length== -LSubDBl if in JINJ mode
+                                     // return data length<16384?LSubDBl:0 if in JINF mode    
+                                    // return data length<32768?-LSubDBl:0 if in JINJ mode
+
 
  static void builddaq(integer i, integer length, int16u *p);
                                                 

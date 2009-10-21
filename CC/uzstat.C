@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.27 2009/09/11 16:26:20 choutko Exp $
+//  $Id: uzstat.C,v 1.28 2009/10/21 10:35:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -203,7 +203,7 @@ extern "C" number HighResTime(){
   static struct timezone  TZ;
   static timeval TPS;
   static integer init=0;
-  const number TRes=0.002;
+  const number TRes=0.02;
 
   if(init++ ==0){
     gettimeofday(&TPSLast,&TZ);

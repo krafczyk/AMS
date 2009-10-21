@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.67 2009/10/19 15:29:45 choutko Exp $
+//  $Id: daqevt.h,v 1.68 2009/10/21 10:35:35 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -93,10 +93,12 @@ uinteger _clb(int16u *pdata);
 uinteger _clll(int16u *pdata);
 integer _cll(int16u *pdata);  // calculate length of length !!!
 integer _cltype(int16u *pdata);  // calculate length of length !!!
+/*
 size_t _compressable(Bytef* istream,size_t length);
 size_t _decompressable(Bytef* istream,size_t length);
 bool _compress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
 bool _decompress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
+*/
 static integer _getnode(int16u id){
    return ((id>>5)&((1<<9)-1));
 }

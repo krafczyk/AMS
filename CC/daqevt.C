@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.157 2009/10/19 15:29:35 choutko Exp $
+//  $Id: daqevt.C,v 1.158 2009/10/21 10:35:28 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -47,10 +47,22 @@ using std::istrstream;
 // */
 // };
 
+
+
+
+
+
 extern "C" int scandir64(		const char *, struct dirent64 ***, 
                                 int (*)(struct dirent64 *),  
                                 int (*)(struct dirent64 **, struct dirent64 **));
 #endif
+
+
+
+extern "C" size_t _compressable(Bytef* istream,size_t length);
+extern "C" size_t _decompressable(Bytef* istream,size_t length);
+extern "C" bool _compress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
+extern "C" bool _decompress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
 
 
 
@@ -274,6 +286,10 @@ integer ntotm=0;
 while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
    int len=(fpl->_pgetlength)(i);
+   if(len>=16384 || len<=-32768){
+     cerr<<" DAQEvent::buildDaq-E-SubDLTooBigIgnoring "<<len<<endl;
+     len=0;
+   }
    *(fpl->_plength+i)=len>0?len+_OffsetL:len-_OffsetL;
    if(abs(*(fpl->_plength+i))>1)ntot+=abs(*(fpl->_plength+i));
    if((*(fpl->_plength+i))<-1)ntotm-=(*(fpl->_plength+i));
@@ -287,8 +303,8 @@ while(fpl){
 if(!ntot )return;
 int preset=ntotm?4+5:4;
 _Length=preset+ntot+_OffsetL;
-
-if(_Length-_OffsetL > 32767){
+const int thr=32767;
+if((_Length-_OffsetL)*sizeof(*_pcur) > thr){
   cout<<"DAQEvent::buildDAQ-W-lengthToobig "<<_Length<<endl;
   _Length++;
 }
@@ -373,9 +389,11 @@ if(DAQCFFKEY.mode/100==9){
 size_t outl=_compressable((Bytef*)(_pbeg),l2c);
 //cout <<"  outl "<<outl<<" "<<l2c<<endl;
 if(outl){
- Bytef* ostream=(Bytef*)calloc(outl,sizeof(Bytef));
+ Bytef* ostream=(Bytef*)calloc(outl+2,sizeof(Bytef));
 //  Bytef ostream[outl];
-  if(_compress((Bytef*)(_pbeg),l2c,ostream,outl)){ 
+if(_compress((Bytef*)(_pbeg),l2c,ostream,outl)){ 
+  //AMSgObj::BookTimer.start("SIZIP");
+
     char *src=(char*)_pbeg;
     int hdrsize=outl<=32767?sizeof(_pData[0]):2*sizeof(_pData[0]);
     memcpy(src+hdrsize,ostream,outl);
@@ -427,12 +445,16 @@ if(outl){
     _pData[0]=_pData[0] | (1<<15);
    _Length=(len+1)/2+_OffsetL+1;
    } 
+        AMSgObj::BookTimer.stop("SIZIP");
+#ifdef __LVL3ONLY__
+   fbin1<<AMSEvent::gethead()->getid()<<" "<<lold*2<<" "<<_Length*2<<endl;
+#endif
 
 
 }
  free(ostream);
 }
-        AMSgObj::BookTimer.stop("SIZIP");
+
 }
 else if (DAQCFFKEY.mode/100){
     AMSgObj::BookTimer.start("SIZIP");
@@ -717,9 +739,9 @@ integer DAQEvent::_EventOK(){
      _create(_GetBlType());
      memcpy((char*)(_pData),ostream,l2c+preset*sizeof(_pData[0]));
      if(_cll(_pData)>1){
-      _pData[0]=(((_Length-_OffsetL)*sizeof(_pData[0]))>>16)&32767;
+      _pData[0]=(((_Length-_cll(_pData))*sizeof(_pData[0]))>>16)&32767;
       _pData[0]|=(1<<15);
-      _pData[1]=((_Length-_OffsetL)*sizeof(_pData[0]))&65535;
+      _pData[1]=((_Length-_cll(_pData))*sizeof(_pData[0]))&65535;
      }
      else{
       _pData[0]=(_Length-_OffsetL)*sizeof(_pData[0]);
@@ -785,9 +807,9 @@ again:
      _create(_GetBlType());
      memcpy((char*)(_pData),tgt,l2c+preset*sizeof(_pData[0]));
      if(_cll(_pData)>1){
-      _pData[0]=(((_Length-_OffsetL)*sizeof(_pData[0]))>>16)&32767;
+      _pData[0]=(((_Length-_cll(_pData))*sizeof(_pData[0]))>>16)&32767;
       _pData[0]|=(1<<15);
-      _pData[1]=((_Length-_OffsetL)*sizeof(_pData[0]))&65535;
+      _pData[1]=((_Length-_cll(_pData))*sizeof(_pData[0]))&65535;
      }
      else{
       _pData[0]=(_Length-_OffsetL)*sizeof(_pData[0]);
@@ -1629,8 +1651,8 @@ if(_pData && AMSJob::gethead()->isSimulation()){
 //   This is for daq creation only
 //   
 
-
-if((_Length-_OffsetL)*2<=32767){
+const int thr=32767;
+if((_Length-_OffsetL)*2<=thr){
  _pData[0]=(_Length-_OffsetL)*2;
  _pData[1]=(btype)  ;
  _pData[2]=0;
@@ -1640,8 +1662,8 @@ _pData[3]=(timeu>>16)&65535;
 _pcur=_pData+5;
 }
 else{
- _pData[0]=(((_Length-_OffsetL)*2)>>16)&32767;
- _pData[1]=(((_Length-_OffsetL)*2))&65535;
+ _pData[0]=(((_Length-2*_OffsetL)*2)>>16)&32767;
+ _pData[1]=(((_Length-2*_OffsetL)*2))&65535;
  _pData[0]=_pData[0] | (1<<15);
  _pData[2]=(btype)  ;
  _pData[3]=0;
@@ -2058,7 +2080,7 @@ strcpy(_RootDir,rootdir);
 
 
 
-size_t DAQEvent::_compressable(Bytef * istream, size_t inputl){
+extern "C" size_t _compressable(Bytef * istream, size_t inputl){
 // 
 //estimate compressability
 //
@@ -2081,7 +2103,7 @@ return (outputl+HDR<inputl?outputl:0);
 }
 
 
-size_t DAQEvent::_decompressable(Bytef * istream, size_t inputl){
+extern "C" size_t _decompressable(Bytef * istream, size_t inputl){
 //
 //input:   istream, inputl(Bytef)
 //
@@ -2108,7 +2130,7 @@ return outl;
 
 
 
-bool DAQEvent::_decompress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
+extern "C" bool _decompress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
 
 
 size_t pos=0;
@@ -2145,8 +2167,8 @@ while(1){
 
 
 
-bool DAQEvent::_compress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
-//
+extern "C" bool _compress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
+/*
 // do zero suppression 
 //
 //
@@ -2154,50 +2176,33 @@ bool DAQEvent::_compress(Bytef * istream, size_t inputl,Bytef * ostream, size_t 
 //
 //output   ostream
 //
+// NB ostream[outputl+2] ZERO array should be provided by caller
 //  
 
 // returns true if success
+*/
  size_t id=0;
  size_t off=0;
 for(int i=0;i<inputl;i++){
  if(id>=outputl){
    return false;
  }
- if(istream[i]==0){
-   ostream[id]&=~(1<<off);
+if(istream[i]){
+   ostream[id]+=(1<<off);
    off=(++off)%CHAR_BIT;
-   if(!off)id++;
+   if(off){
+        ostream[id++]+=(istream[i]<<off);
+        ostream[id]=(istream[i]>>(CHAR_BIT-off));     
+   }
+   else ostream[(++id)++]=istream[i];
  }
  else{
-   ostream[id]|=(1<<off);
-   off=(++off)%CHAR_BIT;
-   if(!off)id++;
-     if(off){
-      if(id+1>=outputl)return false;
-        ostream[id]|=(istream[i]<<off);
-        ostream[id+1]|=(istream[i]>>(CHAR_BIT-off));     
-     }
-     else{
-      if(id>=outputl)return false;
-       ostream[id]=istream[i];       
-     }
-     id++;
+  off=(++off)%CHAR_BIT;
+  if(!off)id++;
  }
 }
-//
-//  set the rest of last byte
-//
- if(off){
-  for (int k=off;k<CHAR_BIT;k++)ostream[id]|=(1<<k);
- } 
-/*
-size_t out2=_decompressable(ostream,outputl);
-if(out2!=inputl){
-  cerr<<" !! decompress problem "<<out2<<" "<<inputl<<" "<<off<<" "<<id<<endl;
-  abort();
-}
-*/
-return ++id == outputl;
+  if(off)ostream[id++]+=(1<<off);
+return id == outputl;
 }
 
 
