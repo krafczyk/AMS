@@ -221,9 +221,7 @@ $set_fram->Button(-text=>$PageNumb, -font=>$font2,
                               -borderwidth=>3,-relief=>'raised',
 			      -cursor=>hand2,
 			      -textvariable=>\$PageNumb,
-			      -command =>\&ChangePage)
-#                              -command => sub{if($PageNumb eq "Page1"){$PageNumb="Page2";}
-#			                      else {$PageNumb="Page1";}})
+			      -command =>\&ChangePage3)
 			         ->place(
                                  -relwidth=>0.1, -relheight=>$drh2,
                                  -relx=>0.12, -rely=>$shf2);
@@ -710,9 +708,24 @@ $quitbt->bind("<ButtonRelease-3>", \&quitbt_help);
 #
 }  
 #--------------------------------------------------------------
-sub ChangePage{
+sub ChangePage2
+{
   my ($i,$state);
   if($PageNumb eq "Page1"){$PageNumb="Page2";}
+  else{$PageNumb="Page1";}
+  for($i=0;$i<13;$i++){
+    if($DataGroup eq $DCGrNames[$i]){
+      $P2DCGroupBut[$i]->invoke();
+      last;
+    }
+  }
+}
+#---
+sub ChangePage3
+{
+  my ($i,$state);
+  if($PageNumb eq "Page1"){$PageNumb="Page2";}
+  elsif($PageNumb eq "Page2"){$PageNumb="Page3";}
   else{$PageNumb="Page1";}
   for($i=0;$i<13;$i++){
     if($DataGroup eq $DCGrNames[$i]){
@@ -3210,11 +3223,12 @@ sub SetTofPars{
   my $i,$j;
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos;
 #------
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
 #
 #--------> RD page-1 :
-if($PageNumb eq "Page1"){
+  if($PageNumb eq "Page1"){
 #
   $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected above group:",-relief=>'groove',
                                                   -borderwidth=>5,-foreground => "red",
@@ -3393,10 +3407,10 @@ if($PageNumb eq "Page1"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
-}#<-------- endof RD page-1 :
-else{#-------->  RD page-2 :
+  }#<-------- endof RD page-1 :
+  elsif($PageNumb eq "Page2"){#-------->  RD page-2 :
 #
-  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-2 RECO-Params for selected above group:",-relief=>'groove',
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-2 RECO-Params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,-foreground => "red",
                                                   -background => "gray")
 						  ->place(
@@ -3501,12 +3515,12 @@ else{#-------->  RD page-2 :
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
-}#<-------- endof RD page-2 :
+  }#<-------- endof RD page-2 :
 }
 #------------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 SIMU-params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -3614,6 +3628,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+2*$drh));
+  }#-->endof page-1
 }
 }
 #---------------------------------------------------
@@ -3621,9 +3636,11 @@ sub SetAccPars{
   my $i,$j;
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos;
 #------
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -3790,11 +3807,12 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+  }#-->endof page-1
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 SIMU-params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -3900,6 +3918,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+2*$drh));
+  }#-->endof page-1
 }
 }
 #---------------------------------------------------
@@ -3907,9 +3926,11 @@ sub SetEmcPars{
   my $i,$j;
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos;
 #------
-if($RecoSimuP eq "RECO"){
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params for selected group:",-relief=>'groove',
+#------
+if($RecoSimuP eq "RECO"){
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -4079,11 +4100,12 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+  }#-->endof page-1
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 SIMU-params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -4260,6 +4282,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+  }#-->endof page-1
 }
 }
 #-----------------------------------------------
@@ -4267,9 +4290,11 @@ sub SetIOPars{
   my $i,$j;
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos;
 #------
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -4433,11 +4458,12 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+  }#-->endof page-1
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 SIMU-params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -4516,6 +4542,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+2*$drh));
+  }#-->endof page-1
 }
 }
 #-----------------------------------------------
@@ -4524,9 +4551,11 @@ sub SetAMSPars{
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos;
   my $butw;
 #------
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -4726,11 +4755,12 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+  }#-->endof page-1
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 SIMU-params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -4798,6 +4828,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+2*$drh));
+  }#-->endof page-1
 }
 }
 #-----------------------------------------------
@@ -4807,9 +4838,11 @@ sub SetLvl1Pars{
   my $ar;
   my $optmenu1;
 #------
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 RECO-Params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -5004,11 +5037,12 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+3*$drh));
+  }#-->endof page-1
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for selected group:",-relief=>'groove',
+  if($PageNumb eq "Page1"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify Page-1 SIMU-params for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
@@ -5177,6 +5211,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+($nlmc-1)*$drh));
+  }#-->endof page-1
 }
 }
 #----------------------------------------------
@@ -5186,14 +5221,16 @@ sub SetEvSelPars{
   my $ar;
   my $optmenu1;
 #------
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  $sdset_fram=$set_fram->Frame(-label=>"Modify Parameters on $PageNumb for selected group:",-relief=>'groove',
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
+if($RecoSimuP eq "RECO"){
+  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
                                                   -relwidth=>1, -relheight=>$sdframhig,
                                                   -relx=>0, -rely=>$sdframpos);
-if($PageNumb eq "Page1"){
+  if($PageNumb eq "Page1"){
 #---
   $shf=0.17;
   $nl=4;
@@ -5462,8 +5499,9 @@ if($PageNumb eq "Page1"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+($nl-1)*$drh));
-}
-else{#<--- Page-2
+  }#-->endof page-1
+#------
+  elsif($PageNumb eq "Page2"){#<--- Page-2
   $shf=0.17;
   $nl=4;
   $drh=(1.-$shf)/$nl;
@@ -5557,6 +5595,7 @@ else{#<--- Page-2
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+($nl-1)*$drh));
+  }#-->endof page-2
 }
 }
 #----------------------------------------------
@@ -5567,14 +5606,15 @@ sub SetTrkPars{
   my $optmenu1;
 #------
   $sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
- if($PageNumb eq "Page1"){#<--- page-1
   $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
                                                   -relwidth=>1, -relheight=>$sdframhig,
                                                   -relx=>0, -rely=>$sdframpos);
+  if($PageNumb eq "Page1"){#<--- page-1
 #---
   $shf=0.17;
   $nl=4;
@@ -5849,13 +5889,7 @@ if($RecoSimuP eq "RECO"){
                                           -relx=>0.8, -rely=>($shf+($nl-1)*$drh));
  }
 #----------
- else{#<--- page-2
-  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
-                                                  -borderwidth=>5,
-                                                  -background => "gray")
-						  ->place(
-                                                  -relwidth=>1, -relheight=>$sdframhig,
-                                                  -relx=>0, -rely=>$sdframpos);
+  elsif($PageNumb eq "Page2"){#<--- page-2
 #---
   $shf=0.17;
   $nl=4;
@@ -5947,7 +5981,7 @@ if($RecoSimuP eq "RECO"){
 			                  ->place(
                                           -relwidth=>0.2, -relheight=>$drh,  
                                           -relx=>0.8, -rely=>($shf+($nl-1)*$drh));
- }
+  }#-->endof page-2
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
@@ -5957,11 +5991,13 @@ elsif($RecoSimuP eq "SIMU"){
 						  ->place(
                                                   -relwidth=>1, -relheight=>$sdframhig,
                                                   -relx=>0, -rely=>$sdframpos);
+  if($PageNumb eq "Page1"){#<--- page-1
 #---
   $shf=0.17;
   $nlmc=3;
   $drh=(1.-$shf)/$nlmc;
 #---
+  }#-->endof page-1
 }
 #
 }
@@ -6046,15 +6082,16 @@ sub SetZFitPars{
   my $ar;
   my $optmenu1;
 #------
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
- if($PageNumb eq "Page1"){#<--- page-1
-  $sdset_fram=$set_fram->Frame(-label=>"Modify $PageNumb RECO-Params for Particle Z-fit :",-relief=>'groove',
+  $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for Particle Z-fit :",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
                                                   -relwidth=>1, -relheight=>$sdframhig,
                                                   -relx=>0, -rely=>$sdframpos);
+ if($PageNumb eq "Page1"){#<--- page-1
 #---
   $shf=0.17;
   $nl=4;
@@ -6375,27 +6412,22 @@ if($RecoSimuP eq "RECO"){
                                           -relwidth=>0.2, -relheight=>$drh,  
                                           -relx=>0.8, -rely=>($shf+($nl-1)*$drh));
  }#--->endof page-1
- else{#<--- page-2
-  $sdset_fram=$set_fram->Frame(-label=>"Modify $PageNumb RECO-Params for Particle Z-fit :",-relief=>'groove',
-                                                  -borderwidth=>5,
-                                                  -background => "gray")
-						  ->place(
-                                                  -relwidth=>1, -relheight=>$sdframhig,
-                                                  -relx=>0, -rely=>$sdframpos);
+ elsif($PageNumb eq "Page2"){#<--- page-2
 #---
   $shf=0.17;
   $nl=4;
   $drh=(1.-$shf)/$nl;
- }
+ }#-->endof page-2
 }
 #------ MC:
 elsif($RecoSimuP eq "SIMU"){
-  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params for Particle Z-fit:",-relief=>'groove',
+  $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-params on $PageNumb for Particle Z-fit:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
                                                   -relwidth=>1, -relheight=>$sdframhig,
                                                   -relx=>0, -rely=>$sdframpos);
+  if($PageNumb eq "Page1"){#<--- page-1
 #---
   $shf=0.17;
   $nlmc=3;
@@ -6430,6 +6462,7 @@ elsif($RecoSimuP eq "SIMU"){
 			                  ->place(
                                           -relwidth=>0.2, -relheight=>$drh,  
                                           -relx=>0.8, -rely=>($shf+($nlmc-1)*$drh));
+  }#-->endof page-1
 }
 #
 }
@@ -6440,8 +6473,9 @@ sub SetLvl3Pars{
   my $ar;
   my $optmenu1;
 #------
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
 if($RecoSimuP eq "RECO"){
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
   $sdset_fram=$set_fram->Frame(-label=>"Modify RECO-Params on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
@@ -6477,16 +6511,18 @@ sub SetMCGenPars{
   my $shf,$nl,$nlmc,$drh,$labw,$entw,$rwd,$xpos,$butw,$menw;
   my $optmenu1;
 #------
-  $sdset_fram->destroy() if Tk::Exists($sdset_fram);
-  if($RecoSimuP eq "SIMU"){
+$sdset_fram->destroy() if Tk::Exists($sdset_fram);
+#------
+if($RecoSimuP eq "SIMU"){
   $sdset_fram=$set_fram->Frame(-label=>"Modify SIMU-Pars on $PageNumb for selected group:",-relief=>'groove',
                                                   -borderwidth=>5,
                                                   -background => "gray")
 						  ->place(
                                                   -relwidth=>1, -relheight=>$sdframhig,
                                                   -relx=>0, -rely=>$sdframpos);
-#--------> MC page-1 :
-if($PageNumb eq "Page1"){
+#---
+  if($PageNumb eq "Page1"){
+#---
   $shf=0.17;
   $nlmc1=4;
   $drh=(1.-$shf)/$nlmc1;
@@ -6744,10 +6780,10 @@ if($PageNumb eq "Page1"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+($nlmc1-1)*$drh));
-}
-#--------> MC page-2 :
-elsif($PageNumb eq "Page2"){
-#---
+  }#-->endof page-1
+#------
+  elsif($PageNumb eq "Page2"){
+#--
   $shf=0.17;
   $nlmc2=4;
   $drh=(1.-$shf)/$nlmc2;
@@ -6848,7 +6884,7 @@ elsif($PageNumb eq "Page2"){
 			                  ->place(
                                           -relwidth=>0.25, -relheight=>$drh,  
                                           -relx=>0.75, -rely=>($shf+($nlmc2-1)*$drh));
-}
+  }#-->endof page-2
 #
 }
 #
@@ -6896,19 +6932,22 @@ sub ResetDC2Defs{
           $j=10*$j;
         }
       }#--->endof page-1
-      else{
+      elsif($PageNumb eq "Page2"){
         for($i=0;$i<$BETAFITparsN;$i++){$BETAFITcmval[$i]=$BETAFITcmdf[$i];}
-      }
+      }#--->endof page-2
     }
+#--
     else{
-      for($i=0;$i<$TFMCparsN;$i++){$TFMCcmval[$i]=$TFMCcmdf[$i];}
-      $TofRefCalSetMC=$TFMCcmdf[4];
+      if($PageNumb eq "Page1"){
+        for($i=0;$i<$TFMCparsN;$i++){$TFMCcmval[$i]=$TFMCcmdf[$i];}
+        $TofRefCalSetMC=$TFMCcmdf[4];
 #
-      $j=1;
-      for($i=0;$i<4;$i++){
-        $MCTofDBUsePatt[$i]=1-(($TFMCcmval[3]/$j)%10);# 10-base BitPattern Msb(TlSd Peds Tmap CalSd)Lsb (=1 to use)
-        $j=10*$j;
-      }
+        $j=1;
+        for($i=0;$i<4;$i++){
+          $MCTofDBUsePatt[$i]=1-(($TFMCcmval[3]/$j)%10);# 10-base BitPattern Msb(TlSd Peds Tmap CalSd)Lsb (=1 to use)
+          $j=10*$j;
+        }
+      }#--->endof page-1
     }
   }
 #--->gr-3
@@ -7062,9 +7101,9 @@ sub ResetDC2Defs{
       $Conf1Name="Any";
       $Conf2Name="Any";
     }
-    else{#<--- for "SELECT" card
+    elsif($PageNumb eq "Page2"){#<--- for "SELECT" card
       for($i=0;$i<$SELEparsN;$i++){$SELEcmval[$i]=$SELEcmdf[$i];}
-    }
+    }#-->endof page-2
   }
 #--->gr-10
   elsif($DataGroup eq "TRK"){
@@ -7073,12 +7112,12 @@ sub ResetDC2Defs{
         for($i=0;$i<17;$i++){$TRFIcmval[$i]=$TRFIcmdf[$i];}
         $FastTrkMode=$FastTrkModes[4-$TRFIcmval[6]];
       }
-      else{#page-2
+      elsif($PageNumb eq "Page2"){#page-2
         for($i=17;$i<$TRFIparsN;$i++){$TRFIcmval[$i]=$TRFIcmdf[$i];}
         $TrkFitMethod=$TrkFitMethods[$TRFIcmval[18]];
         $TrkPattRecMethod=$TrkPattRecMethods[$TRFIcmval[19]];
       }
-    }
+    }#-->endof reco-page
   }
 #--->gr-9
   elsif($DataGroup eq "ZFit"){

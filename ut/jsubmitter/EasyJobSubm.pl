@@ -660,7 +660,7 @@ sub ReadDCDefFile{
 	  if($cm==0){$SELEparsN=$cmm;}
 	  $SELEcmval[$cm]=$val;
 	}
-#9(EvSel)
+#9(ZFit)
 	if($cnam eq "CHAR"){
 	  $CHARcmid[$cm]=$cmid;
 	  $CHARcmdf[$cm]=$val;

@@ -71,8 +71,8 @@
   one of 12 data cards (DCs) groups (TOF,ACC,...,MCgen (if simulation session was selected)). 
   The pushed button stay pressed and orange. Available DC variables settings are displayed
   instead of previously mentioned gray area. You can change the displayed settings 
-  (if nesessary). Some DCs may have 2nd page when available settings are not fit into single
-  page(click "Page1(2)" button to see another page). 
+  (if nesessary). DCs may have upto 3 pages when available settings are not fit into single
+  page(click "Page1(2,3)" button to switch between pages). 
   Currently only few DCs have 2nd page. If you are in "MCDataSimu" session you have 2 global
   pages selected by "RECO/SIMU" button (to the left from "Page" button.). By default 
   "SIMU"-page is displayed first. To set reconstruction related settings - click "SIMU"-button.
