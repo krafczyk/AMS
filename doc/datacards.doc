@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.306 2009/10/20 09:54:49 choumilo Exp $
+#  $Id: datacards.doc,v 1.307 2009/10/27 14:32:57 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -696,7 +696,8 @@ I 18 Lvl1ConfRDVers(1167606001)//RD def. UTC-extention of "Lvl1ConfRD.***" -file
 I 19 Lvl1ConfRead(0)       // MN, N=0/1->read Lvl1Config-data from DB/raw_file
                            //     M=0/1->read Lvl1Config raw file from official/private directory
 
-I 20 printfl(0);           // =0/n>0 -> noPrint/Print(higher n - more details) event-by-event FT/LVL1 info
+I 20 printfl(0);           //PrintFlg=MN,N=0/1/2->no/stat+hist/+SetupInf(whenChanged)
+//                                       M=0/1/2/3/4->no/ErrWarn/+TrigPatt(ev-by-ev)/+MoreDebug/+BlockBitDump
 
 I 21 Lvl1ConfSave(0)       // If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
 
@@ -761,15 +762,15 @@ I 23   tdcovf(1)           // 1/0->do/not activate TDC-overf.protection logic(= 
 TFRE
 R 1   Thresh(0.2)         //Bar threshold (mev) in tof-cluster algorithm 
 R 2   Thresh(0.2)         //Threshold (mev) on total cluster energy(Not used now!) 
-I 3   Print-flag(0)       // 0/1->not/print_ALL_job_statistics_tables
-I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
-I 5   Print-flag(0)       // print RECO-histograms (if=1)
-I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
-I 7   Print-flag(0)       // print flag for debug-printing
+I 3   Print-flag(0)       // 0/1/2->not/print/more_print for job statistics tables
+I 4   Print-flag(0)       // 0/1-> not/print reconstruction histograms 
+I 5   Print-flag(0)       // 1/0-> print/not channels hits multiplicity histograms
+I 6   Print-flag(0)       // 1/0-> print/not debug info (mstly error messages, for more debug set 7=1)
+I 7   Print-flag(0)       // 0/1-> delailed debug flag(also add low prior. histograms if #4=1)
 I 8   relogic[0](0)       // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_/OnBoardPed_
 //                           calibr run(if=0/1/2/3/4/5/6/7)
 //                   (when =7 confirm ped-file writing + hist when glob. OnBoard CALIB-flag >1 to be independent on ACC !)
-I 9   relogic[1](0)       // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
+I 9   relogic[1](1)       // 1/(0)-> require/not LT-SumHT hits matching
 I 10  relogic[2](0)       // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
 I 11  relogic[3](0)       // do/not recovering of missing side 
 I 12  relogic[4](1)       // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 

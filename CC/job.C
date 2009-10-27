@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.647 2009/09/18 10:07:08 choumilo Exp $
+// $Id: job.C,v 1.648 2009/10/27 14:32:47 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1262,7 +1262,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.reprtf[1]=0; //(4) print flag for histograms
   TFREFFKEY.reprtf[2]=0; //(5) print flag for TDC-hit multiplicity histograms 
   TFREFFKEY.reprtf[3]=0; //(6) print flag for Debug needs(mostly when error found, for ev-ev debug add #7)  
-  TFREFFKEY.reprtf[4]=0; //(7) print flag for More debug info(0/1->normal/more)
+  TFREFFKEY.reprtf[4]=0; //(7) More debug or histogr flag(1->more)
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run.
 //                       (when =7 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on ACC !) 

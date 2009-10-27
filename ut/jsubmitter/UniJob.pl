@@ -17,65 +17,65 @@ $dir_fram=$mwnd->Frame(-label => "General Info/Settings/Actions :",-background =
                                                       -relwidth=>(1-$LogfXsize), -relheight=>$dirfrheight,
                                                       -relx=>0, -rely=>0);
 #------
-$wrd_lab=$dir_fram->Label(-text=>"WorkD:",-font=>$font2,-relief=>'groove')
+$wrd_lab=$dir_fram->Label(-text=>"WorkD:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>0.17, -relheight=>$drh1,
                                                 -relx=>0, -rely=>$shf1);
 $wrd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$workdir)
 					      ->place(
                                               -relwidth=>0.83, -relheight=>$drh1,  
                                               -relx=>0.17, -rely=>$shf1);
 #------
-$rootfd_lab=$dir_fram->Label(-text=>"RootfD:",-font=>$font2,-relief=>'groove')
+$rootfd_lab=$dir_fram->Label(-text=>"RootfD:",-font=>$LablWFont,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>0.17, -relheight=>$drh1,
                                                     -relx=>0, -rely=>($shf1+$drh1));
 $rootfd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$RootfDir)
 					       ->place(
                                                -relwidth=>0.43, -relheight=>$drh1,  
                                                -relx=>0.17, -rely=>($shf1+$drh1));
 #---
-$rootfsd_lab=$dir_fram->Label(-text=>"SubD:",-font=>$font2,-relief=>'groove')
+$rootfsd_lab=$dir_fram->Label(-text=>"SubD:",-font=>$LablWFont,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>0.17, -relheight=>$drh1,
                                                     -relx=>0.6, -rely=>($shf1+$drh1));
 $rootfsd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$RootfSubD)->place(
                                                -relwidth=>0.23, -relheight=>$drh1,  
                                                -relx=>0.77, -rely=>($shf1+$drh1));
 #------
-$mcdaqfd_lab=$dir_fram->Label(-text=>"MCDaqfD:",-font=>$font2,-relief=>'groove')
+$mcdaqfd_lab=$dir_fram->Label(-text=>"MCDaqfD:",-font=>$LablWFont,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>0.17, -relheight=>$drh1,
                                                     -relx=>0, -rely=>($shf1+2*$drh1));
 $mcdaqfd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$MCDaqfDir)
 					       ->place(
                                                -relwidth=>0.43, -relheight=>$drh1,  
                                                -relx=>0.17, -rely=>($shf1+2*$drh1));
 #---
-$mcdaqfsd_lab=$dir_fram->Label(-text=>"SubD:",-font=>$font2,-relief=>'groove')
+$mcdaqfsd_lab=$dir_fram->Label(-text=>"SubD:",-font=>$LablWFont,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>0.17, -relheight=>$drh1,
                                                     -relx=>0.6, -rely=>($shf1+2*$drh1));
 $mcdaqfsd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$MCDaqfSubD)->place(
                                                -relwidth=>0.23, -relheight=>$drh1,  
                                                -relx=>0.77, -rely=>($shf1+2*$drh1));
 #--------------
-$amsg_lab=$dir_fram->Label(-text=>"OfflD:",-font=>$font2,-relief=>'groove')
+$amsg_lab=$dir_fram->Label(-text=>"OfflD:",-font=>$LablWFont,-relief=>'groove')
                                                          ->place(
                                                          -relwidth=>0.17, -relheight=>$drh1,
                                                          -relx=>0, -rely=>($shf1+3*$drh1));
 $amsg_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$OFFLDIR)
 					      ->place(
                                               -relwidth=>0.83, -relheight=>$drh1,  
@@ -84,7 +84,7 @@ $amsg_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
 $bwid=0.15;
 $xpos=0;
 $soundtext="SoundON";
-$dir_fram->Button(-text=>"SoundON", -font=>$font2, 
+$dir_fram->Button(-text=>"SoundON", -font=>$ButtWFont, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
 			             -foreground=>"red",
@@ -100,7 +100,7 @@ $dir_fram->Button(-text=>"SoundON", -font=>$font2,
 $xpos+=$bwid;
 #---
 $bwid=0.17;
-$lookar_bt=$dir_fram->Button(-text=>"LookAround", -font=>$font2, 
+$lookar_bt=$dir_fram->Button(-text=>"LookAround", -font=>$ButtWFont, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
 			                 -foreground=>"red",
@@ -113,7 +113,7 @@ $lookar_bt=$dir_fram->Button(-text=>"LookAround", -font=>$font2,
                                          -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$bwid;
 #---
-$clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2, 
+$clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$ButtWFont, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
 			                 -foreground=>"yellow",
@@ -127,14 +127,14 @@ $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2,
 $xpos+=$bwid;
 #---
 $lbwid=0.15;
-$dir_fram->Label(-text=>"DCDefFile:",-font=>$font2,-relief=>'groove')
+$dir_fram->Label(-text=>"DCDefFile:",-font=>$LablWFont,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>$lbwid, -relheight=>$drh1,
                                                     -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$lbwid;
 #---
 $bwid=0.11;
-$lookar_bt=$dir_fram->Button(-text=>"Restore", -font=>$font2, 
+$lookar_bt=$dir_fram->Button(-text=>"Restore", -font=>$ButtWFont, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
 			                 -foreground=>"red",
@@ -147,7 +147,7 @@ $lookar_bt=$dir_fram->Button(-text=>"Restore", -font=>$font2,
                                          -relx=>$xpos, -rely=>($shf1+4*$drh1));
 $xpos+=$bwid;
 #---
-$lookar_bt=$dir_fram->Button(-text=>"Commit", -font=>$font2, 
+$lookar_bt=$dir_fram->Button(-text=>"Commit", -font=>$ButtWFont, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
 			                 -foreground=>"red",
@@ -161,7 +161,7 @@ $lookar_bt=$dir_fram->Button(-text=>"Commit", -font=>$font2,
 $xpos+=$bwid;
 #---
 $bwid=0.14;
-$newdcf_bt=$dir_fram->Button(-text=>"MakeNew", -font=>$font2, 
+$newdcf_bt=$dir_fram->Button(-text=>"MakeNew", -font=>$ButtWFont, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
 			                 -foreground=>"red",
@@ -198,7 +198,7 @@ if($SessName eq "RDR" || $SessName eq "MCR"){$RecoSimuP="RECO";}
 else {$RecoSimuP="SIMU";}#just set default page(reco or simu params types) to start with...
 $PageNumb="Page1";
 #
-$set_fram->Button(-text=>$RecoSimuP, -font=>$font2, 
+$set_fram->Button(-text=>$RecoSimuP, -font=>$ButtWFont, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 #			      -foreground=>"red",
@@ -213,7 +213,7 @@ $set_fram->Button(-text=>$RecoSimuP, -font=>$font2,
                                  -relwidth=>0.12, -relheight=>$drh2,
                                  -relx=>0, -rely=>$shf2);
 #---
-$set_fram->Button(-text=>$PageNumb, -font=>$font2, 
+$set_fram->Button(-text=>$PageNumb, -font=>$ButtWFont, 
                               -activebackground=>"yellow",
 			      -activeforeground=>"red",
 #			      -foreground=>"red",
@@ -226,12 +226,12 @@ $set_fram->Button(-text=>$PageNumb, -font=>$font2,
                                  -relwidth=>0.1, -relheight=>$drh2,
                                  -relx=>0.12, -rely=>$shf2);
 #---
-$set_fram->Label(-text=>"for:",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"for:",-font=>$LablWFont,-relief=>'groove')
                                                   ->place(
 						  -relwidth=>0.08, -relheight=>$drh2,
                                                   -relx=>0.22, -rely=>$shf2);
 #---
-$P2DCGroupBut[0]=$set_fram->Radiobutton(-text=>$DCGrNames[0],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[0]=$set_fram->Radiobutton(-text=>$DCGrNames[0],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -244,7 +244,7 @@ $P2DCGroupBut[0]=$set_fram->Radiobutton(-text=>$DCGrNames[0],-font=>$font2, -ind
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.3, -rely=>$shf2);
 #---
-$P2DCGroupBut[1]=$set_fram->Radiobutton(-text=>$DCGrNames[1],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[1]=$set_fram->Radiobutton(-text=>$DCGrNames[1],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -257,7 +257,7 @@ $P2DCGroupBut[1]=$set_fram->Radiobutton(-text=>$DCGrNames[1],-font=>$font2, -ind
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.44, -rely=>$shf2);
 #---
-$P2DCGroupBut[2]=$set_fram->Radiobutton(-text=>$DCGrNames[2],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[2]=$set_fram->Radiobutton(-text=>$DCGrNames[2],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -270,7 +270,7 @@ $P2DCGroupBut[2]=$set_fram->Radiobutton(-text=>$DCGrNames[2],-font=>$font2, -ind
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.58, -rely=>$shf2);
 #---
-$P2DCGroupBut[3]=$set_fram->Radiobutton(-text=>$DCGrNames[3],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[3]=$set_fram->Radiobutton(-text=>$DCGrNames[3],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -283,7 +283,7 @@ $P2DCGroupBut[3]=$set_fram->Radiobutton(-text=>$DCGrNames[3],-font=>$font2, -ind
 						      -relwidth=>0.14, -relheight=>$drh2,
 						      -relx=>0.72, -rely=>$shf2);
 #---
-$P2DCGroupBut[4]=$set_fram->Radiobutton(-text=>$DCGrNames[4],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[4]=$set_fram->Radiobutton(-text=>$DCGrNames[4],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -297,7 +297,7 @@ $P2DCGroupBut[4]=$set_fram->Radiobutton(-text=>$DCGrNames[4],-font=>$font2, -ind
 						      -relx=>0.86, -rely=>$shf2);
 #------
 my $wid2=1/8;
-$P2DCGroupBut[5]=$set_fram->Radiobutton(-text=>$DCGrNames[5],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[5]=$set_fram->Radiobutton(-text=>$DCGrNames[5],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -310,7 +310,7 @@ $P2DCGroupBut[5]=$set_fram->Radiobutton(-text=>$DCGrNames[5],-font=>$font2, -ind
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>0, -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[6]=$set_fram->Radiobutton(-text=>$DCGrNames[6],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[6]=$set_fram->Radiobutton(-text=>$DCGrNames[6],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -323,7 +323,7 @@ $P2DCGroupBut[6]=$set_fram->Radiobutton(-text=>$DCGrNames[6],-font=>$font2, -ind
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>$wid2, -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[7]=$set_fram->Radiobutton(-text=>$DCGrNames[7],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[7]=$set_fram->Radiobutton(-text=>$DCGrNames[7],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -336,7 +336,7 @@ $P2DCGroupBut[7]=$set_fram->Radiobutton(-text=>$DCGrNames[7],-font=>$font2, -ind
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(2*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[8]=$set_fram->Radiobutton(-text=>$DCGrNames[8],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[8]=$set_fram->Radiobutton(-text=>$DCGrNames[8],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -349,7 +349,7 @@ $P2DCGroupBut[8]=$set_fram->Radiobutton(-text=>$DCGrNames[8],-font=>$font2, -ind
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(3*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[9]=$set_fram->Radiobutton(-text=>$DCGrNames[9],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[9]=$set_fram->Radiobutton(-text=>$DCGrNames[9],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -362,7 +362,7 @@ $P2DCGroupBut[9]=$set_fram->Radiobutton(-text=>$DCGrNames[9],-font=>$font2, -ind
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(4*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[10]=$set_fram->Radiobutton(-text=>$DCGrNames[10],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[10]=$set_fram->Radiobutton(-text=>$DCGrNames[10],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -375,7 +375,7 @@ $P2DCGroupBut[10]=$set_fram->Radiobutton(-text=>$DCGrNames[10],-font=>$font2, -i
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(5*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[11]=$set_fram->Radiobutton(-text=>$DCGrNames[11],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[11]=$set_fram->Radiobutton(-text=>$DCGrNames[11],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -388,7 +388,7 @@ $P2DCGroupBut[11]=$set_fram->Radiobutton(-text=>$DCGrNames[11],-font=>$font2, -i
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(6*$wid2), -rely=>($shf2+$drh2));
 #---
-$P2DCGroupBut[12]=$set_fram->Radiobutton(-text=>$DCGrNames[12],-font=>$font2, -indicator=>0,
+$P2DCGroupBut[12]=$set_fram->Radiobutton(-text=>$DCGrNames[12],-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -401,7 +401,7 @@ $P2DCGroupBut[12]=$set_fram->Radiobutton(-text=>$DCGrNames[12],-font=>$font2, -i
 						      -relwidth=>$wid2, -relheight=>$drh2,
 						      -relx=>(7*$wid2), -rely=>($shf2+$drh2));
 #------------------------------
-$set_fram->Button(-text=>"ConfirmPars", -font=>$font2, 
+$set_fram->Button(-text=>"ConfirmPars", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -413,7 +413,7 @@ $set_fram->Button(-text=>"ConfirmPars", -font=>$font2,
                                           -relwidth=>0.2, -relheight=>$drh2,  
                                           -relx=>0, -rely=>$shf3);
 #---
-$CrJScr_b=$set_fram->Button(-text=>"CreateJScript", -font=>$font2, 
+$CrJScr_b=$set_fram->Button(-text=>"CreateJScript", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -426,7 +426,7 @@ $CrJScr_b=$set_fram->Button(-text=>"CreateJScript", -font=>$font2,
                                           -relwidth=>0.2, -relheight=>$drh2,  
                                           -relx=>0.2, -rely=>$shf3);
 #---
-$set_fram->Button(-text=>"EditJScript", -font=>$font2, 
+$set_fram->Button(-text=>"EditJScript", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -440,7 +440,7 @@ $set_fram->Button(-text=>"EditJScript", -font=>$font2,
 #---
 $BatchFlg="BatchJob";
 $Evs2Read="10000000";#number of events to read 
-$batchj_bt=$set_fram->Button(-text=>"BatchJob", -font=>$font2, 
+$batchj_bt=$set_fram->Button(-text=>"BatchJob", -font=>$ButtWFont, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
 			             -background=>"yellow",
@@ -462,7 +462,7 @@ $batchj_bt=$set_fram->Button(-text=>"BatchJob", -font=>$font2,
 				     -relx=>0.6, -rely=>$shf3);
 #---
 $MultiSubmFlg="SingleSubm";
-$manauto_bt=$set_fram->Button(-text=>"SingleSubm", -font=>$font2, 
+$manauto_bt=$set_fram->Button(-text=>"SingleSubm", -font=>$ButtWFont, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
 			             -background=>"yellow",
@@ -475,31 +475,31 @@ $manauto_bt=$set_fram->Button(-text=>"SingleSubm", -font=>$font2,
                                      -relwidth=>0.2, -relheight=>$drh2,
 				     -relx=>0.8, -rely=>$shf3);
 #------
-$dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2,-relief=>'groove')
+$dat1_lab=$set_fram->Label(-text=>"Date",-font=>$LablWFont,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf3+$drh2));
 $fdat1="2008.01.01 00:00:01";#def. file-date-from 
 $fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$fdat1)
 					       ->place(
                                                -relwidth=>0.25, -relheight=>$drh2,  
                                                -relx=>0.12, -rely=>($shf3+$drh2));
 #---
-$dat2_lab=$set_fram->Label(-text=>"-",-font=>$font2)
+$dat2_lab=$set_fram->Label(-text=>"-",-font=>$LablWFont)
                                       ->place(
 				      -relwidth=>0.02, -relheight=>$drh2,
                                       -relx=>0.37, -rely=>($shf3+$drh2));
 $fdat2="2015.01.01 00:00:01";#def. file-date-till 
 $fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$fdat2)
 					       ->place(
                                                -relwidth=>0.25, -relheight=>$drh2,  
                                                -relx=>0.39, -rely=>($shf3+$drh2));
 #---
-$editrl_bt=$set_fram->Button(-text=>"EditRunList(AftScan)", -font=>$font2, 
+$editrl_bt=$set_fram->Button(-text=>"EditRunList(AftScan)", -font=>$ButtWFont, 
                                               -activebackground=>"yellow",
 			                      -activeforeground=>"red",
 			                      -foreground=>"red",
@@ -512,30 +512,30 @@ $editrl_bt=$set_fram->Button(-text=>"EditRunList(AftScan)", -font=>$font2,
                                               -relwidth=>0.36, -relheight=>$drh2,
 				              -relx=>0.64, -rely=>($shf3+$drh2));
 #---------
-$num1_lab=$set_fram->Label(-text=>"RunN",-font=>$font2,-relief=>'groove')
+$num1_lab=$set_fram->Label(-text=>"RunN",-font=>$LablWFont,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf3+2*$drh2));
 $fnum1="1167606001";#def. file-number-from 
 $fnum1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$fnum1)->place(
                                                -relwidth=>0.2, -relheight=>$drh2,  
                                                -relx=>0.12, -rely=>($shf3+2*$drh2));
 #---
-$num2_lab=$set_fram->Label(-text=>"-",-font=>$font2)
+$num2_lab=$set_fram->Label(-text=>"-",-font=>$LablWFont)
                                      ->place(
 				     -relwidth=>0.02, -relheight=>$drh2,
 				     -relx=>0.32, -rely=>($shf3+2*$drh2));
 $fnum2="1500000000";#def. file-num-till 
 $fnum2_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                               -font=>$font3,
+                                               -font=>$EntrWFont,
                                                -textvariable=>\$fnum2)
 					       ->place(
                                                -relwidth=>0.18, -relheight=>$drh2,  
                                                -relx=>0.34, -rely=>($shf3+2*$drh2));
 #---
-$convert_bt=$set_fram->Button(-text=>"Confirm Run/Date", -font=>$font2, 
+$convert_bt=$set_fram->Button(-text=>"Confirm Run/Date", -font=>$ButtWFont, 
                                       -activebackground=>"yellow",
 			              -activeforeground=>"red",
 			              -foreground=>"red",
@@ -547,13 +547,8 @@ $convert_bt=$set_fram->Button(-text=>"Confirm Run/Date", -font=>$font2,
 			              ->place(
                                       -relwidth=>0.26, -relheight=>$drh2,
 				      -relx=>0.52, -rely=>($shf3+2*$drh2));
-#
-#$fnum1o=$fnum1;
-#$fnum2o=$fnum2;
-#$fdat1o=$fdat1;
-#$fdat2o=$fdat2;
 #---
-$dfscan_bt=$set_fram->Button(-text => "ScanDaqfDir", -font=>$font2, 
+$dfscan_bt=$set_fram->Button(-text => "ScanDaqfDir", -font=>$ButtWFont, 
                                                  -activebackground=>"yellow",
 			                         -activeforeground=>"red",
 			                         -foreground=>"red",
@@ -566,54 +561,66 @@ $dfscan_bt=$set_fram->Button(-text => "ScanDaqfDir", -font=>$font2,
                                                  -relwidth=>0.22,-relheight=>$drh2,
                                                  -relx=>0.78,-rely=>($shf3+2*$drh2));
 #----------
-$set_fram->Label(-text=>"Evs/job:",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"Evs/job:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.17, -relheight=>$drh2,
                                                -relx=>0, -rely=>($shf3+3*$drh2));
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
+                                    -font=>$EntrWFont,
                                     -textvariable=>\$Evs2Read)
 				    ->place(
                                     -relwidth=>0.16, -relheight=>$drh2,  
                                     -relx=>0.17, -rely=>($shf3+3*$drh2));
 #---
-$set_fram->Label(-text=>"Queue",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"Queue",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.13, -relheight=>$drh2,
                                                -relx=>0.33, -rely=>($shf3+3*$drh2));
+#-
 $Queue2run="1nd";#queue name the job sould be submitted 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$Queue2run)
-				    ->place(
-                                    -relwidth=>0.10, -relheight=>$drh2,  
-                                    -relx=>0.46, -rely=>($shf3+3*$drh2));
+$set_fram->Optionmenu(-textvariable => \$Queue2run, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$MenuWFont,
+                               -options => [@AMSQueuesList],
+	                       )
+                               ->place(
+                               -relwidth=>0.1, -relheight=>$drh2,  
+                               -relx=>0.46, -rely=>($shf3+3*$drh2));
 #---
-$set_fram->Label(-text=>"Host",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"Host",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.11, -relheight=>$drh2,
                                                -relx=>0.56, -rely=>($shf3+3*$drh2));
-$Host2run="";#host name the job sould be submitted 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$Host2run)
-				    ->place(
-                                    -relwidth=>0.15, -relheight=>$drh2,  
-                                    -relx=>0.67, -rely=>($shf3+3*$drh2));
+#-
+$Host2run="Any";
+$set_fram->Optionmenu(-textvariable => \$Host2run, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$MenuWFont,
+                               -options => [@AMSHostsList],
+	                       )
+                               ->place(
+                               -relwidth=>0.15, -relheight=>$drh2,  
+                               -relx=>0.67, -rely=>($shf3+3*$drh2));
 #---
-$set_fram->Label(-text=>"CPUs",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"CPUs",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.12, -relheight=>$drh2,
                                                -relx=>0.82, -rely=>($shf3+3*$drh2));
 $Ncpus=1;# Ncpu 
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
+                                    -font=>$EntrWFont,
                                     -textvariable=>\$Ncpus)
 				    ->place(
                                     -relwidth=>0.06, -relheight=>$drh2,  
                                     -relx=>0.94, -rely=>($shf3+3*$drh2));
 #---------
-$set_fram->Label(-text=>"SetupName:",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"SetupName:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.2, -relheight=>$drh2,
                                                -relx=>0, -rely=>($shf3+4*$drh2));
@@ -623,7 +630,7 @@ $set_fram->Optionmenu(-textvariable => \$SetupName,
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@AMSSetupsList],
 	                       )
                                ->place(
@@ -631,7 +638,7 @@ $set_fram->Optionmenu(-textvariable => \$SetupName,
                                -relx=>0.2, -rely=>($shf3+4*$drh2));
 #---
 $setupj_state="disabled";
-$setupj_bt=$set_fram->Button(-text=>"SetupJob", -font=>$font2, 
+$setupj_bt=$set_fram->Button(-text=>"SetupJob", -font=>$ButtWFont, 
                                    -activebackground=>"yellow",
 			           -activeforeground=>"red",
 			           -foreground=>"red",
@@ -646,7 +653,7 @@ $setupj_bt=$set_fram->Button(-text=>"SetupJob", -font=>$font2,
 $setupj_bt->bind("<Button-3>", \&setupjob_help);
 #---
 $sjobbt_state="disabled";
-$sjobbt=$set_fram->Button(-text => "SubmitJob", -font=>$font2, 
+$sjobbt=$set_fram->Button(-text => "SubmitJob", -font=>$ButtWFont, 
                                                 -activebackground=>"yellow",
 			                        -activeforeground=>"red",
 			                        -background=>"green",
@@ -667,7 +674,7 @@ $jcl_fram=$mwnd->Frame(-label=>"Session control :",-background => "red",
                                                        -relwidth=>(1-$LogfXsize), -relheight=>$jclfrheight,
                                                        -relx=>0, -rely=>($dirfrheight+$setfrheight));
 #---
-$jstatbt=$jcl_fram->Button(-text => "CheckJobsStat", -font=>$font2, 
+$jstatbt=$jcl_fram->Button(-text => "CheckJobsStat", -font=>$ButtWFont, 
                                                   -activebackground=>"yellow",
 			                          -activeforeground=>"red",
 			                          -background=>"green",
@@ -680,7 +687,7 @@ $jstatbt=$jcl_fram->Button(-text => "CheckJobsStat", -font=>$font2,
                                                   -relwidth=>0.333,-relheight=>0.65);
 $jstatbt->bind("<Button-3>", \&jobstat_help);
 #---
-$joboc_bt=$jcl_fram->Button(-text => "JobOutpControl", -font=>$font2,
+$joboc_bt=$jcl_fram->Button(-text => "JobOutpControl", -font=>$ButtWFont,
                                                  -activebackground=>"yellow",
 			                         -activeforeground=>"red",
 			                         -background=>"green",
@@ -693,7 +700,7 @@ $joboc_bt=$jcl_fram->Button(-text => "JobOutpControl", -font=>$font2,
                                                  -relwidth=>0.333,-relheight=>0.65);
 $joboc_bt->bind("<ButtonRelease-3>", \&joutcontr_help);
 #---
-$quitbt=$jcl_fram->Button(-text => "QuitSession", -font=>$font2,
+$quitbt=$jcl_fram->Button(-text => "QuitSession", -font=>$ButtWFont,
                                                  -activebackground=>"yellow",
 			                         -activeforeground=>"red",
 			                         -background=>"green",
@@ -1670,7 +1677,7 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 #--- 
   $crely=0.08;
   my $addit_bt=$ec_fram->Button(-text=>"Select for processing",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -1682,7 +1689,7 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 #--
   $crely+=($bheight+$bspac);
   my $remit_bt=$ec_fram->Button(-text=>"Exclude from processing",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -1694,7 +1701,7 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 #--
   $crely+=($bheight+$bspac);
   my $remi_bt=$ec_fram->Button(-text=>"Exit Editor", 
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -1711,7 +1718,7 @@ sub edit_rlist{ #edit run-list prepared by sub-scandir
 #---
   $edit_lb=$ew_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
                                                             -relief => "sunken",
-							    -font => $font2,
+							    -font => $ListbWFont,
                                                             -selectbackground => "yellow",
 							    -selectforeground => "red"
 							    )->pack(-fill=>'both', -expand=>1);
@@ -1827,6 +1834,7 @@ sub SubmitJob
     return;
   }
 #---
+  if($Host2run eq "Any"){$Host2run="";}
   if($Host2run eq ""){#<-- means any host
 #    $comm2run="bsub -q $Queue2run -n $jpar2 -o $logf -e $logef  -J $jobname $JobScriptN";
     $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
@@ -2040,7 +2048,7 @@ sub CheckJobsStat
 #--- 
   $crely=0.08;
   my $killj_bt=$jcp_fram->Button(-text=>"Kill job",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2052,7 +2060,7 @@ sub CheckJobsStat
 #---
   $crely+=($bheight+$bspac);
   my $exit_bt=$jcp_fram->Button(-text=>"Quit JobControl", 
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2069,14 +2077,14 @@ sub CheckJobsStat
                                                     -relx=>(1-$cnvrsz), -rely=>0);
 #---
   my $label="JobId        Node      Que    FirstRunN      LastsRunN         SubmTime      JStat(1/5/10/20/100->sub/pend/run/fin/ok)";
-  my $jsw_lb=$jsw_fram->Label(-text=>$label, -anchor=>'w', -font => $font2a)
+  my $jsw_lb=$jsw_fram->Label(-text=>$label, -anchor=>'w', -font => $LablWFont)
                                             ->place(
                                                     -relwidth=>1., -relheight=>0.07,
                                                     -relx=>0, -rely=>0);
 #---
   $jsw_lbox=$jsw_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
                                                             -relief => "sunken",
-							    -font => $font2,
+							    -font => $ListbWFont,
 							    -background=>LightBlue,
                                                             -selectbackground => "yellow",
 							    -selectforeground => "red"
@@ -2499,7 +2507,7 @@ sub JobOutpControl
   if($BatchFlg eq "BatchJob"){$relwid=0.5;}
   else{$relwid=1.;} 
   $showlf_bt=$jocp_fram->Button(-text=>"ShowLog",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2510,7 +2518,7 @@ sub JobOutpControl
                                                                            -relx=>0, -rely=>$crely);
   if($BatchFlg eq "BatchJob"){
     $showelf_bt=$jocp_fram->Button(-text=>"ShowELog",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2523,7 +2531,7 @@ sub JobOutpControl
   $crely+=($bheight+$bspac);
 #---
   $delilf_bt=$jocp_fram->Button(-text=>"MarkLogAsBad",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2536,7 +2544,7 @@ sub JobOutpControl
   $crely+=($bheight+$bspac);
 #--- 
   $cleanup_bt=$jocp_fram->Button(-text=>"Cleanup",
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2551,7 +2559,7 @@ sub JobOutpControl
   $crely+=($bheight+$bspac);
 #--
   $finish_bt=$jocp_fram->Button(-text=>"Finish", 
-                                                        -font=>$font2,
+                                                        -font=>$ButtWFont,
                                                         -borderwidth=>3,
                                                         -activebackground=>"yellow",
 			                                -activeforeground=>"red",
@@ -2574,7 +2582,7 @@ sub JobOutpControl
                                  -relx=>(1-$lbfwid), -rely=>0);
 #---
   my $label="   List of found LogFiles(status=1/2/3->found/JobConfirmed/good)";
-  my $logf_lab=$listb_fram->Label(-text=>$label, -anchor=>'w', -font => $font2)
+  my $logf_lab=$listb_fram->Label(-text=>$label, -anchor=>'w', -font => $LablWFont)
                                             ->place(
                                                     -relwidth=>1, -relheight=>$vbias,
                                                     -relx=>0, -rely=>0);
@@ -2582,7 +2590,7 @@ sub JobOutpControl
 #--- logfile lbx
   $logf_lbx=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
                                                             -relief => "sunken",
-							    -font => $font2b,
+							    -font => $ListbWFontb,
 							    -background=>LightBlue,
                                                             -selectbackground => "yellow",
 							    -selectforeground => "red"
@@ -3081,7 +3089,7 @@ sub WatchDog
                            -relx=>0, -rely=>0);
 #---
   $wdpr_lab1=$wdpr_fram1->Label(-text=>"UnfJobs",
-                          -font=>$font2,-relief=>'groove')
+                          -font=>$LablWFont,-relief=>'groove')
                           ->place(
 		                  -relwidth=>1, -relheight=>0.05,
                                   -relx=>0, -rely=>0);
@@ -3101,7 +3109,7 @@ sub WatchDog
                            -relx=>0.5, -rely=>0);
 #---
   $wdpr_lab2=$wdpr_fram2->Label(-text=>"FinJobs",
-                          -font=>$font2,-relief=>'groove')
+                          -font=>$LablWFont,-relief=>'groove')
                           ->place(
 		                  -relwidth=>1, -relheight=>0.05,
                                   -relx=>0, -rely=>0);
@@ -3246,13 +3254,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.08;
   $butw=0.08;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Prt:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Prt:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<5;$i++){
-    $sdset_fram->Checkbutton(-text=>$prttypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$prttypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3268,13 +3276,13 @@ if($RecoSimuP eq "RECO"){
   my @tofdbdatatypes=qw(Cal Ped DCut Elos TdcL);
   $labw=0.12;
   $butw=0.08;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<5;$i++){
-    $sdset_fram->Checkbutton(-text=>$tofdbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$tofdbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3289,14 +3297,14 @@ if($RecoSimuP eq "RECO"){
 #-----
   $xpos=0;
   $labw=0.13;
-  $sdset_fram->Label(-text=>"CalFiles:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"CalFiles:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3310,7 +3318,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3325,7 +3333,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.22;
   $entw=0.22;
-  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+$drh));
@@ -3336,7 +3344,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@TofRefCflistListRD],
 			       -command => sub{$TFREcmval[12]=$TofRefCalSetRD;}
 	                       )
@@ -3346,7 +3354,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $butw=0.23;
-  $sdset_fram->Checkbutton(-text=>"HistHit-Match", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"HistHit-Match", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -3361,20 +3369,20 @@ if($RecoSimuP eq "RECO"){
   $labw=0.4;
   $entw=0.1;
   $xpos=0;
-  $sdset_fram->Label(-text=>"DAQthr(sig) An/Dyn:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DAQthr(sig) An/Dyn:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TFREcmval[9])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TFREcmval[10])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -3383,20 +3391,20 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.25;
   $entw=0.15;
-  $sdset_fram->Label(-text=>"Adc2pC conv.f:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Adc2pC conv.f:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TFCAcmval[0])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
 #---
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -3426,13 +3434,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.34;
   $butw=0.11;
   $xpos=0;
-  $sdset_fram->Label(-text=>"AcceptVelocityLaysPatt:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"AcceptVelocityLaysPatt:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<6;$i++){
-    $sdset_fram->Checkbutton(-text=>$TofLayPatt[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$TofLayPatt[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3448,20 +3456,20 @@ if($RecoSimuP eq "RECO"){
   $labw=0.3;
   $entw=0.1;
   $xpos=0;
-  $sdset_fram->Label(-text=>"MaxChi2(time/space-fit):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MaxChi2(time/space-fit):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$BETAFITcmval[6])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$entw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$BETAFITcmval[7])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -3470,20 +3478,20 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.4;
   $entw=0.05;
-  $sdset_fram->Label(-text=>"SearchRegAroundTrk(Sigm,x/y):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"SearchRegAroundTrk(Sigm,x/y):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$BETAFITcmval[8])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$entw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$BETAFITcmval[9])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -3492,7 +3500,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $butw=0.3;
   $xpos=0;
-  $sdset_fram->Checkbutton(-text=>"AllowTofClustSharing", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"AllowTofClustSharing", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -3504,7 +3512,7 @@ if($RecoSimuP eq "RECO"){
 						 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$butw;
 #---
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -3535,13 +3543,13 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.08;
   $butw=0.14;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Prt:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Prt:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<3;$i++){
-    $sdset_fram->Checkbutton(-text=>$mcprttypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$mcprttypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3557,13 +3565,13 @@ elsif($RecoSimuP eq "SIMU"){
   my @mctofdbdatatypes=qw(CalSd Tmap Peds TlSd);
   $labw=0.12;
   $butw=0.095;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<4;$i++){
-    $sdset_fram->Checkbutton(-text=>$mctofdbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$mctofdbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3579,7 +3587,7 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.22;
   $entw=0.2;
   $xpos=0;
-  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -3590,7 +3598,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@TofRefCflistListMC],
 			       -command => sub{$TFMCcmval[4]=$TofRefCalSetMC;}
 	                       )
@@ -3602,14 +3610,14 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.4;
   $entw=0.1;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Thresh(mv) LT/HR/SHT:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Thresh(mv) LT/HR/SHT:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   for($i=0;$i<3;$i++){
     $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TFREcmval[$i+6])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -3617,7 +3625,7 @@ elsif($RecoSimuP eq "SIMU"){
     $xpos+=$entw;
   }
 #---
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -3653,7 +3661,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.17;
   $xpos=0;
-  $sdset_fram->Label(-text=>"PrintMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"PrintMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -3665,7 +3673,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$AccRDPrtNames[0],0],[$AccRDPrtNames[1],1],[$AccRDPrtNames[2],2],
 			                    [$AccRDPrtNames[3],3]],
 #			       -command => sub{print "text/var=",$AccRDPrtName," ",$ATREcmval[0],"\n";}
@@ -3676,7 +3684,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #---
   $butw=0.17;
-  $sdset_fram->Checkbutton(-text=>"DebugPrt", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"DebugPrt", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -3691,13 +3699,13 @@ if($RecoSimuP eq "RECO"){
   my @accdbdatatypes=qw(StabP VarP Peds);
   $labw=0.13;
   $butw=0.11;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<3;$i++){
-    $sdset_fram->Checkbutton(-text=>$accdbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$accdbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3712,14 +3720,14 @@ if($RecoSimuP eq "RECO"){
 #-----
   $xpos=0;
   $labw=0.13;
-  $sdset_fram->Label(-text=>"CalFiles:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"CalFiles:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3733,7 +3741,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3748,7 +3756,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.22;
   $entw=0.22;
-  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+$drh));
@@ -3759,7 +3767,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@AccRefCflistListRD],
 			       -command => sub{$ATREcmval[5]=$AccRefCalSetRD;}
 	                       )
@@ -3769,7 +3777,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $butw=0.23;
-  $sdset_fram->Checkbutton(-text=>"AmLinCorrON", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"AmLinCorrON", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -3784,19 +3792,19 @@ if($RecoSimuP eq "RECO"){
   $labw=0.32;
   $entw=0.1;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Thresh/sector(mev):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Thresh/sector(mev):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ATREcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
 #---
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -3825,7 +3833,7 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"PrintMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"PrintMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -3837,7 +3845,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$AccMCPrtNames[0],0],[$AccMCPrtNames[1],1],[$AccMCPrtNames[2],2],
 			                    [$AccMCPrtNames[3],3]],
 #			       -command => sub{print "text/var=",$AccMCPrtName," ",$ATMCcmval[0],"\n";}
@@ -3850,13 +3858,13 @@ elsif($RecoSimuP eq "SIMU"){
   my @mcaccdbdatatypes=qw(MCped SDped);
   $labw=0.14;
   $butw=0.12;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<2;$i++){
-    $sdset_fram->Checkbutton(-text=>$mcaccdbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$mcaccdbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -3872,7 +3880,7 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.22;
   $entw=0.22;
   $xpos=0;
-  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -3883,7 +3891,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@AccRefCflistListMC],
 			       -command => sub{$ATMCcmval[3]=$AccRefCalSetMC;}
 	                       )
@@ -3894,20 +3902,20 @@ elsif($RecoSimuP eq "SIMU"){
 #--- 
   $labw=0.4;
   $entw=0.1;
-  $sdset_fram->Label(-text=>"EffLightVel[cm/ns]:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"EffLightVel[cm/ns]:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ATMCcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+$drh));
     $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -3943,7 +3951,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"PrintMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"PrintMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -3955,7 +3963,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$EmcPrtNames[0],0],[$EmcPrtNames[1],1],[$EmcPrtNames[2],2]],
 #			       -command => sub{print "text/var=",$EmcPrtName," ",$ECREcmval[0],"\n";}
 	                       )
@@ -3965,7 +3973,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #---
   $labw=0.16;
-  $sdset_fram->Label(-text=>"DebugMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DebugMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -3977,7 +3985,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$EmcDebNames[0],0],[$EmcDebNames[1],1],[$EmcDebNames[2],2]],
 #			       -command => sub{print "text/var=",$EmcDebName," ",$ECREcmval[1],"\n";}
 	                       )
@@ -3989,13 +3997,13 @@ if($RecoSimuP eq "RECO"){
   my @ecdbdatatypes=qw(Peds Calp DCut);
   $labw=0.12;
   $butw=0.09;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<3;$i++){
-    $sdset_fram->Checkbutton(-text=>$ecdbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$ecdbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4010,14 +4018,14 @@ if($RecoSimuP eq "RECO"){
 #-----
   $xpos=0;
   $labw=0.13;
-  $sdset_fram->Label(-text=>"CalFiles:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"CalFiles:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4031,7 +4039,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4046,7 +4054,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.22;
   $entw=0.22;
-  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefCalSetN:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+$drh));
@@ -4057,7 +4065,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@EmcRefCflistListRD],
 			       -command => sub{$ECREcmval[5]=$EmcRefCalSetRD;}
 	                       )
@@ -4069,27 +4077,27 @@ if($RecoSimuP eq "RECO"){
   $labw=0.32;
   $entw=0.08;
   $xpos=0;
-  $sdset_fram->Label(-text=>"DaqThr(sig)(A|D):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DaqThr(sig)(A|D):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ECREcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ECREcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
 #---
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -4118,7 +4126,7 @@ elsif($RecoSimuP eq "SIMU"){
 #------
   $butw=0.2;
   $xpos=0;
-  $sdset_fram->Checkbutton(-text=>"PrintHistg", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"PrintHistg", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -4131,14 +4139,14 @@ elsif($RecoSimuP eq "SIMU"){
   $xpos+=$butw;
 #---
   $labw=0.17;
-  $sdset_fram->Label(-text=>"UseAsSeed:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseAsSeed:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #
   $butw=0.12;
-  $sdset_fram->Radiobutton(-text=>"MCcal",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"MCcal",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4152,7 +4160,7 @@ elsif($RecoSimuP eq "SIMU"){
   $xpos+=$butw;
 #
   $butw=0.12;
-  $sdset_fram->Radiobutton(-text=>"RDcal",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"RDcal",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4168,13 +4176,13 @@ elsif($RecoSimuP eq "SIMU"){
   my @mcecdbdatatypes=qw(MCped SDcal);
   $labw=0.13;
   $butw=0.12;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   for($i=0;$i<2;$i++){
-    $sdset_fram->Checkbutton(-text=>$mcecdbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$mcecdbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4190,7 +4198,7 @@ elsif($RecoSimuP eq "SIMU"){
   $xpos=0;
   $labw=0.16;
   $entw=0.11;
-  $sdset_fram->Label(-text=>"RefCalSet:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefCalSet:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+$drh));
@@ -4201,7 +4209,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@EmcRefCflistListMC],
 			       -command => sub{$ECMCcmval[7]=$EmcRefCalSetMC;}
 	                       )
@@ -4212,13 +4220,13 @@ elsif($RecoSimuP eq "SIMU"){
 #------ 
   $labw=0.22;
   $entw=0.12;
-  $sdset_fram->Label(-text=>"egCut(gev):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"egCut(gev):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ECMCcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4227,13 +4235,13 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.22;
   $entw=0.11;
-  $sdset_fram->Label(-text=>"Mev2Mev:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Mev2Mev:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ECMCcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4243,13 +4251,13 @@ elsif($RecoSimuP eq "SIMU"){
   $xpos=0;
   $labw=0.21;
   $entw=0.12;
-  $sdset_fram->Label(-text=>"Mev2Adc:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Mev2Adc:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ECMCcmval[4])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4258,20 +4266,20 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.21;
   $entw=0.12;
-  $sdset_fram->Label(-text=>"Adc2pC:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Adc2pC:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ECMCcmval[5])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -4308,13 +4316,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.28;
   $entw=0.04;
   $xpos=0;
-  $sdset_fram->Label(-text=>"WrtRootf(ComprLev):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"WrtRootf(ComprLev):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IOPAcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4322,7 +4330,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $labw=0.13;
-  $sdset_fram->Label(-text=>"Objects:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Objects:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -4334,7 +4342,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$ObjWriteModes[0],0],[$ObjWriteModes[1],1],[$ObjWriteModes[2],2]],
 #			       -command => sub{print "text/var=",$ObjWriteMode," ",$IOPAcmval[0],"\n";}
 	                       )
@@ -4344,7 +4352,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #---
   $butw=0.17;
-  $sdset_fram->Checkbutton(-text=>"+Header", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"+Header", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -4356,7 +4364,7 @@ if($RecoSimuP eq "RECO"){
 						 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$butw;
   $butw=0.15;
-  $sdset_fram->Checkbutton(-text=>"+ErrorEvs", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"+ErrorEvs", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -4371,13 +4379,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.25;
   $entw=0.75;
   $xpos=0;
-  $sdset_fram->Label(-text=>"EventWrCondition:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"EventWrCondition:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IOPAcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4387,13 +4395,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.18;
   $entw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"RootFName:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RootFName:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IOPAcmval[4])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4402,13 +4410,13 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.18;
   $entw=0.14;
-  $sdset_fram->Label(-text=>"MaxEvs/File:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MaxEvs/File:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IOPAcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4417,13 +4425,13 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.22;
   $entw=0.13;
-  $sdset_fram->Label(-text=>"MaxFileSize(kb):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MaxFileSize(kb):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IOPAcmval[5])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4434,7 +4442,7 @@ if($RecoSimuP eq "RECO"){
   $xpos=0;
 #
   if($SessName eq "RDR" || $SessName eq "MCR"){
-    $sdset_fram->Checkbutton(-text=>"ReadDaqF", -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>"ReadDaqF", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4447,7 +4455,7 @@ if($RecoSimuP eq "RECO"){
     $xpos+=$butw;
   }
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -4477,7 +4485,7 @@ elsif($RecoSimuP eq "SIMU"){
   $butw=0.21;
   $xpos=0;
 #
-  $sdset_fram->Radiobutton(-text=>"NotWriteDaqF",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"NotWriteDaqF",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4490,7 +4498,7 @@ elsif($RecoSimuP eq "SIMU"){
 						      -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$butw;
 #-
-  $sdset_fram->Radiobutton(-text=>"WriteF(norepl)",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"WriteF(norepl)",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4503,7 +4511,7 @@ elsif($RecoSimuP eq "SIMU"){
 						      -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$butw;
 #-
-  $sdset_fram->Radiobutton(-text=>"WriteF(append)",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"WriteF(append)",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4518,20 +4526,20 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.19;
   $entw=0.18;
-  $sdset_fram->Label(-text=>"DAQfileName:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DAQfileName:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$DAQCcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -4568,14 +4576,14 @@ if($RecoSimuP eq "RECO"){
 #---
   $xpos=0;
   $labw=0.22;
-  $sdset_fram->Label(-text=>"IrradiationMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"IrradiationMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Space",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Space",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4589,7 +4597,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Earth",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Earth",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4603,7 +4611,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"TBeam",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"TBeam",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4617,14 +4625,14 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $labw=0.15;
-  $sdset_fram->Label(-text=>"MagnState:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MagnState:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #
   $butw=0.11;
-  $sdset_fram->Radiobutton(-text=>"Warm",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Warm",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4638,7 +4646,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Cold",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Cold",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4652,7 +4660,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.12;
-  $sdset_fram->Radiobutton(-text=>"Charged",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Charged",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4671,13 +4679,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.2;
   $butw=(1-$labw)/6;;
   $xpos=0;
-  $sdset_fram->Label(-text=>"DetInDaq:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DetInDaq:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
   $xpos+=$labw;
   for($i=0;$i<6;$i++){#Lev1 come first
-    $P2DetInDaqBut[$i]=$sdset_fram->Checkbutton(-text=>$detdaqnames[$i], -font=>$font2, -indicator=>0,
+    $P2DetInDaqBut[$i]=$sdset_fram->Checkbutton(-text=>$detdaqnames[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4693,7 +4701,7 @@ if($RecoSimuP eq "RECO"){
   $labw=0.25;
   $entw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"InputDataType:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"InputDataType:",-font=>$LablWFont,-relief=>'groove')
                                                ->place(
 					       -relwidth=>$labw, -relheight=>$drh,
                                                -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -4704,7 +4712,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@DataTypes],
 			       -command => sub{$RunType=$RunTypeText;}
 	                       )
@@ -4715,13 +4723,13 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.2;
   $entw=0.04;
-  $sdset_fram->Label(-text=>"DebugMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DebugMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$AMSJOBcmval[0])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4731,20 +4739,20 @@ if($RecoSimuP eq "RECO"){
   $labw=0.2;
   $entw=0.2;
   $xpos=0;
-  $sdset_fram->Label(-text=>"JobName:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"JobName:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$AMSJOBcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$entw;
 #---
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -4774,13 +4782,13 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.19;
   $entw=0.05;
   $xpos=0;
-  $sdset_fram->Label(-text=>"G3-mode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"G3-mode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$MISCcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4789,13 +4797,13 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.19;
   $entw=0.05;
-  $sdset_fram->Label(-text=>"G4-mode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"G4-mode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$MISCcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4804,20 +4812,20 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.4;
   $entw=0.12;
-  $sdset_fram->Label(-text=>"MagMed e(ph)-thr(gev):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MagMed e(ph)-thr(gev):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$MAGScmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -4855,7 +4863,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.2;
   $xpos=0;
-  $sdset_fram->Label(-text=>"PrintMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"PrintMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -4867,7 +4875,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$Tgl1PrtNames[0],0],[$Tgl1PrtNames[1],1],[$Tgl1PrtNames[2],2]],
 #			       -command => sub{print "text/var=",$Tgl1PrtName," ",$Tgl1PrtFlg,"\n";}
 	                       )
@@ -4877,7 +4885,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #---
   $labw=0.2;
-  $sdset_fram->Label(-text=>"DebugMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DebugMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>$shf);
@@ -4889,7 +4897,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$Tgl1DebNames[0],0],[$Tgl1DebNames[1],1],[$Tgl1DebNames[2],2],
 			                    [$Tgl1DebNames[3],3],[$Tgl1DebNames[4],4]],
 #			       -command => sub{print "text/var=",$Tgl1DebName," ",$Tgl1DebFlg,"\n";}
@@ -4901,7 +4909,7 @@ if($RecoSimuP eq "RECO"){
 #------
   $labw=0.3;
   $xpos=0;
-  $sdset_fram->Label(-text=>"WriteSetupUpdatesTo:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"WriteSetupUpdatesTo:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
@@ -4913,7 +4921,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$Tgl1SetupDestNames[0],0],[$Tgl1SetupDestNames[1],1],[$Tgl1SetupDestNames[2],2]],
 #			       -command => sub{print "text/var=",$Tgl1SetupDestName," ",$TGL1cmval[19],"\n";}
 	                       )
@@ -4925,13 +4933,13 @@ if($RecoSimuP eq "RECO"){
   my @lv1dbdatatypes=qw(RD_TrigConf);
   $labw=0.14;
   $butw=0.2;
-  $sdset_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseDB4:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
   for($i=0;$i<1;$i++){
-    $sdset_fram->Checkbutton(-text=>$lv1dbdatatypes[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$lv1dbdatatypes[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4946,14 +4954,14 @@ if($RecoSimuP eq "RECO"){
 #-------
   $xpos=0;
   $labw=0.2;
-  $sdset_fram->Label(-text=>"TrigConfFile:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TrigConfFile:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Offic",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4967,7 +4975,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"Priv",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -4982,13 +4990,13 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.28;
   $entw=0.25;
-  $sdset_fram->Label(-text=>"DefLvl1Config(file):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DefLvl1Config(file):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TGL1cmval[16])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -4998,13 +5006,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.27;
   $entw=0.09;
   $xpos=0;
-  $sdset_fram->Label(-text=>"MinLiveTime:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MinLiveTime:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TGL1cmval[15])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5013,20 +5021,20 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.27;
   $entw=0.12;
-  $sdset_fram->Label(-text=>"MaxScalRate:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MaxScalRate:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TGL1cmval[14])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -5056,7 +5064,7 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.1;
   $butw=(1.-$labw)/$TrigPhysMembs;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Trig:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Trig:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5065,7 +5073,7 @@ elsif($RecoSimuP eq "SIMU"){
   for($i=0;$i<$TrigPhysMembs;$i++){
     $TrigPhysmVals[$i]=0;
     if(($TrigPhysmPatt & (1<<$i))>0){$TrigPhysmVals[$i]=1;}
-    $sdset_fram->Checkbutton(-text=>$TrigPhysmNams[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$TrigPhysmNams[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -5080,7 +5088,7 @@ elsif($RecoSimuP eq "SIMU"){
 #------
   $labw=0.18;
   $xpos=0;
-  $sdset_fram->Label(-text=>"TofLays:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TofLays:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
@@ -5091,7 +5099,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["def",-1],["3o4",0],["4o4",1],["T&B",2],["2o4",3]],
 #			       -command => sub{print "text/var=",$TofLayConfDispl," ",$TGL1cmval[1],"\n";}
 	                       )
@@ -5102,7 +5110,7 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.18;
   $menw=0.14;
-  $sdset_fram->Label(-text=>"TofLaysI:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TofLaysI:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
@@ -5112,7 +5120,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["def",-1],["3o4",0],["4o4",1],["T&B",2]],
 #			       -command => sub{print "text/var=",$TofLayConfIDispl," ",$TGL1cmval[4],"\n";}
 	                       )
@@ -5123,7 +5131,7 @@ elsif($RecoSimuP eq "SIMU"){
 #---
   $labw=0.183;
   $menw=0.177;
-  $sdset_fram->Label(-text=>"TofLaysSI:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TofLaysSI:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+$drh));
@@ -5133,7 +5141,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["def",-1],["aT&Ba",0],["aT&Bo",1],["oT&Ba",2],["oT&Bo",2]],
 #			       -command => sub{print "text/var=",$TofLayConfSIDispl," ",$TGL1cmval[3],"\n";}
 	                       )
@@ -5144,7 +5152,7 @@ elsif($RecoSimuP eq "SIMU"){
 #------
   $labw=0.25;
   $xpos=0;
-  $sdset_fram->Label(-text=>"DefLvl1Config(file):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DefLvl1Config(file):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -5155,7 +5163,7 @@ elsif($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$Tgl1MCConfNames[0],1],[$Tgl1MCConfNames[1],2],[$Tgl1MCConfNames[2],3]],
 #			       -command => sub{print "text/var=",$Tgl1MCConfName," ",$TGL1cmval[12],"\n";}
 	                       )
@@ -5165,7 +5173,7 @@ elsif($RecoSimuP eq "SIMU"){
   $xpos+=$menw;
 #---
   $butw=0.2;
-  $sdset_fram->Checkbutton(-text=>"PrescalingOFF", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"PrescalingOFF", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5180,27 +5188,27 @@ elsif($RecoSimuP eq "SIMU"){
   $labw=0.3;
   $entw=0.06;
   $xpos=0;
-  $sdset_fram->Label(-text=>"MaxAccS(eq/pol):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MaxAccS(eq/pol):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TGL1cmval[6])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$entw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TGL1cmval[7])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+3*$drh));
 
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -5238,7 +5246,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Nparticles:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Nparticles:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5250,7 +5258,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$NPartNames[0],0],[$NPartNames[1],10],[$NPartNames[2],100],
 			               [$NPartNames[3],1000],[$NPartNames[4],1110],[$NPartNames[5],1100]],
 			       -command => sub{print "text/var=",$NPartName," ",$ESTAcmval[0],"\n";}
@@ -5264,14 +5272,14 @@ if($RecoSimuP eq "RECO"){
   $SelObjMembs=scalar(@SelObjNames);
   $labw=0.14;
   $butw=(1.-$labw-$xpos)/$SelObjMembs;
-  $sdset_fram->Label(-text=>"PartMemb:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"PartMemb:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #
   for($i=0;$i<$SelObjMembs;$i++){
-    $sdset_fram->Checkbutton(-text=>$SelObjNames[$i], -font=>$font2, -indicator=>0,
+    $sdset_fram->Checkbutton(-text=>$SelObjNames[$i], -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -5289,7 +5297,7 @@ if($RecoSimuP eq "RECO"){
   $labw=0.15;
   $menw=0.1;
   $xpos=0;
-  $sdset_fram->Label(-text=>"NTrdTr:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NTrdTr:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5300,7 +5308,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
 	                       )
                                ->place(
@@ -5308,7 +5316,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$menw;
 #---
-  $sdset_fram->Label(-text=>"NTofCl:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NTofCl:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5319,7 +5327,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",11111110],[">1",11111100],[">2",11111000]]
 	                       )
                                ->place(
@@ -5327,7 +5335,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$menw;
 #---
-  $sdset_fram->Label(-text=>"NTrkTr:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NTrkTr:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5338,7 +5346,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
 	                       )
                                ->place(
@@ -5346,7 +5354,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$menw;
 #---
-  $sdset_fram->Label(-text=>"NRichR:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NRichR:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5357,7 +5365,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
 	                       )
                                ->place(
@@ -5366,7 +5374,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #------
   $xpos=0;
-  $sdset_fram->Label(-text=>"NEcSh:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NEcSh:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -5377,7 +5385,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
 	                       )
                                ->place(
@@ -5385,7 +5393,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$menw;
 #---
-  $sdset_fram->Label(-text=>"NVertx:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NVertx:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -5396,7 +5404,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",1110],["1",10],[">1",1100]]
 	                       )
                                ->place(
@@ -5404,7 +5412,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$menw;
 #---
-  $sdset_fram->Label(-text=>"NAccS:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"NAccS:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -5415,7 +5423,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",1110],[">1",1100],[">2",1000]]
 	                       )
                                ->place(
@@ -5423,7 +5431,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$menw;
 #---
-  $sdset_fram->Label(-text=>"Charge:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Charge:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -5434,7 +5442,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],[">0",11111110],["1",10],[">1",11111100],["2",100],[">2",11111000],
 			                    ["3",1000],["4",10000],["5",100000],["6",1000000],[">=7",10000000]]
 	                       )
@@ -5447,7 +5455,7 @@ if($RecoSimuP eq "RECO"){
   $menw=0.1;
   $xpos=0;
 #--
-  $sdset_fram->Label(-text=>"Lev1-TofLayConfig -> Flag'z>=1':",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Lev1-TofLayConfig -> Flag'z>=1':",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
@@ -5458,7 +5466,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],["4of4",1000],[">=3",1100],[">=2",1110],["2",10]]
 	                       )
                                ->place(
@@ -5469,7 +5477,7 @@ if($RecoSimuP eq "RECO"){
   $labw=0.15;
   $menw=0.1;
 #--
-  $sdset_fram->Label(-text=>"Flag'z>=2':",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Flag'z>=2':",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
@@ -5480,7 +5488,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Any",0],["4of4",1000],[">=3",1100],[">=2",1110],["2",10]]
 	                       )
                                ->place(
@@ -5488,7 +5496,7 @@ if($RecoSimuP eq "RECO"){
                                -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$menw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -5509,13 +5517,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.28;
   $entw=0.22;
   $xpos=0;
-  $sdset_fram->Label(-text=>"RunNumberToFind:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RunNumberToFind:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$SELEcmval[0])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5524,13 +5532,13 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.28;
   $entw=0.22;
-  $sdset_fram->Label(-text=>"EventNumberToFind:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"EventNumberToFind:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$SELEcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5540,13 +5548,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.4;
   $entw=0.4;
   $xpos=0;
-  $sdset_fram->Label(-text=>"OR Use EventsList from FileName:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"OR Use EventsList from FileName:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$SELEcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5556,13 +5564,13 @@ if($RecoSimuP eq "RECO"){
   $labw=0.2;
   $entw=0.2;
   $xpos=0;
-  $sdset_fram->Label(-text=>"LastRunNumb:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"LastRunNumb:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$SELEcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5571,20 +5579,20 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.2;
   $entw=0.2;
-  $sdset_fram->Label(-text=>"LastEventNumb:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"LastEventNumb:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$SELEcmval[4])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -5622,7 +5630,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.18;
   $xpos=0;
-  $sdset_fram->Label(-text=>"TofCls2Match:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TofCls2Match:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5630,7 +5638,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.03;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[0])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5638,7 +5646,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $labw=0.18;
-  $sdset_fram->Label(-text=>"MxChi2FastF:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MxChi2FastF:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5646,7 +5654,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.08;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5654,7 +5662,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #-
   $labw=0.2;
-  $sdset_fram->Label(-text=>"MxChi2StLineF:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MxChi2StLineF:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5662,7 +5670,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.07;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5670,7 +5678,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $labw=0.18;
-  $sdset_fram->Label(-text=>"MxChi2noMS:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MxChi2noMS:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5678,7 +5686,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.08;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5687,7 +5695,7 @@ if($RecoSimuP eq "RECO"){
 #------
   $labw=0.18;
   $xpos=0;
-  $sdset_fram->Label(-text=>"MinRigid(Gv):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MinRigid(Gv):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5695,7 +5703,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.07;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[4])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5703,7 +5711,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $butw=0.16;
-  $sdset_fram->Checkbutton(-text=>"UseUsedCls", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"UseUsedCls", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5716,7 +5724,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $labw=0.23;
-  $sdset_fram->Label(-text=>"FastTrackingMode:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"FastTrackingMode:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5728,7 +5736,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$FastTrkModes[0],4],[$FastTrkModes[1],3],
 			               [$FastTrkModes[2],2],[$FastTrkModes[3],1],[$FastTrkModes[4],0]],
 			       -command => sub{print "text/var=",$FastTrkMode," ",$TRFIcmval[6],"\n";}
@@ -5739,7 +5747,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #---
   $butw=0.17;
-  $sdset_fram->Checkbutton(-text=>"UseWeekCls", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"UseWeekCls", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5753,7 +5761,7 @@ if($RecoSimuP eq "RECO"){
 #------
   $xpos=0;
   $butw=0.16;
-  $sdset_fram->Checkbutton(-text=>"accept 4y+3x", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"accept 4y+3x", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5766,7 +5774,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $labw=0.24;
-  $sdset_fram->Label(-text=>"3PntsCase_MxChi2:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"3PntsCase_MxChi2:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -5774,7 +5782,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.06;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[9])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5782,7 +5790,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $butw=0.18;
-  $sdset_fram->Checkbutton(-text=>"AddFalseTofX", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"AddFalseTofX", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5795,7 +5803,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $butw=0.17;
-  $sdset_fram->Checkbutton(-text=>"Use 4y+TofX", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"Use 4y+TofX", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5808,7 +5816,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $butw=0.19;
-  $sdset_fram->Checkbutton(-text=>"NoTofInconHit", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"NoTofInconHit", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5822,7 +5830,7 @@ if($RecoSimuP eq "RECO"){
 #-------
   $butw=0.15;
   $xpos=0;
-  $sdset_fram->Checkbutton(-text=>"UseAdvFit", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"UseAdvFit", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5835,7 +5843,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $labw=0.2;
-  $sdset_fram->Label(-text=>"Max Hits/Layer:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Max Hits/Layer:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
@@ -5843,7 +5851,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.06;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[14])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -5851,7 +5859,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $butw=0.12;
-  $sdset_fram->Checkbutton(-text=>"UseTRD", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"UseTRD", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5864,7 +5872,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $butw=0.27;
-  $sdset_fram->Checkbutton(-text=>"Accept >=5plns Tracks", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"Accept >=5plns Tracks", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5876,7 +5884,7 @@ if($RecoSimuP eq "RECO"){
 						 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$butw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -5897,7 +5905,7 @@ if($RecoSimuP eq "RECO"){
 #---
   $butw=0.22;
   $xpos=0;
-  $sdset_fram->Checkbutton(-text=>"2TrksVertexOnly", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"2TrksVertexOnly", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -5910,7 +5918,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #---
   $labw=0.2;
-  $sdset_fram->Label(-text=>"TrkFitMethod:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TrkFitMethod:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5922,7 +5930,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$TrkFitMethods[0],0],[$TrkFitMethods[1],1]],
 #			       -command => sub{print "text/var=",$TrkFitMethod," ",$TRFIcmval[18],"\n";}
 	                       )
@@ -5932,7 +5940,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$menw;
 #---
   $labw=0.28;
-  $sdset_fram->Label(-text=>"TrkPattRecognMethod:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TrkPattRecognMethod:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -5944,7 +5952,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$TrkPattRecMethods[0],0],[$TrkPattRecMethods[1],1]],
 #			       -command => sub{print "text/var=",$TrkPattRecMethod," ",$TRFIcmval[19],"\n";}
 	                       )
@@ -5955,7 +5963,7 @@ if($RecoSimuP eq "RECO"){
 #------
   $labw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"MainAlg:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MainAlg:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -5963,14 +5971,14 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.08;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$TRFIcmval[20])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -6101,7 +6109,7 @@ if($RecoSimuP eq "RECO"){
   $menw=0.13;
   $xpos=0;
 #-
-  $sdset_fram->Label(-text=>"TrkProjUse:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TrkProjUse:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -6112,7 +6120,7 @@ if($RecoSimuP eq "RECO"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$TrkPrjNames[0],0],[$TrkPrjNames[1],1],[$TrkPrjNames[2],2]]
 	                       )
                                ->place(
@@ -6123,14 +6131,14 @@ if($RecoSimuP eq "RECO"){
   $labw=0.25;
   $entw=0.08;
 #-
-  $sdset_fram->Label(-text=>"ClustEtaMin(x/y):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"ClustEtaMin(x/y):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6138,7 +6146,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6146,14 +6154,14 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $labw=0.1;
-  $sdset_fram->Label(-text=>"Max:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Max:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[3])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6161,7 +6169,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[4])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6172,14 +6180,14 @@ if($RecoSimuP eq "RECO"){
   $entw=0.06;
   $xpos=0;
 #-
-  $sdset_fram->Label(-text=>"RefitProb <",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RefitProb <",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[5])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6189,14 +6197,14 @@ if($RecoSimuP eq "RECO"){
   $labw=0.19;
   $entw=0.08;
 #-
-  $sdset_fram->Label(-text=>"TrunMeanAlg:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TrunMeanAlg:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
 #-
   $butw=0.15;
-  $sdset_fram->Radiobutton(-text=>"MaxClExcl",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"MaxClExcl",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -6209,7 +6217,7 @@ if($RecoSimuP eq "RECO"){
 						      -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$butw;
 #-
-  $sdset_fram->Radiobutton(-text=>"IncClExcl",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"IncClExcl",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -6225,14 +6233,14 @@ if($RecoSimuP eq "RECO"){
   $labw=0.2;
   $entw=0.05;
 #-
-  $sdset_fram->Label(-text=>"ExclThrTof/Trk:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"ExclThrTof/Trk:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[6])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6240,7 +6248,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[7])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6251,14 +6259,14 @@ if($RecoSimuP eq "RECO"){
   $entw=0.06;
   $xpos=0;
 #-
-  $sdset_fram->Label(-text=>"EclRelSpread mn/mx:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"EclRelSpread mn/mx:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[8])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6266,7 +6274,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[9])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6276,14 +6284,14 @@ if($RecoSimuP eq "RECO"){
   $labw=0.15;
   $entw=0.08;
 #-
-  $sdset_fram->Label(-text=>"OkZProb >",-font=>$font2,-relief=>'groove',-foreground=>'red')
+  $sdset_fram->Label(-text=>"OkZProb >",-font=>$LablWFont,-relief=>'groove',-foreground=>'red')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[11])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6292,14 +6300,14 @@ if($RecoSimuP eq "RECO"){
 #---
   $labw=0.17;
 #-
-  $sdset_fram->Label(-text=>"TrkPdfFrom:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"TrkPdfFrom:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
   $xpos+=$labw;
 #-
   $butw=0.06;
-  $sdset_fram->Radiobutton(-text=>"DB",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"DB",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -6313,7 +6321,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$butw;
 #-
   $butw=0.1;
-  $sdset_fram->Radiobutton(-text=>"File#:",-font=>$font2, -indicator=>0,
+  $sdset_fram->Radiobutton(-text=>"File#:",-font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
@@ -6328,7 +6336,7 @@ if($RecoSimuP eq "RECO"){
 #-
   $entw=0.07;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[17])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6339,14 +6347,14 @@ if($RecoSimuP eq "RECO"){
   $entw=0.045;
   $xpos=0;
 #-
-  $sdset_fram->Label(-text=>"UseTrkIfTofZ >",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseTrkIfTofZ >",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[12])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6356,14 +6364,14 @@ if($RecoSimuP eq "RECO"){
   $labw=0.2;
   $entw=0.045;
 #-
-  $sdset_fram->Label(-text=>"UseTrkProbIfZ >",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"UseTrkProbIfZ >",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[15])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6371,7 +6379,7 @@ if($RecoSimuP eq "RECO"){
   $xpos+=$entw;
 #---
   $butw=0.16;
-  $sdset_fram->Checkbutton(-text=>"(x+y)TrkFit", -font=>$font2, -indicator=>0,
+  $sdset_fram->Checkbutton(-text=>"(x+y)TrkFit", -font=>$ButtWFont, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,
 						 -activebackground=>yellow, 
@@ -6386,21 +6394,21 @@ if($RecoSimuP eq "RECO"){
   $labw=0.07;
   $entw=0.07;
 #-
-  $sdset_fram->Label(-text=>"Ex/y:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Ex/y:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[14])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -6437,21 +6445,21 @@ elsif($RecoSimuP eq "SIMU"){
   $entw=0.07;
   $xpos=0;
 #-
-  $sdset_fram->Label(-text=>"IfNoDB->TrkDefPdfFile#:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"IfNoDB->TrkDefPdfFile#:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
 #-
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CHARcmval[16])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -6529,7 +6537,7 @@ if($RecoSimuP eq "SIMU"){
 #------
   $labw=0.12;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Part:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Part:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -6540,7 +6548,7 @@ if($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["Phot",1],["e+",2],["e-",3],["mu+",5],["mu-",6],["pi0",7],["pi+",8],
 			                    ["pi-",9],["Neut",13],["Prot",14],["aPr",15],["aNeu",25],["Deut",45],["Trit",46],
 					    ["He4",47],["He3",49],["Li6",61],["Be9",64],["Be10",65],["C12",67],["N14",68],
@@ -6557,7 +6565,7 @@ if($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$EmcDebNames[0],0],[$EmcDebNames[1],1],[$EmcDebNames[2],2]],
 #			       -command => sub{print "text/var=",$EmcDebName," ",$ECREcmval[1],"\n";}
 	                       )
@@ -6566,7 +6574,7 @@ if($RecoSimuP eq "SIMU"){
                                -relx=>$xpos, -rely=>($shf+0*$drh));
 #--------
   $labw=0.18;
-  $sdset_fram->Label(-text=>"Spectrum:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Spectrum:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -6577,7 +6585,7 @@ if($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [[$EnSpectra[0],0],[$EnSpectra[1],1],[$EnSpectra[2],2],[$EnSpectra[3],3],
 			                    [$EnSpectra[4],4],[$EnSpectra[5],5]],
 #			       -command => sub{}
@@ -6588,14 +6596,14 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$menw;
 #---
   $labw=0.15;
-  $sdset_fram->Label(-text=>"MomR:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"MomR:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $entw=0.105;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$MCGENcmval[12])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6603,7 +6611,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
   $entw=0.105;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$MCGENcmval[13])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6612,7 +6620,7 @@ if($RecoSimuP eq "SIMU"){
 #------
   $labw=0.15;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Illumin:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Illumin:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -6623,7 +6631,7 @@ if($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [@IllumTypes],
 			       -command => \&SetIllLimits
 	                       )
@@ -6633,7 +6641,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$menw;
 #---
   $labw=0.15;
-  $sdset_fram->Label(-text=>"ImpThe:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"ImpThe:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -6641,7 +6649,7 @@ if($RecoSimuP eq "SIMU"){
 #
   $entw=0.08;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ImpAngThe)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6649,7 +6657,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
 #
   $labw=0.15;
-  $sdset_fram->Label(-text=>"ImpPhi:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"ImpPhi:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -6657,7 +6665,7 @@ if($RecoSimuP eq "SIMU"){
 #
   $entw=0.08;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$ImpAngPhi)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6669,7 +6677,7 @@ if($RecoSimuP eq "SIMU"){
   $IPointZ="195.";
   $labw=0.2;
   $xpos=0;
-  $sdset_fram->Label(-text=>"ImpactXYZ:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"ImpactXYZ:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -6677,7 +6685,7 @@ if($RecoSimuP eq "SIMU"){
 #
   $entw=0.1;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IPointX)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6685,7 +6693,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
 #
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IPointY)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6693,7 +6701,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
 #
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$IPointZ)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6701,7 +6709,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
 #---
   $labw=0.2;
-  $sdset_fram->Label(-text=>"ImpArea(+-):",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"ImpArea(+-):",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+2*$drh));
@@ -6709,7 +6717,7 @@ if($RecoSimuP eq "SIMU"){
 #
   $entw=0.1;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$HAreaX)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6717,7 +6725,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
 #
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$HAreaY)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6725,7 +6733,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
 #
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$HAreaZ)
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6734,7 +6742,7 @@ if($RecoSimuP eq "SIMU"){
 #------
   $labw=0.18;
   $xpos=0;
-  $sdset_fram->Label(-text=>"FocusOn:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"FocusOn:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
@@ -6745,7 +6753,7 @@ if($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["NoFocus",0],["Ecal",1],["TrdTopHC",2],["SolarPanel",3]],
 #			       -command => sub{}
 	                       )
@@ -6755,21 +6763,21 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$menw;
 #---
   $labw=0.15;
-  $sdset_fram->Label(-text=>"RunNum:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RunNum:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$labw;
   $entw=0.1;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$MCGENcmval[16])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+3*$drh));
   $xpos+=$entw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",
@@ -6790,7 +6798,7 @@ if($RecoSimuP eq "SIMU"){
 #---
   $labw=0.2;
   $xpos=0;
-  $sdset_fram->Label(-text=>"GamSource:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"GamSource:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
@@ -6801,7 +6809,7 @@ if($RecoSimuP eq "SIMU"){
                                -activebackground=>yellow,
 			       -relief=>'sunken',
 			       -borderwidth=>2,
-                               -font=>$font3,
+                               -font=>$MenuWFont,
                                -options => [["None",0],["User's",1],["Crab",2],["GalCentr",3],["Vela",4]],
 #			       -command => sub{}
 	                       )
@@ -6811,14 +6819,14 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$menw;
 #---
   $labw=0.15;
-  $sdset_fram->Label(-text=>"RNDM:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"RNDM:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+0*$drh));
   $xpos+=$labw;
   $entw=0.225;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$RNDMcmval[0])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6826,7 +6834,7 @@ if($RecoSimuP eq "SIMU"){
   $xpos+=$entw;
   $entw=0.225;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$RNDMcmval[1])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6835,7 +6843,7 @@ if($RecoSimuP eq "SIMU"){
 #------
   $labw=0.4;
   $xpos=0;
-  $sdset_fram->Label(-text=>"Cuts(g,e,nh,ch,mu)[gev]:",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"Cuts(g,e,nh,ch,mu)[gev]:",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+1*$drh));
@@ -6843,7 +6851,7 @@ if($RecoSimuP eq "SIMU"){
   $entw=0.12;
   for($i=0;$i<5;$i++){
     $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$CUTScmval[$i])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
@@ -6853,27 +6861,27 @@ if($RecoSimuP eq "SIMU"){
 #------
   $labw=0.25;
   $xpos=0;
-  $sdset_fram->Label(-text=>"DebugPrt(each",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"DebugPrt(each",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+($nlmc2-1)*$drh));
   $xpos+=$labw;
   $entw=0.12;
   $sdset_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                              -font=>$font3,
+                                              -font=>$EntrWFont,
                                               -textvariable=>\$DEBUGcmval[2])
 					      ->place(
                                               -relwidth=>$entw, -relheight=>$drh,  
                                               -relx=>$xpos, -rely=>($shf+($nlmc2-1)*$drh));
   $xpos+=$entw;
   $labw=0.13;
-  $sdset_fram->Label(-text=>"events)",-font=>$font2,-relief=>'groove')
+  $sdset_fram->Label(-text=>"events)",-font=>$LablWFont,-relief=>'groove')
                                                 ->place(
 						-relwidth=>$labw, -relheight=>$drh,
                                                 -relx=>$xpos, -rely=>($shf+($nlmc2-1)*$drh));
   $xpos+=$labw;
 #------
-  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$font2, 
+  $sdset_fram->Button(-text=>"Reset2DefPar", -font=>$ButtWFont, 
                                           -activebackground=>"yellow",
 			                  -activeforeground=>"red",
 			                  -foreground=>"red",

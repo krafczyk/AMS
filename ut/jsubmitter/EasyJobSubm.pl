@@ -1,6 +1,5 @@
 #!/usr/local/bin/perl
 use Tk;
-# use Tk::StyledButton;
 use Tk::Event;
 use Time::gmtime;
 use Time::localtime;
@@ -9,9 +8,11 @@ use Tk::ProgressBar;
 use Time::Local;
 # use Term::ReadKey;
 use File::Copy;
+#
 use lib "$ENV{MyCVSTopDir}/perl";
+#
 use lib::DBSQLServer;
-# use lib::RemoteClient;
+#
 #use Audio::Beep;
 #use Audio::Data;
 #use Audio::Play;
@@ -99,6 +100,8 @@ $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 #
 #-----
 @AMSSetupsList=qw(AMS02PreAss AMS02Ass1 AMS02Space);
+@AMSHostsList=qw(Any ams pcamsr0 pcamsn0 pcamsf3 pcamsj1);
+@AMSQueuesList=qw(1nh 8nh 1nd 1nw 2nw);
 #
 @cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD);
 #
@@ -131,9 +134,13 @@ while(defined ($line=<DISPLS>)){
 }
 @dsets=split(/\s+/,$line);#split by any number of continious " "'s
 close(DISPLS);
-#
+#--
 $displx=$dsets[1];
 $disply=$dsets[3];
+print "Display resolution is ",$displx,"x",$disply,"\n";
+$LowResDisplay=0;
+if($displx<1280 || $disply<800){$LowResDisplay=1;}
+#--
 $mnwdszx=0.94;#X-size of main window (portion of display x-size)
 $mnwdszy=0.6;#Y-size of main window (portion of display y-size)
 $mwposx="+0";
@@ -147,12 +154,13 @@ $mwnd->title("Universal AMS Offline-jobs Submitter (author E.Choumilov)");
 $mwnd->bell;
 #--------------
 #---> fonts:
-$font1="Helvetica 14 normal italic";#font for entry-widgets
+$font1="Helvetica 14 normal italic";
 $font2="times 14 bold";
 $font2a="times 12 bold";
 $font2b="times 10 bold";
 $font2c="times 16 bold";
-$font3="Helvetica 12 bold italic";#smaller font for entry-widgets
+$font3="Helvetica 12 bold italic";
+$font3a="Helvetica 10 bold italic";
 $font4="Helvetica 14 bold italic";# for Message and Attention
 $font5="Helvetica 10 bold";#sess.logfile window
 $font5b="Helvetica 12 bold";#sess.logfile window big text
@@ -163,6 +171,21 @@ $font8="times 8 bold";
 $font9="Helvetica 20 bold italic";# for BigAttention
 $font10="Helvetica 18 bold italic";# for BigMessage
 $font11="Helvetica 14 bold italic";# for NormMessage
+#---
+if($LowResDisplay==0){#high resol display
+  $EntrWFont=$font3;
+  $MenuWFont=$font3;
+  $LablWFont=$font2;
+  $ButtWFont=$font2;
+  $ListbWFont=$font2;
+}
+else{
+  $EntrWFont=$font3a;
+  $MenuWFont=$font3a;
+  $LablWFont=$font2a;
+  $ButtWFont=$font2a;
+  $ListbWFont=$font2a;
+}
 #--------------
 #
 #-----> create log-file screen:
@@ -204,7 +227,7 @@ $ctpanel_fr=$mwnd->Frame(-relief=>'groove', -borderwidth=>2,
                                                       -relwidth=>$LogfXsize, -relheight=>0.05,
                                                       -relx=>(1-$LogfXsize), -rely=>0.95);
 #---> label:
-$ctpanel_fr->Label(-text=>"SelectSessType :",-font=>$font2,-relief=>'groove',
+$ctpanel_fr->Label(-text=>"SelectSessType :",-font=>$LablWFont,-relief=>'groove',
                                                    -background=>yellow,
                                                    -foreground=>red
 						   )
@@ -217,7 +240,7 @@ $JobType="";
 my $loop=0;
 foreach (qw(RealDataReco McDataSimu McDataReco)){
   $JobTypButt[$loop]=$ctpanel_fr->Radiobutton(-text => $_, -value => $_,
-                                 -font=>$font2, -indicator=>0,
+                                 -font=>$ButtWFont, -indicator=>0,
                                  -borderwidth=>3,-relief=>'raised',
 			         -selectcolor=>orange,-activeforeground=>red,
 			         -activebackground=>yellow, 
@@ -231,7 +254,7 @@ foreach (qw(RealDataReco McDataSimu McDataReco)){
  $loop+=1; 
 }
 #---> StartSess-butt:
-$StartButt=$ctpanel_fr->Button(-text=>"Start", -font=>$font2, 
+$StartButt=$ctpanel_fr->Button(-text=>"Start", -font=>$ButtWFont, 
                                    -activebackground=>"orange",
 			           -activeforeground=>"red",
 			           -foreground=>"red",
@@ -245,7 +268,7 @@ $StartButt=$ctpanel_fr->Button(-text=>"Start", -font=>$font2,
 #
 $bpos+=$width+$bspac;
 # 
-$exsess_bt=$ctpanel_fr->Button(-text=>"Exit", -font=>$font2, 
+$exsess_bt=$ctpanel_fr->Button(-text=>"Exit", -font=>$ButtWFont, 
                                    -activebackground=>"orange",
 			           -activeforeground=>"red",
 			           -foreground=>"red",

@@ -1399,8 +1399,8 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   int16u nwslot[ECEDRS];
 //
   bool newdataf(false);
-  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
-  else newdataf=false;
+//  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
+//  else newdataf=false;
 //
   ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",ibl,0);

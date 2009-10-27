@@ -137,7 +137,7 @@ $set_fram->Label(-text=>"PedsSource:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.3, -relheight=>$drh2,
                                                -relx=>0, -rely=>$shf2);
-$pedcaltyp="undefined";
+$pedcaltyp="OnBrd";
 $indat_rbt=$set_fram->Radiobutton(-text=>"SciData(RawFmt)",-font=>$font2, -indicator=>0, 
                                                  -borderwidth=>5,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red, 
@@ -196,11 +196,51 @@ $setdef_bt=$set_fram->Button(-text=>"SetJobDefPars", -font=>$font2,
 			              ->place(
                                       -relwidth=>0.5, -relheight=>$drh2,
 				      -relx=>0.5, -rely=>($shf2+$drh2));
+#------
+$dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)->place(-relwidth=>0.12, -relheight=>$drh2,
+                                                             -relx=>0, -rely=>($shf2+2*$drh2));
+$fdat1="2008.01.01 00:00:01";#def. file-date-from 
+$fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
+                                                                   -font=>$font3,
+                                                                   -textvariable=>\$fdat1)->place(
+                                                                   -relwidth=>0.43, -relheight=>$drh2,  
+                                                                   -relx=>0.12, -rely=>($shf2+2*$drh2));
+#
+$dat2_lab=$set_fram->Label(-text=>"-",-font=>$font2)->place(-relwidth=>0.02, -relheight=>$drh2,
+                                                             -relx=>0.55, -rely=>($shf2+2*$drh2));
+$fdat2="2015.01.01 00:00:01";#def. file-date-till 
+$fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
+                                                                   -font=>$font3,
+                                                                   -textvariable=>\$fdat2)->place(
+                                                                   -relwidth=>0.43, -relheight=>$drh2,  
+                                                                   -relx=>0.57, -rely=>($shf2+2*$drh2));
+#---
+$num1_lab=$set_fram->Label(-text=>"RunN",-font=>$font2)->place(-relwidth=>0.16, -relheight=>$drh2,
+                                                             -relx=>0, -rely=>($shf2+3*$drh2));
+$fnum1="0";#def. file-number-from 
+$fnum1_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
+                                                                   -font=>$font3,
+                                                                   -textvariable=>\$fnum1)->place(
+                                                                   -relwidth=>0.4, -relheight=>$drh2,  
+                                                                   -relx=>0.16, -rely=>($shf2+3*$drh2));
+#
+$num2_lab=$set_fram->Label(-text=>"-",-font=>$font2)->place(-relwidth=>0.04, -relheight=>$drh2,
+                                                             -relx=>0.56, -rely=>($shf2+3*$drh2));
+$fnum2="1500000000";#def. file-num-till 
+$fnum2_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
+                                                                   -font=>$font3,
+                                                                   -textvariable=>\$fnum2)->place(
+                                                                   -relwidth=>0.4, -relheight=>$drh2,  
+                                                                   -relx=>0.6, -rely=>($shf2+3*$drh2));
+$fnum1o=$fnum1;
+$fnum2o=$fnum2;
+$fdat1o=$fdat1;
+$fdat2o=$fdat2;
 #-------
 $set_fram->Label(-text=>"Push if limit changed >>>",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.5, -relheight=>$drh2,
-                                               -relx=>0, -rely=>($shf2+2*$drh2));
+                                               -relx=>0, -rely=>($shf2+4*$drh2));
 $convert_bt=$set_fram->Button(-text=>"RunNumber<=>Date", -font=>$font2, 
                                       -activebackground=>"yellow",
 			              -activeforeground=>"red",
@@ -211,47 +251,7 @@ $convert_bt=$set_fram->Button(-text=>"RunNumber<=>Date", -font=>$font2,
                                       -command => \&RunDateConv)
 			              ->place(
                                       -relwidth=>0.5, -relheight=>$drh2,
-				      -relx=>0.5, -rely=>($shf2+2*$drh2));
-#------
-$dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)->place(-relwidth=>0.12, -relheight=>$drh2,
-                                                             -relx=>0, -rely=>($shf2+3*$drh2));
-$fdat1="2008.01.01 00:00:01";#def. file-date-from 
-$fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
-                                                                   -font=>$font3,
-                                                                   -textvariable=>\$fdat1)->place(
-                                                                   -relwidth=>0.43, -relheight=>$drh2,  
-                                                                   -relx=>0.12, -rely=>($shf2+3*$drh2));
-#
-$dat2_lab=$set_fram->Label(-text=>"-",-font=>$font2)->place(-relwidth=>0.02, -relheight=>$drh2,
-                                                             -relx=>0.55, -rely=>($shf2+3*$drh2));
-$fdat2="2015.01.01 00:00:01";#def. file-date-till 
-$fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
-                                                                   -font=>$font3,
-                                                                   -textvariable=>\$fdat2)->place(
-                                                                   -relwidth=>0.43, -relheight=>$drh2,  
-                                                                   -relx=>0.57, -rely=>($shf2+3*$drh2));
-#---
-$num1_lab=$set_fram->Label(-text=>"RunN",-font=>$font2)->place(-relwidth=>0.16, -relheight=>$drh2,
-                                                             -relx=>0, -rely=>($shf2+4*$drh2));
-$fnum1="0";#def. file-number-from 
-$fnum1_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
-                                                                   -font=>$font3,
-                                                                   -textvariable=>\$fnum1)->place(
-                                                                   -relwidth=>0.4, -relheight=>$drh2,  
-                                                                   -relx=>0.16, -rely=>($shf2+4*$drh2));
-#
-$num2_lab=$set_fram->Label(-text=>"-",-font=>$font2)->place(-relwidth=>0.04, -relheight=>$drh2,
-                                                             -relx=>0.56, -rely=>($shf2+4*$drh2));
-$fnum2="1500000000";#def. file-num-till 
-$fnum2_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",-background=>yellow,
-                                                                   -font=>$font3,
-                                                                   -textvariable=>\$fnum2)->place(
-                                                                   -relwidth=>0.4, -relheight=>$drh2,  
-                                                                   -relx=>0.6, -rely=>($shf2+4*$drh2));
-$fnum1o=$fnum1;
-$fnum2o=$fnum2;
-$fdat1o=$fdat1;
-$fdat2o=$fdat2;
+				      -relx=>0.5, -rely=>($shf2+4*$drh2));
 #------
 $PedRmsMn=0.4;
 $par1_lab=$set_fram->Label(-text=>"PedRmsMn:",-font=>$font2,-relief=>'groove')
