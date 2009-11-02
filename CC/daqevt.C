@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.158 2009/10/21 10:35:28 choutko Exp $
+//  $Id: daqevt.C,v 1.159 2009/11/02 16:54:20 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -332,9 +332,11 @@ int16u * _pbeg=_pcur;
  }
  fpl=fpl->_next;
  }
-
-if(ntotm){
- fpl=_pBT[btype];
+if(ntotm >32767-4){
+cerr<<"DAQEvent::buildDAQ-E-jinjBlovkLengthTooBigWillNotBeEncoded "<<ntotm<<endl; 
+}
+else if(ntotm){
+fpl=_pBT[btype];
  while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
    if(*(fpl->_plength+i)<-1){
@@ -357,8 +359,77 @@ if(ntotm){
  if(pjinj){
   *(_pcur)=0;
   *(_pcur+1)=calculate_CRC16((pjinj+2),*(pjinj)/2-2);
+ if(DAQCFFKEY.mode/100==9){
+//
+// special daqcdffkey.mode/100==9;
+// hoffman compression (assumed to be same as  in jmdc) compressin
+//
+//  only jmdc block is compressed
+//  Mark  jmdc data type as 4 instead of 1
+// 
+    const int HDRMAX=4;
+
+    AMSgObj::BookTimer.start("SIZIP");
+  static int ziperr=0;
+  uint l2c=*(pjinj)-2;
+size_t outl=DAQCompress::compressable((Bytef*)(pjinj+2),l2c);
+if(outl){
+ Bytef* ostream=(Bytef*)calloc(outl+2,sizeof(Bytef));
+if(DAQCompress::compress((Bytef*)(pjinj+2),l2c,ostream,outl)){ 
+    *(pjinj)=*(pjinj)+(outl-l2c);
+    *(pjinj+1)+=3;
+    char *src=(char*)pjinj;
+    int hdrsize=sizeof(_pData[0])*2;
+    int inputl=DAQCompress::decompressable((Bytef*)ostream,outl);
+//    cout <<"  *** imput/output "<<inputl<<" "<<l2c<<" "<<outl;
+    memcpy(src+hdrsize,ostream,outl);
+    if(outl%2){
+     src[hdrsize+outl]=0;
+    }
+
+//
+// Change length
+//  
+#ifdef __LVL3ONLY__
+   uint lold=_Length;
+#endif    
+   uint len=_clb(_pData)+outl-l2c;
+    int16u offset=_pbeg-_pData; 
+   if(offset == 5){    // short length format
+     _pData[0]=len;
+     if(len>32767){
+      cerr<<"DAQEvent::builddaq-S-LogicErrorLengthTooBig "<<len<<" "<<_Length<<endl;
+     }
+     _Length=(len+1)/2+_OffsetL;
+   }
+   else{
+    _pData[0]=(len>>16)&32767;
+    _pData[1]=(len)&65535;
+    _pData[0]=_pData[0] | (1<<15);
+   _Length=(len+1)/2+_OffsetL+1;
+   } 
+        AMSgObj::BookTimer.stop("SIZIP");
+#ifdef __LVL3ONLY__
+   fbin1<<AMSEvent::gethead()->getid()<<" "<<lold*2<<" "<<_Length*2<<endl;
+#endif
+
+
+}
+else{
+int static ierr=0;
+if(ierr++<10)cerr<<"DAQEvent::biuldDAQ-E-CompressionError "<<l2c<<endl;
+}
+ free(ostream);
+}
+else{
+int static ierr=0;
+if(ierr++<10)cerr<<"DAQEvent::biuldDAQ-W-EventNotCompressable "<<l2c<<endl;
+}
+
  }
 }
+}
+
 
 // add zlib compression
 // adopted from root package bits.h
@@ -370,13 +441,16 @@ if(ntotm){
 //  if length%2 !=0 add 0 to the last byte.  
 //  do not change length 
 //
-
-//
-// special daqcdffkey.mode/100=9;
-// hopme mad compressin
-
     const int HDRMAX=4;
+
 if(DAQCFFKEY.mode/100==9){
+//  return ;
+   return;
+}
+else if(DAQCFFKEY.mode/100==8){
+//
+// special daqcdffkey.mode/100=8;
+// zero compressin
     AMSgObj::BookTimer.start("SIZIP");
   static int ziperr=0;
   int16u offset=_pbeg-_pData; 
@@ -390,10 +464,7 @@ size_t outl=_compressable((Bytef*)(_pbeg),l2c);
 //cout <<"  outl "<<outl<<" "<<l2c<<endl;
 if(outl){
  Bytef* ostream=(Bytef*)calloc(outl+2,sizeof(Bytef));
-//  Bytef ostream[outl];
 if(_compress((Bytef*)(_pbeg),l2c,ostream,outl)){ 
-  //AMSgObj::BookTimer.start("SIZIP");
-
     char *src=(char*)_pbeg;
     int hdrsize=outl<=32767?sizeof(_pData[0]):2*sizeof(_pData[0]);
     memcpy(src+hdrsize,ostream,outl);
@@ -401,10 +472,16 @@ if(_compress((Bytef*)(_pbeg),l2c,ostream,outl)){
      src[hdrsize+outl]=0;
     }
     //printf("byte %d %d %d %d \n",src[hdrsize],ostream[0],ostream[1],ostream[outl-1]);
-//  
+
+//
 //  add compressed bit
 //
     *(_pbeg-3)= (*(_pbeg-3)) | (1<<14);
+
+//
+
+
+
 
 //
 //  add subblock length
@@ -587,14 +664,20 @@ bool    DAQEvent::_isddg(int16u id){
 cout <<"DAQEvent::_isddg-I-"<<id<<" "<<(id&31)<<" "<<((id>>5)&((1<<9)-1))<<" "<<(id>>14)<<endl;
 #endif
 // accordig x.cai
-if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=128 && (id>>14)==2)return true;
+if(((id&31) ==1 || (id&31)==4)&& ((id>>5)&((1<<9)-1))>=128 && (id>>14)==2)return true;
+else return false;
+}
+
+
+bool    DAQEvent::_iscompressed(int16u id){
+if((id&31) ==4)return true;
 else return false;
 }
 
 
 
 bool    DAQEvent::_isjinj(int16u id){
-//if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
+//if(((id&31) ==1 || (id&31)==4)&& ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
 if( ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
 else return false;
 }
@@ -708,7 +791,79 @@ integer DAQEvent::_EventOK(){
      integer ntot=preset;
      for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur)) {
       ntot+=_cl(_pcur);
+      }
+    if(ntot != _Length)goto wrong;
+ 
+
+     ntot=preset;
+     for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur)) {
+      ntot+=_cl(_pcur);
+      if(_isddg(*(_pcur+_cll(_pcur))) && _iscompressed(*(_pcur+_cll(_pcur)))){
+//
+//    Decompress
+// 
+//         cout <<"**** compressed structure found ***"<<endl;
+         uint l2u=_clb(_pcur)-2;
+         uint l2c=DAQCompress::decompressable((Bytef*)(_pcur+_cll(_pcur)+1),l2u);
+         if(l2c){
+          uinteger bl=(_pcur-_pData-_cll(_pData))*sizeof(_pData[0]);
+          uinteger cl=(_pcur+_cl(_pcur)-_pData-_cll(_pData));
+          integer al=(_pData+_Length-_pcur-_cl(_pcur))*sizeof(_pData[0]);
+          if(al<0){
+            cerr<<" DAQEvent::_EVentOK-LogicError "<<al<<endl;
+          }
+          int add=2*sizeof(_pData[0]);
+          if(l2c+sizeof(_pData[0])>32766){
+             add+=sizeof(_pData[0]);
+          }
+          Bytef ostream[l2c+al+add+bl];
+          memcpy(ostream,(char*)(_pData+_cll(_pData)),bl);
+           if(DAQCompress::decompress((Bytef*)(_pcur+_cll(_pcur)+1),l2u,ostream+bl+add,l2c)){
+            memcpy(ostream+bl+add+l2c,(char*)(_pcur+_cl(_pcur)),al);
+            uint16 smb;
+            smb=*(_pcur+_cll(_pcur));
+            smb-=3;
+
+            memcpy(ostream+bl+add-sizeof(_pData[0]),(char*)(&smb),sizeof(smb));
+
+            if(l2c+sizeof(_pData[0])<32767){
+              uint16 slb=l2c+sizeof(_pData[0]);
+              memcpy(ostream+bl,(char*)(&slb),sizeof(slb));
+            }
+            else{
+              uint16 slb[2]={0,0};
+              slb[0]=((l2c+sizeof(_pData[0]))>>16)&32767;
+              slb[0]|=(1<<15);
+              slb[1]= (l2c+sizeof(_pData[0]))&65535;
+              memcpy(ostream+bl+add,(char*)(slb),sizeof(slb));
+            }
+            
+     if(l2c+al+add+bl<32767)_Length=1;
+     else _Length=2;
+     _Length+=(l2c+al+add+bl+1)/sizeof(_pData[0]);
+     _create(_GetBlType());
+     memcpy((char*)(_pData+((l2c+al+add+bl<32767)?1:2)),ostream,l2c+al+add+bl);
+     if(l2c+al+add+bl>=32767){
+      _pData[0]=((l2c+al+add+bl)>>16)&32767;
+      _pData[0]|=(1<<15);
+      _pData[1]=(l2c+al+add+bl)&65535;
      }
+     else{
+      _pData[0]=(l2c+al+add+bl);
+     }  
+     if(_EventOK()){
+         return 1;
+     }
+     else {
+       return 0;
+     }             
+        
+   }
+       
+   }
+ }
+}
+wrong:
     if(ntot != _Length){            
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
          _Length<<" Blocks say length is "<<ntot<<" "<<_GetBlType()<<endl;
@@ -1012,6 +1167,7 @@ integer DAQEvent::_HeaderOK(){
   cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<" "<<_GetBlType()<<endl;
  return 0;
 }
+
 
 integer DAQEvent::_DDGSBOK(){
   const integer Laser=204;
@@ -2207,4 +2363,182 @@ return id == outputl;
 
 
 
+
+DAQCompress::huff_code DAQCompress::alphabet[DAQCompress::L_CODES]={
+{  1,  1}, { 22,  6}, { 13,  5}, { 14,  5}, { 15,  5},
+{ 63,  8}, { 37,  7}, { 64,  8}, { 23,  6}, { 38,  7},
+{ 65,  8}, { 59,  9}, { 60,  9}, { 46, 10}, { 61,  9},
+{ 62,  9}, { 66,  8}, { 67,  8}, { 63,  9}, { 64,  9},
+{ 65,  9}, { 47, 10}, { 48, 10}, { 66,  9}, { 49, 10},
+{ 67,  9}, { 68,  9}, { 50, 10}, { 51, 10}, { 52, 10},
+{ 53, 10}, { 69,  9}, { 70,  9}, { 54, 10}, { 71,  9},
+{ 55, 10}, { 56, 10}, { 57, 10}, { 58, 10}, { 72,  9},
+{ 73,  9}, { 59, 10}, { 74,  9}, { 60, 10}, { 61, 10},
+{ 62, 10}, { 63, 10}, { 64, 10}, { 75,  9}, { 76,  9},
+{ 77,  9}, { 78,  9}, { 79,  9}, { 80,  9}, { 81,  9},
+{ 82,  9}, { 83,  9}, { 84,  9}, { 85,  9}, { 86,  9},
+{ 87,  9}, { 88,  9}, { 89,  9}, { 90,  9}, { 39,  7},
+{ 91,  9}, { 92,  9}, { 93,  9}, { 94,  9}, { 65, 10},
+{ 66, 10}, { 95,  9}, { 40,  7}, { 67, 10}, { 68, 10},
+{ 69, 10}, { 70, 10}, { 71, 10}, { 72, 10}, { 73, 10},
+{ 68,  8}, { 96,  9}, { 74, 10}, { 75, 10}, { 76, 10},
+{ 77, 10}, { 78, 10}, {  1, 11}, {  2, 11}, { 79, 10},
+{  3, 11}, {  4, 11}, { 80, 10}, {  5, 11}, { 81, 10},
+{ 82, 10}, { 83, 10}, { 84, 10}, {  6, 11}, {  7, 11},
+{ 85, 10}, {  8, 11}, {  9, 11}, { 10, 11}, { 11, 11},
+{ 86, 10}, { 12, 11}, { 13, 11}, { 87, 10}, { 14, 11},
+{ 88, 10}, { 15, 11}, { 89, 10}, { 90, 10}, { 16, 11},
+{ 17, 11}, { 18, 11}, { 91, 10}, { 19, 11}, { 20, 11},
+{ 21, 11}, { 92, 10}, { 22, 11}, { 23, 11}, { 93, 10},
+{ 94, 10}, { 95, 10}, { 97,  9}, { 24,  6}, { 98,  9},
+{ 99,  9}, {100,  9}, { 69,  8}, {101,  9}, {102,  9},
+{103,  9}, {104,  9}, {105,  9}, { 70,  8}, { 41,  7},
+{ 71,  8}, {106,  9}, {107,  9}, {108,  9}, { 25,  6},
+{109,  9}, {110,  9}, {111,  9}, {112,  9}, {113,  9},
+{114,  9}, {115,  9}, { 24, 11}, { 25, 11}, { 26, 11},
+{ 27, 11}, { 96, 10}, { 28, 11}, { 29, 11}, { 30, 11},
+{ 97, 10}, { 72,  8}, { 31, 11}, { 32, 11}, {116,  9},
+{ 33, 11}, { 98, 10}, { 34, 11}, { 99, 10}, {117,  9},
+{ 35, 11}, { 36, 11}, {100, 10}, { 37, 11}, { 38, 11},
+{ 39, 11}, {101, 10}, { 73,  8}, {102, 10}, { 40, 11},
+{103, 10}, { 41, 11}, {104, 10}, { 42, 11}, { 43, 11},
+{118,  9}, { 44, 11}, { 45, 11}, { 46, 11}, { 47, 11},
+{105, 10}, {106, 10}, {107, 10}, {119,  9}, { 48, 11},
+{ 49, 11}, { 50, 11}, { 51, 11}, { 52, 11}, { 53, 11},
+{ 54, 11}, {120,  9}, { 55, 11}, { 56, 11}, { 57, 11},
+{ 58, 11}, {108, 10}, { 59, 11}, {109, 10}, {121,  9},
+{ 60, 11}, { 61, 11}, { 62, 11}, { 63, 11}, { 64, 11},
+{110, 10}, { 65, 11}, {122,  9}, { 66, 11}, { 67, 11},
+{ 68, 11}, { 69, 11}, {111, 10}, {112, 10}, { 42,  7},
+{ 70, 11}, { 71, 11}, { 72, 11}, { 73, 11}, { 74, 11},
+{ 75, 11}, { 76, 11}, {123,  9}, { 77, 11}, { 78, 11},
+{ 79, 11}, {113, 10}, { 80, 11}, { 81, 11}, {114, 10},
+{124,  9}, { 82, 11}, { 83, 11}, {115, 10}, { 84, 11},
+{ 85, 11}, {116, 10}, { 86, 11}, { 87, 11}, { 88, 11},
+{117, 10}, { 89, 11}, { 90, 11}, { 91, 11}, {125,  9},
+{ 43,  7}, {  0, 12}
+};
+
+int DAQCompress::bl_count[DAQCompress::LENGTH]= {  1 ,   0 ,   0 ,   0 ,   3 ,   4 ,   7 ,  11 ,  67 ,  72 ,  91 ,   1 ,   0 ,   0 ,   0};
+
+
+int DAQCompress::first_code[DAQCompress::LENGTH] = {  1 ,   2 ,   4 ,   8 ,  13 ,  22 ,  37 ,  63 ,  59 ,  46 ,   1 ,   0 ,   0 ,   0 ,   0};
+
+
+int DAQCompress::decode_table[DAQCompress::LENGTH][DAQCompress::LITERALS];
+
+void DAQCompress::init_decode() {
+        _init_decode=true;        
+        for(int ilen = 1; ilen < LENGTH; ilen++){
+                int pos = 0;
+                for (int n = 0;  n <= 256; n++) {
+                        int len = alphabet[n].Len;
+                        if (len == 0) continue;
+                        if(len == ilen) {
+                                decode_table[ilen][pos++] = n;
+                        }
+                }
+        }
+}
+
+
+size_t DAQCompress::compressable(Bytef *istream, size_t inputl)
+{
+        int nbits = 0;
+
+        for(int i = 0; i < inputl; i++)
+        {
+                nbits += alphabet[istream[i]].Len;
+        }
+        int outputl=(nbits+7)/8;
+        if(outputl%2)outputl++;
+        const int HDR=3;
+        return (outputl+HDR<inputl?outputl:0);
+        
+}
+
+
+bool DAQCompress::compress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl)
+{
+        ush bi_buf = 0;
+        int bi_valid = 0;
+        ush npending = 0; // current length of output bit stream in bytes
+
+        for(int i = 0; i < inputl; i++){
+                int len = alphabet[istream[i]].Len;
+                int val = alphabet[istream[i]].Code;
+                bi_valid += len;
+                if (bi_valid > 16) {
+                        bi_valid -= 16;
+                        bi_buf |= (val >> bi_valid);
+                        if(!(npending+1<outputl)){
+                           return 0;
+                         }
+                        ostream[npending++] = bi_buf >> 8;
+                        ostream[npending++] = bi_buf & 0xff;
+                        bi_buf = (ush)val << (16 - bi_valid);
+                } else {
+                        bi_buf |= (val) << (16 - bi_valid);
+                }
+
+        }
+        if(bi_valid > 0) {
+                        if(!(npending+1<outputl)){
+                           return 0;
+                         }
+                ostream[npending++] = bi_buf >> 8;
+                ostream[npending++] = bi_buf & 0xff;
+        }
+        return npending==outputl;
+}
+
+
+ size_t DAQCompress::decompressable(Bytef *istream, size_t inputl)
+{
+        if(!_init_decode)init_decode();
+        int l = 0;
+        int v = 0;
+        int nb = 0;
+
+        for(int i = 0; i < (inputl << 3); i++) {
+                v = (v << 1) | get_bit(istream, i);
+                if(v >= first_code[l]) {
+                        int dv = decode_table[l + 1][v - first_code[l]];
+                        if(dv >=0 && dv <= 255) nb++;
+                        l = 0;
+                        v = 0;
+                }
+                else l++;
+        }
+
+        return nb;
+}
+
+
+bool DAQCompress::decompress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl)
+{
+
+        if(!_init_decode)init_decode();
+        int l = 0;
+        int v = 0;
+        int nb = 0;
+
+        for(int i = 0; i < (inputl << 3); i++) {
+                v = (v << 1) | get_bit(istream, i);
+                if(v >= first_code[l]) {
+                        int dv = decode_table[l + 1][v - first_code[l]];
+                        if(dv >=0 && dv <= 255) {
+                           if(nb>=outputl)return false;
+                           ostream[nb++] = dv;
+                        }
+                        l = 0;
+                        v = 0;
+                }
+                else l++;
+        }
+
+        return nb==outputl;
+}
+
+bool DAQCompress::_init_decode=false;
 

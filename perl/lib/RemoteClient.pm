@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.564 2009/10/19 15:29:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.565 2009/11/02 16:54:25 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9867,6 +9867,8 @@ sub listAll {
         $self -> listJobs();
          $self -> listRuns();
           $self -> listNtuples();
+   my $time = localtime;
+   print "<tr><td><font size=\"-1\"><b>Page Update : $time</b></td>\n";
             $self -> listDisks();
             $self -> listDisks('/Data');
     htmlBottom();
@@ -11589,8 +11591,9 @@ sub ht_init{
    $time = localtime;
    print "<tr><td><font size=\"-1\"><b>Page Update : $time</b></td>\n";
    my $dbtime = $self->lastDBUpdate();
+   my $oracle_version=$self->OracleVersion();
    $time= EpochToDDMMYYHHMMSS($dbtime);
-   print "<td align=right><font size=\"-1\"><b>Last DB Update : $time </b></td></tr>\n";
+   print "<td align=right><font size=\"-1\"><b>Last $oracle_version Update : $time </b></td></tr>\n";
    print "</TR></TABLE>\n";
    print "<p></p>\n";
 
@@ -11666,6 +11669,19 @@ sub ht_Menus {
         <a href=$downloadcgi>
         <b><font color=green>Download MC data and exec files</b></font></a>\n";
 }
+
+sub OracleVersion {
+     my $self = shift;
+     my $sql='select banner from v$version'."  where banner like 'Oracle%' ";
+     my  $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+          
+       return $ret->[0][0];
+   }
+     else{
+       return  " ";
+   }
+ }
 
 sub lastDBUpdate {
      my $self = shift;

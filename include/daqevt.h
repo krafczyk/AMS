@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.68 2009/10/21 10:35:35 choutko Exp $
+//  $Id: daqevt.h,v 1.69 2009/11/02 16:54:25 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -33,6 +33,39 @@ DAQSubDet(pid pgetid,  pputdata pput):
   _next(0),_pgetid(pgetid), _pputdata(pput){}
 
 friend class DAQEvent;
+};
+
+class DAQCompress{
+public:
+
+const int static LITERALS = 256;
+const int static L_CODES = LITERALS + 1;
+const int static LENGTH=16;
+const int static END_BLOCK = 256;
+typedef unsigned char uch;
+typedef unsigned char Bytef;
+typedef unsigned short ush;
+typedef unsigned long  ulg;
+typedef unsigned int uInt;
+typedef struct _huff_code{
+        ush Code;
+        ush Len;
+} huff_code;
+static  huff_code alphabet[L_CODES];
+static int bl_count[LENGTH];
+static int first_code[LENGTH];
+static int decode_table[LENGTH][LITERALS];
+static void init_decode();
+static bool _init_decode;
+static size_t compressable(Bytef *istream, size_t inputl);
+static bool compress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl); 
+static size_t decompressable(Bytef *istream, size_t inputl);
+static bool decompress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl); 
+static int get_bit(uch *data, int i) {
+        return data[i >> 3] & (1 << (7 - i & 7)) ? 1 : 0; // i % 8 = i & 7
+};
+
+
 };
 
 class DAQBlockType  {
@@ -113,6 +146,7 @@ static const char *  _getportnamej(int16u id) {
 }
 bool    _isddg(int16u id);       //  identify the detector data group sub block
 bool    _isjinj(int16u id);       //  identify the detector data group sub block
+bool    _iscompressed(int16u id);       //  identify the compressed detector data group sub block
 bool    _isjinf(int16u id);       //  identify the detector data group sub block
 bool    _isjlvl1(int16u id);       //  identify the detector data group sub block
 bool    _issdr(int16u id);       //  identify the detector data group sub block

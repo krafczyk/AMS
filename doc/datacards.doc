@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.307 2009/10/27 14:32:57 choumilo Exp $
+#  $Id: datacards.doc,v 1.308 2009/11/02 16:54:21 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -517,7 +517,8 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode%10 = 1 read daq if isReconstruction()
                                     // (mode/10)%10 = 1 write daq (noreplace)
                                     // (mode/10)%10 = 2 write daq (append)
-                                    // mode/100 = >0  compress output format on fly (1to8: zlib Z_FILTER, Z_LEVEL ; 9: simple zero bytes suppress)
+                                    // mode/100 = >0  compress output format on fly 
+                                    //  (1to7: zlib Z_FILTER, Z_LEVEL ; 8: simple zero bytes suppress 9:  jmdc hoffman compression)
 I 2 ifile[40]("")                   // input file(s) name(s) 
                                     // format: path/r1-r2,r3,r4,r5-r6  etc.
                                     // where path is path to the files directory
