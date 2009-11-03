@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.69 2009/11/02 16:54:25 choutko Exp $
+//  $Id: daqevt.h,v 1.70 2009/11/03 16:44:08 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -102,7 +102,7 @@ uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
 uint64 _Offset;
- uinteger _CalibData[32];
+ uinteger _CalibData[34];
 uinteger _JinjSlaveMask;
 int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
@@ -166,8 +166,10 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 #pragma omp threadprivate(_Buffer,_BufferLock)
+void  _updcalibdata(){_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-2]++;}
 void _setcalibdata(int mask){
-for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
+for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0])-1;i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
+_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-1]=mask;
 }
 #if !defined( __ALPHA__) && !defined(sun)
 static integer _select(const dirent64 * entry=0);
@@ -215,6 +217,7 @@ integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_
 integer getsubcount(unsigned int i) const {return i<sizeof(_SubCount)/sizeof(_SubCount[0])?_SubCount[i]:0;}
 uinteger getcalibdata(unsigned int i) const {return i<sizeof(_CalibData)/sizeof(_CalibData[0])?_CalibData[i]:0;}
 bool  CalibRequested(unsigned int crate, unsigned int xdr);
+bool  CalibDone(){return _CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-1]==_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-2];}
 void close(){ fbin.close();fbout.close();}
 static char * _DirName;
 static char ** ifnam;

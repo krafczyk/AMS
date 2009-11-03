@@ -3189,6 +3189,29 @@ void AMSEvent::buildraw(
     if(run<1000000000 && AMSJob::gethead()->isRealData())time+=_OffsetT;
 }
 
+
+
+void AMSEvent::buildraw2009(
+              integer length, int16u *p, uinteger & run, uinteger &id,
+              uinteger &runtype, time_t & time, uinteger &usec){
+
+
+    id=(*(p+6)) |  (*(p+5))<<16;
+    usec=*(p+1)*1000;
+    runtype=*(p+2);
+    run=(*(p+4)) |  (*(p+3))<<16;
+    id=(*(p+6)) |  (*(p+5))<<16;
+    const uinteger _OffsetT=0x12d53d80;
+    if(run<1000000000 && AMSJob::gethead()->isRealData()){
+        run+=_OffsetT;
+    }
+   if(time<1000000000 && AMSJob::gethead()->isRealData()){
+        time+=_OffsetT;
+    }
+}
+
+
+
 void AMSEvent::buildrawSh(integer length, int16u *p){
     p--;
     uinteger tmp=(*(p+2)) |  (*(p+1))<<16;
@@ -3223,6 +3246,16 @@ if((type==5 || type==7) && node<16)return node+1;
 else return 0;
 
 }
+
+
+integer AMSEvent::checkdaqid2009(int16u id){
+int16u type=id&31;
+int16u node=(id>>5)&1023;
+if(type>=16 && type <=19 && node<16)return node+1;
+else return 0;
+}
+
+
 
 integer AMSEvent::checkdaqidSh(int16u id){
  if((id&31)==getdaqidSh())return 1;

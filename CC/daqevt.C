@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.159 2009/11/02 16:54:20 choutko Exp $
+//  $Id: daqevt.C,v 1.160 2009/11/03 16:44:04 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1074,13 +1074,13 @@ integer DAQEvent::_HeaderOK(){
   static int lr=-1;
   if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
+     _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
     if(!_ComposedBlock()){
      _Event=1;
      _Run=1;
      _RunType=_GetBlType();
-     _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
      const uinteger _OffsetT=0x12d53d80;
-    _Time+=_OffsetT;
+    //_Time+=_OffsetT;
     }
     if(AMSEvent::checkdaqid(*(_pcur+_cll(_pcur)))){
       AMSEvent::buildraw(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
@@ -1163,6 +1163,71 @@ integer DAQEvent::_HeaderOK(){
             
       return 1;
     }
+
+
+    else if(AMSEvent::checkdaqid2009(*(_pcur+_cll(_pcur)))){
+      AMSEvent::buildraw2009(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
+        TRCALIB.Version=1;
+        DAQCFFKEY.DAQVersion=0;
+       if(AMSJob::gethead()->isRealData())DAQCFFKEY.DAQVersion=1;  
+//
+/*
+
+ laser don;t know yet
+
+      if(_RunType==Laser && TRCALIB.LaserRun==0){
+          TRCALIB.LaserRun=22;
+          cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
+      }
+      else if(_RunType!=Laser && TRCALIB.LaserRun==22){
+           cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
+           TRCALIB.LaserRun=0;
+      }
+*/
+      if(_GetBlType()>=6 && _GetBlType()<=8){
+//     set commands here
+       int mask=(_Event & 65535);
+       int seq=(_Event>>16);
+       if(seq==0)_setcalibdata(mask);
+       if(mask)_updcalibdata();
+      } 
+
+// level3 now inside  (should add smth here)
+
+
+// gps now inside  (should add smth here)
+
+
+      _Checked=1;
+#ifdef __AMSDEBUG__
+      cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
+      cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
+#endif
+ 
+      // fix against event 0
+
+      if(_Event==0 && _GetBlType()==0)return 0;
+
+      //  fix against broken sequence
+      if(_PRun==_Run && _PEvent && _Event<_PEvent){
+         cerr<<"DAQEvent::Headerok-E-EventSeqBroken for Run "<<_PRun<<" "<<_PEvent<<" "<<_Event<<endl;
+         _PRun=_Run;
+         _PEvent=_Event;
+         return 0;
+       }
+         _PRun=_Run;
+         _PEvent=_Event;
+
+            
+      return 1;
+    }
+
+
+
+// new checkdaqid
+    
+
+
   }
   cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<" "<<_GetBlType()<<endl;
  return 0;

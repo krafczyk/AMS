@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.7 2009/10/21 10:35:34 choutko Exp $
+#  $Id: daqevt2.doc,v 1.8 2009/11/03 16:44:08 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -181,3 +181,10 @@ time()
 
 (Active only after _HeaderOK())
 
+
+
+
+VI.
+
+A new way to check if calibration seq is processed correctly:
+ DAQEvent::CalibDone()
