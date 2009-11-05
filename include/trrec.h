@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.105 2009/10/16 13:15:04 choutko Exp $
+//  $Id: trrec.h,v 1.106 2009/11/05 15:01:09 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -437,9 +437,9 @@ static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
 void SimpleFit();
-void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
+void interpolate(AMSPoint   pnt,  const AMSDir & dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length, int icase=0);
-bool interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
+bool interpolateCyl(AMSPoint  pnt, const  AMSDir& dir, number rad, number idir, 
                     AMSPoint & P1, number & theta, number & phi, 
                     number & length);
 void getParFastFit(number&  Chi2, number& Rid, number&  Err, 

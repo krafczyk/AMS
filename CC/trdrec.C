@@ -779,13 +779,13 @@ void AMSTRDTrack::StrLineFit(){
      xz/=nxz;
      xx/=nxz;
      xz2/=nxz;
-     if(sqrt(xz2-xz*xz)>TRDFITFFKEY.TwoSegMatch)return ;
+     if(sqrt(fabs(xz2-xz*xz))>TRDFITFFKEY.TwoSegMatch)return ;
     }     
     if(nyz){
      yz/=nyz;
      yy/=nyz;
      yz2/=nyz;
-     if(sqrt(yz2-yz*yz)>TRDFITFFKEY.TwoSegMatch)return ;
+     if(sqrt(fabs(yz2-yz*yz))>TRDFITFFKEY.TwoSegMatch)return ;
     }     
 
     if(!nyz || !nxz){

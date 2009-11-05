@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.20 2009/02/13 16:30:49 choumilo Exp $
+//  $Id: tofrec02.h,v 1.21 2009/11/05 15:01:09 choutko Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -150,17 +150,17 @@ public:
  number gettime()const {return _time;}
  number getetime()const {return _etime;}
  void setetime(number et){_etime=et;}
- number getedep()const {return _edep;}
- number getedepd()const {return _edepd;}
- integer getnmemb()const {return _nmemb;}
+ number getedep() {return _edep;}
+ number getedepd() {return _edepd;}
+ integer getnmemb() {return _nmemb;}
  integer getmemb(AMSlink *ptr[]){
    for(int i=0;i<_nmemb;i++)ptr[i]=_mptr[i];
    return _nmemb;
  }
  void recovers(AMSTrTrack * ptr);
  void recovers2(AMSTrTrack * ptr);
- AMSPoint getcoo()const {return _Coo;}
- AMSPoint getecoo()const {return _ErrorCoo;}
+ const AMSPoint & getcoo()  {return _Coo;}
+ const AMSPoint & getecoo()  {return _ErrorCoo;}
 //+
  AMSTOFCluster(): AMSlink() {}
 //-

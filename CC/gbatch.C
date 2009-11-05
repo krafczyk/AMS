@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.98 2009/09/04 13:01:58 choutko Exp $
+//  $Id: gbatch.C,v 1.99 2009/11/05 15:01:02 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -10,6 +10,7 @@
 #include "producer.h"
 #include <malloc.h>
 #include <event.h>
+#include <fenv.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -48,6 +49,7 @@ std::set_unexpected (my_unexpected);
 //}
       using namespace gams;
 //     *signal(SIGABRT,handler);
+      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
      *signal(SIGFPE, handler);
      //*signal(SIGCONT, handler);
      *signal(SIGTERM, handler);

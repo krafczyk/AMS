@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.70 2009/11/03 16:44:08 choutko Exp $
+//  $Id: daqevt.h,v 1.71 2009/11/05 15:01:08 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -102,7 +102,7 @@ uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
 uint64 _Offset;
- uinteger _CalibData[34];
+ uinteger _CalibData[35];
 uinteger _JinjSlaveMask;
 int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
@@ -166,10 +166,11 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 #pragma omp threadprivate(_Buffer,_BufferLock)
-void  _updcalibdata(){_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-2]++;}
+void  _updcalibdata(){if(_Run==_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-3])_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-2]++;}
 void _setcalibdata(int mask){
 for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0])-1;i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
 _CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-1]=mask;
+_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-3]=_Run;
 }
 #if !defined( __ALPHA__) && !defined(sun)
 static integer _select(const dirent64 * entry=0);

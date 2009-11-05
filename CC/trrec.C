@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.209 2009/08/19 14:35:48 pzuccon Exp $
+//  $Id: trrec.C,v 1.210 2009/11/05 15:01:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3179,14 +3179,14 @@ for(int i=0;i<TKDBc::npat();i++){
 }
 }
 
-void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
+void AMSTrTrack::interpolate(AMSPoint  pntplane, const AMSDir &dirplane,AMSPoint & P1,
                              number & theta, number & phi, number & length, int icase){
 
   // interpolates track to plane (pntplane, dirplane)
   // and calculates the track parameters(P1,theta,phi) and total track length
 
   geant out[7];
-   number m55[5][5];
+   number m55[5][5]={{0,0,0,0,1},{0,0,0,1,0},{0,0,1,0,0},{0,1,0,0,0},{1,0,0,0,0}};
   geant init[7];
   geant point[6];
   geant charge=1;
@@ -3237,7 +3237,7 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
   length=slength;  
 }
 
-bool AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
+bool AMSTrTrack::interpolateCyl(AMSPoint CylCenter, const AMSDir & CylAxis,
                                 number CylRadius, number idir, AMSPoint & P1,
                                 number & theta, number & phi, number & length){
 
@@ -3246,7 +3246,7 @@ bool AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
   // and calculates the track parameters(P1,theta,phi) and total track length
 
   geant out[7];
-  number m55[5][5];
+   number m55[5][5]={{0,0,0,0,1},{0,0,0,1,0},{0,0,1,0,0},{0,1,0,0,0},{1,0,0,0,0}};
   geant init[7];
   geant point[7];
   geant charge=1;
