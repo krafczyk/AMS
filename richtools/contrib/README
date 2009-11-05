@@ -1,5 +1,6 @@
 Directory listing:
 
 
-test/       - a simple test showing how to use the library and testing how it works 
-alignment/  - an utility to align the rich to the tracker using a given dataset
+test/              - a simple test showing how to use the library and testing how it works 
+alignment/         - an utility to align the rich to the tracker using a given dataset. Not working yet
+manual_alignment/  - a tool to align manually by computing how the resolution changes as the alignment parameters are perturbed
