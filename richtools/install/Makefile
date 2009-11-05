@@ -18,6 +18,13 @@ FF = g77 -O3
 CC = g++ -O3
 LD = g++ -O3
 
+# This is the version with the debugger
+#FF = g77 -ggdb
+#CC = g++ -ggdb
+#LD = g++ -ggdb
+
+
+
 ####################### AMS SOURCE FILES ####################
 
 
@@ -44,10 +51,11 @@ main:
 
 lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o) $(LIBPATH)
 	$(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+	ar rv $(LIBPATH)libstatic.a $(BINPATH)*.o
 
 clean: $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F) $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C)
 	rm $^
-	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH) $(EXEPATH)
+	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH) 
 
 
 
@@ -118,5 +126,9 @@ test: lib $(EXEPATH) $(CONTRIB)test/test.C
 	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
 
 alignment: lib $(EXEPATH) $(CONTRIB)alignment/align.C
-	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit -L../lib  `cernlib mathlib` -I$(CONTRIB)alignment $(CONTRIB)alignment/*.C -o $(EXEPATH)alignment.exe
+	$(CC) -m32 -lg2c -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit `cernlib mathlib` -I$(CONTRIB)alignment $(CONTRIB)alignment/*.C -o $(EXEPATH)alignment.exe
+
+
+manual_alignment: lib $(EXEPATH) $(CONTRIB)manual_aligment/align.C
+	$(CC) -m32 -lg2c -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit `cernlib mathlib` -I$(CONTRIB)manual_aligment $(CONTRIB)manual_aligment/*.C -o $(EXEPATH)manual_aligment.exe
 

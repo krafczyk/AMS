@@ -24,9 +24,11 @@ public:
   Alignment(TString files);
   ~Alignment();
   
-  void Loop(bool fill=false);
+  void Loop(double &_x,double &_y,double &_z,
+	    double &_alpha,double &_beta,double &_gamma);
   int Select(AMSEventR *event);
-  double Fit();
+  int SelectRing(RichRing *ring);
+  double Fit(TH1F &beta);
 
 
 };
