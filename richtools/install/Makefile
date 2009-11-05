@@ -43,10 +43,13 @@ SOURCE = $(CPATH)richdbc.C  $(CPATH)richid.C  $(CPATH)richradid.C  $(CPATH)richr
 
 main:
 	@echo Available targets:
-	@echo "lib           - Build the shared library"
-	@echo "contrib       - Build all the utilities in the contrib directory"
-	@echo "    test      - Build the contrib/test utility"
-	@echo "clean         - Clean up everything"
+	@echo "lib              - Build the shared library"
+	@echo "contrib          - Build all the utilities in the contrib directory"
+	@echo "test             - Build the contrib/test utility"
+	@echo "alignment        - Build the contrib/alignment utility (not working properly yet)"
+	@echo "manual_alignment - Build the contrib/manual_alignment utility "
+	@echo "tuning           - Build the contrib/parameter_tuning utility, which tunes the CIEMAT beta reconstruction single parameter"
+	@echo "clean            - Clean up everything (expect the exe directory)"
 # Main target
 
 lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o) $(LIBPATH)
@@ -120,7 +123,7 @@ $(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h)
 
 CONTRIB = ../contrib/
 
-contrib: test
+contrib: test alignment manual_alignment tuning
 
 test: lib $(EXEPATH) $(CONTRIB)test/test.C
 	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
@@ -131,4 +134,7 @@ alignment: lib $(EXEPATH) $(CONTRIB)alignment/align.C
 
 manual_alignment: lib $(EXEPATH) $(CONTRIB)manual_aligment/align.C
 	$(CC) -m32 -lg2c -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit `cernlib mathlib` -I$(CONTRIB)manual_aligment $(CONTRIB)manual_aligment/*.C -o $(EXEPATH)manual_aligment.exe
+
+tuning: lib $(EXEPATH) $(CONTRIB)parameter_tuning/analysis.C
+	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)parameter_tuning $(CONTRIB)parameter_tuning/*.C -o $(EXEPATH)tuning.exe
 
