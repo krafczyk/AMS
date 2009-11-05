@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 use Tk;
 use Tk::Event;
 use Time::gmtime;
@@ -9,13 +9,12 @@ use Time::Local;
 # use Term::ReadKey;
 use File::Copy;
 #
+#use lib "/usr/lib/perl5/site_perl/5.6.1/i386-linux";
+#use lib "/afs/cern.ch/user/c/choumilo/AMS/perl";
+#
 use lib "$ENV{MyCVSTopDir}/perl";
 #
 use lib::DBSQLServer;
-#
-#use Audio::Beep;
-#use Audio::Data;
-#use Audio::Play;
 #
 #-----> imp.glob.const, vars and arrays:
 #
