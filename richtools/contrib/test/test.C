@@ -41,7 +41,7 @@ void Analysis::Loop(){
       cout<<"MUsed "<<ring_ntuple->UsedM<<" "<<ring->_mused<<endl;
     }
 
-
+    delete ring;
   }
 }
 
