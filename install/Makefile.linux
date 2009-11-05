@@ -117,12 +117,13 @@ ifdef AMSPROFILE
 endif
 
 ifdef DEBUGFLAG
-    CFLAGS       += -g      
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
+    CFLAGS       += -g
     CFLAGSTOFSIM += -g
-    CFLAGSn      += -g     
-    CFLAGSDAQ    += -g  
-    FFLAGS       += -g     
-    FFLAGSn      += -g    
+    CFLAGSn      += -g
+    CFLAGSDAQ    += -g
+    FFLAGS       += -g
+    FFLAGSn      += -g
 else
     CFLAGS       += -O3      
     CFLAGSTOFSIM += -O1
