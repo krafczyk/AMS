@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.71 2009/11/05 15:01:08 choutko Exp $
+//  $Id: daqevt.h,v 1.72 2009/11/06 18:31:33 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -98,6 +98,7 @@ integer _TrigTime;
 integer _BufferOwner;
 integer _Checked;
 uinteger _Length;
+uinteger _LengthR;
 uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
@@ -213,6 +214,7 @@ uint64 getoffset()const {return _Offset;}
 uint64 getsoffset();
 void setoffset(uint64 offset);
 void shrink();
+integer getlengthR() const {return _LengthR*sizeof(_pData[0]);}
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_SubLength[0])?_SubLength[i]*sizeof(_pData[0]):0;}
 integer getsubcount(unsigned int i) const {return i<sizeof(_SubCount)/sizeof(_SubCount[0])?_SubCount[i]:0;}

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.160 2009/11/03 16:44:04 choutko Exp $
+//  $Id: daqevt.C,v 1.161 2009/11/06 18:31:29 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1546,7 +1546,7 @@ integer DAQEvent::read(){
      fbin.read(( char*)(l16),sizeof(l16));
      _convertl(l16[0]);
      _convertl(l16[1]);
-     _Length=_cl(l16);
+     _LengthR=_Length=_cl(l16);
 unexpected:
     if(fbin.eof()){
       integer Run,Event;
@@ -1567,7 +1567,7 @@ unexpected:
        fbin.read(( char*)(l16),sizeof(l16));
        _convertl(l16[0]);
        _convertl(l16[1]);
-       _Length=_cl(l16);
+       _LengthR=_Length=_cl(l16);
        break;
      }    
      else{
@@ -1592,7 +1592,7 @@ unexpected:
 //       fbin.seekg(integer(fbin.tellg())+sizeof(_pData[0])*(_Length-1));
        unsigned int off=sizeof(_pData[0])*(_Length-1);
        fbin.seekg(off,ios::cur);
-       _Length=0;
+       _LengthR=_Length=0;
       }
      }
      else {
@@ -1610,7 +1610,7 @@ unexpected:
         _NeventsPerRun++;
     if(fbin){
         _Offset=fbin.tellg();
-     _Offset-=getlength();
+     _Offset-=getlengthR();
     }
     else {
     //cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
@@ -1632,7 +1632,7 @@ void DAQEvent::select(){
          }
      // pos back if fbin.good
      if(ok){
-            int off=-daq.getlength();
+            int off=-daq.getlengthR();
             fbin.seekg(off,ios::cur);
             static int nmsg=0;
             if(nmsg++<100)cout<<"DAQEvent::select-I-Selected Run = "<<daq.runno()<<
@@ -1702,7 +1702,7 @@ DAQEvent::InitResult DAQEvent::init(){
      }
      // pos back if fbin.good
      if(ok){
-            int off=-daq.getlength();
+            int off=-daq.getlengthR();
             fbin.seekg(off,ios::cur);
             cout<<"DAQEvent::init-I-Selected Run = "<<Run<<
               " Event = "<<daq.eventno()<< " Position = "<<iposr<<" Time "<<ctime(&daq.time())<<endl;
