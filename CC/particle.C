@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.183 2009/11/05 15:01:02 choutko Exp $
+//  $Id: particle.C,v 1.184 2009/11/06 16:18:40 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -220,7 +220,7 @@ void AMSParticle::_calcmass(number momentum,number emomentum, number beta, numbe
     number one=1;
     number xb=1/fabs(beta);
     if(xb<one)xb=2-xb;
-    number gamma2=beta!=1?one/(one-beta*beta):FLT_MAX; 
+    number gamma2=fabs(beta)!=1?one/(one-beta*beta):FLT_MAX; 
     number mass2=momentum*momentum*(xb*xb-one);
     mass=gamma2>0? sqrt(mass2) : -sqrt(mass2);
     emass=fabs(mass)*sqrt((emomentum/momentum)*(emomentum/momentum)+

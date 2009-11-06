@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.117 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: geant.C,v 1.118 2009/11/06 16:18:40 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -35,6 +35,7 @@
 //
 
 #include "typedefs.h"
+#include <fenv.h>
 
 #include "cern.h"
 #include "mceventg.h"
@@ -132,6 +133,12 @@ void gams::UGINIT(int argc,  char * argv[]){
   GCPHYS.IRAYL=1;
   integer mone=-1;
  GFFGO();
+  if(MISCFFKEY.RaiseFPE==0){
+      fedisableexcept(FE_ALL_EXCEPT );
+  }
+  else{
+      cout <<"UGINIT-W-FPEExceptionsAreSet "<<fegetexcept()<<endl;
+  }
   AMSJob::gethead()->udata();
  
 #ifdef __CORBA__

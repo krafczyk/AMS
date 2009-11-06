@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.99 2009/11/05 15:01:02 choutko Exp $
+//  $Id: gbatch.C,v 1.100 2009/11/06 16:18:40 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -47,10 +47,11 @@ std::set_unexpected (my_unexpected);
 //   return AMSCommonsI::getbuildno();
 //  } 
 //}
+
       using namespace gams;
-//     *signal(SIGABRT,handler);
-      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
-     *signal(SIGFPE, handler);
+     feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
+      //*signal(SIGABRT,handler);
+     //*signal(SIGFPE, handler);
      //*signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);
@@ -127,7 +128,7 @@ cout <<"  JUMP attempted "<<endl;
    exit(1);
    break;
   case SIGFPE:
-   cerr <<" FPE intercepted"<<endl;
+   cerr <<feclearexcept(FE_ALL_EXCEPT)<<" FPE intercepted "<<endl;
    break;
   case SIGXCPU:
    #pragma omp master 

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.124 2009/08/14 09:19:44 mdelgado Exp $
+//  $Id: richrec.C,v 1.125 2009/11/06 16:18:40 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -6,6 +6,7 @@
 #include "richradid.h"
 #include "mccluster.h"
 #include "tofrec02.h"
+#include <fenv.h>
 #ifdef __WRITEROOT__
 #include "root.h" 
 #endif
@@ -1959,7 +1960,13 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
     //    const float window_sigmas=3;
     const float window_sigmas=sqrt(_window);
+    int env=fegetexcept();
+    if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
     ReconRingNpexp(window_sigmas,!checkstatus(dirty_ring));
+    feclearexcept(FE_ALL_EXCEPT);
+    if(env){
+      feenableexcept(env);        
+    }
 
     if((RICHDB::scatprob)>0.){
 #define SQR(x) ((x)*(x))
@@ -2083,7 +2090,16 @@ int AMSRichRingNew::buildlip(){
     }
   }
 
-  RICHRECLIP(ievnumb,_Status);
+    int env=fegetexcept();
+    if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
+
+     RICHRECLIP(ievnumb,_Status);
+
+    feclearexcept(FE_ALL_EXCEPT);
+    if(env){
+      feenableexcept(env);        
+    }
+
 
   if (goodLIPREC()) {
     fillresult();

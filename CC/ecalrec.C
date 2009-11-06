@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.121 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: ecalrec.C,v 1.122 2009/11/06 16:18:40 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -21,6 +21,8 @@
 #include "trigger102.h"
 #include "trigger302.h"
 #include "timeid.h"
+#include <fenv.h>
+
 using namespace std;
 using namespace ecalconst;
 //
@@ -2337,8 +2339,11 @@ void AMSEcalShower::ProfileFit(){
                                 &AMSEcalShower::monit;
     void (*psalfun)(double &x, double &f, AMSEcalShower *p)=&AMSEcalShower::gamfunr;
 
-
-
+    int env=fegetexcept();
+    if(MISCFFKEY.RaiseFPE<=1){
+    fedisableexcept(FE_OVERFLOW);
+    fedisableexcept(FE_INVALID);
+    }
   // NowFit
     
     const integer Maxrow=ECALDBc::GetLayersNo();
@@ -2454,7 +2459,12 @@ void AMSEcalShower::ProfileFit(){
      integer one=1;
      e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
      _Direction=1;
-    }        
+    }
+    feclearexcept(FE_OVERFLOW);
+    feclearexcept(FE_INVALID);
+    if(env){
+      feenableexcept(env);        
+    }
 }
 
 void AMSEcalShower::gamfunr(number& x, number &fc, AMSEcalShower *p){
@@ -2492,8 +2502,7 @@ PROTOCALLSFFUN4(DOUBLE,DGAUSS,dgauss,ROUTINE,DOUBLE,DOUBLE,DOUBLE)
    return;
  }
 {
- 
- number et=0;
+  number et=0;
  const integer nint=7;
  for (int i=2;i<Maxrow;i++){
    number edep=0;
@@ -2501,8 +2510,13 @@ PROTOCALLSFFUN4(DOUBLE,DGAUSS,dgauss,ROUTINE,DOUBLE,DOUBLE,DOUBLE)
    for(int j=0;j<nint;j++){
     number x1=p->_Ez[i]-p->_Ez[0]+dz*(j)/nint;
     number x2=p->_Ez[i]-p->_Ez[0]+dz*(j+1)/nint;
+/*
     number p1=x1>0?pow(x1,xc[1]*xc[2])*exp(-xc[2]*x1):0;
     number p2=x2>0?pow(x2,xc[1]*xc[2])*exp(-xc[2]*x2):0;
+*/
+    number p1=x1>0?exp(log(x1)*xc[1]*xc[2]-xc[2]*x1):0;
+    number p2=x2>0?exp(log(x2)*xc[1]*xc[2]-xc[2]*x2):0;
+
     edep+= (p1+p2)*0.5*dz/nint;
    }
    et+=edep;
@@ -2514,8 +2528,12 @@ PROTOCALLSFFUN4(DOUBLE,DGAUSS,dgauss,ROUTINE,DOUBLE,DOUBLE,DOUBLE)
    for(int j=0;j<nint;j++){
     number x1=p->_Ez[i]-p->_Ez[0]+dz*(j)/nint;
     number x2=p->_Ez[i]-p->_Ez[0]+dz*(j+1)/nint;
+/*
     number p1=x1>0?pow(x1,xc[1]*xc[2])*exp(-xc[2]*x1):0;
     number p2=x2>0?pow(x2,xc[1]*xc[2])*exp(-xc[2]*x2):0;
+*/
+    number p1=x1>0?exp(log(x1)*xc[1]*xc[2]-xc[2]*x1):0;
+    number p2=x2>0?exp(log(x2)*xc[1]*xc[2]-xc[2]*x2):0;
     edep+= (p1+p2)*0.5*dz/nint;
    }
    fc+=(edep/et*xc[0]-p->_Edep[i])*(edep/et*xc[0]-p->_Edep[i])/p->_Edep[i]*70;

@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.26 2009/08/19 23:32:54 pzuccon Exp $
+* $Id: TrackFit_utils.F,v 1.27 2009/11/06 16:18:40 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.27  2009/11/06 16:18:40  choutko
+* *** empty log message ***
+*
 * Revision 1.26  2009/08/19 23:32:54  pzuccon
 * Adapt PGTRACK to std Bfield + some bugfix
 *
@@ -167,7 +170,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.26 2009/08/19 23:32:54 pzuccon Exp $
+*  $Id: TrackFit_utils.F,v 1.27 2009/11/06 16:18:40 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -5020,7 +5023,7 @@ CDECK  ID>, TKFITPARCYL.
               common/tftimeC/timer(100,2),xtime
               common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
-              real *8 xxn,vpar2,vpar,vxy
+              real *8 xxn,vpar2,vpar,vxy,s1,s2
           stept=0
           idir=1
           stepa=0
@@ -5034,7 +5037,11 @@ CDECK  ID>, TKFITPARCYL.
           s2=(point(1)-out(1))*point(4)+
      +       (point(2)-out(2))*point(5)+
      +       (point(3)-out(3))*point(6)
+          if(s1-s2**2.lt.0)then
+           sdist=point(7)
+          else
           sdist=point(7)-sqrt(s1-s2**2)
+          endif
           if(sdist.lt.0)then
            stept=1.e10
 #if defined(__AMSDEBUG__)
@@ -5056,7 +5063,11 @@ CDECK  ID>, TKFITPARCYL.
           s2=(point(1)-out(1))*point(4)+
      +       (point(2)-out(2))*point(5)+
      +       (point(3)-out(3))*point(6)
+          if(s1-s2**2.lt.0)then
+           sdist=point(7)
+          else
           sdist=point(7)-sqrt(s1-s2**2)
+          endif
           sd2=out(4)*point(4)+out(5)*point(5)+out(6)*point(6)
           sd1=sqrt(abs(1-sd2**2))
           
@@ -7770,9 +7781,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.26 2009/08/19 23:32:54 pzuccon Exp $
+* $Id: TrackFit_utils.F,v 1.27 2009/11/06 16:18:40 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.27  2009/11/06 16:18:40  choutko
+* *** empty log message ***
+*
 * Revision 1.26  2009/08/19 23:32:54  pzuccon
 * Adapt PGTRACK to std Bfield + some bugfix
 *
