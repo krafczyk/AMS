@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.125 2009/11/06 16:18:40 choutko Exp $
+//  $Id: richrec.C,v 1.126 2009/11/06 17:29:45 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -112,7 +112,8 @@ void AMSRichRawEvent::mc_build(){
 	  // Change to gainX1 mode
 	  mode=0;
 	  pedestal=nnoisy>0?AMSRichMCHit::noise(channel,0):AMSRichMCHit::adc_empty(channel,0);
-	  signal*=calibration.gain[0]/calibration.gain[1];  // FIXME!!!!
+//        "fixed" by VC 06-nov-2009
+//	  signal*=calibration.gain[0]/calibration.gain[1];  // FIXME!!!!
 	}
 
 	threshold=calibration.pedestal_threshold[mode]*calibration.pedestal_sigma[mode]+calibration.pedestal[mode];

@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.649 2009/11/06 16:18:40 choutko Exp $
+// $Id: job.C,v 1.650 2009/11/06 17:29:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -24,7 +24,7 @@
 #include "amsdbc.h"
 #include "commons.h"
 #include "extC.h"
-
+#include <fenv.h>
 #ifdef _PGTRACK_
 
 #include "TrRecon.h"
@@ -1732,7 +1732,15 @@ if(AMSFFKEY.Update){
     else
       TkDBc::Head->init();
     AMSTRDIdSoft::init();
+    int env=fegetexcept();
+    if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
     RichPMTsManager::Init();
+    feclearexcept(FE_ALL_EXCEPT);
+    if(env){
+      feenableexcept(env);        
+    }
+
+
     RichRadiatorTileManager::Init();    
     AMSTRDIdSoft::inittable();
     AMSECIds::inittable();
@@ -1768,7 +1776,13 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::inittable(2);
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
-       RichPMTsManager::Init();
+   int env=fegetexcept();
+    if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
+        RichPMTsManager::Init();
+    feclearexcept(FE_ALL_EXCEPT);
+    if(env){
+      feenableexcept(env);        
+    }
        RichRadiatorTileManager::Init();	
        AMSTRDIdSoft::inittable();
        AMSECIds::inittable();

@@ -26,3 +26,18 @@ extern const char _nl_C_LC_CTYPE_tolower[] attribute_hidden;
 const unsigned short int *__ctype_b = b (unsigned short int, class, 128);
 const __int32_t *__ctype_tolower = b (__int32_t, tolower, 128);
 const __int32_t *__ctype_toupper = b (__int32_t, toupper, 128);
+
+#include <fenv.h>
+
+void fegetexcept_(int * val){
+*val=fegetexcept();
+}
+
+void fesetexcept_(int *val){
+feclearexcept(*val);
+feenableexcept(*val);
+}
+
+void feunsetexcept_(){
+fedisableexcept(FE_ALL_EXCEPT);
+}

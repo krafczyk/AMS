@@ -1,4 +1,4 @@
-*  $Id: gtckov.F,v 1.6 2008/11/14 15:25:18 mdelgado Exp $
+*  $Id: gtckov.F,v 1.7 2009/11/06 17:29:49 choutko Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
@@ -553,7 +553,11 @@ C
 	     COST1 = -PDOTU
 	     IF (ABS(COST1).LT.1.) THEN
 		SINT1 = SQRT((1-COST1)*(1+COST1))
+                if(rin2.ne.0)then
 		SINT2 = SINT1*RIN1/RIN2
+                else
+                 sint2=0
+                endif
 	     ELSE
 		SINT1 = 0.0
 		SINT2 = 0.0
