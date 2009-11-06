@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.9 2009/11/06 17:29:49 choutko Exp $
+* $Id: Geant3_utils.F,v 1.10 2009/11/06 17:59:55 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.10  2009/11/06 17:59:55  choutko
+* *** empty log message ***
+*
 * Revision 1.9  2009/11/06 17:29:49  choutko
 * some fpe wrappers added
 *
@@ -116,7 +119,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.9 2009/11/06 17:29:49 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.10 2009/11/06 17:59:55 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -158,6 +161,7 @@ C     DECK  ID>, GUTREV.
  
       integer ival
       call fegetexcept(ival) 
+c        write(*,*)'************* ',ival
       call feunsetexcept
       CALL GTREVE
        if(ival.ne.0)then
