@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.100 2009/11/06 16:18:40 choutko Exp $
+//  $Id: gbatch.C,v 1.101 2009/11/09 14:22:05 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -51,7 +51,7 @@ std::set_unexpected (my_unexpected);
       using namespace gams;
      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
       //*signal(SIGABRT,handler);
-     //*signal(SIGFPE, handler);
+     *signal(SIGFPE, handler);
      //*signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);

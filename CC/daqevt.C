@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.161 2009/11/06 18:31:29 choutko Exp $
+//  $Id: daqevt.C,v 1.162 2009/11/09 14:22:04 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1074,7 +1074,7 @@ integer DAQEvent::_HeaderOK(){
   static int lr=-1;
   if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
-     _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
+     _Time=(*(_pcur-1)) |  (*(_pcur-2))<<16;
     if(!_ComposedBlock()){
      _Event=1;
      _Run=1;

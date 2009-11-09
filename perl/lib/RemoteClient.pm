@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.565 2009/11/02 16:54:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.566 2009/11/09 14:22:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2813,6 +2813,22 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "<td align=center><b><font color=\"blue\" >SizeMB </font></b></td>";
               print "<td align=center><b><font color=\"blue\" >OrigFiles </font></b></td>";
 
+         my $pp=" ";
+         my $pid=$q->param("QPPer");
+         if($pid<=0){
+         }
+         else{
+             my $sql1="select end,begin from productionset where did=$pid";
+              my $ret = $self->{sqlserver}->Query($sql1);
+              if(defined $ret->[0][0]){
+               if($ret->[0][0]){    
+               $pp=" and fetime<$ret->[0][0] and letime>=$ret->[0][1]  ";
+               }
+               else{
+                $pp=" and letime>=$ret->[0][1]  ";
+               }
+              }             
+         }
          my $type="";
             if ($q->param("DataFileType") =~ /ANY/) {
              }                         
@@ -2860,7 +2876,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $title = $title.$q->param("RunID");
                 $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status,tag 
                           FROM datafiles
-                          WHERE run>=$runmin AND run<=$runmax $type
+                          WHERE run>=$runmin AND run<=$runmax $type $pp
                           ORDER BY run";
                     
             } else {
@@ -2871,14 +2887,14 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $runmax=2000000000;                
                 $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status ,tag
                           FROM datafiles
-                          WHERE run>=$runmin AND run<=$runmax $type
+                          WHERE run>=$runmin AND run<=$runmax $pp $type 
                           ORDER BY run";
              }
              else{
              $title = $title.$runid;
                 $sql = "SELECT run, path,fetime, nevents,  type, sizemb,pathb,paths,status ,tag 
                           FROM datafiles
-                          WHERE run=$runid ";
+                          WHERE run=$runid $pp";
          }
          }
          my $ret=$self->{sqlserver}->Query($sql);
@@ -4949,7 +4965,7 @@ CheckCite:            if (defined $q->param("QCite")) {
    htmlBottom();
   } else {
    htmlTop();
-    $self->htmlAMSHeader("AMS-02 MC Database Query Form");
+    $self->htmlAMSHeader("AMS-02  Database Query Form");
     print "<ul>\n";
     htmlMCWelcome();
     print "<p>\n";
@@ -5103,6 +5119,18 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
         print "Find DataFile(s) : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
         print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+
+
+ print "<tr valign=middle><td align=left><b><font size=\"-1\"> Production Period : </b></td> <td colspan=1>\n";
+             print "<select name=\"QPPer\" >\n";
+             my $ii=0;
+             foreach my  $template (@periodid) {
+              print "<option value=\"$template\">$period[$ii] </option>\n";
+              $ii++;
+            }
+            print "</select>\n";
+      print "</b></td></tr>\n";
+   print "<BR>";
         print "<b>RunID : </b> <input type =\"text\" name=\"DataFileID\">\n";
         print "<input type=\"submit\" name=\"getDataFileID\" value=\"Submit\"> \n";
         print "<b>RunType ( SCI, CAL, LAS, ANY) : </b> <input type =\"text\" name=\"DataFileType\" value=\"ANY\">\n";
