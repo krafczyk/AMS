@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.8 2009/11/03 16:44:08 choutko Exp $
+#  $Id: daqevt2.doc,v 1.9 2009/11/09 19:12:09 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -186,5 +186,6 @@ time()
 
 VI.
 
-A new way to check if calibration seq is processed correctly:
- DAQEvent::CalibDone()
+Thanks to the developpers of the new calib format:
+A new way to check if calibration seq is processed correctly (does not gaurantee to work always):
+ DAQEvent::CalibDone(int id) id=0...  tracker trd tof rich ecal

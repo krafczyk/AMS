@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.210 2009/11/05 15:01:02 choutko Exp $
+//  $Id: trrec.C,v 1.211 2009/11/09 19:12:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2270,6 +2270,7 @@ integer AMSTrTrack::TOFOK(){
        AMSDir s(ptrd->gettheta(),ptrd->getphi());
        AMSDir s1(gettheta(),getphi());
        number c=s1.prod(s);
+       if(c>1)c=1;
        if(s[2]!=0){
          number x=ptrd->getCooStr()[0]+s[0]/s[2]*(_P0[2]-ptrd->getCooStr()[2]);
          if(fabs(x-_P0[0])<SearchReg && acos(c)<MaxCos)return 1;       
@@ -4501,6 +4502,7 @@ bool AMSTrTrack::TRDMatch(AMSTRDTrack *ptrd){
        AMSDir s(ptrd->gettheta(),ptrd->getphi());
        AMSDir s1(gettheta(),getphi());
        number c=s1.prod(s);
+       if(c>1)c=1;
        if(s[2]!=0){
          number x=ptrd->getCooStr()[0]+s[0]/s[2]*(_P0[2]-ptrd->getCooStr()[2]);
          if(fabs(x-_P0[0])<SearchReg && acos(c)<MaxCos)return true;       

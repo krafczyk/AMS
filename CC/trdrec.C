@@ -901,7 +901,7 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
       AMSPoint dc2=sp-p->_Base._Hit[i];
       number d1=sdir.prod(dc2);
       d1=dc2.prod(dc2)-d1*d1;
-      fc+=d1/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
+      if(p->_Base._PCluster[i]->getEHit())fc+=d1/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
       
     }
     }   

@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.28 2009/11/09 14:22:05 choutko Exp $
+//  $Id: point.h,v 1.29 2009/11/09 19:12:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -92,7 +92,8 @@ public:
   //! assignement operator by copy
   AMSPoint&  operator =(const AMSPoint & o){_x=o._x;_y=o._y;_z=o._z;return *this;}
   //! it returns the vector scalar product of the two AMSPoints
-  virtual number prod(AMSPoint o)const{return (_x*o._x+_y*o._y+_z*o._z);}
+   number prod(AMSPoint  o)const{return (_x*o._x+_y*o._y+_z*o._z);}
+;
   //! it return the vector module of the AMSPoint
   number norm()const {return sqrt(_x*_x+_y*_y+_z*_z);}
   //! it returns the distance between two AMSPoints
@@ -173,7 +174,6 @@ class AMSDir :public AMSPoint{
   void setd(number x[]){_copy(x[0],x[1],x[2]);}
   //! it does the vector cross product of two AMSDir
   AMSDir cross(const AMSDir & o);
-  virtual number prod(AMSDir o)const{return (_x*o._x+_y*o._y+_z*o._z)/sqrt((_x*_x+_y*_y+_z*_z)*(o._x*o._x+o._y*o._y+o._z*o._z));}
     ClassDef(AMSDir,1);
 };
 

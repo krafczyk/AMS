@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.19 2008/11/06 09:56:34 pzuccon Exp $
+//  $Id: point.C,v 1.20 2009/11/09 19:12:09 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "typedefs.h"
@@ -293,3 +293,6 @@ AMSRotMat &AMSRotMat::Invert(void)
 
   return *this;
 }
+
+
+
