@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.102 2009/10/21 10:35:28 choutko Exp $
+//  $Id: trrawcluster.C,v 1.103 2009/11/09 15:46:16 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -760,7 +760,8 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
   uinteger tdr=in%trid::ntdr;
 //  cout << "crate tdr "<<ic<<" "<<tdr<<endl;
   int leng4=leng/4;
-  if(leng4!=1024){
+//  if(leng4!=1024){
+  if(leng4!=1289){
    cerr<<"AMSTrRawCluster::updtrcalibS-E-WrongLength "<<leng4<<endl;
    return;
   }
@@ -769,7 +770,7 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
    cerr<<" AMSTrRawCluster::updtrcalibS-W-ICTDRAlreadySet "<<ic<<" "<<tdr<<endl;
   }
   AMSTrIdSoft::_Calib[ic][tdr]=1;
-
+/*
   int version=*(p+leng);
   geant sig_d=*(p+leng+1);
   geant rawsig_d=*(p+leng+3);
@@ -827,6 +828,7 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
 if(nerr>0){
      cerr <<"  AMSTrRawCluster::updtrcalibS-E-RawSigmaProblems "<<nerr<<endl;
 }
+*/
   bool update=true;
    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
   int nc=0;

@@ -15,15 +15,8 @@ public:
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise
-    //a
-    if(ev && ev->Event()%2==0) return true;
-    else return false;
-    if(ev &&   ev->nTrTrack()){
-      a++;
-      cout <<ev->Event()<<endl;
-      cerr<< " Number "<<a<<endl;
+    if(ev &&   ev->nTrdTrack()){
       return true;
-      
     }
     else{
       return false;

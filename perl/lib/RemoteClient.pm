@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.566 2009/11/09 14:22:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.567 2009/11/09 15:46:17 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2815,9 +2815,9 @@ CheckCite:            if (defined $q->param("QCite")) {
 
          my $pp=" ";
          my $pid=$q->param("QPPer");
-         if($pid<=0){
+         if($pid==0){
          }
-         else{
+         elsif($pid>0){
              my $sql1="select end,begin from productionset where did=$pid";
               my $ret = $self->{sqlserver}->Query($sql1);
               if(defined $ret->[0][0]){
@@ -2828,6 +2828,21 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $pp=" and letime>=$ret->[0][1]  ";
                }
               }             
+         }
+         else{
+             my $sql1="select end,begin from productionset where status='Active'and name like '%AMS02%'";
+              my $ret = $self->{sqlserver}->Query($sql1);
+              my $beg=2000000000;
+              my $end=0;
+              if(defined $ret->[0][0]){
+                foreach my $r (@{$ret}){
+                   if($beg>$r->[1]){
+                    $beg=$r->[1];
+                   }
+                }
+                $pp=" and letime>=$beg  ";
+             
+            }
          }
          my $type="";
             if ($q->param("DataFileType") =~ /ANY/) {

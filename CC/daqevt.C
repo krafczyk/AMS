@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.162 2009/11/09 14:22:04 choutko Exp $
+//  $Id: daqevt.C,v 1.163 2009/11/09 15:46:16 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1188,7 +1188,7 @@ integer DAQEvent::_HeaderOK(){
 //     set commands here
        int mask=(_Event & 65535);
        int seq=(_Event>>16);
-       if(seq==0)_setcalibdata(mask);
+       if(seq==1)_setcalibdata(mask);
        if(mask)_updcalibdata();
       } 
 
