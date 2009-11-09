@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.163 2009/11/09 15:46:16 choutko Exp $
+//  $Id: daqevt.C,v 1.164 2009/11/09 18:04:59 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -63,7 +63,6 @@ extern "C" size_t _compressable(Bytef* istream,size_t length);
 extern "C" size_t _decompressable(Bytef* istream,size_t length);
 extern "C" bool _compress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
 extern "C" bool _decompress(Bytef* istream,size_t ilength,Bytef* ostream,size_t olength);
-
 
 
 
@@ -689,7 +688,7 @@ else return false;
 }
 
 bool    DAQEvent::_issdr(int16u id){
-if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>>14)==2)return true;
+if( ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>>14)==2)return true;
 else return false;
 }
 bool    DAQEvent::_istdr(int16u id){
@@ -711,7 +710,7 @@ else return false;
 }
 
 bool    DAQEvent::_isjlvl1(int16u id){
-if((id&31) ==1 && ((id>>5)&((1<<9)-1))>=137 && ((id>>5)&((1<<9)-1))<=140 && (id>>14)==2)return true;
+if(  ((id>>5)&((1<<9)-1))>=137 && ((id>>5)&((1<<9)-1))<=140 && (id>>14)==2)return true;
 else return false;
 }
 
@@ -1188,9 +1187,78 @@ integer DAQEvent::_HeaderOK(){
 //     set commands here
        int mask=(_Event & 65535);
        int seq=(_Event>>16);
-       if(seq==1)_setcalibdata(mask);
-       if(mask)_updcalibdata();
-      } 
+       _Event=seq;
+       if(seq==1)_setcalibdataS(_Run);
+// try to be smart
+      int16u id=*(_pcur+_cl(_pcur)+_cll(_pcur+_cl(_pcur)));
+       int pos=-1;
+       if(_istdr(id)){
+        pos=0;
+       }
+       else if(_isedr(id)){
+        pos=4;
+       }
+       else if(_isudr(id)){
+        pos=1;
+       }
+       else if(_isrdr(id)){
+        pos=3;
+       }
+       else if(_issdr(id)){
+        pos=2;
+       }
+       if(pos>=0){
+        if(_CalibDataS[pos*3+2]++==0)_CalibDataS[pos*3]=seq;
+        _CalibDataS[pos*3+1]=seq;          
+        if(seq==mask && _Run==_CalibDataS[sizeof(_CalibDataS)/sizeof(_CalibDataS[0])-1]){
+         _CalibDataS[pos*3+2]++;
+        }
+        else{
+// must read next event, thanks to developers
+ #pragma omp critical (g4)      
+{
+    if(fbin.good() && !fbin.eof()){
+     int16u l16[2];
+        uint64 of=getsoffset();
+     fbin.read(( char*)(l16),sizeof(l16));
+     _convertl(l16[0]);
+     _convertl(l16[1]);
+     int length=_cl(l16);
+     if(length>255)length=256;
+      int16u buf[256];
+      setoffset(of);
+      fbin.read((char*)buf,length);
+      setoffset(of);
+      int16u *pp=buf;
+      if((*(pp+_cll(pp)) &31) >=6 && (*(pp+_cll(pp))&31)<=8){
+       int shift=4+_cll(pp)+_cl(pp+4+_cll(pp))+_cll(pp+4+_cll(pp)+_cl(pp+4+_cll(pp)));
+       if(shift<length){
+        id=*(pp+shift);
+       int pos2=-1;
+       if(_istdr(id)){
+        pos2=0;
+       }
+       else if(_isedr(id)){
+        pos2=4;
+       }
+       else if(_isudr(id)){
+        pos2=1;
+       }
+       else if(_isrdr(id)){
+        pos2=3;
+       }
+       else if(_issdr(id)){
+        pos2=2;
+       }
+       if(pos2>=0 && pos2!=pos &&_Run==_CalibDataS[sizeof(_CalibDataS)/sizeof(_CalibDataS[0])-1])_CalibDataS[pos*3+2]++;
+       }
+      }
+     }
+    }
+   }
+}
+} 
+
 
 // level3 now inside  (should add smth here)
 
@@ -1203,7 +1271,7 @@ integer DAQEvent::_HeaderOK(){
       cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
       cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
- 
+     
       // fix against event 0
 
       if(_Event==0 && _GetBlType()==0)return 0;
@@ -2607,3 +2675,15 @@ bool DAQCompress::decompress(Bytef *istream, size_t inputl, Bytef *ostream, size
 
 bool DAQCompress::_init_decode=false;
 
+
+
+
+bool DAQEvent::CalibDone(int id){
+if(id>=0 && id<7){
+ if(_CalibDataS[id*3+2] && _CalibDataS[id*3+2] ==_CalibDataS[id*3+1]-_CalibDataS[id*3]+2 )return true;
+ else return false; 
+}
+else return false;
+}
+
+unsigned int DAQEvent::_CalibDataS[7*3+1];

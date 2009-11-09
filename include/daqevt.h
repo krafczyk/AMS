@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.72 2009/11/06 18:31:33 choutko Exp $
+//  $Id: daqevt.h,v 1.73 2009/11/09 18:05:00 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -103,7 +103,8 @@ uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
 uint64 _Offset;
- uinteger _CalibData[35];
+ uinteger _CalibData[32];
+static uinteger _CalibDataS[7*3+1]; //  tracker trd tof rich ecal lvl1 lvl3;  // start stop total
 uinteger _JinjSlaveMask;
 int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
@@ -167,11 +168,12 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 #pragma omp threadprivate(_Buffer,_BufferLock)
-void  _updcalibdata(){if(_Run==_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-3])_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-2]++;}
 void _setcalibdata(int mask){
-for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0])-1;i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
-_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-1]=mask;
-_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-3]=_Run;
+for (int i=0;i<sizeof(_CalibData)/sizeof(_CalibData[0]);i++)_CalibData[i]=mask!=0?0:0xFFFFFFFF;
+}
+static void _setcalibdataS(unsigned int run){
+for (int i=0;i<sizeof(_CalibDataS)/sizeof(_CalibDataS[0]);i++)_CalibDataS[i]=0;
+_CalibDataS[sizeof(_CalibDataS)/sizeof(_CalibDataS[0])-1]=run;
 }
 #if !defined( __ALPHA__) && !defined(sun)
 static integer _select(const dirent64 * entry=0);
@@ -220,7 +222,7 @@ integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_
 integer getsubcount(unsigned int i) const {return i<sizeof(_SubCount)/sizeof(_SubCount[0])?_SubCount[i]:0;}
 uinteger getcalibdata(unsigned int i) const {return i<sizeof(_CalibData)/sizeof(_CalibData[0])?_CalibData[i]:0;}
 bool  CalibRequested(unsigned int crate, unsigned int xdr);
-bool  CalibDone(){return _CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-1]==_CalibData[sizeof(_CalibData)/sizeof(_CalibData[0])-2];}
+static bool  CalibDone(int id);
 void close(){ fbin.close();fbout.close();}
 static char * _DirName;
 static char ** ifnam;

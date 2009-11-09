@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.103 2009/11/09 15:46:16 choutko Exp $
+//  $Id: trrawcluster.C,v 1.104 2009/11/09 18:05:00 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -829,10 +829,10 @@ if(nerr>0){
      cerr <<"  AMSTrRawCluster::updtrcalibS-E-RawSigmaProblems "<<nerr<<endl;
 }
 */
-  bool update=true;
-   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
+  bool update=DAQEvent::CalibDone(0);
   int nc=0;
   int ncp=0;
+/*
   for(int i=0;i<getmaxblocks();i++){
    for (int j=0;j<trid::ntdr;j++){
     if(!AMSTrIdSoft::_Calib[i][j] && (pdaq && pdaq->CalibRequested(getdaqid(i),j))){
@@ -843,6 +843,7 @@ if(nerr>0){
   }
   }
   cout <<" nc "<<nc<<" "<<ncp<<endl;
+*/
   if(update || nc>=TRCALIB.EventsPerCheck){
      update=true;
    for (int i=0;i<2;i++){
