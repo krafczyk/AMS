@@ -2874,9 +2874,7 @@ class RemoteClient:
                 if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
                     if(run2p!=0 and int(run)!=run2p):
                         continue
-                    #(outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
-                    ret=1
-                    outputpath="" 
+                    (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/2
                         type="UNK"
@@ -2887,9 +2885,8 @@ class RemoteClient:
                         elif (t0=="6"):
                             type="CAL"
                         bpath=runsdir+"/"+type
-                        #cmd="ln -sf "+outputpath+" "+bpath
-                        #i=os.system(cmd)
-                        i=0
+                        cmd="ln -sf "+outputpath+" "+bpath
+                        i=os.system(cmd)
                         if(i):
                             print "Command Failed ",cmd
                             bpath=" "
@@ -2914,8 +2911,6 @@ class RemoteClient:
                         if(len(orig)>1):
                              origpath=origpath+" "+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,0,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),tag,tfevent,tlevent,bpath)
-                        print sql;
-                        return;
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
                         cmd="rm -rf "+pfile
