@@ -3,13 +3,11 @@
 #include "TRegexp.h"
 #include "TXNetFile.h"
 #include <dlfcn.h>
-
 bool AMSNtupleHelper::IsGolden(AMSEventR *o){
   return true;
 }
 
 AMSNtupleHelper *AMSNtupleHelper::fgHelper=0;
-
 
 ClassImp(AMSChain)
 
@@ -42,7 +40,11 @@ void AMSChain::Init(AMSEventR* event){
 }
 
 Int_t AMSChain::ReadOneEvent(Int_t entry){
-  
+      if(gSystem->ProcessEvents()){
+          cout <<"InteruptReceived"<<endl;
+          return -1;
+      }
+
   if(!GetEvent(entry)) return 0;
   // if the user selection function exists and it fails retuern NULL
   if(AMSNtupleHelper::fgHelper && 

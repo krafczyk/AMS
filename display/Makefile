@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.47 2009/08/27 10:58:03 pzuccon Exp $
+#  $Id: Makefile,v 1.48 2009/11/10 18:47:10 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -11,6 +11,7 @@ PREFIX        = $(AMSWD)/bin/$(ARCH)/display/
 DEPDIR        = $(PREFIX)/dep
 
 AMSLIB        = ntuple_slc4
+AMSLIBSO        = ntuple_slc4.so
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsed
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedc
 SLC4=y
@@ -49,7 +50,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS)  -lshift -lm    -ldl
+LIBS          =  $(AMSWD)/lib/linuxicc/$(AMSLIBSO) $(ROOTLIBSA)  -lshift -lm    -ldl
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 

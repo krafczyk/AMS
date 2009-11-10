@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.166 2009/11/10 14:10:07 choutko Exp $
+//  $Id: daqevt.C,v 1.167 2009/11/10 18:47:21 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -688,7 +688,7 @@ else return false;
 }
 
 bool    DAQEvent::_issdr(int16u id){
-if( ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 && (id>>14)==2)return true;
+if( ((id>>5)&((1<<9)-1))>=266 && ((id>>5)&((1<<9)-1))<=281 )return true;
 else return false;
 }
 bool    DAQEvent::_istdr(int16u id){
@@ -788,7 +788,7 @@ integer DAQEvent::_EventOK(){
   int ntot=0;
   if(_Length >1 && _pData ){
      integer ntot=preset;
-     for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur)) {
+     for(_pcur=_pData+preset;_pcur<_pData+_Length && _pcur>=_pData;_pcur+=_cl(_pcur)) {
       ntot+=_cl(_pcur);
       }
     if(ntot != _Length)goto wrong;

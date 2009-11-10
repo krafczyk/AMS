@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.4 2009/08/17 13:00:34 pzuccon Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.5 2009/11/10 18:47:10 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -150,6 +150,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
    cerr <<"No file opened, exiting "<<endl;
    exit(1);
   } 
+     m_chain->ReadOneEvent(0);
 
 }
 
@@ -919,6 +920,7 @@ static const char *gOpenTypes[] = { "Root files", "*.root*",
   }
 
   m_chain->Add(filename);
+  
   if(m_idle)m_theapp->StartIdleing();
 
 }

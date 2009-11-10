@@ -1,4 +1,5 @@
-//  $Id: main.cxx,v 1.35 2009/08/17 13:00:34 pzuccon Exp $
+
+//  $Id: main.cxx,v 1.36 2009/11/10 18:47:10 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -26,18 +27,24 @@
 #include <TString.h>
 #include <getopt.h>
 TString * Selector;
+TString * Selectorf=0;
 extern void * gAMSUserFunction;
-void OpenChain(AMSChain & chain, char * filename);
+void OpenChain(AMSChain & chain, char * filename, char *lastfile);
 
 #ifndef WIN32
 #ifdef __APPLE__
-static int Selectsdir(dirent *entry=0);
+static int Selectsdir(dirent64 *entry=0);
+static int Select(dirent64 *entry=0);
 #else
-static int Selectsdir(const dirent *entry=0);
+static int Selectsdir(const dirent64 *entry=0);
+static int Select(const dirent64 *entry=0);
+static int Sort(dirent64 ** e1,  dirent64 ** e2);
+
 #endif
 #endif
 
-
+  bool lastfilefound=true;
+  bool notlast=true;
 void Myapp::HandleIdleTimer(){
   
   if(fDisplay){
@@ -70,10 +77,12 @@ int main(int argc, char *argv[]){
   int c;
   int sec=10;
   char title[256];
+  char lastfile[1024]="\0";
   strcpy(title,"AMS Event Display");
   int option_index = 0;
   static struct option long_options[] = {
     {"title", 1, 0, 't'},
+    {"monitor", 1, 0, 'm'},
     {"help",    0, 0, 'h'},
     {"scan",  1, 0, 's'},
     {0, 0, 0, 0}
@@ -93,11 +102,17 @@ int main(int argc, char *argv[]){
     case 't':             
       strcpy(title, optarg);
       break;
+    case 'm':             
+      if(strlen(optarg)){
+        strcpy(lastfile, optarg);
+        lastfilefound=false;
+      }
+      break;
     case 'h':
     case 'H':
     case '?':
     default:            /* help */
-      cout<<"$amsed(c) file -scan[s] -title[t]"<<endl;
+      cout<<"$amsed(c) file -scan[s] -title[t] -monitor[lastfile]"<<endl;
       return 0;
       break;
     }
@@ -105,7 +120,7 @@ int main(int argc, char *argv[]){
   AMSNtupleV *pntuple= new AMSNtupleV();
   AMSChain chain(pntuple,"AMSRoot");
   if(filename){
-    OpenChain(chain,filename); 
+    OpenChain(chain,filename,lastfile); 
   }  
   printf("opening file %s...\n", filename);
   int err=0;
@@ -192,7 +207,7 @@ void (handler)(int sig){
 }
 
 
-void OpenChain(AMSChain & chain, char * filenam){
+void OpenChain(AMSChain & chain, char * filenam, char *lastfile){
   //  
   //  root can;t cope with multiple wild card so we must do it ourselves
   //
@@ -208,6 +223,7 @@ void OpenChain(AMSChain & chain, char * filenam){
   TRegexp e("^rfio:",false);
   TRegexp f("^/castor",false);
   bool wildsubdir=false;
+  bool wild=false;
    if(a.Contains(b)){
 #if !defined(WIN32) && !defined(__APPLE__)
     TRFIOFile f("");
@@ -245,6 +261,9 @@ void OpenChain(AMSChain & chain, char * filenam){
 	wildsubdir=true;
 	break;
       }
+      else if(filename[i]=='*'){
+       wild=true;
+      }
     }
   }
 #ifndef WIN32
@@ -259,16 +278,16 @@ void OpenChain(AMSChain & chain, char * filenam){
                 
                 if(l-k-1>0)Selector= new TString(filename+k+1,l-k-1);
                 else Selector=0;
-                dirent ** namelistsubdir;
+                dirent64 ** namelistsubdir;
                 cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,NULL);
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
                   strcpy(fsdir,ts.Data());
                   strcat(fsdir,namelistsubdir[nsd]->d_name);
                   strcat(fsdir,filename+l);
                   cout << "found dir "<<fsdir<<endl;
-                  OpenChain(chain,fsdir);
+                  OpenChain(chain,fsdir,lastfile);
                 } 
                 return;               
 	      }
@@ -278,8 +297,52 @@ void OpenChain(AMSChain & chain, char * filenam){
       }
     }
   }
+  else if(wild){
+    for(int i=0;i<strlen(filename);i++){
+      if (filename[i]=='*'){
+        for(int k=i-1;k>=0;k--){
+	  if(filename[k]=='/'){
+	    TString ts(filename,k+1);
+                if(!Selectorf)Selectorf= new TString("root$");
+                dirent64 ** namelistsubdir;
+                cout <<"  scanning wild"<<ts<<endl;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                for( int nsd=0;nsd<nptrdir;nsd++){
+                  char fsdir[1023];
+                  strcpy(fsdir,ts.Data());
+                  strcat(fsdir,namelistsubdir[nsd]->d_name);
+                  //cout << "found file "<<fsdir<<endl;
+                  if(nsd<nptrdir-1)notlast=true;
+                  else notlast=false;   
+                  OpenChain(chain,fsdir,lastfile);
+               
+                } 
+                return;               
+	  }
+	}                  
+      }
+    }
+  }
 #endif
-  chain.Add(filename);
+  struct stat64 statbuf;
+  stat64((const char*)filename, &statbuf);
+     time_t t;
+     time(&t);
+  if(lastfilefound &&statbuf.st_size){
+     if(t-statbuf.st_mtime>60 || notlast){     
+      strcpy(lastfile,filename);
+//      cout <<" added "<<lastfile<<" "<<statbuf.st_size<<endl;
+      chain.Add(filename);
+     }
+     else {
+       cout<<"main-W-OpenChainFileNotAdded "<<filename<<t<<" "<<statbuf.st_mtime<<endl;
+       return;
+     }
+  }
+  if(!lastfilefound && strstr(filename,lastfile)){
+       cout<<"main-I-OpenChainLastFileDetected "<<filename<<endl;
+    lastfilefound=true;
+  }
 }
 
 
@@ -287,9 +350,9 @@ void OpenChain(AMSChain & chain, char * filenam){
 #ifndef WIN32
 int Selectsdir(
 #ifndef __APPLE__
-	       const dirent *entry){
+	       const dirent64 *entry){
 #else
-  dirent *entry){
+  dirent64 *entry){
 #endif
   if(Selector){
     TString a(entry->d_name);
@@ -298,4 +361,28 @@ int Selectsdir(
   }
   else return entry->d_name[0]!='.';
 }
+#endif
+
+
+
+#ifndef WIN32
+int Select(
+#ifndef __APPLE__
+	       const dirent64 *entry){
+#else
+  dirent64 *entry){
+#endif
+  if(Selectorf){
+    TString a(entry->d_name);
+    TRegexp b(Selectorf->Data(),false);
+    return a.Contains(b) && entry->d_name[0]!='.';
+  }
+  else return entry->d_name[0]!='.';
+}
+
+int Sort(dirent64 ** e1,  dirent64 ** e2){
+return strcmp((*e1)->d_name,(*e2)->d_name);
+}
+
+
 #endif
