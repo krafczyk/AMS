@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.104 2009/11/09 18:05:00 choutko Exp $
+//  $Id: trrawcluster.C,v 1.105 2009/11/10 13:34:02 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -500,7 +500,7 @@ continue;
  }
  if(DAQEvent::isError(*(p+*p))){
   cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
-  break;
+  //break;
  }
  for(int16u* paux=p+DAQCFFKEY.Mode;paux<p+*p-1-cmn;paux+=*paux+2+1){
   int16u haddr=*(paux+1);

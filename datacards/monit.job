@@ -19,7 +19,7 @@ echo $UNAME is not supported yet
 fi
 RUN=1201279137
 rm -rf /tmp/last.root
-$AMSWD/exe/linux/icc2/gbatch.exe <<!
+$AMSWD/exe/linuxicc/gbatch.exe <<!
 LIST
 KINE 14
 MULS 1
@@ -37,11 +37,12 @@ AMSJOB 1=8011   2=0      3=5.   4=1  5=0 46='AMS02'
 C AMSJOB 1=11   2=0      3=5.   4=1  5=0 46='AMS02'
 C Special HP-UX
 TIME 3=10000000
-DAQC 1=1 2='/daq/PMCHRDL/0049/' 
+DAQC 1=1 2='/pcposc1_Data/BLOCKS/HRDL-B/0015/'  
+41=0 42='/scratch/choutko'
 C TFRE 3=1 5=1 6=1 7=1 
 MAGS 1=-1
-MISC 2=1 8=-1
-TRCALIB 2=90 9=5
+MISC 2=1 8=-1 12=0
+C TRCALIB 2=90 9=5
 TERM 1=1234567890 2=1198173513
 END
 

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.164 2009/11/09 18:04:59 choutko Exp $
+//  $Id: daqevt.C,v 1.165 2009/11/10 13:34:02 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -879,7 +879,7 @@ wrong:
        return 0;
       }
      else{
-      if( (*(_pData+preset-3)) & (1<<14)){
+      if( (*(_pData+preset-3)) & (1<<14) && !AMSJob::gethead()->isRealData()){
          uint l2u=_clb(_pData+preset);
          uint l2c=_decompressable((Bytef*)(_pData+preset+_cll(_pData+preset)),l2u);
           //cout<<"  decompress "<<l2u<<" "<<l2c<<endl;
@@ -910,7 +910,7 @@ wrong:
           }
          }
       }
-      else  if( (*(_pData+preset-3)) & (1<<13)){
+      else  if( (*(_pData+preset-3)) & (1<<13) &&!AMSJob::gethead()->isRealData()){
 //
 //       zip bit found
 //
@@ -1149,6 +1149,7 @@ integer DAQEvent::_HeaderOK(){
       // fix against event 0
       if(_Event==0 && _GetBlType()==0)return 0;
 
+
       //  fix against broken sequence
       if(_PRun==_Run && _PEvent && _Event<_PEvent){
          cerr<<"DAQEvent::Headerok-E-EventSeqBroken for Run "<<_PRun<<" "<<_PEvent<<" "<<_Event<<endl;
@@ -1215,7 +1216,7 @@ integer DAQEvent::_HeaderOK(){
         }
         else{
 // must read next event, thanks to developers
- #pragma omp critical (g4)      
+ #pragma omp critical (secndpass)      
 {
     if(fbin.good() && !fbin.eof()){
      int16u l16[2];
@@ -1271,6 +1272,12 @@ integer DAQEvent::_HeaderOK(){
       cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
       cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
+      // fix against wrong time
+         if(_Time<1180000000){
+           static int  bbte=0;
+           if(bbte++<100)cerr<<"DAQEvent::_HeaderOK-E-BadTime "<<_Time<<" "<<_Run<<" "<<_Event<<endl;
+           return 0;
+         }
      
       // fix against event 0
 
@@ -1676,6 +1683,7 @@ unexpected:
 //   
   
         _NeventsPerRun++;
+   //cout <<" npr "<<_NeventsPerRun<<endl;
     if(fbin){
         _Offset=fbin.tellg();
      _Offset-=getlengthR();
@@ -2277,8 +2285,31 @@ again:
  }
          
           char rootdir[1025];
+          if(strlen(ofnam)){
+            strcpy(rootdir,ofnam);
+            strcat(rootdir,ifnam[KIFiles]);
+          }
+          else{
           strcpy(rootdir,ifnam[KIFiles]);
-          char *last=strstr(rootdir,"PMCHRDL");
+          }
+          char *last=strstr(rootdir,"HRDL-B");
+          if(last){
+              *last='R';
+              *(last+1)='O';
+              *(last+2)='O';
+              *(last+3)='T';
+              char cmd[1025];
+              strcpy(cmd,"mkdir -p ");
+              last=strrchr(rootdir,'/');
+              if(last){
+               strncat(cmd,rootdir,(last-rootdir));
+               }
+              if(system(cmd)){
+                cerr<<"DAQEvent-E-Parser-Unableto "<< cmd<<endl;
+              }
+             }
+             else{
+            last=strstr(rootdir,"HRDL-A");
           if(last){
               *last='R';
               *(last+1)='O';
@@ -2296,8 +2327,10 @@ again:
              }
              else{
                cerr<<"DAQEvent-F-Parser-InvalidDirectoryStructure "<< rootdir<<endl;
+               
                abort();
               }  
+             }
 /*             
               struct stat f_stat;
               char lockfile[1024];
@@ -2344,8 +2377,10 @@ again:
         }
 else{
  if(!_NeventsPerRun || _NeventsPerRun>AMSEvent::get_num_threads()){
-  _NeventsPerRun=0;
-  if(KIFiles<InputFiles)return ifnam[KIFiles++];
+  if(KIFiles<InputFiles){
+       _NeventsPerRun=0;
+      return ifnam[KIFiles++];
+  }
   else return 0;
  }
  else{
