@@ -2828,6 +2828,7 @@ class RemoteClient:
                 t0=""
                 t1=""
                 t2=""
+                t3=""
                 run=""
                 f1=""
                 f2=""
@@ -2866,6 +2867,8 @@ class RemoteClient:
                         t1=line.split("=")[1]
                     elif(line.find("Type2")>=0):
                         t2=line.split("=")[1]
+                    elif(line.find("Type3")>=0):
+                        t3=line.split("=")[1]
                     elif(line.find("FileF")>=0):
                         f1=line.split("=")[1]
                     elif(line.find("FileL")>=0):
@@ -2884,6 +2887,10 @@ class RemoteClient:
                                 type="LAS"
                         elif (t0=="6"):
                             type="CAL"
+                        elif (t0=="7"):
+                            type="CNF"
+                        elif (t0=="8"):
+                            type="HKD"
                         bpath=runsdir+"/"+type
                         cmd="ln -sf "+outputpath+" "+bpath
                         i=os.system(cmd)
@@ -2893,7 +2900,7 @@ class RemoteClient:
                         else:
                             bpath=bpath+"/"+file
                         it2=int(t2)
-                        if(type!="CAL"):
+                        if(type=="SCI"):
                             type=type+" "+t0+" "+t1+" "
                             mnemonic=" TUSREL3";
                             for i in range (0,7):
@@ -2902,7 +2909,7 @@ class RemoteClient:
                                     type=type+mnemonic[i]
                                     type="%s%d" %(type,it)
                         else:
-                            type=type+" "+t0+" "+t1+" "+t2
+                            type=type+" "+t0+" "+t1+" "+t2+" "+t3
                         orig=f1.split('/')
                         origpath=""
                         if(len(orig)>1):
