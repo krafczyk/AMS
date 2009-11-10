@@ -241,8 +241,12 @@ void RichPMTsManager::Init(){
 	  for(int mode=0;mode<2;mode++){
 	    geant gain=RichPMTsManager::Gain(i,channel,mode);
 	    geant gain_sigma=RichPMTsManager::GainSigma(i,channel,mode);
+	    
 	    geant lambda,scale;
-	    GETRLRS(gain,gain_sigma,lambda,scale);
+	    if(gain_sigma==0 || gain==0){
+	      lambda=scale=0;
+	    }else GETRLRS(gain,gain_sigma,lambda,scale);
+
 	    if(lambda<=0 || scale<=0){
 	      compute_table[i]=1;
 	      fails_counter++;
@@ -399,6 +403,7 @@ void RichPMTsManager::ReadFromFile(const char *filename){
 
 	// Apply some consistent checks and recover them for simulation
 	if(_Status(pmt,cat)){  // It is a good channel accordingly to calibration tables
+
 	  if(_GainSigma(pmt,cat,0)<=0) _GainSigma(pmt,cat,0)=_Gain(pmt,cat,0)*0.5;
 	  if(_GainSigma(pmt,cat,1)<=0) _GainSigma(pmt,cat,1)=_Gain(pmt,cat,1)*0.5;
 	}
@@ -931,11 +936,14 @@ void RichPMT::compute_tables(){
       */
 
       geant lambda,scale;
-      GETRLRS(gain,gain_sigma,lambda,scale);
+      if(gain_sigma==0){
+	lambda=scale=0;
+      }else GETRLRS(gain,gain_sigma,lambda,scale);
 
       // In some case the function does not return meaningfull values. Since this
       // is only used int MC simulation, we correct it by allowing a smales sigma_gain
       if(lambda<=0 || scale<=0){
+	if(gain==0) gain=0.1; // DUMMY VALUE
 	GETRLRS(gain,gain*0.5,lambda,scale);
       }
 

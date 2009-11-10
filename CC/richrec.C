@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.126 2009/11/06 17:29:45 choutko Exp $
+//  $Id: richrec.C,v 1.127 2009/11/10 11:55:57 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -112,8 +112,8 @@ void AMSRichRawEvent::mc_build(){
 	  // Change to gainX1 mode
 	  mode=0;
 	  pedestal=nnoisy>0?AMSRichMCHit::noise(channel,0):AMSRichMCHit::adc_empty(channel,0);
-//        "fixed" by VC 06-nov-2009
-//	  signal*=calibration.gain[0]/calibration.gain[1];  // FIXME!!!!
+	  
+	  signal*=calibration.gain[1]>0?calibration.gain[0]/calibration.gain[1]:0.2;  
 	}
 
 	threshold=calibration.pedestal_threshold[mode]*calibration.pedestal_sigma[mode]+calibration.pedestal[mode];
@@ -1084,7 +1084,8 @@ trig=(trig+1)%freq;
   // Compute the mean of the distribution of 1/distance**2 for not used hits
   sum2=0;
   for(k=0;k<nh_unused;k++)
-    sum2+=1/unused_hitd[k]/unused_hitd[k];
+    if(unused_hitd[k]>0)
+      sum2+=1/unused_hitd[k]/unused_hitd[k];
   _unused_dist=sum2;
 
   // Compute Kullbak distance
