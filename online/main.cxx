@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.30 2009/08/17 12:59:36 pzuccon Exp $
+//  $Id: main.cxx,v 1.31 2009/11/10 19:17:37 pzuccon Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
   
   AMSNtupleR *pntuple=new AMSNtupleR();
-  AMSChain chain("AMSRoot");
+  AMSChain chain(pntuple,"AMSRoot");
   if(filename){
     printf("opening file %s...\n", filename);
     OpenChain(chain,filename); 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
   //  gDebug=6; 
   theApp->SetStatic();
 #endif
-  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",pntuple);
+  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",pntuple,&chain);
   theApp->SetDisplay(amd);  
   AMSAntiHist  antih("&AntiCounters","Anti counter Hists");
   amd->AddSubDet(antih);

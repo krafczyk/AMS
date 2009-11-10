@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.30 2009/08/17 12:59:36 pzuccon Exp $
+//  $Id: AMSDisplay.cxx,v 1.31 2009/11/10 19:17:36 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -66,10 +66,10 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
 
 
 //_____________________________________________________________________________
-AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
+AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file,AMSChain* mm):TObject(){
    m_scale=1;
    m_ControlFrame=0;
-   m_chain=0;
+   m_chain=mm;
    m_theapp=0;
    m_logx=kFALSE;
    m_logy=kFALSE;
@@ -371,7 +371,7 @@ void AMSOnDisplay::Filled(char *buf){
 
 
 bool AMSOnDisplay::Fill(bool checkonly){
-  int _End=m_ntuple->Entries();
+  int _End=m_chain->GetEntries();
   DrawRunInfo();
   if(checkonly)return _Begin>=_End;
   int retcode=1;
@@ -383,8 +383,11 @@ bool AMSOnDisplay::Fill(bool checkonly){
 //omp_set_num_threads(1);
 //#endif
 //#pragma omp parallel for schedule(dynamic)
+   m_chain->GetEvent();
+   //   printf("-------->>CHECK  beg %d end %d\n",_Begin,_End);
   for(int i=_Begin;i<_End;i++){
    int ret= m_chain->ReadOneEvent(i);
+   //   printf("-------->>reading %d\n",i);
    if(ret<0){
      cout <<"  interrupt received"<<endl;
      _End=0; 

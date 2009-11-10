@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.17 2009/08/17 12:59:36 pzuccon Exp $
+//  $Id: AMSDisplay.h,v 1.18 2009/11/10 19:17:36 pzuccon Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -54,7 +54,7 @@ protected:
 public:
       bool &              IsIdleing(){return m_idle;} 
                     AMSOnDisplay();
-                    AMSOnDisplay(const char *title,AMSNtupleR *file);
+  AMSOnDisplay(const char *title,AMSNtupleR *file,AMSChain* mm=0);
   virtual void              SetApplication(TApplication* papp){m_theapp=papp;}
   virtual          ~AMSOnDisplay(){_Head=0;}
   virtual void      Draw(Option_t *option="");
