@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.165 2009/11/10 13:34:02 choutko Exp $
+//  $Id: daqevt.C,v 1.166 2009/11/10 14:10:07 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1488,7 +1488,7 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id)){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
