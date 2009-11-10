@@ -4936,7 +4936,11 @@ c      data idummy /0/
          spgamma0 = spgammadet + spgammagap
          if (ngamma0.ne.0) then
 *            accgap = float(ngammadet)/float(ngamma0)
-            accgap = spgammadet/spgamma0
+            if (spgamma0.gt.0) then
+               accgap = spgammadet/spgamma0
+            else
+               accgap = 0.
+            endif
          else
             accgap = -999.
          endif
@@ -4945,7 +4949,11 @@ c      data idummy /0/
          spgamma0dir = spgammadetdir + spgammagapdir
          if (ngamma0dir.ne.0) then
 *            accgapdir = float(ngammadetdir)/float(ngamma0dir)
-            accgapdir = spgammadetdir/spgamma0dir
+            if (spgamma0dir.gt.0) then
+               accgapdir = spgammadetdir/spgamma0dir
+            else
+               accgapdir = 0.
+            endif
          else
             accgapdir = -999.
          endif
@@ -4954,22 +4962,30 @@ c      data idummy /0/
          spgamma0ref = spgammadetref + spgammagapref
          if (ngamma0ref.ne.0) then
 *            accgapref = float(ngammadetref)/float(ngamma0ref)
-            accgapref = spgammadetref/spgamma0ref
+            if (spgamma0ref.gt.0) then
+               accgapref = spgammadetref/spgamma0ref
+            else
+               accgapref = 0.
+            endif
          else
             accgapref = -999.
          endif
 
 * -----> mirror sectors
          do i=1,nmaxmirsec
-         ngamma0msec(i) = ngammadetmsec(i) + ngammagapmsec(i)
-         spgamma0msec(i) = spgammadetmsec(i) + spgammagapmsec(i)
-         if (ngamma0msec(i).ne.0) then
+            ngamma0msec(i) = ngammadetmsec(i) + ngammagapmsec(i)
+            spgamma0msec(i) = spgammadetmsec(i) + spgammagapmsec(i)
+            if (ngamma0msec(i).ne.0) then
 *            accgapmsec(i) =
 *     +           float(ngammadetmsec(i))/float(ngamma0msec(i))
-            accgapmsec(i) = spgammadetmsec(i)/spgamma0msec(i)
-         else
-            accgapmsec(i) = -999.
-         endif
+               if (spgamma0msec(i).gt.0) then
+                  accgapmsec(i) = spgammadetmsec(i)/spgamma0msec(i)
+               else
+                  accgapmsec(i) = 0.
+               endif
+            else
+               accgapmsec(i) = -999.
+            endif
          enddo
 
 *         print*,'CHRADID = ',chradid
