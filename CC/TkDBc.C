@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.6 2009/08/26 17:50:56 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.7 2009/11/11 15:20:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/08/26 17:50:56 $
+///$Date: 2009/11/11 15:20:47 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -57,7 +57,7 @@ TkDBc::~TkDBc(){
 }
 
 
-void TkDBc::init(const char *inputfilename, int pri){
+void TkDBc::init(int setup,const char *inputfilename, int pri){
   // get setup
     char name[20];
   
@@ -213,7 +213,9 @@ void TkDBc::init(const char *inputfilename, int pri){
 
     };
     memcpy(_nsen,nsen,2*nlays*maxlad*sizeof(nsen[0][0][0]));
-    const short int octid[2][nlays][maxlad]={
+
+    /// OLD MAP CABLING PRE-INTEGRATION
+    const short int octid_old[2][nlays][maxlad]={
       //    1     2     3     4     5      6    7     8     9     10    11    12    13   14     15 //side 0
       {{   211,  206,  210,  213,  216,  212, -410,  406, -411,  412,  416,  413,  400,  404,  401, },
        {   202,  203,  214,  222,  220, -208,  200,    0, -402,  414,  422,  420,  408,    0,    0, },
@@ -235,9 +237,40 @@ void TkDBc::init(const char *inputfilename, int pri){
       },
     };
 
-    memcpy(_octid,octid,2*nlays*maxlad*sizeof(octid[0][0][0]));
 
+    /// NEW MAP CABLING FLIGHT
+    const short int octid_new[2][nlays][maxlad]={
+      //    1     2     3     4     5      6    7     8     9     10    11    12    13   14     15 //side 0
+      {{   211,  202,  210,  213,  216,  212, -410,  406, -411,  412,  416,  413,  400,  404,  401, },
+       {   206,  203,  214,  222,  220, -208,  200,    0, -402,  414,  422,  420,  408,    0,    0, },
+       {     0,  207,  219,  223,  217, -205,  201,    0, -407,  419,  423,  417,  405,    0,    0, },
+       {     0,    0,  215,  218,  221, -209,  204,    0, -403,  415,  418,  421,  409,    0,    0, },
+       {     0,    0,  621,  616,  615, -603,  606,    0, -809,  821,  816,  815,  803,    0,    0, },
+       {     0,  605,  617,  613,  619, -607,  611,    0, -805,  817,  813,  819,  807,    0,    0, },
+       {   604,  609,  620,  612,  614, -602,  610,    0, -808,  820,  812,  814,  802,    0,    0, },
+       {   601,  608,  600,  623,  618,  622, -800,  804, -801,  822,  818,  823,  810,  806,  811, },
+      },
+      {{   101,  104,  100,  113,  116, -112,  111, -106,  110, -312,  316,  313,  310,  302,  311, },
+       {     0,    0,  108,  120,  122, -114, -102,    0,  300, -308,  320,  322,  314,  303,  306, },
+       {     0,    0,  105,  117,  123, -119, -107,    0,  301, -305,  317,  323,  319,  307,    0, },
+       {     0,    0,  109,  121,  118, -115, -103,    0,  304, -309,  321,  318,  315,    0,    0, },
+       {     0,    0,  503,  515,  516, -521, -509,    0,  706, -703,  715,  716,  721,    0,    0, },
+       {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  705,    0, },
+       {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  709,  704, },
+       {   511,  506,  510,  523,  518, -522, -501,  504,  500, -722,  718,  723,  700,  708,  701, },
+      },
+    };
 
+    if(setup==2){
+      memcpy(_octid,octid_new,2*nlays*maxlad*sizeof(octid[0][0][0]));
+      printf("TkDBC--using the FLIGHT Cabling %d!!!\n",setup);
+    }else if(setup==1){
+      memcpy(_octid,octid_old,2*nlays*maxlad*sizeof(octid[0][0][0]));
+      printf("TkDBC--using the PRE-INTEGRATION Cabling  %d!!!\n",setup);
+    }else{
+      printf("TkDBC--FATAL-- Unknown setup number %d!!\n I give up!!!\n",setup);
+      exit(-2);
+    }
 
 
     const float LadDeltaX[2][nlays][maxlad]={{

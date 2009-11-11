@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.5 2009/06/26 17:15:43 pzuccon Exp $
+// $Id: TkDBc.h,v 1.6 2009/11/11 15:20:56 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -279,7 +279,7 @@ public:
   static void CreateTkDBc(int force_delete=0);
   ~TkDBc();
   //! Do all the initialization stuff
-  void init(const char* inputfilename=0, int pri=0);
+  void init(int setup=2,const char* inputfilename=0, int pri=0);
   //!  Write the content of the DB to an ascii file
   int  write(const char* filename);
   //!  Read the  content of the DB from an ascii file
