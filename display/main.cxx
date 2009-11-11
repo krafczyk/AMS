@@ -1,5 +1,4 @@
-
-//  $Id: main.cxx,v 1.37 2009/11/11 15:56:20 choutko Exp $
+//  $Id: main.cxx,v 1.38 2009/11/11 22:32:53 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -26,7 +25,7 @@
 #include "main.h"
 #include <TString.h>
 #include <getopt.h>
-TString * Selector;
+TString * Selector=0;
 TString * Selectorf=0;
 extern void * gAMSUserFunction;
 void OpenChain(AMSChain & chain, char * filename);
@@ -48,6 +47,7 @@ static int Sort(dirent64 ** e1,  dirent64 ** e2);
   time_t lasttime=0;;
   AMSChain *pchain;
   char *filename=0;
+  char lastfile[32767]="\0";
 void Myapp::HandleIdleTimer(){
   
   if(fDisplay){
@@ -57,6 +57,20 @@ void Myapp::HandleIdleTimer(){
      cout<<"AMSDisplay-I-FinishedScan "<<endl;
      if(monitor){
       add=0;
+       for(int k=0;k<30;k++){
+        sleep(1);
+        if(gSystem->ProcessEvents()){
+          cout <<"InteruptReceived"<<endl;
+        }        
+
+       }
+       char tmp[127];
+      ofstream fbout (".amsedc");
+      if(fbout){
+       fbout<<lasttime;
+       cout <<"AMSDisplay-I-LastTimeModified "<<lasttime<<endl;
+       fbout.close();
+      }
        OpenChain(*pchain,filename);
      }
     }
@@ -99,8 +113,9 @@ int main(int argc, char *argv[]){
   if ( argc > 1 ) {		// now take the file name
     filename = argv[1];
   }   
+  ifstream fbin;
   while (1) {
-    c = getopt_long (argc, argv, "t:hHms:?", long_options, &option_index);
+    c = getopt_long (argc, argv, "t:hHmMs:?", long_options, &option_index);
     if (c == -1) break;
 
     switch (c) {
@@ -113,11 +128,20 @@ int main(int argc, char *argv[]){
     case 'm':             
       monitor=true;
       break;
+    case 'M':             
+      monitor=true;
+      fbin.open(".amsedc");
+      if(fbin){
+       fbin>>lasttime;
+       cout <<"  LastTime Set "<<lasttime;
+       fbin.close();
+     }
+      break;
     case 'h':
     case 'H':
     case '?':
     default:            /* help */
-      cout<<"$amsed(c) file -scan[s] -title[t] -monitor"<<endl;
+      cout<<"$amsed(c) file -scan[s] -title[t] -m(M)onitor"<<endl;
       return 0;
       break;
     }
@@ -287,10 +311,16 @@ void OpenChain(AMSChain & chain, char * filenam){
 	    for(int l=i+1;l<strlen(filename);l++){
 	      if(filename[l]=='/'){
                 
-                if(l-k-1>0)Selector= new TString(filename+k+1,l-k-1);
-                else Selector=0;
+                if(l-k-1>0){
+                   if(Selector)delete Selector;
+                   Selector= new TString(filename+k+1,l-k-1);
+                }
+                else if(Selector){
+                   delete Selector;
+                   Selector=0;
+                }
                 dirent64 ** namelistsubdir;
-                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
+//                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
@@ -314,7 +344,15 @@ void OpenChain(AMSChain & chain, char * filenam){
         for(int k=i-1;k>=0;k--){
 	  if(filename[k]=='/'){
 	    TString ts(filename,k+1);
-                if(!Selectorf)Selectorf= new TString("root$");
+                if(strlen(filename)-k-1>0){
+                   if(Selectorf)delete Selectorf;
+                   Selectorf= new TString(filename+k+1,strlen(filename)-k-1);
+                }
+                else if(Selectorf){
+                   delete Selectorf;
+                   Selectorf=0;
+                }
+                 
                 dirent64 ** namelistsubdir;
                 cout <<"  scanning wild"<<ts<<endl;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
@@ -322,15 +360,14 @@ void OpenChain(AMSChain & chain, char * filenam){
                   char fsdir[1023];
                   strcpy(fsdir,ts.Data());
                   strcat(fsdir,namelistsubdir[nsd]->d_name);
-                  //cout << "found file "<<fsdir<<endl;
-                  if(nsd<nptrdir-1)notlast=true;
+                  if(nsd<nptrdir-1)notlast=false;
                   else notlast=false;   
                   OpenChain(chain,fsdir);
                
                 } 
                 return;               
-	  }
-	}                  
+           }
+	}
       }
     }
   }
@@ -340,11 +377,12 @@ void OpenChain(AMSChain & chain, char * filenam){
      time_t t;
      time(&t);
   if(statbuf.st_mtime>=lasttime &&statbuf.st_size){
-     if(t-statbuf.st_mtime>60 || notlast || !monitor){     
-      //cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
+     if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename))){     
+      strcpy(lastfile,filename);
+      cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
       if(add++<3000){
-           chain.Add(filename);
            lasttime=statbuf.st_mtime;
+           chain.Add(filename);
     }
      }
      else {
@@ -353,6 +391,7 @@ void OpenChain(AMSChain & chain, char * filenam){
      }
   }
 }
+
 
 
 
@@ -383,7 +422,7 @@ int Select(
 #endif
   if(Selectorf){
     TString a(entry->d_name);
-    TRegexp b(Selectorf->Data(),false);
+    TRegexp b(Selectorf->Data(),true);
     return a.Contains(b) && entry->d_name[0]!='.';
   }
   else return entry->d_name[0]!='.';

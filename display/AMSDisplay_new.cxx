@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.6 2009/11/11 15:56:20 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.7 2009/11/11 22:32:53 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -652,7 +652,7 @@ bool AMSDisplay::ShowNextEvent(Int_t delta){
   if(entry>=0 && entry<=m_chain->GetEntries()){
     DrawEvent();
   }
-  cout <<"  res "<<res<<" "<<entry<<endl;
+//  cout <<"  res "<<res<<" "<<entry<<endl;
   if(res==-1)return false;
   else return true;
 }
