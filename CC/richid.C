@@ -4,6 +4,9 @@
 #include"commons.h"
 #include "job.h"
 
+// Change all my assertions
+#define _assert(x) {if(!(x))throw 1;}
+
 RichPMTChannel::RichPMTChannel(int packed_id){
   int pmt,channel;
   RichPMTsManager::UnpackGeom(packed_id,pmt,channel);
@@ -56,7 +59,7 @@ RichPMTChannel::RichPMTChannel(geant x,geant y){
   //
 
   int packed=RichPMTsManager::FindChannel(x,y);
-  assert(packed>0);
+  _assert(packed);
 
   int geom_pmt,channel;
   RichPMTsManager::UnpackGeom(packed,geom_pmt,channel);
@@ -511,7 +514,7 @@ void RichPMTsManager::Finish(){
 		    ""};
       for(int i=0;strlen(tdvs[i])>0;i++){
 	ptdv = AMSJob::gethead()->gettimestructure(AMSID(tdvs[i],0));
-	assert(ptdv);
+	_assert(ptdv);
 	/*
 	  ptdv->UpdateMe()=1;
 	  ptdv->UpdCRC();
@@ -715,7 +718,7 @@ int RichPMTsManager::FindPMT(geant x,geant y){
   }
 
 
-  assert(grid>0);
+  _assert(grid>0);
   
   grid--;
   int *index=_grid_pmts[grid];
@@ -814,46 +817,46 @@ geant RichPMTsManager::Eff(int Geom_id,int Geom_Channel){
 
 
 int& RichPMTsManager::_Status(int Geom_id,int Geom_Channel){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
   return _status[RICnwindows*Geom_id+Geom_Channel];
 }
 
 geant& RichPMTsManager::_Pedestal(int Geom_id,int Geom_Channel,int high_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _pedestal[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 geant& RichPMTsManager::_PedestalSigma(int Geom_id,int Geom_Channel,int high_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _pedestal_sigma[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 geant& RichPMTsManager::_PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _pedestal_threshold[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
 geant& RichPMTsManager::_Gain(int Geom_id,int Geom_Channel,int high_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _gain[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
 geant& RichPMTsManager::_GainSigma(int Geom_id,int Geom_Channel,int high_gain){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _gain_sigma[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
 int& RichPMTsManager::_GainThreshold(int Geom_id,int Geom_Channel){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
   return _gain_threshold[RICnwindows*Geom_id+Geom_Channel];
 }
 
 
 geant& RichPMTsManager::_Eff(int Geom_id,int Geom_Channel){
-  assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
   return _relative_efficiency[RICnwindows*Geom_id+Geom_Channel];
 }
 
@@ -878,7 +881,7 @@ int RichPMTsManager::GetChannelID(int pmtgeom,int pixel){
 }
 
 int RichPMTsManager::GetGeomPMTIdFromCDP(int CDP,int pmt){
-  assert(CDP>=0 && CDP<RICH_CDPperJINF*RICH_JINFs);
+  _assert(CDP>=0 && CDP<RICH_CDPperJINF*RICH_JINFs);
 #ifdef __AMSDEBUG__
   //cout<<"Count is "<<_rdr_pmt_count[CDP]<<" CDP "<<CDP<<" pmt "<<pmt<<endl;
 #endif

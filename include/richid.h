@@ -18,6 +18,8 @@ PROTOCCALLSFSUB4(GETRLRS,getrlrs,FLOAT,FLOAT,PFLOAT,PFLOAT)
 #define GETRLRS(A1,A2,A3,A4) CCALLSFSUB4(GETRLRS,getrlrs,FLOAT,FLOAT,PFLOAT,PFLOAT,A1,A2,A3,A4)
 
 
+#define _assert(x) {if(!(x))throw 1;}
+
 ///////////////////////////////
 /// NEW VERSION OF THE CODE ///
 ///////////////////////////////
@@ -60,8 +62,8 @@ class RichPMT{
   RichPMT():_current_channel(0),_current_mode(0),_filled(0){};
   static void Finish(){};
   geant SimulateSinglePE(int channel,int mode);
-  geant SimulateSinglePE(int mode){assert(_filled);return SimulateSinglePE(_current_channel,mode);}
-  geant SimulateSinglePE(){assert(_filled);return SimulateSinglePE(_current_channel,_current_mode);}
+  geant SimulateSinglePE(int mode){_assert(_filled);return SimulateSinglePE(_current_channel,mode);}
+  geant SimulateSinglePE(){_assert(_filled);return SimulateSinglePE(_current_channel,_current_mode);}
 
   friend class RichPMTsManager;
   friend class RichPMTChannel;
@@ -163,16 +165,16 @@ class RichPMTsManager{
   }
 
   static integer detcer(geant photen);
-  static RichPMT& GetPMT(int pmt){assert(pmt>-1 && pmt<RICmaxpmts);return _pmts[pmt];}
+  static RichPMT& GetPMT(int pmt){_assert(pmt>-1 && pmt<RICmaxpmts);return _pmts[pmt];}
 
   // Access to members
   static geant GetRichPMTPos(int geom_id,int p){
-    assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
+    _assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
     return _pmts[geom_id]._global_position[p];
   }
 
   static geant GetAMSPMTPos(int geom_id,int p){
-    assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
+    _assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
     if(p!=3)
     return _pmts[geom_id]._global_position[p]-RICHDB::total_height()/2+RICHDB::RICradpos();
     else return _pmts[geom_id]._global_position[p];
@@ -182,7 +184,7 @@ class RichPMTsManager{
   static geant GetChannelPos(int packed_geom,int p){
     int geom_id,window;
     UnpackGeom(packed_geom,geom_id,window);
-    assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
+    _assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
     return _pmts[geom_id]._channel_position[window][p];
   }
   
@@ -245,6 +247,7 @@ class RichPMTChannel{
 // - Eliminate the pmtaddh and pmtaddc checks from loading the calibration. Use only
 //   the pmtpos
 
+#undef _assert
 #endif
 
 

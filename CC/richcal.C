@@ -24,6 +24,7 @@ int AMSRichCalChannel::calibrated=1;
 int AMSRichCalChannel::calibrated_but_failed=2;
 int AMSRichCalChannel::low_stat=3;
 
+#define _assert(x) {if(!(x))throw 1;}
 
 void AMSRichCal::init(int bins,float minx,float maxx){
 //#pragma omp barrier 
@@ -238,7 +239,7 @@ void AMSRichCal::process_event(){
       counts+=histo[bin];
       }
       
-      assert(counts>0);
+      _assert(counts>0);
       
       mean/=counts;
       rms/=counts;

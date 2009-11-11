@@ -5,6 +5,9 @@
 #include <string.h>
 #include <math.h>
 
+
+#define _assert(x) {if(!(x))throw 1;}
+
 template <class T> class SH1{
   // Simple 1D histogram class
 
@@ -19,7 +22,7 @@ template <class T> class SH1{
   T *_bin_content;
  public:
   SH1(int bins,float minx,float maxx):_bins(bins),_minx(minx),_maxx(maxx){
-    assert(maxx>minx && bins>0);
+    _assert(maxx>minx && bins>0);
     _true_bins=_bins+2;
     _bin_content=new T[_true_bins];
     _width_1=_bins/(_maxx-_minx);
@@ -64,18 +67,18 @@ template <class T> class SH1{
   }
 
   T& operator[](int i) {
-    assert(i>=-1 && i<=_bins);
+    _assert(i>=-1 && i<=_bins);
     return _bin_content[i+1];
   }
 
   T& operator[](float x) {
     int i=findbin(x);
-    assert(i>=-1 && i<=_bins);
+    _assert(i>=-1 && i<=_bins);
     return _bin_content[i+1];
   }
 
   T getbincontent(int i){
-    assert(i>=-1 && i<=_bins);
+    _assert(i>=-1 && i<=_bins);
     return _bin_content[i];
   } 
   
@@ -98,8 +101,8 @@ template <class T> class SH1{
 
 
   void add(SH1<T> &histo){
-    assert(_true_bins==histo._true_bins);
-    assert(_maxx==histo._maxx && _minx==histo._minx);
+    _assert(_true_bins==histo._true_bins);
+    _assert(_maxx==histo._maxx && _minx==histo._minx);
     for(int i=0;i<_true_bins;i++) _bin_content[i]=_bin_content[i]+histo._bin_content[i];
     _entries+=histo._entries;
   }
@@ -193,7 +196,5 @@ class AMSRichCal{
 
 
 
-
-
-
+#undef _assert
 #endif

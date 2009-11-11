@@ -72,6 +72,7 @@ integer DAQRichBlock::checkdaqidnode(int16u node_word){   // RICH AS NODE
 
 
 void DAQRichBlock::buildraw(integer length,int16u *p){
+  try{
   // Reset the status bits
   Status=kOk;
   
@@ -92,7 +93,14 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
   // Assume that everything here is primary and decode
   DecodeRich(length,p,JINF,0);
-
+  }
+  catch(int){
+    static bool first_call=true;
+    if(first_call){
+      cout<<"-- Problem in DAQRichBlock::buildraw. Ignoring further errors"<<endl;
+      first_call=false;
+    }
+  }
 }
 
 
@@ -230,6 +238,7 @@ integer DAQRichBlock::checkcalid(int16u id){
 
 
 void DAQRichBlock::buildcal(integer length,int16u *p){
+  try{
   // This is calibration event for RDR
   // Length is in words
   const int block_size=2483;  // The length in words of the calibration table for a single RDR
@@ -354,6 +363,14 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
       cout <<" Time Insert "<<ctime(&insert);
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
+    }
+  }
+  }
+  catch(int){
+    static bool first_call=true;
+    if(first_call){
+      cout<<"-- Problem in DAQRichBlock::buildcal. Ignoring further errors"<<endl;
+      first_call=false;
     }
   }
 }
