@@ -122,14 +122,14 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
   char Jname[20];
   sprintf(Jname,"JINF %d",num);
   int ret=TestBoardErrors(Jname,st,0);
-if( ret<0) return;
+  if( ret<0) return;
   if(TRCALIB.Version==0)cmn=16;
   else cmn=0;
   integer ic1=checkdaqid(*(pbeg-1+leng))-1;
   //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
   for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
     ReadOneTDR(p,*p,ic,0);
-
+    
   }
   
 
@@ -156,16 +156,19 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 
 
   int   TDROff=1;
+  int newformat=0;
 
   int run=  AMSEvent::gethead()->getrun();
   if(run>=1210067687) TDROff=2;
-    if(run>=1210237802) TDROff=1;
-    if(run==1210262957) TDROff=2;
-    if(run>=1210668275 &&
-       run< 1210678767) TDROff=2; 
-
-
+  if(run>=1210237802) TDROff=1;
+  if(run==1210262957) TDROff=2;
+  if(run>=1210668275 &&
+     run< 1210678767) TDROff=2; 
   
+  if(run>=1257416265){ // Nov09 format
+    newformat=1;
+    TDROff=1;
+  }
   int clcount=0;
   int CNWords=0;
   if(TRCALIB.Version==0)CNWords=16;
@@ -202,8 +205,17 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
     int  count=RawOffset+TDROff;
     while (count<(tsize-rwords)){
       int bad=0;
-      int cluslen=blocks[count++]+1;
-      int clusadd=blocks[count++];
+
+
+
+      int cluslenraw=blocks[count++]+1;
+      int clusaddraw=blocks[count++];
+      int cluslen=cluslenraw;
+      int clusadd=clusaddraw;
+      if(newformat){
+	cluslen=cluslenraw&0x7f;
+	clusadd=clusaddraw&0x3ff;
+      }
       short int  signal[1024];
       float      sigma[1024];
       short int  status[1024];
@@ -224,7 +236,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
       
       int sid=0;
       if(clusadd>640) sid=1;
-      AMSTrRawCluster* pp= new AMSTrRawCluster(tkid,clusadd,cluslen,signal);
+      AMSTrRawCluster* pp= new AMSTrRawCluster(tkid,clusaddraw,cluslenraw,signal);
       AMSContainer* con= AMSEvent::gethead()->getC(AMSID("AMSTrRawCluster"));
       if(con)	con->addnext(pp);
       
