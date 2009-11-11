@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.651 2009/11/11 14:03:33 mdelgado Exp $
+// $Id: job.C,v 1.652 2009/11/11 14:21:57 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4093,6 +4093,7 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
 #endif    
 // RICH
+  if(strstr(AMSJob::gethead()->getsetup(),"PreAss")) // Temporal fix
   if((CALIB.SubDetInCalib/10)%10>0)
     DAQEvent::addsubdetector(&DAQRichBlock::checkcalid,&DAQRichBlock::buildcal,6);
 //ECAL    
