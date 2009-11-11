@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.650 2009/11/06 17:29:45 choutko Exp $
+// $Id: job.C,v 1.651 2009/11/11 14:03:33 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3995,9 +3995,11 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
     DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
 // rich
-    DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
-    DAQEvent::addsubdetector(&DAQRichBlock::checkdaqidnode,&DAQRichBlock::buildrawnode);
-    DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+    if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){ // Temporal fix
+      DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);
+      DAQEvent::addsubdetector(&DAQRichBlock::checkdaqidnode,&DAQRichBlock::buildrawnode);
+      DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
+    }
 
 
 
