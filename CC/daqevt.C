@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.167 2009/11/10 18:47:21 choutko Exp $
+//  $Id: daqevt.C,v 1.168 2009/11/11 15:56:19 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1304,7 +1304,7 @@ integer DAQEvent::_HeaderOK(){
 
 
   }
-  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<" "<<_GetBlType()<<endl;
+  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<" "<<((_pData[1]>>5)&511)<<" "<<_GetBlType()<<endl;
  return 0;
 }
 

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.193 2009/11/06 17:59:54 choutko Exp $
+//  $Id: root.C,v 1.194 2009/11/11 15:56:19 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1414,7 +1414,7 @@ bool AMSEventR::ReadHeader(int entry){
   }
   clear();
   if(i>0){
-    if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<endl;
+    if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
     if(Version()<160){
       // Fix rich rings
       NRichHit();

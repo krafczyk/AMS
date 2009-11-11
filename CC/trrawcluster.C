@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.105 2009/11/10 13:34:02 choutko Exp $
+//  $Id: trrawcluster.C,v 1.106 2009/11/11 15:56:19 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -478,14 +478,12 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
   uinteger ic=(n>>16);
     int cmn=0;
    if(TRCALIB.Version==0)cmn=16;
-   else cmn=0;
-   if(DAQCFFKEY.DAQVersion==1)cmn=2;
-  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
-//  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
-for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
- //cout <<" length "<<leng<<" "<<*p<<" "<<((*(p+*p))&31)<<endl;
- //if(ic==2)ic=1;
- //if(ic==3)ic=0;
+if(DAQCFFKEY.DAQVersion==1)cmn=2;
+
+
+int add2=0;
+if(DAQCFFKEY.DAQVersion==1)add2=2;
+for (int16u* p=pbeg;p<pbeg+leng-1-add2;p+=*p+1){
  int16u tdr=(*(p+*p))&31;
 if(tdr>=trid::ntdr){
 static int nerr=0;
@@ -500,30 +498,26 @@ continue;
  }
  if(DAQEvent::isError(*(p+*p))){
   cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
-  //break;
+  break;
  }
  for(int16u* paux=p+DAQCFFKEY.Mode;paux<p+*p-1-cmn;paux+=*paux+2+1){
-  int16u haddr=*(paux+1);
-  if(haddr>1023 ){
-#ifdef __AMSDEBUG__
-    cerr<<"  AMSTrRawCluster::buildraw-E-HaddrOutOfRange  "<<haddr<<" "<<*paux<<endl;
-#endif
-    continue;
-  }
-//#ifdef __AMSDEBUG__
- else if(haddr+*(paux)>=1024){
+  geant s2n=*(paux)>>7;
+  *(paux)=*(paux)&127;
+  int16u haddr=*(paux+1)&1023;
+ if(haddr+*(paux)>=1024){
     static int nerr=0;
     if(nerr++<100)cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
     continue;
  }
-//#endif
-// get common noise also instead of s2n which not exists for ams02
   int va=haddr/64;
-  geant cn=*(p+*p-cmn+va)/8.;
+  geant cn=cmn>15?*(p+*p-cmn+va)/8.:s2n;
   haddr=haddr| (tdr<<10);
   AMSTrIdSoft id(ic,haddr);
      if(!id.dead() ){
         if(id.getside()==1 && id.getstrip()+*paux>=id.getmaxstrips()){
+
+
+
 // algo feature
 #ifdef __AMSDEBUG__
     cerr<<"  AMSTrRawCluster::buildraw-W-HaddrExtOutOfRange "<<id.getstrip()<<" "<< id.getstrip()+*(paux)<<endl;
@@ -547,7 +541,7 @@ continue;
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux,
         (int16*)(paux+2),cn));
-//        cout <<"  id "<<id<<" "<<id.getstrip()<<" "<<id.getstrip()+*paux<<endl;
+//        cout <<"  id "<<id<<" "<<id.getstrip()<<" "<<id.getstrip()+*paux<<" "<<id.getgain()<<endl;
           for(int k=id.getstrip();k<(id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux);k++){
             id.upd(k);
             if(id.getgain()==0){

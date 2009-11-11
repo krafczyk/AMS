@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.652 2009/11/11 14:21:57 mdelgado Exp $
+// $Id: job.C,v 1.653 2009/11/11 15:56:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1773,7 +1773,12 @@ if(AMSFFKEY.Update){
 #else
     AMSTrIdGeom::init();
     if(strstr(getsetup(),"AMS02") ){    
+    if(strstr(getsetup(),"AMS02Pre") ){    
        AMSTrIdSoft::inittable(2);
+    }
+    else{
+       AMSTrIdSoft::inittable(3);
+    }
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
    int env=fegetexcept();

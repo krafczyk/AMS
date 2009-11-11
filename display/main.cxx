@@ -1,5 +1,5 @@
 
-//  $Id: main.cxx,v 1.36 2009/11/10 18:47:10 choutko Exp $
+//  $Id: main.cxx,v 1.37 2009/11/11 15:56:20 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -29,7 +29,7 @@
 TString * Selector;
 TString * Selectorf=0;
 extern void * gAMSUserFunction;
-void OpenChain(AMSChain & chain, char * filename, char *lastfile);
+void OpenChain(AMSChain & chain, char * filename);
 
 #ifndef WIN32
 #ifdef __APPLE__
@@ -42,14 +42,24 @@ static int Sort(dirent64 ** e1,  dirent64 ** e2);
 
 #endif
 #endif
-
-  bool lastfilefound=true;
-  bool notlast=true;
+  int add=0;
+    bool notlast=true;
+  bool monitor=false;
+  time_t lasttime=0;;
+  AMSChain *pchain;
+  char *filename=0;
 void Myapp::HandleIdleTimer(){
   
   if(fDisplay){
     StopIdleing();
-    fDisplay->ShowNextEvent(1);
+    bool ok= fDisplay->ShowNextEvent(1);
+    if(!ok){
+     cout<<"AMSDisplay-I-FinishedScan "<<endl;
+     if(monitor){
+      add=0;
+       OpenChain(*pchain,filename);
+     }
+    }
     StartIdleing();
   }
   //  SetReturnFromRun(1);
@@ -72,12 +82,10 @@ int main(int argc, char *argv[]){
   *signal(SIGINT, handler);
   *signal(SIGQUIT, handler);
 #endif
-  char * filename = 0;		// default file name
 
   int c;
   int sec=10;
   char title[256];
-  char lastfile[1024]="\0";
   strcpy(title,"AMS Event Display");
   int option_index = 0;
   static struct option long_options[] = {
@@ -92,7 +100,7 @@ int main(int argc, char *argv[]){
     filename = argv[1];
   }   
   while (1) {
-    c = getopt_long (argc, argv, "t:hHs:?", long_options, &option_index);
+    c = getopt_long (argc, argv, "t:hHms:?", long_options, &option_index);
     if (c == -1) break;
 
     switch (c) {
@@ -103,24 +111,23 @@ int main(int argc, char *argv[]){
       strcpy(title, optarg);
       break;
     case 'm':             
-      if(strlen(optarg)){
-        strcpy(lastfile, optarg);
-        lastfilefound=false;
-      }
+      monitor=true;
       break;
     case 'h':
     case 'H':
     case '?':
     default:            /* help */
-      cout<<"$amsed(c) file -scan[s] -title[t] -monitor[lastfile]"<<endl;
+      cout<<"$amsed(c) file -scan[s] -title[t] -monitor"<<endl;
       return 0;
       break;
     }
   }
   AMSNtupleV *pntuple= new AMSNtupleV();
   AMSChain chain(pntuple,"AMSRoot");
+pchain=&chain;
   if(filename){
-    OpenChain(chain,filename,lastfile); 
+     //chain.Reset();
+    OpenChain(chain,filename); 
   }  
   printf("opening file %s...\n", filename);
   int err=0;
@@ -170,6 +177,10 @@ int main(int argc, char *argv[]){
   theApp->SetDisplay(amd);  
   theApp->RemoveIdleTimer();
   amd->DrawEvent();
+  if(monitor){
+    amd->StartStop(true);
+    amd->ReLoad();
+}
   theApp->Run();
   return 0;
   
@@ -207,7 +218,7 @@ void (handler)(int sig){
 }
 
 
-void OpenChain(AMSChain & chain, char * filenam, char *lastfile){
+void OpenChain(AMSChain & chain, char * filenam){
   //  
   //  root can;t cope with multiple wild card so we must do it ourselves
   //
@@ -287,7 +298,7 @@ void OpenChain(AMSChain & chain, char * filenam, char *lastfile){
                   strcat(fsdir,namelistsubdir[nsd]->d_name);
                   strcat(fsdir,filename+l);
                   cout << "found dir "<<fsdir<<endl;
-                  OpenChain(chain,fsdir,lastfile);
+                  OpenChain(chain,fsdir);
                 } 
                 return;               
 	      }
@@ -314,7 +325,7 @@ void OpenChain(AMSChain & chain, char * filenam, char *lastfile){
                   //cout << "found file "<<fsdir<<endl;
                   if(nsd<nptrdir-1)notlast=true;
                   else notlast=false;   
-                  OpenChain(chain,fsdir,lastfile);
+                  OpenChain(chain,fsdir);
                
                 } 
                 return;               
@@ -328,20 +339,18 @@ void OpenChain(AMSChain & chain, char * filenam, char *lastfile){
   stat64((const char*)filename, &statbuf);
      time_t t;
      time(&t);
-  if(lastfilefound &&statbuf.st_size){
-     if(t-statbuf.st_mtime>60 || notlast){     
-      strcpy(lastfile,filename);
-//      cout <<" added "<<lastfile<<" "<<statbuf.st_size<<endl;
-      chain.Add(filename);
+  if(statbuf.st_mtime>=lasttime &&statbuf.st_size){
+     if(t-statbuf.st_mtime>60 || notlast || !monitor){     
+      //cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
+      if(add++<3000){
+           chain.Add(filename);
+           lasttime=statbuf.st_mtime;
+    }
      }
      else {
        cout<<"main-W-OpenChainFileNotAdded "<<filename<<t<<" "<<statbuf.st_mtime<<endl;
        return;
      }
-  }
-  if(!lastfilefound && strstr(filename,lastfile)){
-       cout<<"main-I-OpenChainLastFileDetected "<<filename<<endl;
-    lastfilefound=true;
   }
 }
 

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.22 2009/08/17 13:00:34 pzuccon Exp $
+//  $Id: AMSDisplay.h,v 1.23 2009/11/11 15:56:20 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -157,7 +157,7 @@ public:
   void        SetView(EAMSR_View newView=kFrontView);
   void        ResetView(){m_View=kNoView;}
   void        SetNextView(EAMSR_View nextView) {m_PrevView=m_View;m_View=nextView;}
-  void        ShowNextEvent(Int_t delta=1);
+  bool        ShowNextEvent(Int_t delta=1);
   void        DrawEvent();
   int         ReLoad();    // Load UF
   void StartStop(bool idle);

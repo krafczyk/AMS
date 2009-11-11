@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.31 2009/11/10 19:17:36 pzuccon Exp $
+//  $Id: AMSDisplay.cxx,v 1.32 2009/11/11 15:56:20 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -132,7 +132,6 @@ AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file,AMSChain* mm):TOb
    exit(1);
   } 
 
-
 }
  void AMSOnDisplay::Init(){  // Create user interface control pad
    m_ControlFrame=0;
@@ -143,6 +142,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file,AMSChain* mm):TOb
    
    // Create Controlframe
    m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), (TRootCanvas*)m_Canvas->GetCanvasImp(), 400, 200);
+  m_chain->ReadOneEvent(0);
 
 }
 

@@ -44,7 +44,7 @@ Int_t AMSChain::ReadOneEvent(Int_t entry){
           cout <<"InteruptReceived"<<endl;
           return -1;
       }
-
+   if(entry>=GetEntries())return -1;
   if(!GetEvent(entry)) return 0;
   // if the user selection function exists and it fails retuern NULL
   if(AMSNtupleHelper::fgHelper && 

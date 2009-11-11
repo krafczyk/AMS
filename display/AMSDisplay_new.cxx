@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.5 2009/11/10 18:47:10 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.6 2009/11/11 15:56:20 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -636,7 +636,7 @@ Bool_t AMSDisplay::GotoRunEvent(){
 }
 
 
-void AMSDisplay::ShowNextEvent(Int_t delta){
+bool AMSDisplay::ShowNextEvent(Int_t delta){
   //  Display (current event_number+delta)
   //    delta =  1  shown next event
   //    delta = -1 show previous event
@@ -644,14 +644,19 @@ void AMSDisplay::ShowNextEvent(Int_t delta){
 
   //     cout<<" cur "<<m_ntuple->CurrentEntry()<<" "<<delta<<endl;
 
-  int entry=m_chain->Entry()+delta;      
-  while(m_chain->ReadOneEvent(entry)==0){
+  int entry=m_chain->Entry()+delta;
+  int res;     
+  while((res=m_chain->ReadOneEvent(entry))==0){
     entry+=delta;
   }
-  if(entry>=0){
+  if(entry>=0 && entry<=m_chain->GetEntries()){
     DrawEvent();
   }
+  cout <<"  res "<<res<<" "<<entry<<endl;
+  if(res==-1)return false;
+  else return true;
 }
+
 
 
 
