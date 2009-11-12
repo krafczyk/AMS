@@ -29,8 +29,6 @@ void AMSChain::Init(AMSEventR* event){
     _EVENT->Head() = _EVENT;
     _EVENT->Tree() = NULL;
 #ifdef _PGTRACK_
-    TkDBc::CreateTkDBc();
-    TkDBc::Head->init();
     // 	     TrRecon::Init();
     // TrRecon::SetParFromDataCards();
     // TrRecon::TRCon= new VCon_root();
@@ -59,7 +57,21 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
   if(entry>=GetEntries()) return _EVENT;
   _ENTRY = entry;
   Int_t tree_entry = LoadTree(_ENTRY);
+  if (GetTreeNumber()!=_TREENUMBER) {
+    _TREENUMBER = GetTreeNumber();
+    _EVENT->Tree() = GetTree();
+    _EVENT->GetBranch(_EVENT->Tree());
+  }
+  
+  if (_EVENT->ReadHeader(tree_entry)==false) {
+    delete _EVENT; _EVENT = NULL;
+    _ENTRY = -1;
+  }
 #ifdef _PGTRACK_
+  if(TkDBc::Head==0&& _EVENT!=0){
+    TkDBc::CreateTkDBc();
+    TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
+  }
   if (GetFile() && GetFile()!=_FILE){
     _FILE=GetFile();
     TrCalDB::Head= (TrCalDB*)_FILE->Get("TrCalDB");
@@ -72,16 +84,6 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
     //TrRecon::UsingTrCalDB(TrCalDB::Head);
   }
 #endif
-  if (GetTreeNumber()!=_TREENUMBER) {
-    _TREENUMBER = GetTreeNumber();
-    _EVENT->Tree() = GetTree();
-    _EVENT->GetBranch(_EVENT->Tree());
-  }
-  
-  if (_EVENT->ReadHeader(tree_entry)==false) {
-    delete _EVENT; _EVENT = NULL;
-    _ENTRY = -1;
-  }
   
   return _EVENT;
 };

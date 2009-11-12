@@ -74,13 +74,18 @@ IDLCPP=orbit-idl-2 -l cpp
 
 # change defaults if intel compiler 
 CERN_LEVEL = pro
+#CERN_LEVEL = 2006icc
 CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
+
 
 CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
 NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 
+#CERNDIR = /cern/2006icc/
+#AMSLIB =  /amssw/AMSlib/linux/icc/
+#NAGDIR  = /amssw/AMSlib/linux/icc/
 ########################################################################
 # Compilers FLAGS
 ########################################################################
@@ -146,7 +151,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia32/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
 endif
 endif
 

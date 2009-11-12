@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.3 2009/08/19 14:36:04 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.4 2009/11/12 16:49:06 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/08/19 14:36:04 $
+///$Date: 2009/11/12 16:49:06 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -99,6 +99,14 @@ public:
 
   //! Reset to zero all the calibration in the lib
   void Clear(const Option_t*aa=0);
+
+  //! For GBATCH Cal Decoding
+  static integer checkdaqidS(int16u id) {return id-281+1;}
+  //! For GBATCH Cal Decoding
+  static void updtrcalibS(integer n, int16u* p);
+  //! Save cal to TDV DB
+  static int  TrCalDB::SaveCal2DB(time_t endtime=9999999);
+
 
   ClassDef(TrCalDB,2);
 };

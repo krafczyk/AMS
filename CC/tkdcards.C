@@ -11,6 +11,8 @@ void TKGEOMFFKEY_DEF::init(){
   ReadGeomFromFile=0;
   WriteGeomToFile=0;
   UpdateGeomFile=0;
+  CablVer=2;
+  CalibVer=2;
   memset(fname,400,sizeof(fname[0]));
 }
 

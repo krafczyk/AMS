@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.2 2008/08/28 14:38:04 pzuccon Exp $
+#  $Id: Makefile,v 1.3 2009/11/12 16:49:06 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -15,9 +15,9 @@
 ARCH     = $(shell uname)
 
 ### Compilers ###
-FC       = g77 -m32
-CXX      = g++ -m32 
-LD       = g++  -m32
+FC       = ifort -m32
+CXX      = icc -m32 
+LD       = icc  -m32
 
 
 ifeq "$(ARCH)" "Linux"
@@ -48,7 +48,7 @@ else
 DEFINES  =
 endif
 CXXFLAGS = -g -O3   -fPIC -march=i686  -I. $(INC) $(DEFINES) $(ROOTFLGS)
-FFLAGS= -I. -I/cern/pro/include
+FFLAGS= -I. -I/cern/pro/include -I../F -I../include
 
 ### LD flags ###
 ifeq ($(ARCH), Darwin)
@@ -59,7 +59,7 @@ endif
 ######### FILES #######################
 
 
-SRCS = call_rqmd.F rqmd.F call_fluka.F
+SRCS = call_rqmd.F rqmd.F call_fluka.F trd.F
 OBJS = $(patsubst %.F, $(OBJ)%.o, $(SRCS))
 
 

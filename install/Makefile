@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.86 2009/08/27 14:12:53 pzuccon Exp $
+#  $Id: Makefile,v 1.87 2009/11/12 16:49:06 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -207,7 +207,7 @@ ifdef PGTRACK
 TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
         $(SCC)tkdcards.C     $(SCC)TkLadder.C $(SCC)TkObject.C \
 	$(SCC)TkPlane.C      $(SCC)TkSens.C \
-	$(SCC)TrCalDB.C      $(SCC)TrCluster.C \
+	$(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
 	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C   \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
@@ -217,7 +217,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
-	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F	
+	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C	
 #$(SCC)gufld.C
 
 else
@@ -478,7 +478,7 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  \
-	$(BIN)root_rs.o  $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
+	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
 else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
 endif
@@ -486,7 +486,7 @@ endif
 shared : amswd $(SHLD)
 $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(LD) -O  $(SOFLAGS) $(SHLIBO) $(SHLDFLAGS) -o  $(SHLD)
+	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS) -o  $(SHLD)
 
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBO)

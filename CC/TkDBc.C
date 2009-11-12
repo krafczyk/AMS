@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.7 2009/11/11 15:20:47 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.8 2009/11/12 16:49:06 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/11/11 15:20:47 $
+///$Date: 2009/11/12 16:49:06 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -262,10 +262,10 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     };
 
     if(setup==2){
-      memcpy(_octid,octid_new,2*nlays*maxlad*sizeof(octid[0][0][0]));
+      memcpy(_octid,octid_new,2*nlays*maxlad*sizeof(octid_new[0][0][0]));
       printf("TkDBC--using the FLIGHT Cabling %d!!!\n",setup);
     }else if(setup==1){
-      memcpy(_octid,octid_old,2*nlays*maxlad*sizeof(octid[0][0][0]));
+      memcpy(_octid,octid_old,2*nlays*maxlad*sizeof(octid_old[0][0][0]));
       printf("TkDBC--using the PRE-INTEGRATION Cabling  %d!!!\n",setup);
     }else{
       printf("TkDBC--FATAL-- Unknown setup number %d!!\n I give up!!!\n",setup);
@@ -379,13 +379,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	  for (int slot=0;slot<maxlad;slot++)
 	    if(filled_slot(side,lay,slot)){
 	      int oct=GetOctant(side,lay+1,slot+1);
-	      int hwid=abs(octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
+	      int hwid=abs(_octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
 	      int tkid=(lay+1)*100+(slot+1);
               int pgid=_pgid[side][lay][slot];
  	      if (side==0) tkid*=-1;
 	      sprintf(name,"%s",LadName[side][lay][slot]);
               TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,nsen[side][lay][slot]);
-	      if(octid[side][lay][slot]<0) aa->SetLaserFlag();
+	      if(_octid[side][lay][slot]<0) aa->SetLaserFlag();
 	      number posz= _layer_deltaZ[lay];
 	      number posy= GetSlotY(lay+1,slot+1,side);
 	      number posx= GetSlotX(lay+1,slot+1,side);

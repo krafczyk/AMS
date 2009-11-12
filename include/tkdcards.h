@@ -21,6 +21,10 @@ public:
   integer ReadGeomFromFile;
   integer WriteGeomToFile;
   integer UpdateGeomFile;
+  ///Cabling version 1= Pre-Integration 2= flight
+  integer CablVer;
+  ///Cabibration format  1= Pre-Integration 2= flight
+  integer CalibVer;
   integer fname[400];
   void init();
 

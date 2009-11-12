@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.2 2009/08/19 14:35:47 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.3 2009/11/12 16:49:06 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/08/19 14:35:47 $
+///$Date: 2009/11/12 16:49:06 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -178,3 +178,189 @@ void SLin2CalDB(){
     TrCalDB::Head->Lin2CalDB();
   return;
 }
+
+
+
+
+void TrCalDB::updtrcalibS(integer n, int16u* p){
+  uinteger leng=(n&65535);
+  leng-=10;
+  int pri=0;
+  uinteger in=(n>>16);
+  uinteger ic=in/trconst::ntdr;
+  uinteger tdr=in%trconst::ntdr;
+  int leng4=leng/4;
+  cout <<"  Crate TDR "<<ic<<"  "<<tdr<<endl;
+  CaloutDSP cal;
+  ushort size;
+  int rr=0;
+  int cpar=p[rr++];
+  if(pri>0) printf("Command parameter is: %X \n",cpar); 
+
+  if(cpar&0x1){ //pedestals
+    if(pri>0) printf("Reading Pedestals\n");
+    for (int ii=0;ii<1024;ii++){
+      cal.ped[ii]=p[rr++]*1.;
+    }
+  }
+
+  if(cpar&0x2){ //flags
+    if(pri>0) printf("Reading flags\n");
+    for (int ii=0;ii<1024;ii++){
+      cal.status[ii]=p[rr++];
+    }
+  }
+
+  if(cpar&0x4){ //sigma (low)
+    if(pri>0) printf("Reading Sigmas\n");
+    for (int ii=0;ii<1024;ii++){
+      cal.sig[ii]=p[rr++]*1.;
+    }
+  }
+
+  if(cpar&0x8){ //rawsigma (multiplied by parameter 7)
+    if(pri>0) printf("Reading Raw Sigmas\n");
+    for (int ii=0;ii<1024;ii++){
+      cal.rsig[ii]=p[rr++]*1.;
+    }
+  }
+  if(cpar&0x10){ // sigma high
+    if(pri>0) printf("Reading Sigma High \n");
+    for (int ii=0;ii<1024;ii++){
+      // if(pri>0) printf("Sigma High  %d  %d\n",ii,(short int)p[rr]);
+      p[rr++];
+    }
+  }
+
+  if(cpar&0x20){ //Occupancytable double trigger
+    if(pri>0) printf("Reading Occupancy table \n");
+    for (int ii=0;ii<1024;ii++){
+      // if(pri>0) printf("Occupancy  %d  %d\n",ii,p[rr]);
+      cal.occupancy[ii]=(unsigned short int)p[rr++];
+    }
+  }else
+    for (int ii=0;ii<1024;ii++){
+      // if(pri>0) printf("CN mean  %d  %d\n",ii,(short int)p[rr]);
+      cal.occupancy[ii]=0;
+    }
+  
+  if(cpar&0x40){ //CN Sigma
+    if(pri>0) printf("Reading CN rms \n");
+    for (int ii=0;ii<16;ii++){ 
+      //     if(pri>0) printf("CN rms  %d  %d\n",ii,(short int)p[rr]);
+      cal.CNrms[ii]=((short int)p[rr++])/8.;
+    }
+  }
+  
+  if(cpar&0x80){ //CN mean
+    if(pri>0) printf("Reading CN mean \n");
+    for (int ii=0;ii<16;ii++){
+      // if(pri>0) printf("CN mean  %d  %d\n",ii,(short int)p[rr]);
+      cal.CNmean[ii]=((short int)p[rr++])/8.;
+    }
+  }
+
+  
+ 
+  cal.dspver=p[rr++];
+  if(pri>0) printf("Detector DSP version %hX\n",cal.dspver);
+  
+
+  cal.S1_lowthres=p[rr++]/8.;
+  if(pri>0) printf("Lowsigma factor S1 %f\n",cal.S1_lowthres);
+
+  cal.S1_highthres=p[rr++]/8.;
+  if(pri>0) printf("Highsigma factor S1 %f\n",cal.S1_highthres);
+  
+  cal.S2_lowthres=p[rr++]/8.;
+  if(pri>0) printf("Lowsigma factor S2 %f\n",cal.S2_lowthres);
+    
+  cal.S2_highthres=p[rr++]/8.;
+  if(pri>0) printf("Highsigma factor S2 %f\n",cal.S2_highthres);
+  
+
+  cal.K_lowthres=p[rr++]/8.;
+  if(pri>0) printf("Lowsigma factor K %f\n",cal.K_lowthres);
+  
+  cal.K_highthres=p[rr++]/8.;
+  if(pri>0) printf("Highsigma factor K %f\n",cal.K_highthres);
+  
+  cal.sigrawthres=p[rr++];
+  if(pri>0) printf("sigmaraw factor %f\n",cal.sigrawthres);
+  
+
+  cal.Power_failureS=p[rr++];
+  if(pri>0) printf("Power Failures on S %d\n",cal.Power_failureS);
+
+  cal.Power_failureK=p[rr++];
+  if(pri>0) printf("Power Failures on K %d\n",cal.Power_failureK);
+
+  cal.calnum=p[rr++];
+  if(pri>0) printf("Calibration Events %d\n",cal.calnum);
+
+  cal.usedev=p[rr++];
+  if(pri>0) printf("Used triggers %d\n",cal.usedev);
+  
+  cal.calstatus=p[rr++];
+  if(pri>0) printf("Calibration status 0x%04X\n",cal.calstatus);
+
+  int TDRStat=p[rr++];
+  if(pri>0) printf("TDR status 0x%04X\n",TDRStat);
+  
+  if(pri>0) printf("---------> READ   %d  word for this cal\n",rr);
+  //Fill the Calibration object
+  //  int hwid=((bb->node-282)/24)*100+(bb->node-282)%24;
+  int hwid=ic*100+tdr;
+  if(!TrCalDB::Head) {
+    printf("-------------------> WARNING I CANT FIND The calibration DBase!!! CALIBRATION NOT FILLED!!\n");
+    return;
+  }
+  TrLadCal* ladcal=TrCalDB::Head->FindCal_HwId(hwid);
+  if(ladcal){
+    ladcal->Fill(&cal);
+    if(pri>0)  ladcal->PrintInfo(pri-1);
+  }else
+    printf("-------------------> WARNING I CANT FIND The calibration object to be filled\n");
+
+ 
+  
+  return ;
+}
+
+#ifdef __ROOTSHAREDLIBRARY__
+int  TrCalDB::SaveCal2DB(time_t endtime){return 0;}
+
+#else
+#include "timeid.h"
+#include "commonsi.h"
+
+int  TrCalDB::SaveCal2DB(time_t endtime){
+
+  if(!TrCalDB::Head){
+    printf("TrCalDB::SaveCal2DB---TrCalDB::Head is zero Cals NOT SAVED TO DB \n");
+    return -3;}
+  TrCalDB::Head->CreateLinear(); //Creates a linear array to feed the DB
+  TrCalDB::Head->CalDB2Lin();    //Copy the calibrations to the linear array
+  time_t bb=TrCalDB::Head->GetRun();
+  tm begin;
+  tm end;
+  tm* mtim=localtime_r(&bb,&begin);
+
+  tm* mtim2=localtime_r(&endtime,&end);
+
+
+  AMSTimeID* tt= new AMSTimeID(
+			       AMSID("TrackerCals",1),
+			       begin,
+			       end,
+			       TrCalDB::GetLinearSize(),
+			       TrCalDB::linear,
+			       AMSTimeID::Standalone,
+			       1);
+  tt->UpdateMe();
+  int pp=tt->write(AMSDATADIR.amsdatabase);
+
+  return 0;
+
+}
+#endif

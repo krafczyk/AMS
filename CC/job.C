@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.655 2009/11/12 15:50:32 choutko Exp $
+// $Id: job.C,v 1.656 2009/11/12 16:49:06 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1727,7 +1727,7 @@ if(AMSFFKEY.Update){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
       //PZ FIXME metti a posto il path 
-      TkDBc::Head->init(fname);
+      TkDBc::Head->init(TKGEOMFFKEY.CablVer,fname);
     }
     else
       TkDBc::Head->init();
@@ -1754,6 +1754,7 @@ if(AMSFFKEY.Update){
 // SetUp the Tracker reconstruction infrastructure
 //PZ FIXME must be simplified
   TrCalDB* cc=new TrCalDB();
+  TrLadCal::SetVersion(TKGEOMFFKEY.CalibVer);
   cc->init();
   cc->CreateLinear();
 //  cc->Load("prima.root");
@@ -4091,8 +4092,12 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
   if((CALIB.SubDetInCalib/1000)%10>0)
     DAQEvent::addsubdetector(&DAQS2Block::checkblockidP,&DAQS2Block::buildonbP,6);
 //TRK    
-#ifndef _PGTRACK_
+#ifdef _PGTRACK_
     //PZ FIXME CALIB
+  if((CALIB.SubDetInCalib/100)%10>0)
+    DAQEvent::addsubdetector(&TrCalDB::checkdaqidS,&TrCalDB::updtrcalibS,6);
+#else
+
   if((CALIB.SubDetInCalib/100)%10>0){
 //    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalib2009S,6);
