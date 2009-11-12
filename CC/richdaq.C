@@ -3,6 +3,8 @@
 #include "richrec.h"
 #include "timeid.h"
 
+//#define __INSPECT__
+
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
 
@@ -76,6 +78,34 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   // Reset the status bits
   Status=kOk;
   
+#ifdef __INSPECT__
+  cout<<endl<<endl<<"RICH EVENT INSPECTOR"<<endl;
+  cout<<endl;
+  cout<< " -1(-2) -- LENGTH                   -- "<<length<<" words"<<endl;
+  int16u value=*p;
+  printf("0       -- 1 0 nodeaddress datatype -- %i %i %i %x\n ",
+	 (value&(1<<15))>>15,
+	 (value&(1<<14))>>14,
+	 (value&(0b0011111111100000))>>5,
+	 (value&(0b11111)));
+
+  printf("MASK    -- mask %x \n",*(p-2+length));
+  printf("???     -- status %x\n",*(p-1+length));
+  StatusParser parsed(*(p-1+length));
+  printf("        --  SlaveId %i IsCDP %i is RAW %i isCompressed %i isData %i\n",
+	 parsed.slaveId,
+	 parsed.isCDP,
+	 parsed.isRaw,
+	 parsed.isCompressed,
+	 parsed.isData);
+  cout<<endl<<endl;
+
+  cout<<"DUMPING EVERYTHING "<<endl;
+  for(int i=0;i<length;i++) {cout<<"+"<<i<<" ";printf("%x\n",*(p+i));}
+#endif
+
+
+
   // Check that the length size is the correct one: at least I expect to have the node status
   if(length<1) Do(kLengthError);
   
@@ -92,7 +122,9 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   
 
   // Assume that everything here is primary and decode
-  DecodeRich(length,p,JINF,0);
+  int offset=0;
+  if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
+  DecodeRich(length+offset,p,JINF,0);
   }
   catch(int){
     static bool first_call=true;
@@ -116,6 +148,32 @@ void DAQRichBlock::buildrawnode(integer length,int16u *p){
   // In p-1 is the node id and so 
   // In p is the event number p
   // In p+1 the first RDR info (its length)
+
+#ifdef __INSPECT__
+  cout<<endl<<endl<<"RICH EVENT INSPECTOR"<<endl;
+  cout<<endl;
+  cout<< " -1(-2) -- LENGTH                   -- "<<length<<" words"<<endl;
+  int16u value=*p;
+  printf("0       -- 1 0 nodeaddress datatype -- %i %i %i %x\n ",
+	 (value&(1<<15))>>15,
+	 (value&(1<<14))>>14,
+	 (value&(0b0011111111100000))>>5,
+	 (value&(0b11111)));
+
+  printf("MASK    -- mask %x \n",*(p-2+length));
+  printf("???     -- status %x\n",*(p-1+length));
+  StatusParser parsed(*(p-1+length));
+  printf("        --  SlaveId %i IsCDP %i is RAW %i isCompressed %i isData %i\n",
+	 parsed.slaveId,
+	 parsed.isCDP,
+	 parsed.isRaw,
+	 parsed.isCompressed,
+	 parsed.isData);
+  cout<<endl<<endl;
+
+  cout<<"DUMPING EVERYTHING "<<endl;
+  for(int i=0;i<length;i++) {cout<<"+"<<i<<" ";printf("%x\n",*(p+i));}
+#endif
 
   Status=kOk;
   if(length<1) Do(kLengthError);
@@ -236,9 +294,36 @@ integer DAQRichBlock::checkcalid(int16u id){
   return 0;
 }
 
-
 void DAQRichBlock::buildcal(integer length,int16u *p){
   try{
+
+
+#ifdef __INSPECT__
+  cout<<endl<<endl<<"RICH EVENT INSPECTOR CAL"<<endl;
+  cout<<endl;
+  cout<< " -1(-2) -- LENGTH                   -- "<<length<<" words"<<endl;
+  int16u value=*p;
+  printf("0       -- 1 0 nodeaddress datatype -- %i %i %i %x\n ",
+	 (value&(1<<15))>>15,
+	 (value&(1<<14))>>14,
+	 (value&(0b0011111111100000))>>5,
+	 (value&(0b11111)));
+
+  printf("MASK    -- mask %x \n",*(p-2+length));
+  printf("???     -- status %x\n",*(p-1+length));
+  StatusParser parsed(*(p-1+length));
+  printf("        --  SlaveId %i IsCDP %i is RAW %i isCompressed %i isData %i\n",
+	 parsed.slaveId,
+	 parsed.isCDP,
+	 parsed.isRaw,
+	 parsed.isCompressed,
+	 parsed.isData);
+  cout<<endl<<endl;
+
+  cout<<"DUMPING EVERYTHING "<<endl;
+  for(int i=0;i<length;i++) {cout<<"+"<<i<<" ";printf("%x\n",*(p+i));}
+#endif
+
   // This is calibration event for RDR
   // Length is in words
   const int block_size=2483;  // The length in words of the calibration table for a single RDR
@@ -393,6 +478,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
     if(AMSFFKEY.Debug>1)
     cout<<"Pointer at "<<pointer-p<<" fence in "<<length-1<<" fence content "<<*(p-1+length)<<endl; 
 #endif
+
     if(pointer>=p-1+length) break;   // Last fragment processed       
     
     FragmentParser cdp(pointer);
@@ -575,7 +661,7 @@ integer DAQRichBlock::calcdaqlength(int jinr_number){
 
   int datawords=nhits*2;     // Number of words is 2 per hit 
   int formatwords=ncdps*2+1; // At least length and status words per CDP + 1 status per block
-
+  if(DAQCFFKEY.DAQVersion==1) formatwords+=2; // Add the mask words
   
   return -(datawords+formatwords);  // We return it as a JINF-R Block
 }
@@ -661,14 +747,11 @@ void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
 
 
       //      printf("      WRITING HIT GEOM %i ID %x  counts %x\n",ptr->getchannel(),*(cdp_p-2),*(cdp_p-1));
-
-
     } 
     int link=-1;
     for(link=0;link<24;link++) if(Links[jinr_number][link]==i)break;
     *cdp_p=(link)|(1<<7)|(0x0020); // Status: link+compressed mode+CDP
     cdp_p++;
-
   }
 }
 
