@@ -73,8 +73,8 @@ ifdef VERGCC
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
 endif
 NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
-AMSLIB =  /amssw/AMSlib/linux
-NAGDIR = /amssw/AMSlib/linux
+#AMSLIB =  /amssw/AMSlib/linux
+#NAGDIR = /amssw/AMSlib/linux
 
 
 ########################################################################
