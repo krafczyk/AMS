@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.37 2008/10/20 17:56:19 pzuccon Exp $
+//  $Id: trrawcluster.h,v 1.38 2009/11/12 15:50:37 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -74,6 +74,7 @@ static void sitkdigi();
  static void buildpreclusters( AMSTrIdSoft & idd, integer len, geant id[]);
  integer TestRawMode();
   // H/K data read
+  static void updtrcalib2009S(integer length,int16u *p); 
   static void updtrcalibS(integer length,int16u *p); 
   static integer getmaxblockS(){return  AMSTrIdSoft::ncrates();}
   // H/K TDV correspondance

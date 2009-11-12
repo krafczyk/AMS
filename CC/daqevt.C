@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.168 2009/11/11 15:56:19 choutko Exp $
+//  $Id: daqevt.C,v 1.169 2009/11/12 15:50:32 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -868,7 +868,7 @@ wrong:
          _Length<<" Blocks say length is "<<ntot<<" "<<_GetBlType()<<endl;
        cerr <<" SubBlock dump follows"<<endl;
      _pcur=_pData+preset;
-     for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur))
+     for(_pcur=_pData+preset;_pcur<_pData+_Length&& _pcur>=_pData;_pcur+=_cl(_pcur))
        cerr <<" ID " <<*(_pcur+1)<<" Length "<< _cl(_pcur)<<endl;
       if(!fbin.good()){
         cerr<<" DAQEvent::_Eventok-S-HardError,CouldNotReadFile"<<endl;

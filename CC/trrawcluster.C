@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.106 2009/11/11 15:56:19 choutko Exp $
+//  $Id: trrawcluster.C,v 1.107 2009/11/12 15:50:32 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -754,8 +754,7 @@ void AMSTrRawCluster::updtrcalibS(integer n, int16u* p){
   uinteger tdr=in%trid::ntdr;
 //  cout << "crate tdr "<<ic<<" "<<tdr<<endl;
   int leng4=leng/4;
-//  if(leng4!=1024){
-  if(leng4!=1289){
+  if(leng4!=1024){
    cerr<<"AMSTrRawCluster::updtrcalibS-E-WrongLength "<<leng4<<endl;
    return;
   }
@@ -939,6 +938,177 @@ if(nerr>0){
 */
   }
  }
+
+
+
+
+
+
+
+void AMSTrRawCluster::updtrcalib2009S(integer n, int16u* p){
+  uinteger leng=(n&65535);
+  uinteger in=(n>>16);
+  uinteger ic=in/trid::ntdr;
+  uinteger tdr=in%trid::ntdr;
+
+
+  cout <<"  Crate TDR "<<ic<<"  "<<tdr<<endl;
+  if(AMSTrIdSoft::_Calib[ic][tdr]==1){
+   cerr<<" AMSTrRawCluster::updtrcalibS-W-ICTDRAlreadySet "<<ic<<" "<<tdr<<endl;
+  }
+
+const int lt[8]={1024,1024,1024,1024,1024,1024,16,16};
+int16u *plt[8]={0,0,0,0,0,0,0,0};
+int16u *plast=p+1;
+int table[8]={0,0,0,0,0,0,0,0};  //ped,flags,slow,sraw,shigh,double,cmns,cmn
+for(int k=0;k<8;k++){
+if( (*p>>k)&1){
+ plt[k]=plast;
+ plast+=lt[k];
+}
+}
+if(plast-p>=leng-9){
+ cerr<<"AMSTrRawCluater::updtrrcalib2009S-E-LengthProblem "<<plast-p<<" "<<leng<<endl;
+ return;
+}
+if(!plt[0] || !plt[1] || !plt[2] || !plt[3]){
+ cerr<<"AMSTrRawCluster::updtrrcalib2009S-E-NotAllCalibPresent "<<plt[0]<<" "<<plt[1]<<" "<<" "<<plt[2]<<" "<<plt[3]<<endl;
+ return;
+}
+  int nerr=0;
+  cout <<"Version "<<*plast<<endl;
+  for(int k=1;k<8;k++)cout<<" Parameters "<<k<<" "<<*(plast+k)<<endl;
+  int version=*(plast);
+  geant rawsig_d=*(plast+7);
+ for(int i=0;i<lt[0];i++){
+  int16u haddr=(tdr<<10) | i;
+  AMSTrIdSoft id(ic,haddr);
+  if(!id.dead()){
+   if(id.getgain()==0){
+    id.setgain()=TRMCFFKEY.gain[id.getside()];
+  }
+    id.setped()=geant(*(plt[0]+i))/id.getgain();
+    if(*(plt[1]+i)!=0)id.setstatus(AMSDBc::BAD);
+    else id.clearstatus(AMSDBc::BAD);
+    geant sig_d;
+    if(id.getside()==0)sig_d=*(plast+6);
+    else if(id.getstrip()<320)sig_d=*(plast+2);
+    else sig_d=*(plast+4);
+    id.setsig()=geant(*(plt[2]+i))/sig_d;
+    id.setsigraw()=geant(*(plt[3]+i))/id.getgain()/rawsig_d;
+   if(id.setsig()>id.setsigraw()){
+    nerr++;
+//     cerr <<"  AMSTrRawCluster::updtrcalibS-E-SigmaProblems "<<id.getsigraw()<<" "<<id.getsig() <<" "<<id<<endl;
+//     cerr <<"  AMSTrRawCluster::updtrcalibS-I-Version "<<version<<" "<<sig_d<<" "<<rawsig_d<<endl;
+   }
+   if(i%64==0){
+    if(plt[7]){
+      id.setcmnnoise()=*(plt[7]+i/64)/id.getgain();
+    }
+   }
+}
+}
+  AMSTrIdSoft::_Calib[ic][tdr]=1;
+
+
+if(nerr>0){
+     cerr <<"  AMSTrRawCluster::updtrcalibS-E-RawSigmaProblems "<<nerr<<endl;
+}
+  bool update=DAQEvent::CalibDone(0);
+  int nc=0;
+  int ncp=0;
+
+  if(update || nc>=TRCALIB.EventsPerCheck){
+     update=true;
+   for (int i=0;i<2;i++){
+   AMSTimeID * ptdv;
+  for (int k=0;k<=TRCALIB.Method;k++){
+    if(k==0)ptdv = AMSJob::gethead()->gettimestructure(getTDVped(i));
+    else if(k==1)ptdv = AMSJob::gethead()->gettimestructure(getTDVsigma(i));
+    else if(k==2)ptdv = AMSJob::gethead()->gettimestructure(getTDVstatus(i));
+    else if(k==3)ptdv = AMSJob::gethead()->gettimestructure(getTDVrawsigma(i));
+    else if(k==4)ptdv = AMSJob::gethead()->gettimestructure(getTDVgains(i));
+    else if(k==5 && i==0)ptdv = AMSJob::gethead()->gettimestructure(getTDVCmnNoise());
+    else break;
+   if(update)ptdv->UpdateMe()=1;
+   ptdv->UpdCRC();
+   time_t begin,end,insert;
+   time(&insert);
+   if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
+   ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()+8640000);
+   cout <<" Tracker H/K  info has been read for "<<*ptdv;
+   ptdv->gettime(insert,begin,end);
+   cout <<" Time Insert "<<ctime(&insert);
+   cout <<" Time Begin "<<ctime(&begin);
+   cout <<" Time End "<<ctime(&end);
+   }
+  }
+/*
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    char filename[256];
+    strcpy(filename,hfile);
+    sprintf(filename,"%s_tra.%d",hfile,AMSEvent::gethead()->getrun());
+    integer iostat;
+    integer rsize=1024;
+    char event[80];  
+    HROPEN(IOPA.hlun+1,"trcalibration",filename,"NP",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening trcalib ntuple file "<<filename<<endl;
+     exit(1);
+    }
+    else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
+*/
+   if(IOPA.hlun){
+   TrCalib_def TRCALIB;
+   CALIB.Ntuple++;
+   HBNT(CALIB.Ntuple,"Tracker Calibaration"," ");
+   HBNAME(CALIB.Ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,RawSigma:R,BadCh:I,CmnNoise:R,Crate:I,Haddr:I");
+   int i,j,k,l,m;
+    for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        if(id.dead())continue;
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
+          id.upd(m);
+          TRCALIB.Layer=i+1;
+          TRCALIB.Ladder=j+1;
+          TRCALIB.Half=k;
+          TRCALIB.Side=l;
+          TRCALIB.Strip=m;
+          if(AMSTrIdSoft::_Calib[id.getcrate()][id.gettdr()]){
+          TRCALIB.Ped=id.getped();
+          TRCALIB.Sigma=id.getsig();
+          TRCALIB.RawSigma=id.getsigraw();
+          TRCALIB.BadCh=id.checkstatus(AMSDBc::BAD);
+          TRCALIB.CmnNoise=id.getcmnnoise();
+          }
+          else{
+          TRCALIB.Ped=0;
+          TRCALIB.Sigma=0;
+          TRCALIB.RawSigma=0;
+          TRCALIB.BadCh=0;
+          TRCALIB.CmnNoise=id.getcmnnoise();
+          }
+          TRCALIB.Crate=id.getcrate();
+          TRCALIB.Haddr=id.gethaddr();
+          HFNT(CALIB.Ntuple);
+         }
+        }
+       }
+     }
+    }
+}
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trid::ntdr;j++){
+     AMSTrIdSoft::_Calib[i][j]=0;
+    }
+   }
+  }
+ }
+
 
 
 

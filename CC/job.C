@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.654 2009/11/12 11:18:16 mdelgado Exp $
+// $Id: job.C,v 1.655 2009/11/12 15:50:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1774,9 +1774,11 @@ if(AMSFFKEY.Update){
     AMSTrIdGeom::init();
     if(strstr(getsetup(),"AMS02") ){    
     if(strstr(getsetup(),"AMS02Pre") ){    
+       cout <<"AMSJob::udata-I-2007TrackerConfigurationRequestred "<<endl;
        AMSTrIdSoft::inittable(2);
     }
     else{
+       cout <<"AMSJob::udata-I-FlightTrackerConfigurationRequestred "<<endl;
        AMSTrIdSoft::inittable(3);
     }
        AMSTrIdSoft::init();
@@ -4091,8 +4093,10 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
 //TRK    
 #ifndef _PGTRACK_
     //PZ FIXME CALIB
-  if((CALIB.SubDetInCalib/100)%10>0)
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
+  if((CALIB.SubDetInCalib/100)%10>0){
+//    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalibS,6);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidS,&AMSTrRawCluster::updtrcalib2009S,6);
+}
 #endif    
 // RICH
   if((CALIB.SubDetInCalib/10)%10>0)
