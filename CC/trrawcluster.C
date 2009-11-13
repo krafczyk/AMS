@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.108 2009/11/13 10:08:54 choutko Exp $
+//  $Id: trrawcluster.C,v 1.109 2009/11/13 15:18:40 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -499,11 +499,22 @@ continue;
  if(DAQEvent::isError(*(p+*p))){
   cerr<<" AMSTrRawCluster::buildraw-E-ErrorForTDR "<<tdr<<endl;
   break;
+  return;
  }
  for(int16u* paux=p+DAQCFFKEY.Mode;paux<p+*p-1-cmn;paux+=*paux+2+1){
   geant s2n=*(paux)>>7;
   *(paux)=*(paux)&127;
   int16u haddr=*(paux+1)&1023;
+//
+// get rid of junk (????)
+//
+
+  if(haddr+*paux==1023 && *(paux+*paux+2)>1000){
+   static int junkerr=0;
+   if(junkerr++<100)cerr<<"AMSTrRawCluster::buildraw-E-Junk1002detected "<< *(paux+*paux+2)<<endl;
+    continue;
+   }
+
  if(haddr+*(paux)>=1024){
     static int nerr=0;
     if(nerr++<100)cerr<<"  AMSTrRawCluster::buildraw-E-HaddrExtOutOfRange "<<haddr<<" "<< haddr+*(paux)<<endl;
@@ -528,7 +539,8 @@ continue;
             AMSTrIdSoft id1(ic,haddr1);
             AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id1.getaddr(),id1.getstrip(),id1.getstrip()+cl,(int16*)(paux+2+id.getmaxstrips()-id.getstrip()),cn));
-          for(int k=id1.getstrip();k<id1.getstrip()+cl+1;k++){
+          int b=id1.getstrip();
+          for(int k=b;k<b+cl+1;k++){
             id1.upd(k);
             if(id1.getgain()==0){
             id1.setgain()=8;
@@ -542,7 +554,8 @@ continue;
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux,
         (int16*)(paux+2),cn));
 //        cout <<"  id "<<id<<" "<<id.getstrip()<<" "<<id.getstrip()+*paux<<" "<<id.getgain()<<endl;
-          for(int k=id.getstrip();k<(id.getstrip()+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:id.getstrip()+*paux);k++){
+          int b=id.getstrip();
+          for(int k=b;k<(b+*paux>=id.getmaxstrips()?id.getmaxstrips()-1:b+*paux);k++){
             id.upd(k);
             if(id.getgain()==0){
             id.setgain()=8;
