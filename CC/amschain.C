@@ -56,14 +56,14 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
   Init();
   if(entry>=GetEntries()) return _EVENT;
   _ENTRY = entry;
-  Int_t tree_entry = LoadTree(_ENTRY);
+  m_tree_entry = LoadTree(_ENTRY);
   if (GetTreeNumber()!=_TREENUMBER) {
     _TREENUMBER = GetTreeNumber();
     _EVENT->Tree() = GetTree();
     _EVENT->GetBranch(_EVENT->Tree());
   }
   
-  if (_EVENT->ReadHeader(tree_entry)==false) {
+  if (_EVENT->ReadHeader(m_tree_entry)==false) {
     delete _EVENT; _EVENT = NULL;
     _ENTRY = -1;
   }

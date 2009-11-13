@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.38 2009/11/11 22:32:53 choutko Exp $
+//  $Id: main.cxx,v 1.39 2009/11/13 09:47:27 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -195,7 +195,7 @@ pchain=&chain;
   }
 
 
-  AMSDisplay * amd= new AMSDisplay(title,geo,&chain,sec);
+  AMSDisplay * amd= new AMSDisplay(title,geo,&chain,sec,monitor);
   amd->SetApplication(theApp);
   amd->Init();
   theApp->SetDisplay(amd);  

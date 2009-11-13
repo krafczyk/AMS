@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.7 2009/11/11 22:32:53 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.8 2009/11/13 09:47:27 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -42,7 +42,7 @@ ClassImp(AMSDisplay);
 AMSDisplay *gAMSDisplay;
 
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec):
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int sec, bool monit=false):
   m_chain(chain), m_sec(sec),m_nodate(false),TObject(){
      m_sec=abs(sec);
      m_nodate=sec<0;
@@ -61,6 +61,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSChain * chain, int
      m_Geometry     = 0;
      m_selected=0;
      m_scale=1;   
+     m_monitor=monit;
      m_ntuple=(AMSNtupleV*)chain->pEvent(); 
      m_trclpr=true;
      m_drawrichringfromplex=false;
@@ -648,6 +649,10 @@ bool AMSDisplay::ShowNextEvent(Int_t delta){
   int res;     
   while((res=m_chain->ReadOneEvent(entry))==0){
     entry+=delta;
+   if(m_monitor && m_chain->get_tree_entry()==0){
+     DrawEvent();
+    }
+
   }
   if(entry>=0 && entry<=m_chain->GetEntries()){
     DrawEvent();

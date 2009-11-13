@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.23 2009/11/11 15:56:20 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.24 2009/11/13 09:47:27 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -52,6 +52,7 @@ private:
   Double_t               fCooDef[2][3];
   AMSNtupleV *          m_ntuple;   
   AMSChain *          m_chain;   
+  bool                m_monitor;
   EAMSR_View            m_PrevView;		     //prevview
   EAMSR_View            m_View;		     //view
   bool                  m_zoom;
@@ -118,7 +119,7 @@ public:
     }
   }
             
-  AMSDisplay(const char *title, TGeometry * geo, AMSChain* chain,int sec=10);
+  AMSDisplay(const char *title, TGeometry * geo, AMSChain* chain,int sec, bool monit);
   virtual                  ~AMSDisplay(){};
   Bool_t      AllViews() {return (m_View == kAllView);}
   EAMSR_View    GetView() {return m_View;}

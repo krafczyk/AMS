@@ -27,6 +27,7 @@
 
 class AMSChain : public TChain {
 private:
+  int m_tree_entry;
   unsigned int fThreads;
   unsigned int fSize;
   AMSEventR* _EVENT;
@@ -36,9 +37,10 @@ private:
   TFile* _FILE;
 
 public:
+   int get_tree_entry()const {return m_tree_entry;}
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
-    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
+    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
 
 
   /// alternative constructor (It requires an AMSEventR object to be passed)
