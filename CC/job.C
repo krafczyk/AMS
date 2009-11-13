@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.656 2009/11/12 16:49:06 pzuccon Exp $
+// $Id: job.C,v 1.657 2009/11/13 11:33:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4085,7 +4085,8 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
 //TRD 
   if((CALIB.SubDetInCalib/10000)>0){
-    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib,6);
+//    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib,6);
+    DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidS,&AMSTRDRawHit::updtrdcalib2009,6);
     DAQEvent::addsubdetector(&AMSTRDRawHit::checkdaqidJ,&AMSTRDRawHit::updtrdcalibJ,6);
   }
 //TOF+ACC

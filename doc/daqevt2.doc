@@ -1,4 +1,4 @@
-#  $Id: daqevt2.doc,v 1.9 2009/11/09 19:12:09 choutko Exp $
+#  $Id: daqevt2.doc,v 1.10 2009/11/13 11:33:38 choutko Exp $
 
 I. ams02 Daq Event format  (based on cai 05-11-2007)
                                 
@@ -188,4 +188,5 @@ VI.
 
 Thanks to the developpers of the new calib format:
 A new way to check if calibration seq is processed correctly (does not gaurantee to work always):
- DAQEvent::CalibDone(int id) id=0...  tracker trd tof rich ecal
+ bool DAQEvent::CalibDone(int id) id=0...  tracker trd tof rich ecal
+ bool DAQEvent::CalibInit(int id) id=0...  tracker trd tof rich ecal

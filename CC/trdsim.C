@@ -1,3 +1,4 @@
+//  $Id: trdsim.C,v 1.38 2009/11/13 11:33:32 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -194,6 +195,9 @@ void AMSTRDRawHit::updtrdcalibJ(int n, int16u* pbeg){
  }
 }
 
+
+
+
 void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
   integer leng=(n&65535);
   leng-=9;
@@ -274,6 +278,90 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
 
 }
 }
+void AMSTRDRawHit::updtrdcalib2009(int n, int16u* p){
+  integer leng=(n&65535);
+  p++;
+  leng-=10;
+  uinteger in=(n>>16);
+  uinteger ic=in/trdid::nudr;
+  uinteger udr=in%trdid::nudr;
+  int leng2=leng/3;
+  const int span=448;
+  AMSTRDIdSoft::_Calib[ic][udr]=-1;
+  if(DAQEvent::CalibInit(1)){
+   cout<<"AMSTrRRDRawHit::updtrdcalib2009S-I-InitCalib "<<endl;
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trdid::nudr;j++){
+     AMSTRDIdSoft::_Calib[i][j]=0;
+    }
+   }
+  }
+
+  if(leng2!=span && leng2!=span*3/2){
+   cerr<<"AMSTRDRaw::updtrcalib-WrongLength "<<leng2<<" "<<endl;
+   return;
+  }
+  int status=*(p+leng+4);
+  if(DAQEvent::isError(status)){
+   cerr<<"AMSTRDRaw::updtrcalib-ErrorBitSet "<<endl;
+   return;
+  }
+  int nbad=0;
+  for (int i=0;i<span;i++){
+        int ufe=i%7;
+        int cha=i/7;
+        int roch=cha%16;
+        int ute=cha/16;
+        AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
+       if(!id.dead()){
+         if(id.getgain()==0)id.setgain()=1;
+         id.setped()=*(p+i)/TRDMCFFKEY.f2i;
+         id.setsig()=*(p+span+i)/TRDMCFFKEY.f2i;
+         if(id.getsig()>TRDCALIB.BadChanThr){
+             id.setstatus(AMSDBc::BAD);
+             nbad++;
+          }
+         else id.clearstatus(AMSDBc::BAD);
+       }
+  }
+  if(nbad>100){
+   cerr<<"AMSTRDRawHit::updtrdcalib2009-E-TooManyBadCh "<<nbad<<endl;
+  }
+  else   AMSTRDIdSoft::_Calib[ic][udr]=1;
+  bool update=DAQEvent::CalibDone(1);
+  if(update){
+    AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trdid::nudr;j++){
+     if(AMSTRDIdSoft::_Calib[i][j]==-1){
+       update=false;
+     }
+     AMSTRDIdSoft::_Calib[i][j]=0;
+    }
+   }
+   if(update){
+   AMSTimeID *ptdv;
+     time_t begin,end,insert;
+      const int ntrd=4;
+      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDGains","TRDStatus"};
+      for (int i=0;i<ntrd;i++){
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
+      ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
+      cout <<" TRD H/K  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+    }
+ }
+
+}
+}
+
 
 void AMSTRDRawHit::buildrawJ(int n, int16u* pbeg){
  buildraw(n-1,pbeg+1);
