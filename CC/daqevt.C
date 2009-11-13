@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.169 2009/11/12 15:50:32 choutko Exp $
+//  $Id: daqevt.C,v 1.170 2009/11/13 10:08:54 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1284,7 +1284,7 @@ integer DAQEvent::_HeaderOK(){
       if(_Event==0 && _GetBlType()==0)return 0;
 
       //  fix against broken sequence
-      if(_PRun==_Run && _PEvent && _Event<_PEvent){
+      if(_PRun==_Run && _PEvent && _Event<_PEvent && _GetBlType()==5){
          cerr<<"DAQEvent::Headerok-E-EventSeqBroken for Run "<<_PRun<<" "<<_PEvent<<" "<<_Event<<endl;
          _PRun=_Run;
          _PEvent=_Event;
@@ -2720,5 +2720,14 @@ if(id>=0 && id<7){
 }
 else return false;
 }
+
+bool DAQEvent::CalibInit(int id){
+if(id>=0 && id<7){
+ if(_CalibDataS[id*3+1]-_CalibDataS[id*3]==0)return true;
+ else return false; 
+}
+else return false;
+}
+
 
 unsigned int DAQEvent::_CalibDataS[7*3+1];

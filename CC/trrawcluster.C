@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.107 2009/11/12 15:50:32 choutko Exp $
+//  $Id: trrawcluster.C,v 1.108 2009/11/13 10:08:54 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -950,13 +950,21 @@ void AMSTrRawCluster::updtrcalib2009S(integer n, int16u* p){
   uinteger in=(n>>16);
   uinteger ic=in/trid::ntdr;
   uinteger tdr=in%trid::ntdr;
+  if(DAQEvent::CalibInit(0)){
+   cout<<"AMSTrRawCluster::ipdtrcalib2009S-I-InitCalib "<<endl;
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trid::ntdr;j++){
+     AMSTrIdSoft::_Calib[i][j]=0;
+    }
+   }
 
+  }
 
   cout <<"  Crate TDR "<<ic<<"  "<<tdr<<endl;
   if(AMSTrIdSoft::_Calib[ic][tdr]==1){
    cerr<<" AMSTrRawCluster::updtrcalibS-W-ICTDRAlreadySet "<<ic<<" "<<tdr<<endl;
   }
-
+AMSTrIdSoft::_Calib[ic][tdr]=-1;
 const int lt[8]={1024,1024,1024,1024,1024,1024,16,16};
 int16u *plt[8]={0,0,0,0,0,0,0,0};
 int16u *plast=p+1;
@@ -1018,8 +1026,17 @@ if(nerr>0){
   int nc=0;
   int ncp=0;
 
-  if(update || nc>=TRCALIB.EventsPerCheck){
-     update=true;
+  if(update ){
+   for(int i=0;i<getmaxblocks();i++){
+    for (int j=0;j<trid::ntdr;j++){
+     if(AMSTrIdSoft::_Calib[i][j]==-1){
+      update=false;
+      cerr<<"AMSTrRawCluster::updtrcal2009S-E-TRDFailed "<<i<<" "<<j<<endl;
+    
+    }
+   }
+   }
+   if(update){
    for (int i=0;i<2;i++){
    AMSTimeID * ptdv;
   for (int k=0;k<=TRCALIB.Method;k++){
@@ -1043,6 +1060,7 @@ if(nerr>0){
    cout <<" Time End "<<ctime(&end);
    }
   }
+ }
 /*
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  

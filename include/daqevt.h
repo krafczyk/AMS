@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.73 2009/11/09 18:05:00 choutko Exp $
+//  $Id: daqevt.h,v 1.74 2009/11/13 10:08:55 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -223,6 +223,7 @@ integer getsubcount(unsigned int i) const {return i<sizeof(_SubCount)/sizeof(_Su
 uinteger getcalibdata(unsigned int i) const {return i<sizeof(_CalibData)/sizeof(_CalibData[0])?_CalibData[i]:0;}
 bool  CalibRequested(unsigned int crate, unsigned int xdr);
 static bool  CalibDone(int id);
+static bool  CalibInit(int id);
 void close(){ fbin.close();fbout.close();}
 static char * _DirName;
 static char ** ifnam;
