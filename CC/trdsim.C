@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.38 2009/11/13 11:33:32 choutko Exp $
+//  $Id: trdsim.C,v 1.39 2009/11/13 12:17:34 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -316,7 +316,7 @@ void AMSTRDRawHit::updtrdcalib2009(int n, int16u* p){
        if(!id.dead()){
          if(id.getgain()==0)id.setgain()=1;
          id.setped()=*(p+i)/TRDMCFFKEY.f2i;
-         id.setsig()=*(p+span+i)/TRDMCFFKEY.f2i;
+         id.setsig()=*(p+span+i)/TRDMCFFKEY.f2i/4;
          if(id.getsig()>TRDCALIB.BadChanThr){
              id.setstatus(AMSDBc::BAD);
              nbad++;
