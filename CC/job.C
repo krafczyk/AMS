@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.658 2009/11/15 11:46:57 choumilo Exp $
+// $Id: job.C,v 1.659 2009/11/15 11:50:03 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2233,7 +2233,6 @@ void AMSJob::_reamsinitjob(){
  AMSgObj::BookTimer.book("Vtx");
 
  _remfinitjob();
-cout<<"<======= Bef redaqininjob"<<endl;
  _redaq2initjob();
  _retkinitjob();
  _retof2initjob();
