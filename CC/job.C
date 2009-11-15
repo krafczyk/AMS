@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.657 2009/11/13 11:33:31 choutko Exp $
+// $Id: job.C,v 1.658 2009/11/15 11:46:57 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -982,7 +982,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.trextmax[0]=1.0;   //     cut of distance between track and shower enit x-proj
   ECCAFFKEY.trextmax[1]=1.0;   // (74) cut of distance between track and shower exit y-proj
 // for OnBoardPeds:
-  ECCAFFKEY.onbpedspat=11;     // (75) ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
+  ECCAFFKEY.onbpedspat=11; // (75) ijkl(binary bit-patt for peds|dynampeds|threshs|widths (msb->lsb) sections in table),
 //                                i(j,..)-bitset => section present
 //
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1262,8 +1262,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics(2/1/0->big/small/no print) 
   TFREFFKEY.reprtf[1]=0; //(4) print flag for histograms
   TFREFFKEY.reprtf[2]=0; //(5) print flag for TDC-hit multiplicity histograms 
-  TFREFFKEY.reprtf[3]=0; //(6) print flag for Debug needs(mostly when error found, for ev-ev debug add #7)  
-  TFREFFKEY.reprtf[4]=0; //(7) More debug or histogr flag(1->more)
+  TFREFFKEY.reprtf[3]=0; //(6) print flag for Debug needs(mostly when error found, for ev-by-ev debug add #7)  
+  TFREFFKEY.reprtf[4]=0; //(7) More debug & histogr flag(1->more)
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run.
 //                       (when =7 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on ACC !) 
@@ -1365,8 +1365,8 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.minstat=100;//(38) min.acceptable statistics per channel
   TFCAFFKEY.tdccum=10;//(39)tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->write/not final calibfile
 //also for OnBoardPeds
-  TFCAFFKEY.onbpedspat=47;//(40)ijklmn(bit-patt for peds|dynpeds|pretrs|statws|threshs|widths sections in table),
-//                           i(j,..)-bitset => section present
+  TFCAFFKEY.onbpedspat=47;//(40)ijklmn(bit-patt for peds|dynampeds|pretrs|statws|threshs|widths sections in table),
+//                           i(j,..)-bitset => section present (47-> dynam.peds section missing)
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1408,7 +1408,7 @@ void AMSJob::_reanti2data(){
   ATCAFFKEY.pedlim[0]=10.;  // (6) Ped low-lim in PedCalibJobs
   ATCAFFKEY.pedlim[1]=400.; // (7)      hi-lim ...............
   ATCAFFKEY.siglim[0]=0.4;  // (8) PedSig low-lim ............
-  ATCAFFKEY.siglim[1]=15.; //  (9)         hi-lim ............
+  ATCAFFKEY.siglim[1]=50.; //  (9)         hi-lim ............
   ATCAFFKEY.mev2mv=150.;   // (10) spare, not used now
 //
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1417,7 +1417,7 @@ void AMSJob::_reanti2data(){
 void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
 DAQCFFKEY.Mode=1;
-DAQCFFKEY.DAQVersion=0;
+DAQCFFKEY.DAQVersion=1;
 DAQCFFKEY.BTypeInDAQ[0]=0;
 DAQCFFKEY.BTypeInDAQ[1]=1023;
 VBLANK(DAQCFFKEY.ifile,40);
@@ -1876,7 +1876,6 @@ if(LVL3FFKEY.TrMaxResidual[0]<0){
 
 
 void AMSJob::init(){
-
 AMSEvent::debug=AMSFFKEY.Debug;
 
 //AMSgObj::BookTimer.book("AMSEvent::event");
@@ -2234,6 +2233,7 @@ void AMSJob::_reamsinitjob(){
  AMSgObj::BookTimer.book("Vtx");
 
  _remfinitjob();
+cout<<"<======= Bef redaqininjob"<<endl;
  _redaq2initjob();
  _retkinitjob();
  _retof2initjob();
@@ -2393,7 +2393,6 @@ void AMSJob::_retof2initjob(){
     AMSgObj::BookTimer.book("TOF:validation");
     AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
-
 //
 // ===> some inits, common for reco/simu :
 //
@@ -3884,6 +3883,7 @@ bool noTFAskip=(!(isCalibration() & CTOF));
     ECPedCalib::outp(ECCAFFKEY.pedoutf);// 0/1/2->HistOnly/Writ2DB+File/Write2File 
   }
 //
+cout<<"   EcalEndJob:noTFAskip="<<noTFAskip<<endl;
   if(noTFAskip){//bypass when TOF/ACC-calib(to keep log-file small)
     if(ECREFFKEY.reprtf[0]>0)EcalJobStat::printstat(); // Print JOB-Ecal statistics
     if(isSimulation())EcalJobStat::outpmc();
@@ -3986,7 +3986,6 @@ cout<<"<---- In dbendjob, UpdateFlag="<<AMSFFKEY.Update<<endl;
     }
 #endif
 }
-
 
 
   void AMSJob::_redaq2initjob(){
@@ -4109,15 +4108,18 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
     DAQEvent::addsubdetector(&DAQRichBlock::checkcalid,&DAQRichBlock::buildcal,6);
 //ECAL    
   if(CALIB.SubDetInCalib%10>0){
-    if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+    if(DAQCFFKEY.DAQVersion==0){//2008
       DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP1,6);//no Dynamic peds
     }
-    else{
+    else if(DAQCFFKEY.DAQVersion==1){//2009
       DAQEvent::addsubdetector(&DAQECBlock::checkblockidP,&DAQECBlock::buildonbP,6);//with Dynamic peds
+    }
+    else{
+      cout<<"<====== AMSJob::redaq2initjob: -E- DAQVersion is not defined correctly for PedCalibration !!!"<<endl;
     }
   }
 
-}
+}//--->endof "OnBoardCalib" check
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.69 2009/10/20 09:54:32 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.70 2009/11/15 11:46:57 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1536,7 +1536,7 @@ integer TOF2JobStat::recount[TOF2GC::SCJSTA];
 integer TOF2JobStat::chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];
 integer TOF2JobStat::brcount[TOF2GC::SCBLMX][TOF2GC::SCCSTA];
 geant TOF2JobStat::cquality[4][5];
-integer TOF2JobStat::daqsf[100];
+integer TOF2JobStat::daqsf[160];
 integer TOF2JobStat::cratr[TOF2GC::SCCRAT][20];
 integer TOF2JobStat::cratp[TOF2GC::SCCRAT][20];
 integer TOF2JobStat::cratc[TOF2GC::SCCRAT][20];
@@ -1588,7 +1588,7 @@ geant TOF2JobStat::tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];
   }
 //---
 void TOF2JobStat::daqsfr(int16u ie){
-  assert(ie<100);
+  assert(ie<160);
 #pragma omp critical (daqsfr) 
   daqsf[ie]+=1;
 }
@@ -1655,19 +1655,19 @@ void TOF2JobStat::printstat(){
   printf("\n");
   printf("    ======================= JOB DAQ-decoding statistics ====================\n");
   printf("\n");
-  printf("Calls to SDRsegment-decoding : %7d, incl. with wrong ID : %7d\n\n",daqsf[0],daqsf[1]);
-  printf("In Unkn/Raw/Comp/Mixt FMT    : %7d %7d %7d %7d\n\n",daqsf[34],daqsf[35],daqsf[36],daqsf[37]);
+  printf("Calls to SDRsegment-decoding : %7d, Rejected due to any fatal errors : %7d\n\n",daqsf[0],daqsf[1]);
+  printf("Format Unkn(OnbP)/Raw/Comp/Mixt : %7d %7d %7d %7d\n\n",daqsf[34],daqsf[35],daqsf[36],daqsf[37]);
   printf("     Crate:                     1       2       3       4\n\n");
   printf("Entries                :  %7d %7d %7d %7d\n",daqsf[2],daqsf[3],daqsf[4],daqsf[5]);
-  printf("  BaDTyp(!r/c/m)|Len=1 :  %7d %7d %7d %7d\n",daqsf[6],daqsf[7],daqsf[8],daqsf[9]);
-  printf("  DataType/Length OK   :  %7d %7d %7d %7d\n",daqsf[10],daqsf[11],daqsf[12],daqsf[13]);
-  printf("  nonData(in RepStatW) :  %7d %7d %7d %7d\n",daqsf[22],daqsf[23],daqsf[24],daqsf[25]);
+  printf("  WrongFormat|Length   :  %7d %7d %7d %7d\n",daqsf[6],daqsf[7],daqsf[8],daqsf[9]);
+  printf("  Format/Length OK     :  %7d %7d %7d %7d\n",daqsf[10],daqsf[11],daqsf[12],daqsf[13]);
+  printf("  nonData(inSlaveStat) :  %7d %7d %7d %7d\n",daqsf[22],daqsf[23],daqsf[24],daqsf[25]);
   printf("  PedDataType          :  %7d %7d %7d %7d\n",daqsf[14],daqsf[15],daqsf[16],daqsf[17]);
   printf("  PedDataLength OK     :  %7d %7d %7d %7d\n",daqsf[18],daqsf[19],daqsf[20],daqsf[21]);
-  printf("  Any Err in RStatWord :  %7d %7d %7d %7d\n",daqsf[26],daqsf[27],daqsf[28],daqsf[29]);
-  printf("  RStatWord OK(Data)   :  %7d %7d %7d %7d\n\n",daqsf[30],daqsf[31],daqsf[32],daqsf[33]);
+  printf("  Err in SlaveStatWord :  %7d %7d %7d %7d\n",daqsf[26],daqsf[27],daqsf[28],daqsf[29]);
+  printf("  SlaveStatWord OK     :  %7d %7d %7d %7d\n\n",daqsf[30],daqsf[31],daqsf[32],daqsf[33]);
 //
-  cout<<"                      More details on Reply Status Word Bits:"<<endl<<endl;
+  cout<<"           More details on Reply Status Word Bits(for Data only):"<<endl<<endl;
   cout<<"    CRC-error          : ";
   for(icr=0;icr<4;icr++)cout<<setw(8)<<daqsf[40+8*icr];
   cout<<endl;
@@ -1690,7 +1690,6 @@ void TOF2JobStat::printstat(){
   for(icr=0;icr<4;icr++)cout<<setw(8)<<daqsf[46+8*icr];
   cout<<endl<<endl;
   
-  printf("Entries rejected as bad(notData,Empty,FatalErr)  : %7d\n",daqsf[98]);
   printf("\n\n");
 //
   if(daqsf[35]>0 || daqsf[37]>0){
@@ -1848,23 +1847,25 @@ void TOF2JobStat::printstat(){
   printf(" Entries(alone||inMixtFMT):    %7d %7d %7d %7d\n",cratp[0][0],cratp[1][0],cratp[2][0],cratp[3][0]);
   printf(" ...inMix when RawSubs OK :    %7d %7d %7d %7d\n",cratp[0][1],cratp[1][1],cratp[2][1],cratp[3][1]);
   printf(" trunc_len(in MixtFMT,rej):    %7d %7d %7d %7d\n",cratp[0][2],cratp[1][2],cratp[2][2],cratp[3][2]);
-//  printf(" evn_mism(in MixtFMT,rej) :    %7d %7d %7d %7d\n",cratp[0][3],cratp[1][3],cratp[2][3],cratp[3][3]);
   printf(" len_mism(inside Mixt,rej):    %7d %7d %7d %7d\n",cratp[0][4],cratp[1][4],cratp[2][4],cratp[3][4]);
   printf(" len_mism(stand-alone,rej):    %7d %7d %7d %7d\n",cratp[0][5],cratp[1][5],cratp[2][5],cratp[3][5]);
   printf("\n");
   printf(" TrPatt-block IllegalWord :    %7d %7d %7d %7d\n",cratp[0][6],cratp[1][6],cratp[2][6],cratp[3][6]);
   printf(" .................TimeOut :    %7d %7d %7d %7d\n",cratp[0][7],cratp[1][7],cratp[2][7],cratp[3][7]);
-  printf(" ...StatVerifMask problems:    %7d %7d %7d %7d\n",cratp[0][8],cratp[1][8],cratp[2][8],cratp[3][8]);
+  printf("\n");
+  printf("StatWords:TruncationFlgOn :    %7d %7d %7d %7d\n",cratp[0][3],cratp[1][3],cratp[2][3],cratp[3][3]);
+  printf(" .......VerifMask problems:    %7d %7d %7d %7d\n",cratp[0][8],cratp[1][8],cratp[2][8],cratp[3][8]);
+  printf("\n");
   printf(" Q-block LinkHeaderErr    :    %7d %7d %7d %7d\n",cratp[0][9],cratp[1][9],cratp[2][9],cratp[3][9]);
   printf(" IllegSlotNumb in Q-block :    %7d %7d %7d %7d\n",cratp[0][10],cratp[1][10],cratp[2][10],cratp[3][10]);
   printf("\n");
-  printf(" T-Blk Raw->Comp TL-Err   :    %7d %7d %7d %7d\n",cratp[0][11],cratp[1][11],cratp[2][11],cratp[3][11]);
-  printf(" Raw->Comp FatalErrLink0  :    %7d %7d %7d %7d\n",cratp[0][12],cratp[1][12],cratp[2][12],cratp[3][12]);
-  printf(" Raw->Comp FatalErrLink1  :    %7d %7d %7d %7d\n",cratp[0][13],cratp[1][13],cratp[2][13],cratp[3][13]);
-  printf(" Raw->Comp FatalErrLink2  :    %7d %7d %7d %7d\n",cratp[0][14],cratp[1][14],cratp[2][14],cratp[3][14]);
-  printf(" Raw->Comp FatalErrLink3  :    %7d %7d %7d %7d\n",cratp[0][15],cratp[1][15],cratp[2][15],cratp[3][15]);
-  printf(" Raw->Comp FatalErrLink4  :    %7d %7d %7d %7d\n",cratp[0][16],cratp[1][16],cratp[2][16],cratp[3][16]);
-  printf(" Invalid slot number      :    %7d %7d %7d %7d\n",cratp[0][17],cratp[1][17],cratp[2][17],cratp[3][17]);
+  printf(" T-Blk: Raw->Comp TL-Err  :    %7d %7d %7d %7d\n",cratp[0][11],cratp[1][11],cratp[2][11],cratp[3][11]);
+  printf("  Raw->Comp FatalErrLink0 :    %7d %7d %7d %7d\n",cratp[0][12],cratp[1][12],cratp[2][12],cratp[3][12]);
+  printf("  Raw->Comp FatalErrLink1 :    %7d %7d %7d %7d\n",cratp[0][13],cratp[1][13],cratp[2][13],cratp[3][13]);
+  printf("  Raw->Comp FatalErrLink2 :    %7d %7d %7d %7d\n",cratp[0][14],cratp[1][14],cratp[2][14],cratp[3][14]);
+  printf("  Raw->Comp FatalErrLink3 :    %7d %7d %7d %7d\n",cratp[0][15],cratp[1][15],cratp[2][15],cratp[3][15]);
+  printf("  Raw->Comp FatalErrLink4 :    %7d %7d %7d %7d\n",cratp[0][16],cratp[1][16],cratp[2][16],cratp[3][16]);
+  printf("  Invalid slot number     :    %7d %7d %7d %7d\n",cratp[0][17],cratp[1][17],cratp[2][17],cratp[3][17]);
   printf("\n");
   printf("-----> Slots statistics(words counting) :\n\n");
   printf("SFET_1  Q-entries      :  %7d   %7d   %7d   %7d\n",sltp[0][1][0],sltp[1][1][0],sltp[2][1][0],sltp[3][1][0]);
@@ -1964,17 +1965,6 @@ void TOF2JobStat::printstat(){
   printf("\n");
   }
 //---
-  if(daqsf[38]>0){
-  printf("---------------> ONBoardPedCalFMT Segment Decoding statistics: \n\n");
-  printf("     Crate:                  1       2       3       4\n");
-  printf("TofAnt PedCal blocks :    %7d %7d %7d %7d\n",cratc[0][0],cratc[1][0],cratc[2][0],cratc[3][0]);
-  printf("       wrong length  :    %7d %7d %7d %7d\n",cratc[0][1],cratc[1][1],cratc[2][1],cratc[3][1]);
-  printf("      not in request :    %7d %7d %7d %7d\n",cratc[0][2],cratc[1][2],cratc[2][2],cratc[3][2]);
-  printf("    with int. errors :    %7d %7d %7d %7d\n",cratc[0][3],cratc[1][3],cratc[2][3],cratc[3][3]);
-  printf("         good blocks :    %7d %7d %7d %7d\n",cratc[0][4],cratc[1][4],cratc[2][4],cratc[3][4]);
-  printf("\n");
-  }
-//---
   if(daqsf[37]>0){
   printf("---------------> MixtFMT: Raw/Compr-SubSegment comparison statistics: \n\n");
   printf("     Crate:                        1       2       3       4\n");
@@ -1989,6 +1979,32 @@ void TOF2JobStat::printstat(){
 //
 //
   printf("\n");
+//--------------
+  if(daqsf[60]>0){
+  printf("---------------> ONBoardPedCalFMT Segment Decoding statistics: \n\n");
+  printf("Calls to SDRsegment-decoding : %7d, Rejected due to any fatal errors : %7d\n\n",daqsf[60],daqsf[61]);
+  printf("\n");
+  printf("     Crate:                        1       2       3       4\n");
+  printf("Found PedCal blocks      :    %7d %7d %7d %7d\n",cratc[0][0],cratc[1][0],cratc[2][0],cratc[3][0]);
+  printf("Bad CalStatus word       :    %7d %7d %7d %7d\n",cratc[0][1],cratc[1][1],cratc[2][1],cratc[3][1]);
+  printf("OK,but frozen bits       :    %7d %7d %7d %7d\n",cratc[0][2],cratc[1][2],cratc[2][2],cratc[3][2]);
+  printf("Block length error       :    %7d %7d %7d %7d\n",cratc[0][3],cratc[1][3],cratc[2][3],cratc[3][3]);
+  printf("Block length OK          :    %7d %7d %7d %7d\n",cratc[0][4],cratc[1][4],cratc[2][4],cratc[3][4]);
+  printf("  DatType/Format OK      :    %7d %7d %7d %7d\n",cratc[0][5],cratc[1][5],cratc[2][5],cratc[3][5]);
+  printf("Bits in Slave status:\n");
+  printf("   CRC error             :    %7d %7d %7d %7d\n",cratc[0][6],cratc[1][6],cratc[2][6],cratc[3][6]);
+  printf("   Assembly error        :    %7d %7d %7d %7d\n",cratc[0][7],cratc[1][7],cratc[2][7],cratc[3][7]);
+  printf("   AMS-wire error        :    %7d %7d %7d %7d\n",cratc[0][8],cratc[1][8],cratc[2][8],cratc[3][8]);
+  printf("   Timeout               :    %7d %7d %7d %7d\n",cratc[0][9],cratc[1][9],cratc[2][9],cratc[3][9]);
+  printf("   FE-power error        :    %7d %7d %7d %7d\n",cratc[0][10],cratc[1][10],cratc[2][10],cratc[3][10]);
+  printf("   Sequenser error       :    %7d %7d %7d %7d\n",cratc[0][11],cratc[1][11],cratc[2][11],cratc[3][11]);
+  printf("   LastLevelNode         :    %7d %7d %7d %7d\n",cratc[0][12],cratc[1][12],cratc[2][12],cratc[3][12]);
+  printf("Slave status OK          :    %7d %7d %7d %7d\n",cratc[0][13],cratc[1][13],cratc[2][13],cratc[3][13]);
+  printf("Block was requested      :    %7d %7d %7d %7d\n",cratc[0][14],cratc[1][14],cratc[2][14],cratc[3][14]);
+  printf("Rejected due wrong slot# :    %7d %7d %7d %7d\n",cratc[0][15],cratc[1][15],cratc[2][15],cratc[3][15]);
+  printf("Block was processed      :    %7d %7d %7d %7d\n",cratc[0][16],cratc[1][16],cratc[2][16],cratc[3][16]);
+  printf("\n");
+  }
   if(MISCFFKEY.dbwrbeg>0)return;//dbwritwr job, don't need any statistics
 //
   printf("    ====================== JOB TOF-statistics ======================\n");
@@ -2535,7 +2551,7 @@ void TOF2JobStat::bookhist(){
 //
   if(thprtf>0){// Reconstruction histograms
 // Book reco-hist
-    HBOOK1(1100,"RawCluster: LT-SumHT time (1-hit case, all channels)",80,-6.,14.,0.);
+    HBOOK1(1100,"RawCluster: LT-SumHT time (1-hit in LT and sumHT, all channels)",80,-6.,14.,0.);
     HBOOK1(1107,"TofValid: TOF+ACC data length (16-bit words)",100,1.,1001.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,2400.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,400.,0.);
@@ -2574,10 +2590,10 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1138,"TofValid:LTtime for LBBS=1042",100,5000.,20000.,0.);
       HBOOK1(1139,"TofValid:FTtime for LBBS=1042",100,5000.,20000.,0.);
     }
-    HBOOK1(1136,"RawCluster: FTtime-LTime(all LT-hits)",80,-60.,740.,0.);
+    HBOOK1(1136,"RawCluster: FTtime-LTime(all LT-hits, 1st FT-hit if multiple)",80,-60.,740.,0.);
     HBOOK1(1106,"RawCluster: FTtime-LTime(final LT-hit)",80,-60.,740.,0.);
-    HBOOK1(1103,"RawCluster: LTime-SumHTtime(final LT-hit(SingleFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
-    HBOOK1(1109,"RawCluster: LTime-SumHTtime(final LT-hit(best from MultFTmatched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
+    HBOOK1(1103,"RawCluster: LTime-SumHTtime(final LT-hit(Single LT case, FT-matched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
+    HBOOK1(1109,"RawCluster: LTime-SumHTtime(final LT-hit(best LT of all FT-matched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
 //---    
 //(hist 1140-1161)
     if(TFREFFKEY.reprtf[4]>0){
@@ -3064,7 +3080,7 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
     for(i=0;i<TOF2GC::SCBLMX;i++)
                   for(j=0;j<TOF2GC::SCCSTA;j++)
                                        brcount[i][j]=0;
-    for(int ie=0;ie<100;ie++)daqsf[ie]=0;
+    for(int ie=0;ie<160;ie++)daqsf[ie]=0;
     for(int ie=0;ie<20;ie++){
       for(i=0;i<TOF2GC::SCCRAT;i++){
         cratr[i][ie]=0;

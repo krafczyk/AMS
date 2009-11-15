@@ -3098,9 +3098,9 @@ void ECREUNcalib::mfite(){
    sigmin=ECCAFFKEY.siglim[0];
    sigmax=ECCAFFKEY.siglim[1];
 //
-   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
-   bool dpedin=((spatt&4)==1);//dyn.peds-section present(243 words)
-   bool thrsin=((spatt&2)==1);//thresholds ..............(243...)
+   integer spatt=ECCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
+   bool dpedin=((spatt&4)==4);//dyn.peds-section present(243 words)
+   bool thrsin=((spatt&2)==2);//thresholds ..............(243...)
    geant rthrs,rdped;
 //
    if(ECREFFKEY.reprtf[2]>0)cout<<endl<<"       EcOnbPedCalib::EndOfRun:OnBoardTable-Report:"<<endl<<endl;
@@ -3134,8 +3134,16 @@ void ECREUNcalib::mfite(){
 //
 	   if(peds[ch][pix][gn]>0 && rthrs>1 && rdped>0){// channel OK in table ? 
 	     goodtbch+=1;
-	     if(sigs[ch][pix][gn]>sigmin && sigs[ch][pix][gn]<=sigmax
+	     if(
+//	        sigs[ch][pix][gn]>sigmin && 
+		sigs[ch][pix][gn]<=sigmax
 		&& peds[ch][pix][gn]>pedmin && peds[ch][pix][gn]<=pedmax && fabs(pdiff)<50){//MyCriteria:chan.OK
+		
+	       if(sigs[ch][pix][gn]<sigmin){
+	         cout<<"        LowSigmaChannel: Slay/Pmt/Pix/Gn="<<sl<<" "<<pm<<" "<<pix<<" "<<gn<<endl;
+	         cout<<"                        ped/sig="<<peds[ch][pix][gn]<<" "<<sigs[ch][pix][gn]<<endl;    
+	         sigs[ch][pix][gn]=sigmin;//"0"-sigma treatment
+	       }
 	       stas[ch][pix][gn]=0;//ch ok
 	       goodchs+=1;
 	       if(pix<4){//anodes

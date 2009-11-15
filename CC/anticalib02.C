@@ -800,17 +800,17 @@ void ANTPedCalib::initb(){//called in retof2initjob() if TOF+AC is requested for
   integer i,j;
   char hmod[2]=" ";
 //
-  if(TFREFFKEY.reprtf[4]>0)cout<<endl;
+  if(TFREFFKEY.reprtf[1]>0)cout<<endl;
 //
 //  ---> book hist.  :
 //
   if((CALIB.SubDetInCalib/1000)%10>1){
     HBOOK1(2670,"Peds vs paddle for bot/top sides",20,1.,21.,0.);
-    HMINIM(2670,75.);
-    HMAXIM(2670,275.);
+    HMINIM(2670,50.);
+    HMAXIM(2670,350.);
     HBOOK1(2671,"Ped-rms vs paddle for bot/top sides",20,1.,21.,0.);
     HMINIM(2671,0.);
-    HMAXIM(2671,8.);
+    HMAXIM(2671,40.);
     HBOOK1(2672,"Ped-stat(1=bad) vs paddle for bot/top sides",20,1.,21.,0.);
     HMINIM(2672,0.);
     HMAXIM(2672,1.);
@@ -831,7 +831,7 @@ void ANTPedCalib::initb(){//called in retof2initjob() if TOF+AC is requested for
     }
   }
 //
-  if(TFREFFKEY.reprtf[4]>0)cout<<"<---- ACC OnBoardPedCalib: init done..."<<endl<<endl;;
+  if(TFREFFKEY.reprtf[1]>0)cout<<"<---- ACC OnBoardPedCalib: init done..."<<endl<<endl;;
 }
 //----
 void ANTPedCalib::resetb(){ // run-by-run reset for OnBoardPedTable processing 
@@ -889,7 +889,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
    bool thrsin=((spatt&2)==1);//thresholds ..............(90...)
    geant rthrs,rdped;
 //
-   if(TFREFFKEY.reprtf[4]>0)cout<<endl<<"=====> ANTPedCalib:OnBoardTable-Report:"<<endl<<endl;
+   if(TFREFFKEY.reprtf[1]>0)cout<<endl<<"=====> ANTPedCalib:OnBoardTable-Report:"<<endl<<endl;
 //---- fill ntuple:
 //   ANTPedCalNT.Run=BRun();
 //   for(sr=0;sr<ANTI2C::MAXANTI;sr++){
@@ -939,17 +939,17 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 	   }
 	 }
 	 else{//MyCriteria: bad chan
-	   if(TFREFFKEY.reprtf[4]>0){
+	   if(TFREFFKEY.reprtf[1]>0){
 	     cout<<"       MyCriteriaBadCh: Sector/Side="<<sr<<" "<<sd<<endl;
-	     cout<<"                      ped/sig="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<endl;    
+	     cout<<"                      ped/sig/sta="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<" "<<stas[sr][sd]<<endl;    
 	     cout<<"                      PedDiff="<<pdiff<<endl;
 	   }    
 	 }
        }//--->endof "channel OK in table ?" check
        else{
-	 if(TFREFFKEY.reprtf[4]>0){
+	 if(TFREFFKEY.reprtf[1]>0){
 	   cout<<"       BadTableChan:Sector/Side="<<sr<<" "<<sd<<endl;    
-	   cout<<"       ped/sig/sta="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<endl;
+	   cout<<"       ped/sig/sta="<<peds[sr][sd]<<" "<<sigs[sr][sd]<<" "<<stas[sr][sd]<<endl;
 	 }    
        }
      }//--->endof side-loop
@@ -957,7 +957,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 // 
     goodchp=geant(goodch)/totch;
 //
-   if(TFREFFKEY.reprtf[4]>0)
+   if(TFREFFKEY.reprtf[1]>0)
      cout<<"       GoodChan(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<" GoodChsPort="<<goodchp<<endl;  
 //   
 // ---> prepare update of DB :

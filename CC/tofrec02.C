@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.63 2009/10/20 09:54:32 choumilo Exp $
+//  $Id: tofrec02.C,v 1.64 2009/11/15 11:46:57 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -828,7 +828,7 @@ void TOF2RawCluster::build(int &ostatus){
             if((itmatch[0][itmbest[0]]<0 && smty[0]==1) ||
               (itmatch[1][itmbest[1]]<0 && smty[1]==1))rej1=1;//found NO_MATCHING on any of complete(3-meas) sides
 	      if(TFREFFKEY.reprtf[3]>0 && rej1==1)
-	                          cout<<"    No TrueLThit matching on any of complete sides"<<endl;
+	                          cout<<"    No True LT/sumHT-hits matching on any of complete sides"<<endl;
           }
 //---
 //
@@ -943,6 +943,10 @@ void TOF2RawCluster::build(int &ostatus){
 //---> Dynode-charge reconstruction:
 //
             npmts=TOF2Brcal::scbrcal[ilay][ibar].getnpm();
+//	 cout<<"------> Npmts="<<npmts<<" for il/ib="<<ilay<<" "<<ibar<<endl;
+//	 cout<<"  nadcd1/2="<<nadcd[0]<<" "<<nadcd[1]<<endl;
+//	 for(int ip=0;ip<npmts;ip++)cout<<TOF2Brcal::scbrcal[ilay][ibar].getgnd(0,ip)<<" ";
+//	 cout<<endl;
 	    for(int is=0;is<2;is++){
 	      for(int ip=0;ip<TOF2GC::PMTSMX;ip++){
 		adcdr[is][ip]=0;
@@ -971,7 +975,7 @@ void TOF2RawCluster::build(int &ostatus){
 		if(dovfl>0)TOF2JobStat::addch(chnum,10);//counts s1 Dyn-cnan. overflows
 	      }
 	    }
-//
+//--
             amd[1]=0.;
 	    dovfl=0;
             if(smty[1]>0){// <===S2

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.70 2009/10/27 14:32:47 choumilo Exp $
+//  $Id: trigger102.C,v 1.71 2009/11/15 11:46:57 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2199,7 +2199,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     cout<<"===================================================="<<endl;
     cout<<"|      TrigSetup changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
                                                                 AMSEvent::gethead()->getid()<<endl;
-    cout<<"|        New SetupWordsPatterns: "<<hex<<rstatw1<<" "<<rstatw2<<dec<<endl;
+    cout<<"|        New SetupWordsPatterns(hex): "<<hex<<rstatw1<<" "<<rstatw2<<dec<<endl;
     cout<<"===================================================="<<endl;
 }//--->endof pragma
     }//---> endof "PrintSetupInfo"
@@ -2332,7 +2332,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     cout<<"===================================================="<<endl;
     cout<<"|      Some Scalers changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
                                                                 AMSEvent::gethead()->getid()<<endl;
-    cout<<"|        New ScalerWordsPatterns: "<<hex<<rstatw3<<dec<<endl;
+    cout<<"|        New ScalerWordsPatterns(hex): "<<hex<<rstatw3<<dec<<endl;
     cout<<"===================================================="<<endl;
 }//--->endof pragma
   }//---> endof "PrintSetupInfo"
@@ -2461,7 +2461,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   bool dataf=((jblid&(0x8000))>0);//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error
   bool asser=((jblid&(0x2000))>0);//assembly-error
-  asser=false;
+//  asser=false;
   bool amswer=((jblid&(0x1000))>0);//amsw-error   
   bool timoer=((jblid&(0x0800))>0);//timeout-error   
   bool fpower=((jblid&(0x0400))>0);//FEpower-error   
@@ -2499,7 +2499,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
   TGL1JobStat::daqs1(44+datyp);//<=== count lvl1's format-types
   if(datyp==0){
-//    goto BadExit;//unknown format
+    goto BadExit;//unknown format
   }
 //
   if(!dataf){

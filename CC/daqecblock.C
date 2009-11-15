@@ -69,7 +69,7 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
   char side[5]="ABPS";
   char str[2];
   id=((blid>>5)&(0x1FF));
-//  if(id>=206 && id<=241)
+  if(id>=206 && id<=241)
 //    cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<id<<endl;
 //  else cout<<"---> In DAQECBlock::checkblockidP, blid(hex)="<<hex<<blid<<",addr:"<<dec<<blid<<endl;
 //
@@ -993,6 +993,275 @@ Exit:
 void DAQECBlock::buildonbP(integer leng, int16u *p){
 //(Is used starting from June 2009 when dynamic pedestals logic was introduced)
 // it is implied that event_fragment is EC-JINF's one (validity is checked in calling procedure)
+//           *p=pointer_to_beggining_of_block_data(i.e. calstat word !!!)
+// this event fragment may keep EDR2,ETRG blocks in arbitrary order;
+// Length counting does not include length-word itself !!!
+//
+  integer i,j,ic,icn,isl,isd;
+  integer swid,hwid,crsta(0);
+  int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
+  int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
+  int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
+  int16u word,nword,nnword,nnnword;
+  int16u bias1,bias2;
+  int16u fmt;
+  int16u osbit;
+  int16 slots;
+  integer bufpnt(0),lbbs;
+  uinteger val32;
+  integer portid,crdid;
+  uinteger runn;
+  bool PedBlkOK(false);
+  bool newrun;
+  bool OnbFmtOK(false);
+  geant ped,sig,dped,thr;
+  int16u sts,nblkok;
+  int16u calstat(0);
+  int16u crslsd;
+  int16u bllen;
+  int16u headw1;
+  int16u headw2;
+  int16u naddr;
+  int16u len;
+  bool bad;
+//<-- check ped-block sections: 
+  integer spatt=ECCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
+  bool dpedin=((spatt&4)==4);//dyn.peds-section present(243 words)
+  bool thrsin=((spatt&2)==2);//thresholds ..............(243...)
+  integer reflen=ECEDRC+ECEDRC;//ped&width-sections always pres.
+  if(dpedin)reflen+=ECEDRC;
+  if(thrsin)reflen+=ECEDRC;
+  reflen+=2;//add calstat+slavestat, now =729(3x243)+2=731
+// total block length=731+2(headers)+1crc=734 
+//
+  bool pcreq(false);
+  bool sidedoubled(false);
+  bool dataf;//data-fragment
+  bool crcer;//CRC-error
+  bool asser;//assembly-error
+  bool amswer;//amsw-error   
+  bool timoer;//timeout-error   
+  bool fpower;//FEpower-error   
+  bool seqer;//sequencer-error
+  bool cdpnod;//CDP-node(like EDR2-node with no futher fragmentation)
+  bool noerr;
+  bool empty;
+  bool badtyp;
+  char * p2tdvnam;
+  bool badexit;
+//
+#pragma omp critical (ec_pedc_onb)
+{
+  badexit=true;
+  if((CALIB.SubDetInCalib%10)!=1){
+    if(_CalFirstSeq){//CalFirstSeq is set to true only once in initjob(initb)
+      cout<<endl<<"<======= Warning: ECAL OnBoardPed DB-writing is blocked !!!"<<endl<<endl;
+//      _CalFirstSeq is set to false after the 1st good sequence (was call to outb(flg))
+    }
+  }
+//
+  EcalJobStat::daqs1(50);//count OnbP calls
+  bad=false;//ok
+  runn=AMSEvent::gethead()->getrun();
+  newrun=(_PrevRunNum!=runn);
+//
+  if(newrun || _FirstPedBlk){//count/mark requested EDRs on 1st call or new run
+//    cout<<"  Ntdv="<<AMSJob::gethead()->gettdvn()<<endl;
+//    for(i=0;i<AMSJob::gethead()->gettdvn();i++){     
+//      p2tdvnam=AMSJob::gethead()->gettdvc(i);
+//      cout<<" TDV-name="<<p2tdvnam<<" at "<<i<<endl;
+//    }
+//
+    cout<<endl;
+    cout<<"=========> DAQECBlock::buildOnbPed: NewRun/FirstPedBlock call, run:"<<runn<<endl;
+    cout<<"           Good PedBlocks in prev.run :"<<_GoodPedBlks
+                                            <<", total found:"<<_FoundPedBlks<<endl;
+    _FirstPedBlk=false;
+    _PrevRunNum=runn;
+    ECPedCalib::BRun()=runn;
+    ECPedCalib::resetb();//reset histograms, cumulative vars(GoodPedBlks,FoundPedBlks,NReqEdrs,PedBlkCrat[],...)
+//
+//these codes replace ones which are 4 lines below (thank to onboard s/w developers !)
+    for(ic=0;ic<ECRT;ic++){
+      for(isl=0;isl<ECEDRS;isl++){//sequential slots(EDRs only)
+	_PedBlkCrat[ic][isl]+=1;//mark requested EDRs
+	_NReqEdrs+=1;
+      }
+    }
+//
+//    for(ic=0;ic<ECRT;ic++){
+//      for(isl=0;isl<ECEDRS;isl++){//sequential slots(EDRs only)
+//        portid=DAQECBlock::getportid(ic);//>=0 if exist(12,13 here)
+//	for(isd=0;isd<2;isd++){//sides(a/b)
+//	  crdid=AMSECIds::sl2crdid(isd,isl);
+//          pcreq=(pdaq && portid>=0 && crdid>=0
+//	            && pdaq->CalibRequested(uinteger(portid),uinteger(crdid)));//ped-cal requested for given crate/slot ?
+//          if(pcreq){
+//	    _PedBlkCrat[ic][isl]+=1;//mark requested EDRs
+//	    _NReqEdrs+=1;
+//	  }
+//	}
+//	if(_PedBlkCrat[ic][isl]>0){//error: both sides requested for given crat/slot
+//	  cout<<"      <--- Warning: found that both sides are requested for crt/slt="<<ic<<" "<<isl<<endl;
+//	  _PedBlkCrat[ic][isl]=0;//preset by hands
+//	  sidedoubled=true;
+//	}
+//      }
+//    }
+    cout<<"           Total EDRs requested:"<<_NReqEdrs<<endl;
+    if(!sidedoubled && _NReqEdrs<(ECRT*ECEDRS)){
+      cout<<"      <--- DAQECBlock::buildonbP:Warning-> not all EDRs requested ?!"<<endl;
+//      bad=true;
+    }
+    else if(sidedoubled){
+      cout<<"<--------- Error: Some sides are doubled, NrequestedEDRs="<<_NReqEdrs<<endl;
+      bad=true;
+    }
+  }//--->endof 1st PedBlk(new run)
+//
+  if(bad)goto Exit;
+  EcalJobStat::daqs1(51);// requested entries
+//--------
+  bllen=(*(p-3))/2;//BlLength (in front of header) bytes->words
+  headw1=*(p-2);
+  headw2=*(p-1);
+  calstat=*p;
+  naddr=int16u((headw1>>5)&0x1FF);//node addr from 1st header word
+  len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
+  crslsd=int16u((leng>>16)&(0xFFFFL));//CrSlSd(c=1-2,sl=1,8,sd=1-3=>a,b,p) as return by my "checkblockidP"-1
+  crat=(crslsd+1)/100;
+  slot=((crslsd+1)%100)/10;//1-6
+  csid=(crslsd+1)%10;
+  slot-=1;//0-5
+  if(csid==3)csid=1;//primary=a ?
+//
+  EcalJobStat::daqs3(crat-1,slot,0);//entries
+//
+  if(ECREFFKEY.reprtf[2]>0){//debug
+    cout<<"  <---- In DAQECBlock::builOnbP: EDR_length(incall)="<<len<<" reflen="<<reflen<<endl;
+    if(ECREFFKEY.reprtf[2]>1)EventBitDump(reflen-1,p,"Event-by-event bit Dump :");
+  }
+//
+  if(calstat&(0x4000)==0){
+    if(ECREFFKEY.reprtf[2]>0){
+      cout<<"<------ In BuilOnbPed:Bad CalStat,crat="<<crat<<" EDR="<<slot+1<<endl;
+    }
+    EcalJobStat::daqs3(crat-1,slot,1);//bad status entries
+    goto Exit;
+  }
+//
+  if(calstat&(0xF)>0){
+    EcalJobStat::daqs3(crat-1,slot,2);//crazy bit entries
+  }
+//---
+  if((len-reflen-3)!=0){
+    if(ECREFFKEY.reprtf[2]>0){
+      cout<<"<------ In BuilOnbPed:Bad length,crat="<<crat<<" EDR="<<slot+1<<endl;
+    }
+    EcalJobStat::daqs3(crat-1,slot,3);//bad length
+    goto Exit;
+  }
+//
+  EcalJobStat::daqs3(crat-1,slot,4);//length/calstat OK
+//---
+//-----------
+    eleng=reflen;//EDR fragment's length
+    eblid=*(p-1+eleng);//EDR fragment's Status+slaveID(EDR/ETRG id) 
+    eaddr=(eblid&(0x001F));//slaveID(="NodeAddr"=ERD here) here =0(imply direct JMDC->EDR request)
+    datyp=((eblid&(0x00C0))>>6);//0,1,2(only raw or compr)
+    dataf=((eblid&(0x8000))>0);//data-fragment(=0 for OnBoardPed Table)
+    OnbFmtOK=(datyp==2 && dataf==0);// OnBoardFmt OK
+    if(!OnbFmtOK)goto Exit;
+    EcalJobStat::daqs3(crat-1,slot,5);//format OK
+    formt=0;
+    crcer=((eblid&(0x4000))>0);//CRC-error
+    asser=((eblid&(0x2000))>0);//assembly-error
+    amswer=((eblid&(0x1000))>0);//amsw-error   
+    timoer=((eblid&(0x0800))>0);//timeout-error   
+    fpower=((eblid&(0x0400))>0);//FEpower-error   
+    seqer=((eblid&(0x0400))>0);//sequencer-error
+    cdpnod=((eblid&(0x0020))>0);//CDP-node(like EDR2/ETRG-node with no futher fragmentation)
+//
+    if(crcer)EcalJobStat::daqs3(crat-1,slot,7+12*formt);
+    if(asser)EcalJobStat::daqs3(crat-1,slot,8+12*formt);
+    if(amswer)EcalJobStat::daqs3(crat-1,slot,9+12*formt);
+    if(timoer)EcalJobStat::daqs3(crat-1,slot,10+12*formt);
+    if(fpower)EcalJobStat::daqs3(crat-1,slot,11+12*formt);
+    if(seqer)EcalJobStat::daqs3(crat-1,slot,12+12*formt);
+    if(empty)EcalJobStat::daqs3(crat-1,slot,13+12*formt);
+    if(cdpnod)EcalJobStat::daqs3(crat-1,slot,14+12*formt);
+//    
+    noerr=(!dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && cdpnod);
+    if(noerr)EcalJobStat::daqs3(crat-1,slot,6);//"EDR/ETRG-reply status OK" entries per crate/format
+    else{ 
+      EcalJobStat::daqs1(52+crat-1);// count bad reply status
+      goto Exit;
+    }
+//
+    ebias=1;
+//------
+    if(slot<=5){//<===== EDR-block processing
+//-------
+      bad=false;
+      _FoundPedBlks+=1;
+      PedBlkOK=false;
+      PedBlkOK=(_PedBlkCrat[crat-1][slot]==0);//true if requested 
+      while(ebias<=ECEDRC){//<---- EDR-words loop (243 ADC-values)
+        word=*(p+ebias);//ped, ADC-value(multiplied by 16 in DSP)
+        if(dpedin)nword=*(p+ebias+ECEDRC);//dped(+ECEDRC to skip ped)
+        else nword=0;
+        bias1=0;//add.bias to thresh-section
+        if(dpedin)bias1+=ECEDRC;
+        if(thrsin)nnword=*(p+ebias+ECEDRC+bias1);//thrs
+        else nnword=0;
+        bias2=bias1;//add.bias to sig-section
+        if(thrsin)bias2+=ECEDRC; 
+        nnnword=*(p+ebias+ECEDRC+bias2);//sig
+	rdch=(ebias-1);//0-242
+	AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
+	swid=ecid.getswid();//long sw_id=LTTPG
+        ped=geant(word&0xFFFF)/16;//tempor
+        dped=geant(nword&0xFFFF)/16;
+        thr=geant(nnword&0xFFFF)/16;
+        sig=geant(nnnword&0xFFFF)/16;
+	ECPedCalib::filltb(swid, ped, dped, thr, sig);//tempor
+	ebias+=1;
+      }//--->endof EDR-words loop(PedTable)
+      if(PedBlkOK){
+	_PedBlkCrat[crat-1][slot]=1;//mark processed(no errrors) crate/edr
+        _GoodPedBlks+=1;//counts tot# of requested&processed PedBlocks
+      }
+//               call DB- and pedfile-writing if last :
+      if(_GoodPedBlks==_NReqEdrs 
+	                   ||  DAQEvent::CalibDone(4)
+	                   || _FoundPedBlks >= _NReqEdrs){//<---last(from requested) ped-block processed
+        if(ECREFFKEY.reprtf[2]>0 && !DAQEvent::CalibDone(4))
+                cout<<"<---- ECOnbPedCalib Error: Vitaly's CalDone-flag not set when sequence is over !!!?"<<endl;
+        nblkok=0;
+        for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(_PedBlkCrat[i][j]==1)nblkok+=1;
+        if(nblkok==_NReqEdrs){// complete set of good blocks - call output
+	  ECPedCalib::outptb((CALIB.SubDetInCalib%10));//1/2/3->write2db/hist_only/write2file+hist
+	}
+	if(ECREFFKEY.reprtf[2]>0)
+	  cout<<"   <--- EcalOnbPedCalib sequence is over: blocks found/requested/good:"<<_FoundPedBlks<<
+	                                              " "<<_NReqEdrs<<" "<<_GoodPedBlks<<endl<<endl;
+      }//---<endof "last PedBlock processed"
+//
+    }//--->endof "slot<=5"(EDR) check
+//-------
+  badexit=false;
+Exit:
+  if(badexit)EcalJobStat::daqs1(ECJSTA-1);//count rejected entries(EDRs)
+//    
+}//--->endof critical
+//
+  return;  
+}
+//-------------------------------------------------------
+void DAQECBlock::buildonbP2(integer leng, int16u *p){
+//(??? Is used starting from June 2009 when dynamic pedestals logic was introduced)
+// it is implied that event_fragment is EC-JINF's one (validity is checked in calling procedure)
 //           *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!)
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
@@ -1073,26 +1342,34 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     ECPedCalib::BRun()=runn;
     ECPedCalib::resetb();//reset histograms, cumulative vars(GoodPedBlks,FoundPedBlks,NReqEdrs,PedBlkCrat[],...)
 //
+//these codes replace ones which are 4 lines below (thank to onboard s/w developers !)
     for(ic=0;ic<ECRT;ic++){
       for(isl=0;isl<ECEDRS;isl++){//sequential slots(EDRs only)
-        portid=DAQECBlock::getportid(ic);//>=0 if exist(12,13 here)
-	for(isd=0;isd<2;isd++){//sides(a/b)
-	  crdid=AMSECIds::sl2crdid(isd,isl);
-          pcreq=(pdaq && portid>=0 && crdid>=0
-	            && pdaq->CalibRequested(uinteger(portid),uinteger(crdid)));//ped-cal requested for given crate/slot ?
-          if(pcreq){
-	    _PedBlkCrat[ic][isl]+=1;//mark requested EDRs
-	    _NReqEdrs+=1;
-	  }
-	}
-	if(_PedBlkCrat[ic][isl]>0){//error: both sides requested for given crat/slot
-	  cout<<"      <--- Warning: found that both sides are requested for crt/slt="<<ic<<" "<<isl<<endl;
-	  _PedBlkCrat[ic][isl]=0;//preset by hands
-	  sidedoubled=true;
-	}
+	_PedBlkCrat[ic][isl]+=1;//mark requested EDRs
+	_NReqEdrs+=1;
       }
     }
-//    cout<<"           Total EDRs requested:"<<_NReqEdrs<<endl;
+//
+//    for(ic=0;ic<ECRT;ic++){
+//      for(isl=0;isl<ECEDRS;isl++){//sequential slots(EDRs only)
+//        portid=DAQECBlock::getportid(ic);//>=0 if exist(12,13 here)
+//	for(isd=0;isd<2;isd++){//sides(a/b)
+//	  crdid=AMSECIds::sl2crdid(isd,isl);
+//          pcreq=(pdaq && portid>=0 && crdid>=0
+//	            && pdaq->CalibRequested(uinteger(portid),uinteger(crdid)));//ped-cal requested for given crate/slot ?
+//          if(pcreq){
+//	    _PedBlkCrat[ic][isl]+=1;//mark requested EDRs
+//	    _NReqEdrs+=1;
+//	  }
+//	}
+//	if(_PedBlkCrat[ic][isl]>0){//error: both sides requested for given crat/slot
+//	  cout<<"      <--- Warning: found that both sides are requested for crt/slt="<<ic<<" "<<isl<<endl;
+//	  _PedBlkCrat[ic][isl]=0;//preset by hands
+//	  sidedoubled=true;
+//	}
+//      }
+//    }
+    cout<<"           Total EDRs requested:"<<_NReqEdrs<<endl;
     if(!sidedoubled && _NReqEdrs<(ECRT*ECEDRS)){
       cout<<"      <--- DAQECBlock::buildonbP:Warning-> not all EDRs requested ?!"<<endl;
 //      bad=true;
@@ -1120,13 +1397,13 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
 //
   if(ECREFFKEY.reprtf[2]>0){//debug
-    cout<<"  <---- In DAQECBlock::buildraw: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
+    cout<<"  <---- In DAQECBlock::builOnbP: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
     if(ECREFFKEY.reprtf[2]>2)EventBitDump(leng,p,"Event-by-event:");
   }
 //
   node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
   csid=1;//here is dummy(no redundancy for JINFs), later it is defined from card_id(EDR(a,b),ETRG(a,b))
-//  cout<<"      crate="<<crat<<endl;
+cout<<"      crate="<<crat<<endl;
   if(jleng>1 && crat>0)EcalJobStat::daqs1(1);//<=== count non-empty, valid JINF-fragments
   else{
     if(crat==0)EcalJobStat::daqs1(30);//badExit caused by JINF badID
@@ -1134,7 +1411,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     goto Exit;
   }
 //
-  if(dataf){
+  if(!dataf){
     if(crcer)EcalJobStat::daqs1(10+7*(crat-1));
     if(asser)EcalJobStat::daqs1(11+7*(crat-1));
     if(amswer)EcalJobStat::daqs1(12+7*(crat-1));
@@ -1144,12 +1421,13 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     if(cdpnod)EcalJobStat::daqs1(16+7*(crat-1));
   }
   else{
-    EcalJobStat::daqs1(2+crat-1);//<=== count JINF's notData segments
+    EcalJobStat::daqs1(2+crat-1);//<=== count JINF's not segments
   }
 //
-  noerr=(dataf && !crcer && !asser && !amswer 
+  noerr=(!dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && !cdpnod);
-  if(noerr)EcalJobStat::daqs1(4+crat-1);//<=== count JINF-reply status OK     
+cout<<"<--- JINF: dataf="<<dataf<<endl;
+  if(!noerr)EcalJobStat::daqs1(4+crat-1);//<=== count JINF-reply status OK     
   else goto Exit;
 //-----------
   jbias=1;
@@ -1190,6 +1468,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     fpower=((eblid&(0x0400))>0);//FEpower-error   
     seqer=((eblid&(0x0400))>0);//sequencer-error
     cdpnod=((eblid&(0x0020))>0);//CDP-node(like EDR2/ETRG-node with no futher fragmentation)
+cout<<"   EDRslot:"<<slot<<"  dataf="<<dataf<<" datyp(fmt)="<<datyp<<endl; 
 //
     if(dataf && !badtyp){
       if(crcer)EcalJobStat::daqs3(crat-1,slot,7+12*formt);
@@ -1253,8 +1532,11 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
           _GoodPedBlks+=1;//counts tot# of requested&processed PedBlocks
 	}
 //               call DB- and pedfile-writing if last :
-        if(_GoodPedBlks==_NReqEdrs ||
-	                     _FoundPedBlks >= _NReqEdrs){//<---last(from requested) ped-block processed
+        if(_GoodPedBlks==_NReqEdrs 
+	                   ||  DAQEvent::CalibDone(4)
+	                   || _FoundPedBlks >= _NReqEdrs){//<---last(from requested) ped-block processed
+        if(ECREFFKEY.reprtf[2]>0 && !DAQEvent::CalibDone(4))
+                cout<<"<---- ECOnbPedCalib Error: Vitaly's CalDone-flag not set when sequence is over !!!?"<<endl;
           nblkok=0;
           for(i=0;i<ECRT;i++)for(j=0;j<ECEDRS;j++)if(_PedBlkCrat[i][j]==1)nblkok+=1;
           if(nblkok==_NReqEdrs){// complete set of good blocks - call output
@@ -1297,22 +1579,29 @@ void DAQECBlock::EventBitDump(integer leng, int16u *p, char * message){
   bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   bool noerr;
   naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
-  datyp=(blid&(0x00C0))>>6;//0,1,2,3
-  noerr=(!crcer && !asser && !amswer 
+  datyp=(blid&(0x00C0))>>6;//0,1,2,3 (if dataf=0, datyp=2->OnbPed)
+  if(dataf && datyp>0)noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
+  if(!dataf && datyp==2)noerr=(!dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && cdpnod);
+  else noerr=false;
   cout<<"----> DAQECBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
-  cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
-  cout<<" node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" block_length="<<len<<endl;
+  cout<<" SlaveStatWord="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
+  cout<<" Slave_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" BlLength(in this call)="<<len<<endl;
 //
   cout<<"  Block hex/binary dump follows :"<<endl<<endl;
   int16u tstw,tstb;
+  char simbl[3]="I|";
+  char simb;
   for(int i=0;i<len+1;i++){
     tstw=*(p+i);
-    cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
+    cout<<hex<<setw(4)<<tstw<<"  I"<<dec;
     for(int j=0;j<16;j++){
+      if(((j+1)%4)==0)simb=simbl[0];
+      else simb=simbl[1];
       tstb=(1<<(15-j));
-      if((tstw&tstb)!=0)cout<<"x"<<"|";
-      else cout<<" "<<"|";
+      if((tstw&tstb)!=0)cout<<"x"<<simb;
+      else cout<<" "<<simb;
     }
     cout<<endl;
   }

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.86 2009/10/20 09:54:31 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.87 2009/11/15 11:46:57 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -582,8 +582,8 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf("    =================== ECAL-JOB decoding report ==================\n");
   printf("\n");
-  if(daqc1[0]>0){
-   printf("     DAQ-decoding report :\n");
+  if(daqc1[0]>0){//Normal Data
+   printf("     DAQ-decoding report for Data :\n");
    printf("JINFs entries                      : % 7d\n",daqc1[0]);
    printf(" ...........valid, non empty       : % 7d\n",daqc1[1]);
    printf("\n");
@@ -693,7 +693,76 @@ void EcalJobStat::printstat(){
      cout<<endl;
     }
    }//--->endof crates loop
-  }//--->endof decoding-stat-print check
+  }//--->endof decoding-stat-print check for Data
+//--------
+  if(daqc1[50]>0){//OnBoard Ped-calibration
+    printf("     DAQ-decoding report for OnBoard Pedestals :\n");
+    printf("Total EDR decoding entries                      : % 7d\n",daqc1[50]);
+    printf("Requested EDRs                                  : % 7d\n",daqc1[51]);
+    printf("Rejected EDRs                                   : % 7d\n",daqc1[ECJSTA-1]);
+    cout<<endl;
+    for(crt=0;crt<2;crt++){
+     cout<<"====> Crate-"<<crt+1<<" statistics slot-by-slot:"<<endl<<endl;
+     cout<<" Found&Requested entries      : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][0];
+     cout<<endl;
+     cout<<" Bad CalStatus (fatal)        : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][1];
+     cout<<endl;
+     cout<<" SHT crazy bits found         : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][2];
+     cout<<endl;
+     cout<<" BadBlockLength(fatal)        : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][3];
+     cout<<endl;
+     cout<<" BlocKlLength/CalStatUS OK    : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][4];
+     cout<<endl;
+     cout<<" DataFormat OK                : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][5];
+     cout<<endl;
+     cout<<" No Errors in EDR repl.status : ";
+     for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][6];
+     cout<<endl<<endl;
+//     
+     int fmt=0;
+     if(daqc1[52+crt]>0){
+       cout<<" -----> Bad EDR reply status in details: "<<endl;
+       cout<<" CRC-error        : ";
+       for(int sl=0;sl<6;sl++)cout<<setw(7)<<daqc3[crt][sl][7+12*fmt];
+       cout<<endl;
+       cout<<" Assembl-error    : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][8+12*fmt];
+       cout<<endl;
+       cout<<" AMSwire-error    : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][9+12*fmt];
+       cout<<endl;
+       cout<<" TimeOut-error    : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][10+12*fmt];
+       cout<<endl;
+       cout<<" FEpower-error    : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][11+12*fmt];
+       cout<<endl;
+       cout<<" Sequencer-error  : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][12+12*fmt];
+       cout<<endl;
+       cout<<" EmptySlot        : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][13+12*fmt];
+       cout<<endl;
+       cout<<" CDPnodeBit set   : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][14+12*fmt];
+       cout<<endl;
+       cout<<" All StatusBits OK: ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][15+12*fmt];
+       cout<<endl;
+       cout<<" BlockLength OK   : ";
+       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][16+12*fmt];
+       cout<<endl;
+       cout<<endl;
+     }
+   }//--->endof crates loop
+   return;//don't need rec0-report
+  }
 //
   printf("\n");
 //

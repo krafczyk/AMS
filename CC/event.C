@@ -1428,7 +1428,6 @@ void AMSEvent::event(){
     }
     _siecalevent();
     _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
-//                       in case of absence FT from TOF; cftr=1/0 ==> was/not  
 //                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
     _sianti2event();//Anti(as TOF) is digitized only by combined FT (checked inside of subr.!)
     _sitrdevent(); 

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.40 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: daqs2block.C,v 1.41 2009/11/15 11:46:57 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -85,7 +85,7 @@ void DAQS2Block::node2crsP(int16u nodeid, int16u &crat, int16u &sid){//called by
       sid=4;
       break;
     default:
-      cout<<" ID-problem in DAQS2Block::node2crs, id="<<nodeid<<" crat="<<crat<<" A(B)="<<*(DAQEvent::getnodename(nodeid)+5)<<endl;
+      cout<<" ID-problem in DAQS2Block::node2crsP, id="<<nodeid<<" crat="<<crat<<" A(B)="<<*(DAQEvent::getnodename(nodeid)+5)<<endl;
       //exit(1);
       return;
   }
@@ -265,13 +265,12 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   node2crs(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-2<->a-b)
 //
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug
-    cout<<"====> In DAQS2Block::buildraw: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
-    cout<<"      leng(in call)="<<leng<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
+    cout<<"====> In DAQS2Block::buildraw: BlLen="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
+    cout<<"      BlLeng(in call)="<<(leng&(0xFFFFL))<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
 //
   if(crat<=0){//illegal node-address
-    TOF2JobStat::daqsfr(1);//counts illeg.addr
     goto BadExit;
   }
   TOF2JobStat::daqsfr(1+crat);//entries/crate
@@ -399,18 +398,18 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	slid=dlink;
 	plink=(bias-1)%9;//"in block" position defined link# (0,1,...8)
 	if(dlink!=plink || slid>8){
-#ifdef __AMSDEBUG__
-	  cout<<"DAQS2Block::RawFmtError:link<->position mismatch, crate/dlink/plink="<<crat<<" "<<dlink<<" "<<plink<<endl;
-#endif
+          if(TFREFFKEY.reprtf[3]>0){//err-debug
+	    cout<<"DAQS2Block::RawFmtError:link<->position mismatch, crate/dlink/plink="<<crat<<" "<<dlink<<" "<<plink<<endl;
+          }
           TOF2JobStat::daqscr(0,crat-1,3);//charge_link <-> position mismatch
 	  goto BadExit;    
 	}
 	val16=word&(0x0FFF);// charge value (=0, if link problem)
 	slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
-#ifdef __AMSDEBUG__
-	  cout<<"DAQS2Block::RawFmtError:NotChargeSlotNumber , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
-#endif
+          if(TFREFFKEY.reprtf[3]>0){//err-debug
+	    cout<<"DAQS2Block::RawFmtError:NotChargeSlotNumber , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
+	  }
 	  TOF2JobStat::daqscr(0,crat-1,4);//invalid slot number
 	  goto BadExit;    
 	}
@@ -437,9 +436,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 	    swnbuf[bpnt]+=1;//increase counter of given swch
 	  }
 	  else{//should not happen, normally 1hit/channel
-#ifdef __AMSDEBUG__
-	    cout<<"DAQS2Block::RawFmtError:ChargeHits > 1 for hwid/swid="<<hwid<<" "<<swid<<endl;
-#endif
+            if(TFREFFKEY.reprtf[3]>0){//err-debug
+	      cout<<"DAQS2Block::RawFmtError:ChargeHits > 1 for hwid/swid="<<hwid<<" "<<swid<<endl;
+            }
 	  }
 	}//--->endof empty chan. check
 	bias+=1;
@@ -559,17 +558,17 @@ SkipTPpr:
 	wtyp=((word&(0xF000))>>12);
 	slid=dlink;//0,1,2,3,4 => SFET_0,_1,_2,_3,SFEA
 	if(slid>4){
-#ifdef __AMSDEBUG__
-	  cout<<"DAQS2Block::RawFmt_TimeBlErr: invalid link, crate/dlink="<<crat<<" "<<dlink<<endl;
-#endif
+          if(TFREFFKEY.reprtf[3]>0){//err-debug
+	    cout<<"DAQS2Block::RawFmt_TimeBlErr: invalid link, crate/dlink="<<crat<<" "<<dlink<<endl;
+          }
           TOF2JobStat::daqscr(0,crat-1,7);//invalid link number
 	  goto BadExit;    
         }
 	slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
 	if(slot<=0 || slot==1 || slot==4 || slot>7){//check slot# validity
-#ifdef __AMSDEBUG__
-	  cout<<"DAQS2Block::RawFmt_TimeBlErr: invalid slot, crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
-#endif
+          if(TFREFFKEY.reprtf[3]>0){//err-debug
+	    cout<<"DAQS2Block::RawFmt_TimeBlErr: invalid slot, crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
+          }
 	  TOF2JobStat::daqscr(0,crat-1,8);//invalid slot number
 	  goto BadExit;    
 	}
@@ -585,18 +584,18 @@ SkipTPpr:
 	    tdcbfn[slid]+=1;
 	  }
 	  else{//TDC-buff overflow
-#ifdef __AMSDEBUG__
-	    cout<<"DAQS2Block::RawFmt_TimeErr: internal TDC-buff Ovfl, crate/link="<<crat<<" "<<slid<<endl;
-            cout<<" ovffl="<<tdcbfo[slid]<<" cr/sl/bufcounter="<<crat<<" "<<slid<<" "<<tdcbfn[slid]<<endl;
-#endif
+            if(TFREFFKEY.reprtf[3]>0){//err-debug
+	      cout<<"DAQS2Block::RawFmt_TimeErr: internal TDC-buff Ovfl, crate/link="<<crat<<" "<<slid<<endl;
+              cout<<" ovffl="<<tdcbfo[slid]<<" cr/sl/bufcounter="<<crat<<" "<<slid<<" "<<tdcbfn[slid]<<endl;
+            }
 	    if(tdcbfo[slid]==0)TOF2JobStat::daqssl(0,crat-1,slot-1,2);//counts Events with TDC-buff ovfl
 	    tdcbfo[slid]=1;
 	  }
 	}
 	else{
-#ifdef __AMSDEBUG__
-	  cout<<"DAQS2Block::RawFmt_TimeErr: InvalidWordType, crate/link/wtyp="<<crat<<" "<<slid<<" "<<wtyp<<endl;
-#endif
+          if(TFREFFKEY.reprtf[3]>0){//err-debug
+	    cout<<"DAQS2Block::RawFmt_TimeErr: InvalidWordType, crate/link/wtyp="<<crat<<" "<<slid<<" "<<wtyp<<endl;
+          }
 	  TOF2JobStat::daqssl(0,crat-1,slot-1,3);//count  invalid wtyp
 	  goto BadExit;    
 	}
@@ -655,12 +654,14 @@ SkipTPpr:
 {
 	if(fsterr1[slot-1]==0){
 	  fsterr1[slot-1]=1;
-	  cout<<"  ---> TofDecoding:BadTimeBlockStructure/timeout in Run/evnt="<<AMSEvent::gethead()->getrun()
+          if(TFREFFKEY.reprtf[3]>0){//err-debug
+	    cout<<"  ---> TofDecoding:BadTimeBlockStructure/timeout in Run/evnt="<<AMSEvent::gethead()->getrun()
 	                                                 <<" "<<AMSEvent::gethead()->getid()<<endl;
-	  cout<<"       cr/sl:"<<crat<<" "<<sslot<<" wttem/wthed/wterr(8/2/6)="<<wttem
+	    cout<<"       cr/sl:"<<crat<<" "<<sslot<<" wttem/wthed/wterr(8/2/6)="<<wttem
 	                           <<" "<<wthed<<" "<<wterr<<" wds/trwds="<<nwtdcb<<" "<<wds2tdc<<endl;
-	  cout<<"---------------------------------------------------------"<<endl;
-	  if(TFREFFKEY.reprtf[3]>0)EventBitDump(leng,p,"BadTimeBlockStructure/timeout !!!");
+	    cout<<"---------------------------------------------------------"<<endl;
+	    EventBitDump(leng,p,"BadTimeBlockStructure/timeout !!!");
+	  }
 	}
 }
 	continue;//skip link(TDC) with broken structure (or time-out)
@@ -709,10 +710,13 @@ SkipTPpr:
 	    swnbuf[bpnt]+=1;//increase counter of given swch
 	  }
 	  else{
-#ifdef __AMSDEBUG__
-	    if(tdcbfo[slid-1]==0)cout<<"DAQS2Block::RawFmt_Error:SWCH_Buf_Ovfl, hwid/swid="<<hwid<<" "<<swid<<endl;
+	    if(tdcbfo[slid-1]==0){//message on the 1st overflow-hit only
+              if(TFREFFKEY.reprtf[3]>0){//err-debug
+	        cout<<"DAQS2Block::RawFmt_Error:SWCH_Buf_Ovfl, hwid/swid="<<hwid<<" "<<swid<<
+		                   " mtyp/nhits: "<<mtyp<<" "<<swnbuf[bpnt]<<" InpCh="<<inch<<endl;
+	      }
+	    }
 	    tdcbfo[slid-1]=1;
-#endif
 //	    TOF2JobStat::daqsch(0,crat-1,slot-1,rdch-1,2);//count Nhit overflows in time channels
 	    TOF2JobStat::daqsch(0,crat-1,slot-1,inch,2);//count Nhit overflows in time channels
 	  }
@@ -741,13 +745,14 @@ SkipTPpr:
         TOF2JobStat::daqscr(1,crat-1,2);//count truncated_segments cases
 	goto BadExit;    
       }
-//        TOF2JobStat::daqscr(1,crat-1,3);//spare
       lencom=len-2-lenraw;//tot.length of compr.subgegment("-2" to excl. lenraw,blid words)
       nqwrds=*(pc+8)+1;//q-group words, "+1"->nwords-word itself
       ntwrds=(*(pc+8+nqwrds)&(0x3FFF))+1;//t-group wordfs,......
-if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<" -----> CompInMixFMT:lenraw/lencom="<<lenraw<<" "<<lencom
-                                                       <<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
       if(lencom!=(7+nqwrds+ntwrds)){
+        if(TFREFFKEY.reprtf[3]>0){//err-debug
+          cout<<" -----> CompInMixFMT::LengthMismatch: lenraw/lencom="<<lenraw<<" "<<lencom
+                                                       <<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
+	}
         TOF2JobStat::daqscr(1,crat-1,4);//count length mismatch inside ComprSection(inside mixFMT
 	goto BadExit;    
       }
@@ -757,9 +762,11 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<" -----> CompInMixFMT:le
       lencom=len-1;//tot.length of compressed subsegment(excl. (Stat+SlaveId)- word)
       nqwrds=*(pc+8)+1;//q-group words, "+1"->nwords-word itself
       ntwrds=(*(pc+8+nqwrds)&(0x3FFF))+1;//t-group words,......
-if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<" -----> CompAloneFMT:lencom="<<lencom
-                                                <<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
       if(lencom!=(7+nqwrds+ntwrds)){
+        if(TFREFFKEY.reprtf[3]>0){//err-debug
+          cout<<" -----> CompAloneFMT::LengthMismatch: lencom="<<lencom
+                                                <<" nQwrds/nTwrds="<<nqwrds<<" "<<ntwrds<<endl;
+	}
         TOF2JobStat::daqscr(1,crat-1,5);//count length mismatch inside ComprFMT
 	goto BadExit;    
       }
@@ -872,7 +879,7 @@ SkipTPpr1:
         ltmoutf=*(pss+bias+4);//link's time-out flags(sequencer Timout flag as in rawFMT)
 	mwcount=*(pss+bias+5);//sequencer Counter (as in rawFMT)
         if((mwcount&(0x8000))!=0){//mix-subsegm. is truncated
-//          TOF2JobStat::daqscr(1,crat-1,2);// MixForm max.length ovfl
+          TOF2JobStat::daqscr(1,crat-1,3);// subsegment truncated
           mfmttrf=1;//set mix-data truncation flag
         }
         mwcount=(mwcount&(0x7FF));//counts raw-subseg length=lenraw-evnum-itself(ovfl-bit removed)
@@ -899,7 +906,9 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"  ---> ComprSegment::Qs
 	  slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
 	  if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
 	    TOF2JobStat::daqscr(1,crat-1,10);//invalid slot number
-if(TFREFFKEY.reprtf[3]>0)cout<<"  <-- Error: invalid slot: crat="<<crat<<" link="<<slid<<"  aslot="<<slot<<endl;
+            if(TFREFFKEY.reprtf[3]>0){
+	      cout<<"  <-- CompFmt:Q-section Error: invalid slot: crat="<<crat<<" link="<<slid<<"  aslot="<<slot<<endl;
+	    }
 	    goto BadExit;
 	  }    
 	  TOF2JobStat::daqssl(1,crat-1,slot-1,0);//count legal charge-slot entries
@@ -930,7 +939,7 @@ if(TFREFFKEY.reprtf[3]>0)cout<<"  <-- Error: invalid slot: crat="<<crat<<" link=
 	          swnbuf[bpnt]+=1;//increase counter of given swch
 	        }
 	        else{//should not happen, normally 1hit/channel
-if(TFREFFKEY.reprtf[3]>0)cout<<"  <-- Error: ChargeHits > 1 for hwid/swid="<<hwid<<" "<<swid<<endl;
+                  if(TFREFFKEY.reprtf[3]>0)cout<<"  <-- Error: NChargeHits > 1 for hwid/swid="<<hwid<<" "<<swid<<endl;
 	        }
 	      }//--->endof empty chan. check
               nnzch+=1;//counts hits
@@ -940,7 +949,7 @@ if(TFREFFKEY.reprtf[3]>0)cout<<"  <-- Error: ChargeHits > 1 for hwid/swid="<<hwi
 	}//--->endof "link-header OK"
 	else{
 	  TOF2JobStat::daqscr(1,crat-1,9);//wrong link-header in Q-section
-if(TFREFFKEY.reprtf[3]>0)cout<<" <-- Error: wrong link-header in Qsect !"<<endl;
+          if(TFREFFKEY.reprtf[3]>0)cout<<" <-- CompFmt::Error: wrong link-header in Q-section !"<<endl;
 	  goto BadExit;    
 	}
       }//--->endof q-block words loop
@@ -967,8 +976,10 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"  --->  ComprSegment::T
 	if((tlhead&(0x8000))==0 || (tlhead&(0x4000))==0 || (tlhead&(0x0008))>0){//
 	  TOF2JobStat::daqscr(1,crat-1,12+slid);//err while raw->comp (no header|trailer or probl with evn/wcount)
 	  bias+=(n16wrds+1);//to point to next link-header(+1 for current link header)
-if(TFREFFKEY.reprtf[3]>0)cout<<" <-- Error: HTSbits-problem,crat/link="<<crat<<" "<<slid<<"H:"
+          if(TFREFFKEY.reprtf[3]>0){
+	    cout<<" <-- CompFmt::T-block Error: HTSbits-problem,crat/link="<<crat<<" "<<slid<<"H:"
                          <<((tlhead&(0x8000))>>15)<<"T:"<<((tlhead&(0x4000))>>14)<<"S:"<<((tlhead&(0x0008))>>3)<<endl;
+	  }
 	  continue;//---> skip bad link info
 //	  goto BadExit;//tempor 
 	}
@@ -977,7 +988,9 @@ if(TFREFFKEY.reprtf[3]>0)cout<<" <-- Error: HTSbits-problem,crat/link="<<crat<<"
 	if(slot<=0 || slot==1 || slot==4 || slot>7){//check slot# validity
 	  TOF2JobStat::daqscr(1,crat-1,17);//invalid slot number
 	  bias+=(n16wrds+1);//to point to next link-header
-if(TFREFFKEY.reprtf[3]>0)cout<<" <-- Error: InvalidSlot, crat/link="<<crat<<" "<<slid<<" slot="<<slot<<endl;
+          if(TFREFFKEY.reprtf[3]>0){
+            cout<<" <-- CompFmt::T-block Error: InvalidSlot, crat/link="<<crat<<" "<<slid<<" slot="<<slot<<endl;
+	  }
 	  continue;//---> skip bad link info
 //	  goto BadExit;//tempor    
 	}
@@ -1053,7 +1066,9 @@ if(TFREFFKEY.reprtf[3]>0)cout<<" <-- Error: InvalidSlot, crat/link="<<crat<<" "<
 	if((nthts%2)==1)bias+=2;//now points to err-patt word(if any) or to next link-header
 	if((tlhead&(0x1000))>0){//error-word is present
 	  tlerrf=*(pss+bias+1);
-if(TFREFFKEY.reprtf[3]>0)cout<<"  <-- ErrorWord found: LinkHeader/ErrWord="<<hex<<tlhead<<" "<<tlerrf<<dec<<endl;
+          if(TFREFFKEY.reprtf[3]>0){
+	    cout<<"  <-- CompFmt::Tblock: ErrorWord found: LinkHeader/ErrWord="<<hex<<tlhead<<" "<<tlerrf<<dec<<endl;
+	  }
 	  TOF2JobStat::daqssl(1,crat-1,slot-1,4);//count time-slots with error
 	  bias+=1;//now poits to to next link-header
 	}
@@ -1068,10 +1083,10 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"<----- endof ComprFMT-d
 //===========================> compare Raw/Comp-halfs of the decoded buffer(if mixed format):
   if(formt==2){
     TOF2JobStat::daqscr(3,crat-1,0);//count crate-entries with mixt-format(raw/com-subsegm OK)
-if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){    
-  cout<<endl;
-  cout<<"----> DAQS2Block:: MixFMT processed: Compare Raw- and Compr-subsegments decoding results:"<<endl;
-}
+    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){    
+      cout<<endl;
+      cout<<"----> DAQS2Block:: MixFMT processed: Compare Raw- and Compr-subsegments decoding results:"<<endl;
+    }
     integer ihr,ihc,nhraw,nhcom,swidr,swidc,hwidr,nhitsc(0),nhitsr(0);
     integer vmism,err1c(0),err2c(0);
     uinteger valr,valc;
@@ -1084,8 +1099,10 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         swidr=swibuf[ic+bufpnt];
 	hwidr=hwibuf[ic+bufpnt];
 	if(nhraw<nhcom || swidc!=swidr || hwidc!=hwidr){
-//	  cout<<"     Error_1: nhits/id mismatch for hwidc/swidc="<<hwidc<<" "<<swidc<<endl;
-//	  cout<<"     nhcom/nhraw="<<nhcom<<" "<<nhraw<<" hwidr/swidr="<<hwidr<<" "<<swidr<<" swch="<<ic<<endl;
+          if(TFREFFKEY.reprtf[3]>0){
+	    cout<<"<--- RawCompFmtCompar:Error_1: nhits/id mismatch for hwidc/swidc="<<hwidc<<" "<<swidc<<endl;
+	    cout<<"     nhcom/nhraw="<<nhcom<<" "<<nhraw<<" hwidr/swidr="<<hwidr<<" "<<swidr<<" swch="<<ic<<endl;
+          }
 	  err1c+=1;
           TOF2JobStat::daqscr(3,crat-1,1);//count Err-1
 	}
@@ -1099,7 +1116,10 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 	  if(vmism==1){
 	    err2c+=1;//count mism.hits
             TOF2JobStat::daqscr(3,crat-1,2);//count Err-2
-//cout<<"     Error_2: unconfirmed CompFMT-hit="<<valc<<" for swid/hwid="<<swidc<<" "<<hwidc<<endl;
+            if(TFREFFKEY.reprtf[3]>0){
+              cout<<"<--- RawCompFmtCompar:Error_2: unconfirmed CompFMT-hit="<<valc<<
+	                                                             " for swid/hwid="<<swidc<<" "<<hwidc<<endl;
+            }
 	  }
         }//--->endof confirm.loop
 	nhitsc+=nhcom;//count compFMT-hits
@@ -1206,7 +1226,7 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
         case 1:
 	  hwidq[pmt]=hwid;//store anode/dynodes Q-InpCh# in Q-hwid(CSII, II=1-10) array(SII's are different)
 	  if(pmt>pmmx){
-if(TFREFFKEY.reprtf[3]>0)cout<<"GlobBufferScan: Error - Npm>Max in ADC-hit, swid="<<swid<<endl;
+            if(TFREFFKEY.reprtf[3]>0)cout<<"GlobBufferScan: Error - Npm>Max in ADC-hit, swid="<<swid<<endl;
           }
 	  else{
 	    if(pmt==0){//anode
@@ -1428,7 +1448,7 @@ if(TFREFFKEY.reprtf[3]>0)cout<<"GlobBufferScan: Error - Npm>Max in ADC-hit, swid
 //--------
   return;
 BadExit:
-  TOF2JobStat::daqsfr(98);//count rejected entries(segments)    
+  TOF2JobStat::daqsfr(1);//count rejected entries(segments)    
 //  
 }
 //----------------------------------------------------
@@ -1436,7 +1456,7 @@ void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   int16u blid,len,naddr,datyp;
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
   blid=*(p+len);// fragment's last word: Status+slaveID
-  bool dataf=((blid&(0x8000))>0);//data-fragment
+  bool dataf=((blid&(0x8000))>0);//data-fragment(not calib)
   bool crcer=((blid&(0x4000))>0);//CRC-error
   bool asser=((blid&(0x2000))>0);//assembly-error
   bool amswer=((blid&(0x1000))>0);//amsw-error   
@@ -1446,22 +1466,29 @@ void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   bool noerr;
   naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
-  datyp=(blid&(0x00C0))>>6;//0,1,2,3
-  noerr=(dataf && !crcer && !asser && !amswer 
+  datyp=(blid&(0x00C0))>>6;//0,1,2,3 (if dataf=0, datyp=2->OnbPed)
+  if(dataf && datyp>0)noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
+  if(!dataf && datyp==2)noerr=(!dataf && !crcer && !asser && !amswer 
+                                       && !timoer && !fpower && !seqer && cdpnod);
+  else noerr=false;
   cout<<"----> DAQS2Block::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
-  cout<<" Segment_id="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
-  cout<<" node_addr(link#)="<<naddr<<" data_type(fmt)="<<datyp<<" block_length="<<len<<endl;
+  cout<<" SlaveStatWord="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
+  cout<<" node_addr(link#)="<<naddr<<" datatype(fmt)="<<datyp<<" BlLength(in this call)="<<len<<endl;
 //
   cout<<"  Block hex/binary dump follows :"<<endl<<endl;
   int16u tstw,tstb;
+  char simbl[3]="I|";
+  char simb;
   for(int i=0;i<len+1;i++){
     tstw=*(p+i);
-    cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
+    cout<<hex<<setw(4)<<tstw<<"  I"<<dec;
     for(int j=0;j<16;j++){
+      if(((j+1)%4)==0)simb=simbl[0];
+      else simb=simbl[1];
       tstb=(1<<(15-j));
-      if((tstw&tstb)!=0)cout<<"x"<<"|";
-      else cout<<" "<<"|";
+      if((tstw&tstb)!=0)cout<<"+"<<simb;
+      else cout<<" "<<simb;
     }
     cout<<endl;
   }
@@ -1472,7 +1499,7 @@ void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
 void DAQS2Block::buildonbP(integer leng, int16u *p){
 //used for OnBoard PedTables processing (and writing to DB)
 // it is implied that event_fragment is SDR2's one (checked in calling procedure)
-// on input: len=tot_block_length as given at the beginning of block
+// on input: len=>2 ms-bytes(node_addr)+2 ls-bytes(length as given at the beginning of block)
 //           *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!) 
 // Length counting does not includes length-word itself !!! 
 //
@@ -1489,6 +1516,9 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   int16u biasmx;
   int16u n16wrds;
   int16u calstat(0);//calib.status (1st word after block length word)
+  int16u crsd;
+  int16u headw1;
+  int16u headw2;
 //
   int16u rfmttrf(0);//raw-fmt truncation flag
   int16u ltmoutf(0);//SFET/SFEA/SFEC(link) time-out flags (from raw-eos or from compressed-part)
@@ -1511,15 +1541,19 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   AMSTimeID *ptdv;
   time_t begin,end,insert,BeginTime,CurTime;
   integer spatt=TFCAFFKEY.onbpedspat;//bit-patt for onb.ped-table sections (bit set if section is present)
-  bool dpedin=((spatt&16)==1);//dyn.peds-section present(90 words)
-  bool ptrwin=((spatt&8)==1);//pretrigwords ............(4 ...)
-  bool stawin=((spatt&4)==1);//statwords ...............(10...)
-  bool thrsin=((spatt&2)==1);//thresholds ..............(90...)
-  integer reflen=90+90;//ped&width-sections always pres.
-  if(dpedin)reflen+=90;
+  bool dpedin=((spatt&16)==16);//dynam.peds-section present(90 words)
+  bool ptrwin=((spatt&8)==8);//pretrigwords ............(4 ...)
+  bool stawin=((spatt&4)==4);//statwords ...............(10...)
+  bool thrsin=((spatt&2)==2);//thresholds ..............(90...)
+  integer reflen=90+90;//ped&width-sections always present
+  if(dpedin)reflen+=90;//in reality absent
   if(ptrwin)reflen+=4;
   if(stawin)reflen+=10;
-  if(thrsin)reflen+=90;//final reflen does not count calib.status word !!!
+  if(thrsin)reflen+=90;
+  reflen+=2;//add calstat. and slavestat words : 286=1+3*90+4+10+1
+//                       totdatalen=286+1(CRC at the very end)=287
+//  leng(in call)=totdatalen+2(2 header words)=289
+// All this calculationS are for the mode when JMDC directly requests caldata from SDR (SDR-addr is in 1st header word)
   bool tofout,accout;
   int outflg; 
 //
@@ -1552,7 +1586,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
     }
   }
 //
-  TOF2JobStat::daqsfr(0);//count entries
+  TOF2JobStat::daqsfr(60);//count entries
   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
   runn=AMSEvent::gethead()->getrun();
   newrun=(_PrevRunNum!=runn);
@@ -1574,43 +1608,87 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
     ANTPedCalib::BRun()=runn;
     TOFPedCalib::resetb();//reset histograms, cumulative vars(GoodPedBlks,FoundPedBlks,NReqEdrs,PedBlkCrat[],...)
     ANTPedCalib::resetb();//reset histograms
+//these codes replace ones which are 4 lines below (thank to onboard s/w developers !)
+    for(crat=0;crat<SCCRAT;crat++){//imply that all crates are pres.
+      _PedBlkCrat[crat]+=1;//mark requested SDRs(finally have to be 0 because set to -1 in init)
+      _NReqEdrs+=1;
+    } 
 //
-    for(crat=0;crat<SCCRAT;crat++){//imply that all crates are 
-	for(csid=0;csid<2;csid++){//sides(a/b)
-          portid=DAQS2Block::getportid(crat,csid);//>=0 if exist(4,5,6,7,18,19,20,21)
-	  crdid=0;
-          pcreq=(pdaq && portid>=0 && crdid>=0
-	            && pdaq->CalibRequested(uinteger(portid),uinteger(crdid)));//ped-cal requested for given crate/slot ?
-          if(pcreq){
-	    _PedBlkCrat[crat]+=1;//mark requested SDRs
-	    _NReqEdrs+=1;
-	  }
-	}
-	if(_PedBlkCrat[crat]>0){//error: both sides requested for given crat/slot
-	  cout<<"      <--- buildOnbP:Warning: found that multiple sides are requested for crt="<<ic<<endl;
-	  _PedBlkCrat[crat]=0;//preset by hands
-	  sidedoubled=true;
-	}
-    }
-//    cout<<"           Total SDRs requested:"<<_NReqEdrs<<endl;
+//    for(crat=0;crat<SCCRAT;crat++){//imply that all crates are 
+//	for(csid=0;csid<2;csid++){//sides(a/b)
+//          portid=DAQS2Block::getportid(crat,csid);//>=0 if exist(4,5,6,7,18,19,20,21)
+//	  crdid=0;
+//          pcreq=(pdaq && portid>=0 && crdid>=0
+//	            && pdaq->CalibRequested(uinteger(portid),uinteger(crdid)));//ped-cal requested for given crate/slot ?
+//          if(pcreq){
+//	    _PedBlkCrat[crat]+=1;//mark requested SDRs
+//	    _NReqEdrs+=1;
+//	  }
+//	}
+//	if(_PedBlkCrat[crat]>0){//error: both sides requested for given crat/slot
+//	  cout<<"      <--- buildOnbP:Warning: found that multiple sides are requested for crt="<<ic<<endl;
+//	  _PedBlkCrat[crat]=0;//preset by hands
+//	  sidedoubled=true;
+//	}
+//    }
+    cout<<"           Total SDRs requested:"<<_NReqEdrs<<endl;
     if(!sidedoubled && _NReqEdrs<(SCCRAT)){
       cout<<"      <--- buildOnbP:Warning-> not all SDRs requested ?!"<<endl;
 //      bad=true;
     }
     else if(sidedoubled){
-      cout<<"<--------- buildOnbP:Error: Some sides are doubled, NrequestedSDRs="<<_NReqEdrs<<endl;
+      cout<<"<--------- BuildOnbPed:Error: Some sides are doubled, NrequestedSDRs="<<_NReqEdrs<<endl;
       goto Exit;
     }
   }//--->endof 1st PedBlk(new run)
 //
 //--------
-  p=p-1;//to follow VC-convention !!! 
-//  len=*p;//fragment's 1st word(length in bytes, not including length word itself)
-  calstat=*(p+1);
+  headw1=*(p-2);
+  headw2=*(p-1);
+  calstat=*p;
+//  cout<<"  hw1="<<hex<<*(p-2)<<"  hw2="<<*(p-1)<<"  calstat="<<*p<<dec<<endl;
+  naddr=((headw1>>5)&0x1FF);//node addr from 1st header word
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
-  blid=*(p+len);// fragment's last word: Status+slaveID
-//  cout<<"    blid="<<hex<<blid<<dec<<endl;
-  dataf=((blid&(0x8000))>0);//data-fragment
+  crsd=int16u((leng>>16)&(0xFFFFL));//CS(c=1-4,s=1-4=>a,b,p,s) as return by my "checkblockidP"-1
+  crat=(crsd+1)/10;
+  csid=(crsd+1)%10;
+//cout<<"<--- <<crat/side="<<crat<<" "<<csid<<" naddr="<<naddr<<endl;
+  if(csid==3)csid=1;//tempor
+  else if(csid==4)csid=2;
+//  node2crsP(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-4<->a,b,p,s)
+  if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug
+    cout<<"=======> In DAQS2Block::builOnbPed: BlLength="<<len<<" SDR_node:"<<naddr<<endl;
+    EventBitDump(reflen-1,p,"OnbPed: Event-by-Event bitDump:");//debug
+  }
+  if(crat<=0){//illegal node-address
+    goto Exit;
+  }
+  TOF2JobStat::daqscr(2,crat-1,0);// entries/crate
+//---
+  if(calstat&(0x4000)==0){
+    if(TFREFFKEY.reprtf[3]>0){
+      cout<<"<------ In BuilOnbPed:Bad CalStat,crat="<<crat<<endl;
+    }
+    TOF2JobStat::daqscr(2,crat-1,1);// bad cal.status entries
+    goto Exit;
+  }
+//---
+  if(calstat&(0xF)>0){
+    TOF2JobStat::daqscr(2,crat-1,2);//crazy bit entries
+  }
+//---
+  if((len-reflen-3)!=0){
+    if(TFREFFKEY.reprtf[3]>0){
+      cout<<"<------ In BuilOnbPed:Error in length,crat="<<crat<<" len/(reflen+3)="<<len<<" "<<(reflen+3)<<endl;
+    }
+    TOF2JobStat::daqscr(2,crat-1,3);//PedCal length error
+    goto Exit;
+  }
+  TOF2JobStat::daqscr(2,crat-1,4);//PedBlockLengOK/crate
+//---
+  blid=*(p+reflen-1);//slave status word
+//  cout<<"   slavestat="<<hex<<blid<<dec<<endl;
+  dataf=((blid&(0x8000))>0);//data-fragment(sci) if >0, otherwise OnbCalib
   if(dataf)datf=1;
   else datf=0;
   crcer=((blid&(0x4000))>0);//CRC-error
@@ -1620,56 +1698,29 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   fpower=((blid&(0x0400))>0);//FEpower-error   
   seqer=((blid&(0x0200))>0);//sequencer-error
   cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
-  noerr;
-  naddr=(blid&(0x001F));//slaveID(="NodeAddr"=SDR_addr)
-  datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3
-//
-  node2crs(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-2<->a,b)
-//  node2crsP(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-4<->a,b,p,s)
+  datyp=((blid&(0x00C0))>>6);//(0-should not be for data(may be for calib)),1,2,3
 //
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug
-    cout<<"=======> In DAQS2Block::builOnbPed: len="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
-    cout<<"      leng(in call)="<<leng<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
+    cout<<"      data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/lastlevel/="<<
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
-//
-  if(crat<=0){//illegal node-address
-    TOF2JobStat::daqsfr(1);//counts illeg.addr
+//---
+  ONBpedblk=(dataf==0 && datyp==2);
+  if(!ONBpedblk){
+    if(TFREFFKEY.reprtf[3]>0)EventBitDump(reflen-1,p,"OnbPed: Bad DataType/Format bitDump:");//debug
     goto Exit;
   }
-  TOF2JobStat::daqsfr(1+crat);//entries/crate
-//
-  if(datyp==1)setrawf();
-  else if(datyp==2)setcomf();
-  else if(datyp==3)setmixf();
-  if(ONBpedblk)setpedf();
-  formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
-  TOF2JobStat::daqsfr(34+datyp);//<=== entries/datatype(illeg,raw,com,mix) 
-  if(ONBpedblk)TOF2JobStat::daqsfr(38);//<=== glob count of OnBoardPedBlocks 
-//cout<<"    format="<<formt<<" crate="<<crat<<endl;
-//
-  if(datyp==0 || len==1){
-    TOF2JobStat::daqsfr(5+crat);//counts illeg.datyp or empty
-    if(TFREFFKEY.reprtf[3]>0)EventBitDump(leng,p,"OnbPed: Bad DataType | EmptyBlock bitDump:");//debug
-    goto Exit;
-  }
-//
-  TOF2JobStat::daqsfr(9+crat);//<==== datyp+len_OK/crate
-//
-  if(dataf){
-    if(crcer)TOF2JobStat::daqsfr(40+8*(crat-1));
-    if(asser)TOF2JobStat::daqsfr(41+8*(crat-1));
-    if(amswer)TOF2JobStat::daqsfr(42+8*(crat-1));
-    if(timoer)TOF2JobStat::daqsfr(43+8*(crat-1));
-    if(fpower)TOF2JobStat::daqsfr(44+8*(crat-1));
-    if(seqer)TOF2JobStat::daqsfr(45+8*(crat-1));
-    if(cdpnod)TOF2JobStat::daqsfr(46+8*(crat-1));
-  }
-  else{
-    TOF2JobStat::daqsfr(21+crat);//count nonData
-  }
+  TOF2JobStat::daqscr(2,crat-1,5);// PedDataTypeBlocks/crate
+//--
+  if(crcer)TOF2JobStat::daqscr(2,crat-1,6);
+  if(asser)TOF2JobStat::daqscr(2,crat-1,7);
+  if(amswer)TOF2JobStat::daqscr(2,crat-1,8);
+  if(timoer)TOF2JobStat::daqscr(2,crat-1,9);
+  if(fpower)TOF2JobStat::daqscr(2,crat-1,10);
+  if(seqer)TOF2JobStat::daqscr(2,crat-1,11);
+  if(cdpnod)TOF2JobStat::daqscr(2,crat-1,12);
 //---------
-  noerr=(dataf 
+  noerr=(!dataf 
              && !crcer 
 	               && !asser 
 		                && !amswer 
@@ -1678,60 +1729,47 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
 						              && !seqer 
 							               && cdpnod);
   if(noerr){
-    TOF2JobStat::daqsfr(29+crat);//<=== no errors 
+    TOF2JobStat::daqscr(2,crat-1,13);//<=== no errors in slave stat.word 
   }     
   else{
-    TOF2JobStat::daqsfr(25+crat);
     goto Exit;
   }
 //---------
-  if(formt<=1)TOF2JobStat::daqscr(formt,crat-1,0);//count crate-entries with stand-alone  raw/comp format
-  else if(formt==2){//mix.form
-    TOF2JobStat::daqscr(0,crat-1,0);//count crate-entries with raw format
-    TOF2JobStat::daqscr(1,crat-1,0);//count crate-entries with compr. format
-  }
-  else TOF2JobStat::daqscr(2,crat-1,0);//=3 -> count crate-entries with OnBoard_table format
-#pragma omp critical (tofbll)
   totbll+=len;//summing to have event(scint) data length
 //
-  if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)EventBitDump(leng,p,"OnbPed: Event-by-event:");//debug
-// 
-  if(formt!=3)goto Exit;//only OnBoardPedTable format required
 //
 //---------> table processing (tof+acc):
 //
-  TOF2JobStat::daqscr(2,crat-1,0);// count PedCalFormat entries/crate
+//
   bias=1;
   _FoundPedBlks+=1;
   PedBlkOK=false;
-  if((len-1)!=(reflen+1)){//+1 for cal.stat word
-    TOF2JobStat::daqscr(2,crat-1,1);// PedCalFormat length error
-    goto Exit;    
-  }
 //
   PedBlkReqw=(_PedBlkCrat[crat-1]==0);//true if requested 
   if(!PedBlkReqw){
-    TOF2JobStat::daqscr(2,crat-1,2);// block is not requested
     goto Exit;    
   }
+  TOF2JobStat::daqscr(2,crat-1,14);// block requested
   while(bias<=90){//<---loop over ped-section words(=90,always present)
-    word=*(p+1+bias);//ped (+1 to bypass stat.word)
-    if(dpedin)nword=*(p+1+bias+90);//dped
+    word=*(p+bias);//ped 
+    if(dpedin)nword=*(p+bias+90);//dped
     else nword=0;
     bias1=0;//add.bias to thresh-section
     if(dpedin)bias1+=90;
     if(ptrwin)bias1+=4;
     if(stawin)bias1+=10;
-    if(thrsin)nnword=*(p+1+bias+90+bias1);//thrs
+    if(thrsin)nnword=*(p+bias+90+bias1);//thrs
     else nnword=0;
     bias2=bias1;//add.bias to sig-section
     if(thrsin)bias2+=90; 
-    nnnword=*(p+1+bias+90+bias2);//sig
+    nnnword=*(p+bias+90+bias2);//sig
     slid=(bias-1)%9;//position(in block),  define link_id(addr) (0,1,...8)
     slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to abs.slot-number(solid,sequential, 1,...,11)
     if(slot<=0 || slot==1 || slot==4 || slot>11){//check slot# validity
-if(TFREFFKEY.reprtf[3]>0)cout<<" <--- OnbPed: Error: InvalidSlot , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
-      TOF2JobStat::daqscr(2,crat-1,3);//invalid slot number
+      if(TFREFFKEY.reprtf[3]>0){
+        cout<<" <--- OnbPed: Error: InvalidSlot , crat/slot_id/slot="<<crat<<" "<<slid<<" "<<slot<<endl;
+      }
+      TOF2JobStat::daqscr(2,crat-1,15);//invalid slot number
       goto Exit;    
     }
     inch=int16u(floor(float(bias-1)/9)+1);// slot's input channel(1,...10)
@@ -1762,13 +1800,16 @@ if(TFREFFKEY.reprtf[3]>0)cout<<" <--- OnbPed: Error: InvalidSlot , crat/slot_id/
     bias+=1; 
   }//--->endof block words loop
 //
-  TOF2JobStat::daqscr(2,crat-1,4);//requested+processed blocks(crates)
+  TOF2JobStat::daqscr(2,crat-1,16);//requested+processed blocks(crates)
 //---
   _PedBlkCrat[crat-1]=1;//mark processed(no errors) crate
   _GoodPedBlks+=1;//counts tot# of requested&processed PedBlocks per calib.sequence(=run ?)
 // --->   call DB- and pedfile-writing if last block:
-  if(_GoodPedBlks==_NReqEdrs ||
-	                     _FoundPedBlks >= _NReqEdrs){//<---last(from requested) ped-block processed
+  if(_GoodPedBlks==_NReqEdrs 
+                             || DAQEvent::CalibDone(2)  
+	                     || _FoundPedBlks >= _NReqEdrs){//<---last(from requested) ped-block processed
+    if(TFREFFKEY.reprtf[3]>0 && !DAQEvent::CalibDone(2))
+                cout<<"<---- TOFOnbPedCalib Error: Vitaly's CalDone-flag not set when sequence is over !!!?"<<endl;
     nblkok=0;
     for(i=0;i<SCCRAT;i++)if(_PedBlkCrat[i]==1)nblkok+=1;
     if(nblkok==_NReqEdrs){// complete set of good blocks - call output
@@ -1779,14 +1820,15 @@ if(TFREFFKEY.reprtf[3]>0)cout<<" <--- OnbPed: Error: InvalidSlot , crat/slot_id/
       if(accout)ANTPedCalib::outptb(outflg);
       _CalFirstSeq=false;
     }
-    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)
+    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
       cout<<"<========= OnbPedCalib sequence is over: blocks found/requested/good:"<<_FoundPedBlks<<
 	                                              " "<<_NReqEdrs<<" "<<_GoodPedBlks<<endl<<endl;
+    }
   }//---<endof "last PedBlock processed"
 //-------
   badexit=false;
 Exit:
-  if(badexit)TOF2JobStat::daqsfr(1);//count rejected entries(segments)
+  if(badexit)TOF2JobStat::daqsfr(61);//count rejected entries(segments)
 //    
 }//--->endof critical
 //

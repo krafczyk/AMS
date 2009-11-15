@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.39 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.40 2009/11/15 11:46:57 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -3609,7 +3609,7 @@ void TOFPedCalib::initb(){ //called in retof2initjob() if TOF+AC is requested fo
   strcpy(inum,"0123456789");
 //
 //
-  if(TFREFFKEY.reprtf[4]>0)cout<<endl;
+  if(TFREFFKEY.reprtf[1]>0)cout<<endl;
 //
 //
 //  ---> book hist.  :
@@ -3621,8 +3621,8 @@ void TOFPedCalib::initb(){ //called in retof2initjob() if TOF+AC is requested fo
       strcat(htit1,in);
       id=1790+i;
       HBOOK1(id,htit1,50,1.,51.,0.);
-      HMINIM(id,75.);
-      HMAXIM(id,125.);
+      HMINIM(id,50.);
+      HMAXIM(id,400.);
     }
     for(i=0;i<2;i++){
       strcpy(htit1,"Anode ped-rms vs paddle for Side-");
@@ -3642,8 +3642,8 @@ void TOFPedCalib::initb(){ //called in retof2initjob() if TOF+AC is requested fo
         strcat(htit1,in);
         id=1794+3*i+j;
         HBOOK1(id,htit1,50,1.,51.,0.);
-        HMINIM(id,75.);
-        HMAXIM(id,125.);
+        HMINIM(id,100.);
+        HMAXIM(id,800.);
       }
     }
     for(i=0;i<2;i++){
@@ -3687,7 +3687,7 @@ void TOFPedCalib::initb(){ //called in retof2initjob() if TOF+AC is requested fo
     }
   }
 //
-  if(TFREFFKEY.reprtf[4]>0)cout<<"<---- TOF OnBoardPedCalib: init done..."<<endl<<endl;;
+  if(TFREFFKEY.reprtf[1]>0)cout<<"<---- TOF OnBoardPedCalib: init done..."<<endl<<endl;;
 }
 //-----
 //
@@ -3757,7 +3757,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
    bool thrsin=((spatt&2)==1);//thresholds ..............(90...)
    geant rthrs,rdped;
 //
-   if(TFREFFKEY.reprtf[4]>0)cout<<endl<<"=====> TofOnbPedCalib::EndOfRun: OnBoardTable-Report:"<<endl<<endl;
+   if(TFREFFKEY.reprtf[1]>0)cout<<endl<<"=====> TofOnbPedCalib::EndOfRun: OnBoardTable-Report:"<<endl<<endl;
 //---- fill ntuple:
 //   TOFPedCalNT.Run=BRun();
 //   for(il=0;il<TOF2DBc::getnplns();il++){
@@ -3845,7 +3845,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
 	       }
 	     }
 	     else{//MyCriteria: bad chan
-	       if(TFREFFKEY.reprtf[4]>0){
+	       if(TFREFFKEY.reprtf[1]>0){
 	         cout<<"       MyCriteriaBadCh: Lay/Pad/Side/Pmi="<<il<<" "<<ib<<" "<<is<<" "<<pm<<endl;
 	         cout<<"                        ped/sig="<<peds[ch][pm]<<" "<<sigs[ch][pm]<<endl;    
 	         cout<<"                        PedDiff="<<pdiff<<endl;
@@ -3853,9 +3853,9 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
 	     }
 	   }//--->endof "channel OK in table ?" check
 	   else{
-	     if(TFREFFKEY.reprtf[4]>0){
+	     if(TFREFFKEY.reprtf[1]>0){
 	       cout<<"       BadTableChan:Lay/Pad/Side/Pmi="<<il<<" "<<ib<<" "<<is<<" "<<pm<<endl;
-	       cout<<"       ped/sig/sta="<<peds[ch][pm]<<" "<<sigs[ch][pm]<<endl;
+	       cout<<"       ped/sig/sta="<<peds[ch][pm]<<" "<<sigs[ch][pm]<<" "<<stas[ch][pm]<<endl;
 	     }    
 	   }
 	}//--->endof pm-loop 
@@ -3865,7 +3865,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
 //
   goodchp=geant(goodchs)/totchs;
 // 
-  if(TFREFFKEY.reprtf[4]>0)
+  if(TFREFFKEY.reprtf[1]>0)
     cout<<"       GoogChs(Table/My)="<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;
 //      
 // ---> prepare update of DB :
@@ -3982,7 +3982,6 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
      for(i=0;i<22;i++)HPRINT(1790+i);
    }
 //
-   DAQS2Block::CalFirstSeq()=false;
 //
    cout<<endl;
    cout<<"<========= TofOnbPedCalib: run "<<runn<<" is processed, goodpeds%="<<goodchp<<endl;
