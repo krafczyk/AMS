@@ -273,14 +273,16 @@ class TH2A{   // 2-dim histo with internal int[] array
 
   void Reset(){ memset(Hxy, 0, sizeof(float)*nbx*nby); }
 
-  PeakXYW GetPeak(int width){
-
+  PeakXYW GetPeak(int width,int debug=0) {
+  
     // find bin with maximum entry:
     double Vmax=0.;
     int ixmx, iymx, imx;
+    if(debug)printf("TH2A GetPeak size %i\n",size);
     for( i=0; i<size; i++){
       if( Hxy[i]>Vmax){ Vmax = Hxy[i]; imx=i; }
     }
+    if(debug)printf("TH2A GetPeak nbx %i\n",nbx);
     ixmx = imx%nbx; iymx = imx/nbx;
 
     // get peak as entry-weighed average around maximum +- width:
@@ -297,9 +299,17 @@ class TH2A{   // 2-dim histo with internal int[] array
 	 }
       }
     }
-    PeakXYW pxyw(sx/sw,sy/sw,sw);
+    if(debug)printf("TH2A GetPeak sx %f sy %f sw %f\n",sx,sy,sw);
     
-    return pxyw;
+    if(sw<-1.e6){
+      PeakXYW pxyw(0.,0.,-1.);
+      return pxyw;
+    }
+    else{
+      PeakXYW pxyw(sx/sw,sy/sw,sw);
+      return pxyw;
+    }
+    
   }
  
 };
@@ -354,15 +364,21 @@ class TH2V{  // 2-dim histo with internal vector<BIN>
 
   void Reset(){ histo.clear(); }
 
-  PeakXYW GetPeak(int width){
+  PeakXYW GetPeak(int width, int debug=0){
 
     double Vmax=0.;
     int ixmx, iymx;
+    if(histo.size()==0){
+      PeakXYW peak(0.,0.,-1.);
+      return peak;
+    }
+    if(debug)printf("TH2V GetPeak size %i\n",histo.size());
     for( int i=0; i<histo.size(); i++){
       if( histo[i].c>Vmax){
           Vmax = histo[i].c; ixmx = histo[i].x; iymx = histo[i].y;
       }
     }
+    if(debug)printf("TH2V GetPeak nbx %i\n",nbx);
 
     double w=0.0, sx=0.0, sy=0.0, sw=0.0;
     for( int i=0; i<histo.size(); i++){
@@ -375,9 +391,20 @@ class TH2V{  // 2-dim histo with internal vector<BIN>
         histo.erase(histo.begin()+i);   // remove entry to allow search for next peak 
       }
     }
-    PeakXYW pxyw(sx/sw,sy/sw,sw);
+    
+    if(debug)printf("TH2V GetPeak sx %f sy %f sw %f\n",sx,sy,sw);
 
-    return pxyw;
+    //    PeakXYW pxyw(sx/sw,sy/sw,sw);
+    if(sw<1.e-6){
+      PeakXYW pxyw(0.,0.,-1.);
+      return pxyw;
+    }
+    else{
+      PeakXYW pxyw(sx/sw,sy/sw,sw);
+      return pxyw;
+    }
+    
+    //    return pxyw;
   }
 
 };
