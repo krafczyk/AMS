@@ -97,12 +97,14 @@ integer AMSTRDHSegment::build(int rerun){
   PeakXYW pxyw;
   nhseg=0;
   for(int i=0;i!=2; i++){
+
     if(nrh>nhcut) pxyw = H2A_mvr[i]->GetPeak(1);
     else          pxyw = H2V_mvr[i]->GetPeak(1);
     
     if(pxyw.w>0.) pTRDHSegment_[nhseg++]=new AMSTRDHSegment(i,pxyw.y, pxyw.x, TRDz0, pxyw.w);
   }
-  
+
+  //  printf("nhseg %i \n",nhseg);
   if(nhseg<1)return 0;
   
   // Link TRDRawHits to segments:
@@ -149,6 +151,7 @@ integer AMSTRDHSegment::build(int rerun){
     for(int i=0;i!=nhseg;i++){
       pTRDHSegment_[i]->calChi2();
       AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",i),pTRDHSegment_[i]);
+      //      printf("seg %i chi2 %f\n",i,pTRDHSegment_[i]->chi2);
     }
   }
   return nhseg;
@@ -184,6 +187,7 @@ integer AMSTRDHTrack::build(int rerun){
   dir_[2]=-1.;
   
   float mag=sqrt(pow(dir_[0],2)+pow(dir_[1],2)+pow(dir_[2],2));
+  //  printf("mag %f x %f y %f z %f\n",mag,dir_[0],dir_[1],dir_[2]);
   for( int i=0;i!=3;i++)dir_[i]/=mag;
 
   // assure same origin (center of TRD)
@@ -199,31 +203,36 @@ integer AMSTRDHTrack::build(int rerun){
   // add HSegment pointers to AMSTRDHTrack object
   tr->SetSegment(segx,segy);
 
-  TRDInfoNtuple02* info = AMSJob::gethead()->getntuple()->Get_trdinfo02();
-
-  for(int i=0;i!=2;i++){
-    AMSTRDHSegment* seg=tr->fTRDHSegment[i];
-    for(int j=0;j!=seg->nhits;j++){
-      AMSTRDIdSoft id(seg->fTRDRawHit[j]->getidsoft());
-      int lay=id.getlayer();
-      int lad=id.getladder();
-      int tub=id.gettube();
-      float amp=seg->fTRDRawHit[j]->Amp();
-      
+  if(TRDFITFFKEY.SaveHistos>0){
+    TRDInfoNtuple02* info = AMSJob::gethead()->getntuple()->Get_trdinfo02();
+    if(info){
+      for(int i=0;i!=2;i++){
+	AMSTRDHSegment* seg=tr->fTRDHSegment[i];
+	for(int j=0;j!=seg->nhits;j++){
+	  AMSTRDIdSoft id(seg->fTRDRawHit[j]->getidsoft());
+	  int lay=id.getlayer();
+	  int lad=id.getladder();
+	  int tub=id.gettube();
+	  float amp=seg->fTRDRawHit[j]->Amp();
+	  
 #ifdef __WRITEROOT__
-      int hid=41000+lay*290+lad*16+tub;
-      if(info->hit_arr[lay][lad][tub]==0){
-	char hnam[30];
-	sprintf(hnam,"TRD_L%iL%iT%i",lay,lad,tub);
-	AMSJob::gethead()->getntuple()->Get_evroot02()->hbook1(hid,hnam,50,0,200);
-      }
-      AMSJob::gethead()->getntuple()->Get_evroot02()->hfill(hid,amp,0.,1.);
-
+	  int hid=41000+lay*290+lad*16+tub;
+	  //	  TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
+	  //	  if(!h){
+	  if(!AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid)){
+	    //      if(info->hit_arr[lay][lad][tub]==0){
+	    char hnam[30];
+	    sprintf(hnam,"TRD_L%iL%iT%i",lay,lad,tub);
+	    AMSJob::gethead()->getntuple()->Get_evroot02()->hbook1(hid,hnam,50,0,200);
+	  }
+	  AMSJob::gethead()->getntuple()->Get_evroot02()->hfill(hid,amp,0.,1.);
+	  
 #endif
-      info->hit_arr[lay][lad][tub]++;
+	  info->hit_arr[lay][lad][tub]++;
+	}
+      }
     }
   }
-  
   AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),tr);
   
   return nhtr;
