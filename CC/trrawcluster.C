@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.109 2009/11/13 15:18:40 choutko Exp $
+//  $Id: trrawcluster.C,v 1.110 2009/11/16 10:39:36 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -59,11 +59,13 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax,  integer matchedo
    id.upd(_strip+i);
    if(id.getsig() && _array[i]/id.getsig() > rmax ){
      rmax=_array[i]/id.getsig();
-     sn=(rmax+0.5);
-     if(sn>63)sn=63;
-     if(sn<0)sn=0;
+//     sn=(rmax+0.5);
+//     if(sn>63)sn=63;
+//     if(sn<0)sn=0;
      imax=i;
    }
+   if(rmax<-0.5)rmax=-0.5;
+   sn=(rmax+0.5)>63?63:(rmax+0.5);
    adc[pos+i+2]=int16(_array[i]);
   }
   //  if(id.getside()==1)cout <<"sn "<<sn<<endl;

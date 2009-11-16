@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.71 2009/11/15 11:46:57 choumilo Exp $
+//  $Id: trigger102.C,v 1.72 2009/11/16 10:39:36 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2313,8 +2313,15 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     if((rstatw3&bit)>0){//<--- Detector-rates(SideMax for Tof/Acc/ECf/ECa)
       for(j=0;j<5;j++){
         word=*(p+scalbias+1+nw3+j);
+        if(tgatesc){
 	scrate=number(word)/tgatesc;
 	dtrates[j]=scrate;
+        }
+        else{
+          static int err=0;
+          if(  err++<100)cerr<<" tgatesc 0 "<<endl;
+          dtrates[j]=0;
+        }
       }
       nw3+=5;
     }

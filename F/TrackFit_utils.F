@@ -1,7 +1,13 @@
 *
-* $Id: TrackFit_utils.F,v 1.27 2009/11/06 16:18:40 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.29 2009/11/16 10:40:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.29  2009/11/16 10:40:03  choutko
+* *** empty log message ***
+*
+* Revision 1.28  2009/11/16 10:39:38  choutko
+* *** empty log message ***
+*
 * Revision 1.27  2009/11/06 16:18:40  choutko
 * *** empty log message ***
 *
@@ -170,7 +176,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.27 2009/11/06 16:18:40 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.29 2009/11/16 10:40:03 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -7781,9 +7787,15 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.27 2009/11/06 16:18:40 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.29 2009/11/16 10:40:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.29  2009/11/16 10:40:03  choutko
+* *** empty log message ***
+*
+* Revision 1.28  2009/11/16 10:39:38  choutko
+* *** empty log message ***
+*
 * Revision 1.27  2009/11/06 16:18:40  choutko
 * *** empty log message ***
 *

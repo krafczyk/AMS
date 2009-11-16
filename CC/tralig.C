@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.60 2008/12/18 11:19:33 pzuccon Exp $
+//  $Id: tralig.C,v 1.61 2009/11/16 10:39:36 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -520,6 +520,7 @@ while(offspring){
          ftxt.read((char*)&add2,sizeof(add2));
          ftxt.read((char*)&rig,sizeof(rig));
          ftxt.read((char*)&mcrig,sizeof(mcrig));
+         if(mcrig==0)mcrig=10000;
          //ftxt>>nh>>chi2>>pattern>>add1>>add2;
          uintl address(add1,add2);
          for(int i=0;i<nh;i++){
