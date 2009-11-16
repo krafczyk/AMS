@@ -1,11 +1,10 @@
-#setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
-setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
+setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f2users/choutko/root.p
 set path=($ROOTSYS/bin /opt/intel/Compiler/11.0/069/bin/ia32/ $path . /usr/sbin  )
 setenv LD_LIBRARY_PATH .:/opt/intel/Compiler/11.0/069/idb/lib/ia32/:/opt/intel/Compiler/11.0/069/lib/ia32/:$ROOTSYS/lib:/opt/intel/compiler80/lib
 setenv CVSROOT $Offline/CVS
-#setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
+setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
 setenv CVS_RSH ssh
 setenv ProductionRunsDir /s0dat0/Data/Deframing
 setenv AMSDataDir $Offline/AMSDataDirRW
@@ -24,7 +23,7 @@ setenv amsedc           $Offline/vdev/display/amsedc
 setenv offmon        $Offline/vdev/online/offmon      
 setenv offmonc        $Offline/vdev/online/offmonc      
 setenv AMSICC 1
-unsetenv AMSP 1
+setenv AMSP 1
 limit core 0
 limit data 700000
 limit stack 32000
