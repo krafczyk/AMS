@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.18 2008/12/18 11:19:25 pzuccon Exp $
+//  $Id: trdrec.h,v 1.19 2009/11/16 09:36:40 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -214,6 +214,7 @@ TrackBaseS():_NSeg(0),_Pattern(-1){
  }
 }
 };
+public:
 TrackPar _StrLine;
 TrackPar _Real;
 TrackBase _Base;

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.211 2009/11/09 19:12:09 choutko Exp $
+//  $Id: trrec.C,v 1.212 2009/11/16 09:36:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3421,6 +3421,116 @@ integer AMSTrTrack::makeFalseTOFXHits(){
     }
     if ( plvl3->skip() ) return 1;
     AMSTOFCluster *phit[4], *ploop;
+//
+// try first with trd
+//
+//
+// for the moment  put here to not destroy program logic
+//
+
+// one trd track required
+AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDTrack",0);
+int ntrd=pc?pc->getnelem():0;
+ AMSTRDTrack* ptrd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
+if(ntrd==1 && ptrd){
+ AMSPoint trd_pnt0     = ptrd->getCooStr();
+  AMSDir   trd_dir  = ptrd->getCooDirStr();
+   number slope_x= trd_dir[0]/trd_dir[2];
+    number intercept_x= trd_pnt0[0] - slope_x*trd_pnt0[2];
+    number slope_y= trd_dir[1]/trd_dir[2];
+    number intercept_y= trd_pnt0[1] - slope_y*trd_pnt0[2];
+//  get errors estimationa
+     number ex=0;
+     number ey=0;
+     number zymin=FLT_MAX;
+     number zxmin=FLT_MAX;
+     number zymax=0;
+     number zxmax=0; 
+     for(int k=0;k<ptrd->_Base._NHits;k++){
+     AMSTRDCluster *pcl=ptrd->_Base._PCluster[k];
+     if(pcl->getCooDir()[0]<0.1){
+      ex=pcl->getEHit();
+      if(pcl->getCoo()[2]>zxmax)zxmax=pcl->getCoo()[2];
+      if(pcl->getCoo()[2]<zxmin)zxmin=pcl->getCoo()[2];
+     }
+      else if(pcl->getCooDir()[1]<0.1){
+       ey=pcl->getEHit();
+      if(pcl->getCoo()[2]>zymax)zymax=pcl->getCoo()[2];
+      if(pcl->getCoo()[2]<zymin)zymin=pcl->getCoo()[2];
+     }
+    }
+    number ax=ex;
+    number bx=1.4*ex/(zxmax-zxmin);
+    number ay=2*ey;
+    number by=2*ey/(zymax-zymin); 
+
+
+// Create Fake AMSTrRecHits on all tracker planes containing sensible Y clusters
+    AMSTrCluster *py;
+    for (py=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);
+         py != NULL ; py=py->next()) {
+// Do nothing for bad clusters
+      if (py->checkstatus(AMSDBc::BAD) != 0) continue;
+// SoftId, approximate IdGeom and approximate gSensor
+      AMSTrIdSoft idsoft = py->getid();
+      integer layer = idsoft.getlayer();
+      integer ladder = idsoft.getdrp();
+      integer half = idsoft.gethalf();
+      integer sensor;
+      if (half==0)
+                   sensor = 5;
+      else
+                   sensor = TKDBc::nsen(layer,ladder) - 5;
+      AMSTrIdGeom idgeom(layer,ladder,sensor,0,0);
+      AMSgSen *psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
+      idgeom.R2G(idsoft);
+// Get the approximate global y coordinate
+      AMSPoint glopos = psensor->str2pnt(0.,py->getcofg(&idgeom));
+// Impose the X global coordinate from TOF
+      glopos[0] = intercept_x + slope_x*glopos[2];
+// Do not use if it is far away from TOF prediction
+      geant searchregtof;
+      searchregtof=sqrt(ay*ay+by*by*(glopos[2]-trd_pnt0[2])*(glopos[2]-trd_pnt0[2]));
+      if (fabs(glopos[1] - intercept_y - slope_y*glopos[2])
+               > searchregtof) continue; 
+// Find now the right sensor number on the ladder
+// And do not use it if TOF prediction is far away from the ladder
+      AMSPoint sensor_size(   psensor->getpar(0)
+                              , psensor->getpar(1)
+                              , psensor->getpar(2));
+      if(!idgeom.FindAtt(glopos,sensor_size)
+      || idgeom.gethalf()!=idsoft.gethalf()
+      || idgeom.getladder()!=idsoft.getdrp()) continue;
+// Go to local coordinates to get a better global position
+      psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
+      AMSPoint locpos = psensor->gl2loc(glopos);
+      glopos = psensor->str2pnt(locpos[0]+sensor_size[0],py->getcofg(&idgeom));
+// Error
+      AMSPoint gloerr;
+//ToBeDone
+//      gloerr[0] = sqrt(covii+2*glopos[2]*covsi+glopos[2]*glopos[2]*covss);
+      number errx=sqrt(ax*ax+bx*bx*(glopos[2]-trd_pnt0[2])*(glopos[2]-trd_pnt0[2]));
+      gloerr[0]=errx;
+      gloerr[1] = py->getecofg();
+      gloerr[2] = (number)TRCLFFKEY.ErrZ;
+
+// Create a new Fake hit with TOF on X
+      AMSTrRecHit::_addnext(
+        psensor,
+        &idgeom,
+        AMSDBc::FalseTOFX,
+        -1,
+        -1,
+        0,
+        py,
+        glopos,
+        gloerr );
+//         cout <<idsoft.getlayer()<<" "<<idsoft.gethalf()<<" "<<glopos<<" "<<idgeom.getsensor()<<" "<<idsoft.gethalf()<<" "<<idgeom.gethalf()<<endl;
+        // cout << "makeFalseTOFXHits: New Hit done at plane " <<
+        //           idsoft.getlayer() << glopos << gloerr << endl;
+    }
+     return 0;
+}
 
 // There should be one and only one AMSTOFCluster on planes 1, 4
 // according to LVL3 trigger

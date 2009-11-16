@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.8 2009/11/13 09:47:27 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.9 2009/11/16 09:36:39 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -647,15 +647,23 @@ bool AMSDisplay::ShowNextEvent(Int_t delta){
 
   int entry=m_chain->Entry()+delta;
   int res;     
+  unsigned static int lastrun=0;
+  unsigned int run=0;
   while((res=m_chain->ReadOneEvent(entry))==0){
     entry+=delta;
-   if(m_monitor && m_chain->get_tree_entry()==0){
+   if (res>=0 && m_monitor){
+    run=m_chain->get_run();
+     if(lastrun<run)lastrun=run;
+   }
+   if(m_monitor && m_chain->get_tree_entry()==0 && run>=lastrun){
      DrawEvent();
     }
 
   }
   if(entry>=0 && entry<=m_chain->GetEntries()){
+   if(!m_monitor  || run>=lastrun){
     DrawEvent();
+   }
   }
 //  cout <<"  res "<<res<<" "<<entry<<endl;
   if(res==-1)return false;

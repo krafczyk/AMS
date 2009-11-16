@@ -38,6 +38,7 @@ private:
 
 public:
    int get_tree_entry()const {return m_tree_entry;}
+   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
     :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
