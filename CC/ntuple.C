@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.186 2009/07/07 15:52:48 mmilling Exp $
+//  $Id: ntuple.C,v 1.187 2009/11/16 16:18:58 mmilling Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -301,31 +301,33 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
      //cout <<AMSTrAligFit::GetAligString()<<endl;
      _ta.Write("TrackerAlignment");
 #endif
-if(TRDFITFFKEY.FitMethod>0){     
-     TRDPlotInit();
 
-     _can=TRDPlot(1);
-     _can->Write("c_occ");
-
-     TRDFitMOP();
-     _can=TRDPlot(2);
-     _can->Write("c_mop");
-
-     _can=TRDPlot(3);
-     _can->Write("c_emop");
-
-
-     if(TRDFITFFKEY.SaveHistos==0){
-       for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
-	 int hid=41000+i*290+j*16+k;
-	 // get hit amplitude histogram
-	 TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
-	 if(h)AMSJob::gethead()->getntuple()->Get_evroot02()->hdelete(hid);
+     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
+       TRDPlotInit();
+       
+       _can=TRDPlot(1);
+       _can->Write("c_occ");
+       
+       TRDFitMOP();
+       _can=TRDPlot(2);
+       _can->Write("c_mop");
+       
+       _can=TRDPlot(3);
+       _can->Write("c_emop");
+       
+       
+       if(TRDFITFFKEY.SaveHistos==1){
+	 for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
+	   int hid=41000+i*290+j*16+k;
+	   // get hit amplitude histogram
+	   TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
+	   if(h)AMSJob::gethead()->getntuple()->Get_evroot02()->hdelete(hid);
+	 }
        }
+
+       if(tfr)delete tfr;
      }
 
-     if(tfr)delete tfr;
-}
      _rfile->Write();
      _rfile->Close();
      delete _rfile;
