@@ -3,8 +3,6 @@
 #include "richrec.h"
 #include "timeid.h"
 
-//#define __INSPECT__
-
 //////////////////////////////////////////////////
 // RICH CDP are labelled from 0 to 23 (24 CDPs)
 
@@ -123,7 +121,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
   // Assume that everything here is primary and decode
   int offset=0;
-  //  if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
+  if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
   DecodeRich(length+offset,p,JINF,0);
   }
   catch(int){
@@ -290,17 +288,12 @@ void DAQRichBlock::DSPCompressedParser::parse(){
 
 integer DAQRichBlock::checkcalid(int16u id){
   // Take a block id and return if the block is a rich block
-  cout<<"IN CHECKCALID "<<hex<<id<<endl;
-
-
   if( ((id>>5)&((1<<9)-1))>=FirstNode && ((id>>5)&((1<<9)-1))<=LastNode ) return 1;
   return 0;
 }
 
 void DAQRichBlock::buildcal(integer length,int16u *p){
   try{
-#define __INSPECT__
-
 #ifdef __INSPECT__
   cout<<endl<<endl<<"RICH EVENT INSPECTOR CAL"<<endl;
 
@@ -337,6 +330,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
   cout<<dec<<"LENGTH "<<length<<" block size "<<block_size<<endl;
 #endif
 
+  /*
   int version=-1;
   switch(length){
   case block_size:
@@ -351,27 +345,22 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     cout<<"-- DAQRichBlock::buildcal unknown calibration data format"<<endl;
     return;
   }
-
+  */
 #ifdef __INSPECT__
   cout<<"CURRENT FORMAT "<<(version?"2009":"2008")<<endl;
 #endif
 
-  //  if(length!=block_size) return;
+  if(length!=block_size) return;
 
   p-=1;  // Go to the true starting point of the data
 
   // General checks
   int16u id=*(p-1);
-  cout<<"--ID "<<id<<endl;
-  cout<<"--NODE TYPE "<<(id&32)<<endl;
-  cout<<"--NODE STATUS "<<hex<<*(p-2+length-1)<<dec<<*(p-2+length-1)<<endl;
-
   int16u node_type=id&31;
   if(node_type!=0x14) return;
   int16u status=*(p-2+length-1);
   if(status!=0x120) return;
 
-  cout<<"--NODE NUMBER "<<((id>>5)&((1<<9)-1))<<endl;
 
   int16u node_number=((id>>5)&((1<<9)-1));
   int physical_cdp=node_number-FirstNode;
