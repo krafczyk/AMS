@@ -1188,7 +1188,6 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     if(timoer)EcalJobStat::daqs3(crat-1,slot,10+12*formt);
     if(fpower)EcalJobStat::daqs3(crat-1,slot,11+12*formt);
     if(seqer)EcalJobStat::daqs3(crat-1,slot,12+12*formt);
-    if(empty)EcalJobStat::daqs3(crat-1,slot,13+12*formt);
     if(cdpnod)EcalJobStat::daqs3(crat-1,slot,14+12*formt);
 //    
     noerr=(!dataf && !crcer && !asser && !amswer 

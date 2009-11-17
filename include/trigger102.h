@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.30 2009/09/18 10:07:19 choumilo Exp $
+//  $Id: trigger102.h,v 1.31 2009/11/17 16:46:02 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -15,6 +15,9 @@ protected:
     number _DetMaxRate[5];//CPmx,BZmx,ACmx,ECFTmx,ECL1(angle)mx
     number _LiveTime[2];
     uinteger _TimeCalib;
+    geant _tgatelt;//time-gate for LiveTime
+    geant _tgatetr;//..........for trig.FPGA
+    geant _tgatesc;//..........for scal.FPGA
 /*
     number _SPtrig[5];//LA0,LA1,Ext,DSP,Internal
     number _TrigTimeT;// trigger time tap
@@ -42,6 +45,9 @@ protected:
     geant FTrate(){return geant(_FTtrig[0]);}
     geant FTCrate(){return geant(_FTtrig[1]);}
     geant LVL1rate(){return geant(_LVL1trig[0]);}
+    geant &TGateLT(){return _tgatelt;}
+    geant &TGateTR(){return _tgatetr;}
+    geant &TGateSC(){return _tgatesc;}
 /*
     number &SPtrig(int i){return _SPtrig[i];}
     number &TrigTimeT(){return _TrigTimeT;}
@@ -240,7 +246,7 @@ private:
 //          i=7 =>
 //         i=15 => HW-created LVL1 found
 // 
-  static integer daqc1[70];//daq-decoding counters
+  static integer daqc1[80];//daq-decoding counters
 //            i=0 -> LVL1-segment entries
 //             =1 -> ............ non empty
 //             =2 -> ............ with a-side 

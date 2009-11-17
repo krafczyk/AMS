@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.72 2009/11/16 10:39:36 choutko Exp $
+//  $Id: trigger102.C,v 1.73 2009/11/17 16:45:54 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -26,7 +26,7 @@ using namespace ecalconst;
  Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
  integer Trigger2LVL1::PhysBranchCount[8]={0,0,0,0,0,0,0,0};
  integer TGL1JobStat::countev[20];
- integer TGL1JobStat::daqc1[70];
+ integer TGL1JobStat::daqc1[80];
  int16u Trigger2LVL1::nodeids[2]={14,15};//node addr for side_a/_b
  bool Trigger2LVL1::SetupIsChanged(false);
  bool Trigger2LVL1::ScalerIsChanged(false);
@@ -529,6 +529,11 @@ if((TGL1FFKEY.printfl%10)>0){
   }
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   HBOOK1(1094,"LiveTime(portion)",100,0.1,1.1,0.);
+  HBOOK1(1294,"LVL1:FT-rate(Hz)",100,0.,3000.,0.);
+  HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,3000.,0.);
+  HBOOK1(1296,"LVL1:FTZ-rate(Hz)",100,0.,2000.,0.);
+  HBOOK1(1297,"LVL1:FTE-rate(Hz)",100,0.,2000.,0.);
+  HBOOK1(1298,"LVL1:Lev1-rate(Hz)",100,0.,2000.,0.);
 }
   TGL1JobStat::resetstat();
   SetupIsChanged=false;//reset new_setup flag
@@ -1133,6 +1138,9 @@ void Trigger2LVL1::ScalerMon::setdefs(){
     _DetMaxRate[3]=1;
     _DetMaxRate[4]=1;
     _TimeCalib=0;
+    _tgatelt=0;
+    _tgatetr=0;
+    _tgatesc=0;
 /*
     for(int i=0;i<5;i++)_SPtrig[i]=0;
     for(int i=0;i<4;i++){
@@ -1160,8 +1168,11 @@ void Trigger2LVL1::ScalerMon::setdefs(){
   else if(AMSJob::gethead()->isRealData()){//set "-1" as "undefined"
     for(int i=0;i<5;i++)_FTtrig[i]=-1;
     for(int i=0;i<9;i++)_LVL1trig[i]=-1;
-    for(int i=0;i<5;i++)_DetMaxRate[i]=-1;
+    for(int i=0;i<5;i++)_DetMaxRate[i]=-1;    
     _TimeCalib=0;
+    _tgatelt=0;
+    _tgatetr=0;
+    _tgatesc=0;
 /*
     for(int i=0;i<5;i++)_SPtrig[i]=-1;
     for(int i=0;i<4;i++){
@@ -1192,7 +1203,7 @@ void Trigger2LVL1::ScalerMon::setdefs(){
 //---------
   void TGL1JobStat::resetstat(){
     for(int i=0;i<20;i++)countev[i]=0;
-    for(int i=0;i<70;i++)daqc1[i]=0;
+    for(int i=0;i<80;i++)daqc1[i]=0;
   }
 //
   void TGL1JobStat::addev(int i){
@@ -1225,6 +1236,11 @@ if((TGL1FFKEY.printfl%10)>0){
   HPRINT(1092);
   HPRINT(1093);
   HPRINT(1094);
+  HPRINT(1294);
+  HPRINT(1295);
+  HPRINT(1296);
+  HPRINT(1297);
+  HPRINT(1298);
 }
   printf("\n");
   printf("    ============ LVL1-PreDecoding statistics =============\n");
@@ -1244,6 +1260,7 @@ if((TGL1FFKEY.printfl%10)>0){
     printf(" TrigSetup block found               : % 8d\n",daqc1[56]);
     printf(" TrigSetup block updates             : % 8d\n",daqc1[57]);
     printf(" Scalers block found                 : % 8d\n",daqc1[58]);
+    printf(" Scalers block updates(sw-changes)   : % 8d\n",daqc1[65]);
     printf(" CompFmt time-calib info updates     : % 8d\n",daqc1[59]);
     printf(" CompFmt LiveTime info updates       : % 8d\n",daqc1[60]);
     printf(" CompFmt LiveTime-1 > 1              : % 8d\n",daqc1[61]);
@@ -1275,7 +1292,7 @@ if((TGL1FFKEY.printfl%10)>0){
     printf(" TrigSetupBlock entries              : % 8d\n",daqc1[9]);
     printf(" TrigSetupBlock Changes              : % 8d\n",daqc1[16]);
     printf(" ScalersBlock entries                : % 8d\n",daqc1[11]);
-//    printf(" ............ length OK              : % 8d\n",daqc1[12]);
+    printf(" ScalersBlock Changes                : % 8d\n",daqc1[12]);
     printf(" Total bad structure LVL1-segments   : % 8d\n",daqc1[13]);
     printf(" At least 1 FT-memb in LVL1          : % 8d\n",daqc1[35]);
     printf(" Events with JMemb&PhysBrMem_patt >0 : % 8d\n",daqc1[36]);
@@ -1512,14 +1529,14 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
 //now we have 32 setup words
 //=====================> Add LiveTime registers all_buzy/fe_buzy:
     ltim=uinteger(tgate/(2.e-8));//ref.counter value for 20ns period and tgate
-    *(p+livetbs+1) = int16u(ltim&(0xFFFFL));//16 lsb of All_buzy LiveTime
+    *(p+livetbs) = int16u(ltim&(0xFFFFL));//16 lsb of All_buzy LiveTime
     rrr=int16u((ltim&(0x7FF0000L))>>16);//11 msb
     rrr|=(2<<12);//time gate code (2->1sec)
-    *(p+livetbs) = rrr;
-    *(p+livetbs+3) = int16u(ltim&(0xFFFFL));//16 lsb of Fe_buzy LiveTime
+    *(p+livetbs+1) = rrr;
+    *(p+livetbs+2) = int16u(ltim&(0xFFFFL));//16 lsb of Fe_buzy LiveTime
     rrr=int16u((ltim&(0x7FF0000L))>>16);//11 msb
     rrr|=(2<<12);//time gate code (2->1sec)
-    *(p+livetbs+2) = rrr;
+    *(p+livetbs+3) = rrr;
     nwords+=4;
 //======================> Add status word:
     rrr=getdaqid(0);//board side-A node(slave)id (14)
@@ -1629,6 +1646,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
+  bool LTwinv=false;//invert order of 2 LiveTime word
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
@@ -1681,6 +1699,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     trgsbias=15;//bias to trig-setup sub-block(points to PREVIOUS to the 1st sub-block word)
     ltimbias=48;//bias to time sub-block
     formt=1;//means real raw fmt
+    if(PreAssRD && jleng==52 && datyp==2)LTwinv=true;//invert for 2008 data
   }
   else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
     pattbias=0;//bias to patterns sub-block
@@ -1924,12 +1943,14 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   }//------>endof "TrigPatt"(ev-by-ev) block
 //======================================================================
   if(formt==1){// <------- LiveTime info (present in every event for raw fmt case)
-// warning: 1st and 2nd words are interchanged in each livetime pair
+// warning: 1st and 2nd words are interchanged in each livetime pair for 2008 data
     TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
     for(j=0;j<2;j++){// lt1/lt2
-      word=*(p+ltimbias+1+2*j);//1st 16bits of live-time
+      if(LTwinv)word=*(p+ltimbias+1+2*j);//1st 16bits of live-time
+      else word=*(p+ltimbias+2*j);
       ltim=uinteger(word);
-      lword=uinteger(*(p+ltimbias+2*j));//last 11bits of live_time + time_gate.id
+      if(LTwinv)lword=uinteger(*(p+ltimbias+2*j));//last 11bits of live_time + time_gate.id
+      else lword=uinteger(*(p+ltimbias+1+2*j));
       ltim|=((lword&0x07FFL)<<16);
       timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
       if(timgid==3)tgate=2;//time-gate(sec)
@@ -1988,7 +2009,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 	if(ib==15)nrdow3+=5;
       }
     }
-    lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+1 for stat-word) 
+    lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+1 for stat-word)
   }
 //========>
   if((lencalc+1)!=len){
@@ -2212,54 +2233,55 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 // tempor debugging: decode scalers here and compare with latest ones in static arr(done in Early(Pre)Decoding): 
 //
 //==============================> Scalers Block decoding(CompFmt only, incl.LiveTime)
+//  RECO is already done in BuildEarly !!! Here just counting for control !!!
 //
-  if(formt==2 && nrdow3>0){//<--- scalers ("from-time-to-time") block found
+  if(formt==2 && nrdow3>0){//<--- Compr.fmt scalers ("from-time-to-time") block found
     TGL1JobStat::daqs1(11);//"ScalersBlock" entries
-    scalbias=trgsbias+nrdow1+nrdow2;
+    scalbias=trgsbias+nrdow1+nrdow2+2;//+2 to counts nw1/2 itself
     rstatw3=*(p+scalbias);//section's readout-members bit-pattern
     nw3=0;
 //---
     bit=1;
     if((rstatw3&bit)>0){//<---time-gate for LiveTime
       word=*(p+scalbias+1+nw3);
-      tgid=((word&0x3000)>>12);//2bits of time_gate.id
-      if(tgid==3)tgatelt=2;//time-gate(sec)
-      else if(tgid==0)tgatelt=0.25;
-      else if(tgid==1)tgatelt=0.5;
-      else tgatelt=1;
+//      tgid=(word&0x3);//2bits of time_gate.id(already extracted/shifted by Kounin)
+//      if(tgid==3)tgatelt=2;//time-gate(sec)
+//      else if(tgid==0)tgatelt=0.25;
+//      else if(tgid==1)tgatelt=0.5;
+//      else tgatelt=1;
       nw3+=1;
     }
 //---
     bit=(1<<1);
     if((rstatw3&bit)>0){//<--- time-gate for scalers in trigger FPGA
       word=*(p+scalbias+1+nw3);
-      tgid=((word&0x3000)>>12);//time-gate for trigger-scalers
-      if(tgid==3)tgatetr=2;//time-gate(sec)
-      else if(tgid==0)tgatetr=0.25;
-      else if(tgid==1)tgatetr=0.5;
-      else tgatetr=1;
+//      tgid=(word&0x3);//time-gate for trigger-scalers
+//      if(tgid==3)tgatetr=2;//time-gate(sec)
+//      else if(tgid==0)tgatetr=0.25;
+//      else if(tgid==1)tgatetr=0.5;
+//      else tgatetr=1;
       nw3+=1;
     }
 //---
     bit=(1<<2);
     if((rstatw3&bit)>0){//<--- time-gate for scalers in scalers FPGA
       word=*(p+scalbias+1+nw3);
-      tgid=((word&0x3000)>>12);//time-gate for scaler-scalers
-      if(tgid==3)tgatesc=2;//time-gate(sec)
-      else if(tgid==0)tgatesc=0.25;
-      else if(tgid==1)tgatesc=0.5;
-      else tgatesc=1;
+//      tgid=(word&0x3);//time-gate for scaler-scalers
+//      if(tgid==3)tgatesc=2;//time-gate(sec)
+//      else if(tgid==0)tgatesc=0.25;
+//      else if(tgid==1)tgatesc=0.5;
+//      else tgatesc=1;
       nw3+=1;
     }
 //---
     bit=(1<<12);
     if((rstatw3&bit)>0){//<--- time-calibration
       word=*(p+scalbias+1+nw3);
-      nword=*(p+scalbias+1+nw3+1);
-      timcal=0;
-      timcal|=uinteger(word);
-      lword=uinteger(nword);//last 16bits of time-calib word
-      timcal|=(lword<<16);
+//      nword=*(p+scalbias+1+nw3+1);
+//      timcal=0;
+//      timcal|=uinteger(word);
+//      lword=uinteger(nword);//last 16bits of time-calib word
+//      timcal|=(lword<<16);
       nw3+=2;
     }
 //---
@@ -2267,82 +2289,80 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     if((rstatw3&bit)>0){//<--- LiveTime1/2
       TGL1JobStat::daqs1(7);//"LiveTimeBlock" entries
       for(j=0;j<2;j++){// lt1/lt2
-        word=*(p+scalbias+1+nw3);//last 11bits + time-gate.id
-        nword=*(p+scalbias+1+nw3+1);//first 16bits
-        ltim=uinteger(nword);
-        lword=uinteger(word);//last 11bits of live_time + time_gate.id
-        ltim|=((lword&0x07FFL)<<16);
-        timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
-        if(timgid==3)tgate=2;//time-gate(sec)
-        else if(timgid==0)tgate=0.25;
-        else if(timgid==1)tgate=0.5;
-        else tgate=1;
-        ltimec[j]=ltim;
-        ltimeg[j]=tgate;
-        livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
-        if(livetm[j]>1){
-          if((TGL1FFKEY.printfl/10)>=1){
-	    cout<<" <---- Trigger2LVL1::buildraw:W - LiveTime1>1!, tg/lt="<<
-	                tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<livetm[j]<<endl;
-          }
-//           LiveTime[j]=1; 
-          TGL1JobStat::daqs1(6+2*j);//counts  LTime>1
-        } 
+//        word=*(p+scalbias+1+nw3+1);//last 11bits + time-gate.id, No inversion for compr.format
+//        nword=*(p+scalbias+1+nw3);//first 16bits
+//        ltim=uinteger(nword);
+//        lword=uinteger(word);//last 11bits of live_time + time_gate.id
+//        ltim|=((lword&0x07FFL)<<16);
+//        timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
+//        if(timgid==3)tgate=2;//time-gate(sec)
+//        else if(timgid==0)tgate=0.25;
+//        else if(timgid==1)tgate=0.5;
+//        else tgate=1;
+//        ltimec[j]=ltim;
+//        ltimeg[j]=tgate;
+//        if(tgate>0)livetm[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
+//	  else livetm[j]=0;
+//        if(livetm[j]>1 || livetm[j]==0){
+//          if((TGL1FFKEY.printfl/10)>=1){
+//	    cout<<" <---- Trigger2LVL1::buildraw:W - Wrong LiveTime, tg/lt="<<
+//	                tgate<<" LiveTime="<<livetm[j]<<" static="<<scalmon.LiveTime(j)<<endl;
+//          }
+//          TGL1JobStat::daqs1(6+2*j);//counts  LTime>1,=0
+//        } 
         nw3+=2;
       }
     }
 //---
     bit=(1<<14);
     if((rstatw3&bit)>0){//<--- FT/LVL1-rates
-      for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys) 
-        word=*(p+scalbias+1+nw3+j);
-	scrate=number(word)/tgatetr;
-	tgrates[j]=scrate;
-      }
+//      for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys) 
+//        word=*(p+scalbias+1+nw3+j);
+//	  scrate=number(word)/tgatetr;
+//	  tgrates[j]=scrate;
+//      }
       nw3+=5;
 //-
-      for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
-        word=*(p+scalbias+1+nw3+j);
-	scrate=number(word)/tgatetr;
-	tgrates[5+j]=scrate;
-      }
+//      for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
+//        word=*(p+scalbias+1+nw3+j);
+//	  scrate=number(word)/tgatetr;
+//	  tgrates[5+j]=scrate;
+//      }
       nw3+=9;
     }
 //---
     bit=(1<<15);
-    if((rstatw3&bit)>0){//<--- Detector-rates(SideMax for Tof/Acc/ECf/ECa)
-      for(j=0;j<5;j++){
-        word=*(p+scalbias+1+nw3+j);
-        if(tgatesc){
-	scrate=number(word)/tgatesc;
-	dtrates[j]=scrate;
-        }
-        else{
-          static int err=0;
-          if(  err++<100)cerr<<" tgatesc 0 "<<endl;
-          dtrates[j]=0;
-        }
-      }
+    if((rstatw3&bit)>0){//<--- Detector-rates(SideMax for Tof(CP)/Tof(BZ)/Acc/ECf(FTE)/ECa(L1))
+//      for(j=0;j<5;j++){
+//        word=*(p+scalbias+1+nw3+j);
+//	  scrate=number(word)/tgatesc;
+//	  dtrates[j]=scrate;
+//      }
       nw3+=5;
     }
 //-------
-    if(livetm[0]!=scalmon.LiveTime(0) || livetm[1]!=scalmon.LiveTime(1)){
-      cerr<<"TriggerLVL1-E-LiveTimes NotMatch "<<livetm[0]<<" "<<scalmon.LiveTime(0)<<" "
-          <<livetm[1]<<" "<<scalmon.LiveTime(1)<<endl;
-    }
+//    if(livetm[0]!=scalmon.LiveTime(0) || livetm[1]!=scalmon.LiveTime(1)){
+//      cerr<<"TriggerLVL1-E-Event/Static LiveTimes Mismatch "<<livetm[0]<<" "<<scalmon.LiveTime(0)<<" "
+//          <<livetm[1]<<" "<<scalmon.LiveTime(1)<<endl;
+//    }
   }//--->endof Scalers Block decoding
 #endif
 //---------------
-  if((TGL1FFKEY.printfl%10)>=2 && ScalerIsChanged){//print brief scalers info (on change and request):
+  if(ScalerIsChanged){//print brief scalers info (on change and request):
+    TGL1JobStat::daqs1(12);//"ScalersBlock" changes
+    if((TGL1FFKEY.printfl%10)>=2){
 #pragma omp critical (print_scaler)
 { 
-    cout<<"===================================================="<<endl;
-    cout<<"|      Some Scalers changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
-                                                                AMSEvent::gethead()->getid()<<endl;
-    cout<<"|        New ScalerWordsPatterns(hex): "<<hex<<rstatw3<<dec<<endl;
-    cout<<"===================================================="<<endl;
+      cout<<"===================================================="<<endl;
+      cout<<"|      Some Scalers changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
+                                                                  AMSEvent::gethead()->getid()<<endl;
+      cout<<"|        New ScalerWordsPatterns(hex): "<<hex<<rstatw3<<dec<<endl;
+      cout<<"| Rates: Lvl1="<<scalmon.LVL1trig(0)<<"  FT="<<scalmon.FTtrig(0)<<" FTC="<<scalmon.FTtrig(1)<<endl;
+      cout<<"===================================================="<<endl;
 }//--->endof pragma
-  }//---> endof "PrintSetupInfo"
+    }//---> endof "PrintSetupInfo"
+    ScalerIsChanged=false;//reset
+  }//---> endof "ScalerIsChanged"
 //-------------------------------------------------------------------------------------------
 //
 //===================================> create Lev1-object:
@@ -2358,13 +2378,13 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     LiveTime[0]=livetm[0]; 
     LiveTime[1]=livetm[1];
     trtime[0]=timcal;
-  }
   if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
     HF1(1094,geant(LiveTime[0]),1.);
 }
   } 
+  }
 // 
   for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys)
     TrigRates[j]=scalmon.FTtrig(j);
@@ -2437,7 +2457,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   uinteger lword;
   uinteger ltim(0);
   geant tgate(0);
-  static geant tgatelt(0),tgatetr(0),tgatesc(0);
+  geant tgatelt(0),tgatetr(0),tgatesc(0);
   uinteger ltimec[2];
   geant ltimeg[2];
   uinteger timgid;
@@ -2475,13 +2495,13 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
   bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   bool noerr;
+  bool LTwinv=false;
 //
   uinteger runn=DAQEvent::gethead()->runno();
   time_t run_utct=time_t(runn);
   uinteger evn=DAQEvent::gethead()->eventno();
   time_t evtime=DAQEvent::gethead()->time();
-// cout<<"--->In Early: run/event="<<runn<<" "<<evn<<" evtime="<<ctime(&evtime)<<" rundate: "<<ctime(&run_utct)<<endl;
-// cout<<"    RDPreass="<<PreAssRD<<endl;
+//
   if(AMSUser::PreviousRunN()!=runn){
     if(AMSUser::PreviousRunN()==0){
       AMSUser::JobFirstRunN()=runn;
@@ -2533,6 +2553,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     trgsbias=15;//bias to trig-setup sub-block(points to PREVIOUS to the 1st sub-block word)
     ltimbias=48;//bias to time sub-block
     formt=1;//means real raw fmt
+    if(PreAssRD && jleng==52 && datyp==2)LTwinv=true;//invert for 2008 data
   }
   else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
     pattbias=0;//bias to patterns sub-block
@@ -2569,9 +2590,11 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     TGL1JobStat::daqs1(52);// count RawFmt LiveTime updates
 // warning: 1st and 2nd words are interchanged in each livetime pair
     for(j=0;j<2;j++){// lt1/lt2
-      word=*(p+ltimbias+1+2*j);//1st 16bits of live-time
+      if(LTwinv)word=*(p+ltimbias+1+2*j);//1st 16bits of live-time, 
+      else word=*(p+ltimbias+2*j);
       ltim=uinteger(word);
-      lword=uinteger(*(p+ltimbias+2*j));//last 11bits of live_time + time_gate.id
+      if(LTwinv)lword=uinteger(*(p+ltimbias+2*j));//last 11bits of live_time + time_gate.id
+      else lword=uinteger(*(p+ltimbias+1+2*j));
       ltim|=((lword&0x07FFL)<<16);
       timgid=((lword&0x3000L)>>12);//2bits of time_gate.id
       if(timgid==3)tgate=2;//time-gate(sec)
@@ -2630,7 +2653,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 	if(ib==15)nrdow3+=5;
       }
     }
-    lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+2 for 2 readoutstat-words) 
+    lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt 
   }
 //========>
   if((lencalc+1)!=lenoncall){
@@ -2641,7 +2664,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   }
 //=============================> TrigSetup block decoding:
 // This section updates TrigConfig parameters of current Lvl1TrigConfig-object(static l1trigconf) in memory
-//  CP/CT/BZinp-masks are not srored in Lvl1TrigConfig-object for the moment, so the related 
+//  CP/CT/BZinp-masks are not stored in Lvl1TrigConfig-object for the moment, so the related 
 //       decoded info is not used now !!!!!!
 //
   if(nrdow1>0 || nrdow2>0){
@@ -2807,41 +2830,43 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   number scrate;
   if(formt==2 && nrdow3>0){//<--- scalers(+live_time+gate_width) "from-time-to-time" block
     TGL1JobStat::daqs1(58);//"ScalersBlock" entries
-    scalbias=trgsbias+nrdow1+nrdow2+2;//+2 for nrdow1/2 itself
     rstatw3=*(p+scalbias);//section's readout-members bit-pattern
     nw3=0;
 //---
     bit=1;
     if((rstatw3&bit)>0){//<---time-gate for LiveTime
       word=*(p+scalbias+1+nw3);
-      tgid=((word&0x3000)>>12);//2bits of time_gate.id
+      tgid=(word&0x3);//2bits of time_gate.id(already extracted/shifted by Kounin)
       if(tgid==3)tgatelt=2;//time-gate(sec)
       else if(tgid==0)tgatelt=0.25;
       else if(tgid==1)tgatelt=0.5;
       else tgatelt=1;
       nw3+=1;
+      scalmon.TGateLT()=tgatelt;//update LiveTime-scaler gate in static var.
     }
 //---
     bit=(1<<1);
     if((rstatw3&bit)>0){//<--- time-gate for scalers in trigger FPGA
       word=*(p+scalbias+1+nw3);
-      tgid=((word&0x3000)>>12);//time-gate for trigger-scalers
+      tgid=(word&0x3);//time-gate for trigger-scalers
       if(tgid==3)tgatetr=2;//time-gate(sec)
       else if(tgid==0)tgatetr=0.25;
       else if(tgid==1)tgatetr=0.5;
       else tgatetr=1;
       nw3+=1;
+      scalmon.TGateTR()=tgatetr;//update in static var.
     }
 //---
     bit=(1<<2);
     if((rstatw3&bit)>0){//<--- time-gate for scalers in scalers FPGA
       word=*(p+scalbias+1+nw3);
-      tgid=((word&0x3000)>>12);//time-gate for scaler-scalers
+      tgid=(word&0x3);//time-gate for scaler-scalers
       if(tgid==3)tgatesc=2;//time-gate(sec)
       else if(tgid==0)tgatesc=0.25;
       else if(tgid==1)tgatesc=0.5;
       else tgatesc=1;
       nw3+=1;
+      scalmon.TGateSC()=tgatesc;//update in static var.
     }
 //---
     bit=(1<<12);
@@ -2861,8 +2886,8 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     if((rstatw3&bit)>0){//<--- LiveTime1/2
       TGL1JobStat::daqs1(60);//"LiveTimeBlock" entries
       for(j=0;j<2;j++){// lt1/lt2
-        word=*(p+scalbias+1+nw3);//last 11bits + time-gate.id
-        nword=*(p+scalbias+1+nw3+1);//first 16bits
+        word=*(p+scalbias+1+nw3+1);//last 11bits + time-gate.id
+        nword=*(p+scalbias+1+nw3);//first 16bits
         ltim=uinteger(nword);
         lword=uinteger(word);//last 11bits of live_time + time_gate.id
         ltim|=((lword&0x07FFL)<<16);
@@ -2873,16 +2898,28 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         else tgate=1;
         ltimec[j]=ltim;
         ltimeg[j]=tgate;
-        LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
-        if(LiveTime[j]>1){
-          if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - LiveTime1>1!, tg/lt="<<
-	  tgate<<" "<<ltim<<" type="<<j+1<<" LiveTime="<<LiveTime[j]<<endl;
+	if(tgate!=scalmon.TGateLT()){//just check Kunin
+	  if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - Event/static LiveTime-gate mismatch: "<<
+	                                             tgate<<"/"<<scalmon.TGateLT()<<endl;
+	  if(tgate==0)tgate=scalmon.TGateLT();
+	}
+        if(tgate>0)LiveTime[j]=geant(number(ltim)*(2.e-8))/tgate;//livetime fraction(imply 20ns pulses period)
+	else LiveTime[j]=0;
+        if(LiveTime[j]>1 || LiveTime[j]==0){
+          if((TGL1FFKEY.printfl/10)>=1)cout<<" <---- Trigger2LVL1::BuildRawEarly:W - Wrong LiveTime, tgate="<<
+	                 tgate<<" static="<<scalmon.TGateLT()<<" type="<<j+1<<" LiveTime="<<LiveTime[j]<<endl;
 //           LiveTime[j]=1; 
           TGL1JobStat::daqs1(61+j);//counts  LTime>1
         } 
         scalmon.LiveTime(j)=LiveTime[j];//copy to scalmon
         nw3+=2;
       }
+      if((TGL1FFKEY.printfl%10)>0){//for compr.fmt fill here(for raw - in BuildRaw because in have it each event)
+#pragma omp critical (hf1)
+{
+        HF1(1094,geant(scalmon.LiveTime(0)),1.);
+}
+      } 
     }
 //---
     bit=(1<<14);
@@ -2890,25 +2927,52 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
       TGL1JobStat::daqs1(63);//"FT/LVL1-rates" entries
       for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys) 
         word=*(p+scalbias+1+nw3+j);
-	scrate=number(word)/tgatetr;
+	if(scalmon.TGateTR()>0)scrate=number(word)/scalmon.TGateTR();
+	else{
+	  scrate=0;
+	  if((TGL1FFKEY.printfl/10)>0){
+	    cout<<"<---- Trigger2LVL1::BuildRawEarly:W - TrigScallersGate=0 !!!"<<endl;
+	  }
+	}
         scalmon.FTtrig(j)=scrate;//set FTs rates
+        if(j<4 && (TGL1FFKEY.printfl%10)>0){//for compr.fmt
+#pragma omp critical (hf1)
+{
+          HF1(1294+j,geant(scalmon.FTtrig(j)),1.);
+}
+        } 
       }
       nw3+=5;
 //-
       for(j=0;j<9;j++){//<--- Lev1,subLev1 rates
         word=*(p+scalbias+1+nw3+j);
-	scrate=number(word)/tgatetr;
+	if(scalmon.TGateTR()>0)scrate=number(word)/scalmon.TGateTR();
+	else{
+	  scrate=0;
+	}
         scalmon.LVL1trig(j)=scrate;
+        if(j<1 && (TGL1FFKEY.printfl%10)>0){//for compr.fmt
+#pragma omp critical (hf1)
+{
+          HF1(1298+j,geant(scalmon.LVL1trig(j)),1.);
+}
+        } 
       }
       nw3+=9;
     }
 //---
     bit=(1<<15);
-    if((rstatw3&bit)>0){//<--- Detector-rates(SideMax for Tof/Acc/ECf/ECa)
+    if((rstatw3&bit)>0){//<--- Detector-rates(SideMax for Tof(cp)/Tof(bz)/Acc/ECf/ECa)
       TGL1JobStat::daqs1(64);//"SubDet-rates" entries
       for(j=0;j<5;j++){
         word=*(p+scalbias+1+nw3+j);
-	scrate=number(word)/tgatesc;
+	if(scalmon.TGateSC()>0)scrate=number(word)/scalmon.TGateSC();
+	else{
+	  scrate=0;
+	  if((TGL1FFKEY.printfl/10)>0){
+	    cout<<"<---- Trigger2LVL1::BuildRawEarly:W - SubdScallersGate=0 !!!"<<endl;
+	  }
+	}
         scalmon.DetMaxRate(j)=scrate;
       }
       nw3+=5;
@@ -2918,6 +2982,9 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //----------> check change of any scaler-block parameter
 //
   if(rstatw3!=0 && rstatw3!=parbitpatt[2]){
+    TGL1JobStat::daqs1(65);//ScalersBlock changes
+    if((TGL1FFKEY.printfl/10)>1)
+       cout<<"<--- InBuildEarly :ScalersChanged:rstatw3/static="<<hex<<rstatw3<<" "<<parbitpatt[2]<<dec<<endl; 
     parbitpatt[2]=rstatw3;
     ScalerIsChanged=true;
   }

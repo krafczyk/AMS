@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.87 2009/11/15 11:46:57 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.88 2009/11/17 16:45:54 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -746,9 +746,9 @@ void EcalJobStat::printstat(){
        cout<<" Sequencer-error  : ";
        for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][12+12*fmt];
        cout<<endl;
-       cout<<" EmptySlot        : ";
-       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][13+12*fmt];
-       cout<<endl;
+//       cout<<" EmptySlot        : ";
+//       for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][13+12*fmt];
+//       cout<<endl;
        cout<<" CDPnodeBit set   : ";
        for(int sl=0;sl<7;sl++)cout<<setw(7)<<daqc3[crt][sl][14+12*fmt];
        cout<<endl;
