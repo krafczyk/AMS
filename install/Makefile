@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.87 2009/11/12 16:49:06 pzuccon Exp $
+#  $Id: Makefile,v 1.88 2009/11/17 15:10:10 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -116,7 +116,6 @@ ifeq ($(origin ARCH), undefined)
   ARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
 endif
 local_makefile = Makefile.$(ARCH)
-
 include $(local_makefile)
 
 # combine compiler flags with pre-processor flags

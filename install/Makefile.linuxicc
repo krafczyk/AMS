@@ -26,7 +26,7 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 endif
 
-
+SLC4system=1
 RH9=1
 RH9add=
 ifdef RH9

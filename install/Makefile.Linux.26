@@ -181,6 +181,7 @@ SOFLAGS = -shared
 
 ifdef SLC4system
 ifdef VER
+echo 'blia'
 else
  SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
 endif
