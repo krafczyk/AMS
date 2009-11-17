@@ -1,7 +1,13 @@
 *
-* $Id: TrackFit_utils.F,v 1.28 2009/11/16 10:39:38 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.30 2009/11/17 17:15:45 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.30  2009/11/17 17:15:45  choutko
+* *** empty log message ***
+*
+* Revision 1.29  2009/11/16 10:40:03  choutko
+* *** empty log message ***
+*
 * Revision 1.28  2009/11/16 10:39:38  choutko
 * *** empty log message ***
 *
@@ -173,7 +179,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.28 2009/11/16 10:39:38 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.30 2009/11/17 17:15:45 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6667,7 +6673,7 @@ c         ENDIF
 #ifdef __CORBA__
       parameter (maxcases=2000)
 #else
-#ifndef __AMSPARALLEL__
+#ifdef __AMSPARALLEL__
       parameter (maxcases=5900000)
 #else
       parameter (maxcases=300000)
@@ -6818,7 +6824,7 @@ c           phi(i,j,k,l)=0
       rigr=0
       ntot=0
 #ifdef __AMSPARALLEL__
-       call omp_set_num_threads(omp_get_num_procs()-3)
+       call omp_set_num_threads(omp_get_num_procs()/2)
 c       call omp_set_num_threads(1)
        !$OMP PARALLEL   DEFAULT(NONE) PRIVATE(ims,
      + ialgo,npt,layer,
@@ -6992,7 +6998,7 @@ c          write(*,*)'chi2 ',i,iter,chi2
             xchi2(2,i)=ch(1)+ch(2)
         endif
         if((chi2.lt.chi2max.and.rig.gt.rigmin).or.iter.lt.itermin)then
-#ifdef __AMSPARALLEL
+#ifdef __AMSPARALLEL__
        !$OMP  CRITICAL
 #endif
          do j=1,nplan
@@ -7784,9 +7790,15 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.28 2009/11/16 10:39:38 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.30 2009/11/17 17:15:45 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.30  2009/11/17 17:15:45  choutko
+* *** empty log message ***
+*
+* Revision 1.29  2009/11/16 10:40:03  choutko
+* *** empty log message ***
+*
 * Revision 1.28  2009/11/16 10:39:38  choutko
 * *** empty log message ***
 *
