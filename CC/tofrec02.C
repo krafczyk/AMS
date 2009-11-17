@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.65 2009/11/17 16:45:54 choumilo Exp $
+//  $Id: tofrec02.C,v 1.66 2009/11/17 17:11:42 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -753,7 +753,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
 //-----> select TRUE FT-correlated LTtime-hit(in ttdc) and, if requested, SumHT-matched :
 //
-          number dtbest[isd],sdtbest[isd];
+          number dtbest[2],sdtbest[2];
           for(isd=0;isd<2;isd++){
 	    tmbest[isd]=0;
 	    itmbest[isd]=-1;
