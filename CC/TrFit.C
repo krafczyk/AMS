@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.5 2009/08/26 17:50:57 pzuccon Exp $
+//  $Id: TrFit.C,v 1.6 2009/11/17 11:44:31 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/08/26 17:50:57 $
+///$Date: 2009/11/17 11:44:31 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -473,6 +473,8 @@ double TrFit::VKResidual(double x, double y, double *par)
 
 double TrFit::SimpleFit(void)
 {
+  if (_nhitx < 2 || _nhity < 3) return -1;
+
   double len[LMAX];
 
   // Length
@@ -929,16 +931,17 @@ double TrFit::ChoutkoFit(void)
 {
   if(_nhit > LMAX || 2*_nhit <= 5 || _chrg == 0) return -1;
 
+  // Set initial parameters with SimpleFit
+  if (SimpleFit() < 0) return -1;
+
+  _param[0] = _p0x; _param[1] = _dxdz;
+  _param[2] = _p0y; _param[3] = _dydz;
+  _param[4] = 1/_rigidity;
+
   for (int i = 0; i < _nhit; i++) {
     if (_xs[i] <= 0) _xs[i] = _zs[i]*1e8;
     if (_ys[i] <= 0) _ys[i] = _zs[i]*1e8;
   }
-
-  // Set initial parameters with SimpleFit
-  SimpleFit();
-  _param[0] = _p0x; _param[1] = _dxdz;
-  _param[2] = _p0y; _param[3] = _dydz;
-  _param[4] = 1/_rigidity;
 
   int maxcal = 100;
 
@@ -2088,10 +2091,10 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
   double xmat[NDIM][NDIM];
 
   int ich = 0;
-  double za = out[2];
   double vin[7];
   for (int i = 0; i < 7; i++) vin[i] = out[i] = init[i];
 
+  double za = out[2];
   double sdist = (point[0]-out[0])*point[3]+
                  (point[1]-out[1])*point[4]+
                  (point[2]-out[2])*point[5];
@@ -2275,11 +2278,7 @@ void TrProp::VCFuncXY(double *in, double *out, double *derl, int clear)
     //PZMAG    MagField::GetPtr()->GuFld(xx, h);
     GUFLD(xx,h);
     //PZMAG    MagField::GetPtr()->TkFld(xx, hxy);
-    float hh[3][3];
-    TKFLD(xx,hh);
-    for (int ii=0;ii<3;ii++)
-      for (int jj=0;jj<3;jj++)
-	hxy[ii][jj]=hh[jj][ii]; 
+    TKFLD(xx,hxy);
     der[k][0] = s*(dx*dy*hxy[0][0]-(1+dx*dx)*hxy[0][1]+dy*hxy[0][2]);
     der[k][1] = s*(dx*dy*hxy[1][0]-(1+dx*dx)*hxy[1][1]+dy*hxy[1][2]);
 

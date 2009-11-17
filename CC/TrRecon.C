@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.17 2009/09/13 12:33:52 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.18 2009/11/17 11:44:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/09/13 12:33:52 $
+/// $Date: 2009/11/17 11:44:31 $
 ///
-/// $Revision: 1.17 $
+/// $Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2076,7 +2076,7 @@ void TrSim::DSP_Clusterize(int tkid,float *buf){
     if(used[ii]!=0) continue;
     if(tcal->Status(ii)!=0) continue;
     if(buf[ii]/(tcal->Sigma(ii))<=TRMCFFKEY.th1sim[1]) continue;
-    if(buf[ii+1]/(tcal->Sigma(ii+1))>buf[ii]/(tcal->Sigma(ii)) ) continue;
+    if(ii+1<1024 && buf[ii+1]/(tcal->Sigma(ii+1))>buf[ii]/(tcal->Sigma(ii)) ) continue;
     //SEED found
     int seed=ii;
     used[ii]=1;

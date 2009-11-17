@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.80 2009/08/17 12:53:54 pzuccon Exp $
+//  $Id: charge.C,v 1.81 2009/11/17 11:44:31 shaino Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -372,6 +372,8 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
                                            number etrk[TrkTypes-1][TrackerMaxHits]){
 #ifdef _PGTRACK_
   //PZ FIXME CHARGE
+  for(int i=0; i<MaxZTypes; i++) _ProbTracker[i]=0;
+  for(int i=0; i<MaxZTypes; i++) _IndxTracker[i]=i;
   return -1;
 #else
   static number ETRK[TrkTypes-1][TrackerMaxHits];
