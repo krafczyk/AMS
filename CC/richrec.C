@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.128 2009/11/16 14:58:28 mdelgado Exp $
+//  $Id: richrec.C,v 1.129 2009/11/17 10:11:13 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -352,7 +352,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   while(fabs(delta)>1e-5 && time_out<5){
     // Solution does not exist, or it is not continuously reachable from
     // the starting point
-    if(u>=1 || n*u>=1){u=-1; break;}
+    if(fabs(n*u)>=1 || fabs(u)>=1){u=-1; break;}
 
     f=R-h*u/sqrt(1-u*u)-
       H*u*n/sqrt(1-n*n*u*u);
