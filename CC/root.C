@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.194 2009/11/11 15:56:19 choutko Exp $
+//  $Id: root.C,v 1.195 2009/11/17 15:29:13 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -403,7 +403,8 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
         for(int i=4;i<strlen(f1->GetName());i++){
           if(i>4 && f1->GetName()[i] =='_'){
 	    TString st(f1->GetName()+4,i-4);
-	    if(st.IsDigit()){
+	      TString st1(f1->GetName()+5,i-5);
+	      if(st.IsDigit() || (st[0]=='-' && st1.IsDigit())){
               int idd=st.Atoi(); 
               AMSID id(idd,dir);
               if(!idh || idh==idd)fetch1++;
@@ -430,7 +431,8 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
 	  for(int i=4;i<strlen(f1->GetName());i++){
 	    if(i>4 && f1->GetName()[i] =='_'){
 	      TString st(f1->GetName()+4,i-4);
-	      if(st.IsDigit()){
+	      TString st1(f1->GetName()+5,i-5);
+	      if(st.IsDigit() || (st[0]=='-' && st1.IsDigit())){
 		int idd=st.Atoi(); 
 		AMSID id(idd,dir);
 		if(!idh || idh==idd)fetch2++;
@@ -457,7 +459,8 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
 	    for(int i=4;i<strlen(f1->GetName());i++){
 	      if(i>4 && f1->GetName()[i] =='_'){
 		TString st(f1->GetName()+4,i-4);
-		if(st.IsDigit()){
+	      TString st1(f1->GetName()+5,i-5);
+	      if(st.IsDigit() || (st[0]=='-' && st1.IsDigit())){
 		  int idd=st.Atoi(); 
 		  AMSID id(idd,dir);
 		  if(!idh || idh==idd)fetchp++;
