@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.212 2009/11/16 09:36:38 choutko Exp $
+//  $Id: trrec.C,v 1.213 2009/11/17 13:32:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -94,7 +94,7 @@ integer AMSTrCluster::build(integer refit){
        }  
      }
      number ref;
-     ref=-FLT_MAX;
+     ref=-FLT_MAX/2;
      number sum;
      number ssum;
      number pos;

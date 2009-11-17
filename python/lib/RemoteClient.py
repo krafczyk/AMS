@@ -460,7 +460,7 @@ class RemoteClient:
                         ava1=tot*float(fs[3])/100-rused
                         if (fs[2].find('Reserved')>=0):
                             status='Reserved'
-                        elif ava1<0 or ava<3000:
+                        elif ava1<=0 or ava<3000:
                             status='Full'
                         if ava1< ava: ava=ava1;
                         if ava<0: ava=0
@@ -2513,7 +2513,7 @@ class RemoteClient:
         rundd=""
         rund=""
         runn=""
-        types=["0SCI","0LAS","0CAL"]
+        types=["SCI","LAS","CAL"]
         if(tab):
             print "<HR>"
             print "<table border=1>"
@@ -2522,8 +2522,8 @@ class RemoteClient:
            sql=sql+" and status not like '%BAD%'"
            files=self.sqlserver.Query(sql)
            for file in files:
-#                sysc="ln -sf "+file[0]+" /Offline/RunsDir/"+type+"/"
-                sysc="ln -sf "+file[0]+" /Offline/RunsDirG/"+type+"/"
+                sysc="ln -sf "+file[0]+" /Offline/RunsDir/"+type+"/"
+#                sysc="ln -sf "+file[0]+" /Offline/RunsDirG/"+type+"/"
                 os.system(sysc)
         if(run2p!=0):
             rundd=" and datafiles.run=%d " %(run2p)

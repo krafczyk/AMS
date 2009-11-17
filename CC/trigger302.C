@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.43 2009/08/17 12:53:54 pzuccon Exp $
+//  $Id: trigger302.C,v 1.44 2009/11/17 13:32:21 choutko Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -2912,9 +2912,9 @@ out:
     geant dz12=(_TOFCoo[toftop[icase]][0][2]-_TOFCoo[tofbot[icase]][0][2])/2;
     if(((_TOFTrigger>>toftop[icase])&1) && (_TOFTrigger>>(tofbot[icase])&1)){
     for(int i=0;i<_NTOF[toftop[icase]];i++)cooup+=_TOFCoo[toftop[icase]][_TOFAux[toftop[icase]][i]][icase];
-    cooup=cooup/_NTOF[toftop[icase]];   
+    if(_NTOF[toftop[icase]])cooup=cooup/_NTOF[toftop[icase]];   
     for(int i=0;i<_NTOF[tofbot[icase]];i++)coodown+=_TOFCoo[tofbot[icase]][_TOFAux[tofbot[icase]][i]][icase];
-    coodown=coodown/_NTOF[tofbot[icase]];   
+    if(_NTOF[tofbot[icase]])coodown=coodown/_NTOF[tofbot[icase]];   
       geant addtofup=TOF2DBc::plnstr(5)*0.6;
       geant addtofdown=TOF2DBc::plnstr(5)*0.6;
       if((_TOFTrigger>>(AMSTOFCluster::planes()+toftop[icase])) & 1){
