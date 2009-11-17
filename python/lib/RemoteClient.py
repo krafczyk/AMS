@@ -2888,7 +2888,7 @@ class RemoteClient:
                         elif (t0=="6"):
                             type="CAL"
                         elif (t0=="7"):
-                            type="CNF"
+                            type="CMD"
                         elif (t0=="8"):
                             type="HKD"
                         bpath=runsdir+"/"+type
