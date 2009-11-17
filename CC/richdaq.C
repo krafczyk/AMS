@@ -292,6 +292,7 @@ integer DAQRichBlock::checkcalid(int16u id){
   return 0;
 }
 
+
 void DAQRichBlock::buildcal(integer length,int16u *p){
   try{
 #ifdef __INSPECT__
@@ -330,7 +331,6 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
   cout<<dec<<"LENGTH "<<length<<" block size "<<block_size<<endl;
 #endif
 
-  /*
   int version=-1;
   switch(length){
   case block_size:
@@ -345,34 +345,58 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     cout<<"-- DAQRichBlock::buildcal unknown calibration data format"<<endl;
     return;
   }
-  */
-#ifdef __INSPECT__
-  cout<<"CURRENT FORMAT "<<(version?"2009":"2008")<<endl;
-#endif
 
-  if(length!=block_size) return;
+  if(DAQCFFKEY.DAQVersion==1 && version==0){
+    cout<<"-- DAQRichBlock::buildcal inconsistent calibration data format. Ignoring"<<endl;
+    return;
+  }
+
+  //  if(length!=block_size) return;// THIS IS FOR THE OLD (2008) VERSION
+
+  if(version==1){ // -- 2009
+    if(DAQEvent::CalibInit(3)){
+      cout<<"DAQRichBlock::buildcal-I-InitCalib "<<endl;
+      for(int i=0;i<2;i++)
+	for (int j=0;j<24;j++)
+	  _Calib[i][j]=0;
+    }
+  }
 
   p-=1;  // Go to the true starting point of the data
 
   // General checks
   int16u id=*(p-1);
   int16u node_type=id&31;
-  if(node_type!=0x14) return;
   int16u status=*(p-2+length-1);
-  if(status!=0x120) return;
 
+  if(version==0){  //2008
+    if(node_type!=0x14) return;
+    if(status!=0x120) return;
+  }
 
+  // We should check the status in a more clever way if version==1
+  if(version==1){ // 2009
+    if(DAQEvent::isError(status)){
+      cout<<"-- DAQRichBlock::buildcal Status returns and error"<<endl;
+      return;
+    }
+    if(node_type!=0x13){
+      cout<<"-- DAQRichBlock::buildcal Status returns and error. Ignoring."<<endl;
+    }
+
+    uint16 cal_status=*(p+1);
+    if(cal_status!=0x5000){
+      cout<<"-- DAQRichBlock::buildcal Calibration status is not correct"<<endl;
+      return;
+    }
+
+  }
+
+  // Get which RDR is going to be updated
   int16u node_number=((id>>5)&((1<<9)-1));
   int physical_cdp=node_number-FirstNode;
-  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
-  for(int i=0;i<2;i++){
-    for (int j=0;j<24;j++){
-      if(Links[i][j]==physical_cdp){
-	_Calib[i][j]=1;
-	break;
-      }
-    }
-  }
+
+  if(version==1) p+=2; // Go to the right position keeping backwards compatibility
 
   // Check if we really want to read these tables
   for(int i=0;i<table_size;i++){
@@ -388,7 +412,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     int pedx5=*(p+i+table_size);
     int thresholdx5=*(p+i+2*table_size)-pedx5;
     float sigma_pedx5=float(*(p+i+3*table_size))/1024;
-    float sigma_pedx1=sigma_pedx5*pedx1/pedx5;
+    float sigma_pedx1=sigma_pedx5*(pedx5>0?float(pedx1)/float(pedx5):0.2); 
     int status=*(p+i+4*table_size);
     status=status&0xc000?0:1;       // This is the right computation
 
@@ -400,7 +424,6 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     }
     int thresholdx1=thresholdx5;
 
-    //    RichPMTChannel channel(pmt_geom_id,pixel_geom_id);
 #ifdef __AMSDEBUG__
     if(AMSFFKEY.Debug>1)
     cout<<"PEDx1 "<<RichPMTsManager::_Pedestal(pmt_geom_id,pixel_geom_id,0)<<" -- "<<pedx1<<endl
@@ -411,8 +434,6 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 	<<"THRESHOLDx5 "<<RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)<<" -- "<<thresholdx5<<endl
 	<<"Status "<<RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)<<" "<<status<<endl<<endl;
 #endif
-
-
 
 
     // Update the calibration tables
@@ -426,31 +447,54 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=(status &&  RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id))?status:0;  // Do not let channels to recover
   }
   
-  
-  // Update the TDV tables id needed
-  bool update=true;
-   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
-  int nc=0;
-  int ncp=0;
 
+  cout<<"DAQRichBlock::buildcal -- found calibration tables for RDR-"<<physical_cdp/12<<"-"<<physical_cdp<<endl;
   for(int i=0;i<2;i++){
-   for (int j=0;j<24;j++){
-     if( (!_Calib[i][j] &&(pdaq && pdaq->CalibRequested(getdaqid(i),j)))){
-       update=false;
-     }
-     if(_Calib[i][j])nc++;
-     if( (pdaq && pdaq->CalibRequested(getdaqid(i),j)))ncp++;
-   }
+    for (int j=0;j<24;j++){
+      if(Links[i][j]==physical_cdp){
+	_Calib[i][j]=1;
+	break;
+      }
+    }
   }
+  // The pragmas here guarantee that everything is done properly
+#pragma omp barrier
+  cout <<"  in barrier DAQRichBlock::buildcal "<< AMSEvent::get_thread_num()<<endl;
   
-  cout <<" nc "<<nc<<" "<<ncp<<" "<<update<<endl;
-  if(update){
+  // Update the TDV tables if needed
+  bool update=true;
+
+  if(version==0){ // -- 2008
+    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",6);
+    int nc=0;
+    int ncp=0;
+    
     for(int i=0;i<2;i++){
-      for(int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
-	_Calib[i][j]=0;
+      for (int j=0;j<24;j++){
+	if( (!_Calib[i][j] &&(pdaq && pdaq->CalibRequested(getdaqid(i),j)))){
+	  update=false;
+	}
+	if(_Calib[i][j])nc++;
+	if( (pdaq && pdaq->CalibRequested(getdaqid(i),j)))ncp++;
       }
     }
     
+    cout <<" nc "<<nc<<" "<<ncp<<" "<<update<<endl;
+    if(update){
+      for(int i=0;i<2;i++){
+	for(int j=0;j<sizeof(_Calib)/sizeof(_Calib[0][0])/2;j++){
+	  _Calib[i][j]=0;
+	}
+      }
+    }
+  }
+
+  if(version==1){ // -- 2009
+    update=DAQEvent::CalibDone(3);  
+  }
+
+#pragma omp single
+  if(update){
     AMSTimeID *ptdv;
     time_t begin,end,insert;
     const int ntdv=4;
@@ -460,8 +504,8 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
 				  "RichPMTChannelStatus"};
     for (int i=0;i<ntdv;i++){
       ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
-      ptdv->UpdCRC();
       ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
       time(&insert);
       if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
       ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
@@ -471,9 +515,13 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
     }
+
+    if(version==1)
+      for(int i=0;i<2;i++)
+	for (int j=0;j<24;j++)
+	  _Calib[i][j]=0;    
   }
-  }
-  catch(int){
+  }catch(int){
     static bool first_call=true;
     if(first_call){
       cout<<"-- Problem in DAQRichBlock::buildcal. Ignoring further errors"<<endl;
