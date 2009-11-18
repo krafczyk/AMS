@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.32 2009/08/19 23:32:55 pzuccon Exp $
+*  $Id: mfield.F,v 1.33 2009/11/18 11:16:15 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -753,7 +753,11 @@ c        endif
 
         
 
- 999    END
+ 999    continue
+        do i=1,3
+           b(i)=b(i)*fscale
+        enddo
+        END
 
 
 

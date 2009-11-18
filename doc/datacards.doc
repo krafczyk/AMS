@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.310 2009/11/15 11:47:05 choumilo Exp $
+#  $Id: datacards.doc,v 1.311 2009/11/18 11:16:19 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1128,6 +1128,13 @@ MAGS
 I 1 magstat (1)     // -1/0/1->warm/cold_OFF/cold_ON (not really implemented yet)
 R 2 fscale  (1.)    // rescale factor (wrt nominal field) (if any) - not implemented yet
 R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev) 
+R 4 r0[3]           // mag center
+R 7 pitch
+R 8 yaw
+R 9 roll
+I10 rphi
+I11 begin
+I12 end 
 //------------------------------------------------------------------------------
 
  SubDetector's calibration common flags:

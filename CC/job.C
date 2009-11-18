@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.659 2009/11/15 11:50:03 choumilo Exp $
+// $Id: job.C,v 1.660 2009/11/18 11:16:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2726,6 +2726,11 @@ end.tm_year=TKFIELD.iyear[1];
 
 
 
+
+
+
+
+
  char FieldMapName[100];    
  if(strstr(getsetup(),"AMS02D") ){    
    sprintf(FieldMapName,"MagneticFieldMapD");
@@ -2735,9 +2740,47 @@ end.tm_year=TKFIELD.iyear[1];
    MAGSFFKEY.rphi=1;
  }
  else{
-   sprintf(FieldMapName,"MagneticFieldMap07");
+   sprintf(FieldMapName,"MagneticFieldMap09A");
+   MAGSFFKEY.rphi=1;
+//   sprintf(FieldMapName,"MagneticFieldMap07");
  }
- 
+
+
+{
+
+//
+// Magnetic field map status
+//
+
+
+
+tm btm;
+tm etm;
+time_t begin,end;
+AMSTimeID *ptdv;
+
+if(AMSFFKEY.Update==101){
+   begin=MAGSFFKEY.begin;
+   end=MAGSFFKEY.end>MAGSFFKEY.begin?MAGSFFKEY.end:MAGSFFKEY.begin+2e7;
+   btm=*(localtime(&begin));
+   etm=*(localtime(&end));   
+  ptdv= new AMSTimeID(AMSID("MagneticFieldStatus",isRealData()),btm,etm,sizeof(MAGSFFKEY_DEF),(void*)&(MAGSFFKEY.magstat),server,1);
+   ptdv->UpdateMe()=1;
+   ptdv->UpdCRC();
+   TID.add(ptdv);
+   return;
+}
+else{
+   begin=100000000;
+   end=begin-1;
+   btm=*(localtime(&begin));
+   etm=*(localtime(&end));   
+  ptdv= new AMSTimeID(AMSID("MagneticFieldStatus",isRealData()),btm,etm,sizeof(MAGSFFKEY_DEF),(void*)&(MAGSFFKEY.magstat),server,1);
+TID.add(ptdv);
+}
+}
+
+
 //PZMAG #ifdef _PGTRACK_
 //  MagField*  pp= MagField::GetPtr();
 //  TID.add(new 

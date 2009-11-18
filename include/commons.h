@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.275 2009/11/06 16:18:41 choutko Exp $
+//  $Id: commons.h,v 1.276 2009/11/18 11:16:19 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -199,6 +199,8 @@ geant pitch;
 geant yaw;
 geant roll;
 integer rphi;    // use xyz (0) or rphiz (1) grid
+integer begin;    // begin time
+integer end;    //end time
 };
 #define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
 COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
