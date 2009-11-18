@@ -505,7 +505,8 @@ void RichPMTsManager::Finish(){
       
       SaveToFile(name);
     }
-    
+
+    if(0)  // FIXME
     if(AMSFFKEY.Update && AMSRichCal::isCalibration()){  // If update and calibration, update database
       AMSTimeID *ptdv;
       char *tdvs[]={"RichPMTChannelStatus",
