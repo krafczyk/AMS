@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.4 2009/08/26 17:51:01 pzuccon Exp $
+//  $Id: TrFit.h,v 1.5 2009/11/18 11:00:53 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -47,9 +47,9 @@
 ///\date  2008/12/01 SH  Fits methods debugged and checked
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///
-///$Date: 2009/08/26 17:51:01 $
+///$Date: 2009/11/18 11:00:53 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -99,7 +99,9 @@ public:
   double GetP0z (void) const { return _p0z;  }
   double GetDxDz(void) const { return _dxdz; }
   double GetDyDz(void) const { return _dydz; }
-  double GetPhi(void) const { return atan(_dydz/_dxdz); }
+
+  double GetPhi  (void) const { return (_dxdz != 0) ? atan(_dydz/_dxdz)
+				                    : atan(_dydz/1e-9); }
   double GetTheta(void) const { return atan(sqrt(_dydz*_dydz+_dxdz*_dxdz));}
 
   double GetRigidity(void) const { return _rigidity; }

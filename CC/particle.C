@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.184 2009/11/06 16:18:40 choutko Exp $
+//  $Id: particle.C,v 1.185 2009/11/18 11:00:53 shaino Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -753,6 +753,7 @@ void AMSParticle::richfit(){
       }
       _prob[1]=-2;
       _prob[0]=-1;
+      _fittedmom[0]=_fittedmom[1]=0;
       for(i=0;i<maxp;i++){
 	if(prob[i]>_prob[0]){
 	  _gpart[1]=_gpart[0];
