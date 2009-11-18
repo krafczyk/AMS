@@ -1,6 +1,7 @@
+FORTRAN= -lg2c -lgfortran
 FFLAGS = -m32 -fPIC -c
 CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH__ -D__ROOTSHAREDLIBRARY__  -Wno-deprecated -I../include -I`root-config --incdir` -c 
-LDFLAGS =  -m32 -shared -lg2c `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+LDFLAGS =  -m32 -shared `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
 
 FPATH = ../F/
 CPATH = ../CC/
@@ -123,18 +124,20 @@ $(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h)
 
 CONTRIB = ../contrib/
 
+GENERAL= -m32 -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` $(FORTRAN)
+
 contrib: test alignment manual_alignment tuning
 
 test: lib $(EXEPATH) $(CONTRIB)test/test.C
-	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
+	$(CC) $(GENERAL) -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
 
 alignment: lib $(EXEPATH) $(CONTRIB)alignment/align.C
-	$(CC) -m32 -lg2c -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit `cernlib mathlib` -I$(CONTRIB)alignment $(CONTRIB)alignment/*.C -o $(EXEPATH)alignment.exe
+	$(CC) $(GENERAL) -lMinuit -I$(CONTRIB)alignment $(CONTRIB)alignment/*.C -o $(EXEPATH)alignment.exe
 
 
 manual_alignment: lib $(EXEPATH) $(CONTRIB)manual_aligment/align.C
-	$(CC) -m32 -lg2c -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` -lMinuit `cernlib mathlib` -I$(CONTRIB)manual_aligment $(CONTRIB)manual_aligment/*.C -o $(EXEPATH)manual_aligment.exe
+	$(CC) $(GENERAL) -lMinuit -I$(CONTRIB)manual_aligment $(CONTRIB)manual_aligment/*.C -o $(EXEPATH)manual_aligment.exe
 
 tuning: lib $(EXEPATH) $(CONTRIB)parameter_tuning/analysis.C
-	$(CC) -m32 -lg2c -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` -I$(CONTRIB)parameter_tuning $(CONTRIB)parameter_tuning/*.C -o $(EXEPATH)tuning.exe
+	$(CC) $(GENERAL) -I$(CONTRIB)parameter_tuning $(CONTRIB)parameter_tuning/*.C -o $(EXEPATH)tuning.exe
 
