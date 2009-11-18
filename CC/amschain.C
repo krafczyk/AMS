@@ -198,8 +198,8 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
     if(ntree>fNtrees)ntree=fNtrees;
     nentries=10000000000LL;
   }
-  typedef multimap<uint,TString> fmap_d;
-  typedef multimap<uint,TString>::iterator fmapi;
+  typedef multimap<uinteger,TString> fmap_d;
+  typedef multimap<uinteger,TString>::iterator fmapi;
   fmap_d fmap;
   for(int i=0;i<fNtrees;i++){
     TString t1("/");

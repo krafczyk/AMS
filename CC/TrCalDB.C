@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.3 2009/11/12 16:49:06 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.4 2009/11/18 11:52:46 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/11/12 16:49:06 $
+///$Date: 2009/11/18 11:52:46 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -192,7 +192,7 @@ void TrCalDB::updtrcalibS(integer n, int16u* p){
   int leng4=leng/4;
   cout <<"  Crate TDR "<<ic<<"  "<<tdr<<endl;
   CaloutDSP cal;
-  ushort size;
+  unsigned short size;
   int rr=0;
   int cpar=p[rr++];
   if(pri>0) printf("Command parameter is: %X \n",cpar); 

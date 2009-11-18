@@ -1,0 +1,145 @@
+#
+# Makefile for macosx (only "make lib" supported)
+#
+# Written and checked on Mac OSX (10.6.2) + Xcode (3.2) by S.Haino
+#
+
+ALL: lib
+
+
+ifeq  "$(shell uname)"  "Darwin"
+
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
+
+VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
+
+VERGCC       := $(shell gcc --version | grep 4.1)
+
+ifdef VER
+NEW = 
+else
+NEW = _new
+endif
+
+
+########################################################################
+#Compilers
+########################################################################
+
+CC  = gcc
+CXX = g++
+LD  = g++
+
+
+########################################################################
+# Libraries
+########################################################################
+
+CERNDIR =
+AMSLIB  =
+NAGDIR  =
+
+
+########################################################################
+# Compilers FLAGS
+########################################################################
+
+ifdef AMSDEBUG
+CPPFLAGS+=  -D__AMSDEBUG__
+endif
+
+ifdef TFADBW
+CPPFLAGS+=  -D__TFADBW__
+endif
+
+ifdef TFAPEDC
+CPPFLAGS+=  -D__TFAPEDC__
+endif
+
+
+CFLAGSB= -Wno-deprecated  -D__root_$(NEW) -D__LINUXGNU__
+
+ifdef AMSPROFILE
+  CFLAGSB+=-pg
+endif
+
+ CFLAGS=       $(CFLAGSB)   
+ CFLAGSTOFSIM= $(CFLAGSB) 
+ CFLAGSn=      $(CFLAGSB)
+ CFLAGSDAQ=    $(CFLAGSB) 
+
+ FFLAGS=       -fno-automatic 
+ FFLAGSn=      -fno-automatic 
+ CFLAGSB+= -D__GNU__
+
+ifdef AMSPROFILE 
+  FFLAGS+=-pg
+  FFLAGSn+=-pg
+endif
+
+ifdef DEBUGFLAG
+    CFLAGS       += -g      
+    CFLAGSTOFSIM += -g
+    CFLAGSn      += -g     
+    CFLAGSDAQ    += -g  
+    FFLAGS       += -g     
+    FFLAGSn      += -g    
+else
+    CFLAGS       += -O3      
+    CFLAGSTOFSIM += -O1
+    CFLAGSn      += -O2    
+    CFLAGSDAQ    += -O2 
+    FFLAGS       += -O3    
+    FFLAGSn      += -O2  
+endif
+
+#SOFLAGS = -shared
+SOFLAGS = -dynamiclib -undefined dynamic_lookup
+
+ SHLDFLAGS=   
+
+########################################################################
+# Output dirs
+########################################################################
+
+  BIN=$(AMSWD)/bin/macosx/
+  EXE=$(AMSWD)/exe/macosx/
+  LIB=$(AMSWD)/lib/macosx/
+  SHLD=$(LIB)/ntuple_slc4.so
+  NTLD=$(LIB)/libntuple_slc4.a
+
+
+
+#----------------------------------------------------
+
+
+# Library list 
+
+
+LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnag \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lRoot -lfreetype\
+ -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre   \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+
+LDFLAGS=      $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnag   \
+-L$(AMSLIB)  -lamsut   \
+-L$(CERNDIR)/lib   $(CERNLIBS) \
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+
+ifdef AMSPROFILE
+  LDFLAGS+=-pg
+endif
+
+LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
+
+endif
+
+# end of Dawrin case
+
+#########################################################
