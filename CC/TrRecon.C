@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.18 2009/11/17 11:44:31 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.19 2009/11/18 11:02:40 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/11/17 11:44:31 $
+/// $Date: 2009/11/18 11:02:40 $
 ///
-/// $Revision: 1.18 $
+/// $Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1522,10 +1522,9 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
       fit.LinearFit(1);
   }
   else {
-    // PZ Bugfix -- On X side always linear FIT!!!
-    //  if (MagFieldOn())
-    //       fit.SimpleFit();
-    //     else
+    if (MagFieldOn())
+      fit.SimpleFit();
+    else
       fit.LinearFit(2);
   }
 
