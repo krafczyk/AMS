@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.88 2009/11/17 15:10:10 choutko Exp $
+#  $Id: Makefile,v 1.89 2009/11/18 10:59:05 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -730,7 +730,7 @@ $(BIN)Make-depend:    $(INCS)
 ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
 		 touch $(BIN)Make-depend
 endif
-		makedepend -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN)
+		makedepend $(DEFINES) -f $(BIN)Make-depend  -Y../include  $(FILES) -p$(BIN)
 		cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
 		rm -f $(BIN)Make-depend
 	mv $(BIN)Make-depend.new $(BIN)Make-depend
