@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.31 2009/11/17 16:46:02 choumilo Exp $
+//  $Id: trigger102.h,v 1.32 2009/11/18 09:27:45 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -161,7 +161,6 @@ public:
  static bool SetupIsChanged;
  static bool ScalerIsChanged;
  static integer PhysBranchCount[8];
-#pragma omp threadprivate(l1trigconf,scalmon,SetupIsChanged,ScalerIsChanged)
  static int16u nodeids[2];//LVL1 node IDs(side_a/_b)
  
  Trigger2LVL1(integer PhysBPatt, integer JMembPatt, integer auxtrpat, integer toffl1,integer toffl2, 

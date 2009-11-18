@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.73 2009/11/17 16:45:54 choumilo Exp $
+//  $Id: trigger102.C,v 1.74 2009/11/18 09:27:35 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1193,8 +1193,8 @@ void Trigger2LVL1::ScalerMon::setdefs(){
     _ECl1Proj[1]=-1;
     _TrigTimeT=-1;
     _ScalTimeT=-1;
-    _LiveTime[0]=0;
-    _LiveTime[1]=0;
+    _LiveTime[0]=1;
+    _LiveTime[1]=1;
     _TrigFPGAid=0;
     _ScalFPGAid=0;
 */
@@ -2378,13 +2378,13 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     LiveTime[0]=livetm[0]; 
     LiveTime[1]=livetm[1];
     trtime[0]=timcal;
+  }
   if((TGL1FFKEY.printfl%10)>0){
 #pragma omp critical (hf1)
 {
     HF1(1094,geant(LiveTime[0]),1.);
 }
   } 
-  }
 // 
   for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys)
     TrigRates[j]=scalmon.FTtrig(j);
@@ -2419,10 +2419,12 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
     TGL1JobStat::daqs1(15);//count errored entries    
     AMSEvent::gethead()->seterror();
   }
+
   return;
 //
 BadExit:
   TGL1JobStat::daqs1(13);//count rejected LVL1-entries(segments)
+
 }
 
 
@@ -2914,12 +2916,12 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         scalmon.LiveTime(j)=LiveTime[j];//copy to scalmon
         nw3+=2;
       }
-      if((TGL1FFKEY.printfl%10)>0){//for compr.fmt fill here(for raw - in BuildRaw because in have it each event)
-#pragma omp critical (hf1)
-{
-        HF1(1094,geant(scalmon.LiveTime(0)),1.);
-}
-      } 
+//      if((TGL1FFKEY.printfl%10)>0){//for compr.fmt fill here(for raw - in BuildRaw because in have it each event)
+//#pragma omp critical (hf1)
+//{
+//        HF1(1094,geant(scalmon.LiveTime(0)),1.);
+//}
+//      } 
     }
 //---
     bit=(1<<14);
