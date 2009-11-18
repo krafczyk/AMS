@@ -2912,11 +2912,11 @@ class RemoteClient:
                             type=type+" "+t0+" "+t1+" "+t2+" "+t3
                         orig=f1.split('/')
                         origpath=""
-                        if(len(orig)>1):
-                             origpath=origpath+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        if(len(orig)>2):
+                             origpath=origpath+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         orig=f2.split('/')
-                        if(len(orig)>1):
-                             origpath=origpath+" "+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
+                        if(len(orig)>2):
+                             origpath=origpath+" "+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
                         sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,0,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),tag,tfevent,tlevent,bpath)
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
