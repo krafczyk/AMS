@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.9 2008/12/08 15:15:18 choutko Exp $
+*  $Id: rkms.F,v 1.10 2009/11/18 17:01:29 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -226,8 +226,11 @@ cer        endif                                       !
         do i=1,Npa                                          ! Parameters
           Call MNPOUT(i,CHNAM,Xout(i),Er(i),bnd1,bnd2,ivar) ! Extraction
         enddo
-
-        Chi2=Dhi2
+        if(Dhi2.gt.1.e30)then
+          Chi2=1.e30
+        else
+         Chi2=Dhi2
+        endif
 c        if(2*npo-npa.gt.0) Chi2=Dhi2/(2.*npo-npa)      ! Chi2/d.f.
 
         if(it.eq.1) then
@@ -1064,8 +1067,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.9 2008/12/08 15:15:18 choutko Exp $
+* $Id: rkms.F,v 1.10 2009/11/18 17:01:29 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.10  2009/11/18 17:01:29  choutko
+* fpe
+*
 * Revision 1.9  2008/12/08 15:15:18  choutko
 * *** empty log message ***
 *
@@ -1234,8 +1240,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.9 2008/12/08 15:15:18 choutko Exp $
+* $Id: rkms.F,v 1.10 2009/11/18 17:01:29 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.10  2009/11/18 17:01:29  choutko
+* fpe
+*
 * Revision 1.9  2008/12/08 15:15:18  choutko
 * *** empty log message ***
 *

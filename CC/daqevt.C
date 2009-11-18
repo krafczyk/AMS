@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.170 2009/11/13 10:08:54 choutko Exp $
+//  $Id: daqevt.C,v 1.171 2009/11/18 17:01:28 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1157,10 +1157,12 @@ integer DAQEvent::_HeaderOK(){
          _PEvent=_Event;
          return 0;
        }
+         if(_Event-_PEvent>1){
+           static int icerr=0;
+           if(icerr++<100)cerr<<"DAQEvent::_HeaderOK-W-EventSequenceGap "<<_Run<<" "<<_Event<<" "<<_PEvent<<endl;
+         }
          _PRun=_Run;
          _PEvent=_Event;
-
-            
       return 1;
     }
 
@@ -1290,9 +1292,14 @@ integer DAQEvent::_HeaderOK(){
          _PEvent=_Event;
          return 0;
        }
+       if(_Event-_PEvent>1){
+           static int icerr=0;
+           if(icerr++<100)cerr<<"DAQEvent::_HeaderOK-W-EventSequenceGap "<<_Run<<" "<<_Event<<" "<<_PEvent<<endl;
+         }
+
          _PRun=_Run;
          _PEvent=_Event;
-
+         //return 0;
             
       return 1;
     }

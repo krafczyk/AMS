@@ -301,7 +301,7 @@ class TH2A{   // 2-dim histo with internal int[] array
     }
     if(debug)printf("TH2A GetPeak sx %f sy %f sw %f\n",sx,sy,sw);
     
-    if(sw<-1.e6){
+    if(sw<-1.e6 || sw==0){
       PeakXYW pxyw(0.,0.,-1.);
       return pxyw;
     }
