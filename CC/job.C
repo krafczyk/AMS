@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.660 2009/11/18 11:16:13 choutko Exp $
+// $Id: job.C,v 1.661 2009/11/19 11:33:48 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -352,7 +352,7 @@ void AMSJob::_sirichdata(){
   RICFFKEY.mon[0]=0;
   RICFFKEY.mon[1]=0;
   RICFFKEY.year[0]=101;
-  RICFFKEY.year[1]=110;
+  RICFFKEY.year[1]=107;
   VBLANK(RICFFKEY.fname_in,200);
   VBLANK(RICFFKEY.fname_out,200);
   //  FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"INTEGER");
@@ -3242,7 +3242,6 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 //---------------------------------------
 
 { //RICH: TDV reservation for calibration parameters of all 
-  
   tm begin;
   tm end;
   begin.tm_isdst=0;
@@ -3263,41 +3262,40 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   end.tm_mon=RICFFKEY.mon[1];
   end.tm_year=RICFFKEY.year[1];
 
-
   TID.add (new AMSTimeID(AMSID("RichPMTChannelStatus",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows
 			 *sizeof(RichPMTsManager::_status[0]),
-                         (void*)&RichPMTsManager::_status[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_status[0],server,1));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestal",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_pedestal[0]),
-                         (void*)&RichPMTsManager::_pedestal[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_pedestal[0],server,isRealData()));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalSigma",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_pedestal_sigma[0]),
-                         (void*)&RichPMTsManager::_pedestal_sigma[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_pedestal_sigma[0],server,isRealData()));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestalThreshold",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_pedestal_threshold[0]),
-                         (void*)&RichPMTsManager::_pedestal_threshold[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_pedestal_threshold[0],server,isRealData()));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelGain",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_gain[0]),
-                         (void*)&RichPMTsManager::_gain[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_gain[0],server,isRealData()));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelGainSigma",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_gain_sigma[0]),
-                         (void*)&RichPMTsManager::_gain_sigma[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_gain_sigma[0],server,isRealData()));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelGainThreshold",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows
 			 *sizeof(RichPMTsManager::_gain_sigma[0]),
-                         (void*)&RichPMTsManager::_gain_sigma[0],server,NeededByDefault));
+                         (void*)&RichPMTsManager::_gain_sigma[0],server,isRealData()));
   
 }
 
