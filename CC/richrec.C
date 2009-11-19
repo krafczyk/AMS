@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.129 2009/11/17 10:11:13 mdelgado Exp $
+//  $Id: richrec.C,v 1.130 2009/11/19 14:43:16 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1716,10 +1716,6 @@ int AMSRichRing::locsmpl(int id,
 
 
 
-# undef ESC
-# undef SQR
-# undef PI
-
 #include "trrec.h"
 #include "richrec.h"
 #include "richradid.h"
@@ -1791,118 +1787,95 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
       u0[1]=sc*sp;
       u0[2]=cc;}
 
-
     // Check if it is whithin a radiator tile
+    if(tile(r0)==-1) continue;
 
-    integer origin_tile=RichRadiatorTileManager::get_tile_number(r0[0],r0[1]);
-    if(RichRadiatorTileManager::get_tile_kind(origin_tile)==empty_kind) continue;
-    if(fabs(RichRadiatorTileManager::get_tile_x(origin_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
-
-    
     geant l=(RICHDB::rad_height-r0[2])/u0[2];  
-
 
     for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
 
-    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-    
-    // Check if there is tile crossing 
-    integer final_tile=RichRadiatorTileManager::get_tile_number(r1[0],r1[1]);
-    if(RichRadiatorTileManager::get_tile_kind(final_tile)==empty_kind) continue;
-    if(fabs(RichRadiatorTileManager::get_tile_x(final_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+    if (tile(r0)==-1 || tile(r1)!=tile(r0)) continue;
 
-    if(origin_tile!=final_tile) continue;
-    
-    n[0]=0.;n[1]=0.;n[2]=1.;
+  /* exit radiator volume */
+    n[0]=0;
+    n[1]=0;
+    n[2]=1;
+    cn=ESC(u0,n);
+    sn=sqrt(1-SQR(cn));
 
-    cn=n[2]*u0[2];
-    sn=sqrt(1-cn*cn);
+  if (RICHDB::foil_height>0){
+    if (rad_index*sn>RICHDB::foil_index) continue;
 
-    // Radiator->foil refraction
-
-    if(rad_index*sn>RICHDB::foil_index) continue; // Total reflection
-
-    f=sqrt(1-(rad_index/RICHDB::foil_index*sn)*
-	   (rad_index/RICHDB::foil_index*sn))-
-      rad_index/RICHDB::foil_index*cn;
-
+    f=sqrt(1-SQR(rad_index/RICHDB::foil_index*sn))-rad_index/RICHDB::foil_index*cn;    
     for(i=0;i<3;i++) u1[i]=rad_index/RICHDB::foil_index*u0[i]+f*n[i];
 
-    // Propagate to foil end
+  /* propagate to foil end */
     l=RICHDB::foil_height/u1[2];
     for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
-
-    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-
-    // Exiting foil
-    cn=u1[2]*n[2];
-    sn=sqrt(1-cn*cn);
-
-    if(RICHDB::foil_index*sn>1) continue;
-
-    f=sqrt(1-(RICHDB::foil_index*sn)*(RICHDB::foil_index*sn))
-      -RICHDB::foil_index*cn;
+    if (sqrt(SQR(r1[0])+SQR(r1[1]))>RICHDB::top_radius) continue;
+    cn=ESC(u1,n);
+    sn=sqrt(1-SQR(cn));
+    if (RICHDB::foil_index*sn>1) continue;
+    f=sqrt(1-SQR(RICHDB::foil_index*sn))-RICHDB::foil_index*cn;
     for(i=0;i<3;i++) u1[i]=RICHDB::foil_index*u1[i]+f*n[i];
+  }else{
+    if (rad_index*sn>1) continue;
+    f=sqrt(1-SQR(rad_index*sn))-rad_index*cn;
+    for(i=0;i<3;i++) u1[i]=rad_index*u0[i]+f*n[i];
+  }
 
-
-    // Propagation to top of mirror
-    l=RICradmirgap/u1[2];
-    for(i=0;i<3;i++) r1[i]+=l*u1[i];
-    if(sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-
-
-    // Propagation to base
-
-    l=RICHDB::rich_height/u1[2];
-    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
-
-    geant rbase=sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+  
+  /* propagate to base of mirror*/
+  if(u1[2]==0) continue;
+  l=RICHDB::rich_height/u1[2];
+  
+  for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+  
+  
+  /* hole, direct or reflected */
+  geant rbase=sqrt(SQR(r2[0])+SQR(r2[1]));
+  
+  if(rbase<RICHDB::bottom_radius){
+    l=RIClgdmirgap/u1[2];
+    for(i=0;i<3;i++) r2[i]+=l*u1[i];
     
-    if(rbase<RICHDB::bottom_radius){
-      l=RIClgdmirgap/u1[2];
-      for(i=0;i<3;i++) r2[i]+=l*u1[i];
-
-      geant beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
-
-      direct+=beff/NPHI;
-      continue;
-    }
-
-        
-    geant a=1-(kc*kc+1)*u1[2]*u1[2];
-    geant b=2*(r1[0]*u1[0]+r1[1]*u1[1]-kc*kc*(r1[2]-ac)*u1[2]);
-    geant c=r1[0]*r1[0]+r1[1]*r1[1]-(kc*(r1[2]-ac))*(kc*(r1[2]-ac));
-    geant d=b*b-4*a*c;
-    if(d<0) continue;
-    l=(-b+sqrt(d))/2./a;
-    if(l<0) continue;
-
-    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
-
-    f=1./sqrt(1+kc*kc);
-    n[0]=-f*r2[0]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
-    n[1]=-f*r2[1]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
-    n[2]=f*kc;
-
-    f=2*(u1[0]*n[0]+u1[1]*n[1]+u1[2]*n[2]);
-    for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
-
-    l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
-    for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
-    rbase=sqrt(r3[0]*r3[0]+r3[1]*r3[1]);
-
+    geant beff=RichPMTsManager::FindPMT(r2[0],r2[1])<0?0:1;
     
-    if(rbase>RICHDB::bottom_radius) continue; 
+    direct+=beff/NPHI;
+    continue;
+  }
+  
+  double a=1-(SQR(kc)+1)*SQR(u1[2]);
+  double b=2*(r1[0]*u1[0]+r1[1]*u1[1]-SQR(kc)*(r1[2]-ac)*u1[2]);
+  double c=SQR(r1[0])+SQR(r1[1])-SQR(kc*(r1[2]-ac));
+  double d=SQR(b)-4*a*c;
+  if(d<0) continue;
+  l=(-b+sqrt(d))/2./a;
+  if(l<0) continue;
+  
+  for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+  
+  f=1./sqrt(1+SQR(kc));
+  n[0]=-f*r2[0]/sqrt(SQR(r2[0])+SQR(r2[1]));
+  n[1]=-f*r2[1]/sqrt(SQR(r2[0])+SQR(r2[1]));
+  n[2]=f*kc;
+  
+  f=2*ESC(u1,n);
+  for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
+    
+  if(u2[2]==0) continue; 
+  l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
+  
+  
+  for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
+  rbase=sqrt(SQR(r3[0])+SQR(r3[1]));
 
-    geant beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
-
-    reflected+=beff/NPHI;
-
-
+  if(rbase>RICHDB::bottom_radius) continue; 
+  geant beff=mir_eff*(RichPMTsManager::FindPMT(r3[0],r3[1])<0?0:1);
+  reflected+=beff/NPHI;
   }
 
   return reflected+direct;
-
 }
 
 
