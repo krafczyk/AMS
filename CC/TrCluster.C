@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.5 2009/08/19 23:32:48 pzuccon Exp $ 
+/// $Id: TrCluster.C,v 1.6 2009/11/19 10:07:43 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/08/19 23:32:48 $
+/// $Date: 2009/11/19 10:07:43 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -85,12 +85,12 @@ int TrClusterR::GetMultiplicity()  {
 
 float TrClusterR::GetCoord(int imult)  {
   if (_coord.empty()) this->BuildCoordinates();
-  return _coord.at(imult);
+  return (0 <= imult && imult < _coord.size()) ? _coord.at(imult) : 9999.;
 }
 
 float TrClusterR::GetGCoord(int imult)  {
   if (_gcoord.empty()) this->BuildCoordinates();
-  return _gcoord.at(imult);
+  return (0 <= imult && imult < _gcoord.size()) ? _gcoord.at(imult) : 9999.;
 }
 
 float TrClusterR::GetNoise(int ii) {

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.6 2009/11/17 11:44:31 shaino Exp $
+//  $Id: TrFit.C,v 1.7 2009/11/19 10:07:43 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/11/17 11:44:31 $
+///$Date: 2009/11/19 10:07:43 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -571,6 +571,7 @@ double TrFit::SimpleFit(void)
     _param[k] = 0;
     for (int i = 0; i < NDIM; i++) _param[k] += cov[k][i]*dx[i];
   }
+  if (_param[2]*_param[2]+_param[3]*_param[3] > 1) return -1;
 
   // Chisquare
   _chisqx = _chisqy = 0;
@@ -595,6 +596,8 @@ double TrFit::SimpleFit(void)
   _ndofx -= 2;
   _ndofy -= 3;
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
+
+  
 
   double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;

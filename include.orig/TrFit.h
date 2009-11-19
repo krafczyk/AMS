@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.5 2009/11/18 11:00:53 shaino Exp $
+//  $Id: TrFit.h,v 1.6 2009/11/19 10:07:44 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -47,9 +47,9 @@
 ///\date  2008/12/01 SH  Fits methods debugged and checked
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///
-///$Date: 2009/11/18 11:00:53 $
+///$Date: 2009/11/19 10:07:44 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -105,6 +105,9 @@ public:
   double GetTheta(void) const { return atan(sqrt(_dydz*_dydz+_dxdz*_dxdz));}
 
   double GetRigidity(void) const { return _rigidity; }
+
+  AMSPoint GetP0 (void) const { return AMSPoint(_p0x, _p0y, _p0z); }
+  AMSDir   GetDir(void) const { return AMSDir(_dxdz, _dydz, 1); }
 
   /// Set particle mass and charge (Z)
   void SetMassChrg(double mass, double chrg) { _mass = mass; _chrg = chrg; }

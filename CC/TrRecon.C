@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.19 2009/11/18 11:02:40 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.20 2009/11/19 10:07:44 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/11/18 11:02:40 $
+/// $Date: 2009/11/19 10:07:44 $
 ///
-/// $Revision: 1.19 $
+/// $Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1749,8 +1749,13 @@ int TrRecon::ReadMagField(const char *fname, int magstat)
   //PZMAG  MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
   if (!MagFieldOn()) TrTrackR::DefaultFitID = TrTrackR::kLinear;
-  //PZMAG  return MagField::GetPtr()->Read(fname);
+
+  //PZMAG  
+#ifdef __ROOTSHAREDLIBRARY__
+  return MagField::GetPtr()->Read(fname);
+#else
   return 0;
+#endif
 }
 
 void TrRecon::GetMagField(float *pos, float *bf)

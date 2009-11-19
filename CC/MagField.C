@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.4 2009/08/26 20:23:01 pzuccon Exp $
+// $Id: MagField.C,v 1.5 2009/11/19 10:07:43 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2009/08/26 20:23:01 $
+///$Date: 2009/11/19 10:07:43 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -180,8 +180,8 @@ void MagField::GuFld(float *xx, float *b)
     b[1] += mby[idx[i]]*ww[i];
     b[2] += mbz[idx[i]]*ww[i];
   }
-  printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
-	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
+//  printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
+//	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
 
 }
 
