@@ -1,4 +1,4 @@
-# $Id: tkdisplay.pro,v 1.1 2009/06/13 21:40:46 shaino Exp $
+# $Id: tkdisplay.pro,v 1.2 2009/11/19 10:18:47 shaino Exp $
 #
 # Project file for TkDisplay on Qt4
 # Run qmake first to generate Makefile
@@ -33,14 +33,14 @@ DEPENDPATH   += dep
 DEFINES      += _PGTRACK_ _ROOTSHAREDLIBRARY_
 
 macx {
-LIBS         += ../lib/darwin/libntuple.a \
+LIBS         += ../lib/macosx/libntuple_slc4.a \
                 -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet \
                 -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript \
                 -lMatrix -lPhysics -lMathCore -lThread -lfreetype -pthread \
                 -lNetx -lTreePlayer -lm -ldl
 }
 else {
-LIBS         += ../lib/linux/ntuple_slc4.so \
+LIBS         += $(AMSWD)/lib/linux/ntuple_slc4_PG.so \
                 -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet \
                 -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript \
                 -lMatrix -lPhysics -lMathCore -lThread -pthread \

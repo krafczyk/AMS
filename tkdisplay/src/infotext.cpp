@@ -1,4 +1,4 @@
-// $Id: infotext.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: infotext.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
 #include "infotext.h"
 
 #include "root.h"
@@ -124,9 +124,8 @@ QString &InfoText::LadderInfo(AMSEventR *event, int tkid)
     if (!cls) continue;
     if (cls->GetTkId() != tkid) continue;
 
-    cls->Info();
     str += "\n  ";
-    str += TrClusterR::sout.c_str();
+    str += cls->Info(i);//TrClusterR::sout.c_str();
   }
 
   str += "\n";
@@ -139,8 +138,7 @@ QString &InfoText::LadderInfo(AMSEventR *event, int tkid)
     if (hit->GetTkId() != tkid) continue;
 
     str += "\n  ";
-    hit->Info();
-    str += TrRecHitR::sout.c_str();
+    str += hit->Info(i);//TrRecHitR::sout.c_str();
   }
 
   return str;
@@ -202,9 +200,8 @@ QString &InfoText::TrackInfo(AMSEventR *event, int itrk)
     TrRecHitR *hit = trk->GetHit(i);
     if (!hit) continue;
     int ily = hit->GetLayer()-1;
-    hit->Info();
     str += Form("\nHit[%d]\n  ", i);
-    str += TrRecHitR::sout.c_str();
+    str += hit->Info(i);//TrRecHitR::sout.c_str();
     str += Form("Residual: %.4f %.4f\n", trk->GetResidual(ily).x(),
 		                         trk->GetResidual(ily).y());
   }
@@ -222,8 +219,7 @@ QString &InfoText::HitInfo(AMSEventR *event, int ihit)
   TrRecHitR *hit = event->pTrRecHit(ihit);
   if (!hit) return str;
 
-  hit->Info();
-  str += TrRecHitR::sout.c_str();
+  str += hit->Info(ihit);//TrRecHitR::sout.c_str();
 
   return str;
 }
@@ -238,8 +234,7 @@ QString &InfoText::ClusterInfo(AMSEventR *event, int icls)
   TrClusterR *cls = event->pTrCluster(icls);
   if (!cls) return str;
 
-  cls->Info();
-  str += TrClusterR::sout.c_str();
+  str += cls->Info(icls);//TrClusterR::sout.c_str();
 
   return str;
 }

@@ -1,4 +1,4 @@
-// $Id: clwidget.h,v 1.1 2009/06/13 21:40:46 shaino Exp $
+// $Id: clwidget.h,v 1.2 2009/11/19 10:18:47 shaino Exp $
 //
 // ClWidget : a class to manage cluster display by SH
 //
@@ -8,6 +8,7 @@
 #include "ui_clwidget.h"
 
 class AMSEventR;
+class TrRecon;
 
 class ClWidget : public QMainWindow {
   Q_OBJECT
@@ -31,12 +32,12 @@ private slots:
   void on_rbP_toggled(bool);
   void on_rbN_toggled(bool);
 
-  void on_acDisp_activated () { emit changeFocus(); }
-  void on_acPrev_activated () { ui.sbIndx->stepDown(); }
-  void on_acNext_activated () { ui.sbIndx->stepUp(); }
-  void on_acLast_activated () { ui.sbIndx->setValue(ui.sbIndx->maximum()); }
-  void on_acFirst_activated() { ui.sbIndx->setValue(ui.sbIndx->minimum()); }
-  void on_acClose_activated() { close(); }
+  void on_acDisp_triggered () { emit changeFocus(); }
+  void on_acPrev_triggered () { ui.sbIndx->stepDown(); }
+  void on_acNext_triggered () { ui.sbIndx->stepUp(); }
+  void on_acLast_triggered () { ui.sbIndx->setValue(ui.sbIndx->maximum()); }
+  void on_acFirst_triggered() { ui.sbIndx->setValue(ui.sbIndx->minimum()); }
+  void on_acClose_triggered() { close(); }
 
 protected:
   void updateDisp ();
@@ -57,6 +58,8 @@ private:
   bool pChain;
   int  pLayer;
   int  pTkID;
+
+  TrRecon *trRec;
 };
 
 #endif

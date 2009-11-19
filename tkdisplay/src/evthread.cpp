@@ -1,8 +1,9 @@
-// $Id: evthread.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: evthread.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
 #include "evthread.h"
 #include "tkdisplay.h"
 
 #include "root.h"
+#include "amschain.h"
 #include "TTreeFormula.h"
 
 EvThread::EvThread(TkDisplay *parent, 

@@ -1,4 +1,4 @@
-// $Id: gltdisp.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: gltdisp.h,v 1.2 2009/11/19 10:18:47 shaino Exp $
 //
 // GLTDisp : a class to manage 3D Tracker Display on OpenGL by SH
 //
@@ -60,9 +60,10 @@ protected:
   virtual void paintEvent     (QPaintEvent *event);
 
 protected:
-  void drawObject (GLenum mode);
-  void drawTracker(GLenum mode);
-  void drawTracks (GLenum mode);
+  void drawObject  (GLenum mode);
+  void drawTracker (GLenum mode);
+  void drawTracks  (GLenum mode);
+  void drawMCTracks(GLenum mode);
   void processPick();
 
   void drawClusters();

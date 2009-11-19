@@ -1,4 +1,4 @@
-// $Id: clwidget.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: clwidget.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
 #include <QtGui>
 
 #include "clwidget.h"
@@ -17,6 +17,7 @@ ClWidget::ClWidget(QWidget *parent) : QMainWindow(parent)
   pChain = true;
   pLayer = 0;
   pTkID  = 0;
+  trRec  = 0;
 
   ui.tEdit->setReadOnly(true);
   ui.tEdit->setLineWrapMode(QTextEdit::NoWrap);
@@ -27,11 +28,10 @@ void ClWidget::newEvent(AMSEventR *evt)
   rEvent = evt;
   ui.qwChist->newEvent(rEvent);
 
-  if (!TrRecon::gethead()) TrRecon::Create();
-  if (!TrRecon::TRCon)     TrRecon::TRCon = new VCon_root;
+  if (!trRec) trRec = new TrRecon;
 
-  TrRecon::gethead()->BuildClusterTkIdMap();
-  TrRecon::gethead()->BuildLadderClusterMap();
+  trRec->BuildClusterTkIdMap();
+  trRec->BuildLadderClusterMap();
 
   if (rEvent->NTrCluster() == 0) {
     ui.sbIndx->setMinimum(0); ui.sbIndx->setMaximum(0); 
@@ -56,7 +56,7 @@ void ClWidget::newEvent(AMSEventR *evt)
 
   int layer0 = 8, layer1 = 1;
   for (int ly = 0; ly <= 8; ly++)
-    if (TrRecon::gethead()->GetNladder(ly) > 0) { 
+    if (trRec->GetNladder(ly) > 0) { 
       if (ly < layer0) layer0 = ly;
       if (ly > layer1) layer1 = ly;
     }
@@ -73,7 +73,7 @@ void ClWidget::newEvent(AMSEventR *evt)
 
 void ClWidget::drawCluster(int icls)
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
   if (!rEvent->pTrCluster(icls)) return;
 
   ui.sbIndx->setValue(icls);
@@ -95,7 +95,7 @@ void ClWidget::updateDisp()
 
 void ClWidget::updateDigit()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int idx = ui.sbIndx->text().toInt();
   if (idx < 0 || rEvent->NTrCluster() <= idx) return;
@@ -107,9 +107,9 @@ void ClWidget::updateDigit()
   int tkid  = cls->GetTkId();
   int side  = cls->GetSide();
 
-  int icls = 0, ncls = TrRecon::gethead()->GetnTrClusters(tkid, side);
+  int icls = 0, ncls = trRec->GetnTrClusters(tkid, side);
   for (int i = 0; i < ncls; i++)
-    if (TrRecon::gethead()->GetTrCluster(tkid, side, i) == cls) {
+    if (trRec->GetTrCluster(tkid, side, i) == cls) {
       icls = i;
       break;
     }
@@ -129,7 +129,7 @@ void ClWidget::updateDigit()
 
 void ClWidget::updateLayer()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int layer = ui.sbLayr->text().toInt();
 
@@ -142,7 +142,7 @@ void ClWidget::updateLayer()
     return;
   }
 
-  while (TrRecon::gethead()->GetNladder(layer) <= 0) {
+  while (trRec->GetNladder(layer) <= 0) {
     if (layer == pLayer) {
       cerr << "Consistency check failed at updateLayer2 " << pLayer << endl;
       return;
@@ -155,7 +155,7 @@ void ClWidget::updateLayer()
   ui.sbLayr->setValue(layer);
 
   if (pChain) {
-    int tkid = TrRecon::gethead()->GetLadderHit(layer, 0);
+    int tkid = trRec->GetLadderHit(layer, 0);
 
     //cout << "updateLayer1 " << layer << " " << tkid << endl;
 
@@ -169,17 +169,17 @@ void ClWidget::updateLayer()
 
 void ClWidget::updateTkIdRange()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int layer = ui.sbLayr->text().toInt();
-  int nlad  = TrRecon::gethead()->GetNladder(layer);
+  int nlad  = trRec->GetNladder(layer);
   if (nlad <= 0) {
     //cout << "updateTkIdRange-1 layer to be updated" << endl;
     return;
   }
 
-  int tkid0 = TrRecon::gethead()->GetLadderHit(layer, 0);
-  int tkid1 = TrRecon::gethead()->GetLadderHit(layer, nlad-1);
+  int tkid0 = trRec->GetLadderHit(layer, 0);
+  int tkid1 = trRec->GetLadderHit(layer, nlad-1);
 
 //cout << "updateTkIdRange1 layer=" << layer 
 //     << " nlad= " << nlad << " " << tkid0 << " " << tkid1 << endl;
@@ -197,7 +197,7 @@ void ClWidget::updateTkIdRange()
 
 void ClWidget::updateTkId()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int tkid = ui.sbTkid->text().toInt();
   if (TMath::Abs(tkid)/100 < 1 || 8 < TMath::Abs(tkid)/100 ||
@@ -207,15 +207,15 @@ void ClWidget::updateTkId()
   }
 
   int layer = ui.sbLayr->text().toInt();
-  int nlad  = TrRecon::gethead()->GetNladder(layer);
+  int nlad  = trRec->GetNladder(layer);
   if (nlad <= 0) {
     cerr << "Consistency check failed at updateTkId1 " 
 	 << layer << " " << tkid << " " << pTkID << endl;
     return;
   }
 
-  int nclsn = TrRecon::gethead()->GetnTrClusters(tkid, 0);
-  int nclsp = TrRecon::gethead()->GetnTrClusters(tkid, 1);
+  int nclsn = trRec->GetnTrClusters(tkid, 0);
+  int nclsp = trRec->GetnTrClusters(tkid, 1);
 
 //cout << "updateTkId1 " << layer << " " << nlad << " | " 
 //     << pTkID << " " << tkid << " | " << nclsn << " " << nclsp << endl;
@@ -231,8 +231,8 @@ void ClWidget::updateTkId()
     return;
   }
     
-  int tkid0 = TrRecon::gethead()->GetLadderHit(layer, 0);
-  int tkid1 = TrRecon::gethead()->GetLadderHit(layer, nlad-1);
+  int tkid0 = trRec->GetLadderHit(layer, 0);
+  int tkid1 = trRec->GetLadderHit(layer, nlad-1);
   if (TMath::Abs(tkid)/100 != layer || tkid < tkid0 || tkid1 < tkid1) {
     ui.sbTkid->setValue(pTkID);
     return;
@@ -240,7 +240,7 @@ void ClWidget::updateTkId()
 
   int idx = -1;
   for (int i = 0; i < nlad; i++)
-    if (TrRecon::gethead()->GetLadderHit(layer, i) == pTkID) {
+    if (trRec->GetLadderHit(layer, i) == pTkID) {
       idx = i;
       break;
     }
@@ -252,8 +252,8 @@ void ClWidget::updateTkId()
   int i0 = (idx == 0)      ? 0      : idx-1;
   int i1 = (idx == nlad-1) ? nlad-1 : idx+1;
 
-  tkid0 = TrRecon::gethead()->GetLadderHit(layer, i0);
-  tkid1 = TrRecon::gethead()->GetLadderHit(layer, i1);
+  tkid0 = trRec->GetLadderHit(layer, i0);
+  tkid1 = trRec->GetLadderHit(layer, i1);
   tkid = (tkid < pTkID) ? tkid0 : tkid1;
 
 //cout << "updateTkId2 " << idx << " | " << i0 << " " << i1 << " | "
@@ -266,11 +266,11 @@ void ClWidget::updateTkId()
 
 void ClWidget::updateNP()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int tkid  = ui.sbTkid->text().toInt();
-  int nclsn = TrRecon::gethead()->GetnTrClusters(tkid, 0);
-  int nclsp = TrRecon::gethead()->GetnTrClusters(tkid, 1);
+  int nclsn = trRec->GetnTrClusters(tkid, 0);
+  int nclsp = trRec->GetnTrClusters(tkid, 1);
 
   if (nclsn == 0 && nclsp == 0) {
     //cout << "updateNP tkid to be updated" << endl;
@@ -298,11 +298,11 @@ void ClWidget::updateNP()
 
 void ClWidget::updateIclsRange()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int tkid = ui.sbTkid->text().toInt();
   int side = (ui.rbN->isChecked()) ? 0 : 1;
-  int ncls = (tkid != 0) ? TrRecon::gethead()->GetnTrClusters(tkid, side) : 0;
+  int ncls = (tkid != 0) ? trRec->GetnTrClusters(tkid, side) : 0;
 //cout << "updateIclsRange " << tkid << " " << side << " " << ncls << endl;
 
   ui.sbIcls->blockSignals(true);
@@ -317,17 +317,17 @@ void ClWidget::updateIclsRange()
 
 void ClWidget::updateIdx()
 {
-  if (!rEvent || rEvent->NTrCluster() == 0 || !TrRecon::gethead()) return;
+  if (!rEvent || rEvent->NTrCluster() == 0 || !trRec) return;
 
   int tkid  = ui.sbTkid->text().toInt();
   int icls  = ui.sbIcls->text().toInt();
   int side  = (ui.rbN->isChecked()) ? 0 : 1;
   if (tkid == 0) return;
 
-  int ncls = TrRecon::gethead()->GetnTrClusters(tkid, side);
+  int ncls = trRec->GetnTrClusters(tkid, side);
   if (ncls <= 0 || icls < 0 || icls >= ncls) return;
 
-  TrClusterR *cls = TrRecon::gethead()->GetTrCluster(tkid, side, icls);
+  TrClusterR *cls = trRec->GetTrCluster(tkid, side, icls);
 
   int idx = -1;
   for (int i = 0; i < rEvent->NTrCluster(); i++)

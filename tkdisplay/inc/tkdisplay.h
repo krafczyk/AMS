@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: tkdisplay.h,v 1.2 2009/11/19 10:18:47 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -77,24 +77,54 @@ private slots:
                                ui.cbGL55->setCheckState(Qt::Unchecked);
                                ui.cbGL56->setCheckState(Qt::Unchecked); }
 
-  void on_acOpen_activated();
-  void on_acInfo_activated();
-  void on_acEsel_activated();
-  void on_acPrev_activated();
-  void on_acNext_activated();
-  void on_acFrst_activated() { ui.sbEvent->setValue(ui.sbEvent->minimum()); }
-  void on_acLast_activated() { ui.sbEvent->setValue(ui.sbEvent->maximum()); }
-  void on_acExit_activated() { QApplication::closeAllWindows(); }
-  void on_acRcam_activated() { ui.glDisp->cReset(); }
-  void on_acDcls_activated() { clWidget->show(); clWidget->activateWindow(); }
-  void on_acMore_activated() { ui.glDisp->moreInfo(); }
-  void on_acCall_activated() { ui.glDisp->closeAll(); }
+  void Open();
+  void Info();
+  void Esel();
+  void Prev();
+  void Next();
+  void Frst() { ui.sbEvent->setValue(ui.sbEvent->minimum()); }
+  void Last() { ui.sbEvent->setValue(ui.sbEvent->maximum()); }
+  void Exit() { QApplication::closeAllWindows(); }
+  void Rcam() { ui.glDisp->cReset(); }
+  void Dcls() { clWidget->show(); clWidget->activateWindow(); }
+  void More() { ui.glDisp->moreInfo(); }
+  void Call() { ui.glDisp->closeAll(); }
 
-  void on_pbOpen_clicked() { on_acOpen_activated(); }
-  void on_pbPrev_clicked() { on_acPrev_activated(); }
-  void on_pbEsel_clicked() { on_acEsel_activated(); }
-  void on_pbNext_clicked() { on_acNext_activated(); }
-  void on_pbExit_clicked() { on_acExit_activated(); }
+#if (QT_VERSION == 0x040503) 
+  // for Qt 4.5.3
+  void on_acOpen_triggered() { Open(); }
+  void on_acInfo_triggered() { Info(); }
+  void on_acEsel_triggered() { Esel(); }
+  void on_acPrev_triggered() { Prev(); }
+  void on_acNext_triggered() { Next(); }
+  void on_acFrst_triggered() { Frst(); }
+  void on_acLast_triggered() { Last(); }
+  void on_acExit_triggered() { Exit(); }
+  void on_acRcam_triggered() { Rcam(); }
+  void on_acDcls_triggered() { Dcls(); }
+  void on_acMore_triggered() { More(); }
+  void on_acCall_triggered() { Call(); }
+#else
+  // for Qt <= 4.5.2
+  void on_acOpen_activated() { Open(); }
+  void on_acInfo_activated() { Info(); }
+  void on_acEsel_activated() { Esel(); }
+  void on_acPrev_activated() { Prev(); }
+  void on_acNext_activated() { Next(); }
+  void on_acFrst_activated() { Frst(); }
+  void on_acLast_activated() { Last(); }
+  void on_acExit_activated() { Exit(); }
+  void on_acRcam_activated() { Rcam(); }
+  void on_acDcls_activated() { Dcls(); }
+  void on_acMore_activated() { More(); }
+  void on_acCall_activated() { Call(); }
+#endif
+
+  void on_pbOpen_clicked() { Open(); }
+  void on_pbPrev_clicked() { Prev(); }
+  void on_pbEsel_clicked() { Esel(); }
+  void on_pbNext_clicked() { Next(); }
+  void on_pbExit_clicked() { Exit(); }
 
   void on_sbEvent_valueChanged(int) { drawEvent(); }
 

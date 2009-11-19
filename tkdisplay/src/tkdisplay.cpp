@@ -1,4 +1,4 @@
-// $Id: tkdisplay.cpp,v 1.1 2009/06/13 21:40:48 shaino Exp $
+// $Id: tkdisplay.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
 #include <QtGui>
 #include <QFileDialog>
 
@@ -8,6 +8,7 @@
 #include "evthread.h"
 
 #include "root.h"
+#include "amschain.h"
 #include "TrParDB.h"
 
 #include "TTreeFormula.h"
@@ -101,10 +102,16 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
   thisPtr = this;
 }
 
+#include "TrRecon.h"
+
 void TkDisplay::openFile(QString fname, int entry)
 {
   if (amsChain) delete amsChain;
   amsChain = new AMSChain;
+
+  ////SH
+  TrRecon::ReadMagField("dat/MagneticFieldMap07.dat");
+  ////SH
 
   if (TrParDB::Head) {
     delete TrParDB::Head;
@@ -221,7 +228,7 @@ void TkDisplay::drawEvent()
   }
 }
 
-void TkDisplay::on_acOpen_activated()
+void TkDisplay::Open()
 {
   QFileDialog qfd(this, "Open File...", ".", "Root files (*.root)");
 #ifndef Q_WS_MAC
@@ -236,7 +243,7 @@ void TkDisplay::on_acOpen_activated()
     openFile(qfd.selectedFiles().value(0));
 }
 
-void TkDisplay::on_acInfo_activated()
+void TkDisplay::Info()
 {
   QMessageBox *mbox = new QMessageBox(QMessageBox::Information,
 				      QLatin1String("About TkDisplay"), 
@@ -244,8 +251,8 @@ void TkDisplay::on_acInfo_activated()
 		    "   event display</h3>"
 		    "<p>by S.Haino <br>"
 		    "   (Sadakazu.Haino@pg.infn.it)</p>"
-		    "<p>CVS $Revision: 1.1 $<br>"
-		    "   CVS $Date: 2009/06/13 21:40:48 $</p>"
+		    "<p>CVS $Revision: 1.2 $<br>"
+		    "   CVS $Date: 2009/11/19 10:18:47 $</p>"
 		    "<p>Compiled: <br> at %1 on %2</p>"
 		    "<p>Qt version: %3</p>"
 		    "<p>ROOT version: %4</p>").arg(
@@ -263,19 +270,19 @@ void TkDisplay::on_acInfo_activated()
   ui.glDisp->paintDark(false);
 }
 
-void TkDisplay::on_acEsel_activated()
+void TkDisplay::Esel()
 {
   dlEvSel->setStyleSheet(dlogStyle);
   dlEvSel->show();
 }
 
-void TkDisplay::on_acPrev_activated()
+void TkDisplay::Prev()
 {
   if (tFormula) ui.sbEvent->setValue(scanEvent(-1));
   else          ui.sbEvent->stepDown(); 
 }
 
-void TkDisplay::on_acNext_activated()
+void TkDisplay::Next()
 {
   if (tFormula) ui.sbEvent->setValue(scanEvent(1));
   else          ui.sbEvent->stepUp(); 

@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: gltdisp.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -16,6 +16,10 @@
 #include "amsdbc.h"
 
 #include "TMath.h"
+
+//BOKE DEBUG
+#include <iostream>
+//BOKE DEBUG
 
 GLTDisp::GLTDisp(QWidget *parent) : GLWidget(parent)
 {
@@ -318,8 +322,9 @@ void GLTDisp::drawObject(GLenum mode)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  drawTracker(mode);
-  drawTracks (mode);
+  drawTracker (mode);
+  drawTracks  (mode);
+  drawMCTracks(mode);
 
   if (mode == GL_RENDER) {
     drawClusters();
@@ -442,6 +447,63 @@ void GLTDisp::drawTracks(GLenum mode)
       }
       else if (mode == GL_SELECT) glLoadName(sid);
       glPLines(2, x, y, z);
+    }
+  }
+}
+
+void GLTDisp::drawMCTracks(GLenum mode)
+{
+  if (!currEvent) return;
+  if (!(drawOpt & TRACK)) return;
+
+  static const double ctrk[4] = { 0.9, 0.0, 0.0, 1.0 };
+  static const double csel[4] = { 0.9, 0.4, 0.4, 1.0 };
+
+//BOKE DEBUG
+//std::cout<<currEvent->nMCEventg()<<std::endl;
+//BOKE DEBUG
+
+  for (int i = 0; i < currEvent->nMCEventg(); i++) {
+
+    int sid = i+SID_OFFS_TRACK;
+    if (mode == GL_RENDER) {
+      glLineWidth(2);
+      if (idSel == sid) glMatCol(csel);
+      else              glMatCol(ctrk);
+    }
+    else if (mode == GL_SELECT) glLoadName(sid);
+
+    MCEventgR *mct = currEvent->pMCEventg(i);
+
+    if (mct->Charge == 0) {
+      double z[2] = { -70, 70 };
+      double p0z  =   mct->Coo[2];
+      double dxz  =   mct->Dir[0]/mct->Dir[2];
+      double dyz  =   mct->Dir[1]/mct->Dir[2];
+      double x[2] = { mct->Coo[0]+dxz*(z[0]-p0z), mct->Coo[0]+dxz*(z[1]-p0z) };
+      double y[2] = { mct->Coo[1]+dyz*(z[0]-p0z), mct->Coo[1]+dyz*(z[1]-p0z) };
+
+      glPLines(2, x, y, z);
+    }
+    else {
+      enum { NPL = 20 };
+      double   zpl [NPL+1];
+      AMSPoint pint[NPL+1];
+      for (int j = 0; j <= NPL; j++) zpl[j] = -70.+140.*j/NPL;
+
+      TrProp trp(AMSPoint(mct->Coo[0], mct->Coo[1], mct->Coo[2]),
+		 AMSDir  (mct->Dir[0], mct->Dir[1], mct->Dir[2]),
+		 mct->Momentum/mct->Charge);
+      trp.Interpolate(NPL+1, zpl, pint);
+
+      double xp[NPL+1], yp[NPL+1], zp[NPL+1];
+      for (int j = 0; j <= NPL; j++) {
+	xp[j] = pint[j].x();
+	yp[j] = pint[j].y();
+	zp[j] = pint[j].z();
+      }
+
+      glPLines(NPL+1, xp, yp, zp);
     }
   }
 }
