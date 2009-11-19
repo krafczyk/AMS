@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.661 2009/11/19 11:33:48 mdelgado Exp $
+// $Id: job.C,v 1.662 2009/11/19 19:09:22 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3798,7 +3798,12 @@ throw (amsglobalerror){
      }
     cout <<"Trying to open histo file "<<_ntuplefilename<<endl;
     npq_(); 
-     HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
+     int beg=-1;
+     for (int k=0;k<strlen(_ntuplefilename);k++){
+      if(_ntuplefilename[k]!=' ')break;
+      beg=k;
+     }
+     HROPEN(IOPA.hlun,"output",(char*)(_ntuplefilename+beg+1),"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<_ntuplefilename<<endl;
      throw amsglobalerror("UnableToOpenHistoFile",3);

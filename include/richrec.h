@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.60 2009/08/14 09:19:44 mdelgado Exp $
+//  $Id: richrec.h,v 1.61 2009/11/19 19:09:22 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -226,7 +226,7 @@ static geant _Time;
 	      geant *lguide, geant *geff, 
 	      geant *reff, geant *beff, 
               integer *tflag,float beta_gen=0.9999);
-  int tile(AMSPoint r);
+  static int tile(AMSPoint r);
   float generated(geant length,
 		  geant lfoil,
 		  geant lguide,

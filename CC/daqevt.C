@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.171 2009/11/18 17:01:28 choutko Exp $
+//  $Id: daqevt.C,v 1.172 2009/11/19 19:09:22 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1286,11 +1286,16 @@ integer DAQEvent::_HeaderOK(){
       if(_Event==0 && _GetBlType()==0)return 0;
 
       //  fix against broken sequence
-      if(_PRun==_Run && _PEvent && _Event<_PEvent && _GetBlType()==5){
+      if(_PRun==_Run && _PEvent && _Event<_PEvent){
+         if(_GetBlType()==5){
          cerr<<"DAQEvent::Headerok-E-EventSeqBroken for Run "<<_PRun<<" "<<_PEvent<<" "<<_Event<<endl;
          _PRun=_Run;
          _PEvent=_Event;
          return 0;
+        }
+        else  if(_GetBlType()==6){
+           _Event=_PEvent+1;
+          }
        }
        if(_Event-_PEvent>1){
            static int icerr=0;

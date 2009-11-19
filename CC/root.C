@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.196 2009/11/18 17:01:28 choutko Exp $
+//  $Id: root.C,v 1.197 2009/11/19 19:09:22 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2572,10 +2572,10 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   Address   = ptr->_Address(0);
   AddressA   = ptr->_Address(1);
   DBase[0]       = FLT_MAX;
-  if(ptr->_Dbase[0]==ptr->_Dbase[0])
+  if(!isnan(ptr->_Dbase[0]))
   DBase[0]       = fabs(ptr->_Dbase[0])>FLT_MAX?FLT_MAX:ptr->_Dbase[0];
   DBase[1]       = FLT_MAX;
-  if(ptr->_Dbase[1]==ptr->_Dbase[1])
+  if(!isnan(ptr->_Dbase[1]))
       DBase[1]=fabs(ptr->_Dbase[1])>FLT_MAX?FLT_MAX:ptr->_Dbase[1];
   GeaneFitDone    = ptr->_GeaneFitDone;
   AdvancedFitDone = ptr->_AdvancedFitDone;

@@ -2887,6 +2887,8 @@ class RemoteClient:
                                 type="LAS"
                         elif (t0=="6"):
                             type="CAL"
+                            fevent=1
+                            levent=events
                         elif (t0=="7"):
                             type="CMD"
                         elif (t0=="8"):
