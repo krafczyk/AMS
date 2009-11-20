@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.568 2009/11/17 13:32:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.569 2009/11/20 12:22:42 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1732,7 +1732,7 @@ my $fevt=-1;
                     my @dir=split $run->{Run},$fpath;
                     my $cmd="mkdir -p $dir[0]";
                     my $i=system($cmd);
-                    $cmd="scp -2 $host:$fpath $fpath ";
+                    $cmd="scp -2 -x $host:$fpath $fpath ";
                     if($dir[0]=~/^\/dat0/){
                         $i=1;
                     }
@@ -1740,7 +1740,7 @@ my $fevt=-1;
                      $i=system($cmd);
                     }
                     if($i){              
-                       warn "$cmd failed \n";
+                       warn "$cmd failed $i \n";
                        $rcp=0;
                        
                    }
@@ -5138,10 +5138,10 @@ CheckCite:            if (defined $q->param("QCite")) {
 
  print "<tr valign=middle><td align=left><b><font size=\"-1\"> Production Period : </b></td> <td colspan=1>\n";
              print "<select name=\"QPPer\" >\n";
-             my $ii=0;
+             my $iii=0;
              foreach my  $template (@periodid) {
-              print "<option value=\"$template\">$period[$ii] </option>\n";
-              $ii++;
+              print "<option value=\"$template\">$period[$iii] </option>\n";
+              $iii++;
             }
             print "</select>\n";
       print "</b></td></tr>\n";
