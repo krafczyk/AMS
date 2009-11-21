@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.71 2009/07/01 16:45:44 pzuccon Exp $
+//  $Id: beta.C,v 1.72 2009/11/21 09:09:19 shaino Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -95,7 +95,7 @@ int AMSBeta::BuildBetaFromTrTrack(integer refit){
       
       AMSTOFCluster * phit[4]={0,0,0,0};
       AMSTOFCluster * phit2[4]={0,0,0,0};
-      number sleng[4];
+      number sleng[4]={0,0,0,0};
       number chi2space=0;
       number td;
       integer tofpatt=0;

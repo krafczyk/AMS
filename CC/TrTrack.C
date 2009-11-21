@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.12 2009/08/26 17:50:58 pzuccon Exp $
+// $Id: TrTrack.C,v 1.13 2009/11/21 09:09:18 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/26 17:50:58 $
+///$Date: 2009/11/21 09:09:18 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +33,7 @@
 
 #include "TrTrack.h"
 #include "TrRecHit.h"
+#include "TkSens.h"
 
 #include <cmath>
 #include <algorithm>
@@ -475,7 +476,28 @@ bool TrTrackR::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad,
   return true;
 }
 
+int TrTrackR::intercept(AMSPoint &pnt, int layer, 
+			number &theta, number &phi, number &local, int id)
+{
+  AMSDir dir;
+  Interpolate(TkDBc::Head->GetZlayer(layer+1), pnt, dir, id);
+  theta = dir.gettheta();
+  phi   = dir.getphi();
+  local = 0;
 
+  TkSens tks(pnt);
+  if (tks.LadFound()) {
+    AMSPoint ps(TkDBc::Head->_ssize_active[0], 
+		TkDBc::Head->_ssize_active[1], TkDBc::Head->_silicon_z);
+    AMSPoint xloc = tks.GetSensCoo();
+    xloc = (xloc/ps).abs();
+    if (xloc[0] > xloc[1]) local = 1-xloc[0];
+    else                   local = 1-xloc[1];
+  }
+  else return -1;
+
+  return 1;
+}
 
 void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		   number& Theta, number& Phi, AMSPoint& X0) {

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.185 2009/11/18 11:00:53 shaino Exp $
+//  $Id: particle.C,v 1.186 2009/11/21 09:09:19 shaino Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -23,6 +23,7 @@
 #ifdef _PGTRACK_
 #include "patt.h"
 #include "tkdcards.h"
+#include "TkSens.h"
 #else
 #include "vtx.h"
 #endif
@@ -838,11 +839,10 @@ void AMSParticle::richfit(){
 	number theta,phi;
 	bool bad=false;
 #ifdef  _PGTRACK_
-	//PZ FIXME REFIT
+	//PZ FIXME REFIT //SH FIXED
 	_TrCoo[layer]=_ptrack->GetResidual(layer);
-	//        if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::Head->nlay()-1){
-	//          bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       
-	//        }
+	if (_TrCoo[layer].norm() == 0 || layer==0 || layer==TkDBc::Head->nlay()-1){
+	  bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
 #else
 	if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::nlay()-1){
 	  bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }

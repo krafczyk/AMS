@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.7 2009/11/19 10:07:43 shaino Exp $
+//  $Id: TrFit.C,v 1.8 2009/11/21 09:09:18 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/11/19 10:07:43 $
+///$Date: 2009/11/21 09:09:18 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -493,7 +493,7 @@ double TrFit::SimpleFit(void)
   // Calculate path integrals
   for (int i = 0; i < _nhit; i++) {
     if (i == 0 || len[i] <= 0) {
-      for (int j = 0; j < 3; j++) pintx[0][j] = pintu[0][j] = 0;
+      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
       continue;
     }
      

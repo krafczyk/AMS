@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.10 2009/08/26 17:51:01 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.11 2009/11/21 09:09:24 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/08/26 17:51:01 $
+///$Date: 2009/11/21 09:09:24 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -397,6 +397,9 @@ public:
 		      AMSPoint &P1, number &theta, number &phi,
 		      number &length, int id = 0);
 
+  /// Interception (for the compatibility with Gbatch)
+  int intercept(AMSPoint &pnt, int layer, 
+		number &theta, number &phi, number &local, int id = 0);
 
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
