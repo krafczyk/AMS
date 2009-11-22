@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.172 2009/11/19 19:09:22 choutko Exp $
+//  $Id: daqevt.C,v 1.173 2009/11/22 16:03:09 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2723,22 +2723,52 @@ bool DAQCompress::decompress(Bytef *istream, size_t inputl, Bytef *ostream, size
 bool DAQCompress::_init_decode=false;
 
 
-
+#include "timeid.h"
 
 bool DAQEvent::CalibDone(int id){
-if(id>=0 && id<7){
- if(_CalibDataS[id*3+2] && _CalibDataS[id*3+2] ==_CalibDataS[id*3+1]-_CalibDataS[id*3]+2 )return true;
- else return false; 
-}
-else return false;
+  if(id>0 && id<7){
+    if(_CalibDataS[id*3+2] && _CalibDataS[id*3+2] ==_CalibDataS[id*3+1]-_CalibDataS[id*3]+2 )return true;
+    else return false; 
+  }
+  else if(id==0){
+#ifdef _PGTRACK_
+    time_t bb=TrCalDB::Head->GetRun();
+    time_t endtime=bb+3600*24*31; //endtime after a month
+    tm begin;
+    tm end;
+    tm* mtim=localtime_r(&bb,&begin);
+    tm* mtim2=localtime_r(&endtime,&end);
+    
+
+    AMSTimeID* tt=  AMSJob::gethead()->gettimestructure(AMSID("TrackerCals",AMSJob::gethead()->isRealData()));;
+    tt->UpdateMe()=1;
+    tt->UpdCRC();
+#else
+    if(_CalibDataS[id*3+2] && _CalibDataS[id*3+2] ==_CalibDataS[id*3+1]-_CalibDataS[id*3]+2 )return true;
+    else return false; 
+    
+#endif
+    
+  }
+  else return false;
 }
 
 bool DAQEvent::CalibInit(int id){
-if(id>=0 && id<7){
- if(_CalibDataS[id*3+1]-_CalibDataS[id*3]==0)return true;
- else return false; 
-}
-else return false;
+  if(id>0 && id<7){
+    if(_CalibDataS[id*3+1]-_CalibDataS[id*3]==0)return true;
+    else return false; 
+  }
+  else if (id==0){  //Tracker
+#ifdef _PGTRACK_
+    if(!TrCalDB::Head){TrCalDB::Head=new TrCalDB();}
+    TrCalDB::Head->Clear();
+    TrCalDB::Head->init();
+#else
+    if(_CalibDataS[id*3+2] && _CalibDataS[id*3+2] ==_CalibDataS[id*3+1]-_CalibDataS[id*3]+2 )return true;
+    else return false; 
+#endif
+  }
+  else return false;
 }
 
 

@@ -95,7 +95,7 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB= -Wno-deprecated  -mcpu=i686 
+CFLAGSB= -Wno-deprecated  -march=i686 
 DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
