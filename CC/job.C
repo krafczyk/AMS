@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.662 2009/11/19 19:09:22 choutko Exp $
+// $Id: job.C,v 1.663 2009/11/22 16:08:14 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4139,8 +4139,8 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=6 && DAQCFFKEY.BTypeInDAQ[1]>=6){   // OnBoard Calib
 //TRK    
 #ifdef _PGTRACK_
     //PZ FIXME CALIB
-  if((CALIB.SubDetInCalib/100)%10>0)
-    DAQEvent::addsubdetector(&TrCalDB::checkdaqidS,&TrCalDB::updtrcalibS,6);
+  //  if((CALIB.SubDetInCalib/100)%10>0)
+  //   DAQEvent::addsubdetector(&TrCalDB::checkdaqidS,&TrCalDB::updtrcalibS,6);
 #else
 
   if((CALIB.SubDetInCalib/100)%10>0){

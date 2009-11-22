@@ -157,6 +157,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 
   int   TDROff=1;
   int newformat=0;
+  int CNWords=0;
 
   int run=  AMSEvent::gethead()->getrun();
   if(run>=1210067687) TDROff=2;
@@ -168,13 +169,12 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   if(run>=1257416265){ // Nov09 format
     newformat=1;
     TDROff=1;
+    CNWords=0;
   }
   int clcount=0;
-  int CNWords=0;
   if(TRCALIB.Version==0)CNWords=16;
   else CNWords=0;
 //FIXME PZ DATA FORMAT
-  CNWords=16;
   if(run>=1208965124) CNWords=0;
   if(DAQCFFKEY.DAQVersion==1)CNWords=2;
   int rwords=1+CNWords;
@@ -187,7 +187,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   //  sprintf(ttname,"=======>JINF %d %s TDR Board: %2d status: %hX offset: %d last word: %d  Size: %d \n",Jinfnum,label[Jinfnum],status&0x1f,status,offset,offset+tsize,tsize); 
  
   sprintf(ttname,"CrateT%d_TDR%02d",cratenum,TDRnum);
-  int ret=TestBoardErrors(ttname,status,0);
+  int ret=TestBoardErrors(ttname,status,pri);
   if(ret<0) return -1;
 
   int RawOffset=0;
@@ -228,7 +228,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
       if(lad) tkid=lad->GetTkId();
 
       for(int hh=0;hh<cluslen;hh++){
-	if(pri>3)printf("signal: %d %d\n",hh,blocks[count]);
+	if(pri>3)printf("signal: %d %d\n",hh,(short int)blocks[count]);
 	signal[hh]  = (short int)blocks[count];
 	//if(pri)printf("        %d %f %f %d\n",hh,signal[hh]/8.,sigma[hh],status[hh]);
 	count++;
