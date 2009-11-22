@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.74 2009/11/18 09:27:35 choumilo Exp $
+//  $Id: trigger102.C,v 1.75 2009/11/22 19:59:26 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1555,6 +1555,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
 
 //----------------------------------------------------------------------------------
 void Trigger2LVL1::buildraw(integer len, int16u *p){
+int cid=(len>>16)+1;
 //
 // on input: len=tot_block_length as given at the beginning of block
 //           *p=pointer_to_beggining_of_block_data (next to the length word)
@@ -1661,8 +1662,8 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
   else goto BadExit;
 //
   node2side(jaddr,csid);//card_side(1/2<->a/b)
-  if(csid>0 && csid<3)TGL1JobStat::daqs1(2+csid-1);//sides sharing
-  else goto BadExit;
+  //if(csid>0 && csid<3)TGL1JobStat::daqs1(2+csid-1);//sides sharing
+  //else goto BadExit;
 //
   TGL1JobStat::daqs1(20+datyp);//<=== count lvl1's format-types
   if(datyp==0){
@@ -1671,7 +1672,7 @@ void Trigger2LVL1::buildraw(integer len, int16u *p){
 //
   if(!dataf){
     TGL1JobStat::daqs1(24);//<=== count lvl1's notData segments
-    goto BadExit;//tempor
+    //goto BadExit;//tempor
   }
 //
   if(crcer)TGL1JobStat::daqs1(25);
