@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.569 2009/11/20 12:22:42 ams Exp $
+# $Id: RemoteClient.pm,v 1.570 2009/11/22 18:58:10 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10504,6 +10504,9 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
        if ($webmode == 1) {
         print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
         print "<td align=center><b><font color=\"black\"> $events </font></b></td>";
+        if($events==0){
+            $hash->[3]=0;
+        }
         print "<td align=center><b><font color=\"black\" >$hash->[3]\%</font></b></td>";
        print "<td align=center><b><font color=\"black\" >$hash->[2]\%</font></b></td>";
        print "<td align=center><b><font color=\"black\" >$hash->[4]</font></b></td>";

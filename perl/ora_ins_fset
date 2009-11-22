@@ -1,4 +1,4 @@
 insert into filesystems values ('pcamsf4', '/f4bck0','/MC',0,0,0,100,'Active',0,0,0);
 insert into filesystems values ('pcamsr0', '/r0dat0','/Data',0,0,0,100,'Active',0,0,0);
-insert into filesystems values ('pcamsr0', '/r0fc00','/Data',0,0,0,100,'Active',0,0,0);
+insert into filesystems values ('pcamsr0', '/r0fc00','/MC',0,0,0,10,'Active',0,0,0);
 

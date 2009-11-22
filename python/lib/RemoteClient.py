@@ -556,6 +556,7 @@ class RemoteClient:
                s.quit()
                
     def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0):
+        self.crczero=0
         self.failedcp=0
         self.thrusted=0
         self.copied=0
@@ -904,7 +905,7 @@ class RemoteClient:
                         self.sqlserver.Update("delete ntuples where run="+str(run.Run))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
-                            if(self.dbclient.ct(ntuple.Type)!="RootFile"):
+                            if(self.dbclient.ct(ntuple.Type)!="RootFile" and self.dbclient.ct(ntuple.Type)!="Ntuple"):
                                 continue
                             #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
@@ -1181,7 +1182,7 @@ class RemoteClient:
                         self.sqlserver.Update("delete ntuples where jid="+str(run.uid))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
-                            if(self.dbclient.ct(ntuple.Type)!="RootFile"):
+                            if(self.dbclient.ct(ntuple.Type)!="RootFile" and self.dbclient.ct(ntuple.Type)!="Ntuple"):
                                 continue
                             #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
@@ -1854,7 +1855,10 @@ class RemoteClient:
         if(self.v):
             print crccmd,rstatus
         self.crcTime=self.crcTime+time.time()-time0
-        return rstatus
+        if(crc==0 and self.crczero==1):
+            return 1
+        else:
+            return rstatus
     def parseJoutnalFiles(self,i,v,h,s,m):
         firstjobname=0
         lastjobname=0

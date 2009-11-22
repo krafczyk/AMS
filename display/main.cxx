@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.40 2009/11/16 09:36:39 choutko Exp $
+//  $Id: main.cxx,v 1.41 2009/11/22 18:58:10 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){
   if ( argc > 1 ) {		// now take the file name
     filename = argv[1];
   }   
-  ifstream fbin;
+  fstream fbin;
   while (1) {
     c = getopt_long (argc, argv, "t:hHmMs:?", long_options, &option_index);
     if (c == -1) break;
@@ -134,6 +134,11 @@ int main(int argc, char *argv[]){
       if(fbin){
        fbin>>lasttime;
        cout <<"  LastTime Set "<<lasttime;
+       fbin.close();
+     }
+      fbin.open(".amsedc");
+      if(fbin){
+       fbin<<(lasttime-1000);
        fbin.close();
      }
       break;
