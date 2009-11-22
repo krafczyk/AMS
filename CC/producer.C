@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.132 2009/09/04 13:01:58 choutko Exp $
+//  $Id: producer.C,v 1.133 2009/11/22 18:57:55 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -612,6 +612,9 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
          }
          fbin.close();
          ntend->crc=~crc;
+   }
+   else{
+         cout <<"SendNtupleEnd-W-UnableToAddCRC "<<(const char*)a(bstart)<<endl;
    }
   if(!_Solo)sendCurrentRunInfo();
 }

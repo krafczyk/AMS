@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.663 2009/11/22 16:08:14 pzuccon Exp $
+// $Id: job.C,v 1.664 2009/11/22 18:57:55 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3803,7 +3803,8 @@ throw (amsglobalerror){
       if(_ntuplefilename[k]!=' ')break;
       beg=k;
      }
-     HROPEN(IOPA.hlun,"output",(char*)(_ntuplefilename+beg+1),"NPQ",rsize,iostat);
+     if(beg>=0)strcpy(_ntuplefilename,_ntuplefilename+beg+1);
+     HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<_ntuplefilename<<endl;
      throw amsglobalerror("UnableToOpenHistoFile",3);

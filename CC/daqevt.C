@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.173 2009/11/22 16:03:09 pzuccon Exp $
+//  $Id: daqevt.C,v 1.174 2009/11/22 18:57:55 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -710,7 +710,7 @@ else return false;
 }
 
 bool    DAQEvent::_isjlvl1(int16u id){
-if(  ((id>>5)&((1<<9)-1))>=137 && ((id>>5)&((1<<9)-1))<=140 && (id>>14)==2)return true;
+if(  ((id>>5)&((1<<9)-1))>=136 && ((id>>5)&((1<<9)-1))<=139 && (id>>14)==2)return true;
 else return false;
 }
 
