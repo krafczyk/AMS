@@ -5,8 +5,7 @@
 #include "job.h"
 
 // Change all my assertions
-#define _assert(x) {if(!(x))throw 1;}
-
+#define _assert(x) {if(0 && !(x))throw 1;}
 RichPMTChannel::RichPMTChannel(int packed_id){
   int pmt,channel;
   RichPMTsManager::UnpackGeom(packed_id,pmt,channel);
