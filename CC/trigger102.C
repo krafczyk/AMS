@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.75 2009/11/22 19:59:26 choutko Exp $
+//  $Id: trigger102.C,v 1.76 2009/11/23 10:22:11 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2424,6 +2424,8 @@ int cid=(len>>16)+1;
   return;
 //
 BadExit:
+  static int err=0;
+  if(err++<1000)cerr<<" TriggerLVL1::buildraw-E-BadTriggerEventRejected "<<endl;
   TGL1JobStat::daqs1(13);//count rejected LVL1-entries(segments)
 
 }
