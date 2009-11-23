@@ -75,7 +75,7 @@ int firstevent=-1;
   if(nev>2 && LastEvent>0){
    float rate=(lastevent+1-firstevent)/nevread;
    if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<" "<<rate<<" "<<diff<<endl; 
-   if(abs(LastEvent-lastevent)>15*rate && abs(LastEvent-lastevent)>3*diff){
+   if(0 && abs(LastEvent-lastevent)>15*rate && abs(LastEvent-lastevent)>3*diff){
      return -5;
    } 
   }

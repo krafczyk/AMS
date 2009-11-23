@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.133 2009/11/22 18:57:55 choutko Exp $
+//  $Id: producer.C,v 1.134 2009/11/23 18:11:59 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -775,6 +775,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
   sprintf(tmp,"%d",ntend->LastEvent);
    systemc+=tmp; 
   int i=system(systemc);
+  cout<<"AMSProducer::sendNtupleEnd-I-ValidatingBy "<<systemc<<endl;
   if( (i == 0xff00) || (i & 0xff)){
 // Unable To Check
    cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBy "<<systemc<<endl;
