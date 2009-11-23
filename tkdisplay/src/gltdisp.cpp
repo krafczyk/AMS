@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
+// $Id: gltdisp.cpp,v 1.3 2009/11/23 21:27:31 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -16,10 +16,6 @@
 #include "amsdbc.h"
 
 #include "TMath.h"
-
-//BOKE DEBUG
-#include <iostream>
-//BOKE DEBUG
 
 GLTDisp::GLTDisp(QWidget *parent) : GLWidget(parent)
 {
@@ -458,10 +454,6 @@ void GLTDisp::drawMCTracks(GLenum mode)
 
   static const double ctrk[4] = { 0.9, 0.0, 0.0, 1.0 };
   static const double csel[4] = { 0.9, 0.4, 0.4, 1.0 };
-
-//BOKE DEBUG
-//std::cout<<currEvent->nMCEventg()<<std::endl;
-//BOKE DEBUG
 
   for (int i = 0; i < currEvent->nMCEventg(); i++) {
 

@@ -1,4 +1,4 @@
-// $Id: clwidget.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
+// $Id: clwidget.cpp,v 1.3 2009/11/23 21:27:31 shaino Exp $
 #include <QtGui>
 
 #include "clwidget.h"
@@ -6,7 +6,7 @@
 
 #include "TrCluster.h"
 #include "TrRecon.h"
-#include "VCon_root.h"
+#include "root.h"
 
 #include "TMath.h"
 
