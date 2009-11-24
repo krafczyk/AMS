@@ -135,6 +135,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
 
 void DAQRichBlock::buildrawnode(integer length,int16u *p){
+  try{
 #ifdef __AMSDEBUG
   if(AMSFFKEY.Debug>1){
   cout<<"*** IN DAQRichBlock::buildrawnode "<<endl
@@ -186,6 +187,15 @@ void DAQRichBlock::buildrawnode(integer length,int16u *p){
 	  break;
 	}
   return;
+  }catch(int){
+    static bool first_call=true;
+    if(first_call){
+      cout<<"-- Problem in DAQRichBlock::buildrawnode. Ignoring further errors"<<endl;
+      first_call=false;
+    }
+  }
+
+
   /*  
   // This is supposed to be a JINF block: get the status word and check it
   StatusParser status(*(p-1+length));
