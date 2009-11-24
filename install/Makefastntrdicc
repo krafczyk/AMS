@@ -80,9 +80,9 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C $(SCC)id.C
-OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o
-$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c
+OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o
+$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o
 	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  $(EXE)/fastntrd.exe 
@@ -101,12 +101,18 @@ $(BIN)root_rs.o:    	 $(SCC)root.C
 $(BIN)id.o:    	 $(SCC)id.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)id.C -o $(BIN)id.o
 
+$(BIN)point.o:    	 $(SCC)point.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)point.C -o $(BIN)point.o
+
+$(BIN)ctype.o:    	 $(SCC)ctype.c
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)ctype.c -o $(BIN)ctype.o
+
 $(BIN)rootread.o:    	 $(SCC)rootread.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
 
-$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h
+$(BIN)rootdict_s.C:    ../include/point.h ../include/linkdef.h  ../include/root_RVS.h ../include/root.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/point.h ../include/root_RVS.h ../include/linkdefs.h
 	@echo "OK"
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C

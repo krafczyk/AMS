@@ -65,6 +65,8 @@ catch (std::bad_alloc aba){
       }
       else {
        iflg=IFNTREAD(fname,nevents,iver);
+       if(nevents==0)iflg=0;
+        iflg=0;
       }
      if(iflg>=0){
 //       float proc;
