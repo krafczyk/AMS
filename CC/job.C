@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.664 2009/11/22 18:57:55 choutko Exp $
+// $Id: job.C,v 1.665 2009/11/24 15:28:05 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3285,7 +3285,7 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
   TID.add (new AMSTimeID(AMSID("RichPMTChannelGain",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_gain[0]),
-                         (void*)&RichPMTsManager::_gain[0],server,isRealData()));
+                         (void*)&RichPMTsManager::_gain[0],server,1));
 
   TID.add (new AMSTimeID(AMSID("RichPMTChannelGainSigma",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
