@@ -2517,7 +2517,7 @@ class RemoteClient:
         rundd=""
         rund=""
         runn=""
-        types=["SCI","LAS","CAL"]
+        types=["0SCI","0LAS","0CAL","HKD"]
         if(tab):
             print "<HR>"
             print "<table border=1>"
@@ -2610,6 +2610,20 @@ class RemoteClient:
             runn=" and ntuples.run>=%d " %(-run2p)
         sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
         files=self.sqlserver.Query(sql)
+        datapath=dataset
+        ds1=""
+        ds2=""
+        did=-1
+        if(dataset.find("/")>=0):
+            junk=dataset.split('/')
+            dataset=junk[len(junk)-1]
+            ds1=junk[len(junk)-2]
+            sql="select did from datasets where name like '%s' " %(ds1)
+            ds=self.sqlserver.Query(sql)
+            if(len(ds)==1):
+                did=ds[0][0]
+        if(did>0):
+            runst=" and jobs.did=%d " %(did)
         if(len(files)>0):
             sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s.job' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
             self.sqlserver.Update(sql)
