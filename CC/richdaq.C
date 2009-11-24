@@ -75,9 +75,8 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   try{
   // Reset the status bits
   Status=kOk;
-  
 #ifdef __INSPECT__
-  cout<<endl<<endl<<"RICH EVENT INSPECTOR"<<endl;
+  cout<<endl<<endl<<"RICH EVENT INSPECTOR: buildraw"<<endl;
   cout<<endl;
   cout<< " -1(-2) -- LENGTH                   -- "<<length<<" words"<<endl;
   int16u value=*p;
@@ -101,8 +100,6 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   cout<<"DUMPING EVERYTHING "<<endl;
   for(int i=0;i<length;i++) {cout<<"+"<<i<<" ";printf("%x\n",*(p+i));}
 #endif
-
-
 
   // Check that the length size is the correct one: at least I expect to have the node status
   if(length<1) Do(kLengthError);
@@ -136,20 +133,8 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
 
 void DAQRichBlock::buildrawnode(integer length,int16u *p){
   try{
-#ifdef __AMSDEBUG
-  if(AMSFFKEY.Debug>1){
-  cout<<"*** IN DAQRichBlock::buildrawnode "<<endl
-      <<" Length "<<length<<endl;
-  printf(" DUMP %x %x %x %x %x\n",*(p-1),*p,*(p+1),*(p+2),(*p+3));
-  }
-#endif
-
-  // In p-1 is the node id and so 
-  // In p is the event number p
-  // In p+1 the first RDR info (its length)
-
 #ifdef __INSPECT__
-  cout<<endl<<endl<<"RICH EVENT INSPECTOR"<<endl;
+  cout<<endl<<endl<<"RICH EVENT INSPECTOR: buildrawnode"<<endl;
   cout<<endl;
   cout<< " -1(-2) -- LENGTH                   -- "<<length<<" words"<<endl;
   int16u value=*p;
@@ -174,8 +159,23 @@ void DAQRichBlock::buildrawnode(integer length,int16u *p){
   for(int i=0;i<length;i++) {cout<<"+"<<i<<" ";printf("%x\n",*(p+i));}
 #endif
 
+#ifdef __AMSDEBUG
+  if(AMSFFKEY.Debug>1){
+  cout<<"*** IN DAQRichBlock::buildrawnode "<<endl
+      <<" Length "<<length<<endl;
+  printf(" DUMP %x %x %x %x %x\n",*(p-1),*p,*(p+1),*(p+2),(*p+3));
+  }
+#endif
+
+  // In p-1 is the node id and so 
+  // In p is the event number p
+  // In p+1 the first RDR info (its length)
   Status=kOk;
   if(length<1) Do(kLengthError);
+
+  // This is supposed to be a JINF block: get the status word and check it
+  //  StatusParser status(*(p-1+length));
+  
 
   int id=((*(p-1))>>5)&((1<<9)-1);
   
@@ -183,7 +183,10 @@ void DAQRichBlock::buildrawnode(integer length,int16u *p){
     for(int side=0;side<RICH_JINFs;side++)
       for(int alias=0;alias<2;alias++)
 	if(id==JINFNodes[secondary][side][alias]){
-	  DecodeRich(length-1,p+1,side,secondary);
+	  // Assume that everything here is primary and decode
+	  int offset=0;
+	  if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
+	  DecodeRich(length-1+offset,p+1,side,secondary);
 	  break;
 	}
   return;
@@ -563,6 +566,7 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
     
     FragmentParser cdp(pointer);
     if(cdp.status.errors) Do(kCDPError);
+
     int CDP=cdp.status.slaveId;
     if(secondary) if(CDP==1) CDP=9; else if(CDP==9) CDP=1;
     
@@ -663,12 +667,12 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
 	      int counts=channel.counts;
 	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
 
-	      /*
+#ifdef __INSPECT__
 	      cout<<"ADDING HIT IN COMPRESSED MODE: "<<endl
 		  <<"   PMT GEOM ID "<<channel_geom_number<<endl
 		  <<"   COUNTS  "<<counts<<endl
 		  <<"   HIGH GAIN "<<mode<<endl;
-	      */
+#endif
 
 	      AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
 					   new AMSRichRawEvent(channel_geom_number,
