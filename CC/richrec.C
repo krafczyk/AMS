@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.130 2009/11/19 14:43:16 mdelgado Exp $
+//  $Id: richrec.C,v 1.131 2009/11/24 09:46:18 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1789,7 +1789,8 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
 
     // Check if it is whithin a radiator tile
     if(tile(r0)==-1) continue;
-
+    
+    if(u0[2]==0) continue;
     geant l=(RICHDB::rad_height-r0[2])/u0[2];  
 
     for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
@@ -1810,6 +1811,7 @@ geant AMSRichRing::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflec
     for(i=0;i<3;i++) u1[i]=rad_index/RICHDB::foil_index*u0[i]+f*n[i];
 
   /* propagate to foil end */
+    if(u1[2]==0) continue;
     l=RICHDB::foil_height/u1[2];
     for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
     if (sqrt(SQR(r1[0])+SQR(r1[1]))>RICHDB::top_radius) continue;
