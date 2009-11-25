@@ -163,7 +163,42 @@ public:
   geant GGintegral ;//! 91765.;
   //! R 14 Threshold on the S/K Correlation probability
   geant ThrProb    ;//! 0.00001;
-  
+  // HIT PARS
+  // PZ FIXME DOCUMENTATION
+  //! I 15 MaxNrawCls
+  int MaxNrawCls ;
+  //! I 16 MaxNrawCls
+  int MaxNtrCls  ;
+  //! I 17 MaxNtrHit
+  int MaxNtrHit  ;
+  //TRACK PARS
+  //! I 18 MaxNtrack
+  int    MaxNtrack ;
+  //! I 19 MinNhitX
+  int    MinNhitX  ;
+  //! I 20 MinNhitY
+  int    MinNhitY  ;
+  //! I 21 MinNhitXY
+  int    MinNhitXY ;
+  //! I 22 PatAllowOption
+  int    PatAllowOption ;
+  //! R 23 MaxChisqAllowed
+  float MaxChisqAllowed   ;
+  //! R 24  LadderScanRange
+  float LadderScanRange   ; //= TkDBc::Head->_ladder_Ypitch
+  //! R 25 ClusterScanRange
+  float ClusterScanRange  ;
+  //! R 26 MaxChisqForLScan
+  float MaxChisqForLScan  ;
+  //! R 27 ErrXForScan
+  float ErrXForScan       ;
+  //! R 28 ErrYForScan
+  float ErrYForScan       ;
+  //DEBUG
+  //! I 29 TrDEBUG
+  int TrDEBUG = 0;
+  //! I 30 PZDEBUG
+  int PZDEBUG = 0;
   void init();
 
 };

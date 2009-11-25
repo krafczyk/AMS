@@ -17,6 +17,53 @@ void TKGEOMFFKEY_DEF::init(){
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
+
+//=============================
+//==============================
+//  TRACKER RECONSTRUCTION
+//==============================
+void TRCLFFKEY_DEF::init(){
+  recflag=111;
+  ThrSeed[0]  = 4.00;
+  ThrSeed[1]  =	4.00;
+  ThrNeig[0]  = 1.00;
+  ThrNeig[1]  = 1.00;
+
+  SeedDist[0] =  3;
+  SeedDist[1] =  3;
+  
+  // hit signal correlation (only muons/protons)
+  GGpars[0]  = 1428.;
+  GGpars[1]  = 0.0000;
+  GGpars[2]  = 0.1444;
+  GGpars[3]  = 1645.;
+  GGpars[4]  = 0.0109;
+  GGpars[5]  = 0.0972;
+  GGintegral = 91765.;
+  ThrProb    = 0;//0.00001;
+  MaxNrawCls = 200;
+  MaxNtrCls  = 100;
+  MaxNtrHit  =  50;
+  //Track
+  MaxNtrack = 2;
+  MinNhitX  = 4;
+  MinNhitY  = 5;
+  MinNhitXY = 4;
+  PatAllowOption = 0;
+  MaxChisqAllowed   = 300;
+  LadderScanRange   = 7.3; //= TkDBc::Head->_ladder_Ypitch
+  ClusterScanRange  = 0.5;
+  MaxChisqForLScan  = 2.2;
+  ErrXForScan       = 300e-4;
+  ErrYForScan       = 300e-4;
+  //debug
+  TrDEBUG = 0;
+  PZDEBUG = 0;
+
+
+}
+
+TRCLFFKEY_DEF TRCLFFKEY;
 //==============================
 
 
@@ -202,33 +249,6 @@ void TRALIG_DEF::init(){
 
 TRALIG_DEF TRALIG;
 
-//=============================
-//==============================
-//  TRACKER RECONSTRUCTION
-//==============================
-void TRCLFFKEY_DEF::init(){
-  ThrSeed[0]  = 4.00;
-  ThrSeed[1]  =	4.00;
-  ThrNeig[0]  = 1.00;
-  ThrNeig[1]  = 1.00;
-
-  SeedDist[0] =  3;
-  SeedDist[1] =  3;
-  
-  // hit signal correlation (only muons/protons)
-  GGpars[0]  = 1428.;
-  GGpars[1]  = 0.0000;
-  GGpars[2]  = 0.1444;
-  GGpars[3]  = 1645.;
-  GGpars[4]  = 0.0109;
-  GGpars[5]  = 0.0972;
-  GGintegral = 91765.;
-  ThrProb    = 0;//0.00001;
-  recflag=111;
-
-}
-
-TRCLFFKEY_DEF TRCLFFKEY;
 //=============================
 void TRFITFFKEY_DEF::init(){
   // Fit Par

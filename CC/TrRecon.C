@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.20 2009/11/19 10:07:44 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.21 2009/11/25 12:40:49 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/11/19 10:07:44 $
+/// $Date: 2009/11/25 12:40:49 $
 ///
-/// $Revision: 1.20 $
+/// $Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -99,8 +99,23 @@ void TrRecon::SetParFromDataCards(){
   GGpars[5]  = TRCLFFKEY.GGpars[5]    ;
   GGintegral = TRCLFFKEY.GGintegral   ;
   ThrProb    = TRCLFFKEY.ThrProb      ;
+  MaxNrawCls = TRCLFFKEY.MaxNrawCls;
+  MaxNtrCls  = TRCLFFKEY.MaxNtrCls ;
+  MaxNtrHit  = TRCLFFKEY.MaxNtrHit ;
+  MaxNtrack         = TRCLFFKEY.MaxNtrack ;      
+  MinNhitX          = TRCLFFKEY.MinNhitX     ;   
+  MinNhitY          = TRCLFFKEY.MinNhitY        ;
+  MinNhitXY         = TRCLFFKEY.MinNhitXY       ;
+  PatAllowOption    = TRCLFFKEY.PatAllowOption  ;
+  MaxChisqAllowed   = TRCLFFKEY.MaxChisqAllowed ;
+  LadderScanRange   = TRCLFFKEY.LadderScanRange ;
+  ClusterScanRange  = TRCLFFKEY.ClusterScanRange;
+  MaxChisqForLScan  = TRCLFFKEY.MaxChisqForLScan;
+  ErrXForScan       = TRCLFFKEY.ErrXForScan     ;
+  ErrYForScan       = TRCLFFKEY.ErrYForScan     ;
   
-
+  TrDEBUG =TRCLFFKEY.TrDEBUG;
+  PZDEBUG = TRCLFFKEY.PZDEBUG;
 }
 TrRecon::~TrRecon() {
   Clear();
