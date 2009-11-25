@@ -24,6 +24,10 @@ int AMSRichCalChannel::calibrated=1;
 int AMSRichCalChannel::calibrated_but_failed=2;
 int AMSRichCalChannel::low_stat=3;
 
+// Time variables
+time_t AMSRichCal::_first=0;
+time_t AMSRichCal::_last=0;
+
 #define _assert(x) {if(!(x))throw 1;}
 
 void AMSRichCal::init(int bins,float minx,float maxx){
@@ -32,7 +36,7 @@ void AMSRichCal::init(int bins,float minx,float maxx){
   {
     _calibration=1;
     for(int i=0;i<_histos;i++){
-      _channel[i]=new AMSRichCalChannel(bins,minx,maxx);
+      //      _channel[i]=new AMSRichCalChannel(bins,minx,maxx);
     }
   }
 //#pragma omp barrier  
@@ -40,35 +44,26 @@ void AMSRichCal::init(int bins,float minx,float maxx){
 
 
 void AMSRichCal::finish(){
-  /*
-  // Update TDVs if real data
-  if(AMSJob::gethead()->isRealData()){
+    AMSTimeID *ptdv;
+    time_t begin,end,insert;
     const int ntdv=2;
     const char* TDV2Update[ntdv]={"RichPMTChannelGain",
 				  "RichPMTChannelGainSigma"};
-    
+    begin=(_last+_first)/2;
+    end=_last+86400;  // +1 day
+    time(&insert);
+
     for (int i=0;i<ntdv;i++){
       ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
-      ptdv->UpdCRC();
       ptdv->UpdateMe()=1;
-      time(&insert);
-      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
-      ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
+      ptdv->UpdCRC();
+      ptdv->SetTime(insert,begin,end);
       cout <<" RICH info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
     }
-  }  
-  */
-
-  /*
-  // Free memory
-  for(int i=0;i<_histos;i++){
-    delete _channel[i];
-  }
-  */
 }
 
 
@@ -86,8 +81,8 @@ AMSRichRing *AMSRichCal::event_selection(){
   if(npart!=1 || !particle){reason=1;return 0;}
 
   if(!particle->getptrack()) {reason=102;return 0;}
-  if(!particle->getpcharge()) {reason=103;return 0;}
-  if(!particle->getpbeta()) {reason=104;return 0;}
+  //  if(!particle->getpcharge()) {reason=103;return 0;}
+  //  if(!particle->getpbeta()) {reason=104;return 0;}
 
   // Check that we have a ring
   pcnt=AMSEvent::gethead()->getC("AMSRichRing",0);
@@ -104,16 +99,6 @@ AMSRichRing *AMSRichCal::event_selection(){
   if(AMSRichRawEvent::Npart()>1){reason=6; return 0;}
 
   uinteger dirty_ring=ring->checkstatus(richconst::dirty_ring);
-  /*
-  if(dirty_ring){
-    // Check if it has been rebuilt
-    AMSRichRing *next=ring->next();
-    if(!next) {reason=7;return 0;}  // not rebuilt
-    if(next->gettrack()!=ring->gettrack()) {reason=8;return 0;}  // not rebuilt
-    if(next->checkstatus(dirty_ring)) {reason=9;return 0;}  // not rebuilt
-    ring=next;
-  }
-  */
   if(dirty_ring){reason=9;return 0;}
 
   number npexp=ring->getnpexp();
@@ -138,6 +123,10 @@ AMSRichRing *AMSRichCal::event_selection(){
 
 
 void AMSRichCal::process_event(){
+  // Update time variables
+  if(_first==0) _first=AMSEvent::gethead()->gettime();
+  if(AMSEvent::gethead()->gettime()>_last) _last=AMSEvent::gethead()->gettime();
+
   // First, check that the event has LVL1
   Trigger2LVL1 *ptr2;
   ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
@@ -151,8 +140,6 @@ void AMSRichCal::process_event(){
     static time_t init_time=0;
     if(init_time==0) init_time=AMSEvent::gethead()->gettime();
 #endif
-    
-
     
     // Increase counter of level 1 events
     _processed_events++;
@@ -174,12 +161,6 @@ void AMSRichCal::process_event(){
 	  int id=hit->getchannel();
 	  //	_channel[id]->add(hit->getnpe());
 	  
-	  
-	  
-	  // Use dynamic gain if within the right range
-	  //	if(hit->getnpe()<0.25 || hit->getnpe()>1.75) continue;
-	  if(hit->getnpe()<0.01 || hit->getnpe()>3) continue;	
-	  
 	  int counts=hit->getcounts();
 	  int pmt,window;
 	  RichPMTsManager::UnpackGeom(id,pmt,window);
@@ -192,7 +173,14 @@ void AMSRichCal::process_event(){
 	  geant sigma_over_q_0=RichPMTsManager::_GainSigma(pmt,window,0)/
 	    RichPMTsManager::_Gain(pmt,window,0);
 	  
-	  geant new_gain=0.9*old_gain+0.1*geant(counts);
+	  const float min_pe=0.01;
+	  const float max_pe=2.5; //roughly 3 sigmas
+	  const float step_fraction=0.01/(0.8*0.5); // This guarantees that the step size if a 1% of the gain rmw in mean
+
+	  if(hit->getnpe()<min_pe || hit->getnpe()>max_pe) continue;	
+
+
+	  geant new_gain=(1-step_fraction)*old_gain+step_fraction*geant(counts);
 	  
 	  RichPMTsManager::_Gain(pmt,window)=new_gain;
 	  RichPMTsManager::_GainSigma(pmt,window)=sigma_over_q*new_gain;

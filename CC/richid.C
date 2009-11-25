@@ -134,6 +134,7 @@ void RichPMTsManager::Init(){
       if(name[0]==' ') name[0]=0;
       
       if(strlen(name)==0){
+	/*
 	strcpy(name,"richcal");
 	
 	if(AMSJob::gethead()->isMCData()){ // McData 
@@ -144,6 +145,9 @@ void RichPMTsManager::Init(){
 	
 	
 	strcat(name,".002");  // Version
+	*/
+	cout<<"RichPMTsManager::Init -- not filename provided. Using default."<<endl;
+	sprintf(name,"%s/%s/RichDefaultCalibration.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
       }
       ReadFromFile(name);
     }else{
@@ -487,53 +491,13 @@ void RichPMTsManager::Finish(){
 	}
       }
       
-      /*
-	if(strlen(name)==0){
-	strcpy(name,"richcal");
-	
-	if(AMSJob::gethead()->isMCData()){ // McData 
-	strcat(name,"mc");
-	}else{  // Real data
-	strcat(name,"dt");
-	}
-	
-	
-	strcat(name,".002");  // Version
-	}
-      */
-      
       SaveToFile(name);
     }
-
-    if(0)  // FIXME
-    if(AMSFFKEY.Update && AMSRichCal::isCalibration()){  // If update and calibration, update database
-      AMSTimeID *ptdv;
-      char *tdvs[]={"RichPMTChannelStatus",
-		    "RichPMTChannelGain",
-		    "RichPMTChannelGainSigma",
-		    ""};
-      for(int i=0;strlen(tdvs[i])>0;i++){
-	ptdv = AMSJob::gethead()->gettimestructure(AMSID(tdvs[i],0));
-	_assert(ptdv);
-	/*
-	  ptdv->UpdateMe()=1;
-	  ptdv->UpdCRC();
-	  
-	  // To be defined but probably coming from the calibration parameters:
-	  // my proposal is insert=now, begin when run begins end=when run ends, or parameters in the datacard
-	  time_t insert,begin,end;
-	  time(&insert);
-	  ptdv->SetTime(insert,begin,end);
-	  cout <<" Tracker H/K  info has been updated for "<<*ptdv;
-	  ptdv->gettime(insert,begin,end);
-	  cout <<" Time Insert "<<ctime(&insert);
-	  cout <<" Time Begin "<<ctime(&begin);
-	  cout <<" Time End "<<ctime(&end);
-	*/
-      }
+    cout<<" ---- IS CALIBRATION  "<<AMSRichCal::isCalibration()<<endl;
+    if(AMSRichCal::isCalibration()){
+      cout<<"CALLING AMSRichCal::finish()"<<endl;
+      AMSRichCal::finish();
     }
-    
-    //  if(0) AMSRichCal::finish(); // If calibration cleanup memory
     
   }
 //#pragma omp barrier 

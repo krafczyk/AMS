@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
-
+#include "timeid.h"
 
 #define _assert(x) {if(!(x))throw 1;}
 
@@ -184,6 +184,10 @@ class AMSRichCal{
   static AMSRichCalChannel* _channel[RICmaxpmts*RICnwindows];
   static int _histos;    // Number of histos=RICmaxpmts*RICnwindow
   static int _calibration;    // Number of histos=RICmaxpmts*RICnwindow
+
+  // Here we store the processed period
+  static time_t _first;
+  static time_t _last;
 
   static unsigned int _processed_events;
   static unsigned int reason;

@@ -754,7 +754,7 @@ integer DAQRichBlock::calcdaqlength(int jinr_number){
 
 
 void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
-
+  try{
   const int PMTs=RICH_PMTperCDP;
   *(p+length-1)=(JINFId[jinr_number]&31)|(1<<7);// link+compressed mode 
 
@@ -836,6 +836,13 @@ void DAQRichBlock::builddaq(integer jinr_number,integer length,int16u *p){
     for(link=0;link<24;link++) if(Links[jinr_number][link]==i)break;
     *cdp_p=(link)|(1<<7)|(0x0020); // Status: link+compressed mode+CDP
     cdp_p++;
+  }
+  }catch(int){
+    static bool first_call=true;
+    if(first_call){
+      cout<<"-- Problem in DAQRichBlock::builddaq. Ignoring further errors"<<endl;
+      first_call=false;
+    }
   }
 }
 
