@@ -149,21 +149,21 @@ COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 //! Data Cards to drive the Tracker reconstruction
 class TRCLFFKEY_DEF {
 public:
-  //! Seed S/N Threshold S/K
+  //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
+  integer recflag;
+  //! R [2,3] Seed S/N Threshold S/K
   geant     ThrSeed[2] ;  
-  //! expansion S/N Threshold S/K
+  //! R [4,5] expansion S/N Threshold S/K
   geant     ThrNeig[2] ;
-  //! Min Distance between seeds S/K
+  //! I [6,7] Min Distance between seeds S/K
   integer   SeedDist[2] ;
   
-  //! hit signal correlation (only muons/protons)
+  //! R [8 - 13] hit signal correlation (only muons/protons)
   geant GGpars[6]  ;//! {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
   geant GGintegral ;//! 91765.;
-  //! Threshold on the S/K Correlation probability
+  //! R 14 Threshold on the S/K Correlation probability
   geant ThrProb    ;//! 0.00001;
   
-  //! Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
-  integer recflag;
   void init();
 
 };

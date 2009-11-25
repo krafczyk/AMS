@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.74 2009/11/13 10:08:55 choutko Exp $
+//  $Id: daqevt.h,v 1.75 2009/11/25 12:32:22 pzuccon Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -175,12 +175,13 @@ static void _setcalibdataS(unsigned int run){
 for (int i=0;i<sizeof(_CalibDataS)/sizeof(_CalibDataS[0]);i++)_CalibDataS[i]=0;
 _CalibDataS[sizeof(_CalibDataS)/sizeof(_CalibDataS[0])-1]=run;
 }
-#if !defined( __ALPHA__) && !defined(sun)
+#ifdef __LINUXGNU__
 static integer _select(const dirent64 * entry=0);
 static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
-#else
-static integer _select(dirent64 * entry=0);
-static int _sort(dirent64 ** e1,  dirent64 ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
+#endif
+#ifdef __DARWIN__
+static integer _select(dirent * entry=0);
+static int _sort(dirent ** e1,  dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 public:
 static void setRootDir(char *rootdir=0);

@@ -125,9 +125,12 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
   if( ret<0) return;
   if(TRCALIB.Version==0)cmn=16;
   else cmn=0;
-  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
+  //  integer ic1=checkdaqid(*(pbeg-1+leng))-1;
+  integer ic1=checkdaqid(num)-1;
   //  cout <<"  crate "<<ic<<" found" <<" "<<ic1<<endl;
-  for (int16u* p=pbeg;p<pbeg+leng-1;p+=*p+1){
+  int add2=0;
+  if(DAQCFFKEY.DAQVersion==1)add2=2;
+  for (int16u* p=pbeg;p<pbeg+leng-1-add2;p+=*p+1){
     ReadOneTDR(p,*p,ic,0);
     
   }
@@ -176,7 +179,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   else CNWords=0;
 //FIXME PZ DATA FORMAT
   if(run>=1208965124) CNWords=0;
-  if(DAQCFFKEY.DAQVersion==1)CNWords=2;
+  //  if(DAQCFFKEY.DAQVersion==1)CNWords=2;
   int rwords=1+CNWords;
   
   char ttname[20];
@@ -184,7 +187,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   int TDRnum=((unsigned int)status)&0x1f;
 
 
-  //  sprintf(ttname,"=======>JINF %d %s TDR Board: %2d status: %hX offset: %d last word: %d  Size: %d \n",Jinfnum,label[Jinfnum],status&0x1f,status,offset,offset+tsize,tsize); 
+
  
   sprintf(ttname,"CrateT%d_TDR%02d",cratenum,TDRnum);
   int ret=TestBoardErrors(ttname,status,pri);
@@ -216,6 +219,20 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 	cluslen=cluslenraw&0x7f;
 	clusadd=clusaddraw&0x3ff;
       }
+      if(cluslen>127){
+	static int junkerr=0;
+	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-TooLongCluster (>127) "<< cluslen<<endl;
+	continue;
+      }
+      if((clusadd+cluslen>639)&&(clusadd<640)){
+	static int junkerr=0;
+	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-ClusterAcrossPN add "<<clusadd<<" len "<< cluslen<<endl;
+      }
+
+      if(clusadd+cluslen>1023){
+	static int junkerr=0;
+	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-ClusterOutsideBoundary add "<<clusadd<<" len "<< cluslen<<endl;
+      }
       short int  signal[1024];
       float      sigma[1024];
       short int  status[1024];
@@ -226,14 +243,14 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
       TkLadder *lad= TkDBc::Head->FindHwId(hwid);
       int tkid=0;
       if(lad) tkid=lad->GetTkId();
-
+      else printf("TrDAQ::ReadOneTDR Very bad cant find hwid %03d in TkDBc\n",hwid);
       for(int hh=0;hh<cluslen;hh++){
 	if(pri>3)printf("signal: %d %d\n",hh,(short int)blocks[count]);
 	signal[hh]  = (short int)blocks[count];
 	//if(pri)printf("        %d %f %f %d\n",hh,signal[hh]/8.,sigma[hh],status[hh]);
 	count++;
       }
-      
+      clcount++;
       int sid=0;
       if(clusadd>640) sid=1;
       AMSTrRawCluster* pp= new AMSTrRawCluster(tkid,clusaddraw,cluslenraw,signal);

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.122 2009/11/06 16:18:40 choutko Exp $
+//  $Id: ecalrec.C,v 1.123 2009/11/25 12:32:14 pzuccon Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2339,11 +2339,14 @@ void AMSEcalShower::ProfileFit(){
                                 &AMSEcalShower::monit;
     void (*psalfun)(double &x, double &f, AMSEcalShower *p)=&AMSEcalShower::gamfunr;
 
-    int env=fegetexcept();
+    int env=0;
+#ifndef __DARWIN__
+    env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1){
     fedisableexcept(FE_OVERFLOW);
     fedisableexcept(FE_INVALID);
     }
+#endif    
   // NowFit
     
     const integer Maxrow=ECALDBc::GetLayersNo();
@@ -2460,11 +2463,13 @@ void AMSEcalShower::ProfileFit(){
      e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
      _Direction=1;
     }
+#ifndef __DARWIN__
     feclearexcept(FE_OVERFLOW);
     feclearexcept(FE_INVALID);
     if(env){
       feenableexcept(env);        
     }
+#endif    
 }
 
 void AMSEcalShower::gamfunr(number& x, number &fc, AMSEcalShower *p){

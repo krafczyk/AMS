@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.103 2009/11/23 18:11:44 choutko Exp $
+//  $Id: gbatch.C,v 1.104 2009/11/25 12:32:14 pzuccon Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -54,7 +54,7 @@ std::set_unexpected (my_unexpected);
      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
 #endif
       //*signal(SIGABRT,handler);
-     *signal(SIGFPE, handler);
+         *signal(SIGFPE, handler);
      //*signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);
@@ -113,89 +113,89 @@ catch (amsglobalerror & a){
 return 0;
 }
 void (handler)(int sig){
-using namespace glconst;
+  using namespace glconst;
   int nthr=0;
   switch(sig){
   case SIGABRT:
-cerr <<" ABORT Detected "<<AMSCommonsI::AB_catch<<" "<<endl;
-       GCFLAG.IEORUN=1;
-       GCFLAG.IEOTRI=1;
-        mallopt(M_CHECK_ACTION,1);
-
-if(AMSCommonsI::AB_catch>=0){
- AMSCommonsI::AB_catch=1;
-cout <<"  JUMP attempted "<<endl;
- siglongjmp(AMSCommonsI::AB_buf,0);
-
-}
-   exit(1);
-   break;
+    cerr <<" ABORT Detected "<<AMSCommonsI::AB_catch<<" "<<endl;
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+    mallopt(M_CHECK_ACTION,1);
+    
+    if(AMSCommonsI::AB_catch>=0){
+      AMSCommonsI::AB_catch=1;
+      cout <<"  JUMP attempted "<<endl;
+      siglongjmp(AMSCommonsI::AB_buf,0);
+      
+    }
+    exit(1);
+    break;
   case SIGFPE:
-   cerr <<feclearexcept(FE_ALL_EXCEPT)<<" FPE intercepted "<<endl;
-   break;
+    cerr <<feclearexcept(FE_ALL_EXCEPT)<<" FPE intercepted "<<endl;
+    break;
   case SIGXCPU:
-   #pragma omp master 
+#pragma omp master 
     if(cpul){
-       cerr <<" Job Cpu limit exceeded"<<endl;
-       cpul=0;
-       GCFLAG.IEORUN=1;
-       GCFLAG.IEOTRI=1;
-       AMSStatus::setmode(0);
+      cerr <<" Job Cpu limit exceeded"<<endl;
+      cpul=0;
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
+      AMSStatus::setmode(0);
     }
     break;
   case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
 #pragma omp master
 {
-    GCFLAG.IEORUN=1;
-    GCFLAG.IEOTRI=1;
-    //AMSStatus::setmode(0);
-    AMSFFKEY.CpuLimit=10;
-}
-    break;
+  GCFLAG.IEORUN=1;
+  GCFLAG.IEOTRI=1;
+  //AMSStatus::setmode(0);
+  AMSFFKEY.CpuLimit=10;
+ }
+ break;
   case SIGQUIT:
     cerr <<" Process suspended"<<endl;
     pause();
     break;
   case SIGCONT:
-      cerr <<" Process resumed"<<endl;
-      break;
+    cerr <<" Process resumed"<<endl;
+    break;
   case SIGHUP:
 #ifdef __CORBA__
-   cout <<"got sighup "<<AMSEvent::get_thread_num()<<endl;
-if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing()){
-   cout <<" sending ... "<<endl;
-   AMSProducer::gethead()->sendCurrentRunInfo(false);
-}
-cout << " sighup sended "<<endl;
+    cout <<"got sighup "<<AMSEvent::get_thread_num()<<endl;
+    if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing()){
+      cout <<" sending ... "<<endl;
+      AMSProducer::gethead()->sendCurrentRunInfo(false);
+    }
+    cout << " sighup sended "<<endl;
 #endif
-      break;
+    break;
   case SIGUSR1:
-      cerr<< "New Run Forced"<<endl;
-      if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
-      break;
+    cerr<< "New Run Forced"<<endl;
+    if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+    break;
   case SIGUSR2:
-      cerr<< "New Ntuple Forced"<<endl;
-      if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
-      break;
+    cerr<< "New Ntuple Forced"<<endl;
+    if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+    break;
   case SIGTTOU:
 #pragma omp master
-{
-   nthr=0;
+    {
+      nthr=0;
 #ifdef _OPENMP
-    nthr=omp_get_num_threads();
-    if(nthr>1)nthr--;
-    else MISCFFKEY.DynThreads=0;
-    if(MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=nthr;
-    else if(MISCFFKEY.NumThreads>1)MISCFFKEY.NumThreads--;
-    cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
+      nthr=omp_get_num_threads();
+      if(nthr>1)nthr--;
+      else MISCFFKEY.DynThreads=0;
+      if(MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=nthr;
+      else if(MISCFFKEY.NumThreads>1)MISCFFKEY.NumThreads--;
+      cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
-}
-  break;
+    }
+    break;
   case SIGTTIN:
 #pragma omp master
-{
-    nthr=0;
+    {
+      nthr=0;
 #ifdef _OPENMP
     nthr=omp_get_num_threads();
     if(nthr<omp_get_num_procs())nthr++;
@@ -204,16 +204,16 @@ cout << " sighup sended "<<endl;
     else if(MISCFFKEY.NumThreads<omp_get_num_procs())MISCFFKEY.NumThreads++;
     cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
 #endif
-}
-  break;
+    }
+    break;
   case SIGTSTP:
 #ifdef _OPENMP
 #pragma omp master
-{
-    MISCFFKEY.NumThreads=-1;
-    cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
-}
+    {
+      MISCFFKEY.NumThreads=-1;
+      cerr<<" ThreadsNumberWillBeChangedTo "<<MISCFFKEY.NumThreads<<endl;
+    }
 #endif
-  break;
-}
+    break;
+  }
 }
