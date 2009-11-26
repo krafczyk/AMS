@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.4 2009/11/18 11:52:46 shaino Exp $
+//  $Id: TrCalDB.C,v 1.5 2009/11/26 23:32:21 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/11/18 11:52:46 $
+///$Date: 2009/11/26 23:32:21 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -328,13 +328,13 @@ void TrCalDB::updtrcalibS(integer n, int16u* p){
 }
 
 #ifdef __ROOTSHAREDLIBRARY__
-int  TrCalDB::SaveCal2DB(time_t endtime){return 0;}
+int  TrCalDB::SaveCal2DB(){return 0;}
 
 #else
 #include "timeid.h"
 #include "commonsi.h"
 
-int  TrCalDB::SaveCal2DB(time_t endtime){
+int  TrCalDB::SaveCal2DB(){
 
   if(!TrCalDB::Head){
     printf("TrCalDB::SaveCal2DB---TrCalDB::Head is zero Cals NOT SAVED TO DB \n");
@@ -342,6 +342,7 @@ int  TrCalDB::SaveCal2DB(time_t endtime){
   TrCalDB::Head->CreateLinear(); //Creates a linear array to feed the DB
   TrCalDB::Head->CalDB2Lin();    //Copy the calibrations to the linear array
   time_t bb=TrCalDB::Head->GetRun();
+  time_t endtime=bb+24*3600*31;
   tm begin;
   tm end;
   tm* mtim=localtime_r(&bb,&begin);

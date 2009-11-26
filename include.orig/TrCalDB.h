@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.7 2009/11/26 01:57:59 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.8 2009/11/26 23:29:34 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/11/26 01:57:59 $
+///$Date: 2009/11/26 23:29:34 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +109,7 @@ public:
   //! For GBATCH Cal Decoding
   static void updtrcalibS(integer n, int16u* p);
   //! Save cal to TDV DB
-  static int  SaveCal2DB(time_t endtime=9999999);
+  static int  SaveCal2DB();
 
   void PrintInfo(int verb){for(int ii=0;ii<GetEntries();ii++) GetEntry(ii)->PrintInfo(verb);}
   ClassDef(TrCalDB,2);
