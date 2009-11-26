@@ -2624,6 +2624,9 @@ class RemoteClient:
                 did=ds[0][0]
         if(did>0):
             runst=" and jobs.did=%d " %(did)
+        else:
+            print " found / while did -1 , return "
+            return
         if(len(files)>0):
             sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s.job' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
             self.sqlserver.Update(sql)
@@ -2631,7 +2634,7 @@ class RemoteClient:
             self.sqlserver.Update(sql)
             sql="delete from   (select jobs.* from jobs,dataruns where jobs.jobname like '%%%s%%' and jobs.jid=dataruns.jid %s %s )" %(dataset,runst,rund) 
             self.sqlserver.Update(sql)
-            sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn)
+            sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(datapath,runn)
             self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:
