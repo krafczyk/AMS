@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.131 2009/11/24 09:46:18 mdelgado Exp $
+//  $Id: richrec.C,v 1.132 2009/11/26 14:35:45 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -460,7 +460,7 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   double zf=-false_height-RIClgdmirgap;
 
   double x=origin[0],y=origin[1],
-    z=origin[3]-RICHDB::RICradpos()+RICHDB::rad_height-false_height+
+    z=origin[2]-RICHDB::RICradpos()+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
                    +RICradmirgap)
                 -RICHDB::foil_height; // Correction due to high index
