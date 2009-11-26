@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.6 2009/11/26 09:18:49 mdelgado Exp $
+//  $Id: richrec.C,v 1.7 2009/11/26 14:36:45 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -214,7 +214,7 @@ integer RichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   double zf=-false_height-RIClgdmirgap;
 
   double x=origin[0],y=origin[1],
-    z=origin[3]-RICHDB::RICradpos()+RICHDB::rad_height-false_height+
+    z=origin[2]-RICHDB::RICradpos()+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
                    +RICradmirgap)
                 -RICHDB::foil_height; // Correction due to high index
