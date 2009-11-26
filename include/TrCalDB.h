@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.6 2009/11/26 01:25:18 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.7 2009/11/26 01:57:59 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/11/26 01:25:18 $
+///$Date: 2009/11/26 01:57:59 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -91,6 +91,10 @@ public:
   //! Interface to linear storage
   void CalDB2Lin();
 
+  void Print(int verb){
+    for(int ii=0;ii<GetEntries();ii++) 
+      GetEntry(ii)->PrintInfo(verb);
+  }
   //! Setup the linear space for the DB
   static void CreateLinear(){
     linear= new float[GetLinearSize()/4];

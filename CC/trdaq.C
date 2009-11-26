@@ -253,6 +253,11 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
       clcount++;
       int sid=0;
       if(clusadd>640) sid=1;
+      // Bug in the 3e73 DSP code: delete cluster on the 1022 and 1023 strip
+      if ( (run>1258105753)&&(run<1258318946) ) {
+	if (clusadd>=1022) continue;	
+      }
+      
       AMSTrRawCluster* pp= new AMSTrRawCluster(tkid,clusaddraw,cluslenraw,signal);
       AMSContainer* con= AMSEvent::gethead()->getC(AMSID("AMSTrRawCluster"));
       if(con)	con->addnext(pp);

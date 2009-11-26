@@ -45,7 +45,7 @@ template <class T> void  TrMap<T>::Add(T* pp){
 template <class T> void  TrMap<T>::info(){
   TrMapIT iter=LadMap.begin();
   while (iter!=LadMap.end()){
-    printf("LADMAP tkid %d \n",(*iter).first);
+    printf("LADMAP tkid %d nelem %d\n",(*iter).first,(*iter).second.size());
     iter++;
   }
 }

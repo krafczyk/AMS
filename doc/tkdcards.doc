@@ -18,29 +18,29 @@ I 6  fname(400*'') file name for dbase from file
 //==============================
 //  TRACKER RECONSTRUCTION
 //==============================
-void TRCLFFKEY_DEF::init(){
-I  1  recflag=111;
-R  2  Seed Threshold P  (def 4.00)
-R  3  Seed Threshold N  (def 4.00)
-R  4  Second Threshold P (def 1.00)
-R  5  Second Threshold N (def 1.00)
-R  6   SeedDist[0] =  3;
-R  7  SeedDist[1] =  3;
-
-  // hit signal correlation (only muons/protons)
-R  8  GGpars[0]  = 1428.;
-R  9  GGpars[1]  = 0.0000;
-R 10 GGpars[2]  = 0.1444;
-R 11  GGpars[3]  = 1645.;
-R 12  GGpars[4]  = 0.0109;
-R 13  GGpars[5]  = 0.0972;
-R 14  GGintegral = 91765.;
-R 15  ThrProb    = 0;//0.00001;
-
-}
-
-
-TKGEOMFFKEY_DEF TKGEOMFFKEY;
+TRCL
+I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
+R [2,3] Seed S/N Threshold S/K
+R [4,5] expansion S/N Threshold S/K
+I [6,7] Min Distance between seeds S/K
+R [8 - 13] hit signal correlation (only muons/protons)
+R 14 Threshold on the S/K Correlation probability
+I 15 MaxNrawCls
+I 16 MaxNrawCls
+I 17 MaxNtrHit
+I 18 MaxNtrack
+I 19 MinNhitX
+I 20 MinNhitY
+I 21 MinNhitXY
+I 22 PatAllowOption
+R 23 MaxChisqAllowed
+R 24  LadderScanRange
+R 25 ClusterScanRange
+R 26 MaxChisqForLScan
+R 27 ErrXForScan
+R 28 ErrYForScan
+I 29 TrDEBUG
+I 30 PZDEBUG
 //==============================
 
 

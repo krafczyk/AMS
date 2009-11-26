@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.4 2009/11/26 01:25:09 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.5 2009/11/26 01:57:37 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,15 +9,18 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2009/11/26 01:25:09 $
+///$Date: 2009/11/26 01:57:37 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "TkDBc.h"
 #include "TkCoo.h"
-
+void print_trace();
 //--------------------------------------------------
 AMSPoint TkCoo::GetGlobalN(int tkid,float X, float Y){
   // if(X<0||X > TkDBc::Head->_ssize_active[0]){
@@ -71,10 +74,10 @@ AMSPoint TkCoo::GetGlobalA(int tkid,float X, float Y){
   //   printf("TkCoo::GetGlobalN Error X is outside the ladder size %f\n",X);
   //   return AMSPoint();
   // }
-  if(Y<0 || Y>TkDBc::Head->_ssize_active[1]){
-    //PZ FIXME printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",Y);
-    return AMSPoint();
-  }
+ // if(Y<0 || Y>TkDBc::Head->_ssize_active[1]){
+//    printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",Y);
+//    return AMSPoint();
+//  }
   AMSPoint loc(X,Y,0.);
   return TkCoo::GetGlobalA(tkid, loc);
 }
@@ -327,3 +330,26 @@ AMSPoint TkCoo::GetGlobalAC(int tkid,float readchanK, float readchanS,int mult){
   else 
     return GetGlobalA(tkid,GetLocalCooK5((int)readchanK, mult),  GetLocalCooS((int)readchanS));
 }
+
+
+/* Obtain a backtrace and print it to stdout. */
+  void
+print_trace (void)
+{
+
+  void *array[100];
+  size_t size;
+  char **strings;
+  size_t i;
+
+  size = backtrace (array, 10);
+  strings = backtrace_symbols (array, size);
+  printf ("Obtained %zd stack frames.\n", size);
+
+  for (i = 0; i < size; i++)
+    printf ("%s\n", strings[i]);
+
+  free (strings);
+}
+
+
