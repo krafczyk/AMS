@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.13 2009/11/21 09:09:18 shaino Exp $
+// $Id: TrTrack.C,v 1.14 2009/11/26 01:25:09 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/11/21 09:09:18 $
+///$Date: 2009/11/26 01:25:09 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -264,6 +264,19 @@ TrRecHitR *TrTrackR::GetHit(int i)
   }
 
   return _Hits[i];
+}
+
+
+TrRecHitR & TrTrackR::TrRecHit(int i) 
+{
+  if (i < 0 || trconst::maxlay <= i) return *_Hits[0];
+  if (_Hits[i] == 0 && _iHits[i] >= 0) {
+    VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");
+    _Hits[i] = (TrRecHitR*)cont2->getelem(_iHits[i]);
+    delete cont2;
+  }
+
+  return (*_Hits[i]);
 }
 
 float TrTrackR::Fit(int id2, int layer, bool update, const float *err, 

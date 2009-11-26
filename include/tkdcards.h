@@ -196,9 +196,9 @@ public:
   float ErrYForScan       ;
   //DEBUG
   //! I 29 TrDEBUG
-  int TrDEBUG = 0;
+  int TrDEBUG ;
   //! I 30 PZDEBUG
-  int PZDEBUG = 0;
+  int PZDEBUG ;
   void init();
 
 };

@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.3 2009/06/10 08:44:58 shaino Exp $ 
+/// $Id: TkCoo.C,v 1.4 2009/11/26 01:25:09 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2009/06/10 08:44:58 $
+///$Date: 2009/11/26 01:25:09 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +72,7 @@ AMSPoint TkCoo::GetGlobalA(int tkid,float X, float Y){
   //   return AMSPoint();
   // }
   if(Y<0 || Y>TkDBc::Head->_ssize_active[1]){
-    printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",Y);
+    //PZ FIXME printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",Y);
     return AMSPoint();
   }
   AMSPoint loc(X,Y,0.);
@@ -87,12 +87,12 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   //   return AMSPoint();
   // }
   if(loc[1]<0 || loc[1]>TkDBc::Head->_ssize_active[1]){
-    printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",loc[1]);
+ // PZ FIXME!!!   printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",loc[1]);
     return AMSPoint();
   }
   TkLadder* ll=TkDBc::Head->FindTkId(tkid);
   if(!ll){
-    printf("GetGlobalA: ERROR cant find ladder %d into the database\n",tkid);
+   //PZ FIXME!!!!  printf("GetGlobalA: ERROR cant find ladder %d into the database\n",tkid);
     return AMSPoint();
   }
   AMSPoint loc2(loc);

@@ -23,6 +23,7 @@ using namespace std;
 ClassImp(TrLadCal);
 
 int TrLadCal::dead=0x2;
+// Default to 2009 format
 int TrLadCal::version=2;
 
 void  TrLadCal::SetVersion(int ver){

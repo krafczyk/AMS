@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.8 2009/11/12 16:49:06 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.9 2009/11/26 01:25:09 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/11/12 16:49:06 $
+///$Date: 2009/11/26 01:25:09 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -251,13 +251,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {   601,  608,  600,  623,  618,  622, -800,  804, -801,  822,  818,  823,  810,  806,  811, },
       },
       {{   101,  104,  100,  113,  116, -112,  111, -106,  110, -312,  316,  313,  310,  302,  311, },
-       {     0,    0,  108,  120,  122, -114, -102,    0,  300, -308,  320,  322,  314,  303,  306, },
-       {     0,    0,  105,  117,  123, -119, -107,    0,  301, -305,  317,  323,  319,  307,    0, },
+       {     0,    0,  108,  120,  123, -114, -102,    0,  300, -308,  320,  322,  314,  303,  306, },
+       {     0,    0,  105,  117,  122, -119, -107,    0,  301, -305,  317,  323,  319,  307,    0, },
        {     0,    0,  109,  121,  118, -115, -103,    0,  304, -309,  321,  318,  315,    0,    0, },
        {     0,    0,  503,  515,  516, -521, -509,    0,  706, -703,  715,  716,  721,    0,    0, },
        {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  705,    0, },
        {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  709,  704, },
-       {   511,  506,  510,  523,  518, -522, -501,  504,  500, -722,  718,  723,  700,  708,  701, },
+       {   511,  506,  510,  523,  518, -522,  501, -504,  500, -722,  718,  723,  700,  708,  701, },
       },
     };
 
@@ -376,19 +376,19 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       
       for (int lay=0;lay<8;lay++) //loop on layers
 	for (int side=0;side<2;side++)
-	  for (int slot=0;slot<maxlad;slot++)
-	    if(filled_slot(side,lay,slot)){
-	      int oct=GetOctant(side,lay+1,slot+1);
-	      int hwid=abs(_octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
-	      int tkid=(lay+1)*100+(slot+1);
+          for (int slot=0;slot<maxlad;slot++)
+            if(filled_slot(side,lay,slot)){
+              int oct=GetOctant(side,lay+1,slot+1);
+              int hwid=abs(_octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
+              int tkid=(lay+1)*100+(slot+1);
               int pgid=_pgid[side][lay][slot];
- 	      if (side==0) tkid*=-1;
-	      sprintf(name,"%s",LadName[side][lay][slot]);
+              if (side==0) tkid*=-1;
+              sprintf(name,"%s",LadName[side][lay][slot]);
               TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,nsen[side][lay][slot]);
-	      if(_octid[side][lay][slot]<0) aa->SetLaserFlag();
-	      number posz= _layer_deltaZ[lay];
-	      number posy= GetSlotY(lay+1,slot+1,side);
-	      number posx= GetSlotX(lay+1,slot+1,side);
+              if(_octid[side][lay][slot]<0) aa->SetLaserFlag();
+              number posz= _layer_deltaZ[lay];
+              number posy= GetSlotY(lay+1,slot+1,side);
+              number posx= GetSlotX(lay+1,slot+1,side);
 	      aa->setpos(posx,posy,posz);
 	      aa->rot.Reset();
 	      

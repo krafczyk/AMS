@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.11 2009/11/21 09:09:24 shaino Exp $
+//  $Id: TrTrack.h,v 1.12 2009/11/26 01:25:18 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/11/21 09:09:24 $
+///$Date: 2009/11/26 01:25:18 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -229,26 +229,42 @@ public:
 //#####################  ACCESSORS #########################
 
   // Access functions
+  //! returns the pattern
   int getpattern() const { return _Pattern; }
+  //! returns the pattern
   int GetPattern() const { return _Pattern; }
+  //! returns the Number of Hits
   int GetNhits  () const { return _Nhits;   }
-
+  //! Returns the pattern on X
   int GetPatternX () const { return _PatternX;  }
+  //! Returns the pattern on Y
   int GetPatternY () const { return _PatternY;  }
+  //! Returns the pattern on XY
   int GetPatternXY() const { return _PatternXY; }
+  //! Number of  X hits
   int GetNhitsX   () const { return _NhitsX;    }
+  //! Number of  Y hits
   int GetNhitsY   () const { return _NhitsY;    }
+  //! Number of  XY hits
   int GetNhitsXY  () const { return _NhitsXY;   }
 
   // Get fitting parameter with a key as Fitting method ID 
+  //! True if the fit was succeful (fit id from   EFitMehthods
   bool     FitDone     (int id= 0) { return GetPar(id).FitDone;  }
   int      GetHitBits  (int id= 0) { return GetPar(id).HitBits;  }
+  //! Returns Chi2 on X
   double   GetChisqX   (int id= 0) { return GetPar(id).ChisqX;   }
+  //! Returns Chi2 on Y
   double   GetChisqY   (int id= 0) { return GetPar(id).ChisqY;   }
+  //! Returns Global Chi2 
   double   GetChisq    (int id= 0) { return GetPar(id).Chisq;    }
+  //! returns Ndof on X
   int      GetNdofX    (int id= 0) { return GetPar(id).NdofX;    }
+  //! returns Ndof on Y
   int      GetNdofY    (int id= 0) { return GetPar(id).NdofY;    }
+  //! Returnt the fitted Rigidity
   double   GetRigidity (int id= 0) { return GetPar(id).Rigidity; }
+  //! Returns the error on 1/R
   double   GetErrRinv  (int id= 0) { return GetPar(id).ErrRinv;  }
   /// Get track entry point (first layer of the fitting)
   AMSPoint GetPentry(int id = 0);
@@ -258,6 +274,7 @@ public:
   AMSDir GetPdir(int id = 0);
   ///Returns the direction at the point of passage on the Z=0 XY plane
   AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
+  /// Return the 3D residual 
   AMSPoint GetResidual (int ilay, int id= 0) { 
     return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
       ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
@@ -284,6 +301,8 @@ public:
 
   /// Get the pointer to the i-th in the track
   TrRecHitR *GetHit(int i);
+  /// Get areferemce to the i-th in the track
+  TrRecHitR& TrRecHit(int i);
   /// Get the pointer to the i-th in the track
   TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
   /// Get the index of the i-th hit in the track within the hit vector
@@ -301,8 +320,9 @@ public:
     return (dir.z() != 0) ? dir.y()/dir.z() : 0;
   }
 
-  /// Get TrFit object of the last fit
+  /// Get TrFit object of the last fit (not to be used outside GBATCH)
   TrFit *GetTrFit() { return &_TrFit; }
+
   //!Returns the default fit method used for this track
   int Gettrdefaultfit(){return trdefaultfit;}
 
