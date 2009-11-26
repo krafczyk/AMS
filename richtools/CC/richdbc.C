@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.2 2009/09/11 08:43:49 mdelgado Exp $
+//  $Id: richdbc.C,v 1.3 2009/11/26 09:18:49 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<fstream>
@@ -632,6 +632,7 @@ AMSPoint  RichAlignment::_a2rShift;
 AMSPoint  RichAlignment::_r2aShift;
 AMSRotMat RichAlignment::_a2rRot;
 AMSRotMat RichAlignment::_r2aRot;
+AMSPoint  RichAlignment::_mirrorShift;
 
 void RichAlignment::LoadFile(char *filename){
   if(!filename || strlen(filename)==0){
@@ -720,6 +721,7 @@ void RichAlignment::Init(bool realdata){
   // If this is cosmics and real data, load the cosmics alignment.
   // This should be moved to database in some moment 
   char name[801];
+  _mirrorShift.setp(0,0,0);
 
 
   // Ensure that the initialization is done only once and is visible by all the threads 
@@ -747,4 +749,9 @@ void RichAlignment::Set(double sx,double sy,double sz,double alpha,double beta,d
   t.SetRotAngles(-alpha,0,0);
   _r2aRot=t*_r2aRot;
   _r2aShift=(_r2aRot*_a2rShift)*-1.0;
+}
+
+
+void RichAlignment:: SetMirrorShift(double Dx,double Dy,double Dz){
+  _mirrorShift.setp(Dx,Dy,Dz);
 }

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.4 2009/09/23 14:10:01 mdelgado Exp $
+//  $Id: richrec.h,v 1.5 2009/11/26 09:18:49 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -8,6 +8,9 @@
 #include "richid.h"
 #include "trrec.h"
 #include <vector>
+
+// Disable private parts
+#define private public  
 
 //#define __AMSDEBUG__
 
