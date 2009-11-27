@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.110 2009/11/16 10:39:36 choutko Exp $
+//  $Id: trrawcluster.C,v 1.111 2009/11/27 10:43:38 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -511,7 +511,7 @@ continue;
 // get rid of junk (????)
 //
 
-  if(haddr+*paux==1023 && *(paux+*paux+2)>1000){
+  if(haddr+*paux==1023 && *(paux+*paux+2)>1000 && *(paux+*paux+2)<32769){
    static int junkerr=0;
    if(junkerr++<100)cerr<<"AMSTrRawCluster::buildraw-E-Junk1002detected "<< *(paux+*paux+2)<<endl;
     continue;

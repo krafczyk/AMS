@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.570 2009/11/22 18:58:10 choutko Exp $
+# $Id: RemoteClient.pm,v 1.571 2009/11/27 10:45:10 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3548,12 +3548,8 @@ CheckCite:            if (defined $q->param("QCite")) {
          ";
       my $RootAnalysisTemplateTxt =
          "  gROOT->Reset();
-          // for linux load
-          gSystem->Load(\"/Offline/vdev/lib/linux/icc/ntuple.so\");
-          //
-          //  for dunix aka ams.cern.ch load
-          //  gSystem->Load(\"/Offline/vdev/lib/osf1/ntuple.so\");
-          //
+          // for linuxicc load
+          gSystem->Load(\"/Offline/vdev/lib/linuxicc/ntuple_slc4.so\");
           TChain chain(\"AMSRoot\");
       ";
         
@@ -4411,12 +4407,9 @@ CheckCite:            if (defined $q->param("QCite")) {
          ";
       my $RootAnalysisTemplateTxt =
          "  gROOT->Reset();
-          // for linux load
-          gSystem->Load(\"/Offline/vdev/lib/linux/icc/ntuple.so\");
-          //
-          //  for dunix aka ams.cern.ch load
-          //  gSystem->Load(\"/Offline/vdev/lib/osf1/ntuple.so\");
-          //
+          // for linuxicc load
+          gSystem->Load(\"/Offline/vdev/lib/linuxicc/ntuple_slc4.so\");
+
           TChain chain(\"AMSRoot\");
       ";
         

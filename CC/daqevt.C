@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.174 2009/11/22 18:57:55 choutko Exp $
+//  $Id: daqevt.C,v 1.175 2009/11/27 10:43:37 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1564,7 +1564,7 @@ void DAQEvent::buildRawStructuresEarly(){
       int16u *psafe=pdown+1;
       int ic=15- _getportj(*(pdown+*pdown));
       integer n=(ic<<16) | (*pdown);
-      _TrigTime=Trigger2LVL1::buildrawearly(n,psafe);
+      _TrigTime=Trigger2LVL1::buildrawearly(n-1,psafe);
       break;
      }
     }

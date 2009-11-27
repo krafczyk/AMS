@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.151 2009/06/03 14:49:22 choutko Exp $
+//  $Id: server.C,v 1.152 2009/11/27 10:43:37 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2487,7 +2487,33 @@ if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 
 time_t tt;
 time(&tt);
-
+  char* gtv=getenv("AMSICC");
+  bool tstp=false;
+  if(gtv && strlen(gtv)){
+   tstp=atol(gtv)<0;
+   if(tstp)cout<<" Server::CheckClients-I-TSTPWillBeSend "<<endl;
+  }
+  char amsicc[]="1";
+  setenv("AMSICC",amsicc,1);
+  if(tstp){
+  int stp=0;
+  for(ACLI li=_acl.begin();li!=_acl.end();++li){
+  bool single=true;
+    for(ACLI i=_acl.begin();i!=_acl.end();++i){
+      if(i!=li){
+      if(!strcmp((const char *)((*i)->id).HostName, (const char *)((*li)->id).HostName)){
+       single=false;
+       break;
+   }     
+ }     
+    }
+    if(single){
+    int iret=_pser->Kill((*li),SIGTSTP,true);
+    stp++;
+    }
+  }
+  cout<<"AMSServer::KillClients-I-TSTPDone "<<stp<<endl;
+ }
 
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
  uinteger TimeCheckValue=0;
