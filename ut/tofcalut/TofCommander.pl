@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 use Tk;
 use Tk::Event;
 use Time::gmtime;

@@ -349,7 +349,7 @@ $cfloc_lab=$set_fram->Label(-text=>"CFloc(lqdpc):",-font=>$font2,-relief=>'groov
                                                     ->place(
 						    -relwidth=>0.25, -relheight=>$drh2,
                                                     -relx=>0.4, -rely=>($shf2+4*$drh2));
-$cfilesloc="10101";
+$cfilesloc="10111";
 $cfloc_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
                                                -background=>yellow,
                                                -font=>$font3,
@@ -1295,22 +1295,22 @@ sub SetDefaultPars
   $MinEvsInFile=50000;
 #
   if($sdtmdfcal==1){
-     $jpar1+=200;
+     $jpar1=2;
      if($Evs2Read<100000){$Evs2Read=100000;}
      $CalCode+=100;
   }
   if($tm0slwcal==1){
-     $jpar1+=30;
+     $jpar1=$jpar1*10+3;
      if($Evs2Read<500000){$Evs2Read=500000;}
      $CalCode+=10;
   }
   if($amnormcal==1){#AmplNorm
-     $jpar1+=4;
+     $jpar1=$jpar1*10+4;
      if($Evs2Read<5000000){$Evs2Read=5000000;}
      $CalCode+=1;
   }
 # remove "0"s to use in job-script:
-  $jpar1 =~ s/0//;
+#  $jpar1 =~ s/0//;
 #---
   $refvelosity=0.999;#def
   if($magstext eq "MagnetON"){

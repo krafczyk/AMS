@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.40 2009/11/15 11:46:57 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.41 2009/11/27 11:41:55 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -18,6 +18,7 @@
 #include "daqs2block.h"
 #include "tofcalib02.h"
 #include "particle.h"
+#include "trigger102.h"
 #include "user.h"
 #include <time.h>
 #include "timeid.h"
@@ -61,6 +62,7 @@ number TofTmAmCalib::ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for ea
 integer TofTmAmCalib::nevenb2[TOF2GC::SCBTBN];// s2 events, accumulated per ref_bar/bin
 number TofTmAmCalib::amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for each channel/event
 integer TofTmAmCalib::nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel
+geant TofTmAmCalib::SideMPA[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];//side MostProb signals(ADCch,for PM-equiliz)
 geant TofTmAmCalib::gains[TOF2GC::SCCHMX];// ch.signals ("0" impact) relat. to ref.ones
 geant TofTmAmCalib::btamp[2][TOF2GC::SCBTBN];// MostProb bar-signals for each bin(ref.bars,s1/s2) 
 geant TofTmAmCalib::ebtamp[2][TOF2GC::SCBTBN];// MostProb errors for each bin(ref.bars,s1/s2) 
@@ -121,10 +123,10 @@ if(hprtf>0){
   HBOOK1(1511,"TmAmC:MyTofBetaFit Tzero(prev.calib)",50,-1.,1.,0.);
   HBOOK1(1513,"TmAmC:Primitive(noFit, noTrack required) TofBeta(prev.calib)",50,0.4,1.4,0.);//
       
-  HBOOK1(1200,"TmAmC:Res_long.coo(track-sc),L=1",50,-10.,10.,0.);//
-  HBOOK1(1201,"TmAmC:Res_long.coo(track-sc),L=2",50,-10.,10.,0.);//
-  HBOOK1(1202,"TmAmC:Res_long.coo(track-sc),L=3",50,-10.,10.,0.);//
-  HBOOK1(1203,"TmAmC:Res_long.coo(track-sc),L=4",50,-10.,10.,0.);//
+  HBOOK1(1200,"TmAmC:Res_long.coo(track-sc),L=1",60,-15.,15.,0.);//
+  HBOOK1(1201,"TmAmC:Res_long.coo(track-sc),L=2",60,-15.,15.,0.);//
+  HBOOK1(1202,"TmAmC:Res_long.coo(track-sc),L=3",60,-15.,15.,0.);//
+  HBOOK1(1203,"TmAmC:Res_long.coo(track-sc),L=4",60,-15.,15.,0.);//
 //  HBOOK2(1204,"TmAmC:Res_long. vs track coord.,L1",70,-70.,70.,60,-30.,30.,0.);// spare
 //  HBOOK2(1205,"TmAmC:Res_long. vs track coord.,L2",70,-70.,70.,60,-30.,30.,0.);//
 //  HBOOK2(1206,"TmAmC:Res_long. vs track coord.,L3",70,-70.,70.,60,-30.,30.,0.);//
@@ -143,7 +145,7 @@ if(hprtf>0){
 }
 //
   if(mode==2 || mode==23 || mode==234)inittd();//incl. specific hist-booking(1600-1613,1620-1653)
-  if(mode==3 || mode==23 || mode==234)inittz();//incl. specific hist-booking(1515-1518)
+  if(mode==3 || mode==23 || mode==234 || mode==34)inittz();//incl. specific hist-booking(1515-1518)
   if(mode==4 || mode==34 || mode==234)initam();//incl. specific hist-booking(1225-1229,1250-1289)
 }
 //------------------------------
@@ -191,7 +193,7 @@ if(TFCAFFKEY.hprintf>0){
 //Tdelv:
   if(mode==2 || mode==23 || mode==234)fittd();//Tdelv-fits + print(1600-1605,1610-..) + write2file
 //Tzslw:
-  if(mode==3 || mode==23 || mode==234){
+  if(mode==3 || mode==23 || mode==234 || mode==34){
     if(TFCAFFKEY.hprintf>1){
       HPRINT(1515);
 //      HPRINT(1516);//spare
@@ -201,6 +203,13 @@ if(TFCAFFKEY.hprintf>0){
 //Ampl:
   if(mode==4 || mode==34 || mode==234){
     endjam();// call fitam and print specific hists + write2file
+  }
+//
+  if(TFCAFFKEY.spares[0]>0){
+    cout<<endl;
+    cout<<"<============= TofPmtEquilization table is prepared !!!"<<endl;
+    cout<<endl;
+    return;
   }
 //-----------
   int ctyp,ntypes,cnum;
@@ -761,15 +770,16 @@ void TofTmAmCalib::select(){  // calibr. event selection
   number shft,ftdel,qtotl[TOF2GC::SCLRS],qsd1[TOF2GC::SCLRS],qsd2[TOF2GC::SCLRS],eanti(0),meanq,rr,qmax;
   number sigt[4]={0.15,0.15,0.15,0.15};// approx. time meas.accuracy in TOF-layers 
   number betof,lflgt,cvel(29.979);
-  number eacut=1.5;// cut on E-anti (mev). tempor 
+  number eacut=2.5;// cut on E-anti (mev). tempor 
   number qrcut=6.;// cut on max/mean-charge ratio
   number qtcut=400.;// cut on max mean-charge 
   number edecut=4.5;// max. TruncAver energy(mev)(to avoid ions in Ampl-calib of abs.norm)
-  number adcmin=5;//min 2xAnodes-signal(ADC-ch) for counter to be selected for calibration
+  number adcmin=17;//min 2xAnodes-signal(ADC-ch) for counter to be selected for calibration
   number *pntr[TOF2GC::SCLRS];
-//  static int first(0);
+  bool PadInTrig;
   TOF2RawCluster *ptr;
   AMSAntiCluster *ptra;
+  Trigger2LVL1 *plvl1;
 //
   ptr=(TOF2RawCluster*)AMSEvent::gethead()->
                            getheadC("TOF2RawCluster",0);
@@ -777,7 +787,9 @@ void TofTmAmCalib::select(){  // calibr. event selection
                            getheadC("AMSAntiCluster",0);
 //----
   integer mode=TFREFFKEY.relogic[0];//calibr.type
-//
+  bool IgnoreCut=(TFCAFFKEY.spares[0]==1 || TFCAFFKEY.spares[1]==1);
+  bool PMEQmode=(TFCAFFKEY.spares[0]==1);
+//----
   TOF2JobStat::addre(10);
 //
   for(i=0;i<TOF2GC::SCLRS;i++){
@@ -798,9 +810,9 @@ void TofTmAmCalib::select(){  // calibr. event selection
   while (ptr){ // <--- loop over TOF2RawCluster hits
     status=ptr->getstatus();
     if((status&TOFGC::SCBADB3)==0){ //use only good for t-measurement according to current knowledge (& DB) 
-      if((status&TOFGC::SCBADB2)==0
+      if((status&TOFGC::SCBADB2)==0  || PMEQmode
 //both sides have complete set of measurement in given event (i.e. not 1-sided)
-//                                    || (status&TOFGC::SCBADB5)!=0
+//                                   || (status&TOFGC::SCBADB5)!=0
 //was not (1-sided + recovered)
 				                                 ){//use only 2-sided 
         ilay=(ptr->getntof())-1;
@@ -808,14 +820,16 @@ void TofTmAmCalib::select(){  // calibr. event selection
 //	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
 //	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
           ptr->getadca(ama);
-          if(ama[0]>adcmin && ama[1]>adcmin){// require min. anode signal
+          if((ama[0]>adcmin && ama[1]>adcmin)
+//	                     || ((ama[0]>adcmin || ama[1]>adcmin) && PMEQmode)
+	                                                                      ){// require min. anode signal
             TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
             qtotl[ilay]=am[0]+am[1];
             qsd1[ilay]=am[0];//side q(pC) for Tzslw-calib
             qsd2[ilay]=am[1];
             ptr->getsdtm(tm);// get raw side-times(A-noncorrected)
             nbrl[ilay]+=1;
-            brnl[ilay]=ibar;
+            brnl[ilay]=ibar;//<--- store bar#
             trp1[ilay]=tm[0];//store side raw time(noncorrected by q)
             trp2[ilay]=tm[1];
             arp1[ilay]=ama[0];
@@ -849,8 +863,9 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
-//----
-//    Select events with enough layers with bars/layer=1 :
+//
+//----->    Select events with enough layers with bars/layer=1 :
+//
   int ngdlrs=0;
   for(i=0;i<TOF2DBc::getnplns();i++){
     if(nbrl[i]==1)ngdlrs+=1;
@@ -858,13 +873,19 @@ void TofTmAmCalib::select(){  // calibr. event selection
       nbrl[i]=0;//reset non-empty, but bad layers
       brnl[i]=-1;
     }  
-  }  
-  if(ngdlrs<TOF2DBc::getnplns())return; // require all layers
+  }
+  if(!PMEQmode){//<---normal(not PMEquilization) calibration
+    if(ngdlrs<TOF2DBc::getnplns())return;
 //  if(ngdlrs<TOF2DBc::getnplns()-1)return; // accept one missing layer
-  if(nbrl[0]==0)return; // always require  1st layer
+    if(nbrl[0]==0)return; // always require  1st layer
+  }
+  else{//<---PMEquilization calib
+    if(ngdlrs<2)return;
+  } 
   TOF2JobStat::addre(11);
 //
 // -----> check Anti-counter :
+//
   eanti=0;
   nanti=0;
   while (ptra){ // <--- loop over ANTICluster hits
@@ -883,7 +904,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-//  if(nanti>0)return;// remove events with >0 sector(e>ecut) in Anti
+  if(nanti>1 && !IgnoreCut)return;// remove events with >1 sector(e>ecut) in Anti
 //
   TOF2JobStat::addre(12);
 //
@@ -895,7 +916,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
   for(i=0;i<(TOF2DBc::getnplns()-1);i++)meanq+=(*pntr[i]);
   meanq/=number(TOF2DBc::getnplns()-1);
   qmax=*pntr[TOF2DBc::getnplns()-1];
-  rr=qmax/meanq;//Qmas/Qaverage_of _the_rest
+  rr=qmax/meanq;//Qmax/Qaverage_of_the_rest
   if(TFCAFFKEY.hprintf>0){
 #pragma omp critical (hf1)
 {
@@ -903,7 +924,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     HF1(1502,geant(meanq),1.);
 }
   }
-  if(rr>qrcut)return; // remove events with "spike" dE/dX.
+  if(rr>qrcut && !IgnoreCut)return; // remove events with "spike" dE/dX(normal calib)
 // 
   TOF2JobStat::addre(13);
 //
@@ -951,7 +972,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
 }
       }
     }
-    if(betof<0.5 || betof>1.3)return;
+    if((betof<0.4 || betof>1.3) && !IgnoreCut)return;
   }
 //
   TOF2JobStat::addre(14);
@@ -1127,7 +1148,7 @@ Nextp:
 //
 // -----> Check TOF-Track match, get track length
 //
-    geant barw,dtcut,dlcut(8);
+    geant barw,dtcut,dlcut(10);
     bad=0;
     for(il=0;il<TOF2GC::SCLRS-1;il++)trlen[il]=0.;
     int nzlrs=0;
@@ -1136,7 +1157,7 @@ Nextp:
       C0[0]=0.;
       C0[1]=0.;
 //
-      for(il=0;il<TOF2GC::SCLRS;il++){//<-- layers loop
+      for(il=0;il<TOF2GC::SCLRS;il++){//<----- layers loop
         badx=0;
         bady=0;
         trlr[il]=0.;
@@ -1146,7 +1167,7 @@ Nextp:
         ib=brnl[il];
         if(ib>0 && (ib+1)<TOF2DBc::getbppl(il))barw=TOF2DBc::plnstr(5);//stand.(not outer) bar width
         else barw=TOF2DBc::outcp(il,1);//outer counter width
-        dtcut=barw/2+0.25;
+        dtcut=barw/2+0.5;
         zc[il]=TOF2DBc::getzsc(il,ib);
         C0[2]=zc[il];
         ptrack->interpolate(C0,dir,Cout,the,phi,trl);
@@ -1175,19 +1196,22 @@ Nextp:
 //          HF2(1204+il,geant(coot[il]),geant(dy),1.);
 //}
         }
-        if(fabs(dx)>dtcut)badx=1;//bad trancv.coo match
-	if(fabs(dy)>dlcut)bady=1;//bad longit.coo match
+        if(fabs(dx)>dtcut)badx=1;//bad transv.coo match
+	if(fabs(dy)>dlcut && !IgnoreCut)bady=1;//bad longit.coo match(ignore for PM-equiliz run or if special requirement spares[1]=1)
+	else bady=0;
         if(badx==0){
 #pragma omp critical (ctof_filltd)
 {
 	  TofTmAmCalib::filltd(il,ib,tmsdc[il],crc);//need only transv.match for Tdelv-calib
 }
 	}
-	if(badx>0 || bady>0)bad=1;
+	if(badx>0 || bady>0)bad=1;//to see after L-loop presence of any mismatch("bad" is not cleared inside the loop)
 	if(badx>0)bad4tdcal=1;
-      }//---> endof layers loop
-//
-      cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/nzlrs);//average cos 
+	if(badx>0 || bady>0)brnl[il]=-1;//<=== mark bad layer (used for pm-equil mode, for Tz/Am calib "bad" is checked later)
+      }//------> endof layers loop
+//-----
+      cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/nzlrs);//average cos
+// 
       if(TFCAFFKEY.hprintf>1){
 #pragma omp critical (hf1)
 {
@@ -1201,10 +1225,10 @@ Nextp:
     }//-->endof "use TOF/TRD-track"mode check
 //-----
     if(bad4tdcal==0)TOF2JobStat::addre(28);//was good event for Tdelv
-//===============================================
-    if(mode==2)return;//all is done for Tdelv-calib alone mode, exit
 //-----
-    if(bad)return;// TOF-Tracker 2d-mismatch (bad for Tzslw/Ampl-calib)
+    if(mode==2)return;//all is done for Tdelv-calib "alone" mode, exit
+//-----
+    if(bad && !PMEQmode)return;// TOF-Trk 2d[1d]-mismatch in any layer (bad for Tzslw/Ampl-calib, ok for equilz))
 //
     TOF2JobStat::addre(29);
 //===============================================
@@ -1212,49 +1236,54 @@ Nextp:
 //--------> more accurate TOF-beta fit :
 //
     bool TofBetaFitOK(true);
-    trle[0]=0;
-    trle[1]=(zc[0]-zc[1])/fabs(0.5*(cstr[0]+cstr[1]));
-    trle[2]=(zc[0]-zc[2])/fabs(0.5*(cstr[2]+cstr[3]));
-    trle[3]=(zc[0]-zc[3])/fabs(0.5*(cstr[2]+cstr[3]));
-    tdif[0]=0;
-    tdif[1]=ltim[0]-ltim[1];
-    tdif[2]=ltim[0]-ltim[2];
-    tdif[3]=ltim[0]-ltim[3];
-    fpnt=0;
-    sul=0;
-    sut=0;
-    sutl=0;
-    sul2=0;
-    sud=0.;
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      sit2=pow(sigt[il],2);
-      fpnt+=1;
-      sud+=1./sit2;
-      sut+=tdif[il]/sit2;
-      sul+=trle[il]/sit2;
-      sul2+=(trle[il]*trle[il])/sit2;
-      sutl+=(tdif[il]*trle[il])/sit2;
-    }
-    bci = (sud*sutl-sut*sul)/(sud*sul2-sul*sul);
-    tzer=(sut*sul2-sutl*sul)/(sud*sul2-sul*sul);
-    chsq=0;
-    for(il=0;il<TOF2GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
-    chsq/=number(fpnt-2);
-    betof=1./bci/cvel;
-    if(TFCAFFKEY.hprintf>0){
+    betof=1;
+    if(!PMEQmode){//means all 4 layers have to be present and are present
+      trle[0]=0;
+      trle[1]=(zc[0]-zc[1])/fabs(0.5*(cstr[0]+cstr[1]));
+      trle[2]=(zc[0]-zc[2])/fabs(0.5*(cstr[2]+cstr[3]));
+      trle[3]=(zc[0]-zc[3])/fabs(0.5*(cstr[2]+cstr[3]));
+      tdif[0]=0;
+      tdif[1]=ltim[0]-ltim[1];
+      tdif[2]=ltim[0]-ltim[2];
+      tdif[3]=ltim[0]-ltim[3];
+      fpnt=0;
+      sul=0;
+      sut=0;
+      sutl=0;
+      sul2=0;
+      sud=0.;
+      for(il=0;il<TOF2GC::SCLRS;il++){
+        sit2=pow(sigt[il],2);
+        fpnt+=1;
+        sud+=1./sit2;
+        sut+=tdif[il]/sit2;
+        sul+=trle[il]/sit2;
+        sul2+=(trle[il]*trle[il])/sit2;
+        sutl+=(tdif[il]*trle[il])/sit2;
+      }
+      bci = (sud*sutl-sut*sul)/(sud*sul2-sul*sul);
+      tzer=(sut*sul2-sutl*sul)/(sud*sul2-sul*sul);
+      chsq=0;
+      for(il=0;il<TOF2GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
+      chsq/=number(fpnt-2);
+      betof=1./bci/cvel;
+      if(TFCAFFKEY.hprintf>0){
 #pragma omp critical (hf1)
 {
-      HF1(1503,betof,1.);
-      HF1(1510,chsq,1.);
-      HF1(1511,tzer,1.);
+        HF1(1503,betof,1.);
+        HF1(1510,chsq,1.);
+        HF1(1511,tzer,1.);
 }
-    }
-    TofBetaFitOK=(chsq<10. && betof>0.4 && betof<1.3);//check on chi2/beta
-    if(!TofBetaFitOK)return;
+      }
+      TofBetaFitOK=(chsq<15. && betof>0.4 && betof<1.3);//check on chi2/beta
+    }//--->endof "normal calib" mode check(imply 4 layers)
+//
+    if(!TofBetaFitOK && !IgnoreCut)return;
 //
     TOF2JobStat::addre(30);
+//=======================================================
 //
-// ---> Identify events with high(ions) or too low edep.:
+// -----> Identify events with high(ions) or too low edep.:
 //
     bool IonEvent(false);
     number meanedep(0),maxedep(0);
@@ -1283,10 +1312,11 @@ Nextp:
     }
     IonEvent=(meanedep > edecut); 
     if(IonEvent)TOF2JobStat::addre(31);
+//=======================================================
 //
-//========> prepare/fill arrays for TZSL-calibration:
+// -----> prepare/fill arrays for TZSL-calibration:
 //
-    if(mode==3 || mode==23 || mode==234 || mode==34){//<=== Tzsl-calib requested
+    if((mode==3 || mode==23 || mode==234 || mode==34) && !PMEQmode){//<=== Tzsl-calib requested
       TOF2JobStat::addre(32);
 //---
       if(!TzslMomOK)goto SkipTzsl; 
@@ -1324,7 +1354,6 @@ Nextp:
         if(nbrl[il]==0)continue;//skip missing layer
         ib=brnl[il];
         TOF2Brcal::scbrcal[il][ib].getslops(slops);
-//      ramm[il]=(slops[0]/qsd1[il]+slops[1]/qsd2[il]);
         ramm[il]=(slops[0]/sqrt(qsd1[il])+slops[1]/sqrt(qsd2[il]));//works sl.better
       }
 //----
@@ -1367,6 +1396,7 @@ Nextp:
 }
     }//--->endof Tzsl-submode check
 //
+//===========================================================
 SkipTzsl:
 //
 //=========> prepare/fill arrays for AMPL-calibration:
@@ -1396,7 +1426,7 @@ SkipTzsl:
       }
     }
 //----
-    if(IonEvent)return;
+    if(IonEvent && !IgnoreCut)return;
     TOF2JobStat::addre(37);
 //
 // ---> normalize charge to normal incidence :
@@ -1413,15 +1443,23 @@ SkipTzsl:
       if(ib>=0){
         ainp[0]=geant(am1[il]);//q(pC)
         ainp[1]=geant(am2[il]);
-        cinp=coot[il];// loc.r.s.!!!
+        cinp=coot[il];// longit.coo of trk crossing, paddle loc.r.s.!!!
         if(ainp[0]>adcmin && ainp[1]>adcmin){
+          if(PMEQmode){//PMEquilization Mode
+            plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+            PadInTrig=plvl1->checktofpattor(il,ib);
+//	    if(PadInTrig)continue;// skip ?
+          }
 #pragma omp critical (ctof_fillam)
 {
-	  TofTmAmCalib::fillam(il,ib,ainp,cinp);//for relat.gains(using Anode)
+	  TofTmAmCalib::fillam(il,ib,ainp,cinp);//for relat.gains(using Anode) and PMEquilization
 }
 	} 
       }//--->endof nonempty layer check
     }//--->endof layer loop
+//-------
+    if(PMEQmode)return;//<===== All is done for PMEquilisation mode
+//-------
 //
 // ---> Normalize low beta Edep to MIP(p/m=4) :
 //
@@ -1447,7 +1485,7 @@ SkipTzsl:
       mcut[1]=mucut[1];
     }
 //
-    massq=imass*imass;//implied m**2(no momexist)
+    massq=imass*imass;//implied m**2(if no mom.measurement)
     badx=0;
     bady=0;
     if(MomMeasExist){
@@ -1482,11 +1520,11 @@ SkipTzsl:
 //
       if(massq<mcut[0] || massq>mcut[1])badx=1;
       if(betg<TFCAFFKEY.bgcut[0] || betg>TFCAFFKEY.bgcut[1])bady=1;
-    }
+    }//--->endof "MomMeasExist" check
 //
-    if(badx!=0)return;//fail m**2 cut
+    if(badx!=0 && !IgnoreCut)return;//fail m**2 cut
     TOF2JobStat::addre(38);
-    if(bady!=0)return;//fail bet*gam(mip) cut
+    if(bady!=0 && !IgnoreCut)return;//fail bet*gam(mip) cut
     TOF2JobStat::addre(39);
 //
 // ------> fill working arrays for Mip abs.normalization calib :
@@ -1505,9 +1543,9 @@ SkipTzsl:
 }
 	  }
         }
-        else{//no mom-info, put LowBeta-cut to select mip(raw approx)
+        else{//no mom-info, put LowBeta-cut to select mip(raw approximation)
           if(ainp[0]>adcmin && ainp[1]>adcmin){
-            if(betof>0.85){
+            if(betof>0.85 || IgnoreCut){
 #pragma omp critical (ctof_fillabs)
 {
 	      TofTmAmCalib::fillabs(il,ib,ainp,cinp);
@@ -2171,7 +2209,9 @@ void TofTmAmCalib::fillam(integer il, integer ib, geant am[2], geant coo){
   integer i,id,idr,idh,ibt,btyp,nbn,nb,nbc,isb,chan,nev,bchan;
   geant r;
   geant bl,bh,qthrd;
-  geant cbin(15.);// centr. bin half-width for gain calibr.
+  geant cbin;// centr. bin half-width for gain calibr.
+  if(TFCAFFKEY.spares[0]>0)cbin=20;//relaxed range for PM-equilization procedure
+  else cbin=15;
 //
   isb=TOF2DBc::barseqn(il,ib);//bar sequential number(0->...)
   chan=2*isb;//side seq. number
@@ -2386,6 +2426,7 @@ void TofTmAmCalib::fitam(){
   strcat(fname,".");
   strcat(fname,fext);
 //
+//
 // ---> print "gain"-hist. (side-signals for center bin)
   if(TFCAFFKEY.hprintf>0){
     chan=0;
@@ -2488,6 +2529,7 @@ void TofTmAmCalib::fitam(){
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(is=0;is<2;is++){
+        SideMPA[il][ib][is]=0;
         nev=nevenc[ic];
         aver=0;
         if(nev>=TFCAFFKEY.minev){
@@ -2574,6 +2616,7 @@ void TofTmAmCalib::fitam(){
             continue;
           }
           gains[ic]=elfitp[1];
+	  SideMPA[il][ib][is]=elfitp[1];//store for PM-equilization
 	  goodch+=1;
           HDELET(1599);
 //
@@ -2584,8 +2627,74 @@ void TofTmAmCalib::fitam(){
       }// ---> endof side loop
     }// ---> endof bar loop
   }// ---> endof layer loop
-//--
-  if(ic>0)TOF2JobStat::cqual(2,0)=geant(goodch)/ic;//for cal-quality 
+//---
+  if(ic>0)TOF2JobStat::cqual(2,0)=geant(goodch)/ic;//for cal-quality
+//---
+  if(TFCAFFKEY.spares[0]>0){//for PN-equilization procedure
+    ic=0;
+    printf("----------------------------------------------------------\n");
+    printf("Collected events per layer/paddle/side:\n");
+    printf("\n");
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      printf("Layer= %2d\n",(il+1));
+      for(is=0;is<2;is++){
+        for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+          chan=ic+2*ib+is;
+          printf("%6d",nevenc[chan]);
+	}
+        printf("\n");
+      }
+      printf("\n");
+      ic+=2*TOF2DBc::getbppl(il);
+    }
+//
+    printf("----------------------------------------------------------\n");
+    printf("MostProb Amplitude(ADC-ch) per layer/paddle/side:\n");
+    printf("\n");
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      printf("Layer= %2d\n",(il+1));
+      for(is=0;is<2;is++){
+        for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+          printf("%6.1f",SideMPA[il][ib][is]);
+	}
+        printf("\n");
+      }
+      printf("\n");
+    }
+//
+    strcpy(fname,"TofSideMPA.");
+    strcat(fname,fext);
+    ofstream tcfile(fname,ios::out|ios::trunc);
+    if(!tcfile){
+      cerr<<"TofTmAmCalib::PmtEquil:error opening file for output "<<fname<<'\n';
+      exit(8);
+    }
+    cout<<"Open file for PmtEquilizTable output, fname:"<<fname<<'\n';
+    cout<<" First run used for calibration is "<<StartRun<<endl;
+    cout<<" Date of the first event : "<<frdate<<endl;
+//
+    tcfile.setf(ios::fixed);
+    tcfile.width(6);
+//
+    tcfile.precision(1);// precision for MPA
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      tcfile << "Layer="<< (il+1) << endl;;
+      for(is=0;is<2;is++){
+        for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+          tcfile << SideMPA[il][ib][is] << " ";
+	}
+        tcfile << endl;
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+    tcfile << endl<<"======================================================"<<endl;
+    tcfile << endl<<" First run used for PmtEquilizationTable is "<<StartRun<<endl;
+    tcfile << endl<<" Date of the first event : "<<frdate<<endl;
+    tcfile.close();
+//
+    return;
+  } 
 //
 // ---> extract most prob. ampl for ref.bar:
 //
@@ -3064,7 +3173,7 @@ void TofTmAmCalib::fitam(){
       nmax=int(floor(nev*TFCAFFKEY.trcut));// to keep (100*trcut)% of lowest amplitudes
       nmin=int(floor(nev*0.015));// to remove 1.5 % of lowest amplitudes
       if(nmin==0)nmin=1;
-      strcpy(htit1,"Q-tot(X=0) for ref.bar type ");
+      strcpy(htit1,"Q-tot(X=0) for ref. bar type");
       in[0]=inum[ibt+1];
       strcat(htit1,in);
       bnn=20;//        <<--- select limits/binwidth for hist.
@@ -3251,7 +3360,7 @@ void TofTmAmCalib::fitam(){
       for(i=0;i<2;i++){//<---side-loop
 //
 	for(ip=0;ip<TOF2GC::PMTSMX;ip++){
-	  dpmg[chan][ip]=0;
+	  dpmg[chan][ip]=1;
 	  dpmgs[chan][ip]=0;
 	}
         if(nevdgn[chan]>5){//<--check stat
@@ -3271,12 +3380,12 @@ void TofTmAmCalib::fitam(){
 	        dpmgs[chan][ip]=dpmsig;
 	      }
 	      else{
-	        dpmg[chan][ip]=0;
+	        dpmg[chan][ip]=1;
 	        dpmgs[chan][ip]=99;
 	      }
 	    }
 	    else{
-	      dpmg[chan][ip]=0;
+	      dpmg[chan][ip]=1;
 	      dpmgs[chan][ip]=99;
 	    }
 	  }//-->endof pm-loop

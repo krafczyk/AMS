@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.41 2009/11/15 11:46:57 choumilo Exp $
+//  $Id: daqs2block.C,v 1.42 2009/11/27 11:41:55 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -981,7 +981,7 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"  --->  ComprSegment::T
                          <<((tlhead&(0x8000))>>15)<<"T:"<<((tlhead&(0x4000))>>14)<<"S:"<<((tlhead&(0x0008))>>3)<<endl;
 	  }
 	  continue;//---> skip bad link info
-//	  goto BadExit;//tempor 
+	  goto BadExit; 
 	}
         slot=AMSSCIds::crdid2sl(crat-1,slid)+1;//slot-id to slot-number(solid,sequential, 1,...,11)
 //cout<<" abs.slot="<<slot<<endl;
@@ -992,9 +992,9 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"  --->  ComprSegment::T
             cout<<" <-- CompFmt::T-block Error: InvalidSlot, crat/link="<<crat<<" "<<slid<<" slot="<<slot<<endl;
 	  }
 	  continue;//---> skip bad link info
-//	  goto BadExit;//tempor    
+	  goto BadExit;    
 	}
-	TOF2JobStat::daqssl(1,crat-1,slot-1,2);//count legal time-slot entries
+	TOF2JobStat::daqssl(1,crat-1,slot-1,2);//count legal time-slot entries("T-entries")
         sslot=AMSSCIds::sl2tsid(slot-1);//seq.numbering of T-measuting slots(1-5=>,4xSFET,1xSFEA)
 //cout<<" sslot="<<sslot<<endl;
 //

@@ -1,7 +1,8 @@
-//  $Id: tofuser02.C,v 1.30 2009/02/13 16:30:41 choumilo Exp $
+//  $Id: tofuser02.C,v 1.31 2009/11/27 11:41:55 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
+#include "trigger102.h"
 #include "amsgobj.h"
 #include "commons.h"
 #include "cern.h"
@@ -54,6 +55,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   AMSAntiCluster *ptra;
   Anti2RawEvent *ptrr;
   Anti2RawEvent *ptrrN;
+  Trigger2LVL1 * plvl1;
   AMSPoint clco[TOF2GC::SCLRS];
   uinteger Runum(0);
   ptrt=(TOF2RawSide*)AMSEvent::gethead()->
@@ -100,7 +102,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //    tinp=stimes[0]-stimes[1];
 //    tout=stimes[1]-stimes[3];
 //    cout<<"swid/hwid="<<swid<<" "<<hwid<<"  tin/out="<<tinp<<" "<<tout<<"  temp="<<temper<<endl;
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
       if(swid==1041){
 //        cout<<"swidOK, dti/dto="<<fabs(tinp-tinpp)<<" "<<fabs(tinp-tinpp)<<endl;
 //	if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
@@ -299,7 +301,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       eacl=ptra->getedep();
       eanti=eanti+(ptra->getedep());
       if(eacl>eacut)nanti+=1;
-      if(TFREFFKEY.reprtf[2]>0){
+      if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
         HF1(1503,geant(eacl),1.);
@@ -308,7 +310,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     HF1(1505,geant(nanti),1.);
@@ -316,7 +318,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 }
   }
   nantit=Anti2RawEvent::getncoinc();//same from trigger
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     HF1(1517,geant(nantit),1.);
@@ -327,7 +329,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   TOF2JobStat::addre(22);
 //====================================
 //
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
     for(i=0;i<TOF2GC::SCLRS;i++){
@@ -361,7 +363,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     bool trktr,trdtr,ecaltr,nottr,badint;
 //
     npart=0;
-    for(i=0;i<2;i++){//i=0->parts.with true(Trk)-track, i=1->...false(nonTrk)-track
+    for(i=0;i<1;i++){//i=0->parts.with true(Trk)-track, i=1->...false(nonTrk)-track
       cptr=AMSEvent::gethead()->getC("AMSParticle",i);// get pointer to part-envelop "i"
       if(cptr){
         if(cptr->getnelem()!=0){
@@ -457,7 +459,7 @@ Nextp:
       mcmom=mcptr->getmom();
       mcmas=mcptr->getmass();
       mcbeta=mcmom/sqrt(mcmom*mcmom+mcmas*mcmas);
-      if(TFREFFKEY.reprtf[2]>0){
+      if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
         HF1(1518,mcbeta,1.);
@@ -478,7 +480,7 @@ Nextp:
       pcut[0]=TFCAFFKEY.plhec[0];
       pcut[1]=TFCAFFKEY.plhec[1];
     }
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
       HF1(1500,geant(pmom),1.);
@@ -486,7 +488,7 @@ Nextp:
 }
     }
 //
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
       HF1(1501,beta,1.);
@@ -504,7 +506,7 @@ Nextp:
 //
 //======================================> find/study track crossings with ACC:
 //
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
       HF1(1515,geant(nanti),1.);
@@ -528,7 +530,7 @@ Nextp:
       if(cphi<0)cphi=360+cphi;//0-360
       phi=phi*AMSDBc::raddeg;//inpact phi(degr,+-180)
       if(phi<0)phi=360+phi;//0-360
-      if(TFREFFKEY.reprtf[2]>2){
+      if(TFREFFKEY.reprtf[1]>2){
 #pragma omp critical (hf1)
 {
         HF1(1241,geant(crcCyl[2]),1.);
@@ -571,7 +573,7 @@ Nextp:
 	if(dphi2<-180)dphi2=-(360+dphi2);
 //
         if(phicross && frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>2){
+          if(TFREFFKEY.reprtf[1]>2){
 #pragma omp critical (hf1)
 {
 	    HF1(1244,geant(crcCyl[2]),1.);
@@ -579,7 +581,7 @@ Nextp:
 	  }
 	}
 	if(zcross && frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>2){
+          if(TFREFFKEY.reprtf[1]>2){
 #pragma omp critical (hf1)
 {
 	    HF1(1245,geant(cphi),1.);
@@ -588,7 +590,7 @@ Nextp:
 	  }
 	}
         if(zcross && phicross && frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>2){
+          if(TFREFFKEY.reprtf[1]>2){
 #pragma omp critical (hf1)
 {
             HF1(1246,geant(phi),1.);//inpact phi(degr,+-180)
@@ -601,7 +603,7 @@ Nextp:
 	}
 	
         if(zcross && phicross){
-          if(TFREFFKEY.reprtf[2]>2){
+          if(TFREFFKEY.reprtf[1]>2){
 #pragma omp critical (hf1)
 {
 	    HF1(1240,geant(is+1),1.);//TRK-crossed patt
@@ -609,7 +611,7 @@ Nextp:
 	  }
 	}
         if(frsecn[is]>0){
-          if(TFREFFKEY.reprtf[2]>2){
+          if(TFREFFKEY.reprtf[1]>2){
 #pragma omp critical (hf1)
 {
 	    HF1(1240,geant(is+1+10),1.);//fired patt
@@ -665,7 +667,7 @@ Nextp:
 	cltc[il]=crd[1];//Cl.tran.coo(YCl,abs)
       }
       dy=coot[il]-cllc[il];//Long.coo_track-Long.coo_TofClust
-      if(TFREFFKEY.reprtf[2]>0){
+      if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
         if(clmem[il]==1)HF1(1200+il,geant(dy),1.);
@@ -674,14 +676,14 @@ Nextp:
         if(nbrl[il]==1 && fabs(dx)<dtcut){
 #pragma omp critical (hf2)
 {
-	  if(TFREFFKEY.reprtf[2]>1)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
+	  if(TFREFFKEY.reprtf[1]>1)HF2(1231+il,geant(cllc[il]),geant(dy),1.);
 }
 	}
       }
       dx=ctran-cltc[il];//Transv.coo_tracker-Transv.coo_TofClust
       tgx=sin(the)*cos(phi)/cos(the);
       tgy=sin(the)*sin(phi)/cos(the);
-      if(TFREFFKEY.reprtf[2]>0){
+      if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
         if(clmem[il]==1)HF1(1210+il,geant(dx),1.);
@@ -693,12 +695,20 @@ Nextp:
       elosc[il]*=geant(fabs(cos(the)));// angle correction for dE/dX(to norm.inc)
       adca1[il]*=geant(fabs(cos(the)));// .....................adca
       adca2[il]*=geant(fabs(cos(the)));
-    }//--> endof tof-layer loop
+    }//---> endof tof-layer loop
+//
     cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
 //======================================
     if(!TofTrackMatch)return;//too big difference of TOF-Track coord. in any layer
 //    if(TofWithExtPad)return;
     TOF2JobStat::addre(47);
+//===================================
+//---> for equiliz.procedure:
+    if(TFCAFFKEY.spares[0]==1){//PMEquilization Mode
+      plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+      bool intrig=plvl1->checktofpattor(il,ib);
+    }
+
 //===================================
 //
 // some test for t-resolution:
@@ -744,7 +754,7 @@ Nextp:
     for(il=0;il<TOF2GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
       HF1(1502,betof,1.);
@@ -766,7 +776,7 @@ Nextp:
     trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
     td13=tdif[2]*trlnor/trle[2];// normalized to fix(~127cm) distance
     td24=(cltim[1]-cltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~127cm) distance
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
       HF1(1504,(td13-td24),1.);
@@ -774,7 +784,7 @@ Nextp:
     }
 //  }//endof "Clust with 1memb/layer" check
 //--------------------------------------------
-    if(TFREFFKEY.reprtf[2]>0){
+    if(TFREFFKEY.reprtf[1]>0){
       bad=0;
       for(il=0;il<TOF2GC::SCLRS;il++){
         if(nbrl[il]>1)bad=1;
@@ -812,7 +822,7 @@ Nextp:
       avera[1]/=2.;
       avera[2]/=3.;
       avera[3]/=4.;
-      if(TFREFFKEY.reprtf[2]>0){
+      if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
         for(il=0;il<TOF2GC::SCLRS;il++)HF1(5001+il,avera[il],1.);
@@ -835,7 +845,7 @@ Nextp:
       nbrs=nbrl[il];
       if(nbrl[il]==1 && fabs(coot[il])<10){//select counter center crossing
         ibtyp=TOF2DBc::brtype(il,ib)-1;
-        if(TFREFFKEY.reprtf[2]>1){
+        if(TFREFFKEY.reprtf[1]>1){
 #pragma omp critical (hf1)
 {
 	  HF1(1220+ibtyp,geant(adca1[il]),1.);
@@ -870,7 +880,7 @@ Nextp:
 //----------------------------
 void TOF2User::InitJob(){
   int i;
-  if(TFREFFKEY.reprtf[2]>0){
+  if(TFREFFKEY.reprtf[1]>0){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
     HBOOK1(1500,"TofUser:Particle Rigidity(gv)",100,0.,40.,0.);
     HBOOK1(1501,"TofUser:Particle Beta",100,-1.2,1.3,0.);
@@ -897,14 +907,14 @@ void TOF2User::InitJob(){
 //    HBOOK1(1522,"L1/L2 raw time diff(cos-corrected),B4/B5",60,0.,6.,0.);
 //    HBOOK1(1523,"L1/L2 raw time diff(cos-corrected),B4/B6",60,0.,6.,0.);
     
-    HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1202,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1203,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1204,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=2",50,-10.,10.,0.);
-    HBOOK1(1205,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=2",50,-10.,10.,0.);
-    HBOOK1(1206,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=2",50,-10.,10.,0.);
-    HBOOK1(1207,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=2",50,-10.,10.,0.);
+    HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",60,-15.,15.,0.);
+    HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",60,-15.,15.,0.);
+    HBOOK1(1202,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=1",60,-15.,15.,0.);
+    HBOOK1(1203,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=1",60,-15.,15.,0.);
+    HBOOK1(1204,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=2",60,-15.,15.,0.);
+    HBOOK1(1205,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=2",60,-15.,15.,0.);
+    HBOOK1(1206,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=2",60,-15.,15.,0.);
+    HBOOK1(1207,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=2",60,-15.,15.,0.);
     
     HBOOK1(1208,"TofUser:MyBetaChisq(private beta-fit using TofClust)",80,0.,40.,0.);
     HBOOK1(1209,"TofUser:MyTzero(private beta-fit with TofCl)",50,-2.5,2.5,0.);
@@ -918,7 +928,7 @@ void TOF2User::InitJob(){
     HBOOK1(1216,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=2",50,-2.5,2.5,0.);
     HBOOK1(1217,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=2",50,-2.5,2.5,0.);
     
-  if(TFREFFKEY.reprtf[2]>1){
+  if(TFREFFKEY.reprtf[1]>1){
     HBOOK1(1220,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-1)",80,0.,160.,0.);
     HBOOK1(1221,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-2)",80,0.,160.,0.);
     HBOOK1(1222,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-3)",80,0.,160.,0.);
@@ -932,14 +942,14 @@ void TOF2User::InitJob(){
     HBOOK1(1230,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-11)",80,0.,160.,0.);
   }
     
-  if(TFREFFKEY.reprtf[2]>1){
+  if(TFREFFKEY.reprtf[1]>1){
     HBOOK2(1231,"TofUser:TofClusLcoo-TrkCrosCoo,L1,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
     HBOOK2(1232,"TofUser:TofClusLcoo-TrkCrosCoo,L2,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
     HBOOK2(1233,"TofUser:TofClusLcoo-TrkCrosCoo,L3,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
     HBOOK2(1234,"TofUser:TofClusLcoo-TrkCrosCoo,L4,(TransvMatchOK)",70,-70.,70.,60,-30.,30.,0.);
   }
 
-  if(TFREFFKEY.reprtf[2]>2){    
+  if(TFREFFKEY.reprtf[1]>2){    
     HBOOK2(1235,"TofUser:ACC NSfired vs NScrossed",10,0,10.,10,0.,10.,0.);
     HBOOK1(1240,"TofUser:AccRaw: Crossed/Fired(+10)/(fired+crossed)(+20) sectors pattern",30,1.,31.,0.);
     HBOOK1(1241,"TofUser:AccRaw: Cyl-track Zcross(noCuts)",75,-75.,75.,0.);
@@ -983,7 +993,7 @@ void TOF2User::InitJob(){
     HBOOK1(5003,"TofUser:TofCl EdepNormInc(mev),AverTrunc3of4",80,0.,32.,0.);
     HBOOK1(5004,"TofUser:TofCl EdepNormInc(mev),AverTrunc4of4",80,0.,32.,0.);
     
-    if(TFREFFKEY.reprtf[2]>1){    
+    if(TFREFFKEY.reprtf[1]>1){    
       HBOOK1(5010,"TofUser:TofCl Sqrt(AverTrunc1of4/MIP)",80,0.,32.,0.);
       HBOOK1(5011,"TofUser:TofCl Sqrt(AverTrunc2of4/MIP)",80,0.,32.,0.);
       HBOOK1(5012,"TofUser:TofCl Sqrt(AverTrunc3of4/MIP)",80,0.,32.,0.);
@@ -1005,7 +1015,7 @@ void TOF2User::EndJob(){
   char chopt1[5]="LOGY";
   geant par[3],step[3],pmin[3],pmax[3],sigp[3],chi2;
 //
-  if(TFREFFKEY.reprtf[2]==0)return;
+  if(TFREFFKEY.reprtf[1]==0)return;
   par[0]=200.;
   par[1]=1.;
   par[2]=0.03;
@@ -1149,7 +1159,7 @@ void TOF2User::EndJob(){
   HPRINT(1217);
   HPRINT(1510);
   
-  if(TFREFFKEY.reprtf[2]>1){//raw ampl  
+  if(TFREFFKEY.reprtf[1]>1){//raw ampl  
     HPRINT(1220);
     HPRINT(1221);
     HPRINT(1222);
@@ -1163,13 +1173,13 @@ void TOF2User::EndJob(){
     HPRINT(1230);
   }
 
-  if(TFREFFKEY.reprtf[2]>1){//dy vs cr-coo  
+  if(TFREFFKEY.reprtf[1]>1){//dy vs cr-coo  
     HPRINT(1231);
     HPRINT(1232);
     HPRINT(1233);
     HPRINT(1234);
   }
-  if(TFREFFKEY.reprtf[2]>2){//ACC 
+  if(TFREFFKEY.reprtf[1]>2){//ACC 
     HPRINT(1235);  
     HPRINT(1240);
     HPRINT(1241);

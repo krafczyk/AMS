@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.76 2009/11/23 10:22:11 choutko Exp $
+//  $Id: trigger102.C,v 1.77 2009/11/27 11:41:55 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1601,6 +1601,8 @@ int cid=(len>>16)+1;
   uinteger ltim(0);
   geant tgate(0),tgatelt(0),tgatetr(0),tgatesc(0);
   uinteger timgid;
+//
+  static integer err(0),err1(0),err2(0),err3(0),err4(0);
 //  
   int16u datyp(0),formt(0),evnum;
   int16u jbias,jblid,jleng,jaddr,csid,psfcode;
@@ -1633,8 +1635,8 @@ int cid=(len>>16)+1;
 //
   TGL1JobStat::daqs1(0);//count entries
   p=p-1;//to follow VC-convention(here points to length-word)
-//  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
   jleng=int16u(len&(0xFFFFL));
+  csid=int16u((len>>16)&(0xFFFFL))+1;//S(s=1-4=>a,b,p,s) as return by my "checkblockid"
   jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment
@@ -1651,6 +1653,7 @@ int cid=(len>>16)+1;
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
+//
   if((TGL1FFKEY.printfl/10)>=3){
     cout<<endl;
     cout<<"======> In Trigger2LVL1::buildraw: JLV1_length(in call)="<<*p<<"("<<jleng<<"), slave_id="<<jaddr
@@ -1661,18 +1664,25 @@ int cid=(len>>16)+1;
   if(jleng>1)TGL1JobStat::daqs1(1);//<=== count non-empty fragments
   else goto BadExit;
 //
-  node2side(jaddr,csid);//card_side(1/2<->a/b)
-  //if(csid>0 && csid<3)TGL1JobStat::daqs1(2+csid-1);//sides sharing
-  //else goto BadExit;
+  if(csid>0 && csid<=4){
+    if(csid==3)csid=1;//tempor
+    else if(csid==4)csid=2;
+    TGL1JobStat::daqs1(2+csid-1);//sides sharing
+  }
+  else{
+    goto BadExit;//unknown side
+  }
 //
   TGL1JobStat::daqs1(20+datyp);//<=== count lvl1's format-types
   if(datyp==0){
-//    goto BadExit;//unknown format
+    if(err2++<100)cerr<<" <---- TriggerLVL1::buildraw-E-Wrong format-type(!=raw|comp) !"<<endl;
+    goto BadExit;//unknown format-type
   }
 //
   if(!dataf){
     TGL1JobStat::daqs1(24);//<=== count lvl1's notData segments
-    //goto BadExit;//tempor
+    if(err3++<1000)cerr<<" <---- TriggerLVL1::buildraw-E- Not data block !"<<endl;
+    goto BadExit;
   }
 //
   if(crcer)TGL1JobStat::daqs1(25);
@@ -1691,7 +1701,10 @@ int cid=(len>>16)+1;
 					              && !seqer
 						               && cdpnod);
   if(noerr)TGL1JobStat::daqs1(4);//<=== count no_ass_errors JLV1-fragments for given DATA-type     
-  else goto BadExit;
+  else{
+    if(err4++<1000)cerr<<" <---- TriggerLVL1::buildraw-E- Not data block !"<<endl;
+    goto BadExit;//other errors
+  }
 //
   if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
     || (jleng==52 && datyp==1))//MC/newRD(in RawFmt with datyp=1)
@@ -2424,8 +2437,10 @@ int cid=(len>>16)+1;
   return;
 //
 BadExit:
-  static int err=0;
-  if(err++<1000)cerr<<" TriggerLVL1::buildraw-E-BadTriggerEventRejected "<<endl;
+  if(err++<1000){
+    cerr<<" TriggerLVL1::buildraw-E- Was fatal decoding error (rejected) ! "<<endl;
+    cerr<<"              ErrCounts:"<<err1<<" "<<err2<<" "<<err3<<" "<<err4<<endl;
+  }
   TGL1JobStat::daqs1(13);//count rejected LVL1-entries(segments)
 
 }
@@ -2485,10 +2500,10 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
   lenoncall=(len&(0xFFFFL));
   TGL1JobStat::daqs1(40);//count entries
-   p=p-1;//to follow VC-convention(here points to length-word)
-//  jleng=*p;//fragment's 1st word(block length excluding length-word itself)
+  p=p-1;//to follow VC-convention
   jleng=int16u(len&(0xFFFFL));
-  jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(its id)
+  csid=int16u((len>>16)&(0xFFFFL))+1;//S(s=1-4=>a,b,p,s) as return by my "checkblockid"
+  jblid=*(p+jleng);// JLV1 fragment's last word: Status+slaveID(present if not JMDC request)
 //
   bool dataf=((jblid&(0x8000))>0);//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error
@@ -2498,7 +2513,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   bool timoer=((jblid&(0x0800))>0);//timeout-error   
   bool fpower=((jblid&(0x0400))>0);//FEpower-error   
   bool seqer=((jblid&(0x0400))>0);//sequencer-error
-  bool cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
+  bool cdpnod=((jblid&(0x0020))>0);//CDP-node(i.e. with no futher fragmentation)
   bool noerr;
   bool LTwinv=false;
 //
@@ -2517,17 +2532,20 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))
   datyp=((jblid&(0x00C0))>>6);//(0-should not be),1,2,3(raw/compr/mix)
-    
+//    
   if(jleng>1){
     TGL1JobStat::daqs1(41);//<=== count non-empty fragments
   }
   else goto BadExit;
 //
-  node2side(jaddr,csid);//card_side(1/2<->a/b)
-  if(csid>0 && csid<3){
+  if(csid>0 && csid<=4){
+    if(csid==3)csid=1;//tempor
+    else if(csid==4)csid=2;
     TGL1JobStat::daqs1(42+csid-1);//sides sharing
   }
-  else goto BadExit;
+  else{
+    goto BadExit;//unknown side
+  }
 //
   TGL1JobStat::daqs1(44+datyp);//<=== count lvl1's format-types
   if(datyp==0){
@@ -2535,7 +2553,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   }
 //
   if(!dataf){
-    goto BadExit;//tempor
+    goto BadExit;//not data
   }
 //
 //
@@ -3025,6 +3043,8 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
 BadExit:
   TGL1JobStat::daqs1(50);//<=== bad exits
+  static int err1=0;
+  if(err1++<1000)cerr<<" TriggerLVL1::buildrawEarly-E-BadLvl1BlockRejected "<<endl;
   return -1;
 }
 
@@ -3055,12 +3075,22 @@ return k;
 //------------- DAQ interface: --------------
 integer Trigger2LVL1::checkdaqid(int16u blid){
   int valid(0);
-  for(int i=0;i<2;i++)if(blid  == nodeids[i])valid=1;
-  if(valid==0){
-   return DAQEvent::ismynode(blid,"JLV1")?1:0;
-  } 
+  char sstr[128];
+  char side[5]="ABPS";
+  char str[2];
+  for(int j=0;j<4;j++){//sides loop
+    str[0]=side[j];
+    str[1]='\0';
+    sprintf(sstr,"JLV1-%s",str);
+    if(DAQEvent::ismynode(blid,sstr)){
+      valid=j+1;//Active Side
+//cout<<"<--- Found block:"<<blid<<" "<<hex<<blid<<dec<<" name:"<<sstr<<" Side="<<valid<<endl;
+      return valid;
+    }
+  }
   return valid;
 }
+//---
 void Trigger2LVL1::node2side(int16u nodeid, int16u &side){
 //  on input: slaveid=(blid&0x001F)
 //  on output: side=(1,2) -> (a,b), or 0 if nodeid is missing

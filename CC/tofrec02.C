@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.66 2009/11/17 17:11:42 choumilo Exp $
+//  $Id: tofrec02.C,v 1.67 2009/11/27 11:41:55 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -443,6 +443,7 @@ void TOF2RawCluster::build(int &ostatus){
   geant adca[2];
   geant adcd[2][TOF2GC::PMTSMX];
   integer SumHTuse;
+  static integer err1(0),err2(0);
   
   integer ilay,last,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS],slnu,tdcc;
   int16u crat,slot,tsens,sslot;
@@ -961,6 +962,10 @@ void TOF2RawCluster::build(int &ostatus){
 		  if(adcd[0][ip]>0){
                     TOFBPeds::scbrped[ilay][ibar].getsigd(ip,sigs);//Dyn sig(s1/2)
 		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(0,ip);
+		    if(gnd<=0.001){//tempor
+//		      if(err1++<5)cerr<<"<--- TofRawClust:warn:0-DynGain for il/ib/s1="<<ilay<<" "<<ibar<<" pm="<<ip<<endl;
+		      gnd=1;
+		    }
 		    aaa=number(adcd[0][ip]);//ADC-counts(float, vs pmt)
 		    if((aaa+3*sigs[0])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s1-overflow
 		    amd[0]+=(aaa/gnd);//Dyn(equilised)
@@ -984,6 +989,10 @@ void TOF2RawCluster::build(int &ostatus){
 		  if(adcd[1][ip]>0){
                     TOFBPeds::scbrped[ilay][ibar].getsigd(ip,sigs);//Dyn sig(s1/2)
 		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(1,ip);
+		    if(gnd<=0.001){//tempor
+//		      if(err2++<5)cerr<<"<--- TofRawClust:warn:0-DynGain for il/ib/s2="<<ilay<<" "<<ibar<<" pm="<<ip<<endl;
+		      gnd=1;
+		    }
 		    aaa=number(adcd[1][ip]);//ADC-counts(float, vs pmt)
 		    if((aaa+3*sigs[1])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s2-overflow
 		    amd[1]+=(aaa/gnd);//Dyn(equilised)

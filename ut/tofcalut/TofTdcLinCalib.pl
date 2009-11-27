@@ -364,7 +364,7 @@ $dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+5*$drh2));
-$fdat1="2008.01.01 00:00:01";#def. file-date-from 
+$fdat1="2009.11.10 16:30:06";#def. file-date-from 
 $fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fdat1)
@@ -388,7 +388,7 @@ $num1_lab=$set_fram->Label(-text=>"RunN",-font=>$font2)
                                          ->place(
 					 -relwidth=>0.16, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+6*$drh2));
-$fnum1="1167606001";#def. file-number-from 
+$fnum1="1257867006";#def. file-number-from 
 $fnum1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fnum1)->place(
@@ -1792,10 +1792,11 @@ sub SubmitJob
   my $ext=substr($CalRun1,-5,5);
   my $jobname=$SessName.$ext;
   if($Host2run eq ""){#<-- means any host
-    $comm2run="bsub -q $Queue2run -n $jpar7 -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
   else{
-    $comm2run="bsub -q $Queue2run -n $jpar7 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -n $jpar7 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
 #
 TryAgain:

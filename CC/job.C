@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.665 2009/11/24 15:28:05 mdelgado Exp $
+// $Id: job.C,v 1.666 2009/11/27 11:41:55 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -251,7 +251,7 @@ MISCFFKEY.NumThreads=1;
 MISCFFKEY.DynThreads=0;
 MISCFFKEY.DivideBy=1;
 MISCFFKEY.ChunkThreads=8192;
-MISCFFKEY.RaiseFPE=1;
+MISCFFKEY.RaiseFPE=0;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -1337,10 +1337,10 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.plhc[1]=47.;// (14) track mom. high limit(gev/c) ..............
   TFCAFFKEY.minev=80;// (15)min.events needed for measurement in channel or bin
   TFCAFFKEY.trcut=0.92;// (16) cut to use for "truncated average" calculation
-  TFCAFFKEY.spares[0]=0;//spare integers
-  TFCAFFKEY.spares[1]=0;//spare integers
-  TFCAFFKEY.spares[2]=0;//spare integers
-  TFCAFFKEY.spares[3]=0;//spare integers
+  TFCAFFKEY.spares[0]=0;//(17) if =1 -> special TofPMEquilization run
+  TFCAFFKEY.spares[1]=0;//(18) if =1 -> ignore most of the cuts for calib.run(useful when starting from scratch)
+  TFCAFFKEY.spares[2]=0;//(19)spare integers
+  TFCAFFKEY.spares[3]=0;//(20)spare integers
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
   TFCAFFKEY.plhec[0]=0.5;//(22)plow-cut for earth calibration
   TFCAFFKEY.plhec[1]=15.;//(23)phigh-cut ...................

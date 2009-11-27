@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.18 2009/06/26 12:00:44 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.19 2009/11/27 11:42:03 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -40,6 +40,7 @@ private:
   static number ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for each ref_bar/bin/event
   static integer nevenb2[TOF2GC::SCBTBN];// s2 events accum. per ref_bar/bin for ambin
   static number amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for each channel/event
+  static geant SideMPA[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];// side MP-signals ADCch(PM-equilization procedure)
   static integer nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel for amchan
   static geant gains[TOF2GC::SCCHMX];//trunc. mean ch.signals ("0" impact) relat. to ref.ones
   static geant btamp[2][TOF2GC::SCBTBN];// MostProb bar-signals for each side/bin(ref.bars) 

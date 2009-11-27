@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.70 2009/11/15 11:46:57 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.71 2009/11/27 11:41:55 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2111,7 +2111,7 @@ void TOF2JobStat::printstat(){
   }
   printf("\n\n");
 //
-  if(TFREFFKEY.reprtf[4]==0)return;//"More prints" flag is off
+  if(TFREFFKEY.reprtf[0]<2)return;//"More stat-prints" flag is off
 //
 //----------------------------------------------------------
 //
