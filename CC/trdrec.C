@@ -116,10 +116,17 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
           AMSgvolume * pv=AMSJob::gethead()->getgeomvolume(idg.crgid());
           if(pv){
            AMSPoint coo(pv->getcooA(0),pv->getcooA(1),pv->getcooA(2));
-           if(AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()<1213469291){
-            coo[0]+=0.03;
-            coo[1]+=-0.09;
-            coo[2]+=-0.003;
+           if(AMSJob::gethead()->isRealData()){
+            if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+             coo[0]+=0.03;
+             coo[1]+=-0.09;
+             coo[2]+=-0.003;
+            }
+            else{
+             coo[0]+=-0.03;
+             coo[1]+=-0.11;
+             coo[2]+=0.05;
+            }
            }
            number rad=pv->getpar(1);
            number z=pv->getpar(2);
