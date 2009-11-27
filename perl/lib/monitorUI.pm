@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.55 2009/02/23 16:10:46 ams Exp $
+#  $Id: monitorUI.pm,v 1.56 2009/11/27 14:43:02 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -339,6 +339,7 @@ my @item_factory_entries = (
 	["/File/Dele_te Failed DST",	"<alt>T",	12],
 	["/File/Delete _Validated DST",	"<alt>V",	13],
 	["/File/F_inish Failed Runs",	"<alt>I",	14],
+	["/File/U_pdate AFS Token",	"<alt>P",	15],
 	["/File/sep1",	undef,	0,	"<Separator>"],
 	{
 		'path' => "/File/_Quit", 
@@ -1164,6 +1165,8 @@ sub item_factory_cb {
              $Monitor::Singleton->DeleteValidatedDst();
          }elsif($action==14){
              $Monitor::Singleton->FinishFailedRuns();
+         }elsif($action==15){
+             system("/var/www/cgi-bin/mon/kread.py");
          }
     }
 
