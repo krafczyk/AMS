@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.77 2009/11/27 11:41:55 choumilo Exp $
+//  $Id: trigger102.C,v 1.78 2009/11/28 08:28:52 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1682,7 +1682,7 @@ int cid=(len>>16)+1;
   if(!dataf){
     TGL1JobStat::daqs1(24);//<=== count lvl1's notData segments
     if(err3++<1000)cerr<<" <---- TriggerLVL1::buildraw-E- Not data block !"<<endl;
-    goto BadExit;
+    //goto BadExit;
   }
 //
   if(crcer)TGL1JobStat::daqs1(25);
@@ -2030,7 +2030,7 @@ int cid=(len>>16)+1;
     TGL1JobStat::daqs1(10);//wrong segment length
     if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::buildraw: length error, LengInCall="
                                               <<jleng<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
-    goto BadExit;
+    //goto BadExit;
   }
 //================================> TrigSetup block decoding(RawFmt- every event,CompFmt- beg.of.run):
 //  CP/CT/BZ-inp-masks are not stored in Lvl1TrigConfig-object for the moment, so the related 
@@ -2553,7 +2553,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   }
 //
   if(!dataf){
-    goto BadExit;//not data
+    //goto BadExit;//not data
   }
 //
 //

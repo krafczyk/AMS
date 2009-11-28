@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.198 2009/11/27 14:06:23 choutko Exp $
+//  $Id: root.C,v 1.199 2009/11/28 08:28:52 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3077,8 +3077,9 @@ void AMSEventR::Terminate()
 	cout <<"AMSEventR::Terminate-I-WritedFile "<<GetOption()<<endl;
 	//     (*pService)._pOut->Close();
 	cout <<"AMSEventR::Terminate-I-ClosedFile "<<GetOption()<<endl;
+        cout <<"AMSEventR::Terminate-I-WorkingDirWas "<<gSystem->WorkingDirectory()<<endl;
 	if(!(*pService).TotalEv   &&   !(*pService).TotalTrig){
-	    cout <<" AMSEventR::Terminate-E-ProofLiteOutputFileDeleted  "<< (*pService)._pOut->GetName()<<endl;
+       	    cout <<" AMSEventR::Terminate-E-ProofLiteOutputFileDeleted  "<< (*pService)._pOut->GetName()<<endl;
 	  unlink(  (*pService)._pOut->GetName());
 	}    
 	else if(strstr(gSystem->WorkingDirectory(),".proof") &&strstr(gSystem->WorkingDirectory(),"worker-0."  )){
