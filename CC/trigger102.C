@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.78 2009/11/28 08:28:52 choutko Exp $
+*//  $Id: trigger102.C,v 1.79 2009/11/28 09:17:13 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2026,7 +2026,7 @@ int cid=(len>>16)+1;
     lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+1 for stat-word)
   }
 //========>
-  if((lencalc+1)!=len){
+  if((lencalc+1)!=(len&32767)){
     TGL1JobStat::daqs1(10);//wrong segment length
     if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::buildraw: length error, LengInCall="
                                               <<jleng<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
