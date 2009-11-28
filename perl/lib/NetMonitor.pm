@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.20 2009/07/21 21:06:31 ams Exp $
+# $Id: NetMonitor.pm,v 1.21 2009/11/28 11:56:30 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -14,7 +14,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcamsap','pcamsvc','pcamsf9','pcamsf11'], 
+  excluded=>['pcamsap','pcamsvc','pcamsdt0','pcamsf9'], 
   hostsstat=>[],
   bad=>[],
   badsave=>[],
