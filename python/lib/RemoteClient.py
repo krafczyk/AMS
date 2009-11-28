@@ -456,6 +456,14 @@ class RemoteClient:
                  	rused=0
                         if len(sizemb)>0 and sizemb[0][0] != None:
                             rused=sizemb[0][0]
+                        if(path==""):
+                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"
+                        else:
+                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"
+                        sizemb=self.sqlserver.Query(sql)
+                        if len(sizemb)>0 and sizemb[0][0] != None:
+                            rused=rused+sizemb[0][0]
+                        
                         ava=bavail*fac
                         ava1=tot*float(fs[3])/100-rused
                         if (fs[2].find('Reserved')>=0):
