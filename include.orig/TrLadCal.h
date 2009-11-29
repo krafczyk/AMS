@@ -101,7 +101,7 @@ private:
   */
   short int _Status[1024];
   /// Occupancy table
-  short int _Occupancy[1024]; 
+  unsigned short int _Occupancy[1024]; 
   /// Average CN value in CAL
   geant _CNmean[16];
   ///  CN RMS  value in CAL
@@ -112,6 +112,7 @@ private:
   /// Privete getting methods
   geant _getnum( geant *,int ii);
   short int _getnum( short int *,int ii);
+  unsigned short int _getnum( unsigned short int *,int ii);
 
   /// Privete setting methods
   void _setnum( geant *,int ii, geant val);
@@ -139,7 +140,7 @@ public:
   /// Get ii-th status 
   short int Status(int ii) { return _getnum(_Status,ii);}
   /// Get the occupancy table entry ii
-  short int Occupancy(int ii) { return _getnum(_Occupancy,ii);}
+  unsigned short int Occupancy(int ii) { return _getnum(_Occupancy,ii);}
   ///Get CN mean
   geant GetCNmean(int va){ return _CNmean[va];}
   ///Get CN rms
@@ -153,7 +154,7 @@ public:
   /// Get ii-th strip sigma-pedestal ADC value
   geant GetSigmaRaw(int ii)   { return _getnum(_SigmaRaw,ii); }
   /// Get ii-th status 
-  short int GetStatus(int ii) { return _getnum(_Status,ii); }
+  unsigned short int GetStatus(int ii) { return (unsigned short int) _getnum(_Status,ii); }
 
   /// Set ii-th strip pedestal ADC value
   void SetPedestal(int ii,geant val)   { _setnum(_Pedestal,ii,val);}
@@ -214,7 +215,7 @@ public:
     else return (1024*5+12+32);
   }
   
-    ClassDef(TrLadCal,3);
+    ClassDef(TrLadCal,4);
   
 };
 

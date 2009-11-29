@@ -46,6 +46,11 @@ short int TrLadCal::_getnum(short int * pp, int ii){
   return pp[ii];
 }
 
+unsigned short int TrLadCal::_getnum(unsigned short int * pp, int ii){
+  // if (!_filled||ii<0||ii>1023) return -9999;
+  return pp[ii];
+}
+
 
 void TrLadCal::_setnum(geant * pp, int ii,geant val){
   if (!_filled||ii<0||ii>1023) return;
@@ -194,7 +199,7 @@ void TrLadCal::PrintInfo(int long_format){
     for (int ii=0;ii<1024;ii++)
       // printf(" %4d %7.3f  %7.3f %7.3f  %4d \n",
       //             ii,Pedestal(ii),SigmaRaw(ii),Sigma(ii),Status(ii));
-      printf(" %4d %7.3f  %7.3f %7.3f  %4d  %1d %1d %1d %1d %1d %1d %1d %1d \n",
+      printf(" %4d %7.3f  %7.3f %7.3f  %4hd  %1d %1d %1d %1d %1d %1d %1d %1d \n",
              ii,GetPedestal(ii),GetSigmaRaw(ii),GetSigma(ii),Occupancy(ii),
              GetStatus(ii)&1,GetStatus(ii)>>1&1,GetStatus(ii)>>2&1,GetStatus(ii)>>3&1,
              GetStatus(ii)>>4&1,GetStatus(ii)>>5&1,GetStatus(ii)>>6&1,GetStatus(ii)>>7&1);
@@ -331,7 +336,7 @@ int  TrLadCal::Cal2Lin(float* offset){
   offset[6]= K_lowthres;
   offset[7]= K_highthres;
   offset[8]= sigrawthres;
-  offset[9]= (float)  calstatus;
+  offset[9]=  (float)  calstatus;
   offset[10]= (float) Power_failureS;
   offset[11]= (float) Power_failureK;
 
@@ -340,8 +345,10 @@ int  TrLadCal::Cal2Lin(float* offset){
     off2[ii]          = _Pedestal[ii];
     off2[ii+  1024]   = _Sigma[ii];
     off2[ii+2*1024]   = _SigmaRaw[ii];
-    off2[ii+3*1024]   = (float)_Status[ii];
-    off2[ii+4*1024]   = (float)_Occupancy[ii];
+    int aa=_Status[ii];
+    off2[ii+3*1024]   = (float)aa;
+    int bb=_Occupancy[ii];
+    off2[ii+4*1024]   = (float)bb;
   }
   float* off3=&(off2[4*1024+1]);
   for (int ii=0;ii<16;ii++){
@@ -377,7 +384,8 @@ int  TrLadCal::Lin2Cal(float* offset){
       _Pedestal[ii] =       off2[ii];
       _Sigma[ii]    =       off2[ii+  1024];
       _SigmaRaw[ii] =       off2[ii+2*1024];
-      _Status[ii]   = (int) off2[ii+3*1024];
+      int aa=(int)off2[ii+3*1024];
+      _Status[ii]   = aa; 
     }
   }else{
     HwId           = (int)offset[0];
@@ -398,8 +406,10 @@ int  TrLadCal::Lin2Cal(float* offset){
       _Pedestal[ii] =       off2[ii];
       _Sigma[ii]    =       off2[ii+  1024];
       _SigmaRaw[ii] =       off2[ii+2*1024];
-      _Status[ii]   = (int) off2[ii+3*1024];
-      _Occupancy[ii]= (int) off2[ii+4*1024];
+      int aa=(int)off2[ii+3*1024];
+      _Status[ii]   = aa;
+      int bb=(int) off2[ii+4*1024];
+      _Occupancy[ii]= bb;
     }
     float* off3=&(off2[4*1024+1]);
     for (int ii=0;ii<16;ii++){
