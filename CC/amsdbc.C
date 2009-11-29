@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.54 2008/11/03 14:10:39 pzuccon Exp $
+//  $Id: amsdbc.C,v 1.55 2009/11/29 16:16:56 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -40,6 +40,10 @@ const uinteger AMSDBc::LOWGCHUSED   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::S_AMBIG      =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::GOLDEN       =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::TOFFORGAMMA  =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U;
+//alas have to duplicate for LVL1(all bits are occupied):
+const uinteger AMSDBc::TGL1NONDATA=AMSDBc::BADHIS;
+const uinteger AMSDBc::TGL1ASSERR=AMSDBc::ONESIDE;
+const uinteger AMSDBc::TGL1SIDERR=AMSDBc::BADTIME;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

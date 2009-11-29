@@ -1589,7 +1589,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
         ($rtype,$n1,$n2,$n3,$conf)=unpack("A3 A2 A2 A3 A*",$type);#unpack type
 	if(substr($type,0)=~/L1/){$detin[0]=1;}
 	if(substr($type,0)=~/E2/){$detin[1]=1;}
-	if(substr($type,0)=~/R4/){$detin[2]=1;}
+	if(substr($type,0)=~/R2/){$detin[2]=1;}
 	if(substr($type,0)=~/S4/){$detin[3]=1;}
 	if(substr($type,0)=~/U2/){$detin[4]=1;}
 	if(substr($type,0)=~/T8/){$detin[5]=1;}
@@ -2590,7 +2590,7 @@ sub JobOutpControl
 #--- logfile lbx
   $logf_lbx=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
                                                             -relief => "sunken",
-							    -font => $ListbWFontb,
+							    -font => $ListbWFont,
 							    -background=>LightBlue,
                                                             -selectbackground => "yellow",
 							    -selectforeground => "red"
@@ -7216,7 +7216,7 @@ sub ConfirmPars{
       }
     }
     if($nr>0){
-      $SubDetMsk=$r;#needed subdets bit-patt: (msb T8/U2/S4/R4/E2/L1 lsb)
+      $SubDetMsk=$r;#needed subdets bit-patt: (msb T8/U2/S4/R2/E2/L1 lsb)
     }
     else{
       show_warn("\n   <--- Needed SubDetectors pattern is not defined, do selection !!!");

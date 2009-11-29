@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.43 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: amsdbc.h,v 1.44 2009/11/29 16:17:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -79,6 +79,10 @@ public:
   static const uinteger S_AMBIG;
   static const uinteger GOLDEN;
   static const uinteger TOFFORGAMMA;
+//
+  static const uinteger TGL1NONDATA;
+  static const uinteger TGL1ASSERR;
+  static const uinteger TGL1SIDERR;
   // machine dependent values
 
   static integer BigEndian;

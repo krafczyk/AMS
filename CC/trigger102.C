@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.80 2009/11/28 09:19:29 choutko Exp $
+//  $Id: trigger102.C,v 1.81 2009/11/29 16:16:56 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1246,7 +1246,7 @@ if((TGL1FFKEY.printfl%10)>0){
   printf("    ============ LVL1-PreDecoding statistics =============\n");
   printf("\n");
   printf(" LVL1-segment entries                : % 8d\n",daqc1[40]);
-  if(daqc1[0]>0){
+  if(daqc1[40]>0){
     printf(" LVL1-segments non empty             : % 8d\n",daqc1[41]);
     printf(" ............. from A-side           : % 8d\n",daqc1[42]);
     printf(" ............. from B-side           : % 8d\n",daqc1[43]);
@@ -1274,7 +1274,7 @@ if((TGL1FFKEY.printfl%10)>0){
   printf("    ============ LVL1-Decoding statistics =============\n");
   printf("\n");
   printf(" LVL1-segment entries                : % 8d\n",daqc1[0]);
-  if(daqc1[40]>0){
+  if(daqc1[0]>0){
     printf(" LVL1-segments non empty             : % 8d\n",daqc1[1]);
     printf(" ............. from A-side           : % 8d\n",daqc1[2]);
     printf(" ............. from B-side           : % 8d\n",daqc1[3]);
@@ -1302,7 +1302,8 @@ if((TGL1FFKEY.printfl%10)>0){
     printf(" Events with TOF-rates/LiveTime OK   : % 8d\n",daqc1[37]);
     printf(" Events with TOF&ECAL-FT(in JmembPat): % 8d\n",daqc1[38]);
     printf(" Created LVL1-objects                : % 8d\n",daqc1[14]);
-    printf(" LVL1data Errors(no LVL1-obj created): % 8d\n",daqc1[15]);
+    printf(" LVL1data NonFatalErrors(obj created): % 8d\n",daqc1[17]);
+    printf(" Missing MembPatts(no obj created)   : % 8d\n",daqc1[15]);
   }
 //
   printf("\n");
@@ -1664,13 +1665,16 @@ int cid=(len>>16)+1;
   if(jleng>1)TGL1JobStat::daqs1(1);//<=== count non-empty fragments
   else goto BadExit;
 //
+  bool siderr(false);
   if(csid>0 && csid<=4){
     if(csid==3)csid=1;//tempor
     else if(csid==4)csid=2;
     TGL1JobStat::daqs1(2+csid-1);//sides sharing
   }
   else{
-    goto BadExit;//unknown side
+    siderr=true;
+    csid=1;
+//    goto BadExit;//unknown side(ignore here, status bit will be set at lvl1-obj creation)
   }
 //
   TGL1JobStat::daqs1(20+datyp);//<=== count lvl1's format-types
@@ -1681,8 +1685,8 @@ int cid=(len>>16)+1;
 //
   if(!dataf){
     TGL1JobStat::daqs1(24);//<=== count lvl1's notData segments
-    if(err3++<1000)cerr<<" <---- TriggerLVL1::buildraw-E- Not data block !"<<endl;
-    //goto BadExit;
+    if(err3++<100)cerr<<" <---- TriggerLVL1::buildraw-E- Not data block !"<<endl;
+    //goto BadExit;//not remove here: set later bit in lvl1-status word(event may be still ok ???)
   }
 //
   if(crcer)TGL1JobStat::daqs1(25);
@@ -1702,8 +1706,8 @@ int cid=(len>>16)+1;
 						               && cdpnod);
   if(noerr)TGL1JobStat::daqs1(4);//<=== count no_ass_errors JLV1-fragments for given DATA-type     
   else{
-    if(err4++<1000)cerr<<" <---- TriggerLVL1::buildraw-E- Not data block !"<<endl;
-    goto BadExit;//other errors
+    if(err4++<1000)cerr<<" <---- TriggerLVL1::buildraw-E- Assembly-errors block !"<<endl;
+//    goto BadExit;//other errors(status bit will be set at lvl1-obj creation)
   }
 //
   if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
@@ -2026,7 +2030,7 @@ int cid=(len>>16)+1;
     lencalc+=nrdow3+1;//add Scalers-blocks length in CompFmt(+1 for stat-word)
   }
 //========>
-  if((lencalc+1)!=(len&32767)){
+  if((lencalc+1)!=jleng){
     TGL1JobStat::daqs1(10);//wrong segment length
     if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::buildraw: length error, LengInCall="
                                               <<jleng<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
@@ -2428,6 +2432,11 @@ int cid=(len>>16)+1;
     new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,TofFlag1,TofFlag2,tofpat1,tofpat2,
                                 AntiPatt,EcalFlag,ecpat,ectrs,LiveTime[0],TrigRates,trtime));
     TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    
+    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    if(!dataf)ptr->setstatus(AMSDBc::TGL1NONDATA);
+    if(!noerr)ptr->setstatus(AMSDBc::TGL1ASSERR);
+    if(siderr)ptr->setstatus(AMSDBc::TGL1SIDERR);
+    if(!dataf || !noerr || siderr)TGL1JobStat::daqs1(17);
   }
   else{
     TGL1JobStat::daqs1(15);//count errored entries    
@@ -2544,7 +2553,8 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     TGL1JobStat::daqs1(42+csid-1);//sides sharing
   }
   else{
-    goto BadExit;//unknown side
+    csid=1;
+//    goto BadExit;//unknown side(ignore here, status-bit will be set in buildraw)
   }
 //
   TGL1JobStat::daqs1(44+datyp);//<=== count lvl1's format-types
@@ -2552,9 +2562,9 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     goto BadExit;//unknown format
   }
 //
-  if(!dataf){
-    //goto BadExit;//not data
-  }
+//  if(!dataf){// do not check here: check later in buildraw and set status "bad" if !dataf
+//    goto BadExit;//not data
+//  }
 //
 //
   noerr=(!crcer 
@@ -2567,7 +2577,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
   if(noerr){
     TGL1JobStat::daqs1(48);//<=== count no-errors fragments
   }
-  else goto BadExit;
+//  else goto BadExit;//ignore here,status bit will be set at lvl1-obj creation time !!!)
 //
   if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
     || (jleng==52 && datyp==1))//MC/newRD(in RawFmt with datyp=1)
