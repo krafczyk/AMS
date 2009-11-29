@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.187 2009/11/25 12:32:14 pzuccon Exp $
+//  $Id: particle.C,v 1.188 2009/11/29 12:48:25 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -702,7 +702,7 @@ void AMSParticle::richfit(){
 	number b1=1./_prich->getbeta();
 	number b2=_prich->geterrorbeta()*b1*b1;
 	b2=b2*b2;
-	if(fabs(b1-_beta)<4*sqrt(b2+_ebeta) || _beta<RICHDB::rad_index){
+	if(fabs(b1-_beta)<3*sqrt(b2+_ebeta) || _beta<RICHDB::rad_index){
 	  _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
 	  _ebeta=1./(1/_ebeta+1/b2);
 	  _Beta=1/_beta;
@@ -711,6 +711,14 @@ void AMSParticle::richfit(){
 	}
 	else{
 	  cerr<<"RICH & TOF Disagree TOF Says velocity is "<<1/_beta<<" RICH "<<1/b1<<endl;
+          _beta=b1;
+	  _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
+	  _ebeta=1./(1/_ebeta+1/b2);
+	  _Beta=1/_beta;
+	  _ErrBeta=sqrt(_ebeta)/_Beta/_Beta;
+	  _calcmass(_Momentum,_ErrMomentum,_Beta,_ErrBeta,_Mass,_ErrMass);
+
+
 	}
       }
       int i;

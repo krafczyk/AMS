@@ -583,10 +583,14 @@ out:
     for(  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
       for(int i=0;i<ptr->_Base._NHits;i++){
         int proj=ptr->_Base._PCluster[i]->getCooDir()[0]>0.9?0:1;
+        if(ptr->_Real._FitDone){
         AMSDir dir(ptr->_Real._Theta,ptr->_Real._Phi);
-//        cout <<  proj<< "  "<<ptr->_Base._PCluster[i]->getCoo()[0]<<" "<<ptr->_Base._PCluster[i]->getCoo()[1]<<" ";
         ptr->_Base._PCluster[i]->getCoo()[proj]=ptr->_Real._Coo[proj]+dir[proj]/dir[2]*(ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_Real._Coo[2]);
-//        cout <<ptr->_Base._PCluster[i]->getCoo()[proj]<<endl;
+      }
+      else{
+        AMSDir dir(ptr->_StrLine._Theta,ptr->_StrLine._Phi);
+        ptr->_Base._PCluster[i]->getCoo()[proj]=ptr->_StrLine._Coo[proj]+dir[proj]/dir[2]*(ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_StrLine._Coo[2]);
+      }
       }
     }
 }
@@ -970,8 +974,6 @@ void AMSTRDTrack::RealFit(){
  
 #else
   TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
-  
-  _Real._FitDone=true;
   _Real._Chi2=out[6];
   if(out[7] != 0)_Real._Chi2=FLT_MAX;
   else{

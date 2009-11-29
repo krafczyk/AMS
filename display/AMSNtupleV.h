@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.27 2009/08/20 11:46:45 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.28 2009/11/29 12:48:26 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -16,7 +16,7 @@
 #include "TPaveLabel.h"
 #include "AMSDisplay.h"
 #include "TMarker3DCl.h"
-
+#include "../include/point.h"
 class AMSDrawI{
 public:
   int fRef;   ///<  Reference to corr in element in stlvector
@@ -355,8 +355,16 @@ public:
       float array[3*npoint];
       int old=0;
       if(pcl->TRDCoo[1][2]>90 && pcl->TRDCoo[1][2]<150)old=1; 
+//      cout <<pcl->TRDCoo[0][2]<<" "<<pcl->TRDCoo[1][2]<<" "<<endl;
       for(int k=0;k<3;k++)array[k]=pcl->TRDCoo[old][k];
       for(int k=0;k<3;k++)array[3+k]=pcl->TRDCoo[0][k];
+      if(pcl->pTrdTrack()){
+        for(int k=0;k<3;k++)array[3+k]+=pcl->pTrdTrack()->Coo[k];
+        for(int k=0;k<3;k++)array[3+k]/=2;
+        AMSDir dir(pcl->pTrdTrack()->Theta,pcl->pTrdTrack()->Phi);
+        for(int k=0;k<3;k++)array[k]+=pcl->pTrdTrack()->Coo[k]+dir[k]/dir[2]*(pcl->TRDCoo[1][2]-pcl->pTrdTrack()->Coo[2]);
+        for(int k=0;k<3;k++)array[k]/=2;
+      }
       for(int k=0;k<3;k++)array[3+3+k]=pcl->TOFCoo[0][k];
       for(int k=0;k<3;k++)array[3+3*2+k]=pcl->TOFCoo[1][k];
       for(int i=0;i<8;i++){

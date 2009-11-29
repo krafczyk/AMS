@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.30 2009/11/17 17:15:45 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.31 2009/11/29 12:48:26 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.31  2009/11/29 12:48:26  choutko
+* *** empty log message ***
+*
 * Revision 1.30  2009/11/17 17:15:45  choutko
 * *** empty log message ***
 *
@@ -179,7 +182,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.30 2009/11/17 17:15:45 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.31 2009/11/29 12:48:26 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4816,12 +4819,12 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
               enddo
              enddo
             enddo
-           if(icase/10.ne.0.or.magstat.le.0)then
+           if(icase/10.ne.0.or.magstat.le.0.or.abs(point(3)).gt.80)then
             do i=1,4
              gg(i,5)=0
              gg(5,i)=0
             enddo
-            if(magstat.le.0)then
+            if(magstat.le.0.or.abs(point(3)).gt.80)then
               gg(5,5)=0.000001
             endif
            endif
@@ -7790,9 +7793,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.30 2009/11/17 17:15:45 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.31 2009/11/29 12:48:26 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.31  2009/11/29 12:48:26  choutko
+* *** empty log message ***
+*
 * Revision 1.30  2009/11/17 17:15:45  choutko
 * *** empty log message ***
 *
