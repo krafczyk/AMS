@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.3 2009/11/23 21:27:31 shaino Exp $
+// $Id: gltdisp.cpp,v 1.4 2009/11/29 12:17:12 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -443,6 +443,32 @@ void GLTDisp::drawTracks(GLenum mode)
       }
       else if (mode == GL_SELECT) glLoadName(sid);
       glPLines(2, x, y, z);
+    }
+    else {
+      enum { NPL = 20 };
+      double   zpl [NPL+1];
+      AMSPoint pint[NPL+1];
+      for (int j = 0; j <= NPL; j++) zpl[j] = -70.+140.*j/NPL;
+
+      TrProp trp(trk->GetP0(), trk->GetDir(), trk->GetRigidity());
+      trp.Interpolate(NPL+1, zpl, pint);
+
+      double xp[NPL+1], yp[NPL+1], zp[NPL+1];
+      for (int j = 0; j <= NPL; j++) {
+	xp[j] = pint[j].x();
+	yp[j] = pint[j].y();
+	zp[j] = pint[j].z();
+      }
+
+      int sid = i+SID_OFFS_TRACK;
+
+      if (mode == GL_RENDER) {
+	glLineWidth(2);
+	if (idSel == sid) glMatCol(csel);
+	else              glMatCol(ctrk);
+      }
+      else if (mode == GL_SELECT) glLoadName(sid);
+      glPLines(NPL+1, xp, yp, zp);
     }
   }
 }
