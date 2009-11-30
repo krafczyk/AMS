@@ -95,7 +95,7 @@ void AMSEvent::_retkevent(integer refit){
     //PZDEBUG AMSgObj::BookTimer.print("TrCluster");
 
   
-    if(TRCLFFKEY.recflag>10 && retr>=0){
+    if(TRCLFFKEY.recflag>10 && retr>=0&& AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()<TrRecon::MaxNtrCls ){
       AMSgObj::BookTimer.start("TrRecHit");
       int retr2=rec->BuildTrRecHits();
       AMSgObj::BookTimer.stop("TrRecHit");
@@ -104,7 +104,7 @@ void AMSEvent::_retkevent(integer refit){
       
       
       
-      if(TRCLFFKEY.recflag>110 && retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<150 ){
+      if(TRCLFFKEY.recflag>110 && retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<TrRecon::MaxNtrHit ){
 	AMSgObj::BookTimer.start("TrTrack");
 	int retr3=rec->BuildTrTracks();
 	AMSgObj::BookTimer.stop("TrTrack");

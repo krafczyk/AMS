@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.21 2009/11/25 12:40:49 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.22 2009/11/30 09:24:01 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/11/25 12:40:49 $
+/// $Date: 2009/11/30 09:24:01 $
 ///
-/// $Revision: 1.21 $
+/// $Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1697,10 +1697,13 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     track->Settrdefaultfit(TrTrackR::kLinear);
 
   else {  // AdvancedFit should be done only with B field
-    if(track->DoAdvancedFit())
-      printf(" Track Advanced Fits Done!\n");
-    else
-      printf(" Problems with Track Advanced Fits!\n");
+    if(track->DoAdvancedFit()) {
+      if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
+    } else {
+      if (TrDEBUG >= 1) 
+	printf(" Problems with Track Advanced Fits: %d %d\n",
+	       track->GetNhits(), track->GetNhitsXY());
+    }
   }  
 
 
