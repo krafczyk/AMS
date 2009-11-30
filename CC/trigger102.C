@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.82 2009/11/29 19:17:59 choutko Exp $
+//  $Id: trigger102.C,v 1.83 2009/11/30 09:26:24 shaino Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1662,10 +1662,11 @@ int cid=(len>>16)+1;
     if((TGL1FFKEY.printfl/10)>=4)EventBitDump(jleng,p,"Dump Event-by-Event:");//debug
     
   }
+  bool siderr(false);
+
   if(jleng>1)TGL1JobStat::daqs1(1);//<=== count non-empty fragments
   else goto BadExit;
 //
-  bool siderr(false);
   if(csid>0 && csid<=4){
     if(csid==3)csid=1;//tempor
     else if(csid==4)csid=2;
