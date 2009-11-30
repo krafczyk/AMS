@@ -93,12 +93,17 @@ AMSEventR* AMSChain::GetEvent(){
   return _EVENT;
 };
 
+
 AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
   Rewind();//Go to start of chain
   // Get events in turn
   while  (GetEvent() &&
-	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ) ;
-         
+	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ){
+      if(gSystem->ProcessEvents()){
+//          cout <<"InteruptReceived"<<endl;
+//          return -1;
+      }
+}         
   return _EVENT; 
 };
 
