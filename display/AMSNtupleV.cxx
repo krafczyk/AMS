@@ -1,8 +1,8 @@
-//  $Id: AMSNtupleV.cxx,v 1.27 2009/08/20 11:46:45 pzuccon Exp $
+//  $Id: AMSNtupleV.cxx,v 1.28 2009/11/30 09:27:13 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
-
+#include "amschain.h"
 ClassImp(AMSNtupleV)       
 void* gAMSUserFunction;
 
@@ -504,14 +504,16 @@ for(int i=0;i<fDaqV.size();i++){
 }
 
 
-// bool AMSNtupleV::GetEvent(unsigned int run, unsigned int event){
-// int entry=0;
-// if(Run()==run && Event() <event)entry=fCurrentEntry;
-// while(ReadOneEvent(entry++)!=-1){
-//  if(Run() == run && Event()>=event)return true;
-// }
-// return false;
-// }
+ bool AMSNtupleV::GetEvent(unsigned int run, unsigned int event){
+ int entry=0;
+ if(Run()==run && Event() <event){
+   gAMSDisplay->getchain()->Rewind();
+ }
+ while(gAMSDisplay->getchain()->ReadOneEvent(entry++)!=-1){
+  if(Run() == run && Event()>=event)return true;
+ }
+ return false;
+ }
 
 
 #include "TRotation.h"

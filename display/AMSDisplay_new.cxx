@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.9 2009/11/16 09:36:39 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.10 2009/11/30 09:27:12 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -627,7 +627,7 @@ Bool_t AMSDisplay::GotoRunEvent(){
    }
    if (run==0) run = m_ntuple->Run();
    bool retn=false;
-   if (m_chain->GetEvent(run, event)) {
+   if (m_ntuple->GetEvent(run, event)) {
       m_Pad->cd();
       Draw();
       retn=true;

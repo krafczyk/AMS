@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.24 2009/11/13 09:47:27 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.25 2009/11/30 09:27:12 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -101,6 +101,7 @@ private:
 
       
 public:
+  AMSChain * getchain(){return m_chain;}
   int Focus() const {return m_selected;}
   bool & DrawRichRingsFromPlex(){return m_drawrichringfromplex;}
   bool DrawGeometry()const {return d_geometry;}

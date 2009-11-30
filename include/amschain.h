@@ -67,7 +67,7 @@ public:
 
   ///Get AMSEventR with run number "run" and event number "ev"
   AMSEventR* GetEvent(Int_t run, Int_t ev); 
-
+//  bool   getevent(unsigned int run, unsigned int event);
 
   ///Rewind the chain (go back before first entry)
   void Rewind() {_ENTRY=-1;_TREENUMBER=-1;}; 

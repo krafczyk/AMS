@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.28 2009/11/29 12:48:26 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.29 2009/11/30 09:27:13 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -601,6 +601,7 @@ public:
   AMSNtupleV():AMSEventR(){};
   void Draw(EAMSType type=kall);
   void Prepare(EAMSType type=kall);
+bool GetEvent(unsigned int run, unsigned int event);
 
   char * GetObjInfo(int px,int py);
   ClassDef(AMSNtupleV,1)           // Ntuple Drawable
