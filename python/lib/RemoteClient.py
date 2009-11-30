@@ -2643,10 +2643,10 @@ class RemoteClient:
             if(donly==0):
                 self.sqlserver.Update(sql)
             sql="delete from   (select jobs.* from dataruns,jobs  where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%'  %s %s )" %(dataset,runst,rund) 
-            self.sqlserver.Update(sql)
-            sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(datapath,runn)
             if(donly==0):
                 self.sqlserver.Update(sql)
+            sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(datapath,runn)
+            self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:
                     cmd="rm "+file[0]
