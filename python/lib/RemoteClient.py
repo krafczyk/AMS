@@ -2600,7 +2600,7 @@ class RemoteClient:
             </table>
             </HR>
             """
-    def DeleteDataSet(self,run2p,dataset,u,v,f):
+    def DeleteDataSet(self,run2p,dataset,u,v,f,donly):
         self.update=u
         self.verbose=v
         self.run2p=run2p
@@ -2639,8 +2639,9 @@ class RemoteClient:
             sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s.job' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
             self.sqlserver.Update(sql)
             sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(dataset,runst,rund)
-            self.sqlserver.Update(sql)
-            sql="delete from   (select jobs.* from jobs where jobs.jobname like '%%%s%%'  %s %s )" %(dataset,runst,rund) 
+            if(donly==0):
+                self.sqlserver.Update(sql)
+            sql="delete from   (select jobs.* from dataruns,jobs  where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%'  %s %s )" %(dataset,runst,rund) 
             self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(datapath,runn)
             self.sqlserver.Update(sql)
