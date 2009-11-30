@@ -42,10 +42,10 @@ void TRCLFFKEY_DEF::init(){
   GGintegral = 91765.;
   ThrProb    = 0;//0.00001;
   MaxNrawCls = 200;
-  MaxNtrCls  = 100;
-  MaxNtrHit  =  50;
+  MaxNtrCls  = 200;
+  MaxNtrHit  = 150;
   //Track
-  MaxNtrack = 2;
+  MaxNtrack = 4;
   MinNhitX  = 4;
   MinNhitY  = 5;
   MinNhitXY = 4;

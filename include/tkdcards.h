@@ -160,44 +160,45 @@ public:
   
   //! R [8 - 13] hit signal correlation (only muons/protons)
   geant GGpars[6]  ;//! {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
+  //! R 14 hit signal correlation (only muons/protons)
   geant GGintegral ;//! 91765.;
-  //! R 14 Threshold on the S/K Correlation probability
+  //! R 15 Threshold on the S/K Correlation probability
   geant ThrProb    ;//! 0.00001;
   // HIT PARS
-  // PZ FIXME DOCUMENTATION
-  //! I 15 MaxNrawCls
-  int MaxNrawCls ;
-  //! I 16 MaxNrawCls
-  int MaxNtrCls  ;
-  //! I 17 MaxNtrHit
-  int MaxNtrHit  ;
+  //PRE-SELECTION PARS
+  //! I 16 MaxNrawCls (Not used)
+  int MaxNrawCls ;// 200
+  //! I 17 MaxNtrCls
+  int MaxNtrCls  ;// 200
+  //! I 18 MaxNtrHit
+  int MaxNtrHit  ;// 150
   //TRACK PARS
-  //! I 18 MaxNtrack
-  int    MaxNtrack ;
-  //! I 19 MinNhitX
-  int    MinNhitX  ;
-  //! I 20 MinNhitY
-  int    MinNhitY  ;
-  //! I 21 MinNhitXY
-  int    MinNhitXY ;
-  //! I 22 PatAllowOption
-  int    PatAllowOption ;
-  //! R 23 MaxChisqAllowed
-  float MaxChisqAllowed   ;
-  //! R 24  LadderScanRange
-  float LadderScanRange   ; //= TkDBc::Head->_ladder_Ypitch
-  //! R 25 ClusterScanRange
-  float ClusterScanRange  ;
-  //! R 26 MaxChisqForLScan
-  float MaxChisqForLScan  ;
-  //! R 27 ErrXForScan
-  float ErrXForScan       ;
-  //! R 28 ErrYForScan
-  float ErrYForScan       ;
+  //! I 19 MaxNtrack 
+  int    MaxNtrack ;//4
+  //! I 20 MinNhitX
+  int    MinNhitX  ;//4
+  //! I 21 MinNhitY
+  int    MinNhitY  ;//5
+  //! I 22 MinNhitXY
+  int    MinNhitXY ;//4
+  //! I 23 PatAllowOption
+  int    PatAllowOption ;//0
+  //! R 24 MaxChisqAllowed
+  float MaxChisqAllowed   ;//300
+  //! R 25  LadderScanRange
+  float LadderScanRange   ;//7.3 = TkDBc::Head->_ladder_Ypitch
+  //! R 26 ClusterScanRange
+  float ClusterScanRange  ;//0.5
+  //! R 27 MaxChisqForLScan
+  float MaxChisqForLScan  ;//2.2
+  //! R 28 ErrXForScan
+  float ErrXForScan       ;//300e-4
+  //! R 29 ErrYForScan
+  float ErrYForScan       ;//300e-4
   //DEBUG
-  //! I 29 TrDEBUG
+  //! I 30 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 30 PZDEBUG
+  //! I 31 PZDEBUG
   int PZDEBUG ;
   void init();
 
