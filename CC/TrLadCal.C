@@ -350,7 +350,7 @@ int  TrLadCal::Cal2Lin(float* offset){
     int bb=_Occupancy[ii];
     off2[ii+4*1024]   = (float)bb;
   }
-  float* off3=&(off2[4*1024+1]);
+  float* off3=&(off2[5*1024]);
   for (int ii=0;ii<16;ii++){
     off3[ii]=_CNmean[ii];
     off3[ii+16]=_CNrms[ii];
@@ -411,7 +411,7 @@ int  TrLadCal::Lin2Cal(float* offset){
       int bb=(int) off2[ii+4*1024];
       _Occupancy[ii]= bb;
     }
-    float* off3=&(off2[4*1024+1]);
+    float* off3=&(off2[5*1024]);
     for (int ii=0;ii<16;ii++){
       _CNmean[ii]=off3[ii];
       _CNrms[ii]=off3[ii+16];
