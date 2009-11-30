@@ -552,7 +552,10 @@ FILE_PATTERNS          = root.h \
                          MyAnal.C \
 			 TrElem.h TrRawCluster.h TrCluster.h \
                          TrMCCluster.h TrRecHit.h TrTrack.h \
-                         TrCalDB.h TrLadCal.h Vertex.h
+                         TrCalDB.h TrLadCal.h Vertex.h \
+			 TkPlane.h TkLadder.h TkDBc.h TkCoo.h \
+			 TkSens.h TrFit.h MagField.h \
+			 TrLadPar.h TrParDB.h \
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 

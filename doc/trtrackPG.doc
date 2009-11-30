@@ -1,0 +1,88 @@
+# $Id: trtrackPG.doc,v 1.1 2009/11/30 11:58:42 shaino Exp $
+
+//
+// PGTRACK documentation
+// 
+// for the detail of PGTRACK classes 
+// please generate reference html with: doxygen do.pgtrack.txt
+// or refer:
+// http://ams.pg.infn.it/ams/priv/tkswdevdoc/html/classes.html
+//
+
+// The following is a root macro to get some TrTrack params.
+
+void example(const char *fname)
+{
+  AMSChain ch;
+  if (ch.Add(fname) <= 0) return;
+
+  Int_t nevt = ch.GetEntries();
+
+  for (Int_t ient = 0; ient < nevt; ient++) {
+    AMSEventR *evt = ch.GetEvent(ient);
+
+    // Check Number of tracks
+    if (evt->NTrTrack() != 1) continue;
+
+    // Get TrTrackR pointsr
+    TrTrackR *trk = evt->pTrTrack(0);
+    if (!trk) continue;
+
+    // Check Number of hits with signal at least one side
+    if (trk->GetNhits() < 6) continue;
+
+    // Check Number of hits with signals at both sides (X and Y)
+    if (trk->GetNhitsXY() < 6) continue;
+
+
+    // By default 
+    // Track params by TrTrack::kChoutko fitting is used for B-on  RUN
+    // Track params by TrTrack::kLinear  fitting is used for B-off RUN
+    //
+    // For other details of Fitting methods please see TrTrack.h
+
+    //
+    // Track parameters: chisquare, rigidity, ...
+    //
+    // Get Chisquare of the fitting
+    Double_t chisq = trk->GetChisq();
+
+    // Get rigidity
+    Double_t rgt = trk->GetRigidity();
+
+    // Get fitting error on 1/Rigidity
+    Double_t eri = trk->GetErrRinv();
+
+
+    //
+    // Track positions, directions
+    //
+    // Get the point of passage on the Z=0 XY plane
+    AMSPoint pnt0 = GetP0();
+
+    // Get the direction at the point of passage on the Z=0 XY plane
+    AMSDir dir0 = GetDir();
+
+    // Get track entry point (first layer of the fitting)
+    AMSPoint pnte = GetPentry();
+
+    // Get track entry point direction (first layer of the fitting)
+    AMSDir dire = GetPdir();
+
+
+    //
+    // Interpolations/Extrapolations
+    //
+    // Get interpolated/extrapolated point/direction at Z
+    AMSPoint pnt1;
+    AMSDir   dir1;
+    Double_t zp1 = 60;
+    trk->Interpolate(zp1, pnt1, dir1);
+
+    // Get a vector of interpolated/extrapolated points/directions at Z[]
+    AMSPoint pnts[3];
+    AMSDir   dirs[3];
+    Double_t zps[3] = { 70, 80, 90 };
+    trk->Interpolate(3, zps, pnts, dirs);
+  }
+}
