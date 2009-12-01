@@ -54,6 +54,7 @@ main:
 # Main target
 
 lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o) $(LIBPATH)
+	@echo $(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
 	$(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
 	ar rv $(LIBPATH)libstatic.a $(BINPATH)*.o
 
@@ -124,7 +125,7 @@ $(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h)
 
 CONTRIB = ../contrib/
 
-GENERAL= -m32 -lshared -I../include -I`root-config --incdir` `root-config --libs` -L../lib  `cernlib mathlib` $(FORTRAN)
+GENERAL= -m32 -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
 
 contrib: test alignment manual_alignment tuning
 
@@ -141,3 +142,5 @@ manual_alignment: lib $(EXEPATH) $(CONTRIB)manual_aligment/align.C
 tuning: lib $(EXEPATH) $(CONTRIB)parameter_tuning/analysis.C
 	$(CC) $(GENERAL) -I$(CONTRIB)parameter_tuning $(CONTRIB)parameter_tuning/*.C -o $(EXEPATH)tuning.exe
 
+full_calibration_tool: lib $(CONTRIB)full_calibration_tool/analysis.C
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
