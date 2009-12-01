@@ -4,6 +4,12 @@
 #include "TH1D.h"
 #include "TGraphErrors.h"
 
+// Which part to compute
+#define _RICH_ALIGNMENT_
+#define _MIRROR_ALIGNMENT_
+#define _TILES_INDEX_
+
+
 //ClassImp(Analysis);
 
 using namespace std;
@@ -164,7 +170,7 @@ void Analysis::Loop(){
     }
 
     delete ring;
-
+#ifdef _MIRROR_ALIGNMENT_
     //////////////////////// MIRROR ALIGNMENT ////////////////////////
     RichAlignment::Set(0,0,0,0,0,0);  // Just in case
     RichAlignment::SetMirrorShift(0,0,0);  // Just in case
@@ -208,8 +214,9 @@ void Analysis::Loop(){
       }
       delete ring;
     }
+#endif
 
-
+#ifdef _RICH_ALIGNMENT_
     //////////////////// RICH ALIGNMENT ////////////////////
     RichAlignment::Set(0,0,0,0,0,0);  // Just in case
     RichAlignment::SetMirrorShift(0,0,0);  // Just in case
@@ -251,12 +258,13 @@ void Analysis::Loop(){
       }
       delete ring;
     }
-    
+#endif    
   } // End of event loop
 }
 
 
 TF1 *Fita(TH1D *proyection,double &mean,double &mean_error,double &sigma,double &sigma_error){
+  if(proyection->Integral()<1000) return 0;
       proyection->Fit("pol1","","",0.962,0.99);
       TF1 *f=proyection->GetFunction("pol1");
       if(!f) return 0;
@@ -268,6 +276,10 @@ TF1 *Fita(TH1D *proyection,double &mean,double &mean_error,double &sigma,double 
 	proyection->SetBinError(bin,sqrt(proyection->GetBinContent(bin)));
 	if(proyection->GetBinContent(bin)!=0)
 	  proyection->SetBinContent(bin,proyection->GetBinContent(bin)-a-b*x);
+	if(proyection->GetBinContent(bin)<-3*proyection->GetBinError(bin)){
+	  proyection->SetBinContent(bin,0);
+	  proyection->SetBinError(bin,0);
+	}
       }
       proyection->Fit("gaus","","",0.98,1.02);
       f=proyection->GetFunction("gaus");
@@ -316,7 +328,7 @@ int main(int argc,char **argv){
     tile_sigma_h[i].SetBins(300,-70,70,300,-70,70);
 
     for(int j=0;j<max_tiles;j++){
-      if(pointer[i]->betahit_direct_vs_tile[j].GetEntries()<1000) continue;
+      if(pointer[i]->betahit_direct_vs_tile[j].Integral()<1000) continue;
       if(RichRadiatorTileManager::get_tile_kind(j)!=agl_kind) continue;
       func.SetParameters(0,0,10,1.0,3*2.5e-3);
       pointer[i]->betahit_direct_vs_tile[j].Fit("func","","",0.962,1.01);
@@ -348,6 +360,7 @@ int main(int argc,char **argv){
   }
 
 
+
   //////////////// ALIGNMENT ANALYSIS
   TGraphErrors beta_vs_rich_dx[2];
   TGraphErrors beta_vs_rich_dy[2];
@@ -360,7 +373,8 @@ int main(int argc,char **argv){
 
 
 
-
+#ifdef _RICH_ALIGNMENT_
+  TFile ff("RichAlignment.root","RECREATE");
   for(int i=0;i<2;i++){
 
     TH2F *arrays[3]={&(pointer[i]->betahit_direct_vs_dx),&(pointer[i]->betahit_direct_vs_dy),&(pointer[i]->betahit_direct_vs_dz)};
@@ -382,12 +396,15 @@ int main(int argc,char **argv){
 	mean_graphs[which]->SetPointError(bin-1,0,mean_error);
 	sigma_graphs[which]->SetPoint(bin-1,arrays[which]->GetXaxis()->GetBinCenter(bin),sigma);
 	sigma_graphs[which]->SetPointError(bin-1,0,sigma_error);
-	delete proyection;
+	proyection->SetName(Form("Rich_%i_%i_%i",i,which,bin));
+	proyection->Write();
+	//	delete proyection;
       }
     }
 
   }
-
+  ff.Close();
+#endif
 
 
   //////////////// MIRROR ALIGNMENT ANALYSIS
@@ -399,6 +416,7 @@ int main(int argc,char **argv){
   TGraphErrors sigma_vs_mirror_dy[2];
   TGraphErrors sigma_vs_mirror_dz[2];
 
+#ifdef _MIRROR_ALIGNMENT_
   for(int i=0;i<2;i++){
 
     TH2F *arrays[3]={&(pointer[i]->betahit_reflected_vs_dx),&(pointer[i]->betahit_reflected_vs_dy),&(pointer[i]->betahit_reflected_vs_dz)};
@@ -420,81 +438,14 @@ int main(int argc,char **argv){
 	mean_graphs[which]->SetPointError(bin-1,0,mean_error);
 	sigma_graphs[which]->SetPoint(bin-1,arrays[which]->GetXaxis()->GetBinCenter(bin),sigma);
 	sigma_graphs[which]->SetPointError(bin-1,0,sigma_error);
-	delete proyection;
+	proyection->SetName(Form("Mirror_%i_%i_%i",i,which,bin));
+	proyection->SetDirectory(0);
+	//	delete proyection;
       }
     }
 
   }
-
-
-  if(0) // Do nothing
-  for(int i=0;i<2;i++){
-
-    beta_vs_mirror_dx[i].Set(pointer[i]->betahit_reflected_vs_dx.GetNbinsX());
-    sigma_vs_mirror_dx[i].Set(pointer[i]->betahit_reflected_vs_dx.GetNbinsX());
-    for(int bin=1;bin<=pointer[i]->betahit_reflected_vs_dx.GetNbinsX();bin++){
-      TH1D *proyection=pointer[i]->betahit_reflected_vs_dx.ProjectionY("_py",bin,bin);
-      func.SetParameters(0,0,10,1.0,3*2.5e-3);
-      proyection->Fit("func","","",0.962,1.01);
-      TF1 *f=proyection->GetFunction("func");
-      if(!f) continue;
-      double value=f->GetParameter(3);
-      double error=f->GetParError(3);
-      beta_vs_mirror_dx[i].SetPoint(bin-1,pointer[i]->betahit_reflected_vs_dx.GetXaxis()->GetBinCenter(bin),value);
-      beta_vs_mirror_dx[i].SetPointError(bin-1,pointer[i]->betahit_reflected_vs_dx.GetXaxis()->GetBinWidth(bin)/2,error);
-
-
-      value=f->GetParameter(4);
-      error=f->GetParError(4);
-      sigma_vs_mirror_dx[i].SetPoint(bin-1,pointer[i]->betahit_reflected_vs_dx.GetXaxis()->GetBinCenter(bin),value);
-      sigma_vs_mirror_dx[i].SetPointError(bin-1,pointer[i]->betahit_reflected_vs_dx.GetXaxis()->GetBinWidth(bin)/2,error);
-      delete proyection;
-    }
-
-    beta_vs_mirror_dy[i].Set(pointer[i]->betahit_reflected_vs_dy.GetNbinsX());
-    sigma_vs_mirror_dy[i].Set(pointer[i]->betahit_reflected_vs_dy.GetNbinsX());
-    for(int bin=1;bin<=pointer[i]->betahit_reflected_vs_dy.GetNbinsX();bin++){
-      TH1D *proyection=pointer[i]->betahit_reflected_vs_dy.ProjectionY("_py",bin,bin);
-      func.SetParameters(0,0,10,1.0,3*2.5e-3);
-      proyection->Fit("func","","",0.962,1.01);
-      TF1 *f=proyection->GetFunction("func");
-      if(!f) continue;
-      double value=f->GetParameter(3);
-      double error=f->GetParError(3);
-      beta_vs_mirror_dy[i].SetPoint(bin-1,pointer[i]->betahit_reflected_vs_dy.GetXaxis()->GetBinCenter(bin),value);
-      beta_vs_mirror_dy[i].SetPointError(bin-1,pointer[i]->betahit_reflected_vs_dy.GetXaxis()->GetBinWidth(bin)/2,error);
-      value=f->GetParameter(4);
-      error=f->GetParError(4);
-      sigma_vs_mirror_dy[i].SetPoint(bin-1,pointer[i]->betahit_reflected_vs_dy.GetXaxis()->GetBinCenter(bin),value);
-      sigma_vs_mirror_dy[i].SetPointError(bin-1,pointer[i]->betahit_reflected_vs_dy.GetXaxis()->GetBinWidth(bin)/2,error);
-      delete proyection;
-    }
-
-    beta_vs_mirror_dz[i].Set(pointer[i]->betahit_reflected_vs_dz.GetNbinsX());
-    sigma_vs_mirror_dz[i].Set(pointer[i]->betahit_reflected_vs_dz.GetNbinsX());
-    for(int bin=1;bin<=pointer[i]->betahit_reflected_vs_dz.GetNbinsX();bin++){
-      TH1D *proyection=pointer[i]->betahit_reflected_vs_dz.ProjectionY("_py",bin,bin);
-      func.SetParameters(0,0,10,1.0,3*2.5e-3);
-      proyection->Fit("func","","",0.962,1.01);
-      TF1 *f=proyection->GetFunction("func");
-      if(!f) continue;
-      double value=f->GetParameter(3);
-      double error=f->GetParError(3);
-      beta_vs_mirror_dz[i].SetPoint(bin-1,pointer[i]->betahit_reflected_vs_dz.GetXaxis()->GetBinCenter(bin),value);
-      beta_vs_mirror_dz[i].SetPointError(bin-1,pointer[i]->betahit_reflected_vs_dz.GetXaxis()->GetBinWidth(bin)/2,error);
-      value=f->GetParameter(4);
-      error=f->GetParError(4);
-      sigma_vs_mirror_dz[i].SetPoint(bin-1,pointer[i]->betahit_reflected_vs_dz.GetXaxis()->GetBinCenter(bin),value);
-      sigma_vs_mirror_dz[i].SetPointError(bin-1,pointer[i]->betahit_reflected_vs_dz.GetXaxis()->GetBinWidth(bin)/2,error);
-      delete proyection;
-    }
-
-
-
-  }
-
-  
-
+#endif
 
   // Write
 
@@ -564,7 +515,24 @@ int main(int argc,char **argv){
     sigma_vs_mirror_dz[i].Write("Sigma Mirror alignment Z");
   }
 
-
+  for(int i=0;i<2;i++)
+    for(int which=0;which<3;which++){
+      for(int bin=1;bin<=analysis_bins;bin++){
+	TH1D *pr=(TH1D*)gROOT->FindObjectAny(Form("Rich_%i_%i_%i",i,which,bin));
+	if(pr){
+	  f.cd();
+	  gDirectory->cd(Form("%s/RichAlignment",prefix[i]));
+	  pr->Write(pr->GetName());
+	}
+      
+	pr=(TH1D*)gROOT->FindObjectAny(Form("Mirror_%i_%i_%i",i,which,bin));
+	if(pr){
+	  f.cd();
+	  gDirectory->cd(Form("%s/MirrorAlignment",prefix[i]));
+	  pr->Write(pr->GetName());
+	}
+      }
+    }
 
   f.Close();
 
