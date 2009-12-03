@@ -28,7 +28,7 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 endif
 
-SL4Csystem=1
+SLC4system=1
 RH9=1
 RH9add=
 ifdef RH9
@@ -62,19 +62,25 @@ IDLCPP=orbit-idl-2 -l cpp
 ########################################################################
 # CERN & AMS Libraries
 ########################################################################
-
+ifndef CERN_LEVEL
 CERN_LEVEL = pro
+endif
 CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 CERNDIR = /cern/$(CERN_LEVEL)
+
+ifndef AMSLIB
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
 ifdef VERGCC
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
 endif
+endif
+
+ifndef NAGDIR
 NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
-#AMSLIB =  /amssw/AMSlib/linux
-#NAGDIR = /amssw/AMSlib/linux
+endif
+
 
 
 ########################################################################
@@ -139,7 +145,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix 
 endif
 endif
 

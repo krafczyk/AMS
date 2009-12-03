@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.89 2009/11/18 10:59:05 shaino Exp $
+#  $Id: Makefile,v 1.90 2009/12/03 14:45:52 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -56,9 +56,6 @@ SHELL=/bin/sh
 ### defaults can be redefined in the OS specific Makefile (Makefile.[OS])
 ## these defaults are for  Linux at CERN 
 
-CERN_LEVEL = 2001
-CERNDIR = /cern/$(CERN_LEVEL)
-CERNSRCDIR =  /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
 
 ifndef AMSWD
 AMSWD := ..

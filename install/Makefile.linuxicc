@@ -73,19 +73,24 @@ IDLCPP=orbit-idl-2 -l cpp
 ########################################################################
 
 # change defaults if intel compiler 
+ifndef CERN_LEVEL
 CERN_LEVEL = pro
-#CERN_LEVEL = 2006icc
+endif
+
 CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 
+ifndef CERNDIR
 CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
+endif
+ifndef AMSLIB
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
+endif
+ifndef NAGDIR
 NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+endif
 
-#CERNDIR = /cern/2006icc/
-#AMSLIB =  /amssw/AMSlib/linux/icc/
-#NAGDIR  = /amssw/AMSlib/linux/icc/
 ########################################################################
 # Compilers FLAGS
 ########################################################################
