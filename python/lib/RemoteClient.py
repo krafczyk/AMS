@@ -428,7 +428,11 @@ class RemoteClient:
                    if updatedb!=0:
                        self.sqlserver.Update(sql)
                    continue
-               res=os.statvfs(fs[0])
+               res=""
+               try:
+                   res=os.statvfs(fs[0])
+               except:
+                   print fs[0]," Is Offline"
                if len(res) == 0:
                    isonline=0
                else:
