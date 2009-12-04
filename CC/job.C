@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.670 2009/12/04 15:06:49 choumilo Exp $
+// $Id: job.C,v 1.671 2009/12/04 16:35:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4060,6 +4060,13 @@ cout<<"<---- In dbendjob, UpdateFlag="<<AMSFFKEY.Update<<endl;
      AMSgObj::BookTimer.book("REDAQ");
      if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaq2initjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
     // Add subdetectors to daq
+
+
+//CCEB data
+
+if(DAQCFFKEY.BTypeInDAQ[0]<=27 && DAQCFFKEY.BTypeInDAQ[1]>=27){    
+ DAQEvent::addsubdetector(&AMSEvent::checkccebid,&AMSEvent::buildcceb,27);
+}
 
 if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal 
 

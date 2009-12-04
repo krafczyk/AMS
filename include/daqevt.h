@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.75 2009/11/25 12:32:22 pzuccon Exp $
+//  $Id: daqevt.h,v 1.76 2009/12/04 16:35:08 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -156,6 +156,7 @@ bool    _istdr(int16u id);       //  identify the detector data group sub block
 bool    _isedr(int16u id);       //  identify the detector data group sub block
 bool    _isudr(int16u id);       //  identify the detector data group sub block
 bool    _isrdr(int16u id);       //  identify the detector data group sub block
+bool    _iscceb(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();
 uinteger _GetBlType();
 bool _ComposedBlock();
@@ -196,7 +197,7 @@ for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
 for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
 _setcalibdata(0);_DAQEvent=this;
 }
-static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(_getnode(id)>127 && strstr(_getnodename(id),sstr));}
+static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(strstr(_getnodename(id),sstr)!=0);}
 static bool isRawMode(int16u id){return (id&64)>0;}
 static bool isCompMode(int16u id){return (id&128)>0;}
 static bool isError(int16u id){return (id&512)>0;}

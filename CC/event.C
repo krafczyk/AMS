@@ -3108,6 +3108,8 @@ void AMSEvent::_redaqinitevent(){
   new AMSContainer(AMSID("AMSContainer:DAQEvent",4),0));
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",6),0));
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:DAQEvent",27),0));
 }
 
 void AMSEvent::_redaqevent(){
@@ -3137,6 +3139,9 @@ void AMSEvent::_redaqevent(){
    if(pdaq)pdaq->buildRawStructures();
    pdaq = (DAQEvent*)AMSEvent::gethead()->
    getheadC("DAQEvent",6);
+   if(pdaq)pdaq->buildRawStructures();
+   pdaq = (DAQEvent*)AMSEvent::gethead()->
+   getheadC("DAQEvent",27);
    if(pdaq)pdaq->buildRawStructures();
   AMSgObj::BookTimer.stop("REDAQ");
 }
@@ -3819,13 +3824,118 @@ bool ok= getTAv()>-273 && getTSi()<0.02*fabs(getTAv());
 return ok;
 }
 void AMSEvent::buildcceb(integer n, int16u* p){
+    static int rec=0;
+    int len=n&65535;
+    if(len!=72){
+     cerr<<"AMSEvent::buildcceb-E-WromngLength "<<len<<endl;;
+     return ;
+    }
+
+
+
+struct _CCBT {
+  char *nam;
+  float A;
+  float B;
+};
+static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR AS 20090707 <<<===
+    {{"PT01", 0.2022/3.85,  0.7/3.85}, {"PT01", 0.2025/3.85,  5.4/3.85}},  //  0
+    {{"PT02", 0.2030/3.85, -0.4/3.85}, {"PT02", 0.2028/3.85, -1.6/3.85}},  //  1
+    {{"PT03", 0.2031/3.85,  0.0/3.85}, {"PT03", 0.2034/3.85,  6.0/3.85}},  //  2
+    {{"PT04", 0.2032/3.85, -3.1/3.85}, {"PT04", 0.2033/3.85, -0.2/3.85}},  //  3
+    {{"PT05", 0.2041/3.85,  8.4/3.85}, {"PT05", 0.2030/3.85, -0.8/3.85}},  //  4
+    {{"PT06", 0.2029/3.85,  1.9/3.85}, {"PT06", 0.2032/3.85,  1.7/3.85}},  //  5
+    {{"PT07", 0.2030/3.85,  2.2/3.85}, {"PT07", 0.2029/3.85,  0.4/3.85}},  //  6
+    {{"PT08", 0.2028/3.85,  9.9/3.85}, {"PT08", 0.2036/3.85,  1.7/3.85}},  //  7
+    {{"PT09", 0.2039/3.85,  6.5/3.85}, {"PT09", 0.2033/3.85,  7.8/3.85}},  //  8
+    {{"PT10", 0.2037/3.85,  3.5/3.85}, {"PT10", 0.2033/3.85,  1.6/3.85}},  //  9
+    {{"PT11", 0.2035/3.85,  2.4/3.85}, {"PT11", 0.2028/3.85, -0.3/3.85}},  // 10
+    {{"PT12", 0.2024/3.85, -1.2/3.85}, {"PT12", 0.2033/3.85,  2.2/3.85}},  // 11
+
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 12
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 13
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 14
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 15
+
+    // from  BH703 datasheet  AS 20091126 (unit kG; X,Y,Z in AMS coordinates)
+    // B_0:Sensor#747 / B_1:Sensor#751 / B_2:Sensor#752 / B_3:Sensor#750
+    {{"BX_0",  1/25.50/7.937,  0.021/7.937}, {"BX_2",  1/25.50/7.950, -0.012/7.950}},  // 16
+    {{"BZ_0",  1/112.0/7.942, -0.045/7.942}, {"BZ_2",  1/112.0/7.947, -0.008/7.947}},  // 17
+    {{"BY_0", -1/112.0/7.947, +0.028/7.947}, {"BY_2", -1/112.0/7.976, -0.005/7.976}},  // 18
+    {{"Tmp0", 0.2030/3.85,  1.6/3.85}, {"Tmp2", 0.2023/3.85,  0.2/3.85}},  // 19
+
+    {{"BX_1",  1/25.50/7.511,  0.006/7.511}, {"BX_3",  1/25.50/7.822,  0.014/7.822}},  // 20
+    {{"BZ_1",  1/112.0/7.527, -0.011/7.527}, {"BZ_3",  1/112.0/7.816,  0.009/7.816}},  // 21
+    {{"BY_1", -1/112.0/7.529, -0.037/7.529}, {"BY_3", -1/112.0/7.823, -0.008/7.823}},  // 22
+    {{"Tmp1", 0.2014/3.85,  0.1/3.85}, {"Tmp3", 0.2028/3.85,  3.9/3.85}},  // 23
+
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 24
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 25
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 26
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 27
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 28
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 29
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}},  // 30
+    {{"GND ", 0.1,    0.0}, {"GND ", 0.1,    0.0}}}; // 31
+
+
+                float bt[4][4];
+                short ibt[4][4];
+                for(int k=0;k<4;k++){
+                 ibt[0][k]=(short)(*(p+20+k)&4095)-2048;
+                 ibt[1][k]=(short)(*(p+24+k)&4095)-2048;
+                 ibt[2][k]=(short)(*(p+20+k+34)&4095)-2048;
+                 ibt[3][k]=(short)(*(p+24+k+34)&4095)-2048;
+                 bt[0][k]=ibt[0][k]*CCBT_FM[16+k][0].A+CCBT_FM[16+k][0].B;
+                 bt[1][k]=ibt[1][k]*CCBT_FM[20+k][0].A+CCBT_FM[20+k][0].B;
+                 bt[2][k]=ibt[2][k]*CCBT_FM[16+k][1].A+CCBT_FM[16+k][1].B;
+                 bt[3][k]=ibt[3][k]*CCBT_FM[20+k][1].A+CCBT_FM[20+k][1].B;
+                }
+                ArrayC[rec].Time=AMSEvent::gethead()->gettime();
+                for(int i=0;i<4;i++){
+                  ArrayC[rec].T[i]=bt[i][3];
+                  ArrayC[rec].B[0][i]=bt[i][0];
+                  ArrayC[rec].B[1][i]=bt[i][2];
+                  ArrayC[rec].B[2][i]=bt[i][1];
+                }
+               
+                rec=(rec+1)%(sizeof(ArrayC)/sizeof(ArrayC[0]));
+               if(rec==0){
+                  AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("CCEBPar",AMSJob::gethead()->isRealData()));
+                if(ptdv){
+                  ptdv->UpdateMe()=1;
+                  ptdv->UpdCRC();
+   time_t begin,end,insert;
+   time(&insert);
+   if(CALIB.InsertTimeProc)insert=ArrayC[0].Time;
+   
+   ptdv->SetTime(insert,ArrayC[0].Time,ArrayC[sizeof(ArrayC)/sizeof(ArrayC[0])-1].Time+3600);
+   cout <<" CCEB H/K  info has been read for "<<*ptdv;
+   ptdv->gettime(insert,begin,end);
+   cout <<" Time Insert "<<ctime(&insert);
+   cout <<" Time Begin "<<ctime(&begin);
+   cout <<" Time End "<<ctime(&end);
+   if(IOPA.hlun){
+   CALIB.Ntuple++;
+   HBNT(CALIB.Ntuple,"CCEB"," ");
+   CCEBPar TRCALIB;
+   HBNAME(CALIB.Ntuple,"CCEB",(int*)(&TRCALIB),"Time:I,B(4,3):R,T(4):R");
+               for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
+                ucopy_(&ArrayC[i],&TRCALIB,sizeof(TRCALIB)/sizeof(integer));
+                HFNT(CALIB.Ntuple);
+               }
+           }
+       }
+               else cerr<<"AMSEvent::buildcceb-R-NoTDVFound "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData());
+}
+
 }
 
 
 integer AMSEvent::checkccebid(int16u id){
   char sstr[128];
   char nn[]="ABPS";
- for(int i=0;i<getmaxblocks();i++){
+ for(int i=0;i<4;i++){
   strcpy(sstr,"CCEB-");
   strncat(sstr,nn+i,1);
   if(DAQEvent::ismynode(id,sstr))return i+1; 

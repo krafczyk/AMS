@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.178 2009/11/29 12:58:27 pzuccon Exp $
+//  $Id: daqevt.C,v 1.179 2009/12/04 16:35:04 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -709,6 +709,13 @@ if( ((id>>5)&((1<<9)-1))>=242 && ((id>>5)&((1<<9)-1))<=265 )return true;
 else return false;
 }
 
+bool   DAQEvent::_iscceb(int16u id){  // cpied from udr
+if( ((id>>5)&((1<<9)-1))>=28 && ((id>>5)&((1<<9)-1))<=31 )return true;
+else return false;
+}
+
+
+
 bool    DAQEvent::_isjlvl1(int16u id){
 if(  ((id>>5)&((1<<9)-1))>=136 && ((id>>5)&((1<<9)-1))<=139 && (id>>14)==2)return true;
 else return false;
@@ -740,7 +747,7 @@ uinteger DAQEvent::_clll(int16u *pdata){
 //
 const  int16u lmask=0x8000;
 const int16u rtype=0x1f;
-const int16u rtypec[2]={0x13,0x14};
+const int16u rtypec[3]={0x13,0x14,0x1b};
 integer nodetype=1;
 if(pdata && _cl(pdata)>4){
  if (*pdata & lmask){
@@ -758,7 +765,7 @@ else return 0;
 integer DAQEvent::getpreset(int16u *pdata){
 const  int16u lmask=0x8000; 
 const int16u rtype=0x1f;
-const int16u rtypec[2]={0x13,0x14};
+const int16u rtypec[3]={0x13,0x14,0x1b};
 integer offset=5;
 integer nodetype=1;
 if(pdata && _cl(pdata)>4){
@@ -769,7 +776,7 @@ if(pdata && _cl(pdata)>4){
  if((pdata[nodetype]&rtype) == rtype ){
    offset++;
  }
- else if((pdata[nodetype]&rtype) == rtypec[0] || (pdata[nodetype]&rtype) == rtypec[1] ){
+ else if((pdata[nodetype]&rtype) == rtypec[0] || (pdata[nodetype]&rtype) == rtypec[1]|| (pdata[nodetype]&rtype) == rtypec[2]  ){
   offset=0;
  } 
  return offset;
@@ -783,9 +790,10 @@ bool DAQEvent::_ComposedBlock(){
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
-  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
+  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
+//  if(!_ComposedBlock())return 1;
   if(_Length >1 && _pData ){
      integer ntot=preset;
      for(_pcur=_pData+preset;_pcur<_pData+_Length && _pcur>=_pData;_pcur+=_cl(_pcur)) {
@@ -975,7 +983,7 @@ again:
         return 1;    
      }
    }
-   return 0;
+  return 0;
 
 #else  
   const int tofidL = 0x1400;
@@ -1071,12 +1079,16 @@ else return false;
 integer DAQEvent::_HeaderOK(){
   const integer Laser=204;
   static int lr=-1;
-  if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13)return 0;
+  if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 && _GetBlType()!= 0x1b)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
      _Time=(*(_pcur-1)) |  (*(_pcur-2))<<16;
     if(!_ComposedBlock()){
-     _Event=1;
-     _Run=1;
+     _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
+     static int event=0;
+     static int run=0;
+     if(event==0)run=_Time;
+     _Event=++event;
+     _Run=run;
      _RunType=_GetBlType();
      const uinteger _OffsetT=0x12d53d80;
     //_Time+=_OffsetT;
@@ -1316,8 +1328,9 @@ integer DAQEvent::_HeaderOK(){
 
 
   }
-  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<" "<<((_pData[1]>>5)&511)<<" "<<_GetBlType()<<endl;
- return 0;
+  cerr<<"DAQEvent::_HeaderOK-W-NoHeaderinEvent Type "<<_pData[1]<<" "<<((_pData[1]>>5)&511)<<" "<<_GetBlType()<<endl;
+      _Checked=1;
+ return 1;
 }
 
 
@@ -1450,7 +1463,7 @@ integer DAQEvent::_DDGSBOK(){
 
 
    }
-   else{
+   else if(!_iscceb(*(_pcur+_cll(_pcur)))){
         cerr<<"DAQEvent::_DDGSBOK-E-XDRModeNotYetImplemented "<<_getnodename(*(_pcur+_cll(_pcur)))<<endl;
         return 0;
    }
@@ -1500,7 +1513,7 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id) ||_iscceb(id)){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
