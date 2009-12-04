@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.571 2009/11/27 10:45:10 choutko Exp $
+# $Id: RemoteClient.pm,v 1.572 2009/12/04 13:15:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -339,7 +339,7 @@ sub Init{
       }
       $self->{q}=new CGI;
 #cpu types
-      my $cachetime=1800;
+      my $cachetime=600;
      if(defined $self->{initdone} ){
       if(time()-$self->{initdone}<$cachetime and $self->{initdone} >$self->dblupdate()){
         return 1;
@@ -2886,6 +2886,17 @@ CheckCite:            if (defined $q->param("QCite")) {
          }
                print "</tr>\n";
             my $sqld= "";
+         if($q->param("DataFileID") =~ /now-/){
+             my   ($now,$hrs) = split '-',$q->param("DataFileID");
+             $runmax=time();
+             $runmin=$runmax-$hrs*3600;
+                $sql = "SELECT run, path,fetime, nevents, type, sizemb,pathb,paths,status,tag 
+                          FROM datafiles
+                          WHERE run>=$runmin AND run<=$runmax $type $pp
+                          ORDER BY run";
+
+         }
+         else{
             if ($q->param("DataFileID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DataFileID");
                 $title = $title.$q->param("RunID");
@@ -2912,6 +2923,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                           WHERE run=$runid $pp";
          }
          }
+        }
          my $ret=$self->{sqlserver}->Query($sql);
          if (defined $ret->[0][0]) {
           foreach my $r (@{$ret}){

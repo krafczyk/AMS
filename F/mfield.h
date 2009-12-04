@@ -1,4 +1,4 @@
-*  $Id: mfield.h,v 1.15 2009/06/30 14:50:10 choutko Exp $
+*  $Id: mfield.h,v 1.16 2009/12/04 13:15:51 choutko Exp $
       integer nx,ny,nz
        PARAMETER (nx=41,ny=41,nz=41)
 c       PARAMETER (nx=90,ny=90,nz=164)
@@ -56,8 +56,9 @@ c       PARAMETER (nx=90,ny=90,nz=164)
       integer amsdlength,amsdblength,iniok
       character *128 amsdatadir,amsdatabase
       character *200 fname
-      common/my_hint/hint,hintc
+      common/my_hint/hint,hintc,bcorr
        integer hint(3),hintc(3)
+       real bcorr
 *
 *  C New Common  For E01TGF
 *

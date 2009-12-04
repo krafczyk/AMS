@@ -1,4 +1,4 @@
-*  $Id: trafit.F,v 1.12 2001/10/08 16:57:53 choutko Exp $
+*  $Id: trafit.F,v 1.13 2009/12/04 13:15:51 choutko Exp $
       SUBROUTINE TRAFIT
      $      (IFIT,X,Y,WXY,Z,SSZ,NPT,RESXY,RESSZ,IFLAG,SPCOR,WORK,
      +       SCHIXY,SCHIZ,xmom,exmom,p0,theta,phit)
@@ -151,13 +151,26 @@ C
 
       subroutine getfield(bt)
        integer init/0/
+       real bsens(3,4)
+
        real b/0/
        real x(3),bb(3)
+       data bsens/15.24,-47.15,+8.25,
+     +            15.24,-47.75,-8.79,
+     +           -15.24,+47.15,+8.25,
+     +           -15.24,+47.75,-8.79/
        save b
        save init
        if(init.eq.0)then
         init=1
         b=0
+        do i=1,4
+           x(1)=bsens(1,i)
+           x(2)=bsens(2,i)
+           x(3)=bsens(3,i)
+           call gufld(x,bb)
+           write(*,*)' Sensor ',i-1,x,bb
+        enddo
         do i=1,11
          do j=1,11
           do k=1,11

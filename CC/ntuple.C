@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.187 2009/11/16 16:18:58 mmilling Exp $
+//  $Id: ntuple.C,v 1.188 2009/12/04 13:15:47 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -104,7 +104,7 @@ void AMSNtuple::init(){
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
         
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,ISSEqAsc:R,ISSEqDec:R,ISSGalLong:R,ISSGalLat:R,AMSEqAsc:R,AMSeqDec:R,AMSGalLat:R,AMSGalLong:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFRawSides[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,AntiRawSides[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I," //ISN
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,ISSEqAsc:R,ISSEqDec:R,ISSGalLong:R,ISSGalLat:R,AMSEqAsc:R,AMSeqDec:R,AMSGalLat:R,AMSGalLong:R,BAv:R,TempTracker:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFRawSides[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,AntiRawSides[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I," //ISN
 "RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I"); 
 
   HBNAME(_lun,"Beta",&_beta02.Nbeta,

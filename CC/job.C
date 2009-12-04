@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.668 2009/11/29 19:17:59 choutko Exp $
+// $Id: job.C,v 1.669 2009/12/04 13:15:47 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2770,7 +2770,7 @@ if(AMSFFKEY.Update==101){
    TID.add(ptdv);
    return;
 }
-else{
+else if(isRealData()){
    begin=100000000;
    end=begin-1;
    btm=*(localtime(&begin));
@@ -3493,6 +3493,26 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
                          sizeof(AMSEvent::Array),(void*)AMSEvent::Array,server));
    }
 }
+
+
+
+{
+  tm begin;
+  tm end;
+  if(AMSFFKEY.Update==187){
+    begin=AMSmceventg::Orbit.Begin;
+    end=AMSmceventg::Orbit.End;
+    AMSEvent::SetCCEBPar();
+  }
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
+  TID.add (new AMSTimeID(AMSID("CCEBPar",isRealData()),
+                         begin,end,
+                         sizeof(AMSEvent::ArrayC),(void*)AMSEvent::ArrayC,server));
+}
+
 
 
 if(MISCFFKEY.BeamTest>1){

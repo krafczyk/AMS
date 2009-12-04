@@ -1586,7 +1586,7 @@ class RemoteClient:
         else:
             return self.trimblanks(junk[0]),None,None
        
-    def getOutputPath(self,period,path='/MC'):
+    def getOutputPath(self,period,path='/Data'):
         #
         # select disk to be used to store ntuples
         #

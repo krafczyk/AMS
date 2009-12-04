@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.118 2009/06/19 12:41:09 barao Exp $
+//  $Id: ntuple.h,v 1.119 2009/12/04 13:15:52 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -107,6 +107,8 @@ public:
   float AMSEqDec; // ISN 
   float AMSGalLong; // ISN   
   float AMSGalLat; // ISN 
+  float BAv;
+  float TempTracker;
   int Tracks;
   int TrRecHits;
   int TrClusters;

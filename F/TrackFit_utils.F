@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.31 2009/11/29 12:48:26 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.32 2009/12/04 13:15:50 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.32  2009/12/04 13:15:50  choutko
+* intr cceb data
+*
 * Revision 1.31  2009/11/29 12:48:26  choutko
 * *** empty log message ***
 *
@@ -182,7 +185,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.31 2009/11/29 12:48:26 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.32 2009/12/04 13:15:50 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -6827,7 +6830,7 @@ c           phi(i,j,k,l)=0
       rigr=0
       ntot=0
 #ifdef __AMSPARALLEL__
-       call omp_set_num_threads(omp_get_num_procs()/2)
+       call omp_set_num_threads(omp_get_num_procs()-1)
 c       call omp_set_num_threads(1)
        !$OMP PARALLEL   DEFAULT(NONE) PRIVATE(ims,
      + ialgo,npt,layer,
@@ -7793,9 +7796,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.31 2009/11/29 12:48:26 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.32 2009/12/04 13:15:50 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.32  2009/12/04 13:15:50  choutko
+* intr cceb data
+*
 * Revision 1.31  2009/11/29 12:48:26  choutko
 * *** empty log message ***
 *

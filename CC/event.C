@@ -10,7 +10,7 @@
 //
 
 #include "typedefs.h" 
-
+extern "C" void setbcorr_(float *p);
 #ifndef _PGTRACK_
 #include "trrawcluster.h"
 #include "trmccluster.h"
@@ -594,6 +594,7 @@ void AMSEvent::_signinitevent(){
   }
   else if((!AMSJob::gethead()->isSimulation() && rec) || (AMSJob::gethead()->isSimulation() && IsTest())){
     static integer hint=0;
+#pragma omp threadprivate (hint)
     //get right record
     if( Array[hint].Time<=_time && 
        _time<Array[hint+2>=sizeof(Array)/sizeof(Array[0])?
@@ -733,11 +734,70 @@ void AMSEvent::_signinitevent(){
 
 void AMSEvent::_regnevent(){
 
+
+
+
+{
+//  Get Correct CCEB block if exists;
+    static integer hintc=0;
+#pragma omp threadprivate (hintc)
+
+
+
+
+    //get right record
+    if( ArrayC[hintc].Time<=_time && 
+       _time<ArrayC[hintc+2>=sizeof(ArrayC)/sizeof(ArrayC[0])?
+                  sizeof(ArrayC)/sizeof(ArrayC[0])-1:hintc+2].Time){
+      // got it
+      if(_time>=ArrayC[hintc+1].Time)hintc++;
+    }
+    else{
+      //find from scratch
+      for(hintc=1;hintc<sizeof(ArrayC)/sizeof(ArrayC[0]);hintc++){
+        if(ArrayC[hintc].Time>_time){
+          hintc--;
+          break;
+        }
+      }
+      if(hintc>=sizeof(ArrayC)/sizeof(ArrayC[0]))hintc=sizeof(ArrayC)/sizeof(ArrayC[0])-1;
+    }
+    integer chint;
+    if(_time < ArrayC[hintc].Time){
+     chint=hintc-1;
+     if(chint<0)cerr<<"CCEBPAR-S-LogicError-chint<0 "<<_time<<" "<< ArrayC[hintc].Time<<endl;
+     if(chint<0)chint=0;
+    }
+    else chint=hintc;
+    _ccebp=&(ArrayC[hintc]);  
+     geant corr=_ccebp->getBCorr();
+     if(corr>0 &&MAGSFFKEY.magstat<=0){
+      cerr<<"AMSEvent::_regnevent-E-MAGFileCorrectionandFieldStatusDisageeA "<<corr<<" "<<MAGSFFKEY.magstat<<endl;
+       MAGSFFKEY.magstat=1;
+     }
+     else if(corr==0 &&MAGSFFKEY.magstat>0){
+      cerr<<"AMSEvent::_regnevent-E-MAGFileCorrectionandFieldStatusDisageeB "<<corr<<" "<<MAGSFFKEY.magstat<<endl;
+       MAGSFFKEY.magstat=-1;
+     }
+      if(corr>=0 && fabs(corr-1)>0.02){
+        static int mess=0;
+         if(mess++<100)cout<<"AMSEvent::_regnevent-I-MagFieldCorrectionApplied "<<corr<<endl;
+      }
+      else if(corr>=0){
+        corr=-2;
+      }
+      setbcorr_(&corr);  
+}
+
+
+
+
     // Add mceventg if BeamTest
     if(MISCFFKEY.BeamTest>1  ){
 
 
     static integer hintb=0;
+#pragma omp threadprivate (hintb)
     //get right record
     if( ArrayB[hintb].Time<=_time && 
        _time<ArrayB[hintb+2>=sizeof(ArrayB)/sizeof(ArrayB[0])?
@@ -1441,7 +1501,7 @@ void AMSEvent::event(){
 void AMSEvent::_reamsevent(){
   AMSgObj::BookTimer.start("REAMSEVENT");  
 
-   // get beam par if any;
+   // get beam par, and other things  if any;
    _regnevent();
    if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest>1){
       // skip event if there is no mceventg record
@@ -2664,6 +2724,8 @@ void AMSEvent::_writeEl(){
   int nws=myp?myp->getlength():0;
 // Fill the ntuple
   EventNtuple02* EN = AMSJob::gethead()->getntuple()->Get_event02();
+  EN->BAv=_ccebp?_ccebp->getBAv()*(_ccebp->BOK()?1:0):-1;
+  EN->TempTracker=_ccebp?_ccebp->getTAv():-273;
   EN->EventStatus[0]=getstatus()[0];
   EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;
@@ -3286,6 +3348,20 @@ while(offspring){
 return False;
 }
 
+void AMSEvent::SetCCEBPar(){
+//create default cceb record;
+  for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
+   for(int j=0;j<4;j++){
+    ArrayC[i].B[0][j]=j==0?-1:0;
+    ArrayC[i].B[1][j]=0;
+    ArrayC[i].B[2][j]=0;
+    ArrayC[i].T[j]=-273;
+    ArrayC[i].Time=mktime(&AMSmceventg::Orbit.Begin);
+     
+   }  
+ }
+
+} 
 
 void AMSEvent::SetShuttlePar(){
   for(int i=0;i<sizeof(Array)/sizeof(Array[0]);i++){
@@ -3306,6 +3382,7 @@ void AMSEvent::SetShuttlePar(){
 
 AMSEvent::ShuttlePar AMSEvent::Array[60];
 AMSEvent::BeamPar AMSEvent::ArrayB[60];
+AMSEvent::CCEBPar AMSEvent::ArrayC[64];
 
 
 AMSID AMSEvent::getTDVStatus(){
@@ -3674,7 +3751,92 @@ return evt;
 return gettime();
 #endif
 }
+
+
+geant AMSEvent::CCEBPar::getBAv()const{
+geant av=0;
+for(int i=0;i<4;i++){
+av+=i<2?B[0][i]:-B[0][i];
+}
+return av/4;
+}
+
+geant AMSEvent::CCEBPar::getBCorr()const{
+if(BOK()){
+      geant corr=getBAv()/5.47; // Only valid for 230A map file to be f
+      return corr;     
+}
+else return -3;
+}
+
+geant AMSEvent::CCEBPar::getTAv()const{
+geant av=0;
+for(int i=0;i<4;i++){
+av+=T[i];
+}
+return av/4;
+}
+
+geant AMSEvent::CCEBPar::getBSi()const{
+number av=0;
+number av2=0;
+for(int i=0;i<4;i++){
+av+=i<2?B[0][i]:-B[0][i];
+av2+=B[0][i]*B[0][i];
+}
+av/=4;
+av2/=4;
+av2-=av*av;
+if(av2<0)av2=0;
+return sqrt(av2);
+}
+
+
+
+geant AMSEvent::CCEBPar::getTSi()const{
+number av=0;
+number av2=0;
+for(int i=0;i<4;i++){
+av+=T[i];
+av2+=T[i]*T[i];
+}
+av/=4;
+av2/=4;
+av2-=av*av;
+if(av2<0)av2=0;
+return sqrt(av2);
+}
+
+
+bool AMSEvent::CCEBPar::BOK()const{
+bool ok= getBAv()>=0 && getBSi()<0.02*getBAv();
+return ok;
+}
+
+
+bool AMSEvent::CCEBPar::TOK()const{
+bool ok= getTAv()>-273 && getTSi()<0.02*fabs(getTAv());
+return ok;
+}
+void AMSEvent::buildcceb(integer n, int16u* p){
+}
+
+
+integer AMSEvent::checkccebid(int16u id){
+  char sstr[128];
+  char nn[]="ABPS";
+ for(int i=0;i<getmaxblocks();i++){
+  strcpy(sstr,"CCEB-");
+  strncat(sstr,nn+i,1);
+  if(DAQEvent::ismynode(id,sstr))return i+1; 
+ }
+ return 0;
+}
+
+
 #ifdef _PGTRACK_
 #include "event_tk.C"
 #endif
+
+
 

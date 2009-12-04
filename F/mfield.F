@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.33 2009/11/18 11:16:15 choutko Exp $
+*  $Id: mfield.F,v 1.34 2009/12/04 13:15:51 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -756,6 +756,7 @@ c        endif
  999    continue
         do i=1,3
            b(i)=b(i)*fscale
+           if(bcorr>=0)b(i)=b(i)*bcorr
         enddo
         END
 
@@ -1299,4 +1300,11 @@ c                   x1(3)=x1(3)*xc(8)
           xx(i)=x
           call gufld(xx,h)
           tkigufld=h(j)
+          end
+
+          subroutine setbcorr(bcor)
+#      include "mfield.h"
+          data bcorr/-1/
+          real bcor
+          bcorr=bcor
           end

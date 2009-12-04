@@ -124,8 +124,8 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
             }
             else{
              coo[0]+=-0.03;
-             coo[1]+=-0.11;
-             coo[2]+=0.05;
+             coo[1]+=-0.12;
+             coo[2]+=0.045;
             }
            }
            number rad=pv->getpar(1);

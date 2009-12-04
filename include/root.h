@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.251 2009/10/16 13:15:04 choutko Exp $
+//  $Id: root.h,v 1.252 2009/12/04 13:15:52 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -190,7 +190,8 @@ static char _Info[255];
    float AMSEqDec; ///<(ISN) AMS pointing direction (equat. declination)
    float AMSGalLat; ///<(ISN) AMS pointing direction (gal. latitude)
    float AMSGalLong; ///<(ISN) AMS pointing direction (gal. longitude) 
-
+   float BAv;      ///< Average Bx Measurement From CCEB  (kG)
+   float TempTracker; ///< Average Tracker Temperature from CCEB (deg C)
    //
 
 // counters
@@ -256,12 +257,12 @@ public:
                          for(int i=0;i<6;i++){
                           if(status&(1<<(i+2)))comp+=int(pow(10.,i));
                          }
-                         sprintf(_Info,"Header:  Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d ",comp,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits);
+                         sprintf(_Info,"Header:  Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d B_{x} %6.2f (kG) T_{Tracker} %6.1f^{o}C ",comp,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker);
   return _Info;
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,11)       //HeaderR
+  ClassDef(HeaderR,12)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 

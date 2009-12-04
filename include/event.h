@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.93 2009/11/03 16:44:08 choutko Exp $
+//  $Id: event.h,v 1.94 2009/12/04 13:15:52 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -26,6 +26,19 @@
 const int maxthread=32;
 class AMSEvent: public AMSNode{
 private:
+  class CCEBPar{
+public:
+  time_t Time;
+  geant B[3][4];
+  geant T[4];
+  geant getBAv() const;
+  geant getBCorr() const;
+  geant getTAv()const;
+  geant getBSi() const;
+  geant getTSi()const;
+  bool  BOK()const;
+  bool  TOK()const;
+};
   class ShuttlePar{
   public:
    geant StationR;
@@ -103,6 +116,7 @@ geant _VelTheta;
 geant _VelPhi; 
 time_t _time;
 uinteger _usec;
+CCEBPar * _ccebp;
 static integer SRun;
 static integer PosInRun;
 static integer PosGlobal;
@@ -115,6 +129,7 @@ static AMSNodeMap  EventMap;
 #pragma omp threadprivate(EventMap)
 static ShuttlePar Array[60];
 static BeamPar ArrayB[60];
+static CCEBPar  ArrayC[64];
 static EventId * _SelectedEvents;
 void _copyEl();
 void _writeEl();
@@ -243,9 +258,9 @@ return 1;
 }
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),
-  _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
+  _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_ccebp(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time), _usec(usec),_Error(0){
+   _runtype(runtype), _time(time), _usec(usec),_Error(0),_ccebp(0){
    _Head[get_thread_num()]=this;
     _RunEv[get_thread_num()]=getrunev();
    _status[0]=0;
@@ -259,6 +274,7 @@ void getmag(float & thetam, float & phim);
 static void setfile(const char file[]);
 static integer IsTest();
 static void SetShuttlePar();
+static void SetCCEBPar();
 static AMSEvent * gethead()  {return _Head[get_thread_num()];}
 static int & ThreadWait()  {return _Wait[get_thread_num()];}
 static uinteger & ThreadSize()  {return _Size[get_thread_num()];}
@@ -356,11 +372,13 @@ inline void printH(){
 static AMSID getTDVStatus();
 // Interface with DAQ
 static integer checkdaqid(int16u id);
+static integer checkccebid(int16u id);
 static integer checkdaqid2009(int16u id);
 static int16u  getdaqidSh(){return 25;}
 static int16u  getdaqid(){return 7;}
 static integer checkdaqidSh(int16u id);
 static void buildrawSh(integer length, int16u *p);
+static void buildcceb(integer length, int16u *p);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time, uinteger & usec); 
 static void buildraw2009(integer length, int16u *p, uinteger &run, uinteger &event,
