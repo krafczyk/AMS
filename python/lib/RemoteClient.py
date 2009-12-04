@@ -2929,6 +2929,8 @@ class RemoteClient:
                             type="CMD"
                         elif (t0=="8"):
                             type="HKD"
+                        elif (t0=="27"):
+                            type="CAB"
                         bpath=runsdir+"/"+type
                         cmd="ln -sf "+outputpath+" "+bpath
                         i=os.system(cmd)
