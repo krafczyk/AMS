@@ -769,7 +769,7 @@ void AMSEvent::_regnevent(){
      if(chint<0)chint=0;
     }
     else chint=hintc;
-    _ccebp=&(ArrayC[hintc]);  
+    _ccebp=&(ArrayC[chint]);  
      geant corr=_ccebp->getBCorr();
      if(corr>0 &&MAGSFFKEY.magstat<=0){
       cerr<<"AMSEvent::_regnevent-E-MAGFileCorrectionandFieldStatusDisageeA "<<corr<<" "<<MAGSFFKEY.magstat<<endl;
@@ -3891,16 +3891,24 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                  bt[2][k]=ibt[2][k]*CCBT_FM[16+k][1].A+CCBT_FM[16+k][1].B;
                  bt[3][k]=ibt[3][k]*CCBT_FM[20+k][1].A+CCBT_FM[20+k][1].B;
                 }
-                ArrayC[rec].Time=AMSEvent::gethead()->gettime();
+#pragma omp critical (rec)
+{               
+                for (int k=rec;k<sizeof(ArrayC)/sizeof(ArrayC[0]);k++){
+                if(AMSEvent::gethead())ArrayC[k].Time=AMSEvent::gethead()->gettime();
+                else ArrayC[k].Time=(*(p-1)) |  (*(p))<<16;
+
                 for(int i=0;i<4;i++){
-                  ArrayC[rec].T[i]=bt[i][3];
-                  ArrayC[rec].B[0][i]=bt[i][0];
-                  ArrayC[rec].B[1][i]=bt[i][2];
-                  ArrayC[rec].B[2][i]=bt[i][1];
+                  ArrayC[k].T[i]=bt[i][3];
+                  ArrayC[k].B[0][i]=bt[i][0];
+                  ArrayC[k].B[1][i]=bt[i][2];
+                  ArrayC[k].B[2][i]=bt[i][1];
                 }
-               
+                }
                 rec=(rec+1)%(sizeof(ArrayC)/sizeof(ArrayC[0]));
-               if(rec==0){
+
+                cout <<"AMSEvent::buildcceb-I-RecordFilled "<<rec<<endl;
+
+                if(rec==0){
                   AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("CCEBPar",AMSJob::gethead()->isRealData()));
                 if(ptdv){
                   ptdv->UpdateMe()=1;
@@ -3928,7 +3936,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
        }
                else cerr<<"AMSEvent::buildcceb-R-NoTDVFound "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData());
 }
-
+}
 }
 
 

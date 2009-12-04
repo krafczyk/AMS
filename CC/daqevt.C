@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.179 2009/12/04 16:35:04 choutko Exp $
+//  $Id: daqevt.C,v 1.180 2009/12/04 19:24:20 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1079,7 +1079,7 @@ else return false;
 integer DAQEvent::_HeaderOK(){
   const integer Laser=204;
   static int lr=-1;
-  if(!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 && _GetBlType()!= 0x1b)return 0;
+  if(!_ComposedBlock() && _GetBlType()!= 0x1b)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
      _Time=(*(_pcur-1)) |  (*(_pcur-2))<<16;
     if(!_ComposedBlock()){
@@ -1513,7 +1513,7 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id) ||_iscceb(id)){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id) ){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
@@ -1521,7 +1521,7 @@ void DAQEvent::buildRawStructures(){
       int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
       fpl->_pputdata(n,psafe);
      }
-    }   
+    }  
     else if(_isddg(id)){    // normal data if any...
      cerr <<"   not supported !!!! "<<endl;
      if(fpl->_pgetid(*(_pcur+_cll(_pcur)))){
@@ -1582,6 +1582,16 @@ void DAQEvent::buildRawStructuresEarly(){
      }
     }
     }
+    else if( _iscceb(id)){
+     int ic=AMSEvent::checkccebid(id)-1; 
+     if(ic>=0){
+      int16u *pdown=_pcur+_cll(_pcur)+2;
+      int16u *psafe=pdown;
+      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
+      AMSEvent::buildcceb(n,psafe);
+     }
+
+   }
 }
 }
 }
