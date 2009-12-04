@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.669 2009/12/04 13:15:47 choutko Exp $
+// $Id: job.C,v 1.670 2009/12/04 15:06:49 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1342,7 +1342,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.spares[2]=0;//(19)spare integers
   TFCAFFKEY.spares[3]=0;//(20)spare integers
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
-  TFCAFFKEY.plhec[0]=0.5;//(22)plow-cut for earth calibration
+  TFCAFFKEY.plhec[0]=0.3;//(22)plow-cut for earth calibration
   TFCAFFKEY.plhec[1]=15.;//(23)phigh-cut ...................
   TFCAFFKEY.bgcut[0]=0.58; //(24) beta*gamma low-cut to be around mip-region(abs.calib)
   TFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ..............................

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.83 2009/11/30 09:26:24 shaino Exp $
+//  $Id: trigger102.C,v 1.84 2009/12/04 15:06:50 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1279,7 +1279,7 @@ if((TGL1FFKEY.printfl%10)>0){
     printf(" ............. from A-side           : % 8d\n",daqc1[2]);
     printf(" ............. from B-side           : % 8d\n",daqc1[3]);
     printf(" ... with format(unkn/raw/comp/mix   : %8d %8d %8d %8d\n",daqc1[20],daqc1[21],daqc1[22],daqc1[23]);
-    printf(" ... NonDATA segments(fatal)         : % 8d\n",daqc1[24]);
+    printf(" ... NonDATA segments(?????)         : % 8d\n",daqc1[24]);
     printf(" ReplyStatus:  CRCerr  ASSMerr  AMSWerr  TimeOut FEPOWerr   SEQerr  CDPnode:\n");
    printf("             %8d %8d %8d %8d %8d %8d %8d\n",
                                  daqc1[25],daqc1[26],daqc1[27],daqc1[28],daqc1[29],daqc1[30],daqc1[31]); 
@@ -1681,7 +1681,7 @@ int cid=(len>>16)+1;
   TGL1JobStat::daqs1(20+datyp);//<=== count lvl1's format-types
   if(datyp==0){
     if(err2++<100)cerr<<" <---- TriggerLVL1::buildraw-E-Wrong format-type(!=raw|comp) !"<<endl;
-    //goto BadExit;//unknown format-type
+//    goto BadExit;//unknown format-type//tempor commented:dangerous fix of datyp=0 case
   }
 //
   if(!dataf){
@@ -1711,8 +1711,9 @@ int cid=(len>>16)+1;
 //    goto BadExit;//other errors(status bit will be set at lvl1-obj creation)
   }
 //
-  if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
-    || (jleng==52 && datyp==1))//MC/newRD(in RawFmt with datyp=1)
+  if(jleng==52)//tempor dangerous fix of datyp=0 case
+//  if((PreAssRD && jleng==52 && datyp==2)//RD PreAssPeriod(RawFmt but datyp=2!!!; jleng=52 due to 2 empty-words)
+//    || (jleng==52 && datyp==1))//MC/newRD(in RawFmt with datyp=1)
   {
     pattbias=0;//bias to patt. sub-block
     trgsbias=15;//bias to trig-setup sub-block(points to PREVIOUS to the 1st sub-block word)
@@ -1720,7 +1721,8 @@ int cid=(len>>16)+1;
     formt=1;//means real raw fmt
     if(PreAssRD && jleng==52 && datyp==2)LTwinv=true;//invert for 2008 data
   }
-  else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
+  else if(AMSJob::gethead()->isRealData() && (datyp==2 || datyp==0)){//tempor dangerous fix of datyp=0 case
+//  else if(AMSJob::gethead()->isRealData() && datyp==2){//futur RD in true compr.format
     pattbias=0;//bias to patterns sub-block
     trgsbias=12;//bias to trig-setup sub-block(points to 1st readout-status word)
     formt=2;//means real compr fmt
@@ -2035,7 +2037,7 @@ int cid=(len>>16)+1;
     TGL1JobStat::daqs1(10);//wrong segment length
     if((TGL1FFKEY.printfl/10)>=1)cout<<"<---- Trigger2LVL1::buildraw: length error, LengInCall="
                                               <<jleng<<" CalcLeng="<<lencalc<<" datyp="<<datyp<<endl;
-    //goto BadExit;
+    goto BadExit;
   }
 //================================> TrigSetup block decoding(RawFmt- every event,CompFmt- beg.of.run):
 //  CP/CT/BZ-inp-masks are not stored in Lvl1TrigConfig-object for the moment, so the related 

@@ -177,7 +177,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   p=p-1;//to follow VC-convention
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
-  if(newdataf){//will not be implemented ???
+  if(newdataf){
     cdpmsk2=*(p+jleng-1);
     cdpmsk1=*(p+jleng-2);
   }
@@ -1687,8 +1687,8 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   int16u nwslot[ECEDRS];
 //
   bool newdataf(false);
-//  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
-//  else newdataf=false;
+  if(DAQCFFKEY.DAQVersion==1)newdataf=true;
+  else newdataf=false;
 //
   ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",ibl,0);

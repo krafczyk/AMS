@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.42 2009/11/27 11:41:55 choumilo Exp $
+//  $Id: daqs2block.C,v 1.43 2009/12/04 15:06:49 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -1235,6 +1235,7 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 	      if(dtyp==1){//tof
 	        ped=TOFBPeds::scbrped[il][ib].apeda(is);
 	        sig=TOFBPeds::scbrped[il][ib].asiga(is);
+//cout<<"---> TofAnode:L/B/S="<<il+1<<" "<<ib+1<<" "<<is+1<<" ped/sig="<<ped<<" "<<sig<<endl;
 		if(subtpedTof){
 		  if((adca-ped)>athr*sig)adca-=ped;
 		  else adca=0;
@@ -1243,6 +1244,7 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
 	      if(dtyp==2 ){//anti
                 ped=ANTIPeds::anscped[ib].apeda(is);
                 sig=ANTIPeds::anscped[ib].asiga(is);
+//cout<<"---> AccAnode:B/S="<<ib+1<<" "<<is+1<<" ped/sig="<<ped<<" "<<sig<<endl;
                 anthr=ANTI2SPcal::antispcal[ib].getdqthr();//tempor is not side-individual !!!
 		if(subtpedAcc){
 		  if((adca-ped)>anthr*sig)adca-=ped;

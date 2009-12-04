@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.67 2009/11/27 11:41:55 choumilo Exp $
+//  $Id: tofrec02.C,v 1.68 2009/12/04 15:06:50 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -187,7 +187,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
       nstdc=ptr->getstdc(stdc);
       adca=ptr->getadca();
       nadcd=ptr->getadcd(adcd);
-      TOF2JobStat::addch(chnum,12);
+      TOF2JobStat::addch(chnum,12);//count channel entries
 //---> check FTtime info in related crat/slot :
       ptr->updhwidt(FTSchan[crat][tsens-1]);//add to hwidt missing info on FT/sHT/sSHT inp.ch.numb
       nftdc=TOF2RawSide::FThits[crat][tsens-1];

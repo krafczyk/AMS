@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.41 2009/11/27 11:41:55 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.42 2009/12/04 15:06:49 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -817,8 +817,8 @@ void TofTmAmCalib::select(){  // calibr. event selection
 				                                 ){//use only 2-sided 
         ilay=(ptr->getntof())-1;
         ibar=(ptr->getplane())-1;
-//	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
-//	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
+	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
+	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
           ptr->getadca(ama);
           if((ama[0]>adcmin && ama[1]>adcmin)
 //	                     || ((ama[0]>adcmin || ama[1]>adcmin) && PMEQmode)
@@ -837,7 +837,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
             coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff(prev.calib)
             tmsd[ilay]=0.5*(tm[0]-tm[1]);// slew-noncorr. side time difference
             tmss[ilay]=0.5*(tm[0]+tm[1]);// .... side time sum
-            TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from Anode-ch)
+            TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//get slew-corrected time-diff for Tdelv-calib
 //            tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
 // --> some vars for ampl.cal:
             ltim[ilay]=ptr->gettime();//ampl-corr time(prev.calib)
@@ -858,7 +858,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
             for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma2[ilay][ip]=amdr[ip];
 //------
 	  }
-//	}
+	}
       }
     }
     ptr=ptr->next();
@@ -976,7 +976,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
   }
 //
   TOF2JobStat::addre(14);
-//------>
+//------> prepare times for Tzslw-calib:
   number times[TOF2GC::SCLRS];
 //
   ftdel=TOF2Varp::tofvpar.ftdelf()+40;//tempor incr by 40 to have mean instead of min
@@ -1233,7 +1233,7 @@ Nextp:
     TOF2JobStat::addre(29);
 //===============================================
 //
-//--------> more accurate TOF-beta fit :
+//--------> more accurate TOF-beta fit(still using prev.calib times) :
 //
     bool TofBetaFitOK(true);
     betof=1;
@@ -1275,7 +1275,7 @@ Nextp:
         HF1(1511,tzer,1.);
 }
       }
-      TofBetaFitOK=(chsq<15. && betof>0.4 && betof<1.3);//check on chi2/beta
+      TofBetaFitOK=(chsq<25. && betof>0.4 && betof<1.3);//check on chi2/beta
     }//--->endof "normal calib" mode check(imply 4 layers)
 //
     if(!TofBetaFitOK && !IgnoreCut)return;
@@ -1312,6 +1312,62 @@ Nextp:
     }
     IonEvent=(meanedep > edecut); 
     if(IonEvent)TOF2JobStat::addre(31);
+//=======================================================
+//
+// ---> look at mass/beta*gam :
+//
+    number betg(4.);//default p/m(no momexist)
+    number massq,mcut[2];
+    geant prcut[2]={-10.,10.};//cuts on mass**2
+    geant mucut[2]={-0.5,0.5};
+    geant amt;
+    integer id;
+    if(TFCAFFKEY.caltyp==0){// space (prot) calibr.
+      mcut[0]=prcut[0];
+      mcut[1]=prcut[1];
+    }
+    else{                    // earth (mu) calibr.
+      mcut[0]=mucut[0];
+      mcut[1]=mucut[1];
+    }
+//
+    massq=imass*imass;//implied m**2(if no mom.measurement)
+    badx=0;
+    bady=0;
+    if(MomMeasExist){
+      massq=pmom*pmom*(1.-betof*betof)/betof/betof;//measured(TOFvsTRK) mass**2
+      betg=pmom/imass;//use "tracker-defined" betg
+      if(TFCAFFKEY.hprintf>1){ 
+#pragma omp critical (hf1)
+{
+        HF1(1225,geant(massq),1.);
+        if(betof<0.92)HF1(1226,geant(massq),1.);
+        HF1(1227,geant(betg),1.);
+}
+#pragma omp critical (hf2)
+{
+        HF2(1228,geant(pmom),geant(betof),1.);
+}
+      }
+//
+      if(TFCAFFKEY.hprintf>1){ 
+        for(il=0;il<TOF2GC::SCLRS;il++){
+          ib=brnl[il];
+          id=100*(il+1)+ib+1;
+          amt=am1[il]+am2[il];
+          if(id==TofTmAmCalib::rbls[1]){
+#pragma omp critical (hf2)
+{
+	    HF2(1229,geant(betg),amt,1.);//Atot vs bg(ref.bar type=2)
+}
+	  }
+        }
+      }
+//
+      if(massq<mcut[0] || massq>mcut[1])badx=1;
+      if(betg<TFCAFFKEY.bgcut[0] || betg>TFCAFFKEY.bgcut[1])bady=1;
+    }//--->endof "MomMeasExist" check
+//
 //=======================================================
 //
 // -----> prepare/fill arrays for TZSL-calibration:
@@ -1459,7 +1515,7 @@ SkipTzsl:
     }//--->endof layer loop
 //-------
     if(PMEQmode)return;//<===== All is done for PMEquilisation mode
-//-------
+//-----------------------
 //
 // ---> Normalize low beta Edep to MIP(p/m=4) :
 //
@@ -1468,60 +1524,8 @@ SkipTzsl:
       am2[il]*=betnor;
     }
 //
-// ---> look at mass/beta*gam :
-//
-    number betg(4.);//default p/m(no momexist)
-    number massq,mcut[2];
-    geant prcut[2]={-10.,10.};//cuts on mass**2
-    geant mucut[2]={-0.3,0.3};
-    geant amt;
-    integer id;
-    if(TFCAFFKEY.caltyp==0){// space (prot) calibr.
-      mcut[0]=prcut[0];
-      mcut[1]=prcut[1];
-    }
-    else{                    // earth (mu) calibr.
-      mcut[0]=mucut[0];
-      mcut[1]=mucut[1];
-    }
-//
-    massq=imass*imass;//implied m**2(if no mom.measurement)
-    badx=0;
-    bady=0;
-    if(MomMeasExist){
-      massq=pmom*pmom*(1.-betof*betof)/betof/betof;//measured(TOFvsTRK) mass**2
-      betg=pmom/imass;//use "tracker-defined" betg
-      if(TFCAFFKEY.hprintf>1){ 
-#pragma omp critical (hf1)
-{
-        HF1(1225,geant(massq),1.);
-        if(betof<0.92)HF1(1226,geant(massq),1.);
-        HF1(1227,geant(betg),1.);
-}
-#pragma omp critical (hf2)
-{
-        HF2(1228,geant(pmom),geant(betof),1.);
-}
-      }
-//
-      if(TFCAFFKEY.hprintf>1){ 
-        for(il=0;il<TOF2GC::SCLRS;il++){
-          ib=brnl[il];
-          id=100*(il+1)+ib+1;
-          amt=am1[il]+am2[il];
-          if(id==TofTmAmCalib::rbls[1]){
-#pragma omp critical (hf2)
-{
-	    HF2(1229,geant(betg),amt,1.);//Atot vs bg(ref.bar type=2)
-}
-	  }
-        }
-      }
-//
-      if(massq<mcut[0] || massq>mcut[1])badx=1;
-      if(betg<TFCAFFKEY.bgcut[0] || betg>TFCAFFKEY.bgcut[1])bady=1;
-    }//--->endof "MomMeasExist" check
-//
+// ---> check mass/beta*gam for abs.normalization calib:
+// 
     if(badx!=0 && !IgnoreCut)return;//fail m**2 cut
     TOF2JobStat::addre(38);
     if(bady!=0 && !IgnoreCut)return;//fail bet*gam(mip) cut
@@ -2081,10 +2085,10 @@ void TofTmAmCalib::initam(){ // ----> initialization for AMPL-calibration
   }
 //
   if(TFCAFFKEY.hprintf>1){
-    HBOOK1(1225,"Mass**2",80,-1.,19.,0.);
-    HBOOK1(1226,"Mass**2 for beta<0.92",80,-1.,19.,0.);
+    HBOOK1(1225,"Mass**2",80,-1.,7.,0.);
+    HBOOK1(1226,"Mass**2 for beta<0.92",80,-1.,7.,0.);
     HBOOK1(1227,"Momentum/impl.mass(beta*gamma)",80,0.,24.,0.);
-    HBOOK2(1228,"My TOF-beta vs TrkTrack-momentum",80,0.,4.,60,0.5,1.1,0.);
+    HBOOK2(1228,"My TOF-beta vs TrkTrack-momentum",80,0.,4.,70,0.5,1.2,0.);
     HBOOK2(1229,"Q(ref.btyp=2) vs (beta*gamma)",80,0.,40.,60,0.,300.,0.);
   }
 //

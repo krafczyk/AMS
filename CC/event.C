@@ -2244,7 +2244,7 @@ void AMSEvent::_retofinitrun(){
 //----
 void AMSEvent::_reantiinitrun(){
   static bool accswap(false);
-  if(AMSEvent::gethead()->getrun()<1211886677){
+  if(AMSEvent::gethead()->getrun()<1211886677 && AMSJob::gethead()->isRealData()){
     if(!accswap){
       cout<<"======================================================"<<endl;
       cout<<"========> ACC de-swapping is ON starting from run "<<AMSEvent::gethead()->getrun()<<endl;

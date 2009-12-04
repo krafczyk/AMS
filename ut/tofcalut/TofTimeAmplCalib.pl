@@ -349,7 +349,7 @@ $cfloc_lab=$set_fram->Label(-text=>"CFloc(lqdpc):",-font=>$font2,-relief=>'groov
                                                     ->place(
 						    -relwidth=>0.25, -relheight=>$drh2,
                                                     -relx=>0.4, -rely=>($shf2+4*$drh2));
-$cfilesloc="10111";
+$cfilesloc="10101";
 $cfloc_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
                                                -background=>yellow,
                                                -font=>$font3,
@@ -1312,7 +1312,7 @@ sub SetDefaultPars
 # remove "0"s to use in job-script:
 #  $jpar1 =~ s/0//;
 #---
-  $refvelosity=0.999;#def
+  $refvelocity=0.999;#def
   if($magstext eq "MagnetON"){
     $jpar7=1;
     $refvel_state="disabled";
@@ -1326,13 +1326,14 @@ sub SetDefaultPars
     $usetrd_state="normal";
     $usetrd_bt->configure(-state=>$usetrd_state);
     if($posstext eq "InSpace"){
-      $refvelosity=0.996;#protons
+      $refvelocity=0.996;#protons
       $jpar4=0;
     }
     else{
-      $refvelosity=0.992;#muons
+      $refvelocity=0.992;#muons
       $jpar4=1;
     }
+    $rvel_ent->configure(-state=>$refvel_state);
   }
 #-------------
   $refcfl_om->configure(-options => [@RefCflistList]);
@@ -1380,7 +1381,7 @@ sub SetupJob
   $jpar3=$refcalsetn;# ref TofClfile number
   if($posstext eq "InSpace"){$jpar4=0;}# space/earth calib
   else{$jpar4=1;}
-  $jpar5=$refvelosity;# ref beta
+  $jpar5=$refvelocity;# ref beta
   if($magstext eq "MagnetON"){# trk+trd usage mode
     $jpar6=1;# trk+mom.check
   }
@@ -3438,7 +3439,7 @@ sub ocontr_addrefset
   my @RefCflistFile=();
   my $badsel=0;
 #
-  show_mesg("\n   <------ Trying to create new RefCalibSet ...");
+  show_messg("\n   <------ Trying to create new RefCalibSet ...");
   if($MatchCFSets==0){
     show_warn("\n   <--- There is no any matched CalFiles sets - New RefSet can't be created !!!");
     goto BadRet;
