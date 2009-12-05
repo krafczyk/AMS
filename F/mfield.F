@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.34 2009/12/04 13:15:51 choutko Exp $
+*  $Id: mfield.F,v 1.35 2009/12/05 11:37:12 shaino Exp $
 
 
       subroutine readmfield_rphi
@@ -685,6 +685,7 @@ c      end
       data init/0/ 
       data hint/0,0,0/
       data hintc/0,0,0/
+      data bcorr/-1/
       DIMENSION B(3),VV(3),AVV(3)
         if(rphi.eq.0)then
         do i=1,2
@@ -1304,7 +1305,6 @@ c                   x1(3)=x1(3)*xc(8)
 
           subroutine setbcorr(bcor)
 #      include "mfield.h"
-          data bcorr/-1/
           real bcor
           bcorr=bcor
           end
