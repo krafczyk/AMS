@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.6 2009/11/19 10:07:43 shaino Exp $ 
+/// $Id: TrCluster.C,v 1.7 2009/12/05 10:57:56 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/11/19 10:07:43 $
+/// $Date: 2009/12/05 10:57:56 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,7 @@ TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
 int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
-int      TrClusterR::DefaultUsedStrips = 3;
+int      TrClusterR::DefaultUsedStrips = 2;
 
 TrClusterR::TrClusterR(void) {
   Clear();
