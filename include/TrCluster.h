@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2009/12/06 12:08:19 $
+ $Date: 2009/12/06 22:49:26 $
 
- $Revision: 1.5 $
+ $Revision: 1.6 $
 
 */
 
@@ -108,6 +108,10 @@ public:
   /// Default number of strips used for CofG
   static int DefaultUsedStrips;
 
+  /// _dxdz threshold for 2/3-steip CofG
+  static float TwoStripThresholdX;
+  /// _dydz threshold for 2/3-steip CofG
+  static float TwoStripThresholdY;
  
  public:
   

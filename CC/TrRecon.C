@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.23 2009/12/06 12:08:12 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.24 2009/12/06 22:49:20 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/12/06 12:08:12 $
+/// $Date: 2009/12/06 22:49:20 $
 ///
-/// $Revision: 1.23 $
+/// $Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1609,9 +1609,6 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (!cont) return 0;
-  int fit_method=TrTrackR::DefaultFitID;
-  if (!MagFieldOn())
-    fit_method = TrTrackR::kLinear;
 
   // Create a new track
 #ifndef __ROOTSHAREDLIBRARY__
@@ -1666,12 +1663,36 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   track->SetPatterns(TrRecon::GetHitPatternIndex(maskc), itcand.pattern,
                      TrRecon::GetHitPatternIndex(maskc));
 
+  // 1st. step Fit
+  int fit_method = (MagFieldOn()) ? TrTrackR::kAlcaraz
+                                  : TrTrackR::kLinear;
   track->Fit(fit_method);
   
-  if (!MagFieldOn())
-    track->Settrdefaultfit(TrTrackR::kLinear);
+  // Get interpolated posisions/dirs
+  double zhit[8];
+  AMSDir dtrk[8];
+  for (int i = 0; i < track->GetNhits(); i++)
+    zhit[i] = track->GetHit(i)->GetCoord().z();
+  track->Interpolate(track->GetNhits(), zhit, 0, dtrk, 0, fit_method);
 
-  else {  // AdvancedFit should be done only with B field
+  // Set cluster angles and re-build coordinates
+  for (int i = 0; i < track->GetNhits(); i++) {
+    TrRecHitR  *hit  = track->GetHit(i);
+    TrClusterR *xcls = hit->GetXCluster();
+    TrClusterR *ycls = hit->GetYCluster();
+    if (xcls) { xcls->SetDxDz(dtrk[i].x()/dtrk[i].z());
+                xcls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
+    if (ycls) { ycls->SetDxDz(dtrk[i].x()/dtrk[i].z());
+                ycls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
+    hit->BuildCoordinates();
+  }
+
+  // 2nd. step Fit
+  if (!MagFieldOn()) {
+    track->Fit(fit_method);
+    track->Settrdefaultfit(fit_method);
+  }
+  else {
     if(track->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
     } else {
@@ -1681,20 +1702,9 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     }
   }  
 
-
   cont->addnext(track);
   TR_DEBUG_CODE_42;
 
-  // fill cluster angles
-  for (int i = 0; i<track->GetNhits(); i++) {
-    TrRecHitR *hit = track->GetHit(i);
-    hit->GetCoord().z();
-    track->GetTrFit()->Propagate(hit->GetCoord().z());
-    if (hit->GetXCluster()!=0) hit->GetXCluster()->SetDxDz(track->GetTrFit()->GetDxDz()); 
-    if (hit->GetXCluster()!=0) hit->GetXCluster()->SetDyDz(track->GetTrFit()->GetDyDz());
-    if (hit->GetYCluster()!=0) hit->GetYCluster()->SetDxDz(track->GetTrFit()->GetDxDz());
-    if (hit->GetYCluster()!=0) hit->GetYCluster()->SetDyDz(track->GetTrFit()->GetDyDz());
-  }
   delete cont;
   return 1;
 }

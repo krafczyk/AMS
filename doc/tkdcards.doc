@@ -28,22 +28,24 @@ R 14 Threshold on the S/K Correlation probability
 R 15 Threshold on the S/K Correlation probability
 I 16 Signal correction option (TrClusterR::DefaultCorrOpt)
 I 17 Default number of strips for CofG (TrClusterR::DefaultUsedStrips)
-I 18 MaxNrawCls
-I 19 MaxNtrCls
-I 20 MaxNtrHit
-I 21 MaxNtrack        (Default: 2)
-I 22 MinNhitX         (Default: 4)
-I 23 MinNhitY         (Default: 5)
-I 24 MinNhitXY        (Default: 4)
-I 25 PatAllowOption   (NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4, Default=0)
-R 26 MaxChisqAllowed  (Default: 300)
-R 27 LadderScanRange  (Default: 7.3)
-R 28 ClusterScanRange (Default: 0.5)
-R 29 MaxChisqForLScan (Default: 2.2)
-R 30 ErrXForScan      (Default: 300e-4)
-R 31 ErrYForScan      (Default: 300e-4)
-I 32 TrDEBUG
-I 33 PZDEBUG
+R 18 _dxdz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdX)
+R 19 _dydz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdY)
+I 20 MaxNrawCls
+I 21 MaxNtrCls
+I 22 MaxNtrHit
+I 23 MaxNtrack        (Default: 2)
+I 24 MinNhitX         (Default: 4)
+I 25 MinNhitY         (Default: 5)
+I 26 MinNhitXY        (Default: 4)
+I 27 PatAllowOption   (NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4, Default=0)
+R 28 MaxChisqAllowed  (Default: 300)
+R 29 LadderScanRange  (Default: 7.3)
+R 30 ClusterScanRange (Default: 0.5)
+R 31 MaxChisqForLScan (Default: 2.2)
+R 32 ErrXForScan      (Default: 300e-4)
+R 33 ErrYForScan      (Default: 300e-4)
+I 34 TrDEBUG
+I 35 PZDEBUG
 //==============================
 
 

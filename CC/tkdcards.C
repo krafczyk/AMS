@@ -42,8 +42,11 @@ void TRCLFFKEY_DEF::init(){
   GGpars[5]  = 0.0972;
   GGintegral = 91765.;
   ThrProb    = 0;//0.00001;
+
   ClusterSigCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
-  ClusterCofGUsedStrips = 2;
+  ClusterCofGUsedStrips = -1;
+  TwoStripThresholdX    = 0.70;  // tan(35deg)
+  TwoStripThresholdY    = 0.36;  // tan(20deg)
 
   MaxNrawCls = 200;
   MaxNtrCls  = 150;

@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.8 2009/12/06 12:08:12 shaino Exp $ 
+/// $Id: TrCluster.C,v 1.9 2009/12/06 22:49:20 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/12/06 12:08:12 $
+/// $Date: 2009/12/06 22:49:20 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,9 @@ TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
 int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
-int      TrClusterR::DefaultUsedStrips = 2;
+int      TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
+float    TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
+float    TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
 
 TrClusterR::TrClusterR(void) {
   Clear();
@@ -124,10 +126,10 @@ void TrClusterR::Clear() {
   _nelem   =   0;
   _seedind =   0;
   _signal.clear();
-  Status  =   0;
+  Status   =   0;
   _mult    =   0;
-  _dxdz    = 100;
-  _dydz    = 100;
+  _dxdz    =   0;  // vertical inclination by default 
+  _dydz    =   0;  // vertical inclination by default 
   _coord.clear();
   _gcoord.clear();
 }
@@ -240,6 +242,11 @@ void TrClusterR::GetBounds(int &leftindex, int &rightindex,int nstrips, int opt)
 }
 
 float TrClusterR::GetCofG(int nstrips, int opt) {
+  if (nstrips==-1) {
+    nstrips = 2;
+    if (GetSide() == 0 && fabs(_dxdz) > TwoStripThresholdX) nstrips = 3;
+    if (GetSide() == 1 && fabs(_dydz) > TwoStripThresholdY) nstrips = 3;
+  }
   if (nstrips==1) return 0.;
   int leftindex; 
   int rightindex;
