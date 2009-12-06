@@ -1,4 +1,4 @@
-// $Id: tkdisplay.cpp,v 1.3 2009/11/23 21:27:31 shaino Exp $
+// $Id: tkdisplay.cpp,v 1.4 2009/12/06 12:30:20 shaino Exp $
 #include <QtGui>
 #include <QFileDialog>
 
@@ -163,6 +163,12 @@ void TkDisplay::errorMsg(int level, bool abort,
   }
 }
 
+void TkDisplay::setAnime(int anime)
+{
+  ui.cbAnime->setCurrentIndex(anime);
+  changeAnime(ui.cbAnime->currentText());
+}
+
 void TkDisplay::updateFormula(QString scut)
 {
   if (!amsChain) return;
@@ -252,8 +258,8 @@ void TkDisplay::Info()
 		    "   event display</h3>"
 		    "<p>by S.Haino <br>"
 		    "   (Sadakazu.Haino@pg.infn.it)</p>"
-		    "<p>CVS $Revision: 1.3 $<br>"
-		    "   CVS $Date: 2009/11/23 21:27:31 $</p>"
+		    "<p>CVS $Revision: 1.4 $<br>"
+		    "   CVS $Date: 2009/12/06 12:30:20 $</p>"
 		    "<p>Compiled: <br> at %1 on %2</p>"
 		    "<p>Qt version: %3</p>"
 		    "<p>ROOT version: %4</p>").arg(

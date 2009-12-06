@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.2 2009/11/19 10:18:47 shaino Exp $
+// $Id: tkdisplay.h,v 1.3 2009/12/06 12:30:20 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -22,6 +22,8 @@ public:
 
   void openFile(QString fname, int entry = 0);
   void errorMsg(int level, bool abort, const char *loc, const char *msg);
+
+  void setAnime(int anime);
 
   bool getTFError() const { return tfError; }
 
