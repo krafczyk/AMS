@@ -22,7 +22,10 @@
 
 using namespace std;
 
+enum { PREINT = 1, FLIGHT = 2 };
+
 void alignfit(const char *fname, const char *oname, const char *dbc,
+	      Double_t csqmax = 100, Int_t setup = FLIGHT, 
 	      Int_t recalc = 1, Int_t nevt = 0)
 {
   AMSChain ch;
@@ -54,27 +57,17 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
   cout << nevt << " events to process" << endl;
 
-  Double_t csqmax = 100;
-
   Int_t nfill = 0;
   Int_t intv  = 10000;
 
+  Double_t cmx = csqmax;
+  Double_t cmy = csqmax;
+  if (setup == FLIGHT) {
+    cmx = csqmax*300*300/34/34;
+    cmy = csqmax*300*300/20/20;
+  }
+
   for (Int_t i = 0; i < nevt; i++) {
-    AMSEventR *evt = ch.GetEvent();
-    if (evt->NTrTrack() != 1) continue;
-
-    if (initdbc) {
-      TkDBc::Head->init((char*)dbc);
-      initdbc = 0;
-
-      // Sensor alignment
-      if (recalc && tks != "")
-	TkDBc::Head->readAlignmentSensor(tks);
-    }
-
-    TrParDB::Head->_asymmetry[0] = 0.027;
-    TrParDB::Head->_asymmetry[1] = 0.034;
-
     if (i > 0 && i%intv == 0) {
       Double_t tm = timer.RealTime();
       timer.Continue();
@@ -82,15 +75,27 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 		   nfill, i, 100.*i/nevt, tm, 1e-3*i/tm) << endl;
     }
 
+    AMSEventR *evt = ch.GetEvent();
+    if (evt->nTrTrack() != 1) continue;
+
+    if (initdbc) {
+      TkDBc::Head->init(setup, (char*)dbc);
+      initdbc = 0;
+
+      // Sensor alignment
+      if (recalc && tks != "") {
+	ifstream ftmp(tks);
+	if (ftmp.good())
+	  TkDBc::Head->readAlignmentSensor(tks);
+      }
+    }
+
+    TrParDB::Head->_asymmetry[0] = 0.027;
+    TrParDB::Head->_asymmetry[1] = 0.034;
+
     TrTrackR *trk = evt->pTrTrack(0);
 
-/*
-    cout << evt->fHeader.Event << " ";
-    cout << trk->GetNhits() << " " << trk->GetNhitsXY() << " "
-	 << trk->GetChisqX() << " " << trk->GetChisqY() << endl;
-*/
-
-    if (trk->GetChisqX() > csqmax || trk->GetChisqY() > csqmax) continue;
+    if (trk->GetChisqX() > cmx || trk->GetChisqY() > cmy) continue;
 
     Float_t arr[7][8];
     for (Int_t j = 0; j < 8*7; j++) arr[j/8][j%8] = 0;
@@ -103,15 +108,6 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
       TrRecHitR *hit = trk->GetHit(j);
       if (!hit) continue;
 
-/*
-      cout << Form("  %d %4d %d%d %8.5f %8.5f",
-		   j, hit->GetTkId(), 
-		   (hit->getstatus() & XONLY) ? 1 : 0,
-		   (hit->getstatus() & YONLY) ? 1 : 0,
-		   trk->GetResidual(j, trk->trdefaultfit).x(),
-		   trk->GetResidual(j, trk->trdefaultfit).y()) << endl;
-*/
-
       if ((hit->getstatus() & XONLY) ||
 	  (hit->getstatus() & YONLY)) continue;
 
@@ -122,8 +118,9 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
       AMSPoint co0 = hit->GetCoord();
 
-      AMSPoint coo = (recalc) ? hit->GetGlobalCoordinate(hit->_imult)
-	                      : hit->GetCoord();
+      AMSPoint coo = (recalc) 
+	? hit->GetGlobalCoordinate(hit->GetResolvedMultiplicity())
+	: hit->GetCoord();
 
       if (recalc) {
 	Double_t xtk = hit->GetLayer()+(tkid%100+0.5)/32;
@@ -158,7 +155,7 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 }
 
 void alignfit(const char *fname, const char *dbc,
-	      Int_t nevt = 0, Float_t skip = 0)
+	      Int_t setup = FLIGHT, Int_t nevt = 0, Float_t skip = 0)
 {
   ifstream fin(fname);
   if (!fin) {
@@ -171,9 +168,11 @@ void alignfit(const char *fname, const char *dbc,
   if (TrAlignFit::fNameOut == fname) TrAlignFit::fNameOut = "alignfit.root";
 
   // Initialize TKDBc
-  TkDBc::CreateTkDBc();
-  if (dbc && dbc[0]) TkDBc::Head->init(dbc);
-  else TkDBc::Head->init();
+  if (!TkDBc::Head) {
+    TkDBc::CreateTkDBc();
+    if (dbc && dbc[0]) TkDBc::Head->init(setup, dbc);
+    else TkDBc::Head->init();
+  }
 
   TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
@@ -224,9 +223,15 @@ void alignfit(const char *fname, const char *dbc,
 	nlay++;
 
 	// Mask missing ladders
-      //if (tkid == 410 || tkid == 614 || tkid == -807 || tkid == 815) {
-	if (tkid == 410 || tkid == -807) {
-	  for (Int_t k = 0; k < 9; k++) arr[k][j] = 0;
+	if (setup == PREINT) {
+	  if (tkid == 410 || tkid == -807) {
+	    for (Int_t k = 0; k < 9; k++) arr[k][j] = 0;
+	  }
+	}
+	else if (setup == FLIGHT) {
+	  if (tkid == 405) {
+	    for (Int_t k = 0; k < 9; k++) arr[k][j] = 0;
+	  }
 	}
       }
     }
@@ -275,5 +280,15 @@ void alignfit(const char *fname, const char *dbc,
   if (dname == "tkdbc.dat" || dname == fname) dname = "tkdbc.dat.new";
 
   TkDBc::Head->write(dname.Data());
+}
+
+void alignfit(const char *fname, Int_t setup = FLIGHT)
+{
+  TString dbc = "tkdbc.dat";
+  TString alf = "alignfit.dat";
+
+  Double_t csqmax = 100;
+  alignfit(fname, alf, dbc, csqmax, setup);
+  alignfit(alf, dbc, setup);
 }
 

@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.1 2009/06/10 09:16:52 shaino Exp $
+// $Id: TrAlignFit.C,v 1.2 2009/12/06 12:06:15 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2009/06/10 09:16:52 $
+///$Date: 2009/12/06 12:06:15 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -626,7 +626,8 @@ void TrAlignFit::Fit(void)
       if (FitPoints() < 0) continue;
 
       for (Int_t i = 0; i < 2; i++) {
-	if (fChisq[i] < fMaxChisq || iter < fMinIter) {
+	if (fChisq[i] < fMaxChisq ||
+	   (fChisq[i] < fMaxChisq*10 && iter < fMinIter)) {
 	  FillHists(i);
 	  chisqsum += fChisq[i];
 	  ntot++;
