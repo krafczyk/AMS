@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.572 2009/12/04 13:15:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.573 2009/12/06 12:25:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2670,7 +2670,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("RunID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("RunID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECTrun, jid, fevent, levent, submit, status FROM $datamc"."Runs
+                $sql = "SELECT run, jid, fevent, levent, submit, status FROM $datamc"."Runs
                           WHERE run>=$runmin AND run<=$runmax
                           ORDER BY run";
             } else {

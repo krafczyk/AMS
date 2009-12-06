@@ -3768,7 +3768,7 @@ return av/4;
 
 geant AMSEvent::CCEBPar::getBCorr()const{
 if(BOK()){
-      geant corr=getBAv()/5.47; // Only valid for 230A map file to be f
+      geant corr=getBAv()/5.47/MAGSFFKEY.fscale; // Only valid for 230A map file to be f
       return corr;     
 }
 else return -3;
@@ -3893,10 +3893,9 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                 }
 #pragma omp critical (rec)
 {               
-                for (int k=rec;k<sizeof(ArrayC)/sizeof(ArrayC[0]);k++){
+                for (int k=sizeof(ArrayC)/sizeof(ArrayC[0])-1;k>=rec;k--){
                 if(AMSEvent::gethead())ArrayC[k].Time=AMSEvent::gethead()->gettime();
-                else ArrayC[k].Time=(*(p-1)) |  (*(p))<<16;
-
+                else ArrayC[k].Time=(*(p-1)) |  (*(p))<<16;     //tbfixed
                 for(int i=0;i<4;i++){
                   ArrayC[k].T[i]=bt[i][3];
                   ArrayC[k].B[0][i]=bt[i][0];
@@ -3904,13 +3903,15 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                   ArrayC[k].B[2][i]=bt[i][1];
                 }
                 }
+                cout <<"AMSEvent::buildcceb-I-RecordFilled "<<rec<<" "<<ArrayC[rec].Time<<endl;
                 rec=(rec+1)%(sizeof(ArrayC)/sizeof(ArrayC[0]));
-
-                cout <<"AMSEvent::buildcceb-I-RecordFilled "<<rec<<endl;
 
                 if(rec==0){
                   AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("CCEBPar",AMSJob::gethead()->isRealData()));
-                if(ptdv){
+                int diff=ArrayC[sizeof(ArrayC)/sizeof(ArrayC[0])-1].Time-ArrayC[0].Time;
+                bool ok=diff>0 && diff<86400;
+                
+                if(ptdv && ok){
                   ptdv->UpdateMe()=1;
                   ptdv->UpdCRC();
    time_t begin,end,insert;
@@ -3934,7 +3935,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                }
            }
        }
-               else cerr<<"AMSEvent::buildcceb-R-NoTDVFound "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData());
+               else cerr<<"AMSEvent::buildcceb-R-NoTDVFoundOrBadRecord "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData())<<" "<<diff<<endl;
 }
 }
 }

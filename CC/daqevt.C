@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.180 2009/12/04 19:24:20 choutko Exp $
+//  $Id: daqevt.C,v 1.181 2009/12/06 12:25:14 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1328,9 +1328,10 @@ integer DAQEvent::_HeaderOK(){
 
 
   }
-  cerr<<"DAQEvent::_HeaderOK-W-NoHeaderinEvent Type "<<_pData[1]<<" "<<((_pData[1]>>5)&511)<<" "<<_GetBlType()<<endl;
+  cerr<<"DAQEvent::_HeaderOK-W-NoHeaderinEvent Type "<<_pData[1]<<" "<<((_pData[1]>>5)&511)<<" "<<_GetBlType()<<" "<<_Time<<endl;
       _Checked=1;
- return 1;
+ if(_GetBlType()==0x1b)return 1;
+else return 0;
 }
 
 
@@ -1513,7 +1514,7 @@ void DAQEvent::buildRawStructures(){
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id) ){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)|| _iscceb(id) ){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
@@ -1582,7 +1583,7 @@ void DAQEvent::buildRawStructuresEarly(){
      }
     }
     }
-    else if( _iscceb(id)){
+    else if(0 && _iscceb(id)){
      int ic=AMSEvent::checkccebid(id)-1; 
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
