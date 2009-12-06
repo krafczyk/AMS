@@ -130,20 +130,25 @@ protected:
   /// Returns the signal of the Y cluster 
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
   /// Get X local coordinate (ladder reference frame)
-  float GetXloc(int imult = 0) { return (!GetXCluster())?TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult)
-                                                        :GetXCluster()->GetXCofG(3,imult); }
+  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips) {
+    return (!GetXCluster()) ? TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult)
+                            : GetXCluster()->GetXCofG(nstrips, imult); }
   /// Get Y local coordinate (ladder reference frame)
-  float GetYloc()              { return (!GetYCluster())?-1000.:GetYCluster()->GetXCofG(3);      }    
+  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips) { 
+    return (!GetYCluster()) ? -1000. : GetYCluster()->GetXCofG(nstrips); }
   /// Get local coordinate (ladder reference frame, Z is zero by definition)
-  AMSPoint GetLocalCoordinate(int imult = 0) { AMSPoint loc(GetXloc(imult),GetYloc(),0.); return loc; }	
+  AMSPoint GetLocalCoordinate(int imult = 0, 
+			      int nstripsx = TrClusterR::DefaultUsedStrips,
+			      int nstripsy = TrClusterR::DefaultUsedStrips) { 
+    return AMSPoint(GetXloc(imult, nstripsx), GetYloc(nstripsy),0.); }
   /// Get global coordinate (AMS reference system) 
   /// default: nominal position, A: with alignement correction
-  AMSPoint GetGlobalCoordinate(int imult = 0, char* options = "A");
-
+  AMSPoint GetGlobalCoordinate(int imult = 0, char* options = "A",
+			       int nstripsx = TrClusterR::DefaultUsedStrips,
+			       int nstripsy = TrClusterR::DefaultUsedStrips);
 
   bool OnlyX() {return checkstatus(XONLY);}
   bool OnlyY(){ return checkstatus(YONLY);}
-
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const{return Status & checker;}

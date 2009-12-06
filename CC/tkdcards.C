@@ -1,4 +1,5 @@
 #include "tkdcards.h"
+#include "TrCluster.h"
 #include <math.h>
 #include <float.h>
 
@@ -41,9 +42,12 @@ void TRCLFFKEY_DEF::init(){
   GGpars[5]  = 0.0972;
   GGintegral = 91765.;
   ThrProb    = 0;//0.00001;
+  ClusterSigCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
+  ClusterCofGUsedStrips = 2;
+
   MaxNrawCls = 200;
-  MaxNtrCls  = 200;
-  MaxNtrHit  = 150;
+  MaxNtrCls  = 150;
+  MaxNtrHit  = 100;
   //Track
   MaxNtrack = 4;
   MinNhitX  = 4;

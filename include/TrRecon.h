@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.12 2009/08/27 10:58:03 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.13 2009/12/06 12:08:19 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/08/27 10:58:03 $
+/// $Date: 2009/12/06 12:08:19 $
 ///
-/// $Revision: 1.12 $
+/// $Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -396,6 +396,7 @@ public:
 public:
   /// Structure of hit iterators
   typedef struct TrHitIterStruct {
+    int    mode;               ///< Scan mode (1: Ladder 2: Hit)
     int    pattern;            ///< Hit pattern of current scan
     int    side;               ///< Side of current scan
     int    nlayer;             ///< Number of layers to be scanned
@@ -434,22 +435,8 @@ public:
    *                    The other elements to be filled during the recursion.
    *
    *\param[out] itcand Iterator containing the best candidate found so far
-   *
-   *\param[in]  Coord  Static reentrant function with 3 modes; 
-   *                    mode=1: returns number of hit candidates.
-   *                    mode=2: sets multiplicity range
-   *                    mode=3: fills it.coo[idx] from it.iscan and it.imult
-   *
-   *\param[in]  Eval   Static reentrant function to evaluate the current 
-   *                    combination, to be called at the last of layer loop. 
-   *                    The second argument, itcand is to be filled 
-   *                    if the best candidate has been found. 
-   *  
-   * This function should be reentrant as far as 
-   *  Coord and Eval are also reentrant.
    */
   int ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const;
-  int ScanRecursiveL(int idx, TrHitIter &it, TrHitIter &itcand) const;
 
   /// Pre-selection (interpolation check) on the current scan
   bool PreScan(int nlay, TrHitIter &iter) const;

@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2009/08/19 14:36:04 $
+ $Date: 2009/12/06 12:08:19 $
 
- $Revision: 1.4 $
+ $Revision: 1.5 $
 
 */
 
@@ -99,12 +99,15 @@ class TrClusterR :public TrElem{
   static TrCalDB* _trcaldb;
   /// Pointer to the parameters database
   static TrParDB* _trpardb;
-  static int DefaultCorrOpt;
-  static int DefaultUsedStrips;
-
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
   
+public:
+  /// Default signal correction option
+  static int DefaultCorrOpt;
+  /// Default number of strips used for CofG
+  static int DefaultUsedStrips;
+
  
  public:
   

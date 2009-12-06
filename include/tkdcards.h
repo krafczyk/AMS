@@ -164,41 +164,46 @@ public:
   geant GGintegral ;//! 91765.;
   //! R 15 Threshold on the S/K Correlation probability
   geant ThrProb    ;//! 0.00001;
+  //! I 16 TrClusterR::DefaultCorrOpt
+  int ClusterSigCorrOpt;
+  //! I 17 TrClusterR::DefaultUsedStrips
+  int ClusterCofGUsedStrips;
+
   // HIT PARS
   //PRE-SELECTION PARS
-  //! I 16 MaxNrawCls (Not used)
+  //! I 18 MaxNrawCls (Not used)
   int MaxNrawCls ;// 200
-  //! I 17 MaxNtrCls
+  //! I 19 MaxNtrCls
   int MaxNtrCls  ;// 200
-  //! I 18 MaxNtrHit
+  //! I 20 MaxNtrHit
   int MaxNtrHit  ;// 150
   //TRACK PARS
-  //! I 19 MaxNtrack 
+  //! I 21 MaxNtrack 
   int    MaxNtrack ;//4
-  //! I 20 MinNhitX
+  //! I 22 MinNhitX
   int    MinNhitX  ;//4
-  //! I 21 MinNhitY
+  //! I 23 MinNhitY
   int    MinNhitY  ;//5
-  //! I 22 MinNhitXY
+  //! I 24 MinNhitXY
   int    MinNhitXY ;//4
-  //! I 23 PatAllowOption
+  //! I 25 PatAllowOption
   int    PatAllowOption ;//0
-  //! R 24 MaxChisqAllowed
+  //! R 26 MaxChisqAllowed
   float MaxChisqAllowed   ;//300
-  //! R 25  LadderScanRange
+  //! R 27  LadderScanRange
   float LadderScanRange   ;//7.3 = TkDBc::Head->_ladder_Ypitch
-  //! R 26 ClusterScanRange
+  //! R 28 ClusterScanRange
   float ClusterScanRange  ;//0.5
-  //! R 27 MaxChisqForLScan
+  //! R 29 MaxChisqForLScan
   float MaxChisqForLScan  ;//2.2
-  //! R 28 ErrXForScan
+  //! R 30 ErrXForScan
   float ErrXForScan       ;//300e-4
-  //! R 29 ErrYForScan
+  //! R 31 ErrYForScan
   float ErrYForScan       ;//300e-4
   //DEBUG
-  //! I 30 TrDEBUG (DEBUG on Track finding)
+  //! I 32 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 31 PZDEBUG
+  //! I 33 PZDEBUG
   int PZDEBUG ;
   void init();
 

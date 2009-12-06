@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.7 2009/12/05 10:57:56 shaino Exp $ 
+/// $Id: TrCluster.C,v 1.8 2009/12/06 12:08:12 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/12/05 10:57:56 $
+/// $Date: 2009/12/06 12:08:12 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +142,7 @@ void TrClusterR::BuildCoordinates() {
   // multiplicity calculation
   _mult    = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1;
   for (int imult=0; imult<_mult; imult++) {
-    float lcoo = GetXCofG(3,imult);
+    float lcoo = GetXCofG(DefaultUsedStrips,imult);
     _coord.push_back(lcoo);
     if (GetSide() == 0) _gcoord.push_back(TkCoo::GetGlobalA(_tkid, lcoo, TkDBc::Head->_ssize_active[1]/2).x());
     else                _gcoord.push_back(TkCoo::GetGlobalA(_tkid, TkDBc::Head->_ssize_active[0]/2, lcoo).y());

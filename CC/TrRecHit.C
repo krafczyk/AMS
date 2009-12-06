@@ -178,7 +178,8 @@ std::ostream &TrRecHitR::putout(std::ostream &ostr)  {
 }
 
 
-AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, char* options) {
+AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, char* options,
+					int nstripsx, int nstripsy) {
   // parsing options
   bool ApplyAlignement = false;
   char character = ' ';
@@ -189,7 +190,7 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, char* options) {
     cc++;
   }
   // calculation
-  AMSPoint loc = GetLocalCoordinate(imult);
+  AMSPoint loc = GetLocalCoordinate(imult, nstripsx, nstripsy);
   
   AMSPoint glo;
   if (!ApplyAlignement) {

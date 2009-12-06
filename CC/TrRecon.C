@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.22 2009/11/30 09:24:01 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.23 2009/12/06 12:08:12 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/11/30 09:24:01 $
+/// $Date: 2009/12/06 12:08:12 $
 ///
-/// $Revision: 1.22 $
+/// $Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -140,8 +140,8 @@ void TrRecon::Clear(Option_t *option) {
 }
 
 int TrRecon::MaxNrawCls = 200;
-int TrRecon::MaxNtrCls  = 100;
-int TrRecon::MaxNtrHit  =  50;
+int TrRecon::MaxNtrCls  = 150;
+int TrRecon::MaxNtrHit  = 100;
 
 // option is temporary, 0:No_reco 1:Up_to_TrCluster 2:Full
 int TrRecon::Build(int option)
@@ -1266,54 +1266,28 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
   return 1;
 }
 
-int TrRecon::ScanRecursiveL(int idx, TrHitIter &it, TrHitIter &itcand) const
-{
-  // Evaluate current candidates if idx has reached to the end
-  if (idx == it.nlayer) return LadderScanEval(it, itcand);
-
-  // Skip if current layer is disabled
-  int il = it.ilay[idx];
-  if (il < 0) return ScanRecursiveL(idx+1, it, itcand);
-
-  // Loop on hit candidates in the current layer
-  int nscan = LadderCoordMgr(idx, it, 1);
-  for (it.Iscan(il) = 0; it.Iscan(il) < nscan; it.Iscan(il)++) {
-
-    // Loop on multiplicities
-    int mlast = LadderCoordMgr(idx, it, 2);
-    for (; it.imult[il] <= mlast; it.imult[il]++) {
-      // Set coordinates
-      if (LadderCoordMgr(idx, it, 3) < 0) continue;
-
-      // Pre selection
-      if (!PreScan(idx, it)) continue;
-
-      // Go to the next layer
-      ScanRecursiveL(idx+1, it, itcand);
-    }
-    if (it.imult[il] > 0) it.imult[il]--;
-  }
-  return 0;
-}
-
 int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 {
   // Evaluate current candidates if idx has reached to the end
-  if (idx == it.nlayer) return HitScanEval(it, itcand);
+  if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it, itcand)
+                                              : HitScanEval   (it, itcand);
 
   // Skip if current layer is disabled
   int il = it.ilay[idx];
   if (il < 0) return ScanRecursive(idx+1, it, itcand);
 
   // Loop on hit candidates in the current layer
-  int nscan = HitCoordMgr(idx, it, 1);
+  int nscan = (it.mode == 1) ? LadderCoordMgr(idx, it, 1)
+                             : HitCoordMgr   (idx, it, 1);
   for (it.Iscan(il) = 0; it.Iscan(il) < nscan; it.Iscan(il)++) {
 
     // Loop on multiplicities
-    int mlast = HitCoordMgr(idx, it, 2);
+    int mlast = (it.mode == 1) ? LadderCoordMgr(idx, it, 2)
+                               : HitCoordMgr   (idx, it, 2);
     for (; it.imult[il] <= mlast; it.imult[il]++) {
       // Set coordinates
-      if (HitCoordMgr(idx, it, 3) < 0) continue;
+      if (it.mode == 1 && LadderCoordMgr(idx, it, 3) < 0) continue;
+      if (it.mode == 2 && HitCoordMgr   (idx, it, 3) < 0) continue;
 
       // Pre selection
       if (!PreScan(idx, it)) continue;
@@ -1327,7 +1301,6 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 }
 
 
-
 int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
 {
   // Clear the-best-candidate parameters
@@ -1336,7 +1309,8 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
 
   // Define and fill iterator
   TrHitIter it;
-  it.pattern = pattern; it.side = 1; it.psrange = LadderScanRange;
+  it.mode = 1; it.pattern = pattern; 
+  it.side = 1; it.psrange = LadderScanRange;
 
   // Loop on layers to check for an empty layer and fill iterator
   int nhitc = it.nlayer = 0;
@@ -1354,7 +1328,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   SetLayerOrder(it);
 
   // Scan ladder combination recursively
-  ScanRecursiveL(0, it, itcand);
+  ScanRecursive(0, it, itcand);
 
   // Return 1 if track has been found
   return (itcand.nlayer > 0);
@@ -1443,6 +1417,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 
   // Define and fill iterator
   TrHitIter it = itlad;
+  it.mode = 2;
   it.chisq[0] = it.chisq[1] = MaxChisqAllowed;
   it.psrange = ClusterScanRange;
   for (int i = 0; i < it.nlayer; i++) 

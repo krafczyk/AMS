@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.90 2009/12/03 14:45:52 pzuccon Exp $
+#  $Id: Makefile,v 1.91 2009/12/06 12:08:25 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -276,10 +276,12 @@ COMMON_FILES += $(SCC)root.C
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrCalDB.h     \
-		../include/patt.h       ../include/TkCoo.h  \
+		../include/patt.h       ../include/TkCoo.h  ../include/TkSens.h \
 	        ../include/TrRecon.h 	../include/TkDBc.h      \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
+		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \
+		../include/TrRecon.h ../include/TrFit.h \
 		../include/trrec.h \
 		../include/point.h  ../include/root_RV.h ../include/root.h  ../include/linkdef.h
 else

@@ -26,22 +26,24 @@ I [6,7] Min Distance between seeds S/K
 R [8 - 13] hit signal correlation (only muons/protons)
 R 14 Threshold on the S/K Correlation probability
 R 15 Threshold on the S/K Correlation probability
-I 16 MaxNrawCls
-I 17 MaxNtrCls
-I 18 MaxNtrHit
-I 19 MaxNtrack        (Default: 2)
-I 20 MinNhitX         (Default: 4)
-I 21 MinNhitY         (Default: 5)
-I 22 MinNhitXY        (Default: 4)
-I 23 PatAllowOption   (NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4, Default=0)
-R 24 MaxChisqAllowed  (Default: 300)
-R 25 LadderScanRange  (Default: 7.3)
-R 26 ClusterScanRange (Default: 0.5)
-R 27 MaxChisqForLScan (Default: 2.2)
-R 28 ErrXForScan      (Default: 300e-4)
-R 29 ErrYForScan      (Default: 300e-4)
-I 30 TrDEBUG
-I 31 PZDEBUG
+I 16 Signal correction option (TrClusterR::DefaultCorrOpt)
+I 17 Default number of strips for CofG (TrClusterR::DefaultUsedStrips)
+I 18 MaxNrawCls
+I 19 MaxNtrCls
+I 20 MaxNtrHit
+I 21 MaxNtrack        (Default: 2)
+I 22 MinNhitX         (Default: 4)
+I 23 MinNhitY         (Default: 5)
+I 24 MinNhitXY        (Default: 4)
+I 25 PatAllowOption   (NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4, Default=0)
+R 26 MaxChisqAllowed  (Default: 300)
+R 27 LadderScanRange  (Default: 7.3)
+R 28 ClusterScanRange (Default: 0.5)
+R 29 MaxChisqForLScan (Default: 2.2)
+R 30 ErrXForScan      (Default: 300e-4)
+R 31 ErrYForScan      (Default: 300e-4)
+I 32 TrDEBUG
+I 33 PZDEBUG
 //==============================
 
 
