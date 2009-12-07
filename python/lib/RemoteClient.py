@@ -396,7 +396,7 @@ class RemoteClient:
         else:
            sql="select disk from filesystems where isonline=1 and status='Active' and path like '%s%%' order by available desc" %(path)
         ret=self.sqlserver.Query(sql);
-        if(time.time()-cachetime < self.dbfsupdate() and len(ret)>0):
+        if(updatedb<2 and time.time()-cachetime < self.dbfsupdate() and len(ret)>0 ):
             return ret[0][0]
         if(path == ""):
            sql="select disk,host,status,allowed  from filesystems " 
@@ -740,10 +740,16 @@ class RemoteClient:
                     if(datamc==0):
                         uid=run.Run
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
-                    ret=self.sqlserver.Query(sql)
-                    if(len(ret)>0):
-                        print " deleting ",run.Run
-                        self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+                        ret=self.sqlserver.Query(sql)
+                        for ntuple in self.dbclient.dsts:
+                            if(self.dbclient.cn(ntuple.Status)=="Validated"):
+                                    if(ntuple.Run==run.Run):
+                                        self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                        print " deleting ntuple ",ntuple.Name
+                        if(len(ret)>0):
+                                print " deleting ",run.Run
+                                self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+                        
         if(self.deletebad):
               for run in self.dbclient.rtb:
                 if(run2p!=0 and run2p!=run.Run):
