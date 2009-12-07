@@ -740,15 +740,15 @@ class RemoteClient:
                     if(datamc==0):
                         uid=run.Run
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
-                        ret=self.sqlserver.Query(sql)
+                    ret=self.sqlserver.Query(sql)
+                    if(len(ret)>0):
                         for ntuple in self.dbclient.dsts:
                             if(self.dbclient.cn(ntuple.Status)=="Validated"):
-                                    if(ntuple.Run==run.Run):
-                                        self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
-                                        print " deleting ntuple ",ntuple.Name
-                        if(len(ret)>0):
-                                print " deleting ",run.Run
-                                self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+                                if(ntuple.Run==run.Run):
+                                    self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                    print " deleting ntuple ",ntuple.Name
+                        print " deleting ",run.Run
+                        self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
                         
         if(self.deletebad):
               for run in self.dbclient.rtb:
