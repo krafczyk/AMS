@@ -1493,8 +1493,11 @@ class RemoteClient:
                            cmdstatus=self.copyFile(inputfile,outputpath)
                            time00=time.time()
                            self.doCopyTime=self.doCopyTime+time00-time0
-                           if(cmdstatus==0):
-                               rstatus=self.calculateCRC(outputpath,crc)
+                           if(cmdstatus==0 or cmdstatus==1024):
+                               if(cmdstatus==1024):
+                                   rstatus=1
+                               else:
+                                   rstatus=self.calculateCRC(outputpath,crc)
                                if(rstatus==1):
                                    return outputpath,1,odisk
                                else:
@@ -1687,6 +1690,8 @@ class RemoteClient:
             print "docopy-I-",cmd
         self.copyCalls=self.copyCalls+1
         self.copyTime=self.copyTime+time.time()-time0
+        if(cmdstatus==0 and ifa[1]==ofa[1]):
+            cmdstatus=1024
         return cmdstatus
 
 
