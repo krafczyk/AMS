@@ -2921,13 +2921,20 @@ class RemoteClient:
                 if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
                     if(run2p!=0 and int(run)!=run2p):
                         continue
-                    (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
+                    (outputppython ath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/2
                         type="UNK"
                         if(t0=="5"):
                             type="SCI"
+
                             if(tag=="202" or tag=="2163208" or tag=="204"  or tag=="205"  or tag=="206" or tag=="207" or tag=="208"):
+                               type="LAS"
+                            try:
+                                itag = int(tag)%256
+                            except ValueError:
+                                itag=0
+                            if(itag==204):
                                 type="LAS"
                         elif (t0=="6"):
                             type="CAL"
