@@ -2921,7 +2921,7 @@ class RemoteClient:
                 if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
                     if(run2p!=0 and int(run)!=run2p):
                         continue
-                    (outputppython ath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
+                    (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/2
                         type="UNK"
@@ -2955,7 +2955,7 @@ class RemoteClient:
                         else:
                             bpath=bpath+"/"+file
                         it2=int(t2)
-                        if(type=="SCI"):
+                        if(type=="SCI" or type=="LAS"):
                             type=type+" "+t0+" "+t1+" "
                             mnemonic=" TUSREL3";
                             for i in range (0,7):
