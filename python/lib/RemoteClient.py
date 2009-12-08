@@ -1183,6 +1183,8 @@ class RemoteClient:
                     events=run.cinfo.EventsProcessed
                     errors=run.cinfo.CriticalErrorsFound
                     cputime=run.cinfo.CPUMipsTimeSpent
+                    if(cputime!=cputime):
+			cputime=run.cinfo.TimeSpent
                     elapsed="%.2f" %(run.cinfo.TimeSpent)
                     host=run.cinfo.HostName
                     if(mips<=0):
