@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.181 2009/12/06 12:25:14 choutko Exp $
+//  $Id: daqevt.C,v 1.182 2009/12/08 11:24:15 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1099,11 +1099,11 @@ integer DAQEvent::_HeaderOK(){
       else TRCALIB.Version=0;
         DAQCFFKEY.DAQVersion=0;
        if(_Run>=1240000000 && AMSJob::gethead()->isRealData())DAQCFFKEY.DAQVersion=1;  
-      if(_RunType==Laser && TRCALIB.LaserRun==0){
+      if(_RunType%256==Laser && TRCALIB.LaserRun==0){
           TRCALIB.LaserRun=22;
           cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
       }
-      else if(_RunType!=Laser && TRCALIB.LaserRun==22){
+      else if(_RunType&256!=Laser && TRCALIB.LaserRun==22){
            cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
            TRCALIB.LaserRun=0;
       }
@@ -1189,11 +1189,11 @@ integer DAQEvent::_HeaderOK(){
 
  laser don;t know yet
 
-      if(_RunType==Laser && TRCALIB.LaserRun==0){
+      if(_RunType%256==Laser && TRCALIB.LaserRun==0){
           TRCALIB.LaserRun=22;
           cout<<"DAQEvent::_HeaderOK-I-LaserRunDetected "<<endl;
       }
-      else if(_RunType!=Laser && TRCALIB.LaserRun==22){
+      else if(_RunType%256!=Laser && TRCALIB.LaserRun==22){
            cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
            TRCALIB.LaserRun=0;
       }

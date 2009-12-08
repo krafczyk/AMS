@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.574 2009/12/08 09:15:27 choutko Exp $
+# $Id: RemoteClient.pm,v 1.575 2009/12/08 11:24:16 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7320,6 +7320,9 @@ print qq`
          $ri->{cinfo}->{TimeSpent}=0;
          $ri->{cinfo}->{Status}=$ri->{Status};
          push @{$self->{Runs}}, $ri;
+         if($pid>0){          
+           $self->{sqlserver}->Update($insertjobsql);
+         }
          $self->insertDataRun(
                        $ri->{Run},
                        $job,
@@ -7329,10 +7332,18 @@ print qq`
                        $ri->{TLEvent},
                        $ri->{SubmitTime},
                        $ri->{Status});
+        if(defined $self->{dbserver} ){
+            if($self->{dwldaddon}==0 ){
+              DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
+        }
+        }
+        else{
+            $self->ErrorPlus("Unable To Communicate With Server");
+        }
          $job=$job+1;
-         if($pid>0){          
-           $self->{sqlserver}->Update($insertjobsql);
-         }
+           my $time=time();
+           $sql="update Cites set state=0, maxrun=$job, timestamp=$time where name='$self->{CCA}'";
+            $self->{sqlserver}->Update($sql);
 
         }
        
@@ -7344,7 +7355,7 @@ print qq`
         if(defined $self->{dbserver} ){
             if($self->{dwldaddon}==0 ){
             foreach my $ri (@{$self->{Runs}}){
-              DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
+              #DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
            }
             my $lu=time();
             my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}' and datamc=$self->{DataMC}";

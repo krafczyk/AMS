@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.134 2009/11/23 18:11:59 choutko Exp $
+//  $Id: producer.C,v 1.135 2009/12/08 11:24:15 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1918,7 +1918,11 @@ bool AMSProducer::SetDataCards(){
   char tmpu[80];
   sprintf(tmpp,"%d",_pid.ppid);
   sprintf(tmp,"%d",_pid.pid);
-  sprintf(tmpu,"%d",_pid.uid);
+  if(PRODFFKEY.Job>0 && _pid.uid!=PRODFFKEY.Job){
+   cerr<<" AMSProducer::SetDataCards-W-JobPidDiscrepance "<<PRODFFKEY.Job<<" "<<_pid.uid<<endl;
+  sprintf(tmpu,"%d",PRODFFKEY.Job);
+}
+else sprintf(tmpu,"%d",_pid.uid);
   AString fout="/tmp/";
   fout+=tmp;
   fout+=".dc"; 

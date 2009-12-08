@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.276 2009/11/18 11:16:19 choutko Exp $
+//  $Id: commons.h,v 1.277 2009/12/08 11:24:15 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1085,6 +1085,7 @@ class
 PRODFFKEY_DEF{
 public:
 integer Debug;
+integer Job;
 };
 
 #define PRODFFKEY COMMON_BLOCK(PRODFFKEY,prodffkey)
