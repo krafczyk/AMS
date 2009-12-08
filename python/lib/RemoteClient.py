@@ -1671,6 +1671,15 @@ class RemoteClient:
             return 0
         time0=time.time()
         cmd="cp -pi -d -v "+input+" "+output
+#
+#      check if same disk
+#
+        ifa=input.split("/")
+        ofa=output.split("/")
+        if(ifa[1]==ofa[1]):
+                cmd="mv "+input+" "+output
+                print cmd,ofa[1],ifa[1]
+        cmd="cp -pi -d -v "+input+" "+output
         cmdstatus=os.system(cmd)
         print "acquirung  mutex in copyfile ", cmd
         mutex.acquire()
