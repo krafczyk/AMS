@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.32 2009/11/11 15:56:20 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.33 2009/12/08 16:56:05 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -208,7 +208,8 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    m_ObjInfoPad->cd();
    m_ObjInfoPad->Clear();
    atext[0]=0;
-   sprintf(atext,"Run %d   EventsProcessed %d / %d / %d %s",m_ntuple->GetRun(),_Begin,m_ntuple->Entries(),m_ntuple->EventNo(),m_ntuple->GetTime());
+   int entr=m_chain->GetEntries();
+   sprintf(atext,"Run %d   EventsProcessed %d / %d / %d %s",m_ntuple->GetRun(),_Begin,entr,m_ntuple->EventNo(),m_ntuple->GetTime());
 
    if (! text) {
 	text = new TText(0.5, 0.38, atext);
@@ -223,7 +224,8 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
 
    gPadSave->cd();
           if(m_ControlFrame){
-            m_ControlFrame->SetPosition(_Begin/(m_ntuple->Entries()+1.e-20)*100);
+//            cout <<_Begin<<" "<<m_chain->GetEntries()<<endl;
+            m_ControlFrame->SetPosition(_Begin/(m_chain->GetEntries()+1.e-20)*100);
             m_ControlFrame->ShowPosition();
           }
 }

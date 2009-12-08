@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.13 2009/06/30 14:50:11 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.14 2009/12/08 16:56:05 choutko Exp $
 #include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -6,7 +6,6 @@
 #include <TPaveText.h>
 #include <TProfile.h>
 #include <TF1.h>
-
 #include "AMSAxAMSHist.h"
 
 
@@ -94,10 +93,14 @@ _filled[_filled.size()-1]->SetFillColor(color++);
 
 
 void AMSAxAMSHist::ShowSet(Int_t Set){
-   TF1 f1("myg","[0]*exp(-(x-[1])/[2]*(x-[1])/[2]/2)",0,2);
-   f1.SetParameter(1,1.);
-   f1.SetParameter(2,0.05);
-   //_filled[3]->Fit("myg","Q");
+   TF1 *f1=new TF1("myg","[0]*exp(-(x-[1])/[2]*(x-[1])/[2]/2)",0,2);
+   f1->SetParameter(1,1.);
+   f1->SetParameter(2,0.05);
+//   _filled[3]->Fit("myg","Q");
+#if defined(__ICC)
+#else
+   _filled[3]->Fit(f1,"Q","",0,2);
+#endif
 gPad->Clear();
 TVirtualPad * gPadSave = gPad;
 int i;
@@ -114,9 +117,9 @@ for(i=0;i<4;i++){
     char text[80];
     TPaveText *lf=new TPaveText(0.2,0.5,0.4,0.8,"NDC");
     lf->SetFillColor(18);
-    sprintf(text,"Mean %f",f1.GetParameter(1));    
+    sprintf(text,"Mean %f",f1->GetParameter(1));    
     lf->AddText(text);
-    sprintf(text,"Sigma %f",f1.GetParameter(2));    
+    sprintf(text,"Sigma %f",f1->GetParameter(2));    
     lf->AddText(text);
     lf->Draw();
  }

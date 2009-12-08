@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.200 2009/12/04 13:15:47 choutko Exp $
+//  $Id: root.C,v 1.201 2009/12/08 16:56:04 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3006,6 +3006,7 @@ void AMSEventR::Begin(TTree *tree){
   Init(tree);
   TString option = GetOption();
   // open file if...
+        cout <<"AMSEventR::Begin-I-WorkingDirWas "<<gSystem->WorkingDirectory()<<endl;
 #pragma omp master
   if(!pService){
     pService=&fService;

@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.23 2008/09/26 10:23:48 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.24 2009/12/08 16:56:05 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -160,11 +160,11 @@ void AMSLVL1Hist::Book(){
   
   AddSet("EventTimeDiff in LVL1");
   
-  _filled.push_back(new TH1F("trigh32","ConsecEvents TrigTimeDiff",100,0,500.));
+  _filled.push_back(new TH1F("trigh32","ConsecEvents TrigTimeDiff",200,0,1000.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Mksec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(3);
-  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",100,0,25.));
+  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",2000,0,25.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Msec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(3);
@@ -371,10 +371,29 @@ case 8:
   for(i=0;i<2;i++){
     gPad->cd(i+1);
     gPad->SetGrid();
-    gStyle->SetOptStat(100010);
+    gStyle->SetOptStat(100110);
+    gStyle->SetOptFit(1);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(i==0){
+//       cout <<" fit "<<endl;
+       char func[]="expo";
+#if defined (__ICC)
+#else
+       gStyle->SetOptFit(1);
+       ((TH1F*)_filled[i+32])->Fit(func,"","");
+#endif
+     }
+    else if(i==1){
+//       cout <<" fit "<<endl;
+       char func[]="expo";
+#if defined (__ICC)
+#else
+       gStyle->SetOptFit(1);
+       ((TH1F*)_filled[i+32])->Fit(func,"","",0.2,5.);
+#endif
+     }
     _filled[i+32]->Draw();//ConcecEvent TrigTimeDiff 
     gPadSave->cd();
   }
