@@ -19,10 +19,14 @@ if($ok){
 #   update pdb
 #
     my $oracle=0;
+    my $datamc=0;
 foreach my $chop  (@ARGV){
     if($chop =~/^-o/){
         $oracle=1;
         last;
+    }
+    if($chop=~/^-v5/){
+        $datamc=1;
     }
 }
     $#ARGV=-1;
@@ -52,6 +56,9 @@ foreach my $chop  (@ARGV){
           }
           } 
          }
+         if(not defined $sqls->{IORD}){
+            $sqls->{IORD}=$dbserver->{myior};
+         }
           warn " IORP $sqls->{IORP} \n";
           warn " IORS $sqls->{IORS} \n";
           warn "IORD $sqls->{IORD} \n";
@@ -60,7 +67,7 @@ foreach my $chop  (@ARGV){
             my $createt=time();
             my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
             $sqls->Update($sql);
-            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,0)";
+            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,$datamc)";
                  $sqls->Update($sql);
                  last;
         }

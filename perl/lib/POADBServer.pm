@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.34 2009/02/16 14:37:00 choutko Exp $
+#  $Id: POADBServer.pm,v 1.35 2009/12/08 09:15:27 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1108,11 +1108,12 @@ sub getACS{
 
             sub Clock { 
                 if($a->{Status} eq $b->{Status}){
+
                     if($b->{Clock} == $a->{Clock}){
                         return $b->{ClientsAllowed}-$b->{ClientsRunning} <=> $a->{ClientsAllowed}-$a->{ClientsRunning};
                     }
                     else{  
-                     return $b->{Clock}<=>$a->{Clock};
+                     return $b->{Clock}*(return $b->{ClientsAllowed}-$b->{ClientsRunning})<=>$a->{Clock}*( $a->{ClientsAllowed}-$a->{ClientsRunning});
                     }
                 }
                 elsif($a->{Status} ne $b->{Status}){

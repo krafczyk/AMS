@@ -1,0 +1,58 @@
+soc (cern) dammmproduction guidelines:
+
+http://pcamss0.cern.ch/mm.html      ->  main 
+
+
+0. producers  moving to the production area
+   AMS/install/move_gbatach*v5
+
+
+a. jobs submission:
+
+http://pcamss0.cern.ch/rc.html
+
+enter vitali.choutko@cern.ch  then click continue  (tbc)
+
+select clickable dataset fro "v5" area
+
+select "total of jobs requested" (default=50)
+click "submit request"
+enter password
+click "save"
+
+nb:  sometimes timeout may occur.  just repeat.
+
+
+
+b. jobs monitoring
+
+  login ams@pcamss0
+
+  cd vc/perl
+
+  monitor.perl  
+
+  
+
+
+
+
+c. jobs post processing
+
+   normally done automatically every 6 hrs
+   log file available at /f2users/scratch/MC/validatate/vrdv5*log
+
+   but can be done manually via
+   cd ~/vc/python
+   ./vrdv5.py -d
+   ./vrdv5.py -d -b  (mark failed runs be permantly bad, use with care)
+
+d. datasets manipulationg (from ams@pcamss0)
+
+   deleting datasets:
+   ./del.py -ddataset -rrun (! use with care) 
+
+   checking dataset:
+
+    http://pcamss0.cern.ch/cgi-bin/mon/checkds.cgi
+   

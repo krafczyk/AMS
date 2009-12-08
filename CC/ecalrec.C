@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.123 2009/11/25 12:32:14 pzuccon Exp $
+//  $Id: ecalrec.C,v 1.124 2009/12/08 09:15:09 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2482,7 +2482,7 @@ void AMSEcalShower::gamfunr(number& x, number &fc, AMSEcalShower *p){
  }
 
  
- if(et){
+ if(et && xc[2]!=0){
   fc=pow(x,xc[1]/xc[2])*exp(-x/xc[2]);
   fc*=xc[0]/et;
  }

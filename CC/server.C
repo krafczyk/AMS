@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.152 2009/11/27 10:43:37 choutko Exp $
+//  $Id: server.C,v 1.153 2009/12/08 09:15:10 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -133,6 +133,9 @@ AMSServer::AMSServer(int argc, char* argv[]){
     case 'o':    // OraclePerl
      _Oraperl=true;
      break;
+    case 'v':    // OraclePerl
+     _v5=true;
+     break;
     case 'O':    // Oracle
 /*     
       _Oracle=true;
@@ -217,9 +220,16 @@ if(!__MT){
      fbin.ignore(1024,' ');
      char tmpbuf[256];
      fbin>>tmpbuf;
+     if(_v5){
+     if(strstr(tmpbuf,"amsprodserverv5.exe")){
+      count++;
+     } 
+     }
+     else{
      if(strstr(tmpbuf,"amsprodserver.exe")){
       count++;
      } 
+     }
     }
     fbin.close();
     unlink((const char*)fout);
@@ -4454,8 +4464,11 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
                sprintf(tmp,"%d",_Submit+1);
                submit+=tmp;
                _pser->UpdateDBFileName();
+               if(_parent->Isv5()){
+                submit+=" -v5 ";
+               }
                if(_parent->getdbfile()){
-                 submit+=" -F";
+                 submit+=" ls -F";
                  submit+=_parent->getdbfile();
                }
                if(_parent->IsOraperl()){

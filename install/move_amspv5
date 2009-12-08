@@ -1,0 +1,1 @@
+mv $AMSWD/exe/linux/amsprodserver.exe $AMSDataDir/DataManagement/exe/linux/amsprodserverv5.exe

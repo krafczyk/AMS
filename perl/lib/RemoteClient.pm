@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.573 2009/12/06 12:25:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.574 2009/12/08 09:15:27 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -207,6 +207,7 @@ my     $downloadcgi       ='/cgi-bin/mon/download.o.cgi';
 my     $downloadcgiMySQL  ='/cgi-bin/mon/download.mysql.cgi';
 
 my     $monmcdb           ='/cgi-bin/mon/monmcdb.o.cgi';
+my     $monrddb=           '/cgi-bin/mon/monrddb.o.cgi';
 my     $monmcdbMySQL      ='/cgi-bin/mon/monmcdb.mysql.cgi';
 
 my     $rccgi             ='/cgi-bin/mon/rc.o.cgi?queryDB04=Form';
@@ -810,6 +811,9 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
              $dataset->{version}=$vrs[1];
+             if($dataset->{version}=~/v5/){
+#              $self->{DataMC}=1;
+             }
              last;
          }
       }
@@ -952,6 +956,10 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
              $dataset->{version}=$vrs[1];
+             if($dataset->{version}=~/v5/){
+#              $self->{DataMC}=1;
+             }
+#            die " $dataset->{version} $self->{DataMC} "
          }
       if($job =~ /\.job$/){
        if($job =~ /^\./){
@@ -1205,10 +1213,34 @@ foreach my $file (@allfiles){
 
 sub ServerConnect{
     my $ref = shift;
+    my $ver=shift;
 $ref->{cid}=new CID;
 $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
     my $tm={};
- try{
+#try to get ior
+    my $datamc=0;
+    if(defined $ver){
+      if($ver=~/v5/){
+          $datamc=1;
+      }
+    }
+    if($datamc!=$ref->{DataMC}){   
+    my $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active' and datamc=$datamc";
+     my $ret=$ref->{sqlserver}->Query($sql);
+   $ref->{DataMC}=$datamc; 
+   my $updlast=0;
+    foreach my $upd (@{$ret}){
+        if($upd->[1]> $updlast){
+            $updlast=$upd->[1];
+            $ref->{dbfile}=$upd->[0];
+            $ref->{IOR}=$upd->[2];
+            $ref->{IORP}=$upd->[3];
+        }
+    }
+}
+  try{
+           
+#           die "$datamc $ver $ref->{DataMC} $ref->{IOR}";
   $tm = $ref->{orb}->string_to_object($ref->{IOR});
   $ref->{arsref}=[$tm];
 }
@@ -6046,7 +6078,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
              foreach my $p (@productionPeriods) {
               if ($p->{status} =~ 'Active') {
                 if ($p->{vdb} =~ $dataset->{version}) {
-                 print "<option value=\"$p->{name}\">$p->{name} </option>\n";
+                 print "<option value=\"$p->{name}.$p->{vdb}\">$p->{name} </option>\n";
                  $ProductionPeriod = $p->{name};
                  if ($p->{vdb} =~ /v3.00/ or (defined $dataset->{rootntuple} and $dataset->{rootntuple}==0)) {
                     $defROOT = "";
@@ -6464,10 +6496,11 @@ print qq`
             my $pass=$q->param("password");
             if($self->{CCT} ne "remote" or defined $pass){
              my $crypt=crypt($pass,"ams");
-             if($crypt ne "amGzkSRlnSMUU"){
-              $self->sendmailerror("User authorization failed","$self->{CEM}");
+             my $vr=$self->{q}->param("FEM");
+             if((!($crypt eq "amGzkSRlnSMUU" and $vr=~/v4/)) and !($crypt eq "am3SBM3U8rmqs" and $vr=~/v5/)) {
+              $self->sendmailerror("User authorization failed", "$self->{CEM}");
               $self->ErrorPlus
-                    ("User Authorization Failed. All Your Activity is Logged.");
+                    ("User Authorization Failed.  All Your Activity is Logged.");
 
              }
          }
@@ -6478,6 +6511,11 @@ print qq`
          }
          $self->{q}=$q;
          unlink $filename;
+         my $version=$q->param("Version");
+         #die "$version ";
+         if( not $self->ServerConnect($version)){
+            die " Unable to connect the server $version ";
+         }          
         }
          my $sonly="No";
          $sonly=$q->param("SONLY");
@@ -6667,7 +6705,7 @@ print qq`
 
 #       now everything is o.k except server check
 
-        if (not $self->ServerConnect()){
+        if (not $self->ServerConnect($dataset->{version})){
         foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
@@ -7104,10 +7142,11 @@ print qq`
             my $time = time();
             $sql="update Cites set state=0, timestamp=$time  where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
-             my $save="$self->{UploadsDir}/$self->{CCA}.$run.$self->{CEMID}save";
+             my $save="$self->{UploadsDir}/$self->{CCA}.$run.$dataset->{version}.$self->{CEMID}save";
              my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
             $q->param($param,"Save");
             $q->param("FEM",$save);
+            $q->param("Version",$dataset->{version}); 
              save_state($q,$save);
              htmlTop();
             $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
@@ -7766,7 +7805,7 @@ anyagain:
 
 #       now everything is o.k except server check
 
-        if (not $self->ServerConnect()){
+        if (not $self->ServerConnect($dataset->{version})){
         foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
@@ -8258,6 +8297,7 @@ anyagain:
              my $save="$self->{UploadsDir}/$self->{CCA}.$run.$self->{CEMID}save";
              my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
             $q->param($param,"Save");
+            $q->param("Version",$dataset->{version}); 
             $q->param("FEM",$save);
             if($Any>=0){
              $q->param("QRun",$srunno); 
@@ -10870,7 +10910,7 @@ sub listServers {
     my $self = shift;
     if ($webmode == 1) {
      print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><a href=$monmcdb><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
+     print "<TR><B><font color=green size= 5><a href=$monmcdb><b><font color=blue> V3V4 Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
      print "<p>\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -10920,7 +10960,7 @@ sub listDataServers {
     my $self = shift;
     if ($webmode == 1) {
      print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><a href=$monmcdb><b><font color=blue> RealData Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
+     print "<TR><B><font color=green size= 5><a href=$monrddb><b><font color=blue> V5 Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
      print "<p>\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -13862,6 +13902,7 @@ sub set_URL {
     $downloadcgiMySQL  =$cgi."/download.mysql.cgi";
 
     $monmcdb      =$cgi."/monmcdb.o.cgi";
+    $monrddb=$cgi."/monrddb.o.cgi";
     $monmcdbMySQL =$cgi."/monmcdb.mysql.cgi";
 
     $rccgi      =$cgi."/rc.o.cgi?queryDB04=Form";
@@ -17851,7 +17892,11 @@ sub CheckCRC{
               my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $ntuple->[0]  $ntuple->[1]";
                         my $rstatus   = system($crccmd);
                         $rstatus=($rstatus>>8);
-                        if($rstatus!=1){
+              my $calibhbk=0;
+              if($ntuple->[0]=~'calib' and $ntuple->[0]=~/\.hbk$/){
+                  $calibhbk=1;
+              } 
+                        if($rstatus!=1 && $calibhbk!=1){
                          if($verbose){
                                 $self->sendmailmessage($address,"crc   failed $ntuple->[0]"," ");
                           print "$ntuple->[0] crc error:  $rstatus \n";
