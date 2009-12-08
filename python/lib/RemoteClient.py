@@ -1438,6 +1438,7 @@ class RemoteClient:
             return 0
     
     def doCopy(self,run,inputfile,crc,version,outputpath,path='/MC'):
+       self.sqlserver.Commit()
        time0=time.time()
        time00=0
        (dbv,gbv,osv)=self.getDSTVersion(version)
@@ -1472,6 +1473,7 @@ class RemoteClient:
            #find job
            sql="SELECT cites.name,jobname  FROM jobs,cites WHERE jid =%d AND cites.cid=jobs.cid" %(run)
            r1=self.sqlserver.Query(sql)
+           self.sqlserver.Commit()
            if(len(r1)>0):
                    cite=r1[0][0]
                    jobname=r1[0][1]
