@@ -24,14 +24,16 @@ nb:  sometimes timeout may occur.  just repeat.
 
 
 
-b. jobs monitoring
+b. jobs monitoring/manipulation
 
-  login ams@pcamss0
+  1.login ams@pcamss0
 
-  cd vc/perl
+    cd vc/perl
 
-  monitor.perl  
-
+    monitor.perl  
+  2. from http://pcamss0.cern.ch/mm.html 
+     click on "vxx servers"
+ 
   
 
 
@@ -39,8 +41,11 @@ b. jobs monitoring
 
 c. jobs post processing
 
-   normally done automatically every 6 hrs
-   log file available at /f2users/scratch/MC/validatate/vrdv5*log
+   normally done automatically every 6 hrs (cron jobs) by
+
+   /f2users/cratch/MC/validate/vrd.cron
+
+   log file available at /f2users/scratch/MC/validatate/vrd*log
 
    but can be done manually via
    cd ~/vc/python
@@ -56,3 +61,7 @@ d. datasets manipulationg (from ams@pcamss0)
 
     http://pcamss0.cern.ch/cgi-bin/mon/checkds.cgi
    
+
+e. upload to castor
+
+ done by cron job every night by casadvma@pcamss0:/home/upload2castor.cron

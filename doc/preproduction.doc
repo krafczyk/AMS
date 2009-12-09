@@ -1,0 +1,22 @@
+pre  doc
+
+main directory /f2users/scratch/MC/validate
+
+preproduction  (running continously)
+
+    1.  Frame and/or blocks decoding
+        and run files creating
+        default now:
+        frame_decode.cron :  HRDL-B
+        frame_decode_a.cron  HRTDL-A
+
+        maybe switched to:
+        blocks_decode.cron   HRDL-B (HRDL-A should be added then)
+
+
+    2. Database Population and run files moving to the final dest:
+       trc.cron
+
+
+
+   
