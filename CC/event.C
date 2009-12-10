@@ -3631,6 +3631,18 @@ void AMSEvent::_collectstatus(){
                
          }   
        }
+
+
+       if(ptrt){
+         geant rate=ptrt->gettrrates(5);
+         int z1=0;
+         if(rate<500)z1=0;
+         else if(rate<1000)z1=1;
+         else if(rate<2000)z1=2;
+         else z1=3; 
+         __status1|=(z1<<9);
+       }
+
        _status[0]=__status;
        _status[1]=__status1;
 

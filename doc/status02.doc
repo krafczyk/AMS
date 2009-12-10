@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.7 2009/12/10 16:14:57 choutko Exp $
+#  $Id: status02.doc,v 1.8 2009/12/10 17:11:25 choutko Exp $
 status word definition
 
 0
@@ -7,76 +7,99 @@ status word definition
 
 1
  2   trd in part
+
 2
  3   tof in part
+
 3
  4   tr in part
+
 4
  5   rich in part
+
 5
  6   ecal in part
+
 6
  7   vtx in part
+
 7
  8  ntrd
  9
+
 8
  10  ntof
  11
  12
+
 9
  13  ntr
  14
+
 10
  15  nrich
  16
+
 11
  17  necal
  18
+
 12
  19  nvtx
  20
+
 13
  21  nanti
  22
+
 14
  23  charge
  24
  25
+
 15
  26 "z>=1" flag(Lvl1-info): [NtofLayers(max=4)-1] with signal above the low(z>=1) discr.threshold  
  27
+
 16
  28 "z>=2"  .............. : .................... ..................the high(z>=2) discr.threshold **)
  29
+
 17
- 30   event has errors
+ 30   event has errors if 1
 
 18
- 31   status not found
+ 31   status not found if 1
 
 19
- 32  prescaled event
+ 32  not prescaled event, prescaled event
 
 20
- 33  vel>0
+ 33  velocity <0; >0
 
 21
- 34  momentum>0
+ 34  momentum <0; >0
 
 22
- 35 rig<8 ; <32 ; <128 ; >128  
+ 35 rig<8 ; <32 ; <128 ; >128 GV 
  36 
  
 23
- 37 ecalenergy <2; <8; <32; >32
+ 37 ecalenergy <2; <8; <32; >32 gev
  38
  
 24
- 39 magnet current 0 ; <250 ; <400 ; >400
+ 39 magnet current 0 ; <250 ; <400 ; >400  A
  40 
 
-41 up not yet defined
+25  trigger rate <500; <1000 ; <2000; >2000 Hz 
+ 41   
+ 42
+
+
+
+
+43 to 63 not yet defined
 
 
 correspondance between bits & status datacards words:
