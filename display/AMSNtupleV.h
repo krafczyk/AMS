@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.29 2009/11/30 09:27:13 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.30 2009/12/10 23:35:20 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -134,12 +134,14 @@ public:
       float sizey=pcl->GetECoord()[1]*100;
       float sizez=(sqrt(pcl->Sum())<8)?sqrt(pcl->Sum()):8.;
       if (sizez<1) sizez=1;
-      //    printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
+      // sizex=sizey=sizez=10.;
+      //printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
       //       SetSize(pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0],
       // 	      
       // 	      (sqrt(pcl->Sum()/10.)<8)?sqrt(pcl->Sum()/10.):8.);
       SetSize(sizex,sizey,sizez);
-      SetPosition(pcl->GetGlobalCoordinate(mult)[0],pcl->GetGlobalCoordinate(mult)[1],pcl->GetGlobalCoordinate(mult)[2]+fDz);
+      SetPosition(pcl->GetCoord(mult)[0],pcl->GetCoord(mult)[1],pcl->GetCoord(mult)[2]+fDz);
+      
       SetDirection(0,0);
       if(gAMSDisplay->ShowTrClProfile()){
 	float x[100];
@@ -157,12 +159,24 @@ public:
  	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
  	  for (int k=0;k<kmax;k++)x[k]=pcl->GetXCluster()->GetSignal(k)/50.;
 	  // 	    (pcl->GetXCluster()->GetTotSignal()+1.e-20);
- 	  SetProfileX(pcl->GetXCluster()->GetLength(),x);
+ 	  SetProfileX(kmax,x);
  	  SetShowProfileX(true);
  	}
       }
-    }
 
+      SetLineWidth(size);
+      if(pcl->GetYCluster()&&pcl->GetXCluster()){
+	SetLineColor(4);             // blue
+	SetFillColor(4);
+      }
+      else if(pcl->GetYCluster()){
+	SetLineColor(3);             // green
+	SetFillColor(3);
+      }else{
+	SetLineColor(2);             // blue
+	SetFillColor(2);
+      }
+    }
 #else
   TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
     TrRecHitR *pcl=ev->pTrRecHit(ref);
@@ -190,10 +204,10 @@ public:
 	}
       }
     }
-#endif   
     SetLineWidth(size);
     SetLineColor(4);             // blue
     SetFillColor(4);
+#endif   
     SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
     SetFillStyle(1001);          // solid filling (not working now....)
 
@@ -487,7 +501,7 @@ public:
       V0[0]= pcl->GetDir()[0]*pcl->GetRigidity() ;
       V0[1]= pcl->GetDir()[1]*pcl->GetRigidity() ;
       V0[2]= pcl->GetDir()[2]*pcl->GetRigidity() ;
-      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
+      //      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
 #else
       Double_t Bfield = -0.4;	// in minus-x direction of AMS
       Double_t P0[3];

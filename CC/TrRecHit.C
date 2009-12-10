@@ -144,12 +144,16 @@ void TrRecHitR::_PrepareOutput(int opt) {
   sout.clear();
 
   if(_imult>0) 
-    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f) corr: %8.4f  prob: %7.5f  stat: %2d\n",
+    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f) AmpP: %5.0f AmpN: %5.0f corr: %8.4f  prob: %7.5f  stat: %2d\n",
 		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
+		     (GetYCluster())?GetYCluster()->GetTotSignal():0,
+		     (GetXCluster())?GetXCluster()->GetTotSignal():0,
 		     GetCorrelation(),GetProb(),getstatus()));
   else 
-    sout.append(Form("tkid: %+03d Base Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  corr: %8.4f  prob: %7.5f  stat: %2d\n",
-		     _tkid,GetCoord(0).x(),GetCoord(0).y(),
+    sout.append(Form("tkid: %+03d Base Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f) AmpP: %5.0f AmpN:%5.0f  corr: %8.4f  prob: %7.5f  stat: %2d\n",
+		     _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),
+		     (GetYCluster())?GetYCluster()->GetTotSignal():0,
+		     (GetXCluster())?GetXCluster()->GetTotSignal():0,
 		     GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus()));
   
   if(!opt) return;
