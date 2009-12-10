@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.51 2009/02/13 16:30:49 choumilo Exp $
+//  $Id: ecalrec.h,v 1.52 2009/12/10 13:50:49 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -384,6 +384,7 @@ number   _Angle3DError;
 
 
 number  _FrontEnergyDep;
+number  _Energy;
 number  _EnergyC;
 number  _Energy3C;
 number  _Energy5C;
@@ -455,7 +456,8 @@ AMSPoint getEntryPoint()const {return _EntryPoint;}
 AMSPoint getExitPoint()const {return _ExitPoint;}
 AMSPoint getCofG()const {return _CofG;}
 AMSDir getDir()const {return _Dir;}
-number getEnergy()const {return _EnergyC;}
+number getEnergy()const {return _Energy;}
+number getEnergyC()const {return _EnergyC;}
 number getEnergyXY(int proj)const;
 number getEnergyErr()const{return _ErrEnergyC;}
 integer getDirection() const{return _Direction==0?1:-1;}

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.85 2009/12/08 16:56:04 choutko Exp $
+//  $Id: trigger102.C,v 1.86 2009/12/10 13:50:48 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2432,7 +2432,6 @@ int cid=(len>>16)+1;
                      || (JMembPatt>0 && PhysBPatt>0)
                                                     ){
     AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-    cout <<" livetime "<<LiveTime[0]<<endl;
     new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,TofFlag1,TofFlag2,tofpat1,tofpat2,
                                 AntiPatt,EcalFlag,ecpat,ectrs,LiveTime[0],TrigRates,trtime));
     TGL1JobStat::daqs1(14);//count created LVL1-objects(good event)    

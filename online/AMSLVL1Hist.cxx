@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.24 2009/12/08 16:56:05 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.25 2009/12/10 13:50:49 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -382,7 +382,7 @@ case 8:
 #if defined (__ICC)
 #else
        gStyle->SetOptFit(1);
-       ((TH1F*)_filled[i+32])->Fit(func,"","");
+       ((TH1F*)_filled[i+32])->Fit(func,"","",150.,1000.);
 #endif
      }
     else if(i==1){
@@ -391,7 +391,7 @@ case 8:
 #if defined (__ICC)
 #else
        gStyle->SetOptFit(1);
-       ((TH1F*)_filled[i+32])->Fit(func,"","",0.2,5.);
+       ((TH1F*)_filled[i+32])->Fit(func,"","",0.2,10.);
 #endif
      }
     _filled[i+32]->Draw();//ConcecEvent TrigTimeDiff 

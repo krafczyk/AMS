@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.5 2009/09/30 07:29:34 choumilo Exp $
+#  $Id: status02.doc,v 1.6 2009/12/10 13:50:48 choutko Exp $
 status word definition
 
 0
@@ -52,9 +52,28 @@ status word definition
 17
  30   event has errors
 
+18
  31   status not found
 
-32 up not yet defined
+19
+ 32  prescaled event
+
+20
+ 33  vel>0
+
+21
+ 34  momentum>0
+
+22
+ 35 rig<8 ; <32 ; <128 ; >128  
+ 36 
+ 
+23
+ 37 ecalenergy <2; <8; <32; >32
+ 38
+ 
+
+39 up not yet defined
 
 
 correspondance between bits & status datacards words:

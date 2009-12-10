@@ -3579,7 +3579,48 @@ void AMSEvent::_collectstatus(){
 
 
              }
+
+        TriggerLVL302 *ptr3= dynamic_cast<TriggerLVL302*>(getheadC("TriggerLVL3",0));         
+        if(ptr3){
+         int z1=ptr3->Prescaled()?1:0;
+         __status1|=z1;
+        }
+        
+        if(ptr){
+         if(ptr->getpbeta()){
+          int z1=ptr->getpbeta()->getbeta()>0?1:0;
+         __status1|=(z1<<1);
+        }          
+        int z1=ptr->getmomentum()>0?1:0;
+         __status1|=(z1<<2);
+        
+       }
+       
+       if(ptr){
+        integer charge=ptr->getcharge();
+        geant rig=charge==0?fabs(ptr->getmomentum()):fabs(ptr->getmomentum())/fabs(charge);
+        int z1=0;
+        if(rig<8)z1=0;        
+        else if(rig<32)z1=1;        
+        else if(rig<128)z1=2;        
+        else z1=3;
+         __status1|=(z1<<3);
+       }
           
+
+       if(ptr){
+        int z1=0;
+        if(ptr->getpshower()){
+        geant en=ptr->getpshower()->getEnergy();
+        if(en<2)z1=0;        
+        else if(en<8)z1=1;        
+        else if(en<32)z1=2;        
+        else z1=3;        
+        }
+         __status1|=(z1<<5);
+       }
+          
+
        _status[0]=__status;
        _status[1]=__status1;
 

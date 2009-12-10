@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.575 2009/12/08 11:24:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.576 2009/12/10 13:50:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2918,7 +2918,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          }
                print "</tr>\n";
             my $sqld= "";
-         if($q->param("DataFileID") =~ /now-/){
+         if($q->param("DataFileID") =~ /now-/ or $q->param("DataFileID") =~ /now -/){
              my   ($now,$hrs) = split '-',$q->param("DataFileID");
              $runmax=time();
              $runmin=$runmax-$hrs*3600;
@@ -3761,8 +3761,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                  }
              }
                if($found==0 and $sqlmom eq ""){
-                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";        
-                print " <tr><td> $sqlNT </td></tr><br>";        
+                print " <tr><td> rm dirs[$ind]/$file is not in database </td></tr><br>";        
+                #print " <tr><td> $sqlNT </td></tr><br>";        
  
                }
                }
@@ -4640,8 +4640,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                  }
                }
                if($found==0 and $sqlmom eq ""){
-                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";          
-                print " <tr><td> $sqlNT </td></tr><br>";        
+                print " <tr><td> rm $dirs[$ind]/$file is not in database </td></tr><br>";          
+                #print " <tr><td> $sqlNT </td></tr><br>";        
              }
                }
              }                  
@@ -5183,7 +5183,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "</select>\n";
       print "</b></td></tr>\n";
    print "<BR>";
-        print "<b>RunID : </b> <input type =\"text\" name=\"DataFileID\">\n";
+        print "<b>RunID : </b> <input type =\"text\" name=\"DataFileID\" value=\"now-24\">\n";
         print "<input type=\"submit\" name=\"getDataFileID\" value=\"Submit\"> \n";
         print "<b>RunType ( SCI, CAL, LAS, ANY) : </b> <input type =\"text\" name=\"DataFileType\" value=\"ANY\">\n";
         print "<b>SubDetectors ( Combination of TURESL3) : </b> <input type =\"text\" name=\"DataFileTypeS\" value=\"ANY\">\n";

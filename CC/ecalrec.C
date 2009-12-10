@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.124 2009/12/08 09:15:09 choutko Exp $
+//  $Id: ecalrec.C,v 1.125 2009/12/10 13:50:48 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2281,6 +2281,7 @@ void AMSEcalShower::EnergyFit(){
 #endif
      alpha=ECREFFKEY.SimpleRearLeak[1]*ec/FLT_MAX*100;
     }
+    _Energy= ec;
     _EnergyC= ECREFFKEY.SimpleRearLeak[1]*ec/alpha;
     _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*ec;
 //    cout <<" case 1 "<<_EnergyC<<" "<<_RearLeak<<endl;

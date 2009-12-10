@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.21 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: trigger302.h,v 1.22 2009/12/10 13:50:49 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include "link.h"
@@ -267,6 +267,7 @@ public:
  integer toftrdok();
  integer TOFOK(){return _TOFTrigger==1;}
  uinteger & TrackerTrigger(){ return _TrackerTrigger;}
+ bool Prescaled(){ return _MainTrigger&(1<<13);}
  uinteger & TRDTrigger(){ return _TRDTrigger;}
  integer MainTrigger(); 
  integer LVL3OK();
