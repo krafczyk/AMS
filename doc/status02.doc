@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.6 2009/12/10 13:50:48 choutko Exp $
+#  $Id: status02.doc,v 1.7 2009/12/10 16:14:57 choutko Exp $
 status word definition
 
 0
@@ -72,8 +72,11 @@ status word definition
  37 ecalenergy <2; <8; <32; >32
  38
  
+24
+ 39 magnet current 0 ; <250 ; <400 ; >400
+ 40 
 
-39 up not yet defined
+41 up not yet defined
 
 
 correspondance between bits & status datacards words:

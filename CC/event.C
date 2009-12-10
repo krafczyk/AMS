@@ -3620,7 +3620,17 @@ void AMSEvent::_collectstatus(){
          __status1|=(z1<<5);
        }
           
-
+       if(_ccebp){
+         if(MAGSFFKEY.magstat>0){
+          geant b=_ccebp->getBAv();
+          int iz1=0;
+          if(b<6)iz1=1;
+          else if(b<9.5)iz1=2;
+          else iz1=3;
+         __status1|=(iz1<<7);
+               
+         }   
+       }
        _status[0]=__status;
        _status[1]=__status1;
 
