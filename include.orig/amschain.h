@@ -88,7 +88,7 @@ public:
   int GenUFSkel(char* fname="AMSNtupleSelect.C");
 
 
-  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
+   virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
   ClassDef(AMSChain,5)       //AMSChain
 #pragma omp threadprivate(fgIsA)
 };

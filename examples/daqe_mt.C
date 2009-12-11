@@ -3,6 +3,7 @@
 ///
 #define stlv_cxx
 #include "../include/root_RVS.h"
+#include "../include/amschain.h"
 #include "TF1.h"
 #include "TH2.h"
 #include "TStyle.h"
@@ -756,8 +757,8 @@ int main(int argc, char *argv[]){
 
       AMSEventR::fgThickMemory=mem;
       AMSChain chain("AMSRoot",thread,sizeof(daqe));
-chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root");
-chain.Add("/r0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/*.root"); 
+chain.Add("/s0dat0/Data/AMS02/2009A/data2009/cosmics.magof/*.root");
+chain.Add("/r0fc00/Data/AMS02/2009A/data2009/cosmics.magof/*.root"); 
 //chain.Add("/s0fc00/Data/AMS02/2006A/data2008/cern.cosmics.sci.4p/120791*.root");
 chain.Process(new daqe[thread],fout,events);
 return 0;

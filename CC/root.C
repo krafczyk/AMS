@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.202 2009/12/10 13:50:48 choutko Exp $
+//  $Id: root.C,v 1.203 2009/12/11 09:33:09 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -94,6 +94,7 @@ AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 bool AMSEventR::fgThickMemory=false;
 int AMSEventR::fgThreads=1;
 TString AMSEventR::Dir="";
+TString AMSEventR::gWDir="";
 void AMSEventR::hcopy(char dir[],int id1,int id2){
   char save[1024];
   strcpy(save,Dir.Data());
@@ -3006,7 +3007,9 @@ void AMSEventR::Begin(TTree *tree){
   Init(tree);
   TString option = GetOption();
   // open file if...
-        cout <<"AMSEventR::Begin-I-WorkingDirWas "<<gSystem->WorkingDirectory()<<endl;
+  gWDir=gSystem->WorkingDirectory();
+        cout <<"AMSEventR::Begin-I-WorkingDirWas "<<gWDir<<endl;
+
 #pragma omp master
   if(!pService){
     pService=&fService;
@@ -3017,7 +3020,7 @@ void AMSEventR::Begin(TTree *tree){
 	if(option.Length()>1){
 	  (fService)._pOut=new TFile(option,"RECREATE");
 	  (fService)._pDir=gDirectory;
-	  //    cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
+//	      cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
 	  cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
 	}
       }
@@ -3078,14 +3081,14 @@ void AMSEventR::Terminate()
 	(*pService)._pOut->Write();
 	cout <<"AMSEventR::Terminate-I-WritedFile "<<GetOption()<<endl;
 	//     (*pService)._pOut->Close();
-	cout <<"AMSEventR::Terminate-I-ClosedFile "<<GetOption()<<endl;
+	cout <<"AMSEventR::Terminate-I-ClosedFile "<<(*pService)._pOut->GetName()<<endl;
         cout <<"AMSEventR::Terminate-I-WorkingDirWas "<<gSystem->WorkingDirectory()<<endl;
 	if(!(*pService).TotalEv   &&   !(*pService).TotalTrig){
        	    cout <<" AMSEventR::Terminate-E-ProofLiteOutputFileDeleted  "<< (*pService)._pOut->GetName()<<endl;
 	  unlink(  (*pService)._pOut->GetName());
 	}    
-	else if(strstr((*pService)._pOut->GetName(),".proof") &&strstr((*pService)._pOut->GetName(),"worker-0."  )){
-	  string fdir((*pService)._pOut->GetName());
+	else if(strstr((const char*)gWDir,".proof") &&strstr((const char*)gWDir,"worker-0."  )){
+	  string fdir((const char*)gWDir);
 	  int pos=fdir.find("worker-0");
 	  string fupdir=fdir.substr(0,pos);
 	  string fname((*pService)._pOut->GetName());

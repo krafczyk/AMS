@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.252 2009/12/04 13:15:52 choutko Exp $
+//  $Id: root.h,v 1.253 2009/12/11 09:33:10 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2306,11 +2306,13 @@ Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 public:
 static bool fgThickMemory;
 static int fgThreads;
+static TString gWDir;
 long long Size();
 protected:
 static TString Dir;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(Dir)
+#pragma omp threadprivate(gWDir)
 #endif
 Service  fService;
 static Service*  pService;

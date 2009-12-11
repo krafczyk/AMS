@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.21 2009/11/28 11:56:30 ams Exp $
+# $Id: NetMonitor.pm,v 1.22 2009/12/11 09:33:10 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -181,7 +181,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         unlink "/tmp/xtime";
         my $i=system($command.$host.' date +%s > /tmp/xtime ');
         my $curtime=time();
-        if(not $i){
+        if(1 or not $i){
           if(not open(FILE,"<"."/tmp/xtime")){
                  push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
             next;

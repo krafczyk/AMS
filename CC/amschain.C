@@ -189,6 +189,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
 #ifndef __ROOTSHAREDLIBRARY__
   return 0;
 #else
+  cout<<" nentires requested "<<nentries<<endl;
   int nthreads=fThreads;
   //TStreamerInfo**ts =new TStreamerInfo*[nthreads];
   //for(int i=0;i<nthreads;i++)ts[i]=0;
