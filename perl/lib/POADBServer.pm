@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.35 2009/12/08 09:15:27 choutko Exp $
+#  $Id: POADBServer.pm,v 1.36 2009/12/11 15:06:05 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1108,14 +1108,18 @@ sub getACS{
 
             sub Clock { 
                 if($a->{Status} eq $b->{Status}){
-
+                   if(($a->{ClientsRunning}==0 && $b->{ClientsRunning}==0 )|| ($a->{ClientsRunning}!=0 && $b->{ClientsRunning}!=0 ) ){                   
                     if($b->{Clock} == $a->{Clock}){
                         return $b->{ClientsAllowed}-$b->{ClientsRunning} <=> $a->{ClientsAllowed}-$a->{ClientsRunning};
                     }
                     else{  
-                     return $b->{Clock}*(return $b->{ClientsAllowed}-$b->{ClientsRunning})<=>$a->{Clock}*( $a->{ClientsAllowed}-$a->{ClientsRunning});
+                     return $b->{Clock}*($b->{ClientsAllowed}-$b->{ClientsRunning})<=>$a->{Clock}*( $a->{ClientsAllowed}-$a->{ClientsRunning});
                     }
                 }
+                else{
+                        return -$b->{ClientsRunning} <=> -$a->{ClientsRunning};
+                }
+               }
                 elsif($a->{Status} ne $b->{Status}){
                     if($b->{Status} eq "OK"){
                      return 1;
@@ -1125,7 +1129,8 @@ sub getACS{
                      return 0;
                     }
                 }
-           }
+            }
+
 sub getFreeHost{
     my $ref=$DBServer::Singleton;
     warn "  in getfreehost \n";
