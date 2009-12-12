@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.28 2009/11/30 09:27:13 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.29 2009/12/12 17:55:22 pzuccon Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -292,16 +292,22 @@ if(type==kall || type==kusedonly || type==ktofclusters){
 }
 
 
-if(type==kall || type==kusedonly || type==ktrclusters){
+if(type==kall || type==kusedonly || type==ktrclusters || type==ktrclustersM){
  fTrRecHitV.clear();
  if(gAMSDisplay->DrawObject(ktrclusters)){
   for(int i=0;i<NTrRecHit();i++){
 #ifdef _PGTRACK_
-    if(gAMSDisplay->DrawUsedOnly())
-      fTrRecHitV.push_back( TrRecHitV(this,i,pTrRecHit(i)->GetResolvedMultiplicity()));
-    else
-      for (int jj=0;jj<pTrRecHit(i)->GetMultiplicity();jj++)
-	fTrRecHitV.push_back( TrRecHitV(this,i,jj));
+    bool Mult=GetTkMult();
+    bool Used=(pTrRecHit(i)->getstatus()/32)%2;
+    int rm=pTrRecHit(i)->GetResolvedMultiplicity();
+    if(!gAMSDisplay->DrawUsedOnly() || Used) {
+      if(Mult && !Used ){
+	for (int jj=0;jj<pTrRecHit(i)->GetMultiplicity();jj++)
+	  fTrRecHitV.push_back( TrRecHitV(this,i,jj));
+      }else
+	fTrRecHitV.push_back( TrRecHitV(this,i,(rm>-1)?rm:0));
+    }
+	
 #else
    if(!gAMSDisplay->DrawUsedOnly() || ((pTrRecHit(i)->Status)/32)%2)fTrRecHitV.push_back( TrRecHitV(this,i));
 #endif

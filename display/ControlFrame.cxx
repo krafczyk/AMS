@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.11 2005/12/13 14:08:42 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.12 2009/12/12 17:55:22 pzuccon Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -10,6 +10,7 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   char buf[255];
   TGHotString *ptg1=0;
   TGHotString *ptg2=0;
+  int Mult=0;
   // Process messages sent to this dialog.
   switch (GET_MSG(msg)) {
   case kC_HSLIDER:
@@ -37,7 +38,8 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
      }
      break;     
      case kCM_CHECKBUTTON:
-      EAMSType  type;
+      {
+       EAMSType  type;
       switch(parm1){
         case 4005:
         gAMSDisplay->StartStop(_pauto->GetState());
@@ -64,31 +66,35 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
          type=ktrclusters;
          break;
         case 7008:
-         type=krichrings;
+         type=ktrclustersM;
          break;
         case 7009:
-         type=krichhits;
+         type=krichrings;
          break;
         case 7010:
-         type=kecalshowers;
+         type=krichhits;
          break;
         case 7011:
-         type=kecalclusters;
+         type=kecalshowers;
          break;
         case 7012:
-         type=kparticles;
+         type=kecalclusters;
          break;
         case 7013:
-         type=kmcinfo;
+         type=kparticles;
          break;
         case 7014:
+         type=kmcinfo;
+         break;
+        case 7015:
          type=kgeometry;
           break;
       }
       if(parm1/1000==7){
+        gAMSDisplay->GetNtuple()->SetTkMult(_pvis[parm1%100-1]->GetState());
         gAMSDisplay->SetVisible(type, _pvis[parm1%100-1]->GetState());
         gAMSDisplay->GetNtuple()->Prepare(type);
-         EAMSR_View mview=gAMSDisplay->GetView();
+        EAMSR_View mview=gAMSDisplay->GetView();
        if(type==kgeometry){
            gAMSDisplay->ResetView();
         }
@@ -96,6 +102,7 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         gAMSDisplay->DrawTitle();
        }
       break;
+      }
      case kCM_RADIOBUTTON:
       switch(parm1){
         case 9001:
@@ -370,6 +377,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     _pvis.push_back(new TGCheckButton(_pvisfr,"TofClusters",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"TrTracks",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"TrClusters",marker++));
+    _pvis.push_back(new TGCheckButton(_pvisfr,"  TrClusters N:Mult",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"RichRings",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"RichHits",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"EcalShowers",marker++));

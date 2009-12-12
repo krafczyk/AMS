@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.30 2009/12/10 23:35:20 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.31 2009/12/12 17:55:22 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -590,7 +590,7 @@ public:
 
 
 protected:
-
+  int TkMult;
   // Drawable things 
   vector<AntiClusterV> fAntiClusterV;
   vector<TofClusterV> fTofClusterV;
@@ -612,12 +612,14 @@ protected:
 
 
 public:
-  AMSNtupleV():AMSEventR(){};
+  AMSNtupleV():AMSEventR(){TkMult=1;};
   void Draw(EAMSType type=kall);
   void Prepare(EAMSType type=kall);
 bool GetEvent(unsigned int run, unsigned int event);
 
   char * GetObjInfo(int px,int py);
+  void SetTkMult(int aa){TkMult=aa;}
+  int GetTkMult(){return TkMult;}
   ClassDef(AMSNtupleV,1)           // Ntuple Drawable
     };
 #endif

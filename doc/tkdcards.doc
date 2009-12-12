@@ -30,9 +30,9 @@ I 16 Signal correction option (TrClusterR::DefaultCorrOpt)
 I 17 Default number of strips for CofG (TrClusterR::DefaultUsedStrips)
 R 18 _dxdz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdX)
 R 19 _dydz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdY)
-I 20 MaxNrawCls
-I 21 MaxNtrCls
-I 22 MaxNtrHit
+I 20 MaxNrawCls       (Default: 200) MaxNumber of Raw Cluster allowed to proceed with the reconstruction
+I 21 MaxNtrCls        (Default: 150) MaxNumber of Cluster allowed to proceed with the reconstruction
+I 22 MaxNtrHit        (Default: 100) MaxNumber of RecHit allowed to proceed with the reconstruction
 I 23 MaxNtrack        (Default: 2)
 I 24 MinNhitX         (Default: 4)
 I 25 MinNhitY         (Default: 5)
