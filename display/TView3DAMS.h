@@ -23,6 +23,7 @@ class TView3DAMS: public TView3D{
   void SetRange(const Double_t *min, const Double_t *max);
   void SetRange(Double_t x0, Double_t y0, Double_t z0, Double_t x1, Double_t y1, Double_t z1, Int_t flag=0);
   void GetRange(Float_t *min, Float_t *max);
+  void GetRange(Double_t *min, Double_t *max);
 
 
   ClassDef(TView3DAMS,1);

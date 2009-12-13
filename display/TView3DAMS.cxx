@@ -8,7 +8,19 @@ void TView3DAMS::SetRange(Double_t x0, Double_t y0, Double_t z0, Double_t x1, Do
 }
 
 
+
 //______________________________________________________________________________
+//______________________________________________________________________________
+void TView3DAMS::GetRange(Double_t *min, Double_t *max)
+{
+  //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*Get Range function-*-*-*-*-*-*-*-*-*-*-*-*-*
+  //*-*                            ==================
+  //*-*
+  double cc=sqrt(3.);
+  if (IsPerspective() || !Hack )cc=1;
+  for (Int_t i = 0; i < 3; max[i] = fRmax[i]*cc, min[i] = fRmin[i]*cc, i++);
+}
+
 void TView3DAMS::GetRange(Float_t *min, Float_t *max)
 {
   //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*Get Range function-*-*-*-*-*-*-*-*-*-*-*-*-*

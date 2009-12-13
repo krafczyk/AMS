@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl_new.cxx,v 1.1 2008/09/01 08:59:59 choutko Exp $
+//  $Id: TMarker3DCl_new.cxx,v 1.2 2009/12/13 13:40:47 pzuccon Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
@@ -14,6 +14,33 @@
 //remove me when PaintFillArea3D will be in TVirtualPad
 //
 #include "TPad.h"
+
+
+void PaintFillArea3D(TPad* pad,Int_t n, Float_t *p1, Option_t * opt="");
+void PaintFillArea3D(TPad* pad,Int_t n, Float_t *p1, Option_t * opt)
+{
+  //*-*-*-*-*-*-*-*-*Paint 3-D Polygon in the CurrentPad*-*-*-*-*-*-*-*-*-*-*
+  //*-*              ===================================
+
+  if (!pad|| !(pad->GetView())) return;
+
+  //*-*- convert from 3-D to 2-D pad coordinate system
+  if(n<3) return;
+  Double_t * xpad = new Double_t[n];
+  Double_t * ypad = new Double_t[n];
+  Double_t temp[3];
+  Double_t out[3];
+  Int_t i;
+  for(int k=0;k<n;k++){
+    for (i=0;i<3;i++) temp[i] = p1[i+k*3];
+    pad->GetView()->WCtoNDC(temp, out);
+    xpad[k]=out[0];
+    ypad[k]=out[1];
+  }
+  pad->PaintFillArea(n,xpad,ypad,opt);
+  delete[] xpad;
+  delete[] ypad;
+}
 
 ClassImp(TMarker3DCl)
 
@@ -396,7 +423,10 @@ void TMarker3DCl::PaintShape3D(X3DBuffer *buff, Bool_t rangeView)
         y1 = points[1] > y1 ? points[1] : y1;
         z1 = points[2] > z1 ? points[2] : z1;
 
-       if (!rangeView) ((TPad*)gPad)->PaintFillArea3D(4,points);
+//       if (!rangeView) ((TPad*)gPad)->PaintFillArea3D(4,points);
+       if (!rangeView) 
+	   
+	   PaintFillArea3D(((TPad*)gPad),4,points);
 //       cout <<i<<" painting  "<<points[0]<<" "<<points[1]<<" "<<points[2];
 //       cout <<" "<<points[4]<<" "<<points[5]<<" "<<points[6]<<endl;
     }
