@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.11 2009/12/12 17:55:22 pzuccon Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.12 2009/12/13 13:30:44 pzuccon Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -36,6 +36,7 @@
 #include "AMSNtupleV.h"
 #include "TAxis3D.h"
 #include "Help.h"
+#include "TView3DAMS.h"
 
 ClassImp(AMSDisplay);
 
@@ -413,7 +414,7 @@ void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
    }
 
 
-   TView3D * axisView = new TView3D(1,rmin,rmax);
+   TView3DAMS * axisView = new TView3DAMS(1,rmin,rmax);
    axisView->Hack=kTRUE;
    m_AxisPadP[index] = (TPad*)gPadSave;
    m_AxisPad[index] = axisPad;
@@ -472,55 +473,55 @@ void AMSDisplay::DrawTrigger(){
 
 
 void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
-//    Draw a view of AMS
-   m_Theta=theta;
-   m_Phi=phi; 
-   gPad->SetFillColor(10);	//white for easy printing
-   TView3D *view=(TView3D*)gPad->GetView();
-   if(  m_PrevView!=m_View ){
+  //    Draw a view of AMS
+  m_Theta=theta;
+  m_Phi=phi; 
+  gPad->SetFillColor(10);	//white for easy printing
+  TView3DAMS *view=(TView3DAMS*)gPad->GetView();
+  if(  m_PrevView!=m_View ){
     m_geosetter->UpdateGeometry(m_View);
     gPad->Clear();
     // add itself to the list
-   m_ntuple->Draw();
-   AppendPad();
-   double rmin[3],rmax[3];
-   for(int k=0;k<3;k++){
-      rmin[k]=0;
-      rmax[k]=1;
-   }
-   view = new TView3D(1,rmin,rmax);
-   view->Hack=kTRUE;
-   // add the geomtry to the pad
-    if(DrawGeometry())m_Geometry->Draw("same");
-    view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
-           Int_t iret;
-     if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
-     if(m_zoom){
-      TAxis3D *axis=TAxis3D::ToggleZoom(gPad);
-     if(axis){
-        axis->StickyZoom()=true;
-        axis->SetNdivisions(0);
-        axis->SetAxisColor(0);
-     } 
-   }
-   }
-   else {
-    gPad->GetListOfPrimitives()->Remove(this);
-     //cout <<" draw"<<endl;
     m_ntuple->Draw();
     AppendPad();
-   }
-     Int_t iret;
-     if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
+    double rmin[3],rmax[3];
+    for(int k=0;k<3;k++){
+      rmin[k]=0;
+      rmax[k]=1;
+    }
+    view = new TView3DAMS(1,rmin,rmax);
+    view->Hack=kTRUE;
+    // add the geomtry to the pad
+    if(DrawGeometry())m_Geometry->Draw("same");
+    view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
+    Int_t iret;
+    if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
+    if(m_zoom){
+      TAxis3D *axis=TAxis3D::ToggleZoom(gPad);
+      if(axis){
+	axis->StickyZoom()=true;
+	axis->SetNdivisions(0);
+	axis->SetAxisColor(0);
+      } 
+    }
+  }
+  else {
+    gPad->GetListOfPrimitives()->Remove(this);
+    //cout <<" draw"<<endl;
+    m_ntuple->Draw();
+    AppendPad();
+  }
+  Int_t iret;
+  if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
 
-   if( m_PrevView!=m_View){
-     DrawAxis(index);
-   }
-   else if ( theta != 9999 && phi != 9999 ){
+  if( m_PrevView!=m_View){
+    DrawAxis(index);
+  }
+  else if ( theta != 9999 && phi != 9999 ){
     m_AxisPad[index]->GetView()->SetView(phi,theta,0,iret);
     m_AxisPad[index]->Modified();
-   }
-   gPad->Paint();
+  }
+  gPad->Paint();
 }
 
 void AMSDisplay::DrawViewGL(){
@@ -911,9 +912,11 @@ void AMSDisplay::ReSizeCanvas(Long_t zoom, bool draw){
     scaleprev=m_scale;      
 //  move canvas say at the center
 //
-    TGCanvas* frf=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCanvasWindow();
+    /*TGCanvas* frf=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCanvasWindow();
     frf->SetHsbPosition(wz*(1.-1./m_scale)/2);
     frf->SetVsbPosition(hz*(1.-1./m_scale)/2);
+*/
+    ((TRootCanvas*)m_Canvas->GetCanvasImp())->SetWindowPosition(wz*(1.-1./m_scale)/2,hz*(1.-1./m_scale)/2);
 }
 }
 

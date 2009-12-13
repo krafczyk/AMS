@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.51 2009/12/11 09:14:36 pzuccon Exp $
+#  $Id: Makefile,v 1.52 2009/12/13 13:30:44 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -135,13 +135,13 @@ endif
 
 
 SRCS           = main.cxx TGRunEventDialog.cxx ControlFrame.cxx \
-                 AMSNtupleV.cxx       Help.cxx
+                 AMSNtupleV.cxx   TView3DAMS.cxx    Help.cxx
 
 SRCSN          = AMSR_GeometrySetter.cxx  AMSDisplay$(NEW).cxx \
                  TMarker3DCl$(NEW).cxx    AMSR_Axis.cxx 
 
 HDRS          = TGRunEventDialog.h    ControlFrame.h \
-		AMSNtupleV.h                         \
+		AMSNtupleV.h         TView3DAMS.h     \
                 AMSR_GeometrySetter.h AMSDisplay.h   \
                 TMarker3DCl.h          AMSR_Axis.h 
 
