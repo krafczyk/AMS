@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.253 2009/12/11 09:33:10 choutko Exp $
+//  $Id: root.h,v 1.254 2009/12/14 15:56:15 shaino Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -241,6 +241,10 @@ public:
   void   Set(EventNtuple02 *ptr);
 #endif
   friend class AMSEventR;
+
+#ifdef _PGTRACK_
+  friend class VCon_root;
+#endif
    /*!
     \return human readable info about HeaderR
   */

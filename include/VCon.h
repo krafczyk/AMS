@@ -10,7 +10,7 @@ public:
   VCon(){}
   virtual ~VCon(){}
 
-  virtual  VCon*  GetCont(char* name)=0;
+  virtual  VCon*  GetCont(const char* name)=0;
 
   virtual int      getnelem()=0;
   virtual void     eraseC()=0;

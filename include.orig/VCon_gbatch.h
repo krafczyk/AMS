@@ -12,7 +12,7 @@ class VCon_gb :public VCon{
     ~VCon_gb(){}
 
 
-    VCon*     GetCont(char * name);
+    VCon*     GetCont(const char * name);
     int      getnelem();
     void      eraseC();
     int      getindex(TrElem* aa);

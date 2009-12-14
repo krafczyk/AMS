@@ -12,7 +12,7 @@ void  VCon_gb::removeEl(TrElem* prev, integer restore){
   con->removeEl(dynamic_cast<AMSlink*> (prev),restore);
 };
 
-VCon* VCon_gb::GetCont(char * name){
+VCon* VCon_gb::GetCont(const char * name){
   AMSContainer *cc=AMSEvent::gethead()->getC(AMSID(name));
   if (cc){
     con=cc;

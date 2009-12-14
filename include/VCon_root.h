@@ -9,11 +9,11 @@ class VCon_root :public VCon{
 public:
   AMSEventR* ev;
   char contname[50];
-  VCon_root(char *name=0);
+  VCon_root(const char *name=0);
   ~VCon_root(){ev=0;}
 
 
-  VCon*     GetCont(char * name);
+  VCon*     GetCont(const char * name);
   int       getnelem();
   void      eraseC();
   TrElem*  getelem(int ii);

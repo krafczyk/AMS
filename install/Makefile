@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.91 2009/12/06 12:08:25 shaino Exp $
+#  $Id: Makefile,v 1.92 2009/12/14 15:56:15 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -209,7 +209,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
 	        $(SCC)TrAlignFit.C\
-	      $(SCC)TrElem.C   
+	      $(SCC)TrElem.C   $(SCC)VCon_root.C
 
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
@@ -475,7 +475,7 @@ lib: shared static
 
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
-	$(BIN)rnormx_s.o $(BIN)VCon_root.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  \
+	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  \
 	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
 else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
@@ -713,6 +713,8 @@ $(BIN)server.o: 	 $(SCC)server.C
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
 	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+
+$(BIN)VCon_s.o: ../include/VCon_root.h
 
 ##################### ADDTIONAL (PHONY) TARGETS ##############################################
 #checks if the directory AMSWD exist 

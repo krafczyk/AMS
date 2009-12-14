@@ -1,14 +1,13 @@
 #include "VCon_root.h"
 
-
-VCon_root::VCon_root(char * cc){
+VCon_root::VCon_root(const char * cc){
   if(!cc) sprintf(contname,"empty");
   else
   sprintf(contname,"%s",cc);
   ev=AMSEventR::Head();
 }
 
-VCon* VCon_root::GetCont(char * name){
+VCon* VCon_root::GetCont(const char * name){
   if(
      strstr(name,"TrMCCluster")||
      strstr(name,"TrCluster")||
@@ -83,16 +82,26 @@ int VCon_root::getnelem(){
 
 void VCon_root::eraseC(){
  if(!ev)  return ;
-  if( strstr(contname,"TrMCCluster"))
+  if( strstr(contname,"TrMCCluster")) {
+    ev->fHeader.TrMCClusters = 0;
     return ev->TrMCCluster().clear();
-  if( strstr(contname,"TrCluster"))
+  }
+  if( strstr(contname,"TrCluster")) {
+    ev->fHeader.TrClusters = 0;
     return ev->TrCluster().clear();
-  if( strstr(contname,"TrRawCluster"))
+  } 
+  if( strstr(contname,"TrRawCluster")) {
+    ev->fHeader.TrRawClusters = 0;
     return ev->TrRawCluster().clear();
-  if( strstr(contname,"TrRecHit"))
+  }
+  if( strstr(contname,"TrRecHit")) {
+    ev->fHeader.TrRecHits = 0;
     return ev->TrRecHit().clear();
-  if( strstr(contname,"TrTrack"))
+  }
+  if( strstr(contname,"TrTrack")) {
+    ev->fHeader.TrTracks = 0;
     return ev->TrTrack().clear();
+  }
 }
 
 TrElem* VCon_root::getelem(int ii){
