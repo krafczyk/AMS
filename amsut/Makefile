@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.3 2009/11/12 16:49:06 pzuccon Exp $
+#  $Id: Makefile,v 1.4 2009/12/15 14:06:35 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -15,9 +15,9 @@
 ARCH     = $(shell uname)
 
 ### Compilers ###
-FC       = ifort -m32
-CXX      = icc -m32 
-LD       = icc  -m32
+FC       = gfortran -m32
+CXX      = g++ -m32 
+LD       = g++  -m32
 
 
 ifeq "$(ARCH)" "Linux"
