@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.672 2009/12/08 11:24:15 choutko Exp $
+// $Id: job.C,v 1.673 2009/12/16 09:52:19 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1731,7 +1731,7 @@ if(AMSFFKEY.Update){
       TkDBc::Head->init(TKGEOMFFKEY.CablVer,fname);
     }
     else
-      TkDBc::Head->init();
+      TkDBc::Head->init(TKGEOMFFKEY.CablVer);
     AMSTRDIdSoft::init();
     int env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
