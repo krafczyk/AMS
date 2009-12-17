@@ -8,7 +8,7 @@
 //============  DAQ INTERFACE =======================
 
 
-
+int TrDAQ::MaxClusterLength = 127;
 
 integer TrDAQ::getdaqid(int16u crate){
  for(int i=0;i<31;i++){
@@ -219,7 +219,7 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 	cluslen=cluslenraw&0x7f;
 	clusadd=clusaddraw&0x3ff;
       }
-      if(cluslen>127){
+      if(cluslen>MaxClusterLength){
 	static int junkerr=0;
 	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-TooLongCluster (>127) "<< cluslen<<endl;
 	continue;

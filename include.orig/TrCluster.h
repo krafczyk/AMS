@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2009/12/06 22:49:26 $
+ $Date: 2009/12/17 16:11:12 $
 
- $Revision: 1.6 $
+ $Revision: 1.7 $
 
 */
 
@@ -64,6 +64,8 @@ class TrClusterR :public TrElem{
     /// Total Signal Corr.: P/N Normalization Correction     
     kPN           = 0x20
   };
+
+  enum { TASCLS = 0x400 };
  
  protected:
 
@@ -179,6 +181,7 @@ public:
   /// Get i-th strip status (from calibration)
   short GetStatus(int ii);
 
+  bool TasCls() { return checkstatus(TASCLS);}
 
   /// Get multiplicity
   int   GetMultiplicity();

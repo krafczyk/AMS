@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.92 2009/12/14 15:56:15 shaino Exp $
+#  $Id: Makefile,v 1.93 2009/12/17 16:11:12 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -208,12 +208,13 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C   \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
+	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	        $(SCC)TrAlignFit.C\
 	      $(SCC)TrElem.C   $(SCC)VCon_root.C
 
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
-	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C	
+	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C
 #$(SCC)gufld.C
 
 else
@@ -281,7 +282,8 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
 		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \
-		../include/TrRecon.h ../include/TrFit.h \
+		../include/TrTasCluster.h ../include/TrTasPar.h ../include/TrTasDB.h \
+		../include/TrFit.h \
 		../include/trrec.h \
 		../include/point.h  ../include/root_RV.h ../include/root.h  ../include/linkdef.h
 else
@@ -476,7 +478,7 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  \
-	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
+	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
 else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
 endif

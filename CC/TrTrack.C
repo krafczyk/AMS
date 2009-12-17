@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.14 2009/11/26 01:25:09 pzuccon Exp $
+// $Id: TrTrack.C,v 1.15 2009/12/17 16:11:11 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/11/26 01:25:09 $
+///$Date: 2009/12/17 16:11:11 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -188,15 +188,15 @@ TrTrackPar &TrTrackR::GetPar(int id) {
 
 
 
-void TrTrackR::AddHit(TrRecHitR *hit, int imult,AMSPoint* bfield)
+void TrTrackR::AddHit(TrRecHitR *hit, int imult, AMSPoint *bfield)
 {
   VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   if (_Nhits < trconst::maxlay) {
-    _Hits [_Nhits] = hit;
-    _iHits[_Nhits] = cont2->getindex(hit);
-    _iMult[_Nhits] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
-    _BField[_Nhits] = *bfield;
-    if(_BField[_Nhits].norm()!=0) _MagFieldOn=1;
+    _Hits  [_Nhits] = hit;
+    _iHits [_Nhits] = cont2->getindex(hit);
+    _iMult [_Nhits] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
+    _BField[_Nhits] = (bfield) ? *bfield : AMSPoint(0, 0, 0);
+    if(_BField[_Nhits].norm() != 0) _MagFieldOn = 1;
     _Nhits++;
     if (hit->GetXCluster()) _NhitsX++;
     if (hit->GetYCluster()) _NhitsY++;
@@ -344,8 +344,8 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
-    _TrFit.Add(coo, (hit->getstatus() & YONLY) ? 0 : errx,
-                    (hit->getstatus() & XONLY) ? 0 : erry, errz);
+    _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
+	            hit->OnlyX() ? 0 : erry, errz);
     hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }

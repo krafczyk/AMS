@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.12 2009/11/26 01:25:18 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.13 2009/12/17 16:11:12 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/11/26 01:25:18 $
+///$Date: 2009/12/17 16:11:12 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -218,7 +218,7 @@ public:
   virtual ~TrTrackR();
 
   /// Add a hit with multiplicity index (if specified)
-  void AddHit(TrRecHitR *hit, int imult ,AMSPoint* bfield);
+  void AddHit(TrRecHitR *hit, int imult = -1, AMSPoint *bfield = 0);
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy) {

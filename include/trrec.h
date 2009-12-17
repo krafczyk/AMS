@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.106 2009/11/05 15:01:09 choutko Exp $
+//  $Id: trrec.h,v 1.107 2009/12/17 16:11:12 shaino Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -505,6 +505,7 @@ friend class AMSTrCalibFit;
 #include "TrMCCluster.h"
 #include "TrRawCluster.h"
 #include "TrCluster.h"
+#include "TrTasCluster.h"
 #include "TrRecHit.h"
 #include "TrTrack.h"
 #include "Vertex.h"
@@ -606,6 +607,37 @@ public:
 };
 
 
+class AMSTrTasCluster: public TrTasClusterR,public  AMSlink{
+
+public:
+
+ /// Default constructor
+  AMSTrTasCluster():TrTasClusterR(),AMSlink(){}
+  /// Constructor with data
+  AMSTrTasCluster(int tkid, int side, int add, int nelem, float* adc)
+    :TrTasClusterR(tkid,side, add, nelem, adc),AMSlink(){}
+  
+  /// Copy constructor
+  AMSTrTasCluster(const AMSTrTasCluster& orig):TrTasClusterR(orig),AMSlink(orig){}
+  /// Destructor
+  ~AMSTrTasCluster(){}
+ 
+
+  AMSTrTasCluster* next(){return (AMSTrTasCluster*) _next;}
+  
+  unsigned int checkstatus(int c) const { return Status&c; }
+  unsigned int getstatus  (void)  const { return Status; }
+  void setstatus  (unsigned int s) { Status |=  s; }
+  void clearstatus(unsigned int s) { Status &= ~s; }
+
+  void _copyEl(){}
+  void _printEl(std::ostream&){}
+  void _writeEl(){}
+
+  //  ClassDef(AMSTrTasCluster,0)
+
+};
+
 
 
 class AMSTrRecHit: public TrRecHitR,public  AMSlink{
@@ -616,8 +648,8 @@ public:
   /// Copy constructor
   AMSTrRecHit(const AMSTrRecHit& orig):TrRecHitR(orig),AMSlink(orig){}
   /// Constructor with clusters
-  AMSTrRecHit(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1)
-    :TrRecHitR(tkid,clX,  clY,  corr,  prob, imult),AMSlink(){}
+  AMSTrRecHit(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1, int status = 0)
+    :TrRecHitR(tkid,clX,  clY,  corr,  prob, imult, status),AMSlink(){}
   /// Destructor
   ~AMSTrRecHit(){}
  

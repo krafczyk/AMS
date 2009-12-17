@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.13 2009/12/06 12:08:19 shaino Exp $ 
+// $Id: TrRecon.h,v 1.14 2009/12/17 16:11:12 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -17,9 +17,9 @@
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///
-/// $Date: 2009/12/06 12:08:19 $
+/// $Date: 2009/12/17 16:11:12 $
 ///
-/// $Revision: 1.13 $
+/// $Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -193,6 +193,21 @@ public:
 
   /// Fild a hit with the combination of xcls and ycls
   TrRecHitR* FindHit(TrClusterR* xcls,TrClusterR* ycls);
+
+////////////////////////////////////////////////////////////////
+// -------------------- TAS reconstruction ------------------ //
+////////////////////////////////////////////////////////////////
+  /// Activate switch for the TAS reconstruction
+  static int TasRecon;
+
+  /// Build TrClusters specialized for TAS data
+  int BuildTrTasClusters(int rebuild = 0);
+
+  /// Build TrRecHits specialized for TAS data
+  int BuildTrTasHits(int rebuild = 0);
+
+  /// Build TrTracks specialized for TAS data
+  int BuildTrTasTracks(int rebuild = 0);
 
 ////////////////////////////////////////////////////////////////
 // ------------------------- Vertex ------------------------- //

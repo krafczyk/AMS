@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.673 2009/12/16 09:52:19 shaino Exp $
+// $Id: job.C,v 1.674 2009/12/17 16:11:11 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -28,6 +28,7 @@
 #ifdef _PGTRACK_
 
 #include "TrRecon.h"
+#include "TrTasDB.h"
 
 #include "trrec.h"
 #include "tkdcards.h"
@@ -1772,6 +1773,13 @@ if(AMSFFKEY.Update){
   TrRecon::SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);
 
+  if (TrRecon::TasRecon) {
+    TrTasDB *tasdb = new TrTasDB;
+    tasdb->Init(0);
+    tasdb->CreateLinear();
+    TrDAQ::MaxClusterLength = 640;
+  }
+
 #else
     AMSTrIdGeom::init();
     if(strstr(getsetup(),"AMS02") ){    
@@ -2853,6 +2861,28 @@ bool NeededByDefault=isSimulation();
       TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
 			     TkDBc::GetLinearSize(),TkDBc::linear,
  			     server,need,SLin2Align));
+
+    if (isRealData() && TrRecon::TasRecon) {
+      begin.tm_isdst=0;
+      begin.tm_sec  =0;
+      begin.tm_min  =0;
+      begin.tm_hour =0;
+      begin.tm_mday =0;
+      begin.tm_mon  =0;
+      begin.tm_year =0;
+   
+      end.tm_isdst=0;
+      end.tm_sec  =0;
+      end.tm_min  =0;
+      end.tm_hour =0;
+      end.tm_mday =0;
+      end.tm_mon  =0;
+      end.tm_year =0;
+      
+      TID.add (new AMSTimeID(AMSID("TrackerTasPar",isRealData()),begin,end,
+			     TrTasDB::GetLinearSize(),TrTasDB::linear,
+ 			     server,need,SLin2TasDB));
+    }
    }
 
 #else

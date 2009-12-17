@@ -67,7 +67,10 @@ void TRCLFFKEY_DEF::init(){
   TrDEBUG = 0;
   PZDEBUG = 0;
 
-
+  //TAS
+  TasRecon = 0;
+  TasCurr  = 0;
+  TasLDDR  = 0;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;

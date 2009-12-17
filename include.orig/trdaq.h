@@ -30,6 +30,8 @@ public:
   /// It decodes the DAQ (binary) data and produces the TrRawClusters
   static void buildraw(integer n, int16u *p);
 
+  static int MaxClusterLength;
+
 private:
   /// The Actual TDR decoding routine
   static int ReadOneTDR(int16u* pp,int tsize,int cratenum,int pri);

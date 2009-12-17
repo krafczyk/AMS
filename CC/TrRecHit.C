@@ -16,6 +16,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrRecHit.h"
+#include "TrTasCluster.h"
 ClassImp(TrRecHitR);
 
 
@@ -46,7 +47,7 @@ TrRecHitR::TrRecHitR(const TrRecHitR& orig) {
 }
 
 
-TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult) {
+TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult, int status) {
   _tkid     = tkid;   
   if((clX&&clX->GetTkId()!=_tkid)|| (clY&&clY->GetTkId()!=_tkid)){
     printf("TrRecHitR::TrRecHitR--> BIG problems you are building ans hit on Ladder %d  \n",_tkid);
@@ -65,7 +66,7 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, flo
   _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;
   delete cont2;
 
-  Status   = 0;
+  Status    = status;
   if (!clX) Status |= YONLY;
   if (!clY) Status |= XONLY;
   _corr     = corr;
@@ -105,9 +106,14 @@ void TrRecHitR::BuildCoordinates() {
   if(clX!=0)
     xaddr =  clX->GetAddress();
 
-  _mult     = TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
+  _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
   _coord.clear();
   for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
+
+  if (TasHit()) {
+    if (!GetXCluster() || !GetXCluster()->TasCls() || 
+	!GetYCluster() || !GetYCluster()->TasCls()) Status &= ~TASHIT;
+  }
 }
 
 TrRecHitR::~TrRecHitR() {
@@ -182,7 +188,23 @@ std::ostream &TrRecHitR::putout(std::ostream &ostr)  {
 }
 
 
-AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, char* options,
+float TrRecHitR::GetXloc(int imult, int nstrips)
+{
+  TrClusterR *cls = GetXCluster();
+  if (!cls) return TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult);
+  if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
+  return cls->GetXCofG(nstrips, imult);
+}
+
+float TrRecHitR::GetYloc(int nstrips)
+{ 
+  TrClusterR *cls = GetYCluster();
+  if (!cls) return -1000;
+  if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
+  return cls->GetXCofG(nstrips);
+}
+
+AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
 					int nstripsx, int nstripsy) {
   // parsing options
   bool ApplyAlignement = false;

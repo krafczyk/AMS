@@ -46,6 +46,10 @@ R 32 ErrXForScan      (Default: 300e-4)
 R 33 ErrYForScan      (Default: 300e-4)
 I 34 TrDEBUG
 I 35 PZDEBUG
+I 36 TAS reconstruction (1:ON 0:OFF, Default:0)
+I 37 TAS laser current intensity
+I 38 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
+
 //==============================
 
 

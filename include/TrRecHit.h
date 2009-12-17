@@ -33,13 +33,13 @@
 #include "TkDBc.h"
 #include "TrElem.h"
 
-#define XONLY 0x100
-#define YONLY 0x200
+#include "amsdbc.h"
 
 
 class TrRecHitR : public TrElem {
 
-  
+public:
+  enum { XONLY = 0x100, YONLY = 0x200, TASHIT = 0x400 };
 
 protected:
   /// Pointer to the X (n-side) TrClusterR in the fTrClusterR collection
@@ -81,7 +81,7 @@ protected:
   /// Copy constructor
   TrRecHitR(const TrRecHitR& orig);
   /// Constructor with clusters
-  TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1);
+  TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1, int status = 0);
   /// Destructor
   virtual ~TrRecHitR();
   /// Clear data members
@@ -130,12 +130,9 @@ protected:
   /// Returns the signal of the Y cluster 
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
   /// Get X local coordinate (ladder reference frame)
-  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips) {
-    return (!GetXCluster()) ? TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult)
-                            : GetXCluster()->GetXCofG(nstrips, imult); }
+  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
   /// Get Y local coordinate (ladder reference frame)
-  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips) { 
-    return (!GetYCluster()) ? -1000. : GetYCluster()->GetXCofG(nstrips); }
+  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips);
   /// Get local coordinate (ladder reference frame, Z is zero by definition)
   AMSPoint GetLocalCoordinate(int imult = 0, 
 			      int nstripsx = TrClusterR::DefaultUsedStrips,
@@ -143,12 +140,17 @@ protected:
     return AMSPoint(GetXloc(imult, nstripsx), GetYloc(nstripsy),0.); }
   /// Get global coordinate (AMS reference system) 
   /// default: nominal position, A: with alignement correction
-  AMSPoint GetGlobalCoordinate(int imult = 0, char* options = "A",
+  AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
 			       int nstripsx = TrClusterR::DefaultUsedStrips,
 			       int nstripsy = TrClusterR::DefaultUsedStrips);
 
-  bool OnlyX() {return checkstatus(XONLY);}
-  bool OnlyY(){ return checkstatus(YONLY);}
+  bool OnlyX () { return checkstatus(XONLY); }
+  bool OnlyY () { return checkstatus(YONLY); }
+  bool TasHit() { return checkstatus(TASHIT); }
+  // AMSDBc::USED = 32; (0x0020)
+  bool Used  () { return checkstatus(AMSDBc::USED); }
+  // AMSDBc::FalseX = 8192; (0x2000)
+  bool FalseX() { return checkstatus(AMSDBc::FalseX); }
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const{return Status & checker;}

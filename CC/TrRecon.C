@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.24 2009/12/06 22:49:20 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.25 2009/12/17 16:11:11 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/12/06 22:49:20 $
+/// $Date: 2009/12/17 16:11:11 $
 ///
-/// $Revision: 1.24 $
+/// $Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,6 @@
 #include "TkCoo.h"
 #include "TrMCCluster.h"
 #include "Vertex.h"
-#include "amsdbc.h"
 #include "VCon.h"
 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -114,8 +113,10 @@ void TrRecon::SetParFromDataCards(){
   ErrXForScan       = TRCLFFKEY.ErrXForScan     ;
   ErrYForScan       = TRCLFFKEY.ErrYForScan     ;
   
-  TrDEBUG =TRCLFFKEY.TrDEBUG;
+  TrDEBUG = TRCLFFKEY.TrDEBUG;
   PZDEBUG = TRCLFFKEY.PZDEBUG;
+
+  TasRecon = TRCLFFKEY.TasRecon;
 }
 TrRecon::~TrRecon() {
   Clear();
@@ -276,6 +277,8 @@ int TrRecon::GetAddressInSubBuffer(int address, int first, int last, int ciclici
 
 
 int TrRecon::BuildTrClusters(int rebuild) { 
+  if (TasRecon) return BuildTrTasClusters(rebuild);
+
   //Get the pointer to the TrRawCluster container
   //  AMSContainer* cont=GetCont(AMSID("AMSTrRawCluster"));
   VCon* cont=GetVCon()->GetCont("AMSTrRawCluster");
@@ -519,6 +522,8 @@ TrClusterR* TrRecon::GetTrCluster(int tkid, int side, int iclus) {
 
 int TrRecon::BuildTrRecHits(int rebuild) 
 {
+  if (TasRecon) return BuildTrTasHits(rebuild);
+
   //Get the pointer to the TrCluster container
   VCon* cont=GetVCon()->GetCont("AMSTrCluster");
   if (!cont) {
@@ -1102,8 +1107,10 @@ void TrRecon::BuildLadderClusterMap()
 // Track reconstruction methods
 //========================================================
 
-int TrRecon::BuildTrTracks(int)
+int TrRecon::BuildTrTracks(int rebuild)
 {
+  if (TasRecon) return BuildTrTasTracks(rebuild);
+
   // Build hit patterns if not yet built
   if (!HitPatternMask) BuildHitPatterns();
 
@@ -1477,7 +1484,7 @@ int TrRecon::HitCoordMgr(int idx, TrHitIter &it, int mode) const
     TrRecHitR *hit = GetTrRecHit(tkid, it.iscan[il][0], it.iscan[il][1]);
     if (!hit) return it.imult[il];
 
-    if (it.side == 0 && (hit->getstatus() & YONLY)) return -1;
+    if (it.side == 0 && hit->OnlyY()) return -1;
 
     // Return multiplicity range
     it.imult[il] = 0;
@@ -1488,7 +1495,7 @@ int TrRecon::HitCoordMgr(int idx, TrHitIter &it, int mode) const
   TrRecHitR *hit = GetTrRecHit(tkid, it.iscan[il][0], it.iscan[il][1]);
   if (!hit) return -1;
 
-  if (hit->getstatus() & YONLY)
+  if (hit->OnlyY())
     it.coo[il][1] = hit->GetCoord(it.imult[il])[1];
   else
     it.coo[il] = hit->GetCoord(it.imult[il]);
@@ -1621,24 +1628,25 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   for (int i = 0; i < itcand.nlayer; i++) {
     // Get clusters from candidate map
     TrRecHitR *hit = GetTrRecHit(itcand.tkid[i], itcand.iscan[i][0], 
-                                                   itcand.iscan[i][1]);
+                                                 itcand.iscan[i][1]);
     if (!hit) continue;
 
     // Mark the hit as USED
-    hit->setstatus(AMSDBc::USED);
+    hit->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
 
     // Remove hit pointer from _HitsTkIdMap
     RemoveHits(itcand.tkid[i], itcand.iscan[i][0], 0);
     RemoveHits(itcand.tkid[i], itcand.iscan[i][1], 1);
     TR_DEBUG_CODE_41;
 
-    if (hit->getstatus() & YONLY) {
+    if (hit->OnlyY()) {
       maskc |= (1 << (MAXLAY-hit->GetLayer()));
       hit->SetDummyX(EstimateXCoord(i, itcand));
       hit->BuildCoordinates();
-      track->setstatus(AMSDBc::FalseX);
+      track->setstatus(AMSDBc::FalseX); // AMSDBc::FalseX = 8192; (0x2000)
     }
     hit->SetResolvedMultiplicity(itcand.imult[i]);
+
     AMSPoint bfield(0,0,0);
     if (MagFieldOn()){
       //PZMAG      bfield=MagField::GetPtr()->GuFld(hit->GetCoord(itcand.imult[i]));
@@ -1648,10 +1656,9 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
       bfield.setp(A2);
     }
 
-
-    track->AddHit(hit, itcand.imult[i],&bfield);
-    
+    track->AddHit(hit, itcand.imult[i], &bfield);
   }
+
  if (PZDEBUG){
   cout<< " PZDEBUG track info\n";
   for(int jj=0;jj<track->GetNhits();jj++){
@@ -1777,6 +1784,275 @@ void TrRecon::GetTkFld(float *pos, float **hxy)
     for (int jj=0;jj<3;jj++)
       hxy[ii][jj]=hh[jj][ii];
 }
+
+////////////////////////////////////////////////////////////////
+// -------------------- TAS reconstruction ------------------ //
+////////////////////////////////////////////////////////////////
+
+#include "TrTasCluster.h"
+#include "TrTasDB.h"
+#include "TrTasPar.h"
+
+int TrRecon::TasRecon = 0;
+
+int TrRecon::BuildTrTasClusters(int rebuild)
+{
+  // Check TrTasDB
+  if (!TrTasPar::Head) {
+    if (!TrTasDB::Head) {
+      cerr << "Error in TrRecon::BuildTrTasClusters: TrTasDB not exists"
+	   << endl;
+      return -1;
+    }
+
+    if (TasRecon && TRCLFFKEY.TasCurr > 0 && TRCLFFKEY.TasLDDR > 0) {
+      int lddr = ((TRCLFFKEY.TasLDDR/1000)%10)*0x1000+
+	         ((TRCLFFKEY.TasLDDR/ 100)%10)*0x0100+
+	         ((TRCLFFKEY.TasLDDR/  10)%10)*0x0010+
+	         ((TRCLFFKEY.TasLDDR/   1)%10)*0x0001;
+      if (!TrTasDB::Head->FindPar(TRCLFFKEY.TasCurr, lddr)) {
+	cerr << "Error in TrRecon::BuildTrTasClusters: TrTasPar not found " 
+	     << Form("Ival= %d LDDR= 0x%04x %04d",
+		     TRCLFFKEY.TasCurr, lddr, TRCLFFKEY.TasLDDR)<< endl;
+	return -1;
+      }
+
+      cout << "TrRecon::BuildTrTasClusters: TrTasPar initialized" << endl;
+      TrTasPar::Head->Print();
+    }
+  }
+
+  VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
+  if(!cont) {
+    cerr << "TrRecon::BuildTrTasClusters: Cant Find AMSTrRawCluster" << endl;
+    return -1;
+  }
+
+  if (cont->getnelem() == 0) {
+    delete cont;
+    return 0;
+  }
+
+  // Build a map of TrRawClusters
+  TrMap<TrRawClusterR> RawMap;
+  for (int i = 0; i < cont->getnelem(); i++) {
+    TrRawClusterR *raw = (TrRawClusterR *)cont->getelem(i);
+    if (raw) RawMap.Add(raw);
+  }
+  delete cont;
+
+  cont = GetVCon()->GetCont("AMSTrCluster");
+  if (!cont) {
+    cerr << "TrRecon::BuildTrTasClusters: Cant Find AMSTrCluster" << endl;
+    return -1;
+  }
+  if (rebuild) cont->eraseC();
+
+  enum { NBUF = TrTasPar::NADR, BUFSIZE = 21 };
+  float adcbuf[NBUF][BUFSIZE];
+  int   adrmin[NBUF];
+  int   adrmax[NBUF];
+
+  int ncls = 0;
+
+  // loop on ladders
+  for (TrMap<TrRawClusterR>::TrMapIT lad  = RawMap.LadMap.begin(); 
+                                     lad != RawMap.LadMap.end(); lad++) {
+    int tkid = lad->first;
+
+    // Check if the ladder is on the Laser column
+    int ilad = -1;
+    for (Int_t i = 0; i < TrTasPar::NLAD; i++)
+      if (tkid == TrTasPar::Head->GetTkId(i)) { ilad = i; break; }
+    if (ilad < 0) continue;
+
+    // Clear ADC buffer
+    for (int i = 0; i < NBUF; i++) {
+      adrmin[i] = adrmax[i] = -1;
+      for (int j = 0; j < BUFSIZE; j++) adcbuf[i][j] = 0;
+    }
+
+    // Fill ADC buffer
+    for (int i = 0; i < NBUF; i++) {
+      int amin = TrTasPar::Head->GetAmin(ilad, i);
+      int amax = TrTasPar::Head->GetAmax(ilad, i);
+      if (amin < 0 || amax < 0) continue;
+
+      for (int j = 0; j < (int)lad->second.size(); j++) {
+	TrRawClusterR *raw = lad->second.at(j);
+
+	for (Int_t k = 0; k < raw->GetNelem(); k++) {
+	  int adr = raw->GetAddress(k);
+	  if (amin <= adr && adr <= amax) {
+	    if (adrmin[i] < 0 || adrmin[i] > adr) adrmin[i] = adr;
+	    if (adrmax[i] < 0 || adrmax[i] < adr) adrmax[i] = adr;
+	    adcbuf[i][adr-amin] = raw->GetSignal(k);
+	  }
+	}
+      }
+    }
+
+    // Generate TrTasClusters
+    for (int i = 0; i < NBUF; i++) {
+      int amin = TrTasPar::Head->GetAmin(ilad, i);
+      if (amin < 0 || adrmin[i] < amin || adrmax[i] < adrmin[i]) continue;
+
+      int addr = adrmin[i];
+      int side = (addr < 640) ? 1 : 0;
+      int nelm = adrmax[i]-adrmin[i]+1;
+      float *abuf = &adcbuf[i][addr-amin];
+
+#ifndef __ROOTSHAREDLIBRARY__ 
+      cont->addnext(new AMSTrTasCluster(tkid, side, addr, nelm, abuf));
+#else
+      cont->addnext(new TrTasClusterR  (tkid, side, addr, nelm, abuf));
+#endif
+      ncls++;
+    }
+  }
+  delete cont;
+
+  return ncls;
+}
+
+int TrRecon::BuildTrTasHits(int rebuild)
+{
+  if (!TrTasPar::Head) return -1;
+
+  // Get the pointer to the TrCluster container
+  VCon *cont = GetVCon()->GetCont("AMSTrCluster");
+  if (!cont) {
+    cerr << "TrRecon::BuildTrTasHit:  Cant Find AMSTrCluster Container "
+             "Reconstruction is Impossible !!!" << endl;
+    return -1;
+  }
+  if (cont->getnelem() == 0) {
+    delete cont;
+    return 0;
+  }
+
+  VCon *cont2 = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont2) {
+    cerr << "TrRecon::BuildTrTasHit:  Cant Find AMSTrRecHit Container "
+            "Reconstruction is Impossible !!!" << endl;
+    delete cont;
+    return -1;
+  }
+
+  if (rebuild) cont2->eraseC();
+
+  int nhit = 0;
+  for (int i = 0; i < cont->getnelem(); i++) {
+    TrClusterR *clx = (TrClusterR *)cont->getelem(i);
+    if (!clx || clx->GetSide() != 0) continue;
+
+    int tkid = clx->GetTkId();
+    int ilad = TrTasPar::Head->GetIlad(tkid);
+    if (ilad < 0) continue;
+
+    int ipk = TrTasPar::Head->GetIpk(ilad, clx->GetAddress());
+    if (ipk < 0) continue;
+
+    TrClusterR *cly = 0;
+    for (int j = 0; j < cont->getnelem(); j++) {
+      TrClusterR *cls = (TrClusterR *)cont->getelem(j);
+      if (!cls || cls->GetTkId() != tkid || cls->GetSide() != 1) continue;
+
+      if (TrTasPar::Head->GetIpk(ilad, cls->GetAddress())%2 == ipk%2) {
+	cly = cls;
+	break;
+      }
+    }
+    if (!cly) continue;
+
+    TrRecHitR *hit;
+#ifndef __ROOTSHAREDLIBRARY__
+    cont2->addnext((hit = new AMSTrRecHit(tkid, clx, cly, 1, 1, 0, TrRecHitR::TASHIT)));
+#else
+    cont2->addnext((hit = new TrRecHitR  (tkid, clx, cly, 1, 1, 0, TrRecHitR::TASHIT)));
+#endif
+    nhit++;
+  }
+  delete cont;
+  delete cont2;
+
+  return nhit;
+}
+
+int TrRecon::BuildTrTasTracks(int rebuild)
+{
+  if (!TrTasPar::Head) return -1;
+
+  // Get the pointer to the TrCluster container
+  VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) {
+    cerr << "TrRecon::BuildTrTasTracks:  Cant Find AMSTrRecHit Container "
+             "Reconstruction is Impossible !!!" << endl;
+    return -1;
+  }
+  if (cont->getnelem() == 0) {
+    delete cont;
+    return 0;
+  }
+
+  VCon* cont2 = GetVCon()->GetCont("AMSTrTrack");
+  if (!cont2) {
+    cerr << "TrRecon::BuildTrTasTracks:  Cant Find AMSTrTrack Container "
+             "Reconstruction is Impossible !!!" << endl;
+    delete cont;
+    return -1;
+  }
+
+  double range = 0.5;  // cm
+
+  for (int i = 0; i < TrTasPar::NLAS; i++) {
+    double lasx = TrTasPar::Head->GetLasx(i);
+    double lasy = TrTasPar::Head->GetLasy(i);
+
+    TrRecHitR *hits[MAXLAY];
+    int nhit = 0;
+    int hpat = 0xff;
+    for (int j = 0; j < MAXLAY; j++) hits[j] = 0;
+
+    for (int j = 0; j < cont->getnelem(); j++) {
+      TrRecHitR *hit = (TrRecHitR *)cont->getelem(j);
+      if (!hit || !hit->TasHit() || hit->Used()) continue;
+
+      AMSPoint coo = hit->GetCoord();
+      if (std::fabs(coo.x()-lasx) < range &&
+	  std::fabs(coo.y()-lasy) < range) {
+	hits[nhit++] = hit;
+	hpat &= ~(1 << (MAXLAY-hit->GetLayer()));
+      }
+    }
+    if (nhit < MinNhitXY) continue;
+
+    int pattern = -1;
+    for (int j = 0; j < NHitPatterns; j++)
+      if (hpat == HitPatternMask[j]) { pattern = j; break; }
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSTrTrack *track = new AMSTrTrack(pattern);
+#else
+    TrTrackR   *track = new TrTrackR  (pattern);
+#endif
+
+    for (int j = 0; j < nhit; j++) {
+      hits[j]->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
+      track->AddHit(hits[j]);
+    }
+
+    int fit_method = TrTrackR::kLinear;
+    track->Fit(fit_method);
+    cont2->addnext(track);
+  }
+
+  delete cont;
+  delete cont2;
+
+  return 0;
+}
+
 ///////////////////////////////////////////////////////////
 //                  VERTEX                     ////////////
 ///////////////////////////////////////////////////////////
