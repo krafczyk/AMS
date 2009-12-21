@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.50 2009/12/17 16:11:12 shaino Exp $
+//  $Id: linkdef.h,v 1.51 2009/12/21 12:50:12 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -34,9 +34,9 @@
 #pragma link C++ class TrRecHitR+;
 #pragma link C++ class TrTrackR+;
 
-#pragma link C++ class TrTasClusterR+;
-#pragma link C++ class TrTasPar+;
-#pragma link C++ class TrTasDB+;
+//#pragma link C++ class TrTasClusterR+;
+//#pragma link C++ class TrTasPar+;
+//#pragma link C++ class TrTasDB+;
 
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class AMSChain+;
