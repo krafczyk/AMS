@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.132 2009/11/26 14:35:45 mdelgado Exp $
+//  $Id: richrec.C,v 1.133 2009/12/21 09:59:42 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -468,6 +468,12 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 
   AMSPoint initial(x,y,z),final(xf,yf,zf);
 
+  // Put everything in local mirror coordinates
+  initial=RichAlignment::RichToMirror(initial);
+  final=RichAlignment::RichToMirror(final);
+  x=initial[0]; y=initial[1]; z=initial[2];
+  xf=final[0]; yf=final[1]; zf=final[2];
+
   double f1=x*xf-y*yf,
     f2=x*zf+z*xf,
     f3=x*yf+y*xf,
@@ -525,6 +531,9 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 			     (ref_point[good])[2]+false_height-
                               RICHDB::rich_height-RICHDB::foil_height-RICradmirgap-
                               RICHDB::rad_height+RICHDB::RICradpos());
+
+      // Put it again in Rich coordinates
+      ref_point[good]=RichAlignment::MirrorToRich(ref_point[good]);
 
       good++;
     }

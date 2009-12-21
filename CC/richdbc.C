@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.66 2009/07/22 09:07:56 mdelgado Exp $
+//  $Id: richdbc.C,v 1.67 2009/12/21 09:59:42 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -639,8 +639,9 @@ AMSPoint  RichAlignment::_a2rShift;
 AMSPoint  RichAlignment::_r2aShift;
 AMSRotMat RichAlignment::_a2rRot;
 AMSRotMat RichAlignment::_r2aRot;
+AMSPoint  RichAlignment::_mirrorShift;
 
-void RichAlignment::LoadFile(char *filename){
+void RichAlignment::LoadFile(char *filename,int ver){
   if(!filename || strlen(filename)==0){
     cout<<"RichAlignment::LoadFile -- problem with file name... Ignoring."<<endl;
     return;
@@ -658,6 +659,7 @@ void RichAlignment::LoadFile(char *filename){
   // Read the following components of the a2r matrixes
   double sx,sy,sz;
   double alpha,beta,gamma;
+  double mx,my,mz;
 
   stream>>sx>>sy>>sz;
 
@@ -670,6 +672,13 @@ void RichAlignment::LoadFile(char *filename){
 
   if(stream.eof()){
     cout<<"RichAlignment::LoadFile -- truncated... Ingnoring "<<filename<<endl;
+  }
+
+  if(ver==1){
+    stream>>mx>>my>>mz;
+    if(stream.eof()){
+      cout<<"RichAlignment::LoadFile -- truncated... Ingnoring "<<filename<<endl;
+    }
   }
 
   stream.close();
@@ -721,6 +730,11 @@ void RichAlignment::LoadFile(char *filename){
     _r2aShift.setp(0,0,0);
     _a2rShift.setp(0,0,0);
   }
+
+  if(ver==1){
+    _mirrorShift.setp(mx,my,mz);
+  }
+
 }
 
 void RichAlignment::Init(){
@@ -728,6 +742,8 @@ void RichAlignment::Init(){
   // This should be moved to database in some moment 
   char name[801];
 
+  RichAlignment::Set(0,0,0,0,0,0);
+  RichAlignment::SetMirrorShift(0,0,0);
 
   // Ensure that the initialization is done only once and is visible by all the threads 
   // Has the single an implicit barrier? Just in case we add them
@@ -738,7 +754,45 @@ void RichAlignment::Init(){
      strstr(AMSJob::gethead()->getsetup(),"PreAss")){  // It is the preassembly one
     sprintf(name,"%s/%s/RichAlignmentCosmic.1207904521.2.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
     LoadFile(name);
+    return;  // Ensure that it is finished
   }
+
+
+  if(AMSJob::gethead()->isRealData()  &&              // It is real data
+     !strstr(AMSJob::gethead()->getsetup(),"PreAss") &&
+     MISCFFKEY.BeamTest){
+    /*
+    sprintf(name,"%s/%s/RichAlignmentCosmic.1259051518.0.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
+    LoadFile(name,1);  // Version 1 alignment file includes mirror alignment
+    */
+    // Wired alignment by the  moment.
+    RichAlignment::Set(-2.43e-2,1.12e-1,2.66e-2,0,0,0);
+    RichAlignment::SetMirrorShift(2.14e-2,1.54e-1,0.0);
+    return;  // Ensure that it is finished
+  }
+
+
 //#pragma omp barrier 
 
+}
+
+
+void RichAlignment::Set(double sx,double sy,double sz,double alpha,double beta,double gamma){
+  // Fill the a2r shift and matrix
+  _a2rShift.setp(sx,sy,sz);
+  _a2rRot.SetRotAngles(alpha,beta,gamma);
+  
+  // Fill the r2a shift and matrix
+  AMSRotMat t;
+  _r2aRot.SetRotAngles(0,0,-gamma);
+  t.SetRotAngles(0,-beta,0);
+  _r2aRot=t*_r2aRot;
+  t.SetRotAngles(-alpha,0,0);
+  _r2aRot=t*_r2aRot;
+  _r2aShift=(_r2aRot*_a2rShift)*-1.0;
+}
+
+
+void RichAlignment:: SetMirrorShift(double Dx,double Dy,double Dz){
+  _mirrorShift.setp(Dx,Dy,Dz);
 }
