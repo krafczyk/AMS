@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.577 2009/12/11 15:06:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.578 2009/12/21 09:49:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -975,7 +975,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -988,7 +988,7 @@ if($#{$self->{DataSetsT}}==-1){
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST")){
                $template->{initok}=undef;
              }
            }
@@ -1052,11 +1052,20 @@ if($#{$self->{DataSetsT}}==-1){
                 }
                 $runlist=$runlist." run=-1)";
             }
+           my $runalist="";
+            if(defined $template->{RUNALIST}){
+                my @junk=split   ",",$template->{RUNALIST};
+                $runalist=" and (";
+                foreach my $r (@junk){
+                    $runalist=$runalist." run!=$r and ";
+                }
+                $runalist=$runalist." run!=-1)";
+            }
            my $qtype="and  datafiles.type not like '%CAL%' ";
            if($template->{QTYPE} ne ""){
                $qtype="and datafiles.type like '$template->{QTYPE}%'";
             }
-                   my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and datafiles.status='OK' $qtype $runlist and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and datafiles.status='OK' $qtype $runlist  $runalist and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];
@@ -6586,6 +6595,7 @@ print qq`
          foreach my $tmp (@{$dataset->{jobs}}) {
             if($template eq $tmp->{filename} and $tmp->{TOTALEVENTS}>0){
                 $q->param("QRunList",$tmp->{RUNLIST});
+                $q->param("QRunAList",$tmp->{RUNALIST});
                 $templatebuffer=$tmp->{filebody};
                 $templatehost=$tmp->{HOST};
                 if(not defined $q->param("QCPUPEREVENT")){
@@ -6646,12 +6656,21 @@ print qq`
                 }
                 $runlist=$runlist." run=-1)";
             }
+           my $runalist="";
+            if(defined $q->param("QRunAList")){
+                my @junk=split   ",",$q->param("QRunAList");
+                $runalist=" and (";
+                foreach my $r (@junk){
+                    $runalist=$runalist." run!=$r and ";
+                }
+                $runalist=$runalist." run!=-1)";
+            }
            my $qtype="and  datafiles.type not like '%CAL%' ";
            if(defined $q->param("QType")){
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -15430,7 +15449,7 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -15443,7 +15462,7 @@ sub calculateMipsVC {
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST")){
                $template->{initok}=undef;
              }
            }
@@ -15487,8 +15506,17 @@ sub calculateMipsVC {
                 }
                 $runlist=$runlist." run=-1)";
             }
-                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype $runlist";
-#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype $runlist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+           my $runalist="";
+            if(defined $template->{RUNALIST}){
+                my @junk=split   ",",$template->{RUNALIST};
+                $runalist=" and (";
+                foreach my $r (@junk){
+                    $runalist=$runalist." run!=$r and ";
+                }
+                $runalist=$runalist." run!=-1)";
+            }
+                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype $runlist $runalist";
+#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype $runlist $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];

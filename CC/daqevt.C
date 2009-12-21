@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.182 2009/12/08 11:24:15 choutko Exp $
+//  $Id: daqevt.C,v 1.183 2009/12/21 09:49:55 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -786,7 +786,7 @@ else return 0;
 }
 
 bool DAQEvent::_ComposedBlock(){
- return _GetBlType()==0 || _GetBlType()==6;
+ return _GetBlType()==0 || _GetBlType()==6 || _GetBlType()==7 || _GetBlType()==8;
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
@@ -1282,9 +1282,12 @@ integer DAQEvent::_HeaderOK(){
 
 
       _Checked=1;
-#ifdef __AMSDEBUG__
+#ifdef __DEBUGFLAG__
       cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
       cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
+      if(_Event==246){
+    cout << " priehali "<<endl;
+     }
 #endif
       // fix against wrong time
          if(_Time<1180000000){
@@ -1305,7 +1308,7 @@ integer DAQEvent::_HeaderOK(){
          _PEvent=_Event;
          return 0;
         }
-        else  if(_GetBlType()==6){
+        else  if(_GetBlType()>=6 && _GetBlType()<=8){
            _Event=_PEvent+1;
           }
        }

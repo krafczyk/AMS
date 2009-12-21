@@ -779,7 +779,7 @@ void AMSEvent::_regnevent(){
       cerr<<"AMSEvent::_regnevent-E-MAGFileCorrectionandFieldStatusDisageeB "<<corr<<" "<<MAGSFFKEY.magstat<<endl;
        MAGSFFKEY.magstat=-1;
      }
-      if(corr>=0 && fabs(corr-1)>0.02){
+      if(corr>=0 && fabs(corr-1)>0.05){
         static int mess=0;
          if(mess++<100)cout<<"AMSEvent::_regnevent-I-MagFieldCorrectionApplied "<<corr<<endl;
       }
