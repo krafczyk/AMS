@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.25 2009/12/17 16:11:11 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.26 2009/12/21 20:46:57 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/12/17 16:11:11 $
+/// $Date: 2009/12/21 20:46:57 $
 ///
-/// $Revision: 1.25 $
+/// $Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -138,6 +138,7 @@ void TrRecon::Clear(Option_t *option) {
   _ClusterTkIdMap.clear();
   _RecHitLayerMap.clear();
   // _Patterns.clear();
+  _TasPar = 0;
 }
 
 int TrRecon::MaxNrawCls = 200;
@@ -1798,18 +1799,15 @@ int TrRecon::TasRecon = 0;
 int TrRecon::BuildTrTasClusters(int rebuild)
 {
   // Check TrTasDB
-  if (!TrTasPar::Head) {
-    if (!TrTasDB::Head) {
-      cerr << "Error in TrRecon::BuildTrTasClusters: TrTasDB not exists"
-	   << endl;
-      return -1;
-    }
+  if (!TrTasDB::Head) {
+    cerr << "Error in TrRecon::BuildTrTasClusters: TrTasDB not exists"
+	 << endl;
+    return -1;
+  }
 
+  if (TasRecon == 1 && !TrTasPar::Head) {
     if (TasRecon && TRCLFFKEY.TasCurr > 0 && TRCLFFKEY.TasLDDR > 0) {
-      int lddr = ((TRCLFFKEY.TasLDDR/1000)%10)*0x1000+
-	         ((TRCLFFKEY.TasLDDR/ 100)%10)*0x0100+
-	         ((TRCLFFKEY.TasLDDR/  10)%10)*0x0010+
-	         ((TRCLFFKEY.TasLDDR/   1)%10)*0x0001;
+      int lddr = TrTasDB::Dec2Hex(TRCLFFKEY.TasLDDR);
       if (!TrTasDB::Head->FindPar(TRCLFFKEY.TasCurr, lddr)) {
 	cerr << "Error in TrRecon::BuildTrTasClusters: TrTasPar not found " 
 	     << Form("Ival= %d LDDR= 0x%04x %04d",
@@ -1820,6 +1818,36 @@ int TrRecon::BuildTrTasClusters(int rebuild)
       cout << "TrRecon::BuildTrTasClusters: TrTasPar initialized" << endl;
       TrTasPar::Head->Print();
     }
+  }
+  if (TasRecon == 1 && !_TasPar) _TasPar = TrTasPar::Head;
+
+  // Scan mode note: run only with single thread
+  if (TasRecon == 2 && rebuild == 0) {
+    int lddr[8] = { 0x0001, 0x0100, 0x0002, 0x0200,
+		    0x0004, 0x0400, 0x0008, 0x0800 };
+    int isel = -1;
+    int nmax =  0;
+
+    for (int i = 0; i < 8; i++) {
+      if ((_TasPar = TrTasDB::Head->FindPar(TRCLFFKEY.TasCurr, lddr[i]))) {
+	int ncls = BuildTrTasClusters(2);
+	cout << Form("TrRecon::BuildTrTasClusters "
+		     "try[%d] LDDR=%04x ncls=%d", i, lddr[i], ncls) << endl;
+	if (ncls > nmax) {
+	  isel = i;
+	  nmax = ncls;
+	}
+      }
+    }
+    if (isel < 0) return nmax;
+
+    rebuild = 1;
+    _TasPar = TrTasDB::Head->FindPar(TRCLFFKEY.TasCurr, lddr[isel]);
+
+    cout << Form("TrRecon::BuildTrTasClusters "
+		 "selected [%d] LDDR=%04x datacard=%04x", 
+		 isel, lddr[isel], TrTasDB::Dec2Hex(TRCLFFKEY.TasLDDR))
+	 << endl;
   }
 
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
@@ -1863,7 +1891,7 @@ int TrRecon::BuildTrTasClusters(int rebuild)
     // Check if the ladder is on the Laser column
     int ilad = -1;
     for (Int_t i = 0; i < TrTasPar::NLAD; i++)
-      if (tkid == TrTasPar::Head->GetTkId(i)) { ilad = i; break; }
+      if (tkid == _TasPar->GetTkId(i)) { ilad = i; break; }
     if (ilad < 0) continue;
 
     // Clear ADC buffer
@@ -1874,8 +1902,8 @@ int TrRecon::BuildTrTasClusters(int rebuild)
 
     // Fill ADC buffer
     for (int i = 0; i < NBUF; i++) {
-      int amin = TrTasPar::Head->GetAmin(ilad, i);
-      int amax = TrTasPar::Head->GetAmax(ilad, i);
+      int amin = _TasPar->GetAmin(ilad, i);
+      int amax = _TasPar->GetAmax(ilad, i);
       if (amin < 0 || amax < 0) continue;
 
       for (int j = 0; j < (int)lad->second.size(); j++) {
@@ -1894,7 +1922,7 @@ int TrRecon::BuildTrTasClusters(int rebuild)
 
     // Generate TrTasClusters
     for (int i = 0; i < NBUF; i++) {
-      int amin = TrTasPar::Head->GetAmin(ilad, i);
+      int amin = _TasPar->GetAmin(ilad, i);
       if (amin < 0 || adrmin[i] < amin || adrmax[i] < adrmin[i]) continue;
 
       int addr = adrmin[i];
@@ -1917,7 +1945,7 @@ int TrRecon::BuildTrTasClusters(int rebuild)
 
 int TrRecon::BuildTrTasHits(int rebuild)
 {
-  if (!TrTasPar::Head) return -1;
+  if (!_TasPar) return -1;
 
   // Get the pointer to the TrCluster container
   VCon *cont = GetVCon()->GetCont("AMSTrCluster");
@@ -1938,7 +1966,6 @@ int TrRecon::BuildTrTasHits(int rebuild)
     delete cont;
     return -1;
   }
-
   if (rebuild) cont2->eraseC();
 
   int nhit = 0;
@@ -1947,10 +1974,10 @@ int TrRecon::BuildTrTasHits(int rebuild)
     if (!clx || clx->GetSide() != 0) continue;
 
     int tkid = clx->GetTkId();
-    int ilad = TrTasPar::Head->GetIlad(tkid);
+    int ilad = _TasPar->GetIlad(tkid);
     if (ilad < 0) continue;
 
-    int ipk = TrTasPar::Head->GetIpk(ilad, clx->GetAddress());
+    int ipk = _TasPar->GetIpk(ilad, clx->GetAddress());
     if (ipk < 0) continue;
 
     TrClusterR *cly = 0;
@@ -1958,7 +1985,7 @@ int TrRecon::BuildTrTasHits(int rebuild)
       TrClusterR *cls = (TrClusterR *)cont->getelem(j);
       if (!cls || cls->GetTkId() != tkid || cls->GetSide() != 1) continue;
 
-      if (TrTasPar::Head->GetIpk(ilad, cls->GetAddress())%2 == ipk%2) {
+      if (_TasPar->GetIpk(ilad, cls->GetAddress())%2 == ipk%2) {
 	cly = cls;
 	break;
       }
@@ -1981,7 +2008,7 @@ int TrRecon::BuildTrTasHits(int rebuild)
 
 int TrRecon::BuildTrTasTracks(int rebuild)
 {
-  if (!TrTasPar::Head) return -1;
+  if (!_TasPar) return -1;
 
   // Get the pointer to the TrCluster container
   VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
@@ -1990,6 +2017,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
              "Reconstruction is Impossible !!!" << endl;
     return -1;
   }
+
   if (cont->getnelem() == 0) {
     delete cont;
     return 0;
@@ -2002,13 +2030,12 @@ int TrRecon::BuildTrTasTracks(int rebuild)
     delete cont;
     return -1;
   }
+  if (rebuild) cont2->eraseC();
 
-  double range = 0.5;  // cm
+  double range = 0.1;  // cm
 
+  int ntrk = 0;
   for (int i = 0; i < TrTasPar::NLAS; i++) {
-    double lasx = TrTasPar::Head->GetLasx(i);
-    double lasy = TrTasPar::Head->GetLasy(i);
-
     TrRecHitR *hits[MAXLAY];
     int nhit = 0;
     int hpat = 0xff;
@@ -2018,9 +2045,9 @@ int TrRecon::BuildTrTasTracks(int rebuild)
       TrRecHitR *hit = (TrRecHitR *)cont->getelem(j);
       if (!hit || !hit->TasHit() || hit->Used()) continue;
 
-      AMSPoint coo = hit->GetCoord();
-      if (std::fabs(coo.x()-lasx) < range &&
-	  std::fabs(coo.y()-lasy) < range) {
+      AMSPoint hcoo = hit->GetCoord();
+      AMSPoint lcoo = _TasPar->GetLasCoo(i, hit->GetLayer()-1);
+      if (hcoo.dist(lcoo) < range) {
 	hits[nhit++] = hit;
 	hpat &= ~(1 << (MAXLAY-hit->GetLayer()));
       }
@@ -2045,12 +2072,14 @@ int TrRecon::BuildTrTasTracks(int rebuild)
     int fit_method = TrTrackR::kLinear;
     track->Fit(fit_method);
     cont2->addnext(track);
+
+    ntrk++;
   }
 
   delete cont;
   delete cont2;
 
-  return 0;
+  return ntrk;
 }
 
 ///////////////////////////////////////////////////////////

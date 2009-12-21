@@ -1,4 +1,4 @@
-// $Id: TrTasDB.h,v 1.1 2009/12/17 16:11:12 shaino Exp $
+// $Id: TrTasDB.h,v 1.2 2009/12/21 20:46:57 shaino Exp $
 
 #ifndef __TrTasDB__
 #define __TrTasDB__
@@ -13,9 +13,10 @@
 ///\ingroup tkdbc
 ///
 ///\date  2009/12/10 SH  First version
-///$Date: 2009/12/17 16:11:12 $
+///\date  2009/12/17 SH  First Gbatch version
+///$Date: 2009/12/21 20:46:57 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +50,12 @@ public:
 
   /// Find TrTasPar with ival and lddr
   TrTasPar *FindPar(int ival, int lddr);
+
+  /// Convert dec to hex (used for datacards)
+  static int Dec2Hex(int lddr) {
+    return ((lddr/1000)%10)*0x1000+((lddr/ 100)%10)*0x0100+
+	   ((lddr/  10)%10)*0x0010+((lddr/   1)%10)*0x0001;
+  }
 
   /// Initialize database from text files under directory, dname
   int  Init(const char *dname = "dat");

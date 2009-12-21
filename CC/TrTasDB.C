@@ -1,3 +1,18 @@
+// $Id: TrTasDB.C,v 1.2 2009/12/21 20:46:57 shaino Exp $
+
+//////////////////////////////////////////////////////////////////////////
+///
+///\file  TrTasDB.C
+///\brief Source file of TrTasDB class
+///
+///\date  2009/12/10 SH  First version
+///\date  2009/12/17 SH  First Gbatch version
+///$Date: 2009/12/21 20:46:57 $
+///
+///$Revision: 1.2 $
+///
+//////////////////////////////////////////////////////////////////////////
+
 #include "TrTasDB.h"
 #include "TrTasPar.h"
 
@@ -34,10 +49,6 @@ int TrTasDB::Init(const char *dname)
   int ival[3] = { 16, 20, 25 };
   int lddr[8] = { 0x0001, 0x0100, 0x0002, 0x0200,
 		  0x0004, 0x0400, 0x0008, 0x0800 };
-
-  std::cout<<"TrTasDB::Init ";
-  if (dname) std::cout<< dname;
-  std::cout<<std::endl;
 
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 8; j++) {
@@ -90,8 +101,6 @@ void TrTasDB::Lin2DB()
   float *ptr = linear;
   for (_parIT it = _parmap.begin(); it != _parmap.end(); it++)
     if (it->second) ptr += it->second->Lin2Par(ptr);
-
-  std::cout<<"TrTasDB::Lin2DB "<<ptr-linear<<std::endl;
 }
 
 void SLin2TasDB()

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.188 2009/12/04 13:15:47 choutko Exp $
+//  $Id: ntuple.C,v 1.189 2009/12/21 20:46:57 shaino Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -12,6 +12,9 @@
 #include "event.h"
 #ifndef _PGTRACK_
 #include "tralig.h"
+#else
+#include "TrTasDB.h"
+#include "TrTasCluster.h"
 #endif
 #include <signal.h>
 #include <iostream>
@@ -370,6 +373,8 @@ void AMSNtuple::initR(char* fname){
 #ifdef _PGTRACK_
   TrCalDB::Head->Write();
   // if(TrCalDB::Head) TrCalDB::Head->Write();
+  if (TrTasDB::Head) TrTasDB::Head->Write();
+  if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
 #endif   
 
   const int size=5000000;

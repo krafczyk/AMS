@@ -1,4 +1,4 @@
-// $Id: TrTasCluster.h,v 1.1 2009/12/17 16:11:12 shaino Exp $
+// $Id: TrTasCluster.h,v 1.2 2009/12/21 20:46:57 shaino Exp $
 
 #ifndef __TrTasCluster__
 #define __TrTasCluster__
@@ -13,15 +13,17 @@
 ///\ingroup tkrec
 ///
 ///\date  2009/12/10 SH  First version
-///$Date: 2009/12/17 16:11:12 $
+///\date  2009/12/17 SH  First Gbatch version
+///$Date: 2009/12/21 20:46:57 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrCluster.h"
 
 class TF1;
+class TDirectory;
 
 class TrTasClusterR : public TrClusterR {
 
@@ -31,6 +33,9 @@ public:
        };
   /// Fitting mode
   static int fitmode;
+
+  /// Directory for histograms
+  static TDirectory *HistDir;
 
 public:
   /// Constructor with data
@@ -48,6 +53,9 @@ public:
   static TF1 *SGaus(double xmin, double xmax, const char *name = "func");
   /// Core of the saturated Gaussian function
   static double SGaus(double *x, double *par);
+
+  /// TAS alignment correction
+  static AMSPoint Align(TrClusterR *xcls, TrClusterR *ycls);
 
   ClassDef(TrTasClusterR, 1);
 };

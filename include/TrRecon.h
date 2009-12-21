@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.14 2009/12/17 16:11:12 shaino Exp $ 
+// $Id: TrRecon.h,v 1.15 2009/12/21 20:46:57 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -16,10 +16,11 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///\date  2008/07/01 PZ  Global review and various improvements 
+///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2009/12/17 16:11:12 $
+/// $Date: 2009/12/21 20:46:57 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -33,6 +34,7 @@
 #include "TrFit.h"
 #include "TkDBc.h"
 #include "TMath.h"
+#include "TrTasDB.h"
 #include "Vertex.h"
 #include "amsdbc.h"
 #include <cmath>
@@ -199,6 +201,9 @@ public:
 ////////////////////////////////////////////////////////////////
   /// Activate switch for the TAS reconstruction
   static int TasRecon;
+
+  /// Current TrTasPar
+  TrTasPar *_TasPar;
 
   /// Build TrClusters specialized for TAS data
   int BuildTrTasClusters(int rebuild = 0);

@@ -224,6 +224,7 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
   }
   else {
     glo = TkCoo::GetGlobalA(GetTkId(),loc);
+    if (TasHit()) glo = glo-TrTasClusterR::Align(GetXCluster(), GetYCluster());
   }
   return glo;
 }
