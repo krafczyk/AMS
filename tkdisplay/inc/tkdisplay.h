@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.3 2009/12/06 12:30:20 shaino Exp $
+// $Id: tkdisplay.h,v 1.4 2009/12/21 17:41:49 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -13,6 +13,7 @@
 class TTreeFormula;
 class AMSChain;
 class AMSEventR;
+class NetFileEngineHandler;
 
 class TkDisplay : public QMainWindow {
   Q_OBJECT
@@ -80,6 +81,7 @@ private slots:
                                ui.cbGL56->setCheckState(Qt::Unchecked); }
 
   void Open();
+  void Netf();
   void Info();
   void Esel();
   void Prev();
@@ -95,6 +97,7 @@ private slots:
 #if (QT_VERSION == 0x040503) 
   // for Qt 4.5.3
   void on_acOpen_triggered() { Open(); }
+  void on_acNetf_triggered() { Netf(); }
   void on_acInfo_triggered() { Info(); }
   void on_acEsel_triggered() { Esel(); }
   void on_acPrev_triggered() { Prev(); }
@@ -109,6 +112,7 @@ private slots:
 #else
   // for Qt <= 4.5.2
   void on_acOpen_activated() { Open(); }
+  void on_acNetf_activated() { Netf(); }
   void on_acInfo_activated() { Info(); }
   void on_acEsel_activated() { Esel(); }
   void on_acPrev_activated() { Prev(); }
@@ -123,6 +127,7 @@ private slots:
 #endif
 
   void on_pbOpen_clicked() { Open(); }
+  void on_pbNetf_clicked() { Netf(); }
   void on_pbPrev_clicked() { Prev(); }
   void on_pbEsel_clicked() { Esel(); }
   void on_pbNext_clicked() { Next(); }

@@ -1,4 +1,4 @@
-// $Id: qwchist.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: qwchist.cpp,v 1.2 2009/12/21 17:41:49 shaino Exp $
 #include <QtGui>
 
 #include "qwchist.h"
@@ -75,7 +75,8 @@ void QWCHist::drawCluster(int icls)
   for (int i = 0; i < rEvent->NTrCluster(); i++) {
     if (i == icls) continue;
     TrClusterR *cc = rEvent->pTrCluster(i);
-    if (cc->GetTkId() != cls->GetTkId() || 
+    if (!cc || 
+	cc->GetTkId() != cls->GetTkId() || 
 	cc->GetAddress(0)+cc->GetNelem() < xBin[0] ||
 	cc->GetAddress(0) > xBin[nBin-1]) continue;
 

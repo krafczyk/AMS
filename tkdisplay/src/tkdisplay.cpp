@@ -1,4 +1,4 @@
-// $Id: tkdisplay.cpp,v 1.4 2009/12/06 12:30:20 shaino Exp $
+// $Id: tkdisplay.cpp,v 1.5 2009/12/21 17:41:49 shaino Exp $
 #include <QtGui>
 #include <QFileDialog>
 
@@ -6,6 +6,7 @@
 #include "clwidget.h"
 #include "glwidget.h"
 #include "evthread.h"
+#include "qnetio.h"
 
 #include "root.h"
 #include "amschain.h"
@@ -250,6 +251,67 @@ void TkDisplay::Open()
     openFile(qfd.selectedFiles().value(0));
 }
 
+void TkDisplay::Netf()
+{
+  QInputDialog qid(this);
+  qid.setWindowTitle("Open URL");
+  qid.setLabelText("URL:");
+  qid.setTextValue(NetFileEngine::getUrl()+NetFileEngine::getDir());
+  qid.setTextEchoMode(QLineEdit::Normal);
+  qid.resize(400, 0);
+  qid.setStyleSheet("QPushButton { background-color: white; }"
+		    "QPushButton, QLabel { color: black; }"
+		    "QWidget, QLabel { border: 0px solid black; "
+		    "                  border-radius: 0px }"
+		    "QPushButton { border: 1px solid black; "
+		    "              border-radius: 1px }");
+
+  int ret = qid.exec();
+  if (!ret) return;
+
+  QString url = qid.textValue();
+  QString dir = "/";
+  if (url.left(7) != "root://") url = "root://"+url;
+
+  int idx = url.indexOf('/', 7);
+  if (idx > 0) {
+    dir = url.right(url.size()-idx);
+    url = url.left(idx);
+  }
+  while (!dir.startsWith("//")) dir = "/"+dir;
+  if (!dir.endsWith('/')) dir += '/';
+
+  if (NetFileEngine::getUrl() != url) {
+    NetFileEngine::setUrl(url);
+    NetFileEngine::clearNetSystem();
+    TNetSystem *nsys = NetFileEngine::NetSystem();
+    if (!nsys) return;
+
+    void *dirp = nsys->OpenDirectory(dir.toAscii().data());
+    if (!dirp) return;
+    nsys->FreeDirectory(dirp);
+  }
+  NetFileEngine::setDir(dir);
+
+  NetFileEngineHandler::Enable();
+
+  QFileDialog qfd(this, "Open URL "+NetFileEngine::getUrl(), 
+		  dir, "Root files (*.root)");
+  qfd.setOption(QFileDialog::DontUseNativeDialog);
+  qfd.setOption(QFileDialog::DontUseSheet);
+  qfd.setOption(QFileDialog::ReadOnly);
+  qfd.setStyleSheet("QPushButton { background-color: white; }"
+		    "QPushButton, QLabel { color: black; }"
+		    "QWidget, QLabel { border: 0px solid black; "
+		    "                  border-radius: 0px }"
+		    "QPushButton { border: 1px solid black; "
+		    "              border-radius: 1px }");
+  if (qfd.exec() == QDialog::Accepted)
+    openFile(NetFileEngine::getUrl()+"/"+qfd.selectedFiles().value(0));
+
+  NetFileEngineHandler::Disable();
+}
+
 void TkDisplay::Info()
 {
   QMessageBox *mbox = new QMessageBox(QMessageBox::Information,
@@ -258,8 +320,8 @@ void TkDisplay::Info()
 		    "   event display</h3>"
 		    "<p>by S.Haino <br>"
 		    "   (Sadakazu.Haino@pg.infn.it)</p>"
-		    "<p>CVS $Revision: 1.4 $<br>"
-		    "   CVS $Date: 2009/12/06 12:30:20 $</p>"
+		    "<p>CVS $Revision: 1.5 $<br>"
+		    "   CVS $Date: 2009/12/21 17:41:49 $</p>"
 		    "<p>Compiled: <br> at %1 on %2</p>"
 		    "<p>Qt version: %3</p>"
 		    "<p>ROOT version: %4</p>").arg(

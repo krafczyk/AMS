@@ -78,6 +78,7 @@
          <property name="focusPolicy">
           <enum>Qt::StrongFocus</enum>
          </property>
+         <zorder>tabWidget</zorder>
         </widget>
        </item>
       </layout>
@@ -106,6 +107,34 @@
           </property>
          </widget>
         </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="pbOpen">
+          <property name="text">
+           <string>Open file</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QPushButton" name="pbExit">
+          <property name="text">
+           <string>Exit</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QPushButton" name="pbEsel">
+          <property name="text">
+           <string>Selector...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QPushButton" name="pbNetf">
+          <property name="text">
+           <string>Open URL</string>
+          </property>
+         </widget>
+        </item>
         <item row="2" column="1">
          <widget class="QPushButton" name="pbNext">
           <property name="text">
@@ -113,29 +142,8 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QPushButton" name="pbOpen">
-          <property name="text">
-           <string>Open</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="2">
          <widget class="QSpinBox" name="sbEvent"/>
-        </item>
-        <item row="3" column="2">
-         <widget class="QPushButton" name="pbExit">
-          <property name="text">
-           <string>Exit</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QPushButton" name="pbEsel">
-          <property name="text">
-           <string>Selector...</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -754,6 +762,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="acOpen"/>
+    <addaction name="acNetf"/>
     <addaction name="separator"/>
     <addaction name="acInfo"/>
     <addaction name="acExit"/>
@@ -787,7 +796,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="acOpen">
    <property name="text">
-    <string>&amp;Open</string>
+    <string>&amp;Open file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -865,11 +874,6 @@
     <string>Ctrl+R</string>
    </property>
   </action>
-  <action name="actionAbout">
-   <property name="text">
-    <string>&amp;About</string>
-   </property>
-  </action>
   <action name="acInfo">
    <property name="text">
     <string>&amp;About</string>
@@ -884,6 +888,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="acNetf">
+   <property name="text">
+    <string>Open &amp;URL</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
    </property>
   </action>
  </widget>
