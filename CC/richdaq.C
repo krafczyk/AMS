@@ -305,7 +305,6 @@ integer DAQRichBlock::checkcalid(int16u id){
   return 0;
 }
 
-
 void DAQRichBlock::buildcal(integer length,int16u *p){
   try{
 #ifdef __INSPECT__
@@ -332,7 +331,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
   cout<<endl<<endl;
 
   cout<<"DUMPING EVERYTHING "<<endl;
-    for(int i=-4;i<length;i++) {cout<<"+"<<i<<" ";printf("%x %d\n",*(p+i),*(p+i));}
+  for(int i=-4;i<length;i++) {cout<<"+"<<dec<<i<<" ";printf("%x %d\n",*(p+i),*(p+i));}
 #endif
 
   // This is calibration event for RDR
@@ -398,7 +397,7 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     }
 
     uint16 cal_status=*(p+1);
-    if(cal_status!=0x5000){
+    if(cal_status&(0x4000)==0){
       cout<<"-- DAQRichBlock::buildcal Calibration status is not correct"<<endl;
       return;
     }
@@ -542,7 +541,6 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     }
   }
 }
-
 
 
 
