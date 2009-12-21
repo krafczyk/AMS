@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.3 2009/06/10 08:44:58 shaino Exp $
+// $Id: TkLadder.h,v 1.4 2009/12/21 23:47:57 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2009/06/10 08:44:58 $
+///$Date: 2009/12/21 23:47:57 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -125,6 +125,7 @@ public:
   void SetTkId(int Tkid);
   //! returns true is the ladder is used in the laser alignment
   bool IsAlignemnt(){return _laser_align;}
+  bool IsLaser(){return _laser_align;}
   //! sets the laser alignment flag
   void SetLaserFlag(){ _laser_align=1;}
 
