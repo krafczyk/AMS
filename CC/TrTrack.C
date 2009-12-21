@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.15 2009/12/17 16:11:11 shaino Exp $
+// $Id: TrTrack.C,v 1.16 2009/12/21 10:07:32 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/12/17 16:11:11 $
+///$Date: 2009/12/21 10:07:32 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -323,7 +323,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     if (!hit || hit->GetLayer() == layer) continue;
     idx[nhit++] = hit->GetLayer()*10+i;
   }
-  sort(idx, &idx[nhit-1]);
+  std::sort(idx, &idx[nhit]);
 
   // For the half-fitting options    : TO_BE_CHECKED
   int i1 = 0, i2 = nhit;
