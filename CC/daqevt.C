@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.183 2009/12/21 09:49:55 choutko Exp $
+//  $Id: daqevt.C,v 1.184 2009/12/22 16:41:48 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1107,6 +1107,9 @@ integer DAQEvent::_HeaderOK(){
            cout<<"DAQEvent::_HeaderOK-I-NormalRunDetected "<<endl;
            TRCALIB.LaserRun=0;
       }
+       if(TRCALIB.LaserRun){
+        MAGSFFKEY.magstat=0;
+       }
       static int nmsg=0;
       int shift=0;
       if((*(_pcur+12)) & (1<<15)){

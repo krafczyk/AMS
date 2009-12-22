@@ -771,7 +771,7 @@ void AMSEvent::_regnevent(){
     else chint=hintc;
     _ccebp=&(ArrayC[chint]);  
      geant corr=_ccebp->getBCorr();
-     if(corr>0 &&MAGSFFKEY.magstat<=0){
+     if(corr>0 &&MAGSFFKEY.magstat<=0 && !TRCALIB.LaserRun){
       cerr<<"AMSEvent::_regnevent-E-MAGFileCorrectionandFieldStatusDisageeA "<<corr<<" "<<MAGSFFKEY.magstat<<endl;
        MAGSFFKEY.magstat=1;
      }
@@ -3641,6 +3641,22 @@ void AMSEvent::_collectstatus(){
          else if(rate<2000)z1=2;
          else z1=3; 
          __status1|=(z1<<9);
+       }
+
+
+       if(ptr){
+        int z1=0;
+        if(ptr->getptrd()){
+         int nh=0;
+         for(int k=0;k<ptr->getptrd()->_Base._NHits;k++){
+          if(ptr->getptrd()->_Base._PCluster[k]->gethmult()>0)nh++;
+         }
+         if(nh==0)z1=0;
+         else if(nh<2)z1=1;
+         else if(nh<4)z1=2;
+         else z1=3;
+        }
+         __status1|=(z1<<11);
        }
 
        _status[0]=__status;

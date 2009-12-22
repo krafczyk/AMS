@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.254 2009/12/14 15:56:15 shaino Exp $
+//  $Id: root.h,v 1.255 2009/12/22 16:41:49 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1383,8 +1383,13 @@ public:
   char * Info(int number=-1){
     int np=0;
     for(int i=0;i<NTrdSegment();i++)np+=pTrdSegment(i)->NTrdCluster();
- 
-    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits}=%d",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np);
+    int nph=0;
+    for(int i=0;i<NTrdSegment();i++){
+     for(int k=0;k<pTrdSegment(i)->NTrdCluster();k++){
+       if(pTrdSegment(i)->pTrdCluster(k)->HMultip)nph++;
+     }
+    }
+    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits,HHits}=%d,%d",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np,nph);
   return _Info;
   } 
   friend class AMSTRDTrack;

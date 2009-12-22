@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.674 2009/12/17 16:11:11 shaino Exp $
+// $Id: job.C,v 1.675 2009/12/22 16:41:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1030,7 +1030,9 @@ TRDMCFFKEY.pedsig=102;
 TRDMCFFKEY.sigma=6;
 TRDMCFFKEY.cmn=15;
 TRDMCFFKEY.NoiseOn=1;
-TRDMCFFKEY.GeV2ADC=1.e8;
+//TRDMCFFKEY.GeV2ADC=1.e8;
+// changed vc 22-dec-2009
+TRDMCFFKEY.GeV2ADC=1.e8/3;
 TRDMCFFKEY.Thr1R=3.5;
 TRDMCFFKEY.sec[0]=0;
 TRDMCFFKEY.sec[1]=0;

@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.8 2009/12/10 17:11:25 choutko Exp $
+#  $Id: status02.doc,v 1.9 2009/12/22 16:41:49 choutko Exp $
 status word definition
 
 0
@@ -96,11 +96,21 @@ status word definition
  41   
  42
 
+26 trd hmult <1 <2 <4 >4
+ 43
+ 44
 
 
+27
+ geomagnetic latitude  (not yet defined,only reserved)
+ 0 < 10 degres  cos <0.1736
+ 1 < 30 degrees cos <0.5
+ 2 < 50 degrees cos < 0.766
+ 3 > 50 degrees cos > 0.766
+ 45
+ 46
 
-43 to 63 not yet defined
-
+47 to 63 not yet defined
 
 correspondance between bits & status datacards words:
 
