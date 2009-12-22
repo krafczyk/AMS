@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.5 2009/08/19 14:36:04 pzuccon Exp $ 
+// $Id: TrRawCluster.h,v 1.6 2009/12/22 16:30:13 oliva Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2009/08/19 14:36:04 $
+/// $Date: 2009/12/22 16:30:13 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "TObject.h"
@@ -93,7 +93,7 @@ class TrRawClusterR :public TrElem   {
   /// Returns the Seed SN from DAQ
   int GetDAQSeedSN()   const { return (_nelem>>7)&0x3ff; }
   /// Returns the cluster strip multiplicity
-  int GetNelem()     const { return _nelem&0x7f; }
+  int GetNelem()     const { return (_nelem&0x7f)+1; }
   /// Returns the CN status bits
   int GetCNStatus() const { return (_address>>10)&0xf;}
   /// Returns the power status bits

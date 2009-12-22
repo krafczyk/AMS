@@ -211,12 +211,12 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
 
 
 
-      int cluslenraw=blocks[count++]+1;
+      int cluslenraw=blocks[count++];
       int clusaddraw=blocks[count++];
       int cluslen=cluslenraw;
       int clusadd=clusaddraw;
       if(newformat){
-	cluslen=cluslenraw&0x7f;
+	cluslen=(cluslenraw&0x7f)+1;
 	clusadd=clusaddraw&0x3ff;
       }
       if(cluslen>MaxClusterLength){
