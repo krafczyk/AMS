@@ -2966,9 +2966,7 @@ class RemoteClient:
                         i=os.system(cmd)
                         if(i):
                             print "Command Failed ",cmd
-                            bpath=" "
-                        else:
-                            bpath=bpath+"/"+file
+                        bpath=bpath+"/"+file
                         it2=int(t2)
                         if(type=="SCI" or type=="LAS"):
                             type=type+" "+t0+" "+t1+" "
