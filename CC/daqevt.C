@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.184 2009/12/22 16:41:48 choutko Exp $
+//  $Id: daqevt.C,v 1.185 2009/12/23 15:28:34 shaino Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -19,6 +19,7 @@
 #include <strstream>
 #ifdef _PGTRACK_
 #include "tkdcards.h"
+#include "MagField.h"
 #endif
 #ifdef __LVL3ONLY__
 ofstream fbin1("/f2users/choutko/AMS/examples/zip.txt",ios::out);
