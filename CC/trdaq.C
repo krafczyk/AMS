@@ -216,9 +216,11 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
       int cluslen=cluslenraw;
       int clusadd=clusaddraw;
       if(newformat){
-	cluslen=(cluslenraw&0x7f)+1;
+	cluslen=cluslenraw&0x7f;
 	clusadd=clusaddraw&0x3ff;
       }
+      cluslen++;      
+ 
       if(cluslen>MaxClusterLength){
 	static int junkerr=0;
 	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-TooLongCluster (>127) "<< cluslen<<endl;
