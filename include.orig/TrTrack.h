@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.13 2009/12/17 16:11:12 shaino Exp $
+//  $Id: TrTrack.h,v 1.14 2009/12/28 17:42:25 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/12/17 16:11:12 $
+///$Date: 2009/12/28 17:42:25 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -90,8 +90,8 @@ public:
 
   /// Default constructor to fill default values
   TrTrackPar()
-    : FitDone(false), HitBits(0), ChisqX(0), ChisqY(0), 
-      NdofX(0), NdofY(0), Chisq(0), Rigidity(0), ErrRinv(0), 
+    : FitDone(false), HitBits(0), ChisqX(-1), ChisqY(-1), 
+      NdofX(0), NdofY(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
       P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {}
   ~TrTrackPar(){}
   void Print(int full=0);

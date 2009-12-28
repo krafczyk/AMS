@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.16 2009/12/21 10:07:32 shaino Exp $
+// $Id: TrTrack.C,v 1.17 2009/12/28 17:42:23 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/12/21 10:07:32 $
+///$Date: 2009/12/28 17:42:23 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -167,26 +167,16 @@ TrTrackR::~TrTrackR()
 }
 
 
-TrTrackPar &TrTrackR::GetPar(int id) {
-    int id2= (id==0)? trdefaultfit: id;
-    if(_MagFieldOn==0&& id2 !=kDummy) id2=kLinear;
-    if (ParExists(id2)) return _TrackPar[id2];
-    cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
-         << id << endl;
-    //    int aa=10/0; //for debug
-    static TrTrackPar parerr;
-    return parerr;
-  }
-
-
-
-
-
-
-
-
-
-
+TrTrackPar &TrTrackR::GetPar(int id)
+{
+  int id2 = (id == 0) ? trdefaultfit : id;
+  if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
+  if (ParExists(id2)) return _TrackPar[id2];
+  cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
+       << id << endl;
+  static TrTrackPar parerr;
+  return parerr;
+}
 
 void TrTrackR::AddHit(TrRecHitR *hit, int imult, AMSPoint *bfield)
 {
@@ -295,7 +285,6 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   }
   if (idf == kDummy) {
     cerr << "Warning in TrTrack::Fit Dummy fit is ignored " << endl;
-    int aa=10/0;
     return -1;
   }
 
@@ -351,15 +340,16 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   }
 
   // Perform fitting
-  int rsul=_TrFit.Fit(method);
-  //    if (rsul < 0) return -1;
+  bool done = (_TrFit.Fit(method) > 0);
 
   // Return if fitting values are not to be over written
   if (!update) return _TrFit.GetChisq();
 
   // Fill fittng parameters
   TrTrackPar &par = _TrackPar[id];
-  par.FitDone  = (rsul>=0);
+  if (!done) return -1;
+
+  par.FitDone  = true;
   par.HitBits  = hitbits;
   par.ChisqX   = _TrFit.GetChisqX();
   par.ChisqY   = _TrFit.GetChisqY();
@@ -528,19 +518,25 @@ int TrTrackR::DoAdvancedFit()
    *   1: 1st half, 2: 2nd half, 6: with nodb, 4: "Fast fit" ims=0 and 
    *   5: Juan with ims=1 */
 
-  Fit(kChoutko | kUpperHalf);
-  Fit(kChoutko | kLowerHalf);
+  if (Fit(kChoutko | kUpperHalf) < 0) Fit(kAlcaraz | kUpperHalf);
+  if (Fit(kChoutko | kLowerHalf) < 0) Fit(kAlcaraz | kLowerHalf);
   Fit(kChoutko);
   Fit(kAlcaraz);
-  trdefaultfit=kChoutko;
+  trdefaultfit = kChoutko;
   return AdvancedFitDone();
 }
 
-int TrTrackR::AdvancedFitDone() { 
-  int out= FitDone(kChoutko|kUpperHalf) & FitDone(kChoutko|kLowerHalf) & 
-    FitDone(kChoutko) & FitDone(kAlcaraz);
-  if(_MagFieldOn==0) return FitDone(kLinear);
-  else return out;
+int TrTrackR::AdvancedFitDone()
+{ 
+  if (!_MagFieldOn) return FitDone(kLinear);
+
+  bool uh = FitDone(kChoutko|kUpperHalf);
+  bool lh = FitDone(kChoutko|kLowerHalf);
+  bool ch = FitDone(kChoutko);
+  bool al = FitDone(kAlcaraz);
+
+  if (!uh && ParExists(kAlcaraz|kUpperHalf)) uh = FitDone(kAlcaraz|kUpperHalf);
+  if (!lh && ParExists(kAlcaraz|kLowerHalf)) lh = FitDone(kAlcaraz|kLowerHalf);
+
+  return uh & lh & ch & al;
 }
-
-
