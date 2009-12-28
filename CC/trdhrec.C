@@ -122,7 +122,7 @@ integer AMSTRDHSegment::build(int rerun){
 	  pTRDHSegment_[j]->fTRDRawHit.push_back(hit);
 	} } } }
   
-  for( int j=0; j<nhseg; j++) pTRDHSegment_[j]->nhits=pTRDHSegment_[j]->fTRDRawHit.size();//(int)nh0[j];
+  //  for( int j=0; j<nhseg; j++) pTRDHSegment_[j]->nhits=pTRDHSegment_[j]->fTRDRawHit.size();//(int)nh0[j];
   
   
   int nh1[nhseg];
@@ -149,6 +149,7 @@ integer AMSTRDHSegment::build(int rerun){
   
   if(nhseg>0){
     for(int i=0;i!=nhseg;i++){
+      pTRDHSegment_[i]->nhits=pTRDHSegment_[i]->fTRDRawHit.size();
       pTRDHSegment_[i]->calChi2();
       AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",i),pTRDHSegment_[i]);
       //      printf("seg %i chi2 %f\n",i,pTRDHSegment_[i]->chi2);
