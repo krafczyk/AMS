@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.5 2009/08/19 23:32:49 pzuccon Exp $ 
+/// $Id: TrRawCluster.C,v 1.6 2009/12/28 15:58:23 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/08/19 23:32:49 $
+/// $Date: 2009/12/28 15:58:23 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,9 @@ void TrRawClusterR::Clear() {
   _tkid    =  0;
   _address = -1;
   _nelem   =  0;
-  Status  =  0;
+  _seedsn  =  0;
+  _status  =  0;
+  Status   =  0;
   _signal.clear();
 }
 
@@ -43,24 +45,30 @@ TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
   _tkid    = orig._tkid;
   _address = orig._address;
   _nelem   = orig._nelem;
-  Status  = orig.Status;
+  _seedsn  = orig._seedsn;
+  _status  = orig._status;  
+  Status   = orig.Status;
  for (int i = 0; i < GetNelem(); i++) _signal.push_back(orig._signal.at(i));
 }
 
-TrRawClusterR::TrRawClusterR(int tkid, int add, int nelem, short* adc) {
-  _tkid    =  tkid;
-  _address =  add;
-  _nelem   =  nelem;
-  Status  =  0;
+TrRawClusterR::TrRawClusterR(short int tkid, short int rawclsadd, short int rawclslen, short* adc) {
+  _tkid    = tkid;
+  _address = rawclsadd&0x3ff;
+  _status  = ((rawclsadd>>10)&0x3f); // CN + Pw 
+  _nelem   = (rawclslen&0x7f) + 1; 
+  _seedsn  = ( (rawclslen>>7)&0x3ff )*1.; // *8.*LowThrParameter/8.; 
+  Status   = 0;
   _signal.reserve(GetNelem());
   if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]/8.);
 }
 
-TrRawClusterR::TrRawClusterR(int tkid, int add, int nelem, float *adc) {
-  _tkid    =  tkid;
-  _address =  add;
-  _nelem   =  nelem;
-  Status  =  0;
+TrRawClusterR::TrRawClusterR(short int tkid, short int address, short int nelem, float *adc) {
+  _tkid    = tkid;
+  _address = address;
+  _nelem   = nelem;
+  _seedsn  = 0;
+  _status  = 0;
+  Status   = 0;
   _signal.reserve(GetNelem());
   if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]);
 }
@@ -101,8 +109,8 @@ void TrRawClusterR::Print(int full) {
 
 void TrRawClusterR::_PrepareOutput(int full) { 
   sout.clear();
-  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %6.3f\n ",
-		   GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal()));
+  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %7.2f  SeedSN: %7.2f  DSPStatus: %2d\n",
+		   GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal(),GetDSPSeedSN(),GetDSPStatus()));
   if(!full) return;
   for (int ii=0; ii<GetNelem(); ii++) 
     sout.append(Form("Address: %4d  Signal: %10.5f  Sigma: %10.5f  Status: %3d\n",

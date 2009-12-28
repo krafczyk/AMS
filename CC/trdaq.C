@@ -8,7 +8,7 @@
 //============  DAQ INTERFACE =======================
 
 
-int TrDAQ::MaxClusterLength = 127;
+int TrDAQ::MaxClusterLength = 128;
 
 integer TrDAQ::getdaqid(int16u crate){
  for(int i=0;i<31;i++){
@@ -154,9 +154,8 @@ void TrDAQ::buildraw(integer n, int16u *pbeg){
 
 
 int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
+
   //FIXME this value should be 1 for some run
-
-
 
   int   TDROff=1;
   int newformat=0;
@@ -177,7 +176,8 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
   int clcount=0;
   if(TRCALIB.Version==0)CNWords=16;
   else CNWords=0;
-//FIXME PZ DATA FORMAT
+
+  //FIXME PZ DATA FORMAT
   if(run>=1208965124) CNWords=0;
   //  if(DAQCFFKEY.DAQVersion==1)CNWords=2;
   int rwords=1+CNWords;
@@ -209,13 +209,11 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
     while (count<(tsize-rwords)){
       int bad=0;
 
-
-
       int cluslenraw=blocks[count++];
       int clusaddraw=blocks[count++];
       int cluslen=cluslenraw;
       int clusadd=clusaddraw;
-      if(newformat){
+      if(newformat) {
 	cluslen=cluslenraw&0x7f;
 	clusadd=clusaddraw&0x3ff;
       }
@@ -223,17 +221,17 @@ int TrDAQ::ReadOneTDR(int16u* blocks,int tsize,int cratenum,int pri){
  
       if(cluslen>MaxClusterLength){
 	static int junkerr=0;
-	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-TooLongCluster (>127) "<< cluslen<<endl;
+	if(junkerr++<100)cerr << "TrDAQ::buildraw-E-TooLongCluster (>" << MaxClusterLength << ") " << cluslen << endl;
 	continue;
       }
-      if((clusadd+cluslen>639)&&(clusadd<640)){
+      if(((clusadd+cluslen-1)>639)&&(clusadd<640)){
 	static int junkerr=0;
-	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-ClusterAcrossPN add "<<clusadd<<" len "<< cluslen<<endl;
+	if(junkerr++<100)cerr << "TrDAQ::buildraw-E-ClusterAcrossPN add " << clusadd << " len " << cluslen << endl;
       }
 
-      if(clusadd+cluslen>1023){
+      if((clusadd+cluslen-1)>1023){
 	static int junkerr=0;
-	if(junkerr++<100)cerr<<"TrDAQ::buildraw-E-ClusterOutsideBoundary add "<<clusadd<<" len "<< cluslen<<endl;
+	if(junkerr++<100)cerr << "TrDAQ::buildraw-E-ClusterOutsideBoundary add " << clusadd << " len " << cluslen << endl;
       }
       short int  signal[1024];
       float      sigma[1024];

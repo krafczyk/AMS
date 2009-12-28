@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.6 2009/12/22 16:30:13 oliva Exp $ 
+// $Id: TrRawCluster.h,v 1.7 2009/12/28 15:58:24 oliva Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,11 +18,12 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2009/12/22 16:30:13 $
+/// $Date: 2009/12/28 15:58:24 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
+
 #include "TObject.h"
 #include "TrElem.h"
 #include "TrCalDB.h"
@@ -43,7 +44,11 @@ class TrRawClusterR :public TrElem   {
   short int _address;
   /// Number of strips
   short int _nelem;
-  /// Cluster Status Word
+  /// Signal over Noise Ratio (from DSP code) 
+  float     _seedsn;
+  /// Cluster status word (from DSP code)    
+  short int _status;
+  /// Cluster status word (for reconstruction and analysis purposes)
   int Status;
   /// ADC data array
   std::vector<float> _signal;
@@ -59,19 +64,19 @@ class TrRawClusterR :public TrElem   {
   TrRawClusterR(void);
   /// Copy constructor
   TrRawClusterR(const TrRawClusterR& orig);
-  /// Constructor with from data
-  TrRawClusterR(int tkid, int address, int nelem, short int *adc);
-  /// Constructor with from data
-  TrRawClusterR(int tkid, int address, int nelem, float *adc);
+  /// Generic Constructor 
+  TrRawClusterR(short int tkid, short int address, short int nelem, float *adc);
+  /// Constructor from real data
+  TrRawClusterR(short int tkid, short int rawadd, short int rawnelem, short int *adc);
   /// Destructor
-  virtual ~TrRawClusterR(){Clear();}
+  virtual ~TrRawClusterR() { Clear(); }
   /// Clears the content of the class
   void Clear();
 
 
-  /// Returns the ladder TkId identifier (layer *100 + slot)*side[-1 or 1]
+  /// Returns the ladder TkId identifier (LayerNumber*100 + SlotNumber)*SideSign[-1 or 1]
   int GetTkId()      const { return _tkid; }
-  /// Returns the ladder HwId identifier (Crate# * 100 + TDR# )
+  /// Returns the ladder HwId identifier (CrateNumber*100 + TDRNumber)
   int GetHwId()      const{
     TkLadder* lad=TkDBc::Head->FindTkId(_tkid);
     if(lad) return lad->GetHwId();
@@ -84,22 +89,44 @@ class TrRawClusterR :public TrElem   {
   /// Returns  the slot identifier of the ladder holding the cluster 
   int GetSlot()      const { return (abs(_tkid)-GetLayer()*100)*GetLayerSide(); }
   /// Returns the silicon face on which the cluster is (0 -> p, 1 -> n)
-  int GetSide()      const { return(GetAddress()>639) ? 0 : 1; }
+  int GetSide()      const { return (GetAddress()>639) ? 0 : 1; }
  
   /// Returns the strip number of the cluster first strip   
-  int GetAddress()   const { return _address&0x3ff; }
+  int GetAddress()   const { return _address; }
   /// Returns the address of the ii-th strip of the cluster
   int GetAddress(int ii)   { return GetAddress() + ii; } 
   /// Returns the Seed SN from DAQ
-  int GetDAQSeedSN()   const { return (_nelem>>7)&0x3ff; }
+  float GetDSPSeedSN() const { return _seedsn; }
   /// Returns the cluster strip multiplicity
-  int GetNelem()     const { return (_nelem&0x7f)+1; }
-  /// Returns the CN status bits
-  int GetCNStatus() const { return (_address>>10)&0xf;}
-  /// Returns the power status bits
-  int GetPowerStatus() const { return (_address>>14)&0x3;}
-  //  /// Get the gain
-  //   double GetGain()   const { return _gain; }
+  int GetNelem()     const { return _nelem; }
+  /// Returns the DSP cluster status word 
+  /*!
+    - Bit 0: common noise status from DSP of the i-nth VA containing the first address strip (0: good, 1: bad)
+    - Bit 1: common noise status from DSP of the (i+1)-th VA 
+    - Bit 2: common noise status from DSP of the (i+2)-th VA 
+    - Bit 3: common noise status from DSP of the (i+3)-th VA 
+    - Bit 4: p-side power supply status from DSP (0: good, 1: bad)
+    - Bit 5: n-side power supply status from DSP (0: good, 1: bad)
+  */  
+  int GetDSPStatus() const { return _status; }
+  /// Returns the DSP cluster status word 
+  int GetDSPStatus(int ii) const { return (_status>>ii)&1; }
+  /// Set the DSP cluster status word 
+  int SetDSPStatus(int ii) const { return _status|(1<<ii); }
+  /// Returns the DSP common noise status bits
+  int GetCNStatus() const { return _status&0xf;}
+  /// Returns the DSP common noise status bit of the ii-th VA 
+  /*! Starting from the VA which belongs the address strip,
+      ii takes values from 0 to 3.
+  */
+  int GetCNStatus(int ii) const { return GetDSPStatus(ii); }
+  /// Returns the DSP power status bits
+  int GetPowerStatus() const { return (_status>>4)&0x3;}
+  /// Returns p-side DSP power status bits
+  int GetPSidePowerStatus() const { return GetDSPStatus(4); }
+  /// Returns n-side DSP power status bits
+  int GetNSidePowerStatus() const { return GetDSPStatus(5); }
+
   /// Returns the signal of the ii-th strip of the cluster
   float GetSignal(int ii) const { return _signal.at(ii); }
   /// Returns the noise of the ii-th strip of the cluster (from calibration file)
@@ -109,15 +136,7 @@ class TrRawClusterR :public TrElem   {
   /// Returns the signal to noise ratio of the ii-th strip of the cluster (using calibration file)
   float GetSN(int ii, const char* options = "AG") { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii)/GetNoise(ii); }
 
-  /// \brief Returns the  ii-th strip status (from calibration)
-  /*!
-    Status definition (thresholds...???):
-    bit 0 set to 1: dead channel on the sigma raw base (pedestal subtraction)
-    bit 1 set to 1: noisy channel on the sigma raw base (pedestal subtraction) 
-    bit 2 set to 1: dead channel on the sigma base (pedestal and CN subtraction)
-    bit 3 set to 1: noisy channel on the sigma base (pedestal and CN subtraction)
-    bit 4 set to 1: non gaussian channel 
-  */
+  /// Returns the ii-th strip status (from calibration)
   short GetStatus(int ii);
   /// Check if the cluster is within the side boundary ( p ==> .lt. 640; n ==>  .ge. 640)
   int CheckSide(int side) const { return (side == 0) ? (640 <= GetAddress()+GetNelem()) : (GetAddress() < 640); }
