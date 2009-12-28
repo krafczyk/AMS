@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.15 2009/12/21 20:46:57 shaino Exp $ 
+// $Id: TrRecon.h,v 1.16 2009/12/28 17:43:01 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2009/12/21 20:46:57 $
+/// $Date: 2009/12/28 17:43:01 $
 ///
-/// $Revision: 1.15 $
+/// $Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -510,6 +510,15 @@ public:
 
   //! Generate the TrRawClusters from the MC info and from a calibration
   static void sitkdigi(); 
+
+  //! SimMode= 0:Default  1:Skip raw cluster/DSP simulation 
+  static int SkipRawSim;
+  //! Generate TrCluster from MC track
+  static void gencluster(int idsoft, float vect[],
+			 float edep, float step, int itra);
+  static void fillreso(TrRecHitR *hit);
+  static AMSPoint sitkrefp[8];
+  static AMSPoint sitkangl[8];
 };
 
 #endif

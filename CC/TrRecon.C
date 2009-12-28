@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.26 2009/12/21 20:46:57 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.27 2009/12/28 17:42:55 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/12/21 20:46:57 $
+/// $Date: 2009/12/28 17:42:55 $
 ///
-/// $Revision: 1.26 $
+/// $Revision: 1.27 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -117,6 +117,8 @@ void TrRecon::SetParFromDataCards(){
   PZDEBUG = TRCLFFKEY.PZDEBUG;
 
   TasRecon = TRCLFFKEY.TasRecon;
+
+  if (TRCLFFKEY.recflag >= 10111) TrSim::SkipRawSim = 1;
 }
 TrRecon::~TrRecon() {
   Clear();
@@ -279,6 +281,13 @@ int TrRecon::GetAddressInSubBuffer(int address, int first, int last, int ciclici
 
 int TrRecon::BuildTrClusters(int rebuild) { 
   if (TasRecon) return BuildTrTasClusters(rebuild);
+
+  if (TrSim::SkipRawSim) {
+    VCon* cont3=GetVCon()->GetCont("AMSTrCluster");
+    int ncls3 = cont3->getnelem();
+    delete cont3;
+    return ncls3;
+  }
 
   //Get the pointer to the TrRawCluster container
   //  AMSContainer* cont=GetCont(AMSID("AMSTrRawCluster"));
@@ -1658,6 +1667,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     }
 
     track->AddHit(hit, itcand.imult[i], &bfield);
+
+    if (TrSim::SkipRawSim) TrSim::fillreso(hit);
   }
 
  if (PZDEBUG){
@@ -2187,8 +2198,13 @@ extern "C" double rnormx();
 
 
 void TrSim::sitkhits(int idsoft, float vect[],
-                           float edep, float step, int itra)
+		     float edep, float step, int itra)
 {
+  if (SkipRawSim) {
+    gencluster(idsoft, vect, edep, step, itra);
+    return;
+  }
+
   if (edep <= 0) edep = 1e-4;
 
   AMSPoint ppa (vect[0],vect[1],vect[2]);
@@ -2232,9 +2248,154 @@ void TrSim::sitkhits(int idsoft, float vect[],
 }
 
 
+int      TrSim::SkipRawSim = 0;
+AMSPoint TrSim::sitkrefp[8];
+AMSPoint TrSim::sitkangl[8];
+
+void TrSim::gencluster(int idsoft, float vect[],
+		       float edep, float step, int itra)
+{
+  if (edep <= 0) edep = 1e-4;
+
+  AMSPoint ppa (vect[0],vect[1],vect[2]);
+  AMSPoint dirg(vect[3],vect[4],vect[5]);
+  AMSPoint pmom(vect[3]*vect[6], vect[4]*vect[6], vect[5]*vect[6]);
+  AMSPoint ppb = ppa-dirg*step;
+  AMSPoint pgl = ppa-dirg*step/2;
+  
+  AMSPoint size(TkDBc::Head->_ssize_active[0]/2,
+                TkDBc::Head->_ssize_active[1]/2,
+                TkDBc::Head->_silicon_z/2);
+  //  XXPLSS  |XX=sensor|P 0 neg 1 pos |L=layer |SS=slot|
+  int tkid   = abs(idsoft)%1000;
+  int ss     = abs(idsoft)%10000-tkid;
+  if(!ss) tkid*=-1;
+  // Convert global coo into sensor local coo
+  // The origin is the first strip of the sensor
+  TkSens tksa(tkid, ppa);
+  TkSens tksb(tkid, ppb);
+  AMSPoint pa = tksa.GetSensCoo(); pa[2] += size[2];
+  AMSPoint pb = tksb.GetSensCoo(); pb[2] += size[2];
+
+  int ily = abs(tkid)/100-1;
+  sitkrefp[ily] = pgl;
+
+  TkSens tksc(tkid, pgl);
+  AMSPoint pc = tksc.GetSensCoo();
+
+  if (pc.x() < 0 || pc.x() > TkDBc::Head->_ssize_active[0]) return;
+
+  VCon* cont=GetVCon()->GetCont("AMSTrCluster");
+
+  Double_t lx = pc.x();
+  Double_t ly = pc.y();
+  Double_t lz = pc.z();
+  Int_t stx = tksc.GetStripX();
+  Int_t sty = tksc.GetStripY();
+  Double_t ipx = tksc.GetImpactPointX();
+  Double_t ipy = tksc.GetImpactPointY();
+
+  Int_t seedx = (ipx > 0) ? 0 : 1;
+  Int_t seedy = (ipy > 0) ? 0 : 1;
+  if (ipx < 0) stx--;
+  if (ipy < 0) sty--;
+
+  Double_t sig0  = 30;
+  Double_t sigx  = 5;
+  Double_t sigy  = 4;
+  Int_t sig_mode = 1;
+
+  Double_t thx = TMath::Abs(TMath::ATan(dirg.x()/dirg.z())*TMath::RadToDeg());
+  Double_t thy = TMath::Abs(TMath::ATan(dirg.y()/dirg.z())*TMath::RadToDeg());
+
+  if (sig_mode == 1) {
+    sigx = (40-1.6*thx+0.05*thx*thx)/5;
+    sigy = (10+0.5*thy)/2.5;
+  }
+  sitkangl[ily] = AMSPoint(thx, thy, 0);
+
+  Double_t a1x = (ipx > 0) ? sig0*(1-ipx) : -sig0*ipx;
+  Double_t a2x = (ipx < 0) ? sig0*(1+ipx) :  sig0*ipx;
+  Double_t a1y = (ipy > 0) ? sig0*(1-ipy) : -sig0*ipy;
+  Double_t a2y = (ipy < 0) ? sig0*(1+ipy) :  sig0*ipy;
+
+  a1x += rnormx()*sigx; a2x += rnormx()*sigx;
+  a1y += rnormx()*sigy; a2y += rnormx()*sigy;
+  if (a1x < 0) a1x = 0;
+  if (a2x < 0) a2x = 0;
+  if (a1y < 0) a1y = 0;
+  if (a2y < 0) a2y = 0;
+
+  if (seedx == 0 && a1x < a2x) seedx = 1;
+  if (seedx == 1 && a1x > a2x) seedx = 0;
+  if (seedy == 0 && a1y < a2y) seedy = 1;
+  if (seedy == 1 && a1y > a2y) seedy = 0;
+
+  Int_t lyr = TMath::Abs(tkid)/100;
+
+  float adc[2] = { 0, 0 };
+
+  if (0 < stx && stx+seedx < 383) {
+    adc[0] = a1x;
+    adc[1] = a2x;
+#ifndef __ROOTSHAREDLIBRARY__ 
+    if(cont) cont->addnext(new AMSTrCluster
+			   (tkid, 0, stx+640, 2, seedx, adc, 0));
+#else
+    if(cont) cont->addnext(new TrClusterR
+			   (tkid, 0, stx+640, 2, seedx, adc, 0));
+#endif
+  }
+  if (0 < sty && sty+seedy < 639) {
+    adc[0] = a1y;
+    adc[1] = a2y;
+#ifndef __ROOTSHAREDLIBRARY__ 
+    if(cont) cont->addnext(new AMSTrCluster
+			   (tkid, 0, sty, 2, seedy, adc, 0));
+#else
+    if(cont) cont->addnext(new TrClusterR
+			   (tkid, 0, sty, 2, seedy, adc, 0));
+#endif
+  }
+
+  delete cont;
+  return; 
+}
+
+#include "TH2.h"
+#include "TDirectory.h"
+static TDirectoryFile *HistDir = 0;
+
+void TrSim::fillreso(TrRecHitR *hit)
+{
+  TH2F *hist1 = (HistDir) ? (TH2F *)HistDir->Get("hist1") : 0;
+  TH2F *hist2 = (HistDir) ? (TH2F *)HistDir->Get("hist2") : 0;
+
+  if (!hist1 || !hist2) {
+    TDirectory *sdir = gDirectory;
+    if (!HistDir) {
+      if (gFile) gFile->cd();
+      HistDir = new TDirectoryFile("reshist", "Tracker resolution");
+    }
+    HistDir->cd();
+
+    hist1 = new TH2F("hist1", "resX", 50, 0, 50, 100, -100, 100);
+    hist2 = new TH2F("hist2", "resY", 50, 0, 50, 100, -100, 100);
+
+    if (sdir) sdir->cd();
+  }
+
+  int ily = hit->GetLayer()-1;
+  AMSPoint dpc = hit->GetCoord()-sitkrefp[ily];
+  hist1->Fill(sitkangl[ily].x(), dpc.x()*1e4);
+  hist2->Fill(sitkangl[ily].y(), dpc.y()*1e4);
+}
+
 
 void TrSim::sitkdigi()
 {
+  if (SkipRawSim) return;
+
   //Get the pointer to the TrMCCluster container
   VCon* cont=GetVCon()->GetCont("AMSTrMCCluster");
   if(!cont){

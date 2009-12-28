@@ -210,13 +210,14 @@ public:
   int TrDEBUG ;
   //! I 35 PZDEBUG
   int PZDEBUG ;
-  void init();
   //! I 36 TAS reconstruction
   int TasRecon;
   //! I 37 TAS current intensity
   int TasCurr;
   //! I 38 TAS LDDR mode
   int TasLDDR;
+
+  void init();
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
