@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.7 2009/12/28 15:58:24 oliva Exp $ 
+// $Id: TrRawCluster.h,v 1.8 2009/12/28 17:41:31 shaino Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2009/12/28 15:58:24 $
+/// $Date: 2009/12/28 17:41:31 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -65,9 +65,9 @@ class TrRawClusterR :public TrElem   {
   /// Copy constructor
   TrRawClusterR(const TrRawClusterR& orig);
   /// Generic Constructor 
-  TrRawClusterR(short int tkid, short int address, short int nelem, float *adc);
+  TrRawClusterR(int tkid, int address, int nelem, float *adc);
   /// Constructor from real data
-  TrRawClusterR(short int tkid, short int rawadd, short int rawnelem, short int *adc);
+  TrRawClusterR(int tkid, int rawadd, int rawnelem, short int *adc);
   /// Destructor
   virtual ~TrRawClusterR() { Clear(); }
   /// Clears the content of the class

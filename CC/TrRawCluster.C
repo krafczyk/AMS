@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.6 2009/12/28 15:58:23 oliva Exp $ 
+/// $Id: TrRawCluster.C,v 1.7 2009/12/28 17:41:34 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/12/28 15:58:23 $
+/// $Date: 2009/12/28 17:41:34 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +51,7 @@ TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
  for (int i = 0; i < GetNelem(); i++) _signal.push_back(orig._signal.at(i));
 }
 
-TrRawClusterR::TrRawClusterR(short int tkid, short int rawclsadd, short int rawclslen, short* adc) {
+TrRawClusterR::TrRawClusterR(int tkid, int rawclsadd, int rawclslen, short int* adc) {
   _tkid    = tkid;
   _address = rawclsadd&0x3ff;
   _status  = ((rawclsadd>>10)&0x3f); // CN + Pw 
@@ -62,7 +62,7 @@ TrRawClusterR::TrRawClusterR(short int tkid, short int rawclsadd, short int rawc
   if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]/8.);
 }
 
-TrRawClusterR::TrRawClusterR(short int tkid, short int address, short int nelem, float *adc) {
+TrRawClusterR::TrRawClusterR(int tkid, int address, int nelem, float *adc) {
   _tkid    = tkid;
   _address = address;
   _nelem   = nelem;
