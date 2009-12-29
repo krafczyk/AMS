@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.6 2008/07/31 14:49:19 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.7 2009/12/29 11:17:54 choutko Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -202,16 +202,17 @@ void AMSECALHist::ShowSet(Int_t Set){
 //
   switch(Set){
 case 0:
-  gPad->Divide(1,3);
-  for(j=0;j<3;j++){//hist#
+  gPad->Divide(1,2);
+  for(j=0;j<2;j++){//hist#
     gPad->cd(j+1);
     gPad->SetGrid();
 //    gStyle->SetPalette(1,0);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
-    _filled[j]->SetStats(kFALSE);
-    _filled[j]->Draw("colz");//ECAL-Ycells accupancy
+     int k=j==0?j:3;
+    _filled[k]->SetStats(kFALSE);
+    _filled[k]->Draw("colz");//ECAL-Ycells accupancy
     gPadSave->cd();
   }
   break;

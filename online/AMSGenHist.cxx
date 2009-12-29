@@ -1,4 +1,4 @@
-//  $Id: AMSGenHist.cxx,v 1.7 2008/04/16 10:19:52 choutko Exp $
+//  $Id: AMSGenHist.cxx,v 1.8 2009/12/29 11:17:54 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -32,22 +32,22 @@ _filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
 _filled[_filled.size()-1]->SetXTitle("Length (Bytes)");
 
   AddSet("EventLengthsCorrelations");
-  _filled.push_back(new TProfile("toflvsd","TOFLength vs TimeD msec",1000,0,50));
+  _filled.push_back(new TProfile("toflvsd","TOFLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
-  _filled.push_back(new TProfile("trklvsd","TRKLength vs TimeD msec",1000,0,50));
+  _filled.push_back(new TProfile("trklvsd","TRKLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
-  _filled.push_back(new TProfile("trdlvsd","TRDLength vs TimeD msec",1000,0,50));
+  _filled.push_back(new TProfile("trdlvsd","TRDLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
-  _filled.push_back(new TProfile("richlvsd","RICHLength vs TimeD msec",1000,0,50));
+  _filled.push_back(new TProfile("richlvsd","RICHLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
-  _filled.push_back(new TProfile("ecallvsd","ECALLength vs TimeD msec",1000,0,50));
+  _filled.push_back(new TProfile("ecallvsd","ECALLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
-  _filled.push_back(new TProfile("totallvsd","TotalLength vs TimeD msec",1000,0,50));
+  _filled.push_back(new TProfile("totallvsd","TotalLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
 }

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.125 2009/12/10 13:50:48 choutko Exp $
+//  $Id: ecalrec.C,v 1.126 2009/12/29 11:17:53 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -868,6 +868,20 @@ void AMSEcalHit::build(int &stat){
 //
       }
       else {
+
+      if(radc[0]>0 && ovfl[0]==0){//<-use h-chan
+        fadc=radc[0];
+      }
+         else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0 ){//Hch=Miss/Ovfl -> use Lch
+        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
+	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
+        }
+        else if(ovfl[1]==1){//<-use even overflowed l-chan
+        fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
+	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
+	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
+      }
+
 	sta|=AMSDBc::BAD;// bad or 0 amplitude channel
       }
 //
@@ -965,6 +979,7 @@ void AMSEcalHit::build(int &stat){
 	    HF1(ECHISTR+9,geant(edep),1.);
 }
 	  }
+
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,edepc,coot,cool,cooz));
 //       (object is created even if was Anode ovfl, but sta is set properly)

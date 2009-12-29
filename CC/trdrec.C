@@ -147,6 +147,7 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
 		     //cout <<" pisec "<<adcmx<<" "<<sum<<endl;
 		   }
 		   if(sum>Thr1A){
+                   //cout <<" trdcl "<<sum*TRDCLFFKEY.ADC2KeV<<" "<<sum<<" "<<TRDCLFFKEY.ADC2KeV<<endl;
                    AMSTRDCluster *ph=new AMSTRDCluster(status,ilay,coo,rad,z,zdir,sum*TRDCLFFKEY.ADC2KeV,right-left+1,hmul,ptrmx);
                    if(mode)ph->setstatus(AMSDBc::RECOVERED);
   		    AMSEvent::gethead()->addnext(AMSID("AMSTRDCluster",ilay),ph);
