@@ -18,8 +18,9 @@ public:
       if(ev &&ev->nParticle() && ev->nTrTrack()){
 //    if(ev &&   ((ev->nTrdTrack() && ev->nEcalShower())|| ev->Event()%1024==0)){
 //      cout <<"  found "<<ev->Event()<<endl;
-      if(ev->pLevel1(0)->TrigTime[4]<170 || ev->pDaqEvent(0)->Tdr>9000)return true;
-      else if(ev &&ev->nParticle() && ev->nTrTrack() &&ev->nEcalShower() &&ev->EcalShower(0).EnergyC*(1-ev->EcalShower(0).RearLeak)>4.)return true;
+      if(ev->pLevel1(0)->TrigTime[4]<160 || ev->pDaqEvent(0)->Tdr>9000)return false;
+      else if(ev &&ev->nParticle() && ev->nTrTrack() &&ev->nEcalShower() &&ev->EcalShower(0).EnergyC*(1-ev->EcalShower(0).RearLeak)>4.)return false;
+      else if (ev &&ev->nParticle() && ev->nTrTrack() && ev->Particle(0).Charge>1 && ev->nTofCluster()>2)return true;
        else return false;
     }
     else{

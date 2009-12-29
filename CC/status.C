@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.48 2009/12/22 16:41:49 choutko Exp $
+//  $Id: status.C,v 1.49 2009/12/29 15:46:15 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -258,7 +258,7 @@ integer AMSStatus::statusok(uinteger event, uinteger run){
 integer AMSStatus::_statusok(statusI status){
     uinteger one=1;
     if(!(status[0] & (one<<31))){    // Status exists
-      const int nsta=28;
+      const int nsta=29;
       uinteger Status[nsta];
       Status[0]=((status[0] & ((1<<2)-1)));
       Status[1]=((status[0]>>2) & ((1<<1)-1));
@@ -288,6 +288,7 @@ integer AMSStatus::_statusok(statusI status){
       Status[25]=((status[1]>>9) & ((1<<2)-1));
       Status[26]=((status[1]>>11) & ((1<<2)-1));
       Status[27]=((status[1]>>13) & ((1<<2)-1));
+      Status[28]=((status[1]>>15) & ((1<<5)-1));
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;

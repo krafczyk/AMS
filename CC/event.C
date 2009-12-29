@@ -3659,6 +3659,24 @@ void AMSEvent::_collectstatus(){
          __status1|=(z1<<11);
        }
 
+
+//
+//
+//   geomag here
+//
+
+
+
+
+       if(ptr){
+        if(ptr->_prich){
+          float charge=ptr->_prich->getcollnpe()/(ptr->_prich->getnpexp()+1.e-10);
+          charge=sqrt(fabs(charge));
+          int z1=(charge+1./8)*4;
+          if(z1>31)z1=31;
+         __status1|=(z1<<15);
+        }       
+        }
        _status[0]=__status;
        _status[1]=__status1;
 

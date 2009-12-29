@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.578 2009/12/21 09:49:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.579 2009/12/29 15:46:16 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3948,7 +3948,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 #   vc   -  remove monstrous loop in summary
 #
-      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc where ntuples.datamc=$datamc";
+      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc,datasets where ntuples.datamc=$datamc";
       my $rsum=undef;
 #
 # Template is defined explicitly
@@ -3987,13 +3987,26 @@ CheckCite:            if (defined $q->param("QCite")) {
        $dataset = $q->param("QTempDataset");
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
+       my $qparticle="";
+       my $qaparticle="";
+       if (defined $q->param("QPartD") and
+                   ($q->param("QPartD") ne "Any" and
+                    $q->param("QPartD") ne "ANY" and $q->param("QPartD") ne "any"))  {
+         $particle = $q->param("QPartD");
+         $qparticle = " and datasets.did=jobs.did and datasets.name like '$particle' ";
+         $qaparticle = " and datasets.did=jobs.did and datasets.name not like '$particle' ";
+     }
+
 #- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
-       $sql = "SELECT dataruns.run, jobs.jobname, dataruns.submit,dataruns.jid FROM dataruns, jobs,datasetsdesc
+       $sql = "SELECT dataruns.run, jobs.jobname, dataruns.submit,dataruns.jid FROM dataruns, jobs,datasetsdesc,datasets
                    WHERE dataruns.jid=jobs.jid  AND dataruns.status='Completed'";
                    $sqlmom=" and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname)  AND
-                        (datasetsdesc.jobdesc LIKE '%$dataset%' ) ";
+                        (datasetsdesc.jobdesc LIKE '%$dataset%'  $qparticle) ";
                    $sqlamom="  and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname) AND
-           (datasetsdesc.jobdesc not LIKE '%$dataset%' )";
+           (datasetsdesc.jobdesc not LIKE '%$dataset%' $qaparticle)";
+
+
+
 
 
            if ($q->param("QBuildNum")){
@@ -4007,7 +4020,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
-                 FROM dataruns, jobs, datasetsdesc, ntuples
+                 FROM dataruns, jobs, datasetsdesc, datasets, ntuples
                    WHERE dataruns.jid=jobs.jid and dataruns.run=ntuples.run  AND dataruns.status='Completed' and dataruns.jid=ntuples.jid";
        $sql=$sql.$sqlmom;
        $sqlNT=$sqlNT.$sqlmom;
@@ -4525,7 +4538,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              else{
               $qpartd="and path like '%".$qpartd."%'"; 
              }
-            $sql=~s/ORDER BY/ and ntuples.jid=jobs.jid and DataMC=$dmc $qpartd ORDER BY/;
+            $sql=~s/ORDER BY/ and ntuples.jid=jobs.jid and ntuples.DataMC=$dmc $qpartd ORDER BY/;
 
 }
 
@@ -4702,7 +4715,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
                $sqlamom=~s/not LIKE/LIKE/;
            }
-           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%' and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
+           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
             my $r4=undef;
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
@@ -4720,7 +4733,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           $buff = $buff.$s."\n";
        }
           else{
-            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs WHERE Path like '%$dirs[$ind]/%'  and ntuples.jid=jobs.jid $sqlmom group by ntuples.run ";
+            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%'  and ntuples.jid=jobs.jid $sqlmom group by ntuples.run ";
             my $r3=$self->{sqlserver}->Query($positive);
             foreach my $path (@{$r3}) {
                   my $pth =$path->[0];
