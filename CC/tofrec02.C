@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.70 2009/12/30 12:20:29 choutko Exp $
+//  $Id: tofrec02.C,v 1.71 2009/12/30 19:15:06 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -425,7 +425,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
  for(TOF2RawSide *ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0);ptr;ptr=ptr->next()){
  for(TOF2RawSide *ptr1=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",1);ptr1;ptr1=ptr1->next()){
-  if(ptr1->getsid()==ptr->getsid() && ptr1->getadca()==0){
+  if(ptr1->getsid()==ptr->getsid() && ptr->getnstdc()==0){
    int arr[TOF2GC::SCTHMX3];
    ptr1->getstdc(arr);  
    ptr->putstdc(ptr1->getnstdc(),arr);

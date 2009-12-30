@@ -3679,6 +3679,13 @@ void AMSEvent::_collectstatus(){
          __status1|=(z1<<15);
         }       
         }
+
+        if(ptr){
+         int z1=0;
+         const float cc=11.3*3./2;
+         if(fabs(ptr->_RichCoo[0][0])<cc && fabs(ptr->_RichCoo[0][1])<cc)z1=1;
+         __status1|=(z1<<20);
+        }
        _status[0]=__status;
        _status[1]=__status1;
 

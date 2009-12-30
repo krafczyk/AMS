@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.44 2009/12/30 09:27:36 choutko Exp $
+//  $Id: daqs2block.C,v 1.45 2009/12/30 19:15:06 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -246,7 +246,8 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   p=p-1;//to go from VC-convention to my !!! Now it point to Segm.length word 
 //  len=*p;//fragment's 1st word(length in bytes, not including length word itself)
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
-  int icca=(leng>>30)&3;
+  int icca=(leng>>30)&1;
+  leng=leng &( (1<<30)-1);
   blid=*(p+len);// fragment's last word: Status+slaveID
 //  cout<<"    blid="<<hex<<blid<<dec<<endl;
   bool dataf=((blid&(0x8000))>0);//data-fragment

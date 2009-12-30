@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.10 2009/12/29 15:46:16 choutko Exp $
+#  $Id: status02.doc,v 1.11 2009/12/30 19:15:06 choutko Exp $
 status word definition
 
 0
@@ -117,7 +117,10 @@ status word definition
  50
  51
 
-52 to 63 not yet defined
+29
+ 52   0   rich  agl 1 rich naf 
+
+53 to 63 not yet defined
 
 correspondance between bits & status datacards words:
 

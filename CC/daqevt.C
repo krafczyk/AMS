@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.187 2009/12/30 12:20:29 choutko Exp $
+//  $Id: daqevt.C,v 1.188 2009/12/30 19:15:06 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1503,8 +1503,7 @@ int16u* pc;
     int16u id=*(pc+_cll(pc));
     if(_isjinj(id)){
      for(int16u * pdown=pc+_cll(pc)+1+_clll(pc);pdown<pc+_cl(pc)-2;pdown+=*pdown+1){
-     int ic=_getportj(*(pdown+*pdown))-4;
-     if(ic>=0 && ic<=3){
+     if(int ic=DAQS2Block::checkblockid(_getportj(*(pdown+*pdown)))-1>=0){
       int16u *psafe=pdown+1;
       integer n=((ic)<<16) | (*pdown) | (1<<30);
       DAQS2Block::buildraw(n,psafe);
@@ -1515,7 +1514,6 @@ int16u* pc;
    int sta;
    TOF2RawSide::validate(sta,1);
 }
-
 
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
@@ -1649,7 +1647,8 @@ if(DAQCFFKEY.ReadAhead){
       setoffset(of);
       fbin.read((char*)_Buffer2,length);
       setoffset(of);
-      _Buffer2Lock=1;
+      if(fbin.good() && !fbin.eof())_Buffer2Lock=1;
+      else fbin.clear();
       _Length2=length;
 
 }
