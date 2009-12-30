@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.7 2009/12/28 17:41:34 shaino Exp $ 
+/// $Id: TrRawCluster.C,v 1.8 2009/12/30 14:21:51 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/12/28 17:41:34 $
+/// $Date: 2009/12/30 14:21:51 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -25,64 +25,96 @@ ClassImp(TrRawClusterR);
 
 TrCalDB* TrRawClusterR::_trcaldb = NULL;
 
-
-
 TrRawClusterR::TrRawClusterR(void) {
   Clear();
 }
 
 void TrRawClusterR::Clear() {
-  _tkid    =  0;
-  _address = -1;
-  _nelem   =  0;
-  _seedsn  =  0;
-  _status  =  0;
-  Status   =  0;
+  _tkid        =  0;
+  _addressword = -1;
+  _lengthword  =  0;
+  Status       =  0;
   _signal.clear();
 }
 
 TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
-  _tkid    = orig._tkid;
-  _address = orig._address;
-  _nelem   = orig._nelem;
-  _seedsn  = orig._seedsn;
-  _status  = orig._status;  
-  Status   = orig.Status;
- for (int i = 0; i < GetNelem(); i++) _signal.push_back(orig._signal.at(i));
+  _tkid        = orig._tkid;
+  _addressword = orig._addressword;
+  _lengthword  = orig._lengthword;
+  Status       = orig.Status;
+  for (int i = 0; i < GetNelem(); i++) _signal.push_back(orig._signal.at(i));
 }
 
-TrRawClusterR::TrRawClusterR(int tkid, int rawclsadd, int rawclslen, short int* adc) {
-  _tkid    = tkid;
-  _address = rawclsadd&0x3ff;
-  _status  = ((rawclsadd>>10)&0x3f); // CN + Pw 
-  _nelem   = (rawclslen&0x7f) + 1; 
-  _seedsn  = ( (rawclslen>>7)&0x3ff )*1.; // *8.*LowThrParameter/8.; 
-  Status   = 0;
+TrRawClusterR::TrRawClusterR(int tkid, int clsaddwrd, int clslenwrd, short int* adc) {
+  _tkid        = tkid;
+  _addressword = clsaddwrd;
+  _lengthword  = clslenwrd; 
+  Status       = 0;
   _signal.reserve(GetNelem());
-  if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]/8.);
+  if (adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]/8.);
 }
 
 TrRawClusterR::TrRawClusterR(int tkid, int address, int nelem, float *adc) {
-  _tkid    = tkid;
-  _address = address;
-  _nelem   = nelem;
-  _seedsn  = 0;
-  _status  = 0;
-  Status   = 0;
+  _tkid        = tkid;
+  _addressword = address;
+  _lengthword  = nelem;
+  Status       = 0;
   _signal.reserve(GetNelem());
   if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]);
 }
 
+int TrRawClusterR::GetNelem() {
+  if (GetDSPVersion()>0x9a11) return (_lengthword&0x3f)+1;
+  // else if ...
+  return _lengthword+1;
+}
+
+int TrRawClusterR::GetAddress() {
+  if (GetDSPVersion()>0x9a11) return _addressword&0x3ff;
+  // else if ...
+  return _addressword;
+}
+
+float TrRawClusterR::GetDSPSeedSN() {
+  if (GetDSPVersion()>0x9a11) { 
+    if (GetTrLadCal()==0) {
+      printf("TrRawClusterR::GetDSPSeedSN, WARNING TrLadCal not found! HwId = %+03d\n",GetHwId());
+      return 0;
+    }
+    int seedadd = GetAddress(max_element(_signal.begin(),_signal.end()) - _signal.begin());
+    int ADC     = seedadd/320; // for K-side we will have 2 and 3 ... this is wrong but not important
+    if      (ADC==0) return ((_lengthword>>7)&0x3ff)*GetTrLadCal()->S1_lowthres; // S1
+    else if (ADC==1) return ((_lengthword>>7)&0x3ff)*GetTrLadCal()->S2_lowthres; // S2
+    else             return ((_lengthword>>7)&0x3ff)*GetTrLadCal()->K_lowthres;  // K
+  }
+  // else if ...
+  return 0;
+}
+
+int TrRawClusterR::GetCNStatus() {
+  if (GetDSPVersion()>0x9a11) return (_addressword>>10)&0xf;
+  // else if ...
+  return 0;
+}
+
+int TrRawClusterR::GetPowerStatus() {
+  if (GetDSPVersion()>0x9a11) return (_addressword>>14)&0x3;
+  // else if ...
+  return 0;
+}
+
+
+
 float TrRawClusterR::GetNoise(int ii) {
-  if (_trcaldb==0) {
-    printf("TrRawClusters::GetStatus Error, no _trcaldb specified.\n");
+  if (GetTrCalDB()==0) {
+    printf("TrRawClusters::GetNoise Error, no _trcaldb specified.\n");
     return -9999.; 
   }
   int hwid = GetHwId();
   TrLadCal* ladcal = GetTrCalDB()->FindCal_HwId(hwid);
   if (!ladcal) {printf ("TrRawClusterR::GetNoise, WARNING calibration not found!! HwID %+03d\n",hwid); return -9999;} 
   int address = GetAddress()+ii;
-  return (float)ladcal->GetSigma(address);
+  return (float) ladcal->GetSigma(address);
 }
 
 short TrRawClusterR::GetStatus(int ii) {
@@ -109,12 +141,12 @@ void TrRawClusterR::Print(int full) {
 
 void TrRawClusterR::_PrepareOutput(int full) { 
   sout.clear();
-  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %7.2f  SeedSN: %7.2f  DSPStatus: %2d\n",
-		   GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal(),GetDSPSeedSN(),GetDSPStatus()));
+  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d Signal: %7.2f  SeedSN: %7.2f  CNStatus: %2d  PwStatus: %1d\n",
+		   GetTkId(),GetSide(),GetAddress(),GetNelem(),GetTotSignal(),GetDSPSeedSN(),GetCNStatus(),GetPowerStatus()));
   if(!full) return;
   for (int ii=0; ii<GetNelem(); ii++) 
-    sout.append(Form("Address: %4d  Signal: %10.5f  Sigma: %10.5f  Status: %3d\n",
-	       ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetStatus(ii)));
+    sout.append(Form("Address: %4d  Signal: %8.3f  Sigma: %8.3f  S/N: %8.3f  Status: %3d\n",
+	       ii+GetAddress(),GetSignal(ii),GetSigma(ii),GetSN(ii),GetStatus(ii)));
 }
 
 char* TrRawClusterR::Info(int iRef){

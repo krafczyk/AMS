@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.8 2009/12/28 17:41:31 shaino Exp $ 
+// $Id: TrRawCluster.h,v 1.9 2009/12/30 14:21:51 oliva Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -9,7 +9,7 @@
 ///\brief A class implementing the Tracker Raw Clusters
 ///\ingroup tkrec
 ///
-/// The Tr Raw Cluster are just the translation of the tracker RAW data and 
+/// The TrRawCluster are just the translation of the tracker RAW data and 
 /// they contains the clusters as produced by the TDRs DSP.
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  Some comments and utils are added
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2009/12/28 17:41:31 $
+/// $Date: 2009/12/30 14:21:51 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,22 +33,20 @@
 #include <vector>
 #include <cstdlib>
 #include <string>
+#include <algorithm>
 
 
+class TrRawClusterR : public TrElem {
 
-class TrRawClusterR :public TrElem   {
  protected:
+
   /// TkLadder ID (layer *100 + slot)*side[-1 or 1]
   short int _tkid;
-  /// First strip number
-  short int _address;
-  /// Number of strips
-  short int _nelem;
-  /// Signal over Noise Ratio (from DSP code) 
-  float     _seedsn;
-  /// Cluster status word (from DSP code)    
-  short int _status;
-  /// Cluster status word (for reconstruction and analysis purposes)
+  /// The cluster address word (as given by DSP code)
+  short int _addressword;
+  /// The cluster length word (as given by the DSP code)
+  short int _lengthword;
+  /// Cluster status word (for analysis purposes)
   int Status;
   /// ADC data array
   std::vector<float> _signal;
@@ -58,74 +56,69 @@ class TrRawClusterR :public TrElem   {
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
 
-  
  public:
+
   /// Default constructor
   TrRawClusterR(void);
   /// Copy constructor
   TrRawClusterR(const TrRawClusterR& orig);
   /// Generic Constructor 
   TrRawClusterR(int tkid, int address, int nelem, float *adc);
-  /// Constructor from real data
-  TrRawClusterR(int tkid, int rawadd, int rawnelem, short int *adc);
+  /// Constructor for real data
+  TrRawClusterR(int tkid, int clsaddwrd, int clslenwrd, short int *adc);
   /// Destructor
   virtual ~TrRawClusterR() { Clear(); }
   /// Clears the content of the class
   void Clear();
 
-
   /// Returns the ladder TkId identifier (LayerNumber*100 + SlotNumber)*SideSign[-1 or 1]
-  int GetTkId()      const { return _tkid; }
+  int   GetTkId()      const { return _tkid; }
   /// Returns the ladder HwId identifier (CrateNumber*100 + TDRNumber)
-  int GetHwId()      const{
-    TkLadder* lad=TkDBc::Head->FindTkId(_tkid);
-    if(lad) return lad->GetHwId();
+  int   GetHwId()      const {
+    TkLadder* lad=TkDBc::Head->FindTkId(GetTkId());
+    if (lad) return lad->GetHwId();
     else return -1;
   }
   /// Return the layer to which the cluster belong
-  int GetLayer()     const { return abs(_tkid/100); }
+  int   GetLayer()     const { return abs(GetTkId()/100); }
   /// Return +1 or -1 dependig on which side of the X plane is located the ladder holding the cluster
-  int GetLayerSide() const { return (_tkid>0)?1:-1; }
+  int   GetLayerSide() const { return (GetTkId()>0)?1:-1; }
   /// Returns  the slot identifier of the ladder holding the cluster 
-  int GetSlot()      const { return (abs(_tkid)-GetLayer()*100)*GetLayerSide(); }
+  int   GetSlot()      const { return (abs(GetTkId())-GetLayer()*100)*GetLayerSide(); }
   /// Returns the silicon face on which the cluster is (0 -> p, 1 -> n)
-  int GetSide()      const { return (GetAddress()>639) ? 0 : 1; }
+  int   GetSide() { return (GetAddress()>639) ? 0 : 1; }
  
   /// Returns the strip number of the cluster first strip   
-  int GetAddress()   const { return _address; }
+  int   GetAddress();
   /// Returns the address of the ii-th strip of the cluster
-  int GetAddress(int ii)   { return GetAddress() + ii; } 
-  /// Returns the Seed SN from DAQ
-  float GetDSPSeedSN() const { return _seedsn; }
+  int   GetAddress(int ii) { return GetAddress() + ii; } 
+  /// Returns the Seed SN from DSP (if exists)
+  float GetDSPSeedSN();
   /// Returns the cluster strip multiplicity
-  int GetNelem()     const { return _nelem; }
-  /// Returns the DSP cluster status word 
+  int   GetNelem();
+  /// Returns the DSP common noise status bits (if exists)  
   /*!
     - Bit 0: common noise status from DSP of the i-nth VA containing the first address strip (0: good, 1: bad)
-    - Bit 1: common noise status from DSP of the (i+1)-th VA 
-    - Bit 2: common noise status from DSP of the (i+2)-th VA 
-    - Bit 3: common noise status from DSP of the (i+3)-th VA 
-    - Bit 4: p-side power supply status from DSP (0: good, 1: bad)
-    - Bit 5: n-side power supply status from DSP (0: good, 1: bad)
+    - Bit 1: common noise status from DSP of the (i+1)-nth VA (0: good, 1: bad)
+    - Bit 2: common noise status from DSP of the (i+2)-nth VA (0: good, 1: bad)
+    - Bit 3: common noise status from DSP of the (i+3)-nth VA (0: good, 1: bad)
   */  
-  int GetDSPStatus() const { return _status; }
-  /// Returns the DSP cluster status word 
-  int GetDSPStatus(int ii) const { return (_status>>ii)&1; }
-  /// Set the DSP cluster status word 
-  int SetDSPStatus(int ii) const { return _status|(1<<ii); }
-  /// Returns the DSP common noise status bits
-  int GetCNStatus() const { return _status&0xf;}
-  /// Returns the DSP common noise status bit of the ii-th VA 
-  /*! Starting from the VA which belongs the address strip,
-      ii takes values from 0 to 3.
+  int   GetCNStatus();
+  /// Returns the DSP common noise status bit of the ii-th VA (if exists) 
+  /*! \param ii takes values from 0 to 3.
+      \sa GetCNStatus()
   */
-  int GetCNStatus(int ii) const { return GetDSPStatus(ii); }
-  /// Returns the DSP power status bits
-  int GetPowerStatus() const { return (_status>>4)&0x3;}
-  /// Returns p-side DSP power status bits
-  int GetPSidePowerStatus() const { return GetDSPStatus(4); }
-  /// Returns n-side DSP power status bits
-  int GetNSidePowerStatus() const { return GetDSPStatus(5); }
+  int   GetCNStatus(int ii) { return (GetCNStatus()>=0) ? (GetCNStatus()>>ii)&1 : -1; }
+  /// Returns the DSP power status bits (if exists)
+  /*!
+    - Bit 0: p-side power supply status from DSP (0: good, 1: bad)
+    - Bit 1: n-side power supply status from DSP (0: good, 1: bad)
+  */    
+  int   GetPowerStatus();
+  /// Returns p-side DSP power status bits (if exists)
+  int   GetPSidePowerStatus() { return (GetPowerStatus()>=0) ? (GetPowerStatus()>>0)&1 : -1; }
+  /// Returns n-side DSP power status bits (if exists)
+  int   GetNSidePowerStatus() { return (GetPowerStatus()>=0) ? (GetPowerStatus()>>1)&1 : -1; }
 
   /// Returns the signal of the ii-th strip of the cluster
   float GetSignal(int ii) const { return _signal.at(ii); }
@@ -134,12 +127,12 @@ class TrRawClusterR :public TrElem   {
   ///  Returns the noise of the ii-th strip of the cluster (from calibration file)
   float GetNoise(int ii);   
   /// Returns the signal to noise ratio of the ii-th strip of the cluster (using calibration file)
-  float GetSN(int ii, const char* options = "AG") { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii)/GetNoise(ii); }
+  float GetSN(int ii) { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii)/GetNoise(ii); }
 
   /// Returns the ii-th strip status (from calibration)
   short GetStatus(int ii);
   /// Check if the cluster is within the side boundary ( p ==> .lt. 640; n ==>  .ge. 640)
-  int CheckSide(int side) const { return (side == 0) ? (640 <= GetAddress()+GetNelem()) : (GetAddress() < 640); }
+  int   CheckSide(int side) { return (side == 0) ? (640 <= GetAddress()+GetNelem()) : (GetAddress() < 640); }
 
   /// Get the seed index in the cluster with re-clustering (<0 if wrong)
   int   GetSeedIndex(float thseed = 3.);
@@ -186,8 +179,12 @@ class TrRawClusterR :public TrElem   {
   /// Using this calibration file
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
   /// Get the current calibration database
-  TrCalDB*    GetTrCalDB() { return _trcaldb; }
-  
+  TrCalDB*    GetTrCalDB()    { return _trcaldb; }
+  /// Get the current ladder calibration
+  TrLadCal*   GetTrLadCal()   { return (GetTrCalDB()) ? TrCalDB::Head->FindCal_TkId(GetTkId()) : 0; } 
+  /// Get the current reduction software version (DSP code version) --> FIX ME 
+  int         GetDSPVersion() { return (GetTrLadCal()) ? (int) (unsigned short int) GetTrLadCal()->dspver : 0; }
+
   static void lvl3CompatibilityAddress(
 				       int16u address,
 				       integer & strip, integer & va, integer & side,  integer &drp){
