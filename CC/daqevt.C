@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.185 2009/12/23 15:28:34 shaino Exp $
+//  $Id: daqevt.C,v 1.186 2009/12/30 09:27:36 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -17,6 +17,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <strstream>
+#include "daqs2block.h"
 #ifdef _PGTRACK_
 #include "tkdcards.h"
 #include "MagField.h"
@@ -73,7 +74,10 @@ DAQEvent* DAQEvent::_DAQEvent=0;
 uinteger DAQEvent::_PRun=0;
 uinteger DAQEvent::_PEvent=0;
 integer DAQEvent::_Buffer[50000];
+int16u DAQEvent::_Buffer2[100000];
 integer DAQEvent::_BufferLock=0;
+integer DAQEvent::_Buffer2Lock=0;
+integer DAQEvent::_Length2=0;
 const integer lover=2;
 uinteger      Time_1;
 
@@ -1486,7 +1490,30 @@ return 1;
 
 void DAQEvent::buildRawStructures(){
 #ifdef __AMS02DAQ__
+
+
   if((_Checked ||(_EventOK()==1 && _HeaderOK())) && _DDGSBOK() ){
+
+
+if(_Buffer2Lock){
+int16u *pd=_Buffer2;
+int16u* pc;
+   for(pc=pd+getpreset(pd);pc < pd+_Length2;pc=pc+_cl(pc)){
+    int16u id=*(pc+_cll(pc));
+    if(_isjinj(id)){
+     for(int16u * pdown=pc+_cll(pc)+1+_clll(pc);pdown<pc+_cl(pc)-2;pdown+=*pdown+1){
+     int ic=_getportj(*(pdown+*pdown))-4;
+     if(ic>=0 && ic<=3){
+      int16u *psafe=pdown+1;
+      integer n=((ic)<<16) | (*pdown) | (1<<30);
+      DAQS2Block::buildraw(n,psafe);
+     }
+    }
+   }
+   }
+}
+
+
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
    for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur=_pcur+_cl(_pcur)){
@@ -1602,8 +1629,30 @@ void DAQEvent::buildRawStructuresEarly(){
    }
 }
 }
+
+// must read next event, thanks to developers
+   _Buffer2Lock=0;
+if(DAQCFFKEY.ReadAhead){
+    
+    if(fbin.good() && !fbin.eof()){
+     int16u l16[2];
+        uint64 of=getsoffset();
+     fbin.read(( char*)(l16),sizeof(l16));
+     _convertl(l16[0]);
+     _convertl(l16[1]);
+     int length=_cl(l16);
+     if(length>65535)length=65535;
+      int16u buf[256];
+      setoffset(of);
+      fbin.read((char*)_Buffer2,length);
+      setoffset(of);
+      _Buffer2Lock=1;
+      _Length2=length;
+
+}
 }
 
+}
 
 
 

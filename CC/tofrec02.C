@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.68 2009/12/04 15:06:50 choumilo Exp $
+//  $Id: tofrec02.C,v 1.69 2009/12/30 09:27:36 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -420,6 +420,21 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 }
 //-----------------------------------------------------------------------
 void TOF2RawCluster::build(int &ostatus){
+/*
+//
+//  add in case of
+//
+ for(TOF2RawSide *ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0);ptr;ptr=ptr->next()){
+ for(TOF2RawSide *ptr1=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",1);ptr1;ptr1=ptr1->next()){
+  if(ptr1->getsid()==ptr->getsid()){
+   int arr[TOF2GC::SCTHMX3];
+   ptr1->getstdc(arr);  
+   ptr->putstdc(ptr1->getnstdc(),arr);
+   break;
+  }
+}
+}
+ */ 
   integer nwftt,wftt[TOF2GC::SCTHMX1];
   integer nwltt,wltt[TOF2GC::SCTHMX3];
   integer nwsht,wsht[TOF2GC::SCTHMX2];

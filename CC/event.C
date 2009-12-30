@@ -975,6 +975,8 @@ void AMSEvent::_retof2initevent(){
 //
    ptr=AMSEvent::gethead()->add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawSide",0),0));
+   ptr=AMSEvent::gethead()->add(
+       new AMSContainer(AMSID("AMSContainer:TOF2RawSide",1),0));
 //
 //<--- clear static arrays for SumHT(SHT)-channel:
   for(int cr=0;cr<TOF2GC::SCCRAT;cr++){

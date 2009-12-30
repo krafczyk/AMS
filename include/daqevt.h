@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.76 2009/12/04 16:35:08 choutko Exp $
+//  $Id: daqevt.h,v 1.77 2009/12/30 09:27:37 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -166,6 +166,10 @@ integer _create(uinteger btype=0);
 void _copyEl();
 void _writeEl();
 void _printEl(ostream& o){}
+static int16u _Buffer2[100000];
+static integer _Buffer2Lock;
+static integer _Length2;
+#pragma omp threadprivate(_Buffer2,_Buffer2Lock,_Length2)
 static integer _Buffer[50000];
 static integer _BufferLock;
 #pragma omp threadprivate(_Buffer,_BufferLock)

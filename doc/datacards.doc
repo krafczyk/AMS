@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.312 2009/12/04 13:15:51 choutko Exp $
+#  $Id: datacards.doc,v 1.313 2009/12/30 09:27:37 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -529,6 +529,9 @@ I 2 ifile[40]("")                   // input file(s) name(s)
 I42 ofile[40]("")                   // output file name
 I82 BTypeInDaq[2](0,1023)           // block types in daq [0] <= btype <= [1] 
 I84 DAQVersion                      // DaqFormatVersion /0: 2008; 1:2009/
+I85 Mode;
+I86 ReadAhead;
+
 BMAP   // Magnetic field control
 I  1  mfile                          // mag file name 'fld97int.txt'
 I 41 iniok(1)                       // 0 for update mag field
