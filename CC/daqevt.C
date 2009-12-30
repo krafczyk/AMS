@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.186 2009/12/30 09:27:36 choutko Exp $
+//  $Id: daqevt.C,v 1.187 2009/12/30 12:20:29 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <strstream>
 #include "daqs2block.h"
+#include "tofsim02.h"
 #ifdef _PGTRACK_
 #include "tkdcards.h"
 #include "MagField.h"
@@ -1511,6 +1512,8 @@ int16u* pc;
     }
    }
    }
+   int sta;
+   TOF2RawSide::validate(sta,1);
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.23 2009/02/13 16:30:49 choumilo Exp $
+//  $Id: tofsim02.h,v 1.24 2009/12/30 12:20:41 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -450,6 +450,7 @@ static integer Out(integer);
 
  int16u getsid(){return _swid;}
  int gethidt(){return _hwidt;}
+ void puthidt(int id){_hwidt=id;}
  int gethidq(int i){return _hwidq[i];}
  int16u getstat(){return _status;}
  void updstat(int16u sta){_status=sta;}
@@ -470,6 +471,7 @@ static integer Out(integer);
  
  integer getstdc(integer arr[]);
  integer getnstdc(){return _nstdc;}
+ integer getnftdc()const {return _nftdc;}
  void putstdc(integer nelem, integer arr[]);
  
  integer getnsumh(){return _nsumh;}
@@ -527,7 +529,7 @@ static integer Out(integer);
 // static time_t getstime(){return StartTime;}
 //
  static void mc_build(int &);// Tovt-->raw_event  
- static void validate(int &);// RawEvent->RawEvent
+ static void validate(int &status, int cont=0);// RawEvent->RawEvent
 //
 // interface with DAQ :
 // done in daqs2block.C

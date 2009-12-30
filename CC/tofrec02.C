@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.69 2009/12/30 09:27:36 choutko Exp $
+//  $Id: tofrec02.C,v 1.70 2009/12/30 12:20:29 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -50,7 +50,7 @@ integer AMSTOFCluster::_padspl[TOF2GC::SCLRS]={0,0,0,0};
 //
 //
 //-----------------------------------------------------------------------
-void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
+void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-structure
   integer nftdc,nstdc,nadcd,nsumh,nsumsh;
   integer ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3];
   integer sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
@@ -78,7 +78,7 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
   status=1;//bad
 //
   ptr=(TOF2RawSide*)AMSEvent::gethead()
-                        ->getheadC("TOF2RawSide",0,1);//last 1 to sort
+                        ->getheadC("TOF2RawSide",cont,1);//last 1 to sort
 //
 //#ifdef __AMSDEBUG__
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)
@@ -420,21 +420,23 @@ void TOF2RawSide::validate(int &status){ //Check/correct RawSide-structure
 }
 //-----------------------------------------------------------------------
 void TOF2RawCluster::build(int &ostatus){
-/*
 //
 //  add in case of
 //
  for(TOF2RawSide *ptr=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",0);ptr;ptr=ptr->next()){
  for(TOF2RawSide *ptr1=(TOF2RawSide*)AMSEvent::gethead()->getheadC("TOF2RawSide",1);ptr1;ptr1=ptr1->next()){
-  if(ptr1->getsid()==ptr->getsid()){
+  if(ptr1->getsid()==ptr->getsid() && ptr1->getadca()==0){
    int arr[TOF2GC::SCTHMX3];
    ptr1->getstdc(arr);  
    ptr->putstdc(ptr1->getnstdc(),arr);
+   ptr1->getftdc(arr);  
+   ptr->putftdc(ptr1->getnftdc(),arr);
+   ptr->puthidt(ptr1->gethidt());
+   ptr->updstat(0);
    break;
   }
 }
 }
- */ 
   integer nwftt,wftt[TOF2GC::SCTHMX1];
   integer nwltt,wltt[TOF2GC::SCTHMX3];
   integer nwsht,wsht[TOF2GC::SCTHMX2];
