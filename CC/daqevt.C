@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.188 2009/12/30 19:15:06 choutko Exp $
+//  $Id: daqevt.C,v 1.189 2009/12/31 12:11:38 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1496,8 +1496,9 @@ void DAQEvent::buildRawStructures(){
   if((_Checked ||(_EventOK()==1 && _HeaderOK())) && _DDGSBOK() ){
 
 
-if(_Buffer2Lock){
+if(_Buffer2Lock ){
 int16u *pd=_Buffer2;
+if(((*(pd+_cll(pd)))&31)==5){
 int16u* pc;
    for(pc=pd+getpreset(pd);pc < pd+_Length2;pc=pc+_cl(pc)){
     int16u id=*(pc+_cll(pc));
@@ -1509,6 +1510,7 @@ int16u* pc;
       DAQS2Block::buildraw(n,psafe);
      }
     }
+   }
    }
    }
    int sta;
