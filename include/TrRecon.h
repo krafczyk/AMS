@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.16 2009/12/28 17:43:01 shaino Exp $ 
+// $Id: TrRecon.h,v 1.17 2010/01/02 00:16:22 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2009/12/28 17:43:01 $
+/// $Date: 2010/01/02 00:16:22 $
 ///
-/// $Revision: 1.16 $
+/// $Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -516,7 +516,7 @@ public:
   //! Generate TrCluster from MC track
   static void gencluster(int idsoft, float vect[],
 			 float edep, float step, int itra);
-  static void fillreso(TrRecHitR *hit);
+  static void fillreso(TrTrackR *track);
   static AMSPoint sitkrefp[8];
   static AMSPoint sitkangl[8];
 };

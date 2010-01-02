@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.27 2009/12/28 17:42:55 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.28 2010/01/02 00:16:15 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2009/12/28 17:42:55 $
+/// $Date: 2010/01/02 00:16:15 $
 ///
-/// $Revision: 1.27 $
+/// $Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1667,8 +1667,6 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     }
 
     track->AddHit(hit, itcand.imult[i], &bfield);
-
-    if (TrSim::SkipRawSim) TrSim::fillreso(hit);
   }
 
  if (PZDEBUG){
@@ -1720,6 +1718,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 	       track->GetNhits(), track->GetNhitsXY());
     }
   }  
+  if (TrSim::SkipRawSim) TrSim::fillreso(track);
 
   cont->addnext(track);
   TR_DEBUG_CODE_42;
@@ -2366,8 +2365,10 @@ void TrSim::gencluster(int idsoft, float vect[],
 #include "TDirectory.h"
 static TDirectoryFile *HistDir = 0;
 
-void TrSim::fillreso(TrRecHitR *hit)
+void TrSim::fillreso(TrTrackR *track)
 {
+  if (fabs(track->GetRigidity()) < 100) return;
+
   TH2F *hist1 = (HistDir) ? (TH2F *)HistDir->Get("hist1") : 0;
   TH2F *hist2 = (HistDir) ? (TH2F *)HistDir->Get("hist2") : 0;
 
@@ -2385,10 +2386,13 @@ void TrSim::fillreso(TrRecHitR *hit)
     if (sdir) sdir->cd();
   }
 
-  int ily = hit->GetLayer()-1;
-  AMSPoint dpc = hit->GetCoord()-sitkrefp[ily];
-  hist1->Fill(sitkangl[ily].x(), dpc.x()*1e4);
-  hist2->Fill(sitkangl[ily].y(), dpc.y()*1e4);
+  for (int i = 0; i < track->GetNhits(); i++) {
+    TrRecHitR *hit = track->GetHit(i);
+    int        ily = hit->GetLayer()-1;
+    AMSPoint   dpc = hit->GetCoord()-sitkrefp[ily];
+    hist1->Fill(sitkangl[ily].x(), dpc.x()*1e4);
+    hist2->Fill(sitkangl[ily].y(), dpc.y()*1e4);
+  }
 }
 
 

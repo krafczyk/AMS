@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.8 2009/11/21 09:09:18 shaino Exp $
+//  $Id: TrFit.C,v 1.9 2010/01/02 00:16:15 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2009/11/21 09:09:18 $
+///$Date: 2010/01/02 00:16:15 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1999,10 +1999,9 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
 
   // Curved track case
   AMSPoint ptrk(_p0x, _p0y, _p0z);
-  double sign = ((pnt-ptrk).prod(dir) > 0) ? -1 : 1;
-  double d0   = -sign/std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
+  double d0 = -1/std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
   double init[7] 
-    = { _p0x, _p0y, _p0z, _dxdz*d0, _dydz*d0, d0, _chrg*_rigidity*sign };
+    = { _p0x, _p0y, _p0z, _dxdz*d0, _dydz*d0, d0, _chrg*_rigidity };
   double point[6]
     = { pnt.x(), pnt.y(), pnt.z(), dir.x(), dir.y(), dir.z() };
 

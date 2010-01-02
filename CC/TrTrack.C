@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.17 2009/12/28 17:42:23 shaino Exp $
+// $Id: TrTrack.C,v 1.18 2010/01/02 00:16:15 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/12/28 17:42:23 $
+///$Date: 2010/01/02 00:16:15 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -359,17 +359,24 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   par.Rigidity = _TrFit.GetRigidity();
   par.ErrRinv  = _TrFit.GetErrRinv();
 
+  AMSPoint pnt;
+  AMSDir   dir;
   for (int i = 0, j = 0; i < trconst::maxlay; i++) {
     if (hitbits & (1 << (trconst::maxlay-(i+1)))) {
       par.Residual[i].setp(_TrFit.GetXr(j), _TrFit.GetYr(j), _TrFit.GetZr(j));
       j++;
     }
-    else par.Residual[i].setp(0, 0, 0);
+    else {
+      pnt.setp(0, 0, TkDBc::Head->GetZlayer(i+1));
+      dir.setp(0, 0, 1);
+      _TrFit.Interpolate(pnt, dir);
+      par.Residual[i] = pnt;
+    }
   }
 
   // Interpolate to Z=0
-  AMSPoint pnt(0, 0, 0);
-  AMSDir   dir(0, 0, 1);
+  pnt.setp(0, 0, 0);
+  dir.setp(0, 0, 1);
   _TrFit.Interpolate(pnt, dir);
   par.P0  = pnt;
   par.Dir = dir;
@@ -445,8 +452,8 @@ void TrTrackR::Interpolate(int nz, double *zpl,
 }
 
 void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1, 
-                             number &theta, number &phi, number &length, 
-                             int id2)
+			   number &theta, number &phi, number &length, 
+			   int id2)
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
