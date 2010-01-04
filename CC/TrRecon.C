@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.28 2010/01/02 00:16:15 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.29 2010/01/04 23:34:42 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/02 00:16:15 $
+/// $Date: 2010/01/04 23:34:42 $
 ///
-/// $Revision: 1.28 $
+/// $Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2195,6 +2195,11 @@ int TrRecon::BuildVertex(integer refit){
 
 extern "C" double rnormx();
 
+#ifndef __ROOTSHAREDLIBRARY__ 
+#include "random.h"
+#else
+#include "TRandom.h"
+#endif
 
 void TrSim::sitkhits(int idsoft, float vect[],
 		     float edep, float step, int itra)
@@ -2334,7 +2339,31 @@ void TrSim::gencluster(int idsoft, float vect[],
 
   float adc[2] = { 0, 0 };
 
-  if (0 < stx && stx+seedx < 383) {
+#ifndef __ROOTSHAREDLIBRARY__ 
+  float dummy = 0;
+  float rndx  = RNDM(dummy);
+  float rndy  = RNDM(dummy);
+#else
+  float rndx = gRandom->Rndm();
+  float rndy = gRandom->Rndm();
+#endif
+  int  layer = abs(tkid)/100;
+  float effx = (layer == 8) ? 0.87 : 0.90;
+  float effy = 1;
+
+  // 20-23/Dec/2009 CR test (Offline S/N thd.=3.5)
+  if (tkid == -202) effy = 0.25;
+  if (tkid ==  213) effx = 0.70;
+  if (tkid ==  214) effx = 0.50;
+  if (tkid == -405) effx = 0.50;
+  if (tkid ==  405) effx = 0;
+  if (tkid == -509) effx = 0.75;
+  if (tkid == -512) effx = 0.50;
+  if (tkid ==  504) effx = 0.70;
+  if (tkid ==  510) effx = 0.35;
+  
+
+  if (rndx < effx && 0 < stx && stx+seedx < 383) {
     adc[0] = a1x;
     adc[1] = a2x;
 #ifndef __ROOTSHAREDLIBRARY__ 
@@ -2345,7 +2374,7 @@ void TrSim::gencluster(int idsoft, float vect[],
 			   (tkid, 0, stx+640, 2, seedx, adc, 0));
 #endif
   }
-  if (0 < sty && sty+seedy < 639) {
+  if (rndy < effy && 0 < sty && sty+seedy < 639) {
     adc[0] = a1y;
     adc[1] = a2y;
 #ifndef __ROOTSHAREDLIBRARY__ 
