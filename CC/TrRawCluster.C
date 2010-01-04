@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.8 2009/12/30 14:21:51 oliva Exp $ 
+/// $Id: TrRawCluster.C,v 1.9 2010/01/04 17:47:56 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/12/30 14:21:51 $
+/// $Date: 2010/01/04 17:47:56 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -64,8 +64,8 @@ TrRawClusterR::TrRawClusterR(int tkid, int address, int nelem, float *adc) {
 }
 
 int TrRawClusterR::GetNelem() {
-  if (GetDSPVersion()>0x9a11) return (_lengthword&0x3f)+1;
-  // else if ...
+  if (GetDSPVersion()>0x9a11) return (_lengthword&0x7f)+1;
+  // else if ... (is simulation) return _lengthword; 
   return _lengthword+1;
 }
 
