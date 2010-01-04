@@ -3598,7 +3598,7 @@ void AMSEvent::_collectstatus(){
         
        }
        
-       if(ptr){
+       if(ptr ){
         integer charge=ptr->getcharge();
         geant rig=charge==0?fabs(ptr->getmomentum()):fabs(ptr->getmomentum())/fabs(charge);
         int z1=0;
@@ -3686,6 +3686,48 @@ void AMSEvent::_collectstatus(){
          if(fabs(ptr->_RichCoo[0][0])<cc && fabs(ptr->_RichCoo[0][1])<cc)z1=1;
          __status1|=(z1<<20);
         }
+
+
+       if(ptr){
+         int z1=0;
+         if(ptr->getpbeta()){
+           if(ptr->getpbeta()->getpattern()==0)z1=3;
+           else if(ptr->getpbeta()->getpattern()<4)z1=2;
+            else z1=1;
+         }
+         __status1|=(z1<<21);
+       }
+      if(ptr){ 
+               integer charge=ptr->getcharge();
+               float mass=ptr->getmass();
+               float moc=mass;
+               if(charge==0)moc=mass;
+               else moc=mass/charge;
+               moc=fabs(moc);
+               int z1=0;
+               if(moc<0.5)z1=0;
+               else if(moc<1.5)z1=1;
+               else if(moc<3.0)z1=2;
+               else z1=3;
+              __status1|=(z1<<23);
+
+      }
+
+
+    if(ptr){
+              int z1=0;
+              if(ptr->getptrack()){
+               int nht=ptr->getptrack()->getnhits(); 
+               if(nht<4)z1=0;
+               else if(nht<5)z1=1;
+               else if(nht<6)z1=2;
+               else if(nht<7)z1=3;
+               else if(nht<8)z1=4;
+               else z1=5; 
+              } 
+             __status1|=(z1<<25);
+      }
+
        _status[0]=__status;
        _status[1]=__status1;
 

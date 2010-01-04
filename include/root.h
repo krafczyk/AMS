@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.255 2009/12/22 16:41:49 choutko Exp $
+//  $Id: root.h,v 1.256 2010/01/04 10:25:54 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2608,8 +2608,7 @@ public:
    /// \param entry - event no
    /// \return false if error;
    Bool_t ProcessCut(Long64_t entry){return ProcessCut((int)entry);}
-   Bool_t ProcessCut(int entry){return ReadHeader(entry);}
-
+   Bool_t ProcessCut(int entry){try{ return ReadHeader(entry);}catch(...){return false;}}
    ///  Reads Header 
    /// \param Entry - event no
    /// \return false if error;
