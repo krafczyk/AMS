@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.14 2009/12/28 17:42:25 shaino Exp $
+//  $Id: TrTrack.h,v 1.15 2010/01/04 23:51:17 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2009/12/28 17:42:25 $
+///$Date: 2010/01/04 23:51:17 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -235,6 +235,8 @@ public:
   int GetPattern() const { return _Pattern; }
   //! returns the Number of Hits
   int GetNhits  () const { return _Nhits;   }
+  int getnhits  () const { return _Nhits;   }
+
   //! Returns the pattern on X
   int GetPatternX () const { return _PatternX;  }
   //! Returns the pattern on Y
