@@ -7,6 +7,8 @@
 // This class contains all the information used in the reconstruction
 // about the radiator
 //////////////////////////////////////////////
+
+
 class RichRadiatorTile{
  private:
   double position[2];         // Position wrt container center
@@ -106,6 +108,9 @@ class RichRadiatorTileManager{
   static geant get_refractive_index(geant x,geant y,geant wavelength);      // This is used for simulation purposes. It returns the local refractive index
   integer getcurrenttile(){if(_current_tile<0) return -1;return _current_tile;};
 
+  static number get_refractive_index(int current_tile){
+    if(current_tile<0) return 0;return _tiles[current_tile]->index;
+  }
 
   ////////////////////////////////////////////////////////////////////////
   // Given a tile object constructed with a track return a lot of stuff //  
@@ -123,7 +128,7 @@ class RichRadiatorTileManager{
   AMSPoint getentrancepoint(){return _p_entrance;};
   AMSDir getentrancedir(){return _d_entrance;};
 
-
+  static void recompute_tables(int current,double new_index=0.0);
 };
 
 

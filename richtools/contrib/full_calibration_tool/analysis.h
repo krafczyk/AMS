@@ -6,6 +6,7 @@
 #include "richrec.h"
 #include "richid.h"
 #include "richradid.h"
+#include "TH3F.h"
 
 const int max_cuts=100;
 const int max_tiles=150;
@@ -25,7 +26,7 @@ class Analysis{//: public TObject{
 
 
   // Histograms
-  TH1F betahit_direct_vs_tile[max_tiles];
+  TH1F betahit_direct_vs_tile[max_tiles][3];  // three positions
 
   // Mirror alignment
   TH2F betahit_reflected_vs_dx;
@@ -36,6 +37,16 @@ class Analysis{//: public TObject{
   TH2F betahit_direct_vs_dx;
   TH2F betahit_direct_vs_dy;
   TH2F betahit_direct_vs_dz;
+
+  // Calibration of magnetic field
+  TH3F betahit_direct_vs_dx_vs_rigidity;
+  TH3F betahit_direct_vs_dy_vs_rigidity;
+  TH3F betahit_direct_vs_dz_vs_rigidity;
+
+  //
+  TH1F betahit_direct;
+  TH1F betahit_reflected;
+
 
   // Arrays to compute cut efficiencies
   char cut_name[max_cuts][1000];          

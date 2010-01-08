@@ -736,4 +736,38 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
 }
 
 
+void RichRadiatorTileManager::recompute_tables(int current,double new_index){  // Recompute the index for a given tile, assuming a new refractive index 
+  geant eff_index;
+  geant eff_height;
+
+  if(current<0 || current>=_number_of_rad_tiles) return;
+
+  if(new_index<=1.0) new_index=_tiles[current]->index;
+
+  for(int ii=0;ii<RICmaxentries;ii++){
+    if(_tiles[current]->kind==agl_kind){
+      _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
+    }else if(_tiles[current]->kind==naf_kind){
+      _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::naf_index-1)*(RICHDB::naf_index_table[ii]-1);
+    }
+    
+  }
+  // Now we compute the effective height and effective index calling the dedicated routine
+  
+  _compute_mean_height(_tiles[current]->index_table,
+		       _tiles[current]->clarity,
+		       _tiles[current]->abs_length,
+		       _tiles[current]->bounding_box[2][1]-_tiles[current]->bounding_box[2][0],
+		       eff_index,
+		       eff_height);
+  
+  if(_tiles[current]->kind==agl_kind){
+    _tiles[current]->mean_refractive_index=eff_index;
+    _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+  }else if(_tiles[current]->kind==naf_kind){
+    _tiles[current]->mean_refractive_index=eff_index;
+    _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+  }
+  
+}
 

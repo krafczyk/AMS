@@ -144,3 +144,6 @@ tuning: lib $(EXEPATH) $(CONTRIB)parameter_tuning/analysis.C
 
 full_calibration_tool: lib $(CONTRIB)full_calibration_tool/analysis.C
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+lg_analysis: lib $(CONTRIB)lg_analysis/analysis.C
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
