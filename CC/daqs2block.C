@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.45 2009/12/30 19:15:06 choutko Exp $
+//  $Id: daqs2block.C,v 1.46 2010/01/08 11:32:21 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -188,6 +188,7 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   int16u biasmx;
   int16u n16wrds;
   int16u nhitmx;
+  int16u crsd;
 //
   int16u rfmttrf(0);//raw-fmt truncation flag
   int16u mfmttrf(0);//mixt-fmt truncation flag
@@ -208,6 +209,9 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
   bool DownScal(false);//tempor:  how to recognize it ???
 // some static vars for debug:
   static integer fsterr1[SCFETA]={0,0,0,0,0};
+  static integer err1(0);
+//
+  bool dataf,crcer,asser,amswer,timoer,fpower,seqer,cdpnod,noerr;
 //
   int16u tdcbfn[SCFETA];//buff. counters for each TDC(link# 1-5)
   int16u tdcbfo[SCFETA];//TDC-buff OVFL FLAGS
@@ -241,51 +245,64 @@ void DAQS2Block::buildraw(integer leng, int16u *p){
 // TOF2RawSide::SumSHTt[SCCRAT][SCFETA-1][TOF2GC::SCTHMX2];//TOF SumSHT-channel time-hits
 // TOF2RawSide::SumSHTh[SCCRAT][SCFETA-1];// number of SumSHT-channel time-hits
 //-----
-//-----
   TOF2JobStat::daqsfr(0);//count entries
   p=p-1;//to go from VC-convention to my !!! Now it point to Segm.length word 
 //  len=*p;//fragment's 1st word(length in bytes, not including length word itself)
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
   int icca=(leng>>30)&1;
-  leng=leng &( (1<<30)-1);
+//
+  crsd=int16u((leng>>16)&(0x3FFFL));//CS(c=1-4,s=1-4=>a,b,p,s) as return by my "checkblockid"-1
+  crat=(crsd+1)/10;
+  csid=(crsd+1)%10;
+// cout<<"<--- <<crat/side="<<crat<<" "<<csid<<" leng="<<hex<<leng<<dec<<endl;
+  if(crat<=0 || crat>4 || csid<=0 || csid>4){//illegal crate/side
+    TOF2JobStat::daqsfr(105);//count bad cr/sd entries
+    if(err1++<100)cerr<<" <---- DAQS2Block::buildraw -E- Wrong Crate/Side="<<crat<<"/"<<csid<<endl;
+    if(TFREFFKEY.reprtf[3]>0
+                            && TFREFFKEY.reprtf[4]>0
+                                                    ){//debug
+      cout<<"DAQS2Block: -E- invalid crate|side, crate/side="<<crat<<" "<<csid<<" leng="<<hex<<leng<<dec<<endl;
+    }
+    goto BadExit;
+  }
+//
+  if(csid==3)csid=1;//tempor
+  else if(csid==4)csid=2;
+  if(csid==1)TOF2JobStat::daqsfr(1+crat);//entries/crate, side=1
+  if(csid==2)TOF2JobStat::daqsfr(100+crat);//entries/crate, side=2
+//
+  leng=leng &( (1<<30)-1);//just for later usage in bit-dump calls
   blid=*(p+len);// fragment's last word: Status+slaveID
 //  cout<<"    blid="<<hex<<blid<<dec<<endl;
-  bool dataf=((blid&(0x8000))>0);//data-fragment
+  dataf=((blid&(0x8000))>0);//data-fragment
   if(dataf)datf=1;
   else datf=0;
-  bool crcer=((blid&(0x4000))>0);//CRC-error
-  bool asser=((blid&(0x2000))>0);//assembly-error
-  bool amswer=((blid&(0x1000))>0);//amsw-error   
-  bool timoer=((blid&(0x0800))>0);//timeout-error   
-  bool fpower=((blid&(0x0400))>0);//FEpower-error   
-  bool seqer=((blid&(0x0200))>0);//sequencer-error
-  bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
-  bool noerr;
+  crcer=((blid&(0x4000))>0);//CRC-error
+  asser=((blid&(0x2000))>0);//assembly-error
+  amswer=((blid&(0x1000))>0);//amsw-error   
+  timoer=((blid&(0x0800))>0);//timeout-error   
+  fpower=((blid&(0x0400))>0);//FEpower-error   
+  seqer=((blid&(0x0200))>0);//sequencer-error
+  cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   naddr=(blid&(0x001F));//slaveID(="NodeAddr"=SDR_link#)
   datyp=((blid&(0x00C0))>>6);//(0-should not be),1,2,3
 //
-  node2crs(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-2<->a-b)
 //
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug
-    cout<<"====> In DAQS2Block::buildraw: BlLen="<<*p<<" data-type:"<<datyp<<" slave_id:"<<naddr<<endl;
+    cout<<"====> In DAQS2Block::buildraw: BlLen="<<*p<<" data-fmt:"<<datyp<<" slave_id:"<<naddr<<endl;
     cout<<"      BlLeng(in call)="<<(leng&(0xFFFFL))<<" data/crc_er/ass_er/amsw_er/tmout/FEpow_er/seq_er/eoffr/="<<
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
-//
-  if(crat<=0){//illegal node-address
-    goto BadExit;
-  }
-  TOF2JobStat::daqsfr(1+crat);//entries/crate
 //
   if(datyp==1)setrawf();
   else if(datyp==2)setcomf();
   else if(datyp==3)setmixf();
   formt=getformat();//0/1/2/3->raw/compr/mixt/onboard_pedcal_table
-  TOF2JobStat::daqsfr(34+datyp);//<=== entries/datatype(illeg,raw,com,mix) 
+  TOF2JobStat::daqsfr(34+datyp);//<=== entries/dataformat(illeg,raw,com,mix) 
 //
   if(datyp==0 || len==1){
-    TOF2JobStat::daqsfr(5+crat);//counts illeg.datyp or empty
-    if(TFREFFKEY.reprtf[3]>0)EventBitDump(leng,p,"Bad DataType | EmptyBlock bitDump:");//debug
+    TOF2JobStat::daqsfr(5+crat);//counts illeg.fmt or empty
+    if(TFREFFKEY.reprtf[3]>0)EventBitDump(leng,p,"Bad DataFormat | EmptyBlock bitDump:");//debug
     goto BadExit;
   }
 //
@@ -1458,7 +1475,11 @@ BadExit:
 //----------------------------------------------------
 void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   int16u blid,len,naddr,datyp;
+  int16u crsd,crat,csid;
   len=int16u(leng&(0xFFFFL));//fragment's length in 16b-words(not including length word itself)
+  crsd=int16u((leng>>16)&(0x3FFFL));//CS(c=1-4,s=1-4=>a,b,p,s) as return by my "checkblockid"-1
+  crat=(crsd+1)/10;
+  csid=(crsd+1)%10;
   blid=*(p+len);// fragment's last word: Status+slaveID
   bool dataf=((blid&(0x8000))>0);//data-fragment(not calib)
   bool crcer=((blid&(0x4000))>0);//CRC-error
@@ -1469,6 +1490,14 @@ void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   bool seqer=((blid&(0x0400))>0);//sequencer-error
   bool cdpnod=((blid&(0x0020))>0);//CDP-node(like SDR2-node with no futher fragmentation)
   bool noerr;
+  noerr=(dataf 
+             && !crcer 
+	               && !asser 
+		                && !amswer 
+                                          && !timoer 
+					            && !fpower 
+						              && !seqer 
+							               && cdpnod);
   naddr=blid&(0x001F);//slaveID(="NodeAddr"=SDR_link#)
   datyp=(blid&(0x00C0))>>6;//0,1,2,3 (if dataf=0, datyp=2->OnbPed)
   if(dataf && datyp>0)noerr=(dataf && !crcer && !asser && !amswer 
@@ -1478,7 +1507,8 @@ void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   else noerr=false;
   cout<<"----> DAQS2Block::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
   cout<<" SlaveStatWord="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
-  cout<<" node_addr(link#)="<<naddr<<" datatype(fmt)="<<datyp<<" BlLength(in this call)="<<len<<endl;
+  cout<<" node_addr(link#)="<<naddr<<" DataFormat="<<datyp<<" BlLength(in this call)="<<len<<endl;
+  cout<<" Crate/Side="<<crat<<" "<<csid<<endl;
 //
   cout<<"  Block hex/binary dump follows :"<<endl<<endl;
   int16u tstw,tstb;

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.71 2009/11/27 11:41:55 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.72 2010/01/08 11:32:21 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1537,10 +1537,10 @@ integer TOF2JobStat::chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];
 integer TOF2JobStat::brcount[TOF2GC::SCBLMX][TOF2GC::SCCSTA];
 geant TOF2JobStat::cquality[4][5];
 integer TOF2JobStat::daqsf[160];
-integer TOF2JobStat::cratr[TOF2GC::SCCRAT][20];
-integer TOF2JobStat::cratp[TOF2GC::SCCRAT][20];
-integer TOF2JobStat::cratc[TOF2GC::SCCRAT][20];
-integer TOF2JobStat::cratm[TOF2GC::SCCRAT][20];
+integer TOF2JobStat::cratr[TOF2GC::SCCRAT][30];
+integer TOF2JobStat::cratp[TOF2GC::SCCRAT][30];
+integer TOF2JobStat::cratc[TOF2GC::SCCRAT][30];
+integer TOF2JobStat::cratm[TOF2GC::SCCRAT][30];
 integer TOF2JobStat::sltr[TOF2GC::SCCRAT][TOF2GC::SCSLTM][20];
 integer TOF2JobStat::sltp[TOF2GC::SCCRAT][TOF2GC::SCSLTM][20];
 integer TOF2JobStat::rdcr1[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
@@ -1593,7 +1593,7 @@ void TOF2JobStat::daqsfr(int16u ie){
   daqsf[ie]+=1;
 }
 void TOF2JobStat::daqscr(int16u df, int16u crat, int16u ie){
-  assert(crat<TOF2GC::SCCRAT && ie<20);
+  assert(crat<TOF2GC::SCCRAT && ie<30);
 #pragma omp critical (daqscr)
 { 
   if(df==0)cratr[crat][ie]+=1;//raw
@@ -1655,10 +1655,11 @@ void TOF2JobStat::printstat(){
   printf("\n");
   printf("    ======================= JOB DAQ-decoding statistics ====================\n");
   printf("\n");
-  printf("Calls to SDRsegment-decoding : %7d, Rejected due to any fatal errors : %7d\n\n",daqsf[0],daqsf[1]);
+  printf("Calls to SDRsegment-decoding : %7d, WrongCrateN : %7d, Rejected due to any fatal errors : %7d\n\n",daqsf[0],daqsf[105],daqsf[1]);
   printf("Format Unkn(OnbP)/Raw/Comp/Mixt : %7d %7d %7d %7d\n\n",daqsf[34],daqsf[35],daqsf[36],daqsf[37]);
   printf("     Crate:                     1       2       3       4\n\n");
-  printf("Entries                :  %7d %7d %7d %7d\n",daqsf[2],daqsf[3],daqsf[4],daqsf[5]);
+  printf("Entries, side=A        :  %7d %7d %7d %7d\n",daqsf[2],daqsf[3],daqsf[4],daqsf[5]);
+  printf("Entries, side=B        :  %7d %7d %7d %7d\n",daqsf[101],daqsf[102],daqsf[103],daqsf[104]);
   printf("  WrongFormat|Length   :  %7d %7d %7d %7d\n",daqsf[6],daqsf[7],daqsf[8],daqsf[9]);
   printf("  Format/Length OK     :  %7d %7d %7d %7d\n",daqsf[10],daqsf[11],daqsf[12],daqsf[13]);
   printf("  nonData(inSlaveStat) :  %7d %7d %7d %7d\n",daqsf[22],daqsf[23],daqsf[24],daqsf[25]);
@@ -2240,6 +2241,63 @@ void TOF2JobStat::printstat(){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][18])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Missing LTtime info [%] when Anode(Q) OK:\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][19])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][19])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Missing Anode(Q) info [%] when LTtime OK:\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][20])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][20])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Both Anode(Q) and LTtime info present [%] :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][21])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][21])/rc;
       printf("% 6.2f",rc);
     }
     printf("\n\n");
@@ -3081,12 +3139,17 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
                   for(j=0;j<TOF2GC::SCCSTA;j++)
                                        brcount[i][j]=0;
     for(int ie=0;ie<160;ie++)daqsf[ie]=0;
-    for(int ie=0;ie<20;ie++){
+//    
+    for(int ie=0;ie<30;ie++){
       for(i=0;i<TOF2GC::SCCRAT;i++){
         cratr[i][ie]=0;
         cratp[i][ie]=0;
         cratc[i][ie]=0;
         cratm[i][ie]=0;
+      }
+    }
+    for(int ie=0;ie<20;ie++){
+      for(i=0;i<TOF2GC::SCCRAT;i++){
         for(j=0;j<TOF2GC::SCSLTM;j++){
 	  sltr[i][j][ie]=0;
 	  sltp[i][j][ie]=0;

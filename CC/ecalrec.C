@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.126 2009/12/29 11:17:53 choutko Exp $
+//  $Id: ecalrec.C,v 1.127 2010/01/08 11:32:21 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -188,7 +188,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         ovfl[1]=0;
         if(radc[0]>0)if((ECADCMX[0]-(radc[0]+ph))<=1)ovfl[0]=1;// mark as ADC-Overflow
         if(radc[1]>0)if((ECADCMX[1]-(radc[1]+pl))<=1)ovfl[1]=1;// mark as ADC-Overflow
-        if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0 && radc[1]>1.5*ECCAFFKEY.adcmin){
+        if(radc[0]>40*ECCAFFKEY.adcmin && ovfl[0]==0 && radc[1]>1.5*ECCAFFKEY.adcmin){
 #pragma omp critical (ecval_fill2)
           ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--fill
         }
@@ -202,7 +202,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
       for(pmt=0;pmt<npmx;pmt++){
         pmsl=pmt+ECPMSMX*isl;//sequential numbering of PM's over all superlayers
         padc[2]=AMSEcalRawEvent::getadcd(isl,pmt);//Dynode
-	if(padc[2]>3*ECCAFFKEY.adcmin && asum4[pmsl]>60*ECCAFFKEY.adcmin){
+	if(padc[2]>1.5*ECCAFFKEY.adcmin && asum4[pmsl]>30*ECCAFFKEY.adcmin){
 #pragma omp critical (ecval_fill3)
 	   ECREUNcalib::fill_3(pmsl,padc[2],asum4[pmsl]);
 	}
@@ -349,7 +349,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
         if(sum[i][ic]>0){
 	  scgn=ECcalibMS::ecpmcal[il][i].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
 	  ares=0.;
-	  phel=sum[i][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)
+	  phel=sum[i][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)(mev2pes incl trapping+Quant.eff)
 	  if(phel>=1){
 	    ares=ECMCFFKEY.pmseres/sqrt(phel);//ampl.resol.
             edepr=sum[i][ic]*(1.+ares*rnormx())*ECMCFFKEY.mev2mev;//dE/dX(Mev)->Evis(Mev)(incl.amp.fluct)
@@ -848,42 +848,27 @@ void AMSEcalHit::build(int &stat){
 // ---> take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
       fadc=0.;
-      if(radc[0]>0 && ovfl[0]==0 && !ids.HCHisBad()){//<-use h-chan
+      if(radc[0]>0 && ovfl[0]==0){//<-use h-chan
         fadc=radc[0];
-//        if(AMSJob::gethead()->isRealData()
-//           && MISCFFKEY.BeamTest)AMSEcalRawEvent::BeamTestLinCorr(1,id,radc,peds,fadc);
       }
 //
-      else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
+      else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0){//Hch=Miss/Ovfl -> use Lch
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
-//        if(AMSJob::gethead()->isRealData()
-//           && MISCFFKEY.BeamTest)AMSEcalRawEvent::BeamTestLinCorr(2,id,radc,peds,fadc);
       }
 //
-      else if(ovfl[1]==1 && !ids.LCHisBad()){//<-use even overflowed l-chan
+      else if(ovfl[1]==1){//<-use even overflowed Lgain-chan
         fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
 	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
 //
       }
       else {
-
-      if(radc[0]>0 && ovfl[0]==0){//<-use h-chan
-        fadc=radc[0];
+	sta|=AMSDBc::BAD;// 0 amplitude channel
       }
-         else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0 ){//Hch=Miss/Ovfl -> use Lch
-        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
-	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
-        }
-        else if(ovfl[1]==1){//<-use even overflowed l-chan
-        fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
-	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
-	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
-      }
-
-	sta|=AMSDBc::BAD;// bad or 0 amplitude channel
-      }
+//---> mark bad (according to DB) pix-channels for possible use at later stages:
+      if(ids.HCHisBad())sta|=AMSDBc::ECHCISBAD;
+      if(ids.LCHisBad())sta|=AMSDBc::ECLCISBAD;
 //
       edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);// adc gain corr(really 1/pmrg/pmscg
 //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
@@ -933,7 +918,7 @@ void AMSEcalHit::build(int &stat){
         ovfl[2]=0;
         if(radc[2]+pd>=ECADCMX[2]-1)ovfl[2]=1;// mark as Dynode-ADC-Overflow
 	int dychok=0;
-        if((radc[2]>3*sd) && ovfl[2]==0 && !ids.DCHisBad()){
+        if((radc[2]>3*sd) && ovfl[2]==0 && !ids.DCHisBad()){//to use for possible pix-ovfl treatment
 	  dychok=1;//<-one can use dy-chan
 	  fadc=radc[2];
 	  dedep=fadc*ECcalib::ecpmcal[isl][pmc].adc2mev()
@@ -979,7 +964,6 @@ void AMSEcalHit::build(int &stat){
 	    HF1(ECHISTR+9,geant(edep),1.);
 }
 	  }
-
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,edepc,coot,cool,cooz));
 //       (object is created even if was Anode ovfl, but sta is set properly)

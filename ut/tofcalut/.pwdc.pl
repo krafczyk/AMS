@@ -1,6 +1,6 @@
 sub pw_check{
   my $found=0;
-  my @usrlist=qw(Basili Bindi Choumilov Contin Guest Palmonari);
+  my @usrlist=qw(Bindi Choumilov Contin Guest Palmonari Quadrani);
   foreach $user(@usrlist) {
     if($user eq $TofUserN){$found=1;}
   }

@@ -15,9 +15,9 @@ const integer ECCLBMX=10;// max. long. bins for uniformity study(should be even)
 const integer ECLBMID=3;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECCHBMX=50;// max. bins in hg-channel for h2lr study
 const integer ECCADCR=300;//max. HGainADC range to use ..............
-const integer ECEVBUF=300;//size of buf. to store ev-by-ev PM-resp vs Lbin (FIAT-calib)
+const integer ECEVBUF=500;//size of buf. to store ev-by-ev PM-resp vs Lbin (FIAT-calib)
 const integer ECEVEMX=1000;//max events/pm(pix,lbin)
-const integer ECAHBUF=100;//size of highest amplitudes buffer 
+const integer ECAHBUF=100;//size of highest amplitudes buffer(1/10 of ECEVEMX) 
 //
 class ECREUNcalib {
 

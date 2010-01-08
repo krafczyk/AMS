@@ -424,11 +424,7 @@ $fnum2o=$fnum2;
 $fdat1o=$fdat1;
 $fdat2o=$fdat2;
 #-------------
-$set_fram->Label(-text=>"Push if limit changed >>>",-font=>$font2,-relief=>'groove')
-                                               ->place(
-					       -relwidth=>0.5, -relheight=>$drh2,
-                                               -relx=>0, -rely=>($shf2+7*$drh2));
-$convert_bt=$set_fram->Button(-text=>"RunNumber<=>Date", -font=>$font2, 
+$convert_bt=$set_fram->Button(-text=>"ConfirmRunsRange", -font=>$font2, 
                                       -activebackground=>"yellow",
 			              -activeforeground=>"red",
 			              -foreground=>"red",
@@ -438,8 +434,23 @@ $convert_bt=$set_fram->Button(-text=>"RunNumber<=>Date", -font=>$font2,
                                       -command => \&RunDateConv)
 			              ->place(
                                       -relwidth=>0.5, -relheight=>$drh2,
-				      -relx=>0.5, -rely=>($shf2+7*$drh2));
+				      -relx=>0, -rely=>($shf2+7*$drh2));
 $convert_bt->bind("<Button-3>", \&convert_help);
+#---
+$RelaxCut=0;#off
+$relaxbt_state="normal";
+$relax_bt=$set_fram->Checkbutton(-text=>"RelaxEvSelCuts", -font=>$font2,
+                                        -indicator=>0,
+                                        -borderwidth=>3,-relief=>'raised',
+				        -selectcolor=>orange,-activeforeground=>red,
+				        -activebackground=>yellow, 
+			                -cursor=>hand2,
+                                        -background=>green,
+					-state=>$relaxbt_state,
+                                        -variable=>\$RelaxCut)
+					->place(
+                                        -relwidth=>0.5, -relheight=>$drh2,
+				        -relx=>0.5, -rely=>($shf2+7*$drh2));
 #--------------
 $scanbt_state="disabled";
 $scanbt=$set_fram->Button(-text => "ScanDaqDir", -font=>$font2, 
@@ -1013,7 +1024,7 @@ sub TAUC_Welcome{
   close(CFLIST) or show_warn("   <-- Cannot close $fn after writing $!");
   $nel=scalar(@RefCflistList);
   show_messg("\n   <--- Found $nel RefCflist-files available from previous sessions !!!");
-  $LastRefCflistN=$RefCflistList[$nel-1];
+  $LastRefCflistN=$RefCflistList[0];
 #
   my $reffn;
   my @cflistmemb=();
@@ -1393,6 +1404,9 @@ sub SetupJob
   else{$jpar7=-1;}
   $jpar8=$ncpus;
   $jpar9=$Evs2Read;
+#---
+  $jpar12=$RelaxCut;
+  if($jpar12==1){show_warn("   <--- You selected 'Relaxed Cuts' mode of TAUC running !");}
 #------
 NextJob:
 #------>
@@ -1864,7 +1878,7 @@ TryAgain:
 #    return;
 #  }
 #---  
-  $pid=open(BSUBM,"$comm2run $jpar1 $jpar2 $jpar3 $jpar4 $jpar5 $jpar6 $jpar7 $jpar8 $jpar9 $jpar10 $jpar11 |") 
+  $pid=open(BSUBM,"$comm2run $jpar1 $jpar2 $jpar3 $jpar4 $jpar5 $jpar6 $jpar7 $jpar8 $jpar9 $jpar10 $jpar11 $jpar12 |") 
                                               or show_warn("   <-- Job-submit problem (at open), $! !!!");
   while(<BSUBM>){
     $output=$_;
@@ -3537,8 +3551,11 @@ sub ocontr_addrefset
     my $nmemb=$CflFileMemb[0];   
     for($j=0;$j<$nmemb;$j++){#<-- loop over members of new RefCflist-file
       push(@{$p2memlists[$j]},$CflFileMemb[$j+1]);# add to ref.memb-lists
+      unshift(@{$p2memlists[$j]},pop(@{$p2memlists[$j]}));
     }
-    push(@RefCflistList,$strun);#<-- add Cflist itself
+#--> add Cflist itself 
+    push(@RefCflistList,$strun);
+    unshift(@RefCflistList,pop(@RefCflistList));
 #
 #-- and update TofRefCflistList.TAUC file:
 #
@@ -3553,7 +3570,7 @@ sub ocontr_addrefset
     close(CFLIST) or show_warn("   <-- Cannot close $fn after writing $!");
     if($WarnFlg==0){
       show_messg("\n   <--- New RefCalFiles set was successfully created !!!");
-      $LastRefCflistN=$RefCflistList[$nel-1];
+      $LastRefCflistN=$RefCflistList[0];
     }
 #
   }#<---endof "selection ok"
@@ -3724,7 +3741,7 @@ sub ocontr_finish
   my $fn,$fne,$fnfr,$fnto,$rwsta;
   my $bext;
 #
-#---> move/delete log-files:
+#---> move log-files:
 #
   for($lf=0;$lf<$nellfl;$lf++){#<---logf-loop
     $line=$LogFileList[$lf];

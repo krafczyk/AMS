@@ -18,7 +18,7 @@ echo $UNAME is not supported yet
 
 fi
  
- if [ "${11}" = "" ] ; then
+ if [ "${12}" = "" ] ; then
    echo " Missing  parameter !!!"
    exit
  else
@@ -33,6 +33,7 @@ fi
    echo "Evs2Use  : $9"
    echo "LinksDir : ${10}"
    echo "SetupName: ${11}"
+   echo "RelaxCuts: ${12}"
    CALMODE=$1
    LQDPC=$2
    REFCFLN=$3
@@ -44,6 +45,7 @@ fi
    NEVENTS=$9
    LINKDIR=${10}
    SETUPN=${11}
+   RELAXCUT=${12}
    
    echo " TofUserTopDir: $TofUserTopDir"
    echo " Start program ..."
@@ -76,7 +78,7 @@ c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
 c 30=ref.cal_files set number (=run number)
 c----------- 
 TFCA 1=0.3 2=100. 3=$AVERBETA 7=$AVERBETA  9=0
-     11=$AMSPOS 12=$TRKUSAGE  29=1
+     11=$AMSPOS 12=$TRKUSAGE  18=$RELAXCUT 29=1
 c 29=0/1 -> flag selecting cal.files reading from official/user directories
 c Time(Tdelv/Tzslw)-calibration:
 c
@@ -86,6 +88,7 @@ c 7->mean beta for earth calibr.(mu); 8-> (104)LBB of ref.counter;
 c 9->(0)/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
 c 11->(0)/1 to select space/earth calibr.
 c 12->1/0/-1(use TRK+MomLimits/TRK/TRKorTRD);
+c 18->(0)/1 not/relax selection cuts for TAUC-calibration(when starting from scratch)
 c 28=0/(1)22 -> no/print(hist.priority 1(hi),2(+low)) cal-related histograms
 c--------------  
 ATRE 1=0  

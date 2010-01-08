@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.42 2009/12/04 15:06:49 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.43 2010/01/08 11:32:21 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -774,7 +774,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
   number qrcut=6.;// cut on max/mean-charge ratio
   number qtcut=400.;// cut on max mean-charge 
   number edecut=4.5;// max. TruncAver energy(mev)(to avoid ions in Ampl-calib of abs.norm)
-  number adcmin=17;//min 2xAnodes-signal(ADC-ch) for counter to be selected for calibration
+  number adcmin=10;//min 2xAnodes-signal(ADC-ch) for counter to be selected for calibration
   number *pntr[TOF2GC::SCLRS];
   bool PadInTrig;
   TOF2RawCluster *ptr;
@@ -787,7 +787,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
                            getheadC("AMSAntiCluster",0);
 //----
   integer mode=TFREFFKEY.relogic[0];//calibr.type
-  bool IgnoreCut=(TFCAFFKEY.spares[0]==1 || TFCAFFKEY.spares[1]==1);
+  bool RelaxCut=(TFCAFFKEY.spares[1]==1);
   bool PMEQmode=(TFCAFFKEY.spares[0]==1);
 //----
   TOF2JobStat::addre(10);
@@ -809,19 +809,19 @@ void TofTmAmCalib::select(){  // calibr. event selection
 //----
   while (ptr){ // <--- loop over TOF2RawCluster hits
     status=ptr->getstatus();
-    if((status&TOFGC::SCBADB3)==0){ //use only good for t-measurement according to current knowledge (& DB) 
+    if((status&TOFGC::SCBADB3)==0  || PMEQmode){ //use only good for t-measurement(2sides t-meas ok) according to DB 
       if((status&TOFGC::SCBADB2)==0  || PMEQmode
-//both sides have complete set of measurement in given event (i.e. not 1-sided)
+//both sides really have complete set of measurement in given event (i.e. not 1-sided)
 //                                   || (status&TOFGC::SCBADB5)!=0
 //was not (1-sided + recovered)
-				                                 ){//use only 2-sided 
+				                                 ){//use only 2-sided (
         ilay=(ptr->getntof())-1;
         ibar=(ptr->getplane())-1;
 	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
 	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
           ptr->getadca(ama);
           if((ama[0]>adcmin && ama[1]>adcmin)
-//	                     || ((ama[0]>adcmin || ama[1]>adcmin) && PMEQmode)
+	                     || ((ama[0]>adcmin || ama[1]>adcmin) && PMEQmode)
 	                                                                      ){// require min. anode signal
             TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
             qtotl[ilay]=am[0]+am[1];
@@ -837,8 +837,13 @@ void TofTmAmCalib::select(){  // calibr. event selection
             coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff(prev.calib)
             tmsd[ilay]=0.5*(tm[0]-tm[1]);// slew-noncorr. side time difference
             tmss[ilay]=0.5*(tm[0]+tm[1]);// .... side time sum
-            TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//get slew-corrected time-diff for Tdelv-calib
-//            tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
+	    if(!PMEQmode){
+	      TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//get slew-corrected t-diff for Tdelv
+//	      tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
+	    }
+            else{
+	      tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
+	    }
 // --> some vars for ampl.cal:
             ltim[ilay]=ptr->gettime();//ampl-corr time(prev.calib)
             am1[ilay]=am[0];//store Anode-charge(pC) for Anode rel.gains, abs.norm(
@@ -862,7 +867,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
       }
     }
     ptr=ptr->next();
-  }// --- end of hits loop --->
+  }// --- end of raw-cluster hits loop --->
 //
 //----->    Select events with enough layers with bars/layer=1 :
 //
@@ -904,7 +909,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-  if(nanti>1 && !IgnoreCut)return;// remove events with >1 sector(e>ecut) in Anti
+  if(nanti>1 && !(RelaxCut || PMEQmode))return;// remove events with >1 sector(e>ecut) in Anti
 //
   TOF2JobStat::addre(12);
 //
@@ -924,7 +929,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     HF1(1502,geant(meanq),1.);
 }
   }
-  if(rr>qrcut && !IgnoreCut)return; // remove events with "spike" dE/dX(normal calib)
+  if(rr>qrcut && !(RelaxCut || PMEQmode))return; // remove events with "spike" Edep layers(normal calib) 
 // 
   TOF2JobStat::addre(13);
 //
@@ -972,7 +977,14 @@ void TofTmAmCalib::select(){  // calibr. event selection
 }
       }
     }
-    if((betof<0.4 || betof>1.3) && !IgnoreCut)return;
+    if(!PMEQmode){//calib-mode
+      if(!RelaxCut){
+        if(betof<0.6 || betof>1.3)return;
+      }
+      else{
+        if(betof<0.1 || betof>1.8)return;//relaxed
+      }
+    }
   }
 //
   TOF2JobStat::addre(14);
@@ -1000,7 +1012,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     number dum[TOF2GC::SCLRS-1],tld[TOF2GC::SCLRS-1],tdm[TOF2GC::SCLRS-1];
     number ctran,coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
     number sl[2],t0[2],sumc,sumc2,sumt,sumt2,sumct,sumid,zco,tco,dis;
-    integer chargeTOF,chargeTracker,betpatt,trpatt,trhits(0);
+    integer chargeTOF,chargeTracker(1),betpatt,trpatt,trhits(0);
     uintl traddr(0,0);
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
@@ -1136,7 +1148,7 @@ Nextp:
       }
     }
     betm=bet;//used by Tzslw-calib
-    if(TFCAFFKEY.hprintf>1){
+    if(TFCAFFKEY.hprintf>0){
 #pragma omp critical (hf1)
 {
       HF1(1512,betm,1.);
@@ -1148,7 +1160,9 @@ Nextp:
 //
 // -----> Check TOF-Track match, get track length
 //
-    geant barw,dtcut,dlcut(10);
+    geant barw,dtcut,dlcut;
+    if(!RelaxCut)dlcut=10;//about 3sigma
+    else dlcut=30;//relaxed
     bad=0;
     for(il=0;il<TOF2GC::SCLRS-1;il++)trlen[il]=0.;
     int nzlrs=0;
@@ -1197,7 +1211,7 @@ Nextp:
 //}
         }
         if(fabs(dx)>dtcut)badx=1;//bad transv.coo match
-	if(fabs(dy)>dlcut && !IgnoreCut)bady=1;//bad longit.coo match(ignore for PM-equiliz run or if special requirement spares[1]=1)
+	if(fabs(dy)>dlcut && !PMEQmode)bady=1;//bad longit.coo match(ignore for PM-equiliz run)
 	else bady=0;
         if(badx==0){
 #pragma omp critical (ctof_filltd)
@@ -1224,7 +1238,7 @@ Nextp:
       }
     }//-->endof "use TOF/TRD-track"mode check
 //-----
-    if(bad4tdcal==0)TOF2JobStat::addre(28);//was good event for Tdelv
+    if(bad4tdcal==0)TOF2JobStat::addre(28);//just to count good events for Tdelv-calib
 //-----
     if(mode==2)return;//all is done for Tdelv-calib "alone" mode, exit
 //-----
@@ -1275,11 +1289,12 @@ Nextp:
         HF1(1511,tzer,1.);
 }
       }
-      TofBetaFitOK=(chsq<25. && betof>0.4 && betof<1.3);//check on chi2/beta
+      if(!RelaxCut)TofBetaFitOK=(chsq<25. && betof>0.6 && betof<1.3);//check on chi2/beta
+      else TofBetaFitOK=(chsq<50. && betof>0.1 && betof<1.8);//relaxed check on chi2/beta
     }//--->endof "normal calib" mode check(imply 4 layers)
-//
-    if(!TofBetaFitOK && !IgnoreCut)return;
-//
+//---
+    if(!TofBetaFitOK && !PMEQmode)return;
+//---
     TOF2JobStat::addre(30);
 //=======================================================
 //
@@ -1301,7 +1316,7 @@ Nextp:
     for(i=0;i<TOF2DBc::getnplns();i++)pntr[i]=&edep[i];
     AMSsortNAG(pntr,TOF2DBc::getnplns());// sort in increasing order
     for(i=0;i<(TOF2DBc::getnplns()-1);i++)meanedep+=(*pntr[i]);
-    meanedep/=number(TOF2DBc::getnplns()-1);//truncatet average
+    meanedep/=number(TOF2DBc::getnplns()-1);//truncated average
     maxedep=*pntr[TOF2DBc::getnplns()-1];
     rr=maxedep/meanedep;//EDmax/EDaverage_of _the_rest
     if(TFCAFFKEY.hprintf>0){
@@ -1310,7 +1325,7 @@ Nextp:
       HF1(1216,geant(meanedep),1.);
 }
     }
-    IonEvent=(meanedep > edecut); 
+    IonEvent=((meanedep > edecut) || chargeTracker>1); 
     if(IonEvent)TOF2JobStat::addre(31);
 //=======================================================
 //
@@ -1319,7 +1334,7 @@ Nextp:
     number betg(4.);//default p/m(no momexist)
     number massq,mcut[2];
     geant prcut[2]={-10.,10.};//cuts on mass**2
-    geant mucut[2]={-0.5,0.5};
+    geant mucut[2]={-1.5,0.75};
     geant amt;
     integer id;
     if(TFCAFFKEY.caltyp==0){// space (prot) calibr.
@@ -1341,7 +1356,7 @@ Nextp:
 #pragma omp critical (hf1)
 {
         HF1(1225,geant(massq),1.);
-        if(betof<0.92)HF1(1226,geant(massq),1.);
+        if(betof<0.88)HF1(1226,geant(massq),1.);
         HF1(1227,geant(betg),1.);
 }
 #pragma omp critical (hf2)
@@ -1369,6 +1384,7 @@ Nextp:
     }//--->endof "MomMeasExist" check
 //
 //=======================================================
+    if(PMEQmode)goto SkipTzsl;//skip Tzsl for pm-equil.
 //
 // -----> prepare/fill arrays for TZSL-calibration:
 //
@@ -1460,6 +1476,7 @@ SkipTzsl:
   if(mode==4 || mode==234 || mode==24 || mode==34){//<=== Ampl-calib requested
 //
     TOF2JobStat::addre(36);
+    if(!PMEQmode){//skip a2d for PMEQmode
 //
 // ---> Fill arrays for a2dr/gaind calculations(no mip-selection upto here,
 //                                                 will use bar mid-bin only):
@@ -1482,7 +1499,8 @@ SkipTzsl:
       }
     }
 //----
-    if(IonEvent && !IgnoreCut)return;
+    if(IonEvent && !RelaxCut)return;
+    }
     TOF2JobStat::addre(37);
 //
 // ---> normalize charge to normal incidence :
@@ -1500,7 +1518,7 @@ SkipTzsl:
         ainp[0]=geant(am1[il]);//q(pC)
         ainp[1]=geant(am2[il]);
         cinp=coot[il];// longit.coo of trk crossing, paddle loc.r.s.!!!
-        if(ainp[0]>adcmin && ainp[1]>adcmin){
+        if((ainp[0]>adcmin && ainp[1]>adcmin) || ((ainp[0]>adcmin || ainp[1]>adcmin) && PMEQmode)){
           if(PMEQmode){//PMEquilization Mode
             plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
             PadInTrig=plvl1->checktofpattor(il,ib);
@@ -1526,9 +1544,9 @@ SkipTzsl:
 //
 // ---> check mass/beta*gam for abs.normalization calib:
 // 
-    if(badx!=0 && !IgnoreCut)return;//fail m**2 cut
+    if(badx!=0 && !RelaxCut)return;//fail m**2 cut
     TOF2JobStat::addre(38);
-    if(bady!=0 && !IgnoreCut)return;//fail bet*gam(mip) cut
+    if(bady!=0 && !RelaxCut)return;//fail bet*gam(mip) cut
     TOF2JobStat::addre(39);
 //
 // ------> fill working arrays for Mip abs.normalization calib :
@@ -1549,7 +1567,7 @@ SkipTzsl:
         }
         else{//no mom-info, put LowBeta-cut to select mip(raw approximation)
           if(ainp[0]>adcmin && ainp[1]>adcmin){
-            if(betof>0.85 || IgnoreCut){
+            if(betof>0.85 || RelaxCut){
 #pragma omp critical (ctof_fillabs)
 {
 	      TofTmAmCalib::fillabs(il,ib,ainp,cinp);
@@ -2251,12 +2269,12 @@ void TofTmAmCalib::fillam(integer il, integer ib, geant am[2], geant coo){
 //
   if(fabs(coo) < cbin){// select only central incidence(+- cbin cm)
     nev=nevenc[chan];
-    if(nev<TOF2GC::SCACMX){  
+    if(nev<TOF2GC::SCACMX && am[0]>0){  
       amchan[chan][nev]=am[0];
       nevenc[chan]+=1;
     }
     nev=nevenc[chan+1];
-    if(nev<TOF2GC::SCACMX){  
+    if(nev<TOF2GC::SCACMX && am[1]>0){  
       amchan[chan+1][nev]=am[1];
       nevenc[chan+1]+=1;
     }
@@ -2268,6 +2286,8 @@ void TofTmAmCalib::fillam(integer il, integer ib, geant am[2], geant coo){
     }
   }
 //                             ---> fill profile arrays/hist. for ref. bars:
+  if(TFCAFFKEY.spares[0]>0)return;//skip for PMEQmode
+//
   if(id == idr){// only for ref. sc. bars
     nev=nevenb1[bchan];
     if(nev<TOF2GC::SCACMX && am[0]>0){

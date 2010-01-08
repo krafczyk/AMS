@@ -611,7 +611,7 @@ NextBlock:
 	      else padc[0]=0;
 	    }
 	    else padc[0]=adca;
-	    if(ECREFFKEY.reprtf[2]>0 && slay==2 && pmt==18){
+	    if(ECREFFKEY.reprtf[2]>1 && slay==2 && pmt==18){
 //	      cout<<"A_hi#="<<pix<<" ped/sig="<<peda<<" "<<siga<<" subtrped="<<subtrped<<endl;
 	      HF1(ECHISTR+60+4*(gain-1)+pix-1,geant(padc[0]),1.);
 	    }
@@ -623,7 +623,7 @@ NextBlock:
 	      else padc[2]=0;
 	    }
 	    else padc[2]=adcd;
-	    if(ECREFFKEY.reprtf[2]>0 && slay==2 && pmt==18){
+	    if(ECREFFKEY.reprtf[2]>1 && slay==2 && pmt==18){
 //	      cout<<"Dyn: ped/sig="<<pedd<<" "<<sigd<<" subtrped="<<subtrped<<endl;
 	      HF1(ECHISTR+68,geant(padc[2]),1.);
 	    }
@@ -638,7 +638,7 @@ NextBlock:
 	    else padc[1]=0;
 	  }
 	  else padc[1]=adca;
-	  if(ECREFFKEY.reprtf[2]>0 && slay==2 && pmt==18){
+	  if(ECREFFKEY.reprtf[2]>1 && slay==2 && pmt==18){
 //	    cout<<"A_lo#="<<pix<<" ped/sig="<<peda<<" "<<siga<<" subtrped="<<subtrped<<endl;
 	    HF1(ECHISTR+60+4*(gain-1)+pix-1,geant(padc[1]),1.);
 	  }
@@ -1137,7 +1137,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
 //
   EcalJobStat::daqs3(crat-1,slot,0);//entries
 //
-  if(ECREFFKEY.reprtf[2]>0){//debug
+  if(ECREFFKEY.reprtf[2]>1){//debug
     cout<<"  <---- In DAQECBlock::builOnbP: EDR_length(incall)="<<len<<" reflen="<<reflen<<endl;
     if(ECREFFKEY.reprtf[2]>1)EventBitDump(reflen-1,p,"Event-by-event bit Dump :");
   }
@@ -1395,7 +1395,7 @@ void DAQECBlock::buildonbP2(integer leng, int16u *p){
   cdpnod=((jblid&(0x0020))>0);//CDP-node(like EDR2-node with no futher fragmentation)
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JINFaddr here)(one of 4 permitted)
 //
-  if(ECREFFKEY.reprtf[2]>0){//debug
+  if(ECREFFKEY.reprtf[2]>1){//debug
     cout<<"  <---- In DAQECBlock::builOnbP: JINF_leng(incall)="<<*p<<"("<<jleng<<") slave_id:"<<jaddr<<endl;
     if(ECREFFKEY.reprtf[2]>2)EventBitDump(leng,p,"Event-by-event:");
   }

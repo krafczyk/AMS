@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.42 2009/11/15 11:47:06 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.43 2010/01/08 11:32:29 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -376,10 +376,10 @@ private:
 //                               [3] -> "2-sided history-OK"
 //------
   static integer daqsf[160];//fragment statistics
-  static integer cratr[TOF2GC::SCCRAT][20];//raw fmt
-  static integer cratp[TOF2GC::SCCRAT][20];//processed fmt
-  static integer cratc[TOF2GC::SCCRAT][20];//on-board-pedcal fmt
-  static integer cratm[TOF2GC::SCCRAT][20];//mixFMT raw/comp blocks comparison
+  static integer cratr[TOF2GC::SCCRAT][30];//raw fmt
+  static integer cratp[TOF2GC::SCCRAT][30];//processed fmt
+  static integer cratc[TOF2GC::SCCRAT][30];//on-board-pedcal fmt
+  static integer cratm[TOF2GC::SCCRAT][30];//mixFMT raw/comp blocks comparison
   static integer sltr[TOF2GC::SCCRAT][TOF2GC::SCSLTM][20];
   static integer sltp[TOF2GC::SCCRAT][TOF2GC::SCSLTM][20];
   static integer rdcr1[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];

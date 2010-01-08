@@ -4136,6 +4136,7 @@ sub CpyCalf2jwd#<-- copy needed cal-file(s) from store to amsjobwd
       }
     }
   }
+#-------
   elsif($CalType eq "TdcL2DB"){
 #
 #--> open ref(default) Cflist-file:
@@ -4194,9 +4195,9 @@ sub CpyCalf2jwd#<-- copy needed cal-file(s) from store to amsjobwd
 sub quits_actions
 {
   my ($curfn,$newfn,$curfnl,$newfnl,$run,$shsn,$fpath);
-  my $status,$line;
+  my $status,$line,$rwsta;
 #
-#---> save processed CalSets info into "last session" hist-file:
+#---> save processed Tdcor/CalSets info into "last session" hist-file:
 #
 #if($dryrunval==0){
   my $histfn="TofDBupdHist.".$SessName;
@@ -4224,7 +4225,7 @@ sub quits_actions
   }
 #}
 #
-#---> archive processed files if requested:
+#---> archive(from storage) processed TofTdcor/TofCflist-files and log-files (if requested):
 #
   $shsn="";
   $shsn=substr($SessName,0,4);# extract TAUC(TDCL) from full sess.name TAUCU(TDCLU)
@@ -4233,12 +4234,15 @@ sub quits_actions
     for($i=0;$i<$nelem;$i++){#<--- processed files loop 
       if($processed[$i] >= 1){
         $run=$runs[$i];
-        $curfn=$pathcalfs."/".$sfilelist[$i];
+        $curfn=$pathcalfs."/".$sfilelist[$i];# really imply TofTdcor-files or TofCflist-files only
         $newfn=$patharch."/".$sfilelist[$i];
         $curfnl=$pathcalfs."/Tof".$shsn."*.".$run.".log*.*";
         $newfnl=$patharch;
         move($curfn,$newfn) or show_warn("   <-- Archiving failed for cal-file $curfn, $!");# move calf to archive
-        move($curfnl,$newfnl) or show_warn("   <-- Archiving failed for log-file $curfnl, $!");#...logs ...
+        $rwsta = system("mv $curfnl $newfnl");
+        if($rwsta != 0){show_warn("   <-- Archiving failed for log-file $curfnl, $!");}
+        else{show_messg("\n   <--- CalibLogFile $curfnl was moved to archive !");}
+#        move($curfnl,$newfnl) or show_warn("   <-- Archiving failed for log-file $curfnl, $!");#...logs ...
       }
     }
     show_messg("\n   <--- Archiving is completed !");

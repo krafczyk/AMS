@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.88 2009/11/17 16:45:54 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.89 2010/01/08 11:32:21 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -918,7 +918,7 @@ void EcalJobStat::bookhist(){
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// <==== RLGA/FIAT part of REUN-calibration
        if(ECCAFFKEY.hprintf>1){
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
-	HBOOK1(ECHISTC+37,"ECCA: Total hits(above thr, when any Trk)",100,0.,200.,0.);
+	HBOOK1(ECHISTC+37,"ECCA: Total hits energy(mev,prev.calib,Trk hits EC)",100,0.,1000.,0.);
 	HBOOK1(ECHISTC+38,"ECCA: Total hits(above thr, when Trk hits EC)",100,0.,200.,0.);
         HBOOK1(ECHISTC+1,"ECCA: Track Imp.point X, SL1",70,-70.,70.,0.);
         HBOOK1(ECHISTC+2,"ECCA: Track Imp.point Y, SL1",70,-70.,70.,0.);
@@ -926,10 +926,10 @@ void EcalJobStat::bookhist(){
 //        HBOOK1(ECHISTC+4,"ECCA: PMCell-Track Transv-dist,SL2",50,-5.,5.,0.);
         HBOOK1(ECHISTC+5,"ECCA: Anode/Dynode(Gcorrected_4PixSum/Dyn)",100,0.,50.,0.);
         HBOOK1(ECHISTC+6,"ECCA: Track-fit Chi2 ",80,0.,800.,0.);
-        HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,-50.,50.,0.);
-        HBOOK1(ECHISTC+16,"ECCA: TruncAverage  Edep/SLayer(PunchThrough,mev)",100,0.,500.,0.);
+        HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,-10.,40.,0.);
+        HBOOK1(ECHISTC+16,"ECCA: TruncAverage  Edep/SLayer(PunchThrough,mev)",100,0.,250.,0.);
         HBOOK1(ECHISTC+17,"ECCA: Bad(non PunchThrough) PixLayers/event",maxpl+1,0.,geant(maxpl+1),0.);
-	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",80,10.,330.,30,0.,30.,0.);//in fill_2
+	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",80,50.,450.,30,0.,30.,0.);//in fill_2
         HBOOK1(ECHISTC+24,"ECCA: EcalHit(pix) Energy(ECCrossByTrk,adc,gcorr)",100,0.,200.,0.);
         HBOOK1(ECHISTC+25,"ECCA: Fired(above thr) Pixels/PixLayer",80,0.,80.,0.);
         HBOOK1(ECHISTC+28,"ECCA: SuperLayers visibility(fired,punch-through)",maxsl,1.,geant(maxsl+1),0.);
@@ -951,6 +951,11 @@ void EcalJobStat::bookhist(){
 	
 //    hist # +7 is booked inside mfit !!!
        if(ECCAFFKEY.hprintf>0){
+HBOOK1(ECHISTC+115,"ECCA: AHadc,SL6,PM17",100,0.,100.,0.);
+HBOOK1(ECHISTC+116,"ECCA: AHadc,SL6,PM18",100,0.,100.,0.);
+HBOOK1(ECHISTC+117,"ECCA: Dadc,SL6,PM17",100,0.,100.,0.);
+HBOOK1(ECHISTC+118,"ECCA: Dadc,SL6,PM18",100,0.,100.,0.);
+
         HBOOK1(ECHISTC+8,"ECCA: Pixel Efficiency",60,0.,1.2,0.);
         HBOOK1(ECHISTC+9,"ECCA: Pixel RelativeGain",50,0.,2.,0.);
         HBOOK1(ECHISTC+10,"ECCA: PmtResp. vs LongBinNumber(uniformity)",ECCLBMX,1.,geant(ECCLBMX+1),0.);
@@ -979,9 +984,9 @@ void EcalJobStat::bookhist(){
           HBOOK1(ECHISTC+32,"ECCA: PMT eff( odd SL) ",60,0.,1.2,0.);
 	}
         HBOOK1(ECHISTC+18,"ECCA: SLayerEdep prof(punch-through)",maxsl,1.,geant(maxsl+1),0.);
-        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",80,8.,72.,0.);
+        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",80,20.,100.,0.);
         HBOOK1(ECHISTC+21,"ECCA: Offs(h2lcalib,all chan)",80,-40.,40.,0.);
-        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",80,0.,40.,0.);
+        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",100,0.,100.,0.);
         HBOOK1(ECHISTC+42,"ECCA: Non0Bins(h2lcalib,all chan)",50,0.,50.,0.);
         HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS/Aver(h2lcalib,all chan)",80,0.,0.5,0.);
         HBOOK1(ECHISTC+48,"ECCA: Anode(4pixSumGcorr)/Dynode ratio(final)",100,0.,50.,0.);
@@ -1253,6 +1258,10 @@ void EcalJobStat::outp(){
       ECREUNcalib::mfit();//fits/write files
       
       if(ECCAFFKEY.hprintf>0){//hi prior.hist(results)
+HPRINT(ECHISTC+115); 
+HPRINT(ECHISTC+116); 
+HPRINT(ECHISTC+117); 
+HPRINT(ECHISTC+118); 
         HPRINT(ECHISTC+8);
         HPRINT(ECHISTC+9);
         HPRINT(ECHISTC+51);
@@ -1392,10 +1401,10 @@ void EcalJobStat::outp(){
 	HPRINT(ECHISTC+112);
 	HPRINT(ECHISTC+113);
 	HPRINT(ECHISTC+114);
-	HPRINT(ECHISTC+115);
-	HPRINT(ECHISTC+116);
-	HPRINT(ECHISTC+117);
-	HPRINT(ECHISTC+118);
+//	HPRINT(ECHISTC+115);
+//	HPRINT(ECHISTC+116);
+//	HPRINT(ECHISTC+117);
+//	HPRINT(ECHISTC+118);
 	HPRINT(ECHISTC+119);
 	HPRINT(ECHISTC+120);
 	HPRINT(ECHISTC+121);

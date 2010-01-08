@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.676 2009/12/30 09:27:36 choutko Exp $
+// $Id: job.C,v 1.677 2010/01/08 11:32:21 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -8,7 +8,7 @@
 // Nov   , 1997. ak. FindTheBestTDV, check id's
 // Dec   , 1997. ak. dbendjob is modified
 //
-// Last Edit : Dec 27, 1997. ak.
+//misc/ Last Edit : Dec 27, 1997. ak.
 // Dec 27, 2005 and befor: lots of changes for TOF,ANTI,ECAL,TrigLVL1,...by E.Choumilov. 
 //
 
@@ -794,7 +794,8 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
-  ECMCFFKEY.mev2adc=0.873/1.023;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
+//  ECMCFFKEY.mev2adc=0.873/1.023;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
+  ECMCFFKEY.mev2adc=1.707;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->17th channel)(...)
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
@@ -818,7 +819,7 @@ void AMSJob::_siecaldata(){
 //     
   ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|MCPeds:C=1/0->Read MSCalibFile/DB
 //                                          P=1/0->ReadFromFile/ReadFromDB
-  ECMCFFKEY.calvern=1;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
+  ECMCFFKEY.calvern=2;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
 //
@@ -834,7 +835,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.relogic[1]=0;  // (5) 0/1/2/3/4/5->norm/RLGA/RLGA+FIAT/ANOR/PedClassic/PedDowdScaled
   ECREFFKEY.relogic[2]=0;  // (6) 0/1/2->multipl/Ebackgr/Both_type cuts in ANOR_calib logic
   ECREFFKEY.relogic[3]=0;  // (7) 
-  ECREFFKEY.relogic[4]=0;  // (8) spare
+  ECREFFKEY.relogic[4]=0;  // (8) spare 
 //
 // Run-time DAQ/trig/RECO-thresholds/cuts(time dependent):
   ECREFFKEY.thresh[0]=3.;     // (9)  Anode(High/low-gain chan) readout threshold(in sigmas)
@@ -868,7 +869,8 @@ void AMSJob::_reecaldata(){
 //                            D=1/0-> Take from DataCards/DB
 //                            C=1/0-> Take from CalibFiles/DB
 //                            P=1/0-> Take from CalibFiles/DB
-  ECREFFKEY.calutc=1167606001;//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
+//  ECREFFKEY.calutc=1167606001;//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
+  ECREFFKEY.calutc=1257339432;//(35)(20091104 ~0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
 //
   ECREFFKEY.Thr1DSeed=10;//(36) this and below is for Vitali's clust. algorithm
   ECREFFKEY.Thr1DRSeed=0.18;
@@ -900,7 +902,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.day[1]=1;//
   ECREFFKEY.mon[0]=0;//
   ECREFFKEY.mon[1]=0;//
-  ECREFFKEY.year[0]=101;//
+  ECREFFKEY.year[0]=109;//64
   ECREFFKEY.year[1]=112;//65
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
@@ -919,8 +921,8 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
   ECCAFFKEY.nortyp=0;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired tracks
   ECCAFFKEY.badplmx=4;    //(13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
-  ECCAFFKEY.etrunmn=60.;  //(14) Min ECenergy (Etrunc/sl in mev) to select PunchThrough particle(He)
-  ECCAFFKEY.etrunmx=520.; //(15) Max ECenergy (Etrunc/sl in mev) ...................................
+  ECCAFFKEY.etrunmn=40.;  //(14) Min ECenergy (Etrunc/sl in mev) to select PunchThrough particle(He)
+  ECCAFFKEY.etrunmx=280.; //(15) Max ECenergy (Etrunc/sl in mev) ...................................
   ECCAFFKEY.nsigtrk=1.;   //(16) ImpPoint accur. extention param. for cell-crossing check
 // ANOR part:
   ECCAFFKEY.pmin=3.;        // (17) presel-cut on min. mom. of the track(gev/c) 
@@ -3017,7 +3019,7 @@ end.tm_year=TRDMCFFKEY.year[1];
  end.tm_isdst=0;
  int needval=1;
 //
-if((isCalibration() && CTOF) && AMSFFKEY.Update>0){//only for 
+if((isCalibration() && CTOF) && AMSFFKEY.Update>0){//only for RD 
   if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;

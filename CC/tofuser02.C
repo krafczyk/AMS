@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.31 2009/11/27 11:41:55 choumilo Exp $
+//  $Id: tofuser02.C,v 1.32 2010/01/08 11:32:21 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -170,7 +170,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //  for(i=0;i<TOF2GC::SCLRS;i++)if(rclstok[i]==0)TofRClMultOK=false;//require status ok also
   if(TofRClMultOK)TOF2JobStat::addre(30);
 //  if(TofRClMultOK)cout<<"    RclMult OK"<<endl;
-//  if(!TofRClMultOK)return;//tempor
+  if(!TofRClMultOK)return;//tempor
 //
 //=====================================> check TofCluster-hits :
 //
@@ -492,6 +492,7 @@ Nextp:
 #pragma omp critical (hf1)
 {
       HF1(1501,beta,1.);
+      HF1(1520,beta,1.);
       HF1(1511,chi2t,1.);
       HF1(1512,chi2s,1.);
       HF1(1513,chi2,1.);
@@ -884,6 +885,7 @@ void TOF2User::InitJob(){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
     HBOOK1(1500,"TofUser:Particle Rigidity(gv)",100,0.,40.,0.);
     HBOOK1(1501,"TofUser:Particle Beta",100,-1.2,1.3,0.);
+    HBOOK1(1520,"TofUser:Particle Beta",100,0.7,1.2,0.);
     HBOOK1(1511,"TofUser:Particle BetaChi2",80,0.,16.,0.);
     HBOOK1(1512,"TofUser:Particle BetaChi2S",80,0.,16.,0.);
     HBOOK1(1513,"TofUser:Particle TrackChi2",80,0.,240.,0.);
@@ -902,7 +904,6 @@ void TOF2User::InitJob(){
     HBOOK1(1517,"TofUser:Number of AccSectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
     HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
     
-//    HBOOK1(1520,"L1/L2 raw time diff(cos-corrected),B4/B3",60,0.,6.,0.);
 //    HBOOK1(1521,"L1/L2 raw time diff(cos-corrected),B4/B4",60,0.,6.,0.);
 //    HBOOK1(1522,"L1/L2 raw time diff(cos-corrected),B4/B5",60,0.,6.,0.);
 //    HBOOK1(1523,"L1/L2 raw time diff(cos-corrected),B4/B6",60,0.,6.,0.);
@@ -1057,6 +1058,7 @@ void TOF2User::EndJob(){
   HPRINT(1500);
   HPRINT(1516);
   HPRINT(1501);
+  HPRINT(1520);
   HPRINT(1511);
   HPRINT(1512);
   HPRINT(1513);

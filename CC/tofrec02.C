@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.71 2009/12/30 19:15:06 choutko Exp $
+//  $Id: tofrec02.C,v 1.72 2010/01/08 11:32:21 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -78,7 +78,7 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
   status=1;//bad
 //
   ptr=(TOF2RawSide*)AMSEvent::gethead()
-                        ->getheadC("TOF2RawSide",cont,1);//last 1 to sort
+                        ->getheadC("TOF2RawSide",cont,1);//last 1 to sort, cont=0 by default
 //
 //#ifdef __AMSDEBUG__
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)
@@ -258,7 +258,11 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
         HF1(1300+chnum,geant(im+30),1.);
 }
       }
-//
+//---> Qa/LT correlation:
+      if(adca>0 && nstdc==0)TOF2JobStat::addch(chnum,19);//missing LT when Qa present
+      if(adca==0 && nstdc>0)TOF2JobStat::addch(chnum,20);//missing Qa when LT present
+      if(adca>0 && nstdc>0)TOF2JobStat::addch(chnum,21);//both present
+//--->
       if(TFREFFKEY.reprtf[1]>0 && TFREFFKEY.reprtf[4]>0){//<--look at Raw Anodes for reference(in Ampl-calib)-bares      
         for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){
           idr=TofTmAmCalib::btyp2id(btyp);
@@ -281,7 +285,9 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 }
       }
       if(adca==0 && nadcd==0)stat+=100;//mark missing Ampl.info
+//---> set event status:
       ptr->updstat(stat);//set RawSide-obj status to filter at reco-stage(befor it was =0(ok))
+//---
       number pedv,peds;
       pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isid);
       peds=TOFBPeds::scbrped[ilay][ibar].asiga(isid);
@@ -429,7 +435,7 @@ void TOF2RawCluster::build(int &ostatus){
    int arr[TOF2GC::SCTHMX3];
    ptr1->getstdc(arr);  
    ptr->putstdc(ptr1->getnstdc(),arr);
-   ptr1->getftdc(arr);  
+   ptr1->getftdc(arr);
    ptr->putftdc(ptr1->getnftdc(),arr);
    ptr->puthidt(ptr1->gethidt());
    ptr->updstat(0);
@@ -502,6 +508,7 @@ void TOF2RawCluster::build(int &ostatus){
   integer hwidt,hwidq[4],tdcch[4];
   number tdcor;
 //
+  bool PMEQmode=(TFCAFFKEY.spares[0]==1);
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"======> Enter TOF2RawCluster::build..."<<endl;
   ptr=(TOF2RawSide*)AMSEvent::gethead()
                                     ->getheadC("TOF2RawSide",0);
@@ -544,8 +551,8 @@ void TOF2RawCluster::build(int &ostatus){
 	                      <<TOFBPeds::scbrped[ilay][ibar].PedDchOK(isid)<<endl;
     }
 //
-    if(stat[isid]%10==0                              //<--- validation status(FTtime is absolutely required)
-      && TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid) //<--- check hit DB(calibr)-status
+    if(stat[isid]%10==0          //<--- validation status(FTtime is absolutely required)
+      && (TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid) || PMEQmode) //<--- check side DB-status (LT&QAnode&(sumHT|noMatch)
       && TOFBPeds::scbrped[ilay][ibar].PedAchOK(isid)//<--- check hit DB(ped)-status
 //      && TOFBPeds::scbrped[ilay][ibar].PedDchOK(isid) 
                                                      ){
@@ -652,7 +659,7 @@ void TOF2RawCluster::build(int &ostatus){
       adca[isid]=ptr->getadca();//here all ADCs ARE ped-subtracted/suppressed !!!
       if(adca[isid]>0)nadca[isid]+=1;
       nadcd[isid]=ptr->getadcd(adcd[isid]);
-      if(nttdc[isid]>0)TOF2JobStat::addch(chnum,1);
+      if(nttdc[isid]>0)TOF2JobStat::addch(chnum,1);//LT-hits
       if(nhtdc[isid]>0)TOF2JobStat::addch(chnum,2);
       if(nshtdc[isid]>0)TOF2JobStat::addch(chnum,3);
       if(nadca[isid]>0)TOF2JobStat::addch(chnum,4);
@@ -683,12 +690,12 @@ void TOF2RawCluster::build(int &ostatus){
         smty[0]=0;
         smty[1]=0;
         SumHTuse=TFREFFKEY.relogic[1];// use/not(1/0) SumHT-channel for matching with LTtime-channel 
-        if(nttdc[0]>0  
+        if((nttdc[0]>0 || PMEQmode)  
 	    && (nadca[0]>0 || nadcd[0]>0)
-	    && (nhtdc[0]>0 || SumHTuse==0))smty[0]=1;//side has complete t,amp,[hist] measurement
-        if(nttdc[1]>0  
+	    && (nhtdc[0]>0 || SumHTuse==0))smty[0]=1;//side has "complete" t,amp,[hist] measurement
+        if((nttdc[1]>0 || PMEQmode)  
 	    && (nadca[1]>0 || nadcd[1]>0)
-	    && (nhtdc[1]>0 || SumHTuse==0))smty[1]=1;//
+	    && (nhtdc[1]>0 || SumHTuse==0))smty[1]=1;//...
 //----------------------
 //bbb--->
         if(smty[0]==1 || smty[1]==1){ //check side-measurement completeness(accept 1-sided) 
@@ -945,14 +952,14 @@ void TOF2RawCluster::build(int &ostatus){
             }
             if(smty[0]==0){ //set "=" s1&s2 times and ampl. for 1-sided case:
               tmf[0]=tmf[1];
-              ama[0]=ama[1];
+              if(!PMEQmode)ama[0]=ama[1];
             }
             if(smty[1]==0){
               tmf[1]=tmf[0];
-              ama[1]=ama[0];
+              if(!PMEQmode)ama[1]=ama[0];
             }
 	    anchok=1;
-	    if(ama[0]==0.|| ama[1]==0.){//set s1&s2->0(no Anode info) if any side-overflow
+	    if((ama[0]==0.|| ama[1]==0.) && !PMEQmode){//set s1&s2->0(no Anode info) if any side-overflow
 	      ama[0]=0.;
 	      ama[1]=0.;
 	      anchok=0;
@@ -1042,6 +1049,14 @@ void TOF2RawCluster::build(int &ostatus){
 	        amc[0]=amd[0];
 	        amc[1]=amd[1];
 		hlf=1;
+	      }
+	      if(PMEQmode){
+	        if(amc[0]==0 && amc[1]!=0)amc[0]=amc[1];
+		else if(amc[1]==0 && amc[0]!=0)amc[1]=amc[0];
+		else{
+		  amc[0]=30;//fict.values
+		  amc[1]=30;
+		}
 	      }
 //
 //--> Calc. longit. coord/err and position correction to charge-signal :

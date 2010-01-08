@@ -953,7 +953,7 @@ sub TDCL_Welcome{
 #
   show_messg("   <--- DaqFiles Directory $DaqDataDir","Big");   
 #
-#--- Read list of all submitted jobs from file "TofSubmJobsList.TAUC"(upto current session):
+#--- Read list of all submitted jobs from file "TofSubmJobsList.TDCL"(upto current session):
 #
   $fn="TofSubmJobsList".".".$SessName;
   open(SJLIST,"< $fn") or show_warn("\n   <--- Cannot open $fn for reading, $!");
@@ -1147,7 +1147,7 @@ sub LookAround
 #---> see calib-files in amsjobwd:
 #
   $nelcft=scalar(@cfilenames); 
-  for($i=0;$i<$nelcft;$i++){#<--- calf-types loop
+  for($i=0;$i<$nelcft;$i++){#<--- all calf-types loop
     @array=();
     $cmd="ls -ogt --time-style=long-iso ".$dir."/".$cfilenames[$i].".*[0-9][^_] |";
     $pid=open(FLIST,$cmd) or show_warn("   <-- Cannot make cal-file list in amsjobwd  $!");
@@ -2325,7 +2325,7 @@ TryAgain_1:
   }
   close(FJOBS);
   $nellfl=scalar(@array);
-  if($nellfl==0){show_messg("\n   <--- There are no any log-files in $amsjwd-directory !");}
+  if($nellfl==0){show_messg("\n   <--- There are no any TDCL log-files in $amsjwd-directory !");}
   for($j=0;$j<$nellfl;$j++){
     @string=split(/\s+/,$array[$j]);
     $date=$string[3];# yyyy-mm-dd
@@ -2347,7 +2347,7 @@ TryAgain_1:
     $ccode=substr($name,-3,3);
     $stat=1;#<--- logf status=found (2->jobconfirmed,3->logf(job)goodquality,4->cfilesconf)
     $line=pack($LogfListFmt,$lfpid,$ccode,$strun,$dtime,$fcrmin,$stat)."\n";
-    push(@LogFileList,$line);#<-- add to LofFileList new member(line) with latest status
+    push(@LogFileList,$line);#<-- add to LogFileList new member(line) with latest status
   }
 #
 #---> delete killed job's log-files:
@@ -2912,7 +2912,7 @@ sub JobOutpControl
       if($strun==111){next;}#<-- skip generic files(used as input for db-update jobs)
 #  print "cfile:",$j," ext=",$ext,"  length=",$length," strun=",$strun,"\n";
 #
-      $nrefcfl=scalar(@{$refCfrefs[$i]});# ref.cal-files of type $i
+      $nrefcfl=scalar(@{$refCfrefs[$i]});# ref.cal-files of type $i (here Tdcor-type)
       $refcffl=0;
       for($k=0;$k<$nrefcfl;$k++){#<-- ref.cal-files loop
         $refstrun=$refCfrefs[$i]->[$k];
@@ -2922,10 +2922,10 @@ sub JobOutpControl
 	}
       }#--->endof ref.cal-files loop
 #
-      $stat=1;# found
+      $stat=1;# found 
       if($refcffl==1){
         $stat=10;# this file is one of the ref-files
-	next;#to not include current $j-file in the ordinary cal-files list
+	next;#go to next Tdcor file in the list(to skip current $j-file as ref.one)
       }
       $line=pack($CalfListFmt,$strun,$dtime,$fcrmin,$stat)."\n";
       push(@{$Cfrefs[$i]},$line);
@@ -3532,7 +3532,7 @@ sub ocontr_finish
   my $fn,$fne,$fnfr,$fnto,$rwsta;
   my $bext;
 #
-#---> move/delete log-files:
+#---> move log-files(incl.bad) to store(/tdclfiles):
 #
   for($lf=0;$lf<$nellfl;$lf++){#<---logf-loop
     $line=$LogFileList[$lf];
