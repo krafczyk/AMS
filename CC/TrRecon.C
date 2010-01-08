@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.30 2010/01/08 15:18:16 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.31 2010/01/08 15:28:46 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/08 15:18:16 $
+/// $Date: 2010/01/08 15:28:46 $
 ///
-/// $Revision: 1.30 $
+/// $Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2439,8 +2439,7 @@ void TrSim::sitkdigi()
 //    printf("TrSim::sitkdigi()  AMSTrMCCluster Container is Empty  Digitzation is Impossible !!!\n");
     return ;
   }
-  //PZDEBUG else   
-printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
+  //PZDEBUG else   printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
   //Create the map of TrMCClusters
   TrMap<TrMCClusterR> MCClMap;
   
