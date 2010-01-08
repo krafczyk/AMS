@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.9 2010/01/04 17:47:56 oliva Exp $ 
+/// $Id: TrRawCluster.C,v 1.10 2010/01/08 15:18:16 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/01/04 17:47:56 $
+/// $Date: 2010/01/08 15:18:16 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +42,7 @@ TrRawClusterR::TrRawClusterR(const TrRawClusterR &orig):TrElem(orig)  {
   _addressword = orig._addressword;
   _lengthword  = orig._lengthword;
   Status       = orig.Status;
-  for (int i = 0; i < GetNelem(); i++) _signal.push_back(orig._signal.at(i));
+  for (int i = 0; i < orig._signal.size(); i++) _signal.push_back(orig._signal.at(i));
 }
 
 TrRawClusterR::TrRawClusterR(int tkid, int clsaddwrd, int clslenwrd, short int* adc) {
@@ -50,8 +50,8 @@ TrRawClusterR::TrRawClusterR(int tkid, int clsaddwrd, int clslenwrd, short int* 
   _addressword = clsaddwrd;
   _lengthword  = clslenwrd; 
   Status       = 0;
-  _signal.reserve(GetNelem());
-  if (adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]/8.);
+  _signal.reserve((_lengthword&0x7f)+1);
+  if (adc) for (int i = 0; i <((_lengthword&0x7f)+1) ; i++) _signal.push_back(adc[i]/8.);
 }
 
 TrRawClusterR::TrRawClusterR(int tkid, int address, int nelem, float *adc) {
@@ -59,21 +59,12 @@ TrRawClusterR::TrRawClusterR(int tkid, int address, int nelem, float *adc) {
   _addressword = address;
   _lengthword  = nelem;
   Status       = 0;
-  _signal.reserve(GetNelem());
-  if(adc) for (int i = 0; i < GetNelem(); i++) _signal.push_back(adc[i]);
+  _signal.reserve((_lengthword&0x7f)+1);
+  if(adc) for (int i = 0; i < ((_lengthword&0x7f)+1); i++) _signal.push_back(adc[i]);
 }
 
-int TrRawClusterR::GetNelem() {
-  if (GetDSPVersion()>0x9a11) return (_lengthword&0x7f)+1;
-  // else if ... (is simulation) return _lengthword; 
-  return _lengthword+1;
-}
 
-int TrRawClusterR::GetAddress() {
-  if (GetDSPVersion()>0x9a11) return _addressword&0x3ff;
-  // else if ...
-  return _addressword;
-}
+
 
 float TrRawClusterR::GetDSPSeedSN() {
   if (GetDSPVersion()>0x9a11) { 
@@ -91,17 +82,6 @@ float TrRawClusterR::GetDSPSeedSN() {
   return 0;
 }
 
-int TrRawClusterR::GetCNStatus() {
-  if (GetDSPVersion()>0x9a11) return (_addressword>>10)&0xf;
-  // else if ...
-  return 0;
-}
-
-int TrRawClusterR::GetPowerStatus() {
-  if (GetDSPVersion()>0x9a11) return (_addressword>>14)&0x3;
-  // else if ...
-  return 0;
-}
 
 
 

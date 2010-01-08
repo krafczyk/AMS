@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.9 2009/12/30 14:21:51 oliva Exp $ 
+// $Id: TrRawCluster.h,v 1.10 2010/01/08 15:18:17 pzuccon Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2009/12/30 14:21:51 $
+/// $Date: 2010/01/08 15:18:17 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,13 +89,13 @@ class TrRawClusterR : public TrElem {
   int   GetSide() { return (GetAddress()>639) ? 0 : 1; }
  
   /// Returns the strip number of the cluster first strip   
-  int   GetAddress();
+  int   GetAddress(){return _addressword&0x3ff;}
   /// Returns the address of the ii-th strip of the cluster
   int   GetAddress(int ii) { return GetAddress() + ii; } 
   /// Returns the Seed SN from DSP (if exists)
   float GetDSPSeedSN();
   /// Returns the cluster strip multiplicity
-  int   GetNelem();
+  int   GetNelem() { return _signal.size();}
   /// Returns the DSP common noise status bits (if exists)  
   /*!
     - Bit 0: common noise status from DSP of the i-nth VA containing the first address strip (0: good, 1: bad)
@@ -103,7 +103,7 @@ class TrRawClusterR : public TrElem {
     - Bit 2: common noise status from DSP of the (i+2)-nth VA (0: good, 1: bad)
     - Bit 3: common noise status from DSP of the (i+3)-nth VA (0: good, 1: bad)
   */  
-  int   GetCNStatus();
+  int   GetCNStatus(){return (_addressword>>10)&0xf;}
   /// Returns the DSP common noise status bit of the ii-th VA (if exists) 
   /*! \param ii takes values from 0 to 3.
       \sa GetCNStatus()
@@ -114,7 +114,7 @@ class TrRawClusterR : public TrElem {
     - Bit 0: p-side power supply status from DSP (0: good, 1: bad)
     - Bit 1: n-side power supply status from DSP (0: good, 1: bad)
   */    
-  int   GetPowerStatus();
+  int   GetPowerStatus(){return (_addressword>>14)&0x3;}
   /// Returns p-side DSP power status bits (if exists)
   int   GetPSidePowerStatus() { return (GetPowerStatus()>=0) ? (GetPowerStatus()>>0)&1 : -1; }
   /// Returns n-side DSP power status bits (if exists)

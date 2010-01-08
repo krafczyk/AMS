@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.29 2010/01/04 23:34:42 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.30 2010/01/08 15:18:16 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/04 23:34:42 $
+/// $Date: 2010/01/08 15:18:16 $
 ///
-/// $Revision: 1.29 $
+/// $Revision: 1.30 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2439,7 +2439,8 @@ void TrSim::sitkdigi()
 //    printf("TrSim::sitkdigi()  AMSTrMCCluster Container is Empty  Digitzation is Impossible !!!\n");
     return ;
   }
-  //PZDEBUG else   printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
+  //PZDEBUG else   
+printf("TrSim::sitkdigi()  AMSTrMCCluster Container has %d elements \n",cont->getnelem());
   //Create the map of TrMCClusters
   TrMap<TrMCClusterR> MCClMap;
   
@@ -2571,9 +2572,9 @@ void TrSim::DSP_Clusterize(int tkid,float *buf){
     for(int ll=0;ll<(right-left+1);ll++)
       general[ll]=buf[left+ll];
 #ifndef __ROOTSHAREDLIBRARY__
-    cont->addnext(new AMSTrRawCluster(tkid, left, right-left+1, general));
+    cont->addnext(new AMSTrRawCluster(tkid, left, right-left, general));
 #else
-    cont->addnext(new TrRawClusterR(tkid, left, right-left+1, general));
+    cont->addnext(new TrRawClusterR(tkid, left, right-left, general));
 #endif
   }
 
@@ -2607,9 +2608,9 @@ void TrSim::DSP_Clusterize(int tkid,float *buf){
     for(int ll=0;ll<(right-left+1);ll++)
       general[ll]=buf[left+ll];
 #ifndef __ROOTSHAREDLIBRARY__
-    cont->addnext(new AMSTrRawCluster(tkid, left, right-left+1, general));
+    cont->addnext(new AMSTrRawCluster(tkid, left, right-left, general));
 #else
-    cont->addnext(new TrRawClusterR(tkid, left, right-left+1, general));
+    cont->addnext(new TrRawClusterR(tkid, left, right-left, general));
 #endif
   }
   if(cont) delete cont;

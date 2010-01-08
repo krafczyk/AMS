@@ -65,7 +65,7 @@ void TrDAQ::builddaq(integer i, integer n, int16u *p){
       for(int icl=1;icl<ncl;icl++){
 	ptr=mymap[tdr].at(icl);
 
-	p[pindex++] = ptr->GetLength()-1;
+	p[pindex++] = ptr->GetNelem()-1;
 	p[pindex++] = 	ptr->GetAddress();
 	for(int ii=0;ii<ptr->GetNelem();ii++)
 	  

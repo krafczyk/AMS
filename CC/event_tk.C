@@ -84,23 +84,26 @@ void AMSEvent::_retkevent(integer refit){
   TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
   
   TrRecon* rec= new TrRecon();
-  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))){//tempor
-    AMSgObj::BookTimer.start("RETKEVENT");
-    AMSgObj::BookTimer.start("TrCluster");
-    int retr=rec->BuildTrClusters();
-    AMSgObj::BookTimer.stop("TrCluster");
-    
-    
-    //PZDEBUG   printf("\nReconstructed %d cluster time\n",AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()  );
-    //PZDEBUG AMSgObj::BookTimer.print("TrCluster");
-
+  //PZDEBUG  printf("\nFound %d Raw cluster \n",AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem()  );
+  //  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))) //tempor
+  if(TRCLFFKEY.recflag>0 && ptr1 && AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem() <TrRecon::MaxNrawCls )
+    {
+      AMSgObj::BookTimer.start("RETKEVENT");
+      AMSgObj::BookTimer.start("TrCluster");
+      int retr=rec->BuildTrClusters();
+      AMSgObj::BookTimer.stop("TrCluster");
+      
+      
+      //PZDEBUG        printf("\nReconstructed %d cluster time\n",AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()  );
+      //PZDEBUG       AMSgObj::BookTimer.print("TrCluster");
+      
   
     if(TRCLFFKEY.recflag>10 && retr>=0&& AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()<TrRecon::MaxNtrCls ){
       AMSgObj::BookTimer.start("TrRecHit");
       int retr2=rec->BuildTrRecHits();
       AMSgObj::BookTimer.stop("TrRecHit");
-      //PZDEBUG printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
-      //PZDEBUG AMSgObj::BookTimer.print("TrRecHit");
+      //PZDEBUG       printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
+      //PZDEBUG       AMSgObj::BookTimer.print("TrRecHit");
       
       
       
@@ -108,8 +111,8 @@ void AMSEvent::_retkevent(integer refit){
 	AMSgObj::BookTimer.start("TrTrack");
 	int retr3=rec->BuildTrTracks();
 	AMSgObj::BookTimer.stop("TrTrack");
-	//PZDEBUG printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );
-	//PZDEBUG AMSgObj::BookTimer.print("TrTrack");
+	//PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );
+	//PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
       }
       
     }

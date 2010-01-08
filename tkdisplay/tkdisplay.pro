@@ -1,4 +1,4 @@
-# $Id: tkdisplay.pro,v 1.3 2009/12/21 17:41:49 shaino Exp $
+# $Id: tkdisplay.pro,v 1.4 2010/01/08 15:18:04 pzuccon Exp $
 #
 # Project file for TkDisplay on Qt4
 # Run qmake first to generate Makefile
@@ -41,7 +41,7 @@ LIBS         += ../lib/macosx/libntuple_slc4.a \
                 -lNetx -lTreePlayer -lm -ldl
 }
 else {
-LIBS         += $(AMSWD)/lib/linux/ntuple_slc4_PG.so \
+LIBS         += $(AMSWD)/lib/linux/libntuple_slc4_PG.a \
                 -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet \
                 -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript \
                 -lMatrix -lPhysics -lMathCore -lThread -pthread \
