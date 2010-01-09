@@ -77,50 +77,71 @@ void AMSEvent::_retkevent(integer refit){
 
 
   // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
- 
-  AMSlink *ptr=getheadC("TriggerLVL3",0);
-  AMSlink *ptr1=getheadC("TriggerLVL1",0);
-
-  TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+  
+  //  AMSlink *ptr=getheadC("TriggerLVL3",0);
+  Trigger2LVL1 *ptr1=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
+  
+  //  TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
   
   TrRecon* rec= new TrRecon();
   //PZDEBUG  printf("\nFound %d Raw cluster \n",AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem()  );
   //  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))) //tempor
-  if(TRCLFFKEY.recflag>0 && ptr1 && AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem() <TrRecon::MaxNrawCls )
-    {
+
+  //RAW Clusters -->  Clusters
+  if(
+     TRCLFFKEY.recflag>0 && // Wanted from TkDCards
+     ptr1 &&                // LVL1 exists
+     AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem() <TrRecon::MaxNrawCls // Not too many RAW Clusters
+     )
+    { 
       AMSgObj::BookTimer.start("RETKEVENT");
       AMSgObj::BookTimer.start("TrCluster");
       int retr=rec->BuildTrClusters();
+      int ncls=AMSEvent::gethead()->getC("AMSTrCluster")->getnelem();
       AMSgObj::BookTimer.stop("TrCluster");
       
       
       //PZDEBUG        printf("\nReconstructed %d cluster time\n",AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()  );
       //PZDEBUG       AMSgObj::BookTimer.print("TrCluster");
       
-  
-    if(TRCLFFKEY.recflag>10 && retr>=0&& AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()<TrRecon::MaxNtrCls ){
-      AMSgObj::BookTimer.start("TrRecHit");
-      int retr2=rec->BuildTrRecHits();
-      AMSgObj::BookTimer.stop("TrRecHit");
-      //PZDEBUG       printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
-      //PZDEBUG       AMSgObj::BookTimer.print("TrRecHit");
+
+      // Clusters --> Hits
+      if(
+	 TRCLFFKEY.recflag>10 && // Wanted from TkDCards
+	 retr>=0 &&  //Clusters are built
+	 (
+	  (ptr1->gettrtime(4)<= TrRecon::lowdt &&ncls<TrRecon::MaxNtrCls_ldt)||  //Not to many Cls at small dt
+	  (ptr1->gettrtime(4)>  TrRecon::lowdt &&ncls<TrRecon::MaxNtrCls)        //Not to many Cls at large dt
+	  )
+	 
+	 )
+	{
+	  AMSgObj::BookTimer.start("TrRecHit");
+	  int retr2=rec->BuildTrRecHits();
+	  AMSgObj::BookTimer.stop("TrRecHit");
+	  //PZDEBUG       printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
+	  //PZDEBUG       AMSgObj::BookTimer.print("TrRecHit");
+	  
+	  
+	  // Hits --> Tracks
+	  if(
+	     TRCLFFKEY.recflag>110 && // Wanted from TkDCards
+	     retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<TrRecon::MaxNtrHit //Not to many Hits
+	     )
+	    {
+	      AMSgObj::BookTimer.start("TrTrack");
+	      int retr3=rec->BuildTrTracks();
+	      AMSgObj::BookTimer.stop("TrTrack");
+	      //PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );
+	      //PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
+	    }
+	
+	}
       
       
-      
-      if(TRCLFFKEY.recflag>110 && retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<TrRecon::MaxNtrHit ){
-	AMSgObj::BookTimer.start("TrTrack");
-	int retr3=rec->BuildTrTracks();
-	AMSgObj::BookTimer.stop("TrTrack");
-	//PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );
-	//PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
-      }
-      
+      AMSgObj::BookTimer.stop("RETKEVENT");
     }
-    
-    
-    AMSgObj::BookTimer.stop("RETKEVENT");
-  }
-  else throw AMSLVL3Error("LVL3NotCreated");  
+  //  else throw AMSLVL3Error("LVL3NotCreated");  
   if(rec) delete rec;
 }
 

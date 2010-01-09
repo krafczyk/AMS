@@ -48,9 +48,11 @@ void TRCLFFKEY_DEF::init(){
   TwoStripThresholdX    = 0.70;  // tan(35deg)
   TwoStripThresholdY    = 0.36;  // tan(20deg)
 
-  MaxNrawCls = 200;
-  MaxNtrCls  = 150;
-  MaxNtrHit  = 100;
+  MaxNrawCls     = 2000;
+  lowdt          = 200;
+  MaxNtrCls      = 1000;
+  MaxNtrCls_ldt  = 150;
+  MaxNtrHit      = 1000;
   //Track
   MaxNtrack = 4;
   MinNhitX  = 4;

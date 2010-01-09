@@ -176,45 +176,49 @@ public:
 
   // HIT PARS
   //PRE-SELECTION PARS
-  //! I 20 MaxNrawCls (Not used)
-  int MaxNrawCls ;// 200
+  //! I 20 MaxNrawCls 
+  int MaxNrawCls ;// 2000
   //! I 21 MaxNtrCls
-  int MaxNtrCls  ;// 200
-  //! I 22 MaxNtrHit
-  int MaxNtrHit  ;// 150
+  int lowdt    ;// 200
+  //! I 22 MaxNtrCls
+  int MaxNtrCls  ;// 1000
+  //! I 23 MaxNtrCls
+  int MaxNtrCls_ldt;// 150
+  //! I 24 MaxNtrHit
+  int MaxNtrHit  ;// 1000
   //TRACK PARS
-  //! I 23 MaxNtrack 
+  //! I 25 MaxNtrack 
   int    MaxNtrack ;//4
-  //! I 24 MinNhitX
+  //! I 26 MinNhitX
   int    MinNhitX  ;//4
-  //! I 25 MinNhitY
+  //! I 27 MinNhitY
   int    MinNhitY  ;//5
-  //! I 26 MinNhitXY
+  //! I 28 MinNhitXY
   int    MinNhitXY ;//4
-  //! I 27 PatAllowOption
+  //! I 29 PatAllowOption
   int    PatAllowOption ;//0
-  //! R 28 MaxChisqAllowed
+  //! R 30 MaxChisqAllowed
   float MaxChisqAllowed   ;//300
-  //! R 29  LadderScanRange
+  //! R 31  LadderScanRange
   float LadderScanRange   ;//7.3 = TkDBc::Head->_ladder_Ypitch
-  //! R 30 ClusterScanRange
+  //! R 32 ClusterScanRange
   float ClusterScanRange  ;//0.5
-  //! R 31 MaxChisqForLScan
+  //! R 33 MaxChisqForLScan
   float MaxChisqForLScan  ;//2.2
-  //! R 32 ErrXForScan
+  //! R 34 ErrXForScan
   float ErrXForScan       ;//300e-4
-  //! R 33 ErrYForScan
+  //! R 35 ErrYForScan
   float ErrYForScan       ;//300e-4
   //DEBUG
-  //! I 34 TrDEBUG (DEBUG on Track finding)
+  //! I 36 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 35 PZDEBUG
+  //! I 37 PZDEBUG
   int PZDEBUG ;
-  //! I 36 TAS reconstruction
+  //! I 38 TAS reconstruction
   int TasRecon;
-  //! I 37 TAS current intensity
+  //! I 38 TAS current intensity
   int TasCurr;
-  //! I 38 TAS LDDR mode
+  //! I 39 TAS LDDR mode
   int TasLDDR;
 
   void init();

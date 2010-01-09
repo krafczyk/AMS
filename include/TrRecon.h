@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.17 2010/01/02 00:16:22 shaino Exp $ 
+// $Id: TrRecon.h,v 1.18 2010/01/09 17:37:17 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/02 00:16:22 $
+/// $Date: 2010/01/09 17:37:17 $
 ///
-/// $Revision: 1.17 $
+/// $Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -129,6 +129,10 @@ public:
   /// Parameters for the full reconstruction
   /// Maximum number of raw clusters allowed for the next step
   static int MaxNrawCls;
+  /// lowdt Threeshold (usec)
+  static int lowdt;
+  /// Maximum number of clusters allowed for the next step
+  static int MaxNtrCls_ldt;
   /// Maximum number of clusters allowed for the next step
   static int MaxNtrCls;
   /// Maximum number of hits allowed for the next step

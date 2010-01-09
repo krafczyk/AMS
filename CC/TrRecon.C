@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.31 2010/01/08 15:28:46 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.32 2010/01/09 17:37:16 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/08 15:28:46 $
+/// $Date: 2010/01/09 17:37:16 $
 ///
-/// $Revision: 1.31 $
+/// $Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -100,6 +100,8 @@ void TrRecon::SetParFromDataCards(){
   ThrProb    = TRCLFFKEY.ThrProb      ;
   MaxNrawCls = TRCLFFKEY.MaxNrawCls;
   MaxNtrCls  = TRCLFFKEY.MaxNtrCls ;
+  lowdt      = TRCLFFKEY.lowdt ;
+  MaxNtrCls_ldt= TRCLFFKEY.MaxNtrCls_ldt ;
   MaxNtrHit  = TRCLFFKEY.MaxNtrHit ;
   MaxNtrack         = TRCLFFKEY.MaxNtrack ;      
   MinNhitX          = TRCLFFKEY.MinNhitX     ;   
@@ -143,9 +145,11 @@ void TrRecon::Clear(Option_t *option) {
   _TasPar = 0;
 }
 
-int TrRecon::MaxNrawCls = 200;
-int TrRecon::MaxNtrCls  = 150;
-int TrRecon::MaxNtrHit  = 100;
+int TrRecon::MaxNrawCls    = 2000;
+int TrRecon::lowdt         = 200;
+int TrRecon::MaxNtrCls     = 1000;
+int TrRecon::MaxNtrCls_ldt = 150;
+int TrRecon::MaxNtrHit     = 100;
 
 // option is temporary, 0:No_reco 1:Up_to_TrCluster 2:Full
 int TrRecon::Build(int option)
