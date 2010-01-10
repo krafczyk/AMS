@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.18 2010/01/09 17:37:17 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.19 2010/01/10 13:06:56 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/09 17:37:17 $
+/// $Date: 2010/01/10 13:06:56 $
 ///
-/// $Revision: 1.18 $
+/// $Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -376,8 +376,33 @@ protected:
       return lhit->GetProb() > rhit->GetProb();
     }
   };
+
+  // Tools for CPU time consumption
+  // Note: it works only without __ROOTSHAREDLIBRARY__
+  //
+  /// Start time marker
+  float _StartTime;
+
+  /// CPU time up flag
+  bool _CpuTimeUp;
+
+  /// CPU time consumption in the last BuildTrTracks
+  float _CpuTime;
+
+  /// Set _StartTime marker
+  void  _StartTimer();
+
+  /// Get a time difference between now and _StartTime
+  float _CheckTimer() const;
   
 public:
+  /// Get CPU time consumption in the last BuildTrTracks
+  float GetCpuTime() const { return _CpuTime; }
+
+  /// Get CPU time up flag in the last BuildTrTracks
+
+  bool GetCpuTimeUp() const { return _CpuTimeUp; }
+
   /// Builds up the map RecHit Layer
   void BuildHitsTkIdMap();
 

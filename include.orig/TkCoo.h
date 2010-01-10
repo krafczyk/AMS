@@ -1,4 +1,4 @@
-/// $Id: TkCoo.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $ 
+/// $Id: TkCoo.h,v 1.2 2010/01/10 13:06:56 shaino Exp $ 
 #ifndef  _TKCOO_
 #define  _TKCOO_
 
@@ -15,9 +15,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position  
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2010/01/10 13:06:56 $
 ///
-/// $Revision: 1.1 $
+/// $Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -76,10 +76,14 @@ class TkCoo{
 public:
   /// Returns the lenght of ladder
   static double GetLadderLength(int tkid);
+  /// Return the central position of the ladder
+  static AMSPoint GetLadderCenter(int tkid); 
   /// Return the X center of a ladder
-  static double GetLadderCenterX(int tkid); 
+  static double GetLadderCenterX(int tkid) { return GetLadderCenter(tkid).x(); }
   /// Return the Y center of a ladder
-  static double GetLadderCenterY(int tkid);
+  static double GetLadderCenterY(int tkid) { return GetLadderCenter(tkid).y(); }
+  /// Return the Z at the center of ladder
+  static double GetLadderCenterZ(int tkid) { return GetLadderCenter(tkid).z(); }
 };
 
 #endif

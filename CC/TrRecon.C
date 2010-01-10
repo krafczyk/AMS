@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.32 2010/01/09 17:37:16 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.33 2010/01/10 13:06:51 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/09 17:37:16 $
+/// $Date: 2010/01/10 13:06:51 $
 ///
-/// $Revision: 1.32 $
+/// $Revision: 1.33 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -32,6 +32,7 @@
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "trrec.h"
+#include "event.h"
 #endif
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -1005,6 +1006,34 @@ void TrRecon::RemoveHits(int tkid, int icls, int side)
   if (--ar.Ncls[side] == 0) ar.Ncls[1-side] = 0;
 }
 
+#ifndef __ROOTSHAREDLIBRARY__
+#include "cern.h"
+
+void TrRecon::_StartTimer()
+{
+  TIMEX(_StartTime);
+}
+
+float TrRecon::_CheckTimer() const
+{
+  float tnow;
+  TIMEX(tnow);
+  return tnow-_StartTime;
+}
+
+#else   // ifndef __ROOTSHAREDLIBRARY__
+
+void TrRecon::_StartTimer()
+{
+}
+
+float TrRecon::_CheckTimer() const
+{
+  return 0;
+}
+
+#endif   // ifndef __ROOTSHAREDLIBRARY__
+
 void TrRecon::BuildHitsTkIdMap() 
 {
   _HitsTkIdMap.clear();
@@ -1133,6 +1162,9 @@ int TrRecon::BuildTrTracks(int rebuild)
 
   Ntrials1 = Ntrials2 = 0;
 
+  _StartTimer();
+  _CpuTimeUp = false;
+
   // Main loop
   int ntrack = 0, found = 0;
   do {
@@ -1141,15 +1173,24 @@ int TrRecon::BuildTrTracks(int rebuild)
 
     found = 0;
     // Scan Ladders for each pattern until a track found
-    for (int pat = 0; !found && pat < NHitPatterns; pat++) {
+    for (int pat = 0; !_CpuTimeUp && !found && pat < NHitPatterns; pat++) {
       TrHitIter itcand;
       if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat, itcand)))
         ntrack += BuildATrTrack(itcand);
     }
-  } while (found && ntrack < MaxNtrack);
+  } while (!_CpuTimeUp && found && ntrack < MaxNtrack);
 
   // Purge "ghost" hits and assign hit index to tracks
   PurgeGhostHits();
+
+#ifndef __ROOTSHAREDLIBRARY__
+  _CpuTime = _CheckTimer();
+  if (_CpuTimeUp)
+    cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: " << _CpuTime 
+	 << " at Event: " << AMSEvent::gethead()->getEvent() << endl;
+#else
+  _CpuTime = 0;
+#endif
 
   return ntrack;
 }
@@ -1289,6 +1330,8 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
 
 int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 {
+  if (_CpuTimeUp) return 0;
+
   // Evaluate current candidates if idx has reached to the end
   if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it, itcand)
                                               : HitScanEval   (it, itcand);
@@ -1352,7 +1395,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   ScanRecursive(0, it, itcand);
 
   // Return 1 if track has been found
-  return (itcand.nlayer > 0);
+  return (!_CpuTimeUp && itcand.nlayer > 0);
 }
 
 int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
@@ -1384,6 +1427,12 @@ int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
 
 int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 {
+  // Check CPU time limit
+  float tlimit = TrTrackR::GetTimeLimit();
+  if (!_CpuTimeUp && tlimit > 0 && _CheckTimer() > tlimit)
+    (const_cast<TrRecon *>(this))->_CpuTimeUp = true;
+  if (_CpuTimeUp) return 0;
+
   // Check number of hits with both-side clusters
   int nhitc = 0;
   for (int i = 0; i < it.nlayer; i++) {
@@ -1904,7 +1953,7 @@ int TrRecon::BuildTrTasClusters(int rebuild)
 
     // Check if the ladder is on the Laser column
     int ilad = -1;
-    for (Int_t i = 0; i < TrTasPar::NLAD; i++)
+    for (int i = 0; i < TrTasPar::NLAD; i++)
       if (tkid == _TasPar->GetTkId(i)) { ilad = i; break; }
     if (ilad < 0) continue;
 
@@ -1923,7 +1972,7 @@ int TrRecon::BuildTrTasClusters(int rebuild)
       for (int j = 0; j < (int)lad->second.size(); j++) {
 	TrRawClusterR *raw = lad->second.at(j);
 
-	for (Int_t k = 0; k < raw->GetNelem(); k++) {
+	for (int k = 0; k < raw->GetNelem(); k++) {
 	  int adr = raw->GetAddress(k);
 	  if (amin <= adr && adr <= amax) {
 	    if (adrmin[i] < 0 || adrmin[i] > adr) adrmin[i] = adr;
@@ -2199,9 +2248,7 @@ int TrRecon::BuildVertex(integer refit){
 
 extern "C" double rnormx();
 
-#ifndef __ROOTSHAREDLIBRARY__ 
-#include "random.h"
-#else
+#ifdef __ROOTSHAREDLIBRARY__ 
 #include "TRandom.h"
 #endif
 
@@ -2295,26 +2342,26 @@ void TrSim::gencluster(int idsoft, float vect[],
 
   VCon* cont=GetVCon()->GetCont("AMSTrCluster");
 
-  Double_t lx = pc.x();
-  Double_t ly = pc.y();
-  Double_t lz = pc.z();
-  Int_t stx = tksc.GetStripX();
-  Int_t sty = tksc.GetStripY();
-  Double_t ipx = tksc.GetImpactPointX();
-  Double_t ipy = tksc.GetImpactPointY();
+  double lx = pc.x();
+  double ly = pc.y();
+  double lz = pc.z();
+  int stx = tksc.GetStripX();
+  int sty = tksc.GetStripY();
+  double ipx = tksc.GetImpactPointX();
+  double ipy = tksc.GetImpactPointY();
 
-  Int_t seedx = (ipx > 0) ? 0 : 1;
-  Int_t seedy = (ipy > 0) ? 0 : 1;
+  int seedx = (ipx > 0) ? 0 : 1;
+  int seedy = (ipy > 0) ? 0 : 1;
   if (ipx < 0) stx--;
   if (ipy < 0) sty--;
 
-  Double_t sig0  = 30;
-  Double_t sigx  = 5;
-  Double_t sigy  = 4;
-  Int_t sig_mode = 1;
+  double sig0  = 30;
+  double sigx  = 5;
+  double sigy  = 4;
+  int sig_mode = 1;
 
-  Double_t thx = TMath::Abs(TMath::ATan(dirg.x()/dirg.z())*TMath::RadToDeg());
-  Double_t thy = TMath::Abs(TMath::ATan(dirg.y()/dirg.z())*TMath::RadToDeg());
+  double thx = TMath::Abs(TMath::ATan(dirg.x()/dirg.z())*TMath::RadToDeg());
+  double thy = TMath::Abs(TMath::ATan(dirg.y()/dirg.z())*TMath::RadToDeg());
 
   if (sig_mode == 1) {
     sigx = (40-1.6*thx+0.05*thx*thx)/5;
@@ -2322,10 +2369,10 @@ void TrSim::gencluster(int idsoft, float vect[],
   }
   sitkangl[ily] = AMSPoint(thx, thy, 0);
 
-  Double_t a1x = (ipx > 0) ? sig0*(1-ipx) : -sig0*ipx;
-  Double_t a2x = (ipx < 0) ? sig0*(1+ipx) :  sig0*ipx;
-  Double_t a1y = (ipy > 0) ? sig0*(1-ipy) : -sig0*ipy;
-  Double_t a2y = (ipy < 0) ? sig0*(1+ipy) :  sig0*ipy;
+  double a1x = (ipx > 0) ? sig0*(1-ipx) : -sig0*ipx;
+  double a2x = (ipx < 0) ? sig0*(1+ipx) :  sig0*ipx;
+  double a1y = (ipy > 0) ? sig0*(1-ipy) : -sig0*ipy;
+  double a2y = (ipy < 0) ? sig0*(1+ipy) :  sig0*ipy;
 
   a1x += rnormx()*sigx; a2x += rnormx()*sigx;
   a1y += rnormx()*sigy; a2y += rnormx()*sigy;
@@ -2333,13 +2380,15 @@ void TrSim::gencluster(int idsoft, float vect[],
   if (a2x < 0) a2x = 0;
   if (a1y < 0) a1y = 0;
   if (a2y < 0) a2y = 0;
+  double asx = a1x+a2x;
+  double asy = a1y+a2y;
 
   if (seedx == 0 && a1x < a2x) seedx = 1;
   if (seedx == 1 && a1x > a2x) seedx = 0;
   if (seedy == 0 && a1y < a2y) seedy = 1;
   if (seedy == 1 && a1y > a2y) seedy = 0;
 
-  Int_t lyr = TMath::Abs(tkid)/100;
+  int lyr = TMath::Abs(tkid)/100;
 
   float adc[2] = { 0, 0 };
 
@@ -2367,7 +2416,7 @@ void TrSim::gencluster(int idsoft, float vect[],
   if (tkid ==  510) effx = 0.35;
   
 
-  if (rndx < effx && 0 < stx && stx+seedx < 383) {
+  if (rndx < effx && asx+asy > 0 && 0 < stx && stx+seedx < 383) {
     adc[0] = a1x;
     adc[1] = a2x;
 #ifndef __ROOTSHAREDLIBRARY__ 
@@ -2378,7 +2427,7 @@ void TrSim::gencluster(int idsoft, float vect[],
 			   (tkid, 0, stx+640, 2, seedx, adc, 0));
 #endif
   }
-  if (rndy < effy && 0 < sty && sty+seedy < 639) {
+  if (rndy < effy && asx+asy > 0 && 0 < sty && sty+seedy < 639) {
     adc[0] = a1y;
     adc[1] = a2y;
 #ifndef __ROOTSHAREDLIBRARY__ 
@@ -2409,7 +2458,7 @@ void TrSim::fillreso(TrTrackR *track)
     TDirectory *sdir = gDirectory;
     if (!HistDir) {
       if (gFile) gFile->cd();
-      HistDir = new TDirectoryFile("reshist", "Tracker resolution");
+      HistDir = new TDirectoryFile("TrRecon", "TrRecon histograms");
     }
     HistDir->cd();
 

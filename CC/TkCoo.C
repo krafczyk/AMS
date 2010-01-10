@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.5 2009/11/26 01:57:37 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.6 2010/01/10 13:06:51 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2009/11/26 01:57:37 $
+///$Date: 2010/01/10 13:06:51 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -289,28 +289,15 @@ double TkCoo::GetLadderLength(int tkid) {
 
 
 //--------------------------------------------------
-double TkCoo::GetLadderCenterX(int tkid) { 
+AMSPoint TkCoo::GetLadderCenter(int tkid) { 
 // Get central position of the ladder in the X-coordinate in cm
-  if(!TkDBc::Head) return -9999.;
+  if(!TkDBc::Head) return AMSPoint(-9999.,-9999.,-9999.);
   TkLadder* pp=TkDBc::Head->FindTkId(tkid);
-  if(!pp) return -9999.;
+  if(!pp) return AMSPoint(-9999.,-9999.,-9999.);
 
   double hlen = GetLadderLength(tkid)/2-TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
-  return TkCoo::GetGlobalA(tkid, hlen, hwid).x();
-}
-
-
-//--------------------------------------------------
-double TkCoo::GetLadderCenterY(int tkid) {
-  // Get central position of the ladder in the Y-coordinate in cm
-  if(!TkDBc::Head) return -9999.;
-  TkLadder* pp=TkDBc::Head->FindTkId(tkid);
-  if(!pp) return -9999.;
-
-  double hlen = GetLadderLength(tkid)/2-TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
-  double hwid = TkDBc::Head->_ssize_active[1]/2;
-  return TkCoo::GetGlobalA(tkid, hlen, hwid).y();
+  return TkCoo::GetGlobalA(tkid, hlen, hwid);
 }
 
 

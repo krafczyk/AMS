@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.18 2010/01/02 00:16:15 shaino Exp $
+// $Id: TrTrack.C,v 1.19 2010/01/10 13:06:51 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/02 00:16:15 $
+///$Date: 2010/01/10 13:06:51 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -178,6 +178,13 @@ TrTrackPar &TrTrackR::GetPar(int id)
   return parerr;
 }
 
+AMSPoint TrTrackR::GetPlayer(int ilay, int id)
+{
+  AMSPoint  pres = GetResidual(ilay);
+  TrRecHitR *hit = GetHitL    (ilay);
+  return (hit) ? hit->GetCoord()-pres : pres;
+}
+
 void TrTrackR::AddHit(TrRecHitR *hit, int imult, AMSPoint *bfield)
 {
   VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
@@ -208,39 +215,32 @@ void TrTrackR::BuildHitsIndex()
 
 AMSPoint TrTrackR::GetPentry(int id)
 {
-  double zent = 0;
-
+  int ilay = 7;
   for (int i = 0; i < _Nhits; i++) {
     TrRecHitR *hit = GetHit(i);
     if (hit && TestHitBits(hit->GetLayer(), id)) {
-      double zh = hit->GetCoord().z();
-      if (zent == 0 || zh > zent) zent = zh;
+      ilay = hit->GetLayer()-1;
+      break;
     }
   }
 
-
-  AMSPoint pnt(0,0,0);
-  AMSDir dir(0,0,0);
-  Interpolate(zent,  pnt,  dir, id);
-  return pnt;
+  return InterpolateLayer(ilay);
 }
 
 AMSDir TrTrackR::GetPdir(int id)
 {
-  double zent = 0;
-
+  int ilay = 8;
   for (int i = 0; i < _Nhits; i++) {
     TrRecHitR *hit = GetHit(i);
     if (hit && TestHitBits(hit->GetLayer(), id)) {
-      double zh = hit->GetCoord().z();
-      if (zent == 0 || zh > zent) zent = zh;
+      ilay = hit->GetLayer()-1;
+      break;
     }
   }
 
-
-  AMSPoint pnt(0,0,0);
-  AMSDir dir(0,0,0);
-  Interpolate(zent,  pnt,  dir, id);
+  AMSPoint pnt;
+  AMSDir   dir;
+  InterpolateLayer(ilay, pnt, dir, id);
   return dir;
 }
 
@@ -256,6 +256,14 @@ TrRecHitR *TrTrackR::GetHit(int i)
   return _Hits[i];
 }
 
+TrRecHitR *TrTrackR::GetHitL(int ilay)
+{
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (hit && hit->GetLayer() == ilay+1) return hit;
+  }
+  return 0;
+}
 
 TrRecHitR & TrTrackR::TrRecHit(int i) 
 {
@@ -359,27 +367,21 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   par.Rigidity = _TrFit.GetRigidity();
   par.ErrRinv  = _TrFit.GetErrRinv();
 
-  AMSPoint pnt;
-  AMSDir   dir;
+  // Interpolate to Z=0
+  AMSPoint pnt(0, 0, 0);
+  AMSDir   dir(0, 0, 1);
+  _TrFit.Interpolate(pnt, dir);
+  par.P0  = pnt;
+  par.Dir = dir;
+
+  // Fill residuals
   for (int i = 0, j = 0; i < trconst::maxlay; i++) {
     if (hitbits & (1 << (trconst::maxlay-(i+1)))) {
       par.Residual[i].setp(_TrFit.GetXr(j), _TrFit.GetYr(j), _TrFit.GetZr(j));
       j++;
     }
-    else {
-      pnt.setp(0, 0, TkDBc::Head->GetZlayer(i+1));
-      dir.setp(0, 0, 1);
-      _TrFit.Interpolate(pnt, dir);
-      par.Residual[i] = pnt;
-    }
+    else par.Residual[i] = InterpolateLayer(i, id);
   }
-
-  // Interpolate to Z=0
-  pnt.setp(0, 0, 0);
-  dir.setp(0, 0, 1);
-  _TrFit.Interpolate(pnt, dir);
-  par.P0  = pnt;
-  par.Dir = dir;
 
   return GetChisq(id);
 }
@@ -426,7 +428,7 @@ void TrTrackR::_PrepareOutput(int full )
 
 
 double TrTrackR::Interpolate(double zpl, AMSPoint &pnt, 
-                               AMSDir &dir, Int_t id2)
+                               AMSDir &dir, int id2)
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
@@ -439,9 +441,44 @@ double TrTrackR::Interpolate(double zpl, AMSPoint &pnt,
   return tprop.Interpolate(pnt, dir);
 }
 
+AMSPoint TrTrackR::InterpolateLayer(int ily, int id)
+{
+  AMSPoint pnt;
+  AMSDir   dir;
+  InterpolateLayer(ily, pnt, dir, id);
+  return pnt;
+}
+
+double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt, 
+				  AMSDir &dir, int id2)
+{
+  int id=id2;
+  if (id2==0) id=trdefaultfit;
+  if (!FitDone(id)) return -1;
+
+  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
+  dir.setp(0, 0, 1);
+  pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily+1));
+
+  double ret = tprop.Interpolate(pnt, dir);
+
+  TkSens tks(pnt);
+  if (!tks.LadFound()) return ret;
+
+  TkLadder *lad = TkDBc::Head->FindTkId(tks.GetLadTkID());
+  TkPlane  *pla = lad->_plane;
+  AMSRotMat lrm = lad->GetRotMatA()*lad->GetRotMat();
+  AMSRotMat prm = pla->GetRotMatA()*pla->GetRotMat();
+  dir.setp(0, 0, 1);
+  pnt = prm*(lad->GetPos()+lad->GetPosA())+pla->GetPosA()+pla->GetPos();
+  dir = prm*lrm*dir;
+
+  return tprop.Interpolate(pnt, dir);
+}
+
 void TrTrackR::Interpolate(int nz, double *zpl, 
                              AMSPoint *pvec, AMSDir *dvec, double *lvec,
-                             Int_t id2)
+                             int id2)
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;

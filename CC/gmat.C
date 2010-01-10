@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.96 2009/06/11 13:51:24 choumilo Exp $
+//  $Id: gmat.C,v 1.97 2010/01/10 13:06:51 shaino Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -223,7 +223,12 @@ mat.add (new AMSgmat( "MEWAEROGEL",a,z,w,4, 0.125));
 
 
 // AL honeycomb structure for Tracker (as for TOF now !) :
+#ifdef _PGTRACK_
+geant scl = 5;  // Density scaling factor to reproduce CR resolution
+mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04*scl, 600./scl, 2660./scl));
+#else
 mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
+#endif
 
 // Foam structure for Tracker  :
 mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));

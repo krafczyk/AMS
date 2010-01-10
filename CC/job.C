@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.677 2010/01/08 11:32:21 choumilo Exp $
+// $Id: job.C,v 1.678 2010/01/10 13:06:51 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1777,6 +1777,7 @@ if(AMSFFKEY.Update){
   TrRecon::Init();
   TrRecon::SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);
+  AMSTrTrack::SetTimeLimit(AMSFFKEY.CpuLimit);
 
   if (TrRecon::TasRecon) {
     TrTasDB *tasdb = new TrTasDB;

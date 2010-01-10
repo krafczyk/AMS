@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.15 2010/01/04 23:51:17 shaino Exp $
+//  $Id: TrTrack.h,v 1.16 2010/01/10 13:06:56 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/04 23:51:17 $
+///$Date: 2010/01/10 13:06:56 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +188,6 @@ protected:
   int Status;
 
   static geant _TimeLimit; //!
-#pragma omp threadprivate(_TimeLimit)
   /// Number of points for half fit (default: 4)
   static int NhitHalf;
 
@@ -276,11 +275,13 @@ public:
   AMSDir GetPdir(int id = 0);
   ///Returns the direction at the point of passage on the Z=0 XY plane
   AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
-  /// Return the 3D residual 
+  /// Return the 3D residual at layer ilay (0-7)
   AMSPoint GetResidual (int ilay, int id= 0) { 
     return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
       ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
   }
+  /// Get track position at layer ilay (0-7)
+  AMSPoint GetPlayer(int ilay, int id = 0);
 
   // Aliases
   double   GetP0x      (int id= 0) { return GetP0(id).x(); }
@@ -303,6 +304,8 @@ public:
 
   /// Get the pointer to the i-th in the track
   TrRecHitR *GetHit(int i);
+  /// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
+  TrRecHitR *GetHitL(int ilay);
   /// Get areferemce to the i-th in the track
   TrRecHitR& TrRecHit(int i);
   /// Get the pointer to the i-th in the track
@@ -392,7 +395,26 @@ public:
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
   double Interpolate(double zpl, AMSPoint &pnt, AMSDir &dir, 
-		     Int_t id = 0);
+		     int id = 0);
+
+  /// Interpolation onto Tracker layer with alignment correction 
+  /*!
+   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[out] pnt  Track position  at the layer
+   * \param[out] dif  Track direction at the layer
+   * \param[in]  id   Fitting method ID
+   * \return          Path length between Z=P0z(usually 0) and Z=zpl
+   */
+  double InterpolateLayer(int ily, AMSPoint &pnt, AMSDir &dir, 
+			  int id = 0);
+
+  /// Interpolation onto Tracker layer with alignment correction 
+  /*!
+   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[in]  id   Fitting method ID
+   * \return          Track position  at the layer
+   */
+  AMSPoint InterpolateLayer(int ily, int id = 0);
 
   /// Build interpolation vectors onto Z=zpl[i] (0<=i<nz) planes
   /*!
@@ -407,7 +429,7 @@ public:
    */
   void Interpolate(int nz, double *zpl, 
 		   AMSPoint *pvec, AMSDir *dvec = 0, double *lvec = 0,
-		   Int_t id = 0);
+		   int id = 0);
 
   /// General interpolation (for the compatibility with Gbatch)
   void interpolate(AMSPoint pnt, AMSDir dir,  AMSPoint &P1, 
