@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.28 2009/10/21 10:35:28 choutko Exp $
+//  $Id: uzstat.C,v 1.29 2010/01/11 11:44:25 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -21,27 +21,19 @@ ofstream fbin("/f2users/choutko/AMS/examples/lvl3.txt",ios::out);
 
 
 
-#ifdef _PGTRACK_
 
-float etime(float ar[]){
+double AMSgettime(){
 
   struct rusage r_usage;
   int aa=getrusage(RUSAGE_SELF, &r_usage);
   if (aa<0) return -1; //error
-  float u=r_usage.ru_utime.tv_sec+ r_usage.ru_utime.tv_usec/1000000.;
-  float s=r_usage.ru_stime.tv_sec+ r_usage.ru_stime.tv_usec/1000000.;
-  ar[0]=u; 
-  ar[1]=s;
+  double u=r_usage.ru_utime.tv_sec+ r_usage.ru_utime.tv_usec/1000000.;
+  double s=r_usage.ru_stime.tv_sec+ r_usage.ru_stime.tv_usec/1000000.;
   return u+s;
 }
 
-#define ETIMEU(a) etime(a);
-
-#else
 extern "C" float etime_(float ar[]);
 #define ETIMEU(a) etime_(a);
-
-#endif
 
 AMSStat::AMSStat():AMSNodeMap(){
   map(Timer);
@@ -121,6 +113,7 @@ thread=omp_get_thread_num();
       }
       p->_entry=p->_entry+1;
       p->_time=tt;
+      p->_last=time;
       p->_sum=p->_sum+time;
       p->_sum2=p->_sum*p->_sum;
       if(time > p->_max)p->_max=time;
@@ -137,6 +130,18 @@ thread=omp_get_thread_num();
   else cerr<<"AMSStat-Stop-E-Name "<<name<<" does not exist"<<endl;
 #endif
   return time;
+}
+
+number AMSStat::Get(char *name){
+int thread=0;
+#ifdef _OPENMP
+thread=omp_get_thread_num();
+#endif
+  AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,thread));
+  if(p &&p->_startstop==0)
+    return  p->_last;
+  else return 0;
+  
 }
 
 void AMSStat::print(){
@@ -189,10 +194,10 @@ else{
 }
 }
 
-#include <sys/time.h>
-extern "C" number HighResTime(){
 
-   float ar[2];
+
+extern "C" number HighResTime(){
+  float ar[2];
 
   static unsigned int count=0;
   float ltime=0;
@@ -235,10 +240,9 @@ extern "C" number HighResTime(){
   return double(nsec)*1e-9;
 #else
 #ifdef _PGTRACK_
-    ltime=ETIMEU(ar);
+  return AMSgettime();
 #else
     TIMEX(ltime);
-#endif    
 //  if(!AMSCommonsI::remote()){
 //    ltime=ETIMEU(ar);
 //    count++;
@@ -271,9 +275,9 @@ extern "C" number HighResTime(){
     fbin.close();
   }
   return ltime;
+#endif    
 #endif
 #endif
-
 }
 
 

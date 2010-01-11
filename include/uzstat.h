@@ -1,4 +1,4 @@
-//  $Id: uzstat.h,v 1.18 2009/11/05 15:08:36 choutko Exp $
+//  $Id: uzstat.h,v 1.19 2010/01/11 11:44:26 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSUZSTAT__
 #define __AMSUZSTAT__
@@ -37,20 +37,33 @@ class AMSStatNode: public AMSNode{
   friend class AMSStat;
 
 private:
+  /// flag 0 stopped  1 started
   integer _startstop;
-  number _time;
+  number _time;  // PZ why is not set to zero in the cnstr
+  number _last;  /// last count
   number _entry;
   number _sum;
-  number _sum2;   //  thread diff
-  number _nsum2;   //  thread diff
+  number _sum2;   ///  thread diff
+  number _nsum2;   ///  thread diff
   number _max;
   number _min;
   integer _freq;
 public:
-  AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_sum2(0),_nsum2(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
-  AMSStatNode(char * name, int freq):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq),_nsum2(0),_sum2(0){};
- AMSStatNode(char * name, int freq,int thr=0):AMSNode(AMSID(name,thr)),_startstop(0),_entry(0),_sum(0),_nsum2(0),_sum2(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
-
+  AMSStatNode()
+    :AMSNode(0),_startstop(0),_last(0),
+     _entry(0),_sum(0),_sum2(0),_nsum2(0),
+     _max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
+  
+  AMSStatNode(char * name, int freq)
+    :AMSNode(name),_startstop(0),_last(0),
+     _entry(0),_sum(0),_nsum2(0),_sum2(0),
+     _max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
+  
+  AMSStatNode(char * name, int freq,int thr=0)
+    :AMSNode(AMSID(name,thr)),_startstop(0),_last(0),
+     _entry(0),_sum(0),_nsum2(0),_sum2(0),
+     _max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
+  
   void _init(){};
   ostream & print(ostream & stream ) const;
 };
@@ -62,10 +75,16 @@ private:
 public: 
   AMSStat();
   ~AMSStat();
+  /// Create a new timer
   void book(char * name, int freq=1,int thr=20);
   void accu();
+  ///Starts the timer
   void start(char * name);
+  /// Returns the elapsed time during the count 
   number check(char *name);
+  /// Returns the last elapsed after stop
+  number Get(char *name);
+  // Stop the timer
   number stop(char * name, integer force=0);
   void print(char *name);
   void print();
