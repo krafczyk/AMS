@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.314 2009/12/31 12:11:39 choutko Exp $
+#  $Id: datacards.doc,v 1.315 2010/01/11 16:03:43 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -77,7 +77,7 @@ I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(100000000)      // max ntuplefilesize (kbytes)
 I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
 I170 BuildMin(-1)                  // min build version (production only)
-
+I171 HistoMan                    // Enables the HistoMan facility for histograms
 //-------------------------------------------------------------------------------
 
     RICH simulation

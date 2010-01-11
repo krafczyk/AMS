@@ -182,43 +182,45 @@ public:
   int lowdt    ;// 200
   //! I 22 MaxNtrCls
   int MaxNtrCls  ;// 1000
-  //! I 23 MaxNtrCls
+  //! I 23 MaxNtrCls_ldt
   int MaxNtrCls_ldt;// 150
   //! I 24 MaxNtrHit
   int MaxNtrHit  ;// 1000
+  //! F 25  Trackin time limit
+  float TrTimeLim  ;// 1000
   //TRACK PARS
-  //! I 25 MaxNtrack 
+  //! I 26 MaxNtrack 
   int    MaxNtrack ;//4
-  //! I 26 MinNhitX
+  //! I 27 MinNhitX
   int    MinNhitX  ;//4
-  //! I 27 MinNhitY
+  //! I 28 MinNhitY
   int    MinNhitY  ;//5
-  //! I 28 MinNhitXY
+  //! I 29 MinNhitXY
   int    MinNhitXY ;//4
-  //! I 29 PatAllowOption
+  //! I 30 PatAllowOption
   int    PatAllowOption ;//0
-  //! R 30 MaxChisqAllowed
+  //! R 31 MaxChisqAllowed
   float MaxChisqAllowed   ;//300
-  //! R 31  LadderScanRange
+  //! R 32  LadderScanRange
   float LadderScanRange   ;//7.3 = TkDBc::Head->_ladder_Ypitch
-  //! R 32 ClusterScanRange
+  //! R 33 ClusterScanRange
   float ClusterScanRange  ;//0.5
-  //! R 33 MaxChisqForLScan
+  //! R 34 MaxChisqForLScan
   float MaxChisqForLScan  ;//2.2
-  //! R 34 ErrXForScan
+  //! R 35 ErrXForScan
   float ErrXForScan       ;//300e-4
-  //! R 35 ErrYForScan
+  //! R 36 ErrYForScan
   float ErrYForScan       ;//300e-4
   //DEBUG
-  //! I 36 TrDEBUG (DEBUG on Track finding)
+  //! I 37 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 37 PZDEBUG
+  //! I 38 PZDEBUG
   int PZDEBUG ;
-  //! I 38 TAS reconstruction
+  //! I 39 TAS reconstruction
   int TasRecon;
-  //! I 38 TAS current intensity
+  //! I 40 TAS current intensity
   int TasCurr;
-  //! I 39 TAS LDDR mode
+  //! I 41 TAS LDDR mode
   int TasLDDR;
 
   void init();

@@ -174,6 +174,14 @@ if(AMSEvent::get_thread_num()==0)
    DAQEvent::initO(_run,getid(),gettime());
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
+   //PZ Book the histos of the Histo facility
+   {
+     if(IOPA.HistoMan>0) hman.Enable();
+     char hfname[128];
+     sprintf(hfname,"Histos_%d.root",_run);
+     hman.Setname(hfname);
+     hman.BookHistos();
+   }
    Barrier()=false;
 
 

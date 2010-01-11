@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.29 2010/01/11 11:44:25 pzuccon Exp $
+//  $Id: uzstat.C,v 1.30 2010/01/11 16:03:43 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -22,7 +22,7 @@ ofstream fbin("/f2users/choutko/AMS/examples/lvl3.txt",ios::out);
 
 
 
-double AMSgettime(){
+static double AMSgettime(){
 
   struct rusage r_usage;
   int aa=getrusage(RUSAGE_SELF, &r_usage);

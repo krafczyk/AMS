@@ -1,10 +1,11 @@
-//  $Id: amsdbc.h,v 1.45 2010/01/08 11:32:29 choumilo Exp $
+//  $Id: amsdbc.h,v 1.46 2010/01/11 16:03:44 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
 #include "typedefs.h" 
 #include "astring.h"
 #include "point.h"
+#include "HistoMan.h"
 
 //! Used to store the strings associated to a  global AMSerror integer ID
 class amsglobalerror{
@@ -21,6 +22,13 @@ public:
 namespace AMSChargConst{
   const int MaxZTypes=10;
 } 
+
+//PZ Histo facility
+#ifndef __AMSDBC_C__
+extern HistoMan hman;
+#else
+HistoMan hman;
+#endif
 
 /*! \class AMSDBc
   \brief Geometrical and other constants in a Static Class

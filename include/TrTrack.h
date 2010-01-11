@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.16 2010/01/10 13:06:56 shaino Exp $
+//  $Id: TrTrack.h,v 1.17 2010/01/11 16:03:44 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/10 13:06:56 $
+///$Date: 2010/01/11 16:03:44 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -187,7 +187,8 @@ protected:
   //! Track Status word
   int Status;
 
-  static geant _TimeLimit; //!
+  //  static geant _TimeLimit; //!
+  //#pragma omp threadprivate(_TimeLimit)
   /// Number of points for half fit (default: 4)
   static int NhitHalf;
 
@@ -470,10 +471,10 @@ public:
 
 
 
-  /// For Gbatch compatibility
-  static void  SetTimeLimit(geant time) { _TimeLimit = time; }
-  /// For Gbatch compatibility
-  static geant GetTimeLimit() { return _TimeLimit; }
+//   /// For Gbatch compatibility
+//   static void  SetTimeLimit(geant time) { _TimeLimit = time; }
+//   /// For Gbatch compatibility
+//   static geant GetTimeLimit() { return _TimeLimit; }
 
  
 

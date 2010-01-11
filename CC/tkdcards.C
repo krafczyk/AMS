@@ -53,6 +53,7 @@ void TRCLFFKEY_DEF::init(){
   MaxNtrCls      = 1000;
   MaxNtrCls_ldt  = 150;
   MaxNtrHit      = 1000;
+  TrTimeLim      = 1000;
   //Track
   MaxNtrack = 4;
   MinNhitX  = 4;

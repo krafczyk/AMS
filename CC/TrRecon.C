@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.33 2010/01/10 13:06:51 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.34 2010/01/11 16:03:42 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/10 13:06:51 $
+/// $Date: 2010/01/11 16:03:42 $
 ///
-/// $Revision: 1.33 $
+/// $Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +29,7 @@
 #include "TrMCCluster.h"
 #include "Vertex.h"
 #include "VCon.h"
+#include <sys/resource.h>
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "trrec.h"
@@ -37,6 +38,15 @@
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
 
+static double AMSgettime(){
+
+  struct rusage r_usage;
+  int aa=getrusage(RUSAGE_SELF, &r_usage);
+  if (aa<0) return -1; //error
+  double u=r_usage.ru_utime.tv_sec+ r_usage.ru_utime.tv_usec/1000000.;
+  double s=r_usage.ru_stime.tv_sec+ r_usage.ru_stime.tv_usec/1000000.;
+  return u+s;
+}
 
 
 //TrRecon* TrRecon::Head=0;
@@ -104,6 +114,7 @@ void TrRecon::SetParFromDataCards(){
   lowdt      = TRCLFFKEY.lowdt ;
   MaxNtrCls_ldt= TRCLFFKEY.MaxNtrCls_ldt ;
   MaxNtrHit  = TRCLFFKEY.MaxNtrHit ;
+  TrTimeLim  = TRCLFFKEY.TrTimeLim;
   MaxNtrack         = TRCLFFKEY.MaxNtrack ;      
   MinNhitX          = TRCLFFKEY.MinNhitX     ;   
   MinNhitY          = TRCLFFKEY.MinNhitY        ;
@@ -146,12 +157,12 @@ void TrRecon::Clear(Option_t *option) {
   _TasPar = 0;
 }
 
-int TrRecon::MaxNrawCls    = 2000;
-int TrRecon::lowdt         = 200;
-int TrRecon::MaxNtrCls     = 1000;
-int TrRecon::MaxNtrCls_ldt = 150;
-int TrRecon::MaxNtrHit     = 100;
-
+int   TrRecon::MaxNrawCls    = 2000;
+int   TrRecon::lowdt         = 200;
+int   TrRecon::MaxNtrCls     = 1000;
+int   TrRecon::MaxNtrCls_ldt = 150;
+int   TrRecon::MaxNtrHit     = 100;
+float TrRecon::TrTimeLim     = 1000;
 // option is temporary, 0:No_reco 1:Up_to_TrCluster 2:Full
 int TrRecon::Build(int option)
 {
@@ -1006,33 +1017,23 @@ void TrRecon::RemoveHits(int tkid, int icls, int side)
   if (--ar.Ncls[side] == 0) ar.Ncls[1-side] = 0;
 }
 
-#ifndef __ROOTSHAREDLIBRARY__
-#include "cern.h"
 
 void TrRecon::_StartTimer()
 {
-  TIMEX(_StartTime);
+  _StartTime=AMSgettime();
 }
 
 float TrRecon::_CheckTimer() const
 {
-  float tnow;
-  TIMEX(tnow);
+  float tnow=AMSgettime();
   return tnow-_StartTime;
 }
 
-#else   // ifndef __ROOTSHAREDLIBRARY__
-
-void TrRecon::_StartTimer()
-{
+bool TrRecon::_CpuTimeUp() const{
+  if(TrTimeLim<0) return false;
+  float spentTime=_CheckTimer();
+  return spentTime>=TrTimeLim;
 }
-
-float TrRecon::_CheckTimer() const
-{
-  return 0;
-}
-
-#endif   // ifndef __ROOTSHAREDLIBRARY__
 
 void TrRecon::BuildHitsTkIdMap() 
 {
@@ -1163,7 +1164,7 @@ int TrRecon::BuildTrTracks(int rebuild)
   Ntrials1 = Ntrials2 = 0;
 
   _StartTimer();
-  _CpuTimeUp = false;
+
 
   // Main loop
   int ntrack = 0, found = 0;
@@ -1173,24 +1174,25 @@ int TrRecon::BuildTrTracks(int rebuild)
 
     found = 0;
     // Scan Ladders for each pattern until a track found
-    for (int pat = 0; !_CpuTimeUp && !found && pat < NHitPatterns; pat++) {
+    for (int pat = 0; !_CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
       TrHitIter itcand;
       if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat, itcand)))
         ntrack += BuildATrTrack(itcand);
     }
-  } while (!_CpuTimeUp && found && ntrack < MaxNtrack);
+  } while (!_CpuTimeUp() && found && ntrack < MaxNtrack);
 
-  // Purge "ghost" hits and assign hit index to tracks
-  PurgeGhostHits();
-
-#ifndef __ROOTSHAREDLIBRARY__
   _CpuTime = _CheckTimer();
-  if (_CpuTimeUp)
+  if (_CpuTimeUp()){
+#ifndef __ROOTSHAREDLIBRARY__
     cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: " << _CpuTime 
 	 << " at Event: " << AMSEvent::gethead()->getEvent() << endl;
 #else
-  _CpuTime = 0;
+    cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: " << _CpuTime <<endl; 
 #endif
+  }
+
+  // Purge "ghost" hits and assign hit index to tracks
+  PurgeGhostHits();
 
   return ntrack;
 }
@@ -1330,7 +1332,7 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
 
 int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 {
-  if (_CpuTimeUp) return 0;
+  if (_CpuTimeUp()) return 0;
 
   // Evaluate current candidates if idx has reached to the end
   if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it, itcand)
@@ -1395,7 +1397,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   ScanRecursive(0, it, itcand);
 
   // Return 1 if track has been found
-  return (!_CpuTimeUp && itcand.nlayer > 0);
+  return (!_CpuTimeUp() && itcand.nlayer > 0);
 }
 
 int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
@@ -1428,10 +1430,7 @@ int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
 int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 {
   // Check CPU time limit
-  float tlimit = TrTrackR::GetTimeLimit();
-  if (!_CpuTimeUp && tlimit > 0 && _CheckTimer() > tlimit)
-    (const_cast<TrRecon *>(this))->_CpuTimeUp = true;
-  if (_CpuTimeUp) return 0;
+  if (_CpuTimeUp()) return 0;
 
   // Check number of hits with both-side clusters
   int nhitc = 0;

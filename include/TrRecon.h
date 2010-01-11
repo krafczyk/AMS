@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.19 2010/01/10 13:06:56 shaino Exp $ 
+// $Id: TrRecon.h,v 1.20 2010/01/11 16:03:44 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/10 13:06:56 $
+/// $Date: 2010/01/11 16:03:44 $
 ///
-/// $Revision: 1.19 $
+/// $Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -137,6 +137,8 @@ public:
   static int MaxNtrCls;
   /// Maximum number of hits allowed for the next step
   static int MaxNtrHit;
+  /// Maximum CPU time (s)  for tracking
+  static float TrTimeLim;
 
   /// option is temporary, 0:No_reco 1:TrCluster 2:TrRecHit 3:Full
   /// Start full reconstruction (TrCluster, TrRecHit and TrTrack)
@@ -383,8 +385,8 @@ protected:
   /// Start time marker
   float _StartTime;
 
-  /// CPU time up flag
-  bool _CpuTimeUp;
+  /// CPU time up checker 
+  bool _CpuTimeUp() const;
 
   /// CPU time consumption in the last BuildTrTracks
   float _CpuTime;
@@ -398,10 +400,6 @@ protected:
 public:
   /// Get CPU time consumption in the last BuildTrTracks
   float GetCpuTime() const { return _CpuTime; }
-
-  /// Get CPU time up flag in the last BuildTrTracks
-
-  bool GetCpuTimeUp() const { return _CpuTimeUp; }
 
   /// Builds up the map RecHit Layer
   void BuildHitsTkIdMap();

@@ -75,18 +75,12 @@ void AMSEvent::_catkevent(){
 
 void AMSEvent::_retkevent(integer refit){
 
-
-  // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
-  
-  //  AMSlink *ptr=getheadC("TriggerLVL3",0);
   Trigger2LVL1 *ptr1=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
-  
-  //  TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
-  
+    
   TrRecon* rec= new TrRecon();
   //PZDEBUG  printf("\nFound %d Raw cluster \n",AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem()  );
   //  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))) //tempor
-
+  
   //RAW Clusters -->  Clusters
   if(
      TRCLFFKEY.recflag>0 && // Wanted from TkDCards
@@ -126,14 +120,17 @@ void AMSEvent::_retkevent(integer refit){
 	  // Hits --> Tracks
 	  if(
 	     TRCLFFKEY.recflag>110 && // Wanted from TkDCards
-	     retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<TrRecon::MaxNtrHit //Not to many Hits
+	     retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<TrRecon::MaxNtrHit && //Not to many Hits
+	     ptr1->gettoflag1()>=0&&ptr1->gettoflag1()<9
 	     )
 	    {
 	      AMSgObj::BookTimer.start("TrTrack");
 	      int retr3=rec->BuildTrTracks();
-	      AMSgObj::BookTimer.stop("TrTrack");
-	      //PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );
-	      //PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
+	      double bb=AMSgObj::BookTimer.stop("TrTrack");
+	      
+	      //PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );	      //PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
+
+	      	      hman.Fill("TrTime",bb);
 	    }
 	
 	}

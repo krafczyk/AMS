@@ -1,6 +1,6 @@
-//  $Id: amsdbc.C,v 1.56 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: amsdbc.C,v 1.57 2010/01/11 16:03:43 pzuccon Exp $
 // Author V. Choutko 24-may-1996
- 
+#define __AMSDBC_C__ 
 #include <math.h>
 #include "amsdbc.h"
 #include "amsstl.h"

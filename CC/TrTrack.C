@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.19 2010/01/10 13:06:51 shaino Exp $
+// $Id: TrTrack.C,v 1.20 2010/01/11 16:03:43 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/10 13:06:51 $
+///$Date: 2010/01/11 16:03:43 $
 ///
-///$Revision: 1.19 $
+///$Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ void  TrTrackPar::Print_stream(std::string &ostr,int full){
 ClassImp(TrTrackR);
 
 
-geant TrTrackR::_TimeLimit = 0;
+//geant TrTrackR::_TimeLimit = 0;
 
 int TrTrackR::NhitHalf     = 4;
 int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
