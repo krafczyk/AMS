@@ -79,6 +79,20 @@ extern LMS* lms;
 #endif
 //
 //
+
+
+
+#include "HistoMan.h"
+
+
+//PZ Histo facility
+//#ifndef __AMSDBC_C__
+extern HistoMan hman;
+//#else
+HistoMan hman;
+//#endif
+
+
 bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
