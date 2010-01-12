@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.25 2009/12/10 13:50:49 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.26 2010/01/12 16:55:50 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -19,11 +19,11 @@ void AMSLVL1Hist::Book(){
 
   AddSet("FT/LVL1 Members_Sharing");
   
-  _filled.push_back(new TH1F("trigh0","FastTriggerMembers Sharing",10,0.,10.));
+  _filled.push_back(new TH1F("trigh0","SomeTrigBranches Correlations",10,0.,10.));
   _filled[_filled.size()-1]->SetYTitle("number of events");
   _filled[_filled.size()-1]->SetFillColor(44);
   
-  _filled.push_back(new TH1F("trigh1","BasisTrigMembers Sharing",16,0.,16.));
+  _filled.push_back(new TH1F("trigh1","Lvl1InputBranches Sharing",16,0.,16.));
   _filled[_filled.size()-1]->SetYTitle("number of events");
   _filled[_filled.size()-1]->SetFillColor(44);
   
@@ -105,24 +105,24 @@ void AMSLVL1Hist::Book(){
   
   AddSet("ECAL in LVL1(1)");
   
-  _filled.push_back(new TH1F("trigh19","FTE_Flag(if !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
+  _filled.push_back(new TH1F("trigh19","FTE_Flag(when !=0, noTOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("trigh20","Lvl1_Flag(if !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: undef/0Proj&FTE(1)/1Proj&FTE(1)(2)/2Proj&FTE(1)(3)");
+  _filled.push_back(new TH1F("trigh20","Lvl1_Flag(when !=0, noTOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("undef(0)/0Proj&FTE(1)/1Proj&FTE(2)/2Proj&FTE(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh21","FTE_Flag(GlobFT-OK) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
+  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
   _filled[_filled.size()-1]->SetFillColor(6);
   
-  _filled.push_back(new TH1F("trigh22","FTE_Flag(if !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
+  _filled.push_back(new TH1F("trigh22","FTE_Flag(when !=0, & TOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
-  _filled.push_back(new TH1F("trigh23","Lvl1_Flag(if !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("Flag: undef/0Proj&FTE(1)/1Proj&FTE(1)(2)/2Proj&FTE(1)(3)");
+  _filled.push_back(new TH1F("trigh23","Lvl1_Flag(when !=0, & TOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("undef(0)/0Proj&FTE(1)/1Proj&FTE(2)/2Proj&FTE(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   AddSet("ECAL in LVL1(2)");
@@ -150,21 +150,23 @@ void AMSLVL1Hist::Book(){
   
   AddSet("TrigRates in LVL1");
   
-  _filled.push_back(new TProfile("trigh29","Lev1Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
+  _filled.push_back(new TProfile("trigh29","FTtof(FTC)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
-  _filled.push_back(new TProfile("trigh30","TOFplane-MaxRate vs Time",120,0,lev1trange[0],0,10000.));
+  _filled.push_back(new TProfile("trigh30","FTec(FTE)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
-  _filled.push_back(new TProfile("trigh31","ECFT-MaxRate vs Time",120,0,lev1trange[0],0,10000.));
+  _filled.push_back(new TProfile("trigh31","Lev1Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
+  _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
+  _filled.push_back(new TProfile("trigh32","TofPlaneSide-MaxRate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
   
   
   AddSet("EventTimeDiff in LVL1");
   
-  _filled.push_back(new TH1F("trigh32","ConsecEvents TrigTimeDiff",200,0,1000.));
+  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",200,0,1000.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Mksec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(3);
-  _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",2000,0,25.));
+  _filled.push_back(new TH1F("trigh34","ConsecEvents TrigTimeDiff",2000,0,25.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Msec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
   _filled[_filled.size()-1]->SetFillColor(3);
@@ -343,8 +345,8 @@ case 6:
   }
   break;
 case 7:
-  gPad->Divide(1,3);
-  for(i=0;i<3;i++){
+  gPad->Divide(1,4);
+  for(i=0;i<4;i++){
     gPad->cd(i+1);
     gPad->SetGrid();
     gStyle->SetOptStat(100010);
@@ -382,7 +384,7 @@ case 8:
 #if defined (__ICC)
 #else
        gStyle->SetOptFit(1);
-       ((TH1F*)_filled[i+32])->Fit(func,"","",150.,1000.);
+       ((TH1F*)_filled[i+33])->Fit(func,"","",150.,1000.);
 #endif
      }
     else if(i==1){
@@ -391,10 +393,10 @@ case 8:
 #if defined (__ICC)
 #else
        gStyle->SetOptFit(1);
-       ((TH1F*)_filled[i+32])->Fit(func,"","",0.2,10.);
+       ((TH1F*)_filled[i+33])->Fit(func,"","",0.2,10.);
 #endif
      }
-    _filled[i+32]->Draw();//ConcecEvent TrigTimeDiff 
+    _filled[i+33]->Draw();//ConcecEvents TrigTimeDiff 
     gPadSave->cd();
   }
 //
@@ -418,7 +420,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
   static float range[3],timez[3];
   static int first(1),etime0(0),evnloc;
   float time[3];
-  float rates[6];
+  float rates[19];
   Double_t trigt;
   Float_t trigtdif;
   static Double_t trigtprev(-1);
@@ -586,7 +588,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
 //----
 //                                       <------ LiveTime, Rates:
     ltime=ntuple->pLevel1(0)->LiveTime;
-    for(int i=0;i<6;i++)rates[i]=ntuple->pLevel1(0)->TrigRates[i];
+    for(int i=0;i<19;i++)rates[i]=ntuple->pLevel1(0)->TrigRates[i];
 //    if(evnloc%100==0){
 //      cout<<"Event/date="<<evnum<<" "<<date<<endl;
 //      cout<<"time="<<time<<" ltime="<<ltime<<endl;
@@ -597,13 +599,15 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       ((TProfile*)_filled[29])->Reset("");
       ((TProfile*)_filled[30])->Reset("");
       ((TProfile*)_filled[31])->Reset("");
+      ((TProfile*)_filled[32])->Reset("");
       timez[0]=time[0];
       Lvl1Pars::setdat1(ntuple->GetTime());
     }
     ((TProfile*)_filled[26])->Fill(time[0]-timez[0],ltime,1.);
-    ((TProfile*)_filled[29])->Fill(time[0]-timez[0],rates[2],1.);//Lev1
-    ((TProfile*)_filled[30])->Fill(time[0]-timez[0],rates[3],1.);//TofPlaneMX
-    ((TProfile*)_filled[31])->Fill(time[0]-timez[0],rates[4],1.);//ECFTProjMX
+    ((TProfile*)_filled[29])->Fill(time[0]-timez[0],rates[1],1.);//FTC
+    ((TProfile*)_filled[30])->Fill(time[0]-timez[0],rates[3],1.);//FTE
+    ((TProfile*)_filled[31])->Fill(time[0]-timez[0],rates[5],1.);//lvl1
+    ((TProfile*)_filled[32])->Fill(time[0]-timez[0],rates[14],1.);//TofPlaneSide max
 //
     if((time[1]-timez[1])>=lev1trange[1]){
       ((TProfile*)_filled[27])->Reset("");
@@ -624,8 +628,8 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     for(int i=0;i<5;i++)itrtime[i]=ntuple->pLevel1(0)->TrigTime[i];
     trigt=itrtime[2]*0.64+itrtime[3]*pow(2.,32)*0.64+1000000.*itrtime[1] ;//mksec
       trigtdif=Float_t(itrtime[4]);
-      _filled[32]->Fill(trigtdif,1.);//TrigTimeDiff of 2 consecutive events (mksec)
-      _filled[33]->Fill(trigtdif/1000.,1.);//...............................(msec)
+      _filled[33]->Fill(trigtdif,1.);//TrigTimeDiff of 2 consecutive events (mksec)
+      _filled[34]->Fill(trigtdif/1000.,1.);//...............................(msec)
 //
   }
   evnloc+=1; 

@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.7 2009/12/29 11:17:54 choutko Exp $
+//  $Id: AMSECALHist.cxx,v 1.8 2010/01/12 16:55:50 choumilo Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -202,17 +202,16 @@ void AMSECALHist::ShowSet(Int_t Set){
 //
   switch(Set){
 case 0:
-  gPad->Divide(1,2);
-  for(j=0;j<2;j++){//hist#
+  gPad->Divide(1,3);
+  for(j=0;j<3;j++){//hist#
     gPad->cd(j+1);
     gPad->SetGrid();
 //    gStyle->SetPalette(1,0);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
-     int k=j==0?j:3;
-    _filled[k]->SetStats(kFALSE);
-    _filled[k]->Draw("colz");//ECAL-Ycells accupancy
+    _filled[j]->SetStats(kFALSE);
+    _filled[j]->Draw("colz");//ECAL-Ycells accupancy
     gPadSave->cd();
   }
   break;
@@ -348,6 +347,7 @@ case 6:
 
 void AMSECALHist::Fill(AMSNtupleR *ntuple){ 
   Bool_t cutf[20];
+  Bool_t badhit;
   Int_t etime[2],evnum,runum;
   Char_t date[30];
   static Float_t range[3],timez[3];
@@ -430,7 +430,9 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
 //--------> ECAL-hit check :
 //
   Int_t nechts=ntuple->NEcalHit();//total ecal-hits
-  if(nechts <= 1 && ECTrigFl==0)return;//no ECAL activity
+  if(nechts <= 1
+//                && ECTrigFl==0
+                               )return;//no ECAL activity
   EcalRunPar::addsev(5);//<--passed activity check
 //  
   UInt_t stat;
@@ -454,6 +456,8 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
   for(ih=0;ih<nechts;ih++){ // <--- loop over Ecal-hits
     p2echt=ntuple->pEcalHit(ih);
     stat=p2echt->Status;
+    badhit=((stat&16)>0);//bad hit(bad pm, bad pix)
+//    if(badhit && (EcalRunPar::getsev(5)%10)!=0)continue;//to bypass VC's bad hit correction by neighbour cells
     swid=p2echt->Idsoft;//SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4
     sl=swid/1000;//1-9
     pm=((swid/10)%100);//1-36
