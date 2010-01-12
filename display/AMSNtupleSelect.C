@@ -15,6 +15,9 @@ public:
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise
+   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
+   else return false;
+
   try{
     if(ev &&ev->nParticle() && ev->nTrTrack() && ev->nBeta()){
       if(ev->Beta(0).Pattern==0 && ev->Particle(0).Mass>1.5 && fabs(ev->Particle(0).Momentum)<5 && ev->Particle(0).Beta>0 && ev->Particle(0).Beta<0.92){

@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.106 2009/11/18 09:19:28 pzuccon Exp $
+//  $Id: timeid.C,v 1.107 2010/01/12 14:49:22 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -646,10 +646,11 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
                    _pDataBaseEntries[0]+_DataBaseSize);
             AString ffile(fsdir);
             ffile+=namelist[i]->d_name;
+            fbin.close();
+            fbin.clear();
             fbin.open((const char *)ffile,ios::in);
             uinteger temp[3];
             if(fbin){
-              
               fbin.seekg(integer(fbin.tellg())+_Nbytes+sizeof(_CRC));
               fbin.read((char*)temp,3*sizeof(temp[0]));
               if(fbin.good()){
