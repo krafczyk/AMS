@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.86 2009/12/10 13:50:48 choutko Exp $
+//  $Id: trigger102.C,v 1.87 2010/01/12 16:55:15 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -529,7 +529,7 @@ if((TGL1FFKEY.printfl%10)>0){
   }
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   HBOOK1(1094,"LiveTime(portion)",100,0.1,1.1,0.);
-  HBOOK1(1294,"LVL1:FT-rate(Hz)",100,0.,3000.,0.);
+  HBOOK1(1294,"LVL1:TofPlaneSide-MaxRate(Hz)",100,0.,2000.,0.);
   HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,3000.,0.);
   HBOOK1(1296,"LVL1:FTZ-rate(Hz)",100,0.,2000.,0.);
   HBOOK1(1297,"LVL1:FTE-rate(Hz)",100,0.,2000.,0.);
@@ -1365,7 +1365,7 @@ void Trigger2LVL1::_writeEl(){
   lvl1N->ECALflag[lvl1N->Nlvl1]=_ecalflag;
   for(i=0;i<6;i++)for(j=0;j<3;j++)lvl1N->ECALpatt[lvl1N->Nlvl1][i][j]=_ectrpatt[i][j];
   lvl1N->ECALtrsum[lvl1N->Nlvl1]=_ectrsum;
-  for(i=0;i<6;i++)lvl1N->TrigRates[lvl1N->Nlvl1][i]=_TrigRates[i];
+  for(i=0;i<19;i++)lvl1N->TrigRates[lvl1N->Nlvl1][i]=_TrigRates[i];
   for(i=0;i<4;i++)lvl1N->TrigTime[lvl1N->Nlvl1][i]=_TrigTime[i];
   lvl1N->Nlvl1++;
 */
@@ -2971,7 +2971,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 	  }
 	}
         scalmon.FTtrig(j)=scrate;//set FTs rates
-        if(j<4 && (TGL1FFKEY.printfl%10)>0){//for compr.fmt
+        if(j>0 && j<4 && (TGL1FFKEY.printfl%10)>0){//for compr.fmt
 #pragma omp critical (hf1)
 {
           HF1(1294+j,geant(scalmon.FTtrig(j)),1.);
@@ -2990,7 +2990,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         if(j<1 && (TGL1FFKEY.printfl%10)>0){//for compr.fmt
 #pragma omp critical (hf1)
 {
-          HF1(1298+j,geant(scalmon.LVL1trig(j)),1.);
+          HF1(1298+j,geant(scalmon.LVL1trig(j)),1.);//FTC/FTZ/FTE
 }
         } 
       }
@@ -3010,6 +3010,12 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 	  }
 	}
         scalmon.DetMaxRate(j)=scrate;
+        if(j==0 && (TGL1FFKEY.printfl%10)>0){//for compr.fmt
+#pragma omp critical (hf1)
+{
+          HF1(1294+j,geant(scalmon.DetMaxRate(j)),1.);//TofPlaneSide-MaxRate
+}
+        } 
       }
       nw3+=5;
     }

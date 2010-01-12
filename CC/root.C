@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.203 2009/12/11 09:33:09 choutko Exp $
+//  $Id: root.C,v 1.204 2010/01/12 16:55:15 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2205,7 +2205,7 @@ Level1R::Level1R(Trigger2LVL1 *ptr){
   }
   EcalTrSum= ptr->_ectrsum;
   LiveTime   = ptr->_LiveTime;
-  for(int i=0; i<6; i++)TrigRates[i]  = ptr->_TrigRates[i];
+  for(int i=0; i<19; i++)TrigRates[i]  = ptr->_TrigRates[i];
   for(int i=0; i<sizeof(TrigTime)/sizeof(TrigTime[0]); i++){
     TrigTime[i]  = ptr->_TrigTime[i];
   }
