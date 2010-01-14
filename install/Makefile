@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.94 2010/01/11 16:03:44 pzuccon Exp $
+#  $Id: Makefile,v 1.95 2010/01/14 22:10:43 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -210,7 +210,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	        $(SCC)TrAlignFit.C\
-	      $(SCC)TrElem.C   $(SCC)VCon_root.C 
+	      $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)/HistoMan.C
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
 	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C
@@ -226,7 +226,7 @@ TRACK_BASE +=   $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C   $(SCC)trc
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C $(SCC)vtx.C
 TRACK_ADD=      $(SFF)mfield.F     $(SCC)bcorr.C
 endif
-COMMON_FILES +=$(TRACK_ADD) $(SCC)HistoMan.C
+COMMON_FILES +=$(TRACK_ADD) 
 COMMON_FILES +=$(TRACK_BASE)
 
 TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)

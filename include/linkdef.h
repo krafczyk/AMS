@@ -1,9 +1,8 @@
-//  $Id: linkdef.h,v 1.53 2010/01/11 16:03:44 pzuccon Exp $
+//  $Id: linkdef.h,v 1.54 2010/01/14 22:10:43 pzuccon Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
-#pragma link C++ class vector<int>;
 #ifdef _PGTRACK_
 #pragma link C++ class TkObject+;
 #pragma link C++ class TkPlane+;

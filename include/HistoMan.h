@@ -18,9 +18,9 @@ private:
   TObjArray fhist;
   char fname[128];
 public:
-  HistoMan():enabled(false) { fhist.SetOwner(kTRUE); sprintf(fname,"histos.root");}
+  HistoMan();
 
-  ~HistoMan(){ }
+  ~HistoMan();
 
   void Add(TH1* hist ){fhist.Add(hist);}
   TH1* Get(char* name){return (TH1*) fhist.FindObject(name);}
@@ -32,5 +32,7 @@ public:
   void Disable(){enabled=false;}
 
 };
+
+extern HistoMan hman;
 #endif
 

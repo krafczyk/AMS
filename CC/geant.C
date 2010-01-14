@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.120 2010/01/12 15:26:23 choutko Exp $
+//  $Id: geant.C,v 1.121 2010/01/14 22:10:43 pzuccon Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -44,6 +44,8 @@
 #include <math.h>
 #ifndef _PGTRACK_
 #include "trid.h"
+#else
+#include "HistoMan.h"
 #endif
 #include <limits.h>
 #include "extC.h"
@@ -119,15 +121,8 @@ LMS*                   lms;
 
 
 
-#include "HistoMan.h"
 
 
-//PZ Histo facility
-#ifndef __AMSDBC_C__
-extern HistoMan hman;
-#else
-HistoMan hman;
-#endif
 extern "C" void npq_();
 extern "C" void timest_(float & t);
 extern "C" void gstran_(int & itrt,float & ch, float &mas);
@@ -231,7 +226,9 @@ if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)
 #endif
 GLAST();
+#ifdef _PGTRACK_
   hman.Save();
+#endif
        delete AMSJob::gethead();
 
 #ifdef __CORBA__

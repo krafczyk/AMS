@@ -2,14 +2,25 @@
 #include "HistoMan.h"
 #include "TFile.h"
 
+HistoMan hman;
+
+
+HistoMan::HistoMan():enabled(false) { 
+  //  fhist.SetOwner(kTRUE); 
+  sprintf(fname,"histos.root");
+}
+
+HistoMan::~HistoMan(){}
 
 void HistoMan::Save(){
   if(!enabled) return;
+  printf("HistoMan::Save ----> Saving %s\n",fname);
   TFile* pp=TFile::Open(fname,"RECREATE");
   pp->cd();
   fhist.Write();
   pp->Write();
   pp->Close();
+  printf(" ..... done\n");
   //  fdir->Purge();
   return;
 }
