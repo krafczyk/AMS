@@ -135,6 +135,8 @@ class RichRadiatorTileManager{
   AMSPoint getentrancepoint(){return _p_entrance;};
   AMSDir getentrancedir(){return _d_entrance;};
 
+  static void recompute_tables(int current,double new_index=0.0);
+
   //
   // TDV values utilities 
   //

@@ -80,6 +80,9 @@ void RichRadiatorTileManager::Init(){  // Default initialization
     
     // Compute tables
     _compute_tables();  
+
+    // Fill TDV tables, just in case
+    DumpToTDV();
   }
 //#pragma omp barrier 
 }
@@ -482,35 +485,27 @@ geant RichRadiatorTileManager::get_refractive_index(geant x,geant y,geant wavele
 geant   RichRadiatorTileManager::_optical_parameters[RICmaxtiles*4]; // Mean index, clarity, scattering prob, scatterin angle
 
 
+
 void RichRadiatorTileManager::DumpToTDV(){
   if(_number_of_rad_tiles>RICmaxtiles){
     cerr<<"RichRadiatorTileManager::DumpToTDV--too many tiles"<<endl;
     exit(1);
   }
+
+  // Fill with zeroes
+  const int n_=4;  // Number of stored parameters
+  memset(_optical_parameters,0,sizeof(_optical_parameters[0])*RICmaxtiles*n_);
   
  
-  // Fill the arrays and write them
-  for(int id=0;id<RICmaxtiles;id++){
-    // Search the tile with this id
-
-    int found=-1;
-    for(int current=0;current<_number_of_rad_tiles;current++){
-      if(_tiles[current]->id==id){
-	found=current;
-	break;
-      }
-    }
-     
-    if(found==-1){
-      //  Fill with zeroes
-
-    }else{
-
-    }
+  // Fill the arrays 
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    _optical_parameters[i*n_+0]=_tiles[i]->index;
+    _optical_parameters[i*n_+1]=_tiles[i]->clarity;
   }
 
+
   // Update all DB
-  UpdateDB(AMSID("RichRadTileParameters",AMSJob::gethead()->isRealData()));
+  //  UpdateDB(AMSID("RichRadTileParameters",AMSJob::gethead()->isRealData()));
 }
 
 time_t RichRadiatorTileManager::_parameters_begin,
@@ -525,26 +520,14 @@ void RichRadiatorTileManager::GetFromTDV(){
   //
   // Deal with parameters
   //
-  AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSID("RichRadTileParameters",AMSJob::gethead()->isRealData()));  
-  ptdv->gettime(insert,begin,end);
-  
-  if(insert!=_parameters_insert || 
-     begin!=_parameters_begin || 
-     end!=_parameters_end){
-    cout<<"-- Updating RichRad optical --"<<endl;
 
-    const int n_=4;
-    for(int i=0;i<_number_of_rad_tiles;i++){
-      _tiles[i]->index=_optical_parameters[i*n_+0];
-      _tiles[i]->clarity=_optical_parameters[i*n_+1];
-    }
-
-    // Here we should perform a reinit
-    _compute_tables();
-    
-    _parameters_insert=insert;
-    _parameters_begin=begin;
-    _parameters_end=end;
+  const int n_=4;  // Number of stored parameters
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    if(_tiles[i]->index==_optical_parameters[i*n_+0] &&
+       _tiles[i]->clarity==_optical_parameters[i*n_+1]) continue;
+    _tiles[i]->index=_optical_parameters[i*n_+0];
+    _tiles[i]->clarity=_optical_parameters[i*n_+1];
+    recompute_tables(i,_tiles[i]->index);
   }
 
 }
@@ -863,3 +846,43 @@ void RichRadiatorTileManager::UpdateOpticalParametersTable(float x,float y){
     RICGTKOV.usrcla=_tiles[tile_number]->clarity;
   }
 }
+
+
+void RichRadiatorTileManager::recompute_tables(int current,double new_index){  // Recompute the index for a given tile, assuming a new refractive index 
+  geant eff_index;
+  geant eff_height;
+
+  if(current<0 || current>=_number_of_rad_tiles) return;
+
+  if(new_index<=1.0) return;
+
+  for(int ii=0;ii<RICmaxentries;ii++){
+    if(_tiles[current]->kind==agl_kind){
+      _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
+    }else if(_tiles[current]->kind==naf_kind){
+      _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::naf_index-1)*(RICHDB::naf_index_table[ii]-1);
+    }
+    
+  }
+  // Now we compute the effective height and effective index calling the dedicated routine
+  
+  _compute_mean_height(_tiles[current]->index_table,
+		       _tiles[current]->clarity,
+		       _tiles[current]->abs_length,
+		       _tiles[current]->bounding_box[2][1]-_tiles[current]->bounding_box[2][0],
+		       eff_index,
+		       eff_height);
+  
+  if(_tiles[current]->kind==agl_kind){
+    _tiles[current]->mean_refractive_index=eff_index;
+    _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+  }else if(_tiles[current]->kind==naf_kind){
+    _tiles[current]->mean_refractive_index=eff_index;
+    _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+  }
+
+  // Update the index
+  _tiles[current]->index=new_index;
+  
+}
+
