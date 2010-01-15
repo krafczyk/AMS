@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.67 2009/12/21 09:59:42 mdelgado Exp $
+//  $Id: richdbc.C,v 1.68 2010/01/15 11:56:59 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -640,6 +640,7 @@ AMSPoint  RichAlignment::_r2aShift;
 AMSRotMat RichAlignment::_a2rRot;
 AMSRotMat RichAlignment::_r2aRot;
 AMSPoint  RichAlignment::_mirrorShift;
+double    RichAlignment::_align_parameters[12]={0,0,0,0,0,0,0,0,0,0,0,0};
 
 void RichAlignment::LoadFile(char *filename,int ver){
   if(!filename || strlen(filename)==0){
@@ -790,9 +791,51 @@ void RichAlignment::Set(double sx,double sy,double sz,double alpha,double beta,d
   t.SetRotAngles(-alpha,0,0);
   _r2aRot=t*_r2aRot;
   _r2aShift=(_r2aRot*_a2rShift)*-1.0;
+
+  // Update the _alignment table for TDV
+  int i=0;
+  _align_parameters[i++]=sx;
+  _align_parameters[i++]=sy;
+  _align_parameters[i++]=sz;
+  _align_parameters[i++]=alpha;
+  _align_parameters[i++]=beta;
+  _align_parameters[i++]=gamma;
 }
 
 
 void RichAlignment:: SetMirrorShift(double Dx,double Dy,double Dz){
   _mirrorShift.setp(Dx,Dy,Dz);
+    int i=6;
+  _align_parameters[i++]=Dx;
+  _align_parameters[i++]=Dy;
+  _align_parameters[i++]=Dz;
+  _align_parameters[i++]=0;
+  _align_parameters[i++]=0;
+  _align_parameters[i++]=0;
+}
+
+
+
+void RichAlignment::GetFromTDV(){
+  double current[12];
+  _a2rShift.getp(current[0],current[1],current[2]);
+  _a2rRot.GetRotAngles(current[3],current[4],current[5]);
+  _mirrorShift.getp(current[6],current[7],current[8]);
+
+
+
+  bool recompute=false;
+  const double tolerance=1e-6;
+  // Compare shifts
+  for(int i=0;i<9;i++){
+    if(fabs(current[i]-_align_parameters[i])<=tolerance) continue; 
+    RichAlignment::Set(_align_parameters[0],_align_parameters[1],_align_parameters[2],
+		       _align_parameters[3],_align_parameters[4],_align_parameters[5]);
+
+    RichAlignment::SetMirrorShift(_align_parameters[6],_align_parameters[7],_align_parameters[8]);
+    break;
+  }
+
+
+
 }

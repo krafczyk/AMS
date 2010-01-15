@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.50 2009/12/21 09:59:42 mdelgado Exp $
+//  $Id: richdbc.h,v 1.51 2010/01/15 11:56:59 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -278,6 +278,8 @@ class RichAlignment{
   static AMSRotMat _r2aRot;
   static AMSPoint  _mirrorShift;                // Internal alignment 
   static void LoadFile(char *filename,int ver=0);
+  static double _align_parameters[12];  // 6 for RICH+6 internal for mirror
+
  public:
   static void Init();
   static AMSPoint AMSToRich(AMSPoint &p){return (_a2rRot*p)+_a2rShift;}
@@ -288,6 +290,7 @@ class RichAlignment{
   static AMSPoint MirrorToRich(AMSPoint &p){return p-_mirrorShift;}
   static void Set(double Dx,double Dy,double Dz,double alpha,double beta,double gamma);
   static void SetMirrorShift(double Dx,double Dy,double Dz);
+  static void GetFromTDV();
 };
 
 
