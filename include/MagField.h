@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.4 2009/11/18 12:12:37 shaino Exp $
+//  $Id: MagField.h,v 1.5 2010/01/15 10:46:35 shaino Exp $
 #ifndef __MagField__
 #define __MagField__
 
@@ -45,7 +45,6 @@ COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 #define TKFLD(A1,A2)  MagField::GetPtr()->TkFld(A1,A2)
 
 
-
 #include "point.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,51 +60,50 @@ COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2009/11/18 12:12:37 $
+///$Date: 2010/01/15 10:46:35 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
-static const integer _nx=41;
-static const integer _ny=41;
-static const integer _nz=41;
-
-
 class MagField {
-private:
+public:
+  enum { _header_size = 15 };
+  enum { _nx = 41, _ny  = 41, _nz  = 41 };
+  enum { _nr =  9, _nph = 73, _nzr = 37 };
+
+protected:
   char mfile[120];
   integer iniok;
-  integer isec[2];
-  integer imin[2];
+  integer isec [2];
+  integer imin [2];
   integer ihour[2];
-  integer iday[2];
-  integer imon[2];
+  integer iday [2];
+  integer imon [2];
   integer iyear[2];
-  integer na[3];
+  integer na   [3];
+
   geant  _x[_nx];
   geant  _y[_ny];
   geant  _z[_nz];
+
   geant _bx[_nz][_ny][_nx];
   geant _by[_nz][_ny][_nx];
   geant _bz[_nz][_ny][_nx];
+
   geant _xyz[_nx+_ny+_nz];
+
   geant _bdx[2][_nz][_ny][_nx];
   geant _bdy[2][_nz][_ny][_nx];
   geant _bdz[2][_nz][_ny][_nx];
+
   geant _bxc[_nz][_ny][_nx];
   geant _byc[_nz][_ny][_nx];
   geant _bzc[_nz][_ny][_nx];
 
-
- 
-
-protected:
-
   double  _dx;     ///< Element size in X (cm)
   double  _dy;     ///< Element size in Y (cm)
   double  _dz;     ///< Element size in Z (cm)
-
 
   static MagField* _ptr;  ///< Self pointer
 
@@ -117,15 +115,18 @@ public:
   /// Read field map file
   int Read(const char *fname);
 
-  /// Get field value
+  /// Get field value (xyz coodinate)
   void GuFld(float *x, float *b);
 
+  /// Get field value (Rphiz coodinate)
+  void GuFldRphi(float *x, float *b);
+
   AMSPoint GuFld(AMSPoint x){
-    float xx[3]={0,0,0};
-    float b[3]={-1,-1,-1};
-    xx[0]=x[0]; xx[1]=x[1]; xx[2]=x[2];
-    GuFld(xx,b);
-    return AMSPoint(b[0],b[1],b[2]);
+    float xx[3] = { 0, 0, 0 };
+    float b [3] = { 0, 0, 0 };
+    xx[0] = x[0]; xx[1] = x[1]; xx[2] = x[2];
+    GuFld(xx, b);
+    return AMSPoint(b[0], b[1], b[2]);
   }
   /// Get field derivative
   void TkFld(float *x, float hxy[][3]);
@@ -149,25 +150,19 @@ public:
 
   void Print();
 
-  
-
 protected:
-  /// Interpolation
+  /// Interpolation (for xyz coordinate)
   void _Fint(double x, double y, double z, int *index, double *weight);
+
+  /// Interpolation (for rphiz coordinate)
+  void _FintRphi(double r, double ph, double z, int *index, double *weight);
 
   /// Get index of the array from each index number at x,y,z
   int _Index(int i, int j, int k) const;
 
   /// Get index of the array from position (x,y,z)
   int _GetIndex(double x, double y, double z) const;
-
-
-
 };
-
-
-  
-
 
 class TKFIELD_DEF{
 public:
@@ -181,9 +176,6 @@ public:
   integer iyear[2];
   void init();
 };
-
-
-
 
 #endif
 

@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.20 2010/01/11 16:03:44 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.21 2010/01/15 10:46:35 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/11 16:03:44 $
+/// $Date: 2010/01/15 10:46:35 $
 ///
-/// $Revision: 1.20 $
+/// $Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -514,7 +514,8 @@ public:
   /// FFKEY.init() called from ROOT CINT
   static void InitFFKEYs(int magstat);
   /// TrField::Read() called from ROOT CINT
-  static int ReadMagField(const char *fname, int magstat = 1);
+  static int ReadMagField(const char *fname, 
+			  float fscale = 1, int magstat = 1);
   /// TrField::GuFld() called from ROOT CINT
   static void GetMagField(float *pos, float *bf);
   /// TrField::TkFld() called from ROOT CINT

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.20 2010/01/11 16:03:43 pzuccon Exp $
+// $Id: TrTrack.C,v 1.21 2010/01/15 10:46:29 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/11 16:03:43 $
+///$Date: 2010/01/15 10:46:29 $
 ///
-///$Revision: 1.20 $
+///$Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -180,7 +180,7 @@ TrTrackPar &TrTrackR::GetPar(int id)
 
 AMSPoint TrTrackR::GetPlayer(int ilay, int id)
 {
-  AMSPoint  pres = GetResidual(ilay);
+  AMSPoint  pres = GetResidual(ilay, id);
   TrRecHitR *hit = GetHitL    (ilay);
   return (hit) ? hit->GetCoord()-pres : pres;
 }
@@ -470,6 +470,7 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
   AMSRotMat lrm = lad->GetRotMatA()*lad->GetRotMat();
   AMSRotMat prm = pla->GetRotMatA()*pla->GetRotMat();
   dir.setp(0, 0, 1);
+
   pnt = prm*(lad->GetPos()+lad->GetPosA())+pla->GetPosA()+pla->GetPos();
   dir = prm*lrm*dir;
 
