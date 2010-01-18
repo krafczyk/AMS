@@ -26,12 +26,11 @@ void NetFileEngineIterator::advance()
 {
   if (!dirPtr) return;
 
+  QString str = NetFileEngine::getDirEntry(dirPtr);
 
-  const char *str = NetFileEngine::NetSystem()->GetDirEntry(dirPtr);
-
-  if (str) currentEntry = str;
+  if (str != "") currentEntry = str;
   else {
-    NetFileEngine::NetSystem()->FreeDirectory(dirPtr);
+    NetFileEngine::freeDirectory(dirPtr);
     dirPtr  = 0;
     dirDone = true;
   }
@@ -41,8 +40,7 @@ bool NetFileEngineIterator::hasNext() const
 {
   if (!dirDone && !dirPtr) {
     NetFileEngineIterator *that = const_cast<NetFileEngineIterator *>(this);
-    that->dirPtr = NetFileEngine::NetSystem()
-        ->OpenDirectory(QFile::encodeName(path()).data());
+    that->dirPtr = NetFileEngine::openDirectory(QFile::encodeName(path()));
 
     if (!dirPtr) that->dirDone = true;
     else that->advance();
@@ -51,19 +49,114 @@ bool NetFileEngineIterator::hasNext() const
   return !dirDone;
 }
 
-TNetSystem *NetFileEngine::netSystem = 0;
-QString     NetFileEngine::netUrl;
-QString     NetFileEngine::netDir;
+QString NetFileEngine::netUrl;
+QString NetFileEngine::netDir;
 
-std::map<std::string,FileStat_t> NetFileEngine::statMap;
+
+TNetSystem *NetFileEngine::netSystem = 0;
+bool NetFileEngine::netLock = false;
 
 TNetSystem *NetFileEngine::NetSystem(void)
 {
   if (!netSystem) {
-    std::cout<<"Init TNetSystem: "<<netUrl.toAscii().data()<<std::endl;
+    std::cout << "Init TNetSystem: " << netUrl.toAscii().data() << std::endl;
     netSystem = new TNetSystem(netUrl.toAscii().data());
   }
   return netSystem;
+}
+
+FileStat_t NetFileEngine::getPathInfo(QString path)
+{
+  while (netLock) gSystem->Sleep(1);
+
+  netLock = true;
+  FileStat_t st;
+  NetSystem()->GetPathInfo(path.toAscii().data(), st);
+  netLock = false;
+
+  return st;
+}
+
+void *NetFileEngine::openDirectory(QString path)
+{
+  while (netLock) gSystem->Sleep(1);
+
+  netLock = true;
+  void *pdir = NetSystem()->OpenDirectory(path.toAscii().data());
+  netLock = false;
+
+  return pdir;
+}
+
+void NetFileEngine::freeDirectory(void *pdir)
+{
+  while (netLock) gSystem->Sleep(1);
+
+  netLock = true;
+  NetSystem()->FreeDirectory(pdir);
+  netLock = false;
+}
+
+QString NetFileEngine::getDirEntry(void *pdir)
+{
+  if (!pdir) return QString("");
+
+  while (netLock) gSystem->Sleep(1);
+
+  netLock = true;
+  QString str = NetSystem()->GetDirEntry(pdir);
+  netLock = false;
+
+  return str;
+}
+
+bool NetFileEngine::setUrl(const QString &url, const QString &dir, bool chk)
+{
+  QString urlb = netUrl;
+  QString dirb = netDir;
+
+  netUrl = url;
+  netDir = dir;
+
+  if (chk) {
+    clearNetSystem();
+
+    void *pdir = openDirectory(netDir);
+    if (!pdir) {
+      clearNetSystem();
+      netUrl = urlb;
+      netDir = dirb;
+      return false;
+    }
+    freeDirectory(pdir);
+  }
+  return true;
+}
+
+std::map<std::string, FileStat_t> NetFileEngine::statMap;
+
+bool NetFileEngine::statLock = false;
+
+const NetFileEngine::statIT &NetFileEngine::findStat(QString path)
+{
+  std::string str = path.toAscii().data();
+
+  while (statLock) gSystem->Sleep(1);
+  statLock  = true;
+  statIT it = statMap.find(str);
+  statLock  = false;
+
+  return it;
+}
+
+void NetFileEngine::addStat(QString path, const FileStat_t &st)
+{
+  std::string str = path.toAscii().data();
+
+  while (statLock) gSystem->Sleep(1);
+  statLock = true;
+  statMap[str] = st;
+  statLock = false;
 }
 
 QAbstractFileEngine::FileFlags
@@ -74,21 +167,18 @@ NetFileEngine::fileFlags(QAbstractFileEngine::FileFlags type) const
   QString aname = fileName(AbsoluteName);
   if (aname[0] != '/') return ret;
 
-  std::string path = aname.toAscii().data();
   for (int i = 1; 0 < i && i < aname.size(); i++) {
     i = aname.indexOf('/', i);
-    std::string pchk = aname.left(i).toAscii().data();
-    statIT it = statMap.find(pchk);
+    statIT it = findStat(aname.left(i));
     if (it != statMap.end() && it->second.fMtime == 0) return ret;
   }
 
   FileStat_t st;
-  statIT it = statMap.find(path);
+  statIT it = findStat(aname);
 
   if (it == statMap.end()) {
-    NetFileEngine *that = const_cast<NetFileEngine *>(this);
-    NetSystem()->GetPathInfo(path.c_str(), st);
-    that->statMap[path] = st;
+    st = getPathInfo(aname);
+    addStat(aname, st);
   }
   else st = it->second;
 

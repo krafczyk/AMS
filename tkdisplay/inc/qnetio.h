@@ -1,4 +1,4 @@
-// $Id: qnetio.h,v 1.1 2009/12/21 17:41:49 shaino Exp $
+// $Id: qnetio.h,v 1.2 2010/01/18 11:35:22 shaino Exp $
 //
 // QNetIO : a class to manage directory access through TNetSystem
 //
@@ -46,21 +46,31 @@ public:
     return new NetFileEngineIterator(filters, filterNames);
   }
 
-  static TNetSystem *NetSystem(void);
-  static void clearNetSystem() { delete netSystem; netSystem = 0; }
+  static FileStat_t getPathInfo(QString str);
+  static void    *openDirectory(QString path);
+  static void     freeDirectory(void *pdir);
+  static QString    getDirEntry(void *pdir);
 
   static const QString &getUrl(void) { return netUrl; }
   static const QString &getDir(void) { return netDir; }
-  static void setUrl(const QString &url) { netUrl = url; }
-  static void setDir(const QString &dir) { netDir = dir; }
+  static bool setUrl(const QString &url, const QString &dir, bool chk = true);
 
 private:
   static QString netUrl;
   static QString netDir;
+
   static TNetSystem *netSystem;
+  static bool netLock;
+
+  static TNetSystem *NetSystem(void);
+  static void clearNetSystem() { delete netSystem; netSystem = 0; }
 
   static  std::map<std::string,FileStat_t> statMap;
   typedef std::map<std::string,FileStat_t>::const_iterator statIT;
+
+  static bool statLock;
+  static const statIT &findStat(QString path);
+  static void addStat(QString path, const FileStat_t &st);
 };
 
 
