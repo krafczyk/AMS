@@ -1,23 +1,25 @@
-// $Id: qwchist.cpp,v 1.2 2009/12/21 17:41:49 shaino Exp $
+// $Id: qwchist.cpp,v 1.3 2010/01/18 11:17:00 shaino Exp $
 #include <QtGui>
 
 #include "qwchist.h"
+#include "trcls.h"
 
-#include "root.h"
-#include "TrCluster.h"
+#include "TString.h"
 #include "THLimitsFinder.h"
 
 QWCHist::QWCHist(QWidget *parent) : QWidget(parent)
 {
   wWid = wHei = 0;
 
+  binOffs = 6;
+  nBinMin = 1024;
+  nBinPnt = 16;
+
   xBin = 0;
   cSig = cNoi = cSta = cShr = 0;
   clearHist();
 
-  rEvent = 0;
   dStyle = true;
-  
 }
 
 QWCHist::~QWCHist()
@@ -34,66 +36,67 @@ void QWCHist::clearHist()
   delete [] cShr; cShr = 0;
 
   nBin = 0;
-  sMin = sMax = 0;
+  sMax = 0;
 }
 
-void QWCHist::drawCluster(int icls)
+void QWCHist::initHist(int xmin, int xmax)
 {
-  clearHist();
-
-  TrClusterR *cls = rEvent->pTrCluster(icls);
-  if (!cls) {
-    update();
-    return;
-  }
-
-  int bofs = 6;
-  nBin = cls->GetNelem()+bofs*2;
-
+  nBin = xmax-xmin;
   xBin = new int  [nBin];
   cSig = new float[nBin];
   cNoi = new float[nBin];
   cSta = new float[nBin];
   cShr = new float[nBin];
 
-  sMax = 0;
-
   for (int i = 0; i < nBin; i++) {
-    xBin [i] = cls->GetAddress(0)+i-bofs;
-    if (0 <= i-bofs && i-bofs < cls->GetNelem()) {
-      cSig[i] = cls->GetSignal(i-bofs);
-      cNoi[i] = cls->GetSigma (i-bofs);
-      if (cSig[i] > sMax) sMax = cSig[i];
-    }
-    else {
-      cSig[i] = cNoi[i] = 0;
-      cSta[i] = 0;
-    }
-    cShr[i] = 0;
+    xBin[i] = xmin+i;
+    cSig[i] = cNoi[i] = cSta[i] = cShr[i] = 0;
+  }
+  sMax = 0;
+}
+
+void QWCHist::fillCluster(TrCls *trcls, int icls)
+{
+  clearHist();
+
+  if (!trcls->pCluster(icls)) {
+    update();
+    return;
   }
 
-  for (int i = 0; i < rEvent->NTrCluster(); i++) {
-    if (i == icls) continue;
-    TrClusterR *cc = rEvent->pTrCluster(i);
-    if (!cc || 
-	cc->GetTkId() != cls->GetTkId() || 
-	cc->GetAddress(0)+cc->GetNelem() < xBin[0] ||
-	cc->GetAddress(0) > xBin[nBin-1]) continue;
+  int nbin = binOffs*2+trcls->getNelem(icls);
+  if (nbin < nBinMin) nbin = nBinMin;
 
-    for (int j = 0; j < nBin; j++) {
-      if (cShr[j] != 0) continue;
-      int k = xBin[j]-cc->GetAddress(0);
-      if (0 <= k && k < cc->GetNelem()) {
-	cShr[j] = cc->GetSignal(k);
-	if (cShr[j] > sMax) sMax = cShr[j];
+  int bofs = (nbin-trcls->getNelem(icls))/2;
+  int bmin = trcls->getAddress(icls, 0)-bofs;
+  int bmax = bmin+nbin;
+
+  if (bmin < 0) {
+    bmin = 0;
+    bmax = bmin+nbin;
+  }
+  if (bmax >= 1024) {
+    bmax = 1023;
+    bmin = bmax-nbin;
+  }
+
+  initHist(bmin, bmax);
+
+  int tkid = trcls->getTkId(icls);
+
+  for (int i = 0; i < trcls->nCluster(); i++) {
+    if (trcls->getTkId(i) != tkid) continue;
+
+    for (int j = 0; j < trcls->getNelem(i); j++) {
+      int jj = trcls->getAddress(i, j)-xBin[0];
+      if (0 <= jj && jj < nBin) {
+	cShr[jj] = trcls->getSignal(i, j);
+	cNoi[jj] = trcls->getSigma (i, j);
+	cSta[jj] = trcls->getStatus(i, j);
+	if (cShr[jj] > sMax) sMax = cShr[jj];
+	if (i == icls) cSig[jj] = cShr[jj];
       }
     }
-  }
-
-  float ssta = -sMax*0.1;
-  for (int i = 0; i < nBin; i++) {
-    if (0 <= i-bofs && i-bofs < cls->GetNelem())
-      cSta[i] = (cls->GetStatus(i-bofs) != 0) ? ssta : 0;
   }
 
   update();
@@ -130,27 +133,63 @@ void QWCHist::paintEvent(QPaintEvent *)
   int ndvx = 10;
   int ndvy = 10;
 
-  double hmax =  sMax*1.10;
-  double hmin = -sMax*0.15;
-
   pnt.setPen((dStyle) ? Qt::white : Qt::black);
   pnt.drawRect(lmag, tmag, hwid, hhei);
 
+  int sb1 = 1024;
+  int sb2 =    0;
+  for (int i = 0; i < nBin; i++) {
+    if (cSig[i] > 0) {
+      if (i < sb1) sb1 = i;
+      if (i > sb2) sb2 = i;
+    }
+  }
+
+  int nbp = nBinPnt;
+  if (sb2-sb1 > nbp) nbp = sb2-sb1;
+  int ib1 = (sb1+sb2)/2-nBinPnt/2;
+  int ib2 = (sb1+sb2)/2+nBinPnt/2+nBinPnt%2;
+  int nbi = ib2-ib1;
+
+  if (ib1 <     0) { ib1 = 0;      ib2 = ib1+nBinPnt-1; }
+  if (ib2 >= nBin) { ib2 = nBin-1; ib1 = ib2-nBinPnt+1; }
+
+  sMax = 0;
+  for (int i = ib1; i <= ib2; i++)
+    if (cShr[i] > sMax) sMax = cShr[i];
+
+  double hmax =  sMax*1.10;
+  double hmin = -sMax*0.15;
+  if (hmax >=  100) tofs = 35;
+  if (hmax >= 1000) tofs = 40;
+
   int nbx;
   double xmin, xmax, xstp;
-  THLimitsFinder::Optimize(xBin[0], xBin[nBin-1], ndvx, xmin, xmax, nbx, xstp);
+  THLimitsFinder::Optimize(xBin[ib1], xBin[ib2], ndvx, xmin, xmax, nbx, xstp);
+  if (xstp < 1) xstp = 1;
 
   // X-axis
-  for (int i = 0; i < nBin; i++) {
-    int px = lmag+hwid*(xBin[i]-xBin[0])/nBin;
-    int py = tmag+hhei;
-    pnt.drawLine(px, py, px, py-5);
+  if (xstp < 10) {
+    for (int i = ib1; i <= ib2; i++) {
+      int px = lmag+hwid*(xBin[i]-xBin[ib1])/nbi;
+      int py = tmag+hhei;
+      pnt.drawLine(px, py, px, py-5);
+    }
   }
   for (int i = 0; i <= nbx; i++) {
     double xval = xmin+i*xstp;
-    int px = lmag+hwid*(xval-xBin[0])/nBin;
+    int px = lmag+hwid*(xval-xBin[ib1])/nbi;
+    int py = tmag+hhei;
     pnt.drawText(px-twid/2, tmag+hhei+lofs, twid, thei, 
 		 Qt::AlignTop | Qt::AlignHCenter, Form("%.0f", xval));
+
+    if (xstp >= 10) {
+      pnt.drawLine(px, py, px, py-10);
+      if (i < nbx) {
+	px = lmag+hwid*(xval-xBin[ib1]+xstp*0.5)/nbi;
+	pnt.drawLine(px, py, px, py-5);
+      }
+    }
   }
   pnt.drawText(lmag, tmag+hhei+lofs+thei, hwid, thei,
 	       Qt::AlignTop | Qt::AlignRight, "Channel");
@@ -158,6 +197,7 @@ void QWCHist::paintEvent(QPaintEvent *)
   int nby;
   double ymin, ymax, ystp;
   THLimitsFinder::Optimize(hmin, hmax, ndvy, ymin, ymax, nby, ystp);
+  if (ystp < 1) ystp = 1;
 
   // Y-axis
   for (int i = 0; i <= nby; i++) {
@@ -215,22 +255,29 @@ void QWCHist::paintEvent(QPaintEvent *)
     }
 
     float bcont = cont[0];
-    for (int j = 0; j < nBin; j++) {
-      if (i == 2 && bcont == 0 && cont[j] == 0) {
-	bcont = cont[j];
+    for (int j = ib1; j <= ib2; j++) {
+
+      float ccont = cont[j];
+      if (i == 1) ccont = (cont[j] != 0) ? -sMax*0.1 : 0;
+
+      if (ccont < hmin) ccont = hmin;
+
+      if (i == 2 && bcont == 0 && ccont == 0) {
+	bcont = ccont;
 	continue;
       }
-      int px1 = lmag+hwid* j   /nBin;
-      int px2 = lmag+hwid*(j+1)/nBin;
-      int py1 = tmag+hhei-hhei*(bcont  -hmin)/(hmax-hmin);
-      int py2 = tmag+hhei-hhei*(cont[j]-hmin)/(hmax-hmin);
+
+      int px1 = lmag+hwid*(j-ib1  )/nbi;
+      int px2 = lmag+hwid*(j-ib1+1)/nbi;
+      int py1 = tmag+hhei-hhei*(bcont-hmin)/(hmax-hmin);
+      int py2 = tmag+hhei-hhei*(ccont-hmin)/(hmax-hmin);
       pnt.setPen(col1);
       pnt.drawLine(px1, py1, px1, py2);
       pnt.drawLine(px1, py2, px2, py2);
       pnt.setPen(col2);
       pnt.drawLine(px1+1, py1+1, px1+1, py2+1);
       pnt.drawLine(px1+1, py2+1, px2+1, py2+1);
-      bcont = cont[j];
+      bcont = ccont;
     }
   }
 }

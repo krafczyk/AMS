@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>524</width>
-    <height>589</height>
+    <width>526</width>
+    <height>616</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -187,6 +187,9 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="vL2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <property name="margin">
         <number>1</number>
        </property>
@@ -200,10 +203,66 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>480</width>
+           <width>500</width>
            <height>300</height>
           </size>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frXax">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>5</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Channel range</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="sbXax">
+            <property name="minimum">
+             <number>16</number>
+            </property>
+            <property name="maximum">
+             <number>1024</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbXa1">
+            <property name="text">
+             <string>|&lt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="sdXax">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbXa2">
+            <property name="text">
+             <string>&gt;|</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -216,7 +275,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>524</width>
+     <width>526</width>
      <height>22</height>
     </rect>
    </property>

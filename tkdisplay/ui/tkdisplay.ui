@@ -78,7 +78,6 @@
          <property name="focusPolicy">
           <enum>Qt::StrongFocus</enum>
          </property>
-         <zorder>tabWidget</zorder>
         </widget>
        </item>
       </layout>
@@ -764,6 +763,8 @@
     <addaction name="acOpen"/>
     <addaction name="acNetf"/>
     <addaction name="separator"/>
+    <addaction name="acMagf"/>
+    <addaction name="separator"/>
     <addaction name="acInfo"/>
     <addaction name="acExit"/>
    </widget>
@@ -785,6 +786,7 @@
     </property>
     <addaction name="acRcam"/>
     <addaction name="acDcls"/>
+    <addaction name="acDraw"/>
     <addaction name="separator"/>
     <addaction name="acMore"/>
     <addaction name="acCall"/>
@@ -896,6 +898,22 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="acDraw">
+   <property name="text">
+    <string>RawCluster Display</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="acMagf">
+   <property name="text">
+    <string>Open Magnetic &amp;Field file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>

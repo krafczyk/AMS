@@ -1,8 +1,9 @@
-// $Id: tkdisplay.cpp,v 1.5 2009/12/21 17:41:49 shaino Exp $
+// $Id: tkdisplay.cpp,v 1.6 2010/01/18 11:17:00 shaino Exp $
 #include <QtGui>
 #include <QFileDialog>
 
 #include "tkdisplay.h"
+#include "trcls.h"
 #include "clwidget.h"
 #include "glwidget.h"
 #include "evthread.h"
@@ -11,6 +12,7 @@
 #include "root.h"
 #include "amschain.h"
 #include "TrParDB.h"
+#include "TrRecon.h"
 
 #include "TTreeFormula.h"
 #include "TError.h"
@@ -22,7 +24,8 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
 {
   ui.setupUi(this);
 
-  clWidget = new ClWidget;
+  rcWidget = new ClWidget(new TrCls(TrCls::RAW));
+  clWidget = new ClWidget(new TrCls(TrCls::CLS));
   dlEvSel  = new DlEvSel(this);
 
   ui.sdFv->setRange(GLWidget::FOV_MIN, GLWidget::FOV_MAX);
@@ -53,6 +56,13 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
   connect(ui.glDisp, SIGNAL(setEnabled(bool)), 
 	  this, SLOT(gl_set_enabled_all(bool)));
 
+  connect(this,      SIGNAL(newEvent(AMSEventR *)),
+	  rcWidget,  SLOT  (newEvent(AMSEventR *)));
+  connect(rcWidget,  SIGNAL(changeFocus()),
+	  this,      SLOT  (actWindow()));
+
+  connect(dlEvSel, SIGNAL(updateFormula(QString)), 
+	  this,    SLOT  (updateFormula(QString)));
   connect(ui.glDisp, SIGNAL(drawCluster(int)),
 	  clWidget,  SLOT  (drawCluster(int)));
   connect(ui.glDisp, SIGNAL(drawCluster(int)),
@@ -61,9 +71,6 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
 	  clWidget,  SLOT  (newEvent(AMSEventR *)));
   connect(clWidget,  SIGNAL(changeFocus()),
 	  this,      SLOT  (actWindow()));
-
-  connect(dlEvSel, SIGNAL(updateFormula(QString)), 
-	  this,    SLOT  (updateFormula(QString)));
 
 
   ui.glDisp->setOpt(ALLTRK, (ui.cbGL11->checkState()&Qt::Checked));
@@ -92,6 +99,7 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
 
   ui.glDisp->cReset();
 
+  rcWidget->hide();
   clWidget->hide();
   dlEvSel ->hide();
 
@@ -104,16 +112,10 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
   thisPtr = this;
 }
 
-#include "TrRecon.h"
-
 void TkDisplay::openFile(QString fname, int entry)
 {
   if (amsChain) delete amsChain;
   amsChain = new AMSChain;
-
-  ////SH
-  TrRecon::ReadMagField("dat/MagneticFieldMap07.dat");
-  ////SH
 
   if (TrParDB::Head) {
     delete TrParDB::Head;
@@ -134,6 +136,19 @@ void TkDisplay::openFile(QString fname, int entry)
     if (draw) drawEvent();
 
     if (tFormula) updateFormula(tFormula->GetTitle());
+  }
+}
+
+void TkDisplay::openMagf(QString fname, float fscale)
+{
+  if (TrRecon::ReadMagField(fname.toAscii().data(), fscale, 1) < 0) {
+    QMessageBox *mbox = new QMessageBox(QMessageBox::Information, "Error", 
+					"Error in TrRecon::ReadMagField",
+					QMessageBox::Ok, this);
+    mbox->setIconPixmap(QPixmap(QLatin1String(":/images/ams02t.png")));
+    mbox->setStyleSheet(mboxStyle);
+    mbox->setAttribute(Qt::WA_DeleteOnClose);
+    mbox->exec();
   }
 }
 
@@ -240,12 +255,7 @@ void TkDisplay::Open()
 {
   QFileDialog qfd(this, "Open File...", ".", "Root files (*.root)");
 #ifndef Q_WS_MAC
-  qfd.setStyleSheet("QPushButton { background-color: white; }"
-		    "QPushButton, QLabel { color: black; }"
-		    "QWidget, QLabel { border: 0px solid black; "
-		    "                  border-radius: 0px }"
-		    "QPushButton { border: 1px solid black; "
-		    "              border-radius: 1px }");
+  qfd.setStyleSheet(flopStyle);
 #endif
   if (qfd.exec() == QDialog::Accepted)
     openFile(qfd.selectedFiles().value(0));
@@ -259,12 +269,7 @@ void TkDisplay::Netf()
   qid.setTextValue(NetFileEngine::getUrl()+NetFileEngine::getDir());
   qid.setTextEchoMode(QLineEdit::Normal);
   qid.resize(400, 0);
-  qid.setStyleSheet("QPushButton { background-color: white; }"
-		    "QPushButton, QLabel { color: black; }"
-		    "QWidget, QLabel { border: 0px solid black; "
-		    "                  border-radius: 0px }"
-		    "QPushButton { border: 1px solid black; "
-		    "              border-radius: 1px }");
+  qid.setStyleSheet(flopStyle);
 
   int ret = qid.exec();
   if (!ret) return;
@@ -278,20 +283,22 @@ void TkDisplay::Netf()
     dir = url.right(url.size()-idx);
     url = url.left(idx);
   }
-  while (!dir.startsWith("//")) dir = "/"+dir;
-  if (!dir.endsWith('/')) dir += '/';
+  if (!dir.startsWith("/")) dir = "/"+dir;
+  if (!dir.endsWith  ('/')) dir += '/';
 
-  if (NetFileEngine::getUrl() != url) {
-    NetFileEngine::setUrl(url);
-    NetFileEngine::clearNetSystem();
-    TNetSystem *nsys = NetFileEngine::NetSystem();
-    if (!nsys) return;
+  if (!NetFileEngine::setUrl(url, dir, true)) {
+    QMessageBox *mbox = new QMessageBox(QMessageBox::Information, "Error", 
+					"Url or directory is wrong.<br>"
+					" Url: "+url+"<br>"
+					" Dir: "+dir+"<br>",
+					QMessageBox::Ok, this);
+    mbox->setIconPixmap(QPixmap(QLatin1String(":/images/ams02t.png")));
+    mbox->setStyleSheet(mboxStyle);
+    mbox->setAttribute(Qt::WA_DeleteOnClose);
+    mbox->exec();
 
-    void *dirp = nsys->OpenDirectory(dir.toAscii().data());
-    if (!dirp) return;
-    nsys->FreeDirectory(dirp);
+    return;
   }
-  NetFileEngine::setDir(dir);
 
   NetFileEngineHandler::Enable();
 
@@ -312,6 +319,31 @@ void TkDisplay::Netf()
   NetFileEngineHandler::Disable();
 }
 
+void TkDisplay::Magf()
+{
+  QFileDialog qfd(this, "Open Magnetic Field File...", 
+		  ".", "Data files (*.*)");
+#ifndef Q_WS_MAC
+  qfd.setStyleSheet(flopStyle);
+#endif
+  if (qfd.exec() == QDialog::Accepted) {
+    QInputDialog qid(this);
+    qid.setWindowTitle("Set magnetic field scale");
+    qid.setLabelText("Magnetic field scale value:");
+    qid.setDoubleDecimals(4);
+    qid.setDoubleRange(0, 2);
+    qid.setDoubleValue(1);
+    qid.setTextEchoMode(QLineEdit::Normal);
+    qid.resize(400, 0);
+    qid.setStyleSheet(flopStyle);
+
+    int ret = qid.exec();
+    if (ret) {
+      openMagf(qfd.selectedFiles().value(0), qid.doubleValue());
+    }
+  }
+}
+
 void TkDisplay::Info()
 {
   QMessageBox *mbox = new QMessageBox(QMessageBox::Information,
@@ -320,8 +352,8 @@ void TkDisplay::Info()
 		    "   event display</h3>"
 		    "<p>by S.Haino <br>"
 		    "   (Sadakazu.Haino@pg.infn.it)</p>"
-		    "<p>CVS $Revision: 1.5 $<br>"
-		    "   CVS $Date: 2009/12/21 17:41:49 $</p>"
+		    "<p>CVS $Revision: 1.6 $<br>"
+		    "   CVS $Date: 2010/01/18 11:17:00 $</p>"
 		    "<p>Compiled: <br> at %1 on %2</p>"
 		    "<p>Qt version: %3</p>"
 		    "<p>ROOT version: %4</p>").arg(
@@ -389,10 +421,20 @@ void TkDisplay::changeStyle(const QString &name)
     str += "QFrame { background-color: qlineargradient("
                     "spread:pad, x1: 0, y1: 0, x2: 0, y2: 1,"
                     "stop: 1 rgb( 0,  5,  0), stop: 0 rgb( 0, 30, 10)); }";
+    str += "QFrame#frXax"
+           "{ border: 0px solid rgb(0, 0, 0); "
+           "background-color: rgb(0, 5, 0); }";
+    str += "QLabel"
+      "{ background-color: rgba(0, 0, 0, 0); }";
+
+
+    rcWidget->setStyleSheet(str);
     clWidget->setStyleSheet(str);
+    rcWidget->darkStyle(true);
     clWidget->darkStyle(true);
 
     mboxStyle = defMboxStyle();
+    flopStyle = defFlopStyle();
     infoStyle = defInfoStyle();
     dlogStyle = defDlogStyle();
   }
@@ -400,7 +442,9 @@ void TkDisplay::changeStyle(const QString &name)
     QApplication::setStyle(QStyleFactory::create(name));
     setStyleSheet("");
     ui.glDisp->changeAllStyle("");
+    rcWidget->setStyleSheet("");
     clWidget->setStyleSheet("");
+    rcWidget->darkStyle(false);
     clWidget->darkStyle(false);
     setStyle(QApplication::style());
   }
@@ -532,6 +576,18 @@ QString &TkDisplay::defMboxStyle()
     "                      x1: 0, y1: 0, x2: 0, y2: 1,"
     "                      stop: 0.7 rgb(0,  20,  20), "
     "                      stop: 0.0 rgb(0, 140, 140)); }";
+  return str;
+}
+
+QString &TkDisplay::defFlopStyle()
+{
+  static QString str = 
+    "QPushButton { background-color: white; }"
+    "QPushButton, QLabel { color: black; }"
+    "QWidget, QLabel { border: 0px solid black; "
+    "                  border-radius: 0px }"
+    "QPushButton { border: 1px solid black; "
+    "              border-radius: 1px }";
   return str;
 }
 

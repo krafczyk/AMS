@@ -1,4 +1,4 @@
-// $Id: infotext.cpp,v 1.2 2009/11/19 10:18:47 shaino Exp $
+// $Id: infotext.cpp,v 1.3 2010/01/18 11:17:00 shaino Exp $
 #include "infotext.h"
 
 #include "root.h"
@@ -6,9 +6,12 @@
 #include "TrTrack.h"
 #include "TrRecHit.h"
 #include "TrCluster.h"
+#include "TrRawCluster.h"
 
 #include "TString.h"
 #include "TMath.h"
+
+#include <QDateTime>
 
 QString &InfoText::EventInfo(AMSEventR *event)
 {
@@ -17,16 +20,21 @@ QString &InfoText::EventInfo(AMSEventR *event)
   str = "";
   if (!event) return str;
 
+  QDateTime qdt;
+  qdt.setTime_t(event->fHeader.Time[0]);
+
   int num[8][2];
 
   time_t *tt = (time_t*)event->fHeader.Time;
   str += Form("Run: %10d\nEvent: %7d\n"
-	      "FineTime: %d\nTime: %s"
+	      "FineTime: %d\nTime: %s\n"
 	      "TimeDiff: %d\n\n"
 	      "nRawClusters: %3d\nnClusters: %3d\n"
 	      "nRecHits: %3d\nnTracks: %3d\n",
 	      event->Run(),  event->Event(), 
-	      event->fHeader.Time[1], ctime(tt),
+	      event->fHeader.Time[1], //ctime(tt),
+	      qdt.toLocalTime().toString(Qt::SystemLocaleShortDate)
+	         .toAscii().data(),
 	      event->pLevel1()->TrigTime[4], 
 	      event->nTrRawCluster(), event->nTrCluster(), 
 	      event->nTrRecHit(), event->nTrTrack());
@@ -125,7 +133,7 @@ QString &InfoText::LadderInfo(AMSEventR *event, int tkid)
     if (cls->GetTkId() != tkid) continue;
 
     str += "\n  ";
-    str += cls->Info(i);//TrClusterR::sout.c_str();
+    str += cls->Info(i);
   }
 
   str += "\n";
@@ -138,7 +146,7 @@ QString &InfoText::LadderInfo(AMSEventR *event, int tkid)
     if (hit->GetTkId() != tkid) continue;
 
     str += "\n  ";
-    str += hit->Info(i);//TrRecHitR::sout.c_str();
+    str += hit->Info(i);
   }
 
   return str;
@@ -201,7 +209,7 @@ QString &InfoText::TrackInfo(AMSEventR *event, int itrk)
     if (!hit) continue;
     int ily = hit->GetLayer()-1;
     str += Form("\nHit[%d]\n  ", i);
-    str += hit->Info(i);//TrRecHitR::sout.c_str();
+    str += hit->Info(i);
     str += Form("Residual: %.4f %.4f\n", trk->GetResidual(ily).x(),
 		                         trk->GetResidual(ily).y());
   }
@@ -219,7 +227,7 @@ QString &InfoText::HitInfo(AMSEventR *event, int ihit)
   TrRecHitR *hit = event->pTrRecHit(ihit);
   if (!hit) return str;
 
-  str += hit->Info(ihit);//TrRecHitR::sout.c_str();
+  str += hit->Info(ihit);
 
   return str;
 }
@@ -234,7 +242,27 @@ QString &InfoText::ClusterInfo(AMSEventR *event, int icls)
   TrClusterR *cls = event->pTrCluster(icls);
   if (!cls) return str;
 
-  str += cls->Info(icls);//TrClusterR::sout.c_str();
+  str += cls->Info(icls);
+
+  return str;
+}
+
+QString &InfoText::RawClusInfo(AMSEventR *event, int icls)
+{
+  static QString str;
+  str = "";
+
+  if (!event) return str;
+
+  TrRawClusterR *cls = event->pTrRawCluster(icls);
+  if (!cls) return str;
+
+  for (int i = 0; i < event->nTrRawCluster(); i++) {
+    TrRawClusterR *cc = event->pTrRawCluster(i);
+    if (!cc || cc->GetTkId() != cls->GetTkId()) continue;
+    str += (cc == cls) ? ">> " : "      ";
+    str += cc->Info(i);
+  }
 
   return str;
 }

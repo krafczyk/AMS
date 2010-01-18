@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.4 2009/12/21 17:41:49 shaino Exp $
+// $Id: tkdisplay.h,v 1.5 2010/01/18 11:17:00 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -22,6 +22,7 @@ public:
   TkDisplay(QWidget *parent = 0);
 
   void openFile(QString fname, int entry = 0);
+  void openMagf(QString fname, float fscale = 1);
   void errorMsg(int level, bool abort, const char *loc, const char *msg);
 
   void setAnime(int anime);
@@ -82,6 +83,7 @@ private slots:
 
   void Open();
   void Netf();
+  void Magf();
   void Info();
   void Esel();
   void Prev();
@@ -90,6 +92,7 @@ private slots:
   void Last() { ui.sbEvent->setValue(ui.sbEvent->maximum()); }
   void Exit() { QApplication::closeAllWindows(); }
   void Rcam() { ui.glDisp->cReset(); }
+  void Draw() { rcWidget->show(); rcWidget->activateWindow(); }
   void Dcls() { clWidget->show(); clWidget->activateWindow(); }
   void More() { ui.glDisp->moreInfo(); }
   void Call() { ui.glDisp->closeAll(); }
@@ -98,6 +101,7 @@ private slots:
   // for Qt 4.5.3
   void on_acOpen_triggered() { Open(); }
   void on_acNetf_triggered() { Netf(); }
+  void on_acMagf_triggered() { Magf(); }
   void on_acInfo_triggered() { Info(); }
   void on_acEsel_triggered() { Esel(); }
   void on_acPrev_triggered() { Prev(); }
@@ -107,12 +111,14 @@ private slots:
   void on_acExit_triggered() { Exit(); }
   void on_acRcam_triggered() { Rcam(); }
   void on_acDcls_triggered() { Dcls(); }
+  void on_acDraw_triggered() { Draw(); }
   void on_acMore_triggered() { More(); }
   void on_acCall_triggered() { Call(); }
 #else
   // for Qt <= 4.5.2
   void on_acOpen_activated() { Open(); }
   void on_acNetf_activated() { Netf(); }
+  void on_acMagf_activated() { Magf(); }
   void on_acInfo_activated() { Info(); }
   void on_acEsel_activated() { Esel(); }
   void on_acPrev_activated() { Prev(); }
@@ -122,6 +128,7 @@ private slots:
   void on_acExit_activated() { Exit(); }
   void on_acRcam_activated() { Rcam(); }
   void on_acDcls_activated() { Dcls(); }
+  void on_acDraw_activated() { Draw(); }
   void on_acMore_activated() { More(); }
   void on_acCall_activated() { Call(); }
 #endif
@@ -151,6 +158,7 @@ private slots:
 
 private:
   Ui::TkDisplay ui;
+  ClWidget *rcWidget;
   ClWidget *clWidget;
   DlEvSel  *dlEvSel;
 
@@ -160,10 +168,12 @@ private:
   bool          tfError;
 
   QString mboxStyle;
+  QString flopStyle;
   QString infoStyle;
   QString dlogStyle;
   QString &defaultStyle();
   QString &defMboxStyle();
+  QString &defFlopStyle();
   QString &defInfoStyle();
   QString &defDlogStyle();
 };

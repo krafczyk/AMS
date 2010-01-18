@@ -1,4 +1,4 @@
-# $Id: tkdisplay.pro,v 1.4 2010/01/08 15:18:04 pzuccon Exp $
+# $Id: tkdisplay.pro,v 1.5 2010/01/18 11:17:00 shaino Exp $
 #
 # Project file for TkDisplay on Qt4
 # Run qmake first to generate Makefile
@@ -11,7 +11,7 @@ HEADERS       = inc/glutils.h    inc/glcamera.h   inc/gllight.h   \
                 inc/glviewer.h   inc/glwidget.h   inc/gltdisp.h   \
                 inc/tewidget.h   inc/infotext.h   inc/subwindow.h \
                 inc/swevent.h    inc/swtrack.h    inc/swladder.h  \
-                inc/qwchist.h    inc/clwidget.h   \
+                inc/trcls.h      inc/qwchist.h    inc/clwidget.h  \
                 inc/wdcuts.h     inc/dlevsel.h    \
                 inc/qnetio.h     inc/evthread.h   inc/tkdisplay.h
 
@@ -19,10 +19,11 @@ SOURCES       = src/glutils.cpp  src/glcamera.cpp src/gllight.cpp   \
                 src/glviewer.cpp src/glwidget.cpp src/gltdisp.cpp   \
                 src/tewidget.cpp src/infotext.cpp src/subwindow.cpp \
                 src/swevent.cpp  src/swtrack.cpp  src/swladder.cpp  \
-                src/qwchist.cpp  src/clwidget.cpp \
+                src/trcls.cpp    src/qwchist.cpp  src/clwidget.cpp  \
                 src/wdcuts.cpp   src/dlevsel.cpp  \
                 src/qnetio.cpp   src/evthread.cpp src/tkdisplay.cpp \
                 src/main.cpp
+
 
 FORMS         = ui/tkdisplay.ui ui/clwidget.ui ui/dlevsel.ui
 RESOURCES     = images/tkdisplay.qrc

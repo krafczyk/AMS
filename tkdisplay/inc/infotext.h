@@ -1,4 +1,4 @@
-// $Id: infotext.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: infotext.h,v 1.2 2010/01/18 11:17:00 shaino Exp $
 //
 // InfoText : a class to manage text information of Tracker objects by SH
 //
@@ -17,6 +17,7 @@ public:
   static QString &TrackInfo  (AMSEventR *event, int itrk);
   static QString &HitInfo    (AMSEventR *event, int ihit);
   static QString &ClusterInfo(AMSEventR *event, int icls);
+  static QString &RawClusInfo(AMSEventR *event, int icls);
 };
 
 #endif

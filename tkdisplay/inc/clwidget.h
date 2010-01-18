@@ -1,4 +1,4 @@
-// $Id: clwidget.h,v 1.2 2009/11/19 10:18:47 shaino Exp $
+// $Id: clwidget.h,v 1.3 2010/01/18 11:17:00 shaino Exp $
 //
 // ClWidget : a class to manage cluster display by SH
 //
@@ -7,14 +7,14 @@
 
 #include "ui_clwidget.h"
 
+class TrCls;
 class AMSEventR;
-class TrRecon;
 
 class ClWidget : public QMainWindow {
   Q_OBJECT
 
 public:
-  ClWidget(QWidget *parent = 0);
+  ClWidget(TrCls *trcls, QWidget *parent = 0);
 
 public Q_SLOTS:
   void newEvent(AMSEventR *evt);
@@ -39,6 +39,9 @@ private slots:
   void on_acFirst_triggered() { ui.sbIndx->setValue(ui.sbIndx->minimum()); }
   void on_acClose_triggered() { close(); }
 
+  void on_pbXa1_clicked() { ui.sdXax->setValue(ui.sdXax->minimum()); }
+  void on_pbXa2_clicked() { ui.sdXax->setValue(ui.sdXax->maximum()); }
+
 protected:
   void updateDisp ();
   void updateDigit();
@@ -53,13 +56,11 @@ protected:
 private:
   Ui::ClWidget ui;
 
-  AMSEventR *rEvent;
+  TrCls *trCls;
 
   bool pChain;
   int  pLayer;
   int  pTkID;
-
-  TrRecon *trRec;
 };
 
 #endif

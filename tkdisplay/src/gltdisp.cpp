@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.4 2009/11/29 12:17:12 shaino Exp $
+// $Id: gltdisp.cpp,v 1.5 2010/01/18 11:17:00 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -320,7 +320,7 @@ void GLTDisp::drawObject(GLenum mode)
 
   drawTracker (mode);
   drawTracks  (mode);
-  drawMCTracks(mode);
+//drawMCTracks(mode);
 
   if (mode == GL_RENDER) {
     drawClusters();
