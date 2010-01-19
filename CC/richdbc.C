@@ -1,7 +1,8 @@
-//  $Id: richdbc.C,v 1.68 2010/01/15 11:56:59 mdelgado Exp $
+//  $Id: richdbc.C,v 1.69 2010/01/19 15:28:19 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
+#include"timeid.h" 
 
 geant RICHDB::_RICradpos=RICradposs;
 integer RICHDB::_Nph=0;
@@ -684,6 +685,12 @@ void RichAlignment::LoadFile(char *filename,int ver){
 
   stream.close();
 
+  // Set the parameters
+  Set(sx,sy,sz,alpha,beta,gamma);
+  if(ver==1) SetMirrorShift(mx,my,mz);
+
+#ifdef __SKIP__
+
 #ifdef __AMSDEBUG__
   cout<<"RICH ALIGNMENT PARAMETERS --- "<<sx<<" "<<sy<<" "<<sz<<" --- "<<alpha<<" "<<beta<<" "<<gamma<<endl;
 #endif
@@ -736,6 +743,7 @@ void RichAlignment::LoadFile(char *filename,int ver){
     _mirrorShift.setp(mx,my,mz);
   }
 
+#endif
 }
 
 void RichAlignment::Init(){
@@ -758,7 +766,23 @@ void RichAlignment::Init(){
     return;  // Ensure that it is finished
   }
 
-
+  if(AMSJob::gethead()->isRealData()  &&              // It is real data
+     !strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+       char filename[201];
+       UHTOC(RICRADSETUPFFKEY.alignment_in,50,filename,200);
+       for(int i=200;i>=0;i--){
+	 if(filename[i]!=' '){
+	   filename[i+1]=0;
+	   break;
+	 }
+       } 
+       
+       if(filename[0]!='\0'){
+	 LoadFile(filename,1);
+	 return;
+       }
+     }
+#ifdef __SKIP__
   if(AMSJob::gethead()->isRealData()  &&              // It is real data
      !strstr(AMSJob::gethead()->getsetup(),"PreAss") &&
      MISCFFKEY.BeamTest){
@@ -771,7 +795,7 @@ void RichAlignment::Init(){
     RichAlignment::SetMirrorShift(2.14e-2,1.54e-1,0.0);
     return;  // Ensure that it is finished
   }
-
+#endif
 
 //#pragma omp barrier 
 
@@ -794,12 +818,14 @@ void RichAlignment::Set(double sx,double sy,double sz,double alpha,double beta,d
 
   // Update the _alignment table for TDV
   int i=0;
+
   _align_parameters[i++]=sx;
   _align_parameters[i++]=sy;
   _align_parameters[i++]=sz;
   _align_parameters[i++]=alpha;
   _align_parameters[i++]=beta;
   _align_parameters[i++]=gamma;
+
 }
 
 
@@ -812,6 +838,7 @@ void RichAlignment:: SetMirrorShift(double Dx,double Dy,double Dz){
   _align_parameters[i++]=0;
   _align_parameters[i++]=0;
   _align_parameters[i++]=0;
+
 }
 
 
@@ -821,8 +848,6 @@ void RichAlignment::GetFromTDV(){
   _a2rShift.getp(current[0],current[1],current[2]);
   _a2rRot.GetRotAngles(current[3],current[4],current[5]);
   _mirrorShift.getp(current[6],current[7],current[8]);
-
-
 
   bool recompute=false;
   const double tolerance=1e-6;
@@ -836,6 +861,61 @@ void RichAlignment::GetFromTDV(){
     break;
   }
 
+}
+
+void RichAlignment::Finish(){
+  /*
+  //CJD
+  double current[12];
+  _a2rShift.getp(current[0],current[1],current[2]);
+  _a2rRot.GetRotAngles(current[3],current[4],current[5]);
+  _mirrorShift.getp(current[6],current[7],current[8]);
+  cout<<"CURRENT ALIGNMENT "<<endl;
+  for(int i=0;i<8;i++) cout<<current[i]<<" ";
+  cout<<endl; 
+  */
+
+  if(((RICDBFFKEY.dump/10)%10)==0) return;
+  if(AMSFFKEY.Update==0) return;
+  AMSTimeID *ptdv;
+  time_t begin_time,end_time,insert_time;
+  const int ntdv=1;
+  const char* TDV2Update[ntdv]={"RichAlignmentParameters"};
+  
+  tm begin;
+  tm end;
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+  
+  begin.tm_sec=RICDBFFKEY.sec[0];
+  begin.tm_min=RICDBFFKEY.min[0];
+  begin.tm_hour=RICDBFFKEY.hour[0];
+  begin.tm_mday=RICDBFFKEY.day[0];
+  begin.tm_mon=RICDBFFKEY.mon[0];
+  begin.tm_year=RICDBFFKEY.year[0];
+  
+  
+  end.tm_sec=RICDBFFKEY.sec[1];
+  end.tm_min=RICDBFFKEY.min[1];
+  end.tm_hour=RICDBFFKEY.hour[1];
+  end.tm_mday=RICDBFFKEY.day[1];
+  end.tm_mon=RICDBFFKEY.mon[1];
+  end.tm_year=RICDBFFKEY.year[1];
+
+  begin_time=mktime(&begin);
+  end_time=mktime(&end);
+  time(&insert_time);
 
 
+  for (int i=0;i<ntdv;i++){
+    ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+    ptdv->UpdateMe()=1;
+    ptdv->UpdCRC();
+    ptdv->SetTime(insert_time,begin_time,end_time);
+    cout <<" RICH info has been updated for "<<*ptdv<<endl;
+    ptdv->gettime(insert_time,begin_time,end_time);
+    cout <<" Time Insert "<<ctime(&insert_time)<<endl;
+    cout <<" Time Begin "<<ctime(&begin_time)<<endl;
+    cout <<" Time End "<<ctime(&end_time)<<endl;
+  }
 }

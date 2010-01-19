@@ -493,7 +493,7 @@ void RichPMTsManager::Finish(){
       
       SaveToFile(name);
     }
-    cout<<" ---- IS CALIBRATION  "<<AMSRichCal::isCalibration()<<endl;
+    //    cout<<" ---- IS CALIBRATION  "<<AMSRichCal::isCalibration()<<endl;
     if(AMSRichCal::isCalibration()){
       cout<<"CALLING AMSRichCal::finish()"<<endl;
       AMSRichCal::finish();

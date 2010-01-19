@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.681 2010/01/14 22:10:43 pzuccon Exp $
+// $Id: job.C,v 1.682 2010/01/19 15:28:19 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -322,6 +322,7 @@ void AMSJob::_sirichdata(){
   VBLANK(RICRADSETUPFFKEY.tables_in,50);
   VBLANK(RICRADSETUPFFKEY.tables_out,50);
   VBLANK(RICRADSETUPFFKEY.finemesh_in,50);
+  VBLANK(RICRADSETUPFFKEY.alignment_in,50);
   FFKEY("RICSET",(float *)&RICRADSETUPFFKEY,sizeof(RICRADSETUPFFKEY_DEF)/sizeof(integer),"MIXED");
 
   RICRECFFKEY.recon[0]=11;   //beta reconstruction
@@ -362,8 +363,20 @@ void AMSJob::_sirichdata(){
   //  FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"INTEGER");
   FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"MIXED");
 
-
-
+  RICDBFFKEY.dump=0;
+  RICDBFFKEY.sec[0]=0;
+  RICDBFFKEY.sec[1]=0;
+  RICDBFFKEY.min[0]=0;
+  RICDBFFKEY.min[1]=0;
+  RICDBFFKEY.hour[0]=0;
+  RICDBFFKEY.hour[1]=0;
+  RICDBFFKEY.day[0]=1;
+  RICDBFFKEY.day[1]=1;
+  RICDBFFKEY.mon[0]=0;
+  RICDBFFKEY.mon[1]=0;
+  RICDBFFKEY.year[0]=101;
+  RICDBFFKEY.year[1]=107;
+  FFKEY("RICDB",(float*)&RICDBFFKEY,sizeof(RICDBFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 //------------------------------------------------------
@@ -3336,6 +3349,48 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 			 *sizeof(RichPMTsManager::_gain_sigma[0]),
                          (void*)&RichPMTsManager::_gain_sigma[0],server,isRealData()));
   
+
+  // Further TDV  
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+  
+  begin.tm_sec=RICDBFFKEY.sec[0];
+  begin.tm_min=RICDBFFKEY.min[0];
+  begin.tm_hour=RICDBFFKEY.hour[0];
+  begin.tm_mday=RICDBFFKEY.day[0];
+  begin.tm_mon=RICDBFFKEY.mon[0];
+  begin.tm_year=RICDBFFKEY.year[0];
+
+
+  end.tm_sec=RICDBFFKEY.sec[1];
+  end.tm_min=RICDBFFKEY.min[1];
+  end.tm_hour=RICDBFFKEY.hour[1];
+  end.tm_mday=RICDBFFKEY.day[1];
+  end.tm_mon=RICDBFFKEY.mon[1];
+  end.tm_year=RICDBFFKEY.year[1];
+
+  int use_radiator=(RICDBFFKEY.dump%10)==0 && 
+    !strstr(AMSJob::gethead()->getsetup(),"PreAss");
+
+  int use_alignment=isRealData() && ((RICDBFFKEY.dump/10)%10)==0 &&
+    !strstr(AMSJob::gethead()->getsetup(),"PreAss");
+
+  AMSTimeID *pdtv;
+
+  pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
+                         begin,end,
+			 RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
+			 (void*)&RichRadiatorTileManager::_optical_parameters[0],
+			 server,use_radiator));
+
+  pdtv=(AMSTimeID*) TID.add (new AMSTimeID(AMSID("RichAlignmentParameters",isRealData()),
+                         begin,end,
+			 12*sizeof(RichAlignment::_align_parameters[0]),
+			 (void*)&RichAlignment::_align_parameters[0],
+			 server,use_alignment));
+
+
+  
 }
 
 
@@ -4017,6 +4072,8 @@ void AMSJob::_trdendjob(){
 
 void AMSJob::_richendjob(){
   RichPMTsManager::Finish();
+  RichAlignment::Finish();
+  RichRadiatorTileManager::Finish();
 }
 
 
@@ -4044,8 +4101,6 @@ void AMSJob::_axendjob(){
 }
 
 void AMSJob::_dbendjob(){
-cout<<"<---- In dbendjob, UpdateFlag="<<AMSFFKEY.Update<<endl;
-
   //Status Stuff
 #ifndef __CORBA__
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){

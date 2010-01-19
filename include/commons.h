@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.280 2010/01/14 22:10:43 pzuccon Exp $
+//  $Id: commons.h,v 1.281 2010/01/19 15:28:19 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1035,6 +1035,7 @@ integer setup;  // Allows to choose among several differen geometries
 integer tables_in[50];     // Input file of radiator tables
 integer tables_out[50];    // Output file of radiator tables
 integer finemesh_in[50]; 
+integer alignment_in[50];  // alignment input file, if any  
 };
 #define RICRADSETUPFFKEY COMMON_BLOCK(RICRADSETUPFFKEY,ricradsetupffkey)
 COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);
@@ -1065,10 +1066,24 @@ class RICFFKEY_DEF{
   integer year[2];
   integer fname_in[200];
   integer fname_out[200];
-
 };
 #define RICFFKEY COMMON_BLOCK(RICFFKEY,ricffkey)
 COMMON_BLOCK_DEF(RICFFKEY_DEF,RICFFKEY);
+
+
+class RICDBFFKEY_DEF{
+ public:  
+  integer dump;  
+  integer sec[2];        // calibration validation
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+};
+#define RICDBFFKEY COMMON_BLOCK(RICDBFFKEY,ricdbffkey)
+COMMON_BLOCK_DEF(RICDBFFKEY_DEF,RICDBFFKEY);
+
 
 
 

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.315 2010/01/11 16:03:43 pzuccon Exp $
+#  $Id: datacards.doc,v 1.316 2010/01/19 15:28:19 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -93,19 +93,21 @@ I 6  hour[2](0,0)       //
 I 8  day[2](1,1)        //
 I10  mon[2](0,0)        //
 I12  year[2](101,110)   // year-1900
-I14  Input filename(200)
-I214 Output filename(200)
+I14  Input filename(200)  // For PMT calibrations
+I214 Output filename(200) // For PMT calibrations
+
 
 RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
 I 2  tsplit(0)                  // 1 Split time spent information (for optimization
                                 // purposes); 0 do no split
-I 3    mcinputtables[50]       // File to load precomputed single p.e. simulation tables
+I 3  mcinputtables[50]       // File to load precomputed single p.e. simulation tables
                                 // If no file is present, the file $AMSDataDir/$version/RichDefaultPMTTables.dat
                                 // is searched. If it is not found, or the calibration values differ
                                 // from the ones used to compute the tables, the tables are recomputed, but not saved 
                                 // unless explicitly stated in next key register 
 I 53  mcoutputtables[50]      // File to svae compute single p.e. simulation tables
+
 
 RICREC
 I 1  recon[0](1)                    //  RICH BETA reconstruction switch + LIP rec main switch 
@@ -142,7 +144,6 @@ RICSET
 I 1  setup(0)                    // 0 use coarse radiator tables.
 	                         // 1 use fine radiator tables
 
-
 I 2  tables_in[50]               // File to load radiator parameters.
                                  // Keep it empty to load default tables
 
@@ -152,7 +153,21 @@ I 52  tables_out[50]             // File to save radiator parameters.
 I 102  finemesh_in[50]         // File to read finemesh radiator parameters.
                                 // Keep it empty to load default tables
 
+I 152  alignment_in[50]          // File to load alignment settings       
+                                 // Keep it empty to load default one
+RICDB
+I 1 dump(0)                     // 0 no action
+                                // >0 Ignore db settings and dump tables to db
+                                // +1  Dump radiator configuration                      
+                                // +10 Dump alignment settings 
 
+
+I 2  sec[2](0,0)        // Validity time:              
+I 4  min[2](0,0)        //
+I 6  hour[2](0,0)       //
+I 8  day[2](1,1)        //
+I10  mon[2](0,0)        //
+I12  year[2](101,110)   // year-1900
 //--------------------------------------------------------------------------------
 
 // Tracker Cluster  Simulation

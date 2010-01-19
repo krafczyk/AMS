@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.51 2010/01/15 11:56:59 mdelgado Exp $
+//  $Id: richdbc.h,v 1.52 2010/01/19 15:28:19 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -291,6 +291,9 @@ class RichAlignment{
   static void Set(double Dx,double Dy,double Dz,double alpha,double beta,double gamma);
   static void SetMirrorShift(double Dx,double Dy,double Dz);
   static void GetFromTDV();
+  static void Finish();
+
+  friend class AMSJob;
 };
 
 

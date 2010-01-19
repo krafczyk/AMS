@@ -55,6 +55,7 @@ extern "C" void setbcorr_(float *p);
 #include "richrec.h"
 #include "richdbc.h"
 #include "richcal.h"
+#include "richradid.h"
 #include "geantnamespace.h"
 #include <sys/types.h>
 #include <sys/time.h>
@@ -1114,7 +1115,18 @@ void AMSEvent::_rerichinitevent(){
     new AMSContainer(AMSID("AMSContainer:AMSRichRing",0),0));
   ptr=AMSEvent::gethead()->add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRingNew",0),0));
+
+  // Update the necessary tables if database have been updated
+  if((RICDBFFKEY.dump%10)==0 && 
+     !strstr(AMSJob::gethead()->getsetup(),"PreAss"))
+    RichRadiatorTileManager::GetFromTDV();
+
+  if(AMSJob::gethead()->isRealData() && 
+     ((RICDBFFKEY.dump/10)%10)==0 &&
+     !strstr(AMSJob::gethead()->getsetup(),"PreAss"))
+    RichAlignment::GetFromTDV();
 }
+
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
   integer i;

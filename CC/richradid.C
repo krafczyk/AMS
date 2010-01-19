@@ -1,4 +1,5 @@
 #include "richradid.h"
+#include "timeid.h"
 
 /////////////////////////////////////////////////
 
@@ -269,21 +270,31 @@ void RichRadiatorTileManager::_compute_tables(){
 #define min(x,y) ((x)<(y)?(x):(y))
 
 
-void RichRadiatorTileManager::Finish(){
-//#pragma omp barrier 
-//#pragma omp master
-  {
-    //
-    // Decide how to finish as a function of the kind of job
-    //
-    Finish_Default();
-    //  DumpToTDV();
-  }
-}
 
 
 void RichRadiatorTileManager::Finish_Default(){
   cout<<"RichTileManager finishing"<<endl;
+    char filename[201];
+    UHTOC(RICRADSETUPFFKEY.tables_out,50,filename,200);
+  
+    for(int i=200;i>=0;i--){
+      if(filename[i]!=' '){
+	filename[i+1]=0;
+	break;
+      }
+    } 
+    
+    if(filename[0]=='\0') return;
+
+#pragma omp single
+    {    
+      cout<<"RichRadiatorTileManager writing constants to file "<<filename<<endl;
+      fstream data(filename,ios::out); // open  file for reading
+      for(int i=0;i<_number_of_rad_tiles;i++){
+	data<<i<<" "<<_tiles[i]->index<<" "<<_tiles[i]->clarity<<endl;
+      }
+      data.close();
+    }
 }
 
 
@@ -884,5 +895,54 @@ void RichRadiatorTileManager::recompute_tables(int current,double new_index){  /
   // Update the index
   _tiles[current]->index=new_index;
   
+}
+
+
+void RichRadiatorTileManager::Finish(){
+  Finish_Default();
+  if((RICDBFFKEY.dump%10)==0) return;
+  if(AMSFFKEY.Update==0) return;
+
+  AMSTimeID *ptdv;
+  time_t begin_time,end_time,insert_time;
+  const int ntdv=1;
+  const char* TDV2Update[ntdv]={"RichRadTilesParameters"};
+  
+  tm begin;
+  tm end;
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+  
+  begin.tm_sec=RICDBFFKEY.sec[0];
+  begin.tm_min=RICDBFFKEY.min[0];
+  begin.tm_hour=RICDBFFKEY.hour[0];
+  begin.tm_mday=RICDBFFKEY.day[0];
+  begin.tm_mon=RICDBFFKEY.mon[0];
+  begin.tm_year=RICDBFFKEY.year[0];
+  
+  
+  end.tm_sec=RICDBFFKEY.sec[1];
+  end.tm_min=RICDBFFKEY.min[1];
+  end.tm_hour=RICDBFFKEY.hour[1];
+  end.tm_mday=RICDBFFKEY.day[1];
+  end.tm_mon=RICDBFFKEY.mon[1];
+  end.tm_year=RICDBFFKEY.year[1];
+
+  begin_time=mktime(&begin);
+  end_time=mktime(&end);
+  time(&insert_time);
+
+
+  for (int i=0;i<ntdv;i++){
+    ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+    ptdv->UpdateMe()=1;
+    ptdv->UpdCRC();
+    ptdv->SetTime(insert_time,begin_time,end_time);
+    cout <<" RICH info has been updated for "<<*ptdv<<endl;
+    ptdv->gettime(insert_time,begin_time,end_time);
+    cout <<" Time Insert "<<ctime(&insert_time)<<endl;
+    cout <<" Time Begin "<<ctime(&begin_time)<<endl;
+    cout <<" Time End "<<ctime(&end_time)<<endl;
+  }
 }
 
