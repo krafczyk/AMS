@@ -377,7 +377,7 @@ $dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+5*$drh2));
-$fdat1="2008.01.01 00:00:01";#def. file-date-from 
+$fdat1="2010.01.19 00:00:01";#def. file-date-from 
 $fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fdat1)

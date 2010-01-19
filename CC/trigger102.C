@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.87 2010/01/12 16:55:15 choumilo Exp $
+//  $Id: trigger102.C,v 1.88 2010/01/19 09:24:16 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -532,7 +532,7 @@ if((TGL1FFKEY.printfl%10)>0){
   HBOOK1(1294,"LVL1:TofPlaneSide-MaxRate(Hz)",100,0.,2000.,0.);
   HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,3000.,0.);
   HBOOK1(1296,"LVL1:FTZ-rate(Hz)",100,0.,2000.,0.);
-  HBOOK1(1297,"LVL1:FTE-rate(Hz)",100,0.,2000.,0.);
+  HBOOK1(1297,"LVL1:FTE-rate(Hz)",100,0.,500.,0.);
   HBOOK1(1298,"LVL1:Lev1-rate(Hz)",100,0.,2000.,0.);
 }
   TGL1JobStat::resetstat();
@@ -1822,10 +1822,10 @@ int cid=(len>>16)+1;
     bool FTEok=((JMembPatt&(1<<6))>0);
     if(FTEok && (JMembPatt&(1<<10))>0)EcalFlag=30;//FTE + ProjAnd(2prj)
     else if(FTEok && (JMembPatt&(1<<11))>0)EcalFlag=20;//FTE + ProjOR(1prj)
-    else if(!FTEok && (JMembPatt&(1<<11))>0)EcalFlag=10;//noFTE when OR(1proj) at AND(2proj-requir)
+    else if(FTEok)EcalFlag=10;//FTE when no proj-bits (crazy situation)
     if((JMembPatt&(1<<12))>0)EcalFlag+=3;//Lvl1(Small angle in both proj(AngleAnd)) 
     else if((JMembPatt&(1<<13))>0)EcalFlag+=2;//Lvl1(Small angle at least in one proj(AngleOr))
-    else{//no LVL1-Abits
+    else{//no LVL1-AngleBits
       if(FTEok)EcalFlag+=1;//No ECLev1(Big angle in both proj, but FTE ok)
     }
 //-----> trig.patt histos: 

@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.8 2010/01/12 16:55:50 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.9 2010/01/19 09:24:27 choumilo Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -457,7 +457,6 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
     p2echt=ntuple->pEcalHit(ih);
     stat=p2echt->Status;
     badhit=((stat&16)>0);//bad hit(bad pm, bad pix)
-//    if(badhit && (EcalRunPar::getsev(5)%10)!=0)continue;//to bypass VC's bad hit correction by neighbour cells
     swid=p2echt->Idsoft;//SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4
     sl=swid/1000;//1-9
     pm=((swid/10)%100);//1-36

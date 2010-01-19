@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.89 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.90 2010/01/19 09:24:16 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -871,7 +871,7 @@ void EcalJobStat::bookhist(){
     if(ECREFFKEY.reprtf[0]>1){ // Book reco-hist
       HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,240.,0.);
       HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
-      HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,500.,0.);
+      HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,2000.,0.);
       HBOOK1(ECHISTR+13,"ECRE::HitBuild: EcalHit-hits tot.number",80,0.,160.,0.);
       HBOOK1(ECHISTR+14,"ECRE::HitBuild: RawEvent-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
       HBOOK1(ECHISTR+9,"ECRE::HitBuild: EcalHit-hit Energy(Mev)",100,0.,100.,0.);

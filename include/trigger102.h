@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.32 2009/11/18 09:27:45 choumilo Exp $
+//  $Id: trigger102.h,v 1.33 2010/01/19 09:24:26 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -143,8 +143,8 @@ protected:
  integer _tofpatt2[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=2(when globFT)
  integer _antipatt; //ANTI: pattern of FT-coincided sectors(logical)
  integer _ecalflag; //ECAL: =MN
-// M=0/1/2/3->FTE(Ener)Flag=No/NoFTE_when_1prj@2prj_req/FTE&1proj(or)/FTE&2proj(and),
-// N=0/1/2/3->LVL1(Angle)Flag=Undef(noFTE)/0prj@FTEfound/OrLVL1/AndLVL1;
+// M=0/1/2/3->FTE(Ener)Flag=No/FTE_when_no_prj_bits(?)/FTE&1proj(or)/FTE&2proj(and),
+// N=0/1/2/3->LVL1(Angle)Flag=Undef(noFTE)/0AnglePrj@FTEfound/OrAngPrj/AndAngPrj;
  int16u _ectrpatt[6][3];//PM(dyn) trig.patt for 6"trigger"-SupLayers(36of3x16bits for 36 dynodes) 
  geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev)
  geant _LiveTime;//Live time fraction

@@ -611,8 +611,8 @@ NextBlock:
 	      else padc[0]=0;
 	    }
 	    else padc[0]=adca;
-	    if(ECREFFKEY.reprtf[2]>1 && slay==2 && pmt==18){
-//	      cout<<"A_hi#="<<pix<<" ped/sig="<<peda<<" "<<siga<<" subtrped="<<subtrped<<endl;
+	    if(ECREFFKEY.reprtf[2]>1){
+//	      cout<<"A_hig_pix#="<<pix<<" ped/sig="<<peda<<" "<<siga<<" adc="<<padc[0]<<endl;
 	      HF1(ECHISTR+60+4*(gain-1)+pix-1,geant(padc[0]),1.);
 	    }
 	  }
@@ -623,8 +623,8 @@ NextBlock:
 	      else padc[2]=0;
 	    }
 	    else padc[2]=adcd;
-	    if(ECREFFKEY.reprtf[2]>1 && slay==2 && pmt==18){
-//	      cout<<"Dyn: ped/sig="<<pedd<<" "<<sigd<<" subtrped="<<subtrped<<endl;
+	    if(ECREFFKEY.reprtf[2]>1){
+//	      cout<<"A_dyn#="<<pix<<" ped/sig="<<pedd<<" "<<sigd<<" adc="<<padc[2]<<endl;
 	      HF1(ECHISTR+68,geant(padc[2]),1.);
 	    }
 	    AMSEcalRawEvent::setadcd(slay-1,pmt-1,padc[2]);
@@ -638,8 +638,8 @@ NextBlock:
 	    else padc[1]=0;
 	  }
 	  else padc[1]=adca;
-	  if(ECREFFKEY.reprtf[2]>1 && slay==2 && pmt==18){
-//	    cout<<"A_lo#="<<pix<<" ped/sig="<<peda<<" "<<siga<<" subtrped="<<subtrped<<endl;
+	  if(ECREFFKEY.reprtf[2]>1){
+//	    cout<<"A_low_pix#="<<pix<<" ped/sig="<<peda<<" "<<siga<<" adc="<<padc[1]<<endl;
 	    HF1(ECHISTR+60+4*(gain-1)+pix-1,geant(padc[1]),1.);
 	  }
 	  break;

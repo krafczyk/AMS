@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.26 2010/01/12 16:55:50 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.27 2010/01/19 09:24:27 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -106,23 +106,23 @@ void AMSLVL1Hist::Book(){
   AddSet("ECAL in LVL1(1)");
   
   _filled.push_back(new TH1F("trigh19","FTE_Flag(when !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
+  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("trigh20","Lvl1_Flag(when !=0, noTOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("undef(0)/0Proj&FTE(1)/1Proj&FTE(2)/2Proj&FTE(3)");
+  _filled.push_back(new TH1F("trigh20","Lvl1(Angle)_Flag(when !=0, noTOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("undef(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
   _filled.push_back(new TH1F("trigh21","FTE_Flag(GlobFT-OK) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
+  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
   _filled[_filled.size()-1]->SetFillColor(6);
   
   _filled.push_back(new TH1F("trigh22","FTE_Flag(when !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/1Proj@2requested(1)/FTE&1Proj(2)/FTE&2Proj(3)");
+  _filled[_filled.size()-1]->SetXTitle("noFTE(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
-  _filled.push_back(new TH1F("trigh23","Lvl1_Flag(when !=0, & TOF) ",4,0.,4.));
-  _filled[_filled.size()-1]->SetXTitle("undef(0)/0Proj&FTE(1)/1Proj&FTE(2)/2Proj&FTE(3)");
+  _filled.push_back(new TH1F("trigh23","Lvl1(Angle)_Flag(when !=0, & TOF) ",4,0.,4.));
+  _filled[_filled.size()-1]->SetXTitle("undef(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
   AddSet("ECAL in LVL1(2)");
@@ -455,7 +455,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
   if(ntuple->nLevel1()){
     _filled[0]->Fill(1,1.);//lvl1_ok
     ecflg=ntuple->pLevel1(0)->EcalFlag;
-    etflg=ecflg/10;//ECEtot(multiplicity) flag
+    etflg=ecflg/10;//ECEtot(FTE=multiplicity) flag
     ewflg=ecflg%10;//ECAngle(width) flag
 //
     tofflg1=ntuple->pLevel1(0)->TofFlag1;//for z>=1(ftc)
@@ -557,15 +557,15 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     }
     if(fte){
       if(!(ftc||ftz)){//EC-drived FT
-        _filled[19]->Fill(etflg,1.);//Etot-flag
+        _filled[19]->Fill(etflg,1.);//Etot(fte=mult)-flag
         _filled[20]->Fill(ewflg,1.);//ShWidth-flag
       }
       else{//TOF-driven FT
-        _filled[22]->Fill(etflg,1.);//Etot-flag
+        _filled[22]->Fill(etflg,1.);//Etot(fte=mult)-flag
         _filled[23]->Fill(ewflg,1.);//ShWidth-flag
       }
     }
-    if(glft)_filled[21]->Fill(etflg,1.);//Etot-flag
+    if(glft)_filled[21]->Fill(etflg,1.);//Etot(fte=mult)-flag
     if(fte){
       int word,bit,sset;
       for(int sl=0;sl<6;sl+=2){

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.127 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: ecalrec.C,v 1.128 2010/01/19 09:24:16 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -852,9 +852,14 @@ void AMSEcalHit::build(int &stat){
         fadc=radc[0];
       }
 //
-      else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0){//Hch=Miss/Ovfl -> use Lch
+      else if(radc[1]>max(3.*sl,3.)  && ovfl[1]==0){//Hch=Miss/Ovfl -> use Lch
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
+      }
+//
+      else if(ovfl[0]==1 && radc[1]<max(3.*sl,3.)){//Hch=ovfl but Lch=Miss, use Hch
+        fadc=radc[0];
+	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
       }
 //
       else if(ovfl[1]==1){//<-use even overflowed Lgain-chan
@@ -864,9 +869,9 @@ void AMSEcalHit::build(int &stat){
 //
       }
       else {
-	sta|=AMSDBc::BAD;// 0 amplitude channel
+	sta|=AMSDBc::BAD;// 0 pixel amplitude (anode)
       }
-//---> mark bad (according to DB) pix-channels for possible use at later stages:
+//---> mark bad (according to calib-DB) pix-channels for possible use at later stages:
       if(ids.HCHisBad())sta|=AMSDBc::ECHCISBAD;
       if(ids.LCHisBad())sta|=AMSDBc::ECLCISBAD;
 //
@@ -918,7 +923,7 @@ void AMSEcalHit::build(int &stat){
         ovfl[2]=0;
         if(radc[2]+pd>=ECADCMX[2]-1)ovfl[2]=1;// mark as Dynode-ADC-Overflow
 	int dychok=0;
-        if((radc[2]>3*sd) && ovfl[2]==0 && !ids.DCHisBad()){//to use for possible pix-ovfl treatment
+        if(radc[2]>max(3.*sd,3.) && ovfl[2]==0 && !ids.DCHisBad()){//to use for possible pix-ovfl treatment
 	  dychok=1;//<-one can use dy-chan
 	  fadc=radc[2];
 	  dedep=fadc*ECcalib::ecpmcal[isl][pmc].adc2mev()
@@ -935,18 +940,19 @@ void AMSEcalHit::build(int &stat){
 	}
 	if(dychok>0 && nsubco>0)etrue=(dedep-edepgd)/geant(nsubco);
 //                               (average dyn.energy per overflowed_cell)
-        saturf=ECcalib::pmsatf1(1,qmeas);//saturf=Qin/Qmeas(<0 if saturated !)
+        saturf=ECcalib::pmsatf1(1,qmeas);//saturf=Qin/Qmeas(<0 if saturated, 1 if qmeas small)
         if(saturf<0)EcalJobStat::addsr(10);
 //
-        for(i=0;i<nsubc;i++){//buffer(good subcells) loop to fill AMSEcalHit
+        for(i=0;i<nsubc;i++){//buffer(subcells) loop to fill AMSEcalHit
           nhits+=1;
 	  edep=bedep[i];
 	  sta=bsta[i];
-	  if((sta&AMSDBc::AOVERFLOW>0) && dychok>0){//make correction for adc-ovfl if needed/possible
+	  if(ids.DCHisBad())sta|=AMSDBc::ECDCISBAD;//mark dynode if bad (according to calib-DB)
+	  if((sta&AMSDBc::AOVERFLOW)>0 && dychok>0){//make correction for adc-ovfl if needed/possible
 	    edcort+=(etrue-edep);//counts total correction
 	    edep=etrue;//welcome any other ideas...
 	  }
-	  if(saturf<0){
+	  if(saturf<0){//above the internal range of gmeas
 	    sta|=AMSDBc::LEAK;
 	    saturf=fabs(saturf);
 	  }
@@ -967,8 +973,8 @@ void AMSEcalHit::build(int &stat){
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,edepc,coot,cool,cooz));
 //       (object is created even if was Anode ovfl, but sta is set properly)
-//       cout <<"  edep "<<edep<<endl;
-	}
+	}//--->endof buffer(subcells) loop
+//
 	nsubc=0;//clear buffer arrays
 	qmeas=0;
         for(i=0;i<4;i++)bsubc[i]=0;
