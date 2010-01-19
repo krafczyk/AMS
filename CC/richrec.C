@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.133 2009/12/21 09:59:42 mdelgado Exp $
+//  $Id: richrec.C,v 1.134 2010/01/19 16:29:22 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1922,6 +1922,22 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
   _phi_spread=1e6;
   _unused_dist=-1;
   
+  // Fill all the track parameters (useful for alignment)
+  RichRadiatorTileManager crossed_tile(track);
+  AMSPoint dirp; AMSDir dird;
+  dirp=crossed_tile.getemissionpoint();
+  dird=crossed_tile.getemissiondir();
+
+  // Change it to AMS coordinates
+  AMSPoint amsp; AMSDir amsd;
+  amsp=RichAlignment::RichToAMS(dirp);
+  amsd=RichAlignment::RichToAMS(dird);
+  for(int i=0;i<3;i++) _crossingtrack[i]=amsp[i];
+  _crossingtrack[3]=amsd.gettheta();
+  _crossingtrack[4]=amsd.getphi();
+ 
+
+
   
   // Copy the residues plots
   _beta_direct.clear();

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.204 2010/01/12 16:55:15 choumilo Exp $
+//  $Id: root.C,v 1.205 2010/01/19 16:29:22 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2692,6 +2692,9 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
       TrRadPos[i]  = ptr->_radpos[i];
       TrPMTPos[i]  = ptr->_pmtpos[i];
     }
+    for(int i=0;i<5;i++)
+      AMSTrPars[i] = ptr->_crossingtrack[i];
+
     lipHitsUsed           = 0;
     lipThetaC             = 0;
     lipBeta               = 0;

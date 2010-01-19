@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.256 2010/01/04 10:25:54 choutko Exp $
+//  $Id: root.h,v 1.257 2010/01/19 16:29:22 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1068,6 +1068,7 @@ public:
   float ErrorTheta; ///< Error of the reconstructed emission angle
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
+  float AMSTrPars[5];///< Radiator crossing track parameters (in AMS frame): x y z theta phi
 
   int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
   float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
@@ -1112,7 +1113,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,13)           // RichRingR
+  ClassDef(RichRingR,14)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 

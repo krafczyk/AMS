@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.61 2009/11/19 19:09:22 choutko Exp $
+//  $Id: richrec.h,v 1.62 2010/01/19 16:29:22 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -157,6 +157,7 @@ static geant _Time;
   number _errortheta;
   number _radpos[3];
   number _pmtpos[3];
+  number _crossingtrack[5];
 
 
   number  _npexpg;       // Number of expected photons for Z=1
