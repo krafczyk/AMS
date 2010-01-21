@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.10 2010/01/15 10:46:29 shaino Exp $
+//  $Id: TrFit.C,v 1.11 2010/01/21 14:57:06 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2010/01/15 10:46:29 $
+///$Date: 2010/01/21 14:57:06 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,13 +87,15 @@ double TrFit::Fit(int method)
   // Check number of hits
   if (_nhit < 3) return -1;
 
-  if (method ==  LINEAR) return  LinearFit();
-  if (method ==  CIRCLE) return  CircleFit();
-  if (method ==  SIMPLE) return  SimpleFit();
-  if (method == ALCARAZ) return AlcarazFit();
-  if (method == CHOUTKO) return ChoutkoFit();
+  double ret = 0;
+  if (method ==  LINEAR) ret = LinearFit();
+  if (method ==  CIRCLE) ret = CircleFit();
+  if (method ==  SIMPLE) ret = SimpleFit();
+  if (method == ALCARAZ) ret = AlcarazFit();
+  if (method == CHOUTKO) ret = ChoutkoFit();
 
-  return 0;
+  ParLimits();
+  return ret;
 }
 
 double TrFit::LinearFit(void)
@@ -430,6 +432,44 @@ double TrFit::PolynomialFit(int side, int ndim)
   }
   
   return chisq;
+}
+
+#include <iostream>
+#define PAR_LIMITS(P, V1, V2) { \
+    double pold = P;	        \
+    bool r = ParLimits(P,V1,V2);\
+    if (r) std::cout << "TrFit::ParLimits applied to: "#P" " \
+		     << pold << " -> " << P << std::endl;    \
+    nlim += r; } \
+
+int TrFit::ParLimits(void)
+{
+  int nlim = 0;
+  PAR_LIMITS(_p0x,      1e-9, 1e4);
+  PAR_LIMITS(_p0y,      1e-9, 1e4);
+  PAR_LIMITS(_p0z,      1e-9, 1e4);
+  PAR_LIMITS(_dxdz,     1e-9, 1e4);
+  PAR_LIMITS(_dydz,     1e-9, 1e4);
+  PAR_LIMITS(_rigidity, 1e-6, 1e6);
+  PAR_LIMITS(_chisqx,   1e-9, 1e9);
+  PAR_LIMITS(_chisqy,   1e-9, 1e9);
+  PAR_LIMITS(_chisq,    1e-9, 1e9);
+  PAR_LIMITS(_errrinv,  1e-9, 1e6);
+  return nlim;
+}
+
+bool TrFit::ParLimits(double &par, double min, double max)
+{
+  if (par == 0) return false;
+  
+  double pabs = std::fabs(par);
+  double sign = (pabs != 0) ? par/pabs : 1;
+
+  bool ret = false;
+  if (pabs < min) { par = sign*min; ret = true; }
+  if (pabs > max) { par = sign*max; ret = true; }
+
+  return ret;
 }
 
 double TrFit::VKAverage(int n, double *x, double *y, double *w)
@@ -962,6 +1002,7 @@ double TrFit::ChoutkoFit(void)
   int ifail = 2;
 
   double init[7], out[7];
+  for (int i = 0; i < 7; i++) out[i] = 0;
 
   for (int kiter = 0; kiter < maxcal; kiter++) {
     double dnorm = 1./std::sqrt(1+_param[1]*_param[1]+_param[3]*_param[3]);

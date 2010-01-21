@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.6 2010/01/15 10:46:29 shaino Exp $
+// $Id: MagField.C,v 1.7 2010/01/21 14:57:06 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/15 10:46:29 $
+///$Date: 2010/01/21 14:57:06 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -198,18 +198,18 @@ void MagField::GuFld(float *xx, float *b)
   _dy = _y[1]-_y[0];
   _dz = _z[1]-_z[0];
 
-  double ax = std::fabs(xx[0]), sx = xx[0]/ax;
-  double ay = std::fabs(xx[1]), sy = xx[1]/ay;
-  double az = std::fabs(xx[2]), sz = xx[2]/az;
-  //  az *= MAGSFFKEY.BZCorr;
+  double ax = xx[0];
+  double ay = xx[1];
+  double az = xx[2];
+  //az *= MISCFFKEY.BZCorr;
 
   int idx[8];
   double ww[8];
   _Fint(ax, ay, az, idx, ww);
 
-  float *mbx=&(_bx[0][0][0]);
-  float *mby=&(_by[0][0][0]);
-  float *mbz=&(_bz[0][0][0]);
+  float *mbx = &(_bx[0][0][0]);
+  float *mby = &(_by[0][0][0]);
+  float *mbz = &(_bz[0][0][0]);
 
   for (int i = 0; i < 8; i++) {
     b[0] += mbx[idx[i]]*ww[i];
@@ -266,10 +266,10 @@ void MagField::TkFld(float *xx, float hxy[][3])
   if (MAGSFFKEY.magstat <= 0 || !_bx || !_by || !_bz) return;
   if (MAGSFFKEY.rphi) return;
 
-  double ax = std::fabs(xx[0]), sx = xx[0]/ax;
-  double ay = std::fabs(xx[1]), sy = xx[1]/ay;
-  double az = std::fabs(xx[2]), sz = xx[2]/az;
-  //  az *= MAGSFFKEY.BZCorr;
+  double ax = xx[0];
+  double ay = xx[1];
+  double az = xx[2];
+  //az *= MISCFFKEY.BZCorr;
 
   int idx[8];
   double ww[8];
@@ -287,6 +287,21 @@ void MagField::TkFld(float *xx, float hxy[][3])
     hxy[0][2] += mbdz[idx[i]]*ww[i]; hxy[1][2] += mbdz[idx[i]+_nb]*ww[i];
   }
 
+}
+
+void MagField::AddBcor(AMSPoint xx, AMSPoint db)
+{
+  int idx = _GetIndex(xx.x(), xx.y(), xx.z());
+  int _nb = _nx*_ny*_nz;
+  if (idx < 0 || _nb <= idx) return;
+
+  float *mbx = &(_bx[0][0][0]);
+  float *mby = &(_by[0][0][0]);
+  float *mbz = &(_bz[0][0][0]);
+
+  mbx[idx] += db.x();
+  mby[idx] += db.y();
+  mbz[idx] += db.z();
 }
 
 void MagField::_Fint(double x, double y, double z, int *index, double *weight)

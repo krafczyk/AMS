@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.316 2010/01/19 15:28:19 mdelgado Exp $
+#  $Id: datacards.doc,v 1.317 2010/01/21 14:57:16 shaino Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -77,7 +77,7 @@ I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(100000000)      // max ntuplefilesize (kbytes)
 I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
 I170 BuildMin(-1)                  // min build version (production only)
-I171 HistoMan                    // Enables the HistoMan facility for histograms
+I171 HistoMan                    // Enables the HistoMan facility for histograms (1:written in AMSRoot file 2:written in Histos_$RUN.root 3:written in both)
 //-------------------------------------------------------------------------------
 
     RICH simulation

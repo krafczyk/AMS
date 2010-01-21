@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.21 2010/01/15 10:46:29 shaino Exp $
+// $Id: TrTrack.C,v 1.22 2010/01/21 14:57:06 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/15 10:46:29 $
+///$Date: 2010/01/21 14:57:06 $
 ///
-///$Revision: 1.21 $
+///$Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -178,6 +178,18 @@ TrTrackPar &TrTrackR::GetPar(int id)
   return parerr;
 }
 
+double TrTrackR::GetNormChisqX(int id)
+{
+  Double_t enorm = TRFITFFKEY.ErrX/50e-4;
+  return (GetNdofX(id) > 0) ? GetChisqX(id)/GetNdofX(id)*enorm*enorm : 0;
+}
+
+double TrTrackR::GetNormChisqY(int id)
+{
+  Double_t enorm = TRFITFFKEY.ErrY/30e-4;
+  return (GetNdofY(id) > 0) ? GetChisqY(id)/GetNdofY(id)*enorm*enorm : 0;
+}
+
 AMSPoint TrTrackR::GetPlayer(int ilay, int id)
 {
   AMSPoint  pres = GetResidual(ilay, id);
@@ -313,6 +325,41 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     _TrFit.SetMassChrg(mass, chrg);
   }
 
+  // One drop fitting
+  if (id & kOneDrop) {
+    double csymin = 0;
+    int    ihmin  = -1;
+    for (int i = 0; i < _Nhits; i++) {
+      TrRecHitR *hit = GetHit(i);
+      if (hit && Fit(idf, hit->GetLayer(), false) > 0 && 
+	  _TrFit.GetChisqY() > 0) {
+	if (ihmin < 0 || _TrFit.GetChisqY() < csymin) {
+	  ihmin  = i;
+	  csymin = _TrFit.GetChisqY();
+	}
+      }
+    }
+    if (ihmin < 0) return -1;
+    layer = GetHit(ihmin)->GetLayer();
+  }
+
+  // Noise drop fitting
+  if (id & kNoiseDrop) {
+    double snmin = 0;
+    int    ihmin = -1;
+    for (int i = 0; i < _Nhits; i++) {
+      TrRecHitR *hit = GetHit(i);
+      if (hit && hit->GetYCluster()) {
+	if (ihmin < 0 || hit->GetYCluster()->GetSeedSN() < snmin) {
+	  ihmin = i;
+	  snmin = hit->GetYCluster()->GetSeedSN();
+	}
+      }
+    }
+    if (ihmin < 0) return -1;
+    layer = GetHit(ihmin)->GetLayer();
+  }
+
   // Sort hits in the ascending order of the layer number
   int idx[trconst::maxlay], nhit = 0;
   for (int i = 0; i < _Nhits; i++) {
@@ -322,7 +369,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   }
   std::sort(idx, &idx[nhit]);
 
-  // For the half-fitting options    : TO_BE_CHECKED
+  // For the half-fitting options
   int i1 = 0, i2 = nhit;
   if (id & kUpperHalf) { i1 = 0;    i2 = std::min(nhit, NhitHalf); }
   if (id & kLowerHalf) { i2 = nhit; i1 = std::max(0, nhit-NhitHalf); }
@@ -566,6 +613,8 @@ int TrTrackR::DoAdvancedFit()
   if (Fit(kChoutko | kUpperHalf) < 0) Fit(kAlcaraz | kUpperHalf);
   if (Fit(kChoutko | kLowerHalf) < 0) Fit(kAlcaraz | kLowerHalf);
   Fit(kChoutko);
+  Fit(kChoutko | kOneDrop);
+  Fit(kChoutko | kNoiseDrop);
   Fit(kAlcaraz);
   trdefaultfit = kChoutko;
   return AdvancedFitDone();

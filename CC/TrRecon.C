@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.35 2010/01/15 10:46:29 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.36 2010/01/21 14:57:06 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/15 10:46:29 $
+/// $Date: 2010/01/21 14:57:06 $
 ///
-/// $Revision: 1.35 $
+/// $Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +29,7 @@
 #include "TrMCCluster.h"
 #include "Vertex.h"
 #include "VCon.h"
+#include "HistoMan.h"
 #include <sys/resource.h>
 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -1029,7 +1030,10 @@ float TrRecon::_CheckTimer() const
   return tnow-_StartTime;
 }
 
+bool TrRecon::SigTERM = false;
+
 bool TrRecon::_CpuTimeUp() const{
+  if(SigTERM) return true;
   if(TrTimeLim<0) return false;
   float spentTime=_CheckTimer();
   return spentTime>=TrTimeLim;
@@ -1155,6 +1159,13 @@ int TrRecon::BuildTrTracks(int rebuild)
 {
   if (TasRecon) return BuildTrTasTracks(rebuild);
 
+  // SHMAG
+  if (MAGSFFKEY.rphi > 0) {
+    MAGSFFKEY.rphi    = 0;
+    MAGSFFKEY.fscale *= 0.5;
+  }
+  // SHMAG
+
   // Build hit patterns if not yet built
   if (!HitPatternMask) BuildHitPatterns();
 
@@ -1182,19 +1193,11 @@ int TrRecon::BuildTrTracks(int rebuild)
   } while (!_CpuTimeUp() && found && ntrack < MaxNtrack);
 
   _CpuTime = _CheckTimer();
-  if (_CpuTimeUp()){
-#ifndef __ROOTSHAREDLIBRARY__
-    cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: " << _CpuTime 
-	 << " at Event: " << AMSEvent::gethead()->getEvent() << endl;
-#else
-    cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: " << _CpuTime <<endl; 
-#endif
-  }
 
   // Purge "ghost" hits and assign hit index to tracks
   PurgeGhostHits();
 
-  return ntrack;
+  return (_CpuTimeUp()) ? -2 : ntrack;
 }
 
 void TrRecon::PurgeGhostHits()
@@ -1789,32 +1792,7 @@ void TrRecon::InitFFKEYs(int magstat)
   TRCLFFKEY.init();
   TRFITFFKEY.init();
 
-  // Some settings in TrRecon
-  TRCLFFKEY.ThrProb = 0;
-
-  // Some settings in TrTrack
-  TRFITFFKEY.MaxChisq[0] = 100;
-  TRFITFFKEY.MaxChisq[1] = 10000;
-  TRFITFFKEY.SearchRegStrLine = 100;
-  TRFITFFKEY.SearchRegCircle  = 100;
-  TRFITFFKEY.MaxNtrack = 1;
-  TRFITFFKEY.MinNhit   = 6;
-  TRFITFFKEY.ErrX = 300e-4;
-  TRFITFFKEY.ErrY = 300e-4;
-
-  //  TrRecon::TrDEBUG   = 0;
-  TrRecon::MaxNtrack = 2;            // Default
-  TrRecon::MinNhitX  = 4;            // Default
-  TrRecon::MinNhitY  = 6;            // Default
-  TrRecon::MinNhitXY = 4;            // Default
-  TrRecon::MaxChisqAllowed  = 300;   // Default
-  TrRecon::LadderScanRange  = 7.3;   // Default
-  TrRecon::ClusterScanRange = 0.5;   // Default
-  TrRecon::MaxChisqForLScan = 2.2;   // Default
-
-  //PZMAG MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  if (!MagFieldOn()) TrTrackR::DefaultFitID = TrTrackR::kLinear;
 }
 
 int TrRecon::ReadMagField(const char *fname, 
@@ -1848,6 +1826,58 @@ void TrRecon::GetTkFld(float *pos, float **hxy)
   for (int ii=0;ii<3;ii++)
     for (int jj=0;jj<3;jj++)
       hxy[ii][jj]=hh[jj][ii];
+}
+
+void TrRecon::MagFieldCorr(AMSPoint pp, AMSPoint bc)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  MagField::GetPtr()->AddBcor(pp, bc);
+#endif
+}
+
+int TrRecon::GetTrackerSize()
+{
+  int TrackerSize = 2; 
+  int CrateSize[8] = {2,2,2,2,2,2,2,2}; 
+  int TdrSize[8][24];
+  for (int icrate=0; icrate<8; icrate++) 
+    for (int itdr=0; itdr<24; itdr++) 
+      TdrSize[icrate][itdr] = 2;
+
+  int LadderSize[2][192]; // defined as the sum of clusters sizes!
+  for (int iside=0; iside<2; iside++) 
+    for (int iladder=0; iladder<192; iladder++) 
+      LadderSize[iside][iladder] = 0;
+
+  VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
+  if (!cont) return 0;
+
+  int nraw = cont->getnelem();
+  for (int iraw=0; iraw<nraw; iraw++) {
+    TrRawClusterR* cluster = (TrRawClusterR*)cont->getelem(iraw);
+    int   iside  = cluster->GetSide();
+    int   tkid   = cluster->GetTkId();
+    TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
+    int   entry  = TkDBc::Head->TkId2Entry(tkid);
+    int   icrate = ladder->GetCrate();
+    int   itdr   = ladder->GetTdr();
+    int   clsize = cluster->GetNelem()+2;
+    LadderSize[iside][entry] += clsize;
+    TdrSize[icrate][itdr] += clsize;
+  }
+
+  delete cont;
+ 
+  // Loop on tdr 
+  for (int icrate=0; icrate<8; icrate++)
+    for (int itdr=0; itdr<24; itdr++) 
+      if (TdrSize[icrate][itdr]>2) CrateSize[icrate] += TdrSize[icrate][itdr];
+  
+  // Loop on crates
+  for (int icrate=0; icrate<8; icrate++)
+    TrackerSize += CrateSize[icrate];
+
+  return TrackerSize;
 }
 
 ////////////////////////////////////////////////////////////////

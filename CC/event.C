@@ -188,9 +188,22 @@ if(AMSEvent::get_thread_num()==0)
    {
      if(IOPA.histoman>0){
        hman.Enable();
-       char hfname[128];
-       sprintf(hfname,"Histos_%d.root",_run);
-       hman.Setname(hfname);
+       // In case of IOPA.histoman= 2 or 3:
+       // Histograms are booked under memory-based directory 
+       // and written in file later when HistoMan::Save is called
+       if(IOPA.histoman == 2 || IOPA.histoman == 3) {
+	 char rdir[161];
+	 UHTOC(IOPA.rfile,40,rdir,160);  
+
+	 int offs = 0; 
+	 for (int i = 0; i < strlen(rdir) && rdir[i] == ' '; i++) offs++;
+
+	 char hfname[256];
+	 sprintf(hfname, "%s/Histos_%d.root", &rdir[offs], _run);
+	 hman.Setname(hfname);
+       }
+       else if(IOPA.histoman == 1) hman.Setname("");
+
        hman.BookHistos();
      }
    }

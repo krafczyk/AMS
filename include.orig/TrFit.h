@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.6 2009/11/19 10:07:44 shaino Exp $
+//  $Id: TrFit.h,v 1.7 2010/01/21 14:57:20 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -47,9 +47,9 @@
 ///\date  2008/12/01 SH  Fits methods debugged and checked
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///
-///$Date: 2009/11/19 10:07:44 $
+///$Date: 2010/01/21 14:57:20 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -290,7 +290,13 @@ public:
   /// Analytic polynominal fitting, ndim=2,3,4 are available
   double PolynomialFit(int side, int ndim);
 
+  /// Apply ParLimits after fitting
+  int ParLimits(void);
+
 protected:
+  /// Apply limits as min<abs(par)<max
+  bool ParLimits(double &par, double min, double max);
+
   /// Weighted sum of vectors (for CircleFit)
   double VKAverage(int, double*, double*, double*);
 

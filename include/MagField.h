@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.5 2010/01/15 10:46:35 shaino Exp $
+//  $Id: MagField.h,v 1.6 2010/01/21 14:57:20 shaino Exp $
 #ifndef __MagField__
 #define __MagField__
 
@@ -60,9 +60,9 @@ COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/15 10:46:35 $
+///$Date: 2010/01/21 14:57:20 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -130,6 +130,8 @@ public:
   }
   /// Get field derivative
   void TkFld(float *x, float hxy[][3]);
+
+  void AddBcor(AMSPoint x, AMSPoint db);
 
   /// Get self pointer
   static MagField *GetPtr(void) {

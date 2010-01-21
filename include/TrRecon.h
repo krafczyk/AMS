@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.21 2010/01/15 10:46:35 shaino Exp $ 
+// $Id: TrRecon.h,v 1.22 2010/01/21 14:57:20 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/15 10:46:35 $
+/// $Date: 2010/01/21 14:57:20 $
 ///
-/// $Revision: 1.21 $
+/// $Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -396,8 +396,11 @@ protected:
 
   /// Get a time difference between now and _StartTime
   float _CheckTimer() const;
-  
+
 public:
+  /// Flag for SIGTERM/SIGINT;
+  static bool SigTERM;
+  
   /// Get CPU time consumption in the last BuildTrTracks
   float GetCpuTime() const { return _CpuTime; }
 
@@ -520,7 +523,11 @@ public:
   static void GetMagField(float *pos, float *bf);
   /// TrField::TkFld() called from ROOT CINT
   static void GetTkFld(float *pos, float **hxy);
+  /// Add magnetic field correction
+  static void MagFieldCorr(AMSPoint pp, AMSPoint bc);
 
+  /// Get Tracker Data size in current event
+  static int GetTrackerSize();
 };
 /////////////////////////
 // --- MC clusters --- //

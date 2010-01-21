@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.105 2009/11/27 10:43:37 choutko Exp $
+//  $Id: gbatch.C,v 1.106 2010/01/21 14:57:06 shaino Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -13,6 +13,9 @@
 #include <fenv.h>
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+#ifdef _PGTRACK_
+#include "TrRecon.h"
 #endif
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
@@ -151,6 +154,9 @@ void (handler)(int sig){
   GCFLAG.IEOTRI=1;
   //AMSStatus::setmode(0);
   AMSFFKEY.CpuLimit=10;
+#ifdef _PGTRACK_
+  TrRecon::SigTERM=1;
+#endif
  }
  break;
   case SIGQUIT:

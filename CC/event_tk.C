@@ -1,4 +1,5 @@
 #include "TrRecon.h"
+#include "TkSens.h"
 
 
 void AMSEvent::_sitkinitevent(){
@@ -80,7 +81,7 @@ void AMSEvent::_retkevent(integer refit){
   TrRecon* rec= new TrRecon();
   //PZDEBUG  printf("\nFound %d Raw cluster \n",AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem()  );
   //  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))) //tempor
-  
+
   //RAW Clusters -->  Clusters
   if(
      TRCLFFKEY.recflag>0 && // Wanted from TkDCards
@@ -93,8 +94,7 @@ void AMSEvent::_retkevent(integer refit){
       int retr=rec->BuildTrClusters();
       int ncls=AMSEvent::gethead()->getC("AMSTrCluster")->getnelem();
       AMSgObj::BookTimer.stop("TrCluster");
-      
-      
+
       //PZDEBUG        printf("\nReconstructed %d cluster time\n",AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()  );
       //PZDEBUG       AMSgObj::BookTimer.print("TrCluster");
       
@@ -115,7 +115,7 @@ void AMSEvent::_retkevent(integer refit){
 	  AMSgObj::BookTimer.stop("TrRecHit");
 	  //PZDEBUG       printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
 	  //PZDEBUG       AMSgObj::BookTimer.print("TrRecHit");
-	  
+
 	  
 	  // Hits --> Tracks
 	  if(
@@ -127,17 +127,106 @@ void AMSEvent::_retkevent(integer refit){
 	      AMSgObj::BookTimer.start("TrTrack");
 	      int retr3=rec->BuildTrTracks();
 	      double bb=AMSgObj::BookTimer.stop("TrTrack");
-	      
-	      //PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );	      //PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
 
-	      	      hman.Fill("TrTime",bb);
+#pragma omp critical (trcpulim)
+{
+              if (retr3 == -2) {
+		if (TrRecon::SigTERM)
+		  cerr << "TrRecon::BuildTrTracks: SIGTERM detected: ";
+		else
+		  cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: ";
+		cerr << rec->GetCpuTime()
+		     << " at Event: " << dec << getEvent() << endl;
+	      }
+}
+	      //PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );	      //PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
 	    }
-	
-	}
+		}
       
       
       AMSgObj::BookTimer.stop("RETKEVENT");
     }
+
+  // Fill histograms
+  int nraw = AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem();
+  int ncls = AMSEvent::gethead()->getC("AMSTrCluster"   )->getnelem();
+  int nhit = AMSEvent::gethead()->getC("AMSTrRecHit"    )->getnelem();
+  int ntrk = AMSEvent::gethead()->getC("AMSTrTrack"     )->getnelem();
+  hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec->GetTrackerSize());
+  hman.Fill("TrNrawEv", getEvent(), nraw);
+  hman.Fill("TrNclsEv", getEvent(), ncls);
+  hman.Fill("TrNhitEv", getEvent(), nhit);
+
+  hman.Fill("TrTime", nhit, rec->GetCpuTime()+(getEvent()%100)*1e-3);
+
+  AMSTrCluster *cls = (AMSTrCluster *)AMSEvent::gethead()->getC("AMSTrCluster")->gethead();
+  for (int i = 0; i < nraw && cls; i++) {
+    hman.Fill((cls->GetSide() == 1) ? "TrClsSigP" 
+	                            : "TrClsSigN", 0, cls->GetTotSignal());
+    cls = (AMSTrCluster *)cls->next();
+  }
+
+  AMSTrTrack *trk = (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
+  for (int i = 0; i < ntrk && trk; i++) {
+    double sigp[8], sign[8];
+    for (int j = 0; j < 8; j++) {
+      sigp[j] = sign[j] = 0;
+
+      TrRecHitR *hit = trk->GetHitL(j);
+      if (hit) {
+	int slot  = hit->GetTkId()%100;
+	int layer = hit->GetLayer();
+	TrClusterR *clx = hit->GetXCluster();
+	TrClusterR *cly = hit->GetYCluster();
+
+	hman.Fill("TrLadTrk", slot, layer);
+	if (cly) { hman.Fill("TrLadYh",  slot, layer);
+	  if (clx) hman.Fill("TrLadXYh", slot, layer);
+	}
+	if (clx) hman.Fill("TrClsSigN", 1, (sigp[j] = clx->GetTotSignal()));
+	if (cly) hman.Fill("TrClsSigP", 1, (sign[j] = cly->GetTotSignal()));
+      }
+      else {
+	AMSPoint play = trk->GetPlayer(j);
+	TkSens tks(play);
+	if (tks.LadFound()) {
+	  int slot  = tks.GetLadTkID()%100;
+	  int layer = abs(tks.GetLadTkID())/100;
+	  hman.Fill("TrLadTrk", slot, layer);
+	}
+      }
+    }
+
+    hman.Fill("TrNhit", trk->GetNhitsY(), trk->GetNhitsXY());
+
+    if (i == 0 && trk->GetNhitsY () >= 6 && 
+	          trk->GetNhitsXY() >= 5) {
+      double argt = fabs(trk->GetRigidity());
+      hman.Fill("TrCsqX", argt, trk->GetNormChisqX());
+      hman.Fill("TrCsqY", argt, trk->GetNormChisqY());
+
+      double ssump = 0, ssumn = 0, smaxp = 0, smaxn = 0;
+      int    nsump = 0, nsumn = 0;
+      for (int j = 0; j < 8; j++) {
+	TrRecHitR *hit = trk->GetHitL(j);
+	AMSPoint   res = trk->GetResidual(j);
+	if (hit && !hit->OnlyY()) hman.Fill("TrResX", argt, res.x()*1e4);
+	if (hit && !hit->OnlyX()) hman.Fill("TrResY", argt, res.y()*1e4);
+
+	if (sigp[j] > 0) { ssump += sigp[j]; nsump++; }
+	if (sign[j] > 0) { ssumn += sign[j]; nsumn++; }
+	if (sigp[j] > smaxp) smaxp = sigp[j];
+	if (sign[j] > smaxn) smaxn = sign[j];
+      }
+
+      // Fill truncated mean of charge
+      if (nsump-1 > 0) hman.Fill("TrChgP", argt, (ssump-smaxp)/(nsump-1));
+      if (nsumn-1 > 0) hman.Fill("TrChgN", argt, (ssumn-smaxn)/(nsumn-1));
+    }
+
+    trk = (AMSTrTrack *)trk->next();
+  }
+
   //  else throw AMSLVL3Error("LVL3NotCreated");  
   if(rec) delete rec;
 }

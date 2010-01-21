@@ -1,11 +1,12 @@
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
+#include "TDirectoryFile.h"
 
 HistoMan hman;
 
 
-HistoMan::HistoMan():enabled(false) { 
+HistoMan::HistoMan():enabled(false), rfile(0) { 
   //  fhist.SetOwner(kTRUE); 
   sprintf(fname,"histos.root");
 }
@@ -14,6 +15,7 @@ HistoMan::~HistoMan(){}
 
 void HistoMan::Save(){
   if(!enabled) return;
+  if(!fname[0])return;
   printf("HistoMan::Save ----> Saving %s\n",fname);
   TFile* pp=TFile::Open(fname,"RECREATE");
   pp->cd();
@@ -25,8 +27,7 @@ void HistoMan::Save(){
   return;
 }
 
-
-void HistoMan::Fill(char* name, double a,double  b,double w){
+void HistoMan::Fill(const char * name, double a,double  b,double w){
   if(!enabled) return;
   TH1*hist = (TH1*) fhist.FindObject(name);
   if(!hist){
@@ -45,15 +46,16 @@ void HistoMan::Fill(char* name, double a,double  b,double w){
 
 
 
-TH1F* TH1F_L(char *name,char* title,int nbin, float low, float up){
+TH1F* TH1F_L(const char *name,const char * title,int nbin, double low, double up){
 if(low<=0||up<=0){
 printf("TH1F_L: Error low or up lower than 0 not allowed on log\n");
 return 0;
 }
-  float lowL = log10(low);
-  float upL  = log10(up);
-  float step = (upL-lowL)/nbin;
-  float *bins= new float[nbin+1];
+  // Note that TH1F means the contents have float precision; the axis has still double precesion
+  double lowL = log10(low);
+  double upL  = log10(up);
+  double step = (upL-lowL)/nbin;
+  double *bins= new double[nbin+1];
   bins[nbin]=up;
   for (int ii=0;ii<nbin;ii++)
     bins[ii]=pow(10,lowL+ii*step);
@@ -63,37 +65,50 @@ return 0;
   return hh;
 }
 
-TH2F* TH2F_L(char *name,char* title,int nbin, float low, float up, int nbiny, float lowy, float upy){
-  if(low<=0||up<=0|| lowy<=0||upy<=0 ){
+TH2F* TH2F_L(const char *name,const char * title,int nbin, double low, double up, int nbiny, double lowy, double upy, bool logx, bool logy){
+  if((logx && (low<=0||up<=0))|| (logy && (lowy<=0||upy<=0)) ){
     printf("TH2F_L: Error low or up lower than 0 not allowed on log\n");
     return 0;
   }
-  float lowL = log10(low);
-  float upL  = log10(up);
-  float step = (upL-lowL)/nbin;
-  float *bins= new float[nbin+1];
-  bins[nbin]=up;
-  for (int ii=0;ii<nbin;ii++)
-    bins[ii]=pow(10,lowL+ii*step);
+  // Note that TH2F means the contents have float precision; the axis has still double precesion
+  double *bins = 0;
+  if (logx) {
+    double lowL = log10(low);
+    double upL  = log10(up);
+    double step = (upL-lowL)/nbin;
+    bins= new double[nbin+1];
+    bins[nbin]=up;
+    for (int ii=0;ii<nbin;ii++)
+      bins[ii]=pow(10,lowL+ii*step);
+  }
+
+  double *binsy = 0;
+  if (logy) {
+    double lowyL = log10(lowy);
+    double upyL  = log10(upy);
+    double stepy = (upyL-lowyL)/nbiny;
+    binsy= new double[nbiny+1];
+    binsy[nbiny]=upy;
+    for (int ii=0;ii<nbiny;ii++)
+      binsy[ii]=pow(10,lowyL+ii*stepy);
+  }
 
 
-  float lowyL = log10(lowy);
-  float upyL  = log10(upy);
-  float stepy = (upyL-lowyL)/nbiny;
-  float *binsy= new float[nbiny+1];
-  binsy[nbiny]=upy;
-  for (int ii=0;ii<nbiny;ii++)
-    binsy[ii]=pow(10,lowyL+ii*stepy);
-
-
-
-  TH2F* hh= new TH2F(name,title,nbin, bins, nbiny, binsy );
+  TH2F* hh;
+  if (logx && logy)
+    hh= new TH2F(name,title,nbin, bins, nbiny, binsy );
+  else if (!logx && logy)
+    hh= new TH2F(name,title,nbin, low, up, nbiny, binsy );
+  else if (logx && !logy)
+    hh= new TH2F(name,title,nbin, bins, nbiny, lowy, upy );
+  else
+    hh= new TH2F(name,title,nbin, low, up, nbiny, lowy, upy );
   delete bins;
   delete binsy;
   return hh;
 }
 
-TH1D* TH1D_L(char *name,char* title,int nbin, double low, double up){
+TH1D* TH1D_L(const char *name,const char * title,int nbin, double low, double up){
 if(low<=0||up<=0){
 printf("TH1D_L: Error low or up lower than 0 not allowed on log\n");
 return 0;
@@ -111,31 +126,42 @@ return 0;
   return hh;
 }
 
-TH2D* TH2D_L(char *name,char* title,int nbin, double low, double up, int nbiny, double lowy, double upy){
-  if(low<=0||up<=0|| lowy<=0||upy<=0 ){
+TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up, int nbiny, double lowy, double upy, bool logx, bool logy){
+  if((logx && (low<=0||up<=0))|| (logy && (lowy<=0||upy<=0)) ){
     printf("TH2D_L: Error low or up lower than 0 not allowed on log\n");
     return 0;
   }
-  double lowL = log10(low);
-  double upL  = log10(up);
-  double step = (upL-lowL)/nbin;
-  double *bins= new double[nbin+1];
-  bins[nbin]=up;
-  for (int ii=0;ii<nbin;ii++)
-    bins[ii]=pow(10,lowL+ii*step);
+  double *bins= 0;
+  if (logx) {
+    double lowL = log10(low);
+    double upL  = log10(up);
+    double step = (upL-lowL)/nbin;
+    bins= new double[nbin+1];
+    bins[nbin]=up;
+    for (int ii=0;ii<nbin;ii++)
+      bins[ii]=pow(10,lowL+ii*step);
+  }
 
+  double *binsy= 0;
+  if (logy) {
+    double lowyL = log10(lowy);
+    double upyL  = log10(upy);
+    double stepy = (upyL-lowyL)/nbiny;
+    binsy= new double[nbiny+1];
+    binsy[nbiny]=upy;
+    for (int ii=0;ii<nbiny;ii++)
+      binsy[ii]=pow(10,lowyL+ii*stepy);
+  }
 
-  double lowyL = log10(lowy);
-  double upyL  = log10(upy);
-  double stepy = (upyL-lowyL)/nbiny;
-  double *binsy= new double[nbiny+1];
-  binsy[nbiny]=upy;
-  for (int ii=0;ii<nbiny;ii++)
-    binsy[ii]=pow(10,lowyL+ii*stepy);
-
-
-
-  TH2D* hh= new TH2D(name,title,nbin, bins, nbiny, binsy );
+  TH2D* hh;
+  if (logx && logy)
+    hh= new TH2D(name,title,nbin, bins, nbiny, binsy );
+  else if (!logx && logy)
+    hh= new TH2D(name,title,nbin, low, up, nbiny, binsy );
+  else if (logx && !logy)
+    hh= new TH2D(name,title,nbin, bins, nbiny, lowy, upy );
+  else
+    hh= new TH2D(name,title,nbin, low, up, nbiny, lowy, upy );
   delete bins;
   delete binsy;
   return hh;
@@ -148,7 +174,51 @@ TH2D* TH2D_L(char *name,char* title,int nbin, double low, double up, int nbiny, 
 void HistoMan::BookHistos(){
   if(!enabled) return;
 
+  TDirectory *dsave = gDirectory;
 
-  Add(TH1D_L("TrTime","TrTime",400,1e-6,1E4));
+  // In case of IOPA.histoman= 1 or 3:
+  // Histograms are booked under file-based directory in AMSRoot file
+  if (rfile) {
+    rfile->cd();
+    TDirectoryFile *dir = new TDirectoryFile("HistoMan", "HistoMan");
+    dir->cd();
+    printf("HistoMan::BookHistos: Directroy HistoMan created in %s\n",
+	   rfile->GetName());
+  }
 
+  // In case of IOPA.histoman= 2:
+  // Histograms are booked under memory-based directory 
+  // and written in file later when HistoMan::Save is called
+  else {
+    TDirectory *dir = new TDirectory("HistoMan", "HistoMan");
+    dir->cd();
+    printf("HistoMan::BookHistos: Directroy HistoMan created in memory\n");
+  }
+
+  // Tracker low level
+  Add(new TH2D("TrSizeDt", "#DeltaT VS TrSize", 500, 0, 1000, 300, 0, 24000));
+  Add(new TH2D("TrNrawEv", "nTrRaw VS EvtNum", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNclsEv", "nTrCls VS EvtNum", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNhitEv", "nTrHit VS EvtNum", 1000, 0,  1e6, 500, 0,  1000));
+
+  // TrCluster
+  Add(new TH2D("TrClsSigP", "Amplitude(P) VS OnTrack", 2, 0, 2, 500, 0, 500));
+  Add(new TH2D("TrClsSigN", "Amplitude(N) VS OnTrack", 2, 0, 2, 500, 0, 500));
+
+  // TrRecHit
+  Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 8, 0.5, 9.5));
+  Add(new TH2D("TrLadYh",  "Ladder with hitY",  33, -16.5, 16.5, 8, 0.5, 9.5));
+  Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 8, 0.5, 9.5));
+
+  // TrTrack
+  Add(TH2D_L("TrTime","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
+  Add(TH2D_L("TrNhit", "NhitXY VS NhitY", 9,   0,   9,    9,    0,   9, 0, 0));
+  Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrResX", "ResX/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
+  Add(TH2D_L("TrResY", "ResY/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
+  Add(TH2D_L("TrChgP", "ChargeP VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
+  Add(TH2D_L("TrChgN", "ChargeN VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
+
+  if (dsave) dsave->cd();
 }

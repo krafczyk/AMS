@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.17 2010/01/11 16:03:44 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.18 2010/01/21 14:57:20 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/11 16:03:44 $
+///$Date: 2010/01/21 14:57:20 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -138,7 +138,11 @@ public:
     /// Upper half option
     kUpperHalf  = 0x20,
     /// Lower half option
-    kLowerHalf  = 0x40
+    kLowerHalf  = 0x40,
+    /// One drop option
+    kOneDrop    = 0x100,
+    /// Noise drop option
+    kNoiseDrop  = 0x200
   };
 
 
@@ -325,6 +329,12 @@ public:
     AMSDir dir = GetDir(id);
     return (dir.z() != 0) ? dir.y()/dir.z() : 0;
   }
+
+  /// Get normalized chi2 on X with ErrX = 50 um
+  double GetNormChisqX(int id= 0);
+
+  /// Get normalized chi2 on Y with ErrY = 30 um
+  double GetNormChisqY(int id= 0);
 
   /// Get TrFit object of the last fit (not to be used outside GBATCH)
   TrFit *GetTrFit() { return &_TrFit; }

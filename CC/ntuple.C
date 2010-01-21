@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.189 2009/12/21 20:46:57 shaino Exp $
+//  $Id: ntuple.C,v 1.190 2010/01/21 14:57:06 shaino Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -45,6 +45,7 @@
 #include "TF1.h"
 #include "TH2F.h"
 #include "TFitter.h"
+#include "HistoMan.h"
 
 AMSEventR AMSNtuple::_evroot02;
 EventNtuple02 AMSNtuple::_event02;
@@ -375,6 +376,7 @@ void AMSNtuple::initR(char* fname){
   // if(TrCalDB::Head) TrCalDB::Head->Write();
   if (TrTasDB::Head) TrTasDB::Head->Write();
   if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
+  if(IOPA.histoman==1 || IOPA.histoman==3) hman.SetRfile(_rfile);
 #endif   
 
   const int size=5000000;

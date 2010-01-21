@@ -2,33 +2,55 @@
 #define HistoMan_h
 
 #include "TObjArray.h"
+#include "TFile.h"
 #include "TH2F.h"
 #include "TH2D.h"
 
-TH1F* TH1F_L(char *name,char* title,int nbin, float low, float up);
-TH2F* TH2F_L(char *name,char* title,int nbin, float low, float up, int nbiny, float lowy, float upy);
+// Note that TH1F/TH2F means the contents have float precision; the axis has still double precesion
 
-TH1D* TH1D_L(char *name,char* title,int nbin, double low, double up);
-TH2D* TH2D_L(char *name,char* title,int nbin, double low, double up, int nbiny, double lowy, double upy);
+/// Returns TH1F histogram with log bin
+TH1F* TH1F_L(const char *name,const char * title,int nbin, double low, double up);
+
+/// Returns TH2F histogram with log/log or log/lin bins depending on logx/logy
+TH2F* TH2F_L(const char *name,const char * title,int nbin, double low, double up, int nbiny, double lowy, double upy, bool logx = true, bool logy = true);
+
+/// Returns TH1D histogram with log bin
+TH1D* TH1D_L(const char *name,const char * title,int nbin, double low, double up);
+/// Returns TH2D histogram with log/log or log/lin bins depending on logx/logy
+TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up, int nbiny, double lowy, double upy, bool logx = true, bool logy = true);
 
 class HistoMan{
 
 private:
+  /// Enabled/disabled flag
   bool enabled;
+  /// Array to keep pointers to the histogram
   TObjArray fhist;
-  char fname[128];
+  /// Output file name
+  char fname[256];
+  /// AMSRoot file pointer
+  TFile *rfile;
 public:
   HistoMan();
-
   ~HistoMan();
 
+  /// Set AMSRoot file pointer
+  void SetRfile(TFile *file) {rfile = file;}
+  /// Add a new histogram
   void Add(TH1* hist ){fhist.Add(hist);}
-  TH1* Get(char* name){return (TH1*) fhist.FindObject(name);}
-  void Setname(char*fnamein){sprintf(fname,"%s",fnamein);}
-  void Fill(char* name, double a,double  b=1.,double w=1.);
+  /// Get pointer to the histogram with name
+  TH1* Get(const char * name){return (TH1*) fhist.FindObject(name);}
+  /// Set output file name
+  void Setname(const char *fnamein){sprintf(fname,"%s",fnamein);}
+  /// Fill a histogram with name
+  void Fill(const char * name, double a,double  b=1.,double w=1.);
+  /// Save histograms to file
   void Save();
+  /// Book default histograms
   void BookHistos();
+  /// Enable this facility
   void Enable(){enabled=true;}
+  /// Disable this facility
   void Disable(){enabled=false;}
 
 };
