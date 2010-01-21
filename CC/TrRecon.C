@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.36 2010/01/21 14:57:06 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.37 2010/01/21 15:37:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/21 14:57:06 $
+/// $Date: 2010/01/21 15:37:31 $
 ///
-/// $Revision: 1.36 $
+/// $Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,8 +33,8 @@
 #include <sys/resource.h>
 
 #ifndef __ROOTSHAREDLIBRARY__
+#include "cern.h"
 #include "trrec.h"
-#include "event.h"
 #endif
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -1158,13 +1158,6 @@ void TrRecon::BuildLadderClusterMap()
 int TrRecon::BuildTrTracks(int rebuild)
 {
   if (TasRecon) return BuildTrTasTracks(rebuild);
-
-  // SHMAG
-  if (MAGSFFKEY.rphi > 0) {
-    MAGSFFKEY.rphi    = 0;
-    MAGSFFKEY.fscale *= 0.5;
-  }
-  // SHMAG
 
   // Build hit patterns if not yet built
   if (!HitPatternMask) BuildHitPatterns();
@@ -2474,37 +2467,16 @@ void TrSim::gencluster(int idsoft, float vect[],
   return; 
 }
 
-#include "TH2.h"
-#include "TDirectory.h"
-static TDirectoryFile *HistDir = 0;
-
 void TrSim::fillreso(TrTrackR *track)
 {
   if (fabs(track->GetRigidity()) < 100) return;
-
-  TH2F *hist1 = (HistDir) ? (TH2F *)HistDir->Get("hist1") : 0;
-  TH2F *hist2 = (HistDir) ? (TH2F *)HistDir->Get("hist2") : 0;
-
-  if (!hist1 || !hist2) {
-    TDirectory *sdir = gDirectory;
-    if (!HistDir) {
-      if (gFile) gFile->cd();
-      HistDir = new TDirectoryFile("TrRecon", "TrRecon histograms");
-    }
-    HistDir->cd();
-
-    hist1 = new TH2F("hist1", "resX", 50, 0, 50, 100, -100, 100);
-    hist2 = new TH2F("hist2", "resY", 50, 0, 50, 100, -100, 100);
-
-    if (sdir) sdir->cd();
-  }
 
   for (int i = 0; i < track->GetNhits(); i++) {
     TrRecHitR *hit = track->GetHit(i);
     int        ily = hit->GetLayer()-1;
     AMSPoint   dpc = hit->GetCoord()-sitkrefp[ily];
-    hist1->Fill(sitkangl[ily].x(), dpc.x()*1e4);
-    hist2->Fill(sitkangl[ily].y(), dpc.y()*1e4);
+    hman.Fill("TrSimRx", sitkangl[ily].x(), dpc.x()*1e4);
+    hman.Fill("TrSimRy", sitkangl[ily].y(), dpc.y()*1e4);
   }
 }
 

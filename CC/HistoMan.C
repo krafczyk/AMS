@@ -170,6 +170,7 @@ TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up
 //==============================================================
 //==============================================================
 
+#include "TrRecon.h"
 
 void HistoMan::BookHistos(){
   if(!enabled) return;
@@ -219,6 +220,12 @@ void HistoMan::BookHistos(){
   Add(TH2D_L("TrResY", "ResY/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
   Add(TH2D_L("TrChgP", "ChargeP VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
   Add(TH2D_L("TrChgN", "ChargeN VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
+
+  // TrSim
+  if (TrSim::SkipRawSim) {
+    Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
+    Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
+  }
 
   if (dsave) dsave->cd();
 }
