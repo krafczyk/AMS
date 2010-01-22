@@ -8,6 +8,15 @@
 #ifdef _PGTRACK_
 AMSDATADIR_DEF AMSDATADIR;
 #endif
+
+#ifdef __ROOTSHAREDLIBRARY__
+int AMSCommonsI::pri=0;
+int AMSCommonsI::prierr=0;
+#else
+int AMSCommonsI::pri=1;
+int AMSCommonsI::prierr=1;
+#endif
+
 jmp_buf  AMSCommonsI::AB_buf;
 int  AMSCommonsI::AB_catch=-1;
 
@@ -52,11 +61,11 @@ void AMSCommonsI::init(){
       _osname[0]='\0';
      }
      if(_os){
-      cout <<"AMSCommonsI-I-HardwareIdentifiedAs "<< u.sysname<<" "<<u.release<<" "<<u.machine<<endl;
+      if(pri)cout <<"AMSCommonsI-I-HardwareIdentifiedAs "<< u.sysname<<" "<<u.release<<" "<<u.machine<<endl;
      }
      else{
-      cerr<<"AMSCommonsI-E-CouldNotMap "<<u.sysname<<" "<<u.machine<<endl;
-      cerr<<"Production Job Will Be Aborted"<<endl;
+      if(prierr)cerr<<"AMSCommonsI-E-CouldNotMap "<<u.sysname<<" "<<u.machine<<endl;
+      if(prierr)cerr<<"Production Job Will Be Aborted"<<endl;
      }
    char dt[128];
    strcpy(dt,"/afs/cern.ch/exp/ams/Offline/AMSDataDir");
@@ -65,7 +74,7 @@ void AMSCommonsI::init(){
    if(gtv && strlen(gtv)>0){
     AMSDATADIR.amsdlength=strlen(gtv)+strlen(getversion())+2;
     if(AMSDATADIR.amsdlength>127){
-      cerr <<"AMSCommonsI::init-F-AMSDataDirLength>127 "<<
+      if(prierr)cerr <<"AMSCommonsI::init-F-AMSDataDirLength>127 "<<
         AMSDATADIR.amsdlength<<endl;
        exit(1);  
     }
@@ -82,8 +91,8 @@ void AMSCommonsI::init(){
      
    }
    else {
-     cout<<"AMSCommonsI-W-AMSDataDir variable is not defined."<<endl;
-     cout <<"AMSCommonsI-W-Default value "<<
+     if(pri)cout<<"AMSCommonsI-W-AMSDataDir variable is not defined."<<endl;
+     if(pri)cout <<"AMSCommonsI-W-Default value "<<
         dt<< " will be used."<<endl;
       strcpy(AMSDATADIR.amsdatadir,dt);
       strcat(AMSDATADIR.amsdatadir,"/");
@@ -98,7 +107,7 @@ void AMSCommonsI::init(){
       
    }
           if(sizeof(int) <= sizeof(short int)){
-         cerr<<"AMSCommonsI-F-16 bit machine is not supported."<<endl;
+         if(prierr)cerr<<"AMSCommonsI-F-16 bit machine is not supported."<<endl;
          exit(1);
        }
        integer b64=0;
@@ -114,19 +123,19 @@ void AMSCommonsI::init(){
        test2+=pt[2]<<16;
        test2+=pt[3]<<24;
        integer lend = test1==test2;
-       if(lend)cout <<"AMSCommonsI-I-Identified as LittleEndian";
+       if(lend)if(pri)cout <<"AMSCommonsI-I-Identified as LittleEndian";
        else {
-         cout <<"AMSCommonsI-I-Identified as BigEndian";
+         if(pri)cout <<"AMSCommonsI-I-Identified as BigEndian";
          AMSDBc::BigEndian=1;
        }
        if(b64){
          _MaxMem=4294967295;
-         cout <<" 64 bit machine."<<_MaxMem<<endl;
+         if(pri)cout <<" 64 bit machine."<<_MaxMem<<endl;
        }
        else {
         if(strstr(u.machine,"_64"))_MaxMem=3000000000;
         else if(strstr(u.release,"hugemem"))_MaxMem=2300000000;
-        cout <<" 32 bit machine. "<<_MaxMem<<endl;
+        if(pri)cout <<" 32 bit machine. "<<_MaxMem<<endl;
        }
         
        AMSDBc dummy;
@@ -164,7 +173,7 @@ void AMSCommonsI::init(){
           fbin.getline(syscom,254);
           fbin.close();
           float _cor=1.1;
-          cout <<"AMSCommonsI-I-SystemIdentified as "<<syscom<<endl;
+          if(pri)cout <<"AMSCommonsI-I-SystemIdentified as "<<syscom<<endl;
           if(strstr(syscom,"Pentium II"))_cor=1.07;
           else if(strstr(syscom,"Pentium III"))_cor=1.0;
            else if(strstr(syscom,"Pentium(R) III"))_cor=1.0;
@@ -180,11 +189,11 @@ void AMSCommonsI::init(){
           else if(strstr(syscom,"Core(TM)2 Duo"))_cor=1.35;
           else if(strstr(syscom,"Phenom"))_cor=1.3;
           else if(strstr(syscom,"i7"))_cor=1.6;
-          else cerr<<"AMSCommonsI-E-UnableToMatchName "<<syscom<<endl;
+          else if(prierr)cerr<<"AMSCommonsI-E-UnableToMatchName "<<syscom<<endl;
           _mips*=_cor;
         }
        }
-       cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<getmips()<<endl; 
+       if(pri)cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<getmips()<<endl; 
 #ifdef __TEST26__
        if(strstr(syscom,"Athlon")){
         _remote=true;

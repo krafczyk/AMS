@@ -1,6 +1,6 @@
-//  $Id: cont.C,v 1.16 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: cont.C,v 1.17 2010/01/22 11:33:34 pzuccon Exp $
 // Author V. Choutko 24-may-1996
- 
+#include <cstdio> 
 #include "cont.h"
 #include "amsstl.h"
 void AMSContainer::runbuilder(integer par){

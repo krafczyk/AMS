@@ -1,7 +1,7 @@
 #ifndef __AMSTRDHREC__
 #define __AMSTRDHREC__
 #include "trdrec.h"
-#include "vector.h"
+#include <vector>
 
 const float TRDz0=113.5;
 const float RSDmax=0.6;

@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.3 2009/02/17 14:26:06 choutko Exp $
+//  $Id: commonsi.h,v 1.4 2010/01/22 11:34:26 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -43,6 +43,8 @@ private:
  static pid_t _pid;
  static bool _remote;
 public:
+  static int pri;
+  static int prierr;
 static jmp_buf  AB_buf;
 static int  AB_catch;
 #pragma omp threadprivate (AB_buf,AB_catch)
