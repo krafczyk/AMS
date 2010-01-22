@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.7 2010/01/21 14:57:06 shaino Exp $
+// $Id: MagField.C,v 1.8 2010/01/22 11:08:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/21 14:57:06 $
+///$Date: 2010/01/22 11:08:35 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -21,13 +21,13 @@
 #include <cmath>
 
 #include "MagField.h"
+#ifdef _PGTRACK_
 
 
 MAGSFFKEY_DEF MAGSFFKEY;
 bool MagFieldOn(){return MAGSFFKEY.magstat>0;}
 
 
-#ifdef __ROOTSHAREDLIBRARY__
 //PZMAG
 void uctoh (char* MS,int* MT,int npw, int NCHP);
 
@@ -46,30 +46,30 @@ void uctoh (char* MS,int* MT,int npw, int NCHP);
 // }
 
 
-void TKFIELD_DEF::init(){
+// void TKFIELD_DEF::init(){
 
 
-  iniok=1;
+//   iniok=1;
 
-  char mapfilename[160]="fld97int.txt";
-  uctoh(mapfilename,mfile,4,160);
-  //  memset(mfile,40,sizeof(mfile[0]));
-  isec[0]=0;
-  isec[1]=0;
-  imin[0]=0;
-  imin[1]=0;
-  ihour[0]=0;
-  ihour[1]=0;
-  imon[0]=0;
-  imon[1]=0;
-  iyear[0]=0;
-  iyear[1]=0;
+//   char mapfilename[160]="fld97int.txt";
+//   uctoh(mapfilename,mfile,4,160);
+//   //  memset(mfile,40,sizeof(mfile[0]));
+//   isec[0]=0;
+//   isec[1]=0;
+//   imin[0]=0;
+//   imin[1]=0;
+//   ihour[0]=0;
+//   ihour[1]=0;
+//   imon[0]=0;
+//   imon[1]=0;
+//   iyear[0]=0;
+//   iyear[1]=0;
   
-  return;  
+//   return;  
 
-}
+// }
 
-TKFIELD_DEF TKFIELD;
+// TKFIELD_DEF TKFIELD;
 
 
 MagField *MagField::_ptr = 0;
@@ -179,7 +179,9 @@ int MagField::Read(const char *fname)
   if (!check) {
     std::cerr << "Error in MagField::Read format check failed: "
 	      << fname << " rphi= " << MAGSFFKEY.rphi << std::endl;
-  }
+  }else
+    std::cout << "MagField::Read format check Success: "
+	      << fname << " rphi= " << MAGSFFKEY.rphi << std::endl;
 
   return _nb;
 }
@@ -187,12 +189,15 @@ int MagField::Read(const char *fname)
 void MagField::GuFld(float *xx, float *b)
 {
   b[0] = b[1] = b[2] = 0;
-  if (MAGSFFKEY.magstat <= 0 ) return;
-
-  if (MAGSFFKEY.rphi) {
-    GuFldRphi(xx, b);
+  if (MAGSFFKEY.magstat <= 0 ) {
+    //  printf("No magfield\n");
     return;
   }
+
+// PZ FORCE RECTANGULAR  if (MAGSFFKEY.rphi) {
+//     GuFldRphi(xx, b);
+//     return;
+//   }
 
   _dx = _x[1]-_x[0];
   _dy = _y[1]-_y[0];
@@ -217,10 +222,11 @@ void MagField::GuFld(float *xx, float *b)
     b[2] += mbz[idx[i]]*ww[i];
   }
 
-  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
+  //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
+   for (int i = 0; i < 3; i++) b[i] *= fscale;
 
-//  printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
-//	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
+   //printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
+   //	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
 
 }
 
@@ -253,7 +259,8 @@ void MagField::GuFldRphi(float *xx, float *b)
     b[2] += mbz[idx[i]]*ww[i];
   }
 
-  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
+  //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
+  for (int i = 0; i < 3; i++) b[i] *= fscale;
 
 //printf ("X: %+7.3f %+7.3f %+7.3f B: %+7.3f %+7.3f %+7.3f \n",
 //        xx[0],xx[1],xx[2],b[0],b[1],b[2]);
@@ -264,7 +271,7 @@ void MagField::TkFld(float *xx, float hxy[][3])
   hxy[0][0] = hxy[0][1] = hxy[0][2] = 
   hxy[1][0] = hxy[1][1] = hxy[1][2] = 0;
   if (MAGSFFKEY.magstat <= 0 || !_bx || !_by || !_bz) return;
-  if (MAGSFFKEY.rphi) return;
+  //  PZ FORCE RECTANGULAR if (MAGSFFKEY.rphi) return;
 
   double ax = xx[0];
   double ay = xx[1];

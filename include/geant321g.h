@@ -1,4 +1,4 @@
-//  $Id: geant321g.h,v 1.14 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: geant321g.h,v 1.15 2010/01/22 11:08:36 pzuccon Exp $
 #ifndef __GEANT321G__
 #define __GEANT321G__
 #ifdef __ALPHA__
@@ -26,14 +26,14 @@ PROTOCCALLSFSUB0(GUDIGI,gudigi)
 fortran filename   : gudtim.f
 ------------------------------------------------------------------*/
 
-
+#ifndef _PGTRACK_
 /*------------------------------------------------------------------
 fortran filename   : gufld.f
 ------------------------------------------------------------------*/
 
 PROTOCCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV)
 #define GUFLD(A1,A2)  CCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV,A1,A2)
-
+#endif
 /*------------------------------------------------------------------
 fortran filename   : guhadr.f
 ------------------------------------------------------------------*/

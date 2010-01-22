@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.56 2009/12/10 13:50:49 choutko Exp $
+//  $Id: particle.h,v 1.57 2010/01/22 11:08:36 pzuccon Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -192,7 +192,7 @@ public:
   AMSRichRing *  getprich()    const   { return  _prich;}
   AMSEcalShower * getpshower()  const   {return _pShower;}
 
-  number  getmass() const {return _Mass;}
+  number  getmass() const {return (number) _Mass;}
   number  getmomentum() const {return _Momentum;}
   number getcharge() const {return _Charge;}
   AMSPoint getcoo() const { return _Coo;}

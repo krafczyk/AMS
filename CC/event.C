@@ -3645,7 +3645,11 @@ void AMSEvent::_collectstatus(){
        
        if(ptr ){
         integer charge=ptr->getcharge();
-        geant rig=charge==0?fabs(ptr->getmomentum()):fabs(ptr->getmomentum())/fabs(charge);
+	geant rig;
+	if (charge==0)
+	  rig=fabs(ptr->getmomentum());
+	 else 
+	   fabs(ptr->getmomentum())/fabs(charge);
         int z1=0;
         if(rig<8)z1=0;        
         else if(rig<32)z1=1;        
@@ -3658,7 +3662,8 @@ void AMSEvent::_collectstatus(){
        if(ptr){
         int z1=0;
         if(ptr->getpshower()){
-        geant en=ptr->getpshower()->getEnergy();
+        number en=ptr->getpshower()->getEnergy();
+
         if(en<2)z1=0;        
         else if(en<8)z1=1;        
         else if(en<32)z1=2;        

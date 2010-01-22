@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.683 2010/01/21 14:57:06 shaino Exp $
+// $Id: job.C,v 1.684 2010/01/22 11:08:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1814,13 +1814,13 @@ if(AMSFFKEY.Update){
     }
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
-   int env=fegetexcept();
-    if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
-        RichPMTsManager::Init();
-    feclearexcept(FE_ALL_EXCEPT);
-    if(env){
-      feenableexcept(env);        
-    }
+       int env=fegetexcept();
+       if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
+       RichPMTsManager::Init();
+       feclearexcept(FE_ALL_EXCEPT);
+       if(env){
+	 feenableexcept(env);        
+       }
        RichRadiatorTileManager::Init();	
        AMSTRDIdSoft::inittable();
        AMSECIds::inittable();
@@ -2811,19 +2811,28 @@ TID.add(ptdv);
 }
 
 
-//PZMAG #ifdef _PGTRACK_
-//  MagField*  pp= MagField::GetPtr();
+//PZMAG 
+#ifdef _PGTRACK_
+ MagField*  pp= MagField::GetPtr();
+
 //  TID.add(new 
 // 	 AMSTimeID(AMSID(FieldMapName,isRealData()),
 // 		   begin,end,pp->GetSizeForDB(),        
 // 		   (void*)pp->GetPointerForDB(),
 // 		   server,1));
-// #else
+ char bmap_fname[30]="MagneticFieldMap07.bin";
+ //set scale because fld07 map is at 460 A and we want 400 A
+ pp->SetScale(400./460.);
+ char name[200];
+ sprintf(name,"%s/%s",AMSDATADIR.amsdatadir,bmap_fname);
+ pp->Read(name);
+
+#else
  TID.add (new AMSTimeID(AMSID(FieldMapName,isRealData()),
 			begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok),
 			(void*)TKFIELD.isec,server,1));
 
- //PZMAG#endif
+#endif
 
 //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
 //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));

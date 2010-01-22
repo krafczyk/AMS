@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.11 2010/01/21 14:57:06 shaino Exp $
+//  $Id: TrFit.C,v 1.12 2010/01/22 11:08:35 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2010/01/21 14:57:06 $
+///$Date: 2010/01/22 11:08:35 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +86,31 @@ double TrFit::Fit(int method)
 {
   // Check number of hits
   if (_nhit < 3) return -1;
+// <<<<<<< TrFit.C
+//   double out=0;
+//   if (method ==  LINEAR) out=  LinearFit();
+//   if (method ==  CIRCLE) out=  CircleFit();
+//   if (method ==  SIMPLE) out=  SimpleFit();
+//   if (method == ALCARAZ) out=  AlcarazFit();
+//   if (method == CHOUTKO) out=  ChoutkoFit();
+
+//   if(_rigidity>1e6) 
+//     _rigidity = 1e6;
+//   else if(_rigidity<-1e6) 
+//     _rigidity = -1e6;
+//   else if(fabs(_rigidity)<0.0001){
+//     double sign= fabs(_rigidity)/_rigidity;
+//     _rigidity= 0.0001*sign;
+//   }
+//   if(_errrinv>1e6) 
+//     _errrinv = 1e6;
+//   else if(_errrinv<-1e6) 
+//     _errrinv = -1e6;
+//   else if(_errrinv!=0&&fabs(_errrinv)<0.0001)
+//     _errrinv= 0.0001;
+//   //  printf("--->Rig %e\n",_rigidity);
+//   return out;
+// =======
 
   double ret = 0;
   if (method ==  LINEAR) ret = LinearFit();
@@ -96,6 +121,7 @@ double TrFit::Fit(int method)
 
   ParLimits();
   return ret;
+
 }
 
 double TrFit::LinearFit(void)
@@ -2046,8 +2072,10 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
     = { _p0x, _p0y, _p0z, _dxdz*d0, _dydz*d0, d0, sign*_chrg*_rigidity };
   double point[6]
     = { pnt.x(), pnt.y(), pnt.z(), dir.x(), dir.y(), dir.z() };
-
-  double out[7];
+  //PZ FPE BUGFIX
+  double out[7]={0, 0,0,0, 0,0,0};
+  //  if(fabs(init[6])<0.00001)init[6]=1E6;
+ 
   double len = VCFitPar(init, out, point, 0, 1);
   pnt.setp(out[0], out[1], out[2]);
   dir.setp(out[3], out[4], out[5]);
@@ -2136,8 +2164,11 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
 
   int ich = 0;
   double vin[7];
+
+
   for (int i = 0; i < 7; i++) vin[i] = out[i] = init[i];
 
+ 
   double za = out[2];
   double sdist = (point[0]-out[0])*point[3]+
                  (point[1]-out[1])*point[4]+
@@ -2154,6 +2185,8 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
 
   int nit = 0, imat = 0;
   while (++nit <= nitm && imat == 0) {
+    //cout<<"------->point "<< point<<endl;//[0]<<" "<< point[1]<<" "<< point[2]<<" "<< point[3]<<" "<< point[4]<<" "<< point[5]<<endl;
+    //cout<<"-------> out  "<<*out<<endl;//<<"  "<<out[1]<<"  "<<out[2]<<endl;
     sdist = (point[0]-out[0])*point[3]+
             (point[1]-out[1])*point[4]+
             (point[2]-out[2])*point[5];

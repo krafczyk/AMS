@@ -1,25 +1,12 @@
-//  $Id: MagField.h,v 1.6 2010/01/21 14:57:20 shaino Exp $
+//  $Id: MagField.h,v 1.7 2010/01/22 11:08:36 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 
 #include "typedefs.h"
 
 
-class MAGSFFKEY_DEF {
-public:
-integer magstat; // status: 0/1-> off/on
-geant fscale;    // nom.field reduction
-geant ecutge;    // e/g energy cut for tracking in magnet materials
-geant r0[3];     // shift & rotation of mag field map w/r nom
-geant pitch;
-geant yaw;
-geant roll;
-integer rphi;    // use xyz (0) or rphiz (1) grid
-integer begin;    // begin time
-integer end;    //end time
-};
 
-#ifndef __ROOTSHAREDLIBRARY__
+#ifndef _PGTRACK_
 
 
 // GEANT part
@@ -41,6 +28,22 @@ COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 
 #else
 
+class MAGSFFKEY_DEF {
+public:
+integer magstat; // status: 0/1-> off/on
+geant fscale;    // nom.field reduction
+geant ecutge;    // e/g energy cut for tracking in magnet materials
+geant r0[3];     // shift & rotation of mag field map w/r nom
+geant pitch;
+geant yaw;
+geant roll;
+integer rphi;    // use xyz (0) or rphiz (1) grid
+integer begin;    // begin time
+integer end;    //end time
+};
+
+extern MAGSFFKEY_DEF MAGSFFKEY;
+
 #define GUFLD(A1,A2)  MagField::GetPtr()->GuFld(A1,A2)
 #define TKFLD(A1,A2)  MagField::GetPtr()->TkFld(A1,A2)
 
@@ -60,9 +63,9 @@ COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/21 14:57:20 $
+///$Date: 2010/01/22 11:08:36 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -106,7 +109,7 @@ protected:
   double  _dz;     ///< Element size in Z (cm)
 
   static MagField* _ptr;  ///< Self pointer
-
+  double fscale;
   MagField(void);
 
 public:
@@ -150,6 +153,9 @@ public:
     return siz;
   }
 
+  void   SetScale(double scal){fscale=scal;}
+  double GetScale(){ return fscale;}
+
   void Print();
 
 protected:
@@ -166,21 +172,22 @@ protected:
   int _GetIndex(double x, double y, double z) const;
 };
 
-class TKFIELD_DEF{
-public:
-  integer mfile[40];
-  integer iniok;
-  integer isec[2];
-  integer imin[2];
-  integer ihour[2];
-  integer iday[2];
-  integer imon[2];
-  integer iyear[2];
-  void init();
-};
+// class TKFIELD_DEF{
+// public:
+//   integer mfile[40];
+//   integer iniok;
+//   integer isec[2];
+//   integer imin[2];
+//   integer ihour[2];
+//   integer iday[2];
+//   integer imon[2];
+//   integer iyear[2];
+//   void init();
+// };
+
+bool MagFieldOn();
 
 #endif
 
-bool MagFieldOn();
 
 #endif

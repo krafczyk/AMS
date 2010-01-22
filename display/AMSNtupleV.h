@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.31 2009/12/12 17:55:22 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.32 2010/01/22 11:08:36 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -498,9 +498,10 @@ public:
 //       V0[1]=pcl->GetRigidity() * sin(pcl->GetTheta()) * sin(pcl->GetPhi());
 //       V0[2]=pcl->GetRigidity() * cos(pcl->GetTheta());
 
-      V0[0]= pcl->GetDir()[0]*pcl->GetRigidity() ;
-      V0[1]= pcl->GetDir()[1]*pcl->GetRigidity() ;
-      V0[2]= pcl->GetDir()[2]*pcl->GetRigidity() ;
+      V0[0]= -1*pcl->GetDir()[0]*pcl->GetRigidity() ;
+      V0[1]= -1*pcl->GetDir()[1]*pcl->GetRigidity() ;
+      V0[2]= -1*pcl->GetDir()[2]*pcl->GetRigidity() ;
+      THelix::SetHelix(P0,V0,0.3*Bfield/100,Range,kHelixX,Axis);
       //      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
 #else
       Double_t Bfield = -0.4;	// in minus-x direction of AMS
@@ -513,8 +514,8 @@ public:
       V0[0]=pcl->Rigidity * sin(pcl->Theta) * cos(pcl->Phi);
       V0[1]=pcl->Rigidity * sin(pcl->Theta) * sin(pcl->Phi);
       V0[2]=pcl->Rigidity * cos(pcl->Theta);
-#endif
       THelix::SetHelix(P0,V0,0.3*Bfield/100,Range,kHelixX,Axis);
+#endif
     }
     SetLineColor(14);
     SetLineWidth(1);

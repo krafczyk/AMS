@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.205 2010/01/19 16:29:22 mdelgado Exp $
+//  $Id: root.C,v 1.206 2010/01/22 11:08:35 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2288,14 +2288,16 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   fVertex = -1;
   Particle     = ptr->_gpart[0];
   ParticleVice = ptr->_gpart[1];
-  for (int i=0; i<2; i++) {Prob[i] = ptr->_prob[i];}
-  FitMom   = ptr->_fittedmom[0];
-  Mass     = ptr->_Mass;
-  ErrMass  = ptr->_ErrMass;
-  Momentum = ptr->_Momentum;
-  ErrMomentum = ptr->_ErrMomentum;
-  Beta     = ptr->_Beta;
-  ErrBeta  = ptr->_ErrBeta;
+  for (int i=0; i<2; i++) {Prob[i] = (float)ptr->_prob[i];}
+  ErrMomentum = (float) ptr->_ErrMomentum;
+  printf("Mass %f\n",ptr->getmass());
+  Mass     =(float) ptr->_Mass;
+  printf("Mass2 %f\n",Mass);
+  FitMom   = (float) ptr->_fittedmom[0];
+  ErrMass  = (float)ptr->_ErrMass;
+  Momentum = (float)ptr->_Momentum;
+  Beta     = (float)ptr->_Beta;
+  ErrBeta  = (float)ptr->_ErrBeta;
   Charge   = ptr->_Charge;
   Theta    = ptr->_Theta;
   ThetaGl  = ptr->_ThetaGl;

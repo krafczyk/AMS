@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.188 2009/11/29 12:48:25 choutko Exp $
+//  $Id: particle.C,v 1.189 2010/01/22 11:08:35 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -146,7 +146,7 @@ integer AMSParticle::build(integer refit){
           AMSgObj::BookTimer.stop("ReAxPid");
            
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-   // cerr <<"  Added a Particle cont number "<<ppart->contnumber()<<endl;
+	  //cerr <<"  Added a Particle cont number "<<ppart->contnumber()<<endl;
 	  partfound++;
 	}
       }
@@ -161,11 +161,17 @@ integer AMSParticle::build(integer refit){
     if(pecal){
       for (int i=-1;i<2;i+=2){
 	// make false tracks (+-)
-        
-	AMSTrTrack *ptrack=new AMSTrTrack(pecal->getDir(), pecal->getEntryPoint(),pecal->getEnergy()*i,pecal->getEnergyErr());
+
+	//PZ FPE FIX often ecal ene is very large double > 1e209
+        double ecal_ene=pecal->getEnergy();
+        double ecal_ene_err=pecal->getEnergyErr();
+	if(fabs(ecal_ene) > 1e6) ecal_ene=1e6;
+	if(fabs(ecal_ene_err) > 1e7) ecal_ene_err=1e7;
+	
+	AMSTrTrack *ptrack=new AMSTrTrack(pecal->getDir(), pecal->getEntryPoint(),ecal_ene*i,ecal_ene_err);
 	ptrack->setstatus(AMSDBc::ECALTRACK); 
 	ppart=new AMSParticle(0, 0, ptrack,
-			      pecal->getDirection(),1,0,100000,pecal->getEnergy()*i*pecal->getDirection(),pecal->getEnergyErr(),1,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
+			      pecal->getDirection(),1,0,100000,ecal_ene*i*pecal->getDirection(),ecal_ene_err,1,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
 	//          cout <<" ecal particle done "<<AMSEvent::gethead()->getid()<<endl;
 	AMSgObj::BookTimer.start("ReAxPid");
 	ppart->pid();
@@ -642,7 +648,6 @@ void AMSParticle::richfit(){
     // Fill Root class
     float phi  =fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
     float phigl=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
-
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, phi, phigl);
 #endif
   }
