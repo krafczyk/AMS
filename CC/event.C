@@ -1112,11 +1112,11 @@ void AMSEvent::_retrdinitevent(){
   }
 
   if(TRDFITFFKEY.FitMethod!=0){
-    for(int i=0;i<6;i++) AMSEvent::gethead()->add (
-						   new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",i),&AMSTRDHSegment::build,0));
+    for(int i=0;i<10;i++) AMSEvent::gethead()->add (
+    new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",i),&AMSTRDHSegment::build,0));
 
-    for(int i=0;i<2;i++) AMSEvent::gethead()->add (
-						   new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",i),&AMSTRDHTrack::build,0));
+    for(int i=0;i<4;i++) AMSEvent::gethead()->add (
+    new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",i),&AMSTRDHTrack::build,0));
   }
 
 }
@@ -1261,11 +1261,11 @@ void  AMSEvent::write(int trig){
   }
   }
   if(TRDFITFFKEY.FitMethod!=0){
-    for(int il=0;il<6;il++){
+    for(int il=0;il<10;il++){
       AMSEvent::gethead()->getheadC("AMSTRDHSegment",il,2);
     }
 
-    for(int il=0;il<2;il++){
+    for(int il=0;il<4;il++){
       AMSEvent::gethead()->getheadC("AMSTRDHTrack",il,2);
     }
   }
@@ -2106,21 +2106,23 @@ void AMSEvent::_retrdevent(){
 #endif
 
   if(TRDFITFFKEY.FitMethod!=0){
-    buildC("AMSTRDHSegment");
+    int nseg=buildC("AMSTRDHSegment");
 #ifdef __AMSDEBUG__
-    for(int i=0;i<nhseg;i++){
+    for(int i=0;i<nseg;i++){
       AMSContainer *p =getC("AMSTRDHSegment",i);
       if(p && AMSEvent::debug)p->printC(cout);
     }
 #endif
 
-    int nhtr=buildC("AMSTRDHTrack");
+    if(nseg>1){
+      int ntr=buildC("AMSTRDHTrack");
 #ifdef __AMSDEBUG__
-    for(int i=0;i<2;i++){
-      AMSContainer *p =getC("AMSTRDHTrack",i);
-      if(p && AMSEvent::debug)p->printC(cout);
-    }
+      for(int i=0;i<ntr;i++){
+	AMSContainer *p =getC("AMSTRDHTrack",i);
+	if(p && AMSEvent::debug)p->printC(cout);
+      }
 #endif
+    }
   }
 //
 //
