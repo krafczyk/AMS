@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.122 2010/01/21 14:57:06 shaino Exp $
+//  $Id: geant.C,v 1.123 2010/01/25 15:09:25 shaino Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -226,9 +226,6 @@ if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)
 #endif
 GLAST();
-#ifdef _PGTRACK_
-hman.Save();
-#endif   
        delete AMSJob::gethead();
 
 #ifdef __CORBA__

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.207 2010/01/25 10:22:48 mmilling Exp $
+//  $Id: root.C,v 1.208 2010/01/25 15:09:25 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2290,9 +2290,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   ParticleVice = ptr->_gpart[1];
   for (int i=0; i<2; i++) {Prob[i] = (float)ptr->_prob[i];}
   ErrMomentum = (float) ptr->_ErrMomentum;
-  printf("Mass %f\n",ptr->getmass());
   Mass     =(float) ptr->_Mass;
-  printf("Mass2 %f\n",Mass);
   FitMom   = (float) ptr->_fittedmom[0];
   ErrMass  = (float)ptr->_ErrMass;
   Momentum = (float)ptr->_Momentum;

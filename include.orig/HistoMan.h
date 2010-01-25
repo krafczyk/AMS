@@ -24,18 +24,16 @@ class HistoMan{
 private:
   /// Enabled/disabled flag
   bool enabled;
+  /// Flag to avoid double booking
+  bool booked;
   /// Array to keep pointers to the histogram
   TObjArray fhist;
   /// Output file name
   char fname[256];
-  /// AMSRoot file pointer
-  TFile *rfile;
 public:
   HistoMan();
   ~HistoMan();
 
-  /// Set AMSRoot file pointer
-  void SetRfile(TFile *file) {rfile = file;}
   /// Add a new histogram
   void Add(TH1* hist ){fhist.Add(hist);}
   /// Get pointer to the histogram with name
@@ -46,6 +44,8 @@ public:
   void Fill(const char * name, double a,double  b=1.,double w=1.);
   /// Save histograms to file
   void Save();
+  /// Save histograms to a specified file
+  void Save(TFile *file);
   /// Book default histograms
   void BookHistos();
   /// Enable this facility

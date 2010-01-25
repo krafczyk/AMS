@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.95 2010/01/14 22:10:43 pzuccon Exp $
+#  $Id: Makefile,v 1.96 2010/01/25 15:09:33 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -277,7 +277,7 @@ ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrCalDB.h     \
 		../include/patt.h       ../include/TkCoo.h  ../include/TkSens.h \
-	        ../include/TrRecon.h 	../include/TkDBc.h      \
+	        ../include/TrRecon.h 	../include/TkDBc.h  ../include/MagField.h \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
 		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \

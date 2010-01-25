@@ -1,12 +1,13 @@
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
+#include "TROOT.h"
 #include "TDirectoryFile.h"
 
 HistoMan hman;
 
 
-HistoMan::HistoMan():enabled(false), rfile(0) { 
+HistoMan::HistoMan():enabled(false), booked(false) { 
   //  fhist.SetOwner(kTRUE); 
   sprintf(fname,"histos.root");
 }
@@ -24,6 +25,22 @@ void HistoMan::Save(){
   pp->Close();
   printf(" ..... done\n");
   //  fdir->Purge();
+  return;
+}
+
+void HistoMan::Save(TFile *file){
+  if(!enabled) return;
+  if(!file)return;
+  printf("HistoMan::Save ----> Saving %s\n",file->GetName());
+
+  TDirectory *dsave = gDirectory;
+  file->cd();
+  TDirectoryFile *dir = new TDirectoryFile("HistoMan", "HistoMan");
+  dir->cd();
+  fhist.Write();
+  printf(" ..... done\n");
+  if (dsave) dsave->cd();
+
   return;
 }
 
@@ -173,43 +190,34 @@ TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up
 #include "TrRecon.h"
 
 void HistoMan::BookHistos(){
-  if(!enabled) return;
+  if (!enabled || booked) return;
 
   TDirectory *dsave = gDirectory;
 
-  // In case of IOPA.histoman= 1 or 3:
-  // Histograms are booked under file-based directory in AMSRoot file
-  if (rfile) {
-    rfile->cd();
-    TDirectoryFile *dir = new TDirectoryFile("HistoMan", "HistoMan");
-    dir->cd();
-    printf("HistoMan::BookHistos: Directroy HistoMan created in %s\n",
-	   rfile->GetName());
-  }
-
-  // In case of IOPA.histoman= 2:
   // Histograms are booked under memory-based directory 
   // and written in file later when HistoMan::Save is called
-  else {
-    TDirectory *dir = new TDirectory("HistoMan", "HistoMan");
-    dir->cd();
-    printf("HistoMan::BookHistos: Directroy HistoMan created in memory\n");
-  }
+  gROOT->cd();
+  TDirectory *dir = new TDirectory("HistoMan", "HistoMan");
+  dir->cd();
+  printf("HistoMan::BookHistos: Directroy HistoMan created in memory\n");
 
   // Tracker low level
   Add(new TH2D("TrSizeDt", "#DeltaT VS TrSize", 500, 0, 1000, 300, 0, 24000));
-  Add(new TH2D("TrNrawEv", "nTrRaw VS EvtNum", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNclsEv", "nTrCls VS EvtNum", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNhitEv", "nTrHit VS EvtNum", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNrawLt", "nRaw VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNclsLt", "nCls VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNhitLt", "nHit VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNrawHt", "nRaw VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNclsHt", "nCls VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNhitHt", "nHit VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
 
   // TrCluster
   Add(new TH2D("TrClsSigP", "Amplitude(P) VS OnTrack", 2, 0, 2, 500, 0, 500));
   Add(new TH2D("TrClsSigN", "Amplitude(N) VS OnTrack", 2, 0, 2, 500, 0, 500));
 
   // TrRecHit
-  Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 8, 0.5, 9.5));
-  Add(new TH2D("TrLadYh",  "Ladder with hitY",  33, -16.5, 16.5, 8, 0.5, 9.5));
-  Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 8, 0.5, 9.5));
+  Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 8, 0.5, 8.5));
+  Add(new TH2D("TrLadYh",  "Ladder with hitY",  33, -16.5, 16.5, 8, 0.5, 8.5));
+  Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 8, 0.5, 8.5));
 
   // TrTrack
   Add(TH2D_L("TrTime","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
@@ -228,4 +236,5 @@ void HistoMan::BookHistos(){
   }
 
   if (dsave) dsave->cd();
+  booked = true;
 }

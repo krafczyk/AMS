@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.22 2010/01/21 14:57:20 shaino Exp $ 
+// $Id: TrRecon.h,v 1.23 2010/01/25 15:09:29 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/21 14:57:20 $
+/// $Date: 2010/01/25 15:09:29 $
 ///
-/// $Revision: 1.22 $
+/// $Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -385,8 +385,8 @@ protected:
   /// Start time marker
   float _StartTime;
 
-  /// CPU time up checker 
-  bool _CpuTimeUp() const;
+  /// CPU time up flag
+  bool _CpuTimeUp;
 
   /// CPU time consumption in the last BuildTrTracks
   float _CpuTime;
@@ -401,6 +401,9 @@ public:
   /// Flag for SIGTERM/SIGINT;
   static bool SigTERM;
   
+  /// Get CPU time up flag
+  bool CpuTimeUp() const { return _CpuTimeUp | SigTERM; }
+
   /// Get CPU time consumption in the last BuildTrTracks
   float GetCpuTime() const { return _CpuTime; }
 

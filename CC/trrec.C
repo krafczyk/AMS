@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.213 2009/11/17 13:32:21 choutko Exp $
+//  $Id: trrec.C,v 1.214 2010/01/25 15:09:26 shaino Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -4620,9 +4620,10 @@ bool AMSTrTrack::TRDMatch(AMSTRDTrack *ptrd){
 
        return false;
 }
-#else
+#else //_PGTRACK_
 
 #include "amsgobj.h"
+#include "VCon.h"
 
 AMSTrTrackError::AMSTrTrackError(char * name){
   if(name){
@@ -4637,5 +4638,45 @@ AMSTrTrackError::AMSTrTrackError(char * name){
 }
 char * AMSTrTrackError::getmessage(){return msg;}
 
+
+AMSTrRecHit *AMSTrRecHit::gethead(integer i)
+{
+  if (i < 0 || trconst::nlays <= i) return 0;
+
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return 0;
+
+  AMSTrRecHit *phead = 0;
+  for (int j = 0; j < cont->getnelem(); j++) {
+    AMSTrRecHit *hit = (AMSTrRecHit*)cont->getelem(j);
+    if (hit->GetLayer() == i+1) {
+      phead = hit;
+      break;
+    }
+  }
+
+  delete cont;
+  return phead;
+}
+
+AMSTrRecHit *AMSTrRecHit::next()
+{
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return 0;
+
+  bool found = false;
+  AMSTrRecHit *pnext = 0;
+  for (int j = 0; j < cont->getnelem(); j++) {
+    AMSTrRecHit *hit = (AMSTrRecHit*)cont->getelem(j);
+    if (found && hit->GetLayer() == GetLayer()) {
+      pnext = hit;
+      break;
+    }
+    if (!found && hit == this) found = true;
+  }
+
+  delete cont;
+  return pnext;
+}
 
 #endif

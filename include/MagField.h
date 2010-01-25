@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.7 2010/01/22 11:08:36 pzuccon Exp $
+//  $Id: MagField.h,v 1.8 2010/01/25 15:09:29 shaino Exp $
 #ifndef __MagField__
 #define __MagField__
 
@@ -63,9 +63,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/22 11:08:36 $
+///$Date: 2010/01/25 15:09:29 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -153,8 +153,10 @@ public:
     return siz;
   }
 
-  void   SetScale(double scal){fscale=scal;}
-  double GetScale(){ return fscale;}
+  void   SetMagstat(int  stat) { MAGSFFKEY.magstat = stat; }
+  void   SetScale(double scal) { fscale = scal; }
+  int    GetMagstat() const { return MAGSFFKEY.magstat; }
+  double GetScale  () const { return fscale; }
 
   void Print();
 

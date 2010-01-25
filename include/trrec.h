@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.107 2009/12/17 16:11:12 shaino Exp $
+//  $Id: trrec.h,v 1.108 2010/01/25 15:09:29 shaino Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -654,7 +654,7 @@ public:
   ~AMSTrRecHit(){}
  
 
-  AMSTrRecHit* next(){return (AMSTrRecHit*) _next;}
+//AMSTrRecHit* next(){return (AMSTrRecHit*) _next;}
   
   unsigned int checkstatus(int c) const { return Status&c; }
   unsigned int getstatus  (void)  const { return Status; }
@@ -666,6 +666,8 @@ public:
   void _writeEl(){}
   //  ClassDef(AMSTrRecHit,0)
 
+  static AMSTrRecHit *gethead(integer i=0);
+  AMSTrRecHit *next();
 };
 
 

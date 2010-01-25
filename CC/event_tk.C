@@ -130,7 +130,7 @@ void AMSEvent::_retkevent(integer refit){
 
 #pragma omp critical (trcpulim)
 {
-              if (retr3 == -2) {
+              if (rec->CpuTimeUp() || TrRecon::SigTERM) {
 		if (TrRecon::SigTERM)
 		  cerr << "TrRecon::BuildTrTracks: SIGTERM detected: ";
 		else
@@ -147,17 +147,25 @@ void AMSEvent::_retkevent(integer refit){
       AMSgObj::BookTimer.stop("RETKEVENT");
     }
 
+
   // Fill histograms
   int nraw = AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem();
   int ncls = AMSEvent::gethead()->getC("AMSTrCluster"   )->getnelem();
   int nhit = AMSEvent::gethead()->getC("AMSTrRecHit"    )->getnelem();
   int ntrk = AMSEvent::gethead()->getC("AMSTrTrack"     )->getnelem();
   hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec->GetTrackerSize());
-  hman.Fill("TrNrawEv", getEvent(), nraw);
-  hman.Fill("TrNclsEv", getEvent(), ncls);
-  hman.Fill("TrNhitEv", getEvent(), nhit);
+  if (ptr1->gettrtime(4) < TrRecon::lowdt) {
+    hman.Fill("TrNrawLt", getEvent(), nraw);
+    hman.Fill("TrNclsLt", getEvent(), ncls);
+    hman.Fill("TrNhitLt", getEvent(), nhit);
+  }
+  else {
+    hman.Fill("TrNrawHt", getEvent(), nraw);
+    hman.Fill("TrNclsHt", getEvent(), ncls);
+    hman.Fill("TrNhitHt", getEvent(), nhit);
+  }
 
-  hman.Fill("TrTime", nhit, rec->GetCpuTime()+(getEvent()%100)*1e-3);
+  hman.Fill("TrTime", nhit, rec->GetCpuTime());
 
   AMSTrCluster *cls = (AMSTrCluster *)AMSEvent::gethead()->getC("AMSTrCluster")->gethead();
   for (int i = 0; i < nraw && cls; i++) {

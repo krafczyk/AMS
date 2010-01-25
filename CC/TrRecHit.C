@@ -97,8 +97,6 @@ TrClusterR* TrRecHitR::GetYCluster() {
   return _clusterY;
 }
 
-
-
 void TrRecHitR::BuildCoordinates() {
   // coordinate construction
   TrClusterR* clX= GetXCluster();

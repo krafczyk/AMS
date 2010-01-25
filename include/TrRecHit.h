@@ -129,6 +129,10 @@ protected:
   void SetDummyX(float dumx) { _dummyX = dumx; }
   /// Returns the signal of the Y cluster 
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
+  /// Returns the signal sum of the X and Y clusters
+  float GetTotSignal() { 
+    ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
+    ((GetYCluster())? GetYCluster()->GetTotSignal():0); }
   /// Get X local coordinate (ladder reference frame)
   float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
   /// Get Y local coordinate (ladder reference frame)
@@ -161,6 +165,9 @@ protected:
   /// Clear cluster status
   void     clearstatus(uinteger status){Status=Status & ~status;}
 
+  /// Compatibility with default Gbatch
+  AMSPoint getHit(bool = true) { return GetCoord(); }
+  number   getsum()            { return GetTotSignal(); }
 
   /// Print clusterRec hit  basic information  on a given stream 
   std::ostream& putout(std::ostream &ostr = std::cout);

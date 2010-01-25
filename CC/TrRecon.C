@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.37 2010/01/21 15:37:31 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.38 2010/01/25 15:09:25 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/21 15:37:31 $
+/// $Date: 2010/01/25 15:09:25 $
 ///
-/// $Revision: 1.37 $
+/// $Revision: 1.38 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -156,6 +156,8 @@ void TrRecon::Clear(Option_t *option) {
   _RecHitLayerMap.clear();
   // _Patterns.clear();
   _TasPar = 0;
+  _CpuTimeUp = 0;
+  _CpuTime   = 0;
 }
 
 int   TrRecon::MaxNrawCls    = 2000;
@@ -1032,13 +1034,6 @@ float TrRecon::_CheckTimer() const
 
 bool TrRecon::SigTERM = false;
 
-bool TrRecon::_CpuTimeUp() const{
-  if(SigTERM) return true;
-  if(TrTimeLim<0) return false;
-  float spentTime=_CheckTimer();
-  return spentTime>=TrTimeLim;
-}
-
 void TrRecon::BuildHitsTkIdMap() 
 {
   _HitsTkIdMap.clear();
@@ -1167,6 +1162,7 @@ int TrRecon::BuildTrTracks(int rebuild)
 
   Ntrials1 = Ntrials2 = 0;
 
+  _CpuTimeUp = false;
   _StartTimer();
 
 
@@ -1178,19 +1174,19 @@ int TrRecon::BuildTrTracks(int rebuild)
 
     found = 0;
     // Scan Ladders for each pattern until a track found
-    for (int pat = 0; !_CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
+    for (int pat = 0; !CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
       TrHitIter itcand;
       if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat, itcand)))
         ntrack += BuildATrTrack(itcand);
     }
-  } while (!_CpuTimeUp() && found && ntrack < MaxNtrack);
+  } while (!CpuTimeUp() && found && ntrack < MaxNtrack);
 
   _CpuTime = _CheckTimer();
 
   // Purge "ghost" hits and assign hit index to tracks
   PurgeGhostHits();
 
-  return (_CpuTimeUp()) ? -2 : ntrack;
+  return ntrack;
 }
 
 void TrRecon::PurgeGhostHits()
@@ -1328,7 +1324,10 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
 
 int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 {
-  if (_CpuTimeUp()) return 0;
+  if (TrTimeLim > 0 && _CheckTimer() > TrTimeLim)
+    (const_cast<TrRecon *>(this))->_CpuTimeUp = true;
+
+  if (CpuTimeUp()) return 0;
 
   // Evaluate current candidates if idx has reached to the end
   if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it, itcand)
@@ -1393,7 +1392,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   ScanRecursive(0, it, itcand);
 
   // Return 1 if track has been found
-  return (!_CpuTimeUp() && itcand.nlayer > 0);
+  return (!CpuTimeUp() && itcand.nlayer > 0);
 }
 
 int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
@@ -1426,7 +1425,7 @@ int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
 int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 {
   // Check CPU time limit
-  if (_CpuTimeUp()) return 0;
+  if (CpuTimeUp()) return 0;
 
   // Check number of hits with both-side clusters
   int nhitc = 0;

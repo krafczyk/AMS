@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.190 2010/01/21 14:57:06 shaino Exp $
+//  $Id: ntuple.C,v 1.191 2010/01/25 15:09:25 shaino Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -304,7 +304,10 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
      _ta.SetString(AMSTrAligFit::GetAligString());
      //cout <<AMSTrAligFit::GetAligString()<<endl;
      _ta.Write("TrackerAlignment");
-#endif
+#else
+   if(IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
+   if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
+#endif   
 
      if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
        TRDPlotInit();
@@ -376,7 +379,6 @@ void AMSNtuple::initR(char* fname){
   // if(TrCalDB::Head) TrCalDB::Head->Write();
   if (TrTasDB::Head) TrTasDB::Head->Write();
   if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
-  if(IOPA.histoman==1 || IOPA.histoman==3) hman.SetRfile(_rfile);
 #endif   
 
   const int size=5000000;

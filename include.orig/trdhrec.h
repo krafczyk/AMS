@@ -283,9 +283,9 @@ public:
     }
 };
 
-bool myfunction (PeakXYZW a, PeakXYZW b){return a.w>b.w;};
+inline bool myfunction (PeakXYZW a, PeakXYZW b){return a.w>b.w;};
 
-bool binsfunction (BIN a, BIN b){return a.c>b.c;};
+inline bool binsfunction (BIN a, BIN b){return a.c>b.c;};
 
 class TH2V{  // 2-dim histo with internal vector<BIN>
 
