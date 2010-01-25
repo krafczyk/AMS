@@ -1,10 +1,8 @@
 #ifndef __AMSTRDHREC__
 #define __AMSTRDHREC__
 #include "trdrec.h"
-#include <vector>
-
-const float TRDz0=113.5;
-const float RSDmax=0.6;
+#include "vector.h"
+#include "event.h"
 
 class TRDHitRZD{ 
  public:
@@ -53,20 +51,21 @@ class AMSTRDHSegment:public AMSlink{
   public:
   integer    d;
   float      m,r,z,w;
+  float      em,er;
   integer    nhits;
   float      chi2;
   vector<AMSTRDRawHit*> fTRDRawHit;
   
   //  static integer _addnext(integer pat, integer nhit, uinteger iseg,AMSTRDRawHit* pthit[]);
-  static integer _addnext(integer d, float m, float r, float z, float w, integer nhits, AMSTRDRawHit* pthit[]);
+  static integer _addnext(integer d, float m, float em, float r, float er,float z, float w, integer nhits, AMSTRDRawHit* pthit[]);
   void _addnextR(uinteger iseg);
 
-  AMSTRDHSegment(integer d_, float m_, float r_, float z_, float w_)
-    : AMSlink(),d(d_), m(m_), r(r_), z(z_), w(w_) 
+  AMSTRDHSegment(integer d_, float m_, float em_, float r_, float er_,float z_, float w_)
+    : AMSlink(),d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_) 
     {};
 
-  AMSTRDHSegment(integer d_, float m_, float r_, float z_, float w_, integer nhits_, AMSTRDRawHit* pthit[])
-    : AMSlink(),d(d_), m(m_), r(r_), z(z_) , w(w_), nhits(nhits_)
+    AMSTRDHSegment(integer d_, float m_, float em_, float r_, float er_, float z_, float w_, integer nhits_, AMSTRDRawHit* pthit[])
+      : AMSlink(),d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), nhits(nhits_)
   {
     for(int i=0;i!=nhits_;i++){
       if(pthit[i])fTRDRawHit[i]=pthit[i];
@@ -90,6 +89,7 @@ class AMSTRDHSegment:public AMSlink{
     }
   }
 
+
   integer operator < (AMSlink & o) const {
     AMSTRDHSegment * p= dynamic_cast<AMSTRDHSegment*>(&o);
     return !p||chi2<p->chi2;
@@ -110,31 +110,7 @@ class AMSTRDHSegment:public AMSlink{
     }
   };
   
-  int LinReg(){ // fit  Hit.rz   with  r = A*z + B
-    int stat = 0;
-    double Sw=0.0,Sr=0.0,Sz=0.0,Srz=0.0,Szz=0.0;
-    for(int i=0; i<fTRDRawHit.size(); i++){
-      TRDHitRZD rzd(fTRDRawHit[i]);
-      Sw  += 1.0;
-      Sr  += rzd.r;
-      Sz  += rzd.z;
-      Srz += rzd.r * rzd.z;
-      Szz += rzd.z * rzd.z;
-    }
-    double DD =  Sw*Szz-Sz*Sz;
-    if(DD==0.0){ stat = -1; }  // no fit possible - do nothing
-    else{
-      double A  = (Sw*Srz-Sr*Sz)/DD;
-      double B  = (Sr-A*Sz)/Sw;
-      if(fabs(m)<1.0 && (fabs(m-A)>0.2 || fabs(r-(A*z+B))>10.0) ){
-	// printf("LinReg nh: %d  m: %10.4f %10.4f  r: %10.2f %10.2f\n", pTrdRawHit.size(),m,A,r,A*z+B);
-	stat = 1;
-      }
-      m = A; r = A*z+B; // replace with new result
-    }
-    return(stat);
-  }
-
+  int LinReg2(int debug);
 
 #ifdef __WRITEROOT__
   friend class TrdHSegmentR;
@@ -151,6 +127,8 @@ class AMSTRDHTrack:public AMSlink{
   float pos[3];
   float dir[3];
   float chi2;
+  float emx,emy;
+  float ex,ey;
   int nhits;
   vector<AMSTRDHSegment*> fTRDHSegment;
 
@@ -160,12 +138,16 @@ class AMSTRDHTrack:public AMSlink{
   static integer _addnext(float pos[], float dir[], AMSTRDHSegment* pthit[]);
   void _addnextR(uinteger iseg);
 
-  AMSTRDHTrack(float pos_[3],float dir_[3]):AMSlink(),chi2(0.),nhits(0)
+  AMSTRDHTrack(float pos_[3],float dir_[3]):AMSlink(),chi2(0.),nhits(0),emx(0.),ex(0.),emy(0.),ey(0.)
    {
+     float mag=0.;
      for (int i=0;i!=3;i++){
        pos[i]=pos_[i];
        dir[i]=dir_[i];
+       mag+=pow(dir_[i],2);
      }
+     for (int i=0;i!=3;i++)dir[i]/=sqrt(mag);
+
    };
 
  AMSTRDHTrack():AMSlink(),chi2(0.),nhits(0){
@@ -181,14 +163,26 @@ class AMSTRDHTrack:public AMSlink{
    return !p||chi2<p->chi2;
  }
  
- float Theta(){ 
-   return acos(dir[2]);
+ float Theta(){ return acos(dir[2]);}
+
+ float ETheta(){
+   float r=sqrt(pow(dir[0],2)+pow(dir[1],2));
+   float drdx=dir[0]/sqrt(pow(dir[0],2)+pow(dir[1],2));
+   float drdy=dir[1]/sqrt(pow(dir[0],2)+pow(dir[1],2));
+   float er=sqrt(pow(drdx*emx,2)+pow(drdy*emy,2));
+
+   float dfdr=1./(1+pow(r,2));
+
+   return dfdr*er;
  }
+
+ float Phi(){ return atan2(dir[1],dir[0]);}
  
- float Phi(){ 
-   return atan2(dir[1],dir[0]);
- }
- 
+ float EPhi(){
+   float dfdx=dir[1]/(pow(dir[0],2)+pow(dir[1],2));
+   float dfdy=1./(1+pow(dir[1]/dir[0],2))/dir[0];
+   return sqrt(pow(dfdx*emx,2)+pow(dfdy*emy,2));}
+
  void SetSegment(AMSTRDHSegment* segx, AMSTRDHSegment* segy){
    fTRDHSegment.push_back(segx);
    fTRDHSegment.push_back(segy);
@@ -202,23 +196,12 @@ class AMSTRDHTrack:public AMSlink{
  
  void setChi2(float chi2_){chi2=chi2_;};
  
- /*
-   double d_perp(TrdExtRawHitR* hit) 
-   {
-   TVector3 v = hit->getPosition();
-   TVector3 pos(pos_.x(),pos_.y(),pos_.z());
-   TVector3 dir(dir_.x(),dir_.y(),dir_.z());
-   
-   v -= pos;
-   double d = v.Dot(v);
-   double f = v.Dot(-dir);
-   
-   double r2  = d-(f*f);
-   if(r2 <=0.0) return 0.0;
-   else return sqrt(r2) ;
-   }
- */
- 
+ void propagateToZ(float z, float &x , float& y){
+   x=pos[0]+dir[0]/dir[2]*(z-pos[2]);
+   y=pos[1]+dir[1]/dir[2]*(z-pos[2]);
+ };
+
+
  void Print(){
    cout << "AMSTRDHTrack - Info" << endl;
  };
@@ -233,13 +216,25 @@ class AMSTRDHTrack:public AMSlink{
 #endif
 };
 
-class PeakXYW { 
-  public:
-  double x,y;
-  double w;
+class PeakXYZW {
+public:
+  float x,y,z;
+  float w;
+  float zmin,zmax;
 
-  PeakXYW(double x_, double y_,double w_):x(x_),y(y_),w(w_){}
-  PeakXYW():x(0.),y(0.),w(0.){}
+ PeakXYZW(float x_, float y_,float z_,float zmin_, float zmax_,float w_):x(x_),y(y_),z(z_),w(w_),zmin(zmin_),zmax(zmax_){}
+ PeakXYZW():x(0.),y(0.),z(0.),w(0.){}
+
+  bool operator<(const PeakXYZW& other) const {
+    return w < other.w;
+  }
+  bool operator==(const PeakXYZW& other) const {
+    if(w != other.w)return 0;
+    if(x != other.x)return 0;
+    if(y != other.y)return 0;
+    //    if(z != other.z)return 0;
+    return 1;//return ( && x == other.x && y == other.y);
+  }
 };
 
 class TH2A{   // 2-dim histo with internal int[] array
@@ -273,69 +268,41 @@ class TH2A{   // 2-dim histo with internal int[] array
 
   void Reset(){ memset(Hxy, 0, sizeof(float)*nbx*nby); }
 
-  PeakXYW GetPeak(int width,int debug=0) {
-  
-    // find bin with maximum entry:
-    double Vmax=0.;
-    int ixmx, iymx, imx;
-    if(debug)printf("TH2A GetPeak size %i\n",size);
-    for( i=0; i<size; i++){
-      if( Hxy[i]>Vmax){ Vmax = Hxy[i]; imx=i; }
-    }
-    if(debug)printf("TH2A GetPeak nbx %i\n",nbx);
-    ixmx = imx%nbx; iymx = imx/nbx;
-
-    // get peak as entry-weighed average around maximum +- width:
-    double w=0.0, sx=0.0, sy=0.0, sw=0.0;
-    for(int ix=ixmx-width; ix<=ixmx+width; ix++){
-      for(int iy=iymx-width; iy<=iymx+width; iy++) {
-	 i  = iy*nbx+ix;
-         if(i>0 && i<size){
-            w  =     (double)Hxy[iy*nbx+ix];
-           sx += w * (Xlo+((double)ix+0.5)/Fx);
-           sy += w * (Ylo+((double)iy+0.5)/Fy);
-           sw += w;
-	   Hxy[iy*nbx+ix]=0; // clear entry to allow search for next peak 
-	 }
-      }
-    }
-    if(debug)printf("TH2A GetPeak sx %f sy %f sw %f\n",sx,sy,sw);
-    
-    if(sw<-1.e6 || sw==0){
-      PeakXYW pxyw(0.,0.,-1.);
-      return pxyw;
-    }
-    else{
-      PeakXYW pxyw(sx/sw,sy/sw,sw);
-      return pxyw;
-    }
-    
-  }
  
 };
 
 
-class  BIN { 
- public:
-  int x,y; 
-  double c;
-  BIN(int x_,int y_,double c_):x(x_),y(y_),c(c_){}
+class  BIN {
+public:
+  int x,y;
+  float c,z,zmin,zmax;
+  BIN(int x_,int y_,int z_, float c_):x(x_),y(y_),z(z_),c(c_),zmin(z_),zmax(z_){}
+
+    bool operator<(const BIN& other) const {
+      return c > other.c;
+    }
 };
+
+bool myfunction (PeakXYZW a, PeakXYZW b){return a.w>b.w;};
+
+bool binsfunction (BIN a, BIN b){return a.c>b.c;};
+
 class TH2V{  // 2-dim histo with internal vector<BIN>
 
- private:
+private:
 
   int nbx,nby,ix,iy;
   bool add;
-  double Xlo,Xup,Ylo,Yup,Fx,Fy;
+  float Xlo,Xup,Ylo,Yup,Fx,Fy;
+
+public:
   vector<BIN> histo;
 
- public:
-
-  TH2V(const char* name, const char* title, int nbx, double Xlo, double Xup, int nby, double Ylo, double Yup)
+  TH2V(const char* name, const char* title, int nbx, float Xlo, float Xup, int
+       nby, float Ylo, float Yup)
     : nbx(nbx), Xlo(Xlo), Xup(Xup), nby(nby), Ylo(Ylo), Yup(Yup)
-    { Fx =(double)nbx/(Xup-Xlo);
-      Fy =(double)nby/(Yup-Ylo);  }
+  { Fx =(float)nbx/(Xup-Xlo);
+    Fy =(float)nby/(Yup-Ylo);  }
 
   void dump(){
     printf("nbx %i nby %i ix %i iy %i\n",nbx,nby,ix,iy);
@@ -344,69 +311,43 @@ class TH2V{  // 2-dim histo with internal vector<BIN>
       //printf("bin %i x %i y %i c %i\n",i,histo[i].x,histo[i].y,histo[i].c);
     }
   }
-
-  void Fill( double x, double y, double weight ){
+  void Fill( float x, float y, float za, float zb, float weight ){
     ix = int((x-Xlo)*Fx);
     iy = int((y-Ylo)*Fy);
+    //    iz = int((z-Zlo)*Fz);
     add=true;
     for( int i=0; i<histo.size(); i++ ){
-      if( ix==histo[i].x && iy==histo[i].y ){
+      if( ix==histo[i].x && iy==histo[i].y){// && iz == histo[i].z){
         histo[i].c+=weight;
+	histo[i].z+=(za+zb)/2.;
+	if(za<histo[i].zmin)histo[i].zmin=za;
+	if(zb<histo[i].zmin)histo[i].zmin=zb;
+	if(za>histo[i].zmax)histo[i].zmax=za;
+	if(zb>histo[i].zmax)histo[i].zmax=zb;
         add = false;
         break;
       }
     }
     if( add ){
-      BIN bin(ix,iy,weight);
+      BIN bin(ix,iy,(za+zb)/2.,weight);
       histo.push_back(bin);
     }
   }
-
   void Reset(){ histo.clear(); }
 
-  PeakXYW GetPeak(int width, int debug=0){
-
-    double Vmax=0.;
-    int ixmx, iymx;
-    if(histo.size()==0){
-      PeakXYW peak(0.,0.,-1.);
-      return peak;
-    }
-    if(debug)printf("TH2V GetPeak size %i\n",histo.size());
-    for( int i=0; i<histo.size(); i++){
-      if( histo[i].c>Vmax){
-          Vmax = histo[i].c; ixmx = histo[i].x; iymx = histo[i].y;
-      }
-    }
-    if(debug)printf("TH2V GetPeak nbx %i\n",nbx);
-
-    double w=0.0, sx=0.0, sy=0.0, sw=0.0;
-    for( int i=0; i<histo.size(); i++){
-      if( fabs(histo[i].x-ixmx)<=width && 
-          fabs(histo[i].x-ixmx)<=width   ){
-         w  =     (double)histo[i].c;
-        sx += w * (Xlo+(Xup-Xlo)*((double)histo[i].x+0.5)/(double)nbx);
-        sy += w * (Ylo+(Yup-Ylo)*((double)histo[i].y+0.5)/(double)nby);
-        sw += w;
-        histo.erase(histo.begin()+i);   // remove entry to allow search for next peak 
-      }
-    }
-    
-    if(debug)printf("TH2V GetPeak sx %f sy %f sw %f\n",sx,sy,sw);
-
-    //    PeakXYW pxyw(sx/sw,sy/sw,sw);
-    if(sw<1.e-6){
-      PeakXYW pxyw(0.,0.,-1.);
-      return pxyw;
-    }
-    else{
-      PeakXYW pxyw(sx/sw,sy/sw,sw);
-      return pxyw;
-    }
-    
-    //    return pxyw;
-  }
-
+  vector<PeakXYZW> FindPeaks(int npeak=0);
 };
+
+
+int DoPrefit(vector<PeakXYZW> &seg_x, vector<PeakXYZW> &seg_y);
+//vector<AMSTRDHSegment*> DoLinReg(vector<PeakXYZW> *segvec_x,vector<PeakXYZW> *segvec_y,int debug=0);
+//AMSTRDHSegment* Refit(AMSTRDHSegment* seg,int debug=0);
+//vector<AMSTRDHSegment*> clean_segvec(vector<AMSTRDHSegment*> vec,int debug=0);
+AMSTRDHTrack* SegToTrack(AMSTRDHSegment *s1, AMSTRDHSegment* s2,int debug=0);
+vector<pair<int,int> > check_secondaries();
+bool check_geometry(AMSTRDHSegment *s1, AMSTRDHSegment* s2);
+bool check_TRtop(AMSTRDHSegment *s1, AMSTRDHSegment* s2,int debug=0);
+int  check_TOF(AMSTRDHSegment *s1, AMSTRDHSegment* s2,int debug=0);
+int  combine_segments();
 
 #endif
