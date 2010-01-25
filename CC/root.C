@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.206 2010/01/22 11:08:35 pzuccon Exp $
+//  $Id: root.C,v 1.207 2010/01/25 10:22:48 mmilling Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2486,8 +2486,11 @@ TrdHSegmentR::TrdHSegmentR(AMSTRDHSegment *ptr){
   Nhits = ptr->nhits;
   Chi2 = ptr->chi2;
   m   = ptr->m;
+  em  = ptr->em;
   r   = ptr->r;
+  er  = ptr->er;
   w   = ptr->w;
+  z   = ptr->z;
 #endif
 }
 
@@ -2501,6 +2504,10 @@ TrdHTrackR::TrdHTrackR(AMSTRDHTrack *ptr){
   Theta = ptr->Theta();
   Chi2  = ptr->chi2;
   Nhits = ptr->nhits;
+  emx   = ptr->emx;
+  ex    = ptr->ex;
+  emy   = ptr->emy;
+  ey    = ptr->ey;
 #endif
 }
 

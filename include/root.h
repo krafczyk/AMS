@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.257 2010/01/19 16:29:22 mdelgado Exp $
+//  $Id: root.h,v 1.258 2010/01/25 10:23:06 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1331,7 +1331,8 @@ class TrdHSegmentR {
   int   d;
   int Nhits;
   float Chi2;
-  float m,r,w;
+  float m,r,w,z;
+  float em,er;
 
   vector<int> fTrdRawHit;
   int NTrdRawHit()const {return fTrdRawHit.size();}
@@ -1342,7 +1343,7 @@ class TrdHSegmentR {
   TrdHSegmentR(){};
   TrdHSegmentR(AMSTRDHSegment *ptr);
   virtual ~TrdHSegmentR(){};
-  ClassDef(TrdHSegmentR,1)       //TrdSegmentR
+  ClassDef(TrdHSegmentR,2)       //TrdSegmentR
 #pragma omp threadprivate(fgIsA)
     };
 
@@ -1415,6 +1416,8 @@ static char _Info[255];
   float Chi2;   ///<  Chi2
   float Coo[3];   ///< Coo (cm)
   float Dir[3];   ///< Dir
+  float emx,emy;
+  float ex,ey;
  protected:
   vector<int> fTrdHSegment;
 public:
@@ -1443,7 +1446,7 @@ public:
   friend class AMSTRDHTrack;
   friend class AMSEventR;
   virtual ~TrdHTrackR(){};
-  ClassDef(TrdHTrackR,2)       //TrdHTrackR
+  ClassDef(TrdHTrackR,3)       //TrdHTrackR
 #pragma omp threadprivate(fgIsA)
 };
 
