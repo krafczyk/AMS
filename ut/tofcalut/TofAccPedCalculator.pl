@@ -934,11 +934,18 @@ sub setRunDefs
   if($fnum2<1230764399){#--->2008
     $SetupN="AMS02PreAss";
   }
-  elsif($fnum1>1230764399 && $fnum2<1262300399){#--->2009
+  elsif($fnum1>1230764399 && $fnum2<1262300400){#--->2009
     $SetupN="AMS02Ass1";
   }
-  else{
+  elsif($fnum1>1262300400 && $fnum2>1262300400 && $fnum2<1284069601){#--->2010 < 10sept
+    $SetupN="AMS02Ass1";
+  } 
+  elsif{$fnum2>1284069601 && $fnum2>1284069601){#--->2010 > 10sept
     $SetupN="AMS02Space";
+  }
+  else{
+    show_warn("\n   <-- Wrong dates(runs) range definition, please correct it !!!");
+    return;
   }
 #---
   $sjobbt->configure(-state=>$stjob_b_state);

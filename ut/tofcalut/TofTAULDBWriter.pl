@@ -1027,15 +1027,24 @@ sub scand{
     $MagStat=-1;# warm(=off)
     $AmsPos=1;#on earth
   }
-  elsif($runmn>1230764399 && $runmx<1262300399){#--->2009
+  elsif($runmn>1230764399 && $runmx<1262300400){#--->2009
     $SetupName="AMS02Ass1";
     $MagStat=-1;# warm(=off)
     $AmsPos=1;#on earth
   }
-  else{
+  elsif($runmn>1262300400 && $runmx<1284069601){#--->2010 < 10sept
+    $SetupName="AMS02Ass1";
+    $MagStat=1;# cold(=on)
+    $AmsPos=1;# on earth
+  } 
+  elsif{$runmn>1284069601 && $runmx>1284069601){#--->2010 > 10sept
     $SetupName="AMS02Space";
-    $MagStat=1;# warm(=on)
+    $MagStat=1;# cold(=on)
     $AmsPos=0;# in space
+  }
+  else{
+    show_warn("\n   <-- Wrong dates(runs) range definition, please correct it !!!");
+    return;
   }
 #---
   $ptime=localtime($runmn);#loc.time of earliest run in dir (imply run# to be UTC-seconds as input)

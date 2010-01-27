@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.684 2010/01/22 11:08:35 pzuccon Exp $
+// $Id: job.C,v 1.685 2010/01/27 17:02:22 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -917,7 +917,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.day[1]=1;//
   ECREFFKEY.mon[0]=0;//
   ECREFFKEY.mon[1]=0;//
-  ECREFFKEY.year[0]=109;//64
+  ECREFFKEY.year[0]=108;//64
   ECREFFKEY.year[1]=112;//65
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
@@ -2539,6 +2539,7 @@ if(ECREFFKEY.SimpleRearLeak[0]<0){
 //              ECREFFKEY.ReadConstFiles=DCP
   if(ECREFFKEY.ReadConstFiles/100>0){//D Thresh/Cuts-object will be created from data-cards  
     ECALVarp::ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);
+    cout<<" <--- ecalvpar(datacards) init done..."<<endl;
   }
 //
 // ===> create ecpmcal-calib-objects:
@@ -3464,13 +3465,12 @@ if((isCalibration() && CEcal) && AMSFFKEY.Update>0){//only for
 //ecre->DCP; ecmc->CP
 //
 if((ECREFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
-
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
                                   (void*)&ECcalib::ecpmcal[0][0],server,needval));
   end.tm_year=ECREFFKEY.year[1];
 //--------				  
-if(ECREFFKEY.ReadConstFiles/100==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
+if((ECREFFKEY.ReadConstFiles/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
 
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
      begin,end,sizeof(ECALVarp::ecalvpar),

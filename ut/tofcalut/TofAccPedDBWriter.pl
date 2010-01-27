@@ -950,11 +950,18 @@ sub scand{ # scan ped-directory for needed ped-files in required date-window
   if($runmx<1230764399){#--->2008
     $SetupN="AMS02PreAss";
   }
-  elsif($runmn>1230764399 && $runmx<1262300399){#--->2009
+  elsif($runmx>1230764399){#--->2009
     $SetupN="AMS02Ass1";
   }
-  else{
+  elsif($runmn>1262300400 && $runmx<1284069601){#--->2010 < 10sept
+    $SetupN="AMS02Ass1";
+  } 
+  elsif{$runmx>1284069601){#--->2010 > 10sept
     $SetupN="AMS02Space";
+  }
+  else{
+    show_warn("\n   <-- Wrong dates(runs) range definition, please correct it !!!");
+    return;
   }
 #---
 #

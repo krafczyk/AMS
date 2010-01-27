@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.32 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: tofuser02.C,v 1.33 2010/01/27 17:02:22 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -483,8 +483,8 @@ Nextp:
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-      HF1(1500,geant(pmom),1.);
-      HF1(1516,geant(pmom),1.);
+      HF1(1500,geant(rid),1.);
+      HF1(1516,geant(rid),1.);
 }
     }
 //
@@ -883,7 +883,7 @@ void TOF2User::InitJob(){
   int i;
   if(TFREFFKEY.reprtf[1]>0){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
-    HBOOK1(1500,"TofUser:Particle Rigidity(gv)",100,0.,40.,0.);
+    HBOOK1(1500,"TofUser:Particle Rigidity(gv)",100,-10.,10.,0.);
     HBOOK1(1501,"TofUser:Particle Beta",100,-1.2,1.3,0.);
     HBOOK1(1520,"TofUser:Particle Beta",100,0.7,1.2,0.);
     HBOOK1(1511,"TofUser:Particle BetaChi2",80,0.,16.,0.);
@@ -900,7 +900,7 @@ void TOF2User::InitJob(){
     HBOOK1(1508,"TofUser:Tracker-charge(trapez.c <=1)",20,0.,20.,0.);
     HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch(trapez.c <=1)",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
-    HBOOK1(1516,"TofUser:Part.rigidity(gv)",100,0.,1500.,0.);
+    HBOOK1(1516,"TofUser:Part.rigidity(gv)",100,-50.,50.,0.);
     HBOOK1(1517,"TofUser:Number of AccSectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
     HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
     

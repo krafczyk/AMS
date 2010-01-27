@@ -1494,11 +1494,20 @@ NextJob:
     if($CalRun2<1230764399){#--->2008
       $jpar11="AMS02PreAss";
     }
-    elsif($CalRun1>1230764399 && $CalRun2<1262300399){#--->2009
+    elsif($CalRun1>1230764399 && $CalRun2<1262300400){#--->2009
       $jpar11="AMS02Ass1";
     }
+    elsif($CalRun1>1262300400 && $CalRun2>1262300400){#--->2010
+      if($posstext eq "OnEarth"){#--->still on earth
+        $jpar11="AMS02Ass1";
+      }
+      else{
+        $jpar11="AMS02Space";
+      }
+    } 
     else{
-      $jpar11="AMS02Space";
+      show_warn("\n   <-- Wrong dates(runs) range definition, please correct it !!!");
+      return;
     }
 #--> create dir to keep job's daqf-links:
     $dflinksSD="/JL".$CalRun1;

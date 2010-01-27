@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.46 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: daqs2block.C,v 1.47 2010/01/27 17:02:22 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -996,7 +996,8 @@ if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"  --->  ComprSegment::T
 	  TOF2JobStat::daqscr(1,crat-1,12+slid);//err while raw->comp (no header|trailer or probl with evn/wcount)
 	  bias+=(n16wrds+1);//to point to next link-header(+1 for current link header)
           if(TFREFFKEY.reprtf[3]>0){
-	    cout<<" <-- CompFmt::T-block Error: HTSbits-problem,crat/link="<<crat<<" "<<slid<<"H:"
+	  
+	    cout<<" <-- CompFmt-Error in Event:"<<AMSEvent::gethead()->getid()<<" T-block: HTSbits-problem,crat/link="<<crat<<" "<<slid<<"H:"
                          <<((tlhead&(0x8000))>>15)<<"T:"<<((tlhead&(0x4000))>>14)<<"S:"<<((tlhead&(0x0008))>>3)<<endl;
 	  }
 	  continue;//---> skip bad link info
