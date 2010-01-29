@@ -1,9 +1,10 @@
-//  $Id: particle.C,v 1.189 2010/01/22 11:08:35 pzuccon Exp $
+//  $Id: particle.C,v 1.190 2010/01/29 14:46:37 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
- 
+
 #include "commons.h"
 #include <math.h>
+#include <values.h>
 #include <limits.h>
 #include "amsgobj.h"
 #include "extC.h"
@@ -162,11 +163,21 @@ integer AMSParticle::build(integer refit){
       for (int i=-1;i<2;i+=2){
 	// make false tracks (+-)
 
-	//PZ FPE FIX often ecal ene is very large double > 1e209
+	//PZ FPE FIX often ecal ene is very large double > 1e209 or NAN
         double ecal_ene=pecal->getEnergy();
         double ecal_ene_err=pecal->getEnergyErr();
+	if(!isfinite(ecal_ene)){
+	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result is Not a Good floating number "<< ecal_ene<<" !!!"<<endl;
+	   break;
+	}
 	if(fabs(ecal_ene) > 1e6) ecal_ene=1e6;
 	if(fabs(ecal_ene_err) > 1e7) ecal_ene_err=1e7;
+	//PZ FPE FIX often ecal ene is very small double skip in this case
+	
+	if(ecal_ene<=MINDOUBLE) {
+	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result small double near to Zero!!!"<<endl;
+	  break;
+	}
 	
 	AMSTrTrack *ptrack=new AMSTrTrack(pecal->getDir(), pecal->getEntryPoint(),ecal_ene*i,ecal_ene_err);
 	ptrack->setstatus(AMSDBc::ECALTRACK); 

@@ -1,7 +1,10 @@
 /*
- * $Id: timelx.c,v 1.1 2008/12/08 15:15:18 choutko Exp $
+ * $Id: timelx.c,v 1.2 2010/01/29 14:46:36 pzuccon Exp $
  *
  * $Log: timelx.c,v $
+ * Revision 1.2  2010/01/29 14:46:36  pzuccon
+ *  FPE bug fix
+ *
  * Revision 1.1  2008/12/08 15:15:18  choutko
  * *** empty log message ***
  *
@@ -25,6 +28,7 @@
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <values.h>
 #ifndef CLOCKS_PER_SEC
 #define  CLOCKS_PER_SEC CLK_TCK
 #endif
@@ -83,7 +87,7 @@ static void time_init()
 	time_st(maxtime);
 	return;
 }
-
+#include <fenv.h>
 void timest_(timl)
 float *timl;
 {
@@ -95,8 +99,11 @@ float *timl;
 /*  get maximum time allowed by system, and do not allow more */
     maxtime = *timl;
     if (getrlimit(RLIMIT_CPU, &rlimit)==0) {
-           maxtime = (float) rlimit.rlim_cur;
-           maxtime = ( maxtime > *timl ) ? *timl : maxtime;
+      if ( rlimit.rlim_cur != RLIM_INFINITY )
+	maxtime =  rlimit.rlim_cur*1.;
+      else
+	maxtime = MAXFLOAT;
+      if ( maxtime > *timl ) maxtime= *timl;
     }
     time_st(maxtime);
  }
