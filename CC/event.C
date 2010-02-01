@@ -1302,26 +1302,26 @@ void  AMSEvent::write(int trig){
 
 #ifdef _PGTRACK_
     //Fortracker only
-    for (AMSTrRawCluster* pptr=(AMSTrRawCluster*)getheadC("AMSTrRawCluster",0);	 pptr!=0;pptr=pptr->next()){
+    for (AMSlink *pptr=getheadC("AMSTrRawCluster",0);	 pptr!=0;pptr=pptr->next()){
       //      printf("Adding TrRawCluster to tree\n");
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrRawCluster*)pptr);
     }
-    for (AMSTrCluster* pptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink* pptr=AMSEvent::gethead()->getheadC("AMSTrCluster",0);pptr!=0;pptr=pptr->next()){
       //      printf("Adding TrCluster to tree\n");
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrCluster*)pptr);
     }
-    for (AMSTrRecHit* pptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink *pptr=AMSEvent::gethead()->getheadC("AMSTrRecHit",0);pptr!=0;pptr=pptr->next()){
       //     printf("Adding TrRecHit to tree\n");
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrRecHit*)pptr);
     }
-    for (AMSTrTrack* pptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink* pptr=AMSEvent::gethead()->getheadC("AMSTrTrack",0);pptr!=0;pptr=pptr->next()){
       //    printf("Adding TrTrack to tree\n");
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrTrack*)pptr);
     }
     if(!AMSJob::gethead()->isRealData())
-      for (AMSTrMCCluster* pptr=(AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);pptr!=0;pptr=pptr->next()){
+      for (AMSlink* pptr=AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);pptr!=0;pptr=pptr->next()){
 	//	printf("Adding TrMCCluster to tree\n");
-	AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(pptr);
+	AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrMCCluster*)pptr);
       }
 #endif
     // second pass Root Only

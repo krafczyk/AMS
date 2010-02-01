@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.9 2009/12/06 22:49:20 shaino Exp $ 
+/// $Id: TrCluster.C,v 1.10 2010/02/01 12:44:05 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,12 +17,13 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2009/12/06 22:49:20 $
+/// $Date: 2010/02/01 12:44:05 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
+#include "TkDBc.h"
 #include "TkCoo.h"
 #include "TrCluster.h"
 

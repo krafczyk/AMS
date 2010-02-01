@@ -27,37 +27,37 @@ void VCon_root::removeEl(TrElem* aa, integer res)
   // remove next element !!!
   if(!ev)  return ;
   if( strstr(contname,"TrMCCluster")){
-    int index=getindex(aa);
+    int index=(aa)?getindex(aa)+1:0;
     vector<TrMCClusterR>::iterator it=ev->TrMCCluster().begin();
-    for(int ii=0;ii<index;ii) it++;
+    for(int ii=0;ii<index;ii++) it++;
     ev->TrMCCluster().erase(it);
   }
   if( strstr(contname,"TrCluster")){
-    int index=getindex(aa);
+    int index=(aa)?getindex(aa)+1:0;
     vector<TrClusterR>::iterator it=ev->TrCluster().begin();
-    for(int ii=0;ii<index;ii) it++;
+    for(int ii=0;ii<index;ii++) it++;
     ev->TrCluster().erase(it);
   }
    
   if( strstr(contname,"TrRawCluster")){
-    int index=getindex(aa);
+    int index=(aa)?getindex(aa)+1:0;
     vector<TrRawClusterR>::iterator it=ev->TrRawCluster().begin();
-    for(int ii=0;ii<index;ii) it++;
+    for(int ii=0;ii<index;ii++) it++;
     ev->TrRawCluster().erase(it);
   }
 
   
   if( strstr(contname,"TrRecHit")){
-    int index=getindex(aa);
+    int index=(aa)?getindex(aa)+1:0;
     vector<TrRecHitR>::iterator it=ev->TrRecHit().begin();
-    for(int ii=0;ii<index;ii) it++;
+    for(int ii=0;ii<index;ii++) it++;
     ev->TrRecHit().erase(it);
   }
    
   if( strstr(contname,"TrTrack")){
-    int index=getindex(aa);
+    int index=(aa)?getindex(aa)+1:0;
     vector<TrTrackR>::iterator it=ev->TrTrack().begin();
-    for(int ii=0;ii<index;ii) it++;
+    for(int ii=0;ii<index;ii++) it++;
     ev->TrTrack().erase(it);
   }
    
@@ -116,6 +116,7 @@ TrElem* VCon_root::getelem(int ii){
     return  (TrElem*) ev->pTrRecHit(ii);
   if( strstr(contname,"TrTrack"))
     return  (TrElem*) ev->pTrTrack(ii);
+  return 0;
 }
 
 void  VCon_root::addnext(TrElem* aa){
@@ -156,4 +157,5 @@ int  VCon_root::getindex(TrElem* aa){
    for(int ii=0;ii<ev->NTrTrack();ii++)
      if(ev->pTrTrack(ii)==aa) return ii;
 
+  return 0;
 }

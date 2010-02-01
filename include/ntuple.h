@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.119 2009/12/04 13:15:52 choutko Exp $
+//  $Id: ntuple.h,v 1.120 2010/02/01 12:44:12 shaino Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -49,9 +49,7 @@ using namespace root;
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "node.h"
-#ifdef _PGTRACK_
-#include "TkDBc.h"
-#else
+#ifndef _PGTRACK_
 #include "tkdbc.h"
 #endif
 #include "trddbc.h"

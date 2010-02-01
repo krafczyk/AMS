@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.9 2009/11/26 01:25:09 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.10 2010/02/01 12:44:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2009/11/26 01:25:09 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -381,7 +381,6 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
               int oct=GetOctant(side,lay+1,slot+1);
               int hwid=abs(_octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
               int tkid=(lay+1)*100+(slot+1);
-              int pgid=_pgid[side][lay][slot];
               if (side==0) tkid*=-1;
               sprintf(name,"%s",LadName[side][lay][slot]);
               TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,nsen[side][lay][slot]);
@@ -402,11 +401,14 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 		aa->rot.XParity(); 
 		aa->rot.YParity(); 
 	      }
-	      
+
+	      int pgid=aa->GetPgId();
+	      _pgid[side][lay][slot]=pgid;
 	      
 	      tkassemblymap[aa->GetAssemblyId()]=aa;
 	      tkidmap[tkid]=aa;
 	      hwidmap[hwid]=aa;
+	      // SH FIXME pgid is not an unique ID for 192 ladders
               pgidmap[pgid]=aa;
  	      string bb=name;
 	      lnamemap[bb]=aa;
@@ -414,6 +416,15 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 //	      cout <<"layer "<<lay+1<<" slot  "<<slot+1<<"  side "<<side<<" tkid "<<tkid<<" hwid "<< aa->GetHwId()<<aa->GetPos()<<endl;
 	    }
     }
+
+  // SH FIXME size of pgidmap is only 24
+  cout << "TkDBc::Maps have been filled: "
+       << "tk= " << tkidmap      .size() << " "
+       << "hw= " << hwidmap      .size() << " "
+       << "ln= " << lnamemap     .size() << " "
+       << "as= " << tkassemblymap.size() << " "
+       << "pg= " << pgidmap      .size() << " "
+       << "JN= " << JMDCNumMap   .size() << endl;
 
     // Set sensor alignment data
     for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();++lad){
@@ -564,6 +575,9 @@ int TkDBc::read(const char* filename, int pri){
   tkidmap.clear();
   hwidmap.clear();
   lnamemap.clear();
+  tkassemblymap.clear();
+  pgidmap.clear();
+  JMDCNumMap.clear();
 
   for (int ii=0;ii<nplanes;ii++){
     planes[ii]= new TkPlane();
@@ -581,6 +595,15 @@ int TkDBc::read(const char* filename, int pri){
     string bb=aa->name;
     lnamemap[bb]=aa;
 
+    int lay  = aa->GetLayer();
+    int side = aa->GetSide();
+    int slot = abs(aa->GetSlot());
+    int pgid = aa->GetPgId();
+    _pgid[side][lay][slot] = pgid;
+    pgidmap[pgid]=aa;
+    tkassemblymap[aa->GetAssemblyId()]=aa;
+    JMDCNumMap[aa->GetJMDCNum()]=aa;
+
     aa->_plane=GetPlane(_plane_layer[aa->GetLayer()-1]);
 
     count++;
@@ -589,6 +612,7 @@ int TkDBc::read(const char* filename, int pri){
 
   }
   cout << count <<" Ladders have been read from file "<<filename<<endl;
+
 
   fileout.close();
   return 0;
@@ -885,6 +909,51 @@ void SLin2Align(){
   return;
 }
 
+TkDBc *TkDBc::Load(TFile *rfile)
+{
+  if (!rfile || !rfile->IsOpen()) return 0;
+  TkDBc::Head = (TkDBc *)rfile->Get("TkDBc");
+
+  if (TkDBc::Head) TkDBc::Head->RebuildMap();
+  return TkDBc::Head;
+}
+
+void TkDBc::RebuildMap()
+{
+  // Clear all the maps except tkidmap
+  tkassemblymap.clear();
+  hwidmap      .clear();
+  pgidmap      .clear();
+  lnamemap     .clear();
+  JMDCNumMap   .clear();
+
+  // Rebuild all the maps
+  for (tkidIT it = tkidmap.begin(); it != tkidmap.end(); it++) {
+    TkLadder *lad = it->second;
+    int lay  = lad->GetLayer();
+    int side = lad->GetSide();
+    int slot = abs(lad->GetSlot());
+    int asid = lad->GetAssemblyId();
+    int hwid = lad->GetHwId();
+    int pgid = lad->GetPgId();
+    int jmdc = lad->GetJMDCNum();
+    string lnam = lad->name;
+    tkassemblymap[asid] = lad;
+    hwidmap      [hwid] = lad;
+    pgidmap      [pgid] = lad;
+    lnamemap     [lnam] = lad;
+    JMDCNumMap   [jmdc] = lad;
+  }
+
+  // SH FIXME size of pgidmap is only 24
+  cout << "TkDBc::Maps have been rebuilt: "
+       << "tk= " << tkidmap      .size() << " "
+       << "hw= " << hwidmap      .size() << " "
+       << "ln= " << lnamemap     .size() << " "
+       << "as= " << tkassemblymap.size() << " "
+       << "pg= " << pgidmap      .size() << " "
+       << "JN= " << JMDCNumMap   .size() << endl;
+}
 
 // Hard-coded sensor alignment parameters
 #include "TkDBcSalig.C"

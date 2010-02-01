@@ -1,6 +1,5 @@
 #ifndef _TRPATT_ 
 #define _TRPATT_ 
-#include "TkDBc.h"
 
 class TrPatt{
 

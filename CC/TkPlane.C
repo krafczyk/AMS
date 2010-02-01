@@ -1,4 +1,4 @@
-//  $Id: TkPlane.C,v 1.2 2009/09/13 12:33:52 pzuccon Exp $
+//  $Id: TkPlane.C,v 1.3 2010/02/01 12:44:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,14 +9,15 @@
 ///
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/09/13 12:33:52 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TkPlane.h"
 
+ClassImp(TkPlane);
 
 TkPlane::TkPlane():TkObject()
 {
@@ -34,7 +35,7 @@ TkPlane::TkPlane(char* Name,int number, short int nslot[2]):TkObject(Name)
 
 
 
-ostream& TkPlane::putout(ostream& s){
+ostream& TkPlane::putout(ostream& s) const{
 
    return TkObject::putout(s)<<_pnumber<<" "<<_nslot[0]<<" "<<_nslot[1]<<endl;
   

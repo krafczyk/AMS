@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.10 2010/01/08 15:18:16 pzuccon Exp $ 
+/// $Id: TrRawCluster.C,v 1.11 2010/02/01 12:44:05 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,13 +10,14 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/01/08 15:18:16 $
+/// $Date: 2010/02/01 12:44:05 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrRawCluster.h"
+#include "TkDBc.h"
 #include <iostream>
 #include <string>
 
@@ -63,7 +64,11 @@ TrRawClusterR::TrRawClusterR(int tkid, int address, int nelem, float *adc) {
   if(adc) for (int i = 0; i < ((_lengthword&0x7f)+1); i++) _signal.push_back(adc[i]);
 }
 
-
+int TrRawClusterR::GetHwId() const {
+  TkLadder* lad=TkDBc::Head->FindTkId(GetTkId());
+  if (lad) return lad->GetHwId();
+  else return -1;
+}
 
 
 float TrRawClusterR::GetDSPSeedSN() {

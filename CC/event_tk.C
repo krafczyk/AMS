@@ -79,102 +79,128 @@ void AMSEvent::_retkevent(integer refit){
   Trigger2LVL1 *ptr1=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     
   TrRecon* rec= new TrRecon();
-  //PZDEBUG  printf("\nFound %d Raw cluster \n",AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem()  );
-  //  if(TRCLFFKEY.recflag>0 && ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))) //tempor
+
+  int nraw = AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem();
+  AMSgObj::BookTimer.start("RETKEVENT");
+
+  bool lowdt = (ptr1->gettrtime(4) <= TrRecon::RecPar.lowdt);
+  hman.Fill((lowdt ? "TrNrawLt" : "TrNrawHt"), getEvent(), nraw);
+
+  int trstat = 0;
+  if (nraw >=TrRecon::RecPar.MaxNrawCls) trstat |= 1;
 
   //RAW Clusters -->  Clusters
-  if(
-     TRCLFFKEY.recflag>0 && // Wanted from TkDCards
-     ptr1 &&                // LVL1 exists
-     AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem() <TrRecon::MaxNrawCls // Not too many RAW Clusters
-     )
-    { 
-      AMSgObj::BookTimer.start("RETKEVENT");
-      AMSgObj::BookTimer.start("TrCluster");
-      int retr=rec->BuildTrClusters();
-      int ncls=AMSEvent::gethead()->getC("AMSTrCluster")->getnelem();
-      AMSgObj::BookTimer.stop("TrCluster");
+  if(TRCLFFKEY.recflag>0 &&     // Wanted from TkDCards
+     ptr1 &&                    // LVL1 exists
+     nraw <TrRecon::RecPar.MaxNrawCls) // Not too many RAW Clusters
+  {
+    AMSgObj::BookTimer.start("TrCluster");
+    int retr=rec->BuildTrClusters();
+    int ncls=AMSEvent::gethead()->getC("AMSTrCluster")->getnelem();
+    AMSgObj::BookTimer.stop("TrCluster");
+    hman.Fill((lowdt ? "TrNclsLt" : "TrNclsHt"), getEvent(), ncls);
 
-      //PZDEBUG        printf("\nReconstructed %d cluster time\n",AMSEvent::gethead()->getC("AMSTrCluster")->getnelem()  );
-      //PZDEBUG       AMSgObj::BookTimer.print("TrCluster");
-      
+    if ( lowdt && ncls>=TrRecon::RecPar.MaxNtrCls_ldt) trstat |= 2;
+    if (!lowdt && ncls>=TrRecon::RecPar.MaxNtrCls)     trstat |= 4;
 
-      // Clusters --> Hits
-      if(
-	 TRCLFFKEY.recflag>10 && // Wanted from TkDCards
-	 retr>=0 &&  //Clusters are built
-	 (
-	  (ptr1->gettrtime(4)<= TrRecon::lowdt &&ncls<TrRecon::MaxNtrCls_ldt)||  //Not to many Cls at small dt
-	  (ptr1->gettrtime(4)>  TrRecon::lowdt &&ncls<TrRecon::MaxNtrCls)        //Not to many Cls at large dt
-	  )
-	 
-	 )
-	{
-	  AMSgObj::BookTimer.start("TrRecHit");
-	  int retr2=rec->BuildTrRecHits();
-	  AMSgObj::BookTimer.stop("TrRecHit");
-	  //PZDEBUG       printf("\nReconstructed %d hits time\n",AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()  );
-	  //PZDEBUG       AMSgObj::BookTimer.print("TrRecHit");
+    // Clusters --> Hits
+    if(TRCLFFKEY.recflag>10 && // Wanted from TkDCards
+       retr>=0 &&              // Clusters are built
+       (( lowdt && ncls<TrRecon::RecPar.MaxNtrCls_ldt)|| // at small dt
+	(!lowdt && ncls<TrRecon::RecPar.MaxNtrCls)))     // at large dt
+    {
+      AMSgObj::BookTimer.start("TrRecHit");
+      int retr2=rec->BuildTrRecHits();
+      int nhit =AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem();
+      AMSgObj::BookTimer.stop("TrRecHit");
+      hman.Fill((lowdt ? "TrNhitLt" : "TrNhitHt"), getEvent(), nhit);
 
-	  
-	  // Hits --> Tracks
-	  if(
-	     TRCLFFKEY.recflag>110 && // Wanted from TkDCards
-	     retr2>=0&& AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem()<TrRecon::MaxNtrHit && //Not to many Hits
-	     ptr1->gettoflag1()>=0&&ptr1->gettoflag1()<9
-	     )
-	    {
-	      AMSgObj::BookTimer.start("TrTrack");
-	      int retr3=rec->BuildTrTracks();
-	      double bb=AMSgObj::BookTimer.stop("TrTrack");
+      if (nhit>=TrRecon::RecPar.MaxNtrHit) trstat |= 8;
+
+      // Hits --> Tracks
+      int tflg = ptr1->gettoflag1();
+      if(TRCLFFKEY.recflag>110 &&          // Wanted from TkDCards
+	 retr2>=0&&                        // Hits are built
+	 nhit<TrRecon::RecPar.MaxNtrHit && // Not to many Hits
+	 tflg>=0&&tflg<9)            // TOF trigger pattern at least 1U and 1L
+      {
+	AMSgObj::BookTimer.start("TrTrack");
+	TrRecon::RecPar.NbuildTrack++;
+	int retr3=rec->BuildTrTracks();
+	AMSgObj::BookTimer.stop("TrTrack");
 
 #pragma omp critical (trcpulim)
-{
-              if (rec->CpuTimeUp() || TrRecon::SigTERM) {
-		if (TrRecon::SigTERM)
-		  cerr << "TrRecon::BuildTrTracks: SIGTERM detected: ";
-		else
-		  cerr << "TrRecon::BuildTrTracks: Cpulimit Exceeded: ";
-		cerr << rec->GetCpuTime()
-		     << " at Event: " << dec << getEvent() << endl;
-	      }
-}
-	      //PZDEBUG 	printf("\nReconstructed %d tracks time\n",AMSEvent::gethead()->getC("AMSTrTrack")->getnelem()  );	      //PZDEBUG 	AMSgObj::BookTimer.print("TrTrack");
-	    }
-		}
-      
-      
-      AMSgObj::BookTimer.stop("RETKEVENT");
-    }
+	if (rec->CpuTimeUp() || TrRecon::SigTERM) {
+	  trstat |= 16;
+	  cerr << "TrRecon::BuildTrTracks: "
+	       << ((TrRecon::SigTERM) ? "SIGTERM detected: "
+		                      : "Cpulimit Exceeded: ") << dec
+	       << rec->GetCpuTime() << " at Event: " << getEvent() << endl;
+	}
+      } // Hits --> Tracks
 
+      // Purge "ghost" hits and assign hit index to tracks
+      rec->PurgeGhostHits();
+
+    } // Clusters --> Hits
+      
+  } //RAW Clusters -->  Clusters
+
+  AMSgObj::BookTimer.stop("RETKEVENT");
+
+#pragma omp critical (trtrstat)
+  {
+    static int nfill = 0, ntevt = 0, ifirst = 1;
+    nfill++;
+    int ntrk = AMSEvent::gethead()->getC("AMSTrTrack")->getnelem();
+    if (ntrk > 0) ntevt++;
+    if (trstat > 0) {
+      if (!lowdt) {
+	cout << "AMSEvent::_retkevent-I-Trstat= ";
+	for (int i = 0; i < 5; i++) cout << ((trstat>>i)&1);
+	cout << " at Event: " << getEvent() << endl;
+      }
+      if (trstat &  1) TrRecon::RecPar.NcutRaw++;
+      if (trstat &  2) TrRecon::RecPar.NcutLdt++;
+      if (trstat &  4) TrRecon::RecPar.NcutCls++;
+      if (trstat &  8) TrRecon::RecPar.NcutHit++;
+      if (trstat & 16) TrRecon::RecPar.NcutCpu++;
+    }
+    if (nfill%10000 == 0) {
+      if (ifirst) {
+	cout << "AMSEvent::_retkevent-I-Report: "
+	     << "  Nfill  NevTrk  Rtrk  Rldt Rhcut  Rcpu TrTime" << endl;
+	ifirst = 0;
+      }
+      cout << "AMSEvent::_retkevent-I-Report: "
+	   << Form("%7d %7d %5.3f %5.3f %5.3f %5.3f %6.4f",
+		   nfill, ntevt, 1.*ntevt/nfill,
+		   1.* TrRecon::RecPar.NcutLdt /nfill,
+		   1.*(TrRecon::RecPar.NcutCls+
+		       TrRecon::RecPar.NcutHit)/nfill,
+		   1.* TrRecon::RecPar.NcutCpu /nfill,
+		   ((TH2D *)hman.Get("TrTimH"))->GetMean(2)) << endl;
+    }
+  }
 
   // Fill histograms
-  int nraw = AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem();
-  int ncls = AMSEvent::gethead()->getC("AMSTrCluster"   )->getnelem();
-  int nhit = AMSEvent::gethead()->getC("AMSTrRecHit"    )->getnelem();
-  int ntrk = AMSEvent::gethead()->getC("AMSTrTrack"     )->getnelem();
+  int nhit = AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem();
+  int ntrk = AMSEvent::gethead()->getC("AMSTrTrack" )->getnelem();
   hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec->GetTrackerSize());
-  if (ptr1->gettrtime(4) < TrRecon::lowdt) {
-    hman.Fill("TrNrawLt", getEvent(), nraw);
-    hman.Fill("TrNclsLt", getEvent(), ncls);
-    hman.Fill("TrNhitLt", getEvent(), nhit);
-  }
-  else {
-    hman.Fill("TrNrawHt", getEvent(), nraw);
-    hman.Fill("TrNclsHt", getEvent(), ncls);
-    hman.Fill("TrNhitHt", getEvent(), nhit);
-  }
+  hman.Fill("TrTimH", nhit, rec->GetCpuTime());
+  hman.Fill("TrTimT", ntrk, rec->GetCpuTime());
+  hman.Fill("TrRecon", trstat);
 
-  hman.Fill("TrTime", nhit, rec->GetCpuTime());
-
-  AMSTrCluster *cls = (AMSTrCluster *)AMSEvent::gethead()->getC("AMSTrCluster")->gethead();
+  AMSTrCluster *cls 
+    = (AMSTrCluster *)AMSEvent::gethead()->getC("AMSTrCluster")->gethead();
   for (int i = 0; i < nraw && cls; i++) {
     hman.Fill((cls->GetSide() == 1) ? "TrClsSigP" 
 	                            : "TrClsSigN", 0, cls->GetTotSignal());
     cls = (AMSTrCluster *)cls->next();
   }
 
-  AMSTrTrack *trk = (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
+  AMSTrTrack *trk 
+    = (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
   for (int i = 0; i < ntrk && trk; i++) {
     double sigp[8], sign[8];
     for (int j = 0; j < 8; j++) {
@@ -207,8 +233,9 @@ void AMSEvent::_retkevent(integer refit){
 
     hman.Fill("TrNhit", trk->GetNhitsY(), trk->GetNhitsXY());
 
-    if (i == 0 && trk->GetNhitsY () >= 6 && 
-	          trk->GetNhitsXY() >= 5) {
+    int pate = TrRecon::GetHitPatternAllow(trk->GetPattern());
+    if (i == 0 && pate == 0 && trk->GetNhitsY () >= 6 && 
+	                       trk->GetNhitsXY() >= 5) {
       double argt = fabs(trk->GetRigidity());
       hman.Fill("TrCsqX", argt, trk->GetNormChisqX());
       hman.Fill("TrCsqY", argt, trk->GetNormChisqY());
@@ -235,7 +262,6 @@ void AMSEvent::_retkevent(integer refit){
     trk = (AMSTrTrack *)trk->next();
   }
 
-  //  else throw AMSLVL3Error("LVL3NotCreated");  
   if(rec) delete rec;
 }
 

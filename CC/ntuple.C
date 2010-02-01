@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.191 2010/01/25 15:09:25 shaino Exp $
+//  $Id: ntuple.C,v 1.192 2010/02/01 12:44:05 shaino Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -13,6 +13,7 @@
 #ifndef _PGTRACK_
 #include "tralig.h"
 #else
+#include "TrRecon.h"
 #include "TrTasDB.h"
 #include "TrTasCluster.h"
 #endif
@@ -307,6 +308,8 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
 #else
    if(IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
    if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
+   _rfile->cd();
+   TrRecon::RecPar.Write();
 #endif   
 
      if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
@@ -376,6 +379,7 @@ void AMSNtuple::initR(char* fname){
   _dc.Write("DataCards");
 #ifdef _PGTRACK_
   TrCalDB::Head->Write();
+  TkDBc  ::Head->Write();
   // if(TrCalDB::Head) TrCalDB::Head->Write();
   if (TrTasDB::Head) TrTasDB::Head->Write();
   if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();

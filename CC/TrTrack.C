@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.22 2010/01/21 14:57:06 shaino Exp $
+// $Id: TrTrack.C,v 1.23 2010/02/01 12:44:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/21 14:57:06 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.22 $
+///$Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -197,21 +197,51 @@ AMSPoint TrTrackR::GetPlayer(int ilay, int id)
   return (hit) ? hit->GetCoord()-pres : pres;
 }
 
-void TrTrackR::AddHit(TrRecHitR *hit, int imult, AMSPoint *bfield)
+void TrTrackR::AddHit(TrRecHitR *hit, int imult)
 {
-  VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
-  if (_Nhits < trconst::maxlay) {
-    _Hits  [_Nhits] = hit;
-    _iHits [_Nhits] = cont2->getindex(hit);
-    _iMult [_Nhits] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
-    _BField[_Nhits] = (bfield) ? *bfield : AMSPoint(0, 0, 0);
-    if(_BField[_Nhits].norm() != 0) _MagFieldOn = 1;
+  int ihit = -1;
+  for (int i = 0; i < _Nhits; i++)
+    if (GetHit(i)->GetLayer() == hit->GetLayer()) ihit = i;
+
+  if (ihit < 0) {
+    if (_Nhits >= trconst::maxlay) {
+      cerr << "Error in TrTrack::AddHit the hit vector is already full"
+	   << endl;
+      return;
+    }
+    ihit = _Nhits;
     _Nhits++;
-    if (hit->GetXCluster()) _NhitsX++;
-    if (hit->GetYCluster()) _NhitsY++;
-    if (hit->GetXCluster() && hit->GetYCluster()) _NhitsXY++;
   }
+  else {
+    TrRecHitR *hh = GetHit(ihit);
+    if (hh->GetXCluster()) _NhitsX--;
+    if (hh->GetYCluster()) _NhitsY--;
+    if (hh->GetXCluster() && hh->GetYCluster()) _NhitsXY--;
+//  hh->clearstatus(AMSDBc::USED);
+  }
+//hit->setstatus(AMSDBc::USED);
+
+  if (hit->GetXCluster()) _NhitsX++;
+  if (hit->GetYCluster()) _NhitsY++;
+  if (hit->GetXCluster() && hit->GetYCluster()) _NhitsXY++;
+
+  VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
+  _Hits [ihit] = hit;
+  _iHits[ihit] = cont2->getindex(hit);
+  _iMult[ihit] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
   delete cont2;
+
+  if (MagFieldOn()){
+    float coo[3], bf[3];
+    hit->GetCoord(_iMult[ihit]).getp(coo);
+    GUFLD(coo, bf);
+    _BField[ihit] = AMSPoint(bf);
+    _MagFieldOn = 1;
+  }
+  else {
+    _BField[ihit] = AMSPoint(0, 0, 0);
+    _MagFieldOn = 0;
+  }
 }
 
 void TrTrackR::BuildHitsIndex()
@@ -613,7 +643,7 @@ int TrTrackR::DoAdvancedFit()
   if (Fit(kChoutko | kUpperHalf) < 0) Fit(kAlcaraz | kUpperHalf);
   if (Fit(kChoutko | kLowerHalf) < 0) Fit(kAlcaraz | kLowerHalf);
   Fit(kChoutko);
-  Fit(kChoutko | kOneDrop);
+//Fit(kChoutko | kOneDrop);
   Fit(kChoutko | kNoiseDrop);
   Fit(kAlcaraz);
   trdefaultfit = kChoutko;

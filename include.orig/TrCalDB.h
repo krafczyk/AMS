@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.9 2009/11/29 12:58:27 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.10 2010/02/01 12:44:12 shaino Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2009/11/29 12:58:27 $
+///$Date: 2010/02/01 12:44:12 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +30,6 @@
 #include <map>
 #include "TObject.h"
 #include "typedefs.h"
-#include "TkDBc.h"
 #include "TrLadCal.h"
 #include "TFile.h"
 

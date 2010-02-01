@@ -16,6 +16,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrRecHit.h"
+#include "TkDBc.h"
 #include "TrTasCluster.h"
 ClassImp(TrRecHitR);
 

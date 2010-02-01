@@ -25,8 +25,8 @@ TKGEOMFFKEY_DEF TKGEOMFFKEY;
 //==============================
 void TRCLFFKEY_DEF::init(){
   recflag=111;
-  ThrSeed[0]  = 4.00;
-  ThrSeed[1]  =	4.00;
+  ThrSeed[0]  = 3.50;
+  ThrSeed[1]  = 3.50;
   ThrNeig[0]  = 1.00;
   ThrNeig[1]  = 1.00;
 
@@ -50,22 +50,24 @@ void TRCLFFKEY_DEF::init(){
 
   MaxNrawCls     = 2000;
   lowdt          = 200;
-  MaxNtrCls      = 1000;
+  MaxNtrCls      = 500;
   MaxNtrCls_ldt  = 150;
-  MaxNtrHit      = 1000;
-  TrTimeLim      = 1000;
+  MaxNtrHit      = 200;
+  TrTimeLim      = 500;
   //Track
   MaxNtrack = 4;
   MinNhitX  = 4;
   MinNhitY  = 5;
   MinNhitXY = 4;
-  PatAllowOption = 0;
+  PatAllowOption = 7;
   MaxChisqAllowed   = 300;
   LadderScanRange   = 7.3; //= TkDBc::Head->_ladder_Ypitch
   ClusterScanRange  = 0.5;
   MaxChisqForLScan  = 2.2;
   ErrXForScan       = 300e-4;
   ErrYForScan       = 300e-4;
+  TrackThrSeed[0]   = 4.0;
+  TrackThrSeed[1]   = 4.0;
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;

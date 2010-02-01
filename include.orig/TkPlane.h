@@ -1,4 +1,4 @@
-// $Id: TkPlane.h,v 1.1 2008/12/18 11:19:24 pzuccon Exp $
+// $Id: TkPlane.h,v 1.2 2010/02/01 12:44:12 shaino Exp $
 
 #ifndef __TkPlane__
 #define __TkPlane__
@@ -17,9 +17,9 @@
 ///
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2008/12/18 11:19:24 $
+///$Date: 2010/02/01 12:44:12 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +30,7 @@ class TkPlane :public TkObject{
 protected:
   
 
-  ostream& putout(ostream& s);
+  ostream& putout(ostream& s) const;
   istream& putin(istream& s);
 
   ostream& putoutA(ostream& s);
@@ -68,5 +68,6 @@ public:
   //! writes out the Alignement pars to file
   void WriteA(ostream &o){putoutA(o);}
 
+  ClassDef(TkPlane,1);
 };
 #endif

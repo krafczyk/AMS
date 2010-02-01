@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.10 2010/01/08 15:18:17 pzuccon Exp $ 
+// $Id: TrRawCluster.h,v 1.11 2010/02/01 12:44:12 shaino Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2010/01/08 15:18:17 $
+/// $Date: 2010/02/01 12:44:12 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -74,11 +74,7 @@ class TrRawClusterR : public TrElem {
   /// Returns the ladder TkId identifier (LayerNumber*100 + SlotNumber)*SideSign[-1 or 1]
   int   GetTkId()      const { return _tkid; }
   /// Returns the ladder HwId identifier (CrateNumber*100 + TDRNumber)
-  int   GetHwId()      const {
-    TkLadder* lad=TkDBc::Head->FindTkId(GetTkId());
-    if (lad) return lad->GetHwId();
-    else return -1;
-  }
+  int   GetHwId()      const;
   /// Return the layer to which the cluster belong
   int   GetLayer()     const { return abs(GetTkId()/100); }
   /// Return +1 or -1 dependig on which side of the X plane is located the ladder holding the cluster

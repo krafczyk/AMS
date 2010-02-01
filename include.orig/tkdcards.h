@@ -151,11 +151,11 @@ class TRCLFFKEY_DEF {
 public:
   //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
   integer recflag;
-  //! R [2,3] Seed S/N Threshold S/K
+  //! R [2,3] Seed S/N Threshold for 2:n(X) 3:p(Y) side
   geant     ThrSeed[2] ;  
-  //! R [4,5] expansion S/N Threshold S/K
+  //! R [4,5] expansion S/N Threshold for 4:n(X) 5:p(Y) side
   geant     ThrNeig[2] ;
-  //! I [6,7] Min Distance between seeds S/K
+  //! I [6,7] Min Distance between seeds for 6:n(X) 7:p(Y) side
   integer   SeedDist[2] ;
   
   //! R [8 - 13] hit signal correlation (only muons/protons)
@@ -178,7 +178,7 @@ public:
   //PRE-SELECTION PARS
   //! I 20 MaxNrawCls 
   int MaxNrawCls ;// 2000
-  //! I 21 MaxNtrCls
+  //! I 21 Threeshold used to define a small dt event
   int lowdt    ;// 200
   //! I 22 MaxNtrCls
   int MaxNtrCls  ;// 1000
@@ -211,16 +211,19 @@ public:
   float ErrXForScan       ;//300e-4
   //! R 36 ErrYForScan
   float ErrYForScan       ;//300e-4
+  //! R [37,38] Seed S/N Threshold for 37:n(X) 38:p(Y) side
+  geant TrackThrSeed[2] ;  
+
   //DEBUG
-  //! I 37 TrDEBUG (DEBUG on Track finding)
+  //! I 39 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 38 PZDEBUG
+  //! I 40 PZDEBUG
   int PZDEBUG ;
-  //! I 39 TAS reconstruction
+  //! I 41 TAS reconstruction
   int TasRecon;
-  //! I 40 TAS current intensity
+  //! I 42 TAS current intensity
   int TasCurr;
-  //! I 41 TAS LDDR mode
+  //! I 43 TAS LDDR mode
   int TasLDDR;
 
   void init();

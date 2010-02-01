@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.3 2009/09/13 12:33:52 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.4 2010/02/01 12:44:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2009/09/13 12:33:52 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +25,8 @@
 int TkLadder::pwg[24]= {1,1,4,4,1,1,4,4,1,1, 4, 4, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3};
    //                   0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
 int TkLadder::pwgp[24]={1,2,5,6,3,4,3,4,5,6, 1, 2, 1, 2, 5, 6, 3, 4, 3, 4, 5, 6, 1, 2};
+
+ClassImp(TkLadder);
 
 TkLadder::TkLadder():TkObject()
 {
@@ -62,7 +64,7 @@ TkLadder::TkLadder(TkPlane* plane,char* Name,int Trid,int HwId,  int nsensors):T
 }
 
 
-ostream& TkLadder::putout(ostream& s){
+ostream& TkLadder::putout(ostream& s) const {
 
     return TkObject::putout(s)<<
       GetTkId()<<"  "<<

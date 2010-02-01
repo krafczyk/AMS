@@ -20,9 +20,9 @@ I 6  fname(400*'') file name for dbase from file
 //==============================
 TRCL
 I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
-R [2,3] Seed S/N Threshold S/K
-R [4,5] expansion S/N Threshold S/K
-I [6,7] Min Distance between seeds S/K
+R [2,3] Seed S/N Threshold for 2:n(X) 3:p(Y) side
+R [4,5] expansion S/N Threshold for 4:n(X) 5:p(Y) side
+I [6,7] Min Distance between seeds for 6:n(X) 7:p(Y) side
 R [8 - 13] hit signal correlation (only muons/protons)
 R 14 Threshold on the S/K Correlation probability
 R 15 Threshold on the S/K Correlation probability
@@ -31,26 +31,29 @@ I 17 Default number of strips for CofG (TrClusterR::DefaultUsedStrips)
 R 18 _dxdz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdX)
 R 19 _dydz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdY)
 I 20 MaxNrawCls       (Default: 2000) MaxNumber of Raw Cluster allowed to proceed with the reconstruction
-I 21 lowdt            (Default: 200) Threeshold used to define a small dt event
+I 21 lowdt            (Default:  200) Threeshold used to define a small dt event
 I 22 MaxNtrCls        (Default: 1000) MaxNumber of Cluster allowed to proceed with the reconstruction
 I 23 MaxNtrCls_ldt    (Default: 150) MaxNumber of Cluster allowed to proceed with the reconstruction
 I 24 MaxNtrHit        (Default: 1000) MaxNumber of RecHit allowed to proceed with the reconstruction
-I 25 MaxNtrack        (Default: 2)
-I 26 MinNhitX         (Default: 4)
-I 27 MinNhitY         (Default: 5)
-I 28 MinNhitXY        (Default: 4)
-I 29 PatAllowOption   (NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4, Default=0)
-R 30 MaxChisqAllowed  (Default: 300)
-R 31 LadderScanRange  (Default: 7.3)
-R 32 ClusterScanRange (Default: 0.5)
-R 33 MaxChisqForLScan (Default: 2.2)
-R 34 ErrXForScan      (Default: 300e-4)
-R 35 ErrYForScan      (Default: 300e-4)
-I 36 TrDEBUG
-I 37 PZDEBUG
-I 38 TAS reconstruction (1:ON 0:OFF, Default:0)
-I 39 TAS laser current intensity
-I 40 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
+F 25 TrTimeLim        (Default: 1000) Tracking Cpu time limit in sec
+I 26 MaxNtrack        (Default: 2)
+I 27 MinNhitX         (Default: 4)
+I 28 MinNhitY         (Default: 5)
+I 29 MinNhitXY        (Default: 4)
+I 30 PatAllowOption   (NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4, Default=0)
+R 31 MaxChisqAllowed  (Default: 300)
+R 32 LadderScanRange  (Default: 7.3)
+R 33 ClusterScanRange (Default: 0.5)
+R 34 MaxChisqForLScan (Default: 2.2)
+R 35 ErrXForScan      (Default: 300e-4)
+R 36 ErrYForScan      (Default: 300e-4)
+R 37,38 TrackThrSeed  (Default: 4.0) Seed S/N Threshold for 37:n(X) 38:p(Y) side
+I 39 TrDEBUG
+I 40 PZDEBUG
+
+I 41 TAS reconstruction (1:ON 0:OFF, Default:0)
+I 42 TAS laser current intensity
+I 43 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
 
 //==============================
 

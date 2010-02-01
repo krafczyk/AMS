@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.23 2010/01/25 15:09:29 shaino Exp $ 
+// $Id: TrRecon.h,v 1.24 2010/02/01 12:44:12 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/01/25 15:09:29 $
+/// $Date: 2010/02/01 12:44:12 $
 ///
-/// $Revision: 1.23 $
+/// $Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -30,9 +30,8 @@
 #include "TrCluster.h"
 #include "TrTrack.h"
 #include "TrRecHit.h"
-#include "TkDBc.h"
 #include "TrFit.h"
-#include "TkDBc.h"
+#include "TkSens.h"
 #include "TMath.h"
 #include "TrTasDB.h"
 #include "Vertex.h"
@@ -42,9 +41,98 @@
 #include <map>
 #include <algorithm>
 
+#include "TObject.h"
+
+class TrReconPar : public TObject {
+
+public:
+  // --- Parameters for reclusterization ---
+
+  /// Clustering - Seed S/N threshold for 0:n(X) 1:p(Y) side
+  float ThrSeed[2];
+  /// Clustering - Neighboring S/N strips threshold for 0:n(X) 1:p(Y) side
+  float ThrNeig[2];
+  /// Clustering - Minimum distance between two seeds for 0:n(X) 1:p(Y) side
+  int   SeedDist[2];
+
+  /// Correlation - Double gaussian distribution parameters (for muons/protons)
+  float GGpars[6];
+  /// Correlation - Double gaussian distribution normalization (for muons/protons)
+  float GGintegral;
+  /// Correlation - Probability of correlation threshold
+  float ThrProb;
+
+
+  // --- Parameters for the full reconstruction ---
+
+  /// Maximum number of raw clusters allowed for the next step
+  int MaxNrawCls;
+  /// lowdt Threeshold (usec)
+  int lowdt;
+  /// Maximum number of clusters allowed for the next step
+  int MaxNtrCls_ldt;
+  /// Maximum number of clusters allowed for the next step
+  int MaxNtrCls;
+  /// Maximum number of hits allowed for the next step
+  int MaxNtrHit;
+  /// Maximum CPU time (s)  for tracking
+  float TrTimeLim;
+
+
+  // --- Performance tuning parameters for track reconstruction ---
+
+  /// Maximum number of tracks allowed to search for
+  int MaxNtrack;
+  /// Minimum number of hits with X- and Y- clusters required for a track
+  int MinNhitXY;
+  /// Minimum number of X(p)-side-clusters required for a track
+  int MinNhitX;
+  /// Minimum number of Y(n)-side-clusters required for a track
+  int MinNhitY;
+  /// PatAllowOption bits
+  enum { NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4};
+  /// Exception to allow pattern
+  int PatAllowOption;
+  /// Range in cm to search for Ladders used in ScanLadders
+  double LadderScanRange;
+  /// Range in cm to search for clusters used in ScanClusters
+  double ClusterScanRange;
+  /// Maximum chisquare allowed for Ladder scan
+  double MaxChisqForLScan;
+  /// Maximum chisquare allowed for Cluster scan
+  double MaxChisqAllowed;
+  /// Fitting error in X used for fast fitting in the scan
+  double ErrXForScan;
+  /// Fitting error in Y used for fast fitting in the scan
+  double ErrYForScan;
+  /// Seed SN threshold in track finding for 0:n(X) 1:p(Y) side
+  float TrackThrSeed[2];
+  /// N-sigma threshold to merge low seed SN clusters
+  float NsigmaMerge;
+
+  /// Counter for BuildTrTracks
+  int NbuildTrack;
+  /// Counter for MaxNrawCls cut
+  int NcutRaw;
+  /// Counter for MaxNtrCls_ldt cut
+  int NcutLdt;
+  /// Counter for MaxNtrCls cut
+  int NcutCls;
+  /// Counter for MaxNtrHit cut
+  int NcutHit;
+  /// Counter for Cpulimit
+  int NcutCpu;
+
+  TrReconPar();
+  void SetParFromDataCards();
+
+  ClassDef(TrReconPar, 1);
+};
 
 class TrRecon {
 
+public:
+  static TrReconPar RecPar;
 
 protected:
   /// Map association between TkId and 2 p/n side TrClusters lists 
@@ -53,25 +141,6 @@ protected:
   /// TrRecHits list for a given layer
   map< int, vector<TrRecHitR*> > _RecHitLayerMap;
    
-  /// --- Parameters --- ///
-public:
-  /// Clustering - Seed S/N threshold 
-  static float ThrSeed[2];
-  /// Clustering - Neighboring S/N strips threshold 
-  static float ThrNeig[2];
-  /// Clustering - Minimum distance between two seeds
-  static int   SeedDist[2];
-
-  /// Correlation - Double gaussian distribution parameters (for muons/protons)
-  static float GGpars[6];
-  /// Correlation - Double gaussian distribution normalization (for muons/protons)
-  static float GGintegral;
-  /// Correlation - Probability of correlation threshold
-  static float ThrProb;
-
-
- protected:
-
   /// --- Analysis Structures --- ///
   /// clustering - size of ADC/signal/status temporary buffers
   enum { BUFSIZE = 1024 };
@@ -126,31 +195,17 @@ public:
   static TrCalDB*    GetTrCalDB() { return _trcaldb; }
 
 
-  /// Parameters for the full reconstruction
-  /// Maximum number of raw clusters allowed for the next step
-  static int MaxNrawCls;
-  /// lowdt Threeshold (usec)
-  static int lowdt;
-  /// Maximum number of clusters allowed for the next step
-  static int MaxNtrCls_ldt;
-  /// Maximum number of clusters allowed for the next step
-  static int MaxNtrCls;
-  /// Maximum number of hits allowed for the next step
-  static int MaxNtrHit;
-  /// Maximum CPU time (s)  for tracking
-  static float TrTimeLim;
-
   /// option is temporary, 0:No_reco 1:TrCluster 2:TrRecHit 3:Full
   /// Start full reconstruction (TrCluster, TrRecHit and TrTrack)
   int Build(int option = 3);
   
   // --- Clustering Methods --- // 
   /// Set the seed S/N threshold
-  static void   SetThrSeed(int side, float thr) { ThrSeed[side] = thr; }
+  static void   SetThrSeed(int side, float thr) { RecPar.ThrSeed[side] = thr; }
   /// Set the neigtboring strips S/N threshold
-  static void   SetThrNeig(int side, float thr) { ThrNeig[side] = thr; }
+  static void   SetThrNeig(int side, float thr) { RecPar.ThrNeig[side] = thr; }
   /// Set the mimnimum strip distance between two seeds
-  static void   SetSeedDist(int side, int dist) { SeedDist[side] = dist; }
+  static void   SetSeedDist(int side, int dist) { RecPar.SeedDist[side] = dist; }
 
   static void InitBuffer();
   /// Clear buffer
@@ -177,7 +232,7 @@ public:
   // --- No reordering implemented --- // 
 
   /// Set the correlation probability threshold
-  void  SetThrProb(float prob) { ThrProb = prob; }
+  void  SetThrProb(float prob) { RecPar.ThrProb = prob; }
   /// Get correlation between 2 signal (p/n) (protons)
   float GetCorrelation(float n, float p) { return (p - n)/(p + n); }
   float GetCorrelation(TrClusterR* cln, TrClusterR* clp);
@@ -238,41 +293,6 @@ public:
   enum { MAXLAY = 8 };
   /// Status bits (temporary)
   enum { AMBIG = 0x04, USED = 0x20 };
-  //
-  /// Maximum number of tracks allowed to search for
-  static int MaxNtrack;
-  /// Minimum number of hits with X- and Y- clusters required for a track
-  static int MinNhitXY;
-  /// Minimum number of X(p)-side-clusters required for a track
-  static int MinNhitX;
-  /// Minimum number of Y(n)-side-clusters required for a track
-  static int MinNhitY;
-  //
-  /// PatAllowOption bits
-  enum { NO_EXTP = 1, NO_INTP = 2, ALL_5L = 4};
-  /// Exception to allow pattern
-  static int PatAllowOption;
-  //
-  /// Range in cm to search for Ladders used in ScanLadders
-  static double LadderScanRange;
-  /// Range in cm to search for clusters used in ScanClusters
-  static double ClusterScanRange;
-  /// Maximum chisquare allowed for Ladder scan
-  static double MaxChisqForLScan;
-  /// Maximum chisquare allowed for Cluster scan
-  static double MaxChisqAllowed;
-  /// Fitting error in X used for fast fitting in the scan
-  static double ErrXForScan;
-  /// Fitting error in Y used for fast fitting in the scan
-  static double ErrYForScan;
-  //
-  /// For debug - number of trials in ScanLadders
-  int Ntrials1;
-  /// For debug - number of trials in ScanClusters
-  int Ntrials2;
-  /// Debug switch
-  static int TrDEBUG;
-  static int PZDEBUG;
 
 //========================================================
 // HitPatterns
@@ -316,6 +336,20 @@ public:
   /// Get HitPatternAttrib
   static int GetHitPatternAttrib(int i) {
     return (HitPatternAttrib && 0 <= i && i < NHitPatterns) ? HitPatternAttrib[i] : 0;
+  }
+  /// Get allow option of HitPatternAttrib
+  static int GetHitPatternAllow(int i) {
+    int atrb = GetHitPatternAttrib(i), pate = 0;
+    if (atrb == 0) return 0;
+    // Not allowed (1): Both external layers are masked
+    if ((atrb/O_NP1)%10 == 0 && (atrb/O_NP5)%10 == 0) pate |= RecPar.NO_EXTP;
+    // Not allowed (2): Both layers on any of internal planes are masked
+    if ((atrb/O_NP2)%10 == 0 || (atrb/O_NP3)%10 == 0 || 
+	                        (atrb/O_NP4)%10 == 0) pate |= RecPar.NO_INTP;
+    // Not allowed (3): Any external layers are masked and Nmask >= 3
+    if ((atrb/O_NMASK >= 3  && ((atrb/O_NP1)%10 == 0 || 
+				(atrb/O_NP5)%10 == 0))) pate |= RecPar.ALL_5L;
+    return pate;
   }
   /// Get number of hits masked for the pattern i
   static int GetHitPatternNmask(int i) {
@@ -371,6 +405,12 @@ protected:
     return (it == _HitsTkIdMap.end()) ? 0 : &it->second;
   }
 
+  /// Get Hits2DArray with tkid (non-const.)
+  Hits2DArray *GetHits2DArray(int tkid) {
+    HitsTkIdMap::iterator it = _HitsTkIdMap.find(tkid);
+    return (it == _HitsTkIdMap.end()) ? 0 : &it->second;
+  }
+
   /// A predicate to sort hits in descending order of prob.
   class CompProb {
   public:
@@ -378,6 +418,22 @@ protected:
       return lhit->GetProb() > rhit->GetProb();
     }
   };
+
+  /// Minimum number of hits with X- and Y- clusters required for a track
+  int _MinNhitXY;
+  /// Minimum number of X(p)-side-clusters required for a track
+  int _MinNhitX;
+  /// Minimum number of Y(n)-side-clusters required for a track
+  int _MinNhitY;
+
+  //
+  /// For debug - number of trials in ScanLadders
+  int Ntrials1;
+  /// For debug - number of trials in ScanClusters
+  int Ntrials2;
+  /// Debug switch
+  static int TrDEBUG;
+  static int PZDEBUG;
 
   // Tools for CPU time consumption
   // Note: it works only without __ROOTSHAREDLIBRARY__
@@ -442,6 +498,8 @@ public:
   }
   /// Remove a row of hits from _HitsTkIdMap;
   void RemoveHits(int tkid, int icls, int side);
+  /// Remove a row of hits from _HitsTkIdMap;
+  void RemoveHits(TrRecHitR *hit);
 
 //========================================================
 // Structures
@@ -471,6 +529,9 @@ public:
 public:
   /// Reconstruct tracks, returns number of tracks reconstructed
   int BuildTrTracks(int refit = 0);
+
+  /// Merge his with seed SN clusters lower than TrackThrSeed
+  int MergeLowSNHits(TrTrackR *track, int fit_method);
 
   /// Build one track from the best candidate iterator
   int BuildATrTrack(TrHitIter &cand);
@@ -510,6 +571,8 @@ public:
   /// Evaluator for hits scan to be put in ScanRecursive
   int HitScanEval(const TrHitIter &it, TrHitIter &cand) const;
 
+  /// Estimate multiplicity and readout strip by interpolation
+  TkSens EstimateXCoord(AMSPoint coo, int tkid = 0) const;
   /// Estimate multiplicity and readout strip by interpolation
   int EstimateXCoord(int il, TrHitIter &iter) const;
 

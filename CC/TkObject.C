@@ -1,4 +1,4 @@
-//  $Id: TkObject.C,v 1.2 2009/05/29 09:23:05 pzuccon Exp $
+//  $Id: TkObject.C,v 1.3 2010/02/01 12:44:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,14 +11,15 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2009/05/29 09:23:05 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TkObject.h"
 
+ClassImp(TkObject);
 
 TkObject::TkObject(char* namein){
   sprintf(name,"%s",namein);

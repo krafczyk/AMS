@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.3 2009/09/13 12:37:24 pzuccon Exp $
+// $Id: TrParDB.h,v 1.4 2010/02/01 12:44:12 shaino Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2009/09/13 12:37:24 $
+///$Date: 2010/02/01 12:44:12 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,7 +29,6 @@
 #include <string>
 #include <map>
 
-#include "TkDBc.h"
 #include "TrLadPar.h"
 
 #include "TObject.h"

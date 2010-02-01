@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.6 2009/11/11 15:20:56 pzuccon Exp $
+// $Id: TkDBc.h,v 1.7 2010/02/01 12:44:12 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -11,6 +11,8 @@
 #include <map>
 #include "TkLadder.h"
 #include "TkPlane.h"
+
+#include "TFile.h"
 
 /*!\class TkDBc
 \brief The new AMS Tracker database class
@@ -60,7 +62,7 @@ namespace trconst{
 }
 using namespace trconst;
 
-class TkDBc{
+class TkDBc : public TObject{
   
 
 public:
@@ -250,30 +252,34 @@ public:
 
 private:
   //! Map for fast binary search based on TkAssemblyId
-  map<int,TkLadder*> tkassemblymap;
-  //! Map for fast binary search based on TkId
+  map<int,TkLadder*> tkassemblymap;   //! it is rebuilt when loaded
+  //! Map for fast binary search based on TkId 
   map<int,TkLadder*> tkidmap;
   //! Map for fast binary search based on HwId
-  map<int,TkLadder*> hwidmap;
+  map<int,TkLadder*> hwidmap;         //! it is rebuilt when loaded
   //! Map for fast binary search based on PgId
-  map<int,TkLadder*> pgidmap;
+  map<int,TkLadder*> pgidmap;         //! it is rebuilt when loaded
   //! Map for fast binary search based on LadName
-  map<string,TkLadder*> lnamemap;
+  map<string,TkLadder*> lnamemap;     //! it is rebuilt when loaded
   //! Map for fast binary search based on JMDCNum
-  map<int,TkLadder*> JMDCNumMap;
+  map<int,TkLadder*> JMDCNumMap;      //! it is rebuilt when loaded
 
   TkLadder* Findmap(map<int,TkLadder*> & tkmap, int key);
 
   int GetOctant(int side,int _layer,int _slot);
 
-  //! Constructor is private since the class is a singleton
-  TkDBc();
-
   //Pointer ro the planes;
   TkPlane* planes[nplanes];
-  
+
+  //! Rebuild all the other maps from tkidmap
+  void RebuildMap();
+
 
 public:
+  //! Default constructor for ROOT IO
+  TkDBc();
+  //! Constructor loaded from root file
+  TkDBc(const char *filename) { Load(filename); }
 
   //! Static function used to create the TkDBc Singleton. If force_delete>0 it deletes and recreates  the single istance of the class
   static void CreateTkDBc(int force_delete=0);
@@ -362,7 +368,16 @@ public:
   static void CreateLinear(){
     linear= new float[GetLinearSize()/4];}
 
+  //! Load TkDBc object from a ROOT file by file name
+  static TkDBc *Load(const char *fname) {
+    TFile ff(fname);
+    if (ff.IsOpen()) return Load(&ff);
+    return 0;
+  }
+  //! Load TkDBc object from a ROOT file by file pointer
+  static TkDBc *Load(TFile *rfile);
 
+  ClassDef(TkDBc, 1);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

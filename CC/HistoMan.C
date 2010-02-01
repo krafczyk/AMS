@@ -18,12 +18,14 @@ void HistoMan::Save(){
   if(!enabled) return;
   if(!fname[0])return;
   printf("HistoMan::Save ----> Saving %s\n",fname);
+  TDirectory *dsave = gDirectory;
   TFile* pp=TFile::Open(fname,"RECREATE");
   pp->cd();
   fhist.Write();
   pp->Write();
   pp->Close();
   printf(" ..... done\n");
+  if (dsave) dsave->cd();
   //  fdir->Purge();
   return;
 }
@@ -209,6 +211,7 @@ void HistoMan::BookHistos(){
   Add(new TH2D("TrNrawHt", "nRaw VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
   Add(new TH2D("TrNclsHt", "nCls VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
   Add(new TH2D("TrNhitHt", "nHit VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH1D("TrRecon",  "TrRecon status", 32, 0, 32));
 
   // TrCluster
   Add(new TH2D("TrClsSigP", "Amplitude(P) VS OnTrack", 2, 0, 2, 500, 0, 500));
@@ -220,7 +223,8 @@ void HistoMan::BookHistos(){
   Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 8, 0.5, 8.5));
 
   // TrTrack
-  Add(TH2D_L("TrTime","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
+  Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
+  Add(TH2D_L("TrTimT","Tcpu VS nTrack",   5,   0,   5,  140, 1e-3, 1e4, 0, 1));
   Add(TH2D_L("TrNhit", "NhitXY VS NhitY", 9,   0,   9,    9,    0,   9, 0, 0));
   Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));

@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.2 2009/05/29 09:23:12 pzuccon Exp $
+// $Id: TkObject.h,v 1.3 2010/02/01 12:44:12 shaino Exp $
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,20 +22,21 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2009/05/29 09:23:12 $
+///$Date: 2010/02/01 12:44:12 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "point.h"
 #include <iostream>
+#include "TObject.h"
 
-class TkObject {
+class TkObject : public TObject {
 
 protected:
   //! function  needed  to guaarantee the virtual inheritance of the operator << ( you can safely ignore)
-  virtual ostream& putout(ostream& s) { return s<<name<<endl <<pos <<endl<<rot
+  virtual ostream& putout(ostream& s) const { return s<<name<<endl <<pos <<endl<<rot
 						             <<posA<<endl<<rotA;}
 
   virtual ostream& putoutA(ostream& s) { return s<<name<<endl<<posA<<endl<<rotA;}
@@ -73,9 +74,9 @@ public:
   //! set the rotation matric from an array[3][3]
   void setrot(number ** rr){rot.SetMat(rr);}
   //! it returns a copy of the AMSPoint defining the position of the TkObject
-  AMSPoint  GetPos()   { return pos;}
+  AMSPoint  GetPos() const  { return pos;}
   //! it returns a copy of the AMSRotMat defining the orientation of the TkObject
-  AMSRotMat GetRotMat(){ return rot;}
+  AMSRotMat GetRotMat()const{ return rot;}
 
 
 
@@ -87,9 +88,9 @@ public:
   //! set the Alignment correction rotation matrix from an array[3][3]
   void setrotA(number ** rr){rotA.SetMat(rr);}
   //! it returns a copy of the AMSPoint defining Alignment correction to the position of the TkObject
-  AMSPoint  GetPosA()   { return posA;}
+  AMSPoint  GetPosA() const  { return posA;}
   //! it returns a copy of the AMSRotMat defining Alignment correction to the orientation of the TkObject
-  AMSRotMat GetRotMatA(){ return rotA;}
+  AMSRotMat GetRotMatA() const { return rotA;}
   //! Create a rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
 void SetRotAngles(double alpha, double beta, double gamma){
     rot.SetRotAngles(alpha, beta, gamma);
@@ -129,6 +130,7 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
   void Lin2Align(float * off);
   static int GetSize(){return 6;}
 
+  ClassDef(TkObject,1);
 };
 
 

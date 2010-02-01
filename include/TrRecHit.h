@@ -30,7 +30,6 @@
 #include "TrCluster.h"
 #include "point.h"
 #include "TkCoo.h"
-#include "TkDBc.h"
 #include "TrElem.h"
 
 #include "amsdbc.h"
@@ -131,8 +130,8 @@ protected:
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
   /// Returns the signal sum of the X and Y clusters
   float GetTotSignal() { 
-    ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
-    ((GetYCluster())? GetYCluster()->GetTotSignal():0); }
+    return ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
+           ((GetYCluster())? GetYCluster()->GetTotSignal():0); }
   /// Get X local coordinate (ladder reference frame)
   float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
   /// Get Y local coordinate (ladder reference frame)

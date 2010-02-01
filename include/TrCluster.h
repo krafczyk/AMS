@@ -2,7 +2,6 @@
 #define __TrClusterR__
 #include "TrRawCluster.h"
 #include "TrElem.h"
-#include "TkDBc.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
 #include "TrParDB.h"
@@ -37,9 +36,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2009/12/17 16:11:12 $
+ $Date: 2010/02/01 12:44:12 $
 
- $Revision: 1.7 $
+ $Revision: 1.8 $
 
 */
 

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.13 2010/01/25 15:09:25 shaino Exp $
+//  $Id: TrFit.C,v 1.14 2010/02/01 12:44:05 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2010/01/25 15:09:25 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -981,7 +981,12 @@ double TrFit::ChoutkoFit(void)
   _param[2] = _p0y; _param[3] = _dydz;
   _param[4] = 1/_rigidity;
 
+  _ndofx = -2;
+  _ndofy = -3;
   for (int i = 0; i < _nhit; i++) {
+    if (0 < _xs[i]) _ndofx++;
+    if (0 < _ys[i]) _ndofy++;
+    if (_zs[i] <= 0) _zs[i] = 300e-4;
     if (_xs[i] <= 0) _xs[i] = _zs[i]*1e8;
     if (_ys[i] <= 0) _ys[i] = _zs[i]*1e8;
   }
@@ -1147,8 +1152,6 @@ double TrFit::ChoutkoFit(void)
   _param[4] = _param[4]*_chrg/std::fabs(_chrg);
   _rigidity = (_param[4] != 0) ? 1/_param[4] : 0;
 
-  _ndofx = _nhit-2;
-  _ndofy = _nhit-3;
   _chisq = (_ndofx+_ndofy > 0) ? _chisq/(_ndofx+_ndofy) : -1;
 
   return _chisq;

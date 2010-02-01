@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.38 2010/01/25 15:09:25 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.39 2010/02/01 12:44:05 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/01/25 15:09:25 $
+/// $Date: 2010/02/01 12:44:05 $
 ///
-/// $Revision: 1.38 $
+/// $Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +23,7 @@
 #include "tkdcards.h"
 #include "MagField.h"
 
+#include "TkDBc.h"
 #include "TrFit.h"
 #include "TkSens.h"
 #include "TkCoo.h"
@@ -36,6 +37,97 @@
 #include "cern.h"
 #include "trrec.h"
 #endif
+
+ClassImp(TrReconPar);
+
+TrReconPar::TrReconPar()
+{
+  // clustering - parameters
+  ThrSeed[0]  = 3.50;
+  ThrSeed[1]  = 3.50;
+  ThrNeig[0]  = 1.00;
+  ThrNeig[1]  = 1.00;
+  SeedDist[0] =  3;
+  SeedDist[1] =  3;
+
+  // hit signal correlation (only muons/protons)
+  GGpars[0]  = 1428.;
+  GGpars[1]  = 0.0000;
+  GGpars[2]  = 0.1444;
+  GGpars[3]  = 1645.;
+  GGpars[4]  = 0.0109;
+  GGpars[5]  = 0.0972;
+  GGintegral = 91765.;
+  ThrProb    = 0;//0.00001;
+
+  // Parameters for the full reconstruction
+  MaxNrawCls    = 2000;
+  lowdt         = 200;
+  MaxNtrCls     = 1000;
+  MaxNtrCls_ldt = 150;
+  MaxNtrHit     = 100;
+  TrTimeLim     = 1000;
+
+  // Performance tuning parameters for track reconstruction
+  MaxNtrack = 2;
+  MinNhitX  = 4;
+  MinNhitY  = 5;
+  MinNhitXY = 4;
+  PatAllowOption = 7;
+  MaxChisqAllowed   = 300;
+  LadderScanRange   = 7.3; //= TkDBc::Head->_ladder_Ypitch
+  ClusterScanRange  = 0.5;
+  MaxChisqForLScan  = 2.2;
+  ErrXForScan       = 300e-4;
+  ErrYForScan       = 300e-4;
+
+  TrackThrSeed[0]   = 3.5;
+  TrackThrSeed[1]   = 4.0;
+  NsigmaMerge       = 10.0;
+
+  NbuildTrack = NcutRaw = NcutLdt = NcutCls = NcutHit = NcutCpu = 0;
+}
+
+void TrReconPar::SetParFromDataCards()
+{
+  ThrSeed[0]  = TRCLFFKEY.ThrSeed[0]  ;  // 2
+  ThrSeed[1]  = TRCLFFKEY.ThrSeed[1]  ;  // 3
+  ThrNeig[0]  = TRCLFFKEY.ThrNeig[0]  ;  // 4
+  ThrNeig[1]  = TRCLFFKEY.ThrNeig[1]  ;  // 5
+  
+  SeedDist[0] = TRCLFFKEY.SeedDist[0] ;  // 6
+  SeedDist[1] = TRCLFFKEY.SeedDist[1] ;  // 7
+  
+  GGpars[0]  = TRCLFFKEY.GGpars[0]    ;  // 8
+  GGpars[1]  = TRCLFFKEY.GGpars[1]    ;  // 9
+  GGpars[2]  = TRCLFFKEY.GGpars[2]    ;  // 10
+  GGpars[3]  = TRCLFFKEY.GGpars[3]    ;  // 11
+  GGpars[4]  = TRCLFFKEY.GGpars[4]    ;  // 12
+  GGpars[5]  = TRCLFFKEY.GGpars[5]    ;  // 13
+  GGintegral = TRCLFFKEY.GGintegral   ;  // 14
+  ThrProb    = TRCLFFKEY.ThrProb      ;  // 15
+
+  MaxNrawCls = TRCLFFKEY.MaxNrawCls;      // 20
+  MaxNtrCls  = TRCLFFKEY.MaxNtrCls;       // 21
+  lowdt      = TRCLFFKEY.lowdt;           // 22
+  MaxNtrCls_ldt= TRCLFFKEY.MaxNtrCls_ldt; // 23
+  MaxNtrHit  = TRCLFFKEY.MaxNtrHit;       // 24
+  TrTimeLim  = TRCLFFKEY.TrTimeLim;       // 25
+
+  MaxNtrack         = TRCLFFKEY.MaxNtrack;        // 26
+  MinNhitX          = TRCLFFKEY.MinNhitX;         // 27
+  MinNhitY          = TRCLFFKEY.MinNhitY;         // 28
+  MinNhitXY         = TRCLFFKEY.MinNhitXY;        // 29
+  PatAllowOption    = TRCLFFKEY.PatAllowOption;   // 30
+  MaxChisqAllowed   = TRCLFFKEY.MaxChisqAllowed;  // 31
+  LadderScanRange   = TRCLFFKEY.LadderScanRange;  // 32
+  ClusterScanRange  = TRCLFFKEY.ClusterScanRange; // 33
+  MaxChisqForLScan  = TRCLFFKEY.MaxChisqForLScan; // 34
+  ErrXForScan       = TRCLFFKEY.ErrXForScan;      // 35
+  ErrYForScan       = TRCLFFKEY.ErrYForScan;      // 36
+  TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];  // 37
+  TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];  // 38
+}
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
 
@@ -72,11 +164,6 @@ void TrRecon::InitBuffer(){
 //   return Head;
 // }
 
-// clustering - parameters
-float       TrRecon::ThrSeed[2]  = {3.50,3.50};
-float       TrRecon::ThrNeig[2]  = {0.10,0.10};
-int         TrRecon::SeedDist[2] = {   3,   3};
-
 // // clustering - analysis structure
 // float       TrRecon::_adcbuf[TrRecon::BUFSIZE];
 // float       TrRecon::_sigbuf[TrRecon::BUFSIZE];
@@ -87,51 +174,20 @@ float       TrRecon::_sigbuf2[TrRecon::BUFSIZE];
 int         TrRecon::_stabuf2[TrRecon::BUFSIZE];
 // vector<int> TrRecon::_seedaddresses;
 
-// hit signal correlation (only muons/protons)
-float  TrRecon::GGpars[6]  = {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
-float  TrRecon::GGintegral = 91765.;
-float  TrRecon::ThrProb    = 0;//0.00001;
+TrReconPar TrRecon::RecPar;
 
+void TrRecon::SetParFromDataCards()
+{
+  TrClusterR::DefaultCorrOpt     = TRCLFFKEY.ClusterSigCorrOpt;     // 16
+  TrClusterR::DefaultUsedStrips  = TRCLFFKEY.ClusterCofGUsedStrips; // 17
+  TrClusterR::TwoStripThresholdX = TRCLFFKEY.TwoStripThresholdX;    // 18
+  TrClusterR::TwoStripThresholdY = TRCLFFKEY.TwoStripThresholdY;    // 19
 
-void TrRecon::SetParFromDataCards(){
-  ThrSeed[0]  = TRCLFFKEY.ThrSeed[0] ;
-  ThrSeed[1]  =	TRCLFFKEY.ThrSeed[1]  ;
-  ThrNeig[0]  = TRCLFFKEY.ThrNeig[0]  ;
-  ThrNeig[1]  = TRCLFFKEY.ThrNeig[1]  ;
-  
-  SeedDist[0] = TRCLFFKEY.SeedDist[0] ;
-  SeedDist[1] = TRCLFFKEY.SeedDist[1] ;
-  
-  GGpars[0]  = TRCLFFKEY.GGpars[0]    ;
-  GGpars[1]  = TRCLFFKEY.GGpars[1]    ;
-  GGpars[2]  = TRCLFFKEY.GGpars[2]    ;
-  GGpars[3]  = TRCLFFKEY.GGpars[3]    ;
-  GGpars[4]  = TRCLFFKEY.GGpars[4]    ;
-  GGpars[5]  = TRCLFFKEY.GGpars[5]    ;
-  GGintegral = TRCLFFKEY.GGintegral   ;
-  ThrProb    = TRCLFFKEY.ThrProb      ;
-  MaxNrawCls = TRCLFFKEY.MaxNrawCls;
-  MaxNtrCls  = TRCLFFKEY.MaxNtrCls ;
-  lowdt      = TRCLFFKEY.lowdt ;
-  MaxNtrCls_ldt= TRCLFFKEY.MaxNtrCls_ldt ;
-  MaxNtrHit  = TRCLFFKEY.MaxNtrHit ;
-  TrTimeLim  = TRCLFFKEY.TrTimeLim;
-  MaxNtrack         = TRCLFFKEY.MaxNtrack ;      
-  MinNhitX          = TRCLFFKEY.MinNhitX     ;   
-  MinNhitY          = TRCLFFKEY.MinNhitY        ;
-  MinNhitXY         = TRCLFFKEY.MinNhitXY       ;
-  PatAllowOption    = TRCLFFKEY.PatAllowOption  ;
-  MaxChisqAllowed   = TRCLFFKEY.MaxChisqAllowed ;
-  LadderScanRange   = TRCLFFKEY.LadderScanRange ;
-  ClusterScanRange  = TRCLFFKEY.ClusterScanRange;
-  MaxChisqForLScan  = TRCLFFKEY.MaxChisqForLScan;
-  ErrXForScan       = TRCLFFKEY.ErrXForScan     ;
-  ErrYForScan       = TRCLFFKEY.ErrYForScan     ;
-  
-  TrDEBUG = TRCLFFKEY.TrDEBUG;
-  PZDEBUG = TRCLFFKEY.PZDEBUG;
+  RecPar.SetParFromDataCards();
 
-  TasRecon = TRCLFFKEY.TasRecon;
+  TrDEBUG  = TRCLFFKEY.TrDEBUG;  // 39
+  PZDEBUG  = TRCLFFKEY.PZDEBUG;  // 40
+  TasRecon = TRCLFFKEY.TasRecon; // 41
 
   if (TRCLFFKEY.recflag >= 10111) TrSim::SkipRawSim = 1;
 }
@@ -142,14 +198,14 @@ TrRecon::~TrRecon() {
 void TrRecon::Clear(Option_t *option) {
   /*
   for(int ii=0;ii<2;ii++){
-    ThrSeed[ii]=0;
-    ThrNeig[ii]=0;
-    SeedDist[ii]=0;
+    RecPar.ThrSeed[ii]=0;
+    RecPar.ThrNeig[ii]=0;
+    RecPar.SeedDist[ii]=0;
   }
   //
-  memset(GGpars,0,6*sizeof(GGpars[0]));
-  GGintegral=0;
-  ThrProb=0;
+  memset(RecPar.GGpars,0,6*sizeof(RecPar.GGpars[0]));
+  RecPar.GGintegral=0;
+  RecPar.ThrProb=0;
   */
 
   _ClusterTkIdMap.clear();
@@ -160,12 +216,6 @@ void TrRecon::Clear(Option_t *option) {
   _CpuTime   = 0;
 }
 
-int   TrRecon::MaxNrawCls    = 2000;
-int   TrRecon::lowdt         = 200;
-int   TrRecon::MaxNtrCls     = 1000;
-int   TrRecon::MaxNtrCls_ldt = 150;
-int   TrRecon::MaxNtrHit     = 100;
-float TrRecon::TrTimeLim     = 1000;
 // option is temporary, 0:No_reco 1:Up_to_TrCluster 2:Full
 int TrRecon::Build(int option)
 {
@@ -180,7 +230,7 @@ int TrRecon::Build(int option)
   delete cont;
 
   if (option == 0) return nraw;
-  if (nraw <= 0 || MaxNrawCls <= nraw) return 0;
+  if (nraw <= 0 || RecPar.MaxNrawCls <= nraw) return 0;
 
   // temporary
   int rebuild = 0;
@@ -190,7 +240,7 @@ int TrRecon::Build(int option)
   if (option == 1) return ncls;
 
   // Check number of TrClusters
-  if (ncls <= 0 || MaxNtrCls <= ncls) return 0;
+  if (ncls <= 0 || RecPar.MaxNtrCls <= ncls) return 0;
 
   // Build TrRecHits
   int nhit = BuildTrRecHits(rebuild);
@@ -198,7 +248,7 @@ int TrRecon::Build(int option)
 
   // Check number of TrRecHits
   int ret = 0;
-  if (0 < nhit && nhit < MaxNtrHit) {
+  if (0 < nhit && nhit < RecPar.MaxNtrHit) {
     // Build TrTracks and TrRecHits associated with the track
     ret = BuildTrTracks(rebuild);
   }
@@ -417,21 +467,21 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
 
 int TrRecon::BuildSeedListInSubBuffer(int first, int last, int cyclicity) {
   _seedaddresses.clear();
-  int side    = (first>639) ? 0 : 1;
+  int side    = (first>639) ? 0 : 1;  // 0:n(X) 1:p(Y)
   int address = 0;
   for (int ii=first; ii<last; ii++) {
     // 1. the strip has to be well defined
     // 2. a noisy strip can't be a seed strip
     // 3. the seed must exceed the ThrSeed S/N threshold
-    if (  (_sigbuf[ii]<=0.)||(_stabuf[ii]!=0)||( (_adcbuf[ii]/_sigbuf[ii])<ThrSeed[side] )  ) continue;
+    if (  (_sigbuf[ii]<=0.)||(_stabuf[ii]!=0)||( (_adcbuf[ii]/_sigbuf[ii])<RecPar.ThrSeed[side] )  ) continue;
     // 4. if the next strip is good, above threeshold and with signal larger than this one continue
     if( ii<(last-1)&&(_adcbuf[ii+1]>_adcbuf[ii]))
-      if ((_sigbuf[ii+1]>0.)&&(_stabuf[ii+1]==0)&&( (_adcbuf[ii+1]/_sigbuf[ii+1])>=ThrSeed[side]))
+      if ((_sigbuf[ii+1]>0.)&&(_stabuf[ii+1]==0)&&( (_adcbuf[ii+1]/_sigbuf[ii+1])>=RecPar.ThrSeed[side]))
 	continue;
 
     // 5. the seed has to be the local maximum among 2*SeedDist+1 good (with status==0) strips
     bool localmax = true;
-    for (int jj=1; jj<=SeedDist[side]; jj++) {
+    for (int jj=1; jj<=RecPar.SeedDist[side]; jj++) {
       // right
       address = GetAddressInSubBuffer(ii+jj,first,last,cyclicity);
       if ( (_adcbuf[ii]<=_adcbuf[address])&&(_stabuf[address]==0) ) { localmax = false; break; }
@@ -469,7 +519,7 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
   int address = GetAddressInSubBuffer(leftaddress-1,first,last,cyclicity); 
   while (address!=left) { 
     // the neighboring strip must exceed the ThrNeig S/N threshold
-    if (_adcbuf[address]/_sigbuf[address]<=ThrNeig[side]) break;
+    if (_adcbuf[address]/_sigbuf[address]<=RecPar.ThrNeig[side]) break;
     // the neighboring strip signal has to be smaller than the seed one
     if (_adcbuf[address]>_adcbuf[seedaddress]) break;   
     // the strip is good
@@ -483,7 +533,7 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
   address = GetAddressInSubBuffer(rightaddress+1,first,last,cyclicity); 
   while (address!=right) { 
     // the neighboring strip must exceed the ThrNeig S/N threshold
-    if (_adcbuf[address]/_sigbuf[address]<=ThrNeig[side]) break;
+    if (_adcbuf[address]/_sigbuf[address]<=RecPar.ThrNeig[side]) break;
     // the neighboring strip signal has to be smaller than the seed one
     if (_adcbuf[address]>_adcbuf[seedaddress]) break;   
     // the strip is good
@@ -511,14 +561,14 @@ float TrRecon::GetCorrelation(TrClusterR* cln, TrClusterR* clp) {
 
 float  TrRecon::GetProbToBeCorrelated(float n, float p) {
   float correlation = GetCorrelation(n,p);
-  return ( GGpars[0]*TMath::Gaus(correlation,GGpars[1],GGpars[2],kFALSE) +
-	   GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
+  return ( RecPar.GGpars[0]*TMath::Gaus(correlation,RecPar.GGpars[1],RecPar.GGpars[2],kFALSE) +
+	   RecPar.GGpars[3]*TMath::Gaus(correlation,RecPar.GGpars[4],RecPar.GGpars[5],kFALSE) ) / RecPar.GGintegral;
 }
 
 float  TrRecon::GetProbToBeCorrelated(TrClusterR* cln, TrClusterR* clp) {
   float correlation = GetCorrelation(cln,clp);
-  return ( GGpars[0]*TMath::Gaus(correlation,GGpars[1],GGpars[2],kFALSE) +
-	   GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
+  return ( RecPar.GGpars[0]*TMath::Gaus(correlation,RecPar.GGpars[1],RecPar.GGpars[2],kFALSE) +
+	   RecPar.GGpars[3]*TMath::Gaus(correlation,RecPar.GGpars[4],RecPar.GGpars[5],kFALSE) ) / RecPar.GGintegral;
 }
 
 void TrRecon::BuildClusterTkIdMap() {
@@ -592,7 +642,7 @@ int TrRecon::BuildTrRecHits(int rebuild)
         TrClusterR* clY = lad->second.second.at(iy);
         float     corr = GetCorrelation(clX,clY);
         float     prob = GetProbToBeCorrelated(clX,clY);
-        if (prob<ThrProb) continue;  
+        if (prob<RecPar.ThrProb) continue;  
 #ifndef __ROOTSHAREDLIBRARY__
         cont2->addnext( new AMSTrRecHit(tkid,clX,clY,corr,prob,0));
 #else
@@ -740,10 +790,10 @@ if (TrDEBUG >= 2) {\
 }
 
 #define TR_DEBUG_CODE_21 \
-if (TrDEBUG >= 1) {\
+if (TrDEBUG >= 2) {\
   cout << "Lcand: ";\
   for (int i = 0; i < it.nlayer; i++){\
-    int nhity = GetnTrRecHits(it.tkid[i], 1);\
+    int nhity =  GetnTrRecHits(it.tkid[i], 1);\
     int nhitx = (GetnTrRecHits(it.tkid[i])-nhity)/nhity;\
     cout << Form("%4d(%d%d) ", it.tkid[i], nhitx, nhity);\
   }\
@@ -752,6 +802,13 @@ if (TrDEBUG >= 1) {\
 
 #define TR_DEBUG_CODE_22 \
 if (TrDEBUG >= 1) {\
+  cout << "Lcand: ";\
+  for (int i = 0; i < it.nlayer; i++){\
+    int nhity =  GetnTrRecHits(it.tkid[i], 1);\
+    int nhitx = (GetnTrRecHits(it.tkid[i])-nhity)/nhity;\
+    cout << Form("%4d(%d%d) ", it.tkid[i], nhitx, nhity);\
+  }\
+  cout << endl;\
   cout << "Ccand: ";\
   for (int i = 0; i < it.nlayer; i++) {\
     if (itchit.iscan[i][0] >= 0)\
@@ -848,6 +905,27 @@ if (TrDEBUG >= 1) {\
     cout << Form("%4d(%c%c%d) ", tkid, cx, cy, im);\
   }\
   cout << endl;\
+  for (int i = 0; i < track->GetNhits(); i++) {\
+    TrRecHitR *hit = track->GetHit(i);\
+    if (!hit) continue;\
+    TrClusterR *xcls = hit->GetXCluster();\
+    TrClusterR *ycls = hit->GetYCluster();\
+    if (!xcls && !ycls) continue;\
+    int tkid = hit->GetTkId();\
+    if (xcls) cout << Form("%4.1f ", xcls->GetSeedSN());\
+    else      cout << "---- ";\
+    if (ycls) cout << Form("%4.1f ", ycls->GetSeedSN());\
+    else      cout << "---- ";\
+  }\
+  cout << endl;\
+  for (int i = 0; i < track->GetNhits(); i++) {\
+    TrRecHitR *hit = track->GetHit(i);\
+    if (!hit) continue;\
+    int ily = hit->GetLayer()-1;\
+    cout << Form("%4.1f ", track->GetResidual(ily).x()*10);\
+    cout << Form("%4.1f ", track->GetResidual(ily).y()*10);\
+  }\
+  cout << endl;\
   int id;\
   if (MagFieldOn()) {				\
     id = TrTrackR::kSimple;\
@@ -895,22 +973,6 @@ if (TrDEBUG >= 1) {\
     }\
   }\
 }
-
-
-//========================================================
-// Performance tuning parameters for track reconstruction
-//========================================================
-int    TrRecon::MaxNtrack = 2;
-int    TrRecon::MinNhitX  = 4;
-int    TrRecon::MinNhitY  = 5;
-int    TrRecon::MinNhitXY = 4;
-int    TrRecon::PatAllowOption = 0;
-double TrRecon::MaxChisqAllowed   = 300;
-double TrRecon::LadderScanRange   = 7.3; //= TkDBc::Head->_ladder_Ypitch
-double TrRecon::ClusterScanRange  = 0.5;
-double TrRecon::MaxChisqForLScan  = 2.2;
-double TrRecon::ErrXForScan       = 300e-4;
-double TrRecon::ErrYForScan       = 300e-4;
 
 int TrRecon::TrDEBUG = 0;
 int TrRecon::PZDEBUG = 0;
@@ -968,19 +1030,15 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
     if (i%2 == 1) iatrb /= 10;
     if (mask & (1<<(MAXLAY-i-1))) atrb += -iatrb+O_NMASK;
   }
-  HitPatternMask[PatternID] = mask; HitPatternAttrib[PatternID] = atrb;
+  HitPatternMask  [PatternID] = mask;
+  HitPatternAttrib[PatternID] = atrb;
   HitPatternIndex[mask] = PatternID;
 
   if (!TRFITFFKEY.patternp02[PatternID]) {
-    // Not allowed (1): Both external layers are masked
-    if ( (!(PatAllowOption & NO_EXTP) && 
-       (atrb/O_NP1)%10 == 0 && (atrb/O_NP5)%10 == 0)
-    // Not allowed (2): Both layers on any of internal planes are masked
-      || (!(PatAllowOption & NO_INTP) && 
-       ((atrb/O_NP2)%10 == 0 || (atrb/O_NP3)%10 == 0 || (atrb/O_NP4)%10 == 0))
-    // Not allowed (3): Any external layers are masked and Nmask >= 3
-      || (!(PatAllowOption & ALL_5L) && 
-          (atrb/O_NMASK >= 3 && (atrb/10000 == 0 || atrb%10 == 0))) )
+    int palw = GetHitPatternAllow(PatternID);
+    if ( (!(RecPar.PatAllowOption & RecPar.NO_EXTP) && (palw & RecPar.NO_EXTP))
+      || (!(RecPar.PatAllowOption & RecPar.NO_INTP) && (palw & RecPar.NO_INTP))
+      || (!(RecPar.PatAllowOption & RecPar. ALL_5L) && (palw & RecPar.ALL_5L)))
       HitPatternAttrib[PatternID] = -atrb;
   }
   PatternID++;
@@ -1003,21 +1061,32 @@ const char *TrRecon::GetHitPatternStr(int pat, char con, char coff)
 
 void TrRecon::RemoveHits(int tkid, int icls, int side)
 {
-  HitsTkIdMap::iterator it = _HitsTkIdMap.find(tkid);
-  if (it == _HitsTkIdMap.end()) return;
-
-  Hits2DArray &ar = it->second;
-  if ((side != 0 && side != 1) || ar.Ncls[side] <= 0) return;
+  Hits2DArray *ar = GetHits2DArray(tkid);
+  if (!ar) return;
+  if ((side != 0 && side != 1) || ar->Ncls[side] <= 0) return;
 
   int ncls = GetnTrRecHits(tkid, 1-side);
   for (int i = 0; i < ncls; i++) {
-    Hits2DArray::iterator it2 = ar.begin();
-    it2 += (side == 0) ? ar.index(icls, i)-i
-                      : ar.index(i, icls)-i;
-    ar.erase(it2);
+    Hits2DArray::iterator it2 = ar->begin();
+    it2 += (side == 0) ? ar->index(icls, i)-i
+                       : ar->index(i, icls)-i;
+    ar->erase(it2);
   }
 
-  if (--ar.Ncls[side] == 0) ar.Ncls[1-side] = 0;
+  if (--ar->Ncls[side] == 0) ar->Ncls[1-side] = 0;
+}
+
+void TrRecon::RemoveHits(TrRecHitR *hit)
+{
+  Hits2DArray *ar = GetHits2DArray(hit->GetTkId());
+  if (!ar) return;
+
+  for (int i = 0; i < ar->Ncls[0]; i++)
+    for (int j = 0; j < ar->Ncls[1]; j++)
+      if (ar->at(i, j) == hit) {
+	RemoveHits(hit->GetTkId(), i, 0);
+	RemoveHits(hit->GetTkId(), j, 1);
+      }
 }
 
 
@@ -1046,11 +1115,33 @@ void TrRecon::BuildHitsTkIdMap()
   }
   TR_DEBUG_CODE_00;
 
+  map<int, vector<int> > iclxmap;
+  map<int, vector<int> > iclymap;
+
   // Fill TrRecHits at _HitsTkIdMap[tkid]
   int nhit = cont->getnelem();
   for (int i = 0; i < nhit; i++) {
-    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-    _HitsTkIdMap[hit->GetTkId()].push_back(hit);
+    TrRecHitR  *hit = (TrRecHitR*)cont->getelem(i);
+    TrClusterR *clx = hit->GetXCluster();
+    TrClusterR *cly = hit->GetYCluster();
+    if (!cly) continue;
+
+    if (hit->Used()) hit->clearstatus(AMSDBc::USED);
+    if ( clx && clx->GetSeedSN() < RecPar.TrackThrSeed[0] && 
+	        cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+    if (!clx && cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+
+    int tkid = hit->GetTkId();
+    _HitsTkIdMap[tkid].push_back(hit);
+
+    int iclx = hit->GetXClusterIndex();
+    int icly = hit->GetYClusterIndex();
+    vector<int> &vclx = iclxmap[tkid];
+    vector<int> &vcly = iclymap[tkid];
+    if (iclx >= 0 && std::find(vclx.begin(), vclx.end(), iclx) 
+	                                  == vclx.end()) vclx.push_back(iclx);
+    if (icly >= 0 && std::find(vcly.begin(), vcly.end(), icly) 
+	                                  == vcly.end()) vcly.push_back(icly);
   }
 
   // Loop on each element of _HitsTkIdMap
@@ -1064,8 +1155,8 @@ void TrRecon::BuildHitsTkIdMap()
     int tkid = it->first;
     Hits2DArray &arr = it->second;
     arr.clear();
-    arr.Ncls[0] = GetnTrClusters(tkid, 0)+1;
-    arr.Ncls[1] = GetnTrClusters(tkid, 1);
+    arr.Ncls[0] = iclxmap[tkid].size()+1;
+    arr.Ncls[1] = iclymap[tkid].size();
     arr.insert(arr.begin(), arr.Ncls[0]*arr.Ncls[1], (TrRecHitR*)0);
 
     // Define cluster index vectors
@@ -1154,6 +1245,15 @@ int TrRecon::BuildTrTracks(int rebuild)
 {
   if (TasRecon) return BuildTrTasTracks(rebuild);
 
+  VCon *cont = GetVCon()->GetCont("AMSTrTrack");
+  if (!cont){
+    printf("TrRecon::BuildTrTracks  Cant Find AMSTrTrack Container "
+           "Reconstruction is Impossible !!!\n");
+    return -1;
+  }
+  if (rebuild) cont->eraseC();
+  delete cont;
+
   // Build hit patterns if not yet built
   if (!HitPatternMask) BuildHitPatterns();
 
@@ -1165,6 +1265,18 @@ int TrRecon::BuildTrTracks(int rebuild)
   _CpuTimeUp = false;
   _StartTimer();
 
+  if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0] || 
+      RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1]) {
+    _MinNhitX  = RecPar.MinNhitX-1;
+    _MinNhitY  = RecPar.MinNhitY-1;
+    _MinNhitXY = RecPar.MinNhitXY-1;
+  }
+  else {
+    _MinNhitX  = RecPar.MinNhitX;
+    _MinNhitY  = RecPar.MinNhitY;
+    _MinNhitXY = RecPar.MinNhitXY;
+  }
+  
 
   // Main loop
   int ntrack = 0, found = 0;
@@ -1177,14 +1289,14 @@ int TrRecon::BuildTrTracks(int rebuild)
     for (int pat = 0; !CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
       TrHitIter itcand;
       if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat, itcand)))
-        ntrack += BuildATrTrack(itcand);
+	if (found = BuildATrTrack(itcand)) ntrack += found;
     }
-  } while (!CpuTimeUp() && found && ntrack < MaxNtrack);
+  } while (!CpuTimeUp() && found && ntrack < RecPar.MaxNtrack);
 
   _CpuTime = _CheckTimer();
 
-  // Purge "ghost" hits and assign hit index to tracks
-  PurgeGhostHits();
+//PurgeGhostHits should be called at event_tk
+//PurgeGhostHits();
 
   return ntrack;
 }
@@ -1194,9 +1306,21 @@ void TrRecon::PurgeGhostHits()
   VCon* contT = GetVCon()->GetCont("AMSTrTrack");
   if(!contT) return;
 
-
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if(!cont) return;
+
+  int nhit = cont->getnelem();
+  for (int i = 0; i < nhit; i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
+    if (!hit || !hit->OnlyY() || hit->Used()) continue;
+    TrClusterR *cls = hit->GetYCluster();
+    if (cls->GetSeedSN() < RecPar.TrackThrSeed[1]) {
+      if (i == 0) cont->removeEl(0);
+      else  	  cont->removeEl(cont->getelem(i-1));
+      nhit--;
+      i--;
+    }
+  }
 
   int ntrack=contT->getnelem();
   for(int itr=0;itr<ntrack;itr++){
@@ -1324,7 +1448,7 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
 
 int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 {
-  if (TrTimeLim > 0 && _CheckTimer() > TrTimeLim)
+  if (RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim)
     (const_cast<TrRecon *>(this))->_CpuTimeUp = true;
 
   if (CpuTimeUp()) return 0;
@@ -1365,13 +1489,13 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
 {
   // Clear the-best-candidate parameters
-  itcand.nlayer = 0; itcand.nhitc = MinNhitXY; 
-  itcand.chisq[0] = itcand.chisq[1] = MaxChisqAllowed;
+  itcand.nlayer = 0; itcand.nhitc = _MinNhitXY; 
+  itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
 
   // Define and fill iterator
   TrHitIter it;
   it.mode = 1; it.pattern = pattern; 
-  it.side = 1; it.psrange = LadderScanRange;
+  it.side = 1; it.psrange = RecPar.LadderScanRange;
 
   // Loop on layers to check for an empty layer and fill iterator
   int nhitc = it.nlayer = 0;
@@ -1382,7 +1506,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
       it.tkid[it.nlayer++] = (i+1)*100;
     }
   }
-  if (it.nlayer < MinNhitY || nhitc < MinNhitXY) return 0;
+  if (it.nlayer < _MinNhitY || nhitc < _MinNhitXY) return 0;
   TR_DEBUG_CODE_11;
 
   // Set the order of scanning layers
@@ -1440,7 +1564,7 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
   // Obtain a track with linear/circle fitting
   TrFit fit;
   for (int i = 0; i < it.nlayer; i++)
-    fit.Add(it.coo[i], 0, LadderScanRange*0.75, 1);
+    fit.Add(it.coo[i], 0, RecPar.LadderScanRange*0.75, 1);
   if (MagFieldOn())
     fit.CircleFit(2);
   else
@@ -1448,11 +1572,11 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 
   // Check chisquare
   if (fit.GetChisqY() < 0 ||
-      fit.GetChisqY() > MaxChisqForLScan) return 0;
+      fit.GetChisqY() > RecPar.MaxChisqForLScan) return 0;
 
   // Check if all the ladder positions are within the range
   for (int i = 0; i < fit.GetNhit(); i++)
-    if (std::abs(fit.GetYr(i)) > LadderScanRange*0.75) return 0;
+    if (std::abs(fit.GetYr(i)) > RecPar.LadderScanRange*0.75) return 0;
   TR_DEBUG_CODE_21;
 
   // Scan hits among the current ladder combination
@@ -1475,21 +1599,21 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 {
   // Reset the-best-candidate parameters
-  itcand.chisq[0] = itcand.chisq[1] = MaxChisqAllowed;
+  itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
   for (int i = 0; i < MAXLAY; i++)
     itcand.iscan[i][0] = itcand.iscan[i][1] = itcand.imult[i] = 0;
 
   // Define and fill iterator
   TrHitIter it = itlad;
   it.mode = 2;
-  it.chisq[0] = it.chisq[1] = MaxChisqAllowed;
-  it.psrange = ClusterScanRange;
+  it.chisq[0] = it.chisq[1] = RecPar.MaxChisqAllowed;
+  it.psrange = RecPar.ClusterScanRange;
   for (int i = 0; i < it.nlayer; i++) 
     it.iscan[i][0] = it.iscan[i][1] = it.imult[i] = 0;
 
   // Loop on X and Y
   for (it.side = 0; it.side <= 1; it.side++) {
-    int maxpat = (it.side == 0) ? GetHitPatternFirst(1+MAXLAY-MinNhitX) 
+    int maxpat = (it.side == 0) ? GetHitPatternFirst(1+MAXLAY-_MinNhitX) 
                                 : itlad.pattern+1;
     itcand.side = it.side;
 
@@ -1508,7 +1632,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
       ScanRecursive(0, it, itcand);
 
       // Check chisquare
-      if (found = (itcand.chisq[it.side] < MaxChisqAllowed)) break;
+      if (found = (itcand.chisq[it.side] < RecPar.MaxChisqAllowed)) break;
     }
     if (!found) return 0;
 
@@ -1565,7 +1689,7 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
   TrFit fit;
   for (int i = 0; i < it.nlayer && it.ilay[i] >= 0; i++) {
     int j = (it.side == 0) ? it.ilay[i] : i;
-    fit.Add(it.coo[j], ErrXForScan, ErrYForScan, 1);
+    fit.Add(it.coo[j], RecPar.ErrXForScan, RecPar.ErrYForScan, 1);
   }
 
   // Select fitting method
@@ -1625,6 +1749,20 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
   return 1;
 }
 
+TkSens TrRecon::EstimateXCoord(AMSPoint gcoo, int tkid) const
+{
+  TkSens tks(tkid, gcoo);
+  if (tks.LadFound() && tks.GetStripX() < 0) {
+    float sx = tks.GetSensCoo().x();
+    float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);
+    if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
+    if (sx > TkDBc::Head->_ssize_active[0])
+      gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);
+    tks.SetGlobalCoo(gcoo);
+  }
+  return tks;
+}
+
 int TrRecon::EstimateXCoord(int il, TrHitIter &it) const
 {
   int tkid  = it.tkid[il];
@@ -1643,19 +1781,88 @@ int TrRecon::EstimateXCoord(int il, TrHitIter &it) const
 
   // Estimate sensor number and strip position
   AMSPoint gcoo(px, ly, lz);
-  TkSens tks(tkid, gcoo);
-  if (tks.GetStripX() < 0) {
-    float sx = tks.GetSensCoo().x();
-    float sg = TkDBc::Head->FindTkId(tkid)->rot.GetEl(0, 0);
-    if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
-    if (sx > TkDBc::Head->_ssize_active[0])
-      gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);
-    tks.SetGlobalCoo(gcoo);
-  }
+  TkSens tks = EstimateXCoord(gcoo, tkid);
   it.imult[il] = tks.GetMultIndex();
   TR_DEBUG_CODE_40;
 
   return tks.GetStripX();
+}
+
+int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
+{
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return -1;
+
+  double cfcx  = std::sqrt(track->GetChisqX(mfit)/track->GetNdofX(mfit));
+  double cfcy  = std::sqrt(track->GetChisqY(mfit)/track->GetNdofY(mfit));
+  if (cfcy < 1) cfcy = 1;
+  if (cfcx < 1) cfcx = cfcy;
+  double rthdx = cfcx*TRFITFFKEY.ErrX*RecPar.NsigmaMerge;
+  double rthdy = cfcy*TRFITFFKEY.ErrY*RecPar.NsigmaMerge;
+
+  AMSPoint pltrk[MAXLAY];
+  double   rymin[MAXLAY];
+  int      ncmin[MAXLAY];
+  for (int i = 0; i < MAXLAY; i++) {
+    pltrk[i] = track->GetPlayer(i, mfit);
+    rymin[i] = rthdy*1.5;
+    ncmin[i] = 0;
+  }
+
+  // Merge low seed SN clusters
+  int nhit = cont->getnelem(), nadd = 0;
+  for (int i = 0; i < nhit; i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
+
+    bool thxy = !TrRecon::TestHitPatternMask(track->GetPatternXY(), 
+					     hit->GetLayer());
+    if (!hit || hit->Used() || thxy || 
+	(hit->OnlyY() && track->TestHitBits(hit->GetLayer(), mfit))) continue;
+
+    TrClusterR *clx = hit->GetXCluster();
+    TrClusterR *cly = hit->GetYCluster();
+    if (!cly) continue;
+    if  (clx && clx->GetSeedSN() >= RecPar.TrackThrSeed[0] && 
+	 cly && cly->GetSeedSN() >= RecPar.TrackThrSeed[1]) continue;
+    if (!clx && cly->GetSeedSN() >= RecPar.TrackThrSeed[1]) continue;
+
+    int ily = hit->GetLayer()-1;
+    AMSPoint ptrk = pltrk[ily];
+    double resy = std::fabs(hit->GetCoord().y()-ptrk.y());
+    int nc = ((clx) ? 1 : 0)+((cly) ? 1 : 0);
+
+    if (resy > rymin[ily] || nc < ncmin[ily]) continue;
+    rymin[ily] = resy;
+    ncmin[ily] = nc;
+
+    int imult = -1;
+    if (clx) {
+      int    jmin = -1;
+      double dmin = rthdx+rthdy;
+      for (int j = 0; j < hit->GetMultiplicity(); j++)
+	if (hit->GetCoord(j).dist(ptrk) < dmin) {
+	  jmin = j;
+	  dmin = hit->GetCoord(j).dist(ptrk);
+	}
+      if (jmin < 0) continue;
+      if (std::fabs(hit->GetCoord(jmin).x()-ptrk.x()) > rthdx ||
+	  std::fabs(hit->GetCoord(jmin).y()-ptrk.y()) > rthdy) continue;
+      imult = jmin;
+    }
+    else {
+      TkSens tks = EstimateXCoord(ptrk);
+      if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
+      imult = tks.GetMultIndex();
+      if (std::fabs(hit->GetCoord(imult).y()-ptrk.y()) > rthdy) continue;
+      hit->SetDummyX(tks.GetStripX());
+    }
+    hit->SetResolvedMultiplicity(imult);
+    track->AddHit(hit, imult);
+    nadd++;
+  }
+  delete cont;
+
+  return nadd;
 }
 
 int TrRecon::BuildATrTrack(TrHitIter &itcand)
@@ -1671,9 +1878,6 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }
  }
 
-  VCon* cont = GetVCon()->GetCont("AMSTrTrack");
-  if (!cont) return 0;
-
   // Create a new track
 #ifndef __ROOTSHAREDLIBRARY__
   AMSTrTrack *track = new AMSTrTrack(itcand.pattern);
@@ -1687,15 +1891,6 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     TrRecHitR *hit = GetTrRecHit(itcand.tkid[i], itcand.iscan[i][0], 
                                                  itcand.iscan[i][1]);
     if (!hit) continue;
-
-    // Mark the hit as USED
-    hit->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
-
-    // Remove hit pointer from _HitsTkIdMap
-    RemoveHits(itcand.tkid[i], itcand.iscan[i][0], 0);
-    RemoveHits(itcand.tkid[i], itcand.iscan[i][1], 1);
-    TR_DEBUG_CODE_41;
-
     if (hit->OnlyY()) {
       maskc |= (1 << (MAXLAY-hit->GetLayer()));
       hit->SetDummyX(EstimateXCoord(i, itcand));
@@ -1703,17 +1898,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
       track->setstatus(AMSDBc::FalseX); // AMSDBc::FalseX = 8192; (0x2000)
     }
     hit->SetResolvedMultiplicity(itcand.imult[i]);
-
-    AMSPoint bfield(0,0,0);
-    if (MagFieldOn()){
-      //PZMAG      bfield=MagField::GetPtr()->GuFld(hit->GetCoord(itcand.imult[i]));
-      float A1[3],A2[3];
-      hit->GetCoord(itcand.imult[i]).getp(A1);
-      GUFLD(A1,A2);
-      bfield.setp(A2);
-    }
-
-    track->AddHit(hit, itcand.imult[i], &bfield);
+    track->AddHit(hit, itcand.imult[i]);
   }
 
  if (PZDEBUG){
@@ -1728,13 +1913,30 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
                      TrRecon::GetHitPatternIndex(maskc));
 
   // 1st. step Fit
-  int fit_method = (MagFieldOn()) ? TrTrackR::kAlcaraz
-                                  : TrTrackR::kLinear;
-  track->Fit(fit_method);
-  
+  int fit_method = (MagFieldOn()) ? TrTrackR::kSimple : TrTrackR::kLinear;
+  float ret = track->Fit(fit_method);
+  if (ret < 0 || 
+      track->GetChisqX(fit_method) <= 0 || track->GetChisqY(fit_method) <= 0 ||
+      track->GetNdofX (fit_method) <= 0 || track->GetNdofY (fit_method) <= 0) {
+    delete track;
+    return 0;
+  }
+
+  // Merge low seed SN hits
+  if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0] || 
+      RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1]) {
+    MergeLowSNHits(track, fit_method);
+    if (track->GetNhitsX () < RecPar.MinNhitX ||
+	track->GetNhitsY () < RecPar.MinNhitY ||
+	track->GetNhitsXY() < RecPar.MinNhitXY) {
+      delete track;
+      return 0;
+    }
+  }
+
   // Get interpolated posisions/dirs
-  double zhit[8];
-  AMSDir dtrk[8];
+  double zhit[MAXLAY];
+  AMSDir dtrk[MAXLAY];
   for (int i = 0; i < track->GetNhits(); i++)
     zhit[i] = track->GetHit(i)->GetCoord().z();
   track->Interpolate(track->GetNhits(), zhit, 0, dtrk, 0, fit_method);
@@ -1742,6 +1944,16 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   // Set cluster angles and re-build coordinates
   for (int i = 0; i < track->GetNhits(); i++) {
     TrRecHitR  *hit  = track->GetHit(i);
+
+    // Mark the hit as USED
+    hit->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
+
+    // Remove hit pointer from _HitsTkIdMap
+    //RemoveHits(itcand.tkid[i], itcand.iscan[i][0], 0);
+    //RemoveHits(itcand.tkid[i], itcand.iscan[i][1], 1);
+    RemoveHits(hit);
+    TR_DEBUG_CODE_41;
+
     TrClusterR *xcls = hit->GetXCluster();
     TrClusterR *ycls = hit->GetYCluster();
     if (xcls) { xcls->SetDxDz(dtrk[i].x()/dtrk[i].z());
@@ -1767,9 +1979,11 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }  
   if (TrSim::SkipRawSim) TrSim::fillreso(track);
 
-  cont->addnext(track);
-  TR_DEBUG_CODE_42;
-
+  VCon* cont = GetVCon()->GetCont("AMSTrTrack");
+  if (cont) {
+    cont->addnext(track);
+    TR_DEBUG_CODE_42;
+  }
   delete cont;
   return 1;
 }
@@ -1785,6 +1999,9 @@ void TrRecon::InitFFKEYs(int magstat)
   TRFITFFKEY.init();
 
   MAGSFFKEY.magstat = magstat;
+
+  SetParFromDataCards();
+  Init();
 }
 
 int TrRecon::ReadMagField(const char *fname, 
@@ -1793,6 +2010,7 @@ int TrRecon::ReadMagField(const char *fname,
   //PZMAG  MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
   MAGSFFKEY.fscale  = fscale;
+  MagField::GetPtr()->SetScale(fscale);
   if (!MagFieldOn()) TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
   //PZMAG  
@@ -2138,7 +2356,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 	hpat &= ~(1 << (MAXLAY-hit->GetLayer()));
       }
     }
-    if (nhit < MinNhitXY) continue;
+    if (nhit < RecPar.MinNhitXY) continue;
 
     int pattern = -1;
     for (int j = 0; j < NHitPatterns; j++)

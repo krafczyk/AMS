@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.18 2010/01/21 14:57:20 shaino Exp $
+//  $Id: TrTrack.h,v 1.19 2010/02/01 12:44:12 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,15 +36,15 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/01/21 14:57:20 $
+///$Date: 2010/02/01 12:44:12 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "point.h"
 #include "TrFit.h"
-#include "TObject.h"
+#include "TkDBc.h"
 
 #include "TrElem.h"
 #include <cmath>
@@ -221,8 +221,8 @@ public:
   /// Destructor
   virtual ~TrTrackR();
 
-  /// Add a hit with multiplicity index (if specified)
-  void AddHit(TrRecHitR *hit, int imult = -1, AMSPoint *bfield = 0);
+  /// Add a hit with multiplicity index if specified, B-field is taken from coo
+  void AddHit(TrRecHitR *hit, int imult = -1);
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy) {

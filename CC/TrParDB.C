@@ -1,4 +1,4 @@
-//  $Id: TrParDB.C,v 1.2 2009/08/19 14:35:47 pzuccon Exp $
+//  $Id: TrParDB.C,v 1.3 2010/02/01 12:44:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,13 +6,14 @@
 ///\brief Source file of TrParDB class
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2009/08/19 14:35:47 $
+///$Date: 2010/02/01 12:44:05 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrParDB.h"
+#include "TkDBc.h"
 
 #include "TFile.h"
 

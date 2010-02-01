@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.4 2009/12/21 23:47:57 pzuccon Exp $
+// $Id: TkLadder.h,v 1.5 2010/02/01 12:44:12 shaino Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2009/12/21 23:47:57 $
+///$Date: 2010/02/01 12:44:12 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -42,7 +42,7 @@ protected:
   //                   0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
   static int pwgp[24];
   //! function  needed  to guaarantee the virtual inheritance of the operator << ( you can safely ignore)
-  ostream& putout(ostream& s);
+  ostream& putout(ostream& s) const;
   //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
   istream& putin(istream& s);
 
@@ -95,42 +95,44 @@ public:
   ~TkLadder(){}
 
   //! it returns the layer
-  int GetLayer(){return _layer;}
+  int GetLayer()const{return _layer;}
   //! it returns the slot
-  int GetSlot(){return _slot;}
+  int GetSlot()const{return _slot;}
   //! it returns the side. +1 positive X side  0 negative X side
-  int GetSide(){return  _slot>0?1:0;}
+  int GetSide()const{return  _slot>0?1:0;}
   //! it returns the octant in the Philippe notation
   int GetOctant();
   //! it returns the crate number
-  int GetCrate(){return _crate;}
+  int GetCrate()const{return _crate;}
   //! it returns the TDR number [0-23]
-  int GetTdr(){return _tdr;}
+  int GetTdr()const{return _tdr;}
   //! it returns the TkId =  signof(slot) * (abs(slot)+100*layer)
-  int GetTkId(){return abs(_slot)/_slot*(abs(_slot)+100*_layer);}
+  int GetTkId()const{return abs(_slot)/_slot*(abs(_slot)+100*_layer);}
   //! Returns the power group
-  int GetPwGroup(){return pwg[_tdr];}
+  int GetPwGroup()const{return pwg[_tdr];}
   //! Returns the position within the power group
-  int GetPwgroupPos(){return pwgp[_tdr];}
+  int GetPwgroupPos()const{return pwgp[_tdr];}
   //! Returns the JMDC absolute node number
-  int GetJMDCNum(){ return 282+24*_crate+_tdr;}
+  int GetJMDCNum()const{ return 282+24*_crate+_tdr;}
 
   //! it returns the AssemblyId = the slot numbering in the assembly drawings + 100 * layer
-  int GetAssemblyId(){return abs(_slot)/_slot*( GetSide()*16 -_slot  +100*_layer);}
+  int GetAssemblyId()const{return abs(_slot)/_slot*( GetSide()*16 -_slot  +100*_layer);}
   //! it returns the HwId= tdr+ crate*100
-  int GetHwId(){return _crate*100+_tdr;}
+  int GetHwId()const{return _crate*100+_tdr;}
+  //! it returns PGid= pwgp*100+pwpos
+  int GetPgId()const{return GetPwGroup()*100+GetPwgroupPos(); }
   //! it sets the Hwid
   void SetHwId(int HwId);
   //! it sets the TkId
   void SetTkId(int Tkid);
   //! returns true is the ladder is used in the laser alignment
-  bool IsAlignemnt(){return _laser_align;}
-  bool IsLaser(){return _laser_align;}
+  bool IsAlignemnt()const{return _laser_align;}
+  bool IsLaser()const{return _laser_align;}
   //! sets the laser alignment flag
   void SetLaserFlag(){ _laser_align=1;}
 
 
-  void Print(){ cout << putout(cout);}
+  void Print(Option_t* = "")const{ cout << putout(cout);}
   //! stream out the content of a the class
   friend ostream &operator << (ostream &o,  TkLadder& b)
   {return b.putout(o);}
@@ -148,5 +150,6 @@ public:
   //! writes out the Alignement pars to file
   void WriteS(ostream &o){putoutS(o);}
 
+  ClassDef(TkLadder,1);
 };
 #endif
