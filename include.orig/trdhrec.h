@@ -72,6 +72,7 @@ class AMSTRDHSegment:public AMSlink{
     }
   };
 
+      
    void SetHits(integer nhits_, AMSTRDRawHit* pthit[]){
      for(int i=0;i!=nhits_;i++) if(pthit[i])fTRDRawHit[i]=pthit[i];
    }
@@ -88,7 +89,6 @@ class AMSTRDHSegment:public AMSlink{
       chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12)),2);
     }
   }
-
 
   integer operator < (AMSlink & o) const {
     AMSTRDHSegment * p= dynamic_cast<AMSTRDHSegment*>(&o);
@@ -130,6 +130,7 @@ class AMSTRDHTrack:public AMSlink{
   float emx,emy;
   float ex,ey;
   int nhits;
+  int status;
   vector<AMSTRDHSegment*> fTRDHSegment;
 
   int hit_arr[20][18][16];
@@ -138,7 +139,7 @@ class AMSTRDHTrack:public AMSlink{
   static integer _addnext(float pos[], float dir[], AMSTRDHSegment* pthit[]);
   void _addnextR(uinteger iseg);
 
-  AMSTRDHTrack(float pos_[3],float dir_[3]):AMSlink(),chi2(0.),nhits(0),emx(0.),ex(0.),emy(0.),ey(0.)
+  AMSTRDHTrack(float pos_[3],float dir_[3]):AMSlink(),status(0),chi2(0.),nhits(0),emx(0.),ex(0.),emy(0.),ey(0.)
    {
      float mag=0.;
      for (int i=0;i!=3;i++){
@@ -150,7 +151,7 @@ class AMSTRDHTrack:public AMSlink{
 
    };
 
- AMSTRDHTrack():AMSlink(),chi2(0.),nhits(0){
+    AMSTRDHTrack():AMSlink(),status(0),chi2(0.),nhits(0){
    for(int i=0;i!=3;i++){
      pos[i]=0.;
      dir[i]=0.;
@@ -165,23 +166,32 @@ class AMSTRDHTrack:public AMSlink{
  
  float Theta(){ return acos(dir[2]);}
 
- float ETheta(){
+ float ETheta(int debug=0){
    float r=sqrt(pow(dir[0],2)+pow(dir[1],2));
-   float drdx=dir[0]/sqrt(pow(dir[0],2)+pow(dir[1],2));
-   float drdy=dir[1]/sqrt(pow(dir[0],2)+pow(dir[1],2));
+   if(r<=0.||emx<=0.||emy<=0.)return -1.;
+   float drdx=dir[0]/r;//sqrt(pow(dir[0],2)+pow(dir[1],2));
+   float drdy=dir[1]/r;//sqrt(pow(dir[0],2)+pow(dir[1],2));
    float er=sqrt(pow(drdx*emx,2)+pow(drdy*emy,2));
 
    float dfdr=1./(1+pow(r,2));
-
+   if(debug)printf("r %.2f drdx %.2f drdy %.2f er %.2f dfdr %.2f\n",r,drdx,drdy,er,dfdr);
+   
+   if(isnan(dfdr*er)||isinf(dfdr*er))return -1.;
    return dfdr*er;
  }
 
  float Phi(){ return atan2(dir[1],dir[0]);}
  
- float EPhi(){
+ float EPhi(int debug=0){
+   if(dir[0]<=1.e-4||pow(dir[0],2)+pow(dir[1],2)==0.)return -1.;
    float dfdx=dir[1]/(pow(dir[0],2)+pow(dir[1],2));
    float dfdy=1./(1+pow(dir[1]/dir[0],2))/dir[0];
-   return sqrt(pow(dfdx*emx,2)+pow(dfdy*emy,2));}
+   float toReturn=sqrt(pow(dfdx*emx,2)+pow(dfdy*emy,2));
+
+   if(debug)printf("dfdx %.2f dfdy %.2f toReturn %.2f \n",dfdx,dfdy,toReturn);
+   if(isnan(toReturn)||isinf(toReturn))return -1.;
+   return toReturn;
+ }
 
  void SetSegment(AMSTRDHSegment* segx, AMSTRDHSegment* segy){
    fTRDHSegment.push_back(segx);
@@ -189,7 +199,6 @@ class AMSTRDHTrack:public AMSlink{
 
    nhits=(int)segx->fTRDRawHit.size()+(int)segy->fTRDRawHit.size();
    chi2=segx->chi2+segy->chi2;
-
  }
  
  float Chi2(){return chi2;}
@@ -200,6 +209,8 @@ class AMSTRDHTrack:public AMSlink{
    x=pos[0]+dir[0]/dir[2]*(z-pos[2]);
    y=pos[1]+dir[1]/dir[2]*(z-pos[2]);
  };
+
+ const AMSPoint getCooStr()const {return AMSPoint(pos[0],pos[1],pos[2]);}
 
 
  void Print(){
@@ -282,10 +293,6 @@ public:
       return c > other.c;
     }
 };
-
-inline bool myfunction (PeakXYZW a, PeakXYZW b){return a.w>b.w;};
-
-inline bool binsfunction (BIN a, BIN b){return a.c>b.c;};
 
 class TH2V{  // 2-dim histo with internal vector<BIN>
 

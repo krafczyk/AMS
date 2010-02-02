@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.208 2010/01/25 15:09:25 shaino Exp $
+//  $Id: root.C,v 1.209 2010/02/02 16:27:13 mmilling Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1521,8 +1521,8 @@ AMSEventR::AMSEventR():TSelector(){
   fTrdCluster.reserve(MAXTRDCL );
   fTrdSegment.reserve(MAXTRDSEG);
   fTrdTrack.reserve(MAXTRDTRK);
-  fTrdHSegment.reserve(MAXTRDSEG);
-  fTrdHTrack.reserve(MAXTRDTRK);
+  fTrdHSegment.reserve(10);
+  fTrdHTrack.reserve(4);
 
   fLevel1.reserve(MAXLVL1);
   fLevel3.reserve(MAXLVL3);
@@ -2283,6 +2283,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   fCharge = -1;
   fTrTrack  = -1;
   fTrdTrack    = -1;
+  fTrdHTrack   = -1;
   fRichRing   = -1;
   fEcalShower = -1;
   fVertex = -1;
@@ -2337,6 +2338,8 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   RichParticles= ptr->_RichParticles;
 
   TRDLikelihood = ptr->_TRDLikelihood;
+  TRDHLikelihood = ptr->_TRDHLikelihood;
+
 #endif
 }
 
@@ -2502,10 +2505,9 @@ TrdHTrackR::TrdHTrackR(AMSTRDHTrack *ptr){
   Theta = ptr->Theta();
   Chi2  = ptr->chi2;
   Nhits = ptr->nhits;
-  emx   = ptr->emx;
-  ex    = ptr->ex;
-  emy   = ptr->emy;
-  ey    = ptr->ey;
+  ETheta= ptr->ETheta();
+  EPhi  = ptr->EPhi();
+  status= ptr->status;
 #endif
 }
 
@@ -2981,6 +2983,10 @@ TrTrackR* ParticleR::pTrTrack(){
 
 TrdTrackR* ParticleR::pTrdTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrdTrack(fTrdTrack):0;
+}
+
+TrdHTrackR* ParticleR::pTrdHTrack(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pTrdHTrack(fTrdHTrack):0;
 }
 
 EcalShowerR* ParticleR::pEcalShower(){

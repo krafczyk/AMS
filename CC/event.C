@@ -3667,11 +3667,13 @@ void AMSEvent::_collectstatus(){
         if(ptr->getpshower()){
         number en=ptr->getpshower()->getEnergy();
 
-        if(en<2)z1=0;        
-        else if(en<8)z1=1;        
-        else if(en<32)z1=2;        
-        else z1=3;        
-        }
+        if(!isnan(en)&&!isinf(en)){
+	  if(en<2)z1=0;        
+	  else if(en<8)z1=1;        
+	  else if(en<32)z1=2;        
+	  else z1=3;        
+	}
+	}
          __status1|=(z1<<5);
        }
           

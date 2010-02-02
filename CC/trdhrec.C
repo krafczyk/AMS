@@ -513,6 +513,7 @@ int  combine_segments(){
 	if(s_done[i]==1||s_done[j]==1)continue;
 	//	printf("generat track of segments %i %i \n",i,j);
 	AMSTRDHTrack *tr=SegToTrack(pTRDHSegment_[i],pTRDHSegment_[j]);
+	tr->status=1;
 	if(tr){pTRDHTrack_[nhtr++]=tr;s_done[i]=1;s_done[j]=1;}
       }
     }
@@ -625,7 +626,7 @@ int  combine_segments(){
       if(f==vec.end())vec.push_back(peak);
     }
     
-    sort(vec.begin(),vec.end(),myfunction);
+    sort(vec.begin(),vec.end());
     return vec;
   }
 
@@ -698,7 +699,7 @@ integer AMSTRDHSegment::build(int rerun){
   
   int nrh=nrh0+nrh1;
   if(debug)printf("RawHits %i\n",nrh);
-  if(nrh<4) return 0;
+  if(nrh<4||nrh>100) return 0;
   
   vector<AMSTRDRawHit*> rhits;
   for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next()) rhits.push_back(Hi);
@@ -767,6 +768,7 @@ integer AMSTRDHTrack::build(int rerun){
     if(debug) printf("segiter %i %i\n",segiter_sel[0],segiter_sel[1]);
     if(segiter_sel[0]>-1&&segiter_sel[1]>-1){
       AMSTRDHTrack *tr=SegToTrack(pTRDHSegment_[segiter_sel[0]],pTRDHSegment_[segiter_sel[1]]);
+      tr->status=1;
       if(tr)pTRDHTrack_[nhtr++]=tr;
     }
   }

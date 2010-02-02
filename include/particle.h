@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.57 2010/01/22 11:08:36 pzuccon Exp $
+//  $Id: particle.h,v 1.58 2010/02/02 16:27:12 mmilling Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -18,6 +18,7 @@
 #include "beta.h"
 #include "charge.h"
 #include "trdrec.h"
+#include "trdhrec.h"
 #include "richrec.h"
 class AMSVtx;
 
@@ -39,6 +40,7 @@ protected:
   AMSCharge * _pcharge;      // pointer to charge
   AMSTrTrack * _ptrack;      // pointer to track;
   AMSTRDTrack * _ptrd;       // pointer to trd track 
+  AMSTRDHTrack * _phtrd;       // pointer to trd htrack 
   AMSVtx * _pvert;           // pointer to vertex
   AMSRichRing * _prich;      // pointer to rich ring
   AMSEcalShower  *_pShower;     // pointer to shower;
@@ -71,6 +73,7 @@ protected:
   integer  _RichParticles;
   number   _Local[trconst::maxlay];
   number _TRDLikelihood;
+  number _TRDHLikelihood;
 
   // new
    
@@ -173,6 +176,7 @@ public:
   void ecalfit(); // Ecal fit
   void trdfit(); //  trd fit
   void trd_likelihood(); //  trd likelihood
+  void trd_Hlikelihood(); //  trd likelihood
   void richfit(); //  rich fit
   void pid();   // particle identification
   void refit(int i=0); // refit if necessary;
@@ -188,6 +192,7 @@ public:
   AMSCharge*     getpcharge()  const   { return _pcharge;}
   AMSTrTrack*    getptrack()   const   { return _ptrack;}
   AMSTRDTrack*   getptrd()     const   { return _ptrd;}
+  AMSTRDHTrack*  getphtrd()   const   { return _phtrd;}
   AMSVtx*        getvert()     const   { return _pvert;}
   AMSRichRing *  getprich()    const   { return  _prich;}
   AMSEcalShower * getpshower()  const   {return _pShower;}

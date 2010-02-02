@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.258 2010/01/25 10:23:06 mmilling Exp $
+//  $Id: root.h,v 1.259 2010/02/02 16:27:12 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1410,14 +1410,15 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 class TrdHTrackR {
 static char _Info[255];
  public:
-  int   Nhits;  ///<  Number of Hits
-  float Phi;     ///<  phi (rads)
+  int   Nhits;   ///< Number of Hits
+  float Phi;     ///< phi (rads)
   float Theta;   ///< Theta
-  float Chi2;   ///<  Chi2
-  float Coo[3];   ///< Coo (cm)
-  float Dir[3];   ///< Dir
-  float emx,emy;
-  float ex,ey;
+  float EPhi;    ///< error on phi (rads)
+  float ETheta;  ///< error on Theta
+  float Chi2;    ///< Chi2
+  float Coo[3];  ///< Coo (cm)
+  float Dir[3];  ///< Dir
+  int   status;
  protected:
   vector<int> fTrdHSegment;
 public:
@@ -1446,7 +1447,7 @@ public:
   friend class AMSTRDHTrack;
   friend class AMSEventR;
   virtual ~TrdHTrackR(){};
-  ClassDef(TrdHTrackR,3)       //TrdHTrackR
+  ClassDef(TrdHTrackR,4)       //TrdHTrackR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1926,11 +1927,13 @@ endif
   int   RichParticles; ///< Estimated number of particles crossing the RICH radiator
   float Local[8];  ///< contains the minimal distance to sensor edge in sensor length units ;
   float TRDLikelihood; ///< TRD likelihood  (whatever is it)
+  float TRDHLikelihood; ///< TRD likelihood  (whatever is it)
 protected: 
   int  fBeta;          ///<index of  BetaR used
   int  fCharge;        ///<index of  ChargeR used
   int  fTrTrack;      ///<index of  TrTrackR used
   int  fTrdTrack;     ///<index of  TrdTrackR used
+  int  fTrdHTrack;     ///<index of TrdHTrackR used
   int  fRichRing;     ///<index of  RichringR used
   int  fEcalShower;   ///<index of  EcalShowerR used
   int  fVertex;       ///<index of  VertexR used
@@ -1963,6 +1966,13 @@ public:
   /// \return pointer to TrdTrackR object or 0
   TrdTrackR * pTrdTrack();
 
+  /// access function to TrdHTrackR object used
+  /// \return index of TrdHTrackR object in collection or -1
+  int iTrdHTrack()const {return fTrdHTrack;}
+  /// access function to TrdHTrackR object used
+  /// \return pointer to TrdHTrackR object or 0
+  TrdHTrackR * pTrdHTrack();
+
   /// access function to RichRingR object used
   /// \return index of RichRingR object in collection or -1
   int iRichRing()const {return fRichRing;}
@@ -1992,6 +2002,7 @@ public:
    else strcpy(type,"");
       if(iBeta()>=0)strcat(type,"Tof");
       if(iTrdTrack()>=0)strcat(type,"Trd");
+      if(iTrdHTrack()>=0)strcat(type,"TrdH");
       if(iRichRing()>=0)strcat(type,"Rich");
       if(iEcalShower()>=0)strcat(type,"Ecal");
       if(iVertex()>=0)strcat(type,"Vertex");
@@ -2011,7 +2022,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,4)       //ParticleR
+  ClassDef(ParticleR,5)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
