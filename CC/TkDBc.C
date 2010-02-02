@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.10 2010/02/01 12:44:05 shaino Exp $
+//  $Id: TkDBc.C,v 1.11 2010/02/02 11:49:55 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/02/02 11:49:55 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -402,14 +402,14 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 		aa->rot.YParity(); 
 	      }
 
-	      int pgid=aa->GetPgId();
-	      _pgid[side][lay][slot]=pgid;
+// 	      int pgid=aa->GetPgId();
+// 	      _pgid[side][lay][slot]=pgid;
 	      
 	      tkassemblymap[aa->GetAssemblyId()]=aa;
 	      tkidmap[tkid]=aa;
 	      hwidmap[hwid]=aa;
 	      // SH FIXME pgid is not an unique ID for 192 ladders
-              pgidmap[pgid]=aa;
+	      //              pgidmap[pgid]=aa;
  	      string bb=name;
 	      lnamemap[bb]=aa;
 	      JMDCNumMap[aa->GetJMDCNum()]=aa;
@@ -423,7 +423,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        << "hw= " << hwidmap      .size() << " "
        << "ln= " << lnamemap     .size() << " "
        << "as= " << tkassemblymap.size() << " "
-       << "pg= " << pgidmap      .size() << " "
+    //       << "pg= " << pgidmap      .size() << " "
        << "JN= " << JMDCNumMap   .size() << endl;
 
     // Set sensor alignment data
@@ -576,7 +576,7 @@ int TkDBc::read(const char* filename, int pri){
   hwidmap.clear();
   lnamemap.clear();
   tkassemblymap.clear();
-  pgidmap.clear();
+  //  pgidmap.clear();
   JMDCNumMap.clear();
 
   for (int ii=0;ii<nplanes;ii++){
@@ -598,9 +598,9 @@ int TkDBc::read(const char* filename, int pri){
     int lay  = aa->GetLayer();
     int side = aa->GetSide();
     int slot = abs(aa->GetSlot());
-    int pgid = aa->GetPgId();
-    _pgid[side][lay][slot] = pgid;
-    pgidmap[pgid]=aa;
+//     int pgid = aa->GetPgId();
+//     _pgid[side][lay][slot] = pgid;
+    //    pgidmap[pgid]=aa;
     tkassemblymap[aa->GetAssemblyId()]=aa;
     JMDCNumMap[aa->GetJMDCNum()]=aa;
 
@@ -923,7 +923,7 @@ void TkDBc::RebuildMap()
   // Clear all the maps except tkidmap
   tkassemblymap.clear();
   hwidmap      .clear();
-  pgidmap      .clear();
+  //  pgidmap      .clear();
   lnamemap     .clear();
   JMDCNumMap   .clear();
 
@@ -935,12 +935,12 @@ void TkDBc::RebuildMap()
     int slot = abs(lad->GetSlot());
     int asid = lad->GetAssemblyId();
     int hwid = lad->GetHwId();
-    int pgid = lad->GetPgId();
+    //    int pgid = lad->GetPgId();
     int jmdc = lad->GetJMDCNum();
     string lnam = lad->name;
     tkassemblymap[asid] = lad;
     hwidmap      [hwid] = lad;
-    pgidmap      [pgid] = lad;
+    //    pgidmap      [pgid] = lad;
     lnamemap     [lnam] = lad;
     JMDCNumMap   [jmdc] = lad;
   }
@@ -951,7 +951,7 @@ void TkDBc::RebuildMap()
        << "hw= " << hwidmap      .size() << " "
        << "ln= " << lnamemap     .size() << " "
        << "as= " << tkassemblymap.size() << " "
-       << "pg= " << pgidmap      .size() << " "
+    //       << "pg= " << pgidmap      .size() << " "
        << "JN= " << JMDCNumMap   .size() << endl;
 }
 

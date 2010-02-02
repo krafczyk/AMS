@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.7 2010/02/01 12:44:12 shaino Exp $
+// $Id: TkDBc.h,v 1.8 2010/02/02 11:50:14 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -134,8 +134,8 @@ public:
   //! Map of the ladder lenght in unit of Silicon sensors
   short int _nsen[2][nlays][maxlad];
 
-  //! Map of the ladder power supply in the crate is pwgp*100+pwpos
-  short int _pgid[2][nlays][maxlad];
+//   //! Map of the ladder power supply in the crate is pwgp*100+pwpos
+//   short int _pgid[2][nlays][maxlad];
 
   //! Map of the Ladder names
   char _LadName[2][nlays][maxlad][9];
@@ -257,8 +257,8 @@ private:
   map<int,TkLadder*> tkidmap;
   //! Map for fast binary search based on HwId
   map<int,TkLadder*> hwidmap;         //! it is rebuilt when loaded
-  //! Map for fast binary search based on PgId
-  map<int,TkLadder*> pgidmap;         //! it is rebuilt when loaded
+//   //! Map for fast binary search based on PgId
+//   map<int,TkLadder*> pgidmap;         //! it is rebuilt when loaded
   //! Map for fast binary search based on LadName
   map<string,TkLadder*> lnamemap;     //! it is rebuilt when loaded
   //! Map for fast binary search based on JMDCNum
@@ -320,8 +320,8 @@ public:
   TkLadder* FindTkId( int tkid){ return Findmap(tkidmap,tkid);}
   //! Returns the pointer to the ladder object with the required HwId. In case of failure returns a NULL pointer
   TkLadder* FindHwId( int hwid){ return Findmap(hwidmap,hwid);}
-  //! Returns the pointer to the ladder object with the required PgId. In case of failure returns a NULL pointer
-  TkLadder* FindPgId(int pgid){ return Findmap(pgidmap,pgid); }
+//   //! Returns the pointer to the ladder object with the required PgId. In case of failure returns a NULL pointer
+//   TkLadder* FindPgId(int pgid){ return Findmap(pgidmap,pgid); }
    //! Returns the pointer to the ladder object with the required ladder name. In case of failure returns a NULL pointer
   TkLadder* FindLadName(string& name);
   //! Returns the tkId corresponding to a given HwId

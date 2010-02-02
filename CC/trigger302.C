@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.44 2009/11/17 13:32:21 choutko Exp $
+//  $Id: trigger302.C,v 1.45 2010/02/02 11:49:55 pzuccon Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -1552,13 +1552,13 @@ void TriggerLVL302::build(){
 	    integer layer=-1;
 	    if (lad) layer=lad->GetLayer()-1;
 
-#ifdef __AMSDEBUG__
 	    if(layer<0){
+#ifdef __AMSDEBUG__
 	      cerr<<"TriggerLVL302::build-S-wronglayer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
+#endif      
 	      goto next;
 	    }
 	    //cout<<"TriggerLVL302::build-I-layer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
-#endif      
 	    integer num = ((*ptr)&63);
 	    if(abs(LVL3FFKEY.SeedThr)>0 ){
 	      if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;

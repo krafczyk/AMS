@@ -167,7 +167,7 @@ void AMSEvent::_retkevent(integer refit){
       if (trstat & 16) TrRecon::RecPar.NcutCpu++;
     }
     if (nfill%10000 == 0) {
-      if (ifirst) {
+ /*     if (ifirst) {
 	cout << "AMSEvent::_retkevent-I-Report: "
 	     << "  Nfill  NevTrk  Rtrk  Rldt Rhcut  Rcpu TrTime" << endl;
 	ifirst = 0;
@@ -179,7 +179,7 @@ void AMSEvent::_retkevent(integer refit){
 		   1.*(TrRecon::RecPar.NcutCls+
 		       TrRecon::RecPar.NcutHit)/nfill,
 		   1.* TrRecon::RecPar.NcutCpu /nfill,
-		   ((TH2D *)hman.Get("TrTimH"))->GetMean(2)) << endl;
+		   ((TH2D *)hman.Get("TrTimH"))->GetMean(2)) << endl; */
     }
   }
 
