@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.580 2010/02/04 15:55:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.581 2010/02/04 17:51:35 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1996,7 +1996,7 @@ my $fevt=-1;
                              $self->{sqlserver}->Update($sql);
                       $sql="UPDATE Jobs SET realtriggers=$ntevt,timekill=0 WHERE jid=$run->{Run}";
                       $self->{sqlserver}->Update($sql);
-                  }
+                         }
 
           $warn = "Update Runs : $sql\n";
 
@@ -2022,7 +2022,7 @@ my $fevt=-1;
           } else { #8 
            $self->printWarn($warn);
           }
-          if ($status eq "Completed") {
+          if ($status eq "Completed" ) {
            $self->updateRunCatalog($run->{Run});
            $warn = "Update RunCatalog table : $run->{Run}\n";
            foreach my $cmd (@rmcmd){
@@ -2041,6 +2041,9 @@ my $fevt=-1;
            $#rmbad=-1;
            print FILEV $warn;
        }
+          else{
+              print "runcatalog not updated $status $run->{Run} $run->{Status} \n";
+          }
       }
       }# events != 0 && errors != 0
      } # remote job
@@ -3013,6 +3016,10 @@ CheckCite:            if (defined $q->param("QCite")) {
    if ($self->{q}->param("queryDB04")) {
      $self->{read}=1;
 
+     $self->updateAllRunCatalog();
+
+
+
      my @tempnam=();
      $#tempnam=-1;
      my $hash={};
@@ -3741,7 +3748,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               }       
            my $offline=0; 
            if($ntd != $dirs_ntuples[$ind] and $sqlmom eq ""){
-             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
+             $s=" // Database and Linux Disagree MC \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
               my @junk=split '/',$dirs[$ind];
               $sql="select isonline from filesystems where disk='/$junk[1]'";
               #die "  $sql $dirs[$ind] ";
@@ -3774,6 +3781,11 @@ CheckCite:            if (defined $q->param("QCite")) {
                  }
              }
                if($found==0 and $sqlmom eq ""){
+                   my @junk=split '\.',$file;
+                   if($#junk>=0){
+                       my $r2c=$junk[0];
+                       $self->updateRunCatalog($r2c);
+                   }  
                 print " <tr><td> rm dirs[$ind]/$file is not in database </td></tr><br>";        
                 #print " <tr><td> $sqlNT </td></tr><br>";        
  
@@ -13131,21 +13143,22 @@ foreach my $block (@blocks) {
 sub updateAllRunCatalog {
     my $self= shift;
 #
-    if( not $self->Init()){
-        die "updateAllRunCatalog -F- Unable To Init";
-
-    }
-    if (not $self->ServerConnect()){
-        die "updateAllRunCatalog -F- Unable To Connect To Server";
-    }
+#    if( not $self->Init()){
+#        die "updateAllRunCatalog -F- Unable To Init";
+#
+#    }
+#    if (not $self->ServerConnect()){
+#        die "updateAllRunCatalog -F- Unable To Connect To Server";
+#    }
 #
 
-
-    my $sql = "SELECT Jobs.jid FROM Jobs, Runs
-               WHERE Jobs.jid=Runs.jid AND Runs.status='Completed'";
+    my $sql="select runs.run from runs left join runcatalog on (runs.run=runcatalog.run) where runcatalog.run is null and runs.status='Completed'";
+#    my $sql = "SELECT Jobs.jid FROM Jobs, Runs
+#               WHERE Jobs.jid=Runs.jid AND Runs.status='Completed'";
     my $r0 = $self->{sqlserver}->Query($sql);
     if(defined $r0->[0][0]){
       foreach my $job (@{$r0}) {
+#       die "$job->[0]";
           $self->updateRunCatalog($job->[0]);
       }
   }
@@ -13154,7 +13167,6 @@ sub updateAllRunCatalog {
 sub updateRunCatalog {
     my $self= shift;
     my $jid = shift;
-
     my $runstatus  = undef;
     my $jobcontent = undef;
 
@@ -13163,7 +13175,6 @@ sub updateRunCatalog {
     my $sql1       = undef;
 
     my $timestamp = time();
-
     $sql = "SELECT runs.status, jobs.content FROM Runs, Jobs WHERE runs.jid=jobs.jid and jobs.jid=$jid";
     my $r0 = $self->{sqlserver}->Query($sql);
     if(defined $r0->[0][0] && defined $r0->[0][1]){
@@ -13233,7 +13244,7 @@ sub updateRunCatalog {
             $self->{sqlserver}->Update($sql);
       }
     } else {
-       $self->printWarn("updateRunCatalog -W- Cannot Find Run or/and Job content with JID = $jid");
+#       $self->printWarn("updateRunCatalog -W- Cannot Find Run or/and Job content with JID = $jid");
     }
 }
 
