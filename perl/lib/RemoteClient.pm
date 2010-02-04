@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.579 2009/12/29 15:46:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.580 2010/02/04 15:55:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2079,7 +2079,7 @@ if($delete){
               elsif($run->{Status} eq 'Finished'){
                  $run->{Status}='ToBeRerun';
                   print "  not deleting, updating  $run->{Run} \n";
-                 DBServer::sendRunEvInfo($self->{dbserver},$run,"Update");
+#                 DBServer::sendRunEvInfo($self->{dbserver},$run,"Update");
               }
                    
 }
@@ -3546,6 +3546,10 @@ CheckCite:            if (defined $q->param("QCite")) {
             $sql=$sqlsum." and (runcatalog.jobname LIKE '%$like%' AND runcatalog.run=runs.run)";
            }
           
+#             die "2 $query $templat->[0] $sql ";
+#          for my $srun (34513...34516){
+#          $self->updateRunCatalog($srun);
+#          }          
           my $rsump=$self->{sqlserver}->Query($sql);
            my @sqla=split 'where',$sql;
 #           $sqla[1]=~s/and ntuples.run=runs.run//;
@@ -4047,7 +4051,6 @@ CheckCite:            if (defined $q->param("QCite")) {
       $sqlmom=$sqlmom.$sqlmom1;
       $sqlamom=$sqlamom.$sqlamom1;
        $sqlNT = $sqlNT.$sqlmom1." ".$pps."ORDER BY dataRuns.Run";
-
        my $r1=$self->{sqlserver}->Query($sql);
         if (defined $r1->[0][0]) {
          foreach my $r (@{$r1}){
@@ -4364,7 +4367,8 @@ CheckCite:            if (defined $q->param("QCite")) {
       htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary
-        my @titles= (
+#       die "nah"; 
+       my @titles= (
         "Template",
         "Jobs",
         "DSTs",
@@ -4394,6 +4398,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         else{
          $sql="SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'"; 
         }
+#             die "2 $query $sql ";
          my $rquery=$self->{sqlserver}->Query($sql);
          my $nruns=0;
         my $dsts=0;
@@ -6519,10 +6524,10 @@ print qq`
             if($self->{CCT} ne "remote" or defined $pass){
              my $crypt=crypt($pass,"ams");
              my $vr=$self->{q}->param("FEM");
-             if((!($crypt eq "amGzkSRlnSMUU" and $vr=~/v4/)) and !($crypt eq "am3SBM3U8rmqs" and $vr=~/v5/)) {
+             if(!($crypt eq "amGzkSRlnSMUU" and ($vr=~/v4/ or $vr=~/AMS02MC/)) and !($crypt eq "am3SBM3U8rmqs" and $vr=~/v5/)) {
               $self->sendmailerror("User authorization failed", "$self->{CEM}");
               $self->ErrorPlus
-                    ("User Authorization Failed.  All Your Activity is Logged.");
+                    ("User Authorization Failed.  All Your Activity is Logged. $vr");
 
              }
          }
@@ -8533,6 +8538,15 @@ anyagain:
          $ri->{cinfo}->{Status}=$ri->{Status};
          $ri->{cinfo}->{HostName}=" ";
          push @{$self->{Runs}}, $ri;
+         $self->insertRun(
+                       $ri->{Run},
+                       $run,
+                       $ri->{FirstEvent},
+                       $ri->{LastEvent},
+                       $ri->{TFEvent},
+                       $ri->{TLEvent},
+                       $ri->{SubmitTime},
+                       $ri->{Status});
          $run=$run+1;
     if($Any>=0 and defined $dataset){
 #         last;
