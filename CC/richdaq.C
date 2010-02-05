@@ -455,8 +455,8 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
     RichPMTsManager::_PedestalSigma(pmt_geom_id,pixel_geom_id,1)=sigma_pedx5;
     RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,0)=thresholdx1;
     RichPMTsManager::_PedestalThreshold(pmt_geom_id,pixel_geom_id,1)=thresholdx5;
-    //    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=status;
-    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=(status &&  RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id))?status:0;  // Do not let channels to recover
+    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=status;
+    //    RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id)=(status &&  RichPMTsManager::_Status(pmt_geom_id,pixel_geom_id))?status:0;  // Do not let channels to recover
   }
   
 
