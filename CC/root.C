@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.209 2010/02/02 16:27:13 mmilling Exp $
+//  $Id: root.C,v 1.210 2010/02/06 22:58:12 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2655,6 +2655,7 @@ RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y, float z){
     Counts  = ptr->_counts;
     Status  = ptr->_status;
     Npe     = ptr->getnpe();
+    HwAddress = ptr -> getHwAddress();
     Coo[0]=x;
     Coo[1]=y;
     Coo[2]=z;

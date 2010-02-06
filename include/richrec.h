@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.62 2010/01/19 16:29:22 mdelgado Exp $
+//  $Id: richrec.h,v 1.63 2010/02/06 22:58:12 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -101,8 +101,8 @@ public:
   static double RichRandom();
   static void Select(int howmany,int size,int lista[]);
   static int CrossedPMT(int pmt_id){return _PMT_Status[pmt_id];}
-
-
+  int getHwAddress();
+  
 // interface with DAQ :
 
 protected:
@@ -309,6 +309,8 @@ public:
 #ifdef __WRITEROOT__
 friend class RichRingR;
 #endif
+
+friend class  RichRadiatorTileManager; 
 };
 
 

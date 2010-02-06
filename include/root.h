@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.259 2010/02/02 16:27:12 mmilling Exp $
+//  $Id: root.h,v 1.260 2010/02/06 22:58:12 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -997,6 +997,7 @@ public:
   int   Counts;     ///< ADC counts above the pedestal
   float Npe;        ///< ADC counts above the pedestal/gain of the channel 
   float Coo[3];     ///<  Hit coordinates
+  int   HwAddress;  ///< Hardware address
   int SoftId   ;    ///< Online software identification (PMT*16+pixel)
 
   RichHitR(){};
@@ -1006,9 +1007,10 @@ public:
  ///
   char * Info(int number=-1){
     //    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
-    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d OK=%s",
+    sprintf(_Info,"RichHit No %d Channel=%d HwAddress=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d OK=%s",
 	    number,
 	    Channel,
+	    HwAddress,
 	    Counts,
 	    Npe,
 	    Coo[0],Coo[1],Coo[2],
@@ -1020,7 +1022,7 @@ public:
   } 
 
   virtual ~RichHitR(){};
-ClassDef(RichHitR,3)       // RichHitR
+ClassDef(RichHitR,4)       // RichHitR
 #pragma omp threadprivate(fgIsA)
 };
 

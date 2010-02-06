@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.134 2010/01/19 16:29:22 mdelgado Exp $
+//  $Id: richrec.C,v 1.135 2010/02/06 22:58:12 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -147,6 +147,16 @@ void AMSRichRawEvent::mc_build(){
       }
    }
 }
+
+int AMSRichRawEvent::getHwAddress(){
+  int pmt,pixel;
+  RichPMTsManager::UnpackGeom(_channel,pmt,pixel);
+  int pmt_pos=RichPMTsManager::GetPMTID(pmt);
+  int hwPixel=RichPMTsManager::GetChannelID(pmt,pixel);
+
+  return  16*pmt_pos+hwPixel;
+}
+
 
 
 int AMSRichRawEvent::_npart=0;
