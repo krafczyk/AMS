@@ -4,6 +4,7 @@
 #include "timeid.h"
 #include "job.h"
 #include "trrec.h"
+#include "richrec.h"
 
 ///////////////////////////////////////////
 // This class contains all the information used in the reconstruction

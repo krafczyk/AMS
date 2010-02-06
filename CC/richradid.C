@@ -539,6 +539,8 @@ void RichRadiatorTileManager::GetFromTDV(){
     _tiles[i]->index=_optical_parameters[i*n_+0];
     _tiles[i]->clarity=_optical_parameters[i*n_+1];
     recompute_tables(i,_tiles[i]->index);
+    // Update the information fo the NpExp computation 
+    AMSRichRing::_first_radiator_call[i]=1;
   }
 
 }
