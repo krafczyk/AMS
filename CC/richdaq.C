@@ -294,7 +294,7 @@ void DAQRichBlock::DSPCompressedParser::parse(){
   int16u data=*(_root+_current_record+1);
   pmt=channelid%PMTs;
   pixel=channelid/PMTs;
-  gain=data&0x1000?1:0;                    // This is reversed: no bit= high gain (in all the s/w gain mode=1 is high gain)
+  gain=data&0xF000?1:0;                    // This is reversed: no bit= high gain (in all the s/w gain mode=1 is high gain)
   counts=data&0x0FFF;
 }
 
