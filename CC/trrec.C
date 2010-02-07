@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.214 2010/01/25 15:09:26 shaino Exp $
+//  $Id: trrec.C,v 1.215 2010/02/07 21:49:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -758,7 +758,15 @@ number smax=0;
 number smt=0;
 if(_pValues)smax=_pValues[-_NelemL];
 integer i,error;
-for(i=_NelemL;i<_NelemR;i++){
+int ib=_NelemL;
+int ie=_NelemR;
+if(ib<-1)ib=-1;
+if(ie>2)ie=2; 
+if(ib<0 && ie>1){
+  if(_pValues[ib-_NelemL]>_pValues[ie-1-_NelemL])ie=1;
+  else ib=0;
+}
+for(i=ib;i<ie;i++){
  cofg+=_pValues[i-_NelemL]*pid->getcofg(side,i,_Id.getstrip(),error);
  if(error==0)eval+=_pValues[i-_NelemL];
 }
@@ -2844,6 +2852,27 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       }
      }
     }
+{
+      AMSContainer *p=AMSEvent::gethead()->getC("AMSmctrack",1);
+      if(p && p->getnelem()){
+    AMSmctrack *pmcg=(AMSmctrack*)AMSEvent::gethead()->getheadC("AMSmctrack",1);
+       AMSPoint coo=pmcg->getcoo();
+       coo[0]+=rnormx()*TRCLFFKEY.ErrX/4;
+       coo[1]+=rnormx()*TRCLFFKEY.ErrY/4;
+       coo[2]+=rnormx()*TRCLFFKEY.ErrZ/4;
+       normal[npt][0]=0;
+       normal[npt][1]=0;
+       normal[npt][2]=fits<0?1:-1;
+       for(int j=0;j<3;j++){
+        hits[npt][j]=coo[j];
+        sigma[npt][j]=sigma[npt-1][j];
+       }
+       layer[npt]=9;
+       npt++;
+       static int qq=0;
+       if(qq++<100)cout <<"  got point at "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
+    }
+   }
   }
   else if(fit ==1){
      npt=(TKDBc::patpoints(_Pattern)+1)/2;
