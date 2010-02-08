@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.146 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: mceventg.C,v 1.147 2010/02/08 11:10:39 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -277,7 +277,7 @@ again:
 //   
       float dummy;
       double t=2*3.1415926*RNDM(dummy);
-      double r=sqrt(-2*log(RNDM(dummy)));
+      double r=sqrt(-0.2*log(RNDM(dummy)));
       _coo[0]+=r*cos(t);
       _coo[1]+=r*sin(t);
      _dir=_dir_c[k];
@@ -970,7 +970,7 @@ integer AMSmceventg::accept(){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
          geant d;
-          if(SpecialCuts(CCFFKEY.SpecialCut)){
+          if(SpecialCuts(CCFFKEY.SpecialCut%10)){
 //        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate)
             if(!CCFFKEY.low  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
             return EarthModulation();
@@ -1492,6 +1492,16 @@ if(GCKINE.itra==1 && scan && GCKINE.ikine==GCKINE.ipart){
  else if(GCTRAK.inwvol==3){
        AMSmctrack* genp=new AMSmctrack(radl,absl,GCTRAK.vect,nvol);
        AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);
+ }
+}
+if(GCKINE.itra==1 && CCFFKEY.SpecialCut/10 && GCKINE.ikine==GCKINE.ipart){
+ char nvol[5]="EXIT";
+ if(GCTRAK.inwvol==1 && GCTRAK.vect[2]<ECALZ+2){
+       AMSContainer *p=AMSEvent::gethead()->getC("AMSmctrack",1);
+        if(p && p->getnelem()==0 && fabs(GCTRAK.vect[0])<65/2. &&  fabs(GCTRAK.vect[1])<65/2. ){
+          AMSmctrack* genp=new AMSmctrack(radl,absl,GCTRAK.vect,nvol);
+          AMSEvent::gethead()->addnext(AMSID("AMSmctrack",1), genp);
+       }
  }
 }
      for (int i=0;i<GCKING.ngkine;i++){

@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.44 2008/09/16 19:12:04 choutko Exp $
+//  $Id: mceventg.h,v 1.45 2010/02/08 11:10:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -67,6 +67,7 @@ AMSmctrack(number radl,number absl, float pos[3], char name[]):AMSlink(),_radl(r
 #ifdef __WRITEROOT__
  friend class MCTrackR;
 #endif
+AMSPoint getcoo() {return AMSPoint(_pos);}
 };
 
 class AMSmceventg: public AMSlink {
@@ -110,12 +111,14 @@ static void RestoreSeeds();
 static void PrintSeeds(ostream & o);
 static void SetSeed(int seed);
 static orbit Orbit;
+AMSPoint getcoo()const {return _coo;}
 integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}
 void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer fixedmom(){return _fixedmom;}
 static integer fixeddir(){return _fixeddir;}
 static void FillMCInfo();
 static integer debug;
+
 static integer Out(integer status=0);
 AMSmceventg(integer ip, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip=0);
 AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);}
