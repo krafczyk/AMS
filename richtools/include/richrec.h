@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.5 2009/11/26 09:18:49 mdelgado Exp $
+//  $Id: richrec.h,v 1.6 2010/02/09 16:13:27 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -43,22 +43,31 @@ class RichRing;  // Forward declaration
 class RichRawEvent{
  private:
   AMSEventR *_event;
+  vector<RichHitR*> _mc_hits; 
   int _current; // current hit
   static integer _PMT_Status[RICmaxpmts];
   static geant _beta_hit[RICmaxpmts*RICnwindows][3];
 
 public:
-  RichRawEvent(AMSEventR *event):_event(event),_current(0){}
-  ~RichRawEvent(){};
-  RichRawEvent *next(){_current++;if(_current>=_event->nRichHit()) {delete this;return 0;} return this;}
+  RichRawEvent(AMSEventR *event=0):_event(event),_current(0){}
+  void Add(int pmt_channel);
+  ~RichRawEvent(){for(int i=0;i<_mc_hits.size();delete _mc_hits[i++]);};
+  void Rewind(){_current=0;}
+  RichRawEvent *next(){_current++;
+    if(_mc_hits.size()){
+      if(_current>=_mc_hits.size()) return 0;  // Only simulate once
+      return this;
+    }
+    if(_current>=_event->nRichHit()) {delete this;return 0;} 
+    return this;}
 
-  RichHitR *getpointer(){return _event->pRichHit(_current);}
-  integer getchannel() const {return _event->pRichHit(_current)->Channel;}
-  integer gainx5() const {return (_event->pRichHit(_current)->Status&gain_mode)?1:0;}
+  RichHitR *getpointer(){if(_mc_hits.size())return _mc_hits[_current];return _event->pRichHit(_current);}
+  integer getchannel() const {if(_mc_hits.size())return _mc_hits[_current]->Channel;return _event->pRichHit(_current)->Channel;}
+  integer gainx5() const {if(_mc_hits.size())return 1;return (_event->pRichHit(_current)->Status&gain_mode)?1:0;}
   //  inline geant getpos(integer i){return _event->pRichHit(_current)->Coo[i];}
 
-  integer getcounts() {return _event->pRichHit(_current)->Counts;}
-  geant getnpe(){ return _event->pRichHit(_current)->Npe;}
+  integer getcounts() {if(_mc_hits.size())return 0;return _event->pRichHit(_current)->Counts;}
+  geant getnpe(){ if(_mc_hits.size())return _mc_hits[_current]->Npe;return _event->pRichHit(_current)->Npe;}
 
   static void build(AMSEventR *event);
   void reconstruct(AMSPoint,AMSPoint,AMSDir,AMSDir,geant,
@@ -77,9 +86,9 @@ public:
     return output;		    
   }
 
-  void inline setbit(int bit_number){_event->pRichHit(_current)->Status|=1<<bit_number;}
-  void inline unsetbit(int bit_number){_event->pRichHit(_current)->Status&=~(1<<bit_number);}
-  integer inline getbit(int bit_number){return (_event->pRichHit(_current)->Status&(1<<bit_number))>>bit_number;}
+  void inline setbit(int bit_number){if(_mc_hits.size()) _mc_hits[_current]->Status|=1<<bit_number;else _event->pRichHit(_current)->Status|=1<<bit_number;}
+  void inline unsetbit(int bit_number){if(_mc_hits.size()) _mc_hits[_current]->Status|=~(1<<bit_number);else _event->pRichHit(_current)->Status&=~(1<<bit_number);}
+  integer inline getbit(int bit_number){if(_mc_hits.size()) return _mc_hits[_current]->Status&(1<<bit_number)>>bit_number;return (_event->pRichHit(_current)->Status&(1<<bit_number))>>bit_number;}
 
   // Get the channel information 
   int getchannelstatus(){return 0;}
@@ -115,6 +124,7 @@ public:
   static bool UseDirect;
   static bool UseReflected;
 
+  double photons_per_channel[680*16];  // Photons for each channel
 private:
   static AMSEventR *_event;
   integer _status;
@@ -249,8 +259,9 @@ protected:
   void CalcBetaError();
   void ReconRingNpexp(geant window_size=3.,int cleanup=0);
 
-public:
 
+public:
+  RichRing* FastMC(TrTrackR *tr,double beta=-1); // Returns the reconstructed beta value  
   RichRing(TrTrack* track,
 	      int used,
 	      int mused,

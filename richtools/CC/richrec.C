@@ -1,8 +1,9 @@
-//  $Id: richrec.C,v 1.8 2010/01/26 09:57:52 mdelgado Exp $
+//  $Id: richrec.C,v 1.9 2010/02/09 16:13:27 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
 #include <iostream>
+
 
 using namespace std;
 
@@ -34,12 +35,12 @@ void RichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  geant *betas,geant index,
 				  int kind_of_tile=agl_kind){
 
+
 #ifdef __AMSDEBUG__
   cout<<"RECONSTRUCTING HIT "<<_current<<endl;
   cout<<"   CHANNEL "<<getchannel()<<endl;
   cout<<"   COUNTS  "<<getcounts()<<endl;
   cout<<"   NPE     "<<getnpe()<<endl;
-  //  cout<<"   POS     "<<getpos(0)<<" "<<getpos(1)<<endl;
 
   RichPMTChannel channel_test(getchannel());
   cout<<" POISITION ACCORDING TO RichPMTChannel "<<channel_test.position[0]<<" "<<channel_test.position[1]<<endl;
@@ -188,7 +189,6 @@ void RichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   }
 
 #endif
-
   // Fill the current beta hit 
   _beta_hit[_current][0]=betas[0];
   _beta_hit[_current][1]=betas[1];
@@ -728,6 +728,7 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
   dL=l/NSTL;
   integer i,j,k;
 
+  memset(photons_per_channel,0,sizeof(photons_per_channel[0])*680*16);
   for(nexp=0,nexpg=0,nexpr=0,nexpb=0,j=0;j<NSTL;j++){
     l=(j+.5)*dL;
 
@@ -746,6 +747,9 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
 	float cnt=generated(lentr,lfoil,lguide,
 			    &ggen,&rgen,&bgen)*dL/NSTP;
 
+	// Store information for the FastMC 
+	if(pmt>-1 && channel>-1) 
+	  photons_per_channel[pmt*16+channel]+=efftr*cnt;
 
 	dfphi[i]+=efftr*cnt;
 
@@ -1560,3 +1564,279 @@ RichRing::RichRing(TrTrack* track,
 
 }
 
+
+
+
+
+
+
+// A very simplistic MC support class: add fake hits to the RichRawEvent 
+void RichRawEvent::Add(int pmt_channel){
+  RichHitR *pointer=new RichHitR;
+  pointer->Channel=pmt_channel;
+  pointer->Npe=1.0;
+  RichPMTChannel channel(pmt_channel);
+  pointer->Coo[0]=channel.x();
+  pointer->Coo[1]=channel.y();
+  pointer->Coo[2]=channel.z();
+  pointer->Status=(1<<28)|(1<<29);
+  _mc_hits.push_back(pointer);
+}
+
+#include "TRandom.h" // For the fast MC 
+#include "time.h"
+RichRing* RichRing::FastMC(TrTrackR *tr,double beta){
+
+  if(beta>0 || !RichRing::ComputeNpExp){
+    // Compute npexp
+    double beta_backup=_beta;    
+    _beta=beta;
+    double npexp=_npexp;
+    double collected_npe=_collected_npe;
+    double probkl=_probkl;
+    _npexp=_collected_npe=_probkl=0;
+    _beta=beta;
+    const float window_sigmas=sqrt(_window);
+    ReconRingNpexp(window_sigmas,!checkstatus(dirty_ring));
+    
+    if((RICHDB::scatprob)>0.){
+#define SQR(x) ((x)*(x))
+      float SigAng=_errorbeta*sqrt(geant(_used))/_beta/sqrt(SQR(_beta*_index)-1)/sqrt(SQR(_beta)-(SQR(_beta*_index)-1));
+      float xmax=window_sigmas*SigAng/(RICHDB::scatang);
+      float FscattCorr=1.-(RICHDB::scatprob*(1.-erf(xmax)));//gauss integral
+      _npexp*=FscattCorr;
+#undef SQR
+    }
+   
+    // Restablish the values
+    _beta=beta_backup;
+    _npexp=npexp;
+    _collected_npe=collected_npe;
+    _probkl=probkl;
+  }
+  
+
+
+
+
+  TrTrack track(tr);
+  if(_event->Version()>=373){
+    if(_event->nParticle()==0) return 0;
+    if(!_event->pParticle(0)) return 0;
+    RichRingR *ring=_event->pParticle(0)->pRichRing();
+    if(!_ring) return 0;
+    track._r.setp(ring->AMSTrPars[0],
+                  ring->AMSTrPars[1],
+                  ring->AMSTrPars[2]);
+    track._d.SetTheta(ring->AMSTrPars[3]);
+    track._d.SetPhi(ring->AMSTrPars[4]);
+  }
+
+
+  // A very simple idea: build a fake event using the raytracing methods, and reconstruct it
+  memset(RichRawEvent::_beta_hit,0,RICmaxpmts*RICnwindows*3*sizeof(geant));  // Reset the beta hit arrays 
+
+  // Generate the fake ring
+  gRandom->SetSeed(time(0));
+  
+  RichRawEvent fake;
+  int addCounter=0;
+  for(int i=0;i<680*16;i++){
+    if(photons_per_channel[i]==0) continue;
+    int number=gRandom->Poisson(photons_per_channel[i]);
+    if(number==0) continue;
+    fake.Add(i);
+    addCounter++;
+  }
+  if(!addCounter) return 0;
+
+
+
+  // Initialization
+  
+  geant A=(-2.81+13.5*(_index-1.)-18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
+			RICradmirgap+RIClgdmirgap)*40./2.;
+  
+  geant B=(2.90-11.3*(_index-1.)+18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
+			RICradmirgap+RIClgdmirgap)*40./2.;
+
+  // Fine tunning  
+  A*=1.15;B*=1.15;
+
+
+  if(_kind_of_tile==naf_kind) // For NaF they are understimated
+    {A*=3.44;B*=3.44;}
+  
+  // Reconstruction threshold: maximum beta admited
+  geant betamax=1.+5.e-2*(A+B);
+
+
+  // Next obtained by Casaus: minimum beta admited to avoid noise caused
+  // by the particle going through the PMTs
+  // Value corrected by Carlos D.
+  geant betamin=(1.+RICthreshold*(_index-1.))/_index;
+
+
+  // Fast but not safe
+  geant recs[RICmaxpmts*RICnwindows][3];
+  geant mean[RICmaxpmts*RICnwindows][3];
+  geant probs[RICmaxpmts*RICnwindows][3];
+  integer size[RICmaxpmts*RICnwindows][3];
+  integer mirrored[RICmaxpmts*RICnwindows][3];
+
+  int bit=0;
+  int cleanup=10;
+
+  // Reconstruct it (cut and paste the whole code here
+  integer actual=0,counter=0;
+  RichHitR *hitp[RICmaxpmts*RICnwindows];
+
+  RichRadiatorTileManager crossed_tile(&track);
+  AMSPoint dirp,refp;
+  AMSDir   dird,refd;
+
+  dirp=crossed_tile.getemissionpoint();
+  dird=crossed_tile.getemissiondir();
+  refp=crossed_tile.getemissionpoint(1);
+  refd=crossed_tile.getemissiondir(1);
+
+  fake.Rewind();
+  for(RichRawEvent* hit=&fake;hit;hit=hit->next()){
+
+    // Reconstruct one hit
+    hit->reconstruct(dirp,refp,
+		     dird,refd,
+		     betamin,
+		     betamax,
+		     recs[actual],
+		     _index,
+		     _kind_of_tile);
+
+
+    if(!UseDirect) recs[actual][0]=0;
+    if(!UseReflected) recs[actual][1]=recs[actual][2]=0;
+    
+    
+    if(recs[actual][0]>0 || recs[actual][1]>0 || recs[actual][2]>0){	
+      hitp[actual]=hit->getpointer();
+      actual++;
+    }
+  }
+
+
+  uinteger current_ring_status=_kind_of_tile==naf_kind?naf_ring:0;
+
+
+  RichRing *first_done=0;
+
+  if(1){
+    integer best_cluster[2]={0,0};
+    geant best_prob=-1;
+    
+    for(integer i=0;i<actual;i++)
+      for(integer j=0;j<3;j++)
+	if(recs[i][j]>0){
+	  mean[i][j]=recs[i][j];
+	  size[i][j]=1;mirrored[i][j]=j>0?1:0;
+	  probs[i][j]=0;}
+    
+    
+    
+    for(integer i=0;i<actual;i++){
+      if(recs[i][0]==-2.) continue; // Jump if direct is below threshold
+      
+      for(integer k=0;k<3;k++){
+	if(recs[i][k]<betamin) continue; 
+	for(integer j=0;j<actual;j++){
+	  if(recs[j][0]==-2.) continue;
+	  if(i==j) continue;
+	  
+	  integer better=RichRing::closest(recs[i][k],recs[j]);
+	  
+	  geant prob=(recs[i][k]-
+		      recs[j][better])*
+	    (recs[i][k]-
+	     recs[j][better])/
+	    RichRing::Sigma(recs[i][k],A,B)/
+	    RichRing::Sigma(recs[i][k],A,B);
+	  if(prob<_window){ //aprox. (3 sigmas)**2
+	    probs[i][k]+=exp(-.5*prob);
+	    mean[i][k]+=recs[j][better];
+	    if(better>0) mirrored[i][k]++;
+	    size[i][k]++;
+	  }
+	}
+	if(best_prob<probs[i][k]){ 
+	  best_prob=probs[i][k];	
+	  best_cluster[0]=i;
+	  best_cluster[1]=k;
+	}
+	
+      }
+    }
+
+    if(best_prob>0){
+      // This piece is a bit redundant: computes chi2 and weighted beta
+      geant wsum=0,wbeta=0;      
+      geant chi2=0.;
+      geant beta_track=0;
+      integer beta_used=0;
+      integer mirrored_used=0;
+      
+      if(best_prob>0){
+	beta_track=recs[best_cluster[0]][best_cluster[1]];
+	
+	for(integer i=0;i<actual;i++){
+	  if(recs[i][0]==-2.) continue;
+	  
+	  integer closest=
+	    RichRing::closest(beta_track,recs[i]);
+	  
+	  if(recs[i][closest]<betamin) continue;
+	  geant prob=(recs[i][closest]-beta_track)*
+	    (recs[i][closest]-beta_track)/
+	    RichRing::Sigma(beta_track,A,B)/
+	    RichRing::Sigma(beta_track,A,B);
+	  
+	  
+	  if(prob>=_window) continue;
+	  chi2+=prob;
+	  //	  wsum+=hitp[i]->Npe;
+	  //	  wbeta+=recs[i][closest]*hitp[i]->Npe;
+	}
+	
+	beta_used=size[best_cluster[0]][best_cluster[1]];
+	mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
+	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
+	
+	if(wsum>0) wbeta/=wsum; else wbeta=0.;       
+      }
+      
+      // Event quality numbers:
+      // 0-> Number of used hits
+      // 1-> chi2/Ndof
+      
+      // Fill the container
+      //      RichRing* done=(RichRing *)AMSEvent::gethead()->addnext(AMSID("RichRing",0),
+      RichRing* done=new RichRing(&track,
+				  beta_used,
+				  mirrored_used,
+				  beta_track,
+				  chi2/geant(beta_used-1),
+				  wbeta,
+				  recs[best_cluster[0]][best_cluster[1]],
+				  recs,hitp,actual,bit,
+				  current_ring_status,  //Status word
+				  0);
+      
+      
+      first_done=done;
+    }  
+  }
+  
+  return first_done;
+}
