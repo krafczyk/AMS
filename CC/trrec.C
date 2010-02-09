@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.215 2010/02/07 21:49:49 choutko Exp $
+//  $Id: trrec.C,v 1.216 2010/02/09 12:41:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -743,6 +743,15 @@ integer AMSTrCluster::buildWeak(integer refit){
 
 
 
+number AMSTrCluster::etacor(double y){
+double p[6]={-13.198,96.694,-274.27,388.48,-271.95,75.224};
+double x=y;
+if(x<0.5)x=1-x;
+double cor=0;
+for(int k=0;k<6;k++)cor+=p[k]*pow(x,double(k));
+if(y<0.5)cor=1-cor;
+return cor-y;
+}
 
 number AMSTrCluster::getcofg(AMSTrIdGeom * pid){
   //
@@ -773,6 +782,11 @@ for(i=ib;i<ie;i++){
 if(eval > 0){
 cofg=cofg/eval;
 smt=smax/eval;
+if(ie-ib>1 && side==1){
+double step=pid->getcofg(side,ib+1,_Id.getstrip(),error)-pid->getcofg(side,ib,_Id.getstrip(),error);
+double eta=(cofg-pid->getcofg(side,ib,_Id.getstrip(),error))/step;
+//cofg+=etacor(eta)*step;
+}
 }
 else{
 #ifdef __AMSDEBUG__

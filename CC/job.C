@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.685 2010/01/27 17:02:22 choumilo Exp $
+// $Id: job.C,v 1.686 2010/02/09 12:41:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2770,13 +2770,19 @@ end.tm_year=TKFIELD.iyear[1];
    sprintf(FieldMapName,"MagneticFieldMap09A");
    MAGSFFKEY.rphi=1;
  }
+///*
  else{
    sprintf(FieldMapName,"MagneticFieldMap09A");
    MAGSFFKEY.rphi=1;
 //   sprintf(FieldMapName,"MagneticFieldMap07");
  }
-
-
+//*/
+/*
+ else{
+   MAGSFFKEY.rphi=0;
+   sprintf(FieldMapName,"MagneticFieldMap07");
+ }
+*/
 {
 
 //
@@ -2801,7 +2807,7 @@ if(AMSFFKEY.Update==101){
    TID.add(ptdv);
    return;
 }
-else if(isRealData()){
+else if(isRealData() ){
    begin=100000000;
    end=begin-1;
    btm=*(localtime(&begin));
@@ -3611,10 +3617,13 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
+///*
   TID.add (new AMSTimeID(AMSID("CCEBPar",isRealData()),
                          begin,end,
                          sizeof(AMSEvent::ArrayC),(void*)AMSEvent::ArrayC,server));
+//*/
 }
+
 
 
 

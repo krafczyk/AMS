@@ -528,6 +528,8 @@ void AMSEvent::_signinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSmctrack",0),0));
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSmctrack",1),0));
 }
 
  void AMSEvent::SetTimeCoo(integer rec){    

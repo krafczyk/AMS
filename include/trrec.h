@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.108 2010/01/25 15:09:29 shaino Exp $
+//  $Id: trrec.h,v 1.109 2010/02/09 12:41:42 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -74,6 +74,7 @@ static integer Out(integer);
 number getVal(){return TRCLFFKEY.CommonGain[_Id.getside()]*(_Sum-TRCLFFKEY.CommonShift[_Id.getside()]);}
 number getcofg( AMSTrIdGeom * id);
 number getlcofg(AMSTrIdGeom * id);
+number etacor(double x);
 number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}
 number geteta(){return _Eta;}

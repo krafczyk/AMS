@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.107 2010/01/12 14:49:22 choutko Exp $
+//  $Id: timeid.C,v 1.108 2010/02/09 12:41:30 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -190,6 +190,7 @@ bool AMSTimeID::write(const char * dir, int slp){
   if(_Type!=Client){
     enum open_mode{binary=0x80};
     fstream fbin;
+again:
     AString fnam=dir;
     fnam+=getname();
     fnam+="/";
@@ -205,6 +206,14 @@ bool AMSTimeID::write(const char * dir, int slp){
     ost << "."<<_Insert<<ends;
     fnam+=name;     
     //      }
+    fbin.clear();
+    fbin.open((const char *)fnam,ios::in);
+    if(fbin){
+        cerr <<"AMSTimeId::write-E-"<<fnam<<" exists "<<endl;
+        _Insert++;
+        fbin.close();
+        goto again;
+    }
     fbin.open((const char *)fnam,ios::out|ios::trunc);
     if(fbin){
       uinteger * pdata;

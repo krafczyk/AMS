@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.260 2010/02/06 22:58:12 mdelgado Exp $
+//  $Id: root.h,v 1.261 2010/02/09 12:41:42 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1530,7 +1530,9 @@ public:
     else strcpy(toftypz,"unkn");
 //
     double xtime=TrigTime[4]/1000.;
-    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %s, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",IsEcalLev1OK()?"Yes":"No",EcalTrSum,xtime,LiveTime);
+    int b15=(JMembPatt>>15)&1;
+    int b14=(JMembPatt>>14)&1;
+    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %s, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f ExtBits %d%d",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",IsEcalLev1OK()?"Yes":"No",EcalTrSum,xtime,LiveTime,b15,b14);
   return _Info;
   }
   virtual ~Level1R(){};
@@ -4103,6 +4105,21 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
         return fDaqEvent.size();
       }
 
+      ///  \return reference of DaqEventR Collection
+      ///
+      vector<DaqEventR> & DaqEvent()  {
+        if(fHeader.DaqEvents && fDaqEvent.size()==0)bDaqEvent->GetEntry(_Entry);
+         return  fDaqEvent;
+       }
+
+       ///  DaqEventR accessor
+       /// \param l index of DaqEventR Collection
+      ///  \return reference to corresponding DaqEventR element
+      ///
+       DaqEventR &   DaqEvent(unsigned int l) {
+        if(fHeader.DaqEvents && fDaqEvent.size()==0)bDaqEvent->GetEntry(_Entry);
+         return fDaqEvent.at(l);
+      }
 
        ///  DaqEventR accessor
        /// \param l index of DaqEventR Collection

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.128 2010/01/19 09:24:16 choumilo Exp $
+//  $Id: ecalrec.C,v 1.129 2010/02/09 12:41:30 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -785,7 +785,8 @@ void AMSEcalHit::build(int &stat){
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmc,subc,nraw,nhits;
   integer proj,plane,cell,icont;
-  number radc[3],edep,edepc,adct,fadc,qmeas,saturf,emeast,coot,cool,cooz; 
+  number radc[3],edep,edepc,adct,fadc,qmeas,saturf,emeast,coot,cool,cooz;
+  number adchovfl; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,pd,sh,sl,sd,peds[2];
   integer ovfl[3];
   geant padc[3],bpadc[4][2];
@@ -800,6 +801,8 @@ void AMSEcalHit::build(int &stat){
   adct=0.;
   emeast=0.;
   edcort=0.;
+  adchovfl=ECADCMX[0]-1;//default 
+  if(AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()<1265450278)adchovfl=2000;//due to err in DSP
 //
   for(int nc=0;nc<AMSECIds::ncrates();nc++){ // <-------------- cr. loop
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
@@ -822,6 +825,7 @@ void AMSEcalHit::build(int &stat){
       ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
       ECPMPeds::pmpeds[isl][pmc].getsigl(sigl);
       h2lr=ECcalib::ecpmcal[isl][pmc].hi2lowr(subc);
+ h2lr=33.5;//tempor from Silvia
       radc[0]=number(padc[0]);//ADC-high-chain
       radc[1]=number(padc[1]);//ADC-low-chain
 //      if(radc[2]>0)cout << " found Dyn "<<radc[0]<<" "<<radc[1]<<" "<<radc[2]<<endl;
@@ -843,7 +847,7 @@ void AMSEcalHit::build(int &stat){
       peds[1]=pl;
       ovfl[0]=0;
       ovfl[1]=0;
-      if(radc[0]+ph>=ECADCMX[0]-1)ovfl[0]=1;// mark as ADC-Overflow
+      if(radc[0]+ph>=adchovfl)ovfl[0]=1;// mark as HiChan ADC-Overflow
       if(radc[1]+pl>=ECADCMX[1]-1)ovfl[1]=1;// mark as ADC-Overflow
 // ---> take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
@@ -886,7 +890,6 @@ void AMSEcalHit::build(int &stat){
       }
       adct+=edep;//tot.adc
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
-      emeast+=edep;//tot.Mev
       if(fadc>0.){// store good (h+l)-hit info in buffer:
 	bsta[nsubc]=sta;
 	bsubc[nsubc]=subc+1;
@@ -906,7 +909,7 @@ void AMSEcalHit::build(int &stat){
       if(ptrn)iddn=ptrn->getid()/10;//SSPP of next hit
 //
       if(idd!=iddn && nsubc>0){//next hits belong to next PM -> process buffer of current PM
-// --->  1st: check dynode chan:
+// ------>  1st: check dynode chan:
         dedep=0;
         padc[2]=AMSEcalRawEvent::getadcd(isl,pmc);//get dynode from static array
         radc[2]=number(padc[2]);//ADC-dyn-chain
@@ -930,6 +933,7 @@ void AMSEcalHit::build(int &stat){
 	            *ECcalib::ecpmcal[isl][pmc].an2dyr()
 	            /ECcalib::ecpmcal[isl][pmc].pmrgain();//PM(4xSubc=Dy) gain(wrt ref. one)
 	}
+dychok=0;//tempor to prevent any corrections
 //
 // --->  2nd: buffer->AMSEcalHit + l-ch ovfl correction(if needed) by dynode info:
         edepgd=0;//PM(4xSubc) "nonoverflowed" energy 
@@ -941,6 +945,7 @@ void AMSEcalHit::build(int &stat){
 	if(dychok>0 && nsubco>0)etrue=(dedep-edepgd)/geant(nsubco);
 //                               (average dyn.energy per overflowed_cell)
         saturf=ECcalib::pmsatf1(1,qmeas);//saturf=Qin/Qmeas(<0 if saturated, 1 if qmeas small)
+saturf=1;//tempor to prevent any satur.corrections(tot.pm-charge satur due devider extra-current)
         if(saturf<0)EcalJobStat::addsr(10);
 //
         for(i=0;i<nsubc;i++){//buffer(subcells) loop to fill AMSEcalHit
@@ -964,6 +969,7 @@ void AMSEcalHit::build(int &stat){
 	  padc[1]=bpadc[i][1];
           ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);//SubCell info
 	  icont=plane;//container number for storing of EcalHits(= plane number)
+          emeast+=edep;//tot.Mev
 	  if(ECREFFKEY.reprtf[0]>1){
 #pragma omp critical (hf1)
 {
@@ -1027,7 +1033,6 @@ void AMSEcalHit::attcor(number coo){//correct measured _edep for atten.in fibers
   attf0=0.5*(ECcalib::ecpmcal[sl][pm].attfdir(hflen)
             +ECcalib::ecpmcal[sl][pm].attfrfl(hflen,hflen));//attf at center
   _attcor=_edep*(attf0/attf-1.);
-//  cout << " pmdist "<<pmdist<<" "<<hflen<<endl;
 
   _edep+=_attcor;
   setstatus(AMSDBc::REFITTED);

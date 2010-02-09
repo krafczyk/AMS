@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.14 2009/12/08 16:56:05 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.15 2010/02/09 12:41:47 choutko Exp $
 #include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -19,11 +19,11 @@ int color=18;
 
 AddSet("Set 0");
 
-_filled.push_back(new TH1F("AxAMS_0_00","Momentum",200,-200.,200.));
+_filled.push_back(new TH1F("AxAMS_0_00","Momentum",1000,-1000.,1000.));
 _filled[_filled.size()-1]->SetXTitle("Momentum (GeV)");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("AxAMS_0_01","Abs(Momentum)",100,0.,200.));
-_filled[_filled.size()-1]->SetXTitle("Abs(Momentum) (GeV)");
+_filled.push_back(new TH1F("AxAMS_0_01","Beam/Momentum",100,0.,2.));
+_filled[_filled.size()-1]->SetXTitle("Beam/Momentum ");
 _filled[_filled.size()-1]->SetFillColor(color++);
 _filled.push_back(new TH1F("AxAMS_0_02","Charge",20,-0.5,19.5));
 _filled[_filled.size()-1]->SetXTitle("Charge");
@@ -51,16 +51,16 @@ _filled[_filled.size()-1]->SetFillColor(color++);
 AddSet("BeamProfile");
 
 
-_filled.push_back(new TH1F("AxAMS_2_07","XCoo",400,-40.,40.));
-_filled[_filled.size()-1]->SetXTitle("X Coo  (cm) at Z=72 cm");
+_filled.push_back(new TH1F("AxAMS_2_07","XCoo  (cm) ",400,-40.,40.));
+_filled[_filled.size()-1]->SetXTitle("X Coo  (cm) at Z=65 cm");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("AxAMS_2_08","YCoo",400,-40.,40.));
-_filled[_filled.size()-1]->SetXTitle("Y Coo  (cm) at Z=72 cm");
+_filled.push_back(new TH1F("AxAMS_2_08","YCoo ",400,-40.,40.));
+_filled[_filled.size()-1]->SetXTitle("Y Coo  (cm) at Z=65 cm");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("AxAMS_2_09","Theta",360,0.,180.));
+_filled.push_back(new TH1F("AxAMS_2_09","Theta",720,0.,180.));
 _filled[_filled.size()-1]->SetXTitle("#Theta (deg)");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("AxAMS_2_10","Phi",360,0.,360.));
+_filled.push_back(new TH1F("AxAMS_2_10","Phi",720,0.,360.));
 _filled[_filled.size()-1]->SetXTitle("#Phi (deg)");
 _filled[_filled.size()-1]->SetFillColor(color++);
 
@@ -100,6 +100,9 @@ void AMSAxAMSHist::ShowSet(Int_t Set){
 #if defined(__ICC)
 #else
    _filled[3]->Fit(f1,"Q","",0,2);
+   f1->SetParameter(1,1.);
+   f1->SetParameter(2,0.2);
+   _filled[1]->Fit(f1,"Q","",0.25,1.8);
 #endif
 gPad->Clear();
 TVirtualPad * gPadSave = gPad;
@@ -200,7 +203,7 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
     _filled[11]->Fill(ntuple->nParticle(),1.);
   if(ntuple->nParticle() && ntuple->pParticle(0)){
     _filled[0]->Fill(ntuple->pParticle(0)->Momentum,1.);
-    _filled[1]->Fill(fabs(ntuple->pParticle(0)->Momentum),1.);
+    _filled[1]->Fill(400./(ntuple->pParticle(0)->Momentum),1.);
     _filled[2]->Fill(ntuple->pParticle(0)->Charge,1.);
     if(ntuple->pParticle(0)->ErrBeta<1){
     _filled[3]->Fill(ntuple->pParticle(0)->Beta,1.);
@@ -215,6 +218,7 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
     ((TProfile*)_filled[6])->Fill(fabs(ntuple->pParticle(0)->Momentum),err,1.);
     _filled[7]->Fill(ntuple->pParticle(0)->TOFCoo[0][0],1.);
     _filled[8]->Fill(ntuple->pParticle(0)->TOFCoo[0][1],1.);
+    //cout<<ntuple->pParticle(0)->TOFCoo[0][2] <<endl;
     _filled[9]->Fill(ntuple->pParticle(0)->Theta*180./3.1415926,1.);
     _filled[10]->Fill(ntuple->pParticle(0)->Phi*180./3.1415926,1.);
      if(ntuple->nMCEventg()>0){		

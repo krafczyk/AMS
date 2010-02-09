@@ -1,6 +1,6 @@
-*  $Id: rkms.h,v 1.6 2008/12/08 15:15:18 choutko Exp $
+*  $Id: rkms.h,v 1.7 2010/02/09 12:41:35 choutko Exp $
       integer npma
-      parameter(NPma=8) 
+      parameter(NPma=9) 
       integer npoc
       double precision xc,yc,zc,wxy,Dhi2
       common/rkms_1/xc(NPma),yc(NPma),zc(NPma),wxy(NPma,NPma),Dhi2,npoc
@@ -21,7 +21,7 @@ c      data trkZ0/54.7,29.2,25.8,1.7,-1.7,-25.8,-29.2,-54.7/
 *   taken from MC (Sep.04)
 c      data trkZ0/54.51,29.18,25.32,1.68,-2.18,-25.32,-29.18,-54.51/
       data trkZ0/52.985,29.185,25.215,1.685,-2.285,
-     + -25.215,-29.185,-52.985/
+     + -25.215,-29.185,-52.985,-122./
 
       save SiThick,zz0,trkZ0
 *-------------------------------------------------------
