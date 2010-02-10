@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.2 2009/12/06 12:06:15 shaino Exp $
+// $Id: TrAlignFit.C,v 1.3 2010/02/10 12:07:06 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2009/12/06 12:06:15 $
+///$Date: 2010/02/10 12:07:06 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,7 +29,8 @@
 #include <fstream>
 
 TObjArray TrAlignObject::sharray;
-Int_t TrAlignObject::ProfMode = 0;
+Int_t  TrAlignObject::ProfMode = 0;
+Bool_t TrAlignObject::fLcommon = kFALSE;
 
 TrAlignObject::TrAlignObject(Int_t id) : tkid(id)
 {
@@ -132,6 +133,13 @@ void TrAlignObject::ProcHists(Int_t bits)
     if (i == 4 || i == 5) continue;
 
     TH2F *hist = (TH2F *)harray.At(i);
+    if (fLcommon) {
+      if (i != 2 && i != 3) continue;
+      Int_t lay = TMath::Abs(tkid)/100;
+      Int_t ix1 = lay*32-31;
+      Int_t ix2 = lay*32;
+      hist = Project((TH3F *)sharray.At(4+i), ix1, ix2);
+    }
     if (hist->GetSumOfWeights() < 100) continue;
 
     TH1D *prof = Profile(hist);
@@ -142,6 +150,8 @@ void TrAlignObject::ProcHists(Int_t bits)
 
     prof->Fit("pol1", "q0");
     TF1 *func = prof->GetFunction("pol1");
+
+    if (fLcommon) delete hist;
 
     if (i == 0) {
       if (bits & XYcorr1) {
@@ -314,6 +324,7 @@ TH1D *TrAlignObject::Profile(TH2 *hist)
 {
   TString hname = hist->GetName();
   hname.ReplaceAll("hist", "prof");
+  hname.ReplaceAll("proj", "prof");
   if (hname == "hist") hname += "_pf";
 
   TH1D *prof = hist->ProjectionX(hname);
@@ -396,6 +407,28 @@ TH1D *TrAlignObject::Profile(TH2 *hist)
   delete [] hw;
 
   return prof;
+}
+
+TH2F *TrAlignObject::Project(TH3 *hist, Int_t ibx1, Int_t ibx2)
+{
+  TString hname = hist->GetName();
+  hname.ReplaceAll("hist", "proj");
+  if (hname == "hist") hname += "_pj";
+
+  Int_t  ny = hist->GetNbinsY();
+  Int_t  nz = hist->GetNbinsZ();
+  TAxis *ay = hist->GetYaxis();
+  TAxis *az = hist->GetZaxis();
+
+  TH2F *proj = new TH2F(hname, hist->GetTitle(), 
+			ny, ay->GetXmin(), ay->GetXmax(),
+			nz, az->GetXmin(), az->GetXmax());
+
+  for (Int_t i = 0; i < ny; i++)
+    for (Int_t j = 0; j < nz; j++)
+      proj->SetBinContent(i+1, j+1, hist->Integral(ibx1, ibx2, 
+						   i+1, i+1, j+1, j+1));
+  return proj;
 }
 
 Int_t TrAlignObject::Fit2D(Int_t n, Double_t *x, Double_t *y, 
@@ -495,6 +528,7 @@ Int_t TrAlignObject::Inv3x3(Double_t mtx[3][3])
 ClassImp(TrAlignFit)
 
 TString TrAlignFit::fNameOut = "alignfit.root";
+Int_t   TrAlignFit::fMode    = TrAlignFit::kCosmicRay;
 
 Int_t    TrAlignFit::fMaxIter  = 20;
 Int_t    TrAlignFit::fMinIter  = 20;
@@ -796,7 +830,7 @@ void TrAlignFit::FillHists(Int_t i)
     TH3F *hist1 = (TH3F*)TrAlignObject::sharray.At(6+i);
     TH3F *hist2 = (TH3F*)TrAlignObject::sharray.At(8+i);
     hist1->Fill(id, fGradient[i], fResidual[i][j]*10);
-    hist2->Fill(id, sn, fResidual[i][j]*10);
+    hist2->Fill(id,           sn, fResidual[i][j]*10);
   }
 
   TH1F *hcsq = (TH1F *)fDir->Get((i == 0) ? "hcsqx" : "hcsqy");
@@ -894,6 +928,15 @@ void TrAlignFit::ProcHists(Int_t iter)
   else if (iter == 2) bits = bits2;
   else if (iter < 15) bits = bits3;
   else bits = bits4;
+
+  TrAlignObject::fLcommon = kFALSE;
+  if (fMode == kTestBeam) {
+    if (iter == 0 || iter == 2 || iter == 4) {
+      TrAlignObject::fLcommon = kTRUE;
+      bits = TrAlignObject::Zcorr2;
+    }
+    else bits = TrAlignObject::XYcorr3;
+  }
 
   TrAlignObject::ProfMode = 1;
   if (iter == fMaxIter-1) TrAlignObject::ProfMode = 2;

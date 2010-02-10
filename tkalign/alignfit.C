@@ -22,7 +22,7 @@
 
 using namespace std;
 
-enum { PREINT = 1, FLIGHT = 2 };
+enum { PREINT = 1, FLIGHT = 2, TBEAM = 12 };
 
 void alignfit(const char *fname, const char *oname, const char *dbc,
 	      Double_t csqmax = 100, Int_t setup = FLIGHT, 
@@ -43,6 +43,10 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
   TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
+  Double_t bin[121];
+  for (Int_t i = 0; i <= 120; i++) bin[i] = TMath::Power(10, -2+0.05*i);
+  TH2F *hist0 = new TH2F("hist0", "Chisq", 120, bin, 120, bin);
+
   TH2F *hist1 = new TH2F("hist1", "X shift", 256, 0.5, 8.5, 500, -50, 50);
   TH2F *hist2 = new TH2F("hist2", "Y shift", 256, 0.5, 8.5, 500, -50, 50);
   TH2F *hist3 = new TH2F("hist3", "X shift", 100, -1, 1, 500, -50, 50);
@@ -60,11 +64,11 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
   Int_t nfill = 0;
   Int_t intv  = 10000;
 
-  Double_t cmx = csqmax;
-  Double_t cmy = csqmax;
-  if (setup == FLIGHT) {
-    cmx = csqmax*300*300/34/34;
-    cmy = csqmax*300*300/20/20;
+  Double_t cfx = 1;
+  Double_t cfy = 1;
+  if (setup == FLIGHT || setup == TBEAM) {
+    cfx = 34.*34./300/300;
+    cfy = 20.*20./300/300;
   }
 
   for (Int_t i = 0; i < nevt; i++) {
@@ -79,7 +83,7 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
     if (evt->nTrTrack() != 1) continue;
 
     if (initdbc) {
-      TkDBc::Head->init(setup, (char*)dbc);
+      TkDBc::Head->init(setup%10, (char*)dbc);
       initdbc = 0;
 
       // Sensor alignment
@@ -94,8 +98,12 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
     TrParDB::Head->_asymmetry[1] = 0.034;
 
     TrTrackR *trk = evt->pTrTrack(0);
+    if (!trk) continue;
+    if (trk->GetChisqX() <= 0 || trk->GetChisqY() <= 0) continue;
 
-    if (trk->GetChisqX() > cmx || trk->GetChisqY() > cmy) continue;
+    hist0->Fill(trk->GetChisqX()*cfx, trk->GetChisqY()*cfy);
+    if (trk->GetChisqX()*cfx > csqmax || 
+	trk->GetChisqY()*cfy > csqmax) continue;
 
     Float_t arr[7][8];
     for (Int_t j = 0; j < 8*7; j++) arr[j/8][j%8] = 0;
@@ -108,8 +116,9 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
       TrRecHitR *hit = trk->GetHit(j);
       if (!hit) continue;
 
-      if ((hit->getstatus() & XONLY) ||
-	  (hit->getstatus() & YONLY)) continue;
+    //if ((hit->getstatus() & XONLY) ||
+    //	  (hit->getstatus() & YONLY)) continue;
+      if (hit->OnlyX()) continue;
 
       Int_t tkid = hit->GetTkId();
       Int_t ilyr = hit->GetLayer()-1;
@@ -152,6 +161,9 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
   }
 
   fout.close();
+
+  TFile of("alignfit0.root", "recreate");
+  gROOT->GetList()->Write();
 }
 
 void alignfit(const char *fname, const char *dbc,
@@ -170,7 +182,7 @@ void alignfit(const char *fname, const char *dbc,
   // Initialize TKDBc
   if (!TkDBc::Head) {
     TkDBc::CreateTkDBc();
-    if (dbc && dbc[0]) TkDBc::Head->init(setup, dbc);
+    if (dbc && dbc[0]) TkDBc::Head->init(setup%10, dbc);
     else TkDBc::Head->init();
   }
 
@@ -241,8 +253,11 @@ void alignfit(const char *fname, const char *dbc,
   }
 
   TrAlignFit::fMaxIter  = 20;
-  TrAlignFit::fMinIter  =  5;
   TrAlignFit::fMaxChisq = 10;
+  if (setup == TBEAM) {
+    TrAlignFit::fMaxIter = 10;
+    TrAlignFit::fMode    = TrAlignFit::kTestBeam;
+  }
   afit.Fit();
 
   TString ofn = fname;

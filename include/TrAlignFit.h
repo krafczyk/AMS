@@ -1,4 +1,4 @@
-//  $Id: TrAlignFit.h,v 1.1 2009/06/10 09:16:52 shaino Exp $
+//  $Id: TrAlignFit.h,v 1.2 2010/02/10 12:07:07 shaino Exp $
 #ifndef __TrAlignFit__
 #define __TrAlignFit__
 
@@ -12,9 +12,9 @@
 ///\ingroup gbint
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2009/06/10 09:16:52 $
+///$Date: 2010/02/10 12:07:07 $
 ///
-///$Revision: 1.1 $
+///$Revision: 1.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,9 @@
 #include <map>
 
 class TH1D;
+class TH2F;
 class TH2;
+class TH3;
 
 class TrAlignObject {
 
@@ -49,7 +51,8 @@ public:
 
   static TObjArray sharray;
 
-  static Int_t ProfMode;
+  static Int_t  ProfMode;
+  static Bool_t fLcommon;
 
 protected:
   Int_t tkid;
@@ -78,6 +81,7 @@ public:
 
   static void  InitSHists(void);
   static TH1D *Profile(TH2 *hist);
+  static TH2F *Project(TH3 *hist, Int_t ibx1, Int_t ibx2);
   static Int_t Fit2D(Int_t n, Double_t *x, Double_t *y, 
 		              Double_t *w, Double_t *p); 
   static Int_t Inv3x3(Double_t mtx[3][3]);
@@ -93,6 +97,9 @@ public:
 	 Ndim = 11, Narr = 3 };
 
   static TString fNameOut;
+
+  enum { kCosmicRay = 1, kTestBeam = 2 };
+  static Int_t fMode;
 
 protected:
   Int_t    fMaxCases;     //!
