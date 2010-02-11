@@ -731,7 +731,7 @@ integer AMSTRDHSegment::build(int rerun){
     pTRDHSegment_[i]=segments[i];
     pTRDHSegment_[i]->nhits=pTRDHSegment_[i]->fTRDRawHit.size();
     pTRDHSegment_[i]->calChi2();
-    AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",i),pTRDHSegment_[i]);
+    AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",0),pTRDHSegment_[i]);
   }
   
   return nhseg;
