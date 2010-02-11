@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.191 2010/02/02 16:27:12 mmilling Exp $
+//  $Id: particle.C,v 1.192 2010/02/11 15:20:29 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -432,8 +432,8 @@ void AMSParticle::trd_Hlikelihood(){
 
   // TOF layers would probably make more sense (->mult.scatt.)
   double zpl=83.5; //Z low of TRD in cm;
-  number SearchReg(4);
-  number MaxCos(0.95);
+  number SearchReg(6);
+  number MaxCos(0.9);
 
   number theta,phi,sleng;
   AMSPoint coo(0,0,zpl);
@@ -463,6 +463,7 @@ void AMSParticle::trd_Hlikelihood(){
     
     if( matched ){
       _phtrd=ptr;
+      _phtrd->status=2;
       break;
     }
     ptr=ptr->next();
@@ -485,8 +486,8 @@ void AMSParticle::trd_Hlikelihood(){
       if(debug)printf("dz %.2f expos %.2f c %.2f d %.2f\n",dz,expos,
 		      tk_dir[seg->d]/tk_dir[2]-seg->m,
 		      tk_pnt[seg->d]-expos);
-      if((tk_dir[seg->d]/tk_dir[2]-seg->m)>MaxCos&&
-	 (tk_pnt[seg->d]-expos)<SearchReg)sptr[seg->d]=seg;
+      if(fabs(tk_dir[seg->d]/tk_dir[2]-seg->m)<1-MaxCos&&
+	 fabs(tk_pnt[seg->d]-expos)<SearchReg)sptr[seg->d]=seg;
       seg=seg->next();
     }
     if(debug)printf("s1 %d s2 %d\n",sptr[0],sptr[1]);
@@ -494,7 +495,7 @@ void AMSParticle::trd_Hlikelihood(){
       _phtrd=SegToTrack(sptr[0],sptr[1]);
       if(_phtrd){
 	if(debug)printf("new TRDHTrack found\n");
-	_phtrd->status=2;
+	_phtrd->status=3;
 	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
       }
     }
@@ -521,7 +522,12 @@ void AMSParticle::trd_Hlikelihood(){
   for(int s=0;s!=2;s++){
     for(int n=0;n!=_phtrd->fTRDHSegment[s]->nhits;n++){
       AMSTRDIdSoft id(_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->getidsoft());
-      amp[id.getlayer()]+=_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->Amp()/TRDMCFFKEY.GeV2ADC*1.e6;
+
+      // hardcode keV2ADC with a (very) rough approximation for testbeam 40.
+      if(MISCFFKEY.BeamTest==1)amp[id.getlayer()]+=_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->Amp()/40.;
+
+      else amp[id.getlayer()]+=_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->Amp()/TRDMCFFKEY.GeV2ADC*1.e6;
+
     }  
   }
   
