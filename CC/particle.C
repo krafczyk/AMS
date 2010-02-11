@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.192 2010/02/11 15:20:29 mmilling Exp $
+//  $Id: particle.C,v 1.193 2010/02/11 15:26:36 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -499,7 +499,6 @@ void AMSParticle::trd_Hlikelihood(){
 	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
       }
     }
-    
   }
   if(!_phtrd)return;
 
