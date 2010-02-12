@@ -1442,164 +1442,165 @@ void AMSEvent::copy(){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
-     addnext(AMSID("WriteAll",0),new Test());
+  addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
   if(_SelectedEvents){
     if(_SelectedEvents->Run==0){
-       GCFLAG.IEORUN=1;
-       GCFLAG.IEOTRI=1;
-       return;
+      GCFLAG.IEORUN=1;
+      GCFLAG.IEOTRI=1;
+      return;
     }
     else{
       EventId o(getrun(),getid());
       if(_SelectedEvents->Run > o.Run){
-         if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
-         return;
+	if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+	return;
       }
       else if(*_SelectedEvents < o){
-       while(*_SelectedEvents<o && _SelectedEvents->Run){
-         if(_SelectedEvents->Event)cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
-         _SelectedEvents++;
-       }
-         if(_SelectedEvents->Run!=o.Run){
+	while(*_SelectedEvents<o && _SelectedEvents->Run){
+	  if(_SelectedEvents->Event)cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
+	  _SelectedEvents++;
+	}
+	if(_SelectedEvents->Run!=o.Run){
           return;
-         }
-       }
-      if(_SelectedEvents->Event){
-       if(o!=*_SelectedEvents){
-        if(! AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event)){
-           SELECTFFKEY.Run=_SelectedEvents->Run;
-           SELECTFFKEY.Event=_SelectedEvents->Event;
-           DAQEvent::select();
-         }
-         return;
-       }
-       _SelectedEvents++;
-       }       
+	}
       }
+      if(_SelectedEvents->Event){
+	if(o!=*_SelectedEvents){
+	  if(! AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event)){
+	    SELECTFFKEY.Run=_SelectedEvents->Run;
+	    SELECTFFKEY.Event=_SelectedEvents->Event;
+	    DAQEvent::select();
+	  }
+	  return;
+	}
+	_SelectedEvents++;
+      }       
     }
-    AMSgObj::BookTimer.start("EventStatus");
+  }
+  AMSgObj::BookTimer.start("EventStatus");
   if(STATUSFFKEY.status[32]){
     int ok=AMSJob::gethead()->getstatustable()->statusok(getid(),getrun());
     int skipped=0;
     if(!ok){
 #pragma omp critical (g4)
-{
-       skipped=AMSJob::gethead()->getstatustable()->getnextok();
-       PosInRun+=skipped;
-}
-   }
-   AMSgObj::BookTimer.stop("EventStatus");
+      {
+	skipped=AMSJob::gethead()->getstatustable()->getnextok();
+	PosInRun+=skipped;
+      }
+    }
+    AMSgObj::BookTimer.stop("EventStatus");
 #pragma omp critical (g3)
-       GCFLAG.IEVENT+=skipped;
-   if(!ok)return;
+    GCFLAG.IEVENT+=skipped;
+    if(!ok)return;
   }
-    AMSUser::InitEvent();
-   try{
+  AMSUser::InitEvent();
+  try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
     AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     
 
-      if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
+    if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
 
-        _reamsevent();
-        if(AMSJob::gethead()->isCalibration())_caamsevent();
-        _collectstatus();
-      }
-   }
-   catch (AMSLVL3Error e){
+      if(_id<=IOPA.skip) return;
+	_reamsevent();
+      if(AMSJob::gethead()->isCalibration())_caamsevent();
+      _collectstatus();
+    }
+  }
+  catch (AMSLVL3Error e){
     _collectstatus();
-     // No LVL3
-//   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
-//    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
-//   }
-   }
-    if(AMSStatus::isDBWriteR()){
-      AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
-    }
-    else if(AMSStatus::isDBUpdateR()){
-      AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
-    }
+    // No LVL3
+    //   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
+    //    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
+    //   }
+  }
+  if(AMSStatus::isDBWriteR()){
+    AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
+  }
+  else if(AMSStatus::isDBUpdateR()){
+    AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
+  }
 }
-  //------------------------------------------------------------------
-  void AMSEvent::_siamsevent(){
+//------------------------------------------------------------------
+void AMSEvent::_siamsevent(){
   AMSgObj::BookTimer.start("SIAMSEVENT");
   int cftr;  
-    AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-    if(ptr){
-     int iset;
-     geant coo[7];
-     abinelget_(iset,coo);
-     if(iset){
-       AMSmceventg* genp=new AMSmceventg(iset+256,coo[6],AMSPoint(coo[0],coo[1],coo[2]),AMSDir(coo[3],coo[4],coo[5]));
-       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+  AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+  if(ptr){
+    int iset;
+    geant coo[7];
+    abinelget_(iset,coo);
+    if(iset){
+      AMSmceventg* genp=new AMSmceventg(iset+256,coo[6],AMSPoint(coo[0],coo[1],coo[2]),AMSDir(coo[3],coo[4],coo[5]));
+      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
 
-     }
     }
-    _siecalevent();
-    _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
-//                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
-    _sianti2event();//Anti(as TOF) is digitized only by combined FT (checked inside of subr.!)
-    _sitrdevent(); 
-    _sirichevent();
-    _sitkevent(); 
-    _sitrigevent();//create lev1/lev3 trig.object
-    _sidaqevent(); //DAQ-simulation 
-  AMSgObj::BookTimer.stop("SIAMSEVENT");
   }
+  _siecalevent();
+  _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
+  //                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
+  _sianti2event();//Anti(as TOF) is digitized only by combined FT (checked inside of subr.!)
+  _sitrdevent(); 
+  _sirichevent();
+  _sitkevent(); 
+  _sitrigevent();//create lev1/lev3 trig.object
+  _sidaqevent(); //DAQ-simulation 
+  AMSgObj::BookTimer.stop("SIAMSEVENT");
+}
 //------------------------------------------------------------------------------------------------------------------------
 void AMSEvent::_reamsevent(){
   AMSgObj::BookTimer.start("REAMSEVENT");  
 
-   // get beam par, and other things  if any;
-   _regnevent();
-   if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest>1){
-      // skip event if there is no mceventg record
-      AMSContainer *p=getC("AMSmceventg",0);
-      if(!p || p->getnelem()==0){
-        cerr <<"_reamsevent-E-NomceventgRecord" <<getrun()<<endl;
-        if(!GCFLAG.IEORUN && MISCFFKEY.BeamTest>1)GCFLAG.IEORUN=2;  //skip entire run
-        AMSgObj::BookTimer.stop("REAMSEVENT");  
-        return;
-      }
-   }
+  // get beam par, and other things  if any;
+  _regnevent();
+  if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest>1){
+    // skip event if there is no mceventg record
+    AMSContainer *p=getC("AMSmceventg",0);
+    if(!p || p->getnelem()==0){
+      cerr <<"_reamsevent-E-NomceventgRecord" <<getrun()<<endl;
+      if(!GCFLAG.IEORUN && MISCFFKEY.BeamTest>1)GCFLAG.IEORUN=2;  //skip entire run
+      AMSgObj::BookTimer.stop("REAMSEVENT");  
+      return;
+    }
+  }
 #ifdef __AMSDEBUG__
   _redaqevent();//create subdetectors RawEvent-Objects
 #else
   if(AMSJob::gethead()->isReconstruction() ){
-_redaqevent();//create subdetectors RawEvent-Objects
-}
+    _redaqevent();//create subdetectors RawEvent-Objects
+  }
 #endif
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
-  for(int i=0;;i++){
-    AMSContainer *pctr=AMSEvent::gethead()->getC("TriggerLVL1",i);
+    for(int i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("TriggerLVL1",i);
       if(pctr)pctr->eraseC();
       else break ;
-  }
+    }
 
-      AMSgObj::BookTimer.stop("REAMSEVENT");  
-     return;    
+    AMSgObj::BookTimer.stop("REAMSEVENT");  
+    return;    
   }
 
 
 
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//attach needed subdets parts to existing lvl1-obj
-// copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
-//
-//----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
-bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);
-bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==5);
-bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
-bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==6);
-//
+  // copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
+  //
+  //----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
+  bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);
+  bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==5);
+  bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
+  bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==6);
+  //
   calltrk  = (!(ecpedcal || tftdccal || tfpedcal));
   calltrd  = (!(ecpedcal || tftdccal || tfpedcal));
   callrich = (!(ecpedcal || tftdccal || tfpedcal));
   callax   = (!(ecpedcal || tftdccal || tfpedcal));
   calluser = (!(ecpedcal || tftdccal || tfpedcal));
-//
+  //
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
     _reanti2event();

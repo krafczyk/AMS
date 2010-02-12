@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.10 2010/02/01 12:44:05 shaino Exp $ 
+/// $Id: TrCluster.C,v 1.11 2010/02/12 12:13:00 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/02/01 12:44:05 $
+/// $Date: 2010/02/12 12:13:00 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -68,7 +68,13 @@ TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind,
   Clear();
   _tkid    =  tkid;
   _address =  add;
-  _nelem   =  nelem;
+  if((add+nelem-1)>=1024){
+    _nelem=1024-add;
+    cerr<<"TrClusterR::TrClusterR -W- You are tring to create a Cluster with address "<< add<<" and length "<<nelem<<endl;
+    cerr<<"                            Cluster has been truncated to the physical limit"<<endl;
+  }
+  else
+    _nelem   =  nelem;
   _seedind =  seedind;
   _signal.reserve(_nelem);
   for (int i = 0; i<_nelem; i++) _signal.push_back(adc[i]);

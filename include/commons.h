@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.281 2010/01/19 15:28:19 mdelgado Exp $
+//  $Id: commons.h,v 1.282 2010/02/12 12:13:02 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -160,6 +160,7 @@ uinteger MaxFileSize;
 integer MaxFileTime;
 integer BuildMin;
 integer histoman;
+integer skip;
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.129 2010/02/09 12:41:30 choutko Exp $
+//  $Id: ecalrec.C,v 1.130 2010/02/12 12:13:01 pzuccon Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2486,18 +2486,19 @@ void AMSEcalShower::ProfileFit(){
 void AMSEcalShower::gamfunr(number& x, number &fc, AMSEcalShower *p){
  fc=0;
  if(x>0){
- number et=p->_Et;
- number xc[3];
- for(int i=0;i<3;i++){
-  xc[i]=p->_ProfilePar[i+5*p->_Direction];
+   number et=p->_Et;
+   number xc[3];
+   for(int i=0;i<3;i++){
+     xc[i]=p->_ProfilePar[i+5*p->_Direction];
+   }
+   
+   number aa=-x/xc[2];
+   
+   if(et && xc[2]!=0){
+     fc=pow(x,xc[1]/xc[2])*exp(aa);
+     fc*=xc[0]/et;
+   }
  }
-
- 
- if(et && xc[2]!=0){
-  fc=pow(x,xc[1]/xc[2])*exp(-x/xc[2]);
-  fc*=xc[0]/et;
- }
-}
 }
 
 void AMSEcalShower::gamfun(integer &n, number xc[], number &fc, AMSEcalShower *p){

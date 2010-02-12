@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.74 2010/01/03 22:12:28 shaino Exp $
+//  $Id: beta.C,v 1.75 2010/02/12 12:13:00 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -1020,10 +1020,15 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
  x2=x2/e2;
  xa=xa/e2;
  ya=ya/e2;
- a=(xy-xa*ya)/(x2-xa*xa);
- b=ya-a*xa;
+ double kk=(x2-xa*xa);
+ if(kk==0) kk=0.000001;
+ a=(xy-xa*ya)/kk;
 
- _Beta=1/a;
+ b=ya-a*xa;
+ if (a==0)
+   _Beta=100;
+ else
+   _Beta=1/a;
 if(fabs(_Beta)>2){
  static int nerr=0;
  if(nhit>2 && nerr++<100)cerr<<" AMSBeta::SimpleFit-W-BetaOutOfRange "<<_Beta<<endl;
@@ -1035,7 +1040,7 @@ if(fabs(_Beta)>2){
  for(i=0;i<nhit;i++)_Chi2+=(y[i]-a*x[i]-b)/ey[i]*(y[i]-a*x[i]-b)/ey[i];
  if(nhit>2)_Chi2=_Chi2/(nhit-2);
  else _Chi2=0;
- _InvErrBeta=sqrt(1./e2)/sqrt(x2-xa*xa);   
+ _InvErrBeta=sqrt(1./e2)/sqrt(kk);   
 
 //  Corrected Beta
   if(_InvErrBeta==_InvErrBeta && fabs(_InvErrBeta)<FLT_MAX && nhit>2){

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.14 2010/02/01 12:44:05 shaino Exp $
+//  $Id: TrFit.C,v 1.15 2010/02/12 12:13:00 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/02/12 12:13:00 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -732,7 +732,9 @@ double TrFit::AlcarazFit(void)
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
 
   // Fill parameters
-  double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
+  double dzarg=1-_param[2]*_param[2]-_param[3]*_param[3];
+  double dz = 1;
+  if(dzarg>=0) dz=std::sqrt(dzarg);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
   _p0y = _param[1]; _dydz = -_param[3]/dz;
   _p0z = _zh[0];
@@ -1117,7 +1119,8 @@ double TrFit::ChoutkoFit(void)
 
     // Invert covariance matrix
     if (TrFit::Inv55(gg) < 0) return -1;
-
+    //PZ FPE Fix
+    if(gg[4][4]<0) return -1;
     // Error of rigidity
     _errrinv = std::sqrt(2*gg[4][4]);
 
