@@ -2777,7 +2777,11 @@ void AMSEvent::_writeEl(){
   int nws=myp?myp->getlength():0;
 // Fill the ntuple
   EventNtuple02* EN = AMSJob::gethead()->getntuple()->Get_event02();
+#ifndef _PGTRACK_
   EN->BAv=_ccebp?_ccebp->getBAv()*(_ccebp->BOK()?1:0):-1;
+#else
+  EN->BAv=_ccebp?_ccebp->getBAv():0;
+#endif
   EN->TempTracker=_ccebp?_ccebp->getTAv():-273;
   EN->EventStatus[0]=getstatus()[0];
   EN->EventStatus[1]=getstatus()[1];
