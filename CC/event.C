@@ -4024,13 +4024,19 @@ return sqrt(av2);
 
 
 bool AMSEvent::CCEBPar::BOK()const{
-bool ok= getBAv()>=0 && getBSi()<0.02*getBAv();
+bool ok= getBAv()>=0 && getBSi()<0.1*getBAv();
+static int berr=0;
+if(!ok && berr++<100){
+ cerr<<" AMSEvent::CCEBPar::BOK-E-BSensorsProblem "<<getBAv()<<" "<<getBSi();
+ for(int i=0;i<4;i++)cerr<<" "<<B[0][i];
+ cerr<<endl;
+}
 return ok;
 }
 
 
 bool AMSEvent::CCEBPar::TOK()const{
-bool ok= getTAv()>-273 && getTSi()<0.02*fabs(getTAv());
+bool ok= getTAv()>-273 && getTSi()<0.1*fabs(getTAv());
 return ok;
 }
 void AMSEvent::buildcceb(integer n, int16u* p){
@@ -4104,6 +4110,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
 #pragma omp critical (rec)
 {               
                 for (int k=sizeof(ArrayC)/sizeof(ArrayC[0])-1;k>=rec;k--){
+                //cout <<AMSEvent::gethead()->gettime()<<" "<<bt[0][0]<<endl;
                 if(AMSEvent::gethead())ArrayC[k].Time=AMSEvent::gethead()->gettime();
                 else ArrayC[k].Time=(*(p-1)) |  (*(p))<<16;     //tbfixed
                 for(int i=0;i<4;i++){
@@ -4112,6 +4119,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                   ArrayC[k].B[1][i]=bt[i][2];
                   ArrayC[k].B[2][i]=bt[i][1];
                 }
+                 
                 }
                 cout <<"AMSEvent::buildcceb-I-RecordFilled "<<rec<<" "<<ArrayC[rec].Time<<endl;
                 rec=(rec+1)%(sizeof(ArrayC)/sizeof(ArrayC[0]));
@@ -4120,7 +4128,9 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                   AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("CCEBPar",AMSJob::gethead()->isRealData()));
                 int diff=ArrayC[sizeof(ArrayC)/sizeof(ArrayC[0])-1].Time-ArrayC[0].Time;
                 bool ok=diff>0 && diff<86400;
-                
+    for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
+       cout<<" Time " <<i<< " "<<ArrayC[i].Time<<endl;
+                }
                 if(ptdv && ok){
                   ptdv->UpdateMe()=1;
                   ptdv->UpdCRC();
@@ -4145,7 +4155,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                }
            }
        }
-               else cerr<<"AMSEvent::buildcceb-R-NoTDVFoundOrBadRecord "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData())<<" "<<diff<<endl;
+               else cerr<<"AMSEvent::buildcceb-E-NoTDVFoundOrBadRecord "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData())<<" "<<diff<<endl;
 }
 }
 }
