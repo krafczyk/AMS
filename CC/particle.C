@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.194 2010/02/16 09:54:45 choutko Exp $
+//  $Id: particle.C,v 1.195 2010/02/16 11:18:59 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1084,7 +1084,7 @@ void AMSParticle::richfit(){
       if(_GPart !=14 || dorefit){
 	if(!_ptrack->AdvancedFitDone()){
 #ifdef _PGTRACK_
-	  _ptrack->DoAdvancedFit();//PZ FIXME
+	 // It is done in TrRecon !!!!  _ptrack->DoAdvancedFit();//PZ FIXME
 	  //      if(_GPart!=14)_ptrack->FitP(AMSTrTrack::kChoutko,_GPart);
 #else
 	  _ptrack->AdvancedFit();
