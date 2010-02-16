@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.193 2010/02/11 15:26:36 mmilling Exp $
+//  $Id: particle.C,v 1.194 2010/02/16 09:54:45 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -167,7 +167,7 @@ integer AMSParticle::build(integer refit){
         double ecal_ene=pecal->getEnergy();
         double ecal_ene_err=pecal->getEnergyErr();
 	if(!isfinite(ecal_ene)){
-	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result is Not a Good floating number "<< ecal_ene<<" !!!"<<endl;
+//	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result is Not a Good floating number "<< ecal_ene<<" !!!"<<endl;
 	   break;
 	}
 	if(fabs(ecal_ene) > 1e6) ecal_ene=1e6;
@@ -175,7 +175,7 @@ integer AMSParticle::build(integer refit){
 	//PZ FPE FIX often ecal ene is very small double skip in this case
 	
 	if(ecal_ene<=MINDOUBLE) {
-	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result small double near to Zero!!!"<<endl;
+	//  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result small double near to Zero!!!"<<endl;
 	  break;
 	}
 	

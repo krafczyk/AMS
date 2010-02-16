@@ -312,7 +312,7 @@ C Final Chi2
       END DO
 C Convert rigidity to GV
       OUTPAR(5)=OUTPAR(5)/2.997E-4
-      OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
+      OUTPAR(6)=SQRT(ABS(DD(5,5)))/2.997E-4
       ierr=2
       goto 999
 

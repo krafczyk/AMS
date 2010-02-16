@@ -1,4 +1,4 @@
-//  $Id: AMSGenHist.cxx,v 1.8 2009/12/29 11:17:54 choutko Exp $
+//  $Id: AMSGenHist.cxx,v 1.9 2010/02/16 09:56:50 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -50,7 +50,12 @@ _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
   _filled.push_back(new TProfile("totallvsd","TotalLength vs TimeD msec",1000,0.001,25.001));
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
+  AddSet("Misc Info");
+  _filled.push_back(new TH1F("Bx","Bx (Kg)",400,0.,20.));
+_filled[_filled.size()-1]->SetXTitle("Average Bx (KGauss)");
+
 }
+
 
 
 void AMSGenHist::ShowSet(Int_t Set){
@@ -79,6 +84,14 @@ for(int i=0;i<6;i++){
  gPadSave->cd();
 }
 break;
+case 2:
+gPad->Divide(1,1);
+ gPad->cd(1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled[8+6]->Draw();
+break;
 }
 }
 
@@ -106,6 +119,8 @@ void AMSGenHist::Fill(AMSNtupleR *ntuple){
       ((TProfile*)_filled[13])->Fill(xtime,ntuple->pDaqEvent(0)->Length);  
     }
    }
+   //cout <<ntuple->fHeader.BAv<<endl;
+   _filled[14]->Fill(ntuple->fHeader.BAv,1.);
    evno=ntuple->Event();
      Float_t xm=0;
 //    if(ntuple->nMCEventg()>0){		

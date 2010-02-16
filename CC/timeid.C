@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.108 2010/02/09 12:41:30 choutko Exp $
+//  $Id: timeid.C,v 1.109 2010/02/16 09:54:52 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -214,6 +214,7 @@ again:
         fbin.close();
         goto again;
     }
+    fbin.clear();
     fbin.open((const char *)fnam,ios::out|ios::trunc);
     if(fbin){
       uinteger * pdata;
