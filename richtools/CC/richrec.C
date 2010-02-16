@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.9 2010/02/09 16:13:27 mdelgado Exp $
+//  $Id: richrec.C,v 1.10 2010/02/16 16:37:02 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -335,13 +335,14 @@ RichRing *RichRing::build(AMSEventR *event,TrTrackR *tr){
     if(!event->pParticle(0)) return 0;
     RichRingR *ring=event->pParticle(0)->pRichRing();
     if(!ring) return 0;
-    track._r.setp(ring->AMSTrPars[0],
-		  ring->AMSTrPars[1],
-		  ring->AMSTrPars[2]);
-    track._d.SetTheta(ring->AMSTrPars[3]);
-    track._d.SetPhi(ring->AMSTrPars[4]);
+    if(ring->AMSTrPars[0]!=0 && ring->AMSTrPars[1]!=0 && ring->AMSTrPars[2]!=0){
+      track._r.setp(ring->AMSTrPars[0],
+		    ring->AMSTrPars[1],
+		    ring->AMSTrPars[2]);
+      track._d.SetTheta(ring->AMSTrPars[3]);
+      track._d.SetPhi(ring->AMSTrPars[4]);
+    }
   }
-
 
 #ifdef __AMSDEBUG__
   cout<<"RichRing::build(AMSEventR *event,TrTrackR *tr)-> build(TrTrack,int)"<<endl;
