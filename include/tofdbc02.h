@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.43 2010/01/08 11:32:29 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.44 2010/02/17 15:17:08 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -78,7 +78,7 @@ const integer SCTHMX1=8;//max TDC FTrigger-channel hits
 const integer SCTHMX2=16;//max TDC SumHT(SHT)-channel (history) hits  
 const integer SCTHMX3=16;//max TDC LTtime-channel hits
 const integer SCTHMX4=1;//max adca(anode) hits  
-const integer SCJSTA=50;   //size of Job-statistics array
+const integer SCJSTA=60;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
 const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)

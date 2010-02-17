@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.90 2010/01/19 09:24:16 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.91 2010/02/17 15:17:08 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -103,9 +103,13 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
         cout <<"      FinalAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers3);//clean room
       }
-      else{
-        cout <<"      Space (default) setup selected..."<<endl;
+      else if(strstr(AMSJob::gethead()->getsetup(),"Space")){
+        cout <<"      Space setup selected..."<<endl;
         strcat(name,vers4);//space
+      }
+      else{
+        cout <<"    Assembly_1(as default) setup selected..."<<endl;
+        strcat(name,vers3);//Ass1(default)
       }
     }
 //
@@ -869,11 +873,11 @@ void EcalJobStat::bookhist(){
     }
 //---
     if(ECREFFKEY.reprtf[0]>1){ // Book reco-hist
-      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,240.,0.);
+      HBOOK1(ECHISTR+10,"ECRE::HitBuild: RawEvent-hits tot.number",80,0.,800.,0.);
       HBOOK1(ECHISTR+11,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",200,0.,100000.,0.);
       HBOOK1(ECHISTR+12,"ECRE::HitBuild: RawEvent-hits ADCtot(adcch,gain-corr)",100,0.,2000.,0.);
       HBOOK1(ECHISTR+13,"ECRE::HitBuild: EcalHit-hits tot.number",80,0.,160.,0.);
-      HBOOK1(ECHISTR+14,"ECRE::HitBuild: RawEvent-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
+      HBOOK1(ECHISTR+14,"ECRE::HitBuild: RawEvent-hits Etot(NoDynCorr,Mev)",200,0.,1000000.,0.);
       HBOOK1(ECHISTR+9,"ECRE::HitBuild: EcalHit-hit Energy(Mev)",100,0.,100.,0.);
       HBOOK1(ECHISTR+15,"ECRE::HitBuild: DyCorrectionEn(tot,Mev)",100,0.,1000,0.);
       HBOOK1(ECHISTR+16,"ECRE::HitBuild: RawEvent-hit value(adc,gain-corr)",200,0.,4000.,0.);
@@ -884,8 +888,8 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTR+20,"ECRE: T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
         HBOOK1(ECHISTR+21,"ECRE: Z-profile",maxpl,1.,geant(maxpl+1),0.);
       }
-//      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000,0.);//now not my responsib.
-//      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
+//      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000.,0.);//now not my responsib.
+//      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000.,0.);
 //      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);//not implemented
 //      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
       HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(when FTE, valid-stage)",120,1.,121.,0.);

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.43 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.44 2010/02/17 15:17:08 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -110,7 +110,7 @@ if(hprtf>0){
   if(hprtf>1)HBOOK1(1500,"TmAmC:Anticounter cluster-energy(mev)",80,0.,20.,0.);//
   HBOOK1(1501,"TmAmC:Qmax ratio",80,0.,16.,0.);//
   HBOOK1(1502,"TmAmC:Aver.Q(pC,truncated)",60,0.,600.,0.);//
-  HBOOK1(1503,"TmAmC:MyTofBeatFit Beta(prev.calib)",80,0.4,1.2,0.);//
+  HBOOK1(1503,"TmAmC:MyTofBeatFit Beta(prev.calib)",100,-1.2,1.2,0.);//
   if(hprtf>1)HBOOK1(1504,"TmAmC:Particle multipl. in calib.events",10,0.,10.,0.);
   HBOOK1(1505,"TmAmC:Part.rigidity from TRK(gv)",100,0.,50.,0.);//
   HBOOK1(1506,"TmAmC:PartBeta(prev.calib)",80,0.4,1.2,0.);// 
@@ -121,7 +121,7 @@ if(hprtf>0){
       
   HBOOK1(1510,"TmAmC:MyTofBetaFit Chisq(prev.calib)",100,0.,25.,0.);
   HBOOK1(1511,"TmAmC:MyTofBetaFit Tzero(prev.calib)",50,-1.,1.,0.);
-  HBOOK1(1513,"TmAmC:Primitive(noFit, noTrack required) TofBeta(prev.calib)",50,0.4,1.4,0.);//
+  HBOOK1(1513,"TmAmC:Primitive(noFit, noTrack required) TofBeta(prev.calib)",100,-1.25,1.25,0.);//
       
   HBOOK1(1200,"TmAmC:Res_long.coo(track-sc),L=1",60,-15.,15.,0.);//
   HBOOK1(1201,"TmAmC:Res_long.coo(track-sc),L=2",60,-15.,15.,0.);//
@@ -433,6 +433,7 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   plow[0]=0.;
   phigh[0]=40.;
   ifit[0]=TFCAFFKEY.ifsl;// fix/release slope 
+  if(TFCAFFKEY.idref[1]==2)ifit[0]=0;
 //T0's
   ii=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
@@ -479,8 +480,8 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
       id=(il+1)*100+ib+1;
       if(s3[il][ib]>=50.){
         if(TFCAFFKEY.idref[1]==0 
-	     || (TFCAFFKEY.idref[1]==1 && (il==1 || il==2) && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
-	     || (TFCAFFKEY.idref[1]==2 && (il==1 || il==2) && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
+	     || (TFCAFFKEY.idref[1]==1 && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
+	     || (TFCAFFKEY.idref[1]==2 && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
           ifit[1+seqnum]=1;//bar with high statist.-> release
           nparr+=1;
 	}
@@ -817,8 +818,8 @@ void TofTmAmCalib::select(){  // calibr. event selection
 				                                 ){//use only 2-sided (
         ilay=(ptr->getntof())-1;
         ibar=(ptr->getplane())-1;
-	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
-	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
+//	if(TFCAFFKEY.idref[1]==0 || TFCAFFKEY.idref[1]==2 ||
+//	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//skip trapez.c if requested
           ptr->getadca(ama);
           if((ama[0]>adcmin && ama[1]>adcmin)
 	                     || ((ama[0]>adcmin || ama[1]>adcmin) && PMEQmode)
@@ -863,7 +864,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
             for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma2[ilay][ip]=amdr[ip];
 //------
 	  }
-	}
+//	}
       }
     }
     ptr=ptr->next();
@@ -969,6 +970,8 @@ void TofTmAmCalib::select(){  // calibr. event selection
     if(ltim[2]!=0 && ltim[3]!=0)tbot=ltim[2]+ltim[3];
     betof=0;
     if(ttop!=0 && tbot!=0){
+//      betof=((ltim[0]-ltim[3])/(zx[0]-zx[1])+(ltim[1]-ltim[2])/(zy[0]-zy[1]))
+//                                /cosc/cvel/2;//primitive(noFit) TOFbeta based on prev.calibr.
       betof=2.*lflgt/(ttop-tbot)/cosc/cvel;//primitive(noFit) TOFbeta based on prev.calibr.
       if(TFCAFFKEY.hprintf>0){
 #pragma omp critical (hf1)
@@ -979,10 +982,10 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     if(!PMEQmode){//calib-mode
       if(!RelaxCut){
-        if(betof<0.6 || betof>1.3)return;
+        if(fabs(betof)<0.6 || fabs(betof)>1.3)return;
       }
       else{
-        if(betof<0.1 || betof>1.8)return;//relaxed
+        if(fabs(betof)<0.1 || fabs(betof)>1.8)return;//relaxed
       }
     }
   }
@@ -1233,9 +1236,11 @@ Nextp:
 }
       }
 //
+//cout<<"<---trlr="<<trlr[0]<<" "<<trlr[1]<<" "<<trlr[2]<<" "<<trlr[3]<<"  beta="<<beta<<endl;
       for(i=0;i<TOF2GC::SCLRS-1;i++){
         if(trlr[i+1]!=0.)trlen[i]=fabs(trlr[0]-trlr[i+1]);//1->2,1->3,1->4(missings=0)
       }
+//cout<<"<---trlen(1->)="<<trlen[0]<<" "<<trlen[1]<<" "<<trlen[2]<<endl;
     }//-->endof "use TOF/TRD-track"mode check
 //-----
     if(bad4tdcal==0)TOF2JobStat::addre(28);//just to count good events for Tdelv-calib
@@ -1289,8 +1294,8 @@ Nextp:
         HF1(1511,tzer,1.);
 }
       }
-      if(!RelaxCut)TofBetaFitOK=(chsq<25. && betof>0.6 && betof<1.3);//check on chi2/beta
-      else TofBetaFitOK=(chsq<50. && betof>0.1 && betof<1.8);//relaxed check on chi2/beta
+      if(!RelaxCut)TofBetaFitOK=(chsq<25. && fabs(betof)>0.6 && fabs(betof)<1.3);//check on chi2/beta
+      else TofBetaFitOK=(chsq<50. && fabs(betof)>0.1 && fabs(betof)<1.8);//relaxed check on chi2/beta
     }//--->endof "normal calib" mode check(imply 4 layers)
 //---
     if(!TofBetaFitOK && !PMEQmode)return;
@@ -1350,18 +1355,18 @@ Nextp:
     badx=0;
     bady=0;
     if(MomMeasExist){
-      massq=pmom*pmom*(1.-betof*betof)/betof/betof;//measured(TOFvsTRK) mass**2
+      massq=pmom*pmom*(1.-betof*betof)/(betof*betof);//measured(TOFvsTRK) mass**2
       betg=pmom/imass;//use "tracker-defined" betg
       if(TFCAFFKEY.hprintf>1){ 
 #pragma omp critical (hf1)
 {
         HF1(1225,geant(massq),1.);
-        if(betof<0.88)HF1(1226,geant(massq),1.);
+        if(fabs(betof)<0.88)HF1(1226,geant(massq),1.);
         HF1(1227,geant(betg),1.);
 }
 #pragma omp critical (hf2)
 {
-        HF2(1228,geant(pmom),geant(betof),1.);
+        HF2(1228,geant(pmom),geant(fabs(betof)),1.);
 }
       }
 //
@@ -1397,10 +1402,10 @@ Nextp:
       bad=0;
       for(il=0;il<TOF2GC::SCLRS;il++){//check presence of trapez.counters
         ib=brnl[il];
-        if(TFCAFFKEY.idref[1]==1 && (il==1 || il==2)
+        if(TFCAFFKEY.idref[1]==1
 	                         && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))bad=1;
       }
-      if(bad==1)goto SkipTzsl;//ignore trapez.counter when requested
+      if(bad==1)goto SkipTzsl;//ignore events with trapez.counters, when requested
 //      if(IonEvent)goto SkipTzsl;
       TOF2JobStat::addre(34);
 //
@@ -1567,7 +1572,7 @@ SkipTzsl:
         }
         else{//no mom-info, put LowBeta-cut to select mip(raw approximation)
           if(ainp[0]>adcmin && ainp[1]>adcmin){
-            if(betof>0.85 || RelaxCut){
+            if(fabs(betof)>0.85 || RelaxCut){
 #pragma omp critical (ctof_fillabs)
 {
 	      TofTmAmCalib::fillabs(il,ib,ainp,cinp);

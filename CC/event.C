@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.465 2010/02/17 12:06:58 choutko Exp $
+//  $Id: event.C,v 1.466 2010/02/17 15:17:08 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1555,7 +1555,6 @@ void AMSEvent::_siamsevent(){
 //------------------------------------------------------------------------------------------------------------------------
 void AMSEvent::_reamsevent(){
   AMSgObj::BookTimer.start("REAMSEVENT");  
-
   // get beam par, and other things  if any;
   _regnevent();
   if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest>1){
@@ -1591,19 +1590,21 @@ void AMSEvent::_reamsevent(){
 
 
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//attach needed subdets parts to existing lvl1-obj
-  // copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
-  //
-  //----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
+// copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
+//
+//----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
   bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);
   bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==5);
   bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
+  bool tfcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]>0);
   bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==6);
-  //
+//
   calltrk  = (!(ecpedcal || tftdccal || tfpedcal));
   calltrd  = (!(ecpedcal || tftdccal || tfpedcal));
   callrich = (!(ecpedcal || tftdccal || tfpedcal));
   callax   = (!(ecpedcal || tftdccal || tfpedcal));
   calluser = (!(ecpedcal || tftdccal || tfpedcal));
+  callecal = (!tfcal);
   //
   if(getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();

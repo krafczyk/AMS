@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.72 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.73 2010/02/17 15:17:08 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -174,6 +174,10 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
       else if(strstr(AMSJob::gethead()->getsetup(),"Ass1")){
         cout <<"      Assembly_1(CleanRoom) setup selected..."<<endl;
         strcat(name,vers3);//clean room final assembly-1
+      }
+      else{
+        cout <<"      Assembly_1(as default) setup selected..."<<endl;
+        strcat(name,vers3);//default(Ass1)
       }
     }
     
@@ -2091,6 +2095,7 @@ void TOF2JobStat::printstat(){
     printf(" TOFUser entries                      : % 6d\n",recount[21]);
     printf("   with 4Layer of RawClusters/lay=1   : % 6d\n",recount[30]);
     printf("   with 4Layer of Clusters/layer=1    : % 6d\n",recount[31]);
+    printf("   Special TofPatt selection OK       : % 6d\n",recount[50]);
     printf("   NofAccClSectors Low                : % 6d\n",recount[22]);
     printf("   Events with nonemp Part-envelop    : % 6d\n",recount[24]);
     printf("   Particle with AnyTrack             : % 6d\n",recount[25]);
