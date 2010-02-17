@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.195 2010/02/16 11:18:59 pzuccon Exp $
+//  $Id: particle.C,v 1.196 2010/02/17 16:12:16 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -892,7 +892,8 @@ void AMSParticle::richfit(){
 	  _calcmass(_Momentum,_ErrMomentum,_Beta,_ErrBeta,_Mass,_ErrMass);
 	}
 	else{
-	  cerr<<"RICH & TOF Disagree TOF Says velocity is "<<1/_beta<<" RICH "<<1/b1<<endl;
+          static int fprint=0; 
+	  if(fprint++<100)cerr<<"RICH & TOF Disagree TOF Says velocity is "<<1/_beta<<" RICH "<<1/b1<<endl;
           _beta=b1;
 	  _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
 	  _ebeta=1./(1/_ebeta+1/b2);
