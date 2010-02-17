@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.29 2009/02/23 12:51:21 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.30 2010/02/17 12:06:59 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -618,11 +618,15 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
      $#titles=-1;
                         @titles = (
             "Run",
-            "Time",
+            "Uid",
+            "SubmitTime",
             "First Event",
             "Last Event",
             "Priority ",
             "History ",
+            "Fails ",
+            "DataMC",
+            "Host",
             "Status ",
                                    );
 

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.32 2010/01/22 11:08:36 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.33 2010/02/17 12:06:59 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -282,11 +282,11 @@ public:
     if(pcl){
       float error[3];
       error[0]=error[1]=0.85/2*size;  //tmp
-      error[2]=sqrt(pcl->Npe);
+      error[2]=sqrt(fabs(pcl->Npe));
       SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]+error[2]);
       SetSize(error[0],error[1],error[2]);
-      //  cout <<"  rich hit "<<pcl->Coo[0]<<" "<<pcl->Coo[1]<<" "<<pcl->Coo[2]<<endl;
-      //  cout <<error[0]<<" "<<error[1]<<" "<<error[2]<<" "<<endl;
+//        cout <<"  rich hit "<<pcl->Coo[0]<<" "<<pcl->Coo[1]<<" "<<pcl->Coo[2]<<endl;
+//        cout <<error[0]<<" "<<error[1]<<" "<<error[2]<<" "<<endl;
       SetDirection(0,0);
     }
     SetLineWidth(size);
@@ -458,7 +458,7 @@ public:
       array[2]=pcl->Coo[2];
       MCEventgR *pcln=ev->pMCEventg(ref+1);
       if(pcln && pcl->Particle>0)array[5]=pcln->Coo[2];
-      else array[5]=pcl->Coo[2]+10;
+      else array[5]=170;
       array[3]=pcl->Coo[0]+pcl->Dir[0]/pcl->Dir[2]*(array[5]-pcl->Coo[2]);
       array[4]=pcl->Coo[1]+pcl->Dir[1]/pcl->Dir[2]*(array[5]-pcl->Coo[2]);
       SetPolyLine(npoint,array);

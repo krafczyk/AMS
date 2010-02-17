@@ -1,4 +1,4 @@
-//  $Id: BeamPar.C,v 1.5 2001/01/22 17:32:55 choutko Exp $
+//  $Id: BeamPar.C,v 1.6 2010/02/17 12:06:59 choutko Exp $
 #include <typedefs.h>
 #include <cern.h>
 #include <stdlib.h>
@@ -24,22 +24,24 @@ class BeamParEntry {
  public:
   uint Run;       //run
   uint RunTag;   //runTag
-  time_t Time;   //UNIX sec, of the manipulator PC
-  float alpha;
-  float beta;
-  float H;
-   float V;
-  float X;       //cm, the beam cross in AMS coo system
-  float Y;       //cm
-  float Z;       //cm
+  time_t Time;       //run
+  float X;       //mm, the beam cross in AMS coo system
+  float Y;       //mm
+  float Z;       //mm
   float Theta;   //rad [0-Pi], direction of the beam (Pi- from z-direction)
   float Phi;     //rad [0-2Pi]
+  float ux;
+  float uy;
+  float uz;
   uint  Pid;     //Beam particle ID  == Geant Pid
   float Mom;     //Beam particle momentum (GeV/c) - 0-default
   float Intens;  //Beam intensity (part/sec), 0-default
-  uint  Position;    // position number
+  uint  Position;    // position number (1-60) tracker (10001-..) ecal1 (20001-...)ecal2
   float Size;    //beam size in cm;
-   uint Good;
+  uint Good;
+  char current[255] ; //magnet current
+  char label[255]; //label
+  char comment[1024];
  };
 class BeamPar {
  public:
@@ -71,172 +73,54 @@ class BeamPar {
            else cout <<"Histo file "<<"beam"<<" opened."<<endl;
 
               HBOOK1(101,"td",400,-38.5,361.5,0.);
-    char critin[]="/offline/vdev/slow/gsi/testbeam.log";
-    char prod[]="/offline/vdev/slow/gsi/testbeam.info";
-//    char ref[]="/offline/vdev/slow/gsi/ultimz.log";
-    char ref[]="/offline/vdev/slow/gsi/z00_utime.tag";
+    char prod[]="/f2users/choutko/TestBeamLogbook.csv";
     char junk[256];
     char junk1[256];
     char junk2[256];
-    ifstream fcritin;
-    fcritin.open(critin);
-    int nlineCritin=0;
-    int runno,events,eventsp;
-    int expected=0;
-    int expectedp=0;
-    int produced=0;
-    while(1){
-     fcritin >> junk;
-     fcritin.ignore(INT_MAX,'\n');
-     if(fcritin.eof())break;
-     nlineCritin++;
-    }     
-    fcritin.close();
-    fcritin.open(critin);
-    BeamParEntry * BeamCritin = new BeamParEntry[nlineCritin];  
-    nlineCritin=0;
-    while(1){
-     fcritin >>junk;
-     if(fcritin.eof())break;
-     sscanf(junk,"%x",&BeamCritin[nlineCritin].RunTag);
-     fcritin >>junk;
-     sscanf(junk,"%d",&BeamCritin[nlineCritin].Time);
-     fcritin >>junk;
-     sscanf(junk,"%f",&BeamCritin[nlineCritin].alpha);
-     fcritin >>junk;
-     sscanf(junk,"%f",&BeamCritin[nlineCritin].beta);
-     fcritin >>junk;
-     sscanf(junk,"%f",&BeamCritin[nlineCritin].H);
-     fcritin >>junk;
-     sscanf(junk,"%f",&BeamCritin[nlineCritin].V);
-     fcritin.ignore(INT_MAX,'\n');
-     if(fcritin.eof())break;
-     beam_coo_calc(BeamCritin[nlineCritin++]);
-    }      
-    fcritin.close();
-
-    ifstream fprod;
-    fprod.open(prod);
-    int nlineProd=0;
-    while(1){
-     fprod >> junk;
-     fprod.ignore(INT_MAX,'\n');
-     if(fprod.eof())break;
-     nlineProd++;
-    }      
-    fprod.close();
-     nlineProd/=2;
-    fprod.open(prod);
-    BeamParEntry *BeamInfo = new BeamParEntry[nlineProd];
-    nlineProd=0;
-    while(1){
-     fprod >> junk;
-     sscanf(junk,"%x",&BeamInfo[nlineProd].Time);
-     if(fprod.eof())break;
-     fprod >> junk;
-     sscanf(junk,"%x",&BeamInfo[nlineProd].RunTag);
-     fprod.ignore(INT_MAX,'\n');
-     fprod >> junk;
-     if(fprod.eof())break;
-     if(strstr(junk,"Helium"))BeamInfo[nlineProd].Pid=47;
-     else BeamInfo[nlineProd].Pid=67;
-     fprod >> junk;
-     int iek;
-     sscanf(junk,"%d",&iek); 
-     float ek=iek/1000.;
-     if(BeamInfo[nlineProd].Pid==47){
-       double mass=3.724;
-       double etot=ek*4+mass;
-       BeamInfo[nlineProd].Mom=sqrt(etot*etot-mass*mass);
-     }
-     else {
-       double mass=11.17793;
-       double etot=ek*12+mass;
-       BeamInfo[nlineProd].Mom=sqrt(etot*etot-mass*mass);
-     }
-      fprod >> junk1;
-      fprod >> junk;
-      fprod >> junk;
-      sscanf(junk,"%d",&BeamInfo[nlineProd].Position);
-      fprod.ignore(INT_MAX,'\n');
-      if(strstr(junk1,"MeV"))nlineProd++;       
-   }      
-    fprod.close();
-/*
     ifstream fref;
-    fref.open(ref);
+    fref.open(prod);
     int nlineRef=0;
-
     while(1){
      fref >> junk;
      fref.ignore(INT_MAX,'\n');
      if(fref.eof())break;
      nlineRef++;
-    }     
-    fref.close();
-    fref.open(ref);
-    BeamParEntry * BeamRef = new BeamParEntry[nlineRef];  
-    nlineRef=0;
-    while(1){
-     fref>>BeamRef[nlineRef].Run;
-     if(fref.eof())break;
-     fref>>BeamRef[nlineRef].Time;
-     fref >>junk;
-     fref >>junk;
-     fref >>junk;
-     fref >>junk;
-     sscanf(junk,"%x",&BeamRef[nlineRef].RunTag);
-     fref >>junk;
-     fref >>junk;
-     fref >>junk;
-     fref >>junk;
-     fref >>junk;
-     fref >>junk;
-     fref >> BeamRef[nlineRef].X;
-     fref >> BeamRef[nlineRef].Y;
-     BeamRef[nlineRef].Z=72;
-     fref >> BeamRef[nlineRef].Theta;
-     BeamRef[nlineRef].Theta*=3.1415926/180.;
-     fref >> BeamRef[nlineRef].Phi;
-     BeamRef[nlineRef].Phi*=3.1415926/180.;
-     nlineRef++;
-     fref.ignore(INT_MAX,'\n');
-     if(fref.eof())break;
     }      
-    fref.close();
-*/
 
-    ifstream fref;
-    fref.open(ref);
-    int nlineRef=0;
-
-    while(1){
-     fref >>junk;
-     fref.ignore(INT_MAX,'\n');
-     if(fref.eof())break;
-     nlineRef++;
-    }     
     fref.close();
-    fref.open(ref);
+    fref.open(prod);
     BeamParEntry * BeamRef = new BeamParEntry[nlineRef];  
     nlineRef=0;
     while(1){
      fref >>junk;
      if(fref.eof())break;
-     sscanf(junk,"%x",&BeamRef[nlineRef].RunTag);
-     fref >> BeamRef[nlineRef].Time;
+     sscanf(junk,"%d",&BeamRef[nlineRef].Run);
+     BeamRef[nlineRef].Time=BeamRef[nlineRef].Run-1;
      fref >>junk;
      fref >>junk;
+     sscanf(junk,"'%x'",&BeamRef[nlineRef].RunTag);
+     fref >>junk;
+     sscanf(junk,"%s",BeamRef[nlineRef].label);
+     fref >>BeamRef[nlineRef].Position;
+     fref >>junk;
+     sscanf(junk,"%s",BeamRef[nlineRef].current);
+     fref >>junk;
+     fref >> BeamRef[nlineRef].Pid;
+     fref >> BeamRef[nlineRef].Mom;
      fref >> BeamRef[nlineRef].X;
      fref >> BeamRef[nlineRef].Y;
-     fref >> BeamRef[nlineRef].Theta;
-     BeamRef[nlineRef].Theta*=3.1415926/180.;
-     fref >> BeamRef[nlineRef].Phi;
-     BeamRef[nlineRef].Phi*=3.1415926/180.;
-     BeamRef[nlineRef].Z=72;
-     number s=BeamRef[nlineRef].Z/cos(BeamRef[nlineRef].Theta);
-     BeamRef[nlineRef].X+=s*sin(BeamRef[nlineRef].Theta)*cos(BeamRef[nlineRef].Phi);     
-     BeamRef[nlineRef].Y+=s*sin(BeamRef[nlineRef].Theta)*sin(BeamRef[nlineRef].Phi);     
+     fref >> BeamRef[nlineRef].Z;
+     fref >> BeamRef[nlineRef].ux;
+     fref >> BeamRef[nlineRef].uy;
+     fref >> BeamRef[nlineRef].uz;
+     fref >>junk;
+     sscanf(junk,"%s",&BeamRef[nlineRef].comment);
+     do{
+     fref>>junk;
+     sscanf(junk,"%s",junk1);
+     strcat(BeamRef[nlineRef].comment,junk1);
+     }while(!strstr(junk,"'"));     
+     beam_coo_calc(BeamRef[nlineRef]);
      nlineRef++;
      fref.ignore(INT_MAX,'\n');
      if(fref.eof())break;
@@ -244,83 +128,62 @@ class BeamPar {
     fref.close();
 
 
-     cout <<" Phase 1 Terminated "<<nlineRef<<" "<<nlineProd<<"  "<<nlineCritin<<endl;
+     cout <<" Phase 1 Terminated "<<nlineRef<<endl;
 
       // add critin to us
       int i;
       int good=0;
       for(i=0;i<nlineRef;i++){
           int found=0;
-          BeamRef[i].Good=0;
-       for(int j=0;j<nlineProd;j++){
-          if(BeamRef[i].RunTag!=4096 &&
-             BeamRef[i].RunTag==BeamInfo[j].RunTag){
-
-            // check x,y,z
-            for(int k=0;k<nlineCritin;k++){
-              if(BeamRef[i].RunTag!=4096 && BeamRef[i].RunTag!=0 && 
-               BeamRef[i].RunTag==BeamCritin[k].RunTag){
-//               if(BeamRef[i].Time != BeamCritin[k].Time){
-//                cout <<hex<<BeamRef[i].RunTag<<dec<< "Time diff "<<
-//                 BeamRef[i].Time<< " "<<BeamCritin[k].Time<<endl;
-//                 BeamRef[i].Time=BeamCritin[k].Time;
-//               }
-               if(fabs(BeamRef[i].X -BeamCritin[k].X)>0.1){
-                cout <<hex<<BeamRef[i].RunTag<<dec<< "X diff "<<
-                 BeamRef[i].X<< " "<<BeamCritin[k].X<<endl;
-//                 BeamRef[i].X= BeamCritin[k].X;
-                }
-               if(fabs(BeamRef[i].Y - BeamCritin[k].Y)>0.1){
-                cout <<hex<<BeamRef[i].RunTag<<dec<< "Y diff "<<
-                 BeamRef[i].Y<< " "<<BeamCritin[k].Y<<endl;
-  //               BeamRef[i].Y= BeamCritin[k].Y;
-                }
-               if(fabs(BeamRef[i].Z - BeamCritin[k].Z)>0.1){
-                cout <<hex<<BeamRef[i].RunTag<<dec<< "Z diff "<<
-                 BeamRef[i].Z<< " "<<BeamCritin[k].Z<<endl;
-                }
-               if(fabs(BeamRef[i].Theta - BeamCritin[k].Theta)>0.01){
-                cout <<hex<<BeamRef[i].RunTag<<dec<< "Theta diff "<<
-                 BeamRef[i].Theta<< " "<<BeamCritin[k].Theta<<endl;
-      //           BeamRef[i].Theta= BeamCritin[k].Theta;
-                }
-               if(fabs(asin(sin(BeamRef[i].Phi - BeamCritin[k].Phi)))>0.01){
-                cout <<hex<<BeamRef[i].RunTag<<dec<< "Phi diff "<<
-                 BeamRef[i].Phi<< " "<<BeamCritin[k].Phi<<endl;
-        //         BeamRef[i].Phi= BeamCritin[k].Phi;
-               }
-             }
-            }
-
-
-              // check times;
-              HF1(101,float(BeamRef[i].Time-BeamInfo[j].Time),1.);
-              if(BeamRef[i].Time>BeamInfo[j].Time){
-                if(BeamRef[i].Time-BeamInfo[j].Time<1000 && i!=0 &&
-                 BeamInfo[j].Time>BeamRef[i-1].Time ){
-                //apply correction
-                BeamRef[i].Time=BeamInfo[j].Time;
-                cout <<"Time Error corrected "<<endl;
-               }
-               else {
-               cout<<" Time Error "<<hex<<BeamRef[i].RunTag<<" "<<dec<<BeamRef[i].Time-BeamInfo[j].Time<<" "<<BeamRef[i].Time<<hex<<" "<<BeamInfo[j].Time<<endl;
-               }
-              }
-            good++;
-            found=1;
-            BeamRef[i].Good=1;
-            BeamRef[i].Mom=BeamInfo[j].Mom;
-            BeamRef[i].Position=BeamInfo[j].Position;
-            BeamRef[i].Pid=BeamInfo[j].Pid;
-            break;
+          BeamRef[i].Good=1;
+          if(strstr(BeamRef[i].comment,"BAD")){
+           BeamRef[i].Good=0;
+          }            
+          else good++;
+          if(strstr(BeamRef[i].label,"ECAL1")){
+           BeamRef[i].Position+=10000;
           }
+          else if (strstr(BeamRef[i].label,"ECAL2")){
+           BeamRef[i].Position+=20000;
+          }
+          else if (strstr(BeamRef[i].label,"ECALTRIG")){
+           BeamRef[i].Position+=30000;
+          }
+          if(BeamRef[i].Mom==400){
+           BeamRef[i].Size=0.2;
+           BeamRef[i].Intens=1000;
+          } 
+          else{
+           BeamRef[i].Size=5;
+           BeamRef[i].Intens=100;
+          } 
        }
-          if(!found)cout<<"error "<<BeamRef[i].Run<<" "<<hex<<BeamRef[i].RunTag<<dec<<endl;          
+      for(i=0;i<nlineRef;i++){
+          if(strstr(BeamRef[i].comment,"MOVEMENT")){
+            BeamRef[i].X=(BeamRef[i-1].X+BeamRef[i+1].X)/2;
+            BeamRef[i].Y=(BeamRef[i-1].Y+BeamRef[i+1].Y)/2;
+            BeamRef[i].Z=(BeamRef[i-1].Z+BeamRef[i+1].Z)/2;
+            BeamRef[i].ux=(BeamRef[i-1].ux+BeamRef[i+1].ux)/2;
+            BeamRef[i].uy=(BeamRef[i-1].uy+BeamRef[i+1].uy)/2;
+            BeamRef[i].uz=(BeamRef[i-1].uz+BeamRef[i+1].uz)/2;
+            BeamRef[i].Phi=atan2(BeamRef[i].uy,BeamRef[i].ux);
+            BeamRef[i].Theta=acos(BeamRef[i].uz);
+            BeamRef[i].Size+=sqrt((BeamRef[i-1].X-BeamRef[i+1].X)*(BeamRef[i-1].X-BeamRef[i+1].X)+(BeamRef[i-1].Y-BeamRef[i+1].Y)*(BeamRef[i-1].Y-BeamRef[i+1].Y));
+          }
+          if(BeamRef[i].Run<= 1265364635){
+             BeamRef[i].X+=5;
+          }
+          else if( BeamRef[i].Run<1265373533){
+             BeamRef[i].X+=10;
+          }
+          if(strstr(BeamRef[i].comment,"UNKNOWNENERGY")){
+            BeamRef[i].Mom=10000;
+          }
       }
-       cout <<"good found "<<dec<<good<<endl;
        BeamParEntry blockNt;
               HBNT(1,"Beam Data"," ");
-              HBNAME(1,"GSIBeam",(int*)(&blockNt),"RUN:I,RunTag:I,Time:I,alpha,beta,H,V,X,Y,Z,Theta,Phi,Pid:I,mom:R,intens:R,Position:I,size:R,good:I");
+              HBNAME(1,"CERNBeam",(int*)(&blockNt),"RUN:I,RunTag:I,Time:I,X,Y,Z,Theta,Phi,ux,uy,uz,Pid:I,mom:R,intens:R,Position:I,size:R,good:I");
+
        for(i=0;i<nlineRef;i++){
         blockNt=BeamRef[i];
         HFNT(1);
@@ -336,7 +199,7 @@ class BeamPar {
                 integer ICYCL=0;
                 HROUT (0, ICYCL, " ");
                 HREND ("output");
-                CLOSEF(1);
+//                CLOSEF(1);
 
 //   write BeamPar
          BeamPar block;
@@ -345,7 +208,7 @@ class BeamPar {
             time(&insert);
         uint crc;
      for(i=0;i<nlineRef;i++){
-       if(BeamRef[i].Good){
+       if(BeamRef[i].Good || 1){
         block.RunTag=BeamRef[i].RunTag; 
         block.Time=BeamRef[i].Time; 
         block.Theta=BeamRef[i].Theta; 
@@ -375,7 +238,7 @@ class BeamPar {
             for(int k=curr;k<60;k++)record[k]=block;
             ofstream fbin;
             char fname[256];
-            sprintf(fname,"BeamPar.1.%d",begin);
+            sprintf(fname,"/f2users/choutko/BeamPar/BeamPar.1.%d",begin);
             fbin.open(fname);
             insert++;
             uint crc=_CalcCRC((uint*)record,sizeof(record));
@@ -392,58 +255,15 @@ class BeamPar {
    }
 }
 
-// from given alpha(deg), beta(deg),H(cm),V(cm),z(cm)
-//calculates theta(rad),phi(rad),x & y(cm) of the beam crossing
-// the plane of z=const
 void beam_coo_calc(BeamParEntry & record){
   float x0,y0,z0,sinp,cosp,R,u,v,w,cb,sb;
   float Pi=3.141592654;
-  float xyz[3], xyz1[3], rec_m[3][3];
-  int i,j;
-
-  record.Z=72.;
-  float alpha=record.alpha;
-  float beta=record.beta;
-  float H=record.H;
-  float V=record.V;
-  record.Theta=acosf(-cosdf(alpha)*cosdf(beta));
-
-  sinp=sindf(beta)*cosdf(alpha)/sinf(record.Theta);
-  cosp=sindf(alpha)/sinf(record.Theta);
-  record.Phi=atan2f(sinp,cosp);
-  //crossing of the plane, perp. to the beam, through the magnet center
-
-  x0=-H; y0=-V; z0=0;
-
-  xyz[1]=y0*cosdf(beta)+z0*sindf(beta);
-  xyz[0]=x0;
-  xyz[2]=y0*sindf(beta)-z0*cosdf(beta);
-
-  u=0;v=cosdf(beta);w=sindf(beta);
-
-  cb=cosdf(alpha); sb=sindf(alpha);
-
-  rec_m[0][0]=cb+u*u*(1-cb);
-                 rec_m[0][1]=-w*sb+u*v*(1-cb); rec_m[0][2]=v*sb+u*w*(1-cb);
-  rec_m[1][0]=w*sb+u*v*(1-cb);
-                 rec_m[1][1]=cb+v*v*(1-cb); rec_m[1][2]=-u*sb+v*w*(1-cb);
-  rec_m[2][0]=-v*sb+u*w*(1-cb);
-                 rec_m[2][1]=u*sb+v*w*(1-cb); rec_m[2][2]=cb+w*w*(1-cb);
-
-  for (i=0; i<3; i++) {
-    xyz1[i]=0.;
-    for (j=0; j<3; j++) {
-      xyz1[i] += xyz[j]*rec_m[j][i];
-    }
-  }
-
-  R=cosf(record.Theta);
-//  if (R*R<1e-6)
-//    record.Z=0.;
-  //crossing a plane, perp. to the AMS z-axis, for a given z
-  R=(record.Z-xyz1[2]);
-  record.X=xyz1[0]+R*tanf(record.Theta)*cosf(record.Phi);
-  record.Y=xyz1[1]+R*tanf(record.Theta)*sinf(record.Phi);
+  float z=650;
+  record.X=(record.X+record.ux/record.uz*(z-record.Z))/10.; 
+  record.Y=(record.Y+record.uy/record.uz*(z-record.Z))/10.; 
+  record.Z=z/10.;
+  record.Phi=atan2(record.uy,record.ux);
+  record.Theta=acos(record.uz);
 
 }
 

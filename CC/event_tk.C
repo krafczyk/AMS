@@ -1,3 +1,4 @@
+//  $Id: event_tk.C,v 1.14 2010/02/17 12:06:58 choutko Exp $
 #include "TrRecon.h"
 #include "TkSens.h"
 
@@ -155,7 +156,8 @@ void AMSEvent::_retkevent(integer refit){
     int ntrk = AMSEvent::gethead()->getC("AMSTrTrack")->getnelem();
     if (ntrk > 0) ntevt++;
     if (trstat > 0) {
-      if (!lowdt) {
+         static int qprint=0;
+      if (qprint++<100 && !lowdt) {
 	cout << "AMSEvent::_retkevent-I-Trstat= ";
 	for (int i = 0; i < 5; i++) cout << ((trstat>>i)&1);
 	cout << " at Event: " << getEvent() << endl;

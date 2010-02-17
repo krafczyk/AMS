@@ -1,3 +1,4 @@
+//  $Id: event.C,v 1.465 2010/02/17 12:06:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -524,11 +525,11 @@ void AMSEvent::_reamsinitevent(){
 }
 
 void AMSEvent::_signinitevent(){
-  AMSNode *ptr = AMSEvent::gethead()->add (
+  AMSNode *ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSmctrack",0),0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSmctrack",1),0));
 }
 
@@ -860,7 +861,7 @@ void AMSEvent::_regnevent(){
     else chint=hintb;
      // check the runtag
      
-     if(ArrayB[chint].RunTag%32768!= AMSEvent::gethead()->getruntype()%32768){
+     if(ArrayB[chint].RunTag%32768!= getruntype()%32768){
         seterror();
         int chinta, chintb;
         if (chint>0)chinta=chint-1;
@@ -868,7 +869,7 @@ void AMSEvent::_regnevent(){
         if (chint<59)chintb=chint+1;
         else chintb=59;
         cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
-        AMSEvent::gethead()->getruntype()%32768<<" BeamPar says "<<hex<<
+        getruntype()%32768<<" BeamPar says "<<hex<<
         ArrayB[chint].RunTag<<" "<<dec<<chint<<" "<<_time <<" "<<ArrayB[chint].Time<<" "<<ArrayB[chinta].Time<<" "<<ArrayB[chintb].Time<< endl;
      }
       
@@ -876,8 +877,11 @@ void AMSEvent::_regnevent(){
       integer part(ArrayB[chint].Pid);
       AMSDir dir(ArrayB[chint].Theta,ArrayB[chint].Phi);
       AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
+      //cout << " x "<<x<< " "<<dir<< " "<<ArrayB[chint].Time<<endl;
       AMSmceventg *pgen=new AMSmceventg(part,mom,x,dir,ArrayB[chint].Cond);
-      if(pgen->acceptio())AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0),pgen);
+      if(pgen->acceptio()){
+        addnext(AMSID("AMSmceventg",0),pgen);
+      }
   }
 
 }
@@ -888,21 +892,21 @@ void AMSEvent::_sitkinitevent(){
 
 
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
 #endif
 
 void AMSEvent::_retriginitevent(){
 
-   AMSEvent::gethead()->add (
+   add (
      new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
-   AMSEvent::gethead()->add (
+   add (
      new AMSContainer(AMSID("AMSContainer:TriggerLVL3",0),0));
 }
 
 void AMSEvent::_siantiinitevent(){
- AMSEvent::gethead()->add (
+ add (
   new AMSContainer(AMSID("AMSContainer:AMSAntiMCCluster",0),0));
 }
 
@@ -912,7 +916,7 @@ void AMSEvent::_siecalinitevent(){
   AMSNode *ptr;
 //
   for(i=0;i<ECALDBc::slstruc(3);i++){// book containers for EcalMCHit-object
-    ptr = AMSEvent::gethead()->add (
+    ptr = add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
 //  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
@@ -921,7 +925,7 @@ void AMSEvent::_siecalinitevent(){
 
 void AMSEvent::_sirichinitevent(){
   AMSNode *ptr;
-  ptr=AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSRichMCHit",0),0));
+  ptr=add(new AMSContainer(AMSID("AMSContainer:AMSRichMCHit",0),0));
   if(!ptr) cout << "AMSEvent::_sirichinitevent() No container Error" <<endl;
   RICHDB::nphgen=0;
   RICHDB::nphrad=0;
@@ -931,7 +935,7 @@ void AMSEvent::_sirichinitevent(){
 }
 
 void AMSEvent::_sitrdinitevent(){
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDMCCluster",0),0));
 }
 
@@ -946,13 +950,13 @@ void AMSEvent::_sitofinitevent(){
 //
 // container for geant hits:
 //
-  ptr = AMSEvent::gethead()->add (
+  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFMCCluster",0),0));
 //
 //    container for time_over_threshold hits (digi step):
 //
   for(il=0;il<TOF2GC::SCLRS;il++){
-    ptr=AMSEvent::gethead()->add(
+    ptr=add(
         new AMSContainer(AMSID("AMSContainer:TOF2Tovt",il),0));
   }
 //<--- clear arrays for SumHT(SHT)-channel
@@ -982,19 +986,19 @@ void AMSEvent::_sitofinitevent(){
 
 void AMSEvent::_reantiinitevent(){
 
-      AMSEvent::gethead()->add(
+      add(
       new AMSContainer(AMSID("AMSContainer:Anti2RawEvent",0),0));
       
-      AMSEvent::gethead()->add(
+      add(
       new AMSContainer(AMSID("AMSContainer:AntiRawSide",0),0));
       
-      AMSEvent::gethead()->add(
+      add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",0),0));
 
-      AMSEvent::gethead()->add(
+      add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",1),0));
 {
-      AMSNode *p =AMSEvent::gethead()->add(
+      AMSNode *p =add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
 //      cout <<" anti "<<p<<" "<<AMSEvent::gethead()<<" "<<get_thread_num()<<endl;
 }
@@ -1010,9 +1014,9 @@ void AMSEvent::_retof2initevent(){
 //---
 // container for TOF2RawSide hits(same structure for MC/REAL events) : 
 //
-   ptr=AMSEvent::gethead()->add(
+   ptr=add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawSide",0),0));
-   ptr=AMSEvent::gethead()->add(
+   ptr=add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawSide",1),0));
 //
 //<--- clear static arrays for SumHT(SHT)-channel:
@@ -1058,12 +1062,12 @@ void AMSEvent::_retof2initevent(){
 //---
 //  container for RawCluster hits :
 //
-   ptr=  AMSEvent::gethead()->add (
+   ptr=  add (
       new AMSContainer(AMSID("AMSContainer:TOF2RawCluster",0),0));
 //---
 // container for Cluster hits :
 //
-   for( i=0;i<TOF2GC::SCLRS;i++)  ptr = AMSEvent::gethead()->add (
+   for( i=0;i<TOF2GC::SCLRS;i++)  ptr = add (
        new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
 //
 //  DAQS2Block::clrtbll();//clear sc.data length
@@ -1075,61 +1079,61 @@ void AMSEvent::_reecalinitevent(){
   maxp=2*ECALDBc::slstruc(3);// max SubCell(pixel)-planes
   maxc=4*ECALDBc::slstruc(3)*ECALDBc::slstruc(4);// max number of SubCell
   for(i=0;i<AMSECIds::ncrates();i++){// <-- book crate type containers for EcalRawEvent
-    ptr=AMSEvent::gethead()->add (
+    ptr=add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
   }
 //
   AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
 //
   for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalHit
-    ptr=AMSEvent::gethead()->add (
+    ptr=add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalHit",i),0));
   }
 
 
 
   for(i=0;i<2;i++){// <-- book  proj
-      AMSEvent::gethead()->add (
+      add (
       new AMSContainer(AMSID("AMSContainer:Ecal1DCluster",i),&Ecal1DCluster::build,0));
  }
-    AMSEvent::gethead()->add (
+    add (
       new AMSContainer(AMSID("AMSContainer:Ecal2DCluster",0),&AMSEcal2DCluster::build,0));
 
-  AMSEvent::gethead()->add (
+  add (
       new AMSContainer(AMSID("AMSContainer:EcalShower",0),&AMSEcalShower::build,0));
 }
 void AMSEvent::_retrdinitevent(){
 
-  for(int i=0;i<2*AMSTRDIdSoft::ncrates();i++) AMSEvent::gethead()->add (
+  for(int i=0;i<2*AMSTRDIdSoft::ncrates();i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDRawHit",i),0));
 
   if(TRDFITFFKEY.FitMethod!=1){
-  for(int i=0;i<trdconst::maxlay;i++) AMSEvent::gethead()->add (
+  for(int i=0;i<trdconst::maxlay;i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDCluster",i),&AMSTRDCluster::build,0));
 
-  for(int i=0;i<trdconst::maxseg;i++) AMSEvent::gethead()->add (
+  for(int i=0;i<trdconst::maxseg;i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDSegment",i),&AMSTRDSegment::build,0));
 
-  for(int i=0;i<1;i++) AMSEvent::gethead()->add (
+  for(int i=0;i<1;i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDTrack",i),&AMSTRDTrack::build,0));
   }
 
   if(TRDFITFFKEY.FitMethod!=0){
-    for(int i=0;i<10;i++) AMSEvent::gethead()->add (
+    for(int i=0;i<10;i++) add (
     new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",i),&AMSTRDHSegment::build,0));
 
-    for(int i=0;i<4;i++) AMSEvent::gethead()->add (
+    for(int i=0;i<4;i++) add (
     new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",i),&AMSTRDHTrack::build,0));
   }
 
 }
 void AMSEvent::_rerichinitevent(){
   AMSNode *ptr;
-    ptr=AMSEvent::gethead()->add(
+    ptr=add(
      new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
-  ptr=AMSEvent::gethead()->add(
+  ptr=add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRing",0),0));
-  ptr=AMSEvent::gethead()->add(
+  ptr=add(
     new AMSContainer(AMSID("AMSContainer:AMSRichRingNew",0),0));
 
   // Update the necessary tables if database have been updated
@@ -1147,33 +1151,33 @@ void AMSEvent::_rerichinitevent(){
 void AMSEvent::_reaxinitevent(){
   integer i;
   AMSNode *ptr;
-  for( i=0;i<npatb;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<npatb;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSBeta",i),&AMSBeta::build,0));
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSCharge",0),&AMSCharge::build,0));
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSParticle",0),&AMSParticle::build,0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AMSParticle",1),&AMSParticle::build,0));
 
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:AntiMatter",0),0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:NotAProton",0),0));
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:HeavyIon",0),0));
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:Test",0),0));
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:Dummy",0),0));
 
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:WriteAll",0),0));
 
 
@@ -1188,45 +1192,45 @@ void AMSEvent::_retkinitevent(){
 
   integer i;
   AMSNode *ptr;
-  for(i=0;i<AMSTrIdSoft::ncrates();i++) AMSEvent::gethead()->add (
+  for(i=0;i<AMSTrIdSoft::ncrates();i++) add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",i),0));
 
   if( TRCALIB.LaserRun){
-  for( i=0;i<2;i++)ptr = AMSEvent::gethead()->add (
+  for( i=0;i<2;i++)ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),&AMSTrCluster::buildLaser,0));
    }
    else{
-  for( i=0;i<2;i++)ptr = AMSEvent::gethead()->add (
+  for( i=0;i<2;i++)ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),&AMSTrCluster::build,0));
   
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrClusterWeak",i),&AMSTrCluster::buildWeak,0));
 
   }
-  for( i=0;i<TKDBc::nlay();i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<TKDBc::nlay();i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",i),&AMSTrRecHit::build,0));
 
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHitWeak",i),&AMSTrRecHit::buildWeak,0));
 
 
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrack",i),&AMSTrTrack::build,0));
 
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackWeak",i),&AMSTrTrack::buildWeak,0));
 
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX",i),&AMSTrTrack::buildFalseX,0));
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
 
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrack_PathIntegral",i),&AMSTrTrack::buildPathIntegral,0));
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackWeak_PathIntegral",i),&AMSTrTrack::buildWeakPathIntegral,0));
 
-  ptr = AMSEvent::gethead()->add (
+  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSVtx",0),&AMSVtx::build,0));
 
 }
@@ -1243,50 +1247,50 @@ void  AMSEvent::write(int trig){
 #ifndef _PGTRACK_
   //PZ FIXME OBSOLETE
   getheadC("AMSTrCluster",0,2); 
-  AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
+  getheadC("AMSTrCluster",1,2); 
 
  
   for(int il=0;il<TKDBc::nlay();il++){
-    AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
+    getheadC("AMSTrRecHit",il,2); 
   }
 #endif
-  AMSEvent::gethead()->getheadC("AMSmceventg",0,2); 
+  getheadC("AMSmceventg",0,2); 
   for(int il=0;il<2*AMSTRDIdSoft::ncrates();il++){
-    AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
+    getheadC("AMSTRDRawHit",il,2); 
   }
   if(TRDFITFFKEY.FitMethod!=1){
   for(int il=0;il<trdconst::maxlay;il++){
-    AMSEvent::gethead()->getheadC("AMSTRDCluster",il,2); 
+    getheadC("AMSTRDCluster",il,2); 
   }
 
   for(int il=0;il<trdconst::maxseg;il++){
-    AMSEvent::gethead()->getheadC("AMSTRDSegment",il,2); 
+    getheadC("AMSTRDSegment",il,2); 
   }
   }
   if(TRDFITFFKEY.FitMethod!=0){
     for(int il=0;il<10;il++){
-      AMSEvent::gethead()->getheadC("AMSTRDHSegment",il,2);
+      getheadC("AMSTRDHSegment",il,2);
     }
 
     for(int il=0;il<4;il++){
-      AMSEvent::gethead()->getheadC("AMSTRDHTrack",il,2);
+      getheadC("AMSTRDHTrack",il,2);
     }
   }
 
   for(int il=0;il<2*ECALDBc::slstruc(3);il++){
-    AMSEvent::gethead()->getheadC("AMSEcalHit",il,2); 
+    getheadC("AMSEcalHit",il,2); 
   }
 
   for(int il=0;il<2;il++){
-    AMSEvent::gethead()->getheadC("Ecal1DCluster",il,2); 
+    getheadC("Ecal1DCluster",il,2); 
   }
 
-  AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2); 
-  AMSEvent::gethead()->getheadC("EcalShower",0,2); 
+  getheadC("Ecal2DCluster",0,2); 
+  getheadC("EcalShower",0,2); 
 
   //cout <<"  vont ok "<<PosInRun<<" "<<trig<<endl;
   if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
-    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
+    DAQEvent * pdaq = (DAQEvent*)getheadC("DAQEvent",0);
     if(pdaq)pdaq->write();
   }   
   if((IOPA.hlun || IOPA.WriteRoot) && AMSJob::gethead()->getntuple()){
@@ -1308,20 +1312,20 @@ void  AMSEvent::write(int trig){
       //      printf("Adding TrRawCluster to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrRawCluster*)pptr);
     }
-    for (AMSlink* pptr=AMSEvent::gethead()->getheadC("AMSTrCluster",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink* pptr=getheadC("AMSTrCluster",0);pptr!=0;pptr=pptr->next()){
       //      printf("Adding TrCluster to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrCluster*)pptr);
     }
-    for (AMSlink *pptr=AMSEvent::gethead()->getheadC("AMSTrRecHit",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink *pptr=getheadC("AMSTrRecHit",0);pptr!=0;pptr=pptr->next()){
       //     printf("Adding TrRecHit to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrRecHit*)pptr);
     }
-    for (AMSlink* pptr=AMSEvent::gethead()->getheadC("AMSTrTrack",0);pptr!=0;pptr=pptr->next()){
+    for (AMSlink* pptr=getheadC("AMSTrTrack",0);pptr!=0;pptr=pptr->next()){
       //    printf("Adding TrTrack to tree\n");
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrTrack*)pptr);
     }
     if(!AMSJob::gethead()->isRealData())
-      for (AMSlink* pptr=AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);pptr!=0;pptr=pptr->next()){
+      for (AMSlink* pptr=getheadC("AMSTrMCCluster",0);pptr!=0;pptr=pptr->next()){
 	//	printf("Adding TrMCCluster to tree\n");
 	AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTrMCCluster*)pptr);
       }
@@ -1497,7 +1501,7 @@ void AMSEvent::event(){
   AMSUser::InitEvent();
   try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
-    AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    AMSmceventg *ptr=(AMSmceventg*)getheadC("AMSmceventg",0);
     
 
     if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
@@ -1526,14 +1530,14 @@ void AMSEvent::event(){
 void AMSEvent::_siamsevent(){
   AMSgObj::BookTimer.start("SIAMSEVENT");
   int cftr;  
-  AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+  AMSmceventg *ptr=(AMSmceventg*)getheadC("AMSmceventg",0);
   if(ptr){
     int iset;
     geant coo[7];
     abinelget_(iset,coo);
     if(iset){
       AMSmceventg* genp=new AMSmceventg(iset+256,coo[6],AMSPoint(coo[0],coo[1],coo[2]),AMSDir(coo[3],coo[4],coo[5]));
-      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+      addnext(AMSID("AMSmceventg",0), genp);
 
     }
   }
@@ -1575,7 +1579,7 @@ void AMSEvent::_reamsevent(){
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
     for(int i=0;;i++){
-      AMSContainer *pctr=AMSEvent::gethead()->getC("TriggerLVL1",i);
+      AMSContainer *pctr=getC("TriggerLVL1",i);
       if(pctr)pctr->eraseC();
       else break ;
     }
@@ -1601,7 +1605,7 @@ void AMSEvent::_reamsevent(){
   callax   = (!(ecpedcal || tftdccal || tfpedcal));
   calluser = (!(ecpedcal || tftdccal || tfpedcal));
   //
-  if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
+  if(getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
     _reanti2event();
     if(calltrd)_retrdevent();
@@ -1638,7 +1642,7 @@ void AMSEvent::_catrdinitevent(){
 void AMSEvent::_catkinitevent(){
 
   if(TRCALIB.CalibProcedureNo == 2){
-   AMSEvent::gethead()->add (
+   add (
    new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
   }
 }
@@ -1715,7 +1719,7 @@ void AMSEvent::_catofevent(){
   integer cmode=TFREFFKEY.relogic[0];
   Trigger2LVL1 *ptr2;
 //
-    ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    ptr2=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     if(ptr2)tofft=ptr2->TofFasTrigOK();
     if(!tofft)return;// use only TOF-triggered event
 //
@@ -1730,7 +1734,7 @@ void AMSEvent::_cantievent(){
   bool globft(0);
   Trigger2LVL1 *ptr2;
 //
-    ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    ptr2=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     if(ptr2)globft=ptr2->GlobFasTrigOK();
     if(!globft)return;// use only H/W-triggered event
     if(ATREFFKEY.relogic==1)AntiCalib::select();
@@ -1740,7 +1744,7 @@ void AMSEvent::_caecevent(){
   bool globft(false);
   Trigger2LVL1 *ptr;
 //
-    ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     if(ptr){
       globft=ptr->GlobFasTrigOK();
     }
@@ -1920,7 +1924,7 @@ void AMSEvent::_reanti2event(){
 //
 //
 //
-    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    Trigger2LVL1 *ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     if(ptr){
       tofftok=ptr->TofFasTrigOK();
       ecalftok=ptr->EcalFasTrigOK();
@@ -1966,7 +1970,7 @@ bool tofftok(false),ecalftok(false),extrigok(false);
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
     TOF2JobStat::addre(0);
-    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    Trigger2LVL1 *ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     if(ptr){
       tofftok=ptr->TofFasTrigOK();
       ecalftok=ptr->EcalFasTrigOK();
@@ -2030,7 +2034,7 @@ void AMSEvent::_reecalevent(){
   AMSgObj::BookTimer.start("REECALEVENT");
 //
   EcalJobStat::addre(0);
-  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
   if(ptr){
     tofftok=ptr->TofFasTrigOK();
     ecalftok=ptr->EcalFasTrigOK();
@@ -2142,7 +2146,7 @@ void AMSEvent::_rerichevent(){
   AMSRichRawEvent::build(); // Preprocess the hits
 
 //
-  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
   if(ptr){
     globftok=ptr->GlobFasTrigOK();
     extrigok=ptr->ExternTrigOK();
@@ -2297,10 +2301,10 @@ void AMSEvent::_retofinitrun(){
 //----
 void AMSEvent::_reantiinitrun(){
   static bool accswap(false);
-  if(AMSEvent::gethead()->getrun()<1211886677 && AMSJob::gethead()->isRealData()){
+  if(getrun()<1211886677 && AMSJob::gethead()->isRealData()){
     if(!accswap){
       cout<<"======================================================"<<endl;
-      cout<<"========> ACC de-swapping is ON starting from run "<<AMSEvent::gethead()->getrun()<<endl;
+      cout<<"========> ACC de-swapping is ON starting from run "<<getrun()<<endl;
       cout<<"======================================================"<<endl;
     }
     accswap=true;
@@ -2308,7 +2312,7 @@ void AMSEvent::_reantiinitrun(){
   else{
     if(accswap){
       cout<<"======================================================"<<endl;
-      cout<<"========> ACC de-swapping is OFF starting from run "<<AMSEvent::gethead()->getrun()<<endl;
+      cout<<"========> ACC de-swapping is OFF starting from run "<<getrun()<<endl;
       cout<<"======================================================"<<endl;
     }
     accswap=false;
@@ -2514,7 +2518,7 @@ void AMSEvent::_sirichevent(){
   AMSRichRawEvent::mc_build();
   AMSPoint r(0,0,0);
   AMSPoint u(0,0,0);
-  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
+  addnext(AMSID("AMSRichMCHit",0),
                                new AMSRichMCHit(Noise,0,0,r,u,Status_Fake));
   AMSgObj::BookTimer.stop("SIRICH");
 }
@@ -2528,7 +2532,7 @@ void AMSEvent:: _sitrigevent(){
   int16u tesar[53];
   tesar[0]=52;
   int16u * p2wr=&tesar[1];
-  Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  Trigger2LVL1 *ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
   if(ptr){
   integer nblocks=Trigger2LVL1::getmaxblocks();
   cout<<"-----> nblocks="<<nblocks<<endl;
@@ -2545,7 +2549,7 @@ void AMSEvent:: _sitrigevent(){
   int16u tesar[1001];
   integer nblocks,leng;
   int16u * p2wr=&tesar[1];
-  Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  Trigger2LVL1 *ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
   if(ptr){
   nblocks=DAQS2Block::getmaxblocks();
   cout<<"-----> Total nblocks="<<nblocks<<endl;
@@ -2574,7 +2578,7 @@ void AMSEvent:: _sitrigevent(){
   int16u tesar[2001];
   integer nblocks,leng(0);
   int16u * p2wr=&tesar[1];
-  Trigger2LVL1 *ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  Trigger2LVL1 *ptrt=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
   if(ptrt){
   nblocks=DAQECBlock::getmaxblocks();
   cout<<"-----> Total nblocks="<<nblocks<<endl;
@@ -2662,7 +2666,7 @@ void AMSEvent::_findC(AMSID & id){
 integer AMSEvent::setbuilderC(const char name[], pBuilder pb){
   AMSID id(name,0);
   _findC(id);
-  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  AMSContainer *p = (AMSContainer*)getp(id);
   if(p){
    p->setbuilder(pb);
    return 1;
@@ -2674,7 +2678,7 @@ integer AMSEvent::setbuilderC(const char name[], pBuilder pb){
 integer AMSEvent::buildC(const char name[], integer par){
    AMSID id(name,0);
    _findC(id);
-   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   AMSContainer *p = (AMSContainer*)getp(id);
    if(p){
      p->runbuilder(par);
      return p->buildOK();
@@ -2688,14 +2692,14 @@ integer AMSEvent::rebuildC(const char name[], integer par){
    _findC(id);
   for(int i=0;;i++){
    id.setid(i);
-   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   AMSContainer *p = (AMSContainer*)getp(id);
    if(p){
      p->eraseC();
    }
    else break;
   }
    id.setid(0);
-   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   AMSContainer *p = (AMSContainer*)getp(id);
    if(p){
      p->runbuilder(par);
      return p->buildOK();
@@ -2708,7 +2712,7 @@ integer AMSEvent::rebuildC(const char name[], integer par){
 
 AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
 _findC(id);
-  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  AMSContainer *p = (AMSContainer*)getp(id);
   if(p){
     if(sorted)p->sort(sorted-1);
     // Reset global ref if any
@@ -2719,7 +2723,7 @@ _findC(id);
 }
 AMSlink * AMSEvent::_getlastC( AMSID id){
 _findC(id);
-  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  AMSContainer *p = (AMSContainer*)getp(id);
   if(p){
     return p->getlast();
   }
@@ -2728,7 +2732,7 @@ _findC(id);
 
 integer AMSEvent::_setheadC( AMSID id, AMSlink *head){
 _findC(id);
-  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  AMSContainer *p = (AMSContainer*)getp(id);
   if(p && head){
    p->sethead(head);
    return 1;
@@ -2738,7 +2742,7 @@ _findC(id);
 
 AMSContainer * AMSEvent::_getC( AMSID  id){
 _findC(id);  
-  AMSContainer *p = dynamic_cast<AMSContainer*>(AMSEvent::gethead()->getp(id));
+  AMSContainer *p = dynamic_cast<AMSContainer*>(getp(id));
   return p;
 }
 
@@ -2748,7 +2752,7 @@ integer AMSEvent::getnC(const char n[]){
   AMSContainer *p;
   for(int i=0;;i++){
    id.setid(i);
-   p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   p = (AMSContainer*)getp(id);
    if(p==0) return i;
   }
 }
@@ -2763,7 +2767,7 @@ void AMSEvent::_printEl(ostream & stream){
    <<" Pole:"<<_NorthPolePhi*AMSDBc::raddeg<<endl;
   stream <<"   TOFSlot1Temper(4crates):"<<TOF2JobStat::gettemp(0,0)<<","<<TOF2JobStat::gettemp(1,0)
                                           <<","<<TOF2JobStat::gettemp(2,0)<<","<<TOF2JobStat::gettemp(3,0);
-  Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  Trigger2LVL1 *ptr=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
   if(ptr){
     stream <<" FastTrigRate/LiveTime:"<<Trigger2LVL1::scalmon.FTrate()<<"/"<<ptr->getlivetime();
   }
@@ -2773,7 +2777,7 @@ void AMSEvent::_printEl(ostream & stream){
 //=====================================================================
 void AMSEvent::_writeEl(){
 // Get event length
-  DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
+  DAQEvent *myp=(DAQEvent*)getheadC("DAQEvent",0);
   int nws=myp?myp->getlength():0;
 // Fill the ntuple
   EventNtuple02* EN = AMSJob::gethead()->getntuple()->Get_event02();
@@ -2847,7 +2851,7 @@ void AMSEvent::_writeEl(){
   getmag(EN->ThetaM,EN->PhiM);
 /*
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrTrack",i);
+   p=getC("AMSTrTrack",i);
    if(p) EN->Tracks+=p->getnelem();
    else break;
   }
@@ -2855,102 +2859,102 @@ void AMSEvent::_writeEl(){
 
 
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+   p=getC("AMSTrRecHit",i);
    if(p) EN->TrRecHits+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrCluster",i);
+   p=getC("AMSTrCluster",i);
    if(p) EN->TrClusters+=p->getnelem();
    else break;
   }
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
+   p=getC("AMSTrRawCluster",i);
    if(p) EN->TrRawClusters+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrMCCluster",i);
+   p=getC("AMSTrMCCluster",i);
    if(p) EN->TrMCClusters+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTRDMCCluster",i);
+   p=getC("AMSTRDMCCluster",i);
    if(p) EN->TRDMCClusters+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTRDCluster",i);
+   p=getC("AMSTRDCluster",i);
    if(p) EN->TRDClusters+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTRDRawHit",i);
+   p=getC("AMSTRDRawHit",i);
    if(p) EN->TRDRawHits+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTRDTrack",i);
+   p=getC("AMSTRDTrack",i);
    if(p) EN->TRDTracks+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTRDSegment",i);
+   p=getC("AMSTRDSegment",i);
    if(p) EN->TRDSegments+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTOFCluster",i);
+   p=getC("AMSTOFCluster",i);
    if(p) EN->TOFClusters+=p->getnelem();
    else break;
   }
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTOFMCCluster",i);
+   p=getC("AMSTOFMCCluster",i);
    if(p) EN->TOFMCClusters+=p->getnelem();
    else break;
   }
 
 
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSAntiCluster",i);
+   p=getC("AMSAntiCluster",i);
    if(p) EN->AntiClusters+=p->getnelem();
    else break;
   }
   
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSAntiMCCluster",i);
+   p=getC("AMSAntiMCCluster",i);
    if(p) EN->AntiMCClusters+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("Ecal1DCluster",i);
+   p=getC("Ecal1DCluster",i);
    if(p) EN->EcalClusters+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSEcalHit",i);
+   p=getC("AMSEcalHit",i);
    if(p) EN->EcalHits+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){//CJM
-   p=AMSEvent::gethead()->getC("AMSRichMCHit",i);
+   p=getC("AMSRichMCHit",i);
    if(p) EN->RICMCClusters+=p->getnelem()-1; //Due to fake hit
    else break;
   }
 
   for(i=0;;i++){//CJM
-   p=AMSEvent::gethead()->getC("AMSRichRawEvent",i);
+   p=getC("AMSRichRawEvent",i);
    if(p) EN->RICHits+=p->getnelem();
    else break;
   }
@@ -2964,7 +2968,7 @@ void AMSEvent::_writeEl(){
 //====================================================================
 
 AMSlink * AMSEvent::addnext(AMSID id, AMSlink *p){
- AMSContainer * ptr= AMSEvent::gethead()->getC(id);
+ AMSContainer * ptr= getC(id);
    if(ptr){
      ptr->addnext(p);
      return p;
@@ -2979,7 +2983,7 @@ AMSlink * AMSEvent::addnext(AMSID id, AMSlink *p){
 }
 
 integer AMSEvent::replace(AMSID id, AMSlink *p, AMSlink *prev){
- AMSContainer * ptr= AMSEvent::gethead()->getC(id);
+ AMSContainer * ptr= getC(id);
    if(ptr){
      ptr->replaceEl(p,prev);
      return 1;
@@ -3159,13 +3163,13 @@ agains:
 
 
 void AMSEvent::_redaqinitevent(){
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",0),0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",4),0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",6),0));
-  AMSEvent::gethead()->add (
+  add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",27),0));
 }
 
@@ -3177,12 +3181,12 @@ void AMSEvent::_redaqevent(){
 #ifdef __AMSDEBUG__
   int i;
   for(i=0;;i++){
-    AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
+    AMSContainer *pctr=getC("AMSTrRawCluster",i);
       if(pctr)pctr->eraseC();
       else break ;
   }
   for(i=0;;i++){
-    AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTRDRawHit",i);
+    AMSContainer *pctr=getC("AMSTRDRawHit",i);
       if(pctr)pctr->eraseC();
       else break ;
   }
@@ -3191,13 +3195,13 @@ void AMSEvent::_redaqevent(){
 
   AMSgObj::BookTimer.start("REDAQ");
 
-   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->
+   DAQEvent * pdaq = (DAQEvent*)
    getheadC("DAQEvent",0);
    if(pdaq)pdaq->buildRawStructures();
-   pdaq = (DAQEvent*)AMSEvent::gethead()->
+   pdaq = (DAQEvent*)
    getheadC("DAQEvent",6);
    if(pdaq)pdaq->buildRawStructures();
-   pdaq = (DAQEvent*)AMSEvent::gethead()->
+   pdaq = (DAQEvent*)
    getheadC("DAQEvent",27);
    if(pdaq)pdaq->buildRawStructures();
   AMSgObj::BookTimer.stop("REDAQ");
@@ -3208,13 +3212,13 @@ void AMSEvent::_sidaqevent(){
   AMSgObj::BookTimer.start("SIDAQ");
 
 DAQEvent *  pdaq = new DAQEvent();
-AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);      
+addnext(AMSID("DAQEvent",0), pdaq);      
 pdaq->buildDAQ();
 
 // H/K simulation 
 
 //pdaq=new DAQEvent();
-//AMSEvent::gethead()->addnext(AMSID("DAQEvent",4), pdaq);      
+//addnext(AMSID("DAQEvent",4), pdaq);      
 //pdaq->buildDAQ(4);
 
 
@@ -4110,7 +4114,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
 #pragma omp critical (rec)
 {               
                 for (int k=sizeof(ArrayC)/sizeof(ArrayC[0])-1;k>=rec;k--){
-                //cout <<AMSEvent::gethead()->gettime()<<" "<<bt[0][0]<<endl;
+                //cout <<gettime()<<" "<<bt[0][0]<<endl;
                 if(AMSEvent::gethead())ArrayC[k].Time=AMSEvent::gethead()->gettime();
                 else ArrayC[k].Time=(*(p-1)) |  (*(p))<<16;     //tbfixed
                 for(int i=0;i<4;i++){

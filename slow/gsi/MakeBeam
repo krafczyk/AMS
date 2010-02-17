@@ -1,15 +1,14 @@
-#  $Id: MakeBeam,v 1.2 2001/01/22 17:32:55 choutko Exp $
-CFLAGS=-I/usr/local/include  -I. -I../../include -g -define_templates    
+#  $Id: MakeBeam,v 1.3 2010/02/17 12:06:59 choutko Exp $
+CFLAGS=-I/usr/local/include  -static -I. -I../../include -m32 -g 
 
-LDFLAGS= -g -lUfor   -lfor -lFutil -lots  -L/usr/local/lib  -lm -lamstcp -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  
-
+LDFLAGS=  -m32 -g -static  -L/cern/pro/lib   -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift -lcrypt -lcrypto   -ldl   -lg2c  -lgfortran     -pthread /f2users/choutko/AMS/bin/linux/ctype.o
 LOADLIBES=
 
-CC=cxx
+CC=g++
 
 
 BeamPar: BeamPar.o 
-	$(CC) $(CFLAGS)  -o BeamPar BeamPar.o  ../../bin/osf1/sgif.o $(LDFLAGS) 
+	$(CC) $(CFLAGS)  -o BeamPar BeamPar.o   $(LDFLAGS) 
 
 BeamPar.o: BeamPar.C
 	$(CC)  $(CFLAGS)  -c BeamPar.C  
