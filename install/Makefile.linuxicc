@@ -77,7 +77,7 @@ ifndef CERN_LEVEL
 CERN_LEVEL = pro
 endif
 
-CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
+CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.261 2010/02/09 12:41:42 choutko Exp $
+//  $Id: root.h,v 1.262 2010/02/17 16:12:40 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -949,7 +949,7 @@ public:
   /// \param number index in container
   /// \return human readable info about TrTrackR
   char * Info(int number=-1){
-    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
   virtual ~TrTrackR(){};

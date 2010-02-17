@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.10 2009/11/18 17:01:29 choutko Exp $
+*  $Id: rkms.F,v 1.11 2010/02/17 16:12:37 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -133,10 +133,13 @@ c there is no type definition (integer ...) in  iounit.inc
 *-------------------------------
       logical first
       data    first/.true./
+      logical veryfirst 
+      data veryfirst/.true./
       save first,iercou,CHNAM,zero,npa,na,St,grad
+      !$OMP threadprivate (first,iercou,CHNAM,zero,npa,na,St,grad)
 
-      if(first) then ! ----------------- first
-        first = .false.
+      if(veryfirst) then ! ----------------- first
+        veryfirst = .false.
 #if defined __IFC ||  defined __INTEL_COMPILER
         open(unit=lun8,form='formatted',file='/dev/null',
      +  status='unknown',shared)
@@ -144,7 +147,9 @@ c there is no type definition (integer ...) in  iounit.inc
        open(unit=lun8,form='formatted',file='/dev/null',
      +  status='unknown')
 #endif
-
+      endif
+      if(first) then ! ----------------- first
+        first = .false.
  100    continue
          lun8=6
         Call MNINIT(5,lun8,lun8) ! Read, Write, Save
@@ -203,10 +208,6 @@ c there is no type definition (integer ...) in  iounit.inc
           enddo
         endif
 *---------------------------- Initial values setup
-        do i=1,Npa
-          Call MNPARM(i,CHNAM,Par(i),St(i),zero,zero,IERFLG)! Init.Val.Setup
-          If(ierflg.ne.0) write(6,*)'### MNPARM: i,ierflg=',i,ierflg
-        enddo
 *----------------------------------------------- Minimization  
 *       ======================================+
         call wxy_matr(npo,npl,dx,dy,ipa,Rini) ! Full Matr.
@@ -215,6 +216,13 @@ c there is no type definition (integer ...) in  iounit.inc
 *#include "../RKMSFIT/debug2.h"
 *=============================
 *       ================================================
+#if defined (__LINUX24__ )
+!$OMP CRITICAL (RKMS)
+#endif
+        do i=1,Npa
+          Call MNPARM(i,CHNAM,Par(i),St(i),zero,zero,IERFLG)! Init.Val.Setup
+          If(ierflg.ne.0) write(6,*)'### MNPARM: i,ierflg=',i,ierflg
+        enddo
         na=0  ! # of arguments in arglis (MNEXCM)      !
         Call MNEXCM(FunMI,'MIGRAD',arglis,na,ierflg,0) !
 *       ================================================
@@ -226,6 +234,9 @@ cer        endif                                       !
         do i=1,Npa                                          ! Parameters
           Call MNPOUT(i,CHNAM,Xout(i),Er(i),bnd1,bnd2,ivar) ! Extraction
         enddo
+#if defined (__LINUX24__ )
+!$OMP END CRITICAL (RKMS)
+#endif
         if(Dhi2.gt.1.e30)then
           Chi2=1.e30
         else
@@ -481,6 +492,7 @@ ccc      real w1,wfirst,sq2
       logical first
       data    first/.true./
       save    first,dz,dTh0,dms,NMSpl !ccc,sq2
+      !$OMP threadprivate (first,dz,dTh0,dms,NMSpl)
 
       if(first) then
         first=.false.
@@ -948,7 +960,7 @@ C.
       logical first
       data    first/.true./
       save first,w1,Bx
-
+      !OMP threadprivate(first,w1,bx)
       if(first) then
         first = .false.
         Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
@@ -974,7 +986,7 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       real xyz(3)   ,fld(3)
       data xyz/3*0./,fld/3*0./
       save xyz,fld
-
+      !$OMP threadprivate(xyz,fld)
       xyz(3)=z
       call Gufld(xyz,fld)
       Fu = fld(1)
@@ -1067,8 +1079,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.10 2009/11/18 17:01:29 choutko Exp $
+* $Id: rkms.F,v 1.11 2010/02/17 16:12:37 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.11  2010/02/17 16:12:37  choutko
+* parallazing rkms
+*
 * Revision 1.10  2009/11/18 17:01:29  choutko
 * fpe
 *
@@ -1129,10 +1144,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
      +                XXAV  ,XYAV  ,YYAV  ,XRRAV ,YRRAV ,RRRRAV,
      +                ALPHA ,BETA  ,KAPPA
 
+        !$OMP threadprivate(/CIRCOM/)
         DATA DBL1 / 1.0D0/,DBL2 / 2.0D0/, DBL4/ 4.0D0/, DBL64/6.4D1/
         DATA NTRY / 5/
         Save DBL1,DBL2,DBL4,DBL64,NTRY ! Ch
-
+        !$OMP threadprivate(DBL1,DBL2,DBL4,DBL64,NTRY)
 *-->  FIRST CALCULATE THE H MATRIX AND OTHER THINGS
 
         UTCFIT = 0
@@ -1240,8 +1256,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.10 2009/11/18 17:01:29 choutko Exp $
+* $Id: rkms.F,v 1.11 2010/02/17 16:12:37 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.11  2010/02/17 16:12:37  choutko
+* parallazing rkms
+*
 * Revision 1.10  2009/11/18 17:01:29  choutko
 * fpe
 *
@@ -1289,6 +1308,7 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
      >                XXAV  ,XYAV  ,YYAV  ,XRRAV ,YRRAV ,RRRRAV,
      >                ALPHA ,BETA  ,KAPPA
       real xcir(*),ycir(*),wcir(*)
+        !$OMP threadprivate(/CIRCOM/)
 
 *-->  CIRCLH CALCULATES AVERAGES USED IN THE H MATRIX OF THE CIRCLE FIT
 *-->  H IS CALCULATED IN THE COORDINATE SYSTEM WHERE :

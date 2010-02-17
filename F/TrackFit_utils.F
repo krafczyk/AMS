@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.33 2010/02/09 12:41:35 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.34 2010/02/17 16:12:37 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.34  2010/02/17 16:12:37  choutko
+* parallazing rkms
+*
 * Revision 1.33  2010/02/09 12:41:35  choutko
 * *** empty log message ***
 *
@@ -188,7 +191,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.33 2010/02/09 12:41:35 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.34 2010/02/17 16:12:37 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4352,9 +4355,7 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               out(9)=erig
               goto 999
              else if(ialg.eq.5)then
-!$OMP CRITICAL (RKMS)
               call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
-!$OMP END CRITICAL (RKMS)
               call tksetres(xhits,npt)
               call tksetresd(ysigma,npt)
               out(8)=0
@@ -7799,9 +7800,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.33 2010/02/09 12:41:35 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.34 2010/02/17 16:12:37 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.34  2010/02/17 16:12:37  choutko
+* parallazing rkms
+*
 * Revision 1.33  2010/02/09 12:41:35  choutko
 * *** empty log message ***
 *
