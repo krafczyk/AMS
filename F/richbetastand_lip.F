@@ -2,6 +2,9 @@
 * In this file
 * ------------
 *      subroutine richtoftrackinit
+*      subroutine richtoftrackinit2
+*      subroutine richtoftrackinit3
+*      subroutine richtoftrackinit4
 *      subroutine richrecflex
 *      subroutine richrecstand
 *      subroutine richinitstand(irshint,minsigquo,ierr)
@@ -18,6 +21,90 @@
 ***   - Reconstruction using TOF+RICH data  ***
 ***   - Reconstruction using RICH data only ***
 ***********************************************
+
+
+**********************************************************
+*** RICHGETMATRIXHINT: get track hint from RICH matrix ***
+**********************************************************
+
+      subroutine richgetmatrixhint(strpmtx,strpmty,strpmtnpe)
+
+#include "../include/richrec_lipf.h"
+#include "../include/richrec_lipc.h"
+
+      real xmax,ymax,sigmax(5),fracmax,sigmed
+      integer nhmax(5),imax(5)
+
+      integer istrhit,istrhitpmt
+      real strhitnpe,strhitpmtnpe
+      real strpmtx,strpmty
+
+* --- store hit data (because this is done before LIP rec is called)
+
+      nbhits = 0
+      i = 0
+
+      do while(i.lt.nbhits_ev)
+         i = i+1
+         if(hitsnpe_ev(i).ge.0.) then ! exclude bad hits
+            nbhits = nbhits+1
+            hitscoo(1,nbhits)   = hitscoo_ev(1,i)
+            hitscoo(2,nbhits)   = hitscoo_ev(2,i)
+            hitscoo(3,nbhits)   = hitscoo_ev(3,i)
+            hitsnpe(nbhits)     = hitsnpe_ev(i)
+            hitspmt(nbhits)     = hitspmt_ev(i) ! pmt number : int(int(hitspmt(i)/10)/16) 
+                                                ! pixel      : mod(int(bevent_hid(i)/10),16) 
+                                                ! gain       : mod(bevent_hid(i),10) 
+            hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
+            hitstat(nbhits)     = 0 ! good hit
+         endif
+      enddo        
+
+* --- Find PMTs with strongest signals in detection matrix
+      call getpmtmax(xmax,ymax,imax,sigmax,nhmax,fracmax,sigmed)
+
+*      print*,'sigmax = ',sigmax(1),' ... sigmed = ',sigmed,
+*     +     ' ... quotient = ',sigmax(1)/sigmed,' ... nhmax = ',nhmax(1)
+
+      istrhit = -1
+      strhitnpe = -1.e38
+
+      istrhitpmt = -1
+      strhitpmtnpe = -1.e38
+
+      strpmtx = 0.
+      strpmty = 0.
+      strpmtnpe = 0.
+
+* --- Filling of strongest hit data & strongest PMT barycentre
+      do i=1,nbhits
+         if(hitsnpe(i).gt.strhitnpe) then
+            istrhit = i
+            strhitnpe = hitsnpe(i)
+         endif
+*         print*,'Hit ',i,', PMT ',1+hitspmt(i)/10/16
+         if(1+hitspmt(i)/10/16.eq.imax(1)) then
+            strpmtx = strpmtx+hitsnpe(i)*hitscoo(1,i)
+            strpmty = strpmty+hitsnpe(i)*hitscoo(2,i)
+            strpmtnpe = strpmtnpe+hitsnpe(i)
+            if(hitsnpe(i).gt.strhitpmtnpe) then
+               istrhitpmt = i
+               strhitpmtnpe = hitsnpe(i)
+            endif
+         endif
+      enddo
+
+      if(nbhits.gt.0) then
+         strpmtx = strpmtx/strpmtnpe
+         strpmty = strpmty/strpmtnpe
+      else
+         strpmtx = 0.
+         strpmty = 0.
+      endif
+
+      return
+
+      end
 
 
 *****************************************************
@@ -203,7 +290,7 @@
 
                   if(currcand(3).gt.0) then
                      ncand3p = ncand3p+1
-                     do n=2,4
+                     do n=1,3
                         cand3p(ncand3p,n) = currcand(n+1)
                      enddo
                   endif
@@ -233,6 +320,13 @@
             pwy(i) = 1./perry(i)
          enddo
 
+*         print*,'LFITW data (ver1, 4p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
          call lfitw(px,pz,pwx,4,1,resax,resbx,resvarx)
          call lfitw(py,pz,pwy,4,1,resay,resby,resvary)
 
@@ -250,6 +344,22 @@
             pwx(i) = 1./perrx(i)
             pwy(i) = 1./perry(i)
          enddo
+
+         px(4) = -999.
+         py(4) = -999.
+         pz(4) = -999.
+         perrx(4) = -999.
+         perry(4) = -999.
+         perrz(4) = -999.
+         pwx(4) = -999.
+         pwy(4) = -999.
+
+*         print*,'LFITW data (ver1, 3p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
 
          call lfitw(px,pz,pwx,3,1,resax,resbx,resvarx)
          call lfitw(py,pz,pwy,3,1,resay,resby,resvary)
@@ -281,6 +391,798 @@
 
       else
 *         print*,'===== TOF track failed ====='
+
+      endif
+
+      return
+
+      end
+
+
+******************************************************
+*** RICHTOFTRACKINIT2: initialization of TOF track ***
+******************************************************
+
+      subroutine richtoftrackinit2
+
+#include "../include/richrec_lipf.h"
+#include "../include/richrec_lipc.h"
+
+      real tol
+
+      real ncand4p,ncand3p
+      real cand4p(100,5)
+      real cand3p(100,4)
+      real currcand(5)
+      real extrapx,extrapy
+      real extrapdist
+
+      real px(5),perrx(5),pwx(5)
+      real py(5),perry(5),pwy(5)
+      real pz(5),perrz(5)
+      real resax,resbx,resvarx
+      real resay,resby,resvary
+
+*      print*,'Entering RICHTOFTRACKINIT2'
+
+*      print*,'ntofclu = ',ntofclu
+*      do i=1,ntofclu
+*         print*,'coo_tof(*,',i,') = ',
+*     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
+*      enddo
+
+* --- maximum distance for cluster search
+      tol = 10. !5. ! cm
+
+      ncand4p = 0
+      ncand3p = 0
+
+* --- reset reconstruction flag
+      iflag_tof = 0
+
+* --- cycle over possible pairs of clusters in planes 1,5
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.1) then
+
+            currcand(1) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.5) then
+
+                  currcand(5) = j
+
+* --------------- look for nearby clusters in planes 2,3,4
+
+                  flagplane2 = 0
+                  flagplane3 = 0
+                  flagplane4 = 0
+
+                  currcand(2) = -1
+                  currcand(3) = -1
+                  currcand(4) = -1
+
+                  do k=1,ntofclu
+
+                     if((ilayer_tof(k).eq.2)
+     +                    .or.(ilayer_tof(k).eq.3)
+     +                    .or.(ilayer_tof(k).eq.4)) then
+
+*                        print*,'Testing',i,j,k
+
+                        extrapx = coo_tof(1,i)
+     +                       +(coo_tof(1,j)-coo_tof(1,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+                        extrapy = coo_tof(2,i)
+     +                       +(coo_tof(2,j)-coo_tof(2,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+
+                        extrapdist2 = (extrapx-coo_tof(1,k))**2.
+     +                               +(extrapy-coo_tof(2,k))**2.
+
+*                        print*,'Extrap = ',extrapx,extrapy
+*                        print*,'Dist = ',extrapdist2**0.5
+
+                        if(extrapdist2.lt.tol**2.) then
+
+                           if(ilayer_tof(k).eq.2) then
+                              flagplane2 = 1
+                              currcand(2) = k
+                           endif
+
+                           if(ilayer_tof(k).eq.3) then
+                              flagplane3 = 1
+                              currcand(3) = k
+                           endif
+
+                           if(ilayer_tof(k).eq.4) then
+                              flagplane4 = 1
+                              currcand(4) = k
+                           endif
+
+                        endif
+
+                     endif
+
+                  enddo
+
+* --------------- save sets of 3 and 4 aligned clusters
+*                 (only one set is saved per 1-5 pair)
+
+                  if(currcand(2).gt.0.and.currcand(3).gt.0
+     +                 .and.currcand(4).gt.0) then
+                     ncand4p = ncand4p+1
+                     do n=1,5
+                        cand4p(ncand4p,n) = currcand(n)
+                     enddo
+                  else if(currcand(2).gt.0.and.currcand(3).gt.0
+     +                    .and.currcand(4).le.0) then
+                     ncand3p = ncand3p+1
+                     cand3p(ncand3p,1) = currcand(1)
+                     cand3p(ncand3p,2) = currcand(2)
+                     cand3p(ncand3p,3) = currcand(3)
+                     cand3p(ncand3p,4) = currcand(5)
+                  else if(currcand(2).gt.0.and.currcand(3).le.0
+     +                    .and.currcand(4).gt.0) then
+                     ncand3p = ncand3p+1
+                     cand3p(ncand3p,1) = currcand(1)
+                     cand3p(ncand3p,2) = currcand(2)
+                     cand3p(ncand3p,3) = currcand(4)
+                     cand3p(ncand3p,4) = currcand(5)
+                  else if(currcand(2).le.0.and.currcand(3).gt.0
+     +                    .and.currcand(4).gt.0) then
+                     ncand3p = ncand3p+1
+                     cand3p(ncand3p,1) = currcand(1)
+                     cand3p(ncand3p,2) = currcand(3)
+                     cand3p(ncand3p,3) = currcand(4)
+                     cand3p(ncand3p,4) = currcand(5)
+                  endif
+
+               endif
+            enddo
+         endif
+      enddo
+
+* --- cycle over possible pairs of clusters in planes 2,5
+
+      currcand(1) = 0
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.2) then
+
+            currcand(2) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.5) then
+
+                  currcand(5) = j
+
+* --------------- look for nearby clusters in planes 3,4
+
+                  flagplane3 = 0
+                  flagplane4 = 0
+
+                  currcand(3) = -1
+                  currcand(4) = -1
+
+                  do k=1,ntofclu
+
+                     if((ilayer_tof(k).eq.3)
+     +                    .or.(ilayer_tof(k).eq.4)) then
+
+*                        print*,'Testing',i,j,k
+
+                        extrapx = coo_tof(1,i)
+     +                       +(coo_tof(1,j)-coo_tof(1,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+                        extrapy = coo_tof(2,i)
+     +                       +(coo_tof(2,j)-coo_tof(2,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+
+                        extrapdist2 = (extrapx-coo_tof(1,k))**2.
+     +                               +(extrapy-coo_tof(2,k))**2.
+
+*                        print*,'Extrap = ',extrapx,extrapy
+*                        print*,'Dist = ',extrapdist2**0.5
+
+                        if(extrapdist2.lt.tol**2.) then
+
+                           if(ilayer_tof(k).eq.3) then
+                              flagplane3 = 1
+                              currcand(3) = k
+                           endif
+
+                           if(ilayer_tof(k).eq.4) then
+                              flagplane4 = 1
+                              currcand(4) = k
+                           endif
+
+                        endif
+
+                     endif
+
+                  enddo
+
+* --------------- save sets of 3 aligned clusters
+*                 (only one set is saved per 2-5 pair)
+
+                  if(currcand(3).gt.0.and.currcand(4).gt.0) then
+                     ncand3p = ncand3p+1
+                     do n=1,4
+                        cand3p(ncand3p,n) = currcand(n+1)
+                     enddo
+                  endif
+
+               endif
+            enddo
+         endif
+      enddo
+
+*      print*,'ncand4p = ',ncand4p
+*      print*,'ncand3p = ',ncand3p
+
+* --- Generate TOF track from sets of clusters
+
+      if(ncand4p.eq.1) then
+
+         iflag_tof = 1
+
+         do i=1,5
+            px(i) = coo_tof(1,cand4p(1,i))
+            py(i) = coo_tof(2,cand4p(1,i))
+            pz(i) = coo_tof(3,cand4p(1,i))
+            perrx(i) = errcoo_tof(1,cand4p(1,i))
+            perry(i) = errcoo_tof(2,cand4p(1,i))
+            perrz(i) = errcoo_tof(3,cand4p(1,i))
+            pwx(i) = 1./perrx(i)
+            pwy(i) = 1./perry(i)
+         enddo
+
+*         print*,'LFITW data (ver2, 4p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
+         call lfitw(px,pz,pwx,5,1,resax,resbx,resvarx)
+         call lfitw(py,pz,pwy,5,1,resay,resby,resvary)
+
+      else if(ncand4p.eq.0.and.ncand3p.eq.1) then
+
+         iflag_tof = 1
+
+         do i=1,4
+            px(i) = coo_tof(1,cand3p(1,i))
+            py(i) = coo_tof(2,cand3p(1,i))
+            pz(i) = coo_tof(3,cand3p(1,i))
+            perrx(i) = errcoo_tof(1,cand3p(1,i))
+            perry(i) = errcoo_tof(2,cand3p(1,i))
+            perrz(i) = errcoo_tof(3,cand3p(1,i))
+            pwx(i) = 1./perrx(i)
+            pwy(i) = 1./perry(i)
+         enddo
+
+         px(5) = -999.
+         py(5) = -999.
+         pz(5) = -999.
+         perrx(5) = -999.
+         perry(5) = -999.
+         perrz(5) = -999.
+         pwx(5) = -999.
+         pwy(5) = -999.
+
+*         print*,'LFITW data (ver2, 3p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
+         call lfitw(px,pz,pwx,4,1,resax,resbx,resvarx)
+         call lfitw(py,pz,pwy,4,1,resay,resby,resvary)
+
+      endif
+
+* --- Calculate final TOF track variables
+
+      if(iflag_tof.eq.1) then
+
+         pimp_tof(1) = -resbx/resax
+         pimp_tof(2) = -resby/resay
+         pimp_tof(3) = ZTARG
+
+         pthe_tof = atan(((1./resax)**2.+(1./resay)**2.)**0.5)
+         pphi_tof = atan2(1./resay,1./resax)
+
+* ------ THE ERRORS BELOW SHOULD BE REPLACED BY REALISTIC VALUES
+         epimp_tof(1) = 1.
+         epimp_tof(2) = 1.
+         epimp_tof(3) = 1.
+         epthe_tof = 1.
+         epphi_tof = 1.
+
+*         print*,'===== TOF2 track successful ====='
+*         print*,'pimp_tof    = ',pimp_tof
+*         print*,'pthe_tof(d) = ',pthe_tof*RADDEG
+*         print*,'pphi_tof(d) = ',pphi_tof*RADDEG
+
+      else
+*         print*,'===== TOF2 track failed ====='
+
+      endif
+
+      return
+
+      end
+
+
+******************************************************
+*** RICHTOFTRACKINIT3: initialization of TOF track ***
+******************************************************
+
+      subroutine richtoftrackinit3
+
+#include "../include/richrec_lipf.h"
+#include "../include/richrec_lipc.h"
+
+      real tol
+
+      real ncand2p,ncand1p
+      real cand2p(100,3)
+      real cand1p(100,2)
+      real currcand(3)
+      real extrapx,extrapy
+      real extrapdist
+
+      real px(3),perrx(3),pwx(3)
+      real py(3),perry(3),pwy(3)
+      real pz(3),perrz(3)
+      real resax,resbx,resvarx
+      real resay,resby,resvary
+
+*      print*,'Entering RICHTOFTRACKINIT3'
+
+*      print*,'ntofclu = ',ntofclu
+*      do i=1,ntofclu
+*         print*,'coo_tof(*,',i,') = ',
+*     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
+*      enddo
+
+* --- maximum distance for cluster search
+      tol = 10. !5. ! cm
+
+      ncand2p = 0
+      ncand1p = 0
+
+* --- reset reconstruction flag
+      iflag_tof = 0
+
+* --- cycle over possible pairs of clusters in planes 1,5
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.1) then
+
+            currcand(1) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.5) then
+
+                  currcand(3) = j
+
+* --------------- look for nearby cluster in plane 2
+
+                  flagplane2 = 0
+
+                  currcand(2) = -1
+
+                  do k=1,ntofclu
+
+                     if(ilayer_tof(k).eq.2) then
+
+*                        print*,'Testing',i,j,k
+
+                        extrapx = coo_tof(1,i)
+     +                       +(coo_tof(1,j)-coo_tof(1,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+                        extrapy = coo_tof(2,i)
+     +                       +(coo_tof(2,j)-coo_tof(2,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+
+                        extrapdist2 = (extrapx-coo_tof(1,k))**2.
+     +                               +(extrapy-coo_tof(2,k))**2.
+
+*                        print*,'Extrap = ',extrapx,extrapy
+*                        print*,'Dist = ',extrapdist2**0.5
+
+                        if(extrapdist2.lt.tol**2.) then
+
+                           flagplane2 = 1
+                           currcand(2) = k
+
+                        endif
+
+                     endif
+
+                  enddo
+
+* --------------- save sets of 1 and 2 aligned clusters
+*                 (only one set is saved per 1-5 pair)
+
+                  if(currcand(2).gt.0) then
+                     ncand2p = ncand2p+1
+                     do n=1,3
+                        cand2p(ncand2p,n) = currcand(n)
+                     enddo
+                  else
+                     ncand1p = ncand1p+1
+                     cand1p(ncand1p,1) = currcand(1)
+                     cand1p(ncand1p,2) = currcand(3)
+                  endif
+
+               endif
+            enddo
+         endif
+      enddo
+
+* --- cycle over possible pairs of clusters in planes 2,5
+
+      currcand(1) = 0
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.2) then
+
+            currcand(2) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.5) then
+
+                  currcand(3) = j
+
+* --------------- save sets of 2 aligned clusters
+
+                  ncand1p = ncand1p+1
+                  do n=1,2
+                     cand1p(ncand1p,n) = currcand(n+1)
+                  enddo
+
+               endif
+            enddo
+         endif
+      enddo
+
+*      print*,'ncand4p = ',ncand4p
+*      print*,'ncand3p = ',ncand3p
+
+* --- Generate TOF track from sets of clusters
+
+      if(ncand2p.eq.1) then
+
+         iflag_tof = 1
+
+         do i=1,3
+            px(i) = coo_tof(1,cand2p(1,i))
+            py(i) = coo_tof(2,cand2p(1,i))
+            pz(i) = coo_tof(3,cand2p(1,i))
+            perrx(i) = errcoo_tof(1,cand2p(1,i))
+            perry(i) = errcoo_tof(2,cand2p(1,i))
+            perrz(i) = errcoo_tof(3,cand2p(1,i))
+            pwx(i) = 1./perrx(i)
+            pwy(i) = 1./perry(i)
+         enddo
+
+*         print*,'LFITW data (ver3, 2p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
+         call lfitw(px,pz,pwx,3,1,resax,resbx,resvarx)
+         call lfitw(py,pz,pwy,3,1,resay,resby,resvary)
+
+      else if(ncand2p.eq.0.and.ncand1p.eq.1) then
+
+         iflag_tof = 1
+
+         do i=1,2
+            px(i) = coo_tof(1,cand1p(1,i))
+            py(i) = coo_tof(2,cand1p(1,i))
+            pz(i) = coo_tof(3,cand1p(1,i))
+            perrx(i) = errcoo_tof(1,cand1p(1,i))
+            perry(i) = errcoo_tof(2,cand1p(1,i))
+            perrz(i) = errcoo_tof(3,cand1p(1,i))
+            pwx(i) = 1./perrx(i)
+            pwy(i) = 1./perry(i)
+         enddo
+
+         px(3) = -999.
+         py(3) = -999.
+         pz(3) = -999.
+         perrx(3) = -999.
+         perry(3) = -999.
+         perrz(3) = -999.
+         pwx(3) = -999.
+         pwy(3) = -999.
+
+*         print*,'LFITW data (ver3, 1p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
+         call lfitw(px,pz,pwx,2,1,resax,resbx,resvarx)
+         call lfitw(py,pz,pwy,2,1,resay,resby,resvary)
+
+      endif
+
+* --- Calculate final TOF track variables
+
+      if(iflag_tof.eq.1) then
+
+         pimp_tof(1) = -resbx/resax
+         pimp_tof(2) = -resby/resay
+         pimp_tof(3) = ZTARG
+
+         pthe_tof = atan(((1./resax)**2.+(1./resay)**2.)**0.5)
+         pphi_tof = atan2(1./resay,1./resax)
+
+* ------ THE ERRORS BELOW SHOULD BE REPLACED BY REALISTIC VALUES
+         epimp_tof(1) = 1.
+         epimp_tof(2) = 1.
+         epimp_tof(3) = 1.
+         epthe_tof = 1.
+         epphi_tof = 1.
+
+*         print*,'===== TOF3 track successful ====='
+*         print*,'pimp_tof    = ',pimp_tof
+*         print*,'pthe_tof(d) = ',pthe_tof*RADDEG
+*         print*,'pphi_tof(d) = ',pphi_tof*RADDEG
+
+      else
+*         print*,'===== TOF3 track failed ====='
+
+      endif
+
+      return
+
+      end
+
+
+******************************************************
+*** RICHTOFTRACKINIT4: initialization of TOF track ***
+******************************************************
+
+      subroutine richtoftrackinit4
+
+#include "../include/richrec_lipf.h"
+#include "../include/richrec_lipc.h"
+
+      real tol
+
+      real ncand2p,ncand1p
+      real cand2p(100,3)
+      real cand1p(100,2)
+      real currcand(3)
+      real extrapx,extrapy
+      real extrapdist
+
+      real px(3),perrx(3),pwx(3)
+      real py(3),perry(3),pwy(3)
+      real pz(3),perrz(3)
+      real resax,resbx,resvarx
+      real resay,resby,resvary
+
+*      print*,'Entering RICHTOFTRACKINIT4'
+
+*      print*,'ntofclu = ',ntofclu
+*      do i=1,ntofclu
+*         print*,'coo_tof(*,',i,') = ',
+*     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
+*      enddo
+
+* --- maximum distance for cluster search
+      tol = 10. !5. ! cm
+
+      ncand2p = 0
+      ncand1p = 0
+
+* --- reset reconstruction flag
+      iflag_tof = 0
+
+* --- cycle over possible pairs of clusters in planes 3,5
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.3) then
+
+            currcand(1) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.5) then
+
+                  currcand(3) = j
+
+* --------------- look for nearby cluster in plane 4
+
+                  flagplane4 = 0
+
+                  currcand(2) = -1
+
+                  do k=1,ntofclu
+
+                     if(ilayer_tof(k).eq.4) then
+
+*                        print*,'Testing',i,j,k
+
+                        extrapx = coo_tof(1,i)
+     +                       +(coo_tof(1,j)-coo_tof(1,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+                        extrapy = coo_tof(2,i)
+     +                       +(coo_tof(2,j)-coo_tof(2,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+
+                        extrapdist2 = (extrapx-coo_tof(1,k))**2.
+     +                               +(extrapy-coo_tof(2,k))**2.
+
+*                        print*,'Extrap = ',extrapx,extrapy
+*                        print*,'Dist = ',extrapdist2**0.5
+
+                        if(extrapdist2.lt.tol**2.) then
+
+                           flagplane2 = 1
+                           currcand(2) = k
+
+                        endif
+
+                     endif
+
+                  enddo
+
+* --------------- save sets of 1 and 2 aligned clusters
+*                 (only one set is saved per 1-5 pair)
+
+                  if(currcand(2).gt.0) then
+                     ncand2p = ncand2p+1
+                     do n=1,3
+                        cand2p(ncand2p,n) = currcand(n)
+                     enddo
+                  else
+                     ncand1p = ncand1p+1
+                     cand1p(ncand1p,1) = currcand(1)
+                     cand1p(ncand1p,2) = currcand(3)
+                  endif
+
+               endif
+            enddo
+         endif
+      enddo
+
+* --- cycle over possible pairs of clusters in planes 4,5
+
+      currcand(1) = 0
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.4) then
+
+            currcand(2) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.5) then
+
+                  currcand(3) = j
+
+* --------------- save sets of 2 aligned clusters
+
+                  ncand1p = ncand1p+1
+                  do n=1,2
+                     cand1p(ncand1p,n) = currcand(n+1)
+                  enddo
+
+               endif
+            enddo
+         endif
+      enddo
+
+*      print*,'ncand4p = ',ncand4p
+*      print*,'ncand3p = ',ncand3p
+
+* --- Generate TOF track from sets of clusters
+
+      if(ncand2p.eq.1) then
+
+         iflag_tof = 1
+
+         do i=1,3
+            px(i) = coo_tof(1,cand2p(1,i))
+            py(i) = coo_tof(2,cand2p(1,i))
+            pz(i) = coo_tof(3,cand2p(1,i))
+            perrx(i) = errcoo_tof(1,cand2p(1,i))
+            perry(i) = errcoo_tof(2,cand2p(1,i))
+            perrz(i) = errcoo_tof(3,cand2p(1,i))
+            pwx(i) = 1./perrx(i)
+            pwy(i) = 1./perry(i)
+         enddo
+
+*         print*,'LFITW data (ver4, 2p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
+         call lfitw(px,pz,pwx,3,1,resax,resbx,resvarx)
+         call lfitw(py,pz,pwy,3,1,resay,resby,resvary)
+
+      else if(ncand2p.eq.0.and.ncand1p.eq.1) then
+
+         iflag_tof = 1
+
+         do i=1,2
+            px(i) = coo_tof(1,cand1p(1,i))
+            py(i) = coo_tof(2,cand1p(1,i))
+            pz(i) = coo_tof(3,cand1p(1,i))
+            perrx(i) = errcoo_tof(1,cand1p(1,i))
+            perry(i) = errcoo_tof(2,cand1p(1,i))
+            perrz(i) = errcoo_tof(3,cand1p(1,i))
+            pwx(i) = 1./perrx(i)
+            pwy(i) = 1./perry(i)
+         enddo
+
+         px(3) = -999.
+         py(3) = -999.
+         pz(3) = -999.
+         perrx(3) = -999.
+         perry(3) = -999.
+         perrz(3) = -999.
+         pwx(3) = -999.
+         pwy(3) = -999.
+
+*         print*,'LFITW data (ver4, 1p):'
+*         print*,'x = ',px
+*         print*,'y = ',py
+*         print*,'z = ',pz
+*         print*,'wx = ',pwx
+*         print*,'wy = ',pwy
+
+         call lfitw(px,pz,pwx,2,1,resax,resbx,resvarx)
+         call lfitw(py,pz,pwy,2,1,resay,resby,resvary)
+
+      endif
+
+* --- Calculate final TOF track variables
+
+      if(iflag_tof.eq.1) then
+
+         pimp_tof(1) = -resbx/resax
+         pimp_tof(2) = -resby/resay
+         pimp_tof(3) = ZTARG
+
+         pthe_tof = atan(((1./resax)**2.+(1./resay)**2.)**0.5)
+         pphi_tof = atan2(1./resay,1./resax)
+
+* ------ THE ERRORS BELOW SHOULD BE REPLACED BY REALISTIC VALUES
+         epimp_tof(1) = 1.
+         epimp_tof(2) = 1.
+         epimp_tof(3) = 1.
+         epthe_tof = 1.
+         epphi_tof = 1.
+
+*         print*,'===== TOF4 track successful ====='
+*         print*,'pimp_tof    = ',pimp_tof
+*         print*,'pthe_tof(d) = ',pthe_tof*RADDEG
+*         print*,'pphi_tof(d) = ',pphi_tof*RADDEG
+
+      else
+*         print*,'===== TOF4 track failed ====='
 
       endif
 
@@ -543,7 +1445,7 @@ c$$$      thetac_in = acos(1./refind_in)
 
 * --- set data for minimization grid and hint selection
 
-      dmtop = 55.          ! 17.  !  max x/y dist btw top and bottom
+      dmtop = 50. ! 55. ! 17.  !  max x/y dist btw top and bottom
       ngridtop = 6         !  no. x/y grid points at top
       ngridbot = 3         !  no. x/y grid points at bottom
       steptop = 20.        ! 6.  ! (cm) x/y step at top

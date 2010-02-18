@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.135 2010/02/06 22:58:12 mdelgado Exp $
+//  $Id: richrec.C,v 1.136 2010/02/18 13:07:10 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2106,6 +2106,55 @@ int AMSRichRingNew::buildlip(){
     }
   }
 
+  if (_ptrack == NULL && ( _Status == 5 || _Status == 15) ) {
+    RICHTOFTRACKINIT2();
+    if(LIPC2F.iflag_tof==1) {  // TOF track successful
+      // replace track data with TOF track data
+      for(int i=0;i<3;i++) {
+	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
+	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
+      }
+      LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
+      LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
+    }
+    else {
+      return 0;
+    }
+  }
+
+  if (_ptrack == NULL && ( _Status == 6 || _Status == 16) ) {
+    RICHTOFTRACKINIT3();
+    if(LIPC2F.iflag_tof==1) {  // TOF track successful
+      // replace track data with TOF track data
+      for(int i=0;i<3;i++) {
+	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
+	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
+      }
+      LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
+      LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
+    }
+    else {
+      return 0;
+    }
+  }
+
+  if (_ptrack == NULL && ( _Status == 7 || _Status == 17) ) {
+    RICHTOFTRACKINIT4();
+    if(LIPC2F.iflag_tof==1) {  // TOF track successful
+      // replace track data with TOF track data
+      for(int i=0;i<3;i++) {
+	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
+	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
+      }
+      LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
+      LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
+    }
+    else {
+      return 0;
+    }
+  }
+
+
     int env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
 
@@ -2431,6 +2480,48 @@ void AMSRichRingNewSet::build() {
     } 
   }
 
+  /* TOF track number 2 */
+  LIPC2F.itrknumb = -3;
+  if (lipflag&0x0004 || lipflag&0x0040) {
+    if (lipflag&0x0040) {
+      pliprec = new AMSRichRingNew(NULL, 15);
+    } else {
+      pliprec = new AMSRichRingNew(NULL, 5);
+    }
+    if ( pliprec->buildlip() ) {
+      k++;
+      AddRing(pliprec);
+    } 
+  }
+
+  /* TOF track number 3 */
+  LIPC2F.itrknumb = -4;
+  if (lipflag&0x0004 || lipflag&0x0040) {
+    if (lipflag&0x0040) {
+      pliprec = new AMSRichRingNew(NULL, 16);
+    } else {
+      pliprec = new AMSRichRingNew(NULL, 6);
+    }
+    if ( pliprec->buildlip() ) {
+      k++;
+      AddRing(pliprec);
+    } 
+  }
+
+  /* TOF track number 4 */
+  LIPC2F.itrknumb = -5;
+  if (lipflag&0x0004 || lipflag&0x0040) {
+    if (lipflag&0x0040) {
+      pliprec = new AMSRichRingNew(NULL, 17);
+    } else {
+      pliprec = new AMSRichRingNew(NULL, 7);
+    }
+    if ( pliprec->buildlip() ) {
+      k++;
+      AddRing(pliprec);
+    } 
+  }
+
   /* standalone */
   LIPC2F.itrknumb = -2;
   if (lipflag&0x0008 || lipflag&0x0080) {
@@ -2594,6 +2685,37 @@ void richiniteventlip() {
       LIPC2F.ntofclu++;
       ptrc = ptrc->next();
     }
+  }
+
+  // Get track hint in RICH matrix, add it as if it was a hit in a 5th TOF plane
+
+  float richhintnpelimit = 6.; // minimum signal for hint to be used
+  float errcoohint = 1.2;  // error (cm) to be used for hint in each of x,y,z
+
+  float richhintx,richhinty,richhintnpe;
+  RICHGETMATRIXHINT(richhintx,richhinty,richhintnpe);
+
+  //cout << "RICH hint for TOF cluster list: " << richhintx << ", " << richhinty << ", " << richhintnpe << endl;
+
+  if(richhintnpe>richhintnpelimit) {
+
+    LIPC2F.istatus_tof[LIPC2F.ntofclu] = 0;
+    LIPC2F.ilayer_tof[LIPC2F.ntofclu] = 5;  // 5th plane assigned here
+    LIPC2F.ibar_tof[LIPC2F.ntofclu] = 0;
+    LIPC2F.edep_tof[LIPC2F.ntofclu] = 0;
+    LIPC2F.edepd_tof[LIPC2F.ntofclu] = 0;
+    LIPC2F.time_tof[LIPC2F.ntofclu] = 0;
+    LIPC2F.errtime_tof[LIPC2F.ntofclu] = 0;
+
+    LIPC2F.coo_tof[LIPC2F.ntofclu][0] = richhintx;
+    LIPC2F.coo_tof[LIPC2F.ntofclu][1] = richhinty;
+    LIPC2F.coo_tof[LIPC2F.ntofclu][2] = LIPC2F.hrad_c2f+LIPC2F.hpgl_c2f+LIPC2F.ztmirgap_c2f+LIPC2F.hmir_c2f+LIPC2F.zbmirgap_c2f+LIPC2F.zlgsignal_c2f;
+
+    LIPC2F.errcoo_tof[LIPC2F.ntofclu][0] = errcoohint;
+    LIPC2F.errcoo_tof[LIPC2F.ntofclu][1] = errcoohint;
+    LIPC2F.errcoo_tof[LIPC2F.ntofclu][2] = errcoohint;
+
+    LIPC2F.ntofclu++;
   }
 
   // reset track and reconstruction counters

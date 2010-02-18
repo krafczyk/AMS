@@ -328,6 +328,10 @@
          endif
       endif
 
+      if(irecaux.eq.5.or.irecaux.eq.6.or.irecaux.eq.7) then
+         irecaux = 3
+      endif
+
       if(irecaux.eq.2) then
          idobeta = 1
       endif
@@ -1099,10 +1103,10 @@
          print*,'resc_chgmir   = ',resc_chgmir(k)     
          print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
          print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
-         print*,'resc_nmirsec  = ',resc_nmirsec
+         print*,'resc_nmirsec  = ',resc_nmirsec(k)
          print*,'resc_accmsec  = ',
-     +        ((resc_accgeom(i,j,k),i=1,resc_nmirsec),j=1,2)
-         print*,'resc_effmsec  = ',((resc_eff(i,j,k),i=1,3),j=1,2)
+     +        ((resc_accmsec(i,j,k),i=1,resc_nmirsec(k)),j=1,2)
+         print*,'resc_effmsec  = ',((resc_effmsec(i,j,k),i=1,3),j=1,2)
          print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
          print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
          print*,'resb_epimp    = ',(resb_epimp(i,k),i=1,3)
