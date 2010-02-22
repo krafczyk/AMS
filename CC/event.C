@@ -1,13 +1,8 @@
-//  $Id: event.C,v 1.466 2010/02/17 15:17:08 choumilo Exp $
+//  $Id: event.C,v 1.467 2010/02/22 15:14:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
 // add TDV/dbase version October 1, 1997. a.k.
-// Jan 07, 1999. ak.
-//   print EOF statistics, compare number of processed and expected 
-//   events and put '*' if difference > 5%
-//
-// Last Edit : Jan 07, 1999. ak.
 //
 
 #include "typedefs.h" 
@@ -877,7 +872,8 @@ void AMSEvent::_regnevent(){
       integer part(ArrayB[chint].Pid);
       AMSDir dir(ArrayB[chint].Theta,ArrayB[chint].Phi);
       AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
-      //cout << " x "<<x<< " "<<dir<< " "<<ArrayB[chint].Time<<endl;
+      
+//cout << " x "<<x<< " "<<dir<< " "<<ArrayB[chint].Time<<endl;
       AMSmceventg *pgen=new AMSmceventg(part,mom,x,dir,ArrayB[chint].Cond);
       if(pgen->acceptio()){
         addnext(AMSID("AMSmceventg",0),pgen);
@@ -2963,6 +2959,7 @@ void AMSEvent::_writeEl(){
 #ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->fHeader.Set(EN);
   AMSJob::gethead()->getntuple()->Get_evroot02()->fStatus=getstatus64();
+  //cout <<" status nah "<<_id<<" "<<_status[0]<<" "<<_status[1]<<" "<<getstatus64()<<" "<<((_status[1]>>5)&3)<<" "<<bits<<endl;
 #endif
   
 }
@@ -3677,7 +3674,7 @@ void AMSEvent::_collectstatus(){
        if(ptr){
         int z1=0;
         if(ptr->getpshower()){
-        number en=ptr->getpshower()->getEnergy();
+        number en=ptr->getpshower()->getEnergy()/1000.;
 
         if(!isnan(en)&&!isinf(en)){
 	  if(en<2)z1=0;        
@@ -3685,7 +3682,8 @@ void AMSEvent::_collectstatus(){
 	  else if(en<32)z1=2;        
 	  else z1=3;        
 	}
-	}
+         //cout <<" en "<<en<<" "<<z1<<endl;
+        }
          __status1|=(z1<<5);
        }
           

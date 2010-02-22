@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.262 2010/02/17 16:12:40 choutko Exp $
+//  $Id: root.h,v 1.263 2010/02/22 15:14:25 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -258,10 +258,23 @@ public:
                          double cams=-sr*sy*sp+cr*cp;
                          cams=acos(cams)*180/3.1415926; 
                          unsigned int comp=0;
-                         for(int i=0;i<6;i++){
+                         unsigned long long one=1;
+                         char bits[66];
+                         for(int k=0;k<32;k++){
+                          if(status&(one<<k))bits[k]='1';
+                          else bits[k]='0';
+                         }
+                         bits[32]=' ';
+                         for(int k=32;k<64;k++){
+                          if(status&(one<<k))bits[k+1]='1';
+                          else bits[k+1]='0';
+                         }
+                         bits[65]='\0';  
+                       for(int i=0;i<6;i++){
                           if(status&(1<<(i+2)))comp+=int(pow(10.,i));
                          }
-                         sprintf(_Info,"Header:  Status %d %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d B_{x} %6.2f (kG) T_{Tracker} %6.1f^{o}C ",comp,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker);
+  
+                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d B_{x} %6.2f (kG) T_{Tracker} %6.1f^{o}C ",bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker);
   return _Info;
   }
 
@@ -460,6 +473,7 @@ public:
   float FirstLayerEdep; ///< front energy dep (Mev)
   float EnergyC; ///< shower energy (gev)
   float Energy3C[3]; ///< energy(+-2,+-5, +-8 cm)/energy ratios
+  float  S13R;        ///< S1/S3 Ratio
   float ErEnergyC;   ///< energy error (gev)
   float DifoSum;     ///<  (E_x-E_y)/(E_x+E_y)
   float SideLeak;    ///< rel side leak
@@ -467,6 +481,7 @@ public:
   float DeadLeak;    ///< rel dead leak
   float AttLeak;     ///< rel att length correction
   float NLinLeak;   ///<  rel non-lin correction
+  float S13Leak;   ///<  s1/s3 ratio correction;
   float OrpLeak;   ///<  fraction of shower energy outside core.
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
   float Chi2Profile;  ///< chi2 profile fit (by gamma function) 
@@ -503,7 +518,7 @@ friend class AMSEcalShower;
 friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,2)       //EcalShowerR
+ClassDef(EcalShowerR,3)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };

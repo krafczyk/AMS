@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.94 2009/12/04 13:15:52 choutko Exp $
+//  $Id: event.h,v 1.95 2010/02/22 15:14:25 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -340,7 +340,7 @@ AMSlink * addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
 uinteger  * getstatus() {return _status;}
-uint64   getstatus64() {uint64 st=_status[1];return (_status[0] | (st<<32));}
+uint64   getstatus64() {uint64 st=_status[1];st=_status[0] | (st<<32);return st;}
 uint64 getrunev() const;
 void setstatus(uinteger   * status){_status[0]=status[0];_status[1]=status[1];}
 geant getpitch() const{return _Pitch;}

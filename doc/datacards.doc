@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.319 2010/02/12 12:13:01 pzuccon Exp $
+#  $Id: datacards.doc,v 1.320 2010/02/22 15:14:25 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -982,18 +982,19 @@ R 51   EMDirCorrection(1.035)  // em shower shape direction correction
 R 52   HiEnThr(1650)           // pmt saturation limit (gev)
 R 53   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
  
-R 54 sec[0](0)                // cards below are used as validity time when need to write
-R 55 sec[1](0)                // to DB new calibration/status parameters
-R 56 min[0](0)                //
-R 57 min[1](0)                //
-R 58 hour[0](0)               //
-R 59 hour[1](0)               //
-R 60 day[0](1)                //
-R 61 day[1](1)                //
-R 62 mon[0](0)                //
-R 63 mon[1](0)                //
-R 64 year[0](101)             //
-R 65 year[1](108)             //
+R 54 S1S3[4]  //  s1/s3 energy correction
+R 58 sec[0](0)                // cards below are used as validity time when need to write
+R 59 sec[1](0)                // to DB new calibration/status parameters
+R 60 min[0](0)                //
+R 61 min[1](0)                //
+R 62 hour[0](0)               //
+R 63 hour[1](0)               //
+R 64 day[0](1)                //
+R 65 day[1](1)                //
+R 66 mon[0](0)                //
+R 67 mon[1](0)                //
+R 68 year[0](101)             //
+R 69 year[1](108)             //
 
    ECAL calibration:
 

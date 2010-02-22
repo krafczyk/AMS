@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.130 2010/02/12 12:13:01 pzuccon Exp $
+//  $Id: ecalrec.C,v 1.131 2010/02/22 15:14:17 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2166,10 +2166,20 @@ void AMSEcalShower::EnergyFit(){
  _DeadLeak=0;
  _RearLeak=0;
  _OrpLeak=0;
+ _S13Leak=0;
  _Nhits=0;
  
   Ecal1DCluster *p1cl;
+  const integer Maxrow=ECALDBc::GetLayersNo();
   integer n1cl; 
+  int is1[Maxrow];
+  float s1[Maxrow];
+  float s3[Maxrow];
+  for(int k=0;k<Maxrow;k++){
+   is1[k]=-2;
+   s1[k]=0;
+   s3[k]=0;
+  }
 
   for (int proj=0;proj<_N2dCl;proj++){
     energy+=_pCl[proj]->_Energy;   
@@ -2188,8 +2198,31 @@ void AMSEcalShower::EnergyFit(){
    for(int ic=0;ic<n1cl;ic++){
      p1cl=_pCl[proj]->getpClust(ic);
      _Nhits+=p1cl->getNHits();
+     for(int ih=0;ih<p1cl->getNHits();ih++){
+       AMSEcalHit * phit=p1cl->getphit(ih);
+       if(phit->getedep()>s1[phit->getplane()]){
+        is1[phit->getplane()]=phit->getcell();
+        s1[phit->getplane()]=phit->getedep();
+        s3[phit->getplane()]=phit->getedep();
+       }
+     }
    }
   }
+  for(int ipl=0;ipl<Maxrow;ipl++){
+    AMSEcalHit *ptr=(AMSEcalHit*)AMSEvent::gethead()->
+                               getheadC("AMSEcalHit",ipl,1);
+    while(ptr){
+    if(abs(ptr->getcell()-is1[ipl])==1)s3[ipl]+=ptr->getedep();
+    ptr=ptr->next();
+    }
+  }
+  float ss1=0;
+  float ss3=0;
+  for(int k=0;k<Maxrow;k++){
+   ss1+=s1[k];
+   ss3+=s3[k];
+  }
+  _S13R=ss1/ss3;
 //
   if(energy){
    _Energy3C/=energy;
@@ -2197,10 +2230,8 @@ void AMSEcalShower::EnergyFit(){
    _Energy9C/=energy;
   }
 
-
  _CofG=AMSPoint(0,0,0);
   for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
-  const integer Maxrow=ECALDBc::GetLayersNo();
   number ec=0;
   _ShowerMax=-1;
   number xmax=-1;
@@ -2312,6 +2343,13 @@ void AMSEcalShower::EnergyFit(){
     _AttLeak=ECREFFKEY.SimpleRearLeak[3]*_AttLeak;
     _NLinLeak=ECREFFKEY.SimpleRearLeak[3]*_NLinLeak;
   }
+// now add s13leak
+
+   float _S13Leak=0;
+   if(_S13R>ECREFFKEY.S1S3[2] && _S13R<ECREFFKEY.S1S3[3]){
+     _S13Leak=-ECREFFKEY.S1S3[1]*(_S13R-ECREFFKEY.S1S3[0]);
+   }
+   _EnergyC/=(1-_S13Leak);
   if(_EnergyC){
    _RearLeak/=_EnergyC;
    _OrpLeak/=_EnergyC;
@@ -2319,6 +2357,7 @@ void AMSEcalShower::EnergyFit(){
    _SideLeak/=_EnergyC;
    _AttLeak/=_EnergyC;
    _NLinLeak/=_EnergyC;
+
   }
 
 

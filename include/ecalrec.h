@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.52 2009/12/10 13:50:49 choutko Exp $
+//  $Id: ecalrec.h,v 1.53 2010/02/22 15:14:25 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -389,9 +389,11 @@ number  _EnergyC;
 number  _Energy3C;
 number  _Energy5C;
 number  _Energy9C;
+number  _S13R;
 number  _DifoSum;
 number  _OrpLeak;
 number  _RearLeak;
+number  _S13Leak;
 number  _SideLeak;
 number  _DeadLeak;
 number  _AttLeak;
@@ -469,6 +471,7 @@ integer getNhits() const{return _Nhits;}
  number getDifoSum() const {return _DifoSum;}
  number getSLeak() const {return _SideLeak;}
  number getRLeak() const {return _RearLeak;}
+ number getS13Leak() const {return _S13Leak;}
  number getDLeak() const {return _DeadLeak;}
  number getOLeak() const {return _OrpLeak;}
  number getProfChi2() const {return _ProfilePar[4+_Direction*5];}

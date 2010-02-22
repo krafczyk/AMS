@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.282 2010/02/12 12:13:02 pzuccon Exp $
+//  $Id: commons.h,v 1.283 2010/02/22 15:14:25 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -339,6 +339,7 @@ public:
   float EMDirCorrection;
   float HiEnThr;
   float HiEnCorFac;
+  float S1S3[4];
   integer sec[2];
   integer min[2];
   integer hour[2];

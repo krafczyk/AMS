@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.210 2010/02/06 22:58:12 mdelgado Exp $
+//  $Id: root.C,v 1.211 2010/02/22 15:14:17 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2175,6 +2175,8 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   DifoSum     = ptr->_DifoSum;
   SideLeak    = ptr->_SideLeak;
   RearLeak    = ptr->_RearLeak;
+  S13Leak    = ptr->_S13Leak;
+  S13R    = ptr->_S13R;
   DeadLeak    = ptr->_DeadLeak;
   AttLeak     = ptr->_AttLeak;
   OrpLeak     = ptr->_OrpLeak;
