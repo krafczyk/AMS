@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.14 2010/02/17 12:06:58 choutko Exp $
+//  $Id: event_tk.C,v 1.15 2010/02/23 14:55:27 pzuccon Exp $
 #include "TrRecon.h"
 #include "TkSens.h"
 
@@ -76,7 +76,7 @@ void AMSEvent::_catkevent(){
 
 
 void AMSEvent::_retkevent(integer refit){
-
+  static int countcerr=0;
   Trigger2LVL1 *ptr1=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     
   TrRecon* rec= new TrRecon();
@@ -87,7 +87,7 @@ void AMSEvent::_retkevent(integer refit){
   bool lowdt = (ptr1->gettrtime(4) <= TrRecon::RecPar.lowdt);
   hman.Fill((lowdt ? "TrNrawLt" : "TrNrawHt"), getEvent(), nraw);
 
-  int trstat = 0;
+  trstat = 0;
   if (nraw >=TrRecon::RecPar.MaxNrawCls) trstat |= 1;
 
   //RAW Clusters -->  Clusters

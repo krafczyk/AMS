@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.211 2010/02/22 15:14:17 choutko Exp $
+//  $Id: root.C,v 1.212 2010/02/23 14:55:27 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2037,6 +2037,7 @@ void HeaderR::Set(EventNtuple02* ptr){
   ThetaM=    ptr->ThetaM;
   BAv=ptr->BAv;
   TempTracker=ptr->TempTracker;
+  TrStat=ptr->TrStat;
     
 }
 #endif

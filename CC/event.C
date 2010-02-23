@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.467 2010/02/22 15:14:17 choutko Exp $
+//  $Id: event.C,v 1.468 2010/02/23 14:55:27 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2784,6 +2784,7 @@ void AMSEvent::_writeEl(){
   EN->BAv=_ccebp?_ccebp->getBAv():0;
 #endif
   EN->TempTracker=_ccebp?_ccebp->getTAv():-273;
+  EN->TrStat= trstat;
   EN->EventStatus[0]=getstatus()[0];
   EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;

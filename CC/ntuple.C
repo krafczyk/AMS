@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.192 2010/02/01 12:44:05 shaino Exp $
+//  $Id: ntuple.C,v 1.193 2010/02/23 14:55:27 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -110,7 +110,7 @@ void AMSNtuple::init(){
  
         
 "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,ISSEqAsc:R,ISSEqDec:R,ISSGalLong:R,ISSGalLat:R,AMSEqAsc:R,AMSeqDec:R,AMSGalLat:R,AMSGalLong:R,BAv:R,TempTracker:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFRawSides[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,AntiRawSides[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I," //ISN
-"RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I"); 
+"RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I,TrStat:I"); 
 
   HBNAME(_lun,"Beta",&_beta02.Nbeta,
       "nbeta[0,20],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");

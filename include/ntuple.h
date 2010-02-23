@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.120 2010/02/01 12:44:12 shaino Exp $
+//  $Id: ntuple.h,v 1.121 2010/02/23 14:55:27 pzuccon Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -129,7 +129,7 @@ public:
   int TRDSegments;
   int TRDTracks;
   int EventStatus[2];
-
+  int TrStat; 
 friend class AMSEvent;
 friend class AMSNtuple;
 };
