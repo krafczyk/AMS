@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.4 2010/02/01 12:44:12 shaino Exp $
+// $Id: TrParDB.h,v 1.5 2010/02/23 14:59:55 oliva Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,13 +15,11 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/02/01 12:44:12 $
+///$Date: 2010/02/23 14:59:55 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
-
-
 
 
 #include <iostream>
@@ -33,12 +31,19 @@
 
 #include "TObject.h"
 #include "typedefs.h"
-#define PARDBOFF 3
+
+#include "timeid.h"
+
+#define PARDBOFF 203
+#define CHLOSSARR 10
 
 
 //! The AMS Tracker parameters database class
-class TrParDB :public TObject{
+class TrParDB : public TObject{
+ public:
+ 
   static float* linear;
+
  public:
   
   //! map for fast binary search based on tk-hwid
@@ -46,9 +51,15 @@ class TrParDB :public TObject{
 
   //! PN gain (normalization to the N side)
   float _pngain;
-  //! Generic correction: Cluster Asymmetry Correction (XY)
+
+  //! Cluster asymmetry correction (X,Y)
   float _asymmetry[2];
-    
+   
+  //! Charge loss correction (only for MIP)
+  float _chargelossx[CHLOSSARR][CHLOSSARR];                  
+  float _chargelossy[CHLOSSARR][CHLOSSARR];  
+
+
  public:
   
   /// Default contructor
@@ -80,11 +91,24 @@ class TrParDB :public TObject{
   /// Set PN Gain
   inline float GetPNGain()                        { return _pngain; }
   /// Set Asimmetry Correction (XY) 
-  inline void  SetAsymmetry(float* corr)          { for (int ii=0; ii< 2; ii++) _asymmetry[ii] = corr[ii]; }
+  inline void  SetAsymmetry(float corr[2])        { for (int ii=0; ii<2; ii++) _asymmetry[ii] = corr[ii]; }
   /// Set Asimmetry Correction (XY) by index
   inline void  SetAsymmetry(int icoo, float corr) { _asymmetry[icoo] = corr; }
-  /// Get AsimmetryCorrection (XY) 
+  /// Get Asimmetry Correction (XY) 
   inline float GetAsymmetry(int icoo)             { return _asymmetry[icoo]; }
+  /// Set Charge Loss Correction 
+  void         SetChargeLossArray(int icoo, float array[CHLOSSARR][CHLOSSARR]);
+  float        GetChargeLossArrayElem(int icoo, int ind_ip, int ind_ia);
+  /// Get Charge Loss Correction (normalization to IP = 0 and IA = 0)
+  /*! 
+      this correction depends on: 
+      - impact point
+      - impact angle (default=0)
+      - signal amplitude (default MIP) 
+      [see AMSNote_2007-12-01 ...]
+      PS: for the moment is implemented only the charge correction for Z=1 particles
+  */
+  float GetChargeLoss(int icoo, float ip, float ia);
 
   //! Returns the pointer to the TrLadPar obj with the required Assembly id. In case of failure returns a NULL pointer
   TrLadPar* FindPar_TkAssemblyId(int tkassemblyid);
@@ -97,9 +121,8 @@ class TrParDB :public TObject{
   //! Returns the pointer to the TrLadPar obj with the required ladder name. In case of failure returns a NULL pointer
   TrLadPar* FindPar_LadName(string& name);
 
-  /// Print info 
+  /// Print infos 
   void PrintInfo();
-
 
   //! Interface to linear storage
   void Lin2ParDB();
@@ -116,7 +139,7 @@ class TrParDB :public TObject{
   //! Reset to zero all the param in the lib
   void Clear(const Option_t*aa=0);
 
-  ClassDef(TrParDB,2);
+  ClassDef(TrParDB,3);
 };
 
 typedef map<int,TrLadPar*>::const_iterator trparIT;

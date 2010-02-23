@@ -80,7 +80,7 @@ public:
   int Lin2Par(float* offset);
 
 
-  static int GetSize() {return (3*4+16*4);}
+  static int GetSize() {return (1+2+16);}
 
 
   ClassDef(TrLadPar,1);

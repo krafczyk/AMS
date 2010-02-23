@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.11 2010/02/12 12:13:00 pzuccon Exp $ 
+/// $Id: TrCluster.C,v 1.12 2010/02/23 14:59:56 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/02/12 12:13:00 $
+/// $Date: 2010/02/23 14:59:56 $
 ///
-/// $Revision: 1.11 $
+/// $Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -225,9 +225,9 @@ float TrClusterR::GetTotSignal(int opt) {
   float sum = 0.;
   for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt);
   if (kVAGain&opt) for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(int(ii/64));
-  if (kLoss&opt)   sum = sum;
   if (kAngle&opt)  sum = sum*(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
   if (kGain&opt)   sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
+  if (kLoss&opt)   sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(opt),GetImpactAngle());
   return sum;
 }
 

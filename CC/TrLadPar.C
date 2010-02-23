@@ -20,10 +20,12 @@ using namespace std;
 
 ClassImp(TrLadPar);
 
+
 TrLadPar::TrLadPar(short int hwid) {
-  _hwid = hwid;
+  _hwid = (short int) hwid;
   Clear();
 }
+
 
 TrLadPar::TrLadPar(const TrLadPar& orig):TObject(orig){
   _hwid = orig._hwid;
@@ -32,12 +34,14 @@ TrLadPar::TrLadPar(const TrLadPar& orig):TObject(orig){
   for (int ii=0; ii<16; ii++) _vagain[ii] = orig._vagain[ii];
 }
 
+
 void TrLadPar::Clear(const Option_t* aa){
-  TObject::Clear(aa);
+  // TObject::Clear(aa);
   _filled=0;
   for (int ii=0; ii< 2; ii++) _gain[ii]   = 1.;
   for (int ii=0; ii<16; ii++) _vagain[ii] = 1.;
 }
+
 
 void TrLadPar::PrintInfo(){
   TkLadder* lad = TkDBc::Head->FindHwId(_hwid);
@@ -45,7 +49,7 @@ void TrLadPar::PrintInfo(){
     printf("TrLadPar::PrintInfo() - Error - Can't find the ladder with HwId %4d\n",_hwid);
     return;
   }
-  printf("%03d %+3d ",_hwid,lad->GetTkId());
+  printf(" %03d %+04d ",_hwid,lad->GetTkId());
   for (int ii=0; ii< 2; ii++) printf("%5.3f ",_gain[ii]);
   for (int ii=0; ii<16; ii++) printf("%5.3f ",_vagain[ii]);
   printf("\n");
@@ -53,31 +57,25 @@ void TrLadPar::PrintInfo(){
 
 
 int  TrLadPar::Par2Lin(float* offset){
-
   if(!offset) return -1;
-
-  offset[0]= (float)GetHwId();
-  offset[1]= _gain[0];
-  offset[2]= _gain[1];
-  float* off2=&(offset[3]);
-  for (int ii=0;ii<16;ii++)
-    off2[ii]          = _vagain[ii];
+  offset[0] = (float)GetHwId();
+  offset[1] = _gain[0];
+  offset[2] = _gain[1];
+  float* off2 = &(offset[3]);
+  for (int ii=0; ii<16; ii++)
+    off2[ii] = _vagain[ii];
   return 0;
 }
 
 
-
 int  TrLadPar::Lin2Par(float* offset){
-
   if(!offset) return -1;
-
-  _hwid        = (int)offset[0];
-  _gain[0]     = offset[1];
-  _gain[1]     = offset[2];
-
-  float* off2=&(offset[3]);
-  for (int ii=0;ii<16;ii++)
-     _vagain[ii] =       off2[ii];
+  _hwid    = (int)offset[0];
+  _gain[0] = offset[1];
+  _gain[1] = offset[2];
+  float* off2 = &(offset[3]);
+  for (int ii=0; ii<16; ii++)
+    _vagain[ii] = off2[ii];
   return 0;
 
 }

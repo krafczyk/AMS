@@ -36,9 +36,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/02/01 12:44:12 $
+ $Date: 2010/02/23 14:59:55 $
 
- $Revision: 1.8 $
+ $Revision: 1.9 $
 
 */
 
@@ -231,18 +231,18 @@ public:
   /// Insert a strip in the cluster
   void push_back(float adc);
 
-  /// Set track interpolation angle tan(ThetaXZ)
+  /// Set track interpolation angle tan(thetaXZ) (rad)
   inline void  SetDxDz(float dxdz) { _dxdz = dxdz; }
-  /// Set track interpolation angle tan(ThetaYZ)
+  /// Set track interpolation angle tan(thetaYZ) (rad)
   inline void  SetDyDz(float dydz) { _dydz = dydz; }
-  /// Get track interpolation angle tan(ThetaXZ)
+  /// Get track interpolation angle tan(thetaXZ) (rad)
   inline float GetDxDz()  { return _dxdz; }
-  /// Get track interpolation angle tan(ThetaYZ)
+  /// Get track interpolation angle tan(thetaYZ) (rad)
   inline float GetDyDz()  { return _dydz; }
   /// Get track interpolation angle theta
   inline float GetTheta() { return acos(1./(1.+_dxdz*_dxdz+_dydz*_dydz)); }
-
-
+  /// Get track impact angle XZ (degrees) 
+  inline float GetImpactAngle() { return (GetSide()==0) ? atan(_dxdz)*180./3.14159265 : atan(_dydz)*180./3.14159265; }
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const{return Status & checker;}
