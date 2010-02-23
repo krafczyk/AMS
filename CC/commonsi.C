@@ -123,7 +123,7 @@ void AMSCommonsI::init(){
        test2+=pt[2]<<16;
        test2+=pt[3]<<24;
        integer lend = test1==test2;
-       if(lend)if(pri)cout <<"AMSCommonsI-I-Identified as LittleEndian";
+       if(lend) { if(pri)cout <<"AMSCommonsI-I-Identified as LittleEndian"; }
        else {
          if(pri)cout <<"AMSCommonsI-I-Identified as BigEndian";
          AMSDBc::BigEndian=1;
