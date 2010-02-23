@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.4 2009/09/13 12:33:52 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.5 2010/02/23 08:34:23 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2009/09/13 12:33:52 $
+///$Date: 2010/02/23 08:34:23 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +30,17 @@ TkSens::TkSens() {
 //--------------------------------------------------
 TkSens::TkSens(AMSPoint& GCoo){
   Clear();
-  GlobalCoo=GCoo;
+  GlobalCoo = GCoo;
+  for (int ii=0; ii<3; ii++) GlobalDir[ii] = 0;
+  Recalc();
+}
+
+
+//--------------------------------------------------
+TkSens::TkSens(AMSPoint& GCoo, AMSDir& GDir){
+  Clear();
+  GlobalCoo = GCoo;
+  GlobalDir = GDir;
   Recalc();
 }
 
@@ -38,25 +48,40 @@ TkSens::TkSens(AMSPoint& GCoo){
 //--------------------------------------------------
 TkSens::TkSens(int tkid, AMSPoint& GCoo){
   Clear();
-  GlobalCoo=GCoo;
-  lad_tkid=tkid; 
+  GlobalCoo = GCoo;
+  for (int ii=0; ii<3; ii++) GlobalDir[ii] = 0;
+  lad_tkid  = tkid;
+  Recalc();
+}
+
+
+//--------------------------------------------------
+TkSens::TkSens(int tkid, AMSPoint& GCoo, AMSDir& GDir){
+  Clear();
+  GlobalCoo = GCoo;
+  GlobalDir = GDir;
+  lad_tkid  = tkid; 
   Recalc();
 }
 
 
 //--------------------------------------------------
 void TkSens::Clear(){
-
-  lad_tkid =0;
-  sens     =-1;
-  mult     =-1;
-  SensCoo[0]=-1000;SensCoo[1]=-1000;SensCoo[2]=-1000;
-  LaddCoo=SensCoo;
-  ReadChanX =-1;
-  ReadChanY =-1;
-  ImpactPointX =-1;
-  ImpactPointY =-1;
-
+  lad_tkid = 0;
+  sens     = -1;
+  mult     = -1;
+  for (int ii=0; ii<3; ii++) {
+    SensCoo[ii] = -1000;
+    SensDir[ii] =     0; 
+  }   
+  LaddCoo  = SensCoo;
+  LaddDir  = SensDir;
+  ReadChanX     = -1;
+  ReadChanY     = -1;
+  ImpactPointX  = -10;
+  ImpactPointY  = -10;
+  ImpactAngleXZ = -10;
+  ImpactAngleYZ = -10;
 }
 
 
@@ -66,8 +91,8 @@ bool TkSens::IsInsideLadder(int tkid){
   lad=TkDBc::Head->FindTkId(lad_tkid);
   if (!lad) {return  false;}
   return IsInsideLadder(lad);
-
 }
+
 
 //--------------------------------------------------
 void TkSens::Recalc(){
@@ -80,7 +105,9 @@ void TkSens::Recalc(){
     if(!IsInsideLadder(lad_tkid)) return;
   }
   
-  sens=GetSens();
+  // makes the hard work!
+  sens = GetSens();
+
   ReadChanY=GetStripFromLocalCooS(SensCoo[1]);
   number cooY1,cooY2;  
   cooY1=TkCoo::GetLocalCooS(ReadChanY);
@@ -115,27 +142,14 @@ void TkSens::Recalc(){
   }
   ImpactPointX=(LaddCoo[0]-cooX1)/abs(cooX1-cooX2);
 
+  ImpactAngleXZ = atan(SensDir.x()/SensDir.z());
+  ImpactAngleYZ = atan(SensDir.y()/SensDir.z()); 
+ 
+  // caveat:
   // - always defined (also in regions of no definition 640 and -0.2)
   // - sensor/multiplicity (880)
 
-  /*
-  // to be removed
-  cerr << "Layer:             " << lay << endl;
-  cerr << "TkId:              " << lad_tkid << endl;
-  cerr << "GlobalCoordinate:  " << GlobalCoo << endl;
-  cerr << "SensorCoordinate:  " << SensCoo << endl;
-  cerr << "ReadChanX:         " << ReadChanX << endl;
-  cerr << "ReadChanY:         " << ReadChanY << endl;
-  cerr << "LadderCoordinate:  " << LaddCoo << endl;
-  cerr << "LadderCoordinate1: " << cooX1 << "  " << cooY1 << endl;
-  cerr << "LadderCoordinate2: " << cooX2 << "  " << cooY2 << endl;
-  cerr << "ImpactPointX:      " << ImpactPointX << endl;
-  cerr << "ImpactPointY:      " << ImpactPointY << endl;
-  cerr << "Multiplicity:      " << mult << endl;
-  cerr << "Sensor:            " << sens << endl;
-  */
   return;
-
 }
 
 
@@ -163,11 +177,41 @@ int TkSens::GetSens(){
   AMSRotMat RotG=lad->GetRotMat().Invert()*lad->GetRotMatA().Invert();
 
   //Convolute with the Plane pos in the space
-  AMSPoint oo= PRotG*(GlobalCoo-PPosG);
+  AMSPoint oo = PRotG*(GlobalCoo-PPosG);
 
   //Get the local coo on the Ladder
   SensCoo = RotG*(oo-PosG);
   LaddCoo = SensCoo;
+
+  /*
+  cout << "GLOBAL " << GlobalCoo.x() << " " << GlobalCoo.y() << " " << GlobalCoo.z() << endl;
+  cout << "LADDER " << LaddCoo.x()   << " " << LaddCoo.y()   << " " << LaddCoo.z()   << endl;
+  cout << "Plane Rotation" << endl;
+  for (int irow=0; irow<3; irow++) 
+    for (int icol=0; icol<3; icol++) 
+       cout << pp->GetRotMat().GetEl(irow,icol) << " ";
+  cout << endl;
+  cout << "Plane Inverse Rotation" << endl;
+  for (int irow=0; irow<3; irow++)
+    for (int icol=0; icol<3; icol++)
+       cout << PRotG.GetEl(irow,icol) << " ";
+  cout << endl;
+  cout << "Ladder Rotation" << endl;
+  for (int irow=0; irow<3; irow++)
+    for (int icol=0; icol<3; icol++)
+       cout << lad->GetRotMat().GetEl(irow,icol) << " ";
+  cout << endl;
+  cout << "Ladder Inverse Rotation" << endl;
+  for (int irow=0; irow<3; irow++)
+    for (int icol=0; icol<3; icol++)
+       cout << RotG.GetEl(irow,icol) << " ";
+  cout << endl;
+  cout << "GLODIR " << GlobalDir.x() << " " << GlobalDir.y() << " " << GlobalDir.z() << endl;
+  cout << "LADDIR " << LaddDir.x() << " " << LaddDir.y() << " " << LaddDir.z() << endl;
+  */
+
+  SensDir = RotG*(PRotG*GlobalDir);
+  LaddDir = SensDir;
 
   //Offset of the first strip position
   double Ax= (TkDBc::Head->_ssize_inactive[0]-

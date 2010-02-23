@@ -1,11 +1,11 @@
-/// $Id: TkSens.h,v 1.2 2009/04/03 08:39:24 pzuccon Exp $ 
+/// $Id: TkSens.h,v 1.3 2010/02/23 08:34:23 oliva Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
 //////////////////////////////////////////////////////////////////////////
 ///
 ///
-///\class TkCoo
+///\class TkSens
 ///\brief A library for the calculation from the global to local coordinate
 ///\ingroup tkrec
 ///
@@ -13,41 +13,58 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2009/04/03 08:39:24 $
+///$Date: 2010/02/23 08:34:23 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "point.h"
 #include "TkLadder.h"
-//! Tracker Utility class to get the ladder sensor readout channel from a point in the Global frame 
-class TkSens{
 
-private:
-  //! The input
+//! Tracker Utility class for the calculation from the global to local coordinate
+
+class TkSens {
+
+ private:
+
+  // Input data
+  
+  //! The Global Coordinate input
   AMSPoint GlobalCoo;
+  //! The optional Global Dirction input
+  AMSDir   GlobalDir;
 
-  // From now on all the data part is calculated
+  // These data members are calculated
+
   //! The ladder identifier ( -1 if none)
-  int lad_tkid;
+  int      lad_tkid;
   //! sensor on the ladder
-  int sens;
+  int      sens;
   //! Multiplicity number
-  int mult;
-  //! local coo on the sensor
+  int      mult;
+  //! Local coordinate in the sensor frame
   AMSPoint SensCoo;
-  /// Local coordinate in the ladder frame
+  //! Local direction in the sensor frame (actually by def. == LaddDir)
+  AMSDir   SensDir;
+  //! Local coordinate in the ladder frame
   AMSPoint LaddCoo;
+  //! Local direction in the sensor frame
+  AMSDir   LaddDir;
   //! nearest K side readout channel
-  int ReadChanX;
+  int      ReadChanX;
   //! nearest S side readout channel
-  int ReadChanY;
-  //! The Impact point in strip pitch unit wrt the nearest strip
-  number ImpactPointX;
+  int      ReadChanY;
+  //! The X coo. Impact Point in strip pitch unit wrt the nearest strip
+  number   ImpactPointX;
+  //! The Y coo. Impact Point in strip pitch unit wrt the nearest strip
+  number   ImpactPointY;
+  //! The XZ plane Impact Angle 
+  number   ImpactAngleXZ;
+  //! The YZ plane Impact Angle 
+  number   ImpactAngleYZ;
 
-  //! The Impact point in strip pitch unit wrt the nearest strip
-  number ImpactPointY;
+  // Private methods
 
   //! checks if the point is on a layer
   int  GetLayer();
@@ -55,62 +72,76 @@ private:
   bool IsInsideLadder(int tkid);
   //! checks if it is inside the ladder pointed by lad
   bool IsInsideLadder(TkLadder* lad);
-
   //! Determines on which ladder (if any) is the point
   int  FindLadder();
-
   //! find the sensor number on the ladder(0-n) and the local coo on it
   int  GetSens();
-
   //! find the nearest readout channel from sensor S local coo
-  int GetStripFromLocalCooS(number Y);
+  int  GetStripFromLocalCooS(number Y);
   //! find the nearest readout channel from sensor K5 local coo
-  int GetStripFromLocalCooK5(number X,int sens);
+  int  GetStripFromLocalCooK5(number X,int sens);
   //! find the nearest readout channel from sensor K7 local coo
-  int GetStripFromLocalCooK7(number X,int sens);
+  int  GetStripFromLocalCooK7(number X,int sens);
 
-public:
-  // Default Constructor
+ public:
+
+  //! Default Constructor
   TkSens();
-
   //! Constructor calculates all the quantities from a point in global coo
   TkSens(AMSPoint& GCoo);
+  //! Constructor calculates all the quantities from a point/direction in global coo
+  TkSens(AMSPoint& GCoo, AMSDir& GDir); 
+  //! Constructor calculates all the quantities from the tkid and a point in global coo 
+  TkSens(int tkid, AMSPoint& GCoo);
+  //! Constructor calculates all the quantities from the tkid and a point/direction in global coo
+  TkSens(int tkid, AMSPoint& GCoo, AMSDir& GDir);
 
-  //! Constructor calculates all the quantities from the tkid and  a point in global coo
-  TkSens(int tkid,AMSPoint& GCoo);
-
-  //! (re)set the global coo
-  void SetGlobalCoo(AMSPoint& pp) {Clear(); GlobalCoo=pp; Recalc();}
-  void SetGlobalCoo(int tkid, AMSPoint& pp) {Clear(); lad_tkid=tkid; GlobalCoo=pp; Recalc();} 	
+  //! (re)set the global coo.
+  void SetGlobalCoo(AMSPoint& pp) { Clear(); GlobalCoo=pp; Recalc(); }
+  //! (re)set the global coo. specifying the selected ladder
+  void SetGlobalCoo(int tkid, AMSPoint& pp) { Clear(); lad_tkid=tkid; GlobalCoo=pp; Recalc(); }
+  //! (re)set the global coo. and dir. 
+  void SetGlobal(AMSPoint& pp, AMSDir& aa) { Clear(); GlobalCoo=pp; GlobalDir=aa; Recalc(); }
+  //! (re)set the global coo. and dir specifying the selected ladder
+  void SetGlobal(int tkid, AMSPoint& pp, AMSDir& aa) { Clear(); lad_tkid=tkid; GlobalCoo=pp; GlobalDir=aa; Recalc(); }
   //! Recalc everything from the global coo
   void Recalc();  
 
   //! True if the point is on a ladder
-  bool     LadFound()     { return lad_tkid!=0;}
+  bool     LadFound()     { return lad_tkid!=0; }
   //! Returns the ladder id ( 0 if not on ladder)
-  int      GetLadTkID()   { return lad_tkid;}
+  int      GetLadTkID()   { return lad_tkid; }
   //! Returns the sensor number
-  int      GetSensor()    { return sens;}
+  int      GetSensor()    { return sens; }
   //! Returns the multiplicity index
   int      GetMultIndex() { return mult; }
-  //! Returns the Global Coo
-  AMSPoint GetGlobalCoo() { return GlobalCoo;}
-  //! Returns the Local Coo on the sensor
-  AMSPoint GetSensCoo()   { return SensCoo;}
-  //! Returns the Local Coo on the ladder
-  AMSPoint GetLaddCoo()   { return LaddCoo;}
- //! Returns the nearest readout channel from K side
-  int      GetStripX()    { return ReadChanX;}
-  //! Returns the nearest readout channel from S side
-  int      GetStripY()    { return ReadChanY;}
-  //! Returns the Impact point in strip pitch unit wrt the nearest strip
-  number GetImpactPointX(){return ImpactPointX;}
+  //! Returns the global coordinate
+  AMSPoint GetGlobalCoo() { return GlobalCoo; }
+  //! Returns the global direction
+  AMSDir   GetGlobalDir() { return GlobalDir; }
+  //! Returns the local coordinate in the sensor frame (for now == LaddDir) 
+  AMSPoint GetSensCoo()   { return SensCoo; }
+  //! Returns the local direction in the sensor frame
+  AMSDir   GetSensDir()   { return SensDir; }
+  //! Returns the local coordinate in the ladder frame 
+  AMSPoint GetLaddCoo()   { return LaddCoo; }
+  //! Returns the local direction in the ladder frame 
+  AMSPoint GetLaddDir()   { return LaddDir; }
+  //! Returns the nearest readout channel for K side
+  int      GetStripX()    { return ReadChanX; }
+  //! Returns the nearest readout channel for S side
+  int      GetStripY()    { return ReadChanY; }
+  //! Returns the X coo. Impact Point in strip pitch unit wrt the nearest strip (i.e. GetStripX())
+  number   GetImpactPointX() { return ImpactPointX; }
+  //! Returns the Y coo. Impact Point in strip pitch unit wrt the nearest strip (i.e. GetStripY())
+  number   GetImpactPointY() { return ImpactPointY; }
+  //! Returns the XZ plane Impact Angle
+  number   GetImpactAngleXZ() { return ImpactAngleXZ; }
+  //! Returns the YZ plane Impact Angle
+  number   GetImpactAngleYZ() { return ImpactAngleYZ; }
 
-  //! Returns the Impact point in strip pitch unit wrt the nearest strip
-  number GetImpactPointY(){return ImpactPointY;}
   //! Clear the calculated content
   void Clear();
-
 };
 
 #endif
