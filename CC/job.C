@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.689 2010/02/22 15:14:17 choutko Exp $
+// $Id: job.C,v 1.690 2010/02/24 10:57:08 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2883,7 +2883,7 @@ bool NeededByDefault=isSimulation();
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
     begin.tm_isdst=0;
-     end.tm_isdst=0;    
+    end.tm_isdst=0;    
     begin.tm_sec  =0;
     begin.tm_min  =0;
     begin.tm_hour =0;
@@ -2897,12 +2897,32 @@ bool NeededByDefault=isSimulation();
     end.tm_mday=0;
     end.tm_mon=0;
     end.tm_year=0;
-  TkDBc::CreateLinear();
+    TkDBc::CreateLinear();
 
     if(isRealData())
       TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
 			     TkDBc::GetLinearSize(),TkDBc::linear,
  			     server,need,SLin2Align));
+    
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+    if(isRealData())
+      TID.add (new AMSTimeID(AMSID("TrackerPars",isRealData()),begin,end,
+                             TrParDB::GetLinearSize(),TrParDB::linear,
+                             server,need,SLin2ParDB));
+    
 
     if (isRealData() && TrRecon::TasRecon) {
       begin.tm_isdst=0;
