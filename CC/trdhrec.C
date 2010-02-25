@@ -5,6 +5,7 @@
 #include "extC.h"
 #include "root.h"
 #include "tofrec02.h"
+#include "fenv.h"
 
 static AMSTRDHSegment* pTRDHSegment_[10];
 #pragma omp threadprivate (pTRDHSegment_)
@@ -238,7 +239,23 @@ AMSTRDHSegment* Refit(AMSTRDHSegment* seg,int debug=0){
   }
   else return 0;
 }
+
 vector<AMSTRDHSegment*> clean_segvec(vector<AMSTRDHSegment*> vec,int debug=0){
+  //PZ FPE bugfix 
+  // this function contains broken code 
+  // it should be rewritten
+  // for the moment really-force FPE masking
+
+    int env=0;
+#ifndef __DARWIN__
+    env=fegetexcept();
+    if(MISCFFKEY.RaiseFPE<=2){
+      fedisableexcept(FE_OVERFLOW);
+      fedisableexcept(FE_INVALID);
+      fedisableexcept(FE_DIVBYZERO);
+    }
+#endif    
+
   if(debug>0){
     printf("Enter clean_segvec\n");
     printf("before clean %i\n",vec.size());
@@ -252,7 +269,9 @@ vector<AMSTRDHSegment*> clean_segvec(vector<AMSTRDHSegment*> vec,int debug=0){
   for(int s1=0;s1!=vec.size();s1++){
     if(vec.size()>2&&vec[s1]->chi2/((float)vec[s1]->nhits-2)>6){
       if(debug>0)printf("removing segment %i because of high chi2/ndof %f\n",s1,vec[s1]->chi2/((float)vec[s1]->nhits-2));
-      vec.erase(vec.begin()+s1);goto restart;}
+      
+      vec.erase(vec.begin()+s1);goto restart;
+    }
     
     for(int s2=s1+1;s2!=vec.size();s2++){
       if(vec[s1]->d!=vec[s2]->d)continue;
@@ -349,6 +368,16 @@ vector<AMSTRDHSegment*> clean_segvec(vector<AMSTRDHSegment*> vec,int debug=0){
     printf("after clean %i\n",vec.size());
     printf("Exiting clean_segvec\n");
   } 
+
+#ifndef __DARWIN__
+    feclearexcept(FE_OVERFLOW);
+    feclearexcept(FE_INVALID);
+    feclearexcept(FE_DIVBYZERO);
+    if(env){
+      feenableexcept(env);        
+    }
+#endif    
+  
   return vec;
 }
 AMSTRDHTrack* SegToTrack(AMSTRDHSegment *s1, AMSTRDHSegment* s2, int debug){

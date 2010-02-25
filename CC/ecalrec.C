@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.131 2010/02/22 15:14:17 choutko Exp $
+//  $Id: ecalrec.C,v 1.132 2010/02/25 15:06:54 pzuccon Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2392,7 +2392,7 @@ void AMSEcalShower::ProfileFit(){
     int env=0;
 #ifndef __DARWIN__
     env=fegetexcept();
-    if(MISCFFKEY.RaiseFPE<=1){
+    if(MISCFFKEY.RaiseFPE<=2){
     fedisableexcept(FE_OVERFLOW);
     fedisableexcept(FE_INVALID);
     }

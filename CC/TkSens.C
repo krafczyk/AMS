@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.5 2010/02/23 08:34:23 oliva Exp $ 
+/// $Id: TkSens.C,v 1.6 2010/02/25 15:06:54 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/02/23 08:34:23 $
+///$Date: 2010/02/25 15:06:54 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -142,9 +142,14 @@ void TkSens::Recalc(){
   }
   ImpactPointX=(LaddCoo[0]-cooX1)/abs(cooX1-cooX2);
 
-  ImpactAngleXZ = atan(SensDir.x()/SensDir.z());
-  ImpactAngleYZ = atan(SensDir.y()/SensDir.z()); 
- 
+  if(SensDir.z()!=0){
+    ImpactAngleXZ = atan(SensDir.x()/SensDir.z());
+    ImpactAngleYZ = atan(SensDir.y()/SensDir.z()); 
+  }
+  else{
+    ImpactAngleXZ = 0;
+    ImpactAngleYZ = 0; 
+  }
   // caveat:
   // - always defined (also in regions of no definition 640 and -0.2)
   // - sensor/multiplicity (880)

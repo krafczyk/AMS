@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.39 2010/02/01 12:44:05 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.40 2010/02/25 15:06:54 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/02/01 12:44:05 $
+/// $Date: 2010/02/25 15:06:54 $
 ///
-/// $Revision: 1.39 $
+/// $Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1400,6 +1400,7 @@ bool TrRecon::PreScan(int nlay, TrHitIter &it) const
   double pz   = it.coo[it.ilay[nlay]][2];
   double pc   = it.coo[it.ilay[nlay]][it.side];
   double intp = it.param[0]+it.param[1]*pz+it.param[2]*pz*pz;
+  if(!isnormal(intp)) intp=0;
   //PZ Bug fix if put on the return line is converted to an integer
   //and often fail the comparison.
   double ddiff=fabs(pc-intp);

@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.690 2010/02/24 10:57:08 oliva Exp $
+// $Id: job.C,v 1.691 2010/02/25 15:06:54 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2379,7 +2379,7 @@ void AMSJob::_caaxinitjob(){
 
 void AMSJob::_remfinitjob(){
 
-  //PZMAG#ifndef _PGTRACK_
+#ifndef _PGTRACK_
 READMFIELD();
 if(MISCFFKEY.BTempCorrection){
 cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections will be used"<<endl<<endl; 
@@ -2395,7 +2395,7 @@ cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections will be use
 //   if(MAGSFFKEY.BTempCorrection){
 //    cout <<"<---- AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections are MEANING LESS for AMS02"<<endl<<endl; 
 //  }
-// #endif
+#endif
 }
 
 #ifndef _PGTRACK_
@@ -2796,32 +2796,32 @@ end.tm_year=TKFIELD.iyear[1];
 
 
 
-tm btm;
-tm etm;
-time_t begin,end;
-AMSTimeID *ptdv;
-
-if(AMSFFKEY.Update==101){
-   begin=MAGSFFKEY.begin;
-   end=MAGSFFKEY.end>MAGSFFKEY.begin?MAGSFFKEY.end:MAGSFFKEY.begin+2e7;
-   btm=*(localtime(&begin));
-   etm=*(localtime(&end));   
-  ptdv= new AMSTimeID(AMSID("MagneticFieldStatus",isRealData()),btm,etm,sizeof(MAGSFFKEY_DEF),(void*)&(MAGSFFKEY.magstat),server,1);
-   ptdv->UpdateMe()=1;
-   ptdv->UpdCRC();
-   TID.add(ptdv);
-   return;
-}
-else if(isRealData() ){
-   begin=100000000;
-   end=begin-1;
-   btm=*(localtime(&begin));
-   etm=*(localtime(&end));   
-  ptdv= new AMSTimeID(AMSID("MagneticFieldStatus",isRealData()),btm,etm,sizeof(MAGSFFKEY_DEF),(void*)&(MAGSFFKEY.magstat),server,1);
-TID.add(ptdv);
-}
-}
-
+  tm btm;
+  tm etm;
+  time_t begin,end;
+  AMSTimeID *ptdv;
+  
+  if(AMSFFKEY.Update==101){
+    begin=MAGSFFKEY.begin;
+    end=MAGSFFKEY.end>MAGSFFKEY.begin?MAGSFFKEY.end:MAGSFFKEY.begin+2e7;
+    btm=*(localtime(&begin));
+    etm=*(localtime(&end));   
+    ptdv= new AMSTimeID(AMSID("MagneticFieldStatus",isRealData()),btm,etm,sizeof(MAGSFFKEY_DEF),(void*)&(MAGSFFKEY.magstat),server,1);
+    ptdv->UpdateMe()=1;
+    ptdv->UpdCRC();
+    TID.add(ptdv);
+    return;
+  }
+  else if(isRealData() ){
+    begin=100000000;
+    end=begin-1;
+    btm=*(localtime(&begin));
+    etm=*(localtime(&end));   
+    ptdv= new AMSTimeID(AMSID("MagneticFieldStatus",isRealData()),btm,etm,sizeof(MAGSFFKEY_DEF),(void*)&(MAGSFFKEY.magstat),server,1);
+    TID.add(ptdv);
+  }
+ }
+ 
 
 //PZMAG 
 #ifdef _PGTRACK_

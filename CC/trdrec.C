@@ -847,7 +847,7 @@ else{
     number tol=2.99e-2;
     int i,j;
     _update=false;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,(void*)this);
+    //PZ NO_NAG    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,(void*)this);
     if(ifail==0){
      _update=true;
      _StrLine._Coo[0]=x[0];

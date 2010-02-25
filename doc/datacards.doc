@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.320 2010/02/22 15:14:25 choutko Exp $
+#  $Id: datacards.doc,v 1.321 2010/02/25 15:07:05 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -593,7 +593,7 @@ I 8 NumThreads(1)    //  number of threads if compiled with openmp (-1  == numbe
 I 9 DynThreads(0)    //   dyn adjustment of thread number w/r proc loading
 I10 ChunkThreads(4096) // number of events per thread in one parallel  clause
 I11 DivideBy(1)        // divide or not cpu spent by number of threads (link dependent)
-I12 RaiseFPE(1)         // enforce(2) raise(1) or not (0) fpe signals
+I12 RaiseFPE(1)         // enforce-also-on-broken-code(3) enforce(2) raise(1) or not (0) fpe signals
  
 G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 
