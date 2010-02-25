@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.64 2010/02/18 13:07:12 barao Exp $
+//  $Id: richrec.h,v 1.65 2010/02/25 14:45:50 pzuccon Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -63,7 +63,11 @@ public:
   integer getcounts() {return _counts;}
   geant getnpe(){ 
     RichPMTChannel calibration(_channel);
-    return _counts/calibration.gain[_status&gain_mode?1:0];
+    //PZ FPE bugfix FIXME
+    if(calibration.gain[_status&gain_mode?1:0]!=0)
+      return _counts/calibration.gain[_status&gain_mode?1:0];
+    else
+      return 0;
   }
 
   static void mc_build();
