@@ -291,7 +291,14 @@ void RichRadiatorTileManager::Finish_Default(){
       cout<<"RichRadiatorTileManager writing constants to file "<<filename<<endl;
       fstream data(filename,ios::out); // open  file for reading
       for(int i=0;i<_number_of_rad_tiles;i++){
-	data<<i<<" "<<_tiles[i]->index<<" "<<_tiles[i]->clarity<<endl;
+	//	data<<i<<" "<<_tiles[i]->index<<" "<<_tiles[i]->clarity<<endl;
+
+	data<<_tiles[i]->position[0]<<" "
+	    <<_tiles[i]->position[1]<<" "
+	    <<_tiles[i]->index<<" "	    
+	    <<_tiles[i]->bounding_box[2][1]-_tiles[i]->bounding_box[2][0]<<" "
+	    <<_tiles[i]->clarity<<endl;
+	
       }
       data.close();
     }
