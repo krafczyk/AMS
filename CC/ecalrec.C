@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.132 2010/02/25 15:06:54 pzuccon Exp $
+//  $Id: ecalrec.C,v 1.133 2010/02/26 14:16:33 pzuccon Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2414,7 +2414,9 @@ void AMSEcalShower::ProfileFit(){
     x[1]=_Dz*_ShowerMax;
     x[2]=1;
      _Direction=0;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+#ifndef NO_NAG
+     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+#endif     
      if(ifail==0){
      _ProfilePar[0]=x[0];    
      _ProfilePar[1]=x[1];    
@@ -2424,8 +2426,9 @@ void AMSEcalShower::ProfileFit(){
     integer one=1;
     _iflag=3;
     ifail=1;
+#ifndef NO_NAG
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
-
+#endif
 // Leak Estimation
     const integer lwc=1000;
     const integer liwc=lwc/4;
@@ -2470,7 +2473,9 @@ void AMSEcalShower::ProfileFit(){
     x[1]=_Dz*(Maxrow-_ShowerMax);
     x[2]=1;
     ifail=1;
+#ifndef NO_NAG
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+#endif
 //    cout << "ecalshower::profilefit finished "<<ifail<<" "<<f<<endl;
     if(ifail==0){
      _ProfilePar[5]=x[0];    
@@ -2510,7 +2515,9 @@ void AMSEcalShower::ProfileFit(){
      _iflag=3;
      ifail=1;
      integer one=1;
+#ifndef NO_NAG
      e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
+#endif
      _Direction=1;
     }
 #ifndef __DARWIN__
@@ -2673,7 +2680,9 @@ for(int i=0;i<3;i++)_TransFitPar[i]=0;
     x[1]=3;
     x[2]=0.1;
     x[3]=0.5;
+#ifndef NO_NAG
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+#endif
     _TransFitPar[0]=x[1]!=0?1/x[1]:FLT_MAX;
     _TransFitPar[1]=x[3]!=0?1/x[3]:FLT_MAX;
     _TransFitPar[2]=x[2];

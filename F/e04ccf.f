@@ -1,4 +1,4 @@
-*  $Id: e04ccf.f,v 1.5 2008/12/08 15:15:18 choutko Exp $
+*  $Id: e04ccf.f,v 1.6 2010/02/26 14:16:14 pzuccon Exp $
       SUBROUTINE E04CCF(N,X,FMIN,EPS,N1,PDSTAR,PSTAR,PBAR,STEP,Y,P,
      *                  FUNCT,MONIT,MAXIT,IFAIL,dummy)
 C     MARK 1 RELEASE.  NAG COPYRIGHT 1971
@@ -227,26 +227,6 @@ C     CONTRACTION
  1240 IFAIL = P01ABF(IFAIL,IV,SRNAME,0,P01REC)
       RETURN
       END
-              subroutine rzerowrapper(za,zb,x0,zmin,ierr)  
-                common /zminacommon/zmina
-!$OMP threadprivate(/zminacommon/)
-                real *8 zmina,zmin
-                real *8 za,zb,x0,xfun,r,eps
-                external xfun
-                eps=0.01
-                zmina=zmin
-                maxfu=1000 
-                call dzero(za,zb,x0,r,eps,maxfu,xfun)
-                ierr=0
-                if(r.lt.0)ierr=1 
-              end
-              real *8 function xfun(x,i)
-!$OMP  threadprivate(/zminacommon/)
-                common /zminacommon/zmina
-                real *8 zmina
-                real *8 x
-                xfun=derfc(x)-zmina
-              end
       SUBROUTINE D01AMF(F,BOUND,INF,EPSABS,EPSREL,RESULT,ABSERR,WORK,
      *                  LWORK,IWORK,LIWORK,IFAIL,dummy)
 C     MARK 13 RE-ISSUE. NAG COPYRIGHT 1988.

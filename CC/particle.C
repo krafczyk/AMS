@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.196 2010/02/17 16:12:16 choutko Exp $
+//  $Id: particle.C,v 1.197 2010/02/26 14:16:34 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -924,7 +924,9 @@ void AMSParticle::richfit(){
 	_mom=1/(_Momentum/_Charge*chrg);
 	_emom=_ErrMomentum/_Momentum/_Momentum*_Charge/chrg;
 	_emom=_emom*_emom;
+#ifndef  NO_NAG	
 	e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
+#endif
 	geant chi2=f;
 	if(chi2==chi2){
 	  prob[i]=PROB(chi2,1);

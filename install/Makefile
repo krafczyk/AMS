@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.96 2010/01/25 15:09:33 shaino Exp $
+#  $Id: Makefile,v 1.97 2010/02/26 14:16:04 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -186,7 +186,7 @@ COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(
 #Geant3 Interface
 COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  \
 		$(SCC)gmat.C    $(SCC)mceventg.C  $(SCC)mccluster.C     \
-		$(SFF)egzav.F    
+		$(SFF)egzav.F    $(SFF)rzerowrapper.F
 
 
 #Utils
@@ -213,7 +213,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	      $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)/HistoMan.C
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
-	   $(SFF)mfield.F   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C
+	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C
 #$(SCC)gufld.C
 
 else
@@ -413,15 +413,14 @@ STANDALONE:=$(EXE)gbatch$(PG).exe
 
 gbatch: amswd $(STANDALONE)
 
-$(STANDALONE):	$(OBJECTS) $(BIN)ctype.o
+$(STANDALONE): $(OBJECTS) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC)  -o $@  $(OBJECTS) $(TIMEL) $(LDFLAGSSTATIC)
+	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(TIMEL) $(LDFLAGSSTATIC)
 
 readdaq:amswd  $(EXE)readdaq$(PG)
 
 $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC)  -o  $@  $(OBJECTR) $(TIMEL) $(LDFLAGSSTATIC)
-
 
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session

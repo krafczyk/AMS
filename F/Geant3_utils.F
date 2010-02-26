@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.10 2009/11/06 17:59:55 choutko Exp $
+* $Id: Geant3_utils.F,v 1.11 2010/02/26 14:16:14 pzuccon Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.11  2010/02/26 14:16:14  pzuccon
+* PGTRACK update
+*
 * Revision 1.10  2009/11/06 17:59:55  choutko
 * *** empty log message ***
 *
@@ -119,7 +122,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.10 2009/11/06 17:59:55 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.11 2010/02/26 14:16:14 pzuccon Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -160,13 +163,13 @@ C     DECK  ID>, GUTREV.
       SUBROUTINE GUTREV
  
       integer ival
-      call fegetexcept(ival) 
-c        write(*,*)'************* ',ival
-      call feunsetexcept
+c      call fegetexcept(ival) 
+cc        write(*,*)'************* ',ival
+c      call feunsetexcept
       CALL GTREVE
-       if(ival.ne.0)then
-         call fesetexcept(ival)
-      endif 
+c       if(ival.ne.0)then
+c         call fesetexcept(ival)
+c      endif 
       END
       
       

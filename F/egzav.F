@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.11 2005/07/28 16:53:05 choutko Exp $
+*  $Id: egzav.F,v 1.12 2010/02/26 14:16:14 pzuccon Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -2269,11 +2269,13 @@ C     DATA RT/615./,ZT/585./
       enddo
        ifail=-1
        matv=.false.
+#ifndef NO_NAG
 #ifndef __ICC__
        call f02eaf('N',n,xma,lda,wr,wi,z,ldz,work,lwork,ifail)
 #else 
        call f02gjf(n,xma,n,ima,n,rdb,n,idb,n,eps,wr,wi,beta,
      +  matv,vr,n,vi,n,iter,ifail)
+#endif
 #endif
        if(ifail.eq.0)then       
        do i=1,3
