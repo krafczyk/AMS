@@ -77,19 +77,21 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
 //}
   if (GetFile() && GetFile()!=_FILE){
     _FILE=GetFile();
-    TrCalDB::Head= (TrCalDB*)_FILE->Get("TrCalDB");
+    TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
 	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
 	TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
       }
     }
-    //PZ FIXME
+  
+    TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
     if (!TrParDB::Head) {
-      TrParDB *cc= new TrParDB();
+      TrParDB* cc = new TrParDB();
       cc->init();
-      TrClusterR::UsingTrParDB(cc);
     }
+    TrClusterR::UsingTrParDB(TrParDB::Head);
+ 
     TrClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRecon::UsingTrCalDB(TrCalDB::Head);

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.193 2010/02/23 14:55:27 pzuccon Exp $
+//  $Id: ntuple.C,v 1.194 2010/02/26 19:49:30 oliva Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -13,6 +13,7 @@
 #ifndef _PGTRACK_
 #include "tralig.h"
 #else
+#include "TrParDB.h" 
 #include "TrRecon.h"
 #include "TrTasDB.h"
 #include "TrTasCluster.h"
@@ -380,6 +381,7 @@ void AMSNtuple::initR(char* fname){
 #ifdef _PGTRACK_
   TrCalDB::Head->Write();
   TkDBc  ::Head->Write();
+  TrParDB::Head->Write();
   // if(TrCalDB::Head) TrCalDB::Head->Write();
   if (TrTasDB::Head) TrTasDB::Head->Write();
   if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
