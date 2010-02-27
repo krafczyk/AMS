@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.22 2009/12/11 09:33:10 choutko Exp $
+# $Id: NetMonitor.pm,v 1.23 2010/02/27 17:33:55 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -15,6 +15,8 @@ my %fields=(
   sendmail=>[],
   hosts=>[],
   excluded=>['pcamsap','pcamsvc','pcamsdt0','pcamsf9'], 
+  dbhosts=>['pcamss0'],
+  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode'],
   hostsstat=>[],
   bad=>[],
   badsave=>[],
@@ -169,8 +171,59 @@ if(not open(FILE,"<".$self->{hostfile})){
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
+		    my @sbad=split ' ',$bad;
+		    if($sbad[0] eq $host){
+			$gonext=1;
+			last;
+		    }
+		}
+		if($gonext){
+		    next;
+		}
+		unlink "/tmp/xtime";
+		my $i=system($command.$host.' date +%s > /tmp/xtime ');
+		my $curtime=time();
+		if(1 or not $i){
+		  if(not open(FILE,"<"."/tmp/xtime")){
+			 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+		    next;
+		  }           
+		     my $buf;
+		     if(not read(FILE,$buf,16384)){
+			 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
+			 close FILE;
+		       next;
+		     }
+		     close FILE;
+		     unlink "/tmp/xtime";
+	#             my @sbuf= split ' ',$buf;
+	#             if($#sbuf>3){
+	#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
+	#               my @ssbuf=split ':',$sbuf[3];
+	#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
+		       if(abs($curtime-$buf)>360){
+			  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
+		       }
+		       next;
+	#             }  
+			push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
+		    }
+		else{
+		    push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
+		    next;
+		}
+	    }
+
+	#
+	# dbhosts targets
+	#
+	    $mes="NetMonitor-W-DBHostsTergetsProblems";
+	      $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+	   foreach my $host (@{$self->{dbhosts}}){
+        my $gonext=0;
+        foreach my $bad (@{$self->{bad}}){
             my @sbad=split ' ',$bad;
-            if($sbad[0] eq $host){
+            if($sbad[0] ){
                 $gonext=1;
                 last;
             }
@@ -178,44 +231,43 @@ if(not open(FILE,"<".$self->{hostfile})){
         if($gonext){
             next;
         }
-        unlink "/tmp/xtime";
-        my $i=system($command.$host.' date +%s > /tmp/xtime ');
-        my $curtime=time();
+      
+
+
+          unlink "/tmp/dbhosts";
+         #print "$command.$host. \n";
+         my $i=system($command.$host."   ps -f -uams >/tmp/dbhosts");
         if(1 or not $i){
-          if(not open(FILE,"<"."/tmp/xtime")){
-                 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-            next;
-          }           
-             my $buf;
-             if(not read(FILE,$buf,16384)){
-                 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-                 close FILE;
-               next;
-             }
-             close FILE;
-             unlink "/tmp/xtime";
-#             my @sbuf= split ' ',$buf;
-#             if($#sbuf>3){
-#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
-#               my @ssbuf=split ':',$sbuf[3];
-#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
-               if(abs($curtime-$buf)>360){
-                  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
-               }
-               next;
-#             }  
-                push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
+            if(not open(FILE,"<"."/tmp/dbhosts")){
+                push @{$self->{bad}}, $host." NetMonitor-W-ssh3Failed /tmp/dbhosts";
+                next;
             }
-        else{
-            push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
-            next;
-        }
-    }
+            my @words=<FILE>;
+            close FILE;
+            unlink "/tmp/dbhosts";
+             my $nt=-1;
+             foreach my $target (@{$self->{dbhoststargets}}){
+              foreach my $word (@words) {
+                if($word=~/$target/){
+                   $nt++;
+                   last;
+                 }
+                }  
+               }
+               print " joptat $nt \n;";
+               if($nt!=$#{@{$self->{dbhoststargets}}}){
+ push @{$self->{bad}}, $host." NetMonitor-W-DBHostsTargetsProblems ".$nt;
+}
+else{
+#print " $host ok $nt \n ";
+}
+}
+}
 #
 # df
 #
-    $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
-     $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+     $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
+      $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
@@ -277,7 +329,6 @@ if(not open(FILE,"<".$self->{hostfile})){
                }                
     }
     else{
-#reset mailcounts
       $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",0);
     }
      

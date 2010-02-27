@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.135 2009/02/23 16:10:46 ams Exp $
+# $Id: Monitor.pm,v 1.136 2010/02/27 17:33:55 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1659,7 +1659,7 @@ sub RemoveRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-     if($rdst{Status} eq "Canceled"){
+     if($rdst{Status} eq "Alocated"){
 #     if($rdst{Status} eq "Finished"){
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
@@ -1673,7 +1673,7 @@ sub RemoveRuns{
         }
         foreach $arsref (@{$ref->{ardref}}){
             try{
-                $arsref->sendRunEvInfo(\%rdst,"Delete");
+                #$arsref->sendRunEvInfo(\%rdst,"Delete");
                 last;
             }
             catch CORBA::SystemException with{
@@ -2826,7 +2826,7 @@ sub FinishFailedRuns{
          $rdst{History}="Failed";
      }
  }
-       if($rdst{Status} eq "Failed"){
+       if($rdst{Status} eq "Failed" or $rdst{Status} eq "Allocated") {
 
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
