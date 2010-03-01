@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.136 2010/02/18 13:07:10 barao Exp $
+//  $Id: richrec.C,v 1.137 2010/03/01 16:20:52 pzuccon Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1976,14 +1976,17 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
     if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
     //    const float window_sigmas=3;
     const float window_sigmas=sqrt(_window);
+#ifndef __DARWIN__
     int env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
+#endif
     ReconRingNpexp(window_sigmas,!checkstatus(dirty_ring));
+#ifndef __DARWIN__
     feclearexcept(FE_ALL_EXCEPT);
     if(env){
       feenableexcept(env);        
     }
-
+#endif
     if((RICHDB::scatprob)>0.){
 #define SQR(x) ((x)*(x))
       float SigAng=_errorbeta*sqrt(geant(_used))/_beta/sqrt(SQR(_beta*_index)-1)/sqrt(SQR(_beta)-(SQR(_beta*_index)-1));
@@ -2155,16 +2158,18 @@ int AMSRichRingNew::buildlip(){
   }
 
 
+#ifndef __DARWIN__
     int env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
-
+#endif
      RICHRECLIP(ievnumb,_Status);
 
+#ifndef __DARWIN__
     feclearexcept(FE_ALL_EXCEPT);
     if(env){
       feenableexcept(env);        
     }
-
+#endif
 
   if (goodLIPREC()) {
     fillresult();

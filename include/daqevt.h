@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.77 2009/12/30 09:27:37 choutko Exp $
+//  $Id: daqevt.h,v 1.78 2010/03/01 16:19:51 pzuccon Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -186,7 +186,8 @@ static int _sort(const dirent64 **e1, const dirent64 ** e2){return strcmp((*e1)-
 #endif
 #ifdef __DARWIN__
 static integer _select(dirent * entry=0);
-static int _sort(dirent ** e1,  dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
+static int _sort(const void* e1,  const void* e2){
+  return strcmp(  (*((dirent**)e1))->d_name,(*((dirent**)e2))->d_name);}
 #endif
 public:
 static void setRootDir(char *rootdir=0);

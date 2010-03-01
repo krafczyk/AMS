@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.106 2010/01/21 14:57:06 shaino Exp $
+//  $Id: gbatch.C,v 1.107 2010/03/01 16:20:52 pzuccon Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -8,7 +8,11 @@
 #include "commons.h"
 #include "geantnamespace.h"
 #include "producer.h"
+#ifdef __DARWIN__
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #include <event.h>
 #include <fenv.h>
 #ifdef _OPENMP
@@ -52,7 +56,7 @@ std::set_unexpected (my_unexpected);
 //}
 
       using namespace gams;
-#ifdef __LINUX24__
+#if defined(__LINUX24__) || defined(__DARWIN__)
 #else
      feenableexcept(FE_DIVBYZERO |  FE_INVALID | FE_OVERFLOW );
 #endif
@@ -123,8 +127,9 @@ void (handler)(int sig){
     cerr <<" ABORT Detected "<<AMSCommonsI::AB_catch<<" "<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
+#ifndef __DARWIN__
     mallopt(M_CHECK_ACTION,1);
-    
+#endif    
     if(AMSCommonsI::AB_catch>=0){
       AMSCommonsI::AB_catch=1;
       cout <<"  JUMP attempted "<<endl;

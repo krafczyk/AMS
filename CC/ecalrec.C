@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.133 2010/02/26 14:16:33 pzuccon Exp $
+//  $Id: ecalrec.C,v 1.134 2010/03/01 16:20:52 pzuccon Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2446,7 +2446,9 @@ void AMSEcalShower::ProfileFit(){
     inf=1;
     int liw=liwc;
     int lw=lwc;
+#ifndef NO_NAG
     d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
+#endif
     if(ifail==0){
      _ProfilePar[3]=result;
     }
@@ -2499,7 +2501,9 @@ void AMSEcalShower::ProfileFit(){
       }
     }
      ifail=1;
+#ifndef NO_NAG     
      d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
+#endif
      if(ifail==0){
       _ProfilePar[8]=result;
      }

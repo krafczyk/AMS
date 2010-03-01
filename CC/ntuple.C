@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.194 2010/02/26 19:49:30 oliva Exp $
+//  $Id: ntuple.C,v 1.195 2010/03/01 16:20:52 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -517,7 +517,7 @@ uinteger AMSNtuple::getrun(){
 
 void AMSNtuple::MemMonitor(const int n, int N = 0)
 {
-#ifndef sun
+#if !defined(sun) & !defined(__DARWIN__)
 
   static int nevt    =0;
   static int nperiod =0;

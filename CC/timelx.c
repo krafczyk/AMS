@@ -1,7 +1,10 @@
 /*
- * $Id: timelx.c,v 1.2 2010/01/29 14:46:36 pzuccon Exp $
+ * $Id: timelx.c,v 1.3 2010/03/01 16:20:52 pzuccon Exp $
  *
  * $Log: timelx.c,v $
+ * Revision 1.3  2010/03/01 16:20:52  pzuccon
+ * osX 10.6 compatibility, first try
+ *
  * Revision 1.2  2010/01/29 14:46:36  pzuccon
  *  FPE bug fix
  *
@@ -28,7 +31,12 @@
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#ifdef __DARWIN__
+#include <limits.h>
+#include <math.h>
+#else
 #include <values.h>
+#endif
 #ifndef CLOCKS_PER_SEC
 #define  CLOCKS_PER_SEC CLK_TCK
 #endif

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.190 2010/01/04 10:25:54 choutko Exp $
+//  $Id: daqevt.C,v 1.191 2010/03/01 16:20:52 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2159,12 +2159,19 @@ int DAQEvent::parser(char a[], char **& fname){
 
   if(kl==0 || kl==strlen(a)){
       // Whole directory  wanted
-      dirent64 ** namelist;
       AString fdir(a);
       
 #ifdef __LINUXGNU__
+      dirent64 ** namelist;
        ntot=scandir64((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
-#else
+#endif
+#ifdef __DARWIN__
+      dirent ** namelist;
+       ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
+#endif
+
+#if !defined(__DARWIN__) && !defined(__LINUXGNU__)
+      dirent64 ** namelist;
        ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
 #endif
       int ngood=0;
@@ -2274,12 +2281,17 @@ int DAQEvent::parser(char a[], char **& fname){
 }
 
 
+#if defined( __ALPHA__) || defined(sun)
 
-integer DAQEvent::_select(
-#if !defined( __ALPHA__) && !defined(sun)
-const
+integer DAQEvent::_select(dirent64 *entry)
 #endif
-dirent64 *entry){
+#ifdef __LINUXGNU__
+integer DAQEvent::_select(const dirent64 *entry)
+#endif
+#ifdef __DARWIN__
+integer DAQEvent::_select( dirent *entry)
+#endif
+{
 for(int i=0;i<strlen(entry->d_name);i++){
  if(!isdigit((entry->d_name)[i]))return 0;
 }
@@ -2350,10 +2362,16 @@ again:
        for(int i=0;i<4;i++){
         *(result+i)=dir[i];
        }
-        dirent64 ** namelist;
 #ifdef __LINUXGNU__
+        dirent64 ** namelist;
        int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
-#else
+#endif
+#ifdef __DARWIN__
+        dirent ** namelist;
+       int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
+#endif
+#if !defined(__LINUXGNU__) & !defined(__DARWIN__)
+        dirent64 ** namelist;
        int ntot=scandir64((const char *)newdir,&namelist,&_select,&_sort);
 #endif
        if(ntot>0){

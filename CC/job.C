@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.691 2010/02/25 15:06:54 pzuccon Exp $
+// $Id: job.C,v 1.692 2010/03/01 16:20:52 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1759,14 +1759,17 @@ if(AMSFFKEY.Update){
     else
       TkDBc::Head->init(TKGEOMFFKEY.CablVer);
     AMSTRDIdSoft::init();
+#ifndef __DARWIN__    
     int env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
+#endif    
     RichPMTsManager::Init();
+#ifndef __DARWIN__    
     feclearexcept(FE_ALL_EXCEPT);
     if(env){
       feenableexcept(env);        
     }
-
+#endif
 
     RichRadiatorTileManager::Init();    
     AMSTRDIdSoft::inittable();
@@ -1819,13 +1822,17 @@ if(AMSFFKEY.Update){
     }
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
+#ifndef __DARWIN__ 
        int env=fegetexcept();
        if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
+#endif
        RichPMTsManager::Init();
+#ifndef __DARWIN__  
        feclearexcept(FE_ALL_EXCEPT);
        if(env){
 	 feenableexcept(env);        
        }
+#endif       
        RichRadiatorTileManager::Init();	
        AMSTRDIdSoft::inittable();
        AMSECIds::inittable();

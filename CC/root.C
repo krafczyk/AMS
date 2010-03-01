@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.212 2010/02/23 14:55:27 pzuccon Exp $
+//  $Id: root.C,v 1.213 2010/03/01 16:20:52 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -39,7 +39,12 @@
 #endif
 #include "astro.h"
 #include "amsdbc.h"
+#ifdef __DARWIN__
+#include <limits.h>
+#else
 #include <values.h>
+#include <float.h>
+#endif
 #endif
 using namespace root;
 #ifdef __WRITEROOT__

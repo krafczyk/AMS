@@ -1,10 +1,14 @@
-//  $Id: particle.C,v 1.197 2010/02/26 14:16:34 pzuccon Exp $
+//  $Id: particle.C,v 1.198 2010/03/01 16:20:52 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
 
 #include "commons.h"
 #include <math.h>
+#ifndef __DARWIN__
 #include <values.h>
+#else
+#define MINDOUBLE DBL_MIN
+#endif
 #include <limits.h>
 #include "amsgobj.h"
 #include "extC.h"
