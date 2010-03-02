@@ -1,3 +1,4 @@
+//  $Id: trdhrec.C,v 1.8 2010/03/02 14:40:42 choutko Exp $
 #include "trdrec.h"
 #include "trdhrec.h"
 #include "event.h"
