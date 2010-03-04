@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.692 2010/03/01 16:20:52 pzuccon Exp $
+// $Id: job.C,v 1.693 2010/03/04 14:42:03 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1523,6 +1523,13 @@ void AMSJob::_resrddata(){
 //-----------------------------
 
 void AMSJob::udata(){
+#ifdef _WEBACCESS_
+  if (char * pp=getenv("WEBACCESS")){
+    cout<<"<---- AMSJob::udata TDV Web Access Enabled with dir "<<pp<<" !!! ;-) "<<endl;
+    AMSTimeID::SetWebAccess();
+    AMSTimeID::SetWebDir(pp);
+  }
+#endif
 
 if(CCFFKEY.StrMass<0){
  CCFFKEY.StrMass=0.938*pow(CCFFKEY.StrCharge/0.3,1.5);
@@ -3638,6 +3645,7 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
 
 {
+
   tm begin;
   tm end;
   if(AMSFFKEY.Update==187){

@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.38 2008/11/03 14:10:40 pzuccon Exp $
+//  $Id: timeid.h,v 1.39 2010/03/04 14:40:47 pzuccon Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -170,8 +170,10 @@ protected:
   integer _DataBaseSize;
   CType _Type;
   uinteger * _pDataBaseEntries[5];  //! Insert Insert Begin End SortedBeg
-
-
+#ifdef _WEBACCESS_
+  static int _WebAccess; //! enable the http, read-only web access.
+  static char _WebDir[200];
+#endif
   void      _init(){};
   uinteger  _CalcCRC();
   void      _convert(uinteger *pdata, integer nw);
@@ -236,6 +238,11 @@ public:
   bool     read(const char * dir,int run, time_t begin, int index=0);
   integer  readDB(const char * dir, time_t time,integer reenter=0);
   void     fillDB(int length, uinteger * ibe[5]);
+#ifdef _WEBACCESS_
+  static void SetWebAccess() {_WebAccess=1;}
+  static void UnSetWebAccess() {_WebAccess=0;}
+  static void SetWebDir(const char* pp){strncpy(_WebDir,pp,200);}
+#endif
 
 #ifdef __CORBA__
   friend class AMSProducer;
