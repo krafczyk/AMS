@@ -1,4 +1,4 @@
-//  $Id: amsgeom.h,v 1.11 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: amsgeom.h,v 1.12 2010/03/05 17:06:18 choumilo Exp $
 
 #ifndef _PGTRACK_ 
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
@@ -29,4 +29,5 @@ extern void srdgeom02(AMSgvolume &);
 extern void Put_rad(AMSgvolume * , int);
 extern void ext1structure02(AMSgvolume &);
 extern void ext2structure02(AMSgvolume &);
+extern void paddgeom(AMSgvolume &);
 };

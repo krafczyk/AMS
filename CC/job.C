@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.694 2010/03/05 12:01:21 choumilo Exp $
+// $Id: job.C,v 1.695 2010/03/05 17:06:08 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -518,8 +518,8 @@ TRMCFFKEY.gammaA[0]=-0.3;
 TRMCFFKEY.gammaA[1]=0.1;
 TRMCFFKEY.NonGaussianPart[0]=0;
 TRMCFFKEY.NonGaussianPart[1]=0.1;
-TRMCFFKEY.BadCh[0]=0.01;
-TRMCFFKEY.BadCh[1]=0.01;
+TRMCFFKEY.BadCh[0]=0.01;//556
+TRMCFFKEY.BadCh[1]=0.01;//557
 
 TRMCFFKEY.cmn[0]=10;
 TRMCFFKEY.cmn[1]= 6;
@@ -555,6 +555,8 @@ for(i=0;i<8;i++){
   }
 }
 }
+TRMCFFKEY.pl9zgap=0.;//(558) PL9 supp.str. gap from EC front face Z (cm)
+TRMCFFKEY.pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRCALIB.CalibProcedureNo=0;
