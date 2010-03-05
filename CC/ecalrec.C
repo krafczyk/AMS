@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.134 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: ecalrec.C,v 1.135 2010/03/05 12:01:20 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -226,6 +226,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   integer zhitmap[ECSLMX];
   integer adch,adcm,adcl,adcd;
   geant radc,a2dr,h2lr,mev2adc,ares,phel,pmrgn,scgn;
+  geant h2lo;
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
@@ -375,6 +376,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
         EcalJobStat::addzprmc2(il,sum[i][k]);//geant SL(PM-assigned)-profile
         h2lr=ECcalibMS::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
+        h2lo=ECcalibMS::ecpmcal[il][i].hi2lowo(k);//PM subcell high/low ratio from DB
 	scgn=ECcalibMS::ecpmcal[il][i].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
 	edepr=pmedepr[k];//Evis(incl.Npe-fluct, mev)
 	emeast+=edepr;
@@ -410,6 +412,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	}
 // Low-gain channel:
         radc=saturf*edepr*mev2adc/h2lr/scgn;//Evis(mev)->indiv.Em/h2lr(adc)
+//        radc=h2lo+saturf*edepr*mev2adc/h2lr/scgn;//Evis(mev)->indiv.Em/h2lr(adc) + low vs hi offset
         if(ECMCFFKEY.silogic[0]==0){
 	  radc+=(pedl[k]+sigl[k]*rnormx());//+ped+noise
 	}
@@ -788,6 +791,7 @@ void AMSEcalHit::build(int &stat){
   number radc[3],edep,edepc,adct,fadc,qmeas,saturf,emeast,coot,cool,cooz;
   number adchovfl; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,pd,sh,sl,sd,peds[2];
+  geant h2lo;
   integer ovfl[3];
   geant padc[3],bpadc[4][2];
   integer iddn,bsta[4],bsubc[4],bid[4],bovfl[4][2],nsubc,nsubco;
@@ -825,7 +829,7 @@ void AMSEcalHit::build(int &stat){
       ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
       ECPMPeds::pmpeds[isl][pmc].getsigl(sigl);
       h2lr=ECcalib::ecpmcal[isl][pmc].hi2lowr(subc);
- h2lr=33.5;//tempor from Silvia
+      h2lo=ECcalib::ecpmcal[isl][pmc].hi2lowo(subc);
       radc[0]=number(padc[0]);//ADC-high-chain
       radc[1]=number(padc[1]);//ADC-low-chain
 //      if(radc[2]>0)cout << " found Dyn "<<radc[0]<<" "<<radc[1]<<" "<<radc[2]<<endl;
@@ -857,7 +861,8 @@ void AMSEcalHit::build(int &stat){
       }
 //
       else if(radc[1]>max(3.*sl,3.)  && ovfl[1]==0){//Hch=Miss/Ovfl -> use Lch
-        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
+//        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
+        fadc=(radc[1]-h2lo)*h2lr;//rescale LowG-chain to HighG(h2lo(~0.5) is offset in Low-ch)
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
       }
 //
@@ -867,7 +872,8 @@ void AMSEcalHit::build(int &stat){
       }
 //
       else if(ovfl[1]==1){//<-use even overflowed Lgain-chan
-        fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
+//        fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
+        fadc=(radc[1]-h2lo)*h2lr;//rescale LowG-chain to HighG(h2lo(~0.5) is offset in Low-ch)
 	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
 //
@@ -945,7 +951,7 @@ dychok=0;//tempor to prevent any corrections
 	if(dychok>0 && nsubco>0)etrue=(dedep-edepgd)/geant(nsubco);
 //                               (average dyn.energy per overflowed_cell)
         saturf=ECcalib::pmsatf1(1,qmeas);//saturf=Qin/Qmeas(<0 if saturated, 1 if qmeas small)
-saturf=1;//tempor to prevent any satur.corrections(tot.pm-charge satur due devider extra-current)
+saturf=1;//tempor to prevent any satur.corrections(tot.pm-charge satur due divider extra-current)
         if(saturf<0)EcalJobStat::addsr(10);
 //
         for(i=0;i<nsubc;i++){//buffer(subcells) loop to fill AMSEcalHit

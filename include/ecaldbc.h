@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.45 2009/11/15 11:47:06 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.46 2010/03/05 12:01:33 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -197,6 +197,7 @@ private:
   geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = A/Aref)
   geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
   geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
+  geant _hi2lowo[4]; // offset of gains of high- and low-chains (for each of 4 SubCells)
   geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio
   geant _adc2mev;   // Global(hope) Signal(ADCchannel)->Emeas(MeV) conv. factor (MeV/ADCch)
   geant _lfast;// att.length(short comp.)
@@ -207,13 +208,14 @@ public:
   static uinteger CFlistC[7];//Cflist-file content
   ECcalib(){};
   ECcalib(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
-       geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):
+      geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):
        _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
        _lslow(lsl),_fastf(fsf),_adc2mev(conv){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
       _scgain[i]=scg[i];
       _hi2lowr[i]=h2lr[i];
+      _hi2lowo[i]=h2lo[i];
     }
   };
   integer & getstat(int i){return _status[i];}
@@ -223,6 +225,7 @@ public:
   bool LCHisBad(int i){ return _status[i]%10>0;}
   bool DCHisBad(){ return _statusd%10>0;}
   geant &hi2lowr(integer subc){return _hi2lowr[subc];}
+  geant &hi2lowo(integer subc){return _hi2lowo[subc];}
   geant & adc2mev(){return _adc2mev;}
   geant &an2dyr(){return _an2dyr;}
   geant& alfast(){return _lfast;}
@@ -248,6 +251,7 @@ private:
   geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = A/Aref)
   geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
   geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
+  geant _hi2lowo[4]; // offset of gains of high- and low-chains (for each of 4 SubCells)
   geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio
   geant _lfast;// att.length(short comp.)
   geant _lslow;// att.length(long comp.)
@@ -256,13 +260,14 @@ public:
   static ECcalibMS ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECcalibMS(){};
   ECcalibMS(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
-       geant a2dr, geant lfs, geant lsl, geant fsf):
+      geant h2lo[4], geant a2dr, geant lfs, geant lsl, geant fsf):
        _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
        _lslow(lsl),_fastf(fsf){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
       _scgain[i]=scg[i];
       _hi2lowr[i]=h2lr[i];
+      _hi2lowo[i]=h2lo[i];
     }
   };
   integer & getstat(int i){return _status[i];}
@@ -272,6 +277,7 @@ public:
   bool LCHisBad(int i){ return _status[i]%10>0;}
   bool DCHisBad(){ return _statusd%10>0;}
   geant &hi2lowr(integer subc){return _hi2lowr[subc];}
+  geant &hi2lowo(integer subc){return _hi2lowo[subc];}
   geant &an2dyr(){return _an2dyr;}
   geant& alfast(){return _lfast;}
   geant& alslow(){return _lslow;}

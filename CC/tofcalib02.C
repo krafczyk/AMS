@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.44 2010/02/17 15:17:08 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.45 2010/03/05 12:01:21 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -1014,6 +1014,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     number ram[TOF2GC::SCLRS],ramm[TOF2GC::SCLRS];
     number dum[TOF2GC::SCLRS-1],tld[TOF2GC::SCLRS-1],tdm[TOF2GC::SCLRS-1];
     number ctran,coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
+    number cool[TOF2GC::SCLRS];
     number sl[2],t0[2],sumc,sumc2,sumt,sumt2,sumct,sumid,zco,tco,dis;
     integer chargeTOF,chargeTracker(1),betpatt,trpatt,trhits(0);
     uintl traddr(0,0);
@@ -1216,7 +1217,7 @@ Nextp:
         if(fabs(dx)>dtcut)badx=1;//bad transv.coo match
 	if(fabs(dy)>dlcut && !PMEQmode)bady=1;//bad longit.coo match(ignore for PM-equiliz run)
 	else bady=0;
-        if(badx==0){
+        if(badx==0){//ok for Tdelv
 #pragma omp critical (ctof_filltd)
 {
 	  TofTmAmCalib::filltd(il,ib,tmsdc[il],crc);//need only transv.match for Tdelv-calib
@@ -1225,6 +1226,7 @@ Nextp:
 	if(badx>0 || bady>0)bad=1;//to see after L-loop presence of any mismatch("bad" is not cleared inside the loop)
 	if(badx>0)bad4tdcal=1;
 	if(badx>0 || bady>0)brnl[il]=-1;//<=== mark bad layer (used for pm-equil mode, for Tz/Am calib "bad" is checked later)
+//
       }//------> endof layers loop
 //-----
       cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/nzlrs);//average cos
@@ -1236,10 +1238,10 @@ Nextp:
 }
       }
 //
-//cout<<"<---trlr="<<trlr[0]<<" "<<trlr[1]<<" "<<trlr[2]<<" "<<trlr[3]<<"  beta="<<beta<<endl;
       for(i=0;i<TOF2GC::SCLRS-1;i++){
         if(trlr[i+1]!=0.)trlen[i]=fabs(trlr[0]-trlr[i+1]);//1->2,1->3,1->4(missings=0)
       }
+//cout<<"<---trlr="<<trlr[0]<<" "<<trlr[1]<<" "<<trlr[2]<<" "<<trlr[3]<<"  beta="<<beta<<endl;
 //cout<<"<---trlen(1->)="<<trlen[0]<<" "<<trlen[1]<<" "<<trlen[2]<<endl;
     }//-->endof "use TOF/TRD-track"mode check
 //-----
@@ -1404,13 +1406,14 @@ Nextp:
         ib=brnl[il];
         if(TFCAFFKEY.idref[1]==1
 	                         && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))bad=1;
+	if((ib==0 || (ib+1)==TOF2DBc::getbppl(il)) && fabs(coot[il])>20)bad=1;//trap.counter,use only central Longit-impact
       }
       if(bad==1)goto SkipTzsl;//ignore events with trapez.counters, when requested
 //      if(IonEvent)goto SkipTzsl;
       TOF2JobStat::addre(34);
 //
 //---> measured track-lengthes:
-      for(il=0;il<TOF2GC::SCLRS-1;il++)tld[il]=trlen[il];//1->2,1->3,1->4(missings=0)
+      for(il=0;il<TOF2GC::SCLRS-1;il++)tld[il]=trlen[il];//1->2,1->3,1->4(missings=0), tld>0
 //
       if(ngdlrs==4 && nzlrs==4){
         if(TFCAFFKEY.hprintf>1){
@@ -1423,7 +1426,7 @@ Nextp:
 //---> measured time-didderences:
       for(i=0;i<TOF2GC::SCLRS-1;i++){
         tdm[i]=0.;
-        if(times[i+1]!=0.)tdm[i]=times[0]-times[i+1];//1->2,1->3,1->4(missings=0)
+        if(times[i+1]!=0.)tdm[i]=times[0]-times[i+1];//1->2,1->3,1->4(missings=0), tdm>0
       }
 //----
       for(il=0;il<TOF2GC::SCLRS;il++){//new parametrization(also ready for indiv.slopes)
@@ -1633,7 +1636,7 @@ void TofTmAmCalib::inittd(){ // ----> initialization for TDIF-calibration
     }
 //
     HBOOK2(1600,"L=1,B=3, Raw Tdif vs Coord (inp2fit)",35,-70.,70.,50,-20.,20.,0.);
-    HBOOK2(1601,"L=2,B=6, Raw Tdif vs Coord (inp2fit)",35,-70.,70.,50,-20.,20.,0.);
+    HBOOK2(1601,"L=2,B=1, Raw Tdif vs Coord (inp2fit)",35,-70.,70.,50,-20.,20.,0.);
     HBOOK2(1602,"L=3,B=3, Raw Tdif vs Coord (inp2fit)",35,-70.,70.,50,-20.,20.,0.);
     HBOOK2(1603,"L=4,B=6, Raw Tdif vs Coord (inp2fit)",35,-70.,70.,50,-20.,20.,0.);
   }
@@ -1676,12 +1679,15 @@ void TofTmAmCalib::filltd(integer il,integer ib, number td, number co){//--->fil
   if((col<-hlen) || (col>=hlen))return;// cr.point is out of range(paddle length)
   if(TFCAFFKEY.hprintf>1){
     if(il==0 && ib==2)HF2(1600,col,td,1.);
-    if(il==1 && ib==5)HF2(1601,col,td,1.);
+    if(il==1 && ib==0)HF2(1601,col,td,1.);
     if(il==2 && ib==2)HF2(1602,col,td,1.);
     if(il==3 && ib==5)HF2(1603,col,td,1.);
   }
   if(fabs(td)>20)return;//remove obviously unrealistic td
   nbin=integer(floor((col+hlen)/bin));
+  if((ib==0 || (ib+1)==TOF2DBc::getbppl(il))){//trepezoidal counters
+    if(nbin<=3 || nbin>=(nbins[btyp-1]-4))return;//do not use 1st/last 4 bins
+  }
   chan=TOF2DBc::barseqn(il,ib);
   nevnt[chan][nbin]+=1;
   clong[chan][nbin]+=col;

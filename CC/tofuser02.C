@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.34 2010/02/17 15:17:08 choumilo Exp $
+//  $Id: tofuser02.C,v 1.35 2010/03/05 12:01:21 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -174,7 +174,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //  for(i=0;i<TOF2GC::SCLRS;i++)if(rclstok[i]==0)TofRClMultOK=false;//require status ok also
   if(TofRClMultOK)TOF2JobStat::addre(30);
 //  if(TofRClMultOK)cout<<"    RclMult OK"<<endl;
-  if(!TofRClMultOK)return;//tempor
+//  if(!TofRClMultOK)return;//tempor
 //
 //=====================================> check TofCluster-hits :
 //
@@ -213,8 +213,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   for(i=0;i<TOF2GC::SCLRS;i++)if(clmem[i] != 1)TofClOneMem=false;
   if(TofClMultOK)TOF2JobStat::addre(31);
 //=========================================> TofPattern special selection for beta><0 probl:
-  if(!((brnl[1]+1)==7 && (brnl[2]+1)==2))return;//tempor**2
-  if(!(((brnl[0]+1)==4 || (brnl[0]+1)==5)  && ((brnl[3]+1)==4 || (brnl[3]+1)==5)))return;//tempor**2
+//  if(!((brnl[1]+1)==7 && (brnl[2]+1)==2))return;//tempor**2
+//  if(!(((brnl[0]+1)==4 || (brnl[0]+1)==5)  && ((brnl[3]+1)==4 || (brnl[3]+1)==5)))return;//tempor**2
   TOF2JobStat::addre(50);
 //
 // ========================================> check Anti-counter :
@@ -245,6 +245,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   for(i=0;i<ANTI2C::MAXANTI;i++)ama1[i]=0;
   for(i=0;i<ANTI2C::MAXANTI;i++)ama2[i]=0;
 //
+  uinteger accpat=Anti2RawEvent::getpatt();
+//
   while(ptrr){ // <------ RawEvent hits loop
     id=ptrr->getid();//BBS
     sector=id/10-1;//Readout(logical) sector number (0-7)
@@ -253,7 +255,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     adca=ptrr->getadca();
     ntdct=ptrr->gettdct(tdct);
     nftdc=ptrr->getftdc(ftdc);
-    if(ntdct>=1 && nftdc==1){//select only >=1 Hist/FT-hit events
+    if(ntdct>=0 && nftdc==1){//select only >=1 Hist/FT-hit events
 //DAQ-ch-->p.e's:
       ped[isid]=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig[isid]=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
@@ -278,7 +280,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     if(idN != id/10){//next hit is new sector: create 2-sides signal for current sect
 //
       if(nsds>0 
-                && ((ampe[0]>200) && (ampe[1]>200))
+                && ((ampe[0]>20) || (ampe[1]>20))
 //                && ((ampe[0]>5*sig[0] && uptm[0]>0) || (ampe[1]>5*sig[1] && uptm[1]>0))
 //                && ((ampe[0]>5*sig[0]) && (ampe[1]>5*sig[1]))
 		                                                               ){//good sector ?
@@ -298,6 +300,18 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //---
     ptrr=ptrr->next();// take next RawEvent hit
   }//------>endof RawEvent hits loop
+//------- for ESTEC:
+#pragma omp critical (estec)
+{
+  geant acctrthr=100.;
+  for(i=0;i<8;i++){
+    if((accpat&(1<<i))>0 && frsecn[i]==1){
+      HF1(1289,geant(i+1),1.);
+      if(ama1[i]>acctrthr && ama2[i]>acctrthr)HF1(1289,geant(10+i+1),1.);
+      if(ama1[i]>acctrthr || ama2[i]>acctrthr)HF1(1289,geant(20+i+1),1.);
+    }
+  }
+}
 //-------
 // ---> Cluster:
   eanti=0;
@@ -1036,6 +1050,8 @@ void TOF2User::InitJob(){
     HBOOK1(11284,"TofUser:l2-l3,PattBetlt0,TRKmatchOK",100,100.,200.,0.);
     HBOOK1(11288,"TofUser:l2-l4,PattBetlt0,TRKmatchOK",100,100.,200.,0.);
 //
+    HBOOK1(1289,"TofUser:ACC-patt(orig,HiAmpAnd/HiAmpOr",30,1.,30.,0.);
+//
 /*
     HBOOK1(1290,"TofUser:Beta > 0,FTCr0-2",100,-20.,20.,0.);
     HBOOK1(1291,"TofUser:Beta > 0,FTCr0-3",100,-20.,20.,0.);
@@ -1239,6 +1255,8 @@ void TOF2User::EndJob(){
   cout<<endl<<endl;
   cout<<" PartBeta-fit: Mp/resol="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
   HPRINT(1520);
+//----
+  HPRINT(1289);//ACC-patt
 //----
   HPRINT(1280);
   HPRINT(1281);

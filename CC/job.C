@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.693 2010/03/04 14:42:03 pzuccon Exp $
+// $Id: job.C,v 1.694 2010/03/05 12:01:21 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -886,7 +886,7 @@ void AMSJob::_reecaldata(){
 //                            C=1/0-> Take from CalibFiles/DB
 //                            P=1/0-> Take from CalibFiles/DB
 //  ECREFFKEY.calutc=1167606001;//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
-  ECREFFKEY.calutc=1257339432;//(35)(20091104 ~0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
+  ECREFFKEY.calutc=1199142001;//(35)(20080101 ~0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
 //
   ECREFFKEY.Thr1DSeed=10;//(36) this and below is for Vitali's clust. algorithm
   ECREFFKEY.Thr1DRSeed=0.18;
@@ -942,7 +942,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.nortyp=0;     //(12) PM-resp. normaliz.type 0/1-> by crossed/fired tracks
   ECCAFFKEY.badplmx=4;    //(13) Accept max. bad Pix-planes(>2 fired pix/lay, high pix Ed, separated 2 pixels)
   ECCAFFKEY.etrunmn=40.;  //(14) Min ECenergy (Etrunc/sl in mev) to select PunchThrough particle(He)
-  ECCAFFKEY.etrunmx=280.; //(15) Max ECenergy (Etrunc/sl in mev) ...................................
+  ECCAFFKEY.etrunmx=270.; //(15) Max ECenergy (Etrunc/sl in mev) ...................................
   ECCAFFKEY.nsigtrk=1.;   //(16) ImpPoint accur. extention param. for cell-crossing check
 // ANOR part:
   ECCAFFKEY.pmin=3.;        // (17) presel-cut on min. mom. of the track(gev/c) 

@@ -55,6 +55,7 @@ number ECREUNcalib::pmcrespc[ECPMSL];//PM-resps gain-corrected..................
 number ECREUNcalib::sbcres[ECPMSL][4];    
 number ECREUNcalib::sbcresc[ECPMSL][4];    
 number ECREUNcalib::hi2lowr[ECPMSL][4]; 
+number ECREUNcalib::hi2lowo[ECPMSL][4]; 
 number ECREUNcalib::an2dynr[ECPMSL]; 
 number ECREUNcalib::a2dnevs[ECPMSL]; 
 integer ECREUNcalib::tevpml[ECPMSL][ECCLBMX]; 
@@ -104,7 +105,8 @@ void ECREUNcalib::init(){
       pxrgain[i][j]=1.;//default value
       pxrgainc[i][j]=1;//used for calib-quality check
       pxstat[i][j]=0;//default value(ok)
-      hi2lowr[i][j]=40.;//default value
+      hi2lowr[i][j]=35.;//default value
+      hi2lowo[i][j]=0.5;//default value
     }
   }
 // for hi2low calibr.
@@ -310,7 +312,7 @@ void ECREUNcalib::select(){
     HF1(ECHISTC+38,geant(nhtot),1.);
   }
 //---
-  if((nhtot > 30) || (nhtot < 10))return;// tempor cut-value to remove e/gammas, etc...
+  if((nhtot > 36) || (nhtot < 15))return;// tempor cut-value to remove e/gammas, etc...
   EcalJobStat::addca(9);
 //---
   integer plmask[2*ECSLMX];
@@ -808,6 +810,7 @@ void ECREUNcalib::makeToyRLGAfile(){
   integer cfvn;
   int dig;
   geant pmrg,pxrg[4],hi2lr,a2dr;
+  geant hi2lo;
 //
 //--> create RLGA-type 2 files(PM/SubCell rel.gains,Hi2Low-ratios,An2Dyn-ratios):
 //    ...sd.cof simulate copy of RealData RLGA-calib.file used as MCSeed
@@ -913,13 +916,31 @@ void ECREUNcalib::makeToyRLGAfile(){
     cout<<"Pixel Hi/Low Gain ratios will be written(MC-Seeds) !"<<'\n';
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
       for(sc=0;sc<4;sc++){
-        tcfile.width(4);
+        tcfile.width(5);
         tcfile.precision(1);// precision for Hi/Low ratio
         for(pm=0;pm<npmx;pm++){
           pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
 	  hi2lr=36*(1.+0.05*rnormx());//5%
 	  hi2lowr[pmsl][sc]=hi2lr;
           tcfile <<hi2lowr[pmsl][sc]<<" ";
+        }
+        tcfile << endl;
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+    cout<<"...done!"<<endl;
+//---
+    cout<<"Pixel Hi/Low Gain offsets will be written(MC-Seeds) !"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile.width(6);
+        tcfile.precision(2);// precision for Hi/Low ratio
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+	  hi2lo=0.5*(1.+0.05*rnormx());//5%
+	  hi2lowo[pmsl][sc]=hi2lo;
+          tcfile <<hi2lowo[pmsl][sc]<<" ";
         }
         tcfile << endl;
       }
@@ -1044,11 +1065,26 @@ void ECREUNcalib::makeToyRLGAfile(){
     cout<<"Pixel Hi/Low Gain ratios will be written(MC-calib) !"<<'\n';
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
       for(sc=0;sc<4;sc++){
-        tcfile1.width(4);
+        tcfile1.width(5);
         tcfile1.precision(1);// precision for Hi/Low ratio
         for(pm=0;pm<npmx;pm++){
           pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
           tcfile1 <<hi2lowr[pmsl][sc]*(1.+0.01*rnormx())<<" ";//1% calib.accuracy
+        }
+        tcfile1 << endl;
+      }
+      tcfile1 << endl;
+    }
+    tcfile1 << endl;
+//
+    cout<<"Pixel Hi/Low Gain offsets will be written(MC-calib) !"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile1.width(6);
+        tcfile1.precision(2);// precision for Hi/Low offs
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile1 <<hi2lowo[pmsl][sc]*(1.+0.01*rnormx())<<" ";//1% calib.accuracy
         }
         tcfile1 << endl;
       }
@@ -1636,8 +1672,11 @@ void ECREUNcalib::mfit(){
   number sumc,sumt,sumct,sumc2,sumt2,sumid,nonzer;
   number chi2[ECPMSL*4],slop[ECPMSL*4],offs[ECPMSL*4];
   integer hchok[ECPMSL*4],ibinw;
+  int ngdbins[ECPMSL*4];
+  number offsf(0.5);//fixed offset for "fixed offset" fit
 //
   ibinw=integer(floor(number(ECCADCR)/ECCHBMX));
+  cout<<endl<<"<==== Start Hi2LowR calculation, HichBinw="<<ibinw<<endl;
   avs=0.;
   avo=0.;
   nonzer=0.;
@@ -1655,6 +1694,7 @@ void ECREUNcalib::mfit(){
     offs[i]=0.;
     chi2[i]=0.;
     hchok[i]=0;
+    ngdbins[i]=0;
     for(j=0;j<ECCHBMX;j++){//<-- HchADC bin loop
       nevf=number(tevhlc[i][j]);//events in LowGain channel for HiGain chan bin=j
       co=(number(j)+0.5)*ibinw;// mid. of High-chan. bin
@@ -1663,20 +1703,34 @@ void ECREUNcalib::mfit(){
         tq=sbchlc2[i][j]/nevf; // mean square
         dis=tq-t*t;// rms**2
         if(dis>0.){
-          dis/=(nevf-1.);// rms**2 of the mean
-          bins+=1.;
-          sumc+=(co/dis);
-          sumt+=(t/dis);
-          sumid+=(1./dis);
-          sumct+=(co*t/dis);
-          sumc2+=(co*co/dis);
-          sumt2+=(t*t/dis);
-          if(ECCAFFKEY.hprintf>0)HF1(ECHISTC+23,geant(sqrt(dis)/t),1.);
-        }
-      }
+//          dis/=(nevf-1.);// rms**2 of the mean
+          if(ECCAFFKEY.hprintf>0)HF1(ECHISTC+23,geant(sqrt(dis)),1.);
+	  if(sqrt(dis)<3.){
+            bins+=1.;
+            sumc+=(co/dis);
+            sumt+=(t/dis);
+            sumid+=(1./dis);
+            sumct+=(co*t/dis);
+            sumc2+=(co*co/dis);
+            sumt2+=(t*t/dis);
+	    ngdbins[i]+=1;
+//          if(ECCAFFKEY.hprintf>0)HF1(ECHISTC+23,geant(sqrt(dis)),1.);
+//	  if(sqrt(dis)<2.5){
+//            bins+=1.;
+//            sumc+=(co/dis);//
+//            sumt+=(t/dis);//
+//            sumid+=(1./dis);//
+//            sumct+=(co*t/dis);
+//            sumc2+=(co*co/dis);
+//            sumt2+=(t*t/dis);
+//	    ngdbins[i]+=1;
+	  }//--> end of sig-check
+        }//-->end of dis>0 check
+      }//--> end of min evs check
     }//--> end of bin loop
 //
-    if(bins>=5){
+    if(bins>=20){
+//-->complete fit:
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       slo=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
       chi2[i]=sumt2+t0*t0*sumid+slo*slo*sumc2
@@ -1684,7 +1738,23 @@ void ECREUNcalib::mfit(){
       chi2[i]/=(bins-2.);
       slop[i]=1./slo;// goto "hi vs low" slope
       offs[i]=t0;
-      if(chi2[i]>0 && chi2[i]<50 && slop[i]>1 && slop[i]<100){
+      if(chi2[i]>0 && chi2[i]<3. && slop[i]>25 && slop[i]<45){
+//-->fixed(=0) offset fit:
+//      slo=sumct/sumc2;
+//      chi2[i]=sumt2+slo*slo*sumc2-2.*slo*sumct;
+//      chi2[i]/=(bins-1.);
+//      slop[i]=1./slo;// goto "hi vs low" slope
+//      offs[i]=t0;
+//      if(chi2[i]>0 && chi2[i]<5. && slop[i]>24 && slop[i]<37){
+//-->fixed(0.5) offset fit:
+//      slo=(sumct-offsf*sumc)/sumc2;
+//      slop[i]=1./slo;// goto "hi vs low" slope
+//      chi2[i]=sumt2+slo*slo*sumc2+offsf*offsf*sumid-2.*slo*sumct
+//	      -2.*offsf*sumt+2.*slo*offsf*sumc;
+//      chi2[i]/=(bins-1.);
+//      offs[i]=offsf;
+//      if(chi2[i]>0 && chi2[i]<3 && slop[i]>25 && slop[i]<45){
+//--
         nonzer+=1.;
         avs+=slop[i];
         avo+=offs[i];
@@ -1706,23 +1776,29 @@ void ECREUNcalib::mfit(){
   for(i=0;i<ECPMSL*4;i++){ // <-- SubCell-chan. loop
     pmsl=i/4;
     sc=i%4;
-    if(hchok[i]==1){
-      if(chi2[i]>0 && chi2[i]<=10){
+    if(hchok[i]==1){//means chi2&slope OK
+      hi2lowr[pmsl][sc]=slop[i];
+      hi2lowo[pmsl][sc]=offs[i];
+    }
+    else{
+      if(slop[i]>29 && slop[i]<35){//chan. still ok (just chi2 too high, use more severe slope-cut)
         hi2lowr[pmsl][sc]=slop[i];
-      } 
-      else if(chi2[i]>10 && chi2[i]<=50){
+        hi2lowo[pmsl][sc]=offs[i];
+      }
+      else if(slop[i]>24 && ngdbins[i]>40){//big numb. of bins - accept...
         hi2lowr[pmsl][sc]=slop[i];
-        pxstat[pmsl][sc]+=1;//suspicious LchSubCel
+        hi2lowo[pmsl][sc]=offs[i];
+//        pxstat[pmsl][sc]+=1;//suspicious LchSubCel
       }
       else{
         hi2lowr[pmsl][sc]=avs;
+        hi2lowo[pmsl][sc]=avo;
         pxstat[pmsl][sc]+=9;//bad LchSubCel
       }
-    }
-    else{
-      pxstat[pmsl][sc]+=1;//suspicious LchSubCel
+      cout<<"----> Hi2LowR Warning : pmsl/pix="<<pmsl<<" "<<sc<<" has slop/offs/chi2="<<slop[i]<<" "<<offs[i]<<" "<<chi2[i]<<endl;
     }
   }
+  cout<<"<==== Hi2LowR done, good channels:"<<nonzer<<" from total 1296"<<endl<<endl;
 //--------------------------------------------------------
 //
 // ----------------> calc. Anode(PixGcorrected sum4)/Dynode ratios for each PMT:
@@ -1834,7 +1910,7 @@ void ECREUNcalib::mfit(){
     }
     tcfile << endl;
     tcfile << endl;
-//
+//---
     cout<<"   <-- Pixel RelGains will be written"<<endl;
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
       for(sc=0;sc<4;sc++){
@@ -1849,7 +1925,7 @@ void ECREUNcalib::mfit(){
       tcfile << endl;
     }
     tcfile << endl;
-//
+//---
     cout<<"   <-- Pixel Hi/Low Gain ratios will be written"<<'\n';
     for(sl=0;sl<ECALDBc::slstruc(3);sl++){
       for(sc=0;sc<4;sc++){
@@ -1864,7 +1940,22 @@ void ECREUNcalib::mfit(){
       tcfile << endl;
     }
     tcfile << endl;
-//
+//---
+    cout<<"   <-- Pixel Hi/Low Gain offsets will be written"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile.width(6);
+          tcfile.precision(2);
+          tcfile << hi2lowo[pmsl][sc];
+        }
+        tcfile << endl;
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+//---
     cout<<"   <-- PM Anode/Dynode ratios will be written"<<'\n';
 //    tcfile.width(4);
 //    tcfile.precision(1);// precision for PM Anode/Dynode ratio
@@ -2137,10 +2228,10 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     axbcl[i]=0.;//backgr.clusters amp.
     aybcl[i]=0.;
   } 
-  cptr=AMSEvent::gethead()->getC("AMSParticle",0);
+  cptr=AMSEvent::gethead()->getC("AMSParticle",0);//p2 part.envelop with true track particle
   if(cptr)
           ntrk+=cptr->getnelem();
-  if(ntrk!=1)return;// require events with 1 part
+  if(ntrk!=1)return;// require events with 1 track-part
   ppart=(AMSParticle*)AMSEvent::gethead()->
                                            getheadC("AMSParticle",0);
   if(ppart){

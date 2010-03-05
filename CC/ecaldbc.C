@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.91 2010/02/17 15:17:08 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.92 2010/03/05 12:01:20 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -84,6 +84,7 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     char vers2[10]="PreAss";//= first clean room assembly(jan 2008)
     char vers3[10]="Ass1";//= final clean room assembly (oct 2009)
     char vers4[10]="Space";//final
+    char vers5[10]="PMag";//permanent magnet
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
@@ -94,20 +95,27 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     }
 //
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      cout <<"<------ ECALGeom-I- AMS02 configuration is used..."<<endl;
       if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+        cout <<"<------ ECALGeom-I- AMS02 configuration is used..."<<endl;
         cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers2);//clean room
       }
       else if(strstr(AMSJob::gethead()->getsetup(),"Ass1")){
+        cout <<"<------ ECALGeom-I- AMS02 configuration is used..."<<endl;
         cout <<"      FinalAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers3);//clean room
       }
       else if(strstr(AMSJob::gethead()->getsetup(),"Space")){
+        cout <<"<------ ECALGeom-I- AMS02 configuration is used..."<<endl;
         cout <<"      Space setup selected..."<<endl;
         strcat(name,vers4);//space
       }
+      else if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+        cout <<"<------ ECALGeom-I- AMS02P(perm.magnet) configuration is used..."<<endl;
+        strcat(name,vers5);//perm.magnet
+      }
       else{
+        cout <<"<------ ECALGeom-I- AMS02 configuration is used..."<<endl;
         cout <<"    Assembly_1(as default) setup selected..."<<endl;
         strcat(name,vers3);//Ass1(default)
       }
@@ -930,10 +938,10 @@ void EcalJobStat::bookhist(){
 //        HBOOK1(ECHISTC+4,"ECCA: PMCell-Track Transv-dist,SL2",50,-5.,5.,0.);
         HBOOK1(ECHISTC+5,"ECCA: Anode/Dynode(Gcorrected_4PixSum/Dyn)",100,0.,50.,0.);
         HBOOK1(ECHISTC+6,"ECCA: Track-fit Chi2 ",80,0.,800.,0.);
-        HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,-10.,40.,0.);
+        HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,-500.,500.,0.);
         HBOOK1(ECHISTC+16,"ECCA: TruncAverage  Edep/SLayer(PunchThrough,mev)",100,0.,250.,0.);
         HBOOK1(ECHISTC+17,"ECCA: Bad(non PunchThrough) PixLayers/event",maxpl+1,0.,geant(maxpl+1),0.);
-	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",80,50.,450.,30,0.,30.,0.);//in fill_2
+	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",100,50.,1050.,50,0.,50.,0.);//in fill_2
         HBOOK1(ECHISTC+24,"ECCA: EcalHit(pix) Energy(ECCrossByTrk,adc,gcorr)",100,0.,200.,0.);
         HBOOK1(ECHISTC+25,"ECCA: Fired(above thr) Pixels/PixLayer",80,0.,80.,0.);
         HBOOK1(ECHISTC+28,"ECCA: SuperLayers visibility(fired,punch-through)",maxsl,1.,geant(maxsl+1),0.);
@@ -988,11 +996,12 @@ HBOOK1(ECHISTC+118,"ECCA: Dadc,SL6,PM18",100,0.,100.,0.);
           HBOOK1(ECHISTC+32,"ECCA: PMT eff( odd SL) ",60,0.,1.2,0.);
 	}
         HBOOK1(ECHISTC+18,"ECCA: SLayerEdep prof(punch-through)",maxsl,1.,geant(maxsl+1),0.);
-        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",80,20.,100.,0.);
-        HBOOK1(ECHISTC+21,"ECCA: Offs(h2lcalib,all chan)",80,-40.,40.,0.);
-        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",100,0.,100.,0.);
-        HBOOK1(ECHISTC+42,"ECCA: Non0Bins(h2lcalib,all chan)",50,0.,50.,0.);
-        HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS/Aver(h2lcalib,all chan)",80,0.,0.5,0.);
+        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",60,20.,50.,0.);
+        HBOOK1(ECHISTC+21,"ECCA: Offs(h2lcalib,all chan)",40,-5.,5.,0.);
+        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",100,0.,5.,0.);
+        HBOOK1(ECHISTC+42,"ECCA: Non0Bins(h2lcalib,all chan)",50,0.,100.,0.);
+//        HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS/Aver(h2lcalib,all chan)",80,0.,0.25,0.);
+        HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS(h2lcalib,all chan)",80,0.,10.,0.);
         HBOOK1(ECHISTC+48,"ECCA: Anode(4pixSumGcorr)/Dynode ratio(final)",100,0.,50.,0.);
         HBOOK1(ECHISTC+49,"ECCA: AnodeAver(4pixSum,center,Gcorr)/EcAverTrunc(CalQuality)",100,0.5,1.5,0.);
 // hist # +50 is booked inside mfit !!!
@@ -1479,6 +1488,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   int i,isl,ipm,isc,cnum;
   integer sid,sta[4],stad,endflab;
   geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
+  geant h2lo[4];
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
@@ -1498,6 +1508,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //
   integer status[ECPMSL][4],statusd[ECPMSL];
   geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
+  geant sch2lo[ECPMSL][4];
   geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
 //
 // ---> read list of calibration-files version-numbers (menu-file) :
@@ -1630,6 +1641,17 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
     }
   }
 //
+// ---> read PM-SubCell hi2low offsets:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> sch2lo[cnum][isc];
+      }
+    }
+  }
+//
 // ---> read PM anode(sum of 4-SubCells)-to-Dynode ratious:
 //
   for(isl=0;isl<slmx;isl++){   
@@ -1755,12 +1777,13 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 //(1/(..) ->  to have multiplication instead of deviding in RECO(for speed); pmrg included
 //  in pmscgn because in simu/reco product of pmrg*pmscgn is used really(or pmrg alone)
       for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
+      for(isc=0;isc<4;isc++)h2lo[isc]=sch2lo[cnum][isc];
       a2dr=an2dyr[cnum];
       lfs=lfast[cnum];
       lsl=lslow[cnum];
       ffr=fastf[cnum];
       a2m=adc2mev;
-      ecpmcal[isl][ipm]=ECcalib(sid,sta,stad,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr,a2m);
+      ecpmcal[isl][ipm]=ECcalib(sid,sta,stad,pmrg,scrg,h2lr,h2lo,a2dr,lfs,lsl,ffr,a2m);
     }
   }
   cout<<"<---- ECcalib::build: successfully done !"<<endl<<endl;
@@ -1811,6 +1834,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   int i,isl,ipm,isc,cnum;
   integer sid,sta[4],stad,endflab;
   geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
+  geant h2lo[4];
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
@@ -1832,6 +1856,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   integer status[ECPMSL][4],statusd[ECPMSL];
   geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
+  geant sch2lo[ECPMSL][4];
   geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
 //
 // ---> read list of calibration-type-versions list (menu-file) :
@@ -1951,6 +1976,17 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
     }
   }
 //
+// ---> read PM-SubCell hi2low offsets:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> sch2lo[cnum][isc];
+      }
+    }
+  }
+//
 // ---> read PM anode(sum of 4-SubCells)-to-Dynode ratious:
 //
   for(isl=0;isl<slmx;isl++){   
@@ -2042,11 +2078,12 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //(1/(..) ->  to have mult. instead of dev. in RECO(for speed); pmrg included
 //  in pmscgn because in simu/reco product of pmrg*pmscgn is used really(or pmrg alone)
       for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
+      for(isc=0;isc<4;isc++)h2lo[isc]=sch2lo[cnum][isc];
       a2dr=an2dyr[cnum];
       lfs=lfast[cnum];
       lsl=lslow[cnum];
       ffr=fastf[cnum];
-      ecpmcal[isl][ipm]=ECcalibMS(sid,sta,stad,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr);
+      ecpmcal[isl][ipm]=ECcalibMS(sid,sta,stad,pmrg,scrg,h2lr,h2lo,a2dr,lfs,lsl,ffr);
     }
   }
 //

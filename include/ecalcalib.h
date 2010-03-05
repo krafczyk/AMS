@@ -13,8 +13,8 @@
 const integer ECCLBMX=10;// max. long. bins for uniformity study(should be even)
 //const integer ECLBMID=2;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECLBMID=3;// Area (+-bins) from fiber center, used for PM RelGain calibr.
-const integer ECCHBMX=50;// max. bins in hg-channel for h2lr study
-const integer ECCADCR=300;//max. HGainADC range to use ..............
+const integer ECCHBMX=100;// max. bins in hg-channel for h2lr study
+const integer ECCADCR=1000;//max. HGainADC range to use ..............
 const integer ECEVBUF=500;//size of buf. to store ev-by-ev PM-resp vs Lbin (FIAT-calib)
 const integer ECEVEMX=1000;//max events/pm(pix,lbin)
 const integer ECAHBUF=100;//size of highest amplitudes buffer(1/10 of ECEVEMX) 
@@ -42,6 +42,7 @@ class ECREUNcalib {
     static number sbcres[ecalconst::ECPMSL][4];//to store SubCell responce    
     static number sbcresc[ecalconst::ECPMSL][4];//to store SubCell responce, Gain-corrected    
     static number hi2lowr[ecalconst::ECPMSL][4];// h/l-gain ratios for each PM-subcell(pixel)
+    static number hi2lowo[ecalconst::ECPMSL][4];// h/l-gain offsets for each PM-subcell(pixel)
     static number an2dynr[ecalconst::ECPMSL];// Anode/Dynode ratios for each PM
     static number a2dnevs[ecalconst::ECPMSL];// .............Nevents...........
     static integer tevpml[ecalconst::ECPMSL][ECCLBMX];// tot.events/Lbin/pm_fired (FIAT-calib)

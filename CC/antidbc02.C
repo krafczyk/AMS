@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.36 2009/09/18 10:07:07 choumilo Exp $
+//  $Id: antidbc02.C,v 1.37 2010/03/05 12:01:20 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -95,16 +95,21 @@ ANTIPedsMS ANTIPedsMS::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPa
     _stthic=ATGEFFKEY.stthic;
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
-          cout <<" ANTIGeom-I-AMS02D setup selected."<<endl;
+          cout <<"<----- ANTIGeom-I-AMS02D setup selected."<<endl;
 	  ZShift=AMSDBc::amsdext;
 	  cout<<"      ZShift="<<ZShift<<endl;
     }
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-          cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
+      if(strstr(AMSJob::gethead()->getsetup(),"AMS02Ass1")){
+          cout <<"<----- ANTIGeom-I-AMS02Ass1 setup selected."<<endl;
+      }
+      else if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+          cout <<"<----- ANTIGeom-I-AMS02P(perm.magnet) setup selected."<<endl;
+      }
     }
     else
     {
-          cout <<"<---- ANTI2DBc::setgeom: UNKNOWN setup !!!!"<<endl;
+          cout <<"<----- ANTI2DBc::setgeom: UNKNOWN setup !!!!"<<endl;
     }
     _scleng+=2*ZShift;
     _stleng+=2*ZShift;

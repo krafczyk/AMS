@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.73 2010/02/17 15:17:08 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.74 2010/03/05 12:01:21 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -152,6 +152,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     char vers1[10]="PreAss";//pre-assembly in clean room
     char vers2[10]="Space";//in space
     char vers3[10]="Ass1";//in clean room final assembly-1
+    char vers4[10]="PMag";//perm.magnet
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
@@ -162,25 +163,31 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     }
     
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
       if(strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+        cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
         cout <<"      PreAssembly(CleanRoom) setup selected..."<<endl;
         strcat(name,vers1);//clean room
       }
       else if(strstr(AMSJob::gethead()->getsetup(),"Space")){
+        cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
         cout <<"      Space setup selected..."<<endl;
         strcat(name,vers2);//space
       }
       else if(strstr(AMSJob::gethead()->getsetup(),"Ass1")){
+        cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
         cout <<"      Assembly_1(CleanRoom) setup selected..."<<endl;
         strcat(name,vers3);//clean room final assembly-1
       }
+      else if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+        cout <<"<------ TOFGeom-I- AMS02P(perm.magnet)-configuration is used..."<<endl;
+        strcat(name,vers4);//perm.magnet
+      }
       else{
+        cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
         cout <<"      Assembly_1(as default) setup selected..."<<endl;
         strcat(name,vers3);//default(Ass1)
       }
     }
-    
     else
     {
           cout <<"       Unknown setup !!!"<<endl;

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.203 2009/08/19 14:35:47 pzuccon Exp $
+//  $Id: amsgeom.C,v 1.204 2010/03/05 12:01:20 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -878,6 +878,7 @@ AMSgtmed *p;
 void amsgeom::magnetgeom02(AMSgvolume & mother){
 // "real" AMS02 design, but the shape of coils/he-vessel is rectang. 
 // with "the same weight(cross-section area)" dimensions.
+// AMS02P version added.
 AMSID amsid;
 geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 geant coo[3]={0.,0.,0.};
@@ -945,6 +946,22 @@ AMSNode * cur;
      par[14]=casr2-cylot;
      mivol=mmoth->add(new AMSgvolume(
           "MVACMED",0,"MVOL","PCON",par,15,coo,nrm,"ONLY",1,gid,1));//inner vac.volume
+//
+//-------> perm.magnet:
+   if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){//permanent magmet
+     geant pmggap=0.2;//radial gap betweem magnet and int.cyl.surface of vac.case
+     geant pmgri=casr1+cylit+pmggap;//magnet int.radious
+     geant pmglen=casl1+(cylit+pmggap)*tancon-flant/coscon-0.1;//perm.magnet half-length(-0.1 for safety)
+     geant pmgro=82.5;//outer radious of perm.magnet
+     par[0]=pmgri;
+     par[1]=pmgro;
+     par[2]=pmglen;
+     mivol->add(new AMSgvolume("MAGNET",0,"PMSH","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//tempor MagShell=MagBody
+     cout<<"<---- Amsgeom::magnetgeom02: AMS02P G3/G4-compatible geometry is successfully done!"<<endl<<endl;
+   }//---> endof perm.magnet
+//
+//-------> sup.cond.magnet coils/He-vessel:
+   else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){//super conductive magnet
 //
 // -----> return coils:
 //
@@ -1073,9 +1090,10 @@ AMSNode * cur;
        cur=lhves->add(new AMSgvolume(
           "MVACMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//vacuum
        cout<<"      mafnet warm state selected"<<endl;
-      }
+     }
+     cout<<"<---- Amsgeom::magnetgeom02: AMS02 G3/G4-compatible geometry is successfully done!"<<endl<<endl;
+   }//---> endof AMS02 magnet geometry
 //
-  cout<<"<---- Amsgeom::magnetgeom02: G3/G4-compatible geometry is successfully done!"<<endl<<endl;
 }
 //-----------------------------------------------------------------
 void amsgeom::ext1structure02(AMSgvolume & mother){
@@ -2473,7 +2491,7 @@ ECALDBc::readgconf();//
   number nrm1[3][3]={1.,0.,0., 0.,0.,1., 0.,-1.,0.};// for X-proj fibers wrt ECMO
   number nrm2[3][3]={0.,0.,1.,0.,1.,0., -1.,0.,0.}; // for Y-proj fibers
   geant coo[3]={0.,0.,0.};
-  geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz,zfl1;
+  geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz;
   geant dzrad1,zmrad1,alpth,flen,zposfl,dxe;
   geant fshift;
   integer nrot,gid(0),nsupl,nflpsl,nfpl[2],nf;
@@ -2509,7 +2527,7 @@ ECALDBc::readgconf();//
   fpitx=ECALDBc::fpitch(1);
   fpitz=ECALDBc::fpitch(2);
   fpitzz=dzrad1-(nflpsl-1)*fpitz+2.*alpth;
-  cout<<"      EcalGeom: fpitchZZ "<<fpitzz<<" cm"<<endl;
+  cout<<"      EcalGeom: RadZfront="<<ECALDBc::gendim(7)<<" fpitchZZ "<<fpitzz<<" cm"<<endl;
 //------------------------------------
   par[0]=dx1/2.+dxe;
   par[1]=dy1/2.+dxe;

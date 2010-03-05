@@ -605,7 +605,7 @@ NextBlock:
       switch(gain){//fill RawEvent arrays
         case 1:
 	  if(pix<=4){//anode-adc(hi)
-	    adca=geant(swvbuf[ic])/16+0.5;//"16" to go back to true ADC-value
+	    adca=geant(swvbuf[ic])/16;//"16" to go back to true ADC-value
 	    if(subtrped){
 	      if((adca-peda)>athr*siga)padc[0]=adca-peda;//subtr.ped and apply DAQ-threshold
 	      else padc[0]=0;
@@ -617,7 +617,7 @@ NextBlock:
 	    }
 	  }
 	  else{//dynode(pix=5)
-	    adcd=geant(swvbuf[ic])/16+0.5;
+	    adcd=geant(swvbuf[ic])/16;
 	    if(subtrped){
 	      if((adcd-pedd)>dthr*sigd)padc[2]=adcd-pedd;//subtr.ped and apply DAQ-threshold
 	      else padc[2]=0;
@@ -632,7 +632,7 @@ NextBlock:
 	  break;
 //
         case 2:
-	  adca=geant(swvbuf[ic])/16+0.5;//anode-adc(low)
+	  adca=geant(swvbuf[ic])/16;//anode-adc(low)
 	  if(subtrped){
 	    if((adca-peda)>athr*siga)padc[1]=adca-peda;//subtr.ped and apply DAQ-threshold
 	    else padc[1]=0;
