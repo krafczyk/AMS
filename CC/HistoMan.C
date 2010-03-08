@@ -1,6 +1,7 @@
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
+#include "TH3.h"
 #include "TROOT.h"
 #include "TDirectoryFile.h"
 
@@ -55,7 +56,9 @@ void HistoMan::Fill(const char * name, double a,double  b,double w){
   }
 #pragma omp critical (hmanfill)
 {
-  if( hist->InheritsFrom("TH2"))
+  if( hist->InheritsFrom("TH3"))
+    ((TH3*)hist)->Fill(a,b,w);
+  else if( hist->InheritsFrom("TH2"))
     ((TH2*)hist)->Fill(a,b,w);
   else if( hist->InheritsFrom("TH1"))
     ((TH1*)hist)->Fill(a,b);

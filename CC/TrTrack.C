@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.24 2010/03/08 08:43:03 shaino Exp $
+// $Id: TrTrack.C,v 1.25 2010/03/08 15:38:06 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/03/08 08:43:03 $
+///$Date: 2010/03/08 15:38:06 $
 ///
-///$Revision: 1.24 $
+///$Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -66,7 +66,7 @@ ClassImp(TrTrackR);
 int TrTrackR::NhitHalf     = 4;
 int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 int TrTrackR::DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
-                                        TrTrackR::kAlcaraz;
+                                        TrTrackR::kAlcarazFit;
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -641,9 +641,6 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 int TrTrackR::DoAdvancedFit(int flag)
 {
   trdefaultfit = 0;
-
-  if (flag & 0x1000) TrFit::RkmsDebug = 0;
-  if (flag & 0x2000) TrFit::RkmsDebug = 1;
 
   if (flag & kChoutkoFit)  { Fit(kChoutko); trdefaultfit = kChoutko; }
   if (flag & kChoutkoMsct)   Fit(kChoutko | kMultScat);

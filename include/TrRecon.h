@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.24 2010/02/01 12:44:12 shaino Exp $ 
+// $Id: TrRecon.h,v 1.25 2010/03/08 15:38:12 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/02/01 12:44:12 $
+/// $Date: 2010/03/08 15:38:12 $
 ///
-/// $Revision: 1.24 $
+/// $Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -530,7 +530,10 @@ public:
   /// Reconstruct tracks, returns number of tracks reconstructed
   int BuildTrTracks(int refit = 0);
 
-  /// Merge his with seed SN clusters lower than TrackThrSeed
+  /// Merge hits shared by two tracks
+//int MergeSharedHits(TrTrackR *track, int fit_method);
+
+  /// Merge hits with seed SN clusters lower than TrackThrSeed
   int MergeLowSNHits(TrTrackR *track, int fit_method);
 
   /// Build one track from the best candidate iterator

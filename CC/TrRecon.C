@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.41 2010/03/08 08:43:03 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.42 2010/03/08 15:38:06 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/03/08 08:43:03 $
+/// $Date: 2010/03/08 15:38:06 $
 ///
-/// $Revision: 1.41 $
+/// $Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1129,9 +1129,13 @@ void TrRecon::BuildHitsTkIdMap()
     if (!cly) continue;
 
     if (hit->Used()) hit->clearstatus(AMSDBc::USED);
-    if ( clx && clx->GetSeedSN() < RecPar.TrackThrSeed[0] && 
-	        cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
-    if (!clx && cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+    if (RecPar.TrackThrSeed[1] > 0) {
+      if (RecPar.TrackThrSeed[0] > 0) {
+	if ( clx && clx->GetSeedSN() < RecPar.TrackThrSeed[0] && 
+	            cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+      }
+      if (!clx && cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+    }
 
     int tkid = hit->GetTkId();
     _HitsTkIdMap[tkid].push_back(hit);

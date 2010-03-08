@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.16 2010/03/08 08:43:03 shaino Exp $
+//  $Id: TrFit.C,v 1.17 2010/03/08 15:38:06 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/03/08 08:43:03 $
+///$Date: 2010/03/08 15:38:06 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1238,10 +1238,14 @@ double TrFit::ChikanianFit(void)
 
   double out[9];
 /*#ifndef __ROOTSHAREDLIBRARY__
-  if (RkmsDebug >= 0) rkms_debug(this, out);
+  if (RkmsDebug >= 1) rkms_debug(this, out);
   else
 #endif*/
   RkmsFit(out);
+
+  if (RkmsDebug >= 1)
+    cout << "RkmsFit: rini,rgt,chi2= "
+	 << _rigidity << " " << out[5] << " " << out[6] << endl;
 
   _p0x = out[0]; 
   _p0y = out[1]; 
@@ -1893,6 +1897,10 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 
 //cxy3 ---
   vect[6] = std::sqrt(pin[0]*pin[0]+pin[1]*pin[1]+pin[2]*pin[2]);
+  if (pin[2] > 0) {
+    vect[6] = -vect[6];
+    sign    = -sign;
+  }
   for (int i = 0; i < 3; i++) {
     vect[i  ] = xin[i];//         !  xyz
     vect[i+3] = pin[i]/vect[6];// ! cxyz
@@ -1946,6 +1954,14 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 /*==============================
  *#include "../RKMSFIT/debug5a.h"
  *============================== */
+
+  if (RkmsDebug >= 3) {
+    cout << " i      xc       yc       zc       x0       y0" << endl;
+    for (int i = 0; i < npoc; i++)
+      cout<<Form("%2d%9.3f%9.3f%9.3f%9.3f%9.3f",
+		 i, xc[i], yc[i], zc[i], x0[i], y0[i])<<endl;
+  }
+
 
 /*     double precision function Chi2Su(x0,y0)
  *   A.Chikanian, Yale, Feb,2003

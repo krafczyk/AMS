@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.15 2010/02/23 14:55:27 pzuccon Exp $
+//  $Id: event_tk.C,v 1.16 2010/03/08 15:38:06 shaino Exp $
 #include "TrRecon.h"
 #include "TkSens.h"
 
@@ -169,11 +169,13 @@ void AMSEvent::_retkevent(integer refit){
       if (trstat & 16) TrRecon::RecPar.NcutCpu++;
     }
     if (nfill%10000 == 0) {
- /*     if (ifirst) {
+    if (ifirst) {
 	cout << "AMSEvent::_retkevent-I-Report: "
 	     << "  Nfill  NevTrk  Rtrk  Rldt Rhcut  Rcpu TrTime" << endl;
 	ifirst = 0;
       }
+    float trtime = (hman.Get("TrTimH"))
+      ? ((TH2D *)hman.Get("TrTimH"))->GetMean(2) : 0;
       cout << "AMSEvent::_retkevent-I-Report: "
 	   << Form("%7d %7d %5.3f %5.3f %5.3f %5.3f %6.4f",
 		   nfill, ntevt, 1.*ntevt/nfill,
@@ -181,7 +183,7 @@ void AMSEvent::_retkevent(integer refit){
 		   1.*(TrRecon::RecPar.NcutCls+
 		       TrRecon::RecPar.NcutHit)/nfill,
 		   1.* TrRecon::RecPar.NcutCpu /nfill,
-		   ((TH2D *)hman.Get("TrTimH"))->GetMean(2)) << endl; */
+		   trtime) << endl;
     }
   }
 

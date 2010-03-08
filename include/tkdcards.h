@@ -71,6 +71,8 @@ geant delta[2];
 geant gammaA[2];
 geant NonGaussianPart[2];
 geant BadCh[2];
+geant pl9zgap;
+geant pl9sthick;
   void init();
   number ADC2KeV(){
     return 0.5e6/beta/dedx2nprel;

@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.695 2010/03/05 17:06:08 choumilo Exp $
+// $Id: job.C,v 1.696 2010/03/08 15:38:06 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1759,7 +1759,7 @@ if(AMSFFKEY.Update){
 
 
   if(strstr(getsetup(),"AMS02") ){    
-    if(TKGEOMFFKEY.ReadGeomFromFile==1){
+    if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
       //PZ FIXME metti a posto il path 
@@ -2895,6 +2895,7 @@ bool NeededByDefault=isSimulation();
    
     int need=1;
     if(isMonitoring())need=0;
+    if(isRealData())
     TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
@@ -2915,10 +2916,15 @@ bool NeededByDefault=isSimulation();
     end.tm_year=0;
     TkDBc::CreateLinear();
 
-    if(isRealData())
+    if(isRealData()) {
+     if (TKGEOMFFKEY.ReadGeomFromFile/10==1)
+       cout << "AMSJob::timeinitjob-I-TrackerAlign is NOT added to TimeID"
+	    << endl;
+     else
       TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
 			     TkDBc::GetLinearSize(),TkDBc::linear,
  			     server,need,SLin2Align));
+    }
     
     begin.tm_isdst=0;
     end.tm_isdst=0;
@@ -3512,13 +3518,14 @@ if((isCalibration() && CEcal) && AMSFFKEY.Update>0){//only for
 //ecre->DCP; ecmc->CP
 //
 if((ECREFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
+#ifndef _PGTRACK_ // SH FIXME
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
                                   (void*)&ECcalib::ecpmcal[0][0],server,needval));
+#endif // SH FIXME
   end.tm_year=ECREFFKEY.year[1];
 //--------				  
 if((ECREFFKEY.ReadConstFiles/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
-
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
      begin,end,sizeof(ECALVarp::ecalvpar),
                                       (void*)&ECALVarp::ecalvpar,server,needval));
@@ -3526,10 +3533,11 @@ if((ECREFFKEY.ReadConstFiles/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardT
 //--------
 if(!isRealData()){//"MC.Seeds" TDV only for MC-run.    
   if((ECMCFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib"MC.Seeds" fromDB
-	     
+#ifndef _PGTRACK_ // SH FIXME
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMS(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalibMS::ecpmcal[0][0]),
                                   (void*)&ECcalibMS::ecpmcal[0][0],server,needval));
+#endif // SH FIXME
   end.tm_year=ECREFFKEY.year[1];
 }
 //--------

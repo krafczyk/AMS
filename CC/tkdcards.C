@@ -156,6 +156,9 @@ void TRMCFFKEY_DEF::init(){
       }
     }
   }
+
+  pl9zgap=0.;//(558) PL9 supp.str. gap from EC front face Z (cm)
+  pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;
