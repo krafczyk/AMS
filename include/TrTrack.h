@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.19 2010/02/01 12:44:12 shaino Exp $
+//  $Id: TrTrack.h,v 1.20 2010/03/08 08:43:03 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -36,9 +36,10 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/02/01 12:44:12 $
+///\date  2010/03/03 SH  Advanced fits updated 
+///$Date: 2010/03/08 08:43:03 $
 ///
-///$Revision: 1.19 $
+///$Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -120,7 +121,7 @@ public:
     kGEANE_Kalman  = 3, 
     /// Juan algo
     kAlcaraz       = 4,
-    /// A. Chikanian algo        : Will NOT be implemented without request
+    /// A. Chikanian algo
     kChikanian     = 5,
     
     /// Linear fit for non-magnetic-field runs
@@ -144,6 +145,28 @@ public:
     /// Noise drop option
     kNoiseDrop  = 0x200
   };
+
+  /// Advanced fit flags to be specified by TRCLFFKEY_DEF::AdvancedFitFlag
+  enum EAdvancedFitFlags {
+    kChoutkoFit   = 0x001, ///< Choutko fitting w/o scattering
+    kChoutkoMsct  = 0x002, ///< Choutko fitting w/  scattering
+    kChoutkoHalf  = 0x004, ///< Choutko fitting w/o scattering half layers
+    kChoutkoDef   = 0x007, ///< Default all Choutko fitting
+
+    kChoutkoDrop  = 0x008, ///< Choutko fitting w/o scattering with one drop
+    kChoutkoNdrp  = 0x010, ///< Choutko fitting w/o scattering with noise drop
+    kChoutkoAll   = 0x01F, ///< All Choutko fitting
+
+    kAlcarazFit   = 0x020, ///< Alcaraz fitting w/o scattering
+    kAlcarazMsct  = 0x040, ///< Alcaraz fitting w/  scattering
+    kAlcarazAll   = 0x060, ///< All Alcaraz fitting
+
+    kChikanianFit = 0x080, ///< Chikanian fitting w/ scattering
+
+    kAllAdvanced  = 0x0FF  ///< All advanced fitting
+  };
+  /// Default advanced fit flags : keep it "thread-common"
+  static int DefaultAdvancedFitFlags;
 
 
   //==== Static members ===
@@ -191,9 +214,7 @@ protected:
   //! Track Status word
   int Status;
 
-  //  static geant _TimeLimit; //!
-  //#pragma omp threadprivate(_TimeLimit)
-  /// Number of points for half fit (default: 4)
+  /// Number of points for half fit (default: 4) : keep it "thread-common"
   static int NhitHalf;
 
   /// load the std::string sout with the info for a future output
@@ -378,6 +399,7 @@ public:
   /// Perform simple fitting with a constant position error of 0.03 cm
   float SimpleFit(void) {
     static const float err[3] = { 0.03, 0.03, 0.03 };
+#pragma omp threadprivate(err)
     return Fit(kSimple, -1, 0, err);
   }
   /// Perform simple fitting with a constant position error
@@ -385,14 +407,11 @@ public:
     return Fit(kSimple, -1, 0, err);
   }
 
-  /// For compatibility with ecalcalib.C
-  /*! "Advanced fit" is assumed to perform all the fitting: 
-   *   1: 1st harf, 2: 2nd harf, 6: with nodb, 4: "Fast fit" ims=0 and 
-   *   5: Juan with ims=1 */
-  int AdvancedFitDone();
+  /// Check if advanced fits specified by flag are done
+  int AdvancedFitDone(int flag = DefaultAdvancedFitFlags);
 
-  /// For compatibility with ecalcalib.C
-  int DoAdvancedFit();
+  /// Do advanced fits specified by flag
+  int DoAdvancedFit(int flag = DefaultAdvancedFitFlags);
 
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();
@@ -478,15 +497,6 @@ public:
   uinteger getstatus() const{return Status;}
   void     setstatus(uinteger status){Status=Status | status;}
   void     clearstatus(uinteger status){Status=Status & ~status;} 
-
-
-
-//   /// For Gbatch compatibility
-//   static void  SetTimeLimit(geant time) { _TimeLimit = time; }
-//   /// For Gbatch compatibility
-//   static geant GetTimeLimit() { return _TimeLimit; }
-
- 
 
   /// ROOT definition
   ClassDef(TrTrackR, 1);

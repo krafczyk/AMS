@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.23 2010/02/01 12:44:05 shaino Exp $
+// $Id: TrTrack.C,v 1.24 2010/03/08 08:43:03 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/03/08 08:43:03 $
 ///
-///$Revision: 1.23 $
+///$Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -63,10 +63,10 @@ void  TrTrackPar::Print_stream(std::string &ostr,int full){
 ClassImp(TrTrackR);
 
 
-//geant TrTrackR::_TimeLimit = 0;
-
 int TrTrackR::NhitHalf     = 4;
 int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
+int TrTrackR::DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
+                                        TrTrackR::kAlcaraz;
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -328,7 +328,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   if (id < 0) return -1;
 
   int idf = id&0xf;
-  if (idf == kGEANE || idf == kGEANE_Kalman || idf == kChikanian) {
+  if (idf == kGEANE || idf == kGEANE_Kalman) {
     cerr << "Error in TrTrack::Fit Fitting method not implemented: "
 	 << idf << endl;
     return -1;
@@ -344,10 +344,11 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // Select fitting method
   int method = TrFit::CHOUTKO;
-  if      (idf == kAlcaraz) method = TrFit::ALCARAZ;
-  else if (idf == kLinear)  method = TrFit::LINEAR;
-  else if (idf == kCircle)  method = TrFit::CIRCLE;
-  else if (idf == kSimple)  method = TrFit::SIMPLE;
+  if      (idf == kAlcaraz)   method = TrFit::ALCARAZ;
+  else if (idf == kChikanian) method = TrFit::CHIKANIAN;
+  else if (idf == kLinear)    method = TrFit::LINEAR;
+  else if (idf == kCircle)    method = TrFit::CIRCLE;
+  else if (idf == kSimple)    method = TrFit::SIMPLE;
 
   // Set multiple scattering option and assumed mass
   if (id & kMultScat) {
@@ -423,6 +424,9 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
+
+  if (method == TrFit::CHIKANIAN && ParExists(kChoutko))
+    _TrFit.SetRigidity(GetRigidity(kChoutko));
 
   // Perform fitting
   bool done = (_TrFit.Fit(method) > 0);
@@ -634,33 +638,47 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
   Theta = GetTheta(id); Phi = GetPhi(id); X0 = GetP0(id);
 }
 
-int TrTrackR::DoAdvancedFit()
+int TrTrackR::DoAdvancedFit(int flag)
 {
-  /*! "Advanced fit" is assumed to perform all the fitting: 
-   *   1: 1st half, 2: 2nd half, 6: with nodb, 4: "Fast fit" ims=0 and 
-   *   5: Juan with ims=1 */
+  trdefaultfit = 0;
 
-  if (Fit(kChoutko | kUpperHalf) < 0) Fit(kAlcaraz | kUpperHalf);
-  if (Fit(kChoutko | kLowerHalf) < 0) Fit(kAlcaraz | kLowerHalf);
-  Fit(kChoutko);
-//Fit(kChoutko | kOneDrop);
-  Fit(kChoutko | kNoiseDrop);
-  Fit(kAlcaraz);
-  trdefaultfit = kChoutko;
-  return AdvancedFitDone();
+  if (flag & 0x1000) TrFit::RkmsDebug = 0;
+  if (flag & 0x2000) TrFit::RkmsDebug = 1;
+
+  if (flag & kChoutkoFit)  { Fit(kChoutko); trdefaultfit = kChoutko; }
+  if (flag & kChoutkoMsct)   Fit(kChoutko | kMultScat);
+  if (flag & kChoutkoHalf) { Fit(kChoutko | kUpperHalf);
+                             Fit(kChoutko | kLowerHalf); }
+  if (flag & kChoutkoDrop)   Fit(kChoutko | kOneDrop);
+  if (flag & kChoutkoNdrp)   Fit(kChoutko | kNoiseDrop);
+
+  if (flag & kAlcarazFit)    Fit(kAlcaraz);
+  if (flag & kAlcarazMsct)   Fit(kAlcaraz | kMultScat);
+
+  if (flag & kChikanianFit)  Fit(kChikanian);
+
+  if (!trdefaultfit && _TrackPar.size() > 0)
+    trdefaultfit = _TrackPar.begin()->first;
+
+  return AdvancedFitDone(flag);
 }
 
-int TrTrackR::AdvancedFitDone()
+int TrTrackR::AdvancedFitDone(int flag)
 { 
   if (!_MagFieldOn) return FitDone(kLinear);
 
-  bool uh = FitDone(kChoutko|kUpperHalf);
-  bool lh = FitDone(kChoutko|kLowerHalf);
-  bool ch = FitDone(kChoutko);
-  bool al = FitDone(kAlcaraz);
+  bool done = true;
+  if (flag & kChoutkoFit)    done &= FitDone(kChoutko);
+  if (flag & kChoutkoMsct)   done &= FitDone(kChoutko | kMultScat);
+  if (flag & kChoutkoHalf) { done &= FitDone(kChoutko | kUpperHalf);
+                             done &= FitDone(kChoutko | kLowerHalf); }
+  if (flag & kChoutkoDrop)   done &= FitDone(kChoutko | kOneDrop);
+  if (flag & kChoutkoNdrp)   done &= FitDone(kChoutko | kNoiseDrop);
 
-  if (!uh && ParExists(kAlcaraz|kUpperHalf)) uh = FitDone(kAlcaraz|kUpperHalf);
-  if (!lh && ParExists(kAlcaraz|kLowerHalf)) lh = FitDone(kAlcaraz|kLowerHalf);
+  if (flag & kAlcarazFit)    done &= FitDone(kAlcaraz);
+  if (flag & kAlcarazMsct)   done &= FitDone(kAlcaraz | kMultScat);
 
-  return uh & lh & ch & al;
+  if (flag & kChikanianFit)  done &= FitDone(kChikanian);
+
+  return done;
 }

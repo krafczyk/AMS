@@ -214,16 +214,19 @@ public:
   //! R [37,38] Seed S/N Threshold for 37:n(X) 38:p(Y) side
   geant TrackThrSeed[2] ;  
 
+  //! I 39 Fit methods to be included for AdvancedFit see TrTrack.h for detail
+  int AdvancedFitFlag;
+
   //DEBUG
-  //! I 39 TrDEBUG (DEBUG on Track finding)
+  //! I 40 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 40 PZDEBUG
+  //! I 41 PZDEBUG
   int PZDEBUG ;
-  //! I 41 TAS reconstruction
+  //! I 42 TAS reconstruction
   int TasRecon;
-  //! I 42 TAS current intensity
+  //! I 43 TAS current intensity
   int TasCurr;
-  //! I 43 TAS LDDR mode
+  //! I 44 TAS LDDR mode
   int TasLDDR;
 
   void init();

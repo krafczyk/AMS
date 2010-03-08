@@ -1,5 +1,6 @@
 #include "tkdcards.h"
 #include "TrCluster.h"
+#include "TrTrack.h"
 #include <math.h>
 #include <float.h>
 
@@ -68,6 +69,9 @@ void TRCLFFKEY_DEF::init(){
   ErrYForScan       = 300e-4;
   TrackThrSeed[0]   = 4.0;
   TrackThrSeed[1]   = 4.0;
+
+  AdvancedFitFlag   = TrTrackR::DefaultAdvancedFitFlags;
+
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;

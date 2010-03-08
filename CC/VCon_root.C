@@ -13,7 +13,8 @@ VCon* VCon_root::GetCont(const char * name){
      strstr(name,"TrCluster")||
      strstr(name,"TrRawCluster")||
      strstr(name,"TrRecHit")||
-     strstr(name,"TrTrack")
+     strstr(name,"TrTrack")||
+     strstr(name,"Vtx")
      ){
     sprintf(contname,"%s",name);
     return       (VCon*)(this);
@@ -60,6 +61,13 @@ void VCon_root::removeEl(TrElem* aa, integer res)
     for(int ii=0;ii<index;ii++) it++;
     ev->TrTrack().erase(it);
   }
+
+  if( strstr(contname,"Vtx")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<VertexR>::iterator it=ev->Vertex().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->Vertex().erase(it);
+  }
    
   
 }
@@ -77,6 +85,8 @@ int VCon_root::getnelem(){
     return ev->NTrRecHit();
   if( strstr(contname,"TrTrack"))
     return ev->NTrTrack();
+  if( strstr(contname,"Vtx"))
+    return ev->NVertex();
   return 0;
 }
 
@@ -84,23 +94,27 @@ void VCon_root::eraseC(){
  if(!ev)  return ;
   if( strstr(contname,"TrMCCluster")) {
     ev->fHeader.TrMCClusters = 0;
-    return ev->TrMCCluster().clear();
+    ev->TrMCCluster().clear();
   }
   if( strstr(contname,"TrCluster")) {
     ev->fHeader.TrClusters = 0;
-    return ev->TrCluster().clear();
+    ev->TrCluster().clear();
   } 
   if( strstr(contname,"TrRawCluster")) {
     ev->fHeader.TrRawClusters = 0;
-    return ev->TrRawCluster().clear();
+    ev->TrRawCluster().clear();
   }
   if( strstr(contname,"TrRecHit")) {
     ev->fHeader.TrRecHits = 0;
-    return ev->TrRecHit().clear();
+    ev->TrRecHit().clear();
   }
   if( strstr(contname,"TrTrack")) {
     ev->fHeader.TrTracks = 0;
-    return ev->TrTrack().clear();
+    ev->TrTrack().clear();
+  }
+  if( strstr(contname,"Vtx")) {
+    ev->fHeader.Vertexs = 0;
+    ev->Vertex().clear();
   }
 }
 
@@ -116,6 +130,8 @@ TrElem* VCon_root::getelem(int ii){
     return  (TrElem*) ev->pTrRecHit(ii);
   if( strstr(contname,"TrTrack"))
     return  (TrElem*) ev->pTrTrack(ii);
+  if( strstr(contname,"Vtx"))
+    return  (TrElem*) ev->pVertex(ii);
   return 0;
 }
 
@@ -131,6 +147,8 @@ void  VCon_root::addnext(TrElem* aa){
     ev->TrRecHit().push_back(*(TrRecHitR*)aa);
   if( strstr(contname,"TrTrack"))
     ev->TrTrack().push_back(*(TrTrackR*)aa);
+  if( strstr(contname,"Vtx"))
+    ev->Vertex().push_back(*(VertexR*)aa);
 }
 
 
@@ -156,6 +174,10 @@ int  VCon_root::getindex(TrElem* aa){
   if( strstr(contname,"TrTrack"))
    for(int ii=0;ii<ev->NTrTrack();ii++)
      if(ev->pTrTrack(ii)==aa) return ii;
+
+  if( strstr(contname,"Vtx"))
+   for(int ii=0;ii<ev->NVertex();ii++)
+     if(ev->pVertex(ii)==aa) return ii;
 
   return 0;
 }

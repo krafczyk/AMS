@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.40 2010/02/25 15:06:54 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.41 2010/03/08 08:43:03 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/02/25 15:06:54 $
+/// $Date: 2010/03/08 08:43:03 $
 ///
-/// $Revision: 1.40 $
+/// $Revision: 1.41 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -127,6 +127,8 @@ void TrReconPar::SetParFromDataCards()
   ErrYForScan       = TRCLFFKEY.ErrYForScan;      // 36
   TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];  // 37
   TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];  // 38
+
+  TrTrackR::DefaultAdvancedFitFlags = TRCLFFKEY.AdvancedFitFlag; // 39
 }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -2393,7 +2395,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 
 
 int TrRecon::BuildVertex(integer refit){
-   
+
   VCon* vtx_ctr=GetVCon()->GetCont("AMSVtx");
   if(!vtx_ctr){
     printf("TrRecon::BuildVertex  Cant Find AMSVtx Container Reconstruction is Impossible !!!\n");
@@ -2414,13 +2416,15 @@ int TrRecon::BuildVertex(integer refit){
   
   // First pass (only tracks with beta)
   VCon* pctr=GetVCon()->GetCont("AMSTrTrack");
-  for (int ii=0;ii<pctr->getnelem();ii=0) {
+  for (int ii=0;ii<pctr->getnelem();ii++) {
     TrTrackR *ptr = (TrTrackR *)pctr->getelem(ii);
-    if (ptr->checkstatus(AMSDBc::GOLDEN)) {
+    if (1){//(ptr->checkstatus(AMSDBc::GOLDEN)) {
       ptrack[nfound] = ptr;
       nfound++;
     }
   }
+//cout<<"nfound= "<<nfound<<endl;
+
   int debug=0;
   // Create a vertex
   if (nfound>1) {

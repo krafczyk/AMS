@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.15 2010/02/12 12:13:00 pzuccon Exp $
+//  $Id: TrFit.C,v 1.16 2010/03/08 08:43:03 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,10 @@
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
-///$Date: 2010/02/12 12:13:00 $
+///\date  2010/03/03 SH  ChikanianFit added
+///$Date: 2010/03/08 08:43:03 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -88,11 +89,12 @@ double TrFit::Fit(int method)
   if (_nhit < 3) return -1;
 
   double ret = 0;
-  if (method ==  LINEAR) ret = LinearFit();
-  if (method ==  CIRCLE) ret = CircleFit();
-  if (method ==  SIMPLE) ret = SimpleFit();
-  if (method == ALCARAZ) ret = AlcarazFit();
-  if (method == CHOUTKO) ret = ChoutkoFit();
+  if (method ==    LINEAR) ret = LinearFit();
+  if (method ==    CIRCLE) ret = CircleFit();
+  if (method ==    SIMPLE) ret = SimpleFit();
+  if (method ==   ALCARAZ) ret = AlcarazFit();
+  if (method ==   CHOUTKO) ret = ChoutkoFit();
+  if (method == CHIKANIAN) ret = ChikanianFit();
 
   ParLimits();
   return ret;
@@ -472,6 +474,22 @@ bool TrFit::ParLimits(double &par, double min, double max)
   return ret;
 }
 
+int TrFit::GetLayer(double z)
+{
+  // Estimate layer number
+  double zlay[LMAX] = { 53.060,  29.228,  25.212,   1.698,  
+                        -2.318, -25.212, -29.228, -53.060 };
+  int ilay = 0;
+  double dzmin = 2.5;
+  for (int i = 0; i < LMAX; i++) 
+    if (std::abs(z-zlay[i]) < dzmin) {
+      dzmin = std::abs(z-zlay[i]);
+      ilay = i;
+    }
+
+  return ilay;
+}
+
 double TrFit::VKAverage(int n, double *x, double *y, double *w)
 {
    double s = 0, sw = 0;
@@ -684,18 +702,8 @@ double TrFit::AlcarazFit(void)
   double cosz[LMAX];
   int    ilay[LMAX];
 
-  // Estimate layer number (Temporary)
-  double zlay[LMAX] = { 53.060,  29.228,  25.212,   1.698,  
-                        -2.318, -25.212, -29.228, -53.060 };
-  for (int i = 0; i < _nhit; i++) {
-    ilay[i] = 0;
-    double dzmin = 2.5;
-    for (int j = 0; j < LMAX; j++) 
-      if (std::abs(_zh[i]-zlay[j]) < dzmin) {
-        dzmin = std::abs(_zh[i]-zlay[j]);
-        ilay[i] = j;
-      }
-  }
+  // Estimate layer number
+  for (int i = 0; i < _nhit; i++) ilay[i] = GetLayer(_zh[i]);
 
   // Get initial paramters
   if (SimpleFit() < 0) return -1;
@@ -1199,6 +1207,798 @@ void TrFit::VCErrMtx(int ih, double xms, double *out, double *aa,
       if (i == 0) fckx += fck;
       else        fcky += fck;
     }
+}
+
+
+int TrFit::RkmsDebug = -1;
+
+//#include "rkms_debug.C"
+
+double TrFit::ChikanianFit(void)
+/*
+*---------------------------------------------------------------------
+* A.Chikanian, Yale, 2003
+* Reconstruct track's kinematical parameters with full (nondiagonal)
+* Covar.Error Metrix due to Multipole Scattering in Si tracking planes.
+* Supposed to be used when the Mult.Scatt. is dominate.
+*---------------------------------------------------------------------
+
+   Imported to C++ by SH
+*/
+{
+  _ndofx = -2;
+  _ndofy = -3;
+  for (int i = 0; i < _nhit; i++) {
+    if (0 < _xs[i]) _ndofx++;
+    if (0 < _ys[i]) _ndofy++;
+    if (_zs[i] <= 0) _zs[i] = 300e-4;
+    if (_xs[i] <= 0) _xs[i] = _zs[i]*1e4;
+    if (_ys[i] <= 0) _ys[i] = _zs[i]*1e4;
+  }
+
+  double out[9];
+/*#ifndef __ROOTSHAREDLIBRARY__
+  if (RkmsDebug >= 0) rkms_debug(this, out);
+  else
+#endif*/
+  RkmsFit(out);
+
+  _p0x = out[0]; 
+  _p0y = out[1]; 
+  _p0z = out[2];
+
+  AMSDir dir(out[3], out[4]);
+  _dxdz = -dir.x();
+  _dydz = -dir.y();
+
+  _rigidity = out[5];
+  _chisq    = (_ndofx+_ndofy > 0) ? out[6]/(_ndofx+_ndofy) : out[6];
+  _errrinv  = out[8];
+
+  return _chisq;
+}
+
+namespace TrFit_RKMS {
+  static TrFit *ptr = 0;
+#pragma omp threadprivate(ptr)
+
+  void RkmsFCN(int &n, double *grad, double &chisq, double *par, int iflag)
+  {
+    if (ptr) ptr->RkmsFCN(n, grad, chisq, par, iflag);
+  }
+};
+
+#include "TMinuit.h"
+
+void TrFit::RkmsFit(double *out)
+{
+/*    subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
+ *---------------------------------------------------------------------
+ * A.Chikanian, Yale, 2003
+ * Reconstruct track's kinematical parameters with full (nondiagonal)
+ * Covar.Error Metrix due to Multipole Scattering in Si tracking planes.
+ * Supposed to be used when the Mult.Scatt. is dominate.
+ *---------------------------------------------------------------------
+ * Input:   npo        - # points
+ *          npl        - plane #, associated with each point
+ *          xyz(3,npl) - 3d coordinates
+ *          dxyz(npl)  - errors (intrinsic Si planes resolution)
+ *          ipa        - particle Geant ID#
+ *          Rini       - initial Rigidity value (try the best !!!)
+
+ * Output:  Out(*)     - reconstructed parameters
+ *          Out(1-3)   - x, y, z 
+ *          Out(4-5)   - Theta, Phi
+ *          Out(6)     - Rigidity
+ *          Out(7)     - Chi2/D.F.
+ *          Out(8)     - not used
+ *          Out(9)     - err(1/Rigidity)=err(R)/(R*R)
+ *---------------------------------------------------
+ *
+   Imported to C++/ROOT by SH
+ */
+
+  if (_nhit < 3) return;
+
+  // Set initial rigidity
+  double rini = _rigidity;
+  if (std::fabs(rini) < 0.3 || std::fabs(rini) > 333) {
+    if (SimpleFit() < 0) return;
+    rini = _rigidity;
+  }
+
+/*     subroutine rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rini,Xout,Er,Chi2) ! MINUIT
+ *   A.Chikanian, Yale, 2003
+ *
+   Imported to C++/ROOT by SH
+ */
+
+/*--------------------------------------------------------------------------
+ *                    
+ * Initial MIGRAD steps dPx      dPy      dPz(GeV) dx     dy(cm) */
+  double St[NDIM]   = { .000100, .000100, .002000, .0005, .0005 }; //! 8.98*min
+/* see:/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/RKMSFIT/derivstep.opt
+ *--------------------------------------------------------------------------
+ */
+
+  TrFit_RKMS::ptr = this;
+
+  TMinuit minuit(NDIM+2);
+  minuit.mninit(5, 6, 7);
+  minuit.SetFCN(TrFit_RKMS::RkmsFCN);
+
+  double args[3] = { 0, 0, 0 };
+  int narg = 1, ierr;
+
+  //! suppr. output
+  args[0] = -1; minuit.mnexcm("SET PRINT",  args, narg, ierr);
+  args[0] = -1; minuit.mnexcm("SET NOWARN", args, narg, ierr);
+  if (ierr) cerr << "MNEXCM: Print ierflg=" << ierr << endl;
+
+  args[0]= 1; minuit.mnexcm("SET GRAD", args, narg, ierr);
+  if (ierr) cerr << "MNEXCM: Grad ierflg=" << ierr << endl;
+
+  args[0]= 1; minuit.mnexcm("SET ERRo", args, narg, ierr);
+  if(ierr) cerr << "MNEXCM: ERRo ierflg=" << ierr << endl;
+
+  double z1  = _zh[0]; // ! if so Par(4)=x(1), Par[5]=y(1)
+  double rad = std::sqrt((_xh[1]-_xh[0])*(_xh[1]-_xh[0])+
+			 (_yh[1]-_yh[0])*(_yh[1]-_yh[0])+
+			 (_zh[1]-_zh[0])*(_zh[1]-_zh[0]));
+
+/*=============================
+ *#include "../RKMSFIT/debug1.h"
+ *=============================
+ * First TWO passes in loop below are sign of charge checking
+ * Third pass is iteration with right MS-matrix (mostly for correct Xi2)
+ */
+
+  double chi2b = 0;
+  double chisq = 0;
+  double xbuf[NDIM];
+  double err [NDIM];
+
+  int    npa = NDIM;
+  double par[NDIM+2];
+  double step = 5;// ! cm
+  double sign = 1;
+
+  enum { NitMa = 3 };
+  for (int it = 1; it <= NitMa; it++) {
+
+    // Initial values
+    if (it == NitMa) step = 2.;// ! cm
+    if (it <= 2) {
+                   sign =  1;
+      if (it == 2) sign = -1;
+      par[0] = rini*(_xh[1]-_xh[0])/rad;                            // ! Px0
+      par[1] = rini*(_yh[1]-_yh[0])/rad;                            // ! Py0
+      par[2] = rini*(_zh[1]-_zh[0])/rad;                            // ! Pz0
+      par[3] = _xh[0] + (z1-_zh[0])/(_zh[1]-_zh[0])*(_xh[1]-_xh[0]);// !  x0
+      par[4] = _yh[0] + (z1-_zh[0])/(_zh[1]-_zh[0])*(_yh[1]-_yh[0]);// !  y0
+    }
+    else {
+      for (int j = 0; j < npa; j++) par[j] = out[j];
+    }
+
+/*---------------------------- Initial values setup
+ *----------------------------------------------- Minimization  
+ *       ======================================+
+ */
+    RkmsMtx(rini); // Fill the error matrix
+
+/*       ======================================+
+ *=============================
+ *#include "../RKMSFIT/debug2.h"
+ *=============================
+ *       ================================================
+ */
+
+//!$OMP CRITICAL (RKMS)  // TMinuit is thread-safe
+    for (int i = 0; i < npa; i++) {
+      minuit.mnparm(i, "par", par[i], St[i], 0, 0, ierr);//! Init.Val.Setup
+      if(ierr) cerr << "### MNPARM: i,ierflg=" << i << " " << ierr << endl;
+    }
+    int np = npa;
+    minuit.mnparm(np++, "step", step, 0, 0, 0, ierr);
+    minuit.mnparm(np++, "sign", sign, 0, 0, 0, ierr);
+
+    if (RkmsDebug >= 2) cout <<" MIGRAD it= " << it << endl;
+    minuit.mnexcm("MIGRAD", args, 0, ierr);
+    if (RkmsDebug >= 2) cout <<" MIGRAD ierflg= " << ierr << endl;
+/*       ================================================
+ cer        if(ierflg.ne.0.and.iercou.le.1) then        !
+ cer          write(6,*)'MNEXCM: ierflg=',ierflg,iercou ! always 4 !!!???
+ cer          iercou=iercou+1                           !
+ cer        endif                                       !
+ */
+
+    TString str;
+    for (int i = 0; i < npa; i++) {
+      double bnd1, bnd2;
+      int ivar;
+      minuit.mnpout(i, str, out[i], err[i], bnd1, bnd2, ivar); //! Extraction
+      par[i] = out[i];
+    }
+    par[npa]   = step;
+    par[npa+1] = sign;
+
+//!$OMP END CRITICAL (RKMS)  // TMinuit is thread-safe
+
+    double chi2 = minuit.fAmin;
+    if (chi2 > 1.e30) chisq = 1.e30;
+    else chisq = chi2;
+//c    if(2*npo-npa.gt.0) Chi2=Dhi2/(2.*npo-npa)      ! Chi2/d.f.
+
+    if (it == 1) {
+      chi2b = chisq;
+      for (int i = 0; i < npa; i++) xbuf[i] = out[i];
+    }
+    if (it == 2 && chisq > chi2b) {
+      sign = 1.;
+      for (int i = 0; i < npa; i++) out[i] = xbuf[i];
+    }
+
+  }// ! Iteration loop
+
+  // Set residuals
+  RkmsFun(npa, par, true);
+
+/*     ========================================================== */
+  double rgt = std::sqrt(out[0]*out[0]+out[1]*out[1]+out[2]*out[2]);
+  double dr  = std::sqrt((out[0]*err[0])*(out[0]*err[0]) + 
+			 (out[1]*err[1])*(out[1]*err[1]) +
+			 (out[2]*err[2])*(out[2]*err[2]))/rgt;
+
+/*     ============================================= */
+  double theta = std::acos (out[2]/rgt);
+  double phi   = std::atan2(out[1], out[0]);
+  out[0] = out[3];
+  out[1] = out[4];
+  out[2] = _zh[0];
+  out[3] = theta;
+  out[4] = phi;
+  out[5] = rgt*sign;
+  out[6] = chisq;
+  out[7] = 0.;
+  out[8] = dr/(rgt*rgt);
+}
+
+#include "TMatrixDSym.h"
+
+void TrFit::RkmsMtx(double rini)
+{
+/*    subroutine wxy_matr(npo,npl,dx,dy,ipa,R)   !
+ *-------------------------------------------------
+ * Preparing Cov.Err.Matrix with Mult.Scattering
+ * A.Chikanian Feb,2003.
+ *------------------------------------------------------------
+ * Missing planes carring by putting dX,dY --> INF.(~22cm)
+ * COS(Th) - is INDIV. for each planes
+ * Symmetry of all matrix assumed
+ *===========================================================
+ *
+   Imported to C++/ROOT by SH
+ */
+
+  enum { NPma = LMAX };
+
+  double SiThick = 0.0300;    // ! plane thicknes in cm. (300mkm Si)
+  double SiRlen  = 0.0032054; // ! plane thicknes in R.L.(300mkm Si) zz0
+  double Rmin    = 0.300;     // ! Minimum rigidity, GV
+  double xHC     = 1;         // ! Amount of HanyComb mater.in Si-pl.r.l
+
+/*=== AMS01 Nov.29,1996
+ c01      data trkZ0/50.95,29.15,7.75,-7.75,-29.15,-50.95/
+ *=== AMS02 (Aug.25,04)
+ c      data trkZ0/54.7,29.2,25.8,1.7,-1.7,-25.8,-29.2,-54.7/
+ *   taken from MC (Sep.04)
+ c      data trkZ0/54.51,29.18,25.32,1.68,-2.18,-25.32,-29.18,-54.51/
+*/
+  double TrkZ0[NPma] = { 52.985, 29.185, 25.215,  1.685,
+			 -2.285,-25.215,-29.185,-52.985 };// -122. };
+/*-------------------------------------------------------
+ *   pl#   1-2   2-3   3-4   4-5   5-6   6-7  7-8
+ *   dZ   21.8  24.4  15.5  24.4  21.8   -    -    AMS01
+ *   dZ   25.5   3.4  24.1   3.4  24.1  3.4  25.5  AMS02
+ *-------------------------------------------------------
+ */
+
+  double dZ[NPma][NPma];
+  for (int i = 0; i < NPma-1; i++) {
+    dZ[i][i] = 0.;
+    for (int j = i+1; j < NPma; j++)
+      dZ[i][j] = dZ[j][i] = TrkZ0[j]-TrkZ0[i];
+  }
+  dZ[NPma-1][NPma-1] = 0.;
+
+  if (RkmsDebug >= 3){
+    cout << "dZ" << endl;
+    for (int i=0; i<NPma;i++) {
+      for(int j=0;j<8;j++) cout<<Form("%10.2f",dZ[i][j]);
+      cout<<endl;
+    }
+  }
+
+  int npo = _nhit;
+  int   npl[NPma];
+  double xc[NPma], yc[NPma];
+  for (int i = 0; i < npo; i++) {
+    xc [i] = _xh[i];
+    yc [i] = _yh[i];
+    npl[i] = GetLayer(_zh[i])+1;
+  }
+
+  double dTh0 = std::sqrt(2.)*13.6e-3*std::sqrt(SiRlen)
+                            *(1.+.038*std::log (SiRlen));
+
+/*========================================= checkimg # of planes > 3 */
+  if(_nhit < 3) {
+    cerr << "### wxy_matr: # of planes " << _nhit << endl;
+    return;
+  }
+/*================================== Initializatiob to 0 */
+  double dms [NPma][NPma];
+  double ww  [NPma][NPma];
+  double oco2[NPma];
+  for (int i=0; i < NPma*NPma; i++) {
+    dms[i/NPma][i%NPma] = ww[i/NPma][i%NPma] = _rkms_err[i/NPma][i%NPma] = 0;
+    if (i < NPma) oco2[i]=0.;
+  }
+
+/*================================== MS-matrix building */
+  int np3 = (npl[0] > npl[npo-1]) ? -1 : 1;
+  int ii = 1;
+  for (int i = npl[0]+np3-1; i != npl[npo-1]-1+np3; i += np3) {
+    int jj = ii;;
+    for (int j = i; j != npl[npo-1]-1+np3; j += np3) {
+      for (int k = npl[0]-1; k != i-np3+np3; k += np3)
+	dms[jj][ii] += dZ[k][i]*dZ[k][j];
+      jj++;
+    }
+    ii++;
+  }
+
+  if (RkmsDebug >= 3){
+    cout << "DMS" << endl;
+    for(int i=0;i<NPma;i++) {
+      for (int j=0;j<8;j++) cout<<Form("%10.2f",dms[i][j]);
+      cout<<endl;
+    }
+  }
+
+/*====================================*/
+// ! Honycomb contrib.in MS-matrix 
+//
+/*      subroutine dmshc02(npo,npl,xHC,dZ,zz)
+ *-------------------------------------------------
+ * Calculate contribution from HonyComb in Cov.Err.Matrix
+ * A.Chikanian Aug,2004.
+ *===========================================================
+ * INP: npo      - # of x,y - hits
+ *      npl(npo) - array with plane # associated with hits
+ *      xHC      - thicknes of Honycomb (in r.l.of Si)
+ *       dZ      - matrix dZ(i,j)=Z0(i)-Z0(j)
+ * OUT:  zz      - Error metrix due to MS (1/2 if filed)
+ *=========================================================== */
+
+/*=========
+ c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug1_zz8.h"
+ *========= */
+/*cf         xHC - par. is not necessuary because =1 (but let it be).
+  cf-- could be usefull in case xHC # 1
+  cf      real Whc0,Wth(3)! HanyComb Thetta weight (see N.B. p.69)
+  cf      save Whc0      
+  cf      logical first
+  cf      data    first/.true./
+  cf      save    first
+  *-------------------------
+  cf      if(first) then
+  cf        first=.false.
+  cf        whc0=    xHC*(1.+0.038*alog(   xHC)/(1.+0.038*alog(zz0)))**2
+  cf        write(6,*)'=== wHC0',wHC0 ! debug
+  cf      endif ! first
+  *------------------------------------------
+  cf      do i=1,3 ! = (NPma-1)/2
+  cf        Wth(i)=Whc0
+  cf      enddo
+  *=========
+  c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug2_zz8.h"
+  *=========*/
+
+  int i0, i1;
+  if (npl[0] < npl[npo-1]) { //! Down
+    np3 = 1;
+    i0  = 0;
+    i1  = npl[0]%2;
+  }
+  else {                    //! Up
+    np3 = -1;
+    i0  = 1;
+    i1  = (npl[0]+1)%2;
+  }
+  int k1   = (npl[0]+np3)/2;
+  int npla = std::abs(npl[npo-1]-npl[0])+1;
+
+/*---------------------------------------------------------------
+ *    (ik,lj)=dZ(i,k)/sqrt(3)+dZ(l,j)
+ *    (2k,2k+1 , 2k+1,j) = (dZ(2*k  ,2*k+1)/sqrt(3.)+dZ(2*k+1,i))
+ *                       w*(dZ(2*k+1,  j  )/sqrt(3.)+dZ(2*k+1,j))
+ *---------------------------------------------------------------*/
+  for (int ii = 2+i1; ii <= npla; ii++) {
+    int i  = npl[0]+(ii-1)*np3;
+    int k2 = (i-1)/2+i0;//  ! 1,2 or 3
+//c        write(6,*)'ii,i,k1,k2',ii,i,k1,k2          ! debug
+    for (int jj = ii; jj <= npla; jj++) {
+      int j = npl[0]+(jj-1)*np3;
+//c          zz(jj,ii)=0.                             ! debug
+//c          kkk=0                                    ! debug
+      for (int mm = k1; mm != k2+np3; mm += np3) {
+	int k  = 2*mm+i0;
+	int kk = k+np3;
+	dms[jj-1][ii-1] += (dZ[k-1][kk-1]/sqrt(3.)+dZ[kk-1][i-1])
+	                  *(dZ[k-1][kk-1]/sqrt(3.)+dZ[kk-1][j-1]);
+//cf     +                *Wth(mm)*(dZ(k,kk)/sqrt(3.)+dZ(kk,j))
+/*=========
+ c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug3_zz8.h"
+ *=========*/
+      }
+//c          zz(ii,jj)=zz(jj,ii)
+    }
+  }
+
+  if (RkmsDebug >= 3) {
+    cout<<"ZZ"<<endl;
+    for(int i=0;i<8;i++) {
+      for (int j=0;j<8;j++) cout<<Form("%10.2f",dms[i][j]);
+      cout<<endl;
+    }
+  }
+
+/*===========================================*/
+  int NMSpl = abs(npl[npo-1]-npl[0]+np3);// ! # Mult.Scatt.planes
+  //gfpart(ipa,pname,itr,ama,cha,tl,ub,nw);
+  double cha  = _chrg; 
+  double ama  = _mass;
+  double RR   =  max(rini, Rmin);
+  double P    =  RR*cha;
+  double E    =  std::sqrt(P*P+ama*ama);
+  double be   =  P/E;// ! or be from TOF
+  double dTc2 = (dTh0/(be*RR))*(dTh0/(be*RR));// ! space factor 2 in dTh0
+
+//c      sigcha = 1.D0
+//c      if(cha.lt.0.) sigcha = -1.D0 ! for GRKUTA 
+/*=============================
+ *#include "../RKMSFIT/debug7.h"
+ *=============================
+ *     ________________________________ Diagonal elements */
+
+  double dx[NPma], dy[NPma], dz[NPma];
+  for (int i = 0; i < npo; i++) {
+    dz[i] = (_zs[i] > 0) ? _zs[i] : 300e-4;
+    dx[i] = (_xs[i] > 0) ? _xs[i] : dz[i]*1e4;
+    dy[i] = (_ys[i] > 0) ? _ys[i] : dz[i]*1e4;
+    if (RkmsDebug >= 3) 
+      cout<< "dx,dy= "<<i<<" "<<npl[i]<<" "<<dx[i]<<" "<<dy[i]<<endl;
+  }
+
+  ww[0][0] = dy[0]*dy[0] + dx[0]*dx[0];// ! dms(1,1)=0.
+  ii = 0;
+  for (int i = 1; i < npo; i++) { // !_____________________Diagonal elements
+    if (abs(npl[i]-npl[i-1]) > 1) {
+      for (int is = 0; is < abs(npl[i]-npl[i-1])-1; is++) {
+	ii++;
+	oco2[ii] = 1.+((xc[i]-xc[i-1])*(xc[i]-xc[i-1])+
+		       (yc[i]-yc[i-1])*(yc[i]-yc[i-1]))
+	               /dZ[npl[i]-1][npl[i-1]-1]/dZ[npl[i]-1][npl[i-1]-1];
+	ww[ii][ii] = dms[ii][ii]*dTc2 + 1000.;// ! dX,Y~22cm if missing plane
+      }
+    }
+    ii++;
+    oco2[ii]=1.+((xc[i]-xc[i-1])*(xc[i]-xc[i-1])+
+		 (yc[i]-yc[i-1])*(yc[i]-yc[i-1]))
+	         /dZ[npl[i]-1][npl[i-1]-1]/dZ[npl[i]-1][npl[i-1]-1];
+    ww[ii][ii] = dms[ii][ii]*dTc2*oco2[ii]*oco2[ii] + dy[i]*dy[i] 
+	                                            + dx[i]*dx[i];
+  }
+  if (RkmsDebug >= 3){
+    cout << "WW" << endl;
+    for(int i=0;i<NPma;i++) {
+      for (int j=0;j<8;j++) {
+	if (std::abs(ww[i][j]) < 1) cout<<Form("%10.7f",ww[i][j]);
+	else                        cout<<Form("%10.2f",ww[i][j]);
+      }
+      cout<<endl;
+    }
+  }
+
+/*=============================
+ *#include "../RKMSFIT/debug8.h"
+ *=============================  */
+  for (int i = 2; i < NMSpl; i++) // !___________________Nondiagonal elements
+    for (int j = 1; j <= i-1; j++)
+      ww[i][j] = ww[j][i] = dms[i][j]*dTc2*oco2[i]*oco2[j];
+
+  if (RkmsDebug >= 3){
+    cout << "WW"<<endl;
+    for (int i = 0; i < NMSpl; i++) {
+      for (int j=0;j<8;j++) {
+	if (std::abs(ww[i][j]) < 1) cout<<Form("%10.7f",ww[i][j]);
+	else                        cout<<Form("%10.2f",ww[i][j]);
+      }
+      cout<<endl;
+    }
+  }
+
+/*=============================
+ *#include "../RKMSFIT/debug9.h"
+ *============================= */
+
+  //rsinv(NMSpl,ww,NPma,ifail);// ! F012 Symm.Matr.Inversion
+  TMatrixDSym mtx(NMSpl);
+  for (int i = 0; i < NMSpl; i++) 
+    for (int j = 0; j < NMSpl; j++) mtx[i][j] = ww[i][j];
+
+  double det;
+  mtx.Invert(&det);
+  if (det == 0) {
+    cerr << "### rsinv: ifail= -1" << endl;
+    return;
+  }
+  for (int i = 0; i < NMSpl; i++) 
+    for (int j = 0; j < NMSpl; j++) ww[i][j] = mtx[i][j];
+
+  if (RkmsDebug >= 3){
+    cout << "WW inv"<<endl;
+    for (int i = 0; i < NMSpl; i++) {
+      for (int j = 0; j < 8; j++) cout<<Form("%10.3f",ww[i][j]);
+      cout<<endl;
+    }
+  }
+
+/*==============================
+ *#include "../RKMSFIT/debug10.h"
+ *==============================
+ *--------------------- Matr.Shrinking */
+  _rkms_err[0][0] = ww[0][0];
+  for (int j = 1; j < npo; j++) {
+    int jj = std::abs(npl[j]-npl[0]);
+    for (int i = j; i < npo; i++) {
+      _rkms_err[i][j] = ww[abs(npl[i]-npl[0]+np3)-1][jj];
+    }
+  }
+
+  if (RkmsDebug >= 3){
+    cout << "WXY"<<endl;
+    for (int i = 0; i < npo; i++) {
+      for (int j = 0; j < 8; j++) cout<<Form("%10.3f",_rkms_err[i][j]);
+      cout<<endl;
+    }
+  }
+
+/*==============================
+ *#include "../RKMSFIT/debug11.h"
+ *============================== */
+}
+
+void TrFit::RkmsFCN(int &npa, double *grad, double &fu, double *par, int iflag)
+{
+/*     Subroutine FunMI(Npa,grad,Fu,par,iflag) ! ,futil)
+ *   A.Chikanian, Yale, Aug,2003
+ *----------------------------------- */
+//c      write(6,'(    a3,5f10.5)')'Par',par ! debug ###
+
+  if (iflag == 2) {
+/*    subroutine FunDer(npa,par,der)
+ *   A.Chikanian, Yale, Aug,2003
+ *---   numerical calculation of Fun and derivatives.
+ *-------------------------------------------------- */
+/*================================================== */
+    double dp0[5] = { .000005,.000005,.000100,.0002,.0002 }; //! Opt.Steps
+    /*                 GeV     GeV     GeV    cm    cm  !
+     *================================================== */
+
+    double step = par[5];
+    double sign = par[6];
+
+    double xx[7];
+    for (int j = 0; j < npa+2 && j < 7; j++) xx[j] = par[j];
+
+    for (int j = 0; j < npa; j++) {
+      double dp = dp0[j];// ! /2.
+      double x0 = xx [j];
+
+      double f1, f2;
+      xx[j] = x0-dp; f1 = RkmsFun(npa, xx);
+      xx[j] = x0+dp; f2 = RkmsFun(npa, xx);
+
+      grad[j] = .5*(f2-f1)/dp;
+    }
+    if (RkmsDebug >= 3){
+      cout<<Form(" par  %12.4e%12.4e%12.4e%12.4e%12.4e",
+		 par[0], par[1], par[2], par[3], par[4])<<endl;
+      cout<<Form(" der  %12.4e%12.4e%12.4e%12.4e%12.4e",
+		 grad[0], grad[1], grad[2], grad[3], grad[4])<<endl;
+    }
+  } // if (iflag == 2)
+//c      write(6,'(a6,5(1pe12.4))')' der  ',der ! debug ###
+//c      write(6,'(a6,5(1pe12.4))')'   x  ',xp  ! debug ###
+
+  fu = RkmsFun(npa, par);
+
+  if (RkmsDebug >= 2)
+    cout<<Form("Par%2d%10.5f%10.5f%10.5f%10.5f%10.5f %10.5f",
+	       iflag, par[0], par[1], par[2], par[3], par[4], fu) << endl;
+//c      write(6,*)'iflag,Fu',iflag,Fu       ! debug ###
+}
+
+double TrFit::RkmsFun(int npa, double *par, bool res)
+{
+/*    double precision Function Fun(Npa,par)
+ *   A.Chikanian, Yale, Aug,2003
+ */
+  enum { NPma = LMAX };
+
+  double pin[3], xin[3];
+  pin[0] = par[0]; // ! Px or cx
+  pin[1] = par[1]; // ! Py or cy
+  pin[2] = par[2]; // ! Pz or R
+  xin[0] = par[3]; // ! x
+  xin[1] = par[4]; // ! y
+  xin[2] = _zh[0]; // ! z
+
+  double x0[NPma], y0[NPma];
+  for (int i = 0; i < NPma; i++) {
+    x0[i] = -999.; //   !**************
+    y0[i] = -999.; //   !*** let it be !!!
+  }                //   !*****************
+/*     ========================== */
+
+/*    subroutine rk_trk(pin,xin,x0,y0,w0)
+ *---------------------------------------------------
+ * Runge-Kutta integration for particle in Magn.field
+ * A.Chikanian, Yale, Feb.,2003
+ *----------------------------------------------------
+ *  Input:  pin(3) - initial Rigidity Px,Py,Pz (GeV/c)
+ *          xin(3) - initial position  x, y, z (cm)
+ *  Output: pou(3) -   final Rigidity Px,Py,Pz (GeV/c)
+ *          xou(3) -   final position  x, y, z (cm)
+ *------------------------------------------------- */
+
+/*==================================
+ *#include "../RKMSFIT/instedgeant.h"
+ *================================== */
+  double vect[7], vout[7];
+/*                           vect(7) is  x,y,z,px,py,pz,P
+ *                                   or  x,y,z,cx,cy,cz,P
+ *                                       1 2 3  4  5  6 7 */
+  double Stot = 150.; // ! Max.range(cm) in Path Length
+/*------------------------------------------------------- */
+
+  double step = par[5];
+  double sign = par[6];
+  double vni  = 1.;
+
+  int Nst  = int(Stot/step); // ! Max.# of steps
+  int npoc = _nhit;
+
+  double xc[NPma], yc[NPma], zc[NPma];
+  for (int i = 0; i < npoc; i++) {
+    xc[i] = _xh[i];
+    yc[i] = _yh[i];
+    zc[i] = _zh[i];
+  }
+
+  if (zc[0] < zc[1]) vni = -1.; // ! back tracking
+
+//cxy3 ---
+  vect[6] = std::sqrt(pin[0]*pin[0]+pin[1]*pin[1]+pin[2]*pin[2]);
+  for (int i = 0; i < 3; i++) {
+    vect[i  ] = xin[i];//         !  xyz
+    vect[i+3] = pin[i]/vect[6];// ! cxyz
+  }
+/*----------------------------------------------- Runge Kutta */
+  if (RkmsDebug >= 3) cout<<" rk_trk "<<Nst<<" "<<Stot<<" "<<step<<endl;
+
+  double w0[3][NPma];
+
+  int np = 1;
+  for (int i = 0; i < Nst; i++) {
+    if (RkmsDebug >= 3) 
+      cout<<Form(" %2d %9.4f%9.4f%9.4f%9.4f%9.4f%9.4f",
+		 i, vect[0], vect[1], vect[2],
+		    vect[3], vect[4], vect[5])<<endl;
+    TrFit::Rkuta(sign, step, vect, vout);
+
+    for (int j = 0; j < 2; j++) { // !!!! fixed close planes problem(AMS02)
+      if (vni*vect[2] >= vni*zc[np-1] && 
+	  vni*vout[2] <  vni*zc[np-1]) {
+	double w = (zc[np-1]-vout[2])/(vect[2]-vout[2]);
+	x0   [np-1] = vect[0]*w + vout[0]*(1.-w);
+	y0   [np-1] = vect[1]*w + vout[1]*(1.-w);
+	w0[0][np-1] = vect[3]*w + vout[3]*(1.-w);
+	w0[1][np-1] = vect[4]*w + vout[4]*(1.-w);
+	w0[2][np-1] = vect[5]*w + vout[5]*(1.-w);
+
+	if (RkmsDebug >= 3) {
+	  cout<<Form(" np %2d", np) << endl;
+	  cout<<Form("%9.4f%9.4f%9.4f%9.4f"
+		     "%9.4f%9.4f%9.4f%9.4f",
+		     x0[0], x0[1], x0[2], x0[3], x0[4], x0[5], x0[6], x0[7])
+	      <<endl;
+	  cout<<Form("%9.4f%9.4f%9.4f%9.4f"
+		     "%9.4f%9.4f%9.4f%9.4f",
+		     y0[0], y0[1], y0[2], y0[3], y0[4], y0[5], y0[6], y0[7])
+	      <<endl;
+	}
+//c          write(6,'(a3,i2,a3,8f10.5)')' np',np,' x0',x0 ! debug ###
+//c          write(6,'(   5x,a3,8f10.5)')         ' y0',y0 ! debug ###
+	if (np > npoc) break; //  !!!!!!!!! Done
+	np = np+1;
+      }
+    } //  !### fixing closed planes probl.(or run with small STEP)
+
+    if (np > npoc) break; //  !!!!!!!!! Done
+
+    for (int j = 0; j < 7; j++) // ! x,y,z,cx,cy,cz,P
+      vect[j] = vout[j];
+  } // ! Nst 
+/*==============================
+ *#include "../RKMSFIT/debug5a.h"
+ *============================== */
+
+/*     double precision function Chi2Su(x0,y0)
+ *   A.Chikanian, Yale, Feb,2003
+ *---------------------------------------------
+ * Input    x0     - x-coord. for current iteration
+ *          y0     - y-coord. for current iteration
+ * Output:  Chi2Su - chi2 value
+ *--------------------------------------------- */
+
+/*-------------------------*  xc,yc - hits coordinates */
+  double chi2su = _rkms_err[0][0]*((xc[0]-x0[0])*(xc[0]-x0[0])+
+				   (yc[0]-y0[0])*(yc[0]-y0[0]));
+  if (RkmsDebug >= 3) cout<<"Chi2Su"<<endl;
+  for (int i = 1; i < npoc; i++) {
+    double xi = xc[i]-x0[i];
+    double yi = yc[i]-y0[i];
+    if (RkmsDebug >= 3) 
+      cout<<Form("%2d%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f",
+		 i, chi2su, _rkms_err[i][i], xi, yi,
+		 xc[i], x0[i], yc[i], y0[i])<<endl;
+    chi2su += _rkms_err[i][i]*(xi*xi+yi*yi);
+    if (i < npoc-1) {
+      for (int j = i+1; j < npoc; j++)
+	chi2su += 2.*_rkms_err[j][i]*(xi*(xc[j]-x0[j])+yi*(yc[j]-y0[j]));
+    }
+  }
+
+  // Fill residual, _chisqx and _chisqy
+  if (res) {
+    _chisqx = 0;
+    _chisqy = 0;
+    for (int i = 0; i < npoc; i++) {
+      _xr[i] = xc[i]-x0[i];
+      _yr[i] = yc[i]-y0[i];
+
+      _chisqx += _rkms_err[i][i]*_xr[i]*_xr[i];
+      _chisqy += _rkms_err[i][i]*_yr[i]*_yr[i];
+
+      for (int j = i+1; j < npoc; j++) {
+	_chisqx += 2.*_rkms_err[j][i]*_xr[i]*(xc[j]-x0[j]);
+	_chisqy += 2.*_rkms_err[j][i]*_yr[i]*(yc[j]-y0[j]); 
+      }
+    }
+  }
+
+  return chi2su;
+/*=============================
+ c#include "../RKMSFIT/debug5.h"
+ *============================= */
+/*     ========================== */
+/*=============================
+ *#include "../RKMSFIT/debug4.h"
+ *============================= */
 }
 
 

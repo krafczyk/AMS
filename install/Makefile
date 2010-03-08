@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.97 2010/02/26 14:16:04 pzuccon Exp $
+#  $Id: Makefile,v 1.98 2010/03/08 08:43:03 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -213,8 +213,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	      $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)/HistoMan.C
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
-	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C
-#$(SCC)gufld.C
+	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C
 
 else
 

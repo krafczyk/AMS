@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.7 2010/01/21 14:57:20 shaino Exp $
+//  $Id: TrFit.h,v 1.8 2010/03/08 08:43:03 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -29,12 +29,13 @@
 ///  fit.Fit(method);    // Do fitting
 /// 
 /// Fitting methods (shown in EMethods)
-/// LINEAR  : Linear fitting in X-Z and Y-Z planes (used in no-B)
-/// CIRCLE  : Circlar fitting in Y-Z and linear in X-S (used in const.B)
-/// SIMPLE  : Simple fitting, no multiple scattering, and coarse B field
-///           (used for pattern scan)
-/// ALCARAZ : Fitting method by J.Alcaraz (NIMA 533 (2005) 613)
-/// CHOUTKO : Fitting method by V.Choutko (default method in tkfitg)
+/// LINEAR    : Linear fitting in X-Z and Y-Z planes (used in no-B)
+/// CIRCLE    : Circlar fitting in Y-Z and linear in X-S (used in const.B)
+/// SIMPLE    : Simple fitting, no multiple scattering, and coarse B field
+///             (used for pattern scan)
+/// ALCARAZ   : Fitting method by J.Alcaraz (NIMA 533 (2005) 613)
+/// CHOUTKO   : Fitting method by V.Choutko (default method in tkfitg)
+/// CHIKANIAN : Fitting method by A.Chikanian using TMinuit
 ///
 ///
 ///\date  2007/12/12 SH  First import (SimpleFit)
@@ -46,10 +47,11 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/01 SH  Fits methods debugged and checked
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
+///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/01/21 14:57:20 $
+///$Date: 2010/03/08 08:43:03 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -111,6 +113,7 @@ public:
 
   /// Set particle mass and charge (Z)
   void SetMassChrg(double mass, double chrg) { _mass = mass; _chrg = chrg; }
+  void SetRigidity(double rigidity)          { _rigidity = rigidity; }
 
   /// Clear data members
   void Clear();
@@ -164,7 +167,7 @@ public:
     /// Parameter buffer size
     PMAX = 10 
   };
-  enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO };
+  enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIAN };
 
   /// Multiple scattering switch
   static int _mscat;
@@ -281,6 +284,9 @@ public:
   /// Choutko fit
   double ChoutkoFit(void);
 
+  /// Chikanian fit
+  double ChikanianFit(void);
+
   /// Linear fitting for X-Z (side=1), Y-Z (side=2) or X-S (side=3)
   double LinearFit(int side);
 
@@ -292,6 +298,9 @@ public:
 
   /// Apply ParLimits after fitting
   int ParLimits(void);
+
+  /// Estimate layer number [0:LMAX-1] from the hit Z-coodinates
+  int GetLayer(double z);
 
 protected:
   /// Apply limits as min<abs(par)<max
@@ -314,6 +323,27 @@ protected:
 
   /// Get error matrix (for VC's method)
   void VCErrMtx(int, double, double*, double*, double &, double &);
+
+public:
+  /// Startup routine (for Chikanian fit)
+  void RkmsFit(double *out);
+
+  // Internal parameters for Chikanian fit
+  double _rkms_err[LMAX][LMAX]; ///< Error matrix
+
+  /// Get error matrix (for Chikanian fit)
+  void RkmsMtx(double rini);
+
+  /// FCN function main part (for Chikanian fit)
+  double RkmsFun(int npa, double *par, bool res = false);
+
+public:
+  /// FCN function for MINUIT (for Chikanian fit)
+  void RkmsFCN(int&, double*, double&, double*, int);
+
+  /// Debug switch for ChikanianFit
+  static int RkmsDebug;
+
 
 public:
   /// 3x3 Matrix inversion imported from ROOT
