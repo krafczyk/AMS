@@ -71,7 +71,7 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
     int maxp_lay=1;
     int minp_lay=0;
     if(plane==1)      {minp_lay=1;maxp_lay=2;}
-    else if(plane==8) {minp_lay=0;maxp_lay=1;}
+    else if(plane==5) {minp_lay=0;maxp_lay=1;}
     else              {minp_lay=0;maxp_lay=2;}
 
     for (int p_lay = minp_lay; p_lay<maxp_lay; p_lay++) {
@@ -129,8 +129,8 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
   par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
   par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
 
-  AMSRotMat lrm = pl->GetRotMatA();
-  lrm * pl->GetRotMat();
+  AMSRotMat lrm = pl->GetRotMatA()* pl->GetRotMat();
+
 
   number nrm[3][3];
   for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
@@ -178,8 +178,8 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   if(layer==1) coo[2] -= dz[0];
   if(layer==8) coo[2] -= dz[4];
 
-  AMSRotMat lrm = lad->GetRotMatA();
-  lrm * lad->GetRotMat();
+  AMSRotMat lrm = lad->GetRotMatA()* lad->GetRotMat();
+  
 
   number nrm[3][3];
   for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
@@ -235,10 +235,15 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
   ost << ((tkid < 0) ? "ELL" : "ELR") << layer << std::ends;
 
   geant par[3];
+if(layer==1 ||layer==8){
+  par[0] = TkDBc::Head->_zelec[2]/2;
+  par[1] = TkDBc::Head->_zelec[1]/2;
+  par[2] = TkDBc::Head->_zelec[0]/2;
+}else{
   par[0] = TkDBc::Head->_zelec[0]/2;
   par[1] = TkDBc::Head->_zelec[1]/2;
   par[2] = TkDBc::Head->_zelec[2]/2;
-
+}
   double hlen = TkCoo::GetLadderLength(tkid)/2
     -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;

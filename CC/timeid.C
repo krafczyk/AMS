@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.110 2010/03/04 14:42:03 pzuccon Exp $
+//  $Id: timeid.C,v 1.111 2010/03/09 08:35:13 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -380,20 +380,22 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
     }
 #ifdef _WEBACCESS_
     URL_FILE* ffbin=url_fopen((const char *)fnam,"r");
-#else
-    FILE* ffbin=fopen((const char *)fnam,"r");
-#endif
     if(ffbin){
+#else
+    fbin.open((const char *)fnam,ios::in);
+    if(fbin){
+#endif
       uinteger * pdata;
       integer ns=_Nbytes/sizeof(pdata[0])+3;
       pdata =new uinteger[ns];
       if(pdata){
 #ifdef _WEBACCESS_
 	int num=url_fread((char*)pdata,sizeof(pdata[0]),ns,ffbin);
-#else
-	int num=fread((char*)pdata,sizeof(pdata[0]),ns,ffbin);
-#endif
 	if(num){
+#else
+	fbin.read((char*)pdata,ns*sizeof(pdata[0]));
+	if(fbin.good()){
+#endif
 	  _convert(pdata,ns);
 	  {
 	    CopyIn(pdata);
@@ -416,7 +418,7 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 #ifdef _WEBACCESS_
 	  url_fclose(ffbin);
 #else
-	  fclose(ffbin);
+	  fbin.close();
 #endif
 	  delete [] pdata;
 	  return true;
@@ -426,7 +428,7 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 #ifdef _WEBACCESS_
 	  url_fclose(ffbin);
 #else
-	  fclose(ffbin);
+	  fbin.close();
 #endif
 	  delete [] pdata;
 	  return false;
@@ -633,34 +635,33 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     URL_FILE* ffbin=url_fopen(fmap,"r");
       if(ffbin){
       url_fgets(buf,100,ffbin);
+      _DataBaseSize=atoi(buf);
 #else
-    if(
-     !stat((const char *)fmap,&statbuf_map) &&
-     (mtime < statbuf_map.st_mtime && !force)){
+    if((!stat((const char *)fmap,&statbuf_map)&&
+	mtime < statbuf_map.st_mtime) && !force){
     
       char buf[100];
-      FILE* ffbin=fopen(fmap,"r");
-      if(ffbin){
-      fgets(buf,100,ffbin);
+      fbin.open(fmap,ios::in);
+      if(fbin){
+	fbin>>_DataBaseSize;
 #endif
 
-      _DataBaseSize=atoi(buf);
       for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
       for(i=0;i<5;i++)
 	for(int k=0;k<_DataBaseSize;k++){
+	  uinteger tmp;
 #ifdef _WEBACCESS_
 	  url_fgets(buf,100,ffbin);
-#else
-	  fgets(buf,100,ffbin);
-#endif
-	  uinteger tmp;
 	  tmp=atoi(buf);
+#else
+	  fbin>>tmp;
+#endif
 	  _pDataBaseEntries[i][k]=tmp;      
 	}
 #ifdef _WEBACCESS_     	  
       url_fclose(ffbin);
 #else
-      fclose(ffbin);
+      fbin.close();
 #endif
     }
     else cerr <<"AMSTimeID::_fillDB-S-CouldNot open map file "<<fmap<<endl; 
