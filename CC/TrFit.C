@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.17 2010/03/08 15:38:06 shaino Exp $
+//  $Id: TrFit.C,v 1.18 2010/03/11 09:13:59 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/03/08 15:38:06 $
+///$Date: 2010/03/11 09:13:59 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -691,10 +691,11 @@ double TrFit::SimpleFit(void)
 //
 // Inported from Fortran (tkfit.F) by SH
 //
-double TrFit::AlcarazFit(void)
+double TrFit::AlcarazFit(int fixr)
 {
-  // Check number of hits
-  if (_nhit < 5) return -1;
+  // Initialize fit
+  int ret = JAInitPar(fixr);
+  if (ret < 0) return (double)ret;
 
   double fmtx[LMAX*3],    gmtx[LMAX*3];     // Transportation matrices
   double vmtx[LMAX*LMAX], wmtx[LMAX*LMAX];  // Inv. of covariance matrices
@@ -705,9 +706,6 @@ double TrFit::AlcarazFit(void)
   // Estimate layer number
   for (int i = 0; i < _nhit; i++) ilay[i] = GetLayer(_zh[i]);
 
-  // Get initial paramters
-  if (SimpleFit() < 0) return -1;
-
   // Fill transportation matrices
   if (JAFillFGmtx(fmtx, gmtx, len, cosz, 20) < 0) return -1;
 
@@ -715,7 +713,7 @@ double TrFit::AlcarazFit(void)
   if (JAFillVWmtx(vmtx, wmtx, len, cosz, ilay) < 0) return -1;
 
   // Obtain minimized parameters for Y and rigidity
-  if (JAMinParams(gmtx, wmtx, 1, 0) < 0) return -1;
+  if (JAMinParams(gmtx, wmtx, 1, fixr) < 0) return -1;
 
   // Obtain minimized parameters for X (rigidity fixed)
   if (JAMinParams(fmtx, vmtx, 0, 1) < 0) return -1;
@@ -750,6 +748,45 @@ double TrFit::AlcarazFit(void)
   _rigidity = (_param[4] != 0) ? 1e-12*Clight/_param[4] : 0;
 
   return _chisq;
+}
+
+int TrFit::JAInitPar(int fixr)
+{
+  // Check number of hits
+  if (_nhit < 5) return -(10+_nhit);
+
+  // MagField check
+  bool magf = true;
+  for (int i = 0; i < _nhit; i++) 
+    if (_bx[i]*_bx[i]+_by[i]*_by[i]+_bz[i]*_bz[i] == 0) magf = false;
+
+  // Get initial paramters
+  if (!fixr && magf) {
+    if (SimpleFit() < 0) return -20;
+  }
+  else {
+    double zmax = -999;
+    for (int i = 0; i < _nhit; i++)
+      if (_zh[i] > zmax) {
+	zmax = _zh[i];
+
+	double dzmin = 999;
+	for (int j = 0; j < _nhit; j++) {
+	  double dz = _zh[i]-_zh[j];
+	  if (i != j && dz != 0 && std::fabs(dz) < dzmin) {
+	    dzmin = std::fabs(dz);
+	    _param[0] = _xh[i];
+	    _param[1] = _yh[i];
+	    _param[2] = (_xh[i]-_xh[j])/dz;
+	    _param[3] = (_yh[i]-_yh[j])/dz;
+	  }
+	}
+      }
+  }
+
+  _param[4] = (fixr && magf && _rigidity != 0) ? 1e-12*Clight/_rigidity : 0;
+
+  return 0;
 }
 
 int TrFit::JAFillFGmtx(double *fmtx, double *gmtx, 

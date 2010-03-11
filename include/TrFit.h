@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.8 2010/03/08 08:43:03 shaino Exp $
+//  $Id: TrFit.h,v 1.9 2010/03/11 09:13:59 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/03/08 08:43:03 $
+///$Date: 2010/03/11 09:13:59 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -278,8 +278,8 @@ public:
   /// Simple fit (no scattering, coarse field)
   double SimpleFit(void);
 
-  /// Alcaraz fit
-  double AlcarazFit(void);
+  /// Alcaraz fit  fixr!=0 : fix rigidity as _rigidity
+  double AlcarazFit(int fixr = 0);
 
   /// Choutko fit
   double ChoutkoFit(void);
@@ -311,6 +311,9 @@ protected:
 
   /// Fitting residual (for CircleFit)
   double VKResidual(double, double, double*);
+
+  /// Initialize JA's method
+  int JAInitPar(int);
 
   /// Fill F and G matrices (for JA's method)
   int JAFillFGmtx(double*, double*, double*, double*, int);

@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.3 2010/02/10 12:07:06 shaino Exp $
+// $Id: TrAlignFit.C,v 1.4 2010/03/11 09:13:58 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,13 +6,14 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/02/10 12:07:06 $
+///$Date: 2010/03/11 09:13:58 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrAlignFit.h"
+#include "TrFit.h"
 #include "TkDBc.h"
 
 #include "TROOT.h"
@@ -29,8 +30,9 @@
 #include <fstream>
 
 TObjArray TrAlignObject::sharray;
-Int_t  TrAlignObject::ProfMode = 0;
-Bool_t TrAlignObject::fLcommon = kFALSE;
+Int_t   TrAlignObject::ProfMode = 0;
+Bool_t  TrAlignObject::fLcommon = kFALSE;
+Float_t TrAlignObject::fRange   = 1;
 
 TrAlignObject::TrAlignObject(Int_t id) : tkid(id)
 {
@@ -57,13 +59,20 @@ void TrAlignObject::InitSHists(void)
   sharray.Add(new TH1F("hist5", "Fitpar (dZ/dX)", 256, 0.5, 256.5));
   sharray.Add(new TH1F("hist0", "X-Scale",        256, 0.5, 256.5));
   sharray.Add(new TH3F("histx", "Residual VS angle (X)", 
-		       256, 0.5, 256.5, 20, -1, 1, 100, -1, 1));
+		       256, 0.5, 256.5, 20, -1, 1, 100, -fRange, fRange));
   sharray.Add(new TH3F("histy", "Residual VS angle (Y)", 
-		       256, 0.5, 256.5, 20, -1, 1, 100, -1, 1));
+		       256, 0.5, 256.5, 20, -1, 1, 100, -fRange, fRange));
   sharray.Add(new TH3F("hists", "Residual (X) VS Sensor", 
-		       256, 0.5, 256.5, 15, 0, 15, 100, -1, 1));
+		       256, 0.5, 256.5, 15, 0, 15, 100, -fRange, fRange));
   sharray.Add(new TH3F("histp", "Residual (Y) VS Sensor", 
-		       256, 0.5, 256.5, 15, 0, 15, 100, -1, 1));
+		       256, 0.5, 256.5, 15, 0, 15, 100, -fRange, fRange));
+
+  if (TrAlignFit::fFitM == TrAlignFit::kCurved) {
+    sharray.Add(new TH2F("hfit1", "1/R VS X0", 100, -50, 50, 1000, -0.1, 0.1));
+    sharray.Add(new TH2F("hfit2", "1/R VS Y0", 100, -50, 50, 1000, -0.1, 0.1));
+    sharray.Add(new TH2F("hfit3", "1/R VS dX", 100,  -1,  1, 1000, -0.1, 0.1));
+    sharray.Add(new TH2F("hfit4", "1/R VS dY", 100,  -1,  1, 1000, -0.1, 0.1));
+  }
 }
 
 void TrAlignObject::InitHists(TDirectory *dir)
@@ -84,10 +93,11 @@ void TrAlignObject::InitHists(TDirectory *dir)
 			Form("TkId %d", tkid));
   cdir->cd();
 
-  harray.Add(new TH2F("hist001", "dX VS X",     30, -60, 60, 100, -1, 1));
-  harray.Add(new TH2F("hist002", "dY VS X",     30, -60, 60, 100, -1, 1));
-  harray.Add(new TH2F("hist003", "dX VS dX/dZ", 20,  -1,  1, 100, -1, 1));
-  harray.Add(new TH2F("hist004", "dY VS dY/dZ", 20,  -1,  1, 100, -1, 1));
+  Float_t rng = fRange;
+  harray.Add(new TH2F("hist001", "dX VS X",     30, -60, 60, 100, -rng, rng));
+  harray.Add(new TH2F("hist002", "dY VS X",     30, -60, 60, 100, -rng, rng));
+  harray.Add(new TH2F("hist003", "dX VS dX/dZ", 20,  -1,  1, 100, -rng, rng));
+  harray.Add(new TH2F("hist004", "dY VS dY/dZ", 20,  -1,  1, 100, -rng, rng));
   harray.Add(new TH1F("hist005", "dZ(X) VS X",  30, -60, 60));
   harray.Add(new TH1F("hist006", "dZ(Y) VS X",  30, -60, 60));
 
@@ -97,10 +107,10 @@ void TrAlignObject::InitHists(TDirectory *dir)
     Double_t x2 = hist1->GetXaxis()->GetBinLowEdge(i+2);
     harray.Add(new TH2F(Form("hist%02d1", i+1), 
 			Form("dX VS dX/dZ (%.0f<X<%.0f)", x1, x2), 
-			20, -1, 1, 100, -1, 1));
+			20, -1, 1, 100, -rng, rng));
     harray.Add(new TH2F(Form("hist%02d2", i+1), 
 			Form("dY VS dX/dZ (%.0f<X<%.0f)", x1, x2), 
-			20, -1, 1, 100, -1, 1));
+			20, -1, 1, 100, -rng, rng));
   }
 }
 
@@ -527,8 +537,10 @@ Int_t TrAlignObject::Inv3x3(Double_t mtx[3][3])
 
 ClassImp(TrAlignFit)
 
-TString TrAlignFit::fNameOut = "alignfit.root";
-Int_t   TrAlignFit::fMode    = TrAlignFit::kCosmicRay;
+TString  TrAlignFit::fNameOut = "alignfit.root";
+Int_t    TrAlignFit::fMode    = TrAlignFit::kCosmicRay;
+Int_t    TrAlignFit::fFitM    = TrAlignFit::kLinear;
+Double_t TrAlignFit::fFixR    = 0;
 
 Int_t    TrAlignFit::fMaxIter  = 20;
 Int_t    TrAlignFit::fMinIter  = 20;
@@ -618,6 +630,12 @@ void TrAlignFit::Set(Float_t arr[Ndim][Nplan], Int_t prm[Ndim][Nplan])
 void TrAlignFit::Fit(void)
 {
   std::cout << " fNcases " << fNcases << std::endl;
+
+  if (fFitM != kLinear) {
+    std::cout << " FitMethod= " << fFitM;
+    if (fFitM == kRgtFix) std::cout << " RigidityFix= " << fFixR;
+    std::cout << std::endl;
+  }
 
   TStopwatch timer;
   timer.Start();
@@ -720,10 +738,8 @@ Int_t TrAlignFit::FitPoints(void)
   }
   if (nm > 2) return -1;
 
-  Double_t ss = 0, xs = 0, ys = 0, zs = 0;
-  Double_t xz = 0, yz = 0, x2 = 0, y2 = 0, z2 = 0;
-
-  Double_t xp[Nplan], yp[Nplan], zp[Nplan];
+  TrFit fit;
+  if (fFitM == kRgtFix) fit.SetRigidity(fFixR);
 
   for (Int_t i = 0; i < Nplan; i++) {
     Int_t slot = GetCrray(fIcase, i);
@@ -741,32 +757,44 @@ Int_t TrAlignFit::FitPoints(void)
     AMSPoint coord = algp->GetCoord(GetArray(fIcase,i,0), 
 				    GetArray(fIcase,i,1), 
 				    GetArray(fIcase,i,2));
-    xp[i] = coord[0]; yp[i] = coord[1]; zp[i] = coord[2];
-
-    Double_t ww = 1;
-    ss += ww;
-    xs += ww*xp[i]; ys += ww*yp[i]; zs += ww*zp[i];
-    xz += ww*xp[i]*zp[i]; yz += ww*yp[i]*zp[i];
-    x2 += ww*xp[i]*xp[i]; y2 += ww*yp[i]*yp[i]; z2 += ww*zp[i]*zp[i];
+    fit.Add(coord, fSigma[0], fSigma[1], 1);
   }
 
-  xs /= ss; ys /= ss; zs /= ss;
-  xz /= ss; yz /= ss; x2 /= ss; y2 /= ss; z2 /= ss;
+  Double_t ret = 0;
+  if      (fFitM == kLinear) ret = fit.Fit(TrFit::LINEAR);
+  else if (fFitM == kCurved) ret = fit.AlcarazFit(0);
+  else if (fFitM == kRgtFix) ret = fit.AlcarazFit(1);
 
-  Double_t ax = (xz-xs*zs)/(z2-zs*zs), bx = xs-ax*zs;
-  Double_t ay = (yz-ys*zs)/(z2-zs*zs), by = ys-ay*zs;
+  if (ret < 0) return -1;
 
-  fChisq[0] = fChisq[1] = 0;
-  for (Int_t i = 0; i < Nplan; i++) {
+  if (fFitM == kCurved) fit.Propagate(0);
+
+  for (Int_t i = 0, j = 0; i < Nplan; i++) {
     if (GetCrray(fIcase, i) == 0) continue;
-    fResidual[0][i] = xp[i]-bx-ax*zp[i];
-    fResidual[1][i] = yp[i]-by-ay*zp[i];
-    fChisq[0] += fResidual[0][i]*fResidual[0][i]/fSigma[0]/fSigma[0];
-    fChisq[1] += fResidual[1][i]*fResidual[1][i]/fSigma[1]/fSigma[1];
+    fResidual[0][i] = fit.GetXr(j);
+    fResidual[1][i] = fit.GetYr(j);
+    j++;
   }
-  
-  fGradient[0] = ax;
-  fGradient[1] = ay;
+  fChisq[0] = fit.GetChisqX();
+  fChisq[1] = fit.GetChisqY();
+
+  fGradient[0] = fit.GetDxDz();
+  fGradient[1] = fit.GetDyDz();
+
+  if (fFitM == kCurved) {
+    TH2F *hist1 = (TH2F*)TrAlignObject::sharray.At(10);
+    TH2F *hist2 = (TH2F*)TrAlignObject::sharray.At(11);
+    TH2F *hist3 = (TH2F*)TrAlignObject::sharray.At(12);
+    TH2F *hist4 = (TH2F*)TrAlignObject::sharray.At(13);
+
+    Double_t rgt = fit.GetRigidity();
+    if (rgt != 0) {
+      if (hist1) hist1->Fill(fit.GetP0x (), 1/rgt);
+      if (hist2) hist2->Fill(fit.GetP0y (), 1/rgt);
+      if (hist3) hist3->Fill(fit.GetDxDz(), 1/rgt);
+      if (hist4) hist4->Fill(fit.GetDyDz(), 1/rgt);
+    }
+  }
 
   return 0;
 }

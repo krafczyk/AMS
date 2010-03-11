@@ -1,4 +1,4 @@
-//  $Id: TrAlignFit.h,v 1.2 2010/02/10 12:07:07 shaino Exp $
+//  $Id: TrAlignFit.h,v 1.3 2010/03/11 09:13:59 shaino Exp $
 #ifndef __TrAlignFit__
 #define __TrAlignFit__
 
@@ -12,9 +12,9 @@
 ///\ingroup gbint
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/02/10 12:07:07 $
+///$Date: 2010/03/11 09:13:59 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -51,8 +51,9 @@ public:
 
   static TObjArray sharray;
 
-  static Int_t  ProfMode;
-  static Bool_t fLcommon;
+  static Int_t   ProfMode;
+  static Bool_t  fLcommon;
+  static Float_t fRange;
 
 protected:
   Int_t tkid;
@@ -101,6 +102,14 @@ public:
   enum { kCosmicRay = 1, kTestBeam = 2 };
   static Int_t fMode;
 
+  enum { kLinear = 1, kCurved = 2, kRgtFix = 3 };
+  static Int_t    fFitM;
+  static Double_t fFixR;
+
+  static Int_t    fMinIter;
+  static Int_t    fMaxIter;
+  static Double_t fMaxChisq;
+
 protected:
   Int_t    fMaxCases;     //!
   Int_t    fNbuf;         //!
@@ -122,10 +131,6 @@ protected:
   Double_t fResidual[2][Nplan];    //!
   Double_t fGradient[2];           //!
   Double_t fChisq[2];              //!
-
-  static Int_t    fMaxIter;
-  static Int_t    fMinIter;
-  static Double_t fMaxChisq;
 
 public:
   TrAlignFit(Int_t maxcases = 1000000);

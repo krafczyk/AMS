@@ -15,7 +15,7 @@
 #include "TrRecHit.h"
 
 #include "TrParDB.h"
-
+#include "TrRecon.h"
 #include "TrAlignFit.h"
 
 #include <iostream>
@@ -26,7 +26,7 @@ enum { PREINT = 1, FLIGHT = 2, TBEAM = 12 };
 
 void alignfit(const char *fname, const char *oname, const char *dbc,
 	      Double_t csqmax = 100, Int_t setup = FLIGHT, 
-	      Int_t recalc = 1, Int_t nevt = 0)
+	      Int_t recalc = 0, Int_t nevt = 0)
 {
   AMSChain ch;
   if (ch.Add(fname) <= 0) return;
@@ -38,6 +38,26 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
   }
 
   TString tks = "tksens.dat";
+
+  ch.GetEvent(0);
+  if (dbc) {
+    std::ifstream ftmp(dbc);
+    if (!ftmp) {
+      if (!TkDBc::Head) {
+	std::cerr << "Error: TkDBc not found: " << dbc << std::endl;
+	return;
+      }
+      TkDBc::Head->write(dbc);
+      dbc = 0;
+    }
+  }
+
+  if (!TrParDB::Head) TrParDB::Load("pardb.root");
+  if (!TrParDB::Head) {
+    std::cerr << "TrParDB not found" << std::endl;
+    return;
+  }
+  TrClusterR::UsingTrParDB(TrParDB::Head);
 
   Int_t initdbc = (dbc) ? 1 : 0;
 
@@ -66,7 +86,7 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
   Double_t cfx = 1;
   Double_t cfy = 1;
-  if (setup == FLIGHT || setup == TBEAM) {
+  if (setup%100 == FLIGHT || setup%100 == TBEAM) {
     cfx = 34.*34./300/300;
     cfy = 20.*20./300/300;
   }
@@ -94,8 +114,8 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
       }
     }
 
-    TrParDB::Head->_asymmetry[0] = 0.027;
-    TrParDB::Head->_asymmetry[1] = 0.034;
+//  TrParDB::Head->_asymmetry[0] = 0.027;
+//  TrParDB::Head->_asymmetry[1] = 0.034;
 
     TrTrackR *trk = evt->pTrTrack(0);
     if (!trk) continue;
@@ -110,6 +130,11 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
     Int_t nhit = trk->GetNhits();
     if (nhit < 6) continue;
+
+    if (recalc) {
+      evt->NTrRecHit();
+      evt->NTrCluster();
+    }
 
     Int_t nxy = 0;
     for (Int_t j = 0; j < nhit; j++) {
@@ -126,7 +151,6 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
       Int_t half = (tkid < 0) ? 1 : 2;
 
       AMSPoint co0 = hit->GetCoord();
-
       AMSPoint coo = (recalc) 
 	? hit->GetGlobalCoordinate(hit->GetResolvedMultiplicity())
 	: hit->GetCoord();
@@ -139,8 +163,11 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 	Double_t ysg = xsg*((hit->GetLayer()%2 == 1) ? -1 : 1);
 	hist1->Fill(xtk, xdf);
 	hist2->Fill(xtk, ydf);
-	hist3->Fill(hit->GetXCluster()->GetCofG(), xdf*xsg);
-	hist4->Fill(hit->GetYCluster()->GetCofG(), ydf*ysg);
+
+	TrClusterR *xcls = hit->GetXCluster();
+	TrClusterR *ycls = hit->GetYCluster();
+	if (xcls) hist3->Fill(xcls->GetCofG(), xdf*xsg);
+	if (ycls) hist4->Fill(ycls->GetCofG(), ydf*ysg);
       }
 
       arr[0][ilyr] = coo[0];
@@ -235,12 +262,12 @@ void alignfit(const char *fname, const char *dbc,
 	nlay++;
 
 	// Mask missing ladders
-	if (setup == PREINT) {
+	if (setup%100 == PREINT) {
 	  if (tkid == 410 || tkid == -807) {
 	    for (Int_t k = 0; k < 9; k++) arr[k][j] = 0;
 	  }
 	}
-	else if (setup == FLIGHT) {
+	else if (setup%100 == FLIGHT) {
 	  if (tkid == 405) {
 	    for (Int_t k = 0; k < 9; k++) arr[k][j] = 0;
 	  }
@@ -254,9 +281,33 @@ void alignfit(const char *fname, const char *dbc,
 
   TrAlignFit::fMaxIter  = 20;
   TrAlignFit::fMaxChisq = 10;
-  if (setup == TBEAM) {
-    TrAlignFit::fMaxIter = 10;
-    TrAlignFit::fMode    = TrAlignFit::kTestBeam;
+  if (setup%100 == TBEAM) {
+    TrAlignFit   ::fMaxIter = 10;
+    TrAlignFit   ::fMode    = TrAlignFit::kTestBeam;
+    TrAlignObject::fRange   = 0.1;
+
+    if (setup/100 == 1) {
+      TrAlignFit::fFitM = TrAlignFit::kCurved;
+      TrRecon::ReadMagField(
+	gSystem->ExpandPathName("$AMSDataDir/v5.00/MagneticFieldMap07.bin"),
+				400./460, 1);
+    }
+    else if (setup/100 == 2) {
+      TrAlignFit::fFitM = TrAlignFit::kRgtFix;
+      TrAlignFit::fFixR = 0;
+    }
+    else if (setup/100 == 4) {
+      TrAlignFit::fFitM = TrAlignFit::kRgtFix;
+      TrAlignFit::fFixR = 400;
+      TrRecon::ReadMagField(
+	gSystem->ExpandPathName("$AMSDataDir/v5.00/MagneticFieldMap07.bin"),
+				400./460, 1);
+    }
+/*  /// TO BE FIXED
+    else
+      TrAlignFit::fMaxIter = 6;
+    /// TO BE FIXED
+*/
   }
   afit.Fit();
 
@@ -297,13 +348,15 @@ void alignfit(const char *fname, const char *dbc,
   TkDBc::Head->write(dname.Data());
 }
 
-void alignfit(const char *fname, Int_t setup = FLIGHT)
+void alignfit(const char *fname, Int_t setup = FLIGHT, Int_t recalc = 0)
 {
   TString dbc = "tkdbc.dat";
   TString alf = "alignfit.dat";
 
   Double_t csqmax = 100;
-  alignfit(fname, alf, dbc, csqmax, setup);
+  if (setup%100 == TBEAM) csqmax = 10;
+
+  alignfit(fname, alf, dbc, csqmax, setup, recalc);
   alignfit(alf, dbc, setup);
 }
 
