@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.205 2010/03/05 17:06:08 choumilo Exp $
+//  $Id: amsgeom.C,v 1.206 2010/03/15 12:25:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -199,6 +199,23 @@ if (strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
 
 
 }
+else if (strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+ cout <<" AMSGeom-I-AMS02P setup selected."<<endl;
+ magnetgeom02(mother);
+ tofgeom02(mother);
+ ext1structure02(mother);//should be called after tofgeom02 !!!
+ tkgeom02(mother);
+ ext2structure(mother);
+ antigeom02(mother);
+
+#ifdef  __G4AMS__
+   //testg4geom(mother);
+#endif
+ trdgeom02(mother,0.01);
+ ecalgeom02(mother);
+ richgeom02(mother);
+ paddgeom(mother);
+}
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
  magnetgeom02(mother);
@@ -214,9 +231,6 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  trdgeom02(mother);
  ecalgeom02(mother);
  richgeom02(mother);
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
-   paddgeom(mother);
- }
 }
 else{ 
  cerr <<"<---- AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
