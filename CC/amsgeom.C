@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.206 2010/03/15 12:25:48 choutko Exp $
+//  $Id: amsgeom.C,v 1.207 2010/03/19 08:40:19 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -42,7 +42,6 @@ extern void tofgeom02(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
 extern void antigeom002(AMSgvolume &);
 extern void ext2structure(AMSgvolume &);
-extern void paddgeom(AMSgvolume &);
 #ifdef __G4AMS__
 extern void antigeom02g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);
@@ -214,7 +213,6 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
  trdgeom02(mother,0.01);
  ecalgeom02(mother);
  richgeom02(mother);
- paddgeom(mother);
 }
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
@@ -1112,43 +1110,6 @@ AMSNode * cur;
      cout<<"<---- Amsgeom::magnetgeom02: AMS02 G3/G4-compatible geometry is successfully done!"<<endl<<endl;
    }//---> endof AMS02 magnet geometry
 //
-}
-//------------------------------------------------
-void amsgeom::paddgeom(AMSgvolume & mother){
-// AMS02 PermMagnet version additional elements (trk-planes) 
-  AMSID amsid;
-  geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-  geant coo[3]={0.,0.,0.};
-  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-  char vname[5];
-  integer gid;
-  AMSNode * mmoth ;
-  AMSNode * dau;
-  geant zpos,dx,dy,dzh;
-  geant dzsil(0.03);//trk silicon sensor thickness(300mkm)
-//
-  dx=ECALDBc::gendim(1);// x-size of EC-radiator
-  dy=ECALDBc::gendim(2);// y-size of EC-rad
-  zpos=ECALDBc::gendim(7);// z-pos of ECAL-radiator(!) front face
-  dzh=ECALDBc::gendim(8);// Z-thickness of honeycomb in front
-  gid=1;
-  par[0]=dx/2; //0.5* x-size of EC-radiator
-  par[1]=dy/2; //0.5* y-size of EC-radiator
-  par[2]=TRMCFFKEY.pl9sthick/2; //Dz=thickness of supp.struct
-  coo[0]=0;    // x-shift from "0" of mother
-  coo[1]=0;    // y-shift ...
-  coo[2]=zpos+dzh+TRMCFFKEY.pl9zgap+TRMCFFKEY.pl9sthick/2;// z-centre of supp.struct
-  cout<<"<------ AMS02P::PL9: supp.structure bot.face abs.Z-pos="<<(zpos+dzh+TRMCFFKEY.pl9zgap)<<endl;
-  mother.add(new AMSgvolume(
-    "TOF_SC_COVER",0,"PL9S","BOX",par,3,coo,nrm,"ONLY",1,gid,0));//tof_sc_cover is carbonfiber
-//
-  gid=2;
-  par[2]=dzsil/2;//0.5* silicon thickn
-  coo[2]=zpos+dzh+TRMCFFKEY.pl9zgap+TRMCFFKEY.pl9sthick+dzsil/2;// z-centre of silicon sensor
-  mother.add(new AMSgvolume(
-    "ACTIVE_SILICON",0,"PL9W","BOX",par,3,coo,nrm,"ONLY",1,gid,0));
-//
-  cout<<"<----- AMS02P: trk-plane9 geometry is done..."<<endl;
 }
 //-----------------------------------------------------------------
 void amsgeom::ext1structure02(AMSgvolume & mother){
