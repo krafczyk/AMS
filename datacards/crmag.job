@@ -9,7 +9,7 @@ elif [ "$UNAME" = "OSF1" ] ; then
 elif [ "$UNAME" = "HP-UX" ] ; then
     MACHINE="hpux"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc"
+    MACHINE="linuxicc"
 else
 echo $UNAME is not supported yet
 
@@ -25,7 +25,7 @@ C MSEL 1=0
 LOSS  1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 1 
-TRIG 10000
+TRIG 1
 DEBUG -1 10 100
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
@@ -33,20 +33,20 @@ C npars ims
   5     1   
 C          Nparticles 
 MCGEN  1=-90. 2=-100. 3=-80. 4=170. 5=100. 
-6=80. 12=-0.75 15=1 18=1 19=102004 
-25=10012001 27=10012008 
+6=80. 12=-0.75  15=1 20=1 19=102004 
+25=10012009 27=10022010 
 IOPA 1=3 2='/f2users/choutko/pr.hbk'  
 45='TriggerLVL3'
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=-1      3=5.   4=0  5=0   46='AMS02' 
-87=1 88='MagneticFieldMap07'
+AMSJOB 1=0   2=0      3=5.   4=0  5=0   46='AMS02P' 
+87=2 88='MagneticFieldMapP'
 L3REC 11=1
 TKGEOM 1=0
 TIME 3=10000000
 TERM 1=1234567890
 C TOFMC 13=1
-BMAP 1='fld07.txt' 41=-2 48=5 49=5 52=105 53=118
+BMAP 1='fldams02p.txt' 41=0 48=5 49=5 52=108 53=118
 END
 
 !

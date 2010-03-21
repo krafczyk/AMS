@@ -1,6 +1,13 @@
-*  $Id: mfield.h,v 1.16 2009/12/04 13:15:51 choutko Exp $
+*  $Id: mfield.h,v 1.17 2010/03/21 15:16:38 choutko Exp $
       integer nx,ny,nz
-       PARAMETER (nx=41,ny=41,nz=41)
+c       PARAMETER (nx=41,ny=41,nz=41,nzo=41)
+       PARAMETER (nx=41,ny=41,nz=180,nzo=41)
+c
+c      ams02 rectangular map disabled
+c      use nz=41 to enable it
+c      ams02 rphi map ok
+c
+
 c       PARAMETER (nx=90,ny=90,nz=164)
       real X(nx),y(ny),z(nz)
       real Bx(nx,ny,nz), by(nx,ny,nz),
@@ -10,8 +17,8 @@ c       PARAMETER (nx=90,ny=90,nz=164)
       real xyz(nx+ny+nz)    
       real BDx(nx,ny,nz,2), bDy(nx,ny,nz,2),
      +          BdZ(nx,ny,nz,2)
-
-
+      real zzz(nz+nx+ny+nz+9*nx*ny*nz)
+      save bxc,byc,bzc
 
       integer nrad,nphi,nzr
       PARAMETER (nrad=9,nphi=73,nzr=37)
@@ -29,21 +36,35 @@ c       PARAMETER (nx=90,ny=90,nz=164)
       integer na(3),mfile(40)
       integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
 
+c      common /tkfield/mfile,iniok,isec,imin,ihour,iday,imon,iyear,
+c     +             na,x,y,z,bx,by,bz,xyz,bdx,bdy,bdz,bxc,byc,bzc
       common /tkfield/mfile,iniok,isec,imin,ihour,iday,imon,iyear,
-     +             na,x,y,z,bx,by,bz,xyz,bdx,bdy,bdz,bxc,byc,bzc
+     +             na,x,y,zzz
       equivalence (x(1),rad(1))
       equivalence (x(10),phi(1))
-      equivalence (z(1),zr(1))
-      equivalence (xyz(1),xyzr(1))
-      equivalence (bx(1,1,1),bxr(1,1,1))
-      equivalence (by(1,1,1),byr(1,1,1))
-      equivalence (bz(1,1,1),bzr(1,1,1))
-      equivalence (bxc(1,1,1),bxrc(1,1,1))
-      equivalence (byc(1,1,1),byrc(1,1,1))
-      equivalence (bzc(1,1,1),bzrc(1,1,1))
-      equivalence (bdx(1,1,1,1),bdxr(1,1,1,1))
-      equivalence (bdy(1,1,1,1),bdyr(1,1,1,1))
-      equivalence (bdz(1,1,1,1),bdzr(1,1,1,1))
+      equivalence (zzz(1),zr(1))
+      equivalence (zzz(nzo+1),bxr(1,1,1))
+      equivalence (zzz(nzo+1+nx*ny*nzo),byr(1,1,1))
+      equivalence (zzz(nzo+1+2*nx*ny*nzo),bzr(1,1,1))
+      equivalence (zzz(nzo+1+3*nx*ny*nzo),xyzr(1))
+      equivalence (zzz(nzo+1+3*nx*ny*nzo+nx+ny+nzo),bdxr(1,1,1,1))
+      equivalence (zzz(nzo+1+5*nx*ny*nzo+nx+ny+nzo),bdyr(1,1,1,1))
+      equivalence (zzz(nzo+1+7*nx*ny*nzo+nx+ny+nzo),bdzr(1,1,1,1))
+      equivalence (zzz(nzo+1+9*nx*ny*nzo+nx+ny+nzo),bxrc(1,1,1))
+      equivalence (zzz(nzo+1+10*nx*ny*nzo+nx+ny+nzo),byrc(1,1,1))
+      equivalence (zzz(nzo+1+11*nx*ny*nzo+nx+ny+nzo),bzrc(1,1,1))
+      equivalence (zzz(nz+1),bx(1,1,1))
+      equivalence (zzz(1),z(1))
+      equivalence (zzz(nz+1+nx*ny*nz),by(1,1,1))
+      equivalence (zzz(nz+1+2*nx*ny*nz),bz(1,1,1))
+      equivalence (zzz(nz+1+3*nx*ny*nz),xyz(1))
+      equivalence (zzz(nz+1+3*nx*ny*nz+nx+ny+nz),bdx(1,1,1,1))
+      equivalence (zzz(nz+1+5*nx*ny*nz+nx+ny+nz),bdy(1,1,1,1))
+      equivalence (zzz(nz+1+7*nx*ny*nz+nx+ny+nz),bdz(1,1,1,1))
+c     equivalence (zzz(nz+1+9*nx*ny*nz+nx+ny+nz),bxc(1,1,1))
+c     equivalence (zzz(nz+1+10*nx*ny*nz+nx+ny+nz),byc(1,1,1))
+c     equivalence (zzz(nz+1+11*nx*ny*nz+nx+ny+nz),bzc(1,1,1))
+
 *
 *       iniok=0  initialization
 *       iniok=-1 permanent magnet initialization

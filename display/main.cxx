@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.41 2009/11/22 18:58:10 choutko Exp $
+//  $Id: main.cxx,v 1.42 2010/03/21 15:16:38 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -187,9 +187,13 @@ pchain=&chain;
 
   char geoFile[256];
   strcpy(geoFile,geo_dir);
-
   char *geoFile_new = "ams02.geom";
-  strcat(geoFile,geoFile_new);
+  char *geofile_perm="ams02.pm.geom";
+   cout<<"  open geo file "<<endl; 
+  if(!strcmp(pchain->getsetup(),"AMS02P")){
+   strcat(geoFile,geofile_perm);
+  }
+  else strcat(geoFile,geoFile_new);
   TFile fgeo(geoFile);
 
   TGeometry *geo = (TGeometry *)fgeo.Get("ams02");
@@ -388,6 +392,14 @@ void OpenChain(AMSChain & chain, char * filenam){
       if(add++<3000){
            lasttime=statbuf.st_mtime;
            chain.Add(filename);
+           static int init =0;
+           if(init==0){
+            init=1;
+            TObjString s("");
+            TFile * rfile=new TFile(filename,"READ");
+            //s.Read("DataCards");
+            //cout <<s.String()<<endl; 
+           }
     }
      }
      else {

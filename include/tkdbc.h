@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.19 2009/02/20 14:12:20 choutko Exp $
+//  $Id: tkdbc.h,v 1.20 2010/03/21 15:16:38 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -13,7 +13,7 @@ const int ntdr=24;
 }
 
 namespace trconst{
- const integer maxlay=8;
+ const integer maxlay=9;
  const integer maxlad=17;
  const integer maxsen=15;
  const integer TrkTypes=3;//for charge algorithm(

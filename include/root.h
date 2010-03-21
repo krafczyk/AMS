@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.264 2010/02/23 14:55:27 pzuccon Exp $
+//  $Id: root.h,v 1.265 2010/03/21 15:16:38 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -509,7 +509,7 @@ public:
   /// \param number index in container
   /// \return human readable info about EcalShowerR
   char * Info(int number=-1){
-    sprintf(_Info,"EcalShower No %d NHits %d Energy=%7.3g#pm%5.2g  #theta=%4.2f #phi=%4.2f Coo=(%5.2f,%5.2f,%5.2f) #chi^{2}=%7.3g Asymm=%4.2f Leak_{Side,Rear,Dead,Att,NonLin,Orp}=(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f) Max=%4.2f",number,Nhits, EnergyC,ErEnergyC,acos(Dir[2]),atan2(Dir[1],Dir[0]),CofG[0],CofG[1],CofG[2],Chi2Dir,DifoSum,SideLeak,RearLeak,DeadLeak,AttLeak,NLinLeak,Orp2DEnergy/(EnergyC+1e-10),ParProfile[1]);
+    sprintf(_Info,"EcalShower No %d NHits %d Energy=%7.3g#pm%5.2g  #theta=%4.2f #phi=%4.2f Coo=(%5.2f,%5.2f,%5.2f) #chi^{2}=%7.3g Asymm=%4.2f Leak_{Side,Rear,Dead,Att,NonLin,S13,Orp}=(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f) Max=%4.2f",number,Nhits, EnergyC,ErEnergyC,acos(Dir[2]),atan2(Dir[1],Dir[0]),CofG[0],CofG[1],CofG[2],Chi2Dir,DifoSum,SideLeak,RearLeak,DeadLeak,AttLeak,NLinLeak,S13Leak,Orp2DEnergy/(EnergyC+1e-10),ParProfile[1]);
   return _Info;
   } 
 
@@ -941,7 +941,7 @@ public:
   float PiErrRig;    ///< PathInt err(1/rig) (<0 means fit was not succesful)
   float RigidityMS;  ///< fast rigidity mscat off
   float PiRigidity;  ///<  PathInt rigidity
-  float Hit[8][3];   ///< Track Coordinate (after alignment)
+  float Hit[9][3];   ///< Track Coordinate (after alignment)
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr);
   protected:
@@ -970,7 +970,7 @@ public:
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,9)       //TrTrackR
+ClassDef(TrTrackR,10)       //TrTrackR
 #pragma omp threadprivate(fgIsA)
 friend class AMSTrTrack;
 friend class AMSEventR;
@@ -1939,14 +1939,14 @@ endif
   float TOFCoo[4][3]; ///< track extrapol in tof planes
   float AntiCoo[2][5]; ///< track extrapol in anti [dir][x/y/z/theta/phi]
   float EcalCoo[3][3]; ///< track extrapol in ecal (enter, cofg, exit)
-  float TrCoo[8][3];  ///< track extrapol in tracker planes
+  float TrCoo[9][3];  ///< track extrapol in tracker planes
   float TRDCoo[2][3];    ///< track extrapol in trd (center,top)
   float RichCoo[2][3];  ///< track extrapol in rich (radiator_pos, pmt_pos)
   float RichPath[2];    ///<  Estimated fraction  of ring photons  within RICH acceptance (direct and reflected ones  respectively) for beta=1
   float RichPathBeta[2]; ///<  Estimated fraction  of ring photons  within RICH acceptance (direct and reflected ones  respectively) for beta Beta
   float RichLength; ///< Estimated pathlength of particle within rich radiator (cm)
   int   RichParticles; ///< Estimated number of particles crossing the RICH radiator
-  float Local[8];  ///< contains the minimal distance to sensor edge in sensor length units ;
+  float Local[9];  ///< contains the minimal distance to sensor edge in sensor length units ;
   float TRDLikelihood; ///< TRD likelihood  (whatever is it)
   float TRDHLikelihood; ///< TRD likelihood  (whatever is it)
 protected: 
@@ -2043,7 +2043,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,5)       //ParticleR
+  ClassDef(ParticleR,6)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 

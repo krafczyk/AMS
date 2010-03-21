@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.217 2010/02/22 15:14:17 choutko Exp $
+//  $Id: trrec.C,v 1.218 2010/03/21 15:16:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -964,7 +964,7 @@ for(int i=0;i<2;i++){
 }
 }
 
-AMSTrRecHit * AMSTrRecHit::_Head[trconst::maxlay]={0,0,0,0,0,0,0,0};
+AMSTrRecHit * AMSTrRecHit::_Head[trconst::maxlay]={0,0,0,0,0,0,0,0,0};
 
 
 integer AMSTrRecHit::build(integer refit){
@@ -1535,7 +1535,7 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
 
   // Count rec hits on each layer
   int nelem[trconst::maxlay];
-  for (int i=0; i<trconst::maxlay; i++) { 
+  for (int i=0; i<TKDBc::nlay(); i++) { 
      nelem[i] = (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
   }
  
@@ -1796,7 +1796,7 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
       
   // Count rec hits on each layer
   int nelem[trconst::maxlay];
-  for (int i=0; i<trconst::maxlay; i++) { 
+  for (int i=0; i<TKDBc::nlay(); i++) { 
      nelem[i] = (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
   }
  
@@ -2365,7 +2365,7 @@ void AMSTrTrack::SimpleFit(){
 void AMSTrTrack::SimpleFit(AMSPoint ehit){
 
 // Consistency check on the number of hits
-  if (_NHits<3 || _NHits>trconst::maxlay) {
+  if (_NHits<3 || _NHits>TKDBc::nlay()) {
     _Chi2WithoutMS = FLT_MAX;
     _Chi2StrLine = FLT_MAX;
 #ifdef __AMSDEBUG__
@@ -2871,9 +2871,9 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       if(p && p->getnelem()){
     AMSmctrack *pmcg=(AMSmctrack*)AMSEvent::gethead()->getheadC("AMSmctrack",1);
        AMSPoint coo=pmcg->getcoo();
-       coo[0]+=rnormx()*TRCLFFKEY.ErrX/4;
-       coo[1]+=rnormx()*TRCLFFKEY.ErrY/4;
-       coo[2]+=rnormx()*TRCLFFKEY.ErrZ/4;
+       coo[0]+=rnormx()*TRCLFFKEY.ErrX/2;
+       coo[1]+=rnormx()*TRCLFFKEY.ErrY/2;
+       coo[2]+=rnormx()*TRCLFFKEY.ErrZ/2;
        normal[npt][0]=0;
        normal[npt][1]=0;
        normal[npt][2]=fits<0?1:-1;
@@ -2965,7 +2965,7 @@ else ims=1;
     }
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
 if(fit==0){
-int ml=trconst::maxlay;
+int ml=TKDBc::nlay();
 TKGETRES(_Res,ml);
 _RC=1;
 }
@@ -4145,7 +4145,7 @@ integer AMSTrTrack::_TrSearcherFalseTOFX(int icall){
 
 integer AMSTrTrack::pat=0;
 
-AMSTrRecHit* AMSTrTrack::phit[trconst::maxlay]={0,0,0,0,0,0,0,0};
+AMSTrRecHit* AMSTrTrack::phit[trconst::maxlay]={0,0,0,0,0,0,0,0,0};
 
 number AMSTrTrack::par[2][3];
 

@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.697 2010/03/15 12:25:49 choutko Exp $
+// $Id: job.C,v 1.698 2010/03/21 15:16:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -99,6 +99,7 @@ tdv_time*  AMSJob::_tdv;
 extern LMS* lms;
 
 #endif
+extern "C" void rkms_init_(float a[]);
 //-
 //
 using namespace AMSChargConst;
@@ -1820,11 +1821,19 @@ if(AMSFFKEY.Update){
 
 #else
     AMSTrIdGeom::init();
+    float zpos[trconst::maxlad];
+    for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
+    for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
+    rkms_init_(zpos); 
     if(strstr(getsetup(),"AMS02") ){    
     if(strstr(getsetup(),"AMS02Pre") ){    
        cout <<"AMSJob::udata-I-2007TrackerConfigurationRequestred "<<endl;
        AMSTrIdSoft::inittable(2);
     }
+    else if(strstr(getsetup(),"AMS02P") ){
+  cout <<"AMSJob::udata-I-PMTrackerConfigurationRequestred "<<endl;
+   AMSTrIdSoft::inittable(4);
+   }
     else{
        cout <<"AMSJob::udata-I-FlightTrackerConfigurationRequestred "<<endl;
        AMSTrIdSoft::inittable(3);
@@ -2782,17 +2791,29 @@ end.tm_year=TKFIELD.iyear[1];
 
 
 
-
- char FieldMapName[100];    
+int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
+char FieldMapName[100];    
  if(strstr(getsetup(),"AMS02D") ){    
    sprintf(FieldMapName,"MagneticFieldMapD");
  }
  else if(strstr(getsetup(),"AMS02PreAss")){
    sprintf(FieldMapName,"MagneticFieldMap09A");
+   ssize=3309268-16;
+   
    MAGSFFKEY.rphi=1;
  }
+ else if(strstr(getsetup(),"AMS02P")){
+  sprintf(FieldMapName,"MagneticFieldMapP");
+   MAGSFFKEY.rphi=0;
+   MAGSFFKEY.magstat=1;
+   MAGSFFKEY.fscale=1;
+   MISCFFKEY.BTempCorrection=1;
+}
+
 ///*
  else{
+  ssize=3309268-16;
+
    sprintf(FieldMapName,"MagneticFieldMap09A");
    MAGSFFKEY.rphi=1;
 //   sprintf(FieldMapName,"MagneticFieldMap07");
@@ -2857,7 +2878,7 @@ end.tm_year=TKFIELD.iyear[1];
 
 #else
  TID.add (new AMSTimeID(AMSID(FieldMapName,isRealData()),
-			begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok),
+			begin,end,ssize,
 			(void*)TKFIELD.isec,server,1));
 
 #endif
@@ -2990,6 +3011,27 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
 int need=1;
 if(isMonitoring())need=0;
+if(!strcmp(getsetup(),"AMS02P")){
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel,
+    (void*)AMSTrIdSoft::peds,server,need));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*AMSTrIdSoft::_numel,
+    (void*)AMSTrIdSoft::sigmaraws,server,need));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel,
+    (void*)AMSTrIdSoft::gains,server,need));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
+    (void*)AMSTrIdSoft::sigmas,server,need));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
+    (void*)AMSTrIdSoft::status,server,need));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerCmnNoise(),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::cmnnoise),
+    (void*)AMSTrIdSoft::cmnnoise,server,need));
+}
+else{
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numell,
     (void*)AMSTrIdSoft::peds,server,need));
@@ -3040,6 +3082,7 @@ if(isMonitoring())need=0;
 //TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
 //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
 //   (void*)AMSTrIdSoft::indnoise,server,NeededByDefault));
+}
 }
 #endif
 
@@ -3715,7 +3758,7 @@ if(MISCFFKEY.BeamTest>1){
   tm begin;
   tm end;
   AMSTrAligFit::InitDB();
-  if(TRALIG.UpdateDB){
+  if( TRALIG.UpdateDB || !strcmp(getsetup(),"AMS02P")){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }
@@ -3736,7 +3779,7 @@ if(!isRealData()){
   tm begin;
   tm end;
   AMSTrAligFit::InitADB();
-  if(TRALIG.UpdateDB>1){
+  if(TRALIG.UpdateDB>1 || !strcmp(getsetup(),"AMS02P")){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }
@@ -4203,6 +4246,7 @@ void AMSJob::_dbendjob(){
 #else
 //    if (AMSFFKEY.Update && !isCalibration()){
     if (AMSFFKEY.Update){
+      cout << "AMSjob::_dbendjob-I-updating database... "<<endl;
      AMSTimeID * offspring = 
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
      while(offspring){

@@ -2367,13 +2367,13 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 //---> look at track clusters:
 //
   if(ECCAFFKEY.hprintf!=0){
-    for(i=0;i<trconst::maxlay;i++){
+    for(i=0;i<TKDBc::nlay();i++){
       HF1(ECHISTC+30,geant(nycl[i]),1.);
       HF1(ECHISTC+31,geant(nxcl[i]),1.);
     }
   }
 //
-  for(i=0;i<trconst::maxlay;i++){
+  for(i=0;i<TKDBc::nlay();i++){
     rrr=0.;
     if(axtcl[i]>0.)rrr=axbcl[i]/axtcl[i];
     if(rrr>0.4)badebkg=1;

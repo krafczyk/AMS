@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.66 2010/03/15 12:25:49 choutko Exp $
+//  $Id: tkdbc.C,v 1.67 2010/03/21 15:16:30 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -58,9 +58,8 @@ void TKDBc::init(float zshift ){
      cout<<"====> TKDBc::init: AMS02a setup selected:"<<endl;
     int i;
     _nlaysi=8;
-    const integer _nlay=8;
 
-   const integer  nstripssen[_nlay][2]={
+   const integer  nstripssen[maxlay][2]={
                                                224,640,
                                                192,640,
                                                192,640,
@@ -68,9 +67,10 @@ void TKDBc::init(float zshift ){
                                                192,640,
                                                192,640,
                                                192,640,
-                                               224,640};
+                                               224,640,
+                                                  0, 0};
    UCOPY(nstripssen,_nstripssen,sizeof(nstripssen)/sizeof(integer));
-   const integer  nstripssenR[_nlay][2]={
+   const integer  nstripssenR[maxlay][2]={
                                                767,1284,
                                                767,1284,
                                                767,1284,
@@ -78,12 +78,13 @@ void TKDBc::init(float zshift ){
                                                767,1284,
                                                767,1284,
                                                767,1284,
-                                               767,1284};
+                                               767,1284,
+                                                  0,0};
    UCOPY(nstripssenR,_nstripssenR,sizeof(nstripssenR)/sizeof(integer));
-   const integer  nstripsdrp[_nlay][2]={384,640,384,640,384,640,384,640,384,640,
-                                               384,640,384,640,384,640};
+   const integer  nstripsdrp[maxlay][2]={384,640,384,640,384,640,384,640,384,640,
+                                               384,640,384,640,384,640,0,0};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
-   const number layd[_nlay][5]={
+   const number layd[maxlay][5]={
                                5.,0.,54., 0.,54.,
                                5.,0.,54.0,0.,54.0, 
                                5.,0.,54.0,0.,54.0, 
@@ -91,17 +92,18 @@ void TKDBc::init(float zshift ){
                                5.,0.,54.0,0.,54.0, 
                                5.,0.,54.0,0.,54.0, 
                                5.,0.,54.0,0.,54.0, 
-                               5.,0.,54. ,0.,54.};
+                               5.,0.,54. ,0.,54.,
+                               5.,0.,54. ,0.,54.,};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
-   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
+   const number halfldist[maxlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
-   const number  xposl[_nlay]={0,0,0,0,0,0,0};
+   const number  xposl[maxlay]={0,0,0,0,0,0,0,0};
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
-   const number  yposl[_nlay]={0,0,0,0,0,0,0};
+   const number  yposl[maxlay]={0,0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-   const number  zposl[_nlay]={45.015,29.185,25.315,1.935,-1.935,-25.315,-29.185,-45.015};
+   const number  zposl[maxlay]={45.015,29.185,25.315,1.935,-1.935,-25.315,-29.185,-45.015,0};
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
-   const number nrml[_nlay][3][3]={
+   const number nrml[maxlay][3][3]={
                                           1,0,0,
                                           0,-1,0,
                                           0,0,-1,
@@ -123,13 +125,17 @@ void TKDBc::init(float zshift ){
                                           1,0,0,
                                           0,-1,0,
                                           0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
                                           1,0,0,
                                           0,1,0,
                                           0,0,1};
    UCOPY(nrml,_nrml,sizeof(nrml)/sizeof(integer));
-   const integer nlad[_nlay]={14,14,14,14,14,14,14,14};
+   const integer nlad[maxlay]={14,14,14,14,14,14,14,14,0};
    UCOPY(nlad,_nlad,sizeof(nlad)/sizeof(integer));
-   const integer nsen[_nlay][maxlad]={
+   const integer nsen[maxlay][maxlad]={
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
@@ -139,7 +145,8 @@ void TKDBc::init(float zshift ){
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0};
    UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
-   const integer nhalf[_nlay][maxlad]={
+   const integer nhalf[maxlay][maxlad]={
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
                                7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
                                7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
                                7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
@@ -149,12 +156,13 @@ void TKDBc::init(float zshift ){
                                7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
                                7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0};
    UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
-   const number  zpos[_nlay]={0,0,0,0,0,0,0,0};
+   const number  zpos[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
-   const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
-                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
+   const number  ssize_active[maxlay][2]={3.9884,7.062,3.9884,7.062,
+                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
    UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
-   const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
+   const number  ssize_inactive[maxlay][2]={4.14000,7.2045,
+                                                    4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
@@ -163,9 +171,10 @@ void TKDBc::init(float zshift ){
                                                     4.14000,7.2045,
                                                     4.14000,7.2045};
    UCOPY(ssize_inactive,_ssize_inactive,sizeof(ssize_inactive)/sizeof(integer));
-   const number  silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
+   const number  silicon_z[maxlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
    UCOPY(silicon_z,_silicon_z,sizeof(silicon_z)/sizeof(integer));
-   const number  zelec[_nlay][3]={
+   const number  zelec[maxlay][3]={
+                                           5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
@@ -175,7 +184,8 @@ void TKDBc::init(float zshift ){
                                            5.,.8,-0.015,
                                            5.,.8,-0.015 };
    UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
-   const integer nladshuttle[_nlay][2]={14,12,
+   const integer nladshuttle[maxlay][2]={14,12,
+                                        14,12,
                                         14,12,
                                         14,12,
                                         14,12,
@@ -184,7 +194,8 @@ void TKDBc::init(float zshift ){
                                         14,12,
                                         14,12};
    UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
-   const integer boundladshuttle[_nlay][2]={1,2,
+   const integer boundladshuttle[maxlay][2]={1,2,
+                                         1,2,
                                          1,2,
                                          1,2,
                                          1,2,
@@ -195,22 +206,22 @@ void TKDBc::init(float zshift ){
    UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
 
 // center to center for ladders
-const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+const number  c2c[maxlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.3};
    UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
 // support foam width;
-const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
+const number  support_foam_w[maxlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
    UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
-const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
+const number  support_foam_tol[maxlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
    UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
 // support hc width;
-const number  support_hc_w[_nlay]={0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8};
+const number  support_hc_w[maxlay]={0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8};
    UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
 // support hc radius;
-const number  support_hc_r[_nlay]={53.6,53.6,53.6,53.6,53.6,53.6,53.6,53.6};
+const number  support_hc_r[maxlay]={53.6,53.6,53.6,53.6,53.6,53.6,53.6,53.6,53.6};
    UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
 // support hc z;
 // hc_z = -(hc_w/2+(0.5+5.02+5)/10)
-const number  support_hc_z[_nlay]={-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452};
+const number  support_hc_z[maxlay]={-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452};
    UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
 
 
@@ -284,6 +295,7 @@ const number  support_hc_z[_nlay]={-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
 
 
    }
+/*
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
      cout<<"====> TKDBc::init: AMS02Test setup selected:"<<endl;
 
@@ -1925,14 +1937,15 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
 }
+*/
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
      cout<<"====> TKDBc::init: AMS02P setup selected:"<<endl;
 
     int i;
-    _nlaysi=8;
-    const integer _nlay=8;
+    _nlaysi=9;
 
-   const integer  nstripssen[_nlay][2]={
+   const integer  nstripssen[maxlay][2]={
+                                               224,640,
                                                224,640,
                                                192,640,
                                                192,640,
@@ -1942,7 +1955,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                192,640,
                                                224,640};
    UCOPY(nstripssen,_nstripssen,sizeof(nstripssen)/sizeof(integer));
-   const integer  nstripssenR[_nlay][2]={
+   const integer  nstripssenR[maxlay][2]={
+                                               767,1284,
                                                767,1284,
                                                767,1284,
                                                767,1284,
@@ -1952,39 +1966,42 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                767,1284,
                                                767,1284};
    UCOPY(nstripssenR,_nstripssenR,sizeof(nstripssenR)/sizeof(integer));
-   const integer  nstripsdrp[_nlay][2]={384,640,384,640,384,640,384,640,384,640,
-                                               384,640,384,640,384,640};
+   const integer  nstripsdrp[maxlay][2]={384,640,384,640,384,640,384,640,384,640,
+                                               384,640,384,640,384,640,384,640};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
-   const number layd[_nlay][5]={
+   const number layd[maxlay][5]={
                                5.3,0.,75., 0.,75.,
+                               5.3,0.,75. ,0.,70.,
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
-                               1.92,0.,54.0,0.,54.0, 
-                               5.3,0.,75. ,0.,70.};
+                               1.92,0.,54.0,0.,54.0,
+                               1.92,0.,54.0,0.,54.0};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
-   const number halfldist[_nlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
-//   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
+   const number halfldist[maxlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
-   const number  xposl[_nlay]={0,0,0,0,0,0,0,0};
+   const number  xposl[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
-   const number  yposl[_nlay]={0,0,0,0,0,0,0,0};
+   const number  yposl[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-//   const number  zposl[_nlay]={160,29.185,25.315,1.685,-2.185,-25.315,-29.185,-52.985};
- const number  zposl[_nlay]={167.9,29.185,25.215,1.685,-2.285,-25.215,-29.185,-52.985};
+ const number  zposl[maxlay]={167.85,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-135.555};
 
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
-   _zposl[0]+=-0.01;
-   _zposl[1]+=0.01;
-   _zposl[2]+=-0.01;
-   _zposl[3]+=0.024;
-   _zposl[4]+=0.;
+   _zposl[0]+=0; 
+   _zposl[1]+=-0.01;
+   _zposl[2]+=0.01;
+   _zposl[3]+=-0.01;
+   _zposl[4]+=0.024;
    _zposl[5]+=0.;
-   _zposl[6]+=-0.018;
-   _zposl[7]+=0.;
-   const number nrml[_nlay][3][3]={
+   _zposl[6]+=0.;
+   _zposl[7]+=-0.018;
+   _zposl[8]+=0.;
+   const number nrml[maxlay][3][3]={
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
                                           1,0,0,
                                           0,-1,0,
                                           0,0,-1,
@@ -2009,36 +2026,41 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                           1,0,0,
                                           0,1,0,
                                           0,0,1};
+
    UCOPY(nrml,_nrml,sizeof(nrml)/sizeof(integer));
-   const integer nlad[_nlay]={15,14,12,10,10,12,14,15};
+   const integer nlad[maxlay]={13,11,14,12,10,10,12,14,8};
    UCOPY(nlad,_nlad,sizeof(nlad)/sizeof(integer));
-   const integer nsen[_nlay][maxlad]={20,23,26,28,29,30,30,30,30,30,
-                                 29,28,26,23,20,0,0,
+   const integer nsen[maxlay][maxlad]={
+                                 23,26,28,29,30,30,30,30,30,
+                                 29,28,26,23,0,0,0,0,
+                                 26,28,29,30,30,30,30,30,
+                                 29,28,26,0,0,0,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  14,18,21,23,24,24,24,24,23,21,18,14,0,0,0,0,0,
                                  18,21,23,24,24,24,24,23,21,18,0,0,0,0,0,0,0,
                                  18,21,23,24,24,24,24,23,21,18,0,0,0,0,0,0,0,
                                  14,18,21,23,24,24,24,24,23,21,18,14,0,0,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
-                                 20,23,26,28,29,30,30,30,30,30,
-                                 29,28,26,23,20,0,0};
+                                 21,22,22,22,22,22,22,21,0,0,0,0,0,0,0,0,0};
    UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
-   const integer nhalf[_nlay][maxlad]={
-                               10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0,
+   const integer nhalf[maxlay][maxlad]={
+                               12,13,14,14,15,15,15,15,15,14,14,13,12,0,0,0,0,
+                               13,14,14,15,15,15,15,15,14,14,13,0,0,0,0,0,0,
                                7,14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,
                                0,9,11,11,12,12,12,12,11,11,9,14,0,0,0,0,0,
                                9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
                                9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
                                14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,
                                0,0,9,11,11,12,12,12,12,11,11,9,14,7,0,0,0,
-                               10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0};
+                               10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0};
    UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
-   const number  zpos[_nlay]={4.5,0,0,0,0,0,0,0};
+   const number  zpos[maxlay]={1,0,0,0,0,0,0,0,0};
    UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
-   const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
-                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
+   const number  ssize_active[maxlay][2]={3.9884,7.062,3.9884,7.062,
+                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
    UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
-   const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
+   const number  ssize_inactive[maxlay][2]={4.14000,7.2045,
+                                                    4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
@@ -2047,9 +2069,10 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                     4.14000,7.2045,
                                                     4.14000,7.2045};
    UCOPY(ssize_inactive,_ssize_inactive,sizeof(ssize_inactive)/sizeof(integer));
-   const number  silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
+   const number  silicon_z[maxlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
    UCOPY(silicon_z,_silicon_z,sizeof(silicon_z)/sizeof(integer));
-   const number  zelec[_nlay][3]={
+   const number  zelec[maxlay][3]={
+                                           5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
@@ -2060,43 +2083,46 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                            5.,.8,-0.015 };
    UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
 
-   const integer nladshuttle[_nlay][2]={15,15,
-                                        12,12,
+   const integer nladshuttle[maxlay][2]={
+                                        13,13,
+                                        11,11,
+                                        12,11,
                                         11,11,
                                         10,10,
                                         10,10,
                                         11,11,
-                                        12,12,
-                                        11,11};
+                                        11,12,
+                                        8,8};
    UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
-   const integer boundladshuttle[_nlay][2]={1,1,
-                                         1,3,
+   const integer boundladshuttle[maxlad][2]={1,1,
+                                         1,1,
+                                         2,3,
                                          2,1,
                                          1,1,
                                          1,1,
                                          1,2,
-                                         3,1,
+                                         3,2,
                                          1,1};
    UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
 
 
 // center to center for ladders
-const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+const number  c2c[maxlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
    UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
 // support foam width;
-const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
+const number  support_foam_w[maxlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
    UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
-const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
+const number  support_foam_tol[maxlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
    UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
 // support hc width;
-const number  support_hc_w[_nlay]={4.,0.85,0.85,0.85,0.85,0.85,0.85,4.};
+const number  support_hc_w[maxlay]={4.,4.,0.85,0.85,0.85,0.85,0.85,0.85,0.85};
    UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
 // support hc radius;
-const number  support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,53.6,53.6,71.5};
+const number  support_hc_r[maxlay]={71.5,71.5,53.6,53.6,53.6,53.6,53.6,53.6,53.6};
    UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
 // support hc z;
 // hc_z = -(hc_w/2+(0.5+5.02+5)/10)
-const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.477,-3.052};
+const number  support_hc_z[maxlay]={-3.052,-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.477,-1.477};
    UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
 
 
@@ -2112,59 +2138,24 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
       }
 
 // Add disabling
-// wanted all 8, all 7  1 + 8
-// 6: no (23) (45) (67) 8*7/2-3 = 25
-// 5: 1 (2,3) (4,5) (6,7) 8  (8) 
-// total of 42 patterns allowed
-      for(cpat=0;cpat<npat();cpat++){
-         //ams02
-         if(_patpoints[cpat]==6){
-            if((_patmiss[nlay()-2][cpat]==2 && _patmiss[nlay()-1][cpat]==3) || 
-               (_patmiss[nlay()-2][cpat]==3 && _patmiss[nlay()-1][cpat]==2))
-               _patallow[cpat]=0;
-            if((_patmiss[nlay()-2][cpat]==4 && _patmiss[nlay()-1][cpat]==5) || 
-               (_patmiss[nlay()-2][cpat]==5 && _patmiss[nlay()-1][cpat]==4))
-               _patallow[cpat]=0;
-            if((_patmiss[nlay()-2][cpat]==6 && _patmiss[nlay()-1][cpat]==7) || 
-               (_patmiss[nlay()-2][cpat]==7 && _patmiss[nlay()-1][cpat]==6))
-               _patallow[cpat]=0;
-         }
-         else if(_patpoints[cpat]==5 && ATREFFKEY.relogic<1){ //for ANTI-calib to allow(if=1) any 5
-            if(_patmiss[nlay()-3][cpat]==1 || _patmiss[nlay()-2][cpat]==1 || 
-               _patmiss[nlay()-1][cpat]==1)_patallow[cpat]=0;
-            if(_patmiss[nlay()-3][cpat]==8 || _patmiss[nlay()-2][cpat]==8 || 
-               _patmiss[nlay()-1][cpat]==8)_patallow[cpat]=0;
-            if(_patallow[cpat]){
-             for(int k=_patpoints[cpat];k<nlay();k++){
-              if(_patmiss[k][cpat]==2){
-                for(int kk=_patpoints[cpat];kk<nlay();kk++){
-                  if(_patmiss[kk][cpat]==3){
-                   _patallow[cpat]=0;
-                   break;
-                  }
-                }   
-              }
-              if(_patmiss[k][cpat]==4){
-                for(int kk=_patpoints[cpat];kk<nlay();kk++){
-                  if(_patmiss[kk][cpat]==5){
-                   _patallow[cpat]=0;
-                   break;
-                  }
-                }   
-              }
-              if(_patmiss[k][cpat]==6){
-                for(int kk=_patpoints[cpat];kk<nlay();kk++){
-                  if(_patmiss[kk][cpat]==7){
-                   _patallow[cpat]=0;
-                   break;
-                  }
-                }   
-              }
 
+// wanted all 9, all 8 1+9
+// 7 no (1,9)   9*8/2-1 = 35
+// 6 9*8*7/6 - (1,any,8) = 78
+// total of 123 patterns allowes
+
+      for(cpat=0;cpat<npat();cpat++){
+         //ams02p
+         if(_patpoints[cpat]>=6 && _patpoints[cpat]<8){
+             if(_patallow[cpat]){
+             int i19=0;
+             for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==1 || _patmiss[kk][cpat]==9)i19++;
              }
-            }
-       }
-      }
+             if(i19==2)_patallow[cpat]=0;      
+        }         
+        }
+        }
 
 
 }
@@ -2174,9 +2165,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
     int i;
     _nlaysi=8;
-    const integer _nlay=8;
 
-   const integer  nstripssen[_nlay][2]={
+   const integer  nstripssen[maxlay][2]={
                                                224,640,
                                                192,640,
                                                192,640,
@@ -2184,9 +2174,11 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                192,640,
                                                192,640,
                                                192,640,
+                                               224,640,
                                                224,640};
    UCOPY(nstripssen,_nstripssen,sizeof(nstripssen)/sizeof(integer));
-   const integer  nstripssenR[_nlay][2]={
+   const integer  nstripssenR[maxlay][2]={
+                                               767,1284,
                                                767,1284,
                                                767,1284,
                                                767,1284,
@@ -2196,10 +2188,10 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                767,1284,
                                                767,1284};
    UCOPY(nstripssenR,_nstripssenR,sizeof(nstripssenR)/sizeof(integer));
-   const integer  nstripsdrp[_nlay][2]={384,640,384,640,384,640,384,640,384,640,
-                                               384,640,384,640,384,640};
+   const integer  nstripsdrp[maxlay][2]={384,640,384,640,384,640,384,640,384,640,
+                                               384,640,384,640,384,640,384,640};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
-   const number layd[_nlay][5]={
+   const number layd[maxlay][5]={
                                5.3,0.,75., 0.,70.,
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
@@ -2207,17 +2199,16 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
+                               5.3,0.,75. ,0.,70.,
                                5.3,0.,75. ,0.,70.};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
-   const number halfldist[_nlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
-//   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
+   const number halfldist[maxlay]={0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025,0.025};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
-   const number  xposl[_nlay]={0,0,0,0,0,0,0,0};
+   const number  xposl[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
-   const number  yposl[_nlay]={0,0,0,0,0,0,0,0};
+   const number  yposl[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-//   const number  zposl[_nlay]={52.985,29.185,25.315,1.685,-2.185,-25.315,-29.185,-52.985};
- const number  zposl[_nlay]={52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-52.985};
+ const number  zposl[maxlay]={52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-52.985,0};
 
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
    _zposl[0]+=-0.01;
@@ -2228,7 +2219,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    _zposl[5]+=0.;
    _zposl[6]+=-0.018;
    _zposl[7]+=0.;
-   const number nrml[_nlay][3][3]={
+   const number nrml[maxlay][3][3]={
                                           1,0,0,
                                           0,-1,0,
                                           0,0,-1,
@@ -2250,13 +2241,16 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                           1,0,0,
                                           0,-1,0,
                                           0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
                                           1,0,0,
                                           0,1,0,
                                           0,0,1};
    UCOPY(nrml,_nrml,sizeof(nrml)/sizeof(integer));
-   const integer nlad[_nlay]={15,14,12,10,10,12,14,15};
+   const integer nlad[maxlay]={15,14,12,10,10,12,14,15,0};
    UCOPY(nlad,_nlad,sizeof(nlad)/sizeof(integer));
-   const integer nsen[_nlay][maxlad]={20,23,26,28,29,30,30,30,30,30,
+   const integer nsen[maxlay][maxlad]={20,23,26,28,29,30,30,30,30,30,
                                  29,28,26,23,20,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  14,18,21,23,24,24,24,24,23,21,18,14,0,0,0,0,0,
@@ -2265,9 +2259,10 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                  14,18,21,23,24,24,24,24,23,21,18,14,0,0,0,0,0,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  20,23,26,28,29,30,30,30,30,30,
-                                 29,28,26,23,20,0,0};
+                                 29,28,26,23,20,0,0,
+                                 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0  };
    UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
-   const integer nhalf[_nlay][maxlad]={
+   const integer nhalf[maxlay][maxlad]={
                                10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0,
                                7,14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,
                                0,9,11,11,12,12,12,12,11,11,9,14,0,0,0,0,0,
@@ -2275,14 +2270,16 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
                                14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,
                                0,0,9,11,11,12,12,12,12,11,11,9,14,7,0,0,0,
-                               10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0};
+                               10,12,13,14,14,15,15,15,15,15,14,14,13,12,10,0,0,
+                                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
    UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
-   const number  zpos[_nlay]={0,0,0,0,0,0,0,0};
+   const number  zpos[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
-   const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
-                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
+   const number  ssize_active[maxlay][2]={3.9884,7.062,3.9884,7.062,
+                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
    UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
-   const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
+   const number  ssize_inactive[maxlay][2]={4.14000,7.2045,
+                                                    4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
                                                     4.14000,7.2045,
@@ -2291,9 +2288,10 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                     4.14000,7.2045,
                                                     4.14000,7.2045};
    UCOPY(ssize_inactive,_ssize_inactive,sizeof(ssize_inactive)/sizeof(integer));
-   const number  silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
+   const number  silicon_z[maxlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
    UCOPY(silicon_z,_silicon_z,sizeof(silicon_z)/sizeof(integer));
-   const number  zelec[_nlay][3]={
+   const number  zelec[maxlay][3]={
+                                           5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
@@ -2304,43 +2302,45 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                            5.,.8,-0.015 };
    UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
 
-   const integer nladshuttle[_nlay][2]={15,15,
+   const integer nladshuttle[maxlay][2]={15,15,
                                         12,12,
                                         11,11,
                                         10,10,
                                         10,10,
                                         11,11,
                                         12,12,
-                                        15,15};
+                                        15,15,
+                                        0,0};
    UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
-   const integer boundladshuttle[_nlay][2]={1,1,
+   const integer boundladshuttle[maxlay][2]={1,1,
                                          1,3,
                                          2,1,
                                          1,1,
                                          1,1,
                                          1,2,
                                          3,1,
+                                         1,1,
                                          1,1};
    UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
 
 
 // center to center for ladders
-const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+const number  c2c[maxlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
    UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
 // support foam width;
-const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
+const number  support_foam_w[maxlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
    UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
-const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
+const number  support_foam_tol[maxlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
    UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
 // support hc width;
-const number  support_hc_w[_nlay]={4.,0.85,0.85,0.85,0.85,0.85,0.85,4.};
+const number  support_hc_w[maxlay]={4.,0.85,0.85,0.85,0.85,0.85,0.85,4.,0};
    UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
 // support hc radius;
-const number  support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,53.6,53.6,71.5};
+const number  support_hc_r[maxlay]={71.5,53.6,53.6,53.6,53.6,53.6,53.6,71.5,0};
    UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
 // support hc z;
 // hc_z = -(hc_w/2+(0.5+5.02+5)/10)
-const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.477,-3.052};
+const number  support_hc_z[maxlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.477,-3.052,0};
    UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
 
 
@@ -2621,7 +2621,7 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
                    "pl5_sf5.gme",
                    "pl6_sf2.cer",
                    " ",
-                   "  "};
+                   "  "," "};
 
     int rsize=1024;
     TRLDGM_def TRLDGM;
@@ -3905,7 +3905,7 @@ return _CumulusS[layer-1];
  integer * TKDBc::_patconf[maxlay];
  integer * TKDBc::_patpoints;
  integer * TKDBc::_patmiss[maxlay];
- integer  TKDBc::_patd[maxlay]={0,0,0,0,0,0,0,0}; 
+ integer  TKDBc::_patd[maxlay]={0,0,0,0,0,0,0,0,0}; 
  integer * TKDBc::_patallow;
  integer * TKDBc::_patallow2;
  uinteger TKDBc::_Npat=0;
@@ -3920,21 +3920,22 @@ void TKDBc::InitPattern(){
 
 
     int k;
-    integer ordermiss[maxlay]={0,0,0,0,0,0,0,0};
-    integer vmiss[maxlay]={0,0,0,0,0,0,0,0};
-    integer vorder[maxlay]={1,2,3,4,5,6,7,8};
+    integer ordermiss[maxlay]={0,0,0,0,0,0,0,0,0};
+    integer vmiss[maxlay]={0,0,0,0,0,0,0,0,0};
+    integer vorder[maxlay]={1,2,3,4,5,6,7,8,9};
     int minc;
     int iq=0;
-    for(minc=0;minc<nlay()-2;minc+=2){
+    ordermiss[nlay()-3]=2;
+    ordermiss[nlay()-2]=nlay();
+    ordermiss[nlay()-1]=1;
+    for(minc=0;minc<nlay()-2-nlay()%2;minc+=2){
        ordermiss[iq]=nlay()-1-minc;
        ordermiss[iq+nlay()/2-1]=nlay()-2-minc;
        iq++;
     }
-    ordermiss[nlay()-2]=nlay();
-    ordermiss[nlay()-1]=1;
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
        for(minc=0;minc<nlay();minc++)cout <<"ordermiss["<<minc<<"] "<<ordermiss[minc]<<endl;
-#endif
+//#endif
 //initialize patterns
    for(minc=nlay();minc>2;minc--){
      _Npat+=factorial(nlay())/factorial(minc)/factorial(nlay()-minc);
@@ -4023,6 +4024,29 @@ void TKDBc::InitPattern(){
                 vmiss[nlay()-5]=ordermiss[i1];
                }
                count++;
+              }            
+             } 
+            }
+           }
+           }
+           break;
+          case 6:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+              for(i4=i3+1;i4<nlay();i4++){
+               for(int i5=i4+1;i5<nlay();i5++){
+               for(int i6=i5+1;i6<nlay();i6++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i6];
+                vmiss[nlay()-2]=ordermiss[i5];
+                vmiss[nlay()-3]=ordermiss[i4];
+                vmiss[nlay()-4]=ordermiss[i3];
+                vmiss[nlay()-5]=ordermiss[i2];
+                vmiss[nlay()-6]=ordermiss[i1];
+               }
+               count++;
+              }            
               }            
              } 
             }

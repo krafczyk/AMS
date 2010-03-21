@@ -1,3 +1,4 @@
+//amschain
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -8,6 +9,15 @@
 #include <dlfcn.h>
 bool AMSNtupleHelper::IsGolden(AMSEventR *o){
   return true;
+}
+
+char * AMSChain::getsetup(){
+    static char ams02[]="AMS02";
+    static char ams02p[]="AMS02P";
+    TObjString s("");
+   s.Read("AMS02Geometry");
+   if(s.String().Contains("STK9"))return ams02p;
+   else return ams02; 
 }
 
 AMSNtupleHelper *AMSNtupleHelper::fgHelper=0;

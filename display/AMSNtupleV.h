@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.33 2010/02/17 12:06:59 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.34 2010/03/21 15:16:38 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -365,6 +365,8 @@ public:
   ParticleV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
     ParticleR *pcl=ev->pParticle(ref);
     if(pcl){
+     if(pcl->TRDCoo[0][2]>pcl->TrCoo[0][2]){
+       //ams02 setup
       const int npoint=2+2+8+2+2+3;
       float array[3*npoint];
       int old=0;
@@ -400,7 +402,50 @@ public:
       SetLineStyle(1);
       if(pcl->Charge==0)SetLineStyle(2);
     }
+    else{
+       //ams02p setup
+      const int npoint=2+2+9+2+2+3;
+      float array[3*npoint];
+      int old=0;
+      if(pcl->TRDCoo[1][2]>90 && pcl->TRDCoo[1][2]<150)old=1;
+//      cout <<pcl->TRDCoo[0][2]<<" "<<pcl->TRDCoo[1][2]<<" "<<endl;
+      for(int k=0;k<3;k++)array[k]=pcl->TrCoo[0][k];
+      for(int k=0;k<3;k++)array[3+k]=pcl->TRDCoo[old][k];
+      for(int k=0;k<3;k++)array[3+3+k]=pcl->TRDCoo[0][k];
+      if(pcl->pTrdTrack()){
+        for(int k=0;k<3;k++)array[3+3+k]+=pcl->pTrdTrack()->Coo[k];
+        for(int k=0;k<3;k++)array[3+3+k]/=2;
+        AMSDir dir(pcl->pTrdTrack()->Theta,pcl->pTrdTrack()->Phi);
+        for(int k=0;k<3;k++)array[3+k]+=pcl->pTrdTrack()->Coo[k]+dir[k]/dir[2]*(pcl->TRDCoo[1][2]-pcl->pTrdTrack()->Coo[2]);
+        for(int k=0;k<3;k++)array[3+k]/=2;
+      }
+      for(int k=0;k<3;k++)array[3+3+3+k]=pcl->TOFCoo[0][k];
+      for(int k=0;k<3;k++)array[3+3+3*2+k]=pcl->TOFCoo[1][k];
+      for(int i=1;i<8;i++){
+        for(int k=0;k<3;k++)array[3+3+3*3+3*i+k]=pcl->TrCoo[i][k];
+      }
+      for(int k=0;k<3;k++)array[3+3*11+k]=pcl->TOFCoo[2][k];
+      for(int k=0;k<3;k++)array[3+3*12+k]=pcl->TOFCoo[3][k];
+      for(int k=0;k<3;k++)array[3+3*13+k]=pcl->RichCoo[0][k];
+      for(int k=0;k<3;k++)array[3+3*14+k]=pcl->RichCoo[1][k];
+      for(int k=0;k<3;k++)array[3+3*15+k]=pcl->TrCoo[8][k];
+      for(int i=0;i<3;i++){
+        for(int k=0;k<3;k++)array[3+3+3*15+3*i+k]=pcl->EcalCoo[i][k];
+      }
+      for(int i=0;i<npoint;i++){
+        //    cout <<" i "<<i<<array[3*i]<<" "<<array[3*i+1]<<" "<<array[3*i+2]<<" "<<endl;
+      }
+      SetPolyLine(npoint,array);
+      SetLineColor(2);
+      SetLineWidth(1);
+      SetLineStyle(1);
+      if(pcl->Charge==0)SetLineStyle(2);
+
+    }
   }
+}
+
+
   char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pParticle(fRef)->Info(fRef):0;}
 
 
@@ -617,7 +662,6 @@ public:
   void Draw(EAMSType type=kall);
   void Prepare(EAMSType type=kall);
 bool GetEvent(unsigned int run, unsigned int event);
-
   char * GetObjInfo(int px,int py);
   void SetTkMult(int aa){TkMult=aa;}
   int GetTkMult(){return TkMult;}

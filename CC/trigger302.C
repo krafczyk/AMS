@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.45 2010/02/02 11:49:55 pzuccon Exp $
+//  $Id: trigger302.C,v 1.46 2010/03/21 15:16:31 choutko Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -948,12 +948,12 @@ int TriggerLVL302::eccrosscheck(geant ect){
   geant dx,dy,xl,yl,xh,yh,xcut,ycut;
   geant x0,y0;
   //
-  xl=_lowlimitX[trconst::maxlay-1];
-  xh=_upperlimitX[trconst::maxlay-1];
-  yl=_lowlimitY[trconst::maxlay-1];
-  yh=_upperlimitY[trconst::maxlay-1];
-  x0=0.5*(_lowlimitX[trconst::maxlay-1]+_upperlimitX[trconst::maxlay-1]);
-  y0=0.5*(_lowlimitY[trconst::maxlay-1]+_upperlimitY[trconst::maxlay-1]);
+  xl=_lowlimitX[TKDBc::nlay()-1];
+  xh=_upperlimitX[TKDBc::nlay()-1];
+  yl=_lowlimitY[TKDBc::nlay()-1];
+  yh=_upperlimitY[TKDBc::nlay()-1];
+  x0=0.5*(_lowlimitX[TKDBc::nlay()-1]+_upperlimitX[TKDBc::nlay()-1]);
+  y0=0.5*(_lowlimitY[TKDBc::nlay()-1]+_upperlimitY[TKDBc::nlay()-1]);
   //for "out-of-window distance" methode:
   //  if((_ECtofcr[0]-xl)<(xh-_ECtofcr[0]))dx=_ECtofcr[0]-xl;
   //  else dx=xh-_ECtofcr[0];
@@ -2499,8 +2499,8 @@ void TriggerLVL302::init(){
  _ECpmz=ECALDBc::gendim(7);//1st sl front z-pos
 // _ECcrz3=0.5*(TOF2DBc::getzsc(2,3)+TOF2DBc::getzsc(2,4));//z-pos TOF-3(X)(~ cm)
 // _ECcrz4=0.5*(TOF2DBc::getzsc(2,3)+TOF2DBc::getzsc(2,4));//z-pos TOF-4(Y)(~ cm)
- _ECcrz3=_TrackerCooZ[trconst::maxlay-1];//z-pos last trk-layer(X)(~ cm)
- _ECcrz4=_TrackerCooZ[trconst::maxlay-1];//z-pos last trk-layer(Y)(~ cm)
+ _ECcrz3=_TrackerCooZ[TKDBc::nlay()-1];//z-pos last trk-layer(X)(~ cm)
+ _ECcrz4=_TrackerCooZ[TKDBc::nlay()-1];//z-pos last trk-layer(Y)(~ cm)
 //-----------------   
   
    
@@ -3038,12 +3038,12 @@ int TriggerLVL302::eccrosscheck(geant ect){
   geant dx,dy,xl,yl,xh,yh,xcut,ycut;
   geant x0,y0;
 //
-  xl=_lowlimitX[trconst::maxlay-1];
-  xh=_upperlimitX[trconst::maxlay-1];
-  yl=_lowlimitY[trconst::maxlay-1];
-  yh=_upperlimitY[trconst::maxlay-1];
-  x0=0.5*(_lowlimitX[trconst::maxlay-1]+_upperlimitX[trconst::maxlay-1]);
-  y0=0.5*(_lowlimitY[trconst::maxlay-1]+_upperlimitY[trconst::maxlay-1]);
+  xl=_lowlimitX[TKDBc::nlay()-1];
+  xh=_upperlimitX[TKDBc::nlay()-1];
+  yl=_lowlimitY[TKDBc::nlay()-1];
+  yh=_upperlimitY[TKDBc::nlay()-1];
+  x0=0.5*(_lowlimitX[TKDBc::nlay()-1]+_upperlimitX[TKDBc::nlay()-1]);
+  y0=0.5*(_lowlimitY[TKDBc::nlay()-1]+_upperlimitY[TKDBc::nlay()-1]);
 //for "out-of-window distance" methode:
 //  if((_ECtofcr[0]-xl)<(xh-_ECtofcr[0]))dx=_ECtofcr[0]-xl;
 //  else dx=xh-_ECtofcr[0];

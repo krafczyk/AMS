@@ -1,9 +1,10 @@
-*  $Id: rkms.h,v 1.7 2010/02/09 12:41:35 choutko Exp $
+*  $Id: rkms.h,v 1.8 2010/03/21 15:16:38 choutko Exp $
       integer npma
       parameter(NPma=9) 
       integer npoc
       double precision xc,yc,zc,wxy,Dhi2
-      common/rkms_1/xc(NPma),yc(NPma),zc(NPma),wxy(NPma,NPma),Dhi2,npoc
+      common/rkms_1/xc(NPma),yc(NPma),zc(NPma),wxy(NPma,NPma),Dhi2,npoc,
+     + trkZ0
       double precision rkstep
       common /rkms_2/xt,yt,wt
       double precision xt(NPma),yt(NPma),wt(3,npma)
@@ -20,10 +21,10 @@ c01      data trkZ0/50.95,29.15,7.75,-7.75,-29.15,-50.95/
 c      data trkZ0/54.7,29.2,25.8,1.7,-1.7,-25.8,-29.2,-54.7/
 *   taken from MC (Sep.04)
 c      data trkZ0/54.51,29.18,25.32,1.68,-2.18,-25.32,-29.18,-54.51/
-      data trkZ0/52.985,29.185,25.215,1.685,-2.285,
-     + -25.215,-29.185,-52.985,-122./
+c      data trkZ0/52.985,29.185,25.215,1.685,-2.285,
+c     + -25.215,-29.185,-52.985,-122./
 
-      save SiThick,zz0,trkZ0
+      save SiThick,zz0
 *-------------------------------------------------------
 *   pl#   1-2   2-3   3-4   4-5   5-6   6-7  7-8
 *   dZ   21.8  24.4  15.5  24.4  21.8   -    -    AMS01

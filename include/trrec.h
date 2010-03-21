@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.109 2010/02/09 12:41:42 choutko Exp $
+//  $Id: trrec.h,v 1.110 2010/03/21 15:16:38 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -436,7 +436,7 @@ static integer _max_ambigous_hits;
 #pragma omp threadprivate(_MarginPatternsNeeded,_max_ambigous_hits)
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
-AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
+AMSTrRecHit * getphit(integer i){return i>=0 && i<TKDBc::nlay()? _Pthit[i]:0;}
 void SimpleFit();
 void interpolate(AMSPoint   pnt,  const AMSDir & dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length, int icase=0);

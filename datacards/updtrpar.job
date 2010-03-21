@@ -9,7 +9,7 @@ elif [ "$UNAME" = "OSF1" ] ; then
 elif [ "$UNAME" = "HP-UX" ] ; then
     MACHINE="hpux"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc"
+    MACHINE="linux"
 else
 echo $UNAME is not supported yet
 
@@ -33,13 +33,13 @@ C npars ims
   5     1   
 C          Nparticles 
 MCGEN  1=-90. 2=-100. 3=-80. 4=170. 5=100. 
-6=80. 12=-0.75 15=1 18=5 19=102004 
+6=80. 12=-0.75 13=100. 14=100. 15=1 18=5 19=102004 
 IOPA 1=3 2='pr.hbk'  
 45='TriggerLVL3'
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=5.   4=0  5=0   46='AMS02' 
-87=1 88='Tracker'
+AMSJOB 1=0   2=0      3=5.   4=0  5=0   46='AMS02P' 
+87=2 88='Tracker'
 L3REC 11=1
 TRMC 36=1
 TKGEOM 1=0

@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.35 2009/12/05 11:37:12 shaino Exp $
+*  $Id: mfield.F,v 1.36 2010/03/21 15:16:38 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -312,8 +312,8 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *         read(21,*)imon
 *         read(21,*)iyear
           close(21)
-          write(*,*)' field qat 0',x(nx/2),y(nz/2),z(nz/2),
-     +    bx(nx/2,ny/2,nz/2),by(nx/2,ny/2,nz/2),bz(nx/2,ny/2,nz/2)
+          write(*,*)' field qat 0',x(1),y(1),z(1),
+     +    bx(1,1,1),by(1,1,1),bz(1,1,1)
           write(*,*)'Closing field file...'
 *
 * Now calculate field derivatives
@@ -688,10 +688,7 @@ c      end
       data bcorr/-1/
       DIMENSION B(3),VV(3),AVV(3)
         if(rphi.eq.0)then
-        do i=1,2
-          avv(i)=vv(i)
-        enddo
-        if(abs(avv(1)).gt.x(nx).or.abs(avv(2)).gt.y(ny).or.
+        if(abs(vv(1)).gt.x(nx).or.abs(vv(2)).gt.y(ny).or.
      +    abs(vv(3)).gt.z(nz).or.magstat.le.-1)then
             call vzero(b(1),3)
             goto 999
@@ -705,10 +702,20 @@ c      end
 
 *
 * Special trick if need
-*        
+*       
+        sx=sign(1.,vv(1))
+        sy=sign(1.,vv(2))
+        sz=sign(1.,vv(3))
+        do i=1,2
+          avv(i)=abs(vv(i))
+        enddo
+*
+* Special trick if need
+*
         CALL BZCORR(xfac)
-c        avv(3)=abs(vv(3))*xfac
-        avv(3)=vv(3)*xfac
+        avv(3)=abs(vv(3))*xfac
+
+ 
 c        jj=jj+1
          if(iniok.eq.2)then
 c           if(mod(jj,1000).eq.1)write(*,*)' calling bxc ',bxc(1,1,1),
@@ -720,16 +727,10 @@ c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
          endif
-c        if(magstat.gt.0 )then
-c         CALL BTEMPCOR (factor)
-c         b(1) = b(1) * factor
-c         b(2) = b(2) * factor
-c         b(3) = b(3) * factor
-c        else
-c         b(1)=0
-c         b(2)=0
-c         b(3)=0
-c        endif
+         CALL BTEMPCOR (factor)
+         b(1) = b(1) * factor
+         b(2) = b(2)*sx*sy * factor
+         b(3) = b(3)*sx*sz * factor
         else
           avv(1)=sqrt(vv(1)**2+vv(2)**2)
           avv(2)=atan2(vv(2),vv(1))

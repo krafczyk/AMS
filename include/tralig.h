@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.27 2008/07/28 13:40:02 choutko Exp $
+//  $Id: tralig.h,v 1.28 2010/03/21 15:16:38 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -199,8 +199,8 @@ number chi2i[1000];
 number _Chi2Max;
 AMSTrAligPar _pParC[trconst::maxlad];
 static AMSTrAligPar _pPargl[trconst::maxsen][trconst::maxlad][2][trconst::maxlay];
-static gldb_def _gldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
-static gldb_def _antigldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
+static gldb_def _gldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay-1];
+static gldb_def _antigldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay-1];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);

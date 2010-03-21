@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.51 2009/11/11 15:20:47 pzuccon Exp $
+//  $Id: trid.C,v 1.52 2010/03/21 15:16:31 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -136,7 +136,7 @@ geant AMSTrIdSoft::laser[maxlay][2]={   1.,  1.,
                                          1., 1.,
                                          1.,1.,
                                          1.,1.,
-                                         1.,1.};                                 
+                                         1.,1.,1.,1.};                                 
 geant * AMSTrIdSoft::gains=0;
 geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;
@@ -341,7 +341,7 @@ integer AMSTrIdGeom::_R2Gx(integer stripx)const {
 //ams02 scheme
    integer __stripx;
    if(AMSJob::gethead()->isRealData()){
-     if(_layer == 1 || _layer ==TKDBc::nlay()){  // still old bonding scheme!!
+     if(_layer == 1 || _layer ==TKDBc::nlay( ) || TKDBc::NStripsSen(_layer,0)==224){  // still old bonding scheme!!
        //K5       //K7
 //      if(stripx<64)__stripx=3*stripx;
         if(stripx<64){
@@ -2166,6 +2166,682 @@ else if(setup==2){
 
 
  }
+ else if(setup==4){ //9 tracker layers 
+
+
+  _TPed[0]=new char[strlen("TrackerPedestals.2")+1];
+  strcpy(_TPed[0],"TrackerPedestals.2");
+
+  _TSig[0]=new char[strlen("TrackerSigmas.2")+1];
+  strcpy(_TSig[0],"TrackerSigmas.2");
+
+  _TGa[0]=new char[strlen("TrackerGains.2")+1];
+  strcpy(_TGa[0],"TrackerGains.2");
+
+  _TRSig[0]=new char[strlen("TrackerRawSigmas.2")+1];
+  strcpy(_TRSig[0],"TrackerRawSigmas.2");
+
+  _TSt[0]=new char[strlen("TrackerStatus.2")+1];
+  strcpy(_TSt[0],"TrackerStatus.2");
+
+  _TCm=new char[strlen("TrackerCmnNoise.2")+1];
+  strcpy(_TCm,"TrackerCmnNoise.2");
+
+
+   _ncrates=8;
+    const int ntdr24=24;
+  // not so Dummy setup
+  int s;
+  for(s=0;s<_ncrates;s++)_CrateNo[s]=s;
+
+//      
+//      first lad lay 9
+//
+       _GetHard[8][0][0][2]=1; //crate 
+       _GetHard[8][0][0][0]=11; //side x 
+       _GetHard[8][0][0][1]=11; //side y 
+       _GetHard[8][0][1][2]=0; //crate 
+       _GetHard[8][0][1][0]=1; //side x 
+       _GetHard[8][0][1][1]=1; //side y 
+
+
+       _GetHard[0][12][0][2]=1; //crate 
+       _GetHard[0][12][0][0]=2; //side x 
+       _GetHard[0][12][0][1]=2; //side y 
+
+       _GetHard[0][12][1][2]=0; //crate 
+       _GetHard[0][12][1][0]=4; //side x 
+       _GetHard[0][12][1][1]=4; //side y 
+
+       _GetHard[0][11][0][2]=1; //crate 
+       _GetHard[0][11][0][0]=10; //side x 
+       _GetHard[0][11][0][1]=10; //side y 
+       _GetHard[0][11][1][2]=0; //crate 
+       _GetHard[0][11][1][0]=0; //side x 
+       _GetHard[0][11][1][1]=0; //side y 
+       _GetHard[0][10][0][2]=1; //crate 
+       _GetHard[0][10][0][0]=13; //side x 
+       _GetHard[0][10][0][1]=13; //side y 
+       _GetHard[0][10][1][2]=0; //crate 
+       _GetHard[0][10][1][0]=13; //side x 
+       _GetHard[0][10][1][1]=13; //side y 
+       _GetHard[0][9][0][2]=1; //crate 
+       _GetHard[0][9][0][0]=16; //side x 
+       _GetHard[0][9][0][1]=16; //side y 
+       _GetHard[0][9][1][2]=0; //crate 
+       _GetHard[0][9][1][0]=16; //side x 
+       _GetHard[0][9][1][1]=16; //side y 
+       _GetHard[0][8][0][2]=1; //crate 
+       _GetHard[0][8][0][0]=12; //side x 
+       _GetHard[0][8][0][1]=12; //side y 
+       _GetHard[0][8][1][2]=0; //crate 
+       _GetHard[0][8][1][0]=12; //side x 
+       _GetHard[0][8][1][1]=12; //side y 
+       _GetHard[0][7][0][2]=2; //crate 
+       _GetHard[0][7][0][0]=10; //side x 
+       _GetHard[0][7][0][1]=10; //side y 
+       _GetHard[0][7][1][2]=0; //crate 
+       _GetHard[0][7][1][0]=11; //side x 
+       _GetHard[0][7][1][1]=11; //side y 
+       _GetHard[0][6][0][2]=2; //crate 
+       _GetHard[0][6][0][0]=6; //side x 
+       _GetHard[0][6][0][1]=6; //side y 
+       _GetHard[0][6][1][2]=0; //crate 
+       _GetHard[0][6][1][0]=6; //side x 
+       _GetHard[0][6][1][1]=6; //side y 
+       _GetHard[0][5][0][2]=2; //crate 
+       _GetHard[0][5][0][0]=11; //side x 
+       _GetHard[0][5][0][1]=11; //side y 
+       _GetHard[0][5][1][2]=0; //crate 
+       _GetHard[0][5][1][0]=10; //side x 
+       _GetHard[0][5][1][1]=10; //side y 
+       _GetHard[0][4][0][2]=2; //crate 
+       _GetHard[0][4][0][0]=12; //side x 
+       _GetHard[0][4][0][1]=12; //side y 
+       _GetHard[0][4][1][2]=3; //crate 
+       _GetHard[0][4][1][0]=12; //side x 
+       _GetHard[0][4][1][1]=12; //side y 
+       _GetHard[0][3][0][2]=2; //crate 
+       _GetHard[0][3][0][0]=16; //side x 
+       _GetHard[0][3][0][1]=16; //side y 
+       _GetHard[0][3][1][2]=3; //crate 
+       _GetHard[0][3][1][0]=16; //side x 
+       _GetHard[0][3][1][1]=16; //side y 
+       _GetHard[0][2][0][2]=2; //crate 
+       _GetHard[0][2][0][0]=13; //side x 
+       _GetHard[0][2][0][1]=13; //side y 
+       _GetHard[0][2][1][2]=3; //crate 
+       _GetHard[0][2][1][0]=13; //side x 
+       _GetHard[0][2][1][1]=13; //side y 
+       _GetHard[0][1][0][2]=2; //crate 
+       _GetHard[0][1][0][0]=0; //side x 
+       _GetHard[0][1][0][1]=0; //side y 
+       _GetHard[0][1][1][2]=3; //crate 
+       _GetHard[0][1][1][0]=10; //side x 
+       _GetHard[0][1][1][1]=10; //side y 
+       _GetHard[0][0][0][2]=2; //crate 
+       _GetHard[0][0][0][0]=4; //side x 
+       _GetHard[0][0][0][1]=4; //side y 
+
+       _GetHard[0][0][1][2]=3; //crate 
+       _GetHard[0][0][1][0]=2; //side x 
+       _GetHard[0][0][1][1]=2; //side y 
+
+// 2nd ladder layer 9
+
+       _GetHard[8][1][0][2]=2; //crate 
+       _GetHard[8][1][0][0]=1; //side x 
+       _GetHard[8][1][0][1]=1; //side y 
+       _GetHard[8][1][1][2]=3; //crate 
+       _GetHard[8][1][1][0]=11; //side x 
+       _GetHard[8][1][1][1]=11; //side y 
+
+//7 th
+
+       _GetHard[8][6][0][2]=1; //crate 
+       _GetHard[8][6][0][0]=6; //side x 
+       _GetHard[8][6][0][1]=6; //side y 
+
+       _GetHard[8][6][1][2]=1; //crate 
+       _GetHard[8][6][1][0]=3; //side x 
+       _GetHard[8][6][1][1]=3; //side y 
+
+
+       _GetHard[2][2][0][2]=1; //crate 
+       _GetHard[2][2][0][0]=14; //side x 
+       _GetHard[2][2][0][1]=14; //side y 
+       _GetHard[2][2][1][2]=0; //crate 
+       _GetHard[2][2][1][0]=8; //side x 
+       _GetHard[2][2][1][1]=8; //side y 
+       _GetHard[2][3][0][2]=1; //crate 
+       _GetHard[2][3][0][0]=22; //side x 
+       _GetHard[2][3][0][1]=22; //side y 
+       _GetHard[2][3][1][2]=0; //crate 
+       _GetHard[2][3][1][0]=20; //side x 
+       _GetHard[2][3][1][1]=20; //side y 
+       _GetHard[2][4][0][2]=1; //crate 
+       _GetHard[2][4][0][0]=20; //side x 
+       _GetHard[2][4][0][1]=20; //side y 
+       _GetHard[2][4][1][2]=0; //crate 
+       _GetHard[2][4][1][0]=22; //side x 
+       _GetHard[2][4][1][1]=22; //side y 
+       _GetHard[2][5][0][2]=1; //crate 
+       _GetHard[2][5][0][0]=8; //side x 
+       _GetHard[2][5][0][1]=8; //side y 
+       _GetHard[2][5][1][2]=0; //crate 
+       _GetHard[2][5][1][0]=14; //side x 
+       _GetHard[2][5][1][1]=14; //side y 
+       _GetHard[2][6][0][2]=1; //crate 
+       _GetHard[2][6][0][0]=0; //side x 
+       _GetHard[2][6][0][1]=0; //side y 
+       _GetHard[2][6][1][2]=0; //crate 
+       _GetHard[2][6][1][0]=2; //side x 
+       _GetHard[2][6][1][1]=2; //side y 
+       _GetHard[2][7][0][2]=2; //crate 
+       _GetHard[2][7][0][0]=2; //side x 
+       _GetHard[2][7][0][1]=2; //side y 
+       _GetHard[2][7][1][2]=3; //crate 
+       _GetHard[2][7][1][0]=0; //side x 
+       _GetHard[2][7][1][1]=0; //side y 
+       _GetHard[2][8][0][2]=2; //crate 
+       _GetHard[2][8][0][0]=14; //side x 
+       _GetHard[2][8][0][1]=14; //side y 
+       _GetHard[2][8][1][2]=3; //crate 
+       _GetHard[2][8][1][0]=8; //side x 
+       _GetHard[2][8][1][1]=8; //side y 
+       _GetHard[2][9][0][2]=2; //crate 
+       _GetHard[2][9][0][0]=22; //side x 
+       _GetHard[2][9][0][1]=22; //side y 
+       _GetHard[2][9][1][2]=3; //crate 
+       _GetHard[2][9][1][0]=20; //side x 
+       _GetHard[2][9][1][1]=20; //side y 
+       _GetHard[2][10][0][2]=2; //crate 
+       _GetHard[2][10][0][0]=20; //side x 
+       _GetHard[2][10][0][1]=20; //side y 
+       _GetHard[2][10][1][2]=3; //crate 
+       _GetHard[2][10][1][0]=22; //side x 
+       _GetHard[2][10][1][1]=22; //side y 
+       _GetHard[2][11][0][2]=2; //crate 
+       _GetHard[2][11][0][0]=8; //side x 
+       _GetHard[2][11][0][1]=8; //side y 
+       _GetHard[2][11][1][2]=3; //crate 
+       _GetHard[2][11][1][0]=14; //side x 
+       _GetHard[2][11][1][1]=14; //side y 
+       _GetHard[2][12][1][2]=3; //crate 
+       _GetHard[2][12][1][0]=3; //side x 
+       _GetHard[2][12][1][1]=3; //side y 
+
+       _GetHard[2][13][1][2]=3; //crate 
+       _GetHard[2][13][1][0]=6; //side x 
+       _GetHard[2][13][1][1]=6; //side y 
+
+       _GetHard[3][11][0][2]=1; //crate 
+       _GetHard[3][11][0][0]=7; //side x 
+       _GetHard[3][11][0][1]=7; //side y 
+       _GetHard[3][10][0][2]=1; //crate 
+       _GetHard[3][10][0][0]=19; //side x 
+       _GetHard[3][10][0][1]=19; //side y 
+       _GetHard[3][10][1][2]=0; //crate 
+       _GetHard[3][10][1][0]=5; //side x 
+       _GetHard[3][10][1][1]=5; //side y 
+       _GetHard[3][9][0][2]=1; //crate 
+       _GetHard[3][9][0][0]=23; //side x 
+       _GetHard[3][9][0][1]=23; //side y 
+       _GetHard[3][9][1][2]=0; //crate 
+       _GetHard[3][9][1][0]=17; //side x 
+       _GetHard[3][9][1][1]=17; //side y 
+       _GetHard[3][8][0][2]=1; //crate 
+       _GetHard[3][8][0][0]=17; //side x 
+       _GetHard[3][8][0][1]=17; //side y 
+       _GetHard[3][8][1][2]=0; //crate 
+       _GetHard[3][8][1][0]=23; //side x 
+       _GetHard[3][8][1][1]=23; //side y 
+       _GetHard[3][7][0][2]=1; //crate 
+       _GetHard[3][7][0][0]=5; //side x 
+       _GetHard[3][7][0][1]=5; //side y 
+       _GetHard[3][7][1][2]=0; //crate 
+       _GetHard[3][7][1][0]=19; //side x 
+       _GetHard[3][7][1][1]=19; //side y 
+       _GetHard[3][6][0][2]=1; //crate 
+       _GetHard[3][6][0][0]=1; //side x 
+       _GetHard[3][6][0][1]=1; //side y 
+       _GetHard[3][6][1][2]=0; //crate 
+       _GetHard[3][6][1][0]=7; //side x 
+       _GetHard[3][6][1][1]=7; //side y 
+       _GetHard[3][5][0][2]=2; //crate 
+       _GetHard[3][5][0][0]=7; //side x 
+       _GetHard[3][5][0][1]=7; //side y 
+       _GetHard[3][5][1][2]=3; //crate 
+       _GetHard[3][5][1][0]=1; //side x 
+       _GetHard[3][5][1][1]=1; //side y 
+       _GetHard[3][4][0][2]=2; //crate 
+       _GetHard[3][4][0][0]=19; //side x 
+       _GetHard[3][4][0][1]=19; //side y 
+       _GetHard[3][4][1][2]=3; //crate 
+       _GetHard[3][4][1][0]=5; //side x 
+       _GetHard[3][4][1][1]=5; //side y 
+       _GetHard[3][3][0][2]=2; //crate 
+       _GetHard[3][3][0][0]=23; //side x 
+       _GetHard[3][3][0][1]=23; //side y 
+       _GetHard[3][3][1][2]=3; //crate 
+       _GetHard[3][3][1][0]=17; //side x 
+       _GetHard[3][3][1][1]=17; //side y 
+       _GetHard[3][2][0][2]=2; //crate 
+       _GetHard[3][2][0][0]=17; //side x 
+       _GetHard[3][2][0][1]=17; //side y 
+       _GetHard[3][2][1][2]=3; //crate 
+       _GetHard[3][2][1][0]=23; //side x 
+       _GetHard[3][2][1][1]=23; //side y 
+       _GetHard[3][1][0][2]=2; //crate 
+       _GetHard[3][1][0][0]=5; //side x 
+       _GetHard[3][1][0][1]=5; //side y 
+       _GetHard[3][1][1][2]=3; //crate 
+       _GetHard[3][1][1][0]=19; //side x 
+       _GetHard[3][1][1][1]=19; //side y 
+       _GetHard[3][0][1][2]=3; //crate 
+       _GetHard[3][0][1][0]=7; //side x 
+       _GetHard[3][0][1][1]=7; //side y 
+       _GetHard[3][0][0][2]=1; //crate 
+       _GetHard[3][0][0][0]=15; //side x 
+       _GetHard[3][0][0][1]=15; //side y 
+
+       _GetHard[4][0][1][2]=0; //crate 
+       _GetHard[4][0][1][0]=9; //side x 
+       _GetHard[4][0][1][1]=9; //side y 
+       _GetHard[4][1][0][2]=1; //crate 
+       _GetHard[4][1][0][0]=18; //side x 
+       _GetHard[4][1][0][1]=18; //side y 
+       _GetHard[4][1][1][2]=0; //crate 
+       _GetHard[4][1][1][0]=21; //side x 
+       _GetHard[4][1][1][1]=21; //side y 
+       _GetHard[4][2][0][2]=1; //crate 
+       _GetHard[4][2][0][0]=21; //side x 
+       _GetHard[4][2][0][1]=21; //side y 
+       _GetHard[4][2][1][2]=0; //crate 
+       _GetHard[4][2][1][0]=18; //side x 
+       _GetHard[4][2][1][1]=18; //side y 
+       _GetHard[4][3][0][2]=1; //crate 
+       _GetHard[4][3][0][0]=9; //side x 
+       _GetHard[4][3][0][1]=9; //side y 
+       _GetHard[4][3][1][2]=0; //crate 
+       _GetHard[4][3][1][0]=15; //side x 
+       _GetHard[4][3][1][1]=15; //side y 
+       _GetHard[4][4][0][2]=1; //crate 
+       _GetHard[4][4][0][0]=4; //side x 
+       _GetHard[4][4][0][1]=4; //side y 
+       _GetHard[4][4][1][2]=0; //crate 
+       _GetHard[4][4][1][0]=3; //side x 
+       _GetHard[4][4][1][1]=3; //side y 
+       _GetHard[4][5][0][2]=2; //crate 
+       _GetHard[4][5][0][0]=3; //side x 
+       _GetHard[4][5][0][1]=3; //side y 
+       _GetHard[4][5][1][2]=3; //crate 
+       _GetHard[4][5][1][0]=4; //side x 
+       _GetHard[4][5][1][1]=4; //side y 
+       _GetHard[4][6][0][2]=2; //crate 
+       _GetHard[4][6][0][0]=15; //side x 
+       _GetHard[4][6][0][1]=15; //side y 
+       _GetHard[4][6][1][2]=3; //crate 
+       _GetHard[4][6][1][0]=9; //side x 
+       _GetHard[4][6][1][1]=9; //side y 
+       _GetHard[4][7][0][2]=2; //crate 
+       _GetHard[4][7][0][0]=18; //side x 
+       _GetHard[4][7][0][1]=18; //side y 
+       _GetHard[4][7][1][2]=3; //crate 
+       _GetHard[4][7][1][0]=21; //side x 
+       _GetHard[4][7][1][1]=21; //side y 
+       _GetHard[4][8][0][2]=2; //crate 
+       _GetHard[4][8][0][0]=21; //side x 
+       _GetHard[4][8][0][1]=21; //side y 
+       _GetHard[4][8][1][2]=3; //crate 
+       _GetHard[4][8][1][0]=18; //side x 
+       _GetHard[4][8][1][1]=18; //side y 
+       _GetHard[4][9][0][2]=2; //crate 
+       _GetHard[4][9][0][0]=9; //side x 
+       _GetHard[4][9][0][1]=9; //side y 
+       _GetHard[4][9][1][2]=3; //crate 
+       _GetHard[4][9][1][0]=15; //side x 
+       _GetHard[4][9][1][1]=15; //side y 
+
+       _GetHard[5][9][0][2]=5; //crate 
+       _GetHard[5][9][0][0]=21; //side x 
+       _GetHard[5][9][0][1]=21; //side y 
+       _GetHard[5][9][1][2]=4; //crate 
+       _GetHard[5][9][1][0]=3; //side x 
+       _GetHard[5][9][1][1]=3; //side y 
+       _GetHard[5][8][0][2]=5; //crate 
+       _GetHard[5][8][0][0]=16; //side x 
+       _GetHard[5][8][0][1]=16; //side y 
+       _GetHard[5][8][1][2]=4; //crate 
+       _GetHard[5][8][1][0]=15; //side x 
+       _GetHard[5][8][1][1]=15; //side y 
+       _GetHard[5][7][0][2]=5; //crate 
+       _GetHard[5][7][0][0]=15; //side x 
+       _GetHard[5][7][0][1]=15; //side y 
+       _GetHard[5][7][1][2]=4; //crate 
+       _GetHard[5][7][1][0]=16; //side x 
+       _GetHard[5][7][1][1]=16; //side y 
+       _GetHard[5][6][0][2]=5; //crate 
+       _GetHard[5][6][0][0]=3; //side x 
+       _GetHard[5][6][0][1]=3; //side y 
+       _GetHard[5][6][1][2]=4; //crate 
+       _GetHard[5][6][1][0]=21; //side x 
+       _GetHard[5][6][1][1]=21; //side y 
+       _GetHard[5][5][0][2]=5; //crate 
+       _GetHard[5][5][0][0]=6; //side x 
+       _GetHard[5][5][0][1]=6; //side y 
+       _GetHard[5][5][1][2]=4; //crate 
+       _GetHard[5][5][1][0]=9; //side x 
+       _GetHard[5][5][1][1]=9; //side y 
+       _GetHard[5][4][0][2]=6; //crate 
+       _GetHard[5][4][0][0]=9; //side x 
+       _GetHard[5][4][0][1]=9; //side y 
+       _GetHard[5][4][1][2]=7; //crate 
+       _GetHard[5][4][1][0]=6; //side x 
+       _GetHard[5][4][1][1]=6; //side y 
+       _GetHard[5][3][0][2]=6; //crate 
+       _GetHard[5][3][0][0]=21; //side x 
+       _GetHard[5][3][0][1]=21; //side y 
+       _GetHard[5][3][1][2]=7; //crate 
+       _GetHard[5][3][1][0]=3; //side x 
+       _GetHard[5][3][1][1]=3; //side y 
+       _GetHard[5][2][0][2]=6; //crate 
+       _GetHard[5][2][0][0]=16; //side x 
+       _GetHard[5][2][0][1]=16; //side y 
+       _GetHard[5][2][1][2]=7; //crate 
+       _GetHard[5][2][1][0]=15; //side x 
+       _GetHard[5][2][1][1]=15; //side y 
+       _GetHard[5][1][0][2]=6; //crate 
+       _GetHard[5][1][0][0]=15; //side x 
+       _GetHard[5][1][0][1]=15; //side y 
+       _GetHard[5][1][1][2]=7; //crate 
+       _GetHard[5][1][1][0]=16; //side x 
+       _GetHard[5][1][1][1]=16; //side y 
+       _GetHard[5][0][0][2]=6; //crate 
+       _GetHard[5][0][0][0]=3; //side x 
+       _GetHard[5][0][0][1]=3; //side y 
+       _GetHard[5][0][1][2]=7; //crate 
+       _GetHard[5][0][1][0]=21; //side x 
+       _GetHard[5][0][1][1]=21; //side y 
+
+       _GetHard[6][0][0][2]=5; //crate 
+       _GetHard[6][0][0][0]=5; //side x 
+       _GetHard[6][0][0][1]=5; //side y 
+       _GetHard[6][1][0][2]=5; //crate 
+       _GetHard[6][1][0][0]=17; //side x 
+       _GetHard[6][1][0][1]=17; //side y 
+       _GetHard[6][1][1][2]=4; //crate 
+       _GetHard[6][1][1][0]=7; //side x 
+       _GetHard[6][1][1][1]=7; //side y 
+       _GetHard[6][2][0][2]=5; //crate 
+       _GetHard[6][2][0][0]=13; //side x 
+       _GetHard[6][2][0][1]=13; //side y 
+       _GetHard[6][2][1][2]=4; //crate 
+       _GetHard[6][2][1][0]=19; //side x 
+       _GetHard[6][2][1][1]=19; //side y 
+       _GetHard[6][3][0][2]=5; //crate 
+       _GetHard[6][3][0][0]=19; //side x 
+       _GetHard[6][3][0][1]=19; //side y 
+       _GetHard[6][3][1][2]=4; //crate 
+       _GetHard[6][3][1][0]=13; //side x 
+       _GetHard[6][3][1][1]=13; //side y 
+       _GetHard[6][4][0][2]=5; //crate 
+       _GetHard[6][4][0][0]=7; //side x 
+       _GetHard[6][4][0][1]=7; //side y 
+       _GetHard[6][4][1][2]=4; //crate 
+       _GetHard[6][4][1][0]=17; //side x 
+       _GetHard[6][4][1][1]=17; //side y 
+       _GetHard[6][5][0][2]=5; //crate 
+       _GetHard[6][5][0][0]=11; //side x 
+       _GetHard[6][5][0][1]=11; //side y 
+       _GetHard[6][5][1][2]=4; //crate 
+       _GetHard[6][5][1][0]=5; //side x 
+       _GetHard[6][5][1][1]=5; //side y 
+       _GetHard[6][6][0][2]=6; //crate 
+       _GetHard[6][6][0][0]=5; //side x 
+       _GetHard[6][6][0][1]=5; //side y 
+       _GetHard[6][6][1][2]=7; //crate 
+       _GetHard[6][6][1][0]=11; //side x 
+       _GetHard[6][6][1][1]=11; //side y 
+       _GetHard[6][7][0][2]=6; //crate 
+       _GetHard[6][7][0][0]=17; //side x 
+       _GetHard[6][7][0][1]=17; //side y 
+       _GetHard[6][7][1][2]=7; //crate 
+       _GetHard[6][7][1][0]=7; //side x 
+       _GetHard[6][7][1][1]=7; //side y 
+       _GetHard[6][8][0][2]=6; //crate 
+       _GetHard[6][8][0][0]=13; //side x 
+       _GetHard[6][8][0][1]=13; //side y 
+       _GetHard[6][8][1][2]=7; //crate 
+       _GetHard[6][8][1][0]=19; //side x 
+       _GetHard[6][8][1][1]=19; //side y 
+       _GetHard[6][9][0][2]=6; //crate 
+       _GetHard[6][9][0][0]=19; //side x 
+       _GetHard[6][9][0][1]=19; //side y 
+       _GetHard[6][9][1][2]=7; //crate 
+       _GetHard[6][9][1][0]=13; //side x 
+       _GetHard[6][9][1][1]=13; //side y 
+       _GetHard[6][10][0][2]=6; //crate 
+       _GetHard[6][10][0][0]=7; //side x 
+       _GetHard[6][10][0][1]=7; //side y 
+       _GetHard[6][10][1][2]=7; //crate 
+       _GetHard[6][10][1][0]=17; //side x 
+       _GetHard[6][10][1][1]=17; //side y 
+       _GetHard[6][11][1][2]=7; //crate 
+       _GetHard[6][11][1][0]=5; //side x 
+       _GetHard[6][11][1][1]=5; //side y 
+
+//8th 
+
+       _GetHard[8][7][0][2]=5; //crate 
+       _GetHard[8][7][0][0]=4; //side x 
+       _GetHard[8][7][0][1]=4; //side y 
+       
+       _GetHard[8][7][1][2]=5; //crate 
+       _GetHard[8][7][1][0]=9; //side x 
+       _GetHard[8][7][1][1]=9; //side y 
+  
+       _GetHard[7][11][0][2]=5; //crate 
+       _GetHard[7][11][0][0]=20; //side x 
+       _GetHard[7][11][0][1]=20; //side y 
+       _GetHard[7][11][1][2]=4; //crate 
+       _GetHard[7][11][1][0]=2; //side x 
+       _GetHard[7][11][1][1]=2; //side y 
+       _GetHard[7][10][0][2]=5; //crate 
+       _GetHard[7][10][0][0]=12; //side x 
+       _GetHard[7][10][0][1]=12; //side y 
+       _GetHard[7][10][1][2]=4; //crate 
+       _GetHard[7][10][1][0]=14; //side x 
+       _GetHard[7][10][1][1]=14; //side y 
+       _GetHard[7][9][0][2]=5; //crate 
+       _GetHard[7][9][0][0]=14; //side x 
+       _GetHard[7][9][0][1]=14; //side y 
+       _GetHard[7][9][1][2]=4; //crate 
+       _GetHard[7][9][1][0]=12; //side x 
+       _GetHard[7][9][1][1]=12; //side y 
+       _GetHard[7][8][0][2]=5; //crate 
+       _GetHard[7][8][0][0]=2; //side x 
+       _GetHard[7][8][0][1]=2; //side y 
+       _GetHard[7][8][1][2]=4; //crate 
+       _GetHard[7][8][1][0]=20; //side x 
+       _GetHard[7][8][1][1]=20; //side y 
+       _GetHard[7][7][0][2]=5; //crate 
+       _GetHard[7][7][0][0]=10; //side x 
+       _GetHard[7][7][0][1]=10; //side y 
+       _GetHard[7][7][1][2]=4; //crate 
+       _GetHard[7][7][1][0]=8; //side x 
+       _GetHard[7][7][1][1]=8; //side y 
+       _GetHard[7][6][0][2]=6; //crate 
+       _GetHard[7][6][0][0]=8; //side x 
+       _GetHard[7][6][0][1]=8; //side y 
+       _GetHard[7][6][1][2]=7; //crate 
+       _GetHard[7][6][1][0]=10; //side x 
+       _GetHard[7][6][1][1]=10; //side y 
+       _GetHard[7][5][0][2]=6; //crate 
+       _GetHard[7][5][0][0]=20; //side x 
+       _GetHard[7][5][0][1]=20; //side y 
+       _GetHard[7][5][1][2]=7; //crate 
+       _GetHard[7][5][1][0]=2; //side x 
+       _GetHard[7][5][1][1]=2; //side y 
+       _GetHard[7][4][0][2]=6; //crate 
+       _GetHard[7][4][0][0]=12; //side x 
+       _GetHard[7][4][0][1]=12; //side y 
+       _GetHard[7][4][1][2]=7; //crate 
+       _GetHard[7][4][1][0]=14; //side x 
+       _GetHard[7][4][1][1]=14; //side y 
+       _GetHard[7][3][0][2]=6; //crate 
+       _GetHard[7][3][0][0]=14; //side x 
+       _GetHard[7][3][0][1]=14; //side y 
+       _GetHard[7][3][1][2]=7; //crate 
+       _GetHard[7][3][1][0]=12; //side x 
+       _GetHard[7][3][1][1]=12; //side y 
+       _GetHard[7][2][0][2]=6; //crate 
+       _GetHard[7][2][0][0]=2; //side x 
+       _GetHard[7][2][0][1]=2; //side y 
+       _GetHard[7][2][1][2]=7; //crate 
+       _GetHard[7][2][1][0]=20; //side x 
+       _GetHard[7][2][1][1]=20; //side y 
+       _GetHard[7][1][1][2]=7; //crate 
+       _GetHard[7][1][1][0]=9; //side x 
+       _GetHard[7][1][1][1]=9; //side y 
+
+       _GetHard[7][0][1][2]=7; //crate 
+       _GetHard[7][0][1][0]=4; //side x 
+       _GetHard[7][0][1][1]=4; //side y 
+
+
+
+       _GetHard[1][0][0][2]=5; //crate 
+       _GetHard[1][0][0][0]=1; //side x 
+       _GetHard[1][0][0][1]=1; //side y 
+       _GetHard[1][0][1][2]=4; //crate 
+       _GetHard[1][0][1][0]=11; //side x 
+       _GetHard[1][0][1][1]=11; //side y 
+
+       _GetHard[1][1][0][2]=5; //crate 
+       _GetHard[1][1][0][0]=8; //side x 
+       _GetHard[1][1][0][1]=8; //side y 
+
+       _GetHard[1][1][1][2]=4; //crate 
+       _GetHard[1][1][1][0]=6; //side x 
+       _GetHard[1][1][1][1]=6; //side y 
+       _GetHard[1][2][0][2]=5; //crate 
+       _GetHard[1][2][0][0]=0; //side x 
+       _GetHard[1][2][0][1]=0; //side y 
+       _GetHard[1][2][1][2]=4; //crate 
+       _GetHard[1][2][1][0]=10; //side x 
+       _GetHard[1][2][1][1]=10; //side y 
+       _GetHard[1][3][0][2]=5; //crate 
+       _GetHard[1][3][0][0]=23; //side x 
+       _GetHard[1][3][0][1]=23; //side y 
+       _GetHard[1][3][1][2]=4; //crate 
+       _GetHard[1][3][1][0]=23; //side x 
+       _GetHard[1][3][1][1]=23; //side y 
+       _GetHard[1][4][0][2]=5; //crate 
+       _GetHard[1][4][0][0]=18; //side x 
+       _GetHard[1][4][0][1]=18; //side y 
+       _GetHard[1][4][1][2]=4; //crate 
+       _GetHard[1][4][1][0]=18; //side x 
+       _GetHard[1][4][1][1]=18; //side y 
+       _GetHard[1][5][0][2]=5; //crate 
+       _GetHard[1][5][0][0]=22; //side x 
+       _GetHard[1][5][0][1]=22; //side y 
+       _GetHard[1][5][1][2]=4; //crate 
+       _GetHard[1][5][1][0]=22; //side x 
+       _GetHard[1][5][1][1]=22; //side y 
+       _GetHard[1][6][0][2]=6; //crate 
+       _GetHard[1][6][0][0]=0; //side x 
+       _GetHard[1][6][0][1]=0; //side y 
+       _GetHard[1][6][1][2]=4; //crate 
+       _GetHard[1][6][1][0]=1; //side x 
+       _GetHard[1][6][1][1]=1; //side y 
+       _GetHard[1][7][0][2]=6; //crate 
+       _GetHard[1][7][0][0]=4; //side x 
+       _GetHard[1][7][0][1]=4; //side y 
+       _GetHard[1][7][1][2]=4; //crate 
+       _GetHard[1][7][1][0]=4; //side x 
+       _GetHard[1][7][1][1]=4; //side y 
+       _GetHard[1][8][0][2]=6; //crate 
+       _GetHard[1][8][0][0]=1; //side x 
+       _GetHard[1][8][0][1]=1; //side y 
+       _GetHard[1][8][1][2]=4; //crate 
+       _GetHard[1][8][1][0]=0; //side x 
+       _GetHard[1][8][1][1]=0; //side y 
+       _GetHard[1][9][0][2]=6; //crate 
+       _GetHard[1][9][0][0]=22; //side x 
+       _GetHard[1][9][0][1]=22; //side y 
+
+       _GetHard[1][9][1][2]=7; //crate 
+       _GetHard[1][9][1][0]=23; //side x 
+       _GetHard[1][9][1][1]=23; //side y 
+
+       _GetHard[1][10][0][2]=6; //crate 
+       _GetHard[1][10][0][0]=18; //side x 
+       _GetHard[1][10][0][1]=18; //side y 
+       _GetHard[1][10][1][2]=7; //crate 
+       _GetHard[1][10][1][0]=18; //side x 
+       _GetHard[1][10][1][1]=18; //side y 
+
+//     
+//     3,4,5,6 
+//   
+        
+
+       _GetHard[8][2][0][2]=6; //crate 
+       _GetHard[8][2][0][0]=23; //side x 
+       _GetHard[8][2][0][1]=23; //side y 
+
+       _GetHard[8][2][1][2]=7; //crate 
+       _GetHard[8][2][1][0]=22; //side x 
+       _GetHard[8][2][1][1]=22; //side y 
+
+       _GetHard[8][3][0][2]=6; //crate 
+       _GetHard[8][3][0][0]=10; //side x 
+       _GetHard[8][3][0][1]=10; //side y 
+       _GetHard[8][3][1][2]=7; //crate 
+       _GetHard[8][3][1][0]=0; //side x 
+       _GetHard[8][3][1][1]=0; //side y 
+       _GetHard[8][4][0][2]=6; //crate 
+       _GetHard[8][4][0][0]=6; //side x 
+       _GetHard[8][4][0][1]=6; //side y 
+
+       _GetHard[8][4][1][2]=7; //crate 
+       _GetHard[8][4][1][0]=8; //side x 
+       _GetHard[8][4][1][1]=8; //side y 
+
+       _GetHard[8][5][0][2]=6; //crate 
+       _GetHard[8][5][0][0]=11; //side x 
+       _GetHard[8][5][0][1]=11; //side y 
+       _GetHard[8][5][1][2]=7; //crate 
+       _GetHard[8][5][1][0]=1; //side x 
+       _GetHard[8][5][1][1]=1; //side y 
+/*
+  int count=0;
+  // crate contains 24 drp
+  for(s=0;s<2;s++){
+   for(i=0;i<TKDBc::nlay();i++){
+    for(j=0;j<TKDBc::nlad(i+1);j++){
+     if(TKDBc::activeladdshuttle(i+1,j+1,s)){
+     
+     if(count/ntdr24 >= _ncrates){
+      cerr<<"AMSTrIdSoft::inttab-F-Wrong crates no "<<count<<endl;
+      exit(1);
+     }
+      
+     _GetHard[i][j][s][2]=count/ntdr24;            //crate
+     _GetHard[i][j][s][0]=count%ntdr24;     //side x
+     _GetHard[i][j][s][1]=count%ntdr24;     //side y
+      count++;
+    }
+    }
+   }
+  }
+  cout <<" max crate number "<<(count-1)/ntdr24<<endl;
+*/
+
+
+ }
+
 
 
 
@@ -2233,7 +2909,7 @@ void AMSTrIdGeom::init(){
       for(j=0;j<2;j++){
         _swxy[i][j]=new number[TKDBc::NStripsSen(i+1,j)];
         if(j==0){
-          if(i==0 || i==TKDBc::nlay()-1){
+          if(i==0 || i==TKDBc::nlay()-1 || TKDBc::NStripsSen(i+1,j)==224){
            number st=0.0052;
            _swxy[i][j][0]=2*st;
            for(k=1;k<63;k++)_swxy[i][j][k]=3*st;

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.213 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: root.C,v 1.214 2010/03/21 15:16:30 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2182,6 +2182,7 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   SideLeak    = ptr->_SideLeak;
   RearLeak    = ptr->_RearLeak;
   S13Leak    = ptr->_S13Leak;
+  NLinLeak=ptr->_NLinLeak;
   S13R    = ptr->_S13R;
   DeadLeak    = ptr->_DeadLeak;
   AttLeak     = ptr->_AttLeak;
@@ -2326,12 +2327,12 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
       EcalCoo[i][j] = ptr->_EcalSCoo[i][j];
     }
   }
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<TKDBc::nlay(); i++) {
     for (int j=0; j<3; j++) {
       TrCoo[i][j] = ptr->_TrCoo[i][j];
     }
   }
-  for (int i=0; i<8; i++)  Local[i] = ptr->_Local[i];
+  for (int i=0; i<TKDBc::nlay(); i++)  Local[i] = ptr->_Local[i];
 
   for (int i=0; i<3; i++) {TRDCoo[0][i] = ptr->_TRDCoo[0][i];}
   for (int i=0; i<3; i++) {TRDCoo[1][i] = ptr->_TRDCoo[1][i];}
@@ -2610,7 +2611,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   GChi2           = (float)ptr->_GChi2;
   GRigidity       = (float)ptr->_GRidgidity;;
   GErrRigidity    = (float)ptr->_GErrRidgidity;
-  for(int i=0;i<trconst::maxlay;i++){
+  for(int i=0;i<TKDBc::nlay();i++){
     for(int k=0;k<3;k++){
       Hit[i][k]=(float)ptr->_Hit[i][k];
     }

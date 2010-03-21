@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.284 2010/03/05 17:06:18 choumilo Exp $
+//  $Id: commons.h,v 1.285 2010/03/21 15:16:38 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -906,7 +906,7 @@ COMMON_BLOCK_DEF(GMFFKEY_DEF,GMFFKEY);
 
 const integer nx=41;
 const integer ny=41;
-const integer nz=41;
+const integer nz=180;
 
 //PZMAG #ifndef _PGTRACK_
 class TKFIELD_DEF{
@@ -930,9 +930,9 @@ geant xyz[nx+ny+nz];
 geant bdx[2][nz][ny][nx];
 geant bdy[2][nz][ny][nx];
 geant bdz[2][nz][ny][nx];
-geant bxc[nz][ny][nx];
-geant byc[nz][ny][nx];
-geant bzc[nz][ny][nx];
+//geant bxc[nz][ny][nx];
+//geant byc[nz][ny][nx];
+//geant bzc[nz][ny][nx];
 
 };
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
