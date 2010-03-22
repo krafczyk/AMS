@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.137 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: richrec.C,v 1.138 2010/03/22 15:32:20 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -572,20 +572,31 @@ int     AMSRichRing::_tile_index=0;
 
 void AMSRichRing::build(){
   _Start();
+  const integer freq=10;
+  static integer trig=0;
+#pragma omp threadprivate(trig)
+  trig=(trig+1)%freq;
+
   // Build all the tracks 
-  
   AMSTrTrack *track;
 
   int j=0,k=0;
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
     if(!track) break;
-    if(RICRECFFKEY.recon[0]%10==2)
-      for(;track;track=track->next()) {if(build(track,10))k++;j++;}
-    else
-      for(;track;track=track->next()) {if(build(track))k++;j++;}
-  }
 
+    for(;track;track=track->next()){
+      if(RICRECFFKEY.recon[0]%10==2)
+	{if(build(track,10))k++;j++;}
+      else
+	{if(build(track))k++;j++;}
+
+      if(trig==0 && _NoMoreTime()){
+	throw amsglobalerror(" AMSRichRing::build-E-Cpulimit Exceeded ");
+      }
+
+    }
+  }
 }
 
 // DEFINE THIS AS 1 FOR DEBUG OUTPUT
@@ -959,14 +970,6 @@ void AMSRichRing::CalcBetaError(){
 geant AMSRichRing::_Time=0;
 
 void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigmas used 
-const integer freq=10;
-static integer trig=0;
-#pragma omp threadprivate(trig)
-trig=(trig+1)%freq;
-           if(trig==0 && _NoMoreTime()){
-            throw amsglobalerror(" AMSRichRing::ReconRingNpexp-E-Cpulimit Exceeded ");
-           }
-
   AMSPoint local_pos=_entrance_p;
   AMSDir   local_dir=_entrance_d;
 
@@ -2363,6 +2366,8 @@ const double AMSRichRingNewSet::zphemiloc[] = {
   0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,          //  92-99     NaF
   0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};         // 100-107   TILES
 
+geant AMSRichRingNewSet::_Time=0;
+
 
 AMSRichRingNewSet::AMSRichRingNewSet () {ringset.clear();}
 
@@ -2395,7 +2400,12 @@ void AMSRichRingNewSet::init() {
 
 int AMSRichRingNewSet::NumberOfRings() { return (int)ringset.size();}
 
+integer AMSRichRingNewSet::trig=0;
+
 void AMSRichRingNewSet::build() {
+  _Start();
+  const integer freq=10;
+  trig=(trig+1)%freq;
 
   // Build rec rings for all the tracks 
 
@@ -2446,7 +2456,15 @@ void AMSRichRingNewSet::build() {
 	  k++;
 	  AddRing(pliprec);
 	} 
+
+	if(trig==0 && _NoMoreTime()){
+	  //	  throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+	  return;
+	}
+	
       }
+
+
       
       //flexible standard ams track
       if (lipflag&0x0002 || lipflag&0x0020) {
@@ -2460,6 +2478,12 @@ void AMSRichRingNewSet::build() {
 	  k++;
 	  AddRing(pliprec);
 	} 
+
+	if(trig==0 && _NoMoreTime()){
+	  //	  throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+	  return;
+	}
+
       }
     }
 
@@ -2483,6 +2507,12 @@ void AMSRichRingNewSet::build() {
       k++;
       AddRing(pliprec);
     } 
+
+    if(trig==0 && _NoMoreTime()){
+      //      throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+      return;
+    }
+    
   }
 
   /* TOF track number 2 */
@@ -2497,6 +2527,12 @@ void AMSRichRingNewSet::build() {
       k++;
       AddRing(pliprec);
     } 
+
+    if(trig==0 && _NoMoreTime()){
+      //      throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+      return;
+    }
+
   }
 
   /* TOF track number 3 */
@@ -2511,6 +2547,12 @@ void AMSRichRingNewSet::build() {
       k++;
       AddRing(pliprec);
     } 
+
+    if(trig==0 && _NoMoreTime()){
+      //      throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+      return;
+    }
+
   }
 
   /* TOF track number 4 */
@@ -2525,6 +2567,11 @@ void AMSRichRingNewSet::build() {
       k++;
       AddRing(pliprec);
     } 
+
+    if(trig==0 && _NoMoreTime()){
+      //      throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+      return;
+    }
   }
 
   /* standalone */
@@ -2539,6 +2586,11 @@ void AMSRichRingNewSet::build() {
       k++;
       AddRing(pliprec);
     } 
+
+    if(trig==0 && _NoMoreTime()){
+      //      throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
+      return;
+    }
   }
 
 }

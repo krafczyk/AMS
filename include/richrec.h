@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.65 2010/02/25 14:45:50 pzuccon Exp $
+//  $Id: richrec.h,v 1.66 2010/03/22 15:32:20 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -467,7 +467,6 @@ void anglelip2rich(float thelip, float philip, float &therich, float &phirich);
 class AMSRichRingNewSet {
 
  public:
-
   AMSRichRingNewSet();
   ~AMSRichRingNewSet();
   void reset();
@@ -485,9 +484,11 @@ class AMSRichRingNewSet {
   static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
   static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
   static geant _Time;
+  static integer trig;
+#pragma omp threadprivate(_Time,trig)
 
   static const double zphemiloc[108];
-#pragma omp threadprivate(_Time)
+
 };
 
 
