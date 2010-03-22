@@ -671,7 +671,7 @@ class RemoteClient:
             if((run2p!=0 and run.Run != run2p) ):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
-            if((datamc==0 and run.DataMC==datamc) or mt==1 ):
+            if( run.DataMC==datamc and mt==1 ):
                 exitmutexes[run.Run]=thread.allocate_lock()
                 try:
                     if(datamc==0 and run.DataMC==datamc):
