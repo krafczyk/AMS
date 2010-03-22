@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.698 2010/03/21 15:16:30 choutko Exp $
+// $Id: job.C,v 1.699 2010/03/22 22:18:04 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -99,7 +99,7 @@ tdv_time*  AMSJob::_tdv;
 extern LMS* lms;
 
 #endif
-extern "C" void rkms_init_(float a[]);
+extern "C" void rkmsinit_(float a[]);
 //-
 //
 using namespace AMSChargConst;
@@ -1824,7 +1824,7 @@ if(AMSFFKEY.Update){
     float zpos[trconst::maxlad];
     for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
     for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
-    rkms_init_(zpos); 
+    rkmsinit_(zpos); 
     if(strstr(getsetup(),"AMS02") ){    
     if(strstr(getsetup(),"AMS02Pre") ){    
        cout <<"AMSJob::udata-I-2007TrackerConfigurationRequestred "<<endl;

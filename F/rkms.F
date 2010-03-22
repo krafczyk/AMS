@@ -1,5 +1,5 @@
-*  $Id: rkms.F,v 1.12 2010/03/21 15:16:38 choutko Exp $
-       subroutine rkms_init(zposl)
+*  $Id: rkms.F,v 1.13 2010/03/22 22:18:05 pzuccon Exp $
+       subroutine rkmsinit(zposl)
 #include "rkms.h"
           real zposl(9)
           do k=1,9
@@ -1089,8 +1089,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.12 2010/03/21 15:16:38 choutko Exp $
+* $Id: rkms.F,v 1.13 2010/03/22 22:18:05 pzuccon Exp $
 * $Log: rkms.F,v $
+* Revision 1.13  2010/03/22 22:18:05  pzuccon
+* keep compatibility with SLC4
+*
 * Revision 1.12  2010/03/21 15:16:38  choutko
 * add permanent magnet tracker option (9 layers) via "AMS02P" setup
 *
@@ -1271,8 +1274,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.12 2010/03/21 15:16:38 choutko Exp $
+* $Id: rkms.F,v 1.13 2010/03/22 22:18:05 pzuccon Exp $
 * $Log: rkms.F,v $
+* Revision 1.13  2010/03/22 22:18:05  pzuccon
+* keep compatibility with SLC4
+*
 * Revision 1.12  2010/03/21 15:16:38  choutko
 * add permanent magnet tracker option (9 layers) via "AMS02P" setup
 *
