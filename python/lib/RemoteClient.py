@@ -676,7 +676,7 @@ class RemoteClient:
                 try:
                     if(datamc==0 and run.DataMC==datamc):
                         thread.start_new(self.validaterun,(run,))
-                    else:
+                    elif(datamc==run.DataMC and datamc==1): 
                         thread.start_new(self.validatedatarun,(run,))
                         print "thread started ",run.Run
                     #self.validaterun(run)
@@ -695,7 +695,7 @@ class RemoteClient:
                         time.sleep(1)
                         if(datamc==0 and run.DataMC==datamc):
                             thread.start_new(self.validaterun,(run,))
-                        else:
+                        elif(datamc==run.DataMC and datamc==1): 
                             thread.start_new(self.validatedatarun,(run,))
                 it=1000
                 while(it>=maxt):

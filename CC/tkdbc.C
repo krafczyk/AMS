@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.67 2010/03/21 15:16:30 choutko Exp $
+//  $Id: tkdbc.C,v 1.68 2010/03/22 14:17:40 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2152,7 +2152,7 @@ const number  support_hc_z[maxlay]={-3.052,-3.052,-1.477,-1.477,-1.477,-1.477,-1
              for(int kk=_patpoints[cpat];kk<nlay();kk++){
                   if(_patmiss[kk][cpat]==1 || _patmiss[kk][cpat]==9)i19++;
              }
-             if(i19==2)_patallow[cpat]=0;      
+             //if(i19==2)_patallow[cpat]=0;      
         }         
         }
         }

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.581 2010/02/04 17:51:35 choutko Exp $
+# $Id: RemoteClient.pm,v 1.582 2010/03/22 14:17:41 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1773,7 +1773,7 @@ my $fevt=-1;
                     my @dir=split $run->{Run},$fpath;
                     my $cmd="mkdir -p $dir[0]";
                     my $i=system($cmd);
-                    $cmd="scp -2 -x $host:$fpath $fpath ";
+                    $cmd="scp -2  $host:$fpath $fpath ";
                     if($dir[0]=~/^\/dat0/){
                         $i=1;
                     }
@@ -1936,7 +1936,7 @@ my $fevt=-1;
          } #loop for ntuples
          my $status='Failed';
          if ($copyfailed == 0) {
-          $warn = "Validation done : *TRY* send Delete to DBServer, Run =$run->{Run} \n";
+          $warn = "IIValidation done : *TRY* send Delete to DBServer, Run =$run->{Run} \n";
           print FILEV "$warn \n";
           $self->printWarn($warn);
 #--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
@@ -1975,6 +1975,7 @@ my $fevt=-1;
            }
 
           $sql = "update runs set STATUS='$status' WHERE run=$run->{Run}";
+            warn "executing $sql \n";
                $self->{sqlserver}->Update($sql);
 #
 # Check run lastevent
