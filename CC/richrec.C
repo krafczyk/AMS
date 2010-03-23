@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.138 2010/03/22 15:32:20 mdelgado Exp $
+//  $Id: richrec.C,v 1.139 2010/03/23 17:26:31 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2104,6 +2104,10 @@ int AMSRichRingNew::buildlip(){
 	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
 	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
       }
+      LIPC2F.pthe_main = LIPC2F.pthe_tof;
+      LIPC2F.epthe_main = LIPC2F.epthe_tof;
+      LIPC2F.pphi_main = LIPC2F.pphi_tof;
+      LIPC2F.epphi_main = LIPC2F.epphi_tof;
       LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
       LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
     }
@@ -2120,6 +2124,10 @@ int AMSRichRingNew::buildlip(){
 	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
 	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
       }
+      LIPC2F.pthe_main = LIPC2F.pthe_tof;
+      LIPC2F.epthe_main = LIPC2F.epthe_tof;
+      LIPC2F.pphi_main = LIPC2F.pphi_tof;
+      LIPC2F.epphi_main = LIPC2F.epphi_tof;
       LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
       LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
     }
@@ -2136,6 +2144,10 @@ int AMSRichRingNew::buildlip(){
 	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
 	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
       }
+      LIPC2F.pthe_main = LIPC2F.pthe_tof;
+      LIPC2F.epthe_main = LIPC2F.epthe_tof;
+      LIPC2F.pphi_main = LIPC2F.pphi_tof;
+      LIPC2F.epphi_main = LIPC2F.epphi_tof;
       LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
       LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
     }
@@ -2152,6 +2164,10 @@ int AMSRichRingNew::buildlip(){
 	LIPC2F.pimp_main[i] = LIPC2F.pimp_tof[i];
 	LIPC2F.epimp_main[i] = LIPC2F.epimp_tof[i];
       }
+      LIPC2F.pthe_main = LIPC2F.pthe_tof;
+      LIPC2F.epthe_main = LIPC2F.epthe_tof;
+      LIPC2F.pphi_main = LIPC2F.pphi_tof;
+      LIPC2F.epphi_main = LIPC2F.epphi_tof;
       LIPC2F.pmom_main = 0.;  // momentum is not measured by TOF
       LIPC2F.prad_main = 0; // SHOULD BE FILLED (currently not used in LIP rec)
     }
@@ -2254,59 +2270,59 @@ void AMSRichRingNew::fillresult(){
   cout << "-----------------------------" << endl;
   cout << "DATA STORED IN AMSRichRingNew" << endl;
   cout << "-----------------------------" << endl;
-  cout << "Status = " << done->getStatus() << endl;
-  cout << "Beta = " << done->getBeta() << endl;
-  cout << "AngleRec (deg) = " << 180./3.14159265*done->getAngleRec() << endl;
-  cout << "Chi2 = " << done->getChi2() << endl;
-  cout << "Likelihood = " << done->getLikelihood() << endl;
-  cout << "Used = " << done->getUsed() << endl;
-  cout << "ProbKolm = " << done->getProbKolm() << endl;
+  cout << "Status = " << this->getStatus() << endl;
+  cout << "Beta = " << this->getBeta() << endl;
+  cout << "AngleRec (deg) = " << 180./3.14159265*this->getAngleRec() << endl;
+  cout << "Chi2 = " << this->getChi2() << endl;
+  cout << "Likelihood = " << this->getLikelihood() << endl;
+  cout << "Used = " << this->getUsed() << endl;
+  cout << "ProbKolm = " << this->getProbKolm() << endl;
   cout << "Flatness = ";
   for(int i=0;i<2;i++) {
-    cout << done->getFlatness(i) << " ";
+    cout << this->getFlatness(i) << " ";
   }
   cout << endl;
-  cout << "ChargeRec = " << done->getChargeRec() << endl;
+  cout << "ChargeRec = " << this->getChargeRec() << endl;
   cout << "ChargeProb = ";
   for(int i=0;i<3;i++) {
-    cout << done->getChargeProb(i) << " ";
+    cout << this->getChargeProb(i) << " ";
   }
   cout << endl;
-  cout << "ChargeRecDir = " << done->getChargeRecDir() << endl;
-  cout << "ChargeRecMir = " << done->getChargeRecMir() << endl;
-  cout << "NpeRing = " << done->getNpeRing() << endl;
-  cout << "NpeRingDir = " << done->getNpeRingDir() << endl;
-  cout << "NpeRingRef = " << done->getNpeRingRef() << endl;
+  cout << "ChargeRecDir = " << this->getChargeRecDir() << endl;
+  cout << "ChargeRecMir = " << this->getChargeRecMir() << endl;
+  cout << "NpeRing = " << this->getNpeRing() << endl;
+  cout << "NpeRingDir = " << this->getNpeRingDir() << endl;
+  cout << "NpeRingRef = " << this->getNpeRingRef() << endl;
   cout << "RingAcc = ";
   for(int i=0;i<3;i++) {
-    cout << done->getRingAcc(i) << " ";
+    cout << this->getRingAcc(i) << " ";
   }
   cout << endl;
   cout << "RingEff = ";
   for(int i=0;i<6;i++) {
-    cout << done->getRingEff(i) << " ";
+    cout << this->getRingEff(i) << " ";
   }
   cout << endl;
-  vector<float> tmpHitsResiduals = done->getHitsResiduals();
+  vector<float> tmpHitsResiduals = this->getHitsResiduals();
   cout << "HitsResiduals = ";
   for(int i=0;i<tmpHitsResiduals.size();i++) {
     cout << tmpHitsResiduals[i] << " ";
   }
   cout << endl;
-  vector<int> tmpHitsStatus = done->getHitsStatus();
+  vector<int> tmpHitsStatus = this->getHitsStatus();
   cout << "HitsStatus = ";
   for(int i=0;i<tmpHitsStatus.size();i++) {
     cout << tmpHitsStatus[i] << " ";
   }
   cout << endl;
-  vector<int> tmpHitsAssoc = done->getHitsAssoc();
+  vector<int> tmpHitsAssoc = this->getHitsAssoc();
   cout << "HitsAssoc = ";
   for(int i=0;i<tmpHitsAssoc.size();i++) {
     cout << tmpHitsAssoc[i] << " ";
   }
   cout << endl;
-  vector<float> tmpTrackRec = done->getTrackRec();
-  cout << "HitsTrackRec (7-10 in deg) = ";
+  vector<float> tmpTrackRec = this->getTrackRec();
+  cout << "TrackRec (7-10 in deg) = ";
   for(int i=0;i<tmpTrackRec.size();i++) {
     if(i<6) {
       cout << tmpTrackRec[i] << " ";
