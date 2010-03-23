@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.34 2010/03/21 15:16:38 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.35 2010/03/23 17:22:52 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -404,6 +404,7 @@ public:
     }
     else{
        //ams02p setup
+//       cout <<" ams02p setup "<<endl;
       const int npoint=2+2+9+2+2+3;
       float array[3*npoint];
       int old=0;
@@ -422,7 +423,7 @@ public:
       for(int k=0;k<3;k++)array[3+3+3+k]=pcl->TOFCoo[0][k];
       for(int k=0;k<3;k++)array[3+3+3*2+k]=pcl->TOFCoo[1][k];
       for(int i=1;i<8;i++){
-        for(int k=0;k<3;k++)array[3+3+3*3+3*i+k]=pcl->TrCoo[i][k];
+        for(int k=0;k<3;k++)array[3+3*3+3*i+k]=pcl->TrCoo[i][k];
       }
       for(int k=0;k<3;k++)array[3+3*11+k]=pcl->TOFCoo[2][k];
       for(int k=0;k<3;k++)array[3+3*12+k]=pcl->TOFCoo[3][k];
