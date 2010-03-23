@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.285 2010/03/21 15:16:38 choutko Exp $
+//  $Id: commons.h,v 1.286 2010/03/23 13:33:28 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -169,7 +169,7 @@ class TFMCFFKEY_DEF {
 public:
 geant TimeSigma;
 geant sumHTdel;
-geant TimeProbability2;
+geant canormf;
 geant dzconv;
 geant Thr;
 //

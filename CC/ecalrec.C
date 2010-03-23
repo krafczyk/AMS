@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.135 2010/03/05 12:01:20 choumilo Exp $
+//  $Id: ecalrec.C,v 1.136 2010/03/23 13:33:11 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -55,6 +55,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //
   stat=1;//bad
   bool nopedsubt(false);
+  integer nhitst(0);
 //
   ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptrt){
@@ -110,6 +111,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",nc,0);
     while(ptr){ // <--- RawEvent-hits loop in crate(container):
+      nhitst+=1;
       isl=ptr->getslay();//0->...
       id=ptr->getid();//LTTP
       idd=id/10;//LTT
@@ -145,6 +147,8 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
     cerr<<"<=== AMSEcalRawEvent::validate:-E- Found not PedSubtracted Data while not PedCalJob !!"<<endl;
     return;
   }
+//
+  if(nhitst==0)return;//return with stat=1(bad - empty detector)
 //
 //----> fill arrays for Hi2Low-ratio calc.(in REUN-calibration):
 //

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.207 2010/03/19 08:40:19 choumilo Exp $
+//  $Id: amsgeom.C,v 1.208 2010/03/23 13:33:10 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -35,6 +35,7 @@ extern void tkgeom02(AMSgvolume &);
 extern void tkgeom02d(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
 extern void magnetgeom02(AMSgvolume &);
+extern void magnetgeom02p(AMSgvolume &);
 extern void ext1structure02(AMSgvolume &);
 extern void magnetgeom02o(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
@@ -200,7 +201,7 @@ if (strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
 }
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
  cout <<" AMSGeom-I-AMS02P setup selected."<<endl;
- magnetgeom02(mother);
+ magnetgeom02p(mother);
  tofgeom02(mother);
  ext1structure02(mother);//should be called after tofgeom02 !!!
  tkgeom02(mother);
@@ -891,10 +892,108 @@ AMSgtmed *p;
     
 }
 //------------------------------------------------
+void amsgeom::magnetgeom02p(AMSgvolume & mother){
+// "AMS02P" perm.magnet + case(modified AMS02 vac-case)
+  AMSID amsid;
+  geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+  geant coo[3]={0.,0.,0.};
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+  integer gid;
+  char name[5]="MAGN";
+  AMSNode * cur;
+  AMSNode * dau;
+//
+  geant rmagi(55.75),drmagi(0.3),rmago(65.35),drmago(0.4),magh(80.);
+  geant rmagro(82.5),dzmagr(1.5);
+  geant rflgi1(61.94),rflgi2(62.6),rflgo1(124.14),rflgo2(124.8),conflgh(31.7);//con.flange
+  geant rflgro(137.),dzflgr(2.);//flange 
+  geant rvaco(134.),drvaco(0.2),vach(58.6);//vac-case outer cylinder
+  geant drring2(3.);//flange outer ring2 Dr
+  geant dzmag=magh/2+dzmagr+conflgh;
+//---> magnet+its AL-shell:
+  gid=1;
+  par[0]=rmagi+drmagi;
+  par[1]=rmago-drmago;
+  par[2]=magh/2;
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=0;
+  dau=mother.add(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//magn.body
+  
+  gid=2;
+  par[0]=rmagi;
+  par[1]=rmagi+drmagi;
+  par[2]=magh/2;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHI","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//inn.shell
+  gid=3;
+  par[0]=rmago-drmago;
+  par[1]=rmago;
+  par[2]=magh/2;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHO","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//out.shell
+  
+  par[0]=rmagi;
+  par[1]=rmagro;
+  par[2]=dzmagr/2;
+  coo[2]=magh/2+dzmagr/2;
+  gid=4;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHT","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.shell
+  coo[2]=-coo[2];
+  gid=5;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"MSHB","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.shell
+  
+//---> modified vac.case:
+  par[0]=rvaco;
+  par[1]=rvaco+drvaco;
+  par[2]=vach;
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=0;
+  gid=6;
+  dau=mother.add(new AMSgvolume("MVCASEMED",0,"VCCL","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//v-case outer cyl
+  
+  par[0]=conflgh/2;  
+  par[1]=rflgi1;  
+  par[2]=rflgi2;  
+  par[3]=rflgo1;  
+  par[4]=rflgo2;
+  coo[2]=magh/2+dzmagr+conflgh/2;
+  gid=7;
+  dau=mother.add(new AMSgvolume("MVCASEMED",0,"VCFT","CONE",par,5,coo,nrm,"ONLY",0,gid,1));//v-case top con-flange
+  par[0]=conflgh/2;  
+  par[1]=rflgo1;  
+  par[2]=rflgo2;  
+  par[3]=rflgi1;  
+  par[4]=rflgi2;
+  coo[2]=-coo[2];
+  gid=8;
+  dau=mother.add(new AMSgvolume("MVCASEMED",0,"VCFB","CONE",par,5,coo,nrm,"ONLY",0,gid,1));//v-case bot con-flange
+  
+  par[0]=rflgo2;
+  par[1]=rflgro;
+  par[2]=dzflgr/2;
+  coo[2]=dzmag-dzflgr/2;
+  gid=9;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR1T","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.vac-case ring1
+  coo[2]=-coo[2];
+  gid=10;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR1B","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.vac-case ring1
+  
+  par[0]=rvaco;
+  par[1]=rvaco+drring2;
+  par[2]=(dzmag-dzflgr-vach)/2;
+  coo[2]=vach+par[2];
+  gid=11;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR2T","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//top.vac-case ring2
+  coo[2]=-coo[2];
+  gid=12;
+  dau=mother.add(new AMSgvolume("1/2ALUM",0,"CR2B","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//bot.vac-case ring2
+//
+  cout<<"<---- Amsgeom::magnetgeom02p: AMS02P G3/G4-compatible magnet geometry is successfully done!"<<endl<<endl;
+}
+//------------------------------------------------
 void amsgeom::magnetgeom02(AMSgvolume & mother){
 // "real" AMS02 design, but the shape of coils/he-vessel is rectang. 
 // with "the same weight(cross-section area)" dimensions.
-// AMS02P version added.
 AMSID amsid;
 geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 geant coo[3]={0.,0.,0.};
@@ -963,21 +1062,6 @@ AMSNode * cur;
      mivol=mmoth->add(new AMSgvolume(
           "MVACMED",0,"MVOL","PCON",par,15,coo,nrm,"ONLY",1,gid,1));//inner vac.volume
 //
-//-------> perm.magnet:
-   if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){//permanent magmet
-     geant pmggap=0.2;//radial gap betweem magnet and int.cyl.surface of vac.case
-     geant pmgri=casr1+cylit+pmggap;//magnet int.radious
-     geant pmglen=casl1+(cylit+pmggap)*tancon-flant/coscon-0.1;//perm.magnet half-length(-0.1 for safety)
-     geant pmgro=82.5;//outer radious of perm.magnet
-     par[0]=pmgri;
-     par[1]=pmgro;
-     par[2]=pmglen;
-     mivol->add(new AMSgvolume("MAGNET",0,"PMSH","TUBE",par,3,coo,nrm,"ONLY",0,gid,1));//tempor MagShell=MagBody
-     cout<<"<---- Amsgeom::magnetgeom02: AMS02P G3/G4-compatible geometry is successfully done!"<<endl<<endl;
-   }//---> endof perm.magnet
-//
-//-------> sup.cond.magnet coils/He-vessel:
-   else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){//super conductive magnet
 //
 // -----> return coils:
 //
@@ -1108,7 +1192,6 @@ AMSNode * cur;
        cout<<"      mafnet warm state selected"<<endl;
      }
      cout<<"<---- Amsgeom::magnetgeom02: AMS02 G3/G4-compatible geometry is successfully done!"<<endl<<endl;
-   }//---> endof AMS02 magnet geometry
 //
 }
 //-----------------------------------------------------------------

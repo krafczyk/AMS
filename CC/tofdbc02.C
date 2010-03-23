@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.74 2010/03/05 12:01:21 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.75 2010/03/23 13:33:11 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -126,10 +126,10 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::_tdctrdel=6000.; // TDC Trig(Lev1) supplementary delay in SFET(A) 
   geant TOF2DBc::_tdctrlat=17000.;// TDC trig. latency setting
   geant TOF2DBc::_tdcmatw=16000.;// TDC matching window
-//  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
-//  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
-  geant TOF2DBc::_ftc2cj=0.; // FT-signal crate-to-crate jitter(ns)
-  geant TOF2DBc::_fts2sj=0.; // FT-signal slot-to-slot jitter(ns)
+  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
+  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
+//  geant TOF2DBc::_ftc2cj=0.; // FT-signal crate-to-crate jitter(ns)
+//  geant TOF2DBc::_fts2sj=0.; // FT-signal slot-to-slot jitter(ns)
   geant TOF2DBc::_lev1del=1000.;// "Lev1" stand.delay (in JLV1) with respect to FT 
   geant TOF2DBc::_ltagew[2]={40,640};//RECO: LTtime wrt FTtime age-window(ns),(FT-LT)
 //                                         "+" means LT is befor(earlier) FT in abs.time-scale
@@ -834,7 +834,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
 //
-  a2q=TFCAFFKEY.adc2q;//tempor (if variation are high - read special indiv.a2q's file)
+  a2q=TFCAFFKEY.adc2q;//from DC !(if variation are high - need special indiv.a2q's file)
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
@@ -1270,7 +1270,7 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
 //
-  a2q=TFCAFFKEY.adc2q;//tempor (if variation are high - read special indiv.adc2q's file)
+  a2q=TFCAFFKEY.adc2q;//from DC ! (if variation are high - need special indiv.adc2q's file)
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer

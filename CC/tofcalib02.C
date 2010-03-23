@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.45 2010/03/05 12:01:21 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.46 2010/03/23 13:33:11 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -599,7 +599,6 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &fl
     }
   }
 //
-//  for(i=0;i<TOF2DBc::getnplns();i++){//loop over difference L1->Lk, k=2,3,4
   for(i=0;i<TOF2DBc::getnplns()-1;i++){//loop over difference L1->Lk, k=2,3,4
     f2[i]=0.;
     il=i+1;
@@ -736,7 +735,7 @@ void TofTmAmCalib::filltz(int ib[TOF2GC::SCLRS],number dtr[TOF2GC::SCLRS-1],
   int i,j;
 // ---> note: imply missing layer has ib=-1; corresponding diffs=0 
   events+=1.;
-  for(i=0;i<TOF2DBc::getnplns()-1;i++)if(du[i]!=0.)s0+=1;
+  for(i=0;i<TOF2DBc::getnplns()-1;i++)if(du[i]!=0.)s0+=1;//counts all pairs (1->2,1->3,1->4)
   for(i=0;i<TOF2DBc::getnplns()-1;i++)s1+=dtr[i]*dtr[i];
   for(i=0;i<TOF2DBc::getnplns();i++)if(ib[i]>=0)s3[i][ib[i]]+=1.;
   for(i=0;i<TOF2DBc::getnplns()-1;i++)s4+=du[i]*du[i];

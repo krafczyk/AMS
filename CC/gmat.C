@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.97 2010/01/10 13:06:51 shaino Exp $
+//  $Id: gmat.C,v 1.98 2010/03/23 13:33:11 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -553,7 +553,6 @@ AMSJob::gethead()->addup(&tmed);
 
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
-tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
 AMSgtmed * rich_pvac;
 {
 // vacuum has to be trd aware
@@ -911,10 +910,16 @@ tmed.add (new AMSgtmed("SRDPMT","PMT_WINDOW",1));
 }
 //--------------------
 {
+geant cutge=MAGSFFKEY.ecutge;// increased EgammaEelectron cut
+// --->AMS01/AMS02P magnet media:
+//
+AMSgtmed * magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
+  magmed->CUTGAM(cutge);
+  magmed->CUTELE(cutge);
+//
 // ---> AMS02 Magnet Media:
 //
-geant cutge=MAGSFFKEY.ecutge;// increased EgammaEelectron cut
-AMSgtmed * magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVACMED","MVACUUM",0));
+magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVACMED","MVACUUM",0));
   magmed->CUTGAM(cutge);
   magmed->CUTELE(cutge);
 //

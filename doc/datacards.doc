@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.322 2010/03/21 15:16:38 choutko Exp $
+#  $Id: datacards.doc,v 1.323 2010/03/23 13:33:28 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -752,7 +752,7 @@ I 23->                     // Begin/End dates for trigger TDVs
 TFMC      
 R  1   TimeSigma(0.24)        //side time resolution(ns,=CounterResol(0.17)*sqrt(2)) spare 
 R  2   TimeSigma2(0.45)       // Spare 
-R  3   TimeProbability2(0.035)// Spare
+R  3   canormf(1.)            //Common(all bar-types) mult.factor for pmt SE MostProb values used for tuning
 R  4   padl(10.5)          // Spare
 R  5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Simul 
 I  6   Print-flag(0)       // to print init arrays if=1        

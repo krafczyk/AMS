@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.48 2009/09/18 10:07:09 choumilo Exp $
+//  $Id: tofsim02.C,v 1.49 2010/03/23 13:33:11 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -396,7 +396,7 @@ void TOF2Tovt::build()
     bool bprint(0);
     for(int ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//<---prepare SES-params vs Btyp
       bprint=(((ibt+1)==2 || (ibt+1)==6 || (ibt+1)==7) && (TFMCFFKEY.mcprtf[0]==1));
-      sesmp[ibt]=TOF2DBc::sespar(ibt,0);
+      sesmp[ibt]=TFMCFFKEY.canormf*TOF2DBc::sespar(ibt,0);//mult.by some common(all bar-types) norm.factor for tuning
       sesig[ibt]=sesmp[ibt]*TOF2DBc::sespar(ibt,1);//SigRelat->SigAbs(mv)
       if(bprint){
         cout<<"  BarType="<<ibt+1<<"  SE-spectrum: gaussian mp/sig="<<sesmp[ibt]
@@ -416,7 +416,7 @@ void TOF2Tovt::build()
       if(bprint)HPRINT(1010);
       am/=5000.;
       am2/=5000.;
-      sesav[ibt]=am;//SE-spectrum average(Ase)
+      sesav[ibt]=am;//SE-spectrum average(Ase) 
       sesas[ibt]=sqrt(am2-am*am);//SE-spectrum rms(Sse)
       sesrat=sesas[ibt]/sesav[ibt];
       if(bprint)cout<<"      Original SE-specrtum Aver/Sigm="<<sesav[ibt]<<" "<<sesas[ibt]<<" ratio="<<sesrat<<endl;

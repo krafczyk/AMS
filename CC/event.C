@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.469 2010/03/05 12:01:20 choumilo Exp $
+//  $Id: event.C,v 1.470 2010/03/23 13:33:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -885,11 +885,9 @@ void AMSEvent::_regnevent(){
 #ifndef _PGTRACK_
 void AMSEvent::_sitkinitevent(){
 
-
-
-
   add (
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
+  
 }
 #endif
 
