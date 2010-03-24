@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.265 2010/03/21 15:16:38 choutko Exp $
+//  $Id: root.h,v 1.266 2010/03/24 17:38:38 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -941,6 +941,7 @@ public:
   float PiErrRig;    ///< PathInt err(1/rig) (<0 means fit was not succesful)
   float RigidityMS;  ///< fast rigidity mscat off
   float PiRigidity;  ///<  PathInt rigidity
+  float RigidityIE[3][2];  ///<Fast,PI,RK Rigidities with only internal or only external points 
   float Hit[9][3];   ///< Track Coordinate (after alignment)
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr);
@@ -966,11 +967,11 @@ public:
   /// \param number index in container
   /// \return human readable info about TrTrackR
   char * Info(int number=-1){
-    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Span=(%4.2f, %4.2f) HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),Hit[0][2],Hit[NTrRecHit()-1][2],HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,10)       //TrTrackR
+ClassDef(TrTrackR,11)       //TrTrackR
 #pragma omp threadprivate(fgIsA)
 friend class AMSTrTrack;
 friend class AMSEventR;

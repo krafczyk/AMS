@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.218 2010/03/21 15:16:31 choutko Exp $
+//  $Id: trrec.C,v 1.219 2010/03/24 17:38:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2274,6 +2274,15 @@ void AMSTrTrack::AdvancedFit(){
     Fit(6);
     Fit(4);
     Fit(5);
+    if(TKDBc::patpoints(_Pattern)>5){
+
+    Fit(10);
+    Fit(15);
+    Fit(13);
+    Fit(20);
+    Fit(25);
+    Fit(23);
+   }
 }
 
 integer AMSTrTrack::TOFOK(){
@@ -2820,7 +2829,8 @@ _RigidityWithoutMS=xmom;
 }
 
 number AMSTrTrack::Fit(integer fits, integer ipart){
-
+  // fit=abs(fits)%10
+  
   // fit =0  fit pattern
   // fit =1  fit 1st part if pat=0,1,2,3, ... etc  
   // fit =2  fit 2nd half if pat=0,1,2,3  ... etc + interpolate to beg of 1st
@@ -2828,11 +2838,12 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   // fit =4  fast fit with ims=0
   // fit =5  Juans fit with ims=1
   //  fit=6 -> fit ==0 nodb
-
+  // abs(fits)/10 ==1  int only
+  // abs(fits)/10 ==2  ext only
 
    // Create Proper Hit/Ehit things
    
-   _crHit(fits==6);
+   _crHit(fits%10==6);
 
   // Protection from too low mass
     if(ipart==2)ipart=5;
@@ -2847,14 +2858,15 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   integer ialgo=TRFITFFKEY.MainAlg%10;
   geant out[9];
   integer i;
-    integer fit =abs(fits);
+    integer fit =abs(fits)%10;
+    integer ie=abs(fits)/10;
     if(fit==1 || fit==2 || fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:(TRFITFFKEY.MainAlg/100)%10;        else if(fit==5)ialgo=(TRFITFFKEY.MainAlg/10)%10;
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
      normal[i][1]=0;
      normal[i][2]=fits<0?1:-1;
     }
-  if(fit == 0 || fit==3 || fit==4 || fit==5 || fit==6){
+  if(ie==0 && (fit == 0 || fit==3 || fit==4 || fit==5 || fit==6)){
     for(i=0;i<_NHits;i++){
      layer[i]=_Pthit[i]->getLayer();
      for(int j=0;j<3;j++){
@@ -2866,6 +2878,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       }
      }
     }
+/*
 {
       AMSContainer *p=AMSEvent::gethead()->getC("AMSmctrack",1);
       if(p && p->getnelem()){
@@ -2887,6 +2900,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
        if(qq++<100)cout <<"  got point at "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
     }
    }
+*/
   }
   else if(fit ==1){
      npt=(TKDBc::patpoints(_Pattern)+1)/2;
@@ -2951,6 +2965,39 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
 
 
   }
+  else if(ie==1){
+     npt=0;
+     for(int k=0;k<TKDBc::patpoints(_Pattern);k++){
+        if(_Pthit[k]->getLayer()!=1 && _Pthit[k]->getLayer()!=TKDBc::nlay()){
+        layer[npt]=_Pthit[k]->getLayer();
+        for(int j=0;j<3;j++){
+        hits[npt][j]=getHit(k)[j];
+        sigma[npt][j]=getEHit(k)[j];
+        }
+        npt++;
+        }
+     }
+  }
+  else if(ie==2){
+     npt=TKDBc::patpoints(_Pattern);
+     for(int k=0;k<2;k++){
+        layer[k]=_Pthit[k]->getLayer();
+        for(int j=0;j<3;j++){
+        hits[k][j]=getHit(k)[j];
+        sigma[k][j]=getEHit(k)[j];
+        }
+     }
+     int kk=2;
+     for(int k=npt-2;k<npt;k++){
+        layer[kk]=_Pthit[k]->getLayer();
+        for(int j=0;j<3;j++){
+        hits[kk][j]=getHit(k)[j];
+        sigma[kk][j]=getEHit(k)[j];
+        }
+        kk++;
+     }
+     npt=4;
+  }
   else{
      return FLT_MAX;       
   }   
@@ -2964,12 +3011,13 @@ else ims=1;
      out[0]=charge/momentum;
     }
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
-if(fit==0){
+if(fit==0 && ie==0){
 int ml=TKDBc::nlay();
 TKGETRES(_Res,ml);
 _RC=1;
 }
 if(fit==0){
+if(ie==0){
 _FastFitDone=1;
 _Chi2FastFit=out[6];
 if(out[7] != 0)_Chi2FastFit=FLT_MAX;
@@ -2978,7 +3026,8 @@ _ErrRidgidity=out[8];
 _Theta=out[3];
 _Phi=out[4];
 _P0=AMSPoint(out[0],out[1],out[2]);
- 
+}
+else _RigidityIE[0][ie-1]=out[5];
 }
 else if(fit==1){
 _HChi2[0]=out[6];
@@ -3019,17 +3068,7 @@ AMSTrRecHit *phit=_Pthit[0];
   
 }
 else if(fit==3){
-#ifdef __AMSDEBUG__
-int i,j;
-for(i=0;i<npt;i++){
-  for(j=0;j<3;j++){
-    if(sigma[i][j]==0){
-      cerr<<"AMSTrTrack::Fit-F-Some Errors are zero "<<i<<" "<<j<<endl;
-      exit(1);
-    }
-  }
-}
-#endif     
+if(ie==0){
 _GeaneFitDone=ipart;
 _GChi2=out[6];
 _GRidgidity=out[5];
@@ -3046,13 +3085,15 @@ if(out[7] !=0 || _GChi2>TRFITFFKEY.Chi2FastFit){
   }
 }  
 }
-
+else _RigidityIE[2][ie-1]=out[5];
+}
 else if(fit==4){
 _Chi2MS=out[6];
 if(out[7] != 0)_Chi2MS=FLT_MAX;
 _RidgidityMS=out[5];
 }
 else if(fit==5){
+if(ie==0){
 _PIErrRigidity=out[8];
 if(out[7] != 0)_PIErrRigidity=-out[7];
 _PIRigidity=out[5];
@@ -3060,6 +3101,9 @@ _PITheta=out[3];
 _PIPhi=out[4];
 _PIP0=AMSPoint(out[0],out[1],out[2]);
 _PIChi2=out[6];
+}
+else _RigidityIE[1][ie-1]=out[5];
+
 }
 else if(fit==6){
 _Dbase[0]=out[5];

@@ -4,7 +4,7 @@
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.110 2010/03/21 15:16:38 choutko Exp $
+//  $Id: trrec.h,v 1.111 2010/03/24 17:38:38 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -305,6 +305,7 @@ number _GPhi;
 AMSPoint _GP0;
 number _HChi2[2];
 number _HRidgidity[2];
+number _RigidityIE[3][2];
 number _HErrRidgidity[2];
 number _HTheta[2];
 number _HPhi[2];

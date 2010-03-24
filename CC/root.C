@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.214 2010/03/21 15:16:30 choutko Exp $
+//  $Id: root.C,v 1.215 2010/03/24 17:38:37 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2624,8 +2624,9 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
       HTheta[i]       = (float)ptr->_HTheta[i];
       HPhi[i]         = (float)ptr->_HPhi[i];
       for (int j=0; j<3; j++)  HP0[i][j] = (float)ptr->_HP0[i][j];
-    }
-  } 
+      for(int j=0;j<3;j++)RigidityIE[j][i]=(float)ptr->_RigidityIE[j][i]; 
+  }
+} 
   else{
     for (int i=0; i<2; i++) {
       HChi2[i]        = 0;
@@ -2634,6 +2635,8 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
       HTheta[i]       = 0;
       HPhi[i]         = 0;
       for (int j=0; j<3; j++)  HP0[i][j] = 0;
+   for (int j=0; j<3; j++)  RigidityIE[j][i] = 0;
+
     }
   }
   FChi2MS         = ptr->_Chi2MS;
