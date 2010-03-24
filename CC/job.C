@@ -1,5 +1,5 @@
 
-// $Id: job.C,v 1.700 2010/03/23 13:33:11 choumilo Exp $
+// $Id: job.C,v 1.701 2010/03/24 10:18:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -494,7 +494,7 @@ void AMSJob::_sitrig2data(){
 //
 #ifndef _PGTRACK_
 void AMSJob::_sitkdata(){
-TKGEOMFFKEY.ReadGeomFromFile=1;
+TKGEOMFFKEY.ReadGeomFromFile=0;
 TKGEOMFFKEY.WriteGeomToFile=0;
 TKGEOMFFKEY.UpdateGeomFile=0;
 VBLANK(TKGEOMFFKEY.gfile,40);
@@ -1821,8 +1821,13 @@ if(AMSFFKEY.Update){
 
 #else
     AMSTrIdGeom::init();
-    float zpos[trconst::maxlad];
+    float zpos[trconst::maxlad],zth[trconst::maxlad];
     for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
+    for(int k=0;k<sizeof(zth)/sizeof(zth[0]);k++)zth[k]=0.00332;
+    if(!strcmp(getsetup(),"AMS02P")){
+      zth[1]=0.01;
+      zth[TKDBc::nlay()-1]=0.01;
+    }
     for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
     rkmsinit_(zpos); 
     if(strstr(getsetup(),"AMS02") ){    
