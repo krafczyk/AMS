@@ -1,10 +1,10 @@
-*  $Id: rkms.h,v 1.8 2010/03/21 15:16:38 choutko Exp $
+*  $Id: rkms.h,v 1.9 2010/03/24 10:19:03 choutko Exp $
       integer npma
       parameter(NPma=9) 
       integer npoc
       double precision xc,yc,zc,wxy,Dhi2
-      common/rkms_1/xc(NPma),yc(NPma),zc(NPma),wxy(NPma,NPma),Dhi2,npoc,
-     + trkZ0
+      common/rkms_1/xc(NPma),yc(NPma),zc(NPma),wxy(NPma,NPma),Dhi2,npoc
+      common/rkms_init/trkz0
       double precision rkstep
       common /rkms_2/xt,yt,wt
       double precision xt(NPma),yt(NPma),wt(3,npma)

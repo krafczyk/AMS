@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.13 2010/03/22 22:18:05 pzuccon Exp $
+*  $Id: rkms.F,v 1.14 2010/03/24 10:19:03 choutko Exp $
        subroutine rkmsinit(zposl)
 #include "rkms.h"
           real zposl(9)
@@ -313,6 +313,7 @@ c      write(6,*)'iflag,Fu',iflag,Fu       ! debug ###
 *     ==========================
       call rk_trk(pin,xin,xt,yt,wt)
       Fun = chi2su(xt,yt)
+c       write(*,*)' rk',Fun,pin,xin
 *     ==========================
 *=============================
 *#include "../RKMSFIT/debug4.h"
@@ -408,7 +409,7 @@ c#include "../RKMSFIT/debug5.h"
 *                           vect(7) is  x,y,z,px,py,pz,P
 *                                   or  x,y,z,cx,cy,cz,P
 *                                       1 2 3  4  5  6 7
-      data Stot/150./ ! Max.range(cm) in Path Length
+      data Stot/400./ ! Max.range(cm) in Path Length
 *-------------------------------------------------------
       logical first
       data    first/.true./
@@ -1089,8 +1090,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.13 2010/03/22 22:18:05 pzuccon Exp $
+* $Id: rkms.F,v 1.14 2010/03/24 10:19:03 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.14  2010/03/24 10:19:03  choutko
+* make rkms work with perm meg opt
+*
 * Revision 1.13  2010/03/22 22:18:05  pzuccon
 * keep compatibility with SLC4
 *
@@ -1274,8 +1278,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.13 2010/03/22 22:18:05 pzuccon Exp $
+* $Id: rkms.F,v 1.14 2010/03/24 10:19:03 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.14  2010/03/24 10:19:03  choutko
+* make rkms work with perm meg opt
+*
 * Revision 1.13  2010/03/22 22:18:05  pzuccon
 * keep compatibility with SLC4
 *
