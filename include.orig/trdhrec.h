@@ -86,7 +86,7 @@ class AMSTRDHSegment:public AMSlink{
     chi2=0.;
     for(int i=0;i!=nhits;i++){
       TRDHitRZD rzd=TRDHitRZD(fTRDRawHit[i]);
-      chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12)),2);
+      chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12.)),2);
     }
   }
 

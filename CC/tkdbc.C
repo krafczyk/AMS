@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.68 2010/03/22 14:17:40 choutko Exp $
+//  $Id: tkdbc.C,v 1.69 2010/03/25 14:23:07 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1938,7 +1938,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 }
 */
-   else if (strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+   else if (!strcmp(AMSJob::gethead()->getsetup(),"AMS02P")){
      cout<<"====> TKDBc::init: AMS02P setup selected:"<<endl;
 
     int i;

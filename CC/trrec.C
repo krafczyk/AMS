@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.219 2010/03/24 17:38:37 choutko Exp $
+//  $Id: trrec.C,v 1.220 2010/03/25 14:23:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2967,7 +2967,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   }
   else if(ie==1){
      npt=0;
-     for(int k=0;k<TKDBc::patpoints(_Pattern);k++){
+     for(int k=0;k<_NHits;k++){
         if(_Pthit[k]->getLayer()!=1 && _Pthit[k]->getLayer()!=TKDBc::nlay()){
         layer[npt]=_Pthit[k]->getLayer();
         for(int j=0;j<3;j++){
@@ -2976,10 +2976,9 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
         }
         npt++;
         }
-     }
+        }
   }
   else if(ie==2){
-     npt=TKDBc::patpoints(_Pattern);
      for(int k=0;k<2;k++){
         layer[k]=_Pthit[k]->getLayer();
         for(int j=0;j<3;j++){
@@ -2988,7 +2987,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
         }
      }
      int kk=2;
-     for(int k=npt-2;k<npt;k++){
+     for(int k=_NHits-2;k<_NHits;k++){
         layer[kk]=_Pthit[k]->getLayer();
         for(int j=0;j<3;j++){
         hits[kk][j]=getHit(k)[j];

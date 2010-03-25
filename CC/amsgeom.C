@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.208 2010/03/23 13:33:10 choumilo Exp $
+//  $Id: amsgeom.C,v 1.209 2010/03/25 14:23:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -199,7 +199,7 @@ if (strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
 
 
 }
-else if (strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+else if (!strcmp(AMSJob::gethead()->getsetup(),"AMS02P")){
  cout <<" AMSGeom-I-AMS02P setup selected."<<endl;
  magnetgeom02p(mother);
  tofgeom02(mother);

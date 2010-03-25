@@ -42,7 +42,7 @@
 *
 *********************************************************************
 *
-      PARAMETER (NHITS=8, NITER=25)
+      PARAMETER (NHITS=9, NITER=25)
       DIMENSION AXX(3,NHITS), AV(3,NHITS), XM(3,NHITS), XP(2,NHITS), 
      + AL(NHITS),exm(3,nhits),iplanez(nhits)
       DIMENSION D(2*NHITS,5), IDAUX(4*NHITS)
@@ -62,7 +62,8 @@ C AMS02:
 C        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
 C        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
 C        Support:   10mm Al Honeycomb: 1.67e-3 X0
-      DATA WLEN /0.,7.29e-3,12.91e-3,0.0,12.91e-3,0.0,12.91e-3,7.29e-3/
+      DATA WLEN /0.,7.29e-3,12.91e-3,0.0,12.91e-3,0.0,12.91e-3,
+     + 7.29e-3,0./
       data tol/1.e-5/
       data prec /5.e-3/ ! precision of the algorithm in MV
 *
