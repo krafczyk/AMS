@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.72 2010/01/08 11:32:21 choumilo Exp $
+//  $Id: tofrec02.C,v 1.73 2010/03/26 14:59:54 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -944,6 +944,12 @@ void TOF2RawCluster::build(int &ostatus){
               tmf[1]=tm[1];
 	      if(nadca[1]>0){//Anode,s2
                 ama[1]=number(adca[1]);//ADC-counts(float)(anode s2)
+                if(TFREFFKEY.reprtf[1]>0 && id==104){
+#pragma omp critical (hf1)
+{
+		  HF1(1117,geant(ama[1]),1.);
+}
+		}
 		if((ama[1]+3*sigs[1])>=number(TOF2GC::SCPUXMX)){//check PUX-ovfl
 		  ama[1]=0;//mark ovfl
 		  TOF2JobStat::addch(chnum+1,9);//counts Anode-cnan. overflows
@@ -1839,8 +1845,10 @@ void AMSTOFCluster::build2(int &stat){
 {
         if(il==0){
           HF1(1535,edep,1.);//Cluster energy distr.,L=1
+          if(barn==4 && nmemb==1)HF1(1533,edep,1.);//Cluster energy distr.,L=1
+	  if(barn==5 && nmemb==1)HF1(1545,edep,1.);
+	  if(barn==2 && nmemb==1)HF1(1546,edep,1.);
           HF1(1537,edep,1.);
-	  HF1(1545,sqrt(edep),1.);
           HF1(1541,geant(coo[0]),1.);
           HF1(1542,geant(coo[1]),1.);
         }
@@ -1850,7 +1858,6 @@ void AMSTOFCluster::build2(int &stat){
         if(il==2){
           HF1(1536,edep,1.);//Cluster energy distr.,L=3
           HF1(1538,edep,1.);
-	  HF1(1546,sqrt(edep),1.);
         }
         if(il==3){
           HF1(1540,edep,1.);//Cluster energy distr.,L=4

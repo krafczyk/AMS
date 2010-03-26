@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.75 2010/03/23 13:33:11 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.76 2010/03/26 14:59:54 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -126,10 +126,10 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
   geant TOF2DBc::_tdctrdel=6000.; // TDC Trig(Lev1) supplementary delay in SFET(A) 
   geant TOF2DBc::_tdctrlat=17000.;// TDC trig. latency setting
   geant TOF2DBc::_tdcmatw=16000.;// TDC matching window
-  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
-  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
 //  geant TOF2DBc::_ftc2cj=0.; // FT-signal crate-to-crate jitter(ns)
 //  geant TOF2DBc::_fts2sj=0.; // FT-signal slot-to-slot jitter(ns)
+  geant TOF2DBc::_ftc2cj=0.03; // FT-signal crate-to-crate jitter(ns)
+  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
   geant TOF2DBc::_lev1del=1000.;// "Lev1" stand.delay (in JLV1) with respect to FT 
   geant TOF2DBc::_ltagew[2]={40,640};//RECO: LTtime wrt FTtime age-window(ns),(FT-LT)
 //                                         "+" means LT is befor(earlier) FT in abs.time-scale
@@ -1243,18 +1243,6 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
      }
      cnum+=TOF2DBc::getbppl(ila);
    } // --- end of layer loop --->
-//
-// ----------------> read mip2q's:
-//
-   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
-     gcfile >> m2q[ibt];
-   }
-//
-// ----------------> read A-prof. parameters:
-//
-   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
-     for(i=0;i<2*TOF2GC::SCPROFP;i++)gcfile >> aprofp[ibt][i];
-   }
 // ---------------->
    gcfile >> endflab;//read endfile-label
 //
@@ -2627,6 +2615,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,400.,0.);
 //      HBOOK1(1116,"FTtime-diff,slot-by-slot",80,-10.,10.,0.);
     HBOOK1(1104,"RawCluster:Anode signals(adc,id=104,s1)",100,0.,1000.,0.);
+    HBOOK1(1117,"RawCluster:Anode signals(adc,id=104,s2)",100,0.,1000.,0.);
     HBOOK1(1105,"RawCluster:Dynode(pm) signals(adc,id=104,s1)",100,0.,200.,0.);
     HBOOK1(1108,"RawCluster:SumHTtime hits multiplicity(all chan)",20,0.,20.,0.);
     HBOOK1(1110,"RawCluster:Total fired layers per event",5,0.,5.,0.);
@@ -2710,6 +2699,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1534,"T2-T4(ns,NormIncidence,1b/L evnt)",80,1.,9.,0.);
     HBOOK1(1544,"(T1-T3)-(T2-T4),(ns,(1RawClust/Lay)*4 events)",80,-4.,4.,0.);
     HBOOK1(1535,"L=1,TOFClus Edep(mev)",80,0.,24.,0.);
+    HBOOK1(1533,"L=1/B4,TOFClus Edep(mev,Nmemb=1)",80,0.,24.,0.);
     HBOOK1(1536,"L=3,TOFClus Edep(mev)",80,0.,24.,0.);
     HBOOK1(1537,"L=1,TOFClus Edep(10Xscaled,mev)",80,0.,240.,0.);
     HBOOK1(1538,"L=3,TOFClus Edep(10Xscaled,mev)",80,0.,240.,0.);
@@ -2717,8 +2707,8 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1540,"L=4,TOFClus Edep(mev)",80,0.,24.,0.);
     HBOOK1(1541,"TOFClus: L1XCoo(long)",100,-50.,50.,0.);
     HBOOK1(1542,"TOFClus: L1YCoo(tran)",100,-50.,50.,0.);
-    HBOOK1(1545,"L=1,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
-    HBOOK1(1546,"L=3,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
+    HBOOK1(1545,"L=1/B5,TOFClus Edep(mev,Nmemb=1)",80,0.,24.,0.);
+    HBOOK1(1546,"L=1/B2,TOFClus Edep(mev,Nmemb=1)",80,0.,24.,0.);
     HBOOK1(1548,"TOFClus: 2bars-cand, E-ass(dt,dc ok)",44,-1.1,1.1,0.);
     HBOOK1(1549,"TOFClus: 2bars-cand. LongMatch(cm, Tmatch ok)",80,-40.,40.,0.);
     HBOOK1(1550,"TOFClus: 2bars-cand. T-match(ns)",80,-10.,10.,0.);
@@ -2855,11 +2845,12 @@ void TOF2JobStat::outp(){
   if(TFREFFKEY.reprtf[1]>0){ // print RECO-hists
     HPRINT(1107);
     HPRINT(1535);
+    HPRINT(1533);
+    HPRINT(1545);
+    HPRINT(1546);
     HPRINT(1536);
     HPRINT(1537);
     HPRINT(1538);
-    HPRINT(1545);
-    HPRINT(1546);
     HPRINT(1541);
     HPRINT(1542);
     HPRINT(1539);
@@ -2871,6 +2862,7 @@ void TOF2JobStat::outp(){
 //    HPRINT(1103);
     HPRINT(1108);
     HPRINT(1104);
+    HPRINT(1117);
     HPRINT(1105);
     HPRINT(1110);
     HPRINT(1111);

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.49 2010/03/23 13:33:11 choumilo Exp $
+//  $Id: tofsim02.C,v 1.50 2010/03/26 14:59:55 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -397,7 +397,8 @@ void TOF2Tovt::build()
     for(int ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//<---prepare SES-params vs Btyp
       bprint=(((ibt+1)==2 || (ibt+1)==6 || (ibt+1)==7) && (TFMCFFKEY.mcprtf[0]==1));
       sesmp[ibt]=TFMCFFKEY.canormf*TOF2DBc::sespar(ibt,0);//mult.by some common(all bar-types) norm.factor for tuning
-      sesig[ibt]=sesmp[ibt]*TOF2DBc::sespar(ibt,1);//SigRelat->SigAbs(mv)
+      sesig[ibt]=1.367*sesmp[ibt]*TOF2DBc::sespar(ibt,1);//SigRelat->SigAbs(mv)(1.367 to have sig/mp=1.9)
+//      sesig[ibt]=sesmp[ibt]*TOF2DBc::sespar(ibt,1);//SigRelat->SigAbs(mv)
       if(bprint){
         cout<<"  BarType="<<ibt+1<<"  SE-spectrum: gaussian mp/sig="<<sesmp[ibt]
                                                                   <<" "<<sesig[ibt]<<endl;
@@ -577,6 +578,7 @@ void TOF2Tovt::build()
 //    <-------- create phel. arrival-time distribution(PM-1) ---<<<
     for(i=0;i<nelec;i++){
       tm=TOFWScan::scmcscan[ibtyp].gettm1(idivx,r,i1,i2);//phel.arrival time from interpol.distr.
+      tm=tm+0.1*rnormx();//tempor**2 additional TSS
       uinteger ii=uinteger(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
@@ -619,6 +621,7 @@ void TOF2Tovt::build()
 //    <-------- create phel. arrival-time distribution(PM-2) ---<<<
     for(i=0;i<nelec;i++){
       tm=TOFWScan::scmcscan[ibtyp].gettm2(idivx,r,i1,i2);//phel.arrival time from interpol.distr.
+      tm=tm+0.1*rnormx();//tempor**2 additional TSS
       uinteger ii=uinteger(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
@@ -667,8 +670,8 @@ void TOF2Tovt::build()
             if(idd==3031)HF1(1040,geant(npess[0]),1.);
             if(idd==3051)HF1(1041,geant(npess[0]),1.);
 	  }
-          am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
-          for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=am0;
+          am0=TFMCFFKEY.blshift*rnormx();//base line shift simulation
+          for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=0;
           for(i=0;i<=TOF2GC::SCTBMX;i++){
             am=tslice1[i];
             if(am>0){
@@ -686,9 +689,9 @@ void TOF2Tovt::build()
 	  }
 //        
 // PM(side=2) loop to apply pulse shape :
-          am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
+          am0=TFMCFFKEY.blshift*rnormx();//base line shift simulation
           idd=id*10+2;
-          for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=am0;
+          for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=0;
           for(i=0;i<=TOF2GC::SCTBMX;i++){
             am=tslice2[i];
             if(am>0){
