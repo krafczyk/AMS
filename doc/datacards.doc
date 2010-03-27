@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.323 2010/03/23 13:33:28 choumilo Exp $
+#  $Id: datacards.doc,v 1.324 2010/03/27 10:55:51 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -348,7 +348,7 @@ I72 OnlyGammaVtx(0)       //  Reconstruct vertices up to 2 tracks only
 I73 UseGeaneFitting(0)   //   Use Geane(1) or Yale (0) fitting method
 I74 OldTracking(0)      //  Use Old (VC,1) or New (JA,0) tracker pat rec
 I75 MainALg(541)       //  
-
+I76 AddMS(1)           // add ms err to ext planes if (1) and abs(z)>100
 // Tracker fitting
 
 TKFIT

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.286 2010/03/23 13:33:28 choumilo Exp $
+//  $Id: commons.h,v 1.287 2010/03/27 10:55:51 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -518,6 +518,7 @@ public:
   integer UseGeaneFitting; // Use Geane(1) or Yale (0) fitting method
   integer OldTracking;  //Use Old (VC) or new (JA) pattern recognition
   integer MainAlg;     //
+  integer AddMS;      // Add MS error to ext planes
 };
 //
 

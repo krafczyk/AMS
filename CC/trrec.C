@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.220 2010/03/25 14:23:07 choutko Exp $
+//  $Id: trrec.C,v 1.221 2010/03/27 10:55:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -4195,7 +4195,32 @@ number AMSTrTrack::par[2][3];
 
 
 
-
+AMSPoint AMSTrTrack::getEHit(int i, int dir){
+int j=dir==0?i:_NHits-1-i;
+float const ze=100;
+if(_FastFitDone==1 && TRFITFFKEY.AddMS==1){
+ if(_Hit[j][2]>ze){
+  number dz=_Hit[j][2]-55;
+  number ms=13.6e-3*sqrt(fabs(0.25/cos(_Theta)))/1.8/fabs(_Ridgidity)*dz;
+  AMSPoint err;
+  err[0]=sqrt(ms*ms+_EHit[j][0]*_EHit[j][0]);
+  err[1]=sqrt(ms*ms+_EHit[j][1]*_EHit[j][1]);
+  err[2]=_EHit[j][2];
+  return err;
+ }
+ else if(_Hit[j][2]<-ze){
+  number dz=-60-_Hit[j][2];
+  number ms=13.6e-3*sqrt(fabs(0.15/cos(_Theta)))/1.8/fabs(_Ridgidity)*dz;
+  AMSPoint err;
+  err[0]=sqrt(ms*ms+_EHit[j][0]*_EHit[j][0]);
+  err[1]=sqrt(ms*ms+_EHit[j][1]*_EHit[j][1]);
+  err[2]=_EHit[j][2];
+  return err;
+ }
+ else     return _EHit[j];
+}
+else return _EHit[j];
+}
 
 
 

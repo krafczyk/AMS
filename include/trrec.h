@@ -1,10 +1,10 @@
+//  $Id: trrec.h,v 1.112 2010/03/27 10:55:51 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
 
 
 class AMSTRDTrack;
-//  $Id: trrec.h,v 1.111 2010/03/24 17:38:38 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -357,7 +357,7 @@ static integer _RefitIsNeeded;
 #pragma omp threadprivate (_RefitIsNeeded)
 void _crHit(bool nodb);
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
-inline  AMSPoint  getEHit(int i){return _EHit[i];}
+  AMSPoint  getEHit(int i, int dir=0);
 void _buildaddress();
 void _buildaddressS();
 static void decodeaddress(integer ladder[2][trconst::maxlay], uintl address);
