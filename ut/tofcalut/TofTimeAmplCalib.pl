@@ -1499,7 +1499,7 @@ NextJob:
     }
     elsif($CalRun1>1262300400 && $CalRun2>1262300400){#--->2010
       if($posstext eq "OnEarth"){#--->still on earth
-        $jpar11="AMS02Ass1";
+        $jpar11="AMS02";#  ="AMS02Ass1" as default
       }
       else{
         $jpar11="AMS02Space";

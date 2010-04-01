@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.44 2010/02/17 15:17:08 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.45 2010/04/01 10:40:34 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -368,6 +368,10 @@ private:
 //                             [16] -> "Missing Anode"
 //                             [17] -> "Missing Dynode when Anode-ovfl"
 //                             [18] -> "Missing SumHT info"
+//                             [19] -> "Missing LT @ Qa>0"
+//                             [20] -> "Missing Qa @ LT>0"
+//                             [21] -> "LT & Qa present"
+//                             [22] -> "Missing Matched SumHT @ LT>0"
 //------
   static integer brcount[TOF2GC::SCBLMX][TOF2GC::SCCSTA];// bar statistics
 //                               [0] -> RawEvent Bar(at least 1side) entries

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.76 2010/03/26 14:59:54 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.77 2010/04/01 10:40:17 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2378,7 +2378,7 @@ void TOF2JobStat::printstat(){
     }
     printf("\n\n");
   }
-//
+//--
   printf("FT-correlated LTtime-hits found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
@@ -2417,6 +2417,63 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
+  printf("LT(FT-correlated)/SumHT-matching Missing(%) ! :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][1]);
+      if(rc>0.)rc=100*geant(chcount[ic][22])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][1]);
+      if(rc>0.)rc=100*geant(chcount[ic][22])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Before-hits found (in front of TrueLT)(%)  ! :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][1]);
+      if(rc>0.)rc=100*geant(chcount[ic][23])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][1]);
+      if(rc>0.)rc=100*geant(chcount[ic][23])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("After-hits found (on back of TrueLT)(%)  ! :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][1]);
+      if(rc>0.)rc=100*geant(chcount[ic][24])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][1]);
+      if(rc>0.)rc=100*geant(chcount[ic][24])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//--
   printf("SumSHTtime-hits found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
@@ -2531,7 +2588,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("As above, but history(SumHT)-channel is also required :\n");
+  printf("As above, but !=0 SumHT-channel is also required :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2650,7 +2707,7 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1139,"TofValid:FTtime for LBBS=1042",100,5000.,20000.,0.);
     }
     HBOOK1(1136,"RawCluster: FTtime-LTime(all LT-hits, 1st FT-hit if multiple)",80,-60.,740.,0.);
-    HBOOK1(1106,"RawCluster: FTtime-LTime(final LT-hit)",80,-60.,740.,0.);
+    HBOOK1(1106,"RawCluster: FTtime-LTime(finaly selected LT-hit)",80,-60.,740.,0.);
     HBOOK1(1103,"RawCluster: LTime-SumHTtime(final LT-hit(Single LT case, FT-matched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
     HBOOK1(1109,"RawCluster: LTime-SumHTtime(final LT-hit(best LT of all FT-matched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
 //---    

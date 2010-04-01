@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.324 2010/03/27 10:55:51 choutko Exp $
+#  $Id: datacards.doc,v 1.325 2010/04/01 10:40:34 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -793,7 +793,7 @@ I 7   Print-flag(0)       // 0/1-> delailed debug flag(also add low prior. histo
 I 8   relogic[0](0)       // Normal_/TDCL_/TDIF_/TZSL_/AMPL_/PedClassic_/PedDownScaled_/OnBoardPed_
 //                           calibr run(if=0/1/2/3/4/5/6/7)
 //                   (when =7 confirm ped-file writing + hist when glob. OnBoard CALIB-flag >1 to be independent on ACC !)
-I 9   relogic[1](1)       // 1/(0)-> require/not LT-SumHT hits matching
+I 9   relogic[1](1)       // (1)/0-> permit/not LT-SumHT hits matching criterion for multi-LT case
 I 10  relogic[2](0)       // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
 I 11  relogic[3](0)       // do/not recovering of missing side 
 I 12  relogic[4](1)       // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 

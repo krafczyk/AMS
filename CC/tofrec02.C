@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.73 2010/03/26 14:59:54 choumilo Exp $
+//  $Id: tofrec02.C,v 1.74 2010/04/01 10:40:17 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -636,7 +636,7 @@ void TOF2RawCluster::build(int &ostatus){
       nttdc[isid]=0;
       for(i=0;i<nstdc[isid];i++){
         itftcor[isid][i]=0;
-        t1=stdc[isid][i];//FT IS subtracted already, so t1=0 means =FTtime
+        t1=stdc[isid][i];//FT IS subtracted already(FTt-LTt), so t1=0 means =FTtime
 	if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
@@ -659,7 +659,7 @@ void TOF2RawCluster::build(int &ostatus){
       adca[isid]=ptr->getadca();//here all ADCs ARE ped-subtracted/suppressed !!!
       if(adca[isid]>0)nadca[isid]+=1;
       nadcd[isid]=ptr->getadcd(adcd[isid]);
-      if(nttdc[isid]>0)TOF2JobStat::addch(chnum,1);//LT-hits
+      if(nttdc[isid]>0)TOF2JobStat::addch(chnum,1);//FT-matched LT-hits
       if(nhtdc[isid]>0)TOF2JobStat::addch(chnum,2);
       if(nshtdc[isid]>0)TOF2JobStat::addch(chnum,3);
       if(nadca[isid]>0)TOF2JobStat::addch(chnum,4);
@@ -689,13 +689,15 @@ void TOF2RawCluster::build(int &ostatus){
 //
         smty[0]=0;
         smty[1]=0;
-        SumHTuse=TFREFFKEY.relogic[1];// use/not(1/0) SumHT-channel for matching with LTtime-channel 
+        SumHTuse=TFREFFKEY.relogic[1];// permit/not(1/0) LT/SumHT-matching criterion for multi-LTs case 
         if((nttdc[0]>0 || PMEQmode)  
 	    && (nadca[0]>0 || nadcd[0]>0)
-	    && (nhtdc[0]>0 || SumHTuse==0))smty[0]=1;//side has "complete" t,amp,[hist] measurement
+	    && (nhtdc[0]>0 || SumHTuse==0)
+	                                  )smty[0]=1;//side has "complete" t,amp,[hist] measurement
         if((nttdc[1]>0 || PMEQmode)  
 	    && (nadca[1]>0 || nadcd[1]>0)
-	    && (nhtdc[1]>0 || SumHTuse==0))smty[1]=1;//...
+	    && (nhtdc[1]>0 || SumHTuse==0)
+	                                  )smty[1]=1;//...
 //----------------------
 //bbb--->
         if(smty[0]==1 || smty[1]==1){ //check side-measurement completeness(accept 1-sided) 
@@ -743,18 +745,22 @@ void TOF2RawCluster::build(int &ostatus){
 }
 	  }                          
 //
-// -----> loop over all(original) LT(stdc)/SumHT(htdc)-hits to find all/best matching pairs:
+// -----> loop over all(original) LT(stdc)-hits to find best_matching_SumHT pair (if any):
 //
           geant sdtmin[2][TOF2GC::SCTHMX3];
+	  integer sumhtcor[2];
+//	  
 	  for(isd=0;isd<2;isd++){//side loop
-            if(smty[isd]>0){//side has complete measurement
+	    for(i=0;i<TOF2GC::SCTHMX3;i++)itmatch[isd][i]=-1;//reset(no sumHT match)
+	    sumhtcor[isd]=0; 
+            if(smty[isd]>0 && nttdc[isd]>0){//side has complete measurement(+ FT/LT matching)
               for(i=0;i<nstdc[isd];i++){ // all LTtime-hits loop
 	        dtmin[isd][i]=9999;
-	        itmatch[isd][i]=-1;
 		sdtmin[isd][i]=9999;
 	        for(j=0;j<nhtdc[isd];j++){ // all SumHTtime-hits-loop
                   dt=stdc[isd][i]-htdc[isd][j]-TOF2Varp::tofvpar.lhtdmp();//around LT-sHT m.p.(i.e~0)
                   if(fabs(dt) < TOF2Varp::tofvpar.lhtdw()){//check match window
+	            sumhtcor[isd]=1; 
 		    if(fabs(dt)<dtmin[isd][i]){//find best matching(to choose optimal match window)
 		      dtmin[isd][i]=fabs(dt);
 		      itmatch[isd][i]=j;//mark matched LTtime-hits(stdc) with index of best matched SumHT-hit
@@ -768,52 +774,51 @@ void TOF2RawCluster::build(int &ostatus){
 		  HF1(1115,geant(sdtmin[isd][i]),1.);//for FT-correlated LT-hits only
 }
 		}
-              }//--->endof LTtime-hits loop
+              }//--->endof all LTtime-hits loop
             }
-	    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
-	      cout<<"    LTtime(stdc) best SumHT-matched hit-indexes for side="<<isd<<":";
-	      for(i=0;i<nstdc[isd];i++)if(itmatch[isd][i]>=0)cout<<" "<<i<<"("<<itmatch[isd][i]<<")"<<endl;  
+	    if(TFREFFKEY.reprtf[3]>0
+//	        && (sumhtcor[isd]==0) 
+	                            && TFREFFKEY.reprtf[4]>0
+				                             ){
+	      cout<<"    All LTtime(stdc) best SumHT-matched hit-indexes for side="<<isd<<":";
+	      for(i=0;i<nstdc[isd];i++)if(itmatch[isd][i]>=0)cout<<" stdc-indx="<<i<<" sHT-indx="<<itmatch[isd][i];
+	      cout<<endl;  
 	    }
-          }                          
+          }//---> endof side-loop                          
 //
-//-----> select TRUE FT-correlated LTtime-hit(in ttdc) and, if requested, SumHT-matched :
+//-----> select TRUE FT-correlated LTtime-hit(if have few in ttdc[]) by using of SumHT-matching(if permitted) :
 //
           number dtbest[2],sdtbest[2];
-          for(isd=0;isd<2;isd++){
+          for(isd=0;isd<2;isd++){//<----- sides loop
 	    tmbest[isd]=0;
 	    itmbest[isd]=-1;
 	    dtbest[isd]=9999;
-	    if(smty[isd]>0){
-	      if(nttdc[isd]==1){//single FT-correlated LT-hit case
-	        if(SumHTuse==0){//no sHT-match requirement - just use it
-	          tmbest[isd]=ttdc[isd][0];
-		  itmbest[isd]=ittdc[isd][0];//its index in stdc-array
+	    sdtbest[isd]=9999;
+	    if(smty[isd]>0 && nttdc[isd]>0){// use only FT-matched LT-hits
+	      tmbest[isd]=ttdc[isd][0];//these are default values
+	      itmbest[isd]=ittdc[isd][0];//index in stdc-array
+	      if(nttdc[isd]==1){//single FT-correlated LT-hit case(use default), just see distribution
+		j=itmatch[isd][ittdc[isd][0]];//SumHT-hit index in htdc-array, if match ok
+		if(j>=0){ 
+		  dt=sdtmin[isd][ittdc[isd][0]];//signed dt of LT-sumHT matching for this hit
+		  sdtbest[isd]=dt;
 		}
-		else{//when sHT-match requested - check that this single hit is SumHT matched
-		  j=itmatch[isd][ittdc[isd][0]];//SumHT-hit index in htdc-array, if match ok
-		  if(j>=0){ 
-		    dt=sdtmin[isd][ittdc[isd][0]];//signed dt of LT-sumHT matching for this hit
-	            tmbest[isd]=ttdc[isd][0];
-		    itmbest[isd]=ittdc[isd][0];//its index in stdc-array
-		    sdtbest[isd]=dt;
-		  }
-		  if(TFREFFKEY.reprtf[1]>0){
+		if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-		    HF1(1103,geant(sdtbest[isd]),1.);
+		  HF1(1103,geant(sdtbest[isd]),1.);
 }
-		  }
 		}
-              }
-	      else{//many FT-correlated LT-hits(ttdc-array)
-	        if(SumHTuse==1){//try to use best matched hit, if SumHTuse
+	      }//--->endof "Single FT-matched LT-hit"
+	      else{//many FT-correlated LT-hits, try to use history to select best(true) LT
+	        if(SumHTuse==1){//try to use best SumHT-matched LT-hit, if SumHTuse is permitted
 		  for(i=0;i<nttdc[isd];i++){//FT-correlated LTtime-hits loop
 		    j=itmatch[isd][ittdc[isd][i]];// >=0 if LT-SumHT matching OK
 		    dt=dtmin[isd][ittdc[isd][i]];//best dt LT-sumHT matching for this hit
 	            if(j>=0 && dt<dtbest[isd]){
-		      itmbest[isd]=ittdc[isd][i];//its index in stdc-array
-		      dtbest[isd]=dt;
+		      itmbest[isd]=ittdc[isd][i];//redefine default tmbest(itmbest) by best SumHT-matched LT(if any)
 	              tmbest[isd]=ttdc[isd][i];
+		      dtbest[isd]=dt;
 		      sdtbest[isd]=sdtmin[isd][ittdc[isd][i]];//signed dt
 		    }
 		  }
@@ -824,7 +829,7 @@ void TOF2RawCluster::build(int &ostatus){
 }
 		  }
 	        }
-	        else{//noMatch-info - use 1st(youngest) hit
+	        else{//SumHTuse not permitted - use 1st(youngest) LT-hit as true(best)
 	          tmbest[isd]=ttdc[isd][0];
 	          itmbest[isd]=ittdc[isd][0];//its index in stdc-array
 //	                 tmbest[isd]=ttdc[isd][nttdc[isd]-1];//use last(oldest)
@@ -832,41 +837,47 @@ void TOF2RawCluster::build(int &ostatus){
                 }
 	      }//--->endof "many FT-corr. LT-hits" case
 //
-              if(itmbest[isd]>=0 && TFREFFKEY.reprtf[1]>0){//FINAL time was found - see some histogr
+              if(TFREFFKEY.reprtf[1]>0){//FINAL time was found - see histogr
 #pragma omp critical (hf1)
 {
-                HF1(1106,geant(tmbest[isd]),1.);
+                HF1(1106,geant(tmbest[isd]),1.);//final FT-LT
 }
 	      }
 //              
-	    }//--->endof smty[isd]>0 check
-	    if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){
-	      cout<<"    Side:"<<isd<<endl;
+	    }//--->endof smty[isd]>0 & nttdc>0 check
+//---
+	    if(TFREFFKEY.reprtf[3]>0 && smty[isd]>0
+	                             && TFREFFKEY.reprtf[4]>0
+	                                                      ){
+	      cout<<"    IL/IB/Side:"<<ilay+1<<" "<<ibar+1<<" "<<isd+1<<" nstdc="<<nstdc[isd]<<" nttdc="<<nttdc[isd]<<" Aadc="<<adca[isd]<<endl;
 	      cout<<"     TRUE FT-corr LT-hit time="<<tmbest[isd]<<" ,its stdc-index="<<itmbest[isd]<<endl;
 	      if(itmbest[isd]>=0)
 	      cout<<"     Its matching index(best-match SumHT-hit index)="<<itmatch[isd][itmbest[isd]]<<endl;
 	    }   
-	  }//--->endof side-loop
-//------------>        
-          rej1=0;
-          if(SumHTuse==1){//require matching of TRUE LT-hit
-            if((itmatch[0][itmbest[0]]<0 && smty[0]==1) ||
-              (itmatch[1][itmbest[1]]<0 && smty[1]==1))rej1=1;//found NO_MATCHING on any of complete(3-meas) sides
-	      if(TFREFFKEY.reprtf[3]>0 && rej1==1)
-	                          cout<<"    No True LT/sumHT-hits matching on any of complete sides"<<endl;
-          }
-//---
+	  }//------> endof side-loop
 //
-//-----------> check "befor"/"after"(wrt TRUE LT-hit) hits presence(clean history check)  :
-//            (look into stdc[matched,if required]-hits !!!)
+//------------> set LT/SumHT matching flag (if not PMEQmode):       
+          rej1=0;
+          if(!PMEQmode){
+            if((smty[0]==1 && itmatch[0][itmbest[0]]<0) || (smty[1]==1 && itmatch[1][itmbest[1]]<0)){
+	        rej1=1;//missing LT/SumHT MATCHING on any of complete(3-meas) sides
+                chnum=ilay*TOF2GC::SCMXBR*2+ibar*2;//channel numbering (s1) for job-stat counters
+		if(itmatch[0][itmbest[0]]<0 && smty[0]==1)TOF2JobStat::addch(chnum,22);//FT-matched,but not SumHT-matched LT-hits
+                chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+1;//channel numbering (s2) for job-stat counters
+		if(itmatch[1][itmbest[1]]<0 && smty[1]==1)TOF2JobStat::addch(chnum,22);//FT-matched,but not SumHT-matched LT-hits
+	    }
+          }
+//
+//-----------> check "befor"/"after"(wrt TRUE(=best among all FT-matched) LT-hit) hits presence(clean history check)  :
+//            (look into stdc[matched]-hits !!!)
 //
           rej2=0;
 	  rej3=0;
           for(isd=0;isd<2;isd++){
-	    if(smty[isd]>0){//side with complete measurement
+	    if(smty[isd]>0 && (itmatch[isd][itmbest[isd]]>=0 || SumHTuse==0)){//use sides with FT- and SumHT-matched(if permitted) LT-hit
 	      if(itmbest[isd]>0){//check that "best" LT-hit is not the 1st one in stdc-arr
 	        ibef=itmbest[isd]-1;//previous(to "best") LT-hit(stdc)
-		for(i=ibef;i>=0;i--){//find 1st LT-hit which is: (matched,if requested) and too close to "best" 
+		for(i=ibef;i>=0;i--){//find 1st LT-hit which is: (matched,if permitted) and too close to "best" 
 		  tbef=stdc[isd][ibef];
 		  dt=tbef-tmbest[isd];//dist befor the "best"
 		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscutb()){
@@ -877,13 +888,15 @@ void TOF2RawCluster::build(int &ostatus){
 }
 		    }
 		    rej2=1;
+                    chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isd;
+		    TOF2JobStat::addch(chnum,23);//count "before"-hit presence
 		    break;
 		  }
 		}
 	      }
 	      if(itmbest[isd]<(nstdc[isd]-1)){//check that "best" hit is not the last in stdc-arr
 	        iaft=itmbest[isd]+1;//next(to "best") LT-hit
-		for(i=iaft;i<nstdc[isd];i++){//find 1st LT-hit which is: (matched,if requested) and too close to "best"
+		for(i=iaft;i<nstdc[isd];i++){//find 1st LT-hit which is: (matched,if permitted) and too close to "best"
 		  taft=stdc[isd][iaft];
 		  dt=tmbest[isd]-taft;//dist after the "best"
 		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscuta()){
@@ -894,22 +907,26 @@ void TOF2RawCluster::build(int &ostatus){
 }
 		    }
 		    rej3=1;
+                    chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isd;//channel numbering for job-stat counters
+		    TOF2JobStat::addch(chnum,24);;//count "after"-hit presence
 		    break;
 		  }
 		}
 	      }
-	    }//--->endof smty>0 check
+	    }//--->endof smty>0/itmbest>=0 check
           }//--->endof sides loop
 //
 //===========>>> set time-history status of sc.bar :
 //
             if(rej2==1 || rej3==1)sta|=TOFGC::SCBADB1;// set bit "bad time-history" on any of complete sides
-	    if(rej1==1)sta|=TOFGC::SCBADB6;// set bit "no TrueLT-hit/SumHT matching"(if required) on any of the complete sides
+	    if(rej1==1 && SumHTuse==1)sta|=TOFGC::SCBADB6;// set bit "no TrueLT-hit/SumHT matching"(if was permitted) on any side"
             if(rej2==0 && rej3==0)TOF2JobStat::addbr(brnum,2);//"good time-history" on each of complete sides
             if(rej1==0)TOF2JobStat::addbr(brnum,3);//"True LT-hit" matching OK(when requested) on each of complete sides
             if(rej1==0&&rej2==0&&rej3==0 && isds==2)TOF2JobStat::addbr(brnum,4);//all is OK on both sides
-	    if(TFREFFKEY.reprtf[3]>0 && (rej2==1 || rej3==1))
-	                                   cout<<"    Bad time-history on any of complete sides !"<<endl;
+if((smty[0]==1 && itmbest[0]<0) || (smty[1]==1 && itmbest[1]<0)){
+  cout<<"<------------- Fatal: itmbest="<<itmbest[0]<<" "<<itmbest[1]<<endl;
+  exit(1);
+}
 //
 //===========>>> calculate times/Edeps of sc.bar :
 //

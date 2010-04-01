@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.702 2010/03/27 10:55:31 choutko Exp $
+// $Id: job.C,v 1.703 2010/04/01 10:40:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1296,7 +1296,7 @@ void AMSJob::_retof2data(){
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run.
 //                       (when =7 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on ACC !) 
-  TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
+  TFREFFKEY.relogic[1]=1;//(9) 1/0-> permit/not LT/SumHT matching criterion for multi-LTs case 
   TFREFFKEY.relogic[2]=1;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->write/not TOF2RawSideObject-info into ntuple
