@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.8 2010/01/25 15:09:29 shaino Exp $
+//  $Id: MagField.h,v 1.9 2010/04/02 14:04:45 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 
@@ -63,18 +63,92 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/25 15:09:29 $
+///$Date: 2010/04/02 14:04:45 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
+
+class magserv {
+private:
+  float*  x;
+  float*  y;
+  float*  z;
+
+  float* bx;
+  float* by;
+  float* bz;
+
+
+  float* bdx;
+  float* bdy;
+  float* bdz;
+
+  float* xyz;
+
+  float* bxc;
+  float* byc;
+  float* bzc;
+
+public:
+  int _nx;
+  int _ny;
+  int _nz;
+
+  double  _dx;     ///< Element size in X (cm)
+  double  _dy;     ///< Element size in Y (cm)
+  double  _dz;     ///< Element size in Z (cm)
+
+
+  magserv(int nx, int ny, int nz);
+  ~magserv();
+
+  float * _x() {return x;}
+  float * _y() {return y;}
+  float * _z() {return z;}
+
+  float * _bx() {return bx;}
+  float * _by() {return by;}
+  float * _bz() {return bz;}
+
+  float * _bdx() {return bdx;}
+  float * _bdy() {return bdy;}
+  float * _bdz() {return bdz;}
+
+  float * _bxc() {return bx;}
+  float * _byc() {return by;}
+  float * _bzc() {return bz;}
+
+  float * _xyz() {return xyz;}
+
+
+  float _x(int i) {return x[i];}
+  float _y(int i) {return y[i];}
+  float _z(int i) {return z[i];}
+
+  float _xyz(int i) {return xyz[i];}
+  
+  
+  float _bx(int i, int j, int k){ return bx[i*_nx*_ny+ j*_nx + k];}
+  float _by(int i, int j, int k){ return by[i*_nx*_ny+ j*_nx + k];}
+  float _bz(int i, int j, int k){ return bz[i*_nx*_ny+ j*_nx + k];}
+
+  float _bdx(int l,int i, int j, int k){ return bx[l*_nx*_ny*_nz+i*_nx*_ny+ j*_nx + k];}
+  float _bdy(int l,int i, int j, int k){ return by[l*_nx*_ny*_nz+i*_nx*_ny+ j*_nx + k];}
+  float _bdz(int l,int i, int j, int k){ return bz[l*_nx*_ny*_nz+i*_nx*_ny+ j*_nx + k];}
+
+  float _bxc(int i, int j, int k){ return bxc[i*_nx*_ny+ j*_nx + k];}
+  float _byc(int i, int j, int k){ return byc[i*_nx*_ny+ j*_nx + k];}
+  float _bzc(int i, int j, int k){ return bzc[i*_nx*_ny+ j*_nx + k];}
+
+   /// Read field map file
+   int Read(const char* fname,int skip);
+
+};
 
 class MagField {
 public:
   enum { _header_size = 15 };
-  enum { _nx = 41, _ny  = 41, _nz  = 41 };
-  enum { _nr =  9, _nph = 73, _nzr = 37 };
-
 protected:
   char mfile[120];
   integer iniok;
@@ -86,27 +160,9 @@ protected:
   integer iyear[2];
   integer na   [3];
 
-  geant  _x[_nx];
-  geant  _y[_ny];
-  geant  _z[_nz];
+  magserv* mm;
 
-  geant _bx[_nz][_ny][_nx];
-  geant _by[_nz][_ny][_nx];
-  geant _bz[_nz][_ny][_nx];
 
-  geant _xyz[_nx+_ny+_nz];
-
-  geant _bdx[2][_nz][_ny][_nx];
-  geant _bdy[2][_nz][_ny][_nx];
-  geant _bdz[2][_nz][_ny][_nx];
-
-  geant _bxc[_nz][_ny][_nx];
-  geant _byc[_nz][_ny][_nx];
-  geant _bzc[_nz][_ny][_nx];
-
-  double  _dx;     ///< Element size in X (cm)
-  double  _dy;     ///< Element size in Y (cm)
-  double  _dz;     ///< Element size in Z (cm)
 
   static MagField* _ptr;  ///< Self pointer
   double fscale;
@@ -122,7 +178,7 @@ public:
   void GuFld(float *x, float *b);
 
   /// Get field value (Rphiz coodinate)
-  void GuFldRphi(float *x, float *b);
+  //  void GuFldRphi(float *x, float *b);
 
   AMSPoint GuFld(AMSPoint x){
     float xx[3] = { 0, 0, 0 };
@@ -148,8 +204,9 @@ public:
 
   void SetMfile(char* pp){ sprintf(mfile,"%s",pp);}
   int GetSizeForDB(){
-    int siz= sizeof(isec[0])*15+sizeof(_x[0])*
-      ((_nx*_ny*_nz)*12+2*(_nx+_ny+_nz));
+    if(!mm) return 0;
+    int siz= sizeof(isec[0])*15+sizeof(mm->_x(0))*
+      ((mm->_nx*mm->_ny*mm->_nz)*12+2*(mm->_nx+mm->_ny+mm->_nz));
     return siz;
   }
 

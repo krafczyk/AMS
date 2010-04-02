@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.8 2010/01/22 11:08:35 pzuccon Exp $
+// $Id: MagField.C,v 1.9 2010/04/02 14:04:44 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/01/22 11:08:35 $
+///$Date: 2010/04/02 14:04:44 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -77,113 +77,36 @@ MagField *MagField::_ptr = 0;
 MagField::MagField(void)
 {
   iniok=0;
-  _dx=_dy=_dz=0;
+
   for(int ii=0;ii<2;ii++)
     isec[ii]=imin[ii]=ihour[ii]=iday[ii]=imon[ii]=iyear[ii]=0;
   na[0]=na[1]=na[2]=0;
-  for (int ix=0;ix<_nx;ix++)
-    for (int iy=0;iy<_ny;iy++)
-      for (int iz=0;iz<_nz;iz++){
-	
-	_x[ix]=0;
-	_y[iy]=0;
-	_z[iz]=0;
-	  _bx[iz][iy][ix]=0;
-	  _by[iz][iy][ix]=0;
-	  _bz[iz][iy][ix]=0;
-	  _xyz[ix+iy+iz]=0;
-	  _bdx[0][iz][iy][ix]=0;
-	  _bdy[0][iz][iy][ix]=0;
-	  _bdz[0][iz][iy][ix]=0;
-	  _bdx[1][iz][iy][ix]=0;
-	  _bdy[1][iz][iy][ix]=0;
-	  _bdz[1][iz][iy][ix]=0;
-	  _bxc[iz][iy][ix]=0;
-	  _byc[iz][iy][ix]=0;
-	  _bzc[iz][iy][ix]=0;
-	}
   _ptr = this;
 }
 
 MagField::~MagField()
 {
+  if(mm) delete mm;
   _ptr=0;
 }
 
 int MagField::Read(const char *fname)
 {
+  
   std::ifstream fin(fname);
   if (!fin) {
-    std::cerr << "MagField::ReadAMS: File not found: " << fname << std::endl;
-    return -1;
+    std::cerr << "MagField::ReadAMS: FATAL  File not found: " << fname << std::endl;
+    exit(-1);
   }
-
-  int stot = 0;
 
   char *cheader = (char *)isec;
   fin.read(cheader, 4*_header_size);
-  stot += 4*_header_size;
+  fin.close();
 
-  MAGSFFKEY.rphi = 0;
-  if (na[0] == _nx && na[1] == _ny  && na[2] == _nz ) {
-    MAGSFFKEY.rphi = 0;
-    std::cout << "MagField::Read: X-Y-Z map" << std::endl;
-  }
-  else if (na[0] == _nr && na[1] == _nph && na[2] == _nzr) {
-    MAGSFFKEY.rphi = 1;
-    std::cout << "MagField::Read: R-Phi-Z map" << std::endl;
-  }
-  else {
-    std::cerr << "Error in MagField::Read format error: "
-	      << fname << " " 
-	      << na[0] << " " << na[1] << " " << na[2] << std::endl;
-    MAGSFFKEY.rphi = 0;
-    MAGSFFKEY.magstat = 0;
-    return -1;
-  }
+  mm= new magserv(na[0],na[1],na[2]);
 
-  int _nb = _nx*_ny*_nz;
-  int  nn = _nx+_ny+_nz;
-
-  std::cout << "MagField::Read: Reading field map... ";
-  std::cout.flush();
-
-  char *cdata = (char *)_x;
-  int dsize = _nx+_ny+_nz+_nb*3+nn+_nb*2*3;
-  fin.read(cdata, 4*dsize);
-  stot += 4*dsize;
-  std::cout << stot << std::endl;
-
-  _dx = _x[1]-_x[0];
-  _dy = _y[1]-_y[0];
-  _dz = _z[1]-_z[0];
-
-  geant *_rad = &_x[0];
-  geant *_phi = &_x[_nr];
-
-  bool check = true;
-  if (MAGSFFKEY.rphi) {
-    for (int i = 0; i < _nr -1; i++) if (_rad[i] >= _rad[i+1]) check = false;
-    for (int i = 0; i < _nph-1; i++) if (_phi[i] >= _phi[i+1]) check = false;
-    for (int i = 0; i < _nzr-1; i++) if (_z  [i] >= _z  [i+1]) check = false;
-  }
-  else {
-    for (int i = 0; i < _nx-1; i++) if (_x[i] >= _x[i+1]) check = false;
-    for (int i = 0; i < _ny-1; i++) if (_y[i] >= _y[i+1]) check = false;
-    for (int i = 0; i < _nz-1; i++) if (_z[i] >= _z[i+1]) check = false;
-    if (std::fabs(_x[_nx-1]-_x[0]-(_nx-1)*_dx) > 1e-3 ||
-	std::fabs(_y[_ny-1]-_y[0]-(_ny-1)*_dy) > 1e-3 ||
-	std::fabs(_z[_nz-1]-_z[0]-(_nz-1)*_dz) > 1e-3) check = false;
-  }
-
-  if (!check) {
-    std::cerr << "Error in MagField::Read format check failed: "
-	      << fname << " rphi= " << MAGSFFKEY.rphi << std::endl;
-  }else
-    std::cout << "MagField::Read format check Success: "
-	      << fname << " rphi= " << MAGSFFKEY.rphi << std::endl;
-
-  return _nb;
+  return   mm->Read(fname,_header_size);
+  
 }
 
 void MagField::GuFld(float *xx, float *b)
@@ -193,16 +116,14 @@ void MagField::GuFld(float *xx, float *b)
     //  printf("No magfield\n");
     return;
   }
+  if(!mm) return;
 
 // PZ FORCE RECTANGULAR  if (MAGSFFKEY.rphi) {
 //     GuFldRphi(xx, b);
 //     return;
 //   }
 
-  _dx = _x[1]-_x[0];
-  _dy = _y[1]-_y[0];
-  _dz = _z[1]-_z[0];
-
+  
   double ax = xx[0];
   double ay = xx[1];
   double az = xx[2];
@@ -212,9 +133,9 @@ void MagField::GuFld(float *xx, float *b)
   double ww[8];
   _Fint(ax, ay, az, idx, ww);
 
-  float *mbx = &(_bx[0][0][0]);
-  float *mby = &(_by[0][0][0]);
-  float *mbz = &(_bz[0][0][0]);
+  float *mbx = mm->_bx();
+  float *mby = mm->_by();
+  float *mbz = mm->_bz();
 
   for (int i = 0; i < 8; i++) {
     b[0] += mbx[idx[i]]*ww[i];
@@ -230,47 +151,47 @@ void MagField::GuFld(float *xx, float *b)
 
 }
 
-void MagField::GuFldRphi(float *xx, float *b)
-{
-  b[0] = b[1] = b[2] = 0;
-  if (MAGSFFKEY.magstat <= 0) return;
+// void MagField::GuFldRphi(float *xx, float *b)
+// {
+//   b[0] = b[1] = b[2] = 0;
+//   if (MAGSFFKEY.magstat <= 0) return;
 
-  double rr = std::sqrt(xx[0]*xx[0]+xx[1]*xx[1]);
-  double ph = std::atan2(xx[1], xx[0]);
-  double zz = xx[2];
+//   double rr = std::sqrt(xx[0]*xx[0]+xx[1]*xx[1]);
+//   double ph = std::atan2(xx[1], xx[0]);
+//   double zz = xx[2];
 
-  geant *_rad = &_x[0];
-  geant *_phi = &_x[_nr];
-  if (ph < _phi[0]) ph += 2*M_PI;
-  if (rr > _rad[_nr-1] || std::fabs(ph) > _phi[_nph-1] || 
-                          std::fabs(zz) > _z  [_nzr-1]) return;
+//   geant *_rad = &mm->_x[0];
+//   geant *_phi = &mm->_x[_nr];
+//   if (ph < _phi[0]) ph += 2*M_PI;
+//   if (rr > _rad[_nr-1] || std::fabs(ph) > _phi[_nph-1] || 
+//                           std::fabs(zz) > mm->_z  [_nzr-1]) return;
 
-  int   idx[8];
-  double ww[8];
-  _FintRphi(rr, ph, zz, idx, ww);
+//   int   idx[8];
+//   double ww[8];
+//   _FintRphi(rr, ph, zz, idx, ww);
 
-  float *mbx = &(_bx[0][0][0]);
-  float *mby = &(_by[0][0][0]);
-  float *mbz = &(_bz[0][0][0]);
+//   float *mbx = &(mm->_bx[0][0][0]);
+//   float *mby = &(mm->_by[0][0][0]);
+//   float *mbz = &(mm->_bz[0][0][0]);
 
-  for (int i = 0; i < 8; i++) {
-    b[0] += mbx[idx[i]]*ww[i];
-    b[1] += mby[idx[i]]*ww[i];
-    b[2] += mbz[idx[i]]*ww[i];
-  }
+//   for (int i = 0; i < 8; i++) {
+//     b[0] += mbx[idx[i]]*ww[i];
+//     b[1] += mby[idx[i]]*ww[i];
+//     b[2] += mbz[idx[i]]*ww[i];
+//   }
 
-  //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
-  for (int i = 0; i < 3; i++) b[i] *= fscale;
+//   //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
+//   for (int i = 0; i < 3; i++) b[i] *= fscale;
 
-//printf ("X: %+7.3f %+7.3f %+7.3f B: %+7.3f %+7.3f %+7.3f \n",
-//        xx[0],xx[1],xx[2],b[0],b[1],b[2]);
-}
+// //printf ("X: %+7.3f %+7.3f %+7.3f B: %+7.3f %+7.3f %+7.3f \n",
+// //        xx[0],xx[1],xx[2],b[0],b[1],b[2]);
+// }
 
 void MagField::TkFld(float *xx, float hxy[][3])
 {
   hxy[0][0] = hxy[0][1] = hxy[0][2] = 
   hxy[1][0] = hxy[1][1] = hxy[1][2] = 0;
-  if (MAGSFFKEY.magstat <= 0 || !_bx || !_by || !_bz) return;
+  if (MAGSFFKEY.magstat <= 0 || !mm || !mm->_bx() || !mm->_by() || !mm->_bz()) return;
   //  PZ FORCE RECTANGULAR if (MAGSFFKEY.rphi) return;
 
   double ax = xx[0];
@@ -282,11 +203,11 @@ void MagField::TkFld(float *xx, float hxy[][3])
   double ww[8];
   _Fint(ax, ay, az, idx, ww);
 
-  int _nb = _nx*_ny*_nz;
+  int _nb = mm->_nx*mm->_ny*mm->_nz;
 
-  float *mbdx=&(_bdx[0][0][0][0]);
-  float *mbdy=&(_bdy[0][0][0][0]);
-  float *mbdz=&(_bdz[0][0][0][0]);
+  float *mbdx=mm->_bdx();
+  float *mbdy=mm->_bdy();
+  float *mbdz=mm->_bdz();
 
   for (int i = 0; i < 8; i++) {
     hxy[0][0] += mbdx[idx[i]]*ww[i]; hxy[1][0] += mbdx[idx[i]+_nb]*ww[i];
@@ -298,13 +219,14 @@ void MagField::TkFld(float *xx, float hxy[][3])
 
 void MagField::AddBcor(AMSPoint xx, AMSPoint db)
 {
+  if(!mm) return;
   int idx = _GetIndex(xx.x(), xx.y(), xx.z());
-  int _nb = _nx*_ny*_nz;
+  int _nb = mm->_nx*mm->_ny*mm->_nz;
   if (idx < 0 || _nb <= idx) return;
 
-  float *mbx = &(_bx[0][0][0]);
-  float *mby = &(_by[0][0][0]);
-  float *mbz = &(_bz[0][0][0]);
+  float *mbx = mm->_bx();
+  float *mby = mm->_by();
+  float *mbz = mm->_bz();
 
   mbx[idx] += db.x();
   mby[idx] += db.y();
@@ -317,19 +239,21 @@ void MagField::_Fint(double x, double y, double z, int *index, double *weight)
     index [i] = 0;
     weight[i] = 0;
   }
-  int _nb = _nx*_ny*_nz;
+  if(!mm) return;
+
+  int _nb = mm->_nx*mm->_ny*mm->_nz;
 
   int idx0 = _GetIndex(x, y, z);
   if (idx0 < 0 || _nb <= idx0) return;
 
-  int ix = idx0    %_nx; if (ix >= _nx-1) ix = _nx-2;
-  int iy = idx0/_nx%_ny; if (iy >= _ny-1) iy = _ny-2;
-  int iz = idx0/_nx/_ny; if (iz >= _nz-1) iz = _nz-2;
+  int ix = idx0    %mm->_nx; if (ix >= mm->_nx-1) ix = mm->_nx-2;
+  int iy = idx0/mm->_nx%mm->_ny; if (iy >= mm->_ny-1) iy = mm->_ny-2;
+  int iz = idx0/mm->_nx/mm->_ny; if (iz >= mm->_nz-1) iz = mm->_nz-2;
 
   double dx[2], dy[2], dz[2];
-  dx[1] = (x-_x[ix])/(_x[ix+1]-_x[ix]); dx[0] = 1-dx[1];
-  dy[1] = (y-_y[iy])/(_y[iy+1]-_y[iy]); dy[0] = 1-dy[1];
-  dz[1] = (z-_z[iz])/(_z[iz+1]-_z[iz]); dz[0] = 1-dz[1];
+  dx[1] = (x-mm->_x(ix))/(mm->_x(ix+1)-mm->_x(ix)); dx[0] = 1-dx[1];
+  dy[1] = (y-mm->_y(iy))/(mm->_y(iy+1)-mm->_y(iy)); dy[0] = 1-dy[1];
+  dz[1] = (z-mm->_z(iz))/(mm->_z(iz+1)-mm->_z(iz)); dz[0] = 1-dz[1];
 
   int l = 0;
   for (int k = 0; k < 2; k++)
@@ -341,47 +265,48 @@ void MagField::_Fint(double x, double y, double z, int *index, double *weight)
       }
 }
 
-void MagField::_FintRphi(double r, double ph, double z, 
-			 int *index, double *weight)
-{
-  for (int i = 0; i < 8; i++) {
-    index [i] = 0;
-    weight[i] = 0;
-  }
+// void MagField::_FintRphi(double r, double ph, double z, 
+// 			 int *index, double *weight)
+// {
+//   for (int i = 0; i < 8; i++) {
+//     index [i] = 0;
+//     weight[i] = 0;
+//   }
 
-  geant *_rad = &_x[0];
-  geant *_phi = &_x[_nr];
+//   geant *_rad = &_x[0];
+//   geant *_phi = &mm->_x[_nr];
 
-  int ir, ip, iz;
-  for (ir = 0; ir < _nr -1 && r  > _rad[ir+1]; ir++);
-  for (ip = 0; ip < _nph-1 && ph > _phi[ip+1]; ip++);
-  for (iz = 0; iz < _nz -1 && z  > _z  [iz+1]; iz++);
+//   int ir, ip, iz;
+//   for (ir = 0; ir < _nr -1 && r  > _rad[ir+1]; ir++);
+//   for (ip = 0; ip < _nph-1 && ph > _phi[ip+1]; ip++);
+//   for (iz = 0; iz < mm->_nz -1 && z  > mm->_z  [iz+1]; iz++);
 
-  int idx0 = (iz*_nph+ip)*_nr+ir;
-  if (idx0 < 0 || _nr*_nph*_nzr <= idx0) return;
+//   int idx0 = (iz*_nph+ip)*_nr+ir;
+//   if (idx0 < 0 || _nr*_nph*_nzr <= idx0) return;
 
-  double dr[2], dp[2], dz[2];
-  dr[1] = (r -_rad[ir])/(_rad[ir+1]-_rad[ir]); dr[0] = 1-dr[1];
-  dp[1] = (ph-_phi[ip])/(_phi[ip+1]-_phi[ip]); dp[0] = 1-dp[1];
-  dz[1] = (z -_z  [iz])/(_z  [iz+1]-_z  [iz]); dz[0] = 1-dz[1];
+//   double dr[2], dp[2], dz[2];
+//   dr[1] = (r -_rad[ir])/(_rad[ir+1]-_rad[ir]); dr[0] = 1-dr[1];
+//   dp[1] = (ph-_phi[ip])/(_phi[ip+1]-_phi[ip]); dp[0] = 1-dp[1];
+//   dz[1] = (z -_z  [iz])/(mm->_z  [iz+1]-mm->_z  [iz]); dz[0] = 1-dz[1];
 
-  int l = 0;
-  for (int k = 0; k < 2; k++)
-    for (int j = 0; j < 2; j++)
-      for (int i = 0; i < 2; i++) {
-	index [l] = ((iz+k)*_nph+(ip+j))*_nr+ir+i;
-	weight[l] = dr[i]*dp[j]*dz[k];
-	l++;
-      }
-}
+//   int l = 0;
+//   for (int k = 0; k < 2; k++)
+//     for (int j = 0; j < 2; j++)
+//       for (int i = 0; i < 2; i++) {
+// 	index [l] = ((iz+k)*_nph+(ip+j))*_nr+ir+i;
+// 	weight[l] = dr[i]*dp[j]*dz[k];
+// 	l++;
+//       }
+//  }
 
 int MagField::_GetIndex(double x, double y, double z) const
 {
-  if (!_x || !_y || !_z) return -1;
+  
+  if (!mm || !mm->_x() || !mm->_y() || !mm->_z()) return -1;
 
-  int ix = (int)((x-_x[0])/_dx);
-  int iy = (int)((y-_y[0])/_dy);
-  int iz = (int)((z-_z[0])/_dz);
+  int ix = (int)((x-mm->_x(0))/mm->_dx);
+  int iy = (int)((y-mm->_y(0))/mm->_dy);
+  int iz = (int)((z-mm->_z(0))/mm->_dz);
 
   return _Index(ix, iy, iz);
 }
@@ -392,31 +317,185 @@ int MagField::_GetIndex(double x, double y, double z) const
 
 inline int MagField::_Index(int i, int j, int k) const
 {
-    return (0 <= i && i < _nx && 0 <= j && j < _ny && 0 <= k && k < _nz) 
-          ? (k*_ny+j)*_nx+i : -1; 
+    return (0 <= i && i < mm->_nx && 0 <= j && j < mm->_ny && 0 <= k && k < mm->_nz) 
+          ? (k*mm->_ny+j)*mm->_nx+i : -1; 
 }
 
 
 
 
 void MagField::Print(){
-
+  
   printf("mfile  %s \n",mfile);
   printf("iniok  %d \n",iniok);
-  for (int ix=0;ix<_nx;ix++)
-    for (int iy=0;iy<_ny;iy++)
-      for (int iz=0;iz<_nz;iz++)
+  if(!mm) return;
+  for (int ix=0;ix<mm->_nx;ix++)
+    for (int iy=0;iy<mm->_ny;iy++)
+      for (int iz=0;iz<mm->_nz;iz++)
 	
 	printf(" %2d %2d %2d X: %+6.1f Y: %+6.1f Z: %+6.1f BX: %+f BY: %+f BZ: %+f BdX0: %+f BdY0: %+f BdZ0: %+f BdX1: %+f BdY1: %+f BdZ1: %+f  BcX0: %+f BcY0: %+f BcZ0: %+f \n",
-	       ix,iy,iz,_x[ix],_y[iy],_z[iz],_bx[iz][iy][ix],_by[iz][iy][ix],_bz[iz][iy][ix],
-	       _bdx[0][iz][iy][ix],_bdy[0][iz][iy][ix],_bdz[0][iz][iy][ix],
-	       _bdx[1][iz][iy][ix],_bdy[1][iz][iy][ix],_bdz[1][iz][iy][ix],
-	       _bxc[iz][iy][ix],_byc[iz][iy][ix],_bzc[iz][iy][ix]);
+	       ix,iy,iz,mm->_x(ix),mm->_y(iy),mm->_z(iz),mm->_bx(iz,iy,ix),mm->_by(iz,iy,ix),mm->_bz(iz,iy,ix),
+	       mm->_bdx(0,iz,iy,ix),mm->_bdy(0,iz,iy,ix),mm->_bdz(0,iz,iy,ix),
+	       mm->_bdx(1,iz,iy,ix),mm->_bdy(1,iz,iy,ix),mm->_bdz(1,iz,iy,ix),
+	       mm->_bxc(iz,iy,ix),mm->_byc(iz,iy,ix),mm->_bzc(iz,iy,ix));
 
 
 
 
 
+}
+
+
+
+
+
+
+int magserv::Read(const char *fname, int skip){
+  std::ifstream fin(fname);
+  if (!fin) {
+    std::cerr << "MagField::ReadAMS: File not found: " << fname << std::endl;
+    return -1;
+  }
+
+  if(skip){
+    char *cheader = new char[4*skip];
+    fin.read(cheader, 4*skip);
+   //  int *pp=(int*) cheader;
+//     for (int ii=0;ii<skip;ii++){
+//       cout <<" header "<<ii<<"  "<<pp[ii]<<endl;
+//     }
+    delete[] cheader;
+  }
+  int stot=0;
+  int _nb = _nx*_ny*_nz;
+  int _nn = _nx+_ny+_nz;
+  std::cout << "MagField::Read: Reading field map... ";
+  std::cout.flush();
+  char *cdata = (char *)x;
+  int dsize = _nx;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)y;
+  dsize = _ny;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)z;
+  dsize = _nz;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  _dx = x[1]-x[0];
+  _dy = y[1]-y[0];
+  _dz = z[1]-z[0];
+
+ 
+
+  cdata = (char *)bx;
+  dsize = _nb;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)by;
+  dsize = _nb;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)bz;
+  dsize = _nb;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)xyz;
+  dsize = _nn;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)bdx;
+  dsize = 2*_nb;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)bdy;
+  dsize = 2*_nb;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  cdata = (char *)bdz;
+  dsize = 2*_nb;
+  fin.read(cdata, 4*dsize);
+  stot += 4*dsize;
+
+  bool check = true;
+  for (int i = 0; i < _nx-1; i++) if (x[i] >= x[i+1]) check = false;
+  for (int i = 0; i < _ny-1; i++) if (y[i] >= y[i+1]) check = false;
+  for (int i = 0; i < _nz-1; i++) if (z[i] >= z[i+1]) check = false;
+  if (std::fabs(x[_nx-1]-x[0]-(_nx-1)*_dx) > 1e-3 ||
+      std::fabs(y[_ny-1]-y[0]-(_ny-1)*_dy) > 1e-3 ||
+      std::fabs(z[_nz-1]-z[0]-(_nz-1)*_dz) > 1e-3) check = false;
+  
+
+  if (!check) {
+    std::cerr << "Error in MagField::Read format check failed: "
+	      << fname <<  std::endl;
+  }else
+    std::cout << "MagField::Read format check Success: "
+	      << fname <<  std::endl;
+  return _nb;
+  
+  
+}
+
+
+
+magserv::magserv(int nx, int ny, int nz)
+  :_nx(nx),_ny(ny),_nz(nz){
+  
+  x   = new float[_nx];
+  y   = new float[_ny];
+  z   = new float[_nz];
+  
+  bx  = new float[_nx*_ny*_nz];
+  by  = new float[_nx*_ny*_nz] ;
+  bz  = new float[_nx*_ny*_nz] ;
+  
+  xyz = new float[_nx+_ny+_nz] ;
+  
+  bdx  = new float[2*_nx*_ny*_nz] ;
+  bdy  = new float[2*_nx*_ny*_nz] ;
+  bdz  = new float[2*_nx*_ny*_nz] ;
+  
+  bxc  = new float[_nx*_ny*_nz] ;
+  byc  = new float[_nx*_ny*_nz] ;
+  bzc  = new float[_nx*_ny*_nz] ;
+  _dx=1;  _dy=1;  _dz=1;
+  
+}
+
+
+magserv::~magserv(){
+  if(x) delete[] x;
+  if(y) delete[] y;
+  if(z) delete[] z;
+  
+  
+  if(bx) delete[] bx;
+  if(by) delete[] by;
+  if(bz) delete[] bz;
+  
+  if(xyz) delete[] xyz;
+  
+  
+  if(bdx) delete[] bdx;
+  if(bdy) delete[] bdy;
+  if(bdz) delete[] bdz;
+  
+  
+  if(bxc) delete[] bxc;
+  if(byc) delete[] byc;
+  if(bzc) delete[] bzc;
+  
 }
 
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.704 2010/04/02 10:34:50 pzuccon Exp $
+// $Id: job.C,v 1.705 2010/04/02 14:04:44 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2867,9 +2867,19 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
 // 		   begin,end,pp->GetSizeForDB(),        
 // 		   (void*)pp->GetPointerForDB(),
 //                 server,1));
- char bmap_fname[30]="MagneticFieldMap07.bin";
- //set scale because fld07 map is at 460 A and we want 400 A
- pp->SetScale(400./460.);
+ 
+ char bmap_fname[50];
+
+ if(strstr(getsetup(),"AMS02P")){
+ 
+   sprintf( bmap_fname,"MagneticFieldMapPermanent.bin");
+   pp->SetScale(1.);
+ 
+ }else{
+   sprintf( bmap_fname,"MagneticFieldMap07.bin");
+   //set scale because fld07 map is at 460 A and we want 400 A
+   pp->SetScale(400./460.);
+ }
  char name[200];
  sprintf(name,"%s/%s",AMSDATADIR.amsdatadir,bmap_fname);
  pp->Read(name);
