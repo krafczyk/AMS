@@ -41,8 +41,8 @@ void TrPatt::BuildHitPatterns(int nmask, int ilyr, int mask)
 //=================================================================
   if (nmask > 0) {
     const int MASK_ORDER[8] = { 1, 3, 5, 2, 4, 6, 0, 7 };
-    for (int j = ilyr; j < trconst::nlays; j++)
-      BuildHitPatterns(nmask-1, j+1, mask | (1<<(trconst::nlays-MASK_ORDER[j]-1)));
+    for (int j = ilyr; j < TkDBc::Head->nlays(); j++)
+      BuildHitPatterns(nmask-1, j+1, mask | (1<<(TkDBc::Head->nlays()-MASK_ORDER[j]-1)));
     return;
   }
 
@@ -51,9 +51,9 @@ void TrPatt::BuildHitPatterns(int nmask, int ilyr, int mask)
 // ( = Nmask*100000 +Np1*10000 +Np2*1000 +Np3*100 +Np4*10 +Np5)
 //=================================================================
   int atrb = 12221, iatrb = O_NP1;
-  for (int i = 0; i < trconst::nlays; i++) {
+  for (int i = 0; i < TkDBc::Head->nlays(); i++) {
     if (i%2 == 1) iatrb /= 10;
-    if (mask & (1<<(trconst::nlays-i-1))) atrb += -iatrb+O_NMASK;
+    if (mask & (1<<(TkDBc::Head->nlays()-i-1))) atrb += -iatrb+O_NMASK;
   }
   HitPatternMask[PatternID] = mask; HitPatternAttrib[PatternID] = atrb;
   HitPatternIndex[mask] = PatternID;

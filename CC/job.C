@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.703 2010/04/01 10:40:16 choumilo Exp $
+// $Id: job.C,v 1.704 2010/04/02 10:34:50 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -25,7 +25,7 @@
 #include "extC.h"
 #include <fenv.h>
 #ifdef _PGTRACK_
-
+#include "patt.h"
 #include "TrRecon.h"
 #include "TrTasDB.h"
 
@@ -840,7 +840,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.calvern=2;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
-//
+  //
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
@@ -1534,54 +1534,54 @@ void AMSJob::udata(){
   }
 #endif
 
-if(CCFFKEY.StrMass<0){
- CCFFKEY.StrMass=0.938*pow(CCFFKEY.StrCharge/0.3,1.5);
-}
- if(GCKINE.ipart==113){
-  cout <<" Stranglet Parameters Are Charge: "<<CCFFKEY.StrCharge<<" Mass: "<<CCFFKEY.StrMass<<endl;
- }
+  if(CCFFKEY.StrMass<0){
+    CCFFKEY.StrMass=0.938*pow(CCFFKEY.StrCharge/0.3,1.5);
+  }
+  if(GCKINE.ipart==113){
+    cout <<" Stranglet Parameters Are Charge: "<<CCFFKEY.StrCharge<<" Mass: "<<CCFFKEY.StrMass<<endl;
+  }
 
 
-GCTIME.TIMEND=GCTIME.TIMINT;
-GCTIME.ITIME=0;
-if(!MISCFFKEY.G4On && !MISCFFKEY.G3On){
-cerr<<"<---- AMSJob::udata-F-NeitherGeant3NorGeant4Selected"<<endl;
-exit(1);
-}
-else if(MISCFFKEY.G4On && MISCFFKEY.G3On){
-cerr<<"<---- AMSJob::udata-W-BothGeant3AndGeant4Selected"<<endl;
-exit(1);
-}
-else if(MISCFFKEY.G4On)cout<<"<---- AMSJob::udata-I-Geant4Selected"<<endl<<endl;
-else cout<<"<---- AMSJob::udata-I-Geant3Selected"<<endl<<endl;
+  GCTIME.TIMEND=GCTIME.TIMINT;
+  GCTIME.ITIME=0;
+  if(!MISCFFKEY.G4On && !MISCFFKEY.G3On){
+    cerr<<"<---- AMSJob::udata-F-NeitherGeant3NorGeant4Selected"<<endl;
+    exit(1);
+  }
+  else if(MISCFFKEY.G4On && MISCFFKEY.G3On){
+    cerr<<"<---- AMSJob::udata-W-BothGeant3AndGeant4Selected"<<endl;
+    exit(1);
+  }
+  else if(MISCFFKEY.G4On)cout<<"<---- AMSJob::udata-I-Geant4Selected"<<endl<<endl;
+  else cout<<"<---- AMSJob::udata-I-Geant3Selected"<<endl<<endl;
 
-if(MISCFFKEY.BZCorr !=1){
-cout <<"<---- AMSJob::udata-W-magneticFieldRescaleModeOnWithFactor "<<MISCFFKEY.BZCorr<<endl<<endl;
-}
+  if(MISCFFKEY.BZCorr !=1){
+    cout <<"<---- AMSJob::udata-W-magneticFieldRescaleModeOnWithFactor "<<MISCFFKEY.BZCorr<<endl<<endl;
+  }
 
-if(CCFFKEY.Fast){
- GCPHYS.IHADR=0;
- GCPHYS.IMULS=0;
- GCPHYS.ILOSS=4;
- GCPHYS.IPAIR=0;
- GCPHYS.IBREM=0;
- GCPHYS.ICOMP=0;
- GCPHYS.IPHOT=0;
- GCPHYS.IANNI=0;
- TRMCFFKEY.NoiseOn=0;
- TRFITFFKEY.FastTracking=4;
- LVL3FFKEY.Accept=32;
- cout <<"AMSJob::udata-W-FastSimSelectedSomeDatacardsWereRedefined"<<endl;
-}
+  if(CCFFKEY.Fast){
+    GCPHYS.IHADR=0;
+    GCPHYS.IMULS=0;
+    GCPHYS.ILOSS=4;
+    GCPHYS.IPAIR=0;
+    GCPHYS.IBREM=0;
+    GCPHYS.ICOMP=0;
+    GCPHYS.IPHOT=0;
+    GCPHYS.IANNI=0;
+    TRMCFFKEY.NoiseOn=0;
+    TRFITFFKEY.FastTracking=4;
+    LVL3FFKEY.Accept=32;
+    cout <<"AMSJob::udata-W-FastSimSelectedSomeDatacardsWereRedefined"<<endl;
+  }
 
-{
+  {
 
-        STATUSFFKEY.status[32]=0;
-            for(int i=0;i<32;i++){
-              STATUSFFKEY.status[32]=STATUSFFKEY.status[32] | 
-                                     STATUSFFKEY.status[i];
-            }
-}
+    STATUSFFKEY.status[32]=0;
+    for(int i=0;i<32;i++){
+      STATUSFFKEY.status[32]=STATUSFFKEY.status[32] | 
+	STATUSFFKEY.status[i];
+    }
+  }
 
 
   //#ifdef __MASSP__
@@ -1589,201 +1589,237 @@ if(CCFFKEY.Fast){
     cerr << "Datacards not terminated properly "<<endl;
     cerr << "Please add TERM=1234567890 in your datacards "<<endl;
     exit(1);  
-   }
+  }
   //#endif
 
 
 
 
-{
-  int i,j,k;
-  for(i=0;i<2;i++){
-    for(j=0;j<2;j++){
-      if(TRMCFFKEY.RawModeOn[i][j][31]==1){
-        for(k=0;k<32;k++)TRMCFFKEY.RawModeOn[i][j][k]=1;
+  {
+    int i,j,k;
+    for(i=0;i<2;i++){
+      for(j=0;j<2;j++){
+	if(TRMCFFKEY.RawModeOn[i][j][31]==1){
+	  for(k=0;k<32;k++)TRMCFFKEY.RawModeOn[i][j][k]=1;
+	}
       }
     }
   }
-}
 
 
-const integer cl=161;
-char jobname[cl];
-char setupname[cl];
-char triggername[cl];
-char tdvname[1601];
-char ffile[cl];
-char ifile[cl];
-char ofile[cl];
-char sfile[cl];
-UHTOC(SELECTFFKEY.File,cl/sizeof(integer),sfile,cl-1);
-UHTOC(DAQCFFKEY.ifile,cl/sizeof(integer),ifile,cl-1);
-UHTOC(DAQCFFKEY.ofile,cl/sizeof(integer),ofile,cl-1);
-UHTOC(AMSFFKEY.Jobname,cl/sizeof(integer),jobname,cl-1);
-UHTOC(AMSFFKEY.Setupname,cl/sizeof(integer),setupname,cl-1);
-UHTOC(IOPA.ffile,cl/sizeof(integer),ffile,cl-1);
-UHTOC(IOPA.TriggerC,cl/sizeof(integer),triggername,cl-1);
-int i;
+  const integer cl=161;
+  char jobname[cl];
+  char setupname[cl];
+  char triggername[cl];
+  char tdvname[1601];
+  char ffile[cl];
+  char ifile[cl];
+  char ofile[cl];
+  char sfile[cl];
+  UHTOC(SELECTFFKEY.File,cl/sizeof(integer),sfile,cl-1);
+  UHTOC(DAQCFFKEY.ifile,cl/sizeof(integer),ifile,cl-1);
+  UHTOC(DAQCFFKEY.ofile,cl/sizeof(integer),ofile,cl-1);
+  UHTOC(AMSFFKEY.Jobname,cl/sizeof(integer),jobname,cl-1);
+  UHTOC(AMSFFKEY.Setupname,cl/sizeof(integer),setupname,cl-1);
+  UHTOC(IOPA.ffile,cl/sizeof(integer),ffile,cl-1);
+  UHTOC(IOPA.TriggerC,cl/sizeof(integer),triggername,cl-1);
+  int i;
 
-//+
-for (i=cl-2; i>0; i--) {        // should be at least 1 char
- if(jobname[i] == ' ') jobname[i]='\0';
- else break;
-}
-for (i=cl-2; i>=0; i--) {
- if(setupname[i] == ' ') setupname[i]='\0';
- else break;
-}
-for (i=cl-2; i>=0; i--) {
- if(ffile[i] == ' ') ffile[i]='\0';
- else break;
-}
-for (i=cl-2; i>=0; i--) {
- if(ifile[i] == ' ') ifile[i]='\0';
- else break;
-}
-for (i=cl-2; i>=0; i--) {
- if(sfile[i] == ' ') sfile[i]='\0';
- else break;
-}
-for (i=cl-2; i>=0; i--) {
- if(ofile[i] == ' ') ofile[i]='\0';
- else break;
-}
+  //+
+  for (i=cl-2; i>0; i--) {        // should be at least 1 char
+    if(jobname[i] == ' ') jobname[i]='\0';
+    else break;
+  }
+  for (i=cl-2; i>=0; i--) {
+    if(setupname[i] == ' ') setupname[i]='\0';
+    else break;
+  }
+  for (i=cl-2; i>=0; i--) {
+    if(ffile[i] == ' ') ffile[i]='\0';
+    else break;
+  }
+  for (i=cl-2; i>=0; i--) {
+    if(ifile[i] == ' ') ifile[i]='\0';
+    else break;
+  }
+  for (i=cl-2; i>=0; i--) {
+    if(sfile[i] == ' ') sfile[i]='\0';
+    else break;
+  }
+  for (i=cl-2; i>=0; i--) {
+    if(ofile[i] == ' ') ofile[i]='\0';
+    else break;
+  }
 
-//-
+  //-
 
-int len;
-//=======
-setsetup(setupname);
-if(getsetup())setname(strcat(jobname,getsetup()));
-else{
-  cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
-  exit(1);
-}
+  int len;
+  //=======
+  setsetup(setupname);
+  if(getsetup())setname(strcat(jobname,getsetup()));
+  else{
+    cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
+    exit(1);
+  }
 
   AMSDBc::init(CCFFKEY.Angle);  
 #ifndef _PGTRACK_
   TKDBc::init(0);
 #endif
   TRDDBc::init();
-{
-int len=cl-1;
+  {
+    int len=cl-1;
 
-for(i=cl-2;i>=0;i--){
-   if(triggername[i]==' '){
-    triggername[i]='\0';
-    len=i+1;
-   }
-   else break;
-}
-integer ntrig=0;
-integer nold=0;
-integer orr=0;
-for (i=0;i<len;i++){
-  if(triggername[i]=='|' || triggername[i]=='\0' || triggername[i]=='&'){
-    // new trigger found
-       if(triggername[i]=='|')orr=1;
-       triggername[i]='\0';
-       if(i-nold>0)settrigger(triggername+nold,ntrig++,orr);
-       nold=i+1;
-  }
-}
-}
-setjobtype(AMSFFKEY.Jobtype%10 != 0);
-setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
-uinteger ical=(AMSFFKEY.Jobtype/100)%10;//1-9
-uinteger ucal=1;
-if(ical)setjobtype(ucal<<(ical+1));
-uinteger imon=(AMSFFKEY.Jobtype/1000)%10;//1-9
-uinteger umon=1;
-if(imon)setjobtype(umon<<(imon+1+9));
-uinteger iprod=(AMSFFKEY.Jobtype/10000)%10;
-if(iprod){
-   setjobtype(Production);
-   if(IOPA.BuildMin<0){
-     cerr<<"AMSJob::udata-F-IOPA.BuildNoNotSetWhileInProductionMode "<< IOPA.BuildMin<<" "<<endl;
-     abort();
-   }
-   else if(IOPA.BuildMin>AMSCommonsI::getbuildno()){
-     cerr<<"AMSJob::udata-F-IOPA.MinBuildNoRequired "<< IOPA.BuildMin<<" "<<endl;
-     abort();
-   }
-
-}
-
-if(IOPA.mode && isSimulation()){
-   AMSIO::setfile(ffile);
-   AMSIO::init(IOPA.mode);
-}
-if(isReconstruction() && DAQCFFKEY.mode%10 ==0)DAQCFFKEY.mode=DAQCFFKEY.mode+1;
-if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
-if(DAQCFFKEY.mode){
-   AMSEvent::setfile(sfile);
-   DAQEvent::setfiles(ifile,ofile);
-}
-
-
-
-//
-// Read/Write Synchronization
-if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
-if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
-
-// TDV
-if(AMSFFKEY.Update){
- UHTOC(AMSFFKEY.TDVC,400,tdvname,1600);
- {
- int len=1600;
- for(i=1599;i>=0;i--){
-    if(tdvname[i]==' '){
-     tdvname[i]='\0';
-     len=i+1;
+    for(i=cl-2;i>=0;i--){
+      if(triggername[i]==' '){
+	triggername[i]='\0';
+	len=i+1;
+      }
+      else break;
     }
-    else break;
- }
- integer ntdv=0;
- integer nold=0;
- for (i=0;i<len;i++){
-   if(tdvname[i]=='|' || tdvname[i]=='\0'){
-     // new tdv found
-        tdvname[i]='\0';
-        if(i-nold>0)settdv(tdvname+nold,ntdv++);
-        nold=i+1;
-   }
- }
- }
-}
+    integer ntrig=0;
+    integer nold=0;
+    integer orr=0;
+    for (i=0;i<len;i++){
+      if(triggername[i]=='|' || triggername[i]=='\0' || triggername[i]=='&'){
+	// new trigger found
+	if(triggername[i]=='|')orr=1;
+	triggername[i]='\0';
+	if(i-nold>0)settrigger(triggername+nold,ntrig++,orr);
+	nold=i+1;
+      }
+    }
+  }
+  setjobtype(AMSFFKEY.Jobtype%10 != 0);
+  setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
+  uinteger ical=(AMSFFKEY.Jobtype/100)%10;//1-9
+  uinteger ucal=1;
+  if(ical)setjobtype(ucal<<(ical+1));
+  uinteger imon=(AMSFFKEY.Jobtype/1000)%10;//1-9
+  uinteger umon=1;
+  if(imon)setjobtype(umon<<(imon+1+9));
+  uinteger iprod=(AMSFFKEY.Jobtype/10000)%10;
+  if(iprod){
+    setjobtype(Production);
+    if(IOPA.BuildMin<0){
+      cerr<<"AMSJob::udata-F-IOPA.BuildNoNotSetWhileInProductionMode "<< IOPA.BuildMin<<" "<<endl;
+      abort();
+    }
+    else if(IOPA.BuildMin>AMSCommonsI::getbuildno()){
+      cerr<<"AMSJob::udata-F-IOPA.MinBuildNoRequired "<< IOPA.BuildMin<<" "<<endl;
+      abort();
+    }
+
+  }
+
+  if(IOPA.mode && isSimulation()){
+    AMSIO::setfile(ffile);
+    AMSIO::init(IOPA.mode);
+  }
+  if(isReconstruction() && DAQCFFKEY.mode%10 ==0)DAQCFFKEY.mode=DAQCFFKEY.mode+1;
+  if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
+  if(DAQCFFKEY.mode){
+    AMSEvent::setfile(sfile);
+    DAQEvent::setfiles(ifile,ofile);
+  }
+
+
+
+  //
+  // Read/Write Synchronization
+  if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
+  if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
+
+  // TDV
+  if(AMSFFKEY.Update){
+    UHTOC(AMSFFKEY.TDVC,400,tdvname,1600);
+    {
+      int len=1600;
+      for(i=1599;i>=0;i--){
+	if(tdvname[i]==' '){
+	  tdvname[i]='\0';
+	  len=i+1;
+	}
+	else break;
+      }
+      integer ntdv=0;
+      integer nold=0;
+      for (i=0;i<len;i++){
+	if(tdvname[i]=='|' || tdvname[i]=='\0'){
+	  // new tdv found
+	  tdvname[i]='\0';
+	  if(i-nold>0)settdv(tdvname+nold,ntdv++);
+	  nold=i+1;
+	}
+      }
+    }
+  }
+
+
 #ifdef _PGTRACK_
-
   TkDBc::CreateTkDBc();
-
-
+#else
+  AMSTrIdGeom::init();
+  
+  float zpos[trconst::maxlad];
+  for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
+  for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
+  rkmsinit_(zpos); 
+#endif
+  int pgtrack_DB_ver=2;
+  int STD_DB_ver=2;
   if(strstr(getsetup(),"AMS02") ){    
+    if(strstr(getsetup(),"AMS02Pre") ){    
+      cout <<"AMSJob::udata-I-2007TrackerConfigurationRequestred "<<endl;
+      //      AMSTrIdSoft::inittable(2);
+      STD_DB_ver=2;
+      pgtrack_DB_ver=1;
+    }
+    else if(strstr(getsetup(),"AMS02P") ){
+      cout <<"AMSJob::udata-I-PMTrackerConfigurationRequestred "<<endl;
+      //      AMSTrIdSoft::inittable(4);
+      STD_DB_ver=4;
+      pgtrack_DB_ver=3;
+    }
+    else{
+      cout <<"AMSJob::udata-I-FlightTrackerConfigurationRequestred "<<endl;
+      //      AMSTrIdSoft::inittable(3);
+      STD_DB_ver=3;
+      pgtrack_DB_ver=2;
+    }
+#ifdef _PGTRACK_
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
       //PZ FIXME metti a posto il path 
-      TkDBc::Head->init(TKGEOMFFKEY.CablVer,fname);
+      TkDBc::Head->init(pgtrack_DB_ver,fname);
     }
     else
-      TkDBc::Head->init(TKGEOMFFKEY.CablVer);
+      TkDBc::Head->init(pgtrack_DB_ver);
+#else
+    AMSTrIdSoft::inittable(STD_DB_ver);
+    AMSTrIdSoft::init();
+#endif
+
+
+
     AMSTRDIdSoft::init();
-#ifndef __DARWIN__    
+#ifndef __DARWIN__ 
     int env=fegetexcept();
     if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
-#endif    
+#endif
     RichPMTsManager::Init();
-#ifndef __DARWIN__    
+#ifndef __DARWIN__  
     feclearexcept(FE_ALL_EXCEPT);
     if(env){
       feenableexcept(env);        
     }
-#endif
-
-    RichRadiatorTileManager::Init();    
+#endif       
+    RichRadiatorTileManager::Init();	
     AMSTRDIdSoft::inittable();
     AMSECIds::inittable();
+
+
   }
   else {
     cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
@@ -1791,13 +1827,15 @@ if(AMSFFKEY.Update){
     exit(1);
   }
 
-// SetUp the Tracker reconstruction infrastructure
-//PZ FIXME must be simplified
+#ifdef _PGTRACK_
+  // SetUp the Tracker reconstruction infrastructure
+  patt= new PATT();
+  //PZ FIXME must be simplified
   TrCalDB* cc=new TrCalDB();
   TrLadCal::SetVersion(TKGEOMFFKEY.CalibVer);
   cc->init();
   cc->CreateLinear();
-//  cc->Load("prima.root");
+  //  cc->Load("prima.root");
   TrClusterR::UsingTrCalDB(TrCalDB::Head);
   TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
 
@@ -1820,122 +1858,77 @@ if(AMSFFKEY.Update){
   }
 
 #else
-    AMSTrIdGeom::init();
-    float zpos[trconst::maxlad],zth[trconst::maxlad];
-    for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
-    for(int k=0;k<sizeof(zth)/sizeof(zth[0]);k++)zth[k]=0.00332;
-    if(!strcmp(getsetup(),"AMS02P")){
-      zth[1]=0.01;
-      zth[TKDBc::nlay()-1]=0.01;
-    }
-    for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
-    rkmsinit_(zpos); 
-    if(strstr(getsetup(),"AMS02") ){    
-    if(strstr(getsetup(),"AMS02Pre") ){    
-       cout <<"AMSJob::udata-I-2007TrackerConfigurationRequestred "<<endl;
-       AMSTrIdSoft::inittable(2);
-    }
-    else if(strstr(getsetup(),"AMS02P") ){
-  cout <<"AMSJob::udata-I-PMTrackerConfigurationRequestred "<<endl;
-   AMSTrIdSoft::inittable(4);
-   }
-    else{
-       cout <<"AMSJob::udata-I-FlightTrackerConfigurationRequestred "<<endl;
-       AMSTrIdSoft::inittable(3);
-    }
-       AMSTrIdSoft::init();
-       AMSTRDIdSoft::init();
-#ifndef __DARWIN__ 
-       int env=fegetexcept();
-       if(MISCFFKEY.RaiseFPE<=1)fedisableexcept(FE_ALL_EXCEPT);
-#endif
-       RichPMTsManager::Init();
-#ifndef __DARWIN__  
-       feclearexcept(FE_ALL_EXCEPT);
-       if(env){
-	 feenableexcept(env);        
-       }
-#endif       
-       RichRadiatorTileManager::Init();	
-       AMSTRDIdSoft::inittable();
-       AMSECIds::inittable();
-    }
-    else {
-      cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
-        getsetup()<< "yet "<<endl;
-        exit(1);
-    }
 
+  // TraligGlobalFit
+  if(TRALIG.GlobalFit && TRALIG.MaxPatternsPerJob!=1){
+    cout <<"AMSJob::udata-I-GlobalFitRequested ";
+    TRALIG.MaxPatternsPerJob=1;
+    TRALIG.MaxEventsPerFit=499999;
+    TRALIG.MinEventsPerFit=999; 
+    cout <<"Parameters Changed "<<TRALIG.MaxEventsPerFit<<" "<<TRALIG.MinEventsPerFit<<endl;
+  }
 
-      // TraligGlobalFit
-     if(TRALIG.GlobalFit && TRALIG.MaxPatternsPerJob!=1){
-       cout <<"AMSJob::udata-I-GlobalFitRequested ";
-       TRALIG.MaxPatternsPerJob=1;
-       TRALIG.MaxEventsPerFit=499999;
-       TRALIG.MinEventsPerFit=999; 
-      cout <<"Parameters Changed "<<TRALIG.MaxEventsPerFit<<" "<<TRALIG.MinEventsPerFit<<endl;
-     }
 #endif
 
   //MAGFIELD
-UHTOC(TKFIELD.mfile,160/sizeof(integer),AMSDATADIR.fname,160);
+  UHTOC(TKFIELD.mfile,160/sizeof(integer),AMSDATADIR.fname,160);
 
-for(i=159;i>=0;i--){
-  if(AMSDATADIR.fname[i]!=' '){
-   AMSDATADIR.fname[i+1]=0;
-   break;
+  for(i=159;i>=0;i--){
+    if(AMSDATADIR.fname[i]!=' '){
+      AMSDATADIR.fname[i+1]=0;
+      break;
+    }
+    if(strlen(AMSDATADIR.fname)<=1)strcpy(AMSDATADIR.fname,"fld97int.txt");
   }
-  if(strlen(AMSDATADIR.fname)<=1)strcpy(AMSDATADIR.fname,"fld97int.txt");
-}
 
-//PZMAG #ifdef _PGTRACK_
-//   MagField* mmpp=MagField::GetPtr();
-//   MAGSFFKEY.BTempCorrection=MISCFFKEY.BTempCorrection;
-//   MAGSFFKEY.BZCorr=MISCFFKEY.BZCorr;
-//   if(mmpp) {
-//     mmpp->SetMfile(AMSDATADIR.fname);
-//     mmpp->SetInitOk(TKFIELD.iniok);
-//   }
-// #endif
+  //PZMAG #ifdef _PGTRACK_
+  //   MagField* mmpp=MagField::GetPtr();
+  //   MAGSFFKEY.BTempCorrection=MISCFFKEY.BTempCorrection;
+  //   MAGSFFKEY.BZCorr=MISCFFKEY.BZCorr;
+  //   if(mmpp) {
+  //     mmpp->SetMfile(AMSDATADIR.fname);
+  //     mmpp->SetInitOk(TKFIELD.iniok);
+  //   }
+  // #endif
 
-if(TRDMCFFKEY.mode==-1){
- if(!strstr(getsetup(),"AMSSHUTTLE")){
-    TRDMCFFKEY.mode=0;
- }
-}
-if(TRFITFFKEY.FastTracking==-1){
- TRFITFFKEY.FastTracking=1;
-}
+  if(TRDMCFFKEY.mode==-1){
+    if(!strstr(getsetup(),"AMSSHUTTLE")){
+      TRDMCFFKEY.mode=0;
+    }
+  }
+  if(TRFITFFKEY.FastTracking==-1){
+    TRFITFFKEY.FastTracking=1;
+  }
 
 #ifndef _PGTRACK_
   //PZ FIXME
-// check delta etc
-if(TRMCFFKEY.gammaA[0]<0){
- TRMCFFKEY.gammaA[0]=0.2;
-}
-if(TRMCFFKEY.delta[0]<0){
- TRMCFFKEY.delta[0]=0.9;
-}
-if(TRMCFFKEY.thr1R[0]<0){
- TRMCFFKEY.thr1R[0]=3;
-}
+  // check delta etc
+  if(TRMCFFKEY.gammaA[0]<0){
+    TRMCFFKEY.gammaA[0]=0.2;
+  }
+  if(TRMCFFKEY.delta[0]<0){
+    TRMCFFKEY.delta[0]=0.9;
+  }
+  if(TRMCFFKEY.thr1R[0]<0){
+    TRMCFFKEY.thr1R[0]=3;
+  }
 
-if(TRCLFFKEY.Thr1R[0]<0){
- TRCLFFKEY.Thr1R[0]=3;
-}
+  if(TRCLFFKEY.Thr1R[0]<0){
+    TRCLFFKEY.Thr1R[0]=3;
+  }
 #endif
-    char hfile[161];
-    UHTOC(IOPA.hfile,40,hfile,160);  
-    _hextname=hfile;
+  char hfile[161];
+  UHTOC(IOPA.hfile,40,hfile,160);  
+  _hextname=hfile;
 
-    char rfile[161];
-    UHTOC(IOPA.rfile,40,rfile,160);  
-    _rextname=rfile;
+  char rfile[161];
+  UHTOC(IOPA.rfile,40,rfile,160);  
+  _rextname=rfile;
 
-// check lvl3
-if(LVL3FFKEY.TrMaxResidual[0]<0){
-   for (int i=0;i<3;i++)LVL3FFKEY.TrMaxResidual[i]=6*fabs(LVL3FFKEY.TrMaxResidual[i]);
-}
+  // check lvl3
+  if(LVL3FFKEY.TrMaxResidual[0]<0){
+    for (int i=0;i<3;i++)LVL3FFKEY.TrMaxResidual[i]=6*fabs(LVL3FFKEY.TrMaxResidual[i]);
+  }
 
 }
 
@@ -2797,7 +2790,7 @@ end.tm_year=TKFIELD.iyear[1];
 
 
 int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
-char FieldMapName[100];    
+ char FieldMapName[100];    
  if(strstr(getsetup(),"AMS02D") ){    
    sprintf(FieldMapName,"MagneticFieldMapD");
  }
@@ -2873,7 +2866,7 @@ char FieldMapName[100];
 // 	 AMSTimeID(AMSID(FieldMapName,isRealData()),
 // 		   begin,end,pp->GetSizeForDB(),        
 // 		   (void*)pp->GetPointerForDB(),
-// 		   server,1));
+//                 server,1));
  char bmap_fname[30]="MagneticFieldMap07.bin";
  //set scale because fld07 map is at 460 A and we want 400 A
  pp->SetScale(400./460.);
@@ -2883,8 +2876,8 @@ char FieldMapName[100];
 
 #else
  TID.add (new AMSTimeID(AMSID(FieldMapName,isRealData()),
-			begin,end,ssize,
-			(void*)TKFIELD.isec,server,1));
+                        begin,end,ssize,
+                        (void*)TKFIELD.isec,server,1));
 
 #endif
 
@@ -2921,7 +2914,7 @@ bool NeededByDefault=isSimulation();
    
     int need=1;
     if(isMonitoring())need=0;
-    if(isRealData())
+    /// PZ NO !!! Calibrations must alwys be loaded !!!     if(isRealData())
     TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
@@ -2945,11 +2938,11 @@ bool NeededByDefault=isSimulation();
     if(isRealData()) {
      if (TKGEOMFFKEY.ReadGeomFromFile/10==1)
        cout << "AMSJob::timeinitjob-I-TrackerAlign is NOT added to TimeID"
-	    << endl;
+            << endl;
      else
       TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
-			     TkDBc::GetLinearSize(),TkDBc::linear,
- 			     server,need,SLin2Align));
+                             TkDBc::GetLinearSize(),TkDBc::linear,
+                             server,need,SLin2Align));
     }
     
     begin.tm_isdst=0;
@@ -3566,14 +3559,16 @@ if((isCalibration() && CEcal) && AMSFFKEY.Update>0){//only for
 //ecre->DCP; ecmc->CP
 //
 if((ECREFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
-#ifndef _PGTRACK_ // SH FIXME
+
+
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
                                   (void*)&ECcalib::ecpmcal[0][0],server,needval));
-#endif // SH FIXME
+
   end.tm_year=ECREFFKEY.year[1];
-//--------				  
+//--------                                
 if((ECREFFKEY.ReadConstFiles/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
+
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
      begin,end,sizeof(ECALVarp::ecalvpar),
                                       (void*)&ECALVarp::ecalvpar,server,needval));
@@ -3581,11 +3576,12 @@ if((ECREFFKEY.ReadConstFiles/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardT
 //--------
 if(!isRealData()){//"MC.Seeds" TDV only for MC-run.    
   if((ECMCFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib"MC.Seeds" fromDB
-#ifndef _PGTRACK_ // SH FIXME
+             
+
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMS(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalibMS::ecpmcal[0][0]),
                                   (void*)&ECcalibMS::ecpmcal[0][0],server,needval));
-#endif // SH FIXME
+
   end.tm_year=ECREFFKEY.year[1];
 }
 //--------
@@ -3702,7 +3698,7 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
 
 
-{
+if(isRealData()){
 
   tm begin;
   tm end;

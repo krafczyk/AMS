@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.25 2010/03/08 15:38:12 shaino Exp $ 
+// $Id: TrRecon.h,v 1.26 2010/04/02 10:34:51 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/03/08 15:38:12 $
+/// $Date: 2010/04/02 10:34:51 $
 ///
-/// $Revision: 1.25 $
+/// $Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -289,8 +289,8 @@ public:
 // Performance tuning parameters for track reconstruction
 //========================================================
 public:  
- /// Number of maximum layers
-  enum { MAXLAY = 8 };
+ /// Number of maximum layers (PZ Do not use this!)
+  ///  enum { MAXLAY = 8 };
   /// Status bits (temporary)
   enum { AMBIG = 0x04, USED = 0x20 };
 
@@ -327,7 +327,7 @@ public:
   /// Test HitPatternMask
   static bool TestHitPatternMask(int i, int layer) {
     return (HitPatternMask && 0 <= i && i < NHitPatterns) 
-      ? (HitPatternMask[i] & (1 << (MAXLAY-layer))): 0;
+      ? (HitPatternMask[i] & (1 << (TkDBc::Head->nlay()-layer))): 0;
   }
   /// Get HitPatternMask
   static int GetHitPatternMask(int i) {
@@ -371,9 +371,9 @@ public:
 //========================================================
 protected:
   /// Array of vectors of TkId at each layer
-  vector<int> _LadderHitMap[MAXLAY];
+  vector<int> _LadderHitMap[trconst::maxlay];
   /// Number of ladders with both p(X) and n(Y) clusters at each layer
-  int _NladderXY[MAXLAY];
+  int _NladderXY[trconst::maxlay];
 
   /// Virtual 2D array to store TrRecHits at [iclx][icly]
   class Hits2DArray : public vector<TrRecHitR*> {
@@ -474,7 +474,7 @@ public:
 
   /// Get number of ladders with cluster signals at the layer
   int GetNladder(int layer) const { 
-    return (0 < layer && layer <= MAXLAY) ? _LadderHitMap[layer-1].size() : 0;
+    return (0 < layer && layer <= TkDBc::Head->nlay()) ? _LadderHitMap[layer-1].size() : 0;
   }
   /// Get tkid from _LadderHitMap
   int GetLadderHit(int layer, int i) const {
@@ -511,11 +511,11 @@ public:
     int    pattern;            ///< Hit pattern of current scan
     int    side;               ///< Side of current scan
     int    nlayer;             ///< Number of layers to be scanned
-    int    ilay [MAXLAY];      ///< Scanning order for effective pre-selection
-    int    tkid [MAXLAY];      ///< TkId list
-    int    iscan[MAXLAY][2];   ///< Current candidate hit index
-    int    imult[MAXLAY];      ///< Current candidate multiplicity index
-    AMSPoint coo[MAXLAY];      ///< Current candidate 3D-coordinate
+    int    ilay [trconst::maxlay];      ///< Scanning order for effective pre-selection
+    int    tkid [trconst::maxlay];      ///< TkId list
+    int    iscan[trconst::maxlay][2];   ///< Current candidate hit index
+    int    imult[trconst::maxlay];      ///< Current candidate multiplicity index
+    AMSPoint coo[trconst::maxlay];      ///< Current candidate 3D-coordinate
     double psrange;            ///< Pre-selection range
     double param[4];           ///< Pre-selection parameter
     double chisq[2];           ///< Chisquare in X and Y
@@ -535,6 +535,9 @@ public:
 
   /// Merge hits with seed SN clusters lower than TrackThrSeed
   int MergeLowSNHits(TrTrackR *track, int fit_method);
+
+  /// Merge hits on the external layers
+  int MergeExtHits(TrTrackR *track, int fit_method);
 
   /// Build one track from the best candidate iterator
   int BuildATrTrack(TrHitIter &cand);
@@ -619,10 +622,10 @@ public:
   static int SkipRawSim;
   //! Generate TrCluster from MC track
   static void gencluster(int idsoft, float vect[],
-			 float edep, float step, int itra);
+                         float edep, float step, int itra);
   static void fillreso(TrTrackR *track);
-  static AMSPoint sitkrefp[8];
-  static AMSPoint sitkangl[8];
+  static AMSPoint sitkrefp[9];
+  static AMSPoint sitkangl[9];
 };
 
 #endif

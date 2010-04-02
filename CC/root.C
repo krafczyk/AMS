@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.215 2010/03/24 17:38:37 choutko Exp $
+//  $Id: root.C,v 1.216 2010/04/02 10:34:50 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2327,12 +2327,22 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
       EcalCoo[i][j] = ptr->_EcalSCoo[i][j];
     }
   }
-  for (int i=0; i<TKDBc::nlay(); i++) {
+#ifdef _PGTRACK_
+  for (int i=0; i<TkDBc::Head->nlay(); i++) 
+#else
+  for (int i=0; i<TKDBc::nlay(); i++) 
+#endif
+    {
     for (int j=0; j<3; j++) {
       TrCoo[i][j] = ptr->_TrCoo[i][j];
     }
   }
-  for (int i=0; i<TKDBc::nlay(); i++)  Local[i] = ptr->_Local[i];
+#ifdef _PGTRACK_
+  for (int i=0; i<TkDBc::Head->nlay(); i++) 
+#else
+  for (int i=0; i<TKDBc::nlay(); i++) 
+#endif
+    Local[i] = ptr->_Local[i];
 
   for (int i=0; i<3; i++) {TRDCoo[0][i] = ptr->_TRDCoo[0][i];}
   for (int i=0; i<3; i++) {TRDCoo[1][i] = ptr->_TRDCoo[1][i];}
@@ -2611,11 +2621,17 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   GChi2           = (float)ptr->_GChi2;
   GRigidity       = (float)ptr->_GRidgidity;;
   GErrRigidity    = (float)ptr->_GErrRidgidity;
-  for(int i=0;i<TKDBc::nlay();i++){
-    for(int k=0;k<3;k++){
-      Hit[i][k]=(float)ptr->_Hit[i][k];
+
+#ifdef _PGTRACK_
+  for(int i=0;i<TkDBc::Head->nlay();i++)
+#else
+  for(int i=0;i<TKDBc::nlay();i++)
+#endif
+    {
+      for(int k=0;k<3;k++){
+	Hit[i][k]=(float)ptr->_Hit[i][k];
+      }
     }
-  }
   if(AdvancedFitDone){
     for (int i=0; i<2; i++) {
       HChi2[i]        = (float)ptr->_HChi2[i];

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.20 2010/03/08 08:43:03 shaino Exp $
+//  $Id: TrTrack.h,v 1.21 2010/04/02 10:34:51 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/03/08 08:43:03 $
+///$Date: 2010/04/02 10:34:51 $
 ///
-///$Revision: 1.20 $
+///$Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -143,7 +143,11 @@ public:
     /// One drop option
     kOneDrop    = 0x100,
     /// Noise drop option
-    kNoiseDrop  = 0x200
+    kNoiseDrop  = 0x200,
+    /// **AMS-B: fitting with layer 8**
+    kFitLayer8  = 0x400,
+    /// **AMS-B: fitting with layer 9**
+    kFitLayer9  = 0x800
   };
 
   /// Advanced fit flags to be specified by TRCLFFKEY_DEF::AdvancedFitFlag
@@ -163,7 +167,12 @@ public:
 
     kChikanianFit = 0x080, ///< Chikanian fitting w/ scattering
 
-    kAllAdvanced  = 0x0FF  ///< All advanced fitting
+    kLayer8Fit    = 0x100, ///< AMS-B fitting with layer 8
+    kLayer9Fit    = 0x200, ///< AMS-B fitting with layer 9
+    kLayer89Fit   = 0x400, ///< AMS-B fitting with layer 8 and 9
+    kLayer89All   = 0x700, ///< All AMS-B fitting
+
+    kAllAdvanced  = 0x7FF  ///< All advanced fitting
   };
   /// Default advanced fit flags : keep it "thread-common"
   static int DefaultAdvancedFitFlags;
@@ -276,8 +285,9 @@ public:
   int GetNhitsXY  () const { return _NhitsXY;   }
 
   // Get fitting parameter with a key as Fitting method ID 
-  //! True if the fit was succeful (fit id from   EFitMehthods
-  bool     FitDone     (int id= 0) { return GetPar(id).FitDone;  }
+  //! True if the fit was succeful (fit id from EFitMehthods
+  bool     FitDone     (int id= 0) { return ParExists(id) &&
+                                            GetPar(id).FitDone;  }
   int      GetHitBits  (int id= 0) { return GetPar(id).HitBits;  }
   //! Returns Chi2 on X
   double   GetChisqX   (int id= 0) { return GetPar(id).ChisqX;   }

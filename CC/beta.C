@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.75 2010/02/12 12:13:00 pzuccon Exp $
+//  $Id: beta.C,v 1.76 2010/04/02 10:34:50 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -808,7 +808,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
   for(;ptrack;ptrack=ptrack->next()){
 
 #ifdef _PGTRACK_
-    if(patt.patpoints(ptrack->getpattern())!=patt.patpoints(ptrackc->getpattern()))continue;    
+    if(patt->patpoints(ptrack->getpattern())!=patt->patpoints(ptrackc->getpattern()))continue;    
 #else
     if(TKDBc::patpoints(ptrack->getpattern())!=TKDBc::patpoints(ptrackc->getpattern()))continue;    
 #endif

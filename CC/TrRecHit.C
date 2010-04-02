@@ -18,7 +18,9 @@
 #include "TrRecHit.h"
 #include "TkDBc.h"
 #include "TrTasCluster.h"
+#include "MagField.h"
 ClassImp(TrRecHitR);
+
 
 
 #include "VCon.h"
@@ -44,6 +46,7 @@ TrRecHitR::TrRecHitR(const TrRecHitR& orig) {
   _mult     = orig._mult;
   _imult    = orig._imult;
   _coord    = orig._coord;
+  _bfield    = orig._bfield;
   _dummyX   = orig._dummyX;
 }
 
@@ -109,9 +112,19 @@ void TrRecHitR::BuildCoordinates() {
   _coord.clear();
   for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
 
+  for (int ii=0;ii<_coord.size();ii++){
+    float x[3],b[3];
+    x[0]=_coord[ii].x();
+    x[1]=_coord[ii].y();
+    x[2]=_coord[ii].z();
+      GUFLD(x,b);
+    _bfield.push_back(AMSPoint(b));
+  }
+
+
   if (TasHit()) {
     if (!GetXCluster() || !GetXCluster()->TasCls() || 
-	!GetYCluster() || !GetYCluster()->TasCls()) Status &= ~TASHIT;
+        !GetYCluster() || !GetYCluster()->TasCls()) Status &= ~TASHIT;
   }
 }
 
@@ -135,6 +148,7 @@ void TrRecHitR::Clear() {
   _imult    = -1; 
   _dummyX   = 0;
   _coord.clear();
+  _bfield.clear();
 }
 
 

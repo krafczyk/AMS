@@ -40,7 +40,7 @@ public:
   static bool TestHitPatternMask(int i, int layer) {
     if(!HitPatternMask)BuildHitPatterns();
   if (HitPatternMask && 0 <= i && i < NHitPatterns) 
-      return  (HitPatternMask[i] & (1 << (trconst::nlays-layer)));
+      return  (HitPatternMask[i] & (1 << (TkDBc::Head->nlay()-layer)));
     else
       return 0;
   }

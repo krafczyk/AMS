@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.25 2010/03/08 15:38:06 shaino Exp $
+// $Id: TrTrack.C,v 1.26 2010/04/02 10:34:50 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/03/08 15:38:06 $
+///$Date: 2010/04/02 10:34:50 $
 ///
-///$Revision: 1.25 $
+///$Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +86,9 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
   DBase[0]=0;
   DBase[1]=0;
   Status=0;
+  if(TkDBc::Head->GetSetup()==3)
+    DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
+      TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
 
 TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], int *imult,int fitmethod)
@@ -113,6 +116,9 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
   BuildHitsIndex();
   trdefaultfit=fitmethod;
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
+  if(TkDBc::Head->GetSetup()==3)
+    DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
+      TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
 
 TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
@@ -330,7 +336,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   int idf = id&0xf;
   if (idf == kGEANE || idf == kGEANE_Kalman) {
     cerr << "Error in TrTrack::Fit Fitting method not implemented: "
-	 << idf << endl;
+         << idf << endl;
     return -1;
   }
   if (idf == kDummy) {
@@ -344,11 +350,11 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // Select fitting method
   int method = TrFit::CHOUTKO;
-  if      (idf == kAlcaraz)   method = TrFit::ALCARAZ;
+  if      (idf == kAlcaraz) method = TrFit::ALCARAZ;
   else if (idf == kChikanian) method = TrFit::CHIKANIAN;
-  else if (idf == kLinear)    method = TrFit::LINEAR;
-  else if (idf == kCircle)    method = TrFit::CIRCLE;
-  else if (idf == kSimple)    method = TrFit::SIMPLE;
+  else if (idf == kLinear)  method = TrFit::LINEAR;
+  else if (idf == kCircle)  method = TrFit::CIRCLE;
+  else if (idf == kSimple)  method = TrFit::SIMPLE;
 
   // Set multiple scattering option and assumed mass
   if (id & kMultScat) {
@@ -393,11 +399,37 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // Sort hits in the ascending order of the layer number
   int idx[trconst::maxlay], nhit = 0;
+  int bhit[2] = { 0, 0 };
   for (int i = 0; i < _Nhits; i++) {
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
-    idx[nhit++] = hit->GetLayer()*10+i;
+
+    if(TkDBc::Head->GetSetup()==3){// AMS-B
+      
+    // AMS-B
+    if (hit->GetLayer() == 8) { 
+      if (!(id & kFitLayer8)) continue; 
+      else bhit[0] = 1;
+    }
+    if (hit->GetLayer() == 9) {
+      if (!(id & kFitLayer9)) continue;
+      else bhit[1] = 1;
+    }
+    // AMS-B
+
+    int lyr = hit->GetLayer();
+    if (lyr == 8) lyr = 0;
+    idx[nhit++] = lyr*10+i;
+    }else
+      idx[nhit++] = hit->GetLayer()*10+i;
+
   }
+
+  if(TkDBc::Head->GetSetup()==3){// AMS-B
+  if ((id & kFitLayer8) && !bhit[0]) return -1;
+  if ((id & kFitLayer9) && !bhit[1]) return -1;
+  } // AMS-B  
+
   std::sort(idx, &idx[nhit]);
 
   // For the half-fitting options
@@ -419,8 +451,27 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
+    if(TkDBc::Head->GetSetup()==3){// AMS-B
+    double ery = erry;
+    if (hit->GetLayer() == 8 || hit->GetLayer() == 9) {
+      double rpar = (hit->GetLayer() == 8) ? 1.00 : 0.70;
+      ery = 1;
+      for (int j = 0; j < 2; j++) {
+	int mfit = (j == 0) ? id : kChoutko;
+	if (ParExists(mfit)) {
+	  double rini = std::fabs(GetRigidity(mfit));
+	  if (rini > 0) { 
+	    ery = rpar/rini;
+	    if (ery < erry) ery = erry;
+	    break;
+	  }
+	}
+      }
+    }
+    }// AMS-B
+
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
-	            hit->OnlyX() ? 0 : erry, errz);
+                    hit->OnlyX() ? 0 : erry, errz);
     hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
@@ -653,7 +704,18 @@ int TrTrackR::DoAdvancedFit(int flag)
   if (flag & kAlcarazMsct)   Fit(kAlcaraz | kMultScat);
 
   if (flag & kChikanianFit)  Fit(kChikanian);
-
+  if(TkDBc::Head->GetSetup()==3){// AMS-B
+    int mfit[3] = { kChoutko | kFitLayer8, 
+		    kChoutko              | kFitLayer9,
+		    kChoutko | kFitLayer8 | kFitLayer9 };
+    int mflg[3] = { kLayer8Fit, kLayer9Fit, kLayer89Fit };
+  
+    for (int i = 0; i < 3; i++)
+      if (flag & mflg[i]) {
+	if (Fit(mfit[i]) > 0) Fit(mfit[i]);
+      }
+    // AMS-B
+  }
   if (!trdefaultfit && _TrackPar.size() > 0)
     trdefaultfit = _TrackPar.begin()->first;
 
@@ -676,6 +738,10 @@ int TrTrackR::AdvancedFitDone(int flag)
   if (flag & kAlcarazMsct)   done &= FitDone(kAlcaraz | kMultScat);
 
   if (flag & kChikanianFit)  done &= FitDone(kChikanian);
-
+  if(TkDBc::Head->GetSetup()==3){// AMS-B
+    if (flag & kLayer8Fit)  done &= FitDone(kChoutko | kFitLayer8);
+    if (flag & kLayer9Fit)  done &= FitDone(kChoutko              | kFitLayer9);
+    if (flag & kLayer89Fit) done &= FitDone(kChoutko | kFitLayer8 | kFitLayer9);
+  }//AMS-B
   return done;
 }

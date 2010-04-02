@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.11 2010/02/02 11:49:55 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.12 2010/04/02 10:34:49 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/02/02 11:49:55 $
+///$Date: 2010/04/02 10:34:49 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -23,10 +23,11 @@
 
 TkDBc* TkDBc::Head=0;
 float* TkDBc::linear=0;
+char   TkDBc::_setupname[4][30]={"Unkown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
 
 
 TkDBc::TkDBc(){
- for (int ii=0;ii<nplanes;ii++)
+ for (int ii=0;ii<maxplanes;ii++)
       planes[ii]=0; 
 }
 
@@ -48,7 +49,7 @@ void TkDBc::CreateTkDBc(int force_delete){
 
 
 TkDBc::~TkDBc(){
-  for (int ii=0;ii<nplanes;ii++)
+  for (int ii=0;ii<maxplanes;ii++)
     if(planes[ii]) delete planes[ii];
   
   for ( tkidIT pp=tkidmap.begin();pp!=tkidmap.end();++pp)
@@ -60,11 +61,13 @@ TkDBc::~TkDBc(){
 void TkDBc::init(int setup,const char *inputfilename, int pri){
   // get setup
     char name[20];
-  
-
-    cout<<"====> TkDBc::init: AMS02 setup selected:"<<endl;
-
-
+    _setup=setup;
+    if(_setup<1 || _setup>3){
+      fprintf(stderr,"TkDBc::init -E-  FATAL Unknown Setup number %d\n",_setup);
+      exit(-3);
+    }
+    
+    printf("TkDBc::init -I- Selected Setup %d  %s\n",_setup,_setupname[_setup]);
 
 //----------------------------------------------------------------------------------
 //       Ladder Electronics
@@ -106,43 +109,75 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 //----------------------------------------------------------------------------------
 //         Planes
 //----------------------------------------------------------------------------------
+    if(_setup==1||_setup==2){
+      nplanes=5;
+      nlays=8;
+    }else if(_setup==3){
+      nplanes=6;
+      nlays=9;
+    }
+    Plane6Size[0]=112;
+    Plane6Size[1]=61;
+    Plane6Size[2]=1.236;
+    
+    Plane6EnvelopSize[0]=112;
+    Plane6EnvelopSize[1]=61;
+    Plane6EnvelopSize[2]=3.5;
 
   
-    const number  xposl[nplanes]={0,0,0,0,0};
-    memcpy(_xpos,xposl,nplanes*sizeof(xposl[0]));
+    const number  xposl[maxplanes]={0,0,0,0,0,0.};
+    memcpy(_xpos,xposl,maxplanes*sizeof(xposl[0]));
 
 
-    const number  yposl[nplanes]={0,0,0,0,0};
+    const number  yposl[maxplanes]={0,0,0,0,0,0};
     memcpy(_ypos,yposl,nplanes*sizeof(yposl[0]));
 
-    const number  zposl[nplanes]={56.14, 27.53, 0, -27.53, -56.14};
+    const number  zposl[maxplanes]={56.14, 27.53, 0, -27.53, -56.14,900.};
     memcpy(_zpos,zposl,nplanes*sizeof(zposl[0]));
-
+    if(_setup==3){
+      // TRD TOP
+      _zpos[4]=170.;
+      //       former ECAL FACE
+      _zpos[5]=        -134.3     - (Plane6EnvelopSize[2] - Plane6Size[2]/2) ;
+      
+    }
     
-    const int16  nslot[nplanes][2]={{0,15},{15,15},{15,15},{15,15},{15,0}};
-    memcpy(_nslot,nslot,nplanes*2*sizeof(nslot[0][0]));
+    const int16  nslot[maxplanes][2]={{0,15},{15,15},{15,15},{15,15},{15,0},{8,0}};
+    memcpy(_nslot,nslot,maxplanes*2*sizeof(nslot[0][0]));
     
     
     // Plane support thickness in cm
-    const number sup_hc_w[nplanes]={  4.0, 1.236, 1.236, 1.236,  4.0 };
-    memcpy(_sup_hc_w, sup_hc_w, nplanes*sizeof(sup_hc_w[0]));
+    const number sup_hc_w[maxplanes]={  4.0, 1.236, 1.236, 1.236,  4.0 ,1.236};
+    memcpy(_sup_hc_w, sup_hc_w, maxplanes*sizeof(sup_hc_w[0]));
 
     // Plane support radius in cm
-    const number sup_hc_r[nplanes]={ 71.5, 53.6, 53.6, 53.6, 71.5 };
-    memcpy(_sup_hc_r, sup_hc_r, nplanes*sizeof(sup_hc_r[0]));
+    const number sup_hc_r[maxplanes]={ 71.5, 53.6, 53.6, 53.6, 71.5,0 };
+    memcpy(_sup_hc_r, sup_hc_r, maxplanes*sizeof(sup_hc_r[0]));
 
 
     // Plane envelop radius in cm
-    const  double plane_d1[nplanes] = { 72.0, 54.0, 54.0, 54.0, 72.0 };
-    memcpy(_plane_d1,plane_d1,nplanes*sizeof(_plane_d1[0]));
-    // Plane envelop half thickness in cm
-    const double  plane_d2[nplanes] = {  7.0, 11.0, 11.0, 11.0 ,7.0};
-    memcpy(_plane_d2,plane_d2,nplanes*sizeof(_plane_d2[0]));
+    const  double plane_d1[maxplanes] = { 72.0, 54.0, 54.0, 54.0, 72.0,0. };
+    memcpy(_plane_d1,plane_d1,maxplanes*sizeof(_plane_d1[0]));
 
+    // Plane envelop half thickness in cm
+    const double  plane_d2[maxplanes] = {  3., 11.0, 11.0, 11.0 ,3.,0.};
+    memcpy(_plane_d2,plane_d2,maxplanes*sizeof(_plane_d2[0]));
+    _plane_d2[5]= Plane6EnvelopSize[2]/2.;
 
     //! To account for the envelop assimmetry of external planes
-    const  double dz[nplanes]={-4.,0.,0.,0.,+4.};
-    memcpy(_dz,dz,nplanes*sizeof(_dz[0]));
+    const  double dz[maxplanes]={0.,0.,0.,0.,0.,0.};
+    memcpy(_dz,dz,maxplanes*sizeof(_dz[0]));
+    _dz[0]=-1.*(_plane_d2[0]*2.-_sup_hc_w[0])/2.;
+    _dz[4]=-1.*(_plane_d2[4]*2.-_sup_hc_w[4])/2.;
+
+    //! To account for the envelop assimmetry of external planes
+    if(_setup==3){
+      _dz[0]=-1.*(_plane_d2[0]*2.-_sup_hc_w[0])/2.;
+      
+      _dz[4]=(_plane_d2[4]*2.-_sup_hc_w[4])/2.;
+      
+      _dz[5]=(Plane6EnvelopSize[2]-Plane6Size[2])/2.; 
+    }
 
 // // Ladder support whickness in cm
 // double TrGeom::sup_foam_w   = 0.5;
@@ -152,15 +187,15 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 //----------------------------------------------------------------------------------
 //            LAYERS
 //----------------------------------------------------------------------------------
-    const int plane_layer[nlays]={1,2,2,3,3,4,4,5};
-    memcpy(_plane_layer,plane_layer,nlays*sizeof(plane_layer[0]));
+    const int plane_layer[maxlay]={1,2,2,3,3,4,4,5,6};
+    memcpy(_plane_layer,plane_layer,maxlay*sizeof(plane_layer[0]));
 
 
 
  
     
-    const number layer_deltaZ[nlays]={-3.08, 1.698,-2.318, 1.698,-2.318, 2.318,-1.698, 3.08};
-    memcpy(_layer_deltaZ,layer_deltaZ,nlays*sizeof(layer_deltaZ[0]));
+    const number layer_deltaZ[maxlay]={-3.08, 1.698,-2.318, 1.698,-2.318, 2.318,-1.698, 3.08,1.698};
+    memcpy(_layer_deltaZ,layer_deltaZ,maxlay*sizeof(layer_deltaZ[0]));
 
 
 //----------------------------------------------------------------------------------
@@ -186,10 +221,10 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 
     memcpy(_ladder_offsetX_outer,ladder_offsetX_outer,maxlad*sizeof(ladder_offsetX_outer[0]));
 
-    const integer nlad[2][nlays]={{15,12,11,10,10,11,12,15},{15,12,11,10,10,11,12,15}};    
-    memcpy(_nlad,nlad,2*nlays*sizeof(nlad[0][0]));
+    const integer nlad[2][maxlay]={{15,12,11,10,10,11,12,15,8},{15,12,11,10,10,11,12,15,8}};    
+    memcpy(_nlad,nlad,2*maxlay*sizeof(nlad[0][0]));
     
-    const short int nsen[2][nlays][maxlad]={
+    const short int nsen[2][maxlay][maxlad]={
       //  1     2     3     4     5      6    7     8     9     10    11    12    13    14     15 //side 0
       {{ 10  , 12  , 13  , 14  , 14  ,  15 , 15  , 15  , 15  ,  15 ,  14 ,  14 ,  13 ,  12 ,   10}, //layer1
        {  7  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer2
@@ -199,6 +234,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {  0  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer6
        {  7  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer7
        { 10  , 12  , 13  , 14  , 14  ,  15 , 15  , 15  , 15  ,  15 ,  14 ,  14 ,  13 ,  12 ,   10}, //layer8
+       {  0  ,  0  ,  0  ,  0  ,  0  ,   0 ,  0  ,  0  ,  0  ,   0 ,   0 ,   0 ,   0 ,   0 ,    0}, //layer9
       },
       //  1     2     3     4     5      6    7     8     9     10    11    12    13    14     15 //side 1
       {{ 10  , 11  , 13  , 14  , 15  ,  15 , 15  , 15  , 15  ,  15 ,  15 ,  14 ,  13 ,  11 ,   10}, //layer1
@@ -209,13 +245,45 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,  14 ,    0}, //layer6
        {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,  14 ,    7}, //layer7
        { 10  , 11  , 13  , 14  , 15  ,  15 , 15  , 15  , 15  ,  15 ,  15 ,  14 ,  13 ,  11 ,   10}, //layer8
+       {  0  ,  0  ,  0  ,  0  ,  0  ,   0 ,  0  ,  0  ,  0  ,   0 ,   0 ,   0 ,   0 ,   0 ,    0}, //layer9
       }
 
     };
-    memcpy(_nsen,nsen,2*nlays*maxlad*sizeof(nsen[0][0][0]));
 
+    const short int nsenP[2][maxlay][maxlad]={
+      //  1     2     3     4     5      6    7     8     9     10    11    12    13    14     15 //side 0
+      {{ 10  , 12  , 13  , 14  , 14  ,  15 , 15  , 15  , 15  ,  15 ,  14 ,  14 ,  13 ,  12 ,   10}, //layer1
+       {  7  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer2
+       {  0  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer3
+       {  0  ,  0  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer4
+       {  0  ,  0  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer5
+       {  0  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer6
+       {  7  , 14  ,  9  , 11  , 11  ,  12 , 12  ,  0  , 12  ,  12 ,  11 ,  11 ,   9 ,   0 ,    0}, //layer7
+       { 10  , 12  , 13  , 14  , 14  ,  15 , 15  , 15  , 15  ,  15 ,  14 ,  14 ,  13 ,  12 ,   10}, //layer8
+       { 10  , 10  , 10  , 10  , 10  ,  10 , 10  , 10  ,  0  ,   0 ,   0 ,   0 ,   0 ,   0 ,    0}, //layer9
+      },
+      //  1     2     3     4     5      6    7     8     9     10    11    12    13    14     15 //side 1
+      {{ 10  , 11  , 13  , 14  , 15  ,  15 , 15  , 15  , 15  ,  15 ,  15 ,  14 ,  13 ,  11 ,   10}, //layer1
+       {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,  14 ,    7}, //layer2
+       {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,  14 ,    0}, //layer3
+       {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,   0 ,    0}, //layer4
+       {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,   0 ,    0}, //layer5
+       {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,  14 ,    0}, //layer6
+       {  0  ,  0  ,  9  , 10  , 12  ,  12 , 12  ,  0  , 12  ,  12 ,  12 ,  10 ,   9 ,  14 ,    7}, //layer7
+       { 10  , 11  , 13  , 14  , 15  ,  15 , 15  , 15  , 15  ,  15 ,  15 ,  14 ,  13 ,  11 ,   10}, //layer8
+       { 11  , 12  , 12  , 12  , 12  ,  12 , 12  , 11  ,  0  ,   0 ,   0 ,   0 ,   0 ,   0 ,    0}, //layer9
+      }
+
+    };
+
+
+    if(setup==3){
+      memcpy(_nsen,nsenP,2*maxlay*maxlad*sizeof(nsen[0][0][0]));
+    }else{
+      memcpy(_nsen,nsen,2*maxlay*maxlad*sizeof(nsen[0][0][0]));
+    }
     /// OLD MAP CABLING PRE-INTEGRATION
-    const short int octid_old[2][nlays][maxlad]={
+    const short int octid_old[2][maxlay][maxlad]={
       //    1     2     3     4     5      6    7     8     9     10    11    12    13   14     15 //side 0
       {{   211,  206,  210,  213,  216,  212, -410,  406, -411,  412,  416,  413,  400,  404,  401, },
        {   202,  203,  214,  222,  220, -208,  200,    0, -402,  414,  422,  420,  408,    0,    0, },
@@ -225,6 +293,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {     0,  605,  617,  613,  619, -607,  611,    0, -805,  817,  813,  819,  807,    0,    0, },
        {   608,  609,  620,  612,  614, -602,  610,    0, -808,  820,  812,  814,  802,    0,    0, },
        {   601,  604,  600,  623,  618,  622, -800,  804, -801,  822,  818,  823,  810,  806,  811, },
+       {     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, },
       },
       {{   101,  104,  100,  113,  116, -112,  111, -106,  110, -312,  316,  313,  310,  306,  311, },
        {     0,    0,  108,  120,  122, -114, -102,    0,  300, -308,  320,  322,  314,  303,  302, },
@@ -234,12 +303,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  701,    0, }, //WARNING 705 AND 701 EXCHANGED
        {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  709,  708, },
        {   511,  506,  510,  523,  518, -522, -501,  504,  500, -722,  718,  723,  700,  704,  705, },
+       {     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, },
       },
     };
 
 
     /// NEW MAP CABLING FLIGHT
-    const short int octid_new[2][nlays][maxlad]={
+    const short int octid_new[2][maxlay][maxlad]={
       //    1     2     3     4     5      6    7     8     9     10    11    12    13   14     15 //side 0
       {{   211,  202,  210,  213,  216,  212, -410,  406, -411,  412,  416,  413,  400,  404,  401, },
        {   206,  203,  214,  222,  220, -208,  200,    0, -402,  414,  422,  420,  408,    0,    0, },
@@ -249,6 +319,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {     0,  605,  617,  613,  619, -607,  611,    0, -805,  817,  813,  819,  807,    0,    0, },
        {   604,  609,  620,  612,  614, -602,  610,    0, -808,  820,  812,  814,  802,    0,    0, },
        {   601,  608,  600,  623,  618,  622, -800,  804, -801,  822,  818,  823,  810,  806,  811, },
+       {     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, },
       },
       {{   101,  104,  100,  113,  116, -112,  111, -106,  110, -312,  316,  313,  310,  302,  311, },
        {     0,    0,  108,  120,  123, -114, -102,    0,  300, -308,  320,  322,  314,  303,  306, },
@@ -258,14 +329,43 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  705,    0, },
        {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  709,  704, },
        {   511,  506,  510,  523,  518, -522,  501, -504,  500, -722,  718,  723,  700,  708,  701, },
+       {     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, },
       },
     };
-
-    if(setup==2){
-      memcpy(_octid,octid_new,2*nlays*maxlad*sizeof(octid_new[0][0][0]));
+    //// CABLING MAP AMS02P
+    const short int octid_newP[2][maxlay][maxlad]={
+      //    1     2     3     4     5      6    7     8     9     10    11    12    13   14     15 //side 0
+      {{   211,  202,  210,  213,  216,  212, -410,  406, -411,  412,  416,  413,  400,  404,  401, },
+       {   206,  203,  214,  222,  220, -208,  200,    0, -402,  414,  422,  420,  408,    0,    0, },
+       {     0,  207,  219,  223,  217, -205,  201,    0, -407,  419,  423,  417,  405,    0,    0, },
+       {     0,    0,  215,  218,  221, -209,  204,    0, -403,  415,  418,  421,  409,    0,    0, },
+       {     0,    0,  621,  616,  615, -603,  606,    0, -809,  821,  816,  815,  803,    0,    0, },
+       {     0,  605,  617,  613,  619, -607,  611,    0, -805,  817,  813,  819,  807,    0,    0, },
+       {   604,  609,  620,  612,  614, -602,  610,    0, -808,  820,  812,  814,  802,    0,    0, },
+       {   601,  608,  600,  623,  618,  622, -800,  804, -801,  822,  818,  823,  810,  806,  811, },
+       {   601,  608,  600,  623,  618,  622, -800,  804,    0,    0,    0,    0,    0,    0,    0, },
+      },
+      {{   101,  104,  100,  113,  116, -112,  111, -106,  110, -312,  316,  313,  310,  302,  311, },
+       {     0,    0,  108,  120,  123, -114, -102,    0,  300, -308,  320,  322,  314,  303,  306, },
+       {     0,    0,  105,  117,  122, -119, -107,    0,  301, -305,  317,  323,  319,  307,    0, },
+       {     0,    0,  109,  121,  118, -115, -103,    0,  304, -309,  321,  318,  315,    0,    0, },
+       {     0,    0,  503,  515,  516, -521, -509,    0,  706, -703,  715,  716,  721,    0,    0, },
+       {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  705,    0, },
+       {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  709,  704, },
+       {   511,  506,  510,  523,  518, -522,  501, -504,  500, -722,  718,  723,  700,  708,  701, },
+       {   511,  506,  510,  523,  518, -522,  501, -504,    0,    0,    0,    0,    0,    0,    0, },
+      },
+    };
+    
+    
+    if(setup==3){
+      memcpy(_octid,octid_newP,2*maxlay*maxlad*sizeof(octid_new[0][0][0]));
+      printf("TkDBC--using the FLIGHT AMS02P Cabling %d!!!\n",setup);
+    }else if(setup==2){
+      memcpy(_octid,octid_new,2*maxlay*maxlad*sizeof(octid_new[0][0][0]));
       printf("TkDBC--using the FLIGHT Cabling %d!!!\n",setup);
     }else if(setup==1){
-      memcpy(_octid,octid_old,2*nlays*maxlad*sizeof(octid_old[0][0][0]));
+      memcpy(_octid,octid_old,2*maxlay*maxlad*sizeof(octid_old[0][0][0]));
       printf("TkDBC--using the PRE-INTEGRATION Cabling  %d!!!\n",setup);
     }else{
       printf("TkDBC--FATAL-- Unknown setup number %d!!\n I give up!!!\n",setup);
@@ -273,16 +373,17 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     }
 
 
-    const float LadDeltaX[2][nlays][maxlad]={{
+    const float LadDeltaX[2][maxlay][maxlad]={{
 	//1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
-	{ -0.39,   20.31, -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39},
-	{144.88,  289.55, -0.25, 20.45,	-20.95,	-0.25,	-0.25,	0.,	-0.25,	-0.25,	-20.95,	20.45,	-0.25,	0,	0},
-	{  0.  ,  289.41, -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
-	{  0.  ,    0.,	  -0.25, 20.31,	-20.95,	-0.25,	-0.25,	0.,	-0.32,	-0.25,	-21.09,	20.38,	-0.32,	0,	0},
-	{  0.  ,    0.,	  -0.39, 20.31,	-21.09,	-0.39,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
-	{  0.  , 289.55,  -0.39, 20.31,	-21.09,	-0.32,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
-	{144.88, 289.41,  -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},
-	{ -0.39,  20.31,  -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39}
+	{ -0.39,   20.31, -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39}, //1
+	{144.88,  289.55, -0.25, 20.45,	-20.95,	-0.25,	-0.25,	0.,	-0.25,	-0.25,	-20.95,	20.45,	-0.25,	0,	0},//2
+	{  0.  ,  289.41, -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//3
+	{  0.  ,    0.,	  -0.25, 20.31,	-20.95,	-0.25,	-0.25,	0.,	-0.32,	-0.25,	-21.09,	20.38,	-0.32,	0,	0},//4
+	{  0.  ,    0.,	  -0.39, 20.31,	-21.09,	-0.39,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//5
+	{  0.  , 289.55,  -0.39, 20.31,	-21.09,	-0.32,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//6
+	{144.88, 289.41,  -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//7
+	{ -0.39,  20.31,  -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39},//8
+	{     0.,     0.,     0.,    0.,     0.,    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,    0.},//9
       },{
 	
 														
@@ -295,15 +396,16 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	{0.,	0,	0.39,	21.09,	-20.31,	0.39,	0.32,	0,	0.39,	0.39,	-20.31,	21.02,	0.39,	-289.41,    0.  },
 	{0.,	0,	0.39,	21.09,	-20.31,	0.25,	0.32,	0,	0.25,	0.32,	-20.31,	21.02,	0.39,	-289.41, -144.74},
 	{0.39,	21.09,	0.39,	0.39,	-20.31,	0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
+	{0.2,    0.2,   0.2 ,   0.2 ,     0.2 , 0.2 ,   0.2 ,   0.2 ,     0.,     0.,     0.,     0.,     0.,     0.,     0.},
       }};
 
     // memcpy(_LadDeltaX,LadDeltaX,2*nlays*maxlad*sizeof(LadDeltaX[0][0][0]));
     for (int s=0;s<2;s++)
-      for (int la=0;la<nlays;la++)
+      for (int la=0;la<maxlay;la++)
 	for (int sl=0;sl<maxlad;sl++)
 	  _LadDeltaX[s][la][sl]=LadDeltaX[s][la][sl];
     
-    const char LadName[2][nlays][maxlad][9]={
+    const char LadName[2][maxlay][maxlad][9]={
       {{  "L10AO151", "L12SO181", "L13AO073", "L14AO123", "L14AO125", "L15SO180", "L15AN101", "L15AO173", "L15AN100", "L15AO093", "L14AO159", "L14AO160", "L13AO114", "L12AO107", "L10AO145", },
        {  "L07PI002", "L14AI031", "L09GI003", "L11GI004", "L11GI008", "L12AH024", "L12AI004", "        ", "L12AH029", "L12AI005", "L11GI009", "L11GI016", "L09GI010", "        ", "        ", },
        {  "        ", "L14AI032", "L09AI139", "L11AI127", "L11AI140", "L12AJ055", "L12AJ038", "        ", "L12AJ054", "L12SI182", "L11SI176", "L11AI126", "L09SI164", "        ", "        ", },
@@ -312,6 +414,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {  "        ", "L14AI041", "L09AI089", "L11AI084", "L11GI001", "L12AH030", "L12AI067", "        ", "L12AH028", "L12SI170", "L11AI141", "L11AI104", "L09GI012", "        ", "        ", },
        {  "L07PI003", "L14AI040", "L09AI103", "L11AI128", "L11AI088", "L12AJ020", "L12AI007", "        ", "L12AJ056", "L12AI130", "L11AI134", "L11AI142", "L09PI010", "        ", "        ", },
        {  "L10AO144", "L12AO105", "L13AO026", "L14AO119", "L14AO120", "L15AO175", "L15AP098", "L15AO097", "L15AP110", "L15AO095", "L14AO122", "L14AO124", "L13AO074", "L12AO106", "L10AO148", },
+       {  "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
       },
       {{  "L10AO149", "L11AO154", "L13AO071", "L14AO156", "L15AO163", "L15AN113", "L15AO177", "L15AP109", "L15AO174", "L15AP099", "L15AO115", "L14AO158", "L13AO025", "L11AO153", "L10AO150", },
        {  "        ", "        ", "L09GI006", "L10PI005", "L12AI001", "L12AH057", "L12AJ021", "        ", "L12AI006", "L12AJ051", "L12AI003", "L10GI014", "L09GI013", "L14AI042", "L07PI004", },
@@ -321,12 +424,41 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {  "        ", "        ", "L09AI135", "L10AI080", "L12AH062", "L12AH037", "L12AJ023", "        ", "L12SI171", "L12AJ052", "L12SI168", "L10AI078", "L09PI012", "L14AI043", "        ", },
        {  "        ", "        ", "L09AI091", "L10PI011", "L12AI133", "L12AJ047", "L12AH045", "        ", "L12AI068", "L12AH046", "L12AI050", "L10PI007", "L09AI102", "L14AI039", "L07PI006", },
        {  "L10AO147", "L11AO155", "L13AO072", "L14AO121", "L15AO116", "L15AP112", "L15AO162", "L15AN117", "L15AO096", "L15AN118", "L15SO178", "L14AO157", "L13AO111", "L11SO165", "L10AO146", },
+       {  "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
+      },
+    };
+
+
+    const char LadNameP[2][maxlay][maxlad][9]={
+      {{  "L10AO151", "L12SO181", "L13AO073", "L14AO123", "L14AO125", "L15SO180", "L15AN101", "L15AO173", "L15AN100", "L15AO093", "L14AO159", "L14AO160", "L13AO114", "L12AO107", "L10AO145", },
+       {  "L07PI002", "L14AI031", "L09GI003", "L11GI004", "L11GI008", "L12AH024", "L12AI004", "        ", "L12AH029", "L12AI005", "L11GI009", "L11GI016", "L09GI010", "        ", "        ", },
+       {  "        ", "L14AI032", "L09AI139", "L11AI127", "L11AI140", "L12AJ055", "L12AJ038", "        ", "L12AJ054", "L12SI182", "L11SI176", "L11AI126", "L09SI164", "        ", "        ", },
+       {  "        ", "        ", "L09GI005", "L11GI017", "L11AI082", "L12AH060", "L12AI048", "        ", "L12AH059", "L12AI064", "L11AI083", "L11AI081", "L09AI076", "        ", "        ", },
+       {  "        ", "        ", "L09AI090", "L11AI087", "L11AI085", "L12AJ034", "L12AI049", "        ", "L12AJ053", "L12AI017", "L11AI086", "L11AI143", "L09AI092", "        ", "        ", },
+       {  "        ", "L14AI041", "L09AI089", "L11AI084", "L11GI001", "L12AH030", "L12AI067", "        ", "L12AH028", "L12SI170", "L11AI141", "L11AI104", "L09GI012", "        ", "        ", },
+       {  "L07PI003", "L14AI040", "L09AI103", "L11AI128", "L11AI088", "L12AJ020", "L12AI007", "        ", "L12AJ056", "L12AI130", "L11AI134", "L11AI142", "L09PI010", "        ", "        ", },
+       {  "L10AO144", "L12AO105", "L13AO026", "L14AO119", "L14AO120", "L15AO175", "L15AP098", "L15AO097", "L15AP110", "L15AO095", "L14AO122", "L14AO124", "L13AO074", "L12AO106", "L10AO148", },
+       {  "L10AO144", "L12AO105", "L13AO026", "L14AO119", "L14AO120", "L15AO175", "L15AP098", "L15AO097", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
+      },
+      {{  "L10AO149", "L11AO154", "L13AO071", "L14AO156", "L15AO163", "L15AN113", "L15AO177", "L15AP109", "L15AO174", "L15AP099", "L15AO115", "L14AO158", "L13AO025", "L11AO153", "L10AO150", },
+       {  "        ", "        ", "L09GI006", "L10PI005", "L12AI001", "L12AH057", "L12AJ021", "        ", "L12AI006", "L12AJ051", "L12AI003", "L10GI014", "L09GI013", "L14AI042", "L07PI004", },
+       {  "        ", "        ", "L09GI011", "L10PI001", "L12AI012", "L12AJ033", "L12SH169", "        ", "L12SI167", "L12AH058", "L12AI016", "L10PI008", "L09GI002", "L14AI044", "        ", },
+       {  "        ", "        ", "L09AI075", "L10AI079", "L12AI015", "L12AH061", "L12AJ018", "        ", "L12AI063", "L12AJ019", "L12AI065", "L10GI015", "L09AI077", "        ", "        ", },
+       {  "        ", "        ", "L09AI138", "L10PI009", "L12AI132", "L12AJ022", "L12AH035", "        ", "L12AI131", "L12AH036", "L12AI066", "L10PI013", "L09AI136", "        ", "        ", },
+       {  "        ", "        ", "L09AI135", "L10AI080", "L12AH062", "L12AH037", "L12AJ023", "        ", "L12SI171", "L12AJ052", "L12SI168", "L10AI078", "L09PI012", "L14AI043", "        ", },
+       {  "        ", "        ", "L09AI091", "L10PI011", "L12AI133", "L12AJ047", "L12AH045", "        ", "L12AI068", "L12AH046", "L12AI050", "L10PI007", "L09AI102", "L14AI039", "L07PI006", },
+       {  "L10AO147", "L11AO155", "L13AO072", "L14AO121", "L15AO116", "L15AP112", "L15AO162", "L15AN117", "L15AO096", "L15AN118", "L15SO178", "L14AO157", "L13AO111", "L11SO165", "L10AO146", },
+       {  "L10AO147", "L11AO155", "L13AO072", "L14AO121", "L15AO116", "L15AP112", "L15AO162", "L15AN117", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
       },
     };
     
-    memcpy(_LadName,LadName,2*nlays*maxlad*9*sizeof(LadName[0][0][0][0]));
-
+    if(_setup==3){
+      memcpy(_LadName,LadNameP,2*maxlay*maxlad*9*sizeof(LadName[0][0][0][0]));
+    }else{
+      memcpy(_LadName,LadName,2*maxlay*maxlad*9*sizeof(LadName[0][0][0][0]));
+    }
     
+
 
 
 //---------------- Crate to Octant to JinJ cable connection --------------
@@ -371,7 +503,11 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	sprintf(name,"Plane%d",ii+1);
 	planes[ii]=new TkPlane(name,ii+1,_nslot[ii]);
 	planes[ii]->setpos(_xpos[ii],_ypos[ii],_zpos[ii]);
-//	 cout <<*(planes[ii])<<endl;
+	if(_setup==3 && ii==4) {
+	  planes[ii]->rot.XParity();
+	  planes[ii]->rot.ZParity();
+	}
+	//	 cout <<*(planes[ii])<<endl;
       }
       
       for (int lay=0;lay<8;lay++) //loop on layers
@@ -380,7 +516,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
             if(filled_slot(side,lay,slot)){
               int oct=GetOctant(side,lay+1,slot+1);
               int hwid=abs(_octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
-              int tkid=(lay+1)*100+(slot+1);
+	      if  (_setup==3 && (lay+1)==9) hwid=abs(_octid[side][lay][slot])-100; // FIXME PLANB
+	      int tkid=(lay+1)*100+(slot+1);
               if (side==0) tkid*=-1;
               sprintf(name,"%s",LadName[side][lay][slot]);
               TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,nsen[side][lay][slot]);
@@ -405,7 +542,9 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 // 	      int pgid=aa->GetPgId();
 // 	      _pgid[side][lay][slot]=pgid;
 	      
-	      tkassemblymap[aa->GetAssemblyId()]=aa;
+	      if((lay+1)!=9){
+		tkassemblymap[aa->GetAssemblyId()]=aa;
+	      }
 	      tkidmap[tkid]=aa;
 	      hwidmap[hwid]=aa;
 	      // SH FIXME pgid is not an unique ID for 192 ladders
@@ -428,6 +567,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 
     // Set sensor alignment data
     for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();++lad){
+      if(lad->second->GetLayer()==9){ printf("TkDBC::init -W- PLANB No sensor alignement for layer 9! \n"); continue;}
       for (int i = 0; i < trconst::maxsen; i++) 
 	lad->second->_sensx[i] = GetSensAlignX(lad->second->GetTkId(), i);
 
@@ -459,6 +599,10 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
   
 //   printf("  _ladder_Ypitch %f\n", _ladder_Ypitch );
 //   printf(" ladpitch %f ladder_Ygap %f distXN %f distXF  %f \n",_ladder_Ypitch,ladder_Ygap,distXN,distXF);
+  if(layer==9){
+    if(side==0) return distXN+ ladpitch*(5-slot); //(4-slot);
+    else        return distXF+ ladpitch*(3-slot); //(4-slot);
+  }
   if( layer==2||layer==4||layer==6){
     if(side==0){
       if(abs(slot)<8)      return -distXF+ ladpitch*(8-slot);

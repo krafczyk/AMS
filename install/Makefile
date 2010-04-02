@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.98 2010/03/08 08:43:03 shaino Exp $
+#  $Id: Makefile,v 1.99 2010/04/02 10:34:52 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -206,7 +206,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
 	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C   \
-	$(SCC)TrRawCluster.C $(SCC)patt.C \
+	$(SCC)TrRawCluster.C  $(SCC)patt.C\
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	        $(SCC)TrAlignFit.C\

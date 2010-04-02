@@ -59,6 +59,8 @@ protected:
   float _dummyX;
   /// Hit global coordinate (multiplicity vector) 
   vector<AMSPoint> _coord;
+  /// Hit global coordinate (multiplicity vector) 
+  vector<AMSPoint> _bfield;
 
   /// X Cluster index
   int _iclusterX;
@@ -110,6 +112,13 @@ protected:
   AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) ? _coord[_imult] : AMSPoint(0, 0, 0); }
   /// Get the computed global coordinate by multiplicity index
   AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates(); return _coord[imult]; }
+
+  /// Returns the computed global coordinate (if resolved)
+  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) ? _bfield[_imult] : AMSPoint(0, 0, 0); }
+  /// Get the computed global coordinate by multiplicity index
+  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates(); return _bfield[imult]; }
+
+
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
   /// Get correlation between the X and Y clusters

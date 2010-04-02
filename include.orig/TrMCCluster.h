@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.5 2009/08/19 23:32:43 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.6 2010/04/02 10:34:51 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2009/08/19 23:32:43 $
+///$Date: 2010/04/02 10:34:51 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -93,7 +93,10 @@ public:
   AMSPoint GetXcb(){return _xcb;}
   //! Returns the middle point in the silcon
   AMSPoint GetXgl(){return _xgl;}
-
+  //! Returns the Momentum 
+  AMSPoint GetMom(){return _Momentum;}
+  //! Returns the part type
+  int GetPart(){return _itra;}
   unsigned int checkstatus(int c) const { return Status&c; }
   unsigned int getstatus  (void)  const { return Status; }
   void setstatus  (unsigned int s) { Status |=  s; }

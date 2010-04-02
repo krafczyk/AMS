@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.42 2010/03/08 15:38:06 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.43 2010/04/02 10:34:50 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/03/08 15:38:06 $
+/// $Date: 2010/04/02 10:34:50 $
 ///
-/// $Revision: 1.42 $
+/// $Revision: 1.43 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -127,8 +127,8 @@ void TrReconPar::SetParFromDataCards()
   ErrYForScan       = TRCLFFKEY.ErrYForScan;      // 36
   TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];  // 37
   TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];  // 38
-
-  TrTrackR::DefaultAdvancedFitFlags = TRCLFFKEY.AdvancedFitFlag; // 39
+  // PZ FIXME this flag cannot be used that way must discuss about it!
+  //  TrTrackR::DefaultAdvancedFitFlags = TRCLFFKEY.AdvancedFitFlag; // 39
 }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -729,7 +729,7 @@ if (TrDEBUG >= 5) {\
 
 #define TR_DEBUG_CODE_02 \
 if (TrDEBUG >= 1) {\
-  for (int ly = 1; ly <= MAXLAY; ly++) {\
+  for (int ly = 1; ly <= TkDBc::Head->nlay(); ly++) {\
     int nlad = _LadderHitMap[ly-1].size();\
     cout << Form("L:%d (%2d,%2d) ", ly, nlad, _NladderXY[ly-1]);\
     for (int i = 0; i < nlad; i++) {\
@@ -744,7 +744,7 @@ if (TrDEBUG >= 1) {\
 
 #define TR_DEBUG_CODE_03 \
 if (TrDEBUG >= 1) {\
-  for (int i = 0; i < MAXLAY; i++) {\
+  for (int i = 0; i < TkDBc::Head->nlay(); i++) {\
     int nlad = _LadderHitMap[i].size();\
     cout << Form("L:%d (%2d,%2d) ", i+1, nlad, _NladderXY[i]);\
     for (int j = 0; j < nlad; j++) {\
@@ -765,7 +765,7 @@ if (TrDEBUG >= 11 || (TrDEBUG >= 10 && ddiff < it.psrange)) {\
     if (it.side == 0) cout << Form("-%d", it.imult[it.ilay[i]]);\
     cout << " ";\
   }\
-  for (int i = nlay+1; i < MAXLAY; i++) {\
+  for (int i = nlay+1; i < TkDBc::Head->nlay(); i++) {\
     cout << "     ";\
     if (it.side == 0) cout << "  ";\
   }\
@@ -1017,9 +1017,9 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 // Build pattern mask bits with n hits masked, recursively called
 //=================================================================
   if (nmask > 0) {
-    const int MASK_ORDER[8] = { 1, 3, 5, 2, 4, 6, 0, 7 };
-    for (int j = ilyr; j < MAXLAY; j++)
-      BuildHitPatterns(nmask-1, j+1, mask | (1<<(MAXLAY-MASK_ORDER[j]-1)));
+    const int MASK_ORDER[trconst::maxlay] = { 1, 3, 5, 2, 4, 6, 0, 7, 8 };
+    for (int j = ilyr; j < TkDBc::Head->nlay(); j++)
+      BuildHitPatterns(nmask-1, j+1, mask | (1<<(TkDBc::Head->nlay()-MASK_ORDER[j]-1)));
     return;
   }
 
@@ -1028,9 +1028,9 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 // ( = Nmask*100000 +Np1*10000 +Np2*1000 +Np3*100 +Np4*10 +Np5)
 //=================================================================
   int atrb = 12221, iatrb = O_NP1;
-  for (int i = 0; i < MAXLAY; i++) {
+  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
     if (i%2 == 1) iatrb /= 10;
-    if (mask & (1<<(MAXLAY-i-1))) atrb += -iatrb+O_NMASK;
+    if (mask & (1<<(TkDBc::Head->nlay()-i-1))) atrb += -iatrb+O_NMASK;
   }
   HitPatternMask  [PatternID] = mask;
   HitPatternAttrib[PatternID] = atrb;
@@ -1048,12 +1048,12 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 
 const char *TrRecon::GetHitPatternStr(int pat, char con, char coff)
 {
-  static char sbuf[MAXLAY+1];
+  static char sbuf[trconst::maxlay+1];
 #pragma omp threadprivate(sbuf)
 
-  for (int ly = 1; ly <= MAXLAY; ly++)
+  for (int ly = 1; ly <= TkDBc::Head->nlay(); ly++)
     sbuf[ly-1] = (TestHitPatternMask(pat, ly)) ? con : coff;
-  sbuf[MAXLAY] = '\0';
+  sbuf[TkDBc::Head->nlay()] = '\0';
   return sbuf;
 }
 
@@ -1127,16 +1127,23 @@ void TrRecon::BuildHitsTkIdMap()
     TrClusterR *clx = hit->GetXCluster();
     TrClusterR *cly = hit->GetYCluster();
     if (!cly) continue;
+    int layr = hit->GetLayer();
+
+    if(TkDBc::Head->GetSetup()==3){
+      // AMS-B; Layer 8(on Ecal) and 9(on TRD) excluded from trackfinding
+           if (layr >= 8) continue;
+      // AMS-B; Layer 8(on Ecal) and 9(on TRD) excluded from trackfinding
+    }
 
     if (hit->Used()) hit->clearstatus(AMSDBc::USED);
     if (RecPar.TrackThrSeed[1] > 0) {
       if (RecPar.TrackThrSeed[0] > 0) {
 	if ( clx && clx->GetSeedSN() < RecPar.TrackThrSeed[0] && 
-	            cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+	     cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
       }
       if (!clx && cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
     }
-
+    
     int tkid = hit->GetTkId();
     _HitsTkIdMap[tkid].push_back(hit);
 
@@ -1200,7 +1207,7 @@ void TrRecon::BuildHitsTkIdMap()
 void TrRecon::BuildLadderHitMap()
 {
   // Clear LadderHitMap
-  for (int i = 0; i < MAXLAY; i++) {
+  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
     _NladderXY[i] = 0;
     _LadderHitMap[i].clear();
   }
@@ -1223,7 +1230,7 @@ void TrRecon::BuildLadderHitMap()
 void TrRecon::BuildLadderClusterMap()
 {
   // Clear LadderHitMap
-  for (int i = 0; i < MAXLAY; i++) {
+  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
     _NladderXY[i] = 0;
     _LadderHitMap[i].clear();
   }
@@ -1237,7 +1244,7 @@ void TrRecon::BuildLadderClusterMap()
         GetnTrClusters(tkid, 0) > 0) _NladderXY[il]++;
     _LadderHitMap[il].push_back(tkid);
   }
-  for (int i = 0; i < MAXLAY; i++)
+  for (int i = 0; i < TkDBc::Head->nlay(); i++)
     std::sort(_LadderHitMap[i].begin(), _LadderHitMap[i].end());
 
   TR_DEBUG_CODE_03;
@@ -1506,7 +1513,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
 
   // Loop on layers to check for an empty layer and fill iterator
   int nhitc = it.nlayer = 0;
-  for (int i = 0; i < MAXLAY; i++) {
+  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
     if (!TestHitPatternMask(pattern, i+1)) {
       if (_LadderHitMap[i].empty()) return 0;
       if (_NladderXY[i]) nhitc++;
@@ -1607,7 +1614,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 {
   // Reset the-best-candidate parameters
   itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
-  for (int i = 0; i < MAXLAY; i++)
+  for (int i = 0; i < TkDBc::Head->nlay(); i++)
     itcand.iscan[i][0] = itcand.iscan[i][1] = itcand.imult[i] = 0;
 
   // Define and fill iterator
@@ -1620,7 +1627,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 
   // Loop on X and Y
   for (it.side = 0; it.side <= 1; it.side++) {
-    int maxpat = (it.side == 0) ? GetHitPatternFirst(1+MAXLAY-_MinNhitX) 
+    int maxpat = (it.side == 0) ? GetHitPatternFirst(1+TkDBc::Head->nlay()-_MinNhitX) 
                                 : itlad.pattern+1;
     itcand.side = it.side;
 
@@ -1643,7 +1650,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
     }
     if (!found) return 0;
 
-    if (it.side == 0) itcand.nhitc = MAXLAY-GetHitPatternNmask(it.pattern);
+    if (it.side == 0) itcand.nhitc = TkDBc::Head->nlay()-GetHitPatternNmask(it.pattern);
     it = itcand;
   }
   return 1;
@@ -1807,10 +1814,10 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   double rthdx = cfcx*TRFITFFKEY.ErrX*RecPar.NsigmaMerge;
   double rthdy = cfcy*TRFITFFKEY.ErrY*RecPar.NsigmaMerge;
 
-  AMSPoint pltrk[MAXLAY];
-  double   rymin[MAXLAY];
-  int      ncmin[MAXLAY];
-  for (int i = 0; i < MAXLAY; i++) {
+  AMSPoint pltrk[trconst::maxlay];
+  double   rymin[trconst::maxlay];
+  int      ncmin[trconst::maxlay];
+  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
     pltrk[i] = track->GetPlayer(i, mfit);
     rymin[i] = rthdy*1.5;
     ncmin[i] = 0;
@@ -1872,6 +1879,91 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   return nadd;
 }
 
+int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
+{
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return -1;
+
+  int    lyext[2] = {  8,  9 };
+  int    ihmin[2] = { -1, -1 };
+  int    ncmin[2] = {  0,  0 };
+  int    mlmin[2] = {  0,  0 };
+  double rxmin[2] = { 10, 10 };
+  double rymin[2] = { 10, 10 };
+
+  AMSPoint ptrk[2];
+  ptrk[0] = track->GetPlayer(lyext[0]-1, mfit);
+  ptrk[1] = track->GetPlayer(lyext[1]-1, mfit);
+
+  int nhit = cont->getnelem();
+  for (int i = 0; i < nhit; i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
+    if (!hit || hit->Used() || hit->OnlyX()) continue;
+
+    int il = -1;
+    if (hit->GetLayer() == lyext[0]) il = 0;
+    if (hit->GetLayer() == lyext[1]) il = 1;
+    if (il < 0) continue;
+
+    int nc = 1+((hit->OnlyY()) ? 0 : 1);
+    if (std::fabs(hit->GetCoord().y()-ptrk[il].y()) > rymin[il] || 
+        nc < ncmin[il]) continue;
+
+    int imult = -1;
+    if (!hit->OnlyY()) {
+      int    jmin = -1;
+      double dmin = rxmin[il];
+      for (int j = 0; j < hit->GetMultiplicity(); j++) {
+        double resx = std::fabs(hit->GetCoord(j).x()-ptrk[il].x());
+        if (resx < dmin) {
+          jmin = j;
+          dmin = resx;
+        }
+      }
+      if (jmin < 0) continue;
+      if (std::fabs(hit->GetCoord(jmin).x()-ptrk[il].x()) > rxmin[il] ||
+          std::fabs(hit->GetCoord(jmin).y()-ptrk[il].y()) > rymin[il])
+        continue;
+      imult = jmin;
+    }
+    else {
+      TkSens tks = EstimateXCoord(ptrk[il]);
+      if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
+      imult = tks.GetMultIndex();
+      hit->SetDummyX(tks.GetStripX());
+    }
+
+    double resx = (hit->OnlyY()) ? 0 : hit->GetCoord(imult).x()-ptrk[il].x();
+    double resy = hit->GetCoord(imult).y()-ptrk[il].y();
+
+    if (resx != 0) rxmin[il] = std::fabs(resx);
+    rymin[il] = std::fabs(resy);
+    ihmin[il] = i;
+    ncmin[il] = nc;
+    mlmin[il] = imult;
+  }
+
+  int nadd = 0;
+  for (int i = 0; i < 2; i++) {
+    if (ihmin[i] < 0) continue;
+
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(ihmin[i]);
+    if (!hit) continue;
+
+    int imult = mlmin[i];
+    double resx = (hit->OnlyY()) ? 0 : hit->GetCoord(imult).x()-ptrk[i].x();
+    double resy = hit->GetCoord(imult).y()-ptrk[i].y();
+
+    hit->SetResolvedMultiplicity(imult);
+    track->GetPar(mfit).Residual[lyext[i]-1].setp(resx, resy, 0);
+    track->AddHit(hit, imult);
+    nadd++;
+  }
+  delete cont;
+
+  return nadd;
+}
+
 int TrRecon::BuildATrTrack(TrHitIter &itcand)
 {
   if (itcand.nlayer == 0) return 0;
@@ -1899,7 +1991,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
                                                  itcand.iscan[i][1]);
     if (!hit) continue;
     if (hit->OnlyY()) {
-      maskc |= (1 << (MAXLAY-hit->GetLayer()));
+      maskc |= (1 << (TkDBc::Head->nlay()-hit->GetLayer()));
       hit->SetDummyX(EstimateXCoord(i, itcand));
       hit->BuildCoordinates();
       track->setstatus(AMSDBc::FalseX); // AMSDBc::FalseX = 8192; (0x2000)
@@ -1942,8 +2034,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }
 
   // Get interpolated posisions/dirs
-  double zhit[MAXLAY];
-  AMSDir dtrk[MAXLAY];
+  double zhit[trconst::maxlay];
+  AMSDir dtrk[trconst::maxlay];
   for (int i = 0; i < track->GetNhits(); i++)
     zhit[i] = track->GetHit(i)->GetCoord().z();
   track->Interpolate(track->GetNhits(), zhit, 0, dtrk, 0, fit_method);
@@ -1976,6 +2068,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     track->Settrdefaultfit(fit_method);
   }
   else {
+    if(TkDBc::Head->GetSetup()==3) MergeExtHits(track, fit_method); // AMS-B
     if(track->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
     } else {
@@ -2016,8 +2109,11 @@ int TrRecon::ReadMagField(const char *fname,
 {
   //PZMAG  MAGSFFKEY.BZCorr  = 1;
   MAGSFFKEY.magstat = magstat;
-  MAGSFFKEY.fscale  = fscale;
-  MagField::GetPtr()->SetScale(fscale);
+
+ // PZ BUG FIX   This is the second place where scaling factor is set
+  // no control here of the scalaing factor !!!
+  //MAGSFFKEY.fscale  = fscale;
+//  MagField::GetPtr()->SetScale(fscale);
   if (!MagFieldOn()) TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
   //PZMAG  
@@ -2347,10 +2443,10 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 
   int ntrk = 0;
   for (int i = 0; i < TrTasPar::NLAS; i++) {
-    TrRecHitR *hits[MAXLAY];
+    TrRecHitR *hits[trconst::maxlay];
     int nhit = 0;
     int hpat = 0xff;
-    for (int j = 0; j < MAXLAY; j++) hits[j] = 0;
+    for (int j = 0; j < TkDBc::Head->nlay(); j++) hits[j] = 0;
 
     for (int j = 0; j < cont->getnelem(); j++) {
       TrRecHitR *hit = (TrRecHitR *)cont->getelem(j);
@@ -2360,7 +2456,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
       AMSPoint lcoo = _TasPar->GetLasCoo(i, hit->GetLayer()-1);
       if (hcoo.dist(lcoo) < range) {
 	hits[nhit++] = hit;
-	hpat &= ~(1 << (MAXLAY-hit->GetLayer()));
+	hpat &= ~(1 << (TkDBc::Head->nlay()-hit->GetLayer()));
       }
     }
     if (nhit < RecPar.MinNhitXY) continue;
@@ -2399,7 +2495,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 
 
 int TrRecon::BuildVertex(integer refit){
-
+   
   VCon* vtx_ctr=GetVCon()->GetCont("AMSVtx");
   if(!vtx_ctr){
     printf("TrRecon::BuildVertex  Cant Find AMSVtx Container Reconstruction is Impossible !!!\n");
@@ -2503,12 +2599,16 @@ extern "C" double rnormx();
 #endif
 
 void TrSim::sitkhits(int idsoft, float vect[],
-		     float edep, float step, int itra)
+                     float edep, float step, int itra)
 {
+  float mom=vect[6];
   if (SkipRawSim) {
     gencluster(idsoft, vect, edep, step, itra);
     return;
   }
+//  printf("TrSim::sitkhits  idsoft %d , pos %f %f %f  edep %f mom %5.2f %+5.2f itra %d \n  ",
+//       idsoft, vect[0],vect[1],vect[2],
+//       edep,  mom, vect[5], itra);
 
   if (edep <= 0) edep = 1e-4;
 
@@ -2526,6 +2626,9 @@ void TrSim::sitkhits(int idsoft, float vect[],
   int tkid   = abs(idsoft)%1000;
   int ss     = abs(idsoft)%10000-tkid;
   if(!ss) tkid*=-1;
+
+  //cout <<" TkId "<< tkid <<" sensor "<<abs(idsoft)/10000 <<endl;
+
   // Convert global coo into sensor local coo
   // The origin is the first strip of the sensor
   TkSens tksa(tkid, ppa);
@@ -2554,11 +2657,11 @@ void TrSim::sitkhits(int idsoft, float vect[],
 
 
 int      TrSim::SkipRawSim = 0;
-AMSPoint TrSim::sitkrefp[8];
-AMSPoint TrSim::sitkangl[8];
+AMSPoint TrSim::sitkrefp[9];
+AMSPoint TrSim::sitkangl[9];
 
 void TrSim::gencluster(int idsoft, float vect[],
-		       float edep, float step, int itra)
+                       float edep, float step, int itra)
 {
   if (edep <= 0) edep = 1e-4;
 
@@ -2664,8 +2767,11 @@ void TrSim::gencluster(int idsoft, float vect[],
   if (tkid == -512) effx = 0.50;
   if (tkid ==  504) effx = 0.70;
   if (tkid ==  510) effx = 0.35;
-  
-
+  if(TkDBc::Head->GetSetup()==3){
+    // For AMS-B
+    effx = effy = 1;
+    // For AMS-B
+  }
   if (rndx < effx && asx+asy > 0 && 0 < stx && stx+seedx < 383) {
     adc[0] = a1x;
     adc[1] = a2x;
@@ -2732,12 +2838,12 @@ void TrSim::sitkdigi()
   }
 
   //LOOP ON ALL THE LADDERS
-  for (int lay=1;lay<=trconst::nlays;lay++){
-    for (int slot=1;slot<=trconst::maxlad;slot++){
+  for (int lay=1;lay<=TkDBc::Head->nlay();lay++){
       for(int side=-1;side<2;side=side+2){
-	int tkid=(lay*100+slot)*side;
-	if(!TkDBc::Head->FindTkId(tkid)) continue  ;
-	
+      for (int slot=1;slot<=TkDBc::Head->GetNslots(lay,side);slot++){
+        int tkid=(lay*100+slot)*side;
+        if(!TkDBc::Head->FindTkId(tkid)) continue  ;
+        
 	TrLadCal *tcal = TrCalDB::Head->FindCal_TkId(tkid);
 	if (!tcal) {
 	  std::cerr << "ERROR(1) tcal not found: " << tkid << std::endl;

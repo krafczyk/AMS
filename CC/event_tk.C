@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.16 2010/03/08 15:38:06 shaino Exp $
+//  $Id: event_tk.C,v 1.17 2010/04/02 10:34:50 pzuccon Exp $
 #include "TrRecon.h"
 #include "TkSens.h"
 
@@ -147,14 +147,27 @@ void AMSEvent::_retkevent(integer refit){
       
   } //RAW Clusters -->  Clusters
 
+
   AMSgObj::BookTimer.stop("RETKEVENT");
 
 #pragma omp critical (trtrstat)
   {
-    static int nfill = 0, ntevt = 0, ifirst = 1;
+    static int nfill = 0, ntevt = 0, ntful =0, ifirst = 1;
     nfill++;
     int ntrk = AMSEvent::gethead()->getC("AMSTrTrack")->getnelem();
-    if (ntrk > 0) ntevt++;
+    if (ntrk > 0) {
+      ntevt++;
+      AMSTrTrack *trk 
+	= (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
+      if(TkDBc::Head->GetSetup()==3){
+	if (trk->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8
+			   | TrTrackR::kFitLayer9)) 
+	  ntful++;
+      }else
+	if (trk->ParExists(TrTrackR::kChoutko )) 
+	  ntful++;
+      
+    }
     if (trstat > 0) {
          static int qprint=0;
       if (qprint++<100 && !lowdt) {
@@ -169,13 +182,13 @@ void AMSEvent::_retkevent(integer refit){
       if (trstat & 16) TrRecon::RecPar.NcutCpu++;
     }
     if (nfill%10000 == 0) {
-    if (ifirst) {
+      if (ifirst) {
 	cout << "AMSEvent::_retkevent-I-Report: "
 	     << "  Nfill  NevTrk  Rtrk  Rldt Rhcut  Rcpu TrTime" << endl;
 	ifirst = 0;
       }
-    float trtime = (hman.Get("TrTimH"))
-      ? ((TH2D *)hman.Get("TrTimH"))->GetMean(2) : 0;
+      float trtime = (hman.Get("TrTimH"))
+	? ((TH2D *)hman.Get("TrTimH"))->GetMean(2) : 0;
       cout << "AMSEvent::_retkevent-I-Report: "
 	   << Form("%7d %7d %5.3f %5.3f %5.3f %5.3f %6.4f",
 		   nfill, ntevt, 1.*ntevt/nfill,
@@ -262,6 +275,81 @@ void AMSEvent::_retkevent(integer refit){
       if (nsump-1 > 0) hman.Fill("TrChgP", argt, (ssump-smaxp)/(nsump-1));
       if (nsumn-1 > 0) hman.Fill("TrChgN", argt, (ssumn-smaxn)/(nsumn-1));
     }
+
+    if (i == 0&& TkDBc::Head->GetSetup()==3) {
+      int mf8 = TrTrackR::kChoutko | TrTrackR::kFitLayer8;
+      int mf9 = TrTrackR::kChoutko | TrTrackR::kFitLayer9;
+      AMSPoint pl8 = trk->InterpolateLayer(7);
+      AMSPoint pl9 = trk->InterpolateLayer(8);
+      hman.Fill("TrPtkL8", pl8.x(), pl8.y());
+      hman.Fill("TrPtkL9", pl9.x(), pl9.y());
+      if (trk->ParExists(mf8)) hman.Fill("TrPftL8", pl8.x(), pl8.y());
+      if (trk->ParExists(mf9)) hman.Fill("TrPftL9", pl9.x(), pl9.y());
+    }
+    if (i == 0 && TrSim::SkipRawSim &&TkDBc::Head->GetSetup()==3 ) {
+      int mfit[4] = { TrTrackR::kChoutko,
+		      TrTrackR::kChoutko | TrTrackR::kFitLayer8,
+		      TrTrackR::kChoutko | TrTrackR::kFitLayer9,
+		      TrTrackR::kChoutko | TrTrackR::kFitLayer8
+		                         | TrTrackR::kFitLayer9 };
+      AMSmceventg *mcg
+	= (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
+
+      if (mcg && mcg->getcharge() != 0) {
+	double pmc = mcg->getmom();
+	double rmc = mcg->getmom()/mcg->getcharge();
+
+	AMSPoint pl8 = trk->GetPlayer(7);
+	AMSPoint pl9 = trk->GetPlayer(8);
+	hman.Fill("TrDtyL8", rmc, pl8.y());
+	hman.Fill("TrDtyL9", rmc, pl9.y());
+
+	for (int j = 0; j < 4; j++) {
+	  if (!trk->ParExists(mfit[j])) continue;
+	  double rgt = trk->GetRigidity(mfit[j]);
+	  if (rgt != 0 && rmc != 0) {
+	    hman.Fill(Form("TrRres%d1", j+1), pmc, 1e3*(1/rgt-1/rmc));
+	    hman.Fill(Form("TrRres%d2", j+1), pmc, rmc*(1/rgt-1/rmc));
+	  }
+	}
+      }
+    }   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     trk = (AMSTrTrack *)trk->next();
   }

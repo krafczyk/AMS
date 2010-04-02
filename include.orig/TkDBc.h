@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.8 2010/02/02 11:50:14 pzuccon Exp $
+// $Id: TkDBc.h,v 1.9 2010/04/02 10:34:51 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -38,15 +38,13 @@
 
 namespace trconst{
   //! number of planes
-  const integer nplanes=5;
-  //! number of layers
-  const integer nlays=8;
+  const integer maxplanes=6;
   //! number of layers FIX ME remove this
-  const integer maxlay=8;
+  const integer maxlay=9;
   //! maximal number of ladders
   const integer maxlad=15;
   //! number of ladders for each layer and side (0 X neg, 1 X pos)
-  const integer nlad[2][nlays]={{15,12,11,10,10,11,12,15},{15,12,11,10,10,11,12,15}};    
+  const integer nlad[2][maxlay]={{15,12,11,10,10,11,12,15,8},{15,12,11,10,10,11,12,15,8}};    
   //! number of crates
   const int ncrt=8;
   //! number of TDRs per crate
@@ -64,7 +62,14 @@ using namespace trconst;
 
 class TkDBc : public TObject{
   
-
+  private:
+  //! the setup index 
+  int _setup;
+  static char _setupname[4][30];
+  //! number of active planes in the setup
+  int nplanes;
+  //! number of silicon layers in the setup
+  int nlays;
 public:
 
   //! static pointer to the TkDBc singleton
@@ -77,41 +82,44 @@ public:
   // ------- PLANES -----------------------------   
 
   //! nominal X coo of the planes
-  number   _xpos[nplanes];
+  number   _xpos[maxplanes];
   //! nominal Y coo of the planes
-  number   _ypos[nplanes];
+  number   _ypos[maxplanes];
   //! nominal Z coo of the planes
-  number   _zpos[nplanes];
+  number   _zpos[maxplanes];
   //! Number of avalilable slot per planes (top view, bottom view)
-  int16     _nslot[nplanes][2];
+  int16     _nslot[maxplanes][2];
 
 
   // Plane support thickness in cm
-  number _sup_hc_w[nplanes];
+  number _sup_hc_w[maxplanes];
   
   
   // Plane support radius in cm
-  number _sup_hc_r[nplanes];
+  number _sup_hc_r[maxplanes];
 
   //! Plane envelop (used for GEANT) radius in cm
-  double _plane_d1[nplanes];
+  double _plane_d1[maxplanes];
   
   //! Plane envelop (used for GEANT) half thickness in cm
-  double _plane_d2[nplanes];
+  double _plane_d2[maxplanes];
   
   //! To account for the envelop assimmetry of external planes
-  double _dz[nplanes];
+  double _dz[maxplanes];
+
+  double  Plane6Size[3];
+
+  double  Plane6EnvelopSize[3];
 
   // ------- LAYERS -----------------------------   
   //! Map correlating  layer to supporting plane
-  integer _plane_layer[nlays];
+  integer _plane_layer[maxlay];
 
   //! Z distance of the silicon surface from the middle of the plane;
-  number _layer_deltaZ[nlays];
+  number _layer_deltaZ[maxlay];
 
   //! number of active ladders for side/layer
-  integer  _nlad[2][nlays];
-
+  integer  _nlad[2][maxlay];
 
 
 
@@ -129,16 +137,16 @@ public:
   number _ladder_Xseparation;
 
   //! map of the ladder edge distance (mm) from Y axis
-  number _LadDeltaX[2][nlays][maxlad];
+  number _LadDeltaX[2][maxlay][maxlad];
 
   //! Map of the ladder lenght in unit of Silicon sensors
-  short int _nsen[2][nlays][maxlad];
+  short int _nsen[2][maxlay][maxlad];
 
 //   //! Map of the ladder power supply in the crate is pwgp*100+pwpos
-//   short int _pgid[2][nlays][maxlad];
+//   short int _pgid[2][maxlay][maxlad];
 
   //! Map of the Ladder names
-  char _LadName[2][nlays][maxlad][9];
+  char _LadName[2][maxlay][maxlad][9];
 
   //! It returns the position on the plane (Y coordinate) of the first p-side readout channel 
   number GetSlotY(int layer, int slot,int side);
@@ -161,7 +169,7 @@ public:
 
   // -------- CABLING ------------------------------
   //! Map of the ladders cabling the number is octatn*100+TDR
-  short int _octid[2][nlays][maxlad];
+  short int _octid[2][maxlay][maxlad];
 
 
   /** \brief Map of the crate number corresponting to the octants
@@ -234,21 +242,21 @@ public:
   number _PitchK5;
   number _PitchK7;
   number _ImplantPitchK;
-//     integer  _nstripssen[nlays][2]; //number of strips
-//     integer  _nstripssenR[nlays][2];
-//     integer  _nstripsdrp[nlays][2];
+//     integer  _nstripssen[maxlay][2]; //number of strips
+//     integer  _nstripssenR[maxlay][2];
+//     integer  _nstripsdrp[maxlay][2];
   
-//     number   _zelec[nlays][3];
-//     number   _c2c[nlays];
-//     number   _halfldist[nlays];
-//     number   _support_foam_w[nlays];
-//     number   _support_foam_tol[nlays];
-//     number   _support_hc_w[nlays];
-//     number   _support_hc_r[nlays];
-//     number   _support_hc_z[nlays];
-//     integer  _nladshuttle[nlays][2];
-//     integer  _boundladshuttle[nlays][2];
-//     number   _PlMarkerPos[nlays][2][4][3];  // 1st wjb
+//     number   _zelec[maxlay][3];
+//     number   _c2c[maxlay];
+//     number   _halfldist[maxlay];
+//     number   _support_foam_w[maxlay];
+//     number   _support_foam_tol[maxlay];
+//     number   _support_hc_w[maxlay];
+//     number   _support_hc_r[maxlay];
+//     number   _support_hc_z[maxlay];
+//     integer  _nladshuttle[maxlay][2];
+//     integer  _boundladshuttle[maxlay][2];
+//     number   _PlMarkerPos[maxlay][2][4][3];  // 1st wjb
 
 private:
   //! Map for fast binary search based on TkAssemblyId
@@ -269,7 +277,7 @@ private:
   int GetOctant(int side,int _layer,int _slot);
 
   //Pointer ro the planes;
-  TkPlane* planes[nplanes];
+  TkPlane* planes[maxplanes];
 
   //! Rebuild all the other maps from tkidmap
   void RebuildMap();
@@ -301,9 +309,10 @@ public:
 
   //!  Read the sensor alignement data from a file with a format "tkid sx[0-14] sy[0-14]"
   int readAlignmentSensor(const char* filename, int pri=0);
-
-  //! Return the pointer to the iith (ii [1-5]) TkPlane object 
-  TkPlane* GetPlane(int ii) {if (ii>0&&ii<6) return planes[ii-1]; else return 0;}
+  //! Returns the number of active planes
+  int GetNPlanes() const { return nplanes;} 
+  //! Return the pointer to the iith (ii [1-6]) TkPlane object 
+  TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return planes[ii-1]; else return 0;}
 
   //! map (TkId) number of elements
   int GetEntries() { return tkidmap.size(); }
@@ -343,7 +352,9 @@ public:
   //! Get Z-coordinate of layer
   double GetZlayer(int i) {
     return (1 <= i && i <= nlays) 
-      ? GetPlane(_plane_layer[i-1])->pos[2]+_layer_deltaZ[i-1] : -99999.;}
+      ? GetPlane(_plane_layer[i-1])->pos[2]+
+        GetPlane(_plane_layer[i-1])->rot.GetEl(2, 2)*
+        _layer_deltaZ[i-1] : -99999.;}
   //! copy the rotation matrix into nrm array
   void GetLayerRot(int lay,number nrm[][3]);
 
@@ -376,6 +387,11 @@ public:
   }
   //! Load TkDBc object from a ROOT file by file pointer
   static TkDBc *Load(TFile *rfile);
+
+  //! Returns the Setup Index
+  int GetSetup(){return _setup;}
+  //! Returns the Setup Index
+  char * GetSetupName(){return _setupname[_setup];}
 
   ClassDef(TkDBc, 1);
 };

@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.9 2010/03/11 09:13:59 shaino Exp $
+//  $Id: TrFit.h,v 1.10 2010/04/02 10:34:51 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,13 +49,14 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/03/11 09:13:59 $
+///$Date: 2010/04/02 10:34:51 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "point.h"
+#include "TkDBc.h"
 
 /// Particle propagation manager
 /*!
@@ -163,7 +164,7 @@ class TrFit : public TrProp {
 public:
   enum ENums{ 
     /// Maximum number of layer
-    LMAX = 8, 
+    // LMAX = 8, PZ Do not use this! 
     /// Parameter buffer size
     PMAX = 10 
   };
@@ -181,19 +182,19 @@ protected:
   int    _nhity;         ///< Number of hits in Y
   int    _nhitxy;        ///< Number of hits in X and Y
 
-  double _xh[LMAX];      ///< Hit position in X
-  double _yh[LMAX];      ///< Hit position in Y
-  double _zh[LMAX];      ///< Hit position in Z
-  double _xs[LMAX];      ///< Fitting error in X
-  double _ys[LMAX];      ///< Fitting error in Y
-  double _zs[LMAX];      ///< Fitting error in Z
-  double _xr[LMAX];      ///< Fitting residual in X
-  double _yr[LMAX];      ///< Fitting residual in Y
-  double _zr[LMAX];      ///< Fitting residual in Z
+  double _xh[trconst::maxlay];      ///< Hit position in X
+  double _yh[trconst::maxlay];      ///< Hit position in Y
+  double _zh[trconst::maxlay];      ///< Hit position in Z
+  double _xs[trconst::maxlay];      ///< Fitting error in X
+  double _ys[trconst::maxlay];      ///< Fitting error in Y
+  double _zs[trconst::maxlay];      ///< Fitting error in Z
+  double _xr[trconst::maxlay];      ///< Fitting residual in X
+  double _yr[trconst::maxlay];      ///< Fitting residual in Y
+  double _zr[trconst::maxlay];      ///< Fitting residual in Z
 
-  double _bx[LMAX];      ///< Magnetic field in X
-  double _by[LMAX];      ///< Magnetic field in Y
-  double _bz[LMAX];      ///< Magnetic field in Z
+  double _bx[trconst::maxlay];      ///< Magnetic field in X
+  double _by[trconst::maxlay];      ///< Magnetic field in Y
+  double _bz[trconst::maxlay];      ///< Magnetic field in Z
 
   double _chisqx;        ///< Fitting chisquare in X (Not normalized)
   double _chisqy;        ///< Fitting chisquare in Y (Not normalized)
@@ -299,7 +300,7 @@ public:
   /// Apply ParLimits after fitting
   int ParLimits(void);
 
-  /// Estimate layer number [0:LMAX-1] from the hit Z-coodinates
+  /// Estimate layer number [0:trconst::maxlay-1] from the hit Z-coodinates
   int GetLayer(double z);
 
 protected:
@@ -332,7 +333,7 @@ public:
   void RkmsFit(double *out);
 
   // Internal parameters for Chikanian fit
-  double _rkms_err[LMAX][LMAX]; ///< Error matrix
+  double _rkms_err[trconst::maxlay][trconst::maxlay]; ///< Error matrix
 
   /// Get error matrix (for Chikanian fit)
   void RkmsMtx(double rini);

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.221 2010/03/27 10:55:31 choutko Exp $
+//  $Id: trrec.C,v 1.222 2010/04/02 10:34:51 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -4752,7 +4752,7 @@ char * AMSTrTrackError::getmessage(){return msg;}
 
 AMSTrRecHit *AMSTrRecHit::gethead(integer i)
 {
-  if (i < 0 || trconst::nlays <= i) return 0;
+  if (i < 0 || TkDBc::Head->nlay() <= i) return 0;
 
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return 0;

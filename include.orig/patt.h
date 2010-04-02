@@ -37,5 +37,5 @@ private:
 
 };
 
-extern PATT patt;
+extern PATT* patt;
 #endif

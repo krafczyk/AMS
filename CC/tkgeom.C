@@ -39,8 +39,6 @@ static double sup_foam_tol = 0.05;
 
 int _nrot = 0;
 
-//! To account for the envelop assimmetry of external planes
-static  double dz[5]={-4.,0.,0.,0.,+4.};
 
 void        BuildHoneycomb    (AMSgvolume *mvol, int plane);
 AMSgvolume *BuildPlaneEnvelop (AMSgvolume *mvol, int plane);
@@ -58,9 +56,13 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
   _nrot = 501;
 
   int nladder = 0;
-
+  if(TkDBc::Head->GetSetup()==3){ // PLANE 5N aka 7
+    AMSgvolume *vplane = BuildPlaneEnvelop(&mother, 7);
+    // Build plane support
+    BuildHoneycomb(vplane, 7);
+  }
   // Loop on planes
-  for (int plane=1; plane<=trconst::nplanes;plane++){
+  for (int plane=1; plane<=TkDBc::Head->GetNPlanes();plane++){
 
     // Build a plane geometry (made of VACUUM)
     AMSgvolume *vplane = BuildPlaneEnvelop(&mother, plane);
@@ -70,9 +72,13 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
     // Loop on Si layer attched to the plane
     int maxp_lay=1;
     int minp_lay=0;
-    if(plane==1)      {minp_lay=1;maxp_lay=2;}
-    else if(plane==5) {minp_lay=0;maxp_lay=1;}
-    else              {minp_lay=0;maxp_lay=2;}
+    if(plane==1)      {minp_lay= 1;maxp_lay=2;}
+    else if(plane==5) {minp_lay= 0;maxp_lay=1;}
+    else              {minp_lay= 0;maxp_lay=2;}
+
+    if(TkDBc::Head->GetSetup()==3 &&plane==6) 
+      {minp_lay=-1;maxp_lay=0;}
+
 
     for (int p_lay = minp_lay; p_lay<maxp_lay; p_lay++) {
       int layer=2*(plane-1)+p_lay;
@@ -106,38 +112,92 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
   }//plane
 
   std::cout << "<---- TKGeom-I-" << nladder
-	    << " Active halfladders initialized" 
-	    << std::endl << std::endl;
+            << " Active halfladders initialized" 
+            << std::endl << std::endl;
 }
 //============================================================================
 AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
 {
-// Build Plane container geometry (plane number begins from 1)
+  // Build Plane container geometry (plane number begins from 1)
   char name[5];
+  geant coo[3];
+  geant par[3];
+  AMSgvolume* volout;
+  number nrm[3][3]={{1,0,0},{0,1,0},{0,0,1}};
   std::ostrstream ost(name,sizeof(name));
   ost << "STK" << plane << std::ends;
 
   TkPlane *pl = TkDBc::Head->GetPlane(plane);
-
-  geant coo[3];
-  coo[0] = pl->pos[0]+pl->GetPosA()[0];
-  coo[1] = pl->pos[1]+pl->GetPosA()[1];
-  coo[2] = pl->pos[2]+pl->GetPosA()[2]+dz[plane-1];
-
-  geant par[3];
-  par[0] = 0;
-  par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
-  par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
-
-  AMSRotMat lrm = pl->GetRotMatA()* pl->GetRotMat();
-
-
-  number nrm[3][3];
-  for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
-
-  return (AMSgvolume*)mvol
-    ->add(new AMSgvolume("VACUUM", _nrot++, name, "TUBE",
-			 par, 3, coo, nrm, "ONLY", 0, plane, 1));
+  if(!pl && plane!=7){
+    printf(" AMSgvolume *BuildPlaneEnvelop: cannot find plane #%d\n I Give Up!!\n",plane);
+      exit(2);
+  }
+  if(plane ==7) {//PLAN -B DUMMY plane 5N
+    TkPlane *pl = TkDBc::Head->GetPlane(1);
+    coo[0] = pl->pos[0]+pl->GetPosA()[0];
+    coo[1] = pl->pos[1]+pl->GetPosA()[1];
+    coo[2] = -1*(pl->pos[2]+pl->GetPosA()[2]+
+		 pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[0]);
+      
+    par[0] = 0;
+    par[1] = TkDBc::Head->_plane_d1[0]; //container radius
+    par[2] = TkDBc::Head->_plane_d2[0]; //container half thickness
+  
+    AMSRotMat lrm = pl->GetRotMat();
+  
+    for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
+    volout=(AMSgvolume*)mvol
+      ->add(new AMSgvolume("VACUUM", _nrot++, name, "TUBE",
+                          par, 3, coo, nrm, "ONLY", 0, plane, 1));    
+    }
+  else if(plane==6){ //PLAN -B ECAL PLANE 
+      // Center is offset because of the ladder asymmetry
+      coo[0] = pl->pos[0]+pl->GetPosA()[0];
+      coo[1] = pl->pos[1]+pl->GetPosA()[1];
+      coo[2] = pl->pos[2]+pl->GetPosA()[2]+TkDBc::Head->_dz[plane-1];
+      par[0]=TkDBc::Head->Plane6EnvelopSize[0]/2.;
+      //       plan6E Y size/2.
+      par[1]=TkDBc::Head->Plane6EnvelopSize[1]/2.;
+      //       plan6E thickness/2.
+      par[2]=TkDBc::Head->Plane6EnvelopSize[2]/2.;
+      cout <<" Placing the Tk  Plan 6 Vol at "<< coo[0]<<"  "<< coo[1]<<"  "<< coo[2]<<
+	"with half dim "<<par[0]<<"  "<<par[1]<<"  "<<par[2]<<endl;
+    
+      AMSRotMat lrm = pl->GetRotMat();
+    
+      for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
+    volout= (AMSgvolume*)mvol
+        ->add(new AMSgvolume("VACUUM", _nrot++, name, "BOX",
+                             par, 3, coo, nrm, "ONLY", 0, plane, 1));
+  }else{ //STD AMS PLANES
+  
+    coo[0] = pl->pos[0]+pl->GetPosA()[0];
+    coo[1] = pl->pos[1]+pl->GetPosA()[1];
+    coo[2] = pl->pos[2]+pl->GetPosA()[2]+
+      pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[plane-1];
+  
+    geant par[3];
+    par[0] = 0;
+    par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
+    par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
+  
+    AMSRotMat lrm = pl->GetRotMat();
+  
+    for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
+    volout=(AMSgvolume*)mvol
+      ->add(new AMSgvolume("VACUUM", _nrot++, name, "TUBE",
+                           par, 3, coo, nrm, "ONLY", 0, plane, 1));    
+    
+  }
+  if(plane>0){
+    printf("\nPlane Envelope %d\n",plane);
+    printf(" Coo %f %f %f\n ",coo[0],coo[1],coo[2]);    
+    printf(" Half dim %f %f %f\n ",par[0],par[1],par[2]);
+    printf(" Matr  %f %f %f \n",nrm[0][0],nrm[0][1],nrm[0][2]);
+    printf("       %f %f %f \n",nrm[1][0],nrm[1][1],nrm[1][2]);
+    printf("       %f %f %f \n",nrm[2][0],nrm[2][1],nrm[2][2]);
+  }
+  return volout; 
 }
 //============================================================================
 
@@ -145,7 +205,7 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
 {
 // Build ladder geometry
 
-  TkLadder *lad = TkDBc::Head->FindTkId(tkid);
+    TkLadder *lad = TkDBc::Head->FindTkId(tkid);
   if (!lad) return 0;
 
   int layer = std::abs(tkid)/100;
@@ -165,8 +225,8 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
         -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
-  AMSRotMat rot = lad->GetRotMatA()*lad->GetRotMat();
-  AMSPoint  pos = lad->GetPosA()+lad->GetPos();
+  AMSRotMat rot = lad->GetRotMat();
+  AMSPoint  pos = lad->GetPos();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
 
@@ -175,10 +235,11 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   coo[0] = oo.x();
   coo[1] = oo.y();
   coo[2] = oo.z();
-  if(layer==1) coo[2] -= dz[0];
-  if(layer==8) coo[2] -= dz[4];
+  if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
+  if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
+  if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
 
-  AMSRotMat lrm = lad->GetRotMatA()* lad->GetRotMat();
+  AMSRotMat lrm = lad->GetRotMat();
   
 
   number nrm[3][3];
@@ -235,21 +296,21 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
   ost << ((tkid < 0) ? "ELL" : "ELR") << layer << std::ends;
 
   geant par[3];
-if(layer==1 ||layer==8){
-  par[0] = TkDBc::Head->_zelec[2]/2;
-  par[1] = TkDBc::Head->_zelec[1]/2;
-  par[2] = TkDBc::Head->_zelec[0]/2;
-}else{
-  par[0] = TkDBc::Head->_zelec[0]/2;
-  par[1] = TkDBc::Head->_zelec[1]/2;
-  par[2] = TkDBc::Head->_zelec[2]/2;
-}
+  if(layer==1 ||layer==8){
+    par[0] = TkDBc::Head->_zelec[2]/2;
+    par[1] = TkDBc::Head->_zelec[1]/2;
+    par[2] = TkDBc::Head->_zelec[0]/2;
+  }else{
+    par[0] = TkDBc::Head->_zelec[0]/2;
+    par[1] = TkDBc::Head->_zelec[1]/2;
+    par[2] = TkDBc::Head->_zelec[2]/2;
+  }
   double hlen = TkCoo::GetLadderLength(tkid)/2
     -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
-  AMSRotMat rot = lad->GetRotMatA()*lad->GetRotMat();
-  AMSPoint  pos = lad->GetPosA()+lad->GetPos();
+  AMSRotMat rot = lad->GetRotMat();
+  AMSPoint  pos = lad->GetPos();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
 
@@ -258,8 +319,11 @@ if(layer==1 ||layer==8){
   coo[0] = oo.x() +sign*(TkCoo::GetLadderLength(tkid)/2+par[0]);
   coo[1] = oo.y();
   coo[2] = (abs(oo.z())/oo.z())*(abs(oo.z())+par[2]); 
-  if(layer==1) coo[2] -= dz[0];
-  if(layer==8) coo[2] -= dz[4];
+  if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
+  if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
+  if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
+
+
   
   number nrm[3][3];
   VZERO(nrm,9*sizeof(nrm[0][0])/4);
@@ -299,8 +363,8 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
     -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
   
-  AMSRotMat rot = lad->GetRotMatA()*lad->GetRotMat();
-  AMSPoint  pos = lad->GetPosA()+lad->GetPos();
+  AMSRotMat rot = lad->GetRotMat();
+  AMSPoint  pos = lad->GetPos();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
 
@@ -309,8 +373,10 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   coo[0] = oo.x();
   coo[1] = oo.y();
   coo[2] = (abs(oo.z())/oo.z())*(abs(oo.z())-TkDBc::Head->_silicon_z/2-par[2]-sup_foam_tol);
-  if(layer==1) coo[2] -= dz[0];
-  if(layer==8) coo[2] -= dz[4];
+  if(layer==1) coo[2] -= TkDBc::Head->_dz[0];
+  if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
+  if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
+
 	     
 	     
   number nrm[3][3];
@@ -327,30 +393,75 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
 void BuildHoneycomb(AMSgvolume *mvol, int plane)
 {
 // Build plane honeycomb support geometry (plane number begins from 1)
-
+  geant par[3];
+  geant coo[3];
+  number nrm[3][3];
   char name[5];
   std::ostrstream ost(name,sizeof(name));
   ost << "PLA" << plane << std::ends;
+  if(plane==7){
+    par[0] = 0;
+    par[1] = TkDBc::Head->_sup_hc_r[0];
+    par[2] = TkDBc::Head->_sup_hc_w[0]/2.;
+    
+    coo[0] = coo[1] = 0;
+    coo[2] = TkDBc::Head->_dz[0];
+    
+    
+    VZERO(nrm,9*sizeof(nrm[0][0])/4);
+    nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+    
+    mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
+			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
-  geant par[3];
-  par[0] = 0;
-  par[1] = TkDBc::Head->_sup_hc_r[plane-1];
-  par[2] = TkDBc::Head->_sup_hc_w[plane-1]/2.;
+  }else if(plane==6){
+    //       plan6 X size/2.
+    par[0]=TkDBc::Head->Plane6Size[0]/2.;
+    //       plan6 Y size/2.
+    par[1]=TkDBc::Head->Plane6Size[1]/2.;
+    //       plan6E thickness/2.
+    par[2]= TkDBc::Head->Plane6Size[2]/2.;    //       plan6E X size/2.
 
-  geant coo[3];
-  coo[0] = coo[1] = 0;
-  coo[2] = -dz[plane-1];
+    
+    coo[0] = coo[1] = 0;
+    coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  -TkDBc::Head->Plane6Size[2])/2;
+    
+    
+    VZERO(nrm,9*sizeof(nrm[0][0])/4);
+    nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+    
+     mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
+			   "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
+  }
+  else{
+  
+    par[0] = 0;
+    par[1] = TkDBc::Head->_sup_hc_r[plane-1];
+    par[2] = TkDBc::Head->_sup_hc_w[plane-1]/2.;
+    
+    coo[0] = coo[1] = 0;
+    coo[2] = -TkDBc::Head->_dz[plane-1];
+    
+    
+    VZERO(nrm,9*sizeof(nrm[0][0])/4);
+    nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+    
+    mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
+			     "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
+  }
 
-  number nrm[3][3];
-  VZERO(nrm,9*sizeof(nrm[0][0])/4);
-  nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+  if(plane>0){
+    printf("\nPlane %d\n",plane);
+    printf(" Coo %f %f %f\n ",coo[0],coo[1],coo[2]);    
+    printf(" Half dim %f %f %f\n ",par[0],par[1],par[2]);
+    printf(" Matr  %f %f %f \n",nrm[0][0],nrm[0][1],nrm[0][2]);
+    printf("       %f %f %f \n",nrm[1][0],nrm[1][1],nrm[1][2]);
+    printf("       %f %f %f \n",nrm[2][0],nrm[2][1],nrm[2][2]);
+  }
 
-  mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
-			   "TUBE", par, 3, coo, nrm, "ONLY", 1, plane, 1));
+  return;
 }
-
-
 #else
 //==================-----------------============================
 
@@ -686,5 +797,8 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
   cout <<"<---- TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl<<endl;
 
 }
+
+
+
 
 #endif

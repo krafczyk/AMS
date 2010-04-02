@@ -1,6 +1,6 @@
 #include "patt.h"
 
-PATT patt;
+PATT* patt=0;
 
 
 uinteger  PATT::_Npat;
@@ -105,9 +105,9 @@ void PATT::InitPattern(){
 
 
   int k;
-  integer ordermiss[maxlay]={0,0,0,0,0,0,0,0};
-  integer vmiss[maxlay]={0,0,0,0,0,0,0,0};
-  integer vorder[maxlay]={1,2,3,4,5,6,7,8};
+  integer ordermiss[maxlay]={0,0,0,0,0,0,0,0,0};
+  integer vmiss[maxlay]={0,0,0,0,0,0,0,0,0};
+  integer vorder[maxlay]={1,2,3,4,5,6,7,8,9};
   int minc;
   int iq=0;
   for(minc=0;minc<TkDBc::Head->nlay()-2;minc+=2){
@@ -136,8 +136,8 @@ void PATT::InitPattern(){
   for (cpat=0;cpat<npat();cpat++){
     for(int npt=1;npt<TkDBc::Head->nlay();npt++){
       if(cpat<_patd[npt]){
-	_patpoints[cpat]=TkDBc::Head->nlay()-npt+1;
-	int vmini=cpat-_patd[npt-1];
+        _patpoints[cpat]=TkDBc::Head->nlay()-npt+1;
+        int vmini=cpat-_patd[npt-1];
 	int count=0;
 	int v,i1,i2,i3,i4;
 	for(v=0;v<TkDBc::Head->nlay();v++)vmiss[v]=0;
@@ -213,13 +213,13 @@ void PATT::InitPattern(){
 	      }
 	    }
 	  }
-	  break;
-	default:
-	  cerr<<"TKDBc::init-F-PatternLogicError"<<endl;
-	  exit(1);
-	}
-	for(v=0;v<TkDBc::Head->nlay();v++)_patmiss[v][cpat]=vmiss[v];
-	for(v=0;v<TkDBc::Head->nlay();v++)_patconf[v][cpat]=0;
+          break;
+        default:
+          cerr<<"PATT::InitPattern -F-PatternLogicError"<<endl;
+	  // exit(1);
+        }
+        for(v=0;v<TkDBc::Head->nlay();v++)_patmiss[v][cpat]=vmiss[v];
+        for(v=0;v<TkDBc::Head->nlay();v++)_patconf[v][cpat]=0;
 	int av=0; 
 	for(v=0;v<TkDBc::Head->nlay();v++){
 	  _patconf[av][cpat]=v+1;

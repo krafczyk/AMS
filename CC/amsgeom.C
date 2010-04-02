@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.209 2010/03/25 14:23:07 choutko Exp $
+//  $Id: amsgeom.C,v 1.210 2010/04/02 10:34:50 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1992,6 +1992,10 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
  coo[2]+=ZShift;
  gid=i+1;
  int ip;
+     printf(" TRD Octagon %s par 1:%f %f %f  4:%f %f %f  7:%f %f %f  10:%f %f %f  13:%f %f %f coo %f %f %f\n",
+                   name,par[0],par[1],par[2],par[3],par[4],par[5],par[6],par[7],par[8],par[9],par[10],par[11],par[12],par[13],par[15],
+                   coo[0],coo[1],coo[2]
+                             );
 
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
@@ -2633,7 +2637,10 @@ ECALDBc::readgconf();//
   par[2]=dz/2.+dzh;
   coo[0]=xpos;
   coo[1]=ypos;
-  coo[2]=zpos;
+  coo[2]=zpos; 
+
+  cout <<" Placing the ECAL Mother Vol at "<< coo[0]<<"  "<< coo[1]<<"  "<< coo[2]<<
+    "with half dim "<<par[0]<<"  "<<par[1]<<"  "<<par[2]<<endl;
   gid=1;
   ECmother=mother.add(new AMSgvolume(
        "EC_AL_PLATE",0,"ECMO","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));// create ECAL mother volume

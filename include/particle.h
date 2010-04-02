@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.58 2010/02/02 16:27:12 mmilling Exp $
+//  $Id: particle.h,v 1.59 2010/04/02 10:34:51 pzuccon Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -128,7 +128,7 @@ public:
     for(i=0;i<2;i++)_RichPathBeta[i]=0.;
     _RichLength=0.;
 #ifdef _PGTRACK_
-    for(i=0;i<trconst::nlays;i++)
+    for(i=0;i<TkDBc::Head->nlay();i++)
 #else
       for(i=0;i<TKDBc::nlay();i++)
 #endif
@@ -161,7 +161,7 @@ public:
     for(i=0;i<2;i++)_RichPathBeta[i]=0.;
     _RichLength=0.;
 #ifdef _PGTRACK_
-    for(i=0;i<trconst::nlays;i++)
+    for(i=0;i<TkDBc::Head->nlay();i++)
 #else
       for(i=0;i<TKDBc::nlay();i++)
 #endif

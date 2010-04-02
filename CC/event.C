@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.470 2010/03/23 13:33:11 choumilo Exp $
+//  $Id: event.C,v 1.471 2010/04/02 10:34:50 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -190,12 +190,23 @@ if(AMSEvent::get_thread_num()==0)
 	 char rdir[161];
 	 UHTOC(IOPA.rfile,40,rdir,160);  
 
-	 int offs = 0; 
-	 for (int i = 0; i < strlen(rdir) && rdir[i] == ' '; i++) offs++;
+         int offs = 0; 
+         for (int i = 0; i < strlen(rdir) && rdir[i] == ' '; i++) offs++;
 
-	 char hfname[256];
-	 sprintf(hfname, "%s/Histos_%d.root", &rdir[offs], _run);
-	 hman.Setname(hfname);
+         int len = strlen(rdir);
+         if (rdir[len-5] == '.' && 
+             rdir[len-4] == 'r' && rdir[len-3] == 'o' &&
+             rdir[len-2] == 'o' && rdir[len-1] == 't') {
+           for (int i = len-1; i >= 0; i--)
+             if (rdir[i] == '/') {
+               rdir[i] = '\0';
+               break;
+             }
+         }
+
+         char hfname[256];
+         sprintf(hfname, "%s/Histos_%d.root", &rdir[offs], _run);
+         hman.Setname(hfname);
        }
        else if(IOPA.histoman%10 == 1) hman.Setname("");
 
