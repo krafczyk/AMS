@@ -147,3 +147,8 @@ full_calibration_tool: lib $(CONTRIB)full_calibration_tool/analysis.C
 
 lg_analysis: lib $(CONTRIB)lg_analysis/analysis.C
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+
+amoeba: lib $(CONTRIB)amoeba/analysis.C $(CONTRIB)amoeba/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
