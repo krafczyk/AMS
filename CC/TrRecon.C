@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.43 2010/04/02 10:34:50 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.44 2010/04/05 21:22:35 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/04/02 10:34:50 $
+/// $Date: 2010/04/05 21:22:35 $
 ///
-/// $Revision: 1.43 $
+/// $Revision: 1.44 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -729,7 +729,7 @@ if (TrDEBUG >= 5) {\
 
 #define TR_DEBUG_CODE_02 \
 if (TrDEBUG >= 1) {\
-  for (int ly = 1; ly <= TkDBc::Head->nlay(); ly++) {\
+  for (int ly = 1; ly <= SCANLAY; ly++) {\
     int nlad = _LadderHitMap[ly-1].size();\
     cout << Form("L:%d (%2d,%2d) ", ly, nlad, _NladderXY[ly-1]);\
     for (int i = 0; i < nlad; i++) {\
@@ -744,7 +744,7 @@ if (TrDEBUG >= 1) {\
 
 #define TR_DEBUG_CODE_03 \
 if (TrDEBUG >= 1) {\
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) {\
+  for (int i = 0; i < SCANLAY; i++) {\
     int nlad = _LadderHitMap[i].size();\
     cout << Form("L:%d (%2d,%2d) ", i+1, nlad, _NladderXY[i]);\
     for (int j = 0; j < nlad; j++) {\
@@ -765,7 +765,7 @@ if (TrDEBUG >= 11 || (TrDEBUG >= 10 && ddiff < it.psrange)) {\
     if (it.side == 0) cout << Form("-%d", it.imult[it.ilay[i]]);\
     cout << " ";\
   }\
-  for (int i = nlay+1; i < TkDBc::Head->nlay(); i++) {\
+  for (int i = nlay+1; i < SCANLAY; i++) {\
     cout << "     ";\
     if (it.side == 0) cout << "  ";\
   }\
@@ -1017,9 +1017,9 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 // Build pattern mask bits with n hits masked, recursively called
 //=================================================================
   if (nmask > 0) {
-    const int MASK_ORDER[trconst::maxlay] = { 1, 3, 5, 2, 4, 6, 0, 7, 8 };
-    for (int j = ilyr; j < TkDBc::Head->nlay(); j++)
-      BuildHitPatterns(nmask-1, j+1, mask | (1<<(TkDBc::Head->nlay()-MASK_ORDER[j]-1)));
+    const int MASK_ORDER[SCANLAY] = { 1, 3, 5, 2, 4, 6, 0, 7 };
+    for (int j = ilyr; j < SCANLAY; j++)
+      BuildHitPatterns(nmask-1, j+1, mask | (1<<(SCANLAY-MASK_ORDER[j]-1)));
     return;
   }
 
@@ -1028,9 +1028,9 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 // ( = Nmask*100000 +Np1*10000 +Np2*1000 +Np3*100 +Np4*10 +Np5)
 //=================================================================
   int atrb = 12221, iatrb = O_NP1;
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
+  for (int i = 0; i < SCANLAY; i++) {
     if (i%2 == 1) iatrb /= 10;
-    if (mask & (1<<(TkDBc::Head->nlay()-i-1))) atrb += -iatrb+O_NMASK;
+    if (mask & (1<<(SCANLAY-i-1))) atrb += -iatrb+O_NMASK;
   }
   HitPatternMask  [PatternID] = mask;
   HitPatternAttrib[PatternID] = atrb;
@@ -1048,12 +1048,12 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
 
 const char *TrRecon::GetHitPatternStr(int pat, char con, char coff)
 {
-  static char sbuf[trconst::maxlay+1];
+  static char sbuf[SCANLAY+1];
 #pragma omp threadprivate(sbuf)
 
-  for (int ly = 1; ly <= TkDBc::Head->nlay(); ly++)
+  for (int ly = 1; ly <= SCANLAY; ly++)
     sbuf[ly-1] = (TestHitPatternMask(pat, ly)) ? con : coff;
-  sbuf[TkDBc::Head->nlay()] = '\0';
+  sbuf[SCANLAY] = '\0';
   return sbuf;
 }
 
@@ -1207,7 +1207,7 @@ void TrRecon::BuildHitsTkIdMap()
 void TrRecon::BuildLadderHitMap()
 {
   // Clear LadderHitMap
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
+  for (int i = 0; i < SCANLAY; i++) {
     _NladderXY[i] = 0;
     _LadderHitMap[i].clear();
   }
@@ -1230,7 +1230,7 @@ void TrRecon::BuildLadderHitMap()
 void TrRecon::BuildLadderClusterMap()
 {
   // Clear LadderHitMap
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
+  for (int i = 0; i < SCANLAY; i++) {
     _NladderXY[i] = 0;
     _LadderHitMap[i].clear();
   }
@@ -1244,7 +1244,7 @@ void TrRecon::BuildLadderClusterMap()
         GetnTrClusters(tkid, 0) > 0) _NladderXY[il]++;
     _LadderHitMap[il].push_back(tkid);
   }
-  for (int i = 0; i < TkDBc::Head->nlay(); i++)
+  for (int i = 0; i < SCANLAY; i++)
     std::sort(_LadderHitMap[i].begin(), _LadderHitMap[i].end());
 
   TR_DEBUG_CODE_03;
@@ -1513,7 +1513,7 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
 
   // Loop on layers to check for an empty layer and fill iterator
   int nhitc = it.nlayer = 0;
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
+  for (int i = 0; i < SCANLAY; i++) {
     if (!TestHitPatternMask(pattern, i+1)) {
       if (_LadderHitMap[i].empty()) return 0;
       if (_NladderXY[i]) nhitc++;
@@ -1614,7 +1614,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 {
   // Reset the-best-candidate parameters
   itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
-  for (int i = 0; i < TkDBc::Head->nlay(); i++)
+  for (int i = 0; i < SCANLAY; i++)
     itcand.iscan[i][0] = itcand.iscan[i][1] = itcand.imult[i] = 0;
 
   // Define and fill iterator
@@ -1627,7 +1627,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
 
   // Loop on X and Y
   for (it.side = 0; it.side <= 1; it.side++) {
-    int maxpat = (it.side == 0) ? GetHitPatternFirst(1+TkDBc::Head->nlay()-_MinNhitX) 
+    int maxpat = (it.side == 0) ? GetHitPatternFirst(1+SCANLAY-_MinNhitX) 
                                 : itlad.pattern+1;
     itcand.side = it.side;
 
@@ -1650,7 +1650,7 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
     }
     if (!found) return 0;
 
-    if (it.side == 0) itcand.nhitc = TkDBc::Head->nlay()-GetHitPatternNmask(it.pattern);
+    if (it.side == 0) itcand.nhitc = SCANLAY-GetHitPatternNmask(it.pattern);
     it = itcand;
   }
   return 1;
@@ -1814,10 +1814,10 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   double rthdx = cfcx*TRFITFFKEY.ErrX*RecPar.NsigmaMerge;
   double rthdy = cfcy*TRFITFFKEY.ErrY*RecPar.NsigmaMerge;
 
-  AMSPoint pltrk[trconst::maxlay];
-  double   rymin[trconst::maxlay];
-  int      ncmin[trconst::maxlay];
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) {
+  AMSPoint pltrk[SCANLAY];
+  double   rymin[SCANLAY];
+  int      ncmin[SCANLAY];
+  for (int i = 0; i < SCANLAY; i++) {
     pltrk[i] = track->GetPlayer(i, mfit);
     rymin[i] = rthdy*1.5;
     ncmin[i] = 0;
@@ -1991,7 +1991,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
                                                  itcand.iscan[i][1]);
     if (!hit) continue;
     if (hit->OnlyY()) {
-      maskc |= (1 << (TkDBc::Head->nlay()-hit->GetLayer()));
+      maskc |= (1 << (SCANLAY-hit->GetLayer()));
       hit->SetDummyX(EstimateXCoord(i, itcand));
       hit->BuildCoordinates();
       track->setstatus(AMSDBc::FalseX); // AMSDBc::FalseX = 8192; (0x2000)
@@ -2443,10 +2443,10 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 
   int ntrk = 0;
   for (int i = 0; i < TrTasPar::NLAS; i++) {
-    TrRecHitR *hits[trconst::maxlay];
+    TrRecHitR *hits[SCANLAY];
     int nhit = 0;
     int hpat = 0xff;
-    for (int j = 0; j < TkDBc::Head->nlay(); j++) hits[j] = 0;
+    for (int j = 0; j < SCANLAY; j++) hits[j] = 0;
 
     for (int j = 0; j < cont->getnelem(); j++) {
       TrRecHitR *hit = (TrRecHitR *)cont->getelem(j);
@@ -2456,7 +2456,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
       AMSPoint lcoo = _TasPar->GetLasCoo(i, hit->GetLayer()-1);
       if (hcoo.dist(lcoo) < range) {
 	hits[nhit++] = hit;
-	hpat &= ~(1 << (TkDBc::Head->nlay()-hit->GetLayer()));
+	hpat &= ~(1 << (SCANLAY-hit->GetLayer()));
       }
     }
     if (nhit < RecPar.MinNhitXY) continue;

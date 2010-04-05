@@ -236,10 +236,27 @@ void HistoMan::BookHistos(){
   Add(TH2D_L("TrChgP", "ChargeP VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
   Add(TH2D_L("TrChgN", "ChargeN VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
 
+  Add(new TH2D("TrPtkL8", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
+  Add(new TH2D("TrPftL8", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
+  Add(new TH2D("TrPtkL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
+  Add(new TH2D("TrPftL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
+
   // TrSim
   if (TrSim::SkipRawSim) {
     Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
+
+    Add(TH2D_L("TrDtyL8", "dyL8 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
+    Add(TH2D_L("TrDtyL9", "dyL9 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
+
+    Add(TH2D_L("TrRres11", "d1/R (7-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
+    Add(TH2D_L("TrRres12", "dR/R (7-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
+    Add(TH2D_L("TrRres21", "d1/R (w/LTRD)",  20, 1, 1e4, 500, -25, 25, 1, 0));
+    Add(TH2D_L("TrRres22", "dR/R (w/LTRD)",  20, 1, 1e4, 500,  -1,  1, 1, 0));
+    Add(TH2D_L("TrRres31", "d1/R (w/LEcal)", 20, 1, 1e4, 500, -25, 25, 1, 0));
+    Add(TH2D_L("TrRres32", "dR/R (w/LEcal)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
+    Add(TH2D_L("TrRres41", "d1/R (9-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
+    Add(TH2D_L("TrRres42", "dR/R (9-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
   }
 
   if (dsave) dsave->cd();

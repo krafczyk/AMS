@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.12 2010/04/02 10:34:49 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.13 2010/04/05 21:22:35 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/04/02 10:34:49 $
+///$Date: 2010/04/05 21:22:35 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -510,7 +510,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	//	 cout <<*(planes[ii])<<endl;
       }
       
-      for (int lay=0;lay<8;lay++) //loop on layers
+      for (int lay=0;lay<nlays;lay++) //loop on layers
 	for (int side=0;side<2;side++)
           for (int slot=0;slot<maxlad;slot++)
             if(filled_slot(side,lay,slot)){
@@ -520,7 +520,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	      int tkid=(lay+1)*100+(slot+1);
               if (side==0) tkid*=-1;
               sprintf(name,"%s",LadName[side][lay][slot]);
-              TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,nsen[side][lay][slot]);
+              TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,_nsen[side][lay][slot]);
               if(_octid[side][lay][slot]<0) aa->SetLaserFlag();
               number posz= _layer_deltaZ[lay];
               number posy= GetSlotY(lay+1,slot+1,side);

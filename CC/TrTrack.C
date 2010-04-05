@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.26 2010/04/02 10:34:50 pzuccon Exp $
+// $Id: TrTrack.C,v 1.27 2010/04/05 21:22:35 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/04/02 10:34:50 $
+///$Date: 2010/04/05 21:22:35 $
 ///
-///$Revision: 1.26 $
+///$Revision: 1.27 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -86,7 +86,7 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
   DBase[0]=0;
   DBase[1]=0;
   Status=0;
-  if(TkDBc::Head->GetSetup()==3)
+  if(TkDBc::Head && TkDBc::Head->GetSetup()==3)
     DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
       TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
@@ -350,11 +350,11 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // Select fitting method
   int method = TrFit::CHOUTKO;
-  if      (idf == kAlcaraz) method = TrFit::ALCARAZ;
+  if      (idf == kAlcaraz)   method = TrFit::ALCARAZ;
   else if (idf == kChikanian) method = TrFit::CHIKANIAN;
-  else if (idf == kLinear)  method = TrFit::LINEAR;
-  else if (idf == kCircle)  method = TrFit::CIRCLE;
-  else if (idf == kSimple)  method = TrFit::SIMPLE;
+  else if (idf == kLinear)    method = TrFit::LINEAR;
+  else if (idf == kCircle)    method = TrFit::CIRCLE;
+  else if (idf == kSimple)    method = TrFit::SIMPLE;
 
   // Set multiple scattering option and assumed mass
   if (id & kMultScat) {
@@ -451,24 +451,25 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
-    if(TkDBc::Head->GetSetup()==3){// AMS-B
+   if(TkDBc::Head->GetSetup()==3){// AMS-B
     double ery = erry;
-    if (hit->GetLayer() == 8 || hit->GetLayer() == 9) {
-      double rpar = (hit->GetLayer() == 8) ? 1.00 : 0.70;
+    int lyr = hit->GetLayer();
+    if (lyr == 8 || lyr == 9) {
+      double rpar = (lyr == 8) ? 100 : 0.70; //  1.00 : 0.70;
       ery = 1;
-      for (int j = 0; j < 2; j++) {
-	int mfit = (j == 0) ? id : kChoutko;
+      for (int k = 0; k < 2; k++) {
+	int mfit = (k == 0) ? id : kChoutko;
 	if (ParExists(mfit)) {
 	  double rini = std::fabs(GetRigidity(mfit));
 	  if (rini > 0) { 
-	    ery = rpar/rini;
+	    ery = (lyr == 8) ? rpar/rini/rini : rpar/rini;
 	    if (ery < erry) ery = erry;
 	    break;
 	  }
 	}
       }
     }
-    }// AMS-B
+   }// AMS-B
 
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
                     hit->OnlyX() ? 0 : erry, errz);

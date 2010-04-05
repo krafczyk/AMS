@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.147 2010/02/08 11:10:39 choutko Exp $
+//  $Id: mceventg.C,v 1.148 2010/04/05 21:22:35 shaino Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -960,6 +960,29 @@ bool AMSmceventg::SpecialCuts(integer cut){
      } 
      else return true;
   }
+
+#ifdef _PGTRACK_
+  if (cut == 5) {
+/// AMS-B Ecal/TRD-acceptance
+    if (_dir.z() != 0) {
+      static bool first = true;
+      if (first) {
+	first = false;
+	cout << "SpecialCut: " << cut 
+	     << " AMS-B full Tracker cut applied" << endl;
+      }
+      geant z1 = 155, z2 = -135;
+      AMSPoint pnt1 = _coo+_dir*(z1-_coo.z())/_dir.z();
+      AMSPoint pnt2 = _coo+_dir*(z2-_coo.z())/_dir.z();
+      if (sqrt(pnt1.x()*pnt1.x()+pnt1.y()*pnt1.y()) < 60 && 
+	  -40 < pnt2.x() && pnt2.x() < 60 && 
+	  abs(pnt2.y()) < 45) return true;
+    }
+    return false;
+/// AMS-B Ecal/TRD-acceptance
+  }
+#endif
+
      return true;
 }
 
