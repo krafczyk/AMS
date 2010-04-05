@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.582 2010/03/22 14:17:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.583 2010/04/05 08:11:31 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1775,7 +1775,7 @@ my $fevt=-1;
                     my $i=system($cmd);
                     $cmd="scp -2  $host:$fpath $fpath ";
                     if($dir[0]=~/^\/dat0/){
-                        $i=1;
+                        $i=system($cmd);
                     }
                     else{
                      $i=system($cmd);

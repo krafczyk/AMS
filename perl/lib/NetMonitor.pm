@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.23 2010/02/27 17:33:55 ams Exp $
+# $Id: NetMonitor.pm,v 1.24 2010/04/05 08:11:31 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -14,9 +14,9 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcamsap','pcamsvc','pcamsdt0','pcamsf9'], 
+  excluded=>['pcamsap','pcamsf8','pcamsvc','pcamsdt0','pcamsf9'], 
   dbhosts=>['pcamss0'],
-  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode'],
+  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   hostsstat=>[],
   bad=>[],
   badsave=>[],
@@ -42,6 +42,7 @@ $self->{sqlserver}={%sfields,};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.ch 41764874733@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
+push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
     my $mybless=bless $self,$type;
     if(ref($NetMonitor::Singleton)){
