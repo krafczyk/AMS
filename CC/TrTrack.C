@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.27 2010/04/05 21:22:35 shaino Exp $
+// $Id: TrTrack.C,v 1.28 2010/04/07 09:27:12 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/04/05 21:22:35 $
+///$Date: 2010/04/07 09:27:12 $
 ///
-///$Revision: 1.27 $
+///$Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -451,8 +451,8 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
-   if(TkDBc::Head->GetSetup()==3){// AMS-B
     double ery = erry;
+   if(TkDBc::Head->GetSetup()==3){// AMS-B
     int lyr = hit->GetLayer();
     if (lyr == 8 || lyr == 9) {
       double rpar = (lyr == 8) ? 100 : 0.70; //  1.00 : 0.70;
@@ -472,7 +472,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
    }// AMS-B
 
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
-                    hit->OnlyX() ? 0 : erry, errz);
+                    hit->OnlyX() ? 0 : ery,  errz);
     hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
