@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.36 2010/03/21 15:16:38 choutko Exp $
+*  $Id: mfield.F,v 1.37 2010/04/19 13:37:55 choutko Exp $
 
 
       subroutine readmfield_rphi
@@ -686,10 +686,12 @@ c      end
       data hint/0,0,0/
       data hintc/0,0,0/
       data bcorr/-1/
+      data zmax /80/
       DIMENSION B(3),VV(3),AVV(3)
         if(rphi.eq.0)then
         if(abs(vv(1)).gt.x(nx).or.abs(vv(2)).gt.y(ny).or.
-     +    abs(vv(3)).gt.z(nz).or.magstat.le.-1)then
+     +    abs(vv(3)).gt.z(nz)
+     +    .or.magstat.le.-1)then
             call vzero(b(1),3)
             goto 999
         ENDIF

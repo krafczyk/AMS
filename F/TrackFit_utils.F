@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.35 2010/03/15 12:25:49 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.36 2010/04/19 13:37:55 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.36  2010/04/19 13:37:55  choutko
+* fix perm magnet track looping
+*
 * Revision 1.35  2010/03/15 12:25:49  choutko
 * *** empty log message ***
 *
@@ -194,7 +197,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.35 2010/03/15 12:25:49 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.36 2010/04/19 13:37:55 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4146,7 +4149,7 @@ CDECK  ID>, TKFINI.
            iver=0
            ini=1
            nitm=1000
-           maxcal=8
+           maxcal=20
            smax=50.
            fieldmm=20.
            npars=5
@@ -7803,9 +7806,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.35 2010/03/15 12:25:49 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.36 2010/04/19 13:37:55 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.36  2010/04/19 13:37:55  choutko
+* fix perm magnet track looping
+*
 * Revision 1.35  2010/03/15 12:25:49  choutko
 * *** empty log message ***
 *

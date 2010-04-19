@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.705 2010/04/02 14:04:44 pzuccon Exp $
+// $Id: job.C,v 1.706 2010/04/19 13:37:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2431,6 +2431,7 @@ AMSgObj::BookTimer.book("TrRecHit_build");
 AMSgObj::BookTimer.book("TrRecHit_add");
 AMSgObj::BookTimer.book("TrTrack");
 AMSgObj::BookTimer.book("TrTrackPathI");
+AMSgObj::BookTimer.book("TrTrackSimpleFit");
 AMSgObj::BookTimer.book("TrTrackPathIA");
 AMSgObj::BookTimer.book("TrTrackSimpleFit");
 AMSgObj::BookTimer.book("TrTrackFalseTOFX");

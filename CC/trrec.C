@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.222 2010/04/02 10:34:51 pzuccon Exp $
+//  $Id: trrec.C,v 1.223 2010/04/19 13:37:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1546,7 +1546,6 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
       AMSTrTrack* ptrack = NULL;
 	AMSTrTrack ptest;
       number minchi2 = TRFITFFKEY.Chi2WithoutMS;
-
       for (int pat=0;pat<TKDBc::npat();pat++){
             if(!TKDBc::patallow(pat) && !_MarginPatternsNeeded)continue;
             if(!TKDBc::patallowFalseX(pat)) continue;
@@ -1600,8 +1599,12 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                               Hit[nhit++]=phitl;
                             }  
                           }
-                          if(nhit)pbest = SimpleFit(hit_err,ptest,Hit,nhit);
-
+                          if(nhit){
+//                           AMSgObj::BookTimer.start("TrTrackSimpleFit");
+                           pbest = SimpleFit(hit_err,ptest,Hit,nhit);
+//                           cout <<" fp "<<pat<<" "<<fp<<" "<<nhit<<" "<<j<<" "<<x2<<" "<<x0<<endl;
+//                           AMSgObj::BookTimer.stop("TrTrackSimpleFit");
+                          }
                         if ( _NoMoreTime(true)) {     
                               remove_track(ptrack);
                                 cerr << " buildPathIntegral Cpulimit Exceeded " << endl;
@@ -1619,6 +1622,7 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                               if (ptest._Chi2WithoutMS<minchi2
                                    && ptest.Fit(0)<(TRFITFFKEY.Chi2FastFit>1e5?TRFITFFKEY.Chi2FastFit:1e5) &&
                                   ptest.TOFOK()) {
+//                                    cout <<" ptest nah "<<ptest.Fit(0)<<" "<<ptest._Ridgidity<<endl;
                                     minchi2 = ptest._Chi2WithoutMS;
                                     if (ptrack) delete ptrack;
                                     ptrack = ptest.CloneIt();
@@ -1671,10 +1675,15 @@ next_pattern:
                   }
             }
             remove_track(ptrack); 
-          } else {
+          } 
+          else {
             // Get out if we awere not succesful (but why?)
+            static int ist=0;
+            if(ist++<100){
+              cerr<<"AMSTrTrack::buildpathintegeral-E-addnextfailed "<<endl;
+            }
             remove_track(ptrack); 
-            //return NTrackFound;
+            return NTrackFound;
           }
       } else {
 
@@ -2054,15 +2063,19 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
      if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
       fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
-           //cout<<ptrack->_NHits<<" "<<ptrack->_Chi2StrLine<<" "<<ptrack->_Chi2WithoutMS<<" "<<ptrack->Fit(0)<<endl;
-       if( (  (ptrack->Fit(0) < 
-            (TRFITFFKEY.Chi2FastFit>1e5?TRFITFFKEY.Chi2FastFit:1e5))) && ptrack->TOFOK() ){
+           number chi2=ptrack->Fit(0);
+//           cout<<ptrack->_NHits<<" "<<ptrack->_Chi2StrLine<<" "<<ptrack->_Chi2WithoutMS<<" "<<chi2<<endl;
+       if( (  chi2 < 
+            (TRFITFFKEY.Chi2FastFit>1e5?TRFITFFKEY.Chi2FastFit:1e5)) && ptrack->TOFOK() ){
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
 #endif
           _addnextR(ptrack, pat, nhit, pthit);
           return 1;
+       }
+       else{
+        cerr<<"AMSTrTrack::_Addnext-E-TrackNotAdded "<< ptrack->TOFOK()<<" "<<TRFITFFKEY.Chi2FastFit<<" "<<ptrack->_Ridgidity<<" "<<ptrack->_Chi2FastFit<<endl;;
        }
      }
     }
@@ -3019,7 +3032,7 @@ if(fit==0){
 if(ie==0){
 _FastFitDone=1;
 _Chi2FastFit=out[6];
-if(out[7] != 0)_Chi2FastFit=FLT_MAX;
+if(out[7] != 0 && out[7]!=2)_Chi2FastFit=FLT_MAX;
 _Ridgidity=out[5];
 _ErrRidgidity=out[8];
 _Theta=out[3];

@@ -17,7 +17,7 @@ public:
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-     if(ev && ev->nParticle()){
+     if(ev && ev->nParticle() && ev->nTrTrack()){
          cout <<ev->Particle(0).iEcalShower()<<endl;
          return true;
      }
