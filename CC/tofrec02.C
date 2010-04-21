@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.74 2010/04/01 10:40:17 choumilo Exp $
+//  $Id: tofrec02.C,v 1.75 2010/04/21 08:35:18 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -923,10 +923,10 @@ void TOF2RawCluster::build(int &ostatus){
             if(rej2==0 && rej3==0)TOF2JobStat::addbr(brnum,2);//"good time-history" on each of complete sides
             if(rej1==0)TOF2JobStat::addbr(brnum,3);//"True LT-hit" matching OK(when requested) on each of complete sides
             if(rej1==0&&rej2==0&&rej3==0 && isds==2)TOF2JobStat::addbr(brnum,4);//all is OK on both sides
-if((smty[0]==1 && itmbest[0]<0) || (smty[1]==1 && itmbest[1]<0)){
-  cout<<"<------------- Fatal: itmbest="<<itmbest[0]<<" "<<itmbest[1]<<endl;
-  exit(1);
-}
+//if((smty[0]==1 && itmbest[0]<0) || (smty[1]==1 && itmbest[1]<0)){
+//  cout<<"<------------- Fatal: itmbest="<<itmbest[0]<<" "<<itmbest[1]<<endl;
+//  exit(1);
+//}
 //
 //===========>>> calculate times/Edeps of sc.bar :
 //

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.199 2010/04/02 10:34:50 pzuccon Exp $
+//  $Id: particle.C,v 1.200 2010/04/21 08:35:18 choumilo Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -284,17 +284,21 @@ void AMSParticle::toffit(){
     AMSTOFCluster* pcl=_pbeta->getpcluster(kk);
     _ptrack->interpolate(pcl->getcoo(),dir,_TOFCoo[pcl->getntof()-1],theta,phi,sleng);    
     fitdone[pcl->getntof()-1]=1;
+    _TOFTLength[pcl->getntof()-1]=sleng;
   }
   // No hits, but still TrackExtrapolation needed
   for(kk=0;kk<4;kk++){
     if(!fitdone[kk]){
       AMSTOFCluster d(0,kk+1,1);
       AMSgvolume *p=AMSJob::gethead()->getgeomvolume(d.crgid());
-      if(p)
+      if(p){
 	_ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,_TOFCoo[kk],theta,phi,sleng);
+	_TOFTLength[kk]=sleng;
+      }
       else {
 	cerr << " toffit-S- No layer no " << kk+1<<endl ;
 	_TOFCoo[kk]=AMSPoint(0,0,0);
+	_TOFTLength[kk]=0;
       }
 
     }

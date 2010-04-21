@@ -4,6 +4,7 @@ sub TdcLinCalibration
 my $dirfrheight=0.35;
 my $setfrheight=0.57;
 my $jclfrheight=0.08;
+my ($bwid,$bheig,$xpos,$ypos,$lbwid,$labw,$butw);
 
 #--------------
 #dir_frame:
@@ -13,7 +14,7 @@ my $drh1=(1-$shf1)/5;#height of dir-widgets
 $dir_fram=$mwnd->Frame(-label => "TdcLinearityCalibration - General Info/Settings:",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)
 						      ->place(
-                                                      -relwidth=>0.3, -relheight=>$dirfrheight,
+                                                      -relwidth=>(1-$LogfXsize), -relheight=>$dirfrheight,
                                                       -relx=>0, -rely=>0);
 #------
 $wrd_lab=$dir_fram->Label(-text=>"HeadD:",-font=>$font2,-relief=>'groove')
@@ -182,7 +183,7 @@ my $drh2=(1-$shf2)/10;#height of runcond-widgets
 $set_fram=$mwnd->Frame(-label=>"Setup New Job :",-relief=>'groove', -borderwidth=>5,
                                                   -background => "blue")
 						  ->place(
-                                                  -relwidth=>0.3, -relheight=>$setfrheight,
+                                                  -relwidth=>(1-$LogfXsize), -relheight=>$setfrheight,
                                                   -relx=>0, -rely=>$dirfrheight);
 #------
 $set_fram->Label(-text=>"SelAmsState:",-font=>$font2,-relief=>'groove')
@@ -281,13 +282,20 @@ $set_fram->Label(-text=>"Queue:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.15, -relheight=>$drh2,
                                                -relx=>0.3, -rely=>($shf2+2*$drh2));
+#
 $Queue2run="1nd";#queue name the job sould be submitted 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$Queue2run)
-				    ->place(
-                                    -relwidth=>0.2, -relheight=>$drh2,  
-                                    -relx=>0.45, -rely=>($shf2+2*$drh2));
+$set_fram->Optionmenu(-textvariable => \$Queue2run, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [@AMSQueuesList],
+	                       )
+                               ->place(
+                               -relwidth=>0.2, -relheight=>$drh2,  
+                               -relx=>0.45, -rely=>($shf2+2*$drh2));
+					       
 #---
 $set_fram->Label(-text=>"CPUs to use:",-font=>$font2,-relief=>'groove')
                                                ->place(
@@ -335,7 +343,7 @@ $set_fram->Entry(-relief=>'sunken', -background=>yellow,
 #-------------
 $refvel_lab=$set_fram->Label(-text=>"Evs/Bin(Min):",-font=>$font2,-relief=>'groove')
                                                     ->place(
-						    -relwidth=>0.28, -relheight=>$drh2,
+						    -relwidth=>0.22, -relheight=>$drh2,
                                                     -relx=>0, -rely=>($shf2+4*$drh2));
 $BinMinEvs="0";
 $binmine_state="disabled";
@@ -344,23 +352,40 @@ $binmine_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
                                               -font=>$font3,
 					      -state=>$binmine_state,
                                               -textvariable=>\$BinMinEvs)->place(
-                                              -relwidth=>0.12, -relheight=>$drh2,  
-                                              -relx=>0.28, -rely=>($shf2+4*$drh2));
+                                              -relwidth=>0.08, -relheight=>$drh2,  
+                                              -relx=>0.22, -rely=>($shf2+4*$drh2));
 #---
-$dbuse_lab=$set_fram->Label(-text=>"CfDBUse(1=not)(lqdpc):",-font=>$font2,-relief=>'groove')
-                                                    ->place(
-						    -relwidth=>0.45, -relheight=>$drh2,
-                                                    -relx=>0.4, -rely=>($shf2+4*$drh2));
-$cfilesloc="10101";
-$cfloc_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
-                                               -background=>yellow,
-                                               -font=>$font3,
-                                               -textvariable=>\$cfilesloc)
-					       ->place(
-                                               -relwidth=>0.15, -relheight=>$drh2,  
-                                               -relx=>0.85, -rely=>($shf2+4*$drh2));
+$cfilesloc="10101";#(def) 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=0 to use DB)
+@TofDBUsePatt=();
+$j=1;
+for($i=0;$i<5;$i++){
+  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
+  $j=10*$j;
+}
+my @tofdbdatatypes=qw(Cal Ped DCut Elos TdcL);
+$labw=0.15;
+$butw=0.11;
+$xpos=0.3;
+$cfloc_lab=$set_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh2,
+                                                -relx=>$xpos, -rely=>($shf2+4*$drh2));
+$xpos+=$labw;
+for($i=0;$i<5;$i++){
+  $set_fram->Checkbutton(-text=>$tofdbdatatypes[$i], -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TofDBUsePatt[$i])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh2,
+						 -relx=>$xpos, -rely=>($shf2+4*$drh2));
+  $xpos+=$butw;
+}
 #-------------
-$dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)
+$dat1_lab=$set_fram->Label(-text=>"Date :",-font=>$font2,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+5*$drh2));
@@ -384,7 +409,7 @@ $fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -relwidth=>0.43, -relheight=>$drh2,  
                                                -relx=>0.57, -rely=>($shf2+5*$drh2));
 #---------
-$num1_lab=$set_fram->Label(-text=>"RunN",-font=>$font2)
+$num1_lab=$set_fram->Label(-text=>"RunN :",-font=>$font2,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.16, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+6*$drh2));
@@ -411,11 +436,7 @@ $fnum2o=$fnum2;
 $fdat1o=$fdat1;
 $fdat2o=$fdat2;
 #-------------
-$set_fram->Label(-text=>"Push if limit changed >>>",-font=>$font2,-relief=>'groove')
-                                               ->place(
-					       -relwidth=>0.5, -relheight=>$drh2,
-                                               -relx=>0, -rely=>($shf2+7*$drh2));
-$convert_bt=$set_fram->Button(-text=>"RunNumber<=>Date", -font=>$font2, 
+$convert_bt=$set_fram->Button(-text=>"ConfirmRunsRange", -font=>$font2, 
                                       -activebackground=>"yellow",
 			              -activeforeground=>"red",
 			              -foreground=>"red",
@@ -425,8 +446,13 @@ $convert_bt=$set_fram->Button(-text=>"RunNumber<=>Date", -font=>$font2,
                                       -command => \&RunDateConv)
 			              ->place(
                                       -relwidth=>0.5, -relheight=>$drh2,
-				      -relx=>0.5, -rely=>($shf2+7*$drh2));
+				      -relx=>0, -rely=>($shf2+7*$drh2));
 $convert_bt->bind("<Button-3>", \&convert_help);
+#---
+$set_fram->Label(-text=>"                    ",-font=>$font2,-relief=>'groove')
+                                               ->place(
+					       -relwidth=>0.5, -relheight=>$drh2,
+                                               -relx=>0.5, -rely=>($shf2+7*$drh2));
 #--------------
 $scanbt_state="disabled";
 $scanbt=$set_fram->Button(-text => "ScanDaqDir", -font=>$font2, 
@@ -462,13 +488,18 @@ $set_fram->Label(-text=>"UseHost:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.2, -relheight=>$drh2,
                                                -relx=>0.6, -rely=>($shf2+8*$drh2));
-$Host2run="";#host name the job sould be submitted 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$Host2run)
-				    ->place(
-                                    -relwidth=>0.2, -relheight=>$drh2,  
-                                    -relx=>0.8, -rely=>($shf2+8*$drh2));
+$Host2run="Any";
+$set_fram->Optionmenu(-textvariable => \$Host2run, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [@AMSHostsList],
+	                       )
+                               ->place(
+                               -relwidth=>0.2, -relheight=>$drh2,  
+                               -relx=>0.8, -rely=>($shf2+8*$drh2));
 #--------------
 $set_fram->Button(-text=>"EditJobScript", -font=>$font2, 
                                           -activebackground=>"yellow",
@@ -521,7 +552,7 @@ $sjobbt->bind("<Button-3>", \&submitjob_help);
 #$prg_fram=$mwnd->Frame(-label=>"TAUcalib-Job progress :",-background => "green", 
 #                                                        -relief=>'groove', -borderwidth=>3)
 #						        ->place(
-#                                                        -relwidth=>0.3, -relheight=>0.055,
+#                                                        -relwidth=>(1-$LogfXsize), -relheight=>0.055,
 #                                                        -relx=>0, -rely=>0.87);
 #$perc_done=0.;
 #$prg_but=$prg_fram->ProgressBar( -width=>10, -from=>0, -to=>100, -blocks=>100,
@@ -535,7 +566,7 @@ $sjobbt->bind("<Button-3>", \&submitjob_help);
 $jcl_fram=$mwnd->Frame(-label=>"TdcLinCalib-Job control :",-background => "red",
                                                        -relief=>'groove', -borderwidth=>3)
 						       ->place(
-                                                       -relwidth=>0.3, -relheight=>$jclfrheight,
+                                                       -relwidth=>(1-$LogfXsize), -relheight=>$jclfrheight,
                                                        -relx=>0, -rely=>($dirfrheight+$setfrheight));
 #---
 $jstatbt=$jcl_fram->Button(-text => "CheckJobsStat", -font=>$font2, 
@@ -1060,7 +1091,7 @@ sub TDCL_Welcome{
     $hour=$ptime->hour;
     $min=$ptime->min;
     $sec=$ptime->sec;
-    $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
+    $time="y/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
     $t1=$time;
 #
     $ptime=localtime($range[1]);#local time of beg-run(imply run# to be UTC-seconds as input)
@@ -1070,10 +1101,10 @@ sub TDCL_Welcome{
     $hour=$ptime->hour;
     $min=$ptime->min;
     $sec=$ptime->sec;
-    $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
+    $time="y/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
     $t2=$time;
 #
-    $line="RunBeg: ".$range[0]."  TimeBeg: ".$t1."  "."RunEnd: ".$range[1]."  TimeEnd: ".$t2."\n";
+    $line="Run/Time-Beg: ".$range[0]."  ".$t1."  "."Run/Time-End: ".$range[1]."  ".$t2."\n";
     $logtext->insert('end',$line);
     $logtext->yview('end');
   }
@@ -1267,6 +1298,7 @@ sub SetDefaultPars
 {
   my ($ptime,$year,$month,$day,$hour,$min,$sec,$time,$line,$fname);
   my ($fn,$w,$ww,$www);
+  my $i,$j;
 #
   $ResetHistFlg=0;
   if($CalibMode eq "Econom"){
@@ -1278,6 +1310,8 @@ sub SetDefaultPars
 #
   show_messg("\n\n   <--- Setting Job's default-parameters ... \n");
 #
+  $cfilesloc="10101";#def value
+  $ncpus="4";#def number of CPUs to use 
   $CalCode=900;# i just add 9 in front of true calcode for better logf identification later
   $jobctypes=0;#calib-types in job
   $jpar1=0;#(TFCA #39=MN)
@@ -1327,6 +1361,12 @@ sub SetDefaultPars
   $scanbt_state="normal";
   $scanbt->configure(-state=>$scanbt_state);
 #
+$j=1;
+for($i=0;$i<5;$i++){
+  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
+  $j=10*$j;
+}
+#
   $mwnd->update;
 }# ---> endof sub:setRunDefs
 #------------------------------------------------------
@@ -1358,7 +1398,14 @@ sub SetupJob
 #
 #---> set values for job's stable params:
 #
-  $jpar2=$cfilesloc;#DBusage
+  $jpar2=0;#DBusage
+  $j=1;
+  for($i=0;$i<5;$i++){
+    if($TofDBUsePatt[$i]==0){$jpar2+=$j;}#means use RawFile instead DB
+    $j=10*$j;
+  }
+  show_messg("\n   <--- DB-usage parameter: $jpar2 (LQDPC) !\n");
+#
   $jpar3=$refcalsetn;# ref TofClfile number
   if($posstext eq "InSpace"){$jpar4=0;}# space/earth calib
   else{$jpar4=1;}
@@ -1800,6 +1847,7 @@ sub SubmitJob
   my $fn;
   my $ext=substr($CalRun1,-5,5);
   my $jobname=$SessName.$ext;
+  if($Host2run eq "Any"){$Host2run="";}
   if($Host2run eq ""){#<-- means any host
     $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }

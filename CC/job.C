@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.706 2010/04/19 13:37:51 choutko Exp $
+// $Id: job.C,v 1.707 2010/04/21 08:35:18 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -759,7 +759,7 @@ FFKEY("GMSRC",(float*)&GMFFKEY,sizeof(GMFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_sitof2data(){
   TFMCFFKEY.TimeSigma=0.240; //(1) side time resolution(ns, now =CounterResol(0.17)*sqrt(2)) 
   TFMCFFKEY.sumHTdel=4.5;    //(2) eff. h/w delay of sumHT(sumSHT)-signal wrt LT-signal for MC
-  TFMCFFKEY.canormf=1.;      //(3) ampl.normalization factor(common for all bar-types,i.e. all SE MP are mult.by it))
+  TFMCFFKEY.canormf=1.;      //(3) amplif. factor(common for all bar-types,i.e. all SE MP are mult.by it))
   TFMCFFKEY.dzconv=0.;        //(4) if !=0 => thickness of optional TungstenConverter
   TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Edep-thresh.(Mev) to participate in Simul.   
 //
@@ -780,7 +780,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.ReadConstFiles=1000;//(19)LPTS(L=TDClinCorSD,P=PedsMC,T=TimeDistr,S=MCCalibSeeds);L(P,T,S)=0/1->DB/RawFiles
 //
   TFMCFFKEY.addpeds=0;//(20) add peds into empty(no MC dE/dX) channels
-  TFMCFFKEY.calvern=1;//(21) TofCflistMC-file(barcal_files vers. list) version number
+  TFMCFFKEY.calvern=2;//(21) TofCflistMC-file(barcal_files vers. list) version number
   TFMCFFKEY.tdclin=0;//(22) 1/0->do/not activate TDC-linearity logic for MC
   TFMCFFKEY.tdcovf=1;//(23) 1/0->do/not activate TDC-overf.protection logic(= usage of TDC TrigTimeTag subtraction)
 //
@@ -808,7 +808,7 @@ FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_siecaldata(){
   ECMCFFKEY.fastsim=0;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
   ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
-  ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
+  ECMCFFKEY.cutge=0.00025;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
@@ -1301,8 +1301,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->write/not TOF2RawSideObject-info into ntuple
 //
-  TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(LT=30mV) for fine-time TDC 
-  TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(HT=100mV) for FT-trigger TDC(z>=1)  
+  TFREFFKEY.daqthr[0]=50.;//(13)tempor Anode low discr.thresh(LT) for fine-time TDC 
+  TFREFFKEY.daqthr[1]=80.;//(14)tempor Anode high discr.thresh(HT) for FT-trigger TDC(z>=1)  
   TFREFFKEY.daqthr[2]=940.;//(15)tempor Anode superhigh discr.thresh(SHT=940mV) for "z>=2"-trig(50% of He-mip)  
   TFREFFKEY.daqthr[3]=4.;//(16) Anode-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=4.;//(17) Dynode-ADC-readout threshold in DAQ (in PedSigmas)

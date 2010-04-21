@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.35 2010/03/05 12:01:21 choumilo Exp $
+//  $Id: tofuser02.C,v 1.36 2010/04/21 08:35:18 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -366,7 +366,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
     number momentum;
     number the,phi,trl,rid,err,ctran,charge,partq;
-    integer chargeTOF(0),chargeTracker(0),betpatt,trpatt,trhits(0);
+    integer chargeTOF(0),chargeTracker(0),betpatt(-1),trpatt,trhits(0);
     uintl traddr(0,0);
     integer ilad[2][8]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     AMSPoint C0,Cout;
@@ -383,6 +383,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     AMSBeta * pbeta;
     int npart,ipatt,envindx(0);
     bool trktr,trdtr,ecaltr,nottr,badint;
+    number toftrlen[TOF2GC::SCLRS]={0,0,0,0};
 //
     npart=0;
     for(i=0;i<1;i++){//i=0->parts.with true(Trk)-track, i=1->...false(nonTrk)-track
@@ -427,6 +428,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 	if(!trdtr){//tracker-track part
 	  TrkTrPart=true;
 	  TOF2JobStat::addre(41);
+          for(i=0;i<TOF2GC::SCLRS;i++)toftrlen[i]=ppart->gettoftlen(i);//exists only for trk-track
           trpatt=ptrack->getpattern();//TRK-track pattern
 	  if(trpatt>=0){//trk-track ok
             GoodTrkTrack=true;
@@ -516,7 +518,7 @@ Nextp:
 {
       HF1(1501,beta,1.);
       HF1(1520,beta,1.);
-      if(beta>0)HF1(1280,bet,1.);
+      if(beta>0)HF1(1280,bet,1.);//using implied mass amd measured mom.
       else HF1(1281,bet,1.);
       HF1(1511,chi2t,1.);
       HF1(1512,chi2s,1.);
@@ -531,7 +533,7 @@ Nextp:
     TOF2JobStat::addre(46);//TrackParamsOK
 //=========================================================================
 //-------------------------------------------> beta><0 problem study:
-//  if(beta>0)return;//tempor**2
+//  if(beta<0)return;//tempor**2
 //--------------------------------
 //
   if(TFREFFKEY.reprtf[1]>0){
@@ -901,7 +903,7 @@ Nextp:
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-      HF1(1502,fabs(betof),1.);
+      if(betof>0)HF1(1502,fabs(betof),1.);
       HF1(1208,chsq,1.);
       HF1(1209,tzer,1.);
 }

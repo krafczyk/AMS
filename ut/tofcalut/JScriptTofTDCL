@@ -64,15 +64,17 @@ HADR 1
 TRIG $NEVENTS
 DEBUG -1 10 100000
 c-------------
-TFRE 3=1 5=0 8=1 28=$LQDPC  30=$REFCFLN
-c 3=1/(0)->print/not reco-statistics
-c 5=1/(0)->print/not rec0-histograms
-c 6=(0)/1->print chan. hit-mult hists
-c 7=(0)/1/>1=>tofdebugprint(no/daq_crazy+hist/details)
-c 8->0/1/2/3/4/5/6/7(norm/TDCLIN/TDIF/TZSL/AMPL-calib run);
-c 9=(1)/0-> ise/not LT/SumHT matching
+TFRE 3=1 6=1 8=1 28=$LQDPC  30=$REFCFLN
+c 3=2/1/(0)->print reco-statistics big/small/No
+c 4=1/(0)->print/not rec0-histograms
+c 5=(0)/1->not/print channels hits multiplicity  histograms
+c 6=(0)/1->not/print debug info when error found
+c 7=(0)/1-> flag for detailed debug print(activate incl.low-priority hist if #4 is set, ev-by-ev debug if #6 is set)
+c 8=(0)/1/2/...=TofRunType(normal/diff.kind.calib)(=6-> "get peds from normal data in raw fmt)
+c 9=(1)/0-> Permit/not LT/SumHT hits matching usage for multLT-case)
+c 10=1/(0)-> use/not TDClincor at reco-stage                                    
 c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
-c--- 
+c 
 TFCA 11=$AMSPOS 29=1 38=$BINSTMN 39=$CALMODE
 c 11->(0)/1 to select space/earth calibr.
 c 12=-1/(0)/1=>(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)

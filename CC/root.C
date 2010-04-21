@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.216 2010/04/02 10:34:50 pzuccon Exp $
+//  $Id: root.C,v 1.217 2010/04/21 08:35:18 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2312,6 +2312,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   for (int i=0; i<3; i++) {Coo[i] = ptr->_Coo[i];}
   Cutoff   = ptr->_CutoffMomentum;
   for (int i=0; i<4; i++) {
+    TOFTLength[i]=ptr->_TOFTLength[i];
     for (int j=0; j<3; j++) {
       TOFCoo[i][j] = ptr->_TOFCoo[i][j];
     }

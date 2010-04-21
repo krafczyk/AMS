@@ -4,6 +4,7 @@ sub TmAmCalibration
 my $dirfrheight=0.35;
 my $setfrheight=0.57;
 my $jclfrheight=0.08;
+my ($bwid,$bheig,$xpos,$ypos,$lbwid,$labw,$butw);
 
 #--------------
 #dir_frame:
@@ -13,7 +14,7 @@ my $drh1=(1-$shf1)/5;#height of dir-widgets
 $dir_fram=$mwnd->Frame(-label => "General Info/Settings :",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)
 						      ->place(
-                                                      -relwidth=>0.3, -relheight=>$dirfrheight,
+                                                      -relwidth=>(1-$LogfXsize), -relheight=>$dirfrheight,
                                                       -relx=>0, -rely=>0);
 #------
 $wrd_lab=$dir_fram->Label(-text=>"HeadD:",-font=>$font2,-relief=>'groove')
@@ -182,7 +183,7 @@ my $drh2=(1-$shf2)/10;#height of runcond-widgets
 $set_fram=$mwnd->Frame(-label=>"Setup New Job :",-relief=>'groove', -borderwidth=>5,
                                                   -background => "blue")
 						  ->place(
-                                                  -relwidth=>0.3, -relheight=>$setfrheight,
+                                                  -relwidth=>(1-$LogfXsize), -relheight=>$setfrheight,
                                                   -relx=>0, -rely=>$dirfrheight);
 #------
 $set_fram->Label(-text=>"SelAmsState:",-font=>$font2,-relief=>'groove')
@@ -279,19 +280,27 @@ $set_fram->Label(-text=>"Queue:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.15, -relheight=>$drh2,
                                                -relx=>0.3, -rely=>($shf2+2*$drh2));
+#
 $Queue2run="1nd";#queue name the job sould be submitted 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$Queue2run)
-				    ->place(
-                                    -relwidth=>0.2, -relheight=>$drh2,  
-                                    -relx=>0.45, -rely=>($shf2+2*$drh2));
+$set_fram->Optionmenu(-textvariable => \$Queue2run, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [@AMSQueuesList],
+	                       )
+                               ->place(
+                               -relwidth=>0.2, -relheight=>$drh2,  
+                               -relx=>0.45, -rely=>($shf2+2*$drh2));
+					       
+					       
 #---
 $set_fram->Label(-text=>"CPUs to use:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.25, -relheight=>$drh2,
                                                -relx=>0.65, -rely=>($shf2+2*$drh2));
-$ncpus="1";#number of CPUs to use 
+$ncpus="4";#number of CPUs to use 
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                     -font=>$font3,
                                     -textvariable=>\$ncpus)
@@ -301,7 +310,7 @@ $set_fram->Entry(-relief=>'sunken', -background=>yellow,
 #-------------
 $set_fram->Label(-text=>"RefCalibSetN:",-font=>$font2,-relief=>'groove')
                                                ->place(
-					       -relwidth=>0.3, -relheight=>$drh2,
+					       -relwidth=>0.25, -relheight=>$drh2,
                                                -relx=>0, -rely=>($shf2+3*$drh2));
 #---
 $refcalsetn="0";#ref.calib set number
@@ -314,49 +323,22 @@ $refcfl_om=$set_fram->Optionmenu(-textvariable => \$refcalsetn,
                                -options => [$refcalsetn]
 	                       )
                                ->place(
-                               -relwidth=>0.3, -relheight=>$drh2,  
-                               -relx=>0.3, -rely=>($shf2+3*$drh2));
+                               -relwidth=>0.25, -relheight=>$drh2,  
+                               -relx=>0.25, -rely=>($shf2+3*$drh2));
 
  
 #---
 $set_fram->Label(-text=>"Events:",-font=>$font2,-relief=>'groove')
                                                ->place(
-					       -relwidth=>0.2, -relheight=>$drh2,
-                                               -relx=>0.6, -rely=>($shf2+3*$drh2));
+					       -relwidth=>0.15, -relheight=>$drh2,
+                                               -relx=>0.5, -rely=>($shf2+3*$drh2));
 $Evs2Read="100000";#number of events to read 
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                     -font=>$font3,
                                     -textvariable=>\$Evs2Read)
 				    ->place(
-                                    -relwidth=>0.2, -relheight=>$drh2,  
-                                    -relx=>0.8, -rely=>($shf2+3*$drh2));
-#-------------
-$refvel_lab=$set_fram->Label(-text=>"RefVelocity:",-font=>$font2,-relief=>'groove')
-                                                    ->place(
-						    -relwidth=>0.25, -relheight=>$drh2,
-                                                    -relx=>0, -rely=>($shf2+4*$drh2));
-$refvelocity="0.999";
-$refvel_state="disabled";
-$rvel_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
-                                              -background=>yellow,
-                                              -font=>$font3,
-					      -state=>$refvel_state,
-                                              -textvariable=>\$refvelocity)->place(
-                                              -relwidth=>0.15, -relheight=>$drh2,  
-                                              -relx=>0.25, -rely=>($shf2+4*$drh2));
-#---
-$cfloc_lab=$set_fram->Label(-text=>"CFloc(lqdpc):",-font=>$font2,-relief=>'groove')
-                                                    ->place(
-						    -relwidth=>0.25, -relheight=>$drh2,
-                                                    -relx=>0.4, -rely=>($shf2+4*$drh2));
-$cfilesloc="10101";
-$cfloc_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
-                                               -background=>yellow,
-                                               -font=>$font3,
-                                               -textvariable=>\$cfilesloc)
-					       ->place(
-                                               -relwidth=>0.15, -relheight=>$drh2,  
-                                               -relx=>0.65, -rely=>($shf2+4*$drh2));
+                                    -relwidth=>0.17, -relheight=>$drh2,  
+                                    -relx=>0.65, -rely=>($shf2+3*$drh2));
 #---
 $usetrd=0;#off
 $usetrd_state="disabled";
@@ -370,10 +352,55 @@ $usetrd_bt=$set_fram->Checkbutton(-text=>"UseTRD", -font=>$font2,
 					-state=>$usetrd_state,
                                         -variable=>\$usetrd)
 					->place(
-                                        -relwidth=>0.2, -relheight=>$drh2,
-				        -relx=>0.8, -rely=>($shf2+4*$drh2));
+                                        -relwidth=>0.18, -relheight=>$drh2,
+				        -relx=>0.82, -rely=>($shf2+3*$drh2));
 #-------------
-$dat1_lab=$set_fram->Label(-text=>"Date",-font=>$font2)
+$refvel_lab=$set_fram->Label(-text=>"RefVelocity:",-font=>$font2,-relief=>'groove')
+                                                    ->place(
+						    -relwidth=>0.2, -relheight=>$drh2,
+                                                    -relx=>0, -rely=>($shf2+4*$drh2));
+$refvelocity="0.999";
+$refvel_state="disabled";
+$rvel_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
+                                              -background=>yellow,
+                                              -font=>$font3,
+					      -state=>$refvel_state,
+                                              -textvariable=>\$refvelocity)->place(
+                                              -relwidth=>0.1, -relheight=>$drh2,  
+                                              -relx=>0.2, -rely=>($shf2+4*$drh2));
+#---
+$cfilesloc="101";#(def) 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=0 to use DB)
+@TofDBUsePatt=();
+$j=1;
+for($i=0;$i<5;$i++){
+  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
+  $j=10*$j;
+}
+my @tofdbdatatypes=qw(Cal Ped DCut Elos TdcL);
+$labw=0.15;
+$butw=0.11;
+$xpos=0.3;
+$cfloc_lab=$set_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
+                                                ->place(
+						-relwidth=>$labw, -relheight=>$drh2,
+                                                -relx=>$xpos, -rely=>($shf2+4*$drh2));
+$xpos+=$labw;
+for($i=0;$i<5;$i++){
+  $set_fram->Checkbutton(-text=>$tofdbdatatypes[$i], -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$TofDBUsePatt[$i])
+					         ->place(
+                                                 -relwidth=>$butw, -relheight=>$drh2,
+						 -relx=>$xpos, -rely=>($shf2+4*$drh2));
+  $xpos+=$butw;
+}
+#
+#-------------
+$dat1_lab=$set_fram->Label(-text=>"Date :",-font=>$font2,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+5*$drh2));
@@ -397,7 +424,7 @@ $fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -relwidth=>0.43, -relheight=>$drh2,  
                                                -relx=>0.57, -rely=>($shf2+5*$drh2));
 #---------
-$num1_lab=$set_fram->Label(-text=>"RunN",-font=>$font2)
+$num1_lab=$set_fram->Label(-text=>"RunN :",-font=>$font2,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.16, -relheight=>$drh2,
                                          -relx=>0, -rely=>($shf2+6*$drh2));
@@ -486,13 +513,18 @@ $set_fram->Label(-text=>"UseHost:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.2, -relheight=>$drh2,
                                                -relx=>0.6, -rely=>($shf2+8*$drh2));
-$Host2run="";#host name the job sould be submitted 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$Host2run)
-				    ->place(
-                                    -relwidth=>0.2, -relheight=>$drh2,  
-                                    -relx=>0.8, -rely=>($shf2+8*$drh2));
+$Host2run="Any";
+$set_fram->Optionmenu(-textvariable => \$Host2run, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [@AMSHostsList],
+	                       )
+                               ->place(
+                               -relwidth=>0.2, -relheight=>$drh2,  
+                               -relx=>0.8, -rely=>($shf2+8*$drh2));
 #--------------
 $set_fram->Button(-text=>"EditJobScript", -font=>$font2, 
                                           -activebackground=>"yellow",
@@ -545,7 +577,7 @@ $sjobbt->bind("<Button-3>", \&submitjob_help);
 #$prg_fram=$mwnd->Frame(-label=>"TAUcalib-Job progress :",-background => "green", 
 #                                                        -relief=>'groove', -borderwidth=>3)
 #						        ->place(
-#                                                        -relwidth=>0.3, -relheight=>0.055,
+#                                                        -relwidth=>(1-$LogfXsize), -relheight=>0.055,
 #                                                        -relx=>0, -rely=>0.87);
 #$perc_done=0.;
 #$prg_but=$prg_fram->ProgressBar( -width=>10, -from=>0, -to=>100, -blocks=>100,
@@ -559,7 +591,7 @@ $sjobbt->bind("<Button-3>", \&submitjob_help);
 $jcl_fram=$mwnd->Frame(-label=>"TAUcalib-Job control :",-background => "red",
                                                        -relief=>'groove', -borderwidth=>3)
 						       ->place(
-                                                       -relwidth=>0.3, -relheight=>$jclfrheight,
+                                                       -relwidth=>(1-$LogfXsize), -relheight=>$jclfrheight,
                                                        -relx=>0, -rely=>($dirfrheight+$setfrheight));
 #---
 $jstatbt=$jcl_fram->Button(-text => "CheckJobsStat", -font=>$font2, 
@@ -947,7 +979,7 @@ sub TAUC_Welcome{
   $SessTLabel=$year."-".$month."-".$day."_".$hour.":".$min;
   print "SessTLabel=",$SessTLabel,"\n";
 #
-  $line="       ---------- WELCOME to TimeAmplitudeUniformity calibration !!! ----------\n\n";
+  $line=" ------- WELCOME to TimeAmplitudeUniformity calibration !!! -------\n\n";
   $logtext->insert('end',$line,'BigAttention');
   $logtext->yview('end');
   show_messg("   <--- Session starts at : ".$SessTime."\n");
@@ -1083,7 +1115,7 @@ sub TAUC_Welcome{
     $hour=$ptime->hour;
     $min=$ptime->min;
     $sec=$ptime->sec;
-    $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
+    $time="y/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
     $t1=$time;
 #
     $ptime=localtime($range[1]);#local time of beg-run(imply run# to be UTC-seconds as input)
@@ -1093,10 +1125,10 @@ sub TAUC_Welcome{
     $hour=$ptime->hour;
     $min=$ptime->min;
     $sec=$ptime->sec;
-    $time="yyyy/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
+    $time="y/mm/dd=".$year."/".$month."/".$day." hh:mm:ss=".$hour.":".$min.":".$sec;
     $t2=$time;
 #
-    $line="RunBeg: ".$range[0]."  TimeBeg: ".$t1."  "."RunEnd: ".$range[1]."  TimeEnd: ".$t2."\n";
+    $line="Run/Time-Beg: ".$range[0]."  ".$t1."  "."Run/Time-End: ".$range[1]."  ".$t2."\n";
     $logtext->insert('end',$line);
     $logtext->yview('end');
   }
@@ -1287,6 +1319,7 @@ sub SetDefaultPars
 {
   my ($ptime,$year,$month,$day,$hour,$min,$sec,$time,$line,$fname);
   my ($fn,$w,$ww,$www);
+  my $i,$j;
 #
   $ResetHistFlg=0;
   if($sdtmdfcal!=1 && $tm0slwcal!=1 && $amnormcal!=1){
@@ -1296,6 +1329,10 @@ sub SetDefaultPars
 #
   show_messg("\n\n   <--- Setting Job's default-parameters ... \n");
 #
+  $cfilesloc="101";#def value
+  $usetrd=0;#def "not use TRD"
+  $ncpus="4";#def number of CPUs to use 
+  $Queue2run="1nw";#def queue name the job sould be submitted 
   $CalCode=0;
   $jobctypes=0;#calib-types in job
   $jpar1=0;#(TFRE #8)
@@ -1327,6 +1364,7 @@ sub SetDefaultPars
   if($magstext eq "MagnetON"){
     $jpar7=1;
     $refvel_state="disabled";
+    $rvel_ent->configure(-state=>$refvel_state);
     $usetrd_state="disabled";
     $usetrd_bt->configure(-state=>$usetrd_state);
     $usetrd=0;
@@ -1353,6 +1391,12 @@ sub SetDefaultPars
   $scanbt_state="normal";
   $scanbt->configure(-state=>$scanbt_state);
 #
+$j=1;
+for($i=0;$i<5;$i++){
+  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
+  $j=10*$j;
+}
+#
   $mwnd->update;
 }# ---> endof sub:setRunDefs
 #------------------------------------------------------
@@ -1372,6 +1416,7 @@ sub SetupJob
   my $cmd,$fpath,$lname,$dir,$fn;
   my $dflinksTD=$workdir.$daqflnk;
   my $dflinksSD;
+  my $i,$j;
   $DaqfIndex1=0;
   $DaqfIndex2=0;
   $DaqfSets=0;
@@ -1388,7 +1433,14 @@ sub SetupJob
 #
 #---> set values for job's stable params:
 #
-  $jpar2=$cfilesloc;#DBusage
+  $jpar2=0;#DBusage
+  $j=1;
+  for($i=0;$i<5;$i++){
+    if($TofDBUsePatt[$i]==0){$jpar2+=$j;}#means use RawFile instead DB
+    $j=10*$j;
+  }
+  show_messg("\n   <--- DB-usage parameter: $jpar2 (LQDPC) !\n");
+#
   $jpar3=$refcalsetn;# ref TofClfile number
   if($posstext eq "InSpace"){$jpar4=0;}# space/earth calib
   else{$jpar4=1;}
@@ -1627,7 +1679,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
 	$fdat=substr($fdat,0,16);
 #	print "type=",$type," Dtyp=",$rtype," Conf=",$conf," SubDetPat=",$subdetpat," Rtype=",$rtype,"\n";
 	if($rtype eq $RunType){#<-- use only requested runtype(LAS,SCI,CAL or UNK)
-          $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  Path:".$path."\n";
+          $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  ".$path."\n";
           $logtext->insert('end',$curline);
           $logtext->yview('end');
           $daqfstat[$ndaqfound]=1;#status=found
@@ -1844,6 +1896,7 @@ sub SubmitJob
   my $fn;
   my $ext=substr($CalRun1,-5,5);
   my $jobname=$SessName.$ext;
+  if($Host2run eq "Any"){$Host2run="";}
   if($Host2run eq ""){#<-- means any host
 #    $comm2run="bsub -q $Queue2run -n $jpar8 -o $logf -e $logef  -J $jobname $JobScriptN";
     $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";

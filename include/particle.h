@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.59 2010/04/02 10:34:51 pzuccon Exp $
+//  $Id: particle.h,v 1.60 2010/04/21 08:35:29 choumilo Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -60,6 +60,7 @@ protected:
   number  _CutoffMomentum;
   AMSPoint _Coo;
   AMSPoint _TOFCoo[4];  
+  number   _TOFTLength[4];  
   AMSPoint _AntiCoo[2];
   number   _AntiCrAngle[2][2];//[dir][theta/phi]  
   AMSPoint _EcalCoo[2*ecalconst::ECSLMX];  
@@ -116,6 +117,7 @@ public:
   {
     int i;
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<4;i++)_TOFTLength[i]=0;
     for(i=0;i<2;i++){
       _AntiCoo[i]=AMSPoint(0,0,0);
       _AntiCrAngle[i][0]=AMSDBc::pi/2;//the
@@ -149,6 +151,7 @@ public:
   {
     int i;
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<4;i++)_TOFTLength[i]=0;
     for(i=0;i<2;i++){
       _AntiCoo[i]=AMSPoint(0,0,0);
       _AntiCrAngle[i][0]=AMSDBc::pi/2;//the
@@ -187,6 +190,7 @@ public:
 
   AMSPoint getcoo() {return _Coo;}
   AMSPoint gettofcoo(integer i) {return _TOFCoo[i];}
+  number gettoftlen(integer i) {return _TOFTLength[i];}
   AMSPoint getecalcoo(integer i) {return _EcalCoo[i];}
   AMSBeta*       getpbeta()    const   { return _pbeta;}
   AMSCharge*     getpcharge()  const   { return _pcharge;}

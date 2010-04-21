@@ -73,8 +73,10 @@ $CalfLboxFmt="A11 A9 A3";#for cal-files listbox-description(1strunn dd.hh:mm sta
 #
 $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 #
-
-
+@AMSSetupsList=qw(AMS02PreAss AMS02Ass1 AMS02Space);
+@AMSHostsList=qw(Any ams pcamsr0 pcamsn0 pcamsf3 pcamsj1);
+@AMSQueuesList=qw(1nh 8nh 1nd 1nw 2nw);
+#
 @cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD); 
 #
 $prog2run="";
@@ -140,9 +142,10 @@ $font11="Helvetica 14 bold italic";# for NormMessage
 #
 #-----> create log-file screen:
 #
+$LogfXsize=0.6;
 $log_fr=$mwnd->Frame(-label=>"LogFileFrame", -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.7, -relheight=>0.95,
-                                                      -relx=>0.3, -rely=>0);
+                                                      -relwidth=>$LogfXsize, -relheight=>0.95,
+                                                      -relx=>(1-$LogfXsize), -rely=>0);
 $logtext=$log_fr->Scrolled("Text",
 #                                    -scrollbars=>'osoe',
                                      -width=>120, -height=>200,
@@ -173,8 +176,8 @@ $ctpanel_fr=$mwnd->Frame(-relief=>'groove', -borderwidth=>2,
                                             -background=>red
                                                           )
 					       ->place(
-                                                      -relwidth=>0.7, -relheight=>0.05,
-                                                      -relx=>0.3, -rely=>0.95);
+                                                      -relwidth=>$LogfXsize, -relheight=>0.05,
+                                                      -relx=>(1-$LogfXsize), -rely=>0.95);
 #---> label:
 $ctpanel_fr->Label(-text=>"SessType:",-font=>$font2,-relief=>'groove',
                                                    -background=>yellow,

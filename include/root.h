@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.266 2010/03/24 17:38:38 choutko Exp $
+//  $Id: root.h,v 1.267 2010/04/21 08:35:29 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1937,7 +1937,8 @@ endif
   float PhiGl;          ///< Phi in GTOD coo system (rad)
   float Coo[3];        ///< coo (1st[last] tracker plane) cm
   float Cutoff;       ///<  geomag cutoff in GeV/c, dipole model
-  float TOFCoo[4][3]; ///< track extrapol in tof planes
+  float TOFCoo[4][3]; ///< track extrapol point(x,y,z) in tof planes
+  float TOFTLength[4]; ///< track length till tof planes crossing
   float AntiCoo[2][5]; ///< track extrapol in anti [dir][x/y/z/theta/phi]
   float EcalCoo[3][3]; ///< track extrapol in ecal (enter, cofg, exit)
   float TrCoo[9][3];  ///< track extrapol in tracker planes
@@ -2044,7 +2045,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,6)       //ParticleR
+  ClassDef(ParticleR,7)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
