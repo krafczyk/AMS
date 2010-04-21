@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.210 2010/04/02 10:34:50 pzuccon Exp $
+//  $Id: amsgeom.C,v 1.211 2010/04/21 11:23:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1992,11 +1992,12 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
  coo[2]+=ZShift;
  gid=i+1;
  int ip;
+/*
      printf(" TRD Octagon %s par 1:%f %f %f  4:%f %f %f  7:%f %f %f  10:%f %f %f  13:%f %f %f coo %f %f %f\n",
                    name,par[0],par[1],par[2],par[3],par[4],par[5],par[6],par[7],par[8],par[9],par[10],par[11],par[12],par[13],par[15],
                    coo[0],coo[1],coo[2]
                              );
-
+*/
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
      if(i!=1){

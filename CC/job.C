@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.707 2010/04/21 08:35:18 choumilo Exp $
+// $Id: job.C,v 1.708 2010/04/21 11:23:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2433,7 +2433,6 @@ AMSgObj::BookTimer.book("TrTrack");
 AMSgObj::BookTimer.book("TrTrackPathI");
 AMSgObj::BookTimer.book("TrTrackSimpleFit");
 AMSgObj::BookTimer.book("TrTrackPathIA");
-AMSgObj::BookTimer.book("TrTrackSimpleFit");
 AMSgObj::BookTimer.book("TrTrackFalseTOFX");
 AMSgObj::BookTimer.book("TrFalseX");
   if(CHARGEFITFFKEY.TrkPDFileRead%10>0){//(Q) Take ChargeCalibPDFs(mc|rd) from raw files
