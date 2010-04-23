@@ -1,4 +1,4 @@
-//  $Id: cern.h,v 1.16 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: cern.h,v 1.17 2010/04/23 15:41:07 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __CERN__
@@ -13,6 +13,8 @@
 //CERNLIB part
 //PROTOCCALLSFSUB3(UCOPY,ucopy,FLOATV,FLOATV,INT)
 //#define UCOPY(A,B,I) CCALLSFSUB3(UCOPY,ucopy,FLOATV,FLOATV,INT,A,B,I)
+extern "C" void resetmagstat_();
+extern "C" void zeromagstat_();
 extern "C" void timel_(float & );
 extern "C" void timex_(float & t);
 extern "C" void abinelget_(int &t,geant coo[]);

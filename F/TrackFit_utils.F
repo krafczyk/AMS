@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.36 2010/04/19 13:37:55 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.37 2010/04/23 15:41:06 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.37  2010/04/23 15:41:06  choutko
+* *** empty log message ***
+*
 * Revision 1.36  2010/04/19 13:37:55  choutko
 * fix perm magnet track looping
 *
@@ -197,7 +200,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.36 2010/04/19 13:37:55 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.37 2010/04/23 15:41:06 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4832,12 +4835,12 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
               enddo
              enddo
             enddo
-           if(icase/10.ne.0.or.magstat.le.0.or.point(3).gt.800)then
+           if(icase/10.ne.0.or.magstat2.le.0.or.point(3).gt.800)then
             do i=1,4
              gg(i,5)=0
              gg(5,i)=0
             enddo
-            if(magstat.le.0.or.point(3).gt.800)then
+            if(magstat2.le.0.or.point(3).gt.800)then
               gg(5,5)=0.000001
             endif
            endif
@@ -7806,9 +7809,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.36 2010/04/19 13:37:55 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.37 2010/04/23 15:41:06 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.37  2010/04/23 15:41:06  choutko
+* *** empty log message ***
+*
 * Revision 1.36  2010/04/19 13:37:55  choutko
 * fix perm magnet track looping
 *
@@ -8083,4 +8089,11 @@ C.
       ENDIF
 *
   999 END
-
+       subroutine resetmagstat()
+#include "mfield.h"
+       magstat2=magstat
+      end
+      subroutine zeromagstat()
+#include "mfield.h"
+       magstat2=0
+      end 

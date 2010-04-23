@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.223 2010/04/19 13:37:51 choutko Exp $
+//  $Id: trrec.C,v 1.224 2010/04/23 15:41:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1945,6 +1945,10 @@ next_pattern:
           } else {
             // Get out if we awere not succesful (but why?)
             remove_track(ptrack); 
+            static int ist=0;
+            if(ist++<100){
+              cerr<<"AMSTrTrack::buildpathintegeralWeak-E-addnextfailed "<<endl;
+            }
             //return NTrackFound;
           }
       } else {
@@ -2075,7 +2079,8 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
           return 1;
        }
        else{
-        cerr<<"AMSTrTrack::_Addnext-E-TrackNotAdded "<< ptrack->TOFOK()<<" "<<TRFITFFKEY.Chi2FastFit<<" "<<ptrack->_Ridgidity<<" "<<ptrack->_Chi2FastFit<<endl;;
+        static int  iss=0;
+        if(iss++<100)cerr<<"AMSTrTrack::_Addnext-E-TrackNotAdded "<< ptrack->TOFOK()<<" "<<TRFITFFKEY.Chi2FastFit<<" "<<ptrack->_Ridgidity<<" "<<ptrack->_Chi2FastFit<<endl;;
        }
      }
     }
@@ -3022,6 +3027,7 @@ else ims=1;
      number momentum=pmcg->getmom();
      out[0]=charge/momentum;
     }
+resetmagstat_();
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
 if(fit==0 && ie==0){
 int ml=TKDBc::nlay();

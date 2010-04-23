@@ -1,4 +1,4 @@
-*  $Id: mfield.h,v 1.17 2010/03/21 15:16:38 choutko Exp $
+*  $Id: mfield.h,v 1.18 2010/04/23 15:41:06 choutko Exp $
       integer nx,ny,nz
 c       PARAMETER (nx=41,ny=41,nz=41,nzo=41)
        PARAMETER (nx=41,ny=41,nz=180,nzo=41)
@@ -98,7 +98,8 @@ c      equivalence(rqx(1),rqxr(1,1))
 c      equivalence(rqy(1),rqyr(1,1))      
 c      equivalence(rqz(1),rqzr(1,1))      
 c      real *8 u(1),v(1),w(1),qx(1),qy(1),qz(1),q(1)
-
+       common /magsffkey2/magstat2
+!$OMP threadprivate(/magsffkey2/)
        common/MAGSFFKEY/magstat,fscale,ecutge,r0(3),pitch,yaw,roll,rphi
        integer magstat,rphi
        real fscale,ecutge,r0,pitch,yaw,roll
