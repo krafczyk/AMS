@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.45 2010/04/23 15:41:06 choutko Exp $
+//  $Id: trdrec.C,v 1.46 2010/04/23 15:47:55 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -976,8 +976,6 @@ void AMSTRDTrack::RealFit(){
  
  
 #else
-  int mst=MAGSFFKEY.magstat;
-  MAGSFFKEY.magstat=0;
   zeromagstat_();
   TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
   resetmagstat_();
