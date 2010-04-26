@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.6 2010/02/25 15:06:54 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.7 2010/04/26 09:16:29 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/02/25 15:06:54 $
+///$Date: 2010/04/26 09:16:29 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -272,6 +272,8 @@ int TkSens::GetLayer() {
              z > TkDBc::Head->GetZlayer(7)-toll ) layer = 7; 
   else if (  z < TkDBc::Head->GetZlayer(8)+toll  &&   
              z > TkDBc::Head->GetZlayer(8)-toll ) layer = 8; 
+  else if (  z < TkDBc::Head->GetZlayer(9)+toll  &&   
+             z > TkDBc::Head->GetZlayer(9)-toll ) layer = 9; 
   else    
                                                   layer = 0;
  return layer;	
