@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.77 2010/04/01 10:40:17 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.78 2010/04/27 08:04:19 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2051,7 +2051,7 @@ void TOF2JobStat::printstat(){
     printf("   Anti-sectors multiplicity OK         : % 6d\n",recount[12]);
     printf("   No spike-amplitudes in TOF           : % 6d\n",recount[13]);
     printf("   Primitive TOF-beta range OK          : % 6d\n",recount[14]);
-    printf("   Particle found                       : % 6d\n",recount[15]);
+    printf("   Particle(nonEmptyEnvelop) found      : % 6d\n",recount[15]);
     printf("   ........ with AnyTrack               : % 6d\n",recount[16]);
     printf("   ........ with !=0 pTRD               : % 6d\n",recount[17]);
     printf("   Track status: TRDtrack               : % 6d\n",recount[18]);
@@ -2107,7 +2107,7 @@ void TOF2JobStat::printstat(){
     printf("   Finally AcceptedTrackPart          : % 6d\n",recount[49]);
     printf("   TrackParamsOK(Mom,Chi2,FalsX,..)   : % 6d\n",recount[46]);
     printf(" Including evs with ACC Cros&Fired    : % 6d\n",recount[48]);
-    printf("   TrackParsOK+TofClusters/layer OK   : % 6d\n",recount[23]);
+    printf("              +TofClusters/layer OK   : % 6d\n",recount[23]);
     printf("   TOF-Track matching Good            : % 6d\n",recount[47]);
   }
   printf("\n\n");
@@ -2306,62 +2306,6 @@ void TOF2JobStat::printstat(){
 //
 //----------------------------------------------------------
   if(TFREFFKEY.relogic[0]==1)return;// no reco for tdclinearity-calibr
-//
-  printf("==========> Bars reconstruction report :\n\n");
-//
-  printf("Bar entries with at least one ALIVE side(having [FTtime+smth] + DBok:\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      printf(" % 6d",brcount[ic][0]);
-    }
-    printf("\n\n");
-  }
-//
-  printf("Bars fraction with at least 1 side with COMPLETE(LT & Q & [SumHT]) measurement:\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][1])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("Bars fraction with 'HISTORY-OK' on COMPLETE sides:\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][2])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("Bars fraction with 'bestLT-hit MATCHING'(if required)' on COMPLETE sides :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][3])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("Bar fraction with COMPLETE and HISTORY/MATCHING 'OK' measurements on BOTH sides:\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][4])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
 //---------------------------------------------------------
   printf("============> Channels reconstruction report :\n\n");
 //
@@ -2640,6 +2584,96 @@ void TOF2JobStat::printstat(){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][10])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//----------------------------------------------------------
+//
+  printf("==========> Bars reconstruction report :\n\n");
+//
+  printf("Bar entries with at least one ALIVE side(having [FTtime+smth] + DBok:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      printf(" % 6d",brcount[ic][0]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bars fraction with at least 1 side with COMPLETE(LT & Q & [SumHT]) measurement:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][1])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bars fraction with 'HISTORY-OK' on COMPLETE sides:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][2])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bars fraction with 'bestLT-hit MATCHING'(if required)' on COMPLETE sides :\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][3])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bar fraction with COMPLETE and HISTORY/MATCHING 'OK' measurements on BOTH sides:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][4])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//-------------------------------------------------------
+//
+  printf("==========> Bars TRK-matching report :\n\n");
+//
+  printf("Bar matching entries:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      printf(" % 6d",brcount[ic][5]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bars fraction with Transversal matching OK:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][5]);
+      if(rc>0.)rc=geant(brcount[ic][6])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bars fraction with Transv+Longitudinal matching OK:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][5]);
+      if(rc>0.)rc=geant(brcount[ic][7])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");

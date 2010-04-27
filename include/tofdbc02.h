@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.45 2010/04/01 10:40:34 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.46 2010/04/27 08:04:28 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -378,6 +378,9 @@ private:
 //                               [1] -> "multipl-OK"
 //                               [2] -> "history-OK"
 //                               [3] -> "2-sided history-OK"
+//                               [4] -> "Entries/bar for match-test"
+//                               [5] -> "Tof/Trk transv.MatchOK"
+//                               [6] -> "Tof/Trk transv+long.MatchOK"
 //------
   static integer daqsf[160];//fragment statistics
   static integer cratr[TOF2GC::SCCRAT][30];//raw fmt

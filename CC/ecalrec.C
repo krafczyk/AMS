@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.136 2010/03/23 13:33:11 choumilo Exp $
+//  $Id: ecalrec.C,v 1.137 2010/04/27 08:04:18 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -369,7 +369,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       if(an4qin>a4maxq)a4maxq=an4qin;
       saturf=1.;
       if(an4qin>0){
-        saturf=ECcalib::pmsatf1(0,an4qin);//saturation due to 4xAnodes current(divider)
+//        saturf=ECcalib::pmsatf1(0,an4qin);//saturation due to 4xAnodes current(divider)
         if(ECMCFFKEY.mcprtf>0)HF1(ECHIST+20,geant(an4qin),1.);
       }
 //---

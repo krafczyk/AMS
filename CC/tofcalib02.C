@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.46 2010/03/23 13:33:11 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.47 2010/04/27 08:04:18 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -113,7 +113,7 @@ if(hprtf>0){
   HBOOK1(1503,"TmAmC:MyTofBeatFit Beta(prev.calib)",100,-1.2,1.2,0.);//
   if(hprtf>1)HBOOK1(1504,"TmAmC:Particle multipl. in calib.events",10,0.,10.,0.);
   HBOOK1(1505,"TmAmC:Part.rigidity from TRK(gv)",100,0.,50.,0.);//
-  HBOOK1(1506,"TmAmC:PartBeta(prev.calib)",80,0.4,1.2,0.);// 
+  HBOOK1(1506,"TmAmC:PartBeta(prev.calib)",100,0.7,1.2,0.);// 
   HBOOK1(1507,"TmAmC:PartBetaChi2(based on prev calib)",80,0.,16.,0.);//
   HBOOK1(1508,"TmAmC:PartBetaChi2S(based on prev calib)",80,0.,16.,0.);//
   HBOOK1(1509,"TmAmC:PartTrackChi2",80,0.,40.,0.);//
@@ -1089,9 +1089,9 @@ void TofTmAmCalib::select(){  // calibr. event selection
             ptrack->getParFastFit(chi2,rigid,err,the,phi,C0);
             status=ptrack->getstatus();
             pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
-            pbeta=ppart->getpbeta();
+            pbeta=ppart->getpbeta();//pointer to tof beta
             betpatt=pbeta->getpattern();
-            beta=pbeta->getbeta();
+            beta=pbeta->getbeta();//tof beta
             chi2t=pbeta->getchi2();
             chi2s=pbeta->getchi2S();
             chargeTracker=pcharge->getchargeTracker();
