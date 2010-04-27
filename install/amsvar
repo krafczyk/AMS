@@ -4,7 +4,7 @@ setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 set path=($ROOTSYS/bin /opt/intel/Compiler/11.0/069/bin/ia32/ $path . /usr/sbin  )
 setenv LD_LIBRARY_PATH .:/opt/intel/Compiler/11.0/069/idb/lib/ia32/:/opt/intel/Compiler/11.0/069/lib/ia32/:$ROOTSYS/lib:/opt/intel/compiler80/lib
 setenv CVSROOT $Offline/CVS
-setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
+#setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
 setenv CVS_RSH ssh
 setenv ProductionRunsDir /s0dat0/Data/Deframing
 setenv AMSDataDir $Offline/AMSDataDirRW

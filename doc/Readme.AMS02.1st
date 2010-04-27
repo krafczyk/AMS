@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.55 2007/06/13 14:44:03 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.56 2010/04/27 07:38:24 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -67,14 +67,7 @@ b) As a developper :
   ii)           source $Offline/vdev/install/amsvar 
                  to setup AMS related variables
         
-  iii) Get a password for cvs server by
-      log in ams.cern.ch
-      cat ~ams/cvsams/.cvsams
-
-   iv) Either see http://ams.cern.ch/cgi-bin/viewcvs.cgi/ 
-      with username amscvs and "access from web" password in iii)  or do
-#      cvs login    (with "interactive access" password)
-      cvs checkout AMS  
+      cvs co AMS  
       enter  your afs password if required                   
           To synchronize your local copy with cvs rep:
           cvs update -d 
