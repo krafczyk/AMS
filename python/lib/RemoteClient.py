@@ -2678,7 +2678,7 @@ class RemoteClient:
             sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job' and jobs.jid=%s.jid %s %s  " %(runsname,dataset,runsname,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql=" delete from (select jobs.* from %s,jobs where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,runsname,dataset,runst,rund)
+            sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s%%' and datamc=%d %s " %(datapath,datamc,runn)
