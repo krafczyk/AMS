@@ -2627,7 +2627,7 @@ class RemoteClient:
             </table>
             </HR>
             """
-    def DeleteDataSet(self,run2p,dataset,u,v,f,donly):
+    def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc):
         self.update=u
         self.verbose=v
         self.run2p=run2p
@@ -2635,15 +2635,27 @@ class RemoteClient:
         rund=""
         runn=""
         runst=" "
-        if(self.force!=0):
-            runst=" and dataruns.status='Completed' "
-        if(run2p!=0):
-            rund=" and dataruns.run=%d " %(run2p)
-            runn=" and ntuples.run=%d " %(run2p)
-        if(run2p<0):
-            rund=" and dataruns.run>=%d " %(-run2p)
-            runn=" and ntuples.run>=%d " %(-run2p)
-        sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=1 %s " %(dataset,runn) 
+        runsname="" 
+        if(datamc==1):
+            runsname="dataruns"
+            if(self.force!=0):
+                runst=" and dataruns.status='Completed' "
+            if(run2p!=0):
+                rund=" and dataruns.run=%d " %(run2p)
+                runn=" and ntuples.run=%d " %(run2p)
+            if(run2p<0):
+                rund=" and dataruns.run>=%d " %(-run2p)
+                runn=" and ntuples.run>=%d " %(-run2p)
+        else:
+            runsname="runs"
+            runst=" and runs.status='Completed' "
+            if(run2p!=0):
+                rund=" and runs.run=%d " %(run2p)
+                runn=" and ntuples.run=%d " %(run2p)
+            if(run2p<0):
+                rund=" and runs.run>=%d " %(-run2p)
+                runn=" and ntuples.run>=%d " %(-run2p)
+        sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=%d %s " %(dataset,datamc,runn) 
         files=self.sqlserver.Query(sql)
         datapath=dataset
         ds1=""
@@ -2663,16 +2675,13 @@ class RemoteClient:
             print " found / while did -1 , return "
             return
         if(len(files)>0 or self.force!=0):
-            sql="insert into jobs_deleted select jobs.* from jobs,dataruns where jobs.jobname like '%%%s.job' and jobs.jid=dataruns.jid %s %s  " %(dataset,runst,rund)
+            sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job' and jobs.jid=%s.jid %s %s  " %(runsname,dataset,runsname,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql="delete from (select dataruns.* from dataruns,jobs where dataruns.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(dataset,runst,rund)
+            sql=" delete from (select jobs.* from %s,jobs where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,runsname,dataset,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql="delete from   (select jobs.* from dataruns,jobs  where dataruns.jid=jobs.jid and jobs.jobname like '%%%s%%'  %s %s )" %(dataset,runst,rund) 
-            if(donly==0):
-                self.sqlserver.Update(sql)
-            sql="DELETE from ntuples where path like '%%%s%%' and datamc=1 %s " %(datapath,runn)
+            sql="DELETE from ntuples where path like '%%%s%%' and datamc=%d %s " %(datapath,datamc,runn)
             self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:
