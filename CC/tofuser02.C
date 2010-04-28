@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.37 2010/04/27 08:04:19 choumilo Exp $
+//  $Id: tofuser02.C,v 1.38 2010/04/28 09:33:38 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -230,10 +230,10 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   }
   if(ecshnum==1){// only use event with one shower
     ptsh=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0);
-//    ecshen=ptsh->getEnergy();
     ecshen=ptsh->getEnergyC();
     HF1(5050,ecshen,1.);
     HF1(5051,ecshen,1.);
+    HF1(5052,ecshen,1.);
   }
 //
 // ========================================> check Anti-counter :
@@ -1222,8 +1222,9 @@ void TOF2User::InitJob(){
     HBOOK1(5042,"TofUser:L=3,Fired RawCl bar number",14,1.,15.,0.);
     HBOOK1(5043,"TofUser:L=4,Fired RawCl bar number",14,1.,15.,0.);
     
-    HBOOK1(5050,"EcUser:ShowerEnergy(gev)",100,0.,100.,0.);
-    HBOOK1(5051,"EcUser:ShowerEnergy(gev)",100,100.,300.,0.);
+    HBOOK1(5050,"EcUser:ShowerEnergy(gev)",100,0.,1.,0.);
+    HBOOK1(5051,"EcUser:ShowerEnergy(gev)",100,0.,100.,0.);
+    HBOOK1(5052,"EcUser:ShowerEnergy(gev)",100,0.,400.,0.);
   }
   return;
 }
@@ -1462,6 +1463,7 @@ void TOF2User::EndJob(){
 //
   HPRINT(5050);  
   HPRINT(5051);
+  HPRINT(5052);
 //  
   return;
 }

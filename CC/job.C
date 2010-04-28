@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.708 2010/04/21 11:23:24 choutko Exp $
+// $Id: job.C,v 1.709 2010/04/28 09:33:22 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -808,7 +808,7 @@ FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_siecaldata(){
   ECMCFFKEY.fastsim=0;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
   ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
-  ECMCFFKEY.cutge=0.00025;    //(3) cutgam=cutele cut for EC_volumes
+  ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
