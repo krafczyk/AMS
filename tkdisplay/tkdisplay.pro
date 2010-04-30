@@ -1,4 +1,4 @@
-# $Id: tkdisplay.pro,v 1.5 2010/01/18 11:17:00 shaino Exp $
+# $Id: tkdisplay.pro,v 1.6 2010/04/30 15:43:45 pzuccon Exp $
 #
 # Project file for TkDisplay on Qt4
 # Run qmake first to generate Makefile
@@ -39,14 +39,14 @@ LIBS         += ../lib/macosx/libntuple_slc4.a \
                 -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet \
                 -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript \
                 -lMatrix -lPhysics -lMathCore -lThread -lfreetype -pthread \
-                -lNetx -lTreePlayer -lm -ldl
+                -lNetx -lMinuit -lTreePlayer -lm -ldl
 }
 else {
 LIBS         += $(AMSWD)/lib/linux/libntuple_slc4_PG.a \
                 -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet \
                 -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript \
                 -lMatrix -lPhysics -lMathCore -lThread -pthread \
-                -lNetx -lTreePlayer -lm -ldl -rdynamic
+                -lNetx -lMinuit -lTreePlayer -lm -ldl -rdynamic
 }
 
 OBJECTS_DIR   = obj

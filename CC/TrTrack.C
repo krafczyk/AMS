@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.28 2010/04/07 09:27:12 shaino Exp $
+// $Id: TrTrack.C,v 1.29 2010/04/30 15:43:45 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/04/07 09:27:12 $
+///$Date: 2010/04/30 15:43:45 $
 ///
-///$Revision: 1.28 $
+///$Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -632,6 +632,8 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
 
   TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
   length = tprop.Interpolate(pnt, dir);
+  //PZ bugfix lenght must be signed for beta calculation.
+  if(pnt[2]<0)length*=-1;
   P1     = pnt;
   theta  = dir.gettheta();
   phi    = dir.getphi();
