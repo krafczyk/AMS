@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.709 2010/04/28 09:33:22 choumilo Exp $
+// $Id: job.C,v 1.710 2010/04/30 15:00:10 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2872,7 +2872,8 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
 
  if(strstr(getsetup(),"AMS02P")){
  
-   sprintf( bmap_fname,"MagneticFieldMapPermanent.bin");
+   sprintf( bmap_fname,"MagneticFieldMapPermanent_NEW.bin");
+   //sprintf( bmap_fname,"MagneticFieldMapPermanent.bin");
    pp->SetScale(1.);
  
  }else{

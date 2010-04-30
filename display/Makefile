@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.52 2009/12/13 13:30:44 pzuccon Exp $
+#  $Id: Makefile,v 1.53 2010/04/30 15:00:10 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -28,7 +28,7 @@ endif
 # display compiles only with customized ROOT, at the moment v5.21
 NEW         :=_new
 
-VER          := $(shell $(ROOTSYS)/bin/root-config --version )
+VER          := $(shell $(ROOTSYS)/bin/root-config --version ) -lMinuit
 
 
 ifeq ($(ARCH),linuxicc)
@@ -70,7 +70,7 @@ LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 

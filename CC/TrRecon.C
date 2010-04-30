@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.44 2010/04/05 21:22:35 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.45 2010/04/30 15:00:10 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/04/05 21:22:35 $
+/// $Date: 2010/04/30 15:00:10 $
 ///
-/// $Revision: 1.44 $
+/// $Revision: 1.45 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2141,12 +2141,12 @@ void TrRecon::GetTkFld(float *pos, float **hxy)
       hxy[ii][jj]=hh[jj][ii];
 }
 
-void TrRecon::MagFieldCorr(AMSPoint pp, AMSPoint bc)
-{
-#ifdef __ROOTSHAREDLIBRARY__
-  MagField::GetPtr()->AddBcor(pp, bc);
-#endif
-}
+//void TrRecon::MagFieldCorr(AMSPoint pp, AMSPoint bc)
+//{
+//#ifdef __ROOTSHAREDLIBRARY__
+//  MagField::GetPtr()->AddBcor(pp, bc);
+//#endif
+//}
 
 int TrRecon::GetTrackerSize()
 {

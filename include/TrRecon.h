@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.27 2010/04/05 21:22:39 shaino Exp $ 
+// $Id: TrRecon.h,v 1.28 2010/04/30 15:00:11 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/04/05 21:22:39 $
+/// $Date: 2010/04/30 15:00:11 $
 ///
-/// $Revision: 1.27 $
+/// $Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -596,7 +596,7 @@ public:
   /// TrField::TkFld() called from ROOT CINT
   static void GetTkFld(float *pos, float **hxy);
   /// Add magnetic field correction
-  static void MagFieldCorr(AMSPoint pp, AMSPoint bc);
+//  static void MagFieldCorr(AMSPoint pp, AMSPoint bc);
 
   /// Get Tracker Data size in current event
   static int GetTrackerSize();

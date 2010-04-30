@@ -1,7 +1,6 @@
-//  $Id: MagField.h,v 1.9 2010/04/02 14:04:45 pzuccon Exp $
+//  $Id: MagField.h,v 1.10 2010/04/30 15:00:10 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
-
 #include "typedefs.h"
 
 
@@ -63,14 +62,16 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/04/02 14:04:45 $
+///$Date: 2010/04/30 15:00:10 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 class magserv {
 private:
+  // map type;  type=1 just one octant; type !=1 standard
+  int _type;
   float*  x;
   float*  y;
   float*  z;
@@ -84,65 +85,57 @@ private:
   float* bdy;
   float* bdz;
 
-  float* xyz;
 
-  float* bxc;
-  float* byc;
-  float* bzc;
+ //  float* bxc;
+//   float* byc;
+//   float* bzc;
 
-public:
+  // the real map size
   int _nx;
   int _ny;
   int _nz;
+  int getsign(int i,int j,int k,int oo, int ll=-1);
+
+public:
+  int getindex(int i,int j,int k);
+
+  int nx() { return (_type==1)?(_nx*2-1):_nx;}
+  int ny() { return (_type==1)?(_ny*2-1):_ny;}
+  int nz() { return (_type==1)?(_nz*2-1):_nz;}
 
   double  _dx;     ///< Element size in X (cm)
   double  _dy;     ///< Element size in Y (cm)
   double  _dz;     ///< Element size in Z (cm)
 
 
-  magserv(int nx, int ny, int nz);
+  magserv(int nx, int ny, int nz,int type);
   ~magserv();
 
-  float * _x() {return x;}
-  float * _y() {return y;}
-  float * _z() {return z;}
-
-  float * _bx() {return bx;}
-  float * _by() {return by;}
-  float * _bz() {return bz;}
-
-  float * _bdx() {return bdx;}
-  float * _bdy() {return bdy;}
-  float * _bdz() {return bdz;}
-
-  float * _bxc() {return bx;}
-  float * _byc() {return by;}
-  float * _bzc() {return bz;}
-
-  float * _xyz() {return xyz;}
 
 
-  float _x(int i) {return x[i];}
-  float _y(int i) {return y[i];}
-  float _z(int i) {return z[i];}
 
-  float _xyz(int i) {return xyz[i];}
+  float _x(int i) {int sigx=((1-_nx+i)>=0)?1:-1;  return (_type==1)?sigx*x[abs(1-_nx+i)]:x[i];}
+  float _y(int j) {int sigx=((1-_ny+j)>=0)?1:-1;  return (_type==1)?sigx*y[abs(1-_ny+j)]:y[j];}
+  float _z(int k) {int sigx=((1-_nz+k)>=0)?1:-1;  return (_type==1)?sigx*z[abs(1-_nz+k)]:z[k];}
+
   
   
-  float _bx(int i, int j, int k){ return bx[i*_nx*_ny+ j*_nx + k];}
-  float _by(int i, int j, int k){ return by[i*_nx*_ny+ j*_nx + k];}
-  float _bz(int i, int j, int k){ return bz[i*_nx*_ny+ j*_nx + k];}
+  float _bx(int i, int j, int k){ return getsign(i,j,k,0)*bx[getindex(i,j,k)];}
+  float _by(int i, int j, int k){ return getsign(i,j,k,1)*by[getindex(i,j,k)];}
+  float _bz(int i, int j, int k){ return getsign(i,j,k,2)*bz[getindex(i,j,k)];}
 
-  float _bdx(int l,int i, int j, int k){ return bx[l*_nx*_ny*_nz+i*_nx*_ny+ j*_nx + k];}
-  float _bdy(int l,int i, int j, int k){ return by[l*_nx*_ny*_nz+i*_nx*_ny+ j*_nx + k];}
-  float _bdz(int l,int i, int j, int k){ return bz[l*_nx*_ny*_nz+i*_nx*_ny+ j*_nx + k];}
+  float _bdx(int l,int i, int j, int k){ return getsign(i,j,k,0,l)*bdx[l*_nx*_ny*_nz+getindex(i,j,k)];}
+  float _bdy(int l,int i, int j, int k){ return getsign(i,j,k,1,l)*bdy[l*_nx*_ny*_nz+getindex(i,j,k)];}
+  float _bdz(int l,int i, int j, int k){ return getsign(i,j,k,2,l)*bdz[l*_nx*_ny*_nz+getindex(i,j,k)];}
 
-  float _bxc(int i, int j, int k){ return bxc[i*_nx*_ny+ j*_nx + k];}
-  float _byc(int i, int j, int k){ return byc[i*_nx*_ny+ j*_nx + k];}
-  float _bzc(int i, int j, int k){ return bzc[i*_nx*_ny+ j*_nx + k];}
+//   float _bxc(int i, int j, int k){ return bxc[i*_nx*_ny+ j*_nx + k];}
+//   float _byc(int i, int j, int k){ return byc[i*_nx*_ny+ j*_nx + k];}
+//   float _bzc(int i, int j, int k){ return bzc[i*_nx*_ny+ j*_nx + k];}
 
    /// Read field map file
    int Read(const char* fname,int skip);
+
+
 
 };
 
@@ -190,7 +183,6 @@ public:
   /// Get field derivative
   void TkFld(float *x, float hxy[][3]);
 
-  void AddBcor(AMSPoint x, AMSPoint db);
 
   /// Get self pointer
   static MagField *GetPtr(void) {
@@ -206,7 +198,7 @@ public:
   int GetSizeForDB(){
     if(!mm) return 0;
     int siz= sizeof(isec[0])*15+sizeof(mm->_x(0))*
-      ((mm->_nx*mm->_ny*mm->_nz)*12+2*(mm->_nx+mm->_ny+mm->_nz));
+      ((mm->nx()*mm->ny()*mm->nz())*12+2*(mm->nx()+mm->ny()+mm->nz()));
     return siz;
   }
 
@@ -219,7 +211,8 @@ public:
 
 protected:
   /// Interpolation (for xyz coordinate)
-  void _Fint(double x, double y, double z, int *index, double *weight);
+  // Return 1 if ok, return 0 if outside the grid
+  int _Fint(double x, double y, double z, int index[][3], double *weight);
 
   /// Interpolation (for rphiz coordinate)
   void _FintRphi(double r, double ph, double z, int *index, double *weight);

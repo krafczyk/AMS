@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.9 2010/04/02 14:04:44 pzuccon Exp $
+// $Id: MagField.C,v 1.10 2010/04/30 15:00:10 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/04/02 14:04:44 $
+///$Date: 2010/04/30 15:00:10 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -22,6 +22,8 @@
 
 #include "MagField.h"
 #ifdef _PGTRACK_
+
+#define SIGN(A) ((A>=0)?1:-1)
 
 
 MAGSFFKEY_DEF MAGSFFKEY;
@@ -77,7 +79,7 @@ MagField *MagField::_ptr = 0;
 MagField::MagField(void)
 {
   iniok=0;
-
+  fscale=1;
   for(int ii=0;ii<2;ii++)
     isec[ii]=imin[ii]=ihour[ii]=iday[ii]=imon[ii]=iyear[ii]=0;
   na[0]=na[1]=na[2]=0;
@@ -103,7 +105,12 @@ int MagField::Read(const char *fname)
   fin.read(cheader, 4*_header_size);
   fin.close();
 
-  mm= new magserv(na[0],na[1],na[2]);
+  int type=0;
+  printf("MagField::Read-I- found a map of type "); 
+  if(na[0]/10000){ na[0]=na[0]%10000; type=1;printf(" 1st Octant ");}
+  else printf(" Full ");
+  printf(" and Size %d %d %d\n",na[0],na[1],na[2]);
+  mm= new magserv(na[0],na[1],na[2],type);
 
   return   mm->Read(fname,_header_size);
   
@@ -129,26 +136,24 @@ void MagField::GuFld(float *xx, float *b)
   double az = xx[2];
   //az *= MISCFFKEY.BZCorr;
 
-  int idx[8];
+  int idx[8][3];
   double ww[8];
-  _Fint(ax, ay, az, idx, ww);
-
-  float *mbx = mm->_bx();
-  float *mby = mm->_by();
-  float *mbz = mm->_bz();
+  // Get the point for the interpolation
+  // if outside the grid return 0 field
+  if(!_Fint(ax, ay, az, idx, ww)) return;;
 
   for (int i = 0; i < 8; i++) {
-    b[0] += mbx[idx[i]]*ww[i];
-    b[1] += mby[idx[i]]*ww[i];
-    b[2] += mbz[idx[i]]*ww[i];
+    b[0] += mm->_bx(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
+    b[1] += mm->_by(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
+    b[2] += mm->_bz(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
   }
 
   //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
-   for (int i = 0; i < 3; i++) b[i] *= fscale;
+  for (int i = 0; i < 3; i++) b[i] *= fscale;
 
-   //printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
-   //	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
-
+  //printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
+  //	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
+  
 }
 
 // void MagField::GuFldRphi(float *xx, float *b)
@@ -191,7 +196,7 @@ void MagField::TkFld(float *xx, float hxy[][3])
 {
   hxy[0][0] = hxy[0][1] = hxy[0][2] = 
   hxy[1][0] = hxy[1][1] = hxy[1][2] = 0;
-  if (MAGSFFKEY.magstat <= 0 || !mm || !mm->_bx() || !mm->_by() || !mm->_bz()) return;
+  if (MAGSFFKEY.magstat <= 0 || !mm ) return;
   //  PZ FORCE RECTANGULAR if (MAGSFFKEY.rphi) return;
 
   double ax = xx[0];
@@ -199,56 +204,45 @@ void MagField::TkFld(float *xx, float hxy[][3])
   double az = xx[2];
   //az *= MISCFFKEY.BZCorr;
 
-  int idx[8];
+  int idx[8][3];
   double ww[8];
-  _Fint(ax, ay, az, idx, ww);
-
-  int _nb = mm->_nx*mm->_ny*mm->_nz;
-
-  float *mbdx=mm->_bdx();
-  float *mbdy=mm->_bdy();
-  float *mbdz=mm->_bdz();
+  // Get the point for the interpolation
+  // if outside the grid return 0 field
+  if(!_Fint(ax, ay, az, idx, ww)) return;
 
   for (int i = 0; i < 8; i++) {
-    hxy[0][0] += mbdx[idx[i]]*ww[i]; hxy[1][0] += mbdx[idx[i]+_nb]*ww[i];
-    hxy[0][1] += mbdy[idx[i]]*ww[i]; hxy[1][1] += mbdy[idx[i]+_nb]*ww[i];
-    hxy[0][2] += mbdz[idx[i]]*ww[i]; hxy[1][2] += mbdz[idx[i]+_nb]*ww[i];
+    hxy[0][0] += mm->_bdx(0,idx[i][0],idx[i][1],idx[i][2])*ww[i]; 
+    hxy[1][0] += mm->_bdx(1,idx[i][0],idx[i][1],idx[i][2])*ww[i]; 
+
+    hxy[0][1] += mm->_bdy(0,idx[i][0],idx[i][1],idx[i][2])*ww[i]; 
+    hxy[1][1] += mm->_bdy(1,idx[i][0],idx[i][1],idx[i][2])*ww[i]; 
+
+    hxy[0][2] += mm->_bdz(0,idx[i][0],idx[i][1],idx[i][2])*ww[i]; 
+    hxy[1][2] += mm->_bdz(1,idx[i][0],idx[i][1],idx[i][2])*ww[i]; 
   }
 
 }
 
-void MagField::AddBcor(AMSPoint xx, AMSPoint db)
-{
-  if(!mm) return;
-  int idx = _GetIndex(xx.x(), xx.y(), xx.z());
-  int _nb = mm->_nx*mm->_ny*mm->_nz;
-  if (idx < 0 || _nb <= idx) return;
-
-  float *mbx = mm->_bx();
-  float *mby = mm->_by();
-  float *mbz = mm->_bz();
-
-  mbx[idx] += db.x();
-  mby[idx] += db.y();
-  mbz[idx] += db.z();
-}
-
-void MagField::_Fint(double x, double y, double z, int *index, double *weight)
+int  MagField::_Fint(double x, double y, double z, int index[][3], double *weight)
 {
   for (int i = 0; i < 8; i++) {
-    index [i] = 0;
+    index [i][0] = 0;    index [i][1] = 0;    index [i][2] = 0;
     weight[i] = 0;
   }
-  if(!mm) return;
+  if(!mm) return 0;
 
-  int _nb = mm->_nx*mm->_ny*mm->_nz;
+  //Get the grid point near to the hit 
+  int ix = (int)((x-mm->_x(0))/mm->_dx);
+  int iy = (int)((y-mm->_y(0))/mm->_dy);
+  int iz = (int)((z-mm->_z(0))/mm->_dz);
+  //  printf(" Point %f %f %f grid %d %d %d index %d\n",x,y,z,ix,iy,iz,mm->getindex(ix,iy,iz));
+  // check if we are inside the map
 
-  int idx0 = _GetIndex(x, y, z);
-  if (idx0 < 0 || _nb <= idx0) return;
-
-  int ix = idx0    %mm->_nx; if (ix >= mm->_nx-1) ix = mm->_nx-2;
-  int iy = idx0/mm->_nx%mm->_ny; if (iy >= mm->_ny-1) iy = mm->_ny-2;
-  int iz = idx0/mm->_nx/mm->_ny; if (iz >= mm->_nz-1) iz = mm->_nz-2;
+  if(
+     ix<0 || ix>=(mm->nx()-1) ||
+     iy<0 || iy>=(mm->ny()-1) ||
+     iz<0 || iz>=(mm->nz()-1) 
+     ) return 0;
 
   double dx[2], dy[2], dz[2];
   dx[1] = (x-mm->_x(ix))/(mm->_x(ix+1)-mm->_x(ix)); dx[0] = 1-dx[1];
@@ -259,10 +253,13 @@ void MagField::_Fint(double x, double y, double z, int *index, double *weight)
   for (int k = 0; k < 2; k++)
     for (int j = 0; j < 2; j++)
       for (int i = 0; i < 2; i++) {
-	index [l] = _Index(ix+i, iy+j, iz+k);
+	index [l][0] = ix+i;
+	index [l][1] =iy+j;
+	index [l][2] =iz+k;
 	weight[l] = dx[i]*dy[j]*dz[k];
 	l++;
       }
+  return 1;
 }
 
 // void MagField::_FintRphi(double r, double ph, double z, 
@@ -299,27 +296,8 @@ void MagField::_Fint(double x, double y, double z, int *index, double *weight)
 //       }
 //  }
 
-int MagField::_GetIndex(double x, double y, double z) const
-{
-  
-  if (!mm || !mm->_x() || !mm->_y() || !mm->_z()) return -1;
-
-  int ix = (int)((x-mm->_x(0))/mm->_dx);
-  int iy = (int)((y-mm->_y(0))/mm->_dy);
-  int iz = (int)((z-mm->_z(0))/mm->_dz);
-
-  return _Index(ix, iy, iz);
-}
 
 
-
-
-
-inline int MagField::_Index(int i, int j, int k) const
-{
-    return (0 <= i && i < mm->_nx && 0 <= j && j < mm->_ny && 0 <= k && k < mm->_nz) 
-          ? (k*mm->_ny+j)*mm->_nx+i : -1; 
-}
 
 
 
@@ -329,26 +307,49 @@ void MagField::Print(){
   printf("mfile  %s \n",mfile);
   printf("iniok  %d \n",iniok);
   if(!mm) return;
-  for (int ix=0;ix<mm->_nx;ix++)
-    for (int iy=0;iy<mm->_ny;iy++)
-      for (int iz=0;iz<mm->_nz;iz++)
+  for (int ix=0;ix<mm->nx();ix++)
+    for (int iy=0;iy<mm->ny();iy++)
+      for (int iz=0;iz<mm->nz();iz++)
 	
-	printf(" %2d %2d %2d X: %+6.1f Y: %+6.1f Z: %+6.1f BX: %+f BY: %+f BZ: %+f BdX0: %+f BdY0: %+f BdZ0: %+f BdX1: %+f BdY1: %+f BdZ1: %+f  BcX0: %+f BcY0: %+f BcZ0: %+f \n",
+	printf(" %2d %2d %2d X: %+6.1f Y: %+6.1f Z: %+6.1f BX: %+f BY: %+f BZ: %+f BdX0: %+f BdY0: %+f BdZ0: %+f BdX1: %+f BdY1: %+f BdZ1: %+f  \n",
 	       ix,iy,iz,mm->_x(ix),mm->_y(iy),mm->_z(iz),mm->_bx(iz,iy,ix),mm->_by(iz,iy,ix),mm->_bz(iz,iy,ix),
 	       mm->_bdx(0,iz,iy,ix),mm->_bdy(0,iz,iy,ix),mm->_bdz(0,iz,iy,ix),
-	       mm->_bdx(1,iz,iy,ix),mm->_bdy(1,iz,iy,ix),mm->_bdz(1,iz,iy,ix),
-	       mm->_bxc(iz,iy,ix),mm->_byc(iz,iy,ix),mm->_bzc(iz,iy,ix));
-
-
-
-
-
+	       mm->_bdx(1,iz,iy,ix),mm->_bdy(1,iz,iy,ix),mm->_bdz(1,iz,iy,ix));
+  //	       mm->_bxc(iz,iy,ix),mm->_byc(iz,iy,ix),mm->_bzc(iz,iy,ix));
 }
 
 
+//================================================================================
+//================================================================================
+//================================================================================
 
 
-
+int magserv::getindex(int i,int j,int k){
+  if (_type==1){
+    int i2 = 1 - _nx + i;
+    int j2 = 1 - _ny + j;
+    int k2 = 1 - _nz + k;
+    return abs(k2)*_nx*_ny+ abs(j2)*_nx + abs(i2);
+  }
+  else{
+    return k*_nx*_ny+ j*_nx + i;
+    
+  }
+}
+int magserv::getsign(int i,int j,int k,int oo,int ll){
+  if (_type==1){
+    int ijk[3];
+    ijk[0] = 1 - _nx + i;
+    ijk[1] = 1 - _ny + j;
+    ijk[2] = 1 - _nz + k;
+    if(ll>-1)
+      return SIGN(ijk[0])*SIGN(ijk[oo])*SIGN(ll);
+    else
+      return SIGN(ijk[0])*SIGN(ijk[oo]);
+  }
+  else
+    return 1;
+}
 
 int magserv::Read(const char *fname, int skip){
   std::ifstream fin(fname);
@@ -407,11 +408,13 @@ int magserv::Read(const char *fname, int skip){
   fin.read(cdata, 4*dsize);
   stot += 4*dsize;
 
-  cdata = (char *)xyz;
-  dsize = _nn;
-  fin.read(cdata, 4*dsize);
-  stot += 4*dsize;
-
+  if(_type!=1){
+    cdata = new char[4*_nn];
+    dsize = _nn;
+    fin.read(cdata, 4*dsize);
+    stot += 4*dsize;
+    if(cdata) delete[] cdata;
+  }
   cdata = (char *)bdx;
   dsize = 2*_nb;
   fin.read(cdata, 4*dsize);
@@ -449,8 +452,8 @@ int magserv::Read(const char *fname, int skip){
 
 
 
-magserv::magserv(int nx, int ny, int nz)
-  :_nx(nx),_ny(ny),_nz(nz){
+magserv::magserv(int inx, int iny, int inz,int type)
+  :_type(type),_nx(inx),_ny(iny),_nz(inz){
   
   x   = new float[_nx];
   y   = new float[_ny];
@@ -460,15 +463,14 @@ magserv::magserv(int nx, int ny, int nz)
   by  = new float[_nx*_ny*_nz] ;
   bz  = new float[_nx*_ny*_nz] ;
   
-  xyz = new float[_nx+_ny+_nz] ;
   
   bdx  = new float[2*_nx*_ny*_nz] ;
   bdy  = new float[2*_nx*_ny*_nz] ;
   bdz  = new float[2*_nx*_ny*_nz] ;
   
-  bxc  = new float[_nx*_ny*_nz] ;
-  byc  = new float[_nx*_ny*_nz] ;
-  bzc  = new float[_nx*_ny*_nz] ;
+//   bxc  = new float[_nx*_ny*_nz] ;
+//   byc  = new float[_nx*_ny*_nz] ;
+//   bzc  = new float[_nx*_ny*_nz] ;
   _dx=1;  _dy=1;  _dz=1;
   
 }
@@ -484,7 +486,6 @@ magserv::~magserv(){
   if(by) delete[] by;
   if(bz) delete[] bz;
   
-  if(xyz) delete[] xyz;
   
   
   if(bdx) delete[] bdx;
@@ -492,11 +493,22 @@ magserv::~magserv(){
   if(bdz) delete[] bdz;
   
   
-  if(bxc) delete[] bxc;
-  if(byc) delete[] byc;
-  if(bzc) delete[] bzc;
+//   if(bxc) delete[] bxc;
+//   if(byc) delete[] byc;
+//   if(bzc) delete[] bzc;
   
 }
+
+// float magserv::_x(int i){
+//   float aa;
+//   if(_type==1){
+//     int sigx=((1-_nx+i)>=0)?1:-1;
+//     aa=x[abs(1-_nx+i)]*sigx;
+//   }
+//   else aa=x[i];
+  
+//   return aa;
+// }
 
 
 
