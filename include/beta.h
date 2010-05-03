@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.17 2010/04/30 15:43:45 pzuccon Exp $
+//  $Id: beta.h,v 1.18 2010/05/03 08:38:07 shaino Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -32,7 +32,7 @@ protected:
   static bool BadBetaAlreadyExists(int npatb);
 #ifdef _PGTRACK_
   static AMSTrTrack* FindFalseTrackForBeta(integer refit);
-  static int AMSBeta::BuildBeta(AMSTrTrack* ptrack);
+  static int BuildBeta(AMSTrTrack* ptrack);
 
 #endif
 public:
