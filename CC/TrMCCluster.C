@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.5 2009/09/13 12:33:52 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.6 2010/05/03 08:00:24 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2009/09/13 12:33:52 $
+///$Date: 2010/05/03 08:00:24 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -156,7 +156,7 @@ void TrMCClusterR::_PrepareOutput(int full)
 {
 
   sout.clear();
-  sout.append(Form("Part: %d tkid: %+03d Sens: %d X:%f Y%f z%f  Px: %f Py: %f Pz: %f\n",
+  sout.append(Form("Part: %2d  tkid: %+04d  Sens: %2d    X:%f Y:%f Z:%f    Px: %f Py: %f Pz: %f\n",
 		   _itra,GetTkId(),GetSensor(),
 		   _xca[0],_xca[1],_xca[2],_Momentum[0],_Momentum[1],_Momentum[2]));
   

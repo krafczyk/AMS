@@ -1,35 +1,20 @@
-//  $Id: event_tk.C,v 1.17 2010/04/02 10:34:50 pzuccon Exp $
+//  $Id: event_tk.C,v 1.18 2010/05/03 08:00:24 oliva Exp $
 #include "TrRecon.h"
+#include "TrSim.h"
 #include "TkSens.h"
 
 
 void AMSEvent::_sitkinitevent(){
-
-  AMSEvent::gethead()->add (
-			    new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
+  // printf("AMSEvent::_sitkinitevent()\n");
+  AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
  
 void AMSEvent::_retkinitevent(){
-
-
-
-
-    AMSEvent::gethead()->add (
-			      new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",0),0));
-
- 
-    AMSEvent::gethead()->add (
-			      new AMSContainer(AMSID("AMSContainer:AMSTrCluster",0),0));
-    
-    AMSEvent::gethead()->add (
-			      new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",0),0));
-    
-    AMSEvent::gethead()->add (
-			      new AMSContainer(AMSID("AMSContainer:AMSTrTrack",0),0));
-
-    AMSEvent::gethead()->add (
- 			      new AMSContainer(AMSID("AMSContainer:AMSVtx",0),0));
-
+  AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",0),0));
+  AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrCluster",0),0));
+  AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",0),0));
+  AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrTrack",0),0));
+  AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSVtx",0),0));
 }
  
 
@@ -314,43 +299,6 @@ void AMSEvent::_retkevent(integer refit){
 	}
       }
     }   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     trk = (AMSTrTrack *)trk->next();
   }
 
@@ -360,6 +308,8 @@ void AMSEvent::_retkevent(integer refit){
 
 
 void AMSEvent::_sitkinitrun(){
+  // printf("AMSEvent::_sitkinitrun()\n");
+
 //PZFIXME   NOISE SIMULATION int l;
 //   for(l=0;l<2;l++){
 //     for (int i=0;i<TKDBc::nlay();i++){
@@ -415,10 +365,10 @@ void AMSEvent::_retkinitrun(){
 
 
 void AMSEvent:: _sitkevent(){
+  // printf("AMSEvent:: _sitkevent()\n");
+  TrSim::GetHead()->sitkdigi();
+
   //PZ FIXME NOISE SIMULATION bool fastrigger= TOF2RawSide::GlobFasTrigOK();
   //if(TRMCFFKEY.NoiseOn && fastrigger )AMSTrMCCluster::sitknoise();
   //AMSTrMCCluster::sitkcrosstalk();
-
-  TrSim::sitkdigi();
-
 }

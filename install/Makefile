@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.99 2010/04/02 10:34:52 pzuccon Exp $
+#  $Id: Makefile,v 1.100 2010/05/03 08:00:25 oliva Exp $
 
 #P.Zuccon june 2005
 
@@ -206,13 +206,13 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
 	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C   \
-	$(SCC)TrRawCluster.C  $(SCC)patt.C\
+	$(SCC)TrRawCluster.C $(SCC)patt.C \
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
-	        $(SCC)TrAlignFit.C\
+	        $(SCC)TrAlignFit.C \
 	      $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)/HistoMan.C
 TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
-	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C \
+	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C
 
 else
@@ -282,7 +282,8 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \
 		../include/TrTasCluster.h ../include/TrTasPar.h ../include/TrTasDB.h \
 		../include/TrFit.h \
-		../include/trrec.h \
+		../include/TrMCCluster.h \
+                ../include/trrec.h \
 		../include/point.h  ../include/root_RV.h ../include/root.h  ../include/linkdef.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
@@ -474,7 +475,7 @@ lib: shared static
 
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
-	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  \
+	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
 	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
 else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
@@ -518,7 +519,7 @@ $(BIN)timelx.o: $(SCC)timelx.c
 ifdef PGTRACK
 $(BIN)rootdict.C:  $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $(ROOTDICT_CPPFLAGS)$^ 
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h ../include/amschain.h $(ROOTDICTFILES)

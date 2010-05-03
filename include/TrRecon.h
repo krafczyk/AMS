@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.28 2010/04/30 15:00:11 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.29 2010/05/03 08:00:24 oliva Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/04/30 15:00:11 $
+/// $Date: 2010/05/03 08:00:24 $
 ///
-/// $Revision: 1.28 $
+/// $Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -35,6 +35,7 @@
 #include "TMath.h"
 #include "TrTasDB.h"
 #include "Vertex.h"
+#include "TrSim.h"
 #include "amsdbc.h"
 #include <cmath>
 #include <vector>
@@ -600,32 +601,6 @@ public:
 
   /// Get Tracker Data size in current event
   static int GetTrackerSize();
-};
-/////////////////////////
-// --- MC clusters --- //
-/////////////////////////
-class TrSim{
-private:
- static void DSP_Clusterize(int tkid,float *buf);
-
-public: 
-  //! Generate the TrMCCluster from the geant info
-  static void sitkhits(int idsoft, float vect[],
-		      float edep, float step, int itra);
-  //! Generate Non Gaussians Noise Cluster (dummy for the moment)
-  static void sitknoise(){}
-
-  //! Generate the TrRawClusters from the MC info and from a calibration
-  static void sitkdigi(); 
-
-  //! SimMode= 0:Default  1:Skip raw cluster/DSP simulation 
-  static int SkipRawSim;
-  //! Generate TrCluster from MC track
-  static void gencluster(int idsoft, float vect[],
-                         float edep, float step, int itra);
-  static void fillreso(TrTrackR *track);
-  static AMSPoint sitkrefp[trconst::maxlay];
-  static AMSPoint sitkangl[trconst::maxlay];
 };
 
 #endif

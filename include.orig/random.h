@@ -9,6 +9,7 @@
 #include "cfortran.h"
 
 #if defined(__ROOTSHAREDLIBRARY__) && defined(_PGTRACK_)
+double ROOTRndm(int dummy);
 #define RNDM(A) ROOTRndm(A)
 #else
 

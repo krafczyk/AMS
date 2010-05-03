@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.132 2010/01/11 16:03:43 pzuccon Exp $
+//  $Id: geant3.C,v 1.133 2010/05/03 08:00:24 oliva Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -9,6 +9,7 @@
 #ifdef _PGTRACK_
 #include "TrMCCluster.h"
 #include "TrRecon.h"
+#include "TrSim.h"
 #else
 #include "trmccluster.h"
 #include "trid.h"
@@ -188,7 +189,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   GCVOLU.names[2][2]=='K'){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 #ifdef _PGTRACK_
-     TrSim::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
+     TrSim::GetHead()->sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
 #else
      AMSTrMCCluster::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,

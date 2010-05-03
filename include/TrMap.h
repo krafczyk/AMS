@@ -1,5 +1,9 @@
+#ifndef __TrMap__
+#define __TrMap__
+
 #include <vector>
 #include <map>
+
 typedef unsigned int uint;
 
 //! Template used to implement a map based ordering for Cluster classes
@@ -13,6 +17,7 @@ public:
   TrMap() {LadMap.clear();}
   ~TrMap(){LadMap.clear();}
   int Size(){return LadMap.size();}
+  void Clear() {LadMap.clear();}
   void Add(T* pp);
   int GetNelem(int tkid);
   T* GetElem(int tkid,uint pos);
@@ -49,3 +54,5 @@ template <class T> void  TrMap<T>::info(){
     iter++;
   }
 }
+
+#endif
