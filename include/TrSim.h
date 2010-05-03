@@ -136,8 +136,6 @@ class TrSim {
   void AddNoiseOnBuffer();
   //! Produce clusters and put them on the ladder buffer 
   void AddSimulatedClustersOnBuffer();
-  //! Makes the DSP clusterization (returns the number of cluster created for the current ladder buffer) 
-  int  BuildTrRawClustersFromBuffer();
 
   // Static functions (...)
 

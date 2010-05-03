@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.56 2010/02/01 12:44:12 shaino Exp $
+//  $Id: linkdef.h,v 1.57 2010/05/03 10:53:04 oliva Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -17,6 +17,9 @@
 #pragma link C++ class PATT;
 #pragma link C++ class TrRecon;
 #pragma link C++ class TrReconPar;
+#pragma link C++ class TrSim;
+#pragma link C++ class TrSimSensor;
+#pragma link C++ class TrSimCluster;
 #pragma link C++ class MagField;
 #pragma link C++ class TrFit;
 #pragma link C++ class TrProp;

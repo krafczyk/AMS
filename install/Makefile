@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.100 2010/05/03 08:00:25 oliva Exp $
+#  $Id: Makefile,v 1.101 2010/05/03 10:53:04 oliva Exp $
 
 #P.Zuccon june 2005
 
@@ -276,7 +276,7 @@ ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrCalDB.h     \
 		../include/patt.h       ../include/TkCoo.h  ../include/TkSens.h \
-	        ../include/TrRecon.h 	../include/TkDBc.h  ../include/MagField.h \
+		../include/TrRecon.h 	../include/TkDBc.h  ../include/MagField.h \
 		../include/TrLadCal.h   ../include/VCon.h  \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
 		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \
@@ -284,7 +284,8 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrFit.h \
 		../include/TrMCCluster.h \
                 ../include/trrec.h \
-		../include/point.h  ../include/root_RV.h ../include/root.h  ../include/linkdef.h
+		../include/point.h  ../include/root_RV.h ../include/root.h  \
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h  ../include/linkdef.h  
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 endif
