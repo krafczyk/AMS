@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.77 2010/04/30 15:43:45 pzuccon Exp $
+//  $Id: beta.C,v 1.78 2010/05/04 10:34:55 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -752,6 +752,8 @@ integer AMSBeta::_addnextP(integer pat, integer nhit, number sleng[],
   AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
 #endif
 
+  //PZ bug fix: change the sign of sleng to comply to beta sign convention
+  for(int ll=0;ll<nhit;ll++) sleng[ll]*=-1;
 
   //----> recover 1-sided TOFRawCluster/TOFClusters using track info 
   for(int nh=0;nh<nhit;nh++){
