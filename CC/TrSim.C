@@ -3,6 +3,7 @@
 #include "random.h"
 
 #ifndef __ROOTSHAREDLIBRARY__
+#include "amsgobj.h"
 #include "trrec.h"
 #else
 #include "TrRawCluster.h"
@@ -51,9 +52,16 @@ TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
 
 
 void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKHITS");
+#endif
+
   // fast simulation?
   if (SkipRawSim==kNoRawSim) {
     gencluster(idsoft, vect, edep, step, itra);
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("SITKHITS");
+#endif
     return;
   }
   if (edep <= 0) edep = 1e-4;
@@ -74,6 +82,14 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   TkSens tksb(tkid, ppb);
   AMSPoint pa = tksa.GetSensCoo(); pa[2] += size[2];
   AMSPoint pb = tksb.GetSensCoo(); pb[2] += size[2];
+
+  // Set reference points and angles
+  double thx = TMath::Abs(TMath::ATan(dirg.x()/dirg.z())*TMath::RadToDeg());
+  double thy = TMath::Abs(TMath::ATan(dirg.y()/dirg.z())*TMath::RadToDeg());
+  int ily = abs(tkid)/100-1;
+  sitkrefp[ily] = pgl;
+  sitkangl[ily] = AMSPoint(thx, thy, 0);
+
   // Range check
   for (int i = 0; i < 3; i++) {
     if (pa[i] < 0) pa[i] = 0;
@@ -90,6 +106,9 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
     aa->addnext(new TrMCClusterR(idsoft, pa, pb, pgl,pmom,edep , itra));
 #endif
   if (aa) delete aa;
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKHITS");
+#endif
 }
 
 
@@ -445,11 +464,29 @@ int TrSim::BuildTrRawClusters() {
      TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
      _tkid = ladder->GetTkId();
      CleanBuffer(); 
+
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.start("SITKNOISE");
+#endif
      AddNoiseOnBuffer(); 
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("SITKNOISE");
+
+     AMSgObj::BookTimer.start("SITKDIGIa");
+#endif
      AddSimulatedClustersOnBuffer();
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("SITKDIGIa");
+#endif
      // Add Noise? 
      // Add Fake Cluster? 
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.start("SITKDIGIb");
+#endif
      nclusters += BuildTrRawClustersWithDSP();         
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("SITKDIGIb");
+#endif
   }
   return nclusters;
 }

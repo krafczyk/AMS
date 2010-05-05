@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.46 2010/05/03 08:00:24 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.47 2010/05/05 07:41:28 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/03 08:00:24 $
+/// $Date: 2010/05/05 07:41:28 $
 ///
-/// $Revision: 1.46 $
+/// $Revision: 1.47 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2077,7 +2077,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 	       track->GetNhits(), track->GetNhitsXY());
     }
   }  
-  if (TrSim::SkipRawSim==TrSim::kNoRawSim) TrSim::GetHead()->fillreso(track);
+//if (TrSim::SkipRawSim==TrSim::kNoRawSim) 
+  TrSim::GetHead()->fillreso(track);
 
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (cont) {
@@ -2157,9 +2158,11 @@ int TrRecon::GetTrackerSize()
     for (int itdr=0; itdr<24; itdr++) 
       TdrSize[icrate][itdr] = 2;
 
-  int LadderSize[2][192]; // defined as the sum of clusters sizes!
+  enum { NLAD = 192+16 };
+
+  int LadderSize[2][NLAD]; // defined as the sum of clusters sizes!
   for (int iside=0; iside<2; iside++) 
-    for (int iladder=0; iladder<192; iladder++) 
+    for (int iladder=0; iladder<NLAD; iladder++) 
       LadderSize[iside][iladder] = 0;
 
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
@@ -2168,13 +2171,16 @@ int TrRecon::GetTrackerSize()
   int nraw = cont->getnelem();
   for (int iraw=0; iraw<nraw; iraw++) {
     TrRawClusterR* cluster = (TrRawClusterR*)cont->getelem(iraw);
-    int   iside  = cluster->GetSide();
-    int   tkid   = cluster->GetTkId();
-    TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
-    int   entry  = TkDBc::Head->TkId2Entry(tkid);
-    int   icrate = ladder->GetCrate();
-    int   itdr   = ladder->GetTdr();
-    int   clsize = cluster->GetNelem()+2;
+    int iside = cluster->GetSide();
+    int tkid  = cluster->GetTkId();
+
+    TkLadder *ladder = TkDBc::Head->FindTkId(tkid);
+    int       entry  = TkDBc::Head->TkId2Entry(tkid);
+    if (!ladder || entry < 0 || NLAD <= entry) continue;
+
+    int icrate = ladder->GetCrate();
+    int itdr   = ladder->GetTdr();
+    int clsize = cluster->GetNelem()+2;
     LadderSize[iside][entry] += clsize;
     TdrSize[icrate][itdr] += clsize;
   }
