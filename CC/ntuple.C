@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.195 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: ntuple.C,v 1.196 2010/05/06 15:42:35 oliva Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -307,6 +307,12 @@ cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
      //cout <<AMSTrAligFit::GetAligString()<<endl;
      _ta.Write("TrackerAlignment");
 #else
+   TrCalDB::Head->Write();
+   TkDBc  ::Head->Write();
+   TrParDB::Head->Write();
+   // if(TrCalDB::Head) TrCalDB::Head->Write();
+   if (TrTasDB::Head) TrTasDB::Head->Write();
+   if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
    if(IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
    if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
    _rfile->cd();
@@ -378,14 +384,6 @@ void AMSNtuple::initR(char* fname){
     throw amsglobalerror("UnableToOpenRootFile",3);
   }
   _dc.Write("DataCards");
-#ifdef _PGTRACK_
-  TrCalDB::Head->Write();
-  TkDBc  ::Head->Write();
-  TrParDB::Head->Write();
-  // if(TrCalDB::Head) TrCalDB::Head->Write();
-  if (TrTasDB::Head) TrTasDB::Head->Write();
-  if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
-#endif   
 
   const int size=5000000;
   char * name=new char[size];
