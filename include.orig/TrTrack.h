@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.21 2010/04/02 10:34:51 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.22 2010/05/07 08:53:31 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/04/02 10:34:51 $
+///$Date: 2010/05/07 08:53:31 $
 ///
-///$Revision: 1.21 $
+///$Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -406,6 +406,10 @@ public:
 	    int layer = -1, bool update = true, const float *err = 0, 
 	    float mass = 0.938272297, float chrg = 1);
 
+  void ReFit( const float *err = 0, 
+	      float mass = 0.938272297, float chrg = 1);
+
+
   /// Perform simple fitting with a constant position error of 0.03 cm
   float SimpleFit(void) {
     static const float err[3] = { 0.03, 0.03, 0.03 };
@@ -422,6 +426,9 @@ public:
 
   /// Do advanced fits specified by flag
   int DoAdvancedFit(int flag = DefaultAdvancedFitFlags);
+
+  void GetMaxShift(int& left,int &right);
+  void Move(int shift);
 
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();

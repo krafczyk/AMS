@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.29 2010/04/30 15:43:45 pzuccon Exp $
+// $Id: TrTrack.C,v 1.30 2010/05/07 08:53:30 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/04/30 15:43:45 $
+///$Date: 2010/05/07 08:53:30 $
 ///
-///$Revision: 1.29 $
+///$Revision: 1.30 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -260,6 +260,50 @@ void TrTrackR::BuildHitsIndex()
 
   delete cont2;
 }
+
+
+void TrTrackR::GetMaxShift(int& left, int& right){
+  left=99; right=99;
+  for(int ii=0;ii<_Nhits;ii++){
+    int tkid=_Hits[ii]->GetTkId();
+    int mult=_Hits[ii]->GetMultiplicity();
+    int ll=0; int rr=0;
+    if(tkid>=0){ll=mult-_iMult[ii]; rr=_iMult[ii];}
+    else {rr=mult-_iMult[ii]; ll=_iMult[ii];}
+    if(ll<left)  left=ll;
+    if(rr<right) right=rr;
+  }
+  left*=-1;
+  return;
+}
+
+void TrTrackR::Move(int shift){
+ for(int ii=0;ii<_Nhits;ii++){
+    int tkid=_Hits[ii]->GetTkId();
+    int mult=_Hits[ii]->GetMultiplicity();
+    int nmult=_iMult[ii];
+    if(tkid>=0) nmult-=shift;
+    else nmult+=shift;
+    if(nmult>=0 && nmult<=mult) {
+      _iMult[ii]=nmult;
+      _Hits[ii]->SetResolvedMultiplicity(nmult);
+    }
+    else cerr<<"TrTrackR::Move-E- Very Bad problem moving the Track\n";
+ }
+ ReFit();
+ return;
+}
+
+
+
+void TrTrackR::ReFit( const float *err,
+		      float mass, float chrg){
+  map<int, TrTrackPar>::iterator it=_TrackPar.begin();
+  for(;it!=_TrackPar.end();it++)
+    Fit(it->first,-1,1,err,mass,chrg);
+  return;
+}
+
 
 AMSPoint TrTrackR::GetPentry(int id)
 {
