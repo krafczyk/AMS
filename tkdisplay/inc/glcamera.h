@@ -1,4 +1,4 @@
-// $Id: glcamera.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: glcamera.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
 //
 // GLCamera : a class to manage the view point of OpenGL display
 //            imported from ROOT:TGLPerspectiveCamera and arranged by SH
@@ -8,8 +8,8 @@
 
 #include "glutils.h"
 
-class GLCamera
-{
+class GLCamera {
+
 public:
    enum EFrustumPlane { kNear   = 0, kLeft = 1,
 			kRight  = 2, kTop  = 3,

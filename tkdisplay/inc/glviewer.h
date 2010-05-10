@@ -1,4 +1,4 @@
-// $Id: glviewer.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: glviewer.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
 //
 // GLViewer : a class to manage GLCamera and GLLight
 //            imported from ROOT:TGLViewer and arranged by SH
@@ -26,7 +26,7 @@ protected:
   GLCamera *glCamera;
 
 public:
-  GLViewer(int x, int y, int width, int height);
+  GLViewer(int x, int y, int width, int height, int ssize = 250);
  ~GLViewer();
 
   GLCamera *getCamera() const { return glCamera; }

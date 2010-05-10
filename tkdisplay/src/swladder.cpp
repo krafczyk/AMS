@@ -1,4 +1,4 @@
-// $Id: swladder.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: swladder.cpp,v 1.2 2010/05/10 21:55:47 shaino Exp $
 #include <QtGui>
 
 #include "swladder.h"
@@ -112,7 +112,7 @@ bool SWLadder::checkFocus(int x, int y)
 
 void SWLadder::drawInfobar(QPainter *pnt)
 {
-  pnt->fillRect(0, 0, wWid, tHei, QColor(0, 0, 0, 200));
+  pnt->fillRect(0, 0, wWid-2, tHei, QColor(0, 0, 0, 200));
   drawClose(pnt);
   drawMore (pnt);
 

@@ -1,4 +1,4 @@
-// $Id: tkdisplay.cpp,v 1.6 2010/01/18 11:17:00 shaino Exp $
+// $Id: tkdisplay.cpp,v 1.7 2010/05/10 21:55:47 shaino Exp $
 #include <QtGui>
 #include <QFileDialog>
 
@@ -6,6 +6,7 @@
 #include "trcls.h"
 #include "clwidget.h"
 #include "glwidget.h"
+#include "gvdraw.h"
 #include "evthread.h"
 #include "qnetio.h"
 
@@ -28,18 +29,64 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
   clWidget = new ClWidget(new TrCls(TrCls::CLS));
   dlEvSel  = new DlEvSel(this);
 
+  rcWidget->hide();
+  clWidget->hide();
+  dlEvSel ->hide();
+
+  initUI();
+  initGeom();
+  connectObjs();
+
+  amsChain = 0;
+  tFormula = 0;
+
+  thisPtr = this;
+}
+
+void TkDisplay::initUI()
+{
   ui.sdFv->setRange(GLWidget::FOV_MIN, GLWidget::FOV_MAX);
   ui.sdDl->setRange(GLWidget::DOL_MIN, GLWidget::DOL_MAX);
   ui.sdRv->setRange(                      0, 360*GLWidget::ROT_SCALE);
   ui.sdRh->setRange(-90*GLWidget::ROT_SCALE,  90*GLWidget::ROT_SCALE);
 
-  ui.sdLL->setRange(   1, 200);
-  ui.sdLZ->setRange(-500, 500);
+  ui.sdLL->setRange(    1,  700);
+  ui.sdLZ->setRange(-1000, 1000);
 
   on_pbGLlon_clicked();
   ui.glDisp->setLSize(ui.sdLL->value());
   ui.glDisp->setLZpos(ui.sdLZ->value());
 
+#ifndef Q_WS_MAC
+  ui.cbWtEv->removeItem(ui.cbWtEv->findText("Drawer"));
+  ui.cbWtOb->removeItem(ui.cbWtOb->findText("Drawer"));
+  ui.cbWtEv->setCurrentIndex(ui.cbWtEv->findText("Tool"));
+  ui.cbWtOb->setCurrentIndex(ui.cbWtOb->findText("Tool"));
+  setAnime(1);
+#endif
+
+  ui.cbStyle->addItem("Default");
+  ui.cbStyle->addItems(QStyleFactory::keys());
+
+  changeStyle("Default");
+  ui.glDisp->setEvtTewType(ui.cbWtEv->currentText());
+  ui.glDisp->setAllTewType(ui.cbWtOb->currentText());
+
+  ui.glDisp->cReset();
+
+  ui.acEsel->setEnabled(false);
+  ui.pbEsel->setEnabled(false);
+}
+
+void TkDisplay::initGeom()
+{
+  ui.glDisp->getDraw()->initGeom();
+  on_pbGmOff_clicked();
+  on_pbGmRst_clicked();
+}
+
+void TkDisplay::connectObjs()
+{
   connect(ui.sdFv, SIGNAL(valueChanged(int)), ui.glDisp, SLOT(cZoom  (int)));
   connect(ui.sdDl, SIGNAL(valueChanged(int)), ui.glDisp, SLOT(cDolly (int)));
   connect(ui.sdRh, SIGNAL(valueChanged(int)), ui.glDisp, SLOT(hRotate(int)));
@@ -71,45 +118,38 @@ TkDisplay::TkDisplay(QWidget *parent) : QMainWindow(parent)
 	  clWidget,  SLOT  (newEvent(AMSEventR *)));
   connect(clWidget,  SIGNAL(changeFocus()),
 	  this,      SLOT  (actWindow()));
+}
 
+void TkDisplay::cbGeomCheck(int sw, int type1, int type2)
+{
+  if (sw == Qt::Checked) {
+    ui.glDisp->setGeom(type1, true);
+    ui.glDisp->setGeom(type2, false);
+  }
+  if (sw == Qt::Unchecked) {
+    ui.glDisp->setGeom(type1, false);
+    ui.glDisp->setGeom(type2, false);
+  }
+  if (sw == Qt::PartiallyChecked) {
+    ui.glDisp->setGeom(type1, false);
+    ui.glDisp->setGeom(type2, true);
+  }
+}
 
-  ui.glDisp->setOpt(ALLTRK, (ui.cbGL11->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(TRKCLS, (ui.cbGL12->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(TRKHIT, (ui.cbGL13->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(TRACK,  (ui.cbGL14->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(MCTRK,  (ui.cbGL16->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(MCCLS,  (ui.cbGL18->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(ANYTOF, (ui.cbGL21->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(ALLTOF, (ui.cbGL22->checkState()&Qt::Checked));
-  ui.glDisp->setOpt(TOFHIT, (ui.cbGL23->checkState()&Qt::Checked));
-
-#ifndef Q_WS_MAC
-  ui.cbWtEv->removeItem(ui.cbWtEv->findText("Drawer"));
-  ui.cbWtOb->removeItem(ui.cbWtOb->findText("Drawer"));
-  ui.cbWtEv->setCurrentIndex(ui.cbWtEv->findText("Tool"));
-  ui.cbWtOb->setCurrentIndex(ui.cbWtOb->findText("Tool"));
-#endif
-
-  ui.cbStyle->addItem("Default");
-  ui.cbStyle->addItems(QStyleFactory::keys());
-
-  changeStyle("Default");
-  ui.glDisp->setEvtTewType(ui.cbWtEv->currentText());
-  ui.glDisp->setAllTewType(ui.cbWtOb->currentText());
-
-  ui.glDisp->cReset();
-
-  rcWidget->hide();
-  clWidget->hide();
-  dlEvSel ->hide();
-
-  ui.acEsel->setEnabled(false);
-  ui.pbEsel->setEnabled(false);
-
-  amsChain = 0;
-  tFormula = 0;
-
-  thisPtr = this;
+void TkDisplay::cbOptCheck(int sw, int type1, int type2)
+{
+  if (sw == Qt::Checked) {
+    ui.glDisp->setOpt(type1, true);
+    ui.glDisp->setOpt(type2, false);
+  }
+  if (sw == Qt::Unchecked) {
+    ui.glDisp->setOpt(type1, false);
+    ui.glDisp->setOpt(type2, false);
+  }
+  if (sw == Qt::PartiallyChecked) {
+    ui.glDisp->setOpt(type1, false);
+    ui.glDisp->setOpt(type2, true);
+  }
 }
 
 void TkDisplay::openFile(QString fname, int entry)
@@ -251,6 +291,64 @@ void TkDisplay::drawEvent()
   }
 }
 
+void TkDisplay::on_pbGmRst_clicked()
+{
+  ui.glDisp->setUpdateLock();
+  ui.cbUSS ->setCheckState(Qt::Unchecked);
+  ui.cbMag ->setCheckState(Qt::Unchecked);
+  ui.cbTRD ->setCheckState(Qt::Checked);
+  ui.cbTRK ->setCheckState(Qt::Checked);
+  ui.cbTOF ->setCheckState(Qt::Checked);
+  ui.cbACC ->setCheckState(Qt::Unchecked);
+
+  ui.cbRICH->setCheckState(Qt::Checked);
+  ui.cbEcal->setCheckState(Qt::Checked);
+  ui.cbTrak->setCheckState(Qt::Checked);
+  ui.cbHits->setCheckState(Qt::Checked);
+  ui.cbClus->setCheckState(Qt::Unchecked);
+  ui.cbMCtr->setCheckState(Qt::Unchecked);
+  ui.glDisp->setUpdateLock(false);
+  ui.glDisp->update(); 
+}
+
+void TkDisplay::on_pbGmOn_clicked()
+{
+  ui.glDisp->setUpdateLock();
+  ui.cbUSS ->setCheckState(Qt::Checked);
+  ui.cbMag ->setCheckState(Qt::Checked);
+  ui.cbTRD ->setCheckState(Qt::Checked);
+  ui.cbTRK ->setCheckState(Qt::Checked);
+  ui.cbTOF ->setCheckState(Qt::Checked);
+  ui.cbACC ->setCheckState(Qt::Checked);
+  ui.cbRICH->setCheckState(Qt::Checked);
+  ui.cbEcal->setCheckState(Qt::Checked);
+  ui.cbTrak->setCheckState(Qt::Checked);
+  ui.cbHits->setCheckState(Qt::Checked);
+  ui.cbClus->setCheckState(Qt::Checked);
+  ui.cbMCtr->setCheckState(Qt::Checked);
+  ui.glDisp->setUpdateLock(false);
+  ui.glDisp->update();
+}
+
+void TkDisplay::on_pbGmOff_clicked()
+{
+  ui.glDisp->setUpdateLock();
+  ui.cbUSS ->setCheckState(Qt::Unchecked);
+  ui.cbMag ->setCheckState(Qt::Unchecked);
+  ui.cbTRD ->setCheckState(Qt::Unchecked);
+  ui.cbTRK ->setCheckState(Qt::Unchecked);
+  ui.cbTOF ->setCheckState(Qt::Unchecked);
+  ui.cbACC ->setCheckState(Qt::Unchecked);
+  ui.cbRICH->setCheckState(Qt::Unchecked);
+  ui.cbEcal->setCheckState(Qt::Unchecked);
+  ui.cbTrak->setCheckState(Qt::Unchecked);
+  ui.cbHits->setCheckState(Qt::Unchecked);
+  ui.cbClus->setCheckState(Qt::Unchecked);
+  ui.cbMCtr->setCheckState(Qt::Unchecked);
+  ui.glDisp->setUpdateLock(false);
+  ui.glDisp->update();
+}
+
 void TkDisplay::Open()
 {
   QFileDialog qfd(this, "Open File...", ".", "Root files (*.root)");
@@ -352,8 +450,8 @@ void TkDisplay::Info()
 		    "   event display</h3>"
 		    "<p>by S.Haino <br>"
 		    "   (Sadakazu.Haino@pg.infn.it)</p>"
-		    "<p>CVS $Revision: 1.6 $<br>"
-		    "   CVS $Date: 2010/01/18 11:17:00 $</p>"
+		    "<p>CVS $Revision: 1.7 $<br>"
+		    "   CVS $Date: 2010/05/10 21:55:47 $</p>"
 		    "<p>Compiled: <br> at %1 on %2</p>"
 		    "<p>Qt version: %3</p>"
 		    "<p>ROOT version: %4</p>").arg(

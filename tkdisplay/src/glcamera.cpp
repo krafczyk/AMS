@@ -1,10 +1,10 @@
-// $Id: glcamera.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: glcamera.cpp,v 1.2 2010/05/10 21:55:46 shaino Exp $
 #include "glcamera.h"
 
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include "TMath.h"
+#include <cmath>
 
 double GLCamera::gFOVMin     = 0.01;
 double GLCamera::gFOVDefault = 30;
@@ -47,7 +47,7 @@ bool GLCamera::Zoom(int delta, bool mod1, bool mod2)
 bool GLCamera::Truck(int xDelta, int yDelta, bool mod1, bool mod2)
 {
   double lenMidClip = 0.5*(farClip+nearClip)
-    *TMath::Tan(0.5*fieldOfView*TMath::DegToRad());
+    *std::tan(0.5*fieldOfView*M_PI/180);
 
   double xstep = xDelta*lenMidClip/vpH;
   double ystep = yDelta*lenMidClip/vpH;
@@ -58,13 +58,13 @@ bool GLCamera::Truck(int xDelta, int yDelta, bool mod1, bool mod2)
   fCamTrans.MoveLF(2, -xstep);
   fCamTrans.MoveLF(3, -ystep);
 
-  return kTRUE;
+  return true;
 }
 
 bool GLCamera::Rotate(int xDelta, int yDelta, bool mod1, bool mod2)
 {
-  double vRotate = AdjustDelta(xDelta, TMath::TwoPi()/vpW, mod1, mod2);
-  double hRotate = AdjustDelta(yDelta, TMath::Pi()   /vpH, mod1, mod2);
+  double vRotate = AdjustDelta(xDelta, 2*M_PI/vpW, mod1, mod2);
+  double hRotate = AdjustDelta(yDelta,   M_PI/vpH, mod1, mod2);
 
   return RotateRad(hRotate, vRotate);
 }
@@ -73,7 +73,6 @@ bool GLCamera::RotateRad(double hRotate, double vRotate)
 {
   // Rotate camera around center.
 
-  using namespace TMath;
   if (hRotate != 0.0) {
     GLVector3 fwd  = fCamTrans.GetBaseVec(1);
     GLVector3 lft  = fCamTrans.GetBaseVec(2);
@@ -87,11 +86,11 @@ bool GLCamera::RotateRad(double hRotate, double vRotate)
     // up vector lock
     GLVector3 zdir = fCamBase.GetBaseVec(3);
     fCamBase.RotateIP(fwd);
-    double theta = ACos(fwd*zdir);
+    double theta = std::acos(fwd*zdir);
     if(theta+hRotate < vAxisMinAngle)
       hRotate = vAxisMinAngle-theta;
-    else if(theta+hRotate > Pi()-vAxisMinAngle)
-      hRotate = Pi()-vAxisMinAngle-theta;
+    else if(theta+hRotate > M_PI-vAxisMinAngle)
+      hRotate = M_PI-vAxisMinAngle-theta;
 
     fCamTrans.MoveLF(1, -deltaF);
     fCamTrans.MoveLF(3, -deltaU);
@@ -102,16 +101,16 @@ bool GLCamera::RotateRad(double hRotate, double vRotate)
   if (vRotate != 0.0)
     fCamTrans.RotatePF(1, 2, -vRotate);
 
-  return kTRUE;
+  return true;
 }
 
 bool GLCamera::Dolly(int delta, bool mod1, bool mod2)
 {
   double step = AdjustDelta(delta, dollyDistance, mod1, mod2);
-  if (step == 0) return kFALSE;
+  if (step == 0) return false;
 
   fCamTrans.MoveLF(1, -step);
-  return kTRUE;
+  return true;
 }
 
 void GLCamera::Apply(int pickx, int picky, int pickw, int pickh)
@@ -194,14 +193,10 @@ void GLCamera::Setup(bool reset)
 {
   SetCenterVec(0, 0, 0);
 
-  // At default FOV, the dolly should be set so as to encapsulate the scene.
-  GLVector3 extents(sceneSize*2, sceneSize*2, sceneSize*2);
-  int sortInd[3];
-  TMath::Sort(3, extents.CArr(), sortInd);
-  double size = TMath::Hypot(extents[sortInd[0]], extents[sortInd[1]]);
-  double fov  = TMath::Min(gFOVDefault, gFOVDefault*vpW/vpH);
+  double size = sceneSize*2*std::sqrt(2);
+  double fov  = std::min(gFOVDefault, gFOVDefault*vpW/vpH);
 
-  dollyDefault  = size/(2.0*TMath::Tan(fov*TMath::Pi()/360));
+  dollyDefault  = size/(2.0*std::tan(fov*M_PI/360));
   dollyDistance = 0.002*dollyDefault;
 
   if (reset) Reset();
@@ -268,7 +263,7 @@ bool GLCamera::AdjustAndClampVal(double & val, double min, double max,
 				 bool mod1, bool mod2)
 {
   if (screenShift == 0) {
-    return kFALSE;
+    return false;
   }
 
   // Calculate a sensitivity based on passed modifiers

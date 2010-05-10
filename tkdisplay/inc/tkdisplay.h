@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.5 2010/01/18 11:17:00 shaino Exp $
+// $Id: tkdisplay.h,v 1.6 2010/05/10 21:55:46 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -9,6 +9,8 @@
 #include "gltdisp.h"
 #include "clwidget.h"
 #include "dlevsel.h"
+
+#include "gvconst.h"
 
 class TTreeFormula;
 class AMSChain;
@@ -39,29 +41,43 @@ signals:
   void drawCluster(int);
 
 private:
-  int scanEvent(int istep);
+  void initUI();
+  void initGeom();
+  void connectObjs();
+
+  void cbGeomCheck(int sw, int type1, int type2 = -1);
+  void cbOptCheck (int sw, int type1, int type2 = -1);
+  int  scanEvent(int istep);
 
 private slots:
   void actWindow() { activateWindow(); }
   void drawEvent();
   void updateFormula(QString scut);
 
-  void on_cbGL11_stateChanged(int sw) { ui.glDisp->setOpt(ALLTRK, sw); }
-  void on_cbGL12_stateChanged(int sw) { ui.glDisp->setOpt(TRKCLS, sw); }
-  void on_cbGL13_stateChanged(int sw) { ui.glDisp->setOpt(TRKHIT, sw); }
-  void on_cbGL14_stateChanged(int sw) { ui.glDisp->setOpt(TRACK,  sw); }
-  void on_cbGL16_stateChanged(int sw) { ui.glDisp->setOpt(MCTRK,  sw); }
-  void on_cbGL18_stateChanged(int sw) { ui.glDisp->setOpt(MCCLS,  sw); }
-  void on_cbGL21_stateChanged(int sw) { ui.glDisp->setOpt(ANYTOF, sw); }
-  void on_cbGL22_stateChanged(int sw) { ui.glDisp->setOpt(ALLTOF, sw); }
-  void on_cbGL23_stateChanged(int sw) { ui.glDisp->setOpt(TOFHIT, sw); }
+  void on_cbUSS_stateChanged (int sw) { ui.glDisp->setGeom(Geom_USS,  sw); }
+  void on_cbMag_stateChanged (int sw) { ui.glDisp->setGeom(Geom_MAG,  sw); }
+  void on_cbTRD_stateChanged (int sw) { ui.glDisp->setGeom(Geom_TRD,  sw); }
+  void on_cbACC_stateChanged (int sw) { ui.glDisp->setGeom(Geom_ACC,  sw); }
+  void on_cbRICH_stateChanged(int sw) { ui.glDisp->setGeom(Geom_RICH, sw); }
+  void on_cbEcal_stateChanged(int sw) { ui.glDisp->setGeom(Geom_ECAL, sw); }
+  void on_cbTOF_stateChanged (int sw) { cbGeomCheck(sw, Geom_TOF, Geom_LTOF); }
+  void on_cbTRK_stateChanged (int sw) { cbGeomCheck(sw, Geom_TRK, Geom_LTRK); }
 
-  void on_cbGL51_stateChanged(int sw) { ui.glDisp->setLSet(LFRT, sw); }
-  void on_cbGL52_stateChanged(int sw) { ui.glDisp->setLSet(LTOP, sw); }
-  void on_cbGL53_stateChanged(int sw) { ui.glDisp->setLSet(LBTM, sw); }
-  void on_cbGL54_stateChanged(int sw) { ui.glDisp->setLSet(LLFT, sw); }
-  void on_cbGL55_stateChanged(int sw) { ui.glDisp->setLSet(LRGT, sw); }
-  void on_cbGL56_stateChanged(int sw) { ui.glDisp->setLSet(LSPC, sw); }
+  void on_cbTrak_stateChanged(int sw) { ui.glDisp->setOpt(Draw_TRK, sw); }
+  void on_cbHits_stateChanged(int sw) { ui.glDisp->setOpt(Draw_HIT, sw); }
+  void on_cbClus_stateChanged(int sw) { ui.glDisp->setOpt(Draw_CLS, sw); }
+  void on_cbMCtr_stateChanged(int sw) { cbOptCheck(sw, Draw_MCA, Draw_MCP); }
+
+  void on_pbGmRst_clicked();
+  void on_pbGmOn_clicked ();
+  void on_pbGmOff_clicked();
+
+  void on_cbGL51_stateChanged(int sw) { ui.glDisp->setLSet(Light_FR, sw); }
+  void on_cbGL52_stateChanged(int sw) { ui.glDisp->setLSet(Light_TP, sw); }
+  void on_cbGL53_stateChanged(int sw) { ui.glDisp->setLSet(Light_BT, sw); }
+  void on_cbGL54_stateChanged(int sw) { ui.glDisp->setLSet(Light_LF, sw); }
+  void on_cbGL55_stateChanged(int sw) { ui.glDisp->setLSet(Light_RT, sw); }
+  void on_cbGL56_stateChanged(int sw) { ui.glDisp->setLSet(Light_SP, sw); }
 
   void on_pbGLrst_clicked() { ui.glDisp->cReset(); }
 

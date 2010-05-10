@@ -1,18 +1,19 @@
-// $Id: glviewer.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
-#include <QtOpenGL>
-
+// $Id: glviewer.cpp,v 1.2 2010/05/10 21:55:47 shaino Exp $
 #include "glviewer.h"
 #include "glcamera.h"
 #include "gllight.h"
 
-GLViewer::GLViewer(int x, int y, int width, int height) 
+#include <GL/gl.h>
+#include <GL/glu.h>
+
+GLViewer::GLViewer(int x, int y, int width, int height, int ssize) 
 {
   bSize = 150;
   bX = bY = bZ = 0;
 
   glLight  = new GLLight;
   glCamera = new GLCamera(GLVector3(-1.0, 0.0, 0.0), 
-			  GLVector3(0.0, 0.0, 1.0));
+			  GLVector3(0.0, 0.0, 1.0), ssize);
 
   setViewport(x, y, width, height);
 }

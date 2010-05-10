@@ -1,4 +1,4 @@
-// $Id: gltdisp.h,v 1.2 2009/11/19 10:18:47 shaino Exp $
+// $Id: gltdisp.h,v 1.3 2010/05/10 21:55:46 shaino Exp $
 //
 // GLTDisp : a class to manage 3D Tracker Display on OpenGL by SH
 //
@@ -13,26 +13,26 @@
 #include <QPixmap>
 
 class AMSEventR;
+class GVDraw;
 class SubWindow;
 class SWEvent;
 class TEWidget;
 
-class GLTDisp : public GLWidget
-{
+class GLTDisp : public GLWidget {
+
   Q_OBJECT
 
 public:
   GLTDisp(QWidget *parent = 0);
  ~GLTDisp();
 
-  bool testOpt(int option) { return (drawOpt & option); }
-  void addOpt (int option) { drawOpt |=  option; }
-  void delOpt (int option) { drawOpt &= ~option; }
-  void setOpt (int option, bool sw)
-    { (sw) ? addOpt(option) : delOpt(option); updateGL(); }
+  void setOpt (int option, bool sw);
+  void setGeom(int type,   bool sw);
+  void setUpdateLock(bool sw = true) { updateLock = sw; }
 
   void drawOneEvent(AMSEventR *event);
-  void setCurrEvent(AMSEventR *event) { currEvent = event; }
+
+  GVDraw *getDraw() { return glDraw; }
 
 public Q_SLOTS:
   void updateGL() { update(); }
@@ -60,34 +60,22 @@ protected:
   virtual void paintEvent     (QPaintEvent *event);
 
 protected:
-  void drawObject  (GLenum mode);
-  void drawTracker (GLenum mode);
-  void drawTracks  (GLenum mode);
-  void drawMCTracks(GLenum mode);
-  void processPick();
-
-  void drawClusters();
-  void drawHits();
-  void drawAxes();
+  virtual void drawObject (GLenum mode);
+  virtual void processPick();
 
   TEWidget *openTEWidget(TEWidget *tew, int wtype = -1);
 
-  void buildLines();
-  void fillHitVec(int *vecx, int *vecy);
+//void buildLines();
+//void fillHitVec(int *vecx, int *vecy);
 
 protected:
-  int    drawOpt;
-  int    nLadLine[8];
-  double xLadLine[512];
-  double yLadLine[512];
-  double zLadLine[512];
+  GVDraw *glDraw;
 
   bool darkOpt;
   bool glLock;
+  bool updateLock;
 
   QPixmap glPixmap;
-
-  int *ladVec;
 
   AMSEventR *currEvent;
 
@@ -104,7 +92,7 @@ protected:
   SubWindow *subWin;
   QTimer     aTimer;
 
-  enum { SID_OFFS_TRACK = 1001 };
+  enum { SID_OFFS_TRACK = 501 };
 
   enum { LS_NONE, LS_AOPEN, LS_OPEN, LS_ACLOSE, 
 	 LS_NSTEP = 10, LS_WAIT = 20 };
@@ -116,34 +104,12 @@ protected:
 public:
   enum { AN_NORMAL, AN_LIGHT, AN_NONE };
   void setAnimeMode(int mode = AN_NORMAL);
+  void initAMSgeom(const char *fname = "geom/geom.root",
+		   const char *key   = "ams02",
+		   const char *nname = "FMOT1");
 
 private slots:
   void animate();
 };
-
-
-namespace TkDisp {
-  enum { 
-    ALLTRK = 0x0001,    ///< Draw all the Tracker ladders
-    TRKCLS = 0x0002,    ///< Draw Tracker clusters
-    TRKHIT = 0x0004,    ///< Draw Tracker hits
-    TRACK  = 0x0008,    ///< Draw Tracker tracks
-    MCTRK  = 0x0010,    ///< Draw Tracker MC tracks
-    MCCLS  = 0x0020,    ///< Draw Tracker MC clusters
-    
-    ANYTOF = 0x0100,    ///< Draw TOF or not
-    ALLTOF = 0x0200,    ///< Draw all the TOF pads
-    TOFHIT = 0x0400,    ///< Draw TOF hit position
-
-    LFRT   = GLLight::kLightFront,
-    LTOP   = GLLight::kLightTop,
-    LBTM   = GLLight::kLightBottom,
-    LLFT   = GLLight::kLightLeft,
-    LRGT   = GLLight::kLightRight,
-    LSPC   = GLLight::kLightSpecular
-  };
-};
-
-using namespace TkDisp;
 
 #endif

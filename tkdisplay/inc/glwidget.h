@@ -1,16 +1,18 @@
-// $Id: glwidget.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: glwidget.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
 //
-// GLWidget : a class to manage OpenGL functions by SH
+// GLWidget : a class to manage OpenGL functions on a QWidget framework
+//            by SH
 //
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
 #include <QGLWidget>
+#include "gllight.h"
 
 class GLViewer;
 
-class GLWidget : public QGLWidget
-{
+class GLWidget : public QGLWidget {
+
   Q_OBJECT
 
 public:
@@ -33,7 +35,7 @@ public slots:
   void vRotate(int val, int update = 1);
   void cReset (int update = 1);
 
-  void setLSet(int light, int sw, int update = 1);
+  void setLSet(ELight light, int sw, int update = 1);
 
   void setLSize(int val, int update = 1);
   void setLZpos(int val, int update = 1);
@@ -61,26 +63,6 @@ protected:
   virtual void processPick() {}
 
 protected:
-  void glMatCol(const double *cpar);
-  void glMatCol(double cr, double cg, double cb, double al);
-
-  void glBox(double  x, double  y, double  z, 
-	     double dx, double dy, double dz);
-
-  void glLine(double x1, double y1, double z1,
-	      double x2, double y2, double z2);
-
-  void glSphere(double x, double y, double z, double r, int ndiv = 6);
-
-  void glPLines(int n, double *x, double *y, double *z);
-  void glPoints(int n, double *x, double *y, double *z);
-
-  void glDigit(double x0, double y0, double z0, int digit, 
-	       int mode = 1, double size = 1.5);
-  void glNum(double x0, double y0, double z0, int num, 
-	     int mode = 1, double size = 1.5);
-
-protected:
   GLViewer *glView;
 
   int vpWidth;
@@ -97,13 +79,6 @@ protected:
   QPoint lastMpos;
 
   int idSel;
-
-private:
-  enum { NNUM = 11, NNPT = 152 };
-  static int numDataN[NNUM];
-  static int numDataI[NNUM];
-  static int numDataX[NNPT];
-  static int numDataY[NNPT];
 };
 
 #endif

@@ -1,4 +1,4 @@
-// $Id: gllight.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: gllight.cpp,v 1.2 2010/05/10 21:55:46 shaino Exp $
 #include "gllight.h"
 
 #include <GL/gl.h>
@@ -6,21 +6,21 @@
 
 GLLight::GLLight()
 {
-  lightState  = kLightMask;
+  lightState  = Light_MS;
   useSpecular = true;
 }
 
 void GLLight::toggleLight(ELight light)
 {
-  if (light == kLightSpecular) useSpecular = !useSpecular;
-  else if (light < kLightMask) lightState ^= light;
+  if      (light == Light_SP) useSpecular = !useSpecular;
+  else if (light  < Light_MS) lightState ^= light;
 }
 
 void GLLight::setLight(ELight light, bool on)
 {
-  if (light == kLightSpecular) useSpecular = on;
+  if (light == Light_SP) useSpecular = on;
 
-  else if (light < kLightMask) {
+  else if (light < Light_MS) {
    if (on) lightState |=  light;
    else    lightState &= ~light;
   }
@@ -55,7 +55,7 @@ void GLLight::setupLights(double x, double y, double z, double r)
   glLightfv(GL_LIGHT4, GL_POSITION, pos4);
   glLightfv(GL_LIGHT4, GL_DIFFUSE,  cside);
 
-  for (unsigned i = 0; (1<<i) < kLightMask; i++) {
+  for (unsigned i = 0; (1<<i) < Light_MS; i++) {
     if ((1<<i) & lightState) glEnable (GLenum(GL_LIGHT0+i));
     else                     glDisable(GLenum(GL_LIGHT0+i));
   }

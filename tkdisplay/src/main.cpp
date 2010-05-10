@@ -1,10 +1,12 @@
-// $Id: main.cpp,v 1.4 2010/01/18 11:17:00 shaino Exp $
+// $Id: main.cpp,v 1.5 2010/05/10 21:55:47 shaino Exp $
 #include <QApplication>
 #include <QString>
 
 #include "tkdisplay.h"
 #include "qnetio.h"
+#include "gvdraw.h"
 #include "TrRecon.h"
+#include "MagField.h"
 
 int main(int argc, char **argv)
 {
@@ -17,11 +19,13 @@ int main(int argc, char **argv)
 
   int   entry = 0;
   int   anime = 1;
+  int   setup = GVDraw::tkSetup;
   float bfscl = 1;
 
   for (int i = 0; i < argc; i++) {
     QString str = argv[i];
     if (str.contains("entry:"))  entry = str.mid(str.indexOf(":")+1).toInt();
+    if (str.contains("setup:"))  setup = str.mid(str.indexOf(":")+1).toInt();
     if (str.contains("dst:"))    fname = str.mid(str.indexOf(":")+1);
     if (str.contains("url:"))    nfurl = str.mid(str.indexOf(":")+1);
     if (str.contains("dir:"))    nfdir = str.mid(str.indexOf(":")+1);
@@ -30,8 +34,12 @@ int main(int argc, char **argv)
     if (str.contains("noanime")) anime = 0;
   }
 
-  if (fnmag != "")
+  GVDraw::tkSetup = setup;
+
+  if (fnmag != "") {
     TrRecon::ReadMagField(fnmag.toAscii().data(), bfscl, 1);
+    MagField::GetPtr()->SetScale(bfscl);
+  }
 
   NetFileEngineHandler netf;
 

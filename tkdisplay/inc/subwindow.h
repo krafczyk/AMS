@@ -1,4 +1,4 @@
-// $Id: subwindow.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: subwindow.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
 //
 // SubWindow : a class to manage sub window on the main display by SH
 //
@@ -19,7 +19,7 @@ public:
 	    int pos = POS_CENTER, int brd = 1);
  ~SubWindow();
 
-  enum { FOCUS_CLOSE = 1, FOCUS_MORE = 2, FOCUS_DOBJ = 4 };
+  enum { FOCUS_CLOSE = 1, FOCUS_MORE = 2, FOCUS_DOBJ = 4, FOCUS_OPT = 0x100 };
   enum { SW_EVENT = 1, SW_TRACK = 2, SW_LADDER = 3 };
   enum { DOBJ_LAD = 1, DOBJ_CLS = 2, DOBJ_HIT  = 3, DOBJ_TRK = 4 };
 
@@ -36,6 +36,7 @@ public:
   virtual bool clearFocus();
   virtual bool checkFocus(int x, int y);
   virtual void drawWindow(QPainter *pnt, int wid, int hei, float scale = 1);
+  virtual void procMpress() {}
 
 protected:
   virtual void drawInfobar(QPainter *pnt);
@@ -63,8 +64,8 @@ protected:
   int wPos, fBorder;
 
   enum { POS_CENTER, POS_TOP };
-  enum { CLOSE_X = 5, CLOSE_Y = 5, CLOSE_W = 15, CLOSE_H = 15,
-	 MORE_X  = 5, MORE_Y  = 5, MORE_W  = 35, MORE_H  = 15 };
+  enum { CLOSE_X =  5, CLOSE_Y = 5, CLOSE_W = 15, CLOSE_H = 15,
+	 MORE_X  = 10, MORE_Y  = 5, MORE_W  = 35, MORE_H  = 15 };
 };
 
 #endif

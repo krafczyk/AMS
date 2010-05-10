@@ -1,4 +1,4 @@
-// $Id: trcls.h,v 1.1 2010/01/18 11:17:00 shaino Exp $
+// $Id: trcls.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
 //
 // TrCls : a class to manage Tracker cluster data by SH
 //
@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <map>
+#include <map>
+#include "TkDBc.h"
 
 class AMSEventR;
 
@@ -43,7 +45,7 @@ private:
   AMSEventR *rEvent;
   EMode      cMode;
 
-  enum { MAXLAY = 8 };
+  enum { MAXLAY = trconst::maxlay };
   std::vector<int> tkLayer[MAXLAY];
   std::map< int, std::vector<int> > clsTkId[2];
 
