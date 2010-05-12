@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.267 2010/04/21 08:35:29 choumilo Exp $
+//  $Id: root.h,v 1.268 2010/05/12 12:56:45 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -915,15 +915,20 @@ public:
   unsigned int Status;   ///< statusword \sa TrClusterR
   ///
   int Pattern;  ///< see datacards.doc
+  int Patternf(){return Pattern;}
   int Address;  ///< ladders combination code (see trrec.C buildaddress)
   int AddressA;  ///< ladders combination code (see trrec.C buildaddress)
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
   float Chi2StrLine;  ///< chi2 sz fit
+  float Chi2StrLinef(){return Chi2StrLine;}
   float Chi2WithoutMS;  ///< chi2 circular fit OR pathint chi2  without ms
+  float Chi2WithoutMSf(){return Chi2WithoutMS;}
   float RigidityWithoutMS;  ///< circular rigidity OR pathint rigidity without ms
   float Chi2FastFit;    ///< chi2 fast nonl fit
+  float Chi2FastFitf(){return Chi2FastFit;}
   float Rigidity;  ///< fast nonl rigidity
+  float Rigidityf(){return Rigidity;}
   float ErrRigidity;  ///<err to 1/above
   float Theta;      ///< theta (from fast)
   float Phi;        ///< phi (from fast) 
@@ -932,12 +937,15 @@ public:
   float GRigidity;  ///< geane rigidity
   float GErrRigidity; ///< geane err(1/rigidity)
   float HChi2[2];     ///< two halves chi2s
+  float HChi2f(int k){return HChi2[k];}
   float HRigidity[2];  ///< two halves rigidities
+   float HRigidityf(int k){return HRigidity[k];}
   float HErrRigidity[2];  ///< two halves err(1/rig)
   float HTheta[2];   ///< two halves theta
   float HPhi[2];     ///< two halves phi
   float HP0[2][3];   ///< two halves coo
   float FChi2MS;    ///< fast chi2 mscat off
+  float FChi2MSf(){return FChi2MS;}
   float PiErrRig;    ///< PathInt err(1/rig) (<0 means fit was not succesful)
   float RigidityMS;  ///< fast rigidity mscat off
   float PiRigidity;  ///<  PathInt rigidity
