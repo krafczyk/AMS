@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.268 2010/05/12 12:56:45 choutko Exp $
+//  $Id: root.h,v 1.269 2010/05/12 13:22:04 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -823,6 +823,7 @@ public:
   ///
   int  Id;             ///<ssddhl ss sensor(1:xx) dd ladder(1:15) h half(0:1) l layer(1u:8d)
   float Hit[3];            ///< cluster coordinates
+  float Hitf(int k){return Hit[k];}
   float EHit[3];           ///< error to above
   float Sum;               ///< Amplitude (x+y)
   float DifoSum;           ///< (A_x-A_y)/(A_x+A_y)
