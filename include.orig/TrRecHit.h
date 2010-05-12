@@ -199,8 +199,8 @@ protected:
 
   ///STD GBATCH compatibility layer
   int lay() const { return abs(_tkid/100); }
-  // Returns the (minimal) distance between two hit on the selcted coo (x 0, y 1, z 2)
-  static float HitDist(TrRecHitR* A, TrRecHitR * B,int coo);
+  // Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
+  float HitDist(TrRecHitR & B,int coo);
   /// ROOT definition
   ClassDef(TrRecHitR,1)
 };
