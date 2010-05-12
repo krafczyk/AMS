@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.22 2010/05/07 08:53:31 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.23 2010/05/12 14:54:26 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/05/07 08:53:31 $
+///$Date: 2010/05/12 14:54:26 $
 ///
-///$Revision: 1.22 $
+///$Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -269,7 +269,11 @@ public:
   int GetPattern() const { return _Pattern; }
   //! returns the Number of Hits
   int GetNhits  () const { return _Nhits;   }
+  //! returns the Number of Hits
   int getnhits  () const { return _Nhits;   }
+
+  //! returns the Number of Hits
+  int NTrRecHit  () const { return _Nhits;   }
 
   //! Returns the pattern on X
   int GetPatternX () const { return _PatternX;  }
@@ -514,6 +518,24 @@ public:
   uinteger getstatus() const{return Status;}
   void     setstatus(uinteger status){Status=Status | status;}
   void     clearstatus(uinteger status){Status=Status & ~status;} 
+
+
+  /// --- Std gbatch compatibility functions
+  geant Rigidityf(){ return GetRigidity();}
+
+  geant Chi2FastFitf() {return GetChi2(kChoutko| kMultScat );}
+
+  geant HChi2f(int half){ return (half==0)?
+      GetChi2(kChoutko| kMultScat|kUpperHalf):
+      GetChi2(kChoutko| kMultScat|kLowerHalf);}
+
+  geant FChi2MSf(){return  GetChi2(kChoutko);}
+
+  geant HRigidityf(int half){ return (half==0)?
+      GetRigidity(kChoutko| kMultScat|kUpperHalf):
+      GetRigidity(kChoutko| kMultScat|kLowerHalf);}
+
+  
 
   /// ROOT definition
   ClassDef(TrTrackR, 1);

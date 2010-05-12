@@ -91,6 +91,18 @@ protected:
   void BuildCoordinates();
 
 //####################  ACCESSORS ##############################
+  /// Access function to TrClusterR Object used; 
+  /// \param xy 'x' for x projection; any other for y projection;
+  /// Returns index in TrClusterR collection or -1 
+  int iTrCluster(char xy) const { return (xy='x')?_iclusterX:_iclusterY; }
+
+  /// Access function to TrClusterR Object used; 
+  /// \param xy 'x' for x projection; any other for y projection;
+  /// Returns index in TrClusterR collection or -1 
+  TrClusterR* pTrCluster(char xy)  { return (xy='x')?GetXCluster():GetYCluster(); }
+
+  /// Return a string with hit infos (used for the event display)
+  char *Info(int iRef=0);
   
   /// Get ladder TkId identifier 
   int   GetTkId()        const { return _tkid; }
@@ -183,12 +195,12 @@ protected:
     return hit.putout(ostr);}
   /// Print hit info (verbose if opt !=0 )
   void  Print(int opt=0);
-  /// Return a string with hit infos (used for the event display)
-  char *Info(int iRef=0);
 
 
-
-
+  ///STD GBATCH compatibility layer
+  int lay() const { return abs(_tkid/100); }
+  // Returns the (minimal) distance between two hit on the selcted coo (x 0, y 1, z 2)
+  static float HitDist(TrRecHitR* A, TrRecHitR * B,int coo);
   /// ROOT definition
   ClassDef(TrRecHitR,1)
 };

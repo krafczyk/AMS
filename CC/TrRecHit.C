@@ -82,6 +82,41 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, flo
   _imult    = imult; 
 }
 
+float TrRecHitR::HitDist(TrRecHitR* A, TrRecHitR * B,int coo){
+  if(!A || !B) return -1;
+  if(coo==1 || coo==2){
+    return (A->GetCoord()-B->GetCoord())[coo];
+  }
+  else if(coo==0){
+    int MminA=0;
+    int MminB=0;
+    int MmaxA=A->GetMultiplicity();
+    int MmaxB=B->GetMultiplicity();
+    
+    if(A->GetResolvedMultiplicity()>=0){
+      MminA=A->GetResolvedMultiplicity();
+      MmaxA=MminA+1;
+    }
+    
+    if(B->GetResolvedMultiplicity()>=0){
+      MminB=B->GetResolvedMultiplicity();
+      MmaxB=MminB+1;
+    }
+    float dmin=1000;
+    float mind=1000;
+    for (int la=MminA;la <MmaxA;la++)
+      for (int lb=MminB;lb <MmaxB;lb++){
+	float dist=(A->GetCoord(la)-B->GetCoord(lb))[0];
+	if(fabs(dist) < dmin) {dmin=fabs(dist) ; mind=dist;}
+    }
+    return mind;
+  }else 
+    return -1;
+  
+}
+
+
+
 TrClusterR* TrRecHitR::GetXCluster() { 
   if(_clusterX==NULL&& !(Status&YONLY)){
     VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
