@@ -31,6 +31,16 @@ end ;
 /
 show errors
 
+create or replace trigger jobs_bd
+before delete on jobs
+for each row
+begin
+delete from runs where jid=:OLD.jid;
+delete from dataruns where jid=:OLD.jid;
+end ;
+/
+show errors
+
 create or replace trigger datafiles_biu
 after insert or update on datafiles
 for each row

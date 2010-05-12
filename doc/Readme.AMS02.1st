@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.56 2010/04/27 07:38:24 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.57 2010/05/12 12:57:36 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -212,23 +212,7 @@ $amsedc   root_file
 
 X   Documentation
 
-    Ntuple doc:   doc/ntuple02.doc
-    Root   doc:   doc/root02.doc
-    
-    To see the latest changes in ams software please do :
-
-    
-  a) Get a password for cvs server by
-      log in ams.cern.ch
-      cat ~ams/cvsams/.cvsams
-
-   b) Open http://pcamsf0.cern.ch/cgi-bin/viewcvs.cgi/
-      with username amscvs and "access from web" password in a)
-   
-   c) Click AMS
-   d) Click Age
-   e) Click all the directories in the list one by one
-
+http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02.html
 
 Comments, questions to v.choutko@cern.ch
 
