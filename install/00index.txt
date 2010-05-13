@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.47 2009/12/08 09:15:26 choutko Exp $
+#  $Id: 00index.txt,v 1.48 2010/05/13 13:53:31 choutko Exp $
 
 Makefile //  General Makefile
 Makefile.linux    // OS dep -> Linux-gcc
@@ -29,11 +29,11 @@ It then depends on the compiler type has been used for  your ROOT version.
 The new Perugia Tracker Software can be enabled at compile time with:
 setenv PGTRACK 1
 
-WARNING!!: Perugia Tracker Software is under developpement, is tested only on gcc
+WARNING!!: Perugia Tracker Software is under developpement, 
          and it is not yet full featured.
 
-gmake gbatch(default) // builds g3 gbatch with root
-gmake gxint           // builds g3 gxint !undefine AMSICC first
+gmake gbatch(default) // builds g3 gbatch 
+gmake gxint           // builds g3 gxint 
 gmake lib             // builds root shared & static library
 gmake shared          // builds root shared library
 gmake static          // builds root static library

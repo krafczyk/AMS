@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.269 2010/05/12 13:22:04 choutko Exp $
+//  $Id: root.h,v 1.270 2010/05/13 13:53:30 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -830,7 +830,7 @@ public:
   float CofgX;             ///< local cfg x
   float CofgY;             ///< local cfg y
   float Bfield[3];         ///< magnetic field vector (kG)
-
+  float HitDist(const TrRecHitR &o,int icoo){return o.Hit[icoo]-Hit[icoo];}
 protected:
   int  fTrClusterX;   ///<x proj TrClusterR pointer
   int  fTrClusterY;   ///<y proj TrClusteR pointer

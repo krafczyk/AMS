@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.710 2010/04/30 15:00:10 pzuccon Exp $
+// $Id: job.C,v 1.711 2010/05/13 13:53:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1244,6 +1244,8 @@ FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
   for( int k=0;k<sizeof(TRFITFFKEY.patternp)/sizeof(TRFITFFKEY.patternp[0]);k++)TRFITFFKEY.patternp[k]=0;
 }
 TRFITFFKEY.MainAlg=541;
+TRFITFFKEY.B23[0]=30;
+TRFITFFKEY.B23[1]=20;
 TRFITFFKEY.UseTRD=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;

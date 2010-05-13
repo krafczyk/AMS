@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.112 2010/03/27 10:55:51 choutko Exp $
+//  $Id: trrec.h,v 1.113 2010/05/13 13:53:31 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -72,8 +72,8 @@ static number _etacor(integer side, number eta);
 public:
 static integer Out(integer);
 number getVal(){return TRCLFFKEY.CommonGain[_Id.getside()]*(_Sum-TRCLFFKEY.CommonShift[_Id.getside()]);}
-number getcofg( AMSTrIdGeom * id);
-number getlcofg(AMSTrIdGeom * id);
+number getcofg( AMSTrIdGeom * id,bool force2str=true);
+number getlcofg(AMSTrIdGeom * id,bool force2str=true);
 number etacor(double x);
 number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}
@@ -158,7 +158,6 @@ public:
   _Id <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
-
   integer ithis =   (!checkstatus(AMSDBc::USED))
                   + 2*(checkstatus(AMSDBc::AwayTOF));
   integer iother =   (!p->checkstatus(AMSDBc::USED))
@@ -174,7 +173,7 @@ integer operator < (AMSlink & o) const {
 
 
 } 
-
+void updatecoo(bool force2str[2]);
 inline integer Good() { 
   return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
             && checkstatus(AMSDBc::AwayTOF )==0) && checkstatus(AMSDBc::GOOD);

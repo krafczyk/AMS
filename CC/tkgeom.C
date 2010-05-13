@@ -603,6 +603,8 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
 	coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
 	  (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
 	//coo[1]+=(2*k-1)*0.008;
+        if(coo[1]<0)coo[1]+=-TKDBc::c2cgap(i)/2;
+        else coo[1]+=TKDBc::c2cgap(i)/2;
 	coo[2]=TKDBc::zpos(i);
 	VZERO(nrm,9*sizeof(nrm[0][0])/4);
 	if(k==0){
@@ -655,6 +657,9 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
 	  coo[0]=lad[k]->getcoo(0)+(2*k-1)*(lad[k]->getpar(0)+par[0]);
 	  coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
 	    (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
+       if(coo[1]<0)coo[1]+=-TKDBc::c2cgap(i)/2;
+        else coo[1]+=TKDBc::c2cgap(i)/2;
+
 	  coo[2]=TKDBc::zelec(i,2)+par[2];
 	  VZERO(nrm,9*sizeof(nrm[0][0])/4);
 	  nrm[0][0]=1;
@@ -761,6 +766,9 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
       par[2]=(TKDBc::support_foam_w(i))/2;    
       coo[0]=0;
       coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-(TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
+//       if(coo[1]<0)coo[1]+=-TKDBc::c2cgap(i)/2;
+//        else coo[1]+=TKDBc::c2cgap(i)/2;
+
       coo[2]=TKDBc::zpos(i)-TKDBc::silicon_z(i)/2.-par[2]-TKDBc::support_foam_tol(i);
       VZERO(nrm,9*sizeof(nrm[0][0])/4);
       nrm[0][0]=1;

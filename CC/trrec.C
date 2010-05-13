@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.224 2010/04/23 15:41:06 choutko Exp $
+//  $Id: trrec.C,v 1.225 2010/05/13 13:53:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -753,7 +753,7 @@ if(y<0.5)cor=1-cor;
 return cor-y;
 }
 
-number AMSTrCluster::getcofg(AMSTrIdGeom * pid){
+number AMSTrCluster::getcofg(AMSTrIdGeom * pid,bool force2strip){
   //
   // Here we are able to recalculate the center of gravity...
   //
@@ -771,7 +771,7 @@ int ib=_NelemL;
 int ie=_NelemR;
 if(ib<-1)ib=-1;
 if(ie>2)ie=2; 
-if(ib<0 && ie>1){
+if(ib<0 && ie>1 && force2strip){
   if(_pValues[ib-_NelemL]>_pValues[ie-1-_NelemL])ie=1;
   else ib=0;
 }
@@ -798,11 +798,11 @@ smt=0;
 return cofg-cfgCorFun(smt,pid); 
 }
 
-number AMSTrCluster::getlcofg(AMSTrIdGeom * pid){
+number AMSTrCluster::getlcofg(AMSTrIdGeom * pid,bool force2strip) {
 
 if(_pValues){
  int error;
- return getcofg(pid)-pid->getcofg(_Id.getside(),0,_Id.getstrip(),error);
+ return getcofg(pid,force2strip)-pid->getcofg(_Id.getside(),0,_Id.getstrip(),error);
 }
 else return 0;
 }
@@ -1239,10 +1239,36 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 
+void AMSTrRecHit::updatecoo(bool force2pnt[2]){
+if(!_Xcl)return;
+_cofgx=_Xcl->getlcofg(&_Id,force2pnt[0]);
+_cofgy=_Ycl->getlcofg(&_Id,force2pnt[1]);
+AMSPoint hit=_pSen->str2pnt(_Xcl->getcofg(&_Id,force2pnt[0]),_Ycl->getcofg(&_Id,force2pnt[1]));
+_Hit=hit;
+    if(!AMSJob::gethead()->isRealData()){
+       AMSTrAligPar * par(0);
+    if( par=AMSTrAligFit::SearchAntiDBgl(&_Id)){
+     _status=_status | (AMSDBc::LocalDB);
+     for(int j=0;j<3;j++){
+      _Hit[j]=(par[_Id.getlayer()-1].getcoo())[j]+
+       (par[_Id.getlayer()-1].getmtx(j)).prod(hit);
+      }
+      _cofgx=hit[0];
+      _cofgy=hit[1];
+}
+}
+sethit();
+
+}
 
 
 
- inline void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
+
+
+
+
+
+ void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
                             AMSTrCluster * y,  const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
@@ -2284,6 +2310,18 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 
 
 void AMSTrTrack::AdvancedFit(){
+//  Recalculate center of gravity hits if corr angle > TRFITFFKEY.B23
+    number nx=sin(_Theta)*cos(_Phi);
+    number ny=sin(_Theta)*sin(_Phi);
+    number nz=cos(_Theta);
+    bool force[2];
+    force[0]=fabs(atan(nx/nz))*180/3.1415926<TRFITFFKEY.B23[0];
+    force[1]=fabs(atan(ny/nz))*180/3.1415926<TRFITFFKEY.B23[1]; 
+     
+    for(int i=0;i<_NHits;i++){
+      _Pthit[i]->updatecoo(force);
+    }
+    if(!force[0] || !force[1])Fit(0); 
   _AdvancedFitDone=1;
     if(TKDBc::patpoints(_Pattern)>3){
       Fit(1);

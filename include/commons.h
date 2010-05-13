@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.287 2010/03/27 10:55:51 choutko Exp $
+//  $Id: commons.h,v 1.288 2010/05/13 13:53:30 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -519,6 +519,7 @@ public:
   integer OldTracking;  //Use Old (VC) or new (JA) pattern recognition
   integer MainAlg;     //
   integer AddMS;      // Add MS error to ext planes
+   integer B23[2];    //  angle to switch 2 to 3 strips cluster cofg calculation
 };
 //
 

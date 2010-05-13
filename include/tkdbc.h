@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.20 2010/03/21 15:16:38 choutko Exp $
+//  $Id: tkdbc.h,v 1.21 2010/05/13 13:53:30 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -63,6 +63,7 @@ private:
    static  number   _silicon_z[trconst::maxlay];
    static  number   _zelec[trconst::maxlay][3];
    static  number   _c2c[trconst::maxlay];
+   static number    _c2cgap[trconst::maxlay];
    static  number   _halfldist[trconst::maxlay];
    static  number   _support_foam_w[trconst::maxlay];
    static  number   _support_foam_tol[trconst::maxlay];
@@ -181,6 +182,7 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
      return _ssize_inactive[ilay][side];
    }
    inline static number  c2c(integer i){return _c2c[i];}
+   static number c2cgap(integer i){return _c2cgap[i];}
    inline static number support_foam_w(integer i){return _support_foam_w[i];}
    inline static number support_foam_tol(integer i){return _support_foam_tol[i];}
    inline static number support_hc_w(integer i){return _support_hc_w[i];}

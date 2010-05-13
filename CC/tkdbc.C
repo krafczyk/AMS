@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.69 2010/03/25 14:23:07 choutko Exp $
+//  $Id: tkdbc.C,v 1.70 2010/05/13 13:53:27 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -37,6 +37,7 @@ integer TKDBc::_ReadOK=0;
      number   TKDBc::_silicon_z[maxlay];
      number   TKDBc::_zelec[maxlay][3];
      number   TKDBc::_c2c[maxlay];
+      number  TKDBc::_c2cgap[maxlay]={0,0,0,0,0,0,0,0,0};
      number   TKDBc::_halfldist[maxlay];
      number   TKDBc::_support_foam_w[maxlay];
      number   TKDBc::_support_foam_tol[maxlay];
@@ -2109,6 +2110,9 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 // center to center for ladders
 const number  c2c[maxlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
    UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
+const number c2cgap[maxlay]={0,0,0,0,0,0,0,0,0.705};
+ UCOPY(c2cgap,_c2cgap,sizeof(c2cgap)/sizeof(integer));
+
 // support foam width;
 const number  support_foam_w[maxlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
    UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
