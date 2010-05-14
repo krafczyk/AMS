@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.30 2010/05/07 08:53:30 pzuccon Exp $
+// $Id: TrTrack.C,v 1.31 2010/05/14 14:02:28 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/05/07 08:53:30 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-///$Revision: 1.30 $
+///$Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -639,7 +639,7 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
 
   double ret = tprop.Interpolate(pnt, dir);
 
-  TkSens tks(pnt);
+  TkSens tks(pnt,0);
   if (!tks.LadFound()) return ret;
 
   TkLadder *lad = TkDBc::Head->FindTkId(tks.GetLadTkID());
@@ -712,7 +712,7 @@ int TrTrackR::intercept(AMSPoint &pnt, int layer,
   phi   = dir.getphi();
   local = 0;
 
-  TkSens tks(pnt);
+  TkSens tks(pnt,0);
   if (tks.LadFound()) {
     AMSPoint ps(TkDBc::Head->_ssize_active[0], 
 		TkDBc::Head->_ssize_active[1], TkDBc::Head->_silicon_z);

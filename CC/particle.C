@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.201 2010/04/30 15:43:45 pzuccon Exp $
+//  $Id: particle.C,v 1.202 2010/05/14 14:02:28 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -28,7 +28,7 @@
 #ifdef _PGTRACK_
 //#include "patt.h"
 #include "tkdcards.h"
-#include "TkSens.h"
+//#include "TkSens.h"
 #else
 #include "vtx.h"
 #endif

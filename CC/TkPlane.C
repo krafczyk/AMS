@@ -1,4 +1,4 @@
-//  $Id: TkPlane.C,v 1.3 2010/02/01 12:44:05 shaino Exp $
+//  $Id: TkPlane.C,v 1.4 2010/05/14 14:02:28 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -48,6 +48,12 @@ ostream& TkPlane::putoutA(ostream& s){
   
 }
 
+ostream& TkPlane::putoutT(ostream& s){
+
+   return TkObject::putoutT(s)<<_pnumber<<" "<<_nslot[0]<<" "<<_nslot[1]<<endl;
+  
+}
+
 
 istream& TkPlane::putin(istream& s ) {
 
@@ -62,6 +68,15 @@ istream& TkPlane::putin(istream& s ) {
 istream& TkPlane::putinA(istream& s ) {
 
   TkObject::putinA(s);
+
+  s>> _pnumber >> _nslot[0] >> _nslot[1];
+  
+  return s;
+}
+
+istream& TkPlane::putinT(istream& s ) {
+
+  TkObject::putinT(s);
 
   s>> _pnumber >> _nslot[0] >> _nslot[1];
   

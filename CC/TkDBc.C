@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.13 2010/04/05 21:22:35 shaino Exp $
+//  $Id: TkDBc.C,v 1.14 2010/05/14 14:02:28 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/04/05 21:22:35 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,13 +116,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       nplanes=6;
       nlays=9;
     }
-    Plane6Size[0]=112;
-    Plane6Size[1]=61;
-    Plane6Size[2]=1.236;
+    Plane6Size[0]=109.4;
+    Plane6Size[1]=75;
+    Plane6Size[2]=1.;
     
-    Plane6EnvelopSize[0]=112;
-    Plane6EnvelopSize[1]=61;
-    Plane6EnvelopSize[2]=3.5;
+    Plane6EnvelopSize[0]=109.4;
+    Plane6EnvelopSize[1]=75;
+    Plane6EnvelopSize[2]=3.3;
 
   
     const number  xposl[maxplanes]={0,0,0,0,0,0.};
@@ -147,7 +147,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     
     
     // Plane support thickness in cm
-    const number sup_hc_w[maxplanes]={  4.0, 1.236, 1.236, 1.236,  4.0 ,1.236};
+    const number sup_hc_w[maxplanes]={  4.0, 1.236, 1.236, 1.236,  4.0 ,1.};
     memcpy(_sup_hc_w, sup_hc_w, maxplanes*sizeof(sup_hc_w[0]));
 
     // Plane support radius in cm
@@ -383,12 +383,12 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	{  0.  , 289.55,  -0.39, 20.31,	-21.09,	-0.32,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//6
 	{144.88, 289.41,  -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//7
 	{ -0.39,  20.31,  -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39},//8
-	{     0.,     0.,     0.,    0.,     0.,    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,    0.},//9
+	{-20.89, -40.99, -40.99,-40.99, -40.99,-40.99, -40.99, -20.89,     0.,     0.,     0.,     0.,     0.,     0.,    0.},//9
       },{
 	
 														
 	//1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
-	{0.39,	21.09,	0.39,	0.39,	-20.31,	0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
+	{0.39,	21.09,	0.39,	0.39,	-20.31, 0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
 	{0.,	0,	0.25,	20.95,	-20.45,	0.25,	0.25,	0,	0.25,	0.25,	-20.45,	20.95,	0.25,	-289.55, -144.88},
 	{0.,	0,	0.25,	20.95,	-20.31,	0.39,	0.39,	0,	0.39,	0.39,	-20.31,	21.09,	0.25,	-289.41,    0.  },
 	{0.,	0,	0.32,	20.95,	-20.45,	0.25,	0.25,	0,	0.25,	0.25,	-20.45,	20.95,	0.32,	   0.  ,    0.  },
@@ -396,7 +396,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	{0.,	0,	0.39,	21.09,	-20.31,	0.39,	0.32,	0,	0.39,	0.39,	-20.31,	21.02,	0.39,	-289.41,    0.  },
 	{0.,	0,	0.39,	21.09,	-20.31,	0.25,	0.32,	0,	0.25,	0.32,	-20.31,	21.02,	0.39,	-289.41, -144.74},
 	{0.39,	21.09,	0.39,	0.39,	-20.31,	0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
-	{0.2,    0.2,   0.2 ,   0.2 ,     0.2 , 0.2 ,   0.2 ,   0.2 ,     0.,     0.,     0.,     0.,     0.,     0.,     0.},
+	{-20.04,-40.14,-40.14, -40.14,   -40.14,-40.14,-40.14, -20.04 ,     0.,     0.,     0.,     0.,     0.,     0.,     0.},
       }};
 
     // memcpy(_LadDeltaX,LadDeltaX,2*nlays*maxlad*sizeof(LadDeltaX[0][0][0]));
@@ -522,6 +522,9 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
               sprintf(name,"%s",LadName[side][lay][slot]);
               TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,_nsen[side][lay][slot]);
               if(_octid[side][lay][slot]<0) aa->SetLaserFlag();
+	      if((lay+1)==1 || (lay+1) ==8) aa->SetAsK7();
+	      // FIXME not all the ladders on layer 9 are K7
+	      if((lay+1)==9 ) aa->SetAsK7();
               number posz= _layer_deltaZ[lay];
               number posy= GetSlotY(lay+1,slot+1,side);
               number posx= GetSlotX(lay+1,slot+1,side);
@@ -586,7 +589,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 number TkDBc::GetSlotY(int layer, int slot,int side){
   number ladpitch= _ladder_Ypitch;
   number ladder_Ygap= _ladder_Ypitch - _ssize_inactive[1];
-
+  number central_gap= 0.8 - ladder_Ygap ; // layer 9 central additional gap
   //Y coo of  the first S/p readout channel for the ladder on slot 9 X negative
   // 0.5 ladder_Ygap + distance from first readout channel to near ladder edge
   number distXN = (_ssize_inactive[1]-_ssize_active[1])/2 + 0.5 * ladder_Ygap;
@@ -600,8 +603,10 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
 //   printf("  _ladder_Ypitch %f\n", _ladder_Ypitch );
 //   printf(" ladpitch %f ladder_Ygap %f distXN %f distXF  %f \n",_ladder_Ypitch,ladder_Ygap,distXN,distXF);
   if(layer==9){
-    if(side==0) return distXN+ ladpitch*(5-slot); //(4-slot);
-    else        return distXF+ ladpitch*(3-slot); //(4-slot);
+    if(side==0) 
+      return distXN+ ladpitch*(5-slot)+ ((slot<5)?1:-1)*central_gap/2.; //(4-slot);
+    else
+      return distXF+ ladpitch*(3-slot)+ ((slot<5)?1:-1)*central_gap/2.; //(4-slot);
   }
   if( layer==2||layer==4||layer==6){
     if(side==0){

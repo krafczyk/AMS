@@ -1,4 +1,4 @@
-//  $Id: TkObject.C,v 1.3 2010/02/01 12:44:05 shaino Exp $
+//  $Id: TkObject.C,v 1.4 2010/05/14 14:02:28 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -28,6 +28,9 @@ TkObject::TkObject(char* namein){
 
   posA=0;
   rotA.Reset();
+
+  posT=0;
+  rotT.Reset();
 }
 
 
@@ -38,6 +41,8 @@ TkObject::TkObject(char* namein,AMSPoint posin,AMSRotMat rotin){
   rot=rotin;
   posA=0;
   rotA.Reset();
+  posT=0;
+  rotT.Reset();
 
 }
 
@@ -72,6 +77,17 @@ istream& TkObject::putin(istream& s){
     return s;
   }
   s>> rotA;
+  if(!s.good()){
+    cerr <<" Error in TkObject::putin the channel is not good"<<endl;
+    return s;
+  }
+
+  s>> posT;
+  if(!s.good()){
+    cerr <<" Error in TkObject::putin the channel is not good"<<endl;
+    return s;
+  }
+  s>> rotT;
   if(!s.good()){
     cerr <<" Error in TkObject::putin the channel is not good"<<endl;
     return s;
@@ -114,6 +130,36 @@ istream& TkObject::putinA(istream& s){
 
 
 
+istream& TkObject::putinT(istream& s){
+
+  s.width(50);
+
+  if(!s.good()){
+    cerr <<" Error in TkObject::putin the channel is not good"<<endl;
+    return s;
+  }
+  s>> name;
+  if (s.eof()) return s;
+  if(!s.good()){
+    cerr <<" Error in TkObject::putin the channel is not good"<<endl;
+    return s;
+  }
+  s>> posT;
+  if(!s.good()){
+    cerr <<" Error in TkObject::putin the channel is not good"<<endl;
+    return s;
+  }
+  s>> rotT;
+  if(!s.good()){
+    cerr <<" Error in TkObject::putin the channel is not good"<<endl;
+    return s;
+  }
+
+  return s;
+}
+
+
+
 
 
 
@@ -124,6 +170,7 @@ void TkObject::RotToMat(number nrm[][3]){
       nrm[row][col]=rot.GetEl(row,col);
   return;
 }
+
 void TkObject::Align2Lin(float * off){
     off[0]=posA[0];
     off[1]=posA[1];
@@ -143,6 +190,31 @@ void TkObject::Lin2Align(float * off){
     posA[2]=off[2];
 
     SetRotAnglesA(off[3],off[4],off[5]);
+
+    return;
+}
+
+
+
+void TkObject::MCAlign2Lin(float * off){
+    off[0]=posT[0];
+    off[1]=posT[1];
+    off[2]=posT[2];
+    double a,b,c;
+    GetRotAnglesT(a,b,c);
+    off[3]=a;
+    off[4]=b;
+    off[5]=c;
+    return;
+  }
+
+
+void TkObject::Lin2MCAlign(float * off){
+    posT[0]=off[0];
+    posT[1]=off[1];
+    posT[2]=off[2];
+
+    SetRotAnglesT(off[3],off[4],off[5]);
 
     return;
 }

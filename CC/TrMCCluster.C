@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.6 2010/05/03 08:00:24 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.7 2010/05/14 14:02:28 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/05/03 08:00:24 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -55,11 +55,16 @@ void TrMCClusterR::_shower()
   if(!ss) tkid*=-1;
 
   int layer = abs(tkid)/100;
-  int nchx  = (layer == 1 || layer == 8) ? TkDBc::Head->_NReadStripK7 
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf(" TrMCClusterR::_shower: ERROR cant find ladder %d into the database\n",tkid);
+    return ;
+  } 
+  int nchx  = (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
                                          : TkDBc::Head->_NReadStripK5;
   int nchy  = TkDBc::Head->_NReadoutChanS;
 
-  TkSens tks(tkid, _xgl);
+  TkSens tks(tkid, _xgl,1);
   int bcen0 = tks.GetStripX();
   int bcen1 = tks.GetStripY();
 
@@ -173,9 +178,13 @@ void TrMCClusterR::_PrepareOutput(int full)
 float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult)
 {
   int layer = abs(tkid)/100;
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("TrMCClusterR::strip2x: ERROR cant find ladder %d into the database\n",tkid);
+    return -1;
+  } 
   int nch   = (side  == 1) ? TkDBc::Head->_NReadoutChanS
-    : (layer == 1 || 
-       layer == 8) ? TkDBc::Head->_NReadStripK7 
+    : (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
     : TkDBc::Head->_NReadStripK5;
 
 

@@ -30,7 +30,7 @@ TrSim::TrSim() {
     if (TRMCFFKEY.SimulationType!=kTrSim2010) return;
     // only in case of TrSim2010 simulation 
     for (int type=0; type<=2; type++) _sensors.push_back(new TrSimSensor(type));
-    _glo2loc = new TkSens();
+    _glo2loc = new TkSens(1);
   }
   else {
     if (WARNING) printf("TrSim::TrSim-Warning the TrSim singleton has been already defined\n");
@@ -41,7 +41,12 @@ TrSim::TrSim() {
 TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
   if (side==1)                  return _sensors.at(0); // S
   int layer = (int) fabs(tkid%100);
-  if ( (layer==1)||(layer==8) ) return _sensors.at(2); // K7
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("TrSim::GetTrSimSensor: ERROR cant find ladder %d into the database\n",tkid);
+    return 0;
+  } 
+  if ( ll->IsK7() ) return _sensors.at(2); // K7
   else                          return _sensors.at(1); // K5
   return 0;
 }
@@ -74,8 +79,8 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   if(!ss) tkid*=-1;
   // Convert global coo into sensor local coo
   // The origin is the first strip of the sensor
-  TkSens tksa(tkid, ppa);
-  TkSens tksb(tkid, ppb);
+  TkSens tksa(tkid, ppa,1);
+  TkSens tksb(tkid, ppb,1);
   AMSPoint pa = tksa.GetSensCoo(); pa[2] += size[2];
   AMSPoint pb = tksb.GetSensCoo(); pb[2] += size[2];
 
@@ -124,13 +129,13 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
   if(!ss) tkid*=-1;
   // Convert global coo into sensor local coo
   // The origin is the first strip of the sensor
-  TkSens tksa(tkid, ppa);
-  TkSens tksb(tkid, ppb);
+  TkSens tksa(tkid, ppa,1);
+  TkSens tksb(tkid, ppb,1);
   AMSPoint pa = tksa.GetSensCoo(); pa[2] += size[2];
   AMSPoint pb = tksb.GetSensCoo(); pb[2] += size[2];
   int ily = abs(tkid)/100-1;
   sitkrefp[ily] = pgl;
-  TkSens tksc(tkid, pgl);
+  TkSens tksc(tkid, pgl,1);
   AMSPoint pc = tksc.GetSensCoo();
   if (pc.x() < 0 || pc.x() > TkDBc::Head->_ssize_active[0]) return;
   VCon* cont=GetVCon()->GetCont("AMSTrCluster");

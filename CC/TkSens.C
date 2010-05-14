@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.7 2010/04/26 09:16:29 shaino Exp $ 
+/// $Id: TkSens.C,v 1.8 2010/05/14 14:02:28 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/04/26 09:16:29 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -22,13 +22,15 @@
 
 
 //--------------------------------------------------
-TkSens::TkSens() {
+TkSens::TkSens(bool MC) {
+  _isMC=MC;
   Clear();
 }
 
 
 //--------------------------------------------------
-TkSens::TkSens(AMSPoint& GCoo){
+TkSens::TkSens(AMSPoint& GCoo,bool MC){
+  _isMC=MC;
   Clear();
   GlobalCoo = GCoo;
   for (int ii=0; ii<3; ii++) GlobalDir[ii] = 0;
@@ -37,7 +39,8 @@ TkSens::TkSens(AMSPoint& GCoo){
 
 
 //--------------------------------------------------
-TkSens::TkSens(AMSPoint& GCoo, AMSDir& GDir){
+TkSens::TkSens(AMSPoint& GCoo, AMSDir& GDir,bool MC){
+  _isMC=MC;
   Clear();
   GlobalCoo = GCoo;
   GlobalDir = GDir;
@@ -46,7 +49,8 @@ TkSens::TkSens(AMSPoint& GCoo, AMSDir& GDir){
 
 
 //--------------------------------------------------
-TkSens::TkSens(int tkid, AMSPoint& GCoo){
+TkSens::TkSens(int tkid, AMSPoint& GCoo,bool MC){
+  _isMC=MC;
   Clear();
   GlobalCoo = GCoo;
   for (int ii=0; ii<3; ii++) GlobalDir[ii] = 0;
@@ -56,7 +60,8 @@ TkSens::TkSens(int tkid, AMSPoint& GCoo){
 
 
 //--------------------------------------------------
-TkSens::TkSens(int tkid, AMSPoint& GCoo, AMSDir& GDir){
+TkSens::TkSens(int tkid, AMSPoint& GCoo, AMSDir& GDir,bool MC){
+  _isMC=MC;
   Clear();
   GlobalCoo = GCoo;
   GlobalDir = GDir;
@@ -120,7 +125,12 @@ void TkSens::Recalc(){
   mult = -1;
   int layer=abs(lad_tkid)/100;
   number cooX1,cooX2;  
-  if(layer==1||layer==8){
+  TkLadder* ll = TkDBc::Head->FindTkId(lad_tkid);
+  if(!ll){
+    printf("TkSens::Recalc(): ERROR cant find ladder %d into the database\n",lad_tkid);
+    return ;
+  } 
+  if(ll->IsK7()){
     ReadChanX=GetStripFromLocalCooK7(SensCoo[0],sens);
     mult = sens*TkDBc::Head->_NReadStripK7/TkDBc::Head->_NReadoutChanK;
     int test = (mult*TkDBc::Head->_NReadoutChanK+ReadChanX)/TkDBc::Head->_NReadStripK7;
@@ -171,15 +181,20 @@ int TkSens::GetSens(){
 
   //Alignment corrected Plane postion
   AMSPoint PPosG=pp->GetPosA()+pp->GetPos();
+  if(IsMC()) PPosG=pp->GetPosT()+pp->GetPos();
+
 
   //Alignment corrected Plane Rotation matrix
   AMSRotMat PRotG=pp->GetRotMat().Invert()*pp->GetRotMatA().Invert();
+  if(IsMC()) PRotG=pp->GetRotMat().Invert()*pp->GetRotMatT().Invert();
 
   //Alignment corrected Ladder postion
   AMSPoint PosG=lad->GetPosA()+lad->GetPos();
+  if(IsMC()) PosG=lad->GetPosT()+lad->GetPos();
 
   //Alignment corrected Ladder Rotation matrix
   AMSRotMat RotG=lad->GetRotMat().Invert()*lad->GetRotMatA().Invert();
+  if(IsMC()) RotG=lad->GetRotMat().Invert()*lad->GetRotMatT().Invert();
 
   //Convolute with the Plane pos in the space
   AMSPoint oo = PRotG*(GlobalCoo-PPosG);
@@ -302,17 +317,24 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
   // Z check: layer check
   if (GetLayer()!=lad->GetLayer()) return false; // AO Bug fix: otherwise takes the first plane column
   // XY check
+
   double X=GlobalCoo[0];
   double Y=GlobalCoo[1];
+
+  AMSRotMat rotG= lad->GetRotMatA()*lad->GetRotMat();
+  if(IsMC()) rotG= lad->GetRotMatT()*lad->GetRotMat();
+  
+  AMSPoint posG=lad->GetPos()+lad->GetPosA();
+  if(IsMC()) posG= lad->GetPos()+lad->GetPosT();
 
   double vx=lad->rot.GetEl(0,0);
   double vy=lad->rot.GetEl(1,1);
 
-  double Ax= lad->pos[0] - (TkDBc::Head->_ssize_inactive[0]-
+  double Ax= posG[0] - (TkDBc::Head->_ssize_inactive[0]-
 		     TkDBc::Head->_ssize_active[0])/2. *vx;
 
 
-  double Ay= lad->pos[1] - (TkDBc::Head->_ssize_inactive[1]-
+  double Ay= posG[1] - (TkDBc::Head->_ssize_inactive[1]-
 		     TkDBc::Head->_ssize_active[1])/2. *vy;
 
   double Dx= Ax + (lad->_nsensors*

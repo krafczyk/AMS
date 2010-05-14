@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.48 2010/05/14 13:39:42 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.49 2010/05/14 14:02:28 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/14 13:39:42 $
+/// $Date: 2010/05/14 14:02:28 $
 ///
-/// $Revision: 1.48 $
+/// $Revision: 1.49 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -410,7 +410,12 @@ int TrRecon::BuildTrClusters(int rebuild) {
     ncls += BuildTrClustersInSubBuffer(TkId,0,640,0);      // S
     //printf("TkId: %+03d Found %d cluster on S\n",TkId,ncls);
     //printf("TrCluster container has: %d elements\n",cont2->getnelem());
-    if ( (layer==1)||(layer==8) ) { 
+    TkLadder* ll = TkDBc::Head->FindTkId(TkId);
+    if(!ll){
+      printf("TrRecon::BuildTrClusters: ERROR cant find ladder %d into the database\n",TkId);
+    return -1;
+    } 
+    if ( ll->IsK7()) { 
       ncls += BuildTrClustersInSubBuffer(TkId,640,1024,1); // K7
     }
     else { 
@@ -1765,7 +1770,7 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
 
 TkSens TrRecon::EstimateXCoord(AMSPoint gcoo, int tkid) const
 {
-  TkSens tks(tkid, gcoo);
+  TkSens tks(tkid, gcoo,0);
   if (tks.LadFound() && tks.GetStripX() < 0) {
     float sx = tks.GetSensCoo().x();
     float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);

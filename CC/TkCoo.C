@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.6 2010/01/10 13:06:51 shaino Exp $ 
+/// $Id: TkCoo.C,v 1.7 2010/05/14 14:02:28 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2010/01/10 13:06:51 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -144,7 +144,7 @@ int TkCoo::GetMaxMult(int tkid, float readchann){
   }
   int max = 1;
   if(readchann<=639.) return 0;
-  if( (ll->GetLayer()==8) || (ll->GetLayer()==1) ) 
+  if( (ll->IsK7()) ) 
     max=(int) ceil((ll->_nsensors*TkDBc::Head->_NReadStripK7-readchann+640)/384.);
   else
     max=(int) ceil((ll->_nsensors*TkDBc::Head->_NReadStripK5-readchann+640)/384.);
@@ -155,19 +155,29 @@ int TkCoo::GetMaxMult(int tkid, float readchann){
 
 //--------------------------------------------------
 float TkCoo::GetLocalCoo(int tkid, int readchann,int mult){
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("GetLocalCoo: ERROR cant find ladder %d into the database\n",tkid);
+    return -1;
+  }
   int mmult=GetMaxMult(tkid,readchann);
   int plane=abs(tkid)/100;
   if(mult>mmult||mult<0) mult=mmult;
   // float out=0.;
   if(readchann<640) return GetLocalCooS(readchann);
   else{
-    if(plane==1||plane==8) return GetLocalCooK7(readchann,mult);
+    if(ll->IsK7()) return GetLocalCooK7(readchann,mult);
     else return GetLocalCooK5(readchann,mult);
   }
 }
 
 //--------------------------------------------------
 float TkCoo::GetLocalCoo(int tkid, float readchann,int mult){
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("GetLocalCoo: ERROR cant find ladder %d into the database\n",tkid);
+    return -1;
+  } 
   int mmult=GetMaxMult(tkid,readchann);
   int plane=abs(tkid)/100;
   if(mult>mmult||mult<0) mult=mmult;
@@ -183,7 +193,7 @@ float TkCoo::GetLocalCoo(int tkid, float readchann,int mult){
     return cooY1 + (readchann-channel)*abs(cooY1-cooY2);
   }
   else{
-    if(plane==1||plane==8) {
+    if(ll->IsK7()) {
       number cooX1,cooX2;  
       cooX1=TkCoo::GetLocalCooK7(channel,mult);
       if((readchann-channel)>=0)
@@ -303,16 +313,26 @@ AMSPoint TkCoo::GetLadderCenter(int tkid) {
 
 
 AMSPoint TkCoo::GetGlobalNC(int tkid,float readchanK, float readchanS,int mult){
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("GetGlobalNC: ERROR cant find ladder %d into the database\n",tkid);
+    return AMSPoint(-1,-1,-1);
+  }
   int layer=abs(tkid)/100;
-  if(layer==1||layer==8)
+  if(ll->IsK7())
     return GetGlobalN(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 
     return GetGlobalN(tkid,GetLocalCooK5((int)readchanK, mult),  GetLocalCooS((int)readchanS));
 }
 
 AMSPoint TkCoo::GetGlobalAC(int tkid,float readchanK, float readchanS,int mult){
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("GetGlobalAC: ERROR cant find ladder %d into the database\n",tkid);
+    return AMSPoint(-1,-1,-1);
+  }
   int layer=abs(tkid)/100;
-  if(layer==1||layer==8)
+  if(ll->IsK7())
     return GetGlobalA(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
   else 
     return GetGlobalA(tkid,GetLocalCooK5((int)readchanK, mult),  GetLocalCooS((int)readchanS));

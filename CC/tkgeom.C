@@ -69,7 +69,7 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
     // Build plane support
     BuildHoneycomb(vplane, plane);
     
-    // Loop on Si layer attched to the plane
+    // Loop on Si layer attached to the plane
     int maxp_lay=1;
     int minp_lay=0;
     if(plane==1)      {minp_lay= 1;maxp_lay=2;}
@@ -134,16 +134,16 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
   }
   if(plane ==7) {//PLAN -B DUMMY plane 5N
     TkPlane *pl = TkDBc::Head->GetPlane(1);
-    coo[0] = pl->pos[0]+pl->GetPosA()[0];
-    coo[1] = pl->pos[1]+pl->GetPosA()[1];
-    coo[2] = -1*(pl->pos[2]+pl->GetPosA()[2]+
+    coo[0] = pl->pos[0]+pl->GetPosT()[0];
+    coo[1] = pl->pos[1]+pl->GetPosT()[1];
+    coo[2] = -1*(pl->pos[2]+pl->GetPosT()[2]+
 		 pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[0]);
       
     par[0] = 0;
     par[1] = TkDBc::Head->_plane_d1[0]; //container radius
     par[2] = TkDBc::Head->_plane_d2[0]; //container half thickness
   
-    AMSRotMat lrm = pl->GetRotMat();
+    AMSRotMat lrm = pl->GetRotMatT()*pl->GetRotMat();
   
     for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
     volout=(AMSgvolume*)mvol
@@ -152,9 +152,9 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     }
   else if(plane==6){ //PLAN -B ECAL PLANE 
       // Center is offset because of the ladder asymmetry
-      coo[0] = pl->pos[0]+pl->GetPosA()[0];
-      coo[1] = pl->pos[1]+pl->GetPosA()[1];
-      coo[2] = pl->pos[2]+pl->GetPosA()[2]+TkDBc::Head->_dz[plane-1];
+      coo[0] = pl->pos[0]+pl->GetPosT()[0];
+      coo[1] = pl->pos[1]+pl->GetPosT()[1];
+      coo[2] = pl->pos[2]+pl->GetPosT()[2]+TkDBc::Head->_dz[plane-1];
       par[0]=TkDBc::Head->Plane6EnvelopSize[0]/2.;
       //       plan6E Y size/2.
       par[1]=TkDBc::Head->Plane6EnvelopSize[1]/2.;
@@ -163,7 +163,7 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
       cout <<" Placing the Tk  Plan 6 Vol at "<< coo[0]<<"  "<< coo[1]<<"  "<< coo[2]<<
 	"with half dim "<<par[0]<<"  "<<par[1]<<"  "<<par[2]<<endl;
     
-      AMSRotMat lrm = pl->GetRotMat();
+      AMSRotMat lrm = pl->GetRotMatT()*pl->GetRotMat();
     
       for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
     volout= (AMSgvolume*)mvol
@@ -171,9 +171,9 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
                              par, 3, coo, nrm, "ONLY", 0, plane, 1));
   }else{ //STD AMS PLANES
   
-    coo[0] = pl->pos[0]+pl->GetPosA()[0];
-    coo[1] = pl->pos[1]+pl->GetPosA()[1];
-    coo[2] = pl->pos[2]+pl->GetPosA()[2]+
+    coo[0] = pl->pos[0]+pl->GetPosT()[0];
+    coo[1] = pl->pos[1]+pl->GetPosT()[1];
+    coo[2] = pl->pos[2]+pl->GetPosT()[2]+
       pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[plane-1];
   
     geant par[3];
@@ -181,7 +181,7 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
     par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
   
-    AMSRotMat lrm = pl->GetRotMat();
+    AMSRotMat lrm = pl->GetRotMatT()*pl->GetRotMat();
   
     for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
     volout=(AMSgvolume*)mvol
@@ -225,8 +225,8 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
         -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
-  AMSRotMat rot = lad->GetRotMat();
-  AMSPoint  pos = lad->GetPos();
+  AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
+  AMSPoint  pos = lad->GetPos()+lad->GetPosT();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
 
@@ -239,7 +239,7 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
 
-  AMSRotMat lrm = lad->GetRotMat();
+  AMSRotMat lrm = lad->GetRotMatT()*lad->GetRotMat();
   
 
   number nrm[3][3];
@@ -296,7 +296,7 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
   ost << ((tkid < 0) ? "ELL" : "ELR") << layer << std::ends;
 
   geant par[3];
-  if(layer==1 ||layer==8){
+  if(layer==1 ||layer==8||layer==9){
     par[0] = TkDBc::Head->_zelec[2]/2;
     par[1] = TkDBc::Head->_zelec[1]/2;
     par[2] = TkDBc::Head->_zelec[0]/2;
@@ -309,8 +309,8 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
     -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
-  AMSRotMat rot = lad->GetRotMat();
-  AMSPoint  pos = lad->GetPos();
+  AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
+  AMSPoint  pos = lad->GetPos()+lad->GetPosT();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
 
@@ -363,8 +363,8 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
     -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
   double hwid = TkDBc::Head->_ssize_active[1]/2;
   
-  AMSRotMat rot = lad->GetRotMat();
-  AMSPoint  pos = lad->GetPos();
+  AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
+  AMSPoint  pos = lad->GetPos()+lad->GetPosT();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
 
@@ -432,6 +432,78 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     
      mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
 			   "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
+    
+     // Add the top cover of plane 6
+     sprintf(name,"COV%d",plane );
+
+     //       plan6 X size/2.
+     par[0]=TkDBc::Head->Plane6Size[0]/2.;
+     //       plan6 Y size/2.
+     par[1]=TkDBc::Head->Plane6Size[1]/2.;
+    //       plan6E thickness/2.
+     par[2]= 0.4/2.;    //       plan6 cover Z size/2.
+
+    
+    coo[0] = coo[1] = 0;
+    coo[2] =  (TkDBc::Head->Plane6EnvelopSize[2]  - 0.4 )/2;
+    
+    
+    VZERO(nrm,9*sizeof(nrm[0][0])/4);
+    nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+    
+    mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
+			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane+1, 1));
+    
+    // add small Spacers
+    for(int kk=-3;kk<=3;kk++){
+      sprintf(name,"SPA%d",kk+3 );
+      
+      //       Spacer X size/2.
+      par[0]= 5.0 /2.;
+      //       Spacer Y size/2.
+      par[1]= 0.7 /2.;
+     //       Spacer thickness/2.
+      par[2]=  1.9 /2.;    //       plan6 cover Z size/2.
+     
+     //            Spacers pitch
+     coo[0] = kk * 14.2;
+     coo[1] = 0;
+     coo[2] =TkDBc::Head->Plane6Size[2] -TkDBc::Head->Plane6EnvelopSize[2]/2.  + par[2] ;
+    
+    
+     VZERO(nrm,9*sizeof(nrm[0][0])/4);
+     nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+     // FIX ME  material !!!!!!
+     mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
+			      "BOX", par, 3, coo, nrm, "ONLY", 1, kk+3, 1));
+
+    }
+    // add long Spacers
+    for(int kk=-1;kk<2;kk+=2){
+      sprintf(name,"SPC%+d",kk );
+      
+      //       Spacer X size/2.
+      par[0]= 72.0 /2.;
+      //       Spacer Y size/2.
+      par[1]= 1.4 /2.;
+     //       Spacer thickness/2.
+     par[2]=  1.9 /2.;    //       plan6 cover Z size/2.
+     
+     //            Spacers pitch
+     coo[0] = 0;
+     coo[1] = kk*(34+par[1]);
+     coo[2] =TkDBc::Head->Plane6Size[2] -TkDBc::Head->Plane6EnvelopSize[2]/2.  + par[2] ;
+    
+    
+     VZERO(nrm,9*sizeof(nrm[0][0])/4);
+     nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
+     // FIX ME  material !!!!!!
+     mvol->add(new AMSgvolume("Tr_Honeycomb", _nrot++, name,
+			      "BOX", par, 3, coo, nrm, "ONLY", 1, kk+2, 1));
+
+    }
+
+
 
   }
   else{

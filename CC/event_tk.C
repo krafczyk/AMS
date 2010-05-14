@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.19 2010/05/14 13:39:42 oliva Exp $
+//  $Id: event_tk.C,v 1.20 2010/05/14 14:02:28 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -224,7 +224,7 @@ void AMSEvent::_retkevent(integer refit){
       }
       else {
 	AMSPoint play = trk->GetPlayer(j);
-	TkSens tks(play);
+	TkSens tks(play,0);
 	if (tks.LadFound()) {
 	  int slot  = tks.GetLadTkID()%100;
 	  int layer = abs(tks.GetLadTkID())/100;

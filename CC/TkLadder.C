@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.4 2010/02/01 12:44:05 shaino Exp $
+//  $Id: TkLadder.C,v 1.5 2010/05/14 14:02:28 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/05/14 14:02:28 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +37,7 @@ TkLadder::TkLadder():TkObject()
   _nsensors=0;
   _plane=NULL;
   _laser_align=0;
+  _isK7=false;
   for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
@@ -49,6 +50,7 @@ TkLadder::TkLadder(TkPlane* plane,char* Name,int layer,int slot,int crate,int td
   _nsensors=nsensors;
   _plane=plane;
   _laser_align=0;
+  _isK7=false;
   for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
@@ -60,6 +62,7 @@ TkLadder::TkLadder(TkPlane* plane,char* Name,int Trid,int HwId,  int nsensors):T
   _nsensors=nsensors;
   _plane=plane;
   _laser_align=0;
+  _isK7=false;
   for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
@@ -176,6 +179,32 @@ istream& TkLadder::putinA(istream& s){
 ostream& TkLadder::putoutA(ostream& s){
 
     return TkObject::putoutA(s)<<
+      GetTkId()<<"  "<<
+      GetHwId()<<"  "<<_nsensors<<endl;
+
+}
+
+
+istream& TkLadder::putinT(istream& s){
+  int hw,tk;
+  TkObject::putinT(s);
+  if(s.eof()) return s;
+  if(!s.good()){
+    cerr<< "Error TkLadder::putin the channel is not good before"<<endl;
+  }
+  s>>tk>>hw>>_nsensors;
+  if(!s.good()){
+    cerr<< "Error TkLadder::putin the channel is not good  after"<<endl;
+  }
+  
+  return s;
+
+}
+
+
+ostream& TkLadder::putoutT(ostream& s){
+
+    return TkObject::putoutT(s)<<
       GetTkId()<<"  "<<
       GetHwId()<<"  "<<_nsensors<<endl;
 
