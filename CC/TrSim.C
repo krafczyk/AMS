@@ -14,7 +14,6 @@
 
 extern "C" double rnormx();
 
-int      TrSim::SkipRawSim = 0;
 TrSim*   TrSim::Head = 0;
 AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
@@ -25,13 +24,10 @@ TrSim* TrSim::GetHead() {
 } 
 
 TrSim::TrSim() {
-  // FAI UN METODO PER L'ESAME DELLA DATACARD!
-  if (TRCLFFKEY.recflag >= 10111) TrSim::SkipRawSim = kNoRawSim;
-  if (TRCLFFKEY.recflag >= 20111) TrSim::SkipRawSim = kTrSim2010;
-  printf("TrSim::TrSim() called: generating defaults for simulation type %d\n",SkipRawSim);
+  printf("TrSim::TrSim() called: generating defaults for simulation type %d\n",TRMCFFKEY.SimulationType);
   if (Head==0) {
     Head = this;
-    if (SkipRawSim!=kTrSim2010) return;
+    if (TRMCFFKEY.SimulationType!=kTrSim2010) return;
     // only in case of TrSim2010 simulation 
     for (int type=0; type<=2; type++) _sensors.push_back(new TrSimSensor(type));
     _glo2loc = new TkSens();
@@ -57,7 +53,7 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
 #endif
 
   // fast simulation?
-  if (SkipRawSim==kNoRawSim) {
+  if (TRMCFFKEY.SimulationType==kNoRawSim) {
     gencluster(idsoft, vect, edep, step, itra);
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.stop("SITKHITS");
@@ -184,15 +180,9 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
 
   float adc[2] = { 0, 0 };
 
-//#ifndef __ROOTSHAREDLIBRARY__ 
   float dummy = 0;
   float rndx  = RNDM(dummy);
   float rndy  = RNDM(dummy);
-/*#else
-  float rndx = gRandom->Rndm();
-  float rndy = gRandom->Rndm();
-#endif
-*/
   int  layer = abs(tkid)/100;
   float effx = (layer == 8) ? 0.87 : 0.90;
   float effy = 1;
@@ -248,7 +238,7 @@ void TrSim::fillreso(TrTrackR *track) {
 
 
 void TrSim::sitkdigi() {
-  switch (SkipRawSim) {
+  switch (TRMCFFKEY.SimulationType) {
   case kRawSim:
     sitkdigiold();
     break;
@@ -464,14 +454,12 @@ int TrSim::BuildTrRawClusters() {
      TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
      _tkid = ladder->GetTkId();
      CleanBuffer(); 
-
 #ifndef __ROOTSHAREDLIBRARY__
      AMSgObj::BookTimer.start("SITKNOISE");
 #endif
      AddNoiseOnBuffer(); 
 #ifndef __ROOTSHAREDLIBRARY__
      AMSgObj::BookTimer.stop("SITKNOISE");
-
      AMSgObj::BookTimer.start("SITKDIGIa");
 #endif
      AddSimulatedClustersOnBuffer();
@@ -504,6 +492,7 @@ void TrSim::AddNoiseOnBuffer() {
     if (WARNING) printf("TrSim::AddNoiseOnBuffer-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",_tkid);
     return; 
   }
+  if (TRMCFFKEY.TrSim2010_NoiseType==0) return;
   // Noise baseline and calibration load
   for (int ii=0; ii<1024; ii++) {
     if (_ladcal->GetStatus(ii)&TrLadCal::dead) _ladbuf[ii] = DEADSTRIPADC;                // dead strip    
@@ -543,10 +532,14 @@ void TrSim::AddSimulatedClustersOnBuffer() {
       cluster->Print();
     }
 
-    AMSPoint glo = cluster->GetXgl();    // Coordinate [cm]
-    AMSPoint mom = cluster->GetMom();    // Momentum Vector [GeV/c]
-    double   edep = cluster->Sum()*1000; // Energy Deposition [MeV] 
-    double   momentum = mom.norm();      // Momentum [GeV/C]
+    AMSPoint glo = cluster->GetXgl();        // Coordinate [cm]
+    AMSPoint mom = cluster->GetMom();        // Momentum Vector [GeV/c]
+    double   edep = cluster->Sum()*1.e6;     // Energy Deposition [keV] 
+    double   momentum = mom.norm();          // Momentum [GeV/C]
+    // FIX ME: implementa tu una funzione!
+    double   mass = 1; // particle->Mass();        // Mass [GeV/c2] 
+    double   charge = 1; // particle->Charge()/3;  // Charge [unit of e]
+
     if (momentum<1e-9) continue; // if momentum < eV/c!
     AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
     _glo2loc->SetGlobal(_tkid,glo,dir);                                         // from global to local
@@ -565,10 +558,28 @@ void TrSim::AddSimulatedClustersOnBuffer() {
       }
       TrSimCluster* simcluster = GetTrSimSensor(iside,_tkid)->MakeCluster(ip[iside],ia[iside]);
       if (simcluster==0) continue; // it happens! 
-      // dedx (gain, conversion, spread di correlazione) 
-      double ADC = fromMeVtoADC(edep,iside,_tkid); 
-      simcluster->Multiply(ADC);    
 
+      // 1. dE/dx normalize: angle (normalized to 300 um), Z (normalized to 1), beta (normalized to what?)   
+      double betacorr = 1.;
+      double z2       = charge*charge;
+      double costheta = sqrt( 1./(1 + pow(tan(ia[0]),2.) + pow(tan(ia[1]),2.)) );
+      double edepnorm = edep*costheta*betacorr/z2;
+      // 2. MCtoRealDataNormalization (straight tracks z=1): MPV, real distribution
+      double ADC      = edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC();
+      if (TRMCFFKEY.TrSim2010_ADCConvType>1) 
+        ADC = GetTrSimSensor(iside,_tkid)->fromMCtoRealData(ADC); // using pdfs
+      // 3. Decoupling of normalization
+      ADC             = ADC*z2/costheta/betacorr;  
+      // 4. Gain 
+
+      if (TRMCFFKEY.TrSim2010_ADCConvType==0) simcluster->Multiply(edep);
+      else                                    simcluster->Multiply(ADC);    
+      /*
+      printf("edep=%7.4f keV   edepnorm=%7.4f keV   ADC0=%7.4f  ADC1=%7.4f  ADC2=%7.4f\n",
+             edep,edepnorm,edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC(),
+             GetTrSimSensor(iside,_tkid)->fromMCtoRealData(edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC()),
+             ADC);
+      */
       if (VERBOSE) { 
         printf("TrSim::SimCluster ADC=%f\n",ADC);
         simcluster->Info(10);
@@ -593,7 +604,6 @@ int TrSim::BuildTrRawClustersWithDSP() {
 
 
 int TrSim::BuildTrRawClustersOnSide(int iside) {
-
   // Does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont){
@@ -614,9 +624,10 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
 
   // Loop on address (0 - 640, or 640 - 1024)
   for (int ii=addmin[iside]; ii<addmax[iside]; ii++) {
-    if (used[ii]!=0)         continue; // a strip used in a cluster 
+
+    if (used[ii]!=0)            continue; // a strip used in a cluster 
     if (_ladcal->Status(ii)!=0) continue; // a strip with status different from 0
-    if ( (_ladbuf[ii]/_ladcal->Sigma(ii))<=TRMCFFKEY.th1sim[0] ) continue; // a strip under seed threshold
+    if ( (_ladbuf[ii]/_ladcal->Sigma(ii))<=TRMCFFKEY.TrSim2010_DSPSeedThr[iside] ) continue; // a strip under seed threshold
 
     // "Seed" Found (not max)
     int seed = ii;
@@ -626,7 +637,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
     // Left Loop
     int left = seed;
     for (int jj=seed-1; jj>=addmin[iside]; jj--) {
-      if ( (((_ladbuf[jj]/_ladcal->Sigma(jj))>TRMCFFKEY.th2sim[0])||(_ladcal->Status(jj)!=0)) && (used[jj]==0) ) {
+      if ( (((_ladbuf[jj]/_ladcal->Sigma(jj))>TRMCFFKEY.TrSim2010_DSPNeigThr[iside])||(_ladcal->Status(jj)!=0)) && (used[jj]==0) ) {
         used[jj] = 1;
         left = jj;
       } 
@@ -637,7 +648,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
     // Right Loop
     int right = seed;
     for (int jj=seed+1; jj<addmax[iside]; jj++) {
-      if ( (((_ladbuf[jj]/_ladcal->Sigma(jj))>TRMCFFKEY.th2sim[0]) || (_ladcal->Status(jj)!=0)) && used[jj]==0) {
+      if ( (((_ladbuf[jj]/_ladcal->Sigma(jj))>TRMCFFKEY.TrSim2010_DSPNeigThr[iside]) || (_ladcal->Status(jj)!=0)) && used[jj]==0) {
         used[jj] = 1;
         right = jj;
       } 
@@ -653,7 +664,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
     short int signal[128];
     int nstrips = right - left + 1;
     for(int ist=0; ist<nstrips; ist++) { 
-      signal[ist] = int(8*_ladbuf[left + ist%128]);
+      signal[ist%128] = int(8*_ladbuf[left + ist]); 
       if ( (((ist+1)%128)==0) || ((ist+1)==nstrips) ) { 
         int cluslenraw = (((ist+1)%128)==0) ? 127 : (nstrips%128)-1; // 0->1, 1->2, ..., 127->128
         int seedvalue  = int(4*_ladbuf[maxstrip]);
@@ -678,14 +689,6 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
   }
   if (cont) delete cont;
   return 0;
-}
-
-
-double TrSim::fromMeVtoADC(double mev, int side, int tkid) {
-  // Eloss = 0.14 MeV; 
-  // 300 um di Si (dE/dx = 2 MeV cm2/g, d = 2.33 g/cm3)
-  // 30 ADC level for both p and n sides
-  return mev*30/0.14;
 }
 
 

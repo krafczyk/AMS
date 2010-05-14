@@ -4,9 +4,9 @@
 #include "TH3.h"
 #include "TROOT.h"
 #include "TDirectoryFile.h"
+#include "tkdcards.h"
 
 HistoMan hman;
-
 
 HistoMan::HistoMan():enabled(false), booked(false) { 
   //  fhist.SetOwner(kTRUE); 
@@ -243,9 +243,7 @@ void HistoMan::BookHistos(){
   Add(new TH2D("TrPftL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
 
   // TrSim
-  // FIX ME: Simulation is initialized after this piece of code -> use directly datacard 
-  // if (TrSim::SkipRawSim==TrSim::kNoRawSim) {
-
+  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim) {
     Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
 
@@ -260,7 +258,7 @@ void HistoMan::BookHistos(){
     Add(TH2D_L("TrRres32", "dR/R (w/LEcal)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
     Add(TH2D_L("TrRres41", "d1/R (9-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
     Add(TH2D_L("TrRres42", "dR/R (9-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
-  // }
+  }
 
   if (dsave) dsave->cd();
   booked = true;

@@ -46,8 +46,6 @@ geant th1sim[2];
 //! Enlargement Threshold (0=S 1=K) for the MC DSP like clusterization
 geant th2sim[2];
 
-
-
 geant ped[2];
 geant sigma[2];
 geant gain[2];
@@ -73,15 +71,30 @@ geant NonGaussianPart[2];
 geant BadCh[2];
 geant pl9zgap;
 geant pl9sthick;
-  void init();
-  number ADC2KeV(){
-    return 0.5e6/beta/dedx2nprel;
-  }
+void init();
+number ADC2KeV(){
+  return 0.5e6/beta/dedx2nprel;
+}
+
+// SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
+integer SimulationType; 
+// TrSim2010: main parameters
+integer TrSim2010_NoiseType;
+integer TrSim2010_ADCConvType;
+geant   TrSim2010_DSPSeedThr[2];
+geant   TrSim2010_DSPNeigThr[2];
+// TrSim2010: detailed description
+geant   TrSim2010_Cint[2];
+geant   TrSim2010_Cbk[2];
+geant   TrSim2010_Cdec[2];
+integer TrSim2010_DiffType[2];
+geant   TrSim2010_DiffPars[2][2];
+// landau x gaus x exp description?
 
 };
+
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
-
 
 const integer nalg=4;
 class TRCALIB_DEF{

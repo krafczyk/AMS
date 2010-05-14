@@ -10,6 +10,9 @@
 
 #include "TrSimCluster.h"
 
+#include "TF1.h"
+#include "TMath.h"
+
 #include <iostream>
 #include <cstdio>
 #include <cmath>
@@ -24,6 +27,7 @@
 #define SUBSTRATEWIDTH 300
 #define DEGTORAD 0.0174533
 #define TOLERANCE 0.00001
+#define MAXADC 2000.
 
 using namespace std;
 
@@ -82,6 +86,11 @@ class TrSimSensor {
   double _Cbk;    
   // Decoupling capacitance [pF]
   double _Cdec;    
+
+  // EDep in Geant3 for vertical tracks (Landau distribution): ONLY PROTONS
+  TF1*   _mcfun;
+  // EDep in real data (TB2003) for vertical tracks (LanGauExp): ONLY PROTONS
+  TF1*   _refun;
 
  public:
    
@@ -189,6 +198,25 @@ class TrSimSensor {
   static double CumulativeGaussBox(double x, double t, double sigma);
   //! Triangular distribution cumulative function (analytical)
   static double CumulativeTriangular(double x, double t);
+
+  ////////////////
+  // dE/dx Normalization 
+  ////////////////
+
+  //! EDep description of real data (ADC units)
+  static double LanGauExpFun(double *x, double *par);
+  //! EDep description in Geant3 (mean,width,horizontal scaling,vertical scaling) 
+  static double LanGauFun(double *x, double *par);
+  //! EDep description in Geant3 (mean,width,sigma,horizontal scaling,vertical scaling)
+  static double LandauFun(double *x, double *par);
+  //! Return the pointer to the Geant3 Landau parametrization
+  TF1* GetMonteCarloFun() { return _mcfun; }
+  //! Return the pointer to the LanGauExp Real Data function 
+  TF1* GetRealDataFun()   { return _refun; }
+  //! keV to MPV factor
+  double GetkeVtoADC()    { return _mcfun->GetParameter(2); }
+  //! EDep MC-Data ADC normalization (from ADC to ADC)
+  double fromMCtoRealData(double adc);
   
 };
 

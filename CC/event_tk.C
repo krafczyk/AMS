@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.18 2010/05/03 08:00:24 oliva Exp $
+//  $Id: event_tk.C,v 1.19 2010/05/14 13:39:42 oliva Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -271,7 +271,7 @@ void AMSEvent::_retkevent(integer refit){
       if (trk->ParExists(mf8)) hman.Fill("TrPftL8", pl8.x(), pl8.y());
       if (trk->ParExists(mf9)) hman.Fill("TrPftL9", pl9.x(), pl9.y());
     }
-    if (i == 0 && TrSim::SkipRawSim &&TkDBc::Head->GetSetup()==3 ) {
+    if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim) && (TkDBc::Head->GetSetup()==3) ) {
       int mfit[4] = { TrTrackR::kChoutko,
 		      TrTrackR::kChoutko | TrTrackR::kFitLayer8,
 		      TrTrackR::kChoutko | TrTrackR::kFitLayer9,

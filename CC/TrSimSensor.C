@@ -1,4 +1,5 @@
 #include "TrSimSensor.h"
+#include "tkdcards.h"
 
 TrSimSensor::TrSimSensor() {
   Clear();
@@ -41,12 +42,14 @@ void TrSimSensor::SetDefaults() {
   _Cdec = 800; // pF
   _diff_type = kGaussBox; // Gauss*Box
   for (int i=0; i<MAXDIFFPARS; i++) _diff_pars[i] = 8; // um
+
+  // Sensor parameters
   switch (GetSensorType()) {
     case 0: // S
       _nimplants = 2567;
       _nreadout = 640;
       _implant_pitch = 27.5;
-      break;
+      break; 
     case 1: // K5
       _nimplants = 384;
       _nreadout = 192;
@@ -58,6 +61,32 @@ void TrSimSensor::SetDefaults() {
       _implant_pitch = 104;
       break;
   }
+
+  // Generalized Landau (with some scaling terms)
+  char name[100];
+  sprintf(name,"landau_model%1d",GetSensorType()); // diff. names needed by ROOT
+  _mcfun = new TF1(name,LandauFun,0.,MAXADC,4); 
+  _mcfun->SetNpx(1000);
+  sprintf(name,"langauexp_model%1d",GetSensorType()); // diff. names needed by ROOT
+  _refun = new TF1(name,LanGauExpFun,0.,MAXADC,5);
+  _refun->SetNpx(1000); // ATTENTION: THIS COULD BE A PROBLEM (TOO SLOW IN THE INVERSION PROCESS)
+  switch (GetSensorType()) {
+    case 0: // S
+      _mcfun->SetParameters(74.46,5.78,1,1);
+      _refun->SetParameters(1.00,31.5,0.942883,7.65,43.38);
+      break;
+    case 1: // K5
+    case 2: // K7
+      _mcfun->SetParameters(81.66,7.35,1,1);
+      _refun->SetParameters(3.31,40.5,1.03703,6.5,105.78);
+      break;
+  }
+  // MPV Normalization (horizontal scaling)
+  float scale1 = _refun->GetMaximumX(0.,MAXADC)/_mcfun->GetMaximumX(0.,MAXADC);
+  _mcfun->SetParameter(2,scale1);
+  // Height normalization (needed for inversion)
+  float scale2 = _refun->GetMaximum(0,MAXADC)/_mcfun->GetMaximum(0,MAXADC); 
+  _mcfun->SetParameter(3,scale2);
 }
 
 
@@ -467,3 +496,130 @@ TrSimCluster* TrSimSensor::MakeCluster(double senscoo, double sensangle, int nse
   return readclus; 
 }
 
+
+double TrSimSensor::LanGauExpFun(Double_t *x, Double_t *par) {
+  // Fit parameters:
+  //
+  // par[0] = Width (scale) parameter of Landau density
+  // par[1] = Most Probable (MP, location) parameter of Landau density
+  // par[2] = Total area (integral -inf to inf, normalization constant)
+  // par[3] = Width (sigma) of convoluted Gaussian function
+  // par[4] = Separation point between langaus and exp (connected by derivative and continuity)
+  //   
+  // In the Landau distribution (represented by the CERNLIB approximation), 
+  // the maximum is located at x=-0.22278298 with the location parameter=0.
+  // This shift is corrected within this function, so that the actual
+  // maximum is identical to the MP parameter.
+  //
+  // The additional exponential function is connected imposing 2 condition
+  // - continuity: LanGauss(sep) = k * exp(-xsep/slope)
+  // - derivative continuity: LanGauss'(xsep) = -k/slope * exp(-xsep/slope)
+  // slope = - LanGauss(xsep) / LanGauss'(xsep)
+  // k     =   LanGauss(xsep) * exp(xsep/slope)
+  if (x[0]<=par[4]){ //LanGauss    
+    // Numeric constants
+    Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+    Double_t mpshift  = -0.22278298;       // Landau maximum location
+    // Control constants
+    Double_t np = 100.0;      // number of convolution steps
+    Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
+    // Variables
+    Double_t xx;
+    Double_t mpc;
+    Double_t fland;
+    Double_t sum = 0.0;
+    Double_t xlow,xupp;
+    Double_t step;
+    Double_t i;
+    // MP shift correction
+    mpc = par[1] - mpshift * par[0]; 
+    // Range of convolution integral
+    xlow = x[0] - sc * par[3];
+    xupp = x[0] + sc * par[3];
+    step = (xupp-xlow) / np;
+    // Convolution integral of Landau and Gaussian by sum
+    for(i=1.0; i<=np/2; i++) {
+      xx = xlow + (i-.5) * step;
+      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+      sum += fland * TMath::Gaus(x[0],xx,par[3]);
+      xx = xupp - (i-.5) * step;
+      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+      sum += fland * TMath::Gaus(x[0],xx,par[3]);
+    }
+    return (par[2] * step * sum * invsq2pi / par[3]);
+  }
+  else { // Exponential tail
+    // Control constants
+    Double_t dx = 10.;     // infinitesimal interval for derivative calculation 
+                           // must be longer than the bin width (how implement this check?)
+    // Variables   
+    Double_t xsep; 
+    Double_t xpre; 
+    Double_t fxsep;
+    Double_t fxpre;
+    Double_t deriv;
+    Double_t slope;
+    Double_t k;     
+    // Derivative calculation
+    xsep  = par[4];
+    xpre  = par[4] - dx;
+    fxsep = LanGauExpFun(&xsep,par);
+    fxpre = LanGauExpFun(&xpre,par);
+    deriv = (fxsep-fxpre)/dx;
+    // check of existence
+    if (deriv==0.) return -1e+06;  
+    slope = -fxsep/deriv; 
+    if (slope==0.) return -1e+06;  
+    if ((xsep/slope)>709.) return -1e+06;
+    k     = fxsep * exp(xsep/slope);
+    //   cout << k << " " << fxsep << " " << xsep << " " << slope << " " << xsep/slope << " " << exp(xsep/slope) << endl;
+    return k * exp(-x[0]/slope);
+  }
+}
+
+double TrSimSensor::LandauFun(Double_t *x, Double_t *par) {
+  return par[3]*TMath::Landau(x[0]/par[2],par[0],par[1]);
+}
+
+double TrSimSensor::LanGauFun(double* x, double* par) {
+  Double_t x0 = x[0]/par[3];
+  // Numeric constants
+  Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+  Double_t mpshift  = -0.22278298;       // Landau maximum location
+  // Control constants
+  Double_t np =  10.0;      // number of convolution steps
+  Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
+  // Variables
+  Double_t xx;
+  Double_t mpc;
+  Double_t fland;
+  Double_t sum = 0.0;
+  Double_t xlow,xupp;
+  Double_t step;
+  Double_t i;
+  // MP shift correction
+  mpc = par[1] - mpshift * par[0]; 
+  // Range of convolution integral
+  xlow = x0 - sc * par[2]/par[3];
+  xupp = x0 + sc * par[2]/par[3];
+  step = (xupp-xlow) / np;
+  // Convolution integral of Landau and Gaussian by sum
+  for(i=1.0; i<=np/2; i++) {
+    xx = xlow + (i-.5) * step;
+    fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+    sum += fland * TMath::Gaus(x0,xx,par[2]);
+    xx = xupp - (i-.5) * step;
+    fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+    sum += fland * TMath::Gaus(x0,xx,par[2]);
+  }
+  return (par[4] * step * sum * invsq2pi / par[2]);
+}
+
+
+double TrSimSensor::fromMCtoRealData(double adc) {
+  // adc has to be given for 300 um straight tracks
+  float xmax   = _refun->GetMaximumX(0.,MAXADC);
+  float value  = _mcfun->Eval(adc);
+  float newadc = (adc<xmax) ? _refun->GetX(value,0.,xmax) : _refun->GetX(value,xmax,MAXADC);
+  return newadc; 
+}

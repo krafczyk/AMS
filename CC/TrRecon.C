@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.47 2010/05/05 07:41:28 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.48 2010/05/14 13:39:42 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/05 07:41:28 $
+/// $Date: 2010/05/14 13:39:42 $
 ///
-/// $Revision: 1.47 $
+/// $Revision: 1.48 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -353,7 +353,7 @@ int TrRecon::GetAddressInSubBuffer(int address, int first, int last, int ciclici
 int TrRecon::BuildTrClusters(int rebuild) { 
   if (TasRecon) return BuildTrTasClusters(rebuild);
 
-  if (TrSim::SkipRawSim==TrSim::kNoRawSim) {
+  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim) {
     VCon* cont3=GetVCon()->GetCont("AMSTrCluster");
     int ncls3 = cont3->getnelem();
     delete cont3;
@@ -2077,8 +2077,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 	       track->GetNhits(), track->GetNhitsXY());
     }
   }  
-//if (TrSim::SkipRawSim==TrSim::kNoRawSim) 
-  TrSim::GetHead()->fillreso(track);
+
+  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim) TrSim::GetHead()->fillreso(track);
 
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (cont) {

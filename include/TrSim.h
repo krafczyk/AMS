@@ -42,9 +42,6 @@ class TrSim {
 
  public: 
 
-  //! SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
-  static int SkipRawSim;
-
   enum ESimulationType {
     /// Raw Simulation (old GBATCH default)
     kRawSim = 0,
@@ -120,6 +117,9 @@ class TrSim {
   // Methods for TrSim2010
   ////////////////////////
 
+  //! Get the sensor simulator for a given ladder/side
+  TrSimSensor* GetTrSimSensor(int side, int tkid);
+
   //! Makes the TrRawClusters starting from the MC clusters
   int  BuildTrRawClusters();
   //! Makes the TrRawClusters starting from the ladder buffer (1024 strips)
@@ -136,13 +136,6 @@ class TrSim {
   void AddNoiseOnBuffer();
   //! Produce clusters and put them on the ladder buffer 
   void AddSimulatedClustersOnBuffer();
-
-  // Static functions (...)
-
-  //! Get the sensor simulator for a given ladder/side
-  TrSimSensor* GetTrSimSensor(int side, int tkid);
-  //! From MeV to ADC (the TrParDB is needed)
-  double fromMeVtoADC(double mev, int side, int tkid);
 
 };
 
