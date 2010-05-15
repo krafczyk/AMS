@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.3 2010/02/23 08:34:23 oliva Exp $ 
+/// $Id: TkSens.h,v 1.4 2010/05/15 10:12:47 pzuccon Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2010/02/23 08:34:23 $
+///$Date: 2010/05/15 10:12:47 $
 ///
-/// $Revision: 1.3 $
+/// $Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,6 +30,8 @@ class TkSens {
 
   // Input data
   
+  //! MC flag
+  bool _isMC;
   //! The Global Coordinate input
   AMSPoint GlobalCoo;
   //! The optional Global Dirction input
@@ -86,15 +88,15 @@ class TkSens {
  public:
 
   //! Default Constructor
-  TkSens();
+  TkSens(bool MC);
   //! Constructor calculates all the quantities from a point in global coo
-  TkSens(AMSPoint& GCoo);
+  TkSens(AMSPoint& GCoo, bool MC);
   //! Constructor calculates all the quantities from a point/direction in global coo
-  TkSens(AMSPoint& GCoo, AMSDir& GDir); 
+  TkSens(AMSPoint& GCoo, AMSDir& GDir,bool MC); 
   //! Constructor calculates all the quantities from the tkid and a point in global coo 
-  TkSens(int tkid, AMSPoint& GCoo);
+  TkSens(int tkid, AMSPoint& GCoo,bool MC);
   //! Constructor calculates all the quantities from the tkid and a point/direction in global coo
-  TkSens(int tkid, AMSPoint& GCoo, AMSDir& GDir);
+  TkSens(int tkid, AMSPoint& GCoo, AMSDir& GDir, bool MC);
 
   //! (re)set the global coo.
   void SetGlobalCoo(AMSPoint& pp) { Clear(); GlobalCoo=pp; Recalc(); }
@@ -139,6 +141,8 @@ class TkSens {
   number   GetImpactAngleXZ() { return ImpactAngleXZ; }
   //! Returns the YZ plane Impact Angle
   number   GetImpactAngleYZ() { return ImpactAngleYZ; }
+  //! Returns if is MC TkSens
+  bool IsMC() {return _isMC;}
 
   //! Clear the calculated content
   void Clear();

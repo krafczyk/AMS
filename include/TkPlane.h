@@ -1,4 +1,4 @@
-// $Id: TkPlane.h,v 1.2 2010/02/01 12:44:12 shaino Exp $
+// $Id: TkPlane.h,v 1.3 2010/05/15 10:12:47 pzuccon Exp $
 
 #ifndef __TkPlane__
 #define __TkPlane__
@@ -17,9 +17,9 @@
 ///
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2010/02/01 12:44:12 $
+///$Date: 2010/05/15 10:12:47 $
 ///
-///$Revision: 1.2 $
+///$Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +35,9 @@ protected:
 
   ostream& putoutA(ostream& s);
   istream& putinA(istream& s);
+
+  ostream& putoutT(ostream& s);
+  istream& putinT(istream& s);
 
 public:
   //! plane number
@@ -67,6 +70,11 @@ public:
   void ReadA(istream &o){putinA(o);} 
   //! writes out the Alignement pars to file
   void WriteA(ostream &o){putoutA(o);}
+
+  //! reads in the MC (Dis)Alignement pars from file
+  void ReadT(istream &o){putinT(o);} 
+  //! writes out the MC (Dis)Alignement pars to file
+  void WriteT(ostream &o){putoutT(o);}
 
   ClassDef(TkPlane,1);
 };

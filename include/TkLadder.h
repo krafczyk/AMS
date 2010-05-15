@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.5 2010/02/01 12:44:12 shaino Exp $
+// $Id: TkLadder.h,v 1.6 2010/05/15 10:12:46 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/02/01 12:44:12 $
+///$Date: 2010/05/15 10:12:46 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -53,6 +53,11 @@ protected:
   istream& putinA(istream& s);
 
   //! function  needed  to guaarantee the virtual inheritance of the operator << ( you can safely ignore)
+  ostream& putoutT(ostream& s);
+  //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
+  istream& putinT(istream& s);
+
+  //! function  needed  to guaarantee the virtual inheritance of the operator << ( you can safely ignore)
   ostream& putoutS(ostream& s);
   //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
   istream& putinS(istream& s);
@@ -76,7 +81,8 @@ public:
   int _nsensors;
   //! Flag determining if the ladder is used by the laser aligment
   bool _laser_align;
-
+  //! Flag for kapton K7  type (special readour channel routing) 
+  bool _isK7;
   //! Pointer to the plane object the ladder is mounted to
   TkPlane* _plane;
 
@@ -131,6 +137,11 @@ public:
   //! sets the laser alignment flag
   void SetLaserFlag(){ _laser_align=1;}
 
+  //! Check if it is K7
+  bool IsK7() {return _isK7;}
+
+  //! Set if it is K7
+  void SetAsK7() {_isK7=true;}
 
   void Print(Option_t* = "")const{ cout << putout(cout);}
   //! stream out the content of a the class
@@ -144,6 +155,11 @@ public:
   void ReadA(istream &o){putinA(o);} 
   //! writes out the Alignement pars to file
   void WriteA(ostream &o){putoutA(o);}
+
+  //! reads in the Alignement pars from file
+  void ReadT(istream &o){putinT(o);} 
+  //! writes out the Alignement pars to file
+  void WriteT(ostream &o){putoutT(o);}
 
   //! reads in the sensor Alignement pars from file
   void ReadS(istream &o){putinS(o);} 

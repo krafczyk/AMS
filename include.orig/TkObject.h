@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.3 2010/02/01 12:44:12 shaino Exp $
+// $Id: TkObject.h,v 1.4 2010/05/15 10:12:47 pzuccon Exp $
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,9 +22,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2010/02/01 12:44:12 $
+///$Date: 2010/05/15 10:12:47 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -40,12 +40,16 @@ protected:
 						             <<posA<<endl<<rotA;}
 
   virtual ostream& putoutA(ostream& s) { return s<<name<<endl<<posA<<endl<<rotA;}
+  virtual ostream& putoutT(ostream& s) { return s<<name<<endl<<posT<<endl<<rotT;}
 
   //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
   virtual istream& putin(istream& s);
 
   //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
   virtual istream& putinA(istream& s);
+
+  //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
+  virtual istream& putinT(istream& s);
 
 public:
   //! the name of the TkObject
@@ -59,6 +63,11 @@ public:
   AMSPoint   posA;
   //! Alignement Correction to  the orientation in space of the TkObject
   AMSRotMat  rotA;
+
+  //! MC (Dis)Alignement Correction to  3D position of the TkObject 
+  AMSPoint   posT;
+  //! MC (Dis)Alignement Correction to  the orientation in space of the TkObject
+  AMSRotMat  rotT;
 
 public:
   //! explicit constructor
@@ -91,6 +100,20 @@ public:
   AMSPoint  GetPosA() const  { return posA;}
   //! it returns a copy of the AMSRotMat defining Alignment correction to the orientation of the TkObject
   AMSRotMat GetRotMatA() const { return rotA;}
+
+
+  //! set the MC (Dis)Alignment correction from a set of 3 coordinates
+  void setposT(number x, number y, number z){posT.setp(x,y,z);}
+  //! set the MC (Dis)Alignment correction rotation matrix from an array[3][3]
+  void setrotT(number rr[][3]){rotT.SetMat(rr);}
+  //! set the MC (Dis)Alignment correction rotation matrix from an array[3][3]
+  void setrotT(number ** rr){rotT.SetMat(rr);}
+  //! it returns a copy of the AMSPoint defining MC (Dis)Alignment correction to the position of the TkObject
+  AMSPoint  GetPosT() const  { return posT;}
+  //! it returns a copy of the AMSRotMat defining MC (Dis)Alignment correction to the orientation of the TkObject
+  AMSRotMat GetRotMatT() const { return rotT;}
+
+
   //! Create a rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
 void SetRotAngles(double alpha, double beta, double gamma){
     rot.SetRotAngles(alpha, beta, gamma);
@@ -98,6 +121,11 @@ void SetRotAngles(double alpha, double beta, double gamma){
   //!copy the rot mat to a 3x3 array
   void RotToMat(number nrm[][3]);
 
+
+  //! Create a rotation matrix( MC (Dis)alignemnt) according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
+void SetRotAnglesT(double alpha, double beta, double gamma){
+    rotT.SetRotAngles(alpha, beta, gamma);
+  }
 
   //! Create a rotation matrix(alignemnt) according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
 void SetRotAnglesA(double alpha, double beta, double gamma){
@@ -108,6 +136,11 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
   //! Get the angles corresponding to te current rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
   void GetRotAngles(double& alpha, double& beta, double& gamma){
     rot.GetRotAngles(alpha, beta, gamma);
+  }
+
+  //! Get the angles corresponding to te current  ( MC (Dis)aligment) rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
+  void GetRotAnglesT(double& alpha, double& beta, double& gamma){
+    rotT.GetRotAngles(alpha, beta, gamma);
   }
 
   //! Get the angles corresponding to te current  (aligment) rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
@@ -126,8 +159,13 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
   void ReadA(istream &o){putinA(o);}
   void WriteA(ostream &o){putoutA(o);}
 
+  void ReadT(istream &o){putinT(o);}
+  void WriteT(ostream &o){putoutT(o);}
+
   void Align2Lin(float * off);
   void Lin2Align(float * off);
+  void MCAlign2Lin(float * off);
+  void Lin2MCAlign(float * off);
   static int GetSize(){return 6;}
 
   ClassDef(TkObject,1);
