@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.31 2010/05/14 14:02:28 pzuccon Exp $
+// $Id: TrTrack.C,v 1.32 2010/05/16 14:37:23 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/05/16 14:37:23 $
 ///
-///$Revision: 1.31 $
+///$Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -198,9 +198,17 @@ double TrTrackR::GetNormChisqY(int id)
 
 AMSPoint TrTrackR::GetPlayer(int ilay, int id)
 {
-  AMSPoint  pres = GetResidual(ilay, id);
-  TrRecHitR *hit = GetHitL    (ilay);
-  return (hit) ? hit->GetCoord()-pres : pres;
+  AMSPoint pres = GetResidual(ilay, id);
+
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (hit && hit->GetLayer() == ilay+1) {
+      AMSPoint coo = (_iMult[i] >= 0) ? hit->GetCoord(_iMult[i])
+                                      : hit->GetCoord();
+      return coo-pres;
+    }
+  }
+  return pres;
 }
 
 void TrTrackR::AddHit(TrRecHitR *hit, int imult)
@@ -448,31 +456,34 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
 
-    if(TkDBc::Head->GetSetup()==3){// AMS-B
-      
-    // AMS-B
-    if (hit->GetLayer() == 8) { 
-      if (!(id & kFitLayer8)) continue; 
-      else bhit[0] = 1;
-    }
-    if (hit->GetLayer() == 9) {
-      if (!(id & kFitLayer9)) continue;
-      else bhit[1] = 1;
-    }
-    // AMS-B
+    // For AMS02P (AKA AMS-B)
+    if (TkDBc::Head->GetSetup() == 3) {
+      if (hit->GetLayer() == 8) { 
+	if (!(id & kFitLayer8)) continue; 
+	else bhit[0] = 1;
+      }
+      if (hit->GetLayer() == 9) {
+	if (!(id & kFitLayer9)) continue;
+	else bhit[1] = 1;
+      }
 
-    int lyr = hit->GetLayer();
-    if (lyr == 8) lyr = 0;
-    idx[nhit++] = lyr*10+i;
-    }else
+      int lyr = hit->GetLayer();
+      if (lyr == 8) lyr = 0;
+      idx[nhit++] = lyr*10+i;
+    }
+    // For AMS02P (AKA AMS-B)
+
+    // For AMS02-Ass1/PreInt with S.C. magnet
+    else
       idx[nhit++] = hit->GetLayer()*10+i;
-
   }
 
-  if(TkDBc::Head->GetSetup()==3){// AMS-B
-  if ((id & kFitLayer8) && !bhit[0]) return -1;
-  if ((id & kFitLayer9) && !bhit[1]) return -1;
-  } // AMS-B  
+  // AMS02P
+  if (TkDBc::Head->GetSetup() == 3) {
+    if ((id & kFitLayer8) && !bhit[0]) return -1;
+    if ((id & kFitLayer9) && !bhit[1]) return -1;
+  }
+  // AMS02P
 
   std::sort(idx, &idx[nhit]);
 
@@ -496,24 +507,27 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
     double ery = erry;
-   if(TkDBc::Head->GetSetup()==3){// AMS-B
-    int lyr = hit->GetLayer();
-    if (lyr == 8 || lyr == 9) {
-      double rpar = (lyr == 8) ? 100 : 0.70; //  1.00 : 0.70;
-      ery = 1;
-      for (int k = 0; k < 2; k++) {
-	int mfit = (k == 0) ? id : kChoutko;
-	if (ParExists(mfit)) {
-	  double rini = std::fabs(GetRigidity(mfit));
-	  if (rini > 0) { 
-	    ery = (lyr == 8) ? rpar/rini/rini : rpar/rini;
-	    if (ery < erry) ery = erry;
-	    break;
+
+    // For AMS02P (AKA AMS-B)
+    if (TkDBc::Head->GetSetup() == 3) {
+      int lyr = hit->GetLayer();
+      if (lyr == 8 || lyr == 9) {
+	double rpar = (lyr == 8) ? 100 : 0.70; //  1.00 : 0.70;
+	ery = 1;
+	for (int k = 0; k < 2; k++) {
+	  int mfit = (k == 0) ? id : kChoutko;
+	  if (ParExists(mfit)) {
+	    double rini = std::fabs(GetRigidity(mfit));
+	    if (rini > 0) { 
+	      ery = (lyr == 8) ? rpar/rini/rini : rpar/rini;
+	      if (ery < erry) ery = erry;
+	      break;
+	    }
 	  }
 	}
       }
     }
-   }// AMS-B
+    // For AMS02P (AKA AMS-B)
 
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
                     hit->OnlyX() ? 0 : ery,  errz);
@@ -557,7 +571,14 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
       par.Residual[i].setp(_TrFit.GetXr(j), _TrFit.GetYr(j), _TrFit.GetZr(j));
       j++;
     }
-    else par.Residual[i] = InterpolateLayer(i, id);
+    else {
+      TrRecHitR *hit = GetHitL(i);
+      AMSPoint pint = InterpolateLayer(i, id);
+      if (hit)
+	par.Residual[i] = hit->GetCoord()-pint;
+      else
+	par.Residual[i] = pint;
+    }
   }
 
   return GetChisq(id);
