@@ -94,7 +94,7 @@ else
 endif
 
 #SOFLAGS = -shared
-SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 
  SHLDFLAGS=   
 
