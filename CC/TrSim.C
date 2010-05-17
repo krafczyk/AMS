@@ -561,7 +561,7 @@ void TrSim::AddSimulatedClustersOnBuffer() {
                             sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
         continue;
       }
-      TrSimCluster* simcluster = GetTrSimSensor(iside,_tkid)->MakeCluster(ip[iside],ia[iside]);
+      TrSimCluster* simcluster = GetTrSimSensor(iside,_tkid)->MakeCluster(ip[iside],ia[iside],nsensor);
       if (simcluster==0) continue; // it happens! 
 
       // 1. dE/dx normalize: angle (normalized to 300 um), Z (normalized to 1), beta (normalized to what?)   
@@ -593,8 +593,12 @@ void TrSim::AddSimulatedClustersOnBuffer() {
       // Putting cluster on the ladder buffer 
       for (int ist=0; ist<simcluster->GetWidth(); ist++) {
         int address = ist + simcluster->GetAddress() + 640*(1-iside); // address on buffer (P and N side together)
-        _ladbuf[address] += simcluster->GetSignal(ist);
+
+	// sometimes address is out of range and cause crash
+	if (0 <= address && address < 1024)
+	  _ladbuf[address] += simcluster->GetSignal(ist);
       }
+      if (simcluster) delete simcluster;  // Avoid memory leak
     }
   }
 }

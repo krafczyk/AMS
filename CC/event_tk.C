@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.20 2010/05/14 14:02:28 pzuccon Exp $
+//  $Id: event_tk.C,v 1.21 2010/05/17 19:51:23 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -271,7 +271,9 @@ void AMSEvent::_retkevent(integer refit){
       if (trk->ParExists(mf8)) hman.Fill("TrPftL8", pl8.x(), pl8.y());
       if (trk->ParExists(mf9)) hman.Fill("TrPftL9", pl9.x(), pl9.y());
     }
-    if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim) && (TkDBc::Head->GetSetup()==3) ) {
+    if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
+		    TRMCFFKEY.SimulationType==TrSim::kTrSim2010) 
+	        && (TkDBc::Head->GetSetup()==3) ) {
       int mfit[4] = { TrTrackR::kChoutko,
 		      TrTrackR::kChoutko | TrTrackR::kFitLayer8,
 		      TrTrackR::kChoutko | TrTrackR::kFitLayer9,
@@ -284,10 +286,18 @@ void AMSEvent::_retkevent(integer refit){
 	double pmc = mcg->getmom();
 	double rmc = mcg->getmom()/mcg->getcharge();
 
-	AMSPoint pl8 = trk->GetPlayer(7);
-	AMSPoint pl9 = trk->GetPlayer(8);
-	hman.Fill("TrDtyL8", rmc, pl8.y());
-	hman.Fill("TrDtyL9", rmc, pl9.y());
+	if (trk->ParExists(mfit[0])) {
+	  if (trk->ParExists(mfit[1]))
+	    hman.Fill("TrDtyL81", rmc, trk->GetResidual(7, mfit[0]).y());
+	  if (trk->ParExists(mfit[2]))
+	    hman.Fill("TrDtyL91", rmc, trk->GetResidual(8, mfit[0]).y());
+	}
+	if (trk->ParExists(mfit[3])) {
+	  if (trk->ParExists(mfit[2]))
+	    hman.Fill("TrDtyL82", rmc, trk->GetResidual(7, mfit[2]).y());
+	  if (trk->ParExists(mfit[1]))
+	    hman.Fill("TrDtyL92", rmc, trk->GetResidual(8, mfit[1]).y());
+	}
 
 	for (int j = 0; j < 4; j++) {
 	  if (!trk->ParExists(mfit[j])) continue;

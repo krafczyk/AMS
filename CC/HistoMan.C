@@ -243,12 +243,15 @@ void HistoMan::BookHistos(){
   Add(new TH2D("TrPftL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
 
   // TrSim
-  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim) {
+  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
+      TRMCFFKEY.SimulationType==TrSim::kTrSim2010) {
     Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
 
-    Add(TH2D_L("TrDtyL8", "dyL8 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
-    Add(TH2D_L("TrDtyL9", "dyL9 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
+    Add(TH2D_L("TrDtyL81", "dyL81 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
+    Add(TH2D_L("TrDtyL82", "dyL82 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
+    Add(TH2D_L("TrDtyL91", "dyL91 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
+    Add(TH2D_L("TrDtyL92", "dyL92 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
 
     Add(TH2D_L("TrRres11", "d1/R (7-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
     Add(TH2D_L("TrRres12", "dR/R (7-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));

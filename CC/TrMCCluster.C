@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.7 2010/05/14 14:02:28 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.8 2010/05/17 19:51:23 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/05/17 19:51:23 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -71,7 +71,7 @@ void TrMCClusterR::_shower()
   int mult = 0, bctdr0 = bcen0;
 
   // Convert from TDR address into sensor strip
-  if (layer == 1 || layer == 8) {
+  if (ll->IsK7()) {
     int nad = TkDBc::Head->_NReadoutChanK;
     int sen = tks.GetSensor();
     int idx = ((sen+1)*nchx-bcen0)/nad;
