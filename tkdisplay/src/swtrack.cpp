@@ -1,4 +1,4 @@
-// $Id: swtrack.cpp,v 1.2 2010/05/10 21:55:47 shaino Exp $
+// $Id: swtrack.cpp,v 1.3 2010/05/17 10:12:14 shaino Exp $
 #include <QtGui>
 
 #include "swtrack.h"
@@ -64,7 +64,7 @@ SWTrack::SWTrack(AMSEventR *event, int tid)
       AMSPoint pnt;
       AMSDir dir;
       trk->Interpolate(TkDBc::Head->GetZlayer(i+1), pnt, dir);
-      TkSens sens(pnt);
+      TkSens sens(pnt, 0);
       lyrSta[i] = sens.GetLadTkID();
     }
   }

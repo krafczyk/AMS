@@ -1,4 +1,4 @@
-// $Id: swladder.cpp,v 1.2 2010/05/10 21:55:47 shaino Exp $
+// $Id: swladder.cpp,v 1.3 2010/05/17 10:12:14 shaino Exp $
 #include <QtGui>
 
 #include "swladder.h"
@@ -366,7 +366,7 @@ void SWLadder::fillHitVec()
 
     for (int j = im1; j <= im2; j++) {
       AMSPoint coo = hit->GetCoord(j);
-      TkSens sens(coo);
+      TkSens sens(coo, 0);
       dobj.mult = j;
       dobj.x = SEN_SX*sens.GetSensCoo().x()/sax+SEN_DX*sens.GetSensor();;
       dobj.y = SEN_SY-SEN_SY*sens.GetSensCoo().y()/say;
@@ -403,7 +403,7 @@ void SWLadder::fillTrkVec()
     AMSPoint pnt;
     AMSDir dir;
     trk->Interpolate(TkDBc::Head->GetZlayer(layer), pnt, dir);
-    TkSens sens(pnt);
+    TkSens sens(pnt, 0);
     if (sens.GetLadTkID() != tkID) continue;
 
     double sax = TkDBc::Head->_ssize_active[0];
