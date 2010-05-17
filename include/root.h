@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.271 2010/05/17 16:50:45 barao Exp $
+//  $Id: root.h,v 1.272 2010/05/17 16:52:01 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1201,10 +1201,10 @@ static char _Info[255];
   float RingEffMsec2R[3];    ///< ring efficiency for mirror sectors, 2 reflection
   std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
   std::vector<int> HitsStatus;         ///< hit status:
-                                       ///<         -1 = not associated to ring
-                                       ///<          0 = direct
-                                       ///<          1,2,... = reflected 1,2,... times
-  std::vector<float> TrackRec;         ///< reconstructed track parameters (rec. i=3,4 only)
+                                       ///<         -1 = not associated to ring,
+                                       ///<          0 = direct,
+                                       ///<          1,2,etc reflexions.
+  std::vector<float> TrackRec;         ///< reconstructed track parameters (rec. Status i=3,4 only)
                                        ///< TrackRec[0] = x                TrackRec[1] = error in x
                                        ///< TrackRec[2] = y                TrackRec[3] = error in y
                                        ///< TrackRec[4] = z                TrackRec[5] = error in z
