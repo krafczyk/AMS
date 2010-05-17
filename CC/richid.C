@@ -735,6 +735,7 @@ int RichPMTsManager::FindChannel(geant x,geant y){
 
 int RichPMTsManager::Status(int Geom_id,int Geom_Channel){
   if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows) return -1;
+  if(RichPMTsManager::Gain(Geom_id,Geom_Channel,1)<=0) return -1; // If no calibration for the channel is available, discard the channel
   return _status[RICnwindows*Geom_id+Geom_Channel];
 }
 
