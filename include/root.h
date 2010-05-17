@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.270 2010/05/13 13:53:30 choutko Exp $
+//  $Id: root.h,v 1.271 2010/05/17 16:50:45 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1160,9 +1160,12 @@ static char _Info[255];
   int Status;                          ///< Reconstruction status
                                        ///< Status = i+10*j,
                                        ///< Kind of velocity reconstruction performed:
-                                       ///<          i = 2    (from standard track)
-                                       ///<          i = 3    (from standard track with larger errors, or from TOF data)
-                                       ///<          i = 4    (from RICH standalone)
+                                       ///<          i = 2    (track: standard track)
+                                       ///<          i = 3    (track: TOF upper+lower || weakly constrained tracker with larger errors)
+                                       ///<          i = 4    (track: from RICH standalone)
+                                       ///<          i = 5    (track: TOF upper+lower && RICH) 
+                                       ///<          i = 6    (track: TOF upper && RICH) 
+                                       ///<          i = 7    (track: TOF lower && RICH) 
                                        ///< Charge reconstruction:
                                        ///<          j = 0    (off)
                                        ///<          j = 1    (on)
