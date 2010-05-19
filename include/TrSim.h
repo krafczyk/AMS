@@ -70,6 +70,10 @@ class TrSim {
   //! A map for the MC Cluster search
   TrMap<TrMCClusterR> MCClusterTkIdMap;
 
+  //! Particle List (the 18/05/2010 one)
+  static float _g3mass[213];
+  static float _g3charge[213];
+
  public:
 
   ////////////////////////

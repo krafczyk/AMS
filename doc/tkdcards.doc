@@ -18,15 +18,16 @@ I 5  Calib FormatVer =1 Pre-Integration
 I 6  fname(400*'') file name for dbase from file
 
 TRMC
-I 564        SimulationType        (def=2)    0 GBATCH old algorythm
+I 564        SimulationType        (def=0)    0 GBATCH old algorythm
                                               1 SkipRawSim (no TrRawClusters, very fast) 
                                               2 TrSim2010 (detailed simulation)
 I 565        TrSim2010_NoiseType   (def=1)    0 No Noise (only signal) 
                                               1 Gaussian noise generation for every channel 
                                               2 ... not-gaussian ... 
-I 566        TrSim2010_ADCConvType (def=2)    0 No conversion between MeV and ADC
+I 566        TrSim2010_ADCConvType (def=3)    0 No conversion between MeV and ADC
                                               1 Only MPV scaling 
                                               2 MPV and shape scaling 
+                                              3 MPV, shape and gain scaling (ladder,VA)
 R [567,568]  TrSim2010_DSPSeedThr (def=4,4)   DSP Seed Threshold for (n/p sides)
 R [569,570]  TrSim2010_DSPNeigThr (def=1,1)   DSP Neig Threshold for (n/p sides)
 R [571,572]  TrSim2010_Cint (def=100,100)     Interstrip Capacitance (n/p sides)
@@ -36,8 +37,8 @@ I [577,578]  TrSim2010_DiffType (def=2)       0 Box
                                               1 Gaussian
                                               2 Gaussian Convoluted with Box
                                               3 Traingular
-R [][]       TrSim2010_DiffPars[2][2]         Parameters for the selected diffusion type
-
+R [579,582]  TrSim2010_DiffPars[2][2]         Parameters for the selected diffusion type
+R [583,584]  TrSim2010_IntrNoise[2] (def=0.05,0.05) Intrisic Noise (from 0 to  1 scale)   
 
 
 //==============================

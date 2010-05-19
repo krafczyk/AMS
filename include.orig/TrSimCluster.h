@@ -46,6 +46,8 @@ class TrSimCluster {
   //! Infos
   void   Info(int verbose=0);
 
+  //! Set signal
+  void   SetSignal(int i, double s);
   //! Get signal
   double GetSignal(int i);
   //! Get signal at address (0 if invalid address, no error!!!)
@@ -53,15 +55,17 @@ class TrSimCluster {
   //! Get total signal
   double GetTotSignal();
   //! Get the cluster lenght
-  int    GetWidth()      { return int(_signal.size()); }
+  int    GetWidth()        { return int(_signal.size()); }
   //! Get the address of the first strip
-  int    GetAddress()    { return _address; }
+  int    GetAddress()      { return _address; }
+  //! Get the address of the first strip
+  int    GetAddress(int i) { return _address + i; }
   //! Get the seed as setted by the constructor
-  int    GetSeedIndex()  { return _seedind; } 
+  int    GetSeedIndex()    { return _seedind; } 
   //! Find a seed (...equal strips?)
   int    FindSeedIndex(double seed = 0.);
   //! Get seed signal
-  double GetSeedSignal() { return (GetSeedIndex()>=0) ? _signal.at(GetSeedIndex()) : _signal.at(FindSeedIndex()); }
+  double GetSeedSignal()   { return (GetSeedIndex()>=0) ? _signal.at(GetSeedIndex()) : _signal.at(FindSeedIndex()); }
   //! Multiply a cluster by a number (signal rescaling)
   void   Multiply(double signal);
   //! It returns a Cluster summed with another 

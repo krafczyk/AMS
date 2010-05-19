@@ -1,6 +1,7 @@
 #include "TrSim.h"
 #include "tkdcards.h"
 #include "random.h"
+#include "geant321.h"
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "amsgobj.h"
@@ -17,6 +18,10 @@ extern "C" double rnormx();
 TrSim*   TrSim::Head = 0;
 AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
+
+// ATTENTION: this is the particle chart extracted from GBATCH (18/05/2010)  
+float    TrSim::_g3mass[213] = {0,0,0.000510999,0.000510999,0,0.105658,0.105658,0.134976,0.13957,0.13957,0.497672,0.493677,0.493677,0.939566,0.938272,0.938272,0.497672,0.54745,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0.939566,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743,16.146,9.33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743};
+float    TrSim::_g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,-1,0,-1,-1,0,0,-1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,0,2,0,0,0,0,0,0,0,0,0,0,0,3,3,4,4,5,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,32,34,36,38,40,42,46,48,50,54,56,58,62,66,70,74,78,79,80,82,92,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-2,0,-2,0,0,0,0,0,0,0,0,0,0,0,-3,-3,-4,-4,-5,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-32,-34,-36,-38,-40,-42,-46,-48,-50,-54,-56,-58,-62,-66,-70,-74,-78,-79,-80,-82,-92};
 
 TrSim* TrSim::GetHead() {
   if (Head==0) new TrSim();
@@ -35,19 +40,33 @@ TrSim::TrSim() {
   else {
     if (WARNING) printf("TrSim::TrSim-Warning the TrSim singleton has been already defined\n");
   }
+
+  /* PARTICLE LIST
+  for(int ipart=0;ipart<1000;ipart++){
+    char chp[22]="";
+    integer itrtyp=0;
+    geant mass=0;
+    geant charge=0;
+    geant tlife=0;
+    geant ub[1];
+    integer nwb=0;
+    GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
+    printf("%d %g %g\n",ipart,mass,charge);
+  }
+  */
 }
 
-// FIX ME, INFORMAZIONI DA TKDBC (PERCHè CAMBIA CON LE CONFIGURAZIONI)
+
 TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
-  if (side==1)                  return _sensors.at(0); // S
+  if (side==1)    return _sensors.at(0); // S
   int layer = (int) fabs(tkid%100);
   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
   if(!ll){
-    printf("TrSim::GetTrSimSensor: ERROR cant find ladder %d into the database\n",tkid);
+    printf("TrSim::GetTrSimSensor-Error Cannot find ladder %d into the database\n",tkid);
     return 0;
   } 
-  if ( ll->IsK7() ) return _sensors.at(2); // K7
-  else                          return _sensors.at(1); // K5
+  if (ll->IsK7()) return _sensors.at(2); // K7
+  else            return _sensors.at(1); // K5
   return 0;
 }
 
@@ -537,14 +556,16 @@ void TrSim::AddSimulatedClustersOnBuffer() {
       cluster->Print();
     }
 
-    AMSPoint glo = cluster->GetXgl();        // Coordinate [cm]
-    AMSPoint mom = cluster->GetMom();        // Momentum Vector [GeV/c]
-    double   edep = cluster->Sum()*1.e6;     // Energy Deposition [keV] 
-    double   momentum = mom.norm();          // Momentum [GeV/C]
-    // FIX ME: implementa tu una funzione!
-    double   mass = 1; // particle->Mass();        // Mass [GeV/c2] 
-    double   charge = 1; // particle->Charge()/3;  // Charge [unit of e]
-
+    AMSPoint glo = cluster->GetXgl();                // Coordinate [cm]
+    AMSPoint mom = cluster->GetMom();                // Momentum Vector [GeV/c]
+    double   edep = cluster->Sum()*1.e6;             // Energy Deposition [keV] 
+    double   momentum = mom.norm();                  // Momentum [GeV/C]
+    double   mass = _g3mass[cluster->GetPart()];     // Mass [GeV/c2] 
+    double   charge = _g3charge[cluster->GetPart()]; // Charge [unit of e]
+    if ( (mass==0)||(charge==0) ) {
+      if (WARNING) printf("TrSim::AddSimulatedClustersOnBuffer()-Warning No Mass/Charge for particle %d, check _g3mass and _g3charge tables",cluster->GetPart());
+      continue; 
+    }
     if (momentum<1e-9) continue; // if momentum < eV/c!
     AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
     _glo2loc->SetGlobal(_tkid,glo,dir);                                         // from global to local
@@ -564,19 +585,37 @@ void TrSim::AddSimulatedClustersOnBuffer() {
       TrSimCluster* simcluster = GetTrSimSensor(iside,_tkid)->MakeCluster(ip[iside],ia[iside],nsensor);
       if (simcluster==0) continue; // it happens! 
 
-      // 1. dE/dx normalize: angle (normalized to 300 um), Z (normalized to 1), beta (normalized to what?)   
-      double betacorr = 1.;
-      double z2       = charge*charge;
-      double costheta = sqrt( 1./(1 + pow(tan(ia[0]),2.) + pow(tan(ia[1]),2.)) );
-      double edepnorm = edep*costheta*betacorr/z2;
-      // 2. MCtoRealDataNormalization (straight tracks z=1): MPV, real distribution
-      double ADC      = edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC();
-      if (TRMCFFKEY.TrSim2010_ADCConvType>1) 
-        ADC = GetTrSimSensor(iside,_tkid)->fromMCtoRealData(ADC); // using pdfs
-      // 3. Decoupling of normalization
-      ADC             = ADC*z2/costheta/betacorr;  
-      // 4. Gain 
+      // Adding some "intrinsic" noise
+      for (int ist=0; ist<simcluster->GetWidth(); ist++)
+        simcluster->SetSignal(ist,simcluster->GetSignal(ist) + rnormx()*TRMCFFKEY.TrSim2010_IntrNoise[iside]);
 
+      // 1. dE/dx normalize: angle (normalized to 300 um), Z (normalized to 1), beta (normalized to what?)   
+      double betagamma    = momentum/mass;
+      double beta         = betagamma/sqrt(1+pow(betagamma,2)); 
+      double gamma        = betagamma/beta; 
+      double betagammaref = 150/mass;
+      double betaref      = betagammaref/sqrt(1+pow(betagammaref,2));
+      double gammaref     = betagammaref/betaref;
+      double betacorr     = log10(gamma)*pow(betaref,2)/log10(gammaref)/pow(beta,2);
+      double z2           = charge*charge;
+      double costheta     = sqrt( 1./(1 + pow(tan(ia[0]),2.) + pow(tan(ia[1]),2.)) );
+      double edepnorm     = edep*costheta/(betacorr*z2);
+      // 2. MCtoRealDataNormalization (straight tracks z=1): MPV, real distribution
+      double ADC          = edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC();
+      if (TRMCFFKEY.TrSim2010_ADCConvType>1) {
+        ADC = GetTrSimSensor(iside,_tkid)->fromMCtoRealData(ADC); // using pdfs
+      }
+      // 3. Decoupling of normalization
+      ADC             = ADC*(z2*betacorr)/costheta;  
+      // 4. Gain correction (VA by VA)
+      if (TRMCFFKEY.TrSim2010_ADCConvType>2) {
+        TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(_tkid);
+        for (int ist=0; ist<simcluster->GetWidth(); ist++) {
+          int address = simcluster->GetAddress(ist);
+          int iva     = int(address/64);
+          simcluster->SetSignal(ist,simcluster->GetSignal(ist)/ladpar->GetGain(iside)/ladpar->GetVAGain(iva));
+        }
+      }
       if (TRMCFFKEY.TrSim2010_ADCConvType==0) simcluster->Multiply(edep);
       else                                    simcluster->Multiply(ADC);    
       /*
@@ -585,6 +624,7 @@ void TrSim::AddSimulatedClustersOnBuffer() {
              GetTrSimSensor(iside,_tkid)->fromMCtoRealData(edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC()),
              ADC);
       */
+
       if (VERBOSE) { 
         printf("TrSim::SimCluster ADC=%f\n",ADC);
         simcluster->Info(10);
@@ -597,8 +637,9 @@ void TrSim::AddSimulatedClustersOnBuffer() {
 	// sometimes address is out of range and cause crash
 	if (0 <= address && address < 1024)
 	  _ladbuf[address] += simcluster->GetSignal(ist);
+        
       }
-      if (simcluster) delete simcluster;  // Avoid memory leak
+      if (simcluster) delete simcluster;  
     }
   }
 }
@@ -709,5 +750,4 @@ void TrSim::PrintBuffer() {
     printf("\n");
   }
 }
-
 

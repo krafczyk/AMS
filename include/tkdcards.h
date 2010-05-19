@@ -89,6 +89,7 @@ geant   TrSim2010_Cbk[2];
 geant   TrSim2010_Cdec[2];
 integer TrSim2010_DiffType[2];
 geant   TrSim2010_DiffPars[2][2];
+geant   TrSim2010_IntrNoise[2];
 // landau x gaus x exp description?
 
 };

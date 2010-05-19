@@ -156,10 +156,10 @@ void TRMCFFKEY_DEF::init(){
   pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
 
   // SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
-  SimulationType=2;
+  SimulationType=0;
   // TrSim2010: main parameters
   TrSim2010_NoiseType=1;
-  TrSim2010_ADCConvType=2;
+  TrSim2010_ADCConvType=3;
   TrSim2010_DSPSeedThr[0]=4.;
   TrSim2010_DSPSeedThr[1]=4.;
   TrSim2010_DSPNeigThr[0]=1.;
@@ -178,6 +178,8 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_DiffPars[0][1]=8;
   TrSim2010_DiffPars[1][0]=8;
   TrSim2010_DiffPars[1][1]=8;
+  TrSim2010_IntrNoise[0]=0.05;
+  TrSim2010_IntrNoise[1]=0.05;
   // landau x gaus x exp description?
 }
 

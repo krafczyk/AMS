@@ -12,14 +12,20 @@ void TrSimCluster::Clear() {
   _seedind = 0;
 }
 
+void TrSimCluster::SetSignal(int i, double s) {
+  // no error: no effect if out of the cluster
+  if ( (i<0)||(i>=GetWidth()) ) return;
+  _signal.at(i) = s;
+}
+
 double TrSimCluster::GetSignal(int i) {
+  // no error: 0 if out of the cluster
   if ( (i<0)||(i>=GetWidth()) ) return 0.;
   return _signal.at(i);
 }
 
 double TrSimCluster::GetSignalAtAddress(int i) {
-  // no error!!! 
-  // 0 if out of the cluster
+  // no error: 0 if out of the cluster
   int index = i - GetAddress();
   if ( (index<0)||(index>=GetWidth()) ) return 0.;
   return GetSignal(index);
