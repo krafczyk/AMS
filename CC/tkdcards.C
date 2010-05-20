@@ -155,23 +155,23 @@ void TRMCFFKEY_DEF::init(){
   pl9zgap=0.;//(558) PL9 supp.str. gap from EC front face Z (cm)
   pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
 
-  // SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
+  // (564) SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
   SimulationType=0;
-  // TrSim2010: main parameters
+  // (565-570) TrSim2010: main parameters
   TrSim2010_NoiseType=1;
   TrSim2010_ADCConvType=3;
   TrSim2010_DSPSeedThr[0]=4.;
   TrSim2010_DSPSeedThr[1]=4.;
   TrSim2010_DSPNeigThr[0]=1.;
   TrSim2010_DSPNeigThr[1]=1.;
-  // TrSim2010: detailed description
+  // (571-576) TrSim2010: detailed description
   TrSim2010_Cint[0]=100.;
   TrSim2010_Cint[1]=100.;
   TrSim2010_Cbk[0]=10.;
   TrSim2010_Cbk[1]=10.;
   TrSim2010_Cdec[0]=800.;
   TrSim2010_Cdec[1]=800.;
-  // Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
+  // (577-584) Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
   TrSim2010_DiffType[0]=2;
   TrSim2010_DiffType[1]=2;
   TrSim2010_DiffPars[0][0]=8;
@@ -180,6 +180,9 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_DiffPars[1][1]=8;
   TrSim2010_IntrNoise[0]=0.05;
   TrSim2010_IntrNoise[1]=0.05;
+
+  // (585) EDep real data type: 1:TB2003 2:TB2010
+  TrSim2010_RefunType=1;
   // landau x gaus x exp description?
 }
 

@@ -139,7 +139,7 @@ class TrSim {
   //! Add noise of the TkId ladder on the ladder buffer (from current calibration)
   void AddNoiseOnBuffer();
   //! Produce clusters and put them on the ladder buffer 
-  void AddSimulatedClustersOnBuffer();
+  int  AddSimulatedClustersOnBuffer();
 
 };
 

@@ -477,28 +477,24 @@ int TrSim::BuildTrRawClusters() {
   for (int ientry=0; ientry<TkDBc::Head->GetEntries(); ientry++) { 
      TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
      _tkid = ladder->GetTkId();
+
+     // Calibration
+     _ladcal = TrCalDB::Head->FindCal_TkId(_tkid);
+     if (_ladcal==0) {
+       if (WARNING) printf("TrSim::AddNoiseOnBuffer-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",_tkid);
+       continue;
+     }
+
      CleanBuffer(); 
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.start("SITKNOISE");
-#endif
-     AddNoiseOnBuffer(); 
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("SITKNOISE");
-     AMSgObj::BookTimer.start("SITKDIGIa");
-#endif
-     AddSimulatedClustersOnBuffer();
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("SITKDIGIa");
-#endif
+
+     if (AddSimulatedClustersOnBuffer() == 0 &&
+         TRMCFFKEY.TrSim2010_NoiseType  != 1) continue;
+
+     AddNoiseOnBuffer();
+
      // Add Noise? 
      // Add Fake Cluster? 
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.start("SITKDIGIb");
-#endif
      nclusters += BuildTrRawClustersWithDSP();         
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("SITKDIGIb");
-#endif
   }
   return nclusters;
 }
@@ -510,18 +506,31 @@ void TrSim::CleanBuffer() {
 
 
 void TrSim::AddNoiseOnBuffer() {
-  // Calibration
-  _ladcal = TrCalDB::Head->FindCal_TkId(_tkid);
-  if (_ladcal==0) {
-    if (WARNING) printf("TrSim::AddNoiseOnBuffer-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",_tkid);
-    return; 
-  }
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKNOISE");
+#endif
+
   if (TRMCFFKEY.TrSim2010_NoiseType==0) return;
   // Noise baseline and calibration load
   for (int ii=0; ii<1024; ii++) {
     if (_ladcal->GetStatus(ii)&TrLadCal::dead) _ladbuf[ii] = DEADSTRIPADC;                // dead strip    
-    else                                       _ladbuf[ii] = _ladcal->Sigma(ii)*rnormx(); // normal/hot strip
+    else {
+      // NoiseType=2: Add noise on only the strips near the signal
+      if (TRMCFFKEY.TrSim2010_NoiseType==2) {
+        if (_ladbuf[ii] > 0 ||
+            (ii+1 < 1024 && _ladbuf[ii+1] > 0) ||
+            (ii-1 >=   0 && _ladbuf[ii-1] > 0))
+          _ladbuf[ii] += _ladcal->Sigma(ii)*rnormx();
+      }
+      // NoiseType=1: Add noise on all the strips
+      else
+        _ladbuf[ii] += _ladcal->Sigma(ii)*rnormx(); // normal/hot strip
+    }
   }
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKNOISE");
+#endif
 }
 
 
@@ -544,8 +553,12 @@ void TrSim::CreateMCClusterTkIdMap() {
 } 
 
 
-void TrSim::AddSimulatedClustersOnBuffer() {
+int TrSim::AddSimulatedClustersOnBuffer() {
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGIa");
+#endif
   char   sidename[2] = {'X','Y'};
+  int nclusters = 0;
   // Loop on MC Cluster on the selected ladder 
   for(int icl=0; icl<MCClusterTkIdMap.GetNelem(_tkid); icl++) {
     TrMCClusterR* cluster = (TrMCClusterR*) MCClusterTkIdMap.GetElem(_tkid,icl);
@@ -639,16 +652,30 @@ void TrSim::AddSimulatedClustersOnBuffer() {
 	  _ladbuf[address] += simcluster->GetSignal(ist);
         
       }
+      nclusters++;
       if (simcluster) delete simcluster;  
     }
   }
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGIa");
+#endif
+  return nclusters;
 }
 
 
 int TrSim::BuildTrRawClustersWithDSP() {
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGIb");
+#endif
+
   int nclusters = 0;
   nclusters += BuildTrRawClustersOnSide(0);
   nclusters += BuildTrRawClustersOnSide(1); 
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGIb");
+#endif
+
   return nclusters;
 }
 
@@ -668,6 +695,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
   }
 
   // Init
+  int nclusters = 0;
   int addmin[2] = {  0, 640};
   int addmax[2] = {640,1024};
   int used[1024]; memset(used,0,1024*sizeof(used[0]));
@@ -728,6 +756,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
 #else
         if (cont) cont->addnext(new TrRawClusterR(  _tkid,clusaddraw,cluslenraw,signal));
 #endif
+	nclusters++;
         if (VERBOSE) {
           printf("TrSim::TrRawCluster\n");
           TrRawClusterR* cluster = (TrRawClusterR*) cont->getelem((int)cont->getnelem()-1);
@@ -738,7 +767,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
     }
   }
   if (cont) delete cont;
-  return 0;
+  return nclusters;
 }
 
 
