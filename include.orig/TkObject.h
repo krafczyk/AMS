@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.4 2010/05/15 10:12:47 pzuccon Exp $
+// $Id: TkObject.h,v 1.5 2010/05/21 10:33:23 shaino Exp $
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,9 +22,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2010/05/15 10:12:47 $
+///$Date: 2010/05/21 10:33:23 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -168,7 +168,7 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
   void Lin2MCAlign(float * off);
   static int GetSize(){return 6;}
 
-  ClassDef(TkObject,1);
+  ClassDef(TkObject,2);
 };
 
 

@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.9 2010/04/02 10:34:51 pzuccon Exp $
+// $Id: TkDBc.h,v 1.10 2010/05/21 10:33:22 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -298,14 +298,18 @@ public:
   int  write(const char* filename);
   //!  Read the  content of the DB from an ascii file
   int  read(const char* filename, int pri=0);
-  //!  Read the alignement data from a file
+  //!  Read the alignement data (posA/rotA) from a file
   int readAlignment(const char* filename, int pri=0);
+  //!  Read the (Dis)alignement data (posT/rotT) from a file
+  int readDisalignment(const char* filename, int pri=0);
 
   //!  Read the alignement data from a file with a format "tkid dx dy dz alpha beta gamma"
   int readAlignmentAngles(const char* filename, int pri=0);
 
-  //!  Write the alignement data to a file
+  //!  Write the alignement data (posA/rotA) to a file
   int writeAlignment(const char* filename);
+  //!  Write the (Dis)alignement data (posT/rotT) to a file
+  int writeDisalignment(const char* filename);
 
   //!  Read the sensor alignement data from a file with a format "tkid sx[0-14] sy[0-14]"
   int readAlignmentSensor(const char* filename, int pri=0);
@@ -393,7 +397,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 1);
+  ClassDef(TkDBc, 2);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

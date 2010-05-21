@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.14 2010/05/14 14:02:28 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.15 2010/05/21 10:33:22 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/05/21 10:33:22 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -956,6 +956,34 @@ int TkDBc::readAlignment(const char* filename, int pri){
 
 }
 
+int TkDBc::readDisalignment(const char* filename, int pri){
+  ifstream  fileout(filename);
+  if (!fileout) {
+    printf("Error: tkdbc alignemnt file not found: %s\n", filename);
+    return -1;
+  }
+  
+
+  for (int ii=0;ii<nplanes;ii++){
+    planes[ii]->ReadT(fileout);
+  }
+  int count=0;
+  for(tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); pp++) {
+    TkLadder*  aa=pp->second;
+    count++;
+    aa->ReadT(fileout);
+    if(fileout.eof()){  break;}
+    if(!fileout.good()) cerr <<" Error in TkDBc::readDisalignment the channel is not good"<<endl;
+    if (pri) aa->WriteA(cout);
+
+  }
+  cout << count <<" Ladders DIS-ALIGNMENT  have been read from file "<<filename<<endl;
+
+  fileout.close();
+  return 0;
+
+}
+
 
 int TkDBc::writeAlignment(const char* filename){
 
@@ -964,6 +992,19 @@ int TkDBc::writeAlignment(const char* filename){
     planes[ii]->WriteA(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     pp->second->WriteA(fileout);
+
+  fileout.close();
+  return 0;
+
+}
+
+int TkDBc::writeDisalignment(const char* filename){
+
+  ofstream  fileout(filename);
+  for (int ii=0;ii<nplanes;ii++)
+    planes[ii]->WriteT(fileout);
+  for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
+    pp->second->WriteT(fileout);
 
   fileout.close();
   return 0;

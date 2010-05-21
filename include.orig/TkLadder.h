@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.6 2010/05/15 10:12:46 pzuccon Exp $
+// $Id: TkLadder.h,v 1.7 2010/05/21 10:33:22 shaino Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/05/15 10:12:46 $
+///$Date: 2010/05/21 10:33:22 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -166,6 +166,6 @@ public:
   //! writes out the Alignement pars to file
   void WriteS(ostream &o){putoutS(o);}
 
-  ClassDef(TkLadder,1);
+  ClassDef(TkLadder,2);
 };
 #endif

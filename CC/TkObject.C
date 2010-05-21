@@ -1,4 +1,4 @@
-//  $Id: TkObject.C,v 1.4 2010/05/14 14:02:28 pzuccon Exp $
+//  $Id: TkObject.C,v 1.5 2010/05/21 10:33:22 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/05/21 10:33:22 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -81,7 +81,7 @@ istream& TkObject::putin(istream& s){
     cerr <<" Error in TkObject::putin the channel is not good"<<endl;
     return s;
   }
-
+/* // SH FIXME posT/rotT are not to be read to keep compatibility
   s>> posT;
   if(!s.good()){
     cerr <<" Error in TkObject::putin the channel is not good"<<endl;
@@ -92,7 +92,7 @@ istream& TkObject::putin(istream& s){
     cerr <<" Error in TkObject::putin the channel is not good"<<endl;
     return s;
   }
-
+*/ // SH FIXME posT/rotT are not to be read to keep compatibility
   return s;
 }
 
