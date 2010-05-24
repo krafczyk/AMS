@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.42 2010/03/21 15:16:38 choutko Exp $
+//  $Id: main.cxx,v 1.43 2010/05/24 14:13:11 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -189,11 +189,11 @@ pchain=&chain;
   strcpy(geoFile,geo_dir);
   char *geoFile_new = "ams02.geom";
   char *geofile_perm="ams02.pm.geom";
-   cout<<"  open geo file "<<endl; 
   if(!strcmp(pchain->getsetup(),"AMS02P")){
    strcat(geoFile,geofile_perm);
   }
   else strcat(geoFile,geoFile_new);
+   cout<<"  open geo file "<<geoFile<<endl; 
   TFile fgeo(geoFile);
 
   TGeometry *geo = (TGeometry *)fgeo.Get("ams02");

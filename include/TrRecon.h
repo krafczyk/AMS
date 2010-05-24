@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.29 2010/05/03 08:00:24 oliva Exp $ 
+// $Id: TrRecon.h,v 1.30 2010/05/24 14:13:11 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/05/03 08:00:24 $
+/// $Date: 2010/05/24 14:13:11 $
 ///
-/// $Revision: 1.29 $
+/// $Revision: 1.30 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -43,6 +43,9 @@
 #include <algorithm>
 
 #include "TObject.h"
+
+
+
 
 class TrReconPar : public TObject {
 
@@ -531,6 +534,9 @@ public:
   /// Reconstruct tracks, returns number of tracks reconstructed
   int BuildTrTracks(int refit = 0);
 
+  /// Try to extend to external planes for AMS-02P
+  void MatchTRDandExtend();
+
   /// Merge hits shared by two tracks
 //int MergeSharedHits(TrTrackR *track, int fit_method);
 
@@ -603,6 +609,6 @@ public:
   static int GetTrackerSize();
 };
 
-#endif
 
+#endif
 

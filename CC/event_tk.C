@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.21 2010/05/17 19:51:23 shaino Exp $
+//  $Id: event_tk.C,v 1.22 2010/05/24 14:13:11 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -113,6 +113,7 @@ void AMSEvent::_retkevent(integer refit){
 	AMSgObj::BookTimer.start("TrTrack");
 	TrRecon::RecPar.NbuildTrack++;
 	int retr3=rec->BuildTrTracks();
+	rec->MatchTRDandExtend();
 	AMSgObj::BookTimer.stop("TrTrack");
 
 #pragma omp critical (trcpulim)

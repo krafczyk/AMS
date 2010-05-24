@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.50 2010/05/17 19:51:23 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.51 2010/05/24 14:13:11 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/17 19:51:23 $
+/// $Date: 2010/05/24 14:13:11 $
 ///
-/// $Revision: 1.50 $
+/// $Revision: 1.51 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +37,10 @@
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
 #include "trrec.h"
+#include "event.h"
+#include "trdrec.h"
+AMSPoint BasicTkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd);
+bool  TkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd);
 #endif
 
 ClassImp(TrReconPar);
@@ -1965,7 +1969,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     nadd++;
   }
   delete cont;
-
+  if(nadd) track->ReFit();
   return nadd;
 }
 
@@ -2073,7 +2077,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     track->Settrdefaultfit(fit_method);
   }
   else {
-    if(TkDBc::Head->GetSetup()==3) MergeExtHits(track, fit_method); // AMS-B
+    // PZ move this after the TOF or TRF matching
+    //    if(TkDBc::Head->GetSetup()==3) MergeExtHits(track, fit_method); // AMS-B
     if(track->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
     } else {
@@ -2095,6 +2100,9 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   delete cont;
   return 1;
 }
+
+
+
 
 void TrRecon::InitFFKEYs(int magstat)
 {
@@ -2501,6 +2509,95 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 
   return ntrk;
 }
+
+#ifndef __ROOTSHAREDLIBRARY__
+AMSPoint BasicTkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
+  /// Check the Match between Tracker and TRD tracks
+  /// Returns an AMSPoint with
+  /// [0] X distance
+  /// [1] Y distance
+  /// [2] Cos(angle)
+  double zpl=83.5; //Z low of TRD in cm;
+
+  if(!ptrack || !ptrd) return AMSPoint(-1000,-1000,-1000);
+  // TRD point and direction at Z=  zpl
+  AMSPoint trd_pnt0     = ptrd->getCooStr();
+  AMSDir   trd_dir  = ptrd->getCooDirStr();
+
+  double X_TRD= (zpl-trd_pnt0[2])*trd_dir[0]/trd_dir[2]+trd_pnt0[0];
+  double Y_TRD= (zpl-trd_pnt0[2])*trd_dir[1]/trd_dir[2]+trd_pnt0[1];
+  AMSPoint trd_pnt(X_TRD,Y_TRD,zpl);
+
+  // Tracker point and direction at Z= zpl
+  AMSPoint tk_pnt;
+  AMSDir   tk_dir;
+  ptrack->Interpolate(zpl, tk_pnt, tk_dir); 
+
+  // angle between the tracks
+  number c=tk_dir.prod(trd_dir);
+  //distance 
+  AMSPoint bb=(tk_pnt-trd_pnt);
+  number d=bb.norm();
+  number X=bb[0];
+  number Y=bb[1];
+//   hman.Fill("TkTrd",c,d);
+//   hman.Fill("TkTrdXY",X,Y);
+//   hman.Fill("ntrdhit",ptrd->_Base._NHits,Y);
+//   if(ptrd->_Base._NHits>10)
+//     hman.Fill("Yresvsrig",ptrack->GetRigidity(),Y);
+  bb[3]=fabs(c);
+  return bb;
+  
+  //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
+}
+
+bool  TkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
+  number SearchReg(1);
+  number MaxCos(0.95);
+  AMSPoint dst=BasicTkTRDMatch(ptrack,ptrd);
+  if( fabs(dst[1]) < SearchReg && dst[2]> MaxCos)
+    if(fabs(dst[0])< SearchReg) return true;
+    else{ //try to move TrTrack on X
+      int left  = 0;
+      int right = 0;
+      int move[2];
+      ptrack->GetMaxShift(left,right);
+      if(dst[0]>0) {move[0]=left; move[1]=0;       } 
+      else         {move[0]=1;    move[1]=right+1; }     
+      int moved=0;
+      for(int mm=move[0];mm<move[1];mm++){
+	TrTrackR test(*ptrack);
+	test.Move(mm);
+	AMSPoint dd=BasicTkTRDMatch(&test,ptrd);
+	if(fabs(dd[0]) < SearchReg&&fabs(dd[1]) < SearchReg && dd[2]> MaxCos){
+	  moved=mm;
+	  break;
+	}
+      }
+      if(moved==0) return false;
+      else{
+	ptrack->Move(moved);
+	return true;
+      }
+    }
+  else return false;
+}
+#endif
+
+void TrRecon::MatchTRDandExtend(){
+ VCon* cont = GetVCon()->GetCont("AMSTrTrack");
+ for(int ii=0;ii< cont->getnelem();ii++){
+   TrTrackR* tr=(TrTrackR*)cont->getelem(ii);
+#ifndef __ROOTSHAREDLIBRARY__
+   for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
+	  ;trd;trd=trd->next())
+     TkTRDMatch(tr,trd);
+#endif
+   if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
+ }
+ delete cont;
+}
+
 
 ///////////////////////////////////////////////////////////
 //                  VERTEX                     ////////////
