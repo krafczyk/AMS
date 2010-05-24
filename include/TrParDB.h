@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.5 2010/02/23 14:59:55 oliva Exp $
+// $Id: TrParDB.h,v 1.6 2010/05/24 15:56:16 oliva Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/02/23 14:59:55 $
+///$Date: 2010/05/24 15:56:16 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -36,7 +36,8 @@
 
 #define PARDBOFF 203
 #define CHLOSSARR 10
-
+#define MAXFOLDIP 0.5
+#define MAXFOLDIA 40.
 
 //! The AMS Tracker parameters database class
 class TrParDB : public TObject{
@@ -98,6 +99,7 @@ class TrParDB : public TObject{
   inline float GetAsymmetry(int icoo)             { return _asymmetry[icoo]; }
   /// Set Charge Loss Correction 
   void         SetChargeLossArray(int icoo, float array[CHLOSSARR][CHLOSSARR]);
+  /// Get Charge Loss Correction 
   float        GetChargeLossArrayElem(int icoo, int ind_ip, int ind_ia);
   /// Get Charge Loss Correction (normalization to IP = 0 and IA = 0)
   /*! 

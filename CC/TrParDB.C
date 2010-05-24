@@ -1,4 +1,4 @@
-//  $Id: TrParDB.C,v 1.4 2010/02/23 14:59:56 oliva Exp $
+//  $Id: TrParDB.C,v 1.5 2010/05/24 15:56:16 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrParDB class
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/02/23 14:59:56 $
+///$Date: 2010/05/24 15:56:16 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -119,8 +119,8 @@ void TrParDB::PrintInfo() {
   }
   printf("Charge loss matrices (x = ia, y = ip):\n");
   for (int iside=0; iside<2; iside++) {
-    for (int ix=0; ix<10; ix++) {
-      for (int iy=0; iy<10; iy++) {  
+    for (int ix=0; ix<CHLOSSARR; ix++) {
+      for (int iy=0; iy<CHLOSSARR; iy++) {  
         printf("%7.3f ",GetChargeLossArrayElem(iside,ix,iy));
       }
       printf("\n");
@@ -140,23 +140,34 @@ void TrParDB::SetChargeLossArray(int icoo, float array[CHLOSSARR][CHLOSSARR]) {
 }
 
 float TrParDB::GetChargeLossArrayElem(int icoo, int ind_ip, int ind_ia) {
-  if      (icoo>1) return 1;   // no side
-  if      (ind_ip<0)         ind_ip = 0; 
-  else if (ind_ip>CHLOSSARR) ind_ip = CHLOSSARR-1;
-  if      (ind_ia<0)         ind_ia = 0;
-  else if (ind_ia>CHLOSSARR) ind_ia = CHLOSSARR-1;
+  if      (icoo>1) return 1.;   // no side
+  if      (ind_ip<0)           ind_ip = 0; 
+  else if (ind_ip>CHLOSSARR-1) ind_ip = CHLOSSARR-1;
+  if      (ind_ia<0)           ind_ia = 0;
+  else if (ind_ia>CHLOSSARR-1) ind_ia = CHLOSSARR-1;
   if      (icoo==0) return _chargelossx[ind_ip][ind_ia];
   else if (icoo==1) return _chargelossy[ind_ip][ind_ia];
-  else              return 0; 
+  return 1.; // default
 }
 
 float TrParDB::GetChargeLoss(int icoo, float ip, float ia) {
-  if (icoo>1) return 1;   // no side
-  float perip = ip - ceil(ip-0.5); // periodicity [-0.5,0.5]
-  float absip = fabs(perip);       //symmetry around 0 axis
-  int ind_ip = (int) (absip/(0.5/CHLOSSARR));
-  int ind_ia = (int) (fabs(ia)/(40./CHLOSSARR));
-  return GetChargeLossArrayElem(icoo,ind_ip,ind_ia);
+  if (icoo>1) return 1.;                             // no side
+  float per_ip = ip - ceil(ip-0.5);                  // periodicity [-0.5,0.5]
+  float abs_ip = fabs(per_ip);                       // folded (symmetry around 0) 
+  float abs_ia = fabs(ia);                           // folded (angular symmetry)  
+  float pos_ip = abs_ip/(MAXFOLDIP/CHLOSSARR) - 0.5; // index units and shift (chargeloss is given for the central bin) 
+  float pos_ia = abs_ia/(MAXFOLDIA/CHLOSSARR) - 0.5; // index units and shift (chargeloss is given for the central bin)
+  if (pos_ip<0.) pos_ip = 0.; if (pos_ip>CHLOSSARR-1) pos_ip = CHLOSSARR-1;
+  if (pos_ia<0.) pos_ia = 0.; if (pos_ia>CHLOSSARR-1) pos_ia = CHLOSSARR-1;
+  int   ind_ip = (int) (pos_ip);                     // low index ip
+  int   ind_ia = (int) (pos_ia);                     // low index ia
+  // interpolation 
+  float interp =   
+    GetChargeLossArrayElem(icoo,ind_ip  ,ind_ia  )*(ind_ip+1-pos_ip)*(ind_ia+1-pos_ia) +
+    GetChargeLossArrayElem(icoo,ind_ip+1,ind_ia  )*(pos_ip  -ind_ip)*(ind_ia+1-pos_ia) +
+    GetChargeLossArrayElem(icoo,ind_ip  ,ind_ia+1)*(ind_ip+1-pos_ip)*(pos_ia  -ind_ia) +
+    GetChargeLossArrayElem(icoo,ind_ip+1,ind_ia+1)*(pos_ip  -ind_ip)*(pos_ia  -ind_ia);
+  return interp;
 }
 
 
