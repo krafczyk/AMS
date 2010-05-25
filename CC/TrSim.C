@@ -75,6 +75,15 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SITKHITS");
 #endif
+  // XXPLSS | XX=sensor| P 0 neg 1 pos | L=layer | SS=slot |
+  // int sensor = abs(idsoft)/10000;
+  int tkid   = abs(idsoft)%1000;
+  int ss     = abs(idsoft)%10000-tkid;
+  if(!ss) tkid*=-1;
+  TkLadder* lad=TkDBc::Head->FindTkId(tkid);
+  // Skip not connected ladders
+  if(!lad|| lad->GetHwId()==0) return;
+
 
   // fast simulation?
   if (TRMCFFKEY.SimulationType==kNoRawSim) {
@@ -91,11 +100,6 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   AMSPoint ppb = ppa-dirg*step;
   AMSPoint pgl = ppa-dirg*step/2;
   AMSPoint size(TkDBc::Head->_ssize_active[0]/2,TkDBc::Head->_ssize_active[1]/2,TkDBc::Head->_silicon_z/2);
-  // XXPLSS | XX=sensor| P 0 neg 1 pos | L=layer | SS=slot |
-  // int sensor = abs(idsoft)/10000;
-  int tkid   = abs(idsoft)%1000;
-  int ss     = abs(idsoft)%10000-tkid;
-  if(!ss) tkid*=-1;
   // Convert global coo into sensor local coo
   // The origin is the first strip of the sensor
   TkSens tksa(tkid, ppa,1);

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.99 2010/04/07 09:27:13 shaino Exp $
+//  $Id: gmat.C,v 1.100 2010/05/25 16:56:53 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -128,133 +128,148 @@ uinteger AMSgmat::_GlobalMatI=0;
 uinteger AMSgtmed::_GlobalMedI=0;
 //-------------------------------------------------------------------------
 void AMSgmat::amsmat(){
-static AMSgmat mat;
-mat.setname("Materials:");
-AMSJob::gethead()->addup(&mat);
-mat.add (new AMSgmat("HYDROGEN",1.01, 1.,0.0708,865.,790.));
-//mat.add (new AMSgmat("DEUTERIUM",  2.01,1.,0.162 ,757.,342.));
-mat.add (new AMSgmat("HELIUM",  4.  , 2.,0.125 ,755.,478.));
-//mat.add (new AMSgmat("LITHIUM",  6.94, 3.,0.534 ,155.,120.6));
-//mat.add (new AMSgmat("BERILLIUM",  9.01, 4., 1.848 ,35.3,36.7));
-mat.add (new AMSgmat("CARBON", 12.01, 6., 2.265 ,18.8,49.9));
-//mat.add (new AMSgmat("NITROGEN", 14.01, 7.,0.808 ,44.5,99.4));
-//mat.add (new AMSgmat("NEON", 20.18,10., 1.207 , 24.,74.9));
-         // Half density alum
-mat.add (new AMSgmat("ALUMINIUM",26.98, 13., 1.35, 17.8, 74.4));
-mat.add (new AMSgmat("IRON", 55.85,26., 7.87  ,1.76,17.1));
-mat.add (new AMSgmat("COPPER", 63.54,29.,8.96  ,1.43,14.8));
-mat.add (new AMSgmat("TUNGSTEN",183.85,74., 19.3  ,0.35,10.3));
-mat.add (new AMSgmat("TUNGSTENTRD",183.85,74., 19.3  ,0.35,10.3));
-mat.add (new AMSgmat("LEAD",207.19,82., 11.35 ,0.56,18.5));
-mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
-mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
-mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
-mat.add (new AMSgmat("MYLARTRD",  8.7   ,4.5,  1.39  ,28.7, 43.));
-mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
-mat.add (new AMSgmat("VACUUMTRD",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
-geant a[]={20.18,12.01,1.01,0};
-geant z[]={10.,6.,1.,0};
-geant w[]={4.,1.,4.,0};
-//mat.add (new AMSgmat("TPC GAS",a,z,w,3,0.8634e-3));
-a[0]=39.95;a[1]=12.01;a[2]=1.01;
-z[0]=18.;  z[1]=6.;   z[2]=1.;
-w[0]=1.;   w[1]=2.;   w[2]=6.;
-//mat.add (new AMSgmat("DRIFT GAS ",a,z,w,3,1.568e-3));
-a[0]=12.01;a[1]=28.1;
-z[0]=6.;  z[1]=14.;
-w[0]=2.66;w[1]=1.;
-mat.add (new AMSgmat("SICARBON",a,z,w,2,2.286));
-a[0]=12.;a[1]=1.;
-z[0]=6.; z[1]=1.;
-w[0]=8.; w[1]=8.;
-mat.add (new AMSgmat("SCINT",a,z,w,2,1.032));
-mat.add (new AMSgmat("SILICON",28.09,14.,2.32,9.36,45.));
-a[0]=144.24;a[1]=55.85;a[2]=10.8;
-z[0]=60.;   z[1]=26.;  z[2]=5.;
-w[0]=30.;   w[1]=69.;  w[2]=1.;
-mat.add (new AMSgmat("MAGNET",a,z,w,3,7.45));
+  static AMSgmat mat;
+  mat.setname("Materials:");
+  AMSJob::gethead()->addup(&mat);
+  mat.add (new AMSgmat("HYDROGEN",1.01, 1.,0.0708,865.,790.));
+  //mat.add (new AMSgmat("DEUTERIUM",  2.01,1.,0.162 ,757.,342.));
+  mat.add (new AMSgmat("HELIUM",  4.  , 2.,0.125 ,755.,478.));
+  //mat.add (new AMSgmat("LITHIUM",  6.94, 3.,0.534 ,155.,120.6));
+  //mat.add (new AMSgmat("BERILLIUM",  9.01, 4., 1.848 ,35.3,36.7));
+  mat.add (new AMSgmat("CARBON", 12.01, 6., 2.265 ,18.8,49.9));
+  //mat.add (new AMSgmat("NITROGEN", 14.01, 7.,0.808 ,44.5,99.4));
+  //mat.add (new AMSgmat("NEON", 20.18,10., 1.207 , 24.,74.9));
+  // Half density alum
+  mat.add (new AMSgmat("ALUMINIUM",26.98, 13., 1.35, 17.8, 74.4));
+  mat.add (new AMSgmat("IRON", 55.85,26., 7.87  ,1.76,17.1));
+  mat.add (new AMSgmat("COPPER", 63.54,29.,8.96  ,1.43,14.8));
+  mat.add (new AMSgmat("TUNGSTEN",183.85,74., 19.3  ,0.35,10.3));
+  mat.add (new AMSgmat("TUNGSTENTRD",183.85,74., 19.3  ,0.35,10.3));
+  mat.add (new AMSgmat("LEAD",207.19,82., 11.35 ,0.56,18.5));
+  mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
+  mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
+  mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
+  mat.add (new AMSgmat("MYLARTRD",  8.7   ,4.5,  1.39  ,28.7, 43.));
+  mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+  mat.add (new AMSgmat("VACUUMTRD",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+  geant a[]={20.18,12.01,1.01,0};
+  geant z[]={10.,6.,1.,0};
+  geant w[]={4.,1.,4.,0};
+  //mat.add (new AMSgmat("TPC GAS",a,z,w,3,0.8634e-3));
+  a[0]=39.95;a[1]=12.01;a[2]=1.01;
+  z[0]=18.;  z[1]=6.;   z[2]=1.;
+  w[0]=1.;   w[1]=2.;   w[2]=6.;
+  //mat.add (new AMSgmat("DRIFT GAS ",a,z,w,3,1.568e-3));
+  a[0]=12.01;a[1]=28.1;
+  z[0]=6.;  z[1]=14.;
+  w[0]=2.66;w[1]=1.;
+  mat.add (new AMSgmat("SICARBON",a,z,w,2,2.286));
+  a[0]=12.;a[1]=1.;
+  z[0]=6.; z[1]=1.;
+  w[0]=8.; w[1]=8.;
+  mat.add (new AMSgmat("SCINT",a,z,w,2,1.032));
+  mat.add (new AMSgmat("SILICON",28.09,14.,2.32,9.36,45.));
+  a[0]=144.24;a[1]=55.85;a[2]=10.8;
+  z[0]=60.;   z[1]=26.;  z[2]=5.;
+  w[0]=30.;   w[1]=69.;  w[2]=1.;
+  mat.add (new AMSgmat("MAGNET",a,z,w,3,7.45));
 
-// WLS for CTC (same polystiren as for TOF scint)
-a[0]=12.;a[1]=1.;
-z[0]=6.; z[1]=1.;
-w[0]=8.; w[1]=8.;
-mat.add (new AMSgmat("WLS",a,z,w,2,1.03));
-//
-// AL honeycomb structure for CTC (as for TOF now !) :
-mat.add (new AMSgmat( "AL-HONEYC2",26.98, 13., 0.04, 600., 2660.));
-//
-// Teflon(C2F4) cover for CTC :
-a[0]=12.;a[1]=19.;
-z[0]=6.; z[1]=9.;
-w[0]=2.; w[1]=4.;
-mat.add (new AMSgmat( "TEFLON1",a,z,w,2, 2.2));
-//
-// Teflon(C2F4) separators for CTC :
-a[0]=12.;a[1]=19.;
-z[0]=6.; z[1]=9.;
-w[0]=2.; w[1]=4.;
-mat.add (new AMSgmat( "TEFLON2",a,z,w,2, 2.2));
-//
-// Teflon(C2F4) separators for ATC rho=0.3 gr/cm^3 :
-a[0]=12.;a[1]=19.;
-z[0]=6.; z[1]=9.;
-w[0]=2.; w[1]=4.;
-mat.add (new AMSgmat( "TEFLON3",a,z,w,2, 0.3));
-//
-// Si-aerogel(SiO4H4) for CTC :
-a[0]=28.; a[1]=16.; a[2]=1.;
-z[0]=14.; z[1]=8.;  z[2]=1.;
-w[0]=1.;  w[1]=4.;  w[2]=4.;
-mat.add (new AMSgmat( "SIAEROGEL",a,z,w,3, 0.24));
-//
-// Si-aerogel(SiO2(CH3)3) for CTC-MEW :
-a[0]=28.; a[1]=16.; a[2]=12.; a[3]=1.;
-z[0]=14.; z[1]=8.;  z[2]=6.; z[3]=1.;
-w[0]=1.;  w[1]=2.;  w[2]=3.; w[3]=9.;
-mat.add (new AMSgmat( "MEWAEROGEL",a,z,w,4, 0.125));
+  // WLS for CTC (same polystiren as for TOF scint)
+  a[0]=12.;a[1]=1.;
+  z[0]=6.; z[1]=1.;
+  w[0]=8.; w[1]=8.;
+  mat.add (new AMSgmat("WLS",a,z,w,2,1.03));
+  //
+  // AL honeycomb structure for CTC (as for TOF now !) :
+  mat.add (new AMSgmat( "AL-HONEYC2",26.98, 13., 0.04, 600., 2660.));
+  //
+  // Teflon(C2F4) cover for CTC :
+  a[0]=12.;a[1]=19.;
+  z[0]=6.; z[1]=9.;
+  w[0]=2.; w[1]=4.;
+  mat.add (new AMSgmat( "TEFLON1",a,z,w,2, 2.2));
+  //
+  // Teflon(C2F4) separators for CTC :
+  a[0]=12.;a[1]=19.;
+  z[0]=6.; z[1]=9.;
+  w[0]=2.; w[1]=4.;
+  mat.add (new AMSgmat( "TEFLON2",a,z,w,2, 2.2));
+  //
+  // Teflon(C2F4) separators for ATC rho=0.3 gr/cm^3 :
+  a[0]=12.;a[1]=19.;
+  z[0]=6.; z[1]=9.;
+  w[0]=2.; w[1]=4.;
+  mat.add (new AMSgmat( "TEFLON3",a,z,w,2, 0.3));
+  //
+  // Si-aerogel(SiO4H4) for CTC :
+  a[0]=28.; a[1]=16.; a[2]=1.;
+  z[0]=14.; z[1]=8.;  z[2]=1.;
+  w[0]=1.;  w[1]=4.;  w[2]=4.;
+  mat.add (new AMSgmat( "SIAEROGEL",a,z,w,3, 0.24));
+  //
+  // Si-aerogel(SiO2(CH3)3) for CTC-MEW :
+  a[0]=28.; a[1]=16.; a[2]=12.; a[3]=1.;
+  z[0]=14.; z[1]=8.;  z[2]=6.; z[3]=1.;
+  w[0]=1.;  w[1]=2.;  w[2]=3.; w[3]=9.;
+  mat.add (new AMSgmat( "MEWAEROGEL",a,z,w,4, 0.125));
 
-// Si-aerogel(SiO2(CH3)3) for CTC-MEW :
-{
-  geant a[]={209.,72.61,16.};
-  geant z[]={83.,32.,8.};
-  geant w[]={4.,3.,12.};
-   mat.add (new AMSgmat( "BGO",a,z,w,3, 7.1));
-}
+  // Si-aerogel(SiO2(CH3)3) for CTC-MEW :
+  {
+    geant a[]={209.,72.61,16.};
+    geant z[]={83.,32.,8.};
+    geant w[]={4.,3.,12.};
+    mat.add (new AMSgmat( "BGO",a,z,w,3, 7.1));
+  }
 
+//---------------------------------
+//  Tracker Materials by P. Zuccon from datasheets
 
-// AL honeycomb structure for Tracker (as for TOF now !) :
+  // AL honeycomb structure for Tracker (as for TOF now !) :
 #ifdef _PGTRACK_
-geant scl = 1;//5;  // Density scaling factor to reproduce CR resolution
-mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04*scl, 600./scl, 2660./scl));
+  geant scl = 1;//5;  // Density scaling factor to reproduce CR resolution
+  // inner planes honeycomb CRIII-3/8-5056-0.0007P - 1.0 
+  float density=0.016/scl;
+  mat.add (new AMSgmat( "AL-HONEYC-TrIn" ,26.98, 13., density, 8.9*2.7/density,  38.5*2.7/density));
+  // Outer planes honeycomb CRIII-3/16-5056-0.001P - 3.1 
+  density=0.0496/scl;
+  mat.add (new AMSgmat( "AL-HONEYC-TrOut",26.98, 13., density, 8.9*2.7/density,  38.5*2.7/density));
+
+  density=1.8/scl;
+  mat.add (new AMSgmat( "CSkin-Tr",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
+  density=1.5/scl;
+  mat.add (new AMSgmat( "CSkin-Trpl6",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
+
+
+
 #else
-mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
+  mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
 #endif
 
-// Foam structure for Tracker  :
-mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
-//
+  // Foam structure for Tracker  :
+  mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
+  //
 
 
 
 
-{
+  {
 
-  // RICH materials by Carlos Delgado (CIEMAT) based on the official
-  // rich simulation by Fernando Barao at al.
+    // RICH materials by Carlos Delgado (CIEMAT) based on the official
+    // rich simulation by Fernando Barao at al.
 
 
-{ // Aerogel  
-  geant a[]={28.09,16.0};
-  geant z[]={14.,8.};
-  geant w[]={1.,2.};
+    { // Aerogel  
+      geant a[]={28.09,16.0};
+      geant z[]={14.,8.};
+      geant w[]={1.,2.};
 
 #ifdef __AMSDEBUG__
-  cout << "RICH aerogel density "<<RICHDB::aerogel_density() <<endl;
+      cout << "RICH aerogel density "<<RICHDB::aerogel_density() <<endl;
 #endif
 
-  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,RICHDB::aerogel_density()));
-  //  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));  
-} 
+      mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,RICHDB::aerogel_density()));
+      //  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));  
+    } 
 // Aerogel density extracted from J Phys D 27(1994)414
 // Case: Pure aerogel
 
@@ -586,13 +601,21 @@ AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
  tmed.add (pvac );
 }
 
-
 tmed.add (new AMSgtmed("1/2ALUM","ALUMINIUM",0));
 tmed.add (new AMSgtmed("USSALLOY","ALUMINIUM",0));
+//---------------------------------------------------
+//-----  Tracker Media      -------------------------
+//---------------------------------------------------
 tmed.add (new AMSgtmed("ACTIVE_SILICON","SILICON",1));
 tmed.add (new AMSgtmed("NONACTIVE_SILICON","SILICON"));
 tmed.add (new AMSgtmed("CARBON","CARBON",0));
 tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
+tmed.add (new AMSgtmed("Tr_HoneyIN","AL-HONEYC-TrIn",0));
+tmed.add (new AMSgtmed("Tr_HoneyOUT","AL-HONEYC-TrOut",0));
+tmed.add (new AMSgtmed("Tr_HoneySkin","CSkin-Tr",0));
+tmed.add (new AMSgtmed("pl6_HoneySkin","CSkin-Trpl6",0));
+
+tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));
 //
 //----------------------------------------------------
 // TOF/ANTI-media:
@@ -650,8 +673,6 @@ geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("BGO","BGO",1,'Y',birks));
 }
 int ip=27;
-tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));
-tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));
 
 tmed.add (new AMSgtmed("ATC_PTAE","TEFLON3",0));//30
 tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));

@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.10 2010/05/21 10:33:22 shaino Exp $
+// $Id: TkDBc.h,v 1.11 2010/05/25 16:56:54 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -93,7 +93,12 @@ public:
 
   // Plane support thickness in cm
   number _sup_hc_w[maxplanes];
-  
+
+  // plane support skin thickness
+  number _sup_hc_skin_w[maxplanes];
+  // Plane6 skins of plane(0) and cover (1)
+  number  Plane6_skin_w[2];
+ 
   
   // Plane support radius in cm
   number _sup_hc_r[maxplanes];
@@ -397,7 +402,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 2);
+  ClassDef(TkDBc, 3);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
