@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.30 2010/05/24 14:13:11 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.31 2010/05/26 11:46:02 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/05/24 14:13:11 $
+/// $Date: 2010/05/26 11:46:02 $
 ///
-/// $Revision: 1.30 $
+/// $Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -533,6 +533,17 @@ public:
 public:
   /// Reconstruct tracks, returns number of tracks reconstructed
   int BuildTrTracks(int refit = 0);
+
+  /// Check the Match between Tracker and TRD tracks
+  /// Returns an AMSPoint with
+  /// [0] X distance
+  /// [1] Y distance
+  /// [2] Cos(angle)
+  static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, 
+				  AMSPoint trdcoo, AMSDir trddir);
+  /// Check the match Tracker and TRD tracks and shift TrTrack
+  static bool TkTRDMatch(TrTrackR* ptrack, 
+			 AMSPoint trdcoo, AMSDir trddir);
 
   /// Try to extend to external planes for AMS-02P
   void MatchTRDandExtend();

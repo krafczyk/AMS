@@ -5,17 +5,19 @@
 //  TRACKER SIMULATION
 //==============================
 TKGEOM
-I 1  ReadGeomFromFile =0  init with default value, alignment filled by TimeID 
-             (def 0)  =1  read from file (fname),  alignment filled by TimeID 
-                      =10 init with default value, alignment NOT filled
-                      =11 read from file (fname),  alignment NOT filled
+I 1  ReadGeomFromFile =*00 init with default value, alignment filled by TimeID 
+             (def 0)  =*01 read from file (fname),  alignment filled by TimeID 
+                      =*10 init with default value, alignment NOT filled
+                      =*11 read from file (fname),  alignment NOT filled
+                      =1** read Disalignment data ([406]disfname)
 I 2  WriteGeomToFile  (def 0);
 I 3  UpdateGeomFile   (def 0);
 I 4  Cabling version =1 Pre-Integration 
 		     =2 Flight (default);
 I 5  Calib FormatVer =1 Pre-Integration 
 		     =2 Flight (default);
-I 6  fname(400*'') file name for dbase from file
+I 6   fname   (400*'') file name for dbase from file
+I 406 disfname(400*'') Disalignment file name
 
 TRMC
 I 564        SimulationType        (def=0)    0 GBATCH old algorythm

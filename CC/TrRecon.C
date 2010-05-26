@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.51 2010/05/24 14:13:11 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.52 2010/05/26 11:46:02 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/24 14:13:11 $
+/// $Date: 2010/05/26 11:46:02 $
 ///
-/// $Revision: 1.51 $
+/// $Revision: 1.52 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -39,8 +39,6 @@
 #include "trrec.h"
 #include "event.h"
 #include "trdrec.h"
-AMSPoint BasicTkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd);
-bool  TkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd);
 #endif
 
 ClassImp(TrReconPar);
@@ -2510,8 +2508,9 @@ int TrRecon::BuildTrTasTracks(int rebuild)
   return ntrk;
 }
 
-#ifndef __ROOTSHAREDLIBRARY__
-AMSPoint BasicTkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
+AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
+				  AMSPoint trd_pnt0, AMSDir trd_dir)
+{
   /// Check the Match between Tracker and TRD tracks
   /// Returns an AMSPoint with
   /// [0] X distance
@@ -2519,11 +2518,8 @@ AMSPoint BasicTkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
   /// [2] Cos(angle)
   double zpl=83.5; //Z low of TRD in cm;
 
-  if(!ptrack || !ptrd) return AMSPoint(-1000,-1000,-1000);
+  if(!ptrack) return AMSPoint(-1000,-1000,-1000);
   // TRD point and direction at Z=  zpl
-  AMSPoint trd_pnt0     = ptrd->getCooStr();
-  AMSDir   trd_dir  = ptrd->getCooDirStr();
-
   double X_TRD= (zpl-trd_pnt0[2])*trd_dir[0]/trd_dir[2]+trd_pnt0[0];
   double Y_TRD= (zpl-trd_pnt0[2])*trd_dir[1]/trd_dir[2]+trd_pnt0[1];
   AMSPoint trd_pnt(X_TRD,Y_TRD,zpl);
@@ -2545,16 +2541,17 @@ AMSPoint BasicTkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
 //   hman.Fill("ntrdhit",ptrd->_Base._NHits,Y);
 //   if(ptrd->_Base._NHits>10)
 //     hman.Fill("Yresvsrig",ptrack->GetRigidity(),Y);
-  bb[3]=fabs(c);
+  bb[2]=fabs(c);
   return bb;
   
   //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
 }
 
-bool  TkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
+bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
+{
   number SearchReg(1);
   number MaxCos(0.95);
-  AMSPoint dst=BasicTkTRDMatch(ptrack,ptrd);
+  AMSPoint dst=BasicTkTRDMatch(ptrack, trdcoo, trddir);
   if( fabs(dst[1]) < SearchReg && dst[2]> MaxCos)
     if(fabs(dst[0])< SearchReg) return true;
     else{ //try to move TrTrack on X
@@ -2568,7 +2565,7 @@ bool  TkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
       for(int mm=move[0];mm<move[1];mm++){
 	TrTrackR test(*ptrack);
 	test.Move(mm);
-	AMSPoint dd=BasicTkTRDMatch(&test,ptrd);
+	AMSPoint dd=BasicTkTRDMatch(&test, trdcoo, trddir);
 	if(fabs(dd[0]) < SearchReg&&fabs(dd[1]) < SearchReg && dd[2]> MaxCos){
 	  moved=mm;
 	  break;
@@ -2582,7 +2579,6 @@ bool  TkTRDMatch(TrTrackR* ptrack,AMSTRDTrack *ptrd){
     }
   else return false;
 }
-#endif
 
 void TrRecon::MatchTRDandExtend(){
  VCon* cont = GetVCon()->GetCont("AMSTrTrack");
@@ -2591,7 +2587,7 @@ void TrRecon::MatchTRDandExtend(){
 #ifndef __ROOTSHAREDLIBRARY__
    for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
 	  ;trd;trd=trd->next())
-     TkTRDMatch(tr,trd);
+     TkTRDMatch(tr, trd->getCooStr(), trd->getCooDirStr());
 #endif
    if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
  }

@@ -26,6 +26,8 @@ public:
   ///Cabibration format  1= Pre-Integration 2= flight
   integer CalibVer;
   integer fname[400];
+  ///[406] Disalignment file name (PGTRACK)
+  integer disfname[400];
   void init();
 
 };

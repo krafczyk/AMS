@@ -15,6 +15,7 @@ void TKGEOMFFKEY_DEF::init(){
   CablVer=2;
   CalibVer=2;
   memset(fname,400,sizeof(fname[0]));
+  memset(disfname,400,sizeof(disfname[0]));
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
