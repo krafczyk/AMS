@@ -397,7 +397,7 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
   geant coo[3];
   number nrm[3][3];
   char name[5];
-  char name2[10];
+  char name2[5];
   std::ostrstream ost(name,sizeof(name));
   ost << "PLA" << plane << std::ends;
   if(plane==7){
@@ -449,9 +449,9 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
     //ADD CARBON SKINS
     //       plan6 X size/2.
-    par[0]=TkDBc::Head->Plane6Size[0]/2.;
+    par[0]= TkDBc::Head->Plane6Size[0]/2.;
     //       plan6 Y size/2.
-    par[1]=TkDBc::Head->Plane6Size[1]/2.;
+    par[1]= TkDBc::Head->Plane6Size[1]/2.;
     //       plan6E thickness/2.
     par[2]= TkDBc::Head->Plane6_skin_w[0]/2.;    //       plan6E X size/2.
     
@@ -459,14 +459,14 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     coo[0] = coo[1] = 0;
     coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  -TkDBc::Head->Plane6Size[2])/2 - 
       ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[0])/2.;
-    printf(name2,"USK%d",plane);
+    sprintf(name2,"USK%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
     coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  -TkDBc::Head->Plane6Size[2])/2 + 
       ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[0])/2.;
 
-    printf(name2,"USK%d",plane);
+    sprintf(name2,"LSK%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
@@ -490,7 +490,7 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
     // PZ FIXME cross check the material
     mvol->add(new AMSgvolume("Tr_HoneyIN", _nrot++, name,
-			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane+1, 1));
+			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
 
 
@@ -506,14 +506,14 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
     coo[0] = coo[1] = 0;
     coo[2] =(TkDBc::Head->Plane6EnvelopSize[2]  - 0.4 )/2 - 
       ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[1])/2.;
-    printf(name2,"USH%d",plane);
+    sprintf(name2,"USH%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
     coo[2] =-1* (TkDBc::Head->Plane6EnvelopSize[2]  - 0.4)/2 + 
       ( TkDBc::Head->Plane6Size[2]+TkDBc::Head->Plane6_skin_w[1])/2.;
 
-    printf(name2,"USH%d",plane);
+    sprintf(name2,"LSH%d",plane);
     mvol->add(new AMSgvolume("pl6_HoneySkin", _nrot++, name2,
 			     "BOX", par, 3, coo, nrm, "ONLY", 1, plane, 1));
 
