@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.23 2010/05/12 14:54:26 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.24 2010/05/26 14:18:35 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/05/12 14:54:26 $
+///$Date: 2010/05/26 14:18:35 $
 ///
-///$Revision: 1.23 $
+///$Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -110,6 +110,7 @@ class TrTrackR : public TrElem {
   //==== Fit Methods ===
 public:
   /// enum of fitting methods; trying to keep compatible with TKFITG
+  // if you ADD a new type please UPDATE TrTrack::GetFitName
   enum EFitMethods { 
     /// Track witthout hits (for RICH Compatibility)
     kDummy         = -1, 
@@ -175,7 +176,8 @@ public:
     kAllAdvanced  = 0x7FF  ///< All advanced fitting
   };
   /// Default advanced fit flags : keep it "thread-common"
-  static int DefaultAdvancedFitFlags;
+#define DEF_ADVFIT_NUM 8
+  static const int DefaultAdvancedFitFlags[DEF_ADVFIT_NUM];
 
 
   //==== Static members ===
@@ -320,6 +322,12 @@ public:
     return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
       ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
   }
+  ///  Get back the string corresponding to a fit ID
+  char* GetFitNameFromID(int fitnum);
+  /// Get the fit ID of the pos-th fit method or zero if pos is invalid
+  int    GetFitID(int pos);
+  /// Print the string IDs of all the performed fits
+  void   PrintFitNames();
   /// Get track position at layer ilay (0-7)
   AMSPoint GetPlayer(int ilay, int id = 0);
 
@@ -426,10 +434,10 @@ public:
   }
 
   /// Check if advanced fits specified by flag are done
-  int AdvancedFitDone(int flag = DefaultAdvancedFitFlags);
+  int AdvancedFitDone(int add_flags=0);
 
-  /// Do advanced fits specified by flag
-  int DoAdvancedFit(int flag = DefaultAdvancedFitFlags);
+  /// Do advanced fits specified in the default list and add in OR the add_flags
+  int DoAdvancedFit(int add_flags=0);
 
   void GetMaxShift(int& left,int &right);
   void Move(int shift);

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.32 2010/05/16 14:37:23 shaino Exp $
+// $Id: TrTrack.C,v 1.33 2010/05/26 14:18:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/05/16 14:37:23 $
+///$Date: 2010/05/26 14:18:35 $
 ///
-///$Revision: 1.32 $
+///$Revision: 1.33 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -65,8 +65,11 @@ ClassImp(TrTrackR);
 
 int TrTrackR::NhitHalf     = 4;
 int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
-int TrTrackR::DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
-                                        TrTrackR::kAlcarazFit;
+
+const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
+  { kChoutko, kChoutko|kMultScat, kChoutko|kUpperHalf, kChoutko|kLowerHalf, 
+    kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf 
+  };
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -86,9 +89,9 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
   DBase[0]=0;
   DBase[1]=0;
   Status=0;
-  if(TkDBc::Head && TkDBc::Head->GetSetup()==3)
-    DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
-      TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
+//   if(TkDBc::Head && TkDBc::Head->GetSetup()==3)
+//     DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
+//       TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
 
 TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], int *imult,int fitmethod)
@@ -116,9 +119,9 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
   BuildHitsIndex();
   trdefaultfit=fitmethod;
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
-  if(TkDBc::Head->GetSetup()==3)
-    DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
-      TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
+//   if(TkDBc::Head->GetSetup()==3)
+//     DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
+//       TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
 
 TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
@@ -757,59 +760,62 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
   Theta = GetTheta(id); Phi = GetPhi(id); X0 = GetP0(id);
 }
 
-int TrTrackR::DoAdvancedFit(int flag)
+int TrTrackR::DoAdvancedFit(int add_flag)
 {
-  trdefaultfit = 0;
+ if (!_MagFieldOn) return Fit(kLinear|add_flag);
+ for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
+   Fit(DefaultAdvancedFitFlags[ii]| add_flag);
 
-  if (flag & kChoutkoFit)  { Fit(kChoutko); trdefaultfit = kChoutko; }
-  if (flag & kChoutkoMsct)   Fit(kChoutko | kMultScat);
-  if (flag & kChoutkoHalf) { Fit(kChoutko | kUpperHalf);
-                             Fit(kChoutko | kLowerHalf); }
-  if (flag & kChoutkoDrop)   Fit(kChoutko | kOneDrop);
-  if (flag & kChoutkoNdrp)   Fit(kChoutko | kNoiseDrop);
-
-  if (flag & kAlcarazFit)    Fit(kAlcaraz);
-  if (flag & kAlcarazMsct)   Fit(kAlcaraz | kMultScat);
-
-  if (flag & kChikanianFit)  Fit(kChikanian);
-  if(TkDBc::Head->GetSetup()==3){// AMS-B
-    int mfit[3] = { kChoutko | kFitLayer8, 
-		    kChoutko              | kFitLayer9,
-		    kChoutko | kFitLayer8 | kFitLayer9 };
-    int mflg[3] = { kLayer8Fit, kLayer9Fit, kLayer89Fit };
-  
-    for (int i = 0; i < 3; i++)
-      if (flag & mflg[i]) {
-	if (Fit(mfit[i]) > 0) Fit(mfit[i]);
-      }
-    // AMS-B
-  }
-  if (!trdefaultfit && _TrackPar.size() > 0)
-    trdefaultfit = _TrackPar.begin()->first;
-
-  return AdvancedFitDone(flag);
+ return AdvancedFitDone(add_flag);
 }
 
-int TrTrackR::AdvancedFitDone(int flag)
+int TrTrackR::AdvancedFitDone(int add_flag)
 { 
-  if (!_MagFieldOn) return FitDone(kLinear);
-
+  if (!_MagFieldOn) return FitDone(kLinear|add_flag);
   bool done = true;
-  if (flag & kChoutkoFit)    done &= FitDone(kChoutko);
-  if (flag & kChoutkoMsct)   done &= FitDone(kChoutko | kMultScat);
-  if (flag & kChoutkoHalf) { done &= FitDone(kChoutko | kUpperHalf);
-                             done &= FitDone(kChoutko | kLowerHalf); }
-  if (flag & kChoutkoDrop)   done &= FitDone(kChoutko | kOneDrop);
-  if (flag & kChoutkoNdrp)   done &= FitDone(kChoutko | kNoiseDrop);
-
-  if (flag & kAlcarazFit)    done &= FitDone(kAlcaraz);
-  if (flag & kAlcarazMsct)   done &= FitDone(kAlcaraz | kMultScat);
-
-  if (flag & kChikanianFit)  done &= FitDone(kChikanian);
-  if(TkDBc::Head->GetSetup()==3){// AMS-B
-    if (flag & kLayer8Fit)  done &= FitDone(kChoutko | kFitLayer8);
-    if (flag & kLayer9Fit)  done &= FitDone(kChoutko              | kFitLayer9);
-    if (flag & kLayer89Fit) done &= FitDone(kChoutko | kFitLayer8 | kFitLayer9);
-  }//AMS-B
+  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
+    done &=FitDone(DefaultAdvancedFitFlags[ii]| add_flag);
   return done;
+
+}
+
+
+char * TrTrackR::GetFitNameFromID(int fitnum){
+  static char out[200];
+  out[0]='\0';
+  int basefit= fitnum & 0x000F;
+  if(basefit == -1)  strcat(out,"kDummy");
+  if(basefit ==  1)  strcat(out,"kChoutko");
+  if(basefit ==  2)  strcat(out,"kGEANE");
+  if(basefit ==  3)  strcat(out,"kGEANE_Kalman");
+  if(basefit ==  4)  strcat(out,"kAlcaraz");
+  if(basefit ==  5)  strcat(out,"kChikanian");
+  if(basefit == 10)  strcat(out,"kLinear");
+  if(basefit == 11)  strcat(out,"kCircle");
+  if(basefit == 12)  strcat(out,"kSimple");
+  if(fitnum & 0x10)  strcat(out,"kMultScat");
+  if(fitnum & 0x20)  strcat(out,"kUpperHalf");
+  if(fitnum & 0x40)  strcat(out,"kLowerHalf");
+  if(fitnum & 0x100)  strcat(out,"kOneDrop");
+  if(fitnum & 0x200)  strcat(out,"kNoiseDrop");
+  if(fitnum & 0x400)  strcat(out,"kFitLayer8");
+  if(fitnum & 0x800)  strcat(out,"kFitLayer9");
+  return out;
+}
+
+int TrTrackR::GetFitID(int pos){
+  if(pos >= _TrackPar.size()) return 0;
+  int count=0;
+  map<int, TrTrackPar>::iterator it;
+  
+  for(it=_TrackPar.begin();it!=_TrackPar.end();it++)
+    if(count++==pos) return it->first;
+    
+  return 0;
+
+}
+void TrTrackR::PrintFitNames(){
+  map<int, TrTrackPar>::iterator it;
+  for(it=_TrackPar.begin();it!=_TrackPar.end();it++)
+    printf("%s\n", GetFitNameFromID(it->first));
 }

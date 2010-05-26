@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.52 2010/05/26 11:46:02 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.53 2010/05/26 14:18:35 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/26 11:46:02 $
+/// $Date: 2010/05/26 14:18:35 $
 ///
-/// $Revision: 1.52 $
+/// $Revision: 1.53 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1967,7 +1967,21 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     nadd++;
   }
   delete cont;
-  if(nadd) track->ReFit();
+
+
+  if(ihmin[0]>=0) {
+    track->DoAdvancedFit(TrTrackR::kFitLayer8);
+    track->Settrdefaultfit(TrTrackR::kChoutko|TrTrackR::kFitLayer8);
+  }
+  if(ihmin[1]>=0) {
+    track->DoAdvancedFit(TrTrackR::kFitLayer9);
+    track->Settrdefaultfit(TrTrackR::kChoutko|TrTrackR::kFitLayer9);
+  }
+  if(ihmin[0]>=0&&ihmin[1]>=0) {
+    track->DoAdvancedFit(TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
+    track->Settrdefaultfit(TrTrackR::kChoutko|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
+  }
+
   return nadd;
 }
 
