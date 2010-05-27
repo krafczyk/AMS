@@ -94,7 +94,7 @@ protected:
   /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
   /// Returns index in TrClusterR collection or -1 
-  int iTrCluster(char xy) const { return (xy='x')?_iclusterX:_iclusterY; }
+  int iTrCluster(char xy) const { return (xy=='x')?_iclusterX:_iclusterY; }
 
   /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
