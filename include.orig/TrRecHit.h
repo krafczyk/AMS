@@ -99,7 +99,7 @@ protected:
   /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
   /// Returns index in TrClusterR collection or -1 
-  TrClusterR* pTrCluster(char xy)  { return (xy='x')?GetXCluster():GetYCluster(); }
+  TrClusterR* pTrCluster(char xy)  { return (xy=='x')?GetXCluster():GetYCluster(); }
 
   /// Return a string with hit infos (used for the event display)
   char *Info(int iRef=0);

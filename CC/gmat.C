@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.100 2010/05/25 16:56:53 pzuccon Exp $
+//  $Id: gmat.C,v 1.101 2010/05/27 12:49:05 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -610,11 +610,14 @@ tmed.add (new AMSgtmed("ACTIVE_SILICON","SILICON",1));
 tmed.add (new AMSgtmed("NONACTIVE_SILICON","SILICON"));
 tmed.add (new AMSgtmed("CARBON","CARBON",0));
 tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
+#ifdef _PGTRACK_
 tmed.add (new AMSgtmed("Tr_HoneyIN","AL-HONEYC-TrIn",0));
 tmed.add (new AMSgtmed("Tr_HoneyOUT","AL-HONEYC-TrOut",0));
 tmed.add (new AMSgtmed("Tr_HoneySkin","CSkin-Tr",0));
 tmed.add (new AMSgtmed("pl6_HoneySkin","CSkin-Trpl6",0));
-
+#else
+ tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));
+#endif
 tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));
 //
 //----------------------------------------------------
