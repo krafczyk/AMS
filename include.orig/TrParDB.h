@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.6 2010/05/24 15:56:16 oliva Exp $
+// $Id: TrParDB.h,v 1.7 2010/05/27 17:03:33 oliva Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/05/24 15:56:16 $
+///$Date: 2010/05/27 17:03:33 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,9 +87,9 @@ class TrParDB : public TObject{
   /// Read the  content of the parameters DB from an ascii file
   // int read(char* filename) { return 0; }
 
-  /// Set PN Gain
+  /// Set PN Gain (normalizing to p)
   inline void  SetPNGain(float gain)              { _pngain = gain; }
-  /// Set PN Gain
+  /// Get PN Gain (normalizintg to p)
   inline float GetPNGain()                        { return _pngain; }
   /// Set Asimmetry Correction (XY) 
   inline void  SetAsymmetry(float corr[2])        { for (int ii=0; ii<2; ii++) _asymmetry[ii] = corr[ii]; }
