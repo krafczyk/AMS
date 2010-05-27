@@ -1,4 +1,4 @@
-//  $Id: TrParDB.C,v 1.5 2010/05/24 15:56:16 oliva Exp $
+//  $Id: TrParDB.C,v 1.6 2010/05/27 08:07:41 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrParDB class
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/05/24 15:56:16 $
+///$Date: 2010/05/27 08:07:41 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +110,7 @@ void TrParDB::PrintInfo() {
   printf("Asymmetry values: %5.3f %5.3f\n",GetAsymmetry(0),GetAsymmetry(1));
   printf("Tracker gain p/n gain: %5.3f\n",GetPNGain());
   printf("Ladder Gains Table\n");
-  printf("HwId TkId     P     N  Va00  Va01  Va02  Va03  Va04  Va05  Va06  Va07  Va08  Va09  Va10  Va11  Va12  Va13  Va14  Va15\n");
+  printf("HwId TkId     N     P  Va00  Va01  Va02  Va03  Va04  Va05  Va06  Va07  Va08  Va09  Va10  Va11  Va12  Va13  Va14  Va15\n");
   for (int iladder=0; iladder<192; iladder++) {
     int tkid = TkDBc::Head->Entry2TkId(iladder);
     int hwid = TkDBc::Head->FindTkId(tkid)->GetHwId();
