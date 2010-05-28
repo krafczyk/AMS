@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.10 2010/04/02 10:34:51 pzuccon Exp $
+//  $Id: TrFit.h,v 1.11 2010/05/28 11:17:01 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/04/02 10:34:51 $
+///$Date: 2010/05/28 11:17:01 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -102,9 +102,9 @@ public:
   double GetP0z (void) const { return _p0z;  }
   double GetDxDz(void) const { return _dxdz; }
   double GetDyDz(void) const { return _dydz; }
+  // PZ BugFix NEVER use atan for phi angle use always atan2
+  double GetPhi  (void) const { return atan2(_dydz,_dxdz);}
 
-  double GetPhi  (void) const { return (_dxdz != 0) ? atan(_dydz/_dxdz)
-				                    : atan(_dydz/1e-9); }
   double GetTheta(void) const { return atan(sqrt(_dydz*_dydz+_dxdz*_dxdz));}
 
   double GetRigidity(void) const { return _rigidity; }
@@ -166,7 +166,8 @@ public:
     /// Maximum number of layer
     // LMAX = 8, PZ Do not use this! 
     /// Parameter buffer size
-    PMAX = 10 
+    PMAX = 10,
+    MaxHits=20
   };
   enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIAN };
 
@@ -182,19 +183,19 @@ protected:
   int    _nhity;         ///< Number of hits in Y
   int    _nhitxy;        ///< Number of hits in X and Y
 
-  double _xh[trconst::maxlay];      ///< Hit position in X
-  double _yh[trconst::maxlay];      ///< Hit position in Y
-  double _zh[trconst::maxlay];      ///< Hit position in Z
-  double _xs[trconst::maxlay];      ///< Fitting error in X
-  double _ys[trconst::maxlay];      ///< Fitting error in Y
-  double _zs[trconst::maxlay];      ///< Fitting error in Z
-  double _xr[trconst::maxlay];      ///< Fitting residual in X
-  double _yr[trconst::maxlay];      ///< Fitting residual in Y
-  double _zr[trconst::maxlay];      ///< Fitting residual in Z
+  double _xh[MaxHits];      ///< Hit position in X
+  double _yh[MaxHits];      ///< Hit position in Y
+  double _zh[MaxHits];      ///< Hit position in Z
+  double _xs[MaxHits];      ///< Fitting error in X
+  double _ys[MaxHits];      ///< Fitting error in Y
+  double _zs[MaxHits];      ///< Fitting error in Z
+  double _xr[MaxHits];      ///< Fitting residual in X
+  double _yr[MaxHits];      ///< Fitting residual in Y
+  double _zr[MaxHits];      ///< Fitting residual in Z
 
-  double _bx[trconst::maxlay];      ///< Magnetic field in X
-  double _by[trconst::maxlay];      ///< Magnetic field in Y
-  double _bz[trconst::maxlay];      ///< Magnetic field in Z
+  double _bx[MaxHits];      ///< Magnetic field in X
+  double _by[MaxHits];      ///< Magnetic field in Y
+  double _bz[MaxHits];      ///< Magnetic field in Z
 
   double _chisqx;        ///< Fitting chisquare in X (Not normalized)
   double _chisqy;        ///< Fitting chisquare in Y (Not normalized)
@@ -228,17 +229,17 @@ public:
   double GetChisq   (void) const { return _chisq; }
   double GetErrRinv (void) const { return _errrinv;  }
 
-  double GetXh(int i) const { return (0 <= i && i < PMAX)? _xh[i] : 0; }
-  double GetYh(int i) const { return (0 <= i && i < PMAX)? _yh[i] : 0; }
-  double GetZh(int i) const { return (0 <= i && i < PMAX)? _zh[i] : 0; }
+  double GetXh(int i) const { return (0 <= i && i < MaxHits)? _xh[i] : 0; }
+  double GetYh(int i) const { return (0 <= i && i < MaxHits)? _yh[i] : 0; }
+  double GetZh(int i) const { return (0 <= i && i < MaxHits)? _zh[i] : 0; }
 
-  double GetXs(int i) const { return (0 <= i && i < PMAX)? _xs[i] : 0; }
-  double GetYs(int i) const { return (0 <= i && i < PMAX)? _ys[i] : 0; }
-  double GetZs(int i) const { return (0 <= i && i < PMAX)? _zs[i] : 0; }
+  double GetXs(int i) const { return (0 <= i && i < MaxHits)? _xs[i] : 0; }
+  double GetYs(int i) const { return (0 <= i && i < MaxHits)? _ys[i] : 0; }
+  double GetZs(int i) const { return (0 <= i && i < MaxHits)? _zs[i] : 0; }
 
-  double GetXr(int i) const { return (0 <= i && i < PMAX)? _xr[i] : 0; }
-  double GetYr(int i) const { return (0 <= i && i < PMAX)? _yr[i] : 0; }
-  double GetZr(int i) const { return (0 <= i && i < PMAX)? _zr[i] : 0; }
+  double GetXr(int i) const { return (0 <= i && i < MaxHits)? _xr[i] : 0; }
+  double GetYr(int i) const { return (0 <= i && i < MaxHits)? _yr[i] : 0; }
+  double GetZr(int i) const { return (0 <= i && i < MaxHits)? _zr[i] : 0; }
 
   /// Recomended to use GetP0x(), GetDxDz(),. etc. instead of Getparam
   double GetParam(int i) const {
@@ -333,7 +334,7 @@ public:
   void RkmsFit(double *out);
 
   // Internal parameters for Chikanian fit
-  double _rkms_err[trconst::maxlay][trconst::maxlay]; ///< Error matrix
+  double _rkms_err[MaxHits][MaxHits]; ///< Error matrix
 
   /// Get error matrix (for Chikanian fit)
   void RkmsMtx(double rini);

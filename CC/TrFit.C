@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.19 2010/04/02 10:34:50 pzuccon Exp $
+//  $Id: TrFit.C,v 1.20 2010/05/28 11:16:38 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/04/02 10:34:50 $
+///$Date: 2010/05/28 11:16:38 $
 ///
-///$Revision: 1.19 $
+///$Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -44,10 +44,10 @@ void TrFit::Clear()
 {
   _nhit = _nhitx = _nhity = _nhitxy = 0;
   for (int i = 0; i < PMAX; i++) _param[i] = 0;
-  for (int i = 0; i < trconst::maxlay; i++) _xh[i] = _yh[i] = _zh[i] = 0;
-  for (int i = 0; i < trconst::maxlay; i++) _xs[i] = _ys[i] = _zs[i] = 0;
-  for (int i = 0; i < trconst::maxlay; i++) _xr[i] = _yr[i] = _zr[i] = 0;
-  for (int i = 0; i < trconst::maxlay; i++) _bx[i] = _by[i] = _bz[i] = 0;
+  for (int i = 0; i < MaxHits; i++) _xh[i] = _yh[i] = _zh[i] = 0;
+  for (int i = 0; i < MaxHits; i++) _xs[i] = _ys[i] = _zs[i] = 0;
+  for (int i = 0; i < MaxHits; i++) _xr[i] = _yr[i] = _zr[i] = 0;
+  for (int i = 0; i < MaxHits; i++) _bx[i] = _by[i] = _bz[i] = 0;
   _chisqx = _chisqy = _chisq = -1;
   _ndofx  = _ndofy  =  0;
   _errrinv = 0;
@@ -69,7 +69,7 @@ int TrFit::Add(double x,  double y,  double z,
 	       double bx, double by, double bz, int i)
 {
   if (i < 0) i = _nhit;
-  if (i < 0 || TkDBc::Head->nlay() <= i) return -1;
+  if (i < 0 || MaxHits <= i) return -1;
 
   _xh[i] = x; _xs[i] = ex; _bx[i] = bx;
   _yh[i] = y; _ys[i] = ey; _by[i] = by;
@@ -159,7 +159,7 @@ double TrFit::LinearFit(int side)
 {
   // Analytic linear fitting method
 
-  double sh[trconst::maxlay];
+  double sh[MaxHits];
   double *x   = (side == 2) ? _yh : _xh;
   double *sig = (side == 2) ? _ys : _xs;
   double *res = (side == 2) ? _yr : _xr;
@@ -241,7 +241,7 @@ double TrFit::CircleFit(int side)
   double *par = (side == 1) ? _param : _param+2;
   double *y   = _zh;
 
-  double r[trconst::maxlay], w[trconst::maxlay];
+  double r[MaxHits], w[MaxHits];
   double sw = 0;
   for (int i = 0; i < _nhit; i++) {
     r[i] = x[i]*x[i]+y[i]*y[i];
@@ -530,7 +530,7 @@ double TrFit::SimpleFit(void)
 {
   if (_nhitx < 2 || _nhity < 3) return -1;
 
-  double len[trconst::maxlay];
+  double len[MaxHits];
 
   // Length
   for (int i = 0; i < _nhit; i++) {
@@ -542,8 +542,8 @@ double TrFit::SimpleFit(void)
 				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
   }
 
-  double pintx[trconst::maxlay][3];
-  double pintu[trconst::maxlay][3];
+  double pintx[MaxHits][3];
+  double pintu[MaxHits][3];
 
   // Calculate path integrals
   for (int i = 0; i < _nhit; i++) {
@@ -571,7 +571,7 @@ double TrFit::SimpleFit(void)
   }
 
   // F and G matrices
-  double d[2*trconst::maxlay][NDIM];
+  double d[2*MaxHits][NDIM];
   for (int i = 0; i < _nhit; i++) {
     int ix = i, iy = i+_nhit;
 
@@ -694,11 +694,11 @@ double TrFit::AlcarazFit(int fixr)
   int ret = JAInitPar(fixr);
   if (ret < 0) return (double)ret;
 
-  double fmtx[trconst::maxlay*3],    gmtx[trconst::maxlay*3];     // Transportation matrices
-  double vmtx[trconst::maxlay*trconst::maxlay], wmtx[trconst::maxlay*trconst::maxlay];  // Inv. of covariance matrices
-  double len [trconst::maxlay];
-  double cosz[trconst::maxlay];
-  int    ilay[trconst::maxlay];
+  double fmtx[MaxHits*3],    gmtx[MaxHits*3];     // Transportation matrices
+  double vmtx[MaxHits*MaxHits], wmtx[MaxHits*MaxHits];  // Inv. of covariance matrices
+  double len [MaxHits];
+  double cosz[MaxHits];
+  int    ilay[MaxHits];
 
   // Estimate layer number
   for (int i = 0; i < _nhit; i++) ilay[i] = GetLayer(_zh[i]);
@@ -729,8 +729,8 @@ double TrFit::AlcarazFit(int fixr)
   _chisqx = _chisqy = 0;
   for (int i = 0; i < _nhit; i++)
     for (int j = 0; j < _nhit; j++) {
-      _chisqx += _xr[i]*vmtx[i*trconst::maxlay+j]*_xr[j];
-      _chisqy += _yr[i]*wmtx[i*trconst::maxlay+j]*_yr[j];
+      _chisqx += _xr[i]*vmtx[i*MaxHits+j]*_xr[j];
+      _chisqy += _yr[i]*wmtx[i*MaxHits+j]*_yr[j];
     }
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
 
@@ -792,7 +792,7 @@ int TrFit::JAFillFGmtx(double *fmtx, double *gmtx,
   if (_nhit < 3) return -1;
 
   // Initialize F and G matrices
-  for (int i = 0; i < trconst::maxlay; i++)
+  for (int i = 0; i < MaxHits; i++)
     for (int j = 0; j < 3; j++)
       fmtx[i*3+j] = gmtx[i*3+j] = (j == 0) ? 1 : 0;
 
@@ -859,7 +859,7 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
 {
   static int count=0;
   // Initialize V and W matrices
-  for (int i = 0; i < trconst::maxlay*trconst::maxlay; i++) vmtx[i] = wmtx[i] = 0;
+  for (int i = 0; i < MaxHits*MaxHits; i++) vmtx[i] = wmtx[i] = 0;
 
   // Calculate pbi2 = (pbeta)^(-2)
   double pbi2 = 0;
@@ -874,7 +874,7 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
 //        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
 //        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
 //        Support:   10mm Al Honeycomb: 1.67e-3 X0
-  double WLEN[trconst::maxlay] = { 0, 7.29e-3, 12.91e-3, 0,
+  double WLEN[MaxHits] = { 0, 7.29e-3, 12.91e-3, 0,
 				   12.91e-3, 0, 12.91e-3, 7.29e-3, 0};
   if(TkDBc::Head->GetSetup()==3 && count<50){
     count++;
@@ -882,14 +882,14 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   }
 
   int nel = _nhit-2;
-  double mtx[(trconst::maxlay-2)*(trconst::maxlay-2)], mty[(trconst::maxlay-2)*(trconst::maxlay-2)];
+  double mtx[(MaxHits-2)*(MaxHits-2)], mty[(MaxHits-2)*(MaxHits-2)];
 
   // Fill V and W matrices
   for (int i = 0; i < _nhit; i++) {
     for (int j = 0; j <= i; j++) {
       if (i == j) {
-        vmtx[i*trconst::maxlay+j] += (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
-        wmtx[i*trconst::maxlay+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
+        vmtx[i*MaxHits+j] += (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
+        wmtx[i*MaxHits+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
       }
 
       if (_mscat) {
@@ -901,14 +901,14 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
           for (int l = ilay[k-1]+1; l <= ilay[k]; l++) wl += WLEN[l];
 
           double dmsc = li*lj*0.0118*0.0118*pbi2*wl/cosz[k];
-          vmtx[i*trconst::maxlay+j] += dmsc;
-          wmtx[i*trconst::maxlay+j] += dmsc;
+          vmtx[i*MaxHits+j] += dmsc;
+          wmtx[i*MaxHits+j] += dmsc;
         }
       }
 
       if (i >= 2 && j >= 2) {
-        mtx[(i-2)*nel+j-2] = mtx[(j-2)*nel+i-2] = vmtx[i*trconst::maxlay+j]*1e+3;
-        mty[(i-2)*nel+j-2] = mty[(j-2)*nel+i-2] = wmtx[i*trconst::maxlay+j]*1e+3;
+        mtx[(i-2)*nel+j-2] = mtx[(j-2)*nel+i-2] = vmtx[i*MaxHits+j]*1e+3;
+        mty[(i-2)*nel+j-2] = mty[(j-2)*nel+i-2] = wmtx[i*MaxHits+j]*1e+3;
       }
     }
   }
@@ -943,13 +943,13 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   for (int i = 0; i < _nhit; i++)
     for (int j = 0; j < _nhit; j++) {
       if (i >= 2 && j >= 2 && _mscat) {
-        vmtx[i*trconst::maxlay+j] = (_xs[i] > 0 && _xs[j] > 0) 
+        vmtx[i*MaxHits+j] = (_xs[i] > 0 && _xs[j] > 0) 
                          ? mtx[(i-2)*nel+j-2]*1e+3 : 0;
-        wmtx[i*trconst::maxlay+j] = (_ys[i] > 0 && _ys[j] > 0) 
+        wmtx[i*MaxHits+j] = (_ys[i] > 0 && _ys[j] > 0) 
                          ? mty[(i-2)*nel+j-2]*1e+3 : 0;
       } else {
-        if (vmtx[i*trconst::maxlay+j] != 0) vmtx[i*trconst::maxlay+j] = 1/vmtx[i*trconst::maxlay+j];
-        if (wmtx[i*trconst::maxlay+j] != 0) wmtx[i*trconst::maxlay+j] = 1/wmtx[i*trconst::maxlay+j];
+        if (vmtx[i*MaxHits+j] != 0) vmtx[i*MaxHits+j] = 1/vmtx[i*MaxHits+j];
+        if (wmtx[i*MaxHits+j] != 0) wmtx[i*MaxHits+j] = 1/wmtx[i*MaxHits+j];
       }
     }
 
@@ -974,8 +974,8 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
       for (int k = 0; k < _nhit; k++)
         for (int l = 0; l < _nhit; l++) {
           if (j == 0)
-           vec[i] += F[k*3+i]*V[k*trconst::maxlay+l]*x[l];
-          M[i][j] += F[k*3+i]*V[k*trconst::maxlay+l]*F[l*3+j];
+           vec[i] += F[k*3+i]*V[k*MaxHits+l]*x[l];
+          M[i][j] += F[k*3+i]*V[k*MaxHits+l]*F[l*3+j];
         }
 
    // For no magnetic field
@@ -1074,7 +1074,7 @@ double TrFit::ChoutkoFit(void)
     for (int i = 0; i < NDIM; i++) g[i] = 0;
     for (int i = 0; i < NDIM; i++) mm[i][i] = 1;
 
-    double fact[trconst::maxlay], xmsr[trconst::maxlay][trconst::maxlay], xms[trconst::maxlay], fckx[trconst::maxlay], fcky[trconst::maxlay];
+    double fact[MaxHits], xmsr[MaxHits][MaxHits], xms[MaxHits], fckx[MaxHits], fcky[MaxHits];
     resmy = 0;
 
     // Loop for each point
@@ -1524,7 +1524,7 @@ void TrFit::RkmsMtx(double rini)
    Imported to C++/ROOT by SH
  */
 
-  enum { NPma = trconst::maxlay };
+  enum { NPma = MaxHits };
 
   double SiThick = 0.0300;    // ! plane thicknes in cm. (300mkm Si)
   double SiRlen  = 0.0032054; // ! plane thicknes in R.L.(300mkm Si) zz0
@@ -1880,7 +1880,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 /*    double precision Function Fun(Npa,par)
  *   A.Chikanian, Yale, Aug,2003
  */
-  enum { NPma = trconst::maxlay };
+  enum { NPma = MaxHits };
 
   double pin[3], xin[3];
   pin[0] = par[0]; // ! Px or cx

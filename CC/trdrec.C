@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.46 2010/04/23 15:47:55 choutko Exp $
+//  $Id: trdrec.C,v 1.47 2010/05/28 11:16:38 pzuccon Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -525,79 +525,81 @@ return (WriteAll || status);
 
 integer AMSTRDTrack::build(int rerun){
 
-_Start();
+  _Start();
 
-
-  
-    int nrh=0;
-    for(int i=0;i<TRDDBc::nlayS();i++){
-     nrh+= (AMSEvent::gethead()->getC("AMSTRDSegment",i))->getnelem();
+  int nrh=0;
+  for(int i=0;i<TRDDBc::nlayS();i++){
+    nrh+= (AMSEvent::gethead()->getC("AMSTRDSegment",i))->getnelem();
+  }
+  if(nrh>=TRDFITFFKEY.MaxSegAllowed){
+    static int qprint=0; 
+    if(qprint++<100)cout <<" Too many segments "<<nrh<<endl;
+    TriggerLVL302 *plvl3;
+    plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    if(!plvl3 || plvl3->skip()){
+      AMSEvent::gethead()->seterror();
+      return 0;
     }
-    if(nrh>=TRDFITFFKEY.MaxSegAllowed){
-     static int qprint=0; 
-     if(qprint++<100)cout <<" Too many segments "<<nrh<<endl;
-     TriggerLVL302 *plvl3;
-     plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-      if(!plvl3 || plvl3->skip()){
-       AMSEvent::gethead()->seterror();
-       return 0;
-     }
-      cout <<" but lvl3 says continue "<<endl;
-    }
+    cout <<" but lvl3 says continue "<<endl;
+  }
    
   
 
-integer NTrackFound=-1;
- for( _case=0;_case<2;_case++){
-bool      WeakCaseWanted=false;
-for (pat=0;pat<TRDDBc::npatS();pat++){
-    if(TRDDBc::patallowS(pat) || (TRDDBc::patallow2S(pat) && WeakCaseWanted)){
-      int fp=TRDDBc::patpointsS(pat)-1;    
-      // Try to make StrLine Fit
-      integer first=TRDDBc::patconfS(pat,0)-1;
-      integer second=TRDDBc::patconfS(pat,fp)-1;
-      phit[0]=AMSTRDSegment::gethead(first);
-      while( phit[0]){
-       if(phit[0]->Good(AMSDBc::RECOVERED,_case)){
-       phit[fp]=AMSTRDSegment::gethead(second);
-       while( phit[fp]){
-        if(phit[fp]->Good(AMSDBc::RECOVERED,_case)){
-        if(NTrackFound<0)NTrackFound=0;
-        // Search for others
-        integer npfound=_TrSearcher(1);
-        if(npfound){
-           NTrackFound++;
-           if(TRDDBc::patallowS(pat))WeakCaseWanted=false;
-         goto out;
-        }
+  integer NTrackFound=-1;
+  for( _case=0;_case<2;_case++){
+    bool      WeakCaseWanted=false;
+    for (pat=0;pat<TRDDBc::npatS();pat++){
+      if(TRDDBc::patallowS(pat) || (TRDDBc::patallow2S(pat) && WeakCaseWanted)){
+	int fp=TRDDBc::patpointsS(pat)-1;    
+	// Try to make StrLine Fit
+	integer first=TRDDBc::patconfS(pat,0)-1;
+	integer second=TRDDBc::patconfS(pat,fp)-1;
+	phit[0]=AMSTRDSegment::gethead(first);
+	while( phit[0]){
+	  if(phit[0]->Good(AMSDBc::RECOVERED,_case)){
+	    phit[fp]=AMSTRDSegment::gethead(second);
+	    while( phit[fp]){
+	      if(phit[fp]->Good(AMSDBc::RECOVERED,_case)){
+		if(NTrackFound<0)NTrackFound=0;
+		// Search for others
+		integer npfound=_TrSearcher(1);
+		if(npfound){
+		  NTrackFound++;
+		  if(TRDDBc::patallowS(pat))WeakCaseWanted=false;
+		  goto out;
+		}
 
-        }         
-        phit[fp]=phit[fp]->next();
-       }
-       }
-out:
-       phit[0]=phit[0]->next();
-      }
+	      }         
+	      phit[fp]=phit[fp]->next();
+	    }
+	  }
+	out:
+	  phit[0]=phit[0]->next();
+	}
       
         
+      }
     }
-}
-   //  Add proj coord to corr trd clusters
+    //  Add proj coord to corr trd clusters
     for(  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
       for(int i=0;i<ptr->_Base._NHits;i++){
-        int proj=ptr->_Base._PCluster[i]->getCooDir()[0]>0.9?0:1;
+	//        int proj=ptr->_Base._PCluster[i]->getCooDir()[0]>0.9?0:1;
+	int lay=ptr->_Base._PCluster[i]->getlayer();
+	int proj= (lay<4 || lay>15)?0:1;
         if(ptr->_Real._FitDone){
-        AMSDir dir(ptr->_Real._Theta,ptr->_Real._Phi);
-        ptr->_Base._PCluster[i]->getCoo()[proj]=ptr->_Real._Coo[proj]+dir[proj]/dir[2]*(ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_Real._Coo[2]);
-      }
-      else{
-        AMSDir dir(ptr->_StrLine._Theta,ptr->_StrLine._Phi);
-        ptr->_Base._PCluster[i]->getCoo()[proj]=ptr->_StrLine._Coo[proj]+dir[proj]/dir[2]*(ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_StrLine._Coo[2]);
-      }
+	  AMSDir dir(ptr->_Real._Theta, ptr->_Real._Phi);
+	  ptr->_Base._PCluster[i]->getCoo()[proj]=
+	    ptr->_Real._Coo[proj] +  dir[proj] /dir[2] * (ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_Real._Coo[2]);
+	}
+	else{
+	  AMSDir dir(ptr->_StrLine._Theta,ptr->_StrLine._Phi);
+	  ptr->_Base._PCluster[i]->getCoo()[proj]=
+	    ptr->_StrLine._Coo[proj] + dir[proj]/dir[2]*(ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_StrLine._Coo[2]);
+	}
       }
     }
-}
-return NTrackFound;
+  }
+  return NTrackFound;
 }
 
 
@@ -966,7 +968,7 @@ void AMSTRDTrack::RealFit(){
 
   _Real._InvRigidity=fitg.GetRigidity();
   _Real._ErrInvRigidity=fitg.GetErrRinv();
-  _Real._Theta=fitg.GetTheta();
+  _Real._Theta= fitg.GetTheta();
   _Real._Phi=fitg.GetPhi();
   
   fitg.Propagate(zmax);
