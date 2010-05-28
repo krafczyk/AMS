@@ -1,7 +1,6 @@
 #include "TrSim.h"
 #include "tkdcards.h"
 #include "random.h"
-#include "geant321.h"
 
 #ifndef __ROOTSHAREDLIBRARY__
 #include "amsgobj.h"
