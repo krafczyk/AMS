@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.53 2010/05/26 14:18:35 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.54 2010/05/28 11:15:10 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/26 14:18:35 $
+/// $Date: 2010/05/28 11:15:10 $
 ///
-/// $Revision: 1.53 $
+/// $Revision: 1.54 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2093,6 +2093,10 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     //    if(TkDBc::Head->GetSetup()==3) MergeExtHits(track, fit_method); // AMS-B
     if(track->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
+      if (track->ParExists(TrTrackR::kChoutko))
+	track->Settrdefaultfit(TrTrackR::kChoutko);
+      else
+	track->Settrdefaultfit(fit_method);
     } else {
       if (TrDEBUG >= 1) 
 	printf(" Problems with Track Advanced Fits: %d %d\n",
