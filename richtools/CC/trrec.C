@@ -11,6 +11,8 @@ void TrTrack::interpolate(AMSPoint pnt,AMSDir dir,AMSPoint &point,
 			  double &theta,double &phi,double &length){
   // Find the impact point with the plane given by pnt and dir
 
+  theta=_d.gettheta();
+  phi=_d.getphi();
   double t=(pnt-_r).prod(dir)/_d.prod(dir);
   point=_r+_d*t;
 }
