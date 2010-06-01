@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.102 2010/06/01 09:35:01 oliva Exp $
+#  $Id: Makefile,v 1.103 2010/06/01 13:26:31 mmilling Exp $
 
 #P.Zuccon june 2005
 
@@ -232,7 +232,7 @@ TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
 
 
 #TRD 
-COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
 
 
 #TOF + ACC
@@ -285,10 +285,15 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrMCCluster.h \
                 ../include/trrec.h \
 		../include/point.h  ../include/root_RV.h ../include/root.h  \
-		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h  ../include/linkdef.h  
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h
 else
-ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
+ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h
 endif
+
+ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h
+
+ROOTDICTFILES += ../include/linkdef.h
+
 
 #------------------------------------------------------------------------------
 # File list for standard gbatch compilation
@@ -477,9 +482,11 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
-	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
+	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon.o
+
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon.o
+
 endif
 
 shared : amswd $(SHLD)
