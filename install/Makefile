@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.101 2010/05/03 10:53:04 oliva Exp $
+#  $Id: Makefile,v 1.102 2010/06/01 09:35:01 oliva Exp $
 
 #P.Zuccon june 2005
 
@@ -176,7 +176,7 @@ COMMON_FILES+= $(AMS_BASE)
 
 # Base GBATCH Classes
 GBATCH_BASE = $(SCC)amsgobj.C $(SCC)link.C $(SCC)commonsi.C   $(SCC)node.C   $(SCC)snode.C \
-	        $(SCC)cont.C  $(SCC)upool.C $(SCC)uzstat.C $(SCC)apool.C
+	        $(SCC)cont.C  $(SCC)upool.C $(SCC)uzstat.C $(SCC)apool.C $(SCC)ams2tgeo.C  
 
 COMMON_FILES+=$(GBATCH_BASE)
 

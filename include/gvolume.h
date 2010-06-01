@@ -1,4 +1,4 @@
-//  $Id: gvolume.h,v 1.26 2008/02/27 09:50:12 choutko Exp $
+//  $Id: gvolume.h,v 1.27 2010/06/01 09:35:01 oliva Exp $
 // Author V. Choutko 24-may-1996
 //
 // Aug 08, 1996. ak.  First try with Objectivity.
@@ -125,9 +125,12 @@ static  integer & getNrm()  {return _Nrm;}
   number getcoo(integer i) {return _coo[i];}
   number getcooA(integer i){return _cooA[i];}
   AMSPoint getcooA(){return _cooA;}
+  integer getnpar(){return _npar;} 
   number getpar(integer i)const {return i>=0 && i<_npar ? _par[i]:0;}
   AMSPoint gl2loc(AMSPoint);  // conversion global->local
   AMSPoint loc2gl(AMSPoint);  // conversion global->local
+  char* getgonly() { return _gonly; }
+  char* getshape() { return _shape; } 
   AMSgvolume * next(){return dynamic_cast<AMSgvolume*>(AMSNode::next());}
   AMSgvolume * prev(){return dynamic_cast<AMSgvolume*>(AMSNode::prev());}
   AMSgvolume * up(){return   dynamic_cast<AMSgvolume*>(AMSNode::up());}

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.711 2010/05/13 13:53:27 choutko Exp $
+// $Id: job.C,v 1.712 2010/06/01 09:35:00 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -237,8 +237,12 @@ IOPA.MaxFileSize=100000000;
 IOPA.MaxFileTime=86400*3;
 IOPA.BuildMin=-1;//170
 IOPA.histoman=1;//171
- IOPA.skip=0; //172
+IOPA.skip=0; //172
 IOPA.WriteRoot=0;//127
+IOPA.WriteTGeometry=0;//173
+VBLANK(IOPA.TGeometryFileName,40);//174
+char tgeofilename[16]="ams02.root";
+UCTOH(tgeofilename,IOPA.TGeometryFileName,4,16);
 VBLANK(IOPA.rfile,40);//128
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;

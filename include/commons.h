@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.288 2010/05/13 13:53:30 choutko Exp $
+//  $Id: commons.h,v 1.289 2010/06/01 09:35:01 oliva Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -161,6 +161,8 @@ integer MaxFileTime;
 integer BuildMin;
 integer histoman;
 integer skip;
+integer WriteTGeometry;
+integer TGeometryFileName[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);

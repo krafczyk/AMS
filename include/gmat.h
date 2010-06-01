@@ -1,4 +1,4 @@
-//  $Id: gmat.h,v 1.12 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: gmat.h,v 1.13 2010/06/01 09:35:01 oliva Exp $
 // Author V. Choutko 24-may-1996
 //
 // Sep 06, 1996 ak. add getnpar and getNumbers functions
@@ -61,20 +61,21 @@ assert(npar>0);
   static integer debug;
   static AMSgmat * getpmat(const char name[]){return (AMSgmat *)AMSgObj::GTrMatMap.getp(AMSID(name,0));}
 #ifdef __DB__
-//+
    friend class AMSgmatD;
-    inline integer getnpar() {return _npar;}
-    void getNumbers(geant* a, geant* z, geant* w)
-    {
-      UCOPY (_a, a, sizeof(_a[0])*_npar/4);
-      UCOPY (_z, z, sizeof(_z[0])*_npar/4);
-      if (_npar > 1) UCOPY (_w, w, sizeof(_w[0])*_npar/4);
-      if (_npar < 2) w[0] = 0;
-    }
-//-
 #endif
+   inline integer getnpar() { return _npar; }
+   void getNumbers(geant* a, geant* z, geant* w)
+   {
+     UCOPY (_a, a, sizeof(_a[0])*_npar/4);
+     UCOPY (_z, z, sizeof(_z[0])*_npar/4);
+     if (_npar > 1) UCOPY (_w, w, sizeof(_w[0])*_npar/4);
+     if (_npar < 2) w[0] = 0;
+   }
+   inline geant getdensity() { return _rho; }
+   inline geant getradlen()  { return _radl; }
+   inline geant getintlen()  { return _absl; }
    integer getmati(){return _imate;}
-   G4Material* getpamsg4m(){return _pamsg4m;}   
+   G4Material* getpamsg4m(){return _pamsg4m;}
  protected:
    void _init();
    static uinteger _GlobalMatI;
@@ -154,6 +155,16 @@ class AMSgtmed : public AMSNode
   void     CUTELE(geant cut){_G4EEl=cut;GSTPAR(_itmed,"CUTELE",cut);}
   void     CUTMUO(geant cut){_G4EMu=cut;GSTPAR(_itmed,"CUTMUO",cut);}
   void     TOFMAX(geant cut){_G4TofMax=cut;GSTPAR(_itmed,"TOFMAX",cut);}
+
+  inline integer getifield() { return _ifield; }
+  inline integer getisvol()  { return _isvol;  }
+  inline geant   getfieldm() { return _fieldm; } 
+  inline geant   gettmaxfd() { return _tmaxfd; }
+  inline geant   getstemax() { return _stemax; }
+  inline geant   getdeemax() { return _deemax; }
+  inline geant   getepsil()  { return _epsil;  }
+  inline geant   getstmin()  { return _stmin;  }
+
   protected:
    void _init();
    static uinteger _GlobalMedI;

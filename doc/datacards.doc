@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.326 2010/05/13 13:53:30 choutko Exp $
+#  $Id: datacards.doc,v 1.327 2010/06/01 09:35:01 oliva Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -75,10 +75,12 @@ I127  WriteRoot(0)               // write (!0) or not write(0) root file
                                  // the value is used to set Root Compression Level-1
 I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(100000000)      // max ntuplefilesize (kbytes)
-I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
-I170 BuildMin(-1)                  // min build version (production only)
+I169 MaxFileTime(86400*3)        //  max ntuple time (sec)
+I170 BuildMin(-1)                // min build version (production only)
 I171 HistoMan                    // Enables the HistoMan facility for histograms (1:written in AMSRoot file 2:written in Histos_$RUN.root 3:written in both)
 I172 Skip                        // Skip n events in the reconstruction
+I173 WriteTGeometry(0)           // Write TGeometry (0: no, 1: yes)
+I174 TGeoFileName('ams02.root')  // TGeometry file name
 //-------------------------------------------------------------------------------
 
     RICH simulation

@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.124 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: geant.C,v 1.125 2010/06/01 09:35:00 oliva Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -120,7 +120,8 @@ LMS*                   lms;
 #endif
 
 
-
+// Used for TGeometry
+#include "ams2tgeo.h"
 
 
 extern "C" void npq_();
@@ -200,6 +201,14 @@ if(MISCFFKEY.G3On)
 #endif
 GDINIT();
 #endif
+
+  if (IOPA.WriteTGeometry) {
+    // ROOT Geometry
+    char tgeofilename[40];
+    UHTOC(IOPA.TGeometryFileName,40/sizeof(integer),tgeofilename,40-1);
+    cout << "gams::UGINIT-Create Root TGeoManager, output file is " << tgeofilename << endl;
+    ams2tgeo::Build("TGeoAMS02","The AMS-02 Geometry",tgeofilename);
+  }
 
 #ifdef __DB__
   if ((AMSFFKEY.Read%2) == 1) dbout.CheckCommons();
