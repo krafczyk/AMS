@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.272 2010/05/17 16:52:01 barao Exp $
+//  $Id: root.h,v 1.273 2010/06/01 13:08:28 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -38,6 +38,11 @@
 #ifdef _PGTRACK_
 #include "trrec.h"
 #endif
+//#include "trdsim.h"
+#include "trdhrec.h"
+//#include "TrdRawHit.h"
+//#include "TrdHSegment.h"
+//#include "TrdHTrack.h"
 
 using namespace std;
 #ifdef __SLC3__
@@ -74,8 +79,8 @@ class AMSTRDMCCluster;
 class AMSTRDRawHit;
 class AMSTRDSegment;
 class AMSTRDTrack;
-class AMSTRDHSegment;
-class AMSTRDHTrack;
+//class AMSTRDHSegment;
+//class AMSTRDHTrack;
 class AMSVtx;
 class Ecal1DCluster;
 class AMSEcal2DCluster;
@@ -110,8 +115,8 @@ class AMSTRDMCCluster{};
 class AMSTRDRawHit{};
 class AMSTRDSegment{};
 class AMSTRDTrack{};
-class AMSTRDHSegment{};
-class AMSTRDHTrack{};
+//class AMSTRDHSegment{};
+//class AMSTRDHTrack{};
 #ifndef _PGTRACK_
 class AMSTrCluster{};
 class AMSTrMCCluster{};
@@ -1262,6 +1267,8 @@ static char _Info[255];
 
 */
 
+
+/*
 class TrdRawHitR {
 public:
   int Layer;   ///< Layer 0(bottom)...19(top) 
@@ -1276,7 +1283,7 @@ public:
   virtual ~TrdRawHitR(){};
 ClassDef(TrdRawHitR,2)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
-};
+};*/
 
 /// TRDClusterR structure
 /*!
@@ -1358,7 +1365,7 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 #pragma omp threadprivate(fgIsA)
 };
 
-class TrdHSegmentR {
+/*class TrdHSegmentR {
  public:
   int   d;
   int Nhits;
@@ -1377,7 +1384,7 @@ class TrdHSegmentR {
   virtual ~TrdHSegmentR(){};
   ClassDef(TrdHSegmentR,2)       //TrdSegmentR
 #pragma omp threadprivate(fgIsA)
-    };
+};*/
 
 
 /// TRDTrackR structure
@@ -1438,7 +1445,7 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
  \author mark.millinger@cern.ch
 
 */
-
+/*
 class TrdHTrackR {
 static char _Info[255];
  public:
@@ -1482,7 +1489,7 @@ public:
   ClassDef(TrdHTrackR,4)       //TrdHTrackR
 #pragma omp threadprivate(fgIsA)
 };
-
+*/
 
 /// Level1 trigger structure 
 /*!

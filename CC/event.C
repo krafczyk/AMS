@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.471 2010/04/02 10:34:50 pzuccon Exp $
+//  $Id: event.C,v 1.472 2010/06/01 13:08:56 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -77,7 +77,6 @@ extern LMS* lms;
 #endif
 //
 //
-
 
 
 //#include "HistoMan.h"
@@ -2121,26 +2120,57 @@ void AMSEvent::_retrdevent(){
 #endif
 
   if(TRDFITFFKEY.FitMethod!=0){
-    int nseg=buildC("AMSTRDHSegment");
+    trdhrecon.rhits.clear();
+
+    // fill reference hits - first TOF clusters (top layer) - then TKtop clusters
+    AMSTOFCluster *Hi;int i;
+    for (i=0;i<4;i++) {
+      for (Hi=AMSTOFCluster::gethead(i); Hi!=NULL; Hi=Hi->next()){
+	if(Hi->getntof()<3){
+	  trdhrecon.refhits.push_back(Hi->getcoo());
+	  trdhrecon.referr.push_back(Hi->getecoo());}
+      }
+    }
+    AMSTrRecHit *ttr;
+      for (i=0;i<2;i++) {
+	for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
+	  if(ttr->getHit()[2]<50)continue;
+#ifndef _PGTRACK_
+	  trdhrecon.refhits.push_back(ttr->getHit());
+	  trdhrecon.referr.push_back(ttr->getEHit());
+#else
+	  trdhrecon.refhits.push_back(ttr->GetCoord());
+	  trdhrecon.referr.push_back(ttr->GetECoord());
+#endif
+	}
+      }
+
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next()) trdhrecon.rhits.push_back(new TrdRawHitR(Hi));
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) trdhrecon.rhits.push_back(new TrdRawHitR(Hi));
+    
+    int nhseg=buildC("AMSTRDHSegment");
+
+    for(int i=0;i<nhseg;i++){
+      AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",0),new AMSTRDHSegment(trdhrecon.hsegvec[i]));
+
 #ifdef __AMSDEBUG__
-    for(int i=0;i<nseg;i++){
       AMSContainer *p =getC("AMSTRDHSegment",i);
       if(p && AMSEvent::debug)p->printC(cout);
-    }
 #endif
-
-    if(nseg>1){
-      int ntr=buildC("AMSTRDHTrack");
+    }
+    
+    if(nhseg>1){
+      int nhtr=buildC("AMSTRDHTrack");
+      for(int i=0;i<nhtr;i++){
+	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),new AMSTRDHTrack(trdhrecon.htrvec[i]));
 #ifdef __AMSDEBUG__
-      for(int i=0;i<ntr;i++){
 	AMSContainer *p =getC("AMSTRDHTrack",i);
 	if(p && AMSEvent::debug)p->printC(cout);
-      }
 #endif
+      }
     }
   }
-//
-//
+
   AMSgObj::BookTimer.stop("RETRDEVENT");
 }
 void AMSEvent::_rerichevent(){

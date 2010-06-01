@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.217 2010/04/21 08:35:18 choumilo Exp $
+//  $Id: root.C,v 1.218 2010/06/01 13:08:56 mmilling Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -824,7 +824,7 @@ char TrRecHitR::_Info[255];
 char TrTrackR::_Info[255];
 char TrMCClusterR::_Info[255];
 #endif
-char TrdHTrackR::_Info[255];
+//char TrdHTrackR::_Info[255];
 char TrdTrackR::_Info[255];
 char TrdClusterR::_Info[255];
 char EcalClusterR::_Info[255];
@@ -2501,11 +2501,11 @@ TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
 #endif
 }
 
-TrdHSegmentR::TrdHSegmentR(AMSTRDHSegment *ptr){
+/*TrdHSegmentR::TrdHSegmentR(AMSTRDHSegment *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   d   = ptr->d;
-  Nhits = ptr->nhits;
-  Chi2 = ptr->chi2;
+  Nhits = ptr->Nhits;
+  Chi2 = ptr->Chi2;
   m   = ptr->m;
   em  = ptr->em;
   r   = ptr->r;
@@ -2518,18 +2518,18 @@ TrdHSegmentR::TrdHSegmentR(AMSTRDHSegment *ptr){
 TrdHTrackR::TrdHTrackR(AMSTRDHTrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   for (int i=0; i<3; i++) {
-    Coo[i]   = ptr->pos[i];
-    Dir[i]   = ptr->dir[i];
+    Coo[i]   = ptr->Coo[i];
+    Dir[i]   = ptr->Dir[i];
   }
-  Phi   = ptr->Phi();
-  Theta = ptr->Theta();
-  Chi2  = ptr->chi2;
-  Nhits = ptr->nhits;
-  ETheta= ptr->ETheta();
-  EPhi  = ptr->EPhi();
+  //  Phi   = ptr->Phi();
+  //  Theta = ptr->Theta();
+  Chi2  = ptr->Chi2;
+  Nhits = ptr->Nhits;
+  //  ETheta= ptr->ETheta();
+  //  EPhi  = ptr->EPhi();
   status= ptr->status;
 #endif
-}
+}*/
 
 #ifndef _PGTRACK_
 TrClusterR::TrClusterR(AMSTrCluster *ptr){
@@ -2960,17 +2960,17 @@ TrdClusterR* TrdSegmentR::pTrdCluster(unsigned int i){
   return (AMSEventR::Head() && i<fTrdCluster.size())?AMSEventR::Head()->pTrdCluster(fTrdCluster[i]):0;
 }
 
-TrdRawHitR* TrdHSegmentR::pTrdRawHit(unsigned int i){
-  return (AMSEventR::Head() && i<fTrdRawHit.size())?AMSEventR::Head()->pTrdRawHit(fTrdRawHit[i]):0;
-}
+//TrdRawHitR* TrdHSegmentR::pTrdRawHit(unsigned int i){
+//  return (AMSEventR::Head() && i<fTrdRawHit.size())?AMSEventR::Head()->pTrdRawHit(fTrdRawHit[i]):0;
+//}
 
 TrdSegmentR* TrdTrackR::pTrdSegment(unsigned int i){
   return (AMSEventR::Head() && i<fTrdSegment.size())?AMSEventR::Head()->pTrdSegment(fTrdSegment[i]):0;
 }
 
-TrdHSegmentR* TrdHTrackR::pTrdHSegment(unsigned int i){
-  return (AMSEventR::Head() && i<fTrdHSegment.size())?AMSEventR::Head()->pTrdHSegment(fTrdHSegment[i]):0;
-}
+//TrdHSegmentR* TrdHTrackR::pTrdHSegment(unsigned int i){
+//  return (AMSEventR::Head() && i<fTrdHSegment.size())?AMSEventR::Head()->pTrdHSegment(fTrdHSegment[i]):0;
+//}
 
 
 TofClusterR* BetaR::pTofCluster(unsigned int i){

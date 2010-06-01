@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.202 2010/05/14 14:02:28 pzuccon Exp $
+//  $Id: particle.C,v 1.203 2010/06/01 13:08:56 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -34,6 +34,8 @@
 #endif
 #include "TROOT.h"
 #include "TMath.h"
+#include "TrdHRecon.h"
+
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
   0.133822,0.254755,0.243698,0.168653,0.0885082,0.0419913,0.018962,0.0105981,0.00641613,0.00412466,0.00360907,0.00337993,0.00240605,0.00183318,0.00148946,0.00154675,0.00137489,0.000630156,0.00091659,0.000973877,0.000859303,0.000572869,0.00074473,0.000687443,0.000515582,0.000572869,0.000859303,0.000229148,0.000687443,0.000401008};
@@ -412,23 +414,24 @@ double e_par(int p,int lay){
   float layer=20.-(float)lay;
 
   if(p==0)return 0.3435-layer*0.002777;
-  if(p==1)return 1.808+layer*0.002998-layer*layer*0.0002922;
-  if(p==2)return 0.7814-layer*0.001905;
-  if(p==3)return 0.05661;
-  if(p==4)return 9.415+layer*0.2251+lay*lay*-0.007557;
-  if(p==5)return 1.633+layer*0.1644+layer*layer*-0.004787;
+  else if(p==1)return 1.808+layer*0.002998-layer*layer*0.0002922;
+  else if(p==2)return 0.7814-layer*0.001905;
+  else if(p==3)return 0.05661;
+  else if(p==4)return 9.415+layer*0.2251+lay*lay*-0.007557;
+  else if(p==5)return 1.633+layer*0.1644+layer*layer*-0.004787;
+  else return 0.;
 }
 
 // get conv landau fit param depending on trtrack rigidity [GV] 
 double p_par(int p,float rig){
   if(p==0)return 0.2354- 0.0721  * log(1.643e-5*rig);
-  if(p==1)return 3.703 + 0.1251 * log(2.714e-10*rig);
-  if(p==2)return 0.4067+ 3.744  * sqrt(9.537e-6*rig);
-  if(p==3)return 0.;
+  else if(p==1)return 3.703 + 0.1251 * log(2.714e-10*rig);
+  else if(p==2)return 0.4067+ 3.744  * sqrt(9.537e-6*rig);
+  else if(p==3)return 0.;
   //-14.89 +rig    * 0.08075-rig*rig*2.163e-4;
-  if(p==4)return 0.7207  +0.2774 * log(rig*0.1917);
-  if(p==5)return 3.477  +0.1147 * log(rig*1.152e-12);
-
+  else if(p==4)return 0.7207  +0.2774 * log(rig*0.1917);
+  else if(p==5)return 3.477  +0.1147 * log(rig*1.152e-12);
+  else return 0.;
 }
 
 // Find TrdHTrack matching TrTrack of ParticleR and get 
@@ -453,12 +456,12 @@ void AMSParticle::trd_Hlikelihood(){
   AMSTRDHTrack* ptr=(AMSTRDHTrack*)AMSEvent::gethead()->getheadC("AMSTRDHTrack",0);
   while(ptr){
     AMSPoint trd_pnt=ptr->getCooStr();
-    AMSDir trd_dir=AMSDir(ptr->dir[0],ptr->dir[1],ptr->dir[2]);
+    AMSDir trd_dir=AMSDir(ptr->Dir[0],ptr->Dir[1],ptr->Dir[2]);
     bool matched =0;
 
-    float dz=zpl-ptr->pos[2];
-    float x=ptr->pos[0]+ ptr->dir[0]/ptr->dir[2]*dz;
-    float y=ptr->pos[1]+ ptr->dir[1]/ptr->dir[2]*dz;
+    float dz=zpl-ptr->Coo[2];
+    float x=ptr->Coo[0]+ ptr->Dir[0]/ptr->Dir[2]*dz;
+    float y=ptr->Coo[1]+ ptr->Dir[1]/ptr->Dir[2]*dz;
     
     // angle between the tracks
     number c=tk_dir.prod(trd_dir);
@@ -482,9 +485,12 @@ void AMSParticle::trd_Hlikelihood(){
   }
   else{ // look for hsegments matching trtrack
     if(debug)printf("looking for new track\n");
-    AMSTRDHSegment* seg=(AMSTRDHSegment*)AMSEvent::gethead()->getheadC("AMSTRDHSegment",0);
-    AMSTRDHSegment* sptr[2]={0,0};
-    while(seg){
+    //    AMSTRDHSegment* seg=(AMSTRDHSegment*)AMSEvent::gethead()->getheadC("AMSTRDHSegment",0);
+    TrdHSegmentR* sptr[2]={0,0};
+    
+    //    while(seg){
+    for(int s=0;s!=trdhrecon.hsegvec.size();s++){
+      TrdHSegmentR* seg=trdhrecon.hsegvec[s];
       float dz=zpl-seg->z;
       float expos=seg->r+ seg->m*dz;
       if(debug)printf("seg d %i r %.2f m %.2f z %.2f\n",seg->d,seg->r,seg->m,seg->z);
@@ -496,15 +502,18 @@ void AMSParticle::trd_Hlikelihood(){
 		      tk_pnt[seg->d]-expos);
       if(fabs(tk_dir[seg->d]/tk_dir[2]-seg->m)<1-MaxCos&&
 	 fabs(tk_pnt[seg->d]-expos)<SearchReg)sptr[seg->d]=seg;
-      seg=seg->next();
+      //      seg=seg->next();
     }
     if(debug)printf("s1 %d s2 %d\n",sptr[0],sptr[1]);
     if(sptr[0]&&sptr[1]){
-      _phtrd=SegToTrack(sptr[0],sptr[1]);
+      //      _phtrd=new AMSTRDHTrack(trdhrecon.SegToTrack(sptr[0],sptr[1]));
+      _phtrd=new AMSTRDHTrack(trdhrecon.SegToTrack(sptr[0],sptr[1]));
       if(_phtrd){
 	if(debug)printf("new TRDHTrack found\n");
 	_phtrd->status=3;
 	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
+
+	trdhrecon.htrvec.push_back(new TrdHTrackR(_phtrd));
       }
     }
   }
@@ -527,13 +536,12 @@ void AMSParticle::trd_Hlikelihood(){
   for(int n=0;n!=20;n++)amp[n]=0.;
   
   for(int s=0;s!=2;s++){
-    for(int n=0;n!=_phtrd->fTRDHSegment[s]->nhits;n++){
-      AMSTRDIdSoft id(_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->getidsoft());
+    for(int n=0;n!=_phtrd->pTrdHSegment(s)->nTrdRawHit();n++){
+      TrdRawHitR* hit=_phtrd->pTrdHSegment(s)->pTrdRawHit(n);
 
       // hardcode keV2ADC with a (very) rough approximation for testbeam 40.
-      if(MISCFFKEY.BeamTest==1)amp[id.getlayer()]+=_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->Amp()/40.;
-
-      else amp[id.getlayer()]+=_phtrd->fTRDHSegment[s]->fTRDRawHit[n]->Amp()/TRDMCFFKEY.GeV2ADC*1.e6;
+      if(MISCFFKEY.BeamTest==1)amp[hit->Layer]+=_phtrd->pTrdHSegment(s)->pTrdRawHit(n)->Amp/40.;
+      else amp[hit->Layer]+=_phtrd->pTrdHSegment(s)->pTrdRawHit(n)->Amp/TRDMCFFKEY.GeV2ADC*1.e6;
 
     }  
   }
