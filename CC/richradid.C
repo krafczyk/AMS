@@ -241,7 +241,7 @@ void RichRadiatorTileManager::_compute_tables(){
       if(_tiles[current]->kind==agl_kind){
 	_tiles[current]->index_table[ii]=1+(_tiles[current]->index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
       }else if(_tiles[current]->kind==naf_kind){
-	_tiles[current]->index_table[ii]=1+(_tiles[current]->index-1)/(RICHDB::naf_index-1)*(RICHDB::naf_index_table[ii]-1);
+	_tiles[current]->index_table[ii]=RICHDB::naf_index_table[ii];
       }
 
     }
@@ -256,10 +256,10 @@ void RichRadiatorTileManager::_compute_tables(){
 
     if(_tiles[current]->kind==agl_kind){
       _tiles[current]->mean_refractive_index=eff_index;
-      _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+      _tiles[current]->mean_height=eff_height;
     }else if(_tiles[current]->kind==naf_kind){
       _tiles[current]->mean_refractive_index=eff_index;
-      _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+      _tiles[current]->mean_height=eff_height;
     }
   }
   
@@ -407,7 +407,8 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   double dx=_p_direct[0]-_tiles[_current_tile]->position[0];
   double dy=_p_direct[1]-_tiles[_current_tile]->position[1];
   
-  _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
+  if(_tiles[_current_tile]->kind==naf_kind) _local_index=_tiles[_current_tile]->mean_refractive_index;
+  else _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
     (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/
     (_tiles[_current_tile]->index-1);
 
@@ -490,7 +491,7 @@ geant RichRadiatorTileManager::get_refractive_index(geant x,geant y,geant wavele
 
   // Correction taking into account the local refractive index
   geant local_index=_tiles[tile_number]->LocalIndex(dx,dy);
-  geant final_index=1+(index-1)*(local_index-1)/(_tiles[tile_number]->index-1);
+  geant final_index=_tiles[tile_number]->kind==naf_kind?index:1+(index-1)*(local_index-1)/(_tiles[tile_number]->index-1);
 
   // Return the computed index
   return final_index;
@@ -880,7 +881,7 @@ void RichRadiatorTileManager::recompute_tables(int current,double new_index){  /
     if(_tiles[current]->kind==agl_kind){
       _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
     }else if(_tiles[current]->kind==naf_kind){
-      _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::naf_index-1)*(RICHDB::naf_index_table[ii]-1);
+      _tiles[current]->index_table[ii]=RICHDB::naf_index_table[ii];
     }
     
   }
@@ -895,10 +896,10 @@ void RichRadiatorTileManager::recompute_tables(int current,double new_index){  /
   
   if(_tiles[current]->kind==agl_kind){
     _tiles[current]->mean_refractive_index=eff_index;
-    _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+    _tiles[current]->mean_height=eff_height;
   }else if(_tiles[current]->kind==naf_kind){
     _tiles[current]->mean_refractive_index=eff_index;
-    _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+    _tiles[current]->mean_height=eff_height;
   }
 
   // Update the index

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.139 2010/03/23 17:26:31 barao Exp $
+//  $Id: richrec.C,v 1.140 2010/06/01 16:35:53 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -355,10 +355,6 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   integer time_out=0;
   geant delta=1,f,g;
 
-
-  if(kind_of_tile==naf_kind)
-    H+=RICHDB::foil_height;
-
   while(fabs(delta)>1e-5 && time_out<5){
     // Solution does not exist, or it is not continuously reachable from
     // the starting point
@@ -384,8 +380,6 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
     if(betas[0]<betamin){ // If the beta as direct is below threshold
       // Let the hot-spot detection algorithm deal with this
       betas[0]=0;
-      //      betas[0]=-2.;       // it is the primary passing through the LG so
-      //      return;}            // stop the recontruction.
     }
     else if(betas[0]>betamax) betas[0]=-1;
   }else{
@@ -431,8 +425,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  dir[1]*direction_ref[1]+
 				  dir[2]*direction_ref[2]);
 
-    //CJD:  PROVISIONAL CORRECTION ON THE RADIATOR INDEX FOR REFLECTED
-    betas[j]*=1.0007624;
+    // CORRECTION ON THE RECONSTRUCTED INDEX
+    if(kind_of_tile==agl_kind) betas[j]/=0.9993;
+    if(kind_of_tile==naf_kind) betas[j]/=0.998;
 
 
     if(betas[j]<betamin) betas[j]=-2.;
