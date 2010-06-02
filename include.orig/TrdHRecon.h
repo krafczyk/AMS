@@ -31,8 +31,10 @@ class TrdHReconR{
     H2V_mvr[0]=0;H2V_mvr[1]=0;
   };
 
+  /// read reconstructed TRD event from ROOT-file
   void ReadTRDEvent(vector<TrdRawHitR> r,vector<TrdHSegmentR> s,vector<TrdHTrackR> t);
 
+  /// reconstruct TRD event according to TrdRawHit selection
   void BuildTRDEvent(vector<TrdRawHitR> r);
 
   /// pointer to array histograms (prefit) 
