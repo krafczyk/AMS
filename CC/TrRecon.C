@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.54 2010/05/28 11:15:10 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.55 2010/06/04 18:04:02 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/05/28 11:15:10 $
+/// $Date: 2010/06/04 18:04:02 $
 ///
-/// $Revision: 1.54 $
+/// $Revision: 1.55 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2106,7 +2106,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
       TRMCFFKEY.SimulationType==TrSim::kTrSim2010)
-    TrSim::GetHead()->fillreso(track);
+    TrSim::fillreso(track);
 
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (cont) {

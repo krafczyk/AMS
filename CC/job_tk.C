@@ -214,6 +214,7 @@ void AMSJob::_sitkinitjob(){
   AMSgObj::BookTimer.book("TrdRadiationGen",10);
   AMSgObj::BookTimer.book("SITKHITS");
   AMSgObj::BookTimer.book("SITKNOISE");
+  AMSgObj::BookTimer.book("SITKDIGI");
   AMSgObj::BookTimer.book("SITKDIGIa");
   AMSgObj::BookTimer.book("SITKDIGIb");
   AMSgObj::BookTimer.book("SITKDIGIc");

@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.17 2010/05/26 11:46:02 shaino Exp $
+//  $Id: TkDBc.C,v 1.18 2010/06/04 18:04:02 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/05/26 11:46:02 $
+///$Date: 2010/06/04 18:04:02 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -159,7 +159,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 
 
     // Plane envelop radius in cm
-    const  double plane_d1[maxplanes] = { 72.0, 54.0, 54.0, 54.0, 72.0,0. };
+    const  double plane_d1[maxplanes] = { 74.0, 54.0, 54.0, 54.0, 74.0,0. };
     memcpy(_plane_d1,plane_d1,maxplanes*sizeof(_plane_d1[0]));
 
     // Plane envelop half thickness in cm
@@ -595,7 +595,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 number TkDBc::GetSlotY(int layer, int slot,int side){
   number ladpitch= _ladder_Ypitch;
   number ladder_Ygap= _ladder_Ypitch - _ssize_inactive[1];
-  number central_gap= 0.8 - ladder_Ygap ; // layer 9 central additional gap
+  number central_gap= 0.8  ; // layer 9 central additional gap
   //Y coo of  the first S/p readout channel for the ladder on slot 9 X negative
   // 0.5 ladder_Ygap + distance from first readout channel to near ladder edge
   number distXN = (_ssize_inactive[1]-_ssize_active[1])/2 + 0.5 * ladder_Ygap;
@@ -608,11 +608,14 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
   
 //   printf("  _ladder_Ypitch %f\n", _ladder_Ypitch );
 //   printf(" ladpitch %f ladder_Ygap %f distXN %f distXF  %f \n",_ladder_Ypitch,ladder_Ygap,distXN,distXF);
+  number addspaces=0;
+  if(abs(slot)>4) addspaces=ladder_Ygap-central_gap/2.;
+  else            addspaces=central_gap/2.;
   if(layer==9){
     if(side==0) 
-      return distXN+ ladpitch*(5-slot)+ ((slot<5)?1:-1)*central_gap/2.; //(4-slot);
+      return  (distXF - ladder_Ygap/2 + ladpitch*(4-slot) + addspaces); //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2. ;
     else
-      return distXF+ ladpitch*(3-slot)+ ((slot<5)?1:-1)*central_gap/2.; //(4-slot);
+      return  (distXN - ladder_Ygap/2 + ladpitch*(4-slot) + addspaces); //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2.; 
   }
   if( layer==2||layer==4||layer==6){
     if(side==0){

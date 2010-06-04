@@ -14,60 +14,47 @@
 
 extern "C" double rnormx();
 
-TrSim*   TrSim::Head = 0;
 AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
 
-// ATTENTION: this is the particle chart extracted from GBATCH (18/05/2010)  
-float    TrSim::_g3mass[213] = {0,0,0.000510999,0.000510999,0,0.105658,0.105658,0.134976,0.13957,0.13957,0.497672,0.493677,0.493677,0.939566,0.938272,0.938272,0.497672,0.54745,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0.939566,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743,16.146,9.33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743};
-float    TrSim::_g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,-1,0,-1,-1,0,0,-1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,0,2,0,0,0,0,0,0,0,0,0,0,0,3,3,4,4,5,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,32,34,36,38,40,42,46,48,50,54,56,58,62,66,70,74,78,79,80,82,92,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-2,0,-2,0,0,0,0,0,0,0,0,0,0,0,-3,-3,-4,-4,-5,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-32,-34,-36,-38,-40,-42,-46,-48,-50,-54,-56,-58,-62,-66,-70,-74,-78,-79,-80,-82,-92};
 
-TrSim* TrSim::GetHead() {
-  if (Head==0) new TrSim();
-  return Head;
-} 
+TrMap<TrMCClusterR> TrSim::MCClusterTkIdMap;
 
-TrSim::TrSim() {
-  printf("TrSim::TrSim() called: generating defaults for simulation type %d\n",TRMCFFKEY.SimulationType);
-  if (Head==0) {
-    Head = this;
-    if (TRMCFFKEY.SimulationType!=kTrSim2010) return;
-    // only in case of TrSim2010 simulation 
-    for (int type=0; type<=2; type++) _sensors.push_back(new TrSimSensor(type));
-    _glo2loc = new TkSens(1);
-  }
-  else {
-    if (WARNING) printf("TrSim::TrSim-Warning the TrSim singleton has been already defined\n");
-  }
+// TrSim* TrSim::GetHead() {
+//   if (Head==0) new TrSim();
+//   return Head;
+// } 
 
-  /* PARTICLE LIST
-  for(int ipart=0;ipart<1000;ipart++){
-    char chp[22]="";
-    integer itrtyp=0;
-    geant mass=0;
-    geant charge=0;
-    geant tlife=0;
-    geant ub[1];
-    integer nwb=0;
-    GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
-    printf("%d %g %g\n",ipart,mass,charge);
-  }
-  */
-}
+// TrSim::TrSim() {}
+//   printf("TrSim::TrSim() called: generating defaults for simulation type %d\n",TRMCFFKEY.SimulationType);
+//   if (Head==0) {
+//     Head = this;
+//    //  if (TRMCFFKEY.SimulationType!=kTrSim2010) return;
+// //     // only in case of TrSim2010 simulation 
+// //     for (int type=0; type<=2; type++) _sensors.push_back(new TrSimSensor(type));
+// //     _glo2loc = new TkSens(1);
+//   }
+//   else {
+//     if (WARNING) printf("TrSim::TrSim-Warning the TrSim singleton has been already defined\n");
+//   }
+
+//   /* PARTICLE LIST
+//   for(int ipart=0;ipart<1000;ipart++){
+//     char chp[22]="";
+//     integer itrtyp=0;
+//     geant mass=0;
+//     geant charge=0;
+//     geant tlife=0;
+//     geant ub[1];
+//     integer nwb=0;
+//     GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
+//     printf("%d %g %g\n",ipart,mass,charge);
+//   }
+//   */
+// }
 
 
-TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
-  if (side==1)    return _sensors.at(0); // S
-  int layer = (int) fabs(tkid%100);
-  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
-  if(!ll){
-    printf("TrSim::GetTrSimSensor-Error Cannot find ladder %d into the database\n",tkid);
-    return 0;
-  } 
-  if (ll->IsK7()) return _sensors.at(2); // K7
-  else            return _sensors.at(1); // K5
-  return 0;
-}
+
 
 
 void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
@@ -265,6 +252,9 @@ void TrSim::fillreso(TrTrackR *track) {
 
 
 void TrSim::sitkdigi() {
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGI");
+#endif
   switch (TRMCFFKEY.SimulationType) {
   case kRawSim:
     sitkdigiold();
@@ -276,6 +266,9 @@ void TrSim::sitkdigi() {
     BuildTrRawClusters();
     break;
   }
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGI");
+#endif
   return;
 }
 
@@ -295,12 +288,22 @@ void TrSim::sitkdigiold() {
   //Create the map of TrMCClusters
   TrMap<TrMCClusterR> MCClMap;
   
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGIa");
+#endif
   for (int ii=0;ii<cont->getnelem();ii++){
     TrMCClusterR* clu=(TrMCClusterR*)cont->getelem(ii);
+    clu->_shower();
     if (clu)MCClMap.Add(clu);
     //clu->_printEl(cerr); 
   }
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGIa");
+#endif
 
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGIb");
+#endif
   //LOOP ON ALL THE LADDERS
   for (int lay=1;lay<=trconst::maxlay;lay++){
     for (int slot=1;slot<=trconst::maxlad;slot++){
@@ -346,15 +349,27 @@ void TrSim::sitkdigiold() {
 	  // printf("Ladder %+03d Has been selected\n",tkid);
 	}
 	
-	// Do clusterization the DSP way
+	
+#ifndef __ROOTSHAREDLIBRARY__
+	AMSgObj::BookTimer.start("SITKDIGIc");
+#endif
 
+	// Do clusterization the DSP way
 	DSP_Clusterize(tkid,buf);
 
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGIc");
+#endif
 	delete [] buf;
       }
 
     }
   }
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGIb");
+#endif
+
   if(cont) delete cont;
   return;
 }
@@ -475,43 +490,73 @@ void TrSim::DSP_Clusterize(int tkid,float *buf){
 
 int TrSim::BuildTrRawClusters() {
   int nclusters = 0;
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGIa");
+#endif
+  
+  // Create the map and produce the simulated cluster
   CreateMCClusterTkIdMap();
+  
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("SITKDIGIa");
+#endif
+  
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("SITKDIGIb");
+#endif  
   // Loop on all the Ladders 
   for (int ientry=0; ientry<TkDBc::Head->GetEntries(); ientry++) { 
-     TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
-     _tkid = ladder->GetTkId();
+    TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
+    int _tkid = ladder->GetTkId();
+    
+    // Calibration
+    TrLadCal* _ladcal = TrCalDB::Head->FindCal_TkId(_tkid);
+    if (_ladcal==0) {
+      if (WARNING) printf("TrSim::AddNoiseOnBuffer-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",_tkid);
+      continue;
+    }
 
-     // Calibration
-     _ladcal = TrCalDB::Head->FindCal_TkId(_tkid);
-     if (_ladcal==0) {
-       if (WARNING) printf("TrSim::AddNoiseOnBuffer-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",_tkid);
-       continue;
-     }
 
-     CleanBuffer(); 
+    //Create the ladder buffer and intialize it 
+    double    _ladbuf[1024];
+    memset(_ladbuf,0,1024*sizeof(_ladbuf[0]));
+    if(MCClusterTkIdMap.GetNelem(_tkid)>0)
+      AddSimulatedClustersOnBuffer(_tkid,_ladbuf,_ladcal);
+    if(  TRMCFFKEY.TrSim2010_NoiseType  != 1) continue;
+    
+    AddNoiseOnBuffer(_ladbuf,_ladcal);
 
-     if (AddSimulatedClustersOnBuffer() == 0 &&
-         TRMCFFKEY.TrSim2010_NoiseType  != 1) continue;
 
-     AddNoiseOnBuffer();
-
-     // Add Noise? 
-     // Add Fake Cluster? 
-     nclusters += BuildTrRawClustersWithDSP();         
+    
+    // Add Noise? 
+    // Add Fake Cluster? 
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("SITKDIGIc");
+#endif
+    int nclusters = 0;
+    // N side
+    nclusters += BuildTrRawClustersWithDSP(0, _tkid,_ladcal, _ladbuf);         
+    // P side
+    nclusters += BuildTrRawClustersWithDSP(1, _tkid,_ladcal, _ladbuf);         
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("SITKDIGIc");
+#endif
+    
   }
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("SITKDIGIb");
+#endif
   return nclusters;
 }
 
 
-void TrSim::CleanBuffer() {
-  memset(_ladbuf,0,1024*sizeof(_ladbuf[0]));
-}
 
-
-void TrSim::AddNoiseOnBuffer() {
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("SITKNOISE");
-#endif
+void TrSim::AddNoiseOnBuffer(double* _ladbuf,TrLadCal * _ladcal) {
+// #ifndef __ROOTSHAREDLIBRARY__
+//   AMSgObj::BookTimer.start("SITKNOISE");
+// #endif
 
   if (TRMCFFKEY.TrSim2010_NoiseType==0) return;
   // Noise baseline and calibration load
@@ -531,9 +576,9 @@ void TrSim::AddNoiseOnBuffer() {
     }
   }
 
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop("SITKNOISE");
-#endif
+// #ifndef __ROOTSHAREDLIBRARY__
+//   AMSgObj::BookTimer.stop("SITKNOISE");
+// #endif
 }
 
 
@@ -551,16 +596,16 @@ void TrSim::CreateMCClusterTkIdMap() {
   }
   for (int ii=0; ii<container->getnelem(); ii++) {
     TrMCClusterR* cluster = (TrMCClusterR*) container->getelem(ii);
-    if (cluster) MCClusterTkIdMap.Add(cluster);
+    if (cluster){cluster->GenSimClusters(); MCClusterTkIdMap.Add(cluster);}
   }
 } 
 
 
-int TrSim::AddSimulatedClustersOnBuffer() {
+int TrSim::AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf,TrLadCal * _ladcal) {
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SITKDIGIa");
 #endif
-  char   sidename[2] = {'X','Y'};
+
   int nclusters = 0;
   // Loop on MC Cluster on the selected ladder 
   for(int icl=0; icl<MCClusterTkIdMap.GetNelem(_tkid); icl++) {
@@ -571,93 +616,6 @@ int TrSim::AddSimulatedClustersOnBuffer() {
       printf("TrSim::MCCluster\n");
       cluster->Print();
     }
-
-    AMSPoint glo = cluster->GetXgl();                // Coordinate [cm]
-    AMSPoint mom = cluster->GetMom();                // Momentum Vector [GeV/c]
-    double   edep = cluster->Sum()*1.e6;             // Energy Deposition [keV] 
-    double   momentum = mom.norm();                  // Momentum [GeV/C]
-    double   mass = _g3mass[cluster->GetPart()];     // Mass [GeV/c2] 
-    double   charge = _g3charge[cluster->GetPart()]; // Charge [unit of e]
-    if ( (mass==0)||(charge==0) ) {
-      if (WARNING) printf("TrSim::AddSimulatedClustersOnBuffer()-Warning No Mass/Charge for particle %d, check _g3mass and _g3charge tables",cluster->GetPart());
-      continue; 
-    }
-    if (momentum<1e-9) continue; // if momentum < eV/c!
-    AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
-    _glo2loc->SetGlobal(_tkid,glo,dir);                                         // from global to local
-    int  nsensor = _glo2loc->GetSensor();                                       // sensor number
-    double ip[2] = {_glo2loc->GetSensCoo().x(),  _glo2loc->GetSensCoo().y()};   // sensor impact point
-    double ia[2] = {_glo2loc->GetImpactAngleXZ(),_glo2loc->GetImpactAngleYZ()}; // sensor impact angle
-    if (VERBOSE)
-      printf("TrSim::MCCluster:More - loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",ip[0],ip[1],ia[0],ia[1],nsensor);
-      
-    // Loop on two Sides of the ladder
-    for (int iside=0; iside<2; iside++) {
-      if ( (ip[iside]<0.)||(ip[iside]>TkDBc::Head->_ssize_active[iside]) ) {
-        if (WARNING) printf("TrSim::sitkhits()-Warning %c coordinate out of the sensor (min=0, max=%7.4f, coo=%7.4f)\n",
-                            sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
-        continue;
-      }
-      TrSimCluster* simcluster = GetTrSimSensor(iside,_tkid)->MakeCluster(ip[iside],ia[iside],nsensor);
-      if (simcluster==0) continue; // it happens! 
-
-      // Adding some "intrinsic" noise
-      for (int ist=0; ist<simcluster->GetWidth(); ist++)
-        simcluster->SetSignal(ist,simcluster->GetSignal(ist) + rnormx()*TRMCFFKEY.TrSim2010_IntrNoise[iside]);
-
-      // 1. dE/dx normalize: angle (normalized to 300 um), Z (normalized to 1), beta (normalized to what?)   
-      double betagamma    = momentum/mass;
-      double beta         = betagamma/sqrt(1+pow(betagamma,2)); 
-      double gamma        = betagamma/beta; 
-      double betagammaref = 150/mass;
-      double betaref      = betagammaref/sqrt(1+pow(betagammaref,2));
-      double gammaref     = betagammaref/betaref;
-      double betacorr     = log10(gamma)*pow(betaref,2)/log10(gammaref)/pow(beta,2);
-      double z2           = charge*charge;
-      double costheta     = sqrt( 1./(1 + pow(tan(ia[0]),2.) + pow(tan(ia[1]),2.)) );
-      double edepnorm     = edep*costheta/(betacorr*z2);
-      // 2. MCtoRealDataNormalization (straight tracks z=1): MPV, real distribution
-      double ADC          = edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC();
-      if (TRMCFFKEY.TrSim2010_ADCConvType>1) {
-        ADC = GetTrSimSensor(iside,_tkid)->fromMCtoRealData(ADC); // using pdfs
-      }
-      // 3. Decoupling of normalization
-      ADC             = ADC*(z2*betacorr)/costheta;  
-      // 4. Gain correction (VA by VA)
-      if (TRMCFFKEY.TrSim2010_ADCConvType>2) {
-        TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(_tkid);
-        for (int ist=0; ist<simcluster->GetWidth(); ist++) {
-          int address = simcluster->GetAddress(ist);
-          int iva     = int(address/64);
-          simcluster->SetSignal(ist,simcluster->GetSignal(ist)/ladpar->GetGain(iside)/ladpar->GetVAGain(iva));
-        }
-      }
-      if (TRMCFFKEY.TrSim2010_ADCConvType==0) simcluster->Multiply(edep);
-      else                                    simcluster->Multiply(ADC);    
-      /*
-      printf("edep=%7.4f keV   edepnorm=%7.4f keV   ADC0=%7.4f  ADC1=%7.4f  ADC2=%7.4f\n",
-             edep,edepnorm,edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC(),
-             GetTrSimSensor(iside,_tkid)->fromMCtoRealData(edepnorm*GetTrSimSensor(iside,_tkid)->GetkeVtoADC()),
-             ADC);
-      */
-
-      if (VERBOSE) { 
-        printf("TrSim::SimCluster ADC=%f\n",ADC);
-        simcluster->Info(10);
-      }
-
-      // Putting cluster on the ladder buffer 
-      for (int ist=0; ist<simcluster->GetWidth(); ist++) {
-        int address = ist + simcluster->GetAddress() + 640*(1-iside); // address on buffer (P and N side together)
-
-	// sometimes address is out of range and cause crash
-	if (0 <= address && address < 1024)
-	  _ladbuf[address] += simcluster->GetSignal(ist);
-        
-      }
-      nclusters++;
-      if (simcluster) delete simcluster;  
-    }
   }
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("SITKDIGIa");
@@ -666,24 +624,9 @@ int TrSim::AddSimulatedClustersOnBuffer() {
 }
 
 
-int TrSim::BuildTrRawClustersWithDSP() {
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("SITKDIGIb");
-#endif
-
-  int nclusters = 0;
-  nclusters += BuildTrRawClustersOnSide(0);
-  nclusters += BuildTrRawClustersOnSide(1); 
-
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop("SITKDIGIb");
-#endif
-
-  return nclusters;
-}
 
 
-int TrSim::BuildTrRawClustersOnSide(int iside) {
+int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal* _ladcal,double * _ladbuf) {
   // Does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont){
@@ -774,7 +717,7 @@ int TrSim::BuildTrRawClustersOnSide(int iside) {
 }
 
 
-void TrSim::PrintBuffer() {
+void TrSim::PrintBuffer(double *_ladbuf) {
   for (int ii=0; ii<64; ii++) {
     for (int jj=0; jj<16; jj++) {
       printf("%5.2f ",_ladbuf[ii*16+jj]);
@@ -783,3 +726,23 @@ void TrSim::PrintBuffer() {
   }
 }
 
+
+
+
+int TrSim::AddSimClusterNew(TrMCClusterR* cluster, double* _ladbuf){
+  int nclusters=0;
+  // Loop on two Sides of the ladder
+  for (int iside=0; iside<2; iside++) {
+    TrSimCluster* simcluster = cluster->GetSimCluster(iside);
+    if (simcluster==0) continue; // it happens! 
+    // Putting cluster on the ladder buffer 
+    for (int ist=0; ist<simcluster->GetWidth(); ist++) {
+      int address = ist + simcluster->GetAddress() + 640*(1-iside); // address on buffer (P and N side together)
+      // sometimes address is out of range and cause crash
+      if (0 <= address && address < 1024)
+	_ladbuf[address] += simcluster->GetSignal(ist); 
+    }
+    nclusters++;
+  }
+  return nclusters;  
+}

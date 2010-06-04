@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.6 2010/04/02 10:34:51 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.7 2010/06/04 18:04:11 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2010/04/02 10:34:51 $
+///$Date: 2010/06/04 18:04:11 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -24,6 +24,7 @@
 
 #include "TObject.h"
 
+class TrSimCluster;
 
 
 class TrMCClusterR: public TrElem {
@@ -53,9 +54,9 @@ protected:
   //! Status word
   int Status;
 
-
+  //! Pointer for the the cluster (0-N side, 1-P side);
+  TrSimCluster* simcl[2]; //!
   static int _NoiseMarker;
-
 
 public:
 
@@ -64,12 +65,9 @@ public:
   TrMCClusterR(){}
   //! Constructor for a digitized hit
   TrMCClusterR(int idsoft, AMSPoint xca, 
-		 AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra)
-    : _idsoft(idsoft), _itra(itra), _xca(xca), _xcb(xcb), 
-      _xgl(xgl), _Momentum(mom), _sum(sum) {
-    _shower();
-  }
-  virtual ~TrMCClusterR(){}
+	       AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra);
+
+  virtual ~TrMCClusterR();
 
 //####################  ACCESSORS  ###########################
 
@@ -101,10 +99,19 @@ public:
   unsigned int getstatus  (void)  const { return Status; }
   void setstatus  (unsigned int s) { Status |=  s; }
   void clearstatus(unsigned int s) { Status &= ~s; }
+  //! return a pointer to the simulated clusters
+  TrSimCluster* GetSimCluster(int side) {
+    if(side!=0 && side!=1) return 0;
+    if (simcl[0]==0||simcl[1]==0) GenSimClusters();
+    return simcl[side];
+  }
+  //! Force the creation of the simulated clusters objects TrSim_2010
+  void GenSimClusters();
+  //! Generates the strip distribution (old model)
+  void _shower();
+
 
 protected:
-  //! Generates the strip distribution 
-  void _shower();
   static float strip2x(int tkid, int side, int strip, int mult);
 
   // Functions imported from tkmccl.F
@@ -135,7 +142,7 @@ public:
   char* Info(int iRef);
 
   /// ROOT definition
-  ClassDef(TrMCClusterR,1);
+  ClassDef(TrMCClusterR,2);
 
 };
 

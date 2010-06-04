@@ -53,46 +53,26 @@ class TrSim {
 
  private:
 
-  //! Self pointer 
-  static TrSim* Head;
-
-  //! Sensor map
-  vector<TrSimSensor*> _sensors;
-  //! TkId of current ladder
-  int       _tkid;
-  //! Calibration of current ladder
-  TrLadCal* _ladcal;
-  //! Buffer to expand signal of current ladder
-  double    _ladbuf[1024];
-  //! Global 2 Local coordinate
-  TkSens*   _glo2loc;
-
   //! A map for the MC Cluster search
-  TrMap<TrMCClusterR> MCClusterTkIdMap;
-
-  //! Particle List (the 18/05/2010 one)
-  static float _g3mass[213];
-  static float _g3charge[213];
-
- public:
+  static TrMap<TrMCClusterR> MCClusterTkIdMap;
+  
+public:
 
   ////////////////////////
   // Common Methods 
   ////////////////////////
 
   //! Constructor (simulator initialization)
-  TrSim();
+  TrSim(){}
   //! Destructor 
-  ~TrSim() {}
-  //! GetHead (constructor or getter ...)
-  static TrSim* GetHead();
+  ~TrSim() {MCClusterTkIdMap.Clear();}
 
   //! Build the TrMCCluster (one per side, if (SkipRawSim!=1)) 
-  void sitkhits(int idsoft, float vect[], float edep, float step, int itra);
+  static void sitkhits(int idsoft, float vect[], float edep, float step, int itra);
   //! Generate Non Gaussians Noise Cluster (dummy for the moment)
-  void sitknoise(){}
+  static  void sitknoise(){}
   //! Generate the TrRawClusters from the TrMCCluster and from a calibration
-  void sitkdigi();
+  static  void sitkdigi();
   //! DSP behaviour
   static void DSP_Clusterize(int tkid,float *buf);  
 
@@ -108,7 +88,7 @@ class TrSim {
   ////////////////////////
 
   //! Fast simulation (generate TrRawCluster directly from Geant infos) 
-  void gencluster(int idsoft, float vect[], float edep, float step, int itra);
+  static void gencluster(int idsoft, float vect[], float edep, float step, int itra);
   
   //! Impact positions
   static AMSPoint sitkrefp[trconst::maxlay];
@@ -121,25 +101,23 @@ class TrSim {
   // Methods for TrSim2010
   ////////////////////////
 
-  //! Get the sensor simulator for a given ladder/side
-  TrSimSensor* GetTrSimSensor(int side, int tkid);
-
   //! Makes the TrRawClusters starting from the MC clusters
-  int  BuildTrRawClusters();
-  //! Makes the TrRawClusters starting from the ladder buffer (1024 strips)
-  int  BuildTrRawClustersWithDSP();
-  //! Makes the TrRawClusters starting from the ladder buffer for a side (0: n-side, 1: p-side)
-  int  BuildTrRawClustersOnSide(int iside);
+  static   int  BuildTrRawClusters();
+  //! Makes the TrRawClusters starting from the ladder buffer (1024 strips)(0: n-side, 1: p-side)
+  static int BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal* _ladcal,double * _ladbuf);
+
   //! Create the MC Cluster TkId map
-  void CreateMCClusterTkIdMap();
-  //! Clean the ladder buffer 
-  void CleanBuffer();
+  static   void CreateMCClusterTkIdMap();
   //! Print buffer
-  void PrintBuffer();
+  static   void PrintBuffer(double *_ladbuf);
   //! Add noise of the TkId ladder on the ladder buffer (from current calibration)
-  void AddNoiseOnBuffer();
+  static   void AddNoiseOnBuffer(double* _ladbuf,TrLadCal * _ladcal);
   //! Produce clusters and put them on the ladder buffer 
-  int  AddSimulatedClustersOnBuffer();
+  static   int  AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf,TrLadCal * _ladcal);
+
+
+
+  static int AddSimClusterNew(TrMCClusterR* cluster,double* _ladbuf);
 
 };
 

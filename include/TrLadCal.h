@@ -138,7 +138,7 @@ public:
   /// Get ii-th strip sigma-pedestal ADC value
   geant SigmaRaw(int ii)   { return _getnum(_SigmaRaw,ii);}
   /// Get ii-th status 
-  short int Status(int ii) { return _getnum(_Status,ii);}
+  short int Status(int ii)  { return _getnum(_Status,ii);}
   /// Get the occupancy table entry ii
   unsigned short int Occupancy(int ii) { return _getnum(_Occupancy,ii);}
   ///Get CN mean

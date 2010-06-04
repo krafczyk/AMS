@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.22 2010/05/24 14:13:11 pzuccon Exp $
+//  $Id: event_tk.C,v 1.23 2010/06/04 18:04:02 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -377,7 +377,7 @@ void AMSEvent::_retkinitrun(){
 
 void AMSEvent:: _sitkevent(){
   // printf("AMSEvent:: _sitkevent()\n");
-  TrSim::GetHead()->sitkdigi();
+  TrSim::sitkdigi();
 
   //PZ FIXME NOISE SIMULATION bool fastrigger= TOF2RawSide::GlobFasTrigOK();
   //if(TRMCFFKEY.NoiseOn && fastrigger )AMSTrMCCluster::sitknoise();
