@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.273 2010/06/01 13:08:28 mmilling Exp $
+//  $Id: root.h,v 1.274 2010/06/04 12:36:47 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -38,11 +38,7 @@
 #ifdef _PGTRACK_
 #include "trrec.h"
 #endif
-//#include "trdsim.h"
 #include "trdhrec.h"
-//#include "TrdRawHit.h"
-//#include "TrdHSegment.h"
-//#include "TrdHTrack.h"
 
 using namespace std;
 #ifdef __SLC3__
@@ -1375,6 +1371,7 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 
   vector<int> fTrdRawHit;
   int NTrdRawHit()const {return fTrdRawHit.size();}
+  int nTrdRawHit()const {return fTrdRawHit.size();}
   int iTrdRawHit(unsigned int i){return i<fTrdRawHit.size()?fTrdRawHit[i]:-1;}
   TrdRawHitR * pTrdRawHit(unsigned int i);
   friend class AMSTRDHSegment;
@@ -1443,27 +1440,24 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 /// TrdHTrackR structure
 /*!
  \author mark.millinger@cern.ch
-
 */
 /*
 class TrdHTrackR {
 static char _Info[255];
  public:
   int   Nhits;   ///< Number of Hits
-  float Phi;     ///< phi (rads)
-  float Theta;   ///< Theta
-  float EPhi;    ///< error on phi (rads)
-  float ETheta;  ///< error on Theta
   float Chi2;    ///< Chi2
   float Coo[3];  ///< Coo (cm)
   float Dir[3];  ///< Dir
   int   status;
+  float Theta(){ return acos(Dir[2]);}
  protected:
   vector<int> fTrdHSegment;
 public:
   /// access function to TrdSegmentR objects used
   /// \return number of TrdSegmentR used
   int NTrdHSegment()const {return fTrdHSegment.size();}
+  int nTrdHSegment()const {return fTrdHSegment.size();}
   /// access function to TrdSegmentR objects used
   /// \param i index of fTrdSegment vector
   /// \return index of TrdSegmentR object in collection or -1
@@ -1483,6 +1477,8 @@ public:
     sprintf(_Info,"TrdHTrack No %d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits}=%d",number,Coo[0],Coo[1],Coo[2],Theta,Phi,Chi2,Nhits);
     return _Info;
   }
+
+
   friend class AMSTRDHTrack;
   friend class AMSEventR;
   virtual ~TrdHTrackR(){};

@@ -111,7 +111,7 @@ vector<TrdHSegmentR*> TrdHReconR::DoLinReg(vector<PeakXYZW> *segvec_x,vector<Pea
 	if(debug>0)printf("d %i hit %i r %.2f expos %.2f resid %f < %f ok %i\n",d,h,rzd.r,expos,resid,maxresid,fabs(resid)<maxresid);
 	
 	if(fabs(resid)<maxresid)
-	  seg->fTRDRawHit.push_back(h);
+	  seg->fTrdRawHit.push_back(h);
       }
       seg->Nhits=seg->nTrdRawHit();
       
@@ -121,7 +121,7 @@ vector<TrdHSegmentR*> TrdHReconR::DoLinReg(vector<PeakXYZW> *segvec_x,vector<Pea
       while(lr>=0){
 	lr=seg->LinReg();
 	int n0=seg->nTrdRawHit();
-	seg->fTRDRawHit.clear();
+	seg->fTrdRawHit.clear();
 
 	for(int h=0;h!=nrh;h++){	
 	  TRDHitRZD rzd=TRDHitRZD((TrdRawHitR*)rhits[h]);
@@ -133,7 +133,7 @@ vector<TrdHSegmentR*> TrdHReconR::DoLinReg(vector<PeakXYZW> *segvec_x,vector<Pea
 	  
 	  if(debug>0)printf("Lin Reg residuals %.2f < %.2f %i (dz %.2f em %.2e)\n",resid,maxresid,fabs(resid)<maxresid,rzd.z-seg->z,seg->em);
 	  if(fabs(resid)<maxresid)
-	    seg->fTRDRawHit.push_back(h);
+	    seg->fTrdRawHit.push_back(h);
 	  
 	}
 	
@@ -243,7 +243,7 @@ vector<TrdHSegmentR*> TrdHReconR::clean_segvec(vector<TrdHSegmentR*> vec,int deb
 	else if(s1_Chi2ndof==0.)keepseg[s1]=0;
 	else if(s2_Chi2ndof>s1_Chi2ndof){
 	  if(debug>0)printf("Refit s2\n");
-	  for(int i=n2-1;i>=0;i--) if(hiter2[i]==1) vec[s2]->fTRDRawHit.erase(vec[s2]->fTRDRawHit.begin()+i);
+	  for(int i=n2-1;i>=0;i--) if(hiter2[i]==1) vec[s2]->fTrdRawHit.erase(vec[s2]->fTrdRawHit.begin()+i);
 	  if(debug>0)printf("refit hit size %i -> %i\n",vec[s2]->Nhits,vec[s2]->nTrdRawHit());
 	  if(vec[s2]->nTrdRawHit()>2){
 	    TrdHSegmentR *seg=vec[s2]->Refit(debug);
@@ -254,7 +254,7 @@ vector<TrdHSegmentR*> TrdHReconR::clean_segvec(vector<TrdHSegmentR*> vec,int deb
 	}
 	else {
 	  if(debug)printf("Refit s1\n");
-	  for(int i=n1-1;i>=0;i--) if(hiter1[i]==1) vec[s1]->fTRDRawHit.erase(vec[s1]->fTRDRawHit.begin()+i);
+	  for(int i=n1-1;i>=0;i--) if(hiter1[i]==1) vec[s1]->fTrdRawHit.erase(vec[s1]->fTrdRawHit.begin()+i);
 	  if(debug>0)printf("refit hit size %i -> %i\n",vec[s1]->Nhits,vec[s1]->nTrdRawHit());
 	  if(vec[s1]->nTrdRawHit()>2){
 	    TrdHSegmentR *seg=vec[s1]->Refit(debug);

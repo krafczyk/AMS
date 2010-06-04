@@ -161,7 +161,7 @@ class TrdHSegmentR{
   float      Chi2;
   
   /// vector of RawHits on segment
-  vector<int> fTRDRawHit;
+  vector<int> fTrdRawHit;
 
   /// return number of hits
   int NTrdRawHit();

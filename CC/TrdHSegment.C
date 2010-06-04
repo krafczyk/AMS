@@ -2,10 +2,10 @@
 
 ClassImp(TrdHSegmentR)
 
-int TrdHSegmentR::NTrdRawHit(){return fTRDRawHit.size();};
-int TrdHSegmentR::nTrdRawHit(){return fTRDRawHit.size();};
-int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<fTRDRawHit.size()?fTRDRawHit[i]:-1;};
-TrdRawHitR * TrdHSegmentR::pTrdRawHit(unsigned int i){ return ( i<trdhrecon.rhits.size())?trdhrecon.rhits[fTRDRawHit[i]]:0;};
+int TrdHSegmentR::NTrdRawHit(){return fTrdRawHit.size();};
+int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
+int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<fTrdRawHit.size()?fTrdRawHit[i]:-1;};
+TrdRawHitR * TrdHSegmentR::pTrdRawHit(unsigned int i){ return ( i<trdhrecon.rhits.size())?trdhrecon.rhits[fTrdRawHit[i]]:0;};
 
 TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){};
 
@@ -28,9 +28,9 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
   em=seg->em;
   er=seg->er;
   Nhits=seg->Nhits;
-  fTRDRawHit.clear();
+  fTrdRawHit.clear();
   for(int i=0;i!=seg->nTrdRawHit();i++){
-    fTRDRawHit.push_back(seg->iTrdRawHit(i));
+    fTrdRawHit.push_back(seg->iTrdRawHit(i));
   }
   calChi2();
 };
@@ -38,7 +38,7 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
 void TrdHSegmentR::SetHits(int Nhits_, TrdRawHitR* pthit[]){
   for(int i=0;i!=Nhits_;i++){
     for(int j=0;j!=trdhrecon.rhits.size();j++)
-      if(pthit[i]&&pthit[i]==trdhrecon.rhits[j])fTRDRawHit[i]=j;
+      if(pthit[i]&&pthit[i]==trdhrecon.rhits[j])fTrdRawHit[i]=j;
   }
 }
   

@@ -23,7 +23,7 @@ class TrdHTrackR{
   /// Track fit status (1 - only TRD, 2- only TRD & matching TKtrack found, 3 - TRD fitted according to TKtrack)
   int status;
 
-  vector<int> fTRDHSegment;
+  vector<int> fTrdHSegment;
   
   /// return number of segments (should be 2)
   int NTrdHSegment();
@@ -46,34 +46,34 @@ class TrdHTrackR{
   TrdHTrackR(TrdHTrackR *tr);
   
   /// return zenith angle (0 - upwards, pi - downwards)
-  float Theta();
+  float Theta ();
 
   /// return error on zenith angle
-  float ETheta(int debug=0);
+  float ETheta (int debug=0);
 
   /// return azimuth angle (0 - positoive x direction)
-  float Phi();
+  float Phi ();
 
   /// return error on azimuth angle (0 - positoive x direction)
-  float EPhi(int debug=0);
+  float EPhi (int debug=0);
 
   /// return slope in xz-projection
-  float mx();
+  float mx ();
 
   /// return error on slope in xz-projection
-  float emx();
+  float emx ();
 
   /// return slope in yz-projection
-  float my();
+  float my ();
 
   /// return error on slope in yz-projection
-  float emy(int debug=0);
+  float emy (int debug=0);
 
   /// return error on position in xz-projection
-  float ex();
+  float ex ();
 
   /// return error on position in yz-projection
-  float ey();
+  float ey ();
 
   /// set segment pointers
   void SetSegment(TrdHSegmentR* segx, TrdHSegmentR* segy);

@@ -31,13 +31,13 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
     Dir[i]=tr->Dir[i];
   }
   for(int i=0;i!=2;i++){
-    fTRDHSegment.push_back(tr->fTRDHSegment[i]);
+    fTrdHSegment.push_back(tr->fTrdHSegment[i]);
   }
 };
 
-int TrdHTrackR::NTrdHSegment() {return fTRDHSegment.size();}
-int TrdHTrackR::nTrdHSegment() {return fTRDHSegment.size();}
-int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<fTRDHSegment.size())?fTRDHSegment[i]:-1;}
+int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();}
+int TrdHTrackR::nTrdHSegment() {return fTrdHSegment.size();}
+int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<fTrdHSegment.size())?fTrdHSegment[i]:-1;}
 TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){return (i<trdhrecon.hsegvec.size())?trdhrecon.hsegvec[iTrdHSegment(i)]:0;}
 
 
@@ -117,8 +117,8 @@ float TrdHTrackR::mx(){
 
  void TrdHTrackR::SetSegment(TrdHSegmentR* segx, TrdHSegmentR* segy){
    int foundx=0,foundy=0;
-   for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(trdhrecon.hsegvec[i]==segx){fTRDHSegment.push_back(i);foundx=1;}
-   for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(trdhrecon.hsegvec[i]==segy){fTRDHSegment.push_back(i);foundy=1;}
+   for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(trdhrecon.hsegvec[i]==segx){fTrdHSegment.push_back(i);foundx=1;}
+   for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(trdhrecon.hsegvec[i]==segy){fTrdHSegment.push_back(i);foundy=1;}
    if(foundx!=1||foundy!=1){
      printf("segment found? x %i y %i\n",foundx,foundy);
    }
