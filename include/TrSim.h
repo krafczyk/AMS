@@ -113,7 +113,7 @@ public:
   //! Add noise of the TkId ladder on the ladder buffer (from current calibration)
   static   void AddNoiseOnBuffer(double* _ladbuf,TrLadCal * _ladcal);
   //! Produce clusters and put them on the ladder buffer 
-  static   int  AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf,TrLadCal * _ladcal);
+  static   int  AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf);
 
 
 

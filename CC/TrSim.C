@@ -506,6 +506,7 @@ int TrSim::BuildTrRawClusters() {
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("SITKDIGIb");
 #endif  
+    int nclu=0;
   // Loop on all the Ladders 
   for (int ientry=0; ientry<TkDBc::Head->GetEntries(); ientry++) { 
     TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
@@ -522,11 +523,15 @@ int TrSim::BuildTrRawClusters() {
     //Create the ladder buffer and intialize it 
     double    _ladbuf[1024];
     memset(_ladbuf,0,1024*sizeof(_ladbuf[0]));
+    nclu=0;
     if(MCClusterTkIdMap.GetNelem(_tkid)>0)
-      AddSimulatedClustersOnBuffer(_tkid,_ladbuf,_ladcal);
-    if(  TRMCFFKEY.TrSim2010_NoiseType  != 1) continue;
+      nclu=AddSimulatedClustersOnBuffer(_tkid,_ladbuf);
     
-    AddNoiseOnBuffer(_ladbuf,_ladcal);
+    if(nclu>0 ||  TRMCFFKEY.TrSim2010_NoiseType  == 1) 
+      AddNoiseOnBuffer(_ladbuf,_ladcal);
+      
+    else continue;
+    
 
 
     
@@ -601,7 +606,7 @@ void TrSim::CreateMCClusterTkIdMap() {
 } 
 
 
-int TrSim::AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf,TrLadCal * _ladcal) {
+  int TrSim::AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf) {
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SITKDIGIa");
 #endif
@@ -615,6 +620,23 @@ int TrSim::AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf,TrLadCal * _la
     if (VERBOSE) {
       printf("TrSim::MCCluster\n");
       cluster->Print();
+    }
+
+    for (int iside=0; iside<2; iside++) {
+      TrSimCluster* simcluster=cluster->GetSimCluster(iside);
+      if(simcluster==0) continue;
+
+      // Putting cluster on the ladder buffer 
+      for (int ist=0; ist<simcluster->GetWidth(); ist++) {
+	int address = ist + simcluster->GetAddress() + 640*(1-iside); // address on buffer (P and N side together)
+
+	// sometimes address is out of range and cause crash
+	if (0 <= address && address < 1024)
+	  _ladbuf[address] += simcluster->GetSignal(ist);
+
+      }
+      nclusters++;
+
     }
   }
 #ifndef __ROOTSHAREDLIBRARY__
