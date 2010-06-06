@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.78 2010/04/27 08:04:19 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.79 2010/06/06 08:12:39 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1015,7 +1015,6 @@ void TOF2Brcal::tmd2p(number tmf[2], number amf[2], int hlf,
     q2a2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
     uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
   }
-//  uv=0.;//tempor
   coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);
   if(tmf[0]==tmf[1])coo=0;  // vc 15.04.08
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
@@ -1572,6 +1571,10 @@ geant TOF2JobStat::tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];
     assert(i>=0 && i< TOF2GC::SCJSTA);
 #pragma omp critical (addre) 
     recount[i]+=1;
+  }
+  integer TOF2JobStat::getre(int i){
+    assert(i>=0 && i< TOF2GC::SCJSTA);
+    return recount[i];
   }
   void TOF2JobStat::addch(int chnum, int i){
     assert(chnum>=0 && i>=0);

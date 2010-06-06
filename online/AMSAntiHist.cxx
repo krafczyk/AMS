@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.cxx,v 1.13 2008/07/04 14:06:48 choumilo Exp $
+//  $Id: AMSAntiHist.cxx,v 1.14 2010/06/06 08:12:52 choumilo Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream>
@@ -80,35 +80,35 @@ void AMSAntiHist::Book(){
 //
   AddSet("Anti-Edep");//set-2
   
-  _filled.push_back(new TH1F("antih9","Sector-1 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih9","Sector-1 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih10","Sector-2 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih10","Sector-2 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih11","Sector-3 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih11","Sector-3 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih12","Sector-4 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih12","Sector-4 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih13","Sector-5 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih13","Sector-5 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih14","Sector-6 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih14","Sector-6 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih15","Sector-7 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih15","Sector-7 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
   
-  _filled.push_back(new TH1F("antih16","Sector-8 Edep(FTcoincEvents,1paired t-hit)",100,0.,150.));
+  _filled.push_back(new TH1F("antih16","Sector-8 Edep(FTcoincEvents,1paired t-hit)",100,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Energy deposition (Mev)");
   _filled[_filled.size()-1]->SetFillColor(3);
 //-----------  
@@ -129,7 +129,7 @@ void AMSAntiHist::Book(){
   for (int j = 0; j < kNants; j++){
      sprintf(hname,"antih%2d",hbias[4]+j);
      sprintf(title,"ACCTrigPatt efficiency, Sector=%1d",j+1);
-    _filled.push_back(new TProfile(hname,title,75,0.,300.,0.,1.1));
+    _filled.push_back(new TProfile(hname,title,50,0.,750.,0.,1.1));
     _filled[_filled.size()-1]->SetYTitle("Efficiency");
     _filled[_filled.size()-1]->SetXTitle("Sector signal(adc-channels)");
     _filled[_filled.size()-1]->SetFillColor(44);
@@ -239,7 +239,7 @@ case 3:
   _filled[17]->SetBinContent(3,AntiPars::getstat(2));
   xax->SetBinLabel(4,"+FTcoinc");
   _filled[17]->SetBinContent(4,AntiPars::getstat(3));
-  xax->SetBinLabel(5,"+Paired");
+  xax->SetBinLabel(5,"+2Sides");
   _filled[17]->SetBinContent(5,AntiPars::getstat(4));
   xax->SetBinLabel(6," ");
   _filled[17]->SetBinContent(6,0);
@@ -508,11 +508,12 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   int swid,sect,side,stat,tdct[2][kNants][16],ftdc[2][kNants][8];
   Int_t ntdct[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Int_t nftdc[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  Float_t ampl,temper,mxtemp(-273),mntemp(9999);
+  Float_t ampl,temper,mxtemp(-273),mntemp(9999),ampls[2]={0,0};
   Int_t nhmin(999),nhmax(0),nhnonz(0);
   Float_t nhavr(0);
   Float_t adca[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Float_t temp[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  Int_t FtCoinc[2][kNants]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   
   for(is=0;is<nantrs;is++){//<-- loop over RawSide-objects
     p2raws=ntuple->pAntiRawSide(is);
@@ -537,16 +538,8 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     if(temp[side][sect]>mxtemp)mxtemp=temp[side][sect];
   }
   if(nhnonz>0)nhavr/=nhnonz;
-//--->AccTrigPatt Eff:
-  for(is=0;is<kNants;is++){//<-- loop over sectors
-    ampl=0;
-    if(adca[0][is]>0 || adca[1][is]>0){
-      ampl=adca[0][is];
-      if(ampl<adca[1][is])ampl=adca[1][is];
-      ((TProfile*)_filled[hbias[4]+is])->Fill(ampl,(AntiPars::patbcheck(is,antipat)?1:0),1.);//bitpatt eff
-    }
-  }
-//FT-time(sect=1/5)
+//-------->AccTrigPatt Eff:
+//FT-Time correlation(sect=1/5 only)
   for(i=0;i<2;i++){//side loop
     if(nftdc[i][0]==1 && ntdct[1][0]==1){//sect-1
       dt=(ftdc[i][0][0]-tdct[i][0][0])*kTDCbin;
@@ -555,6 +548,28 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     if(nftdc[i][4]==1 && ntdct[1][4]==1){//sect-5
       dt=(ftdc[i][4][0]-tdct[i][4][0])*kTDCbin;
       _filled[hbias[6]+2*i+1]->Fill(dt,1.);
+    }
+  }
+//make coinc-map:
+  for(int sec=0;sec<kNants;sec++){//<-- loop over sectors
+    for(i=0;i<2;i++){//side loop
+      if(nftdc[i][sec]>0){
+        for(ih=0;ih<nftdc[i][sec];ih++){
+          dt=(ftdc[i][sec][0]-tdct[i][sec][ih])*kTDCbin;
+	  if(dt<190 && dt>80)FtCoinc[i][sec]=1;
+	}
+      }
+    }
+  }
+//check acc trig.patt.bits correlation:
+  for(is=0;is<kNants;is++){//<-- loop over sectors
+    ampl=0;
+    if((adca[0][is]>0 && FtCoinc[0][is]==1) || (adca[1][is]>0 && FtCoinc[1][is]==1)){
+      if(adca[0][is]>0 && FtCoinc[0][is]==1)ampls[0]=adca[0][is];
+      if(adca[1][is]>0 && FtCoinc[1][is]==1)ampls[1]=adca[1][is];
+      ampl=ampls[0];
+      if(ampl<ampls[1])ampl=ampls[1];//take max ampl
+      ((TProfile*)_filled[hbias[4]+is])->Fill(ampl,(AntiPars::patbcheck(is,antipat)?1:0),1.);//bitpatt eff
     }
   }
 //---------------------

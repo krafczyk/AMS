@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.32 2009/08/17 12:59:36 pzuccon Exp $
+//  $Id: AMSTOFHist.cxx,v 1.33 2010/06/06 08:12:52 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -75,7 +75,7 @@ public:
 void AMSTOFHist::Book(){ 
   RunPar::init();//clear counters
   RunPar::SetMCF0();//set def(real data)
-//
+//set-0
   AddSet("TOFMultiplicity");
   
   _filled.push_back(new TH1F("tofh0","TOF:TotalPaddles",40,0.,40.));
@@ -93,7 +93,7 @@ void AMSTOFHist::Book(){
   _filled.push_back(new TH1F("tofh3","TOF:Paddles/cluster(UsedByBeta)",3,0.,3.));
   _filled[_filled.size()-1]->SetXTitle("Npaddles");
   _filled[_filled.size()-1]->SetFillColor(8);
-//  
+//set-1  
   AddSet("TofBetaParameters");
   
   _filled.push_back(new TH1F("tofh4","TofBeta Chi2space",50,0.,10.));
@@ -108,37 +108,37 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("0->4Layers, 1-4->miss(4-1), 5:1+3, 6:1+4, 7:2+3, 8:2+4, 9:1+2");
   _filled[_filled.size()-1]->SetFillColor(8);
   
-  _filled.push_back(new TH1F("tofh7","TofBeta",600,-1.5,1.5));
+  _filled.push_back(new TH1F("tofh7","TofBeta",480,-1.2,1.2));
   _filled[_filled.size()-1]->SetXTitle("Velocity/C");
   _filled[_filled.size()-1]->SetFillColor(8);
   
-//  
+//set-2  
   AddSet("TrkParameters");
 
-  _filled.push_back(new TH1F("tofh8","TRKClusters",50,0.,100.));
-  _filled[_filled.size()-1]->SetXTitle("RawClusters per event");
-  _filled[_filled.size()-1]->SetFillColor(6);
+  _filled.push_back(new TH1F("tofh8","TRKClusters",75,0.,150.));
+  _filled[_filled.size()-1]->SetXTitle("Clusters per event");
+  _filled[_filled.size()-1]->SetFillColor(9);
   
   _filled.push_back(new TH1F("tofh9","TRKChi2(FastFit)",80,0.,80.));
   _filled[_filled.size()-1]->SetXTitle("Chi2");
-  _filled[_filled.size()-1]->SetFillColor(6);
+  _filled[_filled.size()-1]->SetFillColor(9);
   
-  _filled.push_back(new TH1F("togh10","TRKChi2sz",50,0.,15.));
+  _filled.push_back(new TH1F("togh10","TRKChi2sz",50,0.,5.));
   _filled[_filled.size()-1]->SetXTitle("chi2");
-  _filled[_filled.size()-1]->SetFillColor(6);
+  _filled[_filled.size()-1]->SetFillColor(9);
   
-  _filled.push_back(new TH1F("tofh11","TRKChi2(FastFit,NoMScat)",50,0.,1000.));
+  _filled.push_back(new TH1F("tofh11","TRKChi2(FastFit,NoMScat)",50,0.,500.));
   _filled[_filled.size()-1]->SetXTitle("chi2");
-  _filled[_filled.size()-1]->SetFillColor(6);
+  _filled[_filled.size()-1]->SetFillColor(9);
   
   _filled.push_back(new TH1F("tofh12","TRKHalfRigAss",50,-1.,1.));
   _filled[_filled.size()-1]->SetXTitle("ass=r1-r2/r1+r2");
-  _filled[_filled.size()-1]->SetFillColor(6);
+  _filled[_filled.size()-1]->SetFillColor(9);
   
-  _filled.push_back(new TH1F("tofh13","TRK dR/R(FastFit)",50,0.,0.25));
+  _filled.push_back(new TH1F("tofh13","TRK dR/R(FastFit)",50,0.,0.2));
   _filled[_filled.size()-1]->SetXTitle("RigidityErr/Rigidity");
-  _filled[_filled.size()-1]->SetFillColor(6);
-//  
+  _filled[_filled.size()-1]->SetFillColor(9);
+//set-3  
   AddSet("LongitTofTrkMatching");
 
   _filled.push_back(new TProfile("tofh14","LongTofCoord-TrkCross, Layer1",8,1,9,-10,10));
@@ -157,7 +157,7 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TofPadNumber");
   _filled[_filled.size()-1]->SetYTitle("AverageMismatch(cm)");
 //
-//  
+//set-4  
   AddSet("TofResponceUniformity");
 
   _filled.push_back(new TH1F("tofh18","TofTruncEdep(pass/mip-norm)",200,0.,50.));
@@ -183,13 +183,13 @@ void AMSTOFHist::Book(){
   _filled.push_back(new TProfile("tofh23","Edep(aver,mip)<->longCoo, id=204",13,-65,65,0.1,8));
   _filled[_filled.size()-1]->SetXTitle("TofLongCoord(cm)");
   _filled[_filled.size()-1]->SetYTitle("NormEdep(Mev)");
-//
+//set-5
   AddSet("RecoStagesEff");
   
   _filled.push_back(new TH1F("tofh24","RecoStagesEfficiency",21,1.,22.));
   _filled[_filled.size()-1]->SetYTitle("efficiency");
   _filled[_filled.size()-1]->SetFillColor(44);
-//
+//set-6
   AddSet("TofTimeStability");
   
     _filled.push_back(new TProfile("tofh25","LBBS=1041 TimeHits/side vs Time",120,0,toftrange[tofscales[0]],0,16));
@@ -206,6 +206,101 @@ void AMSTOFHist::Book(){
   
     _filled.push_back(new TProfile("tofh29","LBBS=1041 AverTemperature vs Time",120,0,toftrange[tofscales[4]],-40,40));
     _filled[_filled.size()-1]->SetYTitle("Temperature(degree)");
+//----
+//set-7
+  AddSet("TofOccupancy-1");
+  
+  _filled.push_back(new TH1F("tofh30","TOF-pads AmplCh-activity map (Anode,Side1)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+   
+  _filled.push_back(new TH1F("tofh31","TOF-pads TimeCh-activity map (Side1)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+   
+  _filled.push_back(new TH1F("tofh32","TOF-pads (Ampl+Time)Ch-activity map (Side1)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+   
+  _filled.push_back(new TH1F("tofh33","TOF-pads AmplCh-activity map (Anode,Side2)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+   
+  _filled.push_back(new TH1F("tofh34","TOF-pads TimeCh-activity map (Side2)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+   
+  _filled.push_back(new TH1F("tofh35","TOF-pads (Ampl+Time)Ch-activity map (Side2)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+//set-8  
+  AddSet("TofOccupancy-2");
+  
+  _filled.push_back(new TH1F("tofh36","TOF-pads DynodeCh-activity map(Aanode>thr,Side1)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH2F("tofh37","Tof Time-channel occupancy(side1)",40,0.,40.,16,0.,16.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetYTitle("Hits/channel/event");
+   
+  _filled.push_back(new TH1F("tofh38","TOF-pads DynodeCh-activity map(Aanode>thr,Side2)",40,0.,40.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH2F("tofh39","Tof Time-channel occupancy(side2)",40,0.,40.,16,0.,16.));
+  _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
+  _filled[_filled.size()-1]->SetYTitle("Hits/channel/event");
+   
+//set-9  
+  AddSet("TofChargeMass");
+  
+  _filled.push_back(new TH2F("tofh40","Tof Edep(Truncated-1, Beta>0)",50,0.2,1.2,80,0.,48.));
+  _filled[_filled.size()-1]->SetXTitle("TofVelocity/LightVelocity");
+  _filled[_filled.size()-1]->SetYTitle("Edep(mev)");
+  
+  _filled.push_back(new TH2F("tofh41","Tof Edep(Truncated-1, Beta<0)",50,0.2,1.2,80,0.,48.));
+  _filled[_filled.size()-1]->SetXTitle("TofVelocity/LightVelocity");
+  _filled[_filled.size()-1]->SetYTitle("Edep(mev)");
+  
+  _filled.push_back(new TH2F("tofh42","Tof Edep(Truncated-1,betcorr)",10,0.5,10.5,80,0.,16.));
+  _filled[_filled.size()-1]->SetXTitle("TofCharge");
+  _filled[_filled.size()-1]->SetYTitle("SQRT[Edep(mev)]");
+  
+  _filled.push_back(new TH1F("tofh43","Tof-Trk mass (beta>0)",100,0.5,4.5));
+  _filled[_filled.size()-1]->SetXTitle("Mass(Gev)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH1F("tofh44","Tof-Trk mass (beta<0)",100,0.5,4.5));
+  _filled[_filled.size()-1]->SetXTitle("Mass(Gev)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+//set-10  
+  AddSet("Rigidity/Momentum");
+  
+  _filled.push_back(new TH1F("tofh45","ParticleMomentum(TofBeta>0)",100,-25,25));
+  _filled[_filled.size()-1]->SetXTitle("Momentum(Gev)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH1F("tofh46","ParticleMomentum(TofBeta<0)",100,-25,25));
+  _filled[_filled.size()-1]->SetXTitle("Momentum(Gev)");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH1F("tofh47","1/FastFitRigidity(Beta>0)",100,-5,5));
+  _filled[_filled.size()-1]->SetXTitle("InvGev");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH1F("tofh48","1/FastFitRigidity(Beta<0)",100,-5,5));
+  _filled[_filled.size()-1]->SetXTitle("InvGev");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH1F("tofh49","Tof Beta, PartMom>0",480,-1.2,1.2));
+  _filled[_filled.size()-1]->SetXTitle("TofVelocity/C");
+  _filled[_filled.size()-1]->SetFillColor(8);
+  
+  _filled.push_back(new TH1F("tofh50","Tof Beta, PartMom<0",480,-1.2,1.2));
+  _filled[_filled.size()-1]->SetXTitle("TofVelocity/C");
+  _filled[_filled.size()-1]->SetFillColor(8);
   
 }
 //------------------------------------
@@ -220,7 +315,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
 //
   gPad->Clear();
   TVirtualPad * gPadSave = gPad;
-  int i;
+  int i,j;
   Char_t name[60],dat[30];
   Char_t text[100];
 //
@@ -229,7 +324,8 @@ case 0:
   gPad->Divide(2,2);
   for(i=0;i<4;i++){
     gPad->cd(i+1);
-    gStyle->SetOptStat(1100111);
+    gPad->SetGrid();
+    gStyle->SetOptStat(11);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
@@ -241,7 +337,8 @@ case 1:
   gPad->Divide(2,2);
   for(i=0;i<4;i++){
     gPad->cd(i+1);
-    gStyle->SetOptStat(1100111);
+    gPad->SetGrid();
+    gStyle->SetOptStat(11);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
@@ -253,7 +350,8 @@ case 2:
   gPad->Divide(3,2);
   for(i=0;i<6;i++){
     gPad->cd(i+1);
-    gStyle->SetOptStat(1100111);
+    gPad->SetGrid();
+    gStyle->SetOptStat(100011);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
@@ -265,7 +363,8 @@ case 3:
   gPad->Divide(2,2);
   for(i=0;i<4;i++){
     gPad->cd(i+1);
-    gStyle->SetOptStat(1);
+    gPad->SetGrid();
+    gStyle->SetOptStat(11);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
@@ -273,14 +372,14 @@ case 3:
     _filled[i+14]->SetMaximum(2.5);
     _filled[i+14]->SetMarkerStyle(21);
     _filled[i+14]->SetMarkerColor(8);
-    _filled[i+14]->Draw("P");//TOF-TRK matching profiles
+    _filled[i+14]->Draw("PE");//TOF-TRK matching profiles
     gPadSave->cd();
   }
   break;
 case 4:
   gPad->Divide(3,2);
   gPad->cd(1);
-  gStyle->SetOptStat(1100111);
+  gStyle->SetOptStat(11);
   gPad->SetLogx(gAMSDisplay->IsLogX());
   gPad->SetLogy(1);
 //  gPad->SetLogy(gAMSDisplay->IsLogY());
@@ -289,6 +388,7 @@ case 4:
   gPadSave->cd();
   for(i=0;i<4;i++){
     gPad->cd(i+2);
+    gPad->SetGrid();
     gStyle->SetOptStat(1);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
@@ -301,6 +401,7 @@ case 4:
     gPadSave->cd();
   }
   gPad->cd(6);
+  gPad->SetGrid();
   gPad->SetLogx(gAMSDisplay->IsLogX());
   gPad->SetLogy(gAMSDisplay->IsLogY());
   gPad->SetLogz(gAMSDisplay->IsLogZ());
@@ -491,6 +592,72 @@ case 6:
     gPadSave->cd();
   }//--->endof loop
   break;
+case 7:
+  gPad->Divide(3,2);
+  for(i=0;i<2;i++){//side-loop
+  for(j=0;j<3;j++){
+    gPad->cd(j+1+3*i);
+    gPad->SetGrid();
+    gStyle->SetOptStat(0);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[j+30+3*i]->Draw();//TOF-ch occupancy-1
+    gPadSave->cd();
+  }
+  }
+  break;
+case 8:
+  gPad->Divide(2,2);
+  for(i=0;i<2;i++){//side-loop
+  for(j=0;j<2;j++){
+    gPad->cd(j+1+2*i);
+    gPad->SetGrid();
+    gStyle->SetOptStat(0);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(j==0)_filled[j+36+2*i]->Draw();//TOF-ch occupancy-2
+    if(j==1)_filled[j+36+2*i]->Draw("colz");//TOF-ch occupancy-2
+    gPadSave->cd();
+  }
+  }
+  break;
+case 9:
+  gPad->Divide(3,2);
+  for(i=0;i<5;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    gStyle->SetOptStat(11);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(i<3){
+      _filled[40+i]->SetMarkerStyle(20);
+      _filled[40+i]->SetMarkerSize(0.3);
+      _filled[40+i]->Draw("P");//TOF Edep/Q
+    }
+    else{
+//       _filled[40+i]->SetStats(kFALSE);
+       _filled[40+i]->Draw();//TOF-TRK mass
+    }
+    gPadSave->cd();
+  }
+  break;
+case 10:
+  gPad->Divide(3,2);
+  for(i=0;i<6;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    if(i<4)gStyle->SetOptStat(110011);
+    else gStyle->SetOptStat(11);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[45+i]->Draw();//PartMom/TrkRig
+    gPadSave->cd();
+  }
+  break;
 //
   }//--->endof switch
 //
@@ -507,6 +674,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   static Int_t first(1),etime0(0),evnloc;
   Float_t time[3];
   static Float_t tinpp,toutp;
+  Float_t Rigid(0),GRigid(0),PiRigid(0);
 //
   RunPar::addsev(0);//<--counts inputs
   if(ntuple->nMCEventg()>0)RunPar::SetMCF1();//MC data
@@ -591,22 +759,50 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   if(!LVL1OK)return;//=====> no LVL1-trig
   RunPar::addsev(1);//<--passed lvl1 check
 //
-//--------> temperature behaviour study(based on TofRawSide-Obj):
+//--------> accupancy/temperature behaviour study(based on TofRawSide-Obj):
 //
   Int_t swid,hwid,crat,slot,nfthits,ntmhits,nhihits;
+  Int_t lay,bar,sid,bin,ndyns;
+  Float_t ama,amd[3];
+  Float_t athra(15);//Anode amplitude threshold in adc-ch
+  Float_t athrd(10);//Dynode amplitude threshold in adc-ch
+  Float_t athrad(90);//Anode ampl.thr. to see Dynode signal
   Float_t monval[10];
   Float_t tinp,tout,strr,offs;
   Float_t temperT(999),temperC(999),temperP(999);
   Float_t strtms[4];
+  
   Int_t ntofrs=ntuple->NTofRawSide();//total tof-raw_sides
   TofRawSideR * p2raws;//pointer to raw-side members
   for(int i=0;i<ntofrs;i++){ // <--- loop over TOF2RawSide hits
     p2raws=ntuple->pTofRawSide(i);
     swid=p2raws->swid;//LBBS
+    sid=(swid%10)-1;//0,1
+    lay=(swid/1000)-1;//0-3
+    bar=((swid%1000)/10)-1;//0-9
     hwid=(p2raws->hwidt)/10000;//CS
     crat=hwid/10;
     slot=hwid%10;
     nfthits=p2raws->nftdc;
+    ntmhits=p2raws->nstdc;
+    nhihits=p2raws->nsumh;
+    ama=p2raws->adca;
+    ndyns=0;
+    for(int i=0;i<3;i++){
+      amd[i]=p2raws->adcd[i];
+      if(amd[i]>athrd)ndyns+=1;
+    }
+    bin=bar+lay*10;
+    if(ama>athra)_filled[30+3*sid]->Fill(bin,1.);//A-map
+    if(ntmhits>0)_filled[31+3*sid]->Fill(bin,1.);//T-map
+    if(ama>athra && ntmhits>0)_filled[32+3*sid]->Fill(bin,1.);//A+T-map
+    
+    if(ama>athrad && ndyns>0)_filled[36+2*sid]->Fill(bin,1.);//D-map
+    if(ama>athra)_filled[37+2*sid]->Fill(bin,ntmhits);//T-occupancy
+    
+//    if(ntmhits>1 && ntmhits<=3)_filled[37+3*sid]->Fill(bin,1.);//T1-map
+//    if(ntmhits>3)_filled[38+3*sid]->Fill(bin,1.);//T2-map
+//
     monval[0]=p2raws->nstdc;
     monval[1]=p2raws->nsumh;
     monval[2]=p2raws->temp;//SFET-temp
@@ -631,7 +827,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
 
   Int_t ntofrcls=ntuple->NTofRawCluster();//total tof-raw_clusters(paddles)
-  Int_t ntrkrcls=ntuple->NTrRawCluster();//total trk-raw_clusters
+//  Int_t ntrkrcls=ntuple->NTrRawCluster();//total trk-raw_clusters
   Int_t ntrkcls=ntuple->NTrCluster();//total trk-clusters
   _filled[0]->Fill(ntofrcls,1);
   _filled[8]->Fill(ntrkcls,1);
@@ -656,18 +852,26 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   if(pindex<0)return;//======> no Part. with TRK-track
   RunPar::addsev(5);//<--- passed TRK-track check
 //
+  ChargeR *p2charge=ntuple->Particle(pindex).pCharge();
+  Int_t TofQ=p2charge->ChargeTOF;
+  Int_t TrkQ=p2charge->ChargeTracker;
+  Float_t pmom=ntuple->Particle(pindex).Momentum;//particle gev/c
+//
   Bool_t TOFBetaOK(0);
   Float_t tofbet(0);
-//
   BetaR *p2beta =  ntuple->Particle(pindex).pBeta(); //pointer to TOF-beta, used by Part. with trk-track
   Int_t il,ib,id;
+  Float_t xtof[4]={0,0,0,0};
+  Float_t ytof[4]={0,0,0,0};
   Float_t etof[4]={0,0,0,0},ttof[4]={0,0,0,0},zctof[4]={0,0,0,0};//vs layer #
+  Float_t xtofh[4]={0,0,0,0};//vs layer #
+  Float_t ytofh[4]={0,0,0,0};//vs layer #
+  Float_t ztofh[4]={0,0,0,0};//vs layer #
   Int_t bltof[4]={0,0,0,0},ntofp[4]={0,0,0,0};//vs layer
   Int_t bltofb[4]={0,0,0,0};//bar #(1:) with bad tof/trk matching(vs layer)
   Int_t ntofcls=ntuple->NTofCluster();//total tof-clusters
   Int_t nbetofc(0);//number of Beta-used tof-clusters
-  Float_t xtof[4],ytof[4];
-  Int_t ltof[4],btof[4]={0,0,0,0};//vs used-cluster #
+  Int_t ltof[4]={0,0,0,0},btof[4]={0,0,0,0};//vs used-cluster #
   TofRawClusterR * p2tofrc[4][2]={0,0,0,0,0,0,0,0};//pointers(il) to raw-clust members(max 2) of TofCluster
 //
   if(p2beta>0){//<====  TOF-beta measurement found in particle
@@ -686,6 +890,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       ntofp[ltof[i]-1]=p2beta->pTofCluster(i)->NTofRawCluster();//# cluster members(paddles)
       etof[ltof[i]-1]=p2beta->pTofCluster(i)->Edep;
       ttof[ltof[i]-1]=p2beta->pTofCluster(i)->Time;
+      xtofh[ltof[i]-1]=p2beta->pTofCluster(i)->Coo[0];
+      ytofh[ltof[i]-1]=p2beta->pTofCluster(i)->Coo[1];
+      ztofh[ltof[i]-1]=p2beta->pTofCluster(i)->Coo[2];
       for(int j=0;j<ntofp[ltof[i]-1];j++)p2tofrc[ltof[i]-1][j]=p2beta->pTofCluster(i)
                                                                    ->pTofRawCluster(j);//RawCl-pointers
       _filled[2]->Fill(btof[i]+(ltof[i]-1)*10,1);
@@ -693,15 +900,15 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     }
 //
     _filled[4]->Fill(p2beta->Chi2S,1);
-    if(p2beta->Chi2S < 4){
+    if(p2beta->Chi2S < 5){
       RunPar::addsev(7);//<--passed "beta chi2S" test
       _filled[5]->Fill(p2beta->Chi2,1);
-      if(p2beta->Chi2 < 5){
+      if(p2beta->Chi2 < 8){
         RunPar::addsev(8);//<--passed "beta chi2t" test
         _filled[6]->Fill(p2beta->Pattern,1);
         if(p2beta->Pattern <= 4){
 	  RunPar::addsev(9);//<---- "beta pattern" test
-	  if(fabs(p2beta->Beta) < 1.1){
+	  if(fabs(p2beta->Beta) < 1.2){
             _filled[7]->Fill(p2beta->Beta,1);
             TOFBetaOK=1;
             RunPar::addsev(10);//<--passed "beta range" test
@@ -733,18 +940,20 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     id=(trksta%32768)/16384;//  bit 15
     cutf[5]=(id==0);// --> NOt false TOFX
 
+    Int_t trkafd=p2trktr->AdvancedFitDone;
+    Int_t trkgfd=p2trktr->GeaneFitDone;
+    
     Int_t trkpat=p2trktr->Pattern;
     //Int_t trladd=p2trktr->Address;//tempor by VC ???
   
-    Float_t trkrigp=0;//J.A. methode
-    Float_t trkrigpe=p2trktr->PiErrRig;//err to 1/above (<0 means fit is failed)
-    Float_t rerigp=0;//dR/R
-    if(trkrigpe>=0){
-      trkrigp=p2trktr->PiRigidity;
-      rerigp=trkrigpe*fabs(trkrigp);//abs. dR/R from JA
+    Float_t PiRigErr=p2trktr->PiErrRig;//PiRigidity err (to 1/rig) (<0 means fit is failed)
+    Float_t repirig=0;//dR/R
+    if(PiRigErr>=0){
+      PiRigid=p2trktr->PiRigidity;//PathInt.Rigidity
+      repirig=PiRigErr*fabs(PiRigid);//abs. dR/R from JA
     }
     
-    Int_t trkafd=p2trktr->AdvancedFitDone;
+    if(trkgfd!=0)GRigid=p2trktr->GRigidity;
     
     Float_t trkch2sz=p2trktr->Chi2StrLine;//str-line chi2
     
@@ -752,9 +961,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     Float_t trkrigcms=p2trktr->RigidityWithoutMS;//rigid ....................
     
     Float_t trkch2=p2trktr->Chi2FastFit;//fast nonl. fit
-    Float_t trkrig=p2trktr->Rigidity;//fast nonl. fit
-    Float_t trkrige=p2trktr->ErrRigidity;//err to 1/above
-    Float_t rerig=trkrige*fabs(trkrig);//abs. dR/R
+    Rigid=p2trktr->Rigidity;//fast nonl.fit Rigidity
+    Float_t RigErr=p2trktr->ErrRigidity;//err to 1/above
+    Float_t rerig=RigErr*fabs(Rigid);//abs. dR/R
     Float_t trkrigms=p2trktr->RigidityMS;//fast nonl. fit, MScattOff
     Float_t trkch2ms=p2trktr->FChi2MS;//chi2 for above
     trkthe=p2trktr->Theta;
@@ -763,7 +972,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     Float_t trkch2h[2]={999.,999.}; //chi2 for 2 halves
     Float_t trkhrig[2]={0.,0.}; //2 halves rigs
     Float_t hrigass=-999;
-    if(trkafd){
+    if(trkafd!=0){
       trkch2h[0]=p2trktr->HChi2[0];
       trkch2h[1]=p2trktr->HChi2[1];
       trkhrig[0]=p2trktr->HRigidity[0];
@@ -779,9 +988,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       _filled[9]->Fill(trkch2,1);
       _filled[10]->Fill(trkch2sz,1);
       _filled[11]->Fill(trkch2ms,1);
-      if(trkch2<80
-                   && trkch2sz<10
-                                 && trkch2ms<1000
+      if(trkch2<120
+                   && trkch2sz<20
+                                 && trkch2ms<10000
 	                                        ){//<---- chi2's check
         RunPar::addsev(13);//<--passed "chi2's" test
         if(trkafd){//<---- AdvFitDone check
@@ -846,12 +1055,12 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       il=ltof[ic]-1;//0:3
       ib=btof[ic];//1:
       if(ib>1 && ib<kNtofb[il]){//dx/dy-cuts for center
-        toflc=8;
-        toftc=8;
+        toflc=9;//cm
+        toftc=9;
       }
       else{//... for outer 
-        toflc=1.5*8;
-        toftc=2*8;
+        toflc=1.5*9;
+        toftc=2*9;
       }
 //
       if(fabs(dclg[ic])>toflc){
@@ -880,14 +1089,15 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
   Int_t tofmsk[4]={1,1,1,1};//to keep layer mask after removing highest layer
   Int_t lemx(0),ntrtof(0);
-  Float_t edmx(0),tofedn[4]={0.,0.,0.,0.};//TOF Edep norm to pass ans MIP
+  Float_t edmx(0),tofedn[4]={0.,0.,0.,0.};//TOF Edep norm to pass and MIP
   Float_t tofedpn[4]={0.,0.,0.,0.};//TOF Edep norm to pass
   Float_t tofcs[2]={0,0};//Tof/track cross. cos12,cos34
-  Float_t rrr,betnor,etrtof(0),absbet,clong[4]={0,0,0,0};;
+  Float_t rrr,betnor,etrtof(0),absbet,clong[4]={0,0,0,0};
+  Float_t etrtofb(0);
   absbet=fabs(tofbet);
-  Float_t betpow=1.82;//Pr  
-  if(absbet<0.95)betnor=pow(absbet,betpow)
-                       /pow(Float_t(0.95),betpow);//norm.factor to MIP(prot)
+  Float_t betpow=1.83;//Pr  
+  if(absbet<0.94)betnor=pow(absbet,betpow)
+                       /pow(Float_t(0.94),betpow);//norm.factor to MIP(prot)
   else betnor=1;
   Bool_t TOFTRKnormOK(0);
 //
@@ -949,12 +1159,14 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     for(int il=0;il<4;il++){
       if(ntofp[il]==1 && tofedn[il]>0 && tofmsk[il]==1){
         ntrtof+=1;
-        etrtof+=tofedn[il];
+        etrtof+=tofedn[il];//beta-independent
+	etrtofb+=tofedpn[il];//beta-dependent
       }
     }
 //---> fill Edep-profiles:
     if(ntrtof>0){
       etrtof/=ntrtof;
+      etrtofb/=ntrtof;
       _filled[18]->Fill(etrtof,1);
       if(etrtof<4){//select MIP-area
         for(int il=0;il<4;il++){//fill Edep-profiles
@@ -973,6 +1185,32 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     TOFTRKnormOK=1;
     RunPar::addsev(19);//<--good TOF/TRK-normalization
   }//<--- endof TOFUnif.block
+//---
+  Float_t pmass(0),massq;
+  if(TOFTRKnormOK){
+    if(tofbet>0)_filled[40]->Fill(tofbet,etrtofb);//Etrunc(beta-depend) vs beta>0
+    if(tofbet<0)_filled[41]->Fill(-tofbet,etrtofb);//Etrunc(beta-depend) vs beta<0
+    _filled[42]->Fill(TofQ,sqrt(etrtof));//Sqrt(Etrunc,beta-independ) vs Z
+    massq=pmom*pmom*(1-tofbet*tofbet)/tofbet/tofbet;
+    if(fabs(tofbet)<0.9){
+      pmass=sqrt(massq);
+      if(tofbet>0)_filled[43]->Fill(pmass,1);
+      if(tofbet<0)_filled[44]->Fill(pmass,1);
+    }
+  }
+//--- 
+  if(TOFBetaOK && TRKtrOK){
+    if(tofbet>0)_filled[45]->Fill(pmom,1);
+    if(tofbet<0)_filled[46]->Fill(pmom,1);
+    if(tofbet>0){
+      if(fabs(Rigid)>0)_filled[47]->Fill(1/Rigid,1);
+    }
+    if(tofbet<0){
+      if(fabs(Rigid)>0)_filled[48]->Fill(1/Rigid,1);
+    }
+    if(pmom>0)_filled[49]->Fill(tofbet,1);
+    if(pmom<0)_filled[50]->Fill(tofbet,1);
+  }
 //---
   evnloc+=1;
 // 

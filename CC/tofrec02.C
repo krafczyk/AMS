@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.75 2010/04/21 08:35:18 choumilo Exp $
+//  $Id: tofrec02.C,v 1.76 2010/06/06 08:12:40 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1677,7 +1677,7 @@ void AMSTOFCluster::build2(int &stat){
       cle=ptr->getetimeD();
       clm=0.5*barl;// limit on max. long. coord.
       ct=TOF2DBc::gettsc(il,ib);   //transv.pos. of  bar
-      cte=barw/sqrt(12.);
+      cte=(barw/2+0.3)/3;//0.25 for safety, /3 to have 3*sigma~barw/2
       status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       edep=eplane[ib];
       edepd=edplane[ib];
@@ -1723,7 +1723,7 @@ void AMSTOFCluster::build2(int &stat){
         ctn=TOF2DBc::gettsc(il,ib+1);   //transv.pos. of  bar
         if((ib+1)>0 && (ib+2)<bmax)barwn=TOF2DBc::plnstr(5);//stand.(not outer) bar width
         else barwn=TOF2DBc::outcp(il,1);//outer counter width
-        ctne=barwn/sqrt(12.);
+        ctne=(barw/2+0.3)/3;//0.25 for safety, /3 to have 3*sigma~barw/2
         statusn=ptrn->getstatus();//may be !=0(bad history/t_meas or single-sided)
         edepn=eplane[ib+1];
         timen=ptrn->gettime();// time from ib+1 bar(ns) 

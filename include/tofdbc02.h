@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.46 2010/04/27 08:04:28 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.47 2010/06/06 08:12:51 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -409,7 +409,7 @@ public:
   static geant gettemp(int16u crt, int16u sen);
   static void addmc(int i);
   static void addre(int i);
-  static integer getre(int i){return recount[i];}
+  static integer getre(int i);
   static geant &cqual(int i, int j){return cquality[i][j];} 
   static void addch(int chnum, int i);
   inline static int getch(int chnum, int i){

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.327 2010/06/01 09:35:01 oliva Exp $
+#  $Id: datacards.doc,v 1.328 2010/06/06 08:12:51 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -848,7 +848,7 @@ R  4 T0-ref1(6.);   // T0 for ref. counters
 R  5 T0-ref2(6.);   // spare
 R  6 slope(6.5);    // def. slope for slewing-correction
 R  7 meanbeta(.997); // mean muon velocity (for earth calibr.)
-I  8 idref(104);    // LBB for ref. counter
+I  8 idref(104);    // LBB for  ref. layer/counter(LBB, set L=2 if layer 1 is dead)
 I  9 idref(0);      // 0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
 I 10 ifsl(1);       // =0/1 to fix/release slope param.
 I 11 caltyp(0);     // =0/1 space/earth calibration
@@ -862,7 +862,8 @@ I 15 minev(100)    // min.events needed for measurement in channel or bin
 R 16 trcut(0.90)   // cut to use for "truncated average" calculation
 I 17 spares[0]     // spare (integer)
    ...             // ......................................
-I 20 spares[3]     // ......................................
+I 19 spares[2](0)  //(19) 0/1-> UseStrictLPatt(4of4)/not(3of4) for TZSL-calib
+I 20 spares[3]     // spare
 R 21 adc2q (1.)    // adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
 R 22 plhec[0] (0.1) // mom. low-cut for earth calibr.
 R 23 plhec[0] (10)  // mom. high-cut for earth calibr.

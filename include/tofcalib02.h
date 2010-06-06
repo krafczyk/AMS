@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.19 2009/11/27 11:42:03 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.20 2010/06/06 08:12:51 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -16,6 +16,7 @@ private:
   static number s0;
   static number s1;
   static number s3[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+  static number s30[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   static number s4;
   static number s6[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
   static number s7[TOF2GC::SCMXBR];
@@ -29,19 +30,19 @@ private:
   static number resol;
   static number resol1;
 //Tdelv-part:
-  static integer nbins[TOF2GC::SCBTPN];//numb.of coord-bins vs bar-type(<=TOF2GC::SCTDBM)
-  static number tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// side-times differences (ns)
-  static number tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// square of ...
-  static number clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// impact longit.coordinates(cm)
-  static integer nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// event counters
+  static number _tdiff[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// side-times differences (ns)
+  static number _tdif2[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// square of ...
+  static number _clong[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// impact longit.coordinates(cm)
+  static integer _nevnt[TOF2GC::SCBLMX][TOF2GC::SCTDBM];// event counters
+  static integer _nbins[TOF2GC::SCBTPN];//numb.of coord-bins vs bar-type(<=TOF2GC::SCTDBM)
 //Ampl-part:
   static number ambin1[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s1-signals for each ref_bar/bin/event
   static integer nevenb1[TOF2GC::SCBTBN];// s1 events accum. per ref_bar/bin for ambin
   static number ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for each ref_bar/bin/event
   static integer nevenb2[TOF2GC::SCBTBN];// s2 events accum. per ref_bar/bin for ambin
-  static number amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for each channel/event
-  static geant SideMPA[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];// side MP-signals ADCch(PM-equilization procedure)
+  static number amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];//centr.inc side-signals for each channel/event
   static integer nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel for amchan
+  static geant SideMPA[TOF2GC::SCLRS][TOF2GC::SCMXBR][2];// side MP-signals ADCch(PM-equilization procedure)
   static geant gains[TOF2GC::SCCHMX];//trunc. mean ch.signals ("0" impact) relat. to ref.ones
   static geant btamp[2][TOF2GC::SCBTBN];// MostProb bar-signals for each side/bin(ref.bars) 
   static geant ebtamp[2][TOF2GC::SCBTBN];// Error in MostProb  for each side/bin(ref.bars) 

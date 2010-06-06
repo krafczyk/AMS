@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.712 2010/06/01 09:35:00 oliva Exp $
+// $Id: job.C,v 1.713 2010/06/06 08:12:39 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -732,7 +732,7 @@ CCFFKEY.earth=0;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
-CCFFKEY.begindate=1012008;
+CCFFKEY.begindate=1012009;
 CCFFKEY.enddate=  1012012;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
@@ -761,7 +761,7 @@ FFKEY("GMSRC",(float*)&GMFFKEY,sizeof(GMFFKEY_DEF)/sizeof(integer),"MIXED");
 //=================================================================================
 //
 void AMSJob::_sitof2data(){
-  TFMCFFKEY.TimeSigma=0.240; //(1) side time resolution(ns, now =CounterResol(0.17)*sqrt(2)) 
+  TFMCFFKEY.TimeSigma=0.270; //(1) side time resolution(ns, now =CounterResol(0.19)*sqrt(2)) 
   TFMCFFKEY.sumHTdel=4.5;    //(2) eff. h/w delay of sumHT(sumSHT)-signal wrt LT-signal for MC
   TFMCFFKEY.canormf=1.;      //(3) amplif. factor(common for all bar-types,i.e. all SE MP are mult.by it))
   TFMCFFKEY.dzconv=0.;        //(4) if !=0 => thickness of optional TungstenConverter
@@ -1316,7 +1316,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[0]=6.;//(18) window(+-ns) around (LT-SumHT)-m.p for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
   TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
-  TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
+  TFREFFKEY.cuts[3]=3.33;//(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
   TFREFFKEY.cuts[4]=70.;//(22) JLV1 globFT decision_time + delay(JLV1-> S-crate, ns), i.e. glFT-time at S-crate
   TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
@@ -1358,9 +1358,9 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in above range
   TFCAFFKEY.tzref[0]=0.;//(4)T0 for ref. counter
   TFCAFFKEY.tzref[1]=0.;//(5) spare
-  TFCAFFKEY.fixsl=6.5;// (6)def. slope
+  TFCAFFKEY.fixsl=7.15;// (6)def. slope
   TFCAFFKEY.bmeanmu=0.994;// (7)mean muon velocity at sea-level
-  TFCAFFKEY.idref[0]=104;//(8)LBB for  ref. counter 
+  TFCAFFKEY.idref[0]=104;//(8)LBB for  ref. layer/counter(LBB, set L=2 if layer 1 is dead) 
   TFCAFFKEY.idref[1]=0;//(9)0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
   TFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
 //
@@ -1374,7 +1374,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.trcut=0.92;// (16) cut to use for "truncated average" calculation
   TFCAFFKEY.spares[0]=0;//(17) if =1 -> special TofPMEquilization run
   TFCAFFKEY.spares[1]=0;//(18) if =1 -> ignore most of the cuts for calib.run(useful when starting from scratch)
-  TFCAFFKEY.spares[2]=0;//(19)spare integers
+  TFCAFFKEY.spares[2]=0;//(19) 0/1-> UseStrictLPatt(4of4)/not(3of4)
   TFCAFFKEY.spares[3]=0;//(20)spare integers
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
   TFCAFFKEY.plhec[0]=0.3;//(22)plow-cut for earth calibration

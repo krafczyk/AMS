@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.27 2010/01/19 09:24:27 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.28 2010/06/06 08:12:52 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -151,13 +151,13 @@ void AMSLVL1Hist::Book(){
   AddSet("TrigRates in LVL1");
   
   _filled.push_back(new TProfile("trigh29","FTtof(FTC)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
-  _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
+  _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   _filled.push_back(new TProfile("trigh30","FTec(FTE)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
-  _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
+  _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   _filled.push_back(new TProfile("trigh31","Lev1Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
-  _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
+  _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   _filled.push_back(new TProfile("trigh32","TofPlaneSide-MaxRate vs Time",120,0,lev1trange[0],0,10000.));
-  _filled[_filled.size()-1]->SetYTitle("Rate(Hz)");
+  _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   
   
   AddSet("EventTimeDiff in LVL1");
