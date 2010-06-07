@@ -10,11 +10,11 @@
 #include "TRandom.h"
 #include <vector>                
 
-const int max_tiles=1;
+const int max_tiles=121;
 const int max_cuts=100;
-
-const int nSamples=500/10;
-const long int maxReconstructions=230000/10;
+const long int maxReconstructions=2300000;
+const int trials=3;
+const double indexes[3]={1.048,1.05,1.052};
 
 
 class Analysis{//: public TObject{
@@ -27,16 +27,11 @@ class Analysis{//: public TObject{
   bool Select(AMSEventR *event);  // The selection function
   void Loop();                    // The looping function
 
-  vector<double> alignmentParameters[6];
-  //  vector<TH1F> betaHitHistograms[max_tiles];
-  //  TH1F betaHitHistograms[max_tiles][nSamples];
-  TH1F *betaHitHistograms[max_tiles];
+  double alignmentParameters[6];
+  TH1F betaHitHistograms[max_tiles][3];
 
   long int entries[max_tiles];
   long int total_entries;
-
-  vector<TH1F> betaHitSummary;
-  TH1F testigo;
 
   // Arrays to compute cut efficiencies
   char cut_name[max_cuts][1000];          

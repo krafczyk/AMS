@@ -7,16 +7,8 @@
 #include<fstream>
 
 using namespace std;
-const float window_size=2.75;
+const float window_size=3;
 const int analysis_bins=11;
-
-// DEFINE FOR DEBUGGING
-#undef _FIX_ANGLES
-
-#undef _CREATE_EVENTLIST
-#ifdef _CREATE_EVENTLIST
-AMSEventList amsevents;
-#endif
 
 void Analysis::Init(){
   // Init everything
@@ -35,9 +27,7 @@ void Analysis::Init(){
   // events with a enugh fraction of ring are detected, thus we use both direct and reflected
   // to avoid this
   RichRing::UseDirect=true;
-  RichRing::UseReflected=true;
-
-  RichRing::DeltaHeight=-0.5972871;
+  RichRing::UseReflected=false;
 
   // Initialize the cuts variables
   last_cut=0;
@@ -48,32 +38,10 @@ void Analysis::Init(){
   for(int i=0;i<max_tiles;i++) entries[i]=0;
   total_entries=0;
 
-  // Prepare the samples and histograms
-  betaHitSummary.reserve(nSamples);
-  for(int j=0;j<max_tiles;j++) betaHitHistograms[j]=new TH1F[nSamples];
 
-  for(int i=0;i<6;i++) alignmentParameters[0].reserve(nSamples);
-
-  TH1F prototype("","",1000,0.95,1.05);
-  testigo.SetBins(1000,0.95,1.05);
-
-  for(int i=0;i<nSamples;i++) betaHitSummary.push_back(prototype);
-  for(int i=0;i<nSamples;i++){
+  for(int i=0;i<trials;i++){
     cout<<"INIT sample "<<i<<endl; 
     for(int j=0;j<max_tiles;j++) betaHitHistograms[j][i].SetBins(1000,0.95,1.05);
-
-    if(i==0) continue;
-
-    // Alignment parameters
-    // Spatial ones
-    alignmentParameters[0].push_back(alignmentParameters[ 0 ][0]+gRandom->Gaus()/3/2/3);
-    alignmentParameters[1].push_back(alignmentParameters[ 1 ][0]+gRandom->Gaus()/3/2/3);
-    alignmentParameters[2].push_back(alignmentParameters[ 2 ][0]+gRandom->Gaus()/3/2);
-
-    // Angular ones
-    alignmentParameters[3].push_back(alignmentParameters[ 3 ][0]+gRandom->Gaus()/1000);
-    alignmentParameters[4].push_back(alignmentParameters[ 4 ][0]+gRandom->Gaus()/1000/3);
-    alignmentParameters[5].push_back(alignmentParameters[ 5 ][0]+gRandom->Gaus()/1000/3);
   }
 }
 
@@ -96,29 +64,25 @@ bool Analysis::Select(AMSEventR *event){
   SELECT("All events",true);
   SELECT("No antis",event->nAntiCluster()==0);
   SELECT("With 1 particle",event->nParticle()==1);
-  //  SELECT("With 1 TrTrack",event->nTrTrack()==1);
+  SELECT("With 1 TrTrack",event->nTrTrack()==1);
   SELECT("At most 1 TrdTrack",event->nTrdTrack()<=1);
   SELECT("At most 4 TofClusters",event->nTofCluster()<=4);
 
   SELECT("With rich particle",event->pParticle(0)->pRichRing());
-  SELECT("With track particle",event->pParticle(0)->pRichRing()->pTrTrack());
-  SELECT("Clean ring",(event->pParticle(0)->pRichRing()->Status&1)==0);
+  SELECT("With track particle",event->pParticle(0)->pRichRing()->iTrTrack()!=-1);
+  SELECT("Aerogel track and clean ring",(event->pParticle(0)->pRichRing()->Status&3)==0);
   SELECT("At most 1 hot spot",event->pParticle(0)->RichParticles<=1);
   //  SELECT("Beta==1 (trtrack chi2 selection)",log10(event->pParticle(0)->pTrTrack()->Chi2WithoutMS)<-1);  // This cut is not fully understood
 
   SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>4);
 
-  SELECT("NaF ring",(event->pParticle(0)->pRichRing()->Status&2)!=0);
-
-#ifdef _CREATE_EVENTLIST
-  amsevents.Add(event);
-#endif 
 
   return true;
 }
 
 void Analysis::Loop(){
   Init();                       // Initialize everything
+  total_entries=0;
 
   // Counters to artificially look for EOF
   unsigned int event_number=-1;
@@ -126,11 +90,22 @@ void Analysis::Loop(){
 
   AMSEventR *event;
   long int prev=-1;
+
+  RichAlignment::Set(			 
+		     alignmentParameters[ 0 ],
+		     alignmentParameters[ 1 ],
+		     alignmentParameters[ 2 ],
+		     alignmentParameters[ 3 ],
+		     alignmentParameters[ 4 ],
+		     alignmentParameters[ 5 ]);
+
+  RichAlignment::SetMirrorShift(0,0,0);  // Just in case
+  
   while (event = chain->GetEvent()) {
-    if(gRandom->Uniform()<0.5) continue;
+    
     if((total_entries%10000)==0 && total_entries!=prev) {cout<<endl<<"Number of reconstructions "<<total_entries<<endl;prev=total_entries;}
     if(total_entries>maxReconstructions) break; 
-
+    
 
     if(event->Event()==event_number && event->Run()==run_number) break;
     event_number=event->Event();
@@ -138,47 +113,29 @@ void Analysis::Loop(){
 
     if(!Select(event)) continue;
 
-    RichAlignment::Set(0,0,0,0,0,0);  // Just in case
-    RichAlignment::SetMirrorShift(0,0,0);  // Just in case
+
 
     int first=1;
-    for(int i=0;i<nSamples;i++){
-      int k=0;
-      RichAlignment::Set(
-#ifndef _FIX_ANGLES
-			 alignmentParameters[ 0 ][i],
-			 alignmentParameters[ 1 ][i],
-			 alignmentParameters[ 2 ][i],
-			 alignmentParameters[ 3 ][i],
-			 alignmentParameters[ 4 ][i],
-			 alignmentParameters[ 5 ][i]
-#else
-			 0,0,0,
-			 0,alignmentParameters[ 4 ][i],0
-#endif
-			 );
+    RichRing *ring=RichRing::build(event,event->pParticle(0)->pRichRing()->pTrTrack());
+    total_entries++;
+    if(!ring) continue;
+    int tile_index=RichRing::_tile_index;
+    //    if(RichRing::_kind_of_tile==naf_kind) tile_index=max_tiles-1;
+    entries[tile_index]++;
+    delete ring;
 
-      RichAlignment::SetMirrorShift(0,0,0);
-      
+    
+    for(int i=0;i<trials;i++){
+      // Set the refractive indexes
+      RichRadiatorTileManager::recompute_tables(tile_index,indexes[i]);
+
       // Reconstruct the ring
-      RichRing *ring=RichRing::build(event,event->pParticle(0)->pRichRing()->pTrTrack());
+      ring=RichRing::build(event,event->pParticle(0)->pRichRing()->pTrTrack());
+      total_entries++;
       if(!ring) continue;  // Should add this to my efficiency counters
-      if(i==0){
-	for(int jj=0;jj<ring->_beta_direct.size();jj++)
-	  testigo.Fill(ring->_beta_direct[jj]);
-      }
-
-      if(first){
-	total_entries++;
-	first=0;
-      }
-
-      // Get the tile
-      int tile_number=0;
-      entries[tile_number]++;
+      
       for(int j=0;j<ring->_beta_direct.size();j++){
-	betaHitHistograms[tile_number][i].Fill(ring->_beta_direct[j]);
-	betaHitSummary[i].Fill(ring->_beta_direct[j]);
+	betaHitHistograms[tile_index][i].Fill(ring->_beta_direct[j]);
       }
       
       delete ring;
@@ -234,8 +191,8 @@ TF1 *Fita(TH1F *proyection,double &mean,double &mean_error,double &sigma,double 
 int main(int argc,char **argv){
   if(argc<4){
     cout<<"First argument should be the filename for data"<<endl;
-    cout<<"Second argument should be the initial alignment"<<endl;
-    cout<<"Third argument should be the output alignment"<<endl;
+    cout<<"Second argument should be the alignment file"<<endl;
+    cout<<"Third argument should be the output file"<<endl;
     return 0;
   }
 
@@ -289,30 +246,19 @@ int main(int argc,char **argv){
 
   // Fill histograms
   Analysis analysis(argv[1]);  
-  analysis.alignmentParameters[0].push_back(sx);
-  analysis.alignmentParameters[1].push_back(sy);
-  analysis.alignmentParameters[2].push_back(sz);
-  analysis.alignmentParameters[3].push_back(alpha);
-  analysis.alignmentParameters[4].push_back(beta);
-  analysis.alignmentParameters[5].push_back(gamma);
+  analysis.alignmentParameters[0]=sx;
+  analysis.alignmentParameters[1]=sy;
+  analysis.alignmentParameters[2]=sz;
+  analysis.alignmentParameters[3]=alpha;
+  analysis.alignmentParameters[4]=beta;
+  analysis.alignmentParameters[5]=gamma;
 
   analysis.Loop();
-  FILE *fp=fopen("amoeba_results.txt","w");
-
-  /**************** WE DO NOT NEED THIS *********************
-  // Write all the histograms
-  TFile file2("amoeba_fits.root","RECREATE");
-  for(int i=0;i<nSamples;i++) 
-    for(int j=0;j<max_tiles;j++){
-      if(analysis.entries[j]<100) continue;
-      analysis.betaHitHistograms[j][i].Write( Form("BetaHit %i Tile %i",i,j) );
-    }
-  file2.Close();
-  */
 
   // Fit them
   double best_tile_value[max_tiles];
   int best_tile_i[max_tiles];
+  double winner[max_tiles];
   
   /*
   TFile suma("summary.root","RECREATE");
@@ -324,100 +270,69 @@ int main(int argc,char **argv){
   suma.Close();
   */
 
-  double sigmas[max_tiles][nSamples];
-  double means[max_tiles][nSamples];
+  double sigmas[max_tiles][trials];
+  double means[max_tiles][trials];
 
   // Fit all distributions
-  for(int i=0;i<nSamples;i++){
-    for(int j=0;j<max_tiles;j++){    
+
+  for(int j=0;j<max_tiles;j++){    
+    winner[j]=-1;
+    if(analysis.entries[j]<100){
+      cout<<"TILE INDEX "<<j<<" has not enough statistics"<<endl;
+      continue;
+    }
+    int done=0;
+    for(int i=0;i<trials;i++){
       sigmas[j][i]=-1;
-      if(analysis.entries[j]<100){
-	cout<<"TILE "<<j<<" ONLY HAS "<<analysis.entries[j]<<" entries"<<endl;
-	continue;
-      }
       double mean,mean_error,sigma,sigma_error;
       
       if(Fita(&analysis.betaHitHistograms[j][i],mean,mean_error,sigma,sigma_error)){
 	sigmas[j][i]=fabs(sigma);
 	means[j][i]=mean;
+	done++;
       }
     }
-  }
-
-  // THIS IS FOR DEBUGGING
-  //  FILE *file_samples=fopen("Samples.txt","w");
-  // Find the optimum
-  double best=HUGE_VAL;
-  int best_i=-1;
-  for(int i=0;i<nSamples;i++){
-    double sum2=0;
-    double total=0;
-    for(int j=0;j<max_tiles;j++){
-      if(sigmas[j][i]<0) continue;
-      double sigma=sigmas[j][i]/means[j][i];  // The mean value should be 1
-      sum2+=sigma*sigma*analysis.entries[j];
-      total+=analysis.entries[j];
+    if(done<3) {
+      cout<<"TILE INDEX "<<j<<" have some fit problems"<<endl;
+      continue;
     }
-    if(total<0) continue;
-
-    /*
-    fprintf(file_samples,
-	    "%g %g %g %g %g %g %g\n",
-	    analysis.alignmentParameters[0][i],
-	    analysis.alignmentParameters[1][i],
-	    analysis.alignmentParameters[2][i],
-	    analysis.alignmentParameters[3][i],
-	    analysis.alignmentParameters[4][i],
-	    analysis.alignmentParameters[5][i],
-	    sum2<=0?0:sqrt(sum2/total));
-    */
-    if(sum2/total<best){
-      best=sum2/total;
-      best_i=i;
-    }
+    // Compute the best index
+    double b2=means[j][2];
+    double b1=means[j][1];
+    double b0=means[j][0];
+    double n2=indexes[2];
+    double n1=indexes[1];
+    double n0=indexes[0];
+    
+    double n=(1-b1)/(b2-b0)*(n2-n0)+n1;
+    winner[j]=n;
   }
-  //  fclose(file_samples);
+  
 
-
-  // WRITE THE RESULT TO THE OUTPUT FILE
-  cout<<"BEST I IS "<<best_i<<endl
-      <<analysis.alignmentParameters[ 0 ][best_i]<<" "
-      <<analysis.alignmentParameters[ 1 ][best_i]<<" "
-      <<analysis.alignmentParameters[ 2 ][best_i]<<" "<<best<<endl;
-  if(best_i>-1){
-    fp=fopen(argv[3],"w");
-    fprintf(fp,
-	    "%g %g %g\n "
-	    "%g %g %g\n "
-	    "0 0 0\n"
-	    "%g\n",
-	    analysis.alignmentParameters[ 0 ][best_i],
-	    analysis.alignmentParameters[ 1 ][best_i],
-	    analysis.alignmentParameters[ 2 ][best_i],
-	    analysis.alignmentParameters[ 3 ][best_i],
-	    analysis.alignmentParameters[ 4 ][best_i],
-	    analysis.alignmentParameters[ 5 ][best_i],
-	    best<=0?0:sqrt(best)
-	    );
-    fclose(fp);
+  FILE *fp=fopen(argv[3],"w");
+  for(int i=0;i<RichRadiatorTileManager::get_number_of_tiles();i++){
+    int tile=i;
+    double x=RichRadiatorTileManager::get_tile_x(tile);
+    double y=RichRadiatorTileManager::get_tile_y(tile);
+    double clarity=RichRadiatorTileManager::get_clarity(tile);
+    double height=RichRadiatorTileManager::get_height(tile);
+    if(winner[tile]>0){
+      cout<<"TILE "<<i<<" "<<x<<" "<<y<<" "
+	  <<indexes[0]<<" "<<means[i][0]<<" "
+	  <<indexes[1]<<" "<<means[i][1]<<" "
+	  <<indexes[2]<<" "<<means[i][2]<<" "
+	  <<" -- "<<winner[i]<<endl;
+      fprintf(fp,
+	      "%g %g %g %g %g\n",
+	      x,y,winner[tile],height,clarity);
+    }else
+      fprintf(fp,
+	      "---- NO FIT ---- %g %g %g %g %g -- tabulated as %g \n",
+	      x,y,winner[tile],height,clarity,RichRadiatorTileManager::get_refractive_index(tile));
+    
   }
+  fclose(fp);
 
-  /******************** THIS IS ONLY FOR DEBUGGING
-  // Write all the histograms
-  TFile file("amoeba_fits.root","RECREATE");
-  for(int i=0;i<nSamples;i++) for(int j=0;j<max_tiles;j++) {if(analysis.entries[j]<100) continue;if(analysis.betaHitHistograms[j][i].GetFunction("gaus")) analysis.betaHitHistograms[j][i].Write( Form("BetaHit %i Tile %i",i,j) );}
-  file.Close();
-
-  TFile fileW("amoeba_winners.root","RECREATE");
-  for(int j=0;j<max_tiles;j++) {if(analysis.entries[j]<100) continue;//if(analysis.betaHitHistograms[j][best_tile_i[j]].GetFunction("gaus")) analysis.betaHitHistograms[j][best_tile_i[j]].Write( Form("BetaHit Tile %i",j) );}
-    if(best_i>-1 && analysis.betaHitHistograms[j][best_i].GetFunction("gaus")) analysis.betaHitHistograms[j][best_i].Write( Form("BetaHit Tile %i",j) );}
-  fileW.Close();
-  **********************************************************/
-
-
-  TFile ffff("testigo.root","RECREATE");
-  analysis.testigo.Write();
-  ffff.Close();
 
   // Output the selection efficiencies
   for(int i=1;analysis.selected[i]>0;i++){
@@ -425,12 +340,6 @@ int main(int argc,char **argv){
 	<<" DATA ENTRIES "<<analysis.selected[i]<<" DATA EFF "<<double(analysis.selected[i])/analysis.selected[i-1]<<endl;
   }
 
-
-#ifdef _CREATE_EVENTLIST
-  TFile evtList("/tmp/mdelgado/evtList.root","RECREATE");
-  amsevents.Write(analysis.chain,&evtList);
-  evtList.Close();
-#endif
 
   return 0;
 }
