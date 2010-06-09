@@ -44,14 +44,16 @@ RH9add=-pthread $(BIN)ctype.o
 ########################################################################
   CC  = gcc -m32 
   CXX = g++ -m32
+ifdef VERGCC 
+  FF  = gfortran -m32 
+  FORTRAN_LIBS= -lg2c -lgfortran 
+else  
   FF  = g77 -m32 
+  FORTRAN_LIBS=-lg2c 
+endif
   FFOLD=$(FF)
   LD  = g++ -m32
   FORTRAN2_LIBS=
-  FORTRAN_LIBS=-lg2c 
-ifdef VERGCC
-  FORTRAN_LIBS+= -lgfortran 
-endif
 
 
 ORBIT2DIR=/opt/Orbit2
@@ -65,10 +67,13 @@ IDLCPP=orbit-idl-2 -l cpp
 ifndef CERN_LEVEL
 CERN_LEVEL = pro
 endif
-CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
+#CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
+CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
+
 CERNDIR = /cern/$(CERN_LEVEL)
+
 
 ifndef AMSLIB
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
