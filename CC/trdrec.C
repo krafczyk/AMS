@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.47 2010/05/28 11:16:38 pzuccon Exp $
+//  $Id: trdrec.C,v 1.48 2010/06/09 15:49:10 pzuccon Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -954,7 +954,7 @@ void AMSTRDTrack::RealFit(){
   float zmax=0;
   for (int ii=0;ii<npt;ii++){
     fitg.Add(hits[ii][0],hits[ii][1],hits[ii][2],
-             sigma[ii][0],sigma[ii][1],sigma[ii][2]);
+             sigma[ii][0],sigma[ii][1],sigma[ii][2],0.,0.,0.);
     if(hits[ii][2]>zmax) hits[ii][2]=zmax;
   }
    

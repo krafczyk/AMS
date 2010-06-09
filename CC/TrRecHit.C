@@ -142,6 +142,8 @@ void TrRecHitR::BuildCoordinates() {
   int xaddr =  640;
   if(clX!=0)
     xaddr =  clX->GetAddress();
+  else
+    xaddr += _dummyX;
 
   _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
   _coord.clear();

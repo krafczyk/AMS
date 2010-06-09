@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.33 2010/05/26 14:18:35 pzuccon Exp $
+// $Id: TrTrack.C,v 1.34 2010/06/09 15:49:10 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/05/26 14:18:35 $
+///$Date: 2010/06/09 15:49:10 $
 ///
-///$Revision: 1.33 $
+///$Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -291,15 +291,41 @@ void TrTrackR::GetMaxShift(int& left, int& right){
 void TrTrackR::Move(int shift){
  for(int ii=0;ii<_Nhits;ii++){
     int tkid=_Hits[ii]->GetTkId();
-    int mult=_Hits[ii]->GetMultiplicity();
-    int nmult=_iMult[ii];
-    if(tkid>=0) nmult-=shift;
-    else nmult+=shift;
-    if(nmult>=0 && nmult<=mult) {
-      _iMult[ii]=nmult;
-      _Hits[ii]->SetResolvedMultiplicity(nmult);
+    if(_Hits[ii]->OnlyY ()){
+       int layer = std::abs(tkid)/100;
+       float ln  = TkCoo::GetLadderLength (tkid);
+       float lx  = TkCoo::GetLadderCenterX(tkid);
+       float ly  = TkCoo::GetLadderCenterY(tkid);
+       float lz  = TkDBc::Head->GetZlayer(layer);
+       float previousX=_Hits[ii]->GetCoord()[0];
+       if(tkid>0) previousX-=shift*TkDBc::Head->_SensorPitchK*2;
+       else previousX+=shift*TkDBc::Head->_SensorPitchK*2;
+       AMSPoint gcoo(previousX, ly, lz);
+       TkSens tks(tkid, gcoo,0);
+       if (tks.LadFound() && tks.GetStripX() < 0) {
+	 float sx = tks.GetSensCoo().x();
+	 float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);
+	 if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
+	 if (sx > TkDBc::Head->_ssize_active[0])
+	   gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);
+	 tks.SetGlobalCoo(gcoo);
+       }  
+       _Hits[ii]->SetResolvedMultiplicity(tks.GetMultIndex());
+       _Hits[ii]->SetDummyX(tks.GetStripX());
+       _Hits[ii]->BuildCoordinates();
+    }else{
+
+
+      int mult=_Hits[ii]->GetMultiplicity();
+      int nmult=_iMult[ii];
+      if(tkid>=0) nmult-=shift;
+      else nmult+=shift;
+      if(nmult>=0 && nmult<=mult) {
+	_iMult[ii]=nmult;
+	_Hits[ii]->SetResolvedMultiplicity(nmult);
+      }
+      else cerr<<"TrTrackR::Move-E- Very Bad problem moving the Track\n";
     }
-    else cerr<<"TrTrackR::Move-E- Very Bad problem moving the Track\n";
  }
  ReFit();
  return;
@@ -531,9 +557,14 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
       }
     }
     // For AMS02P (AKA AMS-B)
-
+    float bf[3]={0,0,0};
+    float pp[3];
+    pp[0]=coo[0];pp[1]=coo[1];pp[2]=coo[2];
+    GUFLD(pp, bf);
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
-                    hit->OnlyX() ? 0 : ery,  errz);
+                    hit->OnlyX() ? 0 : ery,  errz
+	       ,bf[0],bf[1],bf[2]);
+    
     hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
@@ -701,7 +732,7 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
   TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
   length = tprop.Interpolate(pnt, dir);
   //PZ bugfix lenght must be signed for beta calculation.
-  if(pnt[2]<0)length*=-1;
+  if(pnt[2]>0)length*=-1;
   P1     = pnt;
   theta  = dir.gettheta();
   phi    = dir.getphi();

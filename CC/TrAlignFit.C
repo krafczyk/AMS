@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.4 2010/03/11 09:13:58 shaino Exp $
+// $Id: TrAlignFit.C,v 1.5 2010/06/09 15:49:10 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/03/11 09:13:58 $
+///$Date: 2010/06/09 15:49:10 $
 ///
-///$Revision: 1.4 $
+///$Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +25,7 @@
 #include "TString.h"
 #include "TStopwatch.h"
 #include "TSystem.h"
+#include "MagField.h"
 
 #include <iostream>
 #include <fstream>
@@ -753,11 +754,15 @@ Int_t TrAlignFit::FitPoints(void)
       std::cout << "WARNING algp not found: " << tkid << std::endl;
       continue;
     }
-
     AMSPoint coord = algp->GetCoord(GetArray(fIcase,i,0), 
 				    GetArray(fIcase,i,1), 
 				    GetArray(fIcase,i,2));
-    fit.Add(coord, fSigma[0], fSigma[1], 1);
+    
+    float bf[3]={0,0,0};
+    float pp[3];
+    pp[0]=coord.x();pp[1]=coord.y();pp[2]=coord.z();
+    GUFLD(pp, bf);
+    fit.Add(coord, fSigma[0], fSigma[1], 1,bf[0],bf[1],bf[2]);
   }
 
   Double_t ret = 0;

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.55 2010/06/04 18:04:02 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.56 2010/06/09 15:49:10 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/06/04 18:04:02 $
+/// $Date: 2010/06/09 15:49:10 $
 ///
-/// $Revision: 1.55 $
+/// $Revision: 1.56 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1584,13 +1584,18 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
 
   // Obtain a track with linear/circle fitting
   TrFit fit;
-  for (int i = 0; i < it.nlayer; i++)
-    fit.Add(it.coo[i], 0, RecPar.LadderScanRange*0.75, 1);
+  for (int i = 0; i < it.nlayer; i++){
+    float bf[3]={0,0,0};
+    float pp[3];
+    pp[0]=it.coo[i].x();pp[1]=it.coo[i].y();pp[2]=it.coo[i].z();
+    GUFLD(pp, bf);
+    fit.Add(it.coo[i], 0, RecPar.LadderScanRange*0.75, 1,bf[0],bf[1],bf[2]);
+  }
   if (MagFieldOn())
     fit.CircleFit(2);
   else
     fit.LinearFit(2);
-
+  
   // Check chisquare
   if (fit.GetChisqY() < 0 ||
       fit.GetChisqY() > RecPar.MaxChisqForLScan) return 0;
@@ -1710,7 +1715,11 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
   TrFit fit;
   for (int i = 0; i < it.nlayer && it.ilay[i] >= 0; i++) {
     int j = (it.side == 0) ? it.ilay[i] : i;
-    fit.Add(it.coo[j], RecPar.ErrXForScan, RecPar.ErrYForScan, 1);
+    float bf[3]={0,0,0};
+    float pp[3];
+    pp[0]=it.coo[j].x();pp[1]=it.coo[j].y();pp[2]=it.coo[j].z();
+    GUFLD(pp, bf);
+    fit.Add(it.coo[j], RecPar.ErrXForScan, RecPar.ErrYForScan, 1,bf[0],bf[1],bf[2]);
   }
 
   // Select fitting method

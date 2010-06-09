@@ -330,6 +330,9 @@ void TrSim::sitkdigi() {
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("SITKDIGIb");
 #endif
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("SITKDIGI"); 
+#endif
   
   return;
 }

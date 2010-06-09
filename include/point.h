@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.29 2009/11/09 19:12:10 choutko Exp $
+//  $Id: point.h,v 1.30 2010/06/09 15:49:20 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -44,11 +44,11 @@ public:
   //! it gets the position to array arg
   void getp(geant x[]){x[0]=_x;x[1]=_y;x[2]=_z;}
   //! get x coordinate
-  number x() { return _x; } 
+  number x() const { return _x; } 
   //! get y coordinate
-  number y() { return _y; }
+  number y() const { return _y; }
   //! get z coordinate
-  number z() { return _z; }
+  number z() const { return _z; }
   //! it does the matrix product (right) with a matrix represented by the input array
   AMSPoint mm3(number [][3]);
   //! it does the matrix product (left) with a matrix represented by the input array

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.20 2010/05/28 11:16:38 pzuccon Exp $
+//  $Id: TrFit.C,v 1.21 2010/06/09 15:49:10 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/05/28 11:16:38 $
+///$Date: 2010/06/09 15:49:10 $
 ///
-///$Revision: 1.20 $
+///$Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -53,16 +53,16 @@ void TrFit::Clear()
   _errrinv = 0;
 }
 
-int TrFit::Add(double x,  double y,  double z,
-	       double ex, double ey, double ez, int at)
-{
-  float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
-  if (MagFieldOn()) {
-    //PZMAG MagField::GetPtr()->GuFld(pos, bf);
-    GUFLD(pos, bf);
-  }
-  return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
-}
+// int TrFit::Add(double x,  double y,  double z,
+//  	       double ex, double ey, double ez, int at)
+// {
+//   float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
+//   if (MagFieldOn()) {
+//     //PZMAG MagField::GetPtr()->GuFld(pos, bf);
+//     GUFLD(pos, bf);
+//   }
+//   return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
+// }
 
 int TrFit::Add(double x,  double y,  double z,
 	       double ex, double ey, double ez, 
@@ -122,7 +122,7 @@ double TrFit::CircleFit(void)
 {
   /// Circlar fitting in Y-Z plane and liear fitting in S-Z plane
 
-  if (!MagFieldOn()) return LinearFit();
+  if (!_fieldon()) return LinearFit();
 
   if (CircleFit(2) < 0) return -1;
   if (LinearFit(3) < 0) return -1;
@@ -440,12 +440,13 @@ double TrFit::PolynomialFit(int side, int ndim)
 #define PAR_LIMITS(P, V1, V2) { \
     double pold = P;	        \
     bool r = ParLimits(P,V1,V2);\
-    if (r) std::cout << "TrFit::ParLimits applied to: "#P" " \
-		     << pold << " -> " << P << std::endl;    \
+    if (r && nlim2<100) {nlim2++;std::cout << "TrFit::ParLimits applied to: "#P" "	\
+			      << pold << " -> " << P << std::endl;}	\
     nlim += r; } \
 
 int TrFit::ParLimits(void)
 {
+  static int nlim2 = 0;
   int nlim = 0;
   PAR_LIMITS(_p0x,      1e-9, 1e4);
   PAR_LIMITS(_p0y,      1e-9, 1e4);
@@ -2818,7 +2819,9 @@ int TrFit::Inv66(double M[6][6])
   return 0;
 }
 
-
+//--------------------------------------------------------------------------
+//          TRPROP IMPLEMENTATION 
+//--------------------------------------------------------------------------
 double TrProp::Mproton = 0.938272297;     // Proton mass in GeV/c^2
 double TrProp::Clight  = 2.99792458e+08;  // Speed of light in m/s
 
@@ -2889,7 +2892,7 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  if (!MagFieldOn() || _chrg*_rigidity == 0) {
+  if ( _chrg*_rigidity == 0) {
     double z = (dir[0]*(pnt[0]-_p0x)+dir[1]*(pnt[1]-_p0y)+dir[2]*(pnt[2]-_p0z))
               /(dir[0]*_dxdz        +dir[1]*_dydz        +dir[2]);
     AMSPoint pnt0 = pnt;
@@ -2922,7 +2925,7 @@ double TrProp::InterpolateCyl(AMSPoint &pnt, AMSDir &dir,
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  if (!MagFieldOn() || _chrg*_rigidity == 0) {
+  if ( _chrg*_rigidity == 0) {
     double dx = dir[0], dy = dir[1], dz = dir[2], z0 = _p0z-pnt[2];
     double p0 = _p0x-pnt[0], p1 = _dxdz, p2 = _p0y-pnt[1], p3 = _dydz;
     double aa = (1-dx*dx)*p1*p1     +(1-dy*dy)*p3*p3  +(1-dz*dz)
