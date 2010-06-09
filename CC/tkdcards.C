@@ -158,8 +158,11 @@ void TRMCFFKEY_DEF::init(){
 
   // (564) SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
   SimulationType=0;
-  // (565-570) TrSim2010: main parameters
-  TrSim2010_NoiseType=1;
+  // All digitization parameters
+  MinMCClusters=-1;
+  NoiseType=1; 
+  FakeClusterType=0;
+  // (566-570) TrSim2010: main parameters
   TrSim2010_ADCConvType=3;
   TrSim2010_DSPSeedThr[0]=4.;
   TrSim2010_DSPSeedThr[1]=4.;

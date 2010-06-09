@@ -48,20 +48,20 @@ class TrSimCluster {
 
   //! Set signal
   void   SetSignal(int i, double s);
-  //! Get signal
+  //! Get signal (0 if out of bounds, no error produced!)
   double GetSignal(int i);
-  //! Get signal at address (0 if invalid address, no error!!!)
-  double GetSignalAtAddress(int i);
   //! Get total signal
   double GetTotSignal();
   //! Get the cluster lenght
-  int    GetWidth()        { return int(_signal.size()); }
+  int    GetWidth()          { return int(_signal.size()); }
   //! Get the address of the first strip
-  int    GetAddress()      { return _address; }
-  //! Get the address of the first strip
-  int    GetAddress(int i) { return _address + i; }
+  int    GetAddress()        { return _address; }
+  //! Get the address of a strip
+  int    GetAddress(int i)   { return _address + i; }
+  //! Get the address of a strip with cyclicity (K7 cluster could extend over 384)
+  int    GetAddressK7(int i) { return (_address + i)%384; }
   //! Get the seed as setted by the constructor
-  int    GetSeedIndex()    { return _seedind; } 
+  int    GetSeedIndex()      { return _seedind; } 
   //! Find a seed (...equal strips?)
   int    FindSeedIndex(double seed = 0.);
   //! Get seed signal

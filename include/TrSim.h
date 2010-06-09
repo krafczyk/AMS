@@ -4,12 +4,12 @@
 //////////////////////////////////////////////////////////////////////////
 ///
 ///\class TrSim
-///\brief Procedures for the Tracker Simulation  
+///\brief Procedures for the Tracker Simulation/Digitization   
 ///
-/// Three Simulation are available:
-/// 1) GBATCH default (old one)
-/// 2) Fast effective simulation (SH)
-/// 3) Detailed simulation (AO)
+/// Three digitizations are available:
+/// 1. GBATCH default (rewritten in C++, PZ)
+/// 2. Fast effective simulation (SH)
+/// 3. A detailed simulation (AO)
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -51,73 +51,59 @@ class TrSim {
     kTrSim2010 = 2
   };
 
- private:
-
-  //! A map for the MC Cluster search
-  static TrMap<TrMCClusterR> MCClusterTkIdMap;
-  
-public:
-
-  ////////////////////////
-  // Common Methods 
-  ////////////////////////
-
-  //! Constructor (simulator initialization)
-  TrSim(){}
-  //! Destructor 
-  ~TrSim() {MCClusterTkIdMap.Clear();}
-
-  //! Build the TrMCCluster (one per side, if (SkipRawSim!=1)) 
-  static void sitkhits(int idsoft, float vect[], float edep, float step, int itra);
-  //! Generate Non Gaussians Noise Cluster (dummy for the moment)
-  static  void sitknoise(){}
-  //! Generate the TrRawClusters from the TrMCCluster and from a calibration
-  static  void sitkdigi();
-  //! DSP behaviour
-  static void DSP_Clusterize(int tkid,float *buf);  
-
-  ////////////////////////
-  // Methods for RawSimulation
-  ////////////////////////
-
-  //! The original GBATCH digitization method
-  static void sitkdigiold();	
-
-  ////////////////////////
-  // Methods for SkipRawSimulation
-  ////////////////////////
-
-  //! Fast simulation (generate TrRawCluster directly from Geant infos) 
-  static void gencluster(int idsoft, float vect[], float edep, float step, int itra);
-  
   //! Impact positions
   static AMSPoint sitkrefp[trconst::maxlay];
   //! Impact angles
   static AMSPoint sitkangl[trconst::maxlay];
-  //! Resolution from simulation 
-  static void fillreso(TrTrackR *track);
-  
-  ////////////////////////
-  // Methods for TrSim2010
-  ////////////////////////
 
-  //! Makes the TrRawClusters starting from the MC clusters
-  static   int  BuildTrRawClusters();
-  //! Makes the TrRawClusters starting from the ladder buffer (1024 strips)(0: n-side, 1: p-side)
-  static int BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal* _ladcal,double * _ladbuf);
+ private:
 
-  //! Create the MC Cluster TkId map
-  static   void CreateMCClusterTkIdMap();
-  //! Print buffer
-  static   void PrintBuffer(double *_ladbuf);
+  //! A map for the MC Cluster search
+  static TrMap<TrMCClusterR> MCClusterTkIdMap;
+ 
+  //! Geant3 masses (particle id index) [saved on 18/05/2010]
+  static float _g3mass[213];
+  //! Geant3 charges (particle id index) [saved on 18/05/2010]
+  static float _g3charge[213];
+  //! Pointers to sensors 
+  static TrSimSensor* _sensors[3]; 
+
+ public:
+
+  //! Constructor (simulator initialization)
+  TrSim(){}
+  //! Destructor 
+  ~TrSim() { MCClusterTkIdMap.Clear(); }
+
+  //! Build the TrMCClusters (one per side) 
+  static void  sitkhits(int idsoft, float vect[], float edep, float step, int itra);
+  //! Fast simulation TrRawCluster creation (generate TrRawCluster directly from step infos) 
+  static void  gencluster(int idsoft, float vect[], float edep, float step, int itra);  
+  //! Generate fake noise cluster (where there is no full simulation)
+  static void  sitknoise();
+  //! Generate the TrRawClusters from the TrMCCluster (calls the specific simulation type)
+  static void  sitkdigi();
+  //! Create the MC Cluster TkId map and generate MC ideal clusters 
+  static void  CreateMCClusterTkIdMap();
   //! Add noise of the TkId ladder on the ladder buffer (from current calibration)
-  static   void AddNoiseOnBuffer(double* _ladbuf,TrLadCal * _ladcal);
-  //! Produce clusters and put them on the ladder buffer 
-  static   int  AddSimulatedClustersOnBuffer(int _tkid,double* _ladbuf);
+  static void  AddNoiseOnBuffer(double* ladbuf, TrLadCal * ladcal);
+  //! Put MC ideal clusters on the ladder buffer (TrSim2010) 
+  static int   AddTrSimClustersOnBuffer(TrMCClusterR* cluster, double* ladbuf);
+  //! Put MC ideal clusters on the ladder buffer (GBATCH)
+  static int   AddOldSimulationSignalOnBuffer(TrMCClusterR* cluster, double* ladbuf);
+  //! Makes the TrRawClusters starting from a ladder buffer (1024 strips) (0: n-side, 1: p-side)
+  static int   BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* ladcal, double * ladbuf);
 
-
-
-  static int AddSimClusterNew(TrMCClusterR* cluster,double* _ladbuf);
+  //! Resolution from simulation 
+  static void fillreso(TrTrackR *track);  
+  //! Returns the sensor simulator
+  static TrSimSensor* GetTrSimSensor(int side, int tkid); 
+  //! Print buffer
+  static void  PrintBuffer(double *_ladbuf);
+  //! Get mass from the particle list
+  static float GetG3Mass(int id)   { return _g3mass[id];   }
+  //! Get charge from the particle list
+  static float GetG3Charge(int id) { return _g3charge[id]; }
 
 };
 

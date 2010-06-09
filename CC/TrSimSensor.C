@@ -425,6 +425,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
   if (IsReadoutStrip(impladd)) { 
     address = GetReadoutAddressFromImplantAddress(impladd,nsens); 
     acluster.push_back(QU);
+    // cout << " A ----> " << GetSensorType() << " " << GetReadoutAddressFromImplantAddress(impladd,nsens) + 640*(GetSensorType()>0) << endl;
   }
   // right loop
   for (int ii=impladd+1; ii<nimplants; ii++) {
@@ -437,6 +438,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
       if (QU2<TOLERANCE) break;
       if (address<0) address = GetReadoutAddressFromImplantAddress(ii,nsens);
       acluster.push_back(QU2);
+      // cout << " B ----> " << GetSensorType() << " " << GetReadoutAddressFromImplantAddress(ii,nsens) + 640*(GetSensorType()>0) << endl;
     }
   }
   // left loop
@@ -450,6 +452,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
       if (QU2<TOLERANCE) break;
       address = GetReadoutAddressFromImplantAddress(ii,nsens); 
       acluster.insert(acluster.begin(),QU2);
+      // cout << " C ----> " << GetSensorType() << " " << GetReadoutAddressFromImplantAddress(ii,nsens) + 640*(GetSensorType()>0) << endl;
     }
   }
   // check
@@ -475,7 +478,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster* implclus,
     int    impladd = implclus->GetAddress() + ii;
     double Q       = implclus->GetSignal(ii);
     TrSimCluster* addcluster = MakeClusterFromAChargeInjectionOnAnImplant(Q,impladd,nsens);
-    // cout << impladd << " " << Q << " " << addcluster << endl;
+    // cout << " --- Adding ... " << impladd << " " << Q << " " << addcluster << endl;
     if ( (VERBOSE)&&(addcluster!=0) ) {
       printf("TrSimSensor::MakeClusterFromImplantCluster add cluster\n");
       addcluster->Info(10);

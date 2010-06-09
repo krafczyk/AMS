@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.9 2010/06/04 18:04:02 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.10 2010/06/09 14:04:47 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/06/04 18:04:02 $
+///$Date: 2010/06/09 14:04:47 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -21,10 +21,10 @@
 
 #include "TrMCCluster.h"
 
-
 #include "TString.h"
 #include "TrSimSensor.h"
 #include "TrSimCluster.h"
+#include "TrSim.h"
 #include "TrParDB.h"
 
 #include <cmath>
@@ -33,40 +33,10 @@
 #include <vector>
 #include <string>
 
-#define VERBOSE 0
+#define VERBOSE 0 
 #define WARNING 0
 
-
-
-// ATTENTION: this is the particle chart extracted from GBATCH (18/05/2010)  
-static float _g3mass[213] = {0,0,0.000510999,0.000510999,0,0.105658,0.105658,0.134976,0.13957,0.13957,0.497672,0.493677,0.493677,0.939566,0.938272,0.938272,0.497672,0.54745,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0.939566,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743,16.146,9.33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743};
-
-static float  _g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,-1,0,-1,-1,0,0,-1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,0,2,0,0,0,0,0,0,0,0,0,0,0,3,3,4,4,5,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,32,34,36,38,40,42,46,48,50,54,56,58,62,66,70,74,78,79,80,82,92,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-2,0,-2,0,0,0,0,0,0,0,0,0,0,0,-3,-3,-4,-4,-5,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-32,-34,-36,-38,-40,-42,-46,-48,-50,-54,-56,-58,-62,-66,-70,-74,-78,-79,-80,-82,-92};
-
-static TrSimSensor* _sensors[3]={0,0,0};
-
-
-
-
-TrSimSensor* GetTrSimSensor(int side, int tkid) {
-  if(_sensors[0]==0 ) _sensors[0]= new TrSimSensor(0);
-  if(_sensors[1]==0 ) _sensors[1]= new TrSimSensor(1);
-  if(_sensors[2]==0 ) _sensors[2]= new TrSimSensor(2);
-
-  if (side==1)    return _sensors[0]; // S
-  int layer = (int) fabs(tkid%100);
-  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
-  if(!ll){
-    printf("TrSim::GetTrSimSensor-Error Cannot find ladder %d into the database\n",tkid);
-    return 0;
-  } 
-  if (ll->IsK7()) return _sensors[2]; // K7
-  else            return _sensors[1]; // K5
-  return 0;
-}
-
 extern "C" double rnormx();
-
 
 ClassImp(TrMCClusterR);
 
@@ -323,20 +293,20 @@ double TrMCClusterR::fdiff(double a, int ialpha)
 
 
 void TrMCClusterR::GenSimClusters(){
-  if(simcl[0]) delete simcl[0];
-  if(simcl[1]) delete simcl[1];
-  simcl[0]=0;
-  simcl[1]=0;
+  if (simcl[0]) delete simcl[0];
+  if (simcl[1]) delete simcl[1];
+  simcl[0] = 0;
+  simcl[1] = 0;
   char   sidename[2] = {'X','Y'};
   AMSPoint glo = GetXgl();                // Coordinate [cm]
   AMSPoint mom = GetMom();                // Momentum Vector [GeV/c]
   double   edep = Sum()*1.e6;             // Energy Deposition [keV] 
   double   momentum = mom.norm();         // Momentum [GeV/C]
-  double   mass = _g3mass[GetPart()];     // Mass [GeV/c2] 
-  double   charge = _g3charge[GetPart()]; // Charge [unit of e]
+  double   mass = TrSim::GetG3Mass(GetPart());     // Mass [GeV/c2] 
+  double   charge = TrSim::GetG3Charge(GetPart()); // Charge [unit of e]
   if ( (mass==0)||(charge==0) ) {
     if (WARNING) printf("TrMCClusterR::GenSimClusters() -Warning No Mass/Charge for particle %d, check _g3mass and _g3charge tables",GetPart());
-    return ; 
+    return; 
   }
   if (momentum<1e-9) return ; // if momentum < eV/c!
   AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
@@ -355,7 +325,7 @@ void TrMCClusterR::GenSimClusters(){
 			  sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
       continue;
     }
-    TrSimCluster* simcluster = GetTrSimSensor(iside,GetTkId()) -> MakeCluster(ip[iside],ia[iside],nsensor);
+    TrSimCluster* simcluster = TrSim::GetTrSimSensor(iside,GetTkId()) -> MakeCluster(ip[iside],ia[iside],nsensor);
     if (simcluster==0) continue; // it happens! 
     simcl[iside]=simcluster;
     // Adding some "intrinsic" noise
@@ -375,9 +345,9 @@ void TrMCClusterR::GenSimClusters(){
     double edepnorm     = edep*costheta/(betacorr*z2);
 
     // 2. MCtoRealDataNormalization (straight tracks z=1): MPV, real distribution
-    double ADC          = edepnorm*GetTrSimSensor(iside,GetTkId())->GetkeVtoADC();
+    double ADC          = edepnorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC();
     if (TRMCFFKEY.TrSim2010_ADCConvType>1) {
-      ADC = GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(ADC); // using pdfs
+      ADC = TrSim::GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(ADC); // using pdfs
     }
 
     // 3. Decoupling of normalization

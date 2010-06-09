@@ -80,21 +80,24 @@ number ADC2KeV(){
 
 // I [564] SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
 integer SimulationType; 
-// [565,570] TrSim2010: main parameters
-integer TrSim2010_NoiseType;      // I [565]
-integer TrSim2010_ADCConvType;    // I [566]
-geant   TrSim2010_DSPSeedThr[2];  // R [567,568]
-geant   TrSim2010_DSPNeigThr[2];  // R [569,570]
-// [571,576] TrSim2010: detailed description
-geant   TrSim2010_Cint[2];        // R [571,572]
-geant   TrSim2010_Cbk[2];         // R [573,574]
-geant   TrSim2010_Cdec[2];        // R [575,576]
-// [577,584] Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
-integer TrSim2010_DiffType[2];    // I [577,578]
-geant   TrSim2010_DiffPars[2][2]; // R [579,582]
-geant   TrSim2010_IntrNoise[2];   // R [583,584]
-// [585] EDep real data type: 1:TB2003 2:TB2010
-integer TrSim2010_RefunType;      // I [585]
+// I [565,567] Common Parameters
+integer MinMCClusters;
+integer NoiseType;    
+integer FakeClusterType;
+// TrSim2010: main parameters
+integer TrSim2010_ADCConvType;    
+geant   TrSim2010_DSPSeedThr[2];  
+geant   TrSim2010_DSPNeigThr[2];  
+// TrSim2010: detailed description
+geant   TrSim2010_Cint[2];        
+geant   TrSim2010_Cbk[2];  
+geant   TrSim2010_Cdec[2]; 
+// Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
+integer TrSim2010_DiffType[2]; 
+geant   TrSim2010_DiffPars[2][2]; 
+geant   TrSim2010_IntrNoise[2]; 
+// EDep real data type: 1:TB2003 2:TB2010
+integer TrSim2010_RefunType; 
 // landau x gaus x exp description?
 
 };

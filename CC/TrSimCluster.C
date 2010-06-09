@@ -24,19 +24,12 @@ double TrSimCluster::GetSignal(int i) {
   return _signal.at(i);
 }
 
-double TrSimCluster::GetSignalAtAddress(int i) {
-  // no error: 0 if out of the cluster
-  int index = i - GetAddress();
-  if ( (index<0)||(index>=GetWidth()) ) return 0.;
-  return GetSignal(index);
-}
-
 void TrSimCluster::Info(int verbose) {
   printf("TrSimCluster - nStrips = %2d   SeedIndex = %2d   Address = %3d  TotSignal = %7.3f\n",
          GetWidth(),GetSeedIndex(),GetAddress(),GetTotSignal());
   if (verbose>0) {
     for (int i=0; i<GetWidth(); i++)
-      printf("Bin %4d   Signal %7.5f\n",i+GetAddress(),GetSignal(i));
+      printf("Address (p,n) %4d %4d  Signal %7.5f\n",i+GetAddress(),i+GetAddress()+640,GetSignal(i));
   }
 }
 
@@ -78,7 +71,7 @@ void TrSimCluster::AddCluster(TrSimCluster* cluster){
   vector<double> acluster;
   acluster.clear();
   // fill
-  for (int i=add1; i<add2; i++) acluster.push_back(cluster->GetSignalAtAddress(i) + GetSignalAtAddress(i));
+  for (int i=add1; i<add2; i++) acluster.push_back(cluster->GetSignal(i-cluster->GetAddress()) + GetSignal(i-GetAddress()));
   // redefine the cluster
   _signal = acluster;
   _address = add1;
