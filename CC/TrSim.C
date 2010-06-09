@@ -264,7 +264,7 @@ void TrSim::sitkdigi() {
 #endif
 
   // Skip digitization if the number of cluster is too low  
-  if (MCClusterTkIdMap.Size()<=TRMCFFKEY.MinMCClusters) {
+  if (MCClusterTkIdMap.Size()<TRMCFFKEY.MinMCClusters) {
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.stop("SITKDIGI");
 #endif
@@ -412,17 +412,17 @@ int TrSim::AddOldSimulationSignalOnBuffer(TrMCClusterR* cluster, double* ladbuf)
 }
 
 
-int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal* _ladcal,double * _ladbuf) {
+int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* ladcal,double * ladbuf) {
   // Does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
-  if(!cont){
+  if (!cont) {
     if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-Warning cannot find AMSTrRawCluster, no cluster produced\n");
     return 0;
   } 
 
   // Does the calibration exist?
-  if (!_ladcal) {
-    if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",_tkid);
+  if (!ladcal) {
+    if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",tkid);
     return 0;
   }
 
@@ -436,8 +436,8 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal
   for (int ii=addmin[iside]; ii<addmax[iside]; ii++) {
 
     if (used[ii]!=0)            continue; // a strip used in a cluster 
-    if (_ladcal->Status(ii)!=0) continue; // a strip with status different from 0
-    if ( (_ladbuf[ii]/_ladcal->Sigma(ii))<=TRMCFFKEY.TrSim2010_DSPSeedThr[iside] ) continue; // a strip under seed threshold
+    if (ladcal->Status(ii)!=0) continue; // a strip with status different from 0
+    if ( (ladbuf[ii]/ladcal->Sigma(ii))<=TRMCFFKEY.TrSim2010_DSPSeedThr[iside] ) continue; // a strip under seed threshold
 
     // "Seed" Found (not max)
     int seed = ii;
@@ -447,7 +447,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal
     // Left Loop
     int left = seed;
     for (int jj=seed-1; jj>=addmin[iside]; jj--) {
-      if ( (((_ladbuf[jj]/_ladcal->Sigma(jj))>TRMCFFKEY.TrSim2010_DSPNeigThr[iside])||(_ladcal->Status(jj)!=0)) && (used[jj]==0) ) {
+      if ( (((ladbuf[jj]/ladcal->Sigma(jj))>TRMCFFKEY.TrSim2010_DSPNeigThr[iside])||(ladcal->Status(jj)!=0)) && (used[jj]==0) ) {
         used[jj] = 1;
         left = jj;
       } 
@@ -458,7 +458,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal
     // Right Loop
     int right = seed;
     for (int jj=seed+1; jj<addmax[iside]; jj++) {
-      if ( (((_ladbuf[jj]/_ladcal->Sigma(jj))>TRMCFFKEY.TrSim2010_DSPNeigThr[iside]) || (_ladcal->Status(jj)!=0)) && used[jj]==0) {
+      if ( (((ladbuf[jj]/ladcal->Sigma(jj))>TRMCFFKEY.TrSim2010_DSPNeigThr[iside]) || (ladcal->Status(jj)!=0)) && used[jj]==0) {
         used[jj] = 1;
         right = jj;
       } 
@@ -474,26 +474,26 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal
     short int signal[128];
     int nstrips = right - left + 1;
     for(int ist=0; ist<nstrips; ist++) { 
-      signal[ist%128] = int(8*_ladbuf[left + ist]); 
+      signal[ist%128] = int(8*ladbuf[left + ist]); 
       if ( (((ist+1)%128)==0) || ((ist+1)==nstrips) ) { 
         int cluslenraw = (((ist+1)%128)==0) ? 127 : (nstrips%128)-1; // 0->1, 1->2, ..., 127->128
-        int seedvalue  = int(4*_ladbuf[maxstrip]);
+        int seedvalue  = int(4*ladbuf[maxstrip]);
         // cluslenraw |= (seedvalue<<7);
         int n128 = int((ist+1)/128);
         int clusaddraw = left + 128*n128;
         // clusaddraw |= (0<<10); // CN bits status (not simulated)
         // clusaddraw |= (0<<14); // Power Bits status (not simulated)
 #ifndef __ROOTSHAREDLIBRARY__
-        if (cont) cont->addnext(new AMSTrRawCluster(_tkid,clusaddraw,cluslenraw,signal));
+        if (cont) cont->addnext(new AMSTrRawCluster(tkid,clusaddraw,cluslenraw,signal));
 #else
-        if (cont) cont->addnext(new TrRawClusterR(  _tkid,clusaddraw,cluslenraw,signal));
+        if (cont) cont->addnext(new TrRawClusterR(  tkid,clusaddraw,cluslenraw,signal));
 #endif
 	nclusters++;
         if (VERBOSE) {
           printf("TrSim::TrRawCluster\n");
           TrRawClusterR* cluster = (TrRawClusterR*) cont->getelem((int)cont->getnelem()-1);
           cluster->Print(10);
-          printf("TrSim::TrRawCluster-More Local Seed Coordinate = %f\n",TkCoo::GetLocalCoo(_tkid,cluster->GetSeedAddress(),0));
+          printf("TrSim::TrRawCluster-More Local Seed Coordinate = %f\n",TkCoo::GetLocalCoo(tkid,cluster->GetSeedAddress(),0));
         }
       }
     }
@@ -504,14 +504,18 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int _tkid,  TrLadCal
 
 void TrSim::sitknoise() {
 
-  /*
-  // DSP dependent code
+  // Does the AMSTrRawCluster container exist?
+  VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
+  if(!cont){
+    if (WARNING) printf("TrSim::sitknoise-Warning cannot find AMSTrRawCluster, no fake cluster produced\n");
+    return;
+  } 
+
+  // DSP gaussian fraction
   double nintegral = TMath::Erfc(TRMCFFKEY.TrSim2010_DSPSeedThr[0]/sqrt(2))/2.;
   double pintegral = TMath::Erfc(TRMCFFKEY.TrSim2010_DSPSeedThr[1]/sqrt(2))/2.;
 
-  cout << nintegral << " " << pintegral << endl;
-
-  // Make some statistics from the calibration  
+  // Make some statistics from all the calibration  
   int nchannels = 0;
   int pchannels = 0;
   for (int ientry=0; ientry<TkDBc::Head->GetEntries(); ientry++) {
@@ -523,19 +527,102 @@ void TrSim::sitknoise() {
     pchannels += 640;
   }
 
-  cout << " --- > " << nchannels << " " << pchannels << endl;
-  cout << " --- >>> " << nchannels*nintegral << " " << pchannels*pintegral << endl;
-
-  int nclu[2] = {ceil(nchannels*nintegral), ceil(pchannels*pintegral)};
-
+  int nclu[2]  = {int(ceil(nchannels*nintegral)), int(ceil(pchannels*pintegral))};
+  int ncha[2] = {384, 640};
+  float dummy=0;
+  short int signal[128];
+  vector<float> clusterSN;
+ 
   for (int iside=0; iside<2; iside++) {
     for (int iclu=0; iclu<nclu[iside]; iclu++) {
-      // extraction
-      cout << "Adding " << iside << " " << iclu << endl;
+
+      // Creation of a SN cluster 
+      clusterSN.clear();
+
+      // Find a ladder
+      bool ladderfound = false;
+      int tkid = 0;
+      while (!ladderfound) {
+	int ientry = int(192.*RNDM(dummy));
+	TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
+	tkid = ladder->GetTkId();
+	if (MCClusterTkIdMap.GetNelem(tkid)<=0) ladderfound = true;
+      }
+      // cout << "tkid= " << tkid << endl; 
+      
+      // Take the right calibration
+      TrLadCal* ladcal = TrCalDB::Head->FindCal_TkId(tkid);
+      if (ladcal==0) {
+	if (WARNING) printf("TrSim::sitknoise-Warning no ladder calibration found, no noise for ladder tkid=%+04d skipping creation of fake clusters\n",tkid);
+	continue;
+      }
+      
+      // Extract seed position 
+      int seedadd = int(ncha[iside]*RNDM(dummy));
+      int address = seedadd;
+
+      // Extract seed value SN
+      float seedSN = 4+RNDM(dummy)*2; // FIX ME: is not the right distribution  
+      clusterSN.push_back(seedSN);
+
+      // Left loop
+      for (int add=seedadd-1; add>=0; add--) {
+        float SN = rnormx();
+        while (SN>=TRMCFFKEY.TrSim2010_DSPSeedThr[iside]) SN = rnormx();
+        // cout << "+- " << SN << " " << ladcal->Status(add) << endl;
+        if ( (SN>TRMCFFKEY.TrSim2010_DSPNeigThr[iside])||(ladcal->Status(add)!=0) ) { 
+	  clusterSN.insert(clusterSN.begin(),SN);
+	  address = add;
+        }
+	else { 
+          clusterSN.insert(clusterSN.begin(),SN); // additional one
+          address = add;
+	  break;
+        }
+      }	
+
+      // Right loop
+      for (int add=seedadd+1; add<ncha[iside]; add++) {
+        float SN = rnormx();
+        while (SN>=TRMCFFKEY.TrSim2010_DSPSeedThr[iside]) SN = rnormx();
+        // cout << "++ " << SN << " " << ladcal->Status(add) << endl;
+        if ( (SN>TRMCFFKEY.TrSim2010_DSPNeigThr[iside])||(ladcal->Status(add)!=0) ) {
+          clusterSN.push_back(SN);
+        }
+        else {
+          clusterSN.push_back(SN); // additional one
+          break;
+        }
+      } 
+
+      // Normalizing to noise
+      address += (1-iside)*640;
+      int nstrips = int(clusterSN.size());
+      for (int ii=0; ii<nstrips; ii++) {
+	if (ladcal->GetStatus(address+ii)&TrLadCal::dead) 
+          signal[ii] = int(8*DEADSTRIPADC); // dead strip    
+	else                                              
+          signal[ii] = int(8*clusterSN.at(ii)*ladcal->Sigma(address+ii)); // normal/hot strips
+      }
+      int cluslenraw = (nstrips%128)-1;
+      int clusaddraw = address;
+
+#ifndef __ROOTSHAREDLIBRARY__
+      if (cont) cont->addnext(new AMSTrRawCluster(tkid,clusaddraw,cluslenraw,signal));
+#else
+      if (cont) cont->addnext(new TrRawClusterR(  tkid,clusaddraw,cluslenraw,signal));
+#endif	
+
+      /*
+      printf("TrSim::TrRawCluster\n");
+      TrRawClusterR* cluster = (TrRawClusterR*) cont->getelem((int)cont->getnelem()-1);
+      cluster->Print(10);
+      printf("TrSim::TrRawCluster-More Local Seed Coordinate = %f\n",TkCoo::GetLocalCoo(tkid,cluster->GetSeedAddress(),0));
+      */
+
     }
   }
-  */
-
+  
   return;
 }
 

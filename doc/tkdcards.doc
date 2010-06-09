@@ -23,7 +23,7 @@ TRMC
 I 564        SimulationType        (def=0)    0 GBATCH old algorythm
                                               1 SkipRawSim (no TrRawClusters, very fast) 
                                               2 TrSim2010 (detailed simulation)
-I 565        MinMCClusters         (def=-1)   Minimum number of MC Clusters in order to trigger digitization (<0, all events)  
+I 565        MinMCClusters         (def=0)    Minimum number of MC Clusters in order to trigger digitization (=0, all events)  
 I 566        NoiseType             (def=1)    0 No Noise (only signal) 
                                               1 Gaussian noise generation for every channel (full simulation, slow)
                                               2 Gaussian noise generation only on ladders with signal + Fake clusters for the rest
