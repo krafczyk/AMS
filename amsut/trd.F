@@ -1298,9 +1298,16 @@ C
 C... *** Input information from DETRA1,DETRA2,DETRA3 files ***
 C
 #include "trdf.h"
-#include "mfield.h"
-         real ac,zc,roc
-         integer nnwe,k,i,ig
+C .. PZ 10/6/2010 remove cross dependence here we only need the 
+C                  amsdatadir common
+C                 #include "mfield.h"
+        common /amsdatadir/amsdlength,amsdblength,amsdatadir,
+     +                   amsdatabase,fname
+        integer amsdlength,amsdblength,iniok
+        character *128 amsdatadir,amsdatabase
+        character *200 fname
+        real ac,zc,roc
+        integer nnwe,k,i,ig
 
 *>>>>>>> T.S. 2/2003  Xe/CO2 Gas-Density should be DATA-CARD !!!! 
          REAL       Gdens
