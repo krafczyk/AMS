@@ -67,8 +67,8 @@ IDLCPP=orbit-idl-2 -l cpp
 ifndef CERN_LEVEL
 CERN_LEVEL = pro
 endif
-#CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
-CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift
+CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
+#CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
 
