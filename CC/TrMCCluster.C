@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.11 2010/06/14 12:31:31 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.12 2010/06/14 13:44:59 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/06/14 12:31:31 $
+///$Date: 2010/06/14 13:44:59 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -376,7 +376,6 @@ void TrMCClusterR::GenSimClusters(){
       simcluster->Info(10);
     }
     
-  if(simcluster) delete simcluster;  
   }
   //     // Putting cluster on the ladder buffer 
   //     for (int ist=0; ist<simcluster->GetWidth(); ist++) {

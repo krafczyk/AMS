@@ -38,6 +38,8 @@ class TrSimCluster {
  public:
 
   //! Constructor
+  TrSimCluster() { Clear(); }
+  //! Constructor
   TrSimCluster(vector<double> signal, int address, int seedind, double sigma = 0.);
   //! Destructor
   ~TrSimCluster() { Clear(); }
