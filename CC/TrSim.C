@@ -349,6 +349,7 @@ void TrSim::CreateMCClusterTkIdMap() {
   }
   if (container->getnelem()==0) {
     if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-Warning TrMCCluster container is empty\n");
+    delete container;
     return;
   }
   for (int ii=0; ii<container->getnelem(); ii++) {
@@ -360,6 +361,8 @@ void TrSim::CreateMCClusterTkIdMap() {
       MCClusterTkIdMap.Add(cluster);
     }
   }
+  delete container;
+  return;
 }
 
 
@@ -622,7 +625,7 @@ void TrSim::sitknoise() {
 
     }
   }
-  
+ if(cont) delete cont; 
   return;
 }
 
