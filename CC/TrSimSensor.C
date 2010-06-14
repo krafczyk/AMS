@@ -473,7 +473,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster* implclus,
     if (WARNING) printf("TrSimSensor::MakeClusterFromModelizedCluster-Warning passing an invalid or null cluster\n");
     return 0;
   }
-  TrSimCluster* cluster = 0;
+  TrSimCluster* cluster = 0; 
   for (int ii=0; ii<implclus->GetWidth(); ii++) {
     int    impladd = implclus->GetAddress() + ii;
     double Q       = implclus->GetSignal(ii);
@@ -485,8 +485,13 @@ TrSimCluster* TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster* implclus,
     }
     if (addcluster==0) continue; // it happens
     if (cluster==0) cluster = addcluster;
-    else            cluster->AddCluster(addcluster);
+    else { 
+      cluster->AddCluster(addcluster);
+      delete addcluster; // avoid memory leak
+    }
   }
+  if ( (cluster==0)&&(WARNING) ) 
+    printf("TrSimSensor::MakeClusterFromModelizedCluster-Warning returning a null cluster\n");
   return cluster;
 }
 
@@ -498,6 +503,7 @@ TrSimCluster* TrSimSensor::MakeCluster(double senscoo, double sensangle, int nse
     implclus->Info(10);
   }
   TrSimCluster* readclus = MakeClusterFromImplantCluster(implclus, nsens);
+  if (implclus!=0) delete implclus; // avoid memory leak 
   if ( (VERBOSE)&&(readclus!=0) ) {
     printf("TrSimSensor::MakeCluster-Verbose read cluster\n");
     readclus->Info(10);

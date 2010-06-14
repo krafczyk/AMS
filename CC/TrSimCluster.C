@@ -59,7 +59,8 @@ void TrSimCluster::Multiply(double signal) {
   }
 }
 
-void TrSimCluster::AddCluster(TrSimCluster* cluster){
+void TrSimCluster::AddCluster(TrSimCluster* cluster){ 
+  if (cluster==0) return; // no error
   if (cluster->GetAddress()<0) {
     printf("TrSimCluster::AddCluster-Error the cluster to be added has address < 0, Info:\n");
     cluster->Info(1);
