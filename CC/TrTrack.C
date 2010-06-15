@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.34 2010/06/09 15:49:10 pzuccon Exp $
+// $Id: TrTrack.C,v 1.35 2010/06/15 20:44:58 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/06/09 15:49:10 $
+///$Date: 2010/06/15 20:44:58 $
 ///
-///$Revision: 1.34 $
+///$Revision: 1.35 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -80,6 +80,7 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
   }
   trdefaultfit=0;
   _MagFieldOn=0;
+  _bit_pattern=0;
   _PatternX=0;
   _PatternY=0;
   _PatternXY=0;
@@ -98,6 +99,7 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
   :_Pattern(pattern), _Nhits(nhits), _NhitsX(0), _NhitsY(0), _NhitsXY(0)
 
 {
+  _bit_pattern=0;
   _MagFieldOn=0;
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = (phit   && i < _Nhits) ? phit [i] :  0;
@@ -105,6 +107,7 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
     _BField[i]= (bfield && i < _Nhits) ? bfield[i]: AMSPoint(0,0,0);
     if(_BField[i].norm()!=0) _MagFieldOn=1;
     if (phit && i < _Nhits) {
+      _bit_pattern|= 1<<(phit[i]->GetLayer()-1);
       if (phit[i]->GetXCluster()) _NhitsX++;
       if (phit[i]->GetYCluster()) _NhitsY++;
       if (phit[i]->GetXCluster() && phit[i]->GetYCluster()) _NhitsXY++;
@@ -141,7 +144,7 @@ TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
     par.Residual[i] = 0;
   }
   Status=0;
-  _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
+  _bit_pattern=_PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
   _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
   
@@ -165,9 +168,35 @@ TrTrackR::TrTrackR(AMSDir dir, AMSPoint point, number rig, number errig)
     par.Residual[i] = 0;
   }
   Status=0;
-  _PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
+  _bit_pattern=_PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
   _MagFieldOn=0;
   DBase[0] = DBase[1] = 0;
+
+}
+
+TrTrackR::TrTrackR(const TrTrackR& orig){
+  for (int ii=0;ii<trconst::maxlay;ii++){
+    _Hits[ii]=orig._Hits[ii] ;
+    _BField[ii]=orig._BField[ii] ; 
+    _iHits[ii]=orig._iHits[ii] ;
+    _iMult[ii]=orig._iMult[ii] ;
+  }
+  _bit_pattern=orig._bit_pattern ;
+  _Pattern=orig._Pattern ;
+  _Nhits=orig._Nhits ;
+  _PatternX=orig._PatternX ;
+  _PatternY=orig._PatternY ;
+  _PatternXY=orig._PatternXY ;
+  _NhitsX=orig._NhitsX ;
+  _NhitsY=orig._NhitsY ;
+  _NhitsXY=orig._NhitsXY ;
+  _TrFit=orig._TrFit ;  //!
+  _TrackPar=orig._TrackPar;
+  _MagFieldOn=orig._MagFieldOn ;
+  for(int ii=0;ii<2;ii++)
+    DBase[ii]=orig.DBase[ii] ;
+  trdefaultfit=orig.trdefaultfit ;
+  Status=orig.Status ;
 
 }
 
@@ -217,9 +246,9 @@ AMSPoint TrTrackR::GetPlayer(int ilay, int id)
 void TrTrackR::AddHit(TrRecHitR *hit, int imult)
 {
   int ihit = -1;
-  for (int i = 0; i < _Nhits; i++)
+  for (int i = 0; i < _Nhits; i++){
     if (GetHit(i)->GetLayer() == hit->GetLayer()) ihit = i;
-
+  }
   if (ihit < 0) {
     if (_Nhits >= trconst::maxlay) {
       cerr << "Error in TrTrack::AddHit the hit vector is already full"
@@ -241,6 +270,7 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   if (hit->GetXCluster()) _NhitsX++;
   if (hit->GetYCluster()) _NhitsY++;
   if (hit->GetXCluster() && hit->GetYCluster()) _NhitsXY++;
+  _bit_pattern|= (1<<(hit->GetLayer()-1));
 
   VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   _Hits [ihit] = hit;

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.24 2010/05/26 14:18:35 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.25 2010/06/15 20:44:58 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/05/26 14:18:35 $
+///$Date: 2010/06/15 20:44:58 $
 ///
-///$Revision: 1.24 $
+///$Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -194,6 +194,8 @@ protected:
   short int _iHits[trconst::maxlay];
   /// Vector of multiplicty index (to fix x-coord) 
   short int _iMult[trconst::maxlay];
+  /// The real bitted Track Pattern
+  unsigned short int _bit_pattern;
   /// Track pattern ID
   short int _Pattern;
   /// Number of hits
@@ -250,6 +252,8 @@ public:
   /// Dummy track for RICH compatibility (filled at [kDummy])
   TrTrackR(AMSDir dir, AMSPoint pref, number rig = 1e7, number errig = 1e7);
 
+  TrTrackR(const TrTrackR& orig);
+
   /// Destructor
   virtual ~TrTrackR();
 
@@ -265,8 +269,10 @@ public:
 //#####################  ACCESSORS #########################
 
   // Access functions
-  //! returns the pattern
+  //! returns the pattern ID
   int getpattern() const { return _Pattern; }
+  //! returns the pattern BIT Mask
+  unsigned short int GetBitPattern() const { return _bit_pattern; }
   //! returns the pattern
   int GetPattern() const { return _Pattern; }
   //! returns the Number of Hits
@@ -546,7 +552,7 @@ public:
   
 
   /// ROOT definition
-  ClassDef(TrTrackR, 1);
+  ClassDef(TrTrackR, 2);
 };
 
 
