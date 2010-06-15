@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.713 2010/06/06 08:12:39 choumilo Exp $
+// $Id: job.C,v 1.714 2010/06/15 16:54:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4290,6 +4290,9 @@ void AMSJob::_dbendjob(){
 
 if(DAQCFFKEY.BTypeInDAQ[0]<=27 && DAQCFFKEY.BTypeInDAQ[1]>=27){    
  DAQEvent::addsubdetector(&AMSEvent::checkccebid,&AMSEvent::buildcceb,27);
+}
+if(DAQCFFKEY.BTypeInDAQ[0]<=896 && DAQCFFKEY.BTypeInDAQ[1]>=896){    
+ DAQEvent::addsubdetector(&AMSEvent::checkccebid,&AMSEvent::buildcceb,896);
 }
 
 if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal 

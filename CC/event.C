@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.472 2010/06/01 13:08:56 mmilling Exp $
+//  $Id: event.C,v 1.473 2010/06/15 16:54:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3210,6 +3210,8 @@ void AMSEvent::_redaqinitevent(){
   new AMSContainer(AMSID("AMSContainer:DAQEvent",6),0));
   add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",27),0));
+  add (
+  new AMSContainer(AMSID("AMSContainer:DAQEvent",896),0));
 }
 
 void AMSEvent::_redaqevent(){
@@ -3242,6 +3244,9 @@ void AMSEvent::_redaqevent(){
    if(pdaq)pdaq->buildRawStructures();
    pdaq = (DAQEvent*)
    getheadC("DAQEvent",27);
+   if(pdaq)pdaq->buildRawStructures();
+   pdaq = (DAQEvent*)
+   getheadC("DAQEvent",896);
    if(pdaq)pdaq->buildRawStructures();
   AMSgObj::BookTimer.stop("REDAQ");
 }
@@ -4087,7 +4092,7 @@ void AMSEvent::buildcceb(integer n, int16u* p){
     static int rec=0;
     int len=n&65535;
     if(len!=72){
-     cerr<<"AMSEvent::buildcceb-E-WromngLength "<<len<<endl;;
+//     cerr<<"AMSEvent::buildcceb-E-WromngLength "<<len<<endl;;
      return ;
     }
 

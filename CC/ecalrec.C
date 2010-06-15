@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.137 2010/04/27 08:04:18 choumilo Exp $
+//  $Id: ecalrec.C,v 1.138 2010/06/15 16:54:17 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1811,7 +1811,7 @@ void AMSEcal2DCluster::_AddOneCluster(Ecal1DCluster *ptr, bool addpointer){
   number intercep=getcoo()+ptr->getcoo()[2]*gettan();
   number cm3=3;
   number cm5=5;
-  number cm9=8;
+  number cm9=1.;
   for(int i=0;i<ptr->getNHits();i++){
    number cosa=fabs(cos(atan(gettan())));
    if(fabs(intercep-ptr->getphit(i)->getcoot())*cosa<cm3){
