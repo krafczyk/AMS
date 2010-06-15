@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.191 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: daqevt.C,v 1.192 2010/06/15 16:48:36 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -653,7 +653,11 @@ const int16u hmask=lmask-1;
 uinteger len=(*pdata)&lmask?(*(pdata+1)|(((*pdata)&hmask)<<16))+sizeof(pdata[0]): *(pdata);
 len=(len+sizeof(pdata[0])/2)/sizeof(pdata[0]);
  return len+_OffsetL;
+
 }
+
+
+
 
 uinteger DAQEvent::_clb(int16u *pdata){
 const  int16u lmask=0x8000; 
@@ -678,7 +682,6 @@ bool    DAQEvent::_iscompressed(int16u id){
 if((id&31) ==4)return true;
 else return false;
 }
-
 
 
 bool    DAQEvent::_isjinj(int16u id){
@@ -729,6 +732,9 @@ else return false;
 
 uinteger DAQEvent::_GetBlType(){
 uinteger type=(*(_pData+_cll(_pData)))&31;
+if(type==31){
+ type=(*(_pData+_cll(_pData)+1));
+}
 //cout <<" type "<<*(_pData+_cl(_pData))<<" "<<_cll(_pData)<<" "<<type<<endl;
 if(type==5)return 0;
 else if(type==0)return 5;
@@ -792,11 +798,11 @@ else return 0;
 }
 
 bool DAQEvent::_ComposedBlock(){
- return _GetBlType()==0 || _GetBlType()==6 || _GetBlType()==7 || _GetBlType()==8;
+ return _GetBlType()==0 || _GetBlType()==6 || _GetBlType()==7 || _GetBlType()==8 ; 
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
-  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
+  if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b && _GetBlType()!= 896) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
 //  if(!_ComposedBlock())return 1;
@@ -1085,9 +1091,9 @@ else return false;
 integer DAQEvent::_HeaderOK(){
   const integer Laser=204;
   static int lr=-1;
-  if(!_ComposedBlock() && _GetBlType()!= 0x1b)return 0;
+  if(!_ComposedBlock() && _GetBlType()!= 0x1b  &&_GetBlType()!=896)return 0;
   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur+=_cl(_pcur)){
-     _Time=(*(_pcur-1)) |  (*(_pcur-2))<<16;
+    _Time=(*(_pcur-1)) |  (*(_pcur-2))<<16;
     if(!_ComposedBlock()){
      _Time=(*(_pcur+4)) |  (*(_pcur+3))<<16;
      static int event=0;
@@ -1342,7 +1348,7 @@ integer DAQEvent::_HeaderOK(){
   }
   cerr<<"DAQEvent::_HeaderOK-W-NoHeaderinEvent Type "<<_pData[1]<<" "<<((_pData[1]>>5)&511)<<" "<<_GetBlType()<<" "<<_Time<<endl;
       _Checked=1;
- if(_GetBlType()==0x1b)return 1;
+ if(_GetBlType()==0x1b || _GetBlType()==896)return 1;
 else return 0;
 }
 
@@ -1517,6 +1523,8 @@ int16u* pc;
    TOF2RawSide::validate(sta,1);
    }
 }
+
+
 
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
