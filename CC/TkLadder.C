@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.5 2010/05/14 14:02:28 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.6 2010/06/16 15:53:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/06/16 15:53:47 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -31,7 +31,7 @@ ClassImp(TkLadder);
 TkLadder::TkLadder():TkObject()
 {
   _layer=0;
-  _slot=0;
+  _slot=-1;
   _crate=0;
   _tdr=0;
   _nsensors=0;

@@ -246,6 +246,7 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
 
   int gid =abs(tkid)/tkid* (abs(tkid)+1000);
+  // printf("Sensor name %s  %+03d   %+9d %f %f %f\n",name,tkid,gid,coo[0],coo[1],coo[2]);
   AMSgvolume* ladd=(AMSgvolume*)mvol
     ->add(new AMSgvolume("NONACTIVE_SILICON", _nrot++, name, "BOX",
 			 par, 3, coo, nrm, "ONLY", 1, gid, 1));
@@ -272,9 +273,9 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
     VZERO(nrm, 9*sizeof(nrm[0][0])/4);
     nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
     int lside= (tkid>0)? 1:0;
-    int gid = abs(tkid)+1000*(lside)+10000*(sensor+1);
-    //printf("Sensor name %s  %+03d   %+9d \n",nameS,tkid,gid);
-    ladd->add(new AMSgvolume("ACTIVE_SILICON", _nrot++, nameS, "BOX",
+    int gid = abs(tkid)+1000*(lside)+10000*(sensor+1); 
+    //    printf("Sensor name %s  %+03d   %+9d %f %f %f\n",nameS,tkid,gid,coo[0],coo[1],coo[2]);
+   ladd->add(new AMSgvolume("ACTIVE_SILICON", _nrot++, nameS, "BOX",
 			     par, 3, coo, nrm, "ONLY", 1, gid, 1));
   }
   return ladd;
