@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.28 2010/06/06 08:12:52 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.29 2010/06/21 16:15:53 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -169,6 +169,21 @@ void AMSLVL1Hist::Book(){
   _filled.push_back(new TH1F("trigh34","ConsecEvents TrigTimeDiff",2000,0,25.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Msec)");
   _filled[_filled.size()-1]->SetYTitle("Number of events");
+  _filled[_filled.size()-1]->SetFillColor(3);
+
+
+AddSet("ExtBits in LVL1");
+
+  _filled.push_back(new TH1F("b14","b14 vs time",1200,-0.5,1119.5));
+  _filled.push_back(new TH1F("b15","b15 vs time",1200,-0.5,1119.5));
+  _filled.push_back(new TH1F("b145","b145 vs time",1200,-0.5,1119.5));
+  _filled.push_back(new TH1F("b14a","b14 vs time",1200,-0.5,1119.5));
+  _filled[_filled.size()-1]->SetXTitle("Time from Run Start (sec)");
+  _filled[_filled.size()-1]->SetYTitle("Frequency");
+  _filled[_filled.size()-1]->SetFillColor(3);
+  _filled.push_back(new TH1F("b15a","b15 vs time",1200,-0.5,1119.5));
+  _filled[_filled.size()-1]->SetXTitle("Time from Run Start (sec)");
+  _filled[_filled.size()-1]->SetYTitle("Frequency");
   _filled[_filled.size()-1]->SetFillColor(3);
 }
 
@@ -399,7 +414,15 @@ case 8:
     _filled[i+33]->Draw();//ConcecEvents TrigTimeDiff 
     gPadSave->cd();
   }
-//
+  break;
+  case 9:
+  gPad->Divide(1,2);
+    for(int i=0;i<2;i++){
+    gPad->cd(i+1);
+  ((TH1F*)_filled[i+38])->Divide((TH1F*)_filled[i+35],(TH1F*)_filled[37]);
+    _filled[i+38]->Draw();//ConcecEvents TrigTimeDiff 
+    gPadSave->cd();
+   }
   }
 //
 }
@@ -424,6 +447,9 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
   Double_t trigt;
   Float_t trigtdif;
   static Double_t trigtprev(-1);
+
+
+
   
   UShort_t ecpatt[6][3]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 //
@@ -462,6 +488,12 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     tofflg2=ntuple->pLevel1(0)->TofFlag2;//for z>=2(bz)
     membpat=ntuple->pLevel1(0)->JMembPatt;
     physbpat=ntuple->pLevel1(0)->PhysBPatt;
+    int b15=(membpat>>15)&1;
+    int b14=(membpat>>14)&1;
+    _filled[35]->Fill(etime[0]-etime0,b14);
+    _filled[36]->Fill(etime[0]-etime0,b15);
+    _filled[37]->Fill(etime[0]-etime0,1);
+
     ftc=((membpat&1)>0);//Z>=1
     ftz=((membpat&1<<5)>0);//SlowZ>=2
     fte=((membpat&1<<6)>0);//ec-FT

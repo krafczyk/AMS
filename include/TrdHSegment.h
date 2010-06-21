@@ -212,7 +212,7 @@ class TrdHSegmentR{
   virtual ~TrdHSegmentR(){};
 
   /// ROOT definition
-  ClassDef(TrdHSegmentR, 1);
+  ClassDef(TrdHSegmentR, 5);
 };
 
 

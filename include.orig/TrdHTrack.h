@@ -94,7 +94,7 @@ class TrdHTrackR{
   virtual ~TrdHTrackR(){};
 
   /// ROOT definition
-  ClassDef(TrdHTrackR, 1);
+  ClassDef(TrdHTrackR, 5);
 };
 
 

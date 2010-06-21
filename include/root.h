@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.274 2010/06/04 12:36:47 mmilling Exp $
+//  $Id: root.h,v 1.275 2010/06/21 16:15:43 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -75,8 +75,6 @@ class AMSTRDMCCluster;
 class AMSTRDRawHit;
 class AMSTRDSegment;
 class AMSTRDTrack;
-//class AMSTRDHSegment;
-//class AMSTRDHTrack;
 class AMSVtx;
 class Ecal1DCluster;
 class AMSEcal2DCluster;
@@ -111,8 +109,6 @@ class AMSTRDMCCluster{};
 class AMSTRDRawHit{};
 class AMSTRDSegment{};
 class AMSTRDTrack{};
-//class AMSTRDHSegment{};
-//class AMSTRDHTrack{};
 #ifndef _PGTRACK_
 class AMSTrCluster{};
 class AMSTrMCCluster{};
@@ -1361,27 +1357,6 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 #pragma omp threadprivate(fgIsA)
 };
 
-/*class TrdHSegmentR {
- public:
-  int   d;
-  int Nhits;
-  float Chi2;
-  float m,r,w,z;
-  float em,er;
-
-  vector<int> fTrdRawHit;
-  int NTrdRawHit()const {return fTrdRawHit.size();}
-  int nTrdRawHit()const {return fTrdRawHit.size();}
-  int iTrdRawHit(unsigned int i){return i<fTrdRawHit.size()?fTrdRawHit[i]:-1;}
-  TrdRawHitR * pTrdRawHit(unsigned int i);
-  friend class AMSTRDHSegment;
-  friend class AMSEventR;
-  TrdHSegmentR(){};
-  TrdHSegmentR(AMSTRDHSegment *ptr);
-  virtual ~TrdHSegmentR(){};
-  ClassDef(TrdHSegmentR,2)       //TrdSegmentR
-#pragma omp threadprivate(fgIsA)
-};*/
 
 
 /// TRDTrackR structure
@@ -1437,55 +1412,7 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 #pragma omp threadprivate(fgIsA)
 };
 
-/// TrdHTrackR structure
-/*!
- \author mark.millinger@cern.ch
-*/
-/*
-class TrdHTrackR {
-static char _Info[255];
- public:
-  int   Nhits;   ///< Number of Hits
-  float Chi2;    ///< Chi2
-  float Coo[3];  ///< Coo (cm)
-  float Dir[3];  ///< Dir
-  int   status;
-  float Theta(){ return acos(Dir[2]);}
- protected:
-  vector<int> fTrdHSegment;
-public:
-  /// access function to TrdSegmentR objects used
-  /// \return number of TrdSegmentR used
-  int NTrdHSegment()const {return fTrdHSegment.size();}
-  int nTrdHSegment()const {return fTrdHSegment.size();}
-  /// access function to TrdSegmentR objects used
-  /// \param i index of fTrdSegment vector
-  /// \return index of TrdSegmentR object in collection or -1
-  int iTrdHSegment(unsigned int i){return i<fTrdHSegment.size()?fTrdHSegment[i]:-1;}
-  /// access function to TrdSegmentR collection   
-  /// \param i index of fTrdSegment vector
-  /// \return pointer to TrdSegmentR object or 0
-  TrdHSegmentR * pTrdHSegment(unsigned int i);
-  TrdHTrackR(AMSTRDHTrack *ptr);
-  TrdHTrackR(){};
-  /// \param number index in container
-  /// \return human readable info about TrdTrackR
-  char * Info(int number=-1){
-    int np=0;
-    for(int i=0;i<NTrdHSegment();i++)np+=pTrdHSegment(i)->NTrdRawHit();
 
-    sprintf(_Info,"TrdHTrack No %d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits}=%d",number,Coo[0],Coo[1],Coo[2],Theta,Phi,Chi2,Nhits);
-    return _Info;
-  }
-
-
-  friend class AMSTRDHTrack;
-  friend class AMSEventR;
-  virtual ~TrdHTrackR(){};
-  ClassDef(TrdHTrackR,4)       //TrdHTrackR
-#pragma omp threadprivate(fgIsA)
-};
-*/
 
 /// Level1 trigger structure 
 /*!

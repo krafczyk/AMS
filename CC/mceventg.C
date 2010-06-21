@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.150 2010/06/14 09:59:35 pzuccon Exp $
+//  $Id: mceventg.C,v 1.151 2010/06/21 16:15:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -136,7 +136,10 @@ void AMSmceventg::gener(){
      number etot=_mom*_nucleons[xp]+_mass;
      _mom=sqrt(etot*etot-_mass*_mass);
 //     if(_ipart>50)cout <<"  got "<<_ipart<<" "<<_charge<<" "<<_mom<<" "<<_nucleons[xp]<<" "<<xp<<endl;     
-    } else if(CCFFKEY.low=7){
+    } 
+/*
+   not documented - removed by vc
+     else if(CCFFKEY.low=7){
       static int my_index=0;
       number mom_array[13]={0.5,1.,2.,5.,
 			    10.,20.,50.,
@@ -146,6 +149,7 @@ void AMSmceventg::gener(){
       _mom=mom_array[my_index++];
 
     }
+*/
     else{
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){
